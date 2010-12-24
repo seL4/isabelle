@@ -271,16 +271,6 @@ apply (rule obtain_principal_chain [of x])
 apply (simp add: admD [OF adm] P)
 done
 
-lemma principal_induct2:
-  "\<lbrakk>\<And>y. adm (\<lambda>x. P x y); \<And>x. adm (\<lambda>y. P x y);
-    \<And>a b. P (principal a) (principal b)\<rbrakk> \<Longrightarrow> P x y"
-apply (rule_tac x=y in spec)
-apply (rule_tac x=x in principal_induct, simp)
-apply (rule allI, rename_tac y)
-apply (rule_tac x=y in principal_induct, simp)
-apply simp
-done
-
 lemma compact_imp_principal: "compact x \<Longrightarrow> \<exists>a. x = principal a"
 apply (rule obtain_principal_chain [of x])
 apply (drule adm_compact_neq [OF _ cont_id])

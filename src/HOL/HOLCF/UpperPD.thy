@@ -154,12 +154,14 @@ by (simp add: upper_pd.extension_principal
 interpretation upper_add: semilattice upper_add proof
   fix xs ys zs :: "'a upper_pd"
   show "(xs \<union>\<sharp> ys) \<union>\<sharp> zs = xs \<union>\<sharp> (ys \<union>\<sharp> zs)"
-    apply (induct xs ys arbitrary: zs rule: upper_pd.principal_induct2, simp, simp)
-    apply (rule_tac x=zs in upper_pd.principal_induct, simp)
+    apply (induct xs rule: upper_pd.principal_induct, simp)
+    apply (induct ys rule: upper_pd.principal_induct, simp)
+    apply (induct zs rule: upper_pd.principal_induct, simp)
     apply (simp add: PDPlus_assoc)
     done
   show "xs \<union>\<sharp> ys = ys \<union>\<sharp> xs"
-    apply (induct xs ys rule: upper_pd.principal_induct2, simp, simp)
+    apply (induct xs rule: upper_pd.principal_induct, simp)
+    apply (induct ys rule: upper_pd.principal_induct, simp)
     apply (simp add: PDPlus_commute)
     done
   show "xs \<union>\<sharp> xs = xs"
@@ -183,7 +185,8 @@ lemmas upper_plus_aci =
   upper_plus_ac upper_plus_absorb upper_plus_left_absorb
 
 lemma upper_plus_below1: "xs \<union>\<sharp> ys \<sqsubseteq> xs"
-apply (induct xs ys rule: upper_pd.principal_induct2, simp, simp)
+apply (induct xs rule: upper_pd.principal_induct, simp)
+apply (induct ys rule: upper_pd.principal_induct, simp)
 apply (simp add: PDPlus_upper_le)
 done
 
@@ -240,12 +243,10 @@ unfolding upper_unit_strict [symmetric] by (rule upper_unit_eq_iff)
 
 lemma upper_plus_bottom_iff [simp]:
   "xs \<union>\<sharp> ys = \<bottom> \<longleftrightarrow> xs = \<bottom> \<or> ys = \<bottom>"
-apply (rule iffI)
-apply (erule rev_mp)
-apply (rule upper_pd.principal_induct2 [where x=xs and y=ys], simp, simp)
+apply (induct xs rule: upper_pd.principal_induct, simp)
+apply (induct ys rule: upper_pd.principal_induct, simp)
 apply (simp add: inst_upper_pd_pcpo upper_pd.principal_eq_iff
                  upper_le_PDPlus_PDUnit_iff)
-apply auto
 done
 
 lemma compact_upper_unit: "compact x \<Longrightarrow> compact {x}\<sharp>"
@@ -352,7 +353,8 @@ by (induct x rule: compact_basis.principal_induct, simp, simp)
 
 lemma upper_bind_plus [simp]:
   "upper_bind\<cdot>(xs \<union>\<sharp> ys)\<cdot>f = upper_bind\<cdot>xs\<cdot>f \<union>\<sharp> upper_bind\<cdot>ys\<cdot>f"
-by (induct xs ys rule: upper_pd.principal_induct2, simp, simp, simp)
+by (induct xs rule: upper_pd.principal_induct, simp,
+    induct ys rule: upper_pd.principal_induct, simp, simp)
 
 lemma upper_bind_strict [simp]: "upper_bind\<cdot>\<bottom>\<cdot>f = f\<cdot>\<bottom>"
 unfolding upper_unit_strict [symmetric] by (rule upper_bind_unit)

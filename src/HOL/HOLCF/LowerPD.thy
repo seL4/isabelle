@@ -156,12 +156,14 @@ by (simp add: lower_pd.extension_principal
 interpretation lower_add: semilattice lower_add proof
   fix xs ys zs :: "'a lower_pd"
   show "(xs \<union>\<flat> ys) \<union>\<flat> zs = xs \<union>\<flat> (ys \<union>\<flat> zs)"
-    apply (induct xs ys arbitrary: zs rule: lower_pd.principal_induct2, simp, simp)
-    apply (rule_tac x=zs in lower_pd.principal_induct, simp)
+    apply (induct xs rule: lower_pd.principal_induct, simp)
+    apply (induct ys rule: lower_pd.principal_induct, simp)
+    apply (induct zs rule: lower_pd.principal_induct, simp)
     apply (simp add: PDPlus_assoc)
     done
   show "xs \<union>\<flat> ys = ys \<union>\<flat> xs"
-    apply (induct xs ys rule: lower_pd.principal_induct2, simp, simp)
+    apply (induct xs rule: lower_pd.principal_induct, simp)
+    apply (induct ys rule: lower_pd.principal_induct, simp)
     apply (simp add: PDPlus_commute)
     done
   show "xs \<union>\<flat> xs = xs"
@@ -185,7 +187,8 @@ lemmas lower_plus_aci =
   lower_plus_ac lower_plus_absorb lower_plus_left_absorb
 
 lemma lower_plus_below1: "xs \<sqsubseteq> xs \<union>\<flat> ys"
-apply (induct xs ys rule: lower_pd.principal_induct2, simp, simp)
+apply (induct xs rule: lower_pd.principal_induct, simp)
+apply (induct ys rule: lower_pd.principal_induct, simp)
 apply (simp add: PDPlus_lower_le)
 done
 
@@ -357,7 +360,8 @@ by (induct x rule: compact_basis.principal_induct, simp, simp)
 
 lemma lower_bind_plus [simp]:
   "lower_bind\<cdot>(xs \<union>\<flat> ys)\<cdot>f = lower_bind\<cdot>xs\<cdot>f \<union>\<flat> lower_bind\<cdot>ys\<cdot>f"
-by (induct xs ys rule: lower_pd.principal_induct2, simp, simp, simp)
+by (induct xs rule: lower_pd.principal_induct, simp,
+    induct ys rule: lower_pd.principal_induct, simp, simp)
 
 lemma lower_bind_strict [simp]: "lower_bind\<cdot>\<bottom>\<cdot>f = f\<cdot>\<bottom>"
 unfolding lower_unit_strict [symmetric] by (rule lower_bind_unit)
