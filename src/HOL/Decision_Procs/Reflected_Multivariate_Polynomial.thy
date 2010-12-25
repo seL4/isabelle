@@ -321,7 +321,7 @@ by (induct p q rule: polyadd.induct, auto simp add: Let_def field_simps right_di
 lemma polyadd_norm: "\<lbrakk> isnpoly p ; isnpoly q\<rbrakk> \<Longrightarrow> isnpoly (polyadd(p,q))"
   using polyadd_normh[of "p" "0" "q" "0"] isnpoly_def by simp
 
-text{* The degree of addition and other general lemmas needed for the normal form of polymul*}
+text{* The degree of addition and other general lemmas needed for the normal form of polymul *}
 
 lemma polyadd_different_degreen: 
   "\<lbrakk>isnpolyh p n0 ; isnpolyh q n1; degreen p m \<noteq> degreen q m ; m \<le> min n0 n1\<rbrakk> \<Longrightarrow> 
@@ -598,9 +598,8 @@ proof(cases "headconst p = 0\<^sub>N", simp_all add: headconst_zero[OF np])
 qed
 
 
- 
+text{* polyneg is a negation and preserves normal forms *}
 
-text{* polyneg is a negation and preserves normal form *}
 lemma polyneg[simp]: "Ipoly bs (polyneg p) = - Ipoly bs p"
 by (induct p rule: polyneg.induct, auto)
 
@@ -615,7 +614,8 @@ lemma polyneg_norm: "isnpoly p \<Longrightarrow> isnpoly (polyneg p)"
   using isnpoly_def polyneg_normh by simp
 
 
-text{* polysub is a substraction and preserves normalform *}
+text{* polysub is a substraction and preserves normal forms *}
+
 lemma polysub[simp]: "Ipoly bs (polysub (p,q)) = (Ipoly bs p) - (Ipoly bs q)"
 by (simp add: polysub_def polyneg polyadd)
 lemma polysub_normh: "\<And> n0 n1. \<lbrakk> isnpolyh p n0 ; isnpolyh q n1\<rbrakk> \<Longrightarrow> isnpolyh (polysub(p,q)) (min n0 n1)"
@@ -651,6 +651,7 @@ lemma polysub_0:
   done
 
 text{* polypow is a power function and preserves normal forms *}
+
 lemma polypow[simp]: "Ipoly bs (polypow n p) = ((Ipoly bs p :: 'a::{field_char_0, field_inverse_zero})) ^ n"
 proof(induct n rule: polypow.induct)
   case 1 thus ?case by simp
@@ -699,7 +700,7 @@ lemma polypow_norm:
   shows "isnpoly p \<Longrightarrow> isnpoly (polypow k p)"
   by (simp add: polypow_normh isnpoly_def)
 
-text{* Finally the whole normalization*}
+text{* Finally the whole normalization *}
 
 lemma polynate[simp]: "Ipoly bs (polynate p) = (Ipoly bs p :: 'a ::{field_char_0, field_inverse_zero})"
 by (induct p rule:polynate.induct, auto)
@@ -759,7 +760,7 @@ lemma behead_isnpolyh:
   assumes np: "isnpolyh p n" shows "isnpolyh (behead p) n"
   using np by (induct p rule: behead.induct, auto simp add: Let_def isnpolyh_mono)
 
-subsection{* Miscilanious lemmas about indexes, decrementation, substitution  etc ... *}
+subsection{* Miscellaneous lemmas about indexes, decrementation, substitution  etc ... *}
 lemma isnpolyh_polybound0: "isnpolyh p (Suc n) \<Longrightarrow> polybound0 p"
 proof(induct p arbitrary: n rule: poly.induct, auto)
   case (goal1 c n p n')
@@ -840,8 +841,6 @@ qed simp_all
 
 lemma maxindex_coefficients: " \<forall>c\<in> set (coefficients p). maxindex c \<le> maxindex p"
 by (induct p rule: coefficients.induct, auto)
-
-lemma length_exists: "\<exists>xs. length xs = n" by (rule exI[where x="replicate n x"], simp)
 
 lemma wf_bs_I: "wf_bs bs p ==> Ipoly (bs@bs') p = Ipoly bs p"
   unfolding wf_bs_def by (induct p, auto simp add: nth_append)
@@ -1038,7 +1037,7 @@ proof(auto)
 qed
 
 
-text{* consequenses of unicity on the algorithms for polynomial normalization *}
+text{* consequences of unicity on the algorithms for polynomial normalization *}
 
 lemma polyadd_commute:   assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
   and np: "isnpolyh p n0" and nq: "isnpolyh q n1" shows "p +\<^sub>p q = q +\<^sub>p p"
@@ -1524,8 +1523,6 @@ qed
 subsection{* More about polypoly and pnormal etc *}
 
 definition "isnonconstant p = (\<not> isconstant p)"
-
-lemma last_map: "xs \<noteq> [] ==> last (map f xs) = f (last xs)" by (induct xs, auto)
 
 lemma isnonconstant_pnormal_iff: assumes nc: "isnonconstant p" 
   shows "pnormal (polypoly bs p) \<longleftrightarrow> Ipoly bs (head p) \<noteq> 0" 
