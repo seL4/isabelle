@@ -262,7 +262,7 @@ fun count_term (ATerm ((s, _), tms)) =
   (if is_atp_variable s then I
    else Symtab.map_entry s (Integer.add 1))
   #> fold count_term tms
-val count_formula = fold_formula count_term
+fun count_formula x = fold_formula count_term x
 
 val init_counters =
   metis_helpers |> map fst |> sort_distinct string_ord |> map (rpair 0)
