@@ -85,10 +85,14 @@ fun prepare_function is_external prep default_constraint fixspec eqns config lth
     val (eqs, post, sort_cont, cnames) = get_preproc lthy config ctxt' fixes spec
 
     val defname = mk_defname fixes
-    val FunctionConfig {partials, tailrec, ...} = config
+    val FunctionConfig {partials, tailrec, default, ...} = config
     val _ =
       if tailrec then Output.legacy_feature
         "'function (tailrec)' command. Use 'partial_function (tailrec)'."
+      else ()
+    val _ =
+      if is_some default then Output.legacy_feature
+        "'function (default)'. Use 'partial_function'."
       else ()
 
     val ((goal_state, cont), lthy') =

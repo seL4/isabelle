@@ -871,8 +871,9 @@ fun mk_trsimps octxt globals f G R f_def R_cases G_induct clauses psimps =
 
 fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy =
   let
-    val FunctionConfig {domintros, tailrec, default=default_str, ...} = config
+    val FunctionConfig {domintros, tailrec, default=default_opt, ...} = config
 
+    val default_str = the_default "%x. undefined" default_opt (*FIXME dynamic scoping*)
     val fvar = Free (fname, fT)
     val domT = domain_type fT
     val ranT = range_type fT

@@ -191,7 +191,7 @@ datatype function_opt
 
 datatype function_config = FunctionConfig of
  {sequential: bool,
-  default: string,
+  default: string option,
   domintros: bool,
   partials: bool,
   tailrec: bool}
@@ -199,7 +199,7 @@ datatype function_config = FunctionConfig of
 fun apply_opt Sequential (FunctionConfig {sequential, default, domintros, partials, tailrec}) =
     FunctionConfig {sequential=true, default=default, domintros=domintros, partials=partials, tailrec=tailrec}
   | apply_opt (Default d) (FunctionConfig {sequential, default, domintros, partials, tailrec}) =
-    FunctionConfig {sequential=sequential, default=d, domintros=domintros, partials=partials, tailrec=tailrec}
+    FunctionConfig {sequential=sequential, default=SOME d, domintros=domintros, partials=partials, tailrec=tailrec}
   | apply_opt DomIntros (FunctionConfig {sequential, default, domintros, partials, tailrec}) =
     FunctionConfig {sequential=sequential, default=default, domintros=true, partials=partials, tailrec=tailrec}
   | apply_opt Tailrec (FunctionConfig {sequential, default, domintros, partials, tailrec}) =
@@ -208,7 +208,7 @@ fun apply_opt Sequential (FunctionConfig {sequential, default, domintros, partia
     FunctionConfig {sequential=sequential, default=default, domintros=domintros, partials=false, tailrec=true}
 
 val default_config =
-  FunctionConfig { sequential=false, default="%x. undefined" (*FIXME dynamic scoping*), 
+  FunctionConfig { sequential=false, default=NONE,
     domintros=false, partials=true, tailrec=false }
 
 

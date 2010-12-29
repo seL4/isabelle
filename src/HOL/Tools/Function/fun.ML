@@ -136,7 +136,7 @@ val setup =
   Context.theory_map (Function_Common.set_preproc sequential_preproc)
 
 
-val fun_config = FunctionConfig { sequential=true, default="%x. undefined" (*FIXME dynamic scoping*), 
+val fun_config = FunctionConfig { sequential=true, default=NONE,
   domintros=false, partials=false, tailrec=false }
 
 fun gen_add_fun add fixes statements config lthy =
