@@ -330,7 +330,7 @@ fun thms_of all thy =
       (* andalso is_executable_thm thy th *))
     (map snd (filter_out is_forbidden_theorem (Mutabelle.all_unconcealed_thms_of thy)))
 
-val count = length oo filter o equal
+fun count x = (length oo filter o equal) x
 
 fun cpu_time description f =
   let
