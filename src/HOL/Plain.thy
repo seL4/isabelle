@@ -9,6 +9,6 @@ text {*
   include @{text Hilbert_Choice}.
 *}
 
-ML {* path_add "~~/src/HOL/Library" *}
+ML {* Thy_Load.legacy_path_add "~~/src/HOL/Library" *}
 
 end

@@ -84,6 +84,10 @@ INCOMPATIBILITY.
 floating-point notation that coincides with the inner syntax for
 float_token.
 
+* Theory loader: implicit load path is considered legacy.  Use
+explicit file specifications instead, relatively to the directory of
+the enclosing theory file.
+
 
 *** Pure ***
 

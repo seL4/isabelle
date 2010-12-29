@@ -780,8 +780,8 @@ fun changecwd_dir newdirpath =
    in
        (case (!current_working_dir) of
             NONE => ()
-          | SOME dir => Thy_Load.del_path dir;
-        Thy_Load.add_path newdir;
+          | SOME dir => Thy_Load.legacy_del_path dir;
+        Thy_Load.legacy_add_path newdir;
         current_working_dir := SOME newdir)
    end
 end

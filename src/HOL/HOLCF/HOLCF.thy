@@ -13,7 +13,7 @@ begin
 
 default_sort "domain"
 
-ML {* path_add "~~/src/HOL/HOLCF/Library" *}
+ML {* Thy_Load.legacy_path_add "~~/src/HOL/HOLCF/Library" *}
 
 text {* Legacy theorem names deprecated after Isabelle2009-2: *}
 

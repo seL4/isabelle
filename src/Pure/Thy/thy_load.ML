@@ -5,18 +5,8 @@ Loading files that contribute to a theory, including global load path
 management.
 *)
 
-signature BASIC_THY_LOAD =
-sig
-  val show_path: unit -> string list
-  val add_path: string -> unit
-  val path_add: string -> unit
-  val del_path: string -> unit
-  val reset_path: unit -> unit
-end;
-
 signature THY_LOAD =
 sig
-  include BASIC_THY_LOAD
   eqtype file_ident
   val pretty_file_ident: file_ident -> Pretty.T
   val file_ident: Path.T -> file_ident option
@@ -24,6 +14,11 @@ sig
   val get_master_path: unit -> Path.T
   val master_directory: theory -> Path.T
   val provide: Path.T * (Path.T * file_ident) -> theory -> theory
+  val legacy_show_path: unit -> string list
+  val legacy_add_path: string -> unit
+  val legacy_path_add: string -> unit
+  val legacy_del_path: string -> unit
+  val legacy_reset_path: unit -> unit
   val check_file: Path.T list -> Path.T -> Path.T * file_ident
   val check_thy: Path.T -> string -> Path.T * file_ident
   val deps_thy: Path.T -> string ->
@@ -131,18 +126,18 @@ local
   val master_path = Unsynchronized.ref Path.current;
 in
 
-fun show_path () = map Path.implode (Synchronized.value load_path);
+fun legacy_show_path () = map Path.implode (Synchronized.value load_path);
 
-fun del_path s = Synchronized.change load_path (remove (op =) (Path.explode s));
+fun legacy_del_path s = Synchronized.change load_path (remove (op =) (Path.explode s));
 
-fun add_path s = Synchronized.change load_path (update (op =) (Path.explode s));
+fun legacy_add_path s = Synchronized.change load_path (update (op =) (Path.explode s));
 
-fun path_add s =
+fun legacy_path_add s =
   Synchronized.change load_path (fn path =>
     let val p = Path.explode s
     in remove (op =) p path @ [p] end);
 
-fun reset_path () = Synchronized.change load_path (K [Path.current]);
+fun legacy_reset_path () = Synchronized.change load_path (K [Path.current]);
 
 fun search_path dir path =
   distinct (op =)
@@ -265,5 +260,3 @@ fun begin_theory dir name parents uses =
 
 end;
 
-structure Basic_Thy_Load: BASIC_THY_LOAD = Thy_Load;
-open Basic_Thy_Load;
