@@ -39,9 +39,9 @@ fun extract_relevance_fudge args
    ridiculous_threshold = get args "ridiculous_threshold" ridiculous_threshold}
 
 structure Prooftab =
-  Table(type key = int * int val ord = prod_ord int_ord int_ord);
+  Table(type key = int * int val ord = prod_ord int_ord int_ord)
 
-val proof_table = Unsynchronized.ref Prooftab.empty
+val proof_table = Unsynchronized.ref (Prooftab.empty: string list list Prooftab.table)
 
 val num_successes = Unsynchronized.ref ([] : (int * int) list)
 val num_failures = Unsynchronized.ref ([] : (int * int) list)
