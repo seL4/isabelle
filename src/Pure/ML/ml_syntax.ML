@@ -26,7 +26,7 @@ sig
   val print_sort: sort -> string
   val print_typ: typ -> string
   val print_term: term -> string
-  val pretty_string: string -> Pretty.T
+  val pretty_string: int -> string -> Pretty.T
 end;
 
 structure ML_Syntax: ML_SYNTAX =
@@ -99,12 +99,14 @@ fun print_term (Const arg) = "Const " ^ print_pair print_string print_typ arg
 
 (* toplevel pretty printing *)
 
-fun pretty_string raw_str =
+fun pretty_string max_len str =
   let
-    val str =
-      implode (map (fn XML.Elem _ => "<markup>" | XML.Text s => s) (YXML.parse_body raw_str))
-        handle Fail _ => raw_str;
-    val syms = Symbol.explode str;
-  in Pretty.str (quote (implode (map print_char syms))) end;
+    val body =
+      maps (fn XML.Elem _ => ["<markup>"] | XML.Text s => Symbol.explode s) (YXML.parse_body str)
+        handle Fail _ => Symbol.explode str;
+    val body' =
+      if length body <= max_len then body
+      else take max_len body @ ["..."];
+  in Pretty.str (quote (implode (map print_char body'))) end;
 
 end;
