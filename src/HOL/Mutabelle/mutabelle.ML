@@ -1,8 +1,9 @@
 (*  Title:      HOL/Mutabelle/mutabelle.ML
     Author:     Veronika Ortner, TU Muenchen
 
-    Mutation of theorems
+Mutation of theorems.
 *)
+
 signature MUTABELLE =
 sig
  val testgen_name : string Unsynchronized.ref
@@ -80,12 +81,9 @@ fun consts_of thy =
  end;
 
 
-(*helper function in order to properly print a term*)
+(*possibility to print a given term for debugging purposes*)
 
 fun prt x = Pretty.writeln (Syntax.pretty_term_global @{theory Main} x);
-
-
-(*possibility to print a given term for debugging purposes*)
 
 val debug = (Unsynchronized.ref false);
 fun debug_msg mutterm = if (!debug) then (prt mutterm) else ();
