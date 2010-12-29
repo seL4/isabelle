@@ -4,6 +4,9 @@
 Extra toplevel pretty-printing for Poly/ML 5.3.0.
 *)
 
+PolyML.addPrettyPrinter (fn depth => fn _ => fn str =>
+  ml_pretty (Pretty.to_ML (ML_Syntax.pretty_string (depth * 100) str)));
+
 PolyML.addPrettyPrinter (fn depth => fn pretty => fn var =>
   pretty (Synchronized.value var, depth));
 
