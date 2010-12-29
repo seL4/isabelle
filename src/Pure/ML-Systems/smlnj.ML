@@ -26,6 +26,8 @@ use "ML-Systems/use_context.ML";
 CM.autoload "$smlnj/init/init.cmi";
 val pointer_eq = InlineT.ptreql;
 
+fun share_common_data () = ();
+
 
 (* restore old-style character / string functions *)
 
