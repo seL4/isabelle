@@ -5,7 +5,7 @@
 header {* Simple examples for Efficient\_Nat theory. *}
 
 theory Efficient_Nat_examples
-imports Complex_Main Efficient_Nat
+imports Complex_Main "~~/src/HOL/Library/Efficient_Nat"
 begin
 
 fun to_n :: "nat \<Rightarrow> nat list" where

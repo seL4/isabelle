@@ -4,7 +4,7 @@
 *)
 
 theory Quickcheck_Lattice_Examples
-imports Quickcheck_Types
+imports "~~/src/HOL/Library/Quickcheck_Types"
 begin
 
 text {* We show how other default types help to find counterexamples to propositions if

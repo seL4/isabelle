@@ -5,7 +5,7 @@
 header {* An efficient checker for proofs from a SAT solver *}
 
 theory SatChecker
-imports RBT_Impl Sorted_List Imperative_HOL
+imports "~~/src/HOL/Library/RBT_Impl" Sorted_List Imperative_HOL
 begin
 
 section{* General settings and functions for our representation of clauses *}

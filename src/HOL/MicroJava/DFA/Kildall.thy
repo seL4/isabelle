@@ -6,7 +6,7 @@
 header {* \isaheader{Kildall's Algorithm}\label{sec:Kildall} *}
 
 theory Kildall
-imports SemilatAlg While_Combinator
+imports SemilatAlg "~~/src/HOL/Library/While_Combinator"
 begin
 
 primrec propa :: "'s binop \<Rightarrow> (nat \<times> 's) list \<Rightarrow> 's list \<Rightarrow> nat set \<Rightarrow> 's list * nat set" where

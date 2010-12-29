@@ -6,7 +6,7 @@
 header {* Weak normalization for simply-typed lambda calculus *}
 
 theory WeakNorm
-imports Type NormalForm Code_Integer
+imports Type NormalForm "~~/src/HOL/Library/Code_Integer"
 begin
 
 text {*

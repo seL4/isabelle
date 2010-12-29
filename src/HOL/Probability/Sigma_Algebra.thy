@@ -6,7 +6,13 @@
 
 header {* Sigma Algebras *}
 
-theory Sigma_Algebra imports Main Countable FuncSet Indicator_Function begin
+theory Sigma_Algebra
+imports
+  Main
+  "~~/src/HOL/Library/Countable"
+  "~~/src/HOL/Library/FuncSet"
+  "~~/src/HOL/Library/Indicator_Function"
+begin
 
 text {* Sigma algebras are an elementary concept in measure
   theory. To measure --- that is to integrate --- functions, we first have

@@ -5,7 +5,7 @@
 header {* Three Divides Theorem *}
 
 theory ThreeDivides
-imports Main LaTeXsugar
+imports Main "~~/src/HOL/Library/LaTeXsugar"
 begin
 
 subsection {* Abstract *}

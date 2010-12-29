@@ -6,7 +6,7 @@
 header {* Fundamental Theorem of Arithmetic (unique factorization into primes) *}
 
 theory Factorization
-imports Primes Permutation
+imports Primes "~~/src/HOL/Library/Permutation"
 begin
 
 

@@ -5,7 +5,7 @@
 header {*Finite Sets and Finite Sums*}
 
 theory Finite2
-imports IntFact Infinite_Set
+imports IntFact "~~/src/HOL/Library/Infinite_Set"
 begin
 
 text{*

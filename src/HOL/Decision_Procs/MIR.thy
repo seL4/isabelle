@@ -3,7 +3,7 @@
 *)
 
 theory MIR
-imports Complex_Main Dense_Linear_Order Efficient_Nat
+imports Complex_Main Dense_Linear_Order "~~/src/HOL/Library/Efficient_Nat"
 uses ("mir_tac.ML")
 begin
 

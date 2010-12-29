@@ -6,7 +6,7 @@
 *)
 
 theory LProd 
-imports Multiset
+imports "~~/src/HOL/Library/Multiset"
 begin
 
 inductive_set

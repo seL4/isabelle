@@ -5,7 +5,11 @@
 header {* An imperative implementation of Quicksort on arrays *}
 
 theory Imperative_Quicksort
-imports Imperative_HOL Subarray Multiset Efficient_Nat
+imports
+  Imperative_HOL
+  Subarray
+  "~~/src/HOL/Library/Multiset"
+  "~~/src/HOL/Library/Efficient_Nat"
 begin
 
 text {* We prove QuickSort correct in the Relational Calculus. *}

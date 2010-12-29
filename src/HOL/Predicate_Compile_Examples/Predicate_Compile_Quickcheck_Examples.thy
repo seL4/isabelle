@@ -1,5 +1,5 @@
 theory Predicate_Compile_Quickcheck_Examples
-imports Predicate_Compile_Quickcheck
+imports "~~/src/HOL/Library/Predicate_Compile_Quickcheck"
 begin
 
 section {* Sets *}

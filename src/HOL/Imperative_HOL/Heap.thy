@@ -5,7 +5,7 @@
 header {* A polymorphic heap based on cantor encodings *}
 
 theory Heap
-imports Main Countable
+imports Main "~~/src/HOL/Library/Countable"
 begin
 
 subsection {* Representable types *}

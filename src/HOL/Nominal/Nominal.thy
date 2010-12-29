@@ -1,5 +1,5 @@
 theory Nominal 
-imports Main Infinite_Set
+imports Main "~~/src/HOL/Library/Infinite_Set"
 uses
   ("nominal_thmdecls.ML")
   ("nominal_atoms.ML")

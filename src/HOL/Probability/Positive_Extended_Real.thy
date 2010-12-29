@@ -3,7 +3,7 @@
 header {* A type for positive real numbers with infinity *}
 
 theory Positive_Extended_Real
-  imports Complex_Main Nat_Bijection Multivariate_Analysis
+  imports Complex_Main "~~/src/HOL/Library/Nat_Bijection" Multivariate_Analysis
 begin
 
 lemma (in complete_lattice) Sup_start:

@@ -5,7 +5,9 @@
 
 header{*The Follows Relation of Charpentier and Sivilotte*}
 
-theory Follows imports SubstAx ListOrder Multiset begin
+theory Follows
+imports SubstAx ListOrder "~~/src/HOL/Library/Multiset"
+begin
 
 definition Follows :: "['a => 'b::{order}, 'a => 'b::{order}] => 'a program set" (infixl "Fols" 65) where
    "f Fols g == Increasing g \<inter> Increasing f Int

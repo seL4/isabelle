@@ -5,7 +5,7 @@
 header {* Examples for generic reflection and reification *}
 
 theory ReflectionEx
-imports Reflection
+imports "~~/src/HOL/Library/Reflection"
 begin
 
 text{* This theory presents two methods: reify and reflection *}

@@ -6,7 +6,7 @@
 header {* Examples and regression tests for automated termination proofs *}
  
 theory Termination
-imports Main Multiset
+imports Main "~~/src/HOL/Library/Multiset"
 begin
 
 subsection {* Manually giving termination relations using @{text relation} and

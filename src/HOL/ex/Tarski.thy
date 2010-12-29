@@ -1,12 +1,11 @@
 (*  Title:      HOL/ex/Tarski.thy
-    ID:         $Id$
     Author:     Florian Kammüller, Cambridge University Computer Laboratory
 *)
 
 header {* The Full Theorem of Tarski *}
 
 theory Tarski
-imports Main FuncSet
+imports Main "~~/src/HOL/Library/FuncSet"
 begin
 
 text {*

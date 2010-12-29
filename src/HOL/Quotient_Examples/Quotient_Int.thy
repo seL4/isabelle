@@ -5,7 +5,7 @@
 Integers based on Quotients, based on an older version by Larry Paulson.
 *)
 theory Quotient_Int
-imports Quotient_Product Nat
+imports "~~/src/HOL/Library/Quotient_Product" Nat
 begin
 
 fun

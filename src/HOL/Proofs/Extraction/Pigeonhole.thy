@@ -5,7 +5,7 @@
 header {* The pigeonhole principle *}
 
 theory Pigeonhole
-imports Util Efficient_Nat
+imports Util "~~/src/HOL/Library/Efficient_Nat"
 begin
 
 text {*

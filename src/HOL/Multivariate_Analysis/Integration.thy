@@ -4,7 +4,10 @@ header {* Kurzweil-Henstock Gauge Integration in many dimensions. *}
     Translation from HOL light: Robert Himmelmann, TU Muenchen *)
 
 theory Integration
-  imports Derivative "~~/src/HOL/Decision_Procs/Dense_Linear_Order" Indicator_Function
+imports
+  Derivative
+  "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
+  "~~/src/HOL/Library/Indicator_Function"
 begin
 
 declare [[smt_certificates="Integration.certs"]]

@@ -6,7 +6,7 @@ Testing Metis.
 *)
 
 theory Abstraction
-imports Main FuncSet
+imports Main "~~/src/HOL/Library/FuncSet"
 begin
 
 (*For Christoph Benzmueller*)

@@ -5,7 +5,10 @@
 header {* Definition of finite Cartesian product types. *}
 
 theory Finite_Cartesian_Product
-imports Inner_Product L2_Norm Numeral_Type
+imports
+  "~~/src/HOL/Library/Inner_Product"
+  L2_Norm
+  "~~/src/HOL/Library/Numeral_Type"
 begin
 
 subsection {* Finite Cartesian products, with indexing and lambdas. *}

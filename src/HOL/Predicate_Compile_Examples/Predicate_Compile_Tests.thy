@@ -1,5 +1,5 @@
 theory Predicate_Compile_Tests
-imports Predicate_Compile_Alternative_Defs
+imports "~~/src/HOL/Library/Predicate_Compile_Alternative_Defs"
 begin
 
 subsection {* Basic predicates *}

@@ -5,7 +5,7 @@
 header {* Slices of lists *}
 
 theory Sublist
-imports Multiset
+imports "~~/src/HOL/Library/Multiset"
 begin
 
 lemma sublist_split: "i \<le> j \<and> j \<le> k \<Longrightarrow> sublist xs {i..<j} @ sublist xs {j..<k} = sublist xs {i..<k}" 

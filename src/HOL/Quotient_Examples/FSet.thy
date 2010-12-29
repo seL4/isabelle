@@ -6,7 +6,7 @@
 *)
 
 theory FSet
-imports Quotient_List More_List
+imports "~~/src/HOL/Library/Quotient_List" "~~/src/HOL/Library/More_List"
 begin
 
 text {* 

@@ -5,7 +5,7 @@
 header {* Admissibility for streams *}
 
 theory Stream_adm
-imports Stream Continuity
+imports "~~/src/HOL/HOLCF/Library/Stream" "~~/src/HOL/Library/Continuity"
 begin
 
 definition

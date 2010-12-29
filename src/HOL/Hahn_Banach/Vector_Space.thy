@@ -5,7 +5,7 @@
 header {* Vector spaces *}
 
 theory Vector_Space
-imports Real Bounds Zorn
+imports Real Bounds "~~/src/HOL/Library/Zorn"
 begin
 
 subsection {* Signature *}

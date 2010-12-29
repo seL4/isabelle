@@ -4,5 +4,5 @@
 The nominal datatype package.
 *)
 
-no_document use_thys ["Infinite_Set"];
+no_document use_thys ["~~/src/HOL/Library/Infinite_Set"];
 use_thys ["Nominal"];

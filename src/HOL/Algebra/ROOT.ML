@@ -4,7 +4,12 @@ The Isabelle Algebraic Library.
 *)
 
 (* Preliminaries from set and number theory *)
-no_document use_thys ["FuncSet", "~~/src/HOL/Old_Number_Theory/Primes", "Binomial", "Permutation"];
+no_document use_thys [
+  "~~/src/HOL/Library/FuncSet",
+  "~~/src/HOL/Old_Number_Theory/Primes",
+  "~~/src/HOL/Library/Binomial",
+  "~~/src/HOL/Library/Permutation"
+];
 
 
 (*** New development, based on explicit structures ***)

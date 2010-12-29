@@ -6,7 +6,7 @@
 header {* Elementary topology in Euclidean space. *}
 
 theory Topology_Euclidean_Space
-imports SEQ Euclidean_Space Glbs
+imports SEQ Euclidean_Space "~~/src/HOL/Library/Glbs"
 begin
 
 (* to be moved elsewhere *)

@@ -3,7 +3,7 @@
 header {* A simple cookbook example how to eliminate choice in programs. *}
 
 theory Execute_Choice
-imports Main AssocList
+imports Main "~~/src/HOL/Library/AssocList"
 begin
 
 text {*

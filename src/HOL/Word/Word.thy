@@ -5,7 +5,11 @@
 header {* A type of finite bit strings *}
 
 theory Word
-imports Type_Length Misc_Typedef Boolean_Algebra Bool_List_Representation
+imports
+  Type_Length
+  Misc_Typedef
+  "~~/src/HOL/Library/Boolean_Algebra"
+  Bool_List_Representation
 uses ("~~/src/HOL/Word/Tools/smt_word.ML")
 begin
 

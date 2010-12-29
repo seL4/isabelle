@@ -7,7 +7,7 @@
 header{*The Message Theory, Modified for SET*}
 
 theory Message_SET
-imports Main Nat_Bijection
+imports Main "~~/src/HOL/Library/Nat_Bijection"
 begin
 
 subsection{*General Lemmas*}

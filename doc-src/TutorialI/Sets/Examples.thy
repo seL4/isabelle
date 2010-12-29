@@ -1,4 +1,4 @@
-theory Examples imports Main Binomial begin
+theory Examples imports Main "~~/src/HOL/Library/Binomial" begin
 
 declare [[eta_contract = false]]
 ML "Pretty.margin_default := 64"

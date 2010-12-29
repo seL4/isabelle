@@ -3,7 +3,7 @@
 header {* Formalization of a Countermeasure by Koepf & Duermuth 2009 *}
 
 theory Koepf_Duermuth_Countermeasure
-  imports Information Permutation
+  imports Information "~~/src/HOL/Library/Permutation"
 begin
 
 lemma

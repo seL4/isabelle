@@ -4,7 +4,7 @@
 header{*Theory of smartcards*}
 
 theory Smartcard
-imports EventSC All_Symmetric
+imports EventSC "../All_Symmetric"
 begin
 
 text{*  

@@ -6,7 +6,7 @@ exponent p s   yields the greatest power of p that divides s.
 *)
 
 theory Exponent
-imports Main "~~/src/HOL/Old_Number_Theory/Primes" Binomial
+imports Main "~~/src/HOL/Old_Number_Theory/Primes" "~~/src/HOL/Library/Binomial"
 begin
 
 section {*Sylow's Theorem*}

@@ -8,7 +8,7 @@ Testing Metis.
 header {* The Full Theorem of Tarski *}
 
 theory Tarski
-imports Main FuncSet
+imports Main "~~/src/HOL/Library/FuncSet"
 begin
 
 (*Many of these higher-order problems appear to be impossible using the

@@ -5,7 +5,7 @@
 header {* Profinite and bifinite cpos *}
 
 theory Bifinite
-imports Map_Functions Countable
+imports Map_Functions "~~/src/HOL/Library/Countable"
 begin
 
 default_sort cpo

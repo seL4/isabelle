@@ -99,7 +99,7 @@ L1)             (? f. is_f f ) --> (? g. def_g g)  (trivial)
 *)
 
 theory Focus_ex
-imports Stream
+imports "~~/src/HOL/HOLCF/Library/Stream"
 begin
 
 typedecl ('a, 'b) tc

@@ -8,7 +8,11 @@ Testing Metis.
 header {* Big O notation *}
 
 theory BigO
-imports "~~/src/HOL/Decision_Procs/Dense_Linear_Order" Main Function_Algebras Set_Algebras
+imports
+  "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
+  Main
+  "~~/src/HOL/Library/Function_Algebras"
+  "~~/src/HOL/Library/Set_Algebras"
 begin
 
 subsection {* Definitions *}

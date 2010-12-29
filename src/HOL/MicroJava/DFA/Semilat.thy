@@ -9,7 +9,7 @@ header {*
 *}
 
 theory Semilat
-imports Main While_Combinator
+imports Main "~~/src/HOL/Library/While_Combinator"
 begin
 
 types 

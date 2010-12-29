@@ -12,7 +12,7 @@
 header {* UniqueFactorization *}
 
 theory UniqueFactorization
-imports Cong Multiset
+imports Cong "~~/src/HOL/Library/Multiset"
 begin
 
 (* inherited from Multiset *)

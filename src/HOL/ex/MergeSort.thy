@@ -6,7 +6,7 @@
 header{*Merge Sort*}
 
 theory MergeSort
-imports Multiset
+imports "~~/src/HOL/Library/Multiset"
 begin
 
 context linorder

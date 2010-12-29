@@ -1,5 +1,5 @@
 theory Hotel_Example_Small_Generator
-imports Hotel_Example Predicate_Compile_Alternative_Defs
+imports Hotel_Example "~~/src/HOL/Library/Predicate_Compile_Alternative_Defs"
 uses "~~/src/HOL/Tools/Predicate_Compile/predicate_compile_quickcheck.ML"
 begin
 

@@ -5,7 +5,7 @@
 header {* Bounds *}
 
 theory Bounds
-imports Main ContNotDenum
+imports Main "~~/src/HOL/Library/ContNotDenum"
 begin
 
 locale lub =

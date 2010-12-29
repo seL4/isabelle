@@ -4,7 +4,7 @@
 header {* Comparing growth of functions on natural numbers by a preorder relation *}
 
 theory Landau
-imports Main Preorder
+imports Main "~~/src/HOL/Library/Preorder"
 begin
 
 text {*

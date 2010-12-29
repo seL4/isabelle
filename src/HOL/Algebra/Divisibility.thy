@@ -5,7 +5,7 @@ Based on work by Stephan Hohe.
 *)
 
 theory Divisibility
-imports Permutation Coset Group
+imports "~~/src/HOL/Library/Permutation" Coset Group
 begin
 
 section {* Factorial Monoids *}

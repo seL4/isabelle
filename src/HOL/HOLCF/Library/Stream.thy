@@ -5,7 +5,7 @@
 header {* General Stream domain *}
 
 theory Stream
-imports HOLCF Nat_Infinity
+imports HOLCF "~~/src/HOL/Library/Nat_Infinity"
 begin
 
 default_sort pcpo

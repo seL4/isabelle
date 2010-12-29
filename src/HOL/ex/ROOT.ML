@@ -4,9 +4,9 @@ Miscellaneous examples for Higher-Order Logic.
 *)
 
 no_document use_thys [
-  "State_Monad",
+  "~~/src/HOL/Library/State_Monad",
   "Efficient_Nat_examples",
-  "FuncSet",
+  "~~/src/HOL/Library/FuncSet",
   "Eval_Examples",
   "Normalization_by_Evaluation",
   "Hebrew",

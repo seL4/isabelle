@@ -1,6 +1,6 @@
 (*<*)
 theory Sugar
-imports LaTeXsugar OptionalSugar
+imports "~~/src/HOL/Library/LaTeXsugar" "~~/src/HOL/Library/OptionalSugar"
 begin
 (*>*)
 

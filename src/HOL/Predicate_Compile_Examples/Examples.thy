@@ -1,5 +1,5 @@
 theory Examples
-imports Main Predicate_Compile_Alternative_Defs
+imports Main "~~/src/HOL/Library/Predicate_Compile_Alternative_Defs"
 begin
 
 section {* Formal Languages *}

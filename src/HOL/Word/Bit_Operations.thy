@@ -5,7 +5,7 @@
 header {* Syntactic classes for bitwise operations *}
 
 theory Bit_Operations
-imports Bit
+imports "~~/src/HOL/Library/Bit"
 begin
 
 class bit =

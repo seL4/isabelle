@@ -1,5 +1,5 @@
 theory Setup
-imports Main Code_Integer
+imports Main "~~/src/HOL/Library/Code_Integer"
 uses
   "../../antiquote_setup.ML"
   "../../more_antiquote.ML"

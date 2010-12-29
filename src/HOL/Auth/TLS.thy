@@ -40,7 +40,7 @@ Notes A {|Agent B, Nonce PMS|}.
 
 header{*The TLS Protocol: Transport Layer Security*}
 
-theory TLS imports Public Nat_Bijection begin
+theory TLS imports Public "~~/src/HOL/Library/Nat_Bijection" begin
 
 definition certificate :: "[agent,key] => msg" where
     "certificate A KA == Crypt (priSK Server) {|Agent A, Key KA|}"

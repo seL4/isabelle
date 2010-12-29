@@ -5,7 +5,10 @@
 header {* A monad with a polymorphic heap and primitive reasoning infrastructure *}
 
 theory Heap_Monad
-imports Heap Monad_Syntax Code_Natural
+imports
+  Heap
+  "~~/src/HOL/Library/Monad_Syntax"
+  "~~/src/HOL/Library/Code_Natural"
 begin
 
 subsection {* The monad *}

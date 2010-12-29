@@ -7,7 +7,7 @@
 header{*Sorting: Basic Theory*}
 
 theory Sorting
-imports Main Multiset
+imports Main "~~/src/HOL/Library/Multiset"
 begin
 
 consts

@@ -6,7 +6,7 @@
 header {* Convex sets, functions and related things. *}
 
 theory Convex_Euclidean_Space
-imports Topology_Euclidean_Space Convex Set_Algebras
+imports Topology_Euclidean_Space Convex "~~/src/HOL/Library/Set_Algebras"
 begin
 
 

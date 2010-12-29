@@ -4,7 +4,12 @@
 header {* Prove Real Valued Inequalities by Computation *}
 
 theory Approximation
-imports Complex_Main Float Reflection "~~/src/HOL/Decision_Procs/Dense_Linear_Order" Efficient_Nat
+imports
+  Complex_Main
+  "~~/src/HOL/Library/Float"
+  "~~/src/HOL/Library/Reflection"
+  "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
+  "~~/src/HOL/Library/Efficient_Nat"
 begin
 
 section "Horner Scheme"

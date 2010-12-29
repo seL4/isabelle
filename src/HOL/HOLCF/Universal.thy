@@ -5,7 +5,7 @@
 header {* A universal bifinite domain *}
 
 theory Universal
-imports Bifinite Completion Nat_Bijection
+imports Bifinite Completion "~~/src/HOL/Library/Nat_Bijection"
 begin
 
 subsection {* Basis for universal domain *}

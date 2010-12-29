@@ -6,7 +6,7 @@
 header {* Higman's lemma *}
 
 theory Higman
-imports Main State_Monad Random
+imports Main "~~/src/HOL/Library/State_Monad" Random
 begin
 
 text {*

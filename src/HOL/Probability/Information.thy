@@ -1,5 +1,8 @@
 theory Information
-imports Probability_Space Convex Lebesgue_Measure
+imports
+  Probability_Space
+  "~~/src/HOL/Library/Convex"
+  Lebesgue_Measure
 begin
 
 lemma log_le: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> x \<le> y \<Longrightarrow> log a x \<le> log a y"

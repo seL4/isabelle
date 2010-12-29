@@ -5,7 +5,10 @@
 header {* Unix file-systems \label{sec:unix-file-system} *}
 
 theory Unix
-imports Main Nested_Environment List_Prefix
+imports
+  Main
+  "~~/src/HOL/Library/Nested_Environment"
+  "~~/src/HOL/Library/List_Prefix"
 begin
 
 text {*

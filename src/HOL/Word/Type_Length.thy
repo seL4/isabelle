@@ -5,7 +5,7 @@
 header {* Assigning lengths to types by typeclasses *}
 
 theory Type_Length
-imports Numeral_Type
+imports "~~/src/HOL/Library/Numeral_Type"
 begin
 
 text {*

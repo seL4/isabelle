@@ -8,7 +8,7 @@
 header {* Basic Definitions for Binary Integers *}
 
 theory Bit_Representation
-imports Misc_Numeric Bit
+imports Misc_Numeric "~~/src/HOL/Library/Bit"
 begin
 
 subsection {* Further properties of numerals *}

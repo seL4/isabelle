@@ -7,7 +7,7 @@
 header{*Nonstandard Complex Numbers*}
 
 theory NSComplex
-imports Complex "../Hyperreal/NSA"
+imports Complex NSA
 begin
 
 types hcomplex = "complex star"

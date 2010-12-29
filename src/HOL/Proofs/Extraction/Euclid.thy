@@ -7,7 +7,10 @@
 header {* Euclid's theorem *}
 
 theory Euclid
-imports "~~/src/HOL/Number_Theory/UniqueFactorization" Util Efficient_Nat
+imports
+  "~~/src/HOL/Number_Theory/UniqueFactorization"
+  Util
+  "~~/src/HOL/Library/Efficient_Nat"
 begin
 
 text {*
