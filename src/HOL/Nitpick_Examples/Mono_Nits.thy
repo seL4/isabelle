@@ -34,7 +34,7 @@ val user_nondefs =
 val intro_table = inductive_intro_table ctxt subst def_table
 val ground_thm_table = ground_theorem_table thy
 val ersatz_table = ersatz_table ctxt
-val hol_ctxt as {thy, ...} =
+val hol_ctxt as {thy, ...} : hol_context =
   {thy = thy, ctxt = ctxt, max_bisim_depth = ~1, boxes = [],
    stds = stds, wfs = [], user_axioms = NONE, debug = false,
    whacks = [], binary_ints = SOME false, destroy_constrs = true,
