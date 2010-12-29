@@ -71,7 +71,7 @@ fun mk_scheme' ctxt cases concl =
       end
 
     val (branches, cases') = (* correction *)
-      case Logic.dest_conjunction_list concl of
+      case Logic.dest_conjunctions concl of
         [conc] =>
         let
           val _ $ Pxs = Logic.strip_assums_concl conc
