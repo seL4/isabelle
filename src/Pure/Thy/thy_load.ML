@@ -165,13 +165,19 @@ fun get_file dirs src_path =
       let val full_path = File.full_path (Path.append dir path) in
         (case file_ident full_path of
           NONE => NONE
-        | SOME id => SOME (full_path, id))
+        | SOME id => SOME (dir, (full_path, id)))
       end)
   end;
 
 fun check_file dirs file =
   (case get_file dirs file of
-    SOME path_id => path_id
+    SOME (_, path_id) =>
+     (if is_some (get_file [hd dirs] file) then ()
+      else
+        legacy_feature ("File " ^ quote (Path.implode file) ^
+          " located via secondary search path: " ^
+          quote (Path.implode (#1 (the (get_file (tl dirs) file)))));
+      path_id)
   | NONE => error ("Could not find file " ^ quote (Path.implode file) ^
       "\nin " ^ commas_quote (map Path.implode dirs)));
 
@@ -219,7 +225,7 @@ fun all_current thy =
     fun current (src_path, (_, id)) =
       (case get_file [master_dir] src_path of
         NONE => false
-      | SOME (_, id') => id = id');
+      | SOME (_, (_, id')) => id = id');
   in can check_loaded thy andalso forall current provided end;
 
 val _ = Context.>> (Context.map_theory (Theory.at_end (fn thy => (check_loaded thy; NONE))));
