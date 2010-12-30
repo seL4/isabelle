@@ -37,8 +37,6 @@ end;
 structure Datatype_Data: DATATYPE_DATA =
 struct
 
-open Datatype_Aux;
-
 (** theory data **)
 
 (* data management *)
@@ -46,9 +44,9 @@ open Datatype_Aux;
 structure DatatypesData = Theory_Data
 (
   type T =
-    {types: info Symtab.table,
-     constrs: (string * info) list Symtab.table,
-     cases: info Symtab.table};
+    {types: Datatype_Aux.info Symtab.table,
+     constrs: (string * Datatype_Aux.info) list Symtab.table,
+     cases: Datatype_Aux.info Symtab.table};
 
   val empty =
     {types = Symtab.empty, constrs = Symtab.empty, cases = Symtab.empty};
@@ -85,7 +83,7 @@ fun info_of_constr thy (c, T) =
 
 val info_of_case = Symtab.lookup o #cases o DatatypesData.get;
 
-fun register (dt_infos : (string * info) list) =
+fun register (dt_infos : (string * Datatype_Aux.info) list) =
   DatatypesData.map (fn {types, constrs, cases} =>
     {types = types |> fold Symtab.update dt_infos,
      constrs = constrs |> fold (fn (constr, dtname_info) =>
@@ -116,13 +114,15 @@ fun the_descr thy (raw_tycos as raw_tyco :: _) =
 
     val SOME (_, dtys, _) = AList.lookup (op =) descr (#index info);
     val vs = map ((fn v => (v, (the o AList.lookup (op =) (#sorts info)) v))
-      o dest_DtTFree) dtys;
+      o Datatype_Aux.dest_DtTFree) dtys;
 
-    fun is_DtTFree (DtTFree _) = true
+    fun is_DtTFree (Datatype_Aux.DtTFree _) = true
       | is_DtTFree _ = false
     val k = find_index (fn (_, (_, dTs, _)) => not (forall is_DtTFree dTs)) descr;
-    val protoTs as (dataTs, _) = chop k descr
-      |> (pairself o map) (fn (_, (tyco, dTs, _)) => (tyco, map (typ_of_dtyp descr vs) dTs));
+    val protoTs as (dataTs, _) =
+      chop k descr
+      |> (pairself o map)
+        (fn (_, (tyco, dTs, _)) => (tyco, map (Datatype_Aux.typ_of_dtyp descr vs) dTs));
     
     val tycos = map fst dataTs;
     val _ = if eq_set (op =) (tycos, raw_tycos) then ()
@@ -133,7 +133,7 @@ fun the_descr thy (raw_tycos as raw_tyco :: _) =
 
     val names = map Long_Name.base_name (the_default tycos (#alt_names info));
     val (auxnames, _) = Name.make_context names
-      |> fold_map (yield_singleton Name.variants o name_of_typ) Us;
+      |> fold_map (yield_singleton Name.variants o Datatype_Aux.name_of_typ) Us;
     val prefix = space_implode "_" names;
 
   in (descr, vs, tycos, prefix, (names, auxnames), (Ts, Us)) end;
@@ -186,11 +186,11 @@ fun cert_typ sign raw_T sorts =
 
 local
 
-fun dt_recs (DtTFree _) = []
-  | dt_recs (DtType (_, dts)) = maps dt_recs dts
-  | dt_recs (DtRec i) = [i];
+fun dt_recs (Datatype_Aux.DtTFree _) = []
+  | dt_recs (Datatype_Aux.DtType (_, dts)) = maps dt_recs dts
+  | dt_recs (Datatype_Aux.DtRec i) = [i];
 
-fun dt_cases (descr: descr) (_, args, constrs) =
+fun dt_cases (descr: Datatype_Aux.descr) (_, args, constrs) =
   let
     fun the_bname i = Long_Name.base_name (#1 (the (AList.lookup (op =) descr i)));
     val bnames = map the_bname (distinct (op =) (maps dt_recs args));
@@ -264,7 +264,7 @@ val _ = Thy_Output.antiquotation "datatype" (Args.type_name true)
 (** abstract theory extensions relative to a datatype characterisation **)
 
 structure Datatype_Interpretation = Interpretation
-  (type T = config * string list val eq: T * T -> bool = eq_snd op =);
+  (type T = Datatype_Aux.config * string list val eq: T * T -> bool = eq_snd op =);
 fun interpretation f = Datatype_Interpretation.interpretation (uncurry f);
 
 fun make_dt_info alt_names descr sorts induct inducts rec_names rec_rewrites
@@ -297,7 +297,9 @@ fun derive_datatype_props config dt_names alt_names descr sorts
     val thy2 = thy1 |> Theory.checkpoint;
     val flat_descr = flat descr;
     val new_type_names = map Long_Name.base_name (the_default dt_names alt_names);
-    val _ = message config ("Deriving properties for datatype(s) " ^ commas_quote new_type_names);
+    val _ =
+      Datatype_Aux.message config
+        ("Deriving properties for datatype(s) " ^ commas_quote new_type_names);
 
     val (exhaust, thy3) = Datatype_Abs_Proofs.prove_casedist_thms config new_type_names
       descr sorts induct (mk_case_names_exhausts flat_descr dt_names) thy2;
@@ -305,7 +307,7 @@ fun derive_datatype_props config dt_names alt_names descr sorts
       descr sorts exhaust thy3;
     val ((rec_names, rec_rewrites), thy5) = Datatype_Abs_Proofs.prove_primrec_thms
       config new_type_names descr sorts (#inject o the o Symtab.lookup (get_all thy4))
-      inject (distinct, all_distincts thy2 (get_rec_types flat_descr sorts))
+      inject (distinct, all_distincts thy2 (Datatype_Aux.get_rec_types flat_descr sorts))
       induct thy4;
     val ((case_rewrites, case_names), thy6) = Datatype_Abs_Proofs.prove_case_thms
       config new_type_names descr sorts rec_names rec_rewrites thy5;
@@ -363,8 +365,8 @@ fun prove_rep_datatype config dt_names alt_names descr sorts
     val prfx = Binding.qualify true (space_implode "_" new_type_names);
     val (((inject, distinct), [induct]), thy2) =
       thy1
-      |> store_thmss "inject" new_type_names raw_inject
-      ||>> store_thmss "distinct" new_type_names raw_distinct
+      |> Datatype_Aux.store_thmss "inject" new_type_names raw_inject
+      ||>> Datatype_Aux.store_thmss "distinct" new_type_names raw_distinct
       ||>> Global_Theory.add_thms
         [((prfx (Binding.name "induct"), raw_induct),
           [mk_case_names_induct descr])];
@@ -411,11 +413,11 @@ fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
 
     val cs = map (apsnd (map norm_constr)) raw_cs;
     val dtyps_of_typ =
-      map (dtyp_of_typ (map (rpair (map fst vs) o fst) cs)) o binder_types;
+      map (Datatype_Aux.dtyp_of_typ (map (rpair (map fst vs) o fst) cs)) o binder_types;
     val dt_names = map fst cs;
 
     fun mk_spec (i, (tyco, constr)) = (i, (tyco,
-      map (DtTFree o fst) vs,
+      map (Datatype_Aux.DtTFree o fst) vs,
       (map o apsnd) dtyps_of_typ constr))
     val descr = map_index mk_spec cs;
     val injs = Datatype_Prop.make_injs [descr] vs;
@@ -441,7 +443,7 @@ fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
   end;
 
 val rep_datatype = gen_rep_datatype Sign.cert_term;
-val rep_datatype_cmd = gen_rep_datatype Syntax.read_term_global default_config (K I);
+val rep_datatype_cmd = gen_rep_datatype Syntax.read_term_global Datatype_Aux.default_config (K I);
 
 
 
@@ -462,5 +464,8 @@ val _ =
       Scan.repeat1 Parse.term
       >> (fn (alt_names, ts) =>
         Toplevel.print o Toplevel.theory_to_proof (rep_datatype_cmd alt_names ts)));
+
+
+open Datatype_Aux;
 
 end;

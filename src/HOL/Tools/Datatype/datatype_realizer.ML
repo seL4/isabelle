@@ -14,8 +14,6 @@ end;
 structure Datatype_Realizer : DATATYPE_REALIZER =
 struct
 
-open Datatype_Aux;
-
 fun subsets i j =
   if i <= j then
     let val is = subsets (i+1) j
@@ -30,9 +28,9 @@ fun is_unit t = body_type (fastype_of t) = HOLogic.unitT;
 fun tname_of (Type (s, _)) = s
   | tname_of _ = "";
 
-fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy =
+fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : Datatype_Aux.info) is thy =
   let
-    val recTs = get_rec_types descr sorts;
+    val recTs = Datatype_Aux.get_rec_types descr sorts;
     val pnames = if length descr = 1 then ["P"]
       else map (fn i => "P" ^ string_of_int i) (1 upto length descr);
 
@@ -51,16 +49,16 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
     val (prems, rec_fns) = split_list (flat (fst (fold_map
       (fn ((i, (_, _, constrs)), T) => fold_map (fn (cname, cargs) => fn j =>
         let
-          val Ts = map (typ_of_dtyp descr sorts) cargs;
+          val Ts = map (Datatype_Aux.typ_of_dtyp descr sorts) cargs;
           val tnames = Name.variant_list pnames (Datatype_Prop.make_tnames Ts);
-          val recs = filter (is_rec_type o fst o fst) (cargs ~~ tnames ~~ Ts);
+          val recs = filter (Datatype_Aux.is_rec_type o fst o fst) (cargs ~~ tnames ~~ Ts);
           val frees = tnames ~~ Ts;
 
           fun mk_prems vs [] =
                 let
                   val rT = nth (rec_result_Ts) i;
                   val vs' = filter_out is_unit vs;
-                  val f = mk_Free "f" (map fastype_of vs' ---> rT) j;
+                  val f = Datatype_Aux.mk_Free "f" (map fastype_of vs' ---> rT) j;
                   val f' = Envir.eta_contract (list_abs_free
                     (map dest_Free vs, if member (op =) is i then list_comb (f, vs')
                       else HOLogic.unit));
@@ -69,7 +67,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
                 end
             | mk_prems vs (((dt, s), T) :: ds) =
                 let
-                  val k = body_index dt;
+                  val k = Datatype_Aux.body_index dt;
                   val (Us, U) = strip_type T;
                   val i = length Us;
                   val rT = nth (rec_result_Ts) k;
@@ -77,8 +75,8 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
                   val (p, f) = mk_prems (vs @ [r]) ds
                 in (mk_all k ("r" ^ s) (Us ---> rT) (Logic.mk_implies
                   (list_all (map (pair "x") Us, HOLogic.mk_Trueprop
-                    (make_pred k rT U (app_bnds r i)
-                      (app_bnds (Free (s, T)) i))), p)), f)
+                    (make_pred k rT U (Datatype_Aux.app_bnds r i)
+                      (Datatype_Aux.app_bnds (Free (s, T)) i))), p)), f)
                 end
 
         in (apfst (curry list_all_free frees) (mk_prems (map Free frees) recs), j + 1) end)
@@ -154,7 +152,8 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : info) is thy
   in Extraction.add_realizers_i [(ind_name, (vs, r', prf))] thy' end;
 
 
-fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaust, ...} : info) thy =
+fun make_casedists sorts
+    ({index, descr, case_name, case_rewrites, exhaust, ...} : Datatype_Aux.info) thy =
   let
     val cert = cterm_of thy;
     val rT = TFree ("'P", HOLogic.typeS);
@@ -162,7 +161,7 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaust, ...}
 
     fun make_casedist_prem T (cname, cargs) =
       let
-        val Ts = map (typ_of_dtyp descr sorts) cargs;
+        val Ts = map (Datatype_Aux.typ_of_dtyp descr sorts) cargs;
         val frees = Name.variant_list ["P", "y"] (Datatype_Prop.make_tnames Ts) ~~ Ts;
         val free_ts = map Free frees;
         val r = Free ("r" ^ Long_Name.base_name cname, Ts ---> rT)
@@ -173,7 +172,7 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaust, ...}
       end;
 
     val SOME (_, _, constrs) = AList.lookup (op =) descr index;
-    val T = List.nth (get_rec_types descr sorts, index);
+    val T = List.nth (Datatype_Aux.get_rec_types descr sorts, index);
     val (rs, prems) = split_list (map (make_casedist_prem T) constrs);
     val r = Const (case_name, map fastype_of rs ---> T --> rT);
 
@@ -218,7 +217,7 @@ fun add_dt_realizers config names thy =
   if ! Proofterm.proofs < 2 then thy
   else
     let
-      val _ = message config "Adding realizers for induction and case analysis ..."
+      val _ = Datatype_Aux.message config "Adding realizers for induction and case analysis ...";
       val infos = map (Datatype.the_info thy) names;
       val info :: _ = infos;
     in
