@@ -149,8 +149,6 @@ fun add_all_code config tycos thy =
 
 (** SML code generator **)
 
-open Codegen;
-
 (* datatype definition *)
 
 fun add_dt_defs thy defs dep module descr sorts gr =
@@ -161,38 +159,38 @@ fun add_dt_defs thy defs dep module descr sorts gr =
 
     val (_, (tname, _, _)) :: _ = descr';
     val node_id = tname ^ " (type)";
-    val module' = if_library (thyname_of_type thy tname) module;
+    val module' = Codegen.if_library (Codegen.thyname_of_type thy tname) module;
 
     fun mk_dtdef prfx [] gr = ([], gr)
       | mk_dtdef prfx ((_, (tname, dts, cs))::xs) gr =
           let
             val tvs = map Datatype_Aux.dest_DtTFree dts;
             val cs' = map (apsnd (map (Datatype_Aux.typ_of_dtyp descr sorts))) cs;
-            val ((_, type_id), gr') = mk_type_id module' tname gr;
+            val ((_, type_id), gr') = Codegen.mk_type_id module' tname gr;
             val (ps, gr'') = gr' |>
               fold_map (fn (cname, cargs) =>
-                fold_map (invoke_tycodegen thy defs node_id module' false)
+                fold_map (Codegen.invoke_tycodegen thy defs node_id module' false)
                   cargs ##>>
-                mk_const_id module' cname) cs';
+                Codegen.mk_const_id module' cname) cs';
             val (rest, gr''') = mk_dtdef "and " xs gr''
           in
-            (Pretty.block (str prfx ::
+            (Pretty.block (Codegen.str prfx ::
                (if null tvs then [] else
-                  [mk_tuple (map str tvs), str " "]) @
-               [str (type_id ^ " ="), Pretty.brk 1] @
-               flat (separate [Pretty.brk 1, str "| "]
+                  [Codegen.mk_tuple (map Codegen.str tvs), Codegen.str " "]) @
+               [Codegen.str (type_id ^ " ="), Pretty.brk 1] @
+               flat (separate [Pretty.brk 1, Codegen.str "| "]
                  (map (fn (ps', (_, cname)) => [Pretty.block
-                   (str cname ::
+                   (Codegen.str cname ::
                     (if null ps' then [] else
-                     flat ([str " of", Pretty.brk 1] ::
-                       separate [str " *", Pretty.brk 1]
+                     flat ([Codegen.str " of", Pretty.brk 1] ::
+                       separate [Codegen.str " *", Pretty.brk 1]
                          (map single ps'))))]) ps))) :: rest, gr''')
           end;
 
     fun mk_constr_term cname Ts T ps =
-      flat (separate [str " $", Pretty.brk 1]
-        ([str ("Const (\"" ^ cname ^ "\","), Pretty.brk 1,
-          mk_type false (Ts ---> T), str ")"] :: ps));
+      flat (separate [Codegen.str " $", Pretty.brk 1]
+        ([Codegen.str ("Const (\"" ^ cname ^ "\","), Pretty.brk 1,
+          Codegen.mk_type false (Ts ---> T), Codegen.str ")"] :: ps));
 
     fun mk_term_of_def gr prfx [] = []
       | mk_term_of_def gr prfx ((_, (tname, dts, cs)) :: xs) =
@@ -203,16 +201,16 @@ fun add_dt_defs thy defs dep module descr sorts gr =
             val rest = mk_term_of_def gr "and " xs;
             val (eqs, _) = fold_map (fn (cname, Ts) => fn prfx =>
               let val args = map (fn i =>
-                str ("x" ^ string_of_int i)) (1 upto length Ts)
+                Codegen.str ("x" ^ string_of_int i)) (1 upto length Ts)
               in (Pretty.blk (4,
-                [str prfx, mk_term_of gr module' false T, Pretty.brk 1,
-                 if null Ts then str (snd (get_const_id gr cname))
-                 else parens (Pretty.block
-                   [str (snd (get_const_id gr cname)),
-                    Pretty.brk 1, mk_tuple args]),
-                 str " =", Pretty.brk 1] @
+                [Codegen.str prfx, Codegen.mk_term_of gr module' false T, Pretty.brk 1,
+                 if null Ts then Codegen.str (snd (Codegen.get_const_id gr cname))
+                 else Codegen.parens (Pretty.block
+                   [Codegen.str (snd (Codegen.get_const_id gr cname)),
+                    Pretty.brk 1, Codegen.mk_tuple args]),
+                 Codegen.str " =", Pretty.brk 1] @
                  mk_constr_term cname Ts T
-                   (map2 (fn x => fn U => [Pretty.block [mk_term_of gr module' false U,
+                   (map2 (fn x => fn U => [Pretty.block [Codegen.mk_term_of gr module' false U,
                       Pretty.brk 1, x]]) args Ts)), "  | ")
               end) cs' prfx
           in eqs @ rest end;
@@ -228,95 +226,96 @@ fun add_dt_defs thy defs dep module descr sorts gr =
             val SOME (cname, _) = Datatype_Aux.find_shortest_path descr i;
 
             fun mk_delay p = Pretty.block
-              [str "fn () =>", Pretty.brk 1, p];
+              [Codegen.str "fn () =>", Pretty.brk 1, p];
 
-            fun mk_force p = Pretty.block [p, Pretty.brk 1, str "()"];
+            fun mk_force p = Pretty.block [p, Pretty.brk 1, Codegen.str "()"];
 
             fun mk_constr s b (cname, dts) =
               let
-                val gs = map (fn dt => mk_app false (mk_gen gr module' false rtnames s
-                    (Datatype_Aux.typ_of_dtyp descr sorts dt))
-                  [str (if b andalso Datatype_Aux.is_rec_type dt then "0"
+                val gs = map (fn dt => Codegen.mk_app false
+                    (Codegen.mk_gen gr module' false rtnames s
+                      (Datatype_Aux.typ_of_dtyp descr sorts dt))
+                  [Codegen.str (if b andalso Datatype_Aux.is_rec_type dt then "0"
                      else "j")]) dts;
                 val Ts = map (Datatype_Aux.typ_of_dtyp descr sorts) dts;
-                val xs = map str
+                val xs = map Codegen.str
                   (Datatype_Prop.indexify_names (replicate (length dts) "x"));
-                val ts = map str
+                val ts = map Codegen.str
                   (Datatype_Prop.indexify_names (replicate (length dts) "t"));
-                val (_, id) = get_const_id gr cname
+                val (_, id) = Codegen.get_const_id gr cname;
               in
-                mk_let
-                  (map2 (fn p => fn q => mk_tuple [p, q]) xs ts ~~ gs)
-                  (mk_tuple
+                Codegen.mk_let
+                  (map2 (fn p => fn q => Codegen.mk_tuple [p, q]) xs ts ~~ gs)
+                  (Codegen.mk_tuple
                     [case xs of
                        _ :: _ :: _ => Pretty.block
-                         [str id, Pretty.brk 1, mk_tuple xs]
-                     | _ => mk_app false (str id) xs,
+                         [Codegen.str id, Pretty.brk 1, Codegen.mk_tuple xs]
+                     | _ => Codegen.mk_app false (Codegen.str id) xs,
                      mk_delay (Pretty.block (mk_constr_term cname Ts T
                        (map (single o mk_force) ts)))])
               end;
 
             fun mk_choice [c] = mk_constr "(i-1)" false c
-              | mk_choice cs = Pretty.block [str "one_of",
-                  Pretty.brk 1, Pretty.blk (1, str "[" ::
-                  flat (separate [str ",", Pretty.fbrk]
+              | mk_choice cs = Pretty.block [Codegen.str "one_of",
+                  Pretty.brk 1, Pretty.blk (1, Codegen.str "[" ::
+                  flat (separate [Codegen.str ",", Pretty.fbrk]
                     (map (single o mk_delay o mk_constr "(i-1)" false) cs)) @
-                  [str "]"]), Pretty.brk 1, str "()"];
+                  [Codegen.str "]"]), Pretty.brk 1, Codegen.str "()"];
 
             val gs = maps (fn s =>
-              let val s' = strip_tname s
-              in [str (s' ^ "G"), str (s' ^ "T")] end) tvs;
-            val gen_name = "gen_" ^ snd (get_type_id gr tname)
+              let val s' = Codegen.strip_tname s
+              in [Codegen.str (s' ^ "G"), Codegen.str (s' ^ "T")] end) tvs;
+            val gen_name = "gen_" ^ snd (Codegen.get_type_id gr tname)
 
           in
             Pretty.blk (4, separate (Pretty.brk 1) 
-                (str (prfx ^ gen_name ^
+                (Codegen.str (prfx ^ gen_name ^
                    (if null cs1 then "" else "'")) :: gs @
-                 (if null cs1 then [] else [str "i"]) @
-                 [str "j"]) @
-              [str " =", Pretty.brk 1] @
+                 (if null cs1 then [] else [Codegen.str "i"]) @
+                 [Codegen.str "j"]) @
+              [Codegen.str " =", Pretty.brk 1] @
               (if not (null cs1) andalso not (null cs2)
-               then [str "frequency", Pretty.brk 1,
-                 Pretty.blk (1, [str "[",
-                   mk_tuple [str "i", mk_delay (mk_choice cs1)],
-                   str ",", Pretty.fbrk,
-                   mk_tuple [str "1", mk_delay (mk_choice cs2)],
-                   str "]"]), Pretty.brk 1, str "()"]
+               then [Codegen.str "frequency", Pretty.brk 1,
+                 Pretty.blk (1, [Codegen.str "[",
+                   Codegen.mk_tuple [Codegen.str "i", mk_delay (mk_choice cs1)],
+                   Codegen.str ",", Pretty.fbrk,
+                   Codegen.mk_tuple [Codegen.str "1", mk_delay (mk_choice cs2)],
+                   Codegen.str "]"]), Pretty.brk 1, Codegen.str "()"]
                else if null cs2 then
-                 [Pretty.block [str "(case", Pretty.brk 1,
-                   str "i", Pretty.brk 1, str "of",
-                   Pretty.brk 1, str "0 =>", Pretty.brk 1,
+                 [Pretty.block [Codegen.str "(case", Pretty.brk 1,
+                   Codegen.str "i", Pretty.brk 1, Codegen.str "of",
+                   Pretty.brk 1, Codegen.str "0 =>", Pretty.brk 1,
                    mk_constr "0" true (cname, the (AList.lookup (op =) cs cname)),
-                   Pretty.brk 1, str "| _ =>", Pretty.brk 1,
-                   mk_choice cs1, str ")"]]
+                   Pretty.brk 1, Codegen.str "| _ =>", Pretty.brk 1,
+                   mk_choice cs1, Codegen.str ")"]]
                else [mk_choice cs2])) ::
             (if null cs1 then []
              else [Pretty.blk (4, separate (Pretty.brk 1) 
-                 (str ("and " ^ gen_name) :: gs @ [str "i"]) @
-               [str " =", Pretty.brk 1] @
-               separate (Pretty.brk 1) (str (gen_name ^ "'") :: gs @
-                 [str "i", str "i"]))]) @
+                 (Codegen.str ("and " ^ gen_name) :: gs @ [Codegen.str "i"]) @
+               [Codegen.str " =", Pretty.brk 1] @
+               separate (Pretty.brk 1) (Codegen.str (gen_name ^ "'") :: gs @
+                 [Codegen.str "i", Codegen.str "i"]))]) @
             mk_gen_of_def gr "and " xs
           end
 
   in
-    (module', (add_edge_acyclic (node_id, dep) gr
+    (module', (Codegen.add_edge_acyclic (node_id, dep) gr
         handle Graph.CYCLES _ => gr) handle Graph.UNDEF _ =>
          let
-           val gr1 = add_edge (node_id, dep)
-             (new_node (node_id, (NONE, "", "")) gr);
+           val gr1 = Codegen.add_edge (node_id, dep)
+             (Codegen.new_node (node_id, (NONE, "", "")) gr);
            val (dtdef, gr2) = mk_dtdef "datatype " descr' gr1 ;
          in
-           map_node node_id (K (NONE, module',
-             string_of (Pretty.blk (0, separate Pretty.fbrk dtdef @
-               [str ";"])) ^ "\n\n" ^
-             (if member (op =) (!mode) "term_of" then
-                string_of (Pretty.blk (0, separate Pretty.fbrk
-                  (mk_term_of_def gr2 "fun " descr') @ [str ";"])) ^ "\n\n"
+           Codegen.map_node node_id (K (NONE, module',
+             Codegen.string_of (Pretty.blk (0, separate Pretty.fbrk dtdef @
+               [Codegen.str ";"])) ^ "\n\n" ^
+             (if member (op =) (! Codegen.mode) "term_of" then
+                Codegen.string_of (Pretty.blk (0, separate Pretty.fbrk
+                  (mk_term_of_def gr2 "fun " descr') @ [Codegen.str ";"])) ^ "\n\n"
               else "") ^
-             (if member (op =) (!mode) "test" then
-                string_of (Pretty.blk (0, separate Pretty.fbrk
-                  (mk_gen_of_def gr2 "fun " descr') @ [str ";"])) ^ "\n\n"
+             (if member (op =) (! Codegen.mode) "test" then
+                Codegen.string_of (Pretty.blk (0, separate Pretty.fbrk
+                  (mk_gen_of_def gr2 "fun " descr') @ [Codegen.str ";"])) ^ "\n\n"
               else ""))) gr2
          end)
   end;
@@ -327,7 +326,7 @@ fun add_dt_defs thy defs dep module descr sorts gr =
 fun pretty_case thy defs dep module brack constrs (c as Const (_, T)) ts gr =
   let val i = length constrs
   in if length ts <= i then
-       invoke_codegen thy defs dep module brack (eta_expand c ts (i+1)) gr
+       Codegen.invoke_codegen thy defs dep module brack (Codegen.eta_expand c ts (i+1)) gr
     else
       let
         val ts1 = take i ts;
@@ -343,23 +342,23 @@ fun pretty_case thy defs dep module brack constrs (c as Const (_, T)) ts gr =
                 val xs = Name.variant_list names (replicate j "x");
                 val Us' = take j (binder_types U);
                 val frees = map2 (curry Free) xs Us';
-                val (cp, gr0) = invoke_codegen thy defs dep module false
+                val (cp, gr0) = Codegen.invoke_codegen thy defs dep module false
                   (list_comb (Const (cname, Us' ---> dT), frees)) gr;
                 val t' = Envir.beta_norm (list_comb (t, frees));
-                val (p, gr1) = invoke_codegen thy defs dep module false t' gr0;
+                val (p, gr1) = Codegen.invoke_codegen thy defs dep module false t' gr0;
                 val (ps, gr2) = pcase cs ts Us gr1;
               in
-                ([Pretty.block [cp, str " =>", Pretty.brk 1, p]] :: ps, gr2)
+                ([Pretty.block [cp, Codegen.str " =>", Pretty.brk 1, p]] :: ps, gr2)
               end;
 
         val (ps1, gr1) = pcase constrs ts1 Ts gr ;
-        val ps = flat (separate [Pretty.brk 1, str "| "] ps1);
-        val (p, gr2) = invoke_codegen thy defs dep module false t gr1;
-        val (ps2, gr3) = fold_map (invoke_codegen thy defs dep module true) ts2 gr2;
-      in ((if not (null ts2) andalso brack then parens else I)
+        val ps = flat (separate [Pretty.brk 1, Codegen.str "| "] ps1);
+        val (p, gr2) = Codegen.invoke_codegen thy defs dep module false t gr1;
+        val (ps2, gr3) = fold_map (Codegen.invoke_codegen thy defs dep module true) ts2 gr2;
+      in ((if not (null ts2) andalso brack then Codegen.parens else I)
         (Pretty.block (separate (Pretty.brk 1)
-          (Pretty.block ([str "(case ", p, str " of",
-             Pretty.brk 1] @ ps @ [str ")"]) :: ps2))), gr3)
+          (Pretty.block ([Codegen.str "(case ", p, Codegen.str " of",
+             Pretty.brk 1] @ ps @ [Codegen.str ")"]) :: ps2))), gr3)
       end
   end;
 
@@ -369,16 +368,17 @@ fun pretty_case thy defs dep module brack constrs (c as Const (_, T)) ts gr =
 fun pretty_constr thy defs dep module brack args (c as Const (s, T)) ts gr =
   let val i = length args
   in if i > 1 andalso length ts < i then
-      invoke_codegen thy defs dep module brack (eta_expand c ts i) gr
+      Codegen.invoke_codegen thy defs dep module brack (Codegen.eta_expand c ts i) gr
      else
        let
-         val id = mk_qual_id module (get_const_id gr s);
+         val id = Codegen.mk_qual_id module (Codegen.get_const_id gr s);
          val (ps, gr') = fold_map
-           (invoke_codegen thy defs dep module (i = 1)) ts gr;
-       in (case args of
-          _ :: _ :: _ => (if brack then parens else I)
-            (Pretty.block [str id, Pretty.brk 1, mk_tuple ps])
-        | _ => (mk_app brack (str id) ps), gr')
+           (Codegen.invoke_codegen thy defs dep module (i = 1)) ts gr;
+       in
+        (case args of
+          _ :: _ :: _ => (if brack then Codegen.parens else I)
+            (Pretty.block [Codegen.str id, Pretty.brk 1, Codegen.mk_tuple ps])
+        | _ => (Codegen.mk_app brack (Codegen.str id) ps), gr')
        end
   end;
 
@@ -390,14 +390,14 @@ fun datatype_codegen thy defs dep module brack t gr =
     (c as Const (s, T), ts) =>
       (case Datatype_Data.info_of_case thy s of
         SOME {index, descr, ...} =>
-          if is_some (get_assoc_code thy (s, T)) then NONE
+          if is_some (Codegen.get_assoc_code thy (s, T)) then NONE
           else
             SOME (pretty_case thy defs dep module brack
               (#3 (the (AList.lookup op = descr index))) c ts gr)
       | NONE =>
           (case (Datatype_Data.info_of_constr thy (s, T), body_type T) of
             (SOME {index, descr, ...}, U as Type (tyname, _)) =>
-              if is_some (get_assoc_code thy (s, T)) then NONE
+              if is_some (Codegen.get_assoc_code thy (s, T)) then NONE
               else
                 let
                   val SOME (tyname', _, constrs) = AList.lookup op = descr index;
@@ -408,7 +408,7 @@ fun datatype_codegen thy defs dep module brack t gr =
                     SOME
                       (pretty_constr thy defs
                         dep module brack args c ts
-                        (snd (invoke_tycodegen thy defs dep module false U gr)))
+                        (snd (Codegen.invoke_tycodegen thy defs dep module false U gr)))
                 end
           | _ => NONE))
   | _ => NONE);
@@ -417,15 +417,15 @@ fun datatype_tycodegen thy defs dep module brack (Type (s, Ts)) gr =
       (case Datatype_Data.get_info thy s of
          NONE => NONE
        | SOME {descr, sorts, ...} =>
-           if is_some (get_assoc_type thy s) then NONE else
+           if is_some (Codegen.get_assoc_type thy s) then NONE else
            let
              val (ps, gr') = fold_map
-               (invoke_tycodegen thy defs dep module false) Ts gr;
+               (Codegen.invoke_tycodegen thy defs dep module false) Ts gr;
              val (module', gr'') = add_dt_defs thy defs dep module descr sorts gr' ;
-             val (tyid, gr''') = mk_type_id module' s gr''
+             val (tyid, gr''') = Codegen.mk_type_id module' s gr''
            in SOME (Pretty.block ((if null Ts then [] else
-               [mk_tuple ps, str " "]) @
-               [str (mk_qual_id module tyid)]), gr''')
+               [Codegen.mk_tuple ps, Codegen.str " "]) @
+               [Codegen.str (Codegen.mk_qual_id module tyid)]), gr''')
            end)
   | datatype_tycodegen _ _ _ _ _ _ _ = NONE;
 
@@ -434,7 +434,7 @@ fun datatype_tycodegen thy defs dep module brack (Type (s, Ts)) gr =
 
 val setup = 
   Datatype_Data.interpretation add_all_code
-  #> add_codegen "datatype" datatype_codegen
-  #> add_tycodegen "datatype" datatype_tycodegen;
+  #> Codegen.add_codegen "datatype" datatype_codegen
+  #> Codegen.add_tycodegen "datatype" datatype_tycodegen;
 
 end;
