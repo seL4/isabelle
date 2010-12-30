@@ -205,14 +205,6 @@ exception CANTUNIFY;  (*Signals non-unifiability.  Does not signal errors!*)
 exception ASSIGN;  (*Raised if not an assignment*)
 
 
-fun self_asgt (ix,(_,TVar (ix',_))) = (ix = ix')
-  | self_asgt (ix, _) = false;
-
-fun check_tyenv msg tys tyenv = 
-  if Vartab.exists self_asgt tyenv
-  then raise TYPE (msg ^ ": looping type envir!!", tys, []) 
-  else tyenv;
-
 fun unify_types thy (T, U, env) =
   if T = U then env
   else
@@ -472,8 +464,8 @@ type flarg = {t: term, T: typ, j: int};
 fun flexargs ([], [], []) = [] : flarg list
   | flexargs (j :: js, t :: ts, T :: Ts) = {j = j, t = t, T = T} :: flexargs (js, ts, Ts)
   | flexargs _ = raise CHANGE_FAIL;
-(*We give up if we see a variable of function type not applied to a full list of 
-  arguments (remember, this code assumes that terms are fully eta-expanded).  This situation 
+(*We give up if we see a variable of function type not applied to a full list of
+  arguments (remember, this code assumes that terms are fully eta-expanded).  This situation
   can occur if a type variable is instantiated with a function type.
 *)
 
@@ -527,7 +519,7 @@ fun clean_term banned (env,t) =
     val (Var (v, T), ts) = strip_comb t;
     val (Ts, U) = strip_type env T
     and js = length ts - 1  downto 0;
-    val args = sort (make_ord arg_less) (List.foldr (change_arg banned) [] (flexargs (js, ts, Ts))) 
+    val args = sort (make_ord arg_less) (List.foldr (change_arg banned) [] (flexargs (js, ts, Ts)))
     val ts' = map #t args;
   in
     if decreasing (length Ts) args then (env, (list_comb (Var (v, T), ts')))
@@ -690,7 +682,7 @@ fun first_order_matchers thy pairs (Envir.Envir {maxidx, tenv, tyenv}) =
   in Seq.single (Envir.Envir {maxidx = maxidx, tenv = tenv', tyenv = tyenv'}) end
   handle Pattern.MATCH => Seq.empty;
 
-(*General matching -- keeps variables disjoint*)
+(*General matching -- keep variables disjoint*)
 fun matchers _ [] = Seq.single (Envir.empty ~1)
   | matchers thy pairs =
       let
@@ -711,20 +703,29 @@ fun matchers _ [] = Seq.single (Envir.empty ~1)
             if i > maxidx then Var ((x, i - offset), T) else t | t => t);
 
         fun norm_tvar env ((x, i), S) =
-          ((x, i - offset),
-            (S, decr_indexesT (Envir.norm_type (Envir.type_env env) (TVar ((x, i), S)))));
+          let
+            val tyenv = Envir.type_env env;
+            val T' = Envir.norm_type tyenv (TVar ((x, i), S));
+          in
+            if (case T' of TVar (v, _) => v = (x, i) | _ => false) then NONE
+            else SOME ((x, i - offset), (S, decr_indexesT T'))
+          end;
+
         fun norm_var env ((x, i), T) =
           let
             val tyenv = Envir.type_env env;
             val T' = Envir.norm_type tyenv T;
             val t' = Envir.norm_term env (Var ((x, i), T'));
-          in ((x, i - offset), (decr_indexesT T', decr_indexes t')) end;
+          in
+            if (case t' of Var (v, _) => v = (x, i) | _ => false) then NONE
+            else SOME ((x, i - offset), (decr_indexesT T', decr_indexes t'))
+          end;
 
         fun result env =
           if Envir.above env maxidx then   (* FIXME proper handling of generated vars!? *)
             SOME (Envir.Envir {maxidx = maxidx,
-              tyenv = Vartab.make (filter_out self_asgt (map (norm_tvar env) pat_tvars)),
-              tenv = Vartab.make (map (norm_var env) pat_vars)})
+              tyenv = Vartab.make (map_filter (norm_tvar env) pat_tvars),
+              tenv = Vartab.make (map_filter (norm_var env) pat_vars)})
           else NONE;
 
         val empty = Envir.empty maxidx';
