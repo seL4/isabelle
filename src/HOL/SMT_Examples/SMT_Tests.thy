@@ -652,71 +652,71 @@ lemma
 subsubsection {* Records *}
 
 record point =
-  x :: int
-  y :: int
+  cx :: int
+  cy :: int
 
 record bw_point = point +
   black :: bool
 
 lemma
-  "p1 = p2 \<longrightarrow> x p1 = x p2"
-  "p1 = p2 \<longrightarrow> y p1 = y p2"
-  "x p1 \<noteq> x p2 \<longrightarrow> p1 \<noteq> p2"
-  "y p1 \<noteq> y p2 \<longrightarrow> p1 \<noteq> p2"
+  "p1 = p2 \<longrightarrow> cx p1 = cx p2"
+  "p1 = p2 \<longrightarrow> cy p1 = cy p2"
+  "cx p1 \<noteq> cx p2 \<longrightarrow> p1 \<noteq> p2"
+  "cy p1 \<noteq> cy p2 \<longrightarrow> p1 \<noteq> p2"
   using point.simps
   by smt+
 
 lemma
-  "x \<lparr> x = 3, y = 4 \<rparr> = 3"
-  "y \<lparr> x = 3, y = 4 \<rparr> = 4"
-  "x \<lparr> x = 3, y = 4 \<rparr> \<noteq> y \<lparr> x = 3, y = 4 \<rparr>"
-  "\<lparr> x = 3, y = 4 \<rparr> \<lparr> x := 5 \<rparr> = \<lparr> x = 5, y = 4 \<rparr>"
-  "\<lparr> x = 3, y = 4 \<rparr> \<lparr> y := 6 \<rparr> = \<lparr> x = 3, y = 6 \<rparr>"
-  "p = \<lparr> x = 3, y = 4 \<rparr> \<longrightarrow> p \<lparr> x := 3 \<rparr> \<lparr> y := 4 \<rparr> = p"
-  "p = \<lparr> x = 3, y = 4 \<rparr> \<longrightarrow> p \<lparr> y := 4 \<rparr> \<lparr> x := 3 \<rparr> = p"
+  "cx \<lparr> cx = 3, cy = 4 \<rparr> = 3"
+  "cy \<lparr> cx = 3, cy = 4 \<rparr> = 4"
+  "cx \<lparr> cx = 3, cy = 4 \<rparr> \<noteq> cy \<lparr> cx = 3, cy = 4 \<rparr>"
+  "\<lparr> cx = 3, cy = 4 \<rparr> \<lparr> cx := 5 \<rparr> = \<lparr> cx = 5, cy = 4 \<rparr>"
+  "\<lparr> cx = 3, cy = 4 \<rparr> \<lparr> cy := 6 \<rparr> = \<lparr> cx = 3, cy = 6 \<rparr>"
+  "p = \<lparr> cx = 3, cy = 4 \<rparr> \<longrightarrow> p \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> = p"
+  "p = \<lparr> cx = 3, cy = 4 \<rparr> \<longrightarrow> p \<lparr> cy := 4 \<rparr> \<lparr> cx := 3 \<rparr> = p"
   using point.simps
   using [[z3_options="AUTO_CONFIG=false"]]
   by smt+
 
 lemma
-  "y (p \<lparr> x := a \<rparr>) = y p"
-  "x (p \<lparr> y := a \<rparr>) = x p"
-  "p \<lparr> x := 3 \<rparr> \<lparr> y := 4 \<rparr> = p \<lparr> y := 4 \<rparr> \<lparr> x := 3 \<rparr>"
+  "cy (p \<lparr> cx := a \<rparr>) = cy p"
+  "cx (p \<lparr> cy := a \<rparr>) = cx p"
+  "p \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> = p \<lparr> cy := 4 \<rparr> \<lparr> cx := 3 \<rparr>"
   sorry
 
 lemma
-  "p1 = p2 \<longrightarrow> x p1 = x p2"
-  "p1 = p2 \<longrightarrow> y p1 = y p2"
+  "p1 = p2 \<longrightarrow> cx p1 = cx p2"
+  "p1 = p2 \<longrightarrow> cy p1 = cy p2"
   "p1 = p2 \<longrightarrow> black p1 = black p2"
-  "x p1 \<noteq> x p2 \<longrightarrow> p1 \<noteq> p2"
-  "y p1 \<noteq> y p2 \<longrightarrow> p1 \<noteq> p2"
+  "cx p1 \<noteq> cx p2 \<longrightarrow> p1 \<noteq> p2"
+  "cy p1 \<noteq> cy p2 \<longrightarrow> p1 \<noteq> p2"
   "black p1 \<noteq> black p2 \<longrightarrow> p1 \<noteq> p2"
   using point.simps bw_point.simps
   by smt+
 
 lemma
-  "x \<lparr> x = 3, y = 4, black = b \<rparr> = 3"
-  "y \<lparr> x = 3, y = 4, black = b \<rparr> = 4"
-  "black \<lparr> x = 3, y = 4, black = b \<rparr> = b"
-  "x \<lparr> x = 3, y = 4, black = b \<rparr> \<noteq> y \<lparr> x = 3, y = 4, black = b \<rparr>"
-  "\<lparr> x = 3, y = 4, black = b \<rparr> \<lparr> x := 5 \<rparr> = \<lparr> x = 5, y = 4, black = b \<rparr>"
-  "\<lparr> x = 3, y = 4, black = b \<rparr> \<lparr> y := 6 \<rparr> = \<lparr> x = 3, y = 6, black = b \<rparr>"
-  "\<lparr> x = 3, y = 4, black = b \<rparr> \<lparr> black := w \<rparr> = \<lparr> x = 3, y = 4, black = w \<rparr>"
-  "\<lparr> x = 3, y = 4, black = True \<rparr> \<lparr> black := False \<rparr> =
-     \<lparr> x = 3, y = 4, black = False \<rparr>"
-  "p = \<lparr> x = 3, y = 4, black = True \<rparr> \<longrightarrow>
-     p \<lparr> x := 3 \<rparr> \<lparr> y := 4 \<rparr> \<lparr> black := True \<rparr> = p"
-  "p = \<lparr> x = 3, y = 4, black = True \<rparr> \<longrightarrow>
-     p \<lparr> y := 4 \<rparr> \<lparr> black := True \<rparr> \<lparr> x := 3 \<rparr> = p"
-  "p = \<lparr> x = 3, y = 4, black = True \<rparr> \<longrightarrow>
-     p \<lparr> black := True \<rparr> \<lparr> x := 3 \<rparr> \<lparr> y := 4 \<rparr> = p"
+  "cx \<lparr> cx = 3, cy = 4, black = b \<rparr> = 3"
+  "cy \<lparr> cx = 3, cy = 4, black = b \<rparr> = 4"
+  "black \<lparr> cx = 3, cy = 4, black = b \<rparr> = b"
+  "cx \<lparr> cx = 3, cy = 4, black = b \<rparr> \<noteq> cy \<lparr> cx = 3, cy = 4, black = b \<rparr>"
+  "\<lparr> cx = 3, cy = 4, black = b \<rparr> \<lparr> cx := 5 \<rparr> = \<lparr> cx = 5, cy = 4, black = b \<rparr>"
+  "\<lparr> cx = 3, cy = 4, black = b \<rparr> \<lparr> cy := 6 \<rparr> = \<lparr> cx = 3, cy = 6, black = b \<rparr>"
+  "p = \<lparr> cx = 3, cy = 4, black = True \<rparr> \<longrightarrow>
+     p \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> \<lparr> black := True \<rparr> = p"
+  "p = \<lparr> cx = 3, cy = 4, black = True \<rparr> \<longrightarrow>
+     p \<lparr> cy := 4 \<rparr> \<lparr> black := True \<rparr> \<lparr> cx := 3 \<rparr> = p"
+  "p = \<lparr> cx = 3, cy = 4, black = True \<rparr> \<longrightarrow>
+     p \<lparr> black := True \<rparr> \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> = p"
   using point.simps bw_point.simps
   using [[z3_options="AUTO_CONFIG=false"]]
   by smt+
 
 lemma
-  "p \<lparr> x := 3 \<rparr> \<lparr> y := 4 \<rparr> \<lparr> black := True \<rparr> =
-     p \<lparr> black := True \<rparr> \<lparr> y := 4 \<rparr> \<lparr> x := 3 \<rparr>"
+  "\<lparr> cx = 3, cy = 4, black = b \<rparr> \<lparr> black := w \<rparr> = \<lparr> cx = 3, cy = 4, black = w \<rparr>"
+  "\<lparr> cx = 3, cy = 4, black = True \<rparr> \<lparr> black := False \<rparr> =
+     \<lparr> cx = 3, cy = 4, black = False \<rparr>"
+  "p \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> \<lparr> black := True \<rparr> =
+     p \<lparr> black := True \<rparr> \<lparr> cy := 4 \<rparr> \<lparr> cx := 3 \<rparr>"
   sorry
 
 
@@ -729,7 +729,7 @@ definition n2 where "n2 = Abs_three 2"
 definition n3 where "n3 = Abs_three 3"
 definition nplus where "nplus n m = Abs_three (Rep_three n + Rep_three m)"
 
-lemma three_def': "(x \<in> three) = (x = 1 \<or> x = 2 \<or> x = 3)"
+lemma three_def': "(n \<in> three) = (n = 1 \<or> n = 2 \<or> n = 3)"
   by (auto simp add: three_def)
 
 lemma
@@ -790,72 +790,75 @@ lemma
 subsubsection {* Records *}
 
 lemma
-  "p1 = p2 \<longrightarrow> x p1 = x p2"
-  "p1 = p2 \<longrightarrow> y p1 = y p2"
-  "x p1 \<noteq> x p2 \<longrightarrow> p1 \<noteq> p2"
-  "y p1 \<noteq> y p2 \<longrightarrow> p1 \<noteq> p2"
+  "p1 = p2 \<longrightarrow> cx p1 = cx p2"
+  "p1 = p2 \<longrightarrow> cy p1 = cy p2"
+  "cx p1 \<noteq> cx p2 \<longrightarrow> p1 \<noteq> p2"
+  "cy p1 \<noteq> cy p2 \<longrightarrow> p1 \<noteq> p2"
   using point.simps
   using [[smt_datatypes, smt_oracle]]
   using [[z3_options="AUTO_CONFIG=false"]]
   by smt+
 
 lemma
-  "x \<lparr> x = 3, y = 4 \<rparr> = 3"
-  "y \<lparr> x = 3, y = 4 \<rparr> = 4"
-  "x \<lparr> x = 3, y = 4 \<rparr> \<noteq> y \<lparr> x = 3, y = 4 \<rparr>"
-  "\<lparr> x = 3, y = 4 \<rparr> \<lparr> x := 5 \<rparr> = \<lparr> x = 5, y = 4 \<rparr>"
-  "\<lparr> x = 3, y = 4 \<rparr> \<lparr> y := 6 \<rparr> = \<lparr> x = 3, y = 6 \<rparr>"
-  "p = \<lparr> x = 3, y = 4 \<rparr> \<longrightarrow> p \<lparr> x := 3 \<rparr> \<lparr> y := 4 \<rparr> = p"
-  "p = \<lparr> x = 3, y = 4 \<rparr> \<longrightarrow> p \<lparr> y := 4 \<rparr> \<lparr> x := 3 \<rparr> = p"
+  "cx \<lparr> cx = 3, cy = 4 \<rparr> = 3"
+  "cy \<lparr> cx = 3, cy = 4 \<rparr> = 4"
+  "cx \<lparr> cx = 3, cy = 4 \<rparr> \<noteq> cy \<lparr> cx = 3, cy = 4 \<rparr>"
+  "\<lparr> cx = 3, cy = 4 \<rparr> \<lparr> cx := 5 \<rparr> = \<lparr> cx = 5, cy = 4 \<rparr>"
+  "\<lparr> cx = 3, cy = 4 \<rparr> \<lparr> cy := 6 \<rparr> = \<lparr> cx = 3, cy = 6 \<rparr>"
+  "p = \<lparr> cx = 3, cy = 4 \<rparr> \<longrightarrow> p \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> = p"
+  "p = \<lparr> cx = 3, cy = 4 \<rparr> \<longrightarrow> p \<lparr> cy := 4 \<rparr> \<lparr> cx := 3 \<rparr> = p"
   using point.simps
   using [[smt_datatypes, smt_oracle]]
   using [[z3_options="AUTO_CONFIG=false"]]
   by smt+
 
 lemma
-  "y (p \<lparr> x := a \<rparr>) = y p"
-  "x (p \<lparr> y := a \<rparr>) = x p"
-  "p \<lparr> x := 3 \<rparr> \<lparr> y := 4 \<rparr> = p \<lparr> y := 4 \<rparr> \<lparr> x := 3 \<rparr>"
+  "cy (p \<lparr> cx := a \<rparr>) = cy p"
+  "cx (p \<lparr> cy := a \<rparr>) = cx p"
+  "p \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> = p \<lparr> cy := 4 \<rparr> \<lparr> cx := 3 \<rparr>"
   using point.simps
   using [[smt_datatypes, smt_oracle]]
   using [[z3_options="AUTO_CONFIG=false"]]
   by smt+
 
 lemma
-  "p1 = p2 \<longrightarrow> x p1 = x p2"
-  "p1 = p2 \<longrightarrow> y p1 = y p2"
+  "p1 = p2 \<longrightarrow> cx p1 = cx p2"
+  "p1 = p2 \<longrightarrow> cy p1 = cy p2"
   "p1 = p2 \<longrightarrow> black p1 = black p2"
-  "x p1 \<noteq> x p2 \<longrightarrow> p1 \<noteq> p2"
-  "y p1 \<noteq> y p2 \<longrightarrow> p1 \<noteq> p2"
+  "cx p1 \<noteq> cx p2 \<longrightarrow> p1 \<noteq> p2"
+  "cy p1 \<noteq> cy p2 \<longrightarrow> p1 \<noteq> p2"
   "black p1 \<noteq> black p2 \<longrightarrow> p1 \<noteq> p2"
   using point.simps bw_point.simps
   using [[smt_datatypes, smt_oracle]]
   by smt+
 
 lemma
-  "x \<lparr> x = 3, y = 4, black = b \<rparr> = 3"
-  "y \<lparr> x = 3, y = 4, black = b \<rparr> = 4"
-  "black \<lparr> x = 3, y = 4, black = b \<rparr> = b"
-  "x \<lparr> x = 3, y = 4, black = b \<rparr> \<noteq> y \<lparr> x = 3, y = 4, black = b \<rparr>"
-  "\<lparr> x = 3, y = 4, black = b \<rparr> \<lparr> x := 5 \<rparr> = \<lparr> x = 5, y = 4, black = b \<rparr>"
-  "\<lparr> x = 3, y = 4, black = b \<rparr> \<lparr> y := 6 \<rparr> = \<lparr> x = 3, y = 6, black = b \<rparr>"
-  "\<lparr> x = 3, y = 4, black = b \<rparr> \<lparr> black := w \<rparr> = \<lparr> x = 3, y = 4, black = w \<rparr>"
-  "\<lparr> x = 3, y = 4, black = True \<rparr> \<lparr> black := False \<rparr> =
-     \<lparr> x = 3, y = 4, black = False \<rparr>"
-  "p = \<lparr> x = 3, y = 4, black = True \<rparr> \<longrightarrow>
-     p \<lparr> x := 3 \<rparr> \<lparr> y := 4 \<rparr> \<lparr> black := True \<rparr> = p"
-  "p = \<lparr> x = 3, y = 4, black = True \<rparr> \<longrightarrow>
-     p \<lparr> y := 4 \<rparr> \<lparr> black := True \<rparr> \<lparr> x := 3 \<rparr> = p"
-  "p = \<lparr> x = 3, y = 4, black = True \<rparr> \<longrightarrow>
-     p \<lparr> black := True \<rparr> \<lparr> x := 3 \<rparr> \<lparr> y := 4 \<rparr> = p"
+  "cx \<lparr> cx = 3, cy = 4, black = b \<rparr> = 3"
+  "cy \<lparr> cx = 3, cy = 4, black = b \<rparr> = 4"
+  "black \<lparr> cx = 3, cy = 4, black = b \<rparr> = b"
+  "cx \<lparr> cx = 3, cy = 4, black = b \<rparr> \<noteq> cy \<lparr> cx = 3, cy = 4, black = b \<rparr>"
+  "\<lparr> cx = 3, cy = 4, black = b \<rparr> \<lparr> cx := 5 \<rparr> = \<lparr> cx = 5, cy = 4, black = b \<rparr>"
+  "\<lparr> cx = 3, cy = 4, black = b \<rparr> \<lparr> cy := 6 \<rparr> = \<lparr> cx = 3, cy = 6, black = b \<rparr>"
+  "p = \<lparr> cx = 3, cy = 4, black = True \<rparr> \<longrightarrow>
+     p \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> \<lparr> black := True \<rparr> = p"
+  "p = \<lparr> cx = 3, cy = 4, black = True \<rparr> \<longrightarrow>
+     p \<lparr> cy := 4 \<rparr> \<lparr> black := True \<rparr> \<lparr> cx := 3 \<rparr> = p"
+  "p = \<lparr> cx = 3, cy = 4, black = True \<rparr> \<longrightarrow>
+     p \<lparr> black := True \<rparr> \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> = p"
   using point.simps bw_point.simps
   using [[smt_datatypes, smt_oracle]]
   using [[z3_options="AUTO_CONFIG=false"]]
   by smt+
 
 lemma
-  "p \<lparr> x := 3 \<rparr> \<lparr> y := 4 \<rparr> \<lparr> black := True \<rparr> =
-     p \<lparr> black := True \<rparr> \<lparr> y := 4 \<rparr> \<lparr> x := 3 \<rparr>"
+  "\<lparr> cx = 3, cy = 4, black = b \<rparr> \<lparr> black := w \<rparr> = \<lparr> cx = 3, cy = 4, black = w \<rparr>"
+  "\<lparr> cx = 3, cy = 4, black = True \<rparr> \<lparr> black := False \<rparr> =
+     \<lparr> cx = 3, cy = 4, black = False \<rparr>"
+  sorry
+
+lemma
+  "p \<lparr> cx := 3 \<rparr> \<lparr> cy := 4 \<rparr> \<lparr> black := True \<rparr> =
+     p \<lparr> black := True \<rparr> \<lparr> cy := 4 \<rparr> \<lparr> cx := 3 \<rparr>"
   using point.simps bw_point.simps
   using [[smt_datatypes, smt_oracle]]
   using [[z3_options="AUTO_CONFIG=false"]]
