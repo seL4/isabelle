@@ -5,14 +5,14 @@
 header {* Bindings to Satisfiability Modulo Theories (SMT) solvers *}
 
 theory SMT
-imports List
+imports Record
 uses
-  "Tools/Datatype/datatype_selectors.ML"
   "Tools/SMT/smt_utils.ML"
   "Tools/SMT/smt_failure.ML"
   "Tools/SMT/smt_config.ML"
   ("Tools/SMT/smt_monomorph.ML")
   ("Tools/SMT/smt_builtin.ML")
+  ("Tools/SMT/smt_datatypes.ML")
   ("Tools/SMT/smt_normalize.ML")
   ("Tools/SMT/smt_translate.ML")
   ("Tools/SMT/smt_solver.ML")
@@ -123,7 +123,6 @@ definition term_false where "term_false = False"
 
 
 
-
 subsection {* Integer division and modulo for Z3 *}
 
 definition z3div :: "int \<Rightarrow> int \<Rightarrow> int" where
@@ -138,6 +137,7 @@ subsection {* Setup *}
 
 use "Tools/SMT/smt_monomorph.ML"
 use "Tools/SMT/smt_builtin.ML"
+use "Tools/SMT/smt_datatypes.ML"
 use "Tools/SMT/smt_normalize.ML"
 use "Tools/SMT/smt_translate.ML"
 use "Tools/SMT/smt_solver.ML"
@@ -379,14 +379,5 @@ lemma [z3_rule]:
 hide_type (open) pattern
 hide_const Pattern fun_app term_true term_false z3div z3mod
 hide_const (open) trigger pat nopat weight
-
-
-
-subsection {* Selectors for datatypes *}
-
-setup {* Datatype_Selectors.setup *}
-
-declare [[ selector Pair 1 = fst, selector Pair 2 = snd ]]
-declare [[ selector Cons 1 = hd, selector Cons 2 = tl ]]
 
 end

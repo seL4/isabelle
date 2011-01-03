@@ -851,7 +851,8 @@ local
         |> tap (check_after idx r ps prop)
     in (thm, (ctxt', Inttab.update (idx, thm) ptab')) end
 
-  val disch_rules = [@{thm allI}, @{thm refl}, @{thm reflexive}]
+  val disch_rules = [@{thm allI}, @{thm refl}, @{thm reflexive},
+    Z3_Proof_Literals.true_thm]
   fun all_disch_rules rules = map (pair false) (disch_rules @ rules)
 
   fun disch_assm rules thm =

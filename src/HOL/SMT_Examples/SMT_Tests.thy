@@ -607,7 +607,11 @@ lemma
 
 
 
-section {* Pairs *}  (* FIXME: tests for datatypes and records *)
+section {* Datatypes, Records, and Typedefs *}
+
+subsection {* Without support by the SMT solver *}
+
+subsubsection {* Algebraic datatypes *}
 
 lemma
   "x = fst (x, y)"
@@ -623,6 +627,252 @@ lemma
   "(fst (x, y) = snd (x, y)) = (x = y)"
   "(fst p = snd p) = (p = (snd p, fst p))"
   using fst_conv snd_conv pair_collapse
+  by smt+
+
+lemma
+  "[x] \<noteq> Nil"
+  "[x, y] \<noteq> Nil"
+  "x \<noteq> y \<longrightarrow> [x] \<noteq> [y]"
+  "hd (x # xs) = x"
+  "tl (x # xs) = xs"
+  "hd [x, y, z] = x"
+  "tl [x, y, z] = [y, z]"
+  "hd (tl [x, y, z]) = y"
+  "tl (tl [x, y, z]) = [z]"
+  using hd.simps tl.simps(2) list.simps
+  by smt+
+
+lemma
+  "fst (hd [(a, b)]) = a"
+  "snd (hd [(a, b)]) = b"
+  using fst_conv snd_conv pair_collapse hd.simps tl.simps(2) list.simps
+  by smt+
+
+
+subsubsection {* Records *}
+
+record point =
+  x :: int
+  y :: int
+
+record bw_point = point +
+  black :: bool
+
+lemma
+  "p1 = p2 \<longrightarrow> x p1 = x p2"
+  "p1 = p2 \<longrightarrow> y p1 = y p2"
+  "x p1 \<noteq> x p2 \<longrightarrow> p1 \<noteq> p2"
+  "y p1 \<noteq> y p2 \<longrightarrow> p1 \<noteq> p2"
+  using point.simps
+  by smt+
+
+lemma
+  "x \<lparr> x = 3, y = 4 \<rparr> = 3"
+  "y \<lparr> x = 3, y = 4 \<rparr> = 4"
+  "x \<lparr> x = 3, y = 4 \<rparr> \<noteq> y \<lparr> x = 3, y = 4 \<rparr>"
+  "\<lparr> x = 3, y = 4 \<rparr> \<lparr> x := 5 \<rparr> = \<lparr> x = 5, y = 4 \<rparr>"
+  "\<lparr> x = 3, y = 4 \<rparr> \<lparr> y := 6 \<rparr> = \<lparr> x = 3, y = 6 \<rparr>"
+  "p = \<lparr> x = 3, y = 4 \<rparr> \<longrightarrow> p \<lparr> x := 3 \<rparr> \<lparr> y := 4 \<rparr> = p"
+  "p = \<lparr> x = 3, y = 4 \<rparr> \<longrightarrow> p \<lparr> y := 4 \<rparr> \<lparr> x := 3 \<rparr> = p"
+  using point.simps
+  using [[z3_options="AUTO_CONFIG=false"]]
+  by smt+
+
+lemma
+  "y (p \<lparr> x := a \<rparr>) = y p"
+  "x (p \<lparr> y := a \<rparr>) = x p"
+  "p \<lparr> x := 3 \<rparr> \<lparr> y := 4 \<rparr> = p \<lparr> y := 4 \<rparr> \<lparr> x := 3 \<rparr>"
+  sorry
+
+lemma
+  "p1 = p2 \<longrightarrow> x p1 = x p2"
+  "p1 = p2 \<longrightarrow> y p1 = y p2"
+  "p1 = p2 \<longrightarrow> black p1 = black p2"
+  "x p1 \<noteq> x p2 \<longrightarrow> p1 \<noteq> p2"
+  "y p1 \<noteq> y p2 \<longrightarrow> p1 \<noteq> p2"
+  "black p1 \<noteq> black p2 \<longrightarrow> p1 \<noteq> p2"
+  using point.simps bw_point.simps
+  by smt+
+
+lemma
+  "x \<lparr> x = 3, y = 4, black = b \<rparr> = 3"
+  "y \<lparr> x = 3, y = 4, black = b \<rparr> = 4"
+  "black \<lparr> x = 3, y = 4, black = b \<rparr> = b"
+  "x \<lparr> x = 3, y = 4, black = b \<rparr> \<noteq> y \<lparr> x = 3, y = 4, black = b \<rparr>"
+  "\<lparr> x = 3, y = 4, black = b \<rparr> \<lparr> x := 5 \<rparr> = \<lparr> x = 5, y = 4, black = b \<rparr>"
+  "\<lparr> x = 3, y = 4, black = b \<rparr> \<lparr> y := 6 \<rparr> = \<lparr> x = 3, y = 6, black = b \<rparr>"
+  "\<lparr> x = 3, y = 4, black = b \<rparr> \<lparr> black := w \<rparr> = \<lparr> x = 3, y = 4, black = w \<rparr>"
+  "\<lparr> x = 3, y = 4, black = True \<rparr> \<lparr> black := False \<rparr> =
+     \<lparr> x = 3, y = 4, black = False \<rparr>"
+  "p = \<lparr> x = 3, y = 4, black = True \<rparr> \<longrightarrow>
+     p \<lparr> x := 3 \<rparr> \<lparr> y := 4 \<rparr> \<lparr> black := True \<rparr> = p"
+  "p = \<lparr> x = 3, y = 4, black = True \<rparr> \<longrightarrow>
+     p \<lparr> y := 4 \<rparr> \<lparr> black := True \<rparr> \<lparr> x := 3 \<rparr> = p"
+  "p = \<lparr> x = 3, y = 4, black = True \<rparr> \<longrightarrow>
+     p \<lparr> black := True \<rparr> \<lparr> x := 3 \<rparr> \<lparr> y := 4 \<rparr> = p"
+  using point.simps bw_point.simps
+  using [[z3_options="AUTO_CONFIG=false"]]
+  by smt+
+
+lemma
+  "p \<lparr> x := 3 \<rparr> \<lparr> y := 4 \<rparr> \<lparr> black := True \<rparr> =
+     p \<lparr> black := True \<rparr> \<lparr> y := 4 \<rparr> \<lparr> x := 3 \<rparr>"
+  sorry
+
+
+subsubsection {* Type definitions *}
+
+typedef three = "{1, 2, 3::int}" by auto
+
+definition n1 where "n1 = Abs_three 1"
+definition n2 where "n2 = Abs_three 2"
+definition n3 where "n3 = Abs_three 3"
+definition nplus where "nplus n m = Abs_three (Rep_three n + Rep_three m)"
+
+lemma three_def': "(x \<in> three) = (x = 1 \<or> x = 2 \<or> x = 3)"
+  by (auto simp add: three_def)
+
+lemma
+  "n1 = n1"
+  "n2 = n2"
+  "n1 \<noteq> n2"
+  "nplus n1 n1 = n2"
+  "nplus n1 n2 = n3"
+  using n1_def n2_def n3_def nplus_def
+  using three_def' Rep_three Abs_three_inverse
+  using [[z3_options="AUTO_CONFIG=false"]]
+  by smt+
+
+
+subsection {* With support by the SMT solver (but without proofs) *}
+
+subsubsection {* Algebraic datatypes *}
+
+lemma
+  "x = fst (x, y)"
+  "y = snd (x, y)"
+  "((x, y) = (y, x)) = (x = y)"
+  "((x, y) = (u, v)) = (x = u \<and> y = v)"
+  "(fst (x, y, z) = fst (u, v, w)) = (x = u)"
+  "(snd (x, y, z) = snd (u, v, w)) = (y = v \<and> z = w)"
+  "(fst (snd (x, y, z)) = fst (snd (u, v, w))) = (y = v)"
+  "(snd (snd (x, y, z)) = snd (snd (u, v, w))) = (z = w)"
+  "(fst (x, y) = snd (x, y)) = (x = y)"
+  "p1 = (x, y) \<and> p2 = (y, x) \<longrightarrow> fst p1 = snd p2"
+  "(fst (x, y) = snd (x, y)) = (x = y)"
+  "(fst p = snd p) = (p = (snd p, fst p))"
+  using fst_conv snd_conv pair_collapse
+  using [[smt_datatypes, smt_oracle]]
+  by smt+
+
+lemma
+  "[x] \<noteq> Nil"
+  "[x, y] \<noteq> Nil"
+  "x \<noteq> y \<longrightarrow> [x] \<noteq> [y]"
+  "hd (x # xs) = x"
+  "tl (x # xs) = xs"
+  "hd [x, y, z] = x"
+  "tl [x, y, z] = [y, z]"
+  "hd (tl [x, y, z]) = y"
+  "tl (tl [x, y, z]) = [z]"
+  using hd.simps tl.simps(2)
+  using [[smt_datatypes, smt_oracle]]
+  by smt+
+
+lemma
+  "fst (hd [(a, b)]) = a"
+  "snd (hd [(a, b)]) = b"
+  using fst_conv snd_conv pair_collapse hd.simps tl.simps(2)
+  using [[smt_datatypes, smt_oracle]]
+  by smt+
+
+
+subsubsection {* Records *}
+
+lemma
+  "p1 = p2 \<longrightarrow> x p1 = x p2"
+  "p1 = p2 \<longrightarrow> y p1 = y p2"
+  "x p1 \<noteq> x p2 \<longrightarrow> p1 \<noteq> p2"
+  "y p1 \<noteq> y p2 \<longrightarrow> p1 \<noteq> p2"
+  using point.simps
+  using [[smt_datatypes, smt_oracle]]
+  using [[z3_options="AUTO_CONFIG=false"]]
+  by smt+
+
+lemma
+  "x \<lparr> x = 3, y = 4 \<rparr> = 3"
+  "y \<lparr> x = 3, y = 4 \<rparr> = 4"
+  "x \<lparr> x = 3, y = 4 \<rparr> \<noteq> y \<lparr> x = 3, y = 4 \<rparr>"
+  "\<lparr> x = 3, y = 4 \<rparr> \<lparr> x := 5 \<rparr> = \<lparr> x = 5, y = 4 \<rparr>"
+  "\<lparr> x = 3, y = 4 \<rparr> \<lparr> y := 6 \<rparr> = \<lparr> x = 3, y = 6 \<rparr>"
+  "p = \<lparr> x = 3, y = 4 \<rparr> \<longrightarrow> p \<lparr> x := 3 \<rparr> \<lparr> y := 4 \<rparr> = p"
+  "p = \<lparr> x = 3, y = 4 \<rparr> \<longrightarrow> p \<lparr> y := 4 \<rparr> \<lparr> x := 3 \<rparr> = p"
+  using point.simps
+  using [[smt_datatypes, smt_oracle]]
+  using [[z3_options="AUTO_CONFIG=false"]]
+  by smt+
+
+lemma
+  "y (p \<lparr> x := a \<rparr>) = y p"
+  "x (p \<lparr> y := a \<rparr>) = x p"
+  "p \<lparr> x := 3 \<rparr> \<lparr> y := 4 \<rparr> = p \<lparr> y := 4 \<rparr> \<lparr> x := 3 \<rparr>"
+  using point.simps
+  using [[smt_datatypes, smt_oracle]]
+  using [[z3_options="AUTO_CONFIG=false"]]
+  by smt+
+
+lemma
+  "p1 = p2 \<longrightarrow> x p1 = x p2"
+  "p1 = p2 \<longrightarrow> y p1 = y p2"
+  "p1 = p2 \<longrightarrow> black p1 = black p2"
+  "x p1 \<noteq> x p2 \<longrightarrow> p1 \<noteq> p2"
+  "y p1 \<noteq> y p2 \<longrightarrow> p1 \<noteq> p2"
+  "black p1 \<noteq> black p2 \<longrightarrow> p1 \<noteq> p2"
+  using point.simps bw_point.simps
+  using [[smt_datatypes, smt_oracle]]
+  by smt+
+
+lemma
+  "x \<lparr> x = 3, y = 4, black = b \<rparr> = 3"
+  "y \<lparr> x = 3, y = 4, black = b \<rparr> = 4"
+  "black \<lparr> x = 3, y = 4, black = b \<rparr> = b"
+  "x \<lparr> x = 3, y = 4, black = b \<rparr> \<noteq> y \<lparr> x = 3, y = 4, black = b \<rparr>"
+  "\<lparr> x = 3, y = 4, black = b \<rparr> \<lparr> x := 5 \<rparr> = \<lparr> x = 5, y = 4, black = b \<rparr>"
+  "\<lparr> x = 3, y = 4, black = b \<rparr> \<lparr> y := 6 \<rparr> = \<lparr> x = 3, y = 6, black = b \<rparr>"
+  "\<lparr> x = 3, y = 4, black = b \<rparr> \<lparr> black := w \<rparr> = \<lparr> x = 3, y = 4, black = w \<rparr>"
+  "\<lparr> x = 3, y = 4, black = True \<rparr> \<lparr> black := False \<rparr> =
+     \<lparr> x = 3, y = 4, black = False \<rparr>"
+  "p = \<lparr> x = 3, y = 4, black = True \<rparr> \<longrightarrow>
+     p \<lparr> x := 3 \<rparr> \<lparr> y := 4 \<rparr> \<lparr> black := True \<rparr> = p"
+  "p = \<lparr> x = 3, y = 4, black = True \<rparr> \<longrightarrow>
+     p \<lparr> y := 4 \<rparr> \<lparr> black := True \<rparr> \<lparr> x := 3 \<rparr> = p"
+  "p = \<lparr> x = 3, y = 4, black = True \<rparr> \<longrightarrow>
+     p \<lparr> black := True \<rparr> \<lparr> x := 3 \<rparr> \<lparr> y := 4 \<rparr> = p"
+  using point.simps bw_point.simps
+  using [[smt_datatypes, smt_oracle]]
+  using [[z3_options="AUTO_CONFIG=false"]]
+  by smt+
+
+lemma
+  "p \<lparr> x := 3 \<rparr> \<lparr> y := 4 \<rparr> \<lparr> black := True \<rparr> =
+     p \<lparr> black := True \<rparr> \<lparr> y := 4 \<rparr> \<lparr> x := 3 \<rparr>"
+  using point.simps bw_point.simps
+  using [[smt_datatypes, smt_oracle]]
+  using [[z3_options="AUTO_CONFIG=false"]]
+  by smt
+
+
+subsubsection {* Type definitions *}
+
+lemma
+  "n1 = n1"
+  "n2 = n2"
+  "n1 \<noteq> n2"
+  "nplus n1 n1 = n2"
+  "nplus n1 n2 = n3"
+  using n1_def n2_def n3_def nplus_def
+  using [[smt_datatypes, smt_oracle]]
+  using [[z3_options="AUTO_CONFIG=false"]]
   by smt+
 
 

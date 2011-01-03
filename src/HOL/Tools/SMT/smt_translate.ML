@@ -134,20 +134,35 @@ fun recon_of ctxt rules thms ithms (_, _, typs, _, _, terms) =
 
 (* preprocessing *)
 
-(** FIXME **)
-
-local
-  (*
-    force eta-expansion for constructors and selectors,
-    add missing datatype selectors via hypothetical definitions,
-    also return necessary datatype and record theorems
-  *)
-in
+(** datatype declarations **)
 
 fun collect_datatypes_and_records (tr_context, ctxt) ts =
-  (([], tr_context, ctxt), ts)
+  let
+    val (declss, ctxt') =
+      fold (Term.fold_types SMT_Datatypes.add_decls) ts ([], ctxt)
 
-end
+    fun is_decl_typ T = exists (exists (equal T o fst)) declss
+
+    fun add_typ' T proper =
+      (case SMT_Builtin.dest_builtin_typ ctxt' T of
+        SOME n => pair n
+      | NONE => add_typ T proper)
+
+    fun tr_select sel =
+      let val T = Term.range_type (Term.fastype_of sel)
+      in add_fun sel NONE ##>> add_typ' T (not (is_decl_typ T)) end
+    fun tr_constr (constr, selects) =
+      add_fun constr NONE ##>> fold_map tr_select selects
+    fun tr_typ (T, cases) = add_typ' T false ##>> fold_map tr_constr cases
+    val (declss', tr_context') = fold_map (fold_map tr_typ) declss tr_context
+
+    fun add (constr, selects) =
+      Termtab.update (constr, length selects) #>
+      fold (Termtab.update o rpair 1) selects
+    val funcs = fold (fold (fold add o snd)) declss Termtab.empty
+
+  in ((funcs, declss', tr_context', ctxt'), ts) end
+    (* FIXME: also return necessary datatype and record theorems *)
 
 
 (** eta-expand quantifiers, let expressions and built-ins *)
@@ -174,8 +189,15 @@ local
     end
 in
 
-fun eta_expand ctxt =
+fun eta_expand ctxt funcs =
   let
+    fun exp_func t T ts =
+      (case Termtab.lookup funcs t of
+        SOME k =>
+          Term.list_comb (t, ts)
+          |> k <> length ts ? expf k (length ts) T
+      | NONE => Term.list_comb (t, ts))
+
     fun expand ((q as Const (@{const_name All}, _)) $ Abs a) = q $ abs_expand a
       | expand ((q as Const (@{const_name All}, T)) $ t) = q $ exp T t
       | expand (q as Const (@{const_name All}, T)) = exp2 T q
@@ -196,7 +218,8 @@ fun eta_expand ctxt =
                 SOME (_, k, us, mk) =>
                   if k = length us then mk (map expand us)
                   else expf k (length ts) T (mk (map expand us))
-              | NONE => Term.list_comb (u, map expand ts))
+              | NONE => exp_func u T (map expand ts))
+          | (u as Free (_, T), ts) => exp_func u T (map expand ts)
           | (Abs a, ts) => Term.list_comb (abs_expand a, map expand ts)
           | (u, ts) => Term.list_comb (u, map expand ts))
 
@@ -530,17 +553,18 @@ fun translate ctxt comments ithms =
     val with_datatypes =
       has_datatypes andalso Config.get ctxt SMT_Config.datatypes
 
-    fun no_dtyps (tr_context, ctxt) ts = (([], tr_context, ctxt), ts)
+    fun no_dtyps (tr_context, ctxt) ts =
+      ((Termtab.empty, [], tr_context, ctxt), ts)
 
     val ts1 = map (Envir.beta_eta_contract o SMT_Utils.prop_of o snd) ithms
 
-    val ((dtyps, tr_context, ctxt1), ts2) =
+    val ((funcs, dtyps, tr_context, ctxt1), ts2) =
       ((make_tr_context prefixes, ctxt), ts1)
       |-> (if with_datatypes then collect_datatypes_and_records else no_dtyps)
 
     val (ctxt2, ts3) =
       ts2
-      |> eta_expand ctxt1
+      |> eta_expand ctxt1 funcs
       |> lift_lambdas ctxt1
       ||> intro_explicit_application
 

@@ -130,10 +130,10 @@ fun fsort funcs = sort (prod_ord fast_string_ord (K EQUAL)) funcs
 
 fun sdatatypes decls =
   let
-    fun con (n, []) = add n
+    fun con (n, []) = sep (add n)
       | con (n, sels) = par (add n #>
-          fold (fn (n, s) => sep (par (add n #> sep (add s)))) sels)
-    fun dtyp (n, decl) = add n #> fold (sep o con) decl
+          fold (fn (n, s) => par (add n #> sep (add s))) sels)
+    fun dtyp (n, decl) = add n #> fold con decl
   in line (add ":datatypes " #> par (fold (par o dtyp) decls)) end
 
 fun serialize comments {header, sorts, dtyps, funcs} ts =
