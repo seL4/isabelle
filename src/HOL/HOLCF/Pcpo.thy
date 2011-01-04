@@ -175,9 +175,6 @@ setup {*
 
 simproc_setup reorient_bottom ("\<bottom> = x") = Reorient_Proc.proc
 
-context pcpo
-begin
-
 text {* useful lemmas about @{term \<bottom>} *}
 
 lemma below_bottom_iff [simp]: "(x \<sqsubseteq> \<bottom>) = (x = \<bottom>)"
@@ -191,20 +188,6 @@ by (subst eq_bottom_iff)
 
 lemma lub_eq_bottom_iff: "chain Y \<Longrightarrow> (\<Squnion>i. Y i) = \<bottom> \<longleftrightarrow> (\<forall>i. Y i = \<bottom>)"
 by (simp only: eq_bottom_iff lub_below_iff)
-
-lemma chain_UU_I: "\<lbrakk>chain Y; (\<Squnion>i. Y i) = \<bottom>\<rbrakk> \<Longrightarrow> \<forall>i. Y i = \<bottom>"
-by (simp add: lub_eq_bottom_iff)
-
-lemma chain_UU_I_inverse: "\<forall>i::nat. Y i = \<bottom> \<Longrightarrow> (\<Squnion>i. Y i) = \<bottom>"
-by simp
-
-lemma chain_UU_I_inverse2: "(\<Squnion>i. Y i) \<noteq> \<bottom> \<Longrightarrow> \<exists>i::nat. Y i \<noteq> \<bottom>"
-  by (blast intro: chain_UU_I_inverse)
-
-lemma notUU_I: "\<lbrakk>x \<sqsubseteq> y; x \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> y \<noteq> \<bottom>"
-  by (blast intro: bottomI)
-
-end
 
 subsection {* Chain-finite and flat cpos *}
 

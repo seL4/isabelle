@@ -233,7 +233,7 @@ by (simp add: flat_below_iff)
 
 lemma fstreams_lub_lemma1: "[| chain Y; (LUB i. Y i) = <a> ooo s |] ==> EX j t. Y j = <a> ooo t"
 apply (subgoal_tac "(LUB i. Y i) ~= UU")
-apply (drule chain_UU_I_inverse2, auto)
+apply (frule lub_eq_bottom_iff, auto)
 apply (drule_tac x="i" in is_ub_thelub, auto)
 by (drule fstreams_prefix' [THEN iffD1], auto)
 
@@ -267,7 +267,7 @@ lemma lub_Pair_not_UU_lemma:
   "[| chain Y; (LUB i. Y i) = ((a::'a::flat), b); a ~= UU; b ~= UU |] 
       ==> EX j c d. Y j = (c, d) & c ~= UU & d ~= UU"
 apply (frule lub_prod, clarsimp)
-apply (drule chain_UU_I_inverse2, clarsimp)
+apply (clarsimp simp add: lub_eq_bottom_iff [where Y="\<lambda>i. fst (Y i)"])
 apply (case_tac "Y i", clarsimp)
 apply (case_tac "max_in_chain i Y")
 apply (drule maxinch_is_thelub, auto)
