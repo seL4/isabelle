@@ -32,7 +32,7 @@ fun mk_all (x, t) = HOLogic.all_const (fastype_of x) $ Term.lambda x t
 
 (*** Basic HOLCF concepts ***)
 
-fun mk_bottom T = Const (@{const_name UU}, T)
+fun mk_bottom T = Const (@{const_name bottom}, T)
 
 fun below_const T = Const (@{const_name below}, [T, T] ---> boolT)
 fun mk_below (t, u) = below_const (fastype_of t) $ t $ u

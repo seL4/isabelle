@@ -547,6 +547,9 @@ similar to sets, e.g. '\<Union>\<sharp>x\<in>xs. t' represents
 from e.g. '+\<sharp>' to '\<union>\<sharp>', for consistency with set
 syntax. INCOMPATIBILITY.
 
+* The constant 'UU' has been renamed to 'bottom'. The syntax 'UU' is
+still supported as an input translation.
+
 * Renamed some theorems (the original names are also still available).
   expand_fun_below   ~> fun_below_iff
   below_fun_ext      ~> fun_belowI

@@ -65,9 +65,9 @@ fun fold_adm_mem thm NONE = thm
     let val rule = @{lemma "A == B ==> adm (%x. x : B) ==> adm (%x. x : A)" by simp}
     in rule OF [set_def, thm] end
 
-fun fold_UU_mem thm NONE = thm
-  | fold_UU_mem thm (SOME set_def) =
-    let val rule = @{lemma "A == B ==> UU : B ==> UU : A" by simp}
+fun fold_bottom_mem thm NONE = thm
+  | fold_bottom_mem thm (SOME set_def) =
+    let val rule = @{lemma "A == B ==> bottom : B ==> bottom : A" by simp}
     in rule OF [set_def, thm] end
 
 (* proving class instances *)
@@ -120,12 +120,12 @@ fun prove_pcpo
       (type_definition: thm)  (* type_definition Rep Abs A *)
       (set_def: thm option)   (* A == set *)
       (below_def: thm)        (* op << == %x y. Rep x << Rep y *)
-      (UU_mem: thm)           (* UU : set *)
+      (bottom_mem: thm)       (* bottom : set *)
       (thy: theory)
     =
   let
-    val UU_mem' = fold_UU_mem UU_mem set_def
-    val pcpo_thms = map (Thm.transfer thy) [type_definition, below_def, UU_mem']
+    val bottom_mem' = fold_bottom_mem bottom_mem set_def
+    val pcpo_thms = map (Thm.transfer thy) [type_definition, below_def, bottom_mem']
     val (full_tname, Ts) = dest_Type newT
     val lhs_sorts = map (snd o dest_TFree) Ts
     val tac = Tactic.rtac (@{thm typedef_pcpo} OF pcpo_thms) 1
@@ -252,26 +252,26 @@ fun prepare_pcpodef
     val (newT, oldT, set, morphs as (Rep_name, Abs_name)) =
       prepare prep_term name typ raw_set opt_morphs thy
 
-    val goal_UU_mem =
-      HOLogic.mk_Trueprop (HOLogic.mk_mem (Const (@{const_name UU}, oldT), set))
+    val goal_bottom_mem =
+      HOLogic.mk_Trueprop (HOLogic.mk_mem (Const (@{const_name bottom}, oldT), set))
 
     val goal_admissible =
       HOLogic.mk_Trueprop (mk_adm ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), set)))
 
-    fun pcpodef_result UU_mem admissible thy =
+    fun pcpodef_result bottom_mem admissible thy =
       let
-        val tac = Tactic.rtac exI 1 THEN Tactic.rtac UU_mem 1
+        val tac = Tactic.rtac exI 1 THEN Tactic.rtac bottom_mem 1
         val ((info as (_, {type_definition, set_def, ...}), below_def), thy) = thy
           |> add_podef def (SOME name) typ set opt_morphs tac
         val (cpo_info, thy) = thy
           |> prove_cpo name newT morphs type_definition set_def below_def admissible
         val (pcpo_info, thy) = thy
-          |> prove_pcpo name newT morphs type_definition set_def below_def UU_mem
+          |> prove_pcpo name newT morphs type_definition set_def below_def bottom_mem
       in
         ((info, cpo_info, pcpo_info), thy)
       end
   in
-    (goal_UU_mem, goal_admissible, pcpodef_result)
+    (goal_bottom_mem, goal_admissible, pcpodef_result)
   end
   handle ERROR msg =>
     cat_error msg ("The error(s) above occurred in pcpodef " ^ quote (Binding.str_of name))

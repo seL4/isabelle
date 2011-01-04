@@ -241,7 +241,7 @@ setup {*
       (@{const_name ONE}, @{const_name match_ONE}),
       (@{const_name TT}, @{const_name match_TT}),
       (@{const_name FF}, @{const_name match_FF}),
-      (@{const_name UU}, @{const_name match_bottom}) ]
+      (@{const_name bottom}, @{const_name match_bottom}) ]
 *}
 
 hide_const (open) succeed fail run

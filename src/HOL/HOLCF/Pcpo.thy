@@ -143,32 +143,34 @@ class pcpo = cpo +
   assumes least: "\<exists>x. \<forall>y. x \<sqsubseteq> y"
 begin
 
-definition UU :: 'a where
-  "UU = (THE x. \<forall>y. x \<sqsubseteq> y)"
+definition bottom :: "'a"
+  where "bottom = (THE x. \<forall>y. x \<sqsubseteq> y)"
 
 notation (xsymbols)
-  UU  ("\<bottom>")
+  bottom ("\<bottom>")
 
-text {* derive the old rule minimal *}
- 
-lemma UU_least: "\<forall>z. \<bottom> \<sqsubseteq> z"
-apply (unfold UU_def)
-apply (rule theI')
+lemma minimal [iff]: "\<bottom> \<sqsubseteq> x"
+unfolding bottom_def
+apply (rule the1I2)
 apply (rule ex_ex1I)
 apply (rule least)
 apply (blast intro: below_antisym)
+apply simp
 done
 
-lemma minimal [iff]: "\<bottom> \<sqsubseteq> x"
-by (rule UU_least [THEN spec])
-
 end
+
+text {* Old "UU" syntax: *}
+
+syntax UU :: logic
+
+translations "UU" => "CONST bottom"
 
 text {* Simproc to rewrite @{term "\<bottom> = x"} to @{term "x = \<bottom>"}. *}
 
 setup {*
   Reorient_Proc.add
-    (fn Const(@{const_name UU}, _) => true | _ => false)
+    (fn Const(@{const_name bottom}, _) => true | _ => false)
 *}
 
 simproc_setup reorient_bottom ("\<bottom> = x") = Reorient_Proc.proc

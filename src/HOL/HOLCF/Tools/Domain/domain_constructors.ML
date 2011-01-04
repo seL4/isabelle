@@ -221,7 +221,7 @@ fun add_constructors
           val conj = foldr1 mk_conj (eqn :: map mk_defined nonlazy)
         in Library.foldr mk_ex (vs, conj) end
       val goal = mk_trp (foldr1 mk_disj (mk_undef y :: map one_con spec'))
-      (* first rules replace "y = UU \/ P" with "rep$y = UU \/ P" *)
+      (* first rules replace "y = bottom \/ P" with "rep$y = bottom \/ P" *)
       val tacs = [
           rtac (iso_locale RS @{thm iso.casedist_rule}) 1,
           rewrite_goals_tac [mk_meta_eq (iso_locale RS @{thm iso.iso_swap})],
@@ -264,8 +264,8 @@ fun add_constructors
           val (vs, nonlazy) = get_vars args
           fun one_strict v' =
             let
-              val UU = mk_bottom (fastype_of v')
-              val vs' = map (fn v => if v = v' then UU else v) vs
+              val bottom = mk_bottom (fastype_of v')
+              val vs' = map (fn v => if v = v' then bottom else v) vs
               val goal = mk_trp (mk_undef (list_ccomb (con, vs')))
               val tacs = [simp_tac (HOL_basic_ss addsimps rules) 1]
             in prove thy con_betas goal (K tacs) end
@@ -461,7 +461,7 @@ fun add_case_combinator
           app "_case1" (con1 authentic n c, expvar n)
       fun arg1 (n, (con,args)) = List.foldr cabs (expvar n) (argvars n args)
       fun when1 n (m, c) =
-          if n = m then arg1 (n, c) else (Constant @{const_syntax UU})
+          if n = m then arg1 (n, c) else (Constant @{const_syntax bottom})
       val case_constant = Constant (syntax (case_const dummyT))
       fun case_trans authentic =
           (if authentic then ParsePrintRule else ParseRule)

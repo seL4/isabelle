@@ -42,7 +42,7 @@ translations
   "[x, xs!]"     == "x>>[xs!]"
   "[x!]"         == "x>>nil"
   "[x, xs?]"     == "x>>[xs?]"
-  "[x?]"         == "x>>CONST UU"
+  "[x?]"         == "x>>CONST bottom"
 
 defs
 
