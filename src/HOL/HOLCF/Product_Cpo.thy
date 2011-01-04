@@ -155,7 +155,7 @@ instance prod :: (pcpo, pcpo) pcpo
 by intro_classes (fast intro: minimal_prod)
 
 lemma inst_prod_pcpo: "\<bottom> = (\<bottom>, \<bottom>)"
-by (rule minimal_prod [THEN UU_I, symmetric])
+by (rule minimal_prod [THEN bottomI, symmetric])
 
 lemma Pair_bottom_iff [simp]: "(x, y) = \<bottom> \<longleftrightarrow> x = \<bottom> \<and> y = \<bottom>"
 unfolding inst_prod_pcpo by simp

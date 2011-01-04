@@ -203,9 +203,9 @@ theorem typedef_pcpo:
   fixes Abs :: "'a::pcpo \<Rightarrow> 'b::cpo"
   assumes type: "type_definition Rep Abs A"
     and below: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
-    and UU_in_A: "\<bottom> \<in> A"
+    and bottom_in_A: "\<bottom> \<in> A"
   shows "OFCLASS('b, pcpo_class)"
-by (rule typedef_pcpo_generic [OF type below UU_in_A], rule minimal)
+by (rule typedef_pcpo_generic [OF type below bottom_in_A], rule minimal)
 
 subsubsection {* Strictness of \emph{Rep} and \emph{Abs} *}
 
@@ -217,36 +217,36 @@ text {*
 theorem typedef_Abs_strict:
   assumes type: "type_definition Rep Abs A"
     and below: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
-    and UU_in_A: "\<bottom> \<in> A"
+    and bottom_in_A: "\<bottom> \<in> A"
   shows "Abs \<bottom> = \<bottom>"
- apply (rule UU_I, unfold below)
- apply (simp add: type_definition.Abs_inverse [OF type UU_in_A])
+ apply (rule bottomI, unfold below)
+ apply (simp add: type_definition.Abs_inverse [OF type bottom_in_A])
 done
 
 theorem typedef_Rep_strict:
   assumes type: "type_definition Rep Abs A"
     and below: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
-    and UU_in_A: "\<bottom> \<in> A"
+    and bottom_in_A: "\<bottom> \<in> A"
   shows "Rep \<bottom> = \<bottom>"
- apply (rule typedef_Abs_strict [OF type below UU_in_A, THEN subst])
- apply (rule type_definition.Abs_inverse [OF type UU_in_A])
+ apply (rule typedef_Abs_strict [OF type below bottom_in_A, THEN subst])
+ apply (rule type_definition.Abs_inverse [OF type bottom_in_A])
 done
 
 theorem typedef_Abs_bottom_iff:
   assumes type: "type_definition Rep Abs A"
     and below: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
-    and UU_in_A: "\<bottom> \<in> A"
+    and bottom_in_A: "\<bottom> \<in> A"
   shows "x \<in> A \<Longrightarrow> (Abs x = \<bottom>) = (x = \<bottom>)"
- apply (rule typedef_Abs_strict [OF type below UU_in_A, THEN subst])
- apply (simp add: type_definition.Abs_inject [OF type] UU_in_A)
+ apply (rule typedef_Abs_strict [OF type below bottom_in_A, THEN subst])
+ apply (simp add: type_definition.Abs_inject [OF type] bottom_in_A)
 done
 
 theorem typedef_Rep_bottom_iff:
   assumes type: "type_definition Rep Abs A"
     and below: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
-    and UU_in_A: "\<bottom> \<in> A"
+    and bottom_in_A: "\<bottom> \<in> A"
   shows "(Rep x = \<bottom>) = (x = \<bottom>)"
- apply (rule typedef_Rep_strict [OF type below UU_in_A, THEN subst])
+ apply (rule typedef_Rep_strict [OF type below bottom_in_A, THEN subst])
  apply (simp add: type_definition.Rep_inject [OF type])
 done
 
@@ -256,12 +256,12 @@ theorem typedef_flat:
   fixes Abs :: "'a::flat \<Rightarrow> 'b::pcpo"
   assumes type: "type_definition Rep Abs A"
     and below: "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep x \<sqsubseteq> Rep y"
-    and UU_in_A: "\<bottom> \<in> A"
+    and bottom_in_A: "\<bottom> \<in> A"
   shows "OFCLASS('b, flat_class)"
  apply (intro_classes)
  apply (unfold below)
  apply (simp add: type_definition.Rep_inject [OF type, symmetric])
- apply (simp add: typedef_Rep_strict [OF type below UU_in_A])
+ apply (simp add: typedef_Rep_strict [OF type below bottom_in_A])
  apply (simp add: ax_flat)
 done
 

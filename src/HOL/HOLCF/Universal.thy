@@ -242,7 +242,7 @@ instance udom :: pcpo
 by intro_classes (fast intro: udom_minimal)
 
 lemma inst_udom_pcpo: "\<bottom> = udom_principal 0"
-by (rule udom_minimal [THEN UU_I, symmetric])
+by (rule udom_minimal [THEN bottomI, symmetric])
 
 
 subsection {* Compact bases of domains *}

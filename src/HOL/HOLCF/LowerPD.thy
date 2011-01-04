@@ -116,7 +116,7 @@ instance lower_pd :: (bifinite) pcpo
 by intro_classes (fast intro: lower_pd_minimal)
 
 lemma inst_lower_pd_pcpo: "\<bottom> = lower_principal (PDUnit compact_bot)"
-by (rule lower_pd_minimal [THEN UU_I, symmetric])
+by (rule lower_pd_minimal [THEN bottomI, symmetric])
 
 
 subsection {* Monadic unit and plus *}
@@ -240,8 +240,8 @@ unfolding lower_unit_strict [symmetric] by (rule lower_unit_eq_iff)
 lemma lower_plus_bottom_iff [simp]:
   "xs \<union>\<flat> ys = \<bottom> \<longleftrightarrow> xs = \<bottom> \<and> ys = \<bottom>"
 apply safe
-apply (rule UU_I, erule subst, rule lower_plus_below1)
-apply (rule UU_I, erule subst, rule lower_plus_below2)
+apply (rule bottomI, erule subst, rule lower_plus_below1)
+apply (rule bottomI, erule subst, rule lower_plus_below2)
 apply (rule lower_plus_absorb)
 done
 

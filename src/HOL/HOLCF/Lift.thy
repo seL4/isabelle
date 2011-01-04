@@ -32,13 +32,7 @@ done
 rep_datatype "\<bottom>\<Colon>'a lift" Def
   by (erule lift_induct) (simp_all add: Def_def Abs_lift_inject inst_lift_pcpo)
 
-lemmas lift_distinct1 = lift.distinct(1)
-lemmas lift_distinct2 = lift.distinct(2)
-lemmas Def_not_UU = lift.distinct(2)
-lemmas Def_inject = lift.inject
-
-
-text {* @{term UU} and @{term Def} *}
+text {* @{term bottom} and @{term Def} *}
 
 lemma not_Undef_is_Def: "(x \<noteq> \<bottom>) = (\<exists>y. x = Def y)"
   by (cases x) simp_all
@@ -47,7 +41,7 @@ lemma lift_definedE: "\<lbrakk>x \<noteq> \<bottom>; \<And>a. x = Def a \<Longri
   by (cases x) simp_all
 
 text {*
-  For @{term "x ~= UU"} in assumptions @{text defined} replaces @{text
+  For @{term "x ~= \<bottom>"} in assumptions @{text defined} replaces @{text
   x} by @{text "Def a"} in conclusion. *}
 
 method_setup defined = {*

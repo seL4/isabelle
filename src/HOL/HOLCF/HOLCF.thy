@@ -35,5 +35,12 @@ lemmas cont_cfun_arg = cont_Rep_cfun2 [THEN contE]
 lemmas contlub_cfun = lub_APP [symmetric]
 lemmas contlub_LAM = lub_LAM [symmetric]
 lemmas thelubI = lub_eqI
+lemmas UU_I = bottomI
+lemmas lift_distinct1 = lift.distinct(1)
+lemmas lift_distinct2 = lift.distinct(2)
+lemmas Def_not_UU = lift.distinct(2)
+lemmas Def_inject = lift.inject
+lemmas below_UU_iff = below_bottom_iff
+lemmas eq_UU_iff = eq_bottom_iff
 
 end

@@ -92,20 +92,20 @@ translations
 
 subsection {* Continuous function space is pointed *}
 
-lemma UU_cfun: "\<bottom> \<in> cfun"
+lemma bottom_cfun: "\<bottom> \<in> cfun"
 by (simp add: cfun_def inst_fun_pcpo)
 
 instance cfun :: (cpo, discrete_cpo) discrete_cpo
 by intro_classes (simp add: below_cfun_def Rep_cfun_inject)
 
 instance cfun :: (cpo, pcpo) pcpo
-by (rule typedef_pcpo [OF type_definition_cfun below_cfun_def UU_cfun])
+by (rule typedef_pcpo [OF type_definition_cfun below_cfun_def bottom_cfun])
 
 lemmas Rep_cfun_strict =
-  typedef_Rep_strict [OF type_definition_cfun below_cfun_def UU_cfun]
+  typedef_Rep_strict [OF type_definition_cfun below_cfun_def bottom_cfun]
 
 lemmas Abs_cfun_strict =
-  typedef_Abs_strict [OF type_definition_cfun below_cfun_def UU_cfun]
+  typedef_Abs_strict [OF type_definition_cfun below_cfun_def bottom_cfun]
 
 text {* function application is strict in its first argument *}
 
@@ -261,7 +261,7 @@ lemmas lub_distribs = lub_APP lub_LAM
 text {* strictness *}
 
 lemma strictI: "f\<cdot>x = \<bottom> \<Longrightarrow> f\<cdot>\<bottom> = \<bottom>"
-apply (rule UU_I)
+apply (rule bottomI)
 apply (erule subst)
 apply (rule minimal [THEN monofun_cfun_arg])
 done
@@ -364,7 +364,7 @@ text {* Continuous retractions are strict. *}
 
 lemma retraction_strict:
   "\<forall>x. f\<cdot>(g\<cdot>x) = x \<Longrightarrow> f\<cdot>\<bottom> = \<bottom>"
-apply (rule UU_I)
+apply (rule bottomI)
 apply (drule_tac x="\<bottom>" in spec)
 apply (erule subst)
 apply (rule monofun_cfun_arg)
@@ -406,7 +406,7 @@ lemma flat_codom:
   "f\<cdot>x = (c::'b::flat) \<Longrightarrow> f\<cdot>\<bottom> = \<bottom> \<or> (\<forall>z. f\<cdot>z = c)"
 apply (case_tac "f\<cdot>x = \<bottom>")
 apply (rule disjI1)
-apply (rule UU_I)
+apply (rule bottomI)
 apply (erule_tac t="\<bottom>" in subst)
 apply (rule minimal [THEN monofun_cfun_arg])
 apply clarify

@@ -96,13 +96,13 @@ instance "fun"  :: (type, pcpo) pcpo
 by default (fast intro: minimal_fun)
 
 lemma inst_fun_pcpo: "\<bottom> = (\<lambda>x. \<bottom>)"
-by (rule minimal_fun [THEN UU_I, symmetric])
+by (rule minimal_fun [THEN bottomI, symmetric])
 
 lemma app_strict [simp]: "\<bottom> x = \<bottom>"
 by (simp add: inst_fun_pcpo)
 
 lemma lambda_strict: "(\<lambda>x. \<bottom>) = \<bottom>"
-by (rule UU_I, rule minimal_fun)
+by (rule bottomI, rule minimal_fun)
 
 subsection {* Propagation of monotonicity and continuity *}
 

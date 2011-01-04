@@ -122,7 +122,7 @@ lemma fix_bottom_iff: "(fix\<cdot>F = \<bottom>) = (F\<cdot>\<bottom> = \<bottom
 apply (rule iffI)
 apply (erule subst)
 apply (rule fix_eq [symmetric])
-apply (erule fix_least [THEN UU_I])
+apply (erule fix_least [THEN bottomI])
 done
 
 lemma fix_strict: "F\<cdot>\<bottom> = \<bottom> \<Longrightarrow> fix\<cdot>F = \<bottom>"

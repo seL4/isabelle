@@ -175,7 +175,7 @@ lemma adm_compact_neq [simp]:
   "\<lbrakk>compact k; cont (\<lambda>x. t x)\<rbrakk> \<Longrightarrow> adm (\<lambda>x. k \<noteq> t x)"
 by (simp add: po_eq_conv)
 
-lemma compact_UU [simp, intro]: "compact \<bottom>"
+lemma compact_bottom [simp, intro]: "compact \<bottom>"
 by (rule compactI, simp)
 
 text {* Any upward-closed predicate is admissible. *}

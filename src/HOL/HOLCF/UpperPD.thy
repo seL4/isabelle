@@ -114,7 +114,7 @@ instance upper_pd :: (bifinite) pcpo
 by intro_classes (fast intro: upper_pd_minimal)
 
 lemma inst_upper_pd_pcpo: "\<bottom> = upper_principal (PDUnit compact_bot)"
-by (rule upper_pd_minimal [THEN UU_I, symmetric])
+by (rule upper_pd_minimal [THEN bottomI, symmetric])
 
 
 subsection {* Monadic unit and plus *}
@@ -233,10 +233,10 @@ using upper_unit_Rep_compact_basis [of compact_bot]
 by (simp add: inst_upper_pd_pcpo)
 
 lemma upper_plus_strict1 [simp]: "\<bottom> \<union>\<sharp> ys = \<bottom>"
-by (rule UU_I, rule upper_plus_below1)
+by (rule bottomI, rule upper_plus_below1)
 
 lemma upper_plus_strict2 [simp]: "xs \<union>\<sharp> \<bottom> = \<bottom>"
-by (rule UU_I, rule upper_plus_below2)
+by (rule bottomI, rule upper_plus_below2)
 
 lemma upper_unit_bottom_iff [simp]: "{x}\<sharp> = \<bottom> \<longleftrightarrow> x = \<bottom>"
 unfolding upper_unit_strict [symmetric] by (rule upper_unit_eq_iff)

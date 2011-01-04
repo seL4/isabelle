@@ -52,7 +52,7 @@ proof -
   have "\<bottom> \<sqsubseteq> rep\<cdot>\<bottom>" ..
   then have "abs\<cdot>\<bottom> \<sqsubseteq> abs\<cdot>(rep\<cdot>\<bottom>)" by (rule monofun_cfun_arg)
   then have "abs\<cdot>\<bottom> \<sqsubseteq> \<bottom>" by simp
-  then show ?thesis by (rule UU_I)
+  then show ?thesis by (rule bottomI)
 qed
 
 lemma rep_strict: "rep\<cdot>\<bottom> = \<bottom>"

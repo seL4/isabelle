@@ -599,6 +599,10 @@ names of constants and types involved. INCOMPATIBILITY.
   thelub_cprod    ~> lub_prod
   minimal_cprod   ~> minimal_prod
   inst_cprod_pcpo ~> inst_prod_pcpo
+  UU_I            ~> bottomI
+  compact_UU      ~> compact_bottom
+  deflation_UU    ~> deflation_bottom
+  finite_deflation_UU ~> finite_deflation_bottom
 
 * Many legacy theorem names have been discontinued. INCOMPATIBILITY.
   sq_ord_less_eq_trans ~> below_eq_trans

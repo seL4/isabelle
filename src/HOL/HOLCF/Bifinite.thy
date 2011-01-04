@@ -253,7 +253,7 @@ proof
 qed
 
 lemma approx_chain_unit: "approx_chain (\<bottom> :: nat \<Rightarrow> unit \<rightarrow> unit)"
-by (simp add: approx_chain_def cfun_eq_iff finite_deflation_UU)
+by (simp add: approx_chain_def cfun_eq_iff finite_deflation_bottom)
 
 instance unit :: bifinite
   by default (fast intro!: approx_chain_unit)

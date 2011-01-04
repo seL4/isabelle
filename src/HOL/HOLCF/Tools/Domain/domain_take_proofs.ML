@@ -330,7 +330,7 @@ fun define_take_functions
           @{thms adm_conj adm_subst [OF _ adm_deflation]
                  cont2cont_fst cont2cont_snd cont_id}
         val bottom_rules =
-          take_0_thms @ @{thms deflation_UU simp_thms}
+          take_0_thms @ @{thms deflation_bottom simp_thms}
         val deflation_rules =
           @{thms conjI deflation_ID}
           @ deflation_abs_rep_thms

@@ -13,7 +13,7 @@ default_sort bifinite
 subsection {* Type constructor for finite deflations *}
 
 typedef (open) 'a fin_defl = "{d::'a \<rightarrow> 'a. finite_deflation d}"
-by (fast intro: finite_deflation_UU)
+by (fast intro: finite_deflation_bottom)
 
 instantiation fin_defl :: (bifinite) below
 begin
@@ -138,14 +138,14 @@ lemma defl_minimal: "defl_principal (Abs_fin_defl \<bottom>) \<sqsubseteq> x"
 apply (induct x rule: defl.principal_induct, simp)
 apply (rule defl.principal_mono)
 apply (simp add: below_fin_defl_def)
-apply (simp add: Abs_fin_defl_inverse finite_deflation_UU)
+apply (simp add: Abs_fin_defl_inverse finite_deflation_bottom)
 done
 
 instance defl :: (bifinite) pcpo
 by intro_classes (fast intro: defl_minimal)
 
 lemma inst_defl_pcpo: "\<bottom> = defl_principal (Abs_fin_defl \<bottom>)"
-by (rule defl_minimal [THEN UU_I, symmetric])
+by (rule defl_minimal [THEN bottomI, symmetric])
 
 subsection {* Applying algebraic deflations *}
 
@@ -209,11 +209,11 @@ lemma cast_strict1 [simp]: "cast\<cdot>\<bottom> = \<bottom>"
 apply (subst inst_defl_pcpo)
 apply (subst cast_defl_principal)
 apply (rule Abs_fin_defl_inverse)
-apply (simp add: finite_deflation_UU)
+apply (simp add: finite_deflation_bottom)
 done
 
 lemma cast_strict2 [simp]: "cast\<cdot>A\<cdot>\<bottom> = \<bottom>"
-by (rule cast.below [THEN UU_I])
+by (rule cast.below [THEN bottomI])
 
 subsection {* Deflation combinators *}
 

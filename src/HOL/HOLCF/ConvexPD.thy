@@ -161,7 +161,7 @@ instance convex_pd :: (bifinite) pcpo
 by intro_classes (fast intro: convex_pd_minimal)
 
 lemma inst_convex_pd_pcpo: "\<bottom> = convex_principal (PDUnit compact_bot)"
-by (rule convex_pd_minimal [THEN UU_I, symmetric])
+by (rule convex_pd_minimal [THEN bottomI, symmetric])
 
 
 subsection {* Monadic unit and plus *}

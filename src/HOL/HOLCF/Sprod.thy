@@ -117,7 +117,7 @@ lemma spair_inject:
   "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>; (:x, y:) = (:a, b:)\<rbrakk> \<Longrightarrow> x = a \<and> y = b"
 by (rule spair_eq [THEN iffD1])
 
-lemma inst_sprod_pcpo2: "UU = (:UU,UU:)"
+lemma inst_sprod_pcpo2: "\<bottom> = (:\<bottom>, \<bottom>:)"
 by simp
 
 lemma sprodE2: "(\<And>x y. p = (:x, y:) \<Longrightarrow> Q) \<Longrightarrow> Q"

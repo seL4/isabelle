@@ -180,17 +180,17 @@ begin
 
 text {* useful lemmas about @{term \<bottom>} *}
 
-lemma below_UU_iff [simp]: "(x \<sqsubseteq> \<bottom>) = (x = \<bottom>)"
+lemma below_bottom_iff [simp]: "(x \<sqsubseteq> \<bottom>) = (x = \<bottom>)"
 by (simp add: po_eq_conv)
 
-lemma eq_UU_iff: "(x = \<bottom>) = (x \<sqsubseteq> \<bottom>)"
+lemma eq_bottom_iff: "(x = \<bottom>) = (x \<sqsubseteq> \<bottom>)"
 by simp
 
-lemma UU_I: "x \<sqsubseteq> \<bottom> \<Longrightarrow> x = \<bottom>"
-by (subst eq_UU_iff)
+lemma bottomI: "x \<sqsubseteq> \<bottom> \<Longrightarrow> x = \<bottom>"
+by (subst eq_bottom_iff)
 
 lemma lub_eq_bottom_iff: "chain Y \<Longrightarrow> (\<Squnion>i. Y i) = \<bottom> \<longleftrightarrow> (\<forall>i. Y i = \<bottom>)"
-by (simp only: eq_UU_iff lub_below_iff)
+by (simp only: eq_bottom_iff lub_below_iff)
 
 lemma chain_UU_I: "\<lbrakk>chain Y; (\<Squnion>i. Y i) = \<bottom>\<rbrakk> \<Longrightarrow> \<forall>i. Y i = \<bottom>"
 by (simp add: lub_eq_bottom_iff)
@@ -202,7 +202,7 @@ lemma chain_UU_I_inverse2: "(\<Squnion>i. Y i) \<noteq> \<bottom> \<Longrightarr
   by (blast intro: chain_UU_I_inverse)
 
 lemma notUU_I: "\<lbrakk>x \<sqsubseteq> y; x \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> y \<noteq> \<bottom>"
-  by (blast intro: UU_I)
+  by (blast intro: bottomI)
 
 end
 

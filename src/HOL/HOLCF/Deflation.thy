@@ -56,7 +56,7 @@ qed
 end
 
 lemma deflation_strict: "deflation d \<Longrightarrow> d\<cdot>\<bottom> = \<bottom>"
-by (rule deflation.below [THEN UU_I])
+by (rule deflation.below [THEN bottomI])
 
 lemma adm_deflation: "adm (\<lambda>d. deflation d)"
 by (simp add: deflation_def)
@@ -64,7 +64,7 @@ by (simp add: deflation_def)
 lemma deflation_ID: "deflation ID"
 by (simp add: deflation.intro)
 
-lemma deflation_UU: "deflation \<bottom>"
+lemma deflation_bottom: "deflation \<bottom>"
 by (simp add: deflation.intro)
 
 lemma deflation_below_iff:
@@ -160,7 +160,7 @@ lemma finite_deflation_imp_deflation:
   "finite_deflation d \<Longrightarrow> deflation d"
 unfolding finite_deflation_def by simp
 
-lemma finite_deflation_UU: "finite_deflation \<bottom>"
+lemma finite_deflation_bottom: "finite_deflation \<bottom>"
 by default simp_all
 
 

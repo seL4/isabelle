@@ -127,7 +127,7 @@ by intro_classes fast
 
 text {* for compatibility with old HOLCF-Version *}
 lemma inst_up_pcpo: "\<bottom> = Ibottom"
-by (rule minimal_up [THEN UU_I, symmetric])
+by (rule minimal_up [THEN bottomI, symmetric])
 
 subsection {* Continuity of \emph{Iup} and \emph{Ifup} *}
 

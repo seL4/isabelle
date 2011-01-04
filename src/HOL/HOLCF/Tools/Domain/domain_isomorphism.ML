@@ -325,7 +325,7 @@ fun define_map_functions
           @{thms adm_conj adm_subst [OF _ adm_deflation]
                  cont2cont_fst cont2cont_snd cont_id}
         val bottom_rules =
-          @{thms fst_strict snd_strict deflation_UU simp_thms}
+          @{thms fst_strict snd_strict deflation_bottom simp_thms}
         val tuple_rules =
           @{thms split_def fst_conv snd_conv}
         val deflation_rules =
