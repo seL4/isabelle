@@ -155,12 +155,7 @@ done
 
 lemma (in ring) oneideal:
   shows "ideal (carrier R) R"
-apply (intro idealI  subgroup.intro)
-      apply (rule is_ring)
-     apply simp+
-  apply (fold a_inv_def, simp)
- apply simp+
-done
+  by (rule idealI) (auto intro: is_ring add.subgroupI)
 
 lemma (in "domain") zeroprimeideal:
  shows "primeideal {\<zero>} R"

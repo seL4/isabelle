@@ -1,5 +1,6 @@
 (*  Title:      HOL/Algebra/IntRing.thy
     Author:     Stephan Hohe, TU Muenchen
+    Author:     Clemens Ballarin
 *)
 
 theory IntRing
@@ -20,17 +21,16 @@ done
 
 subsection {* @{text "\<Z>"}: The Set of Integers as Algebraic Structure *}
 
-definition
+abbreviation
   int_ring :: "int ring" ("\<Z>") where
-  "int_ring = \<lparr>carrier = UNIV, mult = op *, one = 1, zero = 0, add = op +\<rparr>"
+  "int_ring == (| carrier = UNIV, mult = op *, one = 1, zero = 0, add = op + |)"
 
 lemma int_Zcarr [intro!, simp]:
   "k \<in> carrier \<Z>"
-  by (simp add: int_ring_def)
+  by simp
 
 lemma int_is_cring:
   "cring \<Z>"
-unfolding int_ring_def
 apply (rule cringI)
   apply (rule abelian_groupI, simp_all)
   defer 1
@@ -62,30 +62,30 @@ interpretation int: monoid \<Z>
     and "pow \<Z> x n = x^n"
 proof -
   -- "Specification"
-  show "monoid \<Z>" proof qed (auto simp: int_ring_def)
+  show "monoid \<Z>" proof qed auto
   then interpret int: monoid \<Z> .
 
   -- "Carrier"
-  show "carrier \<Z> = UNIV" by (simp add: int_ring_def)
+  show "carrier \<Z> = UNIV" by simp
 
   -- "Operations"
-  { fix x y show "mult \<Z> x y = x * y" by (simp add: int_ring_def) }
+  { fix x y show "mult \<Z> x y = x * y" by simp }
   note mult = this
-  show one: "one \<Z> = 1" by (simp add: int_ring_def)
-  show "pow \<Z> x n = x^n" by (induct n) (simp, simp add: int_ring_def)+
+  show one: "one \<Z> = 1" by simp
+  show "pow \<Z> x n = x^n" by (induct n) simp_all
 qed
 
 interpretation int: comm_monoid \<Z>
   where "finprod \<Z> f A = (if finite A then setprod f A else undefined)"
 proof -
   -- "Specification"
-  show "comm_monoid \<Z>" proof qed (auto simp: int_ring_def)
+  show "comm_monoid \<Z>" proof qed auto
   then interpret int: comm_monoid \<Z> .
 
   -- "Operations"
-  { fix x y have "mult \<Z> x y = x * y" by (simp add: int_ring_def) }
+  { fix x y have "mult \<Z> x y = x * y" by simp }
   note mult = this
-  have one: "one \<Z> = 1" by (simp add: int_ring_def)
+  have one: "one \<Z> = 1" by simp
   show "finprod \<Z> f A = (if finite A then setprod f A else undefined)"
   proof (cases "finite A")
     case True then show ?thesis proof induct
@@ -99,18 +99,22 @@ proof -
 qed
 
 interpretation int: abelian_monoid \<Z>
-  where "zero \<Z> = 0"
-    and "add \<Z> x y = x + y"
-    and "finsum \<Z> f A = (if finite A then setsum f A else undefined)"
+  where int_carrier_eq: "carrier \<Z> = UNIV"
+    and int_zero_eq: "zero \<Z> = 0"
+    and int_add_eq: "add \<Z> x y = x + y"
+    and int_finsum_eq: "finsum \<Z> f A = (if finite A then setsum f A else undefined)"
 proof -
   -- "Specification"
-  show "abelian_monoid \<Z>" proof qed (auto simp: int_ring_def)
+  show "abelian_monoid \<Z>" proof qed auto
   then interpret int: abelian_monoid \<Z> .
 
+  -- "Carrier"
+  show "carrier \<Z> = UNIV" by simp
+
   -- "Operations"
-  { fix x y show "add \<Z> x y = x + y" by (simp add: int_ring_def) }
+  { fix x y show "add \<Z> x y = x + y" by simp }
   note add = this
-  show zero: "zero \<Z> = 0" by (simp add: int_ring_def)
+  show zero: "zero \<Z> = 0" by simp
   show "finsum \<Z> f A = (if finite A then setsum f A else undefined)"
   proof (cases "finite A")
     case True then show ?thesis proof induct
@@ -124,30 +128,46 @@ proof -
 qed
 
 interpretation int: abelian_group \<Z>
-  where "a_inv \<Z> x = - x"
-    and "a_minus \<Z> x y = x - y"
+  (* The equations from the interpretation of abelian_monoid need to be repeated.
+     Since the morphisms through which the abelian structures are interpreted are
+     not the identity, the equations of these interpretations are not inherited. *)
+  (* FIXME *)
+  where "carrier \<Z> = UNIV"
+    and "zero \<Z> = 0"
+    and "add \<Z> x y = x + y"
+    and "finsum \<Z> f A = (if finite A then setsum f A else undefined)"
+    and int_a_inv_eq: "a_inv \<Z> x = - x"
+    and int_a_minus_eq: "a_minus \<Z> x y = x - y"
 proof -
   -- "Specification"
   show "abelian_group \<Z>"
   proof (rule abelian_groupI)
     show "!!x. x \<in> carrier \<Z> ==> EX y : carrier \<Z>. y \<oplus>\<^bsub>\<Z>\<^esub> x = \<zero>\<^bsub>\<Z>\<^esub>"
-      by (simp add: int_ring_def) arith
-  qed (auto simp: int_ring_def)
+      by simp arith
+  qed auto
   then interpret int: abelian_group \<Z> .
-
   -- "Operations"
-  { fix x y have "add \<Z> x y = x + y" by (simp add: int_ring_def) }
+  { fix x y have "add \<Z> x y = x + y" by simp }
   note add = this
-  have zero: "zero \<Z> = 0" by (simp add: int_ring_def)
+  have zero: "zero \<Z> = 0" by simp
   { fix x
     have "add \<Z> (-x) x = zero \<Z>" by (simp add: add zero)
     then show "a_inv \<Z> x = - x" by (simp add: int.minus_equality) }
   note a_inv = this
   show "a_minus \<Z> x y = x - y" by (simp add: int.minus_eq add a_inv)
-qed
+qed (simp add: int_carrier_eq int_zero_eq int_add_eq int_finsum_eq)+
 
 interpretation int: "domain" \<Z>
-  proof qed (auto simp: int_ring_def left_distrib right_distrib)
+  where "carrier \<Z> = UNIV"
+    and "zero \<Z> = 0"
+    and "add \<Z> x y = x + y"
+    and "finsum \<Z> f A = (if finite A then setsum f A else undefined)"
+    and "a_inv \<Z> x = - x"
+    and "a_minus \<Z> x y = x - y"
+proof -
+  show "domain \<Z>" by unfold_locales (auto simp: left_distrib right_distrib)
+qed (simp
+    add: int_carrier_eq int_zero_eq int_add_eq int_finsum_eq int_a_inv_eq int_a_minus_eq)+
 
 
 text {* Removal of occurrences of @{term UNIV} in interpretation result
@@ -213,8 +233,8 @@ subsection {* Generated Ideals of @{text "\<Z>"} *}
 
 lemma int_Idl:
   "Idl\<^bsub>\<Z>\<^esub> {a} = {x * a | x. True}"
-  apply (subst int.cgenideal_eq_genideal[symmetric]) apply (simp add: int_ring_def)
-  apply (simp add: cgenideal_def int_ring_def)
+  apply (subst int.cgenideal_eq_genideal[symmetric]) apply simp
+  apply (simp add: cgenideal_def)
   done
 
 lemma multiples_principalideal:
@@ -232,10 +252,8 @@ apply (rule primeidealI)
    apply (rule int.genideal_ideal, simp)
   apply (rule int_is_cring)
  apply (simp add: int.cgenideal_eq_genideal[symmetric] cgenideal_def)
- apply (simp add: int_ring_def)
  apply clarsimp defer 1
  apply (simp add: int.cgenideal_eq_genideal[symmetric] cgenideal_def)
- apply (simp add: int_ring_def)
  apply (elim exE)
 proof -
   fix a b x
@@ -336,7 +354,7 @@ lemma rcos_zfact:
   shows "EX x. k = x * l + r"
 proof -
   from kIl[unfolded ZMod_def]
-      have "\<exists>xl\<in>Idl\<^bsub>\<Z>\<^esub> {l}. k = xl + r" by (simp add: a_r_coset_defs int_ring_def)
+      have "\<exists>xl\<in>Idl\<^bsub>\<Z>\<^esub> {l}. k = xl + r" by (simp add: a_r_coset_defs)
   from this obtain xl
       where xl: "xl \<in> Idl\<^bsub>\<Z>\<^esub> {l}"
       and k: "k = xl + r"
@@ -382,7 +400,6 @@ proof -
       unfolding ZMod_def
   apply (rule a_repr_independence'[symmetric])
   apply (simp add: int_Idl a_r_coset_defs)
-  apply (simp add: int_ring_def)
   proof -
     have "a = m * (a div m) + (a mod m)" by (simp add: zmod_zdiv_equality)
     hence "a = (a div m) * m + (a mod m)" by simp
@@ -426,13 +443,13 @@ done
 lemma ZFact_zero:
   "carrier (ZFact 0) = (\<Union>a. {{a}})"
 apply (insert int.genideal_zero)
-apply (simp add: ZFact_defs A_RCOSETS_defs r_coset_def int_ring_def ring_record_simps)
+apply (simp add: ZFact_defs A_RCOSETS_defs r_coset_def ring_record_simps)
 done
 
 lemma ZFact_one:
   "carrier (ZFact 1) = {UNIV}"
-apply (simp only: ZFact_defs A_RCOSETS_defs r_coset_def int_ring_def ring_record_simps)
-apply (subst int.genideal_one[unfolded int_ring_def, simplified ring_record_simps])
+apply (simp only: ZFact_defs A_RCOSETS_defs r_coset_def ring_record_simps)
+apply (subst int.genideal_one)
 apply (rule, rule, clarsimp)
  apply (rule, rule, clarsimp)
  apply (rule, clarsimp, arith)

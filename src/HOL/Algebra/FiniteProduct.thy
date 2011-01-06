@@ -450,9 +450,9 @@ qed
 
 lemma finprod_cong:
   "[| A = B; f \<in> B -> carrier G = True;
-      !!i. i \<in> B ==> f i = g i |] ==> finprod G f A = finprod G g B"
+      !!i. i \<in> B =simp=> f i = g i |] ==> finprod G f A = finprod G g B"
   (* This order of prems is slightly faster (3%) than the last two swapped. *)
-  by (rule finprod_cong') force+
+  by (rule finprod_cong') (auto simp add: simp_implies_def)
 
 text {*Usually, if this rule causes a failed congruence proof error,
   the reason is that the premise @{text "g \<in> B -> carrier G"} cannot be shown.
