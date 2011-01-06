@@ -515,50 +515,27 @@ Locale expressions may be instantiated, and the instantiated facts
   also within a proof body (command \hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}}).
 
   \begin{matharray}{rcl}
-    \indexdef{}{command}{sublocale}\hypertarget{command.sublocale}{\hyperlink{command.sublocale}{\mbox{\isa{\isacommand{sublocale}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{interpretation}\hypertarget{command.interpretation}{\hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{interpret}\hypertarget{command.interpret}{\hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{7C}{\isacharbar}}\ proof{\isaliteral{28}{\isacharparenleft}}chain{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{sublocale}\hypertarget{command.sublocale}{\hyperlink{command.sublocale}{\mbox{\isa{\isacommand{sublocale}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{print\_interps}\hypertarget{command.print-interps}{\hyperlink{command.print-interps}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}interps}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
   \indexouternonterm{interp}
   \begin{rail}
-    'sublocale' nameref ('<' | subseteq) localeexpr
-    ;
-    'interpretation' localeepxr equations?
+    'interpretation' localeexpr equations?
     ;
     'interpret' localeexpr equations?
     ;
-    'print_interps' nameref
+    'sublocale' nameref ('<' | subseteq) localeexpr equations?
     ;
     equations: 'where' (thmdecl? prop + 'and')
+    ;
+    'print_interps' nameref
     ;
   \end{rail}
 
   \begin{description}
-
-  \item \hyperlink{command.sublocale}{\mbox{\isa{\isacommand{sublocale}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}name\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ expr{\isaliteral{22}{\isachardoublequote}}}
-  interprets \isa{expr} in the locale \isa{name}.  A proof that
-  the specification of \isa{name} implies the specification of
-  \isa{expr} is required.  As in the localized version of the
-  theorem command, the proof is in the context of \isa{name}.  After
-  the proof obligation has been dischared, the facts of \isa{expr}
-  become part of locale \isa{name} as \emph{derived} context
-  elements and are available when the context \isa{name} is
-  subsequently entered.  Note that, like import, this is dynamic:
-  facts added to a locale part of \isa{expr} after interpretation
-  become also available in \isa{name}.
-
-  Only specification fragments of \isa{expr} that are not already
-  part of \isa{name} (be it imported, derived or a derived fragment
-  of the import) are considered in this process.  This enables
-  circular interpretations to the extent that no infinite chains are
-  generated in the locale hierarchy.
-
-  If interpretations of \isa{name} exist in the current theory, the
-  command adds interpretations for \isa{expr} as well, with the same
-  qualifier, although only for fragments of \isa{expr} that are not
-  interpreted in the theory already.
 
   \item \hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}expr\ {\isaliteral{5C3C57484552453E}{\isasymWHERE}}\ eqns{\isaliteral{22}{\isachardoublequote}}}
   interprets \isa{expr} in the theory.  The command generates proof
@@ -569,7 +546,7 @@ Locale expressions may be instantiated, and the instantiated facts
   Additional equations, which are unfolded during
   post-processing, may be given after the keyword \hyperlink{keyword.where}{\mbox{\isa{\isakeyword{where}}}}.
   This is useful for interpreting concepts introduced through
-  definition specification elements.  The equations must be proved.
+  definitions.  The equations must be proved.
 
   The command is aware of interpretations already active in the
   theory, but does not simplify the goal automatically.  In order to
@@ -582,14 +559,46 @@ Locale expressions may be instantiated, and the instantiated facts
   parts.
 
   Adding facts to locales has the effect of adding interpreted facts
-  to the theory for all active interpretations also.  That is,
+  to the theory for all interpretations as well.  That is,
   interpretations dynamically participate in any facts added to
-  locales.
+  locales.  Note that if a theory inherits additional facts for a
+  locale through one parent and an interpretation of that locale
+  through another parent, the additional facts will not be
+  interpreted.
 
   \item \hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}expr\ {\isaliteral{5C3C57484552453E}{\isasymWHERE}}\ eqns{\isaliteral{22}{\isachardoublequote}}} interprets
   \isa{expr} in the proof context and is otherwise similar to
   interpretation in theories.  Note that rewrite rules given to
-  \hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}} should be explicitly universally quantified.
+  \hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}} after the \hyperlink{keyword.where}{\mbox{\isa{\isakeyword{where}}}} keyword should be
+  explicitly universally quantified.
+
+  \item \hyperlink{command.sublocale}{\mbox{\isa{\isacommand{sublocale}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}name\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ expr\ {\isaliteral{5C3C57484552453E}{\isasymWHERE}}\ eqns{\isaliteral{22}{\isachardoublequote}}}
+  interprets \isa{expr} in the locale \isa{name}.  A proof that
+  the specification of \isa{name} implies the specification of
+  \isa{expr} is required.  As in the localized version of the
+  theorem command, the proof is in the context of \isa{name}.  After
+  the proof obligation has been discharged, the facts of \isa{expr}
+  become part of locale \isa{name} as \emph{derived} context
+  elements and are available when the context \isa{name} is
+  subsequently entered.  Note that, like import, this is dynamic:
+  facts added to a locale part of \isa{expr} after interpretation
+  become also available in \isa{name}.
+
+  Only specification fragments of \isa{expr} that are not already
+  part of \isa{name} (be it imported, derived or a derived fragment
+  of the import) are considered in this process.  This enables
+  circular interpretations provided that no infinite chains are
+  generated in the locale hierarchy.
+
+  If interpretations of \isa{name} exist in the current theory, the
+  command adds interpretations for \isa{expr} as well, with the same
+  qualifier, although only for fragments of \isa{expr} that are not
+  interpreted in the theory already.
+
+  Equations given after \hyperlink{keyword.where}{\mbox{\isa{\isakeyword{where}}}} amend the morphism through
+  which \isa{expr} is interpreted.  This enables to map definitions
+  from the interpreted locales to entities of \isa{name}.  This
+  feature is experimental.
 
   \item \hyperlink{command.print-interps}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}interps}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}locale{\isaliteral{22}{\isachardoublequote}}} lists all
   interpretations of \isa{{\isaliteral{22}{\isachardoublequote}}locale{\isaliteral{22}{\isachardoublequote}}} in the current theory or proof

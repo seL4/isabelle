@@ -494,50 +494,27 @@ text {*
   also within a proof body (command @{command "interpret"}).
 
   \begin{matharray}{rcl}
-    @{command_def "sublocale"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
     @{command_def "interpretation"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
     @{command_def "interpret"} & : & @{text "proof(state) | proof(chain) \<rightarrow> proof(prove)"} \\
+    @{command_def "sublocale"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
     @{command_def "print_interps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
 
   \indexouternonterm{interp}
   \begin{rail}
-    'sublocale' nameref ('<' | subseteq) localeexpr
-    ;
-    'interpretation' localeepxr equations?
+    'interpretation' localeexpr equations?
     ;
     'interpret' localeexpr equations?
     ;
-    'print_interps' nameref
+    'sublocale' nameref ('<' | subseteq) localeexpr equations?
     ;
     equations: 'where' (thmdecl? prop + 'and')
+    ;
+    'print_interps' nameref
     ;
   \end{rail}
 
   \begin{description}
-
-  \item @{command "sublocale"}~@{text "name \<subseteq> expr"}
-  interprets @{text expr} in the locale @{text name}.  A proof that
-  the specification of @{text name} implies the specification of
-  @{text expr} is required.  As in the localized version of the
-  theorem command, the proof is in the context of @{text name}.  After
-  the proof obligation has been dischared, the facts of @{text expr}
-  become part of locale @{text name} as \emph{derived} context
-  elements and are available when the context @{text name} is
-  subsequently entered.  Note that, like import, this is dynamic:
-  facts added to a locale part of @{text expr} after interpretation
-  become also available in @{text name}.
-
-  Only specification fragments of @{text expr} that are not already
-  part of @{text name} (be it imported, derived or a derived fragment
-  of the import) are considered in this process.  This enables
-  circular interpretations to the extent that no infinite chains are
-  generated in the locale hierarchy.
-
-  If interpretations of @{text name} exist in the current theory, the
-  command adds interpretations for @{text expr} as well, with the same
-  qualifier, although only for fragments of @{text expr} that are not
-  interpreted in the theory already.
 
   \item @{command "interpretation"}~@{text "expr \<WHERE> eqns"}
   interprets @{text expr} in the theory.  The command generates proof
@@ -548,7 +525,7 @@ text {*
   Additional equations, which are unfolded during
   post-processing, may be given after the keyword @{keyword "where"}.
   This is useful for interpreting concepts introduced through
-  definition specification elements.  The equations must be proved.
+  definitions.  The equations must be proved.
 
   The command is aware of interpretations already active in the
   theory, but does not simplify the goal automatically.  In order to
@@ -561,14 +538,47 @@ text {*
   parts.
 
   Adding facts to locales has the effect of adding interpreted facts
-  to the theory for all active interpretations also.  That is,
+  to the theory for all interpretations as well.  That is,
   interpretations dynamically participate in any facts added to
-  locales.
+  locales.  Note that if a theory inherits additional facts for a
+  locale through one parent and an interpretation of that locale
+  through another parent, the additional facts will not be
+  interpreted.
 
   \item @{command "interpret"}~@{text "expr \<WHERE> eqns"} interprets
   @{text expr} in the proof context and is otherwise similar to
   interpretation in theories.  Note that rewrite rules given to
-  @{command "interpret"} should be explicitly universally quantified.
+  @{command "interpret"} after the @{keyword "where"} keyword should be
+  explicitly universally quantified.
+
+  \item @{command "sublocale"}~@{text "name \<subseteq> expr \<WHERE>
+  eqns"}
+  interprets @{text expr} in the locale @{text name}.  A proof that
+  the specification of @{text name} implies the specification of
+  @{text expr} is required.  As in the localized version of the
+  theorem command, the proof is in the context of @{text name}.  After
+  the proof obligation has been discharged, the facts of @{text expr}
+  become part of locale @{text name} as \emph{derived} context
+  elements and are available when the context @{text name} is
+  subsequently entered.  Note that, like import, this is dynamic:
+  facts added to a locale part of @{text expr} after interpretation
+  become also available in @{text name}.
+
+  Only specification fragments of @{text expr} that are not already
+  part of @{text name} (be it imported, derived or a derived fragment
+  of the import) are considered in this process.  This enables
+  circular interpretations provided that no infinite chains are
+  generated in the locale hierarchy.
+
+  If interpretations of @{text name} exist in the current theory, the
+  command adds interpretations for @{text expr} as well, with the same
+  qualifier, although only for fragments of @{text expr} that are not
+  interpreted in the theory already.
+
+  Equations given after @{keyword "where"} amend the morphism through
+  which @{text expr} is interpreted.  This enables to map definitions
+  from the interpreted locales to entities of @{text name}.  This
+  feature is experimental.
 
   \item @{command "print_interps"}~@{text "locale"} lists all
   interpretations of @{text "locale"} in the current theory or proof
