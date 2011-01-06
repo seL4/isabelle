@@ -41,7 +41,7 @@ boogie_open "Boogie_Max.b2i"
 
 declare [[smt_certificates="Boogie_Max.certs"]]
 declare [[smt_fixed=true]]
-declare [[smt_oracle=false]]
+declare [[smt_solver=z3, smt_oracle=false]]
 
 boogie_vc max
   by boogie

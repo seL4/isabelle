@@ -272,15 +272,31 @@ these tools. E.g.
 * Auto Solve: Renamed "Auto Solve Direct".  The tool is now available
 manually as command 'solve_direct'.
 
+* The default SMT solver is now CVC3.  Z3 must be enabled explicitly,
+due to licensing issues.
+
+* Remote SMT solvers need to be referred to by the "remote_" prefix,
+i.e., "remote_cvc3" and "remote_z3".
+
+* Added basic SMT support for datatypes, records, and typedefs
+using the oracle mode (no proofs).  Direct support of pairs has been
+dropped in exchange (pass theorems fst_conv snd_conv pair_collapse to
+the SMT support for a similar behaviour).  MINOR INCOMPATIBILITY.
+
 * Changed SMT configuration options:
   - Renamed:
-    z3_proofs ~> smt_oracle (with swapped semantics)
+    z3_proofs ~> smt_oracle (with inverted meaning)
     z3_trace_assms ~> smt_trace_used_facts
     INCOMPATIBILITY.
   - Added:
     smt_verbose
+    smt_random_seed
     smt_datatypes
+    smt_infer_triggers
+    smt_monomorph_limit
     cvc3_options
+    remote_cvc3_options
+    remote_z3_options
     yices_options
 
 * Boogie output files (.b2i files) need to be declared in the theory

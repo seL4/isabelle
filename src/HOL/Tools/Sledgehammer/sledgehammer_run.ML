@@ -255,7 +255,7 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
             val weight = SMT_Weighted_Fact oo weight_smt_fact thy
             fun smt_head facts =
               (if debug then curry (op o) SOME else try)
-                  (SMT_Solver.smt_filter_head state (facts ()))
+                  (SMT_Solver.smt_filter_preprocess state (facts ()))
           in
             smts |> map (`(class_of_smt_solver ctxt))
                  |> AList.group (op =)

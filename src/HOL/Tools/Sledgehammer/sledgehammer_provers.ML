@@ -42,7 +42,7 @@ sig
      subgoal: int,
      subgoal_count: int,
      facts: prover_fact list,
-     smt_head: (string * locality) SMT_Solver.smt_filter_head_result option}
+     smt_head: (string * locality) SMT_Solver.smt_filter_data option}
 
   type prover_result =
     {outcome: failure option,
@@ -115,43 +115,26 @@ open Sledgehammer_ATP_Reconstruct
    "Async_Manager". *)
 val das_Tool = "Sledgehammer"
 
-val unremotify = perhaps (try (unprefix remote_prefix))
-
 val select_smt_solver =
-  Context.proof_map o SMT_Config.select_solver o unremotify
+  Context.proof_map o SMT_Config.select_solver
 
 fun is_smt_prover ctxt name =
-  let val smts = SMT_Solver.available_solvers_of ctxt in
-    case try (unprefix remote_prefix) name of
-      SOME base => member (op =) smts base andalso
-                   SMT_Solver.is_remotely_available ctxt base
-    | NONE => member (op =) smts name
-  end
+  member (op =) (SMT_Solver.available_solvers_of ctxt) name
 
 fun is_prover_available ctxt name =
   let val thy = ProofContext.theory_of ctxt in
     is_smt_prover ctxt name orelse member (op =) (available_atps thy) name
   end
 
-fun is_prover_installed ctxt name =
-  let val thy = ProofContext.theory_of ctxt in
-    if is_smt_prover ctxt name then
-      String.isPrefix remote_prefix name orelse
-      SMT_Solver.is_locally_installed ctxt name
-    else
-      is_atp_installed thy name
-  end
+fun is_prover_installed ctxt =
+  is_smt_prover ctxt orf is_atp_installed (ProofContext.theory_of ctxt)
 
-fun available_smt_solvers ctxt =
-  let val smts = SMT_Solver.available_solvers_of ctxt in
-    smts @ map (prefix remote_prefix)
-               (filter (SMT_Solver.is_remotely_available ctxt) smts)
-  end
+fun available_smt_solvers ctxt = SMT_Solver.available_solvers_of ctxt
 
 fun default_max_relevant_for_prover ctxt name =
   let val thy = ProofContext.theory_of ctxt in
     if is_smt_prover ctxt name then
-      SMT_Solver.default_max_relevant ctxt (unremotify name)
+      SMT_Solver.default_max_relevant ctxt name
     else
       #default_max_relevant (get_atp thy name)
   end
@@ -267,7 +250,7 @@ type prover_problem =
    subgoal: int,
    subgoal_count: int,
    facts: prover_fact list,
-   smt_head: (string * locality) SMT_Solver.smt_filter_head_result option}
+   smt_head: (string * locality) SMT_Solver.smt_filter_data option}
 
 type prover_result =
   {outcome: failure option,
@@ -537,17 +520,13 @@ fun smt_filter_loop name ({debug, verbose, overlord, timeout, ...} : params)
                     state i smt_head =
   let
     val ctxt = Proof.context_of state
-    val (remote, base) =
-      case try (unprefix remote_prefix) name of
-        SOME base => (true, base)
-      | NONE => (false, name)
     val repair_context =
-      select_smt_solver base
+      select_smt_solver name
       #> Config.put SMT_Config.verbose debug
       #> (if overlord then
             Config.put SMT_Config.debug_files
                        (overlord_file_location_for_prover name
-                        |> (fn (path, base) => path ^ "/" ^ base))
+                        |> (fn (path, name) => path ^ "/" ^ name))
           else
             I)
       #> Config.put SMT_Config.infer_triggers (!smt_triggers)
@@ -579,9 +558,9 @@ fun smt_filter_loop name ({debug, verbose, overlord, timeout, ...} : params)
           if debug then Output.urgent_message "Invoking SMT solver..." else ()
         val (outcome, used_facts) =
           (case (iter_num, smt_head) of
-             (1, SOME head) => head |> apsnd (apfst (apsnd repair_context))
-           | _ => SMT_Solver.smt_filter_head state facts i)
-          |> SMT_Solver.smt_filter_tail iter_timeout remote
+             (1, SOME head) => head |> apsnd (apsnd repair_context)
+           | _ => SMT_Solver.smt_filter_preprocess state facts i)
+          |> SMT_Solver.smt_filter_apply iter_timeout
           |> (fn {outcome, used_facts} => (outcome, used_facts))
           handle exn => if Exn.is_interrupt exn then
                           reraise exn
@@ -668,10 +647,8 @@ fun run_smt_solver auto name (params as {debug, verbose, ...}) minimize_command
             if can_apply_metis debug state subgoal (map snd used_facts) then
               ("metis", "")
             else
-              let val base = unremotify name in
-                ("smt", if base = SMT_Config.solver_of ctxt then ""
-                        else "smt_solver = " ^ maybe_quote base)
-              end
+              ("smt", if name = SMT_Solver.solver_name_of ctxt then ""
+                      else "smt_solver = " ^ maybe_quote name)
         in
           try_command_line (proof_banner auto)
               (apply_on_subgoal settings subgoal subgoal_count ^

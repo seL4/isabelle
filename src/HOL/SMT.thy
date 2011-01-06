@@ -176,17 +176,11 @@ subsection {* General configuration options *}
 
 text {*
 The option @{text smt_solver} can be used to change the target SMT
-solver.  The possible values are @{text cvc3}, @{text yices}, and
-@{text z3}.  It is advisable to locally install the selected solver,
-although this is not necessary for @{text cvc3} and @{text z3}, which
-can also be used over an Internet-based service.
-
-When using local SMT solvers, the path to their binaries should be
-declared by setting the following environment variables:
-@{text CVC3_SOLVER}, @{text YICES_SOLVER}, and @{text Z3_SOLVER}.
+solver.  The possible values can be obtained from the @{text smt_status}
+command.
 *}
 
-declare [[ smt_solver = z3 ]]
+declare [[ smt_solver = cvc3 ]]
 
 text {*
 Since SMT solvers are potentially non-terminating, there is a timeout
@@ -218,7 +212,9 @@ behaviour.  They can be passed to the solver by setting the following
 options.
 *}
 
-declare [[ cvc3_options = "", yices_options = "", z3_options = "" ]]
+declare [[ cvc3_options = "", remote_cvc3_options = "" ]]
+declare [[ yices_options = "" ]]
+declare [[ z3_options = "", remote_z3_options = "" ]]
 
 text {*
 Enable the following option to use built-in support for datatypes and
