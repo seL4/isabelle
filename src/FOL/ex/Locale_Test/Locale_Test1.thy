@@ -771,6 +771,7 @@ proof
     then interpret local_fixed: lgrp "op +" zero "minus"
       by unfold_locales
     thm local_fixed.lone
+    print_dependencies! lgrp "op +" 0 minus + lgrp "op +" zero minus
   }
   assume "!!x zero. zero + x = x" "!!x zero. (-x) + x = zero"
   then interpret local_free: lgrp "op +" zero "minus" for zero

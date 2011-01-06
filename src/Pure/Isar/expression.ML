@@ -51,6 +51,9 @@ sig
     bool -> Proof.state -> Proof.state
   val interpret_cmd: expression -> (Attrib.binding * string) list ->
     bool -> Proof.state -> Proof.state
+
+  (* Diagnostic *)
+  val print_dependencies: Proof.context -> bool -> expression -> unit
 end;
 
 structure Expression : EXPRESSION =
@@ -913,12 +916,6 @@ fun gen_sublocale prep_expr intern parse_prop prep_attr raw_target
       note_eqns_dependency target deps witss attrss eqns export export';
 
   in Element.witness_proof_eqs after_qed propss eqns goal_ctxt end;
-(*
-    fun after_qed witss = ProofContext.background_theory
-      (fold (fn ((dep, morph), wits) => Locale.add_dependency
-        target (dep, morph $> Element.satisfy_morphism wits) export) (deps ~~ witss));
-  in Element.witness_proof after_qed propss goal_ctxt end;
-*)
 in
 
 fun sublocale x = gen_sublocale cert_goal_expression (K I) (K I) (K I) x;
@@ -926,6 +923,18 @@ fun sublocale_cmd x = gen_sublocale read_goal_expression Locale.intern
   Syntax.parse_prop Attrib.intern_src x;
 
 end;
+
+
+(** Print the instances that would be activated by an interpretation
+  of the expression in the current context (clean = false) or in an
+  empty context (clean = true). **)
+
+fun print_dependencies ctxt clean expression =
+  let
+    val ((_, deps, export), expr_ctxt) = read_goal_expression expression ctxt;
+  in
+    Locale.print_dependencies expr_ctxt clean export deps
+  end;
 
 end;
 

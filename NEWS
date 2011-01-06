@@ -103,8 +103,15 @@ experimentation in Isar without any result.  INCOMPATIBILITY.
 
 * Support for real valued preferences (with approximative PGIP type).
 
-* Interpretation command 'interpret' accepts a list of equations like
-'interpretation' does.
+* Locale interpretation commands 'interpret' and 'sublocale' accept
+lists of equations to map definitions in a locale to appropriate
+entities in the context of the interpretation.  The 'interpretation'
+command already provided this functionality.
+
+* New diagnostic command 'print_dependencies' prints the locale
+instances that would be activated if the specified expression was
+interpreted in the current context.  Variant 'print_dependencies!'
+assumes a context without interpretations.
 
 * Diagnostic command 'print_interps' prints interpretations in proofs
 in addition to interpretations in theories.
@@ -122,11 +129,6 @@ constructors.
 
 * Document antiquotation @{file} checks file/directory entries within
 the local file system.
-
-* Locale interpretation commands 'interpret' and 'sublocale' accept
-equations to map definitions in a locale to appropriate entities in
-the context of the interpretation.  The 'interpretation' command
-already provided this functionality.
 
 
 *** HOL ***

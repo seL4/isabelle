@@ -518,6 +518,7 @@ Locale expressions may be instantiated, and the instantiated facts
     \indexdef{}{command}{interpretation}\hypertarget{command.interpretation}{\hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{interpret}\hypertarget{command.interpret}{\hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{7C}{\isacharbar}}\ proof{\isaliteral{28}{\isacharparenleft}}chain{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{sublocale}\hypertarget{command.sublocale}{\hyperlink{command.sublocale}{\mbox{\isa{\isacommand{sublocale}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{command}{print\_dependencies}\hypertarget{command.print-dependencies}{\hyperlink{command.print-dependencies}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}dependencies}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{}{command}{print\_interps}\hypertarget{command.print-interps}{\hyperlink{command.print-interps}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}interps}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
@@ -529,9 +530,11 @@ Locale expressions may be instantiated, and the instantiated facts
     ;
     'sublocale' nameref ('<' | subseteq) localeexpr equations?
     ;
-    equations: 'where' (thmdecl? prop + 'and')
+    'print_dependencies' '!'? localeexpr
     ;
     'print_interps' nameref
+    ;
+    equations: 'where' (thmdecl? prop + 'and')
     ;
   \end{rail}
 
@@ -599,6 +602,13 @@ Locale expressions may be instantiated, and the instantiated facts
   which \isa{expr} is interpreted.  This enables to map definitions
   from the interpreted locales to entities of \isa{name}.  This
   feature is experimental.
+
+  \item \hyperlink{command.print-dependencies}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}dependencies}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}expr{\isaliteral{22}{\isachardoublequote}}} is useful for
+  understanding the effect of an interpretation of \isa{{\isaliteral{22}{\isachardoublequote}}expr{\isaliteral{22}{\isachardoublequote}}}.  It
+  lists all locale instances for which interpretations would be added
+  to the current context.  Variant \hyperlink{command.print-dependencies}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}dependencies}}}}\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{21}{\isacharbang}}{\isaliteral{22}{\isachardoublequote}}} prints all locale instances that
+  would be considered for interpretation, and would be interpreted in
+  an empty context (that is, without interpretations).
 
   \item \hyperlink{command.print-interps}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}interps}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}locale{\isaliteral{22}{\isachardoublequote}}} lists all
   interpretations of \isa{{\isaliteral{22}{\isachardoublequote}}locale{\isaliteral{22}{\isachardoublequote}}} in the current theory or proof

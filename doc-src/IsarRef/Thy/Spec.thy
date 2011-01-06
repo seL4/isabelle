@@ -497,6 +497,7 @@ text {*
     @{command_def "interpretation"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
     @{command_def "interpret"} & : & @{text "proof(state) | proof(chain) \<rightarrow> proof(prove)"} \\
     @{command_def "sublocale"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
+    @{command_def "print_dependencies"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "print_interps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
 
@@ -508,9 +509,11 @@ text {*
     ;
     'sublocale' nameref ('<' | subseteq) localeexpr equations?
     ;
-    equations: 'where' (thmdecl? prop + 'and')
+    'print_dependencies' '!'? localeexpr
     ;
     'print_interps' nameref
+    ;
+    equations: 'where' (thmdecl? prop + 'and')
     ;
   \end{rail}
 
@@ -579,6 +582,14 @@ text {*
   which @{text expr} is interpreted.  This enables to map definitions
   from the interpreted locales to entities of @{text name}.  This
   feature is experimental.
+
+  \item @{command "print_dependencies"}~@{text "expr"} is useful for
+  understanding the effect of an interpretation of @{text "expr"}.  It
+  lists all locale instances for which interpretations would be added
+  to the current context.  Variant @{command
+  "print_dependencies"}@{text "!"} prints all locale instances that
+  would be considered for interpretation, and would be interpreted in
+  an empty context (that is, without interpretations).
 
   \item @{command "print_interps"}~@{text "locale"} lists all
   interpretations of @{text "locale"} in the current theory or proof

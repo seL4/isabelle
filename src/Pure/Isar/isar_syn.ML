@@ -836,8 +836,14 @@ val _ =
 
 val _ =
   Outer_Syntax.improper_command "print_interps"
-    "print interpretations of locale for this theory" Keyword.diag
+    "print interpretations of locale for this theory or proof context" Keyword.diag
     (Parse.xname >> (Toplevel.no_timing oo Isar_Cmd.print_registrations));
+
+val _ =
+  Outer_Syntax.improper_command "print_dependencies"
+    "print dependencies of locale expression" Keyword.diag
+    (opt_bang -- Parse_Spec.locale_expression true >>
+      (Toplevel.no_timing oo Isar_Cmd.print_dependencies));
 
 val _ =
   Outer_Syntax.improper_command "print_attributes" "print attributes of this theory" Keyword.diag

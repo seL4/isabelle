@@ -79,6 +79,7 @@ sig
   val print_locales: theory -> unit
   val print_locale: theory -> bool -> xstring -> unit
   val print_registrations: Proof.context -> string -> unit
+  val print_dependencies: Proof.context -> bool -> morphism -> (string * morphism) list -> unit
   val locale_deps: theory ->
     {params: ((string * typ) * mixfix) list, axioms: term list, registrations: term list list} Graph.T
       * term list list Symtab.table Symtab.table
@@ -212,10 +213,10 @@ fun identity_on thy name morph =
 
 (* Print instance and qualifiers *)
 
-fun pretty_reg thy (name, morph) =
+fun pretty_reg ctxt (name, morph) =
   let
+    val thy = ProofContext.theory_of ctxt;
     val name' = extern thy name;
-    val ctxt = ProofContext.init_global thy;
     fun prt_qual (qual, mand) = Pretty.str (qual ^ (if mand then "!" else "?"));
     fun prt_quals qs = Pretty.separate "." (map prt_qual qs) |> Pretty.block;
     val prt_term = Pretty.quote o Syntax.pretty_term ctxt;
@@ -649,10 +650,22 @@ fun print_locale thy show_facts raw_name =
 fun print_registrations ctxt raw_name =
   let
     val thy = ProofContext.theory_of ctxt;
+    val name = intern thy raw_name;
+    val _ = the_locale thy name;  (* error if locale unknown *)
   in
-    (case registrations_of (Context.Proof ctxt) (* FIXME *) (intern thy raw_name) of
+    (case registrations_of (Context.Proof ctxt) (* FIXME *) name of
       [] => Pretty.str ("no interpretations")
-    | regs => Pretty.big_list "interpretations:" (map (pretty_reg thy) (rev regs)))
+    | regs => Pretty.big_list "interpretations:" (map (pretty_reg ctxt) (rev regs)))
+  end |> Pretty.writeln;
+
+fun print_dependencies ctxt clean export insts =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val idents = if clean then [] else get_idents (Context.Proof ctxt);
+  in
+    (case fold (roundup thy cons export) insts (idents, []) |> snd of
+      [] => Pretty.str ("no dependencies")
+    | deps => Pretty.big_list "dependencies:" (map (pretty_reg ctxt) (rev deps)))
   end |> Pretty.writeln;
 
 fun locale_deps thy =
