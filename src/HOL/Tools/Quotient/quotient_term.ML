@@ -65,13 +65,13 @@ fun mk_fun_compose flag (trm1, trm2) =
   | RepF => Const (@{const_name comp}, dummyT) $ trm2 $ trm1
 
 fun get_mapfun ctxt s =
-let
-  val thy = ProofContext.theory_of ctxt
-  val mapfun = #mapfun (maps_lookup thy s) handle Quotient_Info.NotFound =>
-    raise LIFT_MATCH ("No map function for type " ^ quote s ^ " found.")
-in
-  Const (mapfun, dummyT)
-end
+  let
+    val thy = ProofContext.theory_of ctxt
+    val mapfun = #mapfun (maps_lookup thy s) handle Quotient_Info.NotFound =>
+      raise LIFT_MATCH ("No map function for type " ^ quote s ^ " found.")
+  in
+    Const (mapfun, dummyT)
+  end
 
 (* makes a Free out of a TVar *)
 fun mk_Free (TVar ((x, i), _)) = Free (unprefix "'" x ^ string_of_int i, dummyT)
@@ -85,74 +85,74 @@ fun mk_Free (TVar ((x, i), _)) = Free (unprefix "'" x ^ string_of_int i, dummyT)
    it produces:     %a b. prod_map (map a) b
 *)
 fun mk_mapfun ctxt vs rty =
-let
-  val vs' = map mk_Free vs
+  let
+    val vs' = map mk_Free vs
 
-  fun mk_mapfun_aux rty =
-    case rty of
-      TVar _ => mk_Free rty
-    | Type (_, []) => mk_identity rty
-    | Type (s, tys) => list_comb (get_mapfun ctxt s, map mk_mapfun_aux tys)
-    | _ => raise LIFT_MATCH "mk_mapfun (default)"
-in
-  fold_rev Term.lambda vs' (mk_mapfun_aux rty)
-end
+    fun mk_mapfun_aux rty =
+      case rty of
+        TVar _ => mk_Free rty
+      | Type (_, []) => mk_identity rty
+      | Type (s, tys) => list_comb (get_mapfun ctxt s, map mk_mapfun_aux tys)
+      | _ => raise LIFT_MATCH "mk_mapfun (default)"
+  in
+    fold_rev Term.lambda vs' (mk_mapfun_aux rty)
+  end
 
 (* looks up the (varified) rty and qty for
    a quotient definition
 *)
 fun get_rty_qty ctxt s =
-let
-  val thy = ProofContext.theory_of ctxt
-  val qdata = quotdata_lookup thy s handle Quotient_Info.NotFound =>
-    raise LIFT_MATCH ("No quotient type " ^ quote s ^ " found.")
-in
-  (#rtyp qdata, #qtyp qdata)
-end
+  let
+    val thy = ProofContext.theory_of ctxt
+    val qdata = quotdata_lookup thy s handle Quotient_Info.NotFound =>
+      raise LIFT_MATCH ("No quotient type " ^ quote s ^ " found.")
+  in
+    (#rtyp qdata, #qtyp qdata)
+  end
 
 (* takes two type-environments and looks
    up in both of them the variable v, which
    must be listed in the environment
 *)
 fun double_lookup rtyenv qtyenv v =
-let
-  val v' = fst (dest_TVar v)
-in
-  (snd (the (Vartab.lookup rtyenv v')), snd (the (Vartab.lookup qtyenv v')))
-end
+  let
+    val v' = fst (dest_TVar v)
+  in
+    (snd (the (Vartab.lookup rtyenv v')), snd (the (Vartab.lookup qtyenv v')))
+  end
 
 (* matches a type pattern with a type *)
 fun match ctxt err ty_pat ty =
-let
-  val thy = ProofContext.theory_of ctxt
-in
-  Sign.typ_match thy (ty_pat, ty) Vartab.empty
-  handle Type.TYPE_MATCH => err ctxt ty_pat ty
-end
+  let
+    val thy = ProofContext.theory_of ctxt
+  in
+    Sign.typ_match thy (ty_pat, ty) Vartab.empty
+      handle Type.TYPE_MATCH => err ctxt ty_pat ty
+  end
 
 (* produces the rep or abs constant for a qty *)
 fun absrep_const flag ctxt qty_str =
-let
-  val qty_name = Long_Name.base_name qty_str
-  val qualifier = Long_Name.qualifier qty_str
-in
-  case flag of
-    AbsF => Const (Long_Name.qualify qualifier ("abs_" ^ qty_name), dummyT)
-  | RepF => Const (Long_Name.qualify qualifier ("rep_" ^ qty_name), dummyT)
-end
+  let
+    val qty_name = Long_Name.base_name qty_str
+    val qualifier = Long_Name.qualifier qty_str
+  in
+    case flag of
+      AbsF => Const (Long_Name.qualify qualifier ("abs_" ^ qty_name), dummyT)
+    | RepF => Const (Long_Name.qualify qualifier ("rep_" ^ qty_name), dummyT)
+  end
 
 (* Lets Nitpick represent elements of quotient types as elements of the raw type *)
 fun absrep_const_chk flag ctxt qty_str =
   Syntax.check_term ctxt (absrep_const flag ctxt qty_str)
 
 fun absrep_match_err ctxt ty_pat ty =
-let
-  val ty_pat_str = Syntax.string_of_typ ctxt ty_pat
-  val ty_str = Syntax.string_of_typ ctxt ty
-in
-  raise LIFT_MATCH (space_implode " "
-    ["absrep_fun (Types ", quote ty_pat_str, "and", quote ty_str, " do not match.)"])
-end
+  let
+    val ty_pat_str = Syntax.string_of_typ ctxt ty_pat
+    val ty_str = Syntax.string_of_typ ctxt ty
+  in
+    raise LIFT_MATCH (space_implode " "
+      ["absrep_fun (Types ", quote ty_pat_str, "and", quote ty_str, " do not match.)"])
+  end
 
 
 (** generation of an aggregate absrep function **)
@@ -213,29 +213,29 @@ fun absrep_fun flag ctxt (rty, qty) =
     | (Type (s, tys), Type (s', tys')) =>
         if s = s'
         then
-           let
-             val args = map (absrep_fun flag ctxt) (tys ~~ tys')
-           in
-             list_comb (get_mapfun ctxt s, args)
-           end
+          let
+            val args = map (absrep_fun flag ctxt) (tys ~~ tys')
+          in
+            list_comb (get_mapfun ctxt s, args)
+          end
         else
-           let
-             val (rty_pat, qty_pat as Type (_, vs)) = get_rty_qty ctxt s'
-             val rtyenv = match ctxt absrep_match_err rty_pat rty
-             val qtyenv = match ctxt absrep_match_err qty_pat qty
-             val args_aux = map (double_lookup rtyenv qtyenv) vs
-             val args = map (absrep_fun flag ctxt) args_aux
-           in
-             if forall is_identity args
-             then absrep_const flag ctxt s'
-             else 
-               let
-                 val map_fun = mk_mapfun ctxt vs rty_pat
-                 val result = list_comb (map_fun, args)
-               in
-                 mk_fun_compose flag (absrep_const flag ctxt s', result)
-               end
-           end
+          let
+            val (rty_pat, qty_pat as Type (_, vs)) = get_rty_qty ctxt s'
+            val rtyenv = match ctxt absrep_match_err rty_pat rty
+            val qtyenv = match ctxt absrep_match_err qty_pat qty
+            val args_aux = map (double_lookup rtyenv qtyenv) vs
+            val args = map (absrep_fun flag ctxt) args_aux
+          in
+            if forall is_identity args
+            then absrep_const flag ctxt s'
+            else
+              let
+                val map_fun = mk_mapfun ctxt vs rty_pat
+                val result = list_comb (map_fun, args)
+              in
+                mk_fun_compose flag (absrep_const flag ctxt s', result)
+              end
+          end
     | (TFree x, TFree x') =>
         if x = x'
         then mk_identity rty
@@ -259,13 +259,13 @@ fun absrep_fun_chk flag ctxt (rty, qty) =
 
 (* instantiates TVars so that the term is of type ty *)
 fun force_typ ctxt trm ty =
-let
-  val thy = ProofContext.theory_of ctxt
-  val trm_ty = fastype_of trm
-  val ty_inst = Sign.typ_match thy (trm_ty, ty) Vartab.empty
-in
-  map_types (Envir.subst_type ty_inst) trm
-end
+  let
+    val thy = ProofContext.theory_of ctxt
+    val trm_ty = fastype_of trm
+    val ty_inst = Sign.typ_match thy (trm_ty, ty) Vartab.empty
+  in
+    map_types (Envir.subst_type ty_inst) trm
+  end
 
 fun is_eq (Const (@{const_name HOL.eq}, _)) = true
   | is_eq _ = false
@@ -274,44 +274,44 @@ fun mk_rel_compose (trm1, trm2) =
   Const (@{const_abbrev "rel_conj"}, dummyT) $ trm1 $ trm2
 
 fun get_relmap ctxt s =
-let
-  val thy = ProofContext.theory_of ctxt
-  val relmap = #relmap (maps_lookup thy s) handle Quotient_Info.NotFound =>
-    raise LIFT_MATCH ("get_relmap (no relation map function found for type " ^ s ^ ")")
-in
-  Const (relmap, dummyT)
-end
+  let
+    val thy = ProofContext.theory_of ctxt
+    val relmap = #relmap (maps_lookup thy s) handle Quotient_Info.NotFound =>
+      raise LIFT_MATCH ("get_relmap (no relation map function found for type " ^ s ^ ")")
+  in
+    Const (relmap, dummyT)
+  end
 
 fun mk_relmap ctxt vs rty =
-let
-  val vs' = map (mk_Free) vs
+  let
+    val vs' = map (mk_Free) vs
 
-  fun mk_relmap_aux rty =
-    case rty of
-      TVar _ => mk_Free rty
-    | Type (_, []) => HOLogic.eq_const rty
-    | Type (s, tys) => list_comb (get_relmap ctxt s, map mk_relmap_aux tys)
-    | _ => raise LIFT_MATCH ("mk_relmap (default)")
-in
-  fold_rev Term.lambda vs' (mk_relmap_aux rty)
-end
+    fun mk_relmap_aux rty =
+      case rty of
+        TVar _ => mk_Free rty
+      | Type (_, []) => HOLogic.eq_const rty
+      | Type (s, tys) => list_comb (get_relmap ctxt s, map mk_relmap_aux tys)
+      | _ => raise LIFT_MATCH ("mk_relmap (default)")
+  in
+    fold_rev Term.lambda vs' (mk_relmap_aux rty)
+  end
 
 fun get_equiv_rel ctxt s =
-let
-  val thy = ProofContext.theory_of ctxt
-in
-  #equiv_rel (quotdata_lookup thy s) handle Quotient_Info.NotFound =>
-    raise LIFT_MATCH ("get_quotdata (no quotient found for type " ^ s ^ ")")
-end
+  let
+    val thy = ProofContext.theory_of ctxt
+  in
+    #equiv_rel (quotdata_lookup thy s) handle Quotient_Info.NotFound =>
+      raise LIFT_MATCH ("get_quotdata (no quotient found for type " ^ s ^ ")")
+  end
 
 fun equiv_match_err ctxt ty_pat ty =
-let
-  val ty_pat_str = Syntax.string_of_typ ctxt ty_pat
-  val ty_str = Syntax.string_of_typ ctxt ty
-in
-  raise LIFT_MATCH (space_implode " "
-    ["equiv_relation (Types ", quote ty_pat_str, "and", quote ty_str, " do not match.)"])
-end
+  let
+    val ty_pat_str = Syntax.string_of_typ ctxt ty_pat
+    val ty_str = Syntax.string_of_typ ctxt ty
+  in
+    raise LIFT_MATCH (space_implode " "
+      ["equiv_relation (Types ", quote ty_pat_str, "and", quote ty_str, " do not match.)"])
+  end
 
 (* builds the aggregate equivalence relation
    that will be the argument of Respects
@@ -322,34 +322,34 @@ fun equiv_relation ctxt (rty, qty) =
   else
     case (rty, qty) of
       (Type (s, tys), Type (s', tys')) =>
-       if s = s'
-       then
-         let
-           val args = map (equiv_relation ctxt) (tys ~~ tys')
-         in
-           list_comb (get_relmap ctxt s, args)
-         end
-       else
-         let
-           val (rty_pat, qty_pat as Type (_, vs)) = get_rty_qty ctxt s'
-           val rtyenv = match ctxt equiv_match_err rty_pat rty
-           val qtyenv = match ctxt equiv_match_err qty_pat qty
-           val args_aux = map (double_lookup rtyenv qtyenv) vs
-           val args = map (equiv_relation ctxt) args_aux
-           val eqv_rel = get_equiv_rel ctxt s'
-           val eqv_rel' = force_typ ctxt eqv_rel ([rty, rty] ---> @{typ bool})
-         in
-           if forall is_eq args
-           then eqv_rel'
-           else 
-             let 
-               val rel_map = mk_relmap ctxt vs rty_pat
-               val result = list_comb (rel_map, args)
-             in
-               mk_rel_compose (result, eqv_rel')
-             end
-         end
-      | _ => HOLogic.eq_const rty
+        if s = s'
+        then
+          let
+            val args = map (equiv_relation ctxt) (tys ~~ tys')
+          in
+            list_comb (get_relmap ctxt s, args)
+          end
+        else
+          let
+            val (rty_pat, qty_pat as Type (_, vs)) = get_rty_qty ctxt s'
+            val rtyenv = match ctxt equiv_match_err rty_pat rty
+            val qtyenv = match ctxt equiv_match_err qty_pat qty
+            val args_aux = map (double_lookup rtyenv qtyenv) vs
+            val args = map (equiv_relation ctxt) args_aux
+            val eqv_rel = get_equiv_rel ctxt s'
+            val eqv_rel' = force_typ ctxt eqv_rel ([rty, rty] ---> @{typ bool})
+          in
+            if forall is_eq args
+            then eqv_rel'
+            else
+              let
+                val rel_map = mk_relmap ctxt vs rty_pat
+                val result = list_comb (rel_map, args)
+              in
+                mk_rel_compose (result, eqv_rel')
+              end
+          end
+    | _ => HOLogic.eq_const rty
 
 fun equiv_relation_chk ctxt (rty, qty) =
   equiv_relation ctxt (rty, qty)
@@ -414,14 +414,14 @@ fun apply_subt f (trm1, trm2) =
   | _ => f (trm1, trm2)
 
 fun term_mismatch str ctxt t1 t2 =
-let
-  val t1_str = Syntax.string_of_term ctxt t1
-  val t2_str = Syntax.string_of_term ctxt t2
-  val t1_ty_str = Syntax.string_of_typ ctxt (fastype_of t1)
-  val t2_ty_str = Syntax.string_of_typ ctxt (fastype_of t2)
-in
-  raise LIFT_MATCH (cat_lines [str, t1_str ^ "::" ^ t1_ty_str, t2_str ^ "::" ^ t2_ty_str])
-end
+  let
+    val t1_str = Syntax.string_of_term ctxt t1
+    val t2_str = Syntax.string_of_term ctxt t2
+    val t1_ty_str = Syntax.string_of_typ ctxt (fastype_of t1)
+    val t2_ty_str = Syntax.string_of_typ ctxt (fastype_of t2)
+  in
+    raise LIFT_MATCH (cat_lines [str, t1_str ^ "::" ^ t1_ty_str, t2_str ^ "::" ^ t2_ty_str])
+  end
 
 (* the major type of All and Ex quantifiers *)
 fun qnt_typ ty = domain_type (domain_type ty)
@@ -429,17 +429,18 @@ fun qnt_typ ty = domain_type (domain_type ty)
 (* Checks that two types match, for example:
      rty -> rty   matches   qty -> qty *)
 fun matches_typ thy rT qT =
-  if rT = qT then true else
-  case (rT, qT) of
-    (Type (rs, rtys), Type (qs, qtys)) =>
-      if rs = qs then
-        if length rtys <> length qtys then false else
-        forall (fn x => x = true) (map2 (matches_typ thy) rtys qtys)
-      else
-        (case quotdata_lookup_raw thy qs of
-          SOME quotinfo => Sign.typ_instance thy (rT, #rtyp quotinfo)
-        | NONE => false)
-  | _ => false
+  if rT = qT then true
+  else
+    (case (rT, qT) of
+      (Type (rs, rtys), Type (qs, qtys)) =>
+        if rs = qs then
+          if length rtys <> length qtys then false
+          else forall (fn x => x = true) (map2 (matches_typ thy) rtys qtys)
+        else
+          (case quotdata_lookup_raw thy qs of
+            SOME quotinfo => Sign.typ_instance thy (rT, #rtyp quotinfo)
+          | NONE => false)
+    | _ => false)
 
 
 (* produces a regularized version of rtrm
@@ -452,124 +453,124 @@ fun matches_typ thy rT qT =
 fun regularize_trm ctxt (rtrm, qtrm) =
   case (rtrm, qtrm) of
     (Abs (x, ty, t), Abs (_, ty', t')) =>
-       let
-         val subtrm = Abs(x, ty, regularize_trm ctxt (t, t'))
-       in
-         if ty = ty' then subtrm
-         else mk_babs $ (mk_resp $ equiv_relation ctxt (ty, ty')) $ subtrm
-       end
+      let
+        val subtrm = Abs(x, ty, regularize_trm ctxt (t, t'))
+      in
+        if ty = ty' then subtrm
+        else mk_babs $ (mk_resp $ equiv_relation ctxt (ty, ty')) $ subtrm
+      end
   | (Const (@{const_name Babs}, T) $ resrel $ (t as (Abs (_, ty, _))), t' as (Abs (_, ty', _))) =>
-       let
-         val subtrm = regularize_trm ctxt (t, t')
-         val needres = mk_resp $ equiv_relation_chk ctxt (ty, ty')
-       in
-         if resrel <> needres
-         then term_mismatch "regularize (Babs)" ctxt resrel needres
-         else mk_babs $ resrel $ subtrm
-       end
+      let
+        val subtrm = regularize_trm ctxt (t, t')
+        val needres = mk_resp $ equiv_relation_chk ctxt (ty, ty')
+      in
+        if resrel <> needres
+        then term_mismatch "regularize (Babs)" ctxt resrel needres
+        else mk_babs $ resrel $ subtrm
+      end
 
   | (Const (@{const_name All}, ty) $ t, Const (@{const_name All}, ty') $ t') =>
-       let
-         val subtrm = apply_subt (regularize_trm ctxt) (t, t')
-       in
-         if ty = ty' then Const (@{const_name All}, ty) $ subtrm
-         else mk_ball $ (mk_resp $ equiv_relation ctxt (qnt_typ ty, qnt_typ ty')) $ subtrm
-       end
+      let
+        val subtrm = apply_subt (regularize_trm ctxt) (t, t')
+      in
+        if ty = ty' then Const (@{const_name All}, ty) $ subtrm
+        else mk_ball $ (mk_resp $ equiv_relation ctxt (qnt_typ ty, qnt_typ ty')) $ subtrm
+      end
 
   | (Const (@{const_name Ex}, ty) $ t, Const (@{const_name Ex}, ty') $ t') =>
-       let
-         val subtrm = apply_subt (regularize_trm ctxt) (t, t')
-       in
-         if ty = ty' then Const (@{const_name Ex}, ty) $ subtrm
-         else mk_bex $ (mk_resp $ equiv_relation ctxt (qnt_typ ty, qnt_typ ty')) $ subtrm
-       end
+      let
+        val subtrm = apply_subt (regularize_trm ctxt) (t, t')
+      in
+        if ty = ty' then Const (@{const_name Ex}, ty) $ subtrm
+        else mk_bex $ (mk_resp $ equiv_relation ctxt (qnt_typ ty, qnt_typ ty')) $ subtrm
+      end
 
   | (Const (@{const_name Ex1}, ty) $ (Abs (_, _,
       (Const (@{const_name HOL.conj}, _) $ (Const (@{const_name Set.member}, _) $ _ $
         (Const (@{const_name Respects}, _) $ resrel)) $ (t $ _)))),
      Const (@{const_name Ex1}, ty') $ t') =>
-       let
-         val t_ = incr_boundvars (~1) t
-         val subtrm = apply_subt (regularize_trm ctxt) (t_, t')
-         val needrel = equiv_relation_chk ctxt (qnt_typ ty, qnt_typ ty')
-       in
-         if resrel <> needrel
-         then term_mismatch "regularize (Bex1)" ctxt resrel needrel
-         else mk_bex1_rel $ resrel $ subtrm
-       end
+      let
+        val t_ = incr_boundvars (~1) t
+        val subtrm = apply_subt (regularize_trm ctxt) (t_, t')
+        val needrel = equiv_relation_chk ctxt (qnt_typ ty, qnt_typ ty')
+      in
+        if resrel <> needrel
+        then term_mismatch "regularize (Bex1)" ctxt resrel needrel
+        else mk_bex1_rel $ resrel $ subtrm
+      end
 
   | (Const (@{const_name Ex1}, ty) $ t, Const (@{const_name Ex1}, ty') $ t') =>
-       let
-         val subtrm = apply_subt (regularize_trm ctxt) (t, t')
-       in
-         if ty = ty' then Const (@{const_name Ex1}, ty) $ subtrm
-         else mk_bex1_rel $ (equiv_relation ctxt (qnt_typ ty, qnt_typ ty')) $ subtrm
-       end
+      let
+        val subtrm = apply_subt (regularize_trm ctxt) (t, t')
+      in
+        if ty = ty' then Const (@{const_name Ex1}, ty) $ subtrm
+        else mk_bex1_rel $ (equiv_relation ctxt (qnt_typ ty, qnt_typ ty')) $ subtrm
+      end
 
   | (Const (@{const_name Ball}, ty) $ (Const (@{const_name Respects}, _) $ resrel) $ t,
      Const (@{const_name All}, ty') $ t') =>
-       let
-         val subtrm = apply_subt (regularize_trm ctxt) (t, t')
-         val needrel = equiv_relation_chk ctxt (qnt_typ ty, qnt_typ ty')
-       in
-         if resrel <> needrel
-         then term_mismatch "regularize (Ball)" ctxt resrel needrel
-         else mk_ball $ (mk_resp $ resrel) $ subtrm
-       end
+      let
+        val subtrm = apply_subt (regularize_trm ctxt) (t, t')
+        val needrel = equiv_relation_chk ctxt (qnt_typ ty, qnt_typ ty')
+      in
+        if resrel <> needrel
+        then term_mismatch "regularize (Ball)" ctxt resrel needrel
+        else mk_ball $ (mk_resp $ resrel) $ subtrm
+      end
 
   | (Const (@{const_name Bex}, ty) $ (Const (@{const_name Respects}, _) $ resrel) $ t,
      Const (@{const_name Ex}, ty') $ t') =>
-       let
-         val subtrm = apply_subt (regularize_trm ctxt) (t, t')
-         val needrel = equiv_relation_chk ctxt (qnt_typ ty, qnt_typ ty')
-       in
-         if resrel <> needrel
-         then term_mismatch "regularize (Bex)" ctxt resrel needrel
-         else mk_bex $ (mk_resp $ resrel) $ subtrm
-       end
+      let
+        val subtrm = apply_subt (regularize_trm ctxt) (t, t')
+        val needrel = equiv_relation_chk ctxt (qnt_typ ty, qnt_typ ty')
+      in
+        if resrel <> needrel
+        then term_mismatch "regularize (Bex)" ctxt resrel needrel
+        else mk_bex $ (mk_resp $ resrel) $ subtrm
+      end
 
   | (Const (@{const_name Bex1_rel}, ty) $ resrel $ t, Const (@{const_name Ex1}, ty') $ t') =>
-       let
-         val subtrm = apply_subt (regularize_trm ctxt) (t, t')
-         val needrel = equiv_relation_chk ctxt (qnt_typ ty, qnt_typ ty')
-       in
-         if resrel <> needrel
-         then term_mismatch "regularize (Bex1_res)" ctxt resrel needrel
-         else mk_bex1_rel $ resrel $ subtrm
-       end
+      let
+        val subtrm = apply_subt (regularize_trm ctxt) (t, t')
+        val needrel = equiv_relation_chk ctxt (qnt_typ ty, qnt_typ ty')
+      in
+        if resrel <> needrel
+        then term_mismatch "regularize (Bex1_res)" ctxt resrel needrel
+        else mk_bex1_rel $ resrel $ subtrm
+      end
 
   | (* equalities need to be replaced by appropriate equivalence relations *)
     (Const (@{const_name HOL.eq}, ty), Const (@{const_name HOL.eq}, ty')) =>
-         if ty = ty' then rtrm
-         else equiv_relation ctxt (domain_type ty, domain_type ty')
+        if ty = ty' then rtrm
+        else equiv_relation ctxt (domain_type ty, domain_type ty')
 
   | (* in this case we just check whether the given equivalence relation is correct *)
     (rel, Const (@{const_name HOL.eq}, ty')) =>
-       let
-         val rel_ty = fastype_of rel
-         val rel' = equiv_relation_chk ctxt (domain_type rel_ty, domain_type ty')
-       in
-         if rel' aconv rel then rtrm
-         else term_mismatch "regularize (relation mismatch)" ctxt rel rel'
-       end
+      let
+        val rel_ty = fastype_of rel
+        val rel' = equiv_relation_chk ctxt (domain_type rel_ty, domain_type ty')
+      in
+        if rel' aconv rel then rtrm
+        else term_mismatch "regularize (relation mismatch)" ctxt rel rel'
+      end
 
   | (_, Const _) =>
-       let
-         val thy = ProofContext.theory_of ctxt
-         fun same_const (Const (s, T)) (Const (s', T')) = (s = s') andalso matches_typ thy T T'
-           | same_const _ _ = false
-       in
-         if same_const rtrm qtrm then rtrm
-         else
-           let
-             val rtrm' = #rconst (qconsts_lookup thy qtrm)
-               handle Quotient_Info.NotFound =>
+      let
+        val thy = ProofContext.theory_of ctxt
+        fun same_const (Const (s, T)) (Const (s', T')) = (s = s') andalso matches_typ thy T T'
+          | same_const _ _ = false
+      in
+        if same_const rtrm qtrm then rtrm
+        else
+          let
+            val rtrm' = #rconst (qconsts_lookup thy qtrm)
+              handle Quotient_Info.NotFound =>
                 term_mismatch "regularize (constant not found)" ctxt rtrm qtrm
-           in
-             if Pattern.matches thy (rtrm', rtrm)
-             then rtrm else term_mismatch "regularize (constant mismatch)" ctxt rtrm qtrm
-           end
-       end
+          in
+            if Pattern.matches thy (rtrm', rtrm)
+            then rtrm else term_mismatch "regularize (constant mismatch)" ctxt rtrm qtrm
+          end
+      end
 
   | (((t1 as Const (@{const_name prod_case}, _)) $ Abs (v1, ty, Abs(v1', ty', s1))),
      ((t2 as Const (@{const_name prod_case}, _)) $ Abs (v2, _ , Abs(v2', _  , s2)))) =>
@@ -583,16 +584,16 @@ fun regularize_trm ctxt (rtrm, qtrm) =
        regularize_trm ctxt (t1, t1') $ regularize_trm ctxt (t2, t2')
 
   | (Bound i, Bound i') =>
-       if i = i' then rtrm
-       else raise (LIFT_MATCH "regularize (bounds mismatch)")
+      if i = i' then rtrm
+      else raise (LIFT_MATCH "regularize (bounds mismatch)")
 
   | _ =>
-       let
-         val rtrm_str = Syntax.string_of_term ctxt rtrm
-         val qtrm_str = Syntax.string_of_term ctxt qtrm
-       in
-         raise (LIFT_MATCH ("regularize failed (default: " ^ rtrm_str ^ "," ^ qtrm_str ^ ")"))
-       end
+      let
+        val rtrm_str = Syntax.string_of_term ctxt rtrm
+        val qtrm_str = Syntax.string_of_term ctxt qtrm
+      in
+        raise (LIFT_MATCH ("regularize failed (default: " ^ rtrm_str ^ "," ^ qtrm_str ^ ")"))
+      end
 
 fun regularize_trm_chk ctxt (rtrm, qtrm) =
   regularize_trm ctxt (rtrm, qtrm)
@@ -635,12 +636,12 @@ fun mk_repabs ctxt (T, T') trm =
   absrep_fun RepF ctxt (T, T') $ (absrep_fun AbsF ctxt (T, T') $ trm)
 
 fun inj_repabs_err ctxt msg rtrm qtrm =
-let
-  val rtrm_str = Syntax.string_of_term ctxt rtrm
-  val qtrm_str = Syntax.string_of_term ctxt qtrm
-in
-  raise LIFT_MATCH (space_implode " " [msg, quote rtrm_str, "and", quote qtrm_str])
-end
+  let
+    val rtrm_str = Syntax.string_of_term ctxt rtrm
+    val qtrm_str = Syntax.string_of_term ctxt qtrm
+  in
+    raise LIFT_MATCH (space_implode " " [msg, quote rtrm_str, "and", quote qtrm_str])
+  end
 
 
 (* bound variables need to be treated properly,
@@ -717,8 +718,8 @@ fun subst_typ ctxt ty_subst rty =
                 NONE => matches tail
               | SOME inst => Envir.subst_type inst qty
       in
-        matches ty_subst 
-      end 
+        matches ty_subst
+      end
   | _ => rty
 
 fun subst_trm ctxt ty_subst trm_subst rtrm =
@@ -728,7 +729,7 @@ fun subst_trm ctxt ty_subst trm_subst rtrm =
   | Free(n, ty) => Free(n, subst_typ ctxt ty_subst ty)
   | Var(n, ty) => Var(n, subst_typ ctxt ty_subst ty)
   | Bound i => Bound i
-  | Const (a, ty) => 
+  | Const (a, ty) =>
       let
         val thy = ProofContext.theory_of ctxt
 
@@ -742,43 +743,43 @@ fun subst_trm ctxt ty_subst trm_subst rtrm =
       end
 
 (* generate type and term substitutions out of the
-   qtypes involved in a quotient; the direction flag 
-   indicates in which direction the substitutions work: 
-   
+   qtypes involved in a quotient; the direction flag
+   indicates in which direction the substitutions work:
+
      true:  quotient -> raw
      false: raw -> quotient
 *)
 fun mk_ty_subst qtys direction ctxt =
-let
-  val thy = ProofContext.theory_of ctxt  
-in
-  quotdata_dest ctxt
-   |> map (fn x => (#rtyp x, #qtyp x))
-   |> filter (fn (_, qty) => member (Sign.typ_instance thy o swap) qtys qty)
-   |> map (if direction then swap else I)
-end
+  let
+    val thy = ProofContext.theory_of ctxt
+  in
+    quotdata_dest ctxt
+    |> map (fn x => (#rtyp x, #qtyp x))
+    |> filter (fn (_, qty) => member (Sign.typ_instance thy o swap) qtys qty)
+    |> map (if direction then swap else I)
+  end
 
 fun mk_trm_subst qtys direction ctxt =
-let
-  val subst_typ' = subst_typ ctxt (mk_ty_subst qtys direction ctxt)
-  fun proper (t1, t2) = subst_typ' (fastype_of t1) = fastype_of t2
+  let
+    val subst_typ' = subst_typ ctxt (mk_ty_subst qtys direction ctxt)
+    fun proper (t1, t2) = subst_typ' (fastype_of t1) = fastype_of t2
 
-  val const_substs = 
-    qconsts_dest ctxt
-     |> map (fn x => (#rconst x, #qconst x))
-     |> map (if direction then swap else I)
+    val const_substs =
+      qconsts_dest ctxt
+      |> map (fn x => (#rconst x, #qconst x))
+      |> map (if direction then swap else I)
 
-  val rel_substs =
-    quotdata_dest ctxt
-     |> map (fn x => (#equiv_rel x, HOLogic.eq_const (#qtyp x)))
-     |> map (if direction then swap else I)
-in
-  filter proper (const_substs @ rel_substs)
-end
+    val rel_substs =
+      quotdata_dest ctxt
+      |> map (fn x => (#equiv_rel x, HOLogic.eq_const (#qtyp x)))
+      |> map (if direction then swap else I)
+  in
+    filter proper (const_substs @ rel_substs)
+  end
 
 
 (* derives a qtyp and qtrm out of a rtyp and rtrm,
-   respectively 
+   respectively
 *)
 fun derive_qtyp ctxt qtys rty =
   subst_typ ctxt (mk_ty_subst qtys false ctxt) rty
@@ -787,7 +788,7 @@ fun derive_qtrm ctxt qtys rtrm =
   subst_trm ctxt (mk_ty_subst qtys false ctxt) (mk_trm_subst qtys false ctxt) rtrm
 
 (* derives a rtyp and rtrm out of a qtyp and qtrm,
-   respectively 
+   respectively
 *)
 fun derive_rtyp ctxt qtys qty =
   subst_typ ctxt (mk_ty_subst qtys true ctxt) qty
