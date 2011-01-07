@@ -1,4 +1,4 @@
-(*  ID:         $Id$
+(*
     Author:     Alexander Krauss, Technische Universitaet Muenchen
 *)
 

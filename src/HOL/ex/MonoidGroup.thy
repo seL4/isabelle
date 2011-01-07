@@ -1,5 +1,4 @@
 (*  Title:      HOL/ex/MonoidGroup.thy
-    ID:         $Id$
     Author:     Markus Wenzel
 *)
 

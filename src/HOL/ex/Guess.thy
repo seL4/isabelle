@@ -1,5 +1,4 @@
 (*
-    ID:         $Id$
     Author:     Makarius
 *)
 

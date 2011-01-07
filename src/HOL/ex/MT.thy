@@ -1,5 +1,4 @@
 (*  Title:      HOL/ex/MT.thy
-    ID:         $Id$
     Author:     Jacob Frost, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 

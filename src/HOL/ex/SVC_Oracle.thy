@@ -1,5 +1,4 @@
 (*  Title:      HOL/ex/SVC_Oracle.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson
     Copyright   1999  University of Cambridge
 

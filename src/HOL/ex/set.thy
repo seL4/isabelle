@@ -1,5 +1,4 @@
 (*  Title:      HOL/ex/set.thy
-    ID:         $Id$
     Author:     Tobias Nipkow and Lawrence C Paulson
     Copyright   1991  University of Cambridge
 *)

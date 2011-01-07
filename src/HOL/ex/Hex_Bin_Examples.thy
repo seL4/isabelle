@@ -1,5 +1,4 @@
 (*  Title:      HOL/ex/Hex_Bin_Examples.thy
-    ID:         $Id$
     Author:     Gerwin Klein, NICTA
 *)
 

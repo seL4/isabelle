@@ -1,5 +1,4 @@
 (*  Title:      HOL/ex/Higher_Order_Logic.thy
-    ID:         $Id$
     Author:     Gertrud Bauer and Markus Wenzel, TU Muenchen
 *)
 

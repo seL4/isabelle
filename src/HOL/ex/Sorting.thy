@@ -1,5 +1,4 @@
 (*  Title:      HOL/ex/sorting.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1994 TU Muenchen
 *)

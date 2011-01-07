@@ -1,5 +1,4 @@
 (*  Title:      HOL/ex/CTL.thy
-    ID:         $Id$
     Author:     Gertrud Bauer
 *)
 
