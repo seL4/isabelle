@@ -5,7 +5,6 @@
 Simple modal reasoner.
 *)
 
-
 signature MODAL_PROVER_RULE =
 sig
     val rewrite_rls      : thm list
@@ -25,8 +24,6 @@ end;
 
 functor Modal_ProverFun (Modal_Rule: MODAL_PROVER_RULE) : MODAL_PROVER = 
 struct
-local open Modal_Rule
-in 
 
 (*Returns the list of all formulas in the sequent*)
 fun forms_of_seq (Const(@{const_name SeqO'},_) $ P $ u) = P :: forms_of_seq u
@@ -62,12 +59,12 @@ fun fresolve_tac rls n = filseq_resolve_tac rls 999 n;
 
 (* NB No back tracking possible with aside rules *)
 
-fun aside_tac n = DETERM(REPEAT (filt_resolve_tac aside_rls 999 n));
+fun aside_tac n = DETERM(REPEAT (filt_resolve_tac Modal_Rule.aside_rls 999 n));
 fun rule_tac rls n = fresolve_tac rls n THEN aside_tac n;
 
-val fres_safe_tac = fresolve_tac safe_rls;
-val fres_unsafe_tac = fresolve_tac unsafe_rls THEN' aside_tac;
-val fres_bound_tac = fresolve_tac bound_rls;
+val fres_safe_tac = fresolve_tac Modal_Rule.safe_rls;
+val fres_unsafe_tac = fresolve_tac Modal_Rule.unsafe_rls THEN' aside_tac;
+val fres_bound_tac = fresolve_tac Modal_Rule.bound_rls;
 
 fun UPTOGOAL n tf = let fun tac i = if i<n then all_tac
                                     else tf(i) THEN tac(i-1)
@@ -81,12 +78,11 @@ fun solven_tac d n state = state |>
                  ((fres_unsafe_tac n  THEN UPTOGOAL n (solven_tac d)) APPEND
                    (fres_bound_tac n  THEN UPTOGOAL n (solven_tac (d-1)))));
 
-fun solve_tac d = rewrite_goals_tac rewrite_rls THEN solven_tac d 1;
+fun solve_tac d = rewrite_goals_tac Modal_Rule.rewrite_rls THEN solven_tac d 1;
 
 fun step_tac n = 
     COND (has_fewer_prems 1) all_tac 
          (DETERM(fres_safe_tac n) ORELSE 
           (fres_unsafe_tac n APPEND fres_bound_tac n));
 
-end;
 end;

@@ -53,7 +53,7 @@ where
 text {*
 qdelete(A, [A|L], L).
 qdelete(X, [A|Z], [A|R]) :-
-	qdelete(X, Z, R).
+  qdelete(X, Z, R).
 *}
 
 inductive qdelete :: "int => int list => int list => bool"
@@ -64,9 +64,9 @@ where
 text {*
 qperm([], []).
 qperm([X|Y], K) :-
-	qdelete(U, [X|Y], Z),
-	K = [U|V],
-	qperm(Z, V).
+  qdelete(U, [X|Y], Z),
+  K = [U|V],
+  qperm(Z, V).
 *}
 
 inductive qperm :: "int list => int list => bool"
@@ -77,8 +77,8 @@ where
 text {*
 safe([]).
 safe([N|L]) :-
-	nodiag(N, 1, L),
-	safe(L).
+  nodiag(N, 1, L),
+  safe(L).
 *}
 
 inductive safe :: "int list => bool"
@@ -88,8 +88,8 @@ where
 
 text {*
 queen(Data, Out) :-
-	qperm(Data, Out),
-	safe(Out)
+  qperm(Data, Out),
+  safe(Out)
 *}
 
 inductive queen :: "int list => int list => bool"
@@ -113,36 +113,36 @@ datatype expr = Log expr | Mult expr expr | Div expr expr | x | Num int | Plus e
 text {*
 
 d(U + V, X, DU + DV) :-
-	cut,
-	d(U, X, DU),
-	d(V, X, DV).
+  cut,
+  d(U, X, DU),
+  d(V, X, DV).
 d(U - V, X, DU - DV) :-
-	cut,
-	d(U, X, DU),
-	d(V, X, DV).
+  cut,
+  d(U, X, DU),
+  d(V, X, DV).
 d(U * V, X, DU * V + U * DV) :-
-	cut,
-	d(U, X, DU),
-	d(V, X, DV).
+  cut,
+  d(U, X, DU),
+  d(V, X, DV).
 d(U / V, X, (DU * V - U * DV) / ^(V, 2)) :-
-	cut,
-	d(U, X, DU),
-	d(V, X, DV).
+  cut,
+  d(U, X, DU),
+  d(V, X, DV).
 d(^(U, N), X, DU * num(N) * ^(U, N1)) :-
-	cut,
-	N1 is N - 1,
-	d(U, X, DU).
+  cut,
+  N1 is N - 1,
+  d(U, X, DU).
 d(-U, X, -DU) :-
-	cut,
-	d(U, X, DU).
+  cut,
+  d(U, X, DU).
 d(exp(U), X, exp(U) * DU) :-
-	cut,
-	d(U, X, DU).
+  cut,
+  d(U, X, DU).
 d(log(U), X, DU / U) :-
-	cut,
-	d(U, X, DU).
+  cut,
+  d(U, X, DU).
 d(x, X, num(1)) :-
-	cut.
+  cut.
 d(num(_), _, num(0)).
 
 *}
@@ -162,16 +162,16 @@ where
 
 text {*
 ops8(E) :-
-	d((x + num(1)) * ((^(x, 2) + num(2)) * (^(x, 3) + num(3))), x, E).
+  d((x + num(1)) * ((^(x, 2) + num(2)) * (^(x, 3) + num(3))), x, E).
 
 divide10(E) :-
-	d(((((((((x / x) / x) / x) / x) / x) / x) / x) / x) / x, x, E).
+  d(((((((((x / x) / x) / x) / x) / x) / x) / x) / x) / x, x, E).
 
 log10(E) :-
-	d(log(log(log(log(log(log(log(log(log(log(x)))))))))), x, E).
+  d(log(log(log(log(log(log(log(log(log(log(x)))))))))), x, E).
 
 times10(E) :-
-	d(((((((((x * x) * x) * x) * x) * x) * x) * x) * x) * x, x, E)
+  d(((((((((x * x) * x) * x) * x) * x) * x) * x) * x) * x, x, E)
 *}
 
 inductive ops8 :: "expr => bool"

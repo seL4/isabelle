@@ -4,6 +4,8 @@
 Derivation of the proof rules and, most importantly, the VCG tactic.
 *)
 
+(* FIXME structure Hoare: HOARE *)
+
 (*** The tactics ***)
 
 (*****************************************************************************)
@@ -13,7 +15,7 @@ Derivation of the proof rules and, most importantly, the VCG tactic.
 (** working on at the moment of the call                                    **)
 (*****************************************************************************)
 
-local open HOLogic in
+local
 
 (** maps (%x1 ... xn. t) to [x1,...,xn] **)
 fun abs2list (Const (@{const_name prod_case}, _) $ Abs (x, T, t)) = Free (x, T) :: abs2list t
@@ -26,14 +28,17 @@ fun mk_vars (Const (@{const_name Collect},_) $ T) = abs2list T
 
 (** abstraction of body over a tuple formed from a list of free variables.
 Types are also built **)
-fun mk_abstupleC []     body = absfree ("x", unitT, body)
+fun mk_abstupleC []     body = absfree ("x", HOLogic.unitT, body)
   | mk_abstupleC (v::w) body = let val (n,T) = dest_Free v
                                in if w=[] then absfree (n, T, body)
         else let val z  = mk_abstupleC w body;
                  val T2 = case z of Abs(_,T,_) => T
                         | Const (_, Type (_,[_, Type (_,[T,_])])) $ _ => T;
-       in Const (@{const_name prod_case}, (T --> T2 --> boolT) --> mk_prodT (T,T2) --> boolT)
-          $ absfree (n, T, z) end end;
+       in
+        Const (@{const_name prod_case},
+          (T --> T2 --> HOLogic.boolT) --> HOLogic.mk_prodT (T,T2) --> HOLogic.boolT)
+            $ absfree (n, T, z)
+       end end;
 
 (** maps [x1,...,xn] to (x1,...,xn) and types**)
 fun mk_bodyC []      = HOLogic.unit
@@ -43,22 +48,23 @@ fun mk_bodyC []      = HOLogic.unit
                         val T2 = case z of Free(_, T) => T
                                          | Const (@{const_name Pair}, Type ("fun", [_, Type
                                             ("fun", [_, T])])) $ _ $ _ => T;
-                 in Const (@{const_name Pair}, [T, T2] ---> mk_prodT (T, T2)) $ x $ z end;
+                 in Const (@{const_name Pair}, [T, T2] ---> HOLogic.mk_prodT (T, T2)) $ x $ z end;
 
 (** maps a subgoal of the form:
         VARS x1 ... xn {._.} _ {._.} or to [x1,...,xn]**)
 fun get_vars c =
   let
     val d = Logic.strip_assums_concl c;
-    val Const _ $ pre $ _ $ _ = dest_Trueprop d;
+    val Const _ $ pre $ _ $ _ = HOLogic.dest_Trueprop d;
   in mk_vars pre end;
 
 fun mk_CollectC trm =
   let val T as Type ("fun",[t,_]) = fastype_of trm
-  in Collect_const t $ trm end;
+  in HOLogic.Collect_const t $ trm end;
 
-fun inclt ty = Const (@{const_name Orderings.less_eq}, [ty,ty] ---> boolT);
+fun inclt ty = Const (@{const_name Orderings.less_eq}, [ty,ty] ---> HOLogic.boolT);
 
+in
 
 fun Mset ctxt prop =
   let
@@ -66,11 +72,11 @@ fun Mset ctxt prop =
 
     val vars = get_vars prop;
     val varsT = fastype_of (mk_bodyC vars);
-    val big_Collect = mk_CollectC (mk_abstupleC vars (Free (P, varsT --> boolT) $ mk_bodyC vars));
-    val small_Collect = mk_CollectC (Abs ("x", varsT, Free (P, varsT --> boolT) $ Bound 0));
+    val big_Collect = mk_CollectC (mk_abstupleC vars (Free (P, varsT --> HOLogic.boolT) $ mk_bodyC vars));
+    val small_Collect = mk_CollectC (Abs ("x", varsT, Free (P, varsT --> HOLogic.boolT) $ Bound 0));
 
     val MsetT = fastype_of big_Collect;
-    fun Mset_incl t = mk_Trueprop (inclt MsetT $ Free (Mset, MsetT) $ t);
+    fun Mset_incl t = HOLogic.mk_Trueprop (inclt MsetT $ Free (Mset, MsetT) $ t);
     val impl = Logic.mk_implies (Mset_incl big_Collect, Mset_incl small_Collect);
     val th = Goal.prove ctxt [Mset, P] [] impl (fn _ => blast_tac (claset_of ctxt) 1);
  in (vars, th) end;

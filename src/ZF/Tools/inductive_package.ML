@@ -43,8 +43,6 @@ functor Add_inductive_def_Fun
  : INDUCTIVE_PACKAGE =
 struct
 
-open Ind_Syntax;
-
 val co_prefix = if coind then "co" else "";
 
 
@@ -84,7 +82,7 @@ let
     (fn a => "Base name of recursive set not an identifier: " ^ a);
 
   local (*Checking the introduction rules*)
-    val intr_sets = map (#2 o rule_concl_msg thy) intr_tms;
+    val intr_sets = map (#2 o Ind_Syntax.rule_concl_msg thy) intr_tms;
     fun intr_ok set =
         case head_of set of Const(a,recT) => member (op =) rec_names a | _ => false;
   in
@@ -109,16 +107,16 @@ let
   (*Makes a disjunct from an introduction rule*)
   fun fp_part intr = (*quantify over rule's free vars except parameters*)
     let val prems = map dest_tprop (Logic.strip_imp_prems intr)
-        val dummy = List.app (fn rec_hd => List.app (chk_prem rec_hd) prems) rec_hds
+        val dummy = List.app (fn rec_hd => List.app (Ind_Syntax.chk_prem rec_hd) prems) rec_hds
         val exfrees = subtract (op =) rec_params (OldTerm.term_frees intr)
-        val zeq = FOLogic.mk_eq (Free(z',iT), #1 (rule_concl intr))
+        val zeq = FOLogic.mk_eq (Free(z', Ind_Syntax.iT), #1 (Ind_Syntax.rule_concl intr))
     in List.foldr FOLogic.mk_exists
              (Balanced_Tree.make FOLogic.mk_conj (zeq::prems)) exfrees
     end;
 
   (*The Part(A,h) terms -- compose injections to make h*)
-  fun mk_Part (Bound 0) = Free(X',iT) (*no mutual rec, no Part needed*)
-    | mk_Part h         = @{const Part} $ Free(X',iT) $ Abs(w',iT,h);
+  fun mk_Part (Bound 0) = Free(X', Ind_Syntax.iT) (*no mutual rec, no Part needed*)
+    | mk_Part h = @{const Part} $ Free(X', Ind_Syntax.iT) $ Abs (w', Ind_Syntax.iT, h);
 
   (*Access to balanced disjoint sums via injections*)
   val parts = map mk_Part
@@ -128,9 +126,10 @@ let
   (*replace each set by the corresponding Part(A,h)*)
   val part_intrs = map (subst_free (rec_tms ~~ parts) o fp_part) intr_tms;
 
-  val fp_abs = absfree(X', iT,
-                   mk_Collect(z', dom_sum,
-                              Balanced_Tree.make FOLogic.mk_disj part_intrs));
+  val fp_abs =
+    absfree (X', Ind_Syntax.iT,
+        Ind_Syntax.mk_Collect (z', dom_sum,
+            Balanced_Tree.make FOLogic.mk_disj part_intrs));
 
   val fp_rhs = Fp.oper $ dom_sum $ fp_abs
 
@@ -161,7 +160,7 @@ let
          (case parts of
              [_] => []                        (*no mutual recursion*)
            | _ => rec_tms ~~          (*define the sets as Parts*)
-                  map (subst_atomic [(Free(X',iT),big_rec_tm)]) parts));
+                  map (subst_atomic [(Free (X', Ind_Syntax.iT), big_rec_tm)]) parts));
 
   (*tracing: print the fixedpoint definition*)
   val dummy = if !Ind_Syntax.trace then

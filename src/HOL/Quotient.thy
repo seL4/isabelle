@@ -667,6 +667,7 @@ subsection {* ML setup *}
 text {* Auxiliary data for the quotient package *}
 
 use "Tools/Quotient/quotient_info.ML"
+setup Quotient_Info.setup
 
 declare [[map "fun" = (map_fun, fun_rel)]]
 

@@ -4,13 +4,15 @@
 Data slots for the quotient package.
 *)
 
+(* FIXME odd names/signatures of data access operations *)
+
 signature QUOTIENT_INFO =
 sig
   exception NotFound  (* FIXME complicates signatures unnecessarily *)
 
   type maps_info = {mapfun: string, relmap: string}
   val maps_defined: theory -> string -> bool
-  (* FIXME functions called "lookup" must return option, not raise exception *)
+  (* FIXME functions called "lookup" must return option, not raise exception! *)
   val maps_lookup: theory -> string -> maps_info     (* raises NotFound *)
   val maps_update_thy: string -> maps_info -> theory -> theory
   val maps_update: string -> maps_info -> Proof.context -> Proof.context
@@ -42,13 +44,13 @@ sig
   val id_simps_get: Proof.context -> thm list
   val quotient_rules_get: Proof.context -> thm list
   val quotient_rules_add: attribute
+  val setup: theory -> theory
 end;
-
 
 structure Quotient_Info: QUOTIENT_INFO =
 struct
 
-exception NotFound
+exception NotFound  (* FIXME odd OCaml-ism!? *)
 
 
 (** data containers **)
@@ -68,9 +70,9 @@ fun maps_defined thy s =
   Symtab.defined (MapsData.get thy) s
 
 fun maps_lookup thy s =
-  case (Symtab.lookup (MapsData.get thy) s) of
+  (case Symtab.lookup (MapsData.get thy) s of
     SOME map_fun => map_fun
-  | NONE => raise NotFound
+  | NONE => raise NotFound)
 
 fun maps_update_thy k minfo = MapsData.map (Symtab.update (k, minfo))
 fun maps_update k minfo = ProofContext.background_theory (maps_update_thy k minfo)  (* FIXME *)
@@ -80,17 +82,17 @@ fun maps_attribute_aux s minfo = Thm.declaration_attribute
 
 (* attribute to be used in declare statements *)
 fun maps_attribute (ctxt, (tystr, (mapstr, relstr))) =
-let
-  val thy = ProofContext.theory_of ctxt
-  val tyname = Sign.intern_type thy tystr
-  val mapname = Sign.intern_const thy mapstr
-  val relname = Sign.intern_const thy relstr
+  let
+    val thy = ProofContext.theory_of ctxt
+    val tyname = Sign.intern_type thy tystr
+    val mapname = Sign.intern_const thy mapstr
+    val relname = Sign.intern_const thy relstr
 
-  fun sanity_check s = (Const (s, dummyT) |> Syntax.check_term ctxt; ())
-  val _ = List.app sanity_check [mapname, relname]
-in
-  maps_attribute_aux tyname {mapfun = mapname, relmap = relname}
-end
+    fun sanity_check s = (Const (s, dummyT) |> Syntax.check_term ctxt; ())
+    val _ = List.app sanity_check [mapname, relname]
+  in
+    maps_attribute_aux tyname {mapfun = mapname, relmap = relname}
+  end
 
 val maps_attr_parser =
   Args.context -- Scan.lift
@@ -98,25 +100,21 @@ val maps_attr_parser =
       (Parse.$$$ "(" |-- Args.name --| Parse.$$$ "," --
         Args.name --| Parse.$$$ ")"))
 
-val _ = Context.>> (Context.map_theory
-  (Attrib.setup @{binding "map"} (maps_attr_parser >> maps_attribute)
-    "declaration of map information"))
-
 fun print_mapsinfo ctxt =
-let
-  fun prt_map (ty_name, {mapfun, relmap}) =
-    Pretty.block (Library.separate (Pretty.brk 2)
-      (map Pretty.str
-        ["type:", ty_name,
-        "map:", mapfun,
-        "relation map:", relmap]))
-in
-  MapsData.get (ProofContext.theory_of ctxt)
-  |> Symtab.dest
-  |> map (prt_map)
-  |> Pretty.big_list "maps for type constructors:"
-  |> Pretty.writeln
-end
+  let
+    fun prt_map (ty_name, {mapfun, relmap}) =
+      Pretty.block (separate (Pretty.brk 2)
+        (map Pretty.str
+         ["type:", ty_name,
+          "map:", mapfun,
+          "relation map:", relmap]))
+  in
+    MapsData.get (ProofContext.theory_of ctxt)
+    |> Symtab.dest
+    |> map (prt_map)
+    |> Pretty.big_list "maps for type constructors:"
+    |> Pretty.writeln
+  end
 
 
 (* info about quotient types *)
@@ -150,24 +148,24 @@ fun quotdata_dest lthy =
   map snd (Symtab.dest (QuotData.get (ProofContext.theory_of lthy)))
 
 fun print_quotinfo ctxt =
-let
-  fun prt_quot {qtyp, rtyp, equiv_rel, equiv_thm} =
-    Pretty.block (Library.separate (Pretty.brk 2)
-     [Pretty.str "quotient type:",
-      Syntax.pretty_typ ctxt qtyp,
-      Pretty.str "raw type:",
-      Syntax.pretty_typ ctxt rtyp,
-      Pretty.str "relation:",
-      Syntax.pretty_term ctxt equiv_rel,
-      Pretty.str "equiv. thm:",
-      Syntax.pretty_term ctxt (prop_of equiv_thm)])
-in
-  QuotData.get (ProofContext.theory_of ctxt)
-  |> Symtab.dest
-  |> map (prt_quot o snd)
-  |> Pretty.big_list "quotients:"
-  |> Pretty.writeln
-end
+  let
+    fun prt_quot {qtyp, rtyp, equiv_rel, equiv_thm} =
+      Pretty.block (separate (Pretty.brk 2)
+       [Pretty.str "quotient type:",
+        Syntax.pretty_typ ctxt qtyp,
+        Pretty.str "raw type:",
+        Syntax.pretty_typ ctxt rtyp,
+        Pretty.str "relation:",
+        Syntax.pretty_term ctxt equiv_rel,
+        Pretty.str "equiv. thm:",
+        Syntax.pretty_term ctxt (prop_of equiv_thm)])
+  in
+    QuotData.get (ProofContext.theory_of ctxt)
+    |> Symtab.dest
+    |> map (prt_quot o snd)
+    |> Pretty.big_list "quotients:"
+    |> Pretty.writeln
+  end
 
 
 (* info about quotient constants *)
@@ -207,32 +205,32 @@ fun qconsts_lookup thy t =
         name = name' andalso Sign.typ_instance thy (qty, qty')
       end
   in
-    case Symtab.lookup (QConstsData.get thy) name of
+    (case Symtab.lookup (QConstsData.get thy) name of
       NONE => raise NotFound
     | SOME l =>
-      (case (find_first matches l) of
-        SOME x => x
-      | NONE => raise NotFound)
+        (case find_first matches l of
+          SOME x => x
+        | NONE => raise NotFound))
   end
 
 fun print_qconstinfo ctxt =
-let
-  fun prt_qconst {qconst, rconst, def} =
-    Pretty.block (separate (Pretty.brk 1)
-     [Syntax.pretty_term ctxt qconst,
-      Pretty.str ":=",
-      Syntax.pretty_term ctxt rconst,
-      Pretty.str "as",
-      Syntax.pretty_term ctxt (prop_of def)])
-in
-  QConstsData.get (ProofContext.theory_of ctxt)
-  |> Symtab.dest
-  |> map snd
-  |> flat
-  |> map prt_qconst
-  |> Pretty.big_list "quotient constants:"
-  |> Pretty.writeln
-end
+  let
+    fun prt_qconst {qconst, rconst, def} =
+      Pretty.block (separate (Pretty.brk 1)
+       [Syntax.pretty_term ctxt qconst,
+        Pretty.str ":=",
+        Syntax.pretty_term ctxt rconst,
+        Pretty.str "as",
+        Syntax.pretty_term ctxt (prop_of def)])
+  in
+    QConstsData.get (ProofContext.theory_of ctxt)
+    |> Symtab.dest
+    |> map snd
+    |> flat
+    |> map prt_qconst
+    |> Pretty.big_list "quotient constants:"
+    |> Pretty.writeln
+  end
 
 (* equivalence relation theorems *)
 structure EquivRules = Named_Thms
@@ -283,25 +281,32 @@ structure QuotientRules = Named_Thms
 val quotient_rules_get = QuotientRules.get
 val quotient_rules_add = QuotientRules.add
 
-(* setup of the theorem lists *)
 
-val _ = Context.>> (Context.map_theory
-  (EquivRules.setup #>
-   RspRules.setup #>
-   PrsRules.setup #>
-   IdSimps.setup #>
-   QuotientRules.setup))
+(* theory setup *)
 
-(* setup of the printing commands *)
+val setup =
+  Attrib.setup @{binding "map"} (maps_attr_parser >> maps_attribute)
+    "declaration of map information" #>
+  EquivRules.setup #>
+  RspRules.setup #>
+  PrsRules.setup #>
+  IdSimps.setup #>
+  QuotientRules.setup
 
-fun improper_command (pp_fn, cmd_name, descr_str) =
-  Outer_Syntax.improper_command cmd_name descr_str
-    Keyword.diag (Scan.succeed (Toplevel.keep (pp_fn o Toplevel.context_of)))
 
-val _ = map improper_command
-  [(print_mapsinfo, "print_quotmaps", "print out all map functions"),
-   (print_quotinfo, "print_quotients", "print out all quotients"),
-   (print_qconstinfo, "print_quotconsts", "print out all quotient constants")]
+(* outer syntax commands *)
+
+val _ =
+  Outer_Syntax.improper_command "print_quotmaps" "print quotient map functions" Keyword.diag
+    (Scan.succeed (Toplevel.keep (print_mapsinfo o Toplevel.context_of)))
+
+val _ =
+  Outer_Syntax.improper_command "print_quotients" "print quotients" Keyword.diag
+    (Scan.succeed (Toplevel.keep (print_quotinfo o Toplevel.context_of)))
+
+val _ =
+  Outer_Syntax.improper_command "print_quotconsts" "print quotient constants" Keyword.diag
+    (Scan.succeed (Toplevel.keep (print_qconstinfo o Toplevel.context_of)))
 
 
 end; (* structure *)

@@ -11,10 +11,10 @@ sig
   val injection_tac: Proof.context -> int -> tactic
   val all_injection_tac: Proof.context -> int -> tactic
   val clean_tac: Proof.context -> int -> tactic
-  
+
   val descend_procedure_tac: Proof.context -> thm list -> int -> tactic
   val descend_tac: Proof.context -> thm list -> int -> tactic
- 
+
   val lift_procedure_tac: Proof.context -> thm list -> thm -> int -> tactic
   val lift_tac: Proof.context -> thm list -> thm list -> int -> tactic
 
@@ -24,10 +24,6 @@ end;
 
 structure Quotient_Tacs: QUOTIENT_TACS =
 struct
-
-open Quotient_Info;
-open Quotient_Term;
-
 
 (** various helper fuctions **)
 
@@ -42,12 +38,12 @@ fun mk_minimal_ss ctxt =
 fun OF1 thm1 thm2 = thm2 RS thm1
 
 fun atomize_thm thm =
-let
-  val thm' = Thm.legacy_freezeT (forall_intr_vars thm) (* FIXME/TODO: is this proper Isar-technology? *)
-  val thm'' = Object_Logic.atomize (cprop_of thm')
-in
-  @{thm equal_elim_rule1} OF [thm'', thm']
-end
+  let
+    val thm' = Thm.legacy_freezeT (forall_intr_vars thm) (* FIXME/TODO: is this proper Isar-technology? no! *)
+    val thm'' = Object_Logic.atomize (cprop_of thm')
+  in
+    @{thm equal_elim_rule1} OF [thm'', thm']
+  end
 
 
 
@@ -56,7 +52,7 @@ end
 (** solvers for equivp and quotient assumptions **)
 
 fun equiv_tac ctxt =
-  REPEAT_ALL_NEW (resolve_tac (equiv_rules_get ctxt))
+  REPEAT_ALL_NEW (resolve_tac (Quotient_Info.equiv_rules_get ctxt))
 
 fun equiv_solver_tac ss = equiv_tac (Simplifier.the_context ss)
 val equiv_solver = Simplifier.mk_solver' "Equivalence goal solver" equiv_solver_tac
@@ -64,7 +60,7 @@ val equiv_solver = Simplifier.mk_solver' "Equivalence goal solver" equiv_solver_
 fun quotient_tac ctxt =
   (REPEAT_ALL_NEW (FIRST'
     [rtac @{thm identity_quotient},
-     resolve_tac (quotient_rules_get ctxt)]))
+     resolve_tac (Quotient_Info.quotient_rules_get ctxt)]))
 
 fun quotient_solver_tac ss = quotient_tac (Simplifier.the_context ss)
 val quotient_solver =
@@ -83,14 +79,14 @@ fun prep_ty thy (x, (S, ty)) =
   (ctyp_of thy (TVar (x, S)), ctyp_of thy ty)
 
 fun get_match_inst thy pat trm =
-let
-  val univ = Unify.matchers thy [(pat, trm)]
-  val SOME (env, _) = Seq.pull univ           (* raises Bind, if no unifier *)  (* FIXME fragile *)
-  val tenv = Vartab.dest (Envir.term_env env)
-  val tyenv = Vartab.dest (Envir.type_env env)
-in
-  (map (prep_ty thy) tyenv, map (prep_trm thy) tenv)
-end
+  let
+    val univ = Unify.matchers thy [(pat, trm)]
+    val SOME (env, _) = Seq.pull univ           (* raises Bind, if no unifier *) (* FIXME fragile *)
+    val tenv = Vartab.dest (Envir.term_env env)
+    val tyenv = Vartab.dest (Envir.type_env env)
+  in
+    (map (prep_ty thy) tyenv, map (prep_trm thy) tenv)
+  end
 
 (* Calculates the instantiations for the lemmas:
 
@@ -101,35 +97,35 @@ end
    theorem applies and return NONE if it doesn't.
 *)
 fun calculate_inst ctxt ball_bex_thm redex R1 R2 =
-let
-  val thy = ProofContext.theory_of ctxt
-  fun get_lhs thm = fst (Logic.dest_equals (Thm.concl_of thm))
-  val ty_inst = map (SOME o ctyp_of thy) [domain_type (fastype_of R2)]
-  val trm_inst = map (SOME o cterm_of thy) [R2, R1]
-in
-  case try (Drule.instantiate' ty_inst trm_inst) ball_bex_thm of
-    NONE => NONE
-  | SOME thm' =>
-      (case try (get_match_inst thy (get_lhs thm')) redex of
-        NONE => NONE
-      | SOME inst2 => try (Drule.instantiate inst2) thm')
-end
+  let
+    val thy = ProofContext.theory_of ctxt
+    fun get_lhs thm = fst (Logic.dest_equals (Thm.concl_of thm))
+    val ty_inst = map (SOME o ctyp_of thy) [domain_type (fastype_of R2)]
+    val trm_inst = map (SOME o cterm_of thy) [R2, R1]
+  in
+    (case try (Drule.instantiate' ty_inst trm_inst) ball_bex_thm of
+      NONE => NONE
+    | SOME thm' =>
+        (case try (get_match_inst thy (get_lhs thm')) redex of
+          NONE => NONE
+        | SOME inst2 => try (Drule.instantiate inst2) thm'))
+  end
 
 fun ball_bex_range_simproc ss redex =
-let
-  val ctxt = Simplifier.the_context ss
-in
-  case redex of
-    (Const (@{const_name "Ball"}, _) $ (Const (@{const_name "Respects"}, _) $
-      (Const (@{const_name "fun_rel"}, _) $ R1 $ R2)) $ _) =>
-        calculate_inst ctxt @{thm ball_reg_eqv_range[THEN eq_reflection]} redex R1 R2
+  let
+    val ctxt = Simplifier.the_context ss
+  in
+    case redex of
+      (Const (@{const_name "Ball"}, _) $ (Const (@{const_name "Respects"}, _) $
+        (Const (@{const_name "fun_rel"}, _) $ R1 $ R2)) $ _) =>
+          calculate_inst ctxt @{thm ball_reg_eqv_range[THEN eq_reflection]} redex R1 R2
 
-  | (Const (@{const_name "Bex"}, _) $ (Const (@{const_name "Respects"}, _) $
-      (Const (@{const_name "fun_rel"}, _) $ R1 $ R2)) $ _) =>
-        calculate_inst ctxt @{thm bex_reg_eqv_range[THEN eq_reflection]} redex R1 R2
+    | (Const (@{const_name "Bex"}, _) $ (Const (@{const_name "Respects"}, _) $
+        (Const (@{const_name "fun_rel"}, _) $ R1 $ R2)) $ _) =>
+          calculate_inst ctxt @{thm bex_reg_eqv_range[THEN eq_reflection]} redex R1 R2
 
-  | _ => NONE
-end
+    | _ => NONE
+  end
 
 (* Regularize works as follows:
 
@@ -152,32 +148,34 @@ end
 
 fun reflp_get ctxt =
   map_filter (fn th => if prems_of th = [] then SOME (OF1 @{thm equivp_reflp} th) else NONE
-    handle THM _ => NONE) (equiv_rules_get ctxt)
+    handle THM _ => NONE) (Quotient_Info.equiv_rules_get ctxt)
 
 val eq_imp_rel = @{lemma "equivp R ==> a = b --> R a b" by (simp add: equivp_reflp)}
 
-fun eq_imp_rel_get ctxt = map (OF1 eq_imp_rel) (equiv_rules_get ctxt)
+fun eq_imp_rel_get ctxt = map (OF1 eq_imp_rel) (Quotient_Info.equiv_rules_get ctxt)
 
 fun regularize_tac ctxt =
-let
-  val thy = ProofContext.theory_of ctxt
-  val ball_pat = @{term "Ball (Respects (R1 ===> R2)) P"}
-  val bex_pat  = @{term "Bex (Respects (R1 ===> R2)) P"}
-  val simproc = Simplifier.simproc_global_i thy "" [ball_pat, bex_pat] (K (ball_bex_range_simproc))
-  val simpset = (mk_minimal_ss ctxt)
-                       addsimps @{thms ball_reg_eqv bex_reg_eqv babs_reg_eqv babs_simp}
-                       addsimprocs [simproc]
-                       addSolver equiv_solver addSolver quotient_solver
-  val eq_eqvs = eq_imp_rel_get ctxt
-in
-  simp_tac simpset THEN'
-  REPEAT_ALL_NEW (CHANGED o FIRST'
-    [resolve_tac @{thms ball_reg_right bex_reg_left bex1_bexeq_reg},
-     resolve_tac (Inductive.get_monos ctxt),
-     resolve_tac @{thms ball_all_comm bex_ex_comm},
-     resolve_tac eq_eqvs,
-     simp_tac simpset])
-end
+  let
+    val thy = ProofContext.theory_of ctxt
+    val ball_pat = @{term "Ball (Respects (R1 ===> R2)) P"}
+    val bex_pat = @{term "Bex (Respects (R1 ===> R2)) P"}
+    val simproc =
+      Simplifier.simproc_global_i thy "" [ball_pat, bex_pat] (K (ball_bex_range_simproc))
+    val simpset =
+      mk_minimal_ss ctxt
+      addsimps @{thms ball_reg_eqv bex_reg_eqv babs_reg_eqv babs_simp}
+      addsimprocs [simproc]
+      addSolver equiv_solver addSolver quotient_solver
+    val eq_eqvs = eq_imp_rel_get ctxt
+  in
+    simp_tac simpset THEN'
+    REPEAT_ALL_NEW (CHANGED o FIRST'
+      [resolve_tac @{thms ball_reg_right bex_reg_left bex1_bexeq_reg},
+       resolve_tac (Inductive.get_monos ctxt),
+       resolve_tac @{thms ball_all_comm bex_ex_comm},
+       resolve_tac eq_eqvs,
+       simp_tac simpset])
+  end
 
 
 
@@ -187,52 +185,52 @@ end
    is an application, it returns the function and the argument.
 *)
 fun find_qt_asm asms =
-let
-  fun find_fun trm =
-    case trm of
-      (Const(@{const_name Trueprop}, _) $ (Const (@{const_name Quot_True}, _) $ _)) => true
-    | _ => false
-in
- case find_first find_fun asms of
-   SOME (_ $ (_ $ (f $ a))) => SOME (f, a)
- | _ => NONE
-end
+  let
+    fun find_fun trm =
+      (case trm of
+        (Const (@{const_name Trueprop}, _) $ (Const (@{const_name Quot_True}, _) $ _)) => true
+      | _ => false)
+  in
+     (case find_first find_fun asms of
+       SOME (_ $ (_ $ (f $ a))) => SOME (f, a)
+     | _ => NONE)
+  end
 
 fun quot_true_simple_conv ctxt fnctn ctrm =
-  case (term_of ctrm) of
+  case term_of ctrm of
     (Const (@{const_name Quot_True}, _) $ x) =>
-    let
-      val fx = fnctn x;
-      val thy = ProofContext.theory_of ctxt;
-      val cx = cterm_of thy x;
-      val cfx = cterm_of thy fx;
-      val cxt = ctyp_of thy (fastype_of x);
-      val cfxt = ctyp_of thy (fastype_of fx);
-      val thm = Drule.instantiate' [SOME cxt, SOME cfxt] [SOME cx, SOME cfx] @{thm QT_imp}
-    in
-      Conv.rewr_conv thm ctrm
-    end
+      let
+        val fx = fnctn x;
+        val thy = ProofContext.theory_of ctxt;
+        val cx = cterm_of thy x;
+        val cfx = cterm_of thy fx;
+        val cxt = ctyp_of thy (fastype_of x);
+        val cfxt = ctyp_of thy (fastype_of fx);
+        val thm = Drule.instantiate' [SOME cxt, SOME cfxt] [SOME cx, SOME cfx] @{thm QT_imp}
+      in
+        Conv.rewr_conv thm ctrm
+      end
 
 fun quot_true_conv ctxt fnctn ctrm =
-  case (term_of ctrm) of
+  (case term_of ctrm of
     (Const (@{const_name Quot_True}, _) $ _) =>
       quot_true_simple_conv ctxt fnctn ctrm
   | _ $ _ => Conv.comb_conv (quot_true_conv ctxt fnctn) ctrm
   | Abs _ => Conv.abs_conv (fn (_, ctxt) => quot_true_conv ctxt fnctn) ctxt ctrm
-  | _ => Conv.all_conv ctrm
+  | _ => Conv.all_conv ctrm)
 
 fun quot_true_tac ctxt fnctn =
-   CONVERSION
+  CONVERSION
     ((Conv.params_conv ~1 (fn ctxt =>
-       (Conv.prems_conv ~1 (quot_true_conv ctxt fnctn)))) ctxt)
+        (Conv.prems_conv ~1 (quot_true_conv ctxt fnctn)))) ctxt)
 
 fun dest_comb (f $ a) = (f, a)
 fun dest_bcomb ((_ $ l) $ r) = (l, r)
 
 fun unlam t =
-  case t of
-    (Abs a) => snd (Term.dest_abs a)
-  | _ => unlam (Abs("", domain_type (fastype_of t), (incr_boundvars 1 t) $ (Bound 0)))
+  (case t of
+    Abs a => snd (Term.dest_abs a)
+  | _ => unlam (Abs("", domain_type (fastype_of t), (incr_boundvars 1 t) $ (Bound 0))))
 
 val bare_concl = HOLogic.dest_Trueprop o Logic.strip_assums_concl
 
@@ -242,53 +240,53 @@ val bare_concl = HOLogic.dest_Trueprop o Logic.strip_assums_concl
 *)
 val apply_rsp_tac =
   Subgoal.FOCUS (fn {concl, asms, context,...} =>
-  let
-    val bare_concl = HOLogic.dest_Trueprop (term_of concl)
-    val qt_asm = find_qt_asm (map term_of asms)
-  in
-    case (bare_concl, qt_asm) of
-      (R2 $ (f $ x) $ (g $ y), SOME (qt_fun, qt_arg)) =>
-         if fastype_of qt_fun = fastype_of f
-         then no_tac
-         else
-           let
-             val ty_x = fastype_of x
-             val ty_b = fastype_of qt_arg
-             val ty_f = range_type (fastype_of f)
-             val thy = ProofContext.theory_of context
-             val ty_inst = map (SOME o (ctyp_of thy)) [ty_x, ty_b, ty_f]
-             val t_inst = map (SOME o (cterm_of thy)) [R2, f, g, x, y];
-             val inst_thm = Drule.instantiate' ty_inst
-               ([NONE, NONE, NONE] @ t_inst) @{thm apply_rsp}
-           in
-             (rtac inst_thm THEN' SOLVED' (quotient_tac context)) 1
-           end
-    | _ => no_tac
-  end)
+    let
+      val bare_concl = HOLogic.dest_Trueprop (term_of concl)
+      val qt_asm = find_qt_asm (map term_of asms)
+    in
+      case (bare_concl, qt_asm) of
+        (R2 $ (f $ x) $ (g $ y), SOME (qt_fun, qt_arg)) =>
+          if fastype_of qt_fun = fastype_of f
+          then no_tac
+          else
+            let
+              val ty_x = fastype_of x
+              val ty_b = fastype_of qt_arg
+              val ty_f = range_type (fastype_of f)
+              val thy = ProofContext.theory_of context
+              val ty_inst = map (SOME o (ctyp_of thy)) [ty_x, ty_b, ty_f]
+              val t_inst = map (SOME o (cterm_of thy)) [R2, f, g, x, y];
+              val inst_thm = Drule.instantiate' ty_inst
+                ([NONE, NONE, NONE] @ t_inst) @{thm apply_rsp}
+            in
+              (rtac inst_thm THEN' SOLVED' (quotient_tac context)) 1
+            end
+      | _ => no_tac
+    end)
 
 (* Instantiates and applies 'equals_rsp'. Since the theorem is
    complex we rely on instantiation to tell us if it applies
 *)
 fun equals_rsp_tac R ctxt =
-let
-  val thy = ProofContext.theory_of ctxt
-in
-  case try (cterm_of thy) R of (* There can be loose bounds in R *)
-    SOME ctm =>
-      let
-        val ty = domain_type (fastype_of R)
-      in
-        case try (Drule.instantiate' [SOME (ctyp_of thy ty)]
-          [SOME (cterm_of thy R)]) @{thm equals_rsp} of
-          SOME thm => rtac thm THEN' quotient_tac ctxt
-        | NONE => K no_tac
-      end
-  | _ => K no_tac
-end
+  let
+    val thy = ProofContext.theory_of ctxt
+  in
+    case try (cterm_of thy) R of (* There can be loose bounds in R *)
+      SOME ctm =>
+        let
+          val ty = domain_type (fastype_of R)
+        in
+          case try (Drule.instantiate' [SOME (ctyp_of thy ty)]
+              [SOME (cterm_of thy R)]) @{thm equals_rsp} of
+            SOME thm => rtac thm THEN' quotient_tac ctxt
+          | NONE => K no_tac
+        end
+    | _ => K no_tac
+  end
 
 fun rep_abs_rsp_tac ctxt =
   SUBGOAL (fn (goal, i) =>
-    case (try bare_concl goal) of
+    (case try bare_concl goal of
       SOME (rel $ _ $ (rep $ (Bound _ $ _))) => no_tac
     | SOME (rel $ _ $ (rep $ (abs $ _))) =>
         let
@@ -303,7 +301,7 @@ fun rep_abs_rsp_tac ctxt =
               | NONE => no_tac)
           | NONE => no_tac
         end
-    | _ => no_tac)
+    | _ => no_tac))
 
 
 
@@ -329,67 +327,66 @@ fun rep_abs_rsp_tac ctxt =
     - reflexivity of the relation
 *)
 fun injection_match_tac ctxt = SUBGOAL (fn (goal, i) =>
-(case (bare_concl goal) of
-    (* (R1 ===> R2) (%x...) (%x...) ----> [|R1 x y|] ==> R2 (...x) (...y) *)
-  (Const (@{const_name fun_rel}, _) $ _ $ _) $ (Abs _) $ (Abs _)
-      => rtac @{thm fun_relI} THEN' quot_true_tac ctxt unlam
+  (case bare_concl goal of
+      (* (R1 ===> R2) (%x...) (%x...) ----> [|R1 x y|] ==> R2 (...x) (...y) *)
+    (Const (@{const_name fun_rel}, _) $ _ $ _) $ (Abs _) $ (Abs _)
+        => rtac @{thm fun_relI} THEN' quot_true_tac ctxt unlam
 
-    (* (op =) (Ball...) (Ball...) ----> (op =) (...) (...) *)
-| (Const (@{const_name HOL.eq},_) $
-    (Const(@{const_name Ball},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
-    (Const(@{const_name Ball},_) $ (Const (@{const_name Respects}, _) $ _) $ _))
-      => rtac @{thm ball_rsp} THEN' dtac @{thm QT_all}
+      (* (op =) (Ball...) (Ball...) ----> (op =) (...) (...) *)
+  | (Const (@{const_name HOL.eq},_) $
+      (Const(@{const_name Ball},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
+      (Const(@{const_name Ball},_) $ (Const (@{const_name Respects}, _) $ _) $ _))
+        => rtac @{thm ball_rsp} THEN' dtac @{thm QT_all}
 
-    (* (R1 ===> op =) (Ball...) (Ball...) ----> [|R1 x y|] ==> (Ball...x) = (Ball...y) *)
-| (Const (@{const_name fun_rel}, _) $ _ $ _) $
-    (Const(@{const_name Ball},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
-    (Const(@{const_name Ball},_) $ (Const (@{const_name Respects}, _) $ _) $ _)
-      => rtac @{thm fun_relI} THEN' quot_true_tac ctxt unlam
+      (* (R1 ===> op =) (Ball...) (Ball...) ----> [|R1 x y|] ==> (Ball...x) = (Ball...y) *)
+  | (Const (@{const_name fun_rel}, _) $ _ $ _) $
+      (Const(@{const_name Ball},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
+      (Const(@{const_name Ball},_) $ (Const (@{const_name Respects}, _) $ _) $ _)
+        => rtac @{thm fun_relI} THEN' quot_true_tac ctxt unlam
 
-    (* (op =) (Bex...) (Bex...) ----> (op =) (...) (...) *)
-| Const (@{const_name HOL.eq},_) $
-    (Const(@{const_name Bex},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
-    (Const(@{const_name Bex},_) $ (Const (@{const_name Respects}, _) $ _) $ _)
-      => rtac @{thm bex_rsp} THEN' dtac @{thm QT_ex}
+      (* (op =) (Bex...) (Bex...) ----> (op =) (...) (...) *)
+  | Const (@{const_name HOL.eq},_) $
+      (Const(@{const_name Bex},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
+      (Const(@{const_name Bex},_) $ (Const (@{const_name Respects}, _) $ _) $ _)
+        => rtac @{thm bex_rsp} THEN' dtac @{thm QT_ex}
 
-    (* (R1 ===> op =) (Bex...) (Bex...) ----> [|R1 x y|] ==> (Bex...x) = (Bex...y) *)
-| (Const (@{const_name fun_rel}, _) $ _ $ _) $
-    (Const(@{const_name Bex},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
-    (Const(@{const_name Bex},_) $ (Const (@{const_name Respects}, _) $ _) $ _)
-      => rtac @{thm fun_relI} THEN' quot_true_tac ctxt unlam
+      (* (R1 ===> op =) (Bex...) (Bex...) ----> [|R1 x y|] ==> (Bex...x) = (Bex...y) *)
+  | (Const (@{const_name fun_rel}, _) $ _ $ _) $
+      (Const(@{const_name Bex},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
+      (Const(@{const_name Bex},_) $ (Const (@{const_name Respects}, _) $ _) $ _)
+        => rtac @{thm fun_relI} THEN' quot_true_tac ctxt unlam
 
-| (Const (@{const_name fun_rel}, _) $ _ $ _) $
-    (Const(@{const_name Bex1_rel},_) $ _) $ (Const(@{const_name Bex1_rel},_) $ _)
-      => rtac @{thm bex1_rel_rsp} THEN' quotient_tac ctxt
+  | (Const (@{const_name fun_rel}, _) $ _ $ _) $
+      (Const(@{const_name Bex1_rel},_) $ _) $ (Const(@{const_name Bex1_rel},_) $ _)
+        => rtac @{thm bex1_rel_rsp} THEN' quotient_tac ctxt
 
-| (_ $
-    (Const(@{const_name Babs},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
-    (Const(@{const_name Babs},_) $ (Const (@{const_name Respects}, _) $ _) $ _))
-      => rtac @{thm babs_rsp} THEN' RANGE [quotient_tac ctxt]
+  | (_ $
+      (Const(@{const_name Babs},_) $ (Const (@{const_name Respects}, _) $ _) $ _) $
+      (Const(@{const_name Babs},_) $ (Const (@{const_name Respects}, _) $ _) $ _))
+        => rtac @{thm babs_rsp} THEN' RANGE [quotient_tac ctxt]
 
-| Const (@{const_name HOL.eq},_) $ (R $ _ $ _) $ (_ $ _ $ _) =>
-   (rtac @{thm refl} ORELSE'
-    (equals_rsp_tac R ctxt THEN' RANGE [
-       quot_true_tac ctxt (fst o dest_bcomb), quot_true_tac ctxt (snd o dest_bcomb)]))
+  | Const (@{const_name HOL.eq},_) $ (R $ _ $ _) $ (_ $ _ $ _) =>
+     (rtac @{thm refl} ORELSE'
+      (equals_rsp_tac R ctxt THEN' RANGE [
+         quot_true_tac ctxt (fst o dest_bcomb), quot_true_tac ctxt (snd o dest_bcomb)]))
 
-    (* reflexivity of operators arising from Cong_tac *)
-| Const (@{const_name HOL.eq},_) $ _ $ _ => rtac @{thm refl}
+      (* reflexivity of operators arising from Cong_tac *)
+  | Const (@{const_name HOL.eq},_) $ _ $ _ => rtac @{thm refl}
 
-   (* respectfulness of constants; in particular of a simple relation *)
-| _ $ (Const _) $ (Const _)  (* fun_rel, list_rel, etc but not equality *)
-    => resolve_tac (rsp_rules_get ctxt) THEN_ALL_NEW quotient_tac ctxt
+     (* respectfulness of constants; in particular of a simple relation *)
+  | _ $ (Const _) $ (Const _)  (* fun_rel, list_rel, etc but not equality *)
+      => resolve_tac (Quotient_Info.rsp_rules_get ctxt) THEN_ALL_NEW quotient_tac ctxt
 
-    (* R (...) (Rep (Abs ...)) ----> R (...) (...) *)
-    (* observe map_fun *)
-| _ $ _ $ _
-    => (rtac @{thm quot_rel_rsp} THEN_ALL_NEW quotient_tac ctxt)
-       ORELSE' rep_abs_rsp_tac ctxt
+      (* R (...) (Rep (Abs ...)) ----> R (...) (...) *)
+      (* observe map_fun *)
+  | _ $ _ $ _
+      => (rtac @{thm quot_rel_rsp} THEN_ALL_NEW quotient_tac ctxt)
+         ORELSE' rep_abs_rsp_tac ctxt
 
-| _ => K no_tac
-) i)
+  | _ => K no_tac) i)
 
 fun injection_step_tac ctxt rel_refl =
- FIRST' [
+  FIRST' [
     injection_match_tac ctxt,
 
     (* R (t $ ...) (t' $ ...) ----> apply_rsp   provided type of t needs lifting *)
@@ -412,11 +409,11 @@ fun injection_step_tac ctxt rel_refl =
     resolve_tac rel_refl]
 
 fun injection_tac ctxt =
-let
-  val rel_refl = reflp_get ctxt
-in
-  injection_step_tac ctxt rel_refl
-end
+  let
+    val rel_refl = reflp_get ctxt
+  in
+    injection_step_tac ctxt rel_refl
+  end
 
 fun all_injection_tac ctxt =
   REPEAT_ALL_NEW (injection_tac ctxt)
@@ -427,46 +424,48 @@ fun all_injection_tac ctxt =
 
 (* expands all map_funs, except in front of the (bound) variables listed in xs *)
 fun map_fun_simple_conv xs ctrm =
-  case (term_of ctrm) of
+  (case term_of ctrm of
     ((Const (@{const_name "map_fun"}, _) $ _ $ _) $ h $ _) =>
         if member (op=) xs h
         then Conv.all_conv ctrm
         else Conv.rewr_conv @{thm map_fun_apply [THEN eq_reflection]} ctrm
-  | _ => Conv.all_conv ctrm
+  | _ => Conv.all_conv ctrm)
 
 fun map_fun_conv xs ctxt ctrm =
-  case (term_of ctrm) of
-      _ $ _ => (Conv.comb_conv (map_fun_conv xs ctxt) then_conv
-                map_fun_simple_conv xs) ctrm
-    | Abs _ => Conv.abs_conv (fn (x, ctxt) => map_fun_conv ((term_of x)::xs) ctxt) ctxt ctrm
-    | _ => Conv.all_conv ctrm
+  (case term_of ctrm of
+    _ $ _ =>
+      (Conv.comb_conv (map_fun_conv xs ctxt) then_conv
+        map_fun_simple_conv xs) ctrm
+  | Abs _ => Conv.abs_conv (fn (x, ctxt) => map_fun_conv ((term_of x)::xs) ctxt) ctxt ctrm
+  | _ => Conv.all_conv ctrm)
 
 fun map_fun_tac ctxt = CONVERSION (map_fun_conv [] ctxt)
 
 (* custom matching functions *)
 fun mk_abs u i t =
-  if incr_boundvars i u aconv t then Bound i else
-  case t of
-    t1 $ t2 => mk_abs u i t1 $ mk_abs u i t2
-  | Abs (s, T, t') => Abs (s, T, mk_abs u (i + 1) t')
-  | Bound j => if i = j then error "make_inst" else t
-  | _ => t
+  if incr_boundvars i u aconv t then Bound i
+  else
+    case t of
+      t1 $ t2 => mk_abs u i t1 $ mk_abs u i t2
+    | Abs (s, T, t') => Abs (s, T, mk_abs u (i + 1) t')
+    | Bound j => if i = j then error "make_inst" else t
+    | _ => t
 
 fun make_inst lhs t =
-let
-  val _ $ (Abs (_, _, (_ $ ((f as Var (_, Type ("fun", [T, _]))) $ u)))) = lhs;
-  val _ $ (Abs (_, _, (_ $ g))) = t;
-in
-  (f, Abs ("x", T, mk_abs u 0 g))
-end
+  let
+    val _ $ (Abs (_, _, (_ $ ((f as Var (_, Type ("fun", [T, _]))) $ u)))) = lhs;
+    val _ $ (Abs (_, _, (_ $ g))) = t;
+  in
+    (f, Abs ("x", T, mk_abs u 0 g))
+  end
 
 fun make_inst_id lhs t =
-let
-  val _ $ (Abs (_, _, (f as Var (_, Type ("fun", [T, _]))) $ u)) = lhs;
-  val _ $ (Abs (_, _, g)) = t;
-in
-  (f, Abs ("x", T, mk_abs u 0 g))
-end
+  let
+    val _ $ (Abs (_, _, (f as Var (_, Type ("fun", [T, _]))) $ u)) = lhs;
+    val _ $ (Abs (_, _, g)) = t;
+  in
+    (f, Abs ("x", T, mk_abs u 0 g))
+  end
 
 (* Simplifies a redex using the 'lambda_prs' theorem.
    First instantiates the types and known subterms.
@@ -476,7 +475,7 @@ end
    make_inst_id is used
 *)
 fun lambda_prs_simple_conv ctxt ctrm =
-  case (term_of ctrm) of
+  (case term_of ctrm of
     (Const (@{const_name map_fun}, _) $ r1 $ a2) $ (Abs _) =>
       let
         val thy = ProofContext.theory_of ctxt
@@ -495,7 +494,7 @@ fun lambda_prs_simple_conv ctxt ctrm =
       in
         Conv.rewr_conv thm4 ctrm
       end
-  | _ => Conv.all_conv ctrm
+  | _ => Conv.all_conv ctrm)
 
 fun lambda_prs_conv ctxt = Conv.top_conv lambda_prs_simple_conv ctxt
 fun lambda_prs_tac ctxt = CONVERSION (lambda_prs_conv ctxt)
@@ -523,25 +522,27 @@ fun lambda_prs_tac ctxt = CONVERSION (lambda_prs_conv ctxt)
   4. test for refl
 *)
 fun clean_tac lthy =
-let
-  val defs = map (Thm.symmetric o #def) (qconsts_dest lthy)
-  val prs = prs_rules_get lthy
-  val ids = id_simps_get lthy
-  val thms = @{thms Quotient_abs_rep Quotient_rel_rep babs_prs all_prs ex_prs ex1_prs} @ ids @ prs @ defs
+  let
+    val defs = map (Thm.symmetric o #def) (Quotient_Info.qconsts_dest lthy)
+    val prs = Quotient_Info.prs_rules_get lthy
+    val ids = Quotient_Info.id_simps_get lthy
+    val thms =
+      @{thms Quotient_abs_rep Quotient_rel_rep babs_prs all_prs ex_prs ex1_prs} @ ids @ prs @ defs
 
-  val ss = (mk_minimal_ss lthy) addsimps thms addSolver quotient_solver
-in
-  EVERY' [map_fun_tac lthy,
-          lambda_prs_tac lthy,
-          simp_tac ss,
-          TRY o rtac refl]
-end
+    val ss = (mk_minimal_ss lthy) addsimps thms addSolver quotient_solver
+  in
+    EVERY' [
+      map_fun_tac lthy,
+      lambda_prs_tac lthy,
+      simp_tac ss,
+      TRY o rtac refl]
+  end
 
 
 (* Tactic for Generalising Free Variables in a Goal *)
 
 fun inst_spec ctrm =
-   Drule.instantiate' [SOME (ctyp_of_term ctrm)] [NONE, SOME ctrm] @{thm spec}
+  Drule.instantiate' [SOME (ctyp_of_term ctrm)] [NONE, SOME ctrm] @{thm spec}
 
 fun inst_spec_tac ctrms =
   EVERY' (map (dtac o inst_spec) ctrms)
@@ -588,31 +589,31 @@ val lifting_procedure_thm =
       by (simp add: Quot_True_def)}
 
 fun lift_match_error ctxt msg rtrm qtrm =
-let
-  val rtrm_str = Syntax.string_of_term ctxt rtrm
-  val qtrm_str = Syntax.string_of_term ctxt qtrm
-  val msg = cat_lines [enclose "[" "]" msg, "The quotient theorem", qtrm_str,
-    "", "does not match with original theorem", rtrm_str]
-in
-  error msg
-end
+  let
+    val rtrm_str = Syntax.string_of_term ctxt rtrm
+    val qtrm_str = Syntax.string_of_term ctxt qtrm
+    val msg = cat_lines [enclose "[" "]" msg, "The quotient theorem", qtrm_str,
+      "", "does not match with original theorem", rtrm_str]
+  in
+    error msg
+  end
 
 fun procedure_inst ctxt rtrm qtrm =
-let
-  val thy = ProofContext.theory_of ctxt
-  val rtrm' = HOLogic.dest_Trueprop rtrm
-  val qtrm' = HOLogic.dest_Trueprop qtrm
-  val reg_goal = regularize_trm_chk ctxt (rtrm', qtrm')
-    handle LIFT_MATCH msg => lift_match_error ctxt msg rtrm qtrm
-  val inj_goal = inj_repabs_trm_chk ctxt (reg_goal, qtrm')
-    handle LIFT_MATCH msg => lift_match_error ctxt msg rtrm qtrm
-in
-  Drule.instantiate' []
-    [SOME (cterm_of thy rtrm'),
-     SOME (cterm_of thy reg_goal),
-     NONE,
-     SOME (cterm_of thy inj_goal)] lifting_procedure_thm
-end
+  let
+    val thy = ProofContext.theory_of ctxt
+    val rtrm' = HOLogic.dest_Trueprop rtrm
+    val qtrm' = HOLogic.dest_Trueprop qtrm
+    val reg_goal = Quotient_Term.regularize_trm_chk ctxt (rtrm', qtrm')
+      handle Quotient_Term.LIFT_MATCH msg => lift_match_error ctxt msg rtrm qtrm
+    val inj_goal = Quotient_Term.inj_repabs_trm_chk ctxt (reg_goal, qtrm')
+      handle Quotient_Term.LIFT_MATCH msg => lift_match_error ctxt msg rtrm qtrm
+  in
+    Drule.instantiate' []
+      [SOME (cterm_of thy rtrm'),
+       SOME (cterm_of thy reg_goal),
+       NONE,
+       SOME (cterm_of thy inj_goal)] lifting_procedure_thm
+  end
 
 
 (* Since we use Ball and Bex during the lifting and descending,
@@ -625,34 +626,34 @@ val default_unfolds = @{thms Ball_def Bex_def}
 (** descending as tactic **)
 
 fun descend_procedure_tac ctxt simps =
-let
-  val ss = (mk_minimal_ss ctxt) addsimps (simps @ default_unfolds)
-in
-  full_simp_tac ss
-  THEN' Object_Logic.full_atomize_tac
-  THEN' gen_frees_tac ctxt
-  THEN' SUBGOAL (fn (goal, i) =>
-        let
-          val qtys = map #qtyp (Quotient_Info.quotdata_dest ctxt)
-          val rtrm = derive_rtrm ctxt qtys goal
-          val rule = procedure_inst ctxt rtrm  goal
-        in
-          rtac rule i
-        end)
-end
+  let
+    val ss = (mk_minimal_ss ctxt) addsimps (simps @ default_unfolds)
+  in
+    full_simp_tac ss
+    THEN' Object_Logic.full_atomize_tac
+    THEN' gen_frees_tac ctxt
+    THEN' SUBGOAL (fn (goal, i) =>
+      let
+        val qtys = map #qtyp (Quotient_Info.quotdata_dest ctxt)
+        val rtrm = Quotient_Term.derive_rtrm ctxt qtys goal
+        val rule = procedure_inst ctxt rtrm  goal
+      in
+        rtac rule i
+      end)
+  end
 
 fun descend_tac ctxt simps =
-let
-  val mk_tac_raw =
-    descend_procedure_tac ctxt simps
-    THEN' RANGE
-      [Object_Logic.rulify_tac THEN' (K all_tac),
-       regularize_tac ctxt,
-       all_injection_tac ctxt,
-       clean_tac ctxt]
-in
-  Goal.conjunction_tac THEN_ALL_NEW mk_tac_raw
-end
+  let
+    val mk_tac_raw =
+      descend_procedure_tac ctxt simps
+      THEN' RANGE
+        [Object_Logic.rulify_tac THEN' (K all_tac),
+         regularize_tac ctxt,
+         all_injection_tac ctxt,
+         clean_tac ctxt]
+  in
+    Goal.conjunction_tac THEN_ALL_NEW mk_tac_raw
+  end
 
 
 (** lifting as a tactic **)
@@ -660,29 +661,29 @@ end
 
 (* the tactic leaves three subgoals to be proved *)
 fun lift_procedure_tac ctxt simps rthm =
-let
-  val ss = (mk_minimal_ss ctxt) addsimps (simps @ default_unfolds)
-in
-  full_simp_tac ss
-  THEN' Object_Logic.full_atomize_tac
-  THEN' gen_frees_tac ctxt
-  THEN' SUBGOAL (fn (goal, i) =>
-    let
-      (* full_atomize_tac contracts eta redexes,
-         so we do it also in the original theorem *)
-      val rthm' = 
-        rthm |> full_simplify ss
-             |> Drule.eta_contraction_rule 
-             |> Thm.forall_intr_frees
-             |> atomize_thm 
+  let
+    val ss = (mk_minimal_ss ctxt) addsimps (simps @ default_unfolds)
+  in
+    full_simp_tac ss
+    THEN' Object_Logic.full_atomize_tac
+    THEN' gen_frees_tac ctxt
+    THEN' SUBGOAL (fn (goal, i) =>
+      let
+        (* full_atomize_tac contracts eta redexes,
+           so we do it also in the original theorem *)
+        val rthm' =
+          rthm |> full_simplify ss
+               |> Drule.eta_contraction_rule
+               |> Thm.forall_intr_frees
+               |> atomize_thm
 
-      val rule = procedure_inst ctxt (prop_of rthm') goal
-    in
-      (rtac rule THEN' rtac rthm') i
-    end)
-end
+        val rule = procedure_inst ctxt (prop_of rthm') goal
+      in
+        (rtac rule THEN' rtac rthm') i
+      end)
+  end
 
-fun lift_single_tac ctxt simps rthm = 
+fun lift_single_tac ctxt simps rthm =
   lift_procedure_tac ctxt simps rthm
   THEN' RANGE
     [ regularize_tac ctxt,
@@ -690,26 +691,26 @@ fun lift_single_tac ctxt simps rthm =
       clean_tac ctxt ]
 
 fun lift_tac ctxt simps rthms =
-  Goal.conjunction_tac 
+  Goal.conjunction_tac
   THEN' RANGE (map (lift_single_tac ctxt simps) rthms)
 
 
 (* automated lifting with pre-simplification of the theorems;
    for internal usage *)
 fun lifted ctxt qtys simps rthm =
-let
-  val ((_, [rthm']), ctxt') = Variable.import true [rthm] ctxt
-  val goal = derive_qtrm ctxt' qtys (prop_of rthm')
-in
-  Goal.prove ctxt' [] [] goal 
-    (K (HEADGOAL (lift_single_tac ctxt' simps rthm')))
-  |> singleton (ProofContext.export ctxt' ctxt)
-end
+  let
+    val ((_, [rthm']), ctxt') = Variable.import true [rthm] ctxt
+    val goal = Quotient_Term.derive_qtrm ctxt' qtys (prop_of rthm')
+  in
+    Goal.prove ctxt' [] [] goal
+      (K (HEADGOAL (lift_single_tac ctxt' simps rthm')))
+    |> singleton (ProofContext.export ctxt' ctxt)
+  end
 
 
 (* lifting as an attribute *)
 
-val lifted_attrib = Thm.rule_attribute (fn context => 
+val lifted_attrib = Thm.rule_attribute (fn context =>
   let
     val ctxt = Context.proof_of context
     val qtys = map #qtyp (Quotient_Info.quotdata_dest ctxt)
