@@ -71,7 +71,8 @@ use_thys [
   "Gauge_Integration",
   "Dedekind_Real",
   "Quicksort",
-  "Birthday_Paradoxon"
+  "Birthday_Paradoxon",
+  "List_to_Set_Comprehension_Examples"
 ];
 
 use_thy "SVC_Oracle";
