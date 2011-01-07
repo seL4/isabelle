@@ -183,7 +183,7 @@ fun show (Text t) = [XML.text t]
    @
    (if length inner = 0
     then ["/>"]
-    else List.concat (
+    else flat (
       [[">"]]
       @
       map show inner
@@ -304,7 +304,7 @@ fun ol (common_atts, lis) = Tag ("ol", from_common common_atts, map to_li lis);
 fun to_dtdd (nm, tag) = [Tag ("dt", [], [Text nm]),
                          Tag ("dd", [], [tag])];
 fun dl (common_atts, dtdds) =
-  Tag ("dl", from_common common_atts, (List.concat o map to_dtdd) dtdds);
+  Tag ("dl", from_common common_atts, maps to_dtdd dtdds);
             
 fun alternate_class { class0, class1 } rows = let
     fun f ((true, xs), x) = (false, add_attributes [("class", class0)] x :: xs)

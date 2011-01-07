@@ -130,7 +130,7 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
                relevance_fudge relevance_override facts hyp_ts concl_t
            |> map (fst o fst)
          val (found_facts, lost_facts) =
-           List.concat proofs |> sort_distinct string_ord
+           flat proofs |> sort_distinct string_ord
            |> map (fn fact => (find_index (curry (op =) fact) facts, fact))
            |> List.partition (curry (op <=) 0 o fst)
            |>> sort (prod_ord int_ord string_ord) ||> map snd
