@@ -178,6 +178,10 @@ text {*
 The option @{text smt_solver} can be used to change the target SMT
 solver.  The possible values can be obtained from the @{text smt_status}
 command.
+
+Due to licensing restrictions, Yices and Z3 are not installed/enabled
+by default.  Z3 is free for non-commercial applications and can be enabled
+by simply setting the environment variable Z3_NON_COMMERCIAL to @{text yes}.
 *}
 
 declare [[ smt_solver = cvc3 ]]
