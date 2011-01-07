@@ -6,16 +6,14 @@ Generic quantifier elimination conversions for HOL formulae.
 
 signature QELIM =
 sig
- val gen_qelim_conv: conv -> conv -> conv -> (cterm -> 'a -> 'a) -> 'a 
-                     -> ('a -> conv) -> ('a -> conv) -> ('a -> conv) -> conv
- val standard_qelim_conv: (cterm list -> conv) -> (cterm list -> conv) 
-                          -> (cterm list -> conv) -> conv
+ val gen_qelim_conv: conv -> conv -> conv -> (cterm -> 'a -> 'a) -> 'a ->
+  ('a -> conv) -> ('a -> conv) -> ('a -> conv) -> conv
+ val standard_qelim_conv: (cterm list -> conv) -> (cterm list -> conv) ->
+  (cterm list -> conv) -> conv
 end;
 
 structure Qelim: QELIM =
 struct
-
-open Conv;
 
 val all_not_ex = mk_meta_eq @{thm "all_not_ex"};
 
@@ -23,13 +21,13 @@ fun gen_qelim_conv precv postcv simpex_conv ins env atcv ncv qcv =
  let
   fun conv env p =
    case (term_of p) of
-    Const(s,T)$_$_ => 
+    Const(s,T)$_$_ =>
        if domain_type T = HOLogic.boolT
           andalso member (op =) [@{const_name HOL.conj}, @{const_name HOL.disj},
             @{const_name HOL.implies}, @{const_name HOL.eq}] s
-       then binop_conv (conv env) p 
+       then Conv.binop_conv (conv env) p
        else atcv env p
-  | Const(@{const_name Not},_)$_ => arg_conv (conv env) p
+  | Const(@{const_name Not},_)$_ => Conv.arg_conv (conv env) p
   | Const(@{const_name Ex},_)$Abs(s,_,_) =>
     let
      val (e,p0) = Thm.dest_comb p
