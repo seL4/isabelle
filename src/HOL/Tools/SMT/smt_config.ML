@@ -138,7 +138,8 @@ fun solver_class_of ctxt =
 fun solver_options_of ctxt =
   let
     fun all_options NONE = []
-      | all_options (SOME ({options, ...}, opts)) = opts @ options ctxt
+      | all_options (SOME ({options, ...} : solver_info, opts)) =
+          opts @ options ctxt
   in solver_info_of (K []) all_options ctxt end
 
 val setup_solver =
