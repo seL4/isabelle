@@ -44,6 +44,7 @@ sig
   val id_simps_get: Proof.context -> thm list
   val quotient_rules_get: Proof.context -> thm list
   val quotient_rules_add: attribute
+  val setup: theory -> theory
 end;
 
 structure Quotient_Info: QUOTIENT_INFO =
@@ -98,10 +99,6 @@ val maps_attr_parser =
     ((Args.name --| Parse.$$$ "=") --
       (Parse.$$$ "(" |-- Args.name --| Parse.$$$ "," --
         Args.name --| Parse.$$$ ")"))
-
-val _ = Context.>> (Context.map_theory
-  (Attrib.setup @{binding "map"} (maps_attr_parser >> maps_attribute)
-    "declaration of map information"))
 
 fun print_mapsinfo ctxt =
   let
@@ -284,25 +281,32 @@ structure QuotientRules = Named_Thms
 val quotient_rules_get = QuotientRules.get
 val quotient_rules_add = QuotientRules.add
 
-(* setup of the theorem lists *)
 
-val _ = Context.>> (Context.map_theory
-  (EquivRules.setup #>
-   RspRules.setup #>
-   PrsRules.setup #>
-   IdSimps.setup #>
-   QuotientRules.setup))
+(* theory setup *)
 
-(* setup of the printing commands *)
+val setup =
+  Attrib.setup @{binding "map"} (maps_attr_parser >> maps_attribute)
+    "declaration of map information" #>
+  EquivRules.setup #>
+  RspRules.setup #>
+  PrsRules.setup #>
+  IdSimps.setup #>
+  QuotientRules.setup
 
-fun improper_command (pp_fn, cmd_name, descr_str) =
-  Outer_Syntax.improper_command cmd_name descr_str
-    Keyword.diag (Scan.succeed (Toplevel.keep (pp_fn o Toplevel.context_of)))
 
-val _ = map improper_command
-  [(print_mapsinfo, "print_quotmaps", "print out all map functions"),
-   (print_quotinfo, "print_quotients", "print out all quotients"),
-   (print_qconstinfo, "print_quotconsts", "print out all quotient constants")]
+(* outer syntax commands *)
+
+val _ =
+  Outer_Syntax.improper_command "print_quotmaps" "print quotient map functions" Keyword.diag
+    (Scan.succeed (Toplevel.keep (print_mapsinfo o Toplevel.context_of)))
+
+val _ =
+  Outer_Syntax.improper_command "print_quotients" "print quotients" Keyword.diag
+    (Scan.succeed (Toplevel.keep (print_quotinfo o Toplevel.context_of)))
+
+val _ =
+  Outer_Syntax.improper_command "print_quotconsts" "print quotient constants" Keyword.diag
+    (Scan.succeed (Toplevel.keep (print_qconstinfo o Toplevel.context_of)))
 
 
 end; (* structure *)
