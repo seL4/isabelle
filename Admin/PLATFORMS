@@ -61,13 +61,13 @@ executables.
 The ISABELLE_PLATFORM setting variable refers to the 32 bit version of
 the platform, even on 64 bit hardware.  Power-tools need to indicate
 64 bit support explicitly, via the (optional) ISABELLE_PLATFORM64
-setting.  The following bash expressions prefers the 64 bit platform,
+setting.  The following bash expression prefers the 64 bit platform,
 if that is available:
 
   "${ISABELLE_PLATFORM64:-$ISABELLE_PLATFORM}"
 
 Note that ML and JVM may have a different idea of the platform,
-depending the the respective binaries that are actually run.
+depending on the respective binaries that are actually run.
 
 
 Dependable system tools
