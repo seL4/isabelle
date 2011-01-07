@@ -15,7 +15,7 @@ the following package declarations:
   \usepackage[utf8]{inputenc}
   \usepackage{textcomp}
 
-* Explicit treatment of UTF8 sequences as Isabelle symbols, such that
+* Explicit treatment of UTF-8 sequences as Isabelle symbols, such that
 a Unicode character is treated as a single symbol, not a sequence of
 non-ASCII bytes as before.  Since Isabelle/ML string literals may
 contain symbols without further backslash escapes, Unicode can now be
@@ -69,7 +69,7 @@ entities and Isar declaration attributes to access these.
   Thy_Output.source             thy_output_source
   Thy_Output.break              thy_output_break
 
-Note that corresponding "..._default" references in ML may be only
+Note that corresponding "..._default" references in ML may only be
 changed globally at the ROOT session setup, but *not* within a theory.
 The option "show_abbrevs" supersedes the former print mode
 "no_abbrevs" with inverted meaning.
@@ -764,7 +764,7 @@ the program subject to physical effects of the environment.
 *** System ***
 
 * The IsabelleText font now includes Cyrillic, Hebrew, Arabic from
-DajaVu Sans.
+DejaVu Sans.
 
 * Discontinued support for Poly/ML 5.0 and 5.1 versions.
 
