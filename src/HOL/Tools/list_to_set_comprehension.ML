@@ -1,7 +1,8 @@
-(*  Title:  HOL/Tools/list_to_set_comprehension.ML
-    Author: Lukas Bulwahn, TU Muenchen
+(*  Title:      HOL/Tools/list_to_set_comprehension.ML
+    Author:     Lukas Bulwahn, TU Muenchen
 
-  Simproc for rewriting list comprehensions applied to List.set to set comprehension
+Simproc for rewriting list comprehensions applied to List.set to set
+comprehension.
 *)
 
 signature LIST_TO_SET_COMPREHENSION =

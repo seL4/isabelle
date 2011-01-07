@@ -2,7 +2,7 @@
     Author:     Cezary Kaliszyk, TU Munich
     Author:     Christian Urban, TU Munich
 
-    Type of finite sets.
+Type of finite sets.
 *)
 
 theory FSet

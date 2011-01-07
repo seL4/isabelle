@@ -3,6 +3,7 @@
 
 Message datatype, based on an older version by Larry Paulson.
 *)
+
 theory Quotient_Message
 imports Main Quotient_Syntax
 begin

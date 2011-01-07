@@ -2,8 +2,10 @@
     Author:     Cezary Kaliszyk
     Author:     Christian Urban
 
-Integers based on Quotients, based on an older version by Larry Paulson.
+Integers based on Quotients, based on an older version by Larry
+Paulson.
 *)
+
 theory Quotient_Int
 imports "~~/src/HOL/Library/Quotient_Product" Nat
 begin
