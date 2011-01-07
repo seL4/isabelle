@@ -136,7 +136,7 @@ fun gen_add_domaindef
     val liftdefl_eqn =
       Logic.mk_equals (liftdefl_const newT,
         Abs ("t", Term.itselfT newT,
-          mk_capply (@{const pdefl}, defl_const newT $ Logic.mk_type newT)))
+          mk_capply (@{const liftdefl_of}, defl_const newT $ Logic.mk_type newT)))
 
     val name_def = Binding.suffix_name "_def" name
     val emb_bind = (Binding.prefix_name "emb_" name_def, [])

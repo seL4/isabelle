@@ -657,7 +657,7 @@ definition
   "(liftprj :: udom u \<rightarrow> 'a defl u) = u_map\<cdot>prj"
 
 definition
-  "liftdefl (t::'a defl itself) = pdefl\<cdot>DEFL('a defl)"
+  "liftdefl (t::'a defl itself) = liftdefl_of\<cdot>DEFL('a defl)"
 
 instance proof
   show ep: "ep_pair emb (prj :: udom \<rightarrow> 'a defl)"

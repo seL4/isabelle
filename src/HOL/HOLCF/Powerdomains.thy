@@ -78,7 +78,7 @@ definition
   "(liftprj :: udom u \<rightarrow> 'a upper_pd u) = u_map\<cdot>prj"
 
 definition
-  "liftdefl (t::'a upper_pd itself) = pdefl\<cdot>DEFL('a upper_pd)"
+  "liftdefl (t::'a upper_pd itself) = liftdefl_of\<cdot>DEFL('a upper_pd)"
 
 instance proof
   show "ep_pair emb (prj :: udom \<rightarrow> 'a upper_pd)"
@@ -111,7 +111,7 @@ definition
   "(liftprj :: udom u \<rightarrow> 'a lower_pd u) = u_map\<cdot>prj"
 
 definition
-  "liftdefl (t::'a lower_pd itself) = pdefl\<cdot>DEFL('a lower_pd)"
+  "liftdefl (t::'a lower_pd itself) = liftdefl_of\<cdot>DEFL('a lower_pd)"
 
 instance proof
   show "ep_pair emb (prj :: udom \<rightarrow> 'a lower_pd)"
@@ -144,7 +144,7 @@ definition
   "(liftprj :: udom u \<rightarrow> 'a convex_pd u) = u_map\<cdot>prj"
 
 definition
-  "liftdefl (t::'a convex_pd itself) = pdefl\<cdot>DEFL('a convex_pd)"
+  "liftdefl (t::'a convex_pd itself) = liftdefl_of\<cdot>DEFL('a convex_pd)"
 
 instance proof
   show "ep_pair emb (prj :: udom \<rightarrow> 'a convex_pd)"

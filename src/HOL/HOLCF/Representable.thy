@@ -34,11 +34,11 @@ class predomain = predomain_syn +
 syntax "_LIFTDEFL" :: "type \<Rightarrow> logic"  ("(1LIFTDEFL/(1'(_')))")
 translations "LIFTDEFL('t)" \<rightleftharpoons> "CONST liftdefl TYPE('t)"
 
-definition pdefl :: "udom defl \<rightarrow> udom u defl"
-  where "pdefl = defl_fun1 ID ID u_map"
+definition liftdefl_of :: "udom defl \<rightarrow> udom u defl"
+  where "liftdefl_of = defl_fun1 ID ID u_map"
 
-lemma cast_pdefl: "cast\<cdot>(pdefl\<cdot>t) = u_map\<cdot>(cast\<cdot>t)"
-by (simp add: pdefl_def cast_defl_fun1 ep_pair_def finite_deflation_u_map)
+lemma cast_liftdefl_of: "cast\<cdot>(liftdefl_of\<cdot>t) = u_map\<cdot>(cast\<cdot>t)"
+by (simp add: liftdefl_of_def cast_defl_fun1 ep_pair_def finite_deflation_u_map)
 
 class "domain" = predomain_syn + pcpo +
   fixes emb :: "'a \<rightarrow> udom"
@@ -48,7 +48,7 @@ class "domain" = predomain_syn + pcpo +
   assumes cast_DEFL: "cast\<cdot>(defl TYPE('a)) = emb oo prj"
   assumes liftemb_eq: "liftemb = u_map\<cdot>emb"
   assumes liftprj_eq: "liftprj = u_map\<cdot>prj"
-  assumes liftdefl_eq: "liftdefl TYPE('a) = pdefl\<cdot>(defl TYPE('a))"
+  assumes liftdefl_eq: "liftdefl TYPE('a) = liftdefl_of\<cdot>(defl TYPE('a))"
 
 syntax "_DEFL" :: "type \<Rightarrow> logic"  ("(1DEFL/(1'(_')))")
 translations "DEFL('t)" \<rightleftharpoons> "CONST defl TYPE('t)"
@@ -60,7 +60,7 @@ proof
     by (intro ep_pair_u_map ep_pair_emb_prj)
   show "cast\<cdot>LIFTDEFL('a) = liftemb oo (liftprj::udom\<^sub>\<bottom> \<rightarrow> 'a\<^sub>\<bottom>)"
     unfolding liftemb_eq liftprj_eq liftdefl_eq
-    by (simp add: cast_pdefl cast_DEFL u_map_oo)
+    by (simp add: cast_liftdefl_of cast_DEFL u_map_oo)
 qed
 
 text {*
@@ -229,7 +229,7 @@ definition
   "(liftprj :: udom u \<rightarrow> udom u) = u_map\<cdot>prj"
 
 definition
-  "liftdefl (t::udom itself) = pdefl\<cdot>DEFL(udom)"
+  "liftdefl (t::udom itself) = liftdefl_of\<cdot>DEFL(udom)"
 
 instance proof
   show "ep_pair emb (prj :: udom \<rightarrow> udom)"
@@ -271,7 +271,7 @@ definition
   "(liftprj :: udom u \<rightarrow> 'a u u) = u_map\<cdot>prj"
 
 definition
-  "liftdefl (t::'a u itself) = pdefl\<cdot>DEFL('a u)"
+  "liftdefl (t::'a u itself) = liftdefl_of\<cdot>DEFL('a u)"
 
 instance proof
   show "ep_pair emb (prj :: udom \<rightarrow> 'a u)"
@@ -308,7 +308,7 @@ definition
   "(liftprj :: udom u \<rightarrow> ('a \<rightarrow>! 'b) u) = u_map\<cdot>prj"
 
 definition
-  "liftdefl (t::('a \<rightarrow>! 'b) itself) = pdefl\<cdot>DEFL('a \<rightarrow>! 'b)"
+  "liftdefl (t::('a \<rightarrow>! 'b) itself) = liftdefl_of\<cdot>DEFL('a \<rightarrow>! 'b)"
 
 instance proof
   show "ep_pair emb (prj :: udom \<rightarrow> 'a \<rightarrow>! 'b)"
@@ -346,7 +346,7 @@ definition
   "(liftprj :: udom u \<rightarrow> ('a \<rightarrow> 'b) u) = u_map\<cdot>prj"
 
 definition
-  "liftdefl (t::('a \<rightarrow> 'b) itself) = pdefl\<cdot>DEFL('a \<rightarrow> 'b)"
+  "liftdefl (t::('a \<rightarrow> 'b) itself) = liftdefl_of\<cdot>DEFL('a \<rightarrow> 'b)"
 
 instance proof
   have "ep_pair encode_cfun decode_cfun"
@@ -386,7 +386,7 @@ definition
   "(liftprj :: udom u \<rightarrow> ('a \<otimes> 'b) u) = u_map\<cdot>prj"
 
 definition
-  "liftdefl (t::('a \<otimes> 'b) itself) = pdefl\<cdot>DEFL('a \<otimes> 'b)"
+  "liftdefl (t::('a \<otimes> 'b) itself) = liftdefl_of\<cdot>DEFL('a \<otimes> 'b)"
 
 instance proof
   show "ep_pair emb (prj :: udom \<rightarrow> 'a \<otimes> 'b)"
@@ -475,9 +475,9 @@ instance proof
     apply (rule cfun_eqI, case_tac x, simp)
     apply (rename_tac y, case_tac "prod_prj\<cdot>y", simp)
     done
-  show 5: "LIFTDEFL('a \<times> 'b) = pdefl\<cdot>DEFL('a \<times> 'b)"
+  show 5: "LIFTDEFL('a \<times> 'b) = liftdefl_of\<cdot>DEFL('a \<times> 'b)"
     by (rule cast_eq_imp_eq)
-      (simp add: cast_liftdefl cast_pdefl cast_DEFL 2 3 4 u_map_oo)
+      (simp add: cast_liftdefl cast_liftdefl_of cast_DEFL 2 3 4 u_map_oo)
 qed
 
 end
@@ -512,7 +512,7 @@ definition
   "(liftprj :: udom u \<rightarrow> unit u) = u_map\<cdot>prj"
 
 definition
-  "liftdefl (t::unit itself) = pdefl\<cdot>DEFL(unit)"
+  "liftdefl (t::unit itself) = liftdefl_of\<cdot>DEFL(unit)"
 
 instance proof
   show "ep_pair emb (prj :: udom \<rightarrow> unit)"
@@ -590,7 +590,7 @@ definition
   "(liftprj :: udom u \<rightarrow> ('a \<oplus> 'b) u) = u_map\<cdot>prj"
 
 definition
-  "liftdefl (t::('a \<oplus> 'b) itself) = pdefl\<cdot>DEFL('a \<oplus> 'b)"
+  "liftdefl (t::('a \<oplus> 'b) itself) = liftdefl_of\<cdot>DEFL('a \<oplus> 'b)"
 
 instance proof
   show "ep_pair emb (prj :: udom \<rightarrow> 'a \<oplus> 'b)"
@@ -628,7 +628,7 @@ definition
   "(liftprj :: udom u \<rightarrow> 'a lift u) = u_map\<cdot>prj"
 
 definition
-  "liftdefl (t::'a lift itself) = pdefl\<cdot>DEFL('a lift)"
+  "liftdefl (t::'a lift itself) = liftdefl_of\<cdot>DEFL('a lift)"
 
 instance proof
   note [simp] = cont_Rep_lift cont_Abs_lift Rep_lift_inverse Abs_lift_inverse

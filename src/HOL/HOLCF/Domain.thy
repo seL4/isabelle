@@ -105,7 +105,7 @@ lemma typedef_domain_class:
   assumes defl: "defl \<equiv> (\<lambda> a::'a itself. t)"
   assumes liftemb: "(liftemb :: 'a u \<rightarrow> udom u) \<equiv> u_map\<cdot>emb"
   assumes liftprj: "(liftprj :: udom u \<rightarrow> 'a u) \<equiv> u_map\<cdot>prj"
-  assumes liftdefl: "(liftdefl :: 'a itself \<Rightarrow> _) \<equiv> (\<lambda>t. pdefl\<cdot>DEFL('a))"
+  assumes liftdefl: "(liftdefl :: 'a itself \<Rightarrow> _) \<equiv> (\<lambda>t. liftdefl_of\<cdot>DEFL('a))"
   shows "OFCLASS('a, domain_class)"
 proof
   have emb_beta: "\<And>x. emb\<cdot>x = Rep x"
@@ -233,9 +233,9 @@ lemma isodefl_abs_rep:
 unfolding isodefl_def
 by (simp add: cfun_eq_iff assms prj_emb_prj emb_prj_emb)
 
-lemma isodefl'_pdefl: "isodefl d t \<Longrightarrow> isodefl' d (pdefl\<cdot>t)"
+lemma isodefl'_liftdefl_of: "isodefl d t \<Longrightarrow> isodefl' d (liftdefl_of\<cdot>t)"
 unfolding isodefl_def isodefl'_def
-by (simp add: cast_pdefl u_map_oo liftemb_eq liftprj_eq)
+by (simp add: cast_liftdefl_of u_map_oo liftemb_eq liftprj_eq)
 
 lemma isodefl_sfun:
   "isodefl d1 t1 \<Longrightarrow> isodefl d2 t2 \<Longrightarrow>
@@ -326,7 +326,7 @@ lemmas [domain_map_ID] =
 
 lemmas [domain_isodefl] =
   isodefl_u isodefl_sfun isodefl_ssum isodefl_sprod
-  isodefl_cfun isodefl_prod isodefl_prod_u isodefl'_pdefl
+  isodefl_cfun isodefl_prod isodefl_prod_u isodefl'_liftdefl_of
 
 lemmas [domain_deflation] =
   deflation_cfun_map deflation_sfun_map deflation_ssum_map

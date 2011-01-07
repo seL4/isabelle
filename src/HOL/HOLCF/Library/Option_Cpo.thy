@@ -280,7 +280,7 @@ by (induct x, simp_all add: decode_option_def encode_option_def)
 
 lemma isodefl_option [domain_isodefl]:
   assumes "isodefl' d t"
-  shows "isodefl' (option_map d) (sum_liftdefl\<cdot>(pdefl\<cdot>DEFL(unit))\<cdot>t)"
+  shows "isodefl' (option_map d) (sum_liftdefl\<cdot>(liftdefl_of\<cdot>DEFL(unit))\<cdot>t)"
 using isodefl_sum [OF isodefl_LIFTDEFL [where 'a=unit] assms]
 unfolding isodefl'_def liftemb_option_def liftprj_option_def liftdefl_eq
 by (simp add: cfcomp1 u_map_map encode_option_option_map)
