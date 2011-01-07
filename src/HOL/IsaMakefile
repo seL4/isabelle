@@ -300,6 +300,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/int_arith.ML \
   Tools/groebner.ML \
   Tools/list_code.ML \
+  Tools/list_to_set_comprehension.ML \
   Tools/nat_numeral_simprocs.ML \
   Tools/Nitpick/kodkod.ML \
   Tools/Nitpick/kodkod_sat.ML \

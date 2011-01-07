@@ -6,7 +6,9 @@ header {* The datatype of finite lists *}
 
 theory List
 imports Plain Presburger Recdef Code_Numeral Quotient ATP
-uses ("Tools/list_code.ML")
+uses
+  ("Tools/list_code.ML")
+  ("Tools/list_to_set_comprehension.ML")
 begin
 
 datatype 'a list =
@@ -339,13 +341,6 @@ expressions. During proofs, they may become unreadable (and
 mangled). In such cases it can be advisable to introduce separate
 definitions for the list comprehensions in question.  *}
 
-(*
-Proper theorem proving support would be nice. For example, if
-@{text"set[f x y. x \<leftarrow> xs, y \<leftarrow> ys, P x y]"}
-produced something like
-@{term"{z. EX x: set xs. EX y:set ys. P x y \<and> z = f x y}"}.
-*)
-
 nonterminal lc_qual and lc_quals
 
 syntax
@@ -449,6 +444,10 @@ term "[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys,z\<leftarrow>zs]"
 (*
 term "[(x,y). x\<leftarrow>xs, let xx = x+x, y\<leftarrow>ys, y \<noteq> xx]"
 *)
+
+use "Tools/list_to_set_comprehension.ML"
+
+simproc_setup list_to_set_comprehension ("set xs") = {* K List_to_Set_Comprehension.simproc *}
 
 
 subsubsection {* @{const Nil} and @{const Cons} *}
@@ -965,7 +964,7 @@ lemma set_filter [simp]: "set (filter P xs) = {x. x : set xs \<and> P x}"
 by (induct xs) auto
 
 lemma set_upt [simp]: "set[i..<j] = {i..<j}"
-by (induct j) (simp_all add: atLeastLessThanSuc)
+by (induct j) auto
 
 
 lemma split_list: "x : set xs \<Longrightarrow> \<exists>ys zs. xs = ys @ x # zs"
@@ -1758,7 +1757,11 @@ by(simp add: hd_conv_nth)
 
 lemma set_take_subset_set_take:
   "m <= n \<Longrightarrow> set(take m xs) <= set(take n xs)"
-by(induct xs arbitrary: m n)(auto simp:take_Cons split:nat.split)
+apply (induct xs arbitrary: m n)
+apply simp
+apply (case_tac n)
+apply (auto simp: take_Cons)
+done
 
 lemma set_take_subset: "set(take n xs) \<subseteq> set xs"
 by(induct xs arbitrary: n)(auto simp:take_Cons split:nat.split)
@@ -2690,9 +2693,11 @@ lemma upto_empty[simp]: "j < i \<Longrightarrow> [i..j] = []"
 by(simp add: upto.simps)
 
 lemma set_upto[simp]: "set[i..j] = {i..j}"
-apply(induct i j rule:upto.induct)
-apply(simp add: upto.simps simp_from_to)
-done
+proof(induct i j rule:upto.induct)
+  case (1 i j)
+  from this show ?case
+    unfolding upto.simps[of i j] simp_from_to[of i j] by auto
+qed
 
 
 subsubsection {* @{text "distinct"} and @{text remdups} *}
@@ -3366,7 +3371,7 @@ lemma rotate_map: "rotate n (map f xs) = map f (rotate n xs)"
 by(simp add:rotate_drop_take take_map drop_map)
 
 lemma set_rotate1[simp]: "set(rotate1 xs) = set xs"
-by(simp add:rotate1_def split:list.split)
+by (cases xs) (auto simp add:rotate1_def)
 
 lemma set_rotate[simp]: "set(rotate n xs) = set xs"
 by (induct n) (simp_all add:rotate_def)
