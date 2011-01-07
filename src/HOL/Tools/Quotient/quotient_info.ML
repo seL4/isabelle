@@ -105,9 +105,9 @@ val _ = Context.>> (Context.map_theory
 fun print_mapsinfo ctxt =
   let
     fun prt_map (ty_name, {mapfun, relmap}) =
-      Pretty.block (Library.separate (Pretty.brk 2)
+      Pretty.block (separate (Pretty.brk 2)
         (map Pretty.str
-          ["type:", ty_name,
+         ["type:", ty_name,
           "map:", mapfun,
           "relation map:", relmap]))
   in
@@ -152,7 +152,7 @@ fun quotdata_dest lthy =
 fun print_quotinfo ctxt =
   let
     fun prt_quot {qtyp, rtyp, equiv_rel, equiv_thm} =
-      Pretty.block (Library.separate (Pretty.brk 2)
+      Pretty.block (separate (Pretty.brk 2)
        [Pretty.str "quotient type:",
         Syntax.pretty_typ ctxt qtyp,
         Pretty.str "raw type:",
