@@ -397,7 +397,6 @@ fun refute_disj rfn tm =
 val notnotD = @{thm notnotD};
 fun mk_binop ct x y = Thm.capply (Thm.capply ct x) y
 
-val mk_comb = Thm.capply;
 fun is_neg t =
     case term_of t of
       (Const(@{const_name Not},_)$p) => true
@@ -452,10 +451,10 @@ val specl = fold_rev (fn x => fn th => instantiate' [] [SOME x] (th RS spec));
 val cTrp = @{cterm "Trueprop"};
 val cConj = @{cterm HOL.conj};
 val (cNot,false_tm) = (@{cterm "Not"}, @{cterm "False"});
-val assume_Trueprop = mk_comb cTrp #> Thm.assume;
+val assume_Trueprop = Thm.capply cTrp #> Thm.assume;
 val list_mk_conj = list_mk_binop cConj;
 val conjs = list_dest_binop cConj;
-val mk_neg = mk_comb cNot;
+val mk_neg = Thm.capply cNot;
 
 fun striplist dest =
  let
@@ -608,7 +607,7 @@ let
        else raise CTERM ("ring_dest_neg", [t])
     end
 
- val ring_mk_neg = fn tm => mk_comb (ring_neg_tm) (tm);
+ val ring_mk_neg = fn tm => Thm.capply (ring_neg_tm) (tm);
  fun field_dest_inv t =
     let val (l,r) = Thm.dest_comb t in
         if Term.could_unify(term_of l, term_of field_inv_tm) then r
@@ -728,7 +727,7 @@ fun refute tm =
           ((Conv.arg_conv #> Conv.arg_conv) (Conv.binop_conv ring_normalize_conv)) th1
       val conc = th2 |> concl |> Thm.dest_arg
       val (l,r) = conc |> dest_eq
-    in Thm.implies_intr (mk_comb cTrp tm)
+    in Thm.implies_intr (Thm.capply cTrp tm)
                     (Thm.equal_elim (Drule.arg_cong_rule cTrp (eqF_intr th2))
                            (Thm.reflexive l |> mk_object_eq))
     end
@@ -759,7 +758,7 @@ fun refute tm =
     fun thm_fn pols =
         if null pols then Thm.reflexive(mk_const rat_0) else
         end_itlist mk_add
-            (map (fn (i,p) => Drule.arg_cong_rule (mk_comb ring_mul_tm p)
+            (map (fn (i,p) => Drule.arg_cong_rule (Thm.capply ring_mul_tm p)
               (nth eths i |> mk_meta_eq)) pols)
     val th1 = thm_fn herts_pos
     val th2 = thm_fn herts_neg
@@ -768,7 +767,7 @@ fun refute tm =
       Conv.fconv_rule ((Conv.arg_conv o Conv.arg_conv o Conv.binop_conv) ring_normalize_conv)
         (neq_rule l th3)
     val (l,r) = dest_eq(Thm.dest_arg(concl th4))
-   in Thm.implies_intr (mk_comb cTrp tm)
+   in Thm.implies_intr (Thm.capply cTrp tm)
                         (Thm.equal_elim (Drule.arg_cong_rule cTrp (eqF_intr th4))
                    (Thm.reflexive l |> mk_object_eq))
    end
@@ -777,7 +776,7 @@ fun refute tm =
 fun ring tm =
  let
   fun mk_forall x p =
-    mk_comb
+    Thm.capply
       (Drule.cterm_rule (instantiate' [SOME (ctyp_of_term x)] [])
         @{cpat "All:: (?'a => bool) => _"}) (Thm.cabs x p)
   val avs = Thm.add_cterm_frees tm []
