@@ -3,7 +3,7 @@ Checklist for official releases
 
 - test polyml-5.4.0, polyml-5.3.0, polyml-5.2.1, smlnj;
 
-- test Proof General 3.7.1.1, 4.0;
+- test Proof General 3.7.1.1/4.0 xor 4.1;
 
 - test Scala wrapper;
 
@@ -16,6 +16,8 @@ Checklist for official releases
 - Admin/update-keywords;
 
 - check ANNOUNCE, README, NEWS, COPYRIGHT, CONTRIBUTORS;
+
+- check Admin/contributed_components;
 
 - diff NEWS wrt. last official release, which is read-only;
 
