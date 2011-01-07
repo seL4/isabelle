@@ -4,6 +4,8 @@
 Data slots for the quotient package.
 *)
 
+(* FIXME odd names/signatures of data access operations *)
+
 signature QUOTIENT_INFO =
 sig
   exception NotFound  (* FIXME complicates signatures unnecessarily *)
@@ -43,7 +45,6 @@ sig
   val quotient_rules_get: Proof.context -> thm list
   val quotient_rules_add: attribute
 end;
-
 
 structure Quotient_Info: QUOTIENT_INFO =
 struct

@@ -19,9 +19,6 @@ end;
 structure Quotient_Def: QUOTIENT_DEF =
 struct
 
-open Quotient_Info;
-open Quotient_Term;
-
 (** Interface and Syntax Setup **)
 
 (* The ML-interface for a quotient definition takes
@@ -60,7 +57,7 @@ fun quotient_def ((optbind, mx), (attr, (lhs, rhs))) lthy =
     val _ = sanity_test optbind lhs_str
 
     val qconst_bname = Binding.name lhs_str
-    val absrep_trm = absrep_fun AbsF lthy (fastype_of rhs, lhs_ty) $ rhs
+    val absrep_trm = Quotient_Term.absrep_fun Quotient_Term.AbsF lthy (fastype_of rhs, lhs_ty) $ rhs
     val prop = Logic.mk_equals (lhs, Syntax.check_term lthy absrep_trm)
     val (_, prop') = Local_Defs.cert_def lthy prop
     val (_, newrhs) = Local_Defs.abs_def prop'
@@ -70,10 +67,11 @@ fun quotient_def ((optbind, mx), (attr, (lhs, rhs))) lthy =
     (* data storage *)
     val qconst_data = {qconst = trm, rconst = rhs, def = thm}
 
-    fun qcinfo phi = transform_qconsts phi qconst_data
+    fun qcinfo phi = Quotient_Info.transform_qconsts phi qconst_data
     fun trans_name phi = (fst o dest_Const o #qconst) (qcinfo phi)
-    val lthy'' = Local_Theory.declaration true
-                   (fn phi => qconsts_update_gen (trans_name phi) (qcinfo phi)) lthy'
+    val lthy'' =
+      Local_Theory.declaration true
+        (fn phi => Quotient_Info.qconsts_update_gen (trans_name phi) (qcinfo phi)) lthy'
   in
     (qconst_data, lthy'')
   end
@@ -92,7 +90,7 @@ fun quotdef_cmd (decl, (attr, (lhs_str, rhs_str))) lthy =
 fun lift_raw_const qtys (qconst_name, rconst, mx) ctxt =
   let
     val rty = fastype_of rconst
-    val qty = derive_qtyp ctxt qtys rty
+    val qty = Quotient_Term.derive_qtyp ctxt qtys rty
     val lhs = Free (qconst_name, qty)
   in
     quotient_def ((NONE, mx), (Attrib.empty_binding, (lhs, rconst))) ctxt

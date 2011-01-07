@@ -20,9 +20,8 @@ end;
 structure Quotient_Type: QUOTIENT_TYPE =
 struct
 
-open Quotient_Info;
+(* wrappers for define, note, Attrib.internal and theorem_i *)  (* FIXME !? *)
 
-(* wrappers for define, note, Attrib.internal and theorem_i *)
 fun define (name, mx, rhs) lthy =
   let
     val ((rhs, (_ , thm)), lthy') =
@@ -160,12 +159,15 @@ fun add_quotient_type (((vs, qty_name, mx), (rty, rel, partial)), equiv_thm) lth
     (* storing the quotdata *)
     val quotdata = {qtyp = Abs_ty, rtyp = rty, equiv_rel = rel, equiv_thm = equiv_thm}
 
-    fun qinfo phi = transform_quotdata phi quotdata
+    fun qinfo phi = Quotient_Info.transform_quotdata phi quotdata
 
     val lthy4 = lthy3
-      |> Local_Theory.declaration true (fn phi => quotdata_update_gen qty_full_name (qinfo phi))
-      |> note (equiv_thm_name, equiv_thm, if partial then [] else [intern_attr equiv_rules_add])
-      |> note (quotient_thm_name, quotient_thm, [intern_attr quotient_rules_add])
+      |> Local_Theory.declaration true
+        (fn phi => Quotient_Info.quotdata_update_gen qty_full_name (qinfo phi))
+      |> note
+        (equiv_thm_name, equiv_thm,
+          if partial then [] else [intern_attr Quotient_Info.equiv_rules_add])
+      |> note (quotient_thm_name, quotient_thm, [intern_attr Quotient_Info.quotient_rules_add])
   in
     (quotdata, lthy4)
   end
@@ -218,7 +220,7 @@ fun map_check ctxt (_, (rty, _, _)) =
     fun map_check_aux rty warns =
       case rty of
         Type (_, []) => warns
-      | Type (s, _) => if maps_defined thy s then warns else s::warns
+      | Type (s, _) => if Quotient_Info.maps_defined thy s then warns else s::warns
       | _ => warns
 
     val warns = map_check_aux rty []
