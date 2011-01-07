@@ -3585,9 +3585,9 @@ proof(induct t rule: rsplit0.induct)
     thus "(UNION M (\<lambda> (a,b,c). set (f (a,b,c)))) = (UNION M (\<lambda> (a,b,c). set (g a b c)))"
       by (auto simp add: split_def)
   qed
-  have "?SS (Floor a) = UNION (?SS a) (\<lambda>x. set (?ff x))" 
-    by (auto simp add: foldl_conv_concat)
-  also have "\<dots> = UNION (?SS a) (\<lambda> (p,n,s). set (?ff (p,n,s)))" by auto
+  have "?SS (Floor a) = UNION (?SS a) (\<lambda>x. set (?ff x))"
+    by (auto simp add: foldl_conv_concat simp del: iupt.simps)
+  also have "\<dots> = UNION (?SS a) (\<lambda> (p,n,s). set (?ff (p,n,s)))" by blast
   also have "\<dots> = 
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) Un 
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) Un 
@@ -3743,8 +3743,8 @@ next
       by (auto simp add: split_def)
   qed
 
-  have "?SS (Floor a) = UNION (?SS a) (\<lambda>x. set (?ff x))" by (auto simp add: foldl_conv_concat) 
-  also have "\<dots> = UNION (?SS a) (\<lambda> (p,n,s). set (?ff (p,n,s)))" by auto
+  have "?SS (Floor a) = UNION (?SS a) (\<lambda>x. set (?ff x))" by (auto simp add: foldl_conv_concat simp del: iupt.simps) 
+  also have "\<dots> = UNION (?SS a) (\<lambda> (p,n,s). set (?ff (p,n,s)))" by blast
   also have "\<dots> = 
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) Un 
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) Un 

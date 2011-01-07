@@ -89,14 +89,14 @@ theorem exec_pres_type:
   apply clarsimp
   apply (erule disjE)
    apply (fastsimp dest: field_fields fields_is_type)
-  apply (simp add: match_some_entry split: split_if_asm)
+  apply (simp add: match_some_entry image_iff)
   apply (rule_tac x=1 in exI)
   apply fastsimp
 
   apply clarsimp
   apply (erule disjE)
    apply fastsimp
-  apply (simp add: match_some_entry split: split_if_asm)
+  apply (simp add: match_some_entry image_iff)
   apply (rule_tac x=1 in exI)
   apply fastsimp
 
