@@ -17,8 +17,6 @@ end;
 structure Inductive_Codegen : INDUCTIVE_CODEGEN =
 struct
 
-open Codegen;
-
 (**** theory data ****)
 
 fun merge_rules tabs =
@@ -89,14 +87,14 @@ fun get_clauses thy s =
       | SOME ({names, ...}, {intrs, raw_induct, ...}) =>
           SOME (names, Codegen.thyname_of_const thy s,
             length (Inductive.params_of raw_induct),
-            preprocess thy intrs))
+            Codegen.preprocess thy intrs))
     | SOME _ =>
         let
           val SOME names = find_first
             (fn xs => member (op =) xs s) (Graph.strong_conn graph);
           val intrs as (_, (thyname, nparms)) :: _ =
             maps (the o Symtab.lookup intros) names;
-        in SOME (names, thyname, nparms, preprocess thy (map fst (rev intrs))) end
+        in SOME (names, thyname, nparms, Codegen.preprocess thy (map fst (rev intrs))) end
   end;
 
 
@@ -127,7 +125,7 @@ fun string_of_mode (iss, is) = space_implode " -> " (map
     | SOME js => enclose "[" "]" (commas (map string_of_int js)))
        (iss @ [SOME is]));
 
-fun print_modes modes = message ("Inferred modes:\n" ^
+fun print_modes modes = Codegen.message ("Inferred modes:\n" ^
   cat_lines (map (fn (s, ms) => s ^ ": " ^ commas (map
     (fn (m, rnd) => string_of_mode m ^
        (if rnd then " (random)" else "")) ms)) modes));
@@ -279,7 +277,7 @@ fun check_modes_pred thy arg_vs preds modes (p, ms) =
     let val xs = map (check_mode_clause thy arg_vs modes m) rs
     in case find_index is_none xs of
         ~1 => SOME (m', exists (fn SOME b => b) xs)
-      | i => (message ("Clause " ^ string_of_int (i+1) ^ " of " ^
+      | i => (Codegen.message ("Clause " ^ string_of_int (i+1) ^ " of " ^
         p ^ " violates mode " ^ string_of_mode m'); NONE)
     end) ms)
   end;
@@ -299,12 +297,12 @@ fun infer_modes thy extra_modes arities arg_vs preds = fixp (fn modes =>
 
 fun mk_eq (x::xs) =
   let fun mk_eqs _ [] = []
-        | mk_eqs a (b::cs) = str (a ^ " = " ^ b) :: mk_eqs b cs
+        | mk_eqs a (b::cs) = Codegen.str (a ^ " = " ^ b) :: mk_eqs b cs
   in mk_eqs x xs end;
 
-fun mk_tuple xs = Pretty.block (str "(" ::
-  flat (separate [str ",", Pretty.brk 1] (map single xs)) @
-  [str ")"]);
+fun mk_tuple xs = Pretty.block (Codegen.str "(" ::
+  flat (separate [Codegen.str ",", Pretty.brk 1] (map single xs)) @
+  [Codegen.str ")"]);
 
 fun mk_v s (names, vs) =
   (case AList.lookup (op =) vs s of
@@ -329,37 +327,37 @@ fun is_exhaustive (Var _) = true
   | is_exhaustive _ = false;
 
 fun compile_match nvs eq_ps out_ps success_p can_fail =
-  let val eqs = flat (separate [str " andalso", Pretty.brk 1]
+  let val eqs = flat (separate [Codegen.str " andalso", Pretty.brk 1]
     (map single (maps (mk_eq o snd) nvs @ eq_ps)));
   in
     Pretty.block
-     ([str "(fn ", mk_tuple out_ps, str " =>", Pretty.brk 1] @
-      (Pretty.block ((if null eqs then [] else str "if " ::
-         [Pretty.block eqs, Pretty.brk 1, str "then "]) @
+     ([Codegen.str "(fn ", mk_tuple out_ps, Codegen.str " =>", Pretty.brk 1] @
+      (Pretty.block ((if null eqs then [] else Codegen.str "if " ::
+         [Pretty.block eqs, Pretty.brk 1, Codegen.str "then "]) @
          (success_p ::
-          (if null eqs then [] else [Pretty.brk 1, str "else DSeq.empty"]))) ::
+          (if null eqs then [] else [Pretty.brk 1, Codegen.str "else DSeq.empty"]))) ::
        (if can_fail then
-          [Pretty.brk 1, str "| _ => DSeq.empty)"]
-        else [str ")"])))
+          [Pretty.brk 1, Codegen.str "| _ => DSeq.empty)"]
+        else [Codegen.str ")"])))
   end;
 
 fun modename module s (iss, is) gr =
   let val (id, gr') = if s = @{const_name HOL.eq} then (("", "equal"), gr)
-    else mk_const_id module s gr
+    else Codegen.mk_const_id module s gr
   in (space_implode "__"
-    (mk_qual_id module id ::
+    (Codegen.mk_qual_id module id ::
       map (space_implode "_" o map string_of_int) (map_filter I iss @ [is])), gr')
   end;
 
-fun mk_funcomp brack s k p = (if brack then parens else I)
-  (Pretty.block [Pretty.block ((if k = 0 then [] else [str "("]) @
-    separate (Pretty.brk 1) (str s :: replicate k (str "|> ???")) @
-    (if k = 0 then [] else [str ")"])), Pretty.brk 1, p]);
+fun mk_funcomp brack s k p = (if brack then Codegen.parens else I)
+  (Pretty.block [Pretty.block ((if k = 0 then [] else [Codegen.str "("]) @
+    separate (Pretty.brk 1) (Codegen.str s :: replicate k (Codegen.str "|> ???")) @
+    (if k = 0 then [] else [Codegen.str ")"])), Pretty.brk 1, p]);
 
 fun compile_expr thy defs dep module brack modes (NONE, t) gr =
-      apfst single (invoke_codegen thy defs dep module brack t gr)
+      apfst single (Codegen.invoke_codegen thy defs dep module brack t gr)
   | compile_expr _ _ _ _ _ _ (SOME _, Var ((name, _), _)) gr =
-      ([str name], gr)
+      ([Codegen.str name], gr)
   | compile_expr thy defs dep module brack modes (SOME (Mode ((mode, _), _, ms)), t) gr =
       (case strip_comb t of
          (Const (name, _), args) =>
@@ -370,18 +368,18 @@ fun compile_expr thy defs dep module brack modes (NONE, t) gr =
                    (compile_expr thy defs dep module true modes) (ms ~~ args1)
                    ||>> modename module name mode;
                val (ps', gr'') = (case mode of
-                   ([], []) => ([str "()"], gr')
+                   ([], []) => ([Codegen.str "()"], gr')
                  | _ => fold_map
-                     (invoke_codegen thy defs dep module true) args2 gr')
+                     (Codegen.invoke_codegen thy defs dep module true) args2 gr')
              in ((if brack andalso not (null ps andalso null ps') then
-               single o parens o Pretty.block else I)
+               single o Codegen.parens o Pretty.block else I)
                  (flat (separate [Pretty.brk 1]
-                   ([str mode_id] :: ps @ map single ps'))), gr')
+                   ([Codegen.str mode_id] :: ps @ map single ps'))), gr')
              end
            else apfst (single o mk_funcomp brack "??" (length (binder_types (fastype_of t))))
-             (invoke_codegen thy defs dep module true t gr)
+             (Codegen.invoke_codegen thy defs dep module true t gr)
        | _ => apfst (single o mk_funcomp brack "??" (length (binder_types (fastype_of t))))
-           (invoke_codegen thy defs dep module true t gr));
+           (Codegen.invoke_codegen thy defs dep module true t gr));
 
 fun compile_clause thy defs dep module all_vs arg_vs modes (iss, is) (ts, ps) inp gr =
   let
@@ -396,8 +394,8 @@ fun compile_clause thy defs dep module all_vs arg_vs modes (iss, is) (ts, ps) in
         in (Var ((s, 0), fastype_of t), (s::names, (s, t)::eqs)) end;
 
     fun compile_eq (s, t) gr =
-      apfst (Pretty.block o cons (str (s ^ " = ")) o single)
-        (invoke_codegen thy defs dep module false t gr);
+      apfst (Pretty.block o cons (Codegen.str (s ^ " = ")) o single)
+        (Codegen.invoke_codegen thy defs dep module false t gr);
 
     val (in_ts, out_ts) = get_args is 1 ts;
     val (in_ts', (all_vs', eqs)) = fold_map check_constrt in_ts (all_vs, []);
@@ -405,32 +403,33 @@ fun compile_clause thy defs dep module all_vs arg_vs modes (iss, is) (ts, ps) in
     fun compile_prems out_ts' vs names [] gr =
           let
             val (out_ps, gr2) =
-              fold_map (invoke_codegen thy defs dep module false) out_ts gr;
+              fold_map (Codegen.invoke_codegen thy defs dep module false) out_ts gr;
             val (eq_ps, gr3) = fold_map compile_eq eqs gr2;
             val (out_ts'', (names', eqs')) = fold_map check_constrt out_ts' (names, []);
             val (out_ts''', nvs) =
               fold_map distinct_v out_ts'' (names', map (fn x => (x, [x])) vs);
             val (out_ps', gr4) =
-              fold_map (invoke_codegen thy defs dep module false) out_ts''' gr3;
+              fold_map (Codegen.invoke_codegen thy defs dep module false) out_ts''' gr3;
             val (eq_ps', gr5) = fold_map compile_eq eqs' gr4;
             val vs' = distinct (op =) (flat (vs :: map term_vs out_ts'));
             val missing_vs = missing_vars vs' out_ts;
             val final_p = Pretty.block
-              [str "DSeq.single", Pretty.brk 1, mk_tuple out_ps]
+              [Codegen.str "DSeq.single", Pretty.brk 1, mk_tuple out_ps]
           in
             if null missing_vs then
               (compile_match (snd nvs) (eq_ps @ eq_ps') out_ps'
                  final_p (exists (not o is_exhaustive) out_ts'''), gr5)
             else
               let
-                val (pat_p, gr6) = invoke_codegen thy defs dep module true
+                val (pat_p, gr6) = Codegen.invoke_codegen thy defs dep module true
                   (HOLogic.mk_tuple (map Var missing_vs)) gr5;
-                val gen_p = mk_gen gr6 module true [] ""
-                  (HOLogic.mk_tupleT (map snd missing_vs))
+                val gen_p =
+                  Codegen.mk_gen gr6 module true [] ""
+                    (HOLogic.mk_tupleT (map snd missing_vs))
               in
                 (compile_match (snd nvs) eq_ps' out_ps'
-                   (Pretty.block [str "DSeq.generator ", gen_p,
-                      str " :->", Pretty.brk 1,
+                   (Pretty.block [Codegen.str "DSeq.generator ", gen_p,
+                      Codegen.str " :->", Pretty.brk 1,
                       compile_match [] eq_ps [pat_p] final_p false])
                    (exists (not o is_exhaustive) out_ts'''),
                  gr6)
@@ -441,7 +440,8 @@ fun compile_clause thy defs dep module all_vs arg_vs modes (iss, is) (ts, ps) in
             val vs' = distinct (op =) (flat (vs :: map term_vs out_ts));
             val (out_ts', (names', eqs)) = fold_map check_constrt out_ts (names, []);
             val (out_ts'', nvs) = fold_map distinct_v out_ts' (names', map (fn x => (x, [x])) vs);
-            val (out_ps, gr0) = fold_map (invoke_codegen thy defs dep module false) out_ts'' gr;
+            val (out_ps, gr0) =
+              fold_map (Codegen.invoke_codegen thy defs dep module false) out_ts'' gr;
             val (eq_ps, gr1) = fold_map compile_eq eqs gr0;
           in
             (case hd (select_mode_prem thy modes' vs' ps) of
@@ -449,8 +449,8 @@ fun compile_clause thy defs dep module all_vs arg_vs modes (iss, is) (ts, ps) in
                  let
                    val ps' = filter_out (equal p) ps;
                    val (in_ts, out_ts''') = get_args js 1 us;
-                   val (in_ps, gr2) = fold_map
-                     (invoke_codegen thy defs dep module true) in_ts gr1;
+                   val (in_ps, gr2) =
+                    fold_map (Codegen.invoke_codegen thy defs dep module true) in_ts gr1;
                    val (ps, gr3) =
                      if not is_set then
                        apfst (fn ps => ps @
@@ -459,52 +459,54 @@ fun compile_clause thy defs dep module all_vs arg_vs modes (iss, is) (ts, ps) in
                          (compile_expr thy defs dep module false modes
                            (SOME mode, t) gr2)
                      else
-                       apfst (fn p => Pretty.breaks [str "DSeq.of_list", str "(case", p,
-                         str "of", str "Set", str "xs", str "=>", str "xs)"])
+                       apfst (fn p =>
+                         Pretty.breaks [Codegen.str "DSeq.of_list", Codegen.str "(case", p,
+                         Codegen.str "of", Codegen.str "Set", Codegen.str "xs", Codegen.str "=>",
+                         Codegen.str "xs)"])
                          (*this is a very strong assumption about the generated code!*)
-                           (invoke_codegen thy defs dep module true t gr2);
+                           (Codegen.invoke_codegen thy defs dep module true t gr2);
                    val (rest, gr4) = compile_prems out_ts''' vs' (fst nvs) ps' gr3;
                  in
                    (compile_match (snd nvs) eq_ps out_ps
                       (Pretty.block (ps @
-                         [str " :->", Pretty.brk 1, rest]))
+                         [Codegen.str " :->", Pretty.brk 1, rest]))
                       (exists (not o is_exhaustive) out_ts''), gr4)
                  end
              | (p as Sidecond t, [(_, [])]) =>
                  let
                    val ps' = filter_out (equal p) ps;
-                   val (side_p, gr2) = invoke_codegen thy defs dep module true t gr1;
+                   val (side_p, gr2) = Codegen.invoke_codegen thy defs dep module true t gr1;
                    val (rest, gr3) = compile_prems [] vs' (fst nvs) ps' gr2;
                  in
                    (compile_match (snd nvs) eq_ps out_ps
-                      (Pretty.block [str "?? ", side_p,
-                        str " :->", Pretty.brk 1, rest])
+                      (Pretty.block [Codegen.str "?? ", side_p,
+                        Codegen.str " :->", Pretty.brk 1, rest])
                       (exists (not o is_exhaustive) out_ts''), gr3)
                  end
              | (_, (_, missing_vs) :: _) =>
                  let
                    val T = HOLogic.mk_tupleT (map snd missing_vs);
-                   val (_, gr2) = invoke_tycodegen thy defs dep module false T gr1;
-                   val gen_p = mk_gen gr2 module true [] "" T;
+                   val (_, gr2) = Codegen.invoke_tycodegen thy defs dep module false T gr1;
+                   val gen_p = Codegen.mk_gen gr2 module true [] "" T;
                    val (rest, gr3) = compile_prems
                      [HOLogic.mk_tuple (map Var missing_vs)] vs' (fst nvs) ps gr2
                  in
                    (compile_match (snd nvs) eq_ps out_ps
-                      (Pretty.block [str "DSeq.generator", Pretty.brk 1,
-                        gen_p, str " :->", Pretty.brk 1, rest])
+                      (Pretty.block [Codegen.str "DSeq.generator", Pretty.brk 1,
+                        gen_p, Codegen.str " :->", Pretty.brk 1, rest])
                       (exists (not o is_exhaustive) out_ts''), gr3)
                  end)
           end;
 
     val (prem_p, gr') = compile_prems in_ts' arg_vs all_vs' ps gr ;
   in
-    (Pretty.block [str "DSeq.single", Pretty.brk 1, inp,
-       str " :->", Pretty.brk 1, prem_p], gr')
+    (Pretty.block [Codegen.str "DSeq.single", Pretty.brk 1, inp,
+       Codegen.str " :->", Pretty.brk 1, prem_p], gr')
   end;
 
 fun compile_pred thy defs dep module prfx all_vs arg_vs modes s cls mode gr =
   let
-    val xs = map str (Name.variant_list arg_vs
+    val xs = map Codegen.str (Name.variant_list arg_vs
       (map (fn i => "x" ^ string_of_int i) (snd mode)));
     val ((cl_ps, mode_id), gr') = gr |>
       fold_map (fn cl => compile_clause thy defs
@@ -513,12 +515,12 @@ fun compile_pred thy defs dep module prfx all_vs arg_vs modes s cls mode gr =
   in
     (Pretty.block
       ([Pretty.block (separate (Pretty.brk 1)
-         (str (prfx ^ mode_id) ::
-           map str arg_vs @
-           (case mode of ([], []) => [str "()"] | _ => xs)) @
-         [str " ="]),
+         (Codegen.str (prfx ^ mode_id) ::
+           map Codegen.str arg_vs @
+           (case mode of ([], []) => [Codegen.str "()"] | _ => xs)) @
+         [Codegen.str " ="]),
         Pretty.brk 1] @
-       flat (separate [str " ++", Pretty.brk 1] (map single cl_ps))), (gr', "and "))
+       flat (separate [Codegen.str " ++", Pretty.brk 1] (map single cl_ps))), (gr', "and "))
   end;
 
 fun compile_preds thy defs dep module all_vs arg_vs modes preds gr =
@@ -527,7 +529,7 @@ fun compile_preds thy defs dep module all_vs arg_vs modes preds gr =
       dep module prfx' all_vs arg_vs modes s cls mode gr')
         (((the o AList.lookup (op =) modes) s))) preds (gr, "fun ")
   in
-    (space_implode "\n\n" (map string_of (flat prs)) ^ ";\n\n", gr')
+    (space_implode "\n\n" (map Codegen.string_of (flat prs)) ^ ";\n\n", gr')
   end;
 
 (**** processing of introduction rules ****)
@@ -537,16 +539,17 @@ exception Modes of
   (string * (int option list * int)) list;
 
 fun lookup_modes gr dep = apfst flat (apsnd flat (ListPair.unzip
-  (map ((fn (SOME (Modes x), _, _) => x | _ => ([], [])) o get_node gr)
+  (map ((fn (SOME (Modes x), _, _) => x | _ => ([], [])) o Codegen.get_node gr)
     (Graph.all_preds (fst gr) [dep]))));
 
-fun print_arities arities = message ("Arities:\n" ^
+fun print_arities arities = Codegen.message ("Arities:\n" ^
   cat_lines (map (fn (s, (ks, k)) => s ^ ": " ^
     space_implode " -> " (map
       (fn NONE => "X" | SOME k' => string_of_int k')
         (ks @ [SOME k]))) arities));
 
-fun prep_intrs intrs = map (rename_term o #prop o rep_thm o Drule.export_without_context) intrs;
+fun prep_intrs intrs =
+  map (Codegen.rename_term o #prop o rep_thm o Drule.export_without_context) intrs;
 
 fun constrain cs [] = []
   | constrain cs ((s, xs) :: ys) =
@@ -562,12 +565,12 @@ fun mk_extra_defs thy defs gr dep names module ts =
       (case get_clauses thy name of
         NONE => gr
       | SOME (names, thyname, nparms, intrs) =>
-          mk_ind_def thy defs gr dep names (if_library thyname module)
+          mk_ind_def thy defs gr dep names (Codegen.if_library thyname module)
             [] (prep_intrs intrs) nparms))
     (fold Term.add_const_names ts []) gr
 
 and mk_ind_def thy defs gr dep names module modecs intrs nparms =
-  add_edge_acyclic (hd names, dep) gr handle
+  Codegen.add_edge_acyclic (hd names, dep) gr handle
     Graph.CYCLES (xs :: _) =>
       error ("Inductive_Codegen: illegal cyclic dependencies:\n" ^ commas xs)
   | Graph.UNDEF _ =>
@@ -611,8 +614,8 @@ and mk_ind_def thy defs gr dep names module modecs intrs nparms =
         end;
 
       val gr' = mk_extra_defs thy defs
-        (add_edge (hd names, dep)
-          (new_node (hd names, (NONE, "", "")) gr)) (hd names) names module intrs;
+        (Codegen.add_edge (hd names, dep)
+          (Codegen.new_node (hd names, (NONE, "", "")) gr)) (hd names) names module intrs;
       val (extra_modes, extra_arities) = lookup_modes gr' (hd names);
       val (clauses, arities) = fold add_clause intrs ([], []);
       val modes = constrain modecs
@@ -622,13 +625,13 @@ and mk_ind_def thy defs gr dep names module modecs intrs nparms =
       val (s, gr'') = compile_preds thy defs (hd names) module (terms_vs intrs)
         arg_vs (modes @ extra_modes) clauses gr';
     in
-      (map_node (hd names)
+      (Codegen.map_node (hd names)
         (K (SOME (Modes (modes, arities)), module, s)) gr'')
     end;
 
 fun find_mode gr dep s u modes is = (case find_first (fn Mode (_, js, _) => is=js)
   (modes_of modes u handle Option => []) of
-     NONE => codegen_error gr dep
+     NONE => Codegen.codegen_error gr dep
        ("No such mode for " ^ s ^ ": " ^ string_of_mode ([], is))
    | mode => mode);
 
@@ -640,7 +643,7 @@ fun mk_ind_call thy defs dep module is_query s T ts names thyname k intrs gr =
     fun mk_mode (Const (@{const_name dummy_pattern}, _)) ((ts, mode), i) = ((ts, mode), i + 1)
       | mk_mode t ((ts, mode), i) = ((ts @ [t], mode @ [i]), i + 1);
 
-    val module' = if_library thyname module;
+    val module' = Codegen.if_library thyname module;
     val gr1 = mk_extra_defs thy defs
       (mk_ind_def thy defs gr dep names module'
       [] (prep_intrs intrs) k) dep names module' [u];
@@ -651,7 +654,7 @@ fun mk_ind_call thy defs dep module is_query s T ts names thyname k intrs gr =
     val mode = find_mode gr1 dep s u modes is;
     val _ = if is_query orelse not (needs_random (the mode)) then ()
       else warning ("Illegal use of random data generators in " ^ s);
-    val (in_ps, gr2) = fold_map (invoke_codegen thy defs dep module true) ts' gr1;
+    val (in_ps, gr2) = fold_map (Codegen.invoke_codegen thy defs dep module true) ts' gr1;
     val (ps, gr3) = compile_expr thy defs dep module false modes (mode, u) gr2;
   in
     (Pretty.block (ps @ (if null in_ps then [] else [Pretty.brk 1]) @
@@ -664,12 +667,12 @@ fun clause_of_eqn eqn =
     val (Const (s, T), ts) = strip_comb t;
     val (Ts, U) = strip_type T
   in
-    rename_term (Logic.list_implies (prems_of eqn, HOLogic.mk_Trueprop
+    Codegen.rename_term (Logic.list_implies (prems_of eqn, HOLogic.mk_Trueprop
       (list_comb (Const (s ^ "_aux", Ts @ [U] ---> HOLogic.boolT), ts @ [u]))))
   end;
 
 fun mk_fun thy defs name eqns dep module module' gr =
-  case try (get_node gr) name of
+  case try (Codegen.get_node gr) name of
     NONE =>
     let
       val clauses = map clause_of_eqn eqns;
@@ -678,30 +681,30 @@ fun mk_fun thy defs name eqns dep module module' gr =
         (HOLogic.dest_Trueprop (concl_of (hd eqns)))))));
       val mode = 1 upto arity;
       val ((fun_id, mode_id), gr') = gr |>
-        mk_const_id module' name ||>>
+        Codegen.mk_const_id module' name ||>>
         modename module' pname ([], mode);
-      val vars = map (fn i => str ("x" ^ string_of_int i)) mode;
-      val s = string_of (Pretty.block
-        [mk_app false (str ("fun " ^ snd fun_id)) vars, str " =",
-         Pretty.brk 1, str "DSeq.hd", Pretty.brk 1,
-         parens (Pretty.block (separate (Pretty.brk 1) (str mode_id ::
+      val vars = map (fn i => Codegen.str ("x" ^ string_of_int i)) mode;
+      val s = Codegen.string_of (Pretty.block
+        [Codegen.mk_app false (Codegen.str ("fun " ^ snd fun_id)) vars, Codegen.str " =",
+         Pretty.brk 1, Codegen.str "DSeq.hd", Pretty.brk 1,
+         Codegen.parens (Pretty.block (separate (Pretty.brk 1) (Codegen.str mode_id ::
            vars)))]) ^ ";\n\n";
-      val gr'' = mk_ind_def thy defs (add_edge (name, dep)
-        (new_node (name, (NONE, module', s)) gr')) name [pname] module'
+      val gr'' = mk_ind_def thy defs (Codegen.add_edge (name, dep)
+        (Codegen.new_node (name, (NONE, module', s)) gr')) name [pname] module'
         [(pname, [([], mode)])] clauses 0;
       val (modes, _) = lookup_modes gr'' dep;
       val _ = find_mode gr'' dep pname (head_of (HOLogic.dest_Trueprop
         (Logic.strip_imp_concl (hd clauses)))) modes mode
-    in (mk_qual_id module fun_id, gr'') end
+    in (Codegen.mk_qual_id module fun_id, gr'') end
   | SOME _ =>
-      (mk_qual_id module (get_const_id gr name), add_edge (name, dep) gr);
+      (Codegen.mk_qual_id module (Codegen.get_const_id gr name), Codegen.add_edge (name, dep) gr);
 
 (* convert n-tuple to nested pairs *)
 
 fun conv_ntuple fs ts p =
   let
     val k = length fs;
-    val xs = map_range (fn i => str ("x" ^ string_of_int i)) (k + 1);
+    val xs = map_range (fn i => Codegen.str ("x" ^ string_of_int i)) (k + 1);
     val xs' = map (fn Bound i => nth xs (k - i)) ts;
     fun conv xs js =
       if member (op =) fs js then
@@ -713,9 +716,9 @@ fun conv_ntuple fs ts p =
   in
     if k > 0 then
       Pretty.block
-        [str "DSeq.map (fn", Pretty.brk 1,
-         mk_tuple xs', str " =>", Pretty.brk 1, fst (conv xs []),
-         str ")", Pretty.brk 1, parens p]
+        [Codegen.str "DSeq.map (fn", Pretty.brk 1,
+         mk_tuple xs', Codegen.str " =>", Pretty.brk 1, fst (conv xs []),
+         Codegen.str ")", Pretty.brk 1, Codegen.parens p]
     else p
   end;
 
@@ -724,7 +727,7 @@ fun inductive_codegen thy defs dep module brack t gr  = (case strip_comb t of
       let val (r, Ts, fs) = HOLogic.strip_psplits u
       in case strip_comb r of
           (Const (s, T), ts) =>
-            (case (get_clauses thy s, get_assoc_code thy (s, T)) of
+            (case (get_clauses thy s, Codegen.get_assoc_code thy (s, T)) of
               (SOME (names, thyname, k, intrs), NONE) =>
                 let
                   val (ts1, ts2) = chop k ts;
@@ -738,9 +741,9 @@ fun inductive_codegen thy defs dep module brack t gr  = (case strip_comb t of
                   then
                     let val (call_p, gr') = mk_ind_call thy defs dep module true
                       s T (ts1 @ ts2') names thyname k intrs gr 
-                    in SOME ((if brack then parens else I) (Pretty.block
-                      [str "Set", Pretty.brk 1, str "(DSeq.list_of", Pretty.brk 1, str "(",
-                       conv_ntuple fs ots call_p, str "))"]),
+                    in SOME ((if brack then Codegen.parens else I) (Pretty.block
+                      [Codegen.str "Set", Pretty.brk 1, Codegen.str "(DSeq.list_of", Pretty.brk 1,
+                       Codegen.str "(", conv_ntuple fs ots call_p, Codegen.str "))"]),
                        (*this is a very strong assumption about the generated code!*)
                        gr')
                     end
@@ -749,30 +752,32 @@ fun inductive_codegen thy defs dep module brack t gr  = (case strip_comb t of
             | _ => NONE)
         | _ => NONE
       end
-  | (Const (s, T), ts) => (case Symtab.lookup (#eqns (CodegenData.get thy)) s of
-      NONE => (case (get_clauses thy s, get_assoc_code thy (s, T)) of
+  | (Const (s, T), ts) =>
+    (case Symtab.lookup (#eqns (CodegenData.get thy)) s of
+      NONE =>
+      (case (get_clauses thy s, Codegen.get_assoc_code thy (s, T)) of
         (SOME (names, thyname, k, intrs), NONE) =>
           if length ts < k then NONE else SOME
             (let val (call_p, gr') = mk_ind_call thy defs dep module false
                s T (map Term.no_dummy_patterns ts) names thyname k intrs gr
              in (mk_funcomp brack "?!"
-               (length (binder_types T) - length ts) (parens call_p), gr')
+               (length (binder_types T) - length ts) (Codegen.parens call_p), gr')
              end handle TERM _ => mk_ind_call thy defs dep module true
                s T ts names thyname k intrs gr )
       | _ => NONE)
     | SOME eqns =>
         let
           val (_, thyname) :: _ = eqns;
-          val (id, gr') = mk_fun thy defs s (preprocess thy (map fst (rev eqns)))
-            dep module (if_library thyname module) gr;
+          val (id, gr') = mk_fun thy defs s (Codegen.preprocess thy (map fst (rev eqns)))
+            dep module (Codegen.if_library thyname module) gr;
           val (ps, gr'') = fold_map
-            (invoke_codegen thy defs dep module true) ts gr';
-        in SOME (mk_app brack (str id) ps, gr'')
+            (Codegen.invoke_codegen thy defs dep module true) ts gr';
+        in SOME (Codegen.mk_app brack (Codegen.str id) ps, gr'')
         end)
   | _ => NONE);
 
 val setup =
-  add_codegen "inductive" inductive_codegen #>
+  Codegen.add_codegen "inductive" inductive_codegen #>
   Attrib.setup @{binding code_ind}
     (Scan.lift (Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) --
       Scan.option (Args.$$$ "params" |-- Args.colon |-- Parse.nat) >> uncurry add))
@@ -820,21 +825,21 @@ fun test_term ctxt t =
     val pred = HOLogic.mk_Trueprop (list_comb
       (Const (Sign.intern_const thy' "quickcheckp", T),
        map Term.dummy_pattern Ts));
-    val (code, gr) = setmp_CRITICAL mode ["term_of", "test", "random_ind"]
-      (generate_code_i thy' [] "Generated") [("testf", pred)];
+    val (code, gr) = setmp_CRITICAL Codegen.mode ["term_of", "test", "random_ind"]
+      (Codegen.generate_code_i thy' [] "Generated") [("testf", pred)];
     val s = "structure TestTerm =\nstruct\n\n" ^
       cat_lines (map snd code) ^
-      "\nopen Generated;\n\n" ^ string_of
-        (Pretty.block [str "val () = Inductive_Codegen.test_fn :=",
-          Pretty.brk 1, str "(fn p =>", Pretty.brk 1,
-          str "case Seq.pull (testf p) of", Pretty.brk 1,
-          str "SOME ", mk_tuple [mk_tuple (map (str o fst) args'), str "_"],
-          str " =>", Pretty.brk 1, str "SOME ",
+      "\nopen Generated;\n\n" ^ Codegen.string_of
+        (Pretty.block [Codegen.str "val () = Inductive_Codegen.test_fn :=",
+          Pretty.brk 1, Codegen.str "(fn p =>", Pretty.brk 1,
+          Codegen.str "case Seq.pull (testf p) of", Pretty.brk 1,
+          Codegen.str "SOME ", mk_tuple [mk_tuple (map (Codegen.str o fst) args'), Codegen.str "_"],
+          Codegen.str " =>", Pretty.brk 1, Codegen.str "SOME ",
           Pretty.enum "," "[" "]"
             (map (fn (s, T) => Pretty.block
-              [mk_term_of gr "Generated" false T, Pretty.brk 1, str s]) args'),
+              [Codegen.mk_term_of gr "Generated" false T, Pretty.brk 1, Codegen.str s]) args'),
           Pretty.brk 1,
-          str "| NONE => NONE);"]) ^
+          Codegen.str "| NONE => NONE);"]) ^
       "\n\nend;\n";
     val _ = ML_Context.eval_text_in (SOME ctxt) false Position.none s;
     val values = Config.get ctxt random_values;
