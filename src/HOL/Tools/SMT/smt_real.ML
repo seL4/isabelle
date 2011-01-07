@@ -12,9 +12,6 @@ end
 structure SMT_Real: SMT_REAL =
 struct
 
-structure U = SMT_Utils
-structure B = SMT_Builtin
-
 
 (* SMT-LIB logic *)
 
@@ -27,12 +24,10 @@ fun smtlib_logic ts =
 (* SMT-LIB and Z3 built-ins *)
 
 local
-  val smtlibC = SMTLIB_Interface.smtlibC
-
   fun real_num _ i = SOME (string_of_int i ^ ".0")
 
-  fun is_linear [t] = U.is_number t
-    | is_linear [t, u] = U.is_number t orelse U.is_number u
+  fun is_linear [t] = SMT_Utils.is_number t
+    | is_linear [t, u] = SMT_Utils.is_number t orelse SMT_Utils.is_number u
     | is_linear _ = false
 
   fun mk_times ts = Term.list_comb (@{const times (real)}, ts)
@@ -42,17 +37,20 @@ local
 in
 
 val setup_builtins =
-  B.add_builtin_typ smtlibC (@{typ real}, K (SOME "Real"), real_num) #>
-  fold (B.add_builtin_fun' smtlibC) [
+  SMT_Builtin.add_builtin_typ SMTLIB_Interface.smtlibC
+    (@{typ real}, K (SOME "Real"), real_num) #>
+  fold (SMT_Builtin.add_builtin_fun' SMTLIB_Interface.smtlibC) [
     (@{const less (real)}, "<"),
     (@{const less_eq (real)}, "<="),
     (@{const uminus (real)}, "~"),
     (@{const plus (real)}, "+"),
     (@{const minus (real)}, "-") ] #>
-  B.add_builtin_fun SMTLIB_Interface.smtlibC
+  SMT_Builtin.add_builtin_fun SMTLIB_Interface.smtlibC
     (Term.dest_Const @{const times (real)}, times) #>
-  B.add_builtin_fun' Z3_Interface.smtlib_z3C (@{const times (real)}, "*") #>
-  B.add_builtin_fun' Z3_Interface.smtlib_z3C (@{const divide (real)}, "/")
+  SMT_Builtin.add_builtin_fun' Z3_Interface.smtlib_z3C
+    (@{const times (real)}, "*") #>
+  SMT_Builtin.add_builtin_fun' Z3_Interface.smtlib_z3C
+    (@{const divide (real)}, "/")
 
 end
 

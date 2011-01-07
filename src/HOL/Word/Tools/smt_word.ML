@@ -12,8 +12,6 @@ end
 structure SMT_Word: SMT_WORD =
 struct
 
-structure B = SMT_Builtin
-
 
 (* utilities *)
 
@@ -71,7 +69,7 @@ local
 
   fun add_word_fun f (t, n) =
     let val c as (m, _) = Term.dest_Const t
-    in B.add_builtin_fun smtlibC (Term.dest_Const t, K (f m n)) end
+    in SMT_Builtin.add_builtin_fun smtlibC (Term.dest_Const t, K (f m n)) end
 
   fun hd2 xs = hd (tl xs)
 
@@ -127,7 +125,7 @@ local
 in
 
 val setup_builtins =
-  B.add_builtin_typ smtlibC (wordT, word_typ, word_num) #>
+  SMT_Builtin.add_builtin_typ smtlibC (wordT, word_typ, word_num) #>
   fold (add_word_fun if_fixed_all) [
     (@{term "uminus :: 'a::len word => _"}, "bvneg"),
     (@{term "plus :: 'a::len word => _"}, "bvadd"),
