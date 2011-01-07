@@ -274,9 +274,16 @@ apply (simp add: prod_map_map cfcomp1)
 done
 
 lemma isodefl_u:
-  "isodefl' d t \<Longrightarrow> isodefl (u_map\<cdot>d) (u_defl\<cdot>t)"
+  "isodefl d t \<Longrightarrow> isodefl (u_map\<cdot>d) (u_defl\<cdot>t)"
 apply (rule isodeflI)
-apply (simp add: cast_u_defl isodefl'_def)
+apply (simp add: cast_u_defl cast_isodefl)
+apply (simp add: emb_u_def prj_u_def liftemb_eq liftprj_eq u_map_map)
+done
+
+lemma isodefl_u_liftdefl:
+  "isodefl' d t \<Longrightarrow> isodefl (u_map\<cdot>d) (u_liftdefl\<cdot>t)"
+apply (rule isodeflI)
+apply (simp add: cast_u_liftdefl isodefl'_def)
 apply (simp add: emb_u_def prj_u_def liftemb_eq liftprj_eq)
 done
 
@@ -319,7 +326,7 @@ setup Domain_Isomorphism.setup
 
 lemmas [domain_defl_simps] =
   DEFL_cfun DEFL_sfun DEFL_ssum DEFL_sprod DEFL_prod DEFL_u
-  liftdefl_eq LIFTDEFL_prod
+  liftdefl_eq LIFTDEFL_prod u_liftdefl_liftdefl_of
 
 lemmas [domain_map_ID] =
   cfun_map_ID sfun_map_ID ssum_map_ID sprod_map_ID prod_map_ID u_map_ID
@@ -327,6 +334,7 @@ lemmas [domain_map_ID] =
 lemmas [domain_isodefl] =
   isodefl_u isodefl_sfun isodefl_ssum isodefl_sprod
   isodefl_cfun isodefl_prod isodefl_prod_u isodefl'_liftdefl_of
+  isodefl_u_liftdefl
 
 lemmas [domain_deflation] =
   deflation_cfun_map deflation_sfun_map deflation_ssum_map

@@ -97,7 +97,7 @@ done
 subsection {* Lists are a predomain *}
 
 definition list_liftdefl :: "udom u defl \<rightarrow> udom u defl"
-  where "list_liftdefl = (\<Lambda> a. udefl\<cdot>(slist_defl\<cdot>(u_defl\<cdot>a)))"
+  where "list_liftdefl = (\<Lambda> a. udefl\<cdot>(slist_defl\<cdot>(u_liftdefl\<cdot>a)))"
 
 lemma cast_slist_defl: "cast\<cdot>(slist_defl\<cdot>a) = emb oo slist_map\<cdot>(cast\<cdot>a) oo prj"
 using isodefl_slist [where fa="cast\<cdot>a" and da="a"]
@@ -122,7 +122,7 @@ instance proof
       ep_pair_emb_prj predomain_ep ep_pair_u, simp add: ep_pair.intro)
   show "cast\<cdot>LIFTDEFL('a list) = liftemb oo (liftprj :: udom u \<rightarrow> ('a list) u)"
     unfolding liftemb_list_def liftprj_list_def liftdefl_list_def
-    apply (simp add: list_liftdefl_def cast_udefl cast_slist_defl cast_u_defl cast_liftdefl)
+    apply (simp add: list_liftdefl_def cast_udefl cast_slist_defl cast_u_liftdefl cast_liftdefl)
     apply (simp add: slist_map'_oo u_emb_bottom cfun_eq_iff)
     done
 qed
@@ -162,7 +162,7 @@ lemma isodefl_list_u [domain_isodefl]:
   assumes "isodefl' d t"
   shows "isodefl' (list_map d) (list_liftdefl\<cdot>t)"
 using assms unfolding isodefl'_def liftemb_list_def liftprj_list_def
-apply (simp add: list_liftdefl_def cast_udefl cast_slist_defl cast_u_defl)
+apply (simp add: list_liftdefl_def cast_udefl cast_slist_defl cast_u_liftdefl)
 apply (simp add: cfcomp1 encode_list_u_map)
 apply (simp add: slist_map'_slist_map' u_emb_bottom)
 done

@@ -289,7 +289,7 @@ lemma cast_udefl:
 unfolding udefl_def by (simp add: cast_defl_fun1 ep_pair_strictify_up)
 
 definition sum_liftdefl :: "udom u defl \<rightarrow> udom u defl \<rightarrow> udom u defl"
-  where "sum_liftdefl = (\<Lambda> a b. udefl\<cdot>(ssum_defl\<cdot>(u_defl\<cdot>a)\<cdot>(u_defl\<cdot>b)))"
+  where "sum_liftdefl = (\<Lambda> a b. udefl\<cdot>(ssum_defl\<cdot>(u_liftdefl\<cdot>a)\<cdot>(u_liftdefl\<cdot>b)))"
 
 lemma u_emb_bottom: "u_emb\<cdot>\<bottom> = \<bottom>"
 by (rule pcpo_ep_pair.e_strict [unfolded pcpo_ep_pair_def, OF ep_pair_u])
@@ -321,7 +321,7 @@ instance proof
       ep_pair_ssum ep_pair_strictify_up, simp add: ep_pair.intro)
   show "cast\<cdot>LIFTDEFL('a + 'b) = liftemb oo (liftprj :: udom u \<rightarrow> ('a + 'b) u)"
     unfolding liftemb_sum_def liftprj_sum_def liftdefl_sum_def
-    by (simp add: sum_liftdefl_def cast_udefl cast_ssum_defl cast_u_defl
+    by (simp add: sum_liftdefl_def cast_udefl cast_ssum_defl cast_u_liftdefl
       cast_liftdefl cfcomp1 ssum_map_map u_emb_bottom)
 qed
 
@@ -360,7 +360,7 @@ lemma isodefl_sum [domain_isodefl]:
   assumes "isodefl' d1 t1" and "isodefl' d2 t2"
   shows "isodefl' (sum_map' d1 d2) (sum_liftdefl\<cdot>t1\<cdot>t2)"
 using assms unfolding isodefl'_def liftemb_sum_def liftprj_sum_def
-apply (simp add: sum_liftdefl_def cast_udefl cast_ssum_defl cast_u_defl)
+apply (simp add: sum_liftdefl_def cast_udefl cast_ssum_defl cast_u_liftdefl)
 apply (simp add: cfcomp1 encode_sum_u_sum_map)
 apply (simp add: ssum_map_map u_emb_bottom)
 done

@@ -163,8 +163,8 @@ lemma ep_pair_sfun: "ep_pair sfun_emb sfun_prj"
 
 subsection {* Type combinators *}
 
-definition u_defl :: "udom u defl \<rightarrow> udom defl"
-  where "u_defl = defl_fun1 u_emb u_prj ID"
+definition u_defl :: "udom defl \<rightarrow> udom defl"
+  where "u_defl = defl_fun1 u_emb u_prj u_map"
 
 definition prod_defl :: "udom defl \<rightarrow> udom defl \<rightarrow> udom defl"
   where "prod_defl = defl_fun2 prod_emb prod_prj prod_map"
@@ -179,8 +179,9 @@ definition sfun_defl :: "udom defl \<rightarrow> udom defl \<rightarrow> udom de
   where "sfun_defl = defl_fun2 sfun_emb sfun_prj sfun_map"
 
 lemma cast_u_defl:
-  "cast\<cdot>(u_defl\<cdot>A) = u_emb oo cast\<cdot>A oo u_prj"
-unfolding u_defl_def by (simp add: cast_defl_fun1 ep_pair_u)
+  "cast\<cdot>(u_defl\<cdot>A) = u_emb oo u_map\<cdot>(cast\<cdot>A) oo u_prj"
+using ep_pair_u finite_deflation_u_map
+unfolding u_defl_def by (rule cast_defl_fun1)
 
 lemma cast_prod_defl:
   "cast\<cdot>(prod_defl\<cdot>A\<cdot>B) =
@@ -205,6 +206,20 @@ lemma cast_sfun_defl:
     sfun_emb oo sfun_map\<cdot>(cast\<cdot>A)\<cdot>(cast\<cdot>B) oo sfun_prj"
 using ep_pair_sfun finite_deflation_sfun_map
 unfolding sfun_defl_def by (rule cast_defl_fun2)
+
+text {* Special deflation combinator for unpointed types. *}
+
+definition u_liftdefl :: "udom u defl \<rightarrow> udom defl"
+  where "u_liftdefl = defl_fun1 u_emb u_prj ID"
+
+lemma cast_u_liftdefl:
+  "cast\<cdot>(u_liftdefl\<cdot>A) = u_emb oo cast\<cdot>A oo u_prj"
+unfolding u_liftdefl_def by (simp add: cast_defl_fun1 ep_pair_u)
+
+lemma u_liftdefl_liftdefl_of:
+  "u_liftdefl\<cdot>(liftdefl_of\<cdot>A) = u_defl\<cdot>A"
+by (rule cast_eq_imp_eq)
+   (simp add: cast_u_liftdefl cast_liftdefl_of cast_u_defl)
 
 subsection {* Class instance proofs *}
 
@@ -262,7 +277,7 @@ definition
   "prj = liftprj oo u_prj"
 
 definition
-  "defl (t::'a u itself) = u_defl\<cdot>LIFTDEFL('a)"
+  "defl (t::'a u itself) = u_liftdefl\<cdot>LIFTDEFL('a)"
 
 definition
   "(liftemb :: 'a u u \<rightarrow> udom u) = u_map\<cdot>emb"
@@ -279,12 +294,12 @@ instance proof
     by (intro ep_pair_comp ep_pair_u predomain_ep)
   show "cast\<cdot>DEFL('a u) = emb oo (prj :: udom \<rightarrow> 'a u)"
     unfolding emb_u_def prj_u_def defl_u_def
-    by (simp add: cast_u_defl cast_liftdefl assoc_oo)
+    by (simp add: cast_u_liftdefl cast_liftdefl assoc_oo)
 qed (fact liftemb_u_def liftprj_u_def liftdefl_u_def)+
 
 end
 
-lemma DEFL_u: "DEFL('a::predomain u) = u_defl\<cdot>LIFTDEFL('a)"
+lemma DEFL_u: "DEFL('a::predomain u) = u_liftdefl\<cdot>LIFTDEFL('a)"
 by (rule defl_u_def)
 
 subsubsection {* Strict function space *}
