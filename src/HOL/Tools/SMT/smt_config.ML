@@ -99,15 +99,7 @@ fun available_solvers_of ctxt =
   filter (is_available ctxt) (all_solvers_of ctxt)
 
 fun warn_solver name =
-  let
-    fun app p n = Path.append p (Path.explode n)
-    val path = Path.explode (getenv "ISABELLE_HOME_USER")
-    val path' = app (app path "etc") "components"
-  in
-    warning ("The SMT solver " ^ quote name ^ " is not installed. " ^
-      "Please add the path to its component bundle to " ^
-      "the components list in " ^ quote (Path.implode path') ^ ".")
-  end
+  warning ("The SMT solver " ^ quote name ^ " is not installed.")
 
 fun select_solver name context =
   let
