@@ -278,7 +278,7 @@ structure Filters = Theory_Data
   type T = (serial * (term -> bool)) Ord_List.T
   val empty = []
   val extend = I
-  fun merge (fs1, fs2) = fold (Ord_List.insert serial_ord) fs2 fs1
+  fun merge data = Ord_List.merge serial_ord data
 )
 
 fun add_assertion_filter f =
