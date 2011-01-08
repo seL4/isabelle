@@ -10,9 +10,13 @@ begin
 
 default_sort type
 
-types
+type_synonym
   ('a, 's) ioa_temp  = "('a option,'s)transition temporal"
+
+type_synonym
   ('a, 's) step_pred = "('a option,'s)transition predicate"
+
+type_synonym
   's state_pred      = "'s predicate"
 
 consts

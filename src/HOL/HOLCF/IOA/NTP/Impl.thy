@@ -8,7 +8,7 @@ theory Impl
 imports Sender Receiver Abschannel
 begin
 
-types 'm impl_state
+type_synonym 'm impl_state
   = "'m sender_state * 'm receiver_state * 'm packet multiset * bool multiset"
   (*  sender_state   *  receiver_state   *    srch_state      * rsch_state *)
 

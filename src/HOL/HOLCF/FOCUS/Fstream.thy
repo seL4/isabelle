@@ -14,7 +14,7 @@ begin
 
 default_sort type
 
-types 'a fstream = "'a lift stream"
+type_synonym 'a fstream = "'a lift stream"
 
 definition
   fscons        :: "'a     \<Rightarrow> 'a fstream \<rightarrow> 'a fstream" where

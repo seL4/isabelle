@@ -8,7 +8,7 @@ theory Receiver
 imports IOA Action Lemmas
 begin
 
-types
+type_synonym
   'm receiver_state = "'m list * bool"  -- {* messages, mode *}
 
 definition

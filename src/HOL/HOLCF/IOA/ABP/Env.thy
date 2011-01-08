@@ -8,7 +8,7 @@ theory Env
 imports IOA Action
 begin
 
-types
+type_synonym
   'm env_state = bool   -- {* give next bit to system *}
 
 definition

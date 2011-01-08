@@ -33,11 +33,16 @@ datatype
 
   State = Sd D | Snil ("\<currency>")
 
-types
-
+type_synonym
   SPF11         = "M fstream \<rightarrow> D fstream"
+
+type_synonym
   SPEC11        = "SPF11 set"
+
+type_synonym
   SPSF11        = "State \<Rightarrow> SPF11"
+
+type_synonym
   SPECS11       = "SPSF11 set"
 
 definition

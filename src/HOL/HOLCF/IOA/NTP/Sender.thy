@@ -8,7 +8,7 @@ theory Sender
 imports IOA Action
 begin
 
-types
+type_synonym
 'm sender_state = "'m list * bool multiset * bool multiset * bool * bool"
 (*                messages   #sent           #received      header  mode *)
 

@@ -172,7 +172,7 @@ translations
 
 subsection {* Pattern combinators for data constructors *}
 
-types ('a, 'b) pat = "'a \<rightarrow> 'b match"
+type_synonym ('a, 'b) pat = "'a \<rightarrow> 'b match"
 
 definition
   cpair_pat :: "('a, 'c) pat \<Rightarrow> ('b, 'd) pat \<Rightarrow> ('a \<times> 'b, 'c \<times> 'd) pat" where

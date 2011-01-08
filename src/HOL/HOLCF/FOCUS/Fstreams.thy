@@ -12,7 +12,7 @@ begin
 
 default_sort type
 
-types 'a fstream = "('a lift) stream"
+type_synonym 'a fstream = "('a lift) stream"
 
 definition
   fsingleton    :: "'a => 'a fstream"  ("<_>" [1000] 999) where

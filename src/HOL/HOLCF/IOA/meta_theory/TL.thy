@@ -10,7 +10,7 @@ begin
 
 default_sort type
 
-types
+type_synonym
   'a temporal = "'a Seq predicate"
 
 

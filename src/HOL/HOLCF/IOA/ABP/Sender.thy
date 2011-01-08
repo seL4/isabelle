@@ -8,7 +8,7 @@ theory Sender
 imports IOA Action Lemmas
 begin
 
-types
+type_synonym
   'm sender_state = "'m list  *  bool"  -- {* messages, Alternating Bit *}
 
 definition

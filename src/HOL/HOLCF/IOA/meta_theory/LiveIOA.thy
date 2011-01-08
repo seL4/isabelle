@@ -10,7 +10,7 @@ begin
 
 default_sort type
 
-types
+type_synonym
   ('a, 's) live_ioa = "('a,'s)ioa * ('a,'s)ioa_temp"
 
 definition

@@ -6,7 +6,7 @@ theory Packet
 imports Multiset
 begin
 
-types
+type_synonym
   'msg packet = "bool * 'msg"
 
 definition

@@ -13,7 +13,7 @@ text {*
   the correctness of the Hoare rule for while-loops.
 *}
 
-types assn = "state => bool"
+type_synonym assn = "state => bool"
 
 definition
   hoare_valid :: "[assn, com, assn] => bool"  ("|= {(1_)}/ (_)/ {(1_)}" 50) where

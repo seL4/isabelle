@@ -10,7 +10,7 @@ begin
 
 default_sort type
 
-types
+type_synonym
   'a predicate = "'a => bool"
 
 consts

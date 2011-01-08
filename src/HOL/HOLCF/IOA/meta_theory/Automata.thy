@@ -10,8 +10,10 @@ begin
 
 default_sort type
 
-types
+type_synonym
   ('a, 's) transition = "'s * 'a * 's"
+
+type_synonym
   ('a, 's) ioa = "'a signature * 's set * ('a,'s)transition set * ('a set set) * ('a set set)"
 
 consts

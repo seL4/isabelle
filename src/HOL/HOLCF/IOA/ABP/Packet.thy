@@ -8,7 +8,7 @@ theory Packet
 imports Main
 begin
 
-types
+type_synonym
   'msg packet = "bool * 'msg"
 
 definition

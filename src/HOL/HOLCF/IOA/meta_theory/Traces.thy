@@ -10,13 +10,22 @@ begin
 
 default_sort type
 
-types
+type_synonym
    ('a,'s)pairs            =    "('a * 's) Seq"
+
+type_synonym
    ('a,'s)execution        =    "'s * ('a,'s)pairs"
+
+type_synonym
    'a trace                =    "'a Seq"
 
+type_synonym
    ('a,'s)execution_module = "('a,'s)execution set * 'a signature"
+
+type_synonym
    'a schedule_module      = "'a trace set * 'a signature"
+
+type_synonym
    'a trace_module         = "'a trace set * 'a signature"
 
 consts

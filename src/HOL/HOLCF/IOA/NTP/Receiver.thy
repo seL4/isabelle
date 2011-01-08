@@ -8,7 +8,7 @@ theory Receiver
 imports IOA Action
 begin
 
-types
+type_synonym
 
 'm receiver_state
 = "'m list * bool multiset * 'm packet multiset * bool * bool"

@@ -10,7 +10,7 @@ begin
 
 default_sort type
 
-types 'a Seq = "'a lift seq"
+type_synonym 'a Seq = "'a lift seq"
 
 consts
 
