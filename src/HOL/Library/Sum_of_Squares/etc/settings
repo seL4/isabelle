@@ -1,3 +1,5 @@
 # -*- shell-script -*- :mode=shellscript:
 
 ISABELLE_SUM_OF_SQUARES="$COMPONENT"
+NEOS_SERVER="http://neos-server.org:3332"
+

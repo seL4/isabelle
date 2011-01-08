@@ -101,7 +101,7 @@ structure StateFunData = Generic_Data
   val empty = (empty_ss, empty_ss, false);
   val extend = I;
   fun merge ((ss1, ex_ss1, b1), (ss2, ex_ss2, b2)) =
-    (merge_ss (ss1, ss2), merge_ss (ex_ss1, ex_ss2), b1 orelse b2);
+    (merge_ss (ss1, ss2), merge_ss (ex_ss1, ex_ss2), b1 orelse b2 (* FIXME odd merge *));
 );
 
 val init_state_fun_data =

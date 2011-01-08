@@ -81,7 +81,7 @@ structure Logics = Generic_Data
   type T = (int * (term list -> string option)) list
   val empty = []
   val extend = I
-  fun merge (bs1, bs2) = Ord_List.union fst_int_ord bs2 bs1
+  fun merge data = Ord_List.merge fst_int_ord data
 )
 
 fun add_logic pf = Logics.map (Ord_List.insert fst_int_ord pf)

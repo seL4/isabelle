@@ -55,6 +55,8 @@ exception NotFound  (* FIXME odd OCaml-ism!? *)
 
 (** data containers **)
 
+(* FIXME just one data slot (record) per program unit *)
+
 (* info about map- and rel-functions for a type *)
 type maps_info = {mapfun: string, relmap: string}
 

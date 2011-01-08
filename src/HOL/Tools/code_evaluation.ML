@@ -156,8 +156,10 @@ fun check_termify ts ctxt = map_default subst_termify ts
 
 (** evaluation **)
 
-structure Evaluation = Proof_Data (
+structure Evaluation = Proof_Data
+(
   type T = unit -> term
+  (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Evaluation"
 );
 val put_term = Evaluation.put;

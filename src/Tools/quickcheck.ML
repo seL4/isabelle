@@ -93,9 +93,10 @@ fun make_test_params (default_type, expect) = Test_Params {default_type = defaul
 fun map_test_params' f (Test_Params {default_type, expect}) = make_test_params (f (default_type, expect));
 
 fun merge_test_params
- (Test_Params {default_type = default_type1, expect = expect1},
-  Test_Params {default_type = default_type2, expect = expect2}) =
-  make_test_params (merge (op =) (default_type1, default_type2), merge_expectation (expect1, expect2));
+  (Test_Params {default_type = default_type1, expect = expect1},
+    Test_Params {default_type = default_type2, expect = expect2}) =
+  make_test_params
+    (merge (op =) (default_type1, default_type2), merge_expectation (expect1, expect2));
 
 structure Data = Generic_Data
 (

@@ -51,11 +51,11 @@ fun ndigits (GP (arities, _)) = IntInf.log2 (Integer.sum arities) + 1
 
 (** Propositional formulas **)
 
-val Not = PropLogic.Not and And = PropLogic.And and Or = PropLogic.Or
-val BoolVar = PropLogic.BoolVar
+val Not = Prop_Logic.Not and And = Prop_Logic.And and Or = Prop_Logic.Or
+val BoolVar = Prop_Logic.BoolVar
 fun Implies (p, q) = Or (Not p, q)
 fun Equiv (p, q) = And (Implies (p, q), Implies (q, p))
-val all = PropLogic.all
+val all = Prop_Logic.all
 
 (* finite indexed quantifiers:
 
@@ -64,7 +64,7 @@ iforall n f   <==>      /\
                       0<=i<n
  *)
 fun iforall n f = all (map_range f n)
-fun iexists n f = PropLogic.exists (map_range f n)
+fun iexists n f = Prop_Logic.exists (map_range f n)
 fun iforall2 n m f = all (map_product f (0 upto n - 1) (0 upto m - 1))
 
 fun the_one var n x = all (var x :: map (Not o var) (remove (op =) x (0 upto n - 1)))
@@ -112,7 +112,7 @@ fun encode_graphs bits gp =
     val ng = num_graphs gp
     val (ES,EW,_,_,_,_,_,TAG) = var_constrs gp
 
-    fun encode_constraint_strict 0 (x, y) = PropLogic.False
+    fun encode_constraint_strict 0 (x, y) = Prop_Logic.False
       | encode_constraint_strict k (x, y) =
         Or (And (TAG x (k - 1), Not (TAG y (k - 1))),
             And (Equiv (TAG x (k - 1), TAG y (k - 1)),
@@ -212,7 +212,7 @@ fun encode bits gp mu =
 fun mk_certificate bits label gp f =
   let
     val (ES,EW,WEAK,STRICT,P,GAM,EPS,TAG) = var_constrs gp
-    fun assign (PropLogic.BoolVar v) = the_default false (f v)
+    fun assign (Prop_Logic.BoolVar v) = the_default false (f v)
     fun assignTag i j =
       (fold (fn x => fn y => 2 * y + (if assign (TAG (i, j) x) then 1 else 0))
         (bits - 1 downto 0) 0)

@@ -66,7 +66,7 @@ structure Actions = Theory_Data
   type T = (int * run_action * done_action) list
   val empty = []
   val extend = I
-  fun merge data = Library.merge (K true) data  (* FIXME ?!? *)
+  fun merge data = Library.merge (K true) data  (* FIXME exponential blowup because of (K true) *)
 )
 
 

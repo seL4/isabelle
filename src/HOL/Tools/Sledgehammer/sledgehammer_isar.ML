@@ -133,11 +133,13 @@ fun unalias_raw_param (name, value) =
                             | _ => value)
     | NONE => (name, value)
 
-structure Data = Theory_Data(
+structure Data = Theory_Data
+(
   type T = raw_param list
   val empty = default_default_params |> map (apsnd single)
   val extend = I
-  fun merge p : T = AList.merge (op =) (K true) p)
+  fun merge data : T = AList.merge (op =) (K true) data
+)
 
 fun remotify_prover_if_available_and_not_already_remote ctxt name =
   if String.isPrefix remote_prefix name then

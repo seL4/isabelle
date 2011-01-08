@@ -27,11 +27,12 @@ val identityN = "identity";
 type entry = { mapper: term, variances: (sort * (bool * bool)) list,
   comp: thm, id: thm };
 
-structure Data = Generic_Data(
+structure Data = Generic_Data
+(
   type T = entry list Symtab.table
   val empty = Symtab.empty
-  fun merge (xy : T * T) = Symtab.merge (K true) xy
   val extend = I
+  fun merge data = Symtab.merge (K true) data
 );
 
 val entries = Data.get o Context.Proof;

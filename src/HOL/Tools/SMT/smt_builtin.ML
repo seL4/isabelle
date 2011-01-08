@@ -70,7 +70,7 @@ fun insert_ttab cs T f =
     (Ord_List.insert typ_ord (perhaps (try Logic.varifyT_global) T, f))
 
 fun merge_ttab ttabp =
-  SMT_Utils.dict_merge (uncurry (Ord_List.union typ_ord) o swap) ttabp
+  SMT_Utils.dict_merge (Ord_List.merge typ_ord) ttabp
 
 fun lookup_ttab ctxt ttab T =
   let fun match (U, _) = Sign.typ_instance (ProofContext.theory_of ctxt) (T, U)

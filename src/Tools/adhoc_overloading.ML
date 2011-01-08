@@ -53,10 +53,11 @@ structure Overload_Data = Theory_Data
     if ext_name1 = ext_name2 then ext_name1
     else duplicate_variant_err int_name ext_name1;
 
-  fun merge ({internalize=int1, externalize=ext1},
-      {internalize=int2, externalize=ext2}) =
-    {internalize=Symtab.join (K (Library.merge (op =))) (int1, int2),
-     externalize=Symtab.join merge_ext (ext1, ext2)};
+  fun merge
+    ({internalize = int1, externalize = ext1},
+      {internalize = int2, externalize = ext2}) : T =
+    {internalize = Symtab.join (K (Library.merge (op =))) (int1, int2),
+      externalize = Symtab.join merge_ext (ext1, ext2)};
 );
 
 fun map_tables f g =

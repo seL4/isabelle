@@ -4,12 +4,10 @@ import signal
 import xmlrpclib
 import time
 import re
+import os
 
 # Neos server config
-NEOS_HOST="neos.mcs.anl.gov"
-NEOS_PORT=3332
-
-neos=xmlrpclib.Server("http://%s:%d" % (NEOS_HOST, NEOS_PORT))
+neos = xmlrpclib.Server(os.getenv("NEOS_SERVER"))
 
 jobNumber = 0
 password = ""

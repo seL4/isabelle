@@ -14,16 +14,16 @@ sig
   datatype result = SATISFIABLE of assignment
                   | UNSATISFIABLE of proof option
                   | UNKNOWN
-  type solver     = PropLogic.prop_formula -> result
+  type solver     = Prop_Logic.prop_formula -> result
 
   (* auxiliary functions to create external SAT solvers *)
-  val write_dimacs_cnf_file : Path.T -> PropLogic.prop_formula -> unit
-  val write_dimacs_sat_file : Path.T -> PropLogic.prop_formula -> unit
-  val read_std_result_file  : Path.T -> string * string * string -> result
-  val make_external_solver  : string -> (PropLogic.prop_formula -> unit) ->
-                                (unit -> result) -> solver
+  val write_dimacs_cnf_file : Path.T -> Prop_Logic.prop_formula -> unit
+  val write_dimacs_sat_file : Path.T -> Prop_Logic.prop_formula -> unit
+  val read_std_result_file : Path.T -> string * string * string -> result
+  val make_external_solver : string -> (Prop_Logic.prop_formula -> unit) ->
+    (unit -> result) -> solver
 
-  val read_dimacs_cnf_file : Path.T -> PropLogic.prop_formula
+  val read_dimacs_cnf_file : Path.T -> Prop_Logic.prop_formula
 
   (* generic solver interface *)
   val solvers       : (string * solver) list Unsynchronized.ref
@@ -34,7 +34,7 @@ end;
 structure SatSolver : SAT_SOLVER =
 struct
 
-  open PropLogic;
+  open Prop_Logic;
 
 (* ------------------------------------------------------------------------- *)
 (* should be raised by an external SAT solver to indicate that the solver is *)
@@ -279,8 +279,6 @@ struct
 (* make_external_solver: call 'writefn', execute 'cmd', call 'readfn'        *)
 (* ------------------------------------------------------------------------- *)
 
-  (* string -> (PropLogic.prop_formula -> unit) -> (unit -> result) -> solver *)
-
   fun make_external_solver cmd writefn readfn fm =
     (writefn fm; bash cmd; readfn ());
 
@@ -288,8 +286,6 @@ struct
 (* read_dimacs_cnf_file: returns a propositional formula that corresponds to *)
 (*      a SAT problem given in DIMACS CNF format                             *)
 (* ------------------------------------------------------------------------- *)
-
-  (* Path.T -> PropLogic.prop_formula *)
 
   fun read_dimacs_cnf_file path =
   let
@@ -323,27 +319,24 @@ struct
         | (0::tl) => xs1 :: clauses tl
         | _       => raise Fail "SatSolver.clauses"
       end
-    (* int -> PropLogic.prop_formula *)
     fun literal_from_int i =
       (i<>0 orelse error "variable index in DIMACS CNF file is 0";
       if i>0 then
-        PropLogic.BoolVar i
+        Prop_Logic.BoolVar i
       else
-        PropLogic.Not (PropLogic.BoolVar (~i)))
-    (* PropLogic.prop_formula list -> PropLogic.prop_formula *)
+        Prop_Logic.Not (Prop_Logic.BoolVar (~i)))
     fun disjunction [] =
       error "empty clause in DIMACS CNF file"
       | disjunction (x::xs) =
       (case xs of
         [] => x
-      | _  => PropLogic.Or (x, disjunction xs))
-    (* PropLogic.prop_formula list -> PropLogic.prop_formula *)
+      | _  => Prop_Logic.Or (x, disjunction xs))
     fun conjunction [] =
       error "no clause in DIMACS CNF file"
       | conjunction (x::xs) =
       (case xs of
         [] => x
-      | _  => PropLogic.And (x, conjunction xs))
+      | _  => Prop_Logic.And (x, conjunction xs))
   in
     (conjunction
     o (map disjunction)
@@ -405,7 +398,7 @@ let
   fun enum_solver fm =
   let
     (* int list *)
-    val indices = PropLogic.indices fm
+    val indices = Prop_Logic.indices fm
     (* int list -> int list -> int list option *)
     (* binary increment: list 'xs' of current bits, list 'ys' of all bits (lower bits first) *)
     fun next_list _ ([]:int list) =
@@ -424,7 +417,7 @@ let
       member (op =) xs i
     (* int list -> SatSolver.result *)
     fun solver_loop xs =
-      if PropLogic.eval (assignment_from_list xs) fm then
+      if Prop_Logic.eval (assignment_from_list xs) fm then
         SatSolver.SATISFIABLE (SOME o (assignment_from_list xs))
       else
         (case next_list xs indices of
@@ -446,16 +439,16 @@ end;
 
 let
   local
-    open PropLogic
+    open Prop_Logic
   in
     fun dpll_solver fm =
     let
-      (* We could use 'PropLogic.defcnf fm' instead of 'PropLogic.nnf fm' *)
+      (* We could use 'Prop_Logic.defcnf fm' instead of 'Prop_Logic.nnf fm' *)
       (* but that sometimes leads to worse performance due to the         *)
       (* introduction of additional variables.                            *)
-      val fm' = PropLogic.nnf fm
+      val fm' = Prop_Logic.nnf fm
       (* int list *)
-      val indices = PropLogic.indices fm'
+      val indices = Prop_Logic.indices fm'
       (* int list -> int -> prop_formula *)
       fun partial_var_eval []      i = BoolVar i
         | partial_var_eval (x::xs) i = if x=i then True else if x=(~i) then False else partial_var_eval xs i
@@ -587,7 +580,7 @@ let
     fun readfn ()  = SatSolver.read_std_result_file outpath ("SAT", "", "UNSAT")
     val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.implode inpath)) else ()
     val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.implode outpath)) else ()
-    val cnf        = PropLogic.defcnf fm
+    val cnf        = Prop_Logic.defcnf fm
     val result     = SatSolver.make_external_solver cmd writefn readfn cnf
     val _          = try File.rm inpath
     val _          = try File.rm outpath
@@ -599,16 +592,16 @@ let
         handle IO.Io _ => raise INVALID_PROOF "Could not read file \"result.prf\""
       (* representation of clauses as ordered lists of literals (with duplicates removed) *)
       (* prop_formula -> int list *)
-      fun clause_to_lit_list (PropLogic.Or (fm1, fm2)) =
+      fun clause_to_lit_list (Prop_Logic.Or (fm1, fm2)) =
         Ord_List.union int_ord (clause_to_lit_list fm1) (clause_to_lit_list fm2)
-        | clause_to_lit_list (PropLogic.BoolVar i) =
+        | clause_to_lit_list (Prop_Logic.BoolVar i) =
         [i]
-        | clause_to_lit_list (PropLogic.Not (PropLogic.BoolVar i)) =
+        | clause_to_lit_list (Prop_Logic.Not (Prop_Logic.BoolVar i)) =
         [~i]
         | clause_to_lit_list _ =
         raise INVALID_PROOF "Error: invalid clause in CNF formula."
       (* prop_formula -> int *)
-      fun cnf_number_of_clauses (PropLogic.And (fm1, fm2)) =
+      fun cnf_number_of_clauses (Prop_Logic.And (fm1, fm2)) =
         cnf_number_of_clauses fm1 + cnf_number_of_clauses fm2
         | cnf_number_of_clauses _ =
         1
@@ -617,7 +610,7 @@ let
       val clauses = Array.array (number_of_clauses, [])
       (* initialize the 'clauses' array *)
       (* prop_formula * int -> int *)
-      fun init_array (PropLogic.And (fm1, fm2), n) =
+      fun init_array (Prop_Logic.And (fm1, fm2), n) =
         init_array (fm2, init_array (fm1, n))
         | init_array (fm, n) =
         (Array.update (clauses, n, clause_to_lit_list fm); n+1)
@@ -768,7 +761,7 @@ let
     val inpath     = File.tmp_path (Path.explode ("isabelle" ^ serial_str ^ ".cnf"))
     val outpath    = File.tmp_path (Path.explode ("result" ^ serial_str))
     val cmd        = getenv "MINISAT_HOME" ^ "/minisat " ^ File.shell_path inpath ^ " -r " ^ File.shell_path outpath ^ " > /dev/null"
-    fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
+    fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (Prop_Logic.defcnf fm)
     fun readfn ()  = SatSolver.read_std_result_file outpath ("SAT", "", "UNSAT")
     val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.implode inpath)) else ()
     val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.implode outpath)) else ()
@@ -806,9 +799,9 @@ let
       (* string list *)
       val proof_lines = ((split_lines o File.read) (Path.explode "resolve_trace"))
         handle IO.Io _ => raise INVALID_PROOF "Could not read file \"resolve_trace\""
-      (* PropLogic.prop_formula -> int *)
-      fun cnf_number_of_clauses (PropLogic.And (fm1, fm2)) = cnf_number_of_clauses fm1 + cnf_number_of_clauses fm2
-        | cnf_number_of_clauses _                          = 1
+      fun cnf_number_of_clauses (Prop_Logic.And (fm1, fm2)) =
+            cnf_number_of_clauses fm1 + cnf_number_of_clauses fm2
+        | cnf_number_of_clauses _ = 1
       (* string -> int *)
       fun int_from_string s = (
         case Int.fromString s of
@@ -848,7 +841,7 @@ let
               val _   = if !clause_offset = ~1 then clause_offset :=
                 (case Inttab.max_key (!clause_table) of
                   SOME id => id
-                | NONE    => cnf_number_of_clauses (PropLogic.defcnf fm) - 1  (* the first clause ID is 0, not 1 *))
+                | NONE => cnf_number_of_clauses (Prop_Logic.defcnf fm) - 1  (* the first clause ID is 0, not 1 *))
                 else
                   ()
               val vid = int_from_string id
@@ -927,7 +920,7 @@ let
     val inpath     = File.tmp_path (Path.explode ("isabelle" ^ serial_str ^ ".cnf"))
     val outpath    = File.tmp_path (Path.explode ("result" ^ serial_str))
     val cmd        = getenv "ZCHAFF_HOME" ^ "/zchaff " ^ File.shell_path inpath ^ " > " ^ File.shell_path outpath
-    fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
+    fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (Prop_Logic.defcnf fm)
     fun readfn ()  = SatSolver.read_std_result_file outpath ("Instance Satisfiable", "", "Instance Unsatisfiable")
     val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.implode inpath)) else ()
     val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.implode outpath)) else ()
@@ -954,7 +947,7 @@ let
     val outpath    = File.tmp_path (Path.explode ("result" ^ serial_str))
     val exec       = getenv "BERKMIN_EXE"
     val cmd        = getenv "BERKMIN_HOME" ^ "/" ^ (if exec = "" then "BerkMin561" else exec) ^ " " ^ File.shell_path inpath ^ " > " ^ File.shell_path outpath
-    fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
+    fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (Prop_Logic.defcnf fm)
     fun readfn ()  = SatSolver.read_std_result_file outpath ("Satisfiable          !!", "solution =", "UNSATISFIABLE          !!")
     val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.implode inpath)) else ()
     val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.implode outpath)) else ()
@@ -980,7 +973,7 @@ let
     val inpath     = File.tmp_path (Path.explode ("isabelle" ^ serial_str ^ ".cnf"))
     val outpath    = File.tmp_path (Path.explode ("result" ^ serial_str))
     val cmd        = getenv "JERUSAT_HOME" ^ "/Jerusat1.3 " ^ File.shell_path inpath ^ " > " ^ File.shell_path outpath
-    fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
+    fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (Prop_Logic.defcnf fm)
     fun readfn ()  = SatSolver.read_std_result_file outpath ("s SATISFIABLE", "v ", "s UNSATISFIABLE")
     val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.implode inpath)) else ()
     val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.implode outpath)) else ()

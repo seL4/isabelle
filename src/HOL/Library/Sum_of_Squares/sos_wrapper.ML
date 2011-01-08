@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Sum_Of_Squares/sos_wrapper.ML
+(*  Title:      HOL/Library/Sum_of_Squares/sos_wrapper.ML
     Author:     Philipp Meyer, TU Muenchen
 
 Added functionality for sums of squares, e.g. calling a remote prover.
@@ -67,7 +67,7 @@ fun run_solver ctxt name cmd find_failure input =
       else ()
 
     val _ =
-      if Config.get ctxt Sum_Of_Squares.trace
+      if Config.get ctxt Sum_of_Squares.trace
       then writeln ("Solver output:\n" ^ output)
       else ()
 
@@ -75,7 +75,7 @@ fun run_solver ctxt name cmd find_failure input =
   in
     (case res of
       Success => result
-    | Failure => raise Sum_Of_Squares.Failure res_msg
+    | Failure => raise Sum_of_Squares.Failure res_msg
     | Error => error ("Prover failed: " ^ res_msg))
   end
 
@@ -138,7 +138,7 @@ val print_cert = warning o output_line o PositivstellensatzTools.pss_tree_to_cer
 
 (* method setup *)
 
-fun sos_solver print method = SIMPLE_METHOD' o Sum_Of_Squares.sos_tac print method
+fun sos_solver print method = SIMPLE_METHOD' o Sum_of_Squares.sos_tac print method
 
 val setup =
   setup_dest_dir #>
@@ -147,13 +147,13 @@ val setup =
     (Scan.lift (Scan.option Parse.xname)
       >> (fn opt_name => fn ctxt =>
         sos_solver print_cert
-          (Sum_Of_Squares.Prover (call_solver ctxt opt_name)) ctxt))
+          (Sum_of_Squares.Prover (call_solver ctxt opt_name)) ctxt))
     "prove universal problems over the reals using sums of squares" #>
   Method.setup @{binding sos_cert}
     (Scan.lift Parse.string
       >> (fn cert => fn ctxt =>
         sos_solver ignore
-          (Sum_Of_Squares.Certificate (PositivstellensatzTools.cert_to_pss_tree ctxt cert)) ctxt))
+          (Sum_of_Squares.Certificate (PositivstellensatzTools.cert_to_pss_tree ctxt cert)) ctxt))
     "prove universal problems over the reals using sums of squares with certificates"
 
 end

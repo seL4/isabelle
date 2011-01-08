@@ -81,7 +81,7 @@ fun map_limit_predicates f {ensure_groundness, limit_globally, limited_types, li
 fun merge_global_limit (NONE, NONE) = NONE
   | merge_global_limit (NONE, SOME n) = SOME n
   | merge_global_limit (SOME n, NONE) = SOME n
-  | merge_global_limit (SOME n, SOME m) = SOME (Int.max (n, m))
+  | merge_global_limit (SOME n, SOME m) = SOME (Int.max (n, m))  (* FIXME odd merge *)
    
 structure Options = Theory_Data
 (
@@ -96,7 +96,7 @@ structure Options = Theory_Data
      {ensure_groundness = ensure_groundness2, limit_globally = limit_globally2,
       limited_types = limited_types2, limited_predicates = limited_predicates2,
       replacing = replacing2, manual_reorder = manual_reorder2}) =
-    {ensure_groundness = ensure_groundness1 orelse ensure_groundness2,
+    {ensure_groundness = ensure_groundness1 orelse ensure_groundness2 (* FIXME odd merge *),
      limit_globally = merge_global_limit (limit_globally1, limit_globally2),
      limited_types = AList.merge (op =) (K true) (limited_types1, limited_types2),
      limited_predicates = AList.merge (op =) (K true) (limited_predicates1, limited_predicates2),
@@ -122,9 +122,7 @@ structure System_Config = Generic_Data
   type T = system_configuration
   val empty = {timeout = seconds 10.0, prolog_system = SWI_PROLOG}
   val extend = I;
-  fun merge ({timeout = timeout1, prolog_system = prolog_system1},
-        {timeout = timeout2, prolog_system = prolog_system2}) =
-    {timeout = timeout1, prolog_system = prolog_system1}
+  fun merge (a, _) = a
 )
 
 (* general string functions *)

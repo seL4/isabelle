@@ -115,7 +115,7 @@ structure NameSpaceData = Generic_Data
       {declinfo=declinfo2, distinctthm=distinctthm2, silent=silent2}) : T =
     {declinfo = Termtab.merge (K true) (declinfo1, declinfo2),
      distinctthm = Symtab.merge (K true) (distinctthm1, distinctthm2),
-     silent = silent1 andalso silent2}
+     silent = silent1 andalso silent2 (* FIXME odd merge *)}
 );
 
 fun make_namespace_data declinfo distinctthm silent =

@@ -266,13 +266,13 @@ fun replay_proof atom_table clauses (clause_table, empty_id) =
 (*      a 'prop_formula' (just for tracing)                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun string_of_prop_formula PropLogic.True = "True"
-  | string_of_prop_formula PropLogic.False = "False"
-  | string_of_prop_formula (PropLogic.BoolVar i) = "x" ^ string_of_int i
-  | string_of_prop_formula (PropLogic.Not fm) = "~" ^ string_of_prop_formula fm
-  | string_of_prop_formula (PropLogic.Or (fm1, fm2)) =
+fun string_of_prop_formula Prop_Logic.True = "True"
+  | string_of_prop_formula Prop_Logic.False = "False"
+  | string_of_prop_formula (Prop_Logic.BoolVar i) = "x" ^ string_of_int i
+  | string_of_prop_formula (Prop_Logic.Not fm) = "~" ^ string_of_prop_formula fm
+  | string_of_prop_formula (Prop_Logic.Or (fm1, fm2)) =
       "(" ^ string_of_prop_formula fm1 ^ " v " ^ string_of_prop_formula fm2 ^ ")"
-  | string_of_prop_formula (PropLogic.And (fm1, fm2)) =
+  | string_of_prop_formula (Prop_Logic.And (fm1, fm2)) =
       "(" ^ string_of_prop_formula fm1 ^ " & " ^ string_of_prop_formula fm2 ^ ")";
 
 (* ------------------------------------------------------------------------- *)
@@ -313,15 +313,15 @@ fun rawsat_thm ctxt clauses =
         tracing ("Sorted non-trivial clauses:\n" ^
           cat_lines (map (Syntax.string_of_term ctxt o Thm.term_of) sorted_clauses))
       else ()
-    (* translate clauses from HOL terms to PropLogic.prop_formula *)
+    (* translate clauses from HOL terms to Prop_Logic.prop_formula *)
     val (fms, atom_table) =
-      fold_map (PropLogic.prop_formula_of_term o HOLogic.dest_Trueprop o Thm.term_of)
+      fold_map (Prop_Logic.prop_formula_of_term o HOLogic.dest_Trueprop o Thm.term_of)
         sorted_clauses Termtab.empty
     val _ =
       if !trace_sat then
         tracing ("Invoking SAT solver on clauses:\n" ^ cat_lines (map string_of_prop_formula fms))
       else ()
-    val fm = PropLogic.all fms
+    val fm = Prop_Logic.all fms
     (* unit -> Thm.thm *)
     fun make_quick_and_dirty_thm () =
       let

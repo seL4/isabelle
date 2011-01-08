@@ -295,7 +295,7 @@ fun if_enabled (Simpset ({context, ...}, _)) flag f =
 
 fun if_visible (Simpset ({context, ...}, _)) f x =
   (case context of
-    SOME ctxt => if Context_Position.is_visible ctxt then f x else ()
+    SOME ctxt => Context_Position.if_visible ctxt f x
   | NONE => ());
 
 local

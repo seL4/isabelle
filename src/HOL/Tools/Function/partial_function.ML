@@ -27,7 +27,7 @@ structure Modes = Generic_Data
   type T = ((term * term) * thm) Symtab.table;
   val empty = Symtab.empty;
   val extend = I;
-  fun merge (a, b) = Symtab.merge (K true) (a, b);
+  fun merge data = Symtab.merge (K true) data;
 )
 
 fun init fixp mono fixp_eq phi =

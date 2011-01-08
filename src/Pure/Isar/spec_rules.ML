@@ -37,7 +37,7 @@ structure Rules = Generic_Data
         eq_list Thm.eq_thm_prop (ths1, ths2))
       (#1 o #2);
   val extend = I;
-  fun merge data = Item_Net.merge data;
+  val merge = Item_Net.merge;
 );
 
 val get = Item_Net.content o Rules.get o Context.Proof;

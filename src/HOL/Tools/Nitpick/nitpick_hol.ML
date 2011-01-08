@@ -275,7 +275,8 @@ datatype fixpoint_kind = Lfp | Gfp | NoFp
 datatype boxability =
   InConstr | InSel | InExpr | InPair | InFunLHS | InFunRHS1 | InFunRHS2
 
-structure Data = Generic_Data(
+structure Data = Generic_Data
+(
   type T = {frac_types: (string * (string * string) list) list,
             codatatypes: (string * (string * styp list)) list}
   val empty = {frac_types = [], codatatypes = []}
@@ -283,7 +284,8 @@ structure Data = Generic_Data(
   fun merge ({frac_types = fs1, codatatypes = cs1},
              {frac_types = fs2, codatatypes = cs2}) : T =
     {frac_types = AList.merge (op =) (K true) (fs1, fs2),
-     codatatypes = AList.merge (op =) (K true) (cs1, cs2)})
+     codatatypes = AList.merge (op =) (K true) (cs1, cs2)}
+)
 
 val name_sep = "$"
 val numeral_prefix = nitpick_prefix ^ "num" ^ name_sep

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Sum_Of_Squares/sum_of_squares.ML
+(*  Title:      HOL/Library/Sum_of_Squares/sum_of_squares.ML
     Author:     Amine Chaieb, University of Cambridge
     Author:     Philipp Meyer, TU Muenchen
 
@@ -14,7 +14,7 @@ sig
   exception Failure of string;
 end
 
-structure Sum_Of_Squares: SUM_OF_SQUARES =
+structure Sum_of_Squares: SUM_OF_SQUARES =
 struct
 
 val rat_0 = Rat.zero;

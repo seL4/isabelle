@@ -20,8 +20,6 @@ struct
 open Nitpick_Util
 open Nitpick_HOL
 
-structure PL = PropLogic
-
 datatype sign = Plus | Minus
 
 type var = int
@@ -474,36 +472,36 @@ fun snd_var n = 2 * n + 1
 val bools_from_annotation = AList.lookup (op =) bool_table #> the
 val annotation_from_bools = AList.find (op =) bool_table #> the_single
 
-fun prop_for_bool b = if b then PL.True else PL.False
+fun prop_for_bool b = if b then Prop_Logic.True else Prop_Logic.False
 fun prop_for_bool_var_equality (v1, v2) =
-  PL.SAnd (PL.SOr (PL.BoolVar v1, PL.SNot (PL.BoolVar v2)),
-           PL.SOr (PL.SNot (PL.BoolVar v1), PL.BoolVar v2))
+  Prop_Logic.SAnd (Prop_Logic.SOr (Prop_Logic.BoolVar v1, Prop_Logic.SNot (Prop_Logic.BoolVar v2)),
+           Prop_Logic.SOr (Prop_Logic.SNot (Prop_Logic.BoolVar v1), Prop_Logic.BoolVar v2))
 fun prop_for_assign (x, a) =
   let val (b1, b2) = bools_from_annotation a in
-    PL.SAnd (PL.BoolVar (fst_var x) |> not b1 ? PL.SNot,
-             PL.BoolVar (snd_var x) |> not b2 ? PL.SNot)
+    Prop_Logic.SAnd (Prop_Logic.BoolVar (fst_var x) |> not b1 ? Prop_Logic.SNot,
+             Prop_Logic.BoolVar (snd_var x) |> not b2 ? Prop_Logic.SNot)
   end
 fun prop_for_assign_literal (x, (Plus, a)) = prop_for_assign (x, a)
-  | prop_for_assign_literal (x, (Minus, a)) = PL.SNot (prop_for_assign (x, a))
+  | prop_for_assign_literal (x, (Minus, a)) = Prop_Logic.SNot (prop_for_assign (x, a))
 fun prop_for_atom_assign (A a', a) = prop_for_bool (a = a')
   | prop_for_atom_assign (V x, a) = prop_for_assign_literal (x, (Plus, a))
 fun prop_for_atom_equality (aa1, A a2) = prop_for_atom_assign (aa1, a2)
   | prop_for_atom_equality (A a1, aa2) = prop_for_atom_assign (aa2, a1)
   | prop_for_atom_equality (V x1, V x2) =
-    PL.SAnd (prop_for_bool_var_equality (pairself fst_var (x1, x2)),
+    Prop_Logic.SAnd (prop_for_bool_var_equality (pairself fst_var (x1, x2)),
              prop_for_bool_var_equality (pairself snd_var (x1, x2)))
-val prop_for_assign_clause = PL.exists o map prop_for_assign_literal
+val prop_for_assign_clause = Prop_Logic.exists o map prop_for_assign_literal
 fun prop_for_exists_var_assign_literal xs a =
-  PL.exists (map (fn x => prop_for_assign_literal (x, (Plus, a))) xs)
+  Prop_Logic.exists (map (fn x => prop_for_assign_literal (x, (Plus, a))) xs)
 fun prop_for_comp (aa1, aa2, Eq, []) =
-    PL.SAnd (prop_for_comp (aa1, aa2, Leq, []),
+    Prop_Logic.SAnd (prop_for_comp (aa1, aa2, Leq, []),
              prop_for_comp (aa2, aa1, Leq, []))
   | prop_for_comp (aa1, aa2, Neq, []) =
-    PL.SNot (prop_for_comp (aa1, aa2, Eq, []))
+    Prop_Logic.SNot (prop_for_comp (aa1, aa2, Eq, []))
   | prop_for_comp (aa1, aa2, Leq, []) =
-    PL.SOr (prop_for_atom_equality (aa1, aa2), prop_for_atom_assign (aa2, Gen))
+    Prop_Logic.SOr (prop_for_atom_equality (aa1, aa2), prop_for_atom_assign (aa2, Gen))
   | prop_for_comp (aa1, aa2, cmp, xs) =
-    PL.SOr (prop_for_exists_var_assign_literal xs Gen,
+    Prop_Logic.SOr (prop_for_exists_var_assign_literal xs Gen,
             prop_for_comp (aa1, aa2, cmp, []))
 
 fun extract_assigns max_var assigns asgs =
@@ -542,11 +540,11 @@ fun solve tac_timeout max_var (comps, clauses) =
       SOME (extract_assigns max_var assigns asgs |> tap print_solution)
     val _ = print_problem comps clauses
     val prop =
-      PL.all (map prop_for_comp comps @ map prop_for_assign_clause clauses)
+      Prop_Logic.all (map prop_for_comp comps @ map prop_for_assign_clause clauses)
   in
-    if PL.eval (K false) prop then
+    if Prop_Logic.eval (K false) prop then
       do_assigns (K (SOME false))
-    else if PL.eval (K true) prop then
+    else if Prop_Logic.eval (K true) prop then
       do_assigns (K (SOME true))
     else
       let
