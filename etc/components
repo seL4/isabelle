@@ -14,7 +14,7 @@ src/Tools/Code
 src/Tools/WWW_Find
 src/HOL/Tools/ATP
 src/HOL/Mirabelle
-src/HOL/Library/Sum_Of_Squares
+src/HOL/Library/Sum_of_Squares
 src/HOL/Tools/SMT
 src/HOL/Tools/Predicate_Compile
 src/HOL/Mutabelle

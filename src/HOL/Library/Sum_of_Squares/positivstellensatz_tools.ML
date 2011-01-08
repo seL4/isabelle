@@ -1,7 +1,8 @@
-(* Title:      HOL/Library/Sum_Of_Squares/positivstellensatz_tools.ML
-   Author:     Philipp Meyer, TU Muenchen
+(*  Title:      HOL/Library/Sum_of_Squares/positivstellensatz_tools.ML
+    Author:     Philipp Meyer, TU Muenchen
 
-Functions for generating a certificate from a positivstellensatz and vice versa
+Functions for generating a certificate from a positivstellensatz and vice
+versa.
 *)
 
 signature POSITIVSTELLENSATZ_TOOLS =

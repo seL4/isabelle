@@ -56,7 +56,7 @@ imports
   Set_Algebras
   SML_Quickcheck
   State_Monad
-  Sum_Of_Squares
+  Sum_of_Squares
   Transitive_Closure_Table
   Univ_Poly
   While_Combinator

@@ -460,9 +460,9 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/RBT.thy Library/RBT_Impl.thy Library/README.html		\
   Library/Set_Algebras.thy Library/State_Monad.thy Library/Ramsey.thy	\
   Library/Reflection.thy Library/SML_Quickcheck.thy 			\
-  Library/Sublist_Order.thy Library/Sum_Of_Squares.thy			\
-  Library/Sum_Of_Squares/sos_wrapper.ML					\
-  Library/Sum_Of_Squares/sum_of_squares.ML				\
+  Library/Sublist_Order.thy Library/Sum_of_Squares.thy			\
+  Library/Sum_of_Squares/sos_wrapper.ML					\
+  Library/Sum_of_Squares/sum_of_squares.ML				\
   Library/Transitive_Closure_Table.thy Library/Univ_Poly.thy		\
   Library/While_Combinator.thy Library/Zorn.thy				\
   $(SRC)/Tools/adhoc_overloading.ML Library/positivstellensatz.ML	\

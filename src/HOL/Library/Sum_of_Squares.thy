@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Sum_Of_Squares.thy
+(*  Title:      HOL/Library/Sum_of_Squares.thy
     Author:     Amine Chaieb, University of Cambridge
     Author:     Philipp Meyer, TU Muenchen
 *)
@@ -6,13 +6,13 @@
 header {* A decision method for universal multivariate real arithmetic with addition, 
   multiplication and ordering using semidefinite programming *}
 
-theory Sum_Of_Squares
+theory Sum_of_Squares
 imports Complex_Main
 uses
   "positivstellensatz.ML"
-  "Sum_Of_Squares/sum_of_squares.ML"
-  "Sum_Of_Squares/positivstellensatz_tools.ML"
-  "Sum_Of_Squares/sos_wrapper.ML"
+  "Sum_of_Squares/sum_of_squares.ML"
+  "Sum_of_Squares/positivstellensatz_tools.ML"
+  "Sum_of_Squares/sos_wrapper.ML"
 begin
 
 text {*
@@ -28,7 +28,7 @@ text {*
   without calling an external prover.
 *}
 
-setup Sum_Of_Squares.setup
+setup Sum_of_Squares.setup
 setup SOS_Wrapper.setup
 
 text {* Tests *}
