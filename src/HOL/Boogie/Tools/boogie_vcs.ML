@@ -254,7 +254,7 @@ fun join (Assume (_, pv), pthm) (Assume (t, v), thm) =
 end
 
 
-(* the VC store *)
+(* the VC store *)  (* FIXME just one data slot (record) per program unit *)
 
 fun err_unfinished () = error "An unfinished Boogie environment is still open."
 

@@ -138,6 +138,7 @@ fun static_value cookie thy some_target postproc consts =
 structure Truth_Result = Proof_Data
 (
   type T = unit -> truth
+  (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Truth_Result"
 );
 val put_truth = Truth_Result.put;
@@ -369,8 +370,8 @@ structure Loaded_Values = Theory_Data
 (
   type T = string list
   val empty = []
-  fun merge data : T = Library.merge (op =) data
   val extend = I
+  fun merge data : T = Library.merge (op =) data
 );
 
 fun notify_val (string, value) = 

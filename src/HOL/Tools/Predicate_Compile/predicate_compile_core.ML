@@ -1625,44 +1625,60 @@ val code_pred_cmd = generic_code_pred Code.read_const
 
 (* transformation for code generation *)
 
-structure Pred_Result = Proof_Data (
+(* FIXME just one data slot (record) per program unit *)
+
+structure Pred_Result = Proof_Data
+(
   type T = unit -> term Predicate.pred
+  (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Pred_Result"
 );
 val put_pred_result = Pred_Result.put;
 
-structure Pred_Random_Result = Proof_Data (
+structure Pred_Random_Result = Proof_Data
+(
   type T = unit -> int * int -> term Predicate.pred * (int * int)
+  (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Pred_Random_Result"
 );
 val put_pred_random_result = Pred_Random_Result.put;
 
-structure Dseq_Result = Proof_Data (
+structure Dseq_Result = Proof_Data
+(
   type T = unit -> term DSequence.dseq
+  (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Dseq_Result"
 );
 val put_dseq_result = Dseq_Result.put;
 
-structure Dseq_Random_Result = Proof_Data (
+structure Dseq_Random_Result = Proof_Data
+(
   type T = unit -> int -> int -> int * int -> term DSequence.dseq * (int * int)
+  (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Dseq_Random_Result"
 );
 val put_dseq_random_result = Dseq_Random_Result.put;
 
-structure New_Dseq_Result = Proof_Data (
+structure New_Dseq_Result = Proof_Data
+(
   type T = unit -> int -> term Lazy_Sequence.lazy_sequence
+  (* FIXME avoid user error with non-user text *)
   fun init _ () = error "New_Dseq_Random_Result"
 );
 val put_new_dseq_result = New_Dseq_Result.put;
 
-structure Lseq_Random_Result = Proof_Data (
+structure Lseq_Random_Result = Proof_Data
+(
   type T = unit -> int -> int -> int * int -> int -> term Lazy_Sequence.lazy_sequence
+  (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Lseq_Random_Result"
 );
 val put_lseq_random_result = Lseq_Random_Result.put;
 
-structure Lseq_Random_Stats_Result = Proof_Data (
+structure Lseq_Random_Stats_Result = Proof_Data
+(
   type T = unit -> int -> int -> int * int -> int -> (term * int) Lazy_Sequence.lazy_sequence
+  (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Lseq_Random_Stats_Result"
 );
 val put_lseq_random_stats_result = Lseq_Random_Stats_Result.put;

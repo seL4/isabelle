@@ -175,8 +175,8 @@ structure PredSetConvData = Generic_Data
       set_arities = set_arities2, pred_arities = pred_arities2}) : T =
     {to_set_simps = Thm.merge_thms (to_set_simps1, to_set_simps2),
      to_pred_simps = Thm.merge_thms (to_pred_simps1, to_pred_simps2),
-     set_arities = Symtab.merge_list op = (set_arities1, set_arities2),
-     pred_arities = Symtab.merge_list op = (pred_arities1, pred_arities2)};
+     set_arities = Symtab.merge_list (op =) (set_arities1, set_arities2),
+     pred_arities = Symtab.merge_list (op =) (pred_arities1, pred_arities2)};
 );
 
 fun name_type_of (Free p) = SOME p

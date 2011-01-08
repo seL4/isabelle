@@ -45,8 +45,10 @@ instance bool :: ml_equiv ..
 instance list :: (ml_equiv) ml_equiv ..
 
 ML {*
-structure Eval_Method = Proof_Data (
+structure Eval_Method = Proof_Data
+(
   type T = unit -> bool
+  (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Eval_Method"
 )
 *}

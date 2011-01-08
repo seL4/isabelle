@@ -35,26 +35,36 @@ struct
 
 open Predicate_Compile_Aux;
 
-structure Pred_Result = Proof_Data (
+(* FIXME just one data slot (record) per program unit *)
+
+structure Pred_Result = Proof_Data
+(
   type T = unit -> int -> int -> int -> int * int -> term list Predicate.pred
+  (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Pred_Result"
 );
 val put_pred_result = Pred_Result.put;
 
-structure Dseq_Result = Proof_Data (
+structure Dseq_Result = Proof_Data
+(
   type T = unit -> int -> int -> int * int -> term list DSequence.dseq * (int * int)
+  (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Dseq_Result"
 );
 val put_dseq_result = Dseq_Result.put;
 
-structure Lseq_Result = Proof_Data (
+structure Lseq_Result = Proof_Data
+(
   type T = unit -> int -> int -> int * int -> int -> term list Lazy_Sequence.lazy_sequence
+  (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Lseq_Result"
 );
 val put_lseq_result = Lseq_Result.put;
 
-structure New_Dseq_Result = Proof_Data (
+structure New_Dseq_Result = Proof_Data
+(
   type T = unit -> int -> term list Lazy_Sequence.lazy_sequence
+  (* FIXME avoid user error with non-user text *)
   fun init _ () = error "New_Dseq_Random_Result"
 );
 val put_new_dseq_result = New_Dseq_Result.put;

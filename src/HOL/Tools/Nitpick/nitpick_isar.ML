@@ -130,11 +130,13 @@ fun normalize_raw_param (name, value) =
             else
               [(name, value)]
 
-structure Data = Theory_Data(
+structure Data = Theory_Data
+(
   type T = raw_param list
   val empty = map (apsnd single) default_default_params
   val extend = I
-  fun merge (x, y) = AList.merge (op =) (K true) (x, y))
+  fun merge data = AList.merge (op =) (K true) data
+)
 
 val set_default_raw_param =
   Data.map o fold (AList.update (op =)) o normalize_raw_param

@@ -221,7 +221,7 @@ structure Data = Theory_Data
      {interpreters = in2, printers = pr2, parameters = pa2}) : T =
     {interpreters = AList.merge (op =) (K true) (in1, in2),
      printers = AList.merge (op =) (K true) (pr1, pr2),
-     parameters = Symtab.merge (op=) (pa1, pa2)};
+     parameters = Symtab.merge (op =) (pa1, pa2)};
 );
 
 val get_data = Data.get o ProofContext.theory_of;

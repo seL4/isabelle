@@ -68,7 +68,7 @@ structure Solvers = Generic_Data
   type T = (solver_info * string list) Symtab.table * string option
   val empty = (Symtab.empty, NONE)
   val extend = I
-  fun merge ((ss1, s), (ss2, _)) = (Symtab.merge (K true) (ss1, ss2), s)
+  fun merge ((ss1, s), (ss2, _)) = (Symtab.merge (K true) (ss1, ss2), s (* FIXME merge options!? *))
 )
 
 fun set_solver_options (name, options) =
@@ -227,7 +227,7 @@ structure Certificates = Generic_Data
   type T = Cache_IO.cache option
   val empty = NONE
   val extend = I
-  fun merge (s, _) = s
+  fun merge (s, _) = s  (* FIXME merge options!? *)
 )
 
 val get_certificates_path =

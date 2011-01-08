@@ -63,11 +63,13 @@ type params =
 type term_postprocessor =
   Proof.context -> string -> (typ -> term list) -> typ -> term -> term
 
-structure Data = Generic_Data(
+structure Data = Generic_Data
+(
   type T = (typ * term_postprocessor) list
   val empty = []
   val extend = I
-  fun merge (x, y) = AList.merge (op =) (K true) (x, y))
+  fun merge data = AList.merge (op =) (K true) data
+)
 
 fun xsym s s' () = if print_mode_active Symbol.xsymbolsN then s else s'
 

@@ -263,7 +263,7 @@ structure Code_Data = Theory_Data
   type T = spec * (data * theory_ref) option Synchronized.var;
   val empty = (make_spec (false, (((Symtab.empty, Symtab.empty), Symtab.empty),
     (Symtab.empty, (Symtab.empty, Symtab.empty)))), empty_dataref ());
-  val extend = I
+  val extend = I  (* FIXME empty_dataref!?! *)
   fun merge ((spec1, _), (spec2, _)) =
     (merge_spec (spec1, spec2), empty_dataref ());
 );
@@ -1238,7 +1238,7 @@ fun add_abstype proto_thm thy =
 
 (** infrastructure **)
 
-(* c.f. src/HOL/Tools/recfun_codegen.ML *)
+(* cf. src/HOL/Tools/recfun_codegen.ML *)
 
 structure Code_Target_Attr = Theory_Data
 (

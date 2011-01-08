@@ -366,7 +366,7 @@ structure Theorem_Hook = Generic_Data
   type T = ((bool -> Proof.state -> Proof.state) * stamp) list;
   val empty = [];
   val extend = I;
-  fun merge hooks : T = Library.merge (eq_snd op =) hooks;
+  fun merge data : T = Library.merge (eq_snd op =) data;
 );
 
 fun gen_theorem schematic prep_att prep_stmt

@@ -210,8 +210,10 @@ fun instantiate_smallvalue_datatype config descr vs tycos prfx (names, auxnames)
 
 (** building and compiling generator expressions **)
 
-structure Counterexample = Proof_Data (
+structure Counterexample = Proof_Data
+(
   type T = unit -> int -> term list option
+  (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Counterexample"
 );
 val put_counterexample = Counterexample.put;

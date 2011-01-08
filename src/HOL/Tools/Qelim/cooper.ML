@@ -51,7 +51,7 @@ structure Data = Generic_Data
 (
   type T = simpset * term list;
   val empty = (HOL_ss, allowed_consts);
-  val extend  = I;
+  val extend = I;
   fun merge ((ss1, ts1), (ss2, ts2)) =
     (merge_ss (ss1, ss2), Library.merge (op aconv) (ts1, ts2));
 );

@@ -229,8 +229,10 @@ fun ml_fundefs ([(name, [([], e)])]) =
 
 (* nbe specific syntax and sandbox communication *)
 
-structure Univs = Proof_Data (
+structure Univs = Proof_Data
+(
   type T = unit -> Univ list -> Univ list
+  (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Univs"
 );
 val put_result = Univs.put;

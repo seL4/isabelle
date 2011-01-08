@@ -307,14 +307,20 @@ fun ensure_sort_datatype (sort, instantiate_datatype) config raw_tycos thy =
 
 (** building and compiling generator expressions **)
 
-structure Counterexample = Proof_Data (
+(* FIXME just one data slot (record) per program unit *)
+
+structure Counterexample = Proof_Data
+(
   type T = unit -> int -> int * int -> term list option * (int * int)
+  (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Counterexample"
 );
 val put_counterexample = Counterexample.put;
 
-structure Counterexample_Report = Proof_Data (
+structure Counterexample_Report = Proof_Data
+(
   type T = unit -> int -> seed -> (term list option * (bool list * bool)) * seed
+  (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Counterexample_Report"
 );
 val put_counterexample_report = Counterexample_Report.put;

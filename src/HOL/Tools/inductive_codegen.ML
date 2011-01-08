@@ -31,8 +31,9 @@ structure CodegenData = Theory_Data
   val empty =
     {intros = Symtab.empty, graph = Graph.empty, eqns = Symtab.empty};
   val extend = I;
-  fun merge ({intros=intros1, graph=graph1, eqns=eqns1},
-    {intros=intros2, graph=graph2, eqns=eqns2}) : T =
+  fun merge
+    ({intros = intros1, graph = graph1, eqns = eqns1},
+      {intros = intros2, graph = graph2, eqns = eqns2}) : T =
     {intros = merge_rules (intros1, intros2),
      graph = Graph.merge (K true) (graph1, graph2),
      eqns = merge_rules (eqns1, eqns2)};
