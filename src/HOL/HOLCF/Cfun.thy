@@ -37,21 +37,11 @@ parse_translation {*
   [mk_binder_tr (@{syntax_const "_cabs"}, @{const_syntax Abs_cfun})];
 *}
 
-text {* To avoid eta-contraction of body: *}
-typed_print_translation {*
-  let
-    fun cabs_tr' _ _ [Abs abs] = let
-          val (x,t) = atomic_abs_tr' abs
-        in Syntax.const @{syntax_const "_cabs"} $ x $ t end
-
-      | cabs_tr' _ T [t] = let
-          val xT = domain_type (domain_type T);
-          val abs' = ("x",xT,(incr_boundvars 1 t)$Bound 0);
-          val (x,t') = atomic_abs_tr' abs';
-        in Syntax.const @{syntax_const "_cabs"} $ x $ t' end;
-
-  in [(@{const_syntax Abs_cfun}, cabs_tr')] end;
-*}
+print_translation {*
+  [(@{const_syntax Abs_cfun}, fn [Abs abs] =>
+      let val (x, t) = atomic_abs_tr' abs
+      in Syntax.const @{syntax_const "_cabs"} $ x $ t end)]
+*}  -- {* To avoid eta-contraction of body *}
 
 text {* Syntax for nested abstractions *}
 
