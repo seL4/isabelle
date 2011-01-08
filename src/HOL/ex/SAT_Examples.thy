@@ -533,12 +533,10 @@ ML {*
 fun benchmark dimacsfile =
 let
   val prop_fm = SatSolver.read_dimacs_cnf_file (Path.explode dimacsfile)
-  fun and_to_list (PropLogic.And (fm1, fm2)) acc =
-    and_to_list fm2 (fm1 :: acc)
-    | and_to_list fm acc =
-    rev (fm :: acc)
+  fun and_to_list (Prop_Logic.And (fm1, fm2)) acc = and_to_list fm2 (fm1 :: acc)
+    | and_to_list fm acc = rev (fm :: acc)
   val clauses = and_to_list prop_fm []
-  val terms   = map (HOLogic.mk_Trueprop o PropLogic.term_of_prop_formula)
+  val terms   = map (HOLogic.mk_Trueprop o Prop_Logic.term_of_prop_formula)
     clauses
   val cterms  = map (Thm.cterm_of @{theory}) terms
   val timer   = start_timing ()

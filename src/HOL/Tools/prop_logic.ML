@@ -42,7 +42,7 @@ sig
   val term_of_prop_formula: prop_formula -> term
 end;
 
-structure PropLogic : PROP_LOGIC =
+structure Prop_Logic : PROP_LOGIC =
 struct
 
 (* ------------------------------------------------------------------------- *)

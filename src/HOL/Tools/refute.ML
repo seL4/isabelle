@@ -77,7 +77,7 @@ end;
 structure Refute : REFUTE =
 struct
 
-open PropLogic;
+open Prop_Logic;
 
 (* We use 'REFUTE' only for internal error conditions that should    *)
 (* never occur in the first place (i.e. errors caused by bugs in our *)
@@ -1118,8 +1118,8 @@ fun find_model ctxt
             (* make 'u' either true or false, and make all axioms true, and *)
             (* add the well-formedness side condition                       *)
             val fm_u = (if negate then toFalse else toTrue) (hd intrs)
-            val fm_ax = PropLogic.all (map toTrue (tl intrs))
-            val fm = PropLogic.all [#wellformed args, fm_ax, fm_u]
+            val fm_ax = Prop_Logic.all (map toTrue (tl intrs))
+            val fm = Prop_Logic.all [#wellformed args, fm_ax, fm_u]
             val _ =
               (if satsolver = "dpll" orelse satsolver = "enumerate" then
                 warning ("Using SAT solver " ^ quote satsolver ^
@@ -1394,22 +1394,22 @@ fun make_equality (i1, i2) =
       (case i1 of
         Leaf xs =>
           (case i2 of
-            Leaf ys => PropLogic.dot_product (xs, ys)  (* defined and equal *)
+            Leaf ys => Prop_Logic.dot_product (xs, ys)  (* defined and equal *)
           | Node _  => raise REFUTE ("make_equality",
             "second interpretation is higher"))
       | Node xs =>
           (case i2 of
             Leaf _  => raise REFUTE ("make_equality",
             "first interpretation is higher")
-          | Node ys => PropLogic.all (map equal (xs ~~ ys))))
+          | Node ys => Prop_Logic.all (map equal (xs ~~ ys))))
     (* interpretation * interpretation -> prop_formula *)
     fun not_equal (i1, i2) =
       (case i1 of
         Leaf xs =>
           (case i2 of
             (* defined and not equal *)
-            Leaf ys => PropLogic.all ((PropLogic.exists xs)
-            :: (PropLogic.exists ys)
+            Leaf ys => Prop_Logic.all ((Prop_Logic.exists xs)
+            :: (Prop_Logic.exists ys)
             :: (map (fn (x,y) => SOr (SNot x, SNot y)) (xs ~~ ys)))
           | Node _  => raise REFUTE ("make_equality",
             "second interpretation is higher"))
@@ -1417,7 +1417,7 @@ fun make_equality (i1, i2) =
           (case i2 of
             Leaf _  => raise REFUTE ("make_equality",
             "first interpretation is higher")
-          | Node ys => PropLogic.exists (map not_equal (xs ~~ ys))))
+          | Node ys => Prop_Logic.exists (map not_equal (xs ~~ ys))))
   in
     (* a value may be undefined; therefore 'not_equal' is not just the *)
     (* negation of 'equal'                                             *)
@@ -1443,15 +1443,15 @@ fun make_def_equality (i1, i2) =
         Leaf xs =>
           (case i2 of
             (* defined and equal, or both undefined *)
-            Leaf ys => SOr (PropLogic.dot_product (xs, ys),
-            SAnd (PropLogic.all (map SNot xs), PropLogic.all (map SNot ys)))
+            Leaf ys => SOr (Prop_Logic.dot_product (xs, ys),
+            SAnd (Prop_Logic.all (map SNot xs), Prop_Logic.all (map SNot ys)))
           | Node _  => raise REFUTE ("make_def_equality",
             "second interpretation is higher"))
       | Node xs =>
           (case i2 of
             Leaf _  => raise REFUTE ("make_def_equality",
             "first interpretation is higher")
-          | Node ys => PropLogic.all (map equal (xs ~~ ys))))
+          | Node ys => Prop_Logic.all (map equal (xs ~~ ys))))
     (* interpretation *)
     val eq = equal (i1, i2)
   in
@@ -1499,7 +1499,7 @@ fun interpretation_apply (i1, i2) =
     (* interpretation -> prop_formula list *)
     fun interpretation_to_prop_formula_list (Leaf xs) = xs
       | interpretation_to_prop_formula_list (Node trees) =
-          map PropLogic.all (pick_all
+          map Prop_Logic.all (pick_all
             (map interpretation_to_prop_formula_list trees))
   in
     case i1 of
@@ -1571,7 +1571,7 @@ fun stlc_interpreter ctxt model args t =
             val intr = Leaf fms
             (* prop_formula list -> prop_formula *)
             fun one_of_two_false [] = True
-              | one_of_two_false (x::xs) = SAnd (PropLogic.all (map (fn x' =>
+              | one_of_two_false (x::xs) = SAnd (Prop_Logic.all (map (fn x' =>
                   SOr (SNot x, SNot x')) xs), one_of_two_false xs)
             (* prop_formula *)
             val wf = one_of_two_false fms
@@ -1672,8 +1672,8 @@ fun Pure_interpreter ctxt model args t =
           Node xs =>
             (* 3-valued logic *)
             let
-              val fmTrue  = PropLogic.all (map toTrue xs)
-              val fmFalse = PropLogic.exists (map toFalse xs)
+              val fmTrue  = Prop_Logic.all (map toTrue xs)
+              val fmFalse = Prop_Logic.exists (map toFalse xs)
             in
               SOME (Leaf [fmTrue, fmFalse], m, a)
             end
@@ -1701,8 +1701,8 @@ fun Pure_interpreter ctxt model args t =
       let
         val (i1, m1, a1) = interpret ctxt model args t1
         val (i2, m2, a2) = interpret ctxt m1 a1 t2
-        val fmTrue       = PropLogic.SOr (toFalse i1, toTrue i2)
-        val fmFalse      = PropLogic.SAnd (toTrue i1, toFalse i2)
+        val fmTrue = Prop_Logic.SOr (toFalse i1, toTrue i2)
+        val fmFalse = Prop_Logic.SAnd (toTrue i1, toFalse i2)
       in
         SOME (Leaf [fmTrue, fmFalse], m2, a2)
       end
@@ -1735,8 +1735,8 @@ fun HOLogic_interpreter ctxt model args t =
           Node xs =>
             (* 3-valued logic *)
             let
-              val fmTrue  = PropLogic.all (map toTrue xs)
-              val fmFalse = PropLogic.exists (map toFalse xs)
+              val fmTrue = Prop_Logic.all (map toTrue xs)
+              val fmFalse = Prop_Logic.exists (map toFalse xs)
             in
               SOME (Leaf [fmTrue, fmFalse], m, a)
             end
@@ -1754,8 +1754,8 @@ fun HOLogic_interpreter ctxt model args t =
           Node xs =>
             (* 3-valued logic *)
             let
-              val fmTrue  = PropLogic.exists (map toTrue xs)
-              val fmFalse = PropLogic.all (map toFalse xs)
+              val fmTrue = Prop_Logic.exists (map toTrue xs)
+              val fmFalse = Prop_Logic.all (map toFalse xs)
             in
               SOME (Leaf [fmTrue, fmFalse], m, a)
             end
@@ -1781,8 +1781,8 @@ fun HOLogic_interpreter ctxt model args t =
       let
         val (i1, m1, a1) = interpret ctxt model args t1
         val (i2, m2, a2) = interpret ctxt m1 a1 t2
-        val fmTrue       = PropLogic.SAnd (toTrue i1, toTrue i2)
-        val fmFalse      = PropLogic.SOr (toFalse i1, toFalse i2)
+        val fmTrue = Prop_Logic.SAnd (toTrue i1, toTrue i2)
+        val fmFalse = Prop_Logic.SOr (toFalse i1, toFalse i2)
       in
         SOME (Leaf [fmTrue, fmFalse], m2, a2)
       end
@@ -1798,8 +1798,8 @@ fun HOLogic_interpreter ctxt model args t =
       let
         val (i1, m1, a1) = interpret ctxt model args t1
         val (i2, m2, a2) = interpret ctxt m1 a1 t2
-        val fmTrue       = PropLogic.SOr (toTrue i1, toTrue i2)
-        val fmFalse      = PropLogic.SAnd (toFalse i1, toFalse i2)
+        val fmTrue = Prop_Logic.SOr (toTrue i1, toTrue i2)
+        val fmFalse = Prop_Logic.SAnd (toFalse i1, toFalse i2)
       in
         SOME (Leaf [fmTrue, fmFalse], m2, a2)
       end
@@ -1815,8 +1815,8 @@ fun HOLogic_interpreter ctxt model args t =
       let
         val (i1, m1, a1) = interpret ctxt model args t1
         val (i2, m2, a2) = interpret ctxt m1 a1 t2
-        val fmTrue       = PropLogic.SOr (toFalse i1, toTrue i2)
-        val fmFalse      = PropLogic.SAnd (toTrue i1, toFalse i2)
+        val fmTrue = Prop_Logic.SOr (toFalse i1, toTrue i2)
+        val fmFalse = Prop_Logic.SAnd (toTrue i1, toFalse i2)
       in
         SOME (Leaf [fmTrue, fmFalse], m2, a2)
       end
@@ -1890,7 +1890,7 @@ fun IDT_interpreter ctxt model args t =
                     val intr     = Leaf fms
                     (* prop_formula list -> prop_formula *)
                     fun one_of_two_false [] = True
-                      | one_of_two_false (x::xs) = SAnd (PropLogic.all (map (fn x' =>
+                      | one_of_two_false (x::xs) = SAnd (Prop_Logic.all (map (fn x' =>
                           SOr (SNot x, SNot x')) xs), one_of_two_false xs)
                     (* prop_formula *)
                     val wf = one_of_two_false fms
@@ -2961,7 +2961,7 @@ fun stlc_printer ctxt model T intr assignment =
           strip_leading_quote x ^ string_of_int i
     (* interpretation -> int *)
     fun index_from_interpretation (Leaf xs) =
-          find_index (PropLogic.eval assignment) xs
+          find_index (Prop_Logic.eval assignment) xs
       | index_from_interpretation _ =
           raise REFUTE ("stlc_printer",
             "interpretation for ground type is not a leaf")
@@ -3045,7 +3045,7 @@ fun IDT_printer ctxt model T intr assignment =
               (* the index of the element in the datatype *)
               val element =
                 (case intr of
-                  Leaf xs => find_index (PropLogic.eval assignment) xs
+                  Leaf xs => find_index (Prop_Logic.eval assignment) xs
                 | Node _  => raise REFUTE ("IDT_printer",
                   "interpretation is not a leaf"))
             in
