@@ -181,7 +181,7 @@ abbreviation
   "xs \<union>\<natural> ys == convex_plus\<cdot>xs\<cdot>ys"
 
 syntax
-  "_convex_pd" :: "args \<Rightarrow> 'a convex_pd" ("{_}\<natural>")
+  "_convex_pd" :: "args \<Rightarrow> logic" ("{_}\<natural>")
 
 translations
   "{x,xs}\<natural>" == "{x}\<natural> \<union>\<natural> {xs}\<natural>"

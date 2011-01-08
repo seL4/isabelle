@@ -44,7 +44,8 @@ definition
   "ssplit = (\<Lambda> f p. seq\<cdot>p\<cdot>(f\<cdot>(sfst\<cdot>p)\<cdot>(ssnd\<cdot>p)))"
 
 syntax
-  "_stuple" :: "['a, args] => 'a ** 'b"  ("(1'(:_,/ _:'))")
+  "_stuple" :: "[logic, args] \<Rightarrow> logic"  ("(1'(:_,/ _:'))")
+
 translations
   "(:x, y, z:)" == "(:x, (:y, z:):)"
   "(:x, y:)"    == "CONST spair\<cdot>x\<cdot>y"

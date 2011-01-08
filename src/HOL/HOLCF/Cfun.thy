@@ -30,7 +30,7 @@ notation (HTML output)
 
 subsection {* Syntax for continuous lambda abstraction *}
 
-syntax "_cabs" :: "'a"
+syntax "_cabs" :: "[logic, logic] \<Rightarrow> logic"
 
 parse_translation {*
 (* rewrite (_cabs x t) => (Abs_cfun (%x. t)) *)
@@ -46,10 +46,10 @@ print_translation {*
 text {* Syntax for nested abstractions *}
 
 syntax
-  "_Lambda" :: "[cargs, 'a] \<Rightarrow> logic"  ("(3LAM _./ _)" [1000, 10] 10)
+  "_Lambda" :: "[cargs, logic] \<Rightarrow> logic"  ("(3LAM _./ _)" [1000, 10] 10)
 
 syntax (xsymbols)
-  "_Lambda" :: "[cargs, 'a] \<Rightarrow> logic" ("(3\<Lambda> _./ _)" [1000, 10] 10)
+  "_Lambda" :: "[cargs, logic] \<Rightarrow> logic" ("(3\<Lambda> _./ _)" [1000, 10] 10)
 
 parse_ast_translation {*
 (* rewrite (LAM x y z. t) => (_cabs x (_cabs y (_cabs z t))) *)

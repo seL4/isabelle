@@ -136,7 +136,7 @@ abbreviation
   "xs \<union>\<flat> ys == lower_plus\<cdot>xs\<cdot>ys"
 
 syntax
-  "_lower_pd" :: "args \<Rightarrow> 'a lower_pd" ("{_}\<flat>")
+  "_lower_pd" :: "args \<Rightarrow> logic" ("{_}\<flat>")
 
 translations
   "{x,xs}\<flat>" == "{x}\<flat> \<union>\<flat> {xs}\<flat>"

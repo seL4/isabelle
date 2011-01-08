@@ -134,7 +134,7 @@ abbreviation
   "xs \<union>\<sharp> ys == upper_plus\<cdot>xs\<cdot>ys"
 
 syntax
-  "_upper_pd" :: "args \<Rightarrow> 'a upper_pd" ("{_}\<sharp>")
+  "_upper_pd" :: "args \<Rightarrow> logic" ("{_}\<sharp>")
 
 translations
   "{x,xs}\<sharp>" == "{x}\<sharp> \<union>\<sharp> {xs}\<sharp>"
