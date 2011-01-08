@@ -5,7 +5,7 @@
 header {* Algebraic deflations are a bifinite domain *}
 
 theory Defl_Bifinite
-imports HOLCF Infinite_Set
+imports HOLCF "~~/src/HOL/Library/Infinite_Set"
 begin
 
 subsection {* Lemmas about MOST *}
