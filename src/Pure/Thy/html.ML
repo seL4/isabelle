@@ -221,22 +221,20 @@ local
   val output_bold = output_markup (span "bold");
   val output_loc = output_markup (span "loc");
 
-  fun output_syms (s1 :: rest) =
-        let val (s2, ss) = (case rest of [] => ("", []) | s2 :: ss => (s2, ss)) in
-          if s1 = "\\<^sub>" orelse s1 = "\\<^isub>" then output_sub s1 s2 :: output_syms ss
-          else if s1 = "\\<^sup>" orelse s1 = "\\<^isup>" then output_sup s1 s2 :: output_syms ss
-          else if s1 = "\\<^bold>" then output_bold s1 s2 :: output_syms ss
-          else if s1 = "\\<^loc>" then output_loc s1 s2 :: output_syms ss
-          else output_sym s1 :: output_syms rest
-        end
-    | output_syms [] = [];
+  fun output_syms [] (result, width) = (implode (rev result), width)
+    | output_syms (s1 :: rest) (result, width) =
+        let
+          val (s2, ss) = (case rest of [] => ("", []) | s2 :: ss => (s2, ss));
+          val ((w, s), r) =
+            if s1 = "\\<^sub>" orelse s1 = "\\<^isub>" then (output_sub s1 s2, ss)
+            else if s1 = "\\<^sup>" orelse s1 = "\\<^isup>" then (output_sup s1 s2, ss)
+            else if s1 = "\\<^bold>" then (output_bold s1 s2, ss)
+            else if s1 = "\\<^loc>" then (output_loc s1 s2, ss)
+            else (output_sym s1, rest);
+        in output_syms r (s :: result, width + w) end;
 in
 
-fun output_width str =
-  let val (syms, width) =
-    fold_map (fn (w, s) => fn width => (s, w + width)) (output_syms (Symbol.explode str)) 0
-  in (implode syms, width) end;
-
+fun output_width str = output_syms (Symbol.explode str) ([], 0);
 val output = #1 o output_width;
 
 val _ = Output.add_mode htmlN output_width Symbol.encode_raw;
