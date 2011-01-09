@@ -235,7 +235,7 @@ val not_singleton = "Exactly one command expected";
 
 fun prepare_span commands span =
   let
-    val range_pos = Position.encode_range (Thy_Syntax.span_range span);
+    val range_pos = Position.set_range (Thy_Syntax.span_range span);
     val toks = Thy_Syntax.span_content span;
     val _ = List.app Thy_Syntax.report_token toks;
   in

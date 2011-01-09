@@ -189,8 +189,8 @@ val end_offsetN = "end_offset";
 val fileN = "file";
 val idN = "id";
 
-val position_properties' = [end_offsetN, fileN, idN];
-val position_properties = [lineN, columnN, offsetN] @ position_properties';
+val position_properties' = [fileN, idN];
+val position_properties = [lineN, columnN, offsetN, end_offsetN] @ position_properties';
 
 val (positionN, position) = markup_elem "position";
 

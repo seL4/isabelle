@@ -153,7 +153,7 @@ fun present_span span =
   Markup.enclose (kind_markup (span_kind span)) (implode (map present_token (span_content span)));
 
 fun report_span span =
-  Position.report (Position.encode_range (span_range span)) (kind_markup (span_kind span));
+  Position.report (Position.set_range (span_range span)) (kind_markup (span_kind span));
 
 end;
 
