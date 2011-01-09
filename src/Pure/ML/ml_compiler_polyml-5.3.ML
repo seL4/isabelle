@@ -12,7 +12,7 @@ struct
 fun position_of (loc: PolyML.location) =
   let
     val {file = text, startLine = line, startPosition = offset,
-      endLine = end_line, endPosition = end_offset} = loc;
+      endLine = _, endPosition = end_offset} = loc;
     val loc_props =
       (case YXML.parse text of
         XML.Elem ((e, atts), _) => if e = Markup.positionN then atts else []
@@ -20,7 +20,6 @@ fun position_of (loc: PolyML.location) =
   in
     Position.value Markup.lineN line @
     Position.value Markup.offsetN offset @
-    Position.value Markup.end_lineN end_line @
     Position.value Markup.end_offsetN end_offset @
     loc_props
   end |> Position.of_properties;

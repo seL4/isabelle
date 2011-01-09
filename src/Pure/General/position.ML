@@ -163,13 +163,11 @@ type range = T * T;
 val no_range = (none, none);
 
 fun encode_range (Pos (count, props), Pos ((i, j, k), _)) =
-  let val props' = props |> fold_rev Properties.put
-    (value Markup.end_lineN i @ value Markup.end_columnN j @ value Markup.end_offsetN k)
+  let val props' = props |> fold Properties.put (value Markup.end_offsetN k)
   in Pos (count, props') end;
 
 fun reset_range (Pos (count, props)) =
-  let val props' = props |> fold Properties.remove
-    [Markup.end_lineN, Markup.end_columnN, Markup.end_offsetN]
+  let val props' = props |> Properties.remove Markup.end_offsetN
   in Pos (count, props') end;
 
 fun range pos pos' = (encode_range (pos, pos'), pos');

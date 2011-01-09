@@ -22,8 +22,6 @@ sig
   val lineN: string
   val columnN: string
   val offsetN: string
-  val end_lineN: string
-  val end_columnN: string
   val end_offsetN: string
   val fileN: string
   val idN: string
@@ -187,13 +185,11 @@ val refN = "ref";
 val lineN = "line";
 val columnN = "column";
 val offsetN = "offset";
-val end_lineN = "end_line";
-val end_columnN = "end_column";
 val end_offsetN = "end_offset";
 val fileN = "file";
 val idN = "id";
 
-val position_properties' = [end_lineN, end_columnN, end_offsetN, fileN, idN];
+val position_properties' = [end_offsetN, fileN, idN];
 val position_properties = [lineN, columnN, offsetN] @ position_properties';
 
 val (positionN, position) = markup_elem "position";

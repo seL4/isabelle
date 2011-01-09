@@ -12,7 +12,6 @@ object Position
   type T = List[(String, String)]
 
   val Line = new Markup.Int_Property(Markup.LINE)
-  val End_Line = new Markup.Int_Property(Markup.END_LINE)
   val Offset = new Markup.Int_Property(Markup.OFFSET)
   val End_Offset = new Markup.Int_Property(Markup.END_OFFSET)
   val File = new Markup.Property(Markup.FILE)

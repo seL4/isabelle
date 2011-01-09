@@ -100,14 +100,11 @@ object Markup
   val LINE = "line"
   val COLUMN = "column"
   val OFFSET = "offset"
-  val END_LINE = "end_line"
-  val END_COLUMN = "end_column"
   val END_OFFSET = "end_offset"
   val FILE = "file"
   val ID = "id"
 
-  val POSITION_PROPERTIES =
-    Set(LINE, COLUMN, OFFSET, END_LINE, END_COLUMN, END_OFFSET, FILE, ID)
+  val POSITION_PROPERTIES = Set(LINE, COLUMN, OFFSET, END_OFFSET, FILE, ID)
 
   val POSITION = "position"
 
