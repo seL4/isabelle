@@ -179,19 +179,20 @@ val trace = Config.bool trace_raw;
 fun eval verbose pos ants =
   let
     (*prepare source text*)
-    val ((env, body), env_ctxt) =
-      eval_antiquotes (ants, pos) (Context.thread_data ())
-      ||> Option.map (Context.mapping I (Context_Position.set_visible false));
+    val ((env, body), env_ctxt) = eval_antiquotes (ants, pos) (Context.thread_data ());
     val _ =
-      (case env_ctxt of
-        SOME context =>
-          if Config.get (Context.proof_of context) trace then
-            tracing (cat_lines [ML_Lex.flatten env, ML_Lex.flatten body])
+      (case Option.map Context.proof_of env_ctxt of
+        SOME ctxt =>
+          if Config.get ctxt trace then
+            Context_Position.if_visible ctxt
+              tracing (cat_lines [ML_Lex.flatten env, ML_Lex.flatten body])
           else ()
       | NONE => ());
 
     (*prepare static ML environment*)
-    val _ = Context.setmp_thread_data env_ctxt
+    val _ =
+      Context.setmp_thread_data
+        (Option.map (Context.mapping I (Context_Position.set_visible false)) env_ctxt)
         (fn () => (ML_Compiler.eval false Position.none env; Context.thread_data ())) ()
       |> (fn NONE => () | SOME context' => Context.>> (ML_Env.inherit context'));
 
