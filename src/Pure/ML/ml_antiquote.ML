@@ -48,7 +48,7 @@ fun declaration kind name scan = ML_Context.add_antiq name
     let
       val (a, background') = variant (translate_string (fn "." => "_" | c => c) name) background;
       val env = kind ^ " " ^ a ^ " = " ^ s ^ ";\n";
-      val body = " Isabelle." ^ a ^ " ";
+      val body = "Isabelle." ^ a;
     in (K (env, body), background') end));
 
 val value = declaration "val";

@@ -39,7 +39,7 @@ fun thm_antiq kind scan = ML_Context.add_antiq kind
       val i = serial ();
       val (a, background') = background
         |> ML_Antiquote.variant kind ||> put_thms (i, ths);
-      val ml = (thm_bind kind a i, " Isabelle." ^ a ^ " ");
+      val ml = (thm_bind kind a i, "Isabelle." ^ a);
     in (K ml, background') end));
 
 val _ = thm_antiq "thm" (Attrib.thm >> single);
@@ -69,8 +69,7 @@ val _ = ML_Context.add_antiq "lemma"
         val (a, background') = background
           |> ML_Antiquote.variant "lemma" ||> put_thms (i, the_thms ctxt' i);
         val ml =
-          (thm_bind (if length (flat propss) = 1 then "thm" else "thms") a i,
-            " Isabelle." ^ a ^ " ");
+          (thm_bind (if length (flat propss) = 1 then "thm" else "thms") a i, "Isabelle." ^ a);
       in (K ml, background') end));
 
 end;
