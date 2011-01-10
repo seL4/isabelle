@@ -98,8 +98,9 @@ fun is_available ctxt name =
 fun available_solvers_of ctxt =
   filter (is_available ctxt) (all_solvers_of ctxt)
 
-fun warn_solver name =
-  warning ("The SMT solver " ^ quote name ^ " is not installed.")
+fun warn_solver context name =
+  Context_Position.if_visible_proof context
+    warning ("The SMT solver " ^ quote name ^ " is not installed.")
 
 fun select_solver name context =
   let
@@ -108,7 +109,8 @@ fun select_solver name context =
   in
     if not (member (op =) (all_solvers_of ctxt) name) then
       error ("Trying to select unknown solver: " ^ quote name)
-    else if not (is_available ctxt name) then (warn_solver name; upd context)
+    else if not (is_available ctxt name) then
+      (warn_solver context name; upd context)
     else upd context
   end
 
