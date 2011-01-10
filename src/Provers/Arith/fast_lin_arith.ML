@@ -138,7 +138,7 @@ structure Data = Generic_Data
      lessD = Thm.merge_thms (lessD1, lessD2),
      neqE = Thm.merge_thms (neqE1, neqE2),
      simpset = Simplifier.merge_ss (simpset1, simpset2),
-     number_of = if is_some number_of1 then number_of1 else number_of2};
+     number_of = merge_options (number_of1, number_of2)};
 );
 
 val map_data = Data.map;

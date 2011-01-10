@@ -31,6 +31,7 @@ sig
   val the_list: 'a option -> 'a list
   val the_default: 'a -> 'a option -> 'a
   val perhaps: ('a -> 'a option) -> 'a -> 'a
+  val merge_options: 'a option * 'a option -> 'a option
 
   (*partiality*)
   val try: ('a -> 'b) -> 'a -> 'b option
@@ -89,6 +90,8 @@ fun the_default x (SOME y) = y
   | the_default x NONE = x;
 
 fun perhaps f x = the_default x (f x);
+
+fun merge_options (x, y) = if is_some x then x else y;
 
 
 (* partiality *)

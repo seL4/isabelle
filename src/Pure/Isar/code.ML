@@ -1245,7 +1245,7 @@ structure Code_Target_Attr = Theory_Data
   type T = (string -> thm -> theory -> theory) option;
   val empty = NONE;
   val extend = I;
-  fun merge (f1, f2) = if is_some f1 then f1 else f2;
+  val merge = merge_options;
 );
 
 fun set_code_target_attr f = Code_Target_Attr.map (K (SOME f));

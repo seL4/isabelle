@@ -54,7 +54,7 @@ structure Data = Theory_Data
 
   fun merge_opt eq (SOME x, SOME y) =
         if eq (x, y) then SOME x else error "Attempt to merge different object-logics"
-    | merge_opt _ (x, y) = if is_some x then x else y;
+    | merge_opt _ data = merge_options data;
 
   fun merge
      (Data {base_sort = base_sort1, judgment = judgment1, atomize_rulify = (atomize1, rulify1)},
