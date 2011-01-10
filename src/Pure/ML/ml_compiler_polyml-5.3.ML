@@ -22,9 +22,9 @@ fun position_of (loc: PolyML.location) =
       {line = line, column = 0, offset = offset, end_offset = end_offset, props = props}
   end;
 
-fun offset_position_of loc =
-  let val pos = position_of loc
-  in if is_some (Position.offset_of pos) then pos else Position.none end;
+fun offset_position_of (loc: PolyML.location) =
+  if #startPosition loc > 0 then position_of loc
+  else Position.none;
 
 fun exn_position exn =
   (case PolyML.exceptionLocation exn of
@@ -47,18 +47,21 @@ fun report_parse_tree depth space =
     fun report_decl markup loc decl =
       report_text (offset_position_of loc) Markup.ML_ref
         (Markup.markup (Position.markup (position_of decl) markup) "");
+
     fun report loc (PolyML.PTtype types) =
-          PolyML.NameSpace.displayTypeExpression (types, depth, space)
-          |> pretty_ml |> Pretty.from_ML |> Pretty.string_of
-          |> report_text (offset_position_of loc) Markup.ML_typing
-      | report loc (PolyML.PTdeclaredAt decl) = report_decl Markup.ML_def loc decl
-      | report loc (PolyML.PTopenedAt decl) = report_decl Markup.ML_open loc decl
-      | report loc (PolyML.PTstructureAt decl) = report_decl Markup.ML_struct loc decl
+          cons (fn () =>
+            PolyML.NameSpace.displayTypeExpression (types, depth, space)
+            |> pretty_ml |> Pretty.from_ML |> Pretty.string_of
+            |> report_text (offset_position_of loc) Markup.ML_typing)
+      | report loc (PolyML.PTdeclaredAt decl) = cons (fn () => report_decl Markup.ML_def loc decl)
+      | report loc (PolyML.PTopenedAt decl) = cons (fn () => report_decl Markup.ML_open loc decl)
+      | report loc (PolyML.PTstructureAt decl) =
+          cons (fn () => report_decl Markup.ML_struct loc decl)
       | report _ (PolyML.PTnextSibling tree) = report_tree (tree ())
       | report _ (PolyML.PTfirstChild tree) = report_tree (tree ())
-      | report _ _ = ()
-    and report_tree (loc, props) = List.app (report loc) props;
-  in report_tree end;
+      | report _ _ = I
+    and report_tree (loc, props) = fold (report loc) props;
+  in fn tree => List.app (fn e => e ()) (report_tree tree []) end;
 
 
 (* eval ML source tokens *)
