@@ -302,7 +302,7 @@ fun finite_guess_tac_i tactical ss i st =
               vs HOLogic.unit;
             val s' = list_abs (ps,
               Const ("Nominal.supp", fastype_of1 (Ts, s) -->
-                snd (split_last (binder_types T)) --> HOLogic.boolT) $ s);
+                List.last (binder_types T) --> HOLogic.boolT) $ s);
             val supports_rule' = Thm.lift_rule goal supports_rule;
             val _ $ (_ $ S $ _) =
               Logic.strip_assums_concl (hd (prems_of supports_rule'));

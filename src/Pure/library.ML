@@ -225,7 +225,6 @@ sig
   val foldl: ('a * 'b -> 'a) -> 'a * 'b list -> 'a
   val foldr: ('a * 'b -> 'b) -> 'a list * 'b -> 'b
   val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
-  val last_elem: 'a list -> 'a
 end;
 
 structure Library: LIBRARY =
@@ -454,8 +453,6 @@ fun map_range f i =
     fun mapp (k: int) =
       if k < i then f k :: mapp (k + 1) else [];
   in mapp 0 end;
-
-val last_elem = List.last;
 
 (*rear decomposition*)
 fun split_last [] = raise Empty

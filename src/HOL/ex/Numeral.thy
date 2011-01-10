@@ -588,7 +588,7 @@ lemmas Dig_plus_eval =
 simproc_setup numeral_minus ("of_num m - of_num n") = {*
   let
     (*TODO proper implicit use of morphism via pattern antiquotations*)
-    fun cdest_of_num ct = (snd o split_last o snd o Drule.strip_comb) ct;
+    fun cdest_of_num ct = (List.last o snd o Drule.strip_comb) ct;
     fun cdest_minus ct = case (rev o snd o Drule.strip_comb) ct of [n, m] => (m, n);
     fun attach_num ct = (dest_num (Thm.term_of ct), ct);
     fun cdifference t = (pairself (attach_num o cdest_of_num) o cdest_minus) t;

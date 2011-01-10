@@ -62,14 +62,17 @@ fun add optmod optnparms = Thm.declaration_attribute (fn thm => Context.mapping 
         let
           val cs = fold Term.add_const_names (Thm.prems_of thm) [];
           val rules = Symtab.lookup_list intros s;
-          val nparms = (case optnparms of
-            SOME k => k
-          | NONE => (case rules of
-             [] => (case try (Inductive.the_inductive (ProofContext.init_global thy)) s of
-                 SOME (_, {raw_induct, ...}) =>
-                   length (Inductive.params_of raw_induct)
-               | NONE => 0)
-            | xs => snd (snd (snd (split_last xs)))))
+          val nparms =
+            (case optnparms of
+              SOME k => k
+            | NONE =>
+                (case rules of
+                  [] =>
+                    (case try (Inductive.the_inductive (ProofContext.init_global thy)) s of
+                      SOME (_, {raw_induct, ...}) =>
+                        length (Inductive.params_of raw_induct)
+                    | NONE => 0)
+                | xs => snd (snd (List.last xs))))
         in CodegenData.put
           {intros = intros |>
            Symtab.update (s, (AList.update Thm.eq_thm_prop

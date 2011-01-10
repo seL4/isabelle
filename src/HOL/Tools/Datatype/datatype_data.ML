@@ -71,8 +71,9 @@ fun info_of_constr thy (c, T) =
   let
     val tab = Symtab.lookup_list ((#constrs o DatatypesData.get) thy) c;
     val hint = case body_type T of Type (tyco, _) => SOME tyco | _ => NONE;
-    val default = if null tab then NONE
-      else SOME (snd (Library.last_elem tab))
+    val default =
+      if null tab then NONE
+      else SOME (snd (List.last tab))
         (*conservative wrt. overloaded constructors*);
   in case hint
    of NONE => default

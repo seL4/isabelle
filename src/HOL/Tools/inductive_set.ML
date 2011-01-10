@@ -242,7 +242,7 @@ fun mk_to_pred_eq p fs optfs' T thm =
         NONE => thm' RS sym
       | SOME fs' =>
           let
-            val (_, U) = split_last (binder_types T);
+            val U = List.last (binder_types T);
             val Ts = HOLogic.strip_ptupleT fs' U;
             (* FIXME: should cterm_instantiate increment indexes? *)
             val arg_cong' = Thm.incr_indexes (Thm.maxidx_of thm + 1) arg_cong;

@@ -93,8 +93,8 @@ fun simproc ss redex =
               SOME i => 
                 let
                   val (Ts, _) = strip_type T
-                  val T' = snd (split_last Ts)
-                in SOME (snd (split_last args), T', i, nth args i) end
+                  val T' = List.last Ts
+                in SOME (List.last args, T', i, nth args i) end
             | NONE => NONE)
           | NONE => NONE)
         | NONE => NONE
@@ -111,13 +111,13 @@ fun simproc ss redex =
       THEN rtac @{thm impI} 1
       THEN Subgoal.FOCUS (fn {prems, context, ...} =>
         CONVERSION (right_hand_set_comprehension_conv (K
-          (conj_conv (Conv.rewr_conv (snd (split_last prems) RS @{thm Eq_TrueI})) Conv.all_conv
+          (conj_conv (Conv.rewr_conv (List.last prems RS @{thm Eq_TrueI})) Conv.all_conv
            then_conv rewr_conv' @{thm simp_thms(22)})) context) 1) ctxt 1
       THEN tac ctxt cont
       THEN rtac @{thm impI} 1
       THEN Subgoal.FOCUS (fn {prems, context, ...} =>
           CONVERSION (right_hand_set_comprehension_conv (K
-            (conj_conv (Conv.rewr_conv (snd (split_last prems) RS @{thm Eq_FalseI})) Conv.all_conv
+            (conj_conv (Conv.rewr_conv (List.last prems RS @{thm Eq_FalseI})) Conv.all_conv
              then_conv rewr_conv' @{thm simp_thms(24)})) context) 1) ctxt 1
       THEN rtac set_Nil_I 1
     | tac ctxt (Case (T, i) :: cont) =
@@ -135,7 +135,7 @@ fun simproc ss redex =
             Subgoal.FOCUS (fn {prems, context, ...} =>
               CONVERSION (Thm.eta_conversion then_conv right_hand_set_comprehension_conv (K
                   ((conj_conv 
-                    (eq_conv Conv.all_conv (rewr_conv' (snd (split_last prems)))
+                    (eq_conv Conv.all_conv (rewr_conv' (List.last prems))
                     then_conv (Conv.try_conv (Conv.rewrs_conv (map meta_eq (#inject info))))) Conv.all_conv)
                     then_conv (Conv.try_conv (Conv.rewr_conv del_refl_eq))
                     then_conv (Conv.try_conv (rewr_conv' @{thm conj_assoc})))) context
@@ -147,7 +147,7 @@ fun simproc ss redex =
               CONVERSION ((right_hand_set_comprehension_conv (K
                 (conj_conv
                   ((eq_conv Conv.all_conv
-                    (rewr_conv' (snd (split_last prems))))
+                    (rewr_conv' (List.last prems)))
                      then_conv (Conv.rewrs_conv (map (fn th => th RS @{thm Eq_FalseI}) (#distinct info)))) Conv.all_conv
                   then_conv (rewr_conv' @{thm simp_thms(24)}))) context)
                then_conv (Trueprop_conv (eq_conv Conv.all_conv (Collect_conv (fn (_, ctxt) =>

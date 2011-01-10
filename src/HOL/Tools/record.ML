@@ -250,8 +250,6 @@ val truncateN = "truncate";
 
 (*** utilities ***)
 
-fun but_last xs = fst (split_last xs);
-
 fun varifyT midx =
   let fun varify (a, S) = TVar ((a, midx + 1), S);
   in map_type_tfree varify end;
@@ -591,7 +589,7 @@ fun get_extT_fields thy T =
     val (fields, (more, _)) = split_last (Symtab.lookup_list extfields name);
     val args = map varifyT (snd (#extension (the (Symtab.lookup records recname))));
 
-    val subst = fold (Sign.typ_match thy) (but_last args ~~ but_last Ts) Vartab.empty;
+    val subst = fold (Sign.typ_match thy) (#1 (split_last args) ~~ #1 (split_last Ts)) Vartab.empty;
     val fields' = map (apsnd (Envir.norm_type subst o varifyT)) fields;
   in (fields', (more, moreT)) end;
 
@@ -689,7 +687,7 @@ fun record_field_types_tr more ctxt t =
               (case get_extfields thy ext of
                 SOME fields =>
                   let
-                    val fields' = but_last fields;
+                    val (fields', _) = split_last fields;
                     val types = map snd fields';
                     val (args, rest) = split_args (map fst fields') fargs;
                     val argtypes = map (Sign.certify_typ thy o decode_type thy) args;
@@ -701,7 +699,7 @@ fun record_field_types_tr more ctxt t =
                       handle Type.TYPE_MATCH => err "type is no proper record (extension)";
                     val term_of_typ = Syntax.term_of_typ (Config.get ctxt show_sorts);
                     val alphas' =
-                      map (term_of_typ o Envir.norm_type subst o varifyT) (but_last alphas);
+                      map (term_of_typ o Envir.norm_type subst o varifyT) (#1 (split_last alphas));
 
                     val more' = mk_ext rest;
                   in
@@ -749,7 +747,7 @@ fun record_fields_tr more ctxt t =
               (case get_extfields thy ext of
                 SOME fields =>
                   let
-                    val (args, rest) = split_args (map fst (but_last fields)) fargs;
+                    val (args, rest) = split_args (map fst (fst (split_last fields))) fargs;
                     val more' = mk_ext rest;
                   in list_comb (Syntax.const (Syntax.mark_const (ext ^ extN)), args @ [more']) end
               | NONE => err ("no fields defined for " ^ ext))
@@ -822,11 +820,11 @@ fun record_type_tr' ctxt t =
                   (case get_fieldext thy x of
                     SOME (_, alphas) =>
                      (let
-                        val f :: fs = but_last fields;
+                        val (f :: fs, _) = split_last fields;
                         val fields' =
                           apfst (Sign.extern_const thy) f :: map (apfst Long_Name.base_name) fs;
                         val (args', more) = split_last args;
-                        val alphavars = map varifyT (but_last alphas);
+                        val alphavars = map varifyT (#1 (split_last alphas));
                         val subst = Type.raw_matches (alphavars, args') Vartab.empty;
                         val fields'' = (map o apsnd) (Envir.norm_type subst o varifyT) fields';
                       in fields'' @ strip_fields more end
@@ -913,7 +911,7 @@ fun record_tr' ctxt t =
               (case get_extfields thy ext' of
                 SOME fields =>
                  (let
-                    val f :: fs = but_last (map fst fields);
+                    val (f :: fs, _) = split_last (map fst fields);
                     val fields' = extern f :: map Long_Name.base_name fs;
                     val (args', more) = split_last args;
                   in (fields' ~~ args') @ strip_fields more end

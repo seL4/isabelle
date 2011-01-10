@@ -324,7 +324,7 @@ fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lth
         val (i, j, cargs) = mk_idx eq
         val th = nth (nth rec_rewritess i) j;
         val cargs' = th |> concl_of |> HOLogic.dest_Trueprop |>
-          HOLogic.dest_eq |> fst |> strip_comb |> snd |> split_last |> snd |>
+          HOLogic.dest_eq |> fst |> strip_comb |> snd |> List.last |>
           strip_comb |> snd
       in (cargs, Logic.strip_imp_prems eq,
         Drule.cterm_instantiate (inst @

@@ -20,7 +20,7 @@ fun thm_deps thy thms =
     fun add_dep ("", _, _) = I
       | add_dep (name, _, PBody {thms = thms', ...}) =
           let
-            val prefix = #1 (Library.split_last (Long_Name.explode name));
+            val prefix = #1 (split_last (Long_Name.explode name));
             val session =
               (case prefix of
                 a :: _ =>
