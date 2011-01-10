@@ -16,7 +16,6 @@
 # Only one of the sections below should be activated.
 
 # Poly/ML 5.x (automated settings)
-POLY_HOME="$(type -p poly)"; [ -n "$POLY_HOME" ] && POLY_HOME="$(dirname "$POLY_HOME")"
 ML_PLATFORM="$ISABELLE_PLATFORM"
 ML_HOME="$(choosefrom \
   "$ISABELLE_HOME/contrib/polyml/$ML_PLATFORM" \
@@ -24,22 +23,22 @@ ML_HOME="$(choosefrom \
   "/usr/local/polyml/$ML_PLATFORM" \
   "/usr/share/polyml/$ML_PLATFORM" \
   "/opt/polyml/$ML_PLATFORM" \
-  "$POLY_HOME")"
+  "")"
 ML_SYSTEM=$("$ISABELLE_HOME/lib/scripts/polyml-version")
 ML_OPTIONS="-H 200"
 ML_SOURCES="$ML_HOME/../src"
 
-# Poly/ML 5.3.0
+# Poly/ML 5.4.0
 #ML_PLATFORM=x86-linux
 #ML_HOME=/usr/local/polyml/x86-linux
-#ML_SYSTEM=polyml-5.3.0
+#ML_SYSTEM=polyml-5.4.0
 #ML_OPTIONS="-H 500"
 #ML_SOURCES="$ML_HOME/../src"
 
-# Poly/ML 5.3.0 (64 bit)
+# Poly/ML 5.4.0 (64 bit)
 #ML_PLATFORM=x86_64-linux
 #ML_HOME=/usr/local/polyml/x86_64-linux
-#ML_SYSTEM=polyml-5.3.0
+#ML_SYSTEM=polyml-5.4.0
 #ML_OPTIONS="-H 1000"
 #ML_SOURCES="$ML_HOME/../src"
 

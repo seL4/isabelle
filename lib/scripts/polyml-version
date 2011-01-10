@@ -2,7 +2,9 @@
 #
 # polyml-version --- determine Poly/ML runtime system version
 
-if [ -x "$ML_HOME/poly" ]; then
+if [ -x "$ML_HOME/polyml-version" ]; then
+  "$ML_HOME/polyml-version"
+elif [ -x "$ML_HOME/poly" ]; then
   VERSION="$(env \
     LD_LIBRARY_PATH="$ML_HOME:$ML_HOME/../lib:$LD_LIBRARY_PATH" \
     DYLD_LIBRARY_PATH="$ML_HOME:$ML_HOME/../lib:$DYLD_LIBRARY_PATH" \
