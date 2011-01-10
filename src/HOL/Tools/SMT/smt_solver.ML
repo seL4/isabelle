@@ -175,8 +175,6 @@ structure Solvers = Generic_Data
   val empty = Symtab.empty
   val extend = I
   fun merge data = Symtab.merge (K true) data
-    handle Symtab.DUP name => error ("Duplicate SMT solver: " ^ quote name)
-    (* FIXME never happens because of (K true) *)
 )
 
 local
