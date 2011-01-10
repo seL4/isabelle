@@ -165,7 +165,7 @@ fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
            ["Minimized: " ^ string_of_int n ^ " fact" ^ plural_s n] ^
             (case length (filter (curry (op =) Chained o snd o fst) min_thms) of
                0 => ""
-             | n => " (including " ^ Int.toString n ^ " chained)") ^ ".")
+             | n => " (including " ^ string_of_int n ^ " chained)") ^ ".")
        in (SOME min_thms, message) end
      | {outcome = SOME TimedOut, ...} =>
        (NONE, "Timeout: You can increase the time limit using the \"timeout\" \

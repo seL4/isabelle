@@ -21,7 +21,7 @@ fun make_header_field (name, value) = concat [name, ": ", value, crlf];
 
 fun reply_header (status, content_type, extra_fields) =
   let
-    val code = (Int.toString o HttpStatus.to_status_code) status;
+    val code = (string_of_int o HttpStatus.to_status_code) status;
     val reason = HttpStatus.to_reason status;
     val show_content_type = pair "Content-Type" o Mime.show_type;
   in

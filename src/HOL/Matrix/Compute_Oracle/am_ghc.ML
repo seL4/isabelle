@@ -108,7 +108,7 @@ end
                                                 
 fun print_rule arity_of (p, t) = 
     let 
-        fun str x = Int.toString x                  
+        fun str x = string_of_int x                  
         fun print_pattern top n PVar = (n+1, "x"^(str n))
           | print_pattern top n (PConst (c, [])) = (n, (if top then "c" else "C")^(str c))
           | print_pattern top n (PConst (c, args)) = 
@@ -149,7 +149,7 @@ fun haskell_prog name rules =
         fun writeln s = (write s; write "\n")
         fun writelist [] = ()
           | writelist (s::ss) = (writeln s; writelist ss)
-        fun str i = Int.toString i
+        fun str i = string_of_int i
         val (arity, rules) = adjust_rules rules
         val rules = group_rules rules
         val constants = Inttab.keys arity
@@ -206,7 +206,7 @@ fun get_guid () =
         val c = !guid_counter
         val _ = guid_counter := !guid_counter + 1
     in
-        (Int.toString (Time.toMicroseconds (Time.now ()))) ^ (string_of_int c)
+        string_of_int (Time.toMicroseconds (Time.now ())) ^ string_of_int c
     end
 
 fun tmp_file s = Path.implode (Path.expand (File.tmp_path (Path.make [s])));

@@ -144,7 +144,7 @@ fun cplexProg c A b =
 
         fun nameof i =
             let
-                val s = "x"^(Int.toString i)
+                val s = "x" ^ string_of_int i
                 val _ = Unsynchronized.change ytable (Inttab.update (i, s))
             in
                 s
@@ -201,7 +201,7 @@ fun dual_cplexProg c A b =
             else case Int.fromString (String.extract(s, 1, NONE)) of
                      SOME i => i | NONE => raise (No_name s)
 
-        fun nameof i = "y"^(Int.toString i)
+        fun nameof i = "y" ^ string_of_int i
 
         fun split_numstr s =
             if String.isPrefix "-" s then (false,String.extract(s, 1, NONE))

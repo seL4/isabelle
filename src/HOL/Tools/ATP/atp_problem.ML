@@ -97,7 +97,7 @@ fun tptp_strings_for_atp_problem use_conjecture_for_hypotheses problem =
   \% " ^ timestamp () ^ "\n" ::
   maps (fn (_, []) => []
          | (heading, lines) =>
-           "\n% " ^ heading ^ " (" ^ Int.toString (length lines) ^ ")\n" ::
+           "\n% " ^ heading ^ " (" ^ string_of_int (length lines) ^ ")\n" ::
            map (string_for_problem_line use_conjecture_for_hypotheses) lines)
        problem
 
@@ -138,7 +138,7 @@ fun nice_name (full_name, _) NONE = (full_name, NONE)
         fun add j =
           let
             val nice_name = nice_prefix ^
-                            (if j = 0 then "" else "_" ^ Int.toString j)
+                            (if j = 0 then "" else "_" ^ string_of_int j)
           in
             case Symtab.lookup (snd the_pool) nice_name of
               SOME full_name' =>

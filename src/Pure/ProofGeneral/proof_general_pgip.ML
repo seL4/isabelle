@@ -498,7 +498,7 @@ fun undostep (Undostep vs) =
     let
         val times = #times vs
     in
-        isarcmd ("undos_proof " ^ Int.toString times)
+        isarcmd ("undos_proof " ^ string_of_int times)
     end
 
 fun redostep _ = raise Fail "redo unavailable"
@@ -726,7 +726,7 @@ fun setlinewidth (Setlinewidth vs) =
     let
         val width = #width vs
     in
-        isarcmd ("pretty_setmargin " ^ Int.toString width) (* FIXME: conversion back/forth! *)
+        isarcmd ("pretty_setmargin " ^ string_of_int width) (* FIXME: conversion back/forth! *)
     end
 
 fun viewdoc (Viewdoc vs) =

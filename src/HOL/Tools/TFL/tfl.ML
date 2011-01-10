@@ -309,7 +309,7 @@ local fun mk_functional_err s = raise TFL_ERR "mk_functional" s
               then mk_functional_err
                    "The function being declared appears with multiple types"
               else mk_functional_err
-                   (Int.toString (length fs) ^
+                   (string_of_int (length fs) ^
                     " distinct function names being declared")
 in
 fun mk_functional thy clauses =
@@ -340,7 +340,7 @@ fun mk_functional thy clauses =
              of [] => ()
           | L => mk_functional_err
  ("The following clauses are redundant (covered by preceding clauses): " ^
-                   commas (map (fn i => Int.toString (i + 1)) L))
+                   commas (map (fn i => string_of_int (i + 1)) L))
  in {functional = Abs(Long_Name.base_name fname, ftype,
                       abstract_over (atom,
                                      absfree(aname,atype, case_tm))),

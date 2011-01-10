@@ -45,7 +45,7 @@ local
     if Symbol.is_raw s then (1, Symbol.decode_raw s)
     else
       (case UnicodeSymbols.symbol_to_unicode s of
-         SOME x => (sym_width s, "&#" ^ Int.toString x ^ ";") (* numeric entities *)
+         SOME x => (sym_width s, "&#" ^ string_of_int x ^ ";") (* numeric entities *)
          (* SOME x => (sym_width s, UnicodeSymbols.utf8 [x])     (* utf-8 *) *)
        | NONE => (size s, XML.text s));
 

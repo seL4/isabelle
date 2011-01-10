@@ -396,7 +396,7 @@ fun prop_formula_of_term t table =
 
 fun term_of_prop_formula True = HOLogic.true_const
   | term_of_prop_formula False = HOLogic.false_const
-  | term_of_prop_formula (BoolVar i) = Free ("v" ^ Int.toString i, HOLogic.boolT)
+  | term_of_prop_formula (BoolVar i) = Free ("v" ^ string_of_int i, HOLogic.boolT)
   | term_of_prop_formula (Not fm) = HOLogic.mk_not (term_of_prop_formula fm)
   | term_of_prop_formula (Or (fm1, fm2)) =
       HOLogic.mk_disj (term_of_prop_formula fm1, term_of_prop_formula fm2)

@@ -150,7 +150,7 @@ val invert_const = perhaps (Symtab.lookup const_trans_table_inv)
 val A_minus_space = Char.ord #"A" - Char.ord #" ";
 
 fun stringN_of_int 0 _ = ""
-  | stringN_of_int k n = stringN_of_int (k-1) (n div 10) ^ Int.toString (n mod 10);
+  | stringN_of_int k n = stringN_of_int (k-1) (n div 10) ^ string_of_int (n mod 10);
 
 fun ascii_of_c c =
   if Char.isAlphaNum c then String.str c
@@ -196,7 +196,7 @@ fun trim_type_var s =
   else error ("trim_type: Malformed type variable encountered: " ^ s);
 
 fun ascii_of_indexname (v,0) = ascii_of v
-  | ascii_of_indexname (v,i) = ascii_of v ^ "_" ^ Int.toString i;
+  | ascii_of_indexname (v,i) = ascii_of v ^ "_" ^ string_of_int i;
 
 fun make_bound_var x = bound_var_prefix ^ ascii_of x
 fun make_schematic_var v = schematic_var_prefix ^ ascii_of_indexname v
@@ -275,7 +275,7 @@ datatype arity_clause =
 
 
 fun gen_TVars 0 = []
-  | gen_TVars n = ("T_" ^ Int.toString n) :: gen_TVars (n-1);
+  | gen_TVars n = ("T_" ^ string_of_int n) :: gen_TVars (n-1);
 
 fun pack_sort(_,[])  = []
   | pack_sort(tvar, "HOL.type"::srt) = pack_sort (tvar, srt)   (*IGNORE sort "type"*)
@@ -326,7 +326,7 @@ fun arity_clause _ _ (_, []) = []
       arity_clause seen n (tcons,ars)
   | arity_clause seen n (tcons, (ar as (class,_)) :: ars) =
       if member (op =) seen class then (*multiple arities for the same tycon, class pair*)
-          make_axiom_arity_clause (tcons, lookup_const tcons ^ "_" ^ class ^ "_" ^ Int.toString n, ar) ::
+          make_axiom_arity_clause (tcons, lookup_const tcons ^ "_" ^ class ^ "_" ^ string_of_int n, ar) ::
           arity_clause seen (n+1) (tcons,ars)
       else
           make_axiom_arity_clause (tcons, lookup_const tcons ^ "_" ^ class, ar) ::
@@ -473,7 +473,7 @@ val literals_of_term = literals_of_term1 ([], [])
 
 fun old_skolem_const_name i j num_T_args =
   old_skolem_const_prefix ^ Long_Name.separator ^
-  (space_implode Long_Name.separator (map Int.toString [i, j, num_T_args]))
+  (space_implode Long_Name.separator (map string_of_int [i, j, num_T_args]))
 
 fun conceal_old_skolem_terms i old_skolems t =
   if exists_Const (curry (op =) @{const_name Meson.skolem} o fst) t then

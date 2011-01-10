@@ -245,7 +245,7 @@ fun section n = if n = 0 then [] else (section (n-1))@[n-1]
                                                 
 fun print_rule gnum arity_of toplevel_arity_of (guards, p, t) = 
     let 
-        fun str x = Int.toString x                  
+        fun str x = string_of_int x                  
         fun print_pattern top n PVar = (n+1, "x"^(str n))
           | print_pattern top n (PConst (c, [])) = (n, (if top then "c" else "C")^(str c)^(if top andalso gnum > 0 then "_"^(str gnum) else ""))
           | print_pattern top n (PConst (c, args)) = 
@@ -300,7 +300,7 @@ fun sml_prog name code rules =
         fun writeln s = (write s; write "\n")
         fun writelist [] = ()
           | writelist (s::ss) = (writeln s; writelist ss)
-        fun str i = Int.toString i
+        fun str i = string_of_int i
         val (inlinetab, rules) = inline_rules rules
         val (arity, toplevel_arity, rules) = adjust_rules rules
         val rules = group_rules rules
@@ -486,7 +486,7 @@ fun get_guid () =
         val c = !guid_counter
         val _ = guid_counter := !guid_counter + 1
     in
-        (Int.toString (Time.toMicroseconds (Time.now ()))) ^ (string_of_int c)
+        string_of_int (Time.toMicroseconds (Time.now ())) ^ string_of_int c
     end
 
 

@@ -115,8 +115,8 @@ fun server' 0 server_prefix port = (warning "Giving up."; exit 1)
       server server_prefix port
         handle OS.SysErr ("bind failed", _) =>
           (warning ("Could not acquire port "
-                    ^ Int.toString port ^ ". Trying again in "
-                    ^ Int.toString delay ^ " seconds...");
+                    ^ string_of_int port ^ ". Trying again in "
+                    ^ string_of_int delay ^ " seconds...");
            OS.Process.sleep (Time.fromSeconds delay);
            server' (countdown - 1) server_prefix port);
 end;

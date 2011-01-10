@@ -657,7 +657,7 @@ let
       fun sat_to_proof id = (
         case Inttab.lookup (!clause_id_map) id of
           SOME id' => id'
-        | NONE     => raise INVALID_PROOF ("Clause ID " ^ Int.toString id ^ " used, but not defined.")
+        | NONE     => raise INVALID_PROOF ("Clause ID " ^ string_of_int id ^ " used, but not defined.")
       )
       val next_id = Unsynchronized.ref (number_of_clauses - 1)
       (* string list -> unit *)

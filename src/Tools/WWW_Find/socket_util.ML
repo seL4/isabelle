@@ -41,7 +41,7 @@ fun make_streams sock =
     val (haddr, port) = INetSock.fromAddr (Socket.Ctl.getSockName sock);
 
     val sock_name =
-      String.concat [ NetHostDB.toString haddr, ":", Int.toString port ];
+      String.concat [ NetHostDB.toString haddr, ":", string_of_int port ];
 
     val rd =
       BinPrimIO.RD {

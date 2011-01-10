@@ -365,7 +365,7 @@ fun run_sh prover_name prover type_sys hard_timeout timeout dir st =
       Sledgehammer_Isar.default_params ctxt
           [("verbose", "true"),
            ("type_sys", type_sys),
-           ("timeout", Int.toString timeout)]
+           ("timeout", string_of_int timeout)]
     val default_max_relevant =
       Sledgehammer_Provers.default_max_relevant_for_prover ctxt prover_name
     val is_built_in_const =
@@ -479,7 +479,7 @@ fun run_minimize args reconstructor named_thms id
       [("provers", prover_name),
        ("verbose", "true"),
        ("type_sys", type_sys),
-       ("timeout", Int.toString timeout)]
+       ("timeout", string_of_int timeout)]
     val minimize =
       Sledgehammer_Minimize.minimize_facts prover_name params true 1
                                            (Sledgehammer_Util.subgoal_count st)

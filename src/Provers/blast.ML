@@ -651,7 +651,7 @@ fun tracing (State {thy, fullTrace, ...}) brs =
       fun printBrs (brs0 as {pairs, lits, lim, ...} :: brs) =
             (fullTrace := brs0 :: !fullTrace;
              List.app (fn _ => Output.tracing "+") brs;
-             Output.tracing (" [" ^ Int.toString lim ^ "] ");
+             Output.tracing (" [" ^ string_of_int lim ^ "] ");
              printPairs pairs;
              writeln"")
   in if !trace then printBrs (map normBr brs) else ()
@@ -665,7 +665,7 @@ fun traceVars (State {thy, ntrail, trail, ...}) ntrl =
       (case !ntrail-ntrl of
             0 => ()
           | 1 => Output.tracing "\t1 variable UPDATED:"
-          | n => Output.tracing ("\t" ^ Int.toString n ^ " variables UPDATED:");
+          | n => Output.tracing ("\t" ^ string_of_int n ^ " variables UPDATED:");
        (*display the instantiations themselves, though no variable names*)
        List.app (fn v => Output.tracing ("   " ^ string_of thy 4 (the (!v))))
            (List.take(!trail, !ntrail-ntrl));
@@ -678,7 +678,7 @@ fun traceNew prems =
         case length prems of
             0 => Output.tracing "branch closed by rule"
           | 1 => Output.tracing "branch extended (1 new subgoal)"
-          | n => Output.tracing ("branch split: "^ Int.toString n ^ " new subgoals")
+          | n => Output.tracing ("branch split: "^ string_of_int n ^ " new subgoals")
     else ();
 
 
@@ -844,7 +844,7 @@ fun prune _ (1, nxtVars, choices) = choices  (*DON'T prune at very end: allow
                 let val ll = length last
                     and lc = length choices
                 in if !trace andalso ll<lc then
-                    (writeln("Pruning " ^ Int.toString(lc-ll) ^ " levels");
+                    (writeln("Pruning " ^ string_of_int(lc-ll) ^ " levels");
                      last)
                    else last
                 end
@@ -865,7 +865,7 @@ fun nextVars ({pairs, lits, vars, lim} :: _) = map Var vars
 
 fun backtrack (choices as (ntrl, nbrs, exn)::_) =
       (if !trace then (writeln ("Backtracking; now there are " ^
-                                Int.toString nbrs ^ " branches"))
+                                string_of_int nbrs ^ " branches"))
                  else ();
        raise exn)
   | backtrack _ = raise PROVE;
@@ -915,9 +915,9 @@ and matchs [] [] = true
 fun printStats (State {ntried, nclosed, ...}) (b, start, tacs) =
   if b then
     writeln (#message (end_timing start) ^ " for search.  Closed: "
-             ^ Int.toString (!nclosed) ^
-             " tried: " ^ Int.toString (!ntried) ^
-             " tactics: " ^ Int.toString (length tacs))
+             ^ string_of_int (!nclosed) ^
+             " tried: " ^ string_of_int (!ntried) ^
+             " tactics: " ^ string_of_int (length tacs))
   else ();
 
 
@@ -1260,7 +1260,7 @@ fun timing_depth_tac start cs lim i st0 =
           in
           case Seq.pull(EVERY' (rev tacs) i st) of
               NONE => (writeln ("PROOF FAILED for depth " ^
-                                Int.toString lim);
+                                string_of_int lim);
                        if !trace then error "************************\n"
                        else ();
                        backtrack choices)

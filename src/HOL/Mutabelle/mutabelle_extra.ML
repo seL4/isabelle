@@ -399,10 +399,10 @@ fun mutate_theorem create_entry thy mtds thm =
       if exec then
         let
           val _ = Output.urgent_message ("BEFORE PARTITION OF " ^
-                            Int.toString (length mutants) ^ " MUTANTS")
+                            string_of_int (length mutants) ^ " MUTANTS")
           val (execs, noexecs) = List.partition (is_executable_term thy) (take_random (20 * max_mutants) mutants)
-          val _ = tracing ("AFTER PARTITION (" ^ Int.toString (length execs) ^
-                           " vs " ^ Int.toString (length noexecs) ^ ")")
+          val _ = tracing ("AFTER PARTITION (" ^ string_of_int (length execs) ^
+                           " vs " ^ string_of_int (length noexecs) ^ ")")
         in
           execs @ take_random (Int.max (0, max_mutants - length execs)) noexecs
         end
@@ -468,10 +468,10 @@ fun theoryfile_string_of_detailed_entry thy (thm_name, exec, t, mutant_subentrie
 (* subentry -> string *)
 fun string_for_subentry (mtd_name, genuine_cex, potential_cex, no_cex, donno,
                          timeout, error) =
-  "    " ^ mtd_name ^ ": " ^ Int.toString genuine_cex ^ "+ " ^
-  Int.toString potential_cex ^ "= " ^ Int.toString no_cex ^ "- " ^
-  Int.toString donno ^ "? " ^ Int.toString timeout ^ "T " ^
-  Int.toString error ^ "!"
+  "    " ^ mtd_name ^ ": " ^ string_of_int genuine_cex ^ "+ " ^
+  string_of_int potential_cex ^ "= " ^ string_of_int no_cex ^ "- " ^
+  string_of_int donno ^ "? " ^ string_of_int timeout ^ "T " ^
+  string_of_int error ^ "!"
 
 (* entry -> string *)
 fun string_for_entry (thm_name, exec, subentries) =

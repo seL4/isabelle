@@ -20,7 +20,7 @@ fun run_atp force_full_types timeout i n ctxt goal name =
     val chained_ths = [] (* a tactic has no chained ths *)
     val params as {type_sys, relevance_thresholds, max_relevant, ...} =
       ((if force_full_types then [("full_types", "true")] else [])
-       @ [("timeout", Int.toString (Time.toSeconds timeout))])
+       @ [("timeout", string_of_int (Time.toSeconds timeout))])
        (* @ [("overlord", "true")] *)
       |> Sledgehammer_Isar.default_params ctxt
     val prover = Sledgehammer_Provers.get_prover ctxt false name

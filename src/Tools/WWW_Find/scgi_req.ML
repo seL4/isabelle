@@ -80,7 +80,7 @@ fun split_fields vec =
     val nulls = ~1 :: (Word8Vector.foldri find_nulls [] vec);
 
     fun pr NONE = "NONE"
-      | pr (SOME i) = "SOME " ^ Int.toString i;
+      | pr (SOME i) = "SOME " ^ string_of_int i;
 
     fun hd_diff (i1::i2::_) = SOME (i2 - i1 - 1)
       | hd_diff _ = NONE;

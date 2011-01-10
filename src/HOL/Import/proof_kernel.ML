@@ -1281,7 +1281,7 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
                 val _ = (message "Looking for consts:";
                          message (commas cs))
                 val pot_thms = Shuffler.find_potential thy isaconc
-                val _ = message ((Int.toString (length pot_thms)) ^ " potential theorems")
+                val _ = message (string_of_int (length pot_thms) ^ " potential theorems")
             in
                 case Shuffler.set_prop thy isaconc pot_thms of
                     SOME (isaname,th) =>

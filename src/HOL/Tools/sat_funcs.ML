@@ -346,9 +346,9 @@ fun rawsat_thm ctxt clauses =
        (if !trace_sat then
           tracing ("Proof trace from SAT solver:\n" ^
             "clauses: " ^ ML_Syntax.print_list
-              (ML_Syntax.print_pair Int.toString (ML_Syntax.print_list Int.toString))
+              (ML_Syntax.print_pair ML_Syntax.print_int (ML_Syntax.print_list ML_Syntax.print_int))
               (Inttab.dest clause_table) ^ "\n" ^
-            "empty clause: " ^ Int.toString empty_id)
+            "empty clause: " ^ string_of_int empty_id)
         else ();
         if !quick_and_dirty then
           make_quick_and_dirty_thm ()

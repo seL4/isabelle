@@ -143,7 +143,7 @@ fun combformula_for_prop thy eq_as_iff =
 
 val presimplify_term = prop_of o Meson.presimplify oo Skip_Proof.make_thm
 
-fun concealed_bound_name j = sledgehammer_weak_prefix ^ Int.toString j
+fun concealed_bound_name j = sledgehammer_weak_prefix ^ string_of_int j
 fun conceal_bounds Ts t =
   subst_bounds (map (Free o apfst concealed_bound_name)
                     (0 upto length Ts - 1 ~~ Ts), t)
@@ -247,7 +247,7 @@ fun make_fact ctxt eq_as_iff presimp ((name, _), th) =
   | formula => SOME formula
 fun make_conjecture ctxt ts =
   let val last = length ts - 1 in
-    map2 (fn j => make_formula ctxt true true (Int.toString j)
+    map2 (fn j => make_formula ctxt true true (string_of_int j)
                                (if j = last then Conjecture else Hypothesis))
          (0 upto last) ts
   end

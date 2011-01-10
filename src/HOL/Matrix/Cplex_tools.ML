@@ -1134,7 +1134,7 @@ fun wrap s = "\""^s^"\"";
 
 fun solve_glpk prog =
     let
-    val name = Int.toString (Time.toMicroseconds (Time.now ()))
+    val name = string_of_int (Time.toMicroseconds (Time.now ()))
     val lpname = tmp_file (name^".lp")
     val resultname = tmp_file (name^".txt")
     val _ = save_cplexFile lpname prog
@@ -1165,7 +1165,7 @@ fun solve_cplex prog =
         ()
         end
 
-    val name = Int.toString (Time.toMicroseconds (Time.now ()))
+    val name = string_of_int (Time.toMicroseconds (Time.now ()))
     val lpname = tmp_file (name^".lp")
     val resultname = tmp_file (name^".txt")
     val scriptname = tmp_file (name^".script")
@@ -1174,7 +1174,7 @@ fun solve_cplex prog =
     val cplex = if cplex_path = "" then "cplex" else cplex_path
     val _ = write_script scriptname lpname resultname
     val command = (wrap cplex)^" < "^(wrap scriptname)^" > /dev/null"
-    val answer = "return code "^(Int.toString (bash command))
+    val answer = "return code " ^ string_of_int (bash command)
     in
     let
         val result = load_cplexResult resultname

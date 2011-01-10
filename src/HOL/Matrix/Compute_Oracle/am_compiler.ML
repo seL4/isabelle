@@ -30,7 +30,7 @@ fun count_patternvars PVar = 1
 
 fun print_rule (p, t) = 
     let
-        fun str x = Int.toString x
+        fun str x = string_of_int x
         fun print_pattern n PVar = (n+1, "x"^(str n))
           | print_pattern n (PConst (c, [])) = (n, "c"^(str c))
           | print_pattern n (PConst (c, args)) = 
@@ -86,7 +86,7 @@ fun load_rules sname name prog =
         fun writeln s = (write s; write "\n")
         fun writelist [] = ()
           | writelist (s::ss) = (writeln s; writelist ss)
-        fun str i = Int.toString i
+        fun str i = string_of_int i
         val _ = writelist [
                 "structure "^name^" = struct",
                 "",

@@ -95,7 +95,7 @@ fun needs_quoting reserved s =
 
 fun make_name reserved multi j name =
   (name |> needs_quoting reserved name ? quote) ^
-  (if multi then "(" ^ Int.toString j ^ ")" else "")
+  (if multi then "(" ^ string_of_int j ^ ")" else "")
 
 fun explode_interval _ (Facts.FromTo (i, j)) = i upto j
   | explode_interval max (Facts.From i) = i upto i + max - 1
@@ -482,8 +482,8 @@ fun take_most_relevant max_relevant remaining_max
       chop max_imperfect imperfect |>> append perfect |>> chop remaining_max
   in
     trace_msg (fn () =>
-        "Actually passed (" ^ Int.toString (length accepts) ^ " of " ^
-        Int.toString (length candidates) ^ "): " ^
+        "Actually passed (" ^ string_of_int (length accepts) ^ " of " ^
+        string_of_int (length candidates) ^ "): " ^
         (accepts |> map (fn ((((name, _), _), _), weight) =>
                             name () ^ " [" ^ Real.toString weight ^ "]")
                  |> commas));
@@ -612,7 +612,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
                  accepts |> needs_ext is_built_in_const accepts
                             ? add_facts @{thms ext})
           |> tap (fn accepts => trace_msg (fn () =>
-                      "Total relevant: " ^ Int.toString (length accepts)))
+                      "Total relevant: " ^ string_of_int (length accepts)))
   end
 
 
@@ -886,7 +886,7 @@ fun relevant_facts ctxt no_dangerous_types (threshold0, threshold1)
       |> rearrange_facts ctxt (respect_no_atp andalso not only)
       |> uniquify
   in
-    trace_msg (fn () => "Considering " ^ Int.toString (length facts) ^
+    trace_msg (fn () => "Considering " ^ string_of_int (length facts) ^
                         " facts");
     (if only orelse threshold1 < 0.0 then
        facts

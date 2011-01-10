@@ -53,7 +53,7 @@ fun encode "<" = "&lt;"
   | encode "\"" = "&quot;"
   | encode c = c;
 
-fun encode_charref c = "&#" ^ Int.toString (ord c) ^ ";"
+fun encode_charref c = "&#" ^ string_of_int (ord c) ^ ";"
 
 val text = Library.translate_string encode
 

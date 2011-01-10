@@ -270,7 +270,7 @@ fun pre common_atts rt = Tag ("pre", from_common common_atts, [RawText rt]);
 
 fun ostr_att (nm, NONE) = []
   | ostr_att (nm, SOME s) = [(nm, s)];
-val oint_att = ostr_att o apsnd (Option.map Int.toString);
+val oint_att = ostr_att o apsnd (Option.map string_of_int);
 
 val table = tag' "table";
 val thead = tag' "thead";
@@ -291,7 +291,7 @@ fun p (common_atts, t) = Tag ("p", from_common common_atts, [Text t]);
 fun p' (common_atts, tags) = Tag ("p", from_common common_atts, tags);
 
 fun h (common_atts, i, text) =
-  Tag ("h" ^ Int.toString i, from_common common_atts, [Text text]);
+  Tag ("h" ^ string_of_int i, from_common common_atts, [Text text]);
 
 fun strong t = Tag ("strong", [], [Text t]);
 fun em t = Tag ("em", [], [Text t]);
@@ -341,7 +341,7 @@ fun input_atts (TextInput { value, maxlength }) =
         @ oint_att ("maxlength", maxlength)
   | input_atts (Password NONE) = [("type", "password")]
   | input_atts (Password (SOME i)) =
-      [("type", "password"), ("maxlength", Int.toString i)]
+      [("type", "password"), ("maxlength", string_of_int i)]
   | input_atts (Checkbox checked) =
       ("type", "checkbox") :: from_checked checked
   | input_atts (Radio checked) = ("type", "radio") :: from_checked checked

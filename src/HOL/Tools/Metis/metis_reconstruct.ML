@@ -58,7 +58,7 @@ fun apply_list rator nargs rands =
   in  if length trands = nargs then SomeTerm (list_comb(rator, trands))
       else raise Fail
         ("apply_list: wrong number of arguments: " ^ Syntax.string_of_term_global Pure.thy rator ^
-          " expected " ^ Int.toString nargs ^
+          " expected " ^ string_of_int nargs ^
           " received " ^ commas (map (Syntax.string_of_term_global Pure.thy) trands))
   end;
 
@@ -139,8 +139,8 @@ fun hol_term_from_metis_PT ctxt new_skolem_var_count fol_tm =
                   in if length tys = ntypes then
                          apply_list t nterms (List.drop(tts,ntypes))
                      else
-                       raise Fail ("Constant " ^ c ^ " expects " ^ Int.toString ntypes ^
-                                   " but gets " ^ Int.toString (length tys) ^
+                       raise Fail ("Constant " ^ c ^ " expects " ^ string_of_int ntypes ^
+                                   " but gets " ^ string_of_int (length tys) ^
                                    " type arguments\n" ^
                                    cat_lines (map (Syntax.string_of_typ ctxt) tys) ^
                                    " the terms are \n" ^
@@ -407,11 +407,11 @@ fun resolve_inf ctxt mode skolem_params thpairs atm th1 th2 =
         val index_th1 =
           index_of_literal (s_not i_atm) prems_th1
           handle Empty => raise Fail "Failed to find literal in th1"
-        val _ = trace_msg ctxt (fn () => "  index_th1: " ^ Int.toString index_th1)
+        val _ = trace_msg ctxt (fn () => "  index_th1: " ^ string_of_int index_th1)
         val index_th2 =
           index_of_literal i_atm prems_th2
           handle Empty => raise Fail "Failed to find literal in th2"
-        val _ = trace_msg ctxt (fn () => "  index_th2: " ^ Int.toString index_th2)
+        val _ = trace_msg ctxt (fn () => "  index_th2: " ^ string_of_int index_th2)
     in
       resolve_inc_tyvars thy (select_literal thy index_th1 i_th1) index_th2
                          i_th2
@@ -458,10 +458,10 @@ fun equality_inf ctxt mode skolem_params (pos, atm) fp fr =
                 val tm_p = List.nth(args,p')
                   handle Subscript =>
                          error ("Cannot replay Metis proof in Isabelle:\n" ^
-                                "equality_inf: " ^ Int.toString p ^ " adj " ^
-                                Int.toString adjustment ^ " term " ^
+                                "equality_inf: " ^ string_of_int p ^ " adj " ^
+                                string_of_int adjustment ^ " term " ^
                                 Syntax.string_of_term ctxt tm)
-                val _ = trace_msg ctxt (fn () => "path_finder: " ^ Int.toString p ^
+                val _ = trace_msg ctxt (fn () => "path_finder: " ^ string_of_int p ^
                                       "  " ^ Syntax.string_of_term ctxt tm_p)
                 val (r,t) = path_finder_FO tm_p ps
             in
@@ -473,7 +473,7 @@ fun equality_inf ctxt mode skolem_params (pos, atm) fp fr =
         | path_finder_HO tm ps =
           raise Fail ("Cannot replay Metis proof in Isabelle:\n" ^
                       "equality_inf, path_finder_HO: path = " ^
-                      space_implode " " (map Int.toString ps) ^
+                      space_implode " " (map string_of_int ps) ^
                       " isa-term: " ^  Syntax.string_of_term ctxt tm)
       fun path_finder_FT tm [] _ = (tm, Bound 0)
         | path_finder_FT tm (0::ps) (Metis_Term.Fn ("ti", [t1, _])) =
@@ -485,7 +485,7 @@ fun equality_inf ctxt mode skolem_params (pos, atm) fp fr =
         | path_finder_FT tm ps t =
           raise Fail ("Cannot replay Metis proof in Isabelle:\n" ^
                       "equality_inf, path_finder_FT: path = " ^
-                      space_implode " " (map Int.toString ps) ^
+                      space_implode " " (map string_of_int ps) ^
                       " isa-term: " ^  Syntax.string_of_term ctxt tm ^
                       " fol-term: " ^ Metis_Term.toString t)
       fun path_finder FO tm ps _ = path_finder_FO tm ps

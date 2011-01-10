@@ -170,7 +170,7 @@ fun machine_of_prog (ProgBarras _) = BARRAS
 
 type naming = int -> string
 
-fun default_naming i = "v_" ^ Int.toString i
+fun default_naming i = "v_" ^ string_of_int i
 
 datatype computer = Computer of
   (theory_ref * Encode.encoding * term list * unit Sorttab.table * prog * unit Unsynchronized.ref * naming)

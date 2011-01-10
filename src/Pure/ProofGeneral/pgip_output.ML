@@ -282,7 +282,7 @@ fun informguise (Informguise vs) =
       val guisetheory = elto "guisetheory" (single o (pair "thyname")) theory
       val guiseproof = elto "guiseproof" 
                             (fn thm=>(attr "thmname" thm) @
-                                     (opt_attr "proofpos" (Option.map Int.toString proofpos))) theorem
+                                     (opt_attr "proofpos" (Option.map string_of_int proofpos))) theorem
   in 
       XML.Elem (("informguise", []), guisefile @ guisetheory @ guiseproof)
   end

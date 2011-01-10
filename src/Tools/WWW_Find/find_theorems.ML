@@ -30,7 +30,7 @@ fun find_theorems_form thy_name (query, limit, withdups) =
         label (noid, { for = "limit" }, "Max. results:"),
         input (id "limit",
           { name = "limit",
-            itype = TextInput { value = SOME (Int.toString limit),
+            itype = TextInput { value = SOME (string_of_int limit),
                                 maxlength = NONE }})
       ];
 
@@ -116,20 +116,20 @@ fun find_theorems_summary (othmslen, thmslen, query, args) =
     val args =
       (case othmslen of
          NONE => args
-       | SOME l => Symtab.update ("limit", Int.toString l) args)
+       | SOME l => Symtab.update ("limit", string_of_int l) args)
     val qargs = HttpUtil.make_query_string args;
 
     val num_found_text =
       (case othmslen of
-         NONE => text (Int.toString thmslen)
+         NONE => text (string_of_int thmslen)
        | SOME l =>
            a { href = find_theorems_url ^
                (if qargs = "" then "" else "?" ^ qargs),
-           text = Int.toString l })
+           text = string_of_int l })
     val found = [text "found ", num_found_text, text " theorems"] : tag list;
     val displayed =
       if is_some othmslen
-      then " (" ^ Int.toString thmslen ^ " displayed)"
+      then " (" ^ string_of_int thmslen ^ " displayed)"
       else "";
     fun show_search c = tr [ td' noid [show_criterion c] ];
   in
@@ -147,7 +147,7 @@ fun html_thm ctxt (n, (thmref, thm)) =
       Output.output o Pretty.string_of_margin 100 o
         Display.pretty_thm (Config.put show_question_marks false ctxt);
   in
-    tag' "tr" (class ("row" ^ Int.toString (n mod 2)))
+    tag' "tr" (class ("row" ^ string_of_int (n mod 2)))
       [
         tag' "td" (class "name")
           [span' (sorry_class thm)

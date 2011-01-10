@@ -49,7 +49,7 @@ fun is_identifier name =
 
 val atomic = enclose "(" ")";
 
-val print_int = Int.toString;
+val print_int = string_of_int;
 
 fun print_pair f1 f2 (x, y) = "(" ^ f1 x ^ ", " ^ f2 y ^ ")";
 
