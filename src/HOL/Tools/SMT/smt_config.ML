@@ -68,7 +68,8 @@ structure Solvers = Generic_Data
   type T = (solver_info * string list) Symtab.table * string option
   val empty = (Symtab.empty, NONE)
   val extend = I
-  fun merge ((ss1, s), (ss2, _)) = (Symtab.merge (K true) (ss1, ss2), s (* FIXME merge options!? *))
+  fun merge ((ss1, s1), (ss2, s2)) =
+    (Symtab.merge (K true) (ss1, ss2), merge_options (s1, s2))
 )
 
 fun set_solver_options (name, options) =
