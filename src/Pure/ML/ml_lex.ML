@@ -70,6 +70,14 @@ fun kind_of (Token (_, (k, _))) = k;
 fun content_of (Token (_, (_, x))) = x;
 fun token_leq (tok, tok') = content_of tok <= content_of tok';
 
+fun is_regular (Token (_, (Error _, _))) = false
+  | is_regular (Token (_, (EOF, _))) = false
+  | is_regular _ = true;
+
+fun is_improper (Token (_, (Space, _))) = true
+  | is_improper (Token (_, (Comment, _))) = true
+  | is_improper _ = false;
+
 fun warn tok =
   (case tok of
     Token (_, (Keyword, ":>")) =>
@@ -83,15 +91,13 @@ fun check_content_of tok =
     Error msg => error msg
   | _ => content_of tok);
 
-val flatten = implode o map (Symbol.escape o check_content_of);
+fun flatten_content (tok :: (toks as tok' :: _)) =
+      Symbol.escape (check_content_of tok) ::
+        (if is_improper tok orelse is_improper tok' then flatten_content toks
+         else Symbol.space :: flatten_content toks)
+  | flatten_content toks = map (Symbol.escape o check_content_of) toks;
 
-fun is_regular (Token (_, (Error _, _))) = false
-  | is_regular (Token (_, (EOF, _))) = false
-  | is_regular _ = true;
-
-fun is_improper (Token (_, (Space, _))) = true
-  | is_improper (Token (_, (Comment, _))) = true
-  | is_improper _ = false;
+val flatten = implode o flatten_content;
 
 
 (* markup *)
