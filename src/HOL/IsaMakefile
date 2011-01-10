@@ -878,15 +878,6 @@ $(LOG)/HOL-Decision_Procs.gz: $(OUT)/HOL \
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Decision_Procs
 
 
-## HOL-Docs
-
-HOL-Docs: HOL $(LOG)/HOL-Docs.gz
-
-$(LOG)/HOL-Docs.gz: $(OUT)/HOL Docs/Main_Doc.thy Docs/ROOT.ML		\
-  Docs/document/root.tex
-	@$(ISABELLE_TOOL) usedir -D generated $(OUT)/HOL Docs
-
-
 ## HOL-Proofs
 
 HOL-Proofs: Pure $(OUT)/HOL-Proofs
