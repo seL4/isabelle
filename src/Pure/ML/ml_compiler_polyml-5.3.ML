@@ -63,8 +63,6 @@ fun report_parse_tree depth space =
 
 (* eval ML source tokens *)
 
-val offset_of = the_default 0 o Position.offset_of;
-
 fun eval verbose pos toks =
   let
     val _ = Secure.secure_mltext ();
@@ -77,27 +75,21 @@ fun eval verbose pos toks =
       op ^ (YXML.output_markup (Markup.position |> Markup.properties
             (filter (member (op =) [Markup.idN, Markup.fileN] o #1) (Position.properties_of pos))));
 
-    val input = toks |> maps (fn tok =>
-      let
-        val syms = Symbol.explode (ML_Lex.check_content_of tok);
-        val (ps, _) = fold_map (fn s => fn p => (p, Position.advance s p)) syms
-          (Position.reset_range (ML_Lex.pos_of tok));
-      in
-        (ps ~~ syms) |> maps (fn (p, sym) =>
-          map (pair (offset_of p)) (String.explode (Symbol.esc sym)))
-      end);
+    val input_buffer =
+      Unsynchronized.ref (toks |> map
+        (`(maps (String.explode o Symbol.esc) o Symbol.explode o ML_Lex.check_content_of)));
 
-    val input_buffer = Unsynchronized.ref input;
-    val line = Unsynchronized.ref (the_default 1 (Position.line_of pos));
-
-    fun get_offset () = (case ! input_buffer of [] => 0 | (i, _) :: _ => i);
     fun get () =
       (case ! input_buffer of
-        [] => NONE
-      | (_, c) :: rest =>
-          (input_buffer := rest;
-           if c = #"\n" then line := ! line + 1 else ();
-           SOME c));
+        (c :: cs, tok) :: rest => (input_buffer := (cs, tok) :: rest; SOME c)
+      | ([], _) :: rest => (input_buffer := rest; SOME #" ")
+      | [] => NONE);
+
+    fun get_pos () =
+      (case ! input_buffer of
+        (_ :: _, tok) :: _ => ML_Lex.pos_of tok
+      | ([], tok) :: _ => ML_Lex.end_pos_of tok
+      | [] => Position.none);
 
 
     (* output channels *)
@@ -178,8 +170,8 @@ fun eval verbose pos toks =
      [PolyML.Compiler.CPOutStream write,
       PolyML.Compiler.CPNameSpace space,
       PolyML.Compiler.CPErrorMessageProc message,
-      PolyML.Compiler.CPLineNo (fn () => ! line),
-      PolyML.Compiler.CPLineOffset get_offset,
+      PolyML.Compiler.CPLineNo (the_default 0 o Position.line_of o get_pos),
+      PolyML.Compiler.CPLineOffset (the_default 0 o Position.offset_of o get_pos),
       PolyML.Compiler.CPFileName location_props,
       PolyML.Compiler.CPCompilerResultFun result_fun,
       PolyML.Compiler.CPPrintInAlphabeticalOrder false];
