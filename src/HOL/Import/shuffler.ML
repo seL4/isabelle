@@ -465,7 +465,7 @@ fun disamb_bound thy t =
             end
           | F (Abs(x,xT,t),idx) =
             let
-                val x' = "x" ^ (LargeInt.toString idx) (* amazing *)
+                val x' = "x" ^ Int.toString idx
                 val (t',idx') = F (t,idx+1)
             in
                 (Abs(x',xT,t'),idx')

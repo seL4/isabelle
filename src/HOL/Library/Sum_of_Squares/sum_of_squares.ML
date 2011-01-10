@@ -584,7 +584,7 @@ local
   fun maximal_element fld amat acc =
     fld (fn (m,c) => fn maxa => max_rat maxa (abs_rat c)) amat acc
 fun float_of_rat x = let val (a,b) = Rat.quotient_of_rat x
-                     in Real.fromLargeInt a / Real.fromLargeInt b end;
+                     in Real.fromInt a / Real.fromInt b end;
 in
 
 fun pi_scale_then solver (obj:vector)  mats =
@@ -616,7 +616,7 @@ local
   fun maximal_element fld amat acc =
     fld (fn (m,c) => fn maxa => max_rat maxa (abs_rat c)) amat acc
 fun float_of_rat x = let val (a,b) = Rat.quotient_of_rat x
-                     in Real.fromLargeInt a / Real.fromLargeInt b end;
+                     in Real.fromInt a / Real.fromInt b end;
 fun int_of_float x = (trunc x handle Overflow => 0 | Domain => 0)
 in
 

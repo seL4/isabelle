@@ -486,7 +486,7 @@ fun get_guid () =
         val c = !guid_counter
         val _ = guid_counter := !guid_counter + 1
     in
-        (LargeInt.toString (Time.toMicroseconds (Time.now ()))) ^ (string_of_int c)
+        (Int.toString (Time.toMicroseconds (Time.now ()))) ^ (string_of_int c)
     end
 
 
