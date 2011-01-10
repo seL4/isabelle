@@ -13,12 +13,7 @@ end;
 structure List_to_Set_Comprehension : LIST_TO_SET_COMPREHENSION =
 struct
 
-fun CONVERSION' cv i st = Seq.single (Conv.gconv_rule cv i st)
-
 (* conversion *)
-
-fun trace_conv cv ct =
-  (tracing (Syntax.string_of_term_global @{theory} (Thm.term_of ct)); cv ct)
 
 fun all_exists_conv cv ctxt ct =
   case Thm.term_of ct of
@@ -179,12 +174,12 @@ fun simproc ss redex =
           if eqs = [] then NONE (* no rewriting, nothing to be done *)
           else
             let
-              val Type ("List.list", [rT]) = fastype_of t
+              val Type (@{type_name List.list}, [rT]) = fastype_of t
               val pat_eq =
                 case try dest_singleton_list t of
                   SOME t' => Const (@{const_name HOL.eq}, rT --> rT --> @{typ bool})
                     $ Bound (length bound_vs) $ t'
-                | NONE => Const ("Set.member", rT --> HOLogic.mk_setT rT --> @{typ bool})
+                | NONE => Const (@{const_name Set.member}, rT --> HOLogic.mk_setT rT --> @{typ bool})
                   $ Bound (length bound_vs) $ (mk_set rT $ t)
               val reverse_bounds = curry subst_bounds
                 ((map Bound ((length bound_vs - 1) downto 0)) @ [Bound (length bound_vs)])
