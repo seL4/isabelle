@@ -644,7 +644,7 @@ fun radixstring (base, zerochar, num) =
 
 local
   val zero = ord "0";
-  val small = 10000;
+  val small = 10000: int;
   val small_table = Vector.tabulate (small, Int.toString);
 in
 
