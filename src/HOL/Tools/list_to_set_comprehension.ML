@@ -59,8 +59,6 @@ fun right_hand_set_comprehension_conv conv ctxt = Trueprop_conv (eq_conv Conv.al
  
 datatype termlets = If | Case of (typ * int)
 
-val last = snd o split_last
-
 fun meta_eq th = th RS @{thm eq_reflection}
 
 fun rewr_conv' th = Conv.rewr_conv (meta_eq th)
@@ -100,7 +98,7 @@ fun simproc ss redex =
               SOME i => 
                 let
                   val (Ts, _) = strip_type T
-                  val T' = last Ts
+                  val T' = snd (split_last Ts)
                 in SOME (snd (split_last args), T', i, nth args i) end
             | NONE => NONE)
           | NONE => NONE)
