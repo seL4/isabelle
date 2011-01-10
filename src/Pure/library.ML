@@ -642,7 +642,19 @@ fun radixstring (base, zerochar, num) =
   in implode (map chrof (radixpand (base, num))) end;
 
 
-val string_of_int = Int.toString;
+local
+  val zero = ord "0";
+  val small = 10000;
+  val small_table = Vector.tabulate (small, Int.toString);
+in
+
+fun string_of_int i =
+  if i < 0 then Int.toString i
+  else if i < 10 then chr (zero + i)
+  else if i < small then Vector.sub (small_table, i)
+  else Int.toString i;
+
+end;
 
 fun signed_string_of_int i =
   if i < 0 then "-" ^ string_of_int (~ i) else string_of_int i;
