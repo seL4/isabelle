@@ -254,35 +254,40 @@ fun join (Assume (_, pv), pthm) (Assume (t, v), thm) =
 end
 
 
-(* the VC store *)  (* FIXME just one data slot (record) per program unit *)
-
 fun err_unfinished () = error "An unfinished Boogie environment is still open."
 
 fun err_vcs names = error (Pretty.string_of
   (Pretty.big_list "Undischarged Boogie verification conditions found:"
     (map Pretty.str names)))
 
-structure VCs = Theory_Data
-(
-  type T = ((vc * (term * thm)) Symtab.table * (theory -> thm -> thm)) option
-  val empty = NONE
-  val extend = I
-  fun merge (NONE, NONE) = NONE
-    | merge _ = err_unfinished ()
-)
+type vcs_data = {
+  vcs: (vc * (term * thm)) Symtab.table option,
+  rewrite: theory -> thm -> thm,
+  filters: (serial * (term -> bool)) Ord_List.T }
+
+fun make_vcs_data (vcs, rewrite, filters) =
+  {vcs=vcs, rewrite=rewrite, filters=filters}
+
+fun map_vcs_data f ({vcs, rewrite, filters}) =
+  make_vcs_data (f (vcs, rewrite, filters))
 
 fun serial_ord ((i, _), (j, _)) = int_ord (i, j)
 
-structure Filters = Theory_Data
+structure VCs_Data = Theory_Data
 (
-  type T = (serial * (term -> bool)) Ord_List.T
-  val empty = []
+  type T = vcs_data
+  val empty = make_vcs_data (NONE, K I, [])
   val extend = I
-  fun merge data = Ord_List.merge serial_ord data
+  fun merge ({vcs=vcs1, filters=fs1, ...}, {vcs=vcs2, filters=fs2, ...}) =
+    (case (vcs1, vcs2) of
+      (NONE, NONE) =>
+        make_vcs_data (NONE, K I, Ord_List.merge serial_ord (fs1, fs2))
+    | _ => err_unfinished ())
 )
 
 fun add_assertion_filter f =
-  Filters.map (Ord_List.insert serial_ord (serial (), f))
+  VCs_Data.map (map_vcs_data (fn (vcs, rewrite, filters) =>
+    (vcs, rewrite, Ord_List.insert serial_ord (serial (), f) filters)))
 
 fun filter_assertions thy =
   let
@@ -292,25 +297,30 @@ fun filter_assertions thy =
 
     fun filt fs vc =
       the_default True (prune (fn a => SOME o filt_assert fs a o filt fs) vc)
-  in filt (Filters.get thy) end
+
+  in filt (#filters (VCs_Data.get thy)) end
 
 fun prep thy =
   vc_of_term #>
   filter_assertions thy #>
   (fn vc => (vc, (prop_of_vc vc, thm_of thy vc)))
 
-fun set vcs thy = VCs.map (fn
-    NONE => SOME (Symtab.make (map (apsnd (prep thy)) vcs), K I)
-  | SOME _ => err_unfinished ()) thy
+fun set new_vcs thy = VCs_Data.map (map_vcs_data (fn (vcs, rewrite, filters) =>
+  (case vcs of
+    NONE => (SOME (Symtab.make (map (apsnd (prep thy)) new_vcs)), K I, filters)
+  | SOME _ => err_unfinished ()))) thy
 
 fun lookup thy name =
-  (case VCs.get thy of
-    SOME (vcs, _) => Option.map fst (Symtab.lookup vcs name)
+  (case #vcs (VCs_Data.get thy) of
+    SOME vcs => Option.map fst (Symtab.lookup vcs name)
   | NONE => NONE)
 
 fun discharge (name, prf) =
   let fun jn (vc, (t, thm)) = join prf (vc, thm) |> apsnd (pair t)
-  in VCs.map (Option.map (apfst (Symtab.map_entry name jn))) end
+  in
+    VCs_Data.map (map_vcs_data (fn (vcs, rewrite, filters) =>
+      (Option.map (Symtab.map_entry name jn) vcs, rewrite, filters)))
+  end
 
 datatype state = Proved | NotProved | PartiallyProved
 
@@ -326,28 +336,35 @@ fun state_of_vc' (vc, _) =
   | (_, _) => PartiallyProved)
 
 fun state_of thy =
-  (case VCs.get thy of
-    SOME (vcs, _) => map (apsnd state_of_vc') (Symtab.dest vcs)
+  (case #vcs (VCs_Data.get thy) of
+    SOME vcs => map (apsnd state_of_vc') (Symtab.dest vcs)
   | NONE => [])
 
 fun finished g (_, (t, thm)) = Thm.prop_of (g thm) aconv t
 
-fun close thy = thy |> VCs.map (fn
-    SOME (vcs, g) =>
-      let fun check vc = state_of_vc' vc = Proved andalso finished (g thy) vc
-      in
-        Symtab.dest vcs
-        |> map_filter (fn (n, vc) => if check vc then NONE else SOME n)
-        |> (fn names => if null names then NONE else err_vcs names)
-      end
-  | NONE => NONE)
+fun close thy = VCs_Data.map (map_vcs_data (fn (vcs, rewrite, filters) =>
+  (case vcs of
+    SOME raw_vcs =>
+      let
+        fun check vc =
+          state_of_vc' vc = Proved andalso finished (rewrite thy) vc
 
-val is_closed = is_none o VCs.get
+        val _ =
+          Symtab.dest raw_vcs
+          |> map_filter (fn (n, vc) => if check vc then NONE else SOME n)
+          |> (fn names => if null names then () else err_vcs names)
+      in (NONE, rewrite, filters) end
+  | NONE => (NONE, rewrite, filters)))) thy
+
+val is_closed = is_none o #vcs o VCs_Data.get
 
 fun rewrite_vcs f g thy =
   let
     fun rewr (_, (t, _)) = vc_of_term (f thy t)
       |> (fn vc => (vc, (t, thm_of thy vc)))
-  in VCs.map (Option.map (fn (vcs, _) => (Symtab.map (K rewr) vcs, g))) thy end
+  in
+    VCs_Data.map (map_vcs_data (fn (vcs, _, filters) =>
+      (Option.map (Symtab.map (K rewr)) vcs, g, filters))) thy
+  end
 
 end
