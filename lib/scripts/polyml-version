@@ -13,8 +13,8 @@ elif [ -x "$ML_HOME/poly" ]; then
   if [[ "$VERSION" =~ $REGEXP ]]; then
     echo "polyml${BASH_REMATCH[1]}"
   else
-    echo polyml-unknown
+    echo polyml-undefined
   fi
 else
-  echo polyml-unknown
+  echo polyml-undefined
 fi
