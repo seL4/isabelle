@@ -54,9 +54,7 @@ fun right_hand_set_comprehension_conv conv ctxt = Trueprop_conv (eq_conv Conv.al
  
 datatype termlets = If | Case of (typ * int)
 
-fun meta_eq th = th RS @{thm eq_reflection}
-
-fun rewr_conv' th = Conv.rewr_conv (meta_eq th)
+fun rewr_conv' th = Conv.rewr_conv (mk_meta_eq th)
 
 fun simproc ss redex =
   let
@@ -136,7 +134,7 @@ fun simproc ss redex =
               CONVERSION (Thm.eta_conversion then_conv right_hand_set_comprehension_conv (K
                   ((conj_conv 
                     (eq_conv Conv.all_conv (rewr_conv' (List.last prems))
-                    then_conv (Conv.try_conv (Conv.rewrs_conv (map meta_eq (#inject info))))) Conv.all_conv)
+                    then_conv (Conv.try_conv (Conv.rewrs_conv (map mk_meta_eq (#inject info))))) Conv.all_conv)
                     then_conv (Conv.try_conv (Conv.rewr_conv del_refl_eq))
                     then_conv (Conv.try_conv (rewr_conv' @{thm conj_assoc})))) context
                 then_conv (Trueprop_conv (eq_conv Conv.all_conv (Collect_conv (fn (_, ctxt) =>
