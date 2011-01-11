@@ -184,7 +184,7 @@ text {*
   
   \item[@{setting_def ISABELLE_IDENTIFIER}@{text "\<^sup>*"}] refers
   to the name of this Isabelle distribution, e.g.\ ``@{verbatim
-  Isabelle2008}''.
+  Isabelle2011}''.
 
   \item[@{setting_def ML_SYSTEM}, @{setting_def ML_HOME},
   @{setting_def ML_OPTIONS}, @{setting_def ML_PLATFORM}, @{setting_def

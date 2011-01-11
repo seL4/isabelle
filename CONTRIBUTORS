@@ -3,8 +3,8 @@ For the purposes of the license agreement in the file COPYRIGHT, a
 who is listed as an author in one of the source files of this Isabelle
 distribution.
 
-Contributions to this Isabelle version
---------------------------------------
+Contributions to Isabelle2011
+-----------------------------
 
 * October 2010: Bogdan Grechuk, University of Edinburgh
   Extended convex analysis in Multivariate Analysis.
@@ -26,7 +26,7 @@ Contributions to this Isabelle version
 
 
 Contributions to Isabelle2009-2
---------------------------------------
+-------------------------------
 
 * 2009/2010: Stefan Berghofer, Alexander Krauss, and Andreas Schropp, TUM,
   Makarius Wenzel, TUM / LRI
