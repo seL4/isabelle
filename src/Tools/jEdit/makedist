@@ -66,8 +66,9 @@ cd "$THIS/dist" || fail "Bad directory: $THIS/dist"
 # target name
 
 [ -z "$JEDIT_HOME" ] && fail "Unknown JEDIT_HOME"
+[ -n "$ISABELLE_HOME" ] || fail "Missing Isabelle settings environment"
 
-VERSION=$(basename "$JEDIT_HOME")
+VERSION="$(basename "$JEDIT_HOME")_Isabelle-$("$ISABELLE_TOOL" version -i)"
 JEDIT="jedit-${VERSION}"
 
 rm -rf "$JEDIT" jedit
