@@ -399,11 +399,11 @@ text {*
   \begin{description}
 
   \item @{command (HOL) "enriched_type"} allows to prove and register
-  properties about type constructors which refer to their functorial
-  structure; these properties then can be used by other packages to
+  properties about the functorial structure of type constructors;
+  these properties then can be used by other packages to
   deal with those type constructors in certain type constructions.
   Characteristic theorems are noted in the current local theory; by
-  default, they are prefixed with base name of the type constructor,
+  default, they are prefixed with the base name of the type constructor,
   an explicit prefix can be given alternatively.
 
   The given term @{text "m"} is considered as \emph{mapper} for the
