@@ -133,6 +133,12 @@ the local file system.
 
 *** HOL ***
 
+* New simproc that rewrites list comprehensions applied to List.set
+to set comprehensions.
+To deactivate the simproc for historic proof scripts, use:
+  
+  [[simproc del: list_to_set_comprehension]]
+
 * Functions can be declared as coercions and type inference will add
 them as necessary upon input of a term. In theory Complex_Main,
 real :: nat => real and real :: int => real are declared as
