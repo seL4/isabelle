@@ -178,7 +178,7 @@ inductive predicates, similar to 'inductive_cases'.
 * Datatype package: theorems generated for executable equality (class
 eq) carry proper names and are treated as default code equations.
 
-* New command 'type_lifting' allows to register properties on
+* New command 'enriched_type' allows to register properties of
 the functorial structure of types.
 
 * Weaker versions of the "meson" and "metis" proof methods are now
