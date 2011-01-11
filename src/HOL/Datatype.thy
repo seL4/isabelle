@@ -15,7 +15,7 @@ begin
 
 subsection {* Prelude: lifting over function space *}
 
-type_lifting map_fun: map_fun
+enriched_type map_fun: map_fun
   by (simp_all add: fun_eq_iff)
 
 

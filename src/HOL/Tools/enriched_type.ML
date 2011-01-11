@@ -1,20 +1,20 @@
-(*  Title:      HOL/Tools/type_lifting.ML
+(*  Title:      HOL/Tools/enriched_type.ML
     Author:     Florian Haftmann, TU Muenchen
 
 Functorial structure of types.
 *)
 
-signature TYPE_LIFTING =
+signature ENRICHED_TYPE =
 sig
   val find_atomic: Proof.context -> typ -> (typ * (bool * bool)) list
   val construct_mapper: Proof.context -> (string * bool -> term)
     -> bool -> typ -> typ -> term
-  val type_lifting: string option -> term -> local_theory -> Proof.state
+  val enriched_type: string option -> term -> local_theory -> Proof.state
   type entry
   val entries: Proof.context -> entry list Symtab.table
 end;
 
-structure Type_Lifting : TYPE_LIFTING =
+structure Enriched_Type : ENRICHED_TYPE =
 struct
 
 (* bookkeeping *)
@@ -196,7 +196,7 @@ fun analyze_variances ctxt tyco T =
     val _ = if null left_variances then () else bad_typ ();
   in variances end;
 
-fun gen_type_lifting prep_term some_prfx raw_mapper lthy =
+fun gen_enriched_type prep_term some_prfx raw_mapper lthy =
   let
     val input_mapper = prep_term lthy raw_mapper;
     val T = fastype_of input_mapper;
@@ -245,12 +245,12 @@ fun gen_type_lifting prep_term some_prfx raw_mapper lthy =
     |> Proof.theorem NONE after_qed (map (fn t => [(t, [])]) [comp_prop, id_prop])
   end
 
-val type_lifting = gen_type_lifting Syntax.check_term;
-val type_lifting_cmd = gen_type_lifting Syntax.read_term;
+val enriched_type = gen_enriched_type Syntax.check_term;
+val enriched_type_cmd = gen_enriched_type Syntax.read_term;
 
-val _ = Outer_Syntax.local_theory_to_proof "type_lifting"
+val _ = Outer_Syntax.local_theory_to_proof "enriched_type"
   "register operations managing the functorial structure of a type"
   Keyword.thy_goal (Scan.option (Parse.name --| Parse.$$$ ":") -- Parse.term
-    >> (fn (prfx, t) => type_lifting_cmd prfx t));
+    >> (fn (prfx, t) => enriched_type_cmd prfx t));
 
 end;

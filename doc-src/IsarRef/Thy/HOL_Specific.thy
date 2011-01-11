@@ -388,17 +388,17 @@ section {* Functorial structure of types *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def (HOL) "type_lifting"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
+    @{command_def (HOL) "enriched_type"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
   \end{matharray}
 
   \begin{rail}
-    'type_lifting' (prefix ':')? term
+    'enriched_type' (prefix ':')? term
     ;
   \end{rail}
 
   \begin{description}
 
-  \item @{command (HOL) "type_lifting"} allows to prove and register
+  \item @{command (HOL) "enriched_type"} allows to prove and register
   properties about type constructors which refer to their functorial
   structure; these properties then can be used by other packages to
   deal with those type constructors in certain type constructions.

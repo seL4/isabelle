@@ -241,7 +241,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   Tools/split_rule.ML \
   Tools/try.ML \
   Tools/typedef.ML \
-  Tools/type_lifting.ML \
+  Tools/enriched_type.ML \
   Transitive_Closure.thy \
   Typedef.thy \
   Wellfounded.thy

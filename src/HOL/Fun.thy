@@ -7,7 +7,7 @@ header {* Notions about functions *}
 
 theory Fun
 imports Complete_Lattice
-uses ("Tools/type_lifting.ML")
+uses ("Tools/enriched_type.ML")
 begin
 
 text{*As a simplification rule, it replaces all function equalities by
@@ -843,6 +843,6 @@ code_const "id"
 
 subsubsection {* Functorial structure of types *}
 
-use "Tools/type_lifting.ML"
+use "Tools/enriched_type.ML"
 
 end

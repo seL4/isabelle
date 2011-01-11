@@ -880,7 +880,7 @@ lemma map_snd_zip[simp]:
   "length xs = length ys \<Longrightarrow> map snd (zip xs ys) = ys"
 by (induct rule:list_induct2, simp_all)
 
-type_lifting map: map
+enriched_type map: map
   by (simp_all add: fun_eq_iff id_def)
 
 

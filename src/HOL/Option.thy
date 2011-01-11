@@ -81,7 +81,7 @@ lemma option_map_o_sum_case [simp]:
     "map f o sum_case g h = sum_case (map f o g) (map f o h)"
   by (rule ext) (simp split: sum.split)
 
-type_lifting map: Option.map proof -
+enriched_type map: Option.map proof -
   fix f g
   show "Option.map f \<circ> Option.map g = Option.map (f \<circ> g)"
   proof

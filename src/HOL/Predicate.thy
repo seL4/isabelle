@@ -795,7 +795,7 @@ lemma eval_map [simp]:
   "eval (map f P) = image f (eval P)"
   by (auto simp add: map_def)
 
-type_lifting map: map
+enriched_type map: map
   by (auto intro!: pred_eqI simp add: fun_eq_iff image_compose)
 
 

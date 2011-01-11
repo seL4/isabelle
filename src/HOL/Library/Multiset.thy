@@ -1643,7 +1643,7 @@ text {*
   @{term "{#x+x|x:#M. x<c#}"}.
 *}
 
-type_lifting image_mset: image_mset proof -
+enriched_type image_mset: image_mset proof -
   fix f g 
   show "image_mset f \<circ> image_mset g = image_mset (f \<circ> g)"
   proof
