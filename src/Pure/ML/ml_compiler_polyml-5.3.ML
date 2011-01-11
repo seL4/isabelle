@@ -22,10 +22,6 @@ fun position_of (loc: PolyML.location) =
       {line = line, column = 0, offset = offset, end_offset = end_offset, props = props}
   end;
 
-fun offset_position_of (loc: PolyML.location) =
-  if #startPosition loc > 0 then position_of loc
-  else Position.none;
-
 fun exn_position exn =
   (case PolyML.exceptionLocation exn of
     NONE => Position.none
@@ -45,14 +41,14 @@ fun report_parse_tree depth space =
       | _ => Position.report_text);
 
     fun report_decl markup loc decl =
-      report_text (offset_position_of loc) Markup.ML_ref
+      report_text (position_of loc) Markup.ML_ref
         (Markup.markup (Position.markup (position_of decl) markup) "");
 
     fun report loc (PolyML.PTtype types) =
           cons (fn () =>
             PolyML.NameSpace.displayTypeExpression (types, depth, space)
             |> pretty_ml |> Pretty.from_ML |> Pretty.string_of
-            |> report_text (offset_position_of loc) Markup.ML_typing)
+            |> report_text (position_of loc) Markup.ML_typing)
       | report loc (PolyML.PTdeclaredAt decl) = cons (fn () => report_decl Markup.ML_def loc decl)
       | report loc (PolyML.PTopenedAt decl) = cons (fn () => report_decl Markup.ML_open loc decl)
       | report loc (PolyML.PTstructureAt decl) =
@@ -112,11 +108,12 @@ fun eval verbose pos toks =
 
     fun message {message = msg, hard, location = loc, context = _} =
       let
+        val pos = position_of loc;
         val txt =
-          Markup.markup Markup.no_report
-            ((if hard then "Error" else "Warning") ^ Position.str_of (position_of loc) ^ ":\n") ^
+          (Position.is_reported pos ? Markup.markup Markup.no_report)
+            ((if hard then "Error" else "Warning") ^ Position.str_of pos ^ ":\n") ^
           Pretty.string_of (Pretty.from_ML (pretty_ml msg)) ^
-          Position.reported_text (offset_position_of loc)  Markup.report "";
+          Position.reported_text pos Markup.report "";
       in if hard then err txt else warn txt end;
 
 

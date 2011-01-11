@@ -30,6 +30,7 @@ sig
   val properties_of: T -> Properties.T
   val default_properties: T -> Properties.T -> Properties.T
   val markup: T -> Markup.T -> Markup.T
+  val is_reported: T -> bool
   val reported_text: T -> Markup.T -> string -> string
   val report_text: T -> Markup.T -> string -> unit
   val report: T -> Markup.T -> unit
@@ -148,10 +149,9 @@ val markup = Markup.properties o properties_of;
 
 (* reports *)
 
-fun reported_text (pos as Pos (count, _)) m txt =
-  if invalid_count count then ""
-  else Markup.markup (markup pos m) txt;
+fun is_reported pos = is_some (offset_of pos) andalso is_some (get_id pos);
 
+fun reported_text pos m txt = if is_reported pos then Markup.markup (markup pos m) txt else "";
 fun report_text pos markup txt = Output.report (reported_text pos markup txt);
 fun report pos markup = report_text pos markup "";
 
