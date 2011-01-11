@@ -1,7 +1,67 @@
 #!/usr/bin/env bash
 #
 # Author: Stefan Berghofer, TU Muenchen
+# Author: Makarius
 #
 # DESCRIPTION: display Isabelle version
 
-echo 'unidentified repository version'    # filled in automatically!
+
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: isabelle $PRG [OPTIONS]"
+  echo
+  echo "  Options are:"
+  echo "    -i           short identification (derived from Mercurial id)"
+  echo
+  echo "  Display Isabelle version information."
+  echo
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+# options
+
+SHORT_ID=""
+
+while getopts "i" OPT
+do
+  case "$OPT" in
+    i)
+      SHORT_ID=true
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+[ "$#" -ne 0 ] && usage
+
+
+## main
+
+if [ -n "$SHORT_ID" ]; then
+  if [ -n "$ISABELLE_ID" ]; then
+    echo "$ISABELLE_ID"
+  else
+    ${HG:-hg} id --repository "$ISABELLE_HOME" --id 2>/dev/null || echo undefined
+  fi
+else
+  echo 'unidentified repository version'    # filled in automatically!
+fi

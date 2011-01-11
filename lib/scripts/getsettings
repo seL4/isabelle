@@ -31,9 +31,10 @@ function isabelle ()
 . "$ISABELLE_HOME/lib/scripts/isabelle-platform"
 
 #Isabelle distribution identifier -- filled in automatically!
+ISABELLE_ID=""
 ISABELLE_IDENTIFIER=""
 
-#users tend to put strange things in here ...
+#sometimes users put strange things in here ...
 unset ENV
 unset BASH_ENV
 

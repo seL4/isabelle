@@ -281,9 +281,21 @@ Usage: unsymbolize [FILES|DIRS...]
 section {* Output the version identifier of the Isabelle distribution *}
 
 text {*
-  The @{tool_def version} utility outputs the full version string of
-  the Isabelle distribution being used, e.g.\ ``@{verbatim
-  "Isabelle2008: June 2008"}.  There are no options nor arguments.
+  The @{tool_def version} utility displays Isabelle version information:
+\begin{ttbox}
+Usage: isabelle version [OPTIONS]
+
+  Options are:
+    -i           short identification (derived from Mercurial id)
+
+  Display Isabelle version information.
+\end{ttbox}
+
+  \medskip The default is to output the full version string of the
+  Isabelle distribution, e.g.\ ``@{verbatim "Isabelle2008: June 2008"}.
+
+  The @{verbatim "-i"} option produces a short identification derived
+  from the Mercurial id of the @{setting ISABELLE_HOME} directory.
 *}
 
 
