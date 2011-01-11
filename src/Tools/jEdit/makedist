@@ -74,6 +74,8 @@ JEDIT="jedit-${VERSION}"
 rm -rf "$JEDIT" jedit
 mkdir "$JEDIT"
 
+rm -f jedit && ln -s "$JEDIT" jedit
+
 
 # copy stuff
 
