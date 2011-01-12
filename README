@@ -16,7 +16,7 @@ System requirements
      * The Poly/ML compiler and runtime system (version 5.2.1 or later).
      * The GNU bash shell (version 3.x or 2.x).
      * Perl (version 5.x).
-     * GNU Emacs (version 22) -- for the Proof General interface.
+     * GNU Emacs (version 23) -- for the Proof General 4.x interface.
      * A complete LaTeX installation -- for document preparation.
 
 Installation
