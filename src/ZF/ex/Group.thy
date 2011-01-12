@@ -148,7 +148,7 @@ proof -
   qed
   show ?thesis
     by (blast intro: group.intro monoid.intro group_axioms.intro 
-                     prems r_one inv_ex)
+                     assms r_one inv_ex)
 qed
 
 lemma (in group) inv [simp]:
@@ -177,26 +177,26 @@ lemma (in group) r_inv:
 subsection {* Cancellation Laws and Basic Properties *}
 
 lemma (in group) l_cancel [simp]:
-  assumes [simp]: "x \<in> carrier(G)" "y \<in> carrier(G)" "z \<in> carrier(G)"
+  assumes "x \<in> carrier(G)" "y \<in> carrier(G)" "z \<in> carrier(G)"
   shows "(x \<cdot> y = x \<cdot> z) <-> (y = z)"
 proof
   assume eq: "x \<cdot> y = x \<cdot> z"
   hence  "(inv x \<cdot> x) \<cdot> y = (inv x \<cdot> x) \<cdot> z"
-    by (simp only: m_assoc inv_closed prems)
-  thus "y = z" by simp
+    by (simp only: m_assoc inv_closed assms)
+  thus "y = z" by (simp add: assms)
 next
   assume eq: "y = z"
   then show "x \<cdot> y = x \<cdot> z" by simp
 qed
 
 lemma (in group) r_cancel [simp]:
-  assumes [simp]: "x \<in> carrier(G)" "y \<in> carrier(G)" "z \<in> carrier(G)"
+  assumes "x \<in> carrier(G)" "y \<in> carrier(G)" "z \<in> carrier(G)"
   shows "(y \<cdot> x = z \<cdot> x) <-> (y = z)"
 proof
   assume eq: "y \<cdot> x = z \<cdot> x"
   then have "y \<cdot> (x \<cdot> inv x) = z \<cdot> (x \<cdot> inv x)"
-    by (simp only: m_assoc [symmetric] inv_closed prems)
-  thus "y = z" by simp
+    by (simp only: m_assoc [symmetric] inv_closed assms)
+  thus "y = z" by (simp add: assms)
 next
   assume eq: "y = z"
   thus  "y \<cdot> x = z \<cdot> x" by simp
@@ -338,7 +338,7 @@ lemma inv_DirProdGroup [simp]:
       and h: "h \<in> carrier(H)"
   shows "inv \<^bsub>G \<Otimes> H\<^esub> <g, h> = <inv\<^bsub>G\<^esub> g, inv\<^bsub>H\<^esub> h>"
   apply (rule group.inv_equality [OF DirProdGroup_group])
-  apply (simp_all add: prems group.l_inv)
+  apply (simp_all add: assms group.l_inv)
   done
 
 subsection {* Isomorphisms *}
@@ -445,7 +445,7 @@ proof -
   also from x have "... = h ` x \<cdot>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> (h ` x)"
     by (simp add: hom_mult [symmetric] H.r_inv del: hom_mult)
   finally have "h ` x \<cdot>\<^bsub>H\<^esub> h ` (inv x) = h ` x \<cdot>\<^bsub>H\<^esub> inv\<^bsub>H\<^esub> (h ` x)" .
-  with x show ?thesis by (simp del: inv add: is_group)
+  with x show ?thesis by (simp del: inv)
 qed
 
 subsection {* Commutative Structures *}
@@ -482,7 +482,7 @@ lemma (in comm_group) inv_mult:
 
 
 lemma (in group) subgroup_self: "subgroup (carrier(G),G)"
-by (simp add: subgroup_def prems) 
+by (simp add: subgroup_def) 
 
 lemma (in group) subgroup_imp_group:
   "subgroup(H,G) \<Longrightarrow> group (update_carrier(G,H))"
@@ -493,8 +493,8 @@ lemma (in group) subgroupI:
     and inv: "!!a. a \<in> H ==> inv a \<in> H"
     and mult: "!!a b. [|a \<in> H; b \<in> H|] ==> a \<cdot> b \<in> H"
   shows "subgroup(H,G)"
-proof (simp add: subgroup_def prems)
-  show "\<one> \<in> H" by (rule one_in_subset) (auto simp only: prems)
+proof (simp add: subgroup_def assms)
+  show "\<one> \<in> H" by (rule one_in_subset) (auto simp only: assms)
 qed
 
 
@@ -783,8 +783,7 @@ apply (rule equalityI)
 apply (auto simp add: subgroup.m_closed set_mult_def Sigma_def image_def)
 apply (rule_tac x = x in bexI)
 apply (rule bexI [of _ "\<one>"])
-apply (auto simp add: subgroup.m_closed subgroup.one_closed
-                      r_one subgroup.subset [THEN subsetD])
+apply (auto simp add: subgroup.one_closed subgroup.subset [THEN subsetD])
 done
 
 
@@ -792,27 +791,27 @@ subsubsection {* Set of inverses of an @{text r_coset}. *}
 
 lemma (in normal) rcos_inv:
   assumes x:     "x \<in> carrier(G)"
-  shows "set_inv (H #> x) = H #> (inv x)" 
+  shows "set_inv (H #> x) = H #> (inv x)"
 proof (simp add: r_coset_def SET_INV_def x inv_mult_group, safe intro!: equalityI)
   fix h
-  assume "h \<in> H"
-  show "inv x \<cdot> inv h \<in> (\<Union>j\<in>H. {j \<cdot> inv x})"
-  proof (rule UN_I)
-    show "inv x \<cdot> inv h \<cdot> x \<in> H"
-      by (simp add: inv_op_closed1 prems)
-    show "inv x \<cdot> inv h \<in> {inv x \<cdot> inv h \<cdot> x \<cdot> inv x}"
-      by (simp add: prems m_assoc)
-  qed
-next
-  fix h
-  assume "h \<in> H"
-  show "h \<cdot> inv x \<in> (\<Union>j\<in>H. {inv x \<cdot> inv j})"
-  proof (rule UN_I)
-    show "x \<cdot> inv h \<cdot> inv x \<in> H"
-      by (simp add: inv_op_closed2 prems)
-    show "h \<cdot> inv x \<in> {inv x \<cdot> inv (x \<cdot> inv h \<cdot> inv x)}"
-      by (simp add: prems m_assoc [symmetric] inv_mult_group)
-  qed
+  assume h: "h \<in> H"
+  {
+    show "inv x \<cdot> inv h \<in> (\<Union>j\<in>H. {j \<cdot> inv x})"
+    proof (rule UN_I)
+      show "inv x \<cdot> inv h \<cdot> x \<in> H"
+        by (simp add: inv_op_closed1 h x)
+      show "inv x \<cdot> inv h \<in> {inv x \<cdot> inv h \<cdot> x \<cdot> inv x}"
+        by (simp add: h x m_assoc)
+    qed
+  next
+    show "h \<cdot> inv x \<in> (\<Union>j\<in>H. {inv x \<cdot> inv j})"
+    proof (rule UN_I)
+      show "x \<cdot> inv h \<cdot> inv x \<in> H"
+        by (simp add: inv_op_closed2 h x)
+      show "h \<cdot> inv x \<in> {inv x \<cdot> inv (x \<cdot> inv h \<cdot> inv x)}"
+        by (simp add: h x m_assoc [symmetric] inv_mult_group)
+    qed
+  }
 qed
 
 
@@ -844,7 +843,7 @@ lemma (in normal) rcos_mult_step3:
      "\<lbrakk>x \<in> carrier(G); y \<in> carrier(G)\<rbrakk>
       \<Longrightarrow> (H <#> (H #> x)) #> y = H #> (x \<cdot> y)"
   by (simp add: setmult_rcos_assoc coset_mult_assoc
-              subgroup_mult_id subset prems normal.axioms)
+              subgroup_mult_id subset normal_axioms normal.axioms)
 
 lemma (in normal) rcos_sum:
      "\<lbrakk>x \<in> carrier(G); y \<in> carrier(G)\<rbrakk>
@@ -854,7 +853,7 @@ by (simp add: rcos_mult_step1 rcos_mult_step2 rcos_mult_step3)
 lemma (in normal) rcosets_mult_eq: "M \<in> rcosets H \<Longrightarrow> H <#> M = M"
   -- {* generalizes @{text subgroup_mult_id} *}
   by (auto simp add: RCOSETS_def subset
-        setmult_rcos_assoc subgroup_mult_id prems normal.axioms)
+        setmult_rcos_assoc subgroup_mult_id normal_axioms normal.axioms)
 
 
 subsubsection{*Two distinct right cosets are disjoint*}
@@ -881,7 +880,7 @@ proof -
       fix x y
       assume [simp]: "x \<in> carrier(G)" "y \<in> carrier(G)" 
         and "inv x \<cdot> y \<in> H"
-      hence "inv (inv x \<cdot> y) \<in> H" by (simp add: m_inv_closed) 
+      hence "inv (inv x \<cdot> y) \<in> H" by simp
       thus "inv y \<cdot> x \<in> H" by (simp add: inv_mult_group)
     qed
   next
@@ -932,7 +931,7 @@ proof -
   interpret subgroup H G by fact
   show "PROP ?P"
     apply (simp add: RCOSETS_def r_coset_def)
-    apply (blast intro: rcos_equation prems sym)
+    apply (blast intro: rcos_equation assms sym)
     done
 qed
 
@@ -962,7 +961,7 @@ proof -
   show ?thesis
     apply (rule equalityI)
     apply (force simp add: RCOSETS_def r_coset_def)
-    apply (auto simp add: RCOSETS_def intro: rcos_self prems)
+    apply (auto simp add: RCOSETS_def intro: rcos_self assms)
     done
 qed
 
@@ -1051,7 +1050,7 @@ qed
 
 lemma (in normal) rcosets_inv_mult_group_eq:
      "M \<in> rcosets H \<Longrightarrow> set_inv M <#> M = H"
-by (auto simp add: RCOSETS_def rcos_inv rcos_sum subgroup.subset prems normal.axioms)
+by (auto simp add: RCOSETS_def rcos_inv rcos_sum subgroup.subset normal_axioms normal.axioms)
 
 theorem (in normal) factorgroup_is_group:
   "group (G Mod H)"
@@ -1090,12 +1089,12 @@ definition
 
 lemma (in group_hom) subgroup_kernel: "subgroup (kernel(G,H,h), G)"
 apply (rule subgroup.intro) 
-apply (auto simp add: kernel_def group.intro prems) 
+apply (auto simp add: kernel_def group.intro)
 done
 
 text{*The kernel of a homomorphism is a normal subgroup*}
 lemma (in group_hom) normal_kernel: "(kernel(G,H,h)) \<lhd> G"
-apply (simp add: group.normal_inv_iff subgroup_kernel group.intro prems)
+apply (simp add: group.normal_inv_iff subgroup_kernel group.intro)
 apply (simp add: kernel_def)  
 done
 

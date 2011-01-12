@@ -200,7 +200,7 @@ lemma l_minus:
 proof -
   assume R: "x \<in> carrier(R)" "y \<in> carrier(R)"
   then have "(\<ominus> x) \<cdot> y \<oplus> x \<cdot> y = (\<ominus> x \<oplus> x) \<cdot> y" by (simp add: l_distr)
-  also from R have "... = \<zero>" by (simp add: l_neg l_null)
+  also from R have "... = \<zero>" by (simp add: l_neg)
   finally have "(\<ominus> x) \<cdot> y \<oplus> x \<cdot> y = \<zero>" .
   with R have "(\<ominus> x) \<cdot> y \<oplus> x \<cdot> y \<oplus> \<ominus> (x \<cdot> y) = \<zero> \<oplus> \<ominus> (x \<cdot> y)" by simp
   with R show ?thesis by (simp add: a_assoc r_neg)
@@ -211,7 +211,7 @@ lemma r_minus:
 proof -
   assume R: "x \<in> carrier(R)" "y \<in> carrier(R)"
   then have "x \<cdot> (\<ominus> y) \<oplus> x \<cdot> y = x \<cdot> (\<ominus> y \<oplus> y)" by (simp add: r_distr)
-  also from R have "... = \<zero>" by (simp add: l_neg r_null)
+  also from R have "... = \<zero>" by (simp add: l_neg)
   finally have "x \<cdot> (\<ominus> y) \<oplus> x \<cdot> y = \<zero>" .
   with R have "x \<cdot> (\<ominus> y) \<oplus> x \<cdot> y \<oplus> \<ominus> (x \<cdot> y) = \<zero> \<oplus> \<ominus> (x \<cdot> y)" by simp
   with R show ?thesis by (simp add: a_assoc r_neg)
@@ -243,7 +243,7 @@ lemma ring_hom_memI:
       h ` (x \<oplus>\<^bsub>R\<^esub> y) = (h ` x) \<oplus>\<^bsub>S\<^esub> (h ` y)"
     and hom_one: "h ` \<one>\<^bsub>R\<^esub> = \<one>\<^bsub>S\<^esub>"
   shows "h \<in> ring_hom(R,S)"
-by (auto simp add: ring_hom_def prems)
+by (auto simp add: ring_hom_def assms)
 
 lemma ring_hom_closed:
      "\<lbrakk>h \<in> ring_hom(R,S); x \<in> carrier(R)\<rbrakk> \<Longrightarrow> h ` x \<in> carrier(S)"
