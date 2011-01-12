@@ -76,11 +76,11 @@ lemmas rules = simple
 
 lemma imp_elim:
   assumes "f:A->B" and "a:A" and "f^a:B ==> PROP P"
-  shows "PROP P" by (rule app prems)+
+  shows "PROP P" by (rule app assms)+
 
 lemma pi_elim:
   assumes "F:Prod(A,B)" and "a:A" and "F^a:B(a) ==> PROP P"
-  shows "PROP P" by (rule app prems)+
+  shows "PROP P" by (rule app assms)+
 
 
 locale L2 =

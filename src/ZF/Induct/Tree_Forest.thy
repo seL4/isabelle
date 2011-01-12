@@ -176,7 +176,7 @@ lemma
   assumes "!!x. x \<in> A ==> h(x): B"
   shows map_tree_type: "t \<in> tree(A) ==> map(h,t) \<in> tree(B)"
     and map_forest_type: "f \<in> forest(A) ==> map(h,f) \<in> forest(B)"
-  using prems
+  using assms
   by (induct rule: tree'induct forest'induct) simp_all
 
 text {*

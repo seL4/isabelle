@@ -76,7 +76,7 @@ schematic_lemma
   shows "?p : ~ P"
 apply (unfold not_def)
 apply (rule impI)
-apply (rule prems)
+apply (rule assms)
 apply assumption
 done
 

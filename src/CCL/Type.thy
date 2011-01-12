@@ -214,7 +214,7 @@ subsection {* Recursive types *}
 
 subsubsection {* Conversion Rules for Fixed Points via monotonicity and Tarski *}
 
-lemma NatM: "mono(%X. Unit+X)";
+lemma NatM: "mono(%X. Unit+X)"
   apply (rule PlusM constM idM)+
   done
 
@@ -358,7 +358,7 @@ lemma gfpI:
   shows "t(a) : gfp(B)"
   apply (rule coinduct)
    apply (rule_tac P = "%x. EX y:A. x=t (y)" in CollectI)
-   apply (blast intro!: prems)+
+   apply (blast intro!: assms)+
   done
 
 lemma def_gfpI:

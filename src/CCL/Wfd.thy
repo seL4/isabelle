@@ -253,11 +253,11 @@ lemma letrec2T:
   shows "letrec g x y be h(x,y,g) in g(a,b) : D(a,b)"
   apply (unfold letrec2_def)
   apply (rule SPLITB [THEN subst])
-  apply (assumption | rule letrecT pairT splitT prems)+
+  apply (assumption | rule letrecT pairT splitT assms)+
   apply (subst SPLITB)
-  apply (assumption | rule ballI SubtypeI prems)+
+  apply (assumption | rule ballI SubtypeI assms)+
   apply (rule SPLITB [THEN subst])
-  apply (assumption | rule letrecT SubtypeI pairT splitT prems |
+  apply (assumption | rule letrecT SubtypeI pairT splitT assms |
     erule bspec SubtypeE sym [THEN subst])+
   done
 
@@ -275,11 +275,11 @@ lemma letrec3T:
   shows "letrec g x y z be h(x,y,z,g) in g(a,b,c) : D(a,b,c)"
   apply (unfold letrec3_def)
   apply (rule lem [THEN subst])
-  apply (assumption | rule letrecT pairT splitT prems)+
+  apply (assumption | rule letrecT pairT splitT assms)+
   apply (simp add: SPLITB)
-  apply (assumption | rule ballI SubtypeI prems)+
+  apply (assumption | rule ballI SubtypeI assms)+
   apply (rule lem [THEN subst])
-  apply (assumption | rule letrecT SubtypeI pairT splitT prems |
+  apply (assumption | rule letrecT SubtypeI pairT splitT assms |
     erule bspec SubtypeE sym [THEN subst])+
   done
 
@@ -520,7 +520,7 @@ lemma applyV [eval]:
   assumes "f ---> lam x. b(x)"
     and "b(a) ---> c"
   shows "f ` a ---> c"
-  unfolding apply_def by (eval prems)
+  unfolding apply_def by (eval assms)
 
 lemma letV:
   assumes 1: "t ---> a"

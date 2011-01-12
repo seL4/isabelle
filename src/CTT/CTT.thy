@@ -319,7 +319,7 @@ lemma subst_prodE:
     and "a: A"
     and "!!z. z: B(a) ==> c(z): C(z)"
   shows "c(p`a): C(p`a)"
-apply (rule prems ProdE)+
+apply (rule assms ProdE)+
 done
 
 

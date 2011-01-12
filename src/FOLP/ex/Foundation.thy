@@ -23,17 +23,17 @@ schematic_lemma
   assumes "p : A & B"
     and "!!x y. x : A ==> y : B ==> f(x, y) : C"
   shows "?p : C"
-apply (rule prems)
+apply (rule assms)
 apply (rule conjunct1)
-apply (rule prems)
+apply (rule assms)
 apply (rule conjunct2)
-apply (rule prems)
+apply (rule assms)
 done
 
 schematic_lemma
   assumes "!!A x. x : ~ ~A ==> cla(x) : A"
   shows "?p : B | ~B"
-apply (rule prems)
+apply (rule assms)
 apply (rule notI)
 apply (rule_tac P = "~B" in notE)
 apply (rule_tac [2] notI)
@@ -51,7 +51,7 @@ done
 schematic_lemma
   assumes "!!A x. x : ~ ~A ==> cla(x) : A"
   shows "?p : B | ~B"
-apply (rule prems)
+apply (rule assms)
 apply (rule notI)
 apply (rule notE)
 apply (rule_tac [2] notI)
@@ -68,11 +68,11 @@ schematic_lemma
     and "q : ~ ~A"
   shows "?p : A"
 apply (rule disjE)
-apply (rule prems)
+apply (rule assms)
 apply assumption
 apply (rule FalseE)
 apply (rule_tac P = "~A" in notE)
-apply (rule prems)
+apply (rule assms)
 apply assumption
 done
 
@@ -84,7 +84,7 @@ schematic_lemma
   shows "?p : ALL z. G(z)|H(z)"
 apply (rule allI)
 apply (rule disjI1)
-apply (rule prems [THEN spec])
+apply (rule assms [THEN spec])
 done
 
 schematic_lemma "?p : ALL x. EX y. x=y"
@@ -112,7 +112,7 @@ schematic_lemma
   assumes "p : (EX z. F(z)) & B"
   shows "?p : EX z. F(z) & B"
 apply (rule conjE)
-apply (rule prems)
+apply (rule assms)
 apply (rule exE)
 apply assumption
 apply (rule exI)

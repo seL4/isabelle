@@ -63,7 +63,7 @@ lemma map_append:
   shows "map(f,l@m) = map(f,l) @ map(f,m)"
   apply (tactic {* eq_coinduct3_tac @{context}
     "{p. EX x y. p=<x,y> & (EX l:Lists (A). EX m:Lists (A). x=map (f,l@m) & y=map (f,l) @ map (f,m))}" 1 *})
-  apply (blast intro: prems)
+  apply (blast intro: assms)
   apply safe
   apply (drule ListsXH [THEN iffD1])
   apply (tactic "EQgen_tac @{context} [] 1")
@@ -82,7 +82,7 @@ lemma append_assoc:
   shows "k @ l @ m = (k @ l) @ m"
   apply (tactic {* eq_coinduct3_tac @{context}
     "{p. EX x y. p=<x,y> & (EX k:Lists (A). EX l:Lists (A). EX m:Lists (A). x=k @ l @ m & y= (k @ l) @ m) }" 1*})
-  apply (blast intro: prems)
+  apply (blast intro: assms)
   apply safe
   apply (drule ListsXH [THEN iffD1])
   apply (tactic "EQgen_tac @{context} [] 1")
@@ -100,7 +100,7 @@ lemma ilist_append:
   shows "l @ m = l"
   apply (tactic {* eq_coinduct3_tac @{context}
     "{p. EX x y. p=<x,y> & (EX l:ILists (A) .EX m. x=l@m & y=l)}" 1 *})
-  apply (blast intro: prems)
+  apply (blast intro: assms)
   apply safe
   apply (drule IListsXH [THEN iffD1])
   apply (tactic "EQgen_tac @{context} [] 1")

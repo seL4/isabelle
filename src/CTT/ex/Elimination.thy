@@ -145,7 +145,7 @@ apply (rule replace_type)
 apply (rule subst_eqtyparg)
 apply (rule comp_rls)
 apply (rule_tac [4] SumE_snd)
-apply (tactic {* typechk_tac (@{thm SumE_fst} :: @{thms prems}) *})
+apply (tactic {* typechk_tac (@{thm SumE_fst} :: @{thms assms}) *})
 done
 
 text "Axiom of choice.  Proof without fst, snd.  Harder still!"

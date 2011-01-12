@@ -222,7 +222,7 @@ lemma not_emptyD:
 proof -
   have "\<not> (EX x. x:A) \<Longrightarrow> A = {}"
     by (rule equalityI) (blast intro!: subsetI elim!: emptyD)+
-  with prems show ?thesis by blast
+  with assms show ?thesis by blast
 qed
 
 
