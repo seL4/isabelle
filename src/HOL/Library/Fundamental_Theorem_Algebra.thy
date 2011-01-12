@@ -793,7 +793,7 @@ lemma nullstellensatz_lemma:
   assumes "\<forall>x. poly p x = 0 \<longrightarrow> poly q x = 0"
   and "degree p = n" and "n \<noteq> 0"
   shows "p dvd (q ^ n)"
-using prems
+using assms
 proof(induct n arbitrary: p q rule: nat_less_induct)
   fix n::nat fix p q :: "complex poly"
   assume IH: "\<forall>m<n. \<forall>p q.

@@ -369,18 +369,18 @@ apply  (subgoal_tac "G = mgt_call ` U")
 prefer 2
 apply   (simp add: card_seteq)
 apply  simp
-apply  (erule prems(3-)) (*MGF_lemma1*)
+apply  (erule assms(3-)) (*MGF_lemma1*)
 apply (rule ballI)
-apply  (rule prems) (*hoare_derivs.asm*)
+apply  (rule assms) (*hoare_derivs.asm*)
 apply  fast
-apply (erule prems(3-)) (*MGF_lemma1*)
+apply (erule assms(3-)) (*MGF_lemma1*)
 apply (rule ballI)
 apply (case_tac "mgt_call pn : G")
-apply  (rule prems) (*hoare_derivs.asm*)
+apply  (rule assms) (*hoare_derivs.asm*)
 apply  fast
-apply (rule prems(2-)) (*MGT_BodyN*)
+apply (rule assms(2-)) (*MGT_BodyN*)
 apply (drule spec, erule impE, erule_tac [2] impE, drule_tac [3] spec, erule_tac [3] mp)
-apply   (erule_tac [3] prems(4-))
+apply   (erule_tac [3] assms(4-))
 apply   fast
 apply (drule finite_subset)
 apply (erule finite_imageI)

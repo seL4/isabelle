@@ -183,7 +183,7 @@ next
   case (ubasis_le_upper S b a i) thus ?case
     apply clarsimp
     apply (subst ubasis_until_same)
-     apply (erule (3) prems)
+     apply (erule (3) assms)
     apply (erule (2) ubasis_le.ubasis_le_upper)
     done
 qed

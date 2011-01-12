@@ -312,7 +312,7 @@ apply (unfold seq.finite_def)
 apply (intro strip)
 apply (erule exE)
 apply (erule subst)
-apply (rule prems)
+apply (rule assms)
 done
 
 

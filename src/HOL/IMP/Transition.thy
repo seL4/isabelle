@@ -272,7 +272,7 @@ text {*
 lemma evalc_imp_evalc1:
   assumes "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s'"
   shows "\<langle>c, s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* \<langle>s'\<rangle>"
-  using prems
+  using assms
 proof induct
   fix s show "\<langle>\<SKIP>,s\<rangle> \<longrightarrow>\<^sub>1\<^sup>* \<langle>s\<rangle>" by auto
 next
@@ -550,7 +550,7 @@ lemma my_lemma1:
   shows "\<langle>c1;c2,s1\<rangle> \<longrightarrow>\<^sub>1\<^sup>* cs3"
 proof -
   -- {* The induction rule needs @{text P} to be a function of @{term "Some c1"} *}
-  from prems
+  from assms
   have "\<langle>(\<lambda>c. if c = None then c2 else the c; c2) (Some c1),s1\<rangle> \<longrightarrow>\<^sub>1\<^sup>* cs3"
     apply (induct rule: converse_rtrancl_induct2)
      apply simp

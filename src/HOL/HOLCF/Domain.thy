@@ -211,7 +211,7 @@ lemma isodefl_lub:
   assumes "chain d" and "chain t"
   assumes "\<And>i. isodefl (d i) (t i)"
   shows "isodefl (\<Squnion>i. d i) (\<Squnion>i. t i)"
-using prems unfolding isodefl_def
+using assms unfolding isodefl_def
 by (simp add: contlub_cfun_arg contlub_cfun_fun)
 
 lemma isodefl_fix:

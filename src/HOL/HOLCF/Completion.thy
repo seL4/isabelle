@@ -26,7 +26,7 @@ lemma idealI:
   assumes "\<And>x y. \<lbrakk>x \<in> A; y \<in> A\<rbrakk> \<Longrightarrow> \<exists>z\<in>A. x \<preceq> z \<and> y \<preceq> z"
   assumes "\<And>x y. \<lbrakk>x \<preceq> y; y \<in> A\<rbrakk> \<Longrightarrow> x \<in> A"
   shows "ideal A"
-unfolding ideal_def using prems by fast
+unfolding ideal_def using assms by fast
 
 lemma idealD1:
   "ideal A \<Longrightarrow> \<exists>x. x \<in> A"

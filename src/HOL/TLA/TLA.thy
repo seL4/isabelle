@@ -520,7 +520,7 @@ lemma TLA2:
   shows "|- []P --> []A"
   apply clarsimp
   apply (drule BoxPrime [temp_use])
-  apply (auto simp: Init_stp_act_rev [try_rewrite] intro!: prems [temp_use]
+  apply (auto simp: Init_stp_act_rev [try_rewrite] intro!: assms [temp_use]
     elim!: STL4E [temp_use])
   done
 

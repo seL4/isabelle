@@ -1,5 +1,4 @@
 (*  Title:        HOL/IMP/Natural.thy
-    ID:           $Id$
     Author:       Tobias Nipkow & Robert Sandner, TUM
     Isar Version: Gerwin Klein, 2001; additional proofs by Lawrence Paulson
     Copyright     1996 TUM
@@ -270,7 +269,7 @@ The following proof presents all the details:
 theorem com_det:
   assumes "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t" and "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c u"
   shows "u = t"
-  using prems
+  using assms
 proof (induct arbitrary: u set: evalc)
   fix s u assume "\<langle>\<SKIP>,s\<rangle> \<longrightarrow>\<^sub>c u"
   thus "u = s" by blast
@@ -331,7 +330,7 @@ text {*
 theorem
   assumes "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t" and "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c u"
   shows "u = t"
-  using prems
+  using assms
 proof (induct arbitrary: u)
   -- "the simple @{text \<SKIP>} case for demonstration:"
   fix s u assume "\<langle>\<SKIP>,s\<rangle> \<longrightarrow>\<^sub>c u"
