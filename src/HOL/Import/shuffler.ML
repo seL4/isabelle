@@ -35,27 +35,6 @@ val debug = Unsynchronized.ref false
 fun if_debug f x = if !debug then f x else ()
 val message = if_debug writeln
 
-(*Prints exceptions readably to users*)
-fun print_sign_exn_unit sign e =
-  case e of
-     THM (msg,i,thms) =>
-         (writeln ("Exception THM " ^ string_of_int i ^ " raised:\n" ^ msg);
-          List.app (writeln o Display.string_of_thm_global sign) thms)
-   | THEORY (msg,thys) =>
-         (writeln ("Exception THEORY raised:\n" ^ msg);
-          List.app (writeln o Context.str_of_thy) thys)
-   | TERM (msg,ts) =>
-         (writeln ("Exception TERM raised:\n" ^ msg);
-          List.app (writeln o Syntax.string_of_term_global sign) ts)
-   | TYPE (msg,Ts,ts) =>
-         (writeln ("Exception TYPE raised:\n" ^ msg);
-          List.app (writeln o Syntax.string_of_typ_global sign) Ts;
-          List.app (writeln o Syntax.string_of_term_global sign) ts)
-   | e => raise e
-
-(*Prints an exception, then fails*)
-fun print_sign_exn sign e = (print_sign_exn_unit sign e; raise e)
-
 val string_of_thm = Print_Mode.setmp [] Display.string_of_thm_without_context;
 
 fun mk_meta_eq th =
@@ -506,7 +485,6 @@ fun norm_term thy t =
     in
         th
     end
-    handle e => (writeln "norm_term internal error"; print_sign_exn thy e)
 
 
 (* Closes a theorem with respect to free and schematic variables (does
