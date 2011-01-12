@@ -10,7 +10,7 @@ sig
   (* configuration *)
   val auto: bool Unsynchronized.ref
   val timing : bool Unsynchronized.ref
-  val tester : string Config.T 
+  val tester : string Config.T
   val size : int Config.T
   val iterations : int Config.T
   val no_assms : bool Config.T
@@ -22,7 +22,7 @@ sig
   datatype report = Report of
     { iterations : int, raised_match_errors : int,
       satisfied_assms : int list, positive_concl_tests : int }
-  datatype expectation = No_Expectation | No_Counterexample | Counterexample;  
+  datatype expectation = No_Expectation | No_Counterexample | Counterexample;
   datatype test_params = Test_Params of {default_type: typ list, expect : expectation};
   val test_params_of : Proof.context -> test_params
   val map_test_params : (typ list * expectation -> typ list * expectation)
@@ -63,7 +63,7 @@ datatype report = Report of
 
 (* expectation *)
 
-datatype expectation = No_Expectation | No_Counterexample | Counterexample; 
+datatype expectation = No_Expectation | No_Counterexample | Counterexample;
 
 fun merge_expectation (expect1, expect2) =
   if expect1 = expect2 then expect1 else No_Expectation
@@ -77,7 +77,8 @@ val (report, setup_report) = Attrib.config_bool "quickcheck_report" (K true)
 val (quiet, setup_quiet) = Attrib.config_bool "quickcheck_quiet" (K false)
 val (timeout, setup_timeout) = Attrib.config_real "quickcheck_timeout" (K 30.0)
 val (finite_types, setup_finite_types) = Attrib.config_bool "quickcheck_finite_types" (K true)
-val (finite_type_size, setup_finite_type_size) = Attrib.config_int "quickcheck_finite_type_size" (K 3)
+val (finite_type_size, setup_finite_type_size) =
+  Attrib.config_int "quickcheck_finite_type_size" (K 3)
 
 val setup_config =
   setup_tester #> setup_size #> setup_iterations #> setup_no_assms #> setup_report #> setup_quiet
@@ -88,9 +89,11 @@ datatype test_params = Test_Params of
 
 fun dest_test_params (Test_Params {default_type, expect}) = (default_type, expect);
 
-fun make_test_params (default_type, expect) = Test_Params {default_type = default_type, expect = expect};
+fun make_test_params (default_type, expect) =
+  Test_Params {default_type = default_type, expect = expect};
 
-fun map_test_params' f (Test_Params {default_type, expect}) = make_test_params (f (default_type, expect));
+fun map_test_params' f (Test_Params {default_type, expect}) =
+  make_test_params (f (default_type, expect));
 
 fun merge_test_params
   (Test_Params {default_type = default_type1, expect = expect1},
@@ -157,7 +160,7 @@ fun cpu_time description f =
     val result = Exn.capture f ()
     val time = Time.toMilliseconds (#cpu (end_timing start))
   in (Exn.release result, (description, time)) end
-  
+
 fun test_term ctxt is_interactive t =
   let
     val (names, t') = apfst (map fst) (prep_test_term t);
@@ -176,9 +179,11 @@ fun test_term ctxt is_interactive t =
           val ((result, new_report), timing) =
             cpu_time ("size " ^ string_of_int k) (fn () => test_fun (k - 1))
           val reports = case new_report of NONE => reports | SOME rep => (k, rep) :: reports
-        in case result of NONE => with_size test_fun (k + 1) reports | SOME q => (SOME q, reports) end;
+        in
+          case result of NONE => with_size test_fun (k + 1) reports | SOME q => (SOME q, reports)
+        end;
   in
-    case test_fun of NONE => (NONE, ([comp_time], NONE)) 
+    case test_fun of NONE => (NONE, ([comp_time], NONE))
       | SOME test_fun =>
         TimeLimit.timeLimit (seconds (Config.get ctxt timeout)) (fn () =>
           let
@@ -225,24 +230,25 @@ fun test_term_with_increasing_cardinality ctxt is_interactive ts =
         handle TimeLimit.TimeOut =>
           if is_interactive then error ("Quickcheck ran out of time") else raise TimeLimit.TimeOut
       else
-        error "Unexpectedly, testers of some cardinalities are executable but others are not"       
+        error "Unexpectedly, testers of some cardinalities are executable but others are not"
     end
 
 fun get_finite_types ctxt =
   fst (chop (Config.get ctxt finite_type_size)
     (map (Type o rpair []) ["Enum.finite_1", "Enum.finite_2", "Enum.finite_3",
-     "Enum.finite_4", "Enum.finite_5"]))  
+     "Enum.finite_4", "Enum.finite_5"]))
 
 exception WELLSORTED of string
 
-fun monomorphic_term thy insts default_T = 
+fun monomorphic_term thy insts default_T =
   let
     fun subst (T as TFree (v, S)) =
       let
         val T' = AList.lookup (op =) insts v
           |> the_default default_T
       in if Sign.of_sort thy (T', S) then T'
-        else raise (WELLSORTED ("For instantiation with default_type " ^ Syntax.string_of_typ_global thy default_T ^
+        else raise (WELLSORTED ("For instantiation with default_type " ^
+          Syntax.string_of_typ_global thy default_T ^
           ":\n" ^ Syntax.string_of_typ_global thy T' ^
           " to be substituted for variable " ^
           Syntax.string_of_typ_global thy T ^ " does not have sort " ^
@@ -255,18 +261,21 @@ datatype wellsorted_error = Wellsorted_Error of string | Term of term
 
 fun test_goal_terms lthy is_interactive insts check_goals =
   let
-    val thy = ProofContext.theory_of lthy 
+    val thy = ProofContext.theory_of lthy
     val default_insts =
       if Config.get lthy finite_types then (get_finite_types lthy) else (default_type lthy)
     val inst_goals =
       map (fn check_goal =>
         if not (null (Term.add_tfree_names check_goal [])) then
           map (fn T =>
-            (pair (SOME T) o Term o Object_Logic.atomize_term thy o monomorphic_term thy insts T) check_goal
+            (pair (SOME T) o Term o Object_Logic.atomize_term thy o monomorphic_term thy insts T)
+              check_goal
               handle WELLSORTED s => (SOME T, Wellsorted_Error s)) default_insts
         else
           [(NONE, Term (Object_Logic.atomize_term thy check_goal))]) check_goals
-    val error_msg = cat_lines (maps (map_filter (fn (_, Term t) => NONE | (_, Wellsorted_Error s) => SOME s)) inst_goals)
+    val error_msg =
+      cat_lines
+        (maps (map_filter (fn (_, Term t) => NONE | (_, Wellsorted_Error s) => SOME s)) inst_goals)
     fun is_wellsorted_term (T, Term t) = SOME (T, t)
       | is_wellsorted_term (_, Wellsorted_Error s) = NONE
     val correct_inst_goals =
@@ -282,7 +291,7 @@ fun test_goal_terms lthy is_interactive insts check_goals =
     fun test_term' goal =
       case goal of
         [(NONE, t)] => test_term lthy is_interactive t
-      | ts => test_term_with_increasing_cardinality lthy is_interactive (map snd ts)                           
+      | ts => test_term_with_increasing_cardinality lthy is_interactive (map snd ts)
   in
     if Config.get lthy finite_types then
       collect_results test_term' [] correct_inst_goals
@@ -331,7 +340,8 @@ fun pretty_report (Report {iterations = iterations, raised_match_errors = raised
   in
      ([pretty_stat "iterations" iterations,
      pretty_stat "match exceptions" raised_match_errors]
-     @ map_index (fn (i, n) => pretty_stat ("satisfied " ^ string_of_int (i + 1) ^ ". assumption") n)
+     @ map_index
+       (fn (i, n) => pretty_stat ("satisfied " ^ string_of_int (i + 1) ^ ". assumption") n)
        satisfied_assms
      @ [pretty_stat "positive conclusion tests" positive_concl_tests])
   end
@@ -384,9 +394,9 @@ fun read_real s =
   | NONE => error ("Not a real number: " ^ s)
 
 fun read_expectation "no_expectation" = No_Expectation
-  | read_expectation "no_counterexample" = No_Counterexample 
+  | read_expectation "no_counterexample" = No_Counterexample
   | read_expectation "counterexample" = Counterexample
-  | read_expectation s = error ("Not an expectation value: " ^ s)  
+  | read_expectation s = error ("Not an expectation value: " ^ s)
 
 fun valid_tester_name genctxt = AList.defined (op =) (fst (Data.get genctxt))
 
@@ -400,14 +410,16 @@ fun parse_test_param ("tester", [arg]) = parse_tester arg
   | parse_test_param ("size", [arg]) = Config.put_generic size (read_nat arg)
   | parse_test_param ("iterations", [arg]) = Config.put_generic iterations (read_nat arg)
   | parse_test_param ("default_type", arg) = (fn gen_ctxt =>
-    map_test_params ((apfst o K) (map (ProofContext.read_typ (Context.proof_of gen_ctxt)) arg)) gen_ctxt)
+    map_test_params
+      ((apfst o K) (map (ProofContext.read_typ (Context.proof_of gen_ctxt)) arg)) gen_ctxt)
   | parse_test_param ("no_assms", [arg]) = Config.put_generic no_assms (read_bool arg)
   | parse_test_param ("expect", [arg]) = map_test_params ((apsnd o K) (read_expectation arg))
   | parse_test_param ("report", [arg]) = Config.put_generic report (read_bool arg)
   | parse_test_param ("quiet", [arg]) = Config.put_generic quiet (read_bool arg)
   | parse_test_param ("timeout", [arg]) = Config.put_generic timeout (read_real arg)
   | parse_test_param ("finite_types", [arg]) = Config.put_generic finite_types (read_bool arg)
-  | parse_test_param ("finite_type_size", [arg]) = Config.put_generic finite_type_size (read_nat arg)
+  | parse_test_param ("finite_type_size", [arg]) =
+    Config.put_generic finite_type_size (read_nat arg)
   | parse_test_param (name, _) = fn genctxt =>
     if valid_tester_name genctxt name then
       Config.put_generic tester name genctxt
@@ -420,7 +432,7 @@ fun parse_test_param_inst (name, arg) (insts, ctxt) =
         | _ => (apsnd o Context.proof_map o parse_test_param) (name, arg) (insts, ctxt);
 
 fun quickcheck_params_cmd args = Context.theory_map (fold parse_test_param args);
-  
+
 fun gen_quickcheck args i state =
   state
   |> Proof.map_context_result (fn ctxt => fold parse_test_param_inst args ([], ctxt))
@@ -436,11 +448,14 @@ fun quickcheck_cmd args i state =
   gen_quickcheck args i (Toplevel.proof_of state)
   |> Pretty.writeln o pretty_counterex_and_reports (Toplevel.context_of state) false;
 
-val parse_arg = Parse.name -- (Scan.optional (Parse.$$$ "=" |-- 
-  (((Parse.name || Parse.float_number) >> single) || (Parse.$$$ "[" |-- Parse.list1 Parse.name --| Parse.$$$ "]"))) ["true"]);
+val parse_arg =
+  Parse.name --
+    (Scan.optional (Parse.$$$ "=" |--
+      (((Parse.name || Parse.float_number) >> single) ||
+        (Parse.$$$ "[" |-- Parse.list1 Parse.name --| Parse.$$$ "]"))) ["true"]);
 
-val parse_args = Parse.$$$ "[" |-- Parse.list1 parse_arg --| Parse.$$$ "]"
-  || Scan.succeed [];
+val parse_args =
+  Parse.$$$ "[" |-- Parse.list1 parse_arg --| Parse.$$$ "]" || Scan.succeed [];
 
 val _ =
   Outer_Syntax.command "quickcheck_params" "set parameters for random testing" Keyword.thy_decl
