@@ -129,10 +129,6 @@ sig
   val read_int: string list -> int * string list
   val oct_char: string -> string
 
-  (*reals*)
-  val string_of_real: real -> string
-  val signed_string_of_real: real -> string
-
   (*strings*)
   val nth_string: string -> int -> string
   val fold_string: (string -> 'a -> 'a) -> string -> 'a -> 'a
@@ -156,6 +152,11 @@ sig
   val replicate_string: int -> string -> string
   val translate_string: (string -> string) -> string -> string
   val match_string: string -> string -> bool
+
+  (*reals*)
+  val string_of_real: real -> string
+  val signed_string_of_real: real -> string
+  val smart_string_of_real: real -> string
 
   (*lists as sets -- see also Pure/General/ord_list.ML*)
   val member: ('b * 'a -> bool) -> 'a list -> 'b -> bool
@@ -682,15 +683,6 @@ fun oct_char s = chr (#1 (read_radix_int 8 (raw_explode s)));
 
 
 
-(** reals **)
-
-val string_of_real = Real.fmt (StringCvt.GEN NONE);
-
-fun signed_string_of_real x =
-  if x < 0.0 then "-" ^ string_of_real (~ x) else string_of_real x;
-
-
-
 (** strings **)
 
 (* functions tuned for strings, avoiding explode *)
@@ -781,6 +773,23 @@ fun match_string pat str =
               SOME s' => match ps s'
             | NONE => match (p :: ps) (String.substring (s, 1, size s - 1)));
   in match (space_explode "*" pat) str end;
+
+
+(** reals **)
+
+val string_of_real = Real.fmt (StringCvt.GEN NONE);
+
+fun signed_string_of_real x =
+  if x < 0.0 then "-" ^ string_of_real (~ x) else string_of_real x;
+
+fun smart_string_of_real x =
+  let
+    val s = signed_string_of_real x;
+  in
+    (case space_explode "." s of
+      [a, b] => if forall_string (fn c => c = "0") b then a else s
+    | _ => s)
+  end;
 
 
 

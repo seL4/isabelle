@@ -220,7 +220,8 @@ fun read_pgipstring s =  (* non-empty strings, XML escapes decoded *)
 
 val int_to_pgstring = signed_string_of_int
 
-val real_to_pgstring = signed_string_of_real
+val real_to_pgstring = smart_string_of_real;
+
 
 fun string_to_pgstring s = XML.text s
 
