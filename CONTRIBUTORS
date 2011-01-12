@@ -12,8 +12,13 @@ Contributions to Isabelle2011
 * October 2010: Dmitriy Traytel, TUM
   Coercive subtyping via subtype constraints.
 
+* October 2010: Alexander Krauss, TUM
+  Command partial_function for function definitions based on complete
+  partial orders in HOL.
+
 * September 2010: Florian Haftmann, TUM
-  Refined concepts for evaluation, i.e. normalisation of terms using different techniques.
+  Refined concepts for evaluation, i.e., normalisation of terms using
+  different techniques.
 
 * September 2010: Florian Haftmann, TUM
   Code generation for Scala.
@@ -23,6 +28,10 @@ Contributions to Isabelle2011
 
 * July 2010: Florian Haftmann, TUM
   Reworking and extension of the Imperative HOL framework.
+
+* July 2010: Alexander Krauss, TUM and Christian Sternagel, University of
+    Innsbruck
+  Ad-hoc overloading. Generic do notation for monads.
 
 
 Contributions to Isabelle2009-2
