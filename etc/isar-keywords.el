@@ -85,6 +85,7 @@
     "done"
     "enable_pr"
     "end"
+    "enriched_type"
     "equivariance"
     "exit"
     "export_code"
@@ -249,7 +250,6 @@
     "txt"
     "txt_raw"
     "typ"
-    "type_lifting"
     "type_notation"
     "type_synonym"
     "typed_print_translation"
@@ -536,6 +536,7 @@
     "code_pred"
     "corollary"
     "cpodef"
+    "enriched_type"
     "function"
     "instance"
     "interpretation"
@@ -555,7 +556,6 @@
     "sublocale"
     "termination"
     "theorem"
-    "type_lifting"
     "typedef"))
 
 (defconst isar-keywords-qed
