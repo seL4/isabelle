@@ -178,7 +178,7 @@ fun check_formulas tsp =
   end
   handle TimeLimit.TimeOut => "TIMEOUT"
        | NOT_SUPPORTED _ => "UNSUP"
-       | _ => "UNKNOWN"
+       | exn => if Exn.is_interrupt then reraise exn else "UNKNOWN"
 
 fun check_theory thy =
   let
