@@ -89,7 +89,7 @@ fun server server_prefix port =
                  else f (req, get_content content_is, send)))
           end;
 
-        fun thread_req () =
+        fun thread_req () =  (* FIXME avoid handle e *)
           (do_req () handle e => (warning (exnMessage e));
            BinIO.closeOut sout handle e => warning (exnMessage e);
            BinIO.closeIn sin handle e => warning (exnMessage e);

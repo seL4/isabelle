@@ -231,7 +231,7 @@ fun find_theorems (req as ScgiReq.Req {request_method, query_string, ...},
       do_find ()
         handle
           ERROR msg => Xhtml.write send (html_error msg)
-        | e => Xhtml.write send (html_error ("Server error: " ^ exnMessage e));
+        | e => Xhtml.write send (html_error ("Server error: " ^ exnMessage e)); (* FIXME avoid handle e *)
     Xhtml.write_close send header
   end;
 in

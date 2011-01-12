@@ -319,6 +319,7 @@ fun add_hol4_type_mapping bthy bconst internal isaconst thy =
         val curmaps = HOL4TypeMaps.get thy
         val _ = writeln ("Adding tmap " ^ bthy ^ "." ^ bconst ^ " -> " ^ isaconst ^ (if internal then " (*)" else ""))
         val newmaps = StringPair.update_new ((bthy,bconst),(internal,isaconst)) curmaps
+               (* FIXME avoid handle x *)
                handle x => let val (internal, isaconst') = the (StringPair.lookup curmaps (bthy, bconst)) in
                       warning ("couldn't map type "^bthy^"."^bconst^" to "^isaconst^": already mapped to "^isaconst'); raise x end
         val upd_thy = HOL4TypeMaps.put newmaps thy

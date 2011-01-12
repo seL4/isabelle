@@ -275,7 +275,7 @@ fun replay_proof int_thms thyname thmname prf thy =
         in
             x
         end
-    end handle x => (ImportRecorder.abort_replay_proof thyname thmname; reraise x)
+    end handle x => (ImportRecorder.abort_replay_proof thyname thmname; reraise x)  (* FIXME avoid handle x ?? *)
 
 fun setup_int_thms thyname thy =
     let
