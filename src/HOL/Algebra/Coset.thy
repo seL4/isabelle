@@ -388,7 +388,7 @@ lemma normal_imp_subgroup: "H \<lhd> G \<Longrightarrow> subgroup H G"
 
 lemma (in group) normalI: 
   "subgroup H G \<Longrightarrow> (\<forall>x \<in> carrier G. H #> x = x <# H) \<Longrightarrow> H \<lhd> G"
-  by (simp add: normal_def normal_axioms_def prems) 
+  by (simp add: normal_def normal_axioms_def is_group)
 
 lemma (in normal) inv_op_closed1:
      "\<lbrakk>x \<in> carrier G; h \<in> H\<rbrakk> \<Longrightarrow> (inv x) \<otimes> h \<otimes> x \<in> H"
@@ -532,23 +532,20 @@ lemma (in normal) rcos_inv:
   shows "set_inv (H #> x) = H #> (inv x)" 
 proof (simp add: r_coset_def SET_INV_def x inv_mult_group, safe)
   fix h
-  assume "h \<in> H"
+  assume h: "h \<in> H"
   show "inv x \<otimes> inv h \<in> (\<Union>j\<in>H. {j \<otimes> inv x})"
   proof
     show "inv x \<otimes> inv h \<otimes> x \<in> H"
-      by (simp add: inv_op_closed1 prems)
+      by (simp add: inv_op_closed1 h x)
     show "inv x \<otimes> inv h \<in> {inv x \<otimes> inv h \<otimes> x \<otimes> inv x}"
-      by (simp add: prems m_assoc)
+      by (simp add: h x m_assoc)
   qed
-next
-  fix h
-  assume "h \<in> H"
   show "h \<otimes> inv x \<in> (\<Union>j\<in>H. {inv x \<otimes> inv j})"
   proof
     show "x \<otimes> inv h \<otimes> inv x \<in> H"
-      by (simp add: inv_op_closed2 prems)
+      by (simp add: inv_op_closed2 h x)
     show "h \<otimes> inv x \<in> {inv x \<otimes> inv (x \<otimes> inv h \<otimes> inv x)}"
-      by (simp add: prems m_assoc [symmetric] inv_mult_group)
+      by (simp add: h x m_assoc [symmetric] inv_mult_group)
   qed
 qed
 
@@ -580,7 +577,7 @@ lemma (in normal) rcos_mult_step3:
      "\<lbrakk>x \<in> carrier G; y \<in> carrier G\<rbrakk>
       \<Longrightarrow> (H <#> (H #> x)) #> y = H #> (x \<otimes> y)"
 by (simp add: setmult_rcos_assoc coset_mult_assoc
-              subgroup_mult_id normal.axioms subset prems)
+              subgroup_mult_id normal.axioms subset normal_axioms)
 
 lemma (in normal) rcos_sum:
      "\<lbrakk>x \<in> carrier G; y \<in> carrier G\<rbrakk>
@@ -590,7 +587,7 @@ by (simp add: rcos_mult_step1 rcos_mult_step2 rcos_mult_step3)
 lemma (in normal) rcosets_mult_eq: "M \<in> rcosets H \<Longrightarrow> H <#> M = M"
   -- {* generalizes @{text subgroup_mult_id} *}
   by (auto simp add: RCOSETS_def subset
-        setmult_rcos_assoc subgroup_mult_id normal.axioms prems)
+        setmult_rcos_assoc subgroup_mult_id normal.axioms normal_axioms)
 
 
 subsubsection{*An Equivalence Relation*}
@@ -676,8 +673,9 @@ lemma (in group) rcos_disjoint:
   shows "a \<inter> b = {}"
 proof -
   interpret subgroup H G by fact
-  from p show ?thesis apply (simp add: RCOSETS_def r_coset_def)
-    apply (blast intro: rcos_equation prems sym)
+  from p show ?thesis
+    apply (simp add: RCOSETS_def r_coset_def)
+    apply (blast intro: rcos_equation assms sym)
     done
 qed
 
@@ -770,7 +768,7 @@ proof -
   show ?thesis
     apply (rule equalityI)
     apply (force simp add: RCOSETS_def r_coset_def)
-    apply (auto simp add: RCOSETS_def intro: rcos_self prems)
+    apply (auto simp add: RCOSETS_def intro: rcos_self assms)
     done
 qed
 
@@ -860,7 +858,7 @@ qed
 
 lemma (in normal) rcosets_inv_mult_group_eq:
      "M \<in> rcosets H \<Longrightarrow> set_inv M <#> M = H"
-by (auto simp add: RCOSETS_def rcos_inv rcos_sum subgroup.subset normal.axioms prems)
+by (auto simp add: RCOSETS_def rcos_inv rcos_sum subgroup.subset normal.axioms normal_axioms)
 
 theorem (in normal) factorgroup_is_group:
   "group (G Mod H)"
@@ -902,7 +900,7 @@ definition
 
 lemma (in group_hom) subgroup_kernel: "subgroup (kernel G H h) G"
 apply (rule subgroup.intro) 
-apply (auto simp add: kernel_def group.intro prems) 
+apply (auto simp add: kernel_def group.intro is_group) 
 done
 
 text{*The kernel of a homomorphism is a normal subgroup*}

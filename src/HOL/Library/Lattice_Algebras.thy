@@ -253,7 +253,7 @@ lemma double_add_le_zero_iff_single_add_le_zero [simp]:
   "a + a \<le> 0 \<longleftrightarrow> a \<le> 0" 
 proof -
   have "a + a \<le> 0 \<longleftrightarrow> 0 \<le> - (a + a)" by (subst le_minus_iff, simp)
-  moreover have "\<dots> \<longleftrightarrow> a \<le> 0" by (simp add: zero_le_double_add_iff_zero_le_single_add)
+  moreover have "\<dots> \<longleftrightarrow> a \<le> 0" by simp
   ultimately show ?thesis by blast
 qed
 
@@ -261,7 +261,7 @@ lemma double_add_less_zero_iff_single_less_zero [simp]:
   "a + a < 0 \<longleftrightarrow> a < 0"
 proof -
   have "a + a < 0 \<longleftrightarrow> 0 < - (a + a)" by (subst less_minus_iff, simp)
-  moreover have "\<dots> \<longleftrightarrow> a < 0" by (simp add: zero_less_double_add_iff_zero_less_single_add)
+  moreover have "\<dots> \<longleftrightarrow> a < 0" by simp
   ultimately show ?thesis by blast
 qed
 
@@ -428,7 +428,7 @@ qed
 instance lattice_ring \<subseteq> ordered_ring_abs
 proof
   fix a b :: "'a\<Colon> lattice_ring"
-  assume "(0 \<le> a \<or> a \<le> 0) \<and> (0 \<le> b \<or> b \<le> 0)"
+  assume a: "(0 \<le> a \<or> a \<le> 0) \<and> (0 \<le> b \<or> b \<le> 0)"
   show "abs (a*b) = abs a * abs b"
   proof -
     have s: "(0 <= a*b) | (a*b <= 0)"
@@ -437,7 +437,7 @@ proof
       apply (rule_tac contrapos_np[of "a*b <= 0"])
       apply (simp)
       apply (rule_tac split_mult_neg_le)
-      apply (insert prems)
+      apply (insert a)
       apply (blast)
       done
     have mulprts: "a * b = (pprt a + nprt a) * (pprt b + nprt b)"
@@ -447,7 +447,7 @@ proof
       assume "0 <= a * b"
       then show ?thesis
         apply (simp_all add: mulprts abs_prts)
-        apply (insert prems)
+        apply (insert a)
         apply (auto simp add: 
           algebra_simps 
           iffD1[OF zero_le_iff_zero_nprt] iffD1[OF le_zero_iff_zero_pprt]
@@ -460,7 +460,7 @@ proof
       with s have "a*b <= 0" by simp
       then show ?thesis
         apply (simp_all add: mulprts abs_prts)
-        apply (insert prems)
+        apply (insert a)
         apply (auto simp add: algebra_simps)
         apply(drule (1) mult_nonneg_nonneg[of a b],simp)
         apply(drule (1) mult_nonpos_nonpos[of a b],simp)
@@ -485,31 +485,31 @@ proof -
   then have "a * b = pprt a * pprt b + pprt a * nprt b + nprt a * pprt b + nprt a * nprt b"
     by (simp add: algebra_simps)
   moreover have "pprt a * pprt b <= pprt a2 * pprt b2"
-    by (simp_all add: prems mult_mono)
+    by (simp_all add: assms mult_mono)
   moreover have "pprt a * nprt b <= pprt a1 * nprt b2"
   proof -
     have "pprt a * nprt b <= pprt a * nprt b2"
-      by (simp add: mult_left_mono prems)
+      by (simp add: mult_left_mono assms)
     moreover have "pprt a * nprt b2 <= pprt a1 * nprt b2"
-      by (simp add: mult_right_mono_neg prems)
+      by (simp add: mult_right_mono_neg assms)
     ultimately show ?thesis
       by simp
   qed
   moreover have "nprt a * pprt b <= nprt a2 * pprt b1"
   proof - 
     have "nprt a * pprt b <= nprt a2 * pprt b"
-      by (simp add: mult_right_mono prems)
+      by (simp add: mult_right_mono assms)
     moreover have "nprt a2 * pprt b <= nprt a2 * pprt b1"
-      by (simp add: mult_left_mono_neg prems)
+      by (simp add: mult_left_mono_neg assms)
     ultimately show ?thesis
       by simp
   qed
   moreover have "nprt a * nprt b <= nprt a1 * nprt b1"
   proof -
     have "nprt a * nprt b <= nprt a * nprt b1"
-      by (simp add: mult_left_mono_neg prems)
+      by (simp add: mult_left_mono_neg assms)
     moreover have "nprt a * nprt b1 <= nprt a1 * nprt b1"
-      by (simp add: mult_right_mono_neg prems)
+      by (simp add: mult_right_mono_neg assms)
     ultimately show ?thesis
       by simp
   qed
@@ -526,9 +526,9 @@ lemma mult_ge_prts:
   shows
   "a * b >= nprt a1 * pprt b2 + nprt a2 * nprt b2 + pprt a1 * pprt b1 + pprt a2 * nprt b1"
 proof - 
-  from prems have a1:"- a2 <= -a" by auto
-  from prems have a2: "-a <= -a1" by auto
-  from mult_le_prts[of "-a2" "-a" "-a1" "b1" b "b2", OF a1 a2 prems(3) prems(4), simplified nprt_neg pprt_neg] 
+  from assms have a1:"- a2 <= -a" by auto
+  from assms have a2: "-a <= -a1" by auto
+  from mult_le_prts[of "-a2" "-a" "-a1" "b1" b "b2", OF a1 a2 assms(3) assms(4), simplified nprt_neg pprt_neg] 
   have le: "- (a * b) <= - nprt a1 * pprt b2 + - nprt a2 * nprt b2 + - pprt a1 * pprt b1 + - pprt a2 * nprt b1" by simp  
   then have "-(- nprt a1 * pprt b2 + - nprt a2 * nprt b2 + - pprt a1 * pprt b1 + - pprt a2 * nprt b1) <= a * b"
     by (simp only: minus_le_iff)

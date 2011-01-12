@@ -351,33 +351,30 @@ lemma bigo_mult4 [intro]:"f : k +o O(h) ==> g * f : (g * k) +o O(g * h)"
   apply (auto simp add: algebra_simps)
   done
 
-lemma bigo_mult5: "ALL x. f x ~= 0 ==>
-    O(f * g) <= (f::'a => ('b::linordered_field)) *o O(g)"
-proof -
-  assume "ALL x. f x ~= 0"
-  show "O(f * g) <= f *o O(g)"
-  proof
-    fix h
-    assume "h : O(f * g)"
-    then have "(%x. 1 / (f x)) * h : (%x. 1 / f x) *o O(f * g)"
-      by auto
-    also have "... <= O((%x. 1 / f x) * (f * g))"
-      by (rule bigo_mult2)
-    also have "(%x. 1 / f x) * (f * g) = g"
-      apply (simp add: func_times) 
-      apply (rule ext)
-      apply (simp add: prems nonzero_divide_eq_eq mult_ac)
-      done
-    finally have "(%x. (1::'b) / f x) * h : O(g)".
-    then have "f * ((%x. (1::'b) / f x) * h) : f *o O(g)"
-      by auto
-    also have "f * ((%x. (1::'b) / f x) * h) = h"
-      apply (simp add: func_times) 
-      apply (rule ext)
-      apply (simp add: prems nonzero_divide_eq_eq mult_ac)
-      done
-    finally show "h : f *o O(g)".
-  qed
+lemma bigo_mult5:
+  assumes "ALL x. f x ~= 0"
+  shows "O(f * g) <= (f::'a => ('b::linordered_field)) *o O(g)"
+proof
+  fix h
+  assume "h : O(f * g)"
+  then have "(%x. 1 / (f x)) * h : (%x. 1 / f x) *o O(f * g)"
+    by auto
+  also have "... <= O((%x. 1 / f x) * (f * g))"
+    by (rule bigo_mult2)
+  also have "(%x. 1 / f x) * (f * g) = g"
+    apply (simp add: func_times) 
+    apply (rule ext)
+    apply (simp add: assms nonzero_divide_eq_eq mult_ac)
+    done
+  finally have "(%x. (1::'b) / f x) * h : O(g)" .
+  then have "f * ((%x. (1::'b) / f x) * h) : f *o O(g)"
+    by auto
+  also have "f * ((%x. (1::'b) / f x) * h) = h"
+    apply (simp add: func_times) 
+    apply (rule ext)
+    apply (simp add: assms nonzero_divide_eq_eq mult_ac)
+    done
+  finally show "h : f *o O(g)" .
 qed
 
 lemma bigo_mult6: "ALL x. f x ~= 0 ==>
@@ -413,7 +410,7 @@ lemma bigo_minus2: "f : g +o O(h) ==> -f : -g +o O(h)"
   done
 
 lemma bigo_minus3: "O(-f) = O(f)"
-  by (auto simp add: bigo_def fun_Compl_def abs_minus_cancel)
+  by (auto simp add: bigo_def fun_Compl_def)
 
 lemma bigo_plus_absorb_lemma1: "f : O(g) ==> f +o O(g) <= O(g)"
 proof -
@@ -428,7 +425,7 @@ proof -
       from a have "O(f) <= O(g)" by (auto del: subsetI)
       thus ?thesis by (auto del: subsetI)
     qed
-    also have "... <= O(g)" by (simp add: bigo_plus_idemp)
+    also have "... <= O(g)" by simp
     finally show ?thesis .
   qed
 qed
@@ -523,7 +520,7 @@ lemma bigo_const_mult5 [simp]: "(c::'a::linordered_field) ~= 0 ==>
   apply (rule order_trans)
   apply (rule bigo_mult2)
   apply (simp add: func_times)
-  apply (auto intro!: subsetI simp add: bigo_def elt_set_times_def func_times)
+  apply (auto intro!: simp add: bigo_def elt_set_times_def func_times)
   apply (rule_tac x = "%y. inverse c * x y" in exI)
   apply (simp add: mult_assoc [symmetric] abs_mult)
   apply (rule_tac x = "abs (inverse c) * ca" in exI)
@@ -535,8 +532,7 @@ lemma bigo_const_mult5 [simp]: "(c::'a::linordered_field) ~= 0 ==>
   done
 
 lemma bigo_const_mult6 [intro]: "(%x. c) *o O(f) <= O(f)"
-  apply (auto intro!: subsetI
-    simp add: bigo_def elt_set_times_def func_times)
+  apply (auto intro!: simp add: bigo_def elt_set_times_def func_times)
   apply (rule_tac x = "ca * (abs c)" in exI)
   apply (rule allI)
   apply (subgoal_tac "ca * abs(c) * abs(f x) = abs(c) * (ca * abs(f x))")

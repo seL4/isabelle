@@ -469,9 +469,9 @@ lemma subgroup_nonempty:
 lemma (in subgroup) finite_imp_card_positive:
   "finite (carrier G) ==> 0 < card H"
 proof (rule classical)
-  assume "finite (carrier G)" "~ 0 < card H"
+  assume "finite (carrier G)" and a: "~ 0 < card H"
   then have "finite H" by (blast intro: finite_subset [OF subset])
-  with prems have "subgroup {} G" by simp
+  with is_subgroup a have "subgroup {} G" by simp
   with subgroup_nonempty show ?thesis by contradiction
 qed
 

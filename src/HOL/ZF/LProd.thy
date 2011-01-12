@@ -42,12 +42,12 @@ proof (induct as bs rule: lprod.induct)
   show ?case by (auto intro: lprod_single step)
 next
   case (lprod_list ah at bh bt a b)
-  from prems have transR: "trans R" by auto
+  then have transR: "trans R" by auto
   have as: "multiset_of (ah @ a # at) = multiset_of (ah @ at) + {#a#}" (is "_ = ?ma + _")
     by (simp add: algebra_simps)
   have bs: "multiset_of (bh @ b # bt) = multiset_of (bh @ bt) + {#b#}" (is "_ = ?mb + _")
     by (simp add: algebra_simps)
-  from prems have "(?ma, ?mb) \<in> mult R"
+  from lprod_list have "(?ma, ?mb) \<in> mult R"
     by auto
   with mult_implies_one_step[OF transR] have 
     "\<exists>I J K. ?mb = I + J \<and> ?ma = I + K \<and> J \<noteq> {#} \<and> (\<forall>k\<in>set_of K. \<exists>j\<in>set_of J. (k, j) \<in> R)"
@@ -136,12 +136,12 @@ qed
 
 lemma lprod_3_1: assumes "(x', x) \<in> R" shows "([y, z, x'], [x, y, z]) \<in> lprod R"
   apply (rule lprod_list[where a="y" and b="y" and ah="[]" and at="[z,x']" and bh="[x]" and bt="[z]", simplified])
-  apply (auto simp add: lprod_2_1 prems)
+  apply (auto simp add: lprod_2_1 assms)
   done
 
 lemma lprod_3_2: assumes "(z',z) \<in> R" shows "([z', x, y], [x,y,z]) \<in> lprod R"
   apply (rule lprod_list[where a="y" and b="y" and ah="[z',x]" and at="[]" and bh="[x]" and bt="[z]", simplified])
-  apply (auto simp add: lprod_2_2 prems)
+  apply (auto simp add: lprod_2_2 assms)
   done
 
 lemma lprod_3_3: assumes xr: "(xr, x) \<in> R" shows "([xr, y, z], [x, y, z]) \<in> lprod R"

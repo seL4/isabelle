@@ -165,7 +165,7 @@ lemma games_lfp_option_stable:
   shows "opt \<in> games_lfp"
   apply (rule games_option_stable[where g=g])
   apply (simp add: games_lfp_unfold[symmetric])
-  apply (simp_all add: prems)
+  apply (simp_all add: assms)
   done
 
 lemma is_option_of_imp_games:
@@ -466,10 +466,10 @@ proof -
         proof -
           { fix xr
             assume xr:"zin xr (right_options x)"
-            assume "ge_game (z, xr)"
+            assume a: "ge_game (z, xr)"
             have "ge_game (y, xr)"
               apply (rule 1[rule_format, where y="[y,z,xr]"])
-              apply (auto intro: xr lprod_3_1 simp add: prems)
+              apply (auto intro: xr lprod_3_1 simp add: goal1 a)
               done
             moreover from xr have "\<not> ge_game (y, xr)"
               by (simp add: goal1(2)[simplified ge_game_eq[of x y], rule_format, of xr, simplified xr])
@@ -478,10 +478,10 @@ proof -
           note xr = this
           { fix zl
             assume zl:"zin zl (left_options z)"
-            assume "ge_game (zl, x)"
+            assume a: "ge_game (zl, x)"
             have "ge_game (zl, y)"
               apply (rule 1[rule_format, where y="[zl,x,y]"])
-              apply (auto intro: zl lprod_3_2 simp add: prems)
+              apply (auto intro: zl lprod_3_2 simp add: goal1 a)
               done
             moreover from zl have "\<not> ge_game (zl, y)"
               by (simp add: goal1(3)[simplified ge_game_eq[of y z], rule_format, of zl, simplified zl])
@@ -495,7 +495,7 @@ proof -
     qed
   } 
   note trans = this[of "[x, y, z]", simplified, rule_format]    
-  with prems show ?thesis by blast
+  with assms show ?thesis by blast
 qed
 
 lemma eq_game_trans: "eq_game a b \<Longrightarrow> eq_game b c \<Longrightarrow> eq_game a c"
@@ -522,7 +522,7 @@ proof (induct G H rule: plus_game.induct)
     by (auto simp add: 
       plus_game.simps[where G=G and H=H] 
       plus_game.simps[where G=H and H=G]
-      Game_ext zet_ext_eq zunion zimage_iff prems)
+      Game_ext zet_ext_eq zunion zimage_iff 1)
 qed
 
 lemma game_ext_eq: "(G = H) = (left_options G = left_options H \<and> right_options G = right_options H)"
@@ -545,10 +545,10 @@ proof -
     have "H = zero_game \<longrightarrow> plus_game G H = G "
     proof (induct G H rule: plus_game.induct, rule impI)
       case (goal1 G H)
-      note induct_hyp = prems[simplified goal1, simplified] and prems
+      note induct_hyp = this[simplified goal1, simplified] and this
       show ?case
         apply (simp only: plus_game.simps[where G=G and H=H])
-        apply (simp add: game_ext_eq prems)
+        apply (simp add: game_ext_eq goal1)
         apply (auto simp add: 
           zimage_cong[where f = "\<lambda> g. plus_game g zero_game" and g = "id"] 
           induct_hyp)
@@ -626,7 +626,7 @@ proof (induct G H rule: plus_game.induct)
     by (auto simp add: opt_ops
       neg_game.simps[of "plus_game G H"]
       plus_game.simps[of "neg_game G" "neg_game H"]
-      Game_ext zet_ext_eq zunion zimage_iff prems)
+      Game_ext zet_ext_eq zunion zimage_iff 1)
 qed
 
 lemma eq_game_plus_inverse: "eq_game (plus_game x (neg_game x)) zero_game"
@@ -635,7 +635,7 @@ proof (induct x rule: wf_induct[OF wf_option_of])
   { fix y
     assume "zin y (options x)"
     then have "eq_game (plus_game y (neg_game y)) zero_game"
-      by (auto simp add: prems)
+      by (auto simp add: goal1)
   }
   note ihyp = this
   {
@@ -645,7 +645,7 @@ proof (induct x rule: wf_induct[OF wf_option_of])
       apply (subst ge_game.simps, simp)
       apply (rule exI[where x="plus_game y (neg_game y)"])
       apply (auto simp add: ihyp[of y, simplified y right_imp_options eq_game_def])
-      apply (auto simp add: left_options_plus left_options_neg zunion zimage_iff intro: prems)
+      apply (auto simp add: left_options_plus left_options_neg zunion zimage_iff intro: y)
       done
   }
   note case1 = this
@@ -656,7 +656,7 @@ proof (induct x rule: wf_induct[OF wf_option_of])
       apply (subst ge_game.simps, simp)
       apply (rule exI[where x="plus_game y (neg_game y)"])
       apply (auto simp add: ihyp[of y, simplified y left_imp_options eq_game_def])
-      apply (auto simp add: left_options_plus zunion zimage_iff intro: prems)
+      apply (auto simp add: left_options_plus zunion zimage_iff intro: y)
       done
   }
   note case2 = this
@@ -667,7 +667,7 @@ proof (induct x rule: wf_induct[OF wf_option_of])
       apply (subst ge_game.simps, simp)
       apply (rule exI[where x="plus_game y (neg_game y)"])
       apply (auto simp add: ihyp[of y, simplified y left_imp_options eq_game_def])
-      apply (auto simp add: right_options_plus right_options_neg zunion zimage_iff intro: prems)
+      apply (auto simp add: right_options_plus right_options_neg zunion zimage_iff intro: y)
       done
   }
   note case3 = this
@@ -678,7 +678,7 @@ proof (induct x rule: wf_induct[OF wf_option_of])
       apply (subst ge_game.simps, simp)
       apply (rule exI[where x="plus_game y (neg_game y)"])
       apply (auto simp add: ihyp[of y, simplified y right_imp_options eq_game_def])
-      apply (auto simp add: right_options_plus zunion zimage_iff intro: prems)
+      apply (auto simp add: right_options_plus zunion zimage_iff intro: y)
       done
   }
   note case4 = this

@@ -66,7 +66,7 @@ lemma float_number_of[simp]: "real (number_of x :: float) = number_of x"
   by (simp only:number_of_float_def Float_num[unfolded number_of_is_id])
 
 lemma float_number_of_int[simp]: "real (Float n 0) = real n"
-  by (simp add: Float_num[unfolded number_of_is_id] real_of_float_simp pow2_def)
+  by simp
 
 lemma pow2_0[simp]: "pow2 0 = 1" by simp
 lemma pow2_1[simp]: "pow2 1 = 2" by simp
@@ -107,7 +107,7 @@ proof (induct b)
     show ?case by simp
   next
     case (Suc m)
-    show ?case by (auto simp add: algebra_simps pow2_add1 prems)
+    then show ?case by (auto simp add: algebra_simps pow2_add1)
   qed
 next
   case (2 n)
@@ -124,6 +124,7 @@ next
       apply (subst pow2_neg[of "-a"])
       apply (simp)
       done
+  next
     case (Suc m)
     have a: "int m - (a + -2) =  1 + (int m - a + 1)" by arith
     have b: "int m - -2 = 1 + (int m + 1)" by arith
@@ -138,15 +139,15 @@ next
       apply (subst pow2_neg[of "int m - a + 1"])
       apply (subst pow2_neg[of "int m + 1"])
       apply auto
-      apply (insert prems)
+      apply (insert Suc)
       apply (auto simp add: algebra_simps)
       done
   qed
 qed
 
-lemma float_components[simp]: "Float (mantissa f) (scale f) = f" by (cases f, auto)
+lemma float_components[simp]: "Float (mantissa f) (scale f) = f" by (cases f) auto
 
-lemma float_split: "\<exists> a b. x = Float a b" by (cases x, auto)
+lemma float_split: "\<exists> a b. x = Float a b" by (cases x) auto
 
 lemma float_split2: "(\<forall> a b. x \<noteq> Float a b) = False" by (auto simp add: float_split)
 
@@ -156,7 +157,9 @@ lemma abs_div_2_less: "a \<noteq> 0 \<Longrightarrow> a \<noteq> -1 \<Longrighta
 by arith
 
 function normfloat :: "float \<Rightarrow> float" where
-"normfloat (Float a b) = (if a \<noteq> 0 \<and> even a then normfloat (Float (a div 2) (b+1)) else if a=0 then Float 0 0 else Float a b)"
+  "normfloat (Float a b) =
+    (if a \<noteq> 0 \<and> even a then normfloat (Float (a div 2) (b+1))
+     else if a=0 then Float 0 0 else Float a b)"
 by pat_completeness auto
 termination by (relation "measure (nat o abs o mantissa)") (auto intro: abs_div_2_less)
 declare normfloat.simps[simp del]
@@ -168,7 +171,7 @@ proof (induct f rule: normfloat.induct)
     by auto
   show ?case
     apply (subst normfloat.simps)
-    apply (auto simp add: float_zero)
+    apply auto
     apply (subst 1[symmetric])
     apply (auto simp add: pow2_add even_def)
     done
@@ -186,7 +189,10 @@ proof -
   {
     fix y
     have "0 <= y \<Longrightarrow> 0 < pow2 y"
-      by (induct y, induct_tac n, simp_all add: pow2_add)
+      apply (induct y)
+      apply (induct_tac n)
+      apply (simp_all add: pow2_add)
+      done
   }
   note helper=this
   show ?thesis
@@ -292,7 +298,7 @@ proof -
   from 
      float_eq_odd_helper[OF odd2 floateq] 
      float_eq_odd_helper[OF odd1 floateq[symmetric]]
-  have beq: "b = b'"  by arith
+  have beq: "b = b'" by arith
   with floateq show ?thesis by auto
 qed
 
@@ -366,17 +372,17 @@ instance ..
 end
 
 lemma real_of_float_add[simp]: "real (a + b) = real a + real (b :: float)"
-  by (cases a, cases b, simp add: algebra_simps plus_float.simps, 
+  by (cases a, cases b) (simp add: algebra_simps plus_float.simps, 
       auto simp add: pow2_int[symmetric] pow2_add[symmetric])
 
 lemma real_of_float_minus[simp]: "real (- a) = - real (a :: float)"
-  by (cases a, simp add: uminus_float.simps)
+  by (cases a) (simp add: uminus_float.simps)
 
 lemma real_of_float_sub[simp]: "real (a - b) = real a - real (b :: float)"
-  by (cases a, cases b, simp add: minus_float_def)
+  by (cases a, cases b) (simp add: minus_float_def)
 
 lemma real_of_float_mult[simp]: "real (a*b) = real a * real (b :: float)"
-  by (cases a, cases b, simp add: times_float.simps pow2_add)
+  by (cases a, cases b) (simp add: times_float.simps pow2_add)
 
 lemma real_of_float_0[simp]: "real (0 :: float) = 0"
   by (auto simp add: zero_float_def float_zero)
@@ -419,35 +425,36 @@ lemma float_less_zero:
 declare real_of_float_simp[simp del]
 
 lemma real_of_float_pprt[simp]: "real (float_pprt a) = pprt (real a)"
-  by (cases a, auto simp add: float_pprt.simps zero_le_float float_le_zero float_zero)
+  by (cases a) (auto simp add: zero_le_float float_le_zero)
 
 lemma real_of_float_nprt[simp]: "real (float_nprt a) = nprt (real a)"
-  by (cases a,  auto simp add: float_nprt.simps zero_le_float float_le_zero float_zero)
+  by (cases a) (auto simp add: zero_le_float float_le_zero)
 
 instance float :: ab_semigroup_add
 proof (intro_classes)
   fix a b c :: float
   show "a + b + c = a + (b + c)"
-    by (cases a, cases b, cases c, auto simp add: algebra_simps power_add[symmetric] plus_float.simps)
+    by (cases a, cases b, cases c)
+      (auto simp add: algebra_simps power_add[symmetric] plus_float.simps)
 next
   fix a b :: float
   show "a + b = b + a"
-    by (cases a, cases b, simp add: plus_float.simps)
+    by (cases a, cases b) (simp add: plus_float.simps)
 qed
 
 instance float :: comm_monoid_mult
 proof (intro_classes)
   fix a b c :: float
   show "a * b * c = a * (b * c)"
-    by (cases a, cases b, cases c, simp add: times_float.simps)
+    by (cases a, cases b, cases c) (simp add: times_float.simps)
 next
   fix a b :: float
   show "a * b = b * a"
-    by (cases a, cases b, simp add: times_float.simps)
+    by (cases a, cases b) (simp add: times_float.simps)
 next
   fix a :: float
   show "1 * a = a"
-    by (cases a, simp add: times_float.simps one_float_def)
+    by (cases a) (simp add: times_float.simps one_float_def)
 qed
 
 (* Floats do NOT form a cancel_semigroup_add: *)
@@ -458,7 +465,7 @@ instance float :: comm_semiring
 proof (intro_classes)
   fix a b c :: float
   show "(a + b) * c = a * c + b * c"
-    by (cases a, cases b, cases c, simp, simp add: plus_float.simps times_float.simps algebra_simps)
+    by (cases a, cases b, cases c) (simp add: plus_float.simps times_float.simps algebra_simps)
 qed
 
 (* Floats do NOT form an order, because "(x < y) = (x <= y & x <> y)" does NOT hold *)
@@ -903,11 +910,31 @@ lemma approx_rat_pattern: fixes P and ps :: "nat * int * int"
   and D: "\<And>x y prec. \<lbrakk>0 \<le> x; y < 0; ps = (prec, x, y)\<rbrakk> \<Longrightarrow> P"
   shows P
 proof -
-  obtain prec x y where [simp]: "ps = (prec, x, y)" by (cases ps, auto)
+  obtain prec x y where [simp]: "ps = (prec, x, y)" by (cases ps) auto
   from Y have "y = 0 \<Longrightarrow> P" by auto
-  moreover { assume "0 < y" have P proof (cases "0 \<le> x") case True with A and `0 < y` show P by auto next case False with B and `0 < y` show P by auto qed } 
-  moreover { assume "y < 0" have P proof (cases "0 \<le> x") case True with D and `y < 0` show P by auto next case False with C and `y < 0` show P by auto qed }
-  ultimately show P by (cases "y = 0 \<or> 0 < y \<or> y < 0", auto)
+  moreover {
+    assume "0 < y"
+    have P
+    proof (cases "0 \<le> x")
+      case True
+      with A and `0 < y` show P by auto
+    next
+      case False
+      with B and `0 < y` show P by auto
+    qed
+  } 
+  moreover {
+    assume "y < 0"
+    have P
+    proof (cases "0 \<le> x")
+      case True
+      with D and `y < 0` show P by auto
+    next
+      case False
+      with C and `y < 0` show P by auto
+    qed
+  }
+  ultimately show P by (cases "y = 0 \<or> 0 < y \<or> y < 0") auto
 qed
 
 function lapprox_rat :: "nat \<Rightarrow> int \<Rightarrow> int \<Rightarrow> float"
@@ -1011,10 +1038,14 @@ lemma rapprox_rat_nonneg_neg: assumes "0 \<le> x" and "y < 0"
 lemma rapprox_rat_nonpos_pos: assumes "x \<le> 0" and "0 < y"
   shows "real (rapprox_rat n x y) \<le> 0"
 proof (cases "x = 0") 
-  case True hence "0 \<le> x" by auto show ?thesis unfolding rapprox_rat.simps(2)[OF `0 \<le> x` `0 < y`]
-    unfolding True rapprox_posrat_def Let_def by auto
+  case True
+  hence "0 \<le> x" by auto show ?thesis
+    unfolding rapprox_rat.simps(2)[OF `0 \<le> x` `0 < y`]
+    unfolding True rapprox_posrat_def Let_def
+    by auto
 next
-  case False hence "x < 0" using assms by auto
+  case False
+  hence "x < 0" using assms by auto
   show ?thesis using rapprox_rat_neg[OF `x < 0` `0 < y`] .
 qed
 
@@ -1064,19 +1095,31 @@ lemma float_divl_lower_bound: assumes "0 \<le> x" and "0 < y" shows "0 \<le> flo
 proof (cases x, cases y)
   fix xm xe ym ye :: int
   assume x_eq: "x = Float xm xe" and y_eq: "y = Float ym ye"
-  have "0 \<le> xm" using `0 \<le> x`[unfolded x_eq le_float_def real_of_float_simp real_of_float_0 zero_le_mult_iff] by auto
-  have "0 < ym" using `0 < y`[unfolded y_eq less_float_def real_of_float_simp real_of_float_0 zero_less_mult_iff] by auto
+  have "0 \<le> xm"
+    using `0 \<le> x`[unfolded x_eq le_float_def real_of_float_simp real_of_float_0 zero_le_mult_iff]
+    by auto
+  have "0 < ym"
+    using `0 < y`[unfolded y_eq less_float_def real_of_float_simp real_of_float_0 zero_less_mult_iff]
+    by auto
 
-  have "\<And>n. 0 \<le> real (Float 1 n)" unfolding real_of_float_simp using zero_le_pow2 by auto
-  moreover have "0 \<le> real (lapprox_rat prec xm ym)" by (rule order_trans[OF _ lapprox_rat_bottom[OF `0 \<le> xm` `0 < ym`]], auto simp add: `0 \<le> xm` pos_imp_zdiv_nonneg_iff[OF `0 < ym`])
+  have "\<And>n. 0 \<le> real (Float 1 n)"
+    unfolding real_of_float_simp using zero_le_pow2 by auto
+  moreover have "0 \<le> real (lapprox_rat prec xm ym)"
+    apply (rule order_trans[OF _ lapprox_rat_bottom[OF `0 \<le> xm` `0 < ym`]])
+    apply (auto simp add: `0 \<le> xm` pos_imp_zdiv_nonneg_iff[OF `0 < ym`])
+    done
   ultimately show "0 \<le> float_divl prec x y"
-    unfolding x_eq y_eq float_divl.simps Let_def le_float_def real_of_float_0 by (auto intro!: mult_nonneg_nonneg)
+    unfolding x_eq y_eq float_divl.simps Let_def le_float_def real_of_float_0
+    by (auto intro!: mult_nonneg_nonneg)
 qed
 
-lemma float_divl_pos_less1_bound: assumes "0 < x" and "x < 1" and "0 < prec" shows "1 \<le> float_divl prec 1 x"
+lemma float_divl_pos_less1_bound:
+  assumes "0 < x" and "x < 1" and "0 < prec"
+  shows "1 \<le> float_divl prec 1 x"
 proof (cases x)
   case (Float m e)
-  from `0 < x` `x < 1` have "0 < m" "e < 0" using float_pos_m_pos float_pos_less1_e_neg unfolding Float by auto
+  from `0 < x` `x < 1` have "0 < m" "e < 0"
+    using float_pos_m_pos float_pos_less1_e_neg unfolding Float by auto
   let ?b = "nat (bitlen m)" and ?e = "nat (-e)"
   have "1 \<le> m" and "m \<noteq> 0" using `0 < m` by auto
   with bitlen_bounds[OF `0 < m`] have "m < 2^?b" and "(2::int) \<le> 2^?b" by auto
@@ -1087,22 +1130,29 @@ proof (cases x)
 
   from float_less1_mantissa_bound `0 < x` `x < 1` Float 
   have "m < 2^?e" by auto
-  with bitlen_bounds[OF `0 < m`, THEN conjunct1]
-  have "(2::int)^nat (bitlen m - 1) < 2^?e" by (rule order_le_less_trans)
+  with bitlen_bounds[OF `0 < m`, THEN conjunct1] have "(2::int)^nat (bitlen m - 1) < 2^?e"
+    by (rule order_le_less_trans)
   from power_less_imp_less_exp[OF _ this]
   have "bitlen m \<le> - e" by auto
   hence "(2::real)^?b \<le> 2^?e" by auto
-  hence "(2::real)^?b * inverse (2^?b) \<le> 2^?e * inverse (2^?b)" by (rule mult_right_mono, auto)
+  hence "(2::real)^?b * inverse (2^?b) \<le> 2^?e * inverse (2^?b)"
+    by (rule mult_right_mono) auto
   hence "(1::real) \<le> 2^?e * inverse (2^?b)" by auto
   also
   let ?d = "real (2 ^ nat (int prec + bitlen m - 1) div m) * inverse (2 ^ nat (int prec + bitlen m - 1))"
-  { have "2^(prec - 1) * m \<le> 2^(prec - 1) * 2^?b" using `m < 2^?b`[THEN less_imp_le] by (rule mult_left_mono, auto)
-    also have "\<dots> = 2 ^ nat (int prec + bitlen m - 1)" unfolding pow_split zpower_zadd_distrib by auto
-    finally have "2^(prec - 1) * m div m \<le> 2 ^ nat (int prec + bitlen m - 1) div m" using `0 < m` by (rule zdiv_mono1)
-    hence "2^(prec - 1) \<le> 2 ^ nat (int prec + bitlen m - 1) div m" unfolding div_mult_self2_is_id[OF `m \<noteq> 0`] .
+  {
+    have "2^(prec - 1) * m \<le> 2^(prec - 1) * 2^?b"
+      using `m < 2^?b`[THEN less_imp_le] by (rule mult_left_mono) auto
+    also have "\<dots> = 2 ^ nat (int prec + bitlen m - 1)"
+      unfolding pow_split zpower_zadd_distrib by auto
+    finally have "2^(prec - 1) * m div m \<le> 2 ^ nat (int prec + bitlen m - 1) div m"
+      using `0 < m` by (rule zdiv_mono1)
+    hence "2^(prec - 1) \<le> 2 ^ nat (int prec + bitlen m - 1) div m"
+      unfolding div_mult_self2_is_id[OF `m \<noteq> 0`] .
     hence "2^(prec - 1) * inverse (2 ^ nat (int prec + bitlen m - 1)) \<le> ?d"
-      unfolding real_of_int_le_iff[of "2^(prec - 1)", symmetric] by auto }
-  from mult_left_mono[OF this[unfolded pow_split power_add inverse_mult_distrib mult_assoc[symmetric] right_inverse[OF pow_not0] mult_1_left], of "2^?e"]
+      unfolding real_of_int_le_iff[of "2^(prec - 1)", symmetric] by auto
+  }
+  from mult_left_mono[OF this [unfolded pow_split power_add inverse_mult_distrib mult_assoc[symmetric] right_inverse[OF pow_not0] mult_1_left], of "2^?e"]
   have "2^?e * inverse (2^?b) \<le> 2^?e * ?d" unfolding pow_split power_add by auto
   finally have "1 \<le> 2^?e * ?d" .
   
@@ -1110,8 +1160,11 @@ proof (cases x)
   have "bitlen 1 = 1" using bitlen.simps by auto
   
   show ?thesis 
-    unfolding one_float_def Float float_divl.simps Let_def lapprox_rat.simps(2)[OF zero_le_one `0 < m`] lapprox_posrat_def `bitlen 1 = 1`
-    unfolding le_float_def real_of_float_mult normfloat real_of_float_simp pow2_minus pow2_int e_nat
+    unfolding one_float_def Float float_divl.simps Let_def
+      lapprox_rat.simps(2)[OF zero_le_one `0 < m`]
+      lapprox_posrat_def `bitlen 1 = 1`
+    unfolding le_float_def real_of_float_mult normfloat real_of_float_simp
+      pow2_minus pow2_int e_nat
     using `1 \<le> 2^?e * ?d` by (auto simp add: pow2_def)
 qed
 

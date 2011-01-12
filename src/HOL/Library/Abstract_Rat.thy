@@ -44,7 +44,7 @@ proof -
     let ?b' = "b div ?g"
     let ?g' = "gcd ?a' ?b'"
     from anz bnz have "?g \<noteq> 0" by simp  with gcd_ge_0_int[of a b] 
-    have gpos: "?g > 0"  by arith
+    have gpos: "?g > 0" by arith
     have gdvd: "?g dvd a" "?g dvd b" by arith+ 
     from zdvd_mult_div_cancel[OF gdvd(1)] zdvd_mult_div_cancel[OF gdvd(2)]
     anz bnz
@@ -140,7 +140,7 @@ lemma Ninv_normN[simp]: "isnormNum x \<Longrightarrow> isnormNum (Ninv x)"
     (cases "fst x = 0", auto simp add: gcd_commute_int)
 
 lemma isnormNum_int[simp]: 
-  "isnormNum 0\<^sub>N" "isnormNum (1::int)\<^sub>N" "i \<noteq> 0 \<Longrightarrow> isnormNum i\<^sub>N"
+  "isnormNum 0\<^sub>N" "isnormNum ((1::int)\<^sub>N)" "i \<noteq> 0 \<Longrightarrow> isnormNum (i\<^sub>N)"
   by (simp_all add: isnormNum_def)
 
 
@@ -179,7 +179,7 @@ where
 definition
   "INum = (\<lambda>(a,b). of_int a / of_int b)"
 
-lemma INum_int [simp]: "INum i\<^sub>N = ((of_int i) ::'a::field)" "INum 0\<^sub>N = (0::'a::field)"
+lemma INum_int [simp]: "INum (i\<^sub>N) = ((of_int i) ::'a::field)" "INum 0\<^sub>N = (0::'a::field)"
   by (simp_all add: INum_def)
 
 lemma isnormNum_unique[simp]: 
@@ -195,9 +195,9 @@ proof
   moreover
   { assume az: "a \<noteq> 0" and bz: "b \<noteq> 0" and a'z: "a'\<noteq>0" and b'z: "b'\<noteq>0"
     from az bz a'z b'z na nb have pos: "b > 0" "b' > 0" by (simp_all add: isnormNum_def)
-    from prems have eq:"a * b' = a'*b" 
+    from H bz b'z have eq:"a * b' = a'*b" 
       by (simp add: INum_def  eq_divide_eq divide_eq_eq of_int_mult[symmetric] del: of_int_mult)
-    from prems have gcd1: "gcd a b = 1" "gcd b a = 1" "gcd a' b' = 1" "gcd b' a' = 1"       
+    from az a'z na nb have gcd1: "gcd a b = 1" "gcd b a = 1" "gcd a' b' = 1" "gcd b' a' = 1"       
       by (simp_all add: isnormNum_def add: gcd_commute_int)
     from eq have raw_dvd: "a dvd a'*b" "b dvd b'*a" "a' dvd a*b'" "b' dvd b*a'"
       apply - 
@@ -208,7 +208,7 @@ proof
       done
     from zdvd_antisym_abs[OF coprime_dvd_mult_int[OF gcd1(2) raw_dvd(2)]
       coprime_dvd_mult_int[OF gcd1(4) raw_dvd(4)]]
-      have eq1: "b = b'" using pos by arith  
+      have eq1: "b = b'" using pos by arith
       with eq have "a = a'" using pos by simp
       with eq1 have ?rhs by simp}
   ultimately show ?rhs by blast
@@ -225,7 +225,6 @@ lemma of_int_div_aux: "d ~= 0 ==> ((of_int x)::'a::field_char_0) / (of_int d) =
     of_int (x div d) + (of_int (x mod d)) / ((of_int d)::'a)"
 proof -
   assume "d ~= 0"
-  hence dz: "of_int d \<noteq> (0::'a)" by (simp add: of_int_eq_0_iff)
   let ?t = "of_int (x div d) * ((of_int d)::'a) + of_int(x mod d)"
   let ?f = "\<lambda>x. x / of_int d"
   have "x = (x div d) * d + x mod d"
@@ -234,7 +233,7 @@ proof -
     by (simp only: of_int_mult[symmetric] of_int_add [symmetric])
   then have "of_int x / of_int d = ?t / of_int d" 
     using cong[OF refl[of ?f] eq] by simp
-  then show ?thesis by (simp add: add_divide_distrib algebra_simps prems)
+  then show ?thesis by (simp add: add_divide_distrib algebra_simps `d ~= 0`)
 qed
 
 lemma of_int_div: "(d::int) ~= 0 ==> d dvd n ==>
@@ -294,9 +293,9 @@ let ?z = "0:: 'a"
       have ?thesis using aa' bb' z gz
         of_int_div[where ?'a = 'a, OF gz gcd_dvd1_int[where x="a * b' + b * a'" and y="b*b'"]]  of_int_div[where ?'a = 'a,
         OF gz gcd_dvd2_int[where x="a * b' + b * a'" and y="b*b'"]]
-        by (simp add: x y Nadd_def INum_def normNum_def Let_def add_divide_distrib)}
+        by (simp add: Nadd_def INum_def normNum_def Let_def add_divide_distrib)}
     ultimately have ?thesis using aa' bb' 
-      by (simp add: Nadd_def INum_def normNum_def x y Let_def) }
+      by (simp add: Nadd_def INum_def normNum_def Let_def) }
   ultimately show ?thesis by blast
 qed
 
@@ -512,7 +511,7 @@ proof-
     have n0: "isnormNum 0\<^sub>N" by simp
     show ?thesis using nx ny 
       apply (simp only: isnormNum_unique[where ?'a = 'a, OF  Nmul_normN[OF nx ny] n0, symmetric] Nmul[where ?'a = 'a])
-      by (simp add: INum_def split_def isnormNum_def fst_conv snd_conv split: split_if_asm)
+      by (simp add: INum_def split_def isnormNum_def split: split_if_asm)
   }
 qed
 lemma Nneg_Nneg[simp]: "~\<^sub>N (~\<^sub>N c) = c"
@@ -520,7 +519,7 @@ lemma Nneg_Nneg[simp]: "~\<^sub>N (~\<^sub>N c) = c"
 
 lemma Nmul1[simp]: 
   "isnormNum c \<Longrightarrow> 1\<^sub>N *\<^sub>N c = c" 
-  "isnormNum c \<Longrightarrow> c *\<^sub>N 1\<^sub>N  = c" 
+  "isnormNum c \<Longrightarrow> c *\<^sub>N (1\<^sub>N) = c" 
   apply (simp_all add: Nmul_def Let_def split_def isnormNum_def)
   apply (cases "fst c = 0", simp_all, cases c, simp_all)+
   done
