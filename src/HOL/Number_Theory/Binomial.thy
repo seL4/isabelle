@@ -1,7 +1,6 @@
 (*  Title:      Binomial.thy
     Authors:    Lawrence C. Paulson, Jeremy Avigad, Tobias Nipkow
 
-
 Defines the "choose" function, and establishes basic properties.
 
 The original theory "Binomial" was by Lawrence C. Paulson, based on
@@ -9,9 +8,7 @@ the work of Andy Gordon and Florian Kammueller. The approach here,
 which derives the definition of binomial coefficients in terms of the
 factorial function, is due to Jeremy Avigad. The binomial theorem was
 formalized by Tobias Nipkow.
-
 *)
-
 
 header {* Binomial *}
 
@@ -231,11 +228,10 @@ done
 lemma choose_altdef_int: 
   assumes "(0::int) <= k" and "k <= n"
   shows "n choose k = fact n div (fact k * fact (n - k))"
-  
-  apply (subst tsub_eq [symmetric], rule prems)
+  apply (subst tsub_eq [symmetric], rule assms)
   apply (rule choose_altdef_nat [transferred])
-  using prems apply auto
-done
+  using assms apply auto
+  done
 
 lemma choose_dvd_nat: "(k::nat) \<le> n \<Longrightarrow> fact k * fact (n - k) dvd fact n"
   unfolding dvd_def apply (frule choose_altdef_aux_nat)
@@ -247,11 +243,10 @@ done
 lemma choose_dvd_int: 
   assumes "(0::int) <= k" and "k <= n"
   shows "fact k * fact (n - k) dvd fact n"
- 
-  apply (subst tsub_eq [symmetric], rule prems)
+  apply (subst tsub_eq [symmetric], rule assms)
   apply (rule choose_dvd_nat [transferred])
-  using prems apply auto
-done
+  using assms apply auto
+  done
 
 (* generalizes Tobias Nipkow's proof to any commutative semiring *)
 theorem binomial: "(a+b::'a::{comm_ring_1,power})^n = 
@@ -269,7 +264,7 @@ next
     by auto
   have "(a+b)^(n+1) = 
       (a+b) * (SUM k=0..n. of_nat (n choose k) * a^k * b^(n-k))"
-    using ih by (simp add: power_plus_one)
+    using ih by simp
   also have "... =  a*(SUM k=0..n. of_nat (n choose k) * a^k * b^(n-k)) +
                    b*(SUM k=0..n. of_nat (n choose k) * a^k * b^(n-k))"
     by (rule distrib)
@@ -278,8 +273,8 @@ next
     by (subst (1 2) power_plus_one, simp add: setsum_right_distrib mult_ac)
   also have "... = (SUM k=0..n. of_nat (n choose k) * a^k * b^(n+1-k)) +
                   (SUM k=1..n+1. of_nat (n choose (k - 1)) * a^k * b^(n+1-k))"
-    by (simp add:setsum_shift_bounds_cl_Suc_ivl Suc_diff_le 
-             power_Suc field_simps One_nat_def del:setsum_cl_ivl_Suc)
+    by (simp add:setsum_shift_bounds_cl_Suc_ivl Suc_diff_le
+      field_simps One_nat_def del:setsum_cl_ivl_Suc)
   also have "... = a^(n+1) + b^(n+1) +
                   (SUM k=1..n. of_nat (n choose (k - 1)) * a^k * b^(n+1-k)) +
                   (SUM k=1..n. of_nat (n choose k) * a^k * b^(n+1-k))"
@@ -315,7 +310,7 @@ next
     hence "{ T. T \<subseteq> insert x F \<and> card T = k + 1} =
       {T. T \<le> F & card T = k + 1} Un 
       {T. T \<le> insert x F & x : T & card T = k + 1}"
-      by (auto intro!: subsetI)
+      by auto
     with iassms fin have "card ({T. T \<le> insert x F \<and> card T = k + 1}) = 
       card ({T. T \<subseteq> F \<and> card T = k + 1}) + 
       card ({T. T \<subseteq> insert x F \<and> x : T \<and> card T = k + 1})"
@@ -330,7 +325,7 @@ next
     proof -
       let ?f = "%T. T Un {x}"
       from iassms have "inj_on ?f {T. T <= F & card T = k}"
-        unfolding inj_on_def by (auto intro!: subsetI)
+        unfolding inj_on_def by auto
       hence "card ({T. T <= F & card T = k}) = 
         card(?f ` {T. T <= F & card T = k})"
         by (rule card_image [symmetric])

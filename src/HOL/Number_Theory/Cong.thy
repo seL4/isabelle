@@ -1,8 +1,6 @@
 (*  Title:      HOL/Library/Cong.thy
-    ID:         
     Authors:    Christophe Tabacznyj, Lawrence C. Paulson, Amine Chaieb,
                 Thomas M. Rasmussen, Jeremy Avigad
-
 
 Defines congruence (notation: [x = y] (mod z)) for natural numbers and
 integers.
@@ -23,9 +21,7 @@ developed the congruence relations on the integers. The notion was
 extended to the natural numbers by Chaieb. Jeremy Avigad combined
 these, revised and tidied them, made the development uniform for the
 natural numbers and the integers, and added a number of new theorems.
-
 *)
-
 
 header {* Congruence *}
 
@@ -53,9 +49,6 @@ by (induct m, auto)
 lemma card_insert_if' [simp]: "finite A \<Longrightarrow>
   card (insert x A) = (if x \<in> A then (card A) else (card A) + 1)"
 by (auto simp add: insert_absorb)
-
-(* why wasn't card_insert_if a simp rule? *)
-declare card_insert_disjoint [simp del]
 
 lemma nat_1' [simp]: "nat 1 = 1"
 by simp
@@ -221,8 +214,7 @@ lemma cong_diff_nat:
   assumes "(a::nat) >= c" and "b >= d" and "[a = b] (mod m)" and
     "[c = d] (mod m)"
   shows "[a - c = b - d] (mod m)"
-
-  using prems by (rule cong_diff_aux_int [transferred]);
+  using assms by (rule cong_diff_aux_int [transferred]);
 
 lemma cong_mult_nat:
     "[(a::nat) = b] (mod m) \<Longrightarrow> [c = d] (mod m) \<Longrightarrow> [a * c = b * d] (mod m)"
@@ -242,13 +234,13 @@ done
 
 lemma cong_exp_nat: "[(x::nat) = y] (mod n) \<Longrightarrow> [x^k = y^k] (mod n)"
   apply (induct k)
-  apply (auto simp add: cong_refl_nat cong_mult_nat)
-done
+  apply (auto simp add: cong_mult_nat)
+  done
 
 lemma cong_exp_int: "[(x::int) = y] (mod n) \<Longrightarrow> [x^k = y^k] (mod n)"
   apply (induct k)
-  apply (auto simp add: cong_refl_int cong_mult_int)
-done
+  apply (auto simp add: cong_mult_int)
+  done
 
 lemma cong_setsum_nat [rule_format]: 
     "(ALL x: A. [((f x)::nat) = g x] (mod m)) \<longrightarrow> 
@@ -313,8 +305,7 @@ lemma cong_eq_diff_cong_0_aux_int: "a >= b \<Longrightarrow>
 lemma cong_eq_diff_cong_0_nat:
   assumes "(a::nat) >= b"
   shows "[a = b] (mod m) = [a - b = 0] (mod m)"
-
-  using prems by (rule cong_eq_diff_cong_0_aux_int [transferred])
+  using assms by (rule cong_eq_diff_cong_0_aux_int [transferred])
 
 lemma cong_diff_cong_0'_nat: 
   "[(x::nat) = y] (mod n) \<longleftrightarrow> 
@@ -364,9 +355,8 @@ done
 lemma cong_mult_rcancel_nat:
   assumes  "coprime k (m::nat)"
   shows "[a * k = b * k] (mod m) = [a = b] (mod m)"
-
   apply (rule cong_mult_rcancel_int [transferred])
-  using prems apply auto
+  using assms apply auto
 done
 
 lemma cong_mult_lcancel_nat:
@@ -383,23 +373,22 @@ lemma coprime_cong_mult_int:
     \<Longrightarrow> [a = b] (mod m * n)"
   apply (simp only: cong_altdef_int)
   apply (erule (2) divides_mult_int)
-done
+  done
 
 lemma coprime_cong_mult_nat:
   assumes "[(a::nat) = b] (mod m)" and "[a = b] (mod n)" and "coprime m n"
   shows "[a = b] (mod m * n)"
-
   apply (rule coprime_cong_mult_int [transferred])
-  using prems apply auto
-done
+  using assms apply auto
+  done
 
 lemma cong_less_imp_eq_nat: "0 \<le> (a::nat) \<Longrightarrow>
     a < m \<Longrightarrow> 0 \<le> b \<Longrightarrow> b < m \<Longrightarrow> [a = b] (mod m) \<Longrightarrow> a = b"
-  by (auto simp add: cong_nat_def mod_pos_pos_trivial)
+  by (auto simp add: cong_nat_def)
 
 lemma cong_less_imp_eq_int: "0 \<le> (a::int) \<Longrightarrow>
     a < m \<Longrightarrow> 0 \<le> b \<Longrightarrow> b < m \<Longrightarrow> [a = b] (mod m) \<Longrightarrow> a = b"
-  by (auto simp add: cong_int_def mod_pos_pos_trivial)
+  by (auto simp add: cong_int_def)
 
 lemma cong_less_unique_nat:
     "0 < (m::nat) \<Longrightarrow> (\<exists>!b. 0 \<le> b \<and> b < m \<and> [a = b] (mod m))"
@@ -412,8 +401,8 @@ lemma cong_less_unique_int:
     "0 < (m::int) \<Longrightarrow> (\<exists>!b. 0 \<le> b \<and> b < m \<and> [a = b] (mod m))"
   apply auto
   apply (rule_tac x = "a mod m" in exI)
-  apply (unfold cong_int_def, auto simp add: mod_pos_pos_trivial)
-done
+  apply (unfold cong_int_def, auto)
+  done
 
 lemma cong_iff_lin_int: "([(a::int) = b] (mod m)) = (\<exists>k. b = a + m * k)"
   apply (auto simp add: cong_altdef_int dvd_def field_simps)
@@ -450,15 +439,14 @@ lemma cong_gcd_eq_int: "[(a::int) = b] (mod m) \<Longrightarrow> gcd a m = gcd b
   apply (subst mult_commute)
   apply (subst gcd_add_mult_int)
   apply (rule gcd_commute_int)
-done
+  done
 
 lemma cong_gcd_eq_nat: 
   assumes "[(a::nat) = b] (mod m)"
   shows "gcd a m = gcd b m"
-
   apply (rule cong_gcd_eq_int [transferred])
-  using prems apply auto
-done
+  using assms apply auto
+  done
 
 lemma cong_imp_coprime_nat: "[(a::nat) = b] (mod m) \<Longrightarrow> coprime a m \<Longrightarrow> 
     coprime b m"
@@ -479,11 +467,11 @@ lemma cong_cong_mod_int: "[(a::int) = b] (mod m) =
 lemma cong_minus_int [iff]: "[(a::int) = b] (mod -m) = [a = b] (mod m)"
   by (subst (1 2) cong_altdef_int, auto)
 
-lemma cong_zero_nat [iff]: "[(a::nat) = b] (mod 0) = (a = b)"
-  by (auto simp add: cong_nat_def)
+lemma cong_zero_nat: "[(a::nat) = b] (mod 0) = (a = b)"
+  by auto
 
-lemma cong_zero_int [iff]: "[(a::int) = b] (mod 0) = (a = b)"
-  by (auto simp add: cong_int_def)
+lemma cong_zero_int: "[(a::int) = b] (mod 0) = (a = b)"
+  by auto
 
 (*
 lemma mod_dvd_mod_int:
@@ -498,8 +486,8 @@ lemma mod_dvd_mod:
   shows "(a mod b mod m) = (a mod m)"
 
   apply (rule mod_dvd_mod_int [transferred])
-  using prems apply auto
-done
+  using assms apply auto
+  done
 *)
 
 lemma cong_add_lcancel_nat: 

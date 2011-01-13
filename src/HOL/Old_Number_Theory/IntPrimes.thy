@@ -277,7 +277,7 @@ lemma zcong_zero [iff]: "[a = b] (mod 0) = (a = b)"
   by (auto simp add: zcong_def)
 
 lemma "[a = b] (mod m) = (a mod m = b mod m)"
-  apply (case_tac "m = 0", simp add: DIVISION_BY_ZERO)
+  apply (cases "m = 0", simp)
   apply (simp add: linorder_neq_iff)
   apply (erule disjE)  
    prefer 2 apply (simp add: zcong_zmod_eq)

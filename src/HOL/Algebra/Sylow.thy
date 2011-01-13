@@ -32,8 +32,7 @@ proof (unfold sym_def RelM_def, clarify)
   assume   "y \<in> calM"
     and g: "g \<in> carrier G"
   hence "y = y #> g #> (inv g)" by (simp add: coset_mult_assoc calM_def)
-  thus "\<exists>g'\<in>carrier G. y = y #> g #> g'"
-   by (blast intro: g inv_closed)
+  thus "\<exists>g'\<in>carrier G. y = y #> g #> g'" by (blast intro: g)
 qed
 
 lemma (in sylow) RelM_trans: "trans RelM"
@@ -121,7 +120,7 @@ done
 
 lemma (in sylow) zero_less_o_G: "0 < order(G)"
 apply (unfold order_def)
-apply (blast intro: one_closed zero_less_card_empty)
+apply (blast intro: zero_less_card_empty)
 done
 
 lemma (in sylow) zero_less_m: "m > 0"
@@ -169,7 +168,7 @@ by (simp add: H_def)
 
 lemma (in sylow_central) H_m_closed: "[| x\<in>H; y\<in>H|] ==> x \<otimes> y \<in> H"
 apply (unfold H_def)
-apply (simp add: coset_mult_assoc [symmetric] m_closed)
+apply (simp add: coset_mult_assoc [symmetric])
 done
 
 lemma (in sylow_central) H_not_empty: "H \<noteq> {}"
@@ -205,16 +204,16 @@ done
 
 lemma (in sylow_central) M1_cardeq_rcosetGM1g:
      "g \<in> carrier G ==> card(M1 #> g) = card(M1)"
-by (simp (no_asm_simp) add: M1_subset_G card_cosets_equal rcosetsI)
+by (simp (no_asm_simp) add: card_cosets_equal rcosetsI)
 
 lemma (in sylow_central) M1_RelM_rcosetGM1g:
      "g \<in> carrier G ==> (M1, M1 #> g) \<in> RelM"
-apply (simp (no_asm) add: RelM_def calM_def card_M1 M1_subset_G)
+apply (simp (no_asm) add: RelM_def calM_def card_M1)
 apply (rule conjI)
  apply (blast intro: rcosetGM1g_subset_G)
 apply (simp (no_asm_simp) add: card_M1 M1_cardeq_rcosetGM1g)
 apply (rule bexI [of _ "inv g"])
-apply (simp_all add: coset_mult_assoc M1_subset_G)
+apply (simp_all add: coset_mult_assoc)
 done
 
 
@@ -259,7 +258,7 @@ apply (erule_tac [2] M_elem_map_carrier)+
 apply (rule_tac [2] M1_subset_G)
 apply (rule coset_join1 [THEN in_H_imp_eq])
 apply (rule_tac [3] H_is_subgroup)
-prefer 2 apply (blast intro: m_closed M_elem_map_carrier inv_closed)
+prefer 2 apply (blast intro: M_elem_map_carrier)
 apply (simp add: coset_mult_inv2 H_def M_elem_map_carrier subset_eq)
 done
 
@@ -286,8 +285,7 @@ lemma (in sylow_central) rcosets_H_funcset_M:
   "(\<lambda>C \<in> rcosets H. M1 #> (@g. g \<in> carrier G \<and> H #> g = C)) \<in> rcosets H \<rightarrow> M"
 apply (simp add: RCOSETS_def)
 apply (fast intro: someI2
-            intro!: restrictI M1_in_M
-              EquivElemClass [OF RelM_equiv M_in_quot _  M1_RelM_rcosetGM1g])
+            intro!: M1_in_M EquivElemClass [OF RelM_equiv M_in_quot _  M1_RelM_rcosetGM1g])
 done
 
 text{*close to a duplicate of @{text inj_M_GmodH}*}
@@ -304,9 +302,9 @@ apply (rule coset_mult_inv1)
 apply (erule_tac [2] H_elem_map_carrier)+
 apply (rule_tac [2] H_is_subgroup [THEN subgroup.subset])
 apply (rule coset_join2)
-apply (blast intro: m_closed inv_closed H_elem_map_carrier)
+apply (blast intro: H_elem_map_carrier)
 apply (rule H_is_subgroup)
-apply (simp add: H_I coset_mult_inv2 M1_subset_G H_elem_map_carrier)
+apply (simp add: H_I coset_mult_inv2 H_elem_map_carrier)
 done
 
 lemma (in sylow_central) calM_subset_PowG: "calM \<subseteq> Pow(carrier G)"
@@ -352,7 +350,7 @@ apply (cut_tac lemma_A1, clarify)
 apply (frule existsM1inM, clarify)
 apply (subgoal_tac "sylow_central G p a m M1 M")
  apply (blast dest:  sylow_central.H_is_subgroup sylow_central.card_H_eq)
-apply (simp add: sylow_central_def sylow_central_axioms_def prems)
+apply (simp add: sylow_central_def sylow_central_axioms_def sylow_axioms calM_def RelM_def)
 done
 
 text{*Needed because the locale's automatic definition refers to

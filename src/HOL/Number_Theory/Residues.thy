@@ -1,18 +1,17 @@
 (*  Title:      HOL/Library/Residues.thy
-    ID:         
     Author:     Jeremy Avigad
 
-    An algebraic treatment of residue rings, and resulting proofs of
-    Euler's theorem and Wilson's theorem. 
+An algebraic treatment of residue rings, and resulting proofs of
+Euler's theorem and Wilson's theorem. 
 *)
 
 header {* Residue rings *}
 
 theory Residues
 imports
-   UniqueFactorization
-   Binomial
-   MiscAlgebra
+  UniqueFactorization
+  Binomial
+  MiscAlgebra
 begin
 
 
@@ -41,14 +40,13 @@ lemma abelian_group: "abelian_group R"
   apply (insert m_gt_one)
   apply (rule abelian_groupI)
   apply (unfold R_def residue_ring_def)
-  apply (auto simp add: mod_pos_pos_trivial mod_add_right_eq [symmetric]
-    add_ac)
+  apply (auto simp add: mod_add_right_eq [symmetric] add_ac)
   apply (case_tac "x = 0")
   apply force
   apply (subgoal_tac "(x + (m - x)) mod m = 0")
   apply (erule bexI)
   apply auto
-done
+  done
 
 lemma comm_monoid: "comm_monoid R"
   apply (insert m_gt_one)
@@ -59,7 +57,7 @@ lemma comm_monoid: "comm_monoid R"
   apply (erule ssubst)
   apply (subst zmod_zmult1_eq [symmetric])+
   apply (simp_all only: mult_ac)
-done
+  done
 
 lemma cring: "cring R"
   apply (rule cringI)
@@ -70,7 +68,7 @@ lemma cring: "cring R"
   apply (subst mult_commute)
   apply (subst zmod_zmult1_eq [symmetric])
   apply (simp add: field_simps)
-done
+  done
 
 end
 
@@ -78,7 +76,8 @@ sublocale residues < cring
   by (rule cring)
 
 
-context residues begin
+context residues
+begin
 
 (* These lemmas translate back and forth between internal and 
    external concepts *)
@@ -96,7 +95,7 @@ lemma res_zero_eq: "\<zero> = 0"
   by (unfold R_def residue_ring_def, auto)
 
 lemma res_one_eq: "\<one> = 1"
-  by (unfold R_def residue_ring_def units_of_def residue_ring_def, auto)
+  by (unfold R_def residue_ring_def units_of_def, auto)
 
 lemma res_units_eq: "Units R = { x. 0 < x & x < m & coprime x m}"
   apply (insert m_gt_one)
@@ -110,7 +109,7 @@ lemma res_units_eq: "Units R = { x. 0 < x & x < m & coprime x m}"
   apply (subst (asm) coprime_iff_invertible'_int)
   apply (rule m_gt_one)
   apply (auto simp add: cong_int_def mult_commute)
-done
+  done
 
 lemma res_neg_eq: "\<ominus> x = (- x) mod m"
   apply (insert m_gt_one)
@@ -126,7 +125,7 @@ lemma res_neg_eq: "\<ominus> x = (- x) mod m"
   apply simp
   apply (subst zmod_eq_dvd_iff)
   apply auto
-done
+  done
 
 lemma finite [iff]: "finite(carrier R)"
   by (subst res_carrier_eq, auto)
@@ -141,7 +140,7 @@ lemma finite_Units [iff]: "finite(Units R)"
 lemma mod_in_carrier [iff]: "a mod m : carrier R"
   apply (unfold res_carrier_eq)
   apply (insert m_gt_one, auto)
-done
+  done
 
 lemma add_cong: "(x mod m) \<oplus> (y mod m) = (x + y) mod m"
   by (unfold R_def residue_ring_def, auto, arith)
@@ -153,25 +152,25 @@ lemma mult_cong: "(x mod m) \<otimes> (y mod m) = (x * y) mod m"
   apply (subst zmod_zmult1_eq [symmetric])
   apply (subst mult_commute)
   apply auto
-done  
+  done
 
 lemma zero_cong: "\<zero> = 0"
   apply (unfold R_def residue_ring_def, auto)
-done
+  done
 
 lemma one_cong: "\<one> = 1 mod m"
   apply (insert m_gt_one)
   apply (unfold R_def residue_ring_def, auto)
-done
+  done
 
 (* revise algebra library to use 1? *)
 lemma pow_cong: "(x mod m) (^) n = x^n mod m"
   apply (insert m_gt_one)
   apply (induct n)
-  apply (auto simp add: nat_pow_def one_cong One_nat_def)
+  apply (auto simp add: nat_pow_def one_cong)
   apply (subst mult_commute)
   apply (rule mult_cong)
-done
+  done
 
 lemma neg_cong: "\<ominus> (x mod m) = (- x) mod m"
   apply (rule sym)
@@ -180,19 +179,19 @@ lemma neg_cong: "\<ominus> (x mod m) = (- x) mod m"
   apply (subst add_cong)
   apply (subst zero_cong)
   apply auto
-done
+  done
 
 lemma (in residues) prod_cong: 
   "finite A \<Longrightarrow> (\<Otimes> i:A. (f i) mod m) = (PROD i:A. f i) mod m"
   apply (induct set: finite)
   apply (auto simp: one_cong mult_cong)
-done
+  done
 
 lemma (in residues) sum_cong:
   "finite A \<Longrightarrow> (\<Oplus> i:A. (f i) mod m) = (SUM i: A. f i) mod m"
   apply (induct set: finite)
   apply (auto simp: zero_cong add_cong)
-done
+  done
 
 lemma mod_in_res_units [simp]: "1 < m \<Longrightarrow> coprime a m \<Longrightarrow> 
     a mod m : Units R"
@@ -203,7 +202,7 @@ lemma mod_in_res_units [simp]: "1 < m \<Longrightarrow> coprime a m \<Longrighta
   apply auto
   apply (subst (asm) gcd_red_int)
   apply (subst gcd_commute_int, assumption)
-done
+  done
 
 lemma res_eq_to_cong: "((a mod m) = (b mod m)) = [a = b] (mod (m::int))" 
   unfolding cong_int_def by auto
@@ -227,7 +226,7 @@ lemma one_eq_neg_one: "\<one> = \<ominus> \<one> \<Longrightarrow> m = 2"
   apply (subst mod_add_self2 [symmetric])
   apply (subst mod_pos_pos_trivial)
   apply auto
-done
+  done
 
 end
 
@@ -242,7 +241,7 @@ locale residues_prime =
 sublocale residues_prime < residues p
   apply (unfold R_def residues_def)
   using p_prime apply auto
-done
+  done
 
 context residues_prime begin
 
@@ -259,7 +258,7 @@ lemma is_field: "field R"
   apply (rule notI)
   apply (frule zdvd_imp_le)
   apply auto
-done
+  done
 
 lemma res_prime_units_eq: "Units R = {1..p - 1}"
   apply (subst res_units_eq)
@@ -269,7 +268,7 @@ lemma res_prime_units_eq: "Units R = {1..p - 1}"
   apply (rule p_prime)
   apply (rule zdvd_not_zless)
   apply auto
-done
+  done
 
 end
 
@@ -295,11 +294,11 @@ lemma phi_zero [simp]: "phi 0 = 0"
    1 == Suc 0 coming from? *)
   apply (auto simp add: card_eq_0_iff)
 (* Add card_eq_0_iff as a simp rule? delete card_empty_imp? *)
-done
+  done
 
 lemma phi_one [simp]: "phi 1 = 0"
   apply (auto simp add: phi_def card_eq_0_iff)
-done
+  done
 
 lemma (in residues) phi_eq: "phi m = card(Units R)"
   by (simp add: phi_def res_units_eq)
@@ -342,7 +341,7 @@ proof (cases)
   thus ?thesis by auto
 next
   assume "~(m = 0 | m = 1)"
-  with prems show ?thesis
+  with assms show ?thesis
     by (intro residues.euler_theorem1, unfold residues_def, auto)
 qed
 
@@ -350,18 +349,18 @@ lemma (in residues_prime) phi_prime: "phi p = (nat p - 1)"
   apply (subst phi_eq)
   apply (subst res_prime_units_eq)
   apply auto
-done
+  done
 
 lemma phi_prime: "prime p \<Longrightarrow> phi p = (nat p - 1)"
   apply (rule residues_prime.phi_prime)
   apply (erule residues_prime.intro)
-done
+  done
 
 lemma fermat_theorem:
   assumes "prime p" and "~ (p dvd a)"
   shows "[a^(nat p - 1) = 1] (mod p)"
 proof -
-  from prems have "[a^phi p = 1] (mod p)"
+  from assms have "[a^phi p = 1] (mod p)"
     apply (intro euler_theorem)
     (* auto should get this next part. matching across
        substitutions is needed. *)
@@ -369,7 +368,7 @@ proof -
     apply (subst gcd_commute_int, erule prime_imp_coprime_int, assumption)
     done
   also have "phi p = nat p - 1"
-    by (rule phi_prime, rule prems)
+    by (rule phi_prime, rule assms)
   finally show ?thesis .
 qed
 
@@ -377,7 +376,7 @@ qed
 subsection {* Wilson's theorem *}
 
 lemma (in field) inv_pair_lemma: "x : Units R \<Longrightarrow> y : Units R \<Longrightarrow> 
-  {x, inv x} ~= {y, inv y} \<Longrightarrow> {x, inv x} Int {y, inv y} = {}" 
+    {x, inv x} ~= {y, inv y} \<Longrightarrow> {x, inv x} Int {y, inv y} = {}" 
   apply auto
   apply (erule notE)
   apply (erule inv_eq_imp_eq)
@@ -385,7 +384,7 @@ lemma (in field) inv_pair_lemma: "x : Units R \<Longrightarrow> y : Units R \<Lo
   apply (erule notE)
   apply (erule inv_eq_imp_eq)
   apply auto
-done
+  done
 
 lemma (in residues_prime) wilson_theorem1:
   assumes a: "p > 2"
@@ -411,7 +410,7 @@ proof -
     apply (insert a, force)
     done
   also have "(\<Otimes>i:(Union ?InversePairs). i) = 
-      (\<Otimes> A: ?InversePairs. (\<Otimes> y:A. y))"
+      (\<Otimes>A: ?InversePairs. (\<Otimes>y:A. y))"
     apply (subst finprod_Union_disjoint)
     apply force
     apply force
@@ -441,7 +440,7 @@ proof -
     done
   also have "\<dots> = fact (p - 1) mod p"
     apply (subst fact_altdef_int)
-    apply (insert prems, force)
+    apply (insert assms, force)
     apply (subst res_prime_units_eq, rule refl)
     done
   finally have "fact (p - 1) mod p = \<ominus> \<one>".

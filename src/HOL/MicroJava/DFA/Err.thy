@@ -259,7 +259,7 @@ proof -
     \<lbrakk> semilat (A,r,f); x +_f y <=_r z; x:A; y:A; z:A \<rbrakk> 
     \<Longrightarrow> x <=_r z \<and> y <=_r z"
     by (rule Semilat.plus_le_conv [OF Semilat.intro, THEN iffD1])
-  from prems show ?thesis
+  from assms show ?thesis
   apply (rule_tac iffI)
    apply clarify
    apply (drule OK_le_err_OK [THEN iffD2])

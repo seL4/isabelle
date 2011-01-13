@@ -1,12 +1,11 @@
 (*  Title:      UniqueFactorization.thy
     Author:     Jeremy Avigad
 
-    
-    Unique factorization for the natural numbers and the integers.
+Unique factorization for the natural numbers and the integers.
 
-    Note: there were previous Isabelle formalizations of unique
-    factorization due to Thomas Marthedal Rasmussen, and, building on
-    that, by Jeremy Avigad and David Gray.  
+Note: there were previous Isabelle formalizations of unique
+factorization due to Thomas Marthedal Rasmussen, and, building on
+that, by Jeremy Avigad and David Gray.  
 *)
 
 header {* UniqueFactorization *}
@@ -135,14 +134,13 @@ proof (rule nat_less_induct, clarify)
   moreover 
   {
     assume "n > 1" and "~ prime n"
-    from prems not_prime_eq_prod_nat
-      obtain m k where "n = m * k & 1 < m & m < n & 1 < k & k < n"
+    with not_prime_eq_prod_nat obtain m k where n: "n = m * k & 1 < m & m < n & 1 < k & k < n"
         by blast
     with ih obtain Q R where "(ALL p : set_of Q. prime p) & m = (PROD i:#Q. i)"
         and "(ALL p: set_of R. prime p) & k = (PROD i:#R. i)"
       by blast
     hence "(ALL p: set_of (Q + R). prime p) & n = (PROD i :# Q + R. i)"
-      by (auto simp add: prems msetprod_Un set_of_union)
+      by (auto simp add: n msetprod_Un)
     then have "EX M. (ALL p : set_of M. prime p) & n = (PROD i :# M. i)"..
   }
   ultimately show "EX M. (ALL p : set_of M. prime p) & n = (PROD i::nat:#M. i)"
@@ -157,13 +155,11 @@ lemma multiset_prime_factorization_unique_aux:
   shows
     "count M a <= count N a"
 proof cases
-  assume "a : set_of M"
-  with prems have a: "prime a"
-    by auto
-  with prems have "a ^ count M a dvd (PROD i :# M. i)"
+  assume M: "a : set_of M"
+  with assms have a: "prime a" by auto
+  with M have "a ^ count M a dvd (PROD i :# M. i)"
     by (auto intro: dvd_setprod simp add: msetprod_def)
-  also have "... dvd (PROD i :# N. i)"
-    by (rule prems)
+  also have "... dvd (PROD i :# N. i)" by (rule assms)
   also have "... = (PROD i : (set_of N). i ^ (count N i))"
     by (simp add: msetprod_def)
   also have "... = 
@@ -186,7 +182,8 @@ proof cases
     apply (subst gcd_commute_nat)
     apply (rule setprod_coprime_nat)
     apply (rule primes_imp_powers_coprime_nat)
-    apply (insert prems, auto) 
+    using assms M
+    apply auto
     done
   ultimately have "a ^ count M a dvd a^(count N a)"
     by (elim coprime_dvd_mult_nat)
@@ -206,9 +203,9 @@ lemma multiset_prime_factorization_unique:
 proof -
   {
     fix a
-    from prems have "count M a <= count N a"
+    from assms have "count M a <= count N a"
       by (intro multiset_prime_factorization_unique_aux, auto) 
-    moreover from prems have "count N a <= count M a"
+    moreover from assms have "count N a <= count M a"
       by (intro multiset_prime_factorization_unique_aux, auto) 
     ultimately have "count M a = count N a"
       by auto
@@ -245,7 +242,6 @@ fixes
 (* definitions for the natural numbers *)
 
 instantiation nat :: unique_factorization
-
 begin
 
 definition
@@ -265,7 +261,6 @@ end
 (* definitions for the integers *)
 
 instantiation int :: unique_factorization
-
 begin
 
 definition
@@ -329,15 +324,14 @@ lemma prime_factors_prime_nat [intro]: "p : prime_factors (n::nat) \<Longrightar
   apply (case_tac "n = 0")
   apply (simp add: prime_factors_nat_def multiset_prime_factorization_def)
   apply (auto simp add: prime_factors_nat_def multiset_prime_factorization)
-done
+  done
 
 lemma prime_factors_prime_int [intro]:
   assumes "n >= 0" and "p : prime_factors (n::int)"
   shows "prime p"
-
   apply (rule prime_factors_prime_nat [transferred, of n p])
-  using prems apply auto
-done
+  using assms apply auto
+  done
 
 lemma prime_factors_gt_0_nat [elim]: "p : prime_factors x \<Longrightarrow> p > (0::nat)"
   by (frule prime_factors_prime_nat, auto)
@@ -361,22 +355,19 @@ lemma prime_factors_altdef_int: "prime_factors (n::int) =
   apply (unfold prime_factors_int_def multiplicity_int_def)
   apply (subst prime_factors_altdef_nat)
   apply (auto simp add: image_def)
-done
+  done
 
 lemma prime_factorization_nat: "(n::nat) > 0 \<Longrightarrow> 
     n = (PROD p : prime_factors n. p^(multiplicity p n))"
   by (frule multiset_prime_factorization, 
     simp add: prime_factors_nat_def multiplicity_nat_def msetprod_def)
 
-thm prime_factorization_nat [transferred] 
-
 lemma prime_factorization_int: 
   assumes "(n::int) > 0"
   shows "n = (PROD p : prime_factors n. p^(multiplicity p n))"
-
   apply (rule prime_factorization_nat [transferred, of n])
-  using prems apply auto
-done
+  using assms apply auto
+  done
 
 lemma neq_zero_eq_gt_zero_nat: "((x::nat) ~= 0) = (x > 0)"
   by auto
@@ -591,10 +582,9 @@ lemma multiplicity_product_aux_int:
   shows 
     "(prime_factors k) Un (prime_factors l) = prime_factors (k * l) &
     (ALL p >= 0. multiplicity p k + multiplicity p l = multiplicity p (k * l))"
-
   apply (rule multiplicity_product_aux_nat [transferred, of l k])
-  using prems apply auto
-done
+  using assms apply auto
+  done
 
 lemma prime_factors_product_nat: "(k::nat) > 0 \<Longrightarrow> l > 0 \<Longrightarrow> prime_factors (k * l) = 
     prime_factors k Un prime_factors l"
@@ -805,9 +795,9 @@ lemma prime_factors_altdef2_int:
 
   apply (case_tac "p >= 0")
   apply (rule prime_factors_altdef2_nat [transferred])
-  using prems apply auto
+  using assms apply auto
   apply (auto simp add: prime_ge_0_int prime_factors_ge_0_int)
-done
+  done
 
 lemma multiplicity_eq_nat:
   fixes x and y::nat 
@@ -846,7 +836,7 @@ proof -
       min (multiplicity p x) (multiplicity p y)"
     unfolding z_def
     apply (subst multiplicity_prod_prime_powers_nat)
-    apply (auto simp add: multiplicity_not_factor_nat)
+    apply auto
     done
   have "z dvd x" 
     by (intro multiplicity_dvd'_nat, auto simp add: aux)
@@ -878,7 +868,7 @@ proof -
       max (multiplicity p x) (multiplicity p y)"
     unfolding z_def
     apply (subst multiplicity_prod_prime_powers_nat)
-    apply (auto simp add: multiplicity_not_factor_nat)
+    apply auto
     done
   have "x dvd z" 
     by (intro multiplicity_dvd'_nat, auto simp add: aux)

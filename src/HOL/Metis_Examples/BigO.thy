@@ -437,11 +437,11 @@ by (metis bigo_mult2 set_plus_mono_b set_times_intro2 set_times_plus_distrib)
 lemma bigo_mult5: "ALL x. f x ~= 0 ==>
     O(f * g) <= (f::'a => ('b::linordered_field)) *o O(g)"
 proof -
-  assume "ALL x. f x ~= 0"
+  assume a: "ALL x. f x ~= 0"
   show "O(f * g) <= f *o O(g)"
   proof
     fix h
-    assume "h : O(f * g)"
+    assume h: "h : O(f * g)"
     then have "(%x. 1 / (f x)) * h : (%x. 1 / f x) *o O(f * g)"
       by auto
     also have "... <= O((%x. 1 / f x) * (f * g))"
@@ -449,7 +449,7 @@ proof -
     also have "(%x. 1 / f x) * (f * g) = g"
       apply (simp add: func_times) 
       apply (rule ext)
-      apply (simp add: prems nonzero_divide_eq_eq mult_ac)
+      apply (simp add: a h nonzero_divide_eq_eq mult_ac)
       done
     finally have "(%x. (1::'b) / f x) * h : O(g)".
     then have "f * ((%x. (1::'b) / f x) * h) : f *o O(g)"
@@ -457,7 +457,7 @@ proof -
     also have "f * ((%x. (1::'b) / f x) * h) = h"
       apply (simp add: func_times) 
       apply (rule ext)
-      apply (simp add: prems nonzero_divide_eq_eq mult_ac)
+      apply (simp add: a h nonzero_divide_eq_eq mult_ac)
       done
     finally show "h : f *o O(g)".
   qed

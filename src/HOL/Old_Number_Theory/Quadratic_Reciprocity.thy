@@ -201,10 +201,11 @@ proof -
   then show ?thesis by auto
 qed
 
-lemma pb_neq_qa: "[|1 \<le> b; b \<le> (q - 1) div 2 |] ==>
-    (p * b \<noteq> q * a)"
+lemma pb_neq_qa:
+  assumes "1 \<le> b" and "b \<le> (q - 1) div 2"
+  shows "p * b \<noteq> q * a"
 proof
-  assume "p * b = q * a" and "1 \<le> b" and "b \<le> (q - 1) div 2"
+  assume "p * b = q * a"
   then have "q dvd (p * b)" by (auto simp add: dvd_def)
   with q_prime p_g_2 have "q dvd p | q dvd b"
     by (auto simp add: zprime_zdvd_zmult)
@@ -216,7 +217,7 @@ proof
       apply (drule_tac x = q and R = False in allE)
       apply (simp add: QRTEMP_def)
       apply (subgoal_tac "0 \<le> q", simp add: QRTEMP_def)
-      apply (insert prems)
+      apply (insert assms)
       apply (auto simp add: QRTEMP_def)
       done
     with q_g_2 p_neq_q show False by auto
@@ -225,18 +226,18 @@ proof
   then have "q \<le> b"
   proof -
     assume "q dvd b"
-    moreover from prems have "0 < b" by auto
+    moreover from assms have "0 < b" by auto
     ultimately show ?thesis using zdvd_bounds [of q b] by auto
   qed
-  with prems have "q \<le> (q - 1) div 2" by auto
+  with assms have "q \<le> (q - 1) div 2" by auto
   then have "2 * q \<le> 2 * ((q - 1) div 2)" by arith
   then have "2 * q \<le> q - 1"
   proof -
-    assume "2 * q \<le> 2 * ((q - 1) div 2)"
-    with prems have "q \<in> zOdd" by (auto simp add: QRTEMP_def zprime_zOdd_eq_grt_2)
+    assume a: "2 * q \<le> 2 * ((q - 1) div 2)"
+    with assms have "q \<in> zOdd" by (auto simp add: QRTEMP_def zprime_zOdd_eq_grt_2)
     with odd_minus_one_even have "(q - 1):zEven" by auto
     with even_div_2_prop2 have "(q - 1) = 2 * ((q - 1) div 2)" by auto
-    with prems show ?thesis by auto
+    with a show ?thesis by auto
   qed
   then have p1: "q \<le> -1" by arith
   with q_g_2 show False by auto
@@ -273,7 +274,7 @@ lemma Q_set_card: "(q - 1) div 2 = int (card (Q_set))"
 
 lemma S_card: "((p - 1) div 2) * ((q - 1) div 2) = int (card(S))"
   using P_set_card Q_set_card P_set_finite Q_set_finite
-  by (auto simp add: S_def zmult_int setsum_constant)
+  by (auto simp add: S_def zmult_int)
 
 lemma S1_Int_S2_prop: "S1 \<inter> S2 = {}"
   by (auto simp add: S1_def S2_def)
@@ -301,11 +302,11 @@ proof -
   finally show ?thesis .
 qed
 
-lemma aux1a: "[| 0 < a; a \<le> (p - 1) div 2;
-                             0 < b; b \<le> (q - 1) div 2 |] ==>
-                          (p * b < q * a) = (b \<le> q * a div p)"
+lemma aux1a:
+  assumes "0 < a" and "a \<le> (p - 1) div 2"
+    and "0 < b" and "b \<le> (q - 1) div 2"
+  shows "(p * b < q * a) = (b \<le> q * a div p)"
 proof -
-  assume "0 < a" and "a \<le> (p - 1) div 2" and "0 < b" and "b \<le> (q - 1) div 2"
   have "p * b < q * a ==> b \<le> q * a div p"
   proof -
     assume "p * b < q * a"
@@ -329,17 +330,17 @@ proof -
     then have "p * b < q * a | p * b = q * a"
       by (simp only: order_le_imp_less_or_eq)
     moreover have "p * b \<noteq> q * a"
-      by (rule  pb_neq_qa) (insert prems, auto)
+      by (rule pb_neq_qa) (insert assms, auto)
     ultimately show ?thesis by auto
   qed
   ultimately show ?thesis ..
 qed
 
-lemma aux1b: "[| 0 < a; a \<le> (p - 1) div 2;
-                             0 < b; b \<le> (q - 1) div 2 |] ==>
-                          (q * a < p * b) = (a \<le> p * b div q)"
+lemma aux1b:
+  assumes "0 < a" and "a \<le> (p - 1) div 2"
+    and "0 < b" and "b \<le> (q - 1) div 2"
+  shows "(q * a < p * b) = (a \<le> p * b div q)"
 proof -
-  assume "0 < a" and "a \<le> (p - 1) div 2" and "0 < b" and "b \<le> (q - 1) div 2"
   have "q * a < p * b ==> a \<le> p * b div q"
   proof -
     assume "q * a < p * b"
@@ -363,18 +364,18 @@ proof -
     then have "q * a < p * b | q * a = p * b"
       by (simp only: order_le_imp_less_or_eq)
     moreover have "p * b \<noteq> q * a"
-      by (rule  pb_neq_qa) (insert prems, auto)
+      by (rule  pb_neq_qa) (insert assms, auto)
     ultimately show ?thesis by auto
   qed
   ultimately show ?thesis ..
 qed
 
-lemma (in -) aux2: "[| zprime p; zprime q; 2 < p; 2 < q |] ==>
-             (q * ((p - 1) div 2)) div p \<le> (q - 1) div 2"
+lemma (in -) aux2:
+  assumes "zprime p" and "zprime q" and "2 < p" and "2 < q"
+  shows "(q * ((p - 1) div 2)) div p \<le> (q - 1) div 2"
 proof-
-  assume "zprime p" and "zprime q" and "2 < p" and "2 < q"
   (* Set up what's even and odd *)
-  then have "p \<in> zOdd & q \<in> zOdd"
+  from assms have "p \<in> zOdd & q \<in> zOdd"
     by (auto simp add:  zprime_zOdd_eq_grt_2)
   then have even1: "(p - 1):zEven & (q - 1):zEven"
     by (auto simp add: odd_minus_one_even)
@@ -383,7 +384,7 @@ proof-
   then have even3: "(((q - 1) * p) + (2 * p)):zEven"
     by (auto simp: EvenOdd.even_plus_even)
   (* using these prove it *)
-  from prems have "q * (p - 1) < ((q - 1) * p) + (2 * p)"
+  from assms have "q * (p - 1) < ((q - 1) * p) + (2 * p)"
     by (auto simp add: int_distrib)
   then have "((p - 1) * q) div 2 < (((q - 1) * p) + (2 * p)) div 2"
     apply (rule_tac x = "((p - 1) * q)" in even_div_2_l)
@@ -395,7 +396,7 @@ proof-
   finally show ?thesis
     apply (rule_tac x = " q * ((p - 1) div 2)" and
                     y = "(q - 1) div 2" in div_prop2)
-    using prems by auto
+    using assms by auto
 qed
 
 lemma aux3a: "\<forall>j \<in> P_set. int (card (f1 j)) = (q * j) div p"
@@ -414,7 +415,7 @@ proof
     ultimately have "card ((%(x,y). y) ` (f1 j)) = card  (f1 j)"
       by (auto simp add: f1_def card_image)
     moreover have "((%(x,y). y) ` (f1 j)) = {y. y \<in> Q_set & y \<le> (q * j) div p}"
-      using prems by (auto simp add: f1_def S_def Q_set_def P_set_def image_def)
+      using j_fact by (auto simp add: f1_def S_def Q_set_def P_set_def image_def)
     ultimately show ?thesis by (auto simp add: f1_def)
   qed
   also have "... = int (card {y. 0 < y & y \<le> (q * j) div p})"
@@ -424,18 +425,18 @@ proof
       apply (auto simp add: Q_set_def)
     proof -
       fix x
-      assume "0 < x" and "x \<le> q * j div p"
+      assume x: "0 < x" "x \<le> q * j div p"
       with j_fact P_set_def  have "j \<le> (p - 1) div 2" by auto
       with q_g_2 have "q * j \<le> q * ((p - 1) div 2)"
         by (auto simp add: mult_le_cancel_left)
       with p_g_2 have "q * j div p \<le> q * ((p - 1) div 2) div p"
         by (auto simp add: zdiv_mono1)
-      also from prems P_set_def have "... \<le> (q - 1) div 2"
+      also from QRTEMP_axioms j_fact P_set_def have "... \<le> (q - 1) div 2"
         apply simp
         apply (insert aux2)
         apply (simp add: QRTEMP_def)
         done
-      finally show "x \<le> (q - 1) div 2" using prems by auto
+      finally show "x \<le> (q - 1) div 2" using x by auto
     qed
     then show ?thesis by auto
   qed
@@ -470,7 +471,7 @@ proof
     ultimately have "card ((%(x,y). x) ` (f2 j)) = card  (f2 j)"
       by (auto simp add: f2_def card_image)
     moreover have "((%(x,y). x) ` (f2 j)) = {y. y \<in> P_set & y \<le> (p * j) div q}"
-      using prems by (auto simp add: f2_def S_def Q_set_def P_set_def image_def)
+      using j_fact by (auto simp add: f2_def S_def Q_set_def P_set_def image_def)
     ultimately show ?thesis by (auto simp add: f2_def)
   qed
   also have "... = int (card {y. 0 < y & y \<le> (p * j) div q})"
@@ -480,15 +481,15 @@ proof
       apply (auto simp add: P_set_def)
     proof -
       fix x
-      assume "0 < x" and "x \<le> p * j div q"
+      assume x: "0 < x" "x \<le> p * j div q"
       with j_fact Q_set_def  have "j \<le> (q - 1) div 2" by auto
       with p_g_2 have "p * j \<le> p * ((q - 1) div 2)"
         by (auto simp add: mult_le_cancel_left)
       with q_g_2 have "p * j div q \<le> p * ((q - 1) div 2) div q"
         by (auto simp add: zdiv_mono1)
-      also from prems have "... \<le> (p - 1) div 2"
+      also from QRTEMP_axioms j_fact have "... \<le> (p - 1) div 2"
         by (auto simp add: aux2 QRTEMP_def)
-      finally show "x \<le> (p - 1) div 2" using prems by auto
+      finally show "x \<le> (p - 1) div 2" using x by auto
       qed
     then show ?thesis by auto
   qed
@@ -587,18 +588,18 @@ lemma (in -) pq_prime_neq: "[| zprime p; zprime q; p \<noteq> q |] ==> (~[p = 0]
 lemma QR_short: "(Legendre p q) * (Legendre q p) =
     (-1::int)^nat(((p - 1) div 2)*((q - 1) div 2))"
 proof -
-  from prems have "~([p = 0] (mod q))"
+  from QRTEMP_axioms have "~([p = 0] (mod q))"
     by (auto simp add: pq_prime_neq QRTEMP_def)
-  with prems Q_set_def have a1: "(Legendre p q) = (-1::int) ^
+  with QRTEMP_axioms Q_set_def have a1: "(Legendre p q) = (-1::int) ^
       nat(setsum (%x. ((x * p) div q)) Q_set)"
     apply (rule_tac p = q in  MainQRLemma)
     apply (auto simp add: zprime_zOdd_eq_grt_2 QRTEMP_def)
     done
-  from prems have "~([q = 0] (mod p))"
+  from QRTEMP_axioms have "~([q = 0] (mod p))"
     apply (rule_tac p = q and q = p in pq_prime_neq)
     apply (simp add: QRTEMP_def)+
     done
-  with prems P_set_def have a2: "(Legendre q p) =
+  with QRTEMP_axioms P_set_def have a2: "(Legendre q p) =
       (-1::int) ^ nat(setsum (%x. ((x * q) div p)) P_set)"
     apply (rule_tac p = p in  MainQRLemma)
     apply (auto simp add: zprime_zOdd_eq_grt_2 QRTEMP_def)

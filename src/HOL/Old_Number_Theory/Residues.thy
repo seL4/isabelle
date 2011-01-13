@@ -51,10 +51,10 @@ lemma StandardRes_prop4: "2 < m
                      mod_mult_eq [of x y m])
 
 lemma StandardRes_lbound: "0 < p ==> 0 \<le> StandardRes p x"
-  by (auto simp add: StandardRes_def pos_mod_sign)
+  by (auto simp add: StandardRes_def)
 
 lemma StandardRes_ubound: "0 < p ==> StandardRes p x < p"
-  by (auto simp add: StandardRes_def pos_mod_bound)
+  by (auto simp add: StandardRes_def)
 
 lemma StandardRes_eq_zcong: 
    "(StandardRes m x = 0) = ([x = 0](mod m))"
@@ -71,8 +71,7 @@ lemma StandardRes_SR_prop: "x \<in> SR p ==> StandardRes p x = x"
 
 lemma StandardRes_SRStar_prop1: "2 < p ==> (StandardRes p x \<in> SRStar p) 
      = (~[x = 0] (mod p))"
-  apply (auto simp add: StandardRes_prop3 StandardRes_def
-                        SRStar_def pos_mod_bound)
+  apply (auto simp add: StandardRes_prop3 StandardRes_def SRStar_def)
   apply (subgoal_tac "0 < p")
   apply (drule_tac a = x in pos_mod_sign, arith, simp)
   done

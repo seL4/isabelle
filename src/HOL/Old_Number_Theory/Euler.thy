@@ -56,29 +56,27 @@ lemma MultInvPair_prop2: "[| zprime p; 2 < p; ~([a = 0](mod p)) |] ==>
   apply (rule bexI, auto)
   done
 
-lemma MultInvPair_distinct: "[| zprime p; 2 < p; ~([a = 0] (mod p)); 
-                                ~([j = 0] (mod p)); 
-                                ~(QuadRes p a) |]  ==> 
-                             ~([j = a * MultInv p j] (mod p))"
+lemma MultInvPair_distinct:
+  assumes "zprime p" and "2 < p" and
+    "~([a = 0] (mod p))" and
+    "~([j = 0] (mod p))" and
+    "~(QuadRes p a)"
+  shows "~([j = a * MultInv p j] (mod p))"
 proof
-  assume "zprime p" and "2 < p" and "~([a = 0] (mod p))" and 
-    "~([j = 0] (mod p))" and "~(QuadRes p a)"
   assume "[j = a * MultInv p j] (mod p)"
   then have "[j * j = (a * MultInv p j) * j] (mod p)"
     by (auto simp add: zcong_scalar)
   then have a:"[j * j = a * (MultInv p j * j)] (mod p)"
     by (auto simp add: zmult_ac)
   have "[j * j = a] (mod p)"
-    proof -
-      from prems have b: "[MultInv p j * j = 1] (mod p)"
-        by (simp add: MultInv_prop2a)
-      from b a show ?thesis
-        by (auto simp add: zcong_zmult_prop2)
-    qed
-  then have "[j^2 = a] (mod p)"
-    by (metis  number_of_is_id power2_eq_square succ_bin_simps)
-  with prems show False
-    by (simp add: QuadRes_def)
+  proof -
+    from assms(1,2,4) have "[MultInv p j * j = 1] (mod p)"
+      by (simp add: MultInv_prop2a)
+    from this and a show ?thesis
+      by (auto simp add: zcong_zmult_prop2)
+  qed
+  then have "[j^2 = a] (mod p)" by (simp add: power2_eq_square)
+  with assms show False by (simp add: QuadRes_def)
 qed
 
 lemma MultInvPair_card_two: "[| zprime p; 2 < p; ~([a = 0] (mod p)); 
@@ -108,33 +106,31 @@ lemma SetS_elems_card: "[| zprime p; 2 < p; ~([a = 0] (mod p));
   done
 
 lemma Union_SetS_finite: "2 < p ==> finite (Union (SetS a p))"
-  by (auto simp add: SetS_finite SetS_elems_finite finite_Union)
+  by (auto simp add: SetS_finite SetS_elems_finite)
 
 lemma card_setsum_aux: "[| finite S; \<forall>X \<in> S. finite (X::int set); 
     \<forall>X \<in> S. card X = n |] ==> setsum card S = setsum (%x. n) S"
   by (induct set: finite) auto
 
-lemma SetS_card: "[| zprime p; 2 < p; ~([a = 0] (mod p)); ~(QuadRes p a) |] ==> 
-                  int(card(SetS a p)) = (p - 1) div 2"
+lemma SetS_card:
+  assumes "zprime p" and "2 < p" and "~([a = 0] (mod p))" and "~(QuadRes p a)"
+  shows "int(card(SetS a p)) = (p - 1) div 2"
 proof -
-  assume "zprime p" and "2 < p" and  "~([a = 0] (mod p))" and "~(QuadRes p a)"
-  then have "(p - 1) = 2 * int(card(SetS a p))"
+  have "(p - 1) = 2 * int(card(SetS a p))"
   proof -
     have "p - 1 = int(card(Union (SetS a p)))"
-      by (auto simp add: prems MultInvPair_prop2 SRStar_card)
+      by (auto simp add: assms MultInvPair_prop2 SRStar_card)
     also have "... = int (setsum card (SetS a p))"
-      by (auto simp add: prems SetS_finite SetS_elems_finite
-                         MultInvPair_prop1c [of p a] card_Union_disjoint)
+      by (auto simp add: assms SetS_finite SetS_elems_finite
+        MultInvPair_prop1c [of p a] card_Union_disjoint)
     also have "... = int(setsum (%x.2) (SetS a p))"
-      using prems
-      by (auto simp add: SetS_elems_card SetS_finite SetS_elems_finite 
+      using assms by (auto simp add: SetS_elems_card SetS_finite SetS_elems_finite
         card_setsum_aux simp del: setsum_constant)
     also have "... = 2 * int(card( SetS a p))"
-      by (auto simp add: prems SetS_finite setsum_const2)
+      by (auto simp add: assms SetS_finite setsum_const2)
     finally show ?thesis .
   qed
-  from this show ?thesis
-    by auto
+  then show ?thesis by auto
 qed
 
 lemma SetS_setprod_prop: "[| zprime p; 2 < p; ~([a = 0] (mod p));
@@ -177,37 +173,37 @@ lemma SRStar_d22set_prop: "2 < p \<Longrightarrow> (SRStar p) = {1} \<union> (d2
   apply (frule d22set_g_1, auto)
   done
 
-lemma Union_SetS_setprod_prop1: "[| zprime p; 2 < p; ~([a = 0] (mod p)); ~(QuadRes p a) |] ==>
-                                 [\<Prod>(Union (SetS a p)) = a ^ nat ((p - 1) div 2)] (mod p)"
+lemma Union_SetS_setprod_prop1:
+  assumes "zprime p" and "2 < p" and "~([a = 0] (mod p))" and
+    "~(QuadRes p a)"
+  shows "[\<Prod>(Union (SetS a p)) = a ^ nat ((p - 1) div 2)] (mod p)"
 proof -
-  assume "zprime p" and "2 < p" and  "~([a = 0] (mod p))" and "~(QuadRes p a)"
-  then have "[\<Prod>(Union (SetS a p)) = 
-      setprod (setprod (%x. x)) (SetS a p)] (mod p)"
+  from assms have "[\<Prod>(Union (SetS a p)) = setprod (setprod (%x. x)) (SetS a p)] (mod p)"
     by (auto simp add: SetS_finite SetS_elems_finite
-                       MultInvPair_prop1c setprod_Union_disjoint)
+      MultInvPair_prop1c setprod_Union_disjoint)
   also have "[setprod (setprod (%x. x)) (SetS a p) = 
       setprod (%x. a) (SetS a p)] (mod p)"
     by (rule setprod_same_function_zcong)
-      (auto simp add: prems SetS_setprod_prop SetS_finite)
+      (auto simp add: assms SetS_setprod_prop SetS_finite)
   also (zcong_trans) have "[setprod (%x. a) (SetS a p) = 
       a^(card (SetS a p))] (mod p)"
-    by (auto simp add: prems SetS_finite setprod_constant)
+    by (auto simp add: assms SetS_finite setprod_constant)
   finally (zcong_trans) show ?thesis
     apply (rule zcong_trans)
     apply (subgoal_tac "card(SetS a p) = nat((p - 1) div 2)", auto)
     apply (subgoal_tac "nat(int(card(SetS a p))) = nat((p - 1) div 2)", force)
-    apply (auto simp add: prems SetS_card)
+    apply (auto simp add: assms SetS_card)
     done
 qed
 
-lemma Union_SetS_setprod_prop2: "[| zprime p; 2 < p; ~([a = 0](mod p)) |] ==> 
-                                    \<Prod>(Union (SetS a p)) = zfact (p - 1)"
+lemma Union_SetS_setprod_prop2:
+  assumes "zprime p" and "2 < p" and "~([a = 0](mod p))"
+  shows "\<Prod>(Union (SetS a p)) = zfact (p - 1)"
 proof -
-  assume "zprime p" and "2 < p" and "~([a = 0](mod p))"
-  then have "\<Prod>(Union (SetS a p)) = \<Prod>(SRStar p)"
+  from assms have "\<Prod>(Union (SetS a p)) = \<Prod>(SRStar p)"
     by (auto simp add: MultInvPair_prop2)
   also have "... = \<Prod>({1} \<union> (d22set (p - 1)))"
-    by (auto simp add: prems SRStar_d22set_prop)
+    by (auto simp add: assms SRStar_d22set_prop)
   also have "... = zfact(p - 1)"
   proof -
     have "~(1 \<in> d22set (p - 1)) & finite( d22set (p - 1))"

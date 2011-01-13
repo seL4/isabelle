@@ -260,7 +260,9 @@ proof-
       apply (cases "n=0", simp_all add: cong_commute)
       apply (cases "n=1", simp_all add: cong_commute modeq_def)
       apply arith
-      by (cases "a=1", simp_all add: modeq_def cong_commute)}
+      apply (cases "a=1")
+      apply (simp_all add: modeq_def cong_commute)
+      done }
   moreover
   {assume n: "n\<noteq>0" "n\<noteq>1" and a:"a\<noteq>0" "a \<noteq> 1" hence a': "a \<ge> 1" by simp
     hence ?thesis using cong_le[OF a', of n] by auto }
@@ -630,7 +632,7 @@ proof-
           with an have "coprime (a*x) n"
             by (simp add: coprime_mul_eq[of n a x] coprime_commute)
           hence "?h (a*x) \<in> ?S" using nz
-            by (simp add: coprime_mod[OF nz] mod_less_divisor)}
+            by (simp add: coprime_mod[OF nz])}
         thus " \<forall>x\<in>{m. coprime m n \<and> m < n}.
        ((\<lambda>m. m mod n) \<circ> op * a) x \<in> {m. coprime m n \<and> m < n} \<and>
        ((\<lambda>m. m mod n) \<circ> op * a) x = ((\<lambda>m. m mod n) \<circ> op * a) x" by simp
@@ -821,7 +823,7 @@ lemma ord: "[a^(ord n a) = 1] (mod n)" using ord_works by blast
 lemma ord_minimal: "0 < m \<Longrightarrow> m < ord n a \<Longrightarrow> ~[a^m = 1] (mod n)"
   using ord_works by blast
 lemma ord_eq_0: "ord n a = 0 \<longleftrightarrow> ~coprime n a"
-by (cases "coprime n a", simp add: neq0_conv coprime_ord, simp add: neq0_conv ord_def)
+by (cases "coprime n a", simp add: coprime_ord, simp add: ord_def)
 
 lemma ord_divides:
  "[a ^ d = 1] (mod n) \<longleftrightarrow> ord n a dvd d" (is "?lhs \<longleftrightarrow> ?rhs")
@@ -952,8 +954,7 @@ proof-
     {fix d assume d: "d dvd n" "d^2 \<le> n" and H: "\<forall>m. m dvd n \<longrightarrow> m=1 \<or> m=n"
       from H d have d1n: "d = 1 \<or> d=n" by blast
       {assume dn: "d=n"
-        have "n^2 > n*1" using n
-          by (simp add: power2_eq_square mult_less_cancel1)
+        have "n^2 > n*1" using n by (simp add: power2_eq_square)
         with dn d(2) have "d=1" by simp}
       with d1n have "d = 1" by blast  }
     moreover
@@ -985,7 +986,11 @@ proof-
   {assume n: "n\<noteq>0" "n\<noteq>1"
     {assume H: ?lhs
       from H[unfolded prime_divisor_sqrt] n
-      have ?rhs  apply clarsimp by (erule_tac x="p" in allE, simp add: prime_1)
+      have ?rhs
+        apply clarsimp
+        apply (erule_tac x="p" in allE)
+        apply simp
+        done
     }
     moreover
     {assume H: ?rhs
@@ -1018,7 +1023,7 @@ proof-
     hence "a^ (n - 1) = 0" using n by (simp add: power_0_left)
     with n an mod_less[of 1 n]  have False by (simp add: power_0_left modeq_def)}
   hence a0: "a\<noteq>0" ..
-  from n nqr have aqr0: "a ^ (q * r) \<noteq> 0" using a0 by (simp add: neq0_conv)
+  from n nqr have aqr0: "a ^ (q * r) \<noteq> 0" using a0 by simp
   hence "(a ^ (q * r) - 1) + 1  = a ^ (q * r)" by simp
   with k l have "a ^ (q * r) = p*l*k + 1" by simp
   hence "a ^ (r * q) + p * 0 = 1 + p * (l*k)" by (simp add: mult_ac)
@@ -1055,7 +1060,7 @@ proof-
     from n have n0: "n \<noteq> 0" by simp
     from d(2) an n12[symmetric] have a0: "a \<noteq> 0"
       by - (rule ccontr, simp add: modeq_def)
-    have th1: "a^ (n - 1) \<noteq> 0" using n d(2) dp a0 by (auto simp add: neq0_conv)
+    have th1: "a^ (n - 1) \<noteq> 0" using n d(2) dp a0 by auto
     from coprime_minus1[OF th1, unfolded coprime]
       dvd_trans[OF pn cong_1_divides[OF an]] th0 d(3) dp
     have False by auto}

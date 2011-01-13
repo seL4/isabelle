@@ -69,10 +69,10 @@ done
 lemma (in comm_monoid) units_comm_group: "comm_group(units_of G)"
   apply (rule group.group_comm_groupI)
   apply (rule units_group)
-  apply (insert prems)
+  apply (insert comm_monoid_axioms)
   apply (unfold units_of_def Units_def comm_monoid_def comm_monoid_axioms_def)
-  apply auto;
-done;
+  apply auto
+  done
 
 lemma units_of_carrier: "carrier (units_of G) = Units G"
   by (unfold units_of_def, auto)
@@ -174,18 +174,18 @@ qed
 lemma (in cring) field_intro2: "\<zero>\<^bsub>R\<^esub> ~= \<one>\<^bsub>R\<^esub> \<Longrightarrow> ALL x : carrier R - {\<zero>\<^bsub>R\<^esub>}.
     x : Units R \<Longrightarrow> field R"
   apply (unfold_locales)
-  apply (insert prems, auto)
+  apply (insert cring_axioms, auto)
   apply (rule trans)
   apply (subgoal_tac "a = (a \<otimes> b) \<otimes> inv b")
   apply assumption
   apply (subst m_assoc) 
-  apply (auto simp add: Units_r_inv)
+  apply auto
   apply (unfold Units_def)
   apply auto
-done
+  done
 
 lemma (in monoid) inv_char: "x : carrier G \<Longrightarrow> y : carrier G \<Longrightarrow>
-  x \<otimes> y = \<one> \<Longrightarrow> y \<otimes> x = \<one> \<Longrightarrow> inv x = y"
+    x \<otimes> y = \<one> \<Longrightarrow> y \<otimes> x = \<one> \<Longrightarrow> inv x = y"
   apply (subgoal_tac "x : Units G")
   apply (subgoal_tac "y = inv x \<otimes> \<one>")
   apply simp
@@ -194,19 +194,19 @@ lemma (in monoid) inv_char: "x : carrier G \<Longrightarrow> y : carrier G \<Lon
   apply auto
   apply (unfold Units_def)
   apply auto
-done
+  done
 
 lemma (in comm_monoid) comm_inv_char: "x : carrier G \<Longrightarrow> y : carrier G \<Longrightarrow>
   x \<otimes> y = \<one> \<Longrightarrow> inv x = y"
   apply (rule inv_char)
   apply auto
   apply (subst m_comm, auto) 
-done
+  done
 
 lemma (in ring) inv_neg_one [simp]: "inv (\<ominus> \<one>) = \<ominus> \<one>"  
   apply (rule inv_char)
   apply (auto simp add: l_minus r_minus)
-done
+  done
 
 lemma (in monoid) inv_eq_imp_eq: "x : Units G \<Longrightarrow> y : Units G \<Longrightarrow> 
     inv x = inv y \<Longrightarrow> x = y"
@@ -281,8 +281,8 @@ lemma (in cring) sum_zero_eq_neg:
   apply (subgoal_tac "\<ominus> y = \<zero> \<oplus> \<ominus> y") 
   apply (erule ssubst)back
   apply (erule subst)
-  apply (simp add: ring_simprules)+
-done
+  apply (simp_all add: ring_simprules)
+  done
 
 (* there's a name conflict -- maybe "domain" should be
    "integral_domain" *)
@@ -336,9 +336,8 @@ lemma (in monoid) units_of_pow:
     "x : Units G \<Longrightarrow> x (^)\<^bsub>units_of G\<^esub> (n::nat) = x (^)\<^bsub>G\<^esub> n"
   apply (induct n)
   apply (auto simp add: units_group group.is_monoid  
-    monoid.nat_pow_0 monoid.nat_pow_Suc units_of_one units_of_mult
-    One_nat_def)
-done
+    monoid.nat_pow_0 monoid.nat_pow_Suc units_of_one units_of_mult)
+  done
 
 lemma (in cring) units_power_order_eq_one: "finite (Units R) \<Longrightarrow> a : Units R
     \<Longrightarrow> a (^) card(Units R) = \<one>"
@@ -349,6 +348,6 @@ lemma (in cring) units_power_order_eq_one: "finite (Units R) \<Longrightarrow> a
   apply (rule comm_group.power_order_eq_one)
   apply (rule units_comm_group)
   apply (unfold units_of_def, auto)
-done
+  done
 
 end

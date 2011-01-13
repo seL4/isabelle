@@ -222,7 +222,7 @@ proof-
   thus ?thesis unfolding coprime_def .
 qed
 lemma coprime_lmul2: assumes dab: "coprime d (a * b)" shows "coprime d b"
-using prems unfolding coprime_bezout
+using dab unfolding coprime_bezout
 apply clarsimp
 apply (case_tac "d * x - a * b * y = Suc 0 ", simp_all)
 apply (rule_tac x="x" in exI)
@@ -283,7 +283,8 @@ proof-
       apply (simp only: z power_0_Suc)
       apply (rule exI[where x=0])
       apply (rule exI[where x=0])
-      by simp}
+      apply simp
+      done }
   moreover
   {assume z: "?g \<noteq> 0"
     from gcd_dvd1[of a b] gcd_dvd2[of a b] obtain a' b' where
@@ -350,7 +351,7 @@ proof-
   {assume "?g = 0" with ab n have ?thesis by (simp add: gcd_zero)}
   moreover
   {assume z: "?g \<noteq> 0"
-    hence zn: "?g ^ n \<noteq> 0" using n by (simp add: neq0_conv)
+    hence zn: "?g ^ n \<noteq> 0" using n by simp
     from gcd_coprime_exists[OF z] 
     obtain a' b' where ab': "a = a' * ?g" "b = b' * ?g" "coprime a' b'" by blast
     from ab have "(a' * ?g) ^ n dvd (b' * ?g)^n" by (simp add: ab'(1,2)[symmetric])
@@ -637,8 +638,9 @@ next
   assume ?rhs then show ?lhs by auto
 qed
   
-lemma power_Suc0[simp]: "Suc 0 ^ n = Suc 0" 
+lemma power_Suc0: "Suc 0 ^ n = Suc 0" 
   unfolding One_nat_def[symmetric] power_one ..
+
 lemma coprime_pow: assumes ab: "coprime a b" and abcn: "a * b = c ^n"
   shows "\<exists>r s. a = r^n  \<and> b = s ^n"
   using ab abcn
@@ -678,7 +680,7 @@ proof(induct c arbitrary: a b rule: nat_less_induct)
     from prime_divprod_pow[OF p(1) H(2), unfolded H(3), OF divides_exp[OF p(2), of n]] 
     have pnab: "p ^ n dvd a \<or> p^n dvd b" . 
     from p(2) obtain l where l: "c = p*l" unfolding dvd_def by blast
-    have pn0: "p^n \<noteq> 0" using n prime_ge_2 [OF p(1)] by (simp add: neq0_conv)
+    have pn0: "p^n \<noteq> 0" using n prime_ge_2 [OF p(1)] by simp
     {assume pa: "p^n dvd a"
       then obtain k where k: "a = p^n * k" unfolding dvd_def by blast
       from l have "l dvd c" by auto
@@ -785,8 +787,7 @@ proof(induct n arbitrary: k)
   case 0 thus ?case by simp
 next
   case (Suc n k) hence th: "x*x^n = p^k" by simp
-  {assume "n = 0" with prems have ?case apply simp 
-      by (rule exI[where x="k"],simp)}
+  {assume "n = 0" with Suc have ?case by simp (rule exI[where x="k"], simp)}
   moreover
   {assume n: "n \<noteq> 0"
     from prime_power_mult[OF p th] 

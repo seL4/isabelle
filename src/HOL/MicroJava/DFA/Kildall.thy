@@ -172,7 +172,7 @@ proof -
     done 
   } note this [dest]
   
-  from prems show ?thesis by blast
+  from assms show ?thesis by blast
 qed
 
 

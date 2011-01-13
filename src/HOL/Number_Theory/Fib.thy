@@ -1,13 +1,11 @@
 (*  Title:      Fib.thy
     Authors:    Lawrence C. Paulson, Jeremy Avigad
 
-
 Defines the fibonacci function.
 
 The original "Fib" is due to Lawrence C. Paulson, and was adapted by
 Jeremy Avigad.
 *)
-
 
 header {* Fib *}
 
@@ -284,16 +282,15 @@ qed
 lemma gcd_fib_mod_int: 
   assumes "0 < (m::int)" and "0 <= n"
   shows "gcd (fib m) (fib (n mod m)) = gcd (fib m) (fib n)"
-
   apply (rule gcd_fib_mod_nat [transferred])
-  using prems apply auto
-done
+  using assms apply auto
+  done
 
 lemma fib_gcd_nat: "fib (gcd (m::nat) n) = gcd (fib m) (fib n)"  
     -- {* Law 6.111 *}
   apply (induct m n rule: gcd_nat_induct)
   apply (simp_all add: gcd_non_0_nat gcd_commute_nat gcd_fib_mod_nat)
-done
+  done
 
 lemma fib_gcd_int: "m >= 0 \<Longrightarrow> n >= 0 \<Longrightarrow>
     fib (gcd (m::int) n) = gcd (fib m) (fib n)"
@@ -306,7 +303,7 @@ theorem fib_mult_eq_setsum_nat:
     "fib ((n::nat) + 1) * fib n = (\<Sum>k \<in> {..n}. fib k * fib k)"
   apply (induct n)
   apply (auto simp add: atMost_plus_one_nat fib_plus_2_nat field_simps)
-done
+  done
 
 theorem fib_mult_eq_setsum'_nat:
     "fib (Suc n) * fib n = (\<Sum>k \<in> {..n}. fib k * fib k)"

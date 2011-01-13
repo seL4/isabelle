@@ -1837,12 +1837,12 @@ lemma st_eq_approx: "[| x \<in> HFinite; y \<in> HFinite; st x = st y |] ==> x @
 by (auto dest!: st_approx_self elim!: approx_trans3)
 
 lemma approx_st_eq: 
-  assumes "x \<in> HFinite" and "y \<in> HFinite" and "x @= y" 
+  assumes x: "x \<in> HFinite" and y: "y \<in> HFinite" and xy: "x @= y" 
   shows "st x = st y"
 proof -
   have "st x @= x" "st y @= y" "st x \<in> Reals" "st y \<in> Reals"
-    by (simp_all add: st_approx_self st_SReal prems) 
-  with prems show ?thesis 
+    by (simp_all add: st_approx_self st_SReal x y)
+  with xy show ?thesis
     by (fast elim: approx_trans approx_trans2 SReal_approx_iff [THEN iffD1])
 qed
 

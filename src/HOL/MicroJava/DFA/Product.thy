@@ -77,7 +77,7 @@ proof -
     "\<And>r f z. \<lbrakk> z : err A; semilat (err A, r, f); OK x : err A; OK y : err A;
                  OK x +_f OK y <=_r z\<rbrakk> \<Longrightarrow> OK x <=_r z \<and> OK y <=_r z"
     by (rule Semilat.plus_le_conv [OF Semilat.intro, THEN iffD1])
-  from prems show ?thesis
+  from assms show ?thesis
   apply (rule_tac iffI)
    apply clarify
    apply (drule OK_le_err_OK [THEN iffD2])

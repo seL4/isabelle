@@ -354,30 +354,29 @@ done
 
 text{*Part 2 of Dedekind sections definition*}
 lemma preal_not_mem_mult_set_Ex:
-   assumes A: "A \<in> preal" 
-       and B: "B \<in> preal"
-     shows "\<exists>q. 0 < q & q \<notin> mult_set A B"
+  assumes A: "A \<in> preal" 
+    and B: "B \<in> preal"
+  shows "\<exists>q. 0 < q & q \<notin> mult_set A B"
 proof -
-  from preal_exists_bound [OF A]
-  obtain x where [simp]: "0 < x" "x \<notin> A" by blast
-  from preal_exists_bound [OF B]
-  obtain y where [simp]: "0 < y" "y \<notin> B" by blast
+  from preal_exists_bound [OF A] obtain x where 1 [simp]: "0 < x" "x \<notin> A" by blast
+  from preal_exists_bound [OF B] obtain y where 2 [simp]: "0 < y" "y \<notin> B" by blast
   show ?thesis
   proof (intro exI conjI)
     show "0 < x*y" by (simp add: mult_pos_pos)
     show "x * y \<notin> mult_set A B"
     proof -
-      { fix u::rat and v::rat
-              assume "u \<in> A" and "v \<in> B" and "x*y = u*v"
-              moreover
-              with prems have "u<x" and "v<y" by (blast dest: not_in_preal_ub)+
-              moreover
-              with prems have "0\<le>v"
-                by (blast intro: preal_imp_pos [OF B]  order_less_imp_le prems)
-              moreover
-        from calculation
-              have "u*v < x*y" by (blast intro: mult_strict_mono prems)
-              ultimately have False by force }
+      {
+        fix u::rat and v::rat
+        assume u: "u \<in> A" and v: "v \<in> B" and xy: "x*y = u*v"
+        moreover from A B 1 2 u v have "u<x" and "v<y" by (blast dest: not_in_preal_ub)+
+        moreover
+        from A B 1 2 u v have "0\<le>v"
+          by (blast intro: preal_imp_pos [OF B] order_less_imp_le)
+        moreover
+        from A B 1 `u < x` `v < y` `0 \<le> v`
+        have "u*v < x*y" by (blast intro: mult_strict_mono)
+        ultimately have False by force
+      }
       thus ?thesis by (auto simp add: mult_set_def)
     qed
   qed
@@ -473,7 +472,7 @@ proof (induct z)
       fix x::rat and u::rat and v::rat
       assume upos: "0<u" and "u<1" and v: "v \<in> A"
       have vpos: "0<v" by (rule preal_imp_pos [OF A v])
-      hence "u*v < 1*v" by (simp only: mult_strict_right_mono prems)
+      hence "u*v < 1*v" by (simp only: mult_strict_right_mono upos `u < 1` v)
       thus "u * v \<in> A"
         by (force intro: preal_downwards_closed [OF A v] mult_pos_pos 
           upos vpos)
@@ -673,18 +672,19 @@ lemma Gleason9_34_exists:
 proof (cases z rule: int_cases)
   case (nonneg n)
   show ?thesis
-  proof (simp add: prems, induct n)
+  proof (simp add: nonneg, induct n)
     case 0
-      from preal_nonempty [OF A]
-      show ?case  by force 
+    from preal_nonempty [OF A]
+    show ?case  by force 
+  next
     case (Suc k)
-      from this obtain b where "b \<in> A" "b + of_nat k * u \<in> A" ..
-      hence "b + of_int (int k)*u + u \<in> A" by (simp add: prems)
-      thus ?case by (force simp add: algebra_simps prems) 
+    then obtain b where b: "b \<in> A" "b + of_nat k * u \<in> A" ..
+    hence "b + of_int (int k)*u + u \<in> A" by (simp add: assms)
+    thus ?case by (force simp add: algebra_simps b)
   qed
 next
   case (neg n)
-  with prems show ?thesis by simp
+  with assms show ?thesis by simp
 qed
 
 lemma Gleason9_34_contra:
@@ -987,10 +987,9 @@ lemma less_add_left_lemma:
 proof -
   have "0<a" by (rule preal_imp_pos [OF Rep_preal a])
   moreover
-  have "a < c" using prems
-    by (blast intro: not_in_Rep_preal_ub ) 
-  ultimately show ?thesis using prems
-    by (simp add: preal_downwards_closed [OF Rep_preal cb]) 
+  have "a < c" using assms by (blast intro: not_in_Rep_preal_ub ) 
+  ultimately show ?thesis
+    using assms by (simp add: preal_downwards_closed [OF Rep_preal cb])
 qed
 
 lemma less_add_left_le1:
@@ -1225,13 +1224,13 @@ subsection {* Equivalence relation over positive reals *}
 
 lemma preal_trans_lemma:
   assumes "x + y1 = x1 + y"
-      and "x + y2 = x2 + y"
+    and "x + y2 = x2 + y"
   shows "x1 + y2 = x2 + (y1::preal)"
 proof -
   have "(x1 + y2) + x = (x + y2) + x1" by (simp add: add_ac)
-  also have "... = (x2 + y) + x1"  by (simp add: prems)
+  also have "... = (x2 + y) + x1"  by (simp add: assms)
   also have "... = x2 + (x1 + y)"  by (simp add: add_ac)
-  also have "... = x2 + (x + y1)"  by (simp add: prems)
+  also have "... = x2 + (x + y1)"  by (simp add: assms)
   also have "... = (x2 + y1) + x"  by (simp add: add_ac)
   finally have "(x1 + y2) + x = (x2 + y1) + x" .
   thus ?thesis by (rule add_right_imp_eq)
@@ -1436,20 +1435,20 @@ lemma preal_eq_le_imp_le:
   assumes eq: "a+b = c+d" and le: "c \<le> a"
   shows "b \<le> (d::preal)"
 proof -
-  have "c+d \<le> a+d" by (simp add: prems)
-  hence "a+b \<le> a+d" by (simp add: prems)
+  have "c+d \<le> a+d" by (simp add: le)
+  hence "a+b \<le> a+d" by (simp add: eq)
   thus "b \<le> d" by simp
 qed
 
 lemma real_le_lemma:
   assumes l: "u1 + v2 \<le> u2 + v1"
-      and "x1 + v1 = u1 + y1"
-      and "x2 + v2 = u2 + y2"
+    and "x1 + v1 = u1 + y1"
+    and "x2 + v2 = u2 + y2"
   shows "x1 + y2 \<le> x2 + (y1::preal)"
 proof -
-  have "(x1+v1) + (u2+y2) = (u1+y1) + (x2+v2)" by (simp add: prems)
+  have "(x1+v1) + (u2+y2) = (u1+y1) + (x2+v2)" by (simp add: assms)
   hence "(x1+y2) + (u2+v1) = (x2+y1) + (u1+v2)" by (simp add: add_ac)
-  also have "... \<le> (x2+y1) + (u2+v1)" by (simp add: prems)
+  also have "... \<le> (x2+y1) + (u2+v1)" by (simp add: assms)
   finally show ?thesis by simp
 qed
 
@@ -1465,13 +1464,13 @@ by (cases z, cases w, simp add: real_le)
 
 lemma real_trans_lemma:
   assumes "x + v \<le> u + y"
-      and "u + v' \<le> u' + v"
-      and "x2 + v2 = u2 + y2"
+    and "u + v' \<le> u' + v"
+    and "x2 + v2 = u2 + y2"
   shows "x + v' \<le> u' + (y::preal)"
 proof -
   have "(x+v') + (u+v) = (x+v) + (u+v')" by (simp add: add_ac)
-  also have "... \<le> (u+y) + (u+v')" by (simp add: prems)
-  also have "... \<le> (u+y) + (u'+v)" by (simp add: prems)
+  also have "... \<le> (u+y) + (u+v')" by (simp add: assms)
+  also have "... \<le> (u+y) + (u'+v)" by (simp add: assms)
   also have "... = (u'+y) + (u+v)"  by (simp add: add_ac)
   finally show ?thesis by simp
 qed
@@ -1947,7 +1946,7 @@ lemma reals_complete2:
 proof -
   have "\<exists>x. isLub UNIV S x" 
     by (rule reals_complete)
-       (auto simp add: isLub_def isUb_def leastP_def setle_def setge_def prems)
+       (auto simp add: isLub_def isUb_def leastP_def setle_def setge_def assms)
   thus ?thesis
     by (metis UNIV_I isLub_isUb isLub_le_isUb isUbD isUb_def setleI)
 qed

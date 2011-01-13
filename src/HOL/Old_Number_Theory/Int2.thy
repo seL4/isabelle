@@ -43,38 +43,39 @@ lemma zpower_zdvd_prop2:
   apply (force simp del:dvd_mult)
   done
 
-lemma div_prop1: "[| 0 < z; (x::int) < y * z |] ==> x div z < y"
+lemma div_prop1:
+  assumes "0 < z" and "(x::int) < y * z"
+  shows "x div z < y"
 proof -
-  assume "0 < z" then have modth: "x mod z \<ge> 0" by simp
+  from `0 < z` have modth: "x mod z \<ge> 0" by simp
   have "(x div z) * z \<le> (x div z) * z" by simp
   then have "(x div z) * z \<le> (x div z) * z + x mod z" using modth by arith 
   also have "\<dots> = x"
     by (auto simp add: zmod_zdiv_equality [symmetric] zmult_ac)
-  also assume  "x < y * z"
+  also note `x < y * z`
   finally show ?thesis
-    by (auto simp add: prems mult_less_cancel_right, insert prems, arith)
+    apply (auto simp add: mult_less_cancel_right)
+    using assms apply arith
+    done
 qed
 
-lemma div_prop2: "[| 0 < z; (x::int) < (y * z) + z |] ==> x div z \<le> y"
+lemma div_prop2:
+  assumes "0 < z" and "(x::int) < (y * z) + z"
+  shows "x div z \<le> y"
 proof -
-  assume "0 < z" and "x < (y * z) + z"
-  then have "x < (y + 1) * z" by (auto simp add: int_distrib)
+  from assms have "x < (y + 1) * z" by (auto simp add: int_distrib)
   then have "x div z < y + 1"
-    apply -
     apply (rule_tac y = "y + 1" in div_prop1)
-    apply (auto simp add: prems)
+    apply (auto simp add: `0 < z`)
     done
   then show ?thesis by auto
 qed
 
-lemma zdiv_leq_prop: "[| 0 < y |] ==> y * (x div y) \<le> (x::int)"
+lemma zdiv_leq_prop: assumes "0 < y" shows "y * (x div y) \<le> (x::int)"
 proof-
-  assume "0 < y"
   from zmod_zdiv_equality have "x = y * (x div y) + x mod y" by auto
-  moreover have "0 \<le> x mod y"
-    by (auto simp add: prems pos_mod_sign)
-  ultimately show ?thesis
-    by arith
+  moreover have "0 \<le> x mod y" by (auto simp add: assms)
+  ultimately show ?thesis by arith
 qed
 
 
@@ -87,7 +88,7 @@ lemma zcong_id: "[m = 0] (mod m)"
   by (auto simp add: zcong_def)
 
 lemma zcong_shift: "[a = b] (mod m) ==> [a + c = b + c] (mod m)"
-  by (auto simp add: zcong_refl zcong_zadd)
+  by (auto simp add: zcong_zadd)
 
 lemma zcong_zpower: "[x = y](mod m) ==> [x^z = y^z](mod m)"
   by (induct z) (auto simp add: zcong_zmult)
@@ -126,11 +127,12 @@ lemma zcong_less_eq: "[| 0 < x; 0 < y; 0 < m; [x = y] (mod m);
     x < m; y < m |] ==> x = y"
   by (metis zcong_not zcong_sym zless_linear)
 
-lemma zcong_neg_1_impl_ne_1: "[| 2 < p; [x = -1] (mod p) |] ==>
-    ~([x = 1] (mod p))"
+lemma zcong_neg_1_impl_ne_1:
+  assumes "2 < p" and "[x = -1] (mod p)"
+  shows "~([x = 1] (mod p))"
 proof
-  assume "2 < p" and "[x = 1] (mod p)" and "[x = -1] (mod p)"
-  then have "[1 = -1] (mod p)"
+  assume "[x = 1] (mod p)"
+  with assms have "[1 = -1] (mod p)"
     apply (auto simp add: zcong_sym)
     apply (drule zcong_trans, auto)
     done
@@ -140,7 +142,7 @@ proof
     by auto
   then have "p dvd 2"
     by (auto simp add: dvd_def zcong_def)
-  with prems show False
+  with `2 < p` show False
     by (auto simp add: zdvd_not_zless)
 qed
 
@@ -181,15 +183,15 @@ lemma MultInv_prop1: "[| 2 < p; [x = y] (mod p) |] ==>
 lemma MultInv_prop2: "[| 2 < p; zprime p; ~([x = 0](mod p)) |] ==>
   [(x * (MultInv p x)) = 1] (mod p)"
 proof (simp add: MultInv_def zcong_eq_zdvd_prop)
-  assume "2 < p" and "zprime p" and "~ p dvd x"
+  assume 1: "2 < p" and 2: "zprime p" and 3: "~ p dvd x"
   have "x * x ^ nat (p - 2) = x ^ (nat (p - 2) + 1)"
     by auto
-  also from prems have "nat (p - 2) + 1 = nat (p - 2 + 1)"
+  also from 1 have "nat (p - 2) + 1 = nat (p - 2 + 1)"
     by (simp only: nat_add_distrib)
   also have "p - 2 + 1 = p - 1" by arith
   finally have "[x * x ^ nat (p - 2) = x ^ nat (p - 1)] (mod p)"
     by (rule ssubst, auto)
-  also from prems have "[x ^ nat (p - 1) = 1] (mod p)"
+  also from 2 3 have "[x ^ nat (p - 1) = 1] (mod p)"
     by (auto simp add: Little_Fermat)
   finally (zcong_trans) show "[x * x ^ nat (p - 2) = 1] (mod p)" .
 qed

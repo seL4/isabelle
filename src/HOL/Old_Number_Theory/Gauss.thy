@@ -79,10 +79,10 @@ lemma finite_C: "finite (C)"
 by (auto simp add: C_def finite_B)
 
 lemma finite_D: "finite (D)"
-by (auto simp add: D_def finite_Int finite_C)
+by (auto simp add: D_def finite_C)
 
 lemma finite_E: "finite (E)"
-by (auto simp add: E_def finite_Int finite_C)
+by (auto simp add: E_def finite_C)
 
 lemma finite_F: "finite (F)"
 by (auto simp add: F_def finite_E)
@@ -125,11 +125,11 @@ proof -
   with zcong_less_eq [of x y p] p_minus_one_l
       order_le_less_trans [of x "(p - 1) div 2" p]
       order_le_less_trans [of y "(p - 1) div 2" p] show "x = y"
-    by (simp add: prems p_minus_one_l p_g_0)
+    by (simp add: b c d e p_minus_one_l p_g_0)
 qed
 
 lemma SR_B_inj: "inj_on (StandardRes p) B"
-  apply (auto simp add: B_def StandardRes_def inj_on_def A_def prems)
+  apply (auto simp add: B_def StandardRes_def inj_on_def A_def)
 proof -
   fix x fix y
   assume a: "x * a mod p = y * a mod p"
@@ -146,7 +146,7 @@ proof -
   with zcong_less_eq [of x y p] p_minus_one_l
     order_le_less_trans [of x "(p - 1) div 2" p]
     order_le_less_trans [of y "(p - 1) div 2" p] have "x = y"
-    by (simp add: prems p_minus_one_l p_g_0)
+    by (simp add: b c d e p_minus_one_l p_g_0)
   then have False
     by (simp add: f)
   then show "a = 0"

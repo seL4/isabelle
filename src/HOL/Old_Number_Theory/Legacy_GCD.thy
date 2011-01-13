@@ -276,7 +276,7 @@ lemma bezout_lemma:
   shows "\<exists>d x y. d dvd a \<and> d dvd a + b \<and> (a * x = (a + b) * y + d \<or> (a + b) * x = a * y + d)"
 using ex
 apply clarsimp
-apply (rule_tac x="d" in exI, simp add: dvd_add)
+apply (rule_tac x="d" in exI, simp)
 apply (case_tac "a * x = b * y + d" , simp_all)
 apply (rule_tac x="x + y" in exI)
 apply (rule_tac x="y" in exI)
@@ -290,10 +290,10 @@ lemma bezout_add: "\<exists>(d::nat) x y. d dvd a \<and> d dvd b \<and> (a * x =
 apply(induct a b rule: ind_euclid)
 apply blast
 apply clarify
-apply (rule_tac x="a" in exI, simp add: dvd_add)
+apply (rule_tac x="a" in exI, simp)
 apply clarsimp
 apply (rule_tac x="d" in exI)
-apply (case_tac "a * x = b * y + d", simp_all add: dvd_add)
+apply (case_tac "a * x = b * y + d", simp_all)
 apply (rule_tac x="x+y" in exI)
 apply (rule_tac x="y" in exI)
 apply algebra
@@ -332,13 +332,13 @@ proof-
      from divides_le[OF H(2)] b have "d < b \<or> d = b" using le_less by blast
      moreover
      {assume db: "d=b"
-       from prems have ?thesis apply simp
+       from nz H db have ?thesis apply simp
          apply (rule exI[where x = b], simp)
          apply (rule exI[where x = b])
         by (rule exI[where x = "a - 1"], simp add: diff_mult_distrib2)}
     moreover
     {assume db: "d < b" 
-        {assume "x=0" hence ?thesis  using prems by simp }
+        {assume "x=0" hence ?thesis using nz H by simp }
         moreover
         {assume x0: "x \<noteq> 0" hence xp: "x > 0" by simp
           
@@ -426,12 +426,11 @@ proof-
 qed
 
 lemma gcd_mult': "gcd b (a * b) = b"
-by (simp add: gcd_mult mult_commute[of a b]) 
+by (simp add: mult_commute[of a b]) 
 
 lemma gcd_add: "gcd(a + b) b = gcd a b" 
   "gcd(b + a) b = gcd a b" "gcd a (a + b) = gcd a b" "gcd a (b + a) = gcd a b"
-apply (simp_all add: gcd_add1)
-by (simp add: gcd_commute gcd_add1)
+by (simp_all add: gcd_commute)
 
 lemma gcd_sub: "b <= a ==> gcd(a - b) b = gcd a b" "a <= b ==> gcd a (b - a) = gcd a b"
 proof-
@@ -568,10 +567,10 @@ definition
   zgcd :: "int \<Rightarrow> int \<Rightarrow> int" where
   "zgcd i j = int (gcd (nat (abs i)) (nat (abs j)))"
 
-lemma zgcd_zdvd1 [iff,simp, algebra]: "zgcd i j dvd i"
+lemma zgcd_zdvd1 [iff, algebra]: "zgcd i j dvd i"
 by (simp add: zgcd_def int_dvd_iff)
 
-lemma zgcd_zdvd2 [iff,simp, algebra]: "zgcd i j dvd j"
+lemma zgcd_zdvd2 [iff, algebra]: "zgcd i j dvd j"
 by (simp add: zgcd_def int_dvd_iff)
 
 lemma zgcd_pos: "zgcd i j \<ge> 0"
@@ -637,8 +636,8 @@ proof -
   let ?a' = "a div ?g"
   let ?b' = "b div ?g"
   let ?g' = "zgcd ?a' ?b'"
-  have dvdg: "?g dvd a" "?g dvd b" by (simp_all add: zgcd_zdvd1 zgcd_zdvd2)
-  have dvdg': "?g' dvd ?a'" "?g' dvd ?b'" by (simp_all add: zgcd_zdvd1 zgcd_zdvd2)
+  have dvdg: "?g dvd a" "?g dvd b" by simp_all
+  have dvdg': "?g' dvd ?a'" "?g' dvd ?b'" by simp_all
   from dvdg dvdg' obtain ka kb ka' kb' where
    kab: "a = ?g*ka" "b = ?g*kb" "?a' = ?g'*ka'" "?b' = ?g' * kb'"
     unfolding dvd_def by blast
@@ -668,7 +667,7 @@ lemma zgcd_non_0: "0 < n ==> zgcd m n = zgcd n (m mod n)"
   done
 
 lemma zgcd_eq: "zgcd m n = zgcd n (m mod n)"
-  apply (case_tac "n = 0", simp add: DIVISION_BY_ZERO)
+  apply (cases "n = 0", simp)
   apply (auto simp add: linorder_neq_iff zgcd_non_0)
   apply (cut_tac m = "-m" and n = "-n" in zgcd_non_0, auto)
   done
@@ -683,7 +682,7 @@ lemma zgcd_greatest_iff[algebra]: "k dvd zgcd m n = (k dvd m \<and> k dvd n)"
   by (simp add: zgcd_def abs_if int_dvd_iff dvd_int_iff nat_dvd_iff)
 
 lemma zgcd_1_left [simp, algebra]: "zgcd 1 m = 1"
-  by (simp add: zgcd_def gcd_1_left)
+  by (simp add: zgcd_def)
 
 lemma zgcd_assoc: "zgcd (zgcd k m) n = zgcd k (zgcd m n)"
   by (simp add: zgcd_def gcd_assoc)
