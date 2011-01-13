@@ -136,6 +136,8 @@ class Session(system: Isabelle_System)
   private case class Edit_Version(edits: List[Document.Edit_Text])
   private case class Start(timeout: Time, args: List[String])
 
+  var verbose: Boolean = false
+
   private val (_, session_actor) = Simple_Thread.actor("session_actor", daemon = true)
   {
     var prover: Isabelle_Process with Isar_Document = null
@@ -188,7 +190,8 @@ class Session(system: Isabelle_System)
 
     def bad_result(result: Isabelle_Process.Result)
     {
-      System.err.println("Ignoring prover result: " + result.message.toString)
+      if (verbose)
+        System.err.println("Ignoring prover result: " + result.message.toString)
     }
 
     def handle_result(result: Isabelle_Process.Result)
