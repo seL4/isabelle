@@ -34,6 +34,40 @@
 
 </ul>
 
+<h2>Limitations and workrounds (January 2011)</h2>
+
+<ul>
+  <li>No way to start/stop prover or switch to a different logic.<br/>
+  <em>Workaround:</em> Change options and restart editor.</li>
+
+  <li>Multiple theory buffers cannot depend on each other, imports are
+  resolved via the file-system.<br/>
+  <em>Workaround:</em> Save/reload files manually.</li>
+
+  <li>No reclaiming of old/unused document versions in prover or
+  editor.<br/>
+  <em>Workaround:</em> Avoid large files; restart after a few hours of use.</li>
+
+  <li>Incremental reparsing sometimes produces unexpected command
+  spans.<br/>
+  <em>Workaround:</em> Cut/paste larger parts or reload buffer.</li>
+
+  <li>Command execution sometimes gets stuck (purple background).<br/>
+  <em>Workaround:</em> Force reparsing as above.</li>
+
+  <li>Odd behavior of some diagnostic commands, notably those
+  starting external processes asynchronously
+  (e.g. <tt>thy_deps</tt>, <tt>sledgehammer</tt>).<br/>
+  <em>Workaround:</em> Avoid such commands.</li>
+
+  <li>No support for non-local markup, e.g. commands reporting on
+  previous commands (proof end on proof head), or markup produced by
+  loading external files.</li>
+
+  <li>General lack of various conveniences known from Proof
+  General.</li>
+</ul>
+
 </body>
 </html>
 

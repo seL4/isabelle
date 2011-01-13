@@ -15,25 +15,6 @@ See also the paper:
   http://www4.in.tum.de/~wenzelm/papers/async-isabelle-scala.pdf
 
 
-Some limitations of the current implementation:
-
-  * No provisions for theory file dependencies inside the editor.
-
-  * No reclaiming of old/unused document versions.  Memory will fill
-    up eventually, both on the JVM and ML side.
-
-  * No support for non-local markup, e.g. commands reporting on
-    previous commands (proof end on proof head), or markup produced by
-    loading external files.
-
-  * General lack of various conveniences known from Proof General.
-
-Despite these shortcomings, Isabelle/jEdit already demonstrates that
-interactive theorem proving can be much more than command-line
-interaction via TTY or editor front-ends (such as Proof General and
-its many remakes).
-
-
 Known problems with Mac OS
 ==========================
 
