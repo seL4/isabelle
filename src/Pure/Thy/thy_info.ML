@@ -20,7 +20,8 @@ sig
   val use_thys_wrt: Path.T -> string list -> unit
   val use_thys: string list -> unit
   val use_thy: string -> unit
-  val toplevel_begin_theory: string -> string list -> (Path.T * bool) list -> theory
+  val toplevel_begin_theory: Path.T option -> string ->
+    string list -> (Path.T * bool) list -> theory
   val register_thy: theory -> unit
   val finish: unit -> unit
 end;
@@ -228,7 +229,7 @@ fun load_thy initiators update_time (deps: deps) text name parent_thys =
     val dir = Path.dir thy_path;
     val pos = Path.position thy_path;
     val uses = map (apfst Path.explode) (#3 (Thy_Header.read pos text));
-    fun init () =
+    fun init _ =
       Thy_Load.begin_theory dir name parent_thys uses
       |> Present.begin_theory update_time dir uses;
 
@@ -317,9 +318,9 @@ val use_thy = use_thys o single;
 
 (* toplevel begin theory -- without maintaining database *)
 
-fun toplevel_begin_theory name imports uses =
+fun toplevel_begin_theory master name imports uses =
   let
-    val dir = Thy_Load.get_master_path ();
+    val dir = (case master of SOME dir => dir | NONE => Thy_Load.get_master_path ());
     val _ = kill_thy name;
     val _ = use_thys_wrt dir imports;
     val parent_thys = map (get_theory o base_name) imports;

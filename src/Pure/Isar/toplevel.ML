@@ -45,8 +45,9 @@ sig
   val set_print: bool -> transition -> transition
   val print: transition -> transition
   val no_timing: transition -> transition
-  val init_theory: string -> (unit -> theory) -> transition -> transition
-  val modify_init: (unit -> theory) -> transition -> transition
+  val init_theory: Path.T option -> string -> (Path.T option -> theory) -> transition -> transition
+  val modify_master: Path.T option -> transition -> transition
+  val modify_init: (Path.T option -> theory) -> transition -> transition
   val exit: transition -> transition
   val keep: (state -> unit) -> transition -> transition
   val keep': (bool -> state -> unit) -> transition -> transition
@@ -288,16 +289,16 @@ end;
 (* primitive transitions *)
 
 datatype trans =
-  Init of string * (unit -> theory) |    (*theory name, init*)
+  Init of Path.T option * string * (Path.T option -> theory) | (*master dir, theory name, init*)
   Exit |                                 (*formal exit of theory*)
   Keep of bool -> state -> unit |        (*peek at state*)
   Transaction of (bool -> node -> node) * (state -> unit);  (*node transaction and presentation*)
 
 local
 
-fun apply_tr _ (Init (_, f)) (State (NONE, _)) =
+fun apply_tr _ (Init (master, _, f)) (State (NONE, _)) =
       State (SOME (Theory (Context.Theory
-          (Theory.checkpoint (Runtime.controlled_execution f ())), NONE)), NONE)
+          (Theory.checkpoint (Runtime.controlled_execution f master)), NONE)), NONE)
   | apply_tr _ Exit (State (prev as SOME (Theory (Context.Theory _, _)), _)) =
       State (NONE, prev)
   | apply_tr int (Keep f) state =
@@ -344,9 +345,10 @@ val empty = make_transition ("", Position.none, false, false, false, []);
 
 (* diagnostics *)
 
-fun init_of (Transition {trans = [Init (name, _)], ...}) = SOME name
-  | init_of _ = NONE;
+fun get_init (Transition {trans = [Init args], ...}) = SOME args
+  | get_init _ = NONE;
 
+val init_of = Option.map #2 o get_init;
 fun print_of (Transition {print, ...}) = print;
 fun name_of (Transition {name, ...}) = name;
 fun pos_of (Transition {pos, ...}) = pos;
@@ -387,11 +389,16 @@ val print = set_print true;
 
 (* basic transitions *)
 
-fun init_theory name f = add_trans (Init (name, f));
+fun init_theory master name f = add_trans (Init (master, name, f));
+
+fun modify_master master tr =
+  (case get_init tr of
+    SOME (_, name, f) => init_theory master name f (reset_trans tr)
+  | NONE => tr);
 
 fun modify_init f tr =
-  (case init_of tr of
-    SOME name => init_theory name f (reset_trans tr)
+  (case get_init tr of
+    SOME (master, name, _) => init_theory master name f (reset_trans tr)
   | NONE => tr);
 
 val exit = add_trans Exit;
