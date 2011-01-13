@@ -436,177 +436,184 @@ next
   qed
 qed
 
-subsection {* Take function for finite deflations *}
+subsection {* Intersection of algebraic deflations *}
+
+default_sort bifinite
+
+definition meet_fin_defl :: "'a fin_defl \<Rightarrow> 'a fin_defl \<Rightarrow> 'a fin_defl"
+  where "meet_fin_defl a b =
+    Abs_fin_defl (eventual_iterate (Rep_fin_defl a oo Rep_fin_defl b))"
+
+lemma Rep_meet_fin_defl:
+  "Rep_fin_defl (meet_fin_defl a b) =
+    eventual_iterate (Rep_fin_defl a oo Rep_fin_defl b)"
+unfolding meet_fin_defl_def
+apply (rule Abs_fin_defl_inverse [simplified])
+apply (rule finite_deflation_eventual_iterate)
+apply (rule pre_deflation_oo)
+apply (rule finite_deflation_Rep_fin_defl)
+apply (rule Rep_fin_defl.below)
+done
+
+lemma Rep_meet_fin_defl_fixed_iff:
+  "Rep_fin_defl (meet_fin_defl a b)\<cdot>x = x \<longleftrightarrow>
+    Rep_fin_defl a\<cdot>x = x \<and> Rep_fin_defl b\<cdot>x = x"
+unfolding Rep_meet_fin_defl
+apply (rule eventual_iterate_oo_fixed_iff)
+apply (rule finite_deflation_Rep_fin_defl)
+apply (rule Rep_fin_defl.below)
+done
+
+lemma meet_fin_defl_mono:
+  "\<lbrakk>a \<sqsubseteq> b; c \<sqsubseteq> d\<rbrakk> \<Longrightarrow> meet_fin_defl a c \<sqsubseteq> meet_fin_defl b d"
+unfolding below_fin_defl_def
+apply (rule Rep_fin_defl.belowI)
+apply (simp add: Rep_meet_fin_defl_fixed_iff Rep_fin_defl.belowD)
+done
+
+lemma meet_fin_defl_below1: "meet_fin_defl a b \<sqsubseteq> a"
+unfolding below_fin_defl_def
+apply (rule Rep_fin_defl.belowI)
+apply (simp add: Rep_meet_fin_defl_fixed_iff Rep_fin_defl.belowD)
+done
+
+lemma meet_fin_defl_below2: "meet_fin_defl a b \<sqsubseteq> b"
+unfolding below_fin_defl_def
+apply (rule Rep_fin_defl.belowI)
+apply (simp add: Rep_meet_fin_defl_fixed_iff Rep_fin_defl.belowD)
+done
+
+lemma meet_fin_defl_greatest: "\<lbrakk>a \<sqsubseteq> b; a \<sqsubseteq> c\<rbrakk> \<Longrightarrow> a \<sqsubseteq> meet_fin_defl b c"
+unfolding below_fin_defl_def
+apply (rule Rep_fin_defl.belowI)
+apply (simp add: Rep_meet_fin_defl_fixed_iff Rep_fin_defl.belowD)
+done
+
+definition meet_defl :: "'a defl \<rightarrow> 'a defl \<rightarrow> 'a defl"
+  where "meet_defl = defl.extension (\<lambda>a. defl.extension (\<lambda>b.
+    defl_principal (meet_fin_defl a b)))"
+
+lemma meet_defl_principal:
+  "meet_defl\<cdot>(defl_principal a)\<cdot>(defl_principal b) =
+    defl_principal (meet_fin_defl a b)"
+unfolding meet_defl_def
+by (simp add: defl.extension_principal defl.extension_mono meet_fin_defl_mono)
+
+lemma meet_defl_below1: "meet_defl\<cdot>a\<cdot>b \<sqsubseteq> a"
+apply (induct a rule: defl.principal_induct, simp)
+apply (induct b rule: defl.principal_induct, simp)
+apply (simp add: meet_defl_principal meet_fin_defl_below1)
+done
+
+lemma meet_defl_below2: "meet_defl\<cdot>a\<cdot>b \<sqsubseteq> b"
+apply (induct a rule: defl.principal_induct, simp)
+apply (induct b rule: defl.principal_induct, simp)
+apply (simp add: meet_defl_principal meet_fin_defl_below2)
+done
+
+lemma meet_defl_greatest: "\<lbrakk>a \<sqsubseteq> b; a \<sqsubseteq> c\<rbrakk> \<Longrightarrow> a \<sqsubseteq> meet_defl\<cdot>b\<cdot>c"
+apply (induct a rule: defl.principal_induct, simp)
+apply (induct b rule: defl.principal_induct, simp)
+apply (induct c rule: defl.principal_induct, simp)
+apply (simp add: meet_defl_principal meet_fin_defl_greatest)
+done
+
+lemma meet_defl_eq2: "b \<sqsubseteq> a \<Longrightarrow> meet_defl\<cdot>a\<cdot>b = b"
+by (fast intro: below_antisym meet_defl_below2 meet_defl_greatest)
+
+interpretation meet_defl: semilattice "\<lambda>a b. meet_defl\<cdot>a\<cdot>b"
+by default
+  (fast intro: below_antisym meet_defl_greatest
+   meet_defl_below1 [THEN below_trans] meet_defl_below2 [THEN below_trans])+
+
+lemma deflation_meet_defl: "deflation (meet_defl\<cdot>a)"
+apply (rule deflation.intro)
+apply (rule meet_defl.left_idem)
+apply (rule meet_defl_below2)
+done
+
+lemma finite_deflation_meet_defl:
+  assumes "compact a"
+  shows "finite_deflation (meet_defl\<cdot>a)"
+proof (rule finite_deflation_intro)
+  obtain d where a: "a = defl_principal d"
+    using defl.compact_imp_principal [OF assms] ..
+  have "finite (defl_set -` Pow (defl_set a))"
+    apply (rule finite_vimageI)
+    apply (rule finite_Pow_iff [THEN iffD2])
+    apply (simp add: defl_set_def a cast_defl_principal Abs_fin_defl_inverse)
+    apply (rule Rep_fin_defl.finite_fixes)
+    apply (rule injI)
+    apply (simp add: po_eq_conv defl_set_subset_iff [symmetric])
+    done
+  hence "finite (range (\<lambda>b. meet_defl\<cdot>a\<cdot>b))"
+    apply (rule rev_finite_subset)
+    apply (clarsimp, erule rev_subsetD)
+    apply (simp add: defl_set_subset_iff meet_defl_below1)
+    done
+  thus "finite {b. meet_defl\<cdot>a\<cdot>b = b}"
+    by (rule finite_range_imp_finite_fixes)
+qed (rule deflation_meet_defl)
+
+lemma compact_iff_finite_deflation_cast:
+  "compact d \<longleftrightarrow> finite_deflation (cast\<cdot>d)"
+apply (safe dest!: defl.compact_imp_principal)
+apply (simp add: cast_defl_principal finite_deflation_Rep_fin_defl)
+apply (rule compact_cast_iff [THEN iffD1])
+apply (erule finite_deflation_imp_compact)
+done
+
+lemma compact_iff_finite_defl_set:
+  "compact d \<longleftrightarrow> finite (defl_set d)"
+by (simp add: compact_iff_finite_deflation_cast defl_set_def
+  finite_deflation_def deflation_cast finite_deflation_axioms_def)
+
+lemma compact_meet_defl1: "compact a \<Longrightarrow> compact (meet_defl\<cdot>a\<cdot>b)"
+apply (simp add: compact_iff_finite_defl_set)
+apply (erule rev_finite_subset)
+apply (simp add: defl_set_subset_iff meet_defl_below1)
+done
+
+lemma compact_meet_defl2: "compact b \<Longrightarrow> compact (meet_defl\<cdot>a\<cdot>b)"
+by (subst meet_defl.commute, rule compact_meet_defl1)
+
+subsection {* Chain of approx functions on algebraic deflations *}
 
 context bifinite_approx_chain
 begin
 
-definition
-  defl_take :: "nat \<Rightarrow> ('a \<rightarrow> 'a) \<Rightarrow> ('a \<rightarrow> 'a)"
-where
-  "defl_take i d = eventual_iterate (approx i oo d)"
-
-lemma finite_deflation_defl_take:
-  "deflation d \<Longrightarrow> finite_deflation (defl_take i d)"
-unfolding defl_take_def
-apply (rule pre_deflation.finite_deflation_d)
-apply (rule pre_deflation_oo)
-apply (rule finite_deflation_approx)
-apply (erule deflation.below)
-done
-
-lemma deflation_defl_take:
-  "deflation d \<Longrightarrow> deflation (defl_take i d)"
-apply (rule finite_deflation_imp_deflation)
-apply (erule finite_deflation_defl_take)
-done
-
-lemma defl_take_fixed_iff:
-  "deflation d \<Longrightarrow> defl_take i d\<cdot>x = x \<longleftrightarrow> approx i\<cdot>x = x \<and> d\<cdot>x = x"
-unfolding defl_take_def
-apply (rule eventual_iterate_oo_fixed_iff)
-apply (rule finite_deflation_approx)
-apply (erule deflation.below)
-done
-
-lemma defl_take_below:
-  "\<lbrakk>a \<sqsubseteq> b; deflation a; deflation b\<rbrakk> \<Longrightarrow> defl_take i a \<sqsubseteq> defl_take i b"
-apply (rule deflation.belowI)
-apply (erule deflation_defl_take)
-apply (simp add: defl_take_fixed_iff)
-apply (erule (1) deflation.belowD)
-apply (erule conjunct2)
-done
-
-lemma cont2cont_defl_take:
-  assumes cont: "cont f" and below: "\<And>x y. f x\<cdot>y \<sqsubseteq> y"
-  shows "cont (\<lambda>x. defl_take i (f x))"
-unfolding defl_take_def
-using finite_deflation_approx assms
-by (rule cont2cont_eventual_iterate_oo)
-
-definition
-  fd_take :: "nat \<Rightarrow> 'a fin_defl \<Rightarrow> 'a fin_defl"
-where
-  "fd_take i d = Abs_fin_defl (defl_take i (Rep_fin_defl d))"
-
-lemma Rep_fin_defl_fd_take:
-  "Rep_fin_defl (fd_take i d) = defl_take i (Rep_fin_defl d)"
-unfolding fd_take_def
-apply (rule Abs_fin_defl_inverse [unfolded mem_Collect_eq])
-apply (rule finite_deflation_defl_take)
-apply (rule deflation_Rep_fin_defl)
-done
-
-lemma fd_take_fixed_iff:
-  "Rep_fin_defl (fd_take i d)\<cdot>x = x \<longleftrightarrow>
-    approx i\<cdot>x = x \<and> Rep_fin_defl d\<cdot>x = x"
-unfolding Rep_fin_defl_fd_take
-apply (rule defl_take_fixed_iff)
-apply (rule deflation_Rep_fin_defl)
-done
-
-lemma fd_take_below: "fd_take n d \<sqsubseteq> d"
-apply (rule fin_defl_belowI)
-apply (simp add: fd_take_fixed_iff)
-done
-
-lemma fd_take_idem: "fd_take n (fd_take n d) = fd_take n d"
-apply (rule fin_defl_eqI)
-apply (simp add: fd_take_fixed_iff)
-done
-
-lemma fd_take_mono: "a \<sqsubseteq> b \<Longrightarrow> fd_take n a \<sqsubseteq> fd_take n b"
-apply (rule fin_defl_belowI)
-apply (simp add: fd_take_fixed_iff)
-apply (simp add: fin_defl_belowD)
-done
-
-lemma approx_fixed_le_lemma: "\<lbrakk>i \<le> j; approx i\<cdot>x = x\<rbrakk> \<Longrightarrow> approx j\<cdot>x = x"
-apply (rule deflation.belowD)
-apply (rule finite_deflation_imp_deflation)
-apply (rule finite_deflation_approx)
-apply (erule chain_mono [OF chain_approx])
-apply assumption
-done
-
-lemma fd_take_chain: "m \<le> n \<Longrightarrow> fd_take m a \<sqsubseteq> fd_take n a"
-apply (rule fin_defl_belowI)
-apply (simp add: fd_take_fixed_iff)
-apply (simp add: approx_fixed_le_lemma)
-done
-
-lemma finite_range_fd_take: "finite (range (fd_take n))"
-apply (rule finite_imageD [where f="\<lambda>a. {x. Rep_fin_defl a\<cdot>x = x}"])
-apply (rule finite_subset [where B="Pow {x. approx n\<cdot>x = x}"])
-apply (clarify, simp add: fd_take_fixed_iff)
-apply (simp add: finite_deflation.finite_fixes [OF finite_deflation_approx])
-apply (rule inj_onI, clarify)
-apply (simp add: set_eq_iff fin_defl_eqI)
-done
-
-lemma fd_take_covers: "\<exists>n. fd_take n a = a"
-apply (rule_tac x=
-  "Max ((\<lambda>x. LEAST n. approx n\<cdot>x = x) ` {x. Rep_fin_defl a\<cdot>x = x})" in exI)
-apply (rule below_antisym)
-apply (rule fd_take_below)
-apply (rule fin_defl_belowI)
-apply (simp add: fd_take_fixed_iff)
-apply (rule approx_fixed_le_lemma)
-apply (rule Max_ge)
-apply (rule finite_imageI)
-apply (rule Rep_fin_defl.finite_fixes)
-apply (rule imageI)
-apply (erule CollectI)
-apply (rule LeastI_ex)
-apply (rule compact_eq_approx)
-apply (erule subst)
-apply (rule Rep_fin_defl.compact)
-done
-
-subsection {* Chain of approx functions on algebraic deflations *}
-
-definition
-  defl_approx :: "nat \<Rightarrow> 'a defl \<rightarrow> 'a defl"
-where
-  "defl_approx = (\<lambda>i. defl.extension (\<lambda>d. defl_principal (fd_take i d)))"
-
-lemma defl_approx_principal:
-  "defl_approx i\<cdot>(defl_principal d) = defl_principal (fd_take i d)"
-unfolding defl_approx_def
-by (simp add: defl.extension_principal fd_take_mono)
+definition defl_approx :: "nat \<Rightarrow> 'a defl \<rightarrow> 'a defl"
+  where "defl_approx i = meet_defl\<cdot>(defl_principal (Abs_fin_defl (approx i)))"
 
 lemma defl_approx: "approx_chain defl_approx"
-proof
-  show chain: "chain defl_approx"
-    unfolding defl_approx_def
-    by (simp add: chainI defl.extension_mono fd_take_mono fd_take_chain)
-  show idem: "\<And>i x. defl_approx i\<cdot>(defl_approx i\<cdot>x) = defl_approx i\<cdot>x"
-    apply (induct_tac x rule: defl.principal_induct, simp)
-    apply (simp add: defl_approx_principal fd_take_idem)
+proof (rule approx_chain.intro)
+  have chain1: "chain (\<lambda>i. defl_principal (Abs_fin_defl (approx i)))"
+    apply (rule chainI)
+    apply (rule defl.principal_mono)
+    apply (simp add: below_fin_defl_def Abs_fin_defl_inverse)
+    apply (rule chainE [OF chain_approx])
     done
-  show below: "\<And>i x. defl_approx i\<cdot>x \<sqsubseteq> x"
-    apply (induct_tac x rule: defl.principal_induct, simp)
-    apply (simp add: defl_approx_principal fd_take_below)
-    done
-  show lub: "(\<Squnion>i. defl_approx i) = ID"
-    apply (rule cfun_eqI, rule below_antisym)
-    apply (simp add: contlub_cfun_fun chain lub_below_iff chain below)
-    apply (induct_tac x rule: defl.principal_induct, simp)
+  show chain: "chain (\<lambda>i. defl_approx i)"
+    unfolding defl_approx_def by (simp add: chain1)
+  have below: "\<And>i d. defl_approx i\<cdot>d \<sqsubseteq> d"
+    unfolding defl_approx_def by (rule meet_defl_below2)
+  show "(\<Squnion>i. defl_approx i) = ID"
+    apply (rule cfun_eqI, rename_tac d, simp)
+    apply (rule below_antisym)
     apply (simp add: contlub_cfun_fun chain)
-    apply (simp add: compact_below_lub_iff chain)
-    apply (simp add: defl_approx_principal)
-    apply (subgoal_tac "\<exists>i. fd_take i a = a", metis below_refl)
-    apply (rule fd_take_covers)
+    apply (simp add: lub_below chain below)
+    apply (simp add: defl_approx_def)
+    apply (simp add: lub_distribs chain1)
+    apply (rule meet_defl_greatest [OF _ below_refl])
+    apply (rule cast_below_imp_below)
+    apply (simp add: contlub_cfun_arg chain1)
+    apply (simp add: cast_defl_principal Abs_fin_defl_inverse)
+    apply (rule cast.below_ID)
     done
-  show "\<And>i. finite {x. defl_approx i\<cdot>x = x}"
-    apply (rule finite_range_imp_finite_fixes)
-    apply (rule_tac B="defl_principal ` range (fd_take i)" in rev_finite_subset)
-    apply (simp add: finite_range_fd_take)
-    apply (clarsimp, rename_tac x)
-    apply (induct_tac x rule: defl.principal_induct)
-    apply (simp add: adm_mem_finite finite_range_fd_take)
-    apply (simp add: defl_approx_principal)
+  show "\<And>i. finite_deflation (defl_approx i)"
+    unfolding defl_approx_def
+    apply (rule finite_deflation_meet_defl)
+    apply (rule defl.compact_principal)
     done
 qed
 
@@ -626,29 +633,152 @@ qed
 
 subsection {* Algebraic deflations are representable *}
 
-definition defl_approx :: "nat \<Rightarrow> 'a::bifinite defl \<rightarrow> 'a defl"
-  where "defl_approx = bifinite_approx_chain.defl_approx
-    (SOME a. approx_chain a)"
+default_sort "domain"
 
-lemma defl_approx: "approx_chain defl_approx"
-unfolding defl_approx_def
+definition defl_emb :: "udom defl \<rightarrow> udom"
+  where "defl_emb = udom_emb (bifinite_approx_chain.defl_approx udom_approx)"
+
+definition defl_prj :: "udom \<rightarrow> udom defl"
+  where "defl_prj = udom_prj (bifinite_approx_chain.defl_approx udom_approx)"
+
+lemma ep_pair_defl: "ep_pair defl_emb defl_prj"
+unfolding defl_emb_def defl_prj_def
+apply (rule ep_pair_udom)
 apply (rule bifinite_approx_chain.defl_approx)
-apply (unfold bifinite_approx_chain_def)
-apply (rule someI_ex [OF bifinite])
+apply (simp add: bifinite_approx_chain_def)
 done
 
-instantiation defl :: (bifinite) "domain"
+text "Deflation combinator for deflation type constructor"
+
+definition defl_defl :: "udom defl \<rightarrow> udom defl"
+  where defl_deflation_def:
+  "defl_defl = defl.extension (\<lambda>a. defl_principal
+    (Abs_fin_defl (defl_emb oo meet_defl\<cdot>(defl_principal a) oo defl_prj)))"
+
+lemma cast_defl_defl:
+  "cast\<cdot>(defl_defl\<cdot>a) = defl_emb oo meet_defl\<cdot>a oo defl_prj"
+apply (induct a rule: defl.principal_induct, simp)
+apply (subst defl_deflation_def)
+apply (subst defl.extension_principal)
+apply (simp add: below_fin_defl_def Abs_fin_defl_inverse
+  ep_pair.finite_deflation_e_d_p ep_pair_defl
+  finite_deflation_meet_defl monofun_cfun)
+apply (simp add: cast_defl_principal
+  below_fin_defl_def Abs_fin_defl_inverse
+  ep_pair.finite_deflation_e_d_p ep_pair_defl
+  finite_deflation_meet_defl monofun_cfun)
+done
+
+definition defl_map_emb :: "'a::domain defl \<rightarrow> udom defl"
+  where "defl_map_emb = defl_fun1 emb prj ID"
+
+definition defl_map_prj :: "udom defl \<rightarrow> 'a::domain defl"
+  where "defl_map_prj = defl.extension (\<lambda>a. defl_principal (Abs_fin_defl (prj oo cast\<cdot>(meet_defl\<cdot>DEFL('a)\<cdot>(defl_principal a)) oo emb)))"
+
+lemma defl_map_emb_principal:
+  "defl_map_emb\<cdot>(defl_principal a) =
+    defl_principal (Abs_fin_defl (emb oo Rep_fin_defl a oo prj))"
+unfolding defl_map_emb_def defl_fun1_def
+apply (subst defl.extension_principal)
+apply (rule defl.principal_mono)
+apply (simp add: below_fin_defl_def Abs_fin_defl_inverse monofun_cfun
+       domain.finite_deflation_e_d_p finite_deflation_Rep_fin_defl)
+apply simp
+done
+
+lemma defl_map_prj_principal:
+  "(defl_map_prj\<cdot>(defl_principal a) :: 'a::domain defl) =
+  defl_principal (Abs_fin_defl (prj oo cast\<cdot>(meet_defl\<cdot>DEFL('a)\<cdot>(defl_principal a)) oo emb))"
+unfolding defl_map_prj_def
+apply (rule defl.extension_principal)
+apply (rule defl.principal_mono)
+apply (simp add: below_fin_defl_def)
+apply (subst Abs_fin_defl_inverse, simp)
+apply (rule domain.finite_deflation_p_d_e)
+apply (rule finite_deflation_cast)
+apply (simp add: compact_meet_defl2)
+apply (subst emb_prj)
+apply (intro monofun_cfun below_refl meet_defl_below1)
+apply (subst Abs_fin_defl_inverse, simp)
+apply (rule domain.finite_deflation_p_d_e)
+apply (rule finite_deflation_cast)
+apply (simp add: compact_meet_defl2)
+apply (subst emb_prj)
+apply (intro monofun_cfun below_refl meet_defl_below1)
+apply (simp add: monofun_cfun below_fin_defl_def)
+done
+
+lemma defl_map_prj_defl_map_emb: "defl_map_prj\<cdot>(defl_map_emb\<cdot>d) = d"
+apply (rule cast_eq_imp_eq)
+apply (induct_tac d rule: defl.principal_induct, simp)
+apply (subst defl_map_emb_principal)
+apply (subst defl_map_prj_principal)
+apply (simp add: cast_defl_principal)
+apply (subst Abs_fin_defl_inverse, simp)
+apply (rule domain.finite_deflation_p_d_e)
+apply (rule finite_deflation_cast)
+apply (simp add: compact_meet_defl2)
+apply (subst emb_prj)
+apply (intro monofun_cfun below_refl meet_defl_below1)
+apply (subst meet_defl_eq2)
+apply (rule cast_below_imp_below)
+apply (simp add: cast_DEFL)
+apply (simp add: cast_defl_principal)
+apply (subst Abs_fin_defl_inverse, simp)
+apply (rule domain.finite_deflation_e_d_p)
+apply (rule finite_deflation_Rep_fin_defl)
+apply (rule cfun_belowI, simp)
+apply (rule Rep_fin_defl.below)
+apply (simp add: cast_defl_principal)
+apply (subst Abs_fin_defl_inverse, simp)
+apply (rule domain.finite_deflation_e_d_p)
+apply (rule finite_deflation_Rep_fin_defl)
+apply (simp add: cfun_eqI)
+done
+
+lemma defl_map_emb_defl_map_prj:
+  "defl_map_emb\<cdot>(defl_map_prj\<cdot>d :: 'a defl) = meet_defl\<cdot>DEFL('a)\<cdot>d"
+apply (induct_tac d rule: defl.principal_induct, simp)
+apply (subst defl_map_prj_principal)
+apply (subst defl_map_emb_principal)
+apply (subst Abs_fin_defl_inverse, simp)
+apply (rule domain.finite_deflation_p_d_e)
+apply (rule finite_deflation_cast)
+apply (simp add: compact_meet_defl2)
+apply (subst emb_prj)
+apply (intro monofun_cfun below_refl meet_defl_below1)
+apply (rule cast_eq_imp_eq)
+apply (subst cast_defl_principal)
+apply (simp add: cfcomp1 emb_prj)
+apply (subst deflation_below_comp2 [OF deflation_cast deflation_cast])
+apply (rule monofun_cfun_arg, rule meet_defl_below1)
+apply (subst deflation_below_comp1 [OF deflation_cast deflation_cast])
+apply (rule monofun_cfun_arg, rule meet_defl_below1)
+apply (simp add: eta_cfun)
+apply (rule Abs_fin_defl_inverse, simp)
+apply (rule finite_deflation_cast)
+apply (rule compact_meet_defl2, simp)
+done
+
+lemma ep_pair_defl_map_emb_defl_map_prj:
+  "ep_pair defl_map_emb defl_map_prj"
+apply (rule ep_pair.intro)
+apply (rule defl_map_prj_defl_map_emb)
+apply (simp add: defl_map_emb_defl_map_prj)
+apply (rule meet_defl_below2)
+done
+
+instantiation defl :: ("domain") "domain"
 begin
 
 definition
-  "emb = udom_emb defl_approx"
+  "emb = defl_emb oo defl_map_emb"
 
 definition
-  "prj = udom_prj defl_approx"
+  "prj = defl_map_prj oo defl_prj"
 
 definition
-  "defl (t::'a defl itself) =
-    (\<Squnion>i. defl_principal (Abs_fin_defl (emb oo defl_approx i oo prj)))"
+  "defl (t::'a defl itself) = defl_defl\<cdot>DEFL('a)"
 
 definition
   "(liftemb :: 'a defl u \<rightarrow> udom u) = u_map\<cdot>emb"
@@ -662,26 +792,17 @@ definition
 instance proof
   show ep: "ep_pair emb (prj :: udom \<rightarrow> 'a defl)"
     unfolding emb_defl_def prj_defl_def
-    by (rule ep_pair_udom [OF defl_approx])
-  show "cast\<cdot>DEFL('a defl) = emb oo (prj :: udom \<rightarrow> 'a defl)"
-    unfolding defl_defl_def
-    apply (subst contlub_cfun_arg)
-    apply (rule chainI)
-    apply (rule defl.principal_mono)
-    apply (simp add: below_fin_defl_def)
-    apply (simp add: Abs_fin_defl_inverse approx_chain.finite_deflation_approx [OF defl_approx]
-                     ep_pair.finite_deflation_e_d_p [OF ep])
-    apply (intro monofun_cfun below_refl)
-    apply (rule chainE)
-    apply (rule approx_chain.chain_approx [OF defl_approx])
-    apply (subst cast_defl_principal)
-    apply (simp add: Abs_fin_defl_inverse approx_chain.finite_deflation_approx [OF defl_approx]
-                     ep_pair.finite_deflation_e_d_p [OF ep])
-    apply (simp add: lub_distribs approx_chain.chain_approx [OF defl_approx]
-                     approx_chain.lub_approx [OF defl_approx])
+    apply (rule ep_pair_comp [OF _ ep_pair_defl])
+    apply (rule ep_pair_defl_map_emb_defl_map_prj)
     done
+  show "cast\<cdot>DEFL('a defl) = emb oo (prj :: udom \<rightarrow> 'a defl)"
+    unfolding defl_defl_def emb_defl_def prj_defl_def
+    by (simp add: cast_defl_defl cfcomp1 defl_map_emb_defl_map_prj)
 qed (fact liftemb_defl_def liftprj_defl_def liftdefl_defl_def)+
 
 end
+
+lemma DEFL_defl [domain_defl_simps]: "DEFL('a defl) = defl_defl\<cdot>DEFL('a)"
+by (rule defl_defl_def)
 
 end
