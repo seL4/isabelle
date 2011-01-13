@@ -266,8 +266,8 @@ class Plugin extends EBPlugin
           case Some(model) => model.refresh; Some(model)
           case None =>
             Thy_Header.split_thy_path(Isabelle.system.posix_path(buffer.getPath)) match {
-              case Some((_, thy_name)) =>
-                Some(Document_Model.init(Isabelle.session, buffer, thy_name))
+              case Some((dir, thy_name)) =>
+                Some(Document_Model.init(Isabelle.session, buffer, dir + "/" + thy_name))
               case None => None
             }
         }

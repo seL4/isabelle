@@ -214,12 +214,16 @@ fun run int tr st =
 
 in
 
-fun run_command thy_name tr st =
+fun run_command thy_name raw_tr st =
   (case
-      (case Toplevel.init_of tr of
-        SOME name => Exn.capture (fn () => Thy_Header.consistent_name thy_name name) ()
-      | NONE => Exn.Result ()) of
-    Exn.Result () =>
+      (case Toplevel.init_of raw_tr of
+        SOME name => Exn.capture (fn () =>
+          let
+            val path = Path.explode thy_name;
+            val _ = Thy_Header.consistent_name (Path.implode (Path.base path)) name;
+          in Toplevel.modify_master (SOME (Path.dir path)) raw_tr end) ()
+      | NONE => Exn.Result raw_tr) of
+    Exn.Result tr =>
       let
         val is_init = is_some (Toplevel.init_of tr);
         val is_proof = Keyword.is_proof (Toplevel.name_of tr);
@@ -241,8 +245,8 @@ fun run_command thy_name tr st =
   | Exn.Exn exn =>
       if Exn.is_interrupt exn then reraise exn
       else
-       (Toplevel.error_msg tr (ML_Compiler.exn_message exn);
-        Toplevel.status tr Markup.failed;
+       (Toplevel.error_msg raw_tr (ML_Compiler.exn_message exn);
+        Toplevel.status raw_tr Markup.failed;
         (false, Toplevel.toplevel)));
 
 end;
