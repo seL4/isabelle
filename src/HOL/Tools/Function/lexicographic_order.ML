@@ -198,8 +198,11 @@ fun lex_order_tac quiet ctxt solve_tac (st: thm) =
       let
         val clean_table = map (fn x => map (nth x) order) table
         val relation = mk_measures domT (map (nth measure_funs) order)
-        val _ = if not quiet
-          then writeln ("Found termination order: " ^ quote (Syntax.string_of_term ctxt relation))
+        val _ =
+          if not quiet then
+            Pretty.writeln (Pretty.block
+              [Pretty.str "Found termination order:", Pretty.brk 1,
+                Pretty.quote (Syntax.pretty_term ctxt relation)])
           else ()
 
       in (* 4: proof reconstruction *)
