@@ -30,7 +30,7 @@ object Thy_Header
   /* file name */
 
   val Thy_Path1 = new Regex("([^/]*)\\.thy")
-  val Thy_Path2 = new Regex("(.*/)([^/]*)\\.thy")
+  val Thy_Path2 = new Regex("(.*)/([^/]*)\\.thy")
 
   def split_thy_path(path: String): Option[(String, String)] =
     path match {
