@@ -957,7 +957,7 @@ lemma (in prob_space) conditional_expectation_exists:
   assumes borel: "X \<in> borel_measurable M"
   and N_subalgebra: "N \<subseteq> sets M" "sigma_algebra (M\<lparr> sets := N \<rparr>)"
   shows "\<exists>Y\<in>borel_measurable (M\<lparr> sets := N \<rparr>). \<forall>C\<in>N.
-      positive_integral (\<lambda>x. Y x * indicator C x) = positive_integral (\<lambda>x. X x * indicator C x)"
+      (\<integral>\<^isup>+x. Y x * indicator C x) = (\<integral>\<^isup>+x. X x * indicator C x)"
 proof -
   interpret P: prob_space "M\<lparr> sets := N \<rparr>" \<mu>
     using prob_space_subalgebra[OF N_subalgebra] .
@@ -994,7 +994,7 @@ qed
 
 definition (in prob_space)
   "conditional_expectation N X = (SOME Y. Y\<in>borel_measurable (M\<lparr>sets:=N\<rparr>)
-    \<and> (\<forall>C\<in>N. positive_integral (\<lambda>x. Y x * indicator C x) = positive_integral (\<lambda>x. X x * indicator C x)))"
+    \<and> (\<forall>C\<in>N. (\<integral>\<^isup>+x. Y x * indicator C x) = (\<integral>\<^isup>+x. X x * indicator C x)))"
 
 abbreviation (in prob_space)
   "conditional_prob N A \<equiv> conditional_expectation N (indicator A)"
@@ -1006,8 +1006,8 @@ lemma (in prob_space)
   shows borel_measurable_conditional_expectation:
     "conditional_expectation N X \<in> borel_measurable (M\<lparr> sets := N \<rparr>)"
   and conditional_expectation: "\<And>C. C \<in> N \<Longrightarrow>
-      positive_integral (\<lambda>x. conditional_expectation N X x * indicator C x) =
-      positive_integral (\<lambda>x. X x * indicator C x)"
+      (\<integral>\<^isup>+x. conditional_expectation N X x * indicator C x) =
+      (\<integral>\<^isup>+x. X x * indicator C x)"
    (is "\<And>C. C \<in> N \<Longrightarrow> ?eq C")
 proof -
   note CE = conditional_expectation_exists[OF assms, unfolded Bex_def]

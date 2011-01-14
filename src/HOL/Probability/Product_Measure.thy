@@ -784,7 +784,7 @@ proof -
   note SUPR_C = this
   ultimately show "?C f \<in> borel_measurable M1"
     by (simp cong: measurable_cong)
-  have "positive_integral (\<lambda>x. SUP i. F i x) = (SUP i. positive_integral (F i))"
+  have "positive_integral (\<lambda>x. (SUP i. F i x)) = (SUP i. positive_integral (F i))"
     using F_borel F_mono
     by (auto intro!: positive_integral_monotone_convergence_SUP[symmetric])
   also have "(SUP i. positive_integral (F i)) =
@@ -1935,8 +1935,7 @@ proof -
   proof (unfold integrable_def, intro conjI)
     show "(\<lambda>x. abs (?f x)) \<in> borel_measurable P"
       using borel by auto
-    have "positive_integral (\<lambda>x. Real (abs (?f x))) =
-      positive_integral (\<lambda>x. \<Prod>i\<in>I. Real (abs (f i (x i))))"
+    have "positive_integral (\<lambda>x. Real (abs (?f x))) = positive_integral (\<lambda>x. \<Prod>i\<in>I. Real (abs (f i (x i))))"
       by (simp add: Real_setprod abs_setprod)
     also have "\<dots> = (\<Prod>i\<in>I. M.positive_integral i (\<lambda>x. Real (abs (f i x))))"
       using f by (subst product_positive_integral_setprod) auto
