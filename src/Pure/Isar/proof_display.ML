@@ -80,12 +80,13 @@ val string_of_rule = Pretty.string_of ooo pretty_rule;
 
 local
 
-fun pretty_fact_name (kind, "") = Pretty.str kind
-  | pretty_fact_name (kind, name) = Pretty.block [Pretty.str kind, Pretty.brk 1,
-      Pretty.str (Long_Name.base_name name), Pretty.str ":"];
+fun pretty_fact_name (kind, "") = Pretty.command kind
+  | pretty_fact_name (kind, name) =
+      Pretty.block [Pretty.command kind, Pretty.brk 1,
+        Pretty.str (Long_Name.base_name name), Pretty.str ":"];
 
 fun pretty_facts ctxt =
-  flat o (separate [Pretty.fbrk, Pretty.str "and "]) o
+  flat o (separate [Pretty.fbrk, Pretty.keyword "and", Pretty.str " "]) o
     map (single o ProofContext.pretty_fact_aux ctxt false);
 
 in

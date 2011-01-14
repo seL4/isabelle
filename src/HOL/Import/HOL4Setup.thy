@@ -90,11 +90,11 @@ proof -
   have ed: "TYPE_DEFINITION P Rep"
   proof (auto simp add: TYPE_DEFINITION)
     fix x y
-    assume "Rep x = Rep y"
+    assume b: "Rep x = Rep y"
     from td have "x = Abs (Rep x)"
       by auto
     also have "Abs (Rep x) = Abs (Rep y)"
-      by (simp add: prems)
+      by (simp add: b)
     also from td have "Abs (Rep y) = y"
       by auto
     finally show "x = y" .

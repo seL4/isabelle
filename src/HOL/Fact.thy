@@ -12,12 +12,9 @@ imports Main
 begin
 
 class fact =
-
-fixes 
-  fact :: "'a \<Rightarrow> 'a"
+  fixes fact :: "'a \<Rightarrow> 'a"
 
 instantiation nat :: fact
-
 begin 
 
 fun
@@ -26,7 +23,7 @@ where
   fact_0_nat: "fact_nat 0 = Suc 0"
 | fact_Suc: "fact_nat (Suc x) = Suc x * fact x"
 
-instance proof qed
+instance ..
 
 end
 
@@ -93,8 +90,7 @@ lemma fact_plus_one_nat: "fact ((n::nat) + 1) = (n + 1) * fact n"
 lemma fact_plus_one_int: 
   assumes "n >= 0"
   shows "fact ((n::int) + 1) = (n + 1) * fact n"
-
-  using prems unfolding fact_int_def 
+  using assms unfolding fact_int_def 
   by (simp add: nat_add_distrib algebra_simps int_mult)
 
 lemma fact_reduce_nat: "(n::nat) > 0 \<Longrightarrow> fact n = n * fact (n - 1)"
@@ -102,19 +98,19 @@ lemma fact_reduce_nat: "(n::nat) > 0 \<Longrightarrow> fact n = n * fact (n - 1)
   apply (erule ssubst)
   apply (subst fact_Suc)
   apply simp_all
-done
+  done
 
 lemma fact_reduce_int: "(n::int) > 0 \<Longrightarrow> fact n = n * fact (n - 1)"
   apply (subgoal_tac "n = (n - 1) + 1")
   apply (erule ssubst)
   apply (subst fact_plus_one_int)
   apply simp_all
-done
+  done
 
 lemma fact_nonzero_nat [simp]: "fact (n::nat) \<noteq> 0"
   apply (induct n)
   apply (auto simp add: fact_plus_one_nat)
-done
+  done
 
 lemma fact_nonzero_int [simp]: "n >= 0 \<Longrightarrow> fact (n::int) ~= 0"
   by (simp add: fact_int_def)
@@ -137,7 +133,7 @@ lemma fact_ge_one_int [simp]: "n >= 0 \<Longrightarrow> fact (n :: int) >= 1"
   apply (erule ssubst)
   apply (subst zle_int)
   apply auto
-done
+  done
 
 lemma dvd_fact_nat [rule_format]: "1 <= m \<longrightarrow> m <= n \<longrightarrow> m dvd fact (n::nat)"
   apply (induct n)
@@ -147,7 +143,7 @@ lemma dvd_fact_nat [rule_format]: "1 <= m \<longrightarrow> m <= n \<longrightar
   apply (erule ssubst)
   apply (rule dvd_triv_left)
   apply auto
-done
+  done
 
 lemma dvd_fact_int [rule_format]: "1 <= m \<longrightarrow> m <= n \<longrightarrow> m dvd fact (n::int)"
   apply (case_tac "1 <= n")
@@ -155,7 +151,7 @@ lemma dvd_fact_int [rule_format]: "1 <= m \<longrightarrow> m <= n \<longrightar
   apply (auto simp add: fact_plus_one_int)
   apply (subgoal_tac "m = i + 1")
   apply auto
-done
+  done
 
 lemma interval_plus_one_nat: "(i::nat) <= j + 1 \<Longrightarrow> 
   {i..j+1} = {i..j} Un {j+1}"

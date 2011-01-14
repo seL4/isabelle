@@ -71,7 +71,7 @@ next
     qed
     moreover have "x ^ (Suc n + 2) <= x ^ (n + 2)"
       apply (simp add: mult_compare_simps)
-      apply (simp add: prems)
+      apply (simp add: assms)
       apply (subgoal_tac "0 <= x * (x * x^n)")
       apply force
       apply (rule mult_nonneg_nonneg, rule a)+
@@ -91,7 +91,7 @@ next
       by simp
     also have "... <= 1 / 2 * (x ^ 2 / 2 * (1 / 2) ^ n)"
       apply (rule mult_left_mono)
-      apply (rule prems)
+      apply (rule c)
       apply simp
       done
     also have "... = x ^ 2 / 2 * (1 / 2 * (1 / 2) ^ n)"
@@ -129,7 +129,7 @@ proof -
     have "suminf (%n. inverse(fact (n+2)) * (x ^ (n+2))) <=
         suminf (%n. (x^2/2) * ((1/2)^n))"
       apply (rule summable_le)
-      apply (auto simp only: aux1 prems)
+      apply (auto simp only: aux1 a b)
       apply (rule exp_tail_after_first_two_terms_summable)
       by (rule sums_summable, rule aux2)  
     also have "... = x^2"
@@ -155,14 +155,14 @@ proof -
     apply (rule divide_left_mono)
     apply (auto simp add: exp_ge_add_one_self_aux)
     apply (rule add_nonneg_nonneg)
-    apply (insert prems, auto)
+    using a apply auto
     apply (rule mult_pos_pos)
     apply auto
     apply (rule add_pos_nonneg)
     apply auto
     done
   also from a have "... <= 1 + x"
-    by(simp add:field_simps zero_compare_simps)
+    by (simp add: field_simps zero_compare_simps)
   finally show ?thesis .
 qed
 
@@ -192,14 +192,14 @@ proof -
   finally have "(1 - x) * (1 + x + x ^ 2) <= 1" .
   moreover have "0 < 1 + x + x^2"
     apply (rule add_pos_nonneg)
-    apply (insert a, auto)
+    using a apply auto
     done
   ultimately have "1 - x <= 1 / (1 + x + x^2)"
     by (elim mult_imp_le_div_pos)
   also have "... <= 1 / exp x"
     apply (rule divide_left_mono)
     apply (rule exp_bound, rule a)
-    apply (insert prems, auto)
+    using a b apply auto
     apply (rule mult_pos_pos)
     apply (rule add_pos_nonneg)
     apply auto
@@ -256,10 +256,10 @@ proof -
   also have "- (x / (1 - x)) = -x / (1 - x)"
     by auto
   finally have d: "- x / (1 - x) <= ln (1 - x)" .
-  have "0 < 1 - x" using prems by simp
+  have "0 < 1 - x" using a b by simp
   hence e: "-x - 2 * x^2 <= - x / (1 - x)"
-    using mult_right_le_one_le[of "x*x" "2*x"] prems
-    by(simp add:field_simps power2_eq_square)
+    using mult_right_le_one_le[of "x*x" "2*x"] a b
+    by (simp add:field_simps power2_eq_square)
   from e d show "- x - 2 * x^2 <= ln (1 - x)"
     by (rule order_trans)
 qed
@@ -292,7 +292,7 @@ lemma abs_ln_one_plus_x_minus_x_bound_nonneg:
     "0 <= x ==> x <= 1 ==> abs(ln (1 + x) - x) <= x^2"
 proof -
   assume x: "0 <= x"
-  assume "x <= 1"
+  assume x1: "x <= 1"
   from x have "ln (1 + x) <= x"
     by (rule ln_add_one_self_le_self)
   then have "ln (1 + x) - x <= 0" 
@@ -303,7 +303,7 @@ proof -
     by simp
   also have "... <= x^2"
   proof -
-    from prems have "x - x^2 <= ln (1 + x)"
+    from x x1 have "x - x^2 <= ln (1 + x)"
       by (intro ln_one_plus_pos_lower_bound)
     thus ?thesis
       by simp
@@ -314,19 +314,19 @@ qed
 lemma abs_ln_one_plus_x_minus_x_bound_nonpos:
     "-(1 / 2) <= x ==> x <= 0 ==> abs(ln (1 + x) - x) <= 2 * x^2"
 proof -
-  assume "-(1 / 2) <= x"
-  assume "x <= 0"
+  assume a: "-(1 / 2) <= x"
+  assume b: "x <= 0"
   have "abs(ln (1 + x) - x) = x - ln(1 - (-x))" 
     apply (subst abs_of_nonpos)
     apply simp
     apply (rule ln_add_one_self_le_self2)
-    apply (insert prems, auto)
+    using a apply auto
     done
   also have "... <= 2 * x^2"
     apply (subgoal_tac "- (-x) - 2 * (-x)^2 <= ln (1 - (-x))")
     apply (simp add: algebra_simps)
     apply (rule ln_one_minus_pos_lower_bound)
-    apply (insert prems, auto)
+    using a b apply auto
     done
   finally show ?thesis .
 qed
@@ -343,9 +343,9 @@ done
 
 lemma ln_x_over_x_mono: "exp 1 <= x ==> x <= y ==> (ln y / y) <= (ln x / x)"  
 proof -
-  assume "exp 1 <= x" and "x <= y"
+  assume x: "exp 1 <= x" "x <= y"
   have a: "0 < x" and b: "0 < y"
-    apply (insert prems)
+    apply (insert x)
     apply (subgoal_tac "0 < exp (1::real)")
     apply arith
     apply auto
@@ -361,12 +361,12 @@ proof -
     done
   also have "y / x = (x + (y - x)) / x"
     by simp
-  also have "... = 1 + (y - x) / x" using a prems by(simp add:field_simps)
+  also have "... = 1 + (y - x) / x" using x a by (simp add: field_simps)
   also have "x * ln(1 + (y - x) / x) <= x * ((y - x) / x)"
     apply (rule mult_left_mono)
     apply (rule ln_add_one_self_le_self)
     apply (rule divide_nonneg_pos)
-    apply (insert prems a, simp_all) 
+    using x a apply simp_all
     done
   also have "... = y - x" using a by simp
   also have "... = (y - x) * ln (exp 1)" by simp
@@ -375,16 +375,16 @@ proof -
     apply (subst ln_le_cancel_iff)
     apply force
     apply (rule a)
-    apply (rule prems)
-    apply (insert prems, simp)
+    apply (rule x)
+    using x apply simp
     done
   also have "... = y * ln x - x * ln x"
     by (rule left_diff_distrib)
   finally have "x * ln y <= y * ln x"
     by arith
-  then have "ln y <= (y * ln x) / x" using a by(simp add:field_simps)
-  also have "... = y * (ln x / x)"  by simp
-  finally show ?thesis using b by(simp add:field_simps)
+  then have "ln y <= (y * ln x) / x" using a by (simp add: field_simps)
+  also have "... = y * (ln x / x)" by simp
+  finally show ?thesis using b by (simp add: field_simps)
 qed
 
 end

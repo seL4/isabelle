@@ -164,7 +164,7 @@ proof -
   { 
     have "?s 0 = 0" by auto
     have Suc_m1: "\<And> n. Suc n - 1 = n" by auto
-    { fix B T E have "(if \<not> B then T else E) = (if B then E else T)" by auto } note if_eq = this
+    have if_eq: "\<And>B T E. (if \<not> B then T else E) = (if B then E else T)" by auto
 
     have "?s sums y" using sums_if'[OF `f sums y`] .
     from this[unfolded sums_def, THEN LIMSEQ_Suc] 
@@ -348,7 +348,7 @@ lemma lemma_termdiff1:
   fixes z :: "'a :: {monoid_mult,comm_ring}" shows
   "(\<Sum>p=0..<m. (((z + h) ^ (m - p)) * (z ^ p)) - (z ^ m)) =  
    (\<Sum>p=0..<m. (z ^ p) * (((z + h) ^ (m - p)) - (z ^ (m - p))))"
-by(auto simp add: algebra_simps power_add [symmetric] cong: strong_setsum_cong)
+by(auto simp add: algebra_simps power_add [symmetric])
 
 lemma sumr_diff_mult_const2:
   "setsum f {0..<n} - of_nat n * (r::'a::ring_1) = (\<Sum>i = 0..<n. f i - r)"
@@ -1849,7 +1849,7 @@ done
 lemma sin_less_zero: 
   assumes lb: "- pi/2 < x" and "x < 0" shows "sin x < 0"
 proof -
-  have "0 < sin (- x)" using prems by (simp only: sin_gt_zero2) 
+  have "0 < sin (- x)" using assms by (simp only: sin_gt_zero2) 
   thus ?thesis by simp
 qed
 
@@ -2107,7 +2107,7 @@ by (simp add: tan_def zero_less_divide_iff sin_gt_zero2 cos_gt_zero_pi)
 lemma tan_less_zero: 
   assumes lb: "- pi/2 < x" and "x < 0" shows "tan x < 0"
 proof -
-  have "0 < tan (- x)" using prems by (simp only: tan_gt_zero) 
+  have "0 < tan (- x)" using assms by (simp only: tan_gt_zero) 
   thus ?thesis by simp
 qed
 

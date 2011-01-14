@@ -517,10 +517,10 @@ lemma natfloor_subtract [simp]: "real a <= x ==>
   apply simp
 done
 
-lemma natfloor_div_nat: "1 <= x ==> y > 0 ==>
-  natfloor (x / real y) = natfloor x div y"
+lemma natfloor_div_nat:
+  assumes "1 <= x" and "y > 0"
+  shows "natfloor (x / real y) = natfloor x div y"
 proof -
-  assume "1 <= (x::real)" and "(y::nat) > 0"
   have "natfloor x = (natfloor x) div y * y + (natfloor x) mod y"
     by simp
   then have a: "real(natfloor x) = real ((natfloor x) div y) * real y +
@@ -535,8 +535,7 @@ proof -
     by simp
   also have "... = real((natfloor x) div y) + real((natfloor x) mod y) /
     real y + (x - real(natfloor x)) / real y"
-    by (auto simp add: algebra_simps add_divide_distrib
-      diff_divide_distrib prems)
+    by (auto simp add: algebra_simps add_divide_distrib diff_divide_distrib)
   finally have "natfloor (x / real y) = natfloor(...)" by simp
   also have "... = natfloor(real((natfloor x) mod y) /
     real y + (x - real(natfloor x)) / real y + real((natfloor x) div y))"
@@ -547,11 +546,11 @@ proof -
     apply (rule add_nonneg_nonneg)
     apply (rule divide_nonneg_pos)
     apply simp
-    apply (simp add: prems)
+    apply (simp add: assms)
     apply (rule divide_nonneg_pos)
     apply (simp add: algebra_simps)
     apply (rule real_natfloor_le)
-    apply (insert prems, auto)
+    using assms apply auto
     done
   also have "natfloor(real((natfloor x) mod y) /
     real y + (x - real(natfloor x)) / real y) = 0"
@@ -560,13 +559,13 @@ proof -
     apply (rule add_nonneg_nonneg)
     apply (rule divide_nonneg_pos)
     apply force
-    apply (force simp add: prems)
+    apply (force simp add: assms)
     apply (rule divide_nonneg_pos)
     apply (simp add: algebra_simps)
     apply (rule real_natfloor_le)
-    apply (auto simp add: prems)
-    apply (insert prems, arith)
-    apply (simp add: add_divide_distrib [THEN sym])
+    apply (auto simp add: assms)
+    using assms apply arith
+    using assms apply (simp add: add_divide_distrib [THEN sym])
     apply (subgoal_tac "real y = real y - 1 + 1")
     apply (erule ssubst)
     apply (rule add_le_less_mono)

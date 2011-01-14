@@ -36,11 +36,8 @@ declare One_nat_def [simp del]
 subsection {* GCD and LCM definitions *}
 
 class gcd = zero + one + dvd +
-
-fixes
-  gcd :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" and
-  lcm :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
-
+  fixes gcd :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
+    and lcm :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
 begin
 
 abbreviation
@@ -186,7 +183,7 @@ lemma lcm_cases_int:
       and "x <= 0 \<Longrightarrow> y >= 0 \<Longrightarrow> P (lcm (-x) y)"
       and "x <= 0 \<Longrightarrow> y <= 0 \<Longrightarrow> P (lcm (-x) (-y))"
   shows "P (lcm x y)"
-by (insert prems, auto simp add: lcm_neg1_int lcm_neg2_int, arith)
+  using assms by (auto simp add: lcm_neg1_int lcm_neg2_int) arith
 
 lemma lcm_ge_0_int [simp]: "lcm (x::int) y >= 0"
   by (simp add: lcm_int_def)
@@ -632,13 +629,12 @@ lemma gcd_coprime_nat:
   apply (subgoal_tac "b' = b div gcd a b")
   apply (erule ssubst)
   apply (rule div_gcd_coprime_nat)
-  using prems
-  apply force
+  using z apply force
   apply (subst (1) b)
   using z apply force
   apply (subst (1) a)
   using z apply force
-done
+  done
 
 lemma gcd_coprime_int:
   assumes z: "gcd (a::int) b \<noteq> 0" and a: "a = a' * gcd a b" and
@@ -650,13 +646,12 @@ lemma gcd_coprime_int:
   apply (subgoal_tac "b' = b div gcd a b")
   apply (erule ssubst)
   apply (rule div_gcd_coprime_int)
-  using prems
-  apply force
+  using z apply force
   apply (subst (1) b)
   using z apply force
   apply (subst (1) a)
   using z apply force
-done
+  done
 
 lemma coprime_mult_nat: assumes da: "coprime (d::nat) a" and db: "coprime d b"
     shows "coprime d (a * b)"
@@ -1192,13 +1187,13 @@ proof-
        by auto
      moreover
      {assume db: "d=b"
-       from prems have ?thesis apply simp
+       with nz H have ?thesis apply simp
          apply (rule exI[where x = b], simp)
          apply (rule exI[where x = b])
         by (rule exI[where x = "a - 1"], simp add: diff_mult_distrib2)}
     moreover
     {assume db: "d < b"
-        {assume "x=0" hence ?thesis  using prems by simp }
+        {assume "x=0" hence ?thesis using nz H by simp }
         moreover
         {assume x0: "x \<noteq> 0" hence xp: "x > 0" by simp
           from db have "d \<le> b - 1" by simp

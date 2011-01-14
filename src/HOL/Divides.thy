@@ -681,8 +681,8 @@ text {* Simproc for cancelling @{const div} and @{const mod} *}
 ML {*
 local
 
-structure CancelDivMod = CancelDivModFun(struct
-
+structure CancelDivMod = CancelDivModFun
+(
   val div_name = @{const_name div};
   val mod_name = @{const_name mod};
   val mk_binop = HOLogic.mk_binop;
@@ -691,12 +691,9 @@ structure CancelDivMod = CancelDivModFun(struct
 
   val div_mod_eqs = map mk_meta_eq [@{thm div_mod_equality}, @{thm div_mod_equality2}];
 
-  val trans = trans;
-
   val prove_eq_sums = Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac
     (@{thm add_0_left} :: @{thm add_0_right} :: @{thms add_ac}))
-
-end)
+)
 
 in
 
@@ -1352,15 +1349,16 @@ text{*Correctness of @{term posDivAlg}: it computes quotients correctly*}
 theorem posDivAlg_correct:
   assumes "0 \<le> a" and "0 < b"
   shows "divmod_int_rel a b (posDivAlg a b)"
-using prems apply (induct a b rule: posDivAlg.induct)
-apply auto
-apply (simp add: divmod_int_rel_def)
-apply (subst posDivAlg_eqn, simp add: right_distrib)
-apply (case_tac "a < b")
-apply simp_all
-apply (erule splitE)
-apply (auto simp add: right_distrib Let_def mult_ac mult_2_right)
-done
+  using assms
+  apply (induct a b rule: posDivAlg.induct)
+  apply auto
+  apply (simp add: divmod_int_rel_def)
+  apply (subst posDivAlg_eqn, simp add: right_distrib)
+  apply (case_tac "a < b")
+  apply simp_all
+  apply (erule splitE)
+  apply (auto simp add: right_distrib Let_def mult_ac mult_2_right)
+  done
 
 
 subsubsection{*Correctness of @{term negDivAlg}, the Algorithm for Negative Dividends*}
@@ -1381,15 +1379,16 @@ by (rule negDivAlg.simps [THEN trans], simp)
 lemma negDivAlg_correct:
   assumes "a < 0" and "b > 0"
   shows "divmod_int_rel a b (negDivAlg a b)"
-using prems apply (induct a b rule: negDivAlg.induct)
-apply (auto simp add: linorder_not_le)
-apply (simp add: divmod_int_rel_def)
-apply (subst negDivAlg_eqn, assumption)
-apply (case_tac "a + b < (0\<Colon>int)")
-apply simp_all
-apply (erule splitE)
-apply (auto simp add: right_distrib Let_def mult_ac mult_2_right)
-done
+  using assms
+  apply (induct a b rule: negDivAlg.induct)
+  apply (auto simp add: linorder_not_le)
+  apply (simp add: divmod_int_rel_def)
+  apply (subst negDivAlg_eqn, assumption)
+  apply (case_tac "a + b < (0\<Colon>int)")
+  apply simp_all
+  apply (erule splitE)
+  apply (auto simp add: right_distrib Let_def mult_ac mult_2_right)
+  done
 
 
 subsubsection{*Existence Shown by Proving the Division Algorithm to be Correct*}
@@ -1440,8 +1439,8 @@ text {* Tool setup *}
 ML {*
 local
 
-structure CancelDivMod = CancelDivModFun(struct
-
+structure CancelDivMod = CancelDivModFun
+(
   val div_name = @{const_name div};
   val mod_name = @{const_name mod};
   val mk_binop = HOLogic.mk_binop;
@@ -1450,12 +1449,9 @@ structure CancelDivMod = CancelDivModFun(struct
 
   val div_mod_eqs = map mk_meta_eq [@{thm zdiv_zmod_equality}, @{thm zdiv_zmod_equality2}];
 
-  val trans = trans;
-
   val prove_eq_sums = Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac 
     (@{thm diff_minus} :: @{thms add_0s} @ @{thms add_ac}))
-
-end)
+)
 
 in
 

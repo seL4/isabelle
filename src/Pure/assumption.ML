@@ -79,10 +79,12 @@ val all_prems_of = #prems o rep_data;
 fun extra_hyps ctxt th =
   subtract (op aconv) (map Thm.term_of (all_assms_of ctxt)) (Thm.hyps_of th);
 
-(*named prems -- legacy feature*)
 val _ = Context.>>
   (Context.map_theory (Global_Theory.add_thms_dynamic (Binding.name "prems",
-    fn Context.Theory _ => [] | Context.Proof ctxt => all_prems_of ctxt)));
+    fn Context.Theory _ => []
+     | Context.Proof ctxt =>
+        (legacy_feature ("Use of global prems" ^ Position.str_of (Position.thread_data ()));
+          all_prems_of ctxt))));
 
 
 (* local assumptions *)

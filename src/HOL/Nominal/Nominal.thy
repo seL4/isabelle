@@ -785,7 +785,7 @@ proof -
   hence "((UNIV::'x set) - A) \<noteq> ({}::'x set)" by (force simp only:)
   then obtain c::"'x" where "c\<in>((UNIV::'x set) - A)" by force
   then have "c\<notin>A" by simp
-  then show ?thesis using prems by simp 
+  then show ?thesis ..
 qed
 
 text {* there always exists a fresh name for an object with finite support *}

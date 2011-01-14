@@ -653,7 +653,7 @@ proof (rule ccontr)
   moreover have "\<forall>n. ?F n \<noteq> a"
     by (rule allI) (rule F1)
 
-  moreover from prems have "\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L" by simp
+  moreover note `\<forall>S. (\<forall>n. S n \<noteq> a) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L`
   ultimately have "(\<lambda>n. X (?F n)) ----> L" by simp
   
   moreover have "\<not> ((\<lambda>n. X (?F n)) ----> L)"

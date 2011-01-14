@@ -2171,7 +2171,7 @@ lemma word_mod_less_divisor: "0 < n \<Longrightarrow> m mod n < (n :: 'a :: len 
 
 lemma word_of_int_power_hom: 
   "word_of_int a ^ n = (word_of_int (a ^ n) :: 'a :: len word)"
-  by (induct n) (simp_all add : word_of_int_hom_syms power_Suc)
+  by (induct n) (simp_all add: word_of_int_hom_syms)
 
 lemma word_arith_power_alt: 
   "a ^ n = (word_of_int (uint a ^ n) :: 'a :: len word)"
@@ -2367,7 +2367,7 @@ lemma word_ao_dist:
   using word_of_int_Ex [where x=x] 
         word_of_int_Ex [where x=y] 
         word_of_int_Ex [where x=z]   
-  by (auto simp: bwsimps bbw_ao_dist simp del: bin_ops_comm)
+  by (auto simp: bwsimps bbw_ao_dist)
 
 lemma word_oa_dist:
   fixes x :: "'a::len0 word"
@@ -2375,7 +2375,7 @@ lemma word_oa_dist:
   using word_of_int_Ex [where x=x] 
         word_of_int_Ex [where x=y] 
         word_of_int_Ex [where x=z]   
-  by (auto simp: bwsimps bbw_oa_dist simp del: bin_ops_comm)
+  by (auto simp: bwsimps bbw_oa_dist)
 
 lemma word_add_not [simp]: 
   fixes x :: "'a::len0 word"
@@ -2571,7 +2571,7 @@ lemma word_set_set_diff:
   fixes w :: "'a::len0 word"
   assumes "m ~= n"
   shows "set_bit (set_bit w m x) n y = set_bit (set_bit w n y) m x" 
-  by (rule word_eqI) (clarsimp simp add : test_bit_set_gen word_size prems)
+  by (rule word_eqI) (clarsimp simp add: test_bit_set_gen word_size assms)
     
 lemma test_bit_no': 
   fixes w :: "'a::len0 word"
@@ -2623,7 +2623,7 @@ lemma to_bl_n1:
   done
 
 lemma word_msb_n1: "msb (-1::'a::len word)"
-  unfolding word_msb_alt word_msb_alt to_bl_n1 by simp
+  unfolding word_msb_alt to_bl_n1 by simp
 
 declare word_set_set_same [simp] word_set_nth [simp]
   test_bit_no [simp] word_set_no [simp] nth_0 [simp]
@@ -3047,7 +3047,7 @@ lemma shiftl1_p: "shiftl1 (w :: 'a :: len word) = w + w"
 
 lemma shiftl_t2n: "shiftl (w :: 'a :: len word) n = 2 ^ n * w"
   unfolding shiftl_def 
-  by (induct n) (auto simp: shiftl1_2t power_Suc)
+  by (induct n) (auto simp: shiftl1_2t)
 
 lemma shiftr1_bintr [simp]:
   "(shiftr1 (number_of w) :: 'a :: len0 word) = 
@@ -3940,12 +3940,12 @@ lemma word_rsplit_rcat_size':
      apply (clarsimp simp: word_size)+
   apply (rule trans)
   apply (rule test_bit_rcat [OF refl refl])
-  apply (simp add : word_size msrevs)
+  apply (simp add: word_size msrevs)
   apply (subst nth_rev)
    apply arith
-  apply (simp add : le0 [THEN [2] xtr7, THEN diff_Suc_less])
+  apply (simp add: le0 [THEN [2] xtr7, THEN diff_Suc_less])
   apply safe
-  apply (simp add : diff_mult_distrib)
+  apply (simp add: diff_mult_distrib)
   apply (rule mpl_lem)
   apply (cases "size ws")
    apply simp_all

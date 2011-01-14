@@ -93,10 +93,10 @@ lemma pred_subset_eq2 [pred_set_conv]: "((\<lambda>x y. (x, y) \<in> R) <= (\<la
 subsubsection {* Top and bottom elements *}
 
 lemma bot1E [no_atp, elim!]: "bot x \<Longrightarrow> P"
-  by (simp add: bot_fun_def bot_bool_def)
+  by (simp add: bot_fun_def)
 
 lemma bot2E [elim!]: "bot x y \<Longrightarrow> P"
-  by (simp add: bot_fun_def bot_bool_def)
+  by (simp add: bot_fun_def)
 
 lemma bot_empty_eq: "bot = (\<lambda>x. x \<in> {})"
   by (auto simp add: fun_eq_iff)
@@ -105,64 +105,64 @@ lemma bot_empty_eq2: "bot = (\<lambda>x y. (x, y) \<in> {})"
   by (auto simp add: fun_eq_iff)
 
 lemma top1I [intro!]: "top x"
-  by (simp add: top_fun_def top_bool_def)
+  by (simp add: top_fun_def)
 
 lemma top2I [intro!]: "top x y"
-  by (simp add: top_fun_def top_bool_def)
+  by (simp add: top_fun_def)
 
 
 subsubsection {* Binary intersection *}
 
 lemma inf1I [intro!]: "A x ==> B x ==> inf A B x"
-  by (simp add: inf_fun_def inf_bool_def)
+  by (simp add: inf_fun_def)
 
 lemma inf2I [intro!]: "A x y ==> B x y ==> inf A B x y"
-  by (simp add: inf_fun_def inf_bool_def)
+  by (simp add: inf_fun_def)
 
 lemma inf1E [elim!]: "inf A B x ==> (A x ==> B x ==> P) ==> P"
-  by (simp add: inf_fun_def inf_bool_def)
+  by (simp add: inf_fun_def)
 
 lemma inf2E [elim!]: "inf A B x y ==> (A x y ==> B x y ==> P) ==> P"
-  by (simp add: inf_fun_def inf_bool_def)
+  by (simp add: inf_fun_def)
 
 lemma inf1D1: "inf A B x ==> A x"
-  by (simp add: inf_fun_def inf_bool_def)
+  by (simp add: inf_fun_def)
 
 lemma inf2D1: "inf A B x y ==> A x y"
-  by (simp add: inf_fun_def inf_bool_def)
+  by (simp add: inf_fun_def)
 
 lemma inf1D2: "inf A B x ==> B x"
-  by (simp add: inf_fun_def inf_bool_def)
+  by (simp add: inf_fun_def)
 
 lemma inf2D2: "inf A B x y ==> B x y"
-  by (simp add: inf_fun_def inf_bool_def)
+  by (simp add: inf_fun_def)
 
 lemma inf_Int_eq: "inf (\<lambda>x. x \<in> R) (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<inter> S)"
-  by (simp add: inf_fun_def inf_bool_def mem_def)
+  by (simp add: inf_fun_def mem_def)
 
 lemma inf_Int_eq2 [pred_set_conv]: "inf (\<lambda>x y. (x, y) \<in> R) (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<inter> S)"
-  by (simp add: inf_fun_def inf_bool_def mem_def)
+  by (simp add: inf_fun_def mem_def)
 
 
 subsubsection {* Binary union *}
 
 lemma sup1I1 [elim?]: "A x \<Longrightarrow> sup A B x"
-  by (simp add: sup_fun_def sup_bool_def)
+  by (simp add: sup_fun_def)
 
 lemma sup2I1 [elim?]: "A x y \<Longrightarrow> sup A B x y"
-  by (simp add: sup_fun_def sup_bool_def)
+  by (simp add: sup_fun_def)
 
 lemma sup1I2 [elim?]: "B x \<Longrightarrow> sup A B x"
-  by (simp add: sup_fun_def sup_bool_def)
+  by (simp add: sup_fun_def)
 
 lemma sup2I2 [elim?]: "B x y \<Longrightarrow> sup A B x y"
-  by (simp add: sup_fun_def sup_bool_def)
+  by (simp add: sup_fun_def)
 
 lemma sup1E [elim!]: "sup A B x ==> (A x ==> P) ==> (B x ==> P) ==> P"
-  by (simp add: sup_fun_def sup_bool_def) iprover
+  by (simp add: sup_fun_def) iprover
 
 lemma sup2E [elim!]: "sup A B x y ==> (A x y ==> P) ==> (B x y ==> P) ==> P"
-  by (simp add: sup_fun_def sup_bool_def) iprover
+  by (simp add: sup_fun_def) iprover
 
 text {*
   \medskip Classical introduction rule: no commitment to @{text A} vs
@@ -170,16 +170,16 @@ text {*
 *}
 
 lemma sup1CI [intro!]: "(~ B x ==> A x) ==> sup A B x"
-  by (auto simp add: sup_fun_def sup_bool_def)
+  by (auto simp add: sup_fun_def)
 
 lemma sup2CI [intro!]: "(~ B x y ==> A x y) ==> sup A B x y"
-  by (auto simp add: sup_fun_def sup_bool_def)
+  by (auto simp add: sup_fun_def)
 
 lemma sup_Un_eq: "sup (\<lambda>x. x \<in> R) (\<lambda>x. x \<in> S) = (\<lambda>x. x \<in> R \<union> S)"
-  by (simp add: sup_fun_def sup_bool_def mem_def)
+  by (simp add: sup_fun_def mem_def)
 
 lemma sup_Un_eq2 [pred_set_conv]: "sup (\<lambda>x y. (x, y) \<in> R) (\<lambda>x y. (x, y) \<in> S) = (\<lambda>x y. (x, y) \<in> R \<union> S)"
-  by (simp add: sup_fun_def sup_bool_def mem_def)
+  by (simp add: sup_fun_def mem_def)
 
 
 subsubsection {* Intersections of families *}
@@ -257,7 +257,7 @@ inductive_cases pred_compE [elim!]: "(r OO s) a c"
 
 lemma pred_comp_rel_comp_eq [pred_set_conv]:
   "((\<lambda>x y. (x, y) \<in> r) OO (\<lambda>x y. (x, y) \<in> s)) = (\<lambda>x y. (x, y) \<in> r O s)"
-  by (auto simp add: fun_eq_iff elim: pred_compE)
+  by (auto simp add: fun_eq_iff)
 
 
 subsubsection {* Converse *}
@@ -292,12 +292,10 @@ lemma converse_pred_comp: "(r OO s)^--1 = s^--1 OO r^--1"
     elim: pred_compE dest: conversepD)
 
 lemma converse_meet: "(inf r s)^--1 = inf r^--1 s^--1"
-  by (simp add: inf_fun_def inf_bool_def)
-    (iprover intro: conversepI ext dest: conversepD)
+  by (simp add: inf_fun_def) (iprover intro: conversepI ext dest: conversepD)
 
 lemma converse_join: "(sup r s)^--1 = sup r^--1 s^--1"
-  by (simp add: sup_fun_def sup_bool_def)
-    (iprover intro: conversepI ext dest: conversepD)
+  by (simp add: sup_fun_def) (iprover intro: conversepI ext dest: conversepD)
 
 lemma conversep_noteq [simp]: "(op ~=)^--1 = op ~="
   by (auto simp add: fun_eq_iff)
@@ -756,7 +754,7 @@ proof -
     apply (rule ext)
     apply (simp add: unit_eq)
     done
-  from this prems show ?thesis by blast
+  from this assms show ?thesis by blast
 qed
 
 lemma unit_pred_cases:
