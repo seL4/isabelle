@@ -72,7 +72,7 @@ tar -C "$TMP" -x -z -f "$HEAPS_ARCHIVE"
 BUNDLE_ARCHIVE="${ARCHIVE_DIR}/${ISABELLE_NAME}_bundle_${PLATFORM}.tar.gz"
 
 echo "$(basename "$BUNDLE_ARCHIVE")"
-tar -C "$TMP" -c -z -f "$BUNDLE_ARCHIVE" Isabelle "$ISABELLE_NAME"
+tar -C "$TMP" -c -z -f "$BUNDLE_ARCHIVE" "$ISABELLE_NAME"
 
 
 # clean up
