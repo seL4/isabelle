@@ -170,7 +170,7 @@ proof -
 qed
 
 lemma (in sigma_algebra) borel_measurable_subalgebra:
-  assumes "N \<subseteq> sets M" "f \<in> borel_measurable (M\<lparr>sets:=N\<rparr>)"
+  assumes "sets N \<subseteq> sets M" "space N = space M" "f \<in> borel_measurable N"
   shows "f \<in> borel_measurable M"
   using assms unfolding measurable_def by auto
 

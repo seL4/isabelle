@@ -919,16 +919,15 @@ proof -
 qed
 
 lemma (in measure_space) measure_space_subalgebra:
-  assumes "N \<subseteq> sets M" "sigma_algebra (M\<lparr> sets := N \<rparr>)"
-  shows "measure_space (M\<lparr> sets := N \<rparr>) \<mu>"
+  assumes "sigma_algebra N" and [simp]: "sets N \<subseteq> sets M" "space N = space M"
+  shows "measure_space N \<mu>"
 proof -
-  interpret N: sigma_algebra "M\<lparr> sets := N \<rparr>" by fact
+  interpret N: sigma_algebra N by fact
   show ?thesis
   proof
-    show "countably_additive (M\<lparr>sets := N\<rparr>) \<mu>"
-      using `N \<subseteq> sets M`
-      by (auto simp add: countably_additive_def
-               intro!: measure_countably_additive)
+    from `sets N \<subseteq> sets M` have "\<And>A. range A \<subseteq> sets N \<Longrightarrow> range A \<subseteq> sets M" by blast
+    then show "countably_additive N \<mu>"
+      by (auto intro!: measure_countably_additive simp: countably_additive_def)
   qed simp
 qed
 

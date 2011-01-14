@@ -851,13 +851,13 @@ proof -
 qed
 
 lemma (in prob_space) prob_space_subalgebra:
-  assumes "N \<subseteq> sets M" "sigma_algebra (M\<lparr> sets := N \<rparr>)"
-  shows "prob_space (M\<lparr> sets := N \<rparr>) \<mu>"
+  assumes "sigma_algebra N" "sets N \<subseteq> sets M" "space N = space M"
+  shows "prob_space N \<mu>"
 proof -
-  interpret N: measure_space "M\<lparr> sets := N \<rparr>" \<mu>
+  interpret N: measure_space N \<mu>
     using measure_space_subalgebra[OF assms] .
   show ?thesis
-    proof qed (simp add: measure_space_1)
+    proof qed (simp add: `space N = space M` measure_space_1)
 qed
 
 lemma (in prob_space) prob_space_of_restricted_space:
@@ -955,46 +955,46 @@ section "Conditional Expectation and Probability"
 lemma (in prob_space) conditional_expectation_exists:
   fixes X :: "'a \<Rightarrow> pextreal"
   assumes borel: "X \<in> borel_measurable M"
-  and N_subalgebra: "N \<subseteq> sets M" "sigma_algebra (M\<lparr> sets := N \<rparr>)"
-  shows "\<exists>Y\<in>borel_measurable (M\<lparr> sets := N \<rparr>). \<forall>C\<in>N.
+  and N: "sigma_algebra N" "sets N \<subseteq> sets M" "space N = space M"
+  shows "\<exists>Y\<in>borel_measurable N. \<forall>C\<in>sets N.
       (\<integral>\<^isup>+x. Y x * indicator C x) = (\<integral>\<^isup>+x. X x * indicator C x)"
 proof -
-  interpret P: prob_space "M\<lparr> sets := N \<rparr>" \<mu>
-    using prob_space_subalgebra[OF N_subalgebra] .
+  interpret P: prob_space N \<mu>
+    using prob_space_subalgebra[OF N] .
 
   let "?f A" = "\<lambda>x. X x * indicator A x"
   let "?Q A" = "positive_integral (?f A)"
 
   from measure_space_density[OF borel]
-  have Q: "measure_space (M\<lparr> sets := N \<rparr>) ?Q"
-    by (rule measure_space.measure_space_subalgebra[OF _ N_subalgebra])
-  then interpret Q: measure_space "M\<lparr> sets := N \<rparr>" ?Q .
+  have Q: "measure_space N ?Q"
+    by (rule measure_space.measure_space_subalgebra[OF _ N])
+  then interpret Q: measure_space N ?Q .
 
   have "P.absolutely_continuous ?Q"
     unfolding P.absolutely_continuous_def
-  proof (safe, simp)
-    fix A assume "A \<in> N" "\<mu> A = 0"
+  proof safe
+    fix A assume "A \<in> sets N" "\<mu> A = 0"
     moreover then have f_borel: "?f A \<in> borel_measurable M"
-      using borel N_subalgebra by (auto intro: borel_measurable_indicator)
+      using borel N by (auto intro: borel_measurable_indicator)
     moreover have "{x\<in>space M. ?f A x \<noteq> 0} = (?f A -` {0<..} \<inter> space M) \<inter> A"
       by (auto simp: indicator_def)
     moreover have "\<mu> \<dots> \<le> \<mu> A"
-      using `A \<in> N` N_subalgebra f_borel
+      using `A \<in> sets N` N f_borel
       by (auto intro!: measure_mono Int[of _ A] measurable_sets)
     ultimately show "?Q A = 0"
       by (simp add: positive_integral_0_iff)
   qed
   from P.Radon_Nikodym[OF Q this]
-  obtain Y where Y: "Y \<in> borel_measurable (M\<lparr>sets := N\<rparr>)"
-    "\<And>A. A \<in> sets (M\<lparr>sets:=N\<rparr>) \<Longrightarrow> ?Q A = P.positive_integral (\<lambda>x. Y x * indicator A x)"
+  obtain Y where Y: "Y \<in> borel_measurable N"
+    "\<And>A. A \<in> sets N \<Longrightarrow> ?Q A = P.positive_integral (\<lambda>x. Y x * indicator A x)"
     by blast
-  with N_subalgebra show ?thesis
-    by (auto intro!: bexI[OF _ Y(1)])
+  with N(2) show ?thesis
+    by (auto intro!: bexI[OF _ Y(1)] simp: positive_integral_subalgebra[OF _ N(2,3,1)])
 qed
 
 definition (in prob_space)
-  "conditional_expectation N X = (SOME Y. Y\<in>borel_measurable (M\<lparr>sets:=N\<rparr>)
-    \<and> (\<forall>C\<in>N. (\<integral>\<^isup>+x. Y x * indicator C x) = (\<integral>\<^isup>+x. X x * indicator C x)))"
+  "conditional_expectation N X = (SOME Y. Y\<in>borel_measurable N
+    \<and> (\<forall>C\<in>sets N. (\<integral>\<^isup>+x. Y x * indicator C x) = (\<integral>\<^isup>+x. X x * indicator C x)))"
 
 abbreviation (in prob_space)
   "conditional_prob N A \<equiv> conditional_expectation N (indicator A)"
@@ -1002,19 +1002,19 @@ abbreviation (in prob_space)
 lemma (in prob_space)
   fixes X :: "'a \<Rightarrow> pextreal"
   assumes borel: "X \<in> borel_measurable M"
-  and N_subalgebra: "N \<subseteq> sets M" "sigma_algebra (M\<lparr> sets := N \<rparr>)"
+  and N: "sigma_algebra N" "sets N \<subseteq> sets M" "space N = space M"
   shows borel_measurable_conditional_expectation:
-    "conditional_expectation N X \<in> borel_measurable (M\<lparr> sets := N \<rparr>)"
-  and conditional_expectation: "\<And>C. C \<in> N \<Longrightarrow>
+    "conditional_expectation N X \<in> borel_measurable N"
+  and conditional_expectation: "\<And>C. C \<in> sets N \<Longrightarrow>
       (\<integral>\<^isup>+x. conditional_expectation N X x * indicator C x) =
       (\<integral>\<^isup>+x. X x * indicator C x)"
-   (is "\<And>C. C \<in> N \<Longrightarrow> ?eq C")
+   (is "\<And>C. C \<in> sets N \<Longrightarrow> ?eq C")
 proof -
   note CE = conditional_expectation_exists[OF assms, unfolded Bex_def]
-  then show "conditional_expectation N X \<in> borel_measurable (M\<lparr> sets := N \<rparr>)"
+  then show "conditional_expectation N X \<in> borel_measurable N"
     unfolding conditional_expectation_def by (rule someI2_ex) blast
 
-  from CE show "\<And>C. C\<in>N \<Longrightarrow> ?eq C"
+  from CE show "\<And>C. C \<in> sets N \<Longrightarrow> ?eq C"
     unfolding conditional_expectation_def by (rule someI2_ex) blast
 qed
 

@@ -463,12 +463,12 @@ proof -
 qed
 
 lemma (in sigma_algebra) simple_function_subalgebra:
-  assumes "sigma_algebra.simple_function (M\<lparr>sets:=N\<rparr>) f"
-  and N_subalgebra: "N \<subseteq> sets M" "sigma_algebra (M\<lparr>sets:=N\<rparr>)"
+  assumes "sigma_algebra.simple_function N f"
+  and N_subalgebra: "sets N \<subseteq> sets M" "space N = space M" "sigma_algebra N"
   shows "simple_function f"
   using assms
   unfolding simple_function_def
-  unfolding sigma_algebra.simple_function_def[OF N_subalgebra(2)]
+  unfolding sigma_algebra.simple_function_def[OF N_subalgebra(3)]
   by auto
 
 lemma (in sigma_algebra) simple_function_vimage:
@@ -809,11 +809,11 @@ next
     unfolding pextreal_mult_cancel_left by auto
 qed
 
-lemma (in measure_space) simple_integral_subalgebra[simp]:
-  assumes "measure_space (M\<lparr>sets := N\<rparr>) \<mu>"
-  shows "measure_space.simple_integral (M\<lparr>sets := N\<rparr>) \<mu> = simple_integral"
+lemma (in measure_space) simple_integral_subalgebra:
+  assumes N: "measure_space N \<mu>" and [simp]: "space N = space M"
+  shows "measure_space.simple_integral N \<mu> = simple_integral"
   unfolding simple_integral_def_raw
-  unfolding measure_space.simple_integral_def_raw[OF assms] by simp
+  unfolding measure_space.simple_integral_def_raw[OF N] by simp
 
 lemma (in measure_space) simple_integral_vimage:
   fixes g :: "'a \<Rightarrow> pextreal" and f :: "'d \<Rightarrow> 'a"
@@ -1543,19 +1543,18 @@ proof -
   qed
 qed
 
-lemma (in measure_space) positive_integral_subalgebra[simp]:
-  assumes borel: "f \<in> borel_measurable (M\<lparr>sets := N\<rparr>)"
-  and N_subalgebra: "N \<subseteq> sets M" "sigma_algebra (M\<lparr>sets := N\<rparr>)"
-  shows "measure_space.positive_integral (M\<lparr>sets := N\<rparr>) \<mu> f = positive_integral f"
+lemma (in measure_space) positive_integral_subalgebra:
+  assumes borel: "f \<in> borel_measurable N"
+  and N: "sets N \<subseteq> sets M" "space N = space M" and sa: "sigma_algebra N"
+  shows "measure_space.positive_integral N \<mu> f = positive_integral f"
 proof -
-  note msN = measure_space_subalgebra[OF N_subalgebra]
-  then interpret N: measure_space "M\<lparr>sets:=N\<rparr>" \<mu> .
+  interpret N: measure_space N \<mu> using measure_space_subalgebra[OF sa N] .
   from N.borel_measurable_implies_simple_function_sequence[OF borel]
   obtain fs where Nsf: "\<And>i. N.simple_function (fs i)" and "fs \<up> f" by blast
   then have sf: "\<And>i. simple_function (fs i)"
-    using simple_function_subalgebra[OF _ N_subalgebra] by blast
+    using simple_function_subalgebra[OF _ N sa] by blast
   from positive_integral_isoton_simple[OF `fs \<up> f` sf] N.positive_integral_isoton_simple[OF `fs \<up> f` Nsf]
-  show ?thesis unfolding simple_integral_subalgebra[OF msN] isoton_def by simp
+  show ?thesis unfolding isoton_def simple_integral_def N.simple_integral_def `space N = space M` by simp
 qed
 
 section "Lebesgue Integral"
@@ -1845,6 +1844,22 @@ proof -
     using assms unfolding integrable_def by auto
   from abs assms show ?thesis unfolding integrable_def *
     using positive_integral_linear[OF f, of 1] by simp
+qed
+
+lemma (in measure_space) integral_subalgebra:
+  assumes borel: "f \<in> borel_measurable N"
+  and N: "sets N \<subseteq> sets M" "space N = space M" and sa: "sigma_algebra N"
+  shows "measure_space.integrable N \<mu> f \<longleftrightarrow> integrable f" (is ?P)
+    and "measure_space.integral N \<mu> f = integral f" (is ?I)
+proof -
+  interpret N: measure_space N \<mu> using measure_space_subalgebra[OF sa N] .
+  have "(\<lambda>x. Real (f x)) \<in> borel_measurable N" "(\<lambda>x. Real (- f x)) \<in> borel_measurable N"
+    using borel by auto
+  note * = this[THEN positive_integral_subalgebra[OF _ N sa]]
+  have "f \<in> borel_measurable M \<longleftrightarrow> f \<in> borel_measurable N"
+    using assms unfolding measurable_def by auto
+  then show ?P ?I unfolding integrable_def N.integrable_def integral_def N.integral_def
+    unfolding * by auto
 qed
 
 lemma (in measure_space) integrable_bound:
