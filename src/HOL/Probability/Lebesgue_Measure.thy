@@ -626,11 +626,38 @@ proof- let ?n = "\<lambda>x. - min (f x) 0" and ?p = "\<lambda>x. max (f x) 0"
   qed
 qed
 
+lemma lebesgue_positive_integral_eq_borel:
+  "f \<in> borel_measurable borel \<Longrightarrow> lebesgue.positive_integral f = borel.positive_integral f "
+  by (auto intro!: lebesgue.positive_integral_subalgebra[symmetric]) default
+
+lemma lebesgue_integral_eq_borel:
+  assumes "f \<in> borel_measurable borel"
+  shows "lebesgue.integrable f = borel.integrable f" (is ?P)
+    and "lebesgue.integral f = borel.integral f" (is ?I)
+proof -
+  have *: "sigma_algebra borel" by default
+  have "sets borel \<subseteq> sets lebesgue" by auto
+  from lebesgue.integral_subalgebra[OF assms this _ *]
+  show ?P ?I by auto
+qed
+
+lemma borel_integral_has_integral:
+  fixes f::"'a::ordered_euclidean_space => real"
+  assumes f:"borel.integrable f"
+  shows "(f has_integral (borel.integral f)) UNIV"
+proof -
+  have borel: "f \<in> borel_measurable borel"
+    using f unfolding borel.integrable_def by auto
+  from f show ?thesis
+    using lebesgue_integral_has_integral[of f]
+    unfolding lebesgue_integral_eq_borel[OF borel] by simp
+qed
+
 lemma continuous_on_imp_borel_measurable:
   fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'b::ordered_euclidean_space"
   assumes "continuous_on UNIV f"
-  shows "f \<in> borel_measurable lebesgue"
-  apply(rule lebesgue.borel_measurableI)
+  shows "f \<in> borel_measurable borel"
+  apply(rule borel.borel_measurableI)
   using continuous_open_preimage[OF assms] unfolding vimage_def by auto
 
 lemma (in measure_space) integral_monotone_convergence_pos':
