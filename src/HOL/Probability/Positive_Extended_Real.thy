@@ -1603,6 +1603,136 @@ next
 qed
 end
 
+lemma minus_omega[simp]: "x - \<omega> = 0" by (cases x) auto
+
+lemma open_pextreal_alt: "open A \<longleftrightarrow>
+  (\<forall>x\<in>A. \<exists>e>0. {x-e <..< x+e} \<subseteq> A) \<and> (\<omega> \<in> A \<longrightarrow> (\<exists>x\<ge>0. {Real x <..} \<subseteq> A))"
+proof -
+  have *: "(\<exists>T. open T \<and> (Real ` (T\<inter>{0..}) = A - {\<omega>})) \<longleftrightarrow>
+    open (real ` (A - {\<omega>}) \<union> {..<0})"
+  proof safe
+    fix T assume "open T" and A: "Real ` (T \<inter> {0..}) = A - {\<omega>}"
+    have *: "(\<lambda>x. real (Real x)) ` (T \<inter> {0..}) = T \<inter> {0..}"
+      by auto
+    have **: "T \<inter> {0..} \<union> {..<0} = T \<union> {..<0}" by auto
+    show "open (real ` (A - {\<omega>}) \<union> {..<0})"
+      unfolding A[symmetric] image_image * ** using `open T` by auto
+  next
+    assume "open (real ` (A - {\<omega>}) \<union> {..<0})"
+    moreover have "Real ` ((real ` (A - {\<omega>}) \<union> {..<0}) \<inter> {0..}) = A - {\<omega>}"
+      apply auto
+      apply (case_tac xb)
+      apply auto
+      apply (case_tac x)
+      apply (auto simp: image_iff)
+      apply (erule_tac x="Real r" in ballE)
+      apply auto
+      done
+    ultimately show "\<exists>T. open T \<and> Real ` (T \<inter> {0..}) = A - {\<omega>}" by auto
+  qed
+  also have "\<dots> \<longleftrightarrow> (\<forall>x\<in>A. \<exists>e>0. {x-e <..< x+e} \<subseteq> A)"
+  proof (intro iffI ballI open_subopen[THEN iffD2])
+    fix x assume *: "\<forall>x\<in>A. \<exists>e>0. {x - e<..<x + e} \<subseteq> A" and x: "x \<in> real ` (A - {\<omega>}) \<union> {..<0}"
+    show "\<exists>T. open T \<and> x \<in> T \<and> T \<subseteq> real ` (A - {\<omega>}) \<union> {..<0}"
+    proof (cases rule: linorder_cases)
+      assume "x < 0" then show ?thesis by (intro exI[of _ "{..<0}"]) auto
+    next
+      assume "x = 0" with x
+      have "0 \<in> A"
+        apply auto by (case_tac x) auto
+      with * obtain e where "e > 0" "{0 - e<..<0 + e} \<subseteq> A" by auto
+      then have "{..<e} \<subseteq> A" using `0 \<in> A`
+        apply auto
+        apply (case_tac "x = 0")
+        by (auto dest!: pextreal_zero_lessI)
+      then have *: "{..<e} \<subseteq> A - {\<omega>}" by auto
+      def e' \<equiv> "if e = \<omega> then 1 else real e"
+      then have "0 < e'" using `e > 0` by (cases e) auto
+      have "{0..<e'} \<subseteq> real ` (A - {\<omega>})"
+      proof (cases e)
+        case infinite
+        then have "{..<e} = UNIV - {\<omega>}" by auto
+        then have A: "A - {\<omega>} = UNIV - {\<omega>}" using * by auto
+        show ?thesis unfolding e'_def infinite A
+          apply safe
+          apply (rule_tac x="Real x" in image_eqI)
+          apply auto
+          done
+      next
+        case (preal r)
+        then show ?thesis unfolding e'_def using *
+          apply safe
+          apply (rule_tac x="Real x" in image_eqI)
+          by (auto simp: subset_eq)
+      qed
+      then have "{0..<e'} \<union> {..<0} \<subseteq> real ` (A - {\<omega>}) \<union> {..<0}" by auto
+      moreover have "{0..<e'} \<union> {..<0} = {..<e'}" using `0 < e'` by auto
+      ultimately have "{..<e'} \<subseteq> real ` (A - {\<omega>}) \<union> {..<0}" by simp
+      then show ?thesis using `0 < e'` `x = 0` by auto
+    next
+      assume "0 < x"
+      with x have "Real x \<in> A" apply auto by (case_tac x) auto
+      with * obtain e where "0 < e" and e: "{Real x - e<..<Real x + e} \<subseteq> A" by auto
+      show ?thesis
+      proof cases
+        assume "e < Real x"
+        with `0 < e` obtain r where r: "e = Real r" "0 < r" by (cases e) auto
+        then have "r < x" using `e < Real x` `0 < e` by (auto split: split_if_asm)
+        then have "{x - r <..< x + r} \<subseteq> real ` (A - {\<omega>}) \<union> {..<0}"
+          using e unfolding r
+          apply (auto simp: subset_eq)
+          apply (rule_tac x="Real xa" in image_eqI)
+          by auto
+        then show ?thesis using `0 < r` by (intro exI[of _ "{x - r <..< x + r}"]) auto
+      next
+        assume "\<not> e < Real x"
+        moreover then have "Real x - e = 0" by (cases e) auto
+        moreover have "\<And>z. 0 < z \<Longrightarrow>  z * 2 < 3 * x \<Longrightarrow> Real z < Real x + e"
+          using `\<not> e < Real x` by (cases e) auto
+        ultimately have "{0 <..< x + x / 2} \<subseteq> real ` (A - {\<omega>}) \<union> {..<0}"
+          using e
+          apply (auto simp: subset_eq)
+          apply (erule_tac x="Real xa" in ballE)
+          apply (auto simp: not_less)
+          apply (rule_tac x="Real xa" in image_eqI)
+          apply auto
+          done
+        moreover have "x \<in> {0 <..< x + x / 2}" using `0 < x` by auto
+        ultimately show ?thesis by (intro exI[of _ "{0 <..< x + x / 2}"]) auto
+      qed
+    qed
+  next
+    fix x assume x: "x \<in> A" "open (real ` (A - {\<omega>}) \<union> {..<0})"
+    then show "\<exists>e>0. {x - e<..<x + e} \<subseteq> A"
+    proof (cases x)
+      case infinite then show ?thesis by (intro exI[of _ 2]) auto
+    next
+      case (preal r)
+      with `x \<in> A` have r: "r \<in> real ` (A - {\<omega>}) \<union> {..<0}" by force
+      from x(2)[unfolded open_real, THEN bspec, OF r]
+      obtain e where e: "0 < e" "\<And>x'. \<bar>x' - r\<bar> < e \<Longrightarrow> x' \<in> real ` (A - {\<omega>}) \<union> {..<0}"
+        by auto
+      show ?thesis using `0 < e` preal
+      proof (auto intro!: exI[of _ "Real e"] simp: greaterThanLessThan_iff not_less 
+                  split: split_if_asm)
+        fix z assume *: "Real (r - e) < z" "z < Real (r + e)"
+        then obtain q where [simp]: "z = Real q" "0 \<le> q" by (cases z) auto
+        with * have "r - e < q" "q < r + e" by (auto split: split_if_asm)
+        with e(2)[of q] have "q \<in> real ` (A - {\<omega>}) \<union> {..<0}" by auto
+        then show "z \<in> A" using `0 \<le> q` apply auto apply (case_tac x) apply auto done
+      next
+        fix z assume *: "0 < z" "z < Real (r + e)" "r \<le> e"
+        then obtain q where [simp]: "z = Real q" and "0 < q" by (cases z) auto
+        with * have "q < r + e" by (auto split: split_if_asm)
+        moreover have "r - e < q" using `r \<le> e` `0 < q` by auto
+        ultimately have "q \<in> real ` (A - {\<omega>}) \<union> {..<0}" using e(2)[of q] by auto
+        then show "z \<in> A" using `0 < q` apply auto apply (case_tac x) apply auto done
+      qed
+    qed
+  qed
+  finally show ?thesis unfolding open_pextreal_def by simp
+qed
+
 lemma open_pextreal_lessThan[simp]:
   "open {..< a :: pextreal}"
 proof (cases a)
