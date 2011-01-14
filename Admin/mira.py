@@ -10,10 +10,6 @@ import re
 
 import util
 
-from mira.environment import configuration
-
-from repositories import *
-
 
 # build and evaluation tools
 
