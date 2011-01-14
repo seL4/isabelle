@@ -5,7 +5,7 @@
 header {* Linked Lists by ML references *}
 
 theory Linked_Lists
-imports Imperative_HOL Code_Integer
+imports "../Imperative_HOL" Code_Integer
 begin
 
 section {* Definition of Linked Lists *}
@@ -371,13 +371,12 @@ lemma refs_of'_set_next_ref:
 assumes "Ref.get h1 p = Node x pn"
 assumes "refs_of' (Ref.set p (Node x r1) h1) p rs"
 obtains r1s where "rs = (p#r1s)" and "refs_of' h1 r1 r1s"
-using assms
 proof -
   from assms refs_of'_distinct[OF assms(2)] have "\<exists> r1s. rs = (p # r1s) \<and> refs_of' h1 r1 r1s"
     apply -
     unfolding refs_of'_def'[of _ p]
     apply (auto, frule refs_of_set_ref2) by (auto dest: Ref.noteq_sym)
-  with prems show thesis by auto
+  with assms that show thesis by auto
 qed
 
 section {* Proving make_llist and traverse correct *}
