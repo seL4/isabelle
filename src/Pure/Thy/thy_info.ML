@@ -225,12 +225,12 @@ fun load_thy initiators update_time (deps: deps) text name parent_thys =
     val _ = kill_thy name;
     val _ = Output.urgent_message ("Loading theory " ^ quote name ^ required_by " " initiators);
 
-    val {master = (thy_path, _), ...} = deps;
+    val {master = (thy_path, _), imports} = deps;
     val dir = Path.dir thy_path;
     val pos = Path.position thy_path;
     val uses = map (apfst Path.explode) (#3 (Thy_Header.read pos text));
     fun init _ =
-      Thy_Load.begin_theory dir name parent_thys uses
+      Thy_Load.begin_theory dir name imports parent_thys uses
       |> Present.begin_theory update_time dir uses;
 
     val (after_load, theory) = Outer_Syntax.load_thy name init pos text;
@@ -324,7 +324,7 @@ fun toplevel_begin_theory master name imports uses =
     val _ = kill_thy name;
     val _ = use_thys_wrt dir imports;
     val parent_thys = map (get_theory o base_name) imports;
-  in Thy_Load.begin_theory dir name parent_thys uses end;
+  in Thy_Load.begin_theory dir name imports parent_thys uses end;
 
 
 (* register theory *)
@@ -334,7 +334,8 @@ fun register_thy theory =
     val name = Context.theory_name theory;
     val master = Thy_Load.check_thy (Thy_Load.master_directory theory) name;
     val parents = map Context.theory_name (Theory.parents_of theory);
-    val deps = make_deps master parents;
+    val imports = Thy_Load.imports_of theory;
+    val deps = make_deps master imports;
   in
     NAMED_CRITICAL "Thy_Info" (fn () =>
      (kill_thy name;

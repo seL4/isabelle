@@ -13,6 +13,7 @@ sig
   val set_master_path: Path.T -> unit
   val get_master_path: unit -> Path.T
   val master_directory: theory -> Path.T
+  val imports_of: theory -> string list
   val provide: Path.T * (Path.T * file_ident) -> theory -> theory
   val legacy_show_path: unit -> string list
   val legacy_add_path: string -> unit
@@ -28,7 +29,7 @@ sig
   val provide_file: Path.T -> theory -> theory
   val use_ml: Path.T -> unit
   val exec_ml: Path.T -> generic_theory -> generic_theory
-  val begin_theory: Path.T -> string -> theory list -> (Path.T * bool) list -> theory
+  val begin_theory: Path.T -> string -> string list -> theory list -> (Path.T * bool) list -> theory
 end;
 
 structure Thy_Load: THY_LOAD =
@@ -83,40 +84,42 @@ fun file_ident path =
 
 type files =
  {master_dir: Path.T,  (*master directory of theory source*)
+  imports: string list,  (*source specification of imports*)
   required: Path.T list,  (*source path*)
   provided: (Path.T * (Path.T * file_ident)) list};  (*source path, physical path, identifier*)
 
-fun make_files (master_dir, required, provided): files =
- {master_dir = master_dir, required = required, provided = provided};
+fun make_files (master_dir, imports, required, provided): files =
+ {master_dir = master_dir, imports = imports, required = required, provided = provided};
 
 structure Files = Theory_Data
 (
   type T = files;
-  val empty = make_files (Path.current, [], []);
+  val empty = make_files (Path.current, [], [], []);
   fun extend _ = empty;
   fun merge _ = empty;
 );
 
 fun map_files f =
-  Files.map (fn {master_dir, required, provided} =>
-    make_files (f (master_dir, required, provided)));
+  Files.map (fn {master_dir, imports, required, provided} =>
+    make_files (f (master_dir, imports, required, provided)));
 
 
 val master_directory = #master_dir o Files.get;
+val imports_of = #imports o Files.get;
 
-fun master dir = map_files (fn _ => (dir, [], []));
+fun put_deps dir imports = map_files (fn _ => (dir, imports, [], []));
 
 fun require src_path =
-  map_files (fn (master_dir, required, provided) =>
+  map_files (fn (master_dir, imports, required, provided) =>
     if member (op =) required src_path then
       error ("Duplicate source file dependency: " ^ Path.implode src_path)
-    else (master_dir, src_path :: required, provided));
+    else (master_dir, imports, src_path :: required, provided));
 
 fun provide (src_path, path_id) =
-  map_files (fn (master_dir, required, provided) =>
+  map_files (fn (master_dir, imports, required, provided) =>
     if AList.defined (op =) provided src_path then
       error ("Duplicate resolution of source file dependency: " ^ Path.implode src_path)
-    else (master_dir, required, (src_path, path_id) :: provided));
+    else (master_dir, imports, required, (src_path, path_id) :: provided));
 
 
 (* maintain default paths *)
@@ -251,9 +254,9 @@ fun exec_ml src_path = ML_Context.exec (fn () => use_ml src_path);
 
 (* begin theory *)
 
-fun begin_theory dir name parents uses =
+fun begin_theory dir name imports parents uses =
   Theory.begin_theory name parents
-  |> master dir
+  |> put_deps dir imports
   |> fold (require o fst) uses
   |> fold (fn (path, true) => Context.theory_map (exec_ml path) o Theory.checkpoint | _ => I) uses
   |> Theory.checkpoint;
