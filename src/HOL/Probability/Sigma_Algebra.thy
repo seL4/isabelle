@@ -222,7 +222,44 @@ inductive_set
   | Union: "(\<And>i::nat. a i \<in> sigma_sets sp A) \<Longrightarrow> (\<Union>i. a i) \<in> sigma_sets sp A"
 
 definition
-  "sigma M = (| space = space M, sets = sigma_sets (space M) (sets M) |)"
+  "sigma M = \<lparr> space = space M, sets = sigma_sets (space M) (sets M) \<rparr>"
+
+lemma (in sigma_algebra) sigma_sets_subset:
+  assumes a: "a \<subseteq> sets M"
+  shows "sigma_sets (space M) a \<subseteq> sets M"
+proof
+  fix x
+  assume "x \<in> sigma_sets (space M) a"
+  from this show "x \<in> sets M"
+    by (induct rule: sigma_sets.induct, auto) (metis a subsetD)
+qed
+
+lemma sigma_sets_into_sp: "A \<subseteq> Pow sp \<Longrightarrow> x \<in> sigma_sets sp A \<Longrightarrow> x \<subseteq> sp"
+  by (erule sigma_sets.induct, auto)
+
+lemma sigma_algebra_sigma_sets:
+     "a \<subseteq> Pow (space M) \<Longrightarrow> sets M = sigma_sets (space M) a \<Longrightarrow> sigma_algebra M"
+  by (auto simp add: sigma_algebra_iff2 dest: sigma_sets_into_sp
+           intro!: sigma_sets.Union sigma_sets.Empty sigma_sets.Compl)
+
+lemma sigma_sets_least_sigma_algebra:
+  assumes "A \<subseteq> Pow S"
+  shows "sigma_sets S A = \<Inter>{B. A \<subseteq> B \<and> sigma_algebra \<lparr>space = S, sets = B\<rparr>}"
+proof safe
+  fix B X assume "A \<subseteq> B" and sa: "sigma_algebra \<lparr> space = S, sets = B \<rparr>"
+    and X: "X \<in> sigma_sets S A"
+  from sigma_algebra.sigma_sets_subset[OF sa, simplified, OF `A \<subseteq> B`] X
+  show "X \<in> B" by auto
+next
+  fix X assume "X \<in> \<Inter>{B. A \<subseteq> B \<and> sigma_algebra \<lparr>space = S, sets = B\<rparr>}"
+  then have [intro!]: "\<And>B. A \<subseteq> B \<Longrightarrow> sigma_algebra \<lparr>space = S, sets = B\<rparr> \<Longrightarrow> X \<in> B"
+     by simp
+  have "A \<subseteq> sigma_sets S A" using assms
+    by (auto intro!: sigma_sets.Basic)
+  moreover have "sigma_algebra \<lparr>space = S, sets = sigma_sets S A\<rparr>"
+    using assms by (intro sigma_algebra_sigma_sets[of A]) auto
+  ultimately show "X \<in> sigma_sets S A" by auto
+qed
 
 lemma sets_sigma: "sets (sigma M) = sigma_sets (space M) (sets M)"
   unfolding sigma_def by simp
@@ -232,9 +269,6 @@ lemma space_sigma [simp]: "space (sigma M) = space M"
 
 lemma sigma_sets_top: "sp \<in> sigma_sets sp A"
   by (metis Diff_empty sigma_sets.Compl sigma_sets.Empty)
-
-lemma sigma_sets_into_sp: "A \<subseteq> Pow sp \<Longrightarrow> x \<in> sigma_sets sp A \<Longrightarrow> x \<subseteq> sp"
-  by (erule sigma_sets.induct, auto)
 
 lemma sigma_sets_Un:
   "a \<in> sigma_sets sp A \<Longrightarrow> b \<in> sigma_sets sp A \<Longrightarrow> a \<union> b \<in> sigma_sets sp A"
@@ -274,16 +308,6 @@ proof -
   finally show ?thesis .
 qed
 
-lemma (in sigma_algebra) sigma_sets_subset:
-  assumes a: "a \<subseteq> sets M"
-  shows "sigma_sets (space M) a \<subseteq> sets M"
-proof
-  fix x
-  assume "x \<in> sigma_sets (space M) a"
-  from this show "x \<in> sets M"
-    by (induct rule: sigma_sets.induct, auto) (metis a subsetD)
-qed
-
 lemma (in sigma_algebra) sigma_sets_eq:
      "sigma_sets (space M) (sets M) = sets M"
 proof
@@ -294,14 +318,6 @@ proof
     by (metis sigma_sets_subset subset_refl)
 qed
 
-lemma sigma_algebra_sigma_sets:
-     "a \<subseteq> Pow (space M) \<Longrightarrow> sets M = sigma_sets (space M) a \<Longrightarrow> sigma_algebra M"
-  apply (auto simp add: sigma_algebra_def sigma_algebra_axioms_def
-      algebra_def sigma_sets.Empty sigma_sets.Compl sigma_sets_Un)
-  apply (blast dest: sigma_sets_into_sp)
-  apply (rule sigma_sets.Union, fast)
-  done
-
 lemma sigma_algebra_sigma:
     "sets M \<subseteq> Pow (space M) \<Longrightarrow> sigma_algebra (sigma M)"
   apply (rule sigma_algebra_sigma_sets)
@@ -311,25 +327,6 @@ lemma sigma_algebra_sigma:
 lemma (in sigma_algebra) sigma_subset:
     "sets N \<subseteq> sets M \<Longrightarrow> space N = space M \<Longrightarrow> sets (sigma N) \<subseteq> (sets M)"
   by (simp add: sigma_def sigma_sets_subset)
-
-lemma sigma_sets_least_sigma_algebra:
-  assumes "A \<subseteq> Pow S"
-  shows "sigma_sets S A = \<Inter>{B. A \<subseteq> B \<and> sigma_algebra \<lparr>space = S, sets = B\<rparr>}"
-proof safe
-  fix B X assume "A \<subseteq> B" and sa: "sigma_algebra \<lparr> space = S, sets = B \<rparr>"
-    and X: "X \<in> sigma_sets S A"
-  from sigma_algebra.sigma_sets_subset[OF sa, simplified, OF `A \<subseteq> B`] X
-  show "X \<in> B" by auto
-next
-  fix X assume "X \<in> \<Inter>{B. A \<subseteq> B \<and> sigma_algebra \<lparr>space = S, sets = B\<rparr>}"
-  then have [intro!]: "\<And>B. A \<subseteq> B \<Longrightarrow> sigma_algebra \<lparr>space = S, sets = B\<rparr> \<Longrightarrow> X \<in> B"
-     by simp
-  have "A \<subseteq> sigma_sets S A" using assms
-    by (auto intro!: sigma_sets.Basic)
-  moreover have "sigma_algebra \<lparr>space = S, sets = sigma_sets S A\<rparr>"
-    using assms by (intro sigma_algebra_sigma_sets[of A]) auto
-  ultimately show "X \<in> sigma_sets S A" by auto
-qed
 
 lemma (in sigma_algebra) restriction_in_sets:
   fixes A :: "nat \<Rightarrow> 'a set"
