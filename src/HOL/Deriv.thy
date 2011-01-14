@@ -355,7 +355,7 @@ definition
 lemma differentiableE [elim?]:
   assumes "f differentiable x"
   obtains df where "DERIV f x :> df"
-  using prems unfolding differentiable_def ..
+  using assms unfolding differentiable_def ..
 
 lemma differentiableD: "f differentiable x ==> \<exists>D. DERIV f x :> D"
 by (simp add: differentiable_def)
@@ -408,7 +408,7 @@ lemma differentiable_diff [simp]:
   assumes "f differentiable x"
   assumes "g differentiable x"
   shows "(\<lambda>x. f x - g x) differentiable x"
-  unfolding diff_minus using prems by simp
+  unfolding diff_minus using assms by simp
 
 lemma differentiable_mult [simp]:
   assumes "f differentiable x"
@@ -437,13 +437,16 @@ lemma differentiable_divide [simp]:
   assumes "f differentiable x"
   assumes "g differentiable x" and "g x \<noteq> 0"
   shows "(\<lambda>x. f x / g x) differentiable x"
-  unfolding divide_inverse using prems by simp
+  unfolding divide_inverse using assms by simp
 
 lemma differentiable_power [simp]:
   fixes f :: "'a::{real_normed_field} \<Rightarrow> 'a"
   assumes "f differentiable x"
   shows "(\<lambda>x. f x ^ n) differentiable x"
-  by (induct n, simp, simp add: prems)
+  apply (induct n)
+  apply simp
+  apply (simp add: assms)
+  done
 
 
 subsection {* Nested Intervals and Bisection *}
@@ -1227,7 +1230,7 @@ lemma DERIV_pos_imp_increasing:
   assumes "a < b" and "\<forall>x. a \<le> x & x \<le> b --> (EX y. DERIV f x :> y & y > 0)"
   shows "f a < f b"
 proof (rule ccontr)
-  assume "~ f a < f b"
+  assume f: "~ f a < f b"
   have "EX l z. a < z & z < b & DERIV f z :> l
       & f b - f a = (b - a) * l"
     apply (rule MVT)
@@ -1236,13 +1239,12 @@ proof (rule ccontr)
       apply (metis DERIV_isCont)
      apply (metis differentiableI less_le)
     done
-  then obtain l z where "a < z" and "z < b" and "DERIV f z :> l"
+  then obtain l z where z: "a < z" "z < b" "DERIV f z :> l"
       and "f b - f a = (b - a) * l"
     by auto
-  
-  from prems have "~(l > 0)"
+  with assms f have "~(l > 0)"
     by (metis linorder_not_le mult_le_0_iff diff_le_0_iff_le)
-  with prems show False
+  with assms z show False
     by (metis DERIV_unique less_le)
 qed
 
@@ -1252,9 +1254,8 @@ lemma DERIV_nonneg_imp_nonincreasing:
     "\<forall>x. a \<le> x & x \<le> b --> (\<exists>y. DERIV f x :> y & y \<ge> 0)"
   shows "f a \<le> f b"
 proof (rule ccontr, cases "a = b")
-  assume "~ f a \<le> f b"
-  assume "a = b"
-  with prems show False by auto
+  assume "~ f a \<le> f b" and "a = b"
+  then show False by auto
 next
   assume A: "~ f a \<le> f b"
   assume B: "a ~= b"
@@ -1266,13 +1267,13 @@ next
       apply (metis DERIV_isCont)
      apply (metis differentiableI less_le)
     done
-  then obtain l z where "a < z" and "z < b" and "DERIV f z :> l"
+  then obtain l z where z: "a < z" "z < b" "DERIV f z :> l"
       and C: "f b - f a = (b - a) * l"
     by auto
   with A have "a < b" "f b < f a" by auto
   with C have "\<not> l \<ge> 0" by (auto simp add: not_le algebra_simps)
     (metis A add_le_cancel_right assms(1) less_eq_real_def mult_right_mono real_add_left_mono real_le_linear real_le_refl)
-  with prems show False
+  with assms z show False
     by (metis DERIV_unique order_less_imp_le)
 qed
 
@@ -1509,14 +1510,14 @@ subsection {* Generalized Mean Value Theorem *}
 theorem GMVT:
   fixes a b :: real
   assumes alb: "a < b"
-  and fc: "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x"
-  and fd: "\<forall>x. a < x \<and> x < b \<longrightarrow> f differentiable x"
-  and gc: "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont g x"
-  and gd: "\<forall>x. a < x \<and> x < b \<longrightarrow> g differentiable x"
+    and fc: "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont f x"
+    and fd: "\<forall>x. a < x \<and> x < b \<longrightarrow> f differentiable x"
+    and gc: "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont g x"
+    and gd: "\<forall>x. a < x \<and> x < b \<longrightarrow> g differentiable x"
   shows "\<exists>g'c f'c c. DERIV g c :> g'c \<and> DERIV f c :> f'c \<and> a < c \<and> c < b \<and> ((f b - f a) * g'c) = ((g b - g a) * f'c)"
 proof -
   let ?h = "\<lambda>x. (f b - f a)*(g x) - (g b - g a)*(f x)"
-  from prems have "a < b" by simp
+  from assms have "a < b" by simp
   moreover have "\<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> isCont ?h x"
   proof -
     have "\<forall>x. a <= x \<and> x <= b \<longrightarrow> isCont (\<lambda>x. f b - f a) x" by simp

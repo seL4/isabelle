@@ -57,7 +57,7 @@ proof (induct b)
     show ?case by simp
   next
     case (Suc m)
-    show ?case by (auto simp add: algebra_simps pow2_add1 prems)
+    show ?case by (auto simp add: algebra_simps pow2_add1 1 Suc)
   qed
 next
   case (2 n)
@@ -88,7 +88,7 @@ next
       apply (subst pow2_neg[of "int m - a + 1"])
       apply (subst pow2_neg[of "int m + 1"])
       apply auto
-      apply (insert prems)
+      apply (insert Suc)
       apply (auto simp add: algebra_simps)
       done
   qed
@@ -147,8 +147,8 @@ lemma int_of_real_mult:
   assumes "real_is_int a" "real_is_int b"
   shows "(int_of_real (a*b)) = (int_of_real a) * (int_of_real b)"
 proof -
-  from prems have a: "?! (a'::int). real a' = a" by (rule_tac real_is_int_rep, auto)
-  from prems have b: "?! (b'::int). real b' = b" by (rule_tac real_is_int_rep, auto)
+  from assms have a: "?! (a'::int). real a' = a" by (rule_tac real_is_int_rep, auto)
+  from assms have b: "?! (b'::int). real b' = b" by (rule_tac real_is_int_rep, auto)
   from a obtain a'::int where a':"a = real a'" by auto
   from b obtain b'::int where b':"b = real b'" by auto
   have r: "real a' * real b' = real (a' * b')" by auto
@@ -286,16 +286,16 @@ proof -
       show ?case
       proof cases
         assume u: "u \<noteq> 0 \<and> even u"
-        with prems have ind: "float (u div 2, v + 1) = float (norm_float (u div 2) (v + 1))" by auto
+        with 1 have ind: "float (u div 2, v + 1) = float (norm_float (u div 2) (v + 1))" by auto
         with u have "float (u,v) = float (u div 2, v+1)" by (simp add: float_transfer_even)
         then show ?thesis
           apply (subst norm_float.simps)
           apply (simp add: ind)
           done
       next
-        assume "~(u \<noteq> 0 \<and> even u)"
-        then show ?thesis
-          by (simp add: prems float_def)
+        assume nu: "~(u \<noteq> 0 \<and> even u)"
+        show ?thesis
+          by (simp add: nu float_def)
       qed
     qed
   }

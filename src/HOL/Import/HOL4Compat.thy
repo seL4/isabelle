@@ -64,10 +64,10 @@ lemma OUTR: "OUTR (Inr x) = x"
   by simp
 
 lemma sum_case_def: "(ALL f g x. sum_case f g (Inl x) = f x) & (ALL f g y. sum_case f g (Inr y) = g y)"
-  by simp;
+  by simp
 
 lemma one: "ALL v. v = ()"
-  by simp;
+  by simp
 
 lemma option_case_def: "(!u f. option_case u f None = u) & (!u f x. option_case u f (Some x) = f x)"
   by simp
@@ -103,7 +103,7 @@ lemma PAIR_MAP: "map_pair f g p = (f (fst p),g (snd p))"
   by (simp add: map_pair_def split_def)
 
 lemma pair_case_def: "split = split"
-  ..;
+  ..
 
 lemma LESS_OR_EQ: "m <= (n::nat) = (m < n | m = n)"
   by auto
@@ -128,12 +128,12 @@ lemma GREATER_OR_EQ: "ALL m n. n <= (m::nat) = (n < m | m = n)"
 
 lemma LESS_DEF: "m < n = (? P. (!n. P (Suc n) --> P n) & P m & ~P n)"
 proof safe
-  assume "m < n"
+  assume 1: "m < n"
   def P == "%n. n <= m"
   have "(!n. P (Suc n) \<longrightarrow> P n) & P m & ~P n"
   proof (auto simp add: P_def)
     assume "n <= m"
-    from prems
+    with 1
     show False
       by auto
   qed
@@ -187,7 +187,7 @@ next
     show "m < n"
       ..
   qed
-qed;
+qed
 
 definition FUNPOW :: "('a => 'a) => nat => 'a => 'a" where
   "FUNPOW f n == f ^^ n"
@@ -242,10 +242,10 @@ lemma EXP: "(!m. m ^ 0 = (1::nat)) & (!m n. m ^ Suc n = m * (m::nat) ^ n)"
   by auto
 
 lemma num_case_def: "(!b f. nat_case b f 0 = b) & (!b f n. nat_case b f (Suc n) = f n)"
-  by simp;
+  by simp
 
 lemma divides_def: "(a::nat) dvd b = (? q. b = q * a)"
-  by (auto simp add: dvd_def);
+  by (auto simp add: dvd_def)
 
 lemma list_case_def: "(!v f. list_case v f [] = v) & (!v f a0 a1. list_case v f (a0#a1) = f a0 a1)"
   by simp
@@ -263,21 +263,21 @@ lemma list_case_cong: "! M M' v f. M = M' & (M' = [] \<longrightarrow>  v = v') 
            (list_case v f M = list_case v' f' M')"
 proof clarify
   fix M M' v f
-  assume "M' = [] \<longrightarrow> v = v'"
-    and "!a0 a1. M' = a0 # a1 \<longrightarrow> f a0 a1 = f' a0 a1"
+  assume 1: "M' = [] \<longrightarrow> v = v'"
+    and 2: "!a0 a1. M' = a0 # a1 \<longrightarrow> f a0 a1 = f' a0 a1"
   show "list_case v f M' = list_case v' f' M'"
   proof (rule List.list.case_cong)
     show "M' = M'"
       ..
   next
     assume "M' = []"
-    with prems
+    with 1 2
     show "v = v'"
       by auto
   next
     fix a0 a1
     assume "M' = a0 # a1"
-    with prems
+    with 1 2
     show "f a0 a1 = f' a0 a1"
       by auto
   qed
@@ -302,14 +302,14 @@ proof safe
     by auto
 next
   fix fn1 fn2
-  assume "ALL h t. fn1 (h # t) = f (fn1 t) h t"
-  assume "ALL h t. fn2 (h # t) = f (fn2 t) h t"
-  assume "fn2 [] = fn1 []"
+  assume 1: "ALL h t. fn1 (h # t) = f (fn1 t) h t"
+  assume 2: "ALL h t. fn2 (h # t) = f (fn2 t) h t"
+  assume 3: "fn2 [] = fn1 []"
   show "fn1 = fn2"
   proof
     fix xs
     show "fn1 xs = fn2 xs"
-      by (induct xs,simp_all add: prems) 
+      by (induct xs) (simp_all add: 1 2 3) 
   qed
 qed
 
@@ -411,7 +411,7 @@ lemma UNZIP: "(unzip [] = ([],[])) &
   by (simp add: Let_def)
 
 lemma REVERSE: "(rev [] = []) & (!h t. rev (h#t) = (rev t) @ [h])"
-  by simp;
+  by simp
 
 lemma REAL_SUP_ALLPOS: "\<lbrakk> ALL x. P (x::real) \<longrightarrow> 0 < x ; EX x. P x; EX z. ALL x. P x \<longrightarrow> x < z \<rbrakk> \<Longrightarrow> EX s. ALL y. (EX x. P x & y < x) = (y < s)"
 proof safe
@@ -424,12 +424,11 @@ proof safe
     show "ALL x : Collect P. 0 < x"
     proof safe
       fix x
-      assume "P x"
+      assume P: "P x"
       from allx
       have "P x \<longrightarrow> 0 < x"
         ..
-      thus "0 < x"
-        by (simp add: prems)
+      with P show "0 < x" by simp
     qed
   next
     from px
@@ -461,7 +460,7 @@ lemma REAL_MUL_LINV: "x ~= (0::real) ==> inverse x * x = 1"
   by simp
 
 lemma REAL_LT_TOTAL: "((x::real) = y) | x < y | y < x"
-  by auto;
+  by auto
 
 lemma [hol4rew]: "real (0::nat) = 0"
   by simp

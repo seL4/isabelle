@@ -1200,7 +1200,7 @@ done
 lemma real_of_int_div_aux: "d ~= 0 ==> (real (x::int)) / (real d) = 
     real (x div d) + (real (x mod d)) / (real d)"
 proof -
-  assume "d ~= 0"
+  assume d: "d ~= 0"
   have "x = (x div d) * d + x mod d"
     by auto
   then have "real x = real (x div d) * real d + real(x mod d)"
@@ -1208,7 +1208,7 @@ proof -
   then have "real x / real d = ... / real d"
     by simp
   then show ?thesis
-    by (auto simp add: add_divide_distrib algebra_simps prems)
+    by (auto simp add: add_divide_distrib algebra_simps d)
 qed
 
 lemma real_of_int_div: "(d::int) ~= 0 ==> d dvd n ==>
@@ -1353,7 +1353,7 @@ done
 lemma real_of_nat_div_aux: "0 < d ==> (real (x::nat)) / (real d) = 
     real (x div d) + (real (x mod d)) / (real d)"
 proof -
-  assume "0 < d"
+  assume d: "0 < d"
   have "x = (x div d) * d + x mod d"
     by auto
   then have "real x = real (x div d) * real d + real(x mod d)"
@@ -1361,7 +1361,7 @@ proof -
   then have "real x / real d = \<dots> / real d"
     by simp
   then show ?thesis
-    by (auto simp add: add_divide_distrib algebra_simps prems)
+    by (auto simp add: add_divide_distrib algebra_simps d)
 qed
 
 lemma real_of_nat_div: "0 < (d::nat) ==> d dvd n ==>

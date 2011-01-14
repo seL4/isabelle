@@ -297,7 +297,7 @@ proof (rule ccontr)
   assume "~ a \<le> b"
   then have "b < a" by (simp only: linorder_not_le)
   then have "b ^ Suc n < a ^ Suc n"
-    by (simp only: prems power_strict_mono)
+    by (simp only: assms power_strict_mono)
   from le and this show False
     by (simp add: linorder_not_less [symmetric])
 qed

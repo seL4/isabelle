@@ -172,7 +172,7 @@ lemma (in comm_monoid_add) setsum_cong2: "\<lbrakk>\<And>x. x \<in> A \<Longrigh
 lemma (in comm_monoid_add) setsum_reindex_cong:
    "[|inj_on f A; B = f ` A; !!a. a:A \<Longrightarrow> g a = h (f a)|] 
     ==> setsum h B = setsum g A"
-  by (simp add: setsum_reindex cong: setsum_cong)
+  by (simp add: setsum_reindex)
 
 lemma (in comm_monoid_add) setsum_0[simp]: "setsum (%i. 0) A = 0"
   by (cases "finite A") (erule finite_induct, auto)
@@ -288,7 +288,7 @@ lemma (in comm_monoid_add) setsum_UN_disjoint:
   shows "setsum f (UNION I A) = (\<Sum>i\<in>I. setsum f (A i))"
 proof -
   interpret comm_monoid_mult "op +" 0 by (fact comm_monoid_mult)
-  from assms show ?thesis by (simp add: setsum_def fold_image_UN_disjoint cong: setsum_cong)
+  from assms show ?thesis by (simp add: setsum_def fold_image_UN_disjoint)
 qed
 
 text{*No need to assume that @{term C} is finite.  If infinite, the rhs is
@@ -310,7 +310,7 @@ lemma (in comm_monoid_add) setsum_Sigma:
   shows "(\<Sum>x\<in>A. (\<Sum>y\<in>B x. f x y)) = (\<Sum>(x,y)\<in>(SIGMA x:A. B x). f x y)"
 proof -
   interpret comm_monoid_mult "op +" 0 by (fact comm_monoid_mult)
-  from assms show ?thesis by (simp add: setsum_def fold_image_Sigma split_def cong: setsum_cong)
+  from assms show ?thesis by (simp add: setsum_def fold_image_Sigma split_def)
 qed
 
 text{*Here we can eliminate the finiteness assumptions, by cases.*}
@@ -498,7 +498,7 @@ lemma setsum_strict_mono:
   assumes "finite A"  "A \<noteq> {}"
     and "!!x. x:A \<Longrightarrow> f x < g x"
   shows "setsum f A < setsum g A"
-  using prems
+  using assms
 proof (induct rule: finite_ne_induct)
   case singleton thus ?case by simp
 next
@@ -775,7 +775,7 @@ apply (simp add: card_eq_setsum del: setsum_constant)
 apply (subgoal_tac
          "setsum (%i. card (A i)) I = setsum (%i. (setsum (%x. 1) (A i))) I")
 apply (simp add: setsum_UN_disjoint del: setsum_constant)
-apply (simp cong: setsum_cong)
+apply simp
 done
 
 lemma card_Union_disjoint:
@@ -947,7 +947,7 @@ proof-
   let ?f = "(\<lambda>k. if k=a then b k else 1)"
   {assume a: "a \<notin> S"
     hence "\<forall> k\<in> S. ?f k = 1" by simp
-    hence ?thesis  using a by (simp add: setprod_1 cong add: setprod_cong) }
+    hence ?thesis  using a by (simp add: setprod_1) }
   moreover 
   {assume a: "a \<in> S"
     let ?A = "S - {a}"
@@ -959,7 +959,7 @@ proof-
     have "setprod ?f ?A * setprod ?f ?B = setprod ?f S"
       using setprod_Un_disjoint[OF fAB dj, of ?f, unfolded eq[symmetric]]
       by simp
-    then have ?thesis  using a by (simp add: fA1 cong add: setprod_cong cong del: if_weak_cong)}
+    then have ?thesis using a by (simp add: fA1 cong: setprod_cong cong del: if_weak_cong)}
   ultimately show ?thesis by blast
 qed
 
@@ -975,7 +975,7 @@ lemma setprod_UN_disjoint:
     "finite I ==> (ALL i:I. finite (A i)) ==>
         (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
       setprod f (UNION I A) = setprod (%i. setprod f (A i)) I"
-by(simp add: setprod_def fold_image_UN_disjoint cong: setprod_cong)
+  by (simp add: setprod_def fold_image_UN_disjoint)
 
 lemma setprod_Union_disjoint:
   "[| (ALL A:C. finite A);
@@ -990,7 +990,7 @@ done
 lemma setprod_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
     (\<Prod>x\<in>A. (\<Prod>y\<in> B x. f x y)) =
     (\<Prod>(x,y)\<in>(SIGMA x:A. B x). f x y)"
-by(simp add:setprod_def fold_image_Sigma split_def cong:setprod_cong)
+by(simp add:setprod_def fold_image_Sigma split_def)
 
 text{*Here we can eliminate the finiteness assumptions, by cases.*}
 lemma setprod_cartesian_product: 
@@ -1332,7 +1332,7 @@ lemma sup_Inf2_distrib:
   shows "sup (\<Sqinter>\<^bsub>fin\<^esub>A) (\<Sqinter>\<^bsub>fin\<^esub>B) = \<Sqinter>\<^bsub>fin\<^esub>{sup a b|a b. a \<in> A \<and> b \<in> B}"
 using A proof (induct rule: finite_ne_induct)
   case singleton thus ?case
-    by (simp add: sup_Inf1_distrib [OF B] fold1_singleton_def [OF Inf_fin_def])
+    by (simp add: sup_Inf1_distrib [OF B])
 next
   interpret ab_semigroup_idem_mult inf
     by (rule ab_semigroup_idem_mult_inf)
@@ -1347,7 +1347,7 @@ next
   qed
   have ne: "{sup a b |a b. a \<in> A \<and> b \<in> B} \<noteq> {}" using insert B by blast
   have "sup (\<Sqinter>\<^bsub>fin\<^esub>(insert x A)) (\<Sqinter>\<^bsub>fin\<^esub>B) = sup (inf x (\<Sqinter>\<^bsub>fin\<^esub>A)) (\<Sqinter>\<^bsub>fin\<^esub>B)"
-    using insert by (simp add: fold1_insert_idem_def [OF Inf_fin_def])
+    using insert by simp
   also have "\<dots> = inf (sup x (\<Sqinter>\<^bsub>fin\<^esub>B)) (sup (\<Sqinter>\<^bsub>fin\<^esub>A) (\<Sqinter>\<^bsub>fin\<^esub>B))" by(rule sup_inf_distrib2)
   also have "\<dots> = inf (\<Sqinter>\<^bsub>fin\<^esub>{sup x b|b. b \<in> B}) (\<Sqinter>\<^bsub>fin\<^esub>{sup a b|a b. a \<in> A \<and> b \<in> B})"
     using insert by(simp add:sup_Inf1_distrib[OF B])
@@ -1391,7 +1391,7 @@ next
   interpret ab_semigroup_idem_mult sup
     by (rule ab_semigroup_idem_mult_sup)
   have "inf (\<Squnion>\<^bsub>fin\<^esub>(insert x A)) (\<Squnion>\<^bsub>fin\<^esub>B) = inf (sup x (\<Squnion>\<^bsub>fin\<^esub>A)) (\<Squnion>\<^bsub>fin\<^esub>B)"
-    using insert by (simp add: fold1_insert_idem_def [OF Sup_fin_def])
+    using insert by simp
   also have "\<dots> = sup (inf x (\<Squnion>\<^bsub>fin\<^esub>B)) (inf (\<Squnion>\<^bsub>fin\<^esub>A) (\<Squnion>\<^bsub>fin\<^esub>B))" by(rule inf_sup_distrib2)
   also have "\<dots> = sup (\<Squnion>\<^bsub>fin\<^esub>{inf x b|b. b \<in> B}) (\<Squnion>\<^bsub>fin\<^esub>{inf a b|a b. a \<in> A \<and> b \<in> B})"
     using insert by(simp add:inf_Sup1_distrib[OF B])
@@ -1551,15 +1551,15 @@ proof cases
 next
   interpret ab_semigroup_idem_mult min
     by (rule ab_semigroup_idem_mult_min)
-  assume "A \<noteq> B"
+  assume neq: "A \<noteq> B"
   have B: "B = A \<union> (B-A)" using `A \<subseteq> B` by blast
   have "fold1 min B = fold1 min (A \<union> (B-A))" by(subst B)(rule refl)
   also have "\<dots> = min (fold1 min A) (fold1 min (B-A))"
   proof -
     have "finite A" by(rule finite_subset[OF `A \<subseteq> B` `finite B`])
-    moreover have "finite(B-A)" by(rule finite_Diff[OF `finite B`]) (* by(blast intro:finite_Diff prems) fails *)
-    moreover have "(B-A) \<noteq> {}" using prems by blast
-    moreover have "A Int (B-A) = {}" using prems by blast
+    moreover have "finite(B-A)" by(rule finite_Diff[OF `finite B`])
+    moreover have "(B-A) \<noteq> {}" using assms neq by blast
+    moreover have "A Int (B-A) = {}" using assms by blast
     ultimately show ?thesis using `A \<noteq> {}` by (rule_tac fold1_Un)
   qed
   also have "\<dots> \<le> fold1 min A" by (simp add: min_le_iff_disj)

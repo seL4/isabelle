@@ -803,7 +803,7 @@ lemma inf_Inf_fold_inf:
 proof -
   interpret fun_left_comm_idem inf by (fact fun_left_comm_idem_inf)
   from `finite A` show ?thesis by (induct A arbitrary: B)
-    (simp_all add: Inf_empty Inf_insert inf_commute fold_fun_comm)
+    (simp_all add: Inf_insert inf_commute fold_fun_comm)
 qed
 
 lemma sup_Sup_fold_sup:
@@ -812,7 +812,7 @@ lemma sup_Sup_fold_sup:
 proof -
   interpret fun_left_comm_idem sup by (fact fun_left_comm_idem_sup)
   from `finite A` show ?thesis by (induct A arbitrary: B)
-    (simp_all add: Sup_empty Sup_insert sup_commute fold_fun_comm)
+    (simp_all add: Sup_insert sup_commute fold_fun_comm)
 qed
 
 lemma Inf_fold_inf:
@@ -833,7 +833,7 @@ proof (rule sym)
   interpret fun_left_comm_idem "\<lambda>A. inf (f A)" by (fact fun_left_comm_idem_apply)
   from `finite A` show "?fold = ?inf"
   by (induct A arbitrary: B)
-    (simp_all add: INFI_def Inf_empty Inf_insert inf_left_commute)
+    (simp_all add: INFI_def Inf_insert inf_left_commute)
 qed
 
 lemma sup_SUPR_fold_sup:
@@ -844,7 +844,7 @@ proof (rule sym)
   interpret fun_left_comm_idem "\<lambda>A. sup (f A)" by (fact fun_left_comm_idem_apply)
   from `finite A` show "?fold = ?sup"
   by (induct A arbitrary: B)
-    (simp_all add: SUPR_def Sup_empty Sup_insert sup_left_commute)
+    (simp_all add: SUPR_def Sup_insert sup_left_commute)
 qed
 
 lemma INFI_fold_inf:
@@ -1197,19 +1197,19 @@ proof -
     by (auto simp add: nonempty_iff)
   show ?thesis
   proof cases
-    assume "a = x"
-    thus ?thesis
+    assume a: "a = x"
+    show ?thesis
     proof cases
       assume "A' = {}"
-      with prems show ?thesis by simp
+      with A' a show ?thesis by simp
     next
       assume "A' \<noteq> {}"
-      with prems show ?thesis
+      with A A' a show ?thesis
         by (simp add: fold1_insert mult_assoc [symmetric])
     qed
   next
     assume "a \<noteq> x"
-    with prems show ?thesis
+    with A A' show ?thesis
       by (simp add: insert_commute fold1_eq_fold)
   qed
 qed

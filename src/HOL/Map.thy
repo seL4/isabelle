@@ -111,7 +111,7 @@ lemma map_upd_eqD1:
   assumes "m(a\<mapsto>x) = n(a\<mapsto>y)"
   shows "x = y"
 proof -
-  from prems have "(m(a\<mapsto>x)) a = (n(a\<mapsto>y)) a" by simp
+  from assms have "(m(a\<mapsto>x)) a = (n(a\<mapsto>y)) a" by simp
   then show ?thesis by simp
 qed
 

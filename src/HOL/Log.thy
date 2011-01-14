@@ -251,10 +251,11 @@ lemma ln_powr_bound: "1 <= x ==> 0 < a ==> ln x <= (x powr a) / a"
   apply (erule order_less_imp_le)
 done
 
-lemma ln_powr_bound2: "1 < x ==> 0 < a ==> (ln x) powr a <= (a powr a) * x"
+lemma ln_powr_bound2:
+  assumes "1 < x" and "0 < a"
+  shows "(ln x) powr a <= (a powr a) * x"
 proof -
-  assume "1 < x" and "0 < a"
-  then have "ln x <= (x powr (1 / a)) / (1 / a)"
+  from assms have "ln x <= (x powr (1 / a)) / (1 / a)"
     apply (intro ln_powr_bound)
     apply (erule order_less_imp_le)
     apply (rule divide_pos_pos)
@@ -264,14 +265,14 @@ proof -
     by simp
   finally have "(ln x) powr a <= (a * (x powr (1 / a))) powr a"
     apply (intro powr_mono2)
-    apply (rule order_less_imp_le, rule prems)
+    apply (rule order_less_imp_le, rule assms)
     apply (rule ln_gt_zero)
-    apply (rule prems)
+    apply (rule assms)
     apply assumption
     done
   also have "... = (a powr a) * ((x powr (1 / a)) powr a)"
     apply (rule powr_mult)
-    apply (rule prems)
+    apply (rule assms)
     apply (rule powr_gt_zero)
     done
   also have "(x powr (1 / a)) powr a = x powr ((1 / a) * a)"
@@ -279,35 +280,37 @@ proof -
   also have "... = x"
     apply simp
     apply (subgoal_tac "a ~= 0")
-    apply (insert prems, auto)
+    using assms apply auto
     done
   finally show ?thesis .
 qed
 
-lemma LIMSEQ_neg_powr: "0 < s ==> (%x. (real x) powr - s) ----> 0"
+lemma LIMSEQ_neg_powr:
+  assumes s: "0 < s"
+  shows "(%x. (real x) powr - s) ----> 0"
   apply (unfold LIMSEQ_iff)
   apply clarsimp
   apply (rule_tac x = "natfloor(r powr (1 / - s)) + 1" in exI)
   apply clarify
-  proof -
-    fix r fix n
-    assume "0 < s" and "0 < r" and "natfloor (r powr (1 / - s)) + 1 <= n"
-    have "r powr (1 / - s) < real(natfloor(r powr (1 / - s))) + 1"
-      by (rule real_natfloor_add_one_gt)
-    also have "... = real(natfloor(r powr (1 / -s)) + 1)"
-      by simp
-    also have "... <= real n"
-      apply (subst real_of_nat_le_iff)
-      apply (rule prems)
-      done
-    finally have "r powr (1 / - s) < real n".
-    then have "real n powr (- s) < (r powr (1 / - s)) powr - s" 
-      apply (intro powr_less_mono2_neg)
-      apply (auto simp add: prems)
-      done
-    also have "... = r"
-      by (simp add: powr_powr prems less_imp_neq [THEN not_sym])
-    finally show "real n powr - s < r" .
-  qed
+proof -
+  fix r fix n
+  assume r: "0 < r" and n: "natfloor (r powr (1 / - s)) + 1 <= n"
+  have "r powr (1 / - s) < real(natfloor(r powr (1 / - s))) + 1"
+    by (rule real_natfloor_add_one_gt)
+  also have "... = real(natfloor(r powr (1 / -s)) + 1)"
+    by simp
+  also have "... <= real n"
+    apply (subst real_of_nat_le_iff)
+    apply (rule n)
+    done
+  finally have "r powr (1 / - s) < real n".
+  then have "real n powr (- s) < (r powr (1 / - s)) powr - s" 
+    apply (intro powr_less_mono2_neg)
+    apply (auto simp add: s)
+    done
+  also have "... = r"
+    by (simp add: powr_powr s r less_imp_neq [THEN not_sym])
+  finally show "real n powr - s < r" .
+qed
 
 end
