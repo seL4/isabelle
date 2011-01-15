@@ -47,10 +47,9 @@ text {*
   names and user ids as would be present in a reality.
 *}
 
-types
-  uid = nat
-  name = nat
-  path = "name list"
+type_synonym uid = nat
+type_synonym name = nat
+type_synonym path = "name list"
 
 
 subsection {* Attributes *}
@@ -80,7 +79,7 @@ datatype perm =
   | Writable
   | Executable    -- "(ignored)"
 
-types perms = "perm set"
+type_synonym perms = "perm set"
 
 record att =
   owner :: uid
@@ -132,8 +131,7 @@ text {*
   of directory nodes).
 *}
 
-types
-  "file" = "(att \<times> string, att, name) env"
+type_synonym "file" = "(att \<times> string, att, name) env"
 
 text {*
   \medskip The HOL library also provides @{term lookup} and @{term
