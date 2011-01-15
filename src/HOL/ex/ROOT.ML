@@ -72,7 +72,8 @@ use_thys [
   "Dedekind_Real",
   "Quicksort",
   "Birthday_Paradoxon",
-  "List_to_Set_Comprehension_Examples"
+  "List_to_Set_Comprehension_Examples",
+  "Set_Algebras"
 ];
 
 use_thy "SVC_Oracle";
