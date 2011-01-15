@@ -133,20 +133,20 @@ the local file system.
 
 *** HOL ***
 
-* New simproc that rewrites list comprehensions applied to List.set
-to set comprehensions.
-To deactivate the simproc for historic proof scripts, use:
-  
-  [[simproc del: list_to_set_comprehension]]
+* Simproc "list_to_set_comprehension" rewrites list comprehensions
+applied to List.set to set comprehensions.  Occasional
+INCOMPATIBILITY, may be deactivated like this:
+
+  declare [[simproc del: list_to_set_comprehension]]
 
 * Functions can be declared as coercions and type inference will add
-them as necessary upon input of a term. In theory Complex_Main,
-real :: nat => real and real :: int => real are declared as
-coercions. A new coercion function f is declared like this:
+them as necessary upon input of a term. Theory Complex_Main declares
+real :: nat => real and real :: int => real as coercions. A coercion
+function f is declared like this:
 
   declare [[coercion f]]
 
-To lift coercions through type constructors (eg from nat => real to
+To lift coercions through type constructors (e.g. from nat => real to
 nat list => real list), map functions can be declared, e.g.
 
   declare [[coercion_map map]]
@@ -158,33 +158,28 @@ other theories like this:
 
   declare [[coercion_enabled]]
 
-* New command 'partial_function' provides basic support for recursive
-function definitions over complete partial orders. Concrete instances
+* Command 'partial_function' provides basic support for recursive
+function definitions over complete partial orders.  Concrete instances
 are provided for i) the option type, ii) tail recursion on arbitrary
-types, and iii) the heap monad of Imperative_HOL. See
-HOL/ex/Fundefs.thy and HOL/Imperative_HOL/ex/Linked_Lists.thy for
-examples.
+types, and iii) the heap monad of Imperative_HOL.  See
+src/HOL/ex/Fundefs.thy and src/HOL/Imperative_HOL/ex/Linked_Lists.thy
+for examples.
 
 * Scala (2.8 or higher) has been added to the target languages of the
 code generator.
 
-* Inductive package: offers new command 'inductive_simps' to
+* Inductive package: now offers command 'inductive_simps' to
 automatically derive instantiated and simplified equations for
 inductive predicates, similar to 'inductive_cases'.
 
-* Function package: .psimps rules are no longer implicitly declared
-[simp].  INCOMPATIBILITY.
+* Function package: f.psimps rules are no longer implicitly declared
+as [simp].  INCOMPATIBILITY.
 
 * Datatype package: theorems generated for executable equality (class
-eq) carry proper names and are treated as default code equations.
+"eq") carry proper names and are treated as default code equations.
 
-* New command 'enriched_type' allows to register properties of
-the functorial structure of types.
-
-* Weaker versions of the "meson" and "metis" proof methods are now
-available in "HOL-Plain", without dependency on "Hilbert_Choice". The
-proof methods become more powerful after "Hilbert_Choice" is loaded in
-"HOL-Main".
+* Command 'enriched_type' allows to register properties of the
+functorial structure of types.
 
 * Improved infrastructure for term evaluation using code generator
 techniques, in particular static evaluation conversions.
@@ -199,11 +194,12 @@ to standard output.  INCOMPATIBILITY.
 * Code generator: do not print function definitions for case
 combinators any longer.
 
-* Simplification with rules determined by code generator
-with code_simp.ML and method code_simp.
+* Simplification with rules determined by code generator with
+src/Tools/Code/code_simp.ML and method "code_simp".
 
-* Records: logical foundation type for records does not carry a '_type'
-suffix any longer.  INCOMPATIBILITY.
+* Records: logical foundation type for records does not carry a
+'_type' suffix any longer (obsolete due to authentic syntax).
+INCOMPATIBILITY.
 
 * Code generation for records: more idiomatic representation of record
 types.  Warning: records are not covered by ancient SML code
@@ -215,15 +211,15 @@ rep_datatype declaration helps to succeed then:
   rep_datatype foo_ext ...
 
 * Quickcheck now by default uses exhaustive testing instead of random
-testing.  Random testing can be invoked by quickcheck[random],
-exhaustive testing by quickcheck[exhaustive].
+testing.  Random testing can be invoked by "quickcheck [random]",
+exhaustive testing by "quickcheck [exhaustive]".
 
 * Quickcheck instantiates polymorphic types with small finite
 datatypes by default. This enables a simple execution mechanism to
 handle quantifiers and function equality over the finite datatypes.
 
-* Quickcheck's generator for random generation is renamed from "code"
-to "random".  INCOMPATIBILITY.
+* Quickcheck random generator has been renamed from "code" to
+"random".  INCOMPATIBILITY.
 
 * Quickcheck now has a configurable time limit which is set to 30
 seconds by default. This can be changed by adding [timeout = n] to the
@@ -234,20 +230,9 @@ independently.
 counter example search.
 
 * Sledgehammer:
-  - Added "smt" and "remote_smt" provers based on the "smt" proof method. See
-    the Sledgehammer manual for details ("isabelle doc sledgehammer").
-  - Renamed lemmas:
-    COMBI_def ~> Meson.COMBI_def
-    COMBK_def ~> Meson.COMBK_def
-    COMBB_def ~> Meson.COMBB_def
-    COMBC_def ~> Meson.COMBC_def
-    COMBS_def ~> Meson.COMBS_def
-    abs_I ~> Meson.abs_I
-    abs_K ~> Meson.abs_K
-    abs_B ~> Meson.abs_B
-    abs_C ~> Meson.abs_C
-    abs_S ~> Meson.abs_S
-    INCOMPATIBILITY.
+  - Added "smt" and "remote_smt" provers based on the "smt" proof
+    method. See the Sledgehammer manual for details ("isabelle doc
+    sledgehammer").
   - Renamed commands:
     sledgehammer atp_info ~> sledgehammer running_provers
     sledgehammer atp_kill ~> sledgehammer kill_provers
@@ -260,18 +245,11 @@ counter example search.
     (and "ms" and "min" are no longer supported)
     INCOMPATIBILITY.
 
-* Metis and Meson now have configuration options "meson_trace",
-"metis_trace", and "metis_verbose" that can be enabled to diagnose
-these tools. E.g.
-
-    using [[metis_trace = true]]
-
 * Nitpick:
   - Renamed options:
     nitpick [timeout = 77 s] ~> nitpick [timeout = 77]
     nitpick [tac_timeout = 777 ms] ~> nitpick [tac_timeout = 0.777]
     INCOMPATIBILITY.
-  - Now requires Kodkodi 1.2.9. INCOMPATIBILITY.
   - Added support for partial quotient types.
   - Added local versions of the "Nitpick.register_xxx" functions.
   - Added "whack" option.
@@ -282,19 +260,26 @@ these tools. E.g.
     higher cardinalities.
   - Prevent the expansion of too large definitions.
 
+* Proof methods "metis" and "meson" now have configuration options
+"meson_trace", "metis_trace", and "metis_verbose" that can be enabled
+to diagnose these tools. E.g.
+
+    using [[metis_trace = true]]
+
 * Auto Solve: Renamed "Auto Solve Direct".  The tool is now available
 manually as command 'solve_direct'.
 
-* The default SMT solver is now CVC3.  Z3 must be enabled explicitly,
-due to licensing issues.
+* The default SMT solver is now CVC3.  Z3 must be enabled explicitly
+(due to licensing issues) via Z3_NON_COMMERCIAL in etc/settings of the
+component, for example.
 
 * Remote SMT solvers need to be referred to by the "remote_" prefix,
-i.e., "remote_cvc3" and "remote_z3".
+i.e. "remote_cvc3" and "remote_z3".
 
-* Added basic SMT support for datatypes, records, and typedefs
-using the oracle mode (no proofs).  Direct support of pairs has been
-dropped in exchange (pass theorems fst_conv snd_conv pair_collapse to
-the SMT support for a similar behaviour).  MINOR INCOMPATIBILITY.
+* Added basic SMT support for datatypes, records, and typedefs using
+the oracle mode (no proofs).  Direct support of pairs has been dropped
+in exchange (pass theorems fst_conv snd_conv pair_collapse to the SMT
+support for a similar behavior).  Minor INCOMPATIBILITY.
 
 * Changed SMT configuration options:
   - Renamed:
@@ -315,7 +300,7 @@ the SMT support for a similar behaviour).  MINOR INCOMPATIBILITY.
 * Boogie output files (.b2i files) need to be declared in the theory
 header.
 
-* Dropped syntax for old primrec package.  INCOMPATIBILITY.
+* Dropped syntax for old version of primrec package.  INCOMPATIBILITY.
 
 * Multivariate Analysis: Introduced a type class for euclidean
 space. Most theorems are now stated in terms of euclidean spaces
@@ -337,11 +322,11 @@ finite type. Finite cartesian products of euclidean spaces, products
 of euclidean spaces the real and complex numbers are instantiated to
 be euclidean_spaces.  INCOMPATIBILITY.
 
-* Probability: Introduced pextreal as positive extended real numbers.
-Use pextreal as value for measures. Introduce the Radon-Nikodym
-derivative, product spaces and Fubini's theorem for arbitrary sigma
-finite measures. Introduces Lebesgue measure based on the integral in
-Multivariate Analysis.  INCOMPATIBILITY.
+* Session Probability: Introduced pextreal as positive extended real
+numbers.  Use pextreal as value for measures.  Introduce the
+Radon-Nikodym derivative, product spaces and Fubini's theorem for
+arbitrary sigma finite measures.  Introduces Lebesgue measure based on
+the integral in Multivariate Analysis.  INCOMPATIBILITY.
 
 * Session Imperative_HOL: revamped, corrected dozens of inadequacies.
 INCOMPATIBILITY.
@@ -354,12 +339,12 @@ INCOMPATIBILITY.
 Set_Algebras; canonical names for instance definitions for functions;
 various improvements.  INCOMPATIBILITY.
 
-* Theory Multiset provides stable quicksort implementation of
+* Theory Library/Multiset provides stable quicksort implementation of
 sort_key.
 
-* Theory Enum (for explicit enumerations of finite types) is now part
-of the HOL-Main image. INCOMPATIBILITY: all constants of the Enum
-theory now have to be referred to by its qualified name.
+* Former theory Library/Enum is now part of the HOL-Main image.
+INCOMPATIBILITY: all constants of the Enum theory now have to be
+referred to by its qualified name.
 
   enum    ~>  Enum.enum
   nlists  ~>  Enum.nlists
@@ -373,9 +358,8 @@ been the case with "split".  INCOMPATIBILITY.
 * Removed [split_format ... and ... and ...] version of
 [split_format].  Potential INCOMPATIBILITY.
 
-* Predicate "sorted" now defined inductively, with
-nice induction rules.  INCOMPATIBILITY: former sorted.simps now
-named sorted_simps.
+* Predicate "sorted" now defined inductively, with nice induction
+rules.  INCOMPATIBILITY: former sorted.simps now named sorted_simps.
 
 * Constant "contents" renamed to "the_elem", to free the generic name
 contents for other uses.  INCOMPATIBILITY.
@@ -386,12 +370,14 @@ tuning.  INCOMPATIBILITY.
 
 * Dropped type classes mult_mono and mult_mono1.  INCOMPATIBILITY.
 
-* Removed output syntax "'a ~=> 'b" for "'a => 'b option".  INCOMPATIBILITY.
+* Removed output syntax "'a ~=> 'b" for "'a => 'b option".
+INCOMPATIBILITY.
 
 * Renamed theory Fset to Cset, type Fset.fset to Cset.set, in order to
 avoid confusion with finite sets.  INCOMPATIBILITY.
 
-* Multiset.thy: renamed empty_idemp ~> empty_neutral.  INCOMPATIBILITY.
+* Theory Library/Multiset: renamed empty_idemp ~> empty_neutral.
+INCOMPATIBILITY.
 
 * Abandoned locales equiv, congruent and congruent2 for equivalence
 relations.  INCOMPATIBILITY: use equivI rather than equiv_intro (same
@@ -452,7 +438,7 @@ INCOMPATIBILITY.
 
 INCOMPATIBILITY.
 
-* Refactoring of code-generation specific operations in List.thy
+* Refactoring of code-generation specific operations in theory List:
 
   constants
     null ~> List.null
@@ -468,37 +454,15 @@ generation.
 Various operations from the Haskell prelude are used for generating
 Haskell code.
 
-* MESON: Renamed lemmas:
-  meson_not_conjD ~> Meson.not_conjD
-  meson_not_disjD ~> Meson.not_disjD
-  meson_not_notD ~> Meson.not_notD
-  meson_not_allD ~> Meson.not_allD
-  meson_not_exD ~> Meson.not_exD
-  meson_imp_to_disjD ~> Meson.imp_to_disjD
-  meson_not_impD ~> Meson.not_impD
-  meson_iff_to_disjD ~> Meson.iff_to_disjD
-  meson_not_iffD ~> Meson.not_iffD
-  meson_not_refl_disj_D ~> Meson.not_refl_disj_D
-  meson_conj_exD1 ~> Meson.conj_exD1
-  meson_conj_exD2 ~> Meson.conj_exD2
-  meson_disj_exD ~> Meson.disj_exD
-  meson_disj_exD1 ~> Meson.disj_exD1
-  meson_disj_exD2 ~> Meson.disj_exD2
-  meson_disj_assoc ~> Meson.disj_assoc
-  meson_disj_comm ~> Meson.disj_comm
-  meson_disj_FalseD1 ~> Meson.disj_FalseD1
-  meson_disj_FalseD2 ~> Meson.disj_FalseD2
-INCOMPATIBILITY.
-
-* "bij f" is now an abbreviation of "bij_betw f UNIV UNIV". "surj f"
-is now an abbreviation of "range f = UNIV". The theorems bij_def and
-surj_def are unchanged.  INCOMPATIBILITY.
+* Term "bij f" is now an abbreviation of "bij_betw f UNIV UNIV".  Term
+"surj f" is now an abbreviation of "range f = UNIV".  The theorems
+bij_def and surj_def are unchanged.  INCOMPATIBILITY.
 
 * Abolished some non-alphabetic type names: "prod" and "sum" replace
 "*" and "+" respectively.  INCOMPATIBILITY.
 
 * Name "Plus" of disjoint sum operator "<+>" is now hidden.  Write
-Sum_Type.Plus.
+"Sum_Type.Plus" instead.
 
 * Constant "split" has been merged with constant "prod_case"; names of
 ML functions, facts etc. involving split have been retained so far,
@@ -507,7 +471,7 @@ though.  INCOMPATIBILITY.
 * Dropped old infix syntax "_ mem _" for List.member; use "_ : set _"
 instead.  INCOMPATIBILITY.
 
-* Removed lemma Option.is_none_none (Duplicate of is_none_def).
+* Removed lemma "Option.is_none_none" which duplicates "is_none_def".
 INCOMPATIBILITY.
 
 * New commands to load and prove verification conditions generated by
@@ -522,79 +486,80 @@ counterparts.  Names (in particular theorem names) have the mandatory
 qualifier 'add'.  Previous theorem names are redeclared for
 compatibility.
 
-* Structure 'int_ring' is now an abbreviation (previously a
+* Structure "int_ring" is now an abbreviation (previously a
 definition).  This fits more natural with advanced interpretations.
 
 
 *** HOLCF ***
 
 * The domain package now runs in definitional mode by default: The
-former command 'new_domain' is now called 'domain'. To use the domain
+former command 'new_domain' is now called 'domain'.  To use the domain
 package in its original axiomatic mode, use 'domain (unsafe)'.
 INCOMPATIBILITY.
 
-* The new class 'domain' is now the default sort. Class 'predomain' is
-an unpointed version of 'domain'. Theories can be updated by replacing
-sort annotations as shown below. INCOMPATIBILITY.
+* The new class "domain" is now the default sort.  Class "predomain"
+is an unpointed version of "domain". Theories can be updated by
+replacing sort annotations as shown below.  INCOMPATIBILITY.
 
   'a::type ~> 'a::countable
   'a::cpo  ~> 'a::predomain
   'a::pcpo ~> 'a::domain
 
-* The old type class 'rep' has been superseded by class 'domain'.
+* The old type class "rep" has been superseded by class "domain".
 Accordingly, users of the definitional package must remove any
-'default_sort rep' declarations. INCOMPATIBILITY.
+"default_sort rep" declarations.  INCOMPATIBILITY.
 
 * The domain package (definitional mode) now supports unpointed
 predomain argument types, as long as they are marked 'lazy'. (Strict
-arguments must be in class 'domain'.) For example, the following
+arguments must be in class "domain".) For example, the following
 domain definition now works:
 
   domain natlist = nil | cons (lazy "nat discr") (lazy "natlist")
 
 * Theory HOLCF/Library/HOL_Cpo provides cpo and predomain class
-instances for types from Isabelle/HOL: bool, nat, int, char, 'a + 'b,
-'a option, and 'a list. Additionally, it configures fixrec and the
-domain package to work with these types. For example:
+instances for types from main HOL: bool, nat, int, char, 'a + 'b,
+'a option, and 'a list.  Additionally, it configures fixrec and the
+domain package to work with these types.  For example:
 
   fixrec isInl :: "('a + 'b) u -> tr"
     where "isInl$(up$(Inl x)) = TT" | "isInl$(up$(Inr y)) = FF"
 
   domain V = VFun (lazy "V -> V") | VCon (lazy "nat") (lazy "V list")
 
-* The '(permissive)' option of fixrec has been replaced with a
-per-equation '(unchecked)' option. See HOLCF/Tutorial/Fixrec_ex.thy
-for examples. INCOMPATIBILITY.
+* The "(permissive)" option of fixrec has been replaced with a
+per-equation "(unchecked)" option. See
+src/HOL/HOLCF/Tutorial/Fixrec_ex.thy for examples. INCOMPATIBILITY.
 
-* The 'bifinite' class no longer fixes a constant 'approx'; the class
-now just asserts that such a function exists. INCOMPATIBILITY.
+* The "bifinite" class no longer fixes a constant "approx"; the class
+now just asserts that such a function exists.  INCOMPATIBILITY.
 
-* The type 'alg_defl' has been renamed to 'defl'. HOLCF no longer
+* Former type "alg_defl" has been renamed to "defl".  HOLCF no longer
 defines an embedding of type 'a defl into udom by default; instances
-of 'bifinite' and 'domain' classes are available in
-HOLCF/Library/Defl_Bifinite.thy.
+of "bifinite" and "domain" classes are available in
+src/HOL/HOLCF/Library/Defl_Bifinite.thy.
 
-* The syntax 'REP('a)' has been replaced with 'DEFL('a)'.
+* The syntax "REP('a)" has been replaced with "DEFL('a)".
 
-* The predicate 'directed' has been removed. INCOMPATIBILITY.
+* The predicate "directed" has been removed.  INCOMPATIBILITY.
 
-* The type class 'finite_po' has been removed. INCOMPATIBILITY.
+* The type class "finite_po" has been removed.  INCOMPATIBILITY.
 
-* The function 'cprod_map' has been renamed to 'prod_map'.
+* The function "cprod_map" has been renamed to "prod_map".
 INCOMPATIBILITY.
 
 * The monadic bind operator on each powerdomain has new binder syntax
-similar to sets, e.g. '\<Union>\<sharp>x\<in>xs. t' represents
-'upper_bind\<cdot>xs\<cdot>(\<Lambda> x. t)'.
+similar to sets, e.g. "\<Union>\<sharp>x\<in>xs. t" represents
+"upper_bind\<cdot>xs\<cdot>(\<Lambda> x. t)".
 
 * The infix syntax for binary union on each powerdomain has changed
-from e.g. '+\<sharp>' to '\<union>\<sharp>', for consistency with set
-syntax. INCOMPATIBILITY.
+from e.g. "+\<sharp>" to "\<union>\<sharp>", for consistency with set
+syntax.  INCOMPATIBILITY.
 
-* The constant 'UU' has been renamed to 'bottom'. The syntax 'UU' is
+* The constant "UU" has been renamed to "bottom".  The syntax "UU" is
 still supported as an input translation.
 
 * Renamed some theorems (the original names are also still available).
+
   expand_fun_below   ~> fun_below_iff
   below_fun_ext      ~> fun_belowI
   expand_cfun_eq     ~> cfun_eq_iff
@@ -605,6 +570,7 @@ still supported as an input translation.
 
 * The Abs and Rep functions for various types have changed names.
 Related theorem names have also changed to match. INCOMPATIBILITY.
+
   Rep_CFun  ~> Rep_cfun
   Abs_CFun  ~> Abs_cfun
   Rep_Sprod ~> Rep_sprod
@@ -613,20 +579,23 @@ Related theorem names have also changed to match. INCOMPATIBILITY.
   Abs_Ssum  ~> Abs_ssum
 
 * Lemmas with names of the form *_defined_iff or *_strict_iff have
-been renamed to *_bottom_iff. INCOMPATIBILITY.
+been renamed to *_bottom_iff.  INCOMPATIBILITY.
 
 * Various changes to bisimulation/coinduction with domain package:
-  - Definitions of 'bisim' constants no longer mention definedness.
-  - With mutual recursion, 'bisim' predicate is now curried.
+
+  - Definitions of "bisim" constants no longer mention definedness.
+  - With mutual recursion, "bisim" predicate is now curried.
   - With mutual recursion, each type gets a separate coind theorem.
   - Variable names in bisim_def and coinduct rules have changed.
+
 INCOMPATIBILITY.
 
-* Case combinators generated by the domain package for type 'foo' are
-now named 'foo_case' instead of 'foo_when'. INCOMPATIBILITY.
+* Case combinators generated by the domain package for type "foo" are
+now named "foo_case" instead of "foo_when".  INCOMPATIBILITY.
 
 * Several theorems have been renamed to more accurately reflect the
-names of constants and types involved. INCOMPATIBILITY.
+names of constants and types involved.  INCOMPATIBILITY.
+
   thelub_const    ~> lub_const
   lub_const       ~> is_lub_const
   thelubI         ~> lub_eqI
@@ -648,7 +617,8 @@ names of constants and types involved. INCOMPATIBILITY.
   deflation_UU    ~> deflation_bottom
   finite_deflation_UU ~> finite_deflation_bottom
 
-* Many legacy theorem names have been discontinued. INCOMPATIBILITY.
+* Many legacy theorem names have been discontinued.  INCOMPATIBILITY.
+
   sq_ord_less_eq_trans ~> below_eq_trans
   sq_ord_eq_less_trans ~> eq_below_trans
   refl_less            ~> below_refl
@@ -700,7 +670,6 @@ names of constants and types involved. INCOMPATIBILITY.
 
 * All constant names are now qualified internally and use proper
 identifiers, e.g. "IFOL.eq" instead of "op =".  INCOMPATIBILITY.
-
 
 
 *** ML ***
