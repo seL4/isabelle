@@ -196,15 +196,16 @@ fun first_eq pred =
   let
     fun part _ [] = NONE
       | part us (t :: ts) =
-          (case try HOLogic.dest_eq t of
-            SOME lr =>
-              if pred lr then SOME (lr, fold cons us ts) else part (t :: us) ts
-          | NONE => part (t :: us) ts)
+          (case try (pred o HOLogic.dest_eq) t of
+            SOME (SOME lr) => SOME (lr, fold cons us ts)
+          | _ => part (t :: us) ts)
   in (fn ts => part [] ts) end
 
 fun replace_vars tab =
   let
-    fun replace (v as Var _) = the_default v (AList.lookup (op aconv) tab v)
+    fun repl v = the_default v (AList.lookup (op aconv) tab v)
+    fun replace (v as Var _) = repl v
+      | replace (v as Free _) = repl v
       | replace t = t
   in map (Term.map_aterms replace) end
 
@@ -241,21 +242,38 @@ fun unfold_funapp (eqs, defs) =
 
   in (map unfold_eq eqs, filter_out is_fun_app defs) end
 
-fun unfold_eqs (eqs, defs) =
+val unfold_eqs =
   let
     val is_ground = not o Term.exists_subterm Term.is_Var
+    fun is_non_rec (v, t) = not (Term.exists_subterm (equal v) t)
+
+    fun rewr_var (l as Var _, r) = if is_ground r then SOME (l, r) else NONE
+      | rewr_var (r, l as Var _) = if is_ground r then SOME (l, r) else NONE
+      | rewr_var _ = NONE
+
+    fun rewr_free' e = if is_non_rec e then SOME e else NONE
+    fun rewr_free (e as (Free _, _)) = rewr_free' e
+      | rewr_free (e as (_, Free _)) = rewr_free' (swap e)
+      | rewr_free _ = NONE
 
     fun is_trivial (Const (@{const_name HOL.eq}, _) $ t $ u) = t aconv u
       | is_trivial _ = false
 
     fun replace r = replace_vars [r] #> filter_out is_trivial
 
-    fun unfold (es, ds) =
-      (case first_eq (fn (l, Var _) => is_ground l | _ => false) es of
-        SOME ((l, r), es') => unfold (pairself (replace (r, l)) (es', ds))
+    fun unfold_vars (es, ds) =
+      (case first_eq rewr_var es of
+        SOME (lr, es') => unfold_vars (pairself (replace lr) (es', ds))
       | NONE => (es, ds))
 
-  in unfold (eqs, defs) end
+    fun unfold_frees ues (es, ds) =
+      (case first_eq rewr_free es of
+        SOME (lr, es') =>
+          pairself (replace lr) (es', ds)
+          |> unfold_frees (HOLogic.mk_eq lr :: replace lr ues)
+      | NONE => (ues @ es, ds))
+
+  in unfold_vars #> unfold_frees [] end
 
 fun swap_free ((eq as Const (@{const_name HOL.eq}, _)) $ t $ (u as Free _)) =
       eq $ u $ t
