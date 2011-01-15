@@ -1,0 +1,77 @@
+           /*********************************************************/
+                           /*Proof Rule Declarations*/
+    /*Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039*/
+             /*Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.*/
+           /*********************************************************/
+
+
+                        /*DATE : 29-NOV-2010 14:30:19.87*/
+
+                            /*procedure RMD.Round*/
+
+
+rule_family round_rules:
+     X      requires [X:any] &
+     X <= Y requires [X:ire, Y:ire] &
+     X >= Y requires [X:ire, Y:ire].
+
+round_rules(1): integer__size >= 0 may_be_deduced.
+round_rules(2): integer__first may_be_replaced_by -2147483648.
+round_rules(3): integer__last may_be_replaced_by 2147483647.
+round_rules(4): integer__base__first may_be_replaced_by -2147483648.
+round_rules(5): integer__base__last may_be_replaced_by 2147483647.
+round_rules(6): interfaces__unsigned_32__size >= 0 may_be_deduced.
+round_rules(7): interfaces__unsigned_32__first may_be_replaced_by 0.
+round_rules(8): interfaces__unsigned_32__last may_be_replaced_by 4294967295.
+round_rules(9): interfaces__unsigned_32__base__first may_be_replaced_by 0.
+round_rules(10): interfaces__unsigned_32__base__last may_be_replaced_by 4294967295.
+round_rules(11): interfaces__unsigned_32__modulus may_be_replaced_by 4294967296.
+round_rules(12): wordops__word__size >= 0 may_be_deduced.
+round_rules(13): wordops__word__first may_be_replaced_by 0.
+round_rules(14): wordops__word__last may_be_replaced_by 4294967295.
+round_rules(15): wordops__word__base__first may_be_replaced_by 0.
+round_rules(16): wordops__word__base__last may_be_replaced_by 4294967295.
+round_rules(17): wordops__word__modulus may_be_replaced_by 4294967296.
+round_rules(18): wordops__rotate_amount__size >= 0 may_be_deduced.
+round_rules(19): wordops__rotate_amount__first may_be_replaced_by 0.
+round_rules(20): wordops__rotate_amount__last may_be_replaced_by 15.
+round_rules(21): wordops__rotate_amount__base__first may_be_replaced_by -2147483648.
+round_rules(22): wordops__rotate_amount__base__last may_be_replaced_by 2147483647.
+round_rules(23): word__size >= 0 may_be_deduced.
+round_rules(24): word__first may_be_replaced_by 0.
+round_rules(25): word__last may_be_replaced_by 4294967295.
+round_rules(26): word__base__first may_be_replaced_by 0.
+round_rules(27): word__base__last may_be_replaced_by 4294967295.
+round_rules(28): word__modulus may_be_replaced_by 4294967296.
+round_rules(29): chain__size >= 0 may_be_deduced.
+round_rules(30): A = B may_be_deduced_from
+     [goal(checktype(A,chain)),
+      goal(checktype(B,chain)),
+      fld_h0(A) = fld_h0(B),
+      fld_h1(A) = fld_h1(B),
+      fld_h2(A) = fld_h2(B),
+      fld_h3(A) = fld_h3(B),
+      fld_h4(A) = fld_h4(B)].
+round_rules(31): block_index__size >= 0 may_be_deduced.
+round_rules(32): block_index__first may_be_replaced_by 0.
+round_rules(33): block_index__last may_be_replaced_by 15.
+round_rules(34): block_index__base__first <= block_index__base__last may_be_deduced.
+round_rules(35): block_index__base__first <= block_index__first may_be_deduced.
+round_rules(36): block_index__base__last >= block_index__last may_be_deduced.
+round_rules(37): round_index__size >= 0 may_be_deduced.
+round_rules(38): round_index__first may_be_replaced_by 0.
+round_rules(39): round_index__last may_be_replaced_by 79.
+round_rules(40): round_index__base__first <= round_index__base__last may_be_deduced.
+round_rules(41): round_index__base__first <= round_index__first may_be_deduced.
+round_rules(42): round_index__base__last >= round_index__last may_be_deduced.
+round_rules(43): chain_pair__size >= 0 may_be_deduced.
+round_rules(44): A = B may_be_deduced_from
+     [goal(checktype(A,chain_pair)),
+      goal(checktype(B,chain_pair)),
+      fld_left(A) = fld_left(B),
+      fld_right(A) = fld_right(B)].
+round_rules(45): rotate_amount__size >= 0 may_be_deduced.
+round_rules(46): rotate_amount__first may_be_replaced_by 0.
+round_rules(47): rotate_amount__last may_be_replaced_by 15.
+round_rules(48): rotate_amount__base__first may_be_replaced_by -2147483648.
+round_rules(49): rotate_amount__base__last may_be_replaced_by 2147483647.

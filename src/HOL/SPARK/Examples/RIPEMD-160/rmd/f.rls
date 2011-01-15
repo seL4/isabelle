@@ -1,0 +1,35 @@
+           /*********************************************************/
+                           /*Proof Rule Declarations*/
+    /*Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039*/
+             /*Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.*/
+           /*********************************************************/
+
+
+                        /*DATE : 29-NOV-2010 14:30:19.73*/
+
+                               /*function RMD.F*/
+
+
+rule_family f_rules:
+     X      requires [X:any] &
+     X <= Y requires [X:ire, Y:ire] &
+     X >= Y requires [X:ire, Y:ire].
+
+f_rules(1): interfaces__unsigned_32__size >= 0 may_be_deduced.
+f_rules(2): interfaces__unsigned_32__first may_be_replaced_by 0.
+f_rules(3): interfaces__unsigned_32__last may_be_replaced_by 4294967295.
+f_rules(4): interfaces__unsigned_32__base__first may_be_replaced_by 0.
+f_rules(5): interfaces__unsigned_32__base__last may_be_replaced_by 4294967295.
+f_rules(6): interfaces__unsigned_32__modulus may_be_replaced_by 4294967296.
+f_rules(7): word__size >= 0 may_be_deduced.
+f_rules(8): word__first may_be_replaced_by 0.
+f_rules(9): word__last may_be_replaced_by 4294967295.
+f_rules(10): word__base__first may_be_replaced_by 0.
+f_rules(11): word__base__last may_be_replaced_by 4294967295.
+f_rules(12): word__modulus may_be_replaced_by 4294967296.
+f_rules(13): round_index__size >= 0 may_be_deduced.
+f_rules(14): round_index__first may_be_replaced_by 0.
+f_rules(15): round_index__last may_be_replaced_by 79.
+f_rules(16): round_index__base__first <= round_index__base__last may_be_deduced.
+f_rules(17): round_index__base__first <= round_index__first may_be_deduced.
+f_rules(18): round_index__base__last >= round_index__last may_be_deduced.

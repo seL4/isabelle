@@ -1,0 +1,74 @@
+           {*******************************************************}
+                               {FDL Declarations}
+    {Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039}
+             {Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.}
+           {*******************************************************}
+
+
+                        {DATE : 29-NOV-2010 14:30:20.17}
+
+                             {function RMD.Hash}
+
+
+title function hash;
+
+  function round__(real) : integer;
+  type interfaces__unsigned_32 = integer;
+  type block_index = integer;
+  type message_index = integer;
+  type chain = record
+        h0 : integer;
+        h1 : integer;
+        h2 : integer;
+        h3 : integer;
+        h4 : integer
+     end;
+  type block = array [integer] of integer;
+  type message = array [integer] of block;
+  const ca_init : integer = pending;
+  const cb_init : integer = pending;
+  const cc_init : integer = pending;
+  const cd_init : integer = pending;
+  const ce_init : integer = pending;
+  const message_index__base__first : integer = pending; 
+  const message_index__base__last : integer = pending; 
+  const block_index__base__first : integer = pending; 
+  const block_index__base__last : integer = pending; 
+  const word__base__first : integer = pending; 
+  const word__base__last : integer = pending; 
+  const interfaces__unsigned_32__base__first : integer = pending; 
+  const interfaces__unsigned_32__base__last : integer = pending; 
+  const x__index__subtype__1__first : integer = pending; 
+  const x__index__subtype__1__last : integer = pending; 
+  const message_index__first : integer = pending; 
+  const message_index__last : integer = pending; 
+  const message_index__size : integer = pending; 
+  const block_index__first : integer = pending; 
+  const block_index__last : integer = pending; 
+  const block_index__size : integer = pending; 
+  const chain__size : integer = pending; 
+  const word__first : integer = pending; 
+  const word__last : integer = pending; 
+  const word__modulus : integer = pending; 
+  const word__size : integer = pending; 
+  const interfaces__unsigned_32__first : integer = pending; 
+  const interfaces__unsigned_32__last : integer = pending; 
+  const interfaces__unsigned_32__modulus : integer = pending; 
+  const interfaces__unsigned_32__size : integer = pending; 
+  var x : message;
+  var ca : integer;
+  var cb : integer;
+  var cc : integer;
+  var cd : integer;
+  var ce : integer;
+  var loop__1__i : integer;
+  function rmd_hash(message, integer) : chain;
+  function round_spec(chain, block) : chain;
+  function rounds(chain, integer, message) : chain;
+  var ce__1 : integer;
+  var cd__1 : integer;
+  var cc__1 : integer;
+  var cb__1 : integer;
+  var ca__1 : integer;
+
+end;

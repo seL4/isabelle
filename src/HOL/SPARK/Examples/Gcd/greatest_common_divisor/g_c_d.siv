@@ -1,0 +1,117 @@
+*****************************************************************************
+                       Semantic Analysis of SPARK Text
+    Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039
+             Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.
+*****************************************************************************
+
+
+CREATED 29-NOV-2010, 14:30:10  SIMPLIFIED 29-NOV-2010, 14:30:11
+
+SPARK Simplifier Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039
+Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.
+
+procedure Greatest_Common_Divisor.G_C_D
+
+
+
+
+For path(s) from start to run-time check associated with statement of line 8:
+
+procedure_g_c_d_1.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 8:
+
+procedure_g_c_d_2.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to assertion of line 10:
+
+procedure_g_c_d_3.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 10 to assertion of line 10:
+
+procedure_g_c_d_4.
+H1:    c >= 0 .
+H2:    d > 0 .
+H3:    gcd(c, d) = gcd(m, n) .
+H4:    m >= 0 .
+H5:    m <= 2147483647 .
+H6:    n <= 2147483647 .
+H7:    n > 0 .
+H8:    c <= 2147483647 .
+H9:    d <= 2147483647 .
+H10:   c - c div d * d >= - 2147483648 .
+H11:   c - c div d * d <= 2147483647 .
+H12:   c - c div d * d <> 0 .
+H13:   integer__size >= 0 .
+H14:   natural__size >= 0 .
+       ->
+C1:    c - c div d * d > 0 .
+C2:    gcd(d, c - c div d * d) = gcd(m, n) .
+
+
+For path(s) from assertion of line 10 to run-time check associated with 
+          statement of line 11:
+
+procedure_g_c_d_5.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 10 to run-time check associated with 
+          statement of line 12:
+
+procedure_g_c_d_6.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 10 to run-time check associated with 
+          statement of line 12:
+
+procedure_g_c_d_7.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 14:
+
+procedure_g_c_d_8.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 10 to run-time check associated with 
+          statement of line 14:
+
+procedure_g_c_d_9.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to finish:
+
+procedure_g_c_d_10.
+*** true .   /* contradiction within hypotheses. */
+
+
+
+For path(s) from assertion of line 10 to finish:
+
+procedure_g_c_d_11.
+H1:    c >= 0 .
+H2:    d > 0 .
+H3:    gcd(c, d) = gcd(m, n) .
+H4:    m >= 0 .
+H5:    m <= 2147483647 .
+H6:    n <= 2147483647 .
+H7:    n > 0 .
+H8:    c <= 2147483647 .
+H9:    d <= 2147483647 .
+H10:   c - c div d * d = 0 .
+H11:   integer__size >= 0 .
+H12:   natural__size >= 0 .
+       ->
+C1:    d = gcd(m, n) .
+
+

@@ -1,0 +1,228 @@
+*****************************************************************************
+                       Semantic Analysis of SPARK Text
+    Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039
+             Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.
+*****************************************************************************
+
+
+CREATED 29-NOV-2010, 14:30:19  SIMPLIFIED 29-NOV-2010, 14:30:28
+
+SPARK Simplifier Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039
+Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.
+
+function RMD.F
+
+
+
+
+For path(s) from start to run-time check associated with statement of line 9:
+
+function_f_1.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 10:
+
+function_f_2.
+H1:    x >= 0 .
+H2:    x <= 4294967295 .
+H3:    y >= 0 .
+H4:    y <= 4294967295 .
+H5:    z >= 0 .
+H6:    z <= 4294967295 .
+H7:    16 <= j .
+H8:    j <= 31 .
+H9:    interfaces__unsigned_32__size >= 0 .
+H10:   word__size >= 0 .
+H11:   round_index__size >= 0 .
+H12:   round_index__base__first <= round_index__base__last .
+H13:   round_index__base__first <= 0 .
+H14:   round_index__base__last >= 79 .
+       ->
+C1:    bit__or(bit__and(x, y), bit__and(4294967295 - x, z)) >= 0 .
+C2:    bit__or(bit__and(x, y), bit__and(4294967295 - x, z)) <= 4294967295 .
+
+
+For path(s) from start to run-time check associated with statement of line 11:
+
+function_f_3.
+H1:    x >= 0 .
+H2:    x <= 4294967295 .
+H3:    y >= 0 .
+H4:    y <= 4294967295 .
+H5:    z >= 0 .
+H6:    z <= 4294967295 .
+H7:    32 <= j .
+H8:    j <= 47 .
+H9:    interfaces__unsigned_32__size >= 0 .
+H10:   word__size >= 0 .
+H11:   round_index__size >= 0 .
+H12:   round_index__base__first <= round_index__base__last .
+H13:   round_index__base__first <= 0 .
+H14:   round_index__base__last >= 79 .
+       ->
+C1:    bit__xor(bit__or(x, 4294967295 - y), z) >= 0 .
+C2:    bit__xor(bit__or(x, 4294967295 - y), z) <= 4294967295 .
+
+
+For path(s) from start to run-time check associated with statement of line 12:
+
+function_f_4.
+H1:    x >= 0 .
+H2:    x <= 4294967295 .
+H3:    y >= 0 .
+H4:    y <= 4294967295 .
+H5:    z >= 0 .
+H6:    z <= 4294967295 .
+H7:    48 <= j .
+H8:    j <= 63 .
+H9:    interfaces__unsigned_32__size >= 0 .
+H10:   word__size >= 0 .
+H11:   round_index__size >= 0 .
+H12:   round_index__base__first <= round_index__base__last .
+H13:   round_index__base__first <= 0 .
+H14:   round_index__base__last >= 79 .
+       ->
+C1:    bit__or(bit__and(x, z), bit__and(y, 4294967295 - z)) >= 0 .
+C2:    bit__or(bit__and(x, z), bit__and(y, 4294967295 - z)) <= 4294967295 .
+
+
+For path(s) from start to run-time check associated with statement of line 13:
+
+function_f_5.
+H1:    j >= 0 .
+H2:    j <= 79 .
+H3:    x >= 0 .
+H4:    x <= 4294967295 .
+H5:    y >= 0 .
+H6:    y <= 4294967295 .
+H7:    z >= 0 .
+H8:    z <= 4294967295 .
+H9:    15 < j .
+H10:   31 < j .
+H11:   47 < j .
+H12:   63 < j .
+H13:   interfaces__unsigned_32__size >= 0 .
+H14:   word__size >= 0 .
+H15:   round_index__size >= 0 .
+H16:   round_index__base__first <= round_index__base__last .
+H17:   round_index__base__first <= 0 .
+H18:   round_index__base__last >= 79 .
+       ->
+C1:    bit__xor(x, bit__or(y, 4294967295 - z)) >= 0 .
+C2:    bit__xor(x, bit__or(y, 4294967295 - z)) <= 4294967295 .
+
+
+For path(s) from start to finish:
+
+function_f_6.
+H1:    j >= 0 .
+H2:    x >= 0 .
+H3:    x <= 4294967295 .
+H4:    y >= 0 .
+H5:    y <= 4294967295 .
+H6:    z >= 0 .
+H7:    z <= 4294967295 .
+H8:    j <= 15 .
+H9:    bit__xor(x, bit__xor(y, z)) >= 0 .
+H10:   bit__xor(x, bit__xor(y, z)) <= 4294967295 .
+H11:   interfaces__unsigned_32__size >= 0 .
+H12:   word__size >= 0 .
+H13:   round_index__size >= 0 .
+H14:   round_index__base__first <= round_index__base__last .
+H15:   round_index__base__first <= 0 .
+H16:   round_index__base__last >= 79 .
+       ->
+C1:    bit__xor(x, bit__xor(y, z)) = f_spec(j, x, y, z) .
+
+
+function_f_7.
+H1:    x >= 0 .
+H2:    x <= 4294967295 .
+H3:    y >= 0 .
+H4:    y <= 4294967295 .
+H5:    z >= 0 .
+H6:    z <= 4294967295 .
+H7:    16 <= j .
+H8:    j <= 31 .
+H9:    bit__or(bit__and(x, y), bit__and(4294967295 - x, z)) >= 0 .
+H10:   bit__or(bit__and(x, y), bit__and(4294967295 - x, z)) <= 4294967295 .
+H11:   interfaces__unsigned_32__size >= 0 .
+H12:   word__size >= 0 .
+H13:   round_index__size >= 0 .
+H14:   round_index__base__first <= round_index__base__last .
+H15:   round_index__base__first <= 0 .
+H16:   round_index__base__last >= 79 .
+       ->
+C1:    bit__or(bit__and(x, y), bit__and(4294967295 - x, z)) = f_spec(j, x, y, z)
+           .
+
+
+function_f_8.
+H1:    x >= 0 .
+H2:    x <= 4294967295 .
+H3:    y >= 0 .
+H4:    y <= 4294967295 .
+H5:    z >= 0 .
+H6:    z <= 4294967295 .
+H7:    32 <= j .
+H8:    j <= 47 .
+H9:    bit__xor(bit__or(x, 4294967295 - y), z) >= 0 .
+H10:   bit__xor(bit__or(x, 4294967295 - y), z) <= 4294967295 .
+H11:   interfaces__unsigned_32__size >= 0 .
+H12:   word__size >= 0 .
+H13:   round_index__size >= 0 .
+H14:   round_index__base__first <= round_index__base__last .
+H15:   round_index__base__first <= 0 .
+H16:   round_index__base__last >= 79 .
+       ->
+C1:    bit__xor(bit__or(x, 4294967295 - y), z) = f_spec(j, x, y, z) .
+
+
+function_f_9.
+H1:    x >= 0 .
+H2:    x <= 4294967295 .
+H3:    y >= 0 .
+H4:    y <= 4294967295 .
+H5:    z >= 0 .
+H6:    z <= 4294967295 .
+H7:    48 <= j .
+H8:    j <= 63 .
+H9:    bit__or(bit__and(x, z), bit__and(y, 4294967295 - z)) >= 0 .
+H10:   bit__or(bit__and(x, z), bit__and(y, 4294967295 - z)) <= 4294967295 .
+H11:   interfaces__unsigned_32__size >= 0 .
+H12:   word__size >= 0 .
+H13:   round_index__size >= 0 .
+H14:   round_index__base__first <= round_index__base__last .
+H15:   round_index__base__first <= 0 .
+H16:   round_index__base__last >= 79 .
+       ->
+C1:    bit__or(bit__and(x, z), bit__and(y, 4294967295 - z)) = f_spec(j, x, y, z)
+           .
+
+
+function_f_10.
+H1:    j >= 0 .
+H2:    j <= 79 .
+H3:    x >= 0 .
+H4:    x <= 4294967295 .
+H5:    y >= 0 .
+H6:    y <= 4294967295 .
+H7:    z >= 0 .
+H8:    z <= 4294967295 .
+H9:    15 < j .
+H10:   31 < j .
+H11:   47 < j .
+H12:   63 < j .
+H13:   bit__xor(x, bit__or(y, 4294967295 - z)) >= 0 .
+H14:   bit__xor(x, bit__or(y, 4294967295 - z)) <= 4294967295 .
+H15:   interfaces__unsigned_32__size >= 0 .
+H16:   word__size >= 0 .
+H17:   round_index__size >= 0 .
+H18:   round_index__base__first <= round_index__base__last .
+H19:   round_index__base__first <= 0 .
+H20:   round_index__base__last >= 79 .
+       ->
+C1:    bit__xor(x, bit__or(y, 4294967295 - z)) = f_spec(j, x, y, z) .
+
+

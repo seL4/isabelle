@@ -1,0 +1,33 @@
+           {*******************************************************}
+                               {FDL Declarations}
+    {Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039}
+             {Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.}
+           {*******************************************************}
+
+
+                        {DATE : 29-NOV-2010 14:30:19.81}
+
+                              {function RMD.R_R}
+
+
+title function r_r;
+
+  function round__(real) : integer;
+  type block_index = integer;
+  type round_index = integer;
+  type block_permutation = array [integer] of integer;
+  const r_values : block_permutation = pending;
+  const round_index__base__first : integer = pending; 
+  const round_index__base__last : integer = pending; 
+  const block_index__base__first : integer = pending; 
+  const block_index__base__last : integer = pending; 
+  const round_index__first : integer = pending; 
+  const round_index__last : integer = pending; 
+  const round_index__size : integer = pending; 
+  const block_index__first : integer = pending; 
+  const block_index__last : integer = pending; 
+  const block_index__size : integer = pending; 
+  var j : integer;
+  function r_r_spec(integer) : integer;
+
+end;

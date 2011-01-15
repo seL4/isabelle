@@ -1,0 +1,38 @@
+           {*******************************************************}
+                               {FDL Declarations}
+    {Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039}
+             {Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.}
+           {*******************************************************}
+
+
+                        {DATE : 29-NOV-2010 14:30:19.74}
+
+                              {function RMD.K_L}
+
+
+title function k_l;
+
+  function round__(real) : integer;
+  type interfaces__unsigned_32 = integer;
+  type round_index = integer;
+  const round_index__base__first : integer = pending; 
+  const round_index__base__last : integer = pending; 
+  const word__base__first : integer = pending; 
+  const word__base__last : integer = pending; 
+  const interfaces__unsigned_32__base__first : integer = pending; 
+  const interfaces__unsigned_32__base__last : integer = pending; 
+  const round_index__first : integer = pending; 
+  const round_index__last : integer = pending; 
+  const round_index__size : integer = pending; 
+  const word__first : integer = pending; 
+  const word__last : integer = pending; 
+  const word__modulus : integer = pending; 
+  const word__size : integer = pending; 
+  const interfaces__unsigned_32__first : integer = pending; 
+  const interfaces__unsigned_32__last : integer = pending; 
+  const interfaces__unsigned_32__modulus : integer = pending; 
+  const interfaces__unsigned_32__size : integer = pending; 
+  var j : integer;
+  function k_l_spec(integer) : integer;
+
+end;

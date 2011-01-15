@@ -1,0 +1,37 @@
+           {*******************************************************}
+                               {FDL Declarations}
+    {Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039}
+             {Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.}
+           {*******************************************************}
+
+
+                        {DATE : 29-NOV-2010 14:30:19.84}
+
+                              {function RMD.S_R}
+
+
+title function s_r;
+
+  function round__(real) : integer;
+  type round_index = integer;
+  type rotate_definition = array [integer] of integer;
+  const s_values : rotate_definition = pending;
+  const rotate_amount__base__first : integer = pending; 
+  const rotate_amount__base__last : integer = pending; 
+  const round_index__base__first : integer = pending; 
+  const round_index__base__last : integer = pending; 
+  const integer__base__first : integer = pending; 
+  const integer__base__last : integer = pending; 
+  const rotate_amount__first : integer = pending; 
+  const rotate_amount__last : integer = pending; 
+  const rotate_amount__size : integer = pending; 
+  const round_index__first : integer = pending; 
+  const round_index__last : integer = pending; 
+  const round_index__size : integer = pending; 
+  const integer__first : integer = pending; 
+  const integer__last : integer = pending; 
+  const integer__size : integer = pending; 
+  var j : integer;
+  function s_r_spec(integer) : integer;
+
+end;
