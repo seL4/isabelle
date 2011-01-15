@@ -65,15 +65,14 @@ fun unused_thms (base_thys, thys) =
 
     val used =
       Proofterm.fold_body_thms
-        (fn (a, prop, _) => a <> "" ? Symtab.insert_list (op =) (a, prop))
+        (fn (a, _, _) => a <> "" ? Symtab.update (a, ()))
         (map (Proofterm.strip_thm o Thm.proof_body_of o #1 o #2) new_thms) Symtab.empty;
 
-    fun is_unused (a, th) =
-      not (member (op aconv) (Symtab.lookup_list used a) (Thm.prop_of th));
+    fun is_unused a = not (Symtab.defined used a);
 
     (* groups containing at least one used theorem *)
-    val used_groups = fold (fn (a, (th, _, group)) =>
-      if is_unused (a, th) then I
+    val used_groups = fold (fn (a, (_, _, group)) =>
+      if is_unused a then I
       else
         (case group of
           NONE => I
@@ -82,7 +81,7 @@ fun unused_thms (base_thys, thys) =
     val (thms', _) = fold (fn (a, (th, concealed, group)) => fn q as (thms, seen_groups) =>
       if not concealed andalso
         member (op =) [Thm.theoremK, Thm.lemmaK, Thm.corollaryK] (Thm.get_kind th) andalso
-        is_unused (a, th)
+        is_unused a
       then
         (case group of
            NONE => ((a, th) :: thms, seen_groups)
