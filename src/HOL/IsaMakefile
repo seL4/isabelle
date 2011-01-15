@@ -73,6 +73,7 @@ test: \
   HOL-Proofs-Extraction \
   HOL-Proofs-Lambda \
   HOL-SET_Protocol \
+  HOL-SPARK-Examples \
   HOL-Word-SMT_Examples \
   HOL-Statespace \
   HOL-Subst \
@@ -1714,6 +1715,7 @@ clean:
 		$(LOG)/HOL-Proofs-Extraction.gz				\
 		$(LOG)/HOL-Proofs-Lambda.gz $(LOG)/HOL-SET_Protocol.gz	\
 		$(LOG)/HOL-Word-SMT_Examples.gz				\
+		$(LOG)/HOL-SPARK.gz $(LOG)/HOL-SPARK-Examples.gz	\
 		$(LOG)/HOL-Statespace.gz $(LOG)/HOL-Subst.gz		\
 		$(LOG)/HOL-UNITY.gz $(LOG)/HOL-Unix.gz			\
 		$(LOG)/HOL-Word-Examples.gz $(LOG)/HOL-Word.gz		\
@@ -1724,6 +1726,7 @@ clean:
 		$(OUT)/HOL-Main $(OUT)/HOL-Multivariate_Analysis	\
 		$(OUT)/HOL-NSA $(OUT)/HOL-Nominal $(OUT)/HOL-Plain	\
 		$(OUT)/HOL-Probability $(OUT)/HOL-Proofs		\
+		$(OUT)/HOL-SPARK					\
 		$(OUT)/HOL-Word $(OUT)/HOL4 $(OUT)/TLA			\
 		$(OUT)/HOLCF $(LOG)/HOLCF.gz $(LOG)/HOLCF-IMP.gz	\
 		$(LOG)/HOLCF-ex.gz $(LOG)/HOLCF-FOCUS.gz $(OUT)/IOA	\
