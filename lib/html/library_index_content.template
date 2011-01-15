@@ -8,6 +8,10 @@
         that of the <a href="http://www.cl.cam.ac.uk/Research/HVG/HOL/">HOL System</a>.
         </li>
       </ul>
+      <ul>
+        <li>HOL with explicit <a href="HOL-Proofs/index.html">proof terms</a>.
+        </li>
+      </ul>
     </li>
   </ul>
 
