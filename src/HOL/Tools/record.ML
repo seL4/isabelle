@@ -953,26 +953,30 @@ end;
 
 local
 
+fun dest_update ctxt c =
+  (case try Syntax.unmark_const c of
+    SOME d => try (unsuffix updateN) (Consts.extern (ProofContext.consts_of ctxt) d)
+  | NONE => NONE);
+
 fun field_updates_tr' ctxt (tm as Const (c, _) $ k $ u) =
-      let
-        val extern = Consts.extern (ProofContext.consts_of ctxt);
-        val t =
-          (case k of
-            Abs (_, _, Abs (_, _, t) $ Bound 0) =>
-              if null (loose_bnos t) then t else raise Match
-          | Abs (_, _, t) =>
-              if null (loose_bnos t) then t else raise Match
-          | _ => raise Match);
-      in
-        (case Option.map extern (try Syntax.unmark_const c) of
-          SOME update_name =>
-            (case try (unsuffix updateN) update_name of
-              SOME name =>
+      (case dest_update ctxt c of
+        SOME name =>
+          let
+            val opt_t =
+              (case k of
+                Abs (_, _, Abs (_, _, t) $ Bound 0) =>
+                  if null (loose_bnos t) then SOME t else NONE
+              | Abs (_, _, t) =>
+                  if null (loose_bnos t) then SOME t else NONE
+              | _ => NONE);
+          in
+            (case opt_t of
+              SOME t =>
                 apfst (cons (Syntax.const @{syntax_const "_field_update"} $ Syntax.free name $ t))
                   (field_updates_tr' ctxt u)
             | NONE => ([], tm))
-        | NONE => ([], tm))
-      end
+          end
+      | NONE => ([], tm))
   | field_updates_tr' _ tm = ([], tm);
 
 fun record_update_tr' ctxt tm =
