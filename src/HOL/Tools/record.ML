@@ -25,6 +25,7 @@ sig
     cases: thm, simps: thm list, iffs: thm list}
   val get_info: theory -> string -> info option
   val the_info: theory -> string -> info
+  val get_hierarchy: theory -> (string * typ list) -> (string * (string * typ) list) list
   val add_record: bool -> (string * sort) list * binding -> (typ list * string) option ->
     (binding * typ * mixfix) list -> theory -> theory
 
@@ -614,12 +615,14 @@ val get_fieldext = Symtab.lookup o #fieldext o Data.get;
 
 (* parent records *)
 
-fun add_parents _ NONE parents = parents
-  | add_parents thy (SOME (types, name)) parents =
+local
+
+fun add_parents _ NONE = I
+  | add_parents thy (SOME (types, name)) =
       let
         fun err msg = error (msg ^ " parent record " ^ quote name);
 
-        val {args, parent, fields, extension, induct_scheme, ext_def, ...} =
+        val {args, parent, ...} =
           (case get_info thy name of SOME info => info | NONE => err "Unknown");
         val _ = if length types <> length args then err "Bad number of arguments for" else ();
 
@@ -631,12 +634,22 @@ fun add_parents _ NONE parents = parents
         val inst = map fst args ~~ types;
         val subst = Term.map_type_tfree (the o AList.lookup (op =) inst o fst);
         val parent' = Option.map (apfst (map subst)) parent;
-        val fields' = map (apsnd subst) fields;
-        val extension' = apsnd (map subst) extension;
-      in
-        add_parents thy parent'
-          (make_parent_info name fields' extension' ext_def induct_scheme :: parents)
-      end;
+      in cons (name, inst) #> add_parents thy parent' end;
+
+in
+
+fun get_hierarchy thy (name, types) = add_parents thy (SOME (types, name)) [];
+
+fun get_parent_info thy parent =
+  add_parents thy parent [] |> map (fn (name, inst) =>
+    let
+      val subst = Term.map_type_tfree (the o AList.lookup (op =) inst o fst);
+      val {fields, extension, induct_scheme, ext_def, ...} = the_info thy name;
+      val fields' = map (apsnd subst) fields;
+      val extension' = apsnd (map subst) extension;
+    in make_parent_info name fields' extension' ext_def induct_scheme end);
+
+end;
 
 
 
@@ -2415,7 +2428,7 @@ fun add_record quiet_mode (params, binding) raw_parent raw_fields thy =
       handle ERROR msg =>
         cat_error msg ("The error(s) above occurred in parent record specification");
     val parent_args = (case parent of SOME (Ts, _) => Ts | NONE => []);
-    val parents = add_parents thy parent [];
+    val parents = get_parent_info thy parent;
 
     val bfields = map (prep_field cert_typ) raw_fields;
 
