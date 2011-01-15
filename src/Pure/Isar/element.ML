@@ -201,6 +201,16 @@ fun pretty_ctxt ctxt =
 
 local
 
+fun standard_elim th =
+  (case Object_Logic.elim_concl th of
+    SOME C =>
+      let
+        val cert = Thm.cterm_of (Thm.theory_of_thm th);
+        val thesis = Var ((Auto_Bind.thesisN, Thm.maxidx_of th + 1), fastype_of C);
+        val th' = Thm.instantiate ([], [(cert C, cert thesis)]) th;
+      in (th', true) end
+  | NONE => (th, false));
+
 fun thm_name kind th prts =
   let val head =
     if Thm.has_name_hint th then
@@ -209,13 +219,13 @@ fun thm_name kind th prts =
     else Pretty.command kind
   in Pretty.block (Pretty.fbreaks (head :: prts)) end;
 
-fun fix (x, T) = (Binding.name x, SOME T);
-
 fun obtain prop ctxt =
   let
-    val ((xs, prop'), ctxt') = Variable.focus prop ctxt;
+    val ((ps, prop'), ctxt') = Variable.focus prop ctxt;
+    fun fix (x, T) = (Binding.name (ProofContext.revert_skolem ctxt' x), SOME T);
+    val xs = map (fix o Term.dest_Free o Thm.term_of o #2) ps;
     val As = Logic.strip_imp_prems (Thm.term_of prop');
-  in ((Binding.empty, (map (fix o Term.dest_Free o Thm.term_of o #2) xs, As)), ctxt') end;
+  in ((Binding.empty, (xs, As)), ctxt') end;
 
 in
 
@@ -224,17 +234,15 @@ fun pretty_statement ctxt kind raw_th =
     val thy = ProofContext.theory_of ctxt;
     val cert = Thm.cterm_of thy;
 
-    val th = Raw_Simplifier.norm_hhf raw_th;
-    val is_elim = Object_Logic.is_elim th;
-
-    val ((_, [th']), ctxt') = Variable.import true [th] (Variable.set_body false ctxt);
+    val (th, is_elim) = standard_elim (Raw_Simplifier.norm_hhf raw_th);
+    val ((_, [th']), ctxt') = Variable.import true [th] (Variable.set_body true ctxt);
     val prop = Thm.prop_of th';
     val (prems, concl) = Logic.strip_horn prop;
     val concl_term = Object_Logic.drop_judgment thy concl;
 
     val fixes = fold_aterms (fn v as Free (x, T) =>
         if Variable.newly_fixed ctxt' ctxt x andalso not (v aconv concl_term)
-        then insert (op =) (x, T) else I | _ => I) prop [] |> rev;
+        then insert (op =) (ProofContext.revert_skolem ctxt' x, T) else I | _ => I) prop [] |> rev;
     val (assumes, cases) = take_suffix (fn prem =>
       is_elim andalso concl aconv Logic.strip_assums_concl prem) prems;
   in

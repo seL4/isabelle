@@ -17,7 +17,7 @@ sig
   val ensure_propT: theory -> term -> term
   val dest_judgment: cterm -> cterm
   val judgment_conv: conv -> conv
-  val is_elim: thm -> bool
+  val elim_concl: thm -> term option
   val declare_atomize: attribute
   val declare_rulify: attribute
   val atomize_term: theory -> term -> term
@@ -145,13 +145,15 @@ fun judgment_conv cv ct =
 
 (* elimination rules *)
 
-fun is_elim rule =
+fun elim_concl rule =
   let
     val thy = Thm.theory_of_thm rule;
     val concl = Thm.concl_of rule;
+    val C = drop_judgment thy concl;
   in
-    Term.is_Var (drop_judgment thy concl) andalso
+    if Term.is_Var C andalso
       exists (fn prem => concl aconv Logic.strip_assums_concl prem) (Thm.prems_of rule)
+    then SOME C else NONE
   end;
 
 

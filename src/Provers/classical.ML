@@ -153,7 +153,7 @@ FAILED"; classical_rule will strenthen this to
 *)
 
 fun classical_rule rule =
-  if Object_Logic.is_elim rule then
+  if is_some (Object_Logic.elim_concl rule) then
     let
       val rule' = rule RS classical;
       val concl' = Thm.concl_of rule';
