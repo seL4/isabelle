@@ -1802,7 +1802,7 @@ fun instantiate_random_record tyco vs extN Ts thy =
           ((HOLogic.mk_random T' size, @{typ Random.seed}), SOME (v, termifyT T'))) params)
         tc @{typ Random.seed} (SOME Tm, @{typ Random.seed});
     val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
-  in 
+  in
     thy
     |> Class.instantiation ([tyco], vs, @{sort random})
     |> `(fn lthy => Syntax.check_term lthy eq)
@@ -1815,11 +1815,14 @@ fun ensure_random_record ext_tyco vs extN Ts thy =
   let
     val algebra = Sign.classes_of thy;
     val has_inst = can (Sorts.mg_domain algebra ext_tyco) @{sort random};
-  in if has_inst then thy
-    else case Quickcheck_Generators.perhaps_constrain thy (map (rpair @{sort random}) Ts) vs
-     of SOME constrain => instantiate_random_record ext_tyco (map constrain vs) extN
-          ((map o map_atyps) (fn TFree v => TFree (constrain v)) Ts) thy
-      | NONE => thy
+  in
+    if has_inst then thy
+    else
+      (case Quickcheck_Generators.perhaps_constrain thy (map (rpair @{sort random}) Ts) vs of
+        SOME constrain =>
+          instantiate_random_record ext_tyco (map constrain vs) extN
+            ((map o map_atyps) (fn TFree v => TFree (constrain v)) Ts) thy
+      | NONE => thy)
   end;
 
 fun add_code ext_tyco vs extT ext simps inject thy =
@@ -1837,7 +1840,7 @@ fun add_code ext_tyco vs extT ext simps inject thy =
     fun mk_eq_refl thy =
       @{thm equal_refl}
       |> Thm.instantiate
-        ([pairself (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort equal}), Logic.varifyT_global extT)], [])
+        ([pairself (ctyp_of thy) (TVar (("'a", 0), @{sort equal}), Logic.varifyT_global extT)], [])
       |> AxClass.unoverload thy;
   in
     thy
@@ -1846,11 +1849,12 @@ fun add_code ext_tyco vs extT ext simps inject thy =
     |> Class.instantiation ([ext_tyco], vs, [HOLogic.class_equal])
     |> `(fn lthy => Syntax.check_term lthy eq)
     |-> (fn eq => Specification.definition
-         (NONE, (Attrib.empty_binding, eq)))
+          (NONE, (Attrib.empty_binding, eq)))
     |-> (fn (_, (_, eq_def)) =>
        Class.prove_instantiation_exit_result Morphism.thm
-         (fn _ => fn eq_def => tac eq_def) eq_def)
-    |-> (fn eq_def => fn thy => thy |> Code.del_eqn eq_def |> Code.add_default_eqn (mk_eq thy eq_def))
+          (fn _ => fn eq_def => tac eq_def) eq_def)
+    |-> (fn eq_def => fn thy =>
+          thy |> Code.del_eqn eq_def |> Code.add_default_eqn (mk_eq thy eq_def))
     |> (fn thy => Code.add_nbe_default_eqn (mk_eq_refl thy) thy)
     |> ensure_random_record ext_tyco vs (fst ext) (binder_types (snd ext))
   end;
