@@ -18,6 +18,7 @@ images: \
   HOL-Nominal \
   HOL-Probability \
   HOL-Proofs \
+  HOL-SPARK \
   HOL-Word \
   HOL4 \
   HOLCF \
@@ -1201,7 +1202,6 @@ $(OUT)/HOL-Nominal: $(OUT)/HOL Nominal/ROOT.ML \
   Nominal/nominal_permeq.ML \
   Nominal/nominal_primrec.ML \
   Nominal/nominal_thmdecls.ML \
-  Nominal/old_primrec.ML \
   Library/Infinite_Set.thy
 	@cd Nominal; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Nominal
 
@@ -1344,6 +1344,69 @@ $(LOG)/HOL-Boogie-Examples.gz: $(OUT)/HOL-Boogie			\
   Boogie/Examples/VCC_Max.b2i Boogie/Examples/Boogie_Max.certs		\
   Boogie/Examples/Boogie_Dijkstra.certs Boogie/Examples/VCC_Max.certs
 	@cd Boogie; $(ISABELLE_TOOL) usedir $(OUT)/HOL-Boogie Examples
+
+
+## HOL-SPARK
+
+HOL-SPARK: HOL-Word $(OUT)/HOL-SPARK
+
+$(OUT)/HOL-SPARK: $(OUT)/HOL-Word SPARK/ROOT.ML 		\
+  SPARK/SPARK.thy SPARK/SPARK_Setup.thy				\
+  SPARK/Tools/fdl_lexer.ML SPARK/Tools/fdl_parser.ML		\
+  SPARK/Tools/spark_commands.ML SPARK/Tools/spark_vcs.ML
+	@cd SPARK; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL-Word HOL-SPARK
+
+
+## HOL-SPARK-Examples
+
+HOL-SPARK-Examples: HOL-SPARK $(LOG)/HOL-SPARK-Examples.gz
+
+$(LOG)/HOL-SPARK-Examples.gz: $(OUT)/HOL-SPARK				\
+  SPARK/Examples/ROOT.ML						\
+  SPARK/Examples/Gcd/Greatest_Common_Divisor.thy			\
+  SPARK/Examples/Gcd/greatest_common_divisor/g_c_d.fdl			\
+  SPARK/Examples/Gcd/greatest_common_divisor/g_c_d.rls			\
+  SPARK/Examples/Gcd/greatest_common_divisor/g_c_d.siv			\
+  SPARK/Examples/Liseq/Longest_Increasing_Subsequence.thy		\
+  SPARK/Examples/Liseq/liseq/liseq_length.fdl				\
+  SPARK/Examples/Liseq/liseq/liseq_length.rls				\
+  SPARK/Examples/Liseq/liseq/liseq_length.siv				\
+  SPARK/Examples/RIPEMD-160/F.thy SPARK/Examples/RIPEMD-160/Hash.thy	\
+  SPARK/Examples/RIPEMD-160/K_L.thy SPARK/Examples/RIPEMD-160/K_R.thy	\
+  SPARK/Examples/RIPEMD-160/R_L.thy					\
+  SPARK/Examples/RIPEMD-160/RMD_Lemmas.thy				\
+  SPARK/Examples/RIPEMD-160/RMD_Specification.thy			\
+  SPARK/Examples/RIPEMD-160/RMD.thy SPARK/Examples/RIPEMD-160/Round.thy	\
+  SPARK/Examples/RIPEMD-160/R_R.thy SPARK/Examples/RIPEMD-160/S_L.thy	\
+  SPARK/Examples/RIPEMD-160/S_R.thy					\
+  SPARK/Examples/RIPEMD-160/rmd/f.fdl					\
+  SPARK/Examples/RIPEMD-160/rmd/f.rls					\
+  SPARK/Examples/RIPEMD-160/rmd/f.siv					\
+  SPARK/Examples/RIPEMD-160/rmd/hash.fdl				\
+  SPARK/Examples/RIPEMD-160/rmd/hash.rls				\
+  SPARK/Examples/RIPEMD-160/rmd/hash.siv				\
+  SPARK/Examples/RIPEMD-160/rmd/k_l.fdl					\
+  SPARK/Examples/RIPEMD-160/rmd/k_l.rls					\
+  SPARK/Examples/RIPEMD-160/rmd/k_l.siv					\
+  SPARK/Examples/RIPEMD-160/rmd/k_r.fdl					\
+  SPARK/Examples/RIPEMD-160/rmd/k_r.rls					\
+  SPARK/Examples/RIPEMD-160/rmd/k_r.siv					\
+  SPARK/Examples/RIPEMD-160/rmd/r_l.fdl					\
+  SPARK/Examples/RIPEMD-160/rmd/r_l.rls					\
+  SPARK/Examples/RIPEMD-160/rmd/r_l.siv					\
+  SPARK/Examples/RIPEMD-160/rmd/round.fdl				\
+  SPARK/Examples/RIPEMD-160/rmd/round.rls				\
+  SPARK/Examples/RIPEMD-160/rmd/round.siv				\
+  SPARK/Examples/RIPEMD-160/rmd/r_r.fdl					\
+  SPARK/Examples/RIPEMD-160/rmd/r_r.rls					\
+  SPARK/Examples/RIPEMD-160/rmd/r_r.siv					\
+  SPARK/Examples/RIPEMD-160/rmd/s_l.fdl					\
+  SPARK/Examples/RIPEMD-160/rmd/s_l.rls					\
+  SPARK/Examples/RIPEMD-160/rmd/s_l.siv					\
+  SPARK/Examples/RIPEMD-160/rmd/s_r.fdl					\
+  SPARK/Examples/RIPEMD-160/rmd/s_r.rls					\
+  SPARK/Examples/RIPEMD-160/rmd/s_r.siv
+	@cd SPARK; $(ISABELLE_TOOL) usedir $(OUT)/HOL-SPARK Examples
 
 
 ## HOL-Mutabelle
