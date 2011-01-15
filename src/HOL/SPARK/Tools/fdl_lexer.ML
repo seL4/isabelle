@@ -74,25 +74,6 @@ fun leq_token (Token (_, s, _), Token (_, s', _)) = size s <= size s';
 
 type chars = (string * Position.T) list;
 
-(* a variant of Position.advance (see Pure/General/position.ML) *)
-fun advance x pos =
-  let
-    fun incr i = i+1;
-    fun change_prop s f props = case Properties.get_int props s of
-        NONE => props
-      | SOME i => Properties.put (s, Int.toString (f i)) props;
-  in
-    pos |>
-    Position.properties_of |>
-    change_prop "offset" incr |>
-    (case x of
-       "\n" =>
-         change_prop "line" incr #>
-         change_prop "column" (K 1)
-     | _ => change_prop "column" incr) |>
-    Position.of_properties
-  end;
-
 fun is_char_eof ("", _) = true
   | is_char_eof _ = false;
 
@@ -101,7 +82,7 @@ val char_stopper = Scan.stopper (K ("", Position.none)) is_char_eof;
 fun symbol (x : string, _ : Position.T) = x;
 
 fun explode_pos s pos = fst (fold_map (fn x => fn pos =>
-  ((x, pos), advance x pos)) (raw_explode s) pos);
+  ((x, pos), Position.advance x pos)) (raw_explode s) pos);
 
 
 (** scanners **)
