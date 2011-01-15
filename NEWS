@@ -6,6 +6,10 @@ New in Isabelle2011 (January 2011)
 
 *** General ***
 
+* Experimental Prover IDE based on Isabelle/Scala and jEdit (see
+src/Tools/jEdit).  A bundled component provides "isabelle jedit" as
+executable Isabelle tool.
+
 * Significantly improved Isabelle/Isar implementation manual.
 
 * Source files are always encoded as UTF-8, instead of old-fashioned
@@ -87,6 +91,11 @@ float_token.
 * Theory loader: implicit load path is considered legacy.  Use
 explicit file specifications instead, relatively to the directory of
 the enclosing theory file.
+
+* Discontinued support for Poly/ML 5.0 and 5.1 versions.
+
+* The IsabelleText font now includes Cyrillic, Hebrew, Arabic from
+DejaVu Sans.
 
 
 *** Pure ***
@@ -300,7 +309,7 @@ support for a similar behavior).  Minor INCOMPATIBILITY.
 * Boogie output files (.b2i files) need to be declared in the theory
 header.
 
-* Dropped syntax for old version of primrec package.  INCOMPATIBILITY.
+* Removed old version of primrec package.  INCOMPATIBILITY.
 
 * Multivariate Analysis: Introduced a type class for euclidean
 space. Most theorems are now stated in terms of euclidean spaces
@@ -737,14 +746,6 @@ interrupts -- intermediate handling (for cleanup etc.) needs to be
 followed by re-raising of the original exception.  Another common
 source of mistakes are "handle _" patterns, which make the meaning of
 the program subject to physical effects of the environment.
-
-
-*** System ***
-
-* The IsabelleText font now includes Cyrillic, Hebrew, Arabic from
-DejaVu Sans.
-
-* Discontinued support for Poly/ML 5.0 and 5.1 versions.
 
 
 
