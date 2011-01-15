@@ -1,0 +1,81 @@
+           /*********************************************************/
+                           /*Proof Rule Declarations*/
+    /*Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039*/
+             /*Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.*/
+           /*********************************************************/
+
+
+                        /*DATE : 29-NOV-2010 14:30:19.84*/
+
+                              /*function RMD.S_R*/
+
+
+rule_family s_r_rules:
+     X      requires [X:any] &
+     X <= Y requires [X:ire, Y:ire] &
+     X >= Y requires [X:ire, Y:ire].
+
+s_r_rules(1): rotate_amount__first <= element(s_values, [I]) may_be_deduced_from [0 <= I, I <= 79].
+s_r_rules(2): element(s_values, [I]) <= rotate_amount__last may_be_deduced_from [0 <= I, I <= 79].
+s_r_rules(3): s_values may_be_replaced_by 
+           mk__rotate_definition([round_index__first] := 8, [
+           round_index__first + 1] := 9, [round_index__first + 2] := 9, [
+           round_index__first + 3] := 11, [round_index__first + 4] := 
+           13, [round_index__first + 5] := 15, [round_index__first + 6] := 
+           15, [round_index__first + 7] := 5, [round_index__first + 8] := 
+           7, [round_index__first + 9] := 7, [round_index__first + 10] := 
+           8, [round_index__first + 11] := 11, [round_index__first + 12] := 
+           14, [round_index__first + 13] := 14, [
+           round_index__first + 14] := 12, [round_index__first + 15] := 
+           6, [round_index__first + 16] := 9, [round_index__first + 17] := 
+           13, [round_index__first + 18] := 15, [
+           round_index__first + 19] := 7, [round_index__first + 20] := 
+           12, [round_index__first + 21] := 8, [round_index__first + 22] := 
+           9, [round_index__first + 23] := 11, [round_index__first + 24] := 
+           7, [round_index__first + 25] := 7, [round_index__first + 26] := 
+           12, [round_index__first + 27] := 7, [round_index__first + 28] := 
+           6, [round_index__first + 29] := 15, [round_index__first + 30] := 
+           13, [round_index__first + 31] := 11, [
+           round_index__first + 32] := 9, [round_index__first + 33] := 
+           7, [round_index__first + 34] := 15, [round_index__first + 35] := 
+           11, [round_index__first + 36] := 8, [round_index__first + 37] := 
+           6, [round_index__first + 38] := 6, [round_index__first + 39] := 
+           14, [round_index__first + 40] := 12, [
+           round_index__first + 41] := 13, [round_index__first + 42] := 
+           5, [round_index__first + 43] := 14, [round_index__first + 44] := 
+           13, [round_index__first + 45] := 13, [
+           round_index__first + 46] := 7, [round_index__first + 47] := 
+           5, [round_index__first + 48] := 15, [round_index__first + 49] := 
+           5, [round_index__first + 50] := 8, [round_index__first + 51] := 
+           11, [round_index__first + 52] := 14, [
+           round_index__first + 53] := 14, [round_index__first + 54] := 
+           6, [round_index__first + 55] := 14, [round_index__first + 56] := 
+           6, [round_index__first + 57] := 9, [round_index__first + 58] := 
+           12, [round_index__first + 59] := 9, [round_index__first + 60] := 
+           12, [round_index__first + 61] := 5, [round_index__first + 62] := 
+           15, [round_index__first + 63] := 8, [round_index__first + 64] := 
+           8, [round_index__first + 65] := 5, [round_index__first + 66] := 
+           12, [round_index__first + 67] := 9, [round_index__first + 68] := 
+           12, [round_index__first + 69] := 5, [round_index__first + 70] := 
+           14, [round_index__first + 71] := 6, [round_index__first + 72] := 
+           8, [round_index__first + 73] := 13, [round_index__first + 74] := 
+           6, [round_index__first + 75] := 5, [round_index__first + 76] := 
+           15, [round_index__first + 77] := 13, [
+           round_index__first + 78] := 11, [round_index__first + 79] := 
+           11).
+s_r_rules(4): integer__size >= 0 may_be_deduced.
+s_r_rules(5): integer__first may_be_replaced_by -2147483648.
+s_r_rules(6): integer__last may_be_replaced_by 2147483647.
+s_r_rules(7): integer__base__first may_be_replaced_by -2147483648.
+s_r_rules(8): integer__base__last may_be_replaced_by 2147483647.
+s_r_rules(9): round_index__size >= 0 may_be_deduced.
+s_r_rules(10): round_index__first may_be_replaced_by 0.
+s_r_rules(11): round_index__last may_be_replaced_by 79.
+s_r_rules(12): round_index__base__first <= round_index__base__last may_be_deduced.
+s_r_rules(13): round_index__base__first <= round_index__first may_be_deduced.
+s_r_rules(14): round_index__base__last >= round_index__last may_be_deduced.
+s_r_rules(15): rotate_amount__size >= 0 may_be_deduced.
+s_r_rules(16): rotate_amount__first may_be_replaced_by 0.
+s_r_rules(17): rotate_amount__last may_be_replaced_by 15.
+s_r_rules(18): rotate_amount__base__first may_be_replaced_by -2147483648.
+s_r_rules(19): rotate_amount__base__last may_be_replaced_by 2147483647.

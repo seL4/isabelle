@@ -1,0 +1,118 @@
+*****************************************************************************
+                       Semantic Analysis of SPARK Text
+    Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039
+             Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.
+*****************************************************************************
+
+
+CREATED 29-NOV-2010, 14:30:19  SIMPLIFIED 29-NOV-2010, 14:30:21
+
+SPARK Simplifier Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039
+Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.
+
+function RMD.K_R
+
+
+
+
+For path(s) from start to run-time check associated with statement of line 38:
+
+function_k_r_1.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 39:
+
+function_k_r_2.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 40:
+
+function_k_r_3.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 41:
+
+function_k_r_4.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 42:
+
+function_k_r_5.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to finish:
+
+function_k_r_6.
+H1:    j >= 0 .
+H2:    j <= 15 .
+H3:    interfaces__unsigned_32__size >= 0 .
+H4:    word__size >= 0 .
+H5:    round_index__size >= 0 .
+H6:    round_index__base__first <= round_index__base__last .
+H7:    round_index__base__first <= 0 .
+H8:    round_index__base__last >= 79 .
+       ->
+C1:    1352829926 = k_r_spec(j) .
+
+
+function_k_r_7.
+H1:    16 <= j .
+H2:    j <= 31 .
+H3:    interfaces__unsigned_32__size >= 0 .
+H4:    word__size >= 0 .
+H5:    round_index__size >= 0 .
+H6:    round_index__base__first <= round_index__base__last .
+H7:    round_index__base__first <= 0 .
+H8:    round_index__base__last >= 79 .
+       ->
+C1:    1548603684 = k_r_spec(j) .
+
+
+function_k_r_8.
+H1:    32 <= j .
+H2:    j <= 47 .
+H3:    interfaces__unsigned_32__size >= 0 .
+H4:    word__size >= 0 .
+H5:    round_index__size >= 0 .
+H6:    round_index__base__first <= round_index__base__last .
+H7:    round_index__base__first <= 0 .
+H8:    round_index__base__last >= 79 .
+       ->
+C1:    1836072691 = k_r_spec(j) .
+
+
+function_k_r_9.
+H1:    48 <= j .
+H2:    j <= 63 .
+H3:    interfaces__unsigned_32__size >= 0 .
+H4:    word__size >= 0 .
+H5:    round_index__size >= 0 .
+H6:    round_index__base__first <= round_index__base__last .
+H7:    round_index__base__first <= 0 .
+H8:    round_index__base__last >= 79 .
+       ->
+C1:    2053994217 = k_r_spec(j) .
+
+
+function_k_r_10.
+H1:    j >= 0 .
+H2:    j <= 79 .
+H3:    15 < j .
+H4:    31 < j .
+H5:    47 < j .
+H6:    63 < j .
+H7:    interfaces__unsigned_32__size >= 0 .
+H8:    word__size >= 0 .
+H9:    round_index__size >= 0 .
+H10:   round_index__base__first <= round_index__base__last .
+H11:   round_index__base__first <= 0 .
+H12:   round_index__base__last >= 79 .
+       ->
+C1:    0 = k_r_spec(j) .
+
+

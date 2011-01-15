@@ -1,0 +1,61 @@
+           /*********************************************************/
+                           /*Proof Rule Declarations*/
+    /*Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039*/
+             /*Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.*/
+           /*********************************************************/
+
+
+                        /*DATE : 29-NOV-2010 14:30:20.17*/
+
+                             /*function RMD.Hash*/
+
+
+rule_family hash_rules:
+     X      requires [X:any] &
+     X <= Y requires [X:ire, Y:ire] &
+     X >= Y requires [X:ire, Y:ire].
+
+hash_rules(1): ca_init may_be_replaced_by 1732584193.
+hash_rules(2): cb_init may_be_replaced_by 4023233417.
+hash_rules(3): cc_init may_be_replaced_by 2562383102.
+hash_rules(4): cd_init may_be_replaced_by 271733878.
+hash_rules(5): ce_init may_be_replaced_by 3285377520.
+hash_rules(6): interfaces__unsigned_32__size >= 0 may_be_deduced.
+hash_rules(7): interfaces__unsigned_32__first may_be_replaced_by 0.
+hash_rules(8): interfaces__unsigned_32__last may_be_replaced_by 4294967295.
+hash_rules(9): interfaces__unsigned_32__base__first may_be_replaced_by 0.
+hash_rules(10): interfaces__unsigned_32__base__last may_be_replaced_by 4294967295.
+hash_rules(11): interfaces__unsigned_32__modulus may_be_replaced_by 4294967296.
+hash_rules(12): word__size >= 0 may_be_deduced.
+hash_rules(13): word__first may_be_replaced_by 0.
+hash_rules(14): word__last may_be_replaced_by 4294967295.
+hash_rules(15): word__base__first may_be_replaced_by 0.
+hash_rules(16): word__base__last may_be_replaced_by 4294967295.
+hash_rules(17): word__modulus may_be_replaced_by 4294967296.
+hash_rules(18): chain__size >= 0 may_be_deduced.
+hash_rules(19): A = B may_be_deduced_from
+     [goal(checktype(A,chain)),
+      goal(checktype(B,chain)),
+      fld_h0(A) = fld_h0(B),
+      fld_h1(A) = fld_h1(B),
+      fld_h2(A) = fld_h2(B),
+      fld_h3(A) = fld_h3(B),
+      fld_h4(A) = fld_h4(B)].
+hash_rules(20): block_index__size >= 0 may_be_deduced.
+hash_rules(21): block_index__first may_be_replaced_by 0.
+hash_rules(22): block_index__last may_be_replaced_by 15.
+hash_rules(23): block_index__base__first <= block_index__base__last may_be_deduced.
+hash_rules(24): block_index__base__first <= block_index__first may_be_deduced.
+hash_rules(25): block_index__base__last >= block_index__last may_be_deduced.
+hash_rules(26): message_index__size >= 0 may_be_deduced.
+hash_rules(27): message_index__first may_be_replaced_by 0.
+hash_rules(28): message_index__last may_be_replaced_by 4294967296.
+hash_rules(29): message_index__base__first <= message_index__base__last may_be_deduced.
+hash_rules(30): message_index__base__first <= message_index__first may_be_deduced.
+hash_rules(31): message_index__base__last >= message_index__last may_be_deduced.
+hash_rules(32): x__index__subtype__1__first >= message_index__first may_be_deduced.
+hash_rules(33): x__index__subtype__1__last <= message_index__last may_be_deduced.
+hash_rules(34): x__index__subtype__1__first <= 
+     x__index__subtype__1__last may_be_deduced.
+hash_rules(35): x__index__subtype__1__last >= message_index__first may_be_deduced.
+hash_rules(36): x__index__subtype__1__first <= message_index__last may_be_deduced.

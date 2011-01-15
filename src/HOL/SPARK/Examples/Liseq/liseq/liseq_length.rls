@@ -1,0 +1,34 @@
+           /*********************************************************/
+                           /*Proof Rule Declarations*/
+    /*Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039*/
+             /*Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.*/
+           /*********************************************************/
+
+
+                        /*DATE : 29-NOV-2010 14:30:13.02*/
+
+                        /*procedure Liseq.Liseq_length*/
+
+
+rule_family liseq_length_rules:
+     X      requires [X:any] &
+     X <= Y requires [X:ire, Y:ire] &
+     X >= Y requires [X:ire, Y:ire].
+
+liseq_length_rules(1): integer__size >= 0 may_be_deduced.
+liseq_length_rules(2): integer__first may_be_replaced_by -2147483648.
+liseq_length_rules(3): integer__last may_be_replaced_by 2147483647.
+liseq_length_rules(4): integer__base__first may_be_replaced_by -2147483648.
+liseq_length_rules(5): integer__base__last may_be_replaced_by 2147483647.
+liseq_length_rules(6): a__index__subtype__1__first >= integer__first may_be_deduced.
+liseq_length_rules(7): a__index__subtype__1__last <= integer__last may_be_deduced.
+liseq_length_rules(8): a__index__subtype__1__first <= 
+     a__index__subtype__1__last may_be_deduced.
+liseq_length_rules(9): a__index__subtype__1__last >= integer__first may_be_deduced.
+liseq_length_rules(10): a__index__subtype__1__first <= integer__last may_be_deduced.
+liseq_length_rules(11): l__index__subtype__1__first >= integer__first may_be_deduced.
+liseq_length_rules(12): l__index__subtype__1__last <= integer__last may_be_deduced.
+liseq_length_rules(13): l__index__subtype__1__first <= 
+     l__index__subtype__1__last may_be_deduced.
+liseq_length_rules(14): l__index__subtype__1__last >= integer__first may_be_deduced.
+liseq_length_rules(15): l__index__subtype__1__first <= integer__last may_be_deduced.

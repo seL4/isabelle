@@ -172,26 +172,31 @@ fun create_nom_typedecls ak_names thy =
     (* overloades then the general swap-function                       *) 
     val (swap_eqs, thy3) = fold_map (fn (ak_name, T) => fn thy =>
       let
+        val thy' = Sign.add_path "rec" thy;
         val swapT = HOLogic.mk_prodT (T, T) --> T --> T;
-        val swap_name = Sign.full_bname thy ("swap_" ^ ak_name);
+        val swap_name = "swap_" ^ ak_name;
+        val full_swap_name = Sign.full_bname thy' swap_name;
         val a = Free ("a", T);
         val b = Free ("b", T);
         val c = Free ("c", T);
         val ab = Free ("ab", HOLogic.mk_prodT (T, T))
         val cif = Const ("HOL.If", HOLogic.boolT --> T --> T --> T);
-        val cswap_akname = Const (swap_name, swapT);
+        val cswap_akname = Const (full_swap_name, swapT);
         val cswap = Const ("Nominal.swap", swapT)
 
-        val name = "swap_"^ak_name^"_def";
+        val name = swap_name ^ "_def";
         val def1 = HOLogic.mk_Trueprop (HOLogic.mk_eq
-                (cswap_akname $ HOLogic.mk_prod (a,b) $ c,
+                (Free (swap_name, swapT) $ HOLogic.mk_prod (a,b) $ c,
                     cif $ HOLogic.mk_eq (a,c) $ b $ (cif $ HOLogic.mk_eq (b,c) $ a $ c)))
         val def2 = Logic.mk_equals (cswap $ ab $ c, cswap_akname $ ab $ c)
       in
-        thy |> Sign.add_consts_i [(Binding.name ("swap_" ^ ak_name), swapT, NoSyn)] 
-            |> Global_Theory.add_defs_unchecked true [((Binding.name name, def2),[])]
-            |> snd
-            |> OldPrimrec.add_primrec_unchecked_i "" [(("", def1),[])]
+        thy' |>
+        Primrec.add_primrec_global
+          [(Binding.name swap_name, SOME swapT, NoSyn)]
+          [(Attrib.empty_binding, def1)] ||>
+        Sign.parent_path ||>>
+        Global_Theory.add_defs_unchecked true
+          [((Binding.name name, def2), [])] |>> (snd o fst)
       end) ak_names_types thy1;
     
     (* declares a permutation function for every atom-kind acting  *)
@@ -201,25 +206,29 @@ fun create_nom_typedecls ak_names thy =
     (* <ak>_prm_<ak> (x#xs) a = swap_<ak> x (perm xs a)            *)
     val (prm_eqs, thy4) = fold_map (fn (ak_name, T) => fn thy =>
       let
+        val thy' = Sign.add_path "rec" thy;
         val swapT = HOLogic.mk_prodT (T, T) --> T --> T;
-        val swap_name = Sign.full_bname thy ("swap_" ^ ak_name)
+        val swap_name = Sign.full_bname thy' ("swap_" ^ ak_name)
         val prmT = mk_permT T --> T --> T;
         val prm_name = ak_name ^ "_prm_" ^ ak_name;
-        val qu_prm_name = Sign.full_bname thy prm_name;
+        val prm = Free (prm_name, prmT);
         val x  = Free ("x", HOLogic.mk_prodT (T, T));
         val xs = Free ("xs", mk_permT T);
         val a  = Free ("a", T) ;
 
         val cnil  = Const ("List.list.Nil", mk_permT T);
         
-        val def1 = HOLogic.mk_Trueprop (HOLogic.mk_eq (Const (qu_prm_name, prmT) $ cnil $ a, a));
+        val def1 = HOLogic.mk_Trueprop (HOLogic.mk_eq (prm $ cnil $ a, a));
 
         val def2 = HOLogic.mk_Trueprop (HOLogic.mk_eq
-                   (Const (qu_prm_name, prmT) $ mk_Cons x xs $ a,
-                    Const (swap_name, swapT) $ x $ (Const (qu_prm_name, prmT) $ xs $ a)));
+                   (prm $ mk_Cons x xs $ a,
+                    Const (swap_name, swapT) $ x $ (prm $ xs $ a)));
       in
-        thy |> Sign.add_consts_i [(Binding.name prm_name, mk_permT T --> T --> T, NoSyn)] 
-            |> OldPrimrec.add_primrec_unchecked_i "" [(("", def1), []),(("", def2), [])]
+        thy' |>
+        Primrec.add_primrec_global
+          [(Binding.name prm_name, SOME prmT, NoSyn)]
+          [(Attrib.empty_binding, def1), (Attrib.empty_binding, def2)] ||>
+        Sign.parent_path
       end) ak_names_types thy3;
     
     (* defines permutation functions for all combinations of atom-kinds; *)
@@ -238,13 +247,15 @@ fun create_nom_typedecls ak_names thy =
           val pi = Free ("pi", mk_permT T);
           val a  = Free ("a", T');
           val cperm = Const ("Nominal.perm", mk_permT T --> T' --> T');
-          val cperm_def = Const (Sign.full_bname thy' perm_def_name, mk_permT T --> T' --> T');
+          val thy'' = Sign.add_path "rec" thy'
+          val cperm_def = Const (Sign.full_bname thy'' perm_def_name, mk_permT T --> T' --> T');
+          val thy''' = Sign.parent_path thy'';
 
           val name = ak_name ^ "_prm_" ^ ak_name' ^ "_def";
           val def = Logic.mk_equals
                     (cperm $ pi $ a, if ak_name = ak_name' then cperm_def $ pi $ a else a)
         in
-          Global_Theory.add_defs_unchecked true [((Binding.name name, def),[])] thy'
+          Global_Theory.add_defs_unchecked true [((Binding.name name, def), [])] thy'''
         end) ak_names_types thy) ak_names_types thy4;
     
     (* proves that every atom-kind is an instance of at *)

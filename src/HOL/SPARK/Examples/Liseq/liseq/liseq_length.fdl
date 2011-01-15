@@ -1,0 +1,37 @@
+           {*******************************************************}
+                               {FDL Declarations}
+    {Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039}
+             {Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.}
+           {*******************************************************}
+
+
+                        {DATE : 29-NOV-2010 14:30:13.02}
+
+                        {procedure Liseq.Liseq_length}
+
+
+title procedure liseq_length;
+
+  function round__(real) : integer;
+  type vector = array [integer] of integer;
+  const integer__base__first : integer = pending; 
+  const integer__base__last : integer = pending; 
+  const l__index__subtype__1__first : integer = pending; 
+  const l__index__subtype__1__last : integer = pending; 
+  const a__index__subtype__1__first : integer = pending; 
+  const a__index__subtype__1__last : integer = pending; 
+  const integer__first : integer = pending; 
+  const integer__last : integer = pending; 
+  const integer__size : integer = pending; 
+  var a : vector;
+  var l : vector;
+  var maxi : integer;
+  var maxj : integer;
+  var i : integer;
+  var j : integer;
+  var pmax : integer;
+  function liseq_prfx(vector, integer) : integer;
+  function liseq_ends_at(vector, integer) : integer;
+  function max_ext(vector, integer, integer) : integer;
+
+end;

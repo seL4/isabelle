@@ -1,0 +1,76 @@
+           /*********************************************************/
+                           /*Proof Rule Declarations*/
+    /*Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039*/
+             /*Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.*/
+           /*********************************************************/
+
+
+                        /*DATE : 29-NOV-2010 14:30:19.81*/
+
+                              /*function RMD.R_R*/
+
+
+rule_family r_r_rules:
+     X      requires [X:any] &
+     X <= Y requires [X:ire, Y:ire] &
+     X >= Y requires [X:ire, Y:ire].
+
+r_r_rules(1): block_index__first <= element(r_values, [I]) may_be_deduced_from [0 <= I, I <= 79].
+r_r_rules(2): element(r_values, [I]) <= block_index__last may_be_deduced_from [0 <= I, I <= 79].
+r_r_rules(3): r_values may_be_replaced_by 
+           mk__block_permutation([round_index__first] := 5, [
+           round_index__first + 1] := 14, [round_index__first + 2] := 7, [
+           round_index__first + 3] := 0, [round_index__first + 4] := 9, [
+           round_index__first + 5] := 2, [round_index__first + 6] := 11, [
+           round_index__first + 7] := 4, [round_index__first + 8] := 13, [
+           round_index__first + 9] := 6, [round_index__first + 10] := 
+           15, [round_index__first + 11] := 8, [round_index__first + 12] := 
+           1, [round_index__first + 13] := 10, [round_index__first + 14] := 
+           3, [round_index__first + 15] := 12, [round_index__first + 16] := 
+           6, [round_index__first + 17] := 11, [round_index__first + 18] := 
+           3, [round_index__first + 19] := 7, [round_index__first + 20] := 
+           0, [round_index__first + 21] := 13, [round_index__first + 22] := 
+           5, [round_index__first + 23] := 10, [round_index__first + 24] := 
+           14, [round_index__first + 25] := 15, [
+           round_index__first + 26] := 8, [round_index__first + 27] := 
+           12, [round_index__first + 28] := 4, [round_index__first + 29] := 
+           9, [round_index__first + 30] := 1, [round_index__first + 31] := 
+           2, [round_index__first + 32] := 15, [round_index__first + 33] := 
+           5, [round_index__first + 34] := 1, [round_index__first + 35] := 
+           3, [round_index__first + 36] := 7, [round_index__first + 37] := 
+           14, [round_index__first + 38] := 6, [round_index__first + 39] := 
+           9, [round_index__first + 40] := 11, [round_index__first + 41] := 
+           8, [round_index__first + 42] := 12, [round_index__first + 43] := 
+           2, [round_index__first + 44] := 10, [round_index__first + 45] := 
+           0, [round_index__first + 46] := 4, [round_index__first + 47] := 
+           13, [round_index__first + 48] := 8, [round_index__first + 49] := 
+           6, [round_index__first + 50] := 4, [round_index__first + 51] := 
+           1, [round_index__first + 52] := 3, [round_index__first + 53] := 
+           11, [round_index__first + 54] := 15, [
+           round_index__first + 55] := 0, [round_index__first + 56] := 
+           5, [round_index__first + 57] := 12, [round_index__first + 58] := 
+           2, [round_index__first + 59] := 13, [round_index__first + 60] := 
+           9, [round_index__first + 61] := 7, [round_index__first + 62] := 
+           10, [round_index__first + 63] := 14, [
+           round_index__first + 64] := 12, [round_index__first + 65] := 
+           15, [round_index__first + 66] := 10, [
+           round_index__first + 67] := 4, [round_index__first + 68] := 
+           1, [round_index__first + 69] := 5, [round_index__first + 70] := 
+           8, [round_index__first + 71] := 7, [round_index__first + 72] := 
+           6, [round_index__first + 73] := 2, [round_index__first + 74] := 
+           13, [round_index__first + 75] := 14, [
+           round_index__first + 76] := 0, [round_index__first + 77] := 
+           3, [round_index__first + 78] := 9, [round_index__first + 79] := 
+           11).
+r_r_rules(4): block_index__size >= 0 may_be_deduced.
+r_r_rules(5): block_index__first may_be_replaced_by 0.
+r_r_rules(6): block_index__last may_be_replaced_by 15.
+r_r_rules(7): block_index__base__first <= block_index__base__last may_be_deduced.
+r_r_rules(8): block_index__base__first <= block_index__first may_be_deduced.
+r_r_rules(9): block_index__base__last >= block_index__last may_be_deduced.
+r_r_rules(10): round_index__size >= 0 may_be_deduced.
+r_r_rules(11): round_index__first may_be_replaced_by 0.
+r_r_rules(12): round_index__last may_be_replaced_by 79.
+r_r_rules(13): round_index__base__first <= round_index__base__last may_be_deduced.
+r_r_rules(14): round_index__base__first <= round_index__first may_be_deduced.
+r_r_rules(15): round_index__base__last >= round_index__last may_be_deduced.

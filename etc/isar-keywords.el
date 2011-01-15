@@ -1,6 +1,6 @@
 ;;
 ;; Keyword classification tables for Isabelle/Isar.
-;; Generated from Pure + HOL + HOLCF + HOL-Boogie + HOL-Nominal + HOL-Statespace.
+;; Generated from Pure + HOL + HOLCF + HOL-Boogie + HOL-Nominal + HOL-Statespace + HOL-SPARK.
 ;; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***
 ;;
 
@@ -223,6 +223,11 @@
     "smt_status"
     "solve_direct"
     "sorry"
+    "spark_end"
+    "spark_open"
+    "spark_proof_functions"
+    "spark_status"
+    "spark_vc"
     "specification"
     "statespace"
     "subclass"
@@ -399,6 +404,7 @@
     "sledgehammer"
     "smt_status"
     "solve_direct"
+    "spark_status"
     "term"
     "thm"
     "thm_deps"
@@ -511,6 +517,9 @@
     "setup"
     "simproc_setup"
     "sledgehammer_params"
+    "spark_end"
+    "spark_open"
+    "spark_proof_functions"
     "statespace"
     "syntax"
     "syntax_declaration"
@@ -551,6 +560,7 @@
     "schematic_corollary"
     "schematic_lemma"
     "schematic_theorem"
+    "spark_vc"
     "specification"
     "subclass"
     "sublocale"

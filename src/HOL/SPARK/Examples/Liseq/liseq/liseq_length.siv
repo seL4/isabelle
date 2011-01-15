@@ -1,0 +1,547 @@
+*****************************************************************************
+                       Semantic Analysis of SPARK Text
+    Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039
+             Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.
+*****************************************************************************
+
+
+CREATED 29-NOV-2010, 14:30:13  SIMPLIFIED 29-NOV-2010, 14:30:13
+
+SPARK Simplifier Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039
+Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.
+
+procedure Liseq.Liseq_length
+
+
+
+
+For path(s) from start to run-time check associated with statement of line 11:
+
+procedure_liseq_length_1.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 12:
+
+procedure_liseq_length_2.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 13:
+
+procedure_liseq_length_3.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 14:
+
+procedure_liseq_length_4.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to assertion of line 15:
+
+procedure_liseq_length_5.
+H1:    a__index__subtype__1__first = 0 .
+H2:    l__index__subtype__1__first = 0 .
+H3:    a__index__subtype__1__last = l__index__subtype__1__last .
+H4:    a__index__subtype__1__last < 2147483647 .
+H5:    for_all(i___1 : integer, a__index__subtype__1__first <= i___1 and i___1 
+          <= a__index__subtype__1__last -> - 2147483648 <= element(a, [i___1]) 
+          and element(a, [i___1]) <= 2147483647) .
+H6:    for_all(i___1 : integer, l__index__subtype__1__first <= i___1 and i___1 
+          <= l__index__subtype__1__last -> - 2147483648 <= element(l, [i___1]) 
+          and element(l, [i___1]) <= 2147483647) .
+H7:    0 <= l__index__subtype__1__last .
+H8:    integer__size >= 0 .
+H9:    a__index__subtype__1__first <= a__index__subtype__1__last .
+H10:   l__index__subtype__1__first <= l__index__subtype__1__last .
+H11:   a__index__subtype__1__first >= - 2147483648 .
+H12:   a__index__subtype__1__last >= - 2147483648 .
+H13:   l__index__subtype__1__first >= - 2147483648 .
+H14:   l__index__subtype__1__last >= - 2147483648 .
+H15:   a__index__subtype__1__last <= 2147483647 .
+H16:   a__index__subtype__1__first <= 2147483647 .
+H17:   l__index__subtype__1__last <= 2147483647 .
+H18:   l__index__subtype__1__first <= 2147483647 .
+       ->
+C1:    for_all(i2_ : integer, 0 <= i2_ and i2_ <= 0 -> element(update(l, [0], 1)
+          , [i2_]) = liseq_ends_at(a, i2_)) .
+C2:    1 = liseq_prfx(a, 1) .
+
+
+For path(s) from assertion of line 15 to assertion of line 15:
+
+procedure_liseq_length_6.
+H1:    for_all(i2_ : integer, 0 <= i2_ and i2_ <= i - 1 -> element(l, [i2_]) = 
+          liseq_ends_at(a, i2_)) .
+H2:    element(l, [pmax]) = liseq_prfx(a, i) .
+H3:    0 <= pmax .
+H4:    pmax < i .
+H5:    a__index__subtype__1__first = 0 .
+H6:    l__index__subtype__1__first = 0 .
+H7:    a__index__subtype__1__last = l__index__subtype__1__last .
+H8:    a__index__subtype__1__last < 2147483647 .
+H9:    for_all(i___1 : integer, a__index__subtype__1__first <= i___1 and i___1 
+          <= a__index__subtype__1__last -> - 2147483648 <= element(a, [i___1]) 
+          and element(a, [i___1]) <= 2147483647) .
+H10:   for_all(i___1 : integer, l__index__subtype__1__first <= i___1 and i___1 
+          <= l__index__subtype__1__last -> - 2147483648 <= element(l, [i___1]) 
+          and element(l, [i___1]) <= 2147483647) .
+H11:   i <= l__index__subtype__1__last .
+H12:   pmax >= a__index__subtype__1__first .
+H13:   i <= a__index__subtype__1__last .
+H14:   element(a, [pmax]) <= element(a, [i]) .
+H15:   element(l, [pmax]) >= - 2147483648 .
+H16:   element(l, [pmax]) <= 2147483646 .
+H17:   i >= l__index__subtype__1__first .
+H18:   i <= 2147483646 .
+H19:   integer__size >= 0 .
+H20:   a__index__subtype__1__first <= a__index__subtype__1__last .
+H21:   l__index__subtype__1__first <= l__index__subtype__1__last .
+H22:   a__index__subtype__1__first >= - 2147483648 .
+H23:   a__index__subtype__1__last >= - 2147483648 .
+H24:   l__index__subtype__1__first >= - 2147483648 .
+H25:   l__index__subtype__1__last >= - 2147483648 .
+H26:   a__index__subtype__1__last <= 2147483647 .
+H27:   a__index__subtype__1__first <= 2147483647 .
+H28:   l__index__subtype__1__last <= 2147483647 .
+H29:   l__index__subtype__1__first <= 2147483647 .
+       ->
+C1:    for_all(i2_ : integer, 0 <= i2_ and i2_ <= i -> element(update(l, [i], 
+          element(l, [pmax]) + 1), [i2_]) = liseq_ends_at(a, i2_)) .
+C2:    element(l, [pmax]) + 1 = liseq_prfx(a, i + 1) .
+
+
+For path(s) from assertion of line 26 to assertion of line 15:
+
+procedure_liseq_length_7.
+H1:    for_all(i2_ : integer, 0 <= i2_ and i2_ <= i - 1 -> element(l, [i2_]) = 
+          liseq_ends_at(a, i2_)) .
+H2:    element(l, [pmax]) = liseq_prfx(a, i) .
+H3:    i <= l__index__subtype__1__last .
+H4:    0 <= pmax .
+H5:    pmax < i .
+H6:    0 <= i .
+H7:    a__index__subtype__1__first = 0 .
+H8:    l__index__subtype__1__first = 0 .
+H9:    a__index__subtype__1__last = l__index__subtype__1__last .
+H10:   a__index__subtype__1__last < 2147483647 .
+H11:   for_all(i___1 : integer, a__index__subtype__1__first <= i___1 and i___1 
+          <= a__index__subtype__1__last -> - 2147483648 <= element(a, [i___1]) 
+          and element(a, [i___1]) <= 2147483647) .
+H12:   for_all(i___1 : integer, l__index__subtype__1__first <= i___1 and i___1 
+          <= l__index__subtype__1__last -> - 2147483648 <= element(l, [i___1]) 
+          and element(l, [i___1]) <= 2147483647) .
+H13:   i <= 2147483647 .
+H14:   max_ext(a, i, i) >= - 2147483648 .
+H15:   max_ext(a, i, i) <= 2147483646 .
+H16:   i >= l__index__subtype__1__first .
+H17:   element(l, [pmax]) >= - 2147483648 .
+H18:   max_ext(a, i, i) + 1 > element(l, [pmax]) .
+H19:   element(l, [pmax]) <= 2147483646 .
+H20:   i <= 2147483646 .
+H21:   integer__size >= 0 .
+H22:   a__index__subtype__1__first <= a__index__subtype__1__last .
+H23:   l__index__subtype__1__first <= l__index__subtype__1__last .
+H24:   a__index__subtype__1__first >= - 2147483648 .
+H25:   a__index__subtype__1__last >= - 2147483648 .
+H26:   l__index__subtype__1__first >= - 2147483648 .
+H27:   l__index__subtype__1__last >= - 2147483648 .
+H28:   a__index__subtype__1__last <= 2147483647 .
+H29:   a__index__subtype__1__first <= 2147483647 .
+H30:   l__index__subtype__1__last <= 2147483647 .
+H31:   l__index__subtype__1__first <= 2147483647 .
+       ->
+C1:    for_all(i2_ : integer, 0 <= i2_ and i2_ <= i -> element(update(l, [i], 
+          max_ext(a, i, i) + 1), [i2_]) = liseq_ends_at(a, i2_)) .
+C2:    max_ext(a, i, i) + 1 = element(l, [pmax]) + 1 .
+C3:    max_ext(a, i, i) + 1 = liseq_prfx(a, i + 1) .
+
+
+procedure_liseq_length_8.
+H1:    for_all(i2_ : integer, 0 <= i2_ and i2_ <= i - 1 -> element(l, [i2_]) = 
+          liseq_ends_at(a, i2_)) .
+H2:    element(l, [pmax]) = liseq_prfx(a, i) .
+H3:    i <= l__index__subtype__1__last .
+H4:    0 <= pmax .
+H5:    pmax < i .
+H6:    0 <= i .
+H7:    a__index__subtype__1__first = 0 .
+H8:    l__index__subtype__1__first = 0 .
+H9:    a__index__subtype__1__last = l__index__subtype__1__last .
+H10:   a__index__subtype__1__last < 2147483647 .
+H11:   for_all(i___1 : integer, a__index__subtype__1__first <= i___1 and i___1 
+          <= a__index__subtype__1__last -> - 2147483648 <= element(a, [i___1]) 
+          and element(a, [i___1]) <= 2147483647) .
+H12:   for_all(i___1 : integer, l__index__subtype__1__first <= i___1 and i___1 
+          <= l__index__subtype__1__last -> - 2147483648 <= element(l, [i___1]) 
+          and element(l, [i___1]) <= 2147483647) .
+H13:   i <= 2147483647 .
+H14:   max_ext(a, i, i) >= - 2147483648 .
+H15:   max_ext(a, i, i) <= 2147483646 .
+H16:   i >= l__index__subtype__1__first .
+H17:   element(l, [pmax]) <= 2147483647 .
+H18:   max_ext(a, i, i) + 1 <= element(l, [pmax]) .
+H19:   i <= 2147483646 .
+H20:   integer__size >= 0 .
+H21:   a__index__subtype__1__first <= a__index__subtype__1__last .
+H22:   l__index__subtype__1__first <= l__index__subtype__1__last .
+H23:   a__index__subtype__1__first >= - 2147483648 .
+H24:   a__index__subtype__1__last >= - 2147483648 .
+H25:   l__index__subtype__1__first >= - 2147483648 .
+H26:   l__index__subtype__1__last >= - 2147483648 .
+H27:   a__index__subtype__1__last <= 2147483647 .
+H28:   a__index__subtype__1__first <= 2147483647 .
+H29:   l__index__subtype__1__last <= 2147483647 .
+H30:   l__index__subtype__1__first <= 2147483647 .
+       ->
+C1:    for_all(i2_ : integer, 0 <= i2_ and i2_ <= i -> element(update(l, [i], 
+          max_ext(a, i, i) + 1), [i2_]) = liseq_ends_at(a, i2_)) .
+C2:    element(l, [pmax]) = liseq_prfx(a, i + 1) .
+
+
+For path(s) from assertion of line 15 to run-time check associated with 
+          statement of line 23:
+
+procedure_liseq_length_9.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 15 to run-time check associated with 
+          statement of line 24:
+
+procedure_liseq_length_10.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 15 to run-time check associated with 
+          statement of line 25:
+
+procedure_liseq_length_11.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 15 to assertion of line 26:
+
+procedure_liseq_length_12.
+H1:    for_all(i2_ : integer, 0 <= i2_ and i2_ <= i - 1 -> element(l, [i2_]) = 
+          liseq_ends_at(a, i2_)) .
+H2:    element(l, [pmax]) = liseq_prfx(a, i) .
+H3:    0 <= pmax .
+H4:    pmax < i .
+H5:    a__index__subtype__1__first = 0 .
+H6:    l__index__subtype__1__first = 0 .
+H7:    a__index__subtype__1__last = l__index__subtype__1__last .
+H8:    a__index__subtype__1__last < 2147483647 .
+H9:    for_all(i___1 : integer, a__index__subtype__1__first <= i___1 and i___1 
+          <= a__index__subtype__1__last -> - 2147483648 <= element(a, [i___1]) 
+          and element(a, [i___1]) <= 2147483647) .
+H10:   for_all(i___1 : integer, l__index__subtype__1__first <= i___1 and i___1 
+          <= l__index__subtype__1__last -> - 2147483648 <= element(l, [i___1]) 
+          and element(l, [i___1]) <= 2147483647) .
+H11:   i <= l__index__subtype__1__last .
+H12:   pmax <= 2147483647 .
+H13:   pmax >= a__index__subtype__1__first .
+H14:   i <= a__index__subtype__1__last .
+H15:   element(a, [i]) < element(a, [pmax]) .
+H16:   integer__size >= 0 .
+H17:   a__index__subtype__1__first <= a__index__subtype__1__last .
+H18:   l__index__subtype__1__first <= l__index__subtype__1__last .
+H19:   a__index__subtype__1__first >= - 2147483648 .
+H20:   a__index__subtype__1__last >= - 2147483648 .
+H21:   l__index__subtype__1__first >= - 2147483648 .
+H22:   l__index__subtype__1__last >= - 2147483648 .
+H23:   a__index__subtype__1__last <= 2147483647 .
+H24:   a__index__subtype__1__first <= 2147483647 .
+H25:   l__index__subtype__1__last <= 2147483647 .
+H26:   l__index__subtype__1__first <= 2147483647 .
+       ->
+C1:    0 = max_ext(a, i, 0) .
+
+
+For path(s) from assertion of line 26 to assertion of line 26:
+
+procedure_liseq_length_13.
+H1:    for_all(i2_ : integer, 0 <= i2_ and i2_ <= i - 1 -> element(l, [i2_]) = 
+          liseq_ends_at(a, i2_)) .
+H2:    element(l, [pmax]) = liseq_prfx(a, i) .
+H3:    i <= l__index__subtype__1__last .
+H4:    0 <= pmax .
+H5:    pmax < i .
+H6:    0 <= j .
+H7:    a__index__subtype__1__first = 0 .
+H8:    l__index__subtype__1__first = 0 .
+H9:    a__index__subtype__1__last = l__index__subtype__1__last .
+H10:   a__index__subtype__1__last < 2147483647 .
+H11:   for_all(i___1 : integer, a__index__subtype__1__first <= i___1 and i___1 
+          <= a__index__subtype__1__last -> - 2147483648 <= element(a, [i___1]) 
+          and element(a, [i___1]) <= 2147483647) .
+H12:   for_all(i___1 : integer, l__index__subtype__1__first <= i___1 and i___1 
+          <= l__index__subtype__1__last -> - 2147483648 <= element(l, [i___1]) 
+          and element(l, [i___1]) <= 2147483647) .
+H13:   j < i .
+H14:   max_ext(a, i, j) >= - 2147483648 .
+H15:   max_ext(a, i, j) <= 2147483647 .
+H16:   j >= l__index__subtype__1__first .
+H17:   i >= a__index__subtype__1__first .
+H18:   i <= a__index__subtype__1__last .
+H19:   j >= a__index__subtype__1__first .
+H20:   j <= a__index__subtype__1__last .
+H21:   element(a, [j]) <= element(a, [i]) .
+H22:   max_ext(a, i, j) < element(l, [j]) .
+H23:   element(l, [j]) >= - 2147483648 .
+H24:   element(l, [j]) <= 2147483647 .
+H25:   j <= 2147483646 .
+H26:   integer__size >= 0 .
+H27:   a__index__subtype__1__first <= a__index__subtype__1__last .
+H28:   l__index__subtype__1__first <= l__index__subtype__1__last .
+H29:   a__index__subtype__1__first >= - 2147483648 .
+H30:   a__index__subtype__1__last >= - 2147483648 .
+H31:   l__index__subtype__1__first >= - 2147483648 .
+H32:   l__index__subtype__1__last >= - 2147483648 .
+H33:   a__index__subtype__1__last <= 2147483647 .
+H34:   a__index__subtype__1__first <= 2147483647 .
+H35:   l__index__subtype__1__last <= 2147483647 .
+H36:   l__index__subtype__1__first <= 2147483647 .
+       ->
+C1:    element(l, [j]) = max_ext(a, i, j + 1) .
+
+
+procedure_liseq_length_14.
+H1:    for_all(i2_ : integer, 0 <= i2_ and i2_ <= i - 1 -> element(l, [i2_]) = 
+          liseq_ends_at(a, i2_)) .
+H2:    element(l, [pmax]) = liseq_prfx(a, i) .
+H3:    i <= l__index__subtype__1__last .
+H4:    0 <= pmax .
+H5:    pmax < i .
+H6:    0 <= j .
+H7:    a__index__subtype__1__first = 0 .
+H8:    l__index__subtype__1__first = 0 .
+H9:    a__index__subtype__1__last = l__index__subtype__1__last .
+H10:   a__index__subtype__1__last < 2147483647 .
+H11:   for_all(i___1 : integer, a__index__subtype__1__first <= i___1 and i___1 
+          <= a__index__subtype__1__last -> - 2147483648 <= element(a, [i___1]) 
+          and element(a, [i___1]) <= 2147483647) .
+H12:   for_all(i___1 : integer, l__index__subtype__1__first <= i___1 and i___1 
+          <= l__index__subtype__1__last -> - 2147483648 <= element(l, [i___1]) 
+          and element(l, [i___1]) <= 2147483647) .
+H13:   j < i .
+H14:   max_ext(a, i, j) >= - 2147483648 .
+H15:   max_ext(a, i, j) <= 2147483647 .
+H16:   j >= l__index__subtype__1__first .
+H17:   i >= a__index__subtype__1__first .
+H18:   i <= a__index__subtype__1__last .
+H19:   j >= a__index__subtype__1__first .
+H20:   j <= a__index__subtype__1__last .
+H21:   element(a, [i]) < element(a, [j]) or element(l, [j]) <= max_ext(a, i, j) 
+          .
+H22:   j <= 2147483646 .
+H23:   integer__size >= 0 .
+H24:   a__index__subtype__1__first <= a__index__subtype__1__last .
+H25:   l__index__subtype__1__first <= l__index__subtype__1__last .
+H26:   a__index__subtype__1__first >= - 2147483648 .
+H27:   a__index__subtype__1__last >= - 2147483648 .
+H28:   l__index__subtype__1__first >= - 2147483648 .
+H29:   l__index__subtype__1__last >= - 2147483648 .
+H30:   a__index__subtype__1__last <= 2147483647 .
+H31:   a__index__subtype__1__first <= 2147483647 .
+H32:   l__index__subtype__1__last <= 2147483647 .
+H33:   l__index__subtype__1__first <= 2147483647 .
+       ->
+C1:    max_ext(a, i, j) = max_ext(a, i, j + 1) .
+
+
+For path(s) from assertion of line 26 to run-time check associated with 
+          statement of line 36:
+
+procedure_liseq_length_15.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 26 to run-time check associated with 
+          statement of line 38:
+
+procedure_liseq_length_16.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 26 to run-time check associated with 
+          statement of line 40:
+
+procedure_liseq_length_17.
+*** true .          /* all conclusions proved */
+
+
+procedure_liseq_length_18.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 26 to run-time check associated with 
+          statement of line 42:
+
+procedure_liseq_length_19.
+H1:    for_all(i2_ : integer, 0 <= i2_ and i2_ <= i - 1 -> element(l, [i2_]) = 
+          liseq_ends_at(a, i2_)) .
+H2:    element(l, [pmax]) = liseq_prfx(a, i) .
+H3:    i <= l__index__subtype__1__last .
+H4:    0 <= pmax .
+H5:    pmax < i .
+H6:    a__index__subtype__1__first = 0 .
+H7:    l__index__subtype__1__first = 0 .
+H8:    a__index__subtype__1__last = l__index__subtype__1__last .
+H9:    a__index__subtype__1__last < 2147483647 .
+H10:   for_all(i___1 : integer, a__index__subtype__1__first <= i___1 and i___1 
+          <= a__index__subtype__1__last -> - 2147483648 <= element(a, [i___1]) 
+          and element(a, [i___1]) <= 2147483647) .
+H11:   for_all(i___1 : integer, l__index__subtype__1__first <= i___1 and i___1 
+          <= l__index__subtype__1__last -> - 2147483648 <= element(l, [i___1]) 
+          and element(l, [i___1]) <= 2147483647) .
+H12:   i <= 2147483647 .
+H13:   max_ext(a, i, i) >= - 2147483648 .
+H14:   max_ext(a, i, i) <= 2147483647 .
+H15:   integer__size >= 0 .
+H16:   a__index__subtype__1__first <= a__index__subtype__1__last .
+H17:   l__index__subtype__1__first <= l__index__subtype__1__last .
+H18:   a__index__subtype__1__first >= - 2147483648 .
+H19:   a__index__subtype__1__last >= - 2147483648 .
+H20:   l__index__subtype__1__first >= - 2147483648 .
+H21:   l__index__subtype__1__last >= - 2147483648 .
+H22:   a__index__subtype__1__last <= 2147483647 .
+H23:   a__index__subtype__1__first <= 2147483647 .
+H24:   l__index__subtype__1__last <= 2147483647 .
+H25:   l__index__subtype__1__first <= 2147483647 .
+       ->
+C1:    max_ext(a, i, i) <= 2147483646 .
+
+
+For path(s) from assertion of line 26 to run-time check associated with 
+          statement of line 43:
+
+procedure_liseq_length_20.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 26 to run-time check associated with 
+          statement of line 44:
+
+procedure_liseq_length_21.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 26 to run-time check associated with 
+          statement of line 45:
+
+procedure_liseq_length_22.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 15 to run-time check associated with 
+          statement of line 48:
+
+procedure_liseq_length_23.
+H1:    for_all(i2_ : integer, 0 <= i2_ and i2_ <= i - 1 -> element(l, [i2_]) = 
+          liseq_ends_at(a, i2_)) .
+H2:    element(l, [pmax]) = liseq_prfx(a, i) .
+H3:    0 <= pmax .
+H4:    pmax < i .
+H5:    a__index__subtype__1__first = 0 .
+H6:    l__index__subtype__1__first = 0 .
+H7:    a__index__subtype__1__last = l__index__subtype__1__last .
+H8:    a__index__subtype__1__last < 2147483647 .
+H9:    for_all(i___1 : integer, a__index__subtype__1__first <= i___1 and i___1 
+          <= a__index__subtype__1__last -> - 2147483648 <= element(a, [i___1]) 
+          and element(a, [i___1]) <= 2147483647) .
+H10:   for_all(i___1 : integer, l__index__subtype__1__first <= i___1 and i___1 
+          <= l__index__subtype__1__last -> - 2147483648 <= element(l, [i___1]) 
+          and element(l, [i___1]) <= 2147483647) .
+H11:   i <= l__index__subtype__1__last .
+H12:   pmax <= 2147483647 .
+H13:   pmax >= a__index__subtype__1__first .
+H14:   i <= a__index__subtype__1__last .
+H15:   element(a, [pmax]) <= element(a, [i]) .
+H16:   element(l, [pmax]) >= - 2147483648 .
+H17:   element(l, [pmax]) <= 2147483647 .
+H18:   integer__size >= 0 .
+H19:   a__index__subtype__1__first <= a__index__subtype__1__last .
+H20:   l__index__subtype__1__first <= l__index__subtype__1__last .
+H21:   a__index__subtype__1__first >= - 2147483648 .
+H22:   a__index__subtype__1__last >= - 2147483648 .
+H23:   l__index__subtype__1__first >= - 2147483648 .
+H24:   l__index__subtype__1__last >= - 2147483648 .
+H25:   a__index__subtype__1__last <= 2147483647 .
+H26:   a__index__subtype__1__first <= 2147483647 .
+H27:   l__index__subtype__1__last <= 2147483647 .
+H28:   l__index__subtype__1__first <= 2147483647 .
+       ->
+C1:    element(l, [pmax]) <= 2147483646 .
+
+
+For path(s) from assertion of line 15 to run-time check associated with 
+          statement of line 49:
+
+procedure_liseq_length_24.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 15 to run-time check associated with 
+          statement of line 50:
+
+procedure_liseq_length_25.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 15 to run-time check associated with 
+          statement of line 52:
+
+procedure_liseq_length_26.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 26 to run-time check associated with 
+          statement of line 52:
+
+procedure_liseq_length_27.
+*** true .          /* all conclusions proved */
+
+
+procedure_liseq_length_28.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 15 to finish:
+
+procedure_liseq_length_29.
+H1:    for_all(i2_ : integer, 0 <= i2_ and i2_ <= i - 1 -> element(l, [i2_]) = 
+          liseq_ends_at(a, i2_)) .
+H2:    element(l, [pmax]) = liseq_prfx(a, i) .
+H3:    i <= l__index__subtype__1__last + 1 .
+H4:    0 <= pmax .
+H5:    pmax < i .
+H6:    a__index__subtype__1__first = 0 .
+H7:    l__index__subtype__1__first = 0 .
+H8:    a__index__subtype__1__last = l__index__subtype__1__last .
+H9:    a__index__subtype__1__last < 2147483647 .
+H10:   for_all(i___1 : integer, a__index__subtype__1__first <= i___1 and i___1 
+          <= a__index__subtype__1__last -> - 2147483648 <= element(a, [i___1]) 
+          and element(a, [i___1]) <= 2147483647) .
+H11:   for_all(i___1 : integer, l__index__subtype__1__first <= i___1 and i___1 
+          <= l__index__subtype__1__last -> - 2147483648 <= element(l, [i___1]) 
+          and element(l, [i___1]) <= 2147483647) .
+H12:   i <= 2147483647 .
+H13:   l__index__subtype__1__last < i .
+H14:   integer__size >= 0 .
+H15:   a__index__subtype__1__first <= a__index__subtype__1__last .
+H16:   l__index__subtype__1__first <= l__index__subtype__1__last .
+H17:   a__index__subtype__1__first >= - 2147483648 .
+H18:   a__index__subtype__1__last >= - 2147483648 .
+H19:   l__index__subtype__1__first >= - 2147483648 .
+H20:   l__index__subtype__1__last >= - 2147483648 .
+H21:   a__index__subtype__1__last <= 2147483647 .
+H22:   a__index__subtype__1__first <= 2147483647 .
+H23:   l__index__subtype__1__last <= 2147483647 .
+H24:   l__index__subtype__1__first <= 2147483647 .
+       ->
+C1:    element(l, [pmax]) = liseq_prfx(a, a__index__subtype__1__last + 1) .
+
+

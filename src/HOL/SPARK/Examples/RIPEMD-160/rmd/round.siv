@@ -1,0 +1,834 @@
+*****************************************************************************
+                       Semantic Analysis of SPARK Text
+    Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039
+             Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.
+*****************************************************************************
+
+
+CREATED 29-NOV-2010, 14:30:19  SIMPLIFIED 29-NOV-2010, 14:30:21
+
+SPARK Simplifier Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039
+Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.
+
+procedure RMD.Round
+
+
+
+
+For path(s) from start to run-time check associated with statement of line 111:
+
+procedure_round_1.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 112:
+
+procedure_round_2.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 113:
+
+procedure_round_3.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 114:
+
+procedure_round_4.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 115:
+
+procedure_round_5.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 116:
+
+procedure_round_6.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 117:
+
+procedure_round_7.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 118:
+
+procedure_round_8.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 119:
+
+procedure_round_9.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 120:
+
+procedure_round_10.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 121:
+
+procedure_round_11.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 121:
+
+procedure_round_12.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 124:
+
+procedure_round_13.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 124:
+
+procedure_round_14.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 124:
+
+procedure_round_15.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 124:
+
+procedure_round_16.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 124:
+
+procedure_round_17.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 124:
+
+procedure_round_18.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 124:
+
+procedure_round_19.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 124:
+
+procedure_round_20.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 124:
+
+procedure_round_21.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 124:
+
+procedure_round_22.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 124:
+
+procedure_round_23.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 124:
+
+procedure_round_24.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 130:
+
+procedure_round_25.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 130:
+
+procedure_round_26.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 131:
+
+procedure_round_27.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 131:
+
+procedure_round_28.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 132:
+
+procedure_round_29.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 132:
+
+procedure_round_30.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 132:
+
+procedure_round_31.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 132:
+
+procedure_round_32.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 133:
+
+procedure_round_33.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 133:
+
+procedure_round_34.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 134:
+
+procedure_round_35.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 134:
+
+procedure_round_36.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 136:
+
+procedure_round_37.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 136:
+
+procedure_round_38.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 136:
+
+procedure_round_39.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 136:
+
+procedure_round_40.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 136:
+
+procedure_round_41.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 136:
+
+procedure_round_42.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 136:
+
+procedure_round_43.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 136:
+
+procedure_round_44.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 136:
+
+procedure_round_45.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 136:
+
+procedure_round_46.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 136:
+
+procedure_round_47.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 136:
+
+procedure_round_48.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 142:
+
+procedure_round_49.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 142:
+
+procedure_round_50.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 143:
+
+procedure_round_51.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 143:
+
+procedure_round_52.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 144:
+
+procedure_round_53.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 144:
+
+procedure_round_54.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 144:
+
+procedure_round_55.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 144:
+
+procedure_round_56.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 145:
+
+procedure_round_57.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 145:
+
+procedure_round_58.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 146:
+
+procedure_round_59.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 146:
+
+procedure_round_60.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to assertion of line 147:
+
+procedure_round_61.
+H1:    ca >= 0 .
+H2:    ca <= 4294967295 .
+H3:    cb >= 0 .
+H4:    cb <= 4294967295 .
+H5:    cc >= 0 .
+H6:    cc <= 4294967295 .
+H7:    cd >= 0 .
+H8:    cd <= 4294967295 .
+H9:    ce >= 0 .
+H10:   ce <= 4294967295 .
+H11:   for_all(i___1 : integer, 0 <= i___1 and i___1 <= 15 -> 0 <= element(x, [
+          i___1]) and element(x, [i___1]) <= 4294967295) .
+H12:   s_l(0) >= 0 .
+H13:   s_l(0) <= 15 .
+H14:   s_l(0) = s_l_spec(0) .
+H15:   f(0, cb, cc, cd) >= 0 .
+H16:   f(0, cb, cc, cd) <= 4294967295 .
+H17:   f(0, cb, cc, cd) = f_spec(0, cb, cc, cd) .
+H18:   r_l(0) >= 0 .
+H19:   r_l(0) <= 15 .
+H20:   r_l(0) = r_l_spec(0) .
+H21:   k_l(0) >= 0 .
+H22:   k_l(0) <= 4294967295 .
+H23:   k_l(0) = k_l_spec(0) .
+H24:   (((ca + f(0, cb, cc, cd)) mod 4294967296 + element(x, [r_l(0)])) mod 
+          4294967296 + k_l(0)) mod 4294967296 >= 0 .
+H25:   (((ca + f(0, cb, cc, cd)) mod 4294967296 + element(x, [r_l(0)])) mod 
+          4294967296 + k_l(0)) mod 4294967296 <= 4294967295 .
+H26:   wordops__rotate(s_l(0), (((ca + f(0, cb, cc, cd)) mod 4294967296 + 
+          element(x, [r_l(0)])) mod 4294967296 + k_l(0)) mod 4294967296) >= 0 .
+H27:   wordops__rotate(s_l(0), (((ca + f(0, cb, cc, cd)) mod 4294967296 + 
+          element(x, [r_l(0)])) mod 4294967296 + k_l(0)) mod 4294967296) <= 
+          4294967295 .
+H28:   wordops__rotate(s_l(0), (((ca + f(0, cb, cc, cd)) mod 4294967296 + 
+          element(x, [r_l(0)])) mod 4294967296 + k_l(0)) mod 4294967296) = 
+          wordops__rotate_left(s_l(0), (((ca + f(0, cb, cc, cd)) mod 4294967296 
+          + element(x, [r_l(0)])) mod 4294967296 + k_l(0)) mod 4294967296) .
+H29:   (wordops__rotate(s_l(0), (((ca + f(0, cb, cc, cd)) mod 4294967296 + 
+          element(x, [r_l(0)])) mod 4294967296 + k_l(0)) mod 4294967296) + ce) 
+          mod 4294967296 >= 0 .
+H30:   (wordops__rotate(s_l(0), (((ca + f(0, cb, cc, cd)) mod 4294967296 + 
+          element(x, [r_l(0)])) mod 4294967296 + k_l(0)) mod 4294967296) + ce) 
+          mod 4294967296 <= 4294967295 .
+H31:   wordops__rotate(10, cc) >= 0 .
+H32:   wordops__rotate(10, cc) <= 4294967295 .
+H33:   wordops__rotate(10, cc) = wordops__rotate_left(10, cc) .
+H34:   s_r(0) >= 0 .
+H35:   s_r(0) <= 15 .
+H36:   s_r(0) = s_r_spec(0) .
+H37:   79 >= round_index__base__first .
+H38:   79 <= round_index__base__last .
+H39:   f(79, cb, cc, cd) >= 0 .
+H40:   f(79, cb, cc, cd) <= 4294967295 .
+H41:   f(79, cb, cc, cd) = f_spec(79, cb, cc, cd) .
+H42:   r_r(0) >= 0 .
+H43:   r_r(0) <= 15 .
+H44:   r_r(0) = r_r_spec(0) .
+H45:   k_r(0) >= 0 .
+H46:   k_r(0) <= 4294967295 .
+H47:   k_r(0) = k_r_spec(0) .
+H48:   (((ca + f(79, cb, cc, cd)) mod 4294967296 + element(x, [r_r(0)])) mod 
+          4294967296 + k_r(0)) mod 4294967296 >= 0 .
+H49:   (((ca + f(79, cb, cc, cd)) mod 4294967296 + element(x, [r_r(0)])) mod 
+          4294967296 + k_r(0)) mod 4294967296 <= 4294967295 .
+H50:   wordops__rotate(s_r(0), (((ca + f(79, cb, cc, cd)) mod 4294967296 + 
+          element(x, [r_r(0)])) mod 4294967296 + k_r(0)) mod 4294967296) >= 0 .
+H51:   wordops__rotate(s_r(0), (((ca + f(79, cb, cc, cd)) mod 4294967296 + 
+          element(x, [r_r(0)])) mod 4294967296 + k_r(0)) mod 4294967296) <= 
+          4294967295 .
+H52:   wordops__rotate(s_r(0), (((ca + f(79, cb, cc, cd)) mod 4294967296 + 
+          element(x, [r_r(0)])) mod 4294967296 + k_r(0)) mod 4294967296) = 
+          wordops__rotate_left(s_r(0), (((ca + f(79, cb, cc, cd)) mod 
+          4294967296 + element(x, [r_r(0)])) mod 4294967296 + k_r(0)) mod 
+          4294967296) .
+H53:   (wordops__rotate(s_r(0), (((ca + f(79, cb, cc, cd)) mod 4294967296 + 
+          element(x, [r_r(0)])) mod 4294967296 + k_r(0)) mod 4294967296) + ce) 
+          mod 4294967296 >= 0 .
+H54:   (wordops__rotate(s_r(0), (((ca + f(79, cb, cc, cd)) mod 4294967296 + 
+          element(x, [r_r(0)])) mod 4294967296 + k_r(0)) mod 4294967296) + ce) 
+          mod 4294967296 <= 4294967295 .
+H55:   integer__size >= 0 .
+H56:   interfaces__unsigned_32__size >= 0 .
+H57:   wordops__word__size >= 0 .
+H58:   wordops__rotate_amount__size >= 0 .
+H59:   word__size >= 0 .
+H60:   chain__size >= 0 .
+H61:   block_index__size >= 0 .
+H62:   block_index__base__first <= block_index__base__last .
+H63:   round_index__size >= 0 .
+H64:   round_index__base__first <= round_index__base__last .
+H65:   chain_pair__size >= 0 .
+H66:   rotate_amount__size >= 0 .
+H67:   block_index__base__first <= 0 .
+H68:   block_index__base__last >= 15 .
+H69:   round_index__base__first <= 0 .
+H70:   round_index__base__last >= 79 .
+       ->
+C1:    mk__chain_pair(left := mk__chain(h0 := ce, h1 := (wordops__rotate(s_l(0)
+          , (((ca + f(0, cb, cc, cd)) mod 4294967296 + element(x, [r_l(0)])) 
+          mod 4294967296 + k_l(0)) mod 4294967296) + ce) mod 4294967296, h2 := 
+          cb, h3 := wordops__rotate(10, cc), h4 := cd), right := mk__chain(h0 
+          := ce, h1 := (wordops__rotate(s_r(0), (((ca + f(79, cb, cc, cd)) mod 
+          4294967296 + element(x, [r_r(0)])) mod 4294967296 + k_r(0)) mod 
+          4294967296) + ce) mod 4294967296, h2 := cb, h3 := wordops__rotate(10, 
+          cc), h4 := cd)) = steps(mk__chain_pair(left := mk__chain(h0 := ca, h1 
+          := cb, h2 := cc, h3 := cd, h4 := ce), right := mk__chain(h0 := ca, h1 
+          := cb, h2 := cc, h3 := cd, h4 := ce)), 1, x) .
+
+
+For path(s) from assertion of line 147 to assertion of line 147:
+
+procedure_round_62.
+H1:    mk__chain_pair(left := mk__chain(h0 := cla, h1 := clb, h2 := clc, h3 := 
+          cld, h4 := cle), right := mk__chain(h0 := cra, h1 := crb, h2 := crc, 
+          h3 := crd, h4 := cre)) = steps(mk__chain_pair(left := mk__chain(h0 := 
+          ca~, h1 := cb~, h2 := cc~, h3 := cd~, h4 := ce~), right := mk__chain(
+          h0 := ca~, h1 := cb~, h2 := cc~, h3 := cd~, h4 := ce~)), loop__1__j + 
+          1, x) .
+H2:    ca~ >= 0 .
+H3:    ca~ <= 4294967295 .
+H4:    cb~ >= 0 .
+H5:    cb~ <= 4294967295 .
+H6:    cc~ >= 0 .
+H7:    cc~ <= 4294967295 .
+H8:    cd~ >= 0 .
+H9:    cd~ <= 4294967295 .
+H10:   ce~ >= 0 .
+H11:   ce~ <= 4294967295 .
+H12:   for_all(i___1 : integer, 0 <= i___1 and i___1 <= 15 -> 0 <= element(x, [
+          i___1]) and element(x, [i___1]) <= 4294967295) .
+H13:   loop__1__j >= 0 .
+H14:   loop__1__j <= 78 .
+H15:   s_l(loop__1__j + 1) >= 0 .
+H16:   s_l(loop__1__j + 1) <= 15 .
+H17:   s_l(loop__1__j + 1) = s_l_spec(loop__1__j + 1) .
+H18:   cla >= 0 .
+H19:   cla <= 4294967295 .
+H20:   clb >= 0 .
+H21:   clb <= 4294967295 .
+H22:   clc >= 0 .
+H23:   clc <= 4294967295 .
+H24:   cld >= 0 .
+H25:   cld <= 4294967295 .
+H26:   f(loop__1__j + 1, clb, clc, cld) >= 0 .
+H27:   f(loop__1__j + 1, clb, clc, cld) <= 4294967295 .
+H28:   f(loop__1__j + 1, clb, clc, cld) = f_spec(loop__1__j + 1, clb, clc, cld) 
+          .
+H29:   r_l(loop__1__j + 1) >= 0 .
+H30:   r_l(loop__1__j + 1) <= 15 .
+H31:   r_l(loop__1__j + 1) = r_l_spec(loop__1__j + 1) .
+H32:   k_l(loop__1__j + 1) >= 0 .
+H33:   k_l(loop__1__j + 1) <= 4294967295 .
+H34:   k_l(loop__1__j + 1) = k_l_spec(loop__1__j + 1) .
+H35:   (((cla + f(loop__1__j + 1, clb, clc, cld)) mod 4294967296 + element(x, [
+          r_l(loop__1__j + 1)])) mod 4294967296 + k_l(loop__1__j + 1)) mod 
+          4294967296 >= 0 .
+H36:   (((cla + f(loop__1__j + 1, clb, clc, cld)) mod 4294967296 + element(x, [
+          r_l(loop__1__j + 1)])) mod 4294967296 + k_l(loop__1__j + 1)) mod 
+          4294967296 <= 4294967295 .
+H37:   wordops__rotate(s_l(loop__1__j + 1), (((cla + f(loop__1__j + 1, clb, 
+          clc, cld)) mod 4294967296 + element(x, [r_l(loop__1__j + 1)])) mod 
+          4294967296 + k_l(loop__1__j + 1)) mod 4294967296) >= 0 .
+H38:   wordops__rotate(s_l(loop__1__j + 1), (((cla + f(loop__1__j + 1, clb, 
+          clc, cld)) mod 4294967296 + element(x, [r_l(loop__1__j + 1)])) mod 
+          4294967296 + k_l(loop__1__j + 1)) mod 4294967296) <= 4294967295 .
+H39:   wordops__rotate(s_l(loop__1__j + 1), (((cla + f(loop__1__j + 1, clb, 
+          clc, cld)) mod 4294967296 + element(x, [r_l(loop__1__j + 1)])) mod 
+          4294967296 + k_l(loop__1__j + 1)) mod 4294967296) = 
+          wordops__rotate_left(s_l(loop__1__j + 1), (((cla + f(loop__1__j + 1, 
+          clb, clc, cld)) mod 4294967296 + element(x, [r_l(loop__1__j + 1)])) 
+          mod 4294967296 + k_l(loop__1__j + 1)) mod 4294967296) .
+H40:   cle >= 0 .
+H41:   cle <= 4294967295 .
+H42:   (wordops__rotate(s_l(loop__1__j + 1), (((cla + f(loop__1__j + 1, clb, 
+          clc, cld)) mod 4294967296 + element(x, [r_l(loop__1__j + 1)])) mod 
+          4294967296 + k_l(loop__1__j + 1)) mod 4294967296) + cle) mod 
+          4294967296 >= 0 .
+H43:   (wordops__rotate(s_l(loop__1__j + 1), (((cla + f(loop__1__j + 1, clb, 
+          clc, cld)) mod 4294967296 + element(x, [r_l(loop__1__j + 1)])) mod 
+          4294967296 + k_l(loop__1__j + 1)) mod 4294967296) + cle) mod 
+          4294967296 <= 4294967295 .
+H44:   wordops__rotate(10, clc) >= 0 .
+H45:   wordops__rotate(10, clc) <= 4294967295 .
+H46:   wordops__rotate(10, clc) = wordops__rotate_left(10, clc) .
+H47:   s_r(loop__1__j + 1) >= 0 .
+H48:   s_r(loop__1__j + 1) <= 15 .
+H49:   s_r(loop__1__j + 1) = s_r_spec(loop__1__j + 1) .
+H50:   cra >= 0 .
+H51:   cra <= 4294967295 .
+H52:   crb >= 0 .
+H53:   crb <= 4294967295 .
+H54:   crc >= 0 .
+H55:   crc <= 4294967295 .
+H56:   crd >= 0 .
+H57:   crd <= 4294967295 .
+H58:   79 - (loop__1__j + 1) >= round_index__base__first .
+H59:   79 - (loop__1__j + 1) <= round_index__base__last .
+H60:   f(79 - (loop__1__j + 1), crb, crc, crd) >= 0 .
+H61:   f(79 - (loop__1__j + 1), crb, crc, crd) <= 4294967295 .
+H62:   f(78 - loop__1__j, crb, crc, crd) = f_spec(78 - loop__1__j, crb, crc, 
+          crd) .
+H63:   r_r(loop__1__j + 1) >= 0 .
+H64:   r_r(loop__1__j + 1) <= 15 .
+H65:   r_r(loop__1__j + 1) = r_r_spec(loop__1__j + 1) .
+H66:   k_r(loop__1__j + 1) >= 0 .
+H67:   k_r(loop__1__j + 1) <= 4294967295 .
+H68:   k_r(loop__1__j + 1) = k_r_spec(loop__1__j + 1) .
+H69:   (((cra + f(79 - (loop__1__j + 1), crb, crc, crd)) mod 4294967296 + 
+          element(x, [r_r(loop__1__j + 1)])) mod 4294967296 + k_r(loop__1__j + 
+          1)) mod 4294967296 >= 0 .
+H70:   (((cra + f(79 - (loop__1__j + 1), crb, crc, crd)) mod 4294967296 + 
+          element(x, [r_r(loop__1__j + 1)])) mod 4294967296 + k_r(loop__1__j + 
+          1)) mod 4294967296 <= 4294967295 .
+H71:   wordops__rotate(s_r(loop__1__j + 1), (((cra + f(79 - (loop__1__j + 1), 
+          crb, crc, crd)) mod 4294967296 + element(x, [r_r(loop__1__j + 1)])) 
+          mod 4294967296 + k_r(loop__1__j + 1)) mod 4294967296) >= 0 .
+H72:   wordops__rotate(s_r(loop__1__j + 1), (((cra + f(79 - (loop__1__j + 1), 
+          crb, crc, crd)) mod 4294967296 + element(x, [r_r(loop__1__j + 1)])) 
+          mod 4294967296 + k_r(loop__1__j + 1)) mod 4294967296) <= 4294967295 .
+H73:   wordops__rotate(s_r(loop__1__j + 1), (((cra + f(79 - (loop__1__j + 1), 
+          crb, crc, crd)) mod 4294967296 + element(x, [r_r(loop__1__j + 1)])) 
+          mod 4294967296 + k_r(loop__1__j + 1)) mod 4294967296) = 
+          wordops__rotate_left(s_r(loop__1__j + 1), (((cra + f(79 - (loop__1__j 
+          + 1), crb, crc, crd)) mod 4294967296 + element(x, [r_r(loop__1__j + 1)
+          ])) mod 4294967296 + k_r(loop__1__j + 1)) mod 4294967296) .
+H74:   cre >= 0 .
+H75:   cre <= 4294967295 .
+H76:   (wordops__rotate(s_r(loop__1__j + 1), (((cra + f(79 - (loop__1__j + 1), 
+          crb, crc, crd)) mod 4294967296 + element(x, [r_r(loop__1__j + 1)])) 
+          mod 4294967296 + k_r(loop__1__j + 1)) mod 4294967296) + cre) mod 
+          4294967296 >= 0 .
+H77:   (wordops__rotate(s_r(loop__1__j + 1), (((cra + f(79 - (loop__1__j + 1), 
+          crb, crc, crd)) mod 4294967296 + element(x, [r_r(loop__1__j + 1)])) 
+          mod 4294967296 + k_r(loop__1__j + 1)) mod 4294967296) + cre) mod 
+          4294967296 <= 4294967295 .
+H78:   wordops__rotate(10, crc) >= 0 .
+H79:   wordops__rotate(10, crc) <= 4294967295 .
+H80:   wordops__rotate(10, crc) = wordops__rotate_left(10, crc) .
+H81:   integer__size >= 0 .
+H82:   interfaces__unsigned_32__size >= 0 .
+H83:   wordops__word__size >= 0 .
+H84:   wordops__rotate_amount__size >= 0 .
+H85:   word__size >= 0 .
+H86:   chain__size >= 0 .
+H87:   block_index__size >= 0 .
+H88:   block_index__base__first <= block_index__base__last .
+H89:   round_index__size >= 0 .
+H90:   round_index__base__first <= round_index__base__last .
+H91:   chain_pair__size >= 0 .
+H92:   rotate_amount__size >= 0 .
+H93:   block_index__base__first <= 0 .
+H94:   block_index__base__last >= 15 .
+H95:   round_index__base__first <= 0 .
+H96:   round_index__base__last >= 79 .
+       ->
+C1:    mk__chain_pair(left := mk__chain(h0 := cle, h1 := (wordops__rotate(s_l(
+          loop__1__j + 1), (((cla + f(loop__1__j + 1, clb, clc, cld)) mod 
+          4294967296 + element(x, [r_l(loop__1__j + 1)])) mod 4294967296 + k_l(
+          loop__1__j + 1)) mod 4294967296) + cle) mod 4294967296, h2 := clb, h3 
+          := wordops__rotate(10, clc), h4 := cld), right := mk__chain(h0 := 
+          cre, h1 := (wordops__rotate(s_r(loop__1__j + 1), (((cra + f(79 - (
+          loop__1__j + 1), crb, crc, crd)) mod 4294967296 + element(x, [r_r(
+          loop__1__j + 1)])) mod 4294967296 + k_r(loop__1__j + 1)) mod 
+          4294967296) + cre) mod 4294967296, h2 := crb, h3 := wordops__rotate(
+          10, crc), h4 := crd)) = steps(mk__chain_pair(left := mk__chain(h0 := 
+          ca~, h1 := cb~, h2 := cc~, h3 := cd~, h4 := ce~), right := mk__chain(
+          h0 := ca~, h1 := cb~, h2 := cc~, h3 := cd~, h4 := ce~)), loop__1__j + 
+          2, x) .
+
+
+For path(s) from start to run-time check associated with statement of line 153:
+
+procedure_round_63.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 153:
+
+procedure_round_64.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 154:
+
+procedure_round_65.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 154:
+
+procedure_round_66.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 155:
+
+procedure_round_67.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 155:
+
+procedure_round_68.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 156:
+
+procedure_round_69.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 156:
+
+procedure_round_70.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 157:
+
+procedure_round_71.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 157:
+
+procedure_round_72.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to run-time check associated with statement of line 158:
+
+procedure_round_73.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from assertion of line 147 to run-time check associated with 
+          statement of line 158:
+
+procedure_round_74.
+*** true .          /* all conclusions proved */
+
+
+For path(s) from start to finish:
+
+procedure_round_75.
+*** true .   /* contradiction within hypotheses. */
+
+
+
+For path(s) from assertion of line 147 to finish:
+
+procedure_round_76.
+H1:    mk__chain_pair(left := mk__chain(h0 := cla, h1 := clb, h2 := clc, h3 := 
+          cld, h4 := cle), right := mk__chain(h0 := cra, h1 := crb, h2 := crc, 
+          h3 := crd, h4 := cre)) = steps(mk__chain_pair(left := mk__chain(h0 := 
+          ca~, h1 := cb~, h2 := cc~, h3 := cd~, h4 := ce~), right := mk__chain(
+          h0 := ca~, h1 := cb~, h2 := cc~, h3 := cd~, h4 := ce~)), 80, x) .
+H2:    ca~ >= 0 .
+H3:    ca~ <= 4294967295 .
+H4:    cb~ >= 0 .
+H5:    cb~ <= 4294967295 .
+H6:    cc~ >= 0 .
+H7:    cc~ <= 4294967295 .
+H8:    cd~ >= 0 .
+H9:    cd~ <= 4294967295 .
+H10:   ce~ >= 0 .
+H11:   ce~ <= 4294967295 .
+H12:   for_all(i___1 : integer, 0 <= i___1 and i___1 <= 15 -> 0 <= element(x, [
+          i___1]) and element(x, [i___1]) <= 4294967295) .
+H13:   clc >= 0 .
+H14:   clc <= 4294967295 .
+H15:   crd >= 0 .
+H16:   crd <= 4294967295 .
+H17:   ((cb~ + clc) mod 4294967296 + crd) mod 4294967296 >= 0 .
+H18:   ((cb~ + clc) mod 4294967296 + crd) mod 4294967296 <= 4294967295 .
+H19:   cld >= 0 .
+H20:   cld <= 4294967295 .
+H21:   cre >= 0 .
+H22:   cre <= 4294967295 .
+H23:   ((cc~ + cld) mod 4294967296 + cre) mod 4294967296 >= 0 .
+H24:   ((cc~ + cld) mod 4294967296 + cre) mod 4294967296 <= 4294967295 .
+H25:   cle >= 0 .
+H26:   cle <= 4294967295 .
+H27:   cra >= 0 .
+H28:   cra <= 4294967295 .
+H29:   ((cd~ + cle) mod 4294967296 + cra) mod 4294967296 >= 0 .
+H30:   ((cd~ + cle) mod 4294967296 + cra) mod 4294967296 <= 4294967295 .
+H31:   cla >= 0 .
+H32:   cla <= 4294967295 .
+H33:   crb >= 0 .
+H34:   crb <= 4294967295 .
+H35:   ((ce~ + cla) mod 4294967296 + crb) mod 4294967296 >= 0 .
+H36:   ((ce~ + cla) mod 4294967296 + crb) mod 4294967296 <= 4294967295 .
+H37:   clb >= 0 .
+H38:   clb <= 4294967295 .
+H39:   crc >= 0 .
+H40:   crc <= 4294967295 .
+H41:   ((ca~ + clb) mod 4294967296 + crc) mod 4294967296 >= 0 .
+H42:   ((ca~ + clb) mod 4294967296 + crc) mod 4294967296 <= 4294967295 .
+H43:   integer__size >= 0 .
+H44:   interfaces__unsigned_32__size >= 0 .
+H45:   wordops__word__size >= 0 .
+H46:   wordops__rotate_amount__size >= 0 .
+H47:   word__size >= 0 .
+H48:   chain__size >= 0 .
+H49:   block_index__size >= 0 .
+H50:   block_index__base__first <= block_index__base__last .
+H51:   round_index__size >= 0 .
+H52:   round_index__base__first <= round_index__base__last .
+H53:   chain_pair__size >= 0 .
+H54:   rotate_amount__size >= 0 .
+H55:   block_index__base__first <= 0 .
+H56:   block_index__base__last >= 15 .
+H57:   round_index__base__first <= 0 .
+H58:   round_index__base__last >= 79 .
+       ->
+C1:    mk__chain(h0 := ((cb~ + clc) mod 4294967296 + crd) mod 4294967296, h1 := 
+          ((cc~ + cld) mod 4294967296 + cre) mod 4294967296, h2 := ((cd~ + cle) 
+          mod 4294967296 + cra) mod 4294967296, h3 := ((ce~ + cla) mod 
+          4294967296 + crb) mod 4294967296, h4 := ((ca~ + clb) mod 4294967296 + 
+          crc) mod 4294967296) = round_spec(mk__chain(h0 := ca~, h1 := cb~, h2 
+          := cc~, h3 := cd~, h4 := ce~), x) .
+
+

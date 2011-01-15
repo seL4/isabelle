@@ -1,0 +1,112 @@
+           {*******************************************************}
+                               {FDL Declarations}
+    {Examiner Pro Edition, Version 9.1.0, Build Date 20101119, Build 19039}
+             {Copyright (C) 2010 Altran Praxis Limited, Bath, U.K.}
+           {*******************************************************}
+
+
+                        {DATE : 29-NOV-2010 14:30:19.87}
+
+                            {procedure RMD.Round}
+
+
+title procedure round;
+
+  function round__(real) : integer;
+  type interfaces__unsigned_32 = integer;
+  type block_index = integer;
+  type round_index = integer;
+  type chain = record
+        h0 : integer;
+        h1 : integer;
+        h2 : integer;
+        h3 : integer;
+        h4 : integer
+     end;
+  type block = array [integer] of integer;
+  type chain_pair = record
+        left : chain;
+        right : chain
+     end;
+  const rotate_amount__base__first : integer = pending; 
+  const rotate_amount__base__last : integer = pending; 
+  const round_index__base__first : integer = pending; 
+  const round_index__base__last : integer = pending; 
+  const block_index__base__first : integer = pending; 
+  const block_index__base__last : integer = pending; 
+  const word__base__first : integer = pending; 
+  const word__base__last : integer = pending; 
+  const wordops__rotate_amount__base__first : integer = pending; 
+  const wordops__rotate_amount__base__last : integer = pending; 
+  const wordops__word__base__first : integer = pending; 
+  const wordops__word__base__last : integer = pending; 
+  const interfaces__unsigned_32__base__first : integer = pending; 
+  const interfaces__unsigned_32__base__last : integer = pending; 
+  const integer__base__first : integer = pending; 
+  const integer__base__last : integer = pending; 
+  const rotate_amount__first : integer = pending; 
+  const rotate_amount__last : integer = pending; 
+  const rotate_amount__size : integer = pending; 
+  const chain_pair__size : integer = pending; 
+  const round_index__first : integer = pending; 
+  const round_index__last : integer = pending; 
+  const round_index__size : integer = pending; 
+  const block_index__first : integer = pending; 
+  const block_index__last : integer = pending; 
+  const block_index__size : integer = pending; 
+  const chain__size : integer = pending; 
+  const word__first : integer = pending; 
+  const word__last : integer = pending; 
+  const word__modulus : integer = pending; 
+  const word__size : integer = pending; 
+  const wordops__rotate_amount__first : integer = pending; 
+  const wordops__rotate_amount__last : integer = pending; 
+  const wordops__rotate_amount__size : integer = pending; 
+  const wordops__word__first : integer = pending; 
+  const wordops__word__last : integer = pending; 
+  const wordops__word__modulus : integer = pending; 
+  const wordops__word__size : integer = pending; 
+  const interfaces__unsigned_32__first : integer = pending; 
+  const interfaces__unsigned_32__last : integer = pending; 
+  const interfaces__unsigned_32__modulus : integer = pending; 
+  const interfaces__unsigned_32__size : integer = pending; 
+  const integer__first : integer = pending; 
+  const integer__last : integer = pending; 
+  const integer__size : integer = pending; 
+  var ca : integer;
+  var cb : integer;
+  var cc : integer;
+  var cd : integer;
+  var ce : integer;
+  var x : block;
+  var cla : integer;
+  var clb : integer;
+  var clc : integer;
+  var cld : integer;
+  var cle : integer;
+  var cra : integer;
+  var crb : integer;
+  var crc : integer;
+  var crd : integer;
+  var cre : integer;
+  var loop__1__j : integer;
+  function wordops__rotate_left(integer, integer) : integer;
+  function wordops__rotate(integer, integer) : integer;
+  function f_spec(integer, integer, integer, integer) : integer;
+  function k_l_spec(integer) : integer;
+  function k_r_spec(integer) : integer;
+  function r_l_spec(integer) : integer;
+  function r_r_spec(integer) : integer;
+  function s_l_spec(integer) : integer;
+  function s_r_spec(integer) : integer;
+  function steps(chain_pair, integer, block) : chain_pair;
+  function round_spec(chain, block) : chain;
+  function f(integer, integer, integer, integer) : integer;
+  function k_l(integer) : integer;
+  function k_r(integer) : integer;
+  function r_l(integer) : integer;
+  function r_r(integer) : integer;
+  function s_l(integer) : integer;
+  function s_r(integer) : integer;
+
+end;
