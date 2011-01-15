@@ -93,8 +93,8 @@ structure Iso_Tuple_Thms = Theory_Data
   fun merge data = Symtab.merge Thm.eq_thm_prop data;   (* FIXME handle Symtab.DUP ?? *)
 );
 
-fun get_typedef_info tyco vs (({ rep_type, Abs_name, Rep_name, ...},
-    { Abs_inject, Rep_inject, Abs_inverse, Rep_inverse, ... }) : Typedef.info) thy =
+fun get_typedef_info tyco vs
+    (({rep_type, Abs_name, ...}, {Rep_inject, Abs_inverse, ... }) : Typedef.info) thy =
   let
     val exists_thm =
       UNIV_I
@@ -196,8 +196,6 @@ structure Record: RECORD =
 struct
 
 val eq_reflection = @{thm eq_reflection};
-val atomize_all = @{thm HOL.atomize_all};
-val atomize_imp = @{thm HOL.atomize_imp};
 val meta_allE = @{thm Pure.meta_allE};
 val prop_subst = @{thm prop_subst};
 val K_record_comp = @{thm K_record_comp};
@@ -1508,11 +1506,6 @@ val split_wrapper = (split_name, fn tac => split_tac ORELSE' tac);
 (** theory extender interface **)
 
 (* prepare arguments *)
-
-fun read_raw_parent ctxt raw_T =
-  (case ProofContext.read_typ_abbrev ctxt raw_T of
-    Type (name, Ts) => (Ts, name)
-  | T => error ("Bad parent record specification: " ^ Syntax.string_of_typ ctxt T));
 
 fun read_typ ctxt raw_T env =
   let
