@@ -133,6 +133,11 @@ feature is still required for historical reasons.
 * Discontinued obsolete 'constdefs' command.  INCOMPATIBILITY, use
 'definition' instead.
 
+* The "prems" fact, which refers to the accidental collection of
+foundational premises in the context, is now explicitly marked as
+legacy feature and will be discontinued eventually.  Consider using
+"assms" of the head statement or reference facts by explicit names.
+
 * Document antiquotations @{class} and @{type} print classes and type
 constructors.
 
