@@ -17,6 +17,7 @@ System requirements
      * The GNU bash shell (version 3.x or 2.x).
      * Perl (version 5.x).
      * GNU Emacs (version 23) -- for the Proof General 4.x interface.
+     * Java 1.6.x from Oracle/Sun or Apple -- for Scala and jEdit.
      * A complete LaTeX installation -- for document preparation.
 
 Installation
@@ -31,11 +32,15 @@ Installation
 User interface
 
    The classic Isabelle user interface is Proof General by David
-   Aspinall and others. It is a generic Emacs interface for proof
+   Aspinall and others.  It is a generic Emacs interface for proof
    assistants, including Isabelle.  Its most prominent feature is
    script management, providing a metaphor of stepwise proof script
-   editing.  Proof General also provides some support for mathematical
-   symbols displayed on screen.
+   editing.
+
+   Isabelle/jEdit is an experimental Prover IDE based on advanced
+   technology of Isabelle/Scala.  It provides a metaphor of continuous
+   proof checking of a versioned collection of theory sources, with
+   instantaneous feedback in real-time.
 
 Other sources of information
 

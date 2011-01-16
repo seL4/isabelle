@@ -45,4 +45,3 @@ Packaging
 - makebundle (multiplatform);
 
 - hdiutil create -srcfolder DIR DMG (Mac OS);
-
