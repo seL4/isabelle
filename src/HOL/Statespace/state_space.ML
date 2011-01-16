@@ -145,20 +145,20 @@ val get_silent = #silent o NameSpaceData.get;
 
 fun prove_interpretation_in ctxt_tac (name, expr) thy =
    thy
-   |> Expression.sublocale_cmd name expr []
+   |> Expression.sublocale_cmd I name expr []
    |> Proof.global_terminal_proof
          (Method.Basic (fn ctxt => SIMPLE_METHOD (ctxt_tac ctxt)), NONE)
    |> ProofContext.theory_of
 
 fun add_locale name expr elems thy =
   thy 
-  |> Expression.add_locale (Binding.name name) (Binding.name name) expr elems
+  |> Expression.add_locale I (Binding.name name) (Binding.name name) expr elems
   |> snd
   |> Local_Theory.exit;
 
 fun add_locale_cmd name expr elems thy =
   thy 
-  |> Expression.add_locale_cmd (Binding.name name) Binding.empty expr elems
+  |> Expression.add_locale_cmd I (Binding.name name) Binding.empty expr elems
   |> snd
   |> Local_Theory.exit;
 
@@ -349,7 +349,7 @@ val no_syn = #3 (Syntax.no_syn ((),()));
 
 fun add_declaration name decl thy =
   thy
-  |> Named_Target.init name
+  |> Named_Target.init I name
   |> (fn lthy => Local_Theory.declaration false (decl lthy) lthy)
   |> Local_Theory.exit_global;
 

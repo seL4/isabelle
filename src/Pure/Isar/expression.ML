@@ -29,20 +29,20 @@ sig
   val read_declaration: expression -> (Proof.context -> Proof.context) -> Element.context list ->
     Proof.context -> (((string * typ) * mixfix) list * (string * morphism) list
       * Element.context_i list) * ((string * typ) list * Proof.context)
-  val add_locale: binding -> binding -> expression_i -> Element.context_i list ->
-    theory -> string * local_theory
-  val add_locale_cmd: binding -> binding -> expression -> Element.context list ->
-    theory -> string * local_theory
+  val add_locale: (local_theory -> local_theory) -> binding -> binding ->
+    expression_i -> Element.context_i list -> theory -> string * local_theory
+  val add_locale_cmd: (local_theory -> local_theory) -> binding -> binding ->
+    expression -> Element.context list -> theory -> string * local_theory
 
   (* Interpretation *)
   val cert_goal_expression: expression_i -> Proof.context ->
     (term list list * (string * morphism) list * morphism) * Proof.context
   val read_goal_expression: expression -> Proof.context ->
     (term list list * (string * morphism) list * morphism) * Proof.context
-  val sublocale: string -> expression_i -> (Attrib.binding * term) list ->
-    theory -> Proof.state
-  val sublocale_cmd: string -> expression -> (Attrib.binding * string) list ->
-    theory -> Proof.state
+  val sublocale: (local_theory -> local_theory) -> string -> expression_i ->
+    (Attrib.binding * term) list -> theory -> Proof.state
+  val sublocale_cmd: (local_theory -> local_theory) -> string -> expression ->
+    (Attrib.binding * string) list -> theory -> Proof.state
   val interpretation: expression_i -> (Attrib.binding * term) list ->
     theory -> Proof.state
   val interpretation_cmd: expression -> (Attrib.binding * string) list ->
@@ -731,7 +731,7 @@ fun defines_to_notes thy (Defines defs) =
   | defines_to_notes _ e = e;
 
 fun gen_add_locale prep_decl
-    binding raw_predicate_binding raw_import raw_body thy =
+    before_exit binding raw_predicate_binding raw_import raw_body thy =
   let
     val name = Sign.full_name thy binding;
     val _ = Locale.defined thy name andalso
@@ -784,7 +784,7 @@ fun gen_add_locale prep_decl
     val loc_ctxt = thy'
       |> Locale.register_locale binding (extraTs, params)
           (asm, rev defs) (a_intro, b_intro) axioms [] (rev notes) (rev deps')
-      |> Named_Target.init name
+      |> Named_Target.init before_exit name
       |> fold (fn (kind, facts) => Local_Theory.notes_kind kind facts #> snd) notes';
 
   in (name, loc_ctxt) end;
@@ -900,11 +900,11 @@ fun note_eqns_dependency target deps witss attrss eqns export export' ctxt =
           export theory) (deps ~~ witss))
   end;
 
-fun gen_sublocale prep_expr intern parse_prop prep_attr raw_target
-    expression equations thy =
+fun gen_sublocale prep_expr intern parse_prop prep_attr
+    before_exit raw_target expression equations thy =
   let
     val target = intern thy raw_target;
-    val target_ctxt = Named_Target.init target thy;
+    val target_ctxt = Named_Target.init before_exit target thy;
     val ((propss, deps, export), expr_ctxt) = prep_expr expression target_ctxt;
 
     val eqns = map (parse_prop expr_ctxt o snd) equations |> Syntax.check_terms expr_ctxt;
@@ -919,8 +919,8 @@ fun gen_sublocale prep_expr intern parse_prop prep_attr raw_target
 in
 
 fun sublocale x = gen_sublocale cert_goal_expression (K I) (K I) (K I) x;
-fun sublocale_cmd x = gen_sublocale read_goal_expression Locale.intern
-  Syntax.parse_prop Attrib.intern_src x;
+fun sublocale_cmd x =
+  gen_sublocale read_goal_expression Locale.intern Syntax.parse_prop Attrib.intern_src x;
 
 end;
 

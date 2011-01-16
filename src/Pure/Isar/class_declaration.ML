@@ -6,13 +6,14 @@ Declaring classes and subclass relations.
 
 signature CLASS_DECLARATION =
 sig
-  val class: binding -> class list -> Element.context_i list
-    -> theory -> string * local_theory
-  val class_cmd: binding -> xstring list -> Element.context list
-    -> theory -> string * local_theory
-  val prove_subclass: tactic -> class -> local_theory -> local_theory
-  val subclass: class -> local_theory -> Proof.state
-  val subclass_cmd: xstring -> local_theory -> Proof.state
+  val class: (local_theory -> local_theory) -> binding -> class list ->
+    Element.context_i list -> theory -> string * local_theory
+  val class_cmd: (local_theory -> local_theory) -> binding -> xstring list ->
+    Element.context list -> theory -> string * local_theory
+  val prove_subclass: (local_theory -> local_theory) -> tactic -> class ->
+    local_theory -> local_theory
+  val subclass: (local_theory -> local_theory) -> class -> local_theory -> Proof.state
+  val subclass_cmd: (local_theory -> local_theory) -> xstring -> local_theory -> Proof.state
 end;
 
 structure Class_Declaration: CLASS_DECLARATION =
@@ -288,14 +289,14 @@ fun adjungate_axclass bname class base_sort sups supsort supparam_names global_s
     #> pair (param_map, params, assm_axiom)))
   end;
 
-fun gen_class prep_class_spec b raw_supclasses raw_elems thy =
+fun gen_class prep_class_spec before_exit b raw_supclasses raw_elems thy =
   let
     val class = Sign.full_name thy b;
     val (((sups, supparam_names), (supsort, base_sort, supexpr)), (elems, global_syntax)) =
       prep_class_spec thy raw_supclasses raw_elems;
   in
     thy
-    |> Expression.add_locale b (Binding.qualify true "class" b) supexpr elems
+    |> Expression.add_locale I b (Binding.qualify true "class" b) supexpr elems
     |> snd |> Local_Theory.exit_global
     |> adjungate_axclass b class base_sort sups supsort supparam_names global_syntax
     ||> Theory.checkpoint
@@ -305,7 +306,7 @@ fun gen_class prep_class_spec b raw_supclasses raw_elems thy =
        Context.theory_map (Locale.add_registration (class, base_morph)
          (Option.map (rpair true) eq_morph) export_morph)
     #> Class.register class sups params base_sort base_morph export_morph axiom assm_intro of_class))
-    |> Named_Target.init class
+    |> Named_Target.init before_exit class
     |> pair class
   end;
 
@@ -321,7 +322,7 @@ end; (*local*)
 
 local
 
-fun gen_subclass prep_class do_proof raw_sup lthy =
+fun gen_subclass prep_class do_proof before_exit raw_sup lthy =
   let
     val thy = ProofContext.theory_of lthy;
     val proto_sup = prep_class thy raw_sup;
@@ -338,7 +339,7 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
     fun after_qed some_wit =
       ProofContext.background_theory (Class.register_subclass (sub, sup)
         some_dep_morph some_wit export)
-      #> ProofContext.theory_of #> Named_Target.init sub;
+      #> ProofContext.theory_of #> Named_Target.init before_exit sub;
   in do_proof after_qed some_prop goal_ctxt end;
 
 fun user_proof after_qed some_prop =
@@ -352,7 +353,7 @@ fun tactic_proof tac after_qed some_prop ctxt =
 in
 
 val subclass = gen_subclass (K I) user_proof;
-fun prove_subclass tac = gen_subclass (K I) (tactic_proof tac);
+fun prove_subclass before_exit tac = gen_subclass (K I) (tactic_proof tac) before_exit;
 val subclass_cmd = gen_subclass (ProofContext.read_class o ProofContext.init_global) user_proof;
 
 end; (*local*)
