@@ -12,6 +12,13 @@ executable Isabelle tool.
 
 * Significantly improved Isabelle/Isar implementation manual.
 
+* System settings: ISABELLE_HOME_USER now includes ISABELLE_IDENTIFIER
+(and thus refers to something like $HOME/.isabelle/IsabelleXXXX),
+while the default heap location within that directory lacks that extra
+suffix.  This isolates multiple Isabelle installations from each
+other, avoiding problems with old settings in new versions.
+INCOMPATIBILITY, need to copy/upgrade old user settings manually.
+
 * Source files are always encoded as UTF-8, instead of old-fashioned
 ISO-Latin-1.  INCOMPATIBILITY.  Isabelle LaTeX documents might require
 the following package declarations:
@@ -27,16 +34,11 @@ used here as well.  Recall that Symbol.explode in ML provides a
 consistent view on symbols, while raw explode (or String.explode)
 merely give a byte-oriented representation.
 
-* System settings: ISABELLE_HOME_USER now includes ISABELLE_IDENTIFIER
-(and thus refers to something like $HOME/.isabelle/IsabelleXXXX),
-while the default heap location within that directory lacks that extra
-suffix.  This isolates multiple Isabelle installations from each
-other, avoiding problems with old settings in new versions.
-INCOMPATIBILITY, need to copy/upgrade old user settings manually.
-
-* Theory loading: only the master source file is looked-up in the
-implicit load path, all other files are addressed relatively to its
-directory.  Minor INCOMPATIBILITY, subtle change in semantics.
+* Theory loader: source files are primarily located via the master
+directory of each theory node (where the .thy file itself resides).
+The global load path is still partially available as legacy feature.
+Minor INCOMPATIBILITY due to subtle change in file lookup: use
+explicit paths, relatively to the theory.
 
 * Special treatment of ML file names has been discontinued.
 Historically, optional extensions .ML or .sml were added on demand --
@@ -88,14 +90,14 @@ INCOMPATIBILITY.
 floating-point notation that coincides with the inner syntax for
 float_token.
 
-* Theory loader: implicit load path is considered legacy.  Use
-explicit file specifications instead, relatively to the directory of
-the enclosing theory file.
-
-* Discontinued support for Poly/ML 5.0 and 5.1 versions.
+* Support for real valued preferences (with approximative PGIP type):
+front-ends need to accept "pgint" values in float notation.
+INCOMPATIBILITY.
 
 * The IsabelleText font now includes Cyrillic, Hebrew, Arabic from
 DejaVu Sans.
+
+* Discontinued support for Poly/ML 5.0 and 5.1 versions.
 
 
 *** Pure ***
@@ -110,17 +112,15 @@ replaces somewhat outdated 'nonterminals'.  INCOMPATIBILITY.
 * Command 'notepad' replaces former 'example_proof' for
 experimentation in Isar without any result.  INCOMPATIBILITY.
 
-* Support for real valued preferences (with approximative PGIP type).
-
 * Locale interpretation commands 'interpret' and 'sublocale' accept
 lists of equations to map definitions in a locale to appropriate
 entities in the context of the interpretation.  The 'interpretation'
 command already provided this functionality.
 
-* New diagnostic command 'print_dependencies' prints the locale
-instances that would be activated if the specified expression was
-interpreted in the current context.  Variant 'print_dependencies!'
-assumes a context without interpretations.
+* Diagnostic command 'print_dependencies' prints the locale instances
+that would be activated if the specified expression was interpreted in
+the current context.  Variant "print_dependencies!" assumes a context
+without interpretations.
 
 * Diagnostic command 'print_interps' prints interpretations in proofs
 in addition to interpretations in theories.
@@ -135,8 +135,8 @@ feature is still required for historical reasons.
 
 * The "prems" fact, which refers to the accidental collection of
 foundational premises in the context, is now explicitly marked as
-legacy feature and will be discontinued eventually.  Consider using
-"assms" of the head statement or reference facts by explicit names.
+legacy feature and will be discontinued soon.  Consider using "assms"
+of the head statement or reference facts by explicit names.
 
 * Document antiquotations @{class} and @{type} print classes and type
 constructors.
@@ -147,16 +147,10 @@ the local file system.
 
 *** HOL ***
 
-* Simproc "list_to_set_comprehension" rewrites list comprehensions
-applied to List.set to set comprehensions.  Occasional
-INCOMPATIBILITY, may be deactivated like this:
-
-  declare [[simproc del: list_to_set_comprehension]]
-
-* Functions can be declared as coercions and type inference will add
-them as necessary upon input of a term. Theory Complex_Main declares
-real :: nat => real and real :: int => real as coercions. A coercion
-function f is declared like this:
+* Coercive subtyping: functions can be declared as coercions and type
+inference will add them as necessary upon input of a term.  Theory
+Complex_Main declares real :: nat => real and real :: int => real as
+coercions. A coercion function f is declared like this:
 
   declare [[coercion f]]
 
@@ -179,24 +173,24 @@ types, and iii) the heap monad of Imperative_HOL.  See
 src/HOL/ex/Fundefs.thy and src/HOL/Imperative_HOL/ex/Linked_Lists.thy
 for examples.
 
-* Scala (2.8 or higher) has been added to the target languages of the
-code generator.
-
-* Inductive package: now offers command 'inductive_simps' to
-automatically derive instantiated and simplified equations for
-inductive predicates, similar to 'inductive_cases'.
-
 * Function package: f.psimps rules are no longer implicitly declared
 as [simp].  INCOMPATIBILITY.
 
 * Datatype package: theorems generated for executable equality (class
 "eq") carry proper names and are treated as default code equations.
 
+* Inductive package: now offers command 'inductive_simps' to
+automatically derive instantiated and simplified equations for
+inductive predicates, similar to 'inductive_cases'.
+
 * Command 'enriched_type' allows to register properties of the
 functorial structure of types.
 
 * Improved infrastructure for term evaluation using code generator
 techniques, in particular static evaluation conversions.
+
+* Code generator: Scala (2.8 or higher) has been added to the target
+languages.
 
 * Code generator: globbing constant expressions "*" and "Theory.*"
 have been replaced by the more idiomatic "_" and "Theory._".
@@ -208,14 +202,10 @@ to standard output.  INCOMPATIBILITY.
 * Code generator: do not print function definitions for case
 combinators any longer.
 
-* Simplification with rules determined by code generator with
+* Code generator: simplification with rules determined with
 src/Tools/Code/code_simp.ML and method "code_simp".
 
-* Records: logical foundation type for records does not carry a
-'_type' suffix any longer (obsolete due to authentic syntax).
-INCOMPATIBILITY.
-
-* Code generation for records: more idiomatic representation of record
+* Code generator for records: more idiomatic representation of record
 types.  Warning: records are not covered by ancient SML code
 generation any longer.  INCOMPATIBILITY.  In cases of need, a suitable
 rep_datatype declaration helps to succeed then:
@@ -223,6 +213,10 @@ rep_datatype declaration helps to succeed then:
   record 'a foo = ...
   ...
   rep_datatype foo_ext ...
+
+* Records: logical foundation type for records does not carry a
+'_type' suffix any longer (obsolete due to authentic syntax).
+INCOMPATIBILITY.
 
 * Quickcheck now by default uses exhaustive testing instead of random
 testing.  Random testing can be invoked by "quickcheck [random]",
@@ -314,55 +308,13 @@ support for a similar behavior).  Minor INCOMPATIBILITY.
 * Boogie output files (.b2i files) need to be declared in the theory
 header.
 
+* Simplification procedure "list_to_set_comprehension" rewrites list
+comprehensions applied to List.set to set comprehensions.  Occasional
+INCOMPATIBILITY, may be deactivated like this:
+
+  declare [[simproc del: list_to_set_comprehension]]
+
 * Removed old version of primrec package.  INCOMPATIBILITY.
-
-* Multivariate Analysis: Introduced a type class for euclidean
-space. Most theorems are now stated in terms of euclidean spaces
-instead of finite cartesian products.
-
-  types
-    real ^ 'n ~>  'a::real_vector
-              ~>  'a::euclidean_space
-              ~>  'a::ordered_euclidean_space
-        (depends on your needs)
-
-  constants
-     _ $ _        ~> _ $$ _
-     \<chi> x. _  ~> \<chi>\<chi> x. _
-     CARD('n)     ~> DIM('a)
-
-Also note that the indices are now natural numbers and not from some
-finite type. Finite cartesian products of euclidean spaces, products
-of euclidean spaces the real and complex numbers are instantiated to
-be euclidean_spaces.  INCOMPATIBILITY.
-
-* Session Probability: Introduced pextreal as positive extended real
-numbers.  Use pextreal as value for measures.  Introduce the
-Radon-Nikodym derivative, product spaces and Fubini's theorem for
-arbitrary sigma finite measures.  Introduces Lebesgue measure based on
-the integral in Multivariate Analysis.  INCOMPATIBILITY.
-
-* Session Imperative_HOL: revamped, corrected dozens of inadequacies.
-INCOMPATIBILITY.
-
-* Theory Library/Monad_Syntax provides do-syntax for monad types.
-Syntax in Library/State_Monad has been changed to avoid ambiguities.
-INCOMPATIBILITY.
-
-* Theory SetsAndFunctions has been split into Function_Algebras and
-Set_Algebras; canonical names for instance definitions for functions;
-various improvements.  INCOMPATIBILITY.
-
-* Theory Library/Multiset provides stable quicksort implementation of
-sort_key.
-
-* Former theory Library/Enum is now part of the HOL-Main image.
-INCOMPATIBILITY: all constants of the Enum theory now have to be
-referred to by its qualified name.
-
-  enum    ~>  Enum.enum
-  nlists  ~>  Enum.nlists
-  product ~>  Enum.product
 
 * Removed simplifier congruence rule of "prod_case", as has for long
 been the case with "split".  INCOMPATIBILITY.
@@ -389,9 +341,6 @@ INCOMPATIBILITY.
 
 * Renamed theory Fset to Cset, type Fset.fset to Cset.set, in order to
 avoid confusion with finite sets.  INCOMPATIBILITY.
-
-* Theory Library/Multiset: renamed empty_idemp ~> empty_neutral.
-INCOMPATIBILITY.
 
 * Abandoned locales equiv, congruent and congruent2 for equivalence
 relations.  INCOMPATIBILITY: use equivI rather than equiv_intro (same
@@ -488,8 +437,61 @@ instead.  INCOMPATIBILITY.
 * Removed lemma "Option.is_none_none" which duplicates "is_none_def".
 INCOMPATIBILITY.
 
-* New commands to load and prove verification conditions generated by
-the SPARK Ada program verifier.  See src/HOL/SPARK.
+* Former theory Library/Enum is now part of the HOL-Main image.
+INCOMPATIBILITY: all constants of the Enum theory now have to be
+referred to by its qualified name.
+
+  enum    ~>  Enum.enum
+  nlists  ~>  Enum.nlists
+  product ~>  Enum.product
+
+* Theory Library/Monad_Syntax provides do-syntax for monad types.
+Syntax in Library/State_Monad has been changed to avoid ambiguities.
+INCOMPATIBILITY.
+
+* Theory Library/SetsAndFunctions has been split into
+Library/Function_Algebras and Library/Set_Algebras; canonical names
+for instance definitions for functions; various improvements.
+INCOMPATIBILITY.
+
+* Theory Library/Multiset provides stable quicksort implementation of
+sort_key.
+
+* Theory Library/Multiset: renamed empty_idemp ~> empty_neutral.
+INCOMPATIBILITY.
+
+* Session Multivariate_Analysis: introduced a type class for euclidean
+space.  Most theorems are now stated in terms of euclidean spaces
+instead of finite cartesian products.
+
+  types
+    real ^ 'n ~>  'a::real_vector
+              ~>  'a::euclidean_space
+              ~>  'a::ordered_euclidean_space
+        (depends on your needs)
+
+  constants
+     _ $ _        ~> _ $$ _
+     \<chi> x. _  ~> \<chi>\<chi> x. _
+     CARD('n)     ~> DIM('a)
+
+Also note that the indices are now natural numbers and not from some
+finite type. Finite cartesian products of euclidean spaces, products
+of euclidean spaces the real and complex numbers are instantiated to
+be euclidean_spaces.  INCOMPATIBILITY.
+
+* Session Probability: introduced pextreal as positive extended real
+numbers.  Use pextreal as value for measures.  Introduce the
+Radon-Nikodym derivative, product spaces and Fubini's theorem for
+arbitrary sigma finite measures.  Introduces Lebesgue measure based on
+the integral in Multivariate Analysis.  INCOMPATIBILITY.
+
+* Session Imperative_HOL: revamped, corrected dozens of inadequacies.
+INCOMPATIBILITY.
+
+* Session SPARK (with image HOL-SPARK) provides commands to load and
+prove verification conditions generated by the SPARK Ada program
+verifier.  See also src/HOL/SPARK and src/HOL/SPARK/Examples.
 
 
 *** HOL-Algebra ***
@@ -688,8 +690,17 @@ identifiers, e.g. "IFOL.eq" instead of "op =".  INCOMPATIBILITY.
 
 *** ML ***
 
-* Renamed structure MetaSimplifier to Raw_Simplifier.  Note that the
-main functionality is provided by structure Simplifier.
+* Antiquotation @{assert} inlines a function bool -> unit that raises
+Fail if the argument is false.  Due to inlining the source position of
+failed assertions is included in the error output.
+
+* Discontinued antiquotation @{theory_ref}, which is obsolete since ML
+text is in practice always evaluated with a stable theory checkpoint.
+Minor INCOMPATIBILITY, use (Theory.check_thy @{theory}) instead.
+
+* Antiquotation @{theory A} refers to theory A from the ancestry of
+the current context, not any accidental theory loader state as before.
+Potential INCOMPATIBILITY, subtle change in semantics.
 
 * Syntax.pretty_priority (default 0) configures the required priority
 of pretty-printed output and thus affects insertion of parentheses.
@@ -700,6 +711,9 @@ category (nonterminal symbol) for parsing of terms.
 * Former exception Library.UnequalLengths now coincides with
 ListPair.UnequalLengths.
 
+* Renamed structure MetaSimplifier to Raw_Simplifier.  Note that the
+main functionality is provided by structure Simplifier.
+
 * Renamed raw "explode" function to "raw_explode" to emphasize its
 meaning.  Note that internally to Isabelle, Symbol.explode is used in
 almost all situations.
@@ -707,14 +721,6 @@ almost all situations.
 * Discontinued obsolete function sys_error and exception SYS_ERROR.
 See implementation manual for further details on exceptions in
 Isabelle/ML.
-
-* Antiquotation @{assert} inlines a function bool -> unit that raises
-Fail if the argument is false.  Due to inlining the source position of
-failed assertions is included in the error output.
-
-* Discontinued antiquotation @{theory_ref}, which is obsolete since ML
-text is in practice always evaluated with a stable theory checkpoint.
-Minor INCOMPATIBILITY, use (Theory.check_thy @{theory}) instead.
 
 * Renamed setmp_noncritical to Unsynchronized.setmp to emphasize its
 meaning.
@@ -733,16 +739,11 @@ printing of types and terms, not raw Term.string_of_vname.
 INCOMPATIBILITY, superseded by static antiquotations @{thm} and
 @{thms} for most purposes.
 
-* ML structure Unsynchronized never opened, not even in Isar
+* ML structure Unsynchronized is never opened, not even in Isar
 interaction mode as before.  Old Unsynchronized.set etc. have been
 discontinued -- use plain := instead.  This should be *rare* anyway,
 since modern tools always work via official context data, notably
 configuration options.
-
-* ML antiquotations @{theory} and @{theory_ref} refer to named
-theories from the ancestry of the current context, not any accidental
-theory loader state as before.  Potential INCOMPATIBILITY, subtle
-change in semantics.
 
 * Parallel and asynchronous execution requires special care concerning
 interrupts.  Structure Exn provides some convenience functions that
