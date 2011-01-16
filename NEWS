@@ -13,7 +13,7 @@ executable Isabelle tool.
 * Significantly improved Isabelle/Isar implementation manual.
 
 * System settings: ISABELLE_HOME_USER now includes ISABELLE_IDENTIFIER
-(and thus refers to something like $HOME/.isabelle/IsabelleXXXX),
+(and thus refers to something like $HOME/.isabelle/Isabelle2011),
 while the default heap location within that directory lacks that extra
 suffix.  This isolates multiple Isabelle installations from each
 other, avoiding problems with old settings in new versions.
