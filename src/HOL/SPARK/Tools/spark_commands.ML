@@ -64,9 +64,6 @@ fun prove_vc vc_name lthy =
 fun string_of_status false = "(unproved)"
   | string_of_status true = "(proved)";
 
-fun chunks ps = Pretty.blk (0,
-  flat (separate [Pretty.fbrk, Pretty.fbrk] (map single ps)));
-
 fun show_status (p, f) = Toplevel.no_timing o Toplevel.keep (fn state =>
   let
     val thy = Toplevel.theory_of state;
@@ -84,27 +81,24 @@ fun show_status (p, f) = Toplevel.no_timing o Toplevel.keep (fn state =>
       ProofContext.init_global |>
       Context.proof_map (fold Element.init context)
   in
-    (* FIXME print as single message, e.g. via Pretty.big_list, Pretty.chunks etc. *)
-    (writeln "Context:\n";
-     Pretty.chunks (maps (Element.pretty_ctxt ctxt) context) |>
-     Pretty.writeln;
+    [Pretty.str "Context:",
+     Pretty.chunks (maps (Element.pretty_ctxt ctxt) context),
 
-     writeln "\nDefinitions:\n";
+     Pretty.str "Definitions:",
      Pretty.chunks (map (fn (bdg, th) => Pretty.block
        [Pretty.str (Binding.str_of bdg ^ ":"),
         Pretty.brk 1,
         Display.pretty_thm ctxt th])
-          defs) |>
-     Pretty.writeln;
+          defs),
 
-     writeln "\nVerification conditions:\n";
-     chunks (maps (fn (trace, vcs'') =>
+     Pretty.str "Verification conditions:",
+     Pretty.chunks2 (maps (fn (trace, vcs'') =>
        Pretty.str trace ::
        map (fn (name, status, context', stmt) =>
          Pretty.big_list (name ^ " " ^ f status)
            (Element.pretty_ctxt ctxt context' @
-            Element.pretty_stmt ctxt stmt)) vcs'') vcs') |>
-     Pretty.writeln)
+            Element.pretty_stmt ctxt stmt)) vcs'') vcs')] |>
+    Pretty.chunks2 |> Pretty.writeln
   end);
 
 val _ =
