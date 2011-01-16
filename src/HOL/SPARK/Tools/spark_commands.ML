@@ -84,6 +84,7 @@ fun show_status (p, f) = Toplevel.no_timing o Toplevel.keep (fn state =>
       ProofContext.init_global |>
       Context.proof_map (fold Element.init context)
   in
+    (* FIXME print as single message, e.g. via Pretty.big_list, Pretty.chunks etc. *)
     (writeln "Context:\n";
      Pretty.chunks (maps (Element.pretty_ctxt ctxt) context) |>
      Pretty.writeln;
@@ -108,7 +109,7 @@ fun show_status (p, f) = Toplevel.no_timing o Toplevel.keep (fn state =>
 
 val _ =
   Outer_Syntax.command "spark_open"
-    "Open a new SPARK environment and load a SPARK-generated .vcg or .siv file."
+    "open a new SPARK environment and load a SPARK-generated .vcg or .siv file"
     Keyword.thy_decl
     (Parse.name >> (Toplevel.theory o spark_open));
 
@@ -117,21 +118,21 @@ val pfun_type = Scan.option
 
 val _ =
   Outer_Syntax.command "spark_proof_functions"
-    "Associate SPARK proof functions with terms."
+    "associate SPARK proof functions with terms"
     Keyword.thy_decl
     (Scan.repeat1 (Parse.name -- (pfun_type --| Args.$$$ "=" -- Parse.term)) >>
        (Toplevel.theory o fold add_proof_fun_cmd));
 
 val _ =
   Outer_Syntax.command "spark_vc"
-    "Enter into proof mode for a specific verification condition."
+    "enter into proof mode for a specific verification condition"
     Keyword.thy_goal
     (Parse.name >> (fn name =>
       (Toplevel.print o Toplevel.local_theory_to_proof NONE (prove_vc name))));
 
 val _ =
   Outer_Syntax.improper_command "spark_status"
-    "Show the name and state of all loaded verification conditions."
+    "show the name and state of all loaded verification conditions"
     Keyword.diag
     (Scan.optional
        (Args.parens
@@ -141,7 +142,7 @@ val _ =
 
 val _ =
   Outer_Syntax.command "spark_end"
-    "Close the current SPARK environment."
+    "close the current SPARK environment"
     Keyword.thy_decl
     (Scan.succeed (Toplevel.theory SPARK_VCs.close));
 
