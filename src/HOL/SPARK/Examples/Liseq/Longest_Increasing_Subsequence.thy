@@ -161,7 +161,7 @@ proof -
   with assms have "Max js < i"
     by (auto simp add: iseq_def)
   with fin assms have "\<forall>j\<in>js. j < i"
-    by (simp add: Max_less_iff)
+    by simp
   with assms show ?thesis
     by (simp add: iseq_def)
 qed

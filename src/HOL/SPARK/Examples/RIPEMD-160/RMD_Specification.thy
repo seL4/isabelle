@@ -6,7 +6,6 @@ Verification of the RIPEMD-160 hash function
 
 theory RMD_Specification
 imports RMD SPARK
-
 begin
 
 (* bit operations *)
