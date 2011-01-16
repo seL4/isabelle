@@ -1,7 +1,5 @@
 (*  Title:      HOL/Tools/TFL/thry.ML
-    ID:         $Id$
     Author:     Konrad Slind, Cambridge University Computer Laboratory
-    Copyright   1997  University of Cambridge
 *)
 
 signature THRY =

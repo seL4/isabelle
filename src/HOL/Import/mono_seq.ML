@@ -1,8 +1,7 @@
 (*  Title:      HOL/Import/mono_seq.ML
-    ID:         $Id$
     Author:     Steven Obua, TU Muenchen
 
-    Monomorphic sequences.
+Monomorphic sequences.
 *)
 
 (* The trouble is that signature / structures cannot depend on type variable parameters ... *)

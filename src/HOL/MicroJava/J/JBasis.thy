@@ -1,7 +1,5 @@
 (*  Title:      HOL/MicroJava/J/JBasis.thy
-    ID:         $Id$
-    Author:     David von Oheimb
-    Copyright   1999 TU Muenchen
+    Author:     David von Oheimb, TU Muenchen
 *)
 
 header {* 

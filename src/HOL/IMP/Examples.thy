@@ -1,7 +1,5 @@
 (*  Title:      HOL/IMP/Examples.thy
-    ID:         $Id$
     Author:     David von Oheimb, TUM
-    Copyright   2000 TUM
 *)
 
 header "Examples"

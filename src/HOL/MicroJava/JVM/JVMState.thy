@@ -1,7 +1,5 @@
 (*  Title:      HOL/MicroJava/JVM/JVMState.thy
-    ID:         $Id$
-    Author:     Cornelia Pusch, Gerwin Klein
-    Copyright   1999 Technische Universitaet Muenchen
+    Author:     Cornelia Pusch, Gerwin Klein, Technische Universitaet Muenchen
 *)
 
 header {* 

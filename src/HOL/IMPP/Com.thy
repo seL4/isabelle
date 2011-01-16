@@ -1,7 +1,5 @@
 (*  Title:    HOL/IMPP/Com.thy
-    ID:       $Id$
     Author:   David von Oheimb (based on a theory by Tobias Nipkow et al), TUM
-    Copyright 1999 TUM
 *)
 
 header {* Semantics of arithmetic and boolean expressions, Syntax of commands *}

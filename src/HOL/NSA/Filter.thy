@@ -1,9 +1,7 @@
-(*  Title       : Filter.thy
-    ID          : $Id$
-    Author      : Jacques D. Fleuriot
-    Copyright   : 1998  University of Cambridge
-    Conversion to Isar and new proofs by Lawrence C Paulson, 2004
-    Conversion to locales by Brian Huffman, 2005
+(*  Title:      Filter.thy
+    Author:     Jacques D. Fleuriot, University of Cambridge
+    Author:     Lawrence C Paulson
+    Author:     Brian Huffman
 *) 
 
 header {* Filters and Ultrafilters *}

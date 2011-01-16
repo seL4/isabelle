@@ -1,6 +1,5 @@
 (*  Title:      HOL/Import/MakeEqual.thy
-    ID:         $Id$
-    Author:     Sebastian Skalberg (TU Muenchen)
+    Author:     Sebastian Skalberg, TU Muenchen
 *)
 
 theory MakeEqual imports Main

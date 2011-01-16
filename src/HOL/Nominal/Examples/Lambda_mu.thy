@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Lambda_mu 
   imports "../Nominal" 
 begin

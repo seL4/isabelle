@@ -1,6 +1,5 @@
 (*  Title:      HOL/Import/Generate-HOLLight/GenHOLLight.thy
-    ID:         $Id$
-    Author:     Steven Obua (TU Muenchen)
+    Author:     Steven Obua, TU Muenchen
 *)
 
 theory GenHOLLight imports "../HOLLightCompat" "../HOL4Syntax" begin;

@@ -1,7 +1,5 @@
 (*  Title:      HOL/IMP/Hoare.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
-    Copyright   1995 TUM
 *)
 
 header "Inductive Definition of Hoare Logic"

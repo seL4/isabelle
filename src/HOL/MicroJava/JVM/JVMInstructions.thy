@@ -1,7 +1,5 @@
 (*  Title:      HOL/MicroJava/JVM/JVMInstructions.thy
-    ID:         $Id$
-    Author:     Gerwin Klein
-    Copyright   2000 Technische Universitaet Muenchen
+    Author:     Gerwin Klein, Technische Universitaet Muenchen
 *)
 
 header {* \isaheader{Instructions of the JVM} *}

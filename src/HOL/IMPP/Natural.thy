@@ -1,7 +1,5 @@
 (*  Title:      HOL/IMPP/Natural.thy
-    ID:         $Id$
     Author:     David von Oheimb (based on a theory by Tobias Nipkow et al), TUM
-    Copyright   1999 TUM
 *)
 
 header {* Natural semantics of commands *}

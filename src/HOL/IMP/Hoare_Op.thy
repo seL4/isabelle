@@ -1,5 +1,4 @@
 (*  Title:      HOL/IMP/Hoare_Op.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
 *)
 

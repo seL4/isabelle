@@ -1,8 +1,6 @@
-(*  Title       : HLim.thy
-    ID          : $Id$
-    Author      : Jacques D. Fleuriot
-    Copyright   : 1998  University of Cambridge
-    Conversion to Isar and new proofs by Lawrence C Paulson, 2004
+(*  Title:      HLim.thy
+    Author:     Jacques D. Fleuriot, University of Cambridge
+    Author:     Lawrence C Paulson
 *)
 
 header{* Limits and Continuity (Nonstandard) *}

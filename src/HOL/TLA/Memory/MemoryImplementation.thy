@@ -1,8 +1,5 @@
-(*
-    File:        MemoryImplementation.thy
-    ID:          $Id$
-    Author:      Stephan Merz
-    Copyright:   1997 University of Munich
+(*  Title:      HOL/TLA/Memory/MemoryImplementation.thy
+    Author:     Stephan Merz, University of Munich
 *)
 
 header {* RPC-Memory example: Memory implementation *}

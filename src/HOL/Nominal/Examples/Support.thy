@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Support 
   imports "../Nominal" 
 begin

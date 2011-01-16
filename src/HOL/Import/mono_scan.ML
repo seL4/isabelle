@@ -1,8 +1,7 @@
 (*  Title:      HOL/Import/mono_scan.ML
-    ID:         $Id$
     Author:     Steven Obua, TU Muenchen
 
-    Monomorphic scanner combinators for monomorphic sequences.
+Monomorphic scanner combinators for monomorphic sequences.
 *)
 
 signature MONO_SCANNER =

@@ -1,8 +1,5 @@
-(*
-    File:        RPC.thy
-    ID:          $Id$
-    Author:      Stephan Merz
-    Copyright:   1997 University of Munich
+(*  Title:      HOL/TLA/Memory/RPC.thy
+    Author:     Stephan Merz, University of Munich
 *)
 
 header {* RPC-Memory example: RPC specification *}

@@ -1,7 +1,5 @@
 (*  Title:      HOL/IMP/VC.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
-    Copyright   1996 TUM
 
 acom: annotated commands
 vc:   verification-conditions

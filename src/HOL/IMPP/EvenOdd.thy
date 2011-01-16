@@ -1,7 +1,5 @@
 (*  Title:      HOL/IMPP/EvenOdd.thy
-    ID:         $Id$
-    Author:     David von Oheimb
-    Copyright   1999 TUM
+    Author:     David von Oheimb, TUM
 *)
 
 header {* Example of mutually recursive procedures verified with Hoare logic *}

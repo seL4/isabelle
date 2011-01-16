@@ -1,8 +1,5 @@
-(*
-    File:        MemClerkParameters.thy
-    ID:          $Id$
-    Author:      Stephan Merz
-    Copyright:   1997 University of Munich
+(*  Title:      HOL/TLA/Memory/MemClerkParameters.thy
+    Author:     Stephan Merz, University of Munich
 *)
 
 header {* RPC-Memory example: Parameters of the memory clerk *}

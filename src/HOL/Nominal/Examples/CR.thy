@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory CR
 imports Lam_Funs
 begin

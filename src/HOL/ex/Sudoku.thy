@@ -1,5 +1,4 @@
-(*  Title:      Sudoku.thy
-    ID:         $Id$
+(*  Title:      HOL/ex/Sudoku.thy
     Author:     Tjark Weber
     Copyright   2005-2008
 *)

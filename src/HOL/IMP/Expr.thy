@@ -1,7 +1,5 @@
 (*  Title:      HOL/IMP/Expr.thy
-    ID:         $Id$
     Author:     Heiko Loetzbeyer & Robert Sandner & Tobias Nipkow, TUM
-    Copyright   1994 TUM
 *)
 
 header "Expressions"

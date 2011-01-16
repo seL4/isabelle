@@ -1,8 +1,6 @@
 (*  Title:        HOL/IMP/Com.thy
-    ID:           $Id$
     Author:       Heiko Loetzbeyer & Robert Sandner & Tobias Nipkow, TUM
-    Isar Version: Gerwin Klein, 2001
-    Copyright     1994 TUM
+    Author:       Gerwin Klein
 *)
 
 header "Syntax of Commands"

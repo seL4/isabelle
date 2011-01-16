@@ -1,6 +1,5 @@
 (*  Title:      HOL/Import/Generate-HOL/GenHOL4Prob.thy
-    ID:         $Id$
-    Author:     Sebastian Skalberg (TU Muenchen)
+    Author:     Sebastian Skalberg, TU Muenchen
 *)
 
 theory GenHOL4Prob imports GenHOL4Real begin

@@ -1,8 +1,5 @@
-(*
-    File:        TLA/Inc/Inc.thy
-    ID:          $Id$
-    Author:      Stephan Merz
-    Copyright:   1997 University of Munich
+(*  Title:      HOL/TLA/Inc/Inc.thy
+    Author:     Stephan Merz, University of Munich
 *)
 
 header {* Lamport's "increment" example *}

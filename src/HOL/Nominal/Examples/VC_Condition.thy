@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory VC_Condition
 imports "../Nominal" 
 begin

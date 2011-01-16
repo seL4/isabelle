@@ -1,7 +1,5 @@
 (*  Title:      HOL/MicroJava/J/JTypeSafe.thy
-    ID:         $Id$
-    Author:     David von Oheimb
-    Copyright   1999 Technische Universitaet Muenchen
+    Author:     David von Oheimb, Technische Universitaet Muenchen
 *)
 
 header {* \isaheader{Type Safety Proof} *}

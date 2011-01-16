@@ -1,8 +1,5 @@
-(*
-    File:        ProcedureInterface.thy
-    ID:          $Id$
-    Author:      Stephan Merz
-    Copyright:   1997 University of Munich
+(*  Title:      HOL/TLA/Memory/ProcedureInterface.thy
+    Author:     Stephan Merz, University of Munich
 *)
 
 header {* Procedure interface for RPC-Memory components *}

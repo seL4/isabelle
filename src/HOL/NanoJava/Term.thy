@@ -1,7 +1,5 @@
 (*  Title:      HOL/NanoJava/Term.thy
-    ID:         $Id$
-    Author:     David von Oheimb
-    Copyright   2001 Technische Universitaet Muenchen
+    Author:     David von Oheimb, Technische Universitaet Muenchen
 *)
 
 header "Statements and expression emulations"

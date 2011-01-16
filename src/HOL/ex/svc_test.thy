@@ -1,6 +1,3 @@
-
-(* $Id$ *)
-
 header {* Demonstrating the interface SVC *}
 
 theory svc_test

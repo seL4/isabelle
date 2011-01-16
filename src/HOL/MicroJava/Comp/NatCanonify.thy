@@ -1,5 +1,4 @@
 (*  Title:      HOL/MicroJava/Comp/NatCanonify.thy
-    ID:         $Id$
     Author:     Martin Strecker
 *)
 

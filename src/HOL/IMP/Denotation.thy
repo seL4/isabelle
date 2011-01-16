@@ -1,7 +1,5 @@
 (*  Title:      HOL/IMP/Denotation.thy
-    ID:         $Id$
     Author:     Heiko Loetzbeyer & Robert Sandner, TUM
-    Copyright   1994 TUM
 *)
 
 header "Denotational Semantics of Commands"

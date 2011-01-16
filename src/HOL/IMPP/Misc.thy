@@ -1,7 +1,5 @@
 (*  Title:      HOL/IMPP/Misc.thy
-    ID:         $Id$
-    Author:     David von Oheimb
-    Copyright   1999 TUM
+    Author:     David von Oheimb, TUM
 *)
 
 header {* Several examples for Hoare logic *}

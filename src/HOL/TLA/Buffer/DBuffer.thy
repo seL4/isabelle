@@ -1,8 +1,5 @@
-(*
-    File:        DBuffer.thy
-    ID:          $Id$
-    Author:      Stephan Merz
-    Copyright:   1997 University of Munich
+(*  Title:      HOL/TLA/Buffer/DBuffer.thy
+    Author:     Stephan Merz, University of Munich
 *)
 
 header {* Two FIFO buffers in a row, with interleaving assumption *}

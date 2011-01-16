@@ -1,6 +1,5 @@
 (*  Title:      HOL/Import/Generate-HOL/GenHOL4Vec.thy
-    ID:         $Id$
-    Author:     Sebastian Skalberg (TU Muenchen)
+    Author:     Sebastian Skalberg, TU Muenchen
 *)
 
 theory GenHOL4Vec imports GenHOL4Base begin

@@ -1,6 +1,5 @@
 (*  Title:      HOL/Import/Generate-HOL/GenHOL4Word32.thy
-    ID:         $Id$
-    Author:     Sebastian Skalberg (TU Muenchen)
+    Author:     Sebastian Skalberg, TU Muenchen
 *)
 
 theory GenHOL4Word32 imports GenHOL4Base begin;

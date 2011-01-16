@@ -1,6 +1,5 @@
 (*  Title:      HOL/Import/HOLLightCompat.thy
-    ID:         $Id$
-    Author:     Steven Obua and Sebastian Skalberg (TU Muenchen)
+    Author:     Steven Obua and Sebastian Skalberg, TU Muenchen
 *)
 
 theory HOLLightCompat imports HOL4Setup HOL4Compat Divides Primes Real begin

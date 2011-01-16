@@ -1,8 +1,5 @@
-(*
-    File:        Buffer.thy
-    ID:          $Id$
-    Author:      Stephan Merz
-    Copyright:   1997 University of Munich
+(*  Title:      HOL/TLA/Buffer/Buffer.thy
+    Author:     Stephan Merz, University of Munich
 *)
 
 header {* A simple FIFO buffer (synchronous communication, interleaving) *}

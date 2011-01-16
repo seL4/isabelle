@@ -1,6 +1,5 @@
 (*  Title:      HOL/Import/Generate-HOL/GenHOL4Base.thy
-    ID:         $Id$
-    Author:     Sebastian Skalberg (TU Muenchen)
+    Author:     Sebastian Skalberg, TU Muenchen
 *)
 
 theory GenHOL4Base imports "../HOL4Compat" "../HOL4Syntax" begin;
