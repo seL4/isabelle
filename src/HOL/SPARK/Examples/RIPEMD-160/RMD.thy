@@ -11,12 +11,12 @@ begin
 
 (* all operations are defined on 32-bit words *)
 
-types word32 = "32 word"
-types byte = "8 word"
-types perm = "nat \<Rightarrow> nat"
-types chain = "word32 * word32 * word32 * word32 * word32"
-types block = "nat \<Rightarrow> word32"
-types message = "nat \<Rightarrow> block"
+type_synonym word32 = "32 word"
+type_synonym byte = "8 word"
+type_synonym perm = "nat \<Rightarrow> nat"
+type_synonym chain = "word32 * word32 * word32 * word32 * word32"
+type_synonym block = "nat \<Rightarrow> word32"
+type_synonym message = "nat \<Rightarrow> block"
 
 (* nonlinear functions at bit level *)
 
