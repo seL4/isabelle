@@ -8,7 +8,9 @@ New in Isabelle2011 (January 2011)
 
 * Experimental Prover IDE based on Isabelle/Scala and jEdit (see
 src/Tools/jEdit).  A bundled component provides "isabelle jedit" as
-executable Isabelle tool.
+executable Isabelle tool.  Note that this also serves as IDE for
+Isabelle/ML, with useful tooltips and hyperlinks produced from its
+static analysis.
 
 * Significantly improved Isabelle/Isar implementation manual.
 
