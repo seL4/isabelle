@@ -3,7 +3,7 @@ Checklist for official releases
 
 - test polyml-5.4.0, polyml-5.3.0, polyml-5.2.1, smlnj;
 
-- test Proof General 4.1;
+- test Proof General 4.1, 4.0, 3.7.1.1;
 
 - test Scala wrapper;
 
@@ -45,3 +45,15 @@ Packaging
 - makebundle (multiplatform);
 
 - hdiutil create -srcfolder DIR DMG (Mac OS);
+
+
+Final release stage
+===================
+
+- hgrc: default = /home/isabelle-repository/repos/isabelle-release
+
+  isatest@macbroy28:hg-isabelle/.hg/hgrc
+  isatest@atbroy102:hg-isabelle/.hg/hgrc
+
+- makedist: REPOS_NAME="isabelle-release"
+
