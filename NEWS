@@ -281,10 +281,10 @@ manually as command 'solve_direct'.
 
 * The default SMT solver Z3 must be enabled explicitly (due to
 licensing issues) by setting the environment variable
-Z3_NON_COMMERCIAL in etc/settings of the component, for example.
-For commercial applications, the SMT solver CVC3 is provided as
-fall-back; changing the SMT solver is done via the configuration
-option "smt_solver".
+Z3_NON_COMMERCIAL in etc/settings of the component, for example.  For
+commercial applications, the SMT solver CVC3 is provided as fall-back;
+changing the SMT solver is done via the configuration option
+"smt_solver".
 
 * Remote SMT solvers need to be referred to by the "remote_" prefix,
 i.e. "remote_cvc3" and "remote_z3".
