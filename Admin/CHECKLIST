@@ -45,3 +45,15 @@ Packaging
 - makebundle (multiplatform);
 
 - hdiutil create -srcfolder DIR DMG (Mac OS);
+
+
+Final release stage
+===================
+
+- hgrc: default = /home/isabelle-repository/repos/isabelle-release
+
+  isatest@macbroy28:hg-isabelle/.hg/hgrc
+  isatest@atbroy102:hg-isabelle/.hg/hgrc
+
+- makedist: REPOS_NAME="isabelle-release"
+
