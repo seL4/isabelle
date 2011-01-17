@@ -18,7 +18,7 @@ file in the distribution for more details.  Some notable changes are:
   Sledgehammer, SMT integration.
 
 * HOL: various additions to theory library, including HOL-Algebra,
-  Imperative_HOL Multivariate_Analysis, Probability.
+  Imperative_HOL, Multivariate_Analysis, Probability.
 
 * HOLCF: reorganization of library and related tools.
 
