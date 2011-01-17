@@ -84,7 +84,7 @@ boogie_open "Boogie_Dijkstra.b2i"
 
 declare [[smt_certificates="Boogie_Dijkstra.certs"]]
 declare [[smt_fixed=true]]
-declare [[smt_solver=z3, smt_oracle=false]]
+declare [[smt_oracle=false]]
 
 boogie_vc Dijkstra
   by boogie

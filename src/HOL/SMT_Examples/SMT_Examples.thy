@@ -8,7 +8,7 @@ theory SMT_Examples
 imports Complex_Main
 begin
 
-declare [[smt_solver=z3, smt_oracle=false]]
+declare [[smt_oracle=false]]
 declare [[smt_certificates="SMT_Examples.certs"]]
 declare [[smt_fixed=true]]
 

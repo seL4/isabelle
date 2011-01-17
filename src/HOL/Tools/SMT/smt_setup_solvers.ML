@@ -93,6 +93,15 @@ fun yices () = {
 (* Z3 *)
 
 local
+  val flagN = "Z3_NON_COMMERCIAL"
+
+  fun z3_make_command is_remote name () =
+    if getenv flagN = "yes" then make_command is_remote name ()
+    else
+      error ("The SMT solver Z3 is not enabled. To enable it, set " ^
+        "the environment variable " ^ quote flagN ^ " to " ^ quote ("yes") ^
+        ".")
+
   fun z3_options ctxt =
     ["-rs:" ^ string_of_int (Config.get ctxt SMT_Config.random_seed),
       "MODEL=true", "-smt"]
@@ -117,7 +126,7 @@ local
     name = make_name is_remote "z3",
     class = Z3_Interface.smtlib_z3C,
     avail = make_avail is_remote "Z3",
-    command = make_command is_remote "Z3",
+    command = z3_make_command is_remote "Z3",
     options = z3_options,
     default_max_relevant = 225,
     supports_filter = true,

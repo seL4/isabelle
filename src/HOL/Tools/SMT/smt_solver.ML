@@ -55,7 +55,7 @@ struct
 local
 
 fun make_cmd command options problem_path proof_path = space_implode " " (
-  map File.shell_quote (command @ options) @
+  map File.shell_quote (command () @ options) @
   [File.shell_path problem_path, "2>&1", ">", File.shell_path proof_path])
 
 fun trace_and ctxt msg f x =
@@ -136,7 +136,7 @@ fun invoke name command ithms ctxt =
       |> tap (trace_assms ctxt)
       |> SMT_Translate.translate ctxt comments
       ||> tap trace_recon_data
-  in (run_solver ctxt' name (make_cmd (command ()) options) str, recon) end
+  in (run_solver ctxt' name (make_cmd command options) str, recon) end
 
 end
 

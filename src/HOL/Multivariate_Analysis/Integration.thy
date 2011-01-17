@@ -12,7 +12,7 @@ begin
 
 declare [[smt_certificates="Integration.certs"]]
 declare [[smt_fixed=true]]
-declare [[smt_solver=z3, smt_oracle=false]]
+declare [[smt_oracle=false]]
 
 setup {* Arith_Data.add_tactic "Ferrante-Rackoff" (K FerranteRackoff.dlo_tac) *}
 
@@ -5527,6 +5527,5 @@ proof- have "\<And>m. (\<lambda>x. Inf {f j x |j. m \<le> j}) integrable_on s \<
 
 declare [[smt_certificates=""]]
 declare [[smt_fixed=false]]
-declare [[smt_solver=cvc3]]
 
 end

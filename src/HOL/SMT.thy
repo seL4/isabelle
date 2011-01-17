@@ -185,7 +185,7 @@ by simply setting the environment variable @{text Z3_NON_COMMERCIAL} to
 @{text yes}.
 *}
 
-declare [[ smt_solver = cvc3 ]]
+declare [[ smt_solver = z3 ]]
 
 text {*
 Since SMT solvers are potentially non-terminating, there is a timeout
