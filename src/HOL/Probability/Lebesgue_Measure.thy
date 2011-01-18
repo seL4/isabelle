@@ -1,7 +1,7 @@
 (*  Author: Robert Himmelmann, TU Muenchen *)
 header {* Lebsegue measure *}
 theory Lebesgue_Measure
-  imports Product_Measure Gauge_Measure Complete_Measure
+  imports Product_Measure Complete_Measure
 begin
 
 subsection {* Standard Cubes *}
@@ -42,144 +42,165 @@ proof- from real_arch_lt[of "norm x"] guess n ..
     by (auto simp add:dist_norm)
 qed
 
-lemma Union_inter_cube:"\<Union>{s \<inter> cube n |n. n \<in> UNIV} = s"
-proof safe case goal1
-  from mem_big_cube[of x] guess n . note n=this
-  show ?case unfolding Union_iff apply(rule_tac x="s \<inter> cube n" in bexI)
-    using n goal1 by auto
-qed
-
-lemma gmeasurable_cube[intro]:"gmeasurable (cube n)"
-  unfolding cube_def by auto
-
-lemma gmeasure_le_inter_cube[intro]: fixes s::"'a::ordered_euclidean_space set"
-  assumes "gmeasurable (s \<inter> cube n)" shows "gmeasure (s \<inter> cube n) \<le> gmeasure (cube n::'a set)"
-  apply(rule has_gmeasure_subset[of "s\<inter>cube n" _ "cube n"])
-  unfolding has_gmeasure_measure[THEN sym] using assms by auto
-
-lemma has_gmeasure_cube[intro]: "(cube n::('a::ordered_euclidean_space) set)
-  has_gmeasure ((2 * real n) ^ (DIM('a)))"
-proof-
-  have "content {\<chi>\<chi> i. - real n..(\<chi>\<chi> i. real n)::'a} = (2 * real n) ^ (DIM('a))"
-    apply(subst content_closed_interval) defer
-    by (auto simp add:setprod_constant)
-  thus ?thesis unfolding cube_def
-    using has_gmeasure_interval(1)[of "(\<chi>\<chi> i. - real n)::'a" "(\<chi>\<chi> i. real n)::'a"]
-    by auto
-qed
-
-lemma gmeasure_cube_eq[simp]:
-  "gmeasure (cube n::('a::ordered_euclidean_space) set) = (2 * real n) ^ DIM('a)"
-  by (intro measure_unique) auto
-
-lemma gmeasure_cube_ge_n: "gmeasure (cube n::('a::ordered_euclidean_space) set) \<ge> real n"
-proof cases
-  assume "n = 0" then show ?thesis by simp
-next
-  assume "n \<noteq> 0"
-  have "real n \<le> (2 * real n)^1" by simp
-  also have "\<dots> \<le> (2 * real n)^DIM('a)"
-    using DIM_positive[where 'a='a] `n \<noteq> 0`
-    by (intro power_increasing) auto
-  also have "\<dots> = gmeasure (cube n::'a set)" by simp
-  finally show ?thesis .
-qed
-
-lemma gmeasure_setsum:
-  assumes "finite A" and "\<And>s t. s \<in> A \<Longrightarrow> t \<in> A \<Longrightarrow> s \<noteq> t \<Longrightarrow> f s \<inter> f t = {}"
-    and "\<And>i. i \<in> A \<Longrightarrow> gmeasurable (f i)"
-  shows "gmeasure (\<Union>i\<in>A. f i) = (\<Sum>i\<in>A. gmeasure (f i))"
-proof -
-  have "gmeasure (\<Union>i\<in>A. f i) = gmeasure (\<Union>f ` A)" by auto
-  also have "\<dots> = setsum gmeasure (f ` A)" using assms
-  proof (intro measure_negligible_unions)
-    fix X Y assume "X \<in> f`A" "Y \<in> f`A" "X \<noteq> Y"
-    then have "X \<inter> Y = {}" using assms by auto
-    then show "negligible (X \<inter> Y)" by auto
-  qed auto
-  also have "\<dots> = setsum gmeasure (f ` A - {{}})"
-    using assms by (intro setsum_mono_zero_cong_right) auto
-  also have "\<dots> = (\<Sum>i\<in>A - {i. f i = {}}. gmeasure (f i))"
-  proof (intro setsum_reindex_cong inj_onI)
-    fix s t assume *: "s \<in> A - {i. f i = {}}" "t \<in> A - {i. f i = {}}" "f s = f t"
-    show "s = t"
-    proof (rule ccontr)
-      assume "s \<noteq> t" with assms(2)[of s t] * show False by auto
-    qed
-  qed auto
-  also have "\<dots> = (\<Sum>i\<in>A. gmeasure (f i))"
-    using assms by (intro setsum_mono_zero_cong_left) auto
-  finally show ?thesis .
-qed
-
-lemma gmeasurable_finite_UNION[intro]:
-  assumes "\<And>i. i \<in> S \<Longrightarrow> gmeasurable (A i)" "finite S"
-  shows "gmeasurable (\<Union>i\<in>S. A i)"
-  unfolding UNION_eq_Union_image using assms
-  by (intro gmeasurable_finite_unions) auto
-
-lemma gmeasurable_countable_UNION[intro]:
-  fixes A :: "nat \<Rightarrow> ('a::ordered_euclidean_space) set"
-  assumes measurable: "\<And>i. gmeasurable (A i)"
-    and finite: "\<And>n. gmeasure (UNION {.. n} A) \<le> B"
-  shows "gmeasurable (\<Union>i. A i)"
-proof -
-  have *: "\<And>n. \<Union>{A k |k. k \<le> n} = (\<Union>i\<le>n. A i)"
-    "(\<Union>{A n |n. n \<in> UNIV}) = (\<Union>i. A i)" by auto
-  show ?thesis
-    by (rule gmeasurable_countable_unions_strong[of A B, unfolded *, OF assms])
-qed
-
-subsection {* Measurability *}
-
 definition lebesgue :: "'a::ordered_euclidean_space algebra" where
-  "lebesgue = \<lparr> space = UNIV, sets = {A. \<forall>n. gmeasurable (A \<inter> cube n)} \<rparr>"
+  "lebesgue = \<lparr> space = UNIV, sets = {A. \<forall>n. (indicator A :: 'a \<Rightarrow> real) integrable_on cube n} \<rparr>"
 
-lemma space_lebesgue[simp]:"space lebesgue = UNIV"
-  unfolding lebesgue_def by auto
+lemma space_lebesgue[simp]: "space lebesgue = UNIV"
+  unfolding lebesgue_def by simp
 
-lemma lebesgueD[dest]: assumes "S \<in> sets lebesgue"
-  shows "\<And>n. gmeasurable (S \<inter> cube n)"
-  using assms unfolding lebesgue_def by auto
+lemma lebesgueD: "A \<in> sets lebesgue \<Longrightarrow> (indicator A :: _ \<Rightarrow> real) integrable_on cube n"
+  unfolding lebesgue_def by simp
 
-lemma lebesgueI[intro]: assumes "gmeasurable S"
-  shows "S \<in> sets lebesgue" unfolding lebesgue_def cube_def
-  using assms gmeasurable_interval by auto
+lemma lebesgueI: "(\<And>n. (indicator A :: _ \<Rightarrow> real) integrable_on cube n) \<Longrightarrow> A \<in> sets lebesgue"
+  unfolding lebesgue_def by simp
 
-lemma lebesgueI2: "(\<And>n. gmeasurable (S \<inter> cube n)) \<Longrightarrow> S \<in> sets lebesgue"
-  using assms unfolding lebesgue_def by auto
+lemma absolutely_integrable_on_indicator[simp]:
+  fixes A :: "'a::ordered_euclidean_space set"
+  shows "((indicator A :: _ \<Rightarrow> real) absolutely_integrable_on X) \<longleftrightarrow>
+    (indicator A :: _ \<Rightarrow> real) integrable_on X"
+  unfolding absolutely_integrable_on_def by simp
+
+lemma LIMSEQ_indicator_UN:
+  "(\<lambda>k. indicator (\<Union> i<k. A i) x) ----> (indicator (\<Union>i. A i) x :: real)"
+proof cases
+  assume "\<exists>i. x \<in> A i" then guess i .. note i = this
+  then have *: "\<And>n. (indicator (\<Union> i<n + Suc i. A i) x :: real) = 1"
+    "(indicator (\<Union> i. A i) x :: real) = 1" by (auto simp: indicator_def)
+  show ?thesis
+    apply (rule LIMSEQ_offset[of _ "Suc i"]) unfolding * by auto
+qed (auto simp: indicator_def)
+
+lemma indicator_add:
+  "A \<inter> B = {} \<Longrightarrow> (indicator A x::_::monoid_add) + indicator B x = indicator (A \<union> B) x"
+  unfolding indicator_def by auto
 
 interpretation lebesgue: sigma_algebra lebesgue
+proof (intro sigma_algebra_iff2[THEN iffD2] conjI allI ballI impI lebesgueI)
+  fix A n assume A: "A \<in> sets lebesgue"
+  have "indicator (space lebesgue - A) = (\<lambda>x. 1 - indicator A x :: real)"
+    by (auto simp: fun_eq_iff indicator_def)
+  then show "(indicator (space lebesgue - A) :: _ \<Rightarrow> real) integrable_on cube n"
+    using A by (auto intro!: integrable_sub dest: lebesgueD simp: cube_def)
+next
+  fix n show "(indicator {} :: _\<Rightarrow>real) integrable_on cube n"
+    by (auto simp: cube_def indicator_def_raw)
+next
+  fix A :: "nat \<Rightarrow> 'a set" and n ::nat assume "range A \<subseteq> sets lebesgue"
+  then have A: "\<And>i. (indicator (A i) :: _ \<Rightarrow> real) integrable_on cube n"
+    by (auto dest: lebesgueD)
+  show "(indicator (\<Union>i. A i) :: _ \<Rightarrow> real) integrable_on cube n" (is "?g integrable_on _")
+  proof (intro dominated_convergence[where g="?g"] ballI)
+    fix k show "(indicator (\<Union>i<k. A i) :: _ \<Rightarrow> real) integrable_on cube n"
+    proof (induct k)
+      case (Suc k)
+      have *: "(\<Union> i<Suc k. A i) = (\<Union> i<k. A i) \<union> A k"
+        unfolding lessThan_Suc UN_insert by auto
+      have *: "(\<lambda>x. max (indicator (\<Union> i<k. A i) x) (indicator (A k) x) :: real) =
+          indicator (\<Union> i<Suc k. A i)" (is "(\<lambda>x. max (?f x) (?g x)) = _")
+        by (auto simp: fun_eq_iff * indicator_def)
+      show ?case
+        using absolutely_integrable_max[of ?f "cube n" ?g] A Suc by (simp add: *)
+    qed auto
+  qed (auto intro: LIMSEQ_indicator_UN simp: cube_def)
+qed simp
+
+definition "lmeasure A = (SUP n. Real (integral (cube n) (indicator A)))"
+
+interpretation lebesgue: measure_space lebesgue lmeasure
 proof
-  show "sets lebesgue \<subseteq> Pow (space lebesgue)"
-    unfolding lebesgue_def by auto
-  show "{} \<in> sets lebesgue"
-    using gmeasurable_empty by auto
-  { fix A B :: "'a set" assume "A \<in> sets lebesgue" "B \<in> sets lebesgue"
-    then show "A \<union> B \<in> sets lebesgue"
-      by (auto intro: gmeasurable_union simp: lebesgue_def Int_Un_distrib2) }
-  { fix A :: "nat \<Rightarrow> 'a set" assume A: "range A \<subseteq> sets lebesgue"
-    show "(\<Union>i. A i) \<in> sets lebesgue"
-    proof (rule lebesgueI2)
-      fix n show "gmeasurable ((\<Union>i. A i) \<inter> cube n)" unfolding UN_extend_simps
-        using A
-        by (intro gmeasurable_countable_UNION[where B="gmeasure (cube n::'a set)"])
-           (auto intro!: measure_subset gmeasure_setsum simp: UN_extend_simps simp del: gmeasure_cube_eq UN_simps)
-    qed }
-  { fix A assume A: "A \<in> sets lebesgue" show "space lebesgue - A \<in> sets lebesgue"
-    proof (rule lebesgueI2)
-      fix n
-      have *: "(space lebesgue - A) \<inter> cube n = cube n - (A \<inter> cube n)"
-        unfolding lebesgue_def by auto
-      show "gmeasurable ((space lebesgue - A) \<inter> cube n)" unfolding *
-        using A by (auto intro!: gmeasurable_diff)
-    qed }
+  have *: "indicator {} = (\<lambda>x. 0 :: real)" by (simp add: fun_eq_iff)
+  show "lmeasure {} = 0" by (simp add: integral_0 * lmeasure_def)
+next
+  show "countably_additive lebesgue lmeasure"
+  proof (intro countably_additive_def[THEN iffD2] allI impI)
+    fix A :: "nat \<Rightarrow> 'b set" assume rA: "range A \<subseteq> sets lebesgue" "disjoint_family A"
+    then have A[simp, intro]: "\<And>i n. (indicator (A i) :: _ \<Rightarrow> real) integrable_on cube n"
+      by (auto dest: lebesgueD)
+    let "?m n i" = "integral (cube n) (indicator (A i) :: _\<Rightarrow>real)"
+    let "?M n I" = "integral (cube n) (indicator (\<Union>i\<in>I. A i) :: _\<Rightarrow>real)"
+    have nn[simp, intro]: "\<And>i n. 0 \<le> ?m n i" by (auto intro!: integral_nonneg)
+    assume "(\<Union>i. A i) \<in> sets lebesgue"
+    then have UN_A[simp, intro]: "\<And>i n. (indicator (\<Union>i. A i) :: _ \<Rightarrow> real) integrable_on cube n"
+      by (auto dest: lebesgueD)
+    show "(\<Sum>\<^isub>\<infinity>n. lmeasure (A n)) = lmeasure (\<Union>i. A i)" unfolding lmeasure_def
+    proof (subst psuminf_SUP_eq)
+      fix n i show "Real (?m n i) \<le> Real (?m (Suc n) i)"
+        using cube_subset[of n "Suc n"] by (auto intro!: integral_subset_le)
+    next
+      show "(SUP n. \<Sum>\<^isub>\<infinity>i. Real (?m n i)) = (SUP n. Real (?M n UNIV))"
+        unfolding psuminf_def
+      proof (subst setsum_Real, (intro arg_cong[where f="SUPR UNIV"] ext ballI nn SUP_eq_LIMSEQ[THEN iffD2])+)
+        fix n :: nat show "mono (\<lambda>m. \<Sum>x<m. ?m n x)"
+        proof (intro mono_iff_le_Suc[THEN iffD2] allI)
+          fix m show "(\<Sum>x<m. ?m n x) \<le> (\<Sum>x<Suc m. ?m n x)"
+            using nn[of n m] by auto
+        qed
+        show "0 \<le> ?M n UNIV"
+          using UN_A by (auto intro!: integral_nonneg)
+        fix m show "0 \<le> (\<Sum>x<m. ?m n x)" by (auto intro!: setsum_nonneg)
+      next
+        fix n
+        have "\<And>m. (UNION {..<m} A) \<in> sets lebesgue" using rA by auto
+        from lebesgueD[OF this]
+        have "(\<lambda>m. ?M n {..< m}) ----> ?M n UNIV"
+          (is "(\<lambda>m. integral _ (?A m)) ----> ?I")
+          by (intro dominated_convergence(2)[where f="?A" and h="\<lambda>x. 1::real"])
+             (auto intro: LIMSEQ_indicator_UN simp: cube_def)
+        moreover
+        { fix m have *: "(\<Sum>x<m. ?m n x) = ?M n {..< m}"
+          proof (induct m)
+            case (Suc m)
+            have "(\<Union>i<m. A i) \<in> sets lebesgue" using rA by auto
+            then have "(indicator (\<Union>i<m. A i) :: _\<Rightarrow>real) integrable_on (cube n)"
+              by (auto dest!: lebesgueD)
+            moreover
+            have "(\<Union>i<m. A i) \<inter> A m = {}"
+              using rA(2)[unfolded disjoint_family_on_def, THEN bspec, of m]
+              by auto
+            then have "\<And>x. indicator (\<Union>i<Suc m. A i) x =
+              indicator (\<Union>i<m. A i) x + (indicator (A m) x :: real)"
+              by (auto simp: indicator_add lessThan_Suc ac_simps)
+            ultimately show ?case
+              using Suc A by (simp add: integral_add[symmetric])
+          qed auto }
+        ultimately show "(\<lambda>m. \<Sum>x<m. ?m n x) ----> ?M n UNIV"
+          by simp
+      qed
+    qed
+  qed
 qed
 
-lemma lebesgueI_borel[intro, simp]: fixes s::"'a::ordered_euclidean_space set"
+lemma has_integral_interval_cube:
+  fixes a b :: "'a::ordered_euclidean_space"
+  shows "(indicator {a .. b} has_integral
+    content ({\<chi>\<chi> i. max (- real n) (a $$ i) .. \<chi>\<chi> i. min (real n) (b $$ i)} :: 'a set)) (cube n)"
+    (is "(?I has_integral content ?R) (cube n)")
+proof -
+  let "{?N .. ?P}" = ?R
+  have [simp]: "(\<lambda>x. if x \<in> cube n then ?I x else 0) = indicator ?R"
+    by (auto simp: indicator_def cube_def fun_eq_iff eucl_le[where 'a='a])
+  have "(?I has_integral content ?R) (cube n) \<longleftrightarrow> (indicator ?R has_integral content ?R) UNIV"
+    unfolding has_integral_restrict_univ[where s="cube n", symmetric] by simp
+  also have "\<dots> \<longleftrightarrow> ((\<lambda>x. 1) has_integral content ?R) ?R"
+    unfolding indicator_def_raw has_integral_restrict_univ ..
+  finally show ?thesis
+    using has_integral_const[of "1::real" "?N" "?P"] by simp
+qed
+
+lemma lebesgueI_borel[intro, simp]:
+  fixes s::"'a::ordered_euclidean_space set"
   assumes "s \<in> sets borel" shows "s \<in> sets lebesgue"
-proof- let ?S = "range (\<lambda>(a, b). {a .. (b :: 'a\<Colon>ordered_euclidean_space)})"
-  have *:"?S \<subseteq> sets lebesgue" by auto
+proof -
+  let ?S = "range (\<lambda>(a, b). {a .. (b :: 'a\<Colon>ordered_euclidean_space)})"
+  have *:"?S \<subseteq> sets lebesgue"
+  proof (safe intro!: lebesgueI)
+    fix n :: nat and a b :: 'a
+    let ?N = "\<chi>\<chi> i. max (- real n) (a $$ i)"
+    let ?P = "\<chi>\<chi> i. min (real n) (b $$ i)"
+    show "(indicator {a..b} :: 'a\<Rightarrow>real) integrable_on cube n"
+      unfolding integrable_on_def
+      using has_integral_interval_cube[of a b] by auto
+  qed
   have "s \<in> sigma_sets UNIV ?S" using assms
     unfolding borel_eq_atLeastAtMost by (simp add: sigma_def)
   thus ?thesis
@@ -189,171 +210,153 @@ qed
 
 lemma lebesgueI_negligible[dest]: fixes s::"'a::ordered_euclidean_space set"
   assumes "negligible s" shows "s \<in> sets lebesgue"
-proof (rule lebesgueI2)
-  fix n
-  have *:"\<And>x. (if x \<in> cube n then indicator s x else 0) = (if x \<in> s \<inter> cube n then 1 else 0)"
-    unfolding indicator_def_raw by auto
-  note assms[unfolded negligible_def,rule_format,of "(\<chi>\<chi> i. - real n)::'a" "\<chi>\<chi> i. real n"]
-  thus "gmeasurable (s \<inter> cube n)" apply-apply(rule gmeasurableI[of _ 0]) unfolding has_gmeasure_def
-    apply(subst(asm) has_integral_restrict_univ[THEN sym]) unfolding cube_def[symmetric]
-    apply(subst has_integral_restrict_univ[THEN sym]) unfolding * .
-qed
+  using assms by (force simp: cube_def integrable_on_def negligible_def intro!: lebesgueI)
 
-section {* The Lebesgue Measure *}
-
-definition "lmeasure A = (SUP n. Real (gmeasure (A \<inter> cube n)))"
-
-lemma lmeasure_eq_0: assumes "negligible S" shows "lmeasure S = 0"
+lemma lmeasure_eq_0:
+  fixes S :: "'a::ordered_euclidean_space set" assumes "negligible S" shows "lmeasure S = 0"
 proof -
-  from lebesgueI_negligible[OF assms]
-  have "\<And>n. gmeasurable (S \<inter> cube n)" by auto
-  from gmeasurable_measure_eq_0[OF this]
-  have "\<And>n. gmeasure (S \<inter> cube n) = 0" using assms by auto
-  then show ?thesis unfolding lmeasure_def by simp
+  have "\<And>n. integral (cube n) (indicator S :: 'a\<Rightarrow>real) = 0"
+    unfolding integral_def using assms
+    by (intro some1_equality ex_ex1I has_integral_unique)
+       (auto simp: cube_def negligible_def intro: )
+  then show ?thesis unfolding lmeasure_def by auto
 qed
 
 lemma lmeasure_iff_LIMSEQ:
   assumes "A \<in> sets lebesgue" "0 \<le> m"
-  shows "lmeasure A = Real m \<longleftrightarrow> (\<lambda>n. (gmeasure (A \<inter> cube n))) ----> m"
-  unfolding lmeasure_def using assms cube_subset[where 'a='a]
-  by (intro SUP_eq_LIMSEQ monoI measure_subset) force+
+  shows "lmeasure A = Real m \<longleftrightarrow> (\<lambda>n. integral (cube n) (indicator A :: _ \<Rightarrow> real)) ----> m"
+  unfolding lmeasure_def
+proof (intro SUP_eq_LIMSEQ)
+  show "mono (\<lambda>n. integral (cube n) (indicator A::_=>real))"
+    using cube_subset assms by (intro monoI integral_subset_le) (auto dest!: lebesgueD)
+  fix n show "0 \<le> integral (cube n) (indicator A::_=>real)"
+    using assms by (auto dest!: lebesgueD intro!: integral_nonneg)
+qed fact
 
-interpretation lebesgue: measure_space lebesgue lmeasure
-proof
-  show "lmeasure {} = 0"
-    by (auto intro!: lmeasure_eq_0)
-  show "countably_additive lebesgue lmeasure"
-  proof (unfold countably_additive_def, intro allI impI conjI)
-    fix A :: "nat \<Rightarrow> 'b set" assume "range A \<subseteq> sets lebesgue" "disjoint_family A"
-    then have A: "\<And>i. A i \<in> sets lebesgue" by auto
-    show "(\<Sum>\<^isub>\<infinity>n. lmeasure (A n)) = lmeasure (\<Union>i. A i)" unfolding lmeasure_def
-    proof (subst psuminf_SUP_eq)
-      { fix i n
-        have "gmeasure (A i \<inter> cube n) \<le> gmeasure (A i \<inter> cube (Suc n))"
-          using A cube_subset[of n "Suc n"] by (auto intro!: measure_subset)
-        then show "Real (gmeasure (A i \<inter> cube n)) \<le> Real (gmeasure (A i \<inter> cube (Suc n)))"
-          by auto }
-      show "(SUP n. \<Sum>\<^isub>\<infinity>i. Real (gmeasure (A i \<inter> cube n))) = (SUP n. Real (gmeasure ((\<Union>i. A i) \<inter> cube n)))"
-      proof (intro arg_cong[where f="SUPR UNIV"] ext)
-        fix n
-        have sums: "(\<lambda>i. gmeasure (A i \<inter> cube n)) sums gmeasure (\<Union>{A i \<inter> cube n |i. i \<in> UNIV})"
-        proof (rule has_gmeasure_countable_negligible_unions(2))
-          fix i show "gmeasurable (A i \<inter> cube n)" using A by auto
-        next
-          fix i m :: nat assume "m \<noteq> i"
-          then have "A m \<inter> cube n \<inter> (A i \<inter> cube n) = {}"
-            using `disjoint_family A` unfolding disjoint_family_on_def by auto
-          then show "negligible (A m \<inter> cube n \<inter> (A i \<inter> cube n))" by auto
-        next
-          fix i
-          have "(\<Sum>k = 0..i. gmeasure (A k \<inter> cube n)) = gmeasure (\<Union>k\<le>i . A k \<inter> cube n)"
-            unfolding atLeast0AtMost using A
-          proof (intro gmeasure_setsum[symmetric])
-            fix s t :: nat assume "s \<noteq> t" then have "A t \<inter> A s = {}"
-              using `disjoint_family A` unfolding disjoint_family_on_def by auto
-            then show "A s \<inter> cube n \<inter> (A t \<inter> cube n) = {}" by auto
-          qed auto
-          also have "\<dots> \<le> gmeasure (cube n :: 'b set)" using A
-            by (intro measure_subset gmeasurable_finite_UNION) auto
-          finally show "(\<Sum>k = 0..i. gmeasure (A k \<inter> cube n)) \<le> gmeasure (cube n :: 'b set)" .
-        qed
-        show "(\<Sum>\<^isub>\<infinity>i. Real (gmeasure (A i \<inter> cube n))) = Real (gmeasure ((\<Union>i. A i) \<inter> cube n))"
-          unfolding psuminf_def
-          apply (subst setsum_Real)
-          apply (simp add: measure_pos_le)
-        proof (rule SUP_eq_LIMSEQ[THEN iffD2])
-          have "(\<Union>{A i \<inter> cube n |i. i \<in> UNIV}) = (\<Union>i. A i) \<inter> cube n" by auto
-          with sums show "(\<lambda>i. \<Sum>k<i. gmeasure (A k \<inter> cube n)) ----> gmeasure ((\<Union>i. A i) \<inter> cube n)"
-            unfolding sums_def atLeast0LessThan by simp
-        qed (auto intro!: monoI setsum_nonneg setsum_mono2)
-      qed
-    qed
+lemma has_integral_indicator_UNIV:
+  fixes s A :: "'a::ordered_euclidean_space set" and x :: real
+  shows "((indicator (s \<inter> A) :: 'a\<Rightarrow>real) has_integral x) UNIV = ((indicator s :: _\<Rightarrow>real) has_integral x) A"
+proof -
+  have "(\<lambda>x. if x \<in> A then indicator s x else 0) = (indicator (s \<inter> A) :: _\<Rightarrow>real)"
+    by (auto simp: fun_eq_iff indicator_def)
+  then show ?thesis
+    unfolding has_integral_restrict_univ[where s=A, symmetric] by simp
+qed
+
+lemma
+  fixes s a :: "'a::ordered_euclidean_space set"
+  shows integral_indicator_UNIV:
+    "integral UNIV (indicator (s \<inter> A) :: 'a\<Rightarrow>real) = integral A (indicator s :: _\<Rightarrow>real)"
+  and integrable_indicator_UNIV:
+    "(indicator (s \<inter> A) :: 'a\<Rightarrow>real) integrable_on UNIV \<longleftrightarrow> (indicator s :: 'a\<Rightarrow>real) integrable_on A"
+  unfolding integral_def integrable_on_def has_integral_indicator_UNIV by auto
+
+lemma lmeasure_finite_has_integral:
+  fixes s :: "'a::ordered_euclidean_space set"
+  assumes "s \<in> sets lebesgue" "lmeasure s = Real m" "0 \<le> m"
+  shows "(indicator s has_integral m) UNIV"
+proof -
+  let ?I = "indicator :: 'a set \<Rightarrow> 'a \<Rightarrow> real"
+  have **: "(?I s) integrable_on UNIV \<and> (\<lambda>k. integral UNIV (?I (s \<inter> cube k))) ----> integral UNIV (?I s)"
+  proof (intro monotone_convergence_increasing allI ballI)
+    have LIMSEQ: "(\<lambda>n. integral (cube n) (?I s)) ----> m"
+      using assms(2) unfolding lmeasure_iff_LIMSEQ[OF assms(1, 3)] .
+    { fix n have "integral (cube n) (?I s) \<le> m"
+        using cube_subset assms
+        by (intro incseq_le[where L=m] LIMSEQ incseq_def[THEN iffD2] integral_subset_le allI impI)
+           (auto dest!: lebesgueD) }
+    moreover
+    { fix n have "0 \<le> integral (cube n) (?I s)"
+      using assms by (auto dest!: lebesgueD intro!: integral_nonneg) }
+    ultimately
+    show "bounded {integral UNIV (?I (s \<inter> cube k)) |k. True}"
+      unfolding bounded_def
+      apply (rule_tac exI[of _ 0])
+      apply (rule_tac exI[of _ m])
+      by (auto simp: dist_real_def integral_indicator_UNIV)
+    fix k show "?I (s \<inter> cube k) integrable_on UNIV"
+      unfolding integrable_indicator_UNIV using assms by (auto dest!: lebesgueD)
+    fix x show "?I (s \<inter> cube k) x \<le> ?I (s \<inter> cube (Suc k)) x"
+      using cube_subset[of k "Suc k"] by (auto simp: indicator_def)
+  next
+    fix x :: 'a
+    from mem_big_cube obtain k where k: "x \<in> cube k" .
+    { fix n have "?I (s \<inter> cube (n + k)) x = ?I s x"
+      using k cube_subset[of k "n + k"] by (auto simp: indicator_def) }
+    note * = this
+    show "(\<lambda>k. ?I (s \<inter> cube k) x) ----> ?I s x"
+      by (rule LIMSEQ_offset[where k=k]) (auto simp: *)
   qed
+  note ** = conjunctD2[OF this]
+  have m: "m = integral UNIV (?I s)"
+    apply (intro LIMSEQ_unique[OF _ **(2)])
+    using assms(2) unfolding lmeasure_iff_LIMSEQ[OF assms(1,3)] integral_indicator_UNIV .
+  show ?thesis
+    unfolding m by (intro integrable_integral **)
 qed
 
-lemma lmeasure_finite_has_gmeasure: assumes "s \<in> sets lebesgue" "lmeasure s = Real m" "0 \<le> m"
-  shows "s has_gmeasure m"
-proof-
-  have *:"(\<lambda>n. (gmeasure (s \<inter> cube n))) ----> m"
-    using `lmeasure s = Real m` unfolding lmeasure_iff_LIMSEQ[OF `s \<in> sets lebesgue` `0 \<le> m`] .
-  have s: "\<And>n. gmeasurable (s \<inter> cube n)" using assms by auto
-  have "(\<lambda>x. if x \<in> s then 1 else (0::real)) integrable_on UNIV \<and>
-    (\<lambda>k. integral UNIV (\<lambda>x. if x \<in> s \<inter> cube k then 1 else (0::real)))
-    ----> integral UNIV (\<lambda>x. if x \<in> s then 1 else 0)"
-  proof(rule monotone_convergence_increasing)
-    have "lmeasure s \<le> Real m" using `lmeasure s = Real m` by simp
-    then have "\<forall>n. gmeasure (s \<inter> cube n) \<le> m"
-      unfolding lmeasure_def complete_lattice_class.SUP_le_iff
-      using `0 \<le> m` by (auto simp: measure_pos_le)
-    thus *:"bounded {integral UNIV (\<lambda>x. if x \<in> s \<inter> cube k then 1 else (0::real)) |k. True}"
-      unfolding integral_measure_univ[OF s] bounded_def apply-
-      apply(rule_tac x=0 in exI,rule_tac x=m in exI) unfolding dist_real_def
-      by (auto simp: measure_pos_le)
-    show "\<forall>k. (\<lambda>x. if x \<in> s \<inter> cube k then (1::real) else 0) integrable_on UNIV"
-      unfolding integrable_restrict_univ
-      using s unfolding gmeasurable_def has_gmeasure_def by auto
-    have *:"\<And>n. n \<le> Suc n" by auto
-    show "\<forall>k. \<forall>x\<in>UNIV. (if x \<in> s \<inter> cube k then 1 else 0) \<le> (if x \<in> s \<inter> cube (Suc k) then 1 else (0::real))"
-      using cube_subset[OF *] by fastsimp
-    show "\<forall>x\<in>UNIV. (\<lambda>k. if x \<in> s \<inter> cube k then 1 else 0) ----> (if x \<in> s then 1 else (0::real))"
-      unfolding Lim_sequentially
-    proof safe case goal1 from real_arch_lt[of "norm x"] guess N .. note N = this
-      show ?case apply(rule_tac x=N in exI)
-      proof safe case goal1
-        have "x \<in> cube n" using cube_subset[OF goal1] N
-          using ball_subset_cube[of N] by(auto simp: dist_norm)
-        thus ?case using `e>0` by auto
-      qed
-    qed
-  qed note ** = conjunctD2[OF this]
-  hence *:"m = integral UNIV (\<lambda>x. if x \<in> s then 1 else 0)" apply-
-    apply(rule LIMSEQ_unique[OF _ **(2)]) unfolding measure_integral_univ[THEN sym,OF s] using * .
-  show ?thesis unfolding has_gmeasure * apply(rule integrable_integral) using ** by auto
-qed
-
-lemma lmeasure_finite_gmeasurable: assumes "s \<in> sets lebesgue" "lmeasure s \<noteq> \<omega>"
-  shows "gmeasurable s"
+lemma lmeasure_finite_integrable: assumes "s \<in> sets lebesgue" "lmeasure s \<noteq> \<omega>"
+  shows "(indicator s :: _ \<Rightarrow> real) integrable_on UNIV"
 proof (cases "lmeasure s")
-  case (preal m) from lmeasure_finite_has_gmeasure[OF `s \<in> sets lebesgue` this]
-  show ?thesis unfolding gmeasurable_def by auto
+  case (preal m) from lmeasure_finite_has_integral[OF `s \<in> sets lebesgue` this]
+  show ?thesis unfolding integrable_on_def by auto
 qed (insert assms, auto)
 
-lemma has_gmeasure_lmeasure: assumes "s has_gmeasure m"
-  shows "lmeasure s = Real m"
-proof-
-  have gmea:"gmeasurable s" using assms by auto
-  then have s: "s \<in> sets lebesgue" by auto
-  have m:"m \<ge> 0" using assms by auto
-  have *:"m = gmeasure (\<Union>{s \<inter> cube n |n. n \<in> UNIV})" unfolding Union_inter_cube
-    using assms by(rule measure_unique[THEN sym])
-  show ?thesis
-    unfolding lmeasure_iff_LIMSEQ[OF s `0 \<le> m`] unfolding *
-    apply(rule gmeasurable_nested_unions[THEN conjunct2, where B1="gmeasure s"])
-  proof- fix n::nat show *:"gmeasurable (s \<inter> cube n)"
-      using gmeasurable_inter[OF gmea gmeasurable_cube] .
-    show "gmeasure (s \<inter> cube n) \<le> gmeasure s" apply(rule measure_subset)
-      apply(rule * gmea)+ by auto
-    show "s \<inter> cube n \<subseteq> s \<inter> cube (Suc n)" using cube_subset[of n "Suc n"] by auto
-  qed
+lemma has_integral_lebesgue: assumes "((indicator s :: _\<Rightarrow>real) has_integral m) UNIV"
+  shows "s \<in> sets lebesgue"
+proof (intro lebesgueI)
+  let ?I = "indicator :: 'a set \<Rightarrow> 'a \<Rightarrow> real"
+  fix n show "(?I s) integrable_on cube n" unfolding cube_def
+  proof (intro integrable_on_subinterval)
+    show "(?I s) integrable_on UNIV"
+      unfolding integrable_on_def using assms by auto
+  qed auto
 qed
 
-lemma has_gmeasure_iff_lmeasure:
-  "A has_gmeasure m \<longleftrightarrow> (A \<in> sets lebesgue \<and> 0 \<le> m \<and> lmeasure A = Real m)"
+lemma has_integral_lmeasure: assumes "((indicator s :: _\<Rightarrow>real) has_integral m) UNIV"
+  shows "lmeasure s = Real m"
+proof (intro lmeasure_iff_LIMSEQ[THEN iffD2])
+  let ?I = "indicator :: 'a set \<Rightarrow> 'a \<Rightarrow> real"
+  show "s \<in> sets lebesgue" using has_integral_lebesgue[OF assms] .
+  show "0 \<le> m" using assms by (rule has_integral_nonneg) auto
+  have "(\<lambda>n. integral UNIV (?I (s \<inter> cube n))) ----> integral UNIV (?I s)"
+  proof (intro dominated_convergence(2) ballI)
+    show "(?I s) integrable_on UNIV" unfolding integrable_on_def using assms by auto
+    fix n show "?I (s \<inter> cube n) integrable_on UNIV"
+      unfolding integrable_indicator_UNIV using `s \<in> sets lebesgue` by (auto dest: lebesgueD)
+    fix x show "norm (?I (s \<inter> cube n) x) \<le> ?I s x" by (auto simp: indicator_def)
+  next
+    fix x :: 'a
+    from mem_big_cube obtain k where k: "x \<in> cube k" .
+    { fix n have "?I (s \<inter> cube (n + k)) x = ?I s x"
+      using k cube_subset[of k "n + k"] by (auto simp: indicator_def) }
+    note * = this
+    show "(\<lambda>k. ?I (s \<inter> cube k) x) ----> ?I s x"
+      by (rule LIMSEQ_offset[where k=k]) (auto simp: *)
+  qed
+  then show "(\<lambda>n. integral (cube n) (?I s)) ----> m"
+    unfolding integral_unique[OF assms] integral_indicator_UNIV by simp
+qed
+
+lemma has_integral_iff_lmeasure:
+  "(indicator A has_integral m) UNIV \<longleftrightarrow> (A \<in> sets lebesgue \<and> 0 \<le> m \<and> lmeasure A = Real m)"
 proof
-  assume "A has_gmeasure m"
-  with has_gmeasure_lmeasure[OF this]
-  have "gmeasurable A" "0 \<le> m" "lmeasure A = Real m" by auto
-  then show "A \<in> sets lebesgue \<and> 0 \<le> m \<and> lmeasure A = Real m" by auto
+  assume "(indicator A has_integral m) UNIV"
+  with has_integral_lmeasure[OF this] has_integral_lebesgue[OF this]
+  show "A \<in> sets lebesgue \<and> 0 \<le> m \<and> lmeasure A = Real m"
+    by (auto intro: has_integral_nonneg)
 next
   assume "A \<in> sets lebesgue \<and> 0 \<le> m \<and> lmeasure A = Real m"
-  then show "A has_gmeasure m" by (intro lmeasure_finite_has_gmeasure) auto
+  then show "(indicator A has_integral m) UNIV" by (intro lmeasure_finite_has_integral) auto
 qed
 
-lemma gmeasure_lmeasure: assumes "gmeasurable s" shows "lmeasure s = Real (gmeasure s)"
-proof -
-  note has_gmeasure_measureI[OF assms]
-  note has_gmeasure_lmeasure[OF this]
-  thus ?thesis .
+lemma lmeasure_eq_integral: assumes "(indicator s::_\<Rightarrow>real) integrable_on UNIV"
+  shows "lmeasure s = Real (integral UNIV (indicator s))"
+  using assms unfolding integrable_on_def
+proof safe
+  fix y :: real assume "(indicator s has_integral y) UNIV"
+  from this[unfolded has_integral_iff_lmeasure] integral_unique[OF this]
+  show "lmeasure s = Real (integral UNIV (indicator s))" by simp
 qed
 
 lemma lebesgue_simple_function_indicator:
@@ -362,12 +365,12 @@ lemma lebesgue_simple_function_indicator:
   shows "f = (\<lambda>x. (\<Sum>y \<in> f ` UNIV. y * indicator (f -` {y}) x))"
   apply(rule,subst lebesgue.simple_function_indicator_representation[OF f]) by auto
 
-lemma lmeasure_gmeasure:
-  "gmeasurable s \<Longrightarrow> gmeasure s = real (lmeasure s)"
-  by (subst gmeasure_lmeasure) auto
+lemma integral_eq_lmeasure:
+  "(indicator s::_\<Rightarrow>real) integrable_on UNIV \<Longrightarrow> integral UNIV (indicator s) = real (lmeasure s)"
+  by (subst lmeasure_eq_integral) (auto intro!: integral_nonneg)
 
-lemma lmeasure_finite: assumes "gmeasurable s" shows "lmeasure s \<noteq> \<omega>"
-  using gmeasure_lmeasure[OF assms] by auto
+lemma lmeasure_finite: assumes "(indicator s::_\<Rightarrow>real) integrable_on UNIV" shows "lmeasure s \<noteq> \<omega>"
+  using lmeasure_eq_integral[OF assms] by auto
 
 lemma negligible_iff_lebesgue_null_sets:
   "negligible A \<longleftrightarrow> A \<in> lebesgue.null_sets"
@@ -377,35 +380,65 @@ proof
   show "A \<in> lebesgue.null_sets" by auto
 next
   assume A: "A \<in> lebesgue.null_sets"
-  then have *:"gmeasurable A" using lmeasure_finite_gmeasurable[of A] by auto
-  show "negligible A"
-    unfolding gmeasurable_measure_eq_0[OF *, symmetric]
-    unfolding lmeasure_gmeasure[OF *] using A by auto
+  then have *:"((indicator A) has_integral (0::real)) UNIV" using lmeasure_finite_has_integral[of A] by auto
+  show "negligible A" unfolding negligible_def
+  proof (intro allI)
+    fix a b :: 'a
+    have integrable: "(indicator A :: _\<Rightarrow>real) integrable_on {a..b}"
+      by (intro integrable_on_subinterval has_integral_integrable) (auto intro: *)
+    then have "integral {a..b} (indicator A) \<le> (integral UNIV (indicator A) :: real)"
+      using * by (auto intro!: integral_subset_le has_integral_integrable)
+    moreover have "(0::real) \<le> integral {a..b} (indicator A)"
+      using integrable by (auto intro!: integral_nonneg)
+    ultimately have "integral {a..b} (indicator A) = (0::real)"
+      using integral_unique[OF *] by auto
+    then show "(indicator A has_integral (0::real)) {a..b}"
+      using integrable_integral[OF integrable] by simp
+  qed
 qed
 
-lemma
-  fixes a b ::"'a::ordered_euclidean_space"
-  shows lmeasure_atLeastAtMost[simp]: "lmeasure {a..b} = Real (content {a..b})"
-    and lmeasure_greaterThanLessThan[simp]: "lmeasure {a <..< b} = Real (content {a..b})"
-  using has_gmeasure_interval[of a b] by (auto intro!: has_gmeasure_lmeasure)
+lemma integral_const[simp]:
+  fixes a b :: "'a::ordered_euclidean_space"
+  shows "integral {a .. b} (\<lambda>x. c) = content {a .. b} *\<^sub>R c"
+  by (rule integral_unique) (rule has_integral_const)
 
-lemma lmeasure_cube:
-  "lmeasure (cube n::('a::ordered_euclidean_space) set) = (Real ((2 * real n) ^ (DIM('a))))"
-  by (intro has_gmeasure_lmeasure) auto
-
-lemma lmeasure_UNIV[intro]: "lmeasure UNIV = \<omega>"
+lemma lmeasure_UNIV[intro]: "lmeasure (UNIV::'a::ordered_euclidean_space set) = \<omega>"
   unfolding lmeasure_def SUP_\<omega>
 proof (intro allI impI)
   fix x assume "x < \<omega>"
   then obtain r where r: "x = Real r" "0 \<le> r" by (cases x) auto
   then obtain n where n: "r < of_nat n" using ex_less_of_nat by auto
-  show "\<exists>i\<in>UNIV. x < Real (gmeasure (UNIV \<inter> cube i))"
+  show "\<exists>i\<in>UNIV. x < Real (integral (cube i) (indicator UNIV::'a\<Rightarrow>real))"
   proof (intro bexI[of _ n])
+    have [simp]: "indicator UNIV = (\<lambda>x. 1)" by (auto simp: fun_eq_iff)
+    { fix m :: nat assume "0 < m" then have "real n \<le> (\<Prod>x<m. 2 * real n)"
+      proof (induct m)
+        case (Suc m)
+        show ?case
+        proof cases
+          assume "m = 0" then show ?thesis by (simp add: lessThan_Suc)
+        next
+          assume "m \<noteq> 0" then have "real n \<le> (\<Prod>x<m. 2 * real n)" using Suc by auto
+          then show ?thesis
+            by (auto simp: lessThan_Suc field_simps mult_le_cancel_left1)
+        qed
+      qed auto } note this[OF DIM_positive[where 'a='a], simp]
+    then have [simp]: "0 \<le> (\<Prod>x<DIM('a). 2 * real n)" using real_of_nat_ge_zero by arith
     have "x < Real (of_nat n)" using n r by auto
-    also have "Real (of_nat n) \<le> Real (gmeasure (UNIV \<inter> cube n))"
-      using gmeasure_cube_ge_n[of n] by (auto simp: real_eq_of_nat[symmetric])
-    finally show "x < Real (gmeasure (UNIV \<inter> cube n))" .
+    also have "Real (of_nat n) \<le> Real (integral (cube n) (indicator UNIV::'a\<Rightarrow>real))"
+      by (auto simp: real_eq_of_nat[symmetric] cube_def content_closed_interval_cases)
+    finally show "x < Real (integral (cube n) (indicator UNIV::'a\<Rightarrow>real))" .
   qed auto
+qed
+
+lemma
+  fixes a b ::"'a::ordered_euclidean_space"
+  shows lmeasure_atLeastAtMost[simp]: "lmeasure {a..b} = Real (content {a..b})"
+proof -
+  have "(indicator (UNIV \<inter> {a..b})::_\<Rightarrow>real) integrable_on UNIV"
+    unfolding integrable_indicator_UNIV by (simp add: integrable_const indicator_def_raw)
+  from lmeasure_eq_integral[OF this] show ?thesis unfolding integral_indicator_UNIV
+    by (simp add: indicator_def_raw)
 qed
 
 lemma atLeastAtMost_singleton_euclidean[simp]:
@@ -421,9 +454,7 @@ qed
 
 lemma lmeasure_singleton[simp]:
   fixes a :: "'a::ordered_euclidean_space" shows "lmeasure {a} = 0"
-  using has_gmeasure_interval[of a a] unfolding zero_pextreal_def
-  by (intro has_gmeasure_lmeasure)
-     (simp add: content_closed_interval DIM_positive)
+  using lmeasure_atLeastAtMost[of a a] by simp
 
 declare content_real[simp]
 
@@ -433,21 +464,33 @@ lemma
     "lmeasure {a <.. b} = Real (if a \<le> b then b - a else 0)"
 proof cases
   assume "a < b"
-  then have "lmeasure {a <.. b} = lmeasure {a <..< b} + lmeasure {b}"
-    by (subst lebesgue.measure_additive)
-       (auto intro!: lebesgueI_borel arg_cong[where f=lmeasure])
+  then have "lmeasure {a <.. b} = lmeasure {a .. b} - lmeasure {a}"
+    by (subst lebesgue.measure_Diff[symmetric])
+       (auto intro!: arg_cong[where f=lmeasure])
   then show ?thesis by auto
 qed auto
 
 lemma
   fixes a b :: real
   shows lmeasure_real_atLeastLessThan[simp]:
-    "lmeasure {a ..< b} = Real (if a \<le> b then b - a else 0)" (is ?eqlt)
+    "lmeasure {a ..< b} = Real (if a \<le> b then b - a else 0)"
 proof cases
   assume "a < b"
-  then have "lmeasure {a ..< b} = lmeasure {a} + lmeasure {a <..< b}"
-    by (subst lebesgue.measure_additive)
-       (auto intro!: lebesgueI_borel arg_cong[where f=lmeasure])
+  then have "lmeasure {a ..< b} = lmeasure {a .. b} - lmeasure {b}"
+    by (subst lebesgue.measure_Diff[symmetric])
+       (auto intro!: arg_cong[where f=lmeasure])
+  then show ?thesis by auto
+qed auto
+
+lemma
+  fixes a b :: real
+  shows lmeasure_real_greaterThanLessThan[simp]:
+    "lmeasure {a <..< b} = Real (if a \<le> b then b - a else 0)"
+proof cases
+  assume "a < b"
+  then have "lmeasure {a <..< b} = lmeasure {a <.. b} - lmeasure {b}"
+    by (subst lebesgue.measure_Diff[symmetric])
+       (auto intro!: arg_cong[where f=lmeasure])
   then show ?thesis by auto
 qed auto
 
@@ -463,7 +506,7 @@ proof (default, intro conjI exI[of _ "\<lambda>n. cube n"])
   show "range cube \<subseteq> sets borel" by (auto intro: borel_closed)
   { fix x have "\<exists>n. x\<in>cube n" using mem_big_cube by auto }
   thus "(\<Union>i. cube i) = space borel" by auto
-  show "\<forall>i. lmeasure (cube i) \<noteq> \<omega>" unfolding lmeasure_cube by auto
+  show "\<forall>i. lmeasure (cube i) \<noteq> \<omega>" unfolding cube_def by auto
 qed
 
 interpretation lebesgue: sigma_finite_measure lebesgue lmeasure
@@ -482,7 +525,8 @@ lemma simple_function_has_integral:
   shows "((\<lambda>x. real (f x)) has_integral (real (lebesgue.simple_integral f))) UNIV"
   unfolding lebesgue.simple_integral_def
   apply(subst lebesgue_simple_function_indicator[OF f])
-proof- case goal1
+proof -
+  case goal1
   have *:"\<And>x. \<forall>y\<in>range f. y * indicator (f -` {y}) x \<noteq> \<omega>"
     "\<forall>x\<in>range f. x * lmeasure (f -` {x} \<inter> UNIV) \<noteq> \<omega>"
     using f' om unfolding indicator_def by auto
@@ -494,16 +538,19 @@ proof- case goal1
     fix y::'a show "((\<lambda>x. real (f y * indicator (f -` {f y}) x)) has_integral
       real (f y * lmeasure (f -` {f y} \<inter> UNIV))) UNIV"
     proof(cases "f y = 0") case False
-      have mea:"gmeasurable (f -` {f y})" apply(rule lmeasure_finite_gmeasurable)
+      have mea:"(indicator (f -` {f y}) ::_\<Rightarrow>real) integrable_on UNIV"
+        apply(rule lmeasure_finite_integrable)
         using assms unfolding lebesgue.simple_function_def using False by auto
-      have *:"\<And>x. real (indicator (f -` {f y}) x::pextreal) = (if x \<in> f -` {f y} then 1 else 0)" by auto
+      have *:"\<And>x. real (indicator (f -` {f y}) x::pextreal) = (indicator (f -` {f y}) x)"
+        by (auto simp: indicator_def)
       show ?thesis unfolding real_of_pextreal_mult[THEN sym]
         apply(rule has_integral_cmul[where 'b=real, unfolded real_scaleR_def])
-        unfolding Int_UNIV_right lmeasure_gmeasure[OF mea,THEN sym]
-        unfolding measure_integral_univ[OF mea] * apply(rule integrable_integral)
-        unfolding gmeasurable_integrable[THEN sym] using mea .
+        unfolding Int_UNIV_right lmeasure_eq_integral[OF mea,THEN sym]
+        unfolding integral_eq_lmeasure[OF mea, symmetric] *
+        apply(rule integrable_integral) using mea .
     qed auto
-  qed qed
+  qed
+qed
 
 lemma bounded_realI: assumes "\<forall>x\<in>s. abs (x::real) \<le> B" shows "bounded s"
   unfolding bounded_def dist_real_def apply(rule_tac x=0 in exI)
@@ -826,7 +873,7 @@ proof (rule measure_unique_Int_stable[where X=A and A=cube])
   show "Int_stable \<lparr> space = UNIV :: 'a set, sets = range (\<lambda>(a,b). {a..b}) \<rparr>"
     (is "Int_stable ?E" ) using Int_stable_cuboids' .
   show "borel = sigma ?E" using borel_eq_atLeastAtMost .
-  show "\<And>i. lmeasure (cube i) \<noteq> \<omega>" unfolding lmeasure_cube by auto
+  show "\<And>i. lmeasure (cube i) \<noteq> \<omega>" unfolding cube_def by auto
   show "\<And>X. X \<in> sets ?E \<Longrightarrow>
     lmeasure X = borel_product.product_measure {..<DIM('a)} (e2p ` X :: (nat \<Rightarrow> real) set)"
   proof- case goal1 then obtain a b where X:"X = {a..b}" by auto

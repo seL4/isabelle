@@ -1,4 +1,3 @@
-
 #
 # IsaMakefile for HOL
 #
@@ -1150,7 +1149,6 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL				\
   Multivariate_Analysis/Finite_Cartesian_Product.thy			\
   Multivariate_Analysis/Integration.certs				\
   Multivariate_Analysis/Integration.thy					\
-  Multivariate_Analysis/Gauge_Measure.thy				\
   Multivariate_Analysis/L2_Norm.thy					\
   Multivariate_Analysis/Multivariate_Analysis.thy			\
   Multivariate_Analysis/Operator_Norm.thy				\
