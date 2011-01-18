@@ -58,6 +58,7 @@ fi
 
 OUTPUT="/tmp/isabelle$$.out"
 
+# ( "$ISABELLE_TOOL" jedit "$@" ) > "$OUTPUT" 2>&1
 ( "$ISABELLE_TOOL" emacs "${EMACS_OPTIONS[@]}" "$@" ) > "$OUTPUT" 2>&1
 RC=$?
 
