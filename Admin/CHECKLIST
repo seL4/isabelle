@@ -57,3 +57,5 @@ Final release stage
 
 - makedist: REPOS_NAME="isabelle-release"
 
+- isatest@macbroy28:devel-page/content/index.content
+
