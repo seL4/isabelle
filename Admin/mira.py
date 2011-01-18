@@ -209,10 +209,9 @@ def invoke_mutabelle(theory, env, case, paths, dep_paths, playground):
     except IOError:
         mutabelle_log = ''
 
-    attachments = { 'log': log, 'mutabelle_log': mutabelle_log}
-
     return (return_code == 0 and mutabelle_log != '', extract_isabelle_run_summary(log),
-      {'timing': extract_isabelle_run_timing(log)}, {'log': log}, None)
+      {'timing': extract_isabelle_run_timing(log)},
+      {'log': log, 'mutabelle_log': mutabelle_log}, None)
 
 @configuration(repos = [Isabelle], deps = [(HOL, [0])])
 def Mutabelle_Relation(*args):
