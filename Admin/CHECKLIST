@@ -19,6 +19,8 @@ Checklist for official releases
 
 - check Admin/contributed_components;
 
+- check funny base directory, e.g. "Test 中国";
+
 - diff NEWS wrt. last official release, which is read-only;
 
 - update https://isabelle.in.tum.de/repos/website;
