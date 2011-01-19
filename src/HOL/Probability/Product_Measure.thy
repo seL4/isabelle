@@ -656,29 +656,14 @@ proof -
     show "range F \<subseteq> sets E" "F \<up> space E" "\<And>i. pair_measure (F i) \<noteq> \<omega>"
       using F by auto
     show "measure_space P pair_measure" by default
-  next
-    show "measure_space P ?\<nu>"
-    proof
-      show "?\<nu> {} = 0" by auto
-      show "countably_additive P ?\<nu>"
-        unfolding countably_additive_def
-      proof (intro allI impI)
-        fix F :: "nat \<Rightarrow> ('a \<times> 'b) set"
-        assume F: "range F \<subseteq> sets P" "disjoint_family F"
-        from F have *: "\<And>i. F i \<in> sets P" "(\<Union>i. F i) \<in> sets P" by auto
-        moreover from F have "\<And>i. (\<lambda>y. \<mu>1 ((\<lambda>x. (x, y)) -` F i)) \<in> borel_measurable M2"
-          by (intro measure_cut_measurable_snd) auto
-        moreover have "\<And>y. disjoint_family (\<lambda>i. (\<lambda>x. (x, y)) -` F i)"
-          by (intro disjoint_family_on_bisimulation[OF F(2)]) auto
-        moreover have "\<And>y. y \<in> space M2 \<Longrightarrow> range (\<lambda>i. (\<lambda>x. (x, y)) -` F i) \<subseteq> sets M1"
-          using F by (auto intro!: measurable_cut_snd)
-        ultimately show "(\<Sum>\<^isub>\<infinity>n. ?\<nu> (F n)) = ?\<nu> (\<Union>i. F i)"
-          by (simp add: vimage_UN M2.positive_integral_psuminf[symmetric]
-                        M1.measure_countably_additive
-                   cong: M2.positive_integral_cong)
-      qed
-    qed
-  next
+    interpret Q: pair_sigma_finite M2 \<mu>2 M1 \<mu>1 by default
+    have space_P: "space P = space M1 \<times> space M2" unfolding pair_algebra_def by simp
+    have "measure_space (Q.vimage_algebra (space P) (\<lambda>(x,y). (y,x))) (\<lambda>A. Q.pair_measure ((\<lambda>(x,y). (y,x)) ` A))"
+      by (rule Q.measure_space_isomorphic) (auto simp add: pair_algebra_def bij_betw_def intro!: inj_onI)
+    then show "measure_space P ?\<nu>" unfolding space_P Q.pair_sigma_algebra_swap[symmetric]
+      by (rule measure_space.measure_space_cong)
+         (auto intro!: M2.positive_integral_cong arg_cong[where f=\<mu>1]
+               simp: Q.pair_measure_alt inj_vimage_image_eq sets_pair_sigma_algebra_swap)
     fix X assume "X \<in> sets E"
     then obtain A B where X: "X = A \<times> B" and AB: "A \<in> sets M1" "B \<in> sets M2"
       unfolding pair_algebra_def by auto
