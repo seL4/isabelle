@@ -95,7 +95,7 @@ function classpath () {
     if [ -z "$CLASSPATH" ]; then
       CLASSPATH="$X"
     else
-      CLASSPATH="$CLASSPATH:$X"
+      CLASSPATH="$X:$CLASSPATH"
     fi
   done
   export CLASSPATH
