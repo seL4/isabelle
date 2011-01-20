@@ -141,7 +141,7 @@ end;
 structure StringCvt =
 struct
   open StringCvt;
-  datatype realfmt = EXACT | FIX of int option | GEN of int option | SCI of int option
+  datatype realfmt = EXACT | FIX of int option | GEN of int option | SCI of int option;
   fun realfmt fmt = Real.fmt
     (case fmt of
       EXACT => StringCvt.EXACT
@@ -160,36 +160,36 @@ structure Word =
 struct
   open Word;
   val wordSize = mk_int Word.wordSize;
-  val toInt = mk_int o Word.toInt;
-  val toIntX = mk_int o Word.toIntX;
-  val fromInt = Word.fromInt o dest_int;
+  val toInt = Word.toLargeInt;
+  val toIntX = Word.toLargeIntX;
+  val fromInt = Word.fromLargeInt;
 end;
 
 structure Word8 =
 struct
   open Word8;
   val wordSize = mk_int Word8.wordSize;
-  val toInt = mk_int o Word8.toInt;
-  val toIntX = mk_int o Word8.toIntX;
-  val fromInt = Word8.fromInt o dest_int;
+  val toInt = Word8.toLargeInt;
+  val toIntX = Word8.toLargeIntX;
+  val fromInt = Word8.fromLargeInt;
 end;
 
 structure Word32 =
 struct
   open Word32;
   val wordSize = mk_int Word32.wordSize;
-  val toInt = mk_int o Word32.toInt;
-  val toIntX = mk_int o Word32.toIntX;
-  val fromInt = Word32.fromInt o dest_int;
+  val toInt = Word32.toLargeInt;
+  val toIntX = Word32.toLargeIntX;
+  val fromInt = Word32.fromLargeInt;
 end;
 
 structure LargeWord =
 struct
   open LargeWord;
   val wordSize = mk_int LargeWord.wordSize;
-  val toInt = mk_int o LargeWord.toInt;
-  val toIntX = mk_int o LargeWord.toIntX;
-  val fromInt = LargeWord.fromInt o dest_int;
+  val toInt = LargeWord.toLargeInt;
+  val toIntX = LargeWord.toLargeIntX;
+  val fromInt = LargeWord.fromLargeInt;
 end;
 
 
