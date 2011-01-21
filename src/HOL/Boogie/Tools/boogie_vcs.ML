@@ -276,9 +276,9 @@ fun serial_ord ((i, _), (j, _)) = int_ord (i, j)
 structure VCs_Data = Theory_Data
 (
   type T = vcs_data
-  val empty = make_vcs_data (NONE, K I, [])
+  val empty : T = make_vcs_data (NONE, K I, [])
   val extend = I
-  fun merge ({vcs=vcs1, filters=fs1, ...}, {vcs=vcs2, filters=fs2, ...}) =
+  fun merge ({vcs=vcs1, filters=fs1, ...} : T, {vcs=vcs2, filters=fs2, ...} : T) =
     (case (vcs1, vcs2) of
       (NONE, NONE) =>
         make_vcs_data (NONE, K I, Ord_List.merge serial_ord (fs1, fs2))

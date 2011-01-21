@@ -302,7 +302,7 @@ fun add_fun_decl decl {types, vars, consts, funs} =
    funs = update decl funs}
   handle Symtab.DUP s => error ("Duplicate function " ^ s);
 
-val type_decl = $$$ "type" |-- !!! (identifier --| $$$ "=" --
+fun type_decl x = ($$$ "type" |-- !!! (identifier --| $$$ "=" --
   (   identifier >> Basic_Type
    || $$$ "(" |-- !!! (list1 identifier --| $$$ ")") >> Enum_Type
    || $$$ "array" |-- !!! ($$$ "[" |-- list1 identifier --| $$$ "]" --|
@@ -310,23 +310,23 @@ val type_decl = $$$ "type" |-- !!! (identifier --| $$$ "=" --
    || $$$ "record" |-- !!! (enum1 ";"
         (list1 identifier -- !!! ($$$ ":" |-- identifier)) --|
            $$$ "end") >> Record_Type
-   || $$$ "pending" >> K Pending_Type)) >> add_type_decl;
+   || $$$ "pending" >> K Pending_Type)) >> add_type_decl) x;
 
-val const_decl = $$$ "const" |-- !!! (identifier --| $$$ ":" -- identifier --|
-  $$$ "=" --| $$$ "pending") >> add_const_decl;
+fun const_decl x = ($$$ "const" |-- !!! (identifier --| $$$ ":" -- identifier --|
+  $$$ "=" --| $$$ "pending") >> add_const_decl) x;
 
-val var_decl = $$$ "var" |-- !!! (list1 identifier --| $$$ ":" -- identifier) >>
-  add_var_decl;
+fun var_decl x = ($$$ "var" |-- !!! (list1 identifier --| $$$ ":" -- identifier) >>
+  add_var_decl) x;
 
-val fun_decl = $$$ "function" |-- !!! (identifier --
+fun fun_decl x = ($$$ "function" |-- !!! (identifier --
   (Scan.optional ($$$ "(" |-- !!! (list1 identifier --| $$$ ")")) [] --|
-   $$$ ":" -- identifier)) >> add_fun_decl;
+   $$$ ":" -- identifier)) >> add_fun_decl) x;
 
-val declarations =
-  $$$ "title" |-- subprogram_kind -- identifier --| $$$ ";" --
+fun declarations x =
+ ($$$ "title" |-- subprogram_kind -- identifier --| $$$ ";" --
   (Scan.repeat ((type_decl || const_decl || var_decl || fun_decl) --|
      !!! ($$$ ";")) >> (fn ds => apply ds empty_decls)) --|
-  $$$ "end" --| $$$ ";"
+  $$$ "end" --| $$$ ";") x;
 
 fun parse_declarations pos s =
   s |>
