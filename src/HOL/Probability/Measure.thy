@@ -803,23 +803,17 @@ lemma (in measure_space) AE_disjI2:
 lemma (in measure_space) AE_conjI:
   assumes AE_P: "AE x. P x" and AE_Q: "AE x. Q x"
   shows "AE x. P x \<and> Q x"
-proof -
-  from AE_P obtain A where P: "{x\<in>space M. \<not> P x} \<subseteq> A"
-    and A: "A \<in> sets M" "\<mu> A = 0"
-    by (auto elim!: AE_E)
+  apply (rule AE_mp[OF AE_P])
+  apply (rule AE_mp[OF AE_Q])
+  by simp
 
-  from AE_Q obtain B where Q: "{x\<in>space M. \<not> Q x} \<subseteq> B"
-    and B: "B \<in> sets M" "\<mu> B = 0"
-    by (auto elim!: AE_E)
-
-  show ?thesis
-  proof (intro AE_I)
-    show "A \<union> B \<in> sets M" "\<mu> (A \<union> B) = 0" using A B
-      using measure_subadditive[of A B] by auto
-    show "{x\<in>space M. \<not> (P x \<and> Q x)} \<subseteq> A \<union> B"
-      using P Q by auto
-  qed
-qed
+lemma (in measure_space) AE_conj_iff[simp]:
+  shows "(AE x. P x \<and> Q x) \<longleftrightarrow> (AE x. P x) \<and> (AE x. Q x)"
+proof (intro conjI iffI AE_conjI)
+  assume *: "AE x. P x \<and> Q x"
+  from * show "AE x. P x" by (rule AE_mp) auto
+  from * show "AE x. Q x" by (rule AE_mp) auto
+qed auto
 
 lemma (in measure_space) AE_E2:
   assumes "AE x. P x" "{x\<in>space M. P x} \<in> sets M"
@@ -844,14 +838,6 @@ proof -
   show ?thesis
     by (rule AE_mp[OF AE_space]) auto
 qed
-
-lemma (in measure_space) AE_conj_iff[simp]:
-  shows "(AE x. P x \<and> Q x) \<longleftrightarrow> (AE x. P x) \<and> (AE x. Q x)"
-proof (intro conjI iffI AE_conjI)
-  assume *: "AE x. P x \<and> Q x"
-  from * show "AE x. P x" by (rule AE_mp) auto
-  from * show "AE x. Q x" by (rule AE_mp) auto
-qed auto
 
 lemma (in measure_space) all_AE_countable:
   "(\<forall>i::'i::countable. AE x. P i x) \<longleftrightarrow> (AE x. \<forall>i. P i x)"
