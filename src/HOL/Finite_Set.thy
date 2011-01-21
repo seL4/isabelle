@@ -9,96 +9,59 @@ theory Finite_Set
 imports Option Power
 begin
 
+-- {* FIXME move *}
+
+lemma inj_vimage_singleton: "inj f \<Longrightarrow> f -` {a} \<subseteq> {THE x. f x = a}"
+  -- {* The inverse image of a singleton under an injective function
+         is included in a singleton. *}
+  apply (auto simp add: inj_on_def)
+  apply (blast intro: the_equality [symmetric])
+  done
+
 subsection {* Predicate for finite sets *}
 
-inductive finite :: "'a set => bool"
+inductive finite :: "'a set \<Rightarrow> bool"
   where
     emptyI [simp, intro!]: "finite {}"
-  | insertI [simp, intro!]: "finite A ==> finite (insert a A)"
+  | insertI [simp, intro!]: "finite A \<Longrightarrow> finite (insert a A)"
+
+lemma finite_induct [case_names empty insert, induct set: finite]:
+  -- {* Discharging @{text "x \<notin> F"} entails extra work. *}
+  assumes "finite F"
+  assumes "P {}"
+    and insert: "\<And>x F. finite F \<Longrightarrow> x \<notin> F \<Longrightarrow> P F \<Longrightarrow> P (insert x F)"
+  shows "P F"
+using `finite F` proof induct
+  show "P {}" by fact
+  fix x F assume F: "finite F" and P: "P F"
+  show "P (insert x F)"
+  proof cases
+    assume "x \<in> F"
+    hence "insert x F = F" by (rule insert_absorb)
+    with P show ?thesis by (simp only:)
+  next
+    assume "x \<notin> F"
+    from F this P show ?thesis by (rule insert)
+  qed
+qed
+
+
+subsubsection {* Choice principles *}
 
 lemma ex_new_if_finite: -- "does not depend on def of finite at all"
   assumes "\<not> finite (UNIV :: 'a set)" and "finite A"
   shows "\<exists>a::'a. a \<notin> A"
 proof -
   from assms have "A \<noteq> UNIV" by blast
-  thus ?thesis by blast
+  then show ?thesis by blast
 qed
 
-lemma finite_induct [case_names empty insert, induct set: finite]:
-  "finite F ==>
-    P {} ==> (!!x F. finite F ==> x \<notin> F ==> P F ==> P (insert x F)) ==> P F"
-  -- {* Discharging @{text "x \<notin> F"} entails extra work. *}
-proof -
-  assume "P {}" and
-    insert: "!!x F. finite F ==> x \<notin> F ==> P F ==> P (insert x F)"
-  assume "finite F"
-  thus "P F"
-  proof induct
-    show "P {}" by fact
-    fix x F assume F: "finite F" and P: "P F"
-    show "P (insert x F)"
-    proof cases
-      assume "x \<in> F"
-      hence "insert x F = F" by (rule insert_absorb)
-      with P show ?thesis by (simp only:)
-    next
-      assume "x \<notin> F"
-      from F this P show ?thesis by (rule insert)
-    qed
-  qed
-qed
+text {* A finite choice principle. Does not need the SOME choice operator. *}
 
-lemma finite_ne_induct[case_names singleton insert, consumes 2]:
-assumes fin: "finite F" shows "F \<noteq> {} \<Longrightarrow>
- \<lbrakk> \<And>x. P{x};
-   \<And>x F. \<lbrakk> finite F; F \<noteq> {}; x \<notin> F; P F \<rbrakk> \<Longrightarrow> P (insert x F) \<rbrakk>
- \<Longrightarrow> P F"
-using fin
-proof induct
-  case empty thus ?case by simp
-next
-  case (insert x F)
-  show ?case
-  proof cases
-    assume "F = {}"
-    thus ?thesis using `P {x}` by simp
-  next
-    assume "F \<noteq> {}"
-    thus ?thesis using insert by blast
-  qed
-qed
-
-lemma finite_subset_induct [consumes 2, case_names empty insert]:
-  assumes "finite F" and "F \<subseteq> A"
-    and empty: "P {}"
-    and insert: "!!a F. finite F ==> a \<in> A ==> a \<notin> F ==> P F ==> P (insert a F)"
-  shows "P F"
-proof -
-  from `finite F` and `F \<subseteq> A`
-  show ?thesis
-  proof induct
-    show "P {}" by fact
-  next
-    fix x F
-    assume "finite F" and "x \<notin> F" and
-      P: "F \<subseteq> A ==> P F" and i: "insert x F \<subseteq> A"
-    show "P (insert x F)"
-    proof (rule insert)
-      from i show "x \<in> A" by blast
-      from i have "F \<subseteq> A" by blast
-      with P show "P F" .
-      show "finite F" by fact
-      show "x \<notin> F" by fact
-    qed
-  qed
-qed
-
-
-text{* A finite choice principle. Does not need the SOME choice operator. *}
 lemma finite_set_choice:
-  "finite A \<Longrightarrow> ALL x:A. (EX y. P x y) \<Longrightarrow> EX f. ALL x:A. P x (f x)"
-proof (induct set: finite)
-  case empty thus ?case by simp
+  "finite A \<Longrightarrow> \<forall>x\<in>A. \<exists>y. P x y \<Longrightarrow> \<exists>f. \<forall>x\<in>A. P x (f x)"
+proof (induct rule: finite_induct)
+  case empty then show ?case by simp
 next
   case (insert a A)
   then obtain f b where f: "ALL x:A. P x (f x)" and ab: "P a b" by auto
@@ -109,16 +72,16 @@ next
 qed
 
 
-text{* Finite sets are the images of initial segments of natural numbers: *}
+subsubsection {* Finite sets are the images of initial segments of natural numbers *}
 
 lemma finite_imp_nat_seg_image_inj_on:
-  assumes fin: "finite A" 
-  shows "\<exists> (n::nat) f. A = f ` {i. i<n} & inj_on f {i. i<n}"
-using fin
-proof induct
+  assumes "finite A" 
+  shows "\<exists>(n::nat) f. A = f ` {i. i < n} \<and> inj_on f {i. i < n}"
+using assms proof induct
   case empty
-  show ?case  
-  proof show "\<exists>f. {} = f ` {i::nat. i < 0} & inj_on f {i. i<0}" by simp 
+  show ?case
+  proof
+    show "\<exists>f. {} = f ` {i::nat. i < 0} \<and> inj_on f {i. i < 0}" by simp 
   qed
 next
   case (insert a A)
@@ -132,8 +95,8 @@ next
 qed
 
 lemma nat_seg_image_imp_finite:
-  "!!f A. A = f ` {i::nat. i<n} \<Longrightarrow> finite A"
-proof (induct n)
+  "A = f ` {i::nat. i < n} \<Longrightarrow> finite A"
+proof (induct n arbitrary: A)
   case 0 thus ?case by simp
 next
   case (Suc n)
@@ -152,12 +115,12 @@ next
 qed
 
 lemma finite_conv_nat_seg_image:
-  "finite A = (\<exists> (n::nat) f. A = f ` {i::nat. i<n})"
-by(blast intro: nat_seg_image_imp_finite dest: finite_imp_nat_seg_image_inj_on)
+  "finite A \<longleftrightarrow> (\<exists>(n::nat) f. A = f ` {i::nat. i < n})"
+  by (blast intro: nat_seg_image_imp_finite dest: finite_imp_nat_seg_image_inj_on)
 
 lemma finite_imp_inj_to_nat_seg:
-assumes "finite A"
-shows "EX f n::nat. f`A = {i. i<n} & inj_on f A"
+  assumes "finite A"
+  shows "\<exists>f n::nat. f ` A = {i. i < n} \<and> inj_on f A"
 proof -
   from finite_imp_nat_seg_image_inj_on[OF `finite A`]
   obtain f and n::nat where bij: "bij_betw f {i. i<n} A"
@@ -168,160 +131,131 @@ proof -
   thus ?thesis by blast
 qed
 
-lemma finite_Collect_less_nat[iff]: "finite{n::nat. n<k}"
-by(fastsimp simp: finite_conv_nat_seg_image)
+lemma finite_Collect_less_nat [iff]:
+  "finite {n::nat. n < k}"
+  by (fastsimp simp: finite_conv_nat_seg_image)
 
-text {* Finiteness and set theoretic constructions *}
+lemma finite_Collect_le_nat [iff]:
+  "finite {n::nat. n \<le> k}"
+  by (simp add: le_eq_less_or_eq Collect_disj_eq)
 
-lemma finite_UnI: "finite F ==> finite G ==> finite (F Un G)"
-by (induct set: finite) simp_all
 
-lemma finite_subset: "A \<subseteq> B ==> finite B ==> finite A"
-  -- {* Every subset of a finite set is finite. *}
-proof -
-  assume "finite B"
-  thus "!!A. A \<subseteq> B ==> finite A"
-  proof induct
-    case empty
-    thus ?case by simp
+subsubsection {* Finiteness and common set operations *}
+
+lemma rev_finite_subset:
+  "finite B \<Longrightarrow> A \<subseteq> B \<Longrightarrow> finite A"
+proof (induct arbitrary: A rule: finite_induct)
+  case empty
+  then show ?case by simp
+next
+  case (insert x F A)
+  have A: "A \<subseteq> insert x F" and r: "A - {x} \<subseteq> F \<Longrightarrow> finite (A - {x})" by fact+
+  show "finite A"
+  proof cases
+    assume x: "x \<in> A"
+    with A have "A - {x} \<subseteq> F" by (simp add: subset_insert_iff)
+    with r have "finite (A - {x})" .
+    hence "finite (insert x (A - {x}))" ..
+    also have "insert x (A - {x}) = A" using x by (rule insert_Diff)
+    finally show ?thesis .
   next
-    case (insert x F A)
-    have A: "A \<subseteq> insert x F" and r: "A - {x} \<subseteq> F ==> finite (A - {x})" by fact+
-    show "finite A"
-    proof cases
-      assume x: "x \<in> A"
-      with A have "A - {x} \<subseteq> F" by (simp add: subset_insert_iff)
-      with r have "finite (A - {x})" .
-      hence "finite (insert x (A - {x}))" ..
-      also have "insert x (A - {x}) = A" using x by (rule insert_Diff)
-      finally show ?thesis .
-    next
-      show "A \<subseteq> F ==> ?thesis" by fact
-      assume "x \<notin> A"
-      with A show "A \<subseteq> F" by (simp add: subset_insert_iff)
-    qed
+    show "A \<subseteq> F ==> ?thesis" by fact
+    assume "x \<notin> A"
+    with A show "A \<subseteq> F" by (simp add: subset_insert_iff)
   qed
 qed
 
-lemma rev_finite_subset: "finite B ==> A \<subseteq> B ==> finite A"
-by (rule finite_subset)
+lemma finite_subset:
+  "A \<subseteq> B \<Longrightarrow> finite B \<Longrightarrow> finite A"
+  by (rule rev_finite_subset)
 
-lemma finite_Un [iff]: "finite (F Un G) = (finite F & finite G)"
-by (blast intro: finite_subset [of _ "X Un Y", standard] finite_UnI)
+lemma finite_UnI:
+  assumes "finite F" and "finite G"
+  shows "finite (F \<union> G)"
+  using assms by induct simp_all
 
-lemma finite_Collect_disjI[simp]:
-  "finite{x. P x | Q x} = (finite{x. P x} & finite{x. Q x})"
-by(simp add:Collect_disj_eq)
+lemma finite_Un [iff]:
+  "finite (F \<union> G) \<longleftrightarrow> finite F \<and> finite G"
+  by (blast intro: finite_UnI finite_subset [of _ "F \<union> G"])
 
-lemma finite_Int [simp, intro]: "finite F | finite G ==> finite (F Int G)"
-  -- {* The converse obviously fails. *}
-by (blast intro: finite_subset)
-
-lemma finite_Collect_conjI [simp, intro]:
-  "finite{x. P x} | finite{x. Q x} ==> finite{x. P x & Q x}"
-  -- {* The converse obviously fails. *}
-by(simp add:Collect_conj_eq)
-
-lemma finite_Collect_le_nat[iff]: "finite{n::nat. n<=k}"
-by(simp add: le_eq_less_or_eq)
-
-lemma finite_insert [simp]: "finite (insert a A) = finite A"
-  apply (subst insert_is_Un)
-  apply (simp only: finite_Un, blast)
-  done
-
-lemma finite_Union[simp, intro]:
- "\<lbrakk> finite A; !!M. M \<in> A \<Longrightarrow> finite M \<rbrakk> \<Longrightarrow> finite(\<Union>A)"
-by (induct rule:finite_induct) simp_all
-
-lemma finite_Inter[intro]: "EX A:M. finite(A) \<Longrightarrow> finite(Inter M)"
-by (blast intro: Inter_lower finite_subset)
-
-lemma finite_INT[intro]: "EX x:I. finite(A x) \<Longrightarrow> finite(INT x:I. A x)"
-by (blast intro: INT_lower finite_subset)
-
-lemma finite_empty_induct:
-  assumes "finite A"
-    and "P A"
-    and "!!a A. finite A ==> a:A ==> P A ==> P (A - {a})"
-  shows "P {}"
+lemma finite_insert [simp]: "finite (insert a A) \<longleftrightarrow> finite A"
 proof -
-  have "P (A - A)"
-  proof -
-    {
-      fix c b :: "'a set"
-      assume c: "finite c" and b: "finite b"
-        and P1: "P b" and P2: "!!x y. finite y ==> x \<in> y ==> P y ==> P (y - {x})"
-      have "c \<subseteq> b ==> P (b - c)"
-        using c
-      proof induct
-        case empty
-        from P1 show ?case by simp
-      next
-        case (insert x F)
-        have "P (b - F - {x})"
-        proof (rule P2)
-          from _ b show "finite (b - F)" by (rule finite_subset) blast
-          from insert show "x \<in> b - F" by simp
-          from insert show "P (b - F)" by simp
-        qed
-        also have "b - F - {x} = b - insert x F" by (rule Diff_insert [symmetric])
-        finally show ?case .
-      qed
-    }
-    then show ?thesis by this (simp_all add: assms)
-  qed
+  have "finite {a} \<and> finite A \<longleftrightarrow> finite A" by simp
+  then have "finite ({a} \<union> A) \<longleftrightarrow> finite A" by (simp only: finite_Un)
   then show ?thesis by simp
 qed
 
-lemma finite_Diff [simp, intro]: "finite A ==> finite (A - B)"
-by (rule Diff_subset [THEN finite_subset])
+lemma finite_Int [simp, intro]:
+  "finite F \<or> finite G \<Longrightarrow> finite (F \<inter> G)"
+  by (blast intro: finite_subset)
+
+lemma finite_Collect_conjI [simp, intro]:
+  "finite {x. P x} \<or> finite {x. Q x} \<Longrightarrow> finite {x. P x \<and> Q x}"
+  by (simp add: Collect_conj_eq)
+
+lemma finite_Collect_disjI [simp]:
+  "finite {x. P x \<or> Q x} \<longleftrightarrow> finite {x. P x} \<and> finite {x. Q x}"
+  by (simp add: Collect_disj_eq)
+
+lemma finite_Diff [simp, intro]:
+  "finite A \<Longrightarrow> finite (A - B)"
+  by (rule finite_subset, rule Diff_subset)
 
 lemma finite_Diff2 [simp]:
-  assumes "finite B" shows "finite (A - B) = finite A"
+  assumes "finite B"
+  shows "finite (A - B) \<longleftrightarrow> finite A"
 proof -
-  have "finite A \<longleftrightarrow> finite((A-B) Un (A Int B))" by(simp add: Un_Diff_Int)
-  also have "\<dots> \<longleftrightarrow> finite(A-B)" using `finite B` by(simp)
+  have "finite A \<longleftrightarrow> finite((A - B) \<union> (A \<inter> B))" by (simp add: Un_Diff_Int)
+  also have "\<dots> \<longleftrightarrow> finite (A - B)" using `finite B` by simp
   finally show ?thesis ..
 qed
 
+lemma finite_Diff_insert [iff]:
+  "finite (A - insert a B) \<longleftrightarrow> finite (A - B)"
+proof -
+  have "finite (A - B) \<longleftrightarrow> finite (A - B - {a})" by simp
+  moreover have "A - insert a B = A - B - {a}" by auto
+  ultimately show ?thesis by simp
+qed
+
 lemma finite_compl[simp]:
-  "finite(A::'a set) \<Longrightarrow> finite(-A) = finite(UNIV::'a set)"
-by(simp add:Compl_eq_Diff_UNIV)
+  "finite (A :: 'a set) \<Longrightarrow> finite (- A) \<longleftrightarrow> finite (UNIV :: 'a set)"
+  by (simp add: Compl_eq_Diff_UNIV)
 
 lemma finite_Collect_not[simp]:
-  "finite{x::'a. P x} \<Longrightarrow> finite{x. ~P x} = finite(UNIV::'a set)"
-by(simp add:Collect_neg_eq)
+  "finite {x :: 'a. P x} \<Longrightarrow> finite {x. \<not> P x} \<longleftrightarrow> finite (UNIV :: 'a set)"
+  by (simp add: Collect_neg_eq)
 
-lemma finite_Diff_insert [iff]: "finite (A - insert a B) = finite (A - B)"
-  apply (subst Diff_insert)
-  apply (case_tac "a : A - B")
-   apply (rule finite_insert [symmetric, THEN trans])
-   apply (subst insert_Diff, simp_all)
-  done
+lemma finite_Union [simp, intro]:
+  "finite A \<Longrightarrow> (\<And>M. M \<in> A \<Longrightarrow> finite M) \<Longrightarrow> finite(\<Union>A)"
+  by (induct rule: finite_induct) simp_all
 
+lemma finite_UN_I [intro]:
+  "finite A \<Longrightarrow> (\<And>a. a \<in> A \<Longrightarrow> finite (B a)) \<Longrightarrow> finite (\<Union>a\<in>A. B a)"
+  by (induct rule: finite_induct) simp_all
 
-text {* Image and Inverse Image over Finite Sets *}
+lemma finite_UN [simp]:
+  "finite A \<Longrightarrow> finite (UNION A B) \<longleftrightarrow> (\<forall>x\<in>A. finite (B x))"
+  by (blast intro: finite_subset)
 
-lemma finite_imageI[simp, intro]: "finite F ==> finite (h ` F)"
-  -- {* The image of a finite set is finite. *}
-  by (induct set: finite) simp_all
+lemma finite_Inter [intro]:
+  "\<exists>A\<in>M. finite A \<Longrightarrow> finite (\<Inter>M)"
+  by (blast intro: Inter_lower finite_subset)
+
+lemma finite_INT [intro]:
+  "\<exists>x\<in>I. finite (A x) \<Longrightarrow> finite (\<Inter>x\<in>I. A x)"
+  by (blast intro: INT_lower finite_subset)
+
+lemma finite_imageI [simp, intro]:
+  "finite F \<Longrightarrow> finite (h ` F)"
+  by (induct rule: finite_induct) simp_all
 
 lemma finite_image_set [simp]:
   "finite {x. P x} \<Longrightarrow> finite { f x | x. P x }"
   by (simp add: image_Collect [symmetric])
 
-lemma finite_surj: "finite A ==> B <= f ` A ==> finite B"
-  apply (frule finite_imageI)
-  apply (erule finite_subset, assumption)
-  done
-
-lemma finite_range_imageI:
-    "finite (range g) ==> finite (range (%x. f (g x)))"
-  apply (drule finite_imageI, simp add: range_composition)
-  done
-
-lemma finite_imageD: "finite (f`A) ==> inj_on f A ==> finite A"
+lemma finite_imageD:
+  "finite (f ` A) \<Longrightarrow> inj_on f A \<Longrightarrow> finite A"
 proof -
   have aux: "!!A. finite (A - {}) = finite A" by simp
   fix B :: "'a set"
@@ -340,18 +274,28 @@ proof -
     done
 qed (rule refl)
 
+lemma finite_surj:
+  "finite A \<Longrightarrow> B \<subseteq> f ` A \<Longrightarrow> finite B"
+  by (erule finite_subset) (rule finite_imageI)
 
-lemma inj_vimage_singleton: "inj f ==> f-`{a} \<subseteq> {THE x. f x = a}"
-  -- {* The inverse image of a singleton under an injective function
-         is included in a singleton. *}
-  apply (auto simp add: inj_on_def)
-  apply (blast intro: the_equality [symmetric])
-  done
+lemma finite_range_imageI:
+  "finite (range g) \<Longrightarrow> finite (range (\<lambda>x. f (g x)))"
+  by (drule finite_imageI) (simp add: range_composition)
 
-lemma finite_vimageI: "[|finite F; inj h|] ==> finite (h -` F)"
-  -- {* The inverse image of a finite set under an injective function
-         is finite. *}
-  apply (induct set: finite)
+lemma finite_subset_image:
+  assumes "finite B"
+  shows "B \<subseteq> f ` A \<Longrightarrow> \<exists>C\<subseteq>A. finite C \<and> B = f ` C"
+using assms proof induct
+  case empty then show ?case by simp
+next
+  case insert then show ?case
+    by (clarsimp simp del: image_insert simp add: image_insert [symmetric])
+       blast
+qed
+
+lemma finite_vimageI:
+  "finite F \<Longrightarrow> inj h \<Longrightarrow> finite (h -` F)"
+  apply (induct rule: finite_induct)
    apply simp_all
   apply (subst vimage_insert)
   apply (simp add: finite_subset [OF inj_vimage_singleton])
@@ -369,40 +313,25 @@ qed
 lemma finite_vimage_iff: "bij h \<Longrightarrow> finite (h -` F) \<longleftrightarrow> finite F"
   unfolding bij_def by (auto elim: finite_vimageD finite_vimageI)
 
+lemma finite_Collect_bex [simp]:
+  assumes "finite A"
+  shows "finite {x. \<exists>y\<in>A. Q x y} \<longleftrightarrow> (\<forall>y\<in>A. finite {x. Q x y})"
+proof -
+  have "{x. \<exists>y\<in>A. Q x y} = (\<Union>y\<in>A. {x. Q x y})" by auto
+  with assms show ?thesis by simp
+qed
 
-text {* The finite UNION of finite sets *}
+lemma finite_Collect_bounded_ex [simp]:
+  assumes "finite {y. P y}"
+  shows "finite {x. \<exists>y. P y \<and> Q x y} \<longleftrightarrow> (\<forall>y. P y \<longrightarrow> finite {x. Q x y})"
+proof -
+  have "{x. EX y. P y & Q x y} = (\<Union>y\<in>{y. P y}. {x. Q x y})" by auto
+  with assms show ?thesis by simp
+qed
 
-lemma finite_UN_I[intro]:
-  "finite A ==> (!!a. a:A ==> finite (B a)) ==> finite (UN a:A. B a)"
-by (induct set: finite) simp_all
-
-text {*
-  Strengthen RHS to
-  @{prop "((ALL x:A. finite (B x)) & finite {x. x:A & B x \<noteq> {}})"}?
-
-  We'd need to prove
-  @{prop "finite C ==> ALL A B. (UNION A B) <= C --> finite {x. x:A & B x \<noteq> {}}"}
-  by induction. *}
-
-lemma finite_UN [simp]:
-  "finite A ==> finite (UNION A B) = (ALL x:A. finite (B x))"
-by (blast intro: finite_subset)
-
-lemma finite_Collect_bex[simp]: "finite A \<Longrightarrow>
-  finite{x. EX y:A. Q x y} = (ALL y:A. finite{x. Q x y})"
-apply(subgoal_tac "{x. EX y:A. Q x y} = UNION A (%y. {x. Q x y})")
- apply auto
-done
-
-lemma finite_Collect_bounded_ex[simp]: "finite{y. P y} \<Longrightarrow>
-  finite{x. EX y. P y & Q x y} = (ALL y. P y \<longrightarrow> finite{x. Q x y})"
-apply(subgoal_tac "{x. EX y. P y & Q x y} = UNION {y. P y} (%y. {x. Q x y})")
- apply auto
-done
-
-
-lemma finite_Plus: "[| finite A; finite B |] ==> finite (A <+> B)"
-by (simp add: Plus_def)
+lemma finite_Plus:
+  "finite A \<Longrightarrow> finite B \<Longrightarrow> finite (A <+> B)"
+  by (simp add: Plus_def)
 
 lemma finite_PlusD: 
   fixes A :: "'a set" and B :: "'b set"
@@ -410,42 +339,36 @@ lemma finite_PlusD:
   shows "finite A" "finite B"
 proof -
   have "Inl ` A \<subseteq> A <+> B" by auto
-  hence "finite (Inl ` A :: ('a + 'b) set)" using fin by(rule finite_subset)
-  thus "finite A" by(rule finite_imageD)(auto intro: inj_onI)
+  then have "finite (Inl ` A :: ('a + 'b) set)" using fin by (rule finite_subset)
+  then show "finite A" by (rule finite_imageD) (auto intro: inj_onI)
 next
   have "Inr ` B \<subseteq> A <+> B" by auto
-  hence "finite (Inr ` B :: ('a + 'b) set)" using fin by(rule finite_subset)
-  thus "finite B" by(rule finite_imageD)(auto intro: inj_onI)
+  then have "finite (Inr ` B :: ('a + 'b) set)" using fin by (rule finite_subset)
+  then show "finite B" by (rule finite_imageD) (auto intro: inj_onI)
 qed
 
-lemma finite_Plus_iff[simp]: "finite (A <+> B) \<longleftrightarrow> finite A \<and> finite B"
-by(auto intro: finite_PlusD finite_Plus)
+lemma finite_Plus_iff [simp]:
+  "finite (A <+> B) \<longleftrightarrow> finite A \<and> finite B"
+  by (auto intro: finite_PlusD finite_Plus)
 
-lemma finite_Plus_UNIV_iff[simp]:
-  "finite (UNIV :: ('a + 'b) set) =
-  (finite (UNIV :: 'a set) & finite (UNIV :: 'b set))"
-by(subst UNIV_Plus_UNIV[symmetric])(rule finite_Plus_iff)
-
-
-text {* Sigma of finite sets *}
+lemma finite_Plus_UNIV_iff [simp]:
+  "finite (UNIV :: ('a + 'b) set) \<longleftrightarrow> finite (UNIV :: 'a set) \<and> finite (UNIV :: 'b set)"
+  by (subst UNIV_Plus_UNIV [symmetric]) (rule finite_Plus_iff)
 
 lemma finite_SigmaI [simp, intro]:
-    "finite A ==> (!!a. a:A ==> finite (B a)) ==> finite (SIGMA a:A. B a)"
+  "finite A \<Longrightarrow> (\<And>a. a\<in>A \<Longrightarrow> finite (B a)) ==> finite (SIGMA a:A. B a)"
   by (unfold Sigma_def) blast
 
-lemma finite_cartesian_product: "[| finite A; finite B |] ==>
-    finite (A <*> B)"
+lemma finite_cartesian_product:
+  "finite A \<Longrightarrow> finite B \<Longrightarrow> finite (A \<times> B)"
   by (rule finite_SigmaI)
 
 lemma finite_Prod_UNIV:
-    "finite (UNIV::'a set) ==> finite (UNIV::'b set) ==> finite (UNIV::('a * 'b) set)"
-  apply (subgoal_tac "(UNIV:: ('a * 'b) set) = Sigma UNIV (%x. UNIV)")
-   apply (erule ssubst)
-   apply (erule finite_SigmaI, auto)
-  done
+  "finite (UNIV :: 'a set) \<Longrightarrow> finite (UNIV :: 'b set) \<Longrightarrow> finite (UNIV :: ('a \<times> 'b) set)"
+  by (simp only: UNIV_Times_UNIV [symmetric] finite_cartesian_product)
 
 lemma finite_cartesian_productD1:
-     "[| finite (A <*> B); B \<noteq> {} |] ==> finite A"
+  "finite (A \<times> B) \<Longrightarrow> B \<noteq> {} \<Longrightarrow> finite A"
 apply (auto simp add: finite_conv_nat_seg_image) 
 apply (drule_tac x=n in spec) 
 apply (drule_tac x="fst o f" in spec) 
@@ -474,37 +397,89 @@ apply clarify
 apply (rule_tac x=k in image_eqI, auto)
 done
 
-
-text {* The powerset of a finite set *}
-
-lemma finite_Pow_iff [iff]: "finite (Pow A) = finite A"
+lemma finite_Pow_iff [iff]:
+  "finite (Pow A) \<longleftrightarrow> finite A"
 proof
   assume "finite (Pow A)"
-  with _ have "finite ((%x. {x}) ` A)" by (rule finite_subset) blast
-  thus "finite A" by (rule finite_imageD [unfolded inj_on_def]) simp
+  then have "finite ((%x. {x}) ` A)" by (blast intro: finite_subset)
+  then show "finite A" by (rule finite_imageD [unfolded inj_on_def]) simp
 next
   assume "finite A"
-  thus "finite (Pow A)"
+  then show "finite (Pow A)"
     by induct (simp_all add: Pow_insert)
 qed
 
-lemma finite_Collect_subsets[simp,intro]: "finite A \<Longrightarrow> finite{B. B \<subseteq> A}"
-by(simp add: Pow_def[symmetric])
-
+corollary finite_Collect_subsets [simp, intro]:
+  "finite A \<Longrightarrow> finite {B. B \<subseteq> A}"
+  by (simp add: Pow_def [symmetric])
 
 lemma finite_UnionD: "finite(\<Union>A) \<Longrightarrow> finite A"
-by(blast intro: finite_subset[OF subset_Pow_Union])
+  by (blast intro: finite_subset [OF subset_Pow_Union])
 
 
-lemma finite_subset_image:
-  assumes "finite B"
-  shows "B \<subseteq> f ` A \<Longrightarrow> \<exists>C\<subseteq>A. finite C \<and> B = f ` C"
-using assms proof(induct)
-  case empty thus ?case by simp
+subsubsection {* Further induction rules on finite sets *}
+
+lemma finite_ne_induct [case_names singleton insert, consumes 2]:
+  assumes "finite F" and "F \<noteq> {}"
+  assumes "\<And>x. P {x}"
+    and "\<And>x F. finite F \<Longrightarrow> F \<noteq> {} \<Longrightarrow> x \<notin> F \<Longrightarrow> P F  \<Longrightarrow> P (insert x F)"
+  shows "P F"
+using assms proof induct
+  case empty then show ?case by simp
 next
-  case insert thus ?case
-    by (clarsimp simp del: image_insert simp add: image_insert[symmetric])
-       blast
+  case (insert x F) then show ?case by cases auto
+qed
+
+lemma finite_subset_induct [consumes 2, case_names empty insert]:
+  assumes "finite F" and "F \<subseteq> A"
+  assumes empty: "P {}"
+    and insert: "\<And>a F. finite F \<Longrightarrow> a \<in> A \<Longrightarrow> a \<notin> F \<Longrightarrow> P F \<Longrightarrow> P (insert a F)"
+  shows "P F"
+using `finite F` `F \<subseteq> A` proof induct
+  show "P {}" by fact
+next
+  fix x F
+  assume "finite F" and "x \<notin> F" and
+    P: "F \<subseteq> A \<Longrightarrow> P F" and i: "insert x F \<subseteq> A"
+  show "P (insert x F)"
+  proof (rule insert)
+    from i show "x \<in> A" by blast
+    from i have "F \<subseteq> A" by blast
+    with P show "P F" .
+    show "finite F" by fact
+    show "x \<notin> F" by fact
+  qed
+qed
+
+lemma finite_empty_induct:
+  assumes "finite A"
+  assumes "P A"
+    and remove: "\<And>a A. finite A \<Longrightarrow> a \<in> A \<Longrightarrow> P A \<Longrightarrow> P (A - {a})"
+  shows "P {}"
+proof -
+  have "\<And>B. B \<subseteq> A \<Longrightarrow> P (A - B)"
+  proof -
+    fix B :: "'a set"
+    assume "B \<subseteq> A"
+    with `finite A` have "finite B" by (rule rev_finite_subset)
+    from this `B \<subseteq> A` show "P (A - B)"
+    proof induct
+      case empty
+      from `P A` show ?case by simp
+    next
+      case (insert b B)
+      have "P (A - B - {b})"
+      proof (rule remove)
+        from `finite A` show "finite (A - B)" by induct auto
+        from insert show "b \<in> A - B" by simp
+        from insert show "P (A - B)" by simp
+      qed
+      also have "A - B - {b} = A - insert b B" by (rule Diff_insert [symmetric])
+      finally show ?case .
+    qed
+  qed
+  then have "P (A - A)" by blast
+  then show ?thesis by simp
 qed
 
 
@@ -610,7 +585,7 @@ lemma fold_graph_imp_finite: "fold_graph f z A x \<Longrightarrow> finite A"
 by (induct set: fold_graph) auto
 
 lemma finite_imp_fold_graph: "finite A \<Longrightarrow> \<exists>x. fold_graph f z A x"
-by (induct set: finite) auto
+by (induct rule: finite_induct) auto
 
 
 subsubsection{*From @{const fold_graph} to @{term fold}*}
@@ -949,13 +924,14 @@ begin
 
 lemma fold_image_1:
   "finite S \<Longrightarrow> (\<forall>x\<in>S. f x = 1) \<Longrightarrow> fold_image op * f 1 S = 1"
-  apply (induct set: finite)
+  apply (induct rule: finite_induct)
   apply simp by auto
 
 lemma fold_image_Un_Int:
   "finite A ==> finite B ==>
     fold_image times g 1 A * fold_image times g 1 B =
     fold_image times g 1 (A Un B) * fold_image times g 1 (A Int B)"
+  apply (induct rule: finite_induct)
 by (induct set: finite) 
    (auto simp add: mult_ac insert_absorb Int_insert_left)
 
@@ -981,7 +957,9 @@ lemma fold_image_UN_disjoint:
      ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {} \<rbrakk>
    \<Longrightarrow> fold_image times g 1 (UNION I A) =
        fold_image times (%i. fold_image times g 1 (A i)) 1 I"
-apply (induct set: finite, simp, atomize)
+apply (induct rule: finite_induct)
+apply simp
+apply atomize
 apply (subgoal_tac "ALL i:F. x \<noteq> i")
  prefer 2 apply blast
 apply (subgoal_tac "A x Int UNION F A = {}")
@@ -1599,7 +1577,9 @@ lemma UNION_disjoint:
   and "\<forall>i\<in>I. \<forall>j\<in>I. i \<noteq> j \<longrightarrow> A i \<inter> A j = {}"
   shows "F g (UNION I A) = F (F g \<circ> A) I"
 apply (insert assms)
-apply (induct set: finite, simp, atomize)
+apply (induct rule: finite_induct)
+apply simp
+apply atomize
 apply (subgoal_tac "\<forall>i\<in>Fa. x \<noteq> i")
  prefer 2 apply blast
 apply (subgoal_tac "A x Int UNION Fa A = {}")
@@ -1975,7 +1955,9 @@ proof -
 qed
 
 lemma card_seteq: "finite B ==> (!!A. A <= B ==> card B <= card A ==> A = B)"
-apply (induct set: finite, simp, clarify)
+apply (induct rule: finite_induct)
+apply simp
+apply clarify
 apply (subgoal_tac "finite A & A - {x} <= F")
  prefer 2 apply (blast intro: finite_subset, atomize)
 apply (drule_tac x = "A - {x}" in spec)
@@ -2146,7 +2128,7 @@ lemma card_UNIV_unit: "card (UNIV :: unit set) = 1"
 subsubsection {* Cardinality of image *}
 
 lemma card_image_le: "finite A ==> card (f ` A) <= card A"
-apply (induct set: finite)
+apply (induct rule: finite_induct)
  apply simp
 apply (simp add: le_SucI card_insert_if)
 done
@@ -2197,6 +2179,7 @@ lemma bij_betw_finite:
   shows "finite A \<longleftrightarrow> finite B"
 using assms unfolding bij_betw_def
 using finite_imageD[of f A] by auto
+
 
 subsubsection {* Pigeonhole Principles *}
 
@@ -2267,7 +2250,7 @@ lemma card_Plus_conv_if:
 subsubsection {* Cardinality of the Powerset *}
 
 lemma card_Pow: "finite A ==> card (Pow A) = Suc (Suc 0) ^ card A"  (* FIXME numeral 2 (!?) *)
-apply (induct set: finite)
+apply (induct rule: finite_induct)
  apply (simp_all add: Pow_insert)
 apply (subst card_Un_disjoint, blast)
   apply (blast, blast)
@@ -2284,9 +2267,11 @@ lemma dvd_partition:
     ALL c : C. k dvd card c ==>
     (ALL c1: C. ALL c2: C. c1 \<noteq> c2 --> c1 Int c2 = {}) ==>
   k dvd card (Union C)"
-apply(frule finite_UnionD)
-apply(rotate_tac -1)
-apply (induct set: finite, simp_all, clarify)
+apply (frule finite_UnionD)
+apply (rotate_tac -1)
+apply (induct rule: finite_induct)
+apply simp_all
+apply clarify
 apply (subst card_Un_disjoint)
    apply (auto simp add: disjoint_eq_subset_Compl)
 done
@@ -2294,7 +2279,7 @@ done
 
 subsubsection {* Relating injectivity and surjectivity *}
 
-lemma finite_surj_inj: "finite(A) \<Longrightarrow> A <= f`A \<Longrightarrow> inj_on f A"
+lemma finite_surj_inj: "finite A \<Longrightarrow> A \<subseteq> f ` A \<Longrightarrow> inj_on f A"
 apply(rule eq_card_imp_inj_on, assumption)
 apply(frule finite_imageI)
 apply(drule (1) card_seteq)
