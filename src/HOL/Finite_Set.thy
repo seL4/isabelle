@@ -9,15 +9,6 @@ theory Finite_Set
 imports Option Power
 begin
 
--- {* FIXME move *}
-
-lemma inj_vimage_singleton: "inj f \<Longrightarrow> f -` {a} \<subseteq> {THE x. f x = a}"
-  -- {* The inverse image of a singleton under an injective function
-         is included in a singleton. *}
-  apply (auto simp add: inj_on_def)
-  apply (blast intro: the_equality [symmetric])
-  done
-
 subsection {* Predicate for finite sets *}
 
 inductive finite :: "'a set \<Rightarrow> bool"
