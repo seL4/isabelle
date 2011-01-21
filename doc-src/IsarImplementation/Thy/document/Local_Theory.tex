@@ -122,7 +122,8 @@ There are separate elements \isa{{\isaliteral{5C3C444546494E453E}{\isasymDEFINE}
 \begin{isamarkuptext}%
 \begin{mldecls}
   \indexdef{}{ML type}{local\_theory}\verb|type local_theory = Proof.context| \\
-  \indexdef{}{ML}{Named\_Target.init}\verb|Named_Target.init: string -> theory -> local_theory| \\[1ex]
+  \indexdef{}{ML}{Named\_Target.init}\verb|Named_Target.init: (local_theory -> local_theory) ->|\isasep\isanewline%
+\verb|    string -> theory -> local_theory| \\[1ex]
   \indexdef{}{ML}{Local\_Theory.define}\verb|Local_Theory.define: (binding * mixfix) * (Attrib.binding * term) ->|\isasep\isanewline%
 \verb|    local_theory -> (term * (string * thm)) * local_theory| \\
   \indexdef{}{ML}{Local\_Theory.note}\verb|Local_Theory.note: Attrib.binding * thm list ->|\isasep\isanewline%
@@ -138,13 +139,14 @@ There are separate elements \isa{{\isaliteral{5C3C444546494E453E}{\isasymDEFINE}
   any value \isa{lthy{\isaliteral{3A}{\isacharcolon}}}~\verb|local_theory| can be also used
   with operations on expecting a regular \isa{ctxt{\isaliteral{3A}{\isacharcolon}}}~\verb|Proof.context|.
 
-  \item \verb|Named_Target.init|~\isa{name\ thy} initializes a local
-  theory derived from the given background theory.  An empty name
-  refers to a \emph{global theory} context, and a non-empty name
-  refers to a \hyperlink{command.locale}{\mbox{\isa{\isacommand{locale}}}} or \hyperlink{command.class}{\mbox{\isa{\isacommand{class}}}} context (a
-  fully-qualified internal name is expected here).  This is useful for
-  experimentation --- normally the Isar toplevel already takes care to
-  initialize the local theory context.
+  \item \verb|Named_Target.init|~\isa{before{\isaliteral{5F}{\isacharunderscore}}exit\ name\ thy}
+  initializes a local theory derived from the given background theory.
+  An empty name refers to a \emph{global theory} context, and a
+  non-empty name refers to a \hyperlink{command.locale}{\mbox{\isa{\isacommand{locale}}}} or \hyperlink{command.class}{\mbox{\isa{\isacommand{class}}}}
+  context (a fully-qualified internal name is expected here).  This is
+  useful for experimentation --- normally the Isar toplevel already
+  takes care to initialize the local theory context.  The given \isa{before{\isaliteral{5F}{\isacharunderscore}}exit} function is invoked before leaving the context; in
+  most situations plain identity \verb|I| is sufficient.
 
   \item \verb|Local_Theory.define|~\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}b{\isaliteral{2C}{\isacharcomma}}\ mx{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{28}{\isacharparenleft}}a{\isaliteral{2C}{\isacharcomma}}\ rhs{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ lthy} defines a local entity according to the specification that is
   given relatively to the current \isa{lthy} context.  In
