@@ -3,7 +3,8 @@
 ;; Examples for sensible settings:
 
 (custom-set-variables '(indent-tabs-mode nil))
-(custom-set-variables '(proof-shell-quit-timeout 45))
+
+;(custom-set-variables '(proof-shell-quit-timeout 60))
 
 ;(custom-set-variables '(isar-eta-contract nil))
 
