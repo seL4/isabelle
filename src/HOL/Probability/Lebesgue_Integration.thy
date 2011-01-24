@@ -471,20 +471,26 @@ lemma (in sigma_algebra) simple_function_subalgebra:
   unfolding sigma_algebra.simple_function_def[OF N_subalgebra(3)]
   by auto
 
-lemma (in sigma_algebra) simple_function_vimage:
-  fixes g :: "'a \<Rightarrow> pextreal" and f :: "'d \<Rightarrow> 'a"
-  assumes g: "simple_function g" and f: "f \<in> S \<rightarrow> space M"
-  shows "sigma_algebra.simple_function (vimage_algebra S f) (\<lambda>x. g (f x))"
-proof -
-  have subset: "(\<lambda>x. g (f x)) ` S \<subseteq> g ` space M"
-    using f by auto
-  interpret V: sigma_algebra "vimage_algebra S f"
-    using f by (rule sigma_algebra_vimage)
-  show ?thesis using g
-    unfolding simple_function_eq_borel_measurable
-    unfolding V.simple_function_eq_borel_measurable
-    using measurable_vimage[OF _ f, of g borel]
-    using finite_subset[OF subset] by auto
+lemma (in measure_space) simple_function_vimage:
+  assumes T: "sigma_algebra M'" "T \<in> measurable M M'"
+    and f: "sigma_algebra.simple_function M' f"
+  shows "simple_function (\<lambda>x. f (T x))"
+proof (intro simple_function_def[THEN iffD2] conjI ballI)
+  interpret T: sigma_algebra M' by fact
+  have "(\<lambda>x. f (T x)) ` space M \<subseteq> f ` space M'"
+    using T unfolding measurable_def by auto
+  then show "finite ((\<lambda>x. f (T x)) ` space M)"
+    using f unfolding T.simple_function_def by (auto intro: finite_subset)
+  fix i assume i: "i \<in> (\<lambda>x. f (T x)) ` space M"
+  then have "i \<in> f ` space M'"
+    using T unfolding measurable_def by auto
+  then have "f -` {i} \<inter> space M' \<in> sets M'"
+    using f unfolding T.simple_function_def by auto
+  then have "T -` (f -` {i} \<inter> space M') \<inter> space M \<in> sets M"
+    using T unfolding measurable_def by auto
+  also have "T -` (f -` {i} \<inter> space M') \<inter> space M = (\<lambda>x. f (T x)) -` {i} \<inter> space M"
+    using T unfolding measurable_def by auto
+  finally show "(\<lambda>x. f (T x)) -` {i} \<inter> space M \<in> sets M" .
 qed
 
 section "Simple integral"
@@ -816,28 +822,30 @@ lemma (in measure_space) simple_integral_subalgebra:
   unfolding measure_space.simple_integral_def_raw[OF N] by simp
 
 lemma (in measure_space) simple_integral_vimage:
-  fixes g :: "'a \<Rightarrow> pextreal" and f :: "'d \<Rightarrow> 'a"
-  assumes f: "bij_betw f S (space M)"
-  shows "simple_integral g =
-         measure_space.simple_integral (vimage_algebra S f) (\<lambda>A. \<mu> (f ` A)) (\<lambda>x. g (f x))"
-    (is "_ = measure_space.simple_integral ?T ?\<mu> _")
+  assumes T: "sigma_algebra M'" "T \<in> measurable M M'"
+    and f: "sigma_algebra.simple_function M' f"
+  shows "measure_space.simple_integral M' (\<lambda>A. \<mu> (T -` A \<inter> space M)) f = (\<integral>\<^isup>S x. f (T x))"
+    (is "measure_space.simple_integral M' ?nu f = _")
 proof -
-  from f interpret T: measure_space ?T ?\<mu> by (rule measure_space_isomorphic)
-  have surj: "f`S = space M"
-    using f unfolding bij_betw_def by simp
-  have *: "(\<lambda>x. g (f x)) ` S = g ` f ` S" by auto
-  have **: "f`S = space M" using f unfolding bij_betw_def by auto
-  { fix x assume "x \<in> space M"
-    have "(f ` ((\<lambda>x. g (f x)) -` {g x} \<inter> S)) =
-      (f ` (f -` (g -` {g x}) \<inter> S))" by auto
-    also have "f -` (g -` {g x}) \<inter> S = f -` (g -` {g x} \<inter> space M) \<inter> S"
-      using f unfolding bij_betw_def by auto
-    also have "(f ` (f -` (g -` {g x} \<inter> space M) \<inter> S)) = g -` {g x} \<inter> space M"
-      using ** by (intro image_vimage_inter_eq) auto
-    finally have "(f ` ((\<lambda>x. g (f x)) -` {g x} \<inter> S)) = g -` {g x} \<inter> space M" by auto }
-  then show ?thesis using assms
-    unfolding simple_integral_def T.simple_integral_def bij_betw_def
-    by (auto simp add: * intro!: setsum_cong)
+  interpret T: measure_space M' ?nu using T by (rule measure_space_vimage) auto
+  show "T.simple_integral f = (\<integral>\<^isup>S x. f (T x))"
+    unfolding simple_integral_def T.simple_integral_def
+  proof (intro setsum_mono_zero_cong_right ballI)
+    show "(\<lambda>x. f (T x)) ` space M \<subseteq> f ` space M'"
+      using T unfolding measurable_def by auto
+    show "finite (f ` space M')"
+      using f unfolding T.simple_function_def by auto
+  next
+    fix i assume "i \<in> f ` space M' - (\<lambda>x. f (T x)) ` space M"
+    then have "T -` (f -` {i} \<inter> space M') \<inter> space M = {}" by (auto simp: image_iff)
+    then show "i * \<mu> (T -` (f -` {i} \<inter> space M') \<inter> space M) = 0" by simp
+  next
+    fix i assume "i \<in> (\<lambda>x. f (T x)) ` space M"
+    then have "T -` (f -` {i} \<inter> space M') \<inter> space M = (\<lambda>x. f (T x)) -` {i} \<inter> space M"
+      using T unfolding measurable_def by auto
+    then show "i * \<mu> (T -` (f -` {i} \<inter> space M') \<inter> space M) = i * \<mu> ((\<lambda>x. f (T x)) -` {i} \<inter> space M)"
+      by auto
+  qed
 qed
 
 section "Continuous posititve integration"
@@ -1016,71 +1024,6 @@ lemma image_set_cong:
   shows "f ` A = g ` B"
   using assms by blast
 
-lemma (in measure_space) positive_integral_vimage:
-  fixes g :: "'a \<Rightarrow> pextreal" and f :: "'d \<Rightarrow> 'a"
-  assumes f: "bij_betw f S (space M)"
-  shows "positive_integral g =
-         measure_space.positive_integral (vimage_algebra S f) (\<lambda>A. \<mu> (f ` A)) (\<lambda>x. g (f x))"
-    (is "_ = measure_space.positive_integral ?T ?\<mu> _")
-proof -
-  from f interpret T: measure_space ?T ?\<mu> by (rule measure_space_isomorphic)
-  have f_fun: "f \<in> S \<rightarrow> space M" using assms unfolding bij_betw_def by auto
-  from assms have inv: "bij_betw (the_inv_into S f) (space M) S"
-    by (rule bij_betw_the_inv_into)
-  then have inv_fun: "the_inv_into S f \<in> space M \<rightarrow> S" unfolding bij_betw_def by auto
-  have surj: "f`S = space M"
-    using f unfolding bij_betw_def by simp
-  have inj: "inj_on f S"
-    using f unfolding bij_betw_def by simp
-  have inv_f: "\<And>x. x \<in> space M \<Longrightarrow> f (the_inv_into S f x) = x"
-    using f_the_inv_into_f[of f S] f unfolding bij_betw_def by auto
-  from simple_integral_vimage[OF assms, symmetric]
-  have *: "simple_integral = T.simple_integral \<circ> (\<lambda>g. g \<circ> f)" by (simp add: comp_def)
-  show ?thesis
-    unfolding positive_integral_alt1 T.positive_integral_alt1 SUPR_def * image_compose
-  proof (safe intro!: arg_cong[where f=Sup] image_set_cong, simp_all add: comp_def)
-    fix g' :: "'a \<Rightarrow> pextreal" assume "simple_function g'" "\<forall>x\<in>space M. g' x \<le> g x \<and> g' x \<noteq> \<omega>"
-    then show "\<exists>h. T.simple_function h \<and> (\<forall>x\<in>S. h x \<le> g (f x) \<and> h x \<noteq> \<omega>) \<and>
-                   T.simple_integral (\<lambda>x. g' (f x)) = T.simple_integral h"
-      using f unfolding bij_betw_def
-      by (auto intro!: exI[of _ "\<lambda>x. g' (f x)"]
-               simp add: le_fun_def simple_function_vimage[OF _ f_fun])
-  next
-    fix g' :: "'d \<Rightarrow> pextreal" assume g': "T.simple_function g'" "\<forall>x\<in>S. g' x \<le> g (f x) \<and> g' x \<noteq> \<omega>"
-    let ?g = "\<lambda>x. g' (the_inv_into S f x)"
-    show "\<exists>h. simple_function h \<and> (\<forall>x\<in>space M. h x \<le> g x \<and> h x \<noteq> \<omega>) \<and>
-              T.simple_integral g' = T.simple_integral (\<lambda>x. h (f x))"
-    proof (intro exI[of _ ?g] conjI ballI)
-      { fix x assume x: "x \<in> space M"
-        then have "the_inv_into S f x \<in> S" using inv_fun by auto
-        with g' have "g' (the_inv_into S f x) \<le> g (f (the_inv_into S f x)) \<and> g' (the_inv_into S f x) \<noteq> \<omega>"
-          by auto
-        then show "g' (the_inv_into S f x) \<le> g x" "g' (the_inv_into S f x) \<noteq> \<omega>"
-          using f_the_inv_into_f[of f S x] x f unfolding bij_betw_def by auto }
-      note vimage_vimage_inv[OF f inv_f inv_fun, simp]
-      from T.simple_function_vimage[OF g'(1), unfolded space_vimage_algebra, OF inv_fun]
-      show "simple_function (\<lambda>x. g' (the_inv_into S f x))"
-        unfolding simple_function_def by (simp add: simple_function_def)
-      show "T.simple_integral g' = T.simple_integral (\<lambda>x. ?g (f x))"
-        using the_inv_into_f_f[OF inj] by (auto intro!: T.simple_integral_cong)
-    qed
-  qed
-qed
-
-lemma (in measure_space) positive_integral_vimage_inv:
-  fixes g :: "'d \<Rightarrow> pextreal" and f :: "'d \<Rightarrow> 'a"
-  assumes f: "bij_inv S (space M) f h"
-  shows "measure_space.positive_integral (vimage_algebra S f) (\<lambda>A. \<mu> (f ` A)) g =
-      (\<integral>\<^isup>+x. g (h x))"
-proof -
-  interpret v: measure_space "vimage_algebra S f" "\<lambda>A. \<mu> (f ` A)"
-    using f by (rule measure_space_isomorphic[OF bij_inv_bij_betw(1)])
-  show ?thesis
-    unfolding positive_integral_vimage[OF f[THEN bij_inv_bij_betw(1)], of "\<lambda>x. g (h x)"]
-    using f[unfolded bij_inv_def]
-    by (auto intro!: v.positive_integral_cong)
-qed
-
 lemma (in measure_space) positive_integral_SUP_approx:
   assumes "f \<up> s"
   and f: "\<And>i. f i \<in> borel_measurable M"
@@ -1244,6 +1187,23 @@ lemma (in measure_space) positive_integral_isoton_simple:
   shows "(\<lambda>i. simple_integral (f i)) \<up> positive_integral u"
   using positive_integral_isoton[OF `f \<up> u` e(1)[THEN borel_measurable_simple_function]]
   unfolding positive_integral_eq_simple_integral[OF e] .
+
+lemma (in measure_space) positive_integral_vimage:
+  assumes T: "sigma_algebra M'" "T \<in> measurable M M'" and f: "f \<in> borel_measurable M'"
+  shows "measure_space.positive_integral M' (\<lambda>A. \<mu> (T -` A \<inter> space M)) f = (\<integral>\<^isup>+ x. f (T x))"
+    (is "measure_space.positive_integral M' ?nu f = _")
+proof -
+  interpret T: measure_space M' ?nu using T by (rule measure_space_vimage) auto
+  obtain f' where f': "f' \<up> f" "\<And>i. T.simple_function (f' i)"
+    using T.borel_measurable_implies_simple_function_sequence[OF f] by blast
+  then have f: "(\<lambda>i x. f' i (T x)) \<up> (\<lambda>x. f (T x))" "\<And>i. simple_function (\<lambda>x. f' i (T x))"
+    using simple_function_vimage[OF T] unfolding isoton_fun_expand by auto
+  show "T.positive_integral f = (\<integral>\<^isup>+ x. f (T x))"
+    using positive_integral_isoton_simple[OF f]
+    using T.positive_integral_isoton_simple[OF f']
+    unfolding simple_integral_vimage[OF T f'(2)] isoton_def
+    by simp
+qed
 
 lemma (in measure_space) positive_integral_linear:
   assumes f: "f \<in> borel_measurable M"
@@ -1614,21 +1574,21 @@ proof -
   thus ?thesis by (simp del: Real_eq_0 add: integral_def)
 qed
 
-lemma (in measure_space) integral_vimage_inv:
-  assumes f: "bij_betw f S (space M)"
-  shows "measure_space.integral (vimage_algebra S f) (\<lambda>A. \<mu> (f ` A)) (\<lambda>x. g x) = (\<integral>x. g (the_inv_into S f x))"
+lemma (in measure_space) integral_vimage:
+  assumes T: "sigma_algebra M'" "T \<in> measurable M M'"
+  assumes f: "measure_space.integrable M' (\<lambda>A. \<mu> (T -` A \<inter> space M)) f"
+  shows "integrable (\<lambda>x. f (T x))" (is ?P)
+    and "measure_space.integral M' (\<lambda>A. \<mu> (T -` A \<inter> space M)) f = (\<integral>x. f (T x))" (is ?I)
 proof -
-  interpret v: measure_space "vimage_algebra S f" "\<lambda>A. \<mu> (f ` A)"
-    using f by (rule measure_space_isomorphic)
-  have "\<And>x. x \<in> space (vimage_algebra S f) \<Longrightarrow> the_inv_into S f (f x) = x"
-    using f[unfolded bij_betw_def] by (simp add: the_inv_into_f_f)
-  then have *: "v.positive_integral (\<lambda>x. Real (g (the_inv_into S f (f x)))) = v.positive_integral (\<lambda>x. Real (g x))"
-     "v.positive_integral (\<lambda>x. Real (- g (the_inv_into S f (f x)))) = v.positive_integral (\<lambda>x. Real (- g x))"
-    by (auto intro!: v.positive_integral_cong)
-  show ?thesis
-    unfolding integral_def v.integral_def
-    unfolding positive_integral_vimage[OF f]
-    by (simp add: *)
+  interpret T: measure_space M' "\<lambda>A. \<mu> (T -` A \<inter> space M)"
+    using T by (rule measure_space_vimage) auto
+  from measurable_comp[OF T(2), of f borel]
+  have borel: "(\<lambda>x. Real (f x)) \<in> borel_measurable M'" "(\<lambda>x. Real (- f x)) \<in> borel_measurable M'"
+    and "(\<lambda>x. f (T x)) \<in> borel_measurable M"
+    using f unfolding T.integrable_def by (auto simp: comp_def)
+  then show ?P ?I
+    using f unfolding T.integral_def integral_def T.integrable_def integrable_def
+    unfolding borel[THEN positive_integral_vimage[OF T]] by auto
 qed
 
 lemma (in measure_space) integral_minus[intro, simp]:

@@ -525,6 +525,15 @@ proof (rule antisym)
   qed
 qed
 
+lemma True
+proof
+  fix x a b :: nat
+  have "\<And>x a b :: int. x dvd a \<Longrightarrow> x dvd (a + b) \<Longrightarrow> x dvd b"
+    by (metis dvd_mult_div_cancel zadd_commute zdvd_reduce)
+  then have "x dvd a \<Longrightarrow> x dvd (a + b) \<Longrightarrow> x dvd b"
+    unfolding zdvd_int[of x] zadd_int[symmetric] .
+qed
+
 lemma measure_unique_Int_stable:
   fixes M E :: "'a algebra" and A :: "nat \<Rightarrow> 'a set"
   assumes "Int_stable E" "M = sigma E"
@@ -606,45 +615,6 @@ proof -
   then have "(\<lambda>i. \<mu> (A i \<inter> X)) \<up> \<mu> X" "(\<lambda>i. \<nu> (A i \<inter> X)) \<up> \<nu> X"
     using `X \<in> sets M` A' by (auto intro!: M.measure_up M'.measure_up M.Int)
   ultimately show ?thesis by (simp add: isoton_def)
-qed
-
-section "Isomorphisms between measure spaces"
-
-lemma (in measure_space) measure_space_isomorphic:
-  fixes f :: "'c \<Rightarrow> 'a"
-  assumes "bij_betw f S (space M)"
-  shows "measure_space (vimage_algebra S f) (\<lambda>A. \<mu> (f ` A))"
-    (is "measure_space ?T ?\<mu>")
-proof -
-  have "f \<in> S \<rightarrow> space M" using assms unfolding bij_betw_def by auto
-  then interpret T: sigma_algebra ?T by (rule sigma_algebra_vimage)
-  show ?thesis
-  proof
-    show "\<mu> (f`{}) = 0" by simp
-    show "countably_additive ?T (\<lambda>A. \<mu> (f ` A))"
-    proof (unfold countably_additive_def, intro allI impI)
-      fix A :: "nat \<Rightarrow> 'c set" assume "range A \<subseteq> sets ?T" "disjoint_family A"
-      then have "\<forall>i. \<exists>F'. F' \<in> sets M \<and> A i = f -` F' \<inter> S"
-        by (auto simp: image_iff image_subset_iff Bex_def vimage_algebra_def)
-      from choice[OF this] obtain F where F: "\<And>i. F i \<in> sets M" and A: "\<And>i. A i = f -` F i \<inter> S" by auto
-      then have [simp]: "\<And>i. f ` (A i) = F i"
-        using sets_into_space assms
-        by (force intro!: image_vimage_inter_eq[where T="space M"] simp: bij_betw_def)
-      have "disjoint_family F"
-      proof (intro disjoint_family_on_bisimulation[OF `disjoint_family A`])
-        fix n m assume "A n \<inter> A m = {}"
-        then have "f -` (F n \<inter> F m) \<inter> S = {}" unfolding A by auto
-        moreover
-        have "F n \<in> sets M" "F m \<in> sets M" using F by auto
-        then have "f`S = space M" "F n \<inter> F m \<subseteq> space M"
-          using sets_into_space assms by (auto simp: bij_betw_def)
-        note image_vimage_inter_eq[OF this, symmetric]
-        ultimately show "F n \<inter> F m = {}" by simp
-      qed
-      with F show "(\<Sum>\<^isub>\<infinity> i. \<mu> (f ` A i)) = \<mu> (f ` (\<Union>i. A i))"
-        by (auto simp add: image_UN intro!: measure_countably_additive)
-    qed
-  qed
 qed
 
 section "@{text \<mu>}-null sets"
@@ -879,27 +849,28 @@ qed
 
 lemma (in measure_space) measure_space_vimage:
   fixes M' :: "'b algebra"
-  assumes "f \<in> measurable M M'"
-  and "sigma_algebra M'"
-  shows "measure_space M' (\<lambda>A. \<mu> (f -` A \<inter> space M))" (is "measure_space M' ?T")
+  assumes T: "sigma_algebra M'" "T \<in> measurable M M'"
+    and \<nu>: "\<And>A. A \<in> sets M' \<Longrightarrow> \<nu> A = \<mu> (T -` A \<inter> space M)"
+  shows "measure_space M' \<nu>"
 proof -
   interpret M': sigma_algebra M' by fact
-
   show ?thesis
   proof
-    show "?T {} = 0" by simp
+    show "\<nu> {} = 0" using \<nu>[of "{}"] by simp
 
-    show "countably_additive M' ?T"
-    proof (unfold countably_additive_def, safe)
+    show "countably_additive M' \<nu>"
+    proof (intro countably_additive_def[THEN iffD2] allI impI)
       fix A :: "nat \<Rightarrow> 'b set" assume "range A \<subseteq> sets M'" "disjoint_family A"
-      hence *: "\<And>i. f -` (A i) \<inter> space M \<in> sets M"
-        using `f \<in> measurable M M'` by (auto simp: measurable_def)
-      moreover have "(\<Union>i. f -`  A i \<inter> space M) \<in> sets M"
+      then have A: "\<And>i. A i \<in> sets M'" "(\<Union>i. A i) \<in> sets M'" by auto
+      then have *: "range (\<lambda>i. T -` (A i) \<inter> space M) \<subseteq> sets M"
+        using `T \<in> measurable M M'` by (auto simp: measurable_def)
+      moreover have "(\<Union>i. T -`  A i \<inter> space M) \<in> sets M"
         using * by blast
-      moreover have **: "disjoint_family (\<lambda>i. f -` A i \<inter> space M)"
+      moreover have **: "disjoint_family (\<lambda>i. T -` A i \<inter> space M)"
         using `disjoint_family A` by (auto simp: disjoint_family_on_def)
-      ultimately show "(\<Sum>\<^isub>\<infinity> i. ?T (A i)) = ?T (\<Union>i. A i)"
-        using measure_countably_additive[OF _ **] by (auto simp: comp_def vimage_UN)
+      ultimately show "(\<Sum>\<^isub>\<infinity> i. \<nu> (A i)) = \<nu> (\<Union>i. A i)"
+        using measure_countably_additive[OF _ **] A
+        by (auto simp: comp_def vimage_UN \<nu>)
     qed
   qed
 qed
@@ -1004,29 +975,6 @@ proof -
       using F by (auto simp: setsum_\<omega>)
     finally show "\<mu> (\<Union> i\<le>n. F i) \<noteq> \<omega>" by simp
   qed force+
-qed
-
-lemma (in sigma_finite_measure) sigma_finite_measure_isomorphic:
-  assumes f: "bij_betw f S (space M)"
-  shows "sigma_finite_measure (vimage_algebra S f) (\<lambda>A. \<mu> (f ` A))"
-proof -
-  interpret M: measure_space "vimage_algebra S f" "\<lambda>A. \<mu> (f ` A)"
-    using f by (rule measure_space_isomorphic)
-  show ?thesis
-  proof default
-    from sigma_finite guess A::"nat \<Rightarrow> 'a set" .. note A = this
-    show "\<exists>A::nat\<Rightarrow>'b set. range A \<subseteq> sets (vimage_algebra S f) \<and> (\<Union>i. A i) = space (vimage_algebra S f) \<and> (\<forall>i. \<mu> (f ` A i) \<noteq> \<omega>)"
-    proof (intro exI conjI)
-      show "(\<Union>i::nat. f -` A i \<inter> S) = space (vimage_algebra S f)"
-        using A f[THEN bij_betw_imp_funcset] by (auto simp: vimage_UN[symmetric])
-      show "range (\<lambda>i. f -` A i \<inter> S) \<subseteq> sets (vimage_algebra S f)"
-        using A by (auto simp: vimage_algebra_def)
-      have "\<And>i. f ` (f -` A i \<inter> S) = A i"
-        using f A sets_into_space
-        by (intro image_vimage_inter_eq) (auto simp: bij_betw_def)
-      then show "\<forall>i. \<mu> (f ` (f -` A i \<inter> S)) \<noteq> \<omega>"  using A by simp
-    qed
-  qed
 qed
 
 section "Real measure values"
