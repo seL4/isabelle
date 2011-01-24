@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 
@@ -9,7 +9,7 @@
 
 <body>
 
-<h2>Notes on the Isabelle/jEdit Prover IDE</h2>
+<h2>The Isabelle/jEdit Prover IDE</h2>
 
 <ul>
 
@@ -33,6 +33,70 @@
   windows by jEdit, which also allows multiple instances.</li>
 
 </ul>
+
+
+<h2>Isabelle symbols and fonts</h2>
+
+<ul>
+
+  <li>Isabelle supports infinitely many symbols:<br/>
+    &alpha;, &beta;, &gamma;, &hellip;<br/>
+    &forall;, &exist;, &or;, &and;, &#10230;, &#10231;, &hellip;<br/>
+    &le;, &ge;, &#8851;, &#8852;, &hellip;<br/>
+    &#8501;, &#9651;, &#8711;, &hellip;<br/>
+    <tt>\&lt;foo&gt;</tt>, <tt>\&lt;bar&gt;</tt>, <tt>\&lt;baz&gt;</tt>, &hellip;<br/>
+  </li>
+
+  <li>A default mapping relates some Isabelle symbols to Unicode points
+    (see <tt>$ISABELLE_HOME/etc/symbols</tt> and <tt>$ISABELLE_HOME_USER/etc/symbols</tt>).
+  </li>
+
+  <li>The <em>IsabelleText</em> font ensures that Unicode points are actually
+    seen on the screen (or printer).
+  </li>
+
+  <li>Input methods:
+    <ul>
+      <li>copy/paste from decoded source files</li>
+      <li>copy/paste from prover output</li>
+      <li>completion provided by Isabelle plugin, e.g.<br/>
+
+      <table border="1">
+      <tr><th><b>name</b></th>    <th><b>abbreviation</b></th>  <th><b>symbol</b></th></tr>
+
+      <tr><td>lambda</td>         <td></td>                     <td>&lambda;</td></tr>
+      <tr><td>Rightarrow</td>     <td><tt>=&gt;</tt></td>       <td>&#8658;</td></tr>
+      <tr><td>Longrightarrow</td> <td><tt>==&gt;</tt></td>      <td>&#10233;</td></tr>
+
+      <tr><td>And</td>            <td><tt>!!</tt></td>          <td>&#8896;</td></tr>
+      <tr><td>equiv</td>          <td><tt>==</tt></td>          <td>&equiv;</td></tr>
+
+      <tr><td>forall</td>         <td><tt>!</tt></td>           <td>&forall;</td></tr>
+      <tr><td>exists</td>         <td><tt>?</tt></td>           <td>&exist;</td></tr>
+      <tr><td>longrightarrow</td> <td><tt>--&gt;</tt></td>      <td>&#10230;</td></tr>
+      <tr><td>and</td>            <td><tt>/\</tt></td>          <td>&and;</td></tr>
+      <tr><td>or</td>             <td><tt>\/</tt></td>          <td>&or;</td></tr>
+      <tr><td>not</td>            <td><tt>~ </tt></td>          <td>&not;</td></tr>
+      <tr><td>noteq</td>          <td><tt>~=</tt></td>          <td>&ne;</td></tr>
+      <tr><td>in</td>             <td><tt>:</tt></td>           <td>&isin;</td></tr>
+      <tr><td>notin</td>          <td><tt>~:</tt></td>          <td>&notin;</td></tr>
+    </table>
+    </li>
+  </ul>
+  </li>
+
+  <li><b>NOTE:</b> The above abbreviations refer to the input method.
+    The logical notation provides ASCII alternatives that often
+    coincide, but deviate occasionally.
+  </li>
+
+  <li><b>NOTE:</b> Generic jEdit abbreviations or plugins perform similar
+    source replacement operations; this works for Isabelle as long
+    as the Unicode sequences coincide with the symbol mapping.
+  </li>
+
+</ul>
+
 
 <h2>Limitations and workrounds (January 2011)</h2>
 
