@@ -69,10 +69,20 @@ echo "heaps"
 tar -C "$TMP" -x -z -f "$HEAPS_ARCHIVE"
 
 
-if [ "$PLATFORM" = x86-cygwin ]; then
-  rm "$TMP/$ISABELLE_NAME/contrib/ProofGeneral"
-  ln -s ProofGeneral-3.7.1.1 "$TMP/$ISABELLE_NAME/contrib/ProofGeneral"
-fi
+case "$PLATFORM" in
+  x86-linux)
+    (
+      cd "$TMP/$ISABELLE_NAME/contrib/ProofGeneral"
+      find . -name "*.elc" -exec rm {} ";"
+    )
+    ;;
+  x86-cygwin)
+    rm "$TMP/$ISABELLE_NAME/contrib/ProofGeneral"
+    ln -s ProofGeneral-3.7.1.1 "$TMP/$ISABELLE_NAME/contrib/ProofGeneral"
+    ;;
+  *)
+    ;;
+esac
 
 BUNDLE_ARCHIVE="${ARCHIVE_DIR}/${ISABELLE_NAME}_bundle_${PLATFORM}.tar.gz"
 
