@@ -195,8 +195,8 @@ lemma (in prob_space) distribution_prob_space:
   assumes "random_variable S X"
   shows "prob_space S (distribution X)"
 proof -
-  interpret S: measure_space S "distribution X"
-    using measure_space_vimage[of X S] assms unfolding distribution_def by simp
+  interpret S: measure_space S "distribution X" unfolding distribution_def
+    using assms by (intro measure_space_vimage) auto
   show ?thesis
   proof
     have "X -` space S \<inter> space M = space M"

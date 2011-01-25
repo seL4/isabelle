@@ -180,30 +180,6 @@ proof -
     by (simp add: cong \<nu>.integral_cong_measure[OF cong(2)])
 qed
 
-lemma (in sigma_finite_measure) KL_divergence_vimage:
-  assumes f: "bij_betw f S (space M)"
-  assumes \<nu>: "measure_space M \<nu>" "absolutely_continuous \<nu>"
-  shows "KL_divergence b (vimage_algebra S f) (\<lambda>A. \<nu> (f ` A)) (\<lambda>A. \<mu> (f ` A)) = KL_divergence b M \<nu> \<mu>"
-    (is "KL_divergence b ?M ?\<nu> ?\<mu> = _")
-proof -
-  interpret \<nu>: measure_space M \<nu> by fact
-  interpret v: measure_space ?M ?\<nu>
-    using f by (rule \<nu>.measure_space_isomorphic)
-
-  let ?RN = "sigma_finite_measure.RN_deriv ?M ?\<mu> ?\<nu>"
-  from RN_deriv_vimage[OF f[THEN bij_inv_the_inv_into] \<nu>]
-  have *: "\<nu>.almost_everywhere (\<lambda>x. ?RN (the_inv_into S f x) = RN_deriv \<nu> x)"
-    by (rule absolutely_continuous_AE[OF \<nu>])
-
-  show ?thesis
-    unfolding KL_divergence_def \<nu>.integral_vimage_inv[OF f]
-    apply (rule \<nu>.integral_cong_AE)
-    apply (rule \<nu>.AE_mp[OF *])
-    apply (rule \<nu>.AE_cong)
-    apply simp
-    done
-qed
-
 lemma (in finite_measure_space) KL_divergence_eq_finite:
   assumes v: "finite_measure_space M \<nu>"
   assumes ac: "absolutely_continuous \<nu>"
@@ -259,50 +235,6 @@ abbreviation (in information_space)
     \<lparr> space = X`space M, sets = Pow (X`space M) \<rparr>
     \<lparr> space = Y`space M, sets = Pow (Y`space M) \<rparr> X Y"
 
-lemma (in information_space) mutual_information_commute_generic:
-  assumes X: "random_variable S X" and Y: "random_variable T Y"
-  assumes ac: "measure_space.absolutely_continuous (sigma (pair_algebra S T))
-   (pair_sigma_finite.pair_measure S (distribution X) T (distribution Y)) (joint_distribution X Y)"
-  shows "mutual_information b S T X Y = mutual_information b T S Y X"
-proof -
-  interpret P: prob_space "sigma (pair_algebra S T)" "joint_distribution X Y"
-    using random_variable_pairI[OF X Y] by (rule distribution_prob_space)
-  interpret Q: prob_space "sigma (pair_algebra T S)" "joint_distribution Y X"
-    using random_variable_pairI[OF Y X] by (rule distribution_prob_space)
-  interpret X: prob_space S "distribution X" using X by (rule distribution_prob_space)
-  interpret Y: prob_space T "distribution Y" using Y by (rule distribution_prob_space)
-  interpret ST: pair_sigma_finite S "distribution X" T "distribution Y" by default
-  interpret TS: pair_sigma_finite T "distribution Y" S "distribution X" by default
-
-  have ST: "measure_space (sigma (pair_algebra S T)) (joint_distribution X Y)" by default
-  have TS: "measure_space (sigma (pair_algebra T S)) (joint_distribution Y X)" by default
-
-  have bij_ST: "bij_betw (\<lambda>(x, y). (y, x)) (space (sigma (pair_algebra S T))) (space (sigma (pair_algebra T S)))"
-    by (auto intro!: inj_onI simp: space_pair_algebra bij_betw_def)
-  have bij_TS: "bij_betw (\<lambda>(x, y). (y, x)) (space (sigma (pair_algebra T S))) (space (sigma (pair_algebra S T)))"
-    by (auto intro!: inj_onI simp: space_pair_algebra bij_betw_def)
-
-  { fix A
-    have "joint_distribution X Y ((\<lambda>(x, y). (y, x)) ` A) = joint_distribution Y X A"
-      unfolding distribution_def by (auto intro!: arg_cong[where f=\<mu>]) }
-  note jd_commute = this
-
-  { fix A assume A: "A \<in> sets (sigma (pair_algebra T S))"
-    have *: "\<And>x y. indicator ((\<lambda>(x, y). (y, x)) ` A) (x, y) = (indicator A (y, x) :: pextreal)"
-      unfolding indicator_def by auto
-    have "ST.pair_measure ((\<lambda>(x, y). (y, x)) ` A) = TS.pair_measure A"
-      unfolding ST.pair_measure_def TS.pair_measure_def
-      using A by (auto simp add: TS.Fubini[symmetric] *) }
-  note pair_measure_commute = this
-
-  show ?thesis
-    unfolding mutual_information_def
-    unfolding ST.KL_divergence_vimage[OF bij_TS ST ac, symmetric]
-    unfolding space_sigma space_pair_algebra jd_commute
-    unfolding ST.pair_sigma_algebra_swap[symmetric]
-    by (simp cong: TS.KL_divergence_cong[OF TS] add: pair_measure_commute)
-qed
-
 lemma (in prob_space) finite_variables_absolutely_continuous:
   assumes X: "finite_random_variable S X" and Y: "finite_random_variable T Y"
   shows "measure_space.absolutely_continuous (sigma (pair_algebra S T))
@@ -329,16 +261,6 @@ proof -
     with distr show "joint_distribution X Y {x} = 0" by auto
   qed
 qed
-
-lemma (in information_space) mutual_information_commute:
-  assumes X: "finite_random_variable S X" and Y: "finite_random_variable T Y"
-  shows "mutual_information b S T X Y = mutual_information b T S Y X"
-  by (intro finite_random_variableD X Y mutual_information_commute_generic finite_variables_absolutely_continuous)
-
-lemma (in information_space) mutual_information_commute_simple:
-  assumes X: "simple_function X" and Y: "simple_function Y"
-  shows "\<I>(X;Y) = \<I>(Y;X)"
-  by (intro X Y simple_function_imp_finite_random_variable mutual_information_commute)
 
 lemma (in information_space)
   assumes MX: "finite_random_variable MX X"
@@ -370,6 +292,18 @@ proof -
     using XY.KL_divergence_positive_finite[OF P_ps finite_variables_absolutely_continuous[OF MX MY] b_gt_1]
     unfolding mutual_information_def .
 qed
+
+lemma (in information_space) mutual_information_commute:
+  assumes X: "finite_random_variable S X" and Y: "finite_random_variable T Y"
+  shows "mutual_information b S T X Y = mutual_information b T S Y X"
+  unfolding mutual_information_generic_eq[OF X Y] mutual_information_generic_eq[OF Y X]
+  unfolding joint_distribution_commute_singleton[of X Y]
+  by (auto simp add: ac_simps intro!: setsum_reindex_cong[OF swap_inj_on])
+
+lemma (in information_space) mutual_information_commute_simple:
+  assumes X: "simple_function X" and Y: "simple_function Y"
+  shows "\<I>(X;Y) = \<I>(Y;X)"
+  by (intro X Y simple_function_imp_finite_random_variable mutual_information_commute)
 
 lemma (in information_space) mutual_information_eq:
   assumes "simple_function X" "simple_function Y"
