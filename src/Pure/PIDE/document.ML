@@ -284,6 +284,7 @@ in
 fun edit (old_id: version_id) (new_id: version_id) edits state =
   let
     val old_version = the_version state old_id;
+    val _ = Time.now ();  (* FIXME odd workaround *)
     val new_version = fold edit_nodes edits old_version;
 
     fun update_node name (rev_updates, version, st) =
