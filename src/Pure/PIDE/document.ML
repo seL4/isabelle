@@ -328,11 +328,14 @@ fun execute version_id state =
       fun await_cancellation () = Future.join_results execution;
 
       val execution' = (* FIXME proper node deps *)
-        node_names_of version |> map (fn name =>
-          Future.fork_pri 1 (fn () =>
-            (await_cancellation ();
-              fold_entries NONE (fn (_, exec) => fn () => force_exec exec)
-                (get_node version name) ())));
+        [Future.fork_pri 1 (fn () =>
+          let
+            val _ = await_cancellation ();
+            val _ =
+              node_names_of version |> List.app (fn name =>
+                fold_entries NONE (fn (_, exec) => fn () => force_exec exec)
+                    (get_node version name) ());
+          in () end)];
 
       val _ = await_cancellation ();
 
