@@ -282,11 +282,11 @@ proof -
       uint_word_of_int_id[OF `0 <= cd` `cd <= ?M`]
       uint_word_of_int_id[OF `0 <= ce` `ce <= ?M`])
   let ?rotate_arg_l =
-    "((((ca + f 0 cb cc cd) smod 4294967296 +
-        x (r_l 0)) smod 4294967296 + k_l 0) smod 4294967296)"
+    "((((ca + f 0 cb cc cd) mod 4294967296 +
+        x (r_l 0)) mod 4294967296 + k_l 0) mod 4294967296)"
   let ?rotate_arg_r =
-    "((((ca + f 79 cb cc cd) smod 4294967296 +
-        x (r_r 0)) smod 4294967296 + k_r 0) smod 4294967296)"
+    "((((ca + f 79 cb cc cd) mod 4294967296 +
+        x (r_r 0)) mod 4294967296 + k_r 0) mod 4294967296)"
   note returns =
     `wordops__rotate (s_l 0) ?rotate_arg_l =
      rotate_left (s_l 0) ?rotate_arg_l`
@@ -330,20 +330,20 @@ proof -
   from this[OF x_lower x_upper x_lower' x_upper' `0 <= 0` `0 <= 79`]
     `0 \<le> ca` `0 \<le> ce` x_lower x_lower'
   show ?thesis unfolding returns(1) returns(2) unfolding returns
-    by (simp add: smod_pos_pos)
+    by simp
 qed
 
 spark_vc procedure_round_62
 proof -
   let ?M = "4294967295::int"
   let ?rotate_arg_l =
-    "((((cla + f (loop__1__j + 1) clb clc cld) smod 4294967296 +
-         x (r_l (loop__1__j + 1))) smod 4294967296 +
-         k_l (loop__1__j + 1)) smod 4294967296)"
+    "((((cla + f (loop__1__j + 1) clb clc cld) mod 4294967296 +
+         x (r_l (loop__1__j + 1))) mod 4294967296 +
+         k_l (loop__1__j + 1)) mod 4294967296)"
   let ?rotate_arg_r =
-    "((((cra + f (79 - (loop__1__j + 1)) crb crc crd) smod
-         4294967296 + x (r_r (loop__1__j + 1))) smod 4294967296 +
-         k_r (loop__1__j + 1)) smod 4294967296)"
+    "((((cra + f (79 - (loop__1__j + 1)) crb crc crd) mod
+         4294967296 + x (r_r (loop__1__j + 1))) mod 4294967296 +
+         k_r (loop__1__j + 1)) mod 4294967296)"
 
   have s: "78 - loop__1__j = (79 - (loop__1__j + 1))" by simp
   note returns =
@@ -415,7 +415,7 @@ proof -
     `0 \<le> cla` `0 \<le> cle` `0 \<le> cra` `0 \<le> cre` x_lower x_lower'
   show ?thesis unfolding `loop__1__j + 1 + 1 = loop__1__j + 2`
     unfolding returns(1) returns(2) unfolding returns
-    by (simp add: smod_pos_pos)
+    by simp
 qed
 
 spark_vc procedure_round_76
@@ -456,7 +456,7 @@ proof -
     unfolding round_def
     unfolding steps_to_steps'
     unfolding H1[symmetric]
-    by (simp add: uint_word_ariths(2) rdmods smod_pos_pos
+    by (simp add: uint_word_ariths(2) rdmods
       uint_word_of_int_id)
 qed
 
