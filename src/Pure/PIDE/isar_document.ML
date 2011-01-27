@@ -30,6 +30,7 @@ val _ =
                     (XML_Data.dest_option XML_Data.dest_int)
                     (XML_Data.dest_option XML_Data.dest_int))))) (YXML.parse_body edits_yxml);
 
+      val _ = Document.cancel state;
       val (updates, state') = Document.edit old_id new_id edits state;
       val _ =
         implode (map (fn (id, exec_id) => Markup.markup (Markup.edit id exec_id) "") updates)
