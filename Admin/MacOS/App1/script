@@ -54,6 +54,22 @@ if [ -n "$PROOFGENERAL_EMACS" ]; then
 fi
 
 
+# enforce fonts
+
+if [ ! -f "$HOME/Library/Fonts/IsabelleText.ttf" -o ! -f "$HOME/Library/Fonts/IsabelleTextBold.ttf" ]
+then
+  cp -f "$THIS/Isabelle/lib/fonts/IsabelleText.ttf" "$HOME/Library/Fonts/"
+  cp -f "$THIS/Isabelle/lib/fonts/IsabelleTextBold.ttf" "$HOME/Library/Fonts/"
+  sleep 3
+fi
+
+EMACS_OPTIONS["${#EMACS_OPTIONS[@]}"]="-x"
+EMACS_OPTIONS["${#EMACS_OPTIONS[@]}"]="true"
+
+EMACS_OPTIONS["${#EMACS_OPTIONS[@]}"]="-f"
+EMACS_OPTIONS["${#EMACS_OPTIONS[@]}"]="IsabelleText"
+
+
 # run interface with error feedback
 
 OUTPUT="/tmp/isabelle$$.out"
