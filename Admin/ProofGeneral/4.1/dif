@@ -1,0 +1,41 @@
+diff -r ProofGeneral-4.1pre110112-orig/generic/proof-useropts.el ProofGeneral-4.1pre110112/generic/proof-useropts.el
+121c121
+< (defcustom proof-strict-read-only 'retract
+---
+> (defcustom proof-strict-read-only t
+345c345
+< (defcustom proof-full-annotation t
+---
+> (defcustom proof-full-annotation nil
+Only in ProofGeneral-4.1pre110112-orig/generic: proof-useropts.elc
+diff -r ProofGeneral-4.1pre110112-orig/isar/interface ProofGeneral-4.1pre110112/isar/interface
+3,4d2
+< # interface,v 11.0 2010/10/10 22:57:07 da Exp
+< #
+23a22
+>   echo "    -f FONT      specify Emacs font"
+56a56
+> FONT=""
+66c66
+<   while getopts "L:U:g:k:l:m:p:u:w:x:" OPT
+---
+>   while getopts "L:U:f:g:k:l:m:p:u:w:x:" OPT
+75a76,78
+>       f)
+>         FONT="$OPTARG"
+>         ;;
+135a139,143
+> if [ -n "$FONT" ]; then
+>   ARGS["${#ARGS[@]}"]="-fn"
+>   ARGS["${#ARGS[@]}"]="$FONT"
+> fi
+> 
+diff -r ProofGeneral-4.1pre110112-orig/isar/interface-setup.el ProofGeneral-4.1pre110112/isar/interface-setup.el
+13a14,20
+> ;; Tool bar
+> ;;
+> 
+> (if (and window-system (fboundp 'tool-bar-mode)) (tool-bar-mode t))
+> 
+> 
+> ;;
