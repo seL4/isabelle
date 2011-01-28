@@ -1,4 +1,4 @@
-diff -r ProofGeneral-4.1pre110112-orig/generic/proof-useropts.el ProofGeneral-4.1pre110112/generic/proof-useropts.el
+diff -r ProofGeneral-4.1pre101216/generic/proof-useropts.el ProofGeneral-4.1pre101216-p1/generic/proof-useropts.el
 121c121
 < (defcustom proof-strict-read-only 'retract
 ---
@@ -7,8 +7,7 @@ diff -r ProofGeneral-4.1pre110112-orig/generic/proof-useropts.el ProofGeneral-4.
 < (defcustom proof-full-annotation t
 ---
 > (defcustom proof-full-annotation nil
-Only in ProofGeneral-4.1pre110112-orig/generic: proof-useropts.elc
-diff -r ProofGeneral-4.1pre110112-orig/isar/interface ProofGeneral-4.1pre110112/isar/interface
+diff -r ProofGeneral-4.1pre101216/isar/interface ProofGeneral-4.1pre101216-p1/isar/interface
 3,4d2
 < # interface,v 11.0 2010/10/10 22:57:07 da Exp
 < #
@@ -30,12 +29,11 @@ diff -r ProofGeneral-4.1pre110112-orig/isar/interface ProofGeneral-4.1pre110112/
 >   ARGS["${#ARGS[@]}"]="$FONT"
 > fi
 > 
-diff -r ProofGeneral-4.1pre110112-orig/isar/interface-setup.el ProofGeneral-4.1pre110112/isar/interface-setup.el
-13a14,20
+diff -r ProofGeneral-4.1pre101216/isar/interface-setup.el ProofGeneral-4.1pre101216-p1/isar/interface-setup.el
+13a14,19
 > ;; Tool bar
 > ;;
 > 
 > (if (and window-system (fboundp 'tool-bar-mode)) (tool-bar-mode t))
-> 
 > 
 > ;;
