@@ -10,8 +10,11 @@ SUPER_APP="$(cd "$THIS/../../.."; pwd)"
 
 
 # sane environment defaults
+
 cd "$HOME"
 PATH="$PATH:/opt/local/bin"
+
+[ -z "$LANG" ] && export LANG=en_US.UTF-8
 
 
 # settings support
