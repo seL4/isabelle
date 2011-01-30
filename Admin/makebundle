@@ -69,13 +69,12 @@ echo "heaps"
 tar -C "$TMP" -x -z -f "$HEAPS_ARCHIVE"
 
 
+(
+  cd "$TMP/$ISABELLE_NAME/contrib/ProofGeneral"
+  find . -name "*.elc" -exec rm {} ";"
+)
+
 case "$PLATFORM" in
-  x86-linux)
-    (
-      cd "$TMP/$ISABELLE_NAME/contrib/ProofGeneral"
-      find . -name "*.elc" -exec rm {} ";"
-    )
-    ;;
   x86-cygwin)
     rm "$TMP/$ISABELLE_NAME/contrib/ProofGeneral"
     ln -s ProofGeneral-3.7.1.1 "$TMP/$ISABELLE_NAME/contrib/ProofGeneral"
