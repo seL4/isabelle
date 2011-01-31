@@ -287,7 +287,7 @@ fun term_of_expr thy types funs pfuns =
       | tm_of vs (Funct ("div", [e, e'])) = (HOLogic.mk_binop @{const_name sdiv}
           (fst (tm_of vs e), fst (tm_of vs e')), integerN)
 
-      | tm_of vs (Funct ("mod", [e, e'])) = (HOLogic.mk_binop @{const_name smod}
+      | tm_of vs (Funct ("mod", [e, e'])) = (HOLogic.mk_binop @{const_name mod}
           (fst (tm_of vs e), fst (tm_of vs e')), integerN)
 
       | tm_of vs (Funct ("-", [e])) =

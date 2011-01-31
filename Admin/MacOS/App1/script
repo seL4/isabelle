@@ -10,8 +10,11 @@ SUPER_APP="$(cd "$THIS/../../.."; pwd)"
 
 
 # sane environment defaults
+
 cd "$HOME"
 PATH="$PATH:/opt/local/bin"
+
+[ -z "$LANG" ] && export LANG=en_US.UTF-8
 
 
 # settings support
@@ -54,10 +57,23 @@ if [ -n "$PROOFGENERAL_EMACS" ]; then
 fi
 
 
+# enforce fonts
+
+if [ ! -f "$HOME/Library/Fonts/STIXGeneral.ttf" -a ! -f "$HOME/Library/Fonts/STIXGeneral.otf" ]
+then
+  cp -f "$THIS/STIXv1.0.0/Fonts"/STIXGeneral* "$HOME/Library/Fonts/"
+  sleep 3
+fi
+
+EMACS_OPTIONS["${#EMACS_OPTIONS[@]}"]="-x"
+EMACS_OPTIONS["${#EMACS_OPTIONS[@]}"]="true"
+
+
 # run interface with error feedback
 
 OUTPUT="/tmp/isabelle$$.out"
 
+# ( "$ISABELLE_TOOL" jedit "$@" ) > "$OUTPUT" 2>&1
 ( "$ISABELLE_TOOL" emacs "${EMACS_OPTIONS[@]}" "$@" ) > "$OUTPUT" 2>&1
 RC=$?
 

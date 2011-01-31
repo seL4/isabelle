@@ -56,12 +56,37 @@ function choosefrom ()
 #JVM path wrapper
 if [ "$OSTYPE" = cygwin ]; then
   CLASSPATH="$(cygpath -u -p "$CLASSPATH")"
-  function jvmpath() { cygpath -w -p "$@"; }
+  function jvmpath() { cygpath -C UTF8 -w -p "$@"; }
   THIS_CYGWIN="$(jvmpath "/")"
 else
   function jvmpath() { echo "$@"; }
 fi
 HOME_JVM="$HOME"
+
+#shared library convenience
+function librarypath () {
+  for X in "$@"
+  do
+    case "$ISABELLE_PLATFORM" in
+      *-darwin)
+        if [ -z "$DYLD_LIBRARY_PATH" ]; then
+          DYLD_LIBRARY_PATH="$X"
+        else
+          DYLD_LIBRARY_PATH="$X:$DYLD_LIBRARY_PATH"
+        fi
+        export DYLD_LIBRARY_PATH
+        ;;
+      *)
+        if [ -z "$LD_LIBRARY_PATH" ]; then
+          LD_LIBRARY_PATH="$X"
+        else
+          LD_LIBRARY_PATH="$X:$LD_LIBRARY_PATH"
+        fi
+        export LD_LIBRARY_PATH
+        ;;
+    esac
+  done
+}
 
 #CLASSPATH convenience
 function classpath () {
@@ -70,7 +95,7 @@ function classpath () {
     if [ -z "$CLASSPATH" ]; then
       CLASSPATH="$X"
     else
-      CLASSPATH="$CLASSPATH:$X"
+      CLASSPATH="$X:$CLASSPATH"
     fi
   done
   export CLASSPATH

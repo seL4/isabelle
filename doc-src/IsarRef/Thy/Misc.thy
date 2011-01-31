@@ -16,6 +16,7 @@ text {*
     @{command_def "find_theorems"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "find_consts"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "thm_deps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "unused_thms"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "print_facts"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "print_binds"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
@@ -34,6 +35,8 @@ text {*
     constcriterion: ('-'?) ('name' ':' nameref | 'strict' ':' type | type)
     ;
     'thm_deps' thmrefs
+    ;
+    'unused_thms' (('name'+) '-' ('name'*))?
     ;
   \end{rail}
 
@@ -93,6 +96,13 @@ text {*
   \item @{command "thm_deps"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}
   visualizes dependencies of facts, using Isabelle's graph browser
   tool (see also \cite{isabelle-sys}).
+
+  \item @{command "unused_thms"}~@{text "A\<^isub>1 \<dots> A\<^isub>m - B\<^isub>1 \<dots> B\<^isub>n"}
+  displays all unused theorems in theories @{text "B\<^isub>1 \<dots> B\<^isub>n"}
+  or their parents, but not in @{text "A\<^isub>1 \<dots> A\<^isub>m"} or their parents.
+  If @{text n} is @{text 0}, the end of the range of theories
+  defaults to the current theory. If no range is specified,
+  only the unused theorems in the current theory are displayed.
   
   \item @{command "print_facts"} prints all local facts of the
   current context, both named and unnamed ones.

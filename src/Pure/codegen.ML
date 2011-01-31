@@ -75,9 +75,9 @@ sig
   val mk_type: bool -> typ -> Pretty.T
   val mk_term_of: codegr -> string -> bool -> typ -> Pretty.T
   val mk_gen: codegr -> string -> bool -> string list -> string -> typ -> Pretty.T
-  val test_fn: (int -> term list option) Unsynchronized.ref
+  val test_fn: (int -> term list option) Unsynchronized.ref  (* FIXME *)
   val test_term: Proof.context -> term -> int -> term list option
-  val eval_result: (unit -> term) Unsynchronized.ref
+  val eval_result: (unit -> term) Unsynchronized.ref  (* FIXME *)
   val eval_term: theory -> term -> term
   val evaluation_conv: cterm -> thm
   val parse_mixfix: (string -> 'a) -> string -> 'a mixfix list
@@ -894,8 +894,9 @@ fun test_term ctxt t =
                 Pretty.enum "," "[" "]" (map (fn (s, _) => str (s ^ "_t ()")) args)]]),
           str ");"]) ^
       "\n\nend;\n";
-    val _ = ML_Context.eval_text_in (SOME ctxt) false Position.none s;
-  in (fn size => (! test_fn size)) end;
+    val test_fn' = NAMED_CRITICAL "codegen" (fn () =>
+      (ML_Context.eval_text_in (SOME ctxt) false Position.none s; ! test_fn));
+  in test_fn' end;
 
 
 
@@ -905,7 +906,7 @@ val eval_result = Unsynchronized.ref (fn () => Bound 0);
 
 fun eval_term thy t =
   let
-    val ctxt = ProofContext.init_global thy;
+    val ctxt = ProofContext.init_global thy;  (* FIXME *)
     val e =
       let
         val _ = (null (Term.add_tvars t []) andalso null (Term.add_tfrees t [])) orelse
@@ -924,9 +925,10 @@ fun eval_term thy t =
                 [str "(result ())"],
               str ");"]) ^
           "\n\nend;\n";
-        val _ = NAMED_CRITICAL "codegen" (fn () =>   (* FIXME ??? *)
-          ML_Context.eval_text_in (SOME ctxt) false Position.none s);
-      in !eval_result end;
+      in
+        NAMED_CRITICAL "codegen" (fn () =>
+         (ML_Context.eval_text_in (SOME ctxt) false Position.none s; ! eval_result))
+      end
   in e () end;
 
 val (_, evaluation_conv) = Context.>>> (Context.map_theory_result

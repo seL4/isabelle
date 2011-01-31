@@ -1958,7 +1958,7 @@ code_const undefined
 subsubsection {* Evaluation and normalization by evaluation *}
 
 setup {*
-  Value.add_evaluator ("SML", Codegen.eval_term o ProofContext.theory_of)
+  Value.add_evaluator ("SML", Codegen.eval_term o ProofContext.theory_of)  (* FIXME proper context!? *)
 *}
 
 ML {*

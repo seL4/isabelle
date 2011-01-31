@@ -15,60 +15,33 @@ uses
 begin
 
 text {*
-SPARK versions of div and mod, see section 4.4.1.1 of SPARK Proof Manual
+SPARK version of div, see section 4.4.1.1 of SPARK Proof Manual
 *}
 
 definition sdiv :: "int \<Rightarrow> int \<Rightarrow> int" (infixl "sdiv" 70) where
-  "a sdiv b =
-     (if 0 \<le> a then
-        if 0 \<le> b then a div b
-        else - (a div - b)
-      else
-        if 0 \<le> b then - (- a div b)
-        else - a div - b)"
-
-definition smod :: "int \<Rightarrow> int \<Rightarrow> int" (infixl "smod" 70) where
-  "a smod b = a - ((a sdiv b) * b)"
+  "a sdiv b = sgn a * sgn b * (\<bar>a\<bar> div \<bar>b\<bar>)"
 
 lemma sdiv_minus_dividend: "- a sdiv b = - (a sdiv b)"
-  by (simp add: sdiv_def)
+  by (simp add: sdiv_def sgn_if)
 
 lemma sdiv_minus_divisor: "a sdiv - b = - (a sdiv b)"
-  by (simp add: sdiv_def)
-
-lemma smod_minus_dividend: "- a smod b = - (a smod b)"
-  by (simp add: smod_def sdiv_minus_dividend)
-
-lemma smod_minus_divisor: "a smod - b = a smod b"
-  by (simp add: smod_def sdiv_minus_divisor)
+  by (simp add: sdiv_def sgn_if)
 
 text {*
-Correspondence between HOL's and SPARK's versions of div and mod
+Correspondence between HOL's and SPARK's version of div
 *}
 
 lemma sdiv_pos_pos: "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> a sdiv b = a div b"
-  by (simp add: sdiv_def)
+  by (simp add: sdiv_def sgn_if)
 
 lemma sdiv_pos_neg: "0 \<le> a \<Longrightarrow> b < 0 \<Longrightarrow> a sdiv b = - (a div - b)"
-  by (simp add: sdiv_def)
+  by (simp add: sdiv_def sgn_if)
 
 lemma sdiv_neg_pos: "a < 0 \<Longrightarrow> 0 \<le> b \<Longrightarrow> a sdiv b = - (- a div b)"
-  by (simp add: sdiv_def)
+  by (simp add: sdiv_def sgn_if)
 
 lemma sdiv_neg_neg: "a < 0 \<Longrightarrow> b < 0 \<Longrightarrow> a sdiv b = - a div - b"
-  by (simp add: sdiv_def)
-
-lemma smod_pos_pos: "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> a smod b = a mod b"
-  by (simp add: smod_def sdiv_pos_pos zmod_zdiv_equality')
-
-lemma smod_pos_neg: "0 \<le> a \<Longrightarrow> b < 0 \<Longrightarrow> a smod b = a mod - b"
-  by (simp add: smod_def sdiv_pos_neg zmod_zdiv_equality')
-
-lemma smod_neg_pos: "a < 0 \<Longrightarrow> 0 \<le> b \<Longrightarrow> a smod b = - (- a mod b)"
-  by (simp add: smod_def sdiv_neg_pos zmod_zdiv_equality')
-
-lemma smod_neg_neg: "a < 0 \<Longrightarrow> b < 0 \<Longrightarrow> a smod b = - (- a mod - b)"
-  by (simp add: smod_def sdiv_neg_neg zmod_zdiv_equality')
+  by (simp add: sdiv_def sgn_if)
 
 
 text {*

@@ -9,8 +9,8 @@ CLASSPATH="$(jvmpath "$CLASSPATH")"
 JAVA_EXE="${THIS_JAVA:-$ISABELLE_JAVA}"
 if "$JAVA_EXE" -server >/dev/null 2>/dev/null
 then
-  exec "$JAVA_EXE" -server "$@"
+  exec "$JAVA_EXE" -Dfile.encoding=UTF-8 -server "$@"
 else
-  exec "$JAVA_EXE" "$@"
+  exec "$JAVA_EXE" -Dfile.encoding=UTF-8 "$@"
 fi
 

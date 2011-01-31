@@ -47,14 +47,17 @@ fun conj_conv cv1 cv2 ct =
     Const (@{const_name HOL.conj}, _) $ _ $ _ => Conv.combination_conv (Conv.arg_conv cv1) cv2 ct
   | _ => raise CTERM ("conj_conv", [ct]));
 
+fun rewr_conv' th = Conv.rewr_conv (mk_meta_eq th)
+  
+fun conjunct_assoc_conv ct = Conv.try_conv
+    ((rewr_conv' @{thm conj_assoc}) then_conv conj_conv Conv.all_conv conjunct_assoc_conv) ct
+  
 fun right_hand_set_comprehension_conv conv ctxt = Trueprop_conv (eq_conv Conv.all_conv
   (Collect_conv (all_exists_conv conv o #2) ctxt))
 
 (* term abstraction of list comprehension patterns *)
  
 datatype termlets = If | Case of (typ * int)
-
-fun rewr_conv' th = Conv.rewr_conv (mk_meta_eq th)
 
 fun simproc ss redex =
   let
@@ -136,7 +139,7 @@ fun simproc ss redex =
                     (eq_conv Conv.all_conv (rewr_conv' (List.last prems))
                     then_conv (Conv.try_conv (Conv.rewrs_conv (map mk_meta_eq (#inject info))))) Conv.all_conv)
                     then_conv (Conv.try_conv (Conv.rewr_conv del_refl_eq))
-                    then_conv (Conv.try_conv (rewr_conv' @{thm conj_assoc})))) context
+                    then_conv conjunct_assoc_conv)) context
                 then_conv (Trueprop_conv (eq_conv Conv.all_conv (Collect_conv (fn (_, ctxt) =>
                   Conv.repeat_conv (all_but_last_exists_conv (K (rewr_conv' @{thm simp_thms(39)})) ctxt)) context)))) 1) ctxt 1
             THEN tac ctxt cont
@@ -172,7 +175,7 @@ fun simproc ss redex =
           if eqs = [] then NONE (* no rewriting, nothing to be done *)
           else
             let
-              val Type (@{type_name List.list}, [rT]) = fastype_of t
+              val Type (@{type_name List.list}, [rT]) = fastype_of1 (map snd bound_vs, t)
               val pat_eq =
                 case try dest_singleton_list t of
                   SOME t' => Const (@{const_name HOL.eq}, rT --> rT --> @{typ bool})

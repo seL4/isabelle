@@ -25,7 +25,7 @@ $| = 1;
 $emitpid && (print $$, "\n");
 
 if ($head) {
-  utf8::encode($head);
+  utf8::upgrade($head);
   $head =~ s/([\x80-\xff])/\\${\(ord($1))}/g;
   print $head, "\n";
 }

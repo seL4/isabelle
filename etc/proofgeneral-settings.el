@@ -1,12 +1,13 @@
 ;;; Options for Proof General
+;;;
+;;; Examples for sensible settings:
 
-;; Examples for sensible settings:
-
+;; keep sources clean
 (custom-set-variables '(indent-tabs-mode nil))
-(custom-set-variables '(proof-shell-quit-timeout 45))
 
-;(custom-set-variables '(isar-eta-contract nil))
+;; retain vital AltGr behaviour, e.g. on non-US Mac OS X
+;(custom-set-variables '(ns-alternate-modifier 'none))
 
-;(custom-set-faces
-; '(proof-locked-face
-;   ((((type x) (class color) (background light)) (:background "lightsteelblue2")))))
+;; longer timeout for saving persistent session
+;(custom-set-variables '(proof-shell-quit-timeout 60))
+
