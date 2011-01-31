@@ -38,6 +38,7 @@ sig
   val worker_task: unit -> Task_Queue.task option
   val worker_group: unit -> Task_Queue.group option
   val worker_subgroup: unit -> Task_Queue.group
+  val worker_waiting: (unit -> 'a) -> 'a
   type 'a future
   val task_of: 'a future -> task
   val group_of: 'a future -> group
@@ -86,6 +87,11 @@ val is_worker = is_some o thread_data;
 val worker_task = Option.map #1 o thread_data;
 val worker_group = Option.map #2 o thread_data;
 fun worker_subgroup () = Task_Queue.new_group (worker_group ());
+
+fun worker_waiting e =
+  (case worker_task () of
+    NONE => e ()
+  | SOME task => Task_Queue.waiting task e);
 
 
 (* datatype future *)
@@ -198,8 +204,16 @@ fun cancel_later group = (*requires SYNCHRONIZED*)
 fun execute (task, group, jobs) =
   let
     val valid = not (Task_Queue.is_canceled group);
-    val ok = setmp_thread_data (task, group) (fn () =>
-      fold (fn job => fn ok => job valid andalso ok) jobs true) ();
+    val ok =
+      Task_Queue.running task (fn () =>
+        setmp_thread_data (task, group) (fn () =>
+          fold (fn job => fn ok => job valid andalso ok) jobs true) ());
+    val _ = Multithreading.tracing 1 (fn () =>
+      let
+        val s = Task_Queue.str_of_task task;
+        fun micros time = string_of_int (Time.toNanoseconds time div 1000);
+        val (run, wait) = pairself micros (Task_Queue.timing_of_task task);
+      in "TASK " ^ s ^ " " ^ run ^ " " ^ wait end);
     val _ = SYNCHRONIZED "finish" (fn () =>
       let
         val maximal = Unsynchronized.change_result queue (Task_Queue.finish task);
@@ -448,10 +462,11 @@ fun join_results xs =
   else if Multithreading.self_critical () then
     error "Cannot join future values within critical section"
   else
-    (case worker_task () of
-      SOME task => join_depend task (map task_of xs)
-    | NONE => List.app (ignore o Single_Assignment.await o result_of) xs;
-    map get_result xs);
+    worker_waiting (fn () =>
+      (case worker_task () of
+        SOME task => join_depend task (map task_of xs)
+      | NONE => List.app (ignore o Single_Assignment.await o result_of) xs;
+      map get_result xs));
 
 end;
 
@@ -513,7 +528,7 @@ fun fulfill_result (Future {promised, task, group, result}) res =
                 Unsynchronized.change_result queue
                   (Task_Queue.dequeue_passive (Thread.self ()) task));
           in if still_passive then execute (task, group, [job]) else () end);
-      val _ = Single_Assignment.await result;
+      val _ = worker_waiting (fn () => Single_Assignment.await result);
     in () end;
 
 fun fulfill x res = fulfill_result x (Exn.Result res);

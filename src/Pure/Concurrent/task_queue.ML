@@ -10,6 +10,9 @@ sig
   val dummy_task: task
   val pri_of_task: task -> int
   val str_of_task: task -> string
+  val timing_of_task: task -> Time.time * Time.time
+  val running: task -> (unit -> 'a) -> 'a
+  val waiting: task -> (unit -> 'a) -> 'a
   type group
   val new_group: group option -> group
   val group_id: group -> int
@@ -41,18 +44,40 @@ struct
 val new_id = Synchronized.counter ();
 
 
+(* timing *)
+
+type timing = Time.time * Time.time;
+
+fun new_timing () =
+  Synchronized.var "Task_Queue.timing" (Time.zeroTime, Time.zeroTime);
+
+fun gen_timing which timing e =
+  let
+    val start = Time.now ();
+    val result = Exn.capture e ();
+    val t = Time.- (Time.now (), start);
+    val _ = Synchronized.change timing (which (fn t' => Time.+ (t, t')));
+  in Exn.release result end;
+
+
 (* tasks *)
 
-abstype task = Task of int option * int
+abstype task = Task of (int option * int) * timing Synchronized.var
 with
 
-val dummy_task = Task (NONE, ~1);
-fun new_task pri = Task (pri, new_id ());
+val dummy_task = Task ((NONE, ~1), new_timing ());
+fun new_task pri = Task ((pri, new_id ()), new_timing ());
 
-fun pri_of_task (Task (pri, _)) = the_default 0 pri;
-fun str_of_task (Task (_, i)) = string_of_int i;
+fun pri_of_task (Task ((pri, _), _)) = the_default 0 pri;
+fun str_of_task (Task ((_, i), _)) = string_of_int i;
 
-fun task_ord (Task t1, Task t2) = prod_ord (rev_order o option_ord int_ord) int_ord (t1, t2);
+fun timing_of_task (Task (_, timing)) = Synchronized.value timing;
+fun running (Task (_, timing)) = gen_timing apfst timing;
+fun waiting (Task (_, timing)) = gen_timing apsnd timing;
+
+fun task_ord (Task (t1, _), Task (t2, _)) =
+  prod_ord (rev_order o option_ord int_ord) int_ord (t1, t2);
+
 val eq_task = is_equal o task_ord;
 
 end;
