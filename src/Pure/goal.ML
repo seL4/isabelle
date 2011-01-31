@@ -23,6 +23,7 @@ sig
   val check_finished: Proof.context -> thm -> unit
   val finish: Proof.context -> thm -> thm
   val norm_result: thm -> thm
+  val fork_name: string -> (unit -> 'a) -> 'a future
   val fork: (unit -> 'a) -> 'a future
   val future_enabled: unit -> bool
   val local_future_enabled: unit -> bool
@@ -106,9 +107,12 @@ val norm_result =
 
 (* parallel proofs *)
 
-fun fork e =
-  singleton (Future.forks {name = "Goal.fork", group = NONE, deps = [], pri = ~1})
+fun fork_name name e =
+  singleton (Future.forks {name = name, group = NONE, deps = [], pri = ~1})
     (fn () => Future.status e);
+
+fun fork e = fork_name "Goal.fork" e;
+
 
 val parallel_proofs = Unsynchronized.ref 1;
 

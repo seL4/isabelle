@@ -1100,7 +1100,8 @@ local
 fun future_terminal_proof proof1 proof2 meths int state =
   if int orelse is_relevant state orelse not (Goal.local_future_enabled ())
   then proof1 meths state
-  else snd (proof2 (fn state' => Goal.fork (fn () => ((), proof1 meths state'))) state);
+  else snd (proof2 (fn state' =>
+    Goal.fork_name "Proof.future_terminal_proof" (fn () => ((), proof1 meths state'))) state);
 
 in
 
