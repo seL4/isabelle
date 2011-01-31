@@ -27,7 +27,10 @@ structure Par_List: PAR_LIST =
 struct
 
 fun managed_results name f xs =
-  if Multithreading.enabled () andalso not (Multithreading.self_critical ()) then
+  if null xs orelse null (tl xs) orelse
+      not (Multithreading.enabled ()) orelse Multithreading.self_critical ()
+  then map (Exn.capture f) xs
+  else
     let
       val group = Task_Queue.new_group (Future.worker_group ());
       val futures =
@@ -35,8 +38,7 @@ fun managed_results name f xs =
           (map (fn x => fn () => f x) xs);
       val results = Future.join_results futures
         handle exn => (if Exn.is_interrupt exn then Future.cancel_group group else (); reraise exn);
-    in results end
-  else map (Exn.capture f) xs;
+    in results end;
 
 fun map f xs = Exn.release_first (managed_results "Par_List.map" f xs);
 
