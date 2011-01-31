@@ -107,7 +107,7 @@ val norm_result =
 (* parallel proofs *)
 
 fun fork e =
-  singleton (Future.bulk {name = "Goal.fork", group = NONE, deps = [], pri = ~1})
+  singleton (Future.forks {name = "Goal.fork", group = NONE, deps = [], pri = ~1})
     (fn () => Future.status e);
 
 val parallel_proofs = Unsynchronized.ref 1;

@@ -664,7 +664,7 @@ fun proof_result immediate (tr, proof_trs) st =
         val future_proof = Proof.global_future_proof
           (fn prf =>
             singleton
-              (Future.bulk {name = "Toplevel.proof_result", group = NONE, deps = [], pri = ~1})
+              (Future.forks {name = "Toplevel.proof_result", group = NONE, deps = [], pri = ~1})
               (fn () =>
                 let val (states, result_state) =
                   (case st' of State (SOME (Proof (_, (_, orig_gthy))), prev)

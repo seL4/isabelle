@@ -44,7 +44,7 @@ sig
   val group_of: 'a future -> group
   val peek: 'a future -> 'a Exn.result option
   val is_finished: 'a future -> bool
-  val bulk: {name: string, group: group option, deps: task list, pri: int} ->
+  val forks: {name: string, group: group option, deps: task list, pri: int} ->
     (unit -> 'a) list -> 'a future list
   val fork_pri: int -> (unit -> 'a) -> 'a future
   val fork: (unit -> 'a) -> 'a future
@@ -400,31 +400,33 @@ fun scheduler_check () = (*requires SYNCHRONIZED*)
 
 (* fork *)
 
-fun bulk {name, group, deps, pri} es =
-  let
-    val grp =
-      (case group of
-        NONE => worker_subgroup ()
-      | SOME grp => grp);
-    fun enqueue e (minimal, queue) =
-      let
-        val (result, job) = future_job grp e;
-        val ((task, minimal'), queue') = Task_Queue.enqueue name grp deps pri job queue;
-        val future = Future {promised = false, task = task, group = grp, result = result};
-      in (future, (minimal orelse minimal', queue')) end;
-  in
-    SYNCHRONIZED "enqueue" (fn () =>
-      let
-        val (futures, minimal) =
-          Unsynchronized.change_result queue (fn q =>
-            let val (futures, (minimal, q')) = fold_map enqueue es (false, q)
-            in ((futures, minimal), q') end);
-        val _ = if minimal then signal work_available else ();
-        val _ = scheduler_check ();
-      in futures end)
-  end;
+fun forks {name, group, deps, pri} es =
+  if null es then []
+  else
+    let
+      val grp =
+        (case group of
+          NONE => worker_subgroup ()
+        | SOME grp => grp);
+      fun enqueue e (minimal, queue) =
+        let
+          val (result, job) = future_job grp e;
+          val ((task, minimal'), queue') = Task_Queue.enqueue name grp deps pri job queue;
+          val future = Future {promised = false, task = task, group = grp, result = result};
+        in (future, (minimal orelse minimal', queue')) end;
+    in
+      SYNCHRONIZED "enqueue" (fn () =>
+        let
+          val (futures, minimal) =
+            Unsynchronized.change_result queue (fn q =>
+              let val (futures, (minimal, q')) = fold_map enqueue es (false, q)
+              in ((futures, minimal), q') end);
+          val _ = if minimal then signal work_available else ();
+          val _ = scheduler_check ();
+        in futures end)
+    end;
 
-fun fork_pri pri e = singleton (bulk {name = "", group = NONE, deps = [], pri = pri}) e;
+fun fork_pri pri e = singleton (forks {name = "", group = NONE, deps = [], pri = pri}) e;
 fun fork e = fork_pri 0 e;
 
 
@@ -501,7 +503,7 @@ fun map_future f x =
     if extended then Future {promised = false, task = task, group = group, result = result}
     else
       singleton
-        (bulk {name = "Future.map", group = SOME group,
+        (forks {name = "Future.map", group = SOME group,
           deps = [task], pri = Task_Queue.pri_of_task task})
         (fn () => f (join x))
   end;

@@ -187,7 +187,7 @@ fun schedule_futures task_graph = uninterruptible (fn _ => fn () =>
 
             val future =
               singleton
-                (Future.bulk {name = "theory " ^ name, group = NONE, deps = task_deps, pri = 0})
+                (Future.forks {name = "theory " ^ name, group = NONE, deps = task_deps, pri = 0})
                 (fn () =>
                   (case map_filter failed deps of
                     [] => body (map (#1 o Future.join o get) parents)
