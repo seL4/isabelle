@@ -44,7 +44,8 @@ sig
   val group_of: 'a future -> group
   val peek: 'a future -> 'a Exn.result option
   val is_finished: 'a future -> bool
-  val bulk: {group: group option, deps: task list, pri: int} -> (unit -> 'a) list -> 'a future list
+  val bulk: {name: string, group: group option, deps: task list, pri: int} ->
+    (unit -> 'a) list -> 'a future list
   val fork_pri: int -> (unit -> 'a) -> 'a future
   val fork: (unit -> 'a) -> 'a future
   val join_results: 'a future list -> 'a Exn.result list
@@ -399,7 +400,7 @@ fun scheduler_check () = (*requires SYNCHRONIZED*)
 
 (* fork *)
 
-fun bulk {group, deps, pri} es =
+fun bulk {name, group, deps, pri} es =
   let
     val grp =
       (case group of
@@ -408,7 +409,7 @@ fun bulk {group, deps, pri} es =
     fun enqueue e (minimal, queue) =
       let
         val (result, job) = future_job grp e;
-        val ((task, minimal'), queue') = Task_Queue.enqueue grp deps pri job queue;
+        val ((task, minimal'), queue') = Task_Queue.enqueue name grp deps pri job queue;
         val future = Future {promised = false, task = task, group = grp, result = result};
       in (future, (minimal orelse minimal', queue')) end;
   in
@@ -423,7 +424,7 @@ fun bulk {group, deps, pri} es =
       in futures end)
   end;
 
-fun fork_pri pri e = singleton (bulk {group = NONE, deps = [], pri = pri}) e;
+fun fork_pri pri e = singleton (bulk {name = "", group = NONE, deps = [], pri = pri}) e;
 fun fork e = fork_pri 0 e;
 
 
@@ -499,7 +500,9 @@ fun map_future f x =
   in
     if extended then Future {promised = false, task = task, group = group, result = result}
     else
-      singleton (bulk {group = SOME group, deps = [task], pri = Task_Queue.pri_of_task task})
+      singleton
+        (bulk {name = "Future.map", group = SOME group,
+          deps = [task], pri = Task_Queue.pri_of_task task})
         (fn () => f (join x))
   end;
 

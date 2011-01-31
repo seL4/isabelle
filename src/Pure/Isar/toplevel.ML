@@ -663,13 +663,15 @@ fun proof_result immediate (tr, proof_trs) st =
 
         val future_proof = Proof.global_future_proof
           (fn prf =>
-            Future.fork_pri ~1 (fn () =>
-              let val (states, result_state) =
-                (case st' of State (SOME (Proof (_, (_, orig_gthy))), prev)
-                  => State (SOME (Proof (Proof_Node.init prf, (finish, orig_gthy))), prev))
-                |> fold_map command_result body_trs
-                ||> command (end_tr |> set_print false);
-              in (states, presentation_context_of result_state) end))
+            singleton
+              (Future.bulk {name = "Toplevel.proof_result", group = NONE, deps = [], pri = ~1})
+              (fn () =>
+                let val (states, result_state) =
+                  (case st' of State (SOME (Proof (_, (_, orig_gthy))), prev)
+                    => State (SOME (Proof (Proof_Node.init prf, (finish, orig_gthy))), prev))
+                  |> fold_map command_result body_trs
+                  ||> command (end_tr |> set_print false);
+                in (states, presentation_context_of result_state) end))
           #> (fn (states, ctxt) => States.put (SOME states) ctxt);
 
         val st'' = st' |> command (end_tr |> reset_trans |> end_proof (K future_proof));

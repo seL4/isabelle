@@ -208,7 +208,9 @@ fun proof_status tr st =
 
 fun async_state tr st =
   ignore
-    (singleton (Future.bulk {group = SOME (Task_Queue.new_group NONE), deps = [], pri = 0})
+    (singleton
+      (Future.bulk {name = "Document.async_state",
+        group = SOME (Task_Queue.new_group NONE), deps = [], pri = 0})
       (fn () =>
         Toplevel.setmp_thread_position tr
           (fn () => Toplevel.print_state false st) ()));
@@ -327,7 +329,7 @@ end;
 (* execute *)
 
 fun execute version_id state =
-  state |> map_state (fn (versions, commands, execs, execution) =>
+  state |> map_state (fn (versions, commands, execs, _) =>
     let
       val version = the_version state version_id;
 
@@ -337,14 +339,15 @@ fun execute version_id state =
       val _ = cancel state;
 
       val execution' = (* FIXME proper node deps *)
-        Future.bulk {group = NONE, deps = [], pri = 1} [fn () =>
-          let
-            val _ = await_cancellation state;
-            val _ =
-              node_names_of version |> List.app (fn name =>
-                fold_entries NONE (fn (_, exec) => fn () => force_exec exec)
-                    (get_node version name) ());
-          in () end];
+        Future.bulk {name = "Document.execute", group = NONE, deps = [], pri = 1}
+          [fn () =>
+            let
+              val _ = await_cancellation state;
+              val _ =
+                node_names_of version |> List.app (fn name =>
+                  fold_entries NONE (fn (_, exec) => fn () => force_exec exec)
+                      (get_node version name) ());
+            in () end];
 
       val _ = await_cancellation state;  (* FIXME async!? *)
 

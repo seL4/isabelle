@@ -28,7 +28,8 @@ sig
   val cancel: queue -> group -> bool
   val cancel_all: queue -> group list
   val enqueue_passive: group -> (unit -> bool) -> queue -> task * queue
-  val enqueue: group -> task list -> int -> (bool -> bool) -> queue -> (task * bool) * queue
+  val enqueue: string -> group -> task list -> int -> (bool -> bool) ->
+    queue -> (task * bool) * queue
   val extend: task -> (bool -> bool) -> queue -> queue option
   val dequeue_passive: Thread.thread -> task -> queue -> bool * queue
   val dequeue: Thread.thread -> queue -> (task * group * (bool -> bool) list) option * queue
@@ -62,21 +63,26 @@ fun gen_timing which timing e =
 
 (* tasks *)
 
-abstype task = Task of (int option * int) * timing Synchronized.var
+abstype task = Task of
+ {name: string,
+  id: int,
+  pri: int option,
+  timing: timing Synchronized.var}
 with
 
-val dummy_task = Task ((NONE, ~1), new_timing ());
-fun new_task pri = Task ((pri, new_id ()), new_timing ());
+val dummy_task = Task {name = "", id = ~1, pri = NONE, timing = new_timing ()};
+fun new_task name pri = Task {name = name, id = new_id (), pri = pri, timing = new_timing ()};
 
-fun pri_of_task (Task ((pri, _), _)) = the_default 0 pri;
-fun str_of_task (Task ((_, i), _)) = string_of_int i;
+fun pri_of_task (Task {pri, ...}) = the_default 0 pri;
+fun str_of_task (Task {name, id, ...}) =
+  if name = "" then string_of_int id else string_of_int id ^ " (" ^ name ^ ")";
 
-fun timing_of_task (Task (_, timing)) = Synchronized.value timing;
-fun running (Task (_, timing)) = gen_timing apfst timing;
-fun waiting (Task (_, timing)) = gen_timing apsnd timing;
+fun timing_of_task (Task {timing, ...}) = Synchronized.value timing;
+fun running (Task {timing, ...}) = gen_timing apfst timing;
+fun waiting (Task {timing, ...}) = gen_timing apsnd timing;
 
-fun task_ord (Task (t1, _), Task (t2, _)) =
-  prod_ord (rev_order o option_ord int_ord) int_ord (t1, t2);
+fun task_ord (Task {id = id1, pri = pri1, ...}, Task {id = id2, pri = pri2, ...}) =
+  prod_ord (rev_order o option_ord int_ord) int_ord ((pri1, id1), (pri2, id2));
 
 val eq_task = is_equal o task_ord;
 
@@ -219,15 +225,15 @@ fun cancel_all (Queue {jobs, ...}) =
 
 fun enqueue_passive group abort (Queue {groups, jobs}) =
   let
-    val task = new_task NONE;
+    val task = new_task "" NONE;
     val groups' = groups
       |> fold (fn gid => Inttab.cons_list (gid, task)) (group_ancestry group);
     val jobs' = jobs |> Task_Graph.new_node (task, (group, Passive abort));
   in (task, make_queue groups' jobs') end;
 
-fun enqueue group deps pri job (Queue {groups, jobs}) =
+fun enqueue name group deps pri job (Queue {groups, jobs}) =
   let
-    val task = new_task (SOME pri);
+    val task = new_task name (SOME pri);
     val groups' = groups
       |> fold (fn gid => Inttab.cons_list (gid, task)) (group_ancestry group);
     val jobs' = jobs

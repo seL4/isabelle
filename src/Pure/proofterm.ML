@@ -1390,7 +1390,7 @@ fun fulfill_proof_future _ [] postproc body =
       else Future.map postproc body
   | fulfill_proof_future thy promises postproc body =
       singleton
-        (Future.bulk {group = NONE,
+        (Future.bulk {name = "Proofterm.fulfill_proof_future", group = NONE,
             deps = Future.task_of body :: map (Future.task_of o snd) promises, pri = 0})
         (fn () =>
           postproc (fulfill_norm_proof thy (map (apsnd Future.join) promises) (Future.join body)));
@@ -1446,7 +1446,10 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
     val body0 =
       if ! proofs <> 2 then Future.value (make_body0 MinProof)
       else if not (Multithreading.enabled ()) then Future.value (make_body0 (full_proof0 ()))
-      else Future.fork_pri ~1 (make_body0 o full_proof0);
+      else
+        singleton
+          (Future.bulk {name = "Proofterm.prepare_thm_proof", group = NONE, deps = [], pri = ~1})
+          (make_body0 o full_proof0);
 
     fun new_prf () = (serial (), fulfill_proof_future thy promises postproc body0);
     val (i, body') =
