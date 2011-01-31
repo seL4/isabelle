@@ -52,12 +52,12 @@ Packaging
 Final release stage
 ===================
 
+- makedist: REPOS_NAME="isabelle-release"
+
 - hgrc: default = /home/isabelle-repository/repos/isabelle-release
 
   isatest@macbroy28:hg-isabelle/.hg/hgrc
   isatest@atbroy102:hg-isabelle/.hg/hgrc
-
-- makedist: REPOS_NAME="isabelle-release"
 
 - isatest@macbroy28:devel-page/content/index.content
 
