@@ -29,11 +29,11 @@ struct
 fun managed_results f xs =
   if Multithreading.enabled () andalso not (Multithreading.self_critical ()) then
     let
-      val shared_group = Task_Queue.new_group (Future.worker_group ());
-      val results =
-        Future.join_results (map (fn x => Future.fork_group shared_group (fn () => f x)) xs)
-          handle exn =>
-            (if Exn.is_interrupt exn then Future.cancel_group shared_group else (); reraise exn);
+      val group = Task_Queue.new_group (Future.worker_group ());
+      val futures =
+        Future.bulk {group = SOME group, deps = [], pri = 0} (map (fn x => fn () => f x) xs);
+      val results = Future.join_results futures
+        handle exn => (if Exn.is_interrupt exn then Future.cancel_group group else (); reraise exn);
     in results end
   else map (Exn.capture f) xs;
 

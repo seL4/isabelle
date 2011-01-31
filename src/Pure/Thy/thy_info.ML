@@ -184,11 +184,13 @@ fun schedule_futures task_graph = uninterruptible (fn _ => fn () =>
             val deps = map (`get) (Graph.imm_preds task_graph name);
             fun failed (future, parent) = if can Future.join future then NONE else SOME parent;
 
-            val future = Future.fork_deps (map #1 deps) (fn () =>
-              (case map_filter failed deps of
-                [] => body (map (#1 o Future.join o get) parents)
-              | bad => error (loader_msg
-                  ("failed to load " ^ quote name ^ " (unresolved " ^ commas_quote bad ^ ")") [])));
+            val future =
+              singleton (Future.bulk {group = NONE, deps = map (Future.task_of o #1) deps, pri = 0})
+              (fn () =>
+                (case map_filter failed deps of
+                  [] => body (map (#1 o Future.join o get) parents)
+                | bad => error (loader_msg
+                    ("failed to load " ^ quote name ^ " (unresolved " ^ commas_quote bad ^ ")") [])));
           in Symtab.update (name, future) tab end
       | Finished thy => Symtab.update (name, Future.value (thy, I)) tab));
     val _ =

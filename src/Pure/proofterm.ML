@@ -1389,8 +1389,11 @@ fun fulfill_proof_future _ [] postproc body =
       if not (Multithreading.enabled ()) then Future.value (postproc (Future.join body))
       else Future.map postproc body
   | fulfill_proof_future thy promises postproc body =
-      Future.fork_deps (body :: map snd promises) (fn () =>
-        postproc (fulfill_norm_proof thy (map (apsnd Future.join) promises) (Future.join body)));
+      singleton
+        (Future.bulk {group = NONE,
+            deps = Future.task_of body :: map (Future.task_of o snd) promises, pri = 0})
+        (fn () =>
+          postproc (fulfill_norm_proof thy (map (apsnd Future.join) promises) (Future.join body)));
 
 
 (***** abstraction over sort constraints *****)

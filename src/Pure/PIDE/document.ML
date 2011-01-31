@@ -208,7 +208,7 @@ fun proof_status tr st =
 
 fun async_state tr st =
   ignore
-    (Future.fork_group (Task_Queue.new_group NONE)
+    (singleton (Future.bulk {group = SOME (Task_Queue.new_group NONE), deps = [], pri = 0})
       (fn () =>
         Toplevel.setmp_thread_position tr
           (fn () => Toplevel.print_state false st) ()));
@@ -337,14 +337,14 @@ fun execute version_id state =
       val _ = cancel state;
 
       val execution' = (* FIXME proper node deps *)
-        [Future.fork_pri 1 (fn () =>
+        Future.bulk {group = NONE, deps = [], pri = 1} [fn () =>
           let
             val _ = await_cancellation state;
             val _ =
               node_names_of version |> List.app (fn name =>
                 fold_entries NONE (fn (_, exec) => fn () => force_exec exec)
                     (get_node version name) ());
-          in () end)];
+          in () end];
 
       val _ = await_cancellation state;  (* FIXME async!? *)
 
