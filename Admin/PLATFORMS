@@ -91,6 +91,11 @@ The following portable system tools can be taken for granted:
 Known problems
 --------------
 
+* Mac OS: If MacPorts is installed there is some danger that
+  accidental references to its shared libraries are created
+  (e.g. libgmp).  Use otool -L to check if compiled binaries also work
+  without MacPorts.
+
 * Mac OS: If MacPorts is installed and its version of Perl takes
   precedence over /usr/bin/perl in the PATH, then the end-user needs
   to take care of installing extra modules, e.g. for HTTP support.
