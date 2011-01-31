@@ -225,7 +225,7 @@ fun cancel_all (Queue {jobs, ...}) =
 
 fun enqueue_passive group abort (Queue {groups, jobs}) =
   let
-    val task = new_task "" NONE;
+    val task = new_task "passive" NONE;
     val groups' = groups
       |> fold (fn gid => Inttab.cons_list (gid, task)) (group_ancestry group);
     val jobs' = jobs |> Task_Graph.new_node (task, (group, Passive abort));
