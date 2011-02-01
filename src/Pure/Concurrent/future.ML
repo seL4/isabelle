@@ -91,10 +91,10 @@ fun worker_joining e =
     NONE => e ()
   | SOME task => Task_Queue.joining task e);
 
-fun worker_waiting e =
+fun worker_waiting deps e =
   (case worker_task () of
     NONE => e ()
-  | SOME task => Task_Queue.waiting task e);
+  | SOME task => Task_Queue.waiting task deps e);
 
 
 (* datatype future *)
@@ -215,8 +215,8 @@ fun execute (task, group, jobs) =
       let
         val s = Task_Queue.str_of_task task;
         fun micros time = string_of_int (Time.toNanoseconds time div 1000);
-        val (run, wait) = pairself micros (Task_Queue.timing_of_task task);
-      in "TASK " ^ s ^ " " ^ run ^ " " ^ wait end);
+        val (run, wait, deps) = Task_Queue.timing_of_task task;
+      in "TASK " ^ s ^ " " ^ micros run ^ " " ^ micros wait ^ " (" ^ commas deps ^ ")" end);
     val _ = SYNCHRONIZED "finish" (fn () =>
       let
         val maximal = Unsynchronized.change_result queue (Task_Queue.finish task);
@@ -453,7 +453,8 @@ fun join_next deps = (*requires SYNCHRONIZED*)
   else
     (case Unsynchronized.change_result queue (Task_Queue.dequeue_towards (Thread.self ()) deps) of
       (NONE, []) => NONE
-    | (NONE, deps') => (worker_waiting (fn () => worker_wait true work_finished); join_next deps')
+    | (NONE, deps') =>
+        (worker_waiting deps' (fn () => worker_wait true work_finished); join_next deps')
     | (SOME work, deps') => SOME (work, deps'));
 
 fun execute_work NONE = ()
@@ -543,7 +544,7 @@ fun fulfill_result (Future {promised, task, group, result}) res =
                 Unsynchronized.change_result queue
                   (Task_Queue.dequeue_passive (Thread.self ()) task));
           in if still_passive then execute (task, group, [job]) else () end);
-      val _ = worker_waiting (fn () => Single_Assignment.await result);
+      val _ = worker_waiting [task] (fn () => Single_Assignment.await result);
     in () end;
 
 fun fulfill x res = fulfill_result x (Exn.Result res);

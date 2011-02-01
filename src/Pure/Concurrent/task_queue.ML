@@ -10,10 +10,10 @@ sig
   val dummy_task: task
   val pri_of_task: task -> int
   val str_of_task: task -> string
-  val timing_of_task: task -> Time.time * Time.time
+  val timing_of_task: task -> Time.time * Time.time * string list
   val running: task -> (unit -> 'a) -> 'a
   val joining: task -> (unit -> 'a) -> 'a
-  val waiting: task -> (unit -> 'a) -> 'a
+  val waiting: task -> task list -> (unit -> 'a) -> 'a
   type group
   val new_group: group option -> group
   val group_id: group -> int
@@ -48,10 +48,10 @@ val new_id = Synchronized.counter ();
 
 (* timing *)
 
-type timing = Time.time * Time.time;
+type timing = Time.time * Time.time * string list;
 
 fun new_timing () =
-  Synchronized.var "timing" (Time.zeroTime, Time.zeroTime);
+  Synchronized.var "timing" ((Time.zeroTime, Time.zeroTime, []): timing);
 
 fun gen_timing account timing e =
   let
@@ -80,10 +80,15 @@ fun str_of_task (Task {name, id, ...}) =
 
 fun timing_of_task (Task {timing, ...}) = Synchronized.value timing;
 
-fun running (Task {timing, ...}) = gen_timing (fn t => fn (a, b) => (Time.+ (a, t), b)) timing;
-fun joining (Task {timing, ...}) = gen_timing (fn t => fn (a, b) => (Time.- (a, t), b)) timing;
-fun waiting (Task {timing, ...}) =
-  gen_timing (fn t => fn (a, b) => (Time.- (a, t), Time.+ (b, t))) timing;
+fun running (Task {timing, ...}) =
+  gen_timing (fn t => fn (a, b, ds) => (Time.+ (a, t), b, ds)) timing;
+
+fun joining (Task {timing, ...}) =
+  gen_timing (fn t => fn (a, b, ds) => (Time.- (a, t), b, ds)) timing;
+
+fun waiting (Task {timing, ...}) deps =
+  timing |> gen_timing (fn t => fn (a, b, ds) =>
+    (Time.- (a, t), Time.+ (b, t), fold (fn Task {name, ...} => insert (op =) name) deps ds));
 
 fun task_ord (Task {id = id1, pri = pri1, ...}, Task {id = id2, pri = pri2, ...}) =
   prod_ord (rev_order o option_ord int_ord) int_ord ((pri1, id1), (pri2, id2));
