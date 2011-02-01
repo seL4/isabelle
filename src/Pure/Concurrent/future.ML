@@ -38,7 +38,6 @@ sig
   val worker_task: unit -> Task_Queue.task option
   val worker_group: unit -> Task_Queue.group option
   val worker_subgroup: unit -> Task_Queue.group
-  val worker_waiting: (unit -> 'a) -> 'a
   type 'a future
   val task_of: 'a future -> task
   val group_of: 'a future -> group
@@ -86,6 +85,11 @@ val is_worker = is_some o thread_data;
 val worker_task = Option.map #1 o thread_data;
 val worker_group = Option.map #2 o thread_data;
 fun worker_subgroup () = Task_Queue.new_group (worker_group ());
+
+fun worker_joining e =
+  (case worker_task () of
+    NONE => e ()
+  | SOME task => Task_Queue.joining task e);
 
 fun worker_waiting e =
   (case worker_task () of
@@ -449,11 +453,11 @@ fun join_next deps = (*requires SYNCHRONIZED*)
   else
     (case Unsynchronized.change_result queue (Task_Queue.dequeue_towards (Thread.self ()) deps) of
       (NONE, []) => NONE
-    | (NONE, deps') => (worker_wait true work_finished; join_next deps')
+    | (NONE, deps') => (worker_waiting (fn () => worker_wait true work_finished); join_next deps')
     | (SOME work, deps') => SOME (work, deps'));
 
 fun execute_work NONE = ()
-  | execute_work (SOME (work, deps')) = (execute work; join_work deps')
+  | execute_work (SOME (work, deps')) = (worker_joining (fn () => execute work); join_work deps')
 and join_work deps =
   execute_work (SYNCHRONIZED "join" (fn () => join_next deps));
 
@@ -464,15 +468,16 @@ fun join_depend task deps =
 in
 
 fun join_results xs =
-  if forall is_finished xs then map get_result xs
-  else if Multithreading.self_critical () then
-    error "Cannot join future values within critical section"
-  else
-    worker_waiting (fn () =>
-      (case worker_task () of
-        SOME task => join_depend task (map task_of xs)
-      | NONE => List.app (ignore o Single_Assignment.await o result_of) xs;
-      map get_result xs));
+  let
+    val _ =
+      if forall is_finished xs then ()
+      else if Multithreading.self_critical () then
+        error "Cannot join future values within critical section"
+      else
+        (case worker_task () of
+          SOME task => join_depend task (map task_of xs)
+        | NONE => List.app (ignore o Single_Assignment.await o result_of) xs);
+  in map get_result xs end;
 
 end;
 

@@ -12,6 +12,7 @@ sig
   val str_of_task: task -> string
   val timing_of_task: task -> Time.time * Time.time
   val running: task -> (unit -> 'a) -> 'a
+  val joining: task -> (unit -> 'a) -> 'a
   val waiting: task -> (unit -> 'a) -> 'a
   type group
   val new_group: group option -> group
@@ -50,14 +51,14 @@ val new_id = Synchronized.counter ();
 type timing = Time.time * Time.time;
 
 fun new_timing () =
-  Synchronized.var "Task_Queue.timing" (Time.zeroTime, Time.zeroTime);
+  Synchronized.var "timing" (Time.zeroTime, Time.zeroTime);
 
-fun gen_timing which timing e =
+fun gen_timing account timing e =
   let
     val start = Time.now ();
     val result = Exn.capture e ();
     val t = Time.- (Time.now (), start);
-    val _ = Synchronized.change timing (which (fn t' => Time.+ (t, t')));
+    val _ = Synchronized.change timing (account t);
   in Exn.release result end;
 
 
@@ -78,8 +79,11 @@ fun str_of_task (Task {name, id, ...}) =
   if name = "" then string_of_int id else string_of_int id ^ " (" ^ name ^ ")";
 
 fun timing_of_task (Task {timing, ...}) = Synchronized.value timing;
-fun running (Task {timing, ...}) = gen_timing apfst timing;
-fun waiting (Task {timing, ...}) = gen_timing apsnd timing;
+
+fun running (Task {timing, ...}) = gen_timing (fn t => fn (a, b) => (Time.+ (a, t), b)) timing;
+fun joining (Task {timing, ...}) = gen_timing (fn t => fn (a, b) => (Time.- (a, t), b)) timing;
+fun waiting (Task {timing, ...}) =
+  gen_timing (fn t => fn (a, b) => (Time.- (a, t), Time.+ (b, t))) timing;
 
 fun task_ord (Task {id = id1, pri = pri1, ...}, Task {id = id2, pri = pri2, ...}) =
   prod_ord (rev_order o option_ord int_ord) int_ord ((pri1, id1), (pri2, id2));
