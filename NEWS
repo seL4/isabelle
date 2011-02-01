@@ -4,6 +4,10 @@ Isabelle NEWS -- history user-relevant changes
 New in this Isabelle version
 ----------------------------
 
+*** Document preparation ***
+
+* New term style "isub" as ad-hoc conversion of variables x1, y23 into
+subscripted form x\<^isub>1, y\<^isub>2\<^isub>3.
 
 
 New in Isabelle2011 (January 2011)

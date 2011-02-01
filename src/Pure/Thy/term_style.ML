@@ -94,11 +94,30 @@ fun style_parm_premise i = Scan.succeed (fn ctxt => fn t =>
       " in propositon: " ^ Syntax.string_of_term ctxt t)
   end);
 
+fun isub_symbols (d :: s :: ss) =
+      if Symbol.is_ascii_digit d andalso not (String.isPrefix ("\\<^") s)
+      then d :: "\\<^isub>" :: isub_symbols (s :: ss)
+      else d :: s :: ss
+  | isub_symbols cs = cs;
+
+val isub_name = implode o rev o isub_symbols o rev o Symbol.explode;
+
+fun isub_term (Free (n, T)) = Free (isub_name n, T)
+  | isub_term (Var ((n, idx), T)) =
+      if idx <> 0 then Var ((isub_name (n ^ string_of_int idx), 0), T)
+      else Var ((isub_name n, 0), T)
+  | isub_term (t $ u) = isub_term t $ isub_term u
+  | isub_term (Abs (n, T, b)) = Abs (isub_name n, T, isub_term b)
+  | isub_term t = t;
+
+val style_isub = Scan.succeed (K isub_term);
+
 val _ = Context.>> (Context.map_theory
  (setup "lhs" (style_lhs_rhs fst) #>
   setup "rhs" (style_lhs_rhs snd) #>
   setup "prem" style_prem #>
   setup "concl" (Scan.succeed (K Logic.strip_imp_concl)) #>
+  setup "isub" style_isub #>
   setup "prem1" (style_parm_premise 1) #>
   setup "prem2" (style_parm_premise 2) #>
   setup "prem3" (style_parm_premise 3) #>
