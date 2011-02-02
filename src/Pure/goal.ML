@@ -117,7 +117,7 @@ fun fork e = fork_name "Goal.fork" e;
 val parallel_proofs = Unsynchronized.ref 1;
 
 fun future_enabled () =
-  Multithreading.enabled () andalso Future.is_worker () andalso ! parallel_proofs >= 1;
+  Multithreading.enabled () andalso is_some (Future.worker_task ()) andalso ! parallel_proofs >= 1;
 
 fun local_future_enabled () = future_enabled () andalso ! parallel_proofs >= 2;
 
