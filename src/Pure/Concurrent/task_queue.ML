@@ -159,7 +159,7 @@ fun get_deps (jobs: jobs) task =
 (* queue *)
 
 datatype queue = Queue of
- {groups: task list Inttab.table,   (*groups with presently active members*)
+ {groups: task list Inttab.table,   (*groups with presently known members*)
   jobs: jobs};                      (*job dependency graph*)
 
 fun make_queue groups jobs = Queue {groups = groups, jobs = jobs};
