@@ -449,22 +449,18 @@ fun get_result x =
       else res);
 
 fun join_next deps = (*requires SYNCHRONIZED*)
-  if null deps then NONE
+  if Task_Queue.finished_deps deps then NONE
   else
-    (case Unsynchronized.change_result queue (Task_Queue.dequeue_towards (Thread.self ()) deps) of
-      (NONE, []) => NONE
-    | (NONE, deps') =>
-        (worker_waiting deps' (fn () => worker_wait true work_finished); join_next deps')
+    (case Unsynchronized.change_result queue (Task_Queue.dequeue_deps (Thread.self ()) deps) of
+      (NONE, deps') =>
+        if Task_Queue.finished_deps deps' then NONE
+        else (worker_waiting deps' (fn () => worker_wait true work_finished); join_next deps')
     | (SOME work, deps') => SOME (work, deps'));
 
 fun execute_work NONE = ()
   | execute_work (SOME (work, deps')) = (worker_joining (fn () => execute work); join_work deps')
 and join_work deps =
   execute_work (SYNCHRONIZED "join" (fn () => join_next deps));
-
-fun join_depend task deps =
-  execute_work (SYNCHRONIZED "join" (fn () =>
-    (Unsynchronized.change queue (Task_Queue.depend task deps); join_next deps)));
 
 in
 
@@ -474,10 +470,9 @@ fun join_results xs =
       if forall is_finished xs then ()
       else if Multithreading.self_critical () then
         error "Cannot join future values within critical section"
-      else
-        (case worker_task () of
-          SOME task => join_depend task (map task_of xs)
-        | NONE => List.app (ignore o Single_Assignment.await o result_of) xs);
+      else if is_some (thread_data ()) then
+        join_work (Task_Queue.init_deps (map task_of xs))
+      else List.app (ignore o Single_Assignment.await o result_of) xs;
   in map get_result xs end;
 
 end;
@@ -544,7 +539,9 @@ fun fulfill_result (Future {promised, task, group, result}) res =
                 Unsynchronized.change_result queue
                   (Task_Queue.dequeue_passive (Thread.self ()) task));
           in if still_passive then execute (task, group, [job]) else () end);
-      val _ = worker_waiting [task] (fn () => Single_Assignment.await result);
+      val _ =
+        worker_waiting (Task_Queue.init_deps [task])
+          (fn () => Single_Assignment.await result);
     in () end;
 
 fun fulfill x res = fulfill_result x (Exn.Result res);

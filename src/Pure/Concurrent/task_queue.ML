@@ -8,12 +8,10 @@ signature TASK_QUEUE =
 sig
   type task
   val dummy_task: task
+  val name_of_task: task -> string
   val pri_of_task: task -> int
   val str_of_task: task -> string
   val timing_of_task: task -> Time.time * Time.time * string list
-  val running: task -> (unit -> 'a) -> 'a
-  val joining: task -> (unit -> 'a) -> 'a
-  val waiting: task -> task list -> (unit -> 'a) -> 'a
   type group
   val new_group: group option -> group
   val group_id: group -> int
@@ -28,16 +26,21 @@ sig
   val status: queue -> {ready: int, pending: int, running: int, passive: int}
   val cancel: queue -> group -> bool
   val cancel_all: queue -> group list
+  val finish: task -> queue -> bool * queue
   val enqueue_passive: group -> (unit -> bool) -> queue -> task * queue
   val enqueue: string -> group -> task list -> int -> (bool -> bool) ->
     queue -> (task * bool) * queue
   val extend: task -> (bool -> bool) -> queue -> queue option
   val dequeue_passive: Thread.thread -> task -> queue -> bool * queue
   val dequeue: Thread.thread -> queue -> (task * group * (bool -> bool) list) option * queue
-  val depend: task -> task list -> queue -> queue
-  val dequeue_towards: Thread.thread -> task list -> queue ->
-    (((task * group * (bool -> bool) list) option * task list) * queue)
-  val finish: task -> queue -> bool * queue
+  type deps
+  val init_deps: task list -> deps
+  val finished_deps: deps -> bool
+  val dequeue_deps: Thread.thread -> deps -> queue ->
+    (((task * group * (bool -> bool) list) option * deps) * queue)
+  val running: task -> (unit -> 'a) -> 'a
+  val joining: task -> (unit -> 'a) -> 'a
+  val waiting: task -> deps -> (unit -> 'a) -> 'a
 end;
 
 structure Task_Queue: TASK_QUEUE =
@@ -46,23 +49,14 @@ struct
 val new_id = Synchronized.counter ();
 
 
-(* timing *)
+(** grouped tasks **)
 
-type timing = Time.time * Time.time * string list;
+(* tasks *)
+
+type timing = Time.time * Time.time * string list;  (*run, wait, wait dependencies*)
 
 fun new_timing () =
   Synchronized.var "timing" ((Time.zeroTime, Time.zeroTime, []): timing);
-
-fun gen_timing account timing e =
-  let
-    val start = Time.now ();
-    val result = Exn.capture e ();
-    val t = Time.- (Time.now (), start);
-    val _ = Synchronized.change timing (account t);
-  in Exn.release result end;
-
-
-(* tasks *)
 
 abstype task = Task of
  {name: string,
@@ -74,21 +68,20 @@ with
 val dummy_task = Task {name = "", id = ~1, pri = NONE, timing = new_timing ()};
 fun new_task name pri = Task {name = name, id = new_id (), pri = pri, timing = new_timing ()};
 
+fun name_of_task (Task {name, ...}) = name;
 fun pri_of_task (Task {pri, ...}) = the_default 0 pri;
 fun str_of_task (Task {name, id, ...}) =
   if name = "" then string_of_int id else string_of_int id ^ " (" ^ name ^ ")";
 
 fun timing_of_task (Task {timing, ...}) = Synchronized.value timing;
 
-fun running (Task {timing, ...}) =
-  gen_timing (fn t => fn (a, b, ds) => (Time.+ (a, t), b, ds)) timing;
-
-fun joining (Task {timing, ...}) =
-  gen_timing (fn t => fn (a, b, ds) => (Time.- (a, t), b, ds)) timing;
-
-fun waiting (Task {timing, ...}) deps =
-  timing |> gen_timing (fn t => fn (a, b, ds) =>
-    (Time.- (a, t), Time.+ (b, t), fold (fn Task {name, ...} => insert (op =) name) deps ds));
+fun update_timing update (Task {timing, ...}) e =
+  let
+    val start = Time.now ();
+    val result = Exn.capture e ();
+    val t = Time.- (Time.now (), start);
+    val _ = Synchronized.change timing (update t);
+  in Exn.release result end;
 
 fun task_ord (Task {id = id1, pri = pri1, ...}, Task {id = id2, pri = pri2, ...}) =
   prod_ord (rev_order o option_ord int_ord) int_ord ((pri1, id1), (pri2, id2));
@@ -141,6 +134,8 @@ fun str_of_group group =
 end;
 
 
+(** queue of jobs and groups **)
+
 (* jobs *)
 
 datatype job =
@@ -157,16 +152,11 @@ fun set_job task job (jobs: jobs) = Task_Graph.map_node task (fn (group, _) => (
 fun add_job task dep (jobs: jobs) =
   Task_Graph.add_edge (dep, task) jobs handle Task_Graph.UNDEF _ => jobs;
 
-fun add_dep task dep (jobs: jobs) =
-  if Task_Graph.is_edge jobs (task, dep) then
-    raise Fail "Cyclic dependency of future tasks"
-  else add_job task dep jobs;
-
 fun get_deps (jobs: jobs) task =
   Task_Graph.imm_preds jobs task handle Task_Graph.UNDEF _ => [];
 
 
-(* queue of grouped jobs *)
+(* queue *)
 
 datatype queue = Queue of
  {groups: task list Inttab.table,   (*groups with presently active members*)
@@ -207,6 +197,9 @@ fun status (Queue {jobs, ...}) =
   in {ready = x, pending = y, running = z, passive = w} end;
 
 
+
+(** task queue operations **)
+
 (* cancel -- peers and sub-groups *)
 
 fun cancel (Queue {groups, jobs}) group =
@@ -228,6 +221,18 @@ fun cancel_all (Queue {jobs, ...}) =
     val (running_groups, running) = Task_Graph.fold (cancel_job o #1 o #2) jobs ([], []);
     val _ = List.app Simple_Thread.interrupt running;
   in running_groups end;
+
+
+(* finish *)
+
+fun finish task (Queue {groups, jobs}) =
+  let
+    val group = get_group jobs task;
+    val groups' = groups
+      |> fold (fn gid => Inttab.remove_list eq_task (gid, task)) (group_ancestry group);
+    val jobs' = Task_Graph.del_node task jobs;
+    val maximal = null (Task_Graph.imm_succs jobs task);
+  in (maximal, make_queue groups' jobs') end;
 
 
 (* enqueue *)
@@ -275,37 +280,44 @@ fun dequeue thread (queue as Queue {groups, jobs}) =
   | NONE => (NONE, queue));
 
 
-(* dequeue_towards -- adhoc dependencies *)
+(* dequeue wrt. dynamic dependencies *)
 
-fun depend task deps (Queue {groups, jobs}) =
-  make_queue groups (fold (add_dep task) deps jobs);
+abstype deps = Deps of task list
+with
 
-fun dequeue_towards thread deps (queue as Queue {groups, jobs}) =
+fun init_deps tasks = Deps tasks;
+fun finished_deps (Deps tasks) = null tasks;
+
+fun insert_deps (Deps tasks) = fold (insert (op =) o name_of_task) tasks;
+
+fun dequeue_deps thread (Deps deps) (queue as Queue {groups, jobs}) =
   let
     fun ready task = ready_job task (Task_Graph.get_entry jobs task);
     val tasks = filter (can (Task_Graph.get_node jobs)) deps;
     fun result (res as (task, _, _)) =
       let val jobs' = set_job task (Running thread) jobs
-      in ((SOME res, tasks), make_queue groups jobs') end;
+      in ((SOME res, Deps tasks), make_queue groups jobs') end;
   in
     (case get_first ready tasks of
       SOME res => result res
     | NONE =>
         (case get_first (get_first ready o get_deps jobs) tasks of
           SOME res => result res
-        | NONE => ((NONE, tasks), queue)))
+        | NONE => ((NONE, Deps tasks), queue)))
   end;
 
+end;
 
-(* finish *)
 
-fun finish task (Queue {groups, jobs}) =
-  let
-    val group = get_group jobs task;
-    val groups' = groups
-      |> fold (fn gid => Inttab.remove_list eq_task (gid, task)) (group_ancestry group);
-    val jobs' = Task_Graph.del_node task jobs;
-    val maximal = null (Task_Graph.imm_succs jobs task);
-  in (maximal, make_queue groups' jobs') end;
+(* timing *)
+
+fun running task =
+  update_timing (fn t => fn (a, b, ds) => (Time.+ (a, t), b, ds)) task;
+
+fun joining task =
+  update_timing (fn t => fn (a, b, ds) => (Time.- (a, t), b, ds)) task;
+
+fun waiting task deps =
+  update_timing (fn t => fn (a, b, ds) => (Time.- (a, t), Time.+ (b, t), insert_deps deps ds)) task;
 
 end;
