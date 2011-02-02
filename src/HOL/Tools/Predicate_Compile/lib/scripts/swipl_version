@@ -7,9 +7,11 @@
 if [ "$EXEC_SWIPL" = "" ]; then
   echo ""
 else
-  # FIXME does not allow spaces in $EXEC_SWIPL
-  # FIXME "expr match" not portable
-  # FIXME prefer $(...) in bash
-  VERSION=`$EXEC_SWIPL --version`
-  echo `expr match "$VERSION" 'SWI-Prolog version \([0-9\.]*\)'`
+  VERSION="$("$EXEC_SWIPL" --version)"
+  REGEXP='^SWI-Prolog version ([0-9\.]*) for .*$'
+  if [[ "$VERSION" =~ $REGEXP ]]; then
+    echo "${BASH_REMATCH[1]}"
+  else
+    echo undefined
+  fi
 fi

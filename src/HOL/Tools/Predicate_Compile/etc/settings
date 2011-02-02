@@ -17,4 +17,4 @@ EXEC_YAP="$(choosefrom \
   $(type -p yap) \
   "")"
 
-SWIPL_VERSION=$("$COMPONENT/lib/scripts/swipl_version")
+SWIPL_VERSION="$("$COMPONENT/lib/scripts/swipl_version")"
