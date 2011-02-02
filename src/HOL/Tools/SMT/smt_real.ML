@@ -58,10 +58,9 @@ end
 (* Z3 constructors *)
 
 local
-  structure I = Z3_Interface
-
-  fun z3_mk_builtin_typ (I.Sym ("Real", _)) = SOME @{typ real}
-    | z3_mk_builtin_typ (I.Sym ("real", _)) = SOME @{typ real} (*FIXME: delete*)
+  fun z3_mk_builtin_typ (Z3_Interface.Sym ("Real", _)) = SOME @{typ real}
+    | z3_mk_builtin_typ (Z3_Interface.Sym ("real", _)) = SOME @{typ real}
+        (*FIXME: delete*)
     | z3_mk_builtin_typ _ = NONE
 
   fun z3_mk_builtin_num _ i T =
@@ -76,15 +75,23 @@ local
   val mk_lt = Thm.mk_binop (Thm.cterm_of @{theory} @{const less (real)})
   val mk_le = Thm.mk_binop (Thm.cterm_of @{theory} @{const less_eq (real)})
 
-  fun z3_mk_builtin_fun (I.Sym ("-", _)) [ct] = SOME (mk_uminus ct)
-    | z3_mk_builtin_fun (I.Sym ("+", _)) [ct, cu] = SOME (mk_add ct cu)
-    | z3_mk_builtin_fun (I.Sym ("-", _)) [ct, cu] = SOME (mk_sub ct cu)
-    | z3_mk_builtin_fun (I.Sym ("*", _)) [ct, cu] = SOME (mk_mul ct cu)
-    | z3_mk_builtin_fun (I.Sym ("/", _)) [ct, cu] = SOME (mk_div ct cu)
-    | z3_mk_builtin_fun (I.Sym ("<", _)) [ct, cu] = SOME (mk_lt ct cu)
-    | z3_mk_builtin_fun (I.Sym ("<=", _)) [ct, cu] = SOME (mk_le ct cu)
-    | z3_mk_builtin_fun (I.Sym (">", _)) [ct, cu] = SOME (mk_lt cu ct)
-    | z3_mk_builtin_fun (I.Sym (">=", _)) [ct, cu] = SOME (mk_le cu ct)
+  fun z3_mk_builtin_fun (Z3_Interface.Sym ("-", _)) [ct] = SOME (mk_uminus ct)
+    | z3_mk_builtin_fun (Z3_Interface.Sym ("+", _)) [ct, cu] =
+        SOME (mk_add ct cu)
+    | z3_mk_builtin_fun (Z3_Interface.Sym ("-", _)) [ct, cu] =
+        SOME (mk_sub ct cu)
+    | z3_mk_builtin_fun (Z3_Interface.Sym ("*", _)) [ct, cu] =
+        SOME (mk_mul ct cu)
+    | z3_mk_builtin_fun (Z3_Interface.Sym ("/", _)) [ct, cu] =
+        SOME (mk_div ct cu)
+    | z3_mk_builtin_fun (Z3_Interface.Sym ("<", _)) [ct, cu] =
+        SOME (mk_lt ct cu)
+    | z3_mk_builtin_fun (Z3_Interface.Sym ("<=", _)) [ct, cu] =
+        SOME (mk_le ct cu)
+    | z3_mk_builtin_fun (Z3_Interface.Sym (">", _)) [ct, cu] =
+        SOME (mk_lt cu ct)
+    | z3_mk_builtin_fun (Z3_Interface.Sym (">=", _)) [ct, cu] =
+        SOME (mk_le cu ct)
     | z3_mk_builtin_fun _ _ = NONE
 in
 
