@@ -110,14 +110,12 @@ fun isub_term (Free (n, T)) = Free (isub_name n, T)
   | isub_term (Abs (n, T, b)) = Abs (isub_name n, T, isub_term b)
   | isub_term t = t;
 
-val style_isub = Scan.succeed (K isub_term);
-
 val _ = Context.>> (Context.map_theory
  (setup "lhs" (style_lhs_rhs fst) #>
   setup "rhs" (style_lhs_rhs snd) #>
   setup "prem" style_prem #>
   setup "concl" (Scan.succeed (K Logic.strip_imp_concl)) #>
-  setup "isub" style_isub #>
+  setup "isub" (Scan.succeed (K isub_term)) #>
   setup "prem1" (style_parm_premise 1) #>
   setup "prem2" (style_parm_premise 2) #>
   setup "prem3" (style_parm_premise 3) #>
