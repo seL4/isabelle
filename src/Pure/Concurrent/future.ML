@@ -440,12 +440,12 @@ fun get_result x =
       else res);
 
 fun join_next deps = (*requires SYNCHRONIZED*)
-  if Task_Queue.finished_deps deps then NONE
+  if null deps then NONE
   else
     (case Unsynchronized.change_result queue (Task_Queue.dequeue_deps (Thread.self ()) deps) of
-      (NONE, deps') =>
-        if Task_Queue.finished_deps deps' then NONE
-        else (worker_waiting deps' (fn () => worker_wait true work_finished); join_next deps')
+      (NONE, []) => NONE
+    | (NONE, deps') =>
+        (worker_waiting deps' (fn () => worker_wait true work_finished); join_next deps')
     | (SOME work, deps') => SOME (work, deps'));
 
 fun execute_work NONE = ()
@@ -461,8 +461,7 @@ fun join_results xs =
       if forall is_finished xs then ()
       else if Multithreading.self_critical () then
         error "Cannot join future values within critical section"
-      else if is_some (worker_task ()) then
-        join_work (Task_Queue.init_deps (map task_of xs))
+      else if is_some (worker_task ()) then join_work (map task_of xs)
       else List.app (ignore o Single_Assignment.await o result_of) xs;
   in map get_result xs end;
 
@@ -533,8 +532,8 @@ fun fulfill_result (Future {promised, task, result}) res =
                   (Task_Queue.dequeue_passive (Thread.self ()) task));
           in if still_passive then execute (task, [job]) else () end);
       val _ =
-        worker_waiting (Task_Queue.init_deps [task])
-          (fn () => Single_Assignment.await result);
+        if is_some (Single_Assignment.peek result) then ()
+        else worker_waiting [task] (fn () => ignore (Single_Assignment.await result));
     in () end;
 
 fun fulfill x res = fulfill_result x (Exn.Result res);
