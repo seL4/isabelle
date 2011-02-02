@@ -103,7 +103,9 @@ fun print_scala_stmt labelled_name tyco_syntax const_syntax reserved
     and print_case tyvars some_thm vars fxy (cases as ((_, [_]), _)) =
           let
             val (binds, body) = Code_Thingol.unfold_let (ICase cases);
-            fun print_match ((IVar NONE, _), t) vars =
+            fun print_match ((IVar NONE, _), t as  _ `|=> _) vars =
+                  ((false, enclose "{" "}" [print_term tyvars false some_thm vars NOBR t]), vars)
+              | print_match ((IVar NONE, _), t) vars =
                   ((true, print_term tyvars false some_thm vars NOBR t), vars)
               | print_match ((pat, ty), t) vars =
                   vars
