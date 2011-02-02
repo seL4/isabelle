@@ -11,7 +11,7 @@ proof safe
 qed auto
 
 lemma (in sigma_finite_measure) Ex_finite_integrable_function:
-  shows "\<exists>h\<in>borel_measurable M. positive_integral h \<noteq> \<omega> \<and> (\<forall>x\<in>space M. 0 < h x \<and> h x < \<omega>)"
+  shows "\<exists>h\<in>borel_measurable M. integral\<^isup>P M h \<noteq> \<omega> \<and> (\<forall>x\<in>space M. 0 < h x \<and> h x < \<omega>)"
 proof -
   obtain A :: "nat \<Rightarrow> 'a set" where
     range: "range A \<subseteq> sets M" and
@@ -42,7 +42,7 @@ proof -
   proof (safe intro!: bexI[of _ ?h] del: notI)
     have "\<And>i. A i \<in> sets M"
       using range by fastsimp+
-    then have "positive_integral ?h = (\<Sum>\<^isub>\<infinity> i. n i * \<mu> (A i))"
+    then have "integral\<^isup>P M ?h = (\<Sum>\<^isub>\<infinity> i. n i * \<mu> (A i))"
       by (simp add: positive_integral_psuminf positive_integral_cmult_indicator)
     also have "\<dots> \<le> (\<Sum>\<^isub>\<infinity> i. Real ((1 / 2)^Suc i))"
     proof (rule psuminf_le)
@@ -56,7 +56,7 @@ proof -
     qed
     also have "\<dots> = Real 1"
       by (rule suminf_imp_psuminf, rule power_half_series, auto)
-    finally show "positive_integral ?h \<noteq> \<omega>" by auto
+    finally show "integral\<^isup>P M ?h \<noteq> \<omega>" by auto
   next
     fix x assume "x \<in> space M"
     then obtain i where "x \<in> A i" using space[symmetric] by auto
@@ -75,46 +75,47 @@ definition (in measure_space)
   "absolutely_continuous \<nu> = (\<forall>N\<in>null_sets. \<nu> N = (0 :: pextreal))"
 
 lemma (in sigma_finite_measure) absolutely_continuous_AE:
-  assumes "measure_space M \<nu>" "absolutely_continuous \<nu>" "AE x. P x"
-  shows "measure_space.almost_everywhere M \<nu> P"
+  assumes "measure_space M'" and [simp]: "sets M' = sets M" "space M' = space M"
+    and "absolutely_continuous (measure M')" "AE x. P x"
+  shows "measure_space.almost_everywhere M' P"
 proof -
-  interpret \<nu>: measure_space M \<nu> by fact
+  interpret \<nu>: measure_space M' by fact
   from `AE x. P x` obtain N where N: "N \<in> null_sets" and "{x\<in>space M. \<not> P x} \<subseteq> N"
     unfolding almost_everywhere_def by auto
   show "\<nu>.almost_everywhere P"
   proof (rule \<nu>.AE_I')
-    show "{x\<in>space M. \<not> P x} \<subseteq> N" by fact
-    from `absolutely_continuous \<nu>` show "N \<in> \<nu>.null_sets"
+    show "{x\<in>space M'. \<not> P x} \<subseteq> N" by simp fact
+    from `absolutely_continuous (measure M')` show "N \<in> \<nu>.null_sets"
       using N unfolding absolutely_continuous_def by auto
   qed
 qed
 
 lemma (in finite_measure_space) absolutely_continuousI:
-  assumes "finite_measure_space M \<nu>"
+  assumes "finite_measure_space (M\<lparr> measure := \<nu>\<rparr>)" (is "finite_measure_space ?\<nu>")
   assumes v: "\<And>x. \<lbrakk> x \<in> space M ; \<mu> {x} = 0 \<rbrakk> \<Longrightarrow> \<nu> {x} = 0"
   shows "absolutely_continuous \<nu>"
 proof (unfold absolutely_continuous_def sets_eq_Pow, safe)
   fix N assume "\<mu> N = 0" "N \<subseteq> space M"
-  interpret v: finite_measure_space M \<nu> by fact
-  have "\<nu> N = \<nu> (\<Union>x\<in>N. {x})" by simp
-  also have "\<dots> = (\<Sum>x\<in>N. \<nu> {x})"
+  interpret v: finite_measure_space ?\<nu> by fact
+  have "\<nu> N = measure ?\<nu> (\<Union>x\<in>N. {x})" by simp
+  also have "\<dots> = (\<Sum>x\<in>N. measure ?\<nu> {x})"
   proof (rule v.measure_finitely_additive''[symmetric])
     show "finite N" using `N \<subseteq> space M` finite_space by (auto intro: finite_subset)
     show "disjoint_family_on (\<lambda>i. {i}) N" unfolding disjoint_family_on_def by auto
-    fix x assume "x \<in> N" thus "{x} \<in> sets M" using `N \<subseteq> space M` sets_eq_Pow by auto
+    fix x assume "x \<in> N" thus "{x} \<in> sets ?\<nu>" using `N \<subseteq> space M` sets_eq_Pow by auto
   qed
   also have "\<dots> = 0"
   proof (safe intro!: setsum_0')
     fix x assume "x \<in> N"
     hence "\<mu> {x} \<le> \<mu> N" using sets_eq_Pow `N \<subseteq> space M` by (auto intro!: measure_mono)
     hence "\<mu> {x} = 0" using `\<mu> N = 0` by simp
-    thus "\<nu> {x} = 0" using v[of x] `x \<in> N` `N \<subseteq> space M` by auto
+    thus "measure ?\<nu> {x} = 0" using v[of x] `x \<in> N` `N \<subseteq> space M` by auto
   qed
-  finally show "\<nu> N = 0" .
+  finally show "\<nu> N = 0" by simp
 qed
 
 lemma (in measure_space) density_is_absolutely_continuous:
-  assumes "\<And>A. A \<in> sets M \<Longrightarrow> \<nu> A = (\<integral>\<^isup>+x. f x * indicator A x)"
+  assumes "\<And>A. A \<in> sets M \<Longrightarrow> \<nu> A = (\<integral>\<^isup>+x. f x * indicator A x \<partial>M)"
   shows "absolutely_continuous \<nu>"
   using assms unfolding absolutely_continuous_def
   by (simp add: positive_integral_null_set)
@@ -123,13 +124,13 @@ subsection "Existence of the Radon-Nikodym derivative"
 
 lemma (in finite_measure) Radon_Nikodym_aux_epsilon:
   fixes e :: real assumes "0 < e"
-  assumes "finite_measure M s"
-  shows "\<exists>A\<in>sets M. real (\<mu> (space M)) - real (s (space M)) \<le>
-                    real (\<mu> A) - real (s A) \<and>
-                    (\<forall>B\<in>sets M. B \<subseteq> A \<longrightarrow> - e < real (\<mu> B) - real (s B))"
+  assumes "finite_measure (M\<lparr>measure := \<nu>\<rparr>)"
+  shows "\<exists>A\<in>sets M. real (\<mu> (space M)) - real (\<nu> (space M)) \<le>
+                    real (\<mu> A) - real (\<nu> A) \<and>
+                    (\<forall>B\<in>sets M. B \<subseteq> A \<longrightarrow> - e < real (\<mu> B) - real (\<nu> B))"
 proof -
-  let "?d A" = "real (\<mu> A) - real (s A)"
-  interpret M': finite_measure M s by fact
+  let "?d A" = "real (\<mu> A) - real (\<nu> A)"
+  interpret M': finite_measure "M\<lparr>measure := \<nu>\<rparr>" by fact
   let "?A A" = "if (\<forall>B\<in>sets M. B \<subseteq> space M - A \<longrightarrow> -e < ?d B)
     then {}
     else (SOME B. B \<in> sets M \<and> B \<subseteq> space M - A \<and> ?d B \<le> -e)"
@@ -216,21 +217,24 @@ proof -
 qed
 
 lemma (in finite_measure) Radon_Nikodym_aux:
-  assumes "finite_measure M s"
-  shows "\<exists>A\<in>sets M. real (\<mu> (space M)) - real (s (space M)) \<le>
-                    real (\<mu> A) - real (s A) \<and>
-                    (\<forall>B\<in>sets M. B \<subseteq> A \<longrightarrow> 0 \<le> real (\<mu> B) - real (s B))"
+  assumes "finite_measure (M\<lparr>measure := \<nu>\<rparr>)" (is "finite_measure ?M'")
+  shows "\<exists>A\<in>sets M. real (\<mu> (space M)) - real (\<nu> (space M)) \<le>
+                    real (\<mu> A) - real (\<nu> A) \<and>
+                    (\<forall>B\<in>sets M. B \<subseteq> A \<longrightarrow> 0 \<le> real (\<mu> B) - real (\<nu> B))"
 proof -
-  let "?d A" = "real (\<mu> A) - real (s A)"
+  let "?d A" = "real (\<mu> A) - real (\<nu> A)"
   let "?P A B n" = "A \<in> sets M \<and> A \<subseteq> B \<and> ?d B \<le> ?d A \<and> (\<forall>C\<in>sets M. C \<subseteq> A \<longrightarrow> - 1 / real (Suc n) < ?d C)"
-  interpret M': finite_measure M s by fact
+  interpret M': finite_measure ?M' where
+    "space ?M' = space M" and "sets ?M' = sets M" and "measure ?M' = \<nu>" by fact auto
   let "?r S" = "restricted_space S"
   { fix S n
     assume S: "S \<in> sets M"
     hence **: "\<And>X. X \<in> op \<inter> S ` sets M \<longleftrightarrow> X \<in> sets M \<and> X \<subseteq> S" by auto
-    from M'.restricted_finite_measure[of S] restricted_finite_measure[of S] S
-    have "finite_measure (?r S) \<mu>" "0 < 1 / real (Suc n)"
-      "finite_measure (?r S) s" by auto
+    have [simp]: "(restricted_space S\<lparr>measure := \<nu>\<rparr>) = M'.restricted_space S"
+      by (cases M) simp
+    from M'.restricted_finite_measure[of S] restricted_finite_measure[OF S] S
+    have "finite_measure (?r S)" "0 < 1 / real (Suc n)"
+      "finite_measure (?r S\<lparr>measure := \<nu>\<rparr>)" by auto
     from finite_measure.Radon_Nikodym_aux_epsilon[OF this] guess X ..
     hence "?P X S n"
     proof (simp add: **, safe)
@@ -287,12 +291,14 @@ proof -
 qed
 
 lemma (in finite_measure) Radon_Nikodym_finite_measure:
-  assumes "finite_measure M \<nu>"
+  assumes "finite_measure (M\<lparr> measure := \<nu>\<rparr>)" (is "finite_measure ?M'")
   assumes "absolutely_continuous \<nu>"
-  shows "\<exists>f \<in> borel_measurable M. \<forall>A\<in>sets M. \<nu> A = (\<integral>\<^isup>+x. f x * indicator A x)"
+  shows "\<exists>f \<in> borel_measurable M. \<forall>A\<in>sets M. \<nu> A = (\<integral>\<^isup>+x. f x * indicator A x \<partial>M)"
 proof -
-  interpret M': finite_measure M \<nu> using assms(1) .
-  def G \<equiv> "{g \<in> borel_measurable M. \<forall>A\<in>sets M. (\<integral>\<^isup>+x. g x * indicator A x) \<le> \<nu> A}"
+  interpret M': finite_measure ?M'
+    where "space ?M' = space M" and "sets ?M' = sets M" and "measure ?M' = \<nu>"
+    using assms(1) by auto
+  def G \<equiv> "{g \<in> borel_measurable M. \<forall>A\<in>sets M. (\<integral>\<^isup>+x. g x * indicator A x \<partial>M) \<le> \<nu> A}"
   have "(\<lambda>x. 0) \<in> G" unfolding G_def by auto
   hence "G \<noteq> {}" by auto
   { fix f g assume f: "f \<in> G" and g: "g \<in> G"
@@ -308,16 +314,16 @@ proof -
       have "\<And>x. x \<in> space M \<Longrightarrow> max (g x) (f x) * indicator A x =
         g x * indicator (?A \<inter> A) x + f x * indicator ((space M - ?A) \<inter> A) x"
         by (auto simp: indicator_def max_def)
-      hence "(\<integral>\<^isup>+x. max (g x) (f x) * indicator A x) =
-        (\<integral>\<^isup>+x. g x * indicator (?A \<inter> A) x) +
-        (\<integral>\<^isup>+x. f x * indicator ((space M - ?A) \<inter> A) x)"
+      hence "(\<integral>\<^isup>+x. max (g x) (f x) * indicator A x \<partial>M) =
+        (\<integral>\<^isup>+x. g x * indicator (?A \<inter> A) x \<partial>M) +
+        (\<integral>\<^isup>+x. f x * indicator ((space M - ?A) \<inter> A) x \<partial>M)"
         using f g sets unfolding G_def
         by (auto cong: positive_integral_cong intro!: positive_integral_add borel_measurable_indicator)
       also have "\<dots> \<le> \<nu> (?A \<inter> A) + \<nu> ((space M - ?A) \<inter> A)"
         using f g sets unfolding G_def by (auto intro!: add_mono)
       also have "\<dots> = \<nu> A"
         using M'.measure_additive[OF sets] union by auto
-      finally show "(\<integral>\<^isup>+x. max (g x) (f x) * indicator A x) \<le> \<nu> A" .
+      finally show "(\<integral>\<^isup>+x. max (g x) (f x) * indicator A x \<partial>M) \<le> \<nu> A" .
     qed }
   note max_in_G = this
   { fix f g assume  "f \<up> g" and f: "\<And>i. f i \<in> G"
@@ -331,30 +337,30 @@ proof -
       hence "\<And>i. (\<lambda>x. f i x * indicator A x) \<in> borel_measurable M"
         using f_borel by (auto intro!: borel_measurable_indicator)
       from positive_integral_isoton[OF isoton_indicator[OF `f \<up> g`] this]
-      have SUP: "(\<integral>\<^isup>+x. g x * indicator A x) =
-          (SUP i. (\<integral>\<^isup>+x. f i x * indicator A x))"
+      have SUP: "(\<integral>\<^isup>+x. g x * indicator A x \<partial>M) =
+          (SUP i. (\<integral>\<^isup>+x. f i x * indicator A x \<partial>M))"
         unfolding isoton_def by simp
-      show "(\<integral>\<^isup>+x. g x * indicator A x) \<le> \<nu> A" unfolding SUP
+      show "(\<integral>\<^isup>+x. g x * indicator A x \<partial>M) \<le> \<nu> A" unfolding SUP
         using f `A \<in> sets M` unfolding G_def by (auto intro!: SUP_leI)
     qed }
   note SUP_in_G = this
-  let ?y = "SUP g : G. positive_integral g"
+  let ?y = "SUP g : G. integral\<^isup>P M g"
   have "?y \<le> \<nu> (space M)" unfolding G_def
   proof (safe intro!: SUP_leI)
-    fix g assume "\<forall>A\<in>sets M. (\<integral>\<^isup>+x. g x * indicator A x) \<le> \<nu> A"
-    from this[THEN bspec, OF top] show "positive_integral g \<le> \<nu> (space M)"
+    fix g assume "\<forall>A\<in>sets M. (\<integral>\<^isup>+x. g x * indicator A x \<partial>M) \<le> \<nu> A"
+    from this[THEN bspec, OF top] show "integral\<^isup>P M g \<le> \<nu> (space M)"
       by (simp cong: positive_integral_cong)
   qed
   hence "?y \<noteq> \<omega>" using M'.finite_measure_of_space by auto
   from SUPR_countable_SUPR[OF this `G \<noteq> {}`] guess ys .. note ys = this
-  hence "\<forall>n. \<exists>g. g\<in>G \<and> positive_integral g = ys n"
+  hence "\<forall>n. \<exists>g. g\<in>G \<and> integral\<^isup>P M g = ys n"
   proof safe
-    fix n assume "range ys \<subseteq> positive_integral ` G"
-    hence "ys n \<in> positive_integral ` G" by auto
-    thus "\<exists>g. g\<in>G \<and> positive_integral g = ys n" by auto
+    fix n assume "range ys \<subseteq> integral\<^isup>P M ` G"
+    hence "ys n \<in> integral\<^isup>P M ` G" by auto
+    thus "\<exists>g. g\<in>G \<and> integral\<^isup>P M g = ys n" by auto
   qed
-  from choice[OF this] obtain gs where "\<And>i. gs i \<in> G" "\<And>n. positive_integral (gs n) = ys n" by auto
-  hence y_eq: "?y = (SUP i. positive_integral (gs i))" using ys by auto
+  from choice[OF this] obtain gs where "\<And>i. gs i \<in> G" "\<And>n. integral\<^isup>P M (gs n) = ys n" by auto
+  hence y_eq: "?y = (SUP i. integral\<^isup>P M (gs i))" using ys by auto
   let "?g i x" = "Max ((\<lambda>n. gs n x) ` {..i})"
   def f \<equiv> "SUP i. ?g i"
   have gs_not_empty: "\<And>i. (\<lambda>n. gs n x) ` {..i} \<noteq> {}" by auto
@@ -372,53 +378,53 @@ proof -
   hence isoton_g: "?g \<up> f" by (simp add: isoton_def le_fun_def f_def)
   from SUP_in_G[OF this g_in_G] have "f \<in> G" .
   hence [simp, intro]: "f \<in> borel_measurable M" unfolding G_def by auto
-  have "(\<lambda>i. positive_integral (?g i)) \<up> positive_integral f"
+  have "(\<lambda>i. integral\<^isup>P M (?g i)) \<up> integral\<^isup>P M f"
     using isoton_g g_in_G by (auto intro!: positive_integral_isoton simp: G_def f_def)
-  hence "positive_integral f = (SUP i. positive_integral (?g i))"
+  hence "integral\<^isup>P M f = (SUP i. integral\<^isup>P M (?g i))"
     unfolding isoton_def by simp
   also have "\<dots> = ?y"
   proof (rule antisym)
-    show "(SUP i. positive_integral (?g i)) \<le> ?y"
+    show "(SUP i. integral\<^isup>P M (?g i)) \<le> ?y"
       using g_in_G by (auto intro!: exI Sup_mono simp: SUPR_def)
-    show "?y \<le> (SUP i. positive_integral (?g i))" unfolding y_eq
+    show "?y \<le> (SUP i. integral\<^isup>P M (?g i))" unfolding y_eq
       by (auto intro!: SUP_mono positive_integral_mono Max_ge)
   qed
-  finally have int_f_eq_y: "positive_integral f = ?y" .
-  let "?t A" = "\<nu> A - (\<integral>\<^isup>+x. f x * indicator A x)"
-  have "finite_measure M ?t"
-  proof
-    show "?t {} = 0" by simp
-    show "?t (space M) \<noteq> \<omega>" using M'.finite_measure by simp
-    show "countably_additive M ?t" unfolding countably_additive_def
-    proof safe
-      fix A :: "nat \<Rightarrow> 'a set"  assume A: "range A \<subseteq> sets M" "disjoint_family A"
-      have "(\<Sum>\<^isub>\<infinity> n. (\<integral>\<^isup>+x. f x * indicator (A n) x))
-        = (\<integral>\<^isup>+x. (\<Sum>\<^isub>\<infinity>n. f x * indicator (A n) x))"
-        using `range A \<subseteq> sets M`
-        by (rule_tac positive_integral_psuminf[symmetric]) (auto intro!: borel_measurable_indicator)
-      also have "\<dots> = (\<integral>\<^isup>+x. f x * indicator (\<Union>n. A n) x)"
-        apply (rule positive_integral_cong)
-        apply (subst psuminf_cmult_right)
-        unfolding psuminf_indicator[OF `disjoint_family A`] ..
-      finally have "(\<Sum>\<^isub>\<infinity> n. (\<integral>\<^isup>+x. f x * indicator (A n) x))
-        = (\<integral>\<^isup>+x. f x * indicator (\<Union>n. A n) x)" .
-      moreover have "(\<Sum>\<^isub>\<infinity>n. \<nu> (A n)) = \<nu> (\<Union>n. A n)"
-        using M'.measure_countably_additive A by (simp add: comp_def)
-      moreover have "\<And>i. (\<integral>\<^isup>+x. f x * indicator (A i) x) \<le> \<nu> (A i)"
-          using A `f \<in> G` unfolding G_def by auto
-      moreover have v_fin: "\<nu> (\<Union>i. A i) \<noteq> \<omega>" using M'.finite_measure A by (simp add: countable_UN)
-      moreover {
-        have "(\<integral>\<^isup>+x. f x * indicator (\<Union>i. A i) x) \<le> \<nu> (\<Union>i. A i)"
-          using A `f \<in> G` unfolding G_def by (auto simp: countable_UN)
-        also have "\<nu> (\<Union>i. A i) < \<omega>" using v_fin by (simp add: pextreal_less_\<omega>)
-        finally have "(\<integral>\<^isup>+x. f x * indicator (\<Union>i. A i) x) \<noteq> \<omega>"
-          by (simp add: pextreal_less_\<omega>) }
-      ultimately
-      show "(\<Sum>\<^isub>\<infinity> n. ?t (A n)) = ?t (\<Union>i. A i)"
-        apply (subst psuminf_minus) by simp_all
-    qed
+  finally have int_f_eq_y: "integral\<^isup>P M f = ?y" .
+  let "?t A" = "\<nu> A - (\<integral>\<^isup>+x. f x * indicator A x \<partial>M)"
+  let ?M = "M\<lparr> measure := ?t\<rparr>"
+  interpret M: sigma_algebra ?M
+    by (intro sigma_algebra_cong) auto
+  have fmM: "finite_measure ?M"
+  proof (default, simp_all add: countably_additive_def, safe)
+    fix A :: "nat \<Rightarrow> 'a set"  assume A: "range A \<subseteq> sets M" "disjoint_family A"
+    have "(\<Sum>\<^isub>\<infinity> n. (\<integral>\<^isup>+x. f x * indicator (A n) x \<partial>M))
+      = (\<integral>\<^isup>+x. (\<Sum>\<^isub>\<infinity>n. f x * indicator (A n) x) \<partial>M)"
+      using `range A \<subseteq> sets M`
+      by (rule_tac positive_integral_psuminf[symmetric]) (auto intro!: borel_measurable_indicator)
+    also have "\<dots> = (\<integral>\<^isup>+x. f x * indicator (\<Union>n. A n) x \<partial>M)"
+      apply (rule positive_integral_cong)
+      apply (subst psuminf_cmult_right)
+      unfolding psuminf_indicator[OF `disjoint_family A`] ..
+    finally have "(\<Sum>\<^isub>\<infinity> n. (\<integral>\<^isup>+x. f x * indicator (A n) x \<partial>M))
+      = (\<integral>\<^isup>+x. f x * indicator (\<Union>n. A n) x \<partial>M)" .
+    moreover have "(\<Sum>\<^isub>\<infinity>n. \<nu> (A n)) = \<nu> (\<Union>n. A n)"
+      using M'.measure_countably_additive A by (simp add: comp_def)
+    moreover have "\<And>i. (\<integral>\<^isup>+x. f x * indicator (A i) x \<partial>M) \<le> \<nu> (A i)"
+        using A `f \<in> G` unfolding G_def by auto
+    moreover have v_fin: "\<nu> (\<Union>i. A i) \<noteq> \<omega>" using M'.finite_measure A by (simp add: countable_UN)
+    moreover {
+      have "(\<integral>\<^isup>+x. f x * indicator (\<Union>i. A i) x \<partial>M) \<le> \<nu> (\<Union>i. A i)"
+        using A `f \<in> G` unfolding G_def by (auto simp: countable_UN)
+      also have "\<nu> (\<Union>i. A i) < \<omega>" using v_fin by (simp add: pextreal_less_\<omega>)
+      finally have "(\<integral>\<^isup>+x. f x * indicator (\<Union>i. A i) x \<partial>M) \<noteq> \<omega>"
+        by (simp add: pextreal_less_\<omega>) }
+    ultimately
+    show "(\<Sum>\<^isub>\<infinity> n. ?t (A n)) = ?t (\<Union>i. A i)"
+      apply (subst psuminf_minus) by simp_all
   qed
-  then interpret M: finite_measure M ?t .
+  then interpret M: finite_measure ?M
+    where "space ?M = space M" and "sets ?M = sets M" and "measure ?M = ?t"
+    by (simp_all add: fmM)
   have ac: "absolutely_continuous ?t" using `absolutely_continuous \<nu>` unfolding absolutely_continuous_def by auto
   have upper_bound: "\<forall>A\<in>sets M. ?t A \<le> 0"
   proof (rule ccontr)
@@ -433,23 +439,21 @@ proof -
     hence pos_M: "0 < \<mu> (space M)"
       using ac top unfolding absolutely_continuous_def by auto
     moreover
-    have "(\<integral>\<^isup>+x. f x * indicator (space M) x) \<le> \<nu> (space M)"
+    have "(\<integral>\<^isup>+x. f x * indicator (space M) x \<partial>M) \<le> \<nu> (space M)"
       using `f \<in> G` unfolding G_def by auto
-    hence "(\<integral>\<^isup>+x. f x * indicator (space M) x) \<noteq> \<omega>"
+    hence "(\<integral>\<^isup>+x. f x * indicator (space M) x \<partial>M) \<noteq> \<omega>"
       using M'.finite_measure_of_space by auto
     moreover
     def b \<equiv> "?t (space M) / \<mu> (space M) / 2"
     ultimately have b: "b \<noteq> 0" "b \<noteq> \<omega>"
       using M'.finite_measure_of_space
       by (auto simp: pextreal_inverse_eq_0 finite_measure_of_space)
-    have "finite_measure M (\<lambda>A. b * \<mu> A)" (is "finite_measure M ?b")
-    proof
-      show "?b {} = 0" by simp
-      show "?b (space M) \<noteq> \<omega>" using finite_measure_of_space b by auto
-      show "countably_additive M ?b"
-        unfolding countably_additive_def psuminf_cmult_right
-        using measure_countably_additive by auto
-    qed
+    let ?Mb = "?M\<lparr>measure := \<lambda>A. b * \<mu> A\<rparr>"
+    interpret b: sigma_algebra ?Mb by (intro sigma_algebra_cong) auto
+    have "finite_measure ?Mb"
+      by default
+         (insert finite_measure_of_space b measure_countably_additive,
+          auto simp: psuminf_cmult_right countably_additive_def)
     from M.Radon_Nikodym_aux[OF this]
     obtain A0 where "A0 \<in> sets M" and
       space_less_A0: "real (?t (space M)) - real (b * \<mu> (space M)) \<le> real (?t A0) - real (b * \<mu> A0)" and
@@ -462,30 +466,30 @@ proof -
     let "?f0 x" = "f x + b * indicator A0 x"
     { fix A assume A: "A \<in> sets M"
       hence "A \<inter> A0 \<in> sets M" using `A0 \<in> sets M` by auto
-      have "(\<integral>\<^isup>+x. ?f0 x  * indicator A x) =
-        (\<integral>\<^isup>+x. f x * indicator A x + b * indicator (A \<inter> A0) x)"
+      have "(\<integral>\<^isup>+x. ?f0 x  * indicator A x \<partial>M) =
+        (\<integral>\<^isup>+x. f x * indicator A x + b * indicator (A \<inter> A0) x \<partial>M)"
         by (auto intro!: positive_integral_cong simp: field_simps indicator_inter_arith)
-      hence "(\<integral>\<^isup>+x. ?f0 x * indicator A x) =
-          (\<integral>\<^isup>+x. f x * indicator A x) + b * \<mu> (A \<inter> A0)"
+      hence "(\<integral>\<^isup>+x. ?f0 x * indicator A x \<partial>M) =
+          (\<integral>\<^isup>+x. f x * indicator A x \<partial>M) + b * \<mu> (A \<inter> A0)"
         using `A0 \<in> sets M` `A \<inter> A0 \<in> sets M` A
         by (simp add: borel_measurable_indicator positive_integral_add positive_integral_cmult_indicator) }
     note f0_eq = this
     { fix A assume A: "A \<in> sets M"
       hence "A \<inter> A0 \<in> sets M" using `A0 \<in> sets M` by auto
-      have f_le_v: "(\<integral>\<^isup>+x. f x * indicator A x) \<le> \<nu> A"
+      have f_le_v: "(\<integral>\<^isup>+x. f x * indicator A x \<partial>M) \<le> \<nu> A"
         using `f \<in> G` A unfolding G_def by auto
       note f0_eq[OF A]
-      also have "(\<integral>\<^isup>+x. f x * indicator A x) + b * \<mu> (A \<inter> A0) \<le>
-          (\<integral>\<^isup>+x. f x * indicator A x) + ?t (A \<inter> A0)"
+      also have "(\<integral>\<^isup>+x. f x * indicator A x \<partial>M) + b * \<mu> (A \<inter> A0) \<le>
+          (\<integral>\<^isup>+x. f x * indicator A x \<partial>M) + ?t (A \<inter> A0)"
         using bM_le_t[OF `A \<inter> A0 \<in> sets M`] `A \<in> sets M` `A0 \<in> sets M`
         by (auto intro!: add_left_mono)
-      also have "\<dots> \<le> (\<integral>\<^isup>+x. f x * indicator A x) + ?t A"
+      also have "\<dots> \<le> (\<integral>\<^isup>+x. f x * indicator A x \<partial>M) + ?t A"
         using M.measure_mono[simplified, OF _ `A \<inter> A0 \<in> sets M` `A \<in> sets M`]
         by (auto intro!: add_left_mono)
       also have "\<dots> \<le> \<nu> A"
         using f_le_v M'.finite_measure[simplified, OF `A \<in> sets M`]
-        by (cases "(\<integral>\<^isup>+x. f x * indicator A x)", cases "\<nu> A", auto)
-      finally have "(\<integral>\<^isup>+x. ?f0 x * indicator A x) \<le> \<nu> A" . }
+        by (cases "(\<integral>\<^isup>+x. f x * indicator A x \<partial>M)", cases "\<nu> A", auto)
+      finally have "(\<integral>\<^isup>+x. ?f0 x * indicator A x \<partial>M) \<le> \<nu> A" . }
     hence "?f0 \<in> G" using `A0 \<in> sets M` unfolding G_def
       by (auto intro!: borel_measurable_indicator borel_measurable_pextreal_add borel_measurable_pextreal_times)
     have real: "?t (space M) \<noteq> \<omega>" "?t A0 \<noteq> \<omega>"
@@ -494,7 +498,7 @@ proof -
         finite_measure[of A0] M.finite_measure[of A0]
         finite_measure_of_space M.finite_measure_of_space
       by auto
-    have int_f_finite: "positive_integral f \<noteq> \<omega>"
+    have int_f_finite: "integral\<^isup>P M f \<noteq> \<omega>"
       using M'.finite_measure_of_space pos_t unfolding pextreal_zero_less_diff_iff
       by (auto cong: positive_integral_cong)
     have "?t (space M) > b * \<mu> (space M)" unfolding b_def
@@ -514,22 +518,22 @@ proof -
       using `A0 \<in> sets M` by auto
     hence "0 < b * \<mu> A0" using b by auto
     from int_f_finite this
-    have "?y + 0 < positive_integral f + b * \<mu> A0" unfolding int_f_eq_y
+    have "?y + 0 < integral\<^isup>P M f + b * \<mu> A0" unfolding int_f_eq_y
       by (rule pextreal_less_add)
-    also have "\<dots> = positive_integral ?f0" using f0_eq[OF top] `A0 \<in> sets M` sets_into_space
+    also have "\<dots> = integral\<^isup>P M ?f0" using f0_eq[OF top] `A0 \<in> sets M` sets_into_space
       by (simp cong: positive_integral_cong)
-    finally have "?y < positive_integral ?f0" by simp
-    moreover from `?f0 \<in> G` have "positive_integral ?f0 \<le> ?y" by (auto intro!: le_SUPI)
+    finally have "?y < integral\<^isup>P M ?f0" by simp
+    moreover from `?f0 \<in> G` have "integral\<^isup>P M ?f0 \<le> ?y" by (auto intro!: le_SUPI)
     ultimately show False by auto
   qed
   show ?thesis
   proof (safe intro!: bexI[of _ f])
     fix A assume "A\<in>sets M"
-    show "\<nu> A = (\<integral>\<^isup>+x. f x * indicator A x)"
+    show "\<nu> A = (\<integral>\<^isup>+x. f x * indicator A x \<partial>M)"
     proof (rule antisym)
-      show "(\<integral>\<^isup>+x. f x * indicator A x) \<le> \<nu> A"
+      show "(\<integral>\<^isup>+x. f x * indicator A x \<partial>M) \<le> \<nu> A"
         using `f \<in> G` `A \<in> sets M` unfolding G_def by auto
-      show "\<nu> A \<le> (\<integral>\<^isup>+x. f x * indicator A x)"
+      show "\<nu> A \<le> (\<integral>\<^isup>+x. f x * indicator A x \<partial>M)"
         using upper_bound[THEN bspec, OF `A \<in> sets M`]
          by (simp add: pextreal_zero_le_diff)
     qed
@@ -537,13 +541,15 @@ proof -
 qed
 
 lemma (in finite_measure) split_space_into_finite_sets_and_rest:
-  assumes "measure_space M \<nu>"
+  assumes "measure_space (M\<lparr>measure := \<nu>\<rparr>)" (is "measure_space ?N")
   assumes ac: "absolutely_continuous \<nu>"
   shows "\<exists>\<Omega>0\<in>sets M. \<exists>\<Omega>::nat\<Rightarrow>'a set. disjoint_family \<Omega> \<and> range \<Omega> \<subseteq> sets M \<and> \<Omega>0 = space M - (\<Union>i. \<Omega> i) \<and>
     (\<forall>A\<in>sets M. A \<subseteq> \<Omega>0 \<longrightarrow> (\<mu> A = 0 \<and> \<nu> A = 0) \<or> (\<mu> A > 0 \<and> \<nu> A = \<omega>)) \<and>
     (\<forall>i. \<nu> (\<Omega> i) \<noteq> \<omega>)"
 proof -
-  interpret v: measure_space M \<nu> by fact
+  interpret v: measure_space ?N
+    where "space ?N = space M" and "sets ?N = sets M" and "measure ?N = \<nu>"
+    by fact auto
   let ?Q = "{Q\<in>sets M. \<nu> Q \<noteq> \<omega>}"
   let ?a = "SUP Q:?Q. \<mu> Q"
   have "{} \<in> ?Q" using v.empty_measure by auto
@@ -667,11 +673,13 @@ proof -
 qed
 
 lemma (in finite_measure) Radon_Nikodym_finite_measure_infinite:
-  assumes "measure_space M \<nu>"
+  assumes "measure_space (M\<lparr>measure := \<nu>\<rparr>)" (is "measure_space ?N")
   assumes "absolutely_continuous \<nu>"
-  shows "\<exists>f \<in> borel_measurable M. \<forall>A\<in>sets M. \<nu> A = (\<integral>\<^isup>+x. f x * indicator A x)"
+  shows "\<exists>f \<in> borel_measurable M. \<forall>A\<in>sets M. \<nu> A = (\<integral>\<^isup>+x. f x * indicator A x \<partial>M)"
 proof -
-  interpret v: measure_space M \<nu> by fact
+  interpret v: measure_space ?N
+    where "space ?N = space M" and "sets ?N = sets M" and "measure ?N = \<nu>"
+    by fact auto
   from split_space_into_finite_sets_and_rest[OF assms]
   obtain Q0 and Q :: "nat \<Rightarrow> 'a set"
     where Q: "disjoint_family Q" "range Q \<subseteq> sets M"
@@ -680,39 +688,38 @@ proof -
     and Q_fin: "\<And>i. \<nu> (Q i) \<noteq> \<omega>" by force
   from Q have Q_sets: "\<And>i. Q i \<in> sets M" by auto
   have "\<forall>i. \<exists>f. f\<in>borel_measurable M \<and> (\<forall>A\<in>sets M.
-    \<nu> (Q i \<inter> A) = (\<integral>\<^isup>+x. f x * indicator (Q i \<inter> A) x))"
+    \<nu> (Q i \<inter> A) = (\<integral>\<^isup>+x. f x * indicator (Q i \<inter> A) x \<partial>M))"
   proof
     fix i
     have indicator_eq: "\<And>f x A. (f x :: pextreal) * indicator (Q i \<inter> A) x * indicator (Q i) x
       = (f x * indicator (Q i) x) * indicator A x"
       unfolding indicator_def by auto
-    have fm: "finite_measure (restricted_space (Q i)) \<mu>"
-      (is "finite_measure ?R \<mu>") by (rule restricted_finite_measure[OF Q_sets[of i]])
+    have fm: "finite_measure (restricted_space (Q i))"
+      (is "finite_measure ?R") by (rule restricted_finite_measure[OF Q_sets[of i]])
     then interpret R: finite_measure ?R .
-    have fmv: "finite_measure ?R \<nu>"
+    have fmv: "finite_measure (restricted_space (Q i) \<lparr> measure := \<nu>\<rparr>)" (is "finite_measure ?Q")
       unfolding finite_measure_def finite_measure_axioms_def
     proof
-      show "measure_space ?R \<nu>"
+      show "measure_space ?Q"
         using v.restricted_measure_space Q_sets[of i] by auto
-      show "\<nu>  (space ?R) \<noteq> \<omega>"
-        using Q_fin by simp
+      show "measure ?Q (space ?Q) \<noteq> \<omega>" using Q_fin by simp
     qed
     have "R.absolutely_continuous \<nu>"
       using `absolutely_continuous \<nu>` `Q i \<in> sets M`
       by (auto simp: R.absolutely_continuous_def absolutely_continuous_def)
-    from finite_measure.Radon_Nikodym_finite_measure[OF fm fmv this]
+    from R.Radon_Nikodym_finite_measure[OF fmv this]
     obtain f where f: "(\<lambda>x. f x * indicator (Q i) x) \<in> borel_measurable M"
-      and f_int: "\<And>A. A\<in>sets M \<Longrightarrow> \<nu> (Q i \<inter> A) = (\<integral>\<^isup>+x. (f x * indicator (Q i) x) * indicator A x)"
+      and f_int: "\<And>A. A\<in>sets M \<Longrightarrow> \<nu> (Q i \<inter> A) = (\<integral>\<^isup>+x. (f x * indicator (Q i) x) * indicator A x \<partial>M)"
       unfolding Bex_def borel_measurable_restricted[OF `Q i \<in> sets M`]
         positive_integral_restricted[OF `Q i \<in> sets M`] by (auto simp: indicator_eq)
     then show "\<exists>f. f\<in>borel_measurable M \<and> (\<forall>A\<in>sets M.
-      \<nu> (Q i \<inter> A) = (\<integral>\<^isup>+x. f x * indicator (Q i \<inter> A) x))"
+      \<nu> (Q i \<inter> A) = (\<integral>\<^isup>+x. f x * indicator (Q i \<inter> A) x \<partial>M))"
       by (fastsimp intro!: exI[of _ "\<lambda>x. f x * indicator (Q i) x"] positive_integral_cong
           simp: indicator_def)
   qed
   from choice[OF this] obtain f where borel: "\<And>i. f i \<in> borel_measurable M"
     and f: "\<And>A i. A \<in> sets M \<Longrightarrow>
-      \<nu> (Q i \<inter> A) = (\<integral>\<^isup>+x. f i x * indicator (Q i \<inter> A) x)"
+      \<nu> (Q i \<inter> A) = (\<integral>\<^isup>+x. f i x * indicator (Q i \<inter> A) x \<partial>M)"
     by auto
   let "?f x" =
     "(\<Sum>\<^isub>\<infinity> i. f i x * indicator (Q i) x) + \<omega> * indicator Q0 x"
@@ -728,7 +735,7 @@ proof -
         f i x * indicator (Q i \<inter> A) x"
       "\<And>x i. (indicator A x * indicator Q0 x :: pextreal) =
         indicator (Q0 \<inter> A) x" by (auto simp: indicator_def)
-    have "(\<integral>\<^isup>+x. ?f x * indicator A x) =
+    have "(\<integral>\<^isup>+x. ?f x * indicator A x \<partial>M) =
       (\<Sum>\<^isub>\<infinity> i. \<nu> (Q i \<inter> A)) + \<omega> * \<mu> (Q0 \<inter> A)"
       unfolding f[OF `A \<in> sets M`]
       apply (simp del: pextreal_times(2) add: field_simps *)
@@ -755,27 +762,29 @@ proof -
       using Q_sets `A \<in> sets M` Q0(1) by (auto intro!: countable_UN)
     moreover have "((\<Union>i. Q i) \<inter> A) \<union> (Q0 \<inter> A) = A" "((\<Union>i. Q i) \<inter> A) \<inter> (Q0 \<inter> A) = {}"
       using `A \<in> sets M` sets_into_space Q0 by auto
-    ultimately show "\<nu> A = (\<integral>\<^isup>+x. ?f x * indicator A x)"
+    ultimately show "\<nu> A = (\<integral>\<^isup>+x. ?f x * indicator A x \<partial>M)"
       using v.measure_additive[simplified, of "(\<Union>i. Q i) \<inter> A" "Q0 \<inter> A"]
       by simp
   qed
 qed
 
 lemma (in sigma_finite_measure) Radon_Nikodym:
-  assumes "measure_space M \<nu>"
+  assumes "measure_space (M\<lparr>measure := \<nu>\<rparr>)" (is "measure_space ?N")
   assumes "absolutely_continuous \<nu>"
-  shows "\<exists>f \<in> borel_measurable M. \<forall>A\<in>sets M. \<nu> A = (\<integral>\<^isup>+x. f x * indicator A x)"
+  shows "\<exists>f \<in> borel_measurable M. \<forall>A\<in>sets M. \<nu> A = (\<integral>\<^isup>+x. f x * indicator A x \<partial>M)"
 proof -
   from Ex_finite_integrable_function
-  obtain h where finite: "positive_integral h \<noteq> \<omega>" and
+  obtain h where finite: "integral\<^isup>P M h \<noteq> \<omega>" and
     borel: "h \<in> borel_measurable M" and
     pos: "\<And>x. x \<in> space M \<Longrightarrow> 0 < h x" and
     "\<And>x. x \<in> space M \<Longrightarrow> h x < \<omega>" by auto
-  let "?T A" = "(\<integral>\<^isup>+x. h x * indicator A x)"
+  let "?T A" = "(\<integral>\<^isup>+x. h x * indicator A x \<partial>M)"
+  let ?MT = "M\<lparr> measure := ?T \<rparr>"
   from measure_space_density[OF borel] finite
-  interpret T: finite_measure M ?T
+  interpret T: finite_measure ?MT
+    where "space ?MT = space M" and "sets ?MT = sets M" and "measure ?MT = ?T"
     unfolding finite_measure_def finite_measure_axioms_def
-    by (simp cong: positive_integral_cong)
+    by (simp_all cong: positive_integral_cong)
   have "\<And>N. N \<in> sets M \<Longrightarrow> {x \<in> space M. h x \<noteq> 0 \<and> indicator N x \<noteq> (0::pextreal)} = N"
     using sets_into_space pos by (force simp: indicator_def)
   then have "T.absolutely_continuous \<nu>" using assms(2) borel
@@ -783,7 +792,8 @@ proof -
     by (fastsimp simp: borel_measurable_indicator positive_integral_0_iff)
   from T.Radon_Nikodym_finite_measure_infinite[simplified, OF assms(1) this]
   obtain f where f_borel: "f \<in> borel_measurable M" and
-    fT: "\<And>A. A \<in> sets M \<Longrightarrow> \<nu> A = T.positive_integral (\<lambda>x. f x * indicator A x)" by auto
+    fT: "\<And>A. A \<in> sets M \<Longrightarrow> \<nu> A = (\<integral>\<^isup>+ x. f x * indicator A x \<partial>?MT)"
+    by (auto simp: measurable_def)
   show ?thesis
   proof (safe intro!: bexI[of _ "\<lambda>x. h x * f x"])
     show "(\<lambda>x. h x * f x) \<in> borel_measurable M"
@@ -792,7 +802,7 @@ proof -
     then have "(\<lambda>x. f x * indicator A x) \<in> borel_measurable M"
       using f_borel by (auto intro: borel_measurable_pextreal_times borel_measurable_indicator)
     from positive_integral_translated_density[OF borel this]
-    show "\<nu> A = (\<integral>\<^isup>+x. h x * f x * indicator A x)"
+    show "\<nu> A = (\<integral>\<^isup>+x. h x * f x * indicator A x \<partial>M)"
       unfolding fT[OF `A \<in> sets M`] by (simp add: field_simps)
   qed
 qed
@@ -801,8 +811,8 @@ section "Uniqueness of densities"
 
 lemma (in measure_space) finite_density_unique:
   assumes borel: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
-  and fin: "positive_integral f < \<omega>"
-  shows "(\<forall>A\<in>sets M. (\<integral>\<^isup>+x. f x * indicator A x) = (\<integral>\<^isup>+x. g x * indicator A x))
+  and fin: "integral\<^isup>P M f < \<omega>"
+  shows "(\<forall>A\<in>sets M. (\<integral>\<^isup>+x. f x * indicator A x \<partial>M) = (\<integral>\<^isup>+x. g x * indicator A x \<partial>M))
     \<longleftrightarrow> (AE x. f x = g x)"
     (is "(\<forall>A\<in>sets M. ?P f A = ?P g A) \<longleftrightarrow> _")
 proof (intro iffI ballI)
@@ -812,18 +822,18 @@ proof (intro iffI ballI)
 next
   assume eq: "\<forall>A\<in>sets M. ?P f A = ?P g A"
   from this[THEN bspec, OF top] fin
-  have g_fin: "positive_integral g < \<omega>" by (simp cong: positive_integral_cong)
+  have g_fin: "integral\<^isup>P M g < \<omega>" by (simp cong: positive_integral_cong)
   { fix f g assume borel: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
-      and g_fin: "positive_integral g < \<omega>" and eq: "\<forall>A\<in>sets M. ?P f A = ?P g A"
+      and g_fin: "integral\<^isup>P M g < \<omega>" and eq: "\<forall>A\<in>sets M. ?P f A = ?P g A"
     let ?N = "{x\<in>space M. g x < f x}"
     have N: "?N \<in> sets M" using borel by simp
-    have "?P (\<lambda>x. (f x - g x)) ?N = (\<integral>\<^isup>+x. f x * indicator ?N x - g x * indicator ?N x)"
+    have "?P (\<lambda>x. (f x - g x)) ?N = (\<integral>\<^isup>+x. f x * indicator ?N x - g x * indicator ?N x \<partial>M)"
       by (auto intro!: positive_integral_cong simp: indicator_def)
     also have "\<dots> = ?P f ?N - ?P g ?N"
     proof (rule positive_integral_diff)
       show "(\<lambda>x. f x * indicator ?N x) \<in> borel_measurable M" "(\<lambda>x. g x * indicator ?N x) \<in> borel_measurable M"
         using borel N by auto
-      have "?P g ?N \<le> positive_integral g"
+      have "?P g ?N \<le> integral\<^isup>P M g"
         by (auto intro!: positive_integral_mono simp: indicator_def)
       then show "?P g ?N \<noteq> \<omega>" using g_fin by auto
       fix x assume "x \<in> space M"
@@ -848,17 +858,17 @@ qed
 
 lemma (in finite_measure) density_unique_finite_measure:
   assumes borel: "f \<in> borel_measurable M" "f' \<in> borel_measurable M"
-  assumes f: "\<And>A. A \<in> sets M \<Longrightarrow> (\<integral>\<^isup>+x. f x * indicator A x) = (\<integral>\<^isup>+x. f' x * indicator A x)"
+  assumes f: "\<And>A. A \<in> sets M \<Longrightarrow> (\<integral>\<^isup>+x. f x * indicator A x \<partial>M) = (\<integral>\<^isup>+x. f' x * indicator A x \<partial>M)"
     (is "\<And>A. A \<in> sets M \<Longrightarrow> ?P f A = ?P f' A")
   shows "AE x. f x = f' x"
 proof -
   let "?\<nu> A" = "?P f A" and "?\<nu>' A" = "?P f' A"
   let "?f A x" = "f x * indicator A x" and "?f' A x" = "f' x * indicator A x"
-  interpret M: measure_space M ?\<nu>
-    using borel(1) by (rule measure_space_density)
+  interpret M: measure_space "M\<lparr> measure := ?\<nu>\<rparr>"
+    using borel(1) by (rule measure_space_density) simp
   have ac: "absolutely_continuous ?\<nu>"
     using f by (rule density_is_absolutely_continuous)
-  from split_space_into_finite_sets_and_rest[OF `measure_space M ?\<nu>` ac]
+  from split_space_into_finite_sets_and_rest[OF `measure_space (M\<lparr> measure := ?\<nu>\<rparr>)` ac]
   obtain Q0 and Q :: "nat \<Rightarrow> 'a set"
     where Q: "disjoint_family Q" "range Q \<subseteq> sets M"
     and Q0: "Q0 \<in> sets M" "Q0 = space M - (\<Union>i. Q i)"
@@ -876,13 +886,13 @@ proof -
   have 2: "AE x. ?f Q0 x = ?f' Q0 x"
   proof (rule AE_I')
     { fix f :: "'a \<Rightarrow> pextreal" assume borel: "f \<in> borel_measurable M"
-        and eq: "\<And>A. A \<in> sets M \<Longrightarrow> ?\<nu> A = (\<integral>\<^isup>+x. f x * indicator A x)"
+        and eq: "\<And>A. A \<in> sets M \<Longrightarrow> ?\<nu> A = (\<integral>\<^isup>+x. f x * indicator A x \<partial>M)"
       let "?A i" = "Q0 \<inter> {x \<in> space M. f x < of_nat i}"
       have "(\<Union>i. ?A i) \<in> null_sets"
       proof (rule null_sets_UN)
         fix i have "?A i \<in> sets M"
           using borel Q0(1) by auto
-        have "?\<nu> (?A i) \<le> (\<integral>\<^isup>+x. of_nat i * indicator (?A i) x)"
+        have "?\<nu> (?A i) \<le> (\<integral>\<^isup>+x. of_nat i * indicator (?A i) x \<partial>M)"
           unfolding eq[OF `?A i \<in> sets M`]
           by (auto intro!: positive_integral_mono simp: indicator_def)
         also have "\<dots> = of_nat i * \<mu> (?A i)"
@@ -912,63 +922,72 @@ qed
 
 lemma (in sigma_finite_measure) density_unique:
   assumes borel: "f \<in> borel_measurable M" "f' \<in> borel_measurable M"
-  assumes f: "\<And>A. A \<in> sets M \<Longrightarrow> (\<integral>\<^isup>+x. f x * indicator A x) = (\<integral>\<^isup>+x. f' x * indicator A x)"
+  assumes f: "\<And>A. A \<in> sets M \<Longrightarrow> (\<integral>\<^isup>+x. f x * indicator A x \<partial>M) = (\<integral>\<^isup>+x. f' x * indicator A x \<partial>M)"
     (is "\<And>A. A \<in> sets M \<Longrightarrow> ?P f A = ?P f' A")
   shows "AE x. f x = f' x"
 proof -
   obtain h where h_borel: "h \<in> borel_measurable M"
-    and fin: "positive_integral h \<noteq> \<omega>" and pos: "\<And>x. x \<in> space M \<Longrightarrow> 0 < h x \<and> h x < \<omega>"
+    and fin: "integral\<^isup>P M h \<noteq> \<omega>" and pos: "\<And>x. x \<in> space M \<Longrightarrow> 0 < h x \<and> h x < \<omega>"
     using Ex_finite_integrable_function by auto
-  interpret h: measure_space M "\<lambda>A. (\<integral>\<^isup>+x. h x * indicator A x)"
-    using h_borel by (rule measure_space_density)
-  interpret h: finite_measure M "\<lambda>A. (\<integral>\<^isup>+x. h x * indicator A x)"
+  interpret h: measure_space "M\<lparr> measure := \<lambda>A. (\<integral>\<^isup>+x. h x * indicator A x \<partial>M) \<rparr>"
+    using h_borel by (rule measure_space_density) simp
+  interpret h: finite_measure "M\<lparr> measure := \<lambda>A. (\<integral>\<^isup>+x. h x * indicator A x \<partial>M) \<rparr>"
     by default (simp cong: positive_integral_cong add: fin)
-  interpret f: measure_space M "\<lambda>A. (\<integral>\<^isup>+x. f x * indicator A x)"
-    using borel(1) by (rule measure_space_density)
-  interpret f': measure_space M "\<lambda>A. (\<integral>\<^isup>+x. f' x * indicator A x)"
-    using borel(2) by (rule measure_space_density)
+  let ?fM = "M\<lparr>measure := \<lambda>A. (\<integral>\<^isup>+x. f x * indicator A x \<partial>M)\<rparr>"
+  interpret f: measure_space ?fM
+    using borel(1) by (rule measure_space_density) simp
+  let ?f'M = "M\<lparr>measure := \<lambda>A. (\<integral>\<^isup>+x. f' x * indicator A x \<partial>M)\<rparr>"
+  interpret f': measure_space ?f'M
+    using borel(2) by (rule measure_space_density) simp
   { fix A assume "A \<in> sets M"
     then have " {x \<in> space M. h x \<noteq> 0 \<and> indicator A x \<noteq> (0::pextreal)} = A"
       using pos sets_into_space by (force simp: indicator_def)
-    then have "(\<integral>\<^isup>+x. h x * indicator A x) = 0 \<longleftrightarrow> A \<in> null_sets"
+    then have "(\<integral>\<^isup>+x. h x * indicator A x \<partial>M) = 0 \<longleftrightarrow> A \<in> null_sets"
       using h_borel `A \<in> sets M` by (simp add: positive_integral_0_iff) }
   note h_null_sets = this
   { fix A assume "A \<in> sets M"
-    have "(\<integral>\<^isup>+x. h x * (f x * indicator A x)) =
-      f.positive_integral (\<lambda>x. h x * indicator A x)"
+    have "(\<integral>\<^isup>+x. h x * (f x * indicator A x) \<partial>M) = (\<integral>\<^isup>+x. h x * indicator A x \<partial>?fM)"
       using `A \<in> sets M` h_borel borel
       by (simp add: positive_integral_translated_density ac_simps cong: positive_integral_cong)
-    also have "\<dots> = f'.positive_integral (\<lambda>x. h x * indicator A x)"
-      by (rule f'.positive_integral_cong_measure) (rule f)
-    also have "\<dots> = (\<integral>\<^isup>+x. h x * (f' x * indicator A x))"
+    also have "\<dots> = (\<integral>\<^isup>+x. h x * indicator A x \<partial>?f'M)"
+      by (rule f'.positive_integral_cong_measure) (simp_all add: f)
+    also have "\<dots> = (\<integral>\<^isup>+x. h x * (f' x * indicator A x) \<partial>M)"
       using `A \<in> sets M` h_borel borel
       by (simp add: positive_integral_translated_density ac_simps cong: positive_integral_cong)
-    finally have "(\<integral>\<^isup>+x. h x * (f x * indicator A x)) = (\<integral>\<^isup>+x. h x * (f' x * indicator A x))" . }
+    finally have "(\<integral>\<^isup>+x. h x * (f x * indicator A x) \<partial>M) = (\<integral>\<^isup>+x. h x * (f' x * indicator A x) \<partial>M)" . }
   then have "h.almost_everywhere (\<lambda>x. f x = f' x)"
     using h_borel borel
-    by (intro h.density_unique_finite_measure[OF borel])
-       (simp add: positive_integral_translated_density)
+    apply (intro h.density_unique_finite_measure)
+    apply (simp add: measurable_def)
+    apply (simp add: measurable_def)
+    by (simp add: positive_integral_translated_density)
   then show "AE x. f x = f' x"
     unfolding h.almost_everywhere_def almost_everywhere_def
     by (auto simp add: h_null_sets)
 qed
 
 lemma (in sigma_finite_measure) sigma_finite_iff_density_finite:
-  assumes \<nu>: "measure_space M \<nu>" and f: "f \<in> borel_measurable M"
-    and eq: "\<And>A. A \<in> sets M \<Longrightarrow> \<nu> A = (\<integral>\<^isup>+x. f x * indicator A x)"
-  shows "sigma_finite_measure M \<nu> \<longleftrightarrow> (AE x. f x \<noteq> \<omega>)"
+  assumes \<nu>: "measure_space (M\<lparr>measure := \<nu>\<rparr>)" (is "measure_space ?N")
+    and f: "f \<in> borel_measurable M"
+    and eq: "\<And>A. A \<in> sets M \<Longrightarrow> \<nu> A = (\<integral>\<^isup>+x. f x * indicator A x \<partial>M)"
+  shows "sigma_finite_measure (M\<lparr>measure := \<nu>\<rparr>) \<longleftrightarrow> (AE x. f x \<noteq> \<omega>)"
 proof
-  assume "sigma_finite_measure M \<nu>"
-  then interpret \<nu>: sigma_finite_measure M \<nu> .
+  assume "sigma_finite_measure ?N"
+  then interpret \<nu>: sigma_finite_measure ?N
+    where "borel_measurable ?N = borel_measurable M" and "measure ?N = \<nu>"
+    and "sets ?N = sets M" and "space ?N = space M" by (auto simp: measurable_def)
   from \<nu>.Ex_finite_integrable_function obtain h where
-    h: "h \<in> borel_measurable M" "\<nu>.positive_integral h \<noteq> \<omega>"
+    h: "h \<in> borel_measurable M" "integral\<^isup>P ?N h \<noteq> \<omega>"
     and fin: "\<And>x. x \<in> space M \<Longrightarrow> 0 < h x \<and> h x < \<omega>" by auto
   have "AE x. f x * h x \<noteq> \<omega>"
   proof (rule AE_I')
-    have "\<nu>.positive_integral h = (\<integral>\<^isup>+x. f x * h x)"
-      by (simp add: \<nu>.positive_integral_cong_measure[symmetric, OF eq[symmetric]])
-         (intro positive_integral_translated_density f h)
-    then have "(\<integral>\<^isup>+x. f x * h x) \<noteq> \<omega>"
+    have "integral\<^isup>P ?N h = (\<integral>\<^isup>+x. f x * h x \<partial>M)"
+      apply (subst \<nu>.positive_integral_cong_measure[symmetric,
+        of "M\<lparr> measure := \<lambda> A. \<integral>\<^isup>+x. f x * indicator A x \<partial>M \<rparr>"])
+      apply (simp_all add: eq)
+      apply (rule positive_integral_translated_density)
+      using f h by auto
+    then have "(\<integral>\<^isup>+x. f x * h x \<partial>M) \<noteq> \<omega>"
       using h(2) by simp
     then show "(\<lambda>x. f x * h x) -` {\<omega>} \<inter> space M \<in> null_sets"
       using f h(1) by (auto intro!: positive_integral_omega borel_measurable_vimage)
@@ -981,7 +1000,9 @@ proof
 next
   assume AE: "AE x. f x \<noteq> \<omega>"
   from sigma_finite guess Q .. note Q = this
-  interpret \<nu>: measure_space M \<nu> by fact
+  interpret \<nu>: measure_space ?N
+    where "borel_measurable ?N = borel_measurable M" and "measure ?N = \<nu>"
+    and "sets ?N = sets M" and "space ?N = space M" using \<nu> by (auto simp: measurable_def)
   def A \<equiv> "\<lambda>i. f -` (case i of 0 \<Rightarrow> {\<omega>} | Suc n \<Rightarrow> {.. of_nat (Suc n)}) \<inter> space M"
   { fix i j have "A i \<inter> Q j \<in> sets M"
     unfolding A_def using f Q
@@ -989,11 +1010,11 @@ next
     by (cases i) (auto intro: measurable_sets[OF f]) }
   note A_in_sets = this
   let "?A n" = "case prod_decode n of (i,j) \<Rightarrow> A i \<inter> Q j"
-  show "sigma_finite_measure M \<nu>"
+  show "sigma_finite_measure ?N"
   proof (default, intro exI conjI subsetI allI)
     fix x assume "x \<in> range ?A"
     then obtain n where n: "x = ?A n" by auto
-    then show "x \<in> sets M" using A_in_sets by (cases "prod_decode n") auto
+    then show "x \<in> sets ?N" using A_in_sets by (cases "prod_decode n") auto
   next
     have "(\<Union>i. ?A i) = (\<Union>i j. A i \<inter> Q j)"
     proof safe
@@ -1014,16 +1035,16 @@ next
         then show ?thesis using x preal unfolding A_def by (auto intro!: exI[of _ "Suc n"])
       qed
     qed (auto simp: A_def)
-    finally show "(\<Union>i. ?A i) = space M" by simp
+    finally show "(\<Union>i. ?A i) = space ?N" by simp
   next
     fix n obtain i j where
       [simp]: "prod_decode n = (i, j)" by (cases "prod_decode n") auto
-    have "(\<integral>\<^isup>+x. f x * indicator (A i \<inter> Q j) x) \<noteq> \<omega>"
+    have "(\<integral>\<^isup>+x. f x * indicator (A i \<inter> Q j) x \<partial>M) \<noteq> \<omega>"
     proof (cases i)
       case 0
       have "AE x. f x * indicator (A i \<inter> Q j) x = 0"
         using AE by (rule AE_mp) (auto intro!: AE_cong simp: A_def `i = 0`)
-      then have "(\<integral>\<^isup>+x. f x * indicator (A i \<inter> Q j) x) = 0"
+      then have "(\<integral>\<^isup>+x. f x * indicator (A i \<inter> Q j) x \<partial>M) = 0"
         using A_in_sets f
         apply (subst positive_integral_0_iff)
         apply fast
@@ -1034,8 +1055,8 @@ next
       then show ?thesis by simp
     next
       case (Suc n)
-      then have "(\<integral>\<^isup>+x. f x * indicator (A i \<inter> Q j) x) \<le>
-        (\<integral>\<^isup>+x. of_nat (Suc n) * indicator (Q j) x)"
+      then have "(\<integral>\<^isup>+x. f x * indicator (A i \<inter> Q j) x \<partial>M) \<le>
+        (\<integral>\<^isup>+x. of_nat (Suc n) * indicator (Q j) x \<partial>M)"
         by (auto intro!: positive_integral_mono simp: indicator_def A_def)
       also have "\<dots> = of_nat (Suc n) * \<mu> (Q j)"
         using Q by (auto intro!: positive_integral_cmult_indicator)
@@ -1043,33 +1064,34 @@ next
         using Q by auto
       finally show ?thesis by simp
     qed
-    then show "\<nu> (?A n) \<noteq> \<omega>"
+    then show "measure ?N (?A n) \<noteq> \<omega>"
       using A_in_sets Q eq by auto
   qed
 qed
 
 section "Radon-Nikodym derivative"
 
-definition (in sigma_finite_measure)
-  "RN_deriv \<nu> \<equiv> SOME f. f \<in> borel_measurable M \<and>
-    (\<forall>A \<in> sets M. \<nu> A = (\<integral>\<^isup>+x. f x * indicator A x))"
+definition
+  "RN_deriv M \<nu> \<equiv> SOME f. f \<in> borel_measurable M \<and>
+    (\<forall>A \<in> sets M. \<nu> A = (\<integral>\<^isup>+x. f x * indicator A x \<partial>M))"
 
 lemma (in sigma_finite_measure) RN_deriv_cong:
-  assumes cong: "\<And>A. A \<in> sets M \<Longrightarrow> \<mu>' A = \<mu> A" "\<And>A. A \<in> sets M \<Longrightarrow> \<nu>' A = \<nu> A"
-  shows "sigma_finite_measure.RN_deriv M \<mu>' \<nu>' x = RN_deriv \<nu> x"
+  assumes cong: "\<And>A. A \<in> sets M \<Longrightarrow> measure M' A = \<mu> A" "sets M' = sets M" "space M' = space M"
+    and \<nu>: "\<And>A. A \<in> sets M \<Longrightarrow> \<nu>' A = \<nu> A"
+  shows "RN_deriv M' \<nu>' x = RN_deriv M \<nu> x"
 proof -
-  interpret \<mu>': sigma_finite_measure M \<mu>'
-    using cong(1) by (rule sigma_finite_measure_cong)
+  interpret \<mu>': sigma_finite_measure M'
+    using cong by (rule sigma_finite_measure_cong)
   show ?thesis
-    unfolding RN_deriv_def \<mu>'.RN_deriv_def
-    by (simp add: cong positive_integral_cong_measure[OF cong(1)])
+    unfolding RN_deriv_def
+    by (simp add: cong \<nu> positive_integral_cong_measure[OF cong] measurable_def)
 qed
 
 lemma (in sigma_finite_measure) RN_deriv:
-  assumes "measure_space M \<nu>"
+  assumes "measure_space (M\<lparr>measure := \<nu>\<rparr>)"
   assumes "absolutely_continuous \<nu>"
-  shows "RN_deriv \<nu> \<in> borel_measurable M" (is ?borel)
-  and "\<And>A. A \<in> sets M \<Longrightarrow> \<nu> A = (\<integral>\<^isup>+x. RN_deriv \<nu> x * indicator A x)"
+  shows "RN_deriv M \<nu> \<in> borel_measurable M" (is ?borel)
+  and "\<And>A. A \<in> sets M \<Longrightarrow> \<nu> A = (\<integral>\<^isup>+x. RN_deriv M \<nu> x * indicator A x \<partial>M)"
     (is "\<And>A. _ \<Longrightarrow> ?int A")
 proof -
   note Ex = Radon_Nikodym[OF assms, unfolded Bex_def]
@@ -1080,87 +1102,92 @@ proof -
 qed
 
 lemma (in sigma_finite_measure) RN_deriv_positive_integral:
-  assumes \<nu>: "measure_space M \<nu>" "absolutely_continuous \<nu>"
+  assumes \<nu>: "measure_space (M\<lparr>measure := \<nu>\<rparr>)" "absolutely_continuous \<nu>"
     and f: "f \<in> borel_measurable M"
-  shows "measure_space.positive_integral M \<nu> f = (\<integral>\<^isup>+x. RN_deriv \<nu> x * f x)"
+  shows "integral\<^isup>P (M\<lparr>measure := \<nu>\<rparr>) f = (\<integral>\<^isup>+x. RN_deriv M \<nu> x * f x \<partial>M)"
 proof -
-  interpret \<nu>: measure_space M \<nu> by fact
-  have "\<nu>.positive_integral f =
-    measure_space.positive_integral M (\<lambda>A. (\<integral>\<^isup>+x. RN_deriv \<nu> x * indicator A x)) f"
-    by (intro \<nu>.positive_integral_cong_measure[symmetric] RN_deriv(2)[OF \<nu>, symmetric])
-  also have "\<dots> = (\<integral>\<^isup>+x. RN_deriv \<nu> x * f x)"
-    by (intro positive_integral_translated_density RN_deriv[OF \<nu>] f)
+  interpret \<nu>: measure_space "M\<lparr>measure := \<nu>\<rparr>" by fact
+  have "integral\<^isup>P (M\<lparr>measure := \<nu>\<rparr>) f =
+    integral\<^isup>P (M\<lparr>measure := \<lambda>A. (\<integral>\<^isup>+x. RN_deriv M \<nu> x * indicator A x \<partial>M)\<rparr>) f"
+    by (intro \<nu>.positive_integral_cong_measure[symmetric])
+       (simp_all add:  RN_deriv(2)[OF \<nu>, symmetric])
+  also have "\<dots> = (\<integral>\<^isup>+x. RN_deriv M \<nu> x * f x \<partial>M)"
+    by (intro positive_integral_translated_density)
+       (simp_all add: RN_deriv[OF \<nu>] f)
   finally show ?thesis .
 qed
 
 lemma (in sigma_finite_measure) RN_deriv_unique:
-  assumes \<nu>: "measure_space M \<nu>" "absolutely_continuous \<nu>"
+  assumes \<nu>: "measure_space (M\<lparr>measure := \<nu>\<rparr>)" "absolutely_continuous \<nu>"
   and f: "f \<in> borel_measurable M"
-  and eq: "\<And>A. A \<in> sets M \<Longrightarrow> \<nu> A = (\<integral>\<^isup>+x. f x * indicator A x)"
-  shows "AE x. f x = RN_deriv \<nu> x"
+  and eq: "\<And>A. A \<in> sets M \<Longrightarrow> \<nu> A = (\<integral>\<^isup>+x. f x * indicator A x \<partial>M)"
+  shows "AE x. f x = RN_deriv M \<nu> x"
 proof (rule density_unique[OF f RN_deriv(1)[OF \<nu>]])
   fix A assume A: "A \<in> sets M"
-  show "(\<integral>\<^isup>+x. f x * indicator A x) = (\<integral>\<^isup>+x. RN_deriv \<nu> x * indicator A x)"
+  show "(\<integral>\<^isup>+x. f x * indicator A x \<partial>M) = (\<integral>\<^isup>+x. RN_deriv M \<nu> x * indicator A x \<partial>M)"
     unfolding eq[OF A, symmetric] RN_deriv(2)[OF \<nu> A, symmetric] ..
 qed
 
-
 lemma (in sigma_finite_measure) RN_deriv_finite:
-  assumes sfm: "sigma_finite_measure M \<nu>" and ac: "absolutely_continuous \<nu>"
-  shows "AE x. RN_deriv \<nu> x \<noteq> \<omega>"
+  assumes sfm: "sigma_finite_measure (M\<lparr>measure := \<nu>\<rparr>)" and ac: "absolutely_continuous \<nu>"
+  shows "AE x. RN_deriv M \<nu> x \<noteq> \<omega>"
 proof -
-  interpret \<nu>: sigma_finite_measure M \<nu> by fact
-  have \<nu>: "measure_space M \<nu>" by default
+  interpret \<nu>: sigma_finite_measure "M\<lparr>measure := \<nu>\<rparr>" by fact
+  have \<nu>: "measure_space (M\<lparr>measure := \<nu>\<rparr>)" by default
   from sfm show ?thesis
     using sigma_finite_iff_density_finite[OF \<nu> RN_deriv[OF \<nu> ac]] by simp
 qed
 
 lemma (in sigma_finite_measure)
-  assumes \<nu>: "sigma_finite_measure M \<nu>" "absolutely_continuous \<nu>"
+  assumes \<nu>: "sigma_finite_measure (M\<lparr>measure := \<nu>\<rparr>)" "absolutely_continuous \<nu>"
     and f: "f \<in> borel_measurable M"
-  shows RN_deriv_integral: "measure_space.integral M \<nu> f = (\<integral>x. real (RN_deriv \<nu> x) * f x)" (is ?integral)
-    and RN_deriv_integrable: "measure_space.integrable M \<nu> f \<longleftrightarrow> integrable (\<lambda>x. real (RN_deriv \<nu> x) * f x)" (is ?integrable)
+  shows RN_deriv_integrable: "integrable (M\<lparr>measure := \<nu>\<rparr>) f \<longleftrightarrow>
+      integrable M (\<lambda>x. real (RN_deriv M \<nu> x) * f x)" (is ?integrable)
+    and RN_deriv_integral: "integral\<^isup>L (M\<lparr>measure := \<nu>\<rparr>) f =
+      (\<integral>x. real (RN_deriv M \<nu> x) * f x \<partial>M)" (is ?integral)
 proof -
-  interpret \<nu>: sigma_finite_measure M \<nu> by fact
-  have ms: "measure_space M \<nu>" by default
+  interpret \<nu>: sigma_finite_measure "M\<lparr>measure := \<nu>\<rparr>" by fact
+  have ms: "measure_space (M\<lparr>measure := \<nu>\<rparr>)" by default
   have minus_cong: "\<And>A B A' B'::pextreal. A = A' \<Longrightarrow> B = B' \<Longrightarrow> real A - real B = real A' - real B'" by simp
   have f': "(\<lambda>x. - f x) \<in> borel_measurable M" using f by auto
-  { fix f :: "'a \<Rightarrow> real" assume "f \<in> borel_measurable M"
-    { fix x assume *: "RN_deriv \<nu> x \<noteq> \<omega>"
-      have "Real (real (RN_deriv \<nu> x)) * Real (f x) = Real (real (RN_deriv \<nu> x) * f x)"
+  have Nf: "f \<in> borel_measurable (M\<lparr>measure := \<nu>\<rparr>)" using f unfolding measurable_def by auto
+  { fix f :: "'a \<Rightarrow> real"
+    { fix x assume *: "RN_deriv M \<nu> x \<noteq> \<omega>"
+      have "Real (real (RN_deriv M \<nu> x)) * Real (f x) = Real (real (RN_deriv M \<nu> x) * f x)"
         by (simp add: mult_le_0_iff)
-      then have "RN_deriv \<nu> x * Real (f x) = Real (real (RN_deriv \<nu> x) * f x)"
+      then have "RN_deriv M \<nu> x * Real (f x) = Real (real (RN_deriv M \<nu> x) * f x)"
         using * by (simp add: Real_real) }
     note * = this
-    have "(\<integral>\<^isup>+x. RN_deriv \<nu> x * Real (f x)) = (\<integral>\<^isup>+x. Real (real (RN_deriv \<nu> x) * f x))"
+    have "(\<integral>\<^isup>+x. RN_deriv M \<nu> x * Real (f x) \<partial>M) = (\<integral>\<^isup>+x. Real (real (RN_deriv M \<nu> x) * f x) \<partial>M)"
       apply (rule positive_integral_cong_AE)
       apply (rule AE_mp[OF RN_deriv_finite[OF \<nu>]])
       by (auto intro!: AE_cong simp: *) }
-  with this[OF f] this[OF f'] f f'
+  with this this f f' Nf
   show ?integral ?integrable
-    unfolding \<nu>.integral_def integral_def \<nu>.integrable_def integrable_def
-    by (auto intro!: RN_deriv(1)[OF ms \<nu>(2)] minus_cong simp: RN_deriv_positive_integral[OF ms \<nu>(2)])
+    unfolding lebesgue_integral_def integrable_def
+    by (auto intro!: RN_deriv(1)[OF ms \<nu>(2)] minus_cong
+             simp: RN_deriv_positive_integral[OF ms \<nu>(2)])
 qed
 
 lemma (in sigma_finite_measure) RN_deriv_singleton:
-  assumes "measure_space M \<nu>"
+  assumes "measure_space (M\<lparr>measure := \<nu>\<rparr>)"
   and ac: "absolutely_continuous \<nu>"
   and "{x} \<in> sets M"
-  shows "\<nu> {x} = RN_deriv \<nu> x * \<mu> {x}"
+  shows "\<nu> {x} = RN_deriv M \<nu> x * \<mu> {x}"
 proof -
   note deriv = RN_deriv[OF assms(1, 2)]
   from deriv(2)[OF `{x} \<in> sets M`]
-  have "\<nu> {x} = (\<integral>\<^isup>+w. RN_deriv \<nu> x * indicator {x} w)"
+  have "\<nu> {x} = (\<integral>\<^isup>+w. RN_deriv M \<nu> x * indicator {x} w \<partial>M)"
     by (auto simp: indicator_def intro!: positive_integral_cong)
   thus ?thesis using positive_integral_cmult_indicator[OF `{x} \<in> sets M`]
     by auto
 qed
 
 theorem (in finite_measure_space) RN_deriv_finite_measure:
-  assumes "measure_space M \<nu>"
+  assumes "measure_space (M\<lparr>measure := \<nu>\<rparr>)"
   and ac: "absolutely_continuous \<nu>"
   and "x \<in> space M"
-  shows "\<nu> {x} = RN_deriv \<nu> x * \<mu> {x}"
+  shows "\<nu> {x} = RN_deriv M \<nu> x * \<mu> {x}"
 proof -
   have "{x} \<in> sets M" using sets_eq_Pow `x \<in> space M` by auto
   from RN_deriv_singleton[OF assms(1,2) this] show ?thesis .

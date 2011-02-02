@@ -1,6 +1,6 @@
-(* Author: Johannes Hoelzl, TU Muenchen *)
+(* Author: Johannes Hölzl, TU München *)
 
-header {* Formalization of a Countermeasure by Koepf & Duermuth 2009 *}
+header {* Formalization of a Countermeasure by Koepf \& Duermuth 2009 *}
 
 theory Koepf_Duermuth_Countermeasure
   imports Information "~~/src/HOL/Library/Permutation"
@@ -80,9 +80,7 @@ lemma (in prob_space)
   shows "bij_betw (ordered_variable_partition X) {0..<card (X`space M)} (X`space M)"
   and "\<And>i j. \<lbrakk> i < card (X`space M) ; j < card (X`space M) ; i \<le> j \<rbrakk> \<Longrightarrow>
     distribution X {ordered_variable_partition X i} \<le> distribution X {ordered_variable_partition X j}"
-proof -
-  
-qed
+  oops
 
 definition (in prob_space)
   "order_distribution X i = real (distribution X {ordered_variable_partition X i})"
@@ -90,11 +88,9 @@ definition (in prob_space)
 definition (in prob_space)
   "guessing_entropy b X = (\<Sum>i<card(X`space M). real i * log b (order_distribution X i))"
 
-abbreviation (in finite_information_space)
+abbreviation (in information_space)
   finite_guessing_entropy ("\<G>'(_')") where
   "\<G>(X) \<equiv> guessing_entropy b X"
-
-
 
 lemma zero_notin_Suc_image[simp]: "0 \<notin> Suc ` A"
   by auto
@@ -103,7 +99,7 @@ definition extensional :: "'b \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarro
   "extensional d A = {f. \<forall>x. x \<notin> A \<longrightarrow> f x = d}"
 
 lemma extensional_empty[simp]: "extensional d {} = {\<lambda>x. d}"
-  unfolding extensional_def by (simp add: expand_set_eq expand_fun_eq)
+  unfolding extensional_def by (simp add: set_eq_iff fun_eq_iff)
 
 lemma funset_eq_UN_fun_upd_I:
   assumes *: "\<And>f. f \<in> F (insert a A) \<Longrightarrow> f(a := d) \<in> F A"
@@ -138,7 +134,7 @@ lemma finite_extensional_funcset[simp, intro]:
   using assms by induct auto
 
 lemma fun_upd_eq_iff: "f(a := b) = g(a := b') \<longleftrightarrow> b = b' \<and> f(a := d) = g(a := d)"
-  by (auto simp: expand_fun_eq)
+  by (auto simp: fun_eq_iff)
 
 lemma card_funcset:
   assumes "finite A" "finite B"
@@ -205,24 +201,14 @@ locale finite_information =
 lemma (in finite_information) positive_p_sum[simp]: "0 \<le> setsum p X"
    by (auto intro!: setsum_nonneg)
 
-sublocale finite_information \<subseteq> finite_information_space "\<lparr> space = \<Omega>, sets = Pow \<Omega> \<rparr>" "\<lambda>S. Real (setsum p S)" b
-proof -
-  show "finite_information_space \<lparr> space = \<Omega>, sets = Pow \<Omega> \<rparr> (\<lambda>S. Real (setsum p S)) b"
-    unfolding finite_information_space_def finite_information_space_axioms_def
-    unfolding finite_prob_space_def prob_space_def prob_space_axioms_def
-    unfolding finite_measure_space_def finite_measure_space_axioms_def
-    by (force intro!: sigma_algebra.finite_additivity_sufficient
-              simp: additive_def sigma_algebra_Pow positive_def Real_eq_Real
-                    setsum.union_disjoint finite_subset)
-qed
+sublocale finite_information \<subseteq> finite_measure_space "\<lparr> space = \<Omega>, sets = Pow \<Omega>, measure = \<lambda>S. Real (setsum p S)\<rparr>"
+  by (rule finite_measure_spaceI) (simp_all add: setsum_Un_disjoint finite_subset)
 
-lemma (in prob_space) prob_space_subalgebra:
-  assumes "N \<subseteq> sets M" "sigma_algebra (M\<lparr> sets := N \<rparr>)"
-  shows "prob_space (M\<lparr> sets := N \<rparr>) \<mu>" sorry
+sublocale finite_information \<subseteq> finite_prob_space "\<lparr> space = \<Omega>, sets = Pow \<Omega>, measure = \<lambda>S. Real (setsum p S)\<rparr>"
+  by default simp
 
-lemma (in measure_space) measure_space_subalgebra:
-  assumes "N \<subseteq> sets M" "sigma_algebra (M\<lparr> sets := N \<rparr>)"
-  shows "measure_space (M\<lparr> sets := N \<rparr>) \<mu>" sorry
+sublocale finite_information \<subseteq> information_space "\<lparr> space = \<Omega>, sets = Pow \<Omega>, measure = \<lambda>S. Real (setsum p S)\<rparr>" b
+  by default simp
 
 locale koepf_duermuth = K: finite_information keys K b + M: finite_information messages M b
     for b :: real
@@ -258,12 +244,11 @@ proof default
   next
     case (Suc n)
     then show ?case
-      by (simp add: comp_def set_of_list_extend
-                    lessThan_eq_Suc_image setsum_reindex setprod_reindex)
+      by (simp add: comp_def set_of_list_extend lessThan_Suc_eq_insert_0
+                    setsum_reindex setprod_reindex)
   qed
   then show "setsum P msgs = 1"
     unfolding msgs_def P_def by simp
-
   fix x
   have "\<And> A f. 0 \<le> (\<Prod>x\<in>A. M (f x))" by (auto simp: setprod_nonneg)
   then show "0 \<le> P x"
@@ -303,7 +288,7 @@ next
   show ?case unfolding *
     using Suc[of "\<lambda>i. P (Suc i)"]
     by (simp add: setsum_reindex split_conv setsum_cartesian_product'
-      lessThan_eq_Suc_image setprod_reindex setsum_left_distrib[symmetric] setsum_right_distrib[symmetric])
+      lessThan_Suc_eq_insert_0 setprod_reindex setsum_left_distrib[symmetric] setsum_right_distrib[symmetric])
 qed
 
 context koepf_duermuth
@@ -347,22 +332,22 @@ abbreviation conditional_probability ("\<P>'(_|_') _") where
  "\<P>(X|Y) x \<equiv> \<P>(X, Y) x / \<P>(Y) (snd`x)"
 
 notation
-  finite_entropy ("\<H>'( _ ')")
+  entropy_Pow ("\<H>'( _ ')")
 
 notation
-  finite_conditional_entropy ("\<H>'( _ | _ ')")
+  conditional_entropy_Pow ("\<H>'( _ | _ ')")
 
 notation
-  finite_mutual_information ("\<I>'( _ ; _ ')")
+  mutual_information_Pow ("\<I>'( _ ; _ ')")
 
 lemma t_eq_imp_bij_func:
   assumes "t xs = t ys"
   shows "\<exists>f. bij_betw f {..<length xs} {..<length ys} \<and> (\<forall>i<length xs. xs ! i = ys ! (f i))"
 proof -
   have "count (multiset_of xs) = count (multiset_of ys)"
-    using assms by (simp add: expand_fun_eq count_multiset_of t_def)
+    using assms by (simp add: fun_eq_iff count_multiset_of t_def)
   then have "xs <~~> ys" unfolding multiset_of_eq_perm count_inject .
-  then show ?thesis by (rule permutation_Ex_func)
+  then show ?thesis by (rule permutation_Ex_bij)
 qed
 
 lemma \<P>_k: assumes "k \<in> keys" shows "\<P>(fst) {k} = K k"
@@ -471,8 +456,6 @@ proof -
   let "?H obs" = "(\<Sum>k\<in>keys. \<P>(fst|OB) {(k, obs)} * log b (\<P>(fst|OB) {(k, obs)})) :: real"
   let "?Ht obs" = "(\<Sum>k\<in>keys. \<P>(fst|t\<circ>OB) {(k, obs)} * log b (\<P>(fst|t\<circ>OB) {(k, obs)})) :: real"
 
-  note [[simproc del: finite_information_space.mult_log]]
-
   { fix obs assume obs: "obs \<in> OB`msgs"
     have "?H obs = (\<Sum>k\<in>keys. \<P>(fst|t\<circ>OB) {(k, t obs)} * log b (\<P>(fst|t\<circ>OB) {(k, t obs)}))"
       using CP_T_eq_CP_O[OF _ obs]
@@ -495,7 +478,8 @@ proof -
 
   txt {* Lemma 3 *}
   have "\<H>(fst | OB) = -(\<Sum>obs\<in>OB`msgs. \<P>(OB) {obs} * ?Ht (t obs))"
-    unfolding conditional_entropy_eq_ce_with_hypothesis using * by simp
+    unfolding conditional_entropy_eq_ce_with_hypothesis[OF
+      simple_function_finite simple_function_finite] using * by simp
   also have "\<dots> = -(\<Sum>obs\<in>t`OB`msgs. \<P>(t\<circ>OB) {obs} * ?Ht obs)"
     apply (subst SIGMA_image_vimage[symmetric, of "OB`msgs" t])
     apply (subst setsum_reindex)
@@ -509,20 +493,22 @@ proof -
     by (simp add: setsum_divide_distrib[symmetric] field_simps **
                   setsum_right_distrib[symmetric] setsum_left_distrib[symmetric])
   also have "\<dots> = \<H>(fst | t\<circ>OB)"
-    unfolding conditional_entropy_eq_ce_with_hypothesis
+    unfolding conditional_entropy_eq_ce_with_hypothesis[OF
+      simple_function_finite simple_function_finite]
     by (simp add: comp_def image_image[symmetric])
   finally show ?thesis .
 qed
 
 theorem "\<I>(fst ; OB) \<le> real (card observations) * log b (real n + 1)"
 proof -
+  from simple_function_finite simple_function_finite
   have "\<I>(fst ; OB) = \<H>(fst) - \<H>(fst | OB)"
-    using mutual_information_eq_entropy_conditional_entropy .
+    by (rule mutual_information_eq_entropy_conditional_entropy)
   also have "\<dots> = \<H>(fst) - \<H>(fst | t\<circ>OB)"
     unfolding ce_OB_eq_ce_t ..
   also have "\<dots> = \<H>(t\<circ>OB) - \<H>(t\<circ>OB | fst)"
-    unfolding entropy_chain_rule[symmetric] sign_simps
-    by (subst entropy_commute) simp
+    unfolding entropy_chain_rule[symmetric, OF simple_function_finite simple_function_finite] sign_simps
+    by (subst entropy_commute[OF simple_function_finite simple_function_finite]) simp
   also have "\<dots> \<le> \<H>(t\<circ>OB)"
     using conditional_entropy_positive[of "t\<circ>OB" fst] by simp
   also have "\<dots> \<le> log b (real (card ((t\<circ>OB)`msgs)))"

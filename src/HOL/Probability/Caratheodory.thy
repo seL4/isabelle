@@ -8,77 +8,72 @@ text{*From the Hurd/Coble measure theory development, translated by Lawrence Pau
 
 subsection {* Measure Spaces *}
 
-definition "positive f \<longleftrightarrow> f {} = (0::pextreal)" -- "Positive is enforced by the type"
+record 'a measure_space = "'a algebra" +
+  measure :: "'a set \<Rightarrow> pextreal"
 
-definition
-  additive  where
-  "additive M f \<longleftrightarrow>
-    (\<forall>x \<in> sets M. \<forall>y \<in> sets M. x \<inter> y = {}
-    \<longrightarrow> f (x \<union> y) = f x + f y)"
+definition positive where "positive M f \<longleftrightarrow> f {} = (0::pextreal)"
+  -- "Positive is enforced by the type"
 
-definition
-  countably_additive  where
-  "countably_additive M f \<longleftrightarrow>
-    (\<forall>A. range A \<subseteq> sets M \<longrightarrow>
-         disjoint_family A \<longrightarrow>
-         (\<Union>i. A i) \<in> sets M \<longrightarrow>
-         (\<Sum>\<^isub>\<infinity> n. f (A n)) = f (\<Union>i. A i))"
+definition additive where "additive M f \<longleftrightarrow>
+  (\<forall>x \<in> sets M. \<forall>y \<in> sets M. x \<inter> y = {} \<longrightarrow> f (x \<union> y) = f x + f y)"
 
-definition
-  increasing  where
-  "increasing M f \<longleftrightarrow> (\<forall>x \<in> sets M. \<forall>y \<in> sets M. x \<subseteq> y \<longrightarrow> f x \<le> f y)"
+definition countably_additive where "countably_additive M f \<longleftrightarrow>
+  (\<forall>A. range A \<subseteq> sets M \<longrightarrow> disjoint_family A \<longrightarrow> (\<Union>i. A i) \<in> sets M \<longrightarrow>
+    (\<Sum>\<^isub>\<infinity> n. f (A n)) = f (\<Union>i. A i))"
 
-definition
-  subadditive  where
-  "subadditive M f \<longleftrightarrow>
-    (\<forall>x \<in> sets M. \<forall>y \<in> sets M. x \<inter> y = {}
-    \<longrightarrow> f (x \<union> y) \<le> f x + f y)"
+definition increasing where "increasing M f \<longleftrightarrow>
+  (\<forall>x \<in> sets M. \<forall>y \<in> sets M. x \<subseteq> y \<longrightarrow> f x \<le> f y)"
 
-definition
-  countably_subadditive  where
-  "countably_subadditive M f \<longleftrightarrow>
-    (\<forall>A. range A \<subseteq> sets M \<longrightarrow>
-         disjoint_family A \<longrightarrow>
-         (\<Union>i. A i) \<in> sets M \<longrightarrow>
-         f (\<Union>i. A i) \<le> psuminf (\<lambda>n. f (A n)))"
+definition subadditive where "subadditive M f \<longleftrightarrow>
+  (\<forall>x \<in> sets M. \<forall>y \<in> sets M. x \<inter> y = {} \<longrightarrow>
+    f (x \<union> y) \<le> f x + f y)"
 
-definition
-  lambda_system where
-  "lambda_system M f =
-    {l. l \<in> sets M & (\<forall>x \<in> sets M. f (l \<inter> x) + f ((space M - l) \<inter> x) = f x)}"
+definition countably_subadditive where "countably_subadditive M f \<longleftrightarrow>
+  (\<forall>A. range A \<subseteq> sets M \<longrightarrow> disjoint_family A \<longrightarrow> (\<Union>i. A i) \<in> sets M \<longrightarrow>
+    f (\<Union>i. A i) \<le> (\<Sum>\<^isub>\<infinity> n. f (A n)))"
 
-definition
-  outer_measure_space where
-  "outer_measure_space M f  \<longleftrightarrow>
-     positive f \<and> increasing M f \<and> countably_subadditive M f"
+definition lambda_system where "lambda_system M f = {l \<in> sets M.
+  \<forall>x \<in> sets M. f (l \<inter> x) + f ((space M - l) \<inter> x) = f x}"
 
-definition
-  measure_set where
-  "measure_set M f X =
-     {r . \<exists>A. range A \<subseteq> sets M \<and> disjoint_family A \<and> X \<subseteq> (\<Union>i. A i) \<and> (\<Sum>\<^isub>\<infinity> i. f (A i)) = r}"
+definition outer_measure_space where "outer_measure_space M f \<longleftrightarrow>
+  positive M f \<and> increasing M f \<and> countably_subadditive M f"
 
-locale measure_space = sigma_algebra +
-  fixes \<mu> :: "'a set \<Rightarrow> pextreal"
-  assumes empty_measure [simp]: "\<mu> {} = 0"
-      and ca: "countably_additive M \<mu>"
+definition measure_set where "measure_set M f X = {r.
+  \<exists>A. range A \<subseteq> sets M \<and> disjoint_family A \<and> X \<subseteq> (\<Union>i. A i) \<and> (\<Sum>\<^isub>\<infinity> i. f (A i)) = r}"
+
+locale measure_space = sigma_algebra M for M :: "('a, 'b) measure_space_scheme" +
+  assumes empty_measure [simp]: "measure M {} = 0"
+      and ca: "countably_additive M (measure M)"
+
+abbreviation (in measure_space) "\<mu> \<equiv> measure M"
 
 lemma increasingD:
-     "increasing M f \<Longrightarrow> x \<subseteq> y \<Longrightarrow> x\<in>sets M \<Longrightarrow> y\<in>sets M \<Longrightarrow> f x \<le> f y"
+  "increasing M f \<Longrightarrow> x \<subseteq> y \<Longrightarrow> x\<in>sets M \<Longrightarrow> y\<in>sets M \<Longrightarrow> f x \<le> f y"
   by (auto simp add: increasing_def)
 
 lemma subadditiveD:
-     "subadditive M f \<Longrightarrow> x \<inter> y = {} \<Longrightarrow> x\<in>sets M \<Longrightarrow> y\<in>sets M
-      \<Longrightarrow> f (x \<union> y) \<le> f x + f y"
+  "subadditive M f \<Longrightarrow> x \<inter> y = {} \<Longrightarrow> x \<in> sets M \<Longrightarrow> y \<in> sets M
+    \<Longrightarrow> f (x \<union> y) \<le> f x + f y"
   by (auto simp add: subadditive_def)
 
 lemma additiveD:
-     "additive M f \<Longrightarrow> x \<inter> y = {} \<Longrightarrow> x\<in>sets M \<Longrightarrow> y\<in>sets M
-      \<Longrightarrow> f (x \<union> y) = f x + f y"
+  "additive M f \<Longrightarrow> x \<inter> y = {} \<Longrightarrow> x \<in> sets M \<Longrightarrow> y \<in> sets M
+    \<Longrightarrow> f (x \<union> y) = f x + f y"
   by (auto simp add: additive_def)
 
 lemma countably_additiveD:
   "countably_additive M f \<Longrightarrow> range A \<subseteq> sets M \<Longrightarrow> disjoint_family A
-   \<Longrightarrow> (\<Union>i. A i) \<in> sets M \<Longrightarrow> (\<Sum>\<^isub>\<infinity> n. f (A n)) = f (\<Union>i. A i)"
+    \<Longrightarrow> (\<Union>i. A i) \<in> sets M \<Longrightarrow> (\<Sum>\<^isub>\<infinity> n. f (A n)) = f (\<Union>i. A i)"
+  by (simp add: countably_additive_def)
+
+lemma countably_subadditiveD:
+  "countably_subadditive M f \<Longrightarrow> range A \<subseteq> sets M \<Longrightarrow> disjoint_family A \<Longrightarrow>
+   (\<Union>i. A i) \<in> sets M \<Longrightarrow> f (\<Union>i. A i) \<le> psuminf (f o A)"
+  by (auto simp add: countably_subadditive_def o_def)
+
+lemma countably_additiveI:
+  "(\<And>A. range A \<subseteq> sets M \<Longrightarrow> disjoint_family A \<Longrightarrow> (\<Union>i. A i) \<in> sets M
+    \<Longrightarrow> (\<Sum>\<^isub>\<infinity> n. f (A n)) = f (\<Union>i. A i)) \<Longrightarrow> countably_additive M f"
   by (simp add: countably_additive_def)
 
 section "Extend binary sets"
@@ -109,7 +104,8 @@ lemma binaryset_sums:
     by (simp add: sums_def LIMSEQ_binaryset [where f=f, OF f])
 
 lemma suminf_binaryset_eq:
-     "f {} = 0 \<Longrightarrow> suminf (\<lambda>n. f (binaryset A B n)) = f A + f B"
+  fixes f :: "'a set \<Rightarrow> real"
+  shows "f {} = 0 \<Longrightarrow> (\<Sum>n. f (binaryset A B n)) = f A + f B"
   by (metis binaryset_sums sums_unique)
 
 lemma binaryset_psuminf:
@@ -130,8 +126,8 @@ qed
 subsection {* Lambda Systems *}
 
 lemma (in algebra) lambda_system_eq:
-    "lambda_system M f =
-        {l. l \<in> sets M & (\<forall>x \<in> sets M. f (x \<inter> l) + f (x - l) = f x)}"
+  shows "lambda_system M f = {l \<in> sets M.
+    \<forall>x \<in> sets M. f (x \<inter> l) + f (x - l) = f x}"
 proof -
   have [simp]: "!!l x. l \<in> sets M \<Longrightarrow> x \<in> sets M \<Longrightarrow> (space M - l) \<inter> x = x - l"
     by (metis Int_Diff Int_absorb1 Int_commute sets_into_space)
@@ -140,60 +136,59 @@ proof -
 qed
 
 lemma (in algebra) lambda_system_empty:
-  "positive f \<Longrightarrow> {} \<in> lambda_system M f"
-  by (auto simp add: positive_def lambda_system_eq)
+  "positive M f \<Longrightarrow> {} \<in> lambda_system M f"
+  by (auto simp add: positive_def lambda_system_eq algebra_def)
 
 lemma lambda_system_sets:
-    "x \<in> lambda_system M f \<Longrightarrow> x \<in> sets M"
-  by (simp add:  lambda_system_def)
+  "x \<in> lambda_system M f \<Longrightarrow> x \<in> sets M"
+  by (simp add: lambda_system_def)
 
 lemma (in algebra) lambda_system_Compl:
   fixes f:: "'a set \<Rightarrow> pextreal"
   assumes x: "x \<in> lambda_system M f"
   shows "space M - x \<in> lambda_system M f"
-  proof -
-    have "x \<subseteq> space M"
-      by (metis sets_into_space lambda_system_sets x)
-    hence "space M - (space M - x) = x"
-      by (metis double_diff equalityE)
-    with x show ?thesis
-      by (force simp add: lambda_system_def ac_simps)
-  qed
+proof -
+  have "x \<subseteq> space M"
+    by (metis sets_into_space lambda_system_sets x)
+  hence "space M - (space M - x) = x"
+    by (metis double_diff equalityE)
+  with x show ?thesis
+    by (force simp add: lambda_system_def ac_simps)
+qed
 
 lemma (in algebra) lambda_system_Int:
   fixes f:: "'a set \<Rightarrow> pextreal"
   assumes xl: "x \<in> lambda_system M f" and yl: "y \<in> lambda_system M f"
   shows "x \<inter> y \<in> lambda_system M f"
-  proof -
-    from xl yl show ?thesis
-      proof (auto simp add: positive_def lambda_system_eq Int)
-        fix u
-        assume x: "x \<in> sets M" and y: "y \<in> sets M" and u: "u \<in> sets M"
-           and fx: "\<forall>z\<in>sets M. f (z \<inter> x) + f (z - x) = f z"
-           and fy: "\<forall>z\<in>sets M. f (z \<inter> y) + f (z - y) = f z"
-        have "u - x \<inter> y \<in> sets M"
-          by (metis Diff Diff_Int Un u x y)
-        moreover
-        have "(u - (x \<inter> y)) \<inter> y = u \<inter> y - x" by blast
-        moreover
-        have "u - x \<inter> y - y = u - y" by blast
-        ultimately
-        have ey: "f (u - x \<inter> y) = f (u \<inter> y - x) + f (u - y)" using fy
-          by force
-        have "f (u \<inter> (x \<inter> y)) + f (u - x \<inter> y)
-              = (f (u \<inter> (x \<inter> y)) + f (u \<inter> y - x)) + f (u - y)"
-          by (simp add: ey ac_simps)
-        also have "... =  (f ((u \<inter> y) \<inter> x) + f (u \<inter> y - x)) + f (u - y)"
-          by (simp add: Int_ac)
-        also have "... = f (u \<inter> y) + f (u - y)"
-          using fx [THEN bspec, of "u \<inter> y"] Int y u
-          by force
-        also have "... = f u"
-          by (metis fy u)
-        finally show "f (u \<inter> (x \<inter> y)) + f (u - x \<inter> y) = f u" .
-      qed
+proof -
+  from xl yl show ?thesis
+  proof (auto simp add: positive_def lambda_system_eq Int)
+    fix u
+    assume x: "x \<in> sets M" and y: "y \<in> sets M" and u: "u \<in> sets M"
+       and fx: "\<forall>z\<in>sets M. f (z \<inter> x) + f (z - x) = f z"
+       and fy: "\<forall>z\<in>sets M. f (z \<inter> y) + f (z - y) = f z"
+    have "u - x \<inter> y \<in> sets M"
+      by (metis Diff Diff_Int Un u x y)
+    moreover
+    have "(u - (x \<inter> y)) \<inter> y = u \<inter> y - x" by blast
+    moreover
+    have "u - x \<inter> y - y = u - y" by blast
+    ultimately
+    have ey: "f (u - x \<inter> y) = f (u \<inter> y - x) + f (u - y)" using fy
+      by force
+    have "f (u \<inter> (x \<inter> y)) + f (u - x \<inter> y)
+          = (f (u \<inter> (x \<inter> y)) + f (u \<inter> y - x)) + f (u - y)"
+      by (simp add: ey ac_simps)
+    also have "... =  (f ((u \<inter> y) \<inter> x) + f (u \<inter> y - x)) + f (u - y)"
+      by (simp add: Int_ac)
+    also have "... = f (u \<inter> y) + f (u - y)"
+      using fx [THEN bspec, of "u \<inter> y"] Int y u
+      by force
+    also have "... = f u"
+      by (metis fy u)
+    finally show "f (u \<inter> (x \<inter> y)) + f (u - x \<inter> y) = f u" .
   qed
-
+qed
 
 lemma (in algebra) lambda_system_Un:
   fixes f:: "'a set \<Rightarrow> pextreal"
@@ -210,7 +205,7 @@ proof -
 qed
 
 lemma (in algebra) lambda_system_algebra:
-  "positive f \<Longrightarrow> algebra (M (|sets := lambda_system M f|))"
+  "positive M f \<Longrightarrow> algebra (M\<lparr>sets := lambda_system M f\<rparr>)"
   apply (auto simp add: algebra_def)
   apply (metis lambda_system_sets set_mp sets_into_space)
   apply (metis lambda_system_empty)
@@ -222,32 +217,31 @@ lemma (in algebra) lambda_system_strong_additive:
   assumes z: "z \<in> sets M" and disj: "x \<inter> y = {}"
       and xl: "x \<in> lambda_system M f" and yl: "y \<in> lambda_system M f"
   shows "f (z \<inter> (x \<union> y)) = f (z \<inter> x) + f (z \<inter> y)"
-  proof -
-    have "z \<inter> x = (z \<inter> (x \<union> y)) \<inter> x" using disj by blast
-    moreover
-    have "z \<inter> y = (z \<inter> (x \<union> y)) - x" using disj by blast
-    moreover
-    have "(z \<inter> (x \<union> y)) \<in> sets M"
-      by (metis Int Un lambda_system_sets xl yl z)
-    ultimately show ?thesis using xl yl
-      by (simp add: lambda_system_eq)
-  qed
+proof -
+  have "z \<inter> x = (z \<inter> (x \<union> y)) \<inter> x" using disj by blast
+  moreover
+  have "z \<inter> y = (z \<inter> (x \<union> y)) - x" using disj by blast
+  moreover
+  have "(z \<inter> (x \<union> y)) \<in> sets M"
+    by (metis Int Un lambda_system_sets xl yl z)
+  ultimately show ?thesis using xl yl
+    by (simp add: lambda_system_eq)
+qed
 
 lemma (in algebra) lambda_system_additive:
      "additive (M (|sets := lambda_system M f|)) f"
-  proof (auto simp add: additive_def)
-    fix x and y
-    assume disj: "x \<inter> y = {}"
-       and xl: "x \<in> lambda_system M f" and yl: "y \<in> lambda_system M f"
-    hence  "x \<in> sets M" "y \<in> sets M" by (blast intro: lambda_system_sets)+
-    thus "f (x \<union> y) = f x + f y"
-      using lambda_system_strong_additive [OF top disj xl yl]
-      by (simp add: Un)
-  qed
-
+proof (auto simp add: additive_def)
+  fix x and y
+  assume disj: "x \<inter> y = {}"
+     and xl: "x \<in> lambda_system M f" and yl: "y \<in> lambda_system M f"
+  hence  "x \<in> sets M" "y \<in> sets M" by (blast intro: lambda_system_sets)+
+  thus "f (x \<union> y) = f x + f y"
+    using lambda_system_strong_additive [OF top disj xl yl]
+    by (simp add: Un)
+qed
 
 lemma (in algebra) countably_subadditive_subadditive:
-  assumes f: "positive f" and cs: "countably_subadditive M f"
+  assumes f: "positive M f" and cs: "countably_subadditive M f"
   shows  "subadditive M f"
 proof (auto simp add: subadditive_def)
   fix x y
@@ -267,7 +261,7 @@ qed
 
 lemma (in algebra) additive_sum:
   fixes A:: "nat \<Rightarrow> 'a set"
-  assumes f: "positive f" and ad: "additive M f"
+  assumes f: "positive M f" and ad: "additive M f"
       and A: "range A \<subseteq> sets M"
       and disj: "disjoint_family A"
   shows  "setsum (f \<circ> A) {0..<n} = f (\<Union>i\<in>{0..<n}. A i)"
@@ -288,15 +282,9 @@ next
     by (auto simp add: atLeastLessThanSuc additive_def)
 qed
 
-
-lemma countably_subadditiveD:
-  "countably_subadditive M f \<Longrightarrow> range A \<subseteq> sets M \<Longrightarrow> disjoint_family A \<Longrightarrow>
-   (\<Union>i. A i) \<in> sets M \<Longrightarrow> f (\<Union>i. A i) \<le> psuminf (f o A)"
-  by (auto simp add: countably_subadditive_def o_def)
-
 lemma (in algebra) increasing_additive_bound:
   fixes A:: "nat \<Rightarrow> 'a set" and  f :: "'a set \<Rightarrow> pextreal"
-  assumes f: "positive f" and ad: "additive M f"
+  assumes f: "positive M f" and ad: "additive M f"
       and inc: "increasing M f"
       and A: "range A \<subseteq> sets M"
       and disj: "disjoint_family A"
@@ -311,12 +299,16 @@ proof (safe intro!: psuminf_bound)
 qed
 
 lemma lambda_system_increasing:
-   "increasing M f \<Longrightarrow> increasing (M (|sets := lambda_system M f|)) f"
+ "increasing M f \<Longrightarrow> increasing (M (|sets := lambda_system M f|)) f"
   by (simp add: increasing_def lambda_system_def)
+
+lemma lambda_system_positive:
+  "positive M f \<Longrightarrow> positive (M (|sets := lambda_system M f|)) f"
+  by (simp add: positive_def lambda_system_def)
 
 lemma (in algebra) lambda_system_strong_sum:
   fixes A:: "nat \<Rightarrow> 'a set" and f :: "'a set \<Rightarrow> pextreal"
-  assumes f: "positive f" and a: "a \<in> sets M"
+  assumes f: "positive M f" and a: "a \<in> sets M"
       and A: "range A \<subseteq> lambda_system M f"
       and disj: "disjoint_family A"
   shows  "(\<Sum>i = 0..<n. f (a \<inter>A i)) = f (a \<inter> (\<Union>i\<in>{0..<n}. A i))"
@@ -335,14 +327,13 @@ next
     by (simp add: atLeastLessThanSuc lambda_system_strong_additive [OF a 2 3 4])
 qed
 
-
 lemma (in sigma_algebra) lambda_system_caratheodory:
   assumes oms: "outer_measure_space M f"
       and A: "range A \<subseteq> lambda_system M f"
       and disj: "disjoint_family A"
   shows  "(\<Union>i. A i) \<in> lambda_system M f \<and> psuminf (f \<circ> A) = f (\<Union>i. A i)"
 proof -
-  have pos: "positive f" and inc: "increasing M f"
+  have pos: "positive M f" and inc: "increasing M f"
    and csa: "countably_subadditive M f"
     by (metis oms outer_measure_space_def)+
   have sa: "subadditive M f"
@@ -357,15 +348,15 @@ proof -
   have U_in: "(\<Union>i. A i) \<in> sets M"
     by (metis A'' countable_UN)
   have U_eq: "f (\<Union>i. A i) = psuminf (f o A)"
-    proof (rule antisym)
-      show "f (\<Union>i. A i) \<le> psuminf (f \<circ> A)"
-        by (rule countably_subadditiveD [OF csa A'' disj U_in])
-      show "psuminf (f \<circ> A) \<le> f (\<Union>i. A i)"
-        by (rule psuminf_bound, unfold atLeast0LessThan[symmetric])
-           (metis algebra.additive_sum [OF alg_ls] pos disj UN_Un Un_UNIV_right
-                  lambda_system_additive subset_Un_eq increasingD [OF inc]
-                  A' A'' UNION_in_sets U_in)
-    qed
+  proof (rule antisym)
+    show "f (\<Union>i. A i) \<le> psuminf (f \<circ> A)"
+      by (rule countably_subadditiveD [OF csa A'' disj U_in])
+    show "psuminf (f \<circ> A) \<le> f (\<Union>i. A i)"
+      by (rule psuminf_bound, unfold atLeast0LessThan[symmetric])
+         (metis algebra.additive_sum [OF alg_ls] pos disj UN_Un Un_UNIV_right
+                lambda_system_positive lambda_system_additive
+                subset_Un_eq increasingD [OF inc] A' A'' UNION_in_sets U_in)
+  qed
   {
     fix a
     assume a [iff]: "a \<in> sets M"
@@ -424,19 +415,20 @@ qed
 
 lemma (in sigma_algebra) caratheodory_lemma:
   assumes oms: "outer_measure_space M f"
-  shows "measure_space (|space = space M, sets = lambda_system M f|) f"
+  shows "measure_space \<lparr> space = space M, sets = lambda_system M f, measure = f \<rparr>"
+    (is "measure_space ?M")
 proof -
-  have pos: "positive f"
+  have pos: "positive M f"
     by (metis oms outer_measure_space_def)
-  have alg: "algebra (|space = space M, sets = lambda_system M f|)"
+  have alg: "algebra ?M"
     using lambda_system_algebra [of f, OF pos]
     by (simp add: algebra_def)
   then moreover
-  have "sigma_algebra (|space = space M, sets = lambda_system M f|)"
+  have "sigma_algebra ?M"
     using lambda_system_caratheodory [OF oms]
     by (simp add: sigma_algebra_disjoint_iff)
   moreover
-  have "measure_space_axioms (|space = space M, sets = lambda_system M f|) f"
+  have "measure_space_axioms ?M"
     using pos lambda_system_caratheodory [OF oms]
     by (simp add: measure_space_axioms_def positive_def lambda_system_sets
                   countably_additive_def o_def)
@@ -446,7 +438,7 @@ proof -
 qed
 
 lemma (in algebra) additive_increasing:
-  assumes posf: "positive f" and addf: "additive M f"
+  assumes posf: "positive M f" and addf: "additive M f"
   shows "increasing M f"
 proof (auto simp add: increasing_def)
   fix x y
@@ -460,7 +452,7 @@ proof (auto simp add: increasing_def)
 qed
 
 lemma (in algebra) countably_additive_additive:
-  assumes posf: "positive f" and ca: "countably_additive M f"
+  assumes posf: "positive M f" and ca: "countably_additive M f"
   shows "additive M f"
 proof (auto simp add: additive_def)
   fix x y
@@ -480,7 +472,7 @@ proof (auto simp add: additive_def)
 qed
 
 lemma inf_measure_nonempty:
-  assumes f: "positive f" and b: "b \<in> sets M" and a: "a \<subseteq> b" "{} \<in> sets M"
+  assumes f: "positive M f" and b: "b \<in> sets M" and a: "a \<subseteq> b" "{} \<in> sets M"
   shows "f b \<in> measure_set M f a"
 proof -
   have "psuminf (f \<circ> (\<lambda>i. {})(0 := b)) = setsum (f \<circ> (\<lambda>i. {})(0 := b)) {..<1::nat}"
@@ -494,7 +486,7 @@ proof -
 qed
 
 lemma (in algebra) inf_measure_agrees:
-  assumes posf: "positive f" and ca: "countably_additive M f"
+  assumes posf: "positive M f" and ca: "countably_additive M f"
       and s: "s \<in> sets M"
   shows "Inf (measure_set M f s) = f s"
   unfolding Inf_pextreal_def
@@ -530,25 +522,25 @@ next
   fix y
   assume y: "\<forall>u \<in> measure_set M f s. y \<le> u"
   thus "y \<le> f s"
-    by (blast intro: inf_measure_nonempty [of f, OF posf s subset_refl])
+    by (blast intro: inf_measure_nonempty [of _ f, OF posf s subset_refl])
 qed
 
-lemma (in algebra) inf_measure_empty:
-  assumes posf: "positive f"  "{} \<in> sets M"
+lemma inf_measure_empty:
+  assumes posf: "positive M f" "{} \<in> sets M"
   shows "Inf (measure_set M f {}) = 0"
 proof (rule antisym)
   show "Inf (measure_set M f {}) \<le> 0"
-    by (metis complete_lattice_class.Inf_lower `{} \<in> sets M` inf_measure_nonempty[OF posf] subset_refl posf[unfolded positive_def])
+    by (metis complete_lattice_class.Inf_lower `{} \<in> sets M`
+              inf_measure_nonempty[OF posf] subset_refl posf[unfolded positive_def])
 qed simp
 
 lemma (in algebra) inf_measure_positive:
-  "positive f \<Longrightarrow>
-   positive (\<lambda>x. Inf (measure_set M f x))"
-  by (simp add: positive_def inf_measure_empty) 
+  "positive M f \<Longrightarrow> positive M (\<lambda>x. Inf (measure_set M f x))"
+  by (simp add: positive_def inf_measure_empty)
 
 lemma (in algebra) inf_measure_increasing:
-  assumes posf: "positive f"
-  shows "increasing (| space = space M, sets = Pow (space M) |)
+  assumes posf: "positive M f"
+  shows "increasing \<lparr> space = space M, sets = Pow (space M) \<rparr>
                     (\<lambda>x. Inf (measure_set M f x))"
 apply (auto simp add: increasing_def)
 apply (rule complete_lattice_class.Inf_greatest)
@@ -558,7 +550,7 @@ done
 
 
 lemma (in algebra) inf_measure_le:
-  assumes posf: "positive f" and inc: "increasing M f"
+  assumes posf: "positive M f" and inc: "increasing M f"
       and x: "x \<in> {r . \<exists>A. range A \<subseteq> sets M \<and> s \<subseteq> (\<Union>i. A i) \<and> psuminf (f \<circ> A) = r}"
   shows "Inf (measure_set M f s) \<le> x"
 proof -
@@ -584,7 +576,7 @@ proof -
 qed
 
 lemma (in algebra) inf_measure_close:
-  assumes posf: "positive f" and e: "0 < e" and ss: "s \<subseteq> (space M)"
+  assumes posf: "positive M f" and e: "0 < e" and ss: "s \<subseteq> (space M)"
   shows "\<exists>A. range A \<subseteq> sets M \<and> disjoint_family A \<and> s \<subseteq> (\<Union>i. A i) \<and>
                psuminf (f \<circ> A) \<le> Inf (measure_set M f s) + e"
 proof (cases "Inf (measure_set M f s) = \<omega>")
@@ -596,7 +588,7 @@ proof (cases "Inf (measure_set M f s) = \<omega>")
 next
   case True
   have "measure_set M f s \<noteq> {}"
-    by (metis emptyE ss inf_measure_nonempty [of f, OF posf top _ empty_sets])
+    by (metis emptyE ss inf_measure_nonempty [of _ f, OF posf top _ empty_sets])
   then obtain l where "l \<in> measure_set M f s" by auto
   moreover from True have "l \<le> Inf (measure_set M f s) + e" by simp
   ultimately show ?thesis
@@ -604,7 +596,7 @@ next
 qed
 
 lemma (in algebra) inf_measure_countably_subadditive:
-  assumes posf: "positive f" and inc: "increasing M f"
+  assumes posf: "positive M f" and inc: "increasing M f"
   shows "countably_subadditive (| space = space M, sets = Pow (space M) |)
                   (\<lambda>x. Inf (measure_set M f x))"
   unfolding countably_subadditive_def o_def
@@ -666,8 +658,8 @@ proof (safe, simp, rule pextreal_le_epsilon)
 qed
 
 lemma (in algebra) inf_measure_outer:
-  "\<lbrakk> positive f ; increasing M f \<rbrakk>
-   \<Longrightarrow> outer_measure_space (| space = space M, sets = Pow (space M) |)
+  "\<lbrakk> positive M f ; increasing M f \<rbrakk>
+   \<Longrightarrow> outer_measure_space \<lparr> space = space M, sets = Pow (space M) \<rparr>
                           (\<lambda>x. Inf (measure_set M f x))"
   by (simp add: outer_measure_space_def inf_measure_empty
                 inf_measure_increasing inf_measure_countably_subadditive positive_def)
@@ -675,7 +667,7 @@ lemma (in algebra) inf_measure_outer:
 (*MOVE UP*)
 
 lemma (in algebra) algebra_subset_lambda_system:
-  assumes posf: "positive f" and inc: "increasing M f"
+  assumes posf: "positive M f" and inc: "increasing M f"
       and add: "additive M f"
   shows "sets M \<subseteq> lambda_system (| space = space M, sets = Pow (space M) |)
                                 (\<lambda>x. Inf (measure_set M f x))"
@@ -739,10 +731,10 @@ proof (auto dest: sets_into_space
       by (metis Un_Diff_Int Un_commute)
     also have "... \<le> Inf (measure_set M f (s\<inter>x)) + Inf (measure_set M f (s-x))"
       apply (rule subadditiveD)
-      apply (iprover intro: algebra.countably_subadditive_subadditive algebra_Pow
-               inf_measure_positive inf_measure_countably_subadditive posf inc)
-      apply (auto simp add: subsetD [OF s])
-      done
+      apply (rule algebra.countably_subadditive_subadditive[OF algebra_Pow])
+      apply (simp add: positive_def inf_measure_empty[OF posf])
+      apply (rule inf_measure_countably_subadditive)
+      using s by (auto intro!: posf inc)
     finally show ?thesis .
     qed
   ultimately
@@ -752,37 +744,38 @@ proof (auto dest: sets_into_space
 qed
 
 lemma measure_down:
-     "measure_space N \<mu> \<Longrightarrow> sigma_algebra M \<Longrightarrow> sets M \<subseteq> sets N \<Longrightarrow>
-      (\<nu> = \<mu>) \<Longrightarrow> measure_space M \<nu>"
+  "measure_space N \<Longrightarrow> sigma_algebra M \<Longrightarrow> sets M \<subseteq> sets N \<Longrightarrow> measure N = measure M \<Longrightarrow> measure_space M"
   by (simp add: measure_space_def measure_space_axioms_def positive_def
                 countably_additive_def)
      blast
 
 theorem (in algebra) caratheodory:
-  assumes posf: "positive f" and ca: "countably_additive M f"
-  shows "\<exists>\<mu> :: 'a set \<Rightarrow> pextreal. (\<forall>s \<in> sets M. \<mu> s = f s) \<and> measure_space (sigma M) \<mu>"
-  proof -
-    have inc: "increasing M f"
-      by (metis additive_increasing ca countably_additive_additive posf)
-    let ?infm = "(\<lambda>x. Inf (measure_set M f x))"
-    def ls \<equiv> "lambda_system (|space = space M, sets = Pow (space M)|) ?infm"
-    have mls: "measure_space \<lparr>space = space M, sets = ls\<rparr> ?infm"
-      using sigma_algebra.caratheodory_lemma
-              [OF sigma_algebra_Pow  inf_measure_outer [OF posf inc]]
-      by (simp add: ls_def)
-    hence sls: "sigma_algebra (|space = space M, sets = ls|)"
-      by (simp add: measure_space_def)
-    have "sets M \<subseteq> ls"
-      by (simp add: ls_def)
-         (metis ca posf inc countably_additive_additive algebra_subset_lambda_system)
-    hence sgs_sb: "sigma_sets (space M) (sets M) \<subseteq> ls"
-      using sigma_algebra.sigma_sets_subset [OF sls, of "sets M"]
-      by simp
-    have "measure_space (sigma M) ?infm"
-      unfolding sigma_def
-      by (rule measure_down [OF mls], rule sigma_algebra_sigma_sets)
-         (simp_all add: sgs_sb space_closed)
-    thus ?thesis using inf_measure_agrees [OF posf ca] by (auto intro!: exI[of _ ?infm])
-  qed
+  assumes posf: "positive M f" and ca: "countably_additive M f"
+  shows "\<exists>\<mu> :: 'a set \<Rightarrow> pextreal. (\<forall>s \<in> sets M. \<mu> s = f s) \<and>
+            measure_space \<lparr> space = space M, sets = sets (sigma M), measure = \<mu> \<rparr>"
+proof -
+  have inc: "increasing M f"
+    by (metis additive_increasing ca countably_additive_additive posf)
+  let ?infm = "(\<lambda>x. Inf (measure_set M f x))"
+  def ls \<equiv> "lambda_system (|space = space M, sets = Pow (space M)|) ?infm"
+  have mls: "measure_space \<lparr>space = space M, sets = ls, measure = ?infm\<rparr>"
+    using sigma_algebra.caratheodory_lemma
+            [OF sigma_algebra_Pow  inf_measure_outer [OF posf inc]]
+    by (simp add: ls_def)
+  hence sls: "sigma_algebra (|space = space M, sets = ls, measure = ?infm|)"
+    by (simp add: measure_space_def)
+  have "sets M \<subseteq> ls"
+    by (simp add: ls_def)
+       (metis ca posf inc countably_additive_additive algebra_subset_lambda_system)
+  hence sgs_sb: "sigma_sets (space M) (sets M) \<subseteq> ls"
+    using sigma_algebra.sigma_sets_subset [OF sls, of "sets M"]
+    by simp
+  have "measure_space \<lparr> space = space M, sets = sets (sigma M), measure = ?infm \<rparr>"
+    unfolding sigma_def
+    by (rule measure_down [OF mls], rule sigma_algebra_sigma_sets)
+       (simp_all add: sgs_sb space_closed)
+  thus ?thesis using inf_measure_agrees [OF posf ca]
+    by (intro exI[of _ ?infm]) auto
+qed
 
 end

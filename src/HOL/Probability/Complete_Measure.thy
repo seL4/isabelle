@@ -7,9 +7,24 @@ begin
 
 locale completeable_measure_space = measure_space
 
-definition (in completeable_measure_space) completion :: "'a algebra" where
+definition (in completeable_measure_space)
+  "split_completion A p = (\<exists>N'. A = fst p \<union> snd p \<and> fst p \<inter> snd p = {} \<and>
+    fst p \<in> sets M \<and> snd p \<subseteq> N' \<and> N' \<in> null_sets)"
+
+definition (in completeable_measure_space)
+  "main_part A = fst (Eps (split_completion A))"
+
+definition (in completeable_measure_space)
+  "null_part A = snd (Eps (split_completion A))"
+
+abbreviation (in completeable_measure_space) "\<mu>' A \<equiv> \<mu> (main_part A)"
+
+definition (in completeable_measure_space) completion :: "('a, 'b) measure_space_scheme" where
   "completion = \<lparr> space = space M,
-    sets = { S \<union> N |S N N'. S \<in> sets M \<and> N' \<in> null_sets \<and> N \<subseteq> N' } \<rparr>"
+                  sets = { S \<union> N |S N N'. S \<in> sets M \<and> N' \<in> null_sets \<and> N \<subseteq> N' },
+                  measure = \<mu>',
+                  \<dots> = more M \<rparr>"
+
 
 lemma (in completeable_measure_space) space_completion[simp]:
   "space completion = space M" unfolding completion_def by simp
@@ -58,16 +73,6 @@ next
        auto
 qed auto
 
-definition (in completeable_measure_space)
-  "split_completion A p = (\<exists>N'. A = fst p \<union> snd p \<and> fst p \<inter> snd p = {} \<and>
-    fst p \<in> sets M \<and> snd p \<subseteq> N' \<and> N' \<in> null_sets)"
-
-definition (in completeable_measure_space)
-  "main_part A = fst (Eps (split_completion A))"
-
-definition (in completeable_measure_space)
-  "null_part A = snd (Eps (split_completion A))"
-
 lemma (in completeable_measure_space) split_completion:
   assumes "A \<in> sets completion"
   shows "split_completion A (main_part A, null_part A)"
@@ -108,17 +113,15 @@ proof -
   show "\<mu> (null_part S) = 0" by auto
 qed
 
-definition (in completeable_measure_space) "\<mu>' A = \<mu> (main_part A)"
-
 lemma (in completeable_measure_space) \<mu>'_set[simp]:
   assumes "S \<in> sets M" shows "\<mu>' S = \<mu> S"
 proof -
   have S: "S \<in> sets completion" using assms by auto
   then have "\<mu> S = \<mu> (main_part S \<union> null_part S)" by simp
-  also have "\<dots> = \<mu> (main_part S)"
+  also have "\<dots> = \<mu>' S"
     using S assms measure_additive[of "main_part S" "null_part S"]
     by (auto simp: measure_additive)
-  finally show ?thesis unfolding \<mu>'_def by simp
+  finally show ?thesis by simp
 qed
 
 lemma (in completeable_measure_space) sets_completionI_sub:
@@ -154,7 +157,7 @@ proof -
     unfolding * ..
   also have "\<dots> = \<mu> (\<Union>i. main_part (S i))"
     using null_set S by (intro measure_Un_null_set) auto
-  finally show ?thesis unfolding \<mu>'_def .
+  finally show ?thesis .
 qed
 
 lemma (in completeable_measure_space) \<mu>_main_part_Un:
@@ -168,30 +171,35 @@ proof -
     unfolding range_binary_eq Un_range_binary UN by auto
 qed
 
-sublocale completeable_measure_space \<subseteq> completion!: measure_space completion \<mu>'
-proof
-  show "\<mu>' {} = 0" by auto
-next
-  show "countably_additive completion \<mu>'"
-  proof (unfold countably_additive_def, intro allI conjI impI)
-    fix A :: "nat \<Rightarrow> 'a set" assume A: "range A \<subseteq> sets completion" "disjoint_family A"
-    have "disjoint_family (\<lambda>i. main_part (A i))"
-    proof (intro disjoint_family_on_bisimulation[OF A(2)])
-      fix n m assume "A n \<inter> A m = {}"
-      then have "(main_part (A n) \<union> null_part (A n)) \<inter> (main_part (A m) \<union> null_part (A m)) = {}"
-        using A by (subst (1 2) main_part_null_part_Un) auto
-      then show "main_part (A n) \<inter> main_part (A m) = {}" by auto
+sublocale completeable_measure_space \<subseteq> completion!: measure_space completion
+  where "measure completion = \<mu>'"
+proof -
+  show "measure_space completion"
+  proof
+    show "measure completion {} = 0" by (auto simp: completion_def)
+  next
+    show "countably_additive completion (measure completion)"
+    proof (intro countably_additiveI)
+      fix A :: "nat \<Rightarrow> 'a set" assume A: "range A \<subseteq> sets completion" "disjoint_family A"
+      have "disjoint_family (\<lambda>i. main_part (A i))"
+      proof (intro disjoint_family_on_bisimulation[OF A(2)])
+        fix n m assume "A n \<inter> A m = {}"
+        then have "(main_part (A n) \<union> null_part (A n)) \<inter> (main_part (A m) \<union> null_part (A m)) = {}"
+          using A by (subst (1 2) main_part_null_part_Un) auto
+        then show "main_part (A n) \<inter> main_part (A m) = {}" by auto
+      qed
+      then have "(\<Sum>\<^isub>\<infinity>n. measure completion (A n)) = \<mu> (\<Union>i. main_part (A i))"
+        unfolding completion_def using A by (auto intro!: measure_countably_additive)
+      then show "(\<Sum>\<^isub>\<infinity>n. measure completion (A n)) = measure completion (UNION UNIV A)"
+        by (simp add: completion_def \<mu>_main_part_UN[OF A(1)])
     qed
-    then have "(\<Sum>\<^isub>\<infinity>n. \<mu>' (A n)) = \<mu> (\<Union>i. main_part (A i))"
-      unfolding \<mu>'_def using A by (intro measure_countably_additive) auto
-    then show "(\<Sum>\<^isub>\<infinity>n. \<mu>' (A n)) = \<mu>' (UNION UNIV A)"
-      unfolding \<mu>_main_part_UN[OF A(1)] .
   qed
+  show "measure completion = \<mu>'" unfolding completion_def by simp
 qed
 
 lemma (in completeable_measure_space) completion_ex_simple_function:
-  assumes f: "completion.simple_function f"
-  shows "\<exists>f'. simple_function f' \<and> (AE x. f x = f' x)"
+  assumes f: "simple_function completion f"
+  shows "\<exists>f'. simple_function M f' \<and> (AE x. f x = f' x)"
 proof -
   let "?F x" = "f -` {x} \<inter> space M"
   have F: "\<And>x. ?F x \<in> sets completion" and fin: "finite (f`space M)"
@@ -248,11 +256,11 @@ lemma (in completeable_measure_space) completion_ex_borel_measurable:
   shows "\<exists>g'\<in>borel_measurable M. (AE x. g x = g' x)"
 proof -
   from g[THEN completion.borel_measurable_implies_simple_function_sequence]
-  obtain f where "\<And>i. completion.simple_function (f i)" "f \<up> g" by auto
-  then have "\<forall>i. \<exists>f'. simple_function f' \<and> (AE x. f i x = f' x)"
+  obtain f where "\<And>i. simple_function completion (f i)" "f \<up> g" by auto
+  then have "\<forall>i. \<exists>f'. simple_function M f' \<and> (AE x. f i x = f' x)"
     using completion_ex_simple_function by auto
   from this[THEN choice] obtain f' where
-    sf: "\<And>i. simple_function (f' i)" and
+    sf: "\<And>i. simple_function M (f' i)" and
     AE: "\<forall>i. AE x. f i x = f' i x" by auto
   show ?thesis
   proof (intro bexI)

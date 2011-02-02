@@ -165,43 +165,45 @@ text {* The Kullback$-$Leibler divergence is also known as relative entropy or
 Kullback$-$Leibler distance. *}
 
 definition
-  "KL_divergence b M \<mu> \<nu> =
-    measure_space.integral M \<mu> (\<lambda>x. log b (real (sigma_finite_measure.RN_deriv M \<nu> \<mu> x)))"
+  "KL_divergence b M \<nu> = \<integral>x. log b (real (RN_deriv M \<nu> x)) \<partial>M\<lparr>measure := \<nu>\<rparr>"
 
 lemma (in sigma_finite_measure) KL_divergence_cong:
-  assumes "measure_space M \<nu>"
-  and cong: "\<And>A. A \<in> sets M \<Longrightarrow> \<mu>' A = \<mu> A" "\<And>A. A \<in> sets M \<Longrightarrow> \<nu>' A = \<nu> A"
-  shows "KL_divergence b M \<nu>' \<mu>' = KL_divergence b M \<nu> \<mu>"
+  assumes "measure_space (M\<lparr>measure := \<nu>\<rparr>)" (is "measure_space ?\<nu>")
+  assumes [simp]: "sets N = sets M" "space N = space M"
+    "\<And>A. A \<in> sets M \<Longrightarrow> measure N A = \<mu> A"
+    "\<And>A. A \<in> sets M \<Longrightarrow> \<nu> A = \<nu>' A"
+  shows "KL_divergence b M \<nu> = KL_divergence b N \<nu>'"
 proof -
-  interpret \<nu>: measure_space M \<nu> by fact
-  show ?thesis
-    unfolding KL_divergence_def
-    using RN_deriv_cong[OF cong, of "\<lambda>A. A"]
-    by (simp add: cong \<nu>.integral_cong_measure[OF cong(2)])
+  interpret \<nu>: measure_space ?\<nu> by fact
+  have "KL_divergence b M \<nu> = \<integral>x. log b (real (RN_deriv N \<nu>' x)) \<partial>?\<nu>"
+    by (simp cong: RN_deriv_cong \<nu>.integral_cong add: KL_divergence_def)
+  also have "\<dots> = KL_divergence b N \<nu>'"
+    by (auto intro!: \<nu>.integral_cong_measure[symmetric] simp: KL_divergence_def)
+  finally show ?thesis .
 qed
 
 lemma (in finite_measure_space) KL_divergence_eq_finite:
-  assumes v: "finite_measure_space M \<nu>"
+  assumes v: "finite_measure_space (M\<lparr>measure := \<nu>\<rparr>)"
   assumes ac: "absolutely_continuous \<nu>"
-  shows "KL_divergence b M \<nu> \<mu> = (\<Sum>x\<in>space M. real (\<nu> {x}) * log b (real (\<nu> {x}) / real (\<mu> {x})))" (is "_ = ?sum")
+  shows "KL_divergence b M \<nu> = (\<Sum>x\<in>space M. real (\<nu> {x}) * log b (real (\<nu> {x}) / real (\<mu> {x})))" (is "_ = ?sum")
 proof (simp add: KL_divergence_def finite_measure_space.integral_finite_singleton[OF v])
-  interpret v: finite_measure_space M \<nu> by fact
-  have ms: "measure_space M \<nu>" by fact
-  show "(\<Sum>x \<in> space M. log b (real (RN_deriv \<nu> x)) * real (\<nu> {x})) = ?sum"
+  interpret v: finite_measure_space "M\<lparr>measure := \<nu>\<rparr>" by fact
+  have ms: "measure_space (M\<lparr>measure := \<nu>\<rparr>)" by default
+  show "(\<Sum>x \<in> space M. log b (real (RN_deriv M \<nu> x)) * real (\<nu> {x})) = ?sum"
     using RN_deriv_finite_measure[OF ms ac]
     by (auto intro!: setsum_cong simp: field_simps real_of_pextreal_mult[symmetric])
 qed
 
 lemma (in finite_prob_space) KL_divergence_positive_finite:
-  assumes v: "finite_prob_space M \<nu>"
+  assumes v: "finite_prob_space (M\<lparr>measure := \<nu>\<rparr>)"
   assumes ac: "absolutely_continuous \<nu>"
   and "1 < b"
-  shows "0 \<le> KL_divergence b M \<nu> \<mu>"
+  shows "0 \<le> KL_divergence b M \<nu>"
 proof -
-  interpret v: finite_prob_space M \<nu> using v .
-  have ms: "finite_measure_space M \<nu>" by default
+  interpret v: finite_prob_space "M\<lparr>measure := \<nu>\<rparr>" by fact
+  have ms: "finite_measure_space (M\<lparr>measure := \<nu>\<rparr>)" by default
 
-  have "- (KL_divergence b M \<nu> \<mu>) \<le> log b (\<Sum>x\<in>space M. real (\<mu> {x}))"
+  have "- (KL_divergence b M \<nu>) \<le> log b (\<Sum>x\<in>space M. real (\<mu> {x}))"
   proof (subst KL_divergence_eq_finite[OF ms ac], safe intro!: log_setsum_divide not_empty)
     show "finite (space M)" using finite_space by simp
     show "1 < b" by fact
@@ -215,16 +217,15 @@ proof -
         using ac[unfolded absolutely_continuous_def, THEN bspec, of "{x}"] x by auto
       thus "0 < prob {x}" using finite_measure[of "{x}"] x by auto }
   qed auto
-  thus "0 \<le> KL_divergence b M \<nu> \<mu>" using finite_sum_over_space_eq_1 by simp
+  thus "0 \<le> KL_divergence b M \<nu>" using finite_sum_over_space_eq_1 by simp
 qed
 
 subsection {* Mutual Information *}
 
 definition (in prob_space)
   "mutual_information b S T X Y =
-    KL_divergence b (sigma (pair_algebra S T))
-      (joint_distribution X Y)
-      (pair_sigma_finite.pair_measure S (distribution X) T (distribution Y))"
+    KL_divergence b (S\<lparr>measure := distribution X\<rparr> \<Otimes>\<^isub>M T\<lparr>measure := distribution Y\<rparr>)
+      (joint_distribution X Y)"
 
 definition (in prob_space)
   "entropy b s X = mutual_information b s s X X"
@@ -232,32 +233,49 @@ definition (in prob_space)
 abbreviation (in information_space)
   mutual_information_Pow ("\<I>'(_ ; _')") where
   "\<I>(X ; Y) \<equiv> mutual_information b
-    \<lparr> space = X`space M, sets = Pow (X`space M) \<rparr>
-    \<lparr> space = Y`space M, sets = Pow (Y`space M) \<rparr> X Y"
+    \<lparr> space = X`space M, sets = Pow (X`space M), measure = distribution X \<rparr>
+    \<lparr> space = Y`space M, sets = Pow (Y`space M), measure = distribution Y \<rparr> X Y"
+
+lemma algebra_measure_update[simp]:
+  "algebra (M'\<lparr>measure := m\<rparr>) \<longleftrightarrow> algebra M'"
+  unfolding algebra_def by simp
+
+lemma sigma_algebra_measure_update[simp]:
+  "sigma_algebra (M'\<lparr>measure := m\<rparr>) \<longleftrightarrow> sigma_algebra M'"
+  unfolding sigma_algebra_def sigma_algebra_axioms_def by simp
+
+lemma finite_sigma_algebra_measure_update[simp]:
+  "finite_sigma_algebra (M'\<lparr>measure := m\<rparr>) \<longleftrightarrow> finite_sigma_algebra M'"
+  unfolding finite_sigma_algebra_def finite_sigma_algebra_axioms_def by simp
 
 lemma (in prob_space) finite_variables_absolutely_continuous:
   assumes X: "finite_random_variable S X" and Y: "finite_random_variable T Y"
-  shows "measure_space.absolutely_continuous (sigma (pair_algebra S T))
-   (pair_sigma_finite.pair_measure S (distribution X) T (distribution Y)) (joint_distribution X Y)"
+  shows "measure_space.absolutely_continuous
+    (S\<lparr>measure := distribution X\<rparr> \<Otimes>\<^isub>M T\<lparr>measure := distribution Y\<rparr>)
+    (joint_distribution X Y)"
 proof -
-  interpret X: finite_prob_space S "distribution X" using X by (rule distribution_finite_prob_space)
-  interpret Y: finite_prob_space T "distribution Y" using Y by (rule distribution_finite_prob_space)
-  interpret XY: pair_finite_prob_space S "distribution X" T "distribution Y" by default
-  interpret P: finite_prob_space XY.P "joint_distribution X Y"
-    using assms by (intro joint_distribution_finite_prob_space)
+  interpret X: finite_prob_space "S\<lparr>measure := distribution X\<rparr>"
+    using X by (rule distribution_finite_prob_space)
+  interpret Y: finite_prob_space "T\<lparr>measure := distribution Y\<rparr>"
+    using Y by (rule distribution_finite_prob_space)
+  interpret XY: pair_finite_prob_space
+    "S\<lparr>measure := distribution X\<rparr>" "T\<lparr> measure := distribution Y\<rparr>" by default
+  interpret P: finite_prob_space "XY.P\<lparr> measure := joint_distribution X Y\<rparr>"
+    using assms by (auto intro!: joint_distribution_finite_prob_space)
+  note rv = assms[THEN finite_random_variableD]
   show "XY.absolutely_continuous (joint_distribution X Y)"
   proof (rule XY.absolutely_continuousI)
-    show "finite_measure_space XY.P (joint_distribution X Y)" by default
-    fix x assume "x \<in> space XY.P" and "XY.pair_measure {x} = 0"
+    show "finite_measure_space (XY.P\<lparr> measure := joint_distribution X Y\<rparr>)" by default
+    fix x assume "x \<in> space XY.P" and "XY.\<mu> {x} = 0"
     then obtain a b where "(a, b) = x" and "a \<in> space S" "b \<in> space T"
       and distr: "distribution X {a} * distribution Y {b} = 0"
-      by (cases x) (auto simp: pair_algebra_def)
-    with assms[THEN finite_random_variableD]
-      joint_distribution_Times_le_fst[of S X T Y "{a}" "{b}"]
-      joint_distribution_Times_le_snd[of S X T Y "{a}" "{b}"]
+      by (cases x) (auto simp: space_pair_measure)
+    with X.sets_eq_Pow Y.sets_eq_Pow
+      joint_distribution_Times_le_fst[OF rv, of "{a}" "{b}"]
+      joint_distribution_Times_le_snd[OF rv, of "{a}" "{b}"]
     have "joint_distribution X Y {x} \<le> distribution Y {b}"
          "joint_distribution X Y {x} \<le> distribution X {a}"
-      by auto
+      by (auto simp del: X.sets_eq_Pow Y.sets_eq_Pow)
     with distr show "joint_distribution X Y {x} = 0" by auto
   qed
 qed
@@ -274,19 +292,21 @@ lemma (in information_space)
   and mutual_information_positive_generic:
      "0 \<le> mutual_information b MX MY X Y" (is ?positive)
 proof -
-  interpret X: finite_prob_space MX "distribution X" using MX by (rule distribution_finite_prob_space)
-  interpret Y: finite_prob_space MY "distribution Y" using MY by (rule distribution_finite_prob_space)
-  interpret XY: pair_finite_prob_space MX "distribution X" MY "distribution Y" by default
-  interpret P: finite_prob_space XY.P "joint_distribution X Y"
-    using assms by (intro joint_distribution_finite_prob_space)
+  interpret X: finite_prob_space "MX\<lparr>measure := distribution X\<rparr>"
+    using MX by (rule distribution_finite_prob_space)
+  interpret Y: finite_prob_space "MY\<lparr>measure := distribution Y\<rparr>"
+    using MY by (rule distribution_finite_prob_space)
+  interpret XY: pair_finite_prob_space "MX\<lparr>measure := distribution X\<rparr>" "MY\<lparr>measure := distribution Y\<rparr>" by default
+  interpret P: finite_prob_space "XY.P\<lparr>measure := joint_distribution X Y\<rparr>"
+    using assms by (auto intro!: joint_distribution_finite_prob_space)
 
-  have P_ms: "finite_measure_space XY.P (joint_distribution X Y)" by default
-  have P_ps: "finite_prob_space XY.P (joint_distribution X Y)" by default
+  have P_ms: "finite_measure_space (XY.P\<lparr>measure :=joint_distribution X Y\<rparr>)" by default
+  have P_ps: "finite_prob_space (XY.P\<lparr>measure := joint_distribution X Y\<rparr>)" by default
 
   show ?sum
     unfolding Let_def mutual_information_def
     by (subst XY.KL_divergence_eq_finite[OF P_ms finite_variables_absolutely_continuous[OF MX MY]])
-       (auto simp add: pair_algebra_def setsum_cartesian_product' real_of_pextreal_mult[symmetric])
+       (auto simp add: space_pair_measure setsum_cartesian_product' real_of_pextreal_mult[symmetric])
 
   show ?positive
     using XY.KL_divergence_positive_finite[OF P_ps finite_variables_absolutely_continuous[OF MX MY] b_gt_1]
@@ -301,12 +321,12 @@ lemma (in information_space) mutual_information_commute:
   by (auto simp add: ac_simps intro!: setsum_reindex_cong[OF swap_inj_on])
 
 lemma (in information_space) mutual_information_commute_simple:
-  assumes X: "simple_function X" and Y: "simple_function Y"
+  assumes X: "simple_function M X" and Y: "simple_function M Y"
   shows "\<I>(X;Y) = \<I>(Y;X)"
   by (intro X Y simple_function_imp_finite_random_variable mutual_information_commute)
 
 lemma (in information_space) mutual_information_eq:
-  assumes "simple_function X" "simple_function Y"
+  assumes "simple_function M X" "simple_function M Y"
   shows "\<I>(X;Y) = (\<Sum> (x,y) \<in> X ` space M \<times> Y ` space M.
     real (distribution (\<lambda>x. (X x, Y x)) {(x,y)}) * log b (real (distribution (\<lambda>x. (X x, Y x)) {(x,y)}) /
                                                    (real (distribution X {x}) * real (distribution Y {y}))))"
@@ -327,7 +347,7 @@ lemma (in information_space) mutual_information_cong:
   by (simp cong: distribution_cong image_cong)
 
 lemma (in information_space) mutual_information_positive:
-  assumes "simple_function X" "simple_function Y"
+  assumes "simple_function M X" "simple_function M Y"
   shows "0 \<le> \<I>(X;Y)"
   using assms by (simp add: mutual_information_positive_generic)
 
@@ -335,13 +355,14 @@ subsection {* Entropy *}
 
 abbreviation (in information_space)
   entropy_Pow ("\<H>'(_')") where
-  "\<H>(X) \<equiv> entropy b \<lparr> space = X`space M, sets = Pow (X`space M) \<rparr> X"
+  "\<H>(X) \<equiv> entropy b \<lparr> space = X`space M, sets = Pow (X`space M), measure = distribution X \<rparr> X"
 
 lemma (in information_space) entropy_generic_eq:
   assumes MX: "finite_random_variable MX X"
   shows "entropy b MX X = -(\<Sum> x \<in> space MX. real (distribution X {x}) * log b (real (distribution X {x})))"
 proof -
-  interpret MX: finite_prob_space MX "distribution X" using MX by (rule distribution_finite_prob_space)
+  interpret MX: finite_prob_space "MX\<lparr>measure := distribution X\<rparr>"
+    using MX by (rule distribution_finite_prob_space)
   let "?X x" = "real (distribution X {x})"
   let "?XX x y" = "real (joint_distribution X X {(x, y)})"
   { fix x y
@@ -353,25 +374,26 @@ proof -
   show ?thesis
     unfolding entropy_def mutual_information_generic_eq[OF MX MX]
     unfolding setsum_cartesian_product[symmetric] setsum_negf[symmetric] remove_XX
-    by (auto simp: setsum_cases MX.finite_space)
+    using MX.finite_space by (auto simp: setsum_cases)
 qed
 
 lemma (in information_space) entropy_eq:
-  assumes "simple_function X"
+  assumes "simple_function M X"
   shows "\<H>(X) = -(\<Sum> x \<in> X ` space M. real (distribution X {x}) * log b (real (distribution X {x})))"
   using assms by (simp add: entropy_generic_eq)
 
 lemma (in information_space) entropy_positive:
-  "simple_function X \<Longrightarrow> 0 \<le> \<H>(X)"
+  "simple_function M X \<Longrightarrow> 0 \<le> \<H>(X)"
   unfolding entropy_def by (simp add: mutual_information_positive)
 
 lemma (in information_space) entropy_certainty_eq_0:
-  assumes "simple_function X" and "x \<in> X ` space M" and "distribution X {x} = 1"
+  assumes "simple_function M X" and "x \<in> X ` space M" and "distribution X {x} = 1"
   shows "\<H>(X) = 0"
 proof -
-  interpret X: finite_prob_space "\<lparr> space = X ` space M, sets = Pow (X ` space M) \<rparr>" "distribution X"
-    using simple_function_imp_finite_random_variable[OF `simple_function X`]
-    by (rule distribution_finite_prob_space)
+  let ?X = "\<lparr> space = X ` space M, sets = Pow (X ` space M), measure = distribution X\<rparr>"
+  note simple_function_imp_finite_random_variable[OF `simple_function M X`]
+  from distribution_finite_prob_space[OF this, of "\<lparr> measure = distribution X \<rparr>"]
+  interpret X: finite_prob_space ?X by simp
   have "distribution X (X ` space M - {x}) = distribution X (X ` space M) - distribution X {x}"
     using X.measure_compl[of "{x}"] assms by auto
   also have "\<dots> = 0" using X.prob_space assms by auto
@@ -383,38 +405,39 @@ proof -
   hence fi: "\<And> y. y \<in> X ` space M \<Longrightarrow> real (distribution X {y}) = (if x = y then 1 else 0)"
     using assms by auto
   have y: "\<And>y. (if x = y then 1 else 0) * log b (if x = y then 1 else 0) = 0" by simp
-  show ?thesis unfolding entropy_eq[OF `simple_function X`] by (auto simp: y fi)
+  show ?thesis unfolding entropy_eq[OF `simple_function M X`] by (auto simp: y fi)
 qed
 
 lemma (in information_space) entropy_le_card_not_0:
-  assumes "simple_function X"
+  assumes "simple_function M X"
   shows "\<H>(X) \<le> log b (real (card (X ` space M \<inter> {x . distribution X {x} \<noteq> 0})))"
 proof -
   let "?d x" = "distribution X {x}"
   let "?p x" = "real (?d x)"
   have "\<H>(X) = (\<Sum>x\<in>X`space M. ?p x * log b (1 / ?p x))"
-    by (auto intro!: setsum_cong simp: entropy_eq[OF `simple_function X`] setsum_negf[symmetric] log_simps not_less)
+    by (auto intro!: setsum_cong simp: entropy_eq[OF `simple_function M X`] setsum_negf[symmetric] log_simps not_less)
   also have "\<dots> \<le> log b (\<Sum>x\<in>X`space M. ?p x * (1 / ?p x))"
     apply (rule log_setsum')
-    using not_empty b_gt_1 `simple_function X` sum_over_space_real_distribution
+    using not_empty b_gt_1 `simple_function M X` sum_over_space_real_distribution
     by (auto simp: simple_function_def)
   also have "\<dots> = log b (\<Sum>x\<in>X`space M. if ?d x \<noteq> 0 then 1 else 0)"
-    using distribution_finite[OF `simple_function X`[THEN simple_function_imp_random_variable], simplified]
+    using distribution_finite[OF `simple_function M X`[THEN simple_function_imp_random_variable], simplified]
     by (intro arg_cong[where f="\<lambda>X. log b X"] setsum_cong) (auto simp: real_of_pextreal_eq_0)
   finally show ?thesis
-    using `simple_function X` by (auto simp: setsum_cases real_eq_of_nat simple_function_def)
+    using `simple_function M X` by (auto simp: setsum_cases real_eq_of_nat simple_function_def)
 qed
 
 lemma (in information_space) entropy_uniform_max:
-  assumes "simple_function X"
+  assumes "simple_function M X"
   assumes "\<And>x y. \<lbrakk> x \<in> X ` space M ; y \<in> X ` space M \<rbrakk> \<Longrightarrow> distribution X {x} = distribution X {y}"
   shows "\<H>(X) = log b (real (card (X ` space M)))"
 proof -
-  interpret X: finite_prob_space "\<lparr> space = X ` space M, sets = Pow (X ` space M) \<rparr>" "distribution X"
-    using simple_function_imp_finite_random_variable[OF `simple_function X`]
-    by (rule distribution_finite_prob_space)
+  let ?X = "\<lparr> space = X ` space M, sets = Pow (X ` space M), measure = distribution X\<rparr>"
+  note simple_function_imp_finite_random_variable[OF `simple_function M X`]
+  from distribution_finite_prob_space[OF this, of "\<lparr> measure = distribution X \<rparr>"]
+  interpret X: finite_prob_space ?X by simp
   have card_gt0: "0 < card (X ` space M)" unfolding card_gt_0_iff
-    using `simple_function X` not_empty by (auto simp: simple_function_def)
+    using `simple_function M X` not_empty by (auto simp: simple_function_def)
   { fix x assume "x \<in> X ` space M"
     hence "real (distribution X {x}) = 1 / real (card (X ` space M))"
     proof (rule X.uniform_prob[simplified])
@@ -423,18 +446,18 @@ proof -
     qed }
   thus ?thesis
     using not_empty X.finite_space b_gt_1 card_gt0
-    by (simp add: entropy_eq[OF `simple_function X`] real_eq_of_nat[symmetric] log_simps)
+    by (simp add: entropy_eq[OF `simple_function M X`] real_eq_of_nat[symmetric] log_simps)
 qed
 
 lemma (in information_space) entropy_le_card:
-  assumes "simple_function X"
+  assumes "simple_function M X"
   shows "\<H>(X) \<le> log b (real (card (X ` space M)))"
 proof cases
   assume "X ` space M \<inter> {x. distribution X {x} \<noteq> 0} = {}"
   then have "\<And>x. x\<in>X`space M \<Longrightarrow> distribution X {x} = 0" by auto
   moreover
   have "0 < card (X`space M)"
-    using `simple_function X` not_empty
+    using `simple_function M X` not_empty
     by (auto simp: card_gt_0_iff simple_function_def)
   then have "log b 1 \<le> log b (real (card (X`space M)))"
     using b_gt_1 by (intro log_le) auto
@@ -451,10 +474,10 @@ next
 qed
 
 lemma (in information_space) entropy_commute:
-  assumes "simple_function X" "simple_function Y"
+  assumes "simple_function M X" "simple_function M Y"
   shows "\<H>(\<lambda>x. (X x, Y x)) = \<H>(\<lambda>x. (Y x, X x))"
 proof -
-  have sf: "simple_function (\<lambda>x. (X x, Y x))" "simple_function (\<lambda>x. (Y x, X x))"
+  have sf: "simple_function M (\<lambda>x. (X x, Y x))" "simple_function M (\<lambda>x. (Y x, X x))"
     using assms by (auto intro: simple_function_Pair)
   have *: "(\<lambda>x. (Y x, X x))`space M = (\<lambda>(a,b). (b,a))`(\<lambda>x. (X x, Y x))`space M"
     by auto
@@ -466,12 +489,12 @@ proof -
 qed
 
 lemma (in information_space) entropy_eq_cartesian_product:
-  assumes "simple_function X" "simple_function Y"
+  assumes "simple_function M X" "simple_function M Y"
   shows "\<H>(\<lambda>x. (X x, Y x)) = -(\<Sum>x\<in>X`space M. \<Sum>y\<in>Y`space M.
     real (joint_distribution X Y {(x,y)}) *
     log b (real (joint_distribution X Y {(x,y)})))"
 proof -
-  have sf: "simple_function (\<lambda>x. (X x, Y x))"
+  have sf: "simple_function M (\<lambda>x. (X x, Y x))"
     using assms by (auto intro: simple_function_Pair)
   { fix x assume "x\<notin>(\<lambda>x. (X x, Y x))`space M"
     then have "(\<lambda>x. (X x, Y x)) -` {x} \<inter> space M = {}" by auto
@@ -485,18 +508,17 @@ qed
 subsection {* Conditional Mutual Information *}
 
 definition (in prob_space)
-  "conditional_mutual_information b M1 M2 M3 X Y Z \<equiv>
-    mutual_information b M1 (sigma (pair_algebra M2 M3)) X (\<lambda>x. (Y x, Z x)) -
-    mutual_information b M1 M3 X Z"
+  "conditional_mutual_information b MX MY MZ X Y Z \<equiv>
+    mutual_information b MX (MY \<Otimes>\<^isub>M MZ) X (\<lambda>x. (Y x, Z x)) -
+    mutual_information b MX MZ X Z"
 
 abbreviation (in information_space)
   conditional_mutual_information_Pow ("\<I>'( _ ; _ | _ ')") where
   "\<I>(X ; Y | Z) \<equiv> conditional_mutual_information b
-    \<lparr> space = X`space M, sets = Pow (X`space M) \<rparr>
-    \<lparr> space = Y`space M, sets = Pow (Y`space M) \<rparr>
-    \<lparr> space = Z`space M, sets = Pow (Z`space M) \<rparr>
+    \<lparr> space = X`space M, sets = Pow (X`space M), measure = distribution X \<rparr>
+    \<lparr> space = Y`space M, sets = Pow (Y`space M), measure = distribution Y \<rparr>
+    \<lparr> space = Z`space M, sets = Pow (Z`space M), measure = distribution Z \<rparr>
     X Y Z"
-
 
 lemma (in information_space) conditional_mutual_information_generic_eq:
   assumes MX: "finite_random_variable MX X"
@@ -519,7 +541,7 @@ proof -
   note finite_var = MX MY MZ
   note random_var = finite_var[THEN finite_random_variableD]
 
-  note space_simps = space_pair_algebra space_sigma algebra.simps
+  note space_simps = space_pair_measure space_sigma algebra.simps
 
   note YZ = finite_random_variable_pairI[OF finite_var(2,3)]
   note XZ = finite_random_variable_pairI[OF finite_var(1,3)]
@@ -574,12 +596,12 @@ proof -
     unfolding conditional_mutual_information_def
     unfolding mutual_information_generic_eq[OF finite_var(1,3)]
     unfolding mutual_information_generic_eq[OF finite_var(1) YZ]
-    by (simp add: space_sigma space_pair_algebra setsum_cartesian_product')
+    by (simp add: space_sigma space_pair_measure setsum_cartesian_product')
   finally show ?thesis by simp
 qed
 
 lemma (in information_space) conditional_mutual_information_eq:
-  assumes "simple_function X" "simple_function Y" "simple_function Z"
+  assumes "simple_function M X" "simple_function M Y" "simple_function M Z"
   shows "\<I>(X;Y|Z) = (\<Sum>(x, y, z) \<in> X`space M \<times> Y`space M \<times> Z`space M.
              real (distribution (\<lambda>x. (X x, Y x, Z x)) {(x, y, z)}) *
              log b (real (distribution (\<lambda>x. (X x, Y x, Z x)) {(x, y, z)}) /
@@ -588,11 +610,11 @@ lemma (in information_space) conditional_mutual_information_eq:
   by simp
 
 lemma (in information_space) conditional_mutual_information_eq_mutual_information:
-  assumes X: "simple_function X" and Y: "simple_function Y"
+  assumes X: "simple_function M X" and Y: "simple_function M Y"
   shows "\<I>(X ; Y) = \<I>(X ; Y | (\<lambda>x. ()))"
 proof -
   have [simp]: "(\<lambda>x. ()) ` space M = {()}" using not_empty by auto
-  have C: "simple_function (\<lambda>x. ())" by auto
+  have C: "simple_function M (\<lambda>x. ())" by auto
   show ?thesis
     unfolding conditional_mutual_information_eq[OF X Y C]
     unfolding mutual_information_eq[OF X Y]
@@ -608,12 +630,13 @@ lemma (in prob_space) joint_distribution_unit[simp]: "distribution (\<lambda>x. 
 lemma (in prob_space) setsum_distribution:
   assumes X: "finite_random_variable MX X" shows "(\<Sum>a\<in>space MX. distribution X {a}) = 1"
   using setsum_joint_distribution[OF assms, of "\<lparr> space = UNIV, sets = Pow UNIV \<rparr>" "\<lambda>x. ()" "{()}"]
-  using sigma_algebra_Pow[of "UNIV::unit set"] by simp
+  using sigma_algebra_Pow[of "UNIV::unit set" "()"] by simp
 
 lemma (in prob_space) setsum_real_distribution:
+  fixes MX :: "('c, 'd) measure_space_scheme"
   assumes X: "finite_random_variable MX X" shows "(\<Sum>a\<in>space MX. real (distribution X {a})) = 1"
-  using setsum_real_joint_distribution[OF assms, of "\<lparr> space = UNIV, sets = Pow UNIV \<rparr>" "\<lambda>x. ()" "{()}"]
-  using sigma_algebra_Pow[of "UNIV::unit set"] by simp
+  using setsum_real_joint_distribution[OF assms, of "\<lparr> space = UNIV, sets = Pow UNIV, measure = undefined \<rparr>" "\<lambda>x. ()" "{()}"]
+  using sigma_algebra_Pow[of "UNIV::unit set" "\<lparr> measure = undefined \<rparr>"] by simp
 
 lemma (in information_space) conditional_mutual_information_generic_positive:
   assumes "finite_random_variable MX X" and "finite_random_variable MY Y" and "finite_random_variable MZ Z"
@@ -633,7 +656,7 @@ next
 
   have split_beta: "\<And>f. split f = (\<lambda>x. f (fst x) (snd x))" by (simp add: fun_eq_iff)
 
-  note space_simps = space_pair_algebra space_sigma algebra.simps
+  note space_simps = space_pair_measure space_sigma algebra.simps
 
   note finite_var = assms
   note YZ = finite_random_variable_pairI[OF finite_var(2,3)]
@@ -672,7 +695,7 @@ next
       unfolding setsum_cartesian_product'
       unfolding setsum_commute[of _ "space MY"]
       unfolding setsum_commute[of _ "space MZ"]
-      by (simp_all add: space_pair_algebra
+      by (simp_all add: space_pair_measure
         setsum_real_joint_distribution_singleton[OF `finite_random_variable MX X` YZ]
         setsum_real_joint_distribution_singleton[OF `finite_random_variable MY Y` finite_var(3)]
         setsum_real_distribution[OF `finite_random_variable MZ Z`])
@@ -704,10 +727,9 @@ next
 qed
 
 lemma (in information_space) conditional_mutual_information_positive:
-  assumes "simple_function X" and "simple_function Y" and "simple_function Z"
+  assumes "simple_function M X" and "simple_function M Y" and "simple_function M Z"
   shows "0 \<le> \<I>(X;Y|Z)"
-  using conditional_mutual_information_generic_positive[OF assms[THEN simple_function_imp_finite_random_variable]]
-  by simp
+  by (rule conditional_mutual_information_generic_positive[OF assms[THEN simple_function_imp_finite_random_variable]])
 
 subsection {* Conditional Entropy *}
 
@@ -717,16 +739,17 @@ definition (in prob_space)
 abbreviation (in information_space)
   conditional_entropy_Pow ("\<H>'(_ | _')") where
   "\<H>(X | Y) \<equiv> conditional_entropy b
-    \<lparr> space = X`space M, sets = Pow (X`space M) \<rparr>
-    \<lparr> space = Y`space M, sets = Pow (Y`space M) \<rparr> X Y"
+    \<lparr> space = X`space M, sets = Pow (X`space M), measure = distribution X \<rparr>
+    \<lparr> space = Y`space M, sets = Pow (Y`space M), measure = distribution Y \<rparr> X Y"
 
 lemma (in information_space) conditional_entropy_positive:
-  "simple_function X \<Longrightarrow> simple_function Y \<Longrightarrow> 0 \<le> \<H>(X | Y)"
+  "simple_function M X \<Longrightarrow> simple_function M Y \<Longrightarrow> 0 \<le> \<H>(X | Y)"
   unfolding conditional_entropy_def by (auto intro!: conditional_mutual_information_positive)
 
 lemma (in measure_space) empty_measureI: "A = {} \<Longrightarrow> \<mu> A = 0" by simp
 
 lemma (in information_space) conditional_entropy_generic_eq:
+  fixes MX :: "('c, 'd) measure_space_scheme" and MY :: "('e, 'f) measure_space_scheme"
   assumes MX: "finite_random_variable MX X"
   assumes MZ: "finite_random_variable MZ Z"
   shows "conditional_entropy b MX MZ X Z =
@@ -743,7 +766,7 @@ proof -
   { fix x z have "?XXZ x x z = ?XZ x z"
       unfolding distribution_def by (auto intro!: arg_cong[where f=\<mu>]) }
   note this[simp]
-  { fix x x' :: 'b and z assume "x' \<noteq> x"
+  { fix x x' :: 'c and z assume "x' \<noteq> x"
     then have "?XXZ x x' z = 0"
       by (auto simp: distribution_def intro!: arg_cong[where f=\<mu>] empty_measureI) }
   note this[simp]
@@ -762,7 +785,6 @@ proof -
     finally have "(\<Sum>x'\<in>space MX. real (?XXZ x x' z) * ?f x x' z) =
       - real (?XZ x z) * log b (real (?XZ x z) / real (?Z z))" . }
   note * = this
-
   show ?thesis
     unfolding conditional_entropy_def
     unfolding conditional_mutual_information_generic_eq[OF MX MX MZ]
@@ -772,7 +794,7 @@ proof -
 qed
 
 lemma (in information_space) conditional_entropy_eq:
-  assumes "simple_function X" "simple_function Z"
+  assumes "simple_function M X" "simple_function M Z"
   shows "\<H>(X | Z) =
      - (\<Sum>(x, z)\<in>X ` space M \<times> Z ` space M.
          real (joint_distribution X Z {(x, z)}) *
@@ -781,7 +803,7 @@ lemma (in information_space) conditional_entropy_eq:
   by simp
 
 lemma (in information_space) conditional_entropy_eq_ce_with_hypothesis:
-  assumes X: "simple_function X" and Y: "simple_function Y"
+  assumes X: "simple_function M X" and Y: "simple_function M Y"
   shows "\<H>(X | Y) =
     -(\<Sum>y\<in>Y`space M. real (distribution Y {y}) *
       (\<Sum>x\<in>X`space M. real (joint_distribution X Y {(x,y)}) / real (distribution Y {(y)}) *
@@ -794,7 +816,7 @@ lemma (in information_space) conditional_entropy_eq_ce_with_hypothesis:
            intro!: setsum_cong)
 
 lemma (in information_space) conditional_entropy_eq_cartesian_product:
-  assumes "simple_function X" "simple_function Y"
+  assumes "simple_function M X" "simple_function M Y"
   shows "\<H>(X | Y) = -(\<Sum>x\<in>X`space M. \<Sum>y\<in>Y`space M.
     real (joint_distribution X Y {(x,y)}) *
     log b (real (joint_distribution X Y {(x,y)}) / real (distribution Y {y})))"
@@ -804,7 +826,7 @@ lemma (in information_space) conditional_entropy_eq_cartesian_product:
 subsection {* Equalities *}
 
 lemma (in information_space) mutual_information_eq_entropy_conditional_entropy:
-  assumes X: "simple_function X" and Z: "simple_function Z"
+  assumes X: "simple_function M X" and Z: "simple_function M Z"
   shows  "\<I>(X ; Z) = \<H>(X) - \<H>(X | Z)"
 proof -
   let "?XZ x z" = "real (joint_distribution X Z {(x, z)})"
@@ -828,7 +850,7 @@ proof -
 qed
 
 lemma (in information_space) conditional_entropy_less_eq_entropy:
-  assumes X: "simple_function X" and Z: "simple_function Z"
+  assumes X: "simple_function M X" and Z: "simple_function M Z"
   shows "\<H>(X | Z) \<le> \<H>(X)"
 proof -
   have "\<I>(X ; Z) = \<H>(X) - \<H>(X | Z)" using mutual_information_eq_entropy_conditional_entropy[OF assms] .
@@ -837,7 +859,7 @@ proof -
 qed
 
 lemma (in information_space) entropy_chain_rule:
-  assumes X: "simple_function X" and Y: "simple_function Y"
+  assumes X: "simple_function M X" and Y: "simple_function M Y"
   shows  "\<H>(\<lambda>x. (X x, Y x)) = \<H>(X) + \<H>(Y|X)"
 proof -
   let "?XY x y" = "real (joint_distribution X Y {(x, y)})"
@@ -976,7 +998,7 @@ proof -
 qed
 
 lemma (in information_space) entropy_partition:
-  assumes sf: "simple_function X" "simple_function P"
+  assumes sf: "simple_function M X" "simple_function M P"
   assumes svi: "subvimage (space M) X P"
   shows "\<H>(X) = \<H>(P) + \<H>(X|P)"
 proof -
@@ -1026,10 +1048,10 @@ proof -
 qed
 
 corollary (in information_space) entropy_data_processing:
-  assumes X: "simple_function X" shows "\<H>(f \<circ> X) \<le> \<H>(X)"
+  assumes X: "simple_function M X" shows "\<H>(f \<circ> X) \<le> \<H>(X)"
 proof -
   note X
-  moreover have fX: "simple_function (f \<circ> X)" using X by auto
+  moreover have fX: "simple_function M (f \<circ> X)" using X by auto
   moreover have "subvimage (space M) X (f \<circ> X)" by auto
   ultimately have "\<H>(X) = \<H>(f\<circ>X) + \<H>(X|f\<circ>X)" by (rule entropy_partition)
   then show "\<H>(f \<circ> X) \<le> \<H>(X)"
@@ -1037,12 +1059,12 @@ proof -
 qed
 
 corollary (in information_space) entropy_of_inj:
-  assumes X: "simple_function X" and inj: "inj_on f (X`space M)"
+  assumes X: "simple_function M X" and inj: "inj_on f (X`space M)"
   shows "\<H>(f \<circ> X) = \<H>(X)"
 proof (rule antisym)
   show "\<H>(f \<circ> X) \<le> \<H>(X)" using entropy_data_processing[OF X] .
 next
-  have sf: "simple_function (f \<circ> X)"
+  have sf: "simple_function M (f \<circ> X)"
     using X by auto
   have "\<H>(X) = \<H>(the_inv_into (X`space M) f \<circ> (f \<circ> X))"
     by (auto intro!: mutual_information_cong simp: entropy_def the_inv_into_f_f[OF inj])
