@@ -262,8 +262,7 @@ fun enqueue name group deps pri job (Queue {groups, jobs}) =
       |> fold (fn gid => Inttab.cons_list (gid, task)) (group_ancestry group);
     val jobs' = jobs
       |> Task_Graph.new_node (task, Job [job])
-      |> fold (add_job task) deps
-      |> fold (fold (add_job task) o get_deps jobs) deps;
+      |> fold (add_job task) deps;
     val minimal = null (get_deps jobs' task);
   in ((task, minimal), make_queue groups' jobs') end;
 
@@ -302,18 +301,35 @@ fun insert_deps (Deps tasks) = fold (insert (op =) o name_of_task) tasks;
 
 fun dequeue_deps thread (Deps deps) (queue as Queue {groups, jobs}) =
   let
-    fun ready task = ready_job task (Task_Graph.get_entry jobs task);
-    val tasks = filter (can (Task_Graph.get_node jobs)) deps;
-    fun result (res as (task, _)) =
+    fun ready [] rest = (NONE, rev rest)
+      | ready (task :: tasks) rest =
+          (case try (Task_Graph.get_entry jobs) task of
+            NONE => ready tasks rest
+          | SOME entry =>
+              (case ready_job task entry of
+                NONE => ready tasks (task :: rest)
+              | some => (some, List.revAppend (rest, tasks))));
+
+    fun ready_dep _ [] = NONE
+      | ready_dep seen (task :: tasks) =
+          if member eq_task seen task then ready_dep seen tasks
+          else
+            let val entry as (_, (ds, _)) = Task_Graph.get_entry jobs task in
+              (case ready_job task entry of
+                NONE => ready_dep (task :: seen) (ds @ tasks)
+              | some => some)
+            end;
+
+    fun result (res as (task, _)) deps' =
       let val jobs' = set_job task (Running thread) jobs
-      in ((SOME res, Deps tasks), make_queue groups jobs') end;
+      in ((SOME res, Deps deps'), make_queue groups jobs') end;
   in
-    (case get_first ready tasks of
-      SOME res => result res
-    | NONE =>
-        (case get_first (get_first ready o get_deps jobs) tasks of
-          SOME res => result res
-        | NONE => ((NONE, Deps tasks), queue)))
+    (case ready deps [] of
+      (SOME res, deps') => result res deps'
+    | (NONE, deps') =>
+        (case ready_dep [] deps' of
+          SOME res => result res deps'
+        | NONE => ((NONE, Deps deps'), queue)))
   end;
 
 end;
