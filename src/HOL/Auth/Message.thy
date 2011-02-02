@@ -239,16 +239,15 @@ lemma parts_subset_iff [simp]: "(parts G \<subseteq> parts H) = (G \<subseteq> p
 by (metis parts_idem parts_increasing parts_mono subset_trans)
 
 lemma parts_trans: "[| X\<in> parts G;  G \<subseteq> parts H |] ==> X\<in> parts H"
-by (drule parts_mono, blast)
+by (metis parts_subset_iff set_mp)
 
 text{*Cut*}
 lemma parts_cut:
      "[| Y\<in> parts (insert X G);  X\<in> parts H |] ==> Y\<in> parts (G \<union> H)" 
 by (blast intro: parts_trans) 
 
-
 lemma parts_cut_eq [simp]: "X\<in> parts H ==> parts (insert X H) = parts H"
-by (force dest!: parts_cut intro: parts_insertI)
+by (metis insert_absorb parts_idem parts_insert)
 
 
 subsubsection{*Rewrite rules for pulling out atomic messages *}
@@ -519,7 +518,7 @@ text{*This rewrite rule helps in the simplification of messages that involve
   the forwarding of unknown components (X).  Without it, removing occurrences
   of X can be very complicated. *}
 lemma analz_insert_eq: "X\<in> analz H ==> analz (insert X H) = analz H"
-by (blast intro: analz_cut analz_insertI)
+by (metis analz_cut analz_insert_eq_I insert_absorb)
 
 
 text{*A congruence rule for "analz" *}
@@ -527,9 +526,7 @@ text{*A congruence rule for "analz" *}
 lemma analz_subset_cong:
      "[| analz G \<subseteq> analz G'; analz H \<subseteq> analz H' |] 
       ==> analz (G \<union> H) \<subseteq> analz (G' \<union> H')"
-apply simp
-apply (iprover intro: conjI subset_trans analz_mono Un_upper1 Un_upper2) 
-done
+by (metis Un_mono analz_Un analz_subset_iff subset_trans)
 
 lemma analz_cong:
      "[| analz G = analz G'; analz H = analz H' |] 

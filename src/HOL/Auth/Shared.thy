@@ -67,10 +67,10 @@ done
 lemma keysFor_parts_insert:
      "[| K \<in> keysFor (parts (insert X G));  X \<in> synth (analz H) |]
       ==> K \<in> keysFor (parts (G \<union> H)) | Key K \<in> parts H"
-by (force dest: Event.keysFor_parts_insert)  
+by (metis invKey_K keysFor_parts_insert)
 
 lemma Crypt_imp_keysFor: "Crypt K X \<in> H ==> K \<in> keysFor H"
-by (drule Crypt_imp_invKey_keysFor, simp)
+by (metis Crypt_imp_invKey_keysFor invKey_K)
 
 
 subsection{*Function "knows"*}
@@ -84,8 +84,7 @@ done
 (*For case analysis on whether or not an agent is compromised*)
 lemma Crypt_Spy_analz_bad: "[| Crypt (shrK A) X \<in> analz (knows Spy evs);  A: bad |]  
       ==> X \<in> analz (knows Spy evs)"
-apply (force dest!: analz.Decrypt)
-done
+by (metis Spy_knows_Spy_bad analz.Inj analz_Decrypt')
 
 
 (** Fresh keys never clash with long-term shared keys **)
@@ -115,8 +114,7 @@ lemma Nonce_notin_initState [iff]: "Nonce N \<notin> parts (initState B)"
 by (induct_tac "B", auto)
 
 lemma Nonce_notin_used_empty [simp]: "Nonce N \<notin> used []"
-apply (simp (no_asm) add: used_Nil)
-done
+by (simp add: used_Nil)
 
 
 subsection{*Supply fresh nonces for possibility theorems.*}
@@ -126,19 +124,16 @@ lemma Nonce_supply_lemma: "\<exists>N. ALL n. N<=n --> Nonce n \<notin> used evs
 apply (induct_tac "evs")
 apply (rule_tac x = 0 in exI)
 apply (simp_all (no_asm_simp) add: used_Cons split add: event.split)
-apply safe
-apply (rule msg_Nonce_supply [THEN exE], blast elim!: add_leE)+
+apply (metis le_sup_iff msg_Nonce_supply)
 done
 
 lemma Nonce_supply1: "\<exists>N. Nonce N \<notin> used evs"
-by (rule Nonce_supply_lemma [THEN exE], blast)
+by (metis Nonce_supply_lemma order_eq_iff)
 
 lemma Nonce_supply2: "\<exists>N N'. Nonce N \<notin> used evs & Nonce N' \<notin> used evs' & N \<noteq> N'"
 apply (cut_tac evs = evs in Nonce_supply_lemma)
 apply (cut_tac evs = "evs'" in Nonce_supply_lemma, clarify)
-apply (rule_tac x = N in exI)
-apply (rule_tac x = "Suc (N+Na)" in exI)
-apply (simp (no_asm_simp) add: less_not_refl3 le_add1 le_add2 less_Suc_eq_le)
+apply (metis Suc_n_not_le_n nat_le_linear)
 done
 
 lemma Nonce_supply3: "\<exists>N N' N''. Nonce N \<notin> used evs & Nonce N' \<notin> used evs' &  
