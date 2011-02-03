@@ -456,7 +456,9 @@ lemma not_Cons_self [simp]:
   "xs \<noteq> x # xs"
 by (induct xs) auto
 
-lemmas not_Cons_self2 [simp] = not_Cons_self [symmetric]
+lemma not_Cons_self2 [simp]:
+  "x # xs \<noteq> xs"
+by (rule not_Cons_self [symmetric])
 
 lemma neq_Nil_conv: "(xs \<noteq> []) = (\<exists>y ys. xs = y # ys)"
 by (induct xs) auto
