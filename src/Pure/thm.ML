@@ -586,7 +586,7 @@ fun name_derivation name (thm as Thm (der, args)) =
     val {thy_ref, shyps, hyps, prop, tpairs, ...} = args;
     val _ = null tpairs orelse raise THM ("put_name: unsolved flex-flex constraints", 0, [thm]);
 
-    val ps = map (apsnd (Future.map proof_body_of)) promises;
+    val ps = map (apsnd (Future.map fulfill_body)) promises;
     val thy = Theory.deref thy_ref;
     val (pthm, proof) = Proofterm.thm_proof thy name shyps hyps prop ps body;
     val der' = make_deriv [] [] [pthm] proof;
@@ -1227,7 +1227,7 @@ fun unconstrainT (thm as Thm (der, args)) =
     val tfrees = rev (Term.add_tfree_names prop []);
     val _ = null tfrees orelse err ("illegal free type variables " ^ commas_quote tfrees);
 
-    val ps = map (apsnd (Future.map proof_body_of)) promises;
+    val ps = map (apsnd (Future.map fulfill_body)) promises;
     val thy = Theory.deref thy_ref;
     val (pthm as (_, (_, prop', _)), proof) =
       Proofterm.unconstrain_thm_proof thy shyps prop ps body;
