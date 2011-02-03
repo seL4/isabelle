@@ -214,7 +214,7 @@ fun make_casedists sorts
   end;
 
 fun add_dt_realizers config names thy =
-  if ! Proofterm.proofs < 2 then thy
+  if not (Proofterm.proofs_enabled ()) then thy
   else
     let
       val _ = Datatype_Aux.message config "Adding realizers for induction and case analysis ...";
