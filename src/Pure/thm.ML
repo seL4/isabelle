@@ -576,6 +576,7 @@ fun future future_thm ct =
 
 (* closed derivations with official name *)
 
+(*non-deterministic, depends on unknown promises*)
 fun derivation_name (Thm (Deriv {body, ...}, {shyps, hyps, prop, ...})) =
   Proofterm.get_name shyps hyps prop (Proofterm.proof_of body);
 

@@ -1455,7 +1455,7 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
 
     fun new_prf () = (serial (), fulfill_proof_future thy promises postproc body0);
     val (i, body') =
-      (* FIXME non-deterministic!? depends on fulfilled proof*)
+      (*non-deterministic, depends on unknown promises*)
       (case strip_combt (fst (strip_combP prf)) of
         (PThm (i, ((old_name, prop', NONE), body')), args') =>
           if (old_name = "" orelse old_name = name) andalso prop1 = prop' andalso args = args'
