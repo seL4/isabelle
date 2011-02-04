@@ -756,13 +756,6 @@ lemma p2e_e2p[simp]:
   "p2e (e2p x) = (x::'a::ordered_euclidean_space)"
   by (auto simp: euclidean_eq[where 'a='a] p2e_def e2p_def)
 
-lemma bij_inv_p2e_e2p:
-  shows "bij_inv ({..<DIM('a)} \<rightarrow>\<^isub>E UNIV) (UNIV :: 'a::ordered_euclidean_space set)
-     p2e e2p" (is "bij_inv ?P ?U _ _")
-proof (rule bij_invI)
-  show "p2e \<in> ?P \<rightarrow> ?U" "e2p \<in> ?U \<rightarrow> ?P" by (auto simp: e2p_def)
-qed auto
-
 declare restrict_extensional[intro]
 
 lemma e2p_extensional[intro]:"e2p (y::'a::ordered_euclidean_space) \<in> extensional {..<DIM('a)}"
@@ -850,10 +843,15 @@ proof (intro lborel_space.measurable_sigma)
   then show "p2e -` A \<inter> space ?P \<in> sets ?P" by auto
 qed simp
 
+lemma inj_e2p[intro, simp]: "inj e2p"
+proof (intro inj_onI conjI allI impI euclidean_eq[where 'a='a, THEN iffD2])
+  fix x y ::'a and i assume "e2p x = e2p y" "i < DIM('a)"
+  then show "x $$ i= y $$ i"
+    by (auto simp: e2p_def restrict_def fun_eq_iff elim!: allE[where x=i])
+qed
+
 lemma e2p_Int:"e2p ` A \<inter> e2p ` B = e2p ` (A \<inter> B)" (is "?L = ?R")
-  apply(rule image_Int[THEN sym])
-  using bij_inv_p2e_e2p[THEN bij_inv_bij_betw(2)]
-  unfolding bij_betw_def by auto
+  by (auto simp: image_Int[THEN sym])
 
 lemma Int_stable_cuboids: fixes x::"'a::ordered_euclidean_space"
   shows "Int_stable \<lparr>space = UNIV, sets = range (\<lambda>(a, b::'a). e2p ` {a..b})\<rparr>"
@@ -945,6 +943,31 @@ proof (rule lborel.positive_integral_vimage[symmetric, of _ "e2p :: 'a \<Rightar
     using `A \<in> sets (lborel_space.P TYPE('a))`[THEN lborel_space.sets_into_space] by auto
   show "lborel_space.\<mu> TYPE('a) A = ?L A"
     using lmeasure_measure_eq_borel_prod[OF A] by (simp add: range_e2p)
+qed
+
+lemma borel_fubini_integrable:
+  fixes f :: "'a::ordered_euclidean_space \<Rightarrow> real"
+  shows "integrable lborel f \<longleftrightarrow>
+    integrable (lborel_space.P TYPE('a)) (\<lambda>x. f (p2e x))"
+    (is "_ \<longleftrightarrow> integrable ?B ?f")
+proof
+  assume "integrable lborel f"
+  moreover then have f: "f \<in> borel_measurable borel"
+    by auto
+  moreover with measurable_p2e
+  have "f \<circ> p2e \<in> borel_measurable ?B"
+    by (rule measurable_comp)
+  ultimately show "integrable ?B ?f"
+    by (simp add: comp_def borel_fubini_positiv_integral integrable_def)
+next
+  assume "integrable ?B ?f"
+  moreover then
+  have "?f \<circ> e2p \<in> borel_measurable (borel::'a algebra)"
+    by (auto intro!: measurable_e2p measurable_comp)
+  then have "f \<in> borel_measurable borel"
+    by (simp cong: measurable_cong)
+  ultimately show "integrable lborel f"
+    by (simp add: comp_def borel_fubini_positiv_integral integrable_def)
 qed
 
 lemma borel_fubini:
