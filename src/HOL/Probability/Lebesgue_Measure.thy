@@ -48,6 +48,8 @@ lemma cube_subset_Suc[intro]: "cube n \<subseteq> cube (Suc n)"
 lemma Pi_iff: "f \<in> Pi I X \<longleftrightarrow> (\<forall>i\<in>I. f i \<in> X i)"
   unfolding Pi_def by auto
 
+subsection {* Lebesgue measure *}
+
 definition lebesgue :: "'a::ordered_euclidean_space measure_space" where
   "lebesgue = \<lparr> space = UNIV,
     sets = {A. \<forall>n. (indicator A :: 'a \<Rightarrow> real) integrable_on cube n},
@@ -498,6 +500,8 @@ proof cases
   then show ?thesis by auto
 qed auto
 
+subsection {* Lebesgue-Borel measure *}
+
 definition "lborel = lebesgue \<lparr> sets := sets borel \<rparr>"
 
 lemma
@@ -543,6 +547,8 @@ proof
   ultimately show "\<exists>A::nat \<Rightarrow> 'b set. range A \<subseteq> sets lebesgue \<and> (\<Union>i. A i) = space lebesgue \<and> (\<forall>i. lebesgue.\<mu> (A i) \<noteq> \<omega>)"
     by auto
 qed
+
+subsection {* Lebesgue integrable implies Gauge integrable *}
 
 lemma simple_function_has_integral:
   fixes f::"'a::ordered_euclidean_space \<Rightarrow> pextreal"
@@ -734,13 +740,7 @@ lemma continuous_on_imp_borel_measurable:
   apply(rule borel.borel_measurableI)
   using continuous_open_preimage[OF assms] unfolding vimage_def by auto
 
-lemma (in measure_space) integral_monotone_convergence_pos':
-  assumes i: "\<And>i. integrable M (f i)" and mono: "\<And>x. mono (\<lambda>n. f n x)"
-  and pos: "\<And>x i. 0 \<le> f i x"
-  and lim: "\<And>x. (\<lambda>i. f i x) ----> u x"
-  and ilim: "(\<lambda>i. integral\<^isup>L M (f i)) ----> x"
-  shows "integrable M u \<and> integral\<^isup>L M u = x"
-  using integral_monotone_convergence_pos[OF assms] by auto
+subsection {* Equivalence between product spaces and euclidean spaces *}
 
 definition e2p :: "'a::ordered_euclidean_space \<Rightarrow> (nat \<Rightarrow> real)" where
   "e2p x = (\<lambda>i\<in>{..<DIM('a)}. x$$i)"
@@ -755,21 +755,6 @@ lemma e2p_p2e[simp]:
 lemma p2e_e2p[simp]:
   "p2e (e2p x) = (x::'a::ordered_euclidean_space)"
   by (auto simp: euclidean_eq[where 'a='a] p2e_def e2p_def)
-
-declare restrict_extensional[intro]
-
-lemma e2p_extensional[intro]:"e2p (y::'a::ordered_euclidean_space) \<in> extensional {..<DIM('a)}"
-  unfolding e2p_def by auto
-
-lemma e2p_image_vimage: fixes A::"'a::ordered_euclidean_space set"
-  shows "e2p ` A = p2e -` A \<inter> extensional {..<DIM('a)}"
-proof(rule set_eqI,rule)
-  fix x assume "x \<in> e2p ` A" then guess y unfolding image_iff .. note y=this
-  show "x \<in> p2e -` A \<inter> extensional {..<DIM('a)}"
-    apply safe apply(rule vimageI[OF _ y(1)]) unfolding y p2e_e2p by auto
-next fix x assume "x \<in> p2e -` A \<inter> extensional {..<DIM('a)}"
-  thus "x \<in> e2p ` A" unfolding image_iff apply(rule_tac x="p2e x" in bexI) apply(subst e2p_p2e) by auto
-qed
 
 interpretation lborel_product: product_sigma_finite "\<lambda>x. lborel::real measure_space"
   by default
@@ -843,107 +828,65 @@ proof (intro lborel_space.measurable_sigma)
   then show "p2e -` A \<inter> space ?P \<in> sets ?P" by auto
 qed simp
 
-lemma inj_e2p[intro, simp]: "inj e2p"
-proof (intro inj_onI conjI allI impI euclidean_eq[where 'a='a, THEN iffD2])
-  fix x y ::'a and i assume "e2p x = e2p y" "i < DIM('a)"
-  then show "x $$ i= y $$ i"
-    by (auto simp: e2p_def restrict_def fun_eq_iff elim!: allE[where x=i])
-qed
-
-lemma e2p_Int:"e2p ` A \<inter> e2p ` B = e2p ` (A \<inter> B)" (is "?L = ?R")
-  by (auto simp: image_Int[THEN sym])
-
-lemma Int_stable_cuboids: fixes x::"'a::ordered_euclidean_space"
-  shows "Int_stable \<lparr>space = UNIV, sets = range (\<lambda>(a, b::'a). e2p ` {a..b})\<rparr>"
-  unfolding Int_stable_def algebra.select_convs
-proof safe fix a b x y::'a
-  have *:"e2p ` {a..b} \<inter> e2p ` {x..y} =
-    (\<lambda>(a, b). e2p ` {a..b}) (\<chi>\<chi> i. max (a $$ i) (x $$ i), \<chi>\<chi> i. min (b $$ i) (y $$ i)::'a)"
-    unfolding e2p_Int inter_interval by auto
-  show "e2p ` {a..b} \<inter> e2p ` {x..y} \<in> range (\<lambda>(a, b). e2p ` {a..b::'a})" unfolding *
-    apply(rule range_eqI) ..
-qed
-
-lemma Int_stable_cuboids': fixes x::"'a::ordered_euclidean_space"
+lemma Int_stable_cuboids:
+  fixes x::"'a::ordered_euclidean_space"
   shows "Int_stable \<lparr>space = UNIV, sets = range (\<lambda>(a, b::'a). {a..b})\<rparr>"
-  unfolding Int_stable_def algebra.select_convs
-  apply safe unfolding inter_interval by auto
+  by (auto simp: inter_interval Int_stable_def)
 
-lemma lmeasure_measure_eq_borel_prod:
+lemma lborel_eq_lborel_space:
   fixes A :: "('a::ordered_euclidean_space) set"
   assumes "A \<in> sets borel"
-  shows "lebesgue.\<mu> A = lborel_space.\<mu> TYPE('a) (e2p ` A)" (is "_ = ?m A")
-proof (rule measure_unique_Int_stable[where X=A and A=cube])
-  show "Int_stable \<lparr> space = UNIV :: 'a set, sets = range (\<lambda>(a,b). {a..b}) \<rparr>"
-    (is "Int_stable ?E" ) using Int_stable_cuboids' .
-  have [simp]: "sigma ?E = borel" using borel_eq_atLeastAtMost ..
-  show "\<And>i. lebesgue.\<mu> (cube i) \<noteq> \<omega>" unfolding cube_def by auto
-  show "\<And>X. X \<in> sets ?E \<Longrightarrow> lebesgue.\<mu> X = ?m X"
-  proof- case goal1 then obtain a b where X:"X = {a..b}" by auto
-    { presume *:"X \<noteq> {} \<Longrightarrow> ?case"
-      show ?case apply(cases,rule *,assumption) by auto }
-    def XX \<equiv> "\<lambda>i. {a $$ i .. b $$ i}" assume  "X \<noteq> {}"  note X' = this[unfolded X interval_ne_empty]
-    have *:"Pi\<^isub>E {..<DIM('a)} XX = e2p ` X" apply(rule set_eqI)
-    proof fix x assume "x \<in> Pi\<^isub>E {..<DIM('a)} XX"
-      thus "x \<in> e2p ` X" unfolding image_iff apply(rule_tac x="\<chi>\<chi> i. x i" in bexI)
-        unfolding Pi_def extensional_def e2p_def restrict_def X mem_interval XX_def by rule auto
-    next fix x assume "x \<in> e2p ` X" then guess y unfolding image_iff .. note y = this
-      show "x \<in> Pi\<^isub>E {..<DIM('a)} XX" unfolding y using y(1)
-        unfolding Pi_def extensional_def e2p_def restrict_def X mem_interval XX_def by auto
-    qed
-    have "lebesgue.\<mu> X = (\<Prod>x<DIM('a). Real (b $$ x - a $$ x))"  using X' apply- unfolding X
-      unfolding lmeasure_atLeastAtMost content_closed_interval apply(subst Real_setprod) by auto
-    also have "... = (\<Prod>i<DIM('a). lebesgue.\<mu> (XX i))" apply(rule setprod_cong2)
-      unfolding XX_def lmeasure_atLeastAtMost apply(subst content_real) using X' by auto
-    also have "... = ?m X" unfolding *[THEN sym]
-      apply(rule lborel_space.measure_times[symmetric]) unfolding XX_def by auto
-    finally show ?case .
-  qed
+  shows "lborel.\<mu> A = lborel_space.\<mu> TYPE('a) (p2e -` A \<inter> (space (lborel_space.P TYPE('a))))"
+    (is "_ = measure ?P (?T A)")
+proof (rule measure_unique_Int_stable_vimage)
+  show "measure_space ?P" by default
+  show "measure_space lborel" by default
 
-  show "range cube \<subseteq> sets \<lparr>space = UNIV, sets = range (\<lambda>(a, b). {a..b})\<rparr>"
-    unfolding cube_def_raw by auto
-  have "\<And>x. \<exists>xa. x \<in> cube xa" apply(rule_tac x=x in mem_big_cube) by fastsimp
-  thus "cube \<up> space \<lparr>space = UNIV, sets = range (\<lambda>(a, b). {a..b})\<rparr>"
-    apply-apply(rule isotoneI) apply(rule cube_subset_Suc) by auto
-  show "A \<in> sets (sigma ?E)" using assms by simp
-  have "measure_space lborel" by default
-  then show "measure_space \<lparr> space = space ?E, sets = sets (sigma ?E), measure = measure lebesgue\<rparr>"
-    unfolding lebesgue_def lborel_def by simp
-  let ?M = "\<lparr> space = space ?E, sets = sets (sigma ?E), measure = ?m \<rparr>"
-  show "measure_space ?M"
-  proof (rule lborel_space.measure_space_vimage)
-    show "sigma_algebra ?M" by (rule lborel.sigma_algebra_cong) auto
-    show "p2e \<in> measurable (\<Pi>\<^isub>M i\<in>{..<DIM('a)}. lborel) ?M"
-      using measurable_p2e unfolding measurable_def by auto
-    fix A :: "'a set" assume "A \<in> sets ?M"
-    show "measure ?M A = lborel_space.\<mu> TYPE('a) (p2e -` A \<inter> space (\<Pi>\<^isub>M i\<in>{..<DIM('a)}. lborel))"
-      by (simp add: e2p_image_vimage)
-  qed
-qed simp
+  let ?E = "\<lparr> space = UNIV :: 'a set, sets = range (\<lambda>(a,b). {a..b}) \<rparr>"
+  show "Int_stable ?E" using Int_stable_cuboids .
+  show "range cube \<subseteq> sets ?E" unfolding cube_def_raw by auto
+  { fix x have "\<exists>n. x \<in> cube n" using mem_big_cube[of x] by fastsimp }
+  then show "cube \<up> space ?E" by (intro isotoneI cube_subset_Suc) auto
+  { fix i show "lborel.\<mu> (cube i) \<noteq> \<omega>" unfolding cube_def by auto }
+  show "A \<in> sets (sigma ?E)" "sets (sigma ?E) = sets lborel" "space ?E = space lborel"
+    using assms by (simp_all add: borel_eq_atLeastAtMost)
 
-lemma range_e2p:"range (e2p::'a::ordered_euclidean_space \<Rightarrow> _) = extensional {..<DIM('a)}"
-  unfolding e2p_def_raw
-  apply auto
-  by (rule_tac x="\<chi>\<chi> i. x i" in image_eqI) (auto simp: fun_eq_iff extensional_def)
+  show "p2e \<in> measurable ?P (lborel :: 'a measure_space)"
+    using measurable_p2e unfolding measurable_def by simp
+  { fix X assume "X \<in> sets ?E"
+    then obtain a b where X[simp]: "X = {a .. b}" by auto
+    have *: "?T X = (\<Pi>\<^isub>E i\<in>{..<DIM('a)}. {a $$ i .. b $$ i})"
+      by (auto simp: Pi_iff eucl_le[where 'a='a] p2e_def)
+    show "lborel.\<mu> X = measure ?P (?T X)"
+    proof cases
+      assume "X \<noteq> {}"
+      then have "a \<le> b"
+        by (simp add: interval_ne_empty eucl_le[where 'a='a])
+      then have "lborel.\<mu> X = (\<Prod>x<DIM('a). lborel.\<mu> {a $$ x .. b $$ x})"
+        by (auto simp: content_closed_interval eucl_le[where 'a='a]
+                 intro!: Real_setprod )
+      also have "\<dots> = measure ?P (?T X)"
+        unfolding * by (subst lborel_space.measure_times) auto
+      finally show ?thesis .
+    qed simp }
+qed
+
+lemma lebesgue_eq_lborel_space_in_borel:
+  fixes A :: "('a::ordered_euclidean_space) set"
+  assumes A: "A \<in> sets borel"
+  shows "lebesgue.\<mu> A = lborel_space.\<mu> TYPE('a) (p2e -` A \<inter> (space (lborel_space.P TYPE('a))))"
+  using lborel_eq_lborel_space[OF A] by simp
 
 lemma borel_fubini_positiv_integral:
   fixes f :: "'a::ordered_euclidean_space \<Rightarrow> pextreal"
   assumes f: "f \<in> borel_measurable borel"
   shows "integral\<^isup>P lborel f = \<integral>\<^isup>+x. f (p2e x) \<partial>(lborel_space.P TYPE('a))"
-proof (rule lborel.positive_integral_vimage[symmetric, of _ "e2p :: 'a \<Rightarrow> _" "(\<lambda>x. f (p2e x))", unfolded p2e_e2p])
-  show "(e2p :: 'a \<Rightarrow> _) \<in> measurable borel (lborel_space.P TYPE('a))" by (rule measurable_e2p)
-  show "sigma_algebra (lborel_space.P TYPE('a))" by default
-  from measurable_comp[OF measurable_p2e f]
-  show "(\<lambda>x. f (p2e x)) \<in> borel_measurable (lborel_space.P TYPE('a))" by (simp add: comp_def)
-  let "?L A" = "lebesgue.\<mu> ((e2p::'a \<Rightarrow> (nat \<Rightarrow> real)) -` A \<inter> UNIV)"
-  fix A :: "(nat \<Rightarrow> real) set" assume "A \<in> sets (lborel_space.P TYPE('a))"
-  then have A: "(e2p::'a \<Rightarrow> (nat \<Rightarrow> real)) -` A \<inter> space borel \<in> sets borel"
-    by (rule measurable_sets[OF measurable_e2p])
-  have [simp]: "A \<inter> extensional {..<DIM('a)} = A"
-    using `A \<in> sets (lborel_space.P TYPE('a))`[THEN lborel_space.sets_into_space] by auto
-  show "lborel_space.\<mu> TYPE('a) A = ?L A"
-    using lmeasure_measure_eq_borel_prod[OF A] by (simp add: range_e2p)
-qed
+proof (rule lborel_space.positive_integral_vimage[OF _ _ _ lborel_eq_lborel_space])
+  show "sigma_algebra lborel" by default
+  show "p2e \<in> measurable (lborel_space.P TYPE('a)) (lborel :: 'a measure_space)"
+       "f \<in> borel_measurable lborel"
+    using measurable_p2e f by (simp_all add: measurable_def)
+qed simp
 
 lemma borel_fubini_integrable:
   fixes f :: "'a::ordered_euclidean_space \<Rightarrow> real"
@@ -967,19 +910,13 @@ next
   then have "f \<in> borel_measurable borel"
     by (simp cong: measurable_cong)
   ultimately show "integrable lborel f"
-    by (simp add: comp_def borel_fubini_positiv_integral integrable_def)
+    by (simp add: borel_fubini_positiv_integral integrable_def)
 qed
 
 lemma borel_fubini:
   fixes f :: "'a::ordered_euclidean_space \<Rightarrow> real"
   assumes f: "f \<in> borel_measurable borel"
   shows "integral\<^isup>L lborel f = \<integral>x. f (p2e x) \<partial>(lborel_space.P TYPE('a))"
-proof -
-  have 1:"(\<lambda>x. Real (f x)) \<in> borel_measurable borel" using f by auto
-  have 2:"(\<lambda>x. Real (- f x)) \<in> borel_measurable borel" using f by auto
-  show ?thesis unfolding lebesgue_integral_def
-    unfolding borel_fubini_positiv_integral[OF 1] borel_fubini_positiv_integral[OF 2]
-    unfolding o_def ..
-qed
+  using f by (simp add: borel_fubini_positiv_integral lebesgue_integral_def)
 
 end

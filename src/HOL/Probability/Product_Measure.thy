@@ -734,47 +734,36 @@ proof -
 qed
 
 lemma (in pair_sigma_finite) pair_measure_alt2:
-  assumes "A \<in> sets P"
+  assumes A: "A \<in> sets P"
   shows "\<mu> A = (\<integral>\<^isup>+y. M1.\<mu> ((\<lambda>x. (x, y)) -` A) \<partial>M2)"
     (is "_ = ?\<nu> A")
 proof -
+  interpret Q: pair_sigma_finite M2 M1 by default
   from sigma_finite_up_in_pair_measure_generator guess F :: "nat \<Rightarrow> ('a \<times> 'b) set" .. note F = this
   have [simp]: "\<And>m. \<lparr> space = space E, sets = sets (sigma E), measure = m \<rparr> = P\<lparr> measure := m \<rparr>"
     unfolding pair_measure_def by simp
-  show ?thesis
-  proof (rule measure_unique_Int_stable[where \<nu>="?\<nu>", OF Int_stable_pair_measure_generator], simp_all)
-    show "range F \<subseteq> sets E" "F \<up> space E" "\<And>i. \<mu> (F i) \<noteq> \<omega>" "A \<in> sets (sigma E)"
-      using F `A \<in> sets P` by (auto simp: pair_measure_def)
-    show "measure_space P" by default
-    interpret Q: pair_sigma_finite M2 M1 by default
-    have P: "sigma_algebra (P\<lparr> measure := ?\<nu>\<rparr>)"
-      by (intro sigma_algebra_cong) auto
-    show "measure_space (P\<lparr> measure := ?\<nu>\<rparr>)"
-      apply (rule Q.measure_space_vimage[OF P])
-      apply (simp_all)
-      apply (rule Q.pair_sigma_algebra_swap_measurable)
-    proof -
-      fix A assume "A \<in> sets P"
-      from sets_swap[OF this]
-      show "(\<integral>\<^isup>+ y. M1.\<mu> ((\<lambda>x. (x, y)) -` A) \<partial>M2) = Q.\<mu> ((\<lambda>(x, y). (y, x)) -` A \<inter> space (M2 \<Otimes>\<^isub>M M1))"
-        using sets_into_space[OF `A \<in> sets P`]
-        by (auto simp add: Q.pair_measure_alt space_pair_measure
-                 intro!: M2.positive_integral_cong arg_cong[where f="M1.\<mu>"])
-    qed
-    fix X assume "X \<in> sets E"
-    then obtain A B where X: "X = A \<times> B" and AB: "A \<in> sets M1" "B \<in> sets M2"
-      unfolding pair_measure_def pair_measure_generator_def by auto
-    show "\<mu> X = ?\<nu> X"
-    proof -
-      from AB have "?\<nu> (A \<times> B) = (\<integral>\<^isup>+y. M1.\<mu> A * indicator B y \<partial>M2)"
-        by (auto intro!: M2.positive_integral_cong)
-      with AB show ?thesis
-        unfolding pair_measure_times[OF AB] X
-        by (simp add: M2.positive_integral_cmult_indicator ac_simps)
-    qed
-  qed
-qed
 
+  have "\<mu> A = Q.\<mu> ((\<lambda>(y, x). (x, y)) -` A \<inter> space Q.P)"
+  proof (rule measure_unique_Int_stable_vimage[OF Int_stable_pair_measure_generator])
+    show "measure_space P" "measure_space Q.P" by default
+    show "(\<lambda>(y, x). (x, y)) \<in> measurable Q.P P" by (rule Q.pair_sigma_algebra_swap_measurable)
+    show "sets (sigma E) = sets P" "space E = space P" "A \<in> sets (sigma E)"
+      using assms unfolding pair_measure_def by auto
+    show "range F \<subseteq> sets E" "F \<up> space E" "\<And>i. \<mu> (F i) \<noteq> \<omega>"
+      using F `A \<in> sets P` by (auto simp: pair_measure_def)
+    fix X assume "X \<in> sets E"
+    then obtain A B where X[simp]: "X = A \<times> B" and AB: "A \<in> sets M1" "B \<in> sets M2"
+      unfolding pair_measure_def pair_measure_generator_def by auto
+    then have "(\<lambda>(y, x). (x, y)) -` X \<inter> space Q.P = B \<times> A"
+      using M1.sets_into_space M2.sets_into_space by (auto simp: space_pair_measure)
+    then show "\<mu> X = Q.\<mu> ((\<lambda>(y, x). (x, y)) -` X \<inter> space Q.P)"
+      using AB by (simp add: pair_measure_times Q.pair_measure_times ac_simps)
+  qed
+  then show ?thesis
+    using sets_into_space[OF A] Q.pair_measure_alt[OF sets_swap[OF A]]
+    by (auto simp add: Q.pair_measure_alt space_pair_measure
+             intro!: M2.positive_integral_cong arg_cong[where f="M1.\<mu>"])
+qed
 
 lemma pair_sigma_algebra_sigma:
   assumes 1: "S1 \<up> (space E1)" "range S1 \<subseteq> sets E1" and E1: "sets E1 \<subseteq> Pow (space E1)"
@@ -1559,8 +1548,8 @@ qed
 lemma (in product_sigma_finite) measure_fold:
   assumes IJ[simp]: "I \<inter> J = {}" and fin: "finite I" "finite J"
   assumes A: "A \<in> sets (Pi\<^isub>M (I \<union> J) M)"
-  shows "measure (Pi\<^isub>M I M \<Otimes>\<^isub>M Pi\<^isub>M J M) ((\<lambda>(x,y). merge I x J y) -` A \<inter> space (Pi\<^isub>M I M \<Otimes>\<^isub>M Pi\<^isub>M J M)) =
-   measure (Pi\<^isub>M (I \<union> J) M) A"
+  shows "measure (Pi\<^isub>M (I \<union> J) M) A =
+    measure (Pi\<^isub>M I M \<Otimes>\<^isub>M Pi\<^isub>M J M) ((\<lambda>(x,y). merge I x J y) -` A \<inter> space (Pi\<^isub>M I M \<Otimes>\<^isub>M Pi\<^isub>M J M))"
 proof -
   interpret I: finite_product_sigma_finite M I by default fact
   interpret J: finite_product_sigma_finite M J by default fact
@@ -1575,10 +1564,12 @@ proof -
        "\<And>k. \<forall>i\<in>I\<union>J. \<mu> i (F i k) \<noteq> \<omega>"
     by auto
   let ?F = "\<lambda>k. \<Pi>\<^isub>E i\<in>I \<union> J. F i k"
-  show "P.\<mu> (?X A) = IJ.\<mu> A"
-  proof (rule measure_unique_Int_stable[where X=A])
-    show "A \<in> sets (sigma IJ.G)"
+  show "IJ.\<mu> A = P.\<mu> (?X A)"
+  proof (rule measure_unique_Int_stable_vimage)
+    show "measure_space IJ.P" "measure_space P.P" by default
+    show "sets (sigma IJ.G) = sets IJ.P" "space IJ.G = space IJ.P" "A \<in> sets (sigma IJ.G)"
       using A unfolding product_algebra_def by auto
+  next
     show "Int_stable IJ.G"
       by (simp add: PiE_Int Int_stable_def product_algebra_def
                     product_algebra_generator_def)
@@ -1587,25 +1578,17 @@ proof -
       by (simp add: image_subset_iff product_algebra_def
                     product_algebra_generator_def)
     show "?F \<up> space IJ.G " using F(2) by simp
-    have "measure_space IJ.P" by fact
-    also have "IJ.P = \<lparr> space = space IJ.G, sets = sets (sigma IJ.G), measure = IJ.\<mu> \<rparr>"
-      by (simp add: product_algebra_def)
-    finally show "measure_space \<dots>" .
-    let ?P = "\<lparr> space = space IJ.G, sets = sets (sigma IJ.G),
-                measure = \<lambda>A. P.\<mu> (?X A)\<rparr>"
-    have *: "?P = (sigma IJ.G \<lparr> measure := \<lambda>A. P.\<mu> (?X A) \<rparr>)"
-      by auto
-    have "sigma_algebra (sigma IJ.G \<lparr> measure := \<lambda>A. P.\<mu> (?X A) \<rparr>)"
-      by (rule IJ.sigma_algebra_cong) (auto simp: product_algebra_def)
-    then show "measure_space ?P" unfolding *
-      using measurable_merge[OF `I \<inter> J = {}`]
-      by (auto intro!: P.measure_space_vimage simp add: product_algebra_def)
+    show "\<And>k. IJ.\<mu> (?F k) \<noteq> \<omega>"
+      using `finite I` F
+      by (subst IJ.measure_times) (auto simp add: setprod_\<omega>)
+    show "?g \<in> measurable P.P IJ.P"
+      using IJ by (rule measurable_merge)
   next
     fix A assume "A \<in> sets IJ.G"
-    then obtain F where A[simp]: "A = Pi\<^isub>E (I \<union> J) F"
+    then obtain F where A: "A = Pi\<^isub>E (I \<union> J) F"
       and F: "\<And>i. i \<in> I \<union> J \<Longrightarrow> F i \<in> sets (M i)"
       by (auto simp: product_algebra_generator_def)
-    then have "?X A = (Pi\<^isub>E I F \<times> Pi\<^isub>E J F)"
+    then have X: "?X A = (Pi\<^isub>E I F \<times> Pi\<^isub>E J F)"
       using sets_into_space by (auto simp: space_pair_measure) blast+
     then have "P.\<mu> (?X A) = (\<Prod>i\<in>I. \<mu> i (F i)) * (\<Prod>i\<in>J. \<mu> i (F i))"
       using `finite J` `finite I` F
@@ -1615,16 +1598,7 @@ proof -
     also have "\<dots> = IJ.\<mu> A"
       using `finite J` `finite I` F unfolding A
       by (intro IJ.measure_times[symmetric]) auto
-    finally show "P.\<mu> (?X A) = IJ.\<mu> A" .
-  next
-    fix k
-    have k: "\<And>i. i \<in> I \<union> J \<Longrightarrow> F i k \<in> sets (M i)" using F by auto
-    then have "?X (?F k) = (\<Pi>\<^isub>E i\<in>I. F i k) \<times> (\<Pi>\<^isub>E i\<in>J. F i k)"
-      using sets_into_space by (auto simp: space_pair_measure) blast+
-    with k have "P.\<mu> (?X (?F k)) = (\<Prod>i\<in>I. \<mu> i (F i k)) * (\<Prod>i\<in>J. \<mu> i (F i k))"
-     by (simp add: P.pair_measure_times I.measure_times J.measure_times)
-    then show "P.\<mu> (?X (?F k)) \<noteq> \<omega>"
-      using `finite I` F by (simp add: setprod_\<omega>)
+    finally show "IJ.\<mu> A = P.\<mu> (?X A)" by (rule sym)
   qed
 qed
 
@@ -1751,7 +1725,7 @@ proof -
     have 1: "sigma_algebra IJ.P" by default
     have 2: "?M \<in> measurable P.P IJ.P" using measurable_merge[OF IJ] .
     have 3: "\<And>A. A \<in> sets IJ.P \<Longrightarrow> IJ.\<mu> A = P.\<mu> (?M -` A \<inter> space P.P)"
-      by (rule measure_fold[OF IJ fin, symmetric])
+      by (rule measure_fold[OF IJ fin])
     have 4: "integrable (Pi\<^isub>M (I \<union> J) M) f" by fact
     show "integrable P.P ?f"
       by (rule P.integral_vimage[where f=f, OF 1 2 3 4])
