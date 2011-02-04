@@ -403,19 +403,18 @@ fun forks {name, group, deps, pri} es =
         (case group of
           NONE => worker_subgroup ()
         | SOME grp => grp);
-      fun enqueue e (minimal, queue) =
+      fun enqueue e queue =
         let
           val (result, job) = future_job grp e;
-          val ((task, minimal'), queue') = Task_Queue.enqueue name grp deps pri job queue;
+          val (task, queue') = Task_Queue.enqueue name grp deps pri job queue;
           val future = Future {promised = false, task = task, result = result};
-        in (future, (minimal orelse minimal', queue')) end;
+        in (future, queue') end;
     in
       SYNCHRONIZED "enqueue" (fn () =>
         let
-          val (futures, minimal) =
-            Unsynchronized.change_result queue (fn q =>
-              let val (futures, (minimal, q')) = fold_map enqueue es (false, q)
-              in ((futures, minimal), q') end);
+          val (futures, queue') = fold_map enqueue es (! queue);
+          val _ = queue := queue';
+          val minimal = forall (not o Task_Queue.known_task queue') deps;
           val _ = if minimal then signal work_available else ();
           val _ = scheduler_check ();
         in futures end)

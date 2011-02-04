@@ -26,14 +26,14 @@ sig
   val waiting: task -> task list -> (unit -> 'a) -> 'a
   type queue
   val empty: queue
+  val known_task: queue -> task -> bool
   val all_passive: queue -> bool
   val status: queue -> {ready: int, pending: int, running: int, passive: int}
   val cancel: queue -> group -> bool
   val cancel_all: queue -> group list
   val finish: task -> queue -> bool * queue
   val enqueue_passive: group -> (unit -> bool) -> queue -> task * queue
-  val enqueue: string -> group -> task list -> int -> (bool -> bool) ->
-    queue -> (task * bool) * queue
+  val enqueue: string -> group -> task list -> int -> (bool -> bool) -> queue -> task * queue
   val extend: task -> (bool -> bool) -> queue -> queue option
   val dequeue_passive: Thread.thread -> task -> queue -> bool * queue
   val dequeue: Thread.thread -> queue -> (task * (bool -> bool) list) option * queue
@@ -185,6 +185,8 @@ fun make_queue groups jobs = Queue {groups = groups, jobs = jobs};
 
 val empty = make_queue Inttab.empty Task_Graph.empty;
 
+fun known_task (Queue {jobs, ...}) task = can (Task_Graph.get_entry jobs) task;
+
 
 (* job status *)
 
@@ -276,8 +278,7 @@ fun enqueue name group deps pri job (Queue {groups, jobs}) =
     val jobs' = jobs
       |> Task_Graph.new_node (task, Job [job])
       |> fold (add_job task) deps;
-    val minimal = null (get_deps jobs' task);
-  in ((task, minimal), make_queue groups' jobs') end;
+  in (task, make_queue groups' jobs') end;
 
 fun extend task job (Queue {groups, jobs}) =
   (case try (get_job jobs) task of
