@@ -43,7 +43,7 @@ fun force_result (Lazy var) =
   (case peek (Lazy var) of
     SOME res => res
   | NONE =>
-      uninterruptible (fn restore_interrupts => fn () =>
+      uninterruptible (fn restore_attributes => fn () =>
         let
           val (expr, x) =
             Synchronized.change_result var
@@ -55,7 +55,7 @@ fun force_result (Lazy var) =
           (case expr of
             SOME e =>
               let
-                val res0 = restore_interrupts (fn () => Exn.capture e ()) ();
+                val res0 = Exn.capture (restore_attributes e) ();
                 val _ = Future.fulfill_result x res0;
                 val res = Future.join_result x;
                 (*semantic race: some other threads might see the same
@@ -65,7 +65,7 @@ fun force_result (Lazy var) =
                     Synchronized.change var (fn _ => Expr e)
                   else ();
               in res end
-          | NONE => restore_interrupts (fn () => Future.join_result x) ())
+          | NONE => Exn.capture (restore_attributes (fn () => Future.join x)) ())
         end) ());
 
 fun force r = Exn.release (force_result r);
