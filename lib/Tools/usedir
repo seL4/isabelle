@@ -19,6 +19,7 @@ function usage()
   echo "    -D PATH      dump generated document sources into PATH"
   echo "    -M MAX       multithreading: maximum number of worker threads (default 1)"
   echo "    -P PATH      set path for remote theory browsing information"
+  echo "    -Q INT       set threshold for sub-proof parallelization (default 100)"
   echo "    -T LEVEL     multithreading: trace level (default 0)"
   echo "    -V VERSION   declare alternative document VERSION"
   echo "    -b           build mode (output heap image, using current dir)"
@@ -84,13 +85,14 @@ RESET=false
 SESSION=""
 PROOFS="0"
 PARALLEL_PROOFS="1"
+PARALLEL_PROOFS_THRESHOLD="100"
 TIMING=false
 VERBOSE=false
 
 function getoptions()
 {
   OPTIND=1
-  while getopts "C:D:M:P:T:V:bd:f:g:i:m:p:q:rs:t:v:" OPT
+  while getopts "C:D:M:P:Q:T:V:bd:f:g:i:m:p:q:rs:t:v:" OPT
   do
     case "$OPT" in
       C)
@@ -110,6 +112,10 @@ function getoptions()
         ;;
       P)
         RPATH="$OPTARG"
+        ;;
+      Q)
+        check_number "$OPTARG"
+        PARALLEL_PROOFS_THRESHOLD="$OPTARG"
         ;;
       T)
         check_number "$OPTARG"
@@ -235,7 +241,7 @@ if [ -n "$BUILD" ]; then
   LOG="$LOGDIR/$ITEM"
 
   "$ISABELLE_PROCESS" \
-    -e "Session.use_dir \"$ITEM\" \"$ROOT_FILE\" true [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" ($COPY_DUMP, \"$DUMP\") \"$RPATH\" $PROOFS $TIMING $VERBOSE $MAXTHREADS $TRACETHREADS $PARALLEL_PROOFS;" \
+    -e "Session.use_dir \"$ITEM\" \"$ROOT_FILE\" true [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" ($COPY_DUMP, \"$DUMP\") \"$RPATH\" $PROOFS $TIMING $VERBOSE $MAXTHREADS $TRACETHREADS $PARALLEL_PROOFS $PARALLEL_PROOFS_THRESHOLD;" \
     -q -w $LOGIC $NAME > "$LOG"
   RC="$?"
 else
@@ -244,7 +250,7 @@ else
   LOG="$LOGDIR/$ITEM"
 
   "$ISABELLE_PROCESS" \
-    -e "Session.use_dir \"$ITEM\" \"$ROOT_FILE\" false [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" ($COPY_DUMP, \"$DUMP\") \"$RPATH\" $PROOFS $TIMING $VERBOSE $MAXTHREADS $TRACETHREADS $PARALLEL_PROOFS; quit();" \
+    -e "Session.use_dir \"$ITEM\" \"$ROOT_FILE\" false [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" ($COPY_DUMP, \"$DUMP\") \"$RPATH\" $PROOFS $TIMING $VERBOSE $MAXTHREADS $TRACETHREADS $PARALLEL_PROOFS $PARALLEL_PROOFS_THRESHOLD; quit();" \
     -r -q "$LOGIC" > "$LOG"
   RC="$?"
   cd ..

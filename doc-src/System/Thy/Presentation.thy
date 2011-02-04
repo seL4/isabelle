@@ -446,6 +446,7 @@ Usage: usedir [OPTIONS] LOGIC NAME
     -D PATH      dump generated document sources into PATH
     -M MAX       multithreading: maximum number of worker threads (default 1)
     -P PATH      set path for remote theory browsing information
+    -Q INT       set threshold for sub-proof parallelization (default 100)
     -T LEVEL     multithreading: trace level (default 0)
     -V VERSION   declare alternative document VERSION
     -b           build mode (output heap image, using current dir)
@@ -565,8 +566,9 @@ text {*
   \medskip The @{verbatim "-q"} option specifies the level of parallel
   proof checking: @{verbatim 0} no proofs, @{verbatim 1} toplevel
   proofs (default), @{verbatim 2} toplevel and nested Isar proofs.
-  The resulting speedup may vary, depending on the number of worker
-  threads, granularity of proofs, and whether proof terms are enabled.
+  The option @{verbatim "-Q"} specifies a threshold for @{verbatim
+  "-q2"}: nested proofs are only parallelized when the current number
+  of forked proofs falls below the given value (default 100).
 
   \medskip The @{verbatim "-t"} option produces a more detailed
   internal timing report of the session.

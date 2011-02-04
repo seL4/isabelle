@@ -11,7 +11,7 @@ sig
   val welcome: unit -> string
   val use_dir: string -> string -> bool -> string list -> bool -> bool ->
     string -> bool -> string list -> string -> string -> bool * string ->
-    string -> int -> bool -> bool -> int -> int -> int -> unit
+    string -> int -> bool -> bool -> int -> int -> int -> int -> unit
   val finish: unit -> unit
 end;
 
@@ -93,7 +93,8 @@ fun dumping (_, "") = NONE
   | dumping (cp, path) = SOME (cp, Path.explode path);
 
 fun use_dir item root build modes reset info doc doc_graph doc_versions parent
-    name dump rpath level timing verbose max_threads trace_threads parallel_proofs =
+    name dump rpath level timing verbose max_threads trace_threads
+    parallel_proofs parallel_proofs_threshold =
   ((fn () =>
      (init reset parent name;
       Present.init build info doc doc_graph doc_versions (path ()) name
@@ -113,6 +114,7 @@ fun use_dir item root build modes reset info doc doc_graph doc_versions parent
     |> Unsynchronized.setmp Proofterm.proofs level
     |> Unsynchronized.setmp print_mode (modes @ print_mode_value ())
     |> Unsynchronized.setmp Goal.parallel_proofs parallel_proofs
+    |> Unsynchronized.setmp Goal.parallel_proofs_threshold parallel_proofs_threshold
     |> Unsynchronized.setmp Multithreading.trace trace_threads
     |> Unsynchronized.setmp Multithreading.max_threads
       (if Multithreading.available then max_threads

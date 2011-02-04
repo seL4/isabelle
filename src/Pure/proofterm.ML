@@ -52,6 +52,7 @@ sig
   val approximate_proof_body: proof -> proof_body
 
   (** primitive operations **)
+  val proofs_enabled: unit -> bool
   val proof_combt: proof * term list -> proof
   val proof_combt': proof * term option list -> proof
   val proof_combP: proof * proof list -> proof
@@ -973,6 +974,7 @@ end;
 (***** axioms and theorems *****)
 
 val proofs = Unsynchronized.ref 2;
+fun proofs_enabled () = ! proofs >= 2;
 
 fun vars_of t = map Var (rev (Term.add_vars t []));
 fun frees_of t = map Free (rev (Term.add_frees t []));
@@ -1444,7 +1446,7 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
 
     fun make_body0 proof0 = PBody {oracles = oracles0, thms = thms0, proof = proof0};
     val body0 =
-      if ! proofs <> 2 then Future.value (make_body0 MinProof)
+      if not (proofs_enabled ()) then Future.value (make_body0 MinProof)
       else if not (Multithreading.enabled ()) then Future.value (make_body0 (full_proof0 ()))
       else
         singleton
@@ -1453,6 +1455,7 @@ fun prepare_thm_proof thy name shyps hyps concl promises body =
 
     fun new_prf () = (serial (), fulfill_proof_future thy promises postproc body0);
     val (i, body') =
+      (*non-deterministic, depends on unknown promises*)
       (case strip_combt (fst (strip_combP prf)) of
         (PThm (i, ((old_name, prop', NONE), body')), args') =>
           if (old_name = "" orelse old_name = name) andalso prop1 = prop' andalso args = args'

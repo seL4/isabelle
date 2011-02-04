@@ -7,6 +7,7 @@ Goals in tactical theorem proving.
 signature BASIC_GOAL =
 sig
   val parallel_proofs: int Unsynchronized.ref
+  val parallel_proofs_threshold: int Unsynchronized.ref
   val SELECT_GOAL: tactic -> int -> tactic
   val CONJUNCTS: tactic -> int -> tactic
   val PRECISE_CONJUNCTS: int -> tactic -> int -> tactic
@@ -105,21 +106,47 @@ val norm_result =
   #> Drule.zero_var_indexes;
 
 
-(* parallel proofs *)
+(* forked proofs *)
+
+val forked_proofs = Synchronized.var "forked_proofs" 0;
+
+fun forked i =
+  Synchronized.change forked_proofs (fn m =>
+    let
+      val n = m + i;
+      val _ =
+        Multithreading.tracing 1 (fn () =>
+          ("PROOFS " ^ Time.toString (Time.now ()) ^ ": " ^ string_of_int n));
+    in n end);
 
 fun fork_name name e =
-  singleton (Future.forks {name = name, group = NONE, deps = [], pri = ~1})
-    (fn () => Future.status e);
+  uninterruptible (fn _ => fn () =>
+    let
+      val _ = forked 1;
+      val future =
+        singleton (Future.forks {name = name, group = NONE, deps = [], pri = ~1})
+          (fn () =>
+            (*interruptible*)
+            Exn.release
+              (Exn.capture Future.status e before forked ~1
+                handle exn => (forked ~1; reraise exn)));
+    in future end) ();
 
 fun fork e = fork_name "Goal.fork" e;
 
 
+(* scheduling parameters *)
+
 val parallel_proofs = Unsynchronized.ref 1;
+val parallel_proofs_threshold = Unsynchronized.ref 100;
 
 fun future_enabled () =
-  Multithreading.enabled () andalso is_some (Future.worker_task ()) andalso ! parallel_proofs >= 1;
+  Multithreading.enabled () andalso ! parallel_proofs >= 1 andalso
+  is_some (Future.worker_task ());
 
-fun local_future_enabled () = future_enabled () andalso ! parallel_proofs >= 2;
+fun local_future_enabled () =
+  future_enabled () andalso ! parallel_proofs >= 2 andalso
+  Synchronized.value forked_proofs < ! parallel_proofs_threshold;
 
 
 (* future_result *)
