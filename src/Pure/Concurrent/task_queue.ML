@@ -120,12 +120,13 @@ fun str_of_task (Task {name, id, ...}) =
 fun timing_of_task (Task {timing, ...}) = Synchronized.value timing;
 
 fun update_timing update (Task {timing, ...}) e =
-  let
-    val start = Time.now ();
-    val result = Exn.capture e ();
-    val t = Time.- (Time.now (), start);
-    val _ = Synchronized.change timing (update t);
-  in Exn.release result end;
+  uninterruptible (fn restore_attributes => fn () =>
+    let
+      val start = Time.now ();
+      val result = Exn.capture (restore_attributes e) ();
+      val t = Time.- (Time.now (), start);
+      val _ = Synchronized.change timing (update t);
+    in Exn.release result end) ();
 
 fun task_ord (Task {id = id1, pri = pri1, ...}, Task {id = id2, pri = pri2, ...}) =
   prod_ord (rev_order o option_ord int_ord) int_ord ((pri1, id1), (pri2, id2));
@@ -147,7 +148,9 @@ fun joining task =
 
 fun waiting task deps =
   update_timing (fn t => fn (a, b, ds) =>
-    (Time.- (a, t), Time.+ (b, t), fold (insert (op =) o name_of_task) deps ds)) task;
+    (Time.- (a, t), Time.+ (b, t),
+      if ! Multithreading.trace > 0
+      then fold (insert (op =) o name_of_task) deps ds else ds)) task;
 
 
 
