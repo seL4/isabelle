@@ -1061,46 +1061,28 @@ proof -
   have AE: "M1.almost_everywhere (\<lambda>x. (\<integral>\<^isup>+y. Real (f (x, y)) \<partial>M2) \<noteq> \<omega>)"
     "M1.almost_everywhere (\<lambda>x. (\<integral>\<^isup>+y. Real (- f (x, y)) \<partial>M2) \<noteq> \<omega>)"
     by (auto intro!: M1.positive_integral_omega_AE)
-  then show ?AE
-    apply (rule M1.AE_mp[OF _ M1.AE_mp])
-    apply (rule M1.AE_cong)
-    using assms unfolding integrable_def
-    by (auto intro!: measurable_pair_image_snd)
-  have "integrable M1 (\<lambda>x. real (\<integral>\<^isup>+y. Real (f (x, y)) \<partial>M2))" (is "integrable M1 ?f")
-  proof (intro integrable_def[THEN iffD2] conjI)
-    show "?f \<in> borel_measurable M1"
-      using borel by (auto intro!: M1.borel_measurable_real positive_integral_fst_measurable)
-    have "(\<integral>\<^isup>+x. Real (?f x) \<partial>M1) = (\<integral>\<^isup>+x. (\<integral>\<^isup>+y. Real (f (x, y))  \<partial>M2) \<partial>M1)"
-      apply (rule M1.positive_integral_cong_AE)
-      apply (rule M1.AE_mp[OF AE(1)])
-      apply (rule M1.AE_cong)
-      by (auto simp: Real_real)
-    then show "(\<integral>\<^isup>+x. Real (?f x) \<partial>M1) \<noteq> \<omega>"
-      using positive_integral_fst_measurable[OF borel(2)] int by simp
-    have "(\<integral>\<^isup>+x. Real (- ?f x) \<partial>M1) = (\<integral>\<^isup>+x. 0 \<partial>M1)"
-      by (intro M1.positive_integral_cong) simp
-    then show "(\<integral>\<^isup>+x. Real (- ?f x) \<partial>M1) \<noteq> \<omega>" by simp
-  qed
-  moreover have "integrable M1 (\<lambda>x. real (\<integral>\<^isup>+ y. Real (- f (x, y)) \<partial>M2))"
-    (is "integrable M1 ?f")
-  proof (intro integrable_def[THEN iffD2] conjI)
-    show "?f \<in> borel_measurable M1"
-      using borel by (auto intro!: M1.borel_measurable_real positive_integral_fst_measurable)
-    have "(\<integral>\<^isup>+x. Real (?f x) \<partial>M1) = (\<integral>\<^isup>+x. (\<integral>\<^isup>+y. Real (- f (x, y))  \<partial>M2) \<partial>M1)"
-      apply (rule M1.positive_integral_cong_AE)
-      apply (rule M1.AE_mp[OF AE(2)])
-      apply (rule M1.AE_cong)
-      by (auto simp: Real_real)
-    then show "(\<integral>\<^isup>+x. Real (?f x) \<partial>M1) \<noteq> \<omega>"
-      using positive_integral_fst_measurable[OF borel(1)] int by simp
-    have "(\<integral>\<^isup>+x. Real (- ?f x) \<partial>M1) = (\<integral>\<^isup>+x. 0 \<partial>M1)"
-      by (intro M1.positive_integral_cong) simp
-    then show "(\<integral>\<^isup>+x. Real (- ?f x) \<partial>M1) \<noteq> \<omega>" by simp
-  qed
-  ultimately show ?INT
+  then show ?AE using assms
+    by (simp add: measurable_pair_image_snd integrable_def)
+  { fix f assume borel: "(\<lambda>x. Real (f x)) \<in> borel_measurable P"
+      and int: "integral\<^isup>P P (\<lambda>x. Real (f x)) \<noteq> \<omega>"
+      and AE: "M1.almost_everywhere (\<lambda>x. (\<integral>\<^isup>+y. Real (f (x, y)) \<partial>M2) \<noteq> \<omega>)"
+    have "integrable M1 (\<lambda>x. real (\<integral>\<^isup>+y. Real (f (x, y)) \<partial>M2))" (is "integrable M1 ?f")
+    proof (intro integrable_def[THEN iffD2] conjI)
+      show "?f \<in> borel_measurable M1"
+        using borel by (auto intro!: M1.borel_measurable_real positive_integral_fst_measurable)
+      have "(\<integral>\<^isup>+x. Real (?f x) \<partial>M1) = (\<integral>\<^isup>+x. (\<integral>\<^isup>+y. Real (f (x, y))  \<partial>M2) \<partial>M1)"
+        using AE by (auto intro!: M1.positive_integral_cong_AE simp: Real_real)
+      then show "(\<integral>\<^isup>+x. Real (?f x) \<partial>M1) \<noteq> \<omega>"
+        using positive_integral_fst_measurable[OF borel] int by simp
+      have "(\<integral>\<^isup>+x. Real (- ?f x) \<partial>M1) = (\<integral>\<^isup>+x. 0 \<partial>M1)"
+        by (intro M1.positive_integral_cong) simp
+      then show "(\<integral>\<^isup>+x. Real (- ?f x) \<partial>M1) \<noteq> \<omega>" by simp
+    qed }
+  from this[OF borel(1) int(1) AE(2)] this[OF borel(2) int(2) AE(1)]
+  show ?INT
     unfolding lebesgue_integral_def[of P] lebesgue_integral_def[of M2]
       borel[THEN positive_integral_fst_measurable(2), symmetric]
-    by (simp add: M1.integral_real[OF AE(1)] M1.integral_real[OF AE(2)])
+    using AE by (simp add: M1.integral_real)
 qed
 
 lemma (in pair_sigma_finite) integrable_snd_measurable:

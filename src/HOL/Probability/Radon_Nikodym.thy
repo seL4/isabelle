@@ -817,8 +817,8 @@ lemma (in measure_space) finite_density_unique:
     (is "(\<forall>A\<in>sets M. ?P f A = ?P g A) \<longleftrightarrow> _")
 proof (intro iffI ballI)
   fix A assume eq: "AE x. f x = g x"
-  show "?P f A = ?P g A"
-    by (rule positive_integral_cong_AE[OF AE_mp[OF eq]]) simp
+  then show "?P f A = ?P g A"
+    by (auto intro: positive_integral_cong_AE)
 next
   assume eq: "\<forall>A\<in>sets M. ?P f A = ?P g A"
   from this[THEN bspec, OF top] fin
@@ -879,11 +879,10 @@ proof -
   have "?N \<in> sets M" using borel by auto
   have *: "\<And>i x A. \<And>y::pextreal. y * indicator (Q i) x * indicator A x = y * indicator (Q i \<inter> A) x"
     unfolding indicator_def by auto
-  have 1: "\<forall>i. AE x. ?f (Q i) x = ?f' (Q i) x"
-    using borel Q_fin Q
+  have "\<forall>i. AE x. ?f (Q i) x = ?f' (Q i) x" using borel Q_fin Q
     by (intro finite_density_unique[THEN iffD1] allI)
        (auto intro!: borel_measurable_pextreal_times f Int simp: *)
-  have 2: "AE x. ?f Q0 x = ?f' Q0 x"
+  moreover have "AE x. ?f Q0 x = ?f' Q0 x"
   proof (rule AE_I')
     { fix f :: "'a \<Rightarrow> pextreal" assume borel: "f \<in> borel_measurable M"
         and eq: "\<And>A. A \<in> sets M \<Longrightarrow> ?\<nu> A = (\<integral>\<^isup>+x. f x * indicator A x \<partial>M)"
@@ -911,13 +910,12 @@ proof -
     show "{x \<in> space M. ?f Q0 x \<noteq> ?f' Q0 x} \<subseteq>
       (Q0 \<inter> {x\<in>space M. f x \<noteq> \<omega>}) \<union> (Q0 \<inter> {x\<in>space M. f' x \<noteq> \<omega>})" by (auto simp: indicator_def)
   qed
-  have **: "\<And>x. (?f Q0 x = ?f' Q0 x) \<longrightarrow> (\<forall>i. ?f (Q i) x = ?f' (Q i) x) \<longrightarrow>
+  moreover have "\<And>x. (?f Q0 x = ?f' Q0 x) \<longrightarrow> (\<forall>i. ?f (Q i) x = ?f' (Q i) x) \<longrightarrow>
     ?f (space M) x = ?f' (space M) x"
     by (auto simp: indicator_def Q0)
-  have 3: "AE x. ?f (space M) x = ?f' (space M) x"
-    by (rule AE_mp[OF 1[unfolded all_AE_countable] AE_mp[OF 2]]) (simp add: **)
-  then show "AE x. f x = f' x"
-    by (rule AE_mp) (auto intro!: AE_cong simp: indicator_def)
+  ultimately have "AE x. ?f (space M) x = ?f' (space M) x"
+    by (auto simp: all_AE_countable)
+  then show "AE x. f x = f' x" by auto
 qed
 
 lemma (in sigma_finite_measure) density_unique:
@@ -978,25 +976,20 @@ proof
     and "sets ?N = sets M" and "space ?N = space M" by (auto simp: measurable_def)
   from \<nu>.Ex_finite_integrable_function obtain h where
     h: "h \<in> borel_measurable M" "integral\<^isup>P ?N h \<noteq> \<omega>"
-    and fin: "\<And>x. x \<in> space M \<Longrightarrow> 0 < h x \<and> h x < \<omega>" by auto
+    and fin: "\<forall>x\<in>space M. 0 < h x \<and> h x < \<omega>" by auto
   have "AE x. f x * h x \<noteq> \<omega>"
   proof (rule AE_I')
-    have "integral\<^isup>P ?N h = (\<integral>\<^isup>+x. f x * h x \<partial>M)"
-      apply (subst \<nu>.positive_integral_cong_measure[symmetric,
-        of "M\<lparr> measure := \<lambda> A. \<integral>\<^isup>+x. f x * indicator A x \<partial>M \<rparr>"])
-      apply (simp_all add: eq)
-      apply (rule positive_integral_translated_density)
-      using f h by auto
+    have "integral\<^isup>P ?N h = (\<integral>\<^isup>+x. f x * h x \<partial>M)" using f h
+      by (subst \<nu>.positive_integral_cong_measure[symmetric,
+          of "M\<lparr> measure := \<lambda> A. \<integral>\<^isup>+x. f x * indicator A x \<partial>M \<rparr>"])
+         (auto intro!: positive_integral_translated_density simp: eq)
     then have "(\<integral>\<^isup>+x. f x * h x \<partial>M) \<noteq> \<omega>"
       using h(2) by simp
     then show "(\<lambda>x. f x * h x) -` {\<omega>} \<inter> space M \<in> null_sets"
       using f h(1) by (auto intro!: positive_integral_omega borel_measurable_vimage)
   qed auto
   then show "AE x. f x \<noteq> \<omega>"
-  proof (rule AE_mp, intro AE_cong)
-    fix x assume "x \<in> space M" from this[THEN fin]
-    show "f x * h x \<noteq> \<omega> \<longrightarrow> f x \<noteq> \<omega>" by auto
-  qed
+    using fin by (auto elim!: AE_Ball_mp)
 next
   assume AE: "AE x. f x \<noteq> \<omega>"
   from sigma_finite guess Q .. note Q = this
@@ -1043,16 +1036,8 @@ next
     proof (cases i)
       case 0
       have "AE x. f x * indicator (A i \<inter> Q j) x = 0"
-        using AE by (rule AE_mp) (auto intro!: AE_cong simp: A_def `i = 0`)
-      then have "(\<integral>\<^isup>+x. f x * indicator (A i \<inter> Q j) x \<partial>M) = 0"
-        using A_in_sets f
-        apply (subst positive_integral_0_iff)
-        apply fast
-        apply (subst (asm) AE_iff_null_set)
-        apply (intro borel_measurable_pextreal_neq_const)
-        apply fast
-        by simp
-      then show ?thesis by simp
+        using AE by (auto simp: A_def `i = 0`)
+      from positive_integral_cong_AE[OF this] show ?thesis by simp
     next
       case (Suc n)
       then have "(\<integral>\<^isup>+x. f x * indicator (A i \<inter> Q j) x \<partial>M) \<le>
@@ -1157,11 +1142,8 @@ proof -
         by (simp add: mult_le_0_iff)
       then have "RN_deriv M \<nu> x * Real (f x) = Real (real (RN_deriv M \<nu> x) * f x)"
         using * by (simp add: Real_real) }
-    note * = this
-    have "(\<integral>\<^isup>+x. RN_deriv M \<nu> x * Real (f x) \<partial>M) = (\<integral>\<^isup>+x. Real (real (RN_deriv M \<nu> x) * f x) \<partial>M)"
-      apply (rule positive_integral_cong_AE)
-      apply (rule AE_mp[OF RN_deriv_finite[OF \<nu>]])
-      by (auto intro!: AE_cong simp: *) }
+    then have "(\<integral>\<^isup>+x. RN_deriv M \<nu> x * Real (f x) \<partial>M) = (\<integral>\<^isup>+x. Real (real (RN_deriv M \<nu> x) * f x) \<partial>M)"
+      using RN_deriv_finite[OF \<nu>] by (auto intro: positive_integral_cong_AE) }
   with this this f f' Nf
   show ?integral ?integrable
     unfolding lebesgue_integral_def integrable_def

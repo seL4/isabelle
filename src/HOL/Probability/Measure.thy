@@ -739,12 +739,25 @@ lemma (in measure_space) AE_E[consumes 1]:
   obtains N where "{x \<in> space M. \<not> P x} \<subseteq> N" "\<mu> N = 0" "N \<in> sets M"
   using assms unfolding almost_everywhere_def by auto
 
+lemma (in measure_space) AE_E2:
+  assumes "AE x. P x" "{x\<in>space M. P x} \<in> sets M"
+  shows "\<mu> {x\<in>space M. \<not> P x} = 0" (is "\<mu> ?P = 0")
+proof -
+  obtain A where A: "?P \<subseteq> A" "A \<in> sets M" "\<mu> A = 0"
+    using assms by (auto elim!: AE_E)
+  have "?P = space M - {x\<in>space M. P x}" by auto
+  then have "?P \<in> sets M" using assms by auto
+  with assms `?P \<subseteq> A` `A \<in> sets M` have "\<mu> ?P \<le> \<mu> A"
+    by (auto intro!: measure_mono)
+  then show "\<mu> ?P = 0" using A by simp
+qed
+
 lemma (in measure_space) AE_I:
   assumes "{x \<in> space M. \<not> P x} \<subseteq> N" "\<mu> N = 0" "N \<in> sets M"
   shows "AE x. P x"
   using assms unfolding almost_everywhere_def by auto
 
-lemma (in measure_space) AE_mp:
+lemma (in measure_space) AE_mp[elim!]:
   assumes AE_P: "AE x. P x" and AE_imp: "AE x. P x \<longrightarrow> Q x"
   shows "AE x. Q x"
 proof -
@@ -765,56 +778,28 @@ proof -
   qed
 qed
 
-lemma (in measure_space) AE_iffI:
-  assumes P: "AE x. P x" and Q: "AE x. P x \<longleftrightarrow> Q x" shows "AE x. Q x"
-  using AE_mp[OF Q, of "\<lambda>x. P x \<longrightarrow> Q x"] AE_mp[OF P, of Q] by auto
+lemma (in measure_space)
+  shows AE_iffI: "AE x. P x \<Longrightarrow> AE x. P x \<longleftrightarrow> Q x \<Longrightarrow> AE x. Q x"
+    and AE_disjI1: "AE x. P x \<Longrightarrow> AE x. P x \<or> Q x"
+    and AE_disjI2: "AE x. Q x \<Longrightarrow> AE x. P x \<or> Q x"
+    and AE_conjI: "AE x. P x \<Longrightarrow> AE x. Q x \<Longrightarrow> AE x. P x \<and> Q x"
+    and AE_conj_iff[simp]: "(AE x. P x \<and> Q x) \<longleftrightarrow> (AE x. P x) \<and> (AE x. Q x)"
+  by auto
 
-lemma (in measure_space) AE_disjI1:
-  assumes P: "AE x. P x" shows "AE x. P x \<or> Q x"
-  by (rule AE_mp[OF P]) auto
-
-lemma (in measure_space) AE_disjI2:
-  assumes P: "AE x. Q x" shows "AE x. P x \<or> Q x"
-  by (rule AE_mp[OF P]) auto
-
-lemma (in measure_space) AE_conjI:
-  assumes AE_P: "AE x. P x" and AE_Q: "AE x. Q x"
-  shows "AE x. P x \<and> Q x"
-  apply (rule AE_mp[OF AE_P])
-  apply (rule AE_mp[OF AE_Q])
-  by simp
-
-lemma (in measure_space) AE_conj_iff[simp]:
-  shows "(AE x. P x \<and> Q x) \<longleftrightarrow> (AE x. P x) \<and> (AE x. Q x)"
-proof (intro conjI iffI AE_conjI)
-  assume *: "AE x. P x \<and> Q x"
-  from * show "AE x. P x" by (rule AE_mp) auto
-  from * show "AE x. Q x" by (rule AE_mp) auto
-qed auto
-
-lemma (in measure_space) AE_E2:
-  assumes "AE x. P x" "{x\<in>space M. P x} \<in> sets M"
-  shows "\<mu> {x\<in>space M. \<not> P x} = 0" (is "\<mu> ?P = 0")
-proof -
-  obtain A where A: "?P \<subseteq> A" "A \<in> sets M" "\<mu> A = 0"
-    using assms by (auto elim!: AE_E)
-  have "?P = space M - {x\<in>space M. P x}" by auto
-  then have "?P \<in> sets M" using assms by auto
-  with assms `?P \<subseteq> A` `A \<in> sets M` have "\<mu> ?P \<le> \<mu> A"
-    by (auto intro!: measure_mono)
-  then show "\<mu> ?P = 0" using A by simp
-qed
-
-lemma (in measure_space) AE_space[simp, intro]: "AE x. x \<in> space M"
+lemma (in measure_space) AE_space: "AE x. x \<in> space M"
   by (rule AE_I[where N="{}"]) auto
 
-lemma (in measure_space) AE_cong:
-  assumes "\<And>x. x \<in> space M \<Longrightarrow> P x" shows "AE x. P x"
-proof -
-  have [simp]: "\<And>x. (x \<in> space M \<longrightarrow> P x) \<longleftrightarrow> True" using assms by auto
-  show ?thesis
-    by (rule AE_mp[OF AE_space]) auto
-qed
+lemma (in measure_space) AE_I2[simp, intro]:
+  "(\<And>x. x \<in> space M \<Longrightarrow> P x) \<Longrightarrow> AE x. P x"
+  using AE_space by auto
+
+lemma (in measure_space) AE_Ball_mp:
+  "\<forall>x\<in>space M. P x \<Longrightarrow> AE x. P x \<longrightarrow> Q x \<Longrightarrow> AE x. Q x"
+  by auto
+
+lemma (in measure_space) AE_cong[cong]:
+  "(\<And>x. x \<in> space M \<Longrightarrow> P x \<longleftrightarrow> Q x) \<Longrightarrow> (AE x. P x) \<longleftrightarrow> (AE x. Q x)"
+  by auto
 
 lemma (in measure_space) all_AE_countable:
   "(\<forall>i::'i::countable. AE x. P i x) \<longleftrightarrow> (AE x. \<forall>i. P i x)"
@@ -829,11 +814,7 @@ proof
     by (intro null_sets_UN) auto
   ultimately show "AE x. \<forall>i. P i x"
     unfolding almost_everywhere_def by auto
-next
-  assume *: "AE x. \<forall>i. P i x"
-  show "\<forall>i. AE x. P i x"
-    by (rule allI, rule AE_mp[OF *]) simp
-qed
+qed auto
 
 lemma (in measure_space) restricted_measure_space:
   assumes "S \<in> sets M"

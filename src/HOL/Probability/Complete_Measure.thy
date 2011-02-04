@@ -266,7 +266,7 @@ proof -
   proof (intro bexI)
     from AE[unfolded all_AE_countable]
     show "AE x. g x = (SUP i. f' i x)" (is "AE x. g x = ?f x")
-    proof (rule AE_mp, safe intro!: AE_cong)
+    proof (elim AE_mp, safe intro!: AE_I2)
       fix x assume eq: "\<forall>i. f i x = f' i x"
       moreover have "g = SUPR UNIV f" using `f \<up> g` unfolding isoton_def by simp
       ultimately show "g x = ?f x" by (simp add: SUPR_apply)
