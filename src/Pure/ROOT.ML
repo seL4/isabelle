@@ -72,6 +72,10 @@ use "Concurrent/synchronized.ML";
 if Multithreading.available then ()
 else use "Concurrent/synchronized_sequential.ML";
 
+use "Concurrent/time_limit.ML";
+if Multithreading.available then ()
+else use "Concurrent/time_limit_dummy.ML";
+
 if Multithreading.available
 then use "Concurrent/bash.ML"
 else use "Concurrent/bash_sequential.ML";

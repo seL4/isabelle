@@ -40,7 +40,6 @@ BOOTSTRAP_FILES = 					\
   ML-Systems/single_assignment_polyml.ML		\
   ML-Systems/smlnj.ML					\
   ML-Systems/thread_dummy.ML				\
-  ML-Systems/time_limit.ML				\
   ML-Systems/universal.ML				\
   ML-Systems/unsynchronized.ML				\
   ML-Systems/use_context.ML
@@ -69,6 +68,8 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Concurrent/synchronized.ML				\
   Concurrent/synchronized_sequential.ML			\
   Concurrent/task_queue.ML				\
+  Concurrent/time_limit.ML				\
+  Concurrent/time_limit_dummy.ML			\
   General/alist.ML					\
   General/antiquote.ML					\
   General/balanced_tree.ML				\

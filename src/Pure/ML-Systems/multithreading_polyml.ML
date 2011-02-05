@@ -8,7 +8,6 @@ signature MULTITHREADING_POLYML =
 sig
   val interruptible: ('a -> 'b) -> 'a -> 'b
   val uninterruptible: ((('c -> 'd) -> 'c -> 'd) -> 'a -> 'b) -> 'a -> 'b
-  structure TimeLimit: TIME_LIMIT
 end;
 
 signature BASIC_MULTITHREADING =
@@ -116,29 +115,6 @@ fun real_time f x =
     val () = f x;
     val time = Timer.checkRealTimer timer;
   in time end;
-
-
-(* execution with time limit *)
-
-structure TimeLimit =
-struct
-
-exception TimeOut;
-
-fun timeLimit time f x = uninterruptible (fn restore_attributes => fn () =>
-  let
-    val worker = Thread.self ();
-    val timeout = ref false;
-    val watchdog = Thread.fork (fn () =>
-      (OS.Process.sleep time; timeout := true; Thread.interrupt worker), []);
-
-    val result = Exn.capture (restore_attributes f) x;
-    val was_timeout = Exn.is_interrupt_exn result andalso ! timeout;
-
-    val _ = Thread.interrupt watchdog handle Thread _ => ();
-  in if was_timeout then raise TimeOut else Exn.release result end) ();
-
-end;
 
 
 (* critical section -- may be nested within the same thread *)
