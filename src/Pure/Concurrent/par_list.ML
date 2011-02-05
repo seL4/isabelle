@@ -16,6 +16,7 @@ Notes:
 
 signature PAR_LIST =
 sig
+  val map_name: string -> ('a -> 'b) -> 'a list -> 'b list
   val map: ('a -> 'b) -> 'a list -> 'b list
   val get_some: ('a -> 'b option) -> 'a list -> 'b option
   val find_some: ('a -> bool) -> 'a list -> 'a option
@@ -40,7 +41,8 @@ fun managed_results name f xs =
         handle exn => (if Exn.is_interrupt exn then Future.cancel_group group else (); reraise exn);
     in results end;
 
-fun map f xs = Exn.release_first (managed_results "Par_List.map" f xs);
+fun map_name name f xs = Exn.release_first (managed_results name f xs);
+fun map f = map_name "Par_List.map" f;
 
 fun get_some f xs =
   let

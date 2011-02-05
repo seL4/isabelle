@@ -279,7 +279,7 @@ fun load_thy name init pos text =
     val spans = Source.exhaust (Thy_Syntax.span_source toks);
     val _ = List.app Thy_Syntax.report_span spans;  (* FIXME ?? *)
     val atoms = Source.exhaust (Thy_Syntax.atom_source (Source.of_list spans))
-      |> Par_List.map (prepare_atom commands init) |> flat;
+      |> Par_List.map_name "Outer_Syntax.prepare_atom" (prepare_atom commands init) |> flat;
 
     val _ = Present.theory_source name
       (fn () => HTML.html_mode (implode o map Thy_Syntax.present_span) spans);
