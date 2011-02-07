@@ -113,7 +113,12 @@ begin
 
 definition
   "full_small f d = full_small (%(x, t1). full_small (%(y, t2). f ((x, y),
-    %u. Code_Evaluation.App (Code_Evaluation.App (Code_Evaluation.term_of (Pair :: 'a => 'b => ('a * 'b))) (t1 ())) (t2 ()))) d) d"
+    %u. let T1 = (Typerep.typerep (TYPE('a)));
+            T2 = (Typerep.typerep (TYPE('b)))
+    in Code_Evaluation.App (Code_Evaluation.App (
+      Code_Evaluation.Const (STR ''Product_Type.Pair'') 
+      (Typerep.Typerep (STR ''fun'') [T1, Typerep.Typerep (STR ''fun'') [T2, Typerep.Typerep (STR ''Product_Type.prod'') [T1, T2]]]))
+      (t1 ())) (t2 ()))) d) d"
 
 instance ..
 
@@ -229,11 +234,23 @@ instantiation prod :: (check_all, check_all) check_all
 begin
 
 definition
-  "check_all f = check_all (%(x, t1). check_all (%(y, t2). f ((x, y), %_. Code_Evaluation.App (Code_Evaluation.App (Code_Evaluation.term_of (Pair :: 'a => 'b => ('a * 'b))) (t1 ())) (t2 ()))))"
+  "check_all f = check_all (%(x, t1). check_all (%(y, t2). f ((x, y),
+    %u. let T1 = (Typerep.typerep (TYPE('a)));
+            T2 = (Typerep.typerep (TYPE('b)))
+    in Code_Evaluation.App (Code_Evaluation.App (
+      Code_Evaluation.Const (STR ''Product_Type.Pair'') 
+      (Typerep.Typerep (STR ''fun'') [T1, Typerep.Typerep (STR ''fun'') [T2, Typerep.Typerep (STR ''Product_Type.prod'') [T1, T2]]]))
+      (t1 ())) (t2 ()))))"
 
 definition enum_term_of_prod :: "('a * 'b) itself => unit => term list"
 where
-  "enum_term_of_prod = (%_ _. map (%(x, y). Code_Evaluation.App (Code_Evaluation.App (Code_Evaluation.term_of (Pair :: 'a => 'b => ('a * 'b))) x) y) (Enum.product (enum_term_of (TYPE('a)) ()) (enum_term_of (TYPE('b)) ())))"
+  "enum_term_of_prod = (%_ _. map (%(x, y).
+       let T1 = (Typerep.typerep (TYPE('a)));
+           T2 = (Typerep.typerep (TYPE('b)))
+       in Code_Evaluation.App (Code_Evaluation.App (
+         Code_Evaluation.Const (STR ''Product_Type.Pair'') 
+           (Typerep.Typerep (STR ''fun'') [T1, Typerep.Typerep (STR ''fun'') [T2, Typerep.Typerep (STR ''Product_Type.prod'') [T1, T2]]])) x) y)
+     (Enum.product (enum_term_of (TYPE('a)) ()) (enum_term_of (TYPE('b)) ())))  "
 
 instance ..
 
