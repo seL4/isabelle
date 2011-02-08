@@ -31,10 +31,8 @@ $(LOG)/HOL-IsarRef.gz: Thy/ROOT.ML ../antiquote_setup.ML		\
 	@rm -f Thy/document/isabelle.sty Thy/document/isabellesym.sty \
 	 Thy/document/pdfsetup.sty Thy/document/session.tex
 
-HOLCF:
-	@cd $(SRC)/HOL; $(ISABELLE_TOOL) make HOLCF
 
-HOLCF-IsarRef: HOLCF $(LOG)/HOLCF-IsarRef.gz
+HOLCF-IsarRef: $(LOG)/HOLCF-IsarRef.gz
 
 $(LOG)/HOLCF-IsarRef.gz: Thy/ROOT-HOLCF.ML ../antiquote_setup.ML	\
   Thy/HOLCF_Specific.thy
@@ -42,10 +40,8 @@ $(LOG)/HOLCF-IsarRef.gz: Thy/ROOT-HOLCF.ML ../antiquote_setup.ML	\
 	@rm -f Thy/document/isabelle.sty Thy/document/isabellesym.sty \
 	 Thy/document/pdfsetup.sty Thy/document/session.tex
 
-ZF:
-	@cd $(SRC)/ZF; $(ISABELLE_TOOL) make ZF
 
-ZF-IsarRef: ZF $(LOG)/ZF-IsarRef.gz
+ZF-IsarRef: $(LOG)/ZF-IsarRef.gz
 
 $(LOG)/ZF-IsarRef.gz: Thy/ROOT-ZF.ML ../antiquote_setup.ML 		\
   Thy/ZF_Specific.thy
