@@ -106,10 +106,8 @@ fun debugging f x =
       | exn as EXCURSION_FAIL _ => Exn.Exn exn))
   else f x;
 
-fun controlled_execution f =
-  f
-  |> debugging
-  |> Future.interruptible_task;
+fun controlled_execution f x =
+  ((f |> debugging |> Future.interruptible_task) x before Multithreading.interrupted ());
 
 fun toplevel_error output_exn f x = f x
   handle exn =>
