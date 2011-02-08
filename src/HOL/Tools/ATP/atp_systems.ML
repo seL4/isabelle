@@ -20,10 +20,16 @@ sig
      explicit_forall: bool,
      use_conjecture_for_hypotheses: bool}
 
+  datatype e_weight_method = E_Auto | E_Fun_Weight | E_Sym_Offset_Weight
+
   (* for experimentation purposes -- do not use in production code *)
-  val e_weights : bool Unsynchronized.ref
-  val e_weight_factor : real Unsynchronized.ref
-  val e_default_weight : real Unsynchronized.ref
+  val e_weight_method : e_weight_method Unsynchronized.ref
+  val e_default_fun_weight : real Unsynchronized.ref
+  val e_fun_weight_base : real Unsynchronized.ref
+  val e_fun_weight_factor : real Unsynchronized.ref
+  val e_default_sym_offs_weight : real Unsynchronized.ref
+  val e_sym_offs_weight_base : real Unsynchronized.ref
+  val e_sym_offs_weight_factor : real Unsynchronized.ref
 
   val eN : string
   val spassN : string
@@ -95,28 +101,46 @@ fun e_bonus () =
 val tstp_proof_delims =
   ("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation")
 
-val e_weights = Unsynchronized.ref true
-val e_weight_factor = Unsynchronized.ref 40.0
-val e_default_weight = Unsynchronized.ref 0.5
+datatype e_weight_method = E_Auto | E_Fun_Weight | E_Sym_Offset_Weight
+
+val e_weight_method = Unsynchronized.ref E_Fun_Weight
+val e_default_fun_weight = Unsynchronized.ref 0.5
+val e_fun_weight_base = Unsynchronized.ref 0.0
+val e_fun_weight_factor = Unsynchronized.ref 40.0
+val e_default_sym_offs_weight = Unsynchronized.ref 0.0
+val e_sym_offs_weight_base = Unsynchronized.ref ~30.0
+val e_sym_offs_weight_factor = Unsynchronized.ref ~30.0
+
+fun e_weight_method_case fw sow =
+  case !e_weight_method of
+    E_Auto => raise Fail "Unexpected \"E_Auto\""
+  | E_Fun_Weight => fw
+  | E_Sym_Offset_Weight => sow
+
+fun scaled_e_weight w =
+  e_weight_method_case (!e_fun_weight_base) (!e_sym_offs_weight_base)
+  + w * e_weight_method_case (!e_fun_weight_factor) (!e_sym_offs_weight_factor)
+  |> Real.ceil |> signed_string_of_int
 
 fun e_weight_arguments weights =
-  if !e_weights andalso string_ord (getenv "E_VERSION", "1.2w") <> LESS then
+  if !e_weight_method = E_Auto orelse
+     string_ord (getenv "E_VERSION", "1.2w") = LESS then
+    "-xAutoDev"
+  else
     "--split-clauses=4 --split-reuse-defs --simul-paramod --forward-context-sr \
     \--destructive-er-aggressive --destructive-er --presat-simplify \
     \--prefer-initial-clauses -tKBO6 -winvfreqrank -c1 -Ginvfreqconjmax -F1 \
     \--delete-bad-limit=150000000 -WSelectMaxLComplexAvoidPosPred \
-    \-H'(4*FunWeight(SimulateSOS, " ^
-    string_of_int (Real.ceil (!e_default_weight * !e_weight_factor)) ^
+    \-H'(4*" ^ e_weight_method_case "FunWeight" "SymOffsetWeight" ^
+    "(SimulateSOS, " ^
+    scaled_e_weight (e_weight_method_case (!e_default_fun_weight)
+                                          (!e_default_sym_offs_weight)) ^
     ",20,1.5,1.5,1" ^
-    (weights ()
-     |> map (fn (s, w) => "," ^ s ^ ":" ^
-                          string_of_int (Real.ceil (w * !e_weight_factor)))
-     |> implode) ^
+    (weights () |> map (fn (s, w) => "," ^ s ^ ":" ^ scaled_e_weight w)
+                |> implode) ^
     "),3*ConjectureGeneralSymbolWeight(PreferNonGoals,200,100,200,50,50,1,100,\
     \1.5,1.5,1),1*Clauseweight(PreferProcessed,1,1,1),1*\
     \FIFOWeight(PreferProcessed))'"
-  else
-    "-xAutoDev"
 
 val e_config : atp_config =
   {exec = ("E_HOME", "eproof"),
