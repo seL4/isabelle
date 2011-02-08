@@ -299,7 +299,7 @@ fun test_goal_terms lthy is_interactive insts check_goals =
       collect_results (test_term lthy is_interactive) [] (maps (map snd) correct_inst_goals)
   end;
 
-fun test_goal insts i state =
+fun test_goal is_interactive insts i state =
   let
     val lthy = Proof.context_of state;
     val thy = Proof.theory_of state;
@@ -320,7 +320,7 @@ fun test_goal insts i state =
       | SOME locale => map (fn (_, phi) => Morphism.term phi proto_goal)
         (Locale.registrations_of (Context.Theory thy) (*FIXME*) locale);
   in
-    test_goal_terms lthy true insts check_goals
+    test_goal_terms lthy is_interactive insts check_goals
   end
 
 (* pretty printing *)
@@ -365,7 +365,7 @@ fun auto_quickcheck state =
     val res =
       state
       |> Proof.map_context (Config.put report false #> Config.put quiet true)
-      |> try (test_goal [] 1);
+      |> try (test_goal false [] 1);
   in
     case res of
       NONE => (false, state)
@@ -436,7 +436,7 @@ fun quickcheck_params_cmd args = Context.theory_map (fold parse_test_param args)
 fun gen_quickcheck args i state =
   state
   |> Proof.map_context_result (fn ctxt => fold parse_test_param_inst args ([], ctxt))
-  |> (fn (insts, state') => test_goal insts i state'
+  |> (fn (insts, state') => test_goal true insts i state'
   |> tap (fn (SOME x, _) => if expect (Proof.context_of state') = No_Counterexample then
                error ("quickcheck expected to find no counterexample but found one") else ()
            | (NONE, _) => if expect (Proof.context_of state') = Counterexample then
