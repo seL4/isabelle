@@ -1,6 +1,6 @@
 (*  Title:      Pure/ML-Systems/compiler_polyml-5.3.ML
 
-Runtime compilation for Poly/ML 5.3 and 5.4.
+Runtime compilation for Poly/ML 5.3.0 and 5.4.0.
 *)
 
 local
