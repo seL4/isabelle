@@ -281,8 +281,8 @@ fun with_path cleanup after f path =
 fun proof_banner auto =
   if auto then "Auto Sledgehammer found a proof" else "Try this command"
 
-val smt_triggers = Unsynchronized.ref false
-val smt_weights = Unsynchronized.ref false
+val smt_triggers = Unsynchronized.ref true
+val smt_weights = Unsynchronized.ref true
 val smt_weight_min_facts = Unsynchronized.ref 20
 
 (* FUDGE *)
