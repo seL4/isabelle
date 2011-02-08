@@ -71,7 +71,7 @@ sig
   val das_Tool : string
   val select_smt_solver : string -> Proof.context -> Proof.context
   val is_smt_prover : Proof.context -> string -> bool
-  val is_prover_available : Proof.context -> string -> bool
+  val is_prover_supported : Proof.context -> string -> bool
   val is_prover_installed : Proof.context -> string -> bool
   val default_max_relevant_for_prover : Proof.context -> string -> int
   val is_built_in_const_for_prover :
@@ -89,7 +89,7 @@ sig
   val smt_weighted_fact :
     theory -> int -> prover_fact * int
     -> (string * locality) * (int option * thm)
-  val available_provers : Proof.context -> unit
+  val supported_provers : Proof.context -> unit
   val kill_provers : unit -> unit
   val running_provers : unit -> unit
   val messages : int option -> unit
@@ -121,15 +121,13 @@ val select_smt_solver =
 fun is_smt_prover ctxt name =
   member (op =) (SMT_Solver.available_solvers_of ctxt) name
 
-fun is_prover_available ctxt name =
+fun is_prover_supported ctxt name =
   let val thy = ProofContext.theory_of ctxt in
-    is_smt_prover ctxt name orelse member (op =) (available_atps thy) name
+    is_smt_prover ctxt name orelse member (op =) (supported_atps thy) name
   end
 
 fun is_prover_installed ctxt =
   is_smt_prover ctxt orf is_atp_installed (ProofContext.theory_of ctxt)
-
-fun available_smt_solvers ctxt = SMT_Solver.available_solvers_of ctxt
 
 fun default_max_relevant_for_prover ctxt name =
   let val thy = ProofContext.theory_of ctxt in
@@ -205,15 +203,15 @@ val smt_relevance_fudge =
 fun relevance_fudge_for_prover ctxt name =
   if is_smt_prover ctxt name then smt_relevance_fudge else atp_relevance_fudge
 
-fun available_provers ctxt =
+fun supported_provers ctxt =
   let
     val thy = ProofContext.theory_of ctxt
     val (remote_provers, local_provers) =
-      sort_strings (available_atps thy) @
-      sort_strings (available_smt_solvers ctxt)
+      sort_strings (supported_atps thy) @
+      sort_strings (SMT_Solver.available_solvers_of ctxt)
       |> List.partition (String.isPrefix remote_prefix)
   in
-    Output.urgent_message ("Available provers: " ^
+    Output.urgent_message ("Supported provers: " ^
                            commas (local_provers @ remote_provers) ^ ".")
   end
 
@@ -672,7 +670,7 @@ fun get_prover ctxt auto name =
   let val thy = ProofContext.theory_of ctxt in
     if is_smt_prover ctxt name then
       run_smt_solver auto name
-    else if member (op =) (available_atps thy) name then
+    else if member (op =) (supported_atps thy) name then
       run_atp auto name (get_atp thy name)
     else
       error ("No such prover: " ^ name ^ ".")

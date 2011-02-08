@@ -183,7 +183,7 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
       val (_, hyp_ts, concl_t) = strip_subgoal goal i
       val no_dangerous_types = types_dangerous_types type_sys
       val _ = () |> not blocking ? kill_provers
-      val _ = case find_first (not o is_prover_available ctxt) provers of
+      val _ = case find_first (not o is_prover_supported ctxt) provers of
                 SOME name => error ("No such prover: " ^ name ^ ".")
               | NONE => ()
       val _ = if auto then () else Output.urgent_message "Sledgehammering..."

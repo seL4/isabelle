@@ -11,6 +11,13 @@ Goal.parallel_proofs_threshold (default 100).  See also isabelle
 usedir option -Q.
 
 
+*** HOL ***
+
+* Sledgehammer:
+    sledgehammer available_provers ~> sledgehammer supported_provers
+    INCOMPATIBILITY.
+
+
 *** Document preparation ***
 
 * New term style "isub" as ad-hoc conversion of variables x1, y23 into

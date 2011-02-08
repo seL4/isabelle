@@ -113,7 +113,7 @@ fun is_known_raw_param s =
 
 fun is_prover_list ctxt s =
   case space_explode " " s of
-    ss as _ :: _ => forall (is_prover_available ctxt) ss
+    ss as _ :: _ => forall (is_prover_supported ctxt) ss
   | _ => false
 
 fun check_and_repair_raw_param ctxt (name, value) =
@@ -141,23 +141,23 @@ structure Data = Theory_Data
   fun merge data : T = AList.merge (op =) (K true) data
 )
 
-fun remotify_prover_if_available_and_not_already_remote ctxt name =
+fun remotify_prover_if_supported_and_not_already_remote ctxt name =
   if String.isPrefix remote_prefix name then
     SOME name
   else
     let val remote_name = remote_prefix ^ name in
-      if is_prover_available ctxt remote_name then SOME remote_name else NONE
+      if is_prover_supported ctxt remote_name then SOME remote_name else NONE
     end
 
 fun remotify_prover_if_not_installed ctxt name =
-  if is_prover_available ctxt name andalso is_prover_installed ctxt name then
+  if is_prover_supported ctxt name andalso is_prover_installed ctxt name then
     SOME name
   else
-    remotify_prover_if_available_and_not_already_remote ctxt name
+    remotify_prover_if_supported_and_not_already_remote ctxt name
 
 fun avoid_too_many_local_threads _ _ [] = []
   | avoid_too_many_local_threads ctxt 0 provers =
-    map_filter (remotify_prover_if_available_and_not_already_remote ctxt)
+    map_filter (remotify_prover_if_supported_and_not_already_remote ctxt)
                provers
   | avoid_too_many_local_threads ctxt n (prover :: provers) =
     let val n = if String.isPrefix remote_prefix prover then n else n - 1 in
@@ -270,7 +270,7 @@ val sledgehammer_paramsN = "sledgehammer_params"
 val runN = "run"
 val minimizeN = "minimize"
 val messagesN = "messages"
-val available_proversN = "available_provers"
+val supported_proversN = "supported_provers"
 val running_proversN = "running_provers"
 val kill_proversN = "kill_provers"
 val refresh_tptpN = "refresh_tptp"
@@ -305,8 +305,8 @@ fun hammer_away override_params subcommand opt_i relevance_override state =
                    (#add relevance_override) state
     else if subcommand = messagesN then
       messages opt_i
-    else if subcommand = available_proversN then
-      available_provers ctxt
+    else if subcommand = supported_proversN then
+      supported_provers ctxt
     else if subcommand = running_proversN then
       running_provers ()
     else if subcommand = kill_proversN then

@@ -39,7 +39,7 @@ sig
   val remote_prefix : string
   val add_atp : string * atp_config -> theory -> theory
   val get_atp : theory -> string -> atp_config
-  val available_atps : theory -> string list
+  val supported_atps : theory -> string list
   val is_atp_installed : theory -> string -> bool
   val refresh_systems_on_tptp : unit -> unit
   val setup : theory -> theory
@@ -307,7 +307,7 @@ fun get_atp thy name =
   the (Symtab.lookup (Data.get thy) name) |> fst
   handle Option.Option => error ("Unknown ATP: " ^ name ^ ".")
 
-val available_atps = Symtab.keys o Data.get
+val supported_atps = Symtab.keys o Data.get
 
 fun is_atp_installed thy name =
   let val {exec, required_execs, ...} = get_atp thy name in
