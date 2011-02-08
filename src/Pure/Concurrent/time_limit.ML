@@ -1,7 +1,14 @@
 (*  Title:      Pure/Concurrent/time_limit.ML
     Author:     Makarius
 
-Execution with time limit (considerable overhead due to fork of watchdog thread).
+Execution with time limit.
+
+Notes:
+
+  * There is considerable overhead due to fork of watchdog thread.
+
+  * In rare situations asynchronous interrupts might be mistaken as
+    timeout event, and turned into exception TimeOut accidentally.
 *)
 
 signature TIME_LIMIT =
@@ -15,6 +22,8 @@ struct
 
 exception TimeOut;
 
+val wait_time = seconds 0.0001;
+
 fun timeLimit time f x =
   Multithreading.with_attributes Multithreading.no_interrupts (fn orig_atts =>
     let
@@ -23,15 +32,13 @@ fun timeLimit time f x =
       val watchdog = Simple_Thread.fork true (fn () =>
         (OS.Process.sleep time; timeout := true; Thread.interrupt main));
 
-      val result = Exn.capture (fn () => Multithreading.with_attributes orig_atts (fn _ => f x)) ();
+      val result =
+        Exn.capture (fn () => Multithreading.with_attributes orig_atts (fn _ => f x)) ();
 
       val _ = Thread.interrupt watchdog handle Thread _ => ();
-      val _ = while Thread.isActive watchdog do OS.Process.sleep (seconds 0.0001);
+      val _ = while Thread.isActive watchdog do OS.Process.sleep wait_time;
 
-      val test =
-        Exn.capture (fn () =>
-          Multithreading.with_attributes (Multithreading.sync_interrupts orig_atts)
-            (fn _ => Thread.testInterrupt ())) ();
+      val test = Exn.capture Multithreading.interrupted ();
     in
       if ! timeout andalso (Exn.is_interrupt_exn result orelse Exn.is_interrupt_exn test)
       then raise TimeOut
