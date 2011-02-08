@@ -680,6 +680,15 @@ apply (unfold measure_def)
 apply (rule wf_less_than [THEN wf_inv_image])
 done
 
+lemma wf_if_measure: fixes f :: "'a \<Rightarrow> nat"
+shows "(!!x. P x \<Longrightarrow> f(g x) < f x) \<Longrightarrow> wf {(y,x). P x \<and> y = g x}"
+apply(insert wf_measure[of f])
+apply(simp only: measure_def inv_image_def less_than_def less_eq)
+apply(erule wf_subset)
+apply auto
+done
+
+
 text{* Lexicographic combinations *}
 
 definition lex_prod :: "('a \<times>'a) set \<Rightarrow> ('b \<times> 'b) set \<Rightarrow> (('a \<times> 'b) \<times> ('a \<times> 'b)) set" (infixr "<*lex*>" 80) where

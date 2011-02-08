@@ -127,5 +127,21 @@ theorem while_rule:
   apply blast
   done
 
+text{* Proving termination: *}
+
+theorem wf_while_option_Some:
+  assumes wf: "wf {(t, s). b s \<and> t = c s}"
+  shows "EX t. while_option b c s = Some t"
+using wf
+apply (induct s)
+apply simp
+apply (subst while_option_unfold)
+apply simp
+done
+
+theorem measure_while_option_Some: fixes f :: "'s \<Rightarrow> nat"
+shows "(!!s. b s \<Longrightarrow> f(c s) < f s) \<Longrightarrow> EX t. while_option b c s = Some t"
+by(erule wf_while_option_Some[OF wf_if_measure])
+
 
 end
