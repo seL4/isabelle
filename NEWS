@@ -13,6 +13,9 @@ usedir option -Q.
 * Discontinued support for Poly/ML 5.2, which was the last version
 without proper multithreading and TimeLimit implementation.
 
+* Discontinued old lib/scripts/polyml-platform, which has been
+obsolete since Isabelle2009-2.
+
 
 *** HOL ***
 
