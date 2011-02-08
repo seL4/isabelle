@@ -21,6 +21,7 @@ sig
   val public_interrupts: Thread.threadAttribute list
   val private_interrupts: Thread.threadAttribute list
   val sync_interrupts: Thread.threadAttribute list -> Thread.threadAttribute list
+  val interrupted: unit -> unit  (*exception Interrupt*)
   val with_attributes: Thread.threadAttribute list -> (Thread.threadAttribute list -> 'a) -> 'a
   val sync_wait: Thread.threadAttribute list option -> Time.time option ->
     ConditionVar.conditionVar -> Mutex.mutex -> bool Exn.result
@@ -49,6 +50,8 @@ val no_interrupts = [];
 val public_interrupts = [];
 val private_interrupts = [];
 fun sync_interrupts _ = [];
+
+fun interrupted () = ();
 
 fun with_attributes _ e = e [];
 

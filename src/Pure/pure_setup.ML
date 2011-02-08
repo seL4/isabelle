@@ -36,7 +36,7 @@ toplevel_pp ["Thy_Load", "file_ident"] "Thy_Load.pretty_file_ident";
 toplevel_pp ["Proof", "state"] "(fn _: Proof.state => Pretty.str \"<Proof.state>\")";
 toplevel_pp ["Toplevel", "state"] "Toplevel.pretty_abstract";
 
-if ml_system = "polyml-5.2" orelse ml_system = "polyml-5.2.1"
+if ml_system = "polyml-5.2.1"
 then use "ML/install_pp_polyml.ML"
 else if String.isPrefix "polyml" ml_system
 then use "ML/install_pp_polyml-5.3.ML"

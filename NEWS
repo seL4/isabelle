@@ -10,6 +10,9 @@ New in this Isabelle version
 Goal.parallel_proofs_threshold (default 100).  See also isabelle
 usedir option -Q.
 
+* Discontinued support for Poly/ML 5.2, which was the last version
+without proper multithreading and TimeLimit implementation.
+
 
 *** HOL ***
 
