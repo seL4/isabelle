@@ -9,10 +9,6 @@ imports Set
 uses ("Tools/typedef.ML")
 begin
 
-ML {*
-structure HOL = struct val thy = @{theory HOL} end;
-*}  -- "belongs to theory HOL"
-
 locale type_definition =
   fixes Rep and Abs and A
   assumes Rep: "Rep x \<in> A"
