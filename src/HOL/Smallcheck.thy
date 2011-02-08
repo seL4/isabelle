@@ -261,13 +261,30 @@ instantiation sum :: (check_all, check_all) check_all
 begin
 
 definition
-  "check_all f = (case check_all (%(a, t). f (Inl a, %_. Code_Evaluation.App (Code_Evaluation.term_of (Inl :: 'a => 'a + 'b)) (t ()))) of Some x' => Some x'
-             | None => check_all (%(b, t). f (Inr b, %_. Code_Evaluation.App (Code_Evaluation.term_of (Inr :: 'b => 'a + 'b)) (t ()))))"
+  "check_all f = (case check_all (%(a, t). f (Inl a, %_. 
+     let T1 = (Typerep.typerep (TYPE('a)));
+         T2 = (Typerep.typerep (TYPE('b)))
+       in Code_Evaluation.App (Code_Evaluation.Const (STR ''Sum_Type.Inl'') 
+           (Typerep.Typerep (STR ''fun'') [T1, Typerep.Typerep (STR ''Sum_Type.sum'') [T1, T2]])) (t ()))) of Some x' => Some x'
+             | None => check_all (%(b, t). f (Inr b, %_. let
+                 T1 = (Typerep.typerep (TYPE('a)));
+                 T2 = (Typerep.typerep (TYPE('b)))
+               in Code_Evaluation.App (Code_Evaluation.Const (STR ''Sum_Type.Inr'') 
+                 (Typerep.Typerep (STR ''fun'') [T2, Typerep.Typerep (STR ''Sum_Type.sum'') [T1, T2]])) (t ()))))"
 
 definition enum_term_of_sum :: "('a + 'b) itself => unit => term list"
 where
-  "enum_term_of_sum = (%_ _. map (Code_Evaluation.App (Code_Evaluation.term_of (Inl :: 'a => ('a + 'b)))) (enum_term_of (TYPE('a)) ()) @
-     map (Code_Evaluation.App (Code_Evaluation.term_of (Inr :: 'b => ('a + 'b)))) (enum_term_of (TYPE('b)) ()))"
+  "enum_term_of_sum = (%_ _.
+     let
+       T1 = (Typerep.typerep (TYPE('a)));
+       T2 = (Typerep.typerep (TYPE('b)))
+     in
+       map (Code_Evaluation.App (Code_Evaluation.Const (STR ''Sum_Type.Inl'') 
+             (Typerep.Typerep (STR ''fun'') [T1, Typerep.Typerep (STR ''Sum_Type.sum'') [T1, T2]])))
+             (enum_term_of (TYPE('a)) ()) @
+       map (Code_Evaluation.App (Code_Evaluation.Const (STR ''Sum_Type.Inr'') 
+             (Typerep.Typerep (STR ''fun'') [T2, Typerep.Typerep (STR ''Sum_Type.sum'') [T1, T2]])))
+             (enum_term_of (TYPE('b)) ()))"
 
 instance ..
 
@@ -329,7 +346,8 @@ definition
 
 definition enum_term_of_option :: "'a option itself => unit => term list"
 where
-  "enum_term_of_option = (% _ _. (Code_Evaluation.term_of (None :: 'a option)) # (map (Code_Evaluation.App (Code_Evaluation.term_of (Some :: 'a => 'a option))) (enum_term_of (TYPE('a)) ())))"
+  "enum_term_of_option = (% _ _. (Code_Evaluation.term_of (None :: 'a option)) # (map (Code_Evaluation.App (Code_Evaluation.Const (STR ''Option.option.Some'')
+      (Typerep.Typerep (STR ''fun'') [Typerep.typerep TYPE('a),  Typerep.Typerep (STR ''Option.option'') [Typerep.typerep TYPE('a)]]))) (enum_term_of (TYPE('a)) ())))"
 
 instance ..
 
