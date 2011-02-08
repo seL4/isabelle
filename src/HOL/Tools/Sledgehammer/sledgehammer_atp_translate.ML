@@ -681,5 +681,6 @@ fun atp_problem_weights problem =
   |> add_conjectures_weights (these (AList.lookup (op =) problem conjsN))
   |> add_facts_weights (these (AList.lookup (op =) problem factsN))
   |> Symtab.dest
+  |> sort (prod_ord Real.compare string_ord o pairself swap)
 
 end;
