@@ -30,7 +30,6 @@ BOOTSTRAP_FILES = 					\
   ML-Systems/multithreading_polyml.ML			\
   ML-Systems/overloading_smlnj.ML			\
   ML-Systems/polyml-5.2.1.ML				\
-  ML-Systems/polyml-5.2.ML				\
   ML-Systems/polyml.ML					\
   ML-Systems/polyml_common.ML				\
   ML-Systems/pp_dummy.ML				\
@@ -69,7 +68,6 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Concurrent/synchronized_sequential.ML			\
   Concurrent/task_queue.ML				\
   Concurrent/time_limit.ML				\
-  Concurrent/time_limit_dummy.ML			\
   General/alist.ML					\
   General/antiquote.ML					\
   General/balanced_tree.ML				\
