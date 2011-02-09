@@ -237,8 +237,7 @@ val z3_atp_config : atp_config =
   {exec = ("Z3_HOME", "z3"),
    required_execs = [],
    arguments = fn _ => fn timeout => fn _ =>
-     "MBQI=true /p /t:" ^
-     string_of_int (to_secs 0 timeout),
+     "MBQI=true /p /t:" ^ string_of_int (to_secs 0 timeout),
    has_incomplete_mode = false,
    proof_delims = [],
    known_failures =

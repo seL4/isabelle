@@ -86,7 +86,7 @@ fun get_minimizing_prover ctxt auto name (params as {debug, verbose, ...})
 fun launch_prover
         (params as {debug, blocking, max_relevant, timeout, expect, ...})
         auto minimize_command only
-        {state, goal, subgoal, subgoal_count, facts, smt_head} name =
+        {state, goal, subgoal, subgoal_count, facts, smt_filter} name =
   let
     val ctxt = Proof.context_of state
     val birth_time = Time.now ()
@@ -99,7 +99,7 @@ fun launch_prover
     val problem =
       {state = state, goal = goal, subgoal = subgoal,
        subgoal_count = subgoal_count, facts = take num_facts facts,
-       smt_head = smt_head}
+       smt_filter = smt_filter}
     fun really_go () =
       problem
       |> get_minimizing_prover ctxt auto name params (minimize_command name)
@@ -188,7 +188,7 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
               | NONE => ()
       val _ = if auto then () else Output.urgent_message "Sledgehammering..."
       val (smts, atps) = provers |> List.partition (is_smt_prover ctxt)
-      fun launch_provers state get_facts translate maybe_smt_head provers =
+      fun launch_provers state get_facts translate maybe_smt_filter provers =
         let
           val facts = get_facts ()
           val num_facts = length facts
@@ -197,7 +197,7 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
           val problem =
             {state = state, goal = goal, subgoal = i, subgoal_count = n,
              facts = facts,
-             smt_head = maybe_smt_head
+             smt_filter = maybe_smt_filter
                   (fn () => map_filter (try dest_SMT_Weighted_Fact) facts) i}
           val launch = launch_prover params auto minimize_command only
         in
@@ -253,13 +253,13 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
           let
             val facts = get_facts "SMT solver" true smt_relevance_fudge smts
             val weight = SMT_Weighted_Fact oo weight_smt_fact thy
-            fun smt_head facts =
+            fun smt_filter facts =
               (if debug then curry (op o) SOME else try)
                   (SMT_Solver.smt_filter_preprocess state (facts ()))
           in
             smts |> map (`(class_of_smt_solver ctxt))
                  |> AList.group (op =)
-                 |> map (launch_provers state (K facts) weight smt_head o snd)
+                 |> map (launch_provers state (K facts) weight smt_filter o snd)
                  |> exists fst |> rpair state
           end
       fun launch_atps_and_smt_solvers () =

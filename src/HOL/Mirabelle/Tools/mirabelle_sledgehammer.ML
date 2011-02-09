@@ -393,7 +393,7 @@ fun run_sh prover_name prover type_sys hard_timeout timeout dir st =
           {state = st', goal = goal, subgoal = i,
            subgoal_count = Sledgehammer_Util.subgoal_count st,
            facts = facts |> map Sledgehammer_Provers.Untranslated_Fact,
-           smt_head = NONE}
+           smt_filter = NONE}
       in prover params (K "") problem end)) ()
       handle TimeLimit.TimeOut =>
              ({outcome = SOME ATP_Proof.TimedOut, message = "", used_facts = [],

@@ -42,7 +42,7 @@ sig
      subgoal: int,
      subgoal_count: int,
      facts: prover_fact list,
-     smt_head: (string * locality) SMT_Solver.smt_filter_data option}
+     smt_filter: (string * locality) SMT_Solver.smt_filter_data option}
 
   type prover_result =
     {outcome: failure option,
@@ -248,7 +248,7 @@ type prover_problem =
    subgoal: int,
    subgoal_count: int,
    facts: prover_fact list,
-   smt_head: (string * locality) SMT_Solver.smt_filter_data option}
+   smt_filter: (string * locality) SMT_Solver.smt_filter_data option}
 
 type prover_result =
   {outcome: failure option,
@@ -515,7 +515,7 @@ val smt_iter_min_msecs = Unsynchronized.ref 5000
 val smt_monomorphize_limit = Unsynchronized.ref 4
 
 fun smt_filter_loop name ({debug, verbose, overlord, timeout, ...} : params)
-                    state i smt_head =
+                    state i smt_filter =
   let
     val ctxt = Proof.context_of state
     val repair_context =
@@ -555,7 +555,7 @@ fun smt_filter_loop name ({debug, verbose, overlord, timeout, ...} : params)
         val _ =
           if debug then Output.urgent_message "Invoking SMT solver..." else ()
         val (outcome, used_facts) =
-          (case (iter_num, smt_head) of
+          (case (iter_num, smt_filter) of
              (1, SOME head) => head |> apsnd (apsnd repair_context)
            | _ => SMT_Solver.smt_filter_preprocess state facts i)
           |> SMT_Solver.smt_filter_apply iter_timeout
@@ -625,7 +625,7 @@ fun can_apply_metis debug state i ths =
              #> (fn ctxt => Metis_Tactics.metis_tac ctxt ths)) state i
 
 fun run_smt_solver auto name (params as {debug, verbose, ...}) minimize_command
-        ({state, subgoal, subgoal_count, facts, smt_head, ...}
+        ({state, subgoal, subgoal_count, facts, smt_filter, ...}
          : prover_problem) =
   let
     val ctxt = Proof.context_of state
@@ -634,7 +634,7 @@ fun run_smt_solver auto name (params as {debug, verbose, ...}) minimize_command
     val facts = facts ~~ (0 upto num_facts - 1)
                 |> map (smt_weighted_fact thy num_facts)
     val {outcome, used_facts, run_time_in_msecs} =
-      smt_filter_loop name params state subgoal smt_head facts
+      smt_filter_loop name params state subgoal smt_filter facts
     val (chained_lemmas, other_lemmas) = split_used_facts (map fst used_facts)
     val outcome = outcome |> Option.map failure_from_smt_failure
     val message =

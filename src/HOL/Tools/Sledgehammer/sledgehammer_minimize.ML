@@ -67,7 +67,7 @@ fun test_facts ({debug, verbose, overlord, provers, type_sys, isar_proof,
     val {goal, ...} = Proof.goal state
     val problem =
       {state = state, goal = goal, subgoal = i, subgoal_count = n,
-       facts = facts, smt_head = NONE}
+       facts = facts, smt_filter = NONE}
     val result as {outcome, used_facts, ...} = prover params (K "") problem
   in
     print silent (fn () =>
