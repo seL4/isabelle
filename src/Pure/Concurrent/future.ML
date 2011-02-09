@@ -182,8 +182,8 @@ fun future_job group (e: unit -> 'a) =
           if ok then
             Exn.capture (fn () =>
               Multithreading.with_attributes Multithreading.private_interrupts
-                (fn _ =>
-                  Position.setmp_thread_data pos e () before Multithreading.interrupted ())) ()
+                (fn _ => Position.setmp_thread_data pos e ()) before
+              Multithreading.interrupted ()) ()
           else Exn.interrupt_exn;
       in assign_result group result res end;
   in (result, job) end;
