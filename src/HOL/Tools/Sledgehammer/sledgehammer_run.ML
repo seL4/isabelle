@@ -36,11 +36,11 @@ fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
      " with " ^ string_of_int num_facts ^ " fact" ^ plural_s num_facts
    else
      "") ^
-  " on " ^ (if n = 1 then "goal" else "subgoal " ^ string_of_int i) ^ ":" ^
+  " on " ^ (if n = 1 then "goal" else "subgoal " ^ string_of_int i) ^
   (if blocking then
-     ""
+     "."
    else
-     "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i)))
+     ":\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i)))
 
 val auto_minimize_min_facts = Unsynchronized.ref (!binary_min_facts)
 

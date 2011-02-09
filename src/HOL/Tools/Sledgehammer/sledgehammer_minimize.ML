@@ -113,22 +113,32 @@ fun binary_minimize test xs =
     fun split [] p = p
       | split [h] (l, r) = (h :: l, r)
       | split (h1 :: h2 :: t) (l, r) = split t (h1 :: l, h2 :: r)
-    fun min _ [] = raise Empty
-      | min _ [s0] = [s0]
-      | min sup xs =
-        let val (l0, r0) = split xs ([], []) in
+    fun min _ _ [] = raise Empty
+      | min _ _ [s0] = [s0]
+      | min depth sup xs =
+        let
+(*
+          val _ = warning (replicate_string depth " " ^ "{" ^ ("  " ^
+                           n_facts (map fst sup) ^ " and " ^
+                           n_facts (map fst xs)))
+*)
+          val (l0, r0) = split xs ([], [])
+        in
           if p (sup @ l0) then
-            min sup l0
+            min (depth + 1) sup l0
           else if p (sup @ r0) then
-            min sup r0
+            min (depth + 1) sup r0
           else
             let
-              val l = min (sup @ r0) l0
-              val r = min (sup @ l) r0
+              val l = min (depth + 1) (sup @ r0) l0
+              val r = min (depth + 1) (sup @ l) r0
             in l @ r end
         end
+(*
+        |> tap (fn _ => warning (replicate_string depth " " ^ "}"))
+*)
     val xs =
-      case min [] xs of
+      case min 0 [] xs of
         [x] => if p [] then [] else [x]
       | xs => xs
   in (xs, test xs) end
