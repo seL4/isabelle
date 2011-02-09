@@ -44,8 +44,8 @@ fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
 
 val auto_minimize_min_facts = Unsynchronized.ref (!binary_min_facts)
 
-fun get_minimizing_prover ctxt auto name (params as {debug, verbose, ...})
-        minimize_command
+fun get_minimizing_prover ctxt auto name
+        (params as {debug, verbose, explicit_apply, ...}) minimize_command
         (problem as {state, subgoal, subgoal_count, facts, ...}) =
   get_prover ctxt auto name params minimize_command problem
   |> (fn result as {outcome, used_facts, run_time_in_msecs, message} =>
@@ -55,8 +55,8 @@ fun get_minimizing_prover ctxt auto name (params as {debug, verbose, ...})
            let
              val (used_facts, message) =
                if length used_facts >= !auto_minimize_min_facts then
-                 minimize_facts name params (not verbose) subgoal subgoal_count
-                     state
+                 minimize_facts name params (SOME explicit_apply) (not verbose)
+                     subgoal subgoal_count state
                      (filter_used_facts used_facts
                           (map (apsnd single o untranslated_fact) facts))
                  |>> Option.map (map fst)

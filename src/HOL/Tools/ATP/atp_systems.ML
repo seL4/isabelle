@@ -241,7 +241,8 @@ val z3_atp_config : atp_config =
    has_incomplete_mode = false,
    proof_delims = [],
    known_failures =
-     [(IncompleteUnprovable, "\nsat"),
+     [(Unprovable, "\nsat"),
+      (IncompleteUnprovable, "\nunknown"),
       (ProofMissing, "\nunsat")],
    default_max_relevant = 250 (* FUDGE *),
    explicit_forall = true,

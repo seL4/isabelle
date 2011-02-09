@@ -28,6 +28,7 @@ sig
   val split_used_facts :
     (string * locality) list
     -> (string * locality) list * (string * locality) list
+  val metis_proof_text : metis_params -> text_result
   val isar_proof_text : isar_params -> metis_params -> text_result
   val proof_text : bool -> isar_params -> metis_params -> text_result
 end;
@@ -165,9 +166,13 @@ fun add_fact fact_names (Inference (name, _, [])) =
     append (resolve_fact fact_names name)
   | add_fact _ _ = I
 
-fun used_facts_in_tstplike_proof fact_names =
-  atp_proof_from_tstplike_string false
-  #> rpair [] #-> fold (add_fact fact_names)
+fun used_facts_in_tstplike_proof fact_names tstplike_proof =
+  if tstplike_proof = "" then
+    Vector.foldl (op @) [] fact_names
+  else
+    tstplike_proof
+    |> atp_proof_from_tstplike_string false
+    |> rpair [] |-> fold (add_fact fact_names)
 
 val split_used_facts =
   List.partition (curry (op =) Chained o snd)

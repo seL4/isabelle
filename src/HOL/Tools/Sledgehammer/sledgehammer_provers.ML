@@ -445,26 +445,29 @@ fun run_atp auto name
         extract_important_message output
       else
         ""
-    val (message, used_facts) =
+    fun append_to_message message =
+      message ^
+      (if verbose then
+         "\nATP real CPU time: " ^
+         string_from_time (Time.fromMilliseconds (the msecs)) ^ "."
+       else
+         "") ^
+      (if important_message <> "" then
+         "\n\nImportant message from Dr. Geoff Sutcliffe:\n" ^ important_message
+       else
+         "")
+    val isar_params = (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
+    val metis_params =
+      (proof_banner auto, type_sys, minimize_command, tstplike_proof,
+       fact_names, goal, subgoal)
+    val (outcome, (message, used_facts)) =
       case outcome of
         NONE =>
-        proof_text isar_proof
-            (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
-            (proof_banner auto, type_sys, minimize_command, tstplike_proof,
-             fact_names, goal, subgoal)
-        |>> (fn message =>
-                message ^
-                (if verbose then
-                   "\nATP real CPU time: " ^
-                   string_from_time (Time.fromMilliseconds (the msecs)) ^ "."
-                 else
-                   "") ^
-                (if important_message <> "" then
-                   "\n\nImportant message from Dr. Geoff Sutcliffe:\n" ^
-                   important_message
-                 else
-                   ""))
-      | SOME failure => (string_for_failure "ATP" failure, [])
+        (NONE, proof_text isar_proof isar_params metis_params
+               |>> append_to_message)
+      | SOME ProofMissing =>
+        (NONE, metis_proof_text metis_params |>> append_to_message)
+      | SOME failure => (outcome, (string_for_failure "ATP" failure, []))
   in
     {outcome = outcome, message = message, used_facts = used_facts,
      run_time_in_msecs = msecs}
