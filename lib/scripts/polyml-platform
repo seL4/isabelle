@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-
-echo "### Legacy feature: polyml-platform script is superseded by ISABELLE_PLATFORM" >&2
-echo "$ISABELLE_PLATFORM"
