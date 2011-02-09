@@ -77,9 +77,9 @@ val known_perl_failures =
 val eN = "e"
 val spassN = "spass"
 val vampireN = "vampire"
+val z3_atpN = "z3_atp"
 val sine_eN = "sine_e"
 val snarkN = "snark"
-val z3_atpN = "z3_atp"
 val remote_prefix = "remote_"
 
 structure Data = Theory_Data
@@ -231,6 +231,26 @@ val vampire_config : atp_config =
 val vampire = (vampireN, vampire_config)
 
 
+(* Z3 with TPTP syntax *)
+
+val z3_atp_config : atp_config =
+  {exec = ("Z3_HOME", "z3"),
+   required_execs = [],
+   arguments = fn _ => fn timeout => fn _ =>
+     "MBQI=true /p /t:" ^
+     string_of_int (to_secs 0 timeout),
+   has_incomplete_mode = false,
+   proof_delims = [],
+   known_failures =
+     [(IncompleteUnprovable, "\nsat"),
+      (ProofMissing, "\nunsat")],
+   default_max_relevant = 250 (* FUDGE *),
+   explicit_forall = true,
+   use_conjecture_for_hypotheses = false}
+
+val z3_atp = (z3_atpN, z3_atp_config)
+
+
 (* Remote ATP invocation via SystemOnTPTP *)
 
 val systems = Synchronized.var "atp_systems" ([] : string list)
@@ -295,17 +315,17 @@ fun remotify_atp (name, config) system_name system_versions =
 
 val remote_e = remotify_atp e "EP" ["1.0", "1.1", "1.2"]
 val remote_vampire = remotify_atp vampire "Vampire" ["0.6", "9.0", "1.0"]
-val remote_sine_e =
-  remote_atp sine_eN "SInE" [] [] [(IncompleteUnprovable, "says Unknown")]
-                600 (* FUDGE *) true
-val remote_snark =
-  remote_atp snarkN "SNARK---" [] [("refutation.", "end_refutation.")] []
-             250 (* FUDGE *) true
 val remote_z3_atp =
   remote_atp z3_atpN "Z3---" ["2.18"] []
              [(IncompleteUnprovable, "SZS status Satisfiable"),
               (ProofMissing, "SZS status Unsatisfiable")]
              250 (* FUDGE *) false
+val remote_sine_e =
+  remote_atp sine_eN "SInE" [] [] [(IncompleteUnprovable, "says Unknown")]
+             600 (* FUDGE *) true
+val remote_snark =
+  remote_atp snarkN "SNARK---" [] [("refutation.", "end_refutation.")] []
+             250 (* FUDGE *) true
 
 (* Setup *)
 
@@ -327,8 +347,8 @@ fun is_atp_installed thy name =
 fun refresh_systems_on_tptp () =
   Synchronized.change systems (fn _ => get_systems ())
 
-val atps = [e, spass, vampire, remote_e, remote_vampire, remote_sine_e,
-            remote_snark, remote_z3_atp]
+val atps = [e, spass, vampire, z3_atp, remote_e, remote_vampire, remote_z3_atp,
+            remote_sine_e, remote_snark]
 val setup = fold add_atp atps
 
 end;

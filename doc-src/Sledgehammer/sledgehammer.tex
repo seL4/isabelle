@@ -425,21 +425,25 @@ Vampire, set the environment variable \texttt{VAMPIRE\_HOME} to the directory
 that contains the \texttt{vampire} executable. Sledgehammer has been tested with
 versions 11, 0.6, and 1.0.
 
-\item[$\bullet$] \textbf{\textit{z3}:} Z3 is an SMT solver developed at
-Microsoft Research \cite{z3}. To use Z3, set the environment variable
-\texttt{Z3\_SOLVER} to the complete path of the executable, including the file
-name. Sledgehammer has been tested with 2.7 to 2.15.
+\item[$\bullet$] \textbf{\textit{cvc3}:} CVC3 is an SMT solver developed by
+Clark Barrett, Cesare Tinelli, and their colleagues \cite{cvc3}. To use CVC3,
+set the environment variable \texttt{CVC3\_SOLVER} to the complete path of the
+executable, including the file name. Sledgehammer has been tested with version
+2.2.
 
 \item[$\bullet$] \textbf{\textit{yices}:} Yices is an SMT solver developed at
 SRI \cite{yices}. To use Yices, set the environment variable
 \texttt{YICES\_SOLVER} to the complete path of the executable, including the
 file name. Sledgehammer has been tested with version 1.0.
 
-\item[$\bullet$] \textbf{\textit{cvc3}:} CVC3 is an SMT solver developed by
-Clark Barrett, Cesare Tinelli, and their colleagues \cite{cvc3}. To use CVC3,
-set the environment variable \texttt{CVC3\_SOLVER} to the complete path of the
-executable, including the file name. Sledgehammer has been tested with version
-2.2.
+\item[$\bullet$] \textbf{\textit{z3}:} Z3 is an SMT solver developed at
+Microsoft Research \cite{z3}. To use Z3, set the environment variable
+\texttt{Z3\_SOLVER} to the complete path of the executable, including the file
+name. Sledgehammer has been tested with versions 2.7 to 2.18.
+
+\item[$\bullet$] \textbf{\textit{z3\_atp}:} This version of Z3 pretends to be an
+ATP, exploiting Z3's undocumented support for the TPTP format. It is included
+for experimental purposes. It requires versions 2.18 or above.
 
 \item[$\bullet$] \textbf{\textit{remote\_e}:} The remote version of E runs
 on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
@@ -463,10 +467,8 @@ point).
 servers at the TU M\"unchen (or wherever \texttt{REMOTE\_SMT\_URL} is set to
 point).
 
-\item[$\bullet$] \textbf{\textit{remote\_z3\_atp}:} This version of Z3 pretends
-to be an ATP: It accepts the TPTP syntax and runs on Geoff Sutcliffe's Miami
-servers. For the moment, it cannot provide proofs and is included in
-Sledgehammer for experimental purposes.
+\item[$\bullet$] \textbf{\textit{remote\_z3\_atp}:} The remote version of ``Z3
+as an ATP'' runs on Geoff Sutcliffe's Miami servers.
 \end{enum}
 
 By default, Sledgehammer will run E, SPASS, Vampire, SInE-E, and Z3 (or whatever
