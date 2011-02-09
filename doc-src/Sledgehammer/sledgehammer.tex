@@ -455,13 +455,18 @@ SInE runs on Geoff Sutcliffe's Miami servers.
 developed by Stickel et al.\ \cite{snark}. The remote version of
 SNARK runs on Geoff Sutcliffe's Miami servers.
 
+\item[$\bullet$] \textbf{\textit{remote\_cvc3}:} The remote version of CVC3 runs
+on servers at the TU M\"unchen (or wherever \texttt{REMOTE\_SMT\_URL} is set to
+point).
+
 \item[$\bullet$] \textbf{\textit{remote\_z3}:} The remote version of Z3 runs on
 servers at the TU M\"unchen (or wherever \texttt{REMOTE\_SMT\_URL} is set to
 point).
 
-\item[$\bullet$] \textbf{\textit{remote\_cvc3}:} The remote version of CVC3 runs
-on servers at the TU M\"unchen (or wherever \texttt{REMOTE\_SMT\_URL} is set to
-point).
+\item[$\bullet$] \textbf{\textit{remote\_z3\_atp}:} This version of Z3 pretends
+to be an ATP: It accepts the TPTP syntax and runs on Geoff Sutcliffe's Miami
+servers. For the moment, it cannot provide proofs and is included in
+Sledgehammer for experimental purposes.
 \end{enum}
 
 By default, Sledgehammer will run E, SPASS, Vampire, SInE-E, and Z3 (or whatever

@@ -36,7 +36,11 @@ sig
   val vampireN : string
   val sine_eN : string
   val snarkN : string
+  val z3_atpN : string
   val remote_prefix : string
+  val remote_atp :
+    string -> string -> string list -> (string * string) list
+    -> (failure * string) list -> int -> bool -> string * atp_config
   val add_atp : string * atp_config -> theory -> theory
   val get_atp : theory -> string -> atp_config
   val supported_atps : theory -> string list
@@ -75,6 +79,7 @@ val spassN = "spass"
 val vampireN = "vampire"
 val sine_eN = "sine_e"
 val snarkN = "snark"
+val z3_atpN = "z3_atp"
 val remote_prefix = "remote_"
 
 structure Data = Theory_Data
@@ -296,6 +301,11 @@ val remote_sine_e =
 val remote_snark =
   remote_atp snarkN "SNARK---" [] [("refutation.", "end_refutation.")] []
              250 (* FUDGE *) true
+val remote_z3_atp =
+  remote_atp z3_atpN "Z3---" ["2.18"] []
+             [(IncompleteUnprovable, "SZS status Satisfiable"),
+              (ProofMissing, "SZS status Unsatisfiable")]
+             250 (* FUDGE *) false
 
 (* Setup *)
 
@@ -318,7 +328,7 @@ fun refresh_systems_on_tptp () =
   Synchronized.change systems (fn _ => get_systems ())
 
 val atps = [e, spass, vampire, remote_e, remote_vampire, remote_sine_e,
-            remote_snark]
+            remote_snark, remote_z3_atp]
 val setup = fold add_atp atps
 
 end;

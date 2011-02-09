@@ -12,7 +12,7 @@ sig
   type 'a uniform_formula = 'a ATP_Problem.uniform_formula
 
   datatype failure =
-    Unprovable | IncompleteUnprovable | CantConnect | TimedOut |
+    Unprovable | IncompleteUnprovable | ProofMissing | CantConnect | TimedOut |
     OutOfResources | SpassTooOld | VampireTooOld | NoPerl | NoLibwwwPerl |
     NoRealZ3 | MalformedInput | MalformedOutput | Interrupted | Crashed |
     InternalError | UnknownError of string
@@ -47,10 +47,10 @@ struct
 open ATP_Problem
 
 datatype failure =
-  Unprovable | IncompleteUnprovable | CantConnect | TimedOut | OutOfResources |
-  SpassTooOld | VampireTooOld | NoPerl | NoLibwwwPerl | NoRealZ3 |
-  MalformedInput | MalformedOutput | Interrupted | Crashed | InternalError |
-  UnknownError of string
+  Unprovable | IncompleteUnprovable | ProofMissing | CantConnect | TimedOut |
+  OutOfResources | SpassTooOld | VampireTooOld | NoPerl | NoLibwwwPerl |
+  NoRealZ3 | MalformedInput | MalformedOutput | Interrupted | Crashed |
+  InternalError | UnknownError of string
 
 fun strip_spaces_in_list _ [] = []
   | strip_spaces_in_list _ [c1] = if Char.isSpace c1 then [] else [str c1]
@@ -90,6 +90,9 @@ fun string_for_failure prover Unprovable =
     "The " ^ prover ^ " problem is unprovable."
   | string_for_failure prover IncompleteUnprovable =
     "The " ^ prover ^ " cannot prove the problem."
+  | string_for_failure prover ProofMissing =
+    "The " ^ prover ^ " claims the conjecture is a theorem but did not provide \
+    \a proof."
   | string_for_failure _ CantConnect = "Cannot connect to remote server."
   | string_for_failure _ TimedOut = "Timed out."
   | string_for_failure prover OutOfResources =
@@ -117,8 +120,6 @@ fun string_for_failure prover Unprovable =
     \Isabelle developers."
   | string_for_failure prover MalformedOutput =
     "The " ^ prover ^ " output is malformed."
-  | string_for_failure prover Interrupted =
-    "The " ^ prover ^ " was interrupted."
   | string_for_failure prover Crashed = "The " ^ prover ^ " crashed."
   | string_for_failure prover InternalError =
     "An internal " ^ prover ^ " error occurred."
@@ -163,7 +164,7 @@ fun extract_tstplike_proof_and_outcome verbose complete res_code proof_delims
   case extract_known_failure known_failures output of
     NONE => (case extract_tstplike_proof proof_delims output of
              "" => ("", SOME (if res_code = 0 andalso output = "" then
-                                Interrupted
+                                ProofMissing
                               else
                                 UnknownError (short_output verbose output)))
            | tstplike_proof =>
