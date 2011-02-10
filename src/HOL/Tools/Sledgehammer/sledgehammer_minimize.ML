@@ -30,11 +30,6 @@ open Sledgehammer_Provers
 
 (* wrapper for calling external prover *)
 
-fun short_string_for_failure ATP_Proof.Unprovable = "Unprovable."
-  | short_string_for_failure ATP_Proof.TimedOut = "Timed out."
-  | short_string_for_failure ATP_Proof.Interrupted = "Interrupted."
-  | short_string_for_failure _ = "Error."
-
 fun n_facts names =
   let val n = length names in
     string_of_int n ^ " fact" ^ plural_s n ^
@@ -81,12 +76,9 @@ fun test_facts ({debug, verbose, overlord, provers, type_sys, isar_proof,
   in
     print silent (fn () =>
         case outcome of
-          SOME failure =>
-          (if verbose then string_for_failure else short_string_for_failure)
-              failure
-        | NONE =>
-          if length used_facts = length facts then "Found proof."
-          else "Found proof with " ^ n_facts used_facts ^ ".");
+          SOME failure => string_for_failure failure
+        | NONE => if length used_facts = length facts then "Found proof."
+                  else "Found proof with " ^ n_facts used_facts ^ ".");
     result
   end
 
