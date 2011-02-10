@@ -143,7 +143,11 @@ wonderful tool.}
 
 \item[$\bullet$] Alternatively, you can download the Isabelle-aware E and SPASS
 binary packages from Isabelle's download page. Extract the archives, then add a
-line to your \texttt{\char`\~/.isabelle/etc/components} file with the absolute
+line to your \texttt{\$ISABELLE\_HOME\_USER/etc/components}%
+\footnote{The variable \texttt{\$ISABELLE\_HOME\_USER} is set by Isabelle at
+startup. Its value can be retrieved by invoking \texttt{isabelle}
+\texttt{getenv} \texttt{ISABELLE\_HOME\_USER} on the command line.}
+file with the absolute
 path to E or SPASS. For example, if the \texttt{components} does not exist yet
 and you extracted SPASS to \texttt{/usr/local/spass-3.7}, create the
 \texttt{components} file with the single line
@@ -173,7 +177,7 @@ Remote ATP invocation via the SystemOnTPTP web service requires Perl with the
 World Wide Web Library (\texttt{libwww-perl}) installed. If you must use a proxy
 server to access the Internet, set the \texttt{http\_proxy} environment variable
 to the proxy, either in the environment in which Isabelle is launched or in your
-\texttt{\char`\~/.isabelle/etc/settings} file. Here are a few examples:
+\texttt{\char`\~/\$ISABELLE\_HOME\_USER/etc/settings} file. Here are a few examples:
 
 \prew
 \texttt{http\_proxy=http://proxy.example.org} \\
