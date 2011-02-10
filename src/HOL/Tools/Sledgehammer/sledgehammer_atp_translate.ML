@@ -74,9 +74,9 @@ fun types_dangerous_types (Tags _) = true
    generated; if it returns "false" for an overloaded constant, the ATP gets a
    license to do unsound reasoning if the type system is "overloaded_args". *)
 fun is_overloaded thy s =
-  not (!precise_overloaded_args) orelse
-  s = @{const_name finite} orelse
-  (s <> @{const_name HOL.eq} andalso
+  not (s = @{const_name HOL.eq}) andalso
+  not (s = @{const_name Metis.fequal}) andalso
+  (not (!precise_overloaded_args) orelse s = @{const_name finite} orelse
    length (Defs.specifications_of (Theory.defs_of thy) s) > 1)
 
 fun needs_type_args thy type_sys s =
