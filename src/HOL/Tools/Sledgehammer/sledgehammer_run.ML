@@ -238,16 +238,16 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
                      else
                        ())
         end
-      fun launch_atps (accum as (success, _)) =
-        if success orelse null atps then
+      fun launch_atps accum =
+        if null atps then
           accum
         else
           launch_provers state
               (get_facts "ATP" no_dangerous_types atp_relevance_fudge o K atps)
               (ATP_Translated_Fact oo K (translate_atp_fact ctxt o fst))
               (K (K NONE)) atps
-      fun launch_smts (accum as (success, _)) =
-        if success orelse null smts then
+      fun launch_smts accum =
+        if null smts then
           accum
         else
           let
