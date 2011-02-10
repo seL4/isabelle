@@ -81,7 +81,9 @@ fun test_facts ({debug, verbose, overlord, provers, type_sys, isar_proof,
   in
     print silent (fn () =>
         case outcome of
-          SOME failure => short_string_for_failure failure
+          SOME failure =>
+          (if verbose then string_for_failure else short_string_for_failure)
+              failure
         | NONE =>
           if length used_facts = length facts then "Found proof."
           else "Found proof with " ^ n_facts used_facts ^ ".");

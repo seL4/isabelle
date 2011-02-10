@@ -27,7 +27,7 @@ sig
 
   val strip_spaces : (char -> bool) -> string -> string
   val short_output : bool -> string -> string
-  val string_for_failure : string -> failure -> string
+  val string_for_failure : failure -> string
   val extract_important_message : string -> string
   val extract_known_failure :
     (failure * string) list -> string -> failure option
@@ -82,22 +82,20 @@ fun elide_string threshold s =
 fun short_output verbose output =
   if verbose then elide_string 1000 output else ""
 
-fun missing_message_tail prover =
-  " appears to be missing. You will need to install it if you want to run " ^
-  prover ^ "s remotely."
+val missing_message_tail =
+  " appears to be missing. You will need to install it if you want to invoke \
+  \remote provers."
 
-fun string_for_failure prover Unprovable =
-    "The " ^ prover ^ " problem is unprovable."
-  | string_for_failure prover IncompleteUnprovable =
-    "The " ^ prover ^ " cannot prove the problem."
-  | string_for_failure prover ProofMissing =
-    "The " ^ prover ^ " claims the conjecture is a theorem but did not provide \
-    \a proof."
-  | string_for_failure _ CantConnect = "Cannot connect to remote server."
-  | string_for_failure _ TimedOut = "Timed out."
-  | string_for_failure prover OutOfResources =
-    "The " ^ prover ^ " ran out of resources."
-  | string_for_failure _ SpassTooOld =
+fun string_for_failure Unprovable =
+    "The problem is unprovable."
+  | string_for_failure IncompleteUnprovable =
+    "The prover gave up."
+  | string_for_failure ProofMissing =
+    "The prover claims the conjecture is a theorem but did not provide a proof."
+  | string_for_failure CantConnect = "Cannot connect to remote server."
+  | string_for_failure TimedOut = "Timed out."
+  | string_for_failure OutOfResources = "The prover ran out of resources."
+  | string_for_failure SpassTooOld =
     "Isabelle requires a more recent version of SPASS with support for the \
     \TPTP syntax. To install it, download and extract the package \
     \\"http://isabelle.in.tum.de/dist/contrib/spass-3.7.tar.gz\" and add the \
@@ -106,26 +104,23 @@ fun string_for_failure prover Unprovable =
                (Path.variable "ISABELLE_HOME_USER" ::
                 map Path.basic ["etc", "components"])))) ^
     " on a line of its own."
-  | string_for_failure _ VampireTooOld =
+  | string_for_failure VampireTooOld =
     "Isabelle requires a more recent version of Vampire. To install it, follow \
     \the instructions from the Sledgehammer manual (\"isabelle doc\
     \ sledgehammer\")."
-  | string_for_failure prover NoPerl = "Perl" ^ missing_message_tail prover
-  | string_for_failure prover NoLibwwwPerl =
-    "The Perl module \"libwww-perl\"" ^ missing_message_tail prover
-  | string_for_failure _ NoRealZ3 =
+  | string_for_failure NoPerl = "Perl" ^ missing_message_tail
+  | string_for_failure NoLibwwwPerl =
+    "The Perl module \"libwww-perl\"" ^ missing_message_tail
+  | string_for_failure NoRealZ3 =
     "The environment variable \"Z3_REAL_SOLVER\" must be set to Z3's full path."
-  | string_for_failure prover MalformedInput =
-    "The " ^ prover ^ " problem is malformed. Please report this to the \
-    \Isabelle developers."
-  | string_for_failure prover MalformedOutput =
-    "The " ^ prover ^ " output is malformed."
-  | string_for_failure prover Crashed = "The " ^ prover ^ " crashed."
-  | string_for_failure prover InternalError =
-    "An internal " ^ prover ^ " error occurred."
-  | string_for_failure prover (UnknownError string) =
-    (* "An" is correct for "ATP" and "SMT". *)
-    "An " ^ prover ^ " error occurred" ^
+  | string_for_failure MalformedInput =
+    "The generated problem is malformed. Please report this to the Isabelle \
+    \developers."
+  | string_for_failure MalformedOutput = "The prover output is malformed."
+  | string_for_failure Crashed = "The prover crashed."
+  | string_for_failure InternalError = "An internal prover error occurred."
+  | string_for_failure (UnknownError string) =
+    "A prover error occurred" ^
     (if string = "" then ". (Pass the \"verbose\" option for details.)"
      else ":\n" ^ string)
 

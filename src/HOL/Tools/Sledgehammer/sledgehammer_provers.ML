@@ -467,7 +467,7 @@ fun run_atp auto name
                |>> append_to_message)
       | SOME ProofMissing =>
         (NONE, metis_proof_text metis_params |>> append_to_message)
-      | SOME failure => (outcome, (string_for_failure "ATP" failure, []))
+      | SOME failure => (outcome, (string_for_failure failure, []))
   in
     {outcome = outcome, message = message, used_facts = used_facts,
      run_time_in_msecs = msecs}
@@ -663,7 +663,7 @@ fun run_smt_solver auto name (params as {debug, verbose, ...}) minimize_command
            else
              "")
         end
-      | SOME failure => string_for_failure "SMT solver" failure
+      | SOME failure => string_for_failure failure
   in
     {outcome = outcome, used_facts = map fst used_facts,
      run_time_in_msecs = run_time_in_msecs, message = message}

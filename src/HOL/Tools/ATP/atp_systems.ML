@@ -260,7 +260,7 @@ fun get_systems () =
     (output, 0) => split_lines output
   | (output, _) =>
     error (case extract_known_failure known_perl_failures output of
-             SOME failure => string_for_failure "ATP" failure
+             SOME failure => string_for_failure failure
            | NONE => perhaps (try (unsuffix "\n")) output ^ ".")
 
 fun find_system name [] systems = find_first (String.isPrefix name) systems
