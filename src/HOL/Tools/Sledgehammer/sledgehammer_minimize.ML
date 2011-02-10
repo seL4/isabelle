@@ -145,13 +145,11 @@ val slack_msecs = 200
 fun minimize_facts prover_name (params as {timeout, ...}) explicit_apply_opt
                    silent i n state facts =
   let
-    val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
     val prover = get_prover ctxt false prover_name
     val msecs = Time.toMilliseconds timeout
     val _ = print silent (fn () => "Sledgehammer minimize: " ^
                                    quote prover_name ^ ".")
-    val {goal, ...} = Proof.goal state
     fun do_test timeout =
       test_facts params explicit_apply_opt silent prover timeout i n state
     val timer = Timer.startRealTimer ()

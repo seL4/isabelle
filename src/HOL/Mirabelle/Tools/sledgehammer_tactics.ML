@@ -39,13 +39,6 @@ fun run_atp force_full_types timeout i n ctxt goal name =
           relevance_thresholds
           (the_default default_max_relevant max_relevant) is_built_in_const
           relevance_fudge relevance_override chained_ths hyp_ts concl_t
-    (* Check for constants other than the built-in HOL constants. If none of
-       them appear (as should be the case for TPTP problems, unless "auto" or
-       "simp" already did its "magic"), we can skip the relevance filter. *)
-    val pure_goal =
-      not (exists_Const (fn (s, _) => String.isSubstring "." s andalso
-                                      not (String.isSubstring "HOL" s))
-                        (prop_of goal))
     val problem =
       {state = Proof.init ctxt, goal = goal, subgoal = i, subgoal_count = n,
        facts = map Sledgehammer_Provers.Untranslated_Fact facts,
