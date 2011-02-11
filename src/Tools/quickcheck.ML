@@ -31,10 +31,10 @@ sig
     string * (Proof.context -> term -> int -> term list option * report option)
       -> Context.generic -> Context.generic
   (* testing terms and proof states *)
-  val test_term: Proof.context -> bool -> term ->
+  val test_term: Proof.context -> bool * bool -> term ->
     (string * term) list option * ((string * int) list * ((int * report) list) option)
   val test_goal_terms:
-    Proof.context -> bool -> (string * typ) list -> term list
+    Proof.context -> bool * bool -> (string * typ) list -> term list
       -> (string * term) list option * ((string * int) list * ((int * report) list) option) list
   val quickcheck: (string * string list) list -> int -> Proof.state -> (string * term) list option
 end;
@@ -161,12 +161,15 @@ fun cpu_time description f =
     val time = Time.toMilliseconds (#cpu (end_timing start))
   in (Exn.release result, (description, time)) end
 
-fun limit ctxt is_interactive f exc () =
-  TimeLimit.timeLimit (seconds (Config.get ctxt timeout)) f ()
-  handle TimeLimit.TimeOut =>
-    if is_interactive then exc () else raise TimeLimit.TimeOut
+fun limit ctxt (limit_time, is_interactive) f exc () =
+  if limit_time then
+      TimeLimit.timeLimit (seconds (Config.get ctxt timeout)) f ()
+    handle TimeLimit.TimeOut =>
+      if is_interactive then exc () else raise TimeLimit.TimeOut
+  else
+    f ()
 
-fun test_term ctxt is_interactive t =
+fun test_term ctxt (limit_time, is_interactive) t =
   let
     val (names, t') = apfst (map fst) (prep_test_term t);
     val current_size = Unsynchronized.ref 0
@@ -190,7 +193,7 @@ fun test_term ctxt is_interactive t =
   in
     case test_fun of NONE => (NONE, ([comp_time], NONE))
       | SOME test_fun =>
-        limit ctxt is_interactive (fn () =>
+        limit ctxt (limit_time, is_interactive) (fn () =>
           let
             val ((result, reports), exec_time) =
               cpu_time "quickcheck execution" (fn () => with_size test_fun 1 [])
@@ -204,7 +207,7 @@ fun test_term ctxt is_interactive t =
 (* FIXME: this function shows that many assumptions are made upon the generation *)
 (* In the end there is probably no generic quickcheck interface left... *)
 
-fun test_term_with_increasing_cardinality ctxt is_interactive ts =
+fun test_term_with_increasing_cardinality ctxt (limit_time, is_interactive) ts =
   let
     val thy = ProofContext.theory_of ctxt
     val (freess, ts') = split_list (map prep_test_term ts)
@@ -228,7 +231,7 @@ fun test_term_with_increasing_cardinality ctxt is_interactive ts =
       if (forall is_none test_funs) then
         (NONE, ([comp_time], NONE))
       else if (forall is_some test_funs) then
-        limit ctxt is_interactive (fn () =>
+        limit ctxt (limit_time, is_interactive) (fn () =>
           (get_first test_card_size enumeration_card_size, ([comp_time], NONE)))
           (fn () => error "Quickcheck ran out of time") ()
       else
@@ -261,7 +264,7 @@ fun monomorphic_term thy insts default_T =
 
 datatype wellsorted_error = Wellsorted_Error of string | Term of term
 
-fun test_goal_terms lthy is_interactive insts check_goals =
+fun test_goal_terms lthy (limit_time, is_interactive) insts check_goals =
   let
     val thy = ProofContext.theory_of lthy
     val default_insts =
@@ -292,16 +295,16 @@ fun test_goal_terms lthy is_interactive insts check_goals =
         | (NONE, report) => collect_results f (report :: reports) ts
     fun test_term' goal =
       case goal of
-        [(NONE, t)] => test_term lthy is_interactive t
-      | ts => test_term_with_increasing_cardinality lthy is_interactive (map snd ts)
+        [(NONE, t)] => test_term lthy (limit_time, is_interactive) t
+      | ts => test_term_with_increasing_cardinality lthy (limit_time, is_interactive) (map snd ts)
   in
     if Config.get lthy finite_types then
       collect_results test_term' [] correct_inst_goals
     else
-      collect_results (test_term lthy is_interactive) [] (maps (map snd) correct_inst_goals)
+      collect_results (test_term lthy (limit_time, is_interactive)) [] (maps (map snd) correct_inst_goals)
   end;
 
-fun test_goal is_interactive insts i state =
+fun test_goal (time_limit, is_interactive) insts i state =
   let
     val lthy = Proof.context_of state;
     val thy = Proof.theory_of state;
@@ -322,7 +325,7 @@ fun test_goal is_interactive insts i state =
       | SOME locale => map (fn (_, phi) => Morphism.term phi proto_goal)
         (Locale.registrations_of (Context.Theory thy) (*FIXME*) locale);
   in
-    test_goal_terms lthy is_interactive insts check_goals
+    test_goal_terms lthy (time_limit, is_interactive) insts check_goals
   end
 
 (* pretty printing *)
@@ -367,7 +370,7 @@ fun auto_quickcheck state =
     val res =
       state
       |> Proof.map_context (Config.put report false #> Config.put quiet true)
-      |> try (test_goal false [] 1);
+      |> try (test_goal (false, false) [] 1);
   in
     case res of
       NONE => (false, state)
@@ -438,7 +441,7 @@ fun quickcheck_params_cmd args = Context.theory_map (fold parse_test_param args)
 fun gen_quickcheck args i state =
   state
   |> Proof.map_context_result (fn ctxt => fold parse_test_param_inst args ([], ctxt))
-  |> (fn (insts, state') => test_goal true insts i state'
+  |> (fn (insts, state') => test_goal (true, true) insts i state'
   |> tap (fn (SOME x, _) => if expect (Proof.context_of state') = No_Counterexample then
                error ("quickcheck expected to find no counterexample but found one") else ()
            | (NONE, _) => if expect (Proof.context_of state') = Counterexample then
