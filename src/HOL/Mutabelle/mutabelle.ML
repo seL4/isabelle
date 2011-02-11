@@ -500,7 +500,7 @@ fun is_executable thy insts th =
       |> Config.put Quickcheck.size 1
       |> Config.put Quickcheck.iterations 1
       |> Config.put Quickcheck.tester (!testgen_name))
-      false (preprocess thy insts (prop_of th));
+      (true, false) (preprocess thy insts (prop_of th));
     Output.urgent_message "executable"; true) handle ERROR s =>
     (Output.urgent_message ("not executable: " ^ s); false));
 
@@ -511,7 +511,7 @@ fun qc_recursive usedthy [] insts sz qciter acc = rev acc
        ((Config.put Quickcheck.size sz #> Config.put Quickcheck.iterations qciter
         #> Config.put Quickcheck.tester (!testgen_name))
          (ProofContext.init_global usedthy))
-       false (preprocess usedthy insts x))))) :: acc))
+       (true, false) (preprocess usedthy insts x))))) :: acc))
           handle ERROR msg => (Output.urgent_message msg; qc_recursive usedthy xs insts sz qciter acc);
 
 

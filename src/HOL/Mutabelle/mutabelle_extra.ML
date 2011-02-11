@@ -122,7 +122,7 @@ fun invoke_quickcheck change_options quickcheck_generator thy t =
   TimeLimit.timeLimit (seconds (!Auto_Tools.time_limit))
       (fn _ =>
           case Quickcheck.test_goal_terms (change_options (ProofContext.init_global thy))
-              false [] [t] of
+              (false, false) [] [t] of
             (NONE, _) => (NoCex, ([], NONE))
           | (SOME _, _) => (GenuineCex, ([], NONE))) ()
   handle TimeLimit.TimeOut =>
@@ -315,7 +315,7 @@ fun is_executable_term thy t =
         ((Config.put Quickcheck.finite_types true #>
           Config.put Quickcheck.finite_type_size 1 #>
           Config.put Quickcheck.size 1 #> Config.put Quickcheck.iterations 1) ctxt)
-        false [])) (map (Object_Logic.atomize_term thy) (fst (Variable.import_terms true [t] ctxt)))
+        (false, false) [])) (map (Object_Logic.atomize_term thy) (fst (Variable.import_terms true [t] ctxt)))
   end
 
 fun is_executable_thm thy th = is_executable_term thy (prop_of th)
