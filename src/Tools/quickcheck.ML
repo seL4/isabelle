@@ -161,6 +161,11 @@ fun cpu_time description f =
     val time = Time.toMilliseconds (#cpu (end_timing start))
   in (Exn.release result, (description, time)) end
 
+fun limit ctxt is_interactive f exc () =
+  TimeLimit.timeLimit (seconds (Config.get ctxt timeout)) f ()
+  handle TimeLimit.TimeOut =>
+    if is_interactive then exc () else raise TimeLimit.TimeOut
+
 fun test_term ctxt is_interactive t =
   let
     val (names, t') = apfst (map fst) (prep_test_term t);
@@ -185,7 +190,7 @@ fun test_term ctxt is_interactive t =
   in
     case test_fun of NONE => (NONE, ([comp_time], NONE))
       | SOME test_fun =>
-        TimeLimit.timeLimit (seconds (Config.get ctxt timeout)) (fn () =>
+        limit ctxt is_interactive (fn () =>
           let
             val ((result, reports), exec_time) =
               cpu_time "quickcheck execution" (fn () => with_size test_fun 1 [])
@@ -193,9 +198,7 @@ fun test_term ctxt is_interactive t =
             (case result of NONE => NONE | SOME ts => SOME (names ~~ ts),
               ([exec_time, comp_time],
                if Config.get ctxt report andalso not (null reports) then SOME reports else NONE))
-          end) ()
-        handle TimeLimit.TimeOut =>
-          if is_interactive then error (excipit "ran out of time") else raise TimeLimit.TimeOut
+          end) (fn () => error (excipit "ran out of time")) ()
   end;
 
 (* FIXME: this function shows that many assumptions are made upon the generation *)
@@ -225,10 +228,9 @@ fun test_term_with_increasing_cardinality ctxt is_interactive ts =
       if (forall is_none test_funs) then
         (NONE, ([comp_time], NONE))
       else if (forall is_some test_funs) then
-        TimeLimit.timeLimit (seconds (Config.get ctxt timeout)) (fn () =>
-          (get_first test_card_size enumeration_card_size, ([comp_time], NONE))) ()
-        handle TimeLimit.TimeOut =>
-          if is_interactive then error ("Quickcheck ran out of time") else raise TimeLimit.TimeOut
+        limit ctxt is_interactive (fn () =>
+          (get_first test_card_size enumeration_card_size, ([comp_time], NONE)))
+          (fn () => error "Quickcheck ran out of time") ()
       else
         error "Unexpectedly, testers of some cardinalities are executable but others are not"
     end
