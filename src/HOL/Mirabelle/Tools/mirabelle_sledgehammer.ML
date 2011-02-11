@@ -10,6 +10,7 @@ val prover_timeoutK = "prover_timeout"
 val keepK = "keep"
 val full_typesK = "full_types"
 val type_sysK = "type_sys"
+val max_relevantK = "max_relevant"
 val minimizeK = "minimize"
 val minimize_timeoutK = "minimize_timeout"
 val metis_ftK = "metis_ft"
@@ -347,7 +348,7 @@ datatype sh_result =
   SH_FAIL of int * int |
   SH_ERROR
 
-fun run_sh prover_name prover type_sys hard_timeout timeout dir st =
+fun run_sh prover_name prover type_sys max_relevant hard_timeout timeout dir st =
   let
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
     val i = 1
@@ -365,6 +366,7 @@ fun run_sh prover_name prover type_sys hard_timeout timeout dir st =
       Sledgehammer_Isar.default_params ctxt
           [("verbose", "true"),
            ("type_sys", type_sys),
+           ("max_relevant", max_relevant),
            ("timeout", string_of_int timeout)]
     val default_max_relevant =
       Sledgehammer_Provers.default_max_relevant_for_prover ctxt prover_name
@@ -428,13 +430,14 @@ fun run_sledgehammer trivial args reconstructor named_thms id ({pre=st, log, ...
     val _ = if trivial then () else change_data id inc_sh_nontriv_calls
     val (prover_name, prover) = get_prover (Proof.context_of st) args
     val type_sys = AList.lookup (op =) args type_sysK |> the_default "smart"
+    val max_relevant = AList.lookup (op =) args max_relevantK |> the_default "smart"
     val dir = AList.lookup (op =) args keepK
     val timeout = Mirabelle.get_int_setting args (prover_timeoutK, 30)
     (* always use a hard timeout, but give some slack so that the automatic
        minimizer has a chance to do its magic *)
     val hard_timeout = SOME (2 * timeout)
     val (msg, result) =
-      run_sh prover_name prover type_sys hard_timeout timeout dir st
+      run_sh prover_name prover type_sys max_relevant hard_timeout timeout dir st
   in
     case result of
       SH_OK (time_isa, time_prover, names) =>
