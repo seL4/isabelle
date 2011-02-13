@@ -134,7 +134,12 @@ function init_component ()
     ISABELLE_COMPONENTS="$ISABELLE_COMPONENTS:$COMPONENT"
   fi
   if [ -f "$COMPONENT/etc/settings" ]; then
-    source "$COMPONENT/etc/settings" || exit 2
+    source "$COMPONENT/etc/settings"
+    local RC="$?"
+    if [ "$RC" -ne 0 ]; then
+      echo >&2 "Return code $RC from bash script: \"$COMPONENT/etc/settings\""
+      exit 2
+    fi
   fi
   if [ -f "$COMPONENT/etc/components" ]; then
     {
