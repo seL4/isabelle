@@ -42,9 +42,11 @@ translations
 (* set comprehension *)
 syntax (latex output)
   "_Collect" :: "pttrn => bool => 'a set"              ("(1{_ | _})")
+  "_CollectIn" :: "pttrn => 'a set => bool => 'a set"   ("(1{_ \<in> _ | _})")
 translations
   "_Collect p P"      <= "{p. P}"
   "_Collect p P"      <= "{p|xs. P}"
+  "_CollectIn p A P"  <= "{p : A. P}"
 
 (* LISTS *)
 
