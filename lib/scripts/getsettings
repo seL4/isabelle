@@ -28,7 +28,7 @@ function isabelle ()
 }
 
 #platform
-. "$ISABELLE_HOME/lib/scripts/isabelle-platform"
+source "$ISABELLE_HOME/lib/scripts/isabelle-platform"
 
 #Isabelle distribution identifier -- filled in automatically!
 ISABELLE_ID=""
@@ -126,7 +126,7 @@ function init_component ()
   esac
 
   if [ ! -d "$COMPONENT" ]; then
-    echo >&2 "Bad Isabelle component: \"$COMPONENT\""
+    echo >&2 "Missing Isabelle component directory: \"$COMPONENT\""
     exit 2
   elif [ -z "$ISABELLE_COMPONENTS" ]; then
     ISABELLE_COMPONENTS="$COMPONENT"
