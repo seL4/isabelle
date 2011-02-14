@@ -23,6 +23,7 @@ sig
   (*options*)
   val oracle: bool Config.T
   val datatypes: bool Config.T
+  val timeoutN: string
   val timeout: real Config.T
   val random_seed: int Config.T
   val fixed: bool Config.T

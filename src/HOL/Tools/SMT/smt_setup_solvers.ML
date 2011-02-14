@@ -20,14 +20,17 @@ fun make_name is_remote name = name |> is_remote ? prefix remote_prefix
 fun make_local_avail name () = getenv (name ^ "_INSTALLED") = "yes"
 fun make_remote_avail name () = getenv (name ^ "_REMOTE_SOLVER") <> ""
 fun make_avail is_remote name =
-  if is_remote then make_remote_avail name else make_local_avail name
+  if is_remote then make_remote_avail name
+  else make_local_avail name orf make_remote_avail name
 
 fun make_local_command name () = [getenv (name ^ "_SOLVER")]
 fun make_remote_command name () =
   [getenv "ISABELLE_SMT_REMOTE", getenv (name ^ "_REMOTE_SOLVER")]
 fun make_command is_remote name =
   if is_remote then make_remote_command name
-  else make_local_command name
+  else (fn () =>
+    if make_local_avail name () then make_local_command name ()
+    else make_remote_command name ())
 
 fun outcome_of unsat sat unknown solver_name line =
   if String.isPrefix unsat line then SMT_Solver.Unsat

@@ -343,8 +343,11 @@ local
     handle
       SMT_Failure.SMT (fail as SMT_Failure.Counterexample _) =>
         (SMT_Config.verbose_msg ctxt (str_of ctxt) fail; NONE)
-    | SMT_Failure.SMT fail =>
-        (SMT_Config.trace_msg ctxt (str_of ctxt) fail; NONE)
+    | SMT_Failure.SMT (fail as SMT_Failure.Time_Out) =>
+        error ("SMT: Solver " ^ quote (SMT_Config.solver_of ctxt) ^ ": " ^
+          SMT_Failure.string_of_failure ctxt fail ^ " (setting the " ^
+          "configuration option " ^ SMT_Config.timeoutN ^ " might help)")
+    | SMT_Failure.SMT fail => error (str_of ctxt fail)
 
   fun tag_rules thms = map_index (apsnd (pair NONE)) thms
   fun tag_prems thms = map (pair ~1 o pair NONE) thms
