@@ -37,6 +37,10 @@ struct
 
 (* utility functions *)
 
+fun fold_maps f = fold (fn x => uncurry (fold_map (f x)) #>> flat)
+
+fun pair_trans ((x, y), z) = (x, (y, z))
+
 val typ_has_tvars = Term.exists_subtype (fn TVar _ => true | _ => false)
 
 val ignored = member (op =) [@{const_name All}, @{const_name Ex},
@@ -76,13 +80,14 @@ fun incr_indexes ithms =
 
 (* search for necessary substitutions *)
 
-fun new_substitutions thy limit grounds (n, T) subst =
-  if not (typ_has_tvars T) then [subst]
+fun new_substitutions thy limit grounds (n, T) subst instances =
+  if not (typ_has_tvars T) then ([subst], instances)
   else
     Symtab.lookup_list grounds n
     |> map_filter (try (fn U => Sign.typ_match thy (T, U) subst))
-    |> cons subst
-    |> take limit (* limit the breadth of the search as well as the width *)
+    |> (fn substs => (substs, instances - length substs))
+    |>> take limit (* limit the breadth of the search as well as the width *)
+    |>> cons subst
 
 fun apply_subst grounds consts subst =
   let
@@ -100,11 +105,12 @@ fun apply_subst grounds consts subst =
 
 fun specialize thy limit all_grounds new_grounds scs =
   let
-    fun spec (subst, consts) next_grounds =
-      [subst]
-      |> fold (maps o new_substitutions thy limit new_grounds) consts
-      |> rpair next_grounds
-      |-> fold_map (apply_subst all_grounds consts)
+    fun spec (subst, consts) (next_grounds, instances) =
+      ([subst], instances)
+      |> fold_maps (new_substitutions thy limit new_grounds) consts
+      |>> rpair next_grounds
+      |>> uncurry (fold_map (apply_subst all_grounds consts))
+      |> pair_trans
   in
     fold_map spec scs #>> (fn scss =>
     fold (fold (insert (eq_snd (op =)))) scss [])
@@ -112,16 +118,18 @@ fun specialize thy limit all_grounds new_grounds scs =
 
 val limit_reached_warning = "Warning: Monomorphization limit reached"
 
-fun search_substitutions ctxt limit all_grounds new_grounds scss =
+fun search_substitutions ctxt limit instances all_grounds new_grounds scss =
   let
     val thy = ProofContext.theory_of ctxt
     val all_grounds' = Symtab.merge_list (op =) (all_grounds, new_grounds)
     val spec = specialize thy limit all_grounds' new_grounds
-    val (scss', new_grounds') = fold_map spec scss Symtab.empty
+    val (scss', (new_grounds', instances')) =
+      fold_map spec scss (Symtab.empty, instances)
   in
     if Symtab.is_empty new_grounds' then scss'
-    else if limit > 0 then
-      search_substitutions ctxt (limit-1) all_grounds' new_grounds' scss'
+    else if limit > 0 andalso instances' > 0 then
+      search_substitutions ctxt (limit-1) instances' all_grounds' new_grounds'
+        scss'
     else (SMT_Config.verbose_msg ctxt (K limit_reached_warning) (); scss')
   end
 
@@ -194,9 +202,10 @@ fun mono_all ctxt polys monos =
       |> fold (add_const_types (not o typ_has_tvars) o snd) polys
 
     val limit = Config.get ctxt SMT_Config.monomorph_limit
+    val instances = Config.get ctxt SMT_Config.monomorph_instances
   in
     scss
-    |> search_substitutions ctxt limit Symtab.empty grounds
+    |> search_substitutions ctxt limit instances Symtab.empty grounds
     |> map (filter_most_specific (ProofContext.theory_of ctxt))
     |> rpair (monos, ctxt)
     |-> fold2 instantiate polys

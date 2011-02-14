@@ -247,6 +247,13 @@ construction whose cycles are limited by the following option.
 
 declare [[ smt_monomorph_limit = 10 ]]
 
+text {*
+In addition, the number of generated monomorphic instances is limited
+by the following option.
+*}
+
+declare [[ smt_monomorph_instances = 500 ]]
+
 
 
 subsection {* Certificates *}
