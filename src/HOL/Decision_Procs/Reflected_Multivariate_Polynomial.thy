@@ -131,19 +131,7 @@ stupid:  "polyadd (CN c n p, CN c' n' p') =
                pp' = polyadd (p,p')
            in (if pp' = 0\<^sub>p then cc' else CN cc' n pp')))"
   "polyadd (a, b) = Add a b"
-(hints recdef_simp add: Let_def measure_def split_def inv_image_def)
-
-(*
-declare stupid [simp del, code del]
-
-lemma [simp,code]: "polyadd (CN c n p, CN c' n' p') = 
-    (if n < n' then CN (polyadd(c,CN c' n' p')) n p
-     else if n'<n then CN (polyadd(CN c n p, c')) n' p'
-     else (let cc' = polyadd (c,c') ; 
-               pp' = polyadd (p,p')
-           in (if pp' = 0\<^sub>p then cc' else CN cc' n pp')))"
-  by (simp add: Let_def stupid)
-*)
+(hints recdef_simp add: Let_def measure_def split_def inv_image_def recdef_cong del: if_cong)
 
 recdef polyneg "measure size"
   "polyneg (C c) = C (~\<^sub>N c)"
@@ -286,12 +274,12 @@ next
   from prems have ngen0: "n \<ge> n0" by simp
   from prems have n'gen1: "n' \<ge> n1" by simp 
   have "n < n' \<or> n' < n \<or> n = n'" by auto
-  moreover {assume eq: "n = n'" hence eq': "\<not> n' < n \<and> \<not> n < n'" by simp
-    with prems(2)[rule_format, OF eq' nc nc'] 
+  moreover {assume eq: "n = n'"
+    with prems(2)[OF nc nc'] 
     have ncc':"isnpolyh (c +\<^sub>p c') (Suc n)" by auto
     hence ncc'n01: "isnpolyh (c +\<^sub>p c') (min n0 n1)"
       using isnpolyh_mono[where n'="min n0 n1" and n="Suc n"] ngen0 n'gen1 by auto
-    from eq prems(1)[rule_format, OF eq' np np'] have npp': "isnpolyh (p +\<^sub>p p') n" by simp
+    from eq prems(1)[OF np np'] have npp': "isnpolyh (p +\<^sub>p p') n" by simp
     have minle: "min n0 n1 \<le> n'" using ngen0 n'gen1 eq by simp
     from minle npp' ncc'n01 prems ngen0 n'gen1 ncc' have ?case by (simp add: Let_def)}
   moreover {assume lt: "n < n'"
@@ -300,7 +288,7 @@ next
     from prems have th21: "isnpolyh c (Suc n)" by simp
     from prems have th22: "isnpolyh (CN c' n' p') n'" by simp
     from lt have th23: "min (Suc n) n' = Suc n" by arith
-    from prems(4)[rule_format, OF lt th21 th22]
+    from prems(4)[OF th21 th22]
     have "isnpolyh (polyadd (c, CN c' n' p')) (Suc n)" using th23 by simp
     with prems th1 have ?case by simp } 
   moreover {assume gt: "n' < n" hence gt': "n' < n \<and> \<not> n < n'" by simp
@@ -309,7 +297,7 @@ next
     from prems have th21: "isnpolyh c' (Suc n')" by simp_all
     from prems have th22: "isnpolyh (CN c n p) n" by simp
     from gt have th23: "min n (Suc n') = Suc n'" by arith
-    from prems(3)[rule_format, OF  gt' th22 th21]
+    from prems(3)[OF th22 th21]
     have "isnpolyh (polyadd (CN c n p,c')) (Suc n')" using th23 by simp
     with prems th1 have ?case by simp}
       ultimately show ?case by blast
@@ -328,14 +316,20 @@ lemma polyadd_different_degreen:
   degreen (polyadd(p,q)) m = max (degreen p m) (degreen q m)"
 proof (induct p q arbitrary: m n0 n1 rule: polyadd.induct)
   case (4 c n p c' n' p' m n0 n1)
-  thus ?case 
-    apply (cases "n' < n", simp_all add: Let_def)
-    apply (cases "n = n'", simp_all)
-    apply (cases "n' = m", simp_all add: Let_def)
-    by (erule allE[where x="m"], erule allE[where x="Suc m"], 
-           erule allE[where x="m"], erule allE[where x="Suc m"], 
-           clarsimp,erule allE[where x="m"],erule allE[where x="Suc m"], simp)
-qed simp_all 
+  have "n' = n \<or> n < n' \<or> n' < n" by arith
+  thus ?case
+  proof (elim disjE)
+    assume [simp]: "n' = n"
+    from 4(1)[of n n m] 4(2)[of "Suc n" "Suc n" m] 4(5-7)
+    show ?thesis by (auto simp: Let_def)
+  next
+    assume "n < n'"
+    with 4 show ?thesis by auto
+  next
+    assume "n' < n"
+    with 4 show ?thesis by auto
+  qed
+qed auto
 
 lemma headnz[simp]: "\<lbrakk>isnpolyh p n ; p \<noteq> 0\<^sub>p\<rbrakk> \<Longrightarrow> headn p m \<noteq> 0\<^sub>p"
   by (induct p arbitrary: n rule: headn.induct, auto)
@@ -363,26 +357,28 @@ next
   case (3 c n p c' n0 n1) thus ?case by (cases n, auto)
 next
   case (4 c n p c' n' p' n0 n1 m) 
-  thus ?case 
-    apply (cases "n < n'", simp_all add: Let_def)
-    apply (cases "n' < n", simp_all)
-    apply (erule allE[where x="n"],erule allE[where x="Suc n"],clarify)
-    apply (erule allE[where x="n'"],erule allE[where x="Suc n'"],clarify)
-    by (erule allE[where x="m"],erule allE[where x="m"], auto)
+  have "n' = n \<or> n < n' \<or> n' < n" by arith
+  thus ?case
+  proof (elim disjE)
+    assume [simp]: "n' = n"
+    from 4(1)[of n n m] 4(2)[of "Suc n" "Suc n" m] 4(5-7)
+    show ?thesis by (auto simp: Let_def)
+  qed simp_all
 qed auto
-
 
 lemma polyadd_eq_const_degreen: "\<lbrakk> isnpolyh p n0 ; isnpolyh q n1 ; polyadd (p,q) = C c\<rbrakk> 
   \<Longrightarrow> degreen p m = degreen q m"
 proof (induct p q arbitrary: m n0 n1 c rule: polyadd.induct)
   case (4 c n p c' n' p' m n0 n1 x) 
-  hence z: "CN c n p +\<^sub>p CN c' n' p' = C x" by simp
   {assume nn': "n' < n" hence ?case using prems by simp}
   moreover 
   {assume nn':"\<not> n' < n" hence "n < n' \<or> n = n'" by arith
     moreover {assume "n < n'" with prems have ?case by simp }
     moreover {assume eq: "n = n'" hence ?case using prems 
-        by (cases "p +\<^sub>p p' = 0\<^sub>p", auto simp add: Let_def) }
+        apply (cases "p +\<^sub>p p' = 0\<^sub>p")
+        apply (auto simp add: Let_def)
+        by blast
+      }
     ultimately have ?case by blast}
   ultimately show ?case by blast
 qed simp_all
@@ -632,23 +628,8 @@ lemma polysub_0:
   assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
   shows "\<lbrakk> isnpolyh p n0 ; isnpolyh q n1\<rbrakk> \<Longrightarrow> (p -\<^sub>p q = 0\<^sub>p) = (p = q)"
   unfolding polysub_def split_def fst_conv snd_conv
-  apply (induct p q arbitrary: n0 n1 rule:polyadd.induct, simp_all add: Nsub0[simplified Nsub_def])
-  apply (clarsimp simp add: Let_def)
-  apply (case_tac "n < n'", simp_all)
-  apply (case_tac "n' < n", simp_all)
-  apply (erule impE)+
-  apply (rule_tac x="Suc n" in exI, simp)
-  apply (rule_tac x="n" in exI, simp)
-  apply (erule impE)+
-  apply (rule_tac x="n" in exI, simp)
-  apply (rule_tac x="Suc n" in exI, simp)
-  apply (erule impE)+
-  apply (rule_tac x="Suc n" in exI, simp)
-  apply (rule_tac x="n" in exI, simp)
-  apply (erule impE)+
-  apply (rule_tac x="Suc n" in exI, simp)
-  apply clarsimp
-  done
+  by (induct p q arbitrary: n0 n1 rule:polyadd.induct)
+  (auto simp: Nsub0[simplified Nsub_def] Let_def)
 
 text{* polypow is a power function and preserves normal forms *}
 
@@ -1209,14 +1190,11 @@ apply (case_tac n', simp, simp)
 apply (case_tac n, simp, simp)
 apply (case_tac n, case_tac n', simp add: Let_def)
 apply (case_tac "pa +\<^sub>p p' = 0\<^sub>p")
-apply (clarsimp simp add: polyadd_eq_const_degree)
-apply clarsimp
-apply (erule_tac impE,blast)
-apply (erule_tac impE,blast)
-apply clarsimp
-apply simp
-apply (case_tac n', simp_all)
-done
+apply (auto simp add: polyadd_eq_const_degree)
+apply (metis head_nz)
+apply (metis head_nz)
+apply (metis degree.simps(9) gr0_conv_Suc head.simps(1) less_Suc0 not_less_eq)
+by (metis degree.simps(9) gr0_conv_Suc nat_less_le order_le_less_trans)
 
 lemma polymul_head_polyeq: 
    assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
