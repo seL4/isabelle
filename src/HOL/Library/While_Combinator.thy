@@ -130,18 +130,19 @@ theorem while_rule:
 text{* Proving termination: *}
 
 theorem wf_while_option_Some:
-  assumes wf: "wf {(t, s). b s \<and> t = c s}"
+  assumes "wf {(t, s). (P s \<and> b s) \<and> t = c s}"
+  and "!!s. P s \<Longrightarrow> b s \<Longrightarrow> P(c s)" and "P s"
   shows "EX t. while_option b c s = Some t"
-using wf
+using assms(1,3)
 apply (induct s)
-apply simp
+using assms(2)
 apply (subst while_option_unfold)
 apply simp
 done
 
 theorem measure_while_option_Some: fixes f :: "'s \<Rightarrow> nat"
-shows "(!!s. b s \<Longrightarrow> f(c s) < f s) \<Longrightarrow> EX t. while_option b c s = Some t"
-by(erule wf_while_option_Some[OF wf_if_measure])
-
+shows "(!!s. P s \<Longrightarrow> b s \<Longrightarrow> P(c s) \<and> f(c s) < f s)
+  \<Longrightarrow> P s \<Longrightarrow> EX t. while_option b c s = Some t"
+by(blast intro: wf_while_option_Some[OF wf_if_measure, of P b f])
 
 end
