@@ -164,7 +164,7 @@ val e_config : atp_config =
        "# Cannot determine problem status within resource limit"),
       (OutOfResources, "SZS status: ResourceOut"),
       (OutOfResources, "SZS status ResourceOut")],
-   default_max_relevant = 500 (* FUDGE *),
+   default_max_relevant = 250 (* FUDGE *),
    explicit_forall = false,
    use_conjecture_for_hypotheses = true}
 
@@ -193,7 +193,7 @@ val spass_config : atp_config =
       (MalformedInput, "Free Variable"),
       (SpassTooOld, "tptp2dfg"),
       (InternalError, "Please report this error")],
-   default_max_relevant = 350 (* FUDGE *),
+   default_max_relevant = 150 (* FUDGE *),
    explicit_forall = true,
    use_conjecture_for_hypotheses = true}
 
@@ -224,7 +224,7 @@ val vampire_config : atp_config =
       (Unprovable, "Termination reason: Satisfiable"),
       (VampireTooOld, "not a valid option"),
       (Interrupted, "Aborted by signal SIGINT")],
-   default_max_relevant = 400 (* FUDGE *),
+   default_max_relevant = 450 (* FUDGE *),
    explicit_forall = false,
    use_conjecture_for_hypotheses = true}
 
@@ -244,7 +244,7 @@ val z3_atp_config : atp_config =
      [(Unprovable, "\nsat"),
       (IncompleteUnprovable, "\nunknown"),
       (ProofMissing, "\nunsat")],
-   default_max_relevant = 250 (* FUDGE *),
+   default_max_relevant = 225 (* FUDGE *),
    explicit_forall = true,
    use_conjecture_for_hypotheses = false}
 
@@ -319,10 +319,10 @@ val remote_z3_atp =
   remote_atp z3_atpN "Z3---" ["2.18"] []
              [(IncompleteUnprovable, "SZS status Satisfiable"),
               (ProofMissing, "SZS status Unsatisfiable")]
-             250 (* FUDGE *) false
+             225 (* FUDGE *) false
 val remote_sine_e =
   remote_atp sine_eN "SInE" [] [] [(IncompleteUnprovable, "says Unknown")]
-             600 (* FUDGE *) true
+             500 (* FUDGE *) true
 val remote_snark =
   remote_atp snarkN "SNARK---" [] [("refutation.", "end_refutation.")] []
              250 (* FUDGE *) true
