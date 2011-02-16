@@ -38,6 +38,9 @@ sig
   val fact_from_ref :
     Proof.context -> unit Symtab.table -> thm list
     -> Facts.ref * Attrib.src list -> ((string * locality) * thm) list
+  val all_facts :
+    Proof.context -> 'a Symtab.table -> bool -> relevance_fudge -> thm list
+    -> thm list -> (((unit -> string) * locality) * (bool * thm)) list
   val relevant_facts :
     Proof.context -> bool -> real * real -> int
     -> (string * typ -> term list -> bool * term list) -> relevance_fudge
