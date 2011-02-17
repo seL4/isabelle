@@ -41,6 +41,9 @@ sig
   val all_facts :
     Proof.context -> 'a Symtab.table -> bool -> relevance_fudge -> thm list
     -> thm list -> (((unit -> string) * locality) * (bool * thm)) list
+  val const_names_in_fact :
+    theory -> (string * typ -> term list -> bool * term list) -> term
+    -> string list
   val relevant_facts :
     Proof.context -> bool -> real * real -> int
     -> (string * typ -> term list -> bool * term list) -> relevance_fudge
@@ -466,6 +469,8 @@ fun pair_consts_fact thy is_built_in_const fudge fact =
             |> pconsts_in_fact thy is_built_in_const of
     [] => NONE
   | consts => SOME ((fact, consts), NONE)
+
+val const_names_in_fact = map fst ooo pconsts_in_fact
 
 type annotated_thm =
   (((unit -> string) * locality) * thm) * (string * ptype) list
