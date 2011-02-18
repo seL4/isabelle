@@ -36,7 +36,7 @@ restrictions:
 \end{itemize}
 *}
 
-types  res = vals --{* result entry *}
+type_synonym  res = vals --{* result entry *}
 
 abbreviation (input)
   Val where "Val x == In1 x"
@@ -58,7 +58,7 @@ translations
   "\<lambda>Vals:v. b"  == "(\<lambda>v. b) \<circ> CONST the_In3"
 
   --{* relation on result values, state and auxiliary variables *}
-types 'a assn = "res \<Rightarrow> state \<Rightarrow> 'a \<Rightarrow> bool"
+type_synonym 'a assn = "res \<Rightarrow> state \<Rightarrow> 'a \<Rightarrow> bool"
 translations
   (type) "'a assn" <= (type) "vals \<Rightarrow> state \<Rightarrow> 'a \<Rightarrow> bool"
 
@@ -381,7 +381,7 @@ definition
 datatype    'a triple = triple "('a assn)" "term" "('a assn)" (** should be
 something like triple = \<forall>'a. triple ('a assn) term ('a assn)   **)
                                         ("{(1_)}/ _>/ {(1_)}"      [3,65,3]75)
-types    'a triples = "'a triple set"
+type_synonym 'a triples = "'a triple set"
 
 abbreviation
   var_triple   :: "['a assn, var         ,'a assn] \<Rightarrow> 'a triple"

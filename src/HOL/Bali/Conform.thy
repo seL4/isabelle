@@ -16,7 +16,7 @@ design issues:
 \end{itemize}
 *}
 
-types env' = "prog \<times> (lname, ty) table" (* same as env of WellType.thy *)
+type_synonym env' = "prog \<times> (lname, ty) table" (* same as env of WellType.thy *)
 
 
 section "extension of global store"

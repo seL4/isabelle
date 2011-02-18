@@ -29,9 +29,9 @@ design issues:
 \end{itemize}
 *}
 
-types ('a, 'b) table    --{* table with key type 'a and contents type 'b *}
+type_synonym ('a, 'b) table    --{* table with key type 'a and contents type 'b *}
       = "'a \<rightharpoonup> 'b"
-      ('a, 'b) tables   --{* non-unique table with key 'a and contents 'b *}
+type_synonym ('a, 'b) tables   --{* non-unique table with key 'a and contents 'b *}
       = "'a \<Rightarrow> 'b set"
 
 

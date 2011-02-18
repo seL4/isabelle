@@ -136,7 +136,7 @@ by (auto dest: acc_modi_Package_le)
 
 
 subsubsection {* Static Modifier *}
-types stat_modi = bool (* modifier: static *)
+type_synonym stat_modi = bool (* modifier: static *)
 
 subsection {* Declaration (base "class" for member,interface and class
  declarations *}
@@ -164,8 +164,7 @@ translations
   (type) "field" <= (type) "\<lparr>access::acc_modi, static::bool, type::ty\<rparr>"
   (type) "field" <= (type) "\<lparr>access::acc_modi, static::bool, type::ty,\<dots>::'a\<rparr>"
 
-types     
-        fdecl           (* field declaration, cf. 8.3 *)
+type_synonym fdecl          (* field declaration, cf. 8.3 *)
         = "vname \<times> field"
 
 
@@ -185,7 +184,7 @@ record mbody =                      (* method body *)
 record methd = mhead + (* method in a class *)
         mbody::mbody
 
-types mdecl = "sig \<times> methd"  (* method declaration in a class *)
+type_synonym mdecl = "sig \<times> methd"  (* method declaration in a class *)
 
 
 translations
@@ -300,7 +299,7 @@ record  ibody = decl +  --{* interface body *}
 
 record  iface = ibody + --{* interface *}
          isuperIfs:: "qtname list" --{* superinterface list *}
-types
+type_synonym
         idecl           --{* interface declaration, cf. 9.1 *}
         = "qtname \<times> iface"
 
@@ -332,7 +331,7 @@ record cbody = decl +          --{* class body *}
 record "class" = cbody +           --{* class *}
         super   :: "qtname"      --{* superclass *}
         superIfs:: "qtname list" --{* implemented interfaces *}
-types
+type_synonym
         cdecl           --{* class declaration, cf. 8.1 *}
         = "qtname \<times> class"
 

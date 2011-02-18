@@ -26,7 +26,7 @@ primrec the_Intg :: "val \<Rightarrow> int"
 primrec the_Addr :: "val \<Rightarrow> loc"
   where "the_Addr (Addr a) = a"
 
-types   dyn_ty      = "loc \<Rightarrow> ty option"
+type_synonym dyn_ty = "loc \<Rightarrow> ty option"
 
 primrec typeof :: "dyn_ty \<Rightarrow> val \<Rightarrow> ty option"
 where
