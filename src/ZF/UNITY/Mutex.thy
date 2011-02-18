@@ -27,11 +27,11 @@ abbreviation "n == Var([0,0])"
 abbreviation "u == Var([0,1])"
 abbreviation "v == Var([1,0])"
 
-axioms --{** Type declarations  **}
-  p_type:  "type_of(p)=bool & default_val(p)=0"
-  m_type:  "type_of(m)=int  & default_val(m)=#0"
-  n_type:  "type_of(n)=int  & default_val(n)=#0"
-  u_type:  "type_of(u)=bool & default_val(u)=0"
+axiomatization where --{** Type declarations  **}
+  p_type:  "type_of(p)=bool & default_val(p)=0" and
+  m_type:  "type_of(m)=int  & default_val(m)=#0" and
+  n_type:  "type_of(n)=int  & default_val(n)=#0" and
+  u_type:  "type_of(u)=bool & default_val(u)=0" and
   v_type:  "type_of(v)=bool & default_val(v)=0"
 
 definition

@@ -11,10 +11,8 @@ uses
   ("classical.ML") ("simp.ML") ("simpdata.ML")
 begin
 
-consts
-  cla :: "[p=>p]=>p"
-axioms
-  classical: "(!!x. x:~P ==> f(x):P) ==> cla(f):P"
+axiomatization cla :: "[p=>p]=>p"
+  where classical: "(!!x. x:~P ==> f(x):P) ==> cla(f):P"
 
 
 (*** Classical introduction rules for | and EX ***)

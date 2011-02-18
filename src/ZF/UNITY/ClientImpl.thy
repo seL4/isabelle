@@ -12,13 +12,13 @@ abbreviation "giv == Var([0])" (* output history: tokens granted *)
 abbreviation "rel == Var([1])" (* input history: tokens released *)
 abbreviation "tok == Var([2])" (* the number of available tokens *)
 
-axioms
+axiomatization where
   type_assumes:
   "type_of(ask) = list(tokbag) & type_of(giv) = list(tokbag) & 
-   type_of(rel) = list(tokbag) & type_of(tok) = nat"
+   type_of(rel) = list(tokbag) & type_of(tok) = nat" and
   default_val_assumes:
-  "default_val(ask) = Nil & default_val(giv)  = Nil & 
-   default_val(rel)  = Nil & default_val(tok)  = 0"
+  "default_val(ask) = Nil & default_val(giv) = Nil & 
+   default_val(rel) = Nil & default_val(tok) = 0"
 
 
 (*Array indexing is translated to list indexing as A[n] == nth(n-1,A). *)

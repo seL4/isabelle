@@ -18,7 +18,7 @@ begin
 
 subsection {* The classical axiom *}
 
-axioms
+axiomatization where
   classical: "(~P ==> P) ==> P"
 
 

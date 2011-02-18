@@ -5,14 +5,14 @@
 
 theory Language imports Main begin
 
-consts
-  Const :: i                    (* Abstract type of constants *)
-  c_app :: "[i,i] => i"         (* Abstract constructor for fun application*)
-
 
 text{*these really can't be definitions without losing the abstraction*}
-axioms
-  constNEE:  "c \<in> Const ==> c \<noteq> 0"
+
+axiomatization
+  Const :: i  and               (* Abstract type of constants *)
+  c_app :: "[i,i] => i"         (* Abstract constructor for fun application*)
+where
+  constNEE:  "c \<in> Const ==> c \<noteq> 0" and
   c_appI:    "[| c1 \<in> Const; c2 \<in> Const |] ==> c_app(c1,c2) \<in> Const"
 
 

@@ -13,10 +13,10 @@ consts plus :: "int => int => int" (infixl "+" 60)
   zero :: int ("0")
   minus :: "int => int" ("- _")
 
-axioms
-  int_assoc: "(x + y::int) + z = x + (y + z)"
-  int_zero: "0 + x = x"
-  int_minus: "(-x) + x = 0"
+axiomatization where
+  int_assoc: "(x + y::int) + z = x + (y + z)" and
+  int_zero: "0 + x = x" and
+  int_minus: "(-x) + x = 0" and
   int_minus2: "-(-x) = x"
 
 section {* Inference of parameter types *}
@@ -527,13 +527,12 @@ definition less (infix "\<sqsubset>" 50) where "x \<sqsubset> y <-> x \<sqsubset
 
 end
 
-consts
-  gle :: "'a => 'a => o" gless :: "'a => 'a => o"
-  gle' :: "'a => 'a => o" gless' :: "'a => 'a => o"
-
-axioms
-  grefl: "gle(x, x)" gless_def: "gless(x, y) <-> gle(x, y) & x ~= y"
-  grefl': "gle'(x, x)" gless'_def: "gless'(x, y) <-> gle'(x, y) & x ~= y"
+axiomatization
+  gle :: "'a => 'a => o" and gless :: "'a => 'a => o" and
+  gle' :: "'a => 'a => o" and gless' :: "'a => 'a => o"
+where
+  grefl: "gle(x, x)" and gless_def: "gless(x, y) <-> gle(x, y) & x ~= y" and
+  grefl': "gle'(x, x)" and gless'_def: "gless'(x, y) <-> gle'(x, y) & x ~= y"
 
 text {* Setup *}
 

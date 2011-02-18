@@ -16,9 +16,9 @@ abbreviation
   available_tok :: i  (*number of free tokens (T in paper)*)  where
   "available_tok == Var([succ(succ(2))])"
 
-axioms
+axiomatization where
   alloc_type_assumes [simp]:
-  "type_of(NbR) = nat & type_of(available_tok)=nat"
+  "type_of(NbR) = nat & type_of(available_tok)=nat" and
 
   alloc_default_val_assumes [simp]:
   "default_val(NbR)  = 0 & default_val(available_tok)=0"
