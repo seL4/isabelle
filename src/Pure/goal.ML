@@ -115,7 +115,7 @@ fun forked i =
     let
       val n = m + i;
       val _ =
-        Multithreading.tracing 1 (fn () =>
+        Multithreading.tracing 2 (fn () =>
           ("PROOFS " ^ Time.toString (Time.now ()) ^ ": " ^ string_of_int n));
     in n end);
 
