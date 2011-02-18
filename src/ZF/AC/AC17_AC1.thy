@@ -1,4 +1,4 @@
-(*  Title:      ZF/AC/AC1_AC17.thy
+(*  Title:      ZF/AC/AC17_AC1.thy
     Author:     Krzysztof Grabczewski
 
 The equivalence of AC0, AC1 and AC17

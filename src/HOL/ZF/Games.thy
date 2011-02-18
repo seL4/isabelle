@@ -1,4 +1,4 @@
-(*  Title:      HOL/ZF/MainZF.thy/Games.thy
+(*  Title:      HOL/ZF/Games.thy
     Author:     Steven Obua
 
 An application of HOLZF: Partizan Games.  See "Partizan Games in

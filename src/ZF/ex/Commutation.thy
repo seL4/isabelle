@@ -1,4 +1,4 @@
-(*  Title:      HOL/Lambda/Commutation.thy
+(*  Title:      ZF/ex/Commutation.thy
     Author:     Tobias Nipkow & Sidi Ould Ehmety
     Copyright   1995  TU Muenchen
 

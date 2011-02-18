@@ -1,4 +1,4 @@
-(*  Title:      ZF/pair
+(*  Title:      ZF/pair.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 

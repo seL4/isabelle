@@ -1,4 +1,4 @@
-(*  Title:      FOL/ex/Quantifiers_Int.thy
+(*  Title:      FOL/ex/Quantifiers_Cla.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1991  University of Cambridge
 *)
