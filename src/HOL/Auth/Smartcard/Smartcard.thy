@@ -16,31 +16,30 @@ is embedded in her card. An agent's being bad implies nothing about her
 smartcard, which independently may be stolen or cloned.
 *}
 
-consts
-  shrK    :: "agent => key"  (*long-term keys saved in smart cards*)
-  crdK    :: "card  => key"  (*smart cards' symmetric keys*)
-  pin     :: "agent => key"  (*pin to activate the smart cards*)
+axiomatization
+  shrK    :: "agent => key" and  (*long-term keys saved in smart cards*)
+  crdK    :: "card  => key" and  (*smart cards' symmetric keys*)
+  pin     :: "agent => key" and  (*pin to activate the smart cards*)
 
   (*Mostly for Shoup-Rubin*)
-  Pairkey :: "agent * agent => nat"
+  Pairkey :: "agent * agent => nat" and
   pairK   :: "agent * agent => key"
-
-axioms
-  inj_shrK: "inj shrK"  --{*No two smartcards store the same key*}
-  inj_crdK: "inj crdK"  --{*Nor do two cards*}
-  inj_pin : "inj pin"   --{*Nor do two agents have the same pin*}
+where
+  inj_shrK: "inj shrK" and  --{*No two smartcards store the same key*}
+  inj_crdK: "inj crdK" and  --{*Nor do two cards*}
+  inj_pin : "inj pin" and   --{*Nor do two agents have the same pin*}
 
   (*pairK is injective on each component, if we assume encryption to be a PRF
     or at least collision free *)
-  inj_pairK    [iff]: "(pairK(A,B) = pairK(A',B')) = (A = A' & B = B')"
-  comm_Pairkey [iff]: "Pairkey(A,B) = Pairkey(B,A)"
+  inj_pairK    [iff]: "(pairK(A,B) = pairK(A',B')) = (A = A' & B = B')" and
+  comm_Pairkey [iff]: "Pairkey(A,B) = Pairkey(B,A)" and
 
   (*long-term keys differ from each other*)
-  pairK_disj_crdK [iff]: "pairK(A,B) \<noteq> crdK C"
-  pairK_disj_shrK [iff]: "pairK(A,B) \<noteq> shrK P"
-  pairK_disj_pin [iff]:  "pairK(A,B) \<noteq> pin P"
-  shrK_disj_crdK [iff]:  "shrK P \<noteq> crdK C"
-  shrK_disj_pin [iff]:  "shrK P \<noteq> pin Q"
+  pairK_disj_crdK [iff]: "pairK(A,B) \<noteq> crdK C" and
+  pairK_disj_shrK [iff]: "pairK(A,B) \<noteq> shrK P" and
+  pairK_disj_pin [iff]:  "pairK(A,B) \<noteq> pin P" and
+  shrK_disj_crdK [iff]:  "shrK P \<noteq> crdK C" and
+  shrK_disj_pin [iff]:  "shrK P \<noteq> pin Q" and
   crdK_disj_pin [iff]:   "crdK C \<noteq> pin P"
 
 definition legalUse :: "card => bool" ("legalUse (_)") where
@@ -78,8 +77,8 @@ primrec initState where
 end
 
 text{*Still relying on axioms*}
-axioms
-  Key_supply_ax:  "finite KK \<Longrightarrow> \<exists> K. K \<notin> KK & Key K \<notin> used evs"
+axiomatization where
+  Key_supply_ax:  "finite KK \<Longrightarrow> \<exists> K. K \<notin> KK & Key K \<notin> used evs" and
 
   (*Needed because of Spy's knowledge of Pairkeys*)
   Nonce_supply_ax: "finite NN \<Longrightarrow> \<exists> N. N \<notin> NN & Nonce N \<notin> used evs"
@@ -129,7 +128,7 @@ done
 (*Specialized to shared-key model: no @{term invKey}*)
 lemma keysFor_parts_insert:
      "\<lbrakk> K \<in> keysFor (parts (insert X G));  X \<in> synth (analz H) \<rbrakk> 
-     \<Longrightarrow> K \<in> keysFor (parts (G \<union> H)) | Key K \<in> parts H";
+     \<Longrightarrow> K \<in> keysFor (parts (G \<union> H)) | Key K \<in> parts H"
 by (force dest: EventSC.keysFor_parts_insert)  
 
 lemma Crypt_imp_keysFor: "Crypt K X \<in> H \<Longrightarrow> K \<in> keysFor H"

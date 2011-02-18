@@ -17,7 +17,7 @@ abbreviation
   "Tgs == Friend 0"
 
 
-axioms
+axiomatization where
   Tgs_not_bad [iff]: "Tgs \<notin> bad"
    --{*Tgs is secure --- we already know that Kas is secure*}
 

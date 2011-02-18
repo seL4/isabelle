@@ -68,7 +68,7 @@ specification (publicKey)
    done                       
 
 
-axioms
+axiomatization where
   (*No private key equals any public key (essential to ensure that private
     keys are private!) *)
   privateKey_neq_publicKey [iff]: "privateKey b A \<noteq> publicKey c A'"
@@ -141,7 +141,7 @@ specification (shrK)
    apply (simp add: inj_on_def split: agent.split) 
    done
 
-axioms
+axiomatization where
   sym_shrK [iff]: "shrK X \<in> symKeys" --{*All shared keys are symmetric*}
 
 text{*Injectiveness: Agents' long-term keys are distinct.*}

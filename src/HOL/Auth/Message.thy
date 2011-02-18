@@ -16,7 +16,7 @@ begin
 lemma [simp] : "A \<union> (B \<union> A) = B \<union> A"
 by blast
 
-types 
+type_synonym
   key = nat
 
 consts

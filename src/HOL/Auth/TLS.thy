@@ -86,9 +86,9 @@ specification (sessionK)
    apply (simp add: inj_on_def prod_encode_eq split: role.split) 
    done
 
-axioms
+axiomatization where
   --{*sessionK makes symmetric keys*}
-  isSym_sessionK: "sessionK nonces \<in> symKeys"
+  isSym_sessionK: "sessionK nonces \<in> symKeys" and
 
   --{*sessionK never clashes with a long-term symmetric key  
      (they don't exist in TLS anyway)*}

@@ -15,13 +15,13 @@ theory Proto imports Guard_Public begin
 
 subsection{*protocols*}
 
-types rule = "event set * event"
+type_synonym rule = "event set * event"
 
 abbreviation
   msg' :: "rule => msg" where
   "msg' R == msg (snd R)"
 
-types proto = "rule set"
+type_synonym proto = "rule set"
 
 definition wdef :: "proto => bool" where
 "wdef p == ALL R k. R:p --> Number k:parts {msg' R}
@@ -155,9 +155,9 @@ by (clarify, case_tac x, auto)
 
 subsection{*types*}
 
-types keyfun = "rule => subs => nat => event list => key set"
+type_synonym keyfun = "rule => subs => nat => event list => key set"
 
-types secfun = "rule => nat => subs => key set => msg"
+type_synonym secfun = "rule => nat => subs => key set => msg"
 
 subsection{*introduction of a fresh guarded nonce*}
 
