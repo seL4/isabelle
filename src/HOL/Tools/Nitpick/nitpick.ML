@@ -981,15 +981,15 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
   in (outcome_code, !state_ref) end
 
 (* Give the inner timeout a chance. *)
-val timeout_bonus = seconds 0.25
+val timeout_bonus = seconds 1.0
 
 fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) auto i n
                       step subst assm_ts orig_t =
-  let val warning_m = if auto then K () else warning in
+  let val print_m = if auto then K () else Output.urgent_message in
     if getenv "KODKODI" = "" then
       (* The "expect" argument is deliberately ignored if Kodkodi is missing so
          that the "Nitpick_Examples" can be processed on any machine. *)
-      (warning_m (Pretty.string_of (plazy install_kodkodi_message));
+      (print_m (Pretty.string_of (plazy install_kodkodi_message));
        ("no_kodkodi", state))
     else
       let
@@ -1001,12 +1001,14 @@ fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) auto i n
               (pick_them_nits_in_term deadline state params auto i n step subst
                                       assm_ts) orig_t
           handle TOO_LARGE (_, details) =>
-                 (warning ("Limit reached: " ^ details ^ "."); unknown_outcome)
+                 (print_m ("Limit reached: " ^ details ^ "."); unknown_outcome)
                | TOO_SMALL (_, details) =>
-                 (warning ("Limit reached: " ^ details ^ "."); unknown_outcome)
+                 (print_m ("Limit reached: " ^ details ^ "."); unknown_outcome)
                | Kodkod.SYNTAX (_, details) =>
-                 (warning ("Ill-formed Kodkodi output: " ^ details ^ ".");
+                 (print_m ("Malformed Kodkodi output: " ^ details ^ ".");
                   unknown_outcome)
+               | TimeLimit.TimeOut =>
+                 (print_m "Nitpick ran out of time."; unknown_outcome)
       in
         if expect = "" orelse outcome_code = expect then outcome
         else error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
