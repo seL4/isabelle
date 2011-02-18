@@ -650,8 +650,8 @@ fun prepare_atp_problem ctxt readable_names explicit_forall type_sys
 
 (* FUDGE *)
 val conj_weight = 0.0
-val hyp_weight = 0.05
-val fact_min_weight = 0.1
+val hyp_weight = 0.1
+val fact_min_weight = 0.2
 val fact_max_weight = 1.0
 
 fun add_term_weights weight (ATerm (s, tms)) =

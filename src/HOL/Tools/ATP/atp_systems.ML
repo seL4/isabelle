@@ -26,10 +26,10 @@ sig
   val e_weight_method : e_weight_method Unsynchronized.ref
   val e_default_fun_weight : real Unsynchronized.ref
   val e_fun_weight_base : real Unsynchronized.ref
-  val e_fun_weight_factor : real Unsynchronized.ref
+  val e_fun_weight_span : real Unsynchronized.ref
   val e_default_sym_offs_weight : real Unsynchronized.ref
   val e_sym_offs_weight_base : real Unsynchronized.ref
-  val e_sym_offs_weight_factor : real Unsynchronized.ref
+  val e_sym_offs_weight_span : real Unsynchronized.ref
 
   val eN : string
   val spassN : string
@@ -109,12 +109,13 @@ val tstp_proof_delims =
 datatype e_weight_method = E_Auto | E_Fun_Weight | E_Sym_Offset_Weight
 
 val e_weight_method = Unsynchronized.ref E_Fun_Weight
-val e_default_fun_weight = Unsynchronized.ref 20.0 (* ### *)
+(* FUDGE *)
+val e_default_fun_weight = Unsynchronized.ref 20.0
 val e_fun_weight_base = Unsynchronized.ref 0.0
-val e_fun_weight_factor = Unsynchronized.ref 40.0
-val e_default_sym_offs_weight = Unsynchronized.ref 1.0 (* ### *)
-val e_sym_offs_weight_base = Unsynchronized.ref ~30.0
-val e_sym_offs_weight_factor = Unsynchronized.ref ~30.0
+val e_fun_weight_span = Unsynchronized.ref 40.0
+val e_default_sym_offs_weight = Unsynchronized.ref 1.0
+val e_sym_offs_weight_base = Unsynchronized.ref ~20.0
+val e_sym_offs_weight_span = Unsynchronized.ref 60.0
 
 fun e_weight_method_case fw sow =
   case !e_weight_method of
@@ -124,7 +125,7 @@ fun e_weight_method_case fw sow =
 
 fun scaled_e_weight w =
   e_weight_method_case (!e_fun_weight_base) (!e_sym_offs_weight_base)
-  + w * e_weight_method_case (!e_fun_weight_factor) (!e_sym_offs_weight_factor)
+  + w * e_weight_method_case (!e_fun_weight_span) (!e_sym_offs_weight_span)
   |> Real.ceil |> signed_string_of_int
 
 fun e_weight_arguments weights =
