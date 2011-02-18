@@ -1,13 +1,7 @@
-(******************************************************************************
-date: april 2002
-author: Frederic Blanqui
-email: blanqui@lri.fr
-webpage: http://www.lri.fr/~blanqui/
-
-University of Cambridge, Computer Laboratory
-William Gates Building, JJ Thomson Avenue
-Cambridge CB3 0FD, United Kingdom
-******************************************************************************)
+(*  Title:      HOL/Auth/Guard/Proto.thy
+    Author:     Frederic Blanqui, University of Cambridge Computer Laboratory
+    Copyright   2002  University of Cambridge
+*)
 
 header{*Other Protocol-Independent Results*}
 
@@ -15,13 +9,13 @@ theory Proto imports Guard_Public begin
 
 subsection{*protocols*}
 
-types rule = "event set * event"
+type_synonym rule = "event set * event"
 
 abbreviation
   msg' :: "rule => msg" where
   "msg' R == msg (snd R)"
 
-types proto = "rule set"
+type_synonym proto = "rule set"
 
 definition wdef :: "proto => bool" where
 "wdef p == ALL R k. R:p --> Number k:parts {msg' R}
@@ -155,9 +149,9 @@ by (clarify, case_tac x, auto)
 
 subsection{*types*}
 
-types keyfun = "rule => subs => nat => event list => key set"
+type_synonym keyfun = "rule => subs => nat => event list => key set"
 
-types secfun = "rule => nat => subs => key set => msg"
+type_synonym secfun = "rule => nat => subs => key set => msg"
 
 subsection{*introduction of a fresh guarded nonce*}
 

@@ -43,11 +43,9 @@ definition
   lconst   :: "i => i"  where
   "lconst(a) == lfp(univ(a), %l. LCons(a,l))"
 
-consts
-  flip     :: "i => i"
-axioms
-  flip_LNil:   "flip(LNil) = LNil"
-
+axiomatization flip :: "i => i"
+where
+  flip_LNil:   "flip(LNil) = LNil" and
   flip_LCons:  "[| x \<in> bool; l \<in> llist(bool) |] 
                 ==> flip(LCons(x,l)) = LCons(not(x), flip(l))"
 

@@ -1,4 +1,4 @@
-(*  Title:      ZF/AC/OrdQuant.thy
+(*  Title:      ZF/OrdQuant.thy
     Authors:    Krzysztof Grabczewski and L C Paulson
 *)
 

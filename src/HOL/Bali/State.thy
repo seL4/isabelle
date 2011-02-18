@@ -27,7 +27,7 @@ datatype  obj_tag =     --{* tag for generic object   *}
                            since its type is given already by the reference to 
                            it (see below) *}
 
-types   vn   = "fspec + int"                    --{* variable name      *}
+type_synonym vn = "fspec + int"                 --{* variable name      *}
 record  obj  = 
           tag :: "obj_tag"                      --{* generalized object *}
           "values" :: "(vn, val) table"      
@@ -130,7 +130,7 @@ done
 
 section "object references"
 
-types oref = "loc + qtname"         --{* generalized object reference *}
+type_synonym oref = "loc + qtname"         --{* generalized object reference *}
 syntax
   Heap  :: "loc   \<Rightarrow> oref"
   Stat  :: "qtname \<Rightarrow> oref"
@@ -213,11 +213,11 @@ done
 
 section "stores"
 
-types   globs               --{* global variables: heap and static variables *}
+type_synonym globs               --{* global variables: heap and static variables *}
         = "(oref , obj) table"
-        heap
+type_synonym heap
         = "(loc  , obj) table"
-(*      locals                   
+(* type_synonym locals                   
         = "(lname, val) table" *) (* defined in Value.thy local variables *)
 
 translations
@@ -579,7 +579,7 @@ lemma absorb_Some_JumpD: "absorb j s = Some (Jump j') \<Longrightarrow> j'\<note
 
 section "full program state"
 
-types
+type_synonym
   state = "abopt \<times> st"          --{* state including abruption information *}
 
 translations

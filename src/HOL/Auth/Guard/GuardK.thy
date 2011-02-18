@@ -1,18 +1,12 @@
-(******************************************************************************
-very similar to Guard except:
+(*  Title:      HOL/Auth/Guard/GuardK.thy
+    Author:     Frederic Blanqui, University of Cambridge Computer Laboratory
+    Copyright   2002  University of Cambridge
+
+Very similar to Guard except:
 - Guard is replaced by GuardK, guard by guardK, Nonce by Key
 - some scripts are slightly modified (+ keyset_in, kparts_parts)
 - the hypothesis Key n ~:G (keyset G) is added
-
-date: march 2002
-author: Frederic Blanqui
-email: blanqui@lri.fr
-webpage: http://www.lri.fr/~blanqui/
-
-University of Cambridge, Computer Laboratory
-William Gates Building, JJ Thomson Avenue
-Cambridge CB3 0FD, United Kingdom
-******************************************************************************)
+*)
 
 header{*protocol-independent confidentiality theorem on keys*}
 

@@ -207,21 +207,21 @@ defs  (* Bounded Quantifiers *)
   subset_def:    "A <= B == \<forall>x\<in>A. x\<in>B"
 
 
-axioms
+axiomatization where
 
   (* ZF axioms -- see Suppes p.238
      Axioms for Union, Pow and Replace state existence only,
      uniqueness is derivable using extensionality. *)
 
-  extension:     "A = B <-> A <= B & B <= A"
-  Union_iff:     "A \<in> Union(C) <-> (\<exists>B\<in>C. A\<in>B)"
-  Pow_iff:       "A \<in> Pow(B) <-> A <= B"
+  extension:     "A = B <-> A <= B & B <= A" and
+  Union_iff:     "A \<in> Union(C) <-> (\<exists>B\<in>C. A\<in>B)" and
+  Pow_iff:       "A \<in> Pow(B) <-> A <= B" and
 
   (*We may name this set, though it is not uniquely defined.*)
-  infinity:      "0\<in>Inf & (\<forall>y\<in>Inf. succ(y): Inf)"
+  infinity:      "0\<in>Inf & (\<forall>y\<in>Inf. succ(y): Inf)" and
 
   (*This formulation facilitates case analysis on A.*)
-  foundation:    "A=0 | (\<exists>x\<in>A. \<forall>y\<in>x. y~:A)"
+  foundation:    "A=0 | (\<exists>x\<in>A. \<forall>y\<in>x. y~:A)" and
 
   (*Schema axiom since predicate P is a higher-order variable*)
   replacement:   "(\<forall>x\<in>A. \<forall>y z. P(x,y) & P(x,z) --> y=z) ==>

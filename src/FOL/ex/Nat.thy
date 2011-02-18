@@ -12,21 +12,19 @@ begin
 typedecl nat
 arities nat :: "term"
 
-consts
-  Zero :: nat    ("0")
-  Suc :: "nat => nat"
+axiomatization
+  Zero :: nat  ("0") and
+  Suc :: "nat => nat" and
   rec :: "[nat, 'a, [nat, 'a] => 'a] => 'a"
-  add :: "[nat, nat] => nat"    (infixl "+" 60)
+where
+  induct: "[| P(0);  !!x. P(x) ==> P(Suc(x)) |]  ==> P(n)" and
+  Suc_inject: "Suc(m)=Suc(n) ==> m=n" and
+  Suc_neq_0: "Suc(m)=0 ==> R" and
+  rec_0: "rec(0,a,f) = a" and
+  rec_Suc: "rec(Suc(m), a, f) = f(m, rec(m,a,f))"
 
-axioms
-  induct:      "[| P(0);  !!x. P(x) ==> P(Suc(x)) |]  ==> P(n)"
-  Suc_inject:  "Suc(m)=Suc(n) ==> m=n"
-  Suc_neq_0:   "Suc(m)=0      ==> R"
-  rec_0:       "rec(0,a,f) = a"
-  rec_Suc:     "rec(Suc(m), a, f) = f(m, rec(m,a,f))"
-
-defs
-  add_def:     "m+n == rec(m, n, %x y. Suc(y))"
+definition add :: "[nat, nat] => nat"  (infixl "+" 60)
+  where "m + n == rec(m, n, %x y. Suc(y))"
 
 
 subsection {* Proofs about the natural numbers *}

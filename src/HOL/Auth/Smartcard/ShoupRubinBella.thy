@@ -11,24 +11,20 @@ discovered by investigating adherence to the principle of Goal
 Availability. Only the updated version makes the goals of confidentiality,
 authentication and key distribution available to both peers.*}
 
-consts
-
-    sesK :: "nat*key => key"
-
-axioms
-     
+axiomatization sesK :: "nat*key => key"
+where
    (*sesK is injective on each component*) 
-   inj_sesK [iff]: "(sesK(m,k) = sesK(m',k')) = (m = m' \<and> k = k')"
+   inj_sesK [iff]: "(sesK(m,k) = sesK(m',k')) = (m = m' \<and> k = k')" and
 
    (*all long-term keys differ from sesK*)
-   shrK_disj_sesK [iff]: "shrK A \<noteq> sesK(m,pk)"
-   crdK_disj_sesK [iff]: "crdK C \<noteq> sesK(m,pk)"
-   pin_disj_sesK  [iff]: "pin P \<noteq> sesK(m,pk)"
-   pairK_disj_sesK[iff]: "pairK(A,B) \<noteq> sesK(m,pk)"
+   shrK_disj_sesK [iff]: "shrK A \<noteq> sesK(m,pk)" and
+   crdK_disj_sesK [iff]: "crdK C \<noteq> sesK(m,pk)" and
+   pin_disj_sesK  [iff]: "pin P \<noteq> sesK(m,pk)" and
+   pairK_disj_sesK[iff]: "pairK(A,B) \<noteq> sesK(m,pk)" and
 
    (*needed for base case in analz_image_freshK*)
    Atomic_distrib [iff]: "Atomic`(KEY`K \<union> NONCE`N) =
-                   Atomic`(KEY`K) \<union> Atomic`(NONCE`N)" 
+                   Atomic`(KEY`K) \<union> Atomic`(NONCE`N)" and
 
   (*this protocol makes the assumption of secure means
     between each agent and his smartcard*)

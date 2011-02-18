@@ -203,7 +203,7 @@ fun execute (task, jobs) =
       Task_Queue.running task (fn () =>
         setmp_worker_task task (fn () =>
           fold (fn job => fn ok => job valid andalso ok) jobs true) ());
-    val _ = Multithreading.tracing 1 (fn () =>
+    val _ = Multithreading.tracing 2 (fn () =>
       let
         val s = Task_Queue.str_of_task task;
         fun micros time = string_of_int (Time.toNanoseconds time div 1000);

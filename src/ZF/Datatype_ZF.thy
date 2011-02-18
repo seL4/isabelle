@@ -1,4 +1,4 @@
-(*  Title:      ZF/Datatype.thy
+(*  Title:      ZF/Datatype_ZF.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1997  University of Cambridge
 *)

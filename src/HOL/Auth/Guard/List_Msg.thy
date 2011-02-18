@@ -1,13 +1,7 @@
-(******************************************************************************
-date: november 2001
-author: Frederic Blanqui
-email: blanqui@lri.fr
-webpage: http://www.lri.fr/~blanqui/
-
-University of Cambridge, Computer Laboratory
-William Gates Building, JJ Thomson Avenue
-Cambridge CB3 0FD, United Kingdom
-******************************************************************************)
+(*  Title:      HOL/Auth/Guard/List_Msg.thy
+    Author:     Frederic Blanqui, University of Cambridge Computer Laboratory
+    Copyright   2001  University of Cambridge
+*)
 
 header{*Lists of Messages and Lists of Agents*}
 

@@ -28,7 +28,7 @@ design issues:
 \end{itemize}
 *}
 
-types lenv
+type_synonym lenv
         = "(lname, ty) table"  --{* local variables, including This and Result*}
 
 record env = 
@@ -49,7 +49,7 @@ abbreviation
 
 section "Static overloading: maximally specific methods "
 
-types
+type_synonym
   emhead = "ref_ty \<times> mhead"
 
 --{* Some mnemotic selectors for emhead *}
@@ -244,7 +244,7 @@ where
 
 section "Typing for terms"
 
-types tys  = "ty + ty list"
+type_synonym tys  = "ty + ty list"
 translations
   (type) "tys" <= (type) "ty + ty list"
 

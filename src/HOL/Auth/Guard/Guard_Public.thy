@@ -1,15 +1,9 @@
-(******************************************************************************
-lemmas on guarded messages for public protocols
+(*  Title:      HOL/Auth/Guard/Guard_Public.thy
+    Author:     Frederic Blanqui, University of Cambridge Computer Laboratory
+    Copyright   2002  University of Cambridge
 
-date: march 2002
-author: Frederic Blanqui
-email: blanqui@lri.fr
-webpage: http://www.lri.fr/~blanqui/
-
-University of Cambridge, Computer Laboratory
-William Gates Building, JJ Thomson Avenue
-Cambridge CB3 0FD, United Kingdom
-******************************************************************************)
+Lemmas on guarded messages for public protocols.
+*)
 
 theory Guard_Public imports Guard Public Extensions begin
 

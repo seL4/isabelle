@@ -11,15 +11,16 @@ begin
 
 typedecl 'a list
 arities list :: ("term") "term"
-consts
-  Nil     :: "'a list"
-  Cons    :: "['a, 'a list]=> 'a list"    (infixr ":" 60)
-  app     :: "['a list, 'a list, 'a list] => o"
+
+axiomatization
+  Nil     :: "'a list" and
+  Cons    :: "['a, 'a list]=> 'a list"    (infixr ":" 60) and
+  app     :: "['a list, 'a list, 'a list] => o" and
   rev     :: "['a list, 'a list] => o"
-axioms
-  appNil:  "app(Nil,ys,ys)"
-  appCons: "app(xs,ys,zs) ==> app(x:xs, ys, x:zs)"
-  revNil:  "rev(Nil,Nil)"
+where
+  appNil:  "app(Nil,ys,ys)" and
+  appCons: "app(xs,ys,zs) ==> app(x:xs, ys, x:zs)" and
+  revNil:  "rev(Nil,Nil)" and
   revCons: "[| rev(xs,ys);  app(ys, x:Nil, zs) |] ==> rev(x:xs, zs)"
 
 schematic_lemma "app(a:b:c:Nil, d:e:Nil, ?x)"

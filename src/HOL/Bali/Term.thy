@@ -57,7 +57,7 @@ simplifications:
 
 
 
-types locals = "(lname, val) table"  --{* local variables *}
+type_synonym locals = "(lname, val) table"  --{* local variables *}
 
 
 datatype jump
@@ -78,7 +78,7 @@ datatype abrupt       --{* abrupt completion *}
         | Jump jump   --{* break, continue, return *}
         | Error error -- {* runtime errors, we wan't to detect and proof absent
                             in welltyped programms *}
-types
+type_synonym
   abopt  = "abrupt option"
 
 text {* Local variable store and exception. 
@@ -235,7 +235,7 @@ The InsInitV/E terms are only used by the smallstep semantics to model the
 intermediate steps of class-initialisation.
 *}
  
-types "term" = "(expr+stmt,var,expr list) sum3"
+type_synonym "term" = "(expr+stmt,var,expr list) sum3"
 translations
   (type) "sig"   <= (type) "mname \<times> ty list"
   (type) "term"  <= (type) "(expr+stmt,var,expr list) sum3"

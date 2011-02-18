@@ -498,7 +498,7 @@ lemma all_union_tsE [elim!]:
 section "The rules of definite assignment"
 
  
-types breakass = "(label, lname) tables" 
+type_synonym breakass = "(label, lname) tables" 
 --{* Mapping from a break label, to the set of variables that will be assigned 
      if the evaluation terminates with this break *}
     

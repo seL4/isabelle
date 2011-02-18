@@ -1,4 +1,4 @@
-(*  Title:      ZF/ArithSimp.ML
+(*  Title:      ZF/ArithSimp.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2000  University of Cambridge
 *)

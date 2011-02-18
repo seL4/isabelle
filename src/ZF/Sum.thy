@@ -1,4 +1,4 @@
-(*  Title:      ZF/sum.thy
+(*  Title:      ZF/Sum.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 *)

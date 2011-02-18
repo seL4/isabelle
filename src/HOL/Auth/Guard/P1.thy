@@ -1,17 +1,11 @@
-(******************************************************************************
-from G. Karjoth, N. Asokan and C. Gulcu
+(*  Title:      HOL/Auth/Guard/P1.thy
+    Author:     Frederic Blanqui, University of Cambridge Computer Laboratory
+    Copyright   2002  University of Cambridge
+
+From G. Karjoth, N. Asokan and C. Gulcu
 "Protecting the computation results of free-roaming agents"
-Mobiles Agents 1998, LNCS 1477
-
-date: february 2002
-author: Frederic Blanqui
-email: blanqui@lri.fr
-webpage: http://www.lri.fr/~blanqui/
-
-University of Cambridge, Computer Laboratory
-William Gates Building, JJ Thomson Avenue
-Cambridge CB3 0FD, United Kingdom
-******************************************************************************)
+Mobiles Agents 1998, LNCS 1477.
+*)
 
 header{*Protocol P1*}
 

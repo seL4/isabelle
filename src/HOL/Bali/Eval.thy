@@ -96,8 +96,8 @@ simplifications:
 *}
 
 
-types vvar  =         "val \<times> (val \<Rightarrow> state \<Rightarrow> state)"
-      vals  =        "(val, vvar, val list) sum3"
+type_synonym vvar = "val \<times> (val \<Rightarrow> state \<Rightarrow> state)"
+type_synonym vals = "(val, vvar, val list) sum3"
 translations
   (type) "vvar" <= (type) "val \<times> (val \<Rightarrow> state \<Rightarrow> state)"
   (type) "vals" <= (type) "(val, vvar, val list) sum3" 

@@ -88,42 +88,39 @@ notation (HTML output)
 finalconsts
   False All Ex eq conj disj imp
 
-axioms
-
+axiomatization where
   (* Equality *)
-
-  refl:         "a=a"
+  refl:         "a=a" and
   subst:        "a=b \<Longrightarrow> P(a) \<Longrightarrow> P(b)"
 
+
+axiomatization where
   (* Propositional logic *)
+  conjI:        "[| P;  Q |] ==> P&Q" and
+  conjunct1:    "P&Q ==> P" and
+  conjunct2:    "P&Q ==> Q" and
 
-  conjI:        "[| P;  Q |] ==> P&Q"
-  conjunct1:    "P&Q ==> P"
-  conjunct2:    "P&Q ==> Q"
+  disjI1:       "P ==> P|Q" and
+  disjI2:       "Q ==> P|Q" and
+  disjE:        "[| P|Q;  P ==> R;  Q ==> R |] ==> R" and
 
-  disjI1:       "P ==> P|Q"
-  disjI2:       "Q ==> P|Q"
-  disjE:        "[| P|Q;  P ==> R;  Q ==> R |] ==> R"
-
-  impI:         "(P ==> Q) ==> P-->Q"
-  mp:           "[| P-->Q;  P |] ==> Q"
+  impI:         "(P ==> Q) ==> P-->Q" and
+  mp:           "[| P-->Q;  P |] ==> Q" and
 
   FalseE:       "False ==> P"
 
+axiomatization where
   (* Quantifiers *)
+  allI:         "(!!x. P(x)) ==> (ALL x. P(x))" and
+  spec:         "(ALL x. P(x)) ==> P(x)" and
 
-  allI:         "(!!x. P(x)) ==> (ALL x. P(x))"
-  spec:         "(ALL x. P(x)) ==> P(x)"
-
-  exI:          "P(x) ==> (EX x. P(x))"
+  exI:          "P(x) ==> (EX x. P(x))" and
   exE:          "[| EX x. P(x);  !!x. P(x) ==> R |] ==> R"
 
 
-axioms
-
+axiomatization where
   (* Reflection, admissible *)
-
-  eq_reflection:  "(x=y)   ==> (x==y)"
+  eq_reflection:  "(x=y)   ==> (x==y)" and
   iff_reflection: "(P<->Q) ==> (P==Q)"
 
 

@@ -1401,7 +1401,7 @@ qed
 section "fields and methods"
 
 
-types
+type_synonym
   fspec = "vname \<times> qtname"
 
 translations 

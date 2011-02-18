@@ -7,17 +7,16 @@ header{*Common declarations for Chandy and Charpentier's Allocator*}
 
 theory AllocBase imports Follows MultisetSum Guar begin
 
-consts
-  NbT      :: i  (* Number of tokens in system *)
-  Nclients :: i  (* Number of clients *)
-
 abbreviation (input)
   tokbag   :: i  (* tokbags could be multisets...or any ordered type?*)
 where
   "tokbag == nat"
 
-axioms
-  NbT_pos:      "NbT \<in> nat-{0}"
+axiomatization
+  NbT :: i and  (* Number of tokens in system *)
+  Nclients :: i  (* Number of clients *)
+where
+  NbT_pos: "NbT \<in> nat-{0}" and
   Nclients_pos: "Nclients \<in> nat-{0}"
   
 text{*This function merely sums the elements of a list*}
@@ -27,9 +26,7 @@ primrec
   "tokens(Nil) = 0"
   "tokens (Cons(x,xs)) = x #+ tokens(xs)"
 
-consts
-  bag_of :: "i => i"
-
+consts bag_of :: "i => i"
 primrec
   "bag_of(Nil)    = 0"
   "bag_of(Cons(x,xs)) = {#x#} +# bag_of(xs)"
@@ -38,7 +35,7 @@ primrec
 text{*Definitions needed in Client.thy.  We define a recursive predicate
 using 0 and 1 to code the truth values.*}
 consts all_distinct0 :: "i=>i"
- primrec
+primrec
   "all_distinct0(Nil) = 1"
   "all_distinct0(Cons(a, l)) =
      (if a \<in> set_of_list(l) then 0 else all_distinct0(l))"
