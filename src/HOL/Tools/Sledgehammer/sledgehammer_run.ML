@@ -175,6 +175,7 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
   | n =>
     let
       val _ = Proof.assert_backward state
+      val print = if auto then K () else Output.urgent_message
       val state =
         state |> Proof.map_context (Config.put SMT_Config.verbose debug)
       val ctxt = Proof.context_of state
@@ -186,7 +187,7 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
       val _ = case find_first (not o is_prover_supported ctxt) provers of
                 SOME name => error ("No such prover: " ^ name ^ ".")
               | NONE => ()
-      val _ = if auto then () else Output.urgent_message "Sledgehammering..."
+      val _ = print "Sledgehammering..."
       val (smts, atps) = provers |> List.partition (is_smt_prover ctxt)
       fun launch_provers state get_facts translate maybe_smt_filter provers =
         let
@@ -234,7 +235,7 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
                           "Including (up to) " ^ string_of_int (length facts) ^
                           " relevant fact" ^ plural_s (length facts) ^ ":\n" ^
                           (facts |> map (fst o fst) |> space_implode " ") ^ ".")
-                       |> Output.urgent_message
+                       |> print
                      else
                        ())
         end
@@ -265,11 +266,13 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
       fun launch_atps_and_smt_solvers () =
         [launch_atps, launch_smts]
         |> smart_par_list_map (fn f => f (false, state) |> K ())
-        handle ERROR msg => (Output.urgent_message ("Error: " ^ msg); error msg)
+        handle ERROR msg => (print ("Error: " ^ msg); error msg)
     in
       (false, state)
       |> (if blocking then launch_atps #> not auto ? launch_smts
           else (fn p => Future.fork (tap launch_atps_and_smt_solvers) |> K p))
+      handle TimeLimit.TimeOut =>
+             (print "Sledgehammer ran out of time."; (false, state))
     end
 
 end;
