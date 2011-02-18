@@ -109,10 +109,10 @@ val tstp_proof_delims =
 datatype e_weight_method = E_Auto | E_Fun_Weight | E_Sym_Offset_Weight
 
 val e_weight_method = Unsynchronized.ref E_Fun_Weight
-val e_default_fun_weight = Unsynchronized.ref 0.5
+val e_default_fun_weight = Unsynchronized.ref 20.0 (* ### *)
 val e_fun_weight_base = Unsynchronized.ref 0.0
 val e_fun_weight_factor = Unsynchronized.ref 40.0
-val e_default_sym_offs_weight = Unsynchronized.ref 0.0
+val e_default_sym_offs_weight = Unsynchronized.ref 1.0 (* ### *)
 val e_sym_offs_weight_base = Unsynchronized.ref ~30.0
 val e_sym_offs_weight_factor = Unsynchronized.ref ~30.0
 
@@ -138,8 +138,8 @@ fun e_weight_arguments weights =
     \--delete-bad-limit=150000000 -WSelectMaxLComplexAvoidPosPred \
     \-H'(4*" ^ e_weight_method_case "FunWeight" "SymOffsetWeight" ^
     "(SimulateSOS, " ^
-    scaled_e_weight (e_weight_method_case (!e_default_fun_weight)
-                                          (!e_default_sym_offs_weight)) ^
+    (e_weight_method_case (!e_default_fun_weight) (!e_default_sym_offs_weight)
+     |> Real.ceil |> signed_string_of_int) ^
     ",20,1.5,1.5,1" ^
     (weights () |> map (fn (s, w) => "," ^ s ^ ":" ^ scaled_e_weight w)
                 |> implode) ^

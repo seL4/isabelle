@@ -294,7 +294,7 @@ fun get_helper_facts ctxt explicit_forall type_sys formulas =
        in
          [Fof (helper_prefix ^ ascii_of "ti_ti", Axiom,
                AAtom (ATerm (`I "equal", [tag (tag (var "Y")), tag (var "Y")]))
-               |> explicit_forall ? close_universally)]
+               |> explicit_forall ? close_universally, NONE)]
        end
      else
        [])
@@ -440,14 +440,15 @@ fun formula_for_fact ctxt type_sys
            (formula_for_combformula ctxt type_sys combformula)
 
 fun problem_line_for_fact ctxt prefix type_sys (formula as {name, kind, ...}) =
-  Fof (prefix ^ ascii_of name, kind, formula_for_fact ctxt type_sys formula)
+  Fof (prefix ^ ascii_of name, kind, formula_for_fact ctxt type_sys formula,
+       NONE)
 
 fun problem_line_for_class_rel_clause (ClassRelClause {name, subclass,
                                                        superclass, ...}) =
   let val ty_arg = ATerm (("T", "T"), []) in
     Fof (class_rel_clause_prefix ^ ascii_of name, Axiom,
          AConn (AImplies, [AAtom (ATerm (subclass, [ty_arg])),
-                           AAtom (ATerm (superclass, [ty_arg]))]))
+                           AAtom (ATerm (superclass, [ty_arg]))]), NONE)
   end
 
 fun fo_literal_for_arity_literal (TConsLit (c, t, args)) =
@@ -461,12 +462,12 @@ fun problem_line_for_arity_clause (ArityClause {name, conclLit, premLits,
        mk_ahorn (map (formula_for_fo_literal o apfst not
                       o fo_literal_for_arity_literal) premLits)
                 (formula_for_fo_literal
-                     (fo_literal_for_arity_literal conclLit)))
+                     (fo_literal_for_arity_literal conclLit)), NONE)
 
 fun problem_line_for_conjecture ctxt type_sys
         ({name, kind, combformula, ...} : translated_formula) =
   Fof (conjecture_prefix ^ name, kind,
-       formula_for_combformula ctxt type_sys combformula)
+       formula_for_combformula ctxt type_sys combformula, NONE)
 
 fun free_type_literals_for_conjecture type_sys
         ({ctypes_sorts, ...} : translated_formula) =
@@ -474,7 +475,8 @@ fun free_type_literals_for_conjecture type_sys
                |> map fo_literal_for_type_literal
 
 fun problem_line_for_free_type j lit =
-  Fof (tfree_prefix ^ string_of_int j, Hypothesis, formula_for_fo_literal lit)
+  Fof (tfree_prefix ^ string_of_int j, Hypothesis, formula_for_fo_literal lit,
+       NONE)
 fun problem_lines_for_free_types type_sys conjs =
   let
     val litss = map (free_type_literals_for_conjecture type_sys) conjs
@@ -502,7 +504,7 @@ fun consider_formula (AQuant (_, _, phi)) = consider_formula phi
   | consider_formula (AConn (_, phis)) = fold consider_formula phis
   | consider_formula (AAtom tm) = consider_term true tm
 
-fun consider_problem_line (Fof (_, _, phi)) = consider_formula phi
+fun consider_problem_line (Fof (_, _, phi, _)) = consider_formula phi
 fun consider_problem problem = fold (fold consider_problem_line o snd) problem
 
 (* needed for helper facts if the problem otherwise does not involve equality *)
@@ -593,8 +595,9 @@ fun repair_formula thy explicit_forall type_sys const_tab =
   in aux #> explicit_forall ? close_universally end
 
 fun repair_problem_line thy explicit_forall type_sys const_tab
-                        (Fof (ident, kind, phi)) =
-  Fof (ident, kind, repair_formula thy explicit_forall type_sys const_tab phi)
+                        (Fof (ident, kind, phi, source)) =
+  Fof (ident, kind, repair_formula thy explicit_forall type_sys const_tab phi,
+       source)
 fun repair_problem thy = map o apsnd o map ooo repair_problem_line thy
 
 fun dest_Fof (Fof z) = z
@@ -654,7 +657,7 @@ val fact_max_weight = 1.0
 fun add_term_weights weight (ATerm (s, tms)) =
   (not (is_atp_variable s) andalso s <> "equal") ? Symtab.default (s, weight)
   #> fold (add_term_weights weight) tms
-fun add_problem_line_weights weight (Fof (_, _, phi)) =
+fun add_problem_line_weights weight (Fof (_, _, phi, _)) =
   fold_formula (add_term_weights weight) phi
 
 fun add_conjectures_weights [] = I
