@@ -1,15 +1,9 @@
-(******************************************************************************
-incorporating Lowe's fix (inclusion of B's identity in round 2)
+(*  Title:      HOL/Auth/Guard/Guard_NS_Public.thy
+    Author:     Frederic Blanqui, University of Cambridge Computer Laboratory
+    Copyright   2002  University of Cambridge
 
-date: march 2002
-author: Frederic Blanqui
-email: blanqui@lri.fr
-webpage: http://www.lri.fr/~blanqui/
-
-University of Cambridge, Computer Laboratory
-William Gates Building, JJ Thomson Avenue
-Cambridge CB3 0FD, United Kingdom
-******************************************************************************)
+Incorporating Lowe's fix (inclusion of B's identity in round 2).
+*)
 
 header{*Needham-Schroeder-Lowe Public-Key Protocol*}
 

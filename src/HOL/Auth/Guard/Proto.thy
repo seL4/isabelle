@@ -1,13 +1,7 @@
-(******************************************************************************
-date: april 2002
-author: Frederic Blanqui
-email: blanqui@lri.fr
-webpage: http://www.lri.fr/~blanqui/
-
-University of Cambridge, Computer Laboratory
-William Gates Building, JJ Thomson Avenue
-Cambridge CB3 0FD, United Kingdom
-******************************************************************************)
+(*  Title:      HOL/Auth/Guard/Proto.thy
+    Author:     Frederic Blanqui, University of Cambridge Computer Laboratory
+    Copyright   2002  University of Cambridge
+*)
 
 header{*Other Protocol-Independent Results*}
 
