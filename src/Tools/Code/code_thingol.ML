@@ -15,14 +15,15 @@ signature BASIC_CODE_THINGOL =
 sig
   type vname = string;
   datatype dict =
-      Dict of (string list * plain_dict)
+      Dict of string list * plain_dict
   and plain_dict = 
       Dict_Const of string * dict list list
     | Dict_Var of vname * (int * int)
   datatype itype =
       `%% of string * itype list
     | ITyVar of vname;
-  type const = string * ((itype list * dict list list) * itype list (*types of arguments*))
+  type const = string * ((itype list * dict list list) * itype list)
+    (* f [T1..Tn] {dicts} (_::S1) .. (_..Sm) =^= (f, (([T1..Tn], dicts), [S1..Sm]) *)
   datatype iterm =
       IConst of const
     | IVar of vname option
@@ -51,6 +52,7 @@ sig
   val unfold_pat_abs: iterm -> (iterm * itype) list * iterm
   val unfold_const_app: iterm -> (const * iterm list) option
   val is_IVar: iterm -> bool
+  val is_IAbs: iterm -> bool
   val eta_expand: int -> const * iterm list -> iterm
   val contains_dict_var: iterm -> bool
   val locally_monomorphic: iterm -> bool
@@ -134,7 +136,7 @@ fun unfoldr dest x =
 type vname = string;
 
 datatype dict =
-    Dict of (string list * plain_dict)
+    Dict of string list * plain_dict
 and plain_dict = 
     Dict_Const of string * dict list list
   | Dict_Var of vname * (int * int)
@@ -155,6 +157,9 @@ datatype iterm =
 
 fun is_IVar (IVar _) = true
   | is_IVar _ = false;
+
+fun is_IAbs (_ `|=> _) = true
+  | is_IAbs _ = false;
 
 val op `$$ = Library.foldl (op `$);
 val op `|==> = Library.foldr (op `|=>);

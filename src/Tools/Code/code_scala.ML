@@ -102,23 +102,29 @@ fun print_scala_stmt labelled_name tyco_syntax const_syntax reserved
       gen_print_bind (print_term tyvars true) some_thm fxy p
     and print_case tyvars some_thm vars fxy (cases as ((_, [_]), _)) =
           let
-            val (binds, body) = Code_Thingol.unfold_let (ICase cases);
-            fun print_match ((IVar NONE, _), t as  _ `|=> _) vars =
-                  ((false, enclose "{" "}" [print_term tyvars false some_thm vars NOBR t]), vars)
-              | print_match ((IVar NONE, _), t) vars =
-                  ((true, print_term tyvars false some_thm vars NOBR t), vars)
-              | print_match ((pat, ty), t) vars =
-                  vars
-                  |> print_bind tyvars some_thm BR pat
-                  |>> (fn p => (false, concat [str "val", constraint p (print_typ tyvars NOBR ty),
-                      str "=", print_term tyvars false some_thm vars NOBR t]))
-            val (seps_ps, vars') = fold_map print_match binds vars;
+            val (bind :: binds, body) = Code_Thingol.unfold_let (ICase cases);
+            fun is_IAbs (_ `|=> _) = true
+              | is_IAbs _ = false;
+            fun print_match_val ((pat, ty), t) vars =
+              vars
+              |> print_bind tyvars some_thm BR pat
+              |>> (fn p => (false, concat [str "val", constraint p (print_typ tyvars NOBR ty),
+                  str "=", print_term tyvars false some_thm vars NOBR t]));
+            fun print_match_seq t vars =
+              ((true, print_term tyvars false some_thm vars NOBR t), vars);
+            fun print_match is_first ((IVar NONE, ty), t) =
+                  if is_IAbs t andalso is_first
+                    then print_match_val ((IVar NONE, ty), t)
+                    else print_match_seq t
+              | print_match _ ((pat, ty), t) =
+                  print_match_val ((pat, ty), t);
+            val (seps_ps, vars') =
+              vars |> print_match true bind ||>> fold_map (print_match false) binds |>> uncurry cons;
             val all_seps_ps = seps_ps @ [(true, print_term tyvars false some_thm vars' NOBR body)];
             fun insert_seps [(_, p)] = [p]
               | insert_seps ((_, p) :: (seps_ps as (sep, _) :: _)) =
                   (if sep then Pretty.block [p, str ";"] else p) :: insert_seps seps_ps
-          in brackify_block fxy (str "{") (insert_seps all_seps_ps) (str "}")
-          end
+          in brackify_block fxy (str "{") (insert_seps all_seps_ps) (str "}") end
       | print_case tyvars some_thm vars fxy (((t, ty), clauses as _ :: _), _) =
           let
             fun print_select (pat, body) =
@@ -135,7 +141,7 @@ fun print_scala_stmt labelled_name tyco_syntax const_syntax reserved
           (brackify fxy o Pretty.breaks o map str) ["error(\"empty case\")"];
     fun print_context tyvars vs name = applify "[" "]"
       (fn (v, sort) => (Pretty.block o map str)
-        (lookup_tyvar tyvars v :: maps (fn sort => [": ", deresolve sort]) sort))
+        (lookup_tyvar tyvars v :: maps (fn sort => [" : ", deresolve sort]) sort))
           NOBR ((str o deresolve) name) vs;
     fun print_defhead tyvars vars name vs params tys ty =
       Pretty.block [str "def ", constraint (applify "(" ")" (fn (param, ty) =>
