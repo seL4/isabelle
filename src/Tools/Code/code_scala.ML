@@ -103,8 +103,6 @@ fun print_scala_stmt labelled_name tyco_syntax const_syntax reserved
     and print_case tyvars some_thm vars fxy (cases as ((_, [_]), _)) =
           let
             val (bind :: binds, body) = Code_Thingol.unfold_let (ICase cases);
-            fun is_IAbs (_ `|=> _) = true
-              | is_IAbs _ = false;
             fun print_match_val ((pat, ty), t) vars =
               vars
               |> print_bind tyvars some_thm BR pat
@@ -113,7 +111,7 @@ fun print_scala_stmt labelled_name tyco_syntax const_syntax reserved
             fun print_match_seq t vars =
               ((true, print_term tyvars false some_thm vars NOBR t), vars);
             fun print_match is_first ((IVar NONE, ty), t) =
-                  if is_IAbs t andalso is_first
+                  if Code_Thingol.is_IAbs t andalso is_first
                     then print_match_val ((IVar NONE, ty), t)
                     else print_match_seq t
               | print_match _ ((pat, ty), t) =
