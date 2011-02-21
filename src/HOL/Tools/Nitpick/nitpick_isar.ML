@@ -58,6 +58,7 @@ val default_default_params =
    ("destroy_constrs", "true"),
    ("specialize", "true"),
    ("star_linear_preds", "true"),
+   ("preconstr", "smart"),
    ("peephole_optim", "true"),
    ("datatype_sym_break", "5"),
    ("kodkod_sym_break", "15"),
@@ -90,6 +91,7 @@ val negated_params =
    ("dont_destroy_constrs", "destroy_constrs"),
    ("dont_specialize", "specialize"),
    ("dont_star_linear_preds", "star_linear_preds"),
+   ("dont_preconstr", "preconstr"),
    ("no_peephole_optim", "peephole_optim"),
    ("no_debug", "debug"),
    ("quiet", "verbose"),
@@ -102,11 +104,11 @@ val negated_params =
 fun is_known_raw_param s =
   AList.defined (op =) default_default_params s orelse
   AList.defined (op =) negated_params s orelse
-  member (op =) ["max", "show_all", "whack", "atoms", "eval", "expect"] s orelse
+  member (op =) ["max", "show_all", "whack", "eval", "atoms", "expect"] s orelse
   exists (fn p => String.isPrefix (p ^ " ") s)
          ["card", "max", "iter", "box", "dont_box", "finitize", "dont_finitize",
-          "mono", "non_mono", "std", "non_std", "wf", "non_wf", "format",
-          "atoms"]
+          "mono", "non_mono", "std", "non_std", "wf", "non_wf", "preconstr",
+          "dont_preconstr", "format", "atoms"]
 
 fun check_raw_param (s, _) =
   if is_known_raw_param s then ()
@@ -251,6 +253,8 @@ fun extract_params ctxt auto default_params override_params =
     val destroy_constrs = lookup_bool "destroy_constrs"
     val specialize = lookup_bool "specialize"
     val star_linear_preds = lookup_bool "star_linear_preds"
+    val preconstrs =
+      lookup_bool_option_assigns read_term_polymorphic "preconstr"
     val peephole_optim = lookup_bool "peephole_optim"
     val datatype_sym_break = lookup_int "datatype_sym_break"
     val kodkod_sym_break = lookup_int "kodkod_sym_break"
@@ -259,9 +263,9 @@ fun extract_params ctxt auto default_params override_params =
     val max_threads = if auto then 1 else Int.max (0, lookup_int "max_threads")
     val show_datatypes = debug orelse lookup_bool "show_datatypes"
     val show_consts = debug orelse lookup_bool "show_consts"
+    val evals = lookup_term_list_polymorphic "eval"
     val formats = lookup_ints_assigns read_term_polymorphic "format" 0
     val atomss = lookup_strings_assigns read_type_polymorphic "atoms"
-    val evals = lookup_term_list_polymorphic "eval"
     val max_potential =
       if auto then 0 else Int.max (0, lookup_int "max_potential")
     val max_genuine = Int.max (0, lookup_int "max_genuine")
@@ -281,12 +285,12 @@ fun extract_params ctxt auto default_params override_params =
      user_axioms = user_axioms, assms = assms, whacks = whacks,
      merge_type_vars = merge_type_vars, binary_ints = binary_ints,
      destroy_constrs = destroy_constrs, specialize = specialize,
-     star_linear_preds = star_linear_preds, peephole_optim = peephole_optim,
-     datatype_sym_break = datatype_sym_break,
+     star_linear_preds = star_linear_preds, preconstrs = preconstrs,
+     peephole_optim = peephole_optim, datatype_sym_break = datatype_sym_break,
      kodkod_sym_break = kodkod_sym_break, timeout = timeout,
      tac_timeout = tac_timeout, max_threads = max_threads,
      show_datatypes = show_datatypes, show_consts = show_consts,
-     formats = formats, atomss = atomss, evals = evals,
+     evals = evals, formats = formats, atomss = atomss,
      max_potential = max_potential, max_genuine = max_genuine,
      check_potential = check_potential, check_genuine = check_genuine,
      batch_size = batch_size, expect = expect}

@@ -38,7 +38,7 @@ val hol_ctxt as {thy, ...} : hol_context =
   {thy = thy, ctxt = ctxt, max_bisim_depth = ~1, boxes = [],
    stds = stds, wfs = [], user_axioms = NONE, debug = false,
    whacks = [], binary_ints = SOME false, destroy_constrs = true,
-   specialize = false, star_linear_preds = false,
+   specialize = false, star_linear_preds = false, preconstrs = [],
    tac_timeout = NONE, evals = [], case_names = case_names,
    def_tables = def_tables, nondef_table = nondef_table,
    user_nondefs = user_nondefs, simp_table = simp_table,
@@ -188,7 +188,7 @@ fun check_theory thy =
       let
         val t = th |> prop_of |> Type.legacy_freeze |> close_form
         val neg_t = Logic.mk_implies (t, @{prop False})
-        val (nondef_ts, def_ts, _, _, _) =
+        val (nondef_ts, def_ts, _, _, _, _) =
           time_limit preproc_timeout (preprocess_formulas hol_ctxt []) neg_t
         val res = name ^ ": " ^ check_formulas (nondef_ts, def_ts)
       in File.append path (res ^ "\n"); writeln res end

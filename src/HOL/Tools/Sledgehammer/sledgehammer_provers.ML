@@ -478,8 +478,6 @@ fun run_atp auto name
 (* "SMT_Failure.Abnormal_Termination" carries the solver's return code. Until
    these are sorted out properly in the SMT module, we have to interpret these
    ourselves. *)
-val perl_failures =
-  [(127, NoPerl)]
 val remote_smt_failures =
   [(22, CantConnect),
    (2, NoLibwwwPerl)]
@@ -495,8 +493,7 @@ val z3_failures =
 val unix_failures =
   [(139, Crashed)]
 val smt_failures =
-  perl_failures @ remote_smt_failures @ z3_wrapper_failures @ z3_failures @
-  unix_failures
+  remote_smt_failures @ z3_wrapper_failures @ z3_failures @ unix_failures
 
 val internal_error_prefix = "Internal error: "
 
