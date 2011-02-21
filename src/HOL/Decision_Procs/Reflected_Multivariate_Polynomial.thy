@@ -258,26 +258,26 @@ lemma polyadd_normh: "\<lbrakk>isnpolyh p n0 ; isnpolyh q n1\<rbrakk>
       \<Longrightarrow> isnpolyh (polyadd p q) (min n0 n1)"
 proof(induct p q arbitrary: n0 n1 rule: polyadd.induct)
   case (2 ab c' n' p' n0 n1)
-  from prems have  th1: "isnpolyh (C ab) (Suc n')" by simp 
-  from prems(3) have th2: "isnpolyh c' (Suc n')"  and nplen1: "n' \<ge> n1" by simp_all
+  from 2 have  th1: "isnpolyh (C ab) (Suc n')" by simp 
+  from 2(3) have th2: "isnpolyh c' (Suc n')"  and nplen1: "n' \<ge> n1" by simp_all
   with isnpolyh_mono have cp: "isnpolyh c' (Suc n')" by simp
-  with prems(1)[OF th1 th2] have th3:"isnpolyh (C ab +\<^sub>p c') (Suc n')" by simp
+  with 2(1)[OF th1 th2] have th3:"isnpolyh (C ab +\<^sub>p c') (Suc n')" by simp
   from nplen1 have n01len1: "min n0 n1 \<le> n'" by simp 
-  thus ?case using prems th3 by simp
+  thus ?case using 2 th3 by simp
 next
   case (3 c' n' p' ab n1 n0)
-  from prems have  th1: "isnpolyh (C ab) (Suc n')" by simp 
-  from prems(2) have th2: "isnpolyh c' (Suc n')"  and nplen1: "n' \<ge> n1" by simp_all
+  from 3 have  th1: "isnpolyh (C ab) (Suc n')" by simp 
+  from 3(2) have th2: "isnpolyh c' (Suc n')"  and nplen1: "n' \<ge> n1" by simp_all
   with isnpolyh_mono have cp: "isnpolyh c' (Suc n')" by simp
-  with prems(1)[OF th2 th1] have th3:"isnpolyh (c' +\<^sub>p C ab) (Suc n')" by simp
+  with 3(1)[OF th2 th1] have th3:"isnpolyh (c' +\<^sub>p C ab) (Suc n')" by simp
   from nplen1 have n01len1: "min n0 n1 \<le> n'" by simp 
-  thus ?case using prems th3 by simp
+  thus ?case using 3 th3 by simp
 next
   case (4 c n p c' n' p' n0 n1)
   hence nc: "isnpolyh c (Suc n)" and np: "isnpolyh p n" by simp_all
-  from prems have nc': "isnpolyh c' (Suc n')" and np': "isnpolyh p' n'" by simp_all 
-  from prems have ngen0: "n \<ge> n0" by simp
-  from prems have n'gen1: "n' \<ge> n1" by simp 
+  from 4 have nc': "isnpolyh c' (Suc n')" and np': "isnpolyh p' n'" by simp_all 
+  from 4 have ngen0: "n \<ge> n0" by simp
+  from 4 have n'gen1: "n' \<ge> n1" by simp 
   have "n < n' \<or> n' < n \<or> n = n'" by auto
   moreover {assume eq: "n = n'"
     with "4.hyps"(3)[OF nc nc'] 
@@ -286,25 +286,25 @@ next
       using isnpolyh_mono[where n'="min n0 n1" and n="Suc n"] ngen0 n'gen1 by auto
     from eq "4.hyps"(4)[OF np np'] have npp': "isnpolyh (p +\<^sub>p p') n" by simp
     have minle: "min n0 n1 \<le> n'" using ngen0 n'gen1 eq by simp
-    from minle npp' ncc'n01 prems ngen0 n'gen1 ncc' have ?case by (simp add: Let_def)}
+    from minle npp' ncc'n01 4 eq ngen0 n'gen1 ncc' have ?case by (simp add: Let_def)}
   moreover {assume lt: "n < n'"
     have "min n0 n1 \<le> n0" by simp
-    with prems have th1:"min n0 n1 \<le> n" by auto 
-    from prems have th21: "isnpolyh c (Suc n)" by simp
-    from prems have th22: "isnpolyh (CN c' n' p') n'" by simp
+    with 4 lt have th1:"min n0 n1 \<le> n" by auto 
+    from 4 have th21: "isnpolyh c (Suc n)" by simp
+    from 4 have th22: "isnpolyh (CN c' n' p') n'" by simp
     from lt have th23: "min (Suc n) n' = Suc n" by arith
     from "4.hyps"(1)[OF th21 th22]
     have "isnpolyh (polyadd c (CN c' n' p')) (Suc n)" using th23 by simp
-    with prems th1 have ?case by simp } 
+    with 4 lt th1 have ?case by simp } 
   moreover {assume gt: "n' < n" hence gt': "n' < n \<and> \<not> n < n'" by simp
     have "min n0 n1 \<le> n1"  by simp
-    with prems have th1:"min n0 n1 \<le> n'" by auto
-    from prems have th21: "isnpolyh c' (Suc n')" by simp_all
-    from prems have th22: "isnpolyh (CN c n p) n" by simp
+    with 4 gt have th1:"min n0 n1 \<le> n'" by auto
+    from 4 have th21: "isnpolyh c' (Suc n')" by simp_all
+    from 4 have th22: "isnpolyh (CN c n p) n" by simp
     from gt have th23: "min n (Suc n') = Suc n'" by arith
     from "4.hyps"(2)[OF th22 th21]
     have "isnpolyh (polyadd (CN c n p) c') (Suc n')" using th23 by simp
-    with prems th1 have ?case by simp}
+    with 4 gt th1 have ?case by simp}
       ultimately show ?case by blast
 qed auto
 
@@ -375,11 +375,11 @@ lemma polyadd_eq_const_degreen: "\<lbrakk> isnpolyh p n0 ; isnpolyh q n1 ; polya
   \<Longrightarrow> degreen p m = degreen q m"
 proof (induct p q arbitrary: m n0 n1 c rule: polyadd.induct)
   case (4 c n p c' n' p' m n0 n1 x) 
-  {assume nn': "n' < n" hence ?case using prems by simp}
+  {assume nn': "n' < n" hence ?case using 4 by simp}
   moreover 
   {assume nn':"\<not> n' < n" hence "n < n' \<or> n = n'" by arith
-    moreover {assume "n < n'" with prems have ?case by simp }
-    moreover {assume eq: "n = n'" hence ?case using prems 
+    moreover {assume "n < n'" with 4 have ?case by simp }
+    moreover {assume eq: "n = n'" hence ?case using 4 
         apply (cases "p +\<^sub>p p' = 0\<^sub>p")
         apply (auto simp add: Let_def)
         by blast
@@ -645,7 +645,7 @@ proof (induct k arbitrary: n rule: polypow.induct)
   case (2 k n)
   let ?q = "polypow (Suc k div 2) p"
   let ?d = "polymul ?q ?q"
-  from prems have th1:"isnpolyh ?q n" and th2: "isnpolyh p n" by blast+
+  from 2 have th1:"isnpolyh ?q n" and th2: "isnpolyh p n" by blast+
   from polymul_normh[OF th1 th1] have dn: "isnpolyh ?d n" by simp
   from polymul_normh[OF th2 dn] have on: "isnpolyh (polymul p ?d) n" by simp
   from dn on show ?case by (simp add: Let_def)
@@ -706,7 +706,7 @@ lemma behead:
   using np
 proof (induct p arbitrary: n rule: behead.induct)
   case (1 c p n) hence pn: "isnpolyh p n" by simp
-  from prems(2)[OF pn] 
+  from 1(1)[OF pn] 
   have th:"Ipoly bs (Add (Mul (head p) (Pw (Bound 0) (degree p))) (behead p)) = Ipoly bs p" . 
   then show ?case using "1.hyps" apply (simp add: Let_def,cases "behead p = 0\<^sub>p")
     by (simp_all add: th[symmetric] field_simps power_Suc)
@@ -722,7 +722,7 @@ proof(induct p arbitrary: n rule: poly.induct, auto)
   case (goal1 c n p n')
   hence "n = Suc (n - 1)" by simp
   hence "isnpolyh p (Suc (n - 1))"  using `isnpolyh p n` by simp
-  with prems(2) show ?case by simp
+  with goal1(2) show ?case by simp
 qed
 
 lemma isconstant_polybound0: "isnpolyh p n0 \<Longrightarrow> isconstant p \<longleftrightarrow> polybound0 p"
@@ -1074,16 +1074,16 @@ proof(induct p q rule:polyadd.induct)
   case (1 c c') thus ?case by (simp add: Nsub_def Nsub0[simplified Nsub_def]) 
 next
   case (2 c c' n' p') 
-  from prems have "degree (C c) = degree (CN c' n' p')" by simp
+  from 2 have "degree (C c) = degree (CN c' n' p')" by simp
   hence nz:"n' > 0" by (cases n', auto)
   hence "head (CN c' n' p') = CN c' n' p'" by (cases n', auto)
-  with prems show ?case by simp
+  with 2 show ?case by simp
 next
   case (3 c n p c') 
-  from prems have "degree (C c') = degree (CN c n p)" by simp
+  hence "degree (C c') = degree (CN c n p)" by simp
   hence nz:"n > 0" by (cases n, auto)
   hence "head (CN c n p) = CN c n p" by (cases n, auto)
-  with prems show ?case by simp
+  with 3 show ?case by simp
 next
   case (4 c n p c' n' p')
   hence H: "isnpolyh (CN c n p) n0" "isnpolyh (CN c' n' p') n1" 
@@ -1098,22 +1098,22 @@ next
   moreover
   {assume nn': "n = n'"
     have "n = 0 \<or> n >0" by arith
-    moreover {assume nz: "n = 0" hence ?case using prems by (auto simp add: Let_def degcmc')}
+    moreover {assume nz: "n = 0" hence ?case using 4 nn' by (auto simp add: Let_def degcmc')}
     moreover {assume nz: "n > 0"
       with nn' H(3) have  cc':"c = c'" and pp': "p = p'" by (cases n, auto)+
-      hence ?case using polysub_same_0[OF p'nh, simplified polysub_def split_def fst_conv snd_conv] polysub_same_0[OF c'nh, simplified polysub_def split_def fst_conv snd_conv] using nn' prems by (simp add: Let_def)}
+      hence ?case using polysub_same_0[OF p'nh, simplified polysub_def split_def fst_conv snd_conv] polysub_same_0[OF c'nh, simplified polysub_def] using nn' 4 by (simp add: Let_def)}
     ultimately have ?case by blast}
   moreover
   {assume nn': "n < n'" hence n'p: "n' > 0" by simp 
     hence headcnp':"head (CN c' n' p') = CN c' n' p'"  by (cases n', simp_all)
-    have degcnp': "degree (CN c' n' p') = 0" and degcnpeq: "degree (CN c n p) = degree (CN c' n' p')" using prems by (cases n', simp_all)
+    have degcnp': "degree (CN c' n' p') = 0" and degcnpeq: "degree (CN c n p) = degree (CN c' n' p')" using 4 nn' by (cases n', simp_all)
     hence "n > 0" by (cases n, simp_all)
     hence headcnp: "head (CN c n p) = CN c n p" by (cases n, auto)
     from H(3) headcnp headcnp' nn' have ?case by auto}
   moreover
   {assume nn': "n > n'"  hence np: "n > 0" by simp 
     hence headcnp:"head (CN c n p) = CN c n p"  by (cases n, simp_all)
-    from prems have degcnpeq: "degree (CN c' n' p') = degree (CN c n p)" by simp
+    from 4 have degcnpeq: "degree (CN c' n' p') = degree (CN c n p)" by simp
     from np have degcnp: "degree (CN c n p) = 0" by (cases n, simp_all)
     with degcnpeq have "n' > 0" by (cases n', simp_all)
     hence headcnp': "head (CN c' n' p') = CN c' n' p'" by (cases n', auto)
@@ -1127,7 +1127,7 @@ by (induct p arbitrary: n0 rule: head.induct, simp_all add: shift1_def)
 lemma funpow_shift1_head: "isnpolyh p n0 \<Longrightarrow> p\<noteq> 0\<^sub>p \<Longrightarrow> head (funpow k shift1 p) = head p"
 proof(induct k arbitrary: n0 p)
   case (Suc k n0 p) hence "isnpolyh (shift1 p) 0" by (simp add: shift1_isnpolyh)
-  with prems have "head (funpow k shift1 (shift1 p)) = head (shift1 p)"
+  with Suc have "head (funpow k shift1 (shift1 p)) = head (shift1 p)"
     and "head (shift1 p) = head p" by (simp_all add: shift1_head) 
   thus ?case by (simp add: funpow_swap1)
 qed auto  
@@ -1174,11 +1174,11 @@ lemma polymul_head_polyeq:
 proof (induct p q arbitrary: n0 n1 rule: polymul.induct)
   case (2 c c' n' p' n0 n1)
   hence "isnpolyh (head (CN c' n' p')) n1" "isnormNum c"  by (simp_all add: head_isnpolyh)
-  thus ?case using prems by (cases n', auto) 
+  thus ?case using 2 by (cases n', auto) 
 next 
   case (3 c n p c' n0 n1) 
   hence "isnpolyh (head (CN c n p)) n0" "isnormNum c'"  by (simp_all add: head_isnpolyh)
-  thus ?case using prems by (cases n, auto)
+  thus ?case using 3 by (cases n, auto)
 next
   case (4 c n p c' n' p' n0 n1)
   hence norm: "isnpolyh p n" "isnpolyh c (Suc n)" "isnpolyh p' n'" "isnpolyh c' (Suc n')"
@@ -1574,7 +1574,7 @@ definition "swapnorm n m t = polynate (swap n m t)"
 
 lemma swapnorm: assumes nbs: "n < length bs" and mbs: "m < length bs"
   shows "((Ipoly bs (swapnorm n m t) :: 'a\<Colon>{field_char_0, field_inverse_zero})) = Ipoly ((bs[n:= bs!m])[m:= bs!n]) t"
-  using swap[OF prems] swapnorm_def by simp
+  using swap[OF assms] swapnorm_def by simp
 
 lemma swapnorm_isnpoly[simp]: 
     assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
