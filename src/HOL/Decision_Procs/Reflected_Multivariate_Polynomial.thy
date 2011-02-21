@@ -50,75 +50,72 @@ primrec polysubst0:: "poly \<Rightarrow> poly \<Rightarrow> poly" (* substitute 
 | "polysubst0 t (CN c n p) = (if n=0 then Add (polysubst0 t c) (Mul t (polysubst0 t p))
                              else CN (polysubst0 t c) n (polysubst0 t p))"
 
-consts 
-  decrpoly:: "poly \<Rightarrow> poly" 
-recdef decrpoly "measure polysize"
+fun decrpoly:: "poly \<Rightarrow> poly" 
+where
   "decrpoly (Bound n) = Bound (n - 1)"
-  "decrpoly (Neg a) = Neg (decrpoly a)"
-  "decrpoly (Add a b) = Add (decrpoly a) (decrpoly b)"
-  "decrpoly (Sub a b) = Sub (decrpoly a) (decrpoly b)"
-  "decrpoly (Mul a b) = Mul (decrpoly a) (decrpoly b)"
-  "decrpoly (Pw p n) = Pw (decrpoly p) n"
-  "decrpoly (CN c n p) = CN (decrpoly c) (n - 1) (decrpoly p)"
-  "decrpoly a = a"
+| "decrpoly (Neg a) = Neg (decrpoly a)"
+| "decrpoly (Add a b) = Add (decrpoly a) (decrpoly b)"
+| "decrpoly (Sub a b) = Sub (decrpoly a) (decrpoly b)"
+| "decrpoly (Mul a b) = Mul (decrpoly a) (decrpoly b)"
+| "decrpoly (Pw p n) = Pw (decrpoly p) n"
+| "decrpoly (CN c n p) = CN (decrpoly c) (n - 1) (decrpoly p)"
+| "decrpoly a = a"
 
 subsection{* Degrees and heads and coefficients *}
 
-consts degree:: "poly \<Rightarrow> nat"
-recdef degree "measure size"
+fun degree:: "poly \<Rightarrow> nat"
+where
   "degree (CN c 0 p) = 1 + degree p"
-  "degree p = 0"
-consts head:: "poly \<Rightarrow> poly"
+| "degree p = 0"
 
-recdef head "measure size"
+fun head:: "poly \<Rightarrow> poly"
+where
   "head (CN c 0 p) = head p"
-  "head p = p"
-  (* More general notions of degree and head *)
-consts degreen:: "poly \<Rightarrow> nat \<Rightarrow> nat"
-recdef degreen "measure size"
+| "head p = p"
+
+(* More general notions of degree and head *)
+fun degreen:: "poly \<Rightarrow> nat \<Rightarrow> nat"
+where
   "degreen (CN c n p) = (\<lambda>m. if n=m then 1 + degreen p n else 0)"
-  "degreen p = (\<lambda>m. 0)"
+ |"degreen p = (\<lambda>m. 0)"
 
-consts headn:: "poly \<Rightarrow> nat \<Rightarrow> poly"
-recdef headn "measure size"
+fun headn:: "poly \<Rightarrow> nat \<Rightarrow> poly"
+where
   "headn (CN c n p) = (\<lambda>m. if n \<le> m then headn p m else CN c n p)"
-  "headn p = (\<lambda>m. p)"
+| "headn p = (\<lambda>m. p)"
 
-consts coefficients:: "poly \<Rightarrow> poly list"
-recdef coefficients "measure size"
+fun coefficients:: "poly \<Rightarrow> poly list"
+where
   "coefficients (CN c 0 p) = c#(coefficients p)"
-  "coefficients p = [p]"
+| "coefficients p = [p]"
 
-consts isconstant:: "poly \<Rightarrow> bool"
-recdef isconstant "measure size"
+fun isconstant:: "poly \<Rightarrow> bool"
+where
   "isconstant (CN c 0 p) = False"
-  "isconstant p = True"
+| "isconstant p = True"
 
-consts behead:: "poly \<Rightarrow> poly"
-recdef behead "measure size"
+fun behead:: "poly \<Rightarrow> poly"
+where
   "behead (CN c 0 p) = (let p' = behead p in if p' = 0\<^sub>p then c else CN c 0 p')"
-  "behead p = 0\<^sub>p"
+| "behead p = 0\<^sub>p"
 
-consts headconst:: "poly \<Rightarrow> Num"
-recdef headconst "measure size"
+fun headconst:: "poly \<Rightarrow> Num"
+where
   "headconst (CN c n p) = headconst p"
-  "headconst (C n) = n"
+| "headconst (C n) = n"
 
 subsection{* Operations for normalization *}
 consts 
   polyadd :: "poly\<times>poly \<Rightarrow> poly"
-  polyneg :: "poly \<Rightarrow> poly" ("~\<^sub>p")
   polysub :: "poly\<times>poly \<Rightarrow> poly"
   polymul :: "poly\<times>poly \<Rightarrow> poly"
-  polypow :: "nat \<Rightarrow> poly \<Rightarrow> poly"
+
 abbreviation poly_add :: "poly \<Rightarrow> poly \<Rightarrow> poly" (infixl "+\<^sub>p" 60)
   where "a +\<^sub>p b \<equiv> polyadd (a,b)"
 abbreviation poly_mul :: "poly \<Rightarrow> poly \<Rightarrow> poly" (infixl "*\<^sub>p" 60)
   where "a *\<^sub>p b \<equiv> polymul (a,b)"
 abbreviation poly_sub :: "poly \<Rightarrow> poly \<Rightarrow> poly" (infixl "-\<^sub>p" 60)
   where "a -\<^sub>p b \<equiv> polysub (a,b)"
-abbreviation poly_pow :: "poly \<Rightarrow> nat \<Rightarrow> poly" (infixl "^\<^sub>p" 60)
-  where "a ^\<^sub>p k \<equiv> polypow k a"
 
 recdef polyadd "measure (\<lambda> (a,b). polysize a + polysize b)"
   "polyadd (C c, C c') = C (c+\<^sub>Nc')"
@@ -133,10 +130,11 @@ stupid:  "polyadd (CN c n p, CN c' n' p') =
   "polyadd (a, b) = Add a b"
 (hints recdef_simp add: Let_def measure_def split_def inv_image_def recdef_cong del: if_cong)
 
-recdef polyneg "measure size"
+fun polyneg :: "poly \<Rightarrow> poly" ("~\<^sub>p")
+where
   "polyneg (C c) = C (~\<^sub>N c)"
-  "polyneg (CN c n p) = CN (polyneg c) n (polyneg p)"
-  "polyneg a = Neg a"
+| "polyneg (CN c n p) = CN (polyneg c) n (polyneg p)"
+| "polyneg a = Neg a"
 
 defs polysub_def[code]: "polysub \<equiv> \<lambda> (p,q). polyadd (p,polyneg q)"
 
@@ -152,21 +150,28 @@ recdef polymul "measure (\<lambda>(a,b). size a + size b)"
   then CN (polymul(CN c n p,c')) n' (polymul(CN c n p,p'))
   else polyadd(polymul(CN c n p, c'),CN 0\<^sub>p n' (polymul(CN c n p, p'))))"
   "polymul (a,b) = Mul a b"
-recdef polypow "measure id"
+
+fun polypow :: "nat \<Rightarrow> poly \<Rightarrow> poly"
+where
   "polypow 0 = (\<lambda>p. 1\<^sub>p)"
-  "polypow n = (\<lambda>p. let q = polypow (n div 2) p ; d = polymul(q,q) in 
+| "polypow n = (\<lambda>p. let q = polypow (n div 2) p ; d = polymul(q,q) in 
                     if even n then d else polymul(p,d))"
 
-consts polynate :: "poly \<Rightarrow> poly"
-recdef polynate "measure polysize"
+abbreviation poly_pow :: "poly \<Rightarrow> nat \<Rightarrow> poly" (infixl "^\<^sub>p" 60)
+  where "a ^\<^sub>p k \<equiv> polypow k a"
+
+function polynate :: "poly \<Rightarrow> poly"
+where
   "polynate (Bound n) = CN 0\<^sub>p n 1\<^sub>p"
-  "polynate (Add p q) = (polynate p +\<^sub>p polynate q)"
-  "polynate (Sub p q) = (polynate p -\<^sub>p polynate q)"
-  "polynate (Mul p q) = (polynate p *\<^sub>p polynate q)"
-  "polynate (Neg p) = (~\<^sub>p (polynate p))"
-  "polynate (Pw p n) = ((polynate p) ^\<^sub>p n)"
-  "polynate (CN c n p) = polynate (Add c (Mul (Bound n) p))"
-  "polynate (C c) = C (normNum c)"
+| "polynate (Add p q) = (polynate p +\<^sub>p polynate q)"
+| "polynate (Sub p q) = (polynate p -\<^sub>p polynate q)"
+| "polynate (Mul p q) = (polynate p *\<^sub>p polynate q)"
+| "polynate (Neg p) = (~\<^sub>p (polynate p))"
+| "polynate (Pw p n) = ((polynate p) ^\<^sub>p n)"
+| "polynate (CN c n p) = polynate (Add c (Mul (Bound n) p))"
+| "polynate (C c) = C (normNum c)"
+by pat_completeness auto
+termination by (relation "measure polysize") auto
 
 fun poly_cmul :: "Num \<Rightarrow> poly \<Rightarrow> poly" where
   "poly_cmul y (C x) = C (y *\<^sub>N x)"
@@ -235,11 +240,11 @@ lemmas RIpoly_eqs = Ipoly.simps(2-7) Ipoly_CInt Ipoly_CRat
 
 subsection {* Normal form and normalization *}
 
-consts isnpolyh:: "poly \<Rightarrow> nat \<Rightarrow> bool"
-recdef isnpolyh "measure size"
+fun isnpolyh:: "poly \<Rightarrow> nat \<Rightarrow> bool"
+where
   "isnpolyh (C c) = (\<lambda>k. isnormNum c)"
-  "isnpolyh (CN c n p) = (\<lambda>k. n\<ge> k \<and> (isnpolyh c (Suc n)) \<and> (isnpolyh p n) \<and> (p \<noteq> 0\<^sub>p))"
-  "isnpolyh p = (\<lambda>k. False)"
+| "isnpolyh (CN c n p) = (\<lambda>k. n \<ge> k \<and> (isnpolyh c (Suc n)) \<and> (isnpolyh p n) \<and> (p \<noteq> 0\<^sub>p))"
+| "isnpolyh p = (\<lambda>k. False)"
 
 lemma isnpolyh_mono: "\<lbrakk>n' \<le> n ; isnpolyh p n\<rbrakk> \<Longrightarrow> isnpolyh p n'"
 by (induct p rule: isnpolyh.induct, auto)
@@ -1618,11 +1623,11 @@ definition "polydivideby n s p =
 
 lemma swap_nz [simp]: " (swap n m p = 0\<^sub>p) = (p = 0\<^sub>p)" by (induct p, simp_all)
 
-consts isweaknpoly :: "poly \<Rightarrow> bool"
-recdef isweaknpoly "measure size"
+fun isweaknpoly :: "poly \<Rightarrow> bool"
+where
   "isweaknpoly (C c) = True"
-  "isweaknpoly (CN c n p) \<longleftrightarrow> isweaknpoly c \<and> isweaknpoly p"
-  "isweaknpoly p = False"       
+| "isweaknpoly (CN c n p) \<longleftrightarrow> isweaknpoly c \<and> isweaknpoly p"
+| "isweaknpoly p = False"
 
 lemma isnpolyh_isweaknpoly: "isnpolyh p n0 \<Longrightarrow> isweaknpoly p" 
   by (induct p arbitrary: n0, auto)
