@@ -11,6 +11,7 @@ sig
 
   type relevance_fudge =
     {allow_ext : bool,
+     local_const_multiplier : real,
      worse_irrel_freq : real,
      higher_order_irrel_weight : real,
      abs_rel_weight : real,
@@ -67,6 +68,7 @@ datatype locality = General | Intro | Elim | Simp | Local | Assum | Chained
 
 type relevance_fudge =
   {allow_ext : bool,
+   local_const_multiplier : real,
    worse_irrel_freq : real,
    higher_order_irrel_weight : real,
    abs_rel_weight : real,
@@ -413,23 +415,34 @@ fun irrel_weight_for ({worse_irrel_freq, higher_order_irrel_weight, ...}
     * pow_int higher_order_irrel_weight (order - 1)
   end
 
-(* Computes a constant's weight, as determined by its frequency. *)
-fun generic_pconst_weight abs_weight skolem_weight theory_const_weight
-                          weight_for f const_tab (c as (s, PType (m, _))) =
-  if s = abs_name then abs_weight
-  else if String.isPrefix skolem_prefix s then skolem_weight
-  else if String.isSuffix theory_const_suffix s then theory_const_weight
-  else weight_for m (pconst_freq (match_ptype o f) const_tab c)
+fun multiplier_for_const_name local_const_multiplier s =
+  if String.isSubstring "." s then 1.0 else local_const_multiplier
 
-fun rel_pconst_weight ({abs_rel_weight, theory_const_rel_weight, ...}
-                       : relevance_fudge) const_tab =
-  generic_pconst_weight abs_rel_weight 0.0 theory_const_rel_weight
-                        rel_weight_for I const_tab
-fun irrel_pconst_weight (fudge as {abs_irrel_weight, skolem_irrel_weight,
+(* Computes a constant's weight, as determined by its frequency. *)
+fun generic_pconst_weight local_const_multiplier abs_weight skolem_weight
+                          theory_const_weight weight_for f const_tab
+                          (c as (s, PType (m, _))) =
+  if s = abs_name then
+    abs_weight
+  else if String.isPrefix skolem_prefix s then
+    skolem_weight
+  else if String.isSuffix theory_const_suffix s then
+    theory_const_weight
+  else
+    multiplier_for_const_name local_const_multiplier s
+    * weight_for m (pconst_freq (match_ptype o f) const_tab c)
+
+fun rel_pconst_weight ({local_const_multiplier, abs_rel_weight,
+                        theory_const_rel_weight, ...} : relevance_fudge)
+                      const_tab =
+  generic_pconst_weight local_const_multiplier abs_rel_weight 0.0
+                        theory_const_rel_weight rel_weight_for I const_tab
+fun irrel_pconst_weight (fudge as {local_const_multiplier, abs_irrel_weight,
+                                   skolem_irrel_weight,
                                    theory_const_irrel_weight, ...}) const_tab =
-  generic_pconst_weight abs_irrel_weight skolem_irrel_weight
-                        theory_const_irrel_weight (irrel_weight_for fudge) swap
-                        const_tab
+  generic_pconst_weight local_const_multiplier abs_irrel_weight
+                        skolem_irrel_weight theory_const_irrel_weight
+                        (irrel_weight_for fudge) swap const_tab
 
 fun locality_bonus (_ : relevance_fudge) General = 0.0
   | locality_bonus {intro_bonus, ...} Intro = intro_bonus

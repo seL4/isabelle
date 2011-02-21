@@ -11,12 +11,15 @@ fun get args name default_value =
   | NONE => default_value
 
 fun extract_relevance_fudge args
-      {allow_ext, worse_irrel_freq, higher_order_irrel_weight, abs_rel_weight,
-       abs_irrel_weight, skolem_irrel_weight, theory_const_rel_weight,
-       theory_const_irrel_weight, intro_bonus, elim_bonus, simp_bonus,
-       local_bonus, assum_bonus, chained_bonus, max_imperfect,
-       max_imperfect_exp, threshold_divisor, ridiculous_threshold} =
+      {allow_ext, local_const_multiplier, worse_irrel_freq,
+       higher_order_irrel_weight, abs_rel_weight, abs_irrel_weight,
+       skolem_irrel_weight, theory_const_rel_weight, theory_const_irrel_weight,
+       intro_bonus, elim_bonus, simp_bonus, local_bonus, assum_bonus,
+       chained_bonus, max_imperfect, max_imperfect_exp, threshold_divisor,
+       ridiculous_threshold} =
   {allow_ext = allow_ext,
+   local_const_multiplier =
+       get args "local_const_multiplier" local_const_multiplier,
    worse_irrel_freq = get args "worse_irrel_freq" worse_irrel_freq,
    higher_order_irrel_weight =
        get args "higher_order_irrel_weight" higher_order_irrel_weight,

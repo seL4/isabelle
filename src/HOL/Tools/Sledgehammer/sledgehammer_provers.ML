@@ -161,6 +161,7 @@ fun is_built_in_const_for_prover ctxt name =
 (* FUDGE *)
 val atp_relevance_fudge =
   {allow_ext = true,
+   local_const_multiplier = 1.5,
    worse_irrel_freq = 100.0,
    higher_order_irrel_weight = 1.05,
    abs_rel_weight = 0.5,
@@ -182,6 +183,7 @@ val atp_relevance_fudge =
 (* FUDGE (FIXME) *)
 val smt_relevance_fudge =
   {allow_ext = false,
+   local_const_multiplier = #local_const_multiplier atp_relevance_fudge,
    worse_irrel_freq = #worse_irrel_freq atp_relevance_fudge,
    higher_order_irrel_weight = #higher_order_irrel_weight atp_relevance_fudge,
    abs_rel_weight = #abs_rel_weight atp_relevance_fudge,
