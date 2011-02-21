@@ -35,6 +35,7 @@ sig
      specialize: bool,
      star_linear_preds: bool,
      peephole_optim: bool,
+     fix_datatype_vals: bool,
      datatype_sym_break: int,
      kodkod_sym_break: int,
      timeout: Time.time option,
@@ -108,6 +109,7 @@ type params =
    specialize: bool,
    star_linear_preds: bool,
    peephole_optim: bool,
+   fix_datatype_vals: bool,
    datatype_sym_break: int,
    kodkod_sym_break: int,
    timeout: Time.time option,
@@ -209,10 +211,10 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
          boxes, finitizes, monos, stds, wfs, sat_solver, falsify, debug,
          verbose, overlord, user_axioms, assms, whacks, merge_type_vars,
          binary_ints, destroy_constrs, specialize, star_linear_preds,
-         peephole_optim, datatype_sym_break, kodkod_sym_break, tac_timeout,
-         max_threads, show_datatypes, show_consts, evals, formats, atomss,
-         max_potential, max_genuine, check_potential, check_genuine, batch_size,
-         ...} = params
+         peephole_optim, fix_datatype_vals, datatype_sym_break,
+         kodkod_sym_break, tac_timeout, max_threads, show_datatypes,
+         show_consts, evals, formats, atomss, max_potential, max_genuine,
+         check_potential, check_genuine, batch_size, ...} = params
     val state_ref = Unsynchronized.ref state
     val pprint =
       if auto then
@@ -320,8 +322,15 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
             handle TYPE (_, Ts, ts) =>
                    raise TYPE ("Nitpick.pick_them_nits_in_term", Ts, ts)
 
-    val nondef_us = map (nut_from_term hol_ctxt Eq) nondef_ts
-    val def_us = map (nut_from_term hol_ctxt DefEq) def_ts
+    val nondef_us = nondef_ts |> map (nut_from_term hol_ctxt Eq)
+    val def_us = def_ts |> map (nut_from_term hol_ctxt DefEq)
+    val needed_us =
+      if fix_datatype_vals then
+        [@{term "[A, B, C, A]"}, @{term "[C, B, A]"}]
+        |> map (nut_from_term hol_ctxt Eq)
+        (* infer_needed_constructs ### *)
+      else
+        []
     val (free_names, const_names) =
       fold add_free_and_const_names (nondef_us @ def_us) ([], [])
     val (sel_names, nonsel_names) =
@@ -548,8 +557,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val plain_axioms = map (declarative_axiom_for_plain_rel kk) plain_rels
         val sel_bounds = map (bound_for_sel_rel ctxt debug datatypes) sel_rels
         val dtype_axioms =
-          declarative_axioms_for_datatypes hol_ctxt binarize datatype_sym_break
-                                           bits ofs kk rel_table datatypes
+          declarative_axioms_for_datatypes hol_ctxt binarize needed_us
+              datatype_sym_break bits ofs kk rel_table datatypes
         val declarative_axioms = plain_axioms @ dtype_axioms
         val univ_card = Int.max (univ_card nat_card int_card main_j0
                                      (plain_bounds @ sel_bounds) formula,

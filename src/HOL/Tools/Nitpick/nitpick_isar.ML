@@ -59,6 +59,7 @@ val default_default_params =
    ("specialize", "true"),
    ("star_linear_preds", "true"),
    ("peephole_optim", "true"),
+   ("fix_datatype_vals", "true"),
    ("datatype_sym_break", "5"),
    ("kodkod_sym_break", "15"),
    ("timeout", "30"),
@@ -91,6 +92,7 @@ val negated_params =
    ("dont_specialize", "specialize"),
    ("dont_star_linear_preds", "star_linear_preds"),
    ("no_peephole_optim", "peephole_optim"),
+   ("fix_datatype_vals", "dont_fix_datatype_vals"),
    ("no_debug", "debug"),
    ("quiet", "verbose"),
    ("no_overlord", "overlord"),
@@ -252,6 +254,7 @@ fun extract_params ctxt auto default_params override_params =
     val specialize = lookup_bool "specialize"
     val star_linear_preds = lookup_bool "star_linear_preds"
     val peephole_optim = lookup_bool "peephole_optim"
+    val fix_datatype_vals = lookup_bool "fix_datatype_vals"
     val datatype_sym_break = lookup_int "datatype_sym_break"
     val kodkod_sym_break = lookup_int "kodkod_sym_break"
     val timeout = if auto then NONE else lookup_time "timeout"
@@ -282,6 +285,7 @@ fun extract_params ctxt auto default_params override_params =
      merge_type_vars = merge_type_vars, binary_ints = binary_ints,
      destroy_constrs = destroy_constrs, specialize = specialize,
      star_linear_preds = star_linear_preds, peephole_optim = peephole_optim,
+     fix_datatype_vals = fix_datatype_vals,
      datatype_sym_break = datatype_sym_break,
      kodkod_sym_break = kodkod_sym_break, timeout = timeout,
      tac_timeout = tac_timeout, max_threads = max_threads,

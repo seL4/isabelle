@@ -31,8 +31,9 @@ sig
   val merge_bounds : Kodkod.bound list -> Kodkod.bound list
   val declarative_axiom_for_plain_rel : kodkod_constrs -> nut -> Kodkod.formula
   val declarative_axioms_for_datatypes :
-    hol_context -> bool -> int -> int -> int Typtab.table -> kodkod_constrs
-    -> nut NameTable.table -> datatype_spec list -> Kodkod.formula list
+    hol_context -> bool -> nut list -> int -> int -> int Typtab.table
+    -> kodkod_constrs -> nut NameTable.table -> datatype_spec list
+    -> Kodkod.formula list
   val kodkod_formula_from_nut :
     int Typtab.table -> kodkod_constrs -> nut -> Kodkod.formula
 end;
@@ -740,6 +741,43 @@ fun acyclicity_axioms_for_datatypes _ [_] = []
   | acyclicity_axioms_for_datatypes kk nfas =
     maps (fn nfa => map (acyclicity_axiom_for_datatype kk nfa o fst) nfa) nfas
 
+fun needed_value_axioms_for_datatype [] _ _ = []
+  | needed_value_axioms_for_datatype needed_us ofs
+        ({typ, card, constrs, ...} : datatype_spec) =
+    let
+      fun aux (u as Construct (ConstName (s, _, _) :: _, T, _, us)) =
+          fold aux us
+          #> (fn NONE => NONE
+               | accum as SOME (loose, fixed) =>
+                 if T = typ then
+                   case AList.lookup (op =) fixed u of
+                     SOME _ => accum
+                   | NONE =>
+                     let
+                       val constr_s = constr_name_for_sel_like s
+                       val {delta, epsilon, ...} =
+                         constrs
+                         |> List.find (fn {const, ...} => fst const = constr_s)
+                         |> the
+                       val j0 = offset_of_type ofs T
+                     in
+                       case find_first (fn j => j >= delta andalso
+                                        j < delta + epsilon) loose of
+                         SOME j =>
+                         SOME (remove (op =) j loose, (u, j0 + j) :: fixed)
+                       | NONE => NONE
+                     end
+                 else
+                   accum)
+        | aux u =
+          raise NUT ("Nitpick_Kodkod.needed_value_axioms_for_datatype.aux", [u])
+    in
+      case SOME (index_seq 0 card, []) |> fold aux needed_us of
+        SOME (_, fixed) =>
+         (* fixed |> map () *) [] (*###*)
+      | NONE => [KK.False]
+    end
+
 fun all_ge ({kk_join, kk_reflexive_closure, ...} : kodkod_constrs) z r =
   kk_join r (kk_reflexive_closure (KK.Rel (suc_rel_for_atom_seq z)))
 fun gt ({kk_subset, kk_join, kk_closure, ...} : kodkod_constrs) z r1 r2 =
@@ -879,10 +917,14 @@ fun sym_break_axioms_for_datatype hol_ctxt binarize kk rel_table nfas dtypes
                                               nfas dtypes)
   end
 
+fun is_datatype_in_needed_value T (Construct (_, T', _, us)) =
+    T = T' orelse exists (is_datatype_in_needed_value T) us
+  | is_datatype_in_needed_value _ _ = false
+
 val min_sym_break_card = 7
 
-fun sym_break_axioms_for_datatypes hol_ctxt binarize datatype_sym_break kk
-                                   rel_table nfas dtypes =
+fun sym_break_axioms_for_datatypes hol_ctxt binarize needed_us
+                                   datatype_sym_break kk rel_table nfas dtypes =
   if datatype_sym_break = 0 then
     []
   else
@@ -894,6 +936,9 @@ fun sym_break_axioms_for_datatypes hol_ctxt binarize datatype_sym_break kk
                                card >= min_sym_break_card andalso
                                forall (forall (not o is_higher_order_type)
                                        o binder_types o snd o #const) constrs)
+                 |> filter_out (fn {typ, ...} =>
+                                   exists (is_datatype_in_needed_value typ)
+                                          needed_us)
                  |> (fn dtypes' =>
                         dtypes'
                         |> length dtypes' > datatype_sym_break
@@ -996,8 +1041,8 @@ fun other_axioms_for_datatype _ _ _ _ _ _ {deep = false, ...} = []
       partition_axioms_for_datatype j0 kk rel_table dtype
     end
 
-fun declarative_axioms_for_datatypes hol_ctxt binarize datatype_sym_break bits
-                                     ofs kk rel_table dtypes =
+fun declarative_axioms_for_datatypes hol_ctxt binarize needed_us
+        datatype_sym_break bits ofs kk rel_table dtypes =
   let
     val nfas =
       dtypes |> map_filter (nfa_entry_for_datatype hol_ctxt binarize kk
@@ -1005,8 +1050,9 @@ fun declarative_axioms_for_datatypes hol_ctxt binarize datatype_sym_break bits
              |> strongly_connected_sub_nfas
   in
     acyclicity_axioms_for_datatypes kk nfas @
-    sym_break_axioms_for_datatypes hol_ctxt binarize datatype_sym_break kk
-                                   rel_table nfas dtypes @
+    maps (needed_value_axioms_for_datatype needed_us ofs) dtypes @
+    sym_break_axioms_for_datatypes hol_ctxt binarize needed_us
+        datatype_sym_break kk rel_table nfas dtypes @
     maps (other_axioms_for_datatype hol_ctxt binarize bits ofs kk rel_table)
          dtypes
   end
