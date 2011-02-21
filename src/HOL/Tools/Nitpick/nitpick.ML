@@ -515,10 +515,12 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                          (univ_card nat_card int_card main_j0 [] KK.True)
         val _ = check_arity guiltiest_party min_univ_card min_highest_arity
 
-        val def_us = map (choose_reps_in_nut scope unsound rep_table true)
-                         def_us
-        val nondef_us = map (choose_reps_in_nut scope unsound rep_table false)
-                            nondef_us
+        val def_us =
+          def_us |> map (choose_reps_in_nut scope unsound rep_table true)
+        val nondef_us =
+          nondef_us |> map (choose_reps_in_nut scope unsound rep_table false)
+        val needed_us =
+          needed_us |> map (choose_reps_in_nut scope unsound rep_table false)
 (*
         val _ = List.app (print_g o string_for_nut ctxt)
                          (free_names @ sel_names @ nonsel_names @
@@ -530,8 +532,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
           rename_free_vars sel_names pool rel_table
         val (other_rels, pool, rel_table) =
           rename_free_vars nonsel_names pool rel_table
-        val nondef_us = map (rename_vars_in_nut pool rel_table) nondef_us
-        val def_us = map (rename_vars_in_nut pool rel_table) def_us
+        val nondef_us = nondef_us |> map (rename_vars_in_nut pool rel_table)
+        val def_us = def_us |> map (rename_vars_in_nut pool rel_table)
+        val needed_us = needed_us |> map (rename_vars_in_nut pool rel_table)
         val nondef_fs = map (kodkod_formula_from_nut ofs kk) nondef_us
         val def_fs = map (kodkod_formula_from_nut ofs kk) def_us
         val formula = fold (fold s_and) [def_fs, nondef_fs] KK.True
