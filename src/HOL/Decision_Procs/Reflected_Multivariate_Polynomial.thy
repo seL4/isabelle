@@ -121,7 +121,7 @@ recdef polyadd "measure (\<lambda> (a,b). polysize a + polysize b)"
   "polyadd (C c, C c') = C (c+\<^sub>Nc')"
   "polyadd (C c, CN c' n' p') = CN (polyadd (C c, c')) n' p'"
   "polyadd (CN c n p, C c') = CN (polyadd (c, C c')) n p"
-stupid:  "polyadd (CN c n p, CN c' n' p') = 
+  "polyadd (CN c n p, CN c' n' p') =
     (if n < n' then CN (polyadd(c,CN c' n' p')) n p
      else if n'<n then CN (polyadd(CN c n p, c')) n' p'
      else (let cc' = polyadd (c,c') ; 
