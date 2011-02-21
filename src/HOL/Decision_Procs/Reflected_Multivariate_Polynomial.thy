@@ -105,30 +105,33 @@ where
 | "headconst (C n) = n"
 
 subsection{* Operations for normalization *}
+
+
 consts 
-  polyadd :: "poly\<times>poly \<Rightarrow> poly"
   polysub :: "poly\<times>poly \<Rightarrow> poly"
   polymul :: "poly\<times>poly \<Rightarrow> poly"
 
-abbreviation poly_add :: "poly \<Rightarrow> poly \<Rightarrow> poly" (infixl "+\<^sub>p" 60)
-  where "a +\<^sub>p b \<equiv> polyadd (a,b)"
 abbreviation poly_mul :: "poly \<Rightarrow> poly \<Rightarrow> poly" (infixl "*\<^sub>p" 60)
   where "a *\<^sub>p b \<equiv> polymul (a,b)"
 abbreviation poly_sub :: "poly \<Rightarrow> poly \<Rightarrow> poly" (infixl "-\<^sub>p" 60)
   where "a -\<^sub>p b \<equiv> polysub (a,b)"
 
-recdef polyadd "measure (\<lambda> (a,b). polysize a + polysize b)"
-  "polyadd (C c, C c') = C (c+\<^sub>Nc')"
-  "polyadd (C c, CN c' n' p') = CN (polyadd (C c, c')) n' p'"
-  "polyadd (CN c n p, C c') = CN (polyadd (c, C c')) n p"
-  "polyadd (CN c n p, CN c' n' p') =
-    (if n < n' then CN (polyadd(c,CN c' n' p')) n p
-     else if n'<n then CN (polyadd(CN c n p, c')) n' p'
-     else (let cc' = polyadd (c,c') ; 
-               pp' = polyadd (p,p')
+declare if_cong[fundef_cong del]
+declare let_cong[fundef_cong del]
+
+fun polyadd :: "poly \<Rightarrow> poly \<Rightarrow> poly" (infixl "+\<^sub>p" 60)
+where
+  "polyadd (C c) (C c') = C (c+\<^sub>Nc')"
+|  "polyadd (C c) (CN c' n' p') = CN (polyadd (C c) c') n' p'"
+| "polyadd (CN c n p) (C c') = CN (polyadd c (C c')) n p"
+| "polyadd (CN c n p) (CN c' n' p') =
+    (if n < n' then CN (polyadd c (CN c' n' p')) n p
+     else if n'<n then CN (polyadd (CN c n p) c') n' p'
+     else (let cc' = polyadd c c' ; 
+               pp' = polyadd p p'
            in (if pp' = 0\<^sub>p then cc' else CN cc' n pp')))"
-  "polyadd (a, b) = Add a b"
-(hints recdef_simp add: Let_def measure_def split_def inv_image_def recdef_cong del: if_cong)
+| "polyadd a b = Add a b"
+
 
 fun polyneg :: "poly \<Rightarrow> poly" ("~\<^sub>p")
 where
@@ -136,7 +139,7 @@ where
 | "polyneg (CN c n p) = CN (polyneg c) n (polyneg p)"
 | "polyneg a = Neg a"
 
-defs polysub_def[code]: "polysub \<equiv> \<lambda> (p,q). polyadd (p,polyneg q)"
+defs polysub_def[code]: "polysub \<equiv> \<lambda> (p,q). polyadd p (polyneg q)"
 
 recdef polymul "measure (\<lambda>(a,b). size a + size b)"
   "polymul(C c, C c') = C (c*\<^sub>Nc')"
@@ -148,9 +151,12 @@ recdef polymul "measure (\<lambda>(a,b). size a + size b)"
   (if n<n' then CN (polymul(c,CN c' n' p')) n (polymul(p,CN c' n' p'))
   else if n' < n 
   then CN (polymul(CN c n p,c')) n' (polymul(CN c n p,p'))
-  else polyadd(polymul(CN c n p, c'),CN 0\<^sub>p n' (polymul(CN c n p, p'))))"
+  else polyadd (polymul(CN c n p, c')) (CN 0\<^sub>p n' (polymul(CN c n p, p'))))"
   "polymul (a,b) = Mul a b"
 (hints recdef_cong del: if_cong)
+
+declare if_cong[fundef_cong]
+declare let_cong[fundef_cong]
 
 fun polypow :: "nat \<Rightarrow> poly \<Rightarrow> poly"
 where
@@ -256,21 +262,21 @@ definition isnpoly :: "poly \<Rightarrow> bool" where
 text{* polyadd preserves normal forms *}
 
 lemma polyadd_normh: "\<lbrakk>isnpolyh p n0 ; isnpolyh q n1\<rbrakk> 
-      \<Longrightarrow> isnpolyh (polyadd(p,q)) (min n0 n1)"
+      \<Longrightarrow> isnpolyh (polyadd p q) (min n0 n1)"
 proof(induct p q arbitrary: n0 n1 rule: polyadd.induct)
-  case (2 a b c' n' p' n0 n1)
-  from prems have  th1: "isnpolyh (C (a,b)) (Suc n')" by simp 
+  case (2 ab c' n' p' n0 n1)
+  from prems have  th1: "isnpolyh (C ab) (Suc n')" by simp 
   from prems(3) have th2: "isnpolyh c' (Suc n')"  and nplen1: "n' \<ge> n1" by simp_all
   with isnpolyh_mono have cp: "isnpolyh c' (Suc n')" by simp
-  with prems(1)[OF th1 th2] have th3:"isnpolyh (C (a,b) +\<^sub>p c') (Suc n')" by simp
+  with prems(1)[OF th1 th2] have th3:"isnpolyh (C ab +\<^sub>p c') (Suc n')" by simp
   from nplen1 have n01len1: "min n0 n1 \<le> n'" by simp 
   thus ?case using prems th3 by simp
 next
-  case (3 c' n' p' a b n1 n0)
-  from prems have  th1: "isnpolyh (C (a,b)) (Suc n')" by simp 
+  case (3 c' n' p' ab n1 n0)
+  from prems have  th1: "isnpolyh (C ab) (Suc n')" by simp 
   from prems(2) have th2: "isnpolyh c' (Suc n')"  and nplen1: "n' \<ge> n1" by simp_all
   with isnpolyh_mono have cp: "isnpolyh c' (Suc n')" by simp
-  with prems(1)[OF th2 th1] have th3:"isnpolyh (c' +\<^sub>p C (a,b)) (Suc n')" by simp
+  with prems(1)[OF th2 th1] have th3:"isnpolyh (c' +\<^sub>p C ab) (Suc n')" by simp
   from nplen1 have n01len1: "min n0 n1 \<le> n'" by simp 
   thus ?case using prems th3 by simp
 next
@@ -281,11 +287,11 @@ next
   from prems have n'gen1: "n' \<ge> n1" by simp 
   have "n < n' \<or> n' < n \<or> n = n'" by auto
   moreover {assume eq: "n = n'"
-    with prems(2)[OF nc nc'] 
+    with "4.hyps"(3)[OF nc nc'] 
     have ncc':"isnpolyh (c +\<^sub>p c') (Suc n)" by auto
     hence ncc'n01: "isnpolyh (c +\<^sub>p c') (min n0 n1)"
       using isnpolyh_mono[where n'="min n0 n1" and n="Suc n"] ngen0 n'gen1 by auto
-    from eq prems(1)[OF np np'] have npp': "isnpolyh (p +\<^sub>p p') n" by simp
+    from eq "4.hyps"(4)[OF np np'] have npp': "isnpolyh (p +\<^sub>p p') n" by simp
     have minle: "min n0 n1 \<le> n'" using ngen0 n'gen1 eq by simp
     from minle npp' ncc'n01 prems ngen0 n'gen1 ncc' have ?case by (simp add: Let_def)}
   moreover {assume lt: "n < n'"
@@ -294,8 +300,8 @@ next
     from prems have th21: "isnpolyh c (Suc n)" by simp
     from prems have th22: "isnpolyh (CN c' n' p') n'" by simp
     from lt have th23: "min (Suc n) n' = Suc n" by arith
-    from prems(4)[OF th21 th22]
-    have "isnpolyh (polyadd (c, CN c' n' p')) (Suc n)" using th23 by simp
+    from "4.hyps"(1)[OF th21 th22]
+    have "isnpolyh (polyadd c (CN c' n' p')) (Suc n)" using th23 by simp
     with prems th1 have ?case by simp } 
   moreover {assume gt: "n' < n" hence gt': "n' < n \<and> \<not> n < n'" by simp
     have "min n0 n1 \<le> n1"  by simp
@@ -303,30 +309,30 @@ next
     from prems have th21: "isnpolyh c' (Suc n')" by simp_all
     from prems have th22: "isnpolyh (CN c n p) n" by simp
     from gt have th23: "min n (Suc n') = Suc n'" by arith
-    from prems(3)[OF th22 th21]
-    have "isnpolyh (polyadd (CN c n p,c')) (Suc n')" using th23 by simp
+    from "4.hyps"(2)[OF th22 th21]
+    have "isnpolyh (polyadd (CN c n p) c') (Suc n')" using th23 by simp
     with prems th1 have ?case by simp}
       ultimately show ?case by blast
 qed auto
 
-lemma polyadd[simp]: "Ipoly bs (polyadd (p,q)) = (Ipoly bs p) + (Ipoly bs q)"
+lemma polyadd[simp]: "Ipoly bs (polyadd p q) = Ipoly bs p + Ipoly bs q"
 by (induct p q rule: polyadd.induct, auto simp add: Let_def field_simps right_distrib[symmetric] simp del: right_distrib)
 
-lemma polyadd_norm: "\<lbrakk> isnpoly p ; isnpoly q\<rbrakk> \<Longrightarrow> isnpoly (polyadd(p,q))"
+lemma polyadd_norm: "\<lbrakk> isnpoly p ; isnpoly q\<rbrakk> \<Longrightarrow> isnpoly (polyadd p q)"
   using polyadd_normh[of "p" "0" "q" "0"] isnpoly_def by simp
 
 text{* The degree of addition and other general lemmas needed for the normal form of polymul *}
 
 lemma polyadd_different_degreen: 
   "\<lbrakk>isnpolyh p n0 ; isnpolyh q n1; degreen p m \<noteq> degreen q m ; m \<le> min n0 n1\<rbrakk> \<Longrightarrow> 
-  degreen (polyadd(p,q)) m = max (degreen p m) (degreen q m)"
+  degreen (polyadd p q) m = max (degreen p m) (degreen q m)"
 proof (induct p q arbitrary: m n0 n1 rule: polyadd.induct)
   case (4 c n p c' n' p' m n0 n1)
   have "n' = n \<or> n < n' \<or> n' < n" by arith
   thus ?case
   proof (elim disjE)
     assume [simp]: "n' = n"
-    from 4(1)[of n n m] 4(2)[of "Suc n" "Suc n" m] 4(5-7)
+    from 4(4)[of n n m] 4(3)[of "Suc n" "Suc n" m] 4(5-7)
     show ?thesis by (auto simp: Let_def)
   next
     assume "n < n'"
@@ -367,12 +373,12 @@ next
   thus ?case
   proof (elim disjE)
     assume [simp]: "n' = n"
-    from 4(1)[of n n m] 4(2)[of "Suc n" "Suc n" m] 4(5-7)
+    from 4(4)[of n n m] 4(3)[of "Suc n" "Suc n" m] 4(5-7)
     show ?thesis by (auto simp: Let_def)
   qed simp_all
 qed auto
 
-lemma polyadd_eq_const_degreen: "\<lbrakk> isnpolyh p n0 ; isnpolyh q n1 ; polyadd (p,q) = C c\<rbrakk> 
+lemma polyadd_eq_const_degreen: "\<lbrakk> isnpolyh p n0 ; isnpolyh q n1 ; polyadd p q = C c\<rbrakk> 
   \<Longrightarrow> degreen p m = degreen q m"
 proof (induct p q arbitrary: m n0 n1 c rule: polyadd.induct)
   case (4 c n p c' n' p' m n0 n1 x) 
@@ -1074,18 +1080,16 @@ lemma degree_polysub_samehead:
 unfolding polysub_def split_def fst_conv snd_conv
 using np nq h d
 proof(induct p q rule:polyadd.induct)
-  case (1 a b a' b') thus ?case by (simp add: Nsub_def Nsub0[simplified Nsub_def]) 
+  case (1 c c') thus ?case by (simp add: Nsub_def Nsub0[simplified Nsub_def]) 
 next
-  case (2 a b c' n' p') 
-  let ?c = "(a,b)"
-  from prems have "degree (C ?c) = degree (CN c' n' p')" by simp
+  case (2 c c' n' p') 
+  from prems have "degree (C c) = degree (CN c' n' p')" by simp
   hence nz:"n' > 0" by (cases n', auto)
   hence "head (CN c' n' p') = CN c' n' p'" by (cases n', auto)
   with prems show ?case by simp
 next
-  case (3 c n p a' b') 
-  let ?c' = "(a',b')"
-  from prems have "degree (C ?c') = degree (CN c n p)" by simp
+  case (3 c n p c') 
+  from prems have "degree (C c') = degree (CN c n p)" by simp
   hence nz:"n > 0" by (cases n, auto)
   hence "head (CN c n p) = CN c n p" by (cases n, auto)
   with prems show ?case by simp
@@ -1124,7 +1128,7 @@ next
     hence headcnp': "head (CN c' n' p') = CN c' n' p'" by (cases n', auto)
     from H(3) headcnp headcnp' nn' have ?case by auto}
   ultimately show ?case  by blast
-qed auto 
+qed auto
  
 lemma shift1_head : "isnpolyh p n0 \<Longrightarrow> head (shift1 p) = head p"
 by (induct p arbitrary: n0 rule: head.induct, simp_all add: shift1_def)
@@ -1155,7 +1159,7 @@ lemma head_head[simp]: "isnpolyh p n0 \<Longrightarrow> head (head p) = head p"
   by (induct p rule: head.induct, auto)
 
 lemma polyadd_eq_const_degree: 
-  "\<lbrakk> isnpolyh p n0 ; isnpolyh q n1 ; polyadd (p,q) = C c\<rbrakk> \<Longrightarrow> degree p = degree q" 
+  "\<lbrakk> isnpolyh p n0 ; isnpolyh q n1 ; polyadd p q = C c\<rbrakk> \<Longrightarrow> degree p = degree q" 
   using polyadd_eq_const_degreen degree_eq_degreen0 by simp
 
 lemma polyadd_head: assumes np: "isnpolyh p n0" and nq: "isnpolyh q n1"
@@ -1233,12 +1237,12 @@ lemma degree_coefficients: "degree p = length (coefficients p) - 1"
 lemma degree_head[simp]: "degree (head p) = 0"
   by (induct p rule: head.induct, auto)
 
-lemma degree_CN: "isnpolyh p n \<Longrightarrow> degree (CN c n p) \<le> 1+ degree p"
+lemma degree_CN: "isnpolyh p n \<Longrightarrow> degree (CN c n p) \<le> 1 + degree p"
   by (cases n, simp_all)
 lemma degree_CN': "isnpolyh p n \<Longrightarrow> degree (CN c n p) \<ge>  degree p"
   by (cases n, simp_all)
 
-lemma polyadd_different_degree: "\<lbrakk>isnpolyh p n0 ; isnpolyh q n1; degree p \<noteq> degree q\<rbrakk> \<Longrightarrow> degree (polyadd(p,q)) = max (degree p) (degree q)"
+lemma polyadd_different_degree: "\<lbrakk>isnpolyh p n0 ; isnpolyh q n1; degree p \<noteq> degree q\<rbrakk> \<Longrightarrow> degree (polyadd p q) = max (degree p) (degree q)"
   using polyadd_different_degreen degree_eq_degreen0 by simp
 
 lemma degreen_polyneg: "isnpolyh p n0 \<Longrightarrow> degreen (~\<^sub>p p) m = degreen p m"
