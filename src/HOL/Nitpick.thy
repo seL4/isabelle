@@ -47,7 +47,7 @@ text {*
 Alternative definitions.
 *}
 
-lemma Ex1_def [nitpick_unfold, no_atp]:
+lemma Ex1_unfold [nitpick_unfold, no_atp]:
 "Ex1 P \<equiv> \<exists>x. P = {x}"
 apply (rule eq_reflection)
 apply (simp add: Ex1_def set_eq_iff)
@@ -60,14 +60,14 @@ apply (rule iffI)
  apply (erule_tac x = y in allE)
 by (auto simp: mem_def)
 
-lemma rtrancl_def [nitpick_unfold, no_atp]: "r\<^sup>* \<equiv> (r\<^sup>+)\<^sup>="
+lemma rtrancl_unfold [nitpick_unfold, no_atp]: "r\<^sup>* \<equiv> (r\<^sup>+)\<^sup>="
 by simp
 
-lemma rtranclp_def [nitpick_unfold, no_atp]:
+lemma rtranclp_unfold [nitpick_unfold, no_atp]:
 "rtranclp r a b \<equiv> (a = b \<or> tranclp r a b)"
 by (rule eq_reflection) (auto dest: rtranclpD)
 
-lemma tranclp_def [nitpick_unfold, no_atp]:
+lemma tranclp_unfold [nitpick_unfold, no_atp]:
 "tranclp r a b \<equiv> trancl (split r) (a, b)"
 by (simp add: trancl_def Collect_def mem_def)
 
@@ -115,7 +115,7 @@ apply (case_tac "P (Eps P)")
 apply (erule contrapos_np)
 by (rule someI)
 
-lemma unit_case_def [nitpick_unfold, no_atp]:
+lemma unit_case_unfold [nitpick_unfold, no_atp]:
 "unit_case x u \<equiv> x"
 apply (subgoal_tac "u = ()")
  apply (simp only: unit.cases)
@@ -123,7 +123,7 @@ by simp
 
 declare unit.cases [nitpick_simp del]
 
-lemma nat_case_def [nitpick_unfold, no_atp]:
+lemma nat_case_unfold [nitpick_unfold, no_atp]:
 "nat_case x f n \<equiv> if n = 0 then x else f (n - 1)"
 apply (rule eq_reflection)
 by (case_tac n) auto
@@ -240,9 +240,9 @@ hide_const (open) unknown is_unknown bisim bisim_iterator_max Quot safe_The
     one_frac num denom norm_frac frac plus_frac times_frac uminus_frac
     number_of_frac inverse_frac less_frac less_eq_frac of_frac
 hide_type (open) bisim_iterator fun_box pair_box unsigned_bit signed_bit word
-hide_fact (open) If_def Ex1_def rtrancl_def rtranclp_def tranclp_def prod_def
-    refl'_def wf'_def wf_wfrec'_def wfrec'_def card'_def setsum'_def
-    fold_graph'_def The_psimp Eps_psimp unit_case_def nat_case_def
+hide_fact (open) Ex1_unfold rtrancl_unfold rtranclp_unfold tranclp_unfold
+    prod_def refl'_def wf'_def wf_wfrec'_def wfrec'_def card'_def setsum'_def
+    fold_graph'_def The_psimp Eps_psimp unit_case_unfold nat_case_unfold
     list_size_simp nat_gcd_def nat_lcm_def int_gcd_def int_lcm_def Frac_def
     zero_frac_def one_frac_def num_def denom_def norm_frac_def frac_def
     plus_frac_def times_frac_def uminus_frac_def number_of_frac_def
