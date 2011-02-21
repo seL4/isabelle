@@ -2536,12 +2536,12 @@ Behind the scenes, Isabelle's built-in packages and theories rely on the
 following attributes to affect Nitpick's behavior:
 
 \begin{enum}
-\flushitem{\textit{nitpick\_def}}
+\flushitem{\textit{nitpick\_unfold}}
 
 \nopagebreak
-This attribute specifies an alternative definition of a constant. The
-alternative definition should be logically equivalent to the constant's actual
-axiomatic definition and should be of the form
+This attribute specifies an equation that Nitpick should use to expand a
+constant. The equation should be logically equivalent to the constant's actual
+definition and should be of the form
 
 \qquad $c~{?}x_1~\ldots~{?}x_n \,=\, t$,
 
@@ -2550,7 +2550,8 @@ or
 \qquad $c~{?}x_1~\ldots~{?}x_n \,\equiv\, t$,
 
 where ${?}x_1, \ldots, {?}x_n$ are distinct variables and $c$ does not occur in
-$t$.
+$t$. Each occurrence of $c$ in the problem is expanded to $\lambda x_1\,\ldots
+x_n.\; t$.
 
 \flushitem{\textit{nitpick\_simp}}
 
@@ -2603,8 +2604,8 @@ constant.
 uses these theorems as the specification of the constant.
 
 \item[4.] Otherwise, it looks up the definition of the constant. If the
-\textit{nitpick\_def} set associated with the constant is not empty, it uses the
-latest rule added to the set as the definition of the constant; otherwise it
+\textit{nitpick\_unfold} set associated with the constant is not empty, it uses
+the latest rule added to the set as the definition of the constant; otherwise it
 uses the actual definition axiom.
 
 \begin{enum}
@@ -2641,7 +2642,7 @@ the introduction rules. To override this, you can specify an alternative
 definition as follows:
 
 \prew
-\textbf{lemma} $\mathit{odd\_alt\_def}$ [\textit{nitpick\_def}]:\kern.4em ``$\textit{odd}~n \,\equiv\, n~\textrm{mod}~2 = 1$''
+\textbf{lemma} $\mathit{odd\_alt\_unfold}$ [\textit{nitpick\_unfold}]:\kern.4em ``$\textit{odd}~n \,\equiv\, n~\textrm{mod}~2 = 1$''
 \postw
 
 Nitpick then expands all occurrences of $\mathit{odd}~n$ to $n~\textrm{mod}~2
@@ -2691,7 +2692,7 @@ define a new constant $c'$ (co)inductively. Then prove that $c$ equals $c'$
 and let Nitpick know about it:
 
 \prew
-\textbf{lemma} \textit{c\_alt\_def} [\textit{nitpick\_def}]:\kern.4em ``$c \equiv c'$\kern2pt ''
+\textbf{lemma} \textit{c\_alt\_unfold} [\textit{nitpick\_unfold}]:\kern.4em ``$c \equiv c'$\kern2pt ''
 \postw
 
 This ensures that Nitpick will substitute $c'$ for $c$ and use the (co)inductive
