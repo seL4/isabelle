@@ -289,8 +289,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
        skolems = Unsynchronized.ref [], special_funs = Unsynchronized.ref [],
        unrolled_preds = Unsynchronized.ref [], wf_cache = Unsynchronized.ref [],
        constr_cache = Unsynchronized.ref []}
-    val pseudo_frees = fold Term.add_frees assm_ts []
-    val real_frees = subtract (op =) pseudo_frees (Term.add_frees neg_t [])
+    val pseudo_frees = []
+    val real_frees = fold Term.add_frees (neg_t :: assm_ts) []
     val _ = null (fold Term.add_tvars (neg_t :: assm_ts) []) orelse
             raise NOT_SUPPORTED "schematic type variables"
     val (nondef_ts, def_ts, got_all_mono_user_axioms, no_poly_user_axioms,
