@@ -109,10 +109,7 @@ subsection{* Operations for normalization *}
 
 consts 
   polysub :: "poly\<times>poly \<Rightarrow> poly"
-  polymul :: "poly\<times>poly \<Rightarrow> poly"
 
-abbreviation poly_mul :: "poly \<Rightarrow> poly \<Rightarrow> poly" (infixl "*\<^sub>p" 60)
-  where "a *\<^sub>p b \<equiv> polymul (a,b)"
 abbreviation poly_sub :: "poly \<Rightarrow> poly \<Rightarrow> poly" (infixl "-\<^sub>p" 60)
   where "a -\<^sub>p b \<equiv> polysub (a,b)"
 
@@ -141,19 +138,20 @@ where
 
 defs polysub_def[code]: "polysub \<equiv> \<lambda> (p,q). polyadd p (polyneg q)"
 
-recdef polymul "measure (\<lambda>(a,b). size a + size b)"
-  "polymul(C c, C c') = C (c*\<^sub>Nc')"
-  "polymul(C c, CN c' n' p') = 
-      (if c = 0\<^sub>N then 0\<^sub>p else CN (polymul(C c,c')) n' (polymul(C c, p')))"
-  "polymul(CN c n p, C c') = 
-      (if c' = 0\<^sub>N  then 0\<^sub>p else CN (polymul(c,C c')) n (polymul(p, C c')))"
-  "polymul(CN c n p, CN c' n' p') = 
-  (if n<n' then CN (polymul(c,CN c' n' p')) n (polymul(p,CN c' n' p'))
+
+fun polymul :: "poly \<Rightarrow> poly \<Rightarrow> poly" (infixl "*\<^sub>p" 60)
+where
+  "polymul (C c) (C c') = C (c*\<^sub>Nc')"
+| "polymul (C c) (CN c' n' p') = 
+      (if c = 0\<^sub>N then 0\<^sub>p else CN (polymul (C c) c') n' (polymul (C c) p'))"
+| "polymul (CN c n p) (C c') = 
+      (if c' = 0\<^sub>N  then 0\<^sub>p else CN (polymul c (C c')) n (polymul p (C c')))"
+| "polymul (CN c n p) (CN c' n' p') = 
+  (if n<n' then CN (polymul c (CN c' n' p')) n (polymul p (CN c' n' p'))
   else if n' < n 
-  then CN (polymul(CN c n p,c')) n' (polymul(CN c n p,p'))
-  else polyadd (polymul(CN c n p, c')) (CN 0\<^sub>p n' (polymul(CN c n p, p'))))"
-  "polymul (a,b) = Mul a b"
-(hints recdef_cong del: if_cong)
+  then CN (polymul (CN c n p) c') n' (polymul (CN c n p) p')
+  else polyadd (polymul (CN c n p) c') (CN 0\<^sub>p n' (polymul (CN c n p) p')))"
+| "polymul a b = Mul a b"
 
 declare if_cong[fundef_cong]
 declare let_cong[fundef_cong]
@@ -161,8 +159,8 @@ declare let_cong[fundef_cong]
 fun polypow :: "nat \<Rightarrow> poly \<Rightarrow> poly"
 where
   "polypow 0 = (\<lambda>p. 1\<^sub>p)"
-| "polypow n = (\<lambda>p. let q = polypow (n div 2) p ; d = polymul(q,q) in 
-                    if even n then d else polymul(p,d))"
+| "polypow n = (\<lambda>p. let q = polypow (n div 2) p ; d = polymul q q in 
+                    if even n then d else polymul p d)"
 
 abbreviation poly_pow :: "poly \<Rightarrow> nat \<Rightarrow> poly" (infixl "^\<^sub>p" 60)
   where "a ^\<^sub>p k \<equiv> polypow k a"
@@ -404,22 +402,20 @@ lemma polymul_properties:
                              else degreen p m + degreen q m)"
   using np nq m
 proof(induct p q arbitrary: n0 n1 m rule: polymul.induct)
-  case (2 a b c' n' p') 
-  let ?c = "(a,b)"
+  case (2 c c' n' p') 
   { case (1 n0 n1) 
-    with "2.hyps"(1-3)[of n' n' n']
-      and "2.hyps"(4-6)[of "Suc n'" "Suc n'" n']
+    with "2.hyps"(4-6)[of n' n' n']
+      and "2.hyps"(1-3)[of "Suc n'" "Suc n'" n']
     show ?case by (auto simp add: min_def)
   next
     case (2 n0 n1) thus ?case by auto 
   next
     case (3 n0 n1) thus ?case  using "2.hyps" by auto } 
 next
-  case (3 c n p a b)
-  let ?c' = "(a,b)"
+  case (3 c n p c')
   { case (1 n0 n1) 
-    with "3.hyps"(1-3)[of n n n]
-      "3.hyps"(4-6)[of "Suc n" "Suc n" n]
+    with "3.hyps"(4-6)[of n n n]
+      "3.hyps"(1-3)[of "Suc n" "Suc n" n]
     show ?case by (auto simp add: min_def)
   next
     case (2 n0 n1) thus ?case by auto
@@ -436,19 +432,19 @@ next
         and nn0: "n \<ge> n0" and nn1:"n' \<ge> n1"
         by simp_all
       { assume "n < n'"
-        with "4.hyps"(13-14)[OF np cnp', of n]
-          "4.hyps"(16)[OF nc cnp', of n] nn0 cnp
+        with "4.hyps"(4-5)[OF np cnp', of n]
+          "4.hyps"(1)[OF nc cnp', of n] nn0 cnp
         have ?case by (simp add: min_def)
       } moreover {
         assume "n' < n"
-        with "4.hyps"(1-2)[OF cnp np', of "n'"]
-          "4.hyps"(4)[OF cnp nc', of "Suc n'"] nn1 cnp'
+        with "4.hyps"(16-17)[OF cnp np', of "n'"]
+          "4.hyps"(13)[OF cnp nc', of "Suc n'"] nn1 cnp'
         have ?case
           by (cases "Suc n' = n", simp_all add: min_def)
       } moreover {
         assume "n' = n"
-        with "4.hyps"(1-2)[OF cnp np', of n]
-          "4.hyps"(4)[OF cnp nc', of n] cnp cnp' nn1 nn0
+        with "4.hyps"(16-17)[OF cnp np', of n]
+          "4.hyps"(13)[OF cnp nc', of n] cnp cnp' nn1 nn0
         have ?case
           apply (auto intro!: polyadd_normh)
           apply (simp_all add: min_def isnpolyh_mono[OF nn0])
@@ -466,20 +462,20 @@ next
       have "n'<n \<or> n < n' \<or> n' = n" by auto
       moreover 
       {assume "n' < n \<or> n < n'"
-        with "4.hyps"(3,15,18) np np' m 
+        with "4.hyps"(3,6,18) np np' m 
         have ?eq by auto }
       moreover
       {assume nn': "n' = n" hence nn:"\<not> n' < n \<and> \<not> n < n'" by arith
-        from "4.hyps"(1,3)[of n n' n]
-          "4.hyps"(4,5)[of n "Suc n'" n]
+        from "4.hyps"(16,18)[of n n' n]
+          "4.hyps"(13,14)[of n "Suc n'" n]
           np np' nn'
         have norm: "isnpolyh ?cnp n" "isnpolyh c' (Suc n)" "isnpolyh (?cnp *\<^sub>p c') n"
           "isnpolyh p' n" "isnpolyh (?cnp *\<^sub>p p') n" "isnpolyh (CN 0\<^sub>p n (CN c n p *\<^sub>p p')) n"
           "(?cnp *\<^sub>p c' = 0\<^sub>p) = (c' = 0\<^sub>p)" 
           "?cnp *\<^sub>p p' \<noteq> 0\<^sub>p" by (auto simp add: min_def)
         {assume mn: "m = n" 
-          from "4.hyps"(2,3)[OF norm(1,4), of n]
-            "4.hyps"(4,6)[OF norm(1,2), of n] norm nn' mn
+          from "4.hyps"(17,18)[OF norm(1,4), of n]
+            "4.hyps"(13,15)[OF norm(1,2), of n] norm nn' mn
           have degs:  "degreen (?cnp *\<^sub>p c') n = 
             (if c'=0\<^sub>p then 0 else ?d1 + degreen c' n)"
             "degreen (?cnp *\<^sub>p p') n = ?d1  + degreen p' n" by (simp_all add: min_def)
@@ -490,8 +486,8 @@ next
           have nmin: "n \<le> min n n" by (simp add: min_def)
           from polyadd_different_degreen[OF norm(3,6) neq nmin] th1
           have deg: "degreen (CN c n p *\<^sub>p c' +\<^sub>p CN 0\<^sub>p n (CN c n p *\<^sub>p p')) n = degreen (CN 0\<^sub>p n (CN c n p *\<^sub>p p')) n" by simp 
-          from "4.hyps"(1-3)[OF norm(1,4), of n]
-            "4.hyps"(4-6)[OF norm(1,2), of n]
+          from "4.hyps"(16-18)[OF norm(1,4), of n]
+            "4.hyps"(13-15)[OF norm(1,2), of n]
             mn norm m nn' deg
           have ?eq by simp}
         moreover
@@ -499,15 +495,15 @@ next
           from nn' m np have max1: "m \<le> max n n"  by simp 
           hence min1: "m \<le> min n n" by simp     
           hence min2: "m \<le> min n (Suc n)" by simp
-          from "4.hyps"(1-3)[OF norm(1,4) min1]
-            "4.hyps"(4-6)[OF norm(1,2) min2]
+          from "4.hyps"(16-18)[OF norm(1,4) min1]
+            "4.hyps"(13-15)[OF norm(1,2) min2]
             degreen_polyadd[OF norm(3,6) max1]
 
           have "degreen (?cnp *\<^sub>p c' +\<^sub>p CN 0\<^sub>p n (?cnp *\<^sub>p p')) m 
             \<le> max (degreen (?cnp *\<^sub>p c') m) (degreen (CN 0\<^sub>p n (?cnp *\<^sub>p p')) m)"
             using mn nn' np np' by simp
-          with "4.hyps"(1-3)[OF norm(1,4) min1]
-            "4.hyps"(4-6)[OF norm(1,2) min2]
+          with "4.hyps"(16-18)[OF norm(1,4) min1]
+            "4.hyps"(13-15)[OF norm(1,2) min2]
             degreen_0[OF norm(3) mn']
           have ?eq using nn' mn np np' by clarsimp}
         ultimately have ?eq by blast}
@@ -519,8 +515,8 @@ next
       let ?c0p = "CN 0\<^sub>p n (?cnp *\<^sub>p p')"
       {assume C: "?cnp *\<^sub>p c' +\<^sub>p ?c0p = 0\<^sub>p" "n' = n"
         hence nn: "\<not>n' < n \<and> \<not> n<n'" by simp
-        from "4.hyps"(1-3) [of n n n]
-          "4.hyps"(4-6)[of n "Suc n" n]
+        from "4.hyps"(16-18) [of n n n]
+          "4.hyps"(13-15)[of n "Suc n" n]
           np np' C(2) mn
         have norm: "isnpolyh ?cnp n" "isnpolyh c' (Suc n)" "isnpolyh (?cnp *\<^sub>p c') n"
           "isnpolyh p' n" "isnpolyh (?cnp *\<^sub>p p') n" "isnpolyh (CN 0\<^sub>p n (CN c n p *\<^sub>p p')) n"
@@ -555,7 +551,7 @@ lemma polymul_degreen:
   using polymul_properties(3) by blast
 lemma polymul_norm:   
   assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
-  shows "\<lbrakk> isnpoly p; isnpoly q\<rbrakk> \<Longrightarrow> isnpoly (polymul (p,q))"
+  shows "\<lbrakk> isnpoly p; isnpoly q\<rbrakk> \<Longrightarrow> isnpoly (polymul p q)"
   using polymul_normh[of "p" "0" "q" "0"] isnpoly_def by simp
 
 lemma headconst_zero: "isnpolyh p n0 \<Longrightarrow> headconst p = 0\<^sub>N \<longleftrightarrow> p = 0\<^sub>p"
@@ -623,12 +619,12 @@ proof(induct n rule: polypow.induct)
 next
   case (2 n)
   let ?q = "polypow ((Suc n) div 2) p"
-  let ?d = "polymul(?q,?q)"
+  let ?d = "polymul ?q ?q"
   have "odd (Suc n) \<or> even (Suc n)" by simp
   moreover 
   {assume odd: "odd (Suc n)"
     have th: "(Suc (Suc (Suc (0\<Colon>nat)) * (Suc n div Suc (Suc (0\<Colon>nat))))) = Suc n div 2 + Suc n div 2 + 1" by arith
-    from odd have "Ipoly bs (p ^\<^sub>p Suc n) = Ipoly bs (polymul(p, ?d))" by (simp add: Let_def)
+    from odd have "Ipoly bs (p ^\<^sub>p Suc n) = Ipoly bs (polymul p ?d)" by (simp add: Let_def)
     also have "\<dots> = (Ipoly bs p) * (Ipoly bs p)^(Suc n div 2)*(Ipoly bs p)^(Suc n div 2)"
       using "2.hyps" by simp
     also have "\<dots> = (Ipoly bs p) ^ (Suc n div 2 + Suc n div 2 + 1)"
@@ -653,10 +649,10 @@ lemma polypow_normh:
 proof (induct k arbitrary: n rule: polypow.induct)
   case (2 k n)
   let ?q = "polypow (Suc k div 2) p"
-  let ?d = "polymul (?q,?q)"
+  let ?d = "polymul ?q ?q"
   from prems have th1:"isnpolyh ?q n" and th2: "isnpolyh p n" by blast+
   from polymul_normh[OF th1 th1] have dn: "isnpolyh ?d n" by simp
-  from polymul_normh[OF th2 dn] have on: "isnpolyh (polymul(p,?d)) n" by simp
+  from polymul_normh[OF th2 dn] have on: "isnpolyh (polymul p ?d) n" by simp
   from dn on show ?case by (simp add: Let_def)
 qed auto 
 
@@ -1181,12 +1177,12 @@ lemma polymul_head_polyeq:
    assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
   shows "\<lbrakk>isnpolyh p n0; isnpolyh q n1 ; p \<noteq> 0\<^sub>p ; q \<noteq> 0\<^sub>p \<rbrakk> \<Longrightarrow> head (p *\<^sub>p q) = head p *\<^sub>p head q"
 proof (induct p q arbitrary: n0 n1 rule: polymul.induct)
-  case (2 a b c' n' p' n0 n1)
-  hence "isnpolyh (head (CN c' n' p')) n1" "isnormNum (a,b)"  by (simp_all add: head_isnpolyh)
+  case (2 c c' n' p' n0 n1)
+  hence "isnpolyh (head (CN c' n' p')) n1" "isnormNum c"  by (simp_all add: head_isnpolyh)
   thus ?case using prems by (cases n', auto) 
 next 
-  case (3 c n p a' b' n0 n1) 
-  hence "isnpolyh (head (CN c n p)) n0" "isnormNum (a',b')"  by (simp_all add: head_isnpolyh)
+  case (3 c n p c' n0 n1) 
+  hence "isnpolyh (head (CN c n p)) n0" "isnormNum c'"  by (simp_all add: head_isnpolyh)
   thus ?case using prems by (cases n, auto)
 next
   case (4 c n p c' n' p' n0 n1)
@@ -1197,11 +1193,11 @@ next
   moreover 
   {assume nn': "n < n'" hence ?case 
       using norm 
-    "4.hyps"(5)[OF norm(1,6)]
-    "4.hyps"(6)[OF norm(2,6)] by (simp, cases n, simp,cases n', simp_all)}
+    "4.hyps"(2)[OF norm(1,6)]
+    "4.hyps"(1)[OF norm(2,6)] by (simp, cases n, simp,cases n', simp_all)}
   moreover {assume nn': "n'< n"
-    hence ?case using norm "4.hyps"(1) [OF norm(5,3)]
-      "4.hyps"(2)[OF norm(5,4)] 
+    hence ?case using norm "4.hyps"(6) [OF norm(5,3)]
+      "4.hyps"(5)[OF norm(5,4)] 
       by (simp,cases n',simp,cases n,auto)}
   moreover {assume nn': "n' = n"
     from nn' polymul_normh[OF norm(5,4)] 
@@ -1225,8 +1221,8 @@ next
     have dth:"degree (CN c 0 p *\<^sub>p c') < degree (CN 0\<^sub>p 0 (CN c 0 p *\<^sub>p p'))" by simp
     hence dth':"degree (CN c 0 p *\<^sub>p c') \<noteq> degree (CN 0\<^sub>p 0 (CN c 0 p *\<^sub>p p'))" by simp
     from polyadd_head[OF ncnpc'[simplified nz] ncnpp0'[simplified nz] dth'] dth
-    have ?case   using norm "4.hyps"(1)[OF norm(5,3)]
-        "4.hyps"(2)[OF norm(5,4)] nn' nz by simp }
+    have ?case   using norm "4.hyps"(6)[OF norm(5,3)]
+        "4.hyps"(5)[OF norm(5,4)] nn' nz by simp }
     ultimately have ?case by (cases n) auto} 
   ultimately show ?case by blast
 qed simp_all
