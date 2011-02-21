@@ -392,18 +392,18 @@ fun destroy_pulled_out_constrs (hol_ctxt as {ctxt, stds, ...}) axiom t =
     val num_occs_of_var =
       fold_aterms (fn Var z => (fn f => fn z' => f z' |> z = z' ? Integer.add 1)
                     | _ => I) t (K 0)
-    fun aux careful ((t0 as Const (@{const_name "=="}, _)) $ t1 $ t2) =
-        aux_eq careful true t0 t1 t2
-      | aux careful ((t0 as @{const "==>"}) $ t1 $ t2) =
-        t0 $ aux false t1 $ aux careful t2
-      | aux careful ((t0 as Const (@{const_name HOL.eq}, _)) $ t1 $ t2) =
-        aux_eq careful true t0 t1 t2
-      | aux careful ((t0 as @{const HOL.implies}) $ t1 $ t2) =
-        t0 $ aux false t1 $ aux careful t2
-      | aux careful (Abs (s, T, t')) = Abs (s, T, aux careful t')
-      | aux careful (t1 $ t2) = aux careful t1 $ aux careful t2
-      | aux _ t = t
-    and aux_eq careful pass1 t0 t1 t2 =
+    fun aux Ts careful ((t0 as Const (@{const_name "=="}, _)) $ t1 $ t2) =
+        aux_eq Ts careful true t0 t1 t2
+      | aux Ts careful ((t0 as @{const "==>"}) $ t1 $ t2) =
+        t0 $ aux Ts false t1 $ aux Ts careful t2
+      | aux Ts careful ((t0 as Const (@{const_name HOL.eq}, _)) $ t1 $ t2) =
+        aux_eq Ts careful true t0 t1 t2
+      | aux Ts careful ((t0 as @{const HOL.implies}) $ t1 $ t2) =
+        t0 $ aux Ts false t1 $ aux Ts careful t2
+      | aux Ts careful (Abs (s, T, t')) = Abs (s, T, aux (T :: Ts) careful t')
+      | aux Ts careful (t1 $ t2) = aux Ts careful t1 $ aux Ts careful t2
+      | aux _ _ t = t
+    and aux_eq Ts careful pass1 t0 t1 t2 =
       ((if careful then
           raise SAME ()
         else if axiom andalso is_Var t2 andalso
@@ -426,22 +426,23 @@ fun destroy_pulled_out_constrs (hol_ctxt as {ctxt, stds, ...}) axiom t =
                 x = (@{const_name Suc}, nat_T --> nat_T)) andalso
                (not careful orelse not (is_Var t1) orelse
                 String.isPrefix val_var_prefix (fst (fst (dest_Var t1)))) then
-                s_let "l" (n + 1) dataT bool_T
-                      (fn t1 => discriminate_value hol_ctxt x t1 ::
-                                map3 (sel_eq x t1) (index_seq 0 n) arg_Ts args
-                                |> foldr1 s_conj) t1
+                s_let Ts "l" (n + 1) dataT bool_T
+                      (fn t1 =>
+                          discriminate_value hol_ctxt x t1 ::
+                          map3 (sel_eq Ts x t1) (index_seq 0 n) arg_Ts args
+                          |> foldr1 s_conj) t1
             else
               raise SAME ()
           end
         | _ => raise SAME ())
        |> body_type (type_of t0) = prop_T ? HOLogic.mk_Trueprop)
-      handle SAME () => if pass1 then aux_eq careful false t0 t2 t1
-                        else t0 $ aux false t2 $ aux false t1
-    and sel_eq x t n nth_T nth_t =
+      handle SAME () => if pass1 then aux_eq Ts careful false t0 t2 t1
+                        else t0 $ aux Ts false t2 $ aux Ts false t1
+    and sel_eq Ts x t n nth_T nth_t =
       HOLogic.eq_const nth_T $ nth_t
                              $ select_nth_constr_arg ctxt stds x t n nth_T
-      |> aux false
-  in aux axiom t end
+      |> aux Ts false
+  in aux [] axiom t end
 
 (** Destruction of universal and existential equalities **)
 
@@ -709,13 +710,6 @@ fun overlapping_indices [] _ = []
     else if j1 > j2 then overlapping_indices ps1 ps2'
     else overlapping_indices ps1' ps2' |> the_default t2 t1 = t2 ? cons j1
 
-fun is_eligible_arg Ts t =
-  let val bad_Ts = map snd (Term.add_vars t []) @ map (nth Ts) (loose_bnos t) in
-    null bad_Ts orelse
-    (is_higher_order_type (fastype_of1 (Ts, t)) andalso
-     forall (not o is_higher_order_type) bad_Ts)
-  end
-
 fun special_prefix_for j = special_prefix ^ string_of_int j ^ name_sep
 
 (* If a constant's definition is picked up deeper than this threshold, we
@@ -747,8 +741,9 @@ fun specialize_consts_in_term
                  not (is_constr ctxt stds x) andalso
                  not (is_choice_spec_fun hol_ctxt x))) then
               let
-                val eligible_args = filter (is_eligible_arg Ts o snd)
-                                           (index_seq 0 (length args) ~~ args)
+                val eligible_args =
+                  filter (is_special_eligible_arg true Ts o snd)
+                         (index_seq 0 (length args) ~~ args)
                 val _ = not (null eligible_args) orelse raise SAME ()
                 val old_axs = equational_fun_axioms hol_ctxt x
                               |> map (destroy_existential_equalities hol_ctxt)

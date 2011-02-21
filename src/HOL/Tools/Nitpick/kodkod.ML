@@ -169,7 +169,7 @@ sig
   val is_problem_trivially_false : problem -> bool
   val problems_equivalent : problem * problem -> bool
   val solve_any_problem :
-    bool -> Time.time option -> int -> int -> problem list -> outcome
+    bool -> bool -> Time.time option -> int -> int -> problem list -> outcome
 end;
 
 structure Kodkod : KODKOD =
@@ -1090,13 +1090,14 @@ val cached_outcome =
   Synchronized.var "Kodkod.cached_outcome"
                    (NONE : ((int * problem list) * outcome) option)
 
-fun solve_any_problem overlord deadline max_threads max_solutions problems =
+fun solve_any_problem debug overlord deadline max_threads max_solutions
+                      problems =
   let
     fun do_solve () =
       uncached_solve_any_problem overlord deadline max_threads max_solutions
                                  problems
   in
-    if overlord then
+    if debug orelse overlord then
       do_solve ()
     else
       case AList.lookup (fn ((max1, ps1), (max2, ps2)) =>

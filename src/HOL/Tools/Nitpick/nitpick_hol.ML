@@ -66,7 +66,9 @@ sig
   val original_name : string -> string
   val abs_var : indexname * typ -> term -> term
   val is_higher_order_type : typ -> bool
-  val s_let : string -> int -> typ -> typ -> (term -> term) -> term -> term
+  val is_special_eligible_arg : bool -> typ list -> term -> bool
+  val s_let :
+    typ list -> string -> int -> typ -> typ -> (term -> term) -> term -> term
   val s_betapply : typ list -> term * term -> term
   val s_betapplys : typ list -> term * term list -> term
   val s_conj : term * term -> term
@@ -327,14 +329,23 @@ fun is_higher_order_type (Type (@{type_name fun}, _)) = true
   | is_higher_order_type (Type (_, Ts)) = exists is_higher_order_type Ts
   | is_higher_order_type _ = false
 
+fun is_special_eligible_arg strict Ts t =
+  let val bad_Ts = map snd (Term.add_vars t []) @ map (nth Ts) (loose_bnos t) in
+    null bad_Ts orelse
+    (is_higher_order_type (fastype_of1 (Ts, t)) andalso
+     not strict orelse forall (not o is_higher_order_type) bad_Ts)
+  end
+
 fun abs_var ((s, j), T) body = Abs (s, T, abstract_over (Var ((s, j), T), body))
 
 fun let_var s = (nitpick_prefix ^ s, 999)
 val let_inline_threshold = 20
 
-fun s_let s n abs_T body_T f t =
+fun s_let Ts s n abs_T body_T f t =
   if (n - 1) * (size_of_term t - 1) <= let_inline_threshold orelse
-     is_higher_order_type abs_T then
+     is_special_eligible_arg true Ts t then
+     (* TODO: the "true" argument to "is_special_eligible_arg" should perhaps be
+        "false" instead to account for potential future specializations. *)
     f t
   else
     let val z = (let_var s, abs_T) in
@@ -358,7 +369,7 @@ fun s_betapply _ (Const (@{const_name If}, _) $ @{const True} $ t1', _) = t1'
       $ t12 $ Abs (s, T, s_betapply (T :: Ts) (t13', incr_boundvars 1 t2))
     end
   | s_betapply Ts (t1 as Abs (s1, T1, t1'), t2) =
-    (s_let s1 (loose_bvar1_count (t1', 0)) T1 (fastype_of1 (T1 :: Ts, t1'))
+    (s_let Ts s1 (loose_bvar1_count (t1', 0)) T1 (fastype_of1 (T1 :: Ts, t1'))
               (curry betapply t1) t2
      handle TERM _ => betapply (t1, t2)) (* FIXME: fix all uses *)
   | s_betapply _ (t1, t2) = t1 $ t2
@@ -1617,7 +1628,7 @@ val unfold_max_depth = 255
 
 (* Inline definitions or define as an equational constant? Booleans tend to
    benefit more from inlining, due to the polarity analysis. *)
-val def_inline_threshold_for_booleans = 50
+val def_inline_threshold_for_booleans = 60
 val def_inline_threshold_for_non_booleans = 20
 
 fun unfold_defs_in_term

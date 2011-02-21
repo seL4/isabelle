@@ -363,6 +363,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         SOME (SOME b) => b
       | _ => is_type_fundamentally_monotonic T orelse
              is_type_actually_monotonic T
+    fun is_deep_datatype_finitizable T =
+      triple_lookup (type_match thy) finitizes T = SOME (SOME true)
     fun is_shallow_datatype_finitizable (T as Type (@{type_name fun_box}, _)) =
         is_type_kind_of_monotonic T
       | is_shallow_datatype_finitizable T =
@@ -407,8 +409,10 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       all_Ts |> filter (is_datatype ctxt stds)
              |> List.partition is_datatype_deep
     val finitizable_dataTs =
-      shallow_dataTs |> filter_out (is_finite_type hol_ctxt)
-                     |> filter is_shallow_datatype_finitizable
+      (deep_dataTs |> filter_out (is_finite_type hol_ctxt)
+                   |> filter is_deep_datatype_finitizable) @
+      (shallow_dataTs |> filter_out (is_finite_type hol_ctxt)
+                      |> filter is_shallow_datatype_finitizable)
     val _ =
       if verbose andalso not (null finitizable_dataTs) then
         pprint_v (K (monotonicity_message finitizable_dataTs
@@ -735,8 +739,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         if max_solutions <= 0 then
           (found_really_genuine, 0, 0, donno)
         else
-          case KK.solve_any_problem overlord deadline max_threads max_solutions
-                                    (map fst problems) of
+          case KK.solve_any_problem debug overlord deadline max_threads
+                                    max_solutions (map fst problems) of
             KK.JavaNotInstalled =>
             (print_m install_java_message;
              (found_really_genuine, max_potential, max_genuine, donno + 1))
