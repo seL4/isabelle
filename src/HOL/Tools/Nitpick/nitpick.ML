@@ -34,8 +34,8 @@ sig
      destroy_constrs: bool,
      specialize: bool,
      star_linear_preds: bool,
+     preconstrs: (term option * bool option) list,
      peephole_optim: bool,
-     fix_datatype_vals: bool,
      datatype_sym_break: int,
      kodkod_sym_break: int,
      timeout: Time.time option,
@@ -108,8 +108,8 @@ type params =
    destroy_constrs: bool,
    specialize: bool,
    star_linear_preds: bool,
+   preconstrs: (term option * bool option) list,
    peephole_optim: bool,
-   fix_datatype_vals: bool,
    datatype_sym_break: int,
    kodkod_sym_break: int,
    timeout: Time.time option,
@@ -211,10 +211,10 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
          boxes, finitizes, monos, stds, wfs, sat_solver, falsify, debug,
          verbose, overlord, user_axioms, assms, whacks, merge_type_vars,
          binary_ints, destroy_constrs, specialize, star_linear_preds,
-         peephole_optim, fix_datatype_vals, datatype_sym_break,
-         kodkod_sym_break, tac_timeout, max_threads, show_datatypes,
-         show_consts, evals, formats, atomss, max_potential, max_genuine,
-         check_potential, check_genuine, batch_size, ...} = params
+         preconstrs, peephole_optim, datatype_sym_break, kodkod_sym_break,
+         tac_timeout, max_threads, show_datatypes, show_consts, evals, formats,
+         atomss, max_potential, max_genuine, check_potential, check_genuine,
+         batch_size, ...} = params
     val state_ref = Unsynchronized.ref state
     val pprint =
       if auto then
@@ -282,21 +282,23 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
        stds = stds, wfs = wfs, user_axioms = user_axioms, debug = debug,
        whacks = whacks, binary_ints = binary_ints,
        destroy_constrs = destroy_constrs, specialize = specialize,
-       star_linear_preds = star_linear_preds, tac_timeout = tac_timeout,
-       evals = evals, case_names = case_names, def_tables = def_tables,
-       nondef_table = nondef_table, user_nondefs = user_nondefs,
-       simp_table = simp_table, psimp_table = psimp_table,
-       choice_spec_table = choice_spec_table, intro_table = intro_table,
-       ground_thm_table = ground_thm_table, ersatz_table = ersatz_table,
-       skolems = Unsynchronized.ref [], special_funs = Unsynchronized.ref [],
+       star_linear_preds = star_linear_preds, preconstrs = preconstrs,
+       tac_timeout = tac_timeout, evals = evals, case_names = case_names,
+       def_tables = def_tables, nondef_table = nondef_table,
+       user_nondefs = user_nondefs, simp_table = simp_table,
+       psimp_table = psimp_table, choice_spec_table = choice_spec_table,
+       intro_table = intro_table, ground_thm_table = ground_thm_table,
+       ersatz_table = ersatz_table, skolems = Unsynchronized.ref [],
+       special_funs = Unsynchronized.ref [],
        unrolled_preds = Unsynchronized.ref [], wf_cache = Unsynchronized.ref [],
        constr_cache = Unsynchronized.ref []}
     val pseudo_frees = []
     val real_frees = fold Term.add_frees (neg_t :: assm_ts) []
     val _ = null (fold Term.add_tvars (neg_t :: assm_ts) []) orelse
             raise NOT_SUPPORTED "schematic type variables"
-    val (nondef_ts, def_ts, got_all_mono_user_axioms, no_poly_user_axioms,
-         binarize) = preprocess_formulas hol_ctxt assm_ts neg_t
+    val (nondef_ts, def_ts, preconstr_ts, got_all_mono_user_axioms,
+         no_poly_user_axioms, binarize) =
+      preprocess_formulas hol_ctxt assm_ts neg_t
     val got_all_user_axioms =
       got_all_mono_user_axioms andalso no_poly_user_axioms
 
@@ -324,13 +326,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
 
     val nondef_us = nondef_ts |> map (nut_from_term hol_ctxt Eq)
     val def_us = def_ts |> map (nut_from_term hol_ctxt DefEq)
-    val needed_us =
-      if fix_datatype_vals then
-        [@{term "[A, B, C, A]"}, @{term "[C, B, A]"}]
-        |> map (nut_from_term hol_ctxt Eq)
-        (* infer_needed_constructs ### *)
-      else
-        []
+    val preconstr_us = preconstr_ts |> map (nut_from_term hol_ctxt Eq)
     val (free_names, const_names) =
       fold add_free_and_const_names (nondef_us @ def_us) ([], [])
     val (sel_names, nonsel_names) =
@@ -519,8 +515,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
           def_us |> map (choose_reps_in_nut scope unsound rep_table true)
         val nondef_us =
           nondef_us |> map (choose_reps_in_nut scope unsound rep_table false)
-        val needed_us =
-          needed_us |> map (choose_reps_in_nut scope unsound rep_table false)
+        val preconstr_us =
+          preconstr_us |> map (choose_reps_in_nut scope unsound rep_table false)
 (*
         val _ = List.app (print_g o string_for_nut ctxt)
                          (free_names @ sel_names @ nonsel_names @
@@ -534,7 +530,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
           rename_free_vars nonsel_names pool rel_table
         val nondef_us = nondef_us |> map (rename_vars_in_nut pool rel_table)
         val def_us = def_us |> map (rename_vars_in_nut pool rel_table)
-        val needed_us = needed_us |> map (rename_vars_in_nut pool rel_table)
+        val preconstr_us =
+          preconstr_us |> map (rename_vars_in_nut pool rel_table)
         val nondef_fs = map (kodkod_formula_from_nut ofs kk) nondef_us
         val def_fs = map (kodkod_formula_from_nut ofs kk) def_us
         val formula = fold (fold s_and) [def_fs, nondef_fs] KK.True
@@ -560,7 +557,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val plain_axioms = map (declarative_axiom_for_plain_rel kk) plain_rels
         val sel_bounds = map (bound_for_sel_rel ctxt debug datatypes) sel_rels
         val dtype_axioms =
-          declarative_axioms_for_datatypes hol_ctxt binarize needed_us
+          declarative_axioms_for_datatypes hol_ctxt binarize preconstr_us
               datatype_sym_break bits ofs kk rel_table datatypes
         val declarative_axioms = plain_axioms @ dtype_axioms
         val univ_card = Int.max (univ_card nat_card int_card main_j0

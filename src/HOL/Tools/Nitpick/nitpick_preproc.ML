@@ -10,7 +10,7 @@ sig
   type hol_context = Nitpick_HOL.hol_context
   val preprocess_formulas :
     hol_context -> term list -> term
-    -> term list * term list * bool * bool * bool
+    -> term list * term list * term list * bool * bool * bool
 end;
 
 structure Nitpick_Preproc : NITPICK_PREPROC =
@@ -1246,7 +1246,7 @@ val max_skolem_depth = 3
 
 fun preprocess_formulas
         (hol_ctxt as {thy, ctxt, stds, binary_ints, destroy_constrs, boxes,
-                      ...}) assm_ts neg_t =
+                      preconstrs, ...}) assm_ts neg_t =
   let
     val (nondef_ts, def_ts, got_all_mono_user_axioms, no_poly_user_axioms) =
       neg_t |> unfold_defs_in_term hol_ctxt
@@ -1266,13 +1266,14 @@ fun preprocess_formulas
     val table =
       Termtab.empty
       |> box ? fold (add_to_uncurry_table ctxt) (nondef_ts @ def_ts)
-    fun do_rest def =
+    fun do_middle def =
       binarize ? binarize_nat_and_int_in_term
       #> box ? uncurry_term table
       #> box ? box_fun_and_pair_in_term hol_ctxt def
-      #> destroy_constrs ? (pull_out_universal_constrs hol_ctxt def
-                            #> pull_out_existential_constrs hol_ctxt
-                            #> destroy_pulled_out_constrs hol_ctxt def)
+    fun do_tail def =
+      destroy_constrs ? (pull_out_universal_constrs hol_ctxt def
+                         #> pull_out_existential_constrs hol_ctxt
+                         #> destroy_pulled_out_constrs hol_ctxt def)
       #> curry_assms
       #> destroy_universal_equalities
       #> destroy_existential_equalities hol_ctxt
@@ -1281,10 +1282,17 @@ fun preprocess_formulas
       #> push_quantifiers_inward
       #> close_form
       #> Term.map_abs_vars shortest_name
-    val nondef_ts = map (do_rest false) nondef_ts
-    val def_ts = map (do_rest true) def_ts
+    val nondef_ts = nondef_ts |> map (do_middle false)
+    val preconstr_ts =
+      (* FIXME: Implement preconstruction inference. *)
+      preconstrs
+      |> map_filter (fn (SOME t, SOME true) => SOME (t |> do_middle false)
+                      | _ => NONE)
+    val nondef_ts = nondef_ts |> map (do_tail false)
+    val def_ts = def_ts |> map (do_middle true #> do_tail true)
   in
-    (nondef_ts, def_ts, got_all_mono_user_axioms, no_poly_user_axioms, binarize)
+    (nondef_ts, def_ts, preconstr_ts, got_all_mono_user_axioms,
+     no_poly_user_axioms, binarize)
   end
 
 end;
