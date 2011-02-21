@@ -107,12 +107,6 @@ where
 subsection{* Operations for normalization *}
 
 
-consts 
-  polysub :: "poly\<times>poly \<Rightarrow> poly"
-
-abbreviation poly_sub :: "poly \<Rightarrow> poly \<Rightarrow> poly" (infixl "-\<^sub>p" 60)
-  where "a -\<^sub>p b \<equiv> polysub (a,b)"
-
 declare if_cong[fundef_cong del]
 declare let_cong[fundef_cong del]
 
@@ -136,8 +130,9 @@ where
 | "polyneg (CN c n p) = CN (polyneg c) n (polyneg p)"
 | "polyneg a = Neg a"
 
-defs polysub_def[code]: "polysub \<equiv> \<lambda> (p,q). polyadd p (polyneg q)"
-
+definition polysub :: "poly \<Rightarrow> poly \<Rightarrow> poly" (infixl "-\<^sub>p" 60)
+where
+  "p -\<^sub>p q = polyadd p (polyneg q)"
 
 fun polymul :: "poly \<Rightarrow> poly \<Rightarrow> poly" (infixl "*\<^sub>p" 60)
 where
@@ -592,15 +587,15 @@ lemma polyneg_norm: "isnpoly p \<Longrightarrow> isnpoly (polyneg p)"
 
 text{* polysub is a substraction and preserves normal forms *}
 
-lemma polysub[simp]: "Ipoly bs (polysub (p,q)) = (Ipoly bs p) - (Ipoly bs q)"
+lemma polysub[simp]: "Ipoly bs (polysub p q) = (Ipoly bs p) - (Ipoly bs q)"
 by (simp add: polysub_def polyneg polyadd)
-lemma polysub_normh: "\<And> n0 n1. \<lbrakk> isnpolyh p n0 ; isnpolyh q n1\<rbrakk> \<Longrightarrow> isnpolyh (polysub(p,q)) (min n0 n1)"
+lemma polysub_normh: "\<And> n0 n1. \<lbrakk> isnpolyh p n0 ; isnpolyh q n1\<rbrakk> \<Longrightarrow> isnpolyh (polysub p q) (min n0 n1)"
 by (simp add: polysub_def polyneg_normh polyadd_normh)
 
-lemma polysub_norm: "\<lbrakk> isnpoly p; isnpoly q\<rbrakk> \<Longrightarrow> isnpoly (polysub(p,q))"
+lemma polysub_norm: "\<lbrakk> isnpoly p; isnpoly q\<rbrakk> \<Longrightarrow> isnpoly (polysub p q)"
   using polyadd_norm polyneg_norm by (simp add: polysub_def) 
 lemma polysub_same_0[simp]:   assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
-  shows "isnpolyh p n0 \<Longrightarrow> polysub (p, p) = 0\<^sub>p"
+  shows "isnpolyh p n0 \<Longrightarrow> polysub p p = 0\<^sub>p"
 unfolding polysub_def split_def fst_conv snd_conv
 by (induct p arbitrary: n0,auto simp add: Let_def Nsub0[simplified Nsub_def])
 
