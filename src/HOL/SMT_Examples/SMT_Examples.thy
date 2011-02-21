@@ -463,6 +463,10 @@ lemma "i \<noteq> i1 \<and> i \<noteq> i2 \<Longrightarrow> ((f (i1 := v1)) (i2 
   using fun_upd_same fun_upd_apply
   by smt
 
+lemma
+  "f (\<exists>x. g x) \<Longrightarrow> True"
+  "f (\<forall>x. g x) \<Longrightarrow> True"
+  by smt+
 
 
 lemma "map (\<lambda>i::nat. i + 1) [0, 1] = [1, 2]" by (smt map.simps)

@@ -14908,3 +14908,113 @@ decl f6 :: S2
 #624 := [quant-inst #118]: #623
 [unit-resolution #624 #959 #430]: false
 unsat
+c2e9404480cb814492148c359fbbbb3b0e606571 54 0
+#2 := false
+#1 := true
+decl f1 :: S1
+#4 := f1
+decl f3 :: (-> S1 S1)
+decl f2 :: S1
+#5 := f2
+decl f4 :: (-> S2 S1)
+#8 := (:var 0 S2)
+#9 := (f4 #8)
+#10 := (= #9 f1)
+#11 := (exists (vars (?v0 S2)) #10)
+#12 := (ite #11 f1 f2)
+#13 := (f3 #12)
+#14 := (= #13 f1)
+#15 := (implies #14 true)
+#16 := (not #15)
+#69 := (iff #16 false)
+#64 := (not true)
+#67 := (iff #64 false)
+#68 := [rewrite]: #67
+#65 := (iff #16 #64)
+#62 := (iff #15 true)
+#37 := (= f1 #9)
+#40 := (exists (vars (?v0 S2)) #37)
+#43 := (ite #40 f1 f2)
+#46 := (f3 #43)
+#52 := (= f1 #46)
+#57 := (implies #52 true)
+#60 := (iff #57 true)
+#61 := [rewrite]: #60
+#58 := (iff #15 #57)
+#55 := (iff #14 #52)
+#49 := (= #46 f1)
+#53 := (iff #49 #52)
+#54 := [rewrite]: #53
+#50 := (iff #14 #49)
+#47 := (= #13 #46)
+#44 := (= #12 #43)
+#41 := (iff #11 #40)
+#38 := (iff #10 #37)
+#39 := [rewrite]: #38
+#42 := [quant-intro #39]: #41
+#45 := [monotonicity #42]: #44
+#48 := [monotonicity #45]: #47
+#51 := [monotonicity #48]: #50
+#56 := [trans #51 #54]: #55
+#59 := [monotonicity #56]: #58
+#63 := [trans #59 #61]: #62
+#66 := [monotonicity #63]: #65
+#70 := [trans #66 #68]: #69
+#36 := [asserted]: #16
+[mp #36 #70]: false
+unsat
+343488aeda93da0c02f8ac1558cbc54ab37a2bb9 54 0
+#2 := false
+#1 := true
+decl f1 :: S1
+#4 := f1
+decl f3 :: (-> S1 S1)
+decl f2 :: S1
+#5 := f2
+decl f4 :: (-> S2 S1)
+#8 := (:var 0 S2)
+#9 := (f4 #8)
+#10 := (= #9 f1)
+#11 := (forall (vars (?v0 S2)) #10)
+#12 := (ite #11 f1 f2)
+#13 := (f3 #12)
+#14 := (= #13 f1)
+#15 := (implies #14 true)
+#16 := (not #15)
+#69 := (iff #16 false)
+#64 := (not true)
+#67 := (iff #64 false)
+#68 := [rewrite]: #67
+#65 := (iff #16 #64)
+#62 := (iff #15 true)
+#37 := (= f1 #9)
+#40 := (forall (vars (?v0 S2)) #37)
+#43 := (ite #40 f1 f2)
+#46 := (f3 #43)
+#52 := (= f1 #46)
+#57 := (implies #52 true)
+#60 := (iff #57 true)
+#61 := [rewrite]: #60
+#58 := (iff #15 #57)
+#55 := (iff #14 #52)
+#49 := (= #46 f1)
+#53 := (iff #49 #52)
+#54 := [rewrite]: #53
+#50 := (iff #14 #49)
+#47 := (= #13 #46)
+#44 := (= #12 #43)
+#41 := (iff #11 #40)
+#38 := (iff #10 #37)
+#39 := [rewrite]: #38
+#42 := [quant-intro #39]: #41
+#45 := [monotonicity #42]: #44
+#48 := [monotonicity #45]: #47
+#51 := [monotonicity #48]: #50
+#56 := [trans #51 #54]: #55
+#59 := [monotonicity #56]: #58
+#63 := [trans #59 #61]: #62
+#66 := [monotonicity #63]: #65
+#70 := [trans #66 #68]: #69
+#36 := [asserted]: #16
+[mp #36 #70]: false
+unsat
