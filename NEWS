@@ -19,8 +19,12 @@ obsolete since Isabelle2009-2.
 
 *** HOL ***
 
+* Nitpick:
+  - Renamed attribute: nitpick_def ~> nitpick_unfold.
+    INCOMPATIBILITY.
+
 * Sledgehammer:
-    sledgehammer available_provers ~> sledgehammer supported_provers
+  - sledgehammer available_provers ~> sledgehammer supported_provers
     INCOMPATIBILITY.
 
 

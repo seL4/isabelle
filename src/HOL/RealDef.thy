@@ -1829,7 +1829,7 @@ declaration {*
     (@{const_name ord_real_inst.less_eq_real}, @{const_name Nitpick.less_eq_frac})]
 *}
 
-lemmas [nitpick_def] = inverse_real_inst.inverse_real
+lemmas [nitpick_unfold] = inverse_real_inst.inverse_real
     number_real_inst.number_of_real one_real_inst.one_real
     ord_real_inst.less_real ord_real_inst.less_eq_real plus_real_inst.plus_real
     times_real_inst.times_real uminus_real_inst.uminus_real

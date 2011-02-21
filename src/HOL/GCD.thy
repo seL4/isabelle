@@ -1722,12 +1722,11 @@ done
 
 text{* Nitpick: *}
 
-lemma gcd_eq_nitpick_gcd [nitpick_def]: "gcd x y \<equiv> Nitpick.nat_gcd x y"
-apply (rule eq_reflection)
-apply (induct x y rule: nat_gcd.induct)
-by (simp add: gcd_nat.simps Nitpick.nat_gcd.simps)
+lemma gcd_eq_nitpick_gcd [nitpick_unfold]: "gcd x y = Nitpick.nat_gcd x y"
+by (induct x y rule: nat_gcd.induct)
+   (simp add: gcd_nat.simps Nitpick.nat_gcd.simps)
 
-lemma lcm_eq_nitpick_lcm [nitpick_def]: "lcm x y \<equiv> Nitpick.nat_lcm x y"
+lemma lcm_eq_nitpick_lcm [nitpick_unfold]: "lcm x y = Nitpick.nat_lcm x y"
 by (simp only: lcm_nat_def Nitpick.nat_lcm_def gcd_eq_nitpick_gcd)
 
 end

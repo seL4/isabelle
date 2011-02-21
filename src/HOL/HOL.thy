@@ -1111,7 +1111,8 @@ by (simplesubst split_if, blast)
 lemma if_eq_cancel: "(if x = y then y else x) = x"
 by (simplesubst split_if, blast)
 
-lemma if_bool_eq_conj: "(if P then Q else R) = ((P-->Q) & (~P-->R))"
+lemma if_bool_eq_conj:
+"(if P then Q else R) = ((P-->Q) & (~P-->R))"
   -- {* This form is useful for expanding @{text "if"}s on the RIGHT of the @{text "==>"} symbol. *}
   by (rule split_if)
 
@@ -1990,9 +1991,9 @@ quickcheck_params [size = 5, iterations = 50]
 subsubsection {* Nitpick setup *}
 
 ML {*
-structure Nitpick_Defs = Named_Thms
+structure Nitpick_Unfolds = Named_Thms
 (
-  val name = "nitpick_def"
+  val name = "nitpick_unfold"
   val description = "alternative definitions of constants as needed by Nitpick"
 )
 structure Nitpick_Simps = Named_Thms
@@ -2013,11 +2014,14 @@ structure Nitpick_Choice_Specs = Named_Thms
 *}
 
 setup {*
-  Nitpick_Defs.setup
+  Nitpick_Unfolds.setup
   #> Nitpick_Simps.setup
   #> Nitpick_Psimps.setup
   #> Nitpick_Choice_Specs.setup
 *}
+
+declare if_bool_eq_conj [nitpick_unfold, no_atp]
+        if_bool_eq_disj [no_atp]
 
 
 subsection {* Preprocessing for the predicate compiler *}

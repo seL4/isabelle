@@ -47,11 +47,7 @@ text {*
 Alternative definitions.
 *}
 
-lemma If_def [nitpick_def, no_atp]:
-"(if P then Q else R) \<equiv> (P \<longrightarrow> Q) \<and> (\<not> P \<longrightarrow> R)"
-by (rule eq_reflection) (rule if_bool_eq_conj)
-
-lemma Ex1_def [nitpick_def, no_atp]:
+lemma Ex1_def [nitpick_unfold, no_atp]:
 "Ex1 P \<equiv> \<exists>x. P = {x}"
 apply (rule eq_reflection)
 apply (simp add: Ex1_def set_eq_iff)
@@ -64,14 +60,14 @@ apply (rule iffI)
  apply (erule_tac x = y in allE)
 by (auto simp: mem_def)
 
-lemma rtrancl_def [nitpick_def, no_atp]: "r\<^sup>* \<equiv> (r\<^sup>+)\<^sup>="
+lemma rtrancl_def [nitpick_unfold, no_atp]: "r\<^sup>* \<equiv> (r\<^sup>+)\<^sup>="
 by simp
 
-lemma rtranclp_def [nitpick_def, no_atp]:
+lemma rtranclp_def [nitpick_unfold, no_atp]:
 "rtranclp r a b \<equiv> (a = b \<or> tranclp r a b)"
 by (rule eq_reflection) (auto dest: rtranclpD)
 
-lemma tranclp_def [nitpick_def, no_atp]:
+lemma tranclp_def [nitpick_unfold, no_atp]:
 "tranclp r a b \<equiv> trancl (split r) (a, b)"
 by (simp add: trancl_def Collect_def mem_def)
 
@@ -119,7 +115,7 @@ apply (case_tac "P (Eps P)")
 apply (erule contrapos_np)
 by (rule someI)
 
-lemma unit_case_def [nitpick_def, no_atp]:
+lemma unit_case_def [nitpick_unfold, no_atp]:
 "unit_case x u \<equiv> x"
 apply (subgoal_tac "u = ()")
  apply (simp only: unit.cases)
@@ -127,7 +123,7 @@ by simp
 
 declare unit.cases [nitpick_simp del]
 
-lemma nat_case_def [nitpick_def, no_atp]:
+lemma nat_case_def [nitpick_unfold, no_atp]:
 "nat_case x f n \<equiv> if n = 0 then x else f (n - 1)"
 apply (rule eq_reflection)
 by (case_tac n) auto

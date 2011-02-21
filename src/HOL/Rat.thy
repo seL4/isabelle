@@ -1199,7 +1199,7 @@ declaration {*
     (@{const_name field_char_0_class.Rats}, @{const_abbrev UNIV})]
 *}
 
-lemmas [nitpick_def] = inverse_rat_inst.inverse_rat
+lemmas [nitpick_unfold] = inverse_rat_inst.inverse_rat
   number_rat_inst.number_of_rat one_rat_inst.one_rat ord_rat_inst.less_rat
   ord_rat_inst.less_eq_rat plus_rat_inst.plus_rat times_rat_inst.times_rat
   uminus_rat_inst.uminus_rat zero_rat_inst.zero_rat

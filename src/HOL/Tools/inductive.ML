@@ -774,7 +774,7 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind
       |> Local_Theory.conceal
       |> Local_Theory.define
         ((rec_name, case cnames_syn of [(_, syn)] => syn | _ => NoSyn),
-         ((Binding.empty, [Attrib.internal (K Nitpick_Defs.add)]),
+         ((Binding.empty, [Attrib.internal (K Nitpick_Unfolds.add)]),
          fold_rev lambda params
            (Const (fp_name, (predT --> predT) --> predT) $ fp_fun)))
       ||> Local_Theory.restore_naming lthy;

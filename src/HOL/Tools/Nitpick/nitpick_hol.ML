@@ -1850,7 +1850,7 @@ fun def_table_for get ctxt subst =
        |> AList.group (op =) |> Symtab.make
 
 fun const_def_tables ctxt subst ts =
-  (def_table_for (map prop_of o Nitpick_Defs.get) ctxt subst,
+  (def_table_for (map prop_of o Nitpick_Unfolds.get) ctxt subst,
    fold (fn (s, t) => Symtab.map_default (s, []) (cons t))
         (map pair_for_prop ts) Symtab.empty)
 
