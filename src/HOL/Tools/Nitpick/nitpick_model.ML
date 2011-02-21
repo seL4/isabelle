@@ -662,9 +662,9 @@ fun dest_n_tuple_type 1 T = [T]
   | dest_n_tuple_type _ T =
     raise TYPE ("Nitpick_Model.dest_n_tuple_type", [T], [])
 
-fun const_format thy def_table (x as (s, T)) =
+fun const_format thy def_tables (x as (s, T)) =
   if String.isPrefix unrolled_prefix s then
-    const_format thy def_table (original_name s, range_type T)
+    const_format thy def_tables (original_name s, range_type T)
   else if String.isPrefix skolem_prefix s then
     let
       val k = unprefix skolem_prefix s
@@ -673,7 +673,7 @@ fun const_format thy def_table (x as (s, T)) =
     in [k, num_binder_types T - k] end
   else if original_name s <> s then
     [num_binder_types T]
-  else case def_of_const thy def_table x of
+  else case def_of_const thy def_tables x of
     SOME t' => if fixpoint_kind_of_rhs t' <> NoFp then
                  let val k = length (strip_abs_vars t') in
                    [k, num_binder_types T - k]
@@ -690,7 +690,7 @@ fun intersect_formats _ [] = []
       [Int.min (k1, k2)]
     end
 
-fun lookup_format thy def_table formats t =
+fun lookup_format thy def_tables formats t =
   case AList.lookup (fn (SOME x, SOME y) =>
                         (term_match thy) (x, y) | _ => false)
                     formats (SOME t) of
@@ -698,7 +698,7 @@ fun lookup_format thy def_table formats t =
   | NONE => let val format = the (AList.lookup (op =) formats NONE) in
               case t of
                 Const x => intersect_formats format
-                                             (const_format thy def_table x)
+                                             (const_format thy def_tables x)
               | _ => format
             end
 
@@ -719,16 +719,16 @@ fun format_type default_format format T =
           |> map (HOLogic.mk_tupleT o rev)
       in List.foldl (op -->) body_T batched end
   end
-fun format_term_type thy def_table formats t =
+fun format_term_type thy def_tables formats t =
   format_type (the (AList.lookup (op =) formats NONE))
-              (lookup_format thy def_table formats t) (fastype_of t)
+              (lookup_format thy def_tables formats t) (fastype_of t)
 
 fun repair_special_format js m format =
   m - 1 downto 0 |> chunk_list_unevenly (rev format)
                  |> map (rev o filter_out (member (op =) js))
                  |> filter_out null |> map length |> rev
 
-fun user_friendly_const ({thy, evals, def_table, skolems, special_funs, ...}
+fun user_friendly_const ({thy, evals, def_tables, skolems, special_funs, ...}
                          : hol_context) (base_name, step_name) formats =
   let
     val default_format = the (AList.lookup (op =) formats NONE)
@@ -762,7 +762,7 @@ fun user_friendly_const ({thy, evals, def_table, skolems, special_funs, ...}
                SOME format =>
                repair_special_format js (num_binder_types T') format
              | NONE =>
-               const_format thy def_table x'
+               const_format thy def_tables x'
                |> repair_special_format js (num_binder_types T')
                |> intersect_formats default_format
          in
@@ -789,7 +789,7 @@ fun user_friendly_const ({thy, evals, def_table, skolems, special_funs, ...}
          let val t = Const (original_name s, range_type T) in
            (lambda (Free (iter_var_prefix, nat_T)) t,
             format_type default_format
-                        (lookup_format thy def_table formats t) T)
+                        (lookup_format thy def_tables formats t) T)
          end
        else if String.isPrefix base_prefix s then
          (Const (base_name, T --> T) $ Const (unprefix base_prefix s, T),
@@ -799,7 +799,7 @@ fun user_friendly_const ({thy, evals, def_table, skolems, special_funs, ...}
           format_type default_format default_format T)
        else if String.isPrefix quot_normal_prefix s then
          let val t = Const (nitpick_prefix ^ "quotient normal form", T) in
-           (t, format_term_type thy def_table formats t)
+           (t, format_term_type thy def_tables formats t)
          end
        else if String.isPrefix skolem_prefix s then
          let
@@ -810,15 +810,15 @@ fun user_friendly_const ({thy, evals, def_table, skolems, special_funs, ...}
          in
            (fold lambda frees (Const (s', Ts' ---> T)),
             format_type default_format
-                        (lookup_format thy def_table formats (Const x)) T)
+                        (lookup_format thy def_tables formats (Const x)) T)
          end
        else if String.isPrefix eval_prefix s then
          let
            val t = nth evals (the (Int.fromString (unprefix eval_prefix s)))
-         in (t, format_term_type thy def_table formats t) end
+         in (t, format_term_type thy def_tables formats t) end
        else
          let val t = Const (original_name s, T) in
-           (t, format_term_type thy def_table formats t)
+           (t, format_term_type thy def_tables formats t)
          end)
       |>> map_types uniterize_unarize_unbox_etc_type
       |>> shorten_names_in_term |>> Term.map_abs_vars shortest_name
@@ -863,7 +863,7 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
         ({hol_ctxt = {thy, ctxt, max_bisim_depth, boxes, stds, wfs, user_axioms,
                       debug, whacks, binary_ints, destroy_constrs, specialize,
                       star_linear_preds, tac_timeout, evals, case_names,
-                      def_table, nondef_table, user_nondefs, simp_table,
+                      def_tables, nondef_table, user_nondefs, simp_table,
                       psimp_table, choice_spec_table, intro_table,
                       ground_thm_table, ersatz_table, skolems, special_funs,
                       unrolled_preds, wf_cache, constr_cache},
@@ -880,7 +880,7 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
        whacks = whacks, binary_ints = binary_ints,
        destroy_constrs = destroy_constrs, specialize = specialize,
        star_linear_preds = star_linear_preds, tac_timeout = tac_timeout,
-       evals = evals, case_names = case_names, def_table = def_table,
+       evals = evals, case_names = case_names, def_tables = def_tables,
        nondef_table = nondef_table, user_nondefs = user_nondefs,
        simp_table = simp_table, psimp_table = psimp_table,
        choice_spec_table = choice_spec_table, intro_table = intro_table,
@@ -912,7 +912,7 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
           case name of
             FreeName (s, T, _) =>
             let val t = Free (s, uniterize_unarize_unbox_etc_type T) in
-              ("=", (t, format_term_type thy def_table formats t), T)
+              ("=", (t, format_term_type thy def_tables formats t), T)
             end
           | ConstName (s, T, _) =>
             (assign_operator_for_const (s, T),

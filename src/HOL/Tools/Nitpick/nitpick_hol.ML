@@ -30,7 +30,7 @@ sig
      tac_timeout: Time.time option,
      evals: term list,
      case_names: (string * int) list,
-     def_table: const_table,
+     def_tables: const_table * const_table,
      nondef_table: const_table,
      user_nondefs: term list,
      simp_table: const_table Unsynchronized.ref,
@@ -187,15 +187,17 @@ sig
   val case_const_names :
     Proof.context -> (typ option * bool) list -> (string * int) list
   val unfold_defs_in_term : hol_context -> term -> term
-  val const_def_table :
-    Proof.context -> (term * term) list -> term list -> const_table
+  val const_def_tables :
+    Proof.context -> (term * term) list -> term list
+    -> const_table * const_table
   val const_nondef_table : term list -> const_table
   val const_simp_table : Proof.context -> (term * term) list -> const_table
   val const_psimp_table : Proof.context -> (term * term) list -> const_table
   val const_choice_spec_table :
     Proof.context -> (term * term) list -> const_table
   val inductive_intro_table :
-    Proof.context -> (term * term) list -> const_table -> const_table
+    Proof.context -> (term * term) list -> const_table * const_table
+    -> const_table
   val ground_theorem_table : theory -> term list Inttab.table
   val ersatz_table : Proof.context -> (string * string) list
   val add_simps : const_table Unsynchronized.ref -> string -> term list -> unit
@@ -203,10 +205,10 @@ sig
   val optimized_typedef_axioms : Proof.context -> string * typ list -> term list
   val optimized_quot_type_axioms :
     Proof.context -> (typ option * bool) list -> string * typ list -> term list
-  val def_of_const : theory -> const_table -> styp -> term option
+  val def_of_const : theory -> const_table * const_table -> styp -> term option
   val fixpoint_kind_of_rhs : term -> fixpoint_kind
   val fixpoint_kind_of_const :
-    theory -> const_table -> string * typ -> fixpoint_kind
+    theory -> const_table * const_table -> string * typ -> fixpoint_kind
   val is_real_inductive_pred : hol_context -> styp -> bool
   val is_constr_pattern_lhs : Proof.context -> term -> bool
   val is_constr_pattern_formula : Proof.context -> term -> bool
@@ -256,7 +258,7 @@ type hol_context =
    tac_timeout: Time.time option,
    evals: term list,
    case_names: (string * int) list,
-   def_table: const_table,
+   def_tables: const_table * const_table,
    nondef_table: const_table,
    user_nondefs: term list,
    simp_table: const_table Unsynchronized.ref,
@@ -1376,14 +1378,19 @@ fun normalized_rhs_of t =
     val args = strip_comb lhs |> snd
   in fold_rev aux args (SOME rhs) end
 
-fun def_of_const thy table (x as (s, _)) =
-  if is_built_in_const thy [(NONE, false)] x orelse
-     original_name s <> s then
+fun get_def_of_const thy table (x as (s, _)) =
+  x |> def_props_for_const thy [(NONE, false)] table |> List.last
+    |> normalized_rhs_of |> Option.map (prefix_abs_vars s)
+  handle List.Empty => NONE
+
+fun def_of_const_ext thy (unfold_table, fallback_table) (x as (s, _)) =
+  if is_built_in_const thy [(NONE, false)] x orelse original_name s <> s then
     NONE
-  else
-    x |> def_props_for_const thy [(NONE, false)] table |> List.last
-      |> normalized_rhs_of |> Option.map (prefix_abs_vars s)
-    handle List.Empty => NONE
+  else case get_def_of_const thy unfold_table x of
+    SOME def => SOME (true, def)
+  | NONE => get_def_of_const thy fallback_table x |> Option.map (pair false)
+
+val def_of_const = Option.map snd ooo def_of_const_ext
 
 fun fixpoint_kind_of_rhs (Abs (_, _, t)) = fixpoint_kind_of_rhs t
   | fixpoint_kind_of_rhs (Const (@{const_name lfp}, _) $ Abs _) = Lfp
@@ -1434,9 +1441,9 @@ fun fixpoint_kind_of_const thy table x =
   else fixpoint_kind_of_rhs (the (def_of_const thy table x))
   handle Option.Option => NoFp
 
-fun is_real_inductive_pred ({thy, stds, def_table, intro_table, ...}
+fun is_real_inductive_pred ({thy, stds, def_tables, intro_table, ...}
                             : hol_context) x =
-  fixpoint_kind_of_const thy def_table x <> NoFp andalso
+  fixpoint_kind_of_const thy def_tables x <> NoFp andalso
   not (null (def_props_for_const thy stds intro_table x))
 fun is_inductive_pred hol_ctxt (x as (s, _)) =
   is_real_inductive_pred hol_ctxt x orelse String.isPrefix ubfp_prefix s orelse
@@ -1502,11 +1509,11 @@ fun axiom_for_choice_spec thy =
   #> Object_Logic.atomize_term thy
   #> Choice_Specification.close_form
   #> HOLogic.mk_Trueprop
-fun is_choice_spec_fun ({thy, def_table, nondef_table, choice_spec_table, ...}
+fun is_choice_spec_fun ({thy, def_tables, nondef_table, choice_spec_table, ...}
                         : hol_context) x =
   case nondef_props_for_const thy true choice_spec_table x of
     [] => false
-  | ts => case def_of_const thy def_table x of
+  | ts => case def_of_const thy def_tables x of
             SOME (Const (@{const_name Eps}, _) $ _) => true
           | SOME _ => false
           | NONE =>
@@ -1614,7 +1621,7 @@ val def_inline_threshold_for_booleans = 50
 val def_inline_threshold_for_non_booleans = 20
 
 fun unfold_defs_in_term
-        (hol_ctxt as {thy, ctxt, stds, whacks, case_names, def_table,
+        (hol_ctxt as {thy, ctxt, stds, whacks, case_names, def_tables,
                       ground_thm_table, ersatz_table, ...}) =
   let
     fun do_term depth Ts t =
@@ -1781,8 +1788,8 @@ fun unfold_defs_in_term
               else if is_equational_fun_but_no_plain_def hol_ctxt x orelse
                       is_choice_spec_fun hol_ctxt x then
                 (Const x, ts)
-              else case def_of_const thy def_table x of
-                SOME def =>
+              else case def_of_const_ext thy def_tables x of
+                SOME (unfold, def) =>
                 if depth > unfold_max_depth then
                   raise TOO_LARGE ("Nitpick_HOL.unfold_defs_in_term",
                                    "too many nested definitions (" ^
@@ -1790,7 +1797,8 @@ fun unfold_defs_in_term
                                    quote s)
                 else if s = @{const_name wfrec'} then
                   (do_term (depth + 1) Ts (s_betapplys Ts (def, ts)), [])
-                else if size_of_term def > def_inline_threshold () then
+                else if not unfold andalso
+                     size_of_term def > def_inline_threshold () then
                   (Const x, ts)
                 else
                   (do_term (depth + 1) Ts def, ts)
@@ -1841,10 +1849,10 @@ fun def_table_for get ctxt subst =
   ctxt |> get |> map (pair_for_prop o subst_atomic subst)
        |> AList.group (op =) |> Symtab.make
 
-fun const_def_table ctxt subst ts =
-  def_table_for (map prop_of o Nitpick_Defs.get) ctxt subst
-  |> fold (fn (s, t) => Symtab.map_default (s, []) (cons t))
-          (map pair_for_prop ts)
+fun const_def_tables ctxt subst ts =
+  (def_table_for (map prop_of o Nitpick_Defs.get) ctxt subst,
+   fold (fn (s, t) => Symtab.map_default (s, []) (cons t))
+        (map pair_for_prop ts) Symtab.empty)
 
 fun paired_with_consts t = map (rpair t) (Term.add_const_names t [])
 fun const_nondef_table ts =
@@ -1861,10 +1869,10 @@ fun const_choice_spec_table ctxt subst =
   map (subst_atomic subst o prop_of) (Nitpick_Choice_Specs.get ctxt)
   |> const_nondef_table
 
-fun inductive_intro_table ctxt subst def_table =
+fun inductive_intro_table ctxt subst def_tables =
   let val thy = ProofContext.theory_of ctxt in
     def_table_for
-        (maps (map (unfold_mutually_inductive_preds thy def_table o prop_of)
+        (maps (map (unfold_mutually_inductive_preds thy def_tables o prop_of)
                o snd o snd)
          o filter (fn (cat, _) => cat = Spec_Rules.Inductive orelse
                                   cat = Spec_Rules.Co_Inductive)
@@ -2086,7 +2094,7 @@ fun uncached_is_well_founded_inductive_pred
 (* The type constraint below is a workaround for a Poly/ML crash. *)
 
 fun is_well_founded_inductive_pred
-        (hol_ctxt as {thy, wfs, def_table, wf_cache, ...} : hol_context)
+        (hol_ctxt as {thy, wfs, def_tables, wf_cache, ...} : hol_context)
         (x as (s, _)) =
   case triple_lookup (const_match thy) wfs x of
     SOME (SOME b) => b
@@ -2095,7 +2103,7 @@ fun is_well_founded_inductive_pred
            SOME (_, wf) => wf
          | NONE =>
            let
-             val gfp = (fixpoint_kind_of_const thy def_table x = Gfp)
+             val gfp = (fixpoint_kind_of_const thy def_tables x = Gfp)
              val wf = uncached_is_well_founded_inductive_pred hol_ctxt x
            in
              Unsynchronized.change wf_cache (cons (x, (gfp, wf))); wf
@@ -2214,13 +2222,13 @@ fun is_good_starred_linear_pred_type (Type (@{type_name fun}, Ts)) =
   | is_good_starred_linear_pred_type _ = false
 
 fun unrolled_inductive_pred_const (hol_ctxt as {thy, star_linear_preds,
-                                                def_table, simp_table, ...})
+                                                def_tables, simp_table, ...})
                                   gfp (x as (s, T)) =
   let
     val iter_T = iterator_type_for_const gfp x
     val x' as (s', _) = (unrolled_prefix ^ s, iter_T --> T)
     val unrolled_const = Const x' $ zero_const iter_T
-    val def = the (def_of_const thy def_table x)
+    val def = the (def_of_const thy def_tables x)
   in
     if is_equational_fun_but_no_plain_def hol_ctxt x' then
       unrolled_const (* already done *)
@@ -2251,9 +2259,9 @@ fun unrolled_inductive_pred_const (hol_ctxt as {thy, star_linear_preds,
       in unrolled_const end
   end
 
-fun raw_inductive_pred_axiom ({thy, def_table, ...} : hol_context) x =
+fun raw_inductive_pred_axiom ({thy, def_tables, ...} : hol_context) x =
   let
-    val def = the (def_of_const thy def_table x)
+    val def = the (def_of_const thy def_tables x)
     val (outer, fp_app) = strip_abs def
     val outer_bounds = map Bound (length outer - 1 downto 0)
     val rhs =
@@ -2277,13 +2285,13 @@ fun inductive_pred_axiom hol_ctxt (x as (s, T)) =
   else
     raw_inductive_pred_axiom hol_ctxt x
 
-fun equational_fun_axioms (hol_ctxt as {thy, ctxt, stds, def_table, simp_table,
+fun equational_fun_axioms (hol_ctxt as {thy, ctxt, stds, def_tables, simp_table,
                                         psimp_table, ...}) x =
   case def_props_for_const thy stds (!simp_table) x of
     [] => (case def_props_for_const thy stds psimp_table x of
              [] => (if is_inductive_pred hol_ctxt x then
                       [inductive_pred_axiom hol_ctxt x]
-                    else case def_of_const thy def_table x of
+                    else case def_of_const thy def_tables x of
                       SOME def =>
                       @{const Trueprop} $ HOLogic.mk_eq (Const x, def)
                       |> equationalize_term ctxt "" |> the |> single

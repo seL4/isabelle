@@ -265,14 +265,14 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val max_bisim_depth = fold Integer.max bisim_depths ~1
     val case_names = case_const_names ctxt stds
     val (defs, built_in_nondefs, user_nondefs) = all_axioms_of ctxt subst
-    val def_table = const_def_table ctxt subst defs
+    val def_tables = const_def_tables ctxt subst defs
     val nondef_table = const_nondef_table (built_in_nondefs @ user_nondefs)
     val simp_table = Unsynchronized.ref (const_simp_table ctxt subst)
     val psimp_table = const_psimp_table ctxt subst
     val choice_spec_table = const_choice_spec_table ctxt subst
     val user_nondefs =
       user_nondefs |> filter_out (is_choice_spec_axiom thy choice_spec_table)
-    val intro_table = inductive_intro_table ctxt subst def_table
+    val intro_table = inductive_intro_table ctxt subst def_tables
     val ground_thm_table = ground_theorem_table thy
     val ersatz_table = ersatz_table ctxt
     val hol_ctxt as {wf_cache, ...} =
@@ -281,7 +281,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
        whacks = whacks, binary_ints = binary_ints,
        destroy_constrs = destroy_constrs, specialize = specialize,
        star_linear_preds = star_linear_preds, tac_timeout = tac_timeout,
-       evals = evals, case_names = case_names, def_table = def_table,
+       evals = evals, case_names = case_names, def_tables = def_tables,
        nondef_table = nondef_table, user_nondefs = user_nondefs,
        simp_table = simp_table, psimp_table = psimp_table,
        choice_spec_table = choice_spec_table, intro_table = intro_table,

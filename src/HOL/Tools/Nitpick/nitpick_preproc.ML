@@ -540,7 +540,7 @@ fun destroy_existential_equalities ({ctxt, stds, ...} : hol_context) =
 fun skolem_prefix_for k j =
   skolem_prefix ^ string_of_int k ^ "@" ^ string_of_int j ^ name_sep
 
-fun skolemize_term_and_more (hol_ctxt as {thy, def_table, skolems, ...})
+fun skolemize_term_and_more (hol_ctxt as {thy, def_tables, skolems, ...})
                             skolem_depth =
   let
     val incrs = map (Integer.add 1)
@@ -615,7 +615,7 @@ fun skolemize_term_and_more (hol_ctxt as {thy, def_table, skolems, ...})
              not (is_real_equational_fun hol_ctxt x) andalso
              not (is_well_founded_inductive_pred hol_ctxt x) then
             let
-              val gfp = (fixpoint_kind_of_const thy def_table x = Gfp)
+              val gfp = (fixpoint_kind_of_const thy def_tables x = Gfp)
               val (pref, connective) =
                 if gfp then (lbfp_prefix, @{const HOL.disj})
                 else (ubfp_prefix, @{const HOL.conj})
@@ -729,7 +729,7 @@ fun special_fun_aconv ((x1, js1, ts1), (x2, js2, ts2)) =
   forall (op aconv) (ts1 ~~ ts2)
 
 fun specialize_consts_in_term
-        (hol_ctxt as {ctxt, thy, stds, specialize, def_table, simp_table,
+        (hol_ctxt as {ctxt, thy, stds, specialize, def_tables, simp_table,
                       special_funs, ...}) def depth t =
   if not specialize orelse depth > special_max_depth then
     t
@@ -742,7 +742,7 @@ fun specialize_consts_in_term
                not (String.isPrefix special_prefix s) andalso
                not (is_built_in_const thy stds x) andalso
                (is_equational_fun_but_no_plain_def hol_ctxt x orelse
-                (is_some (def_of_const thy def_table x) andalso
+                (is_some (def_of_const thy def_tables x) andalso
                  not (is_of_class_const thy x) andalso
                  not (is_constr ctxt stds x) andalso
                  not (is_choice_spec_fun hol_ctxt x))) then
@@ -879,7 +879,8 @@ fun assumption_exclusively_defines_free assm_ts t =
   | NONE => false
 
 fun all_table_entries table = Symtab.fold (append o snd) table []
-fun extra_table table s = Symtab.make [(s, all_table_entries table)]
+fun extra_table tables s =
+  Symtab.make [(s, pairself all_table_entries tables |> op @)]
 
 fun eval_axiom_for_term j t =
   Logic.mk_equals (Const (eval_prefix ^ string_of_int j, fastype_of t), t)
@@ -891,7 +892,7 @@ val axioms_max_depth = 255
 
 fun axioms_for_term
         (hol_ctxt as {thy, ctxt, max_bisim_depth, stds, user_axioms,
-                      evals, def_table, nondef_table, choice_spec_table,
+                      evals, def_tables, nondef_table, choice_spec_table,
                       user_nondefs, ...}) assm_ts neg_t =
   let
     val (def_assm_ts, nondef_assm_ts) =
@@ -962,7 +963,7 @@ fun axioms_for_term
                          range_type T = nat_T)
                         ? fold (add_maybe_def_axiom depth)
                                (nondef_props_for_const thy true
-                                                    (extra_table def_table s) x)
+                                    (extra_table def_tables s) x)
              else if is_rep_fun ctxt x then
                accum |> fold (add_nondef_axiom depth)
                              (nondef_props_for_const thy false nondef_table x)
@@ -970,14 +971,14 @@ fun axioms_for_term
                          range_type T = nat_T)
                         ? fold (add_maybe_def_axiom depth)
                                (nondef_props_for_const thy true
-                                                    (extra_table def_table s) x)
+                                    (extra_table def_tables s) x)
                      |> add_axioms_for_term depth
                                             (Const (mate_of_rep_fun ctxt x))
                      |> fold (add_def_axiom depth)
                              (inverse_axioms_for_rep_fun ctxt x)
              else if s = @{const_name TYPE} then
                accum
-             else case def_of_const thy def_table x of
+             else case def_of_const thy def_tables x of
                SOME _ =>
                fold (add_eq_axiom depth) (equational_fun_axioms hol_ctxt x)
                     accum
