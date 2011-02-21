@@ -308,7 +308,7 @@ lemma norm_eq:
   assumes "norm P1 = norm P2"
   shows "Ipolex l P1 = Ipolex l P2"
 proof -
-  from prems have "Ipol l (norm P1) = Ipol l (norm P2)" by simp
+  from assms have "Ipol l (norm P1) = Ipol l (norm P2)" by simp
   then show ?thesis by (simp only: norm_ci)
 qed
 

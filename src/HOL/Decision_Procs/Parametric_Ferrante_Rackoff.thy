@@ -144,11 +144,10 @@ next
   {assume nxs: "n \<ge> length (x#xs)" hence ?case using removen_same[OF nxs] by simp}
   moreover
   {assume nxs: "\<not> (n \<ge> length (x#xs))" 
-    {assume mln: "m < n" hence ?case using prems by (cases m, auto)}
+    {assume mln: "m < n" hence ?case using Cons by (cases m, auto)}
     moreover
     {assume mln: "\<not> (m < n)" 
-      
-      {assume mxs: "m \<le> length (x#xs)" hence ?case using prems by (cases m, auto)}
+      {assume mxs: "m \<le> length (x#xs)" hence ?case using Cons by (cases m, auto)}
       moreover
       {assume mxs: "\<not> (m \<le> length (x#xs))" 
         have th: "length (removen n (x#xs)) = length xs" 
@@ -162,15 +161,13 @@ next
       ultimately have ?case by blast
     }
     ultimately have ?case by blast
-    
-  }      ultimately show ?case by blast
+  } ultimately show ?case by blast
 qed
 
 lemma decrtm: assumes bnd: "tmboundslt (length bs) t" and nb: "tmbound m t" 
   and nle: "m \<le> length bs" 
   shows "Itm vs (removen m bs) (decrtm m t) = Itm vs bs t"
-  using bnd nb nle
-  by (induct t rule: tm.induct, auto simp add: removen_nth)
+  using bnd nb nle by (induct t rule: tm.induct) (auto simp add: removen_nth)
 
 primrec tmsubst0:: "tm \<Rightarrow> tm \<Rightarrow> tm" where
   "tmsubst0 t (CP c) = CP c"
@@ -182,10 +179,10 @@ primrec tmsubst0:: "tm \<Rightarrow> tm \<Rightarrow> tm" where
 | "tmsubst0 t (Mul i a) = Mul i (tmsubst0 t a)"
 lemma tmsubst0:
   shows "Itm vs (x#bs) (tmsubst0 t a) = Itm vs ((Itm vs (x#bs) t)#bs) a"
-by (induct a rule: tm.induct,auto simp add: nth_pos2)
+  by (induct a rule: tm.induct) (auto simp add: nth_pos2)
 
 lemma tmsubst0_nb: "tmbound0 t \<Longrightarrow> tmbound0 (tmsubst0 t a)"
-by (induct a rule: tm.induct,auto simp add: nth_pos2)
+  by (induct a rule: tm.induct) (auto simp add: nth_pos2)
 
 primrec tmsubst:: "nat \<Rightarrow> tm \<Rightarrow> tm \<Rightarrow> tm" where
   "tmsubst n t (CP c) = CP c"
@@ -569,13 +566,13 @@ lemma bound_I:
 proof(induct p arbitrary: bs n rule: fm.induct)
   case (E p bs n) 
   {fix y
-    from prems have bnd: "boundslt (length (y#bs)) p" 
+    from E have bnd: "boundslt (length (y#bs)) p" 
       and nb: "bound (Suc n) p" and le: "Suc n \<le> length (y#bs)" by simp+
     from E.hyps[OF bnd nb le tmbound_I] have "Ifm vs ((y#bs)[Suc n:=x]) p = Ifm vs (y#bs) p" .   }
   thus ?case by simp 
 next
   case (A p bs n) {fix y
-    from prems have bnd: "boundslt (length (y#bs)) p" 
+    from A have bnd: "boundslt (length (y#bs)) p" 
       and nb: "bound (Suc n) p" and le: "Suc n \<le> length (y#bs)" by simp+
     from A.hyps[OF bnd nb le tmbound_I] have "Ifm vs ((y#bs)[Suc n:=x]) p = Ifm vs (y#bs) p" .   }
   thus ?case by simp 
@@ -620,16 +617,16 @@ lemma decr: assumes  bnd: "boundslt (length bs) p" and nb: "bound m p"
 proof(induct p arbitrary: bs m rule: fm.induct)
   case (E p bs m) 
   {fix x
-    from prems have bnd: "boundslt (length (x#bs)) p" and nb: "bound (Suc m) p" 
+    from E have bnd: "boundslt (length (x#bs)) p" and nb: "bound (Suc m) p" 
   and nle: "Suc m < length (x#bs)" by auto
-    from prems(4)[OF bnd nb nle] have "Ifm vs (removen (Suc m) (x#bs)) (decr (Suc m) p) = Ifm vs (x#bs) p".
+    from E(1)[OF bnd nb nle] have "Ifm vs (removen (Suc m) (x#bs)) (decr (Suc m) p) = Ifm vs (x#bs) p".
   } thus ?case by auto 
 next
   case (A p bs m)  
   {fix x
-    from prems have bnd: "boundslt (length (x#bs)) p" and nb: "bound (Suc m) p" 
+    from A have bnd: "boundslt (length (x#bs)) p" and nb: "bound (Suc m) p" 
   and nle: "Suc m < length (x#bs)" by auto
-    from prems(4)[OF bnd nb nle] have "Ifm vs (removen (Suc m) (x#bs)) (decr (Suc m) p) = Ifm vs (x#bs) p".
+    from A(1)[OF bnd nb nle] have "Ifm vs (removen (Suc m) (x#bs)) (decr (Suc m) p) = Ifm vs (x#bs) p".
   } thus ?case by auto
 qed (auto simp add: decrtm removen_nth)
 
@@ -680,18 +677,18 @@ lemma subst: assumes nb: "boundslt (length bs) p" and nlm: "n \<le> length bs"
 proof (induct p arbitrary: bs n t rule: fm.induct)
   case (E p bs n) 
   {fix x 
-    from prems have bn: "boundslt (length (x#bs)) p" by simp 
-      from prems have nlm: "Suc n \<le> length (x#bs)" by simp
-    from prems(3)[OF bn nlm] have "Ifm vs (x#bs) (subst (Suc n) (incrtm0 t) p) = Ifm vs ((x#bs)[Suc n:= Itm vs (x#bs) (incrtm0 t)]) p" by simp 
+    from E have bn: "boundslt (length (x#bs)) p" by simp 
+    from E have nlm: "Suc n \<le> length (x#bs)" by simp
+    from E(1)[OF bn nlm] have "Ifm vs (x#bs) (subst (Suc n) (incrtm0 t) p) = Ifm vs ((x#bs)[Suc n:= Itm vs (x#bs) (incrtm0 t)]) p" by simp 
     hence "Ifm vs (x#bs) (subst (Suc n) (incrtm0 t) p) = Ifm vs (x#bs[n:= Itm vs bs t]) p"
     by (simp add: incrtm0[where x="x" and bs="bs" and t="t"]) }  
 thus ?case by simp 
 next
   case (A p bs n)   
   {fix x 
-    from prems have bn: "boundslt (length (x#bs)) p" by simp 
-      from prems have nlm: "Suc n \<le> length (x#bs)" by simp
-    from prems(3)[OF bn nlm] have "Ifm vs (x#bs) (subst (Suc n) (incrtm0 t) p) = Ifm vs ((x#bs)[Suc n:= Itm vs (x#bs) (incrtm0 t)]) p" by simp 
+    from A have bn: "boundslt (length (x#bs)) p" by simp 
+    from A have nlm: "Suc n \<le> length (x#bs)" by simp
+    from A(1)[OF bn nlm] have "Ifm vs (x#bs) (subst (Suc n) (incrtm0 t) p) = Ifm vs ((x#bs)[Suc n:= Itm vs (x#bs) (incrtm0 t)]) p" by simp 
     hence "Ifm vs (x#bs) (subst (Suc n) (incrtm0 t) p) = Ifm vs (x#bs[n:= Itm vs bs t]) p"
     by (simp add: incrtm0[where x="x" and bs="bs" and t="t"]) }  
 thus ?case by simp 
@@ -1371,7 +1368,7 @@ next
   case 2 thus ?case by (auto,rule_tac x="min z za" in exI, auto)
 next
   case (3 c e) hence nbe: "tmbound0 e" by simp
-  from prems have nc: "allpolys isnpoly (CP c)" "allpolys isnpoly e" by simp_all
+  from 3 have nc: "allpolys isnpoly (CP c)" "allpolys isnpoly e" by simp_all
   note eqs = eq[OF nc(1), where ?'a = 'a] eq[OF nc(2), where ?'a = 'a]
   let ?c = "Ipoly vs c"
   let ?e = "Itm vs (y#bs) e"
@@ -1393,7 +1390,7 @@ next
   ultimately show ?case by blast
 next
   case (4 c e)  hence nbe: "tmbound0 e" by simp
-  from prems have nc: "allpolys isnpoly (CP c)" "allpolys isnpoly e" by simp_all
+  from 4 have nc: "allpolys isnpoly (CP c)" "allpolys isnpoly e" by simp_all
   note eqs = eq[OF nc(1), where ?'a = 'a] eq[OF nc(2), where ?'a = 'a]
   let ?c = "Ipoly vs c"
   let ?e = "Itm vs (y#bs) e"
@@ -1414,7 +1411,7 @@ next
   ultimately show ?case by blast
 next
   case (5 c e)  hence nbe: "tmbound0 e" by simp
-  from prems have nc: "allpolys isnpoly (CP c)" "allpolys isnpoly e" by simp_all
+  from 5 have nc: "allpolys isnpoly (CP c)" "allpolys isnpoly e" by simp_all
   hence nc': "allpolys isnpoly (CP (~\<^sub>p c))" by (simp add: polyneg_norm)
   note eqs = lt[OF nc', where ?'a = 'a] eq [OF nc(1), where ?'a = 'a] lt[OF nc(2), where ?'a = 'a]
   let ?c = "Ipoly vs c"
@@ -1436,7 +1433,7 @@ next
   ultimately show ?case by blast
 next
   case (6 c e)  hence nbe: "tmbound0 e" by simp
-  from prems have nc: "allpolys isnpoly (CP c)" "allpolys isnpoly e" by simp_all
+  from 6 have nc: "allpolys isnpoly (CP c)" "allpolys isnpoly e" by simp_all
   hence nc': "allpolys isnpoly (CP (~\<^sub>p c))" by (simp add: polyneg_norm)
   note eqs = lt[OF nc', where ?'a = 'a] eq [OF nc(1), where ?'a = 'a] le[OF nc(2), where ?'a = 'a]
   let ?c = "Ipoly vs c"
@@ -1467,7 +1464,7 @@ next
   case 2 thus ?case by (auto,rule_tac x="max z za" in exI, auto)
 next
   case (3 c e) hence nbe: "tmbound0 e" by simp
-  from prems have nc: "allpolys isnpoly (CP c)" "allpolys isnpoly e" by simp_all
+  from 3 have nc: "allpolys isnpoly (CP c)" "allpolys isnpoly e" by simp_all
   note eqs = eq[OF nc(1), where ?'a = 'a] eq[OF nc(2), where ?'a = 'a]
   let ?c = "Ipoly vs c"
   let ?e = "Itm vs (y#bs) e"
@@ -1488,8 +1485,8 @@ next
         using tmbound0_I[OF nbe, where b="y" and b'="x"] eqs by auto} hence ?case by auto}
   ultimately show ?case by blast
 next
-  case (4 c e)  hence nbe: "tmbound0 e" by simp
-  from prems have nc: "allpolys isnpoly (CP c)" "allpolys isnpoly e" by simp_all
+  case (4 c e) hence nbe: "tmbound0 e" by simp
+  from 4 have nc: "allpolys isnpoly (CP c)" "allpolys isnpoly e" by simp_all
   note eqs = eq[OF nc(1), where ?'a = 'a] eq[OF nc(2), where ?'a = 'a]
   let ?c = "Ipoly vs c"
   let ?e = "Itm vs (y#bs) e"
@@ -1509,8 +1506,8 @@ next
         using eqs tmbound0_I[OF nbe, where b="y" and b'="x"] by auto} hence ?case by auto}
   ultimately show ?case by blast
 next
-  case (5 c e)  hence nbe: "tmbound0 e" by simp
-  from prems have nc: "allpolys isnpoly (CP c)" "allpolys isnpoly e" by simp_all
+  case (5 c e) hence nbe: "tmbound0 e" by simp
+  from 5 have nc: "allpolys isnpoly (CP c)" "allpolys isnpoly e" by simp_all
   hence nc': "allpolys isnpoly (CP (~\<^sub>p c))" by (simp add: polyneg_norm)
   note eqs = lt[OF nc(1), where ?'a = 'a] lt[OF nc', where ?'a = 'a] eq [OF nc(1), where ?'a = 'a] lt[OF nc(2), where ?'a = 'a]
   let ?c = "Ipoly vs c"
@@ -1532,7 +1529,7 @@ next
   ultimately show ?case by blast
 next
   case (6 c e)  hence nbe: "tmbound0 e" by simp
-  from prems have nc: "allpolys isnpoly (CP c)" "allpolys isnpoly e" by simp_all
+  from 6 have nc: "allpolys isnpoly (CP c)" "allpolys isnpoly e" by simp_all
   hence nc': "allpolys isnpoly (CP (~\<^sub>p c))" by (simp add: polyneg_norm)
   note eqs = lt[OF nc(1), where ?'a = 'a] eq [OF nc(1), where ?'a = 'a] le[OF nc(2), where ?'a = 'a]
   let ?c = "Ipoly vs c"
