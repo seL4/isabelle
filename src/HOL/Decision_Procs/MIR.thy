@@ -46,7 +46,7 @@ lemma iupt_set: "set (iupt(i,j)) = {i .. j}"
 proof(induct rule: iupt.induct)
   case (1 a b)
   show ?case
-    using prems by (simp add: simp_from_to)
+    using 1 by (simp add: simp_from_to)
 qed
 
 lemma nth_pos2: "0 < n \<Longrightarrow> (x#xs) ! n = xs ! (n - 1)"
@@ -119,7 +119,7 @@ next
   assume "?r" hence "(i\<Colon>int) dvd \<lfloor>x\<Colon>real\<rfloor>" ..
   hence "\<exists> k. real (floor x) = real (i*k)" 
     by (simp only: real_of_int_inject) (simp add: dvd_def)
-  thus ?l using prems by (simp add: rdvd_def)
+  thus ?l using `?r` by (simp add: rdvd_def)
 qed
 
 lemma int_rdvd_iff: "(real (i::int) rdvd real t) = (i dvd t)"
@@ -705,16 +705,17 @@ lemma reducecoeffh:
 proof(induct t rule: reducecoeffh.induct) 
   case (1 i) hence gd: "g dvd i" by simp
   from gp have gnz: "g \<noteq> 0" by simp
-  from prems show ?case by (simp add: real_of_int_div[OF gnz gd])
+  from assms 1 show ?case by (simp add: real_of_int_div[OF gnz gd])
 next
   case (2 n c t)  hence gd: "g dvd c" by simp
   from gp have gnz: "g \<noteq> 0" by simp
-  from prems show ?case by (simp add: real_of_int_div[OF gnz gd] algebra_simps)
+  from assms 2 show ?case by (simp add: real_of_int_div[OF gnz gd] algebra_simps)
 next
   case (3 c s t)  hence gd: "g dvd c" by simp
   from gp have gnz: "g \<noteq> 0" by simp
-  from prems show ?case by (simp add: real_of_int_div[OF gnz gd] algebra_simps) 
+  from assms 3 show ?case by (simp add: real_of_int_div[OF gnz gd] algebra_simps) 
 qed (auto simp add: numgcd_def gp)
+
 consts ismaxcoeff:: "num \<Rightarrow> int \<Rightarrow> bool"
 recdef ismaxcoeff "measure size"
   "ismaxcoeff (C i) = (\<lambda> x. abs i \<le> x)"
@@ -729,7 +730,7 @@ lemma maxcoeff_ismaxcoeff: "ismaxcoeff t (maxcoeff t)"
 proof (induct t rule: maxcoeff.induct)
   case (2 n c t)
   hence H:"ismaxcoeff t (maxcoeff t)" .
-  have thh: "maxcoeff t \<le> max (abs c) (maxcoeff t)" by (simp add: le_maxI2)
+  have thh: "maxcoeff t \<le> max (abs c) (maxcoeff t)" by simp
   from ismaxcoeff_mono[OF H thh] show ?case by (simp add: le_maxI1)
 next
   case (3 c t s) 
@@ -747,60 +748,60 @@ lemma zgcd_gt1: "gcd i j > (1::int) \<Longrightarrow> ((abs i > 1 \<and> abs j >
   apply auto
   done
 lemma numgcdh0:"numgcdh t m = 0 \<Longrightarrow>  m =0"
-  by (induct t rule: numgcdh.induct, auto)
+  by (induct t rule: numgcdh.induct) auto
 
 lemma dvdnumcoeff_aux:
   assumes "ismaxcoeff t m" and mp:"m \<ge> 0" and "numgcdh t m > 1"
   shows "dvdnumcoeff t (numgcdh t m)"
-using prems
+using assms
 proof(induct t rule: numgcdh.induct)
   case (2 n c t) 
   let ?g = "numgcdh t m"
-  from prems have th:"gcd c ?g > 1" by simp
+  from 2 have th:"gcd c ?g > 1" by simp
   from zgcd_gt1[OF th] numgcdh_pos[OF mp, where t="t"]
   have "(abs c > 1 \<and> ?g > 1) \<or> (abs c = 0 \<and> ?g > 1) \<or> (abs c > 1 \<and> ?g = 0)" by simp
-  moreover {assume "abs c > 1" and gp: "?g > 1" with prems
+  moreover {assume "abs c > 1" and gp: "?g > 1" with 2
     have th: "dvdnumcoeff t ?g" by simp
     have th': "gcd c ?g dvd ?g" by simp
     from dvdnumcoeff_trans[OF th' th] have ?case by simp }
   moreover {assume "abs c = 0 \<and> ?g > 1"
-    with prems have th: "dvdnumcoeff t ?g" by simp
+    with 2 have th: "dvdnumcoeff t ?g" by simp
     have th': "gcd c ?g dvd ?g" by simp
     from dvdnumcoeff_trans[OF th' th] have ?case by simp
     hence ?case by simp }
   moreover {assume "abs c > 1" and g0:"?g = 0" 
-    from numgcdh0[OF g0] have "m=0". with prems   have ?case by simp }
+    from numgcdh0[OF g0] have "m=0". with 2 g0 have ?case by simp }
   ultimately show ?case by blast
 next
   case (3 c s t) 
   let ?g = "numgcdh t m"
-  from prems have th:"gcd c ?g > 1" by simp
+  from 3 have th:"gcd c ?g > 1" by simp
   from zgcd_gt1[OF th] numgcdh_pos[OF mp, where t="t"]
   have "(abs c > 1 \<and> ?g > 1) \<or> (abs c = 0 \<and> ?g > 1) \<or> (abs c > 1 \<and> ?g = 0)" by simp
-  moreover {assume "abs c > 1" and gp: "?g > 1" with prems
+  moreover {assume "abs c > 1" and gp: "?g > 1" with 3
     have th: "dvdnumcoeff t ?g" by simp
     have th': "gcd c ?g dvd ?g" by simp
     from dvdnumcoeff_trans[OF th' th] have ?case by simp }
   moreover {assume "abs c = 0 \<and> ?g > 1"
-    with prems have th: "dvdnumcoeff t ?g" by simp
+    with 3 have th: "dvdnumcoeff t ?g" by simp
     have th': "gcd c ?g dvd ?g" by simp
     from dvdnumcoeff_trans[OF th' th] have ?case by simp
     hence ?case by simp }
   moreover {assume "abs c > 1" and g0:"?g = 0" 
-    from numgcdh0[OF g0] have "m=0". with prems   have ?case by simp }
+    from numgcdh0[OF g0] have "m=0". with 3 g0 have ?case by simp }
   ultimately show ?case by blast
 qed auto
 
 lemma dvdnumcoeff_aux2:
   assumes "numgcd t > 1" shows "dvdnumcoeff t (numgcd t) \<and> numgcd t > 0"
-  using prems 
+  using assms 
 proof (simp add: numgcd_def)
   let ?mc = "maxcoeff t"
   let ?g = "numgcdh t ?mc"
   have th1: "ismaxcoeff t ?mc" by (rule maxcoeff_ismaxcoeff)
   have th2: "?mc \<ge> 0" by (rule maxcoeff_pos)
   assume H: "numgcdh t ?mc > 1"
-  from dvdnumcoeff_aux[OF th1 th2 H]  show "dvdnumcoeff t ?g" .
+  from dvdnumcoeff_aux[OF th1 th2 H] show "dvdnumcoeff t ?g" .
 qed
 
 lemma reducecoeff: "real (numgcd t) * (Inum bs (reducecoeff t)) = Inum bs t"
@@ -911,32 +912,33 @@ recdef split_int "measure num_size"
        in (bv, CF c a bi))"
   "split_int a = (a,C 0)"
 
-lemma split_int:"\<And> tv ti. split_int t = (tv,ti) \<Longrightarrow> (Inum bs (Add tv ti) = Inum bs t) \<and> isint ti bs"
+lemma split_int: "\<And>tv ti. split_int t = (tv,ti) \<Longrightarrow> (Inum bs (Add tv ti) = Inum bs t) \<and> isint ti bs"
 proof (induct t rule: split_int.induct)
   case (2 c n b tv ti)
   let ?bv = "fst (split_int b)"
   let ?bi = "snd (split_int b)"
   have "split_int b = (?bv,?bi)" by simp
-  with prems(1) have b:"Inum bs (Add ?bv ?bi) = Inum bs b" and bii: "isint ?bi bs" by blast+
-  from prems(2) have tibi: "ti = ?bi" by (simp add: Let_def split_def)
-  from prems(2) b[symmetric] bii show ?case by (auto simp add: Let_def split_def)
+  with 2(1) have b:"Inum bs (Add ?bv ?bi) = Inum bs b" and bii: "isint ?bi bs" by blast+
+  from 2(2) have tibi: "ti = ?bi" by (simp add: Let_def split_def)
+  from 2(2) b[symmetric] bii show ?case by (auto simp add: Let_def split_def)
 next
   case (3 c a b tv ti) 
   let ?bv = "fst (split_int b)"
   let ?bi = "snd (split_int b)"
   have "split_int b = (?bv,?bi)" by simp
-  with prems(1) have b:"Inum bs (Add ?bv ?bi) = Inum bs b" and bii: "isint ?bi bs" by blast+
-  from prems(2) have tibi: "ti = CF c a ?bi" by (simp add: Let_def split_def)
-  from prems(2) b[symmetric] bii show ?case by (auto simp add: Let_def split_def isint_Floor isint_add isint_Mul isint_CF)
+  with 3(1) have b:"Inum bs (Add ?bv ?bi) = Inum bs b" and bii: "isint ?bi bs" by blast+
+  from 3(2) have tibi: "ti = CF c a ?bi"
+    by (simp add: Let_def split_def)
+  from 3(2) b[symmetric] bii show ?case
+    by (auto simp add: Let_def split_def isint_Floor isint_add isint_Mul isint_CF)
 qed (auto simp add: Let_def isint_iff isint_Floor isint_add isint_Mul split_def algebra_simps)
 
 lemma split_int_nb: "numbound0 t \<Longrightarrow> numbound0 (fst (split_int t)) \<and> numbound0 (snd (split_int t)) "
-by (induct t rule: split_int.induct, auto simp add: Let_def split_def)
+  by (induct t rule: split_int.induct) (auto simp add: Let_def split_def)
 
-definition
-  numfloor:: "num \<Rightarrow> num"
+definition numfloor:: "num \<Rightarrow> num"
 where
-  numfloor_def: "numfloor t = (let (tv,ti) = split_int t in 
+  "numfloor t = (let (tv,ti) = split_int t in 
   (case tv of C i \<Rightarrow> numadd (tv,ti) 
   | _ \<Rightarrow> numadd(CF 1 tv (C 0),ti)))"
 
@@ -1022,13 +1024,13 @@ proof (induct t rule: maxcoeff.induct)
   hence cnz: "c \<noteq>0" and mx: "max (abs c) (maxcoeff t) = 0" by simp+
   have "max (abs c) (maxcoeff t) \<ge> abs c" by (simp add: le_maxI1)
   with cnz have "max (abs c) (maxcoeff t) > 0" by arith
-  with prems show ?case by simp
+  with 2 show ?case by simp
 next
   case (3 c s t) 
   hence cnz: "c \<noteq>0" and mx: "max (abs c) (maxcoeff t) = 0" by simp+
   have "max (abs c) (maxcoeff t) \<ge> abs c" by (simp add: le_maxI1)
   with cnz have "max (abs c) (maxcoeff t) > 0" by arith
-  with prems show ?case by simp
+  with 3 show ?case by simp
 qed auto
 
 lemma numgcd_nz: assumes nz: "nozerocoeff t" and g0: "numgcd t = 0" shows "t = C 0"
@@ -1072,34 +1074,35 @@ proof-
         have gpdgp: "?g' dvd ?g'" by simp
         from reducecoeffh[OF dvdnumcoeff_trans[OF gpdg th1] g'p] 
         have th2:"real ?g' * ?t = Inum bs ?t'" by simp
-        from prems have "?lhs = ?t / real (n div ?g')" by (simp add: simp_num_pair_def Let_def)
+        from nnz g1 g'1 have "?lhs = ?t / real (n div ?g')" by (simp add: simp_num_pair_def Let_def)
         also have "\<dots> = (real ?g' * ?t) / (real ?g' * (real (n div ?g')))" by simp
         also have "\<dots> = (Inum bs ?t' / real n)"
           using real_of_int_div[OF gp0 gpdd] th2 gp0 by simp
         finally have "?lhs = Inum bs t / real n" by simp
-        then have ?thesis using prems by (simp add: simp_num_pair_def)}
-      ultimately have ?thesis by blast}
-    ultimately have ?thesis by blast} 
+        then have ?thesis using nnz g1 g'1 by (simp add: simp_num_pair_def) }
+      ultimately have ?thesis by blast }
+    ultimately have ?thesis by blast }
   ultimately show ?thesis by blast
 qed
 
-lemma simp_num_pair_l: assumes tnb: "numbound0 t" and np: "n >0" and tn: "simp_num_pair (t,n) = (t',n')"
+lemma simp_num_pair_l:
+  assumes tnb: "numbound0 t" and np: "n >0" and tn: "simp_num_pair (t,n) = (t',n')"
   shows "numbound0 t' \<and> n' >0"
 proof-
-    let ?t' = "simpnum t"
+  let ?t' = "simpnum t"
   let ?g = "numgcd ?t'"
   let ?g' = "gcd n ?g"
-  {assume nz: "n = 0" hence ?thesis using prems by (simp add: Let_def simp_num_pair_def)}
+  { assume nz: "n = 0" hence ?thesis using assms by (simp add: Let_def simp_num_pair_def) }
   moreover
   { assume nnz: "n \<noteq> 0"
-    {assume "\<not> ?g > 1" hence ?thesis  using prems by (auto simp add: Let_def simp_num_pair_def)}
+    {assume "\<not> ?g > 1" hence ?thesis using assms by (auto simp add: Let_def simp_num_pair_def) }
     moreover
     {assume g1:"?g>1" hence g0: "?g > 0" by simp
       from g1 nnz have gp0: "?g' \<noteq> 0" by simp
       hence g'p: "?g' > 0" using gcd_ge_0_int[where x="n" and y="numgcd ?t'"] by arith
       hence "?g'= 1 \<or> ?g' > 1" by arith
-      moreover {assume "?g'=1" hence ?thesis using prems 
-          by (auto simp add: Let_def simp_num_pair_def)}
+      moreover {assume "?g'=1" hence ?thesis using assms g1 g0
+          by (auto simp add: Let_def simp_num_pair_def) }
       moreover {assume g'1:"?g'>1"
         have gpdg: "?g' dvd ?g" by simp
         have gpdd: "?g' dvd n" by simp
@@ -1107,10 +1110,10 @@ proof-
         from zdvd_imp_le[OF gpdd np] have g'n: "?g' \<le> n" .
         from zdiv_mono1[OF g'n g'p, simplified zdiv_self[OF gp0]]
         have "n div ?g' >0" by simp
-        hence ?thesis using prems 
+        hence ?thesis using assms g1 g'1
           by(auto simp add: simp_num_pair_def Let_def reducecoeffh_numbound0)}
-      ultimately have ?thesis by blast}
-    ultimately have ?thesis by blast} 
+      ultimately have ?thesis by blast }
+    ultimately have ?thesis by blast } 
   ultimately show ?thesis by blast
 qed
 
@@ -1131,43 +1134,43 @@ recdef not "measure size"
   "not (Or p q) = And (not p) (not q)"
   "not p = NOT p"
 lemma not[simp]: "Ifm bs (not p) = Ifm bs (NOT p)"
-by (induct p) auto
+  by (induct p) auto
 lemma not_qf[simp]: "qfree p \<Longrightarrow> qfree (not p)"
-by (induct p, auto)
+  by (induct p) auto
 lemma not_nb[simp]: "bound0 p \<Longrightarrow> bound0 (not p)"
-by (induct p, auto)
+  by (induct p) auto
 
 definition conj :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   "conj p q \<equiv> (if (p = F \<or> q=F) then F else if p=T then q else if q=T then p else 
    if p = q then p else And p q)"
 lemma conj[simp]: "Ifm bs (conj p q) = Ifm bs (And p q)"
-by (cases "p=F \<or> q=F",simp_all add: conj_def) (cases p,simp_all)
+  by (cases "p=F \<or> q=F", simp_all add: conj_def) (cases p, simp_all)
 
 lemma conj_qf[simp]: "\<lbrakk>qfree p ; qfree q\<rbrakk> \<Longrightarrow> qfree (conj p q)"
-using conj_def by auto 
+  using conj_def by auto 
 lemma conj_nb[simp]: "\<lbrakk>bound0 p ; bound0 q\<rbrakk> \<Longrightarrow> bound0 (conj p q)"
-using conj_def by auto 
+  using conj_def by auto 
 
 definition disj :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   "disj p q \<equiv> (if (p = T \<or> q=T) then T else if p=F then q else if q=F then p 
        else if p=q then p else Or p q)"
 
 lemma disj[simp]: "Ifm bs (disj p q) = Ifm bs (Or p q)"
-by (cases "p=T \<or> q=T",simp_all add: disj_def) (cases p,simp_all)
+  by (cases "p=T \<or> q=T",simp_all add: disj_def) (cases p,simp_all)
 lemma disj_qf[simp]: "\<lbrakk>qfree p ; qfree q\<rbrakk> \<Longrightarrow> qfree (disj p q)"
-using disj_def by auto 
+  using disj_def by auto 
 lemma disj_nb[simp]: "\<lbrakk>bound0 p ; bound0 q\<rbrakk> \<Longrightarrow> bound0 (disj p q)"
-using disj_def by auto 
+  using disj_def by auto 
 
 definition imp :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   "imp p q \<equiv> (if (p = F \<or> q=T \<or> p=q) then T else if p=T then q else if q=F then not p 
     else Imp p q)"
 lemma imp[simp]: "Ifm bs (imp p q) = Ifm bs (Imp p q)"
-by (cases "p=F \<or> q=T",simp_all add: imp_def)
+  by (cases "p=F \<or> q=T",simp_all add: imp_def)
 lemma imp_qf[simp]: "\<lbrakk>qfree p ; qfree q\<rbrakk> \<Longrightarrow> qfree (imp p q)"
-using imp_def by (cases "p=F \<or> q=T",simp_all add: imp_def)
+  using imp_def by (cases "p=F \<or> q=T",simp_all add: imp_def)
 lemma imp_nb[simp]: "\<lbrakk>bound0 p ; bound0 q\<rbrakk> \<Longrightarrow> bound0 (imp p q)"
-using imp_def by (cases "p=F \<or> q=T \<or> p=q",simp_all add: imp_def) 
+  using imp_def by (cases "p=F \<or> q=T \<or> p=q",simp_all add: imp_def) 
 
 definition iff :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   "iff p q \<equiv> (if (p = q) then T else if (p = not q \<or> not p = q) then F else 
@@ -1245,7 +1248,8 @@ proof-
       have gpdgp: "?g' dvd ?g'" by simp
       from reducecoeffh[OF dvdnumcoeff_trans[OF gpdg th1] g'p] 
       have th2:"real ?g' * ?t = Inum bs t" by simp
-      from prems have "Ifm bs (Dvd (fst (simpdvd d t)) (snd(simpdvd d t))) = Ifm bs (Dvd (d div ?g') ?tt)"
+      from assms g1 g0 g'1
+      have "Ifm bs (Dvd (fst (simpdvd d t)) (snd(simpdvd d t))) = Ifm bs (Dvd (d div ?g') ?tt)"
         by (simp add: simpdvd_def Let_def)
       also have "\<dots> = (real d rdvd (Inum bs t))"
         using rdvd_reduce[OF gpdd gpdgp g'p, where t="?t", simplified zdiv_self[OF gp0]] 
@@ -1544,9 +1548,8 @@ recdef qelim "measure fmsize"
 lemma qelim_ci:
   assumes qe_inv: "\<forall> bs p. qfree p \<longrightarrow> qfree (qe p) \<and> (Ifm bs (qe p) = Ifm bs (E p))"
   shows "\<And> bs. qfree (qelim p qe) \<and> (Ifm bs (qelim p qe) = Ifm bs p)"
-using qe_inv DJ_qe[OF CJNB_qe[OF qe_inv]] 
-by(induct p rule: qelim.induct) 
-(auto simp del: simpfm.simps)
+  using qe_inv DJ_qe[OF CJNB_qe[OF qe_inv]] 
+  by (induct p rule: qelim.induct) (auto simp del: simpfm.simps)
 
 
 text {* The @{text "\<int>"} Part *}
@@ -1584,7 +1587,7 @@ next
   case (5 t n a)
   let ?nt = "fst (zsplit0 t)"
   let ?at = "snd (zsplit0 t)"
-  have abj: "zsplit0 t = (?nt,?at)" by simp hence th: "a=Neg ?at \<and> n=-?nt" using prems 
+  have abj: "zsplit0 t = (?nt,?at)" by simp hence th: "a=Neg ?at \<and> n=-?nt" using 5 
     by (simp add: Let_def split_def)
   from abj prems  have th2: "(?I x (CN 0 ?nt ?at) = ?I x t) \<and> ?N ?at" by blast
   from th2[simplified] th[simplified] show ?case by simp

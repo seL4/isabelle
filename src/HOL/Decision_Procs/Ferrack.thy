@@ -495,14 +495,16 @@ lemma reducecoeffh:
   assumes gt: "dvdnumcoeff t g" and gp: "g > 0" 
   shows "real g *(Inum bs (reducecoeffh t g)) = Inum bs t"
   using gt
-proof(induct t rule: reducecoeffh.induct) 
-  case (1 i) hence gd: "g dvd i" by simp
+proof (induct t rule: reducecoeffh.induct) 
+  case (1 i)
+  hence gd: "g dvd i" by simp
   from gp have gnz: "g \<noteq> 0" by simp
-  from prems show ?case by (simp add: real_of_int_div[OF gnz gd])
+  with assms show ?case by (simp add: real_of_int_div[OF gnz gd])
 next
-  case (2 n c t)  hence gd: "g dvd c" by simp
+  case (2 n c t)
+  hence gd: "g dvd c" by simp
   from gp have gnz: "g \<noteq> 0" by simp
-  from prems show ?case by (simp add: real_of_int_div[OF gnz gd] algebra_simps)
+  from assms 2 show ?case by (simp add: real_of_int_div[OF gnz gd] algebra_simps)
 qed (auto simp add: numgcd_def gp)
 
 fun ismaxcoeff:: "num \<Rightarrow> int \<Rightarrow> bool" where
@@ -511,14 +513,14 @@ fun ismaxcoeff:: "num \<Rightarrow> int \<Rightarrow> bool" where
 | "ismaxcoeff t = (\<lambda>x. True)"
 
 lemma ismaxcoeff_mono: "ismaxcoeff t c \<Longrightarrow> c \<le> c' \<Longrightarrow> ismaxcoeff t c'"
-by (induct t rule: ismaxcoeff.induct, auto)
+  by (induct t rule: ismaxcoeff.induct) auto
 
 lemma maxcoeff_ismaxcoeff: "ismaxcoeff t (maxcoeff t)"
 proof (induct t rule: maxcoeff.induct)
   case (2 n c t)
   hence H:"ismaxcoeff t (maxcoeff t)" .
-  have thh: "maxcoeff t \<le> max (abs c) (maxcoeff t)" by (simp add: le_maxI2)
-  from ismaxcoeff_mono[OF H thh] show ?case by (simp add: le_maxI1)
+  have thh: "maxcoeff t \<le> max (abs c) (maxcoeff t)" by simp
+  from ismaxcoeff_mono[OF H thh] show ?case by simp
 qed simp_all
 
 lemma zgcd_gt1: "gcd i j > (1::int) \<Longrightarrow> ((abs i > 1 \<and> abs j > 1) \<or> (abs i = 0 \<and> abs j > 1) \<or> (abs i > 1 \<and> abs j = 0))"
@@ -534,30 +536,31 @@ lemma numgcdh0:"numgcdh t m = 0 \<Longrightarrow>  m =0"
 lemma dvdnumcoeff_aux:
   assumes "ismaxcoeff t m" and mp:"m \<ge> 0" and "numgcdh t m > 1"
   shows "dvdnumcoeff t (numgcdh t m)"
-using prems
+using assms
 proof(induct t rule: numgcdh.induct)
   case (2 n c t) 
   let ?g = "numgcdh t m"
-  from prems have th:"gcd c ?g > 1" by simp
+  from 2 have th:"gcd c ?g > 1" by simp
   from zgcd_gt1[OF th] numgcdh_pos[OF mp, where t="t"]
   have "(abs c > 1 \<and> ?g > 1) \<or> (abs c = 0 \<and> ?g > 1) \<or> (abs c > 1 \<and> ?g = 0)" by simp
-  moreover {assume "abs c > 1" and gp: "?g > 1" with prems
+  moreover {assume "abs c > 1" and gp: "?g > 1" with 2
     have th: "dvdnumcoeff t ?g" by simp
     have th': "gcd c ?g dvd ?g" by simp
     from dvdnumcoeff_trans[OF th' th] have ?case by simp }
   moreover {assume "abs c = 0 \<and> ?g > 1"
-    with prems have th: "dvdnumcoeff t ?g" by simp
+    with 2 have th: "dvdnumcoeff t ?g" by simp
     have th': "gcd c ?g dvd ?g" by simp
     from dvdnumcoeff_trans[OF th' th] have ?case by simp
     hence ?case by simp }
   moreover {assume "abs c > 1" and g0:"?g = 0" 
-    from numgcdh0[OF g0] have "m=0". with prems   have ?case by simp }
+    from numgcdh0[OF g0] have "m=0". with 2 g0 have ?case by simp }
   ultimately show ?case by blast
 qed auto
 
 lemma dvdnumcoeff_aux2:
-  assumes "numgcd t > 1" shows "dvdnumcoeff t (numgcd t) \<and> numgcd t > 0"
-  using prems 
+  assumes "numgcd t > 1"
+  shows "dvdnumcoeff t (numgcd t) \<and> numgcd t > 0"
+  using assms
 proof (simp add: numgcd_def)
   let ?mc = "maxcoeff t"
   let ?g = "numgcdh t ?mc"
@@ -679,10 +682,10 @@ by(induct t) (simp_all add: numadd_nz numneg_nz numsub_nz nummul_nz)
 lemma maxcoeff_nz: "nozerocoeff t \<Longrightarrow> maxcoeff t = 0 \<Longrightarrow> t = C 0"
 proof (induct t rule: maxcoeff.induct)
   case (2 n c t)
-  hence cnz: "c \<noteq>0" and mx: "max (abs c) (maxcoeff t) = 0" by simp+
-  have "max (abs c) (maxcoeff t) \<ge> abs c" by (simp add: le_maxI1)
+  hence cnz: "c \<noteq>0" and mx: "max (abs c) (maxcoeff t) = 0" by simp_all
+  have "max (abs c) (maxcoeff t) \<ge> abs c" by simp
   with cnz have "max (abs c) (maxcoeff t) > 0" by arith
-  with prems show ?case by simp
+  with 2 show ?case by simp
 qed auto
 
 lemma numgcd_nz: assumes nz: "nozerocoeff t" and g0: "numgcd t = 0" shows "t = C 0"
@@ -710,7 +713,7 @@ proof-
   {assume nz: "n = 0" hence ?thesis by (simp add: Let_def simp_num_pair_def)}
   moreover
   { assume nnz: "n \<noteq> 0"
-    {assume "\<not> ?g > 1" hence ?thesis by (simp add: Let_def simp_num_pair_def simpnum_ci)}
+    {assume "\<not> ?g > 1" hence ?thesis by (simp add: Let_def simp_num_pair_def simpnum_ci) }
     moreover
     {assume g1:"?g>1" hence g0: "?g > 0" by simp
       from g1 nnz have gp0: "?g' \<noteq> 0" by simp
@@ -726,45 +729,48 @@ proof-
         have gpdgp: "?g' dvd ?g'" by simp
         from reducecoeffh[OF dvdnumcoeff_trans[OF gpdg th1] g'p] 
         have th2:"real ?g' * ?t = Inum bs ?t'" by simp
-        from prems have "?lhs = ?t / real (n div ?g')" by (simp add: simp_num_pair_def Let_def)
+        from g1 g'1 have "?lhs = ?t / real (n div ?g')" by (simp add: simp_num_pair_def Let_def)
         also have "\<dots> = (real ?g' * ?t) / (real ?g' * (real (n div ?g')))" by simp
         also have "\<dots> = (Inum bs ?t' / real n)"
           using real_of_int_div[OF gp0 gpdd] th2 gp0 by simp
-        finally have "?lhs = Inum bs t / real n" by (simp add: simpnum_ci)
-        then have ?thesis using prems by (simp add: simp_num_pair_def)}
-      ultimately have ?thesis by blast}
-    ultimately have ?thesis by blast} 
+        finally have "?lhs = Inum bs t / real n" by simp
+        then have ?thesis by (simp add: simp_num_pair_def) }
+      ultimately have ?thesis by blast }
+    ultimately have ?thesis by blast }
   ultimately show ?thesis by blast
 qed
 
 lemma simp_num_pair_l: assumes tnb: "numbound0 t" and np: "n >0" and tn: "simp_num_pair (t,n) = (t',n')"
   shows "numbound0 t' \<and> n' >0"
 proof-
-    let ?t' = "simpnum t"
+  let ?t' = "simpnum t"
   let ?g = "numgcd ?t'"
   let ?g' = "gcd n ?g"
-  {assume nz: "n = 0" hence ?thesis using prems by (simp add: Let_def simp_num_pair_def)}
+  { assume nz: "n = 0" hence ?thesis using assms by (simp add: Let_def simp_num_pair_def) }
   moreover
   { assume nnz: "n \<noteq> 0"
-    {assume "\<not> ?g > 1" hence ?thesis  using prems by (auto simp add: Let_def simp_num_pair_def simpnum_numbound0)}
+    { assume "\<not> ?g > 1" hence ?thesis using assms
+        by (auto simp add: Let_def simp_num_pair_def simpnum_numbound0) }
     moreover
-    {assume g1:"?g>1" hence g0: "?g > 0" by simp
+    { assume g1:"?g>1" hence g0: "?g > 0" by simp
       from g1 nnz have gp0: "?g' \<noteq> 0" by simp
       hence g'p: "?g' > 0" using gcd_ge_0_int[where x="n" and y="numgcd ?t'"] by arith
       hence "?g'= 1 \<or> ?g' > 1" by arith
-      moreover {assume "?g'=1" hence ?thesis using prems 
-          by (auto simp add: Let_def simp_num_pair_def simpnum_numbound0)}
-      moreover {assume g'1:"?g'>1"
+      moreover {
+        assume "?g' = 1" hence ?thesis using assms g1
+          by (auto simp add: Let_def simp_num_pair_def simpnum_numbound0) }
+      moreover {
+        assume g'1: "?g' > 1"
         have gpdg: "?g' dvd ?g" by simp
-        have gpdd: "?g' dvd n" by simp 
+        have gpdd: "?g' dvd n" by simp
         have gpdgp: "?g' dvd ?g'" by simp
         from zdvd_imp_le[OF gpdd np] have g'n: "?g' \<le> n" .
         from zdiv_mono1[OF g'n g'p, simplified zdiv_self[OF gp0]]
         have "n div ?g' >0" by simp
-        hence ?thesis using prems 
-          by(auto simp add: simp_num_pair_def Let_def reducecoeffh_numbound0 simpnum_numbound0)}
-      ultimately have ?thesis by blast}
-    ultimately have ?thesis by blast} 
+        hence ?thesis using assms g1 g'1
+          by(auto simp add: simp_num_pair_def Let_def reducecoeffh_numbound0 simpnum_numbound0) }
+      ultimately have ?thesis by blast }
+    ultimately have ?thesis by blast }
   ultimately show ?thesis by blast
 qed
 
@@ -962,14 +968,14 @@ proof (induct t rule: rsplit0.induct)
   let ?sa = "rsplit0 a" let ?sb = "rsplit0 b"
   let ?ca = "fst ?sa" let ?cb = "fst ?sb"
   let ?ta = "snd ?sa" let ?tb = "snd ?sb"
-  from prems have nb: "numbound0 (snd(rsplit0 (Add a b)))" 
+  from 2 have nb: "numbound0 (snd(rsplit0 (Add a b)))" 
     by (cases "rsplit0 a") (auto simp add: Let_def split_def)
   have "Inum bs ((split (CN 0)) (rsplit0 (Add a b))) = 
     Inum bs ((split (CN 0)) ?sa)+Inum bs ((split (CN 0)) ?sb)"
     by (simp add: Let_def split_def algebra_simps)
-  also have "\<dots> = Inum bs a + Inum bs b" using prems by (cases "rsplit0 a") auto
+  also have "\<dots> = Inum bs a + Inum bs b" using 2 by (cases "rsplit0 a") auto
   finally show ?case using nb by simp 
-qed (auto simp add: Let_def split_def algebra_simps , simp add: right_distrib[symmetric])
+qed (auto simp add: Let_def split_def algebra_simps, simp add: right_distrib[symmetric])
 
     (* Linearize a formula*)
 definition
@@ -1081,8 +1087,8 @@ next
   case (2 p q) thus ?case by (auto,rule_tac x= "min z za" in exI) auto
 next
   case (3 c e) 
-  from prems have nb: "numbound0 e" by simp
-  from prems have cp: "real c > 0" by simp
+  from 3 have nb: "numbound0 e" by simp
+  from 3 have cp: "real c > 0" by simp
   fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
@@ -1098,8 +1104,8 @@ next
   thus ?case by blast
 next
   case (4 c e)   
-  from prems have nb: "numbound0 e" by simp
-  from prems have cp: "real c > 0" by simp
+  from 4 have nb: "numbound0 e" by simp
+  from 4 have cp: "real c > 0" by simp
   fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
@@ -1115,8 +1121,8 @@ next
   thus ?case by blast
 next
   case (5 c e) 
-    from prems have nb: "numbound0 e" by simp
-  from prems have cp: "real c > 0" by simp
+  from 5 have nb: "numbound0 e" by simp
+  from 5 have cp: "real c > 0" by simp
   fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
@@ -1131,8 +1137,8 @@ next
   thus ?case by blast
 next
   case (6 c e)  
-    from prems have nb: "numbound0 e" by simp
-  from prems have cp: "real c > 0" by simp
+  from 6 have nb: "numbound0 e" by simp
+  from lp 6 have cp: "real c > 0" by simp
   fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
@@ -1147,8 +1153,8 @@ next
   thus ?case by blast
 next
   case (7 c e)  
-    from prems have nb: "numbound0 e" by simp
-  from prems have cp: "real c > 0" by simp
+  from 7 have nb: "numbound0 e" by simp
+  from 7 have cp: "real c > 0" by simp
   fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
@@ -1163,8 +1169,8 @@ next
   thus ?case by blast
 next
   case (8 c e)  
-    from prems have nb: "numbound0 e" by simp
-  from prems have cp: "real c > 0" by simp
+  from 8 have nb: "numbound0 e" by simp
+  from 8 have cp: "real c > 0" by simp
   fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
@@ -1189,8 +1195,8 @@ next
   case (2 p q) thus ?case by (auto,rule_tac x= "max z za" in exI) auto
 next
   case (3 c e) 
-  from prems have nb: "numbound0 e" by simp
-  from prems have cp: "real c > 0" by simp
+  from 3 have nb: "numbound0 e" by simp
+  from 3 have cp: "real c > 0" by simp
   fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
@@ -1206,8 +1212,8 @@ next
   thus ?case by blast
 next
   case (4 c e) 
-  from prems have nb: "numbound0 e" by simp
-  from prems have cp: "real c > 0" by simp
+  from 4 have nb: "numbound0 e" by simp
+  from 4 have cp: "real c > 0" by simp
   fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
@@ -1223,8 +1229,8 @@ next
   thus ?case by blast
 next
   case (5 c e) 
-  from prems have nb: "numbound0 e" by simp
-  from prems have cp: "real c > 0" by simp
+  from 5 have nb: "numbound0 e" by simp
+  from 5 have cp: "real c > 0" by simp
   fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
@@ -1239,8 +1245,8 @@ next
   thus ?case by blast
 next
   case (6 c e) 
-  from prems have nb: "numbound0 e" by simp
-  from prems have cp: "real c > 0" by simp
+  from 6 have nb: "numbound0 e" by simp
+  from 6 have cp: "real c > 0" by simp
   fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
@@ -1255,8 +1261,8 @@ next
   thus ?case by blast
 next
   case (7 c e) 
-  from prems have nb: "numbound0 e" by simp
-  from prems have cp: "real c > 0" by simp
+  from 7 have nb: "numbound0 e" by simp
+  from 7 have cp: "real c > 0" by simp
   fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
@@ -1271,8 +1277,8 @@ next
   thus ?case by blast
 next
   case (8 c e) 
-  from prems have nb: "numbound0 e" by simp
-  from prems have cp: "real c > 0" by simp
+  from 8 have nb: "numbound0 e" by simp
+  from 8 have cp: "real c > 0" by simp
   fix a
   let ?e="Inum (a#bs) e"
   let ?z = "(- ?e) / real c"
@@ -1356,7 +1362,7 @@ lemma usubst_I: assumes lp: "isrlfm p"
   shows "(Ifm (x#bs) (usubst p (t,n)) = Ifm (((Inum (x#bs) t)/(real n))#bs) p) \<and> bound0 (usubst p (t,n))" (is "(?I x (usubst p (t,n)) = ?I ?u p) \<and> ?B p" is "(_ = ?I (?t/?n) p) \<and> _" is "(_ = ?I (?N x t /_) p) \<and> _")
   using lp
 proof(induct p rule: usubst.induct)
-  case (5 c e) from prems have cp: "c >0" and nb: "numbound0 e" by simp+
+  case (5 c e) with assms have cp: "c >0" and nb: "numbound0 e" by simp_all
   have "?I ?u (Lt (CN 0 c e)) = (real c *(?t/?n) + (?N x e) < 0)"
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
   also have "\<dots> = (?n*(real c *(?t/?n)) + ?n*(?N x e) < 0)"
@@ -1366,7 +1372,7 @@ proof(induct p rule: usubst.induct)
     using np by simp 
   finally show ?case using nbt nb by (simp add: algebra_simps)
 next
-  case (6 c e) from prems have cp: "c >0" and nb: "numbound0 e" by simp+
+  case (6 c e) with assms have cp: "c >0" and nb: "numbound0 e" by simp_all
   have "?I ?u (Le (CN 0 c e)) = (real c *(?t/?n) + (?N x e) \<le> 0)"
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
   also have "\<dots> = (?n*(real c *(?t/?n)) + ?n*(?N x e) \<le> 0)"
@@ -1376,7 +1382,7 @@ next
     using np by simp 
   finally show ?case using nbt nb by (simp add: algebra_simps)
 next
-  case (7 c e) from prems have cp: "c >0" and nb: "numbound0 e" by simp+
+  case (7 c e) with assms have cp: "c >0" and nb: "numbound0 e" by simp_all
   have "?I ?u (Gt (CN 0 c e)) = (real c *(?t/?n) + (?N x e) > 0)"
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
   also have "\<dots> = (?n*(real c *(?t/?n)) + ?n*(?N x e) > 0)"
@@ -1386,7 +1392,7 @@ next
     using np by simp 
   finally show ?case using nbt nb by (simp add: algebra_simps)
 next
-  case (8 c e) from prems have cp: "c >0" and nb: "numbound0 e" by simp+
+  case (8 c e) with assms have cp: "c >0" and nb: "numbound0 e" by simp_all
   have "?I ?u (Ge (CN 0 c e)) = (real c *(?t/?n) + (?N x e) \<ge> 0)"
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
   also have "\<dots> = (?n*(real c *(?t/?n)) + ?n*(?N x e) \<ge> 0)"
@@ -1396,7 +1402,7 @@ next
     using np by simp 
   finally show ?case using nbt nb by (simp add: algebra_simps)
 next
-  case (3 c e) from prems have cp: "c >0" and nb: "numbound0 e" by simp+
+  case (3 c e) with assms have cp: "c >0" and nb: "numbound0 e" by simp_all
   from np have np: "real n \<noteq> 0" by simp
   have "?I ?u (Eq (CN 0 c e)) = (real c *(?t/?n) + (?N x e) = 0)"
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
@@ -1407,7 +1413,7 @@ next
     using np by simp 
   finally show ?case using nbt nb by (simp add: algebra_simps)
 next
-  case (4 c e) from prems have cp: "c >0" and nb: "numbound0 e" by simp+
+  case (4 c e) with assms have cp: "c >0" and nb: "numbound0 e" by simp_all
   from np have np: "real n \<noteq> 0" by simp
   have "?I ?u (NEq (CN 0 c e)) = (real c *(?t/?n) + (?N x e) \<noteq> 0)"
     using numbound0_I[OF nb, where bs="bs" and b="?u" and b'="x"] by simp
@@ -1467,99 +1473,99 @@ lemma lin_dense:
 using lp px noS
 proof (induct p rule: isrlfm.induct)
   case (5 c e) hence cp: "real c > 0" and nb: "numbound0 e" by simp+
-    from prems have "x * real c + ?N x e < 0" by (simp add: algebra_simps)
-    hence pxc: "x < (- ?N x e) / real c" 
-      by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="-?N x e"])
-    from prems have noSc:"\<forall> t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
-    with ly yu have yne: "y \<noteq> - ?N x e / real c" by auto
-    hence "y < (- ?N x e) / real c \<or> y > (-?N x e) / real c" by auto
-    moreover {assume y: "y < (-?N x e)/ real c"
-      hence "y * real c < - ?N x e"
-        by (simp add: pos_less_divide_eq[OF cp, where a="y" and b="-?N x e", symmetric])
-      hence "real c * y + ?N x e < 0" by (simp add: algebra_simps)
-      hence ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp}
-    moreover {assume y: "y > (- ?N x e) / real c" 
-      with yu have eu: "u > (- ?N x e) / real c" by auto
-      with noSc ly yu have "(- ?N x e) / real c \<le> l" by (cases "(- ?N x e) / real c > l", auto)
-      with lx pxc have "False" by auto
-      hence ?case by simp }
-    ultimately show ?case by blast
+  from 5 have "x * real c + ?N x e < 0" by (simp add: algebra_simps)
+  hence pxc: "x < (- ?N x e) / real c" 
+    by (simp only: pos_less_divide_eq[OF cp, where a="x" and b="-?N x e"])
+  from 5 have noSc:"\<forall> t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
+  with ly yu have yne: "y \<noteq> - ?N x e / real c" by auto
+  hence "y < (- ?N x e) / real c \<or> y > (-?N x e) / real c" by auto
+  moreover {assume y: "y < (-?N x e)/ real c"
+    hence "y * real c < - ?N x e"
+      by (simp add: pos_less_divide_eq[OF cp, where a="y" and b="-?N x e", symmetric])
+    hence "real c * y + ?N x e < 0" by (simp add: algebra_simps)
+    hence ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp}
+  moreover {assume y: "y > (- ?N x e) / real c" 
+    with yu have eu: "u > (- ?N x e) / real c" by auto
+    with noSc ly yu have "(- ?N x e) / real c \<le> l" by (cases "(- ?N x e) / real c > l", auto)
+    with lx pxc have "False" by auto
+    hence ?case by simp }
+  ultimately show ?case by blast
 next
   case (6 c e) hence cp: "real c > 0" and nb: "numbound0 e" by simp +
-    from prems have "x * real c + ?N x e \<le> 0" by (simp add: algebra_simps)
-    hence pxc: "x \<le> (- ?N x e) / real c" 
-      by (simp only: pos_le_divide_eq[OF cp, where a="x" and b="-?N x e"])
-    from prems have noSc:"\<forall> t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
-    with ly yu have yne: "y \<noteq> - ?N x e / real c" by auto
-    hence "y < (- ?N x e) / real c \<or> y > (-?N x e) / real c" by auto
-    moreover {assume y: "y < (-?N x e)/ real c"
-      hence "y * real c < - ?N x e"
-        by (simp add: pos_less_divide_eq[OF cp, where a="y" and b="-?N x e", symmetric])
-      hence "real c * y + ?N x e < 0" by (simp add: algebra_simps)
-      hence ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp}
-    moreover {assume y: "y > (- ?N x e) / real c" 
-      with yu have eu: "u > (- ?N x e) / real c" by auto
-      with noSc ly yu have "(- ?N x e) / real c \<le> l" by (cases "(- ?N x e) / real c > l", auto)
-      with lx pxc have "False" by auto
-      hence ?case by simp }
-    ultimately show ?case by blast
+  from 6 have "x * real c + ?N x e \<le> 0" by (simp add: algebra_simps)
+  hence pxc: "x \<le> (- ?N x e) / real c" 
+    by (simp only: pos_le_divide_eq[OF cp, where a="x" and b="-?N x e"])
+  from 6 have noSc:"\<forall> t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
+  with ly yu have yne: "y \<noteq> - ?N x e / real c" by auto
+  hence "y < (- ?N x e) / real c \<or> y > (-?N x e) / real c" by auto
+  moreover {assume y: "y < (-?N x e)/ real c"
+    hence "y * real c < - ?N x e"
+      by (simp add: pos_less_divide_eq[OF cp, where a="y" and b="-?N x e", symmetric])
+    hence "real c * y + ?N x e < 0" by (simp add: algebra_simps)
+    hence ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp}
+  moreover {assume y: "y > (- ?N x e) / real c" 
+    with yu have eu: "u > (- ?N x e) / real c" by auto
+    with noSc ly yu have "(- ?N x e) / real c \<le> l" by (cases "(- ?N x e) / real c > l", auto)
+    with lx pxc have "False" by auto
+    hence ?case by simp }
+  ultimately show ?case by blast
 next
   case (7 c e) hence cp: "real c > 0" and nb: "numbound0 e" by simp+
-    from prems have "x * real c + ?N x e > 0" by (simp add: algebra_simps)
-    hence pxc: "x > (- ?N x e) / real c" 
-      by (simp only: pos_divide_less_eq[OF cp, where a="x" and b="-?N x e"])
-    from prems have noSc:"\<forall> t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
-    with ly yu have yne: "y \<noteq> - ?N x e / real c" by auto
-    hence "y < (- ?N x e) / real c \<or> y > (-?N x e) / real c" by auto
-    moreover {assume y: "y > (-?N x e)/ real c"
-      hence "y * real c > - ?N x e"
-        by (simp add: pos_divide_less_eq[OF cp, where a="y" and b="-?N x e", symmetric])
-      hence "real c * y + ?N x e > 0" by (simp add: algebra_simps)
-      hence ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp}
-    moreover {assume y: "y < (- ?N x e) / real c" 
-      with ly have eu: "l < (- ?N x e) / real c" by auto
-      with noSc ly yu have "(- ?N x e) / real c \<ge> u" by (cases "(- ?N x e) / real c > l", auto)
-      with xu pxc have "False" by auto
-      hence ?case by simp }
-    ultimately show ?case by blast
+  from 7 have "x * real c + ?N x e > 0" by (simp add: algebra_simps)
+  hence pxc: "x > (- ?N x e) / real c" 
+    by (simp only: pos_divide_less_eq[OF cp, where a="x" and b="-?N x e"])
+  from 7 have noSc: "\<forall> t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
+  with ly yu have yne: "y \<noteq> - ?N x e / real c" by auto
+  hence "y < (- ?N x e) / real c \<or> y > (-?N x e) / real c" by auto
+  moreover {assume y: "y > (-?N x e)/ real c"
+    hence "y * real c > - ?N x e"
+      by (simp add: pos_divide_less_eq[OF cp, where a="y" and b="-?N x e", symmetric])
+    hence "real c * y + ?N x e > 0" by (simp add: algebra_simps)
+    hence ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp}
+  moreover {assume y: "y < (- ?N x e) / real c" 
+    with ly have eu: "l < (- ?N x e) / real c" by auto
+    with noSc ly yu have "(- ?N x e) / real c \<ge> u" by (cases "(- ?N x e) / real c > l", auto)
+    with xu pxc have "False" by auto
+    hence ?case by simp }
+  ultimately show ?case by blast
 next
   case (8 c e) hence cp: "real c > 0" and nb: "numbound0 e" by simp+
-    from prems have "x * real c + ?N x e \<ge> 0" by (simp add: algebra_simps)
-    hence pxc: "x \<ge> (- ?N x e) / real c" 
-      by (simp only: pos_divide_le_eq[OF cp, where a="x" and b="-?N x e"])
-    from prems have noSc:"\<forall> t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
-    with ly yu have yne: "y \<noteq> - ?N x e / real c" by auto
-    hence "y < (- ?N x e) / real c \<or> y > (-?N x e) / real c" by auto
-    moreover {assume y: "y > (-?N x e)/ real c"
-      hence "y * real c > - ?N x e"
-        by (simp add: pos_divide_less_eq[OF cp, where a="y" and b="-?N x e", symmetric])
-      hence "real c * y + ?N x e > 0" by (simp add: algebra_simps)
-      hence ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp}
-    moreover {assume y: "y < (- ?N x e) / real c" 
-      with ly have eu: "l < (- ?N x e) / real c" by auto
-      with noSc ly yu have "(- ?N x e) / real c \<ge> u" by (cases "(- ?N x e) / real c > l", auto)
-      with xu pxc have "False" by auto
-      hence ?case by simp }
-    ultimately show ?case by blast
+  from 8 have "x * real c + ?N x e \<ge> 0" by (simp add: algebra_simps)
+  hence pxc: "x \<ge> (- ?N x e) / real c" 
+    by (simp only: pos_divide_le_eq[OF cp, where a="x" and b="-?N x e"])
+  from 8 have noSc:"\<forall> t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
+  with ly yu have yne: "y \<noteq> - ?N x e / real c" by auto
+  hence "y < (- ?N x e) / real c \<or> y > (-?N x e) / real c" by auto
+  moreover {assume y: "y > (-?N x e)/ real c"
+    hence "y * real c > - ?N x e"
+      by (simp add: pos_divide_less_eq[OF cp, where a="y" and b="-?N x e", symmetric])
+    hence "real c * y + ?N x e > 0" by (simp add: algebra_simps)
+    hence ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] by simp}
+  moreover {assume y: "y < (- ?N x e) / real c" 
+    with ly have eu: "l < (- ?N x e) / real c" by auto
+    with noSc ly yu have "(- ?N x e) / real c \<ge> u" by (cases "(- ?N x e) / real c > l", auto)
+    with xu pxc have "False" by auto
+    hence ?case by simp }
+  ultimately show ?case by blast
 next
   case (3 c e) hence cp: "real c > 0" and nb: "numbound0 e" by simp+
-    from cp have cnz: "real c \<noteq> 0" by simp
-    from prems have "x * real c + ?N x e = 0" by (simp add: algebra_simps)
-    hence pxc: "x = (- ?N x e) / real c" 
-      by (simp only: nonzero_eq_divide_eq[OF cnz, where a="x" and b="-?N x e"])
-    from prems have noSc:"\<forall> t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
-    with lx xu have yne: "x \<noteq> - ?N x e / real c" by auto
-    with pxc show ?case by simp
+  from cp have cnz: "real c \<noteq> 0" by simp
+  from 3 have "x * real c + ?N x e = 0" by (simp add: algebra_simps)
+  hence pxc: "x = (- ?N x e) / real c" 
+    by (simp only: nonzero_eq_divide_eq[OF cnz, where a="x" and b="-?N x e"])
+  from 3 have noSc:"\<forall> t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
+  with lx xu have yne: "x \<noteq> - ?N x e / real c" by auto
+  with pxc show ?case by simp
 next
   case (4 c e) hence cp: "real c > 0" and nb: "numbound0 e" by simp+
-    from cp have cnz: "real c \<noteq> 0" by simp
-    from prems have noSc:"\<forall> t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
-    with ly yu have yne: "y \<noteq> - ?N x e / real c" by auto
-    hence "y* real c \<noteq> -?N x e"      
-      by (simp only: nonzero_eq_divide_eq[OF cnz, where a="y" and b="-?N x e"]) simp
-    hence "y* real c + ?N x e \<noteq> 0" by (simp add: algebra_simps)
-    thus ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] 
-      by (simp add: algebra_simps)
+  from cp have cnz: "real c \<noteq> 0" by simp
+  from 4 have noSc:"\<forall> t. l < t \<and> t < u \<longrightarrow> t \<noteq> (- ?N x e) / real c" by auto
+  with ly yu have yne: "y \<noteq> - ?N x e / real c" by auto
+  hence "y* real c \<noteq> -?N x e"      
+    by (simp only: nonzero_eq_divide_eq[OF cnz, where a="y" and b="-?N x e"]) simp
+  hence "y* real c + ?N x e \<noteq> 0" by (simp add: algebra_simps)
+  thus ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] 
+    by (simp add: algebra_simps)
 qed (auto simp add: nth_pos2 numbound0_I[where bs="bs" and b="y" and b'="x"])
 
 lemma finite_set_intervals:

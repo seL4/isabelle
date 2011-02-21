@@ -495,11 +495,11 @@ where
   | "not F = T"
   | "not p = NOT p"
 lemma not: "Ifm bbs bs (not p) = Ifm bbs bs (NOT p)"
-by (cases p) auto
+  by (cases p) auto
 lemma not_qf: "qfree p \<Longrightarrow> qfree (not p)"
-by (cases p, auto)
+  by (cases p) auto
 lemma not_bn: "bound0 p \<Longrightarrow> bound0 (not p)"
-by (cases p, auto)
+  by (cases p) auto
 
 definition conj :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   "conj p q \<equiv> (if (p = F \<or> q=F) then F else if p=T then q else if q=T then p else And p q)"
@@ -755,12 +755,12 @@ next
   let ?b = "snd (zsplit0 a)"
   have abj: "zsplit0 a = (?j,?b)" by simp 
   {assume "m\<noteq>0" 
-    with prems(1)[OF abj] prems(2) have ?case by (auto simp add: Let_def split_def)}
+    with 3(1)[OF abj] 3(2) have ?case by (auto simp add: Let_def split_def)}
   moreover
   {assume m0: "m =0"
-    from abj have th: "a'=?b \<and> n=i+?j" using prems 
+    with abj have th: "a'=?b \<and> n=i+?j" using 3 
       by (simp add: Let_def split_def)
-    from abj prems  have th2: "(?I x (CN 0 ?j ?b) = ?I x a) \<and> ?N ?b" by blast
+    from abj 3 m0 have th2: "(?I x (CN 0 ?j ?b) = ?I x a) \<and> ?N ?b" by blast
     from th have "?I x (CN 0 n a') = ?I x (CN 0 (i+?j) ?b)" by simp
     also from th2 have "\<dots> = ?I x (CN 0 i (CN 0 ?j ?b))" by (simp add: left_distrib)
   finally have "?I x (CN 0 n a') = ?I  x (CN 0 i a)" using th2 by simp
@@ -770,9 +770,9 @@ next
   case (4 t n a)
   let ?nt = "fst (zsplit0 t)"
   let ?at = "snd (zsplit0 t)"
-  have abj: "zsplit0 t = (?nt,?at)" by simp hence th: "a=Neg ?at \<and> n=-?nt" using prems 
+  have abj: "zsplit0 t = (?nt,?at)" by simp hence th: "a=Neg ?at \<and> n=-?nt" using 4
     by (simp add: Let_def split_def)
-  from abj prems  have th2: "(?I x (CN 0 ?nt ?at) = ?I x t) \<and> ?N ?at" by blast
+  from abj 4 have th2: "(?I x (CN 0 ?nt ?at) = ?I x t) \<and> ?N ?at" by blast
   from th2[simplified] th[simplified] show ?case by simp
 next
   case (5 s t n a)
@@ -782,12 +782,12 @@ next
   let ?at = "snd (zsplit0 t)"
   have abjs: "zsplit0 s = (?ns,?as)" by simp 
   moreover have abjt:  "zsplit0 t = (?nt,?at)" by simp 
-  ultimately have th: "a=Add ?as ?at \<and> n=?ns + ?nt" using prems 
+  ultimately have th: "a=Add ?as ?at \<and> n=?ns + ?nt" using 5
     by (simp add: Let_def split_def)
   from abjs[symmetric] have bluddy: "\<exists> x y. (x,y) = zsplit0 s" by blast
-  from prems have "(\<exists> x y. (x,y) = zsplit0 s) \<longrightarrow> (\<forall>xa xb. zsplit0 t = (xa, xb) \<longrightarrow> Inum (x # bs) (CN 0 xa xb) = Inum (x # bs) t \<and> numbound0 xb)" by auto
+  from 5 have "(\<exists> x y. (x,y) = zsplit0 s) \<longrightarrow> (\<forall>xa xb. zsplit0 t = (xa, xb) \<longrightarrow> Inum (x # bs) (CN 0 xa xb) = Inum (x # bs) t \<and> numbound0 xb)" by auto
   with bluddy abjt have th3: "(?I x (CN 0 ?nt ?at) = ?I x t) \<and> ?N ?at" by blast
-  from abjs prems  have th2: "(?I x (CN 0 ?ns ?as) = ?I x s) \<and> ?N ?as" by blast
+  from abjs 5 have th2: "(?I x (CN 0 ?ns ?as) = ?I x s) \<and> ?N ?as" by blast
   from th3[simplified] th2[simplified] th[simplified] show ?case 
     by (simp add: left_distrib)
 next
@@ -798,22 +798,22 @@ next
   let ?at = "snd (zsplit0 t)"
   have abjs: "zsplit0 s = (?ns,?as)" by simp 
   moreover have abjt:  "zsplit0 t = (?nt,?at)" by simp 
-  ultimately have th: "a=Sub ?as ?at \<and> n=?ns - ?nt" using prems 
+  ultimately have th: "a=Sub ?as ?at \<and> n=?ns - ?nt" using 6
     by (simp add: Let_def split_def)
   from abjs[symmetric] have bluddy: "\<exists> x y. (x,y) = zsplit0 s" by blast
-  from prems have "(\<exists> x y. (x,y) = zsplit0 s) \<longrightarrow> (\<forall>xa xb. zsplit0 t = (xa, xb) \<longrightarrow> Inum (x # bs) (CN 0 xa xb) = Inum (x # bs) t \<and> numbound0 xb)" by auto
+  from 6 have "(\<exists> x y. (x,y) = zsplit0 s) \<longrightarrow> (\<forall>xa xb. zsplit0 t = (xa, xb) \<longrightarrow> Inum (x # bs) (CN 0 xa xb) = Inum (x # bs) t \<and> numbound0 xb)" by auto
   with bluddy abjt have th3: "(?I x (CN 0 ?nt ?at) = ?I x t) \<and> ?N ?at" by blast
-  from abjs prems  have th2: "(?I x (CN 0 ?ns ?as) = ?I x s) \<and> ?N ?as" by blast
+  from abjs 6 have th2: "(?I x (CN 0 ?ns ?as) = ?I x s) \<and> ?N ?as" by blast
   from th3[simplified] th2[simplified] th[simplified] show ?case 
     by (simp add: left_diff_distrib)
 next
   case (7 i t n a)
   let ?nt = "fst (zsplit0 t)"
   let ?at = "snd (zsplit0 t)"
-  have abj: "zsplit0 t = (?nt,?at)" by simp hence th: "a=Mul i ?at \<and> n=i*?nt" using prems 
+  have abj: "zsplit0 t = (?nt,?at)" by simp hence th: "a=Mul i ?at \<and> n=i*?nt" using 7
     by (simp add: Let_def split_def)
-  from abj prems  have th2: "(?I x (CN 0 ?nt ?at) = ?I x t) \<and> ?N ?at" by blast
-  hence " ?I x (Mul i t) = i * ?I x (CN 0 ?nt ?at)" by simp
+  from abj 7 have th2: "(?I x (CN 0 ?nt ?at) = ?I x t) \<and> ?N ?at" by blast
+  hence "?I x (Mul i t) = i * ?I x (CN 0 ?nt ?at)" by simp
   also have "\<dots> = ?I x (CN 0 (i*?nt) (Mul i ?at))" by (simp add: right_distrib)
   finally show ?case using th th2 by simp
 qed
@@ -905,9 +905,9 @@ proof(induct p rule: zlfm.induct)
   from zsplit0_I[OF spl, where x="i" and bs="bs"] 
   have Ia:"Inum (i # bs) a = Inum (i #bs) (CN 0 ?c ?r)" and nb: "numbound0 ?r" by auto 
   let ?N = "\<lambda> t. Inum (i#bs) t"
-  from prems Ia nb  show ?case 
+  from 5 Ia nb  show ?case 
     apply (auto simp add: Let_def split_def algebra_simps) 
-    apply (cases "?r",auto)
+    apply (cases "?r", auto)
     apply (case_tac nat, auto)
     done
 next
@@ -918,9 +918,9 @@ next
   from zsplit0_I[OF spl, where x="i" and bs="bs"] 
   have Ia:"Inum (i # bs) a = Inum (i #bs) (CN 0 ?c ?r)" and nb: "numbound0 ?r" by auto 
   let ?N = "\<lambda> t. Inum (i#bs) t"
-  from prems Ia nb  show ?case 
+  from 6 Ia nb show ?case 
     apply (auto simp add: Let_def split_def algebra_simps) 
-    apply (cases "?r",auto)
+    apply (cases "?r", auto)
     apply (case_tac nat, auto)
     done
 next
@@ -931,9 +931,9 @@ next
   from zsplit0_I[OF spl, where x="i" and bs="bs"] 
   have Ia:"Inum (i # bs) a = Inum (i #bs) (CN 0 ?c ?r)" and nb: "numbound0 ?r" by auto 
   let ?N = "\<lambda> t. Inum (i#bs) t"
-  from prems Ia nb  show ?case 
+  from 7 Ia nb show ?case 
     apply (auto simp add: Let_def split_def algebra_simps) 
-    apply (cases "?r",auto)
+    apply (cases "?r", auto)
     apply (case_tac nat, auto)
     done
 next
@@ -944,9 +944,9 @@ next
   from zsplit0_I[OF spl, where x="i" and bs="bs"] 
   have Ia:"Inum (i # bs) a = Inum (i #bs) (CN 0 ?c ?r)" and nb: "numbound0 ?r" by auto 
   let ?N = "\<lambda> t. Inum (i#bs) t"
-  from prems Ia nb  show ?case 
+  from 8 Ia nb  show ?case
     apply (auto simp add: Let_def split_def algebra_simps) 
-    apply (cases "?r",auto)
+    apply (cases "?r", auto)
     apply (case_tac nat, auto)
     done
 next
@@ -957,9 +957,9 @@ next
   from zsplit0_I[OF spl, where x="i" and bs="bs"] 
   have Ia:"Inum (i # bs) a = Inum (i #bs) (CN 0 ?c ?r)" and nb: "numbound0 ?r" by auto 
   let ?N = "\<lambda> t. Inum (i#bs) t"
-  from prems Ia nb  show ?case 
+  from 9 Ia nb  show ?case
     apply (auto simp add: Let_def split_def algebra_simps) 
-    apply (cases "?r",auto)
+    apply (cases "?r", auto)
     apply (case_tac nat, auto)
     done
 next
@@ -970,7 +970,7 @@ next
   from zsplit0_I[OF spl, where x="i" and bs="bs"] 
   have Ia:"Inum (i # bs) a = Inum (i #bs) (CN 0 ?c ?r)" and nb: "numbound0 ?r" by auto 
   let ?N = "\<lambda> t. Inum (i#bs) t"
-  from prems Ia nb  show ?case 
+  from 10 Ia nb  show ?case
     apply (auto simp add: Let_def split_def algebra_simps) 
     apply (cases "?r",auto)
     apply (case_tac nat, auto)
@@ -986,7 +986,7 @@ next
   have "j=0 \<or> (j\<noteq>0 \<and> ?c = 0) \<or> (j\<noteq>0 \<and> ?c >0) \<or> (j\<noteq> 0 \<and> ?c<0)" by arith
   moreover
   {assume "j=0" hence z: "zlfm (Dvd j a) = (zlfm (Eq a))" by (simp add: Let_def) 
-    hence ?case using prems by (simp del: zlfm.simps)}
+    hence ?case using 11 `j = 0` by (simp del: zlfm.simps) }
   moreover
   {assume "?c=0" and "j\<noteq>0" hence ?case 
       using zsplit0_I[OF spl, where x="i" and bs="bs"]
@@ -1015,7 +1015,7 @@ next
   have "j=0 \<or> (j\<noteq>0 \<and> ?c = 0) \<or> (j\<noteq>0 \<and> ?c >0) \<or> (j\<noteq> 0 \<and> ?c<0)" by arith
   moreover
   {assume "j=0" hence z: "zlfm (NDvd j a) = (zlfm (NEq a))" by (simp add: Let_def) 
-    hence ?case using prems by (simp del: zlfm.simps)}
+    hence ?case using assms 12 `j = 0` by (simp del: zlfm.simps)}
   moreover
   {assume "?c=0" and "j\<noteq>0" hence ?case 
       using zsplit0_I[OF spl, where x="i" and bs="bs"]
@@ -1100,20 +1100,20 @@ using lin
 proof (induct p rule: iszlfm.induct)
   case (1 p q) 
   let ?d = "\<delta> (And p q)"
-  from prems lcm_pos_int have dp: "?d >0" by simp
-  have d1: "\<delta> p dvd \<delta> (And p q)" using prems by simp
-  hence th: "d\<delta> p ?d" using delta_mono prems(3-4) by(simp only: iszlfm.simps)
-  have "\<delta> q dvd \<delta> (And p q)" using prems by simp
-  hence th': "d\<delta> q ?d" using delta_mono prems by(simp only: iszlfm.simps)
+  from 1 lcm_pos_int have dp: "?d >0" by simp
+  have d1: "\<delta> p dvd \<delta> (And p q)" using 1 by simp
+  hence th: "d\<delta> p ?d" using delta_mono 1(2,3) by(simp only: iszlfm.simps)
+  have "\<delta> q dvd \<delta> (And p q)" using 1 by simp
+  hence th': "d\<delta> q ?d" using delta_mono 1 by(simp only: iszlfm.simps)
   from th th' dp show ?case by simp
 next
   case (2 p q)  
   let ?d = "\<delta> (And p q)"
-  from prems lcm_pos_int have dp: "?d >0" by simp
-  have "\<delta> p dvd \<delta> (And p q)" using prems by simp
-  hence th: "d\<delta> p ?d" using delta_mono prems by(simp only: iszlfm.simps)
-  have "\<delta> q dvd \<delta> (And p q)" using prems by simp
-  hence th': "d\<delta> q ?d" using delta_mono prems by(simp only: iszlfm.simps)
+  from 2 lcm_pos_int have dp: "?d >0" by simp
+  have "\<delta> p dvd \<delta> (And p q)" using 2 by simp
+  hence th: "d\<delta> p ?d" using delta_mono 2 by(simp only: iszlfm.simps)
+  have "\<delta> q dvd \<delta> (And p q)" using 2 by simp
+  hence th': "d\<delta> q ?d" using delta_mono 2 by(simp only: iszlfm.simps)
   from th th' dp show ?case by simp
 qed simp_all
 
@@ -1200,7 +1200,7 @@ recdef mirror "measure size"
   "mirror p = p"
     (* Lemmas for the correctness of \<sigma>\<rho> *)
 lemma dvd1_eq1: "x >0 \<Longrightarrow> (x::int) dvd 1 = (x = 1)"
-by simp
+  by simp
 
 lemma minusinf_inf:
   assumes linp: "iszlfm p"
@@ -1374,14 +1374,14 @@ qed (auto simp add: numbound0_I[where bs="bs" and b="x" and b'="- x"] gr0_conv_S
 
 lemma mirror_l: "iszlfm p \<and> d\<beta> p 1 
   \<Longrightarrow> iszlfm (mirror p) \<and> d\<beta> (mirror p) 1"
-by (induct p rule: mirror.induct, auto)
+  by (induct p rule: mirror.induct) auto
 
 lemma mirror_\<delta>: "iszlfm p \<Longrightarrow> \<delta> (mirror p) = \<delta> p"
-by (induct p rule: mirror.induct,auto)
+  by (induct p rule: mirror.induct) auto
 
 lemma \<beta>_numbound0: assumes lp: "iszlfm p"
   shows "\<forall> b\<in> set (\<beta> p). numbound0 b"
-  using lp by (induct p rule: \<beta>.induct,auto)
+  using lp by (induct p rule: \<beta>.induct) auto
 
 lemma d\<beta>_mono: 
   assumes linp: "iszlfm p"
@@ -1389,12 +1389,12 @@ lemma d\<beta>_mono:
   and d: "l dvd l'"
   shows "d\<beta> p l'"
 using dr linp dvd_trans[of _ "l" "l'", simplified d]
-by (induct p rule: iszlfm.induct) simp_all
+  by (induct p rule: iszlfm.induct) simp_all
 
 lemma \<alpha>_l: assumes lp: "iszlfm p"
   shows "\<forall> b\<in> set (\<alpha> p). numbound0 b"
 using lp
-by(induct p rule: \<alpha>.induct, auto)
+  by(induct p rule: \<alpha>.induct) auto
 
 lemma \<zeta>: 
   assumes linp: "iszlfm p"
@@ -1402,16 +1402,16 @@ lemma \<zeta>:
 using linp
 proof(induct p rule: iszlfm.induct)
   case (1 p q)
-  from prems have dl1: "\<zeta> p dvd lcm (\<zeta> p) (\<zeta> q)" by simp
-  from prems have dl2: "\<zeta> q dvd lcm (\<zeta> p) (\<zeta> q)"  by simp
-  from prems d\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
+  from 1 have dl1: "\<zeta> p dvd lcm (\<zeta> p) (\<zeta> q)" by simp
+  from 1 have dl2: "\<zeta> q dvd lcm (\<zeta> p) (\<zeta> q)" by simp
+  from 1 d\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
     d\<beta>_mono[where p = "q" and l="\<zeta> q" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
     dl1 dl2 show ?case by (auto simp add: lcm_pos_int)
 next
   case (2 p q)
-  from prems have dl1: "\<zeta> p dvd lcm (\<zeta> p) (\<zeta> q)" by simp
-  from prems have dl2: "\<zeta> q dvd lcm (\<zeta> p) (\<zeta> q)" by simp
-  from prems d\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
+  from 2 have dl1: "\<zeta> p dvd lcm (\<zeta> p) (\<zeta> q)" by simp
+  from 2 have dl2: "\<zeta> q dvd lcm (\<zeta> p) (\<zeta> q)" by simp
+  from 2 d\<beta>_mono[where p = "p" and l="\<zeta> p" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
     d\<beta>_mono[where p = "q" and l="\<zeta> q" and l'="lcm (\<zeta> p) (\<zeta> q)"] 
     dl1 dl2 show ?case by (auto simp add: lcm_pos_int)
 qed (auto simp add: lcm_pos_int)
@@ -1585,31 +1585,31 @@ lemma \<beta>:
   shows "?P (x - d)"
 using lp u d dp nob p
 proof(induct p rule: iszlfm.induct)
-  case (5 c e) hence c1: "c=1" and  bn:"numbound0 e" by simp+
-    with dp p c1 numbound0_I[OF bn,where b="(x-d)" and b'="x" and bs="bs"] prems
-    show ?case by simp
+  case (5 c e) hence c1: "c=1" and  bn:"numbound0 e" by simp_all
+  with dp p c1 numbound0_I[OF bn,where b="(x-d)" and b'="x" and bs="bs"] 5
+  show ?case by simp
 next
-  case (6 c e)  hence c1: "c=1" and  bn:"numbound0 e" by simp+
-    with dp p c1 numbound0_I[OF bn,where b="(x-d)" and b'="x" and bs="bs"] prems
-    show ?case by simp
+  case (6 c e)  hence c1: "c=1" and  bn:"numbound0 e" by simp_all
+  with dp p c1 numbound0_I[OF bn,where b="(x-d)" and b'="x" and bs="bs"] 6
+  show ?case by simp
 next
-  case (7 c e) hence p: "Ifm bbs (x #bs) (Gt (CN 0 c e))" and c1: "c=1" and bn:"numbound0 e" by simp+
-    let ?e = "Inum (x # bs) e"
-    {assume "(x-d) +?e > 0" hence ?case using c1 
-      numbound0_I[OF bn,where b="(x-d)" and b'="x" and bs="bs"] by simp}
-    moreover
-    {assume H: "\<not> (x-d) + ?e > 0" 
-      let ?v="Neg e"
-      have vb: "?v \<in> set (\<beta> (Gt (CN 0 c e)))" by simp
-      from prems(11)[simplified simp_thms Inum.simps \<beta>.simps set.simps bex_simps numbound0_I[OF bn,where b="a" and b'="x" and bs="bs"]] 
-      have nob: "\<not> (\<exists> j\<in> {1 ..d}. x =  - ?e + j)" by auto 
-      from H p have "x + ?e > 0 \<and> x + ?e \<le> d" by (simp add: c1)
-      hence "x + ?e \<ge> 1 \<and> x + ?e \<le> d"  by simp
-      hence "\<exists> (j::int) \<in> {1 .. d}. j = x + ?e" by simp
-      hence "\<exists> (j::int) \<in> {1 .. d}. x = (- ?e + j)" 
-        by (simp add: algebra_simps)
-      with nob have ?case by auto}
-    ultimately show ?case by blast
+  case (7 c e) hence p: "Ifm bbs (x #bs) (Gt (CN 0 c e))" and c1: "c=1" and bn:"numbound0 e" by simp_all
+  let ?e = "Inum (x # bs) e"
+  {assume "(x-d) +?e > 0" hence ?case using c1 
+    numbound0_I[OF bn,where b="(x-d)" and b'="x" and bs="bs"] by simp}
+  moreover
+  {assume H: "\<not> (x-d) + ?e > 0" 
+    let ?v="Neg e"
+    have vb: "?v \<in> set (\<beta> (Gt (CN 0 c e)))" by simp
+    from 7(5)[simplified simp_thms Inum.simps \<beta>.simps set.simps bex_simps numbound0_I[OF bn,where b="a" and b'="x" and bs="bs"]] 
+    have nob: "\<not> (\<exists> j\<in> {1 ..d}. x =  - ?e + j)" by auto 
+    from H p have "x + ?e > 0 \<and> x + ?e \<le> d" by (simp add: c1)
+    hence "x + ?e \<ge> 1 \<and> x + ?e \<le> d"  by simp
+    hence "\<exists> (j::int) \<in> {1 .. d}. j = x + ?e" by simp
+    hence "\<exists> (j::int) \<in> {1 .. d}. x = (- ?e + j)" 
+      by (simp add: algebra_simps)
+    with nob have ?case by auto}
+  ultimately show ?case by blast
 next
   case (8 c e) hence p: "Ifm bbs (x #bs) (Ge (CN 0 c e))" and c1: "c=1" and bn:"numbound0 e" 
     by simp+
@@ -1621,7 +1621,7 @@ next
     {assume H: "\<not> (x-d) + ?e \<ge> 0" 
       let ?v="Sub (C -1) e"
       have vb: "?v \<in> set (\<beta> (Ge (CN 0 c e)))" by simp
-      from prems(11)[simplified simp_thms Inum.simps \<beta>.simps set.simps bex_simps numbound0_I[OF bn,where b="a" and b'="x" and bs="bs"]] 
+      from 8(5)[simplified simp_thms Inum.simps \<beta>.simps set.simps bex_simps numbound0_I[OF bn,where b="a" and b'="x" and bs="bs"]] 
       have nob: "\<not> (\<exists> j\<in> {1 ..d}. x =  - ?e - 1 + j)" by auto 
       from H p have "x + ?e \<ge> 0 \<and> x + ?e < d" by (simp add: c1)
       hence "x + ?e +1 \<ge> 1 \<and> x + ?e + 1 \<le> d"  by simp
@@ -1634,7 +1634,7 @@ next
     let ?e = "Inum (x # bs) e"
     let ?v="(Sub (C -1) e)"
     have vb: "?v \<in> set (\<beta> (Eq (CN 0 c e)))" by simp
-    from p have "x= - ?e" by (simp add: c1) with prems(11) show ?case using dp
+    from p have "x= - ?e" by (simp add: c1) with 3(5) show ?case using dp
       by simp (erule ballE[where x="1"],
         simp_all add:algebra_simps numbound0_I[OF bn,where b="x"and b'="a"and bs="bs"])
 next
@@ -1649,12 +1649,12 @@ next
       hence "x = - Inum (((x -d)) # bs) e + d" by simp
       hence "x = - Inum (a # bs) e + d"
         by (simp add: numbound0_I[OF bn,where b="x - d"and b'="a"and bs="bs"])
-       with prems(11) have ?case using dp by simp}
+       with 4(5) have ?case using dp by simp}
   ultimately show ?case by blast
 next 
   case (9 j c e) hence p: "Ifm bbs (x #bs) (Dvd j (CN 0 c e))" (is "?p x") and c1: "c=1" and bn:"numbound0 e" by simp+
     let ?e = "Inum (x # bs) e"
-    from prems have id: "j dvd d" by simp
+    from 9 have id: "j dvd d" by simp
     from c1 have "?p x = (j dvd (x+ ?e))" by simp
     also have "\<dots> = (j dvd x - d + ?e)" 
       using zdvd_period[OF id, where x="x" and c="-1" and t="?e"] by simp
@@ -1663,7 +1663,7 @@ next
 next
   case (10 j c e) hence p: "Ifm bbs (x #bs) (NDvd j (CN 0 c e))" (is "?p x") and c1: "c=1" and bn:"numbound0 e" by simp+
     let ?e = "Inum (x # bs) e"
-    from prems have id: "j dvd d" by simp
+    from 10 have id: "j dvd d" by simp
     from c1 have "?p x = (\<not> j dvd (x+ ?e))" by simp
     also have "\<dots> = (\<not> j dvd x - d + ?e)" 
       using zdvd_period[OF id, where x="x" and c="-1" and t="?e"] by simp
