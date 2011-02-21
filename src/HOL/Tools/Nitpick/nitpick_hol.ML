@@ -343,9 +343,7 @@ val let_inline_threshold = 20
 
 fun s_let Ts s n abs_T body_T f t =
   if (n - 1) * (size_of_term t - 1) <= let_inline_threshold orelse
-     is_special_eligible_arg true Ts t then
-     (* TODO: the "true" argument to "is_special_eligible_arg" should perhaps be
-        "false" instead to account for potential future specializations. *)
+     is_special_eligible_arg false Ts t then
     f t
   else
     let val z = (let_var s, abs_T) in
