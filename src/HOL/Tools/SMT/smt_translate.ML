@@ -354,6 +354,8 @@ local
   val term_bool = @{lemma "SMT.term_true ~= SMT.term_false"
     by (simp add: SMT.term_true_def SMT.term_false_def)}
 
+  val is_quant = member (op =) [@{const_name All}, @{const_name Ex}]
+
   val fol_rules = [
     Let_def,
     mk_meta_eq @{thm SMT.term_true_def},
@@ -395,8 +397,9 @@ fun folify ctxt =
       | (@{const False}, []) => @{const SMT.term_false}
       | (u as Const (@{const_name If}, _), [t1, t2, t3]) =>
           u $ in_form t1 $ in_term t2 $ in_term t3
-      | (Const c, ts) =>
+      | (Const (c as (n, _)), ts) =>
           if is_builtin_conn_or_pred ctxt c ts then wrap_in_if (in_form t)
+          else  if is_quant n then wrap_in_if (in_form t)
           else Term.list_comb (Const c, map in_term ts)
       | (Free c, ts) => Term.list_comb (Free c, map in_term ts)
       | _ => t)
@@ -418,8 +421,7 @@ fun folify ctxt =
     and in_form t =
       (case Term.strip_comb t of
         (q as Const (qn, _), [Abs (n, T, u)]) =>
-          if member (op =) [@{const_name All}, @{const_name Ex}] qn then
-            q $ Abs (n, T, in_trigger u)
+          if is_quant qn then q $ Abs (n, T, in_trigger u)
           else as_term (in_term t)
       | (Const c, ts) =>
           (case SMT_Builtin.dest_builtin_conn ctxt c ts of
