@@ -165,7 +165,8 @@ fun dest_SMT_Weighted_Fact (SMT_Weighted_Fact p) = p
 val auto_max_relevant_divisor = 2
 
 fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
-                                 relevance_thresholds, max_relevant, ...})
+                                 relevance_thresholds, max_relevant, timeout,
+                                 ...})
                      auto i (relevance_override as {only, ...}) minimize_command
                      state =
   if null provers then
@@ -255,7 +256,8 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
             val facts = get_facts "SMT solver" true smt_relevance_fudge smts
             val weight = SMT_Weighted_Fact oo weight_smt_fact thy
             fun smt_filter facts =
-              (if debug then curry (op o) SOME else try)
+              (if debug then curry (op o) SOME
+               else TimeLimit.timeLimit timeout o try)
                   (SMT_Solver.smt_filter_preprocess state (facts ()))
           in
             smts |> map (`(class_of_smt_solver ctxt))
