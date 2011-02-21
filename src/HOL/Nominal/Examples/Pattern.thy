@@ -138,7 +138,7 @@ lemma pat_type_eqvt [eqvt]:
 lemma pat_type_perm_eq: "pat_type ((pi :: name prm) \<bullet> p) = pat_type p"
   by (induct p) (simp_all add: perm_type)
 
-types ctx = "(name \<times> ty) list"
+type_synonym ctx = "(name \<times> ty) list"
 
 inductive
   ptyping :: "pat \<Rightarrow> ty \<Rightarrow> ctx \<Rightarrow> bool"  ("\<turnstile> _ : _ \<Rightarrow> _" [60, 60, 60] 60)

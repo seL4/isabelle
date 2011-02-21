@@ -81,7 +81,7 @@ by (induct T rule: ty.induct)
 
 text {* valid contexts *}
 
-types cxt = "(name\<times>ty) list"
+type_synonym cxt = "(name\<times>ty) list"
 
 inductive
   valid :: "cxt \<Rightarrow> bool"

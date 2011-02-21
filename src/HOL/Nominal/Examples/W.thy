@@ -53,7 +53,7 @@ abbreviation
 where
  "Let x be t1 in t2 \<equiv> trm.Let x t2 t1"
 
-types 
+type_synonym 
   Ctxt  = "(var\<times>tyS) list" 
 
 text {* free type variables *}
@@ -173,7 +173,7 @@ by (simp_all only: eqvts)
   
 text {* Substitution *}
 
-types Subst = "(tvar\<times>ty) list"
+type_synonym Subst = "(tvar\<times>ty) list"
 
 consts
   psubst :: "Subst \<Rightarrow> 'a \<Rightarrow> 'a"       ("_<_>" [100,60] 120)

@@ -25,8 +25,8 @@ nominal_datatype trm =
   | App "trm" "trm" ("App _ _" [110,110] 100)
   | Const "nat"
 
-types Ctxt  = "(name\<times>ty) list"
-types Subst = "(name\<times>trm) list" 
+type_synonym Ctxt  = "(name\<times>ty) list"
+type_synonym Subst = "(name\<times>trm) list" 
 
 
 lemma perm_ty[simp]: 

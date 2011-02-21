@@ -380,7 +380,7 @@ by (induct T rule: ty.induct)
 
 text {* Typing Contexts *}
 
-types tctx = "(name\<times>ty) list"
+type_synonym tctx = "(name\<times>ty) list"
 
 text {* Sub-Typing Contexts *}
 

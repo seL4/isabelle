@@ -84,7 +84,7 @@ nominal_datatype binding =
     VarB vrs ty 
   | TVarB tyvrs ty
 
-types env = "binding list"
+type_synonym env = "binding list"
 
 text {* Typing contexts are represented as lists that ``grow" on the left; we
   thereby deviating from the convention in the POPLmark-paper. The lists contain

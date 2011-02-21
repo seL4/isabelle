@@ -15,7 +15,7 @@ begin
 section {* Permutations *}
 (*======================*)
 
-types 
+type_synonym 
   'x prm = "('x \<times> 'x) list"
 
 (* polymorphic constants for permutation and swapping *)

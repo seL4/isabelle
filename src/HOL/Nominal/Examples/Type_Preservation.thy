@@ -58,7 +58,7 @@ by (induct T rule: ty.induct)
 
 text {* Typing Contexts *}
 
-types ctx = "(name\<times>ty) list"
+type_synonym ctx = "(name\<times>ty) list"
 
 abbreviation
   "sub_ctx" :: "ctx \<Rightarrow> ctx \<Rightarrow> bool" ("_ \<subseteq> _") 

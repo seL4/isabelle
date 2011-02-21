@@ -2912,9 +2912,8 @@ lemmas subst_comm' = substn_crename_comm' substc_crename_comm'
 
 text {* typing contexts *}
 
-types 
-  ctxtn = "(name\<times>ty) list"
-  ctxtc = "(coname\<times>ty) list"
+type_synonym ctxtn = "(name\<times>ty) list"
+type_synonym ctxtc = "(coname\<times>ty) list"
 
 inductive
   validc :: "ctxtc \<Rightarrow> bool"
