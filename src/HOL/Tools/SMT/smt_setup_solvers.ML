@@ -62,7 +62,7 @@ local
     avail = make_avail is_remote "CVC3",
     command = make_command is_remote "CVC3",
     options = cvc3_options,
-    default_max_relevant = 200,
+    default_max_relevant = 200 (* FUDGE *),
     supports_filter = false,
     outcome =
       on_first_line (outcome_of "Unsatisfiable." "Satisfiable." "Unknown."),
@@ -86,7 +86,7 @@ fun yices () = {
   options = (fn ctxt => [
     "--rand-seed=" ^ string_of_int (Config.get ctxt SMT_Config.random_seed),
     "--smtlib"]),
-  default_max_relevant = 200,
+  default_max_relevant = 200 (* FUDGE *),
   supports_filter = false,
   outcome = on_first_line (outcome_of "unsat" "sat" "unknown"),
   cex_parser = NONE,
@@ -131,7 +131,7 @@ local
     avail = make_avail is_remote "Z3",
     command = z3_make_command is_remote "Z3",
     options = z3_options,
-    default_max_relevant = 250,
+    default_max_relevant = 250 (* FUDGE *),
     supports_filter = true,
     outcome = z3_on_last_line,
     cex_parser = SOME Z3_Model.parse_counterex,
