@@ -2570,15 +2570,6 @@ proof-
   from qelim[OF th, of p bs] show ?thesis  unfolding frpar_def by auto
 qed
 
-declare polyadd.simps[code]
-lemma [simp,code]: "polyadd (CN c n p, CN c' n' p') = 
-    (if n < n' then CN (polyadd(c,CN c' n' p')) n p
-     else if n'<n then CN (polyadd(CN c n p, c')) n' p'
-     else (let cc' = polyadd (c,c') ; 
-               pp' = polyadd (p,p')
-           in (if pp' = 0\<^sub>p then cc' else CN cc' n pp')))"
-  by (simp add: Let_def stupid)
-
 
 section{* Second implemenation: Case splits not local *}
 
