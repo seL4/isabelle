@@ -530,8 +530,8 @@ lemma frechet_derivative_unique_at:
   shows "(f has_derivative f') (at x) \<Longrightarrow> (f has_derivative f'') (at x) \<Longrightarrow> f' = f''"
   unfolding FDERIV_conv_has_derivative [symmetric]
   by (rule FDERIV_unique)
- 
-lemma "isCont f x = continuous (at x) f" unfolding isCont_def LIM_def
+
+lemma continuous_isCont: "isCont f x = continuous (at x) f" unfolding isCont_def LIM_def
   unfolding continuous_at Lim_at unfolding dist_nz by auto
 
 lemma frechet_derivative_unique_within_closed_interval: fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'b::real_normed_vector"
