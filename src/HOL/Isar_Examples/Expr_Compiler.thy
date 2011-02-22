@@ -22,8 +22,7 @@ text {* Binary operations are just functions over some type of values.
   This is both for abstract syntax and semantics, i.e.\ we use a
   ``shallow embedding'' here. *}
 
-types
-  'val binop = "'val => 'val => 'val"
+type_synonym 'val binop = "'val => 'val => 'val"
 
 
 subsection {* Expressions *}

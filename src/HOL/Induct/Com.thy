@@ -10,7 +10,7 @@ header{*Mutual Induction via Iteratived Inductive Definitions*}
 theory Com imports Main begin
 
 typedecl loc
-types  state = "loc => nat"
+type_synonym state = "loc => nat"
 
 datatype
   exp = N nat

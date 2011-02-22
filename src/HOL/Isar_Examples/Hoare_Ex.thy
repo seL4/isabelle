@@ -256,7 +256,7 @@ text{* A simple embedding of time in Hoare logic: function @{text
 
 record tstate = time :: nat
 
-types 'a time = "\<lparr>time :: nat, \<dots> :: 'a\<rparr>"
+type_synonym 'a time = "\<lparr>time :: nat, \<dots> :: 'a\<rparr>"
 
 primrec timeit :: "'a time com \<Rightarrow> 'a time com"
 where

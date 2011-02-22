@@ -21,7 +21,7 @@ text {*
   graph.
 *}
 
-types 'a graph = "('a \<times> real) set"
+type_synonym 'a graph = "('a \<times> real) set"
 
 definition
   graph :: "'a set \<Rightarrow> ('a \<Rightarrow> real) \<Rightarrow> 'a graph" where

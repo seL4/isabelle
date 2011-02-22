@@ -8,8 +8,7 @@ structures by hand.
 
 theory Sexp imports Main begin
 
-types
-  'a item = "'a Datatype.item"
+type_synonym 'a item = "'a Datatype.item"
 abbreviation "Leaf == Datatype.Leaf"
 abbreviation "Numb == Datatype.Numb"
 

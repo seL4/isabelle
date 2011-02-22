@@ -19,9 +19,8 @@ text {* The following abstract syntax and semantics of Hoare Logic
   \cite[\S6]{Winskel:1993}.  See also @{file "~~/src/HOL/Hoare"} and
   \cite{Nipkow:1998:Winskel}. *}
 
-types
-  'a bexp = "'a set"
-  'a assn = "'a set"
+type_synonym 'a bexp = "'a set"
+type_synonym 'a assn = "'a set"
 
 datatype 'a com =
     Basic "'a => 'a"
@@ -32,8 +31,7 @@ datatype 'a com =
 abbreviation Skip  ("SKIP")
   where "SKIP == Basic id"
 
-types
-  'a sem = "'a => 'a => bool"
+type_synonym 'a sem = "'a => 'a => bool"
 
 primrec iter :: "nat => 'a bexp => 'a sem => 'a sem"
 where
