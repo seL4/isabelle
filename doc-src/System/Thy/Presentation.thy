@@ -446,7 +446,7 @@ Usage: usedir [OPTIONS] LOGIC NAME
     -D PATH      dump generated document sources into PATH
     -M MAX       multithreading: maximum number of worker threads (default 1)
     -P PATH      set path for remote theory browsing information
-    -Q INT       set threshold for sub-proof parallelization (default 100)
+    -Q INT       set threshold for sub-proof parallelization (default 50)
     -T LEVEL     multithreading: trace level (default 0)
     -V VERSION   declare alternative document VERSION
     -b           build mode (output heap image, using current dir)
@@ -568,7 +568,9 @@ text {*
   proofs (default), @{verbatim 2} toplevel and nested Isar proofs.
   The option @{verbatim "-Q"} specifies a threshold for @{verbatim
   "-q2"}: nested proofs are only parallelized when the current number
-  of forked proofs falls below the given value (default 100).
+  of forked proofs falls below the given value (default 50),
+  multiplied by the number of worker threads (see option @{verbatim
+  "-M"}).
 
   \medskip The @{verbatim "-t"} option produces a more detailed
   internal timing report of the session.
@@ -578,16 +580,16 @@ text {*
   prepared documents.
 
   \medskip The @{verbatim "-M"} option specifies the maximum number of
-  parallel threads used for processing independent tasks when checking
-  theory sources (multithreading only works on suitable ML platforms).
-  The special value of @{verbatim 0} or @{verbatim max} refers to the
-  number of actual CPU cores of the underlying machine, which is a
-  good starting point for optimal performance tuning.  The @{verbatim
-  "-T"} option determines the level of detail in tracing output
-  concerning the internal locking and scheduling in multithreaded
-  operation.  This may be helpful in isolating performance
-  bottle-necks, e.g.\ due to excessive wait states when locking
-  critical code sections.
+  parallel worker threads used for processing independent tasks when
+  checking theory sources (multithreading only works on suitable ML
+  platforms).  The special value of @{verbatim 0} or @{verbatim max}
+  refers to the number of actual CPU cores of the underlying machine,
+  which is a good starting point for optimal performance tuning.  The
+  @{verbatim "-T"} option determines the level of detail in tracing
+  output concerning the internal locking and scheduling in
+  multithreaded operation.  This may be helpful in isolating
+  performance bottle-necks, e.g.\ due to excessive wait states when
+  locking critical code sections.
 
   \medskip Any @{tool usedir} session is named by some \emph{session
   identifier}. These accumulate, documenting the way sessions depend

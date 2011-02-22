@@ -138,7 +138,7 @@ fun fork e = fork_name "Goal.fork" e;
 (* scheduling parameters *)
 
 val parallel_proofs = Unsynchronized.ref 1;
-val parallel_proofs_threshold = Unsynchronized.ref 100;
+val parallel_proofs_threshold = Unsynchronized.ref 50;
 
 fun future_enabled () =
   Multithreading.enabled () andalso ! parallel_proofs >= 1 andalso
@@ -146,7 +146,8 @@ fun future_enabled () =
 
 fun local_future_enabled () =
   future_enabled () andalso ! parallel_proofs >= 2 andalso
-  Synchronized.value forked_proofs < ! parallel_proofs_threshold;
+  Synchronized.value forked_proofs <
+    ! parallel_proofs_threshold * Multithreading.max_threads_value ();
 
 
 (* future_result *)
