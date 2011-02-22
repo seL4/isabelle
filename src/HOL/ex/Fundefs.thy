@@ -280,14 +280,12 @@ where
 
 
 (* There were some problems with fresh names\<dots> *)
-(* FIXME: tailrec? *)
 function  k :: "nat \<Rightarrow> nat"
 where
   "k x = (let a = x; b = x in k x)"
   by pat_completeness auto
 
 
-(* FIXME: tailrec? *)
 function f2 :: "(nat \<times> nat) \<Rightarrow> (nat \<times> nat)"
 where
   "f2 p = (let (x,y) = p in f2 (y,x))"
