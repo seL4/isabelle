@@ -2475,16 +2475,6 @@ by clarsimp
 lemma filter_length: "length (List.filter P xs) < Suc (length xs)"
   apply (induct xs, auto) done
 
-consts remdps:: "'a list \<Rightarrow> 'a list"
-
-recdef remdps "measure size"
-  "remdps [] = []"
-  "remdps (x#xs) = (x#(remdps (List.filter (\<lambda> y. y \<noteq> x) xs)))"
-(hints simp add: filter_length[rule_format])
-
-lemma remdps_set[simp]: "set (remdps xs) = set xs"
-  by (induct xs rule: remdps.induct, auto)
-
 lemma simpfm_lin:   assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
   shows "qfree p \<Longrightarrow> islin (simpfm p)"
   by (induct p rule: simpfm.induct, auto simp add: conj_lin disj_lin)
@@ -2492,7 +2482,7 @@ lemma simpfm_lin:   assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_ze
 definition 
   "ferrack p \<equiv> let q = simpfm p ; mp = minusinf q ; pp = plusinf q
   in if (mp = T \<or> pp = T) then T 
-     else (let U = alluopairs (remdps (uset  q))
+     else (let U = alluopairs (remdups (uset  q))
            in decr0 (disj mp (disj pp (evaldjf (simpfm o (msubst q)) U ))))"
 
 lemma ferrack: 
@@ -2504,7 +2494,7 @@ proof-
   let ?N = "\<lambda> t. Ipoly vs t"
   let ?Nt = "\<lambda>x t. Itm vs (x#bs) t"
   let ?q = "simpfm p" 
-  let ?U = "remdps(uset ?q)"
+  let ?U = "remdups(uset ?q)"
   let ?Up = "alluopairs ?U"
   let ?mp = "minusinf ?q"
   let ?pp = "plusinf ?q"
@@ -2793,7 +2783,7 @@ qed
 definition 
 "ferrack2 p \<equiv> let q = simpfm p ; mp = minusinf q ; pp = plusinf q
  in if (mp = T \<or> pp = T) then T 
-  else (let U = remdps (uset  q)
+  else (let U = remdups (uset  q)
     in decr0 (list_disj [mp, pp, simpfm (subst0 (CP 0\<^sub>p) q), evaldjf (\<lambda>(c,t). msubst2 q (c *\<^sub>p C (-2, 1)) t) U, 
    evaldjf (\<lambda>((b,a),(d,c)). msubst2 q (C (-2, 1) *\<^sub>p b*\<^sub>p d) (Add (Mul d a) (Mul b c))) (alluopairs U)]))"
 
@@ -2808,7 +2798,7 @@ proof-
   let ?Nt = "\<lambda>x t. Itm vs (x#bs) t"
   let ?q = "simpfm p" 
   let ?qz = "subst0 (CP 0\<^sub>p) ?q"
-  let ?U = "remdps(uset ?q)"
+  let ?U = "remdups(uset ?q)"
   let ?Up = "alluopairs ?U"
   let ?mp = "minusinf ?q"
   let ?pp = "plusinf ?q"
