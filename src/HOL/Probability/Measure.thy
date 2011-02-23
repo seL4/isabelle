@@ -16,6 +16,23 @@ lemma measure_algebra_more_eq[simp]:
 lemma measure_sigma[simp]: "measure (sigma A) = measure A"
   unfolding sigma_def by simp
 
+lemma algebra_measure_update[simp]:
+  "algebra (M'\<lparr>measure := m\<rparr>) \<longleftrightarrow> algebra M'"
+  unfolding algebra_def by simp
+
+lemma sigma_algebra_measure_update[simp]:
+  "sigma_algebra (M'\<lparr>measure := m\<rparr>) \<longleftrightarrow> sigma_algebra M'"
+  unfolding sigma_algebra_def sigma_algebra_axioms_def by simp
+
+lemma finite_sigma_algebra_measure_update[simp]:
+  "finite_sigma_algebra (M'\<lparr>measure := m\<rparr>) \<longleftrightarrow> finite_sigma_algebra M'"
+  unfolding finite_sigma_algebra_def finite_sigma_algebra_axioms_def by simp
+
+lemma measurable_cancel_measure[simp]:
+  "measurable M1 (M2\<lparr>measure := m2\<rparr>) = measurable M1 M2"
+  "measurable (M2\<lparr>measure := m1\<rparr>) M1 = measurable M2 M1"
+  unfolding measurable_def by auto
+
 lemma inj_on_image_eq_iff:
   assumes "inj_on f S"
   assumes "A \<subseteq> S" "B \<subseteq> S"
@@ -624,59 +641,6 @@ proof -
   ultimately show ?thesis by (simp add: isoton_def)
 qed
 
-lemma (in measure_space) measure_space_vimage:
-  fixes M' :: "('c, 'd) measure_space_scheme"
-  assumes T: "sigma_algebra M'" "T \<in> measurable M M'"
-    and \<nu>: "\<And>A. A \<in> sets M' \<Longrightarrow> measure M' A = \<mu> (T -` A \<inter> space M)"
-  shows "measure_space M'"
-proof -
-  interpret M': sigma_algebra M' by fact
-  show ?thesis
-  proof
-    show "measure M' {} = 0" using \<nu>[of "{}"] by simp
-
-    show "countably_additive M' (measure M')"
-    proof (intro countably_additiveI)
-      fix A :: "nat \<Rightarrow> 'c set" assume "range A \<subseteq> sets M'" "disjoint_family A"
-      then have A: "\<And>i. A i \<in> sets M'" "(\<Union>i. A i) \<in> sets M'" by auto
-      then have *: "range (\<lambda>i. T -` (A i) \<inter> space M) \<subseteq> sets M"
-        using `T \<in> measurable M M'` by (auto simp: measurable_def)
-      moreover have "(\<Union>i. T -`  A i \<inter> space M) \<in> sets M"
-        using * by blast
-      moreover have **: "disjoint_family (\<lambda>i. T -` A i \<inter> space M)"
-        using `disjoint_family A` by (auto simp: disjoint_family_on_def)
-      ultimately show "(\<Sum>\<^isub>\<infinity> i. measure M' (A i)) = measure M' (\<Union>i. A i)"
-        using measure_countably_additive[OF _ **] A
-        by (auto simp: comp_def vimage_UN \<nu>)
-    qed
-  qed
-qed
-
-lemma measure_unique_Int_stable_vimage:
-  fixes A :: "nat \<Rightarrow> 'a set"
-  assumes E: "Int_stable E"
-  and A: "range A \<subseteq> sets E" "A \<up> space E" "\<And>i. measure M (A i) \<noteq> \<omega>"
-  and N: "measure_space N" "T \<in> measurable N M"
-  and M: "measure_space M" "sets (sigma E) = sets M" "space E = space M"
-  and eq: "\<And>X. X \<in> sets E \<Longrightarrow> measure M X = measure N (T -` X \<inter> space N)"
-  assumes X: "X \<in> sets (sigma E)"
-  shows "measure M X = measure N (T -` X \<inter> space N)"
-proof (rule measure_unique_Int_stable[OF E A(1,2) _ _ eq _ X])
-  interpret M: measure_space M by fact
-  interpret N: measure_space N by fact
-  let "?T X" = "T -` X \<inter> space N"
-  show "measure_space \<lparr>space = space E, sets = sets (sigma E), measure = measure M\<rparr>"
-    by (rule M.measure_space_cong) (auto simp: M)
-  show "measure_space \<lparr>space = space E, sets = sets (sigma E), measure = \<lambda>X. measure N (?T X)\<rparr>" (is "measure_space ?E")
-  proof (rule N.measure_space_vimage)
-    show "sigma_algebra ?E"
-      by (rule M.sigma_algebra_cong) (auto simp: M)
-    show "T \<in> measurable N ?E"
-      using `T \<in> measurable N M` by (auto simp: M measurable_def)
-  qed simp
-  show "\<And>i. M.\<mu> (A i) \<noteq> \<omega>" by fact
-qed
-
 section "@{text \<mu>}-null sets"
 
 abbreviation (in measure_space) "null_sets \<equiv> {N\<in>sets M. \<mu> N = 0}"
@@ -991,6 +955,105 @@ proof -
   qed force+
 qed
 
+section {* Measure preserving *}
+
+definition "measure_preserving A B =
+    {f \<in> measurable A B. (\<forall>y \<in> sets B. measure A (f -` y \<inter> space A) = measure B y)}"
+
+lemma measure_preservingI[intro?]:
+  assumes "f \<in> measurable A B"
+    and "\<And>y. y \<in> sets B \<Longrightarrow> measure A (f -` y \<inter> space A) = measure B y"
+  shows "f \<in> measure_preserving A B"
+  unfolding measure_preserving_def using assms by auto
+
+lemma (in measure_space) measure_space_vimage:
+  fixes M' :: "('c, 'd) measure_space_scheme"
+  assumes T: "sigma_algebra M'" "T \<in> measure_preserving M M'"
+  shows "measure_space M'"
+proof -
+  interpret M': sigma_algebra M' by fact
+  show ?thesis
+  proof
+    show "measure M' {} = 0" using T by (force simp: measure_preserving_def)
+
+    show "countably_additive M' (measure M')"
+    proof (intro countably_additiveI)
+      fix A :: "nat \<Rightarrow> 'c set" assume "range A \<subseteq> sets M'" "disjoint_family A"
+      then have A: "\<And>i. A i \<in> sets M'" "(\<Union>i. A i) \<in> sets M'" by auto
+      then have *: "range (\<lambda>i. T -` (A i) \<inter> space M) \<subseteq> sets M"
+        using T by (auto simp: measurable_def measure_preserving_def)
+      moreover have "(\<Union>i. T -`  A i \<inter> space M) \<in> sets M"
+        using * by blast
+      moreover have **: "disjoint_family (\<lambda>i. T -` A i \<inter> space M)"
+        using `disjoint_family A` by (auto simp: disjoint_family_on_def)
+      ultimately show "(\<Sum>\<^isub>\<infinity> i. measure M' (A i)) = measure M' (\<Union>i. A i)"
+        using measure_countably_additive[OF _ **] A T
+        by (auto simp: comp_def vimage_UN measure_preserving_def)
+    qed
+  qed
+qed
+
+lemma (in measure_space) almost_everywhere_vimage:
+  assumes T: "sigma_algebra M'" "T \<in> measure_preserving M M'"
+    and AE: "measure_space.almost_everywhere M' P"
+  shows "AE x. P (T x)"
+proof -
+  interpret M': measure_space M' using T by (rule measure_space_vimage)
+  from AE[THEN M'.AE_E] guess N .
+  then show ?thesis
+    unfolding almost_everywhere_def M'.almost_everywhere_def
+    using T(2) unfolding measurable_def measure_preserving_def
+    by (intro bexI[of _ "T -` N \<inter> space M"]) auto
+qed
+
+lemma measure_unique_Int_stable_vimage:
+  fixes A :: "nat \<Rightarrow> 'a set"
+  assumes E: "Int_stable E"
+  and A: "range A \<subseteq> sets E" "A \<up> space E" "\<And>i. measure M (A i) \<noteq> \<omega>"
+  and N: "measure_space N" "T \<in> measurable N M"
+  and M: "measure_space M" "sets (sigma E) = sets M" "space E = space M"
+  and eq: "\<And>X. X \<in> sets E \<Longrightarrow> measure M X = measure N (T -` X \<inter> space N)"
+  assumes X: "X \<in> sets (sigma E)"
+  shows "measure M X = measure N (T -` X \<inter> space N)"
+proof (rule measure_unique_Int_stable[OF E A(1,2) _ _ eq _ X])
+  interpret M: measure_space M by fact
+  interpret N: measure_space N by fact
+  let "?T X" = "T -` X \<inter> space N"
+  show "measure_space \<lparr>space = space E, sets = sets (sigma E), measure = measure M\<rparr>"
+    by (rule M.measure_space_cong) (auto simp: M)
+  show "measure_space \<lparr>space = space E, sets = sets (sigma E), measure = \<lambda>X. measure N (?T X)\<rparr>" (is "measure_space ?E")
+  proof (rule N.measure_space_vimage)
+    show "sigma_algebra ?E"
+      by (rule M.sigma_algebra_cong) (auto simp: M)
+    show "T \<in> measure_preserving N ?E"
+      using `T \<in> measurable N M` by (auto simp: M measurable_def measure_preserving_def)
+  qed
+  show "\<And>i. M.\<mu> (A i) \<noteq> \<omega>" by fact
+qed
+
+lemma (in measure_space) measure_preserving_Int_stable:
+  fixes A :: "nat \<Rightarrow> 'a set"
+  assumes E: "Int_stable E" "range A \<subseteq> sets E" "A \<up> space E" "\<And>i. measure E (A i) \<noteq> \<omega>"
+  and N: "measure_space (sigma E)"
+  and T: "T \<in> measure_preserving M E"
+  shows "T \<in> measure_preserving M (sigma E)"
+proof
+  interpret E: measure_space "sigma E" by fact
+  show "T \<in> measurable M (sigma E)"
+    using T E.sets_into_space
+    by (intro measurable_sigma) (auto simp: measure_preserving_def measurable_def)
+  fix X assume "X \<in> sets (sigma E)"
+  show "\<mu> (T -` X \<inter> space M) = E.\<mu> X"
+  proof (rule measure_unique_Int_stable_vimage[symmetric])
+    show "sets (sigma E) = sets (sigma E)" "space E = space (sigma E)"
+      "\<And>i. E.\<mu> (A i) \<noteq> \<omega>" using E by auto
+    show "measure_space M" by default
+  next
+    fix X assume "X \<in> sets E" then show "E.\<mu> X = \<mu> (T -` X \<inter> space M)"
+      using T unfolding measure_preserving_def by auto
+  qed fact+
+qed
+
 section "Real measure values"
 
 lemma (in measure_space) real_measure_Union:
@@ -1229,11 +1292,6 @@ lemma (in finite_measure) finite_measure_inter_full_set:
   shows "\<mu> (S \<inter> T) = \<mu> S"
   using measure_inter_full_set[OF assms(1,2) finite_measure assms(3)] assms
   by auto
-
-section {* Measure preserving *}
-
-definition "measure_preserving A B =
-    {f \<in> measurable A B. (\<forall>y \<in> sets B. measure A (f -` y \<inter> space A) = measure B y)}"
 
 lemma (in finite_measure) measure_preserving_lift:
   fixes f :: "'a \<Rightarrow> 'c" and A :: "('c, 'd) measure_space_scheme"

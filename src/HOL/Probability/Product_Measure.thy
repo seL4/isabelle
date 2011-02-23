@@ -2,14 +2,6 @@ theory Product_Measure
 imports Lebesgue_Integration
 begin
 
-lemma measurable_cancel_measure2[simp]:
-  "measurable M1 (M2\<lparr>measure := m\<rparr>) = measurable M1 M2"
-  unfolding measurable_def by auto
-
-lemma measurable_cancel_measure1[simp]:
-  "measurable (M1\<lparr>measure := m\<rparr>) M2 = measurable M1 M2"
-  unfolding measurable_def by auto
-
 lemma sigma_sets_subseteq: assumes "A \<subseteq> B" shows "sigma_sets X A \<subseteq> sigma_sets X B"
 proof
   fix x assume "x \<in> sigma_sets X A" then show "x \<in> sigma_sets X B"
@@ -926,20 +918,27 @@ proof -
     unfolding F_SUPR by simp
 qed
 
+lemma (in pair_sigma_finite) measure_preserving_swap:
+  "(\<lambda>(x,y). (y, x)) \<in> measure_preserving (M1 \<Otimes>\<^isub>M M2) (M2 \<Otimes>\<^isub>M M1)"
+proof
+  interpret Q: pair_sigma_finite M2 M1 by default
+  show *: "(\<lambda>(x,y). (y, x)) \<in> measurable (M1 \<Otimes>\<^isub>M M2) (M2 \<Otimes>\<^isub>M M1)"
+    using pair_sigma_algebra_swap_measurable .
+  fix X assume "X \<in> sets (M2 \<Otimes>\<^isub>M M1)"
+  from measurable_sets[OF * this] this Q.sets_into_space[OF this]
+  show "measure (M1 \<Otimes>\<^isub>M M2) ((\<lambda>(x, y). (y, x)) -` X \<inter> space P) = measure (M2 \<Otimes>\<^isub>M M1) X"
+    by (auto intro!: M1.positive_integral_cong arg_cong[where f="M2.\<mu>"]
+      simp: pair_measure_alt Q.pair_measure_alt2 space_pair_measure)
+qed
+
 lemma (in pair_sigma_finite) positive_integral_product_swap:
   assumes f: "f \<in> borel_measurable P"
   shows "(\<integral>\<^isup>+x. f (case x of (x,y)\<Rightarrow>(y,x)) \<partial>(M2 \<Otimes>\<^isub>M M1)) = integral\<^isup>P P f"
 proof -
   interpret Q: pair_sigma_finite M2 M1 by default
   have "sigma_algebra P" by default
-  show ?thesis
-  proof (intro Q.positive_integral_vimage[symmetric] Q.pair_sigma_algebra_swap_measurable)
-    fix A assume "A \<in> sets P"
-    from Q.pair_sigma_algebra_swap_measurable[THEN measurable_sets, OF this] this sets_into_space[OF this]
-    show "\<mu> A = Q.\<mu> ((\<lambda>(x, y). (y, x)) -` A \<inter> space (M2 \<Otimes>\<^isub>M M1))"
-      by (auto intro!: M1.positive_integral_cong arg_cong[where f="M2.\<mu>"]
-               simp: pair_measure_alt Q.pair_measure_alt2 space_pair_measure)
-  qed fact+
+  with f show ?thesis
+    by (subst Q.positive_integral_vimage[OF _ Q.measure_preserving_swap]) auto
 qed
 
 lemma (in pair_sigma_finite) positive_integral_snd_measurable:
@@ -1405,7 +1404,8 @@ proof -
     fix i k show "\<mu> i (F i k) \<noteq> \<omega>" by fact
   next
     fix A assume "A \<in> (\<Union>i. ?F i)" then show "A \<in> space G"
-      using `\<And>i. range (F i) \<subseteq> sets (M i)` M.sets_into_space by auto blast
+      using `\<And>i. range (F i) \<subseteq> sets (M i)` M.sets_into_space
+      by (force simp: image_subset_iff)
   next
     fix f assume "f \<in> space G"
     with Pi_UN[OF finite_index, of "\<lambda>k i. F i k"]
@@ -1417,6 +1417,19 @@ proof -
       using `\<And>i. F i \<up> space (M i)`[THEN isotonD(1)] by auto
   qed
 qed
+
+lemma sets_pair_cancel_measure[simp]:
+  "sets (M1\<lparr>measure := m1\<rparr> \<Otimes>\<^isub>M M2) = sets (M1 \<Otimes>\<^isub>M M2)"
+  "sets (M1 \<Otimes>\<^isub>M M2\<lparr>measure := m2\<rparr>) = sets (M1 \<Otimes>\<^isub>M M2)"
+  unfolding pair_measure_def pair_measure_generator_def sets_sigma
+  by simp_all
+
+lemma measurable_pair_cancel_measure[simp]:
+  "measurable (M1\<lparr>measure := m1\<rparr> \<Otimes>\<^isub>M M2) M = measurable (M1 \<Otimes>\<^isub>M M2) M"
+  "measurable (M1 \<Otimes>\<^isub>M M2\<lparr>measure := m2\<rparr>) M = measurable (M1 \<Otimes>\<^isub>M M2) M"
+  "measurable M (M1\<lparr>measure := m3\<rparr> \<Otimes>\<^isub>M M2) = measurable M (M1 \<Otimes>\<^isub>M M2)"
+  "measurable M (M1 \<Otimes>\<^isub>M M2\<lparr>measure := m4\<rparr>) = measurable M (M1 \<Otimes>\<^isub>M M2)"
+  unfolding measurable_def by (auto simp add: space_pair_measure)
 
 lemma (in product_sigma_finite) product_measure_exists:
   assumes "finite I"
@@ -1455,8 +1468,7 @@ next
     by (rule I'.sigma_algebra_cong) simp_all
   interpret I'': measure_space "I'.P\<lparr> measure := ?\<nu> \<rparr>"
     using measurable_add_dim[OF `i \<notin> I`]
-    by (intro P.measure_space_vimage[OF I'])
-       (simp_all add: measurable_def pair_measure_def pair_measure_generator_def sets_sigma)
+    by (intro P.measure_space_vimage[OF I']) (auto simp add: measure_preserving_def)
   show ?case
   proof (intro exI[of _ ?\<nu>] conjI ballI)
     let "?m A" = "measure (Pi\<^isub>M I M\<lparr>measure := \<nu>\<rparr> \<Otimes>\<^isub>M M i) (?h -` A \<inter> space P.P)"
@@ -1602,31 +1614,43 @@ proof -
   qed
 qed
 
+lemma (in product_sigma_finite) measure_preserving_merge:
+  assumes IJ: "I \<inter> J = {}" and "finite I" "finite J"
+  shows "(\<lambda>(x,y). merge I x J y) \<in> measure_preserving (Pi\<^isub>M I M \<Otimes>\<^isub>M Pi\<^isub>M J M) (Pi\<^isub>M (I \<union> J) M)"
+  by (intro measure_preservingI measurable_merge[OF IJ] measure_fold[symmetric] assms)
+
 lemma (in product_sigma_finite) product_positive_integral_fold:
-  assumes IJ[simp]: "I \<inter> J = {}" and fin: "finite I" "finite J"
+  assumes IJ[simp]: "I \<inter> J = {}" "finite I" "finite J"
   and f: "f \<in> borel_measurable (Pi\<^isub>M (I \<union> J) M)"
   shows "integral\<^isup>P (Pi\<^isub>M (I \<union> J) M) f =
     (\<integral>\<^isup>+ x. (\<integral>\<^isup>+ y. f (merge I x J y) \<partial>(Pi\<^isub>M J M)) \<partial>(Pi\<^isub>M I M))"
 proof -
   interpret I: finite_product_sigma_finite M I by default fact
   interpret J: finite_product_sigma_finite M J by default fact
-  have "finite (I \<union> J)" using fin by auto
-  interpret IJ: finite_product_sigma_finite M "I \<union> J" by default fact
-  interpret P: pair_sigma_finite I.P J.P by default
+  interpret P: pair_sigma_finite "Pi\<^isub>M I M" "Pi\<^isub>M J M" by default
+  interpret IJ: finite_product_sigma_finite M "I \<union> J" by default simp
   have P_borel: "(\<lambda>x. f (case x of (x, y) \<Rightarrow> merge I x J y)) \<in> borel_measurable P.P"
-    using measurable_comp[OF measurable_merge[OF IJ] f] by (simp add: comp_def)
+    using measurable_comp[OF measurable_merge[OF IJ(1)] f] by (simp add: comp_def)
   show ?thesis
     unfolding P.positive_integral_fst_measurable[OF P_borel, simplified]
   proof (rule P.positive_integral_vimage)
     show "sigma_algebra IJ.P" by default
-    show "(\<lambda>(x, y). merge I x J y) \<in> measurable P.P IJ.P" by (rule measurable_merge[OF IJ])
+    show "(\<lambda>(x, y). merge I x J y) \<in> measure_preserving P.P IJ.P"
+      using IJ by (rule measure_preserving_merge)
     show "f \<in> borel_measurable IJ.P" using f by simp
-  next
-    fix A assume "A \<in> sets (Pi\<^isub>M (I \<union> J) M)"
-    then show "IJ.\<mu> A = P.\<mu> ((\<lambda>(x,y). merge I x J y) -` A \<inter> space P.P)"
-      using measure_fold[OF IJ fin] by simp
   qed
 qed
+
+lemma (in product_sigma_finite) measure_preserving_component_singelton:
+  "(\<lambda>x. x i) \<in> measure_preserving (Pi\<^isub>M {i} M) (M i)"
+proof (intro measure_preservingI measurable_component_singleton)
+  interpret I: finite_product_sigma_finite M "{i}" by default simp
+  fix A let ?P = "(\<lambda>x. x i) -` A \<inter> space I.P"
+  assume A: "A \<in> sets (M i)"
+  then have *: "?P = {i} \<rightarrow>\<^isub>E A" using sets_into_space by auto
+  show "I.\<mu> ?P = M.\<mu> i A" unfolding *
+    using A I.measure_times[of "\<lambda>_. A"] by auto
+qed auto
 
 lemma (in product_sigma_finite) product_positive_integral_singleton:
   assumes f: "f \<in> borel_measurable (M i)"
@@ -1636,14 +1660,9 @@ proof -
   show ?thesis
   proof (rule I.positive_integral_vimage[symmetric])
     show "sigma_algebra (M i)" by (rule sigma_algebras)
-    show "(\<lambda>x. x i) \<in> measurable (Pi\<^isub>M {i} M) (M i)" by (rule measurable_component_singleton) auto
+    show "(\<lambda>x. x i) \<in> measure_preserving (Pi\<^isub>M {i} M) (M i)"
+      by (rule measure_preserving_component_singelton)
     show "f \<in> borel_measurable (M i)" by fact
-  next
-    fix A let ?P = "(\<lambda>x. x i) -` A \<inter> space I.P"
-    assume A: "A \<in> sets (M i)"
-    then have *: "?P = {i} \<rightarrow>\<^isub>E A" using sets_into_space by auto
-    show "M.\<mu> i A = I.\<mu> ?P" unfolding *
-      using A I.measure_times[of "\<lambda>_. A"] by auto
   qed
 qed
 
@@ -1723,14 +1742,14 @@ proof -
   show ?thesis
   proof (subst P.integrable_fst_measurable(2)[of ?f, simplified])
     have 1: "sigma_algebra IJ.P" by default
-    have 2: "?M \<in> measurable P.P IJ.P" using measurable_merge[OF IJ] .
-    have 3: "\<And>A. A \<in> sets IJ.P \<Longrightarrow> IJ.\<mu> A = P.\<mu> (?M -` A \<inter> space P.P)"
-      by (rule measure_fold[OF IJ fin])
-    have 4: "integrable (Pi\<^isub>M (I \<union> J) M) f" by fact
+    have 2: "?M \<in> measure_preserving P.P IJ.P" using measure_preserving_merge[OF assms(1,2,3)] .
+    have 3: "integrable (Pi\<^isub>M (I \<union> J) M) f" by fact
+    then have 4: "f \<in> borel_measurable (Pi\<^isub>M (I \<union> J) M)"
+      by (simp add: integrable_def)
     show "integrable P.P ?f"
-      by (rule P.integral_vimage[where f=f, OF 1 2 3 4])
+      by (rule P.integrable_vimage[where f=f, OF 1 2 3])
     show "integral\<^isup>L IJ.P f = integral\<^isup>L P.P ?f"
-      by (rule P.integral_vimage[where f=f, OF 1 2 3 4])
+      by (rule P.integral_vimage[where f=f, OF 1 2 4])
   qed
 qed
 

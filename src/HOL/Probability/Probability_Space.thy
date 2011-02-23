@@ -198,7 +198,7 @@ proof -
   interpret S: measure_space "S\<lparr>measure := distribution X\<rparr>"
     unfolding distribution_def using assms
     by (intro measure_space_vimage)
-       (auto intro!: sigma_algebra.sigma_algebra_cong[of S])
+       (auto intro!: sigma_algebra.sigma_algebra_cong[of S] simp: measure_preserving_def)
   show ?thesis
   proof (default, simp)
     have "X -` space S \<inter> space M = space M"
