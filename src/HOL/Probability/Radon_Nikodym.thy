@@ -74,7 +74,7 @@ subsection "Absolutely continuous"
 definition (in measure_space)
   "absolutely_continuous \<nu> = (\<forall>N\<in>null_sets. \<nu> N = (0 :: pextreal))"
 
-lemma (in sigma_finite_measure) absolutely_continuous_AE:
+lemma (in measure_space) absolutely_continuous_AE:
   assumes "measure_space M'" and [simp]: "sets M' = sets M" "space M' = space M"
     and "absolutely_continuous (measure M')" "AE x. P x"
   shows "measure_space.almost_everywhere M' P"
@@ -1111,6 +1111,76 @@ proof (rule density_unique[OF f RN_deriv(1)[OF \<nu>]])
   fix A assume A: "A \<in> sets M"
   show "(\<integral>\<^isup>+x. f x * indicator A x \<partial>M) = (\<integral>\<^isup>+x. RN_deriv M \<nu> x * indicator A x \<partial>M)"
     unfolding eq[OF A, symmetric] RN_deriv(2)[OF \<nu> A, symmetric] ..
+qed
+
+lemma (in sigma_finite_measure) RN_deriv_vimage:
+  assumes T: "T \<in> measure_preserving M M'"
+    and T': "T' \<in> measure_preserving (M'\<lparr> measure := \<nu>' \<rparr>) (M\<lparr> measure := \<nu> \<rparr>)"
+    and inv: "\<And>x. x \<in> space M \<Longrightarrow> T' (T x) = x"
+  and \<nu>': "measure_space (M'\<lparr>measure := \<nu>'\<rparr>)" "measure_space.absolutely_continuous M' \<nu>'"
+  shows "AE x. RN_deriv M' \<nu>' (T x) = RN_deriv M \<nu> x"
+proof (rule RN_deriv_unique)
+  interpret \<nu>': measure_space "M'\<lparr>measure := \<nu>'\<rparr>" by fact
+  show "measure_space (M\<lparr> measure := \<nu>\<rparr>)"
+    by (rule \<nu>'.measure_space_vimage[OF _ T'], simp) default
+  interpret M': measure_space M'
+  proof (rule measure_space_vimage)
+    have "sigma_algebra (M'\<lparr> measure := \<nu>'\<rparr>)" by default
+    then show "sigma_algebra M'" by simp
+  qed fact
+  show "absolutely_continuous \<nu>" unfolding absolutely_continuous_def
+  proof safe
+    fix N assume N: "N \<in> sets M" and N_0: "\<mu> N = 0"
+    then have N': "T' -` N \<inter> space M' \<in> sets M'"
+      using T' by (auto simp: measurable_def measure_preserving_def)
+    have "T -` (T' -` N \<inter> space M') \<inter> space M = N"
+      using inv T N sets_into_space[OF N] by (auto simp: measurable_def measure_preserving_def)
+    then have "measure M' (T' -` N \<inter> space M') = 0"
+      using measure_preservingD[OF T N'] N_0 by auto
+    with \<nu>'(2) N' show "\<nu> N = 0" using measure_preservingD[OF T', of N] N
+      unfolding M'.absolutely_continuous_def measurable_def by auto
+  qed
+  interpret M': sigma_finite_measure M'
+  proof
+    from sigma_finite guess F .. note F = this
+    show "\<exists>A::nat \<Rightarrow> 'c set. range A \<subseteq> sets M' \<and> (\<Union>i. A i) = space M' \<and> (\<forall>i. M'.\<mu> (A i) \<noteq> \<omega>)"
+    proof (intro exI conjI allI)
+      show *: "range (\<lambda>i. T' -` F i \<inter> space M') \<subseteq> sets M'"
+        using F T' by (auto simp: measurable_def measure_preserving_def)
+      show "(\<Union>i. T' -` F i \<inter> space M') = space M'"
+        using F T' by (force simp: measurable_def measure_preserving_def)
+      fix i
+      have "T' -` F i \<inter> space M' \<in> sets M'" using * by auto
+      note measure_preservingD[OF T this, symmetric]
+      moreover
+      have Fi: "F i \<in> sets M" using F by auto
+      then have "T -` (T' -` F i \<inter> space M') \<inter> space M = F i"
+        using T inv sets_into_space[OF Fi]
+        by (auto simp: measurable_def measure_preserving_def)
+      ultimately show "measure M' (T' -` F i \<inter> space M') \<noteq> \<omega>"
+        using F by simp
+    qed
+  qed
+  have "(RN_deriv M' \<nu>') \<circ> T \<in> borel_measurable M"
+    by (intro measurable_comp[where b=M'] M'.RN_deriv(1) measure_preservingD2[OF T]) fact+
+  then show "(\<lambda>x. RN_deriv M' \<nu>' (T x)) \<in> borel_measurable M"
+    by (simp add: comp_def)
+  fix A let ?A = "T' -` A \<inter> space M'"
+  assume A: "A \<in> sets M"
+  then have A': "?A \<in> sets M'" using T' unfolding measurable_def measure_preserving_def
+    by auto
+  from A have "\<nu> A = \<nu>' ?A" using T'[THEN measure_preservingD] by simp
+  also have "\<dots> = \<integral>\<^isup>+ x. RN_deriv M' \<nu>' x * indicator ?A x \<partial>M'"
+    using A' by (rule M'.RN_deriv(2)[OF \<nu>'])
+  also have "\<dots> = \<integral>\<^isup>+ x. RN_deriv M' \<nu>' (T x) * indicator ?A (T x) \<partial>M"
+  proof (rule positive_integral_vimage)
+    show "sigma_algebra M'" by default
+    show "(\<lambda>x. RN_deriv M' \<nu>' x * indicator (T' -` A \<inter> space M') x) \<in> borel_measurable M'"
+      by (auto intro!: A' M'.RN_deriv(1)[OF \<nu>'])
+  qed fact
+  also have "\<dots> = \<integral>\<^isup>+ x. RN_deriv M' \<nu>' (T x) * indicator A x \<partial>M"
+    using T inv by (auto intro!: positive_integral_cong simp: measure_preserving_def measurable_def indicator_def)
+  finally show "\<nu> A = \<integral>\<^isup>+ x. RN_deriv M' \<nu>' (T x) * indicator A x \<partial>M" .
 qed
 
 lemma (in sigma_finite_measure) RN_deriv_finite:
