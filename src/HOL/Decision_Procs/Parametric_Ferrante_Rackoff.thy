@@ -85,27 +85,23 @@ lemma tmbound_I:
   using nb le bnd
   by (induct t rule: tm.induct , auto)
 
-consts 
-  incrtm0:: "tm \<Rightarrow> tm"
-  decrtm0:: "tm \<Rightarrow> tm" 
-
-recdef decrtm0 "measure size"
+fun decrtm0:: "tm \<Rightarrow> tm" where
   "decrtm0 (Bound n) = Bound (n - 1)"
-  "decrtm0 (Neg a) = Neg (decrtm0 a)"
-  "decrtm0 (Add a b) = Add (decrtm0 a) (decrtm0 b)"
-  "decrtm0 (Sub a b) = Sub (decrtm0 a) (decrtm0 b)"
-  "decrtm0 (Mul c a) = Mul c (decrtm0 a)"
-  "decrtm0 (CNP n c a) = CNP (n - 1) c (decrtm0 a)"
-  "decrtm0 a = a"
+| "decrtm0 (Neg a) = Neg (decrtm0 a)"
+| "decrtm0 (Add a b) = Add (decrtm0 a) (decrtm0 b)"
+| "decrtm0 (Sub a b) = Sub (decrtm0 a) (decrtm0 b)"
+| "decrtm0 (Mul c a) = Mul c (decrtm0 a)"
+| "decrtm0 (CNP n c a) = CNP (n - 1) c (decrtm0 a)"
+| "decrtm0 a = a"
 
-recdef incrtm0 "measure size"
+fun incrtm0:: "tm \<Rightarrow> tm" where
   "incrtm0 (Bound n) = Bound (n + 1)"
-  "incrtm0 (Neg a) = Neg (incrtm0 a)"
-  "incrtm0 (Add a b) = Add (incrtm0 a) (incrtm0 b)"
-  "incrtm0 (Sub a b) = Sub (incrtm0 a) (incrtm0 b)"
-  "incrtm0 (Mul c a) = Mul c (incrtm0 a)"
-  "incrtm0 (CNP n c a) = CNP (n + 1) c (incrtm0 a)"
-  "incrtm0 a = a"
+| "incrtm0 (Neg a) = Neg (incrtm0 a)"
+| "incrtm0 (Add a b) = Add (incrtm0 a) (incrtm0 b)"
+| "incrtm0 (Sub a b) = Sub (incrtm0 a) (incrtm0 b)"
+| "incrtm0 (Mul c a) = Mul c (incrtm0 a)"
+| "incrtm0 (CNP n c a) = CNP (n + 1) c (incrtm0 a)"
+| "incrtm0 a = a"
 
 lemma decrtm0: assumes nb: "tmbound0 t"
   shows "Itm vs (x#bs) t = Itm vs bs (decrtm0 t)"
@@ -213,9 +209,7 @@ lemma incrtm0_tmbound: "tmbound n t \<Longrightarrow> tmbound (Suc n) (incrtm0 t
   (* Simplification *)
 
 consts
-  simptm:: "tm \<Rightarrow> tm"
   tmadd:: "tm \<times> tm \<Rightarrow> tm"
-  tmmul:: "tm \<Rightarrow> poly \<Rightarrow> tm"
 recdef tmadd "measure (\<lambda> (t,s). size t + size s)"
   "tmadd (CNP n1 c1 r1,CNP n2 c2 r2) =
   (if n1=n2 then 
@@ -245,10 +239,10 @@ by (induct t s rule: tmadd.induct, auto simp add: Let_def)
 
 lemma tmadd_allpolys_npoly[simp]: "allpolys isnpoly t \<Longrightarrow> allpolys isnpoly s \<Longrightarrow> allpolys isnpoly (tmadd(t,s))" by (induct t s rule: tmadd.induct, simp_all add: Let_def polyadd_norm)
 
-recdef tmmul "measure size"
+fun tmmul:: "tm \<Rightarrow> poly \<Rightarrow> tm" where
   "tmmul (CP j) = (\<lambda> i. CP (i *\<^sub>p j))"
-  "tmmul (CNP n c a) = (\<lambda> i. CNP n (i *\<^sub>p c) (tmmul a i))"
-  "tmmul t = (\<lambda> i. Mul i t)"
+| "tmmul (CNP n c a) = (\<lambda> i. CNP n (i *\<^sub>p c) (tmmul a i))"
+| "tmmul t = (\<lambda> i. Mul i t)"
 
 lemma tmmul[simp]: "Itm vs bs (tmmul t i) = Itm vs bs (Mul i t)"
 by (induct t arbitrary: i rule: tmmul.induct, simp_all add: field_simps)
@@ -306,14 +300,14 @@ lemma tmsub_allpolys_npoly[simp]:
   shows "allpolys isnpoly t \<Longrightarrow> allpolys isnpoly s \<Longrightarrow> allpolys isnpoly (tmsub t s)" 
   unfolding tmsub_def by (simp add: isnpoly_def)
 
-recdef simptm "measure size"
+fun simptm:: "tm \<Rightarrow> tm" where
   "simptm (CP j) = CP (polynate j)"
-  "simptm (Bound n) = CNP n 1\<^sub>p (CP 0\<^sub>p)"
-  "simptm (Neg t) = tmneg (simptm t)"
-  "simptm (Add t s) = tmadd (simptm t,simptm s)"
-  "simptm (Sub t s) = tmsub (simptm t) (simptm s)"
-  "simptm (Mul i t) = (let i' = polynate i in if i' = 0\<^sub>p then CP 0\<^sub>p else tmmul (simptm t) i')"
-  "simptm (CNP n c t) = (let c' = polynate c in if c' = 0\<^sub>p then simptm t else tmadd (CNP n c' (CP 0\<^sub>p ), simptm t))"
+| "simptm (Bound n) = CNP n 1\<^sub>p (CP 0\<^sub>p)"
+| "simptm (Neg t) = tmneg (simptm t)"
+| "simptm (Add t s) = tmadd (simptm t,simptm s)"
+| "simptm (Sub t s) = tmsub (simptm t) (simptm s)"
+| "simptm (Mul i t) = (let i' = polynate i in if i' = 0\<^sub>p then CP 0\<^sub>p else tmmul (simptm t) i')"
+| "simptm (CNP n c t) = (let c' = polynate c in if c' = 0\<^sub>p then simptm t else tmadd (CNP n c' (CP 0\<^sub>p ), simptm t))"
 
 lemma polynate_stupid: 
   assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
