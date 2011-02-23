@@ -31,10 +31,12 @@ uses
   ("Tools/recfun_codegen.ML")
   ("Tools/cnf_funcs.ML")
   "~~/src/Tools/subtyping.ML"
+  "~~/src/Tools/case_product.ML"
 begin
 
 setup {* Intuitionistic.method_setup @{binding iprover} *}
 setup Subtyping.setup
+setup Case_Product.setup
 
 
 subsection {* Primitive logic *}

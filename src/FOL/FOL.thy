@@ -11,6 +11,7 @@ uses
   "~~/src/Provers/blast.ML"
   "~~/src/Provers/clasimp.ML"
   "~~/src/Tools/induct.ML"
+  "~~/src/Tools/case_product.ML"
   ("cladata.ML")
   ("simpdata.ML")
 begin
@@ -390,6 +391,8 @@ ML {*
 
 setup Induct.setup
 declare case_split [cases type: o]
+
+setup Case_Product.setup
 
 
 hide_const (open) eq
