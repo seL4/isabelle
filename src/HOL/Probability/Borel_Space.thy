@@ -48,6 +48,9 @@ proof -
   thus ?thesis by simp
 qed
 
+lemma borel_comp[intro,simp]: "A \<in> sets borel \<Longrightarrow> - A \<in> sets borel"
+  unfolding Compl_eq_Diff_UNIV by (intro borel.Diff) auto
+
 lemma (in sigma_algebra) borel_measurable_vimage:
   fixes f :: "'a \<Rightarrow> 'x::t2_space"
   assumes borel: "f \<in> borel_measurable M"
@@ -1117,6 +1120,73 @@ next
     apply (rule measurable_If)
     using * ** by auto
 qed
+
+lemma borel_measurable_continuous_on1:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::t1_space"
+  assumes "continuous_on UNIV f"
+  shows "f \<in> borel_measurable borel"
+  apply(rule borel.borel_measurableI)
+  using continuous_open_preimage[OF assms] unfolding vimage_def by auto
+
+lemma borel_measurable_continuous_on:
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::t1_space"
+  assumes cont: "continuous_on A f" "open A" and f: "f -` {c} \<inter> A \<in> sets borel"
+  shows "(\<lambda>x. if x \<in> A then f x else c) \<in> borel_measurable borel" (is "?f \<in> _")
+proof (rule borel.borel_measurableI)
+  fix S :: "'b set" assume "open S"
+  then have "open {x\<in>A. f x \<in> S - {c}}"
+    by (intro continuous_open_preimage[OF cont]) auto
+  then have *: "{x\<in>A. f x \<in> S - {c}} \<in> sets borel" by auto
+  show "?f -` S \<inter> space borel \<in> sets borel"
+  proof cases
+    assume "c \<in> S"
+    then have "?f -` S = {x\<in>A. f x \<in> S - {c}} \<union> (f -` {c} \<inter> A) \<union> -A"
+      by auto
+    with * show "?f -` S \<inter> space borel \<in> sets borel"
+      using `open A` f by (auto intro!: borel.Un)
+  next
+    assume "c \<notin> S"
+    then have "?f -` S = {x\<in>A. f x \<in> S - {c}}" by (auto split: split_if_asm)
+    with * show "?f -` S \<inter> space borel \<in> sets borel" by auto
+  qed
+qed
+
+lemma borel_measurable_borel_log: assumes "1 < b" shows "log b \<in> borel_measurable borel"
+proof -
+  { fix x :: real assume x: "x \<le> 0"
+    { fix x::real assume "x \<le> 0" then have "\<And>u. exp u = x \<longleftrightarrow> False" by auto }
+    from this[of x] x this[of 0] have "log b 0 = log b x"
+      by (auto simp: ln_def log_def) }
+  note log_imp = this
+  have "(\<lambda>x. if x \<in> {0<..} then log b x else log b 0) \<in> borel_measurable borel"
+  proof (rule borel_measurable_continuous_on)
+    show "continuous_on {0<..} (log b)"
+      by (auto intro!: continuous_at_imp_continuous_on DERIV_log DERIV_isCont
+               simp: continuous_isCont[symmetric])
+    show "open ({0<..}::real set)" by auto
+    show "log b -` {log b 0} \<inter> {0<..} \<in> sets borel"
+    proof cases
+      assume "log b -` {log b 0} \<inter> {0<..} = {}"
+      then show ?thesis by simp
+    next
+      assume "log b -` {log b 0} \<inter> {0<..} \<noteq> {}"
+      then obtain x where "0 < x" "log b x = log b 0" by auto
+      with log_inj[OF `1 < b`] have "log b -` {log b 0} \<inter> {0<..} = {x}"
+        by (auto simp: inj_on_def)
+      then show ?thesis by simp
+    qed
+  qed
+  also have "(\<lambda>x. if x \<in> {0<..} then log b x else log b 0) = log b"
+    by (simp add: fun_eq_iff not_less log_imp)
+  finally show ?thesis .
+qed
+
+lemma (in sigma_algebra) borel_measurable_log[simp,intro]:
+  assumes f: "f \<in> borel_measurable M" and "1 < b"
+  shows "(\<lambda>x. log b (f x)) \<in> borel_measurable M"
+  using measurable_comp[OF f borel_measurable_borel_log[OF `1 < b`]]
+  by (simp add: comp_def)
+
 
 lemma (in sigma_algebra) less_eq_ge_measurable:
   fixes f :: "'a \<Rightarrow> 'c::linorder"

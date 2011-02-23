@@ -821,30 +821,33 @@ lemma (in measure_space) simple_integral_subalgebra:
   shows "integral\<^isup>S N = integral\<^isup>S M"
   unfolding simple_integral_def_raw by simp
 
+lemma measure_preservingD:
+  "T \<in> measure_preserving A B \<Longrightarrow> X \<in> sets B \<Longrightarrow> measure A (T -` X \<inter> space A) = measure B X"
+  unfolding measure_preserving_def by auto
+
 lemma (in measure_space) simple_integral_vimage:
-  assumes T: "sigma_algebra M'" "T \<in> measurable M M'"
+  assumes T: "sigma_algebra M'" "T \<in> measure_preserving M M'"
     and f: "simple_function M' f"
-    and \<nu>: "\<And>A. A \<in> sets M' \<Longrightarrow> measure M' A = \<mu> (T -` A \<inter> space M)"
   shows "integral\<^isup>S M' f = (\<integral>\<^isup>S x. f (T x) \<partial>M)"
 proof -
-  interpret T: measure_space M' using \<nu> by (rule measure_space_vimage[OF T])
+  interpret T: measure_space M' by (rule measure_space_vimage[OF T])
   show "integral\<^isup>S M' f = (\<integral>\<^isup>S x. f (T x) \<partial>M)"
     unfolding simple_integral_def
   proof (intro setsum_mono_zero_cong_right ballI)
     show "(\<lambda>x. f (T x)) ` space M \<subseteq> f ` space M'"
-      using T unfolding measurable_def by auto
+      using T unfolding measurable_def measure_preserving_def by auto
     show "finite (f ` space M')"
       using f unfolding simple_function_def by auto
   next
     fix i assume "i \<in> f ` space M' - (\<lambda>x. f (T x)) ` space M"
     then have "T -` (f -` {i} \<inter> space M') \<inter> space M = {}" by (auto simp: image_iff)
-    with f[THEN T.simple_functionD(2), THEN \<nu>]
+    with f[THEN T.simple_functionD(2), THEN measure_preservingD[OF T(2)], of "{i}"]
     show "i * T.\<mu> (f -` {i} \<inter> space M') = 0" by simp
   next
     fix i assume "i \<in> (\<lambda>x. f (T x)) ` space M"
     then have "T -` (f -` {i} \<inter> space M') \<inter> space M = (\<lambda>x. f (T x)) -` {i} \<inter> space M"
-      using T unfolding measurable_def by auto
-    with f[THEN T.simple_functionD(2), THEN \<nu>]
+      using T unfolding measurable_def measure_preserving_def by auto
+    with f[THEN T.simple_functionD(2), THEN measure_preservingD[OF T(2)], of "{i}"]
     show "i * T.\<mu> (f -` {i} \<inter> space M') = i * \<mu> ((\<lambda>x. f (T x)) -` {i} \<inter> space M)"
       by auto
   qed
@@ -1195,20 +1198,23 @@ lemma (in measure_space) positive_integral_isoton_simple:
   using positive_integral_isoton[OF `f \<up> u` e(1)[THEN borel_measurable_simple_function]]
   unfolding positive_integral_eq_simple_integral[OF e] .
 
+lemma measure_preservingD2:
+  "f \<in> measure_preserving A B \<Longrightarrow> f \<in> measurable A B"
+  unfolding measure_preserving_def by auto
+
 lemma (in measure_space) positive_integral_vimage:
-  assumes T: "sigma_algebra M'" "T \<in> measurable M M'" and f: "f \<in> borel_measurable M'"
-    and \<nu>: "\<And>A. A \<in> sets M' \<Longrightarrow> measure M' A = \<mu> (T -` A \<inter> space M)"
+  assumes T: "sigma_algebra M'" "T \<in> measure_preserving M M'" and f: "f \<in> borel_measurable M'"
   shows "integral\<^isup>P M' f = (\<integral>\<^isup>+ x. f (T x) \<partial>M)"
 proof -
-  interpret T: measure_space M' using \<nu> by (rule measure_space_vimage[OF T])
+  interpret T: measure_space M' by (rule measure_space_vimage[OF T])
   obtain f' where f': "f' \<up> f" "\<And>i. simple_function M' (f' i)"
     using T.borel_measurable_implies_simple_function_sequence[OF f] by blast
   then have f: "(\<lambda>i x. f' i (T x)) \<up> (\<lambda>x. f (T x))" "\<And>i. simple_function M (\<lambda>x. f' i (T x))"
-    using simple_function_vimage[OF T] unfolding isoton_fun_expand by auto
+    using simple_function_vimage[OF T(1) measure_preservingD2[OF T(2)]] unfolding isoton_fun_expand by auto
   show "integral\<^isup>P M' f = (\<integral>\<^isup>+ x. f (T x) \<partial>M)"
     using positive_integral_isoton_simple[OF f]
     using T.positive_integral_isoton_simple[OF f']
-    by (simp add: simple_integral_vimage[OF T f'(2) \<nu>] isoton_def)
+    by (simp add: simple_integral_vimage[OF T f'(2)] isoton_def)
 qed
 
 lemma (in measure_space) positive_integral_linear:
@@ -1604,20 +1610,33 @@ proof -
 qed
 
 lemma (in measure_space) integral_vimage:
-  assumes T: "sigma_algebra M'" "T \<in> measurable M M'"
-    and \<nu>: "\<And>A. A \<in> sets M' \<Longrightarrow> measure M' A = \<mu> (T -` A \<inter> space M)"
-  assumes f: "integrable M' f"
-  shows "integrable M (\<lambda>x. f (T x))" (is ?P)
-    and "integral\<^isup>L M' f = (\<integral>x. f (T x) \<partial>M)" (is ?I)
+  assumes T: "sigma_algebra M'" "T \<in> measure_preserving M M'"
+  assumes f: "f \<in> borel_measurable M'"
+  shows "integral\<^isup>L M' f = (\<integral>x. f (T x) \<partial>M)"
 proof -
-  interpret T: measure_space M' using \<nu> by (rule measure_space_vimage[OF T])
-  from measurable_comp[OF T(2), of f borel]
+  interpret T: measure_space M' by (rule measure_space_vimage[OF T])
+  from measurable_comp[OF measure_preservingD2[OF T(2)], of f borel]
   have borel: "(\<lambda>x. Real (f x)) \<in> borel_measurable M'" "(\<lambda>x. Real (- f x)) \<in> borel_measurable M'"
     and "(\<lambda>x. f (T x)) \<in> borel_measurable M"
-    using f unfolding integrable_def by (auto simp: comp_def)
-  then show ?P ?I
+    using f by (auto simp: comp_def)
+  then show ?thesis
     using f unfolding lebesgue_integral_def integrable_def
-    by (auto simp: borel[THEN positive_integral_vimage[OF T], OF \<nu>])
+    by (auto simp: borel[THEN positive_integral_vimage[OF T]])
+qed
+
+lemma (in measure_space) integrable_vimage:
+  assumes T: "sigma_algebra M'" "T \<in> measure_preserving M M'"
+  assumes f: "integrable M' f"
+  shows "integrable M (\<lambda>x. f (T x))"
+proof -
+  interpret T: measure_space M' by (rule measure_space_vimage[OF T])
+  from measurable_comp[OF measure_preservingD2[OF T(2)], of f borel]
+  have borel: "(\<lambda>x. Real (f x)) \<in> borel_measurable M'" "(\<lambda>x. Real (- f x)) \<in> borel_measurable M'"
+    and "(\<lambda>x. f (T x)) \<in> borel_measurable M"
+    using f by (auto simp: comp_def)
+  then show ?thesis
+    using f unfolding lebesgue_integral_def integrable_def
+    by (auto simp: borel[THEN positive_integral_vimage[OF T]])
 qed
 
 lemma (in measure_space) integral_minus[intro, simp]:

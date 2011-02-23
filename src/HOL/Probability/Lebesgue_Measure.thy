@@ -733,13 +733,6 @@ proof -
     unfolding lebesgue_integral_eq_borel[OF borel] by simp
 qed
 
-lemma continuous_on_imp_borel_measurable:
-  fixes f::"'a::ordered_euclidean_space \<Rightarrow> 'b::ordered_euclidean_space"
-  assumes "continuous_on UNIV f"
-  shows "f \<in> borel_measurable borel"
-  apply(rule borel.borel_measurableI)
-  using continuous_open_preimage[OF assms] unfolding vimage_def by auto
-
 subsection {* Equivalence between product spaces and euclidean spaces *}
 
 definition e2p :: "'a::ordered_euclidean_space \<Rightarrow> (nat \<Rightarrow> real)" where
@@ -759,13 +752,13 @@ lemma p2e_e2p[simp]:
 interpretation lborel_product: product_sigma_finite "\<lambda>x. lborel::real measure_space"
   by default
 
-interpretation lborel_space: finite_product_sigma_finite "\<lambda>x. lborel::real measure_space" "{..<DIM('a::ordered_euclidean_space)}"
+interpretation lborel_space: finite_product_sigma_finite "\<lambda>x. lborel::real measure_space" "{..<n}" for n :: nat
   where "space lborel = UNIV"
   and "sets lborel = sets borel"
   and "measure lborel = lebesgue.\<mu>"
   and "measurable lborel = measurable borel"
 proof -
-  show "finite_product_sigma_finite (\<lambda>x. lborel::real measure_space) {..<DIM('a::ordered_euclidean_space)}"
+  show "finite_product_sigma_finite (\<lambda>x. lborel::real measure_space) {..<n}"
     by default simp
 qed simp_all
 
@@ -836,7 +829,7 @@ lemma Int_stable_cuboids:
 lemma lborel_eq_lborel_space:
   fixes A :: "('a::ordered_euclidean_space) set"
   assumes "A \<in> sets borel"
-  shows "lborel.\<mu> A = lborel_space.\<mu> TYPE('a) (p2e -` A \<inter> (space (lborel_space.P TYPE('a))))"
+  shows "lborel.\<mu> A = lborel_space.\<mu> DIM('a) (p2e -` A \<inter> (space (lborel_space.P DIM('a))))"
     (is "_ = measure ?P (?T A)")
 proof (rule measure_unique_Int_stable_vimage)
   show "measure_space ?P" by default
@@ -871,27 +864,36 @@ proof (rule measure_unique_Int_stable_vimage)
     qed simp }
 qed
 
+lemma measure_preserving_p2e:
+  "p2e \<in> measure_preserving (\<Pi>\<^isub>M i\<in>{..<DIM('a)}. (lborel :: real measure_space))
+    (lborel::'a::ordered_euclidean_space measure_space)" (is "_ \<in> measure_preserving ?P ?E")
+proof
+  show "p2e \<in> measurable ?P ?E"
+    using measurable_p2e by (simp add: measurable_def)
+  fix A :: "'a set" assume "A \<in> sets lborel"
+  then show "lborel_space.\<mu> DIM('a) (p2e -` A \<inter> (space (lborel_space.P DIM('a)))) = lborel.\<mu> A"
+    by (intro lborel_eq_lborel_space[symmetric]) simp
+qed
+
 lemma lebesgue_eq_lborel_space_in_borel:
   fixes A :: "('a::ordered_euclidean_space) set"
   assumes A: "A \<in> sets borel"
-  shows "lebesgue.\<mu> A = lborel_space.\<mu> TYPE('a) (p2e -` A \<inter> (space (lborel_space.P TYPE('a))))"
+  shows "lebesgue.\<mu> A = lborel_space.\<mu> DIM('a) (p2e -` A \<inter> (space (lborel_space.P DIM('a))))"
   using lborel_eq_lborel_space[OF A] by simp
 
 lemma borel_fubini_positiv_integral:
   fixes f :: "'a::ordered_euclidean_space \<Rightarrow> pextreal"
   assumes f: "f \<in> borel_measurable borel"
-  shows "integral\<^isup>P lborel f = \<integral>\<^isup>+x. f (p2e x) \<partial>(lborel_space.P TYPE('a))"
-proof (rule lborel_space.positive_integral_vimage[OF _ _ _ lborel_eq_lborel_space])
-  show "sigma_algebra lborel" by default
-  show "p2e \<in> measurable (lborel_space.P TYPE('a)) (lborel :: 'a measure_space)"
-       "f \<in> borel_measurable lborel"
-    using measurable_p2e f by (simp_all add: measurable_def)
-qed simp
+  shows "integral\<^isup>P lborel f = \<integral>\<^isup>+x. f (p2e x) \<partial>(lborel_space.P DIM('a))"
+proof (rule lborel_space.positive_integral_vimage[OF _ measure_preserving_p2e _])
+  show "f \<in> borel_measurable lborel"
+    using f by (simp_all add: measurable_def)
+qed default
 
 lemma borel_fubini_integrable:
   fixes f :: "'a::ordered_euclidean_space \<Rightarrow> real"
   shows "integrable lborel f \<longleftrightarrow>
-    integrable (lborel_space.P TYPE('a)) (\<lambda>x. f (p2e x))"
+    integrable (lborel_space.P DIM('a)) (\<lambda>x. f (p2e x))"
     (is "_ \<longleftrightarrow> integrable ?B ?f")
 proof
   assume "integrable lborel f"
@@ -916,7 +918,7 @@ qed
 lemma borel_fubini:
   fixes f :: "'a::ordered_euclidean_space \<Rightarrow> real"
   assumes f: "f \<in> borel_measurable borel"
-  shows "integral\<^isup>L lborel f = \<integral>x. f (p2e x) \<partial>(lborel_space.P TYPE('a))"
+  shows "integral\<^isup>L lborel f = \<integral>x. f (p2e x) \<partial>(lborel_space.P DIM('a))"
   using f by (simp add: borel_fubini_positiv_integral lebesgue_integral_def)
 
 end
