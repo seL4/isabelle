@@ -263,6 +263,7 @@ val fix_goal = Thm.prop_of;
 
 fun filter_crit _ _ (Name name) = apfst (filter_name name)
   | filter_crit _ NONE Intro = err_no_goal "intro"
+  | filter_crit _ NONE IntroIff = err_no_goal "introiff"
   | filter_crit _ NONE Elim = err_no_goal "elim"
   | filter_crit _ NONE Dest = err_no_goal "dest"
   | filter_crit _ NONE Solves = err_no_goal "solves"
