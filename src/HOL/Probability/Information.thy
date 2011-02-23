@@ -167,6 +167,53 @@ Kullback$-$Leibler distance. *}
 definition
   "KL_divergence b M \<nu> = \<integral>x. log b (real (RN_deriv M \<nu> x)) \<partial>M\<lparr>measure := \<nu>\<rparr>"
 
+lemma (in sigma_finite_measure) KL_divergence_vimage:
+  assumes T: "T \<in> measure_preserving M M'"
+    and T': "T' \<in> measure_preserving (M'\<lparr> measure := \<nu>' \<rparr>) (M\<lparr> measure := \<nu> \<rparr>)"
+    and inv: "\<And>x. x \<in> space M \<Longrightarrow> T' (T x) = x"
+    and inv': "\<And>x. x \<in> space M' \<Longrightarrow> T (T' x) = x"
+  and \<nu>': "measure_space (M'\<lparr>measure := \<nu>'\<rparr>)" "measure_space.absolutely_continuous M' \<nu>'"
+  and "1 < b"
+  shows "KL_divergence b M' \<nu>' = KL_divergence b M \<nu>"
+proof -
+  interpret \<nu>': measure_space "M'\<lparr>measure := \<nu>'\<rparr>" by fact
+  have M: "measure_space (M\<lparr> measure := \<nu>\<rparr>)"
+    by (rule \<nu>'.measure_space_vimage[OF _ T'], simp) default
+  have "sigma_algebra (M'\<lparr> measure := \<nu>'\<rparr>)" by default
+  then have saM': "sigma_algebra M'" by simp
+  then interpret M': measure_space M' by (rule measure_space_vimage) fact
+  have ac: "absolutely_continuous \<nu>" unfolding absolutely_continuous_def
+  proof safe
+    fix N assume N: "N \<in> sets M" and N_0: "\<mu> N = 0"
+    then have N': "T' -` N \<inter> space M' \<in> sets M'"
+      using T' by (auto simp: measurable_def measure_preserving_def)
+    have "T -` (T' -` N \<inter> space M') \<inter> space M = N"
+      using inv T N sets_into_space[OF N] by (auto simp: measurable_def measure_preserving_def)
+    then have "measure M' (T' -` N \<inter> space M') = 0"
+      using measure_preservingD[OF T N'] N_0 by auto
+    with \<nu>'(2) N' show "\<nu> N = 0" using measure_preservingD[OF T', of N] N
+      unfolding M'.absolutely_continuous_def measurable_def by auto
+  qed
+
+  have sa: "sigma_algebra (M\<lparr>measure := \<nu>\<rparr>)" by simp default
+  have AE: "AE x. RN_deriv M' \<nu>' (T x) = RN_deriv M \<nu> x"
+    by (rule RN_deriv_vimage[OF T T' inv \<nu>'])
+  show ?thesis
+    unfolding KL_divergence_def
+  proof (subst \<nu>'.integral_vimage[OF sa T'])
+    show "(\<lambda>x. log b (real (RN_deriv M \<nu> x))) \<in> borel_measurable (M\<lparr>measure := \<nu>\<rparr>)"
+      by (auto intro!: RN_deriv[OF M ac] borel_measurable_log[OF _ `1 < b`])
+    have "(\<integral> x. log b (real (RN_deriv M' \<nu>' x)) \<partial>M'\<lparr>measure := \<nu>'\<rparr>) =
+      (\<integral> x. log b (real (RN_deriv M' \<nu>' (T (T' x)))) \<partial>M'\<lparr>measure := \<nu>'\<rparr>)" (is "?l = _")
+      using inv' by (auto intro!: \<nu>'.integral_cong)
+    also have "\<dots> = (\<integral> x. log b (real (RN_deriv M \<nu> (T' x))) \<partial>M'\<lparr>measure := \<nu>'\<rparr>)" (is "_ = ?r")
+      using M ac AE
+      by (intro \<nu>'.integral_cong_AE \<nu>'.almost_everywhere_vimage[OF sa T'] absolutely_continuous_AE[OF M])
+         (auto elim!: AE_mp)
+    finally show "?l = ?r" .
+  qed
+qed
+
 lemma (in sigma_finite_measure) KL_divergence_cong:
   assumes "measure_space (M\<lparr>measure := \<nu>\<rparr>)" (is "measure_space ?\<nu>")
   assumes [simp]: "sets N = sets M" "space N = space M"
@@ -236,18 +283,6 @@ abbreviation (in information_space)
     \<lparr> space = X`space M, sets = Pow (X`space M), measure = distribution X \<rparr>
     \<lparr> space = Y`space M, sets = Pow (Y`space M), measure = distribution Y \<rparr> X Y"
 
-lemma algebra_measure_update[simp]:
-  "algebra (M'\<lparr>measure := m\<rparr>) \<longleftrightarrow> algebra M'"
-  unfolding algebra_def by simp
-
-lemma sigma_algebra_measure_update[simp]:
-  "sigma_algebra (M'\<lparr>measure := m\<rparr>) \<longleftrightarrow> sigma_algebra M'"
-  unfolding sigma_algebra_def sigma_algebra_axioms_def by simp
-
-lemma finite_sigma_algebra_measure_update[simp]:
-  "finite_sigma_algebra (M'\<lparr>measure := m\<rparr>) \<longleftrightarrow> finite_sigma_algebra M'"
-  unfolding finite_sigma_algebra_def finite_sigma_algebra_axioms_def by simp
-
 lemma (in prob_space) finite_variables_absolutely_continuous:
   assumes X: "finite_random_variable S X" and Y: "finite_random_variable T Y"
   shows "measure_space.absolutely_continuous
@@ -313,6 +348,32 @@ proof -
     unfolding mutual_information_def .
 qed
 
+lemma (in information_space) mutual_information_commute_generic:
+  assumes X: "random_variable S X" and Y: "random_variable T Y"
+  assumes ac: "measure_space.absolutely_continuous
+    (S\<lparr>measure := distribution X\<rparr> \<Otimes>\<^isub>M T\<lparr>measure := distribution Y\<rparr>) (joint_distribution X Y)"
+  shows "mutual_information b S T X Y = mutual_information b T S Y X"
+proof -
+  let ?S = "S\<lparr>measure := distribution X\<rparr>" and ?T = "T\<lparr>measure := distribution Y\<rparr>"
+  interpret S: prob_space ?S using X by (rule distribution_prob_space)
+  interpret T: prob_space ?T using Y by (rule distribution_prob_space)
+  interpret P: pair_prob_space ?S ?T ..
+  interpret Q: pair_prob_space ?T ?S ..
+  show ?thesis
+    unfolding mutual_information_def
+  proof (intro Q.KL_divergence_vimage[OF Q.measure_preserving_swap _ _ _ _ ac b_gt_1])
+    show "(\<lambda>(x,y). (y,x)) \<in> measure_preserving
+      (P.P \<lparr> measure := joint_distribution X Y\<rparr>) (Q.P \<lparr> measure := joint_distribution Y X\<rparr>)"
+      using X Y unfolding measurable_def
+      unfolding measure_preserving_def using P.pair_sigma_algebra_swap_measurable
+      by (auto simp add: space_pair_measure distribution_def intro!: arg_cong[where f=\<mu>])
+    have "prob_space (P.P\<lparr> measure := joint_distribution X Y\<rparr>)"
+      using X Y by (auto intro!: distribution_prob_space random_variable_pairI)
+    then show "measure_space (P.P\<lparr> measure := joint_distribution X Y\<rparr>)"
+      unfolding prob_space_def by simp
+  qed auto
+qed
+
 lemma (in information_space) mutual_information_commute:
   assumes X: "finite_random_variable S X" and Y: "finite_random_variable T Y"
   shows "mutual_information b S T X Y = mutual_information b T S Y X"
@@ -323,7 +384,7 @@ lemma (in information_space) mutual_information_commute:
 lemma (in information_space) mutual_information_commute_simple:
   assumes X: "simple_function M X" and Y: "simple_function M Y"
   shows "\<I>(X;Y) = \<I>(Y;X)"
-  by (intro X Y simple_function_imp_finite_random_variable mutual_information_commute)
+  by (intro mutual_information_commute X Y simple_function_imp_finite_random_variable)
 
 lemma (in information_space) mutual_information_eq:
   assumes "simple_function M X" "simple_function M Y"
