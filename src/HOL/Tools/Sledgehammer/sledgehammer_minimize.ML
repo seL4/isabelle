@@ -178,12 +178,6 @@ fun minimize_facts prover_name (params as {timeout, ...}) explicit_apply_opt
        (NONE, "Timeout: You can increase the time limit using the \"timeout\" \
               \option (e.g., \"timeout = " ^
               string_of_int (10 + msecs div 1000) ^ "\").")
-     | {outcome = SOME (UnknownError _), ...} =>
-       (* Failure sometimes mean timeout, unfortunately. *)
-       (NONE, "Failure: No proof was found with the current time limit. You \
-              \can increase the time limit using the \"timeout\" \
-              \option (e.g., \"timeout = " ^
-              string_of_int (10 + msecs div 1000) ^ "\").")
      | {message, ...} => (NONE, "Prover error: " ^ message))
     handle ERROR msg => (NONE, "Error: " ^ msg)
   end
