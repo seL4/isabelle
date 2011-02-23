@@ -335,16 +335,19 @@ lemma simptm_allpolys_npoly[simp]:
   shows "allpolys isnpoly (simptm p)"
   by (induct p rule: simptm.induct, auto simp add: Let_def)
 
-consts split0 :: "tm \<Rightarrow> (poly \<times> tm)"
-recdef split0 "measure tmsize"
+declare let_cong[fundef_cong del]
+
+fun split0 :: "tm \<Rightarrow> (poly \<times> tm)" where
   "split0 (Bound 0) = (1\<^sub>p, CP 0\<^sub>p)"
-  "split0 (CNP 0 c t) = (let (c',t') = split0 t in (c +\<^sub>p c',t'))"
-  "split0 (Neg t) = (let (c,t') = split0 t in (~\<^sub>p c,Neg t'))"
-  "split0 (CNP n c t) = (let (c',t') = split0 t in (c',CNP n c t'))"
-  "split0 (Add s t) = (let (c1,s') = split0 s ; (c2,t') = split0 t in (c1 +\<^sub>p c2, Add s' t'))"
-  "split0 (Sub s t) = (let (c1,s') = split0 s ; (c2,t') = split0 t in (c1 -\<^sub>p c2, Sub s' t'))"
-  "split0 (Mul c t) = (let (c',t') = split0 t in (c *\<^sub>p c', Mul c t'))"
-  "split0 t = (0\<^sub>p, t)"
+| "split0 (CNP 0 c t) = (let (c',t') = split0 t in (c +\<^sub>p c',t'))"
+| "split0 (Neg t) = (let (c,t') = split0 t in (~\<^sub>p c,Neg t'))"
+| "split0 (CNP n c t) = (let (c',t') = split0 t in (c',CNP n c t'))"
+| "split0 (Add s t) = (let (c1,s') = split0 s ; (c2,t') = split0 t in (c1 +\<^sub>p c2, Add s' t'))"
+| "split0 (Sub s t) = (let (c1,s') = split0 s ; (c2,t') = split0 t in (c1 -\<^sub>p c2, Sub s' t'))"
+| "split0 (Mul c t) = (let (c',t') = split0 t in (c *\<^sub>p c', Mul c t'))"
+| "split0 t = (0\<^sub>p, t)"
+
+declare let_cong[fundef_cong]
 
 lemma split0_stupid[simp]: "\<exists>x y. (x,y) = split0 p"
   apply (rule exI[where x="fst (split0 p)"])
@@ -418,18 +421,17 @@ datatype fm  =  T| F| Le tm | Lt tm | Eq tm | NEq tm|
 
 
   (* A size for fm *)
-consts fmsize :: "fm \<Rightarrow> nat"
-recdef fmsize "measure size"
+fun fmsize :: "fm \<Rightarrow> nat" where
   "fmsize (NOT p) = 1 + fmsize p"
-  "fmsize (And p q) = 1 + fmsize p + fmsize q"
-  "fmsize (Or p q) = 1 + fmsize p + fmsize q"
-  "fmsize (Imp p q) = 3 + fmsize p + fmsize q"
-  "fmsize (Iff p q) = 3 + 2*(fmsize p + fmsize q)"
-  "fmsize (E p) = 1 + fmsize p"
-  "fmsize (A p) = 4+ fmsize p"
-  "fmsize p = 1"
+| "fmsize (And p q) = 1 + fmsize p + fmsize q"
+| "fmsize (Or p q) = 1 + fmsize p + fmsize q"
+| "fmsize (Imp p q) = 3 + fmsize p + fmsize q"
+| "fmsize (Iff p q) = 3 + 2*(fmsize p + fmsize q)"
+| "fmsize (E p) = 1 + fmsize p"
+| "fmsize (A p) = 4+ fmsize p"
+| "fmsize p = 1"
   (* several lemmas about fmsize *)
-lemma fmsize_pos: "fmsize p > 0"        
+lemma fmsize_pos[termination_simp]: "fmsize p > 0"        
 by (induct p rule: fmsize.induct) simp_all
 
   (* Semantics of formulae (fm) *)
@@ -448,17 +450,16 @@ primrec Ifm ::"'a::{linordered_field_inverse_zero} list \<Rightarrow> 'a list \<
 | "Ifm vs bs (E p) = (\<exists> x. Ifm vs (x#bs) p)"
 | "Ifm vs bs (A p) = (\<forall> x. Ifm vs (x#bs) p)"
 
-consts not:: "fm \<Rightarrow> fm"
-recdef not "measure size"
+fun not:: "fm \<Rightarrow> fm" where
   "not (NOT (NOT p)) = not p"
-  "not (NOT p) = p"
-  "not T = F"
-  "not F = T"
-  "not (Lt t) = Le (tmneg t)"
-  "not (Le t) = Lt (tmneg t)"
-  "not (Eq t) = NEq t"
-  "not (NEq t) = Eq t"
-  "not p = NOT p"
+| "not (NOT p) = p"
+| "not T = F"
+| "not F = T"
+| "not (Lt t) = Le (tmneg t)"
+| "not (Le t) = Lt (tmneg t)"
+| "not (Eq t) = NEq t"
+| "not (NEq t) = Eq t"
+| "not p = NOT p"
 lemma not[simp]: "Ifm vs bs (not p) = Ifm vs bs (NOT p)"
 by (induct p rule: not.induct) auto
 
@@ -487,17 +488,17 @@ definition iff :: "fm \<Rightarrow> fm \<Rightarrow> fm" where
   Iff p q)"
 lemma iff[simp]: "Ifm vs bs (iff p q) = Ifm vs bs (Iff p q)"
   by (unfold iff_def,cases "p=q", simp,cases "p=NOT q", simp) (cases "NOT p= q", auto)
+
   (* Quantifier freeness *)
-consts qfree:: "fm \<Rightarrow> bool"
-recdef qfree "measure size"
+fun qfree:: "fm \<Rightarrow> bool" where
   "qfree (E p) = False"
-  "qfree (A p) = False"
-  "qfree (NOT p) = qfree p" 
-  "qfree (And p q) = (qfree p \<and> qfree q)" 
-  "qfree (Or  p q) = (qfree p \<and> qfree q)" 
-  "qfree (Imp p q) = (qfree p \<and> qfree q)" 
-  "qfree (Iff p q) = (qfree p \<and> qfree q)"
-  "qfree p = True"
+| "qfree (A p) = False"
+| "qfree (NOT p) = qfree p" 
+| "qfree (And p q) = (qfree p \<and> qfree q)" 
+| "qfree (Or  p q) = (qfree p \<and> qfree q)" 
+| "qfree (Imp p q) = (qfree p \<and> qfree q)" 
+| "qfree (Iff p q) = (qfree p \<and> qfree q)"
+| "qfree p = True"
 
   (* Boundedness and substitution *)
 
@@ -516,22 +517,19 @@ primrec boundslt :: "nat \<Rightarrow> fm \<Rightarrow> bool" where
 | "boundslt n (E p) = boundslt (Suc n) p"
 | "boundslt n (A p) = boundslt (Suc n) p"
 
-consts 
-  bound0:: "fm \<Rightarrow> bool" (* A Formula is independent of Bound 0 *)
-  decr0 :: "fm \<Rightarrow> fm"
-recdef bound0 "measure size"
+fun bound0:: "fm \<Rightarrow> bool" (* A Formula is independent of Bound 0 *) where
   "bound0 T = True"
-  "bound0 F = True"
-  "bound0 (Lt a) = tmbound0 a"
-  "bound0 (Le a) = tmbound0 a"
-  "bound0 (Eq a) = tmbound0 a"
-  "bound0 (NEq a) = tmbound0 a"
-  "bound0 (NOT p) = bound0 p"
-  "bound0 (And p q) = (bound0 p \<and> bound0 q)"
-  "bound0 (Or p q) = (bound0 p \<and> bound0 q)"
-  "bound0 (Imp p q) = ((bound0 p) \<and> (bound0 q))"
-  "bound0 (Iff p q) = (bound0 p \<and> bound0 q)"
-  "bound0 p = False"
+| "bound0 F = True"
+| "bound0 (Lt a) = tmbound0 a"
+| "bound0 (Le a) = tmbound0 a"
+| "bound0 (Eq a) = tmbound0 a"
+| "bound0 (NEq a) = tmbound0 a"
+| "bound0 (NOT p) = bound0 p"
+| "bound0 (And p q) = (bound0 p \<and> bound0 q)"
+| "bound0 (Or p q) = (bound0 p \<and> bound0 q)"
+| "bound0 (Imp p q) = ((bound0 p) \<and> (bound0 q))"
+| "bound0 (Iff p q) = (bound0 p \<and> bound0 q)"
+| "bound0 p = False"
 lemma bound0_I:
   assumes bp: "bound0 p"
   shows "Ifm vs (b#bs) p = Ifm vs (b'#bs) p"
@@ -572,17 +570,17 @@ next
   thus ?case by simp 
 qed auto
 
-recdef decr0 "measure size"
+fun decr0 :: "fm \<Rightarrow> fm" where
   "decr0 (Lt a) = Lt (decrtm0 a)"
-  "decr0 (Le a) = Le (decrtm0 a)"
-  "decr0 (Eq a) = Eq (decrtm0 a)"
-  "decr0 (NEq a) = NEq (decrtm0 a)"
-  "decr0 (NOT p) = NOT (decr0 p)" 
-  "decr0 (And p q) = conj (decr0 p) (decr0 q)"
-  "decr0 (Or p q) = disj (decr0 p) (decr0 q)"
-  "decr0 (Imp p q) = imp (decr0 p) (decr0 q)"
-  "decr0 (Iff p q) = iff (decr0 p) (decr0 q)"
-  "decr0 p = p"
+| "decr0 (Le a) = Le (decrtm0 a)"
+| "decr0 (Eq a) = Eq (decrtm0 a)"
+| "decr0 (NEq a) = NEq (decrtm0 a)"
+| "decr0 (NOT p) = NOT (decr0 p)" 
+| "decr0 (And p q) = conj (decr0 p) (decr0 q)"
+| "decr0 (Or p q) = disj (decr0 p) (decr0 q)"
+| "decr0 (Imp p q) = imp (decr0 p) (decr0 q)"
+| "decr0 (Iff p q) = iff (decr0 p) (decr0 q)"
+| "decr0 p = p"
 
 lemma decr0: assumes nb: "bound0 p"
   shows "Ifm vs (x#bs) p = Ifm vs bs (decr0 p)"
@@ -740,16 +738,14 @@ using iff_def by auto
 lemma decr0_qf: "bound0 p \<Longrightarrow> qfree (decr0 p)"
 by (induct p, simp_all)
 
-consts 
-  isatom :: "fm \<Rightarrow> bool" (* test for atomicity *)
-recdef isatom "measure size"
+fun isatom :: "fm \<Rightarrow> bool" (* test for atomicity *) where
   "isatom T = True"
-  "isatom F = True"
-  "isatom (Lt a) = True"
-  "isatom (Le a) = True"
-  "isatom (Eq a) = True"
-  "isatom (NEq a) = True"
-  "isatom p = False"
+| "isatom F = True"
+| "isatom (Lt a) = True"
+| "isatom (Le a) = True"
+| "isatom (Eq a) = True"
+| "isatom (NEq a) = True"
+| "isatom p = False"
 
 lemma bound0_qf: "bound0 p \<Longrightarrow> qfree p"
 by (induct p, simp_all)
@@ -777,11 +773,10 @@ lemma evaldjf_qf:
   shows "qfree (evaldjf f xs)"
   using nb by (induct xs, auto simp add: evaldjf_def djf_def Let_def) (case_tac "f a", auto) 
 
-consts disjuncts :: "fm \<Rightarrow> fm list"
-recdef disjuncts "measure size"
+fun disjuncts :: "fm \<Rightarrow> fm list" where
   "disjuncts (Or p q) = (disjuncts p) @ (disjuncts q)"
-  "disjuncts F = []"
-  "disjuncts p = [p]"
+| "disjuncts F = []"
+| "disjuncts p = [p]"
 
 lemma disjuncts: "(\<exists> q\<in> set (disjuncts p). Ifm vs bs q) = Ifm vs bs p"
 by(induct p rule: disjuncts.induct, auto)
@@ -840,12 +835,10 @@ proof(clarify)
   finally show "qfree (DJ qe p) \<and> Ifm vs bs (DJ qe p) = Ifm vs bs (E p)" using qfth by blast
 qed
 
-consts conjuncts :: "fm \<Rightarrow> fm list"
-
-recdef conjuncts "measure size"
+fun conjuncts :: "fm \<Rightarrow> fm list" where
   "conjuncts (And p q) = (conjuncts p) @ (conjuncts q)"
-  "conjuncts T = []"
-  "conjuncts p = [p]"
+| "conjuncts T = []"
+| "conjuncts p = [p]"
 
 definition list_conj :: "fm list \<Rightarrow> fm" where
   "list_conj ps \<equiv> foldr conj ps T"
@@ -1129,11 +1122,10 @@ proof(simp add: simpneq_def Let_def split_def)
        fst (split0 (simptm t)) = 0\<^sub>p" by (simp add: simpneq_def Let_def split_def neq_nb)
 qed
 
-consts conjs   :: "fm \<Rightarrow> fm list"
-recdef conjs "measure size"
+fun conjs   :: "fm \<Rightarrow> fm list" where
   "conjs (And p q) = (conjs p)@(conjs q)"
-  "conjs T = []"
-  "conjs p = [p]"
+| "conjs T = []"
+| "conjs p = [p]"
 lemma conjs_ci: "(\<forall> q \<in> set (conjs p). Ifm vs bs q) = Ifm vs bs p"
 by (induct p rule: conjs.induct, auto)
 definition list_disj :: "fm list \<Rightarrow> fm" where
@@ -1312,17 +1304,17 @@ by (induct p arbitrary: bs rule: prep.induct, auto)
 
 
   (* Generic quantifier elimination *)
-consts qelim :: "fm \<Rightarrow> (fm \<Rightarrow> fm) \<Rightarrow> fm"
-recdef qelim "measure fmsize"
+function (sequential) qelim :: "fm \<Rightarrow> (fm \<Rightarrow> fm) \<Rightarrow> fm" where
   "qelim (E p) = (\<lambda> qe. DJ (CJNB qe) (qelim p qe))"
-  "qelim (A p) = (\<lambda> qe. not (qe ((qelim (NOT p) qe))))"
-  "qelim (NOT p) = (\<lambda> qe. not (qelim p qe))"
-  "qelim (And p q) = (\<lambda> qe. conj (qelim p qe) (qelim q qe))" 
-  "qelim (Or  p q) = (\<lambda> qe. disj (qelim p qe) (qelim q qe))" 
-  "qelim (Imp p q) = (\<lambda> qe. imp (qelim p qe) (qelim q qe))"
-  "qelim (Iff p q) = (\<lambda> qe. iff (qelim p qe) (qelim q qe))"
-  "qelim p = (\<lambda> y. simpfm p)"
-
+| "qelim (A p) = (\<lambda> qe. not (qe ((qelim (NOT p) qe))))"
+| "qelim (NOT p) = (\<lambda> qe. not (qelim p qe))"
+| "qelim (And p q) = (\<lambda> qe. conj (qelim p qe) (qelim q qe))" 
+| "qelim (Or  p q) = (\<lambda> qe. disj (qelim p qe) (qelim q qe))" 
+| "qelim (Imp p q) = (\<lambda> qe. imp (qelim p qe) (qelim q qe))"
+| "qelim (Iff p q) = (\<lambda> qe. iff (qelim p qe) (qelim q qe))"
+| "qelim p = (\<lambda> y. simpfm p)"
+by pat_completeness simp_all
+termination by (relation "measure fmsize") auto
 
 lemma qelim:
   assumes qe_inv: "\<forall> bs p. qfree p \<longrightarrow> qfree (qe p) \<and> (Ifm vs bs (qe p) = Ifm vs bs (E p))"
@@ -1332,26 +1324,23 @@ by (induct p rule: qelim.induct) auto
 
 subsection{* Core Procedure *}
 
-consts 
-  plusinf:: "fm \<Rightarrow> fm" (* Virtual substitution of +\<infinity>*)
-  minusinf:: "fm \<Rightarrow> fm" (* Virtual substitution of -\<infinity>*)
-recdef minusinf "measure size"
+fun minusinf:: "fm \<Rightarrow> fm" (* Virtual substitution of -\<infinity>*) where
   "minusinf (And p q) = conj (minusinf p) (minusinf q)" 
-  "minusinf (Or p q) = disj (minusinf p) (minusinf q)" 
-  "minusinf (Eq  (CNP 0 c e)) = conj (eq (CP c)) (eq e)"
-  "minusinf (NEq (CNP 0 c e)) = disj (not (eq e)) (not (eq (CP c)))"
-  "minusinf (Lt  (CNP 0 c e)) = disj (conj (eq (CP c)) (lt e)) (lt (CP (~\<^sub>p c)))"
-  "minusinf (Le  (CNP 0 c e)) = disj (conj (eq (CP c)) (le e)) (lt (CP (~\<^sub>p c)))"
-  "minusinf p = p"
+| "minusinf (Or p q) = disj (minusinf p) (minusinf q)" 
+| "minusinf (Eq  (CNP 0 c e)) = conj (eq (CP c)) (eq e)"
+| "minusinf (NEq (CNP 0 c e)) = disj (not (eq e)) (not (eq (CP c)))"
+| "minusinf (Lt  (CNP 0 c e)) = disj (conj (eq (CP c)) (lt e)) (lt (CP (~\<^sub>p c)))"
+| "minusinf (Le  (CNP 0 c e)) = disj (conj (eq (CP c)) (le e)) (lt (CP (~\<^sub>p c)))"
+| "minusinf p = p"
 
-recdef plusinf "measure size"
+fun plusinf:: "fm \<Rightarrow> fm" (* Virtual substitution of +\<infinity>*) where
   "plusinf (And p q) = conj (plusinf p) (plusinf q)" 
-  "plusinf (Or p q) = disj (plusinf p) (plusinf q)" 
-  "plusinf (Eq  (CNP 0 c e)) = conj (eq (CP c)) (eq e)"
-  "plusinf (NEq (CNP 0 c e)) = disj (not (eq e)) (not (eq (CP c)))"
-  "plusinf (Lt  (CNP 0 c e)) = disj (conj (eq (CP c)) (lt e)) (lt (CP c))"
-  "plusinf (Le  (CNP 0 c e)) = disj (conj (eq (CP c)) (le e)) (lt (CP c))"
-  "plusinf p = p"
+| "plusinf (Or p q) = disj (plusinf p) (plusinf q)" 
+| "plusinf (Eq  (CNP 0 c e)) = conj (eq (CP c)) (eq e)"
+| "plusinf (NEq (CNP 0 c e)) = disj (not (eq e)) (not (eq (CP c)))"
+| "plusinf (Lt  (CNP 0 c e)) = disj (conj (eq (CP c)) (lt e)) (lt (CP c))"
+| "plusinf (Le  (CNP 0 c e)) = disj (conj (eq (CP c)) (le e)) (lt (CP c))"
+| "plusinf p = p"
 
 lemma minusinf_inf: assumes lp:"islin p"
   shows "\<exists>z. \<forall>x < z. Ifm vs (x#bs) (minusinf p) \<longleftrightarrow> Ifm vs (x#bs) p"
