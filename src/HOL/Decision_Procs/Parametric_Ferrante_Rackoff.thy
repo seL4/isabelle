@@ -2472,9 +2472,6 @@ lemma nth_pos2: "0 < n \<Longrightarrow> (x#xs) ! n = xs ! (n - 1)"
 using Nat.gr0_conv_Suc
 by clarsimp
 
-lemma filter_length: "length (List.filter P xs) < Suc (length xs)"
-  apply (induct xs, auto) done
-
 lemma simpfm_lin:   assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
   shows "qfree p \<Longrightarrow> islin (simpfm p)"
   by (induct p rule: simpfm.induct, auto simp add: conj_lin disj_lin)

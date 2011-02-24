@@ -43,9 +43,6 @@ lemma nth_pos2: "0 < n \<Longrightarrow> (x#xs) ! n = xs ! (n - 1)"
 using Nat.gr0_conv_Suc
 by clarsimp
 
-lemma filter_length: "length (List.filter P xs) < Suc (length xs)"
-  apply (induct xs, auto) done
-
 
   (*********************************************************************************)
   (****                            SHADOW SYNTAX AND SEMANTICS                  ****)
