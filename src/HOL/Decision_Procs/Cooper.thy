@@ -42,18 +42,17 @@ datatype fm  =
 
 
   (* A size for fm *)
-consts fmsize :: "fm \<Rightarrow> nat"
-recdef fmsize "measure size"
+fun fmsize :: "fm \<Rightarrow> nat" where
   "fmsize (NOT p) = 1 + fmsize p"
-  "fmsize (And p q) = 1 + fmsize p + fmsize q"
-  "fmsize (Or p q) = 1 + fmsize p + fmsize q"
-  "fmsize (Imp p q) = 3 + fmsize p + fmsize q"
-  "fmsize (Iff p q) = 3 + 2*(fmsize p + fmsize q)"
-  "fmsize (E p) = 1 + fmsize p"
-  "fmsize (A p) = 4+ fmsize p"
-  "fmsize (Dvd i t) = 2"
-  "fmsize (NDvd i t) = 2"
-  "fmsize p = 1"
+| "fmsize (And p q) = 1 + fmsize p + fmsize q"
+| "fmsize (Or p q) = 1 + fmsize p + fmsize q"
+| "fmsize (Imp p q) = 3 + fmsize p + fmsize q"
+| "fmsize (Iff p q) = 3 + 2*(fmsize p + fmsize q)"
+| "fmsize (E p) = 1 + fmsize p"
+| "fmsize (A p) = 4+ fmsize p"
+| "fmsize (Dvd i t) = 2"
+| "fmsize (NDvd i t) = 2"
+| "fmsize p = 1"
   (* several lemmas about fmsize *)
 lemma fmsize_pos: "fmsize p > 0"
   by (induct p rule: fmsize.induct) simp_all
@@ -111,16 +110,15 @@ by (induct p arbitrary: bs rule: prep.induct, auto)
 
 
   (* Quantifier freeness *)
-consts qfree:: "fm \<Rightarrow> bool"
-recdef qfree "measure size"
+fun qfree:: "fm \<Rightarrow> bool" where
   "qfree (E p) = False"
-  "qfree (A p) = False"
-  "qfree (NOT p) = qfree p" 
-  "qfree (And p q) = (qfree p \<and> qfree q)" 
-  "qfree (Or  p q) = (qfree p \<and> qfree q)" 
-  "qfree (Imp p q) = (qfree p \<and> qfree q)" 
-  "qfree (Iff p q) = (qfree p \<and> qfree q)"
-  "qfree p = True"
+| "qfree (A p) = False"
+| "qfree (NOT p) = qfree p" 
+| "qfree (And p q) = (qfree p \<and> qfree q)" 
+| "qfree (Or  p q) = (qfree p \<and> qfree q)" 
+| "qfree (Imp p q) = (qfree p \<and> qfree q)" 
+| "qfree (Iff p q) = (qfree p \<and> qfree q)"
+| "qfree p = True"
 
   (* Boundedness and substitution *)
     
@@ -207,35 +205,30 @@ lemma subst0_I: assumes qfp: "qfree p"
   using qfp numsubst0_I[where b="b" and bs="bs" and a="a"]
   by (induct p) (simp_all add: gr0_conv_Suc)
 
-
-consts 
-  decrnum:: "num \<Rightarrow> num" 
-  decr :: "fm \<Rightarrow> fm"
-
-recdef decrnum "measure size"
+fun decrnum:: "num \<Rightarrow> num" where
   "decrnum (Bound n) = Bound (n - 1)"
-  "decrnum (Neg a) = Neg (decrnum a)"
-  "decrnum (Add a b) = Add (decrnum a) (decrnum b)"
-  "decrnum (Sub a b) = Sub (decrnum a) (decrnum b)"
-  "decrnum (Mul c a) = Mul c (decrnum a)"
-  "decrnum (CN n i a) = (CN (n - 1) i (decrnum a))"
-  "decrnum a = a"
+| "decrnum (Neg a) = Neg (decrnum a)"
+| "decrnum (Add a b) = Add (decrnum a) (decrnum b)"
+| "decrnum (Sub a b) = Sub (decrnum a) (decrnum b)"
+| "decrnum (Mul c a) = Mul c (decrnum a)"
+| "decrnum (CN n i a) = (CN (n - 1) i (decrnum a))"
+| "decrnum a = a"
 
-recdef decr "measure size"
+fun decr :: "fm \<Rightarrow> fm" where
   "decr (Lt a) = Lt (decrnum a)"
-  "decr (Le a) = Le (decrnum a)"
-  "decr (Gt a) = Gt (decrnum a)"
-  "decr (Ge a) = Ge (decrnum a)"
-  "decr (Eq a) = Eq (decrnum a)"
-  "decr (NEq a) = NEq (decrnum a)"
-  "decr (Dvd i a) = Dvd i (decrnum a)"
-  "decr (NDvd i a) = NDvd i (decrnum a)"
-  "decr (NOT p) = NOT (decr p)" 
-  "decr (And p q) = And (decr p) (decr q)"
-  "decr (Or p q) = Or (decr p) (decr q)"
-  "decr (Imp p q) = Imp (decr p) (decr q)"
-  "decr (Iff p q) = Iff (decr p) (decr q)"
-  "decr p = p"
+| "decr (Le a) = Le (decrnum a)"
+| "decr (Gt a) = Gt (decrnum a)"
+| "decr (Ge a) = Ge (decrnum a)"
+| "decr (Eq a) = Eq (decrnum a)"
+| "decr (NEq a) = NEq (decrnum a)"
+| "decr (Dvd i a) = Dvd i (decrnum a)"
+| "decr (NDvd i a) = NDvd i (decrnum a)"
+| "decr (NOT p) = NOT (decr p)" 
+| "decr (And p q) = And (decr p) (decr q)"
+| "decr (Or p q) = Or (decr p) (decr q)"
+| "decr (Imp p q) = Imp (decr p) (decr q)"
+| "decr (Iff p q) = Iff (decr p) (decr q)"
+| "decr p = p"
 
 lemma decrnum: assumes nb: "numbound0 t"
   shows "Inum (x#bs) t = Inum bs (decrnum t)"
@@ -249,22 +242,20 @@ lemma decr: assumes nb: "bound0 p"
 lemma decr_qf: "bound0 p \<Longrightarrow> qfree (decr p)"
 by (induct p, simp_all)
 
-consts 
-  isatom :: "fm \<Rightarrow> bool" (* test for atomicity *)
-recdef isatom "measure size"
+fun isatom :: "fm \<Rightarrow> bool" (* test for atomicity *) where
   "isatom T = True"
-  "isatom F = True"
-  "isatom (Lt a) = True"
-  "isatom (Le a) = True"
-  "isatom (Gt a) = True"
-  "isatom (Ge a) = True"
-  "isatom (Eq a) = True"
-  "isatom (NEq a) = True"
-  "isatom (Dvd i b) = True"
-  "isatom (NDvd i b) = True"
-  "isatom (Closed P) = True"
-  "isatom (NClosed P) = True"
-  "isatom p = False"
+| "isatom F = True"
+| "isatom (Lt a) = True"
+| "isatom (Le a) = True"
+| "isatom (Gt a) = True"
+| "isatom (Ge a) = True"
+| "isatom (Eq a) = True"
+| "isatom (NEq a) = True"
+| "isatom (Dvd i b) = True"
+| "isatom (NDvd i b) = True"
+| "isatom (Closed P) = True"
+| "isatom (NClosed P) = True"
+| "isatom p = False"
 
 lemma numsubst0_numbound0: assumes nb: "numbound0 t"
   shows "numbound0 (numsubst0 t a)"
@@ -304,11 +295,10 @@ lemma evaldjf_qf:
   shows "qfree (evaldjf f xs)"
   using nb by (induct xs, auto simp add: evaldjf_def djf_def Let_def) (case_tac "f a", auto) 
 
-consts disjuncts :: "fm \<Rightarrow> fm list"
-recdef disjuncts "measure size"
+fun disjuncts :: "fm \<Rightarrow> fm list" where
   "disjuncts (Or p q) = (disjuncts p) @ (disjuncts q)"
-  "disjuncts F = []"
-  "disjuncts p = [p]"
+| "disjuncts F = []"
+| "disjuncts p = [p]"
 
 lemma disjuncts: "(\<exists> q\<in> set (disjuncts p). Ifm bbs bs q) = Ifm bbs bs p"
 by(induct p rule: disjuncts.induct, auto)
@@ -369,22 +359,22 @@ qed
   (* Simplification *)
 
   (* Algebraic simplifications for nums *)
-consts bnds:: "num \<Rightarrow> nat list"
-  lex_ns:: "nat list \<times> nat list \<Rightarrow> bool"
-recdef bnds "measure size"
+
+fun bnds:: "num \<Rightarrow> nat list" where
   "bnds (Bound n) = [n]"
-  "bnds (CN n c a) = n#(bnds a)"
-  "bnds (Neg a) = bnds a"
-  "bnds (Add a b) = (bnds a)@(bnds b)"
-  "bnds (Sub a b) = (bnds a)@(bnds b)"
-  "bnds (Mul i a) = bnds a"
-  "bnds a = []"
-recdef lex_ns "measure (\<lambda> (xs,ys). length xs + length ys)"
-  "lex_ns ([], ms) = True"
-  "lex_ns (ns, []) = False"
-  "lex_ns (n#ns, m#ms) = (n<m \<or> ((n = m) \<and> lex_ns (ns,ms))) "
+| "bnds (CN n c a) = n#(bnds a)"
+| "bnds (Neg a) = bnds a"
+| "bnds (Add a b) = (bnds a)@(bnds b)"
+| "bnds (Sub a b) = (bnds a)@(bnds b)"
+| "bnds (Mul i a) = bnds a"
+| "bnds a = []"
+
+fun lex_ns:: "nat list \<Rightarrow> nat list \<Rightarrow> bool" where
+  "lex_ns [] ms = True"
+| "lex_ns ns [] = False"
+| "lex_ns (n#ns) (m#ms) = (n<m \<or> ((n = m) \<and> lex_ns ns ms)) "
 definition lex_bnd :: "num \<Rightarrow> num \<Rightarrow> bool" where
-  "lex_bnd t s \<equiv> lex_ns (bnds t, bnds s)"
+  "lex_bnd t s \<equiv> lex_ns (bnds t) (bnds s)"
 
 consts
   numadd:: "num \<times> num \<Rightarrow> num"
@@ -430,12 +420,10 @@ done
 lemma numadd_nb: "\<lbrakk> numbound0 t ; numbound0 s\<rbrakk> \<Longrightarrow> numbound0 (numadd (t,s))"
 by (induct t s rule: numadd.induct, auto simp add: Let_def)
 
-fun
-  nummul :: "int \<Rightarrow> num \<Rightarrow> num"
-where
+fun nummul :: "int \<Rightarrow> num \<Rightarrow> num" where
   "nummul i (C j) = C (i * j)"
-  | "nummul i (CN n c t) = CN n (c*i) (nummul i t)"
-  | "nummul i t = Mul i t"
+| "nummul i (CN n c t) = CN n (c*i) (nummul i t)"
+| "nummul i t = Mul i t"
 
 lemma nummul: "\<And> i. Inum bs (nummul i t) = Inum bs (Mul i t)"
 by (induct t rule: nummul.induct, auto simp add: algebra_simps numadd)
@@ -683,30 +671,17 @@ by (induct p rule: simpfm.induct, auto simp add: disj_qf imp_qf iff_qf conj_qf n
  (case_tac "simpnum a",auto)+
 
   (* Generic quantifier elimination *)
-consts qelim :: "fm \<Rightarrow> (fm \<Rightarrow> fm) \<Rightarrow> fm"
-recdef qelim "measure fmsize"
+function (sequential) qelim :: "fm \<Rightarrow> (fm \<Rightarrow> fm) \<Rightarrow> fm" where
   "qelim (E p) = (\<lambda> qe. DJ qe (qelim p qe))"
-  "qelim (A p) = (\<lambda> qe. not (qe ((qelim (NOT p) qe))))"
-  "qelim (NOT p) = (\<lambda> qe. not (qelim p qe))"
-  "qelim (And p q) = (\<lambda> qe. conj (qelim p qe) (qelim q qe))" 
-  "qelim (Or  p q) = (\<lambda> qe. disj (qelim p qe) (qelim q qe))" 
-  "qelim (Imp p q) = (\<lambda> qe. imp (qelim p qe) (qelim q qe))"
-  "qelim (Iff p q) = (\<lambda> qe. iff (qelim p qe) (qelim q qe))"
-  "qelim p = (\<lambda> y. simpfm p)"
-
-(*function (sequential)
-  qelim :: "(fm \<Rightarrow> fm) \<Rightarrow> fm \<Rightarrow> fm"
-where
-  "qelim qe (E p) = DJ qe (qelim qe p)"
-  | "qelim qe (A p) = not (qe ((qelim qe (NOT p))))"
-  | "qelim qe (NOT p) = not (qelim qe p)"
-  | "qelim qe (And p q) = conj (qelim qe p) (qelim qe q)" 
-  | "qelim qe (Or  p q) = disj (qelim qe p) (qelim qe q)" 
-  | "qelim qe (Imp p q) = imp (qelim qe p) (qelim qe q)"
-  | "qelim qe (Iff p q) = iff (qelim qe p) (qelim qe q)"
-  | "qelim qe p = simpfm p"
+| "qelim (A p) = (\<lambda> qe. not (qe ((qelim (NOT p) qe))))"
+| "qelim (NOT p) = (\<lambda> qe. not (qelim p qe))"
+| "qelim (And p q) = (\<lambda> qe. conj (qelim p qe) (qelim q qe))" 
+| "qelim (Or  p q) = (\<lambda> qe. disj (qelim p qe) (qelim q qe))" 
+| "qelim (Imp p q) = (\<lambda> qe. imp (qelim p qe) (qelim q qe))"
+| "qelim (Iff p q) = (\<lambda> qe. iff (qelim p qe) (qelim q qe))"
+| "qelim p = (\<lambda> y. simpfm p)"
 by pat_completeness auto
-termination by (relation "measure (fmsize o snd)") auto*)
+termination by (relation "measure fmsize") auto
 
 lemma qelim_ci:
   assumes qe_inv: "\<forall> bs p. qfree p \<longrightarrow> qfree (qe p) \<and> (Ifm bbs bs (qe p) = Ifm bbs bs (E p))"
@@ -717,8 +692,7 @@ by(induct p rule: qelim.induct)
   simpfm simpfm_qf simp del: simpfm.simps)
   (* Linearity for fm where Bound 0 ranges over \<int> *)
 
-fun
-  zsplit0 :: "num \<Rightarrow> int \<times> num" (* splits the bounded from the unbounded part*)
+fun zsplit0 :: "num \<Rightarrow> int \<times> num" (* splits the bounded from the unbounded part*)
 where
   "zsplit0 (C c) = (0,C c)"
   | "zsplit0 (Bound n) = (if n=0 then (1, C 0) else (0,Bound n))"
