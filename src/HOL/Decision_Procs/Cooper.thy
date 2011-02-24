@@ -7,14 +7,6 @@ imports Complex_Main "~~/src/HOL/Library/Efficient_Nat"
 uses ("cooper_tac.ML")
 begin
 
-function iupt :: "int \<Rightarrow> int \<Rightarrow> int list" where
-  "iupt i j = (if j < i then [] else i # iupt (i+1) j)"
-by pat_completeness auto
-termination by (relation "measure (\<lambda> (i, j). nat (j-i+1))") auto
-
-lemma iupt_set: "set (iupt i j) = {i..j}"
-  by (induct rule: iupt.induct) (simp add: simp_from_to)
-
 (* Periodicity of dvd *)
 
   (*********************************************************************************)
@@ -1812,7 +1804,7 @@ qed
 
 definition cooper :: "fm \<Rightarrow> fm" where
   "cooper p \<equiv> 
-  (let (q,B,d) = unit p; js = iupt 1 d;
+  (let (q,B,d) = unit p; js = [1..d];
        mq = simpfm (minusinf q);
        md = evaldjf (\<lambda> j. simpfm (subst0 (C j) mq)) js
    in if md = T then T else
@@ -1827,7 +1819,7 @@ proof-
   let ?q = "fst (unit p)"
   let ?B = "fst (snd(unit p))"
   let ?d = "snd (snd (unit p))"
-  let ?js = "iupt 1 ?d"
+  let ?js = "[1..?d]"
   let ?mq = "minusinf ?q"
   let ?smq = "simpfm ?mq"
   let ?md = "evaldjf (\<lambda> j. simpfm (subst0 (C j) ?smq)) ?js"
@@ -1866,7 +1858,7 @@ proof-
   also have "\<dots> = ((\<exists> j\<in> {1.. ?d}. ?I j ?mq ) \<or> (\<exists> j\<in> {1.. ?d}. \<exists> b\<in> set ?B. Ifm bbs ((?N (Add b (C j)))#bs) ?q))" by (simp only: Inum.simps) blast
   also have "\<dots> = ((\<exists> j\<in> {1.. ?d}. ?I j ?smq ) \<or> (\<exists> j\<in> {1.. ?d}. \<exists> b\<in> set ?B. Ifm bbs ((?N (Add b (C j)))#bs) ?q))" by (simp add: simpfm) 
   also have "\<dots> = ((\<exists> j\<in> set ?js. (\<lambda> j. ?I i (simpfm (subst0 (C j) ?smq))) j) \<or> (\<exists> j\<in> set ?js. \<exists> b\<in> set ?B. Ifm bbs ((?N (Add b (C j)))#bs) ?q))"
-    by (simp only: simpfm subst0_I[OF qfmq] iupt_set) auto
+    by (simp only: simpfm subst0_I[OF qfmq] set_upto) auto
   also have "\<dots> = (?I i (evaldjf (\<lambda> j. simpfm (subst0 (C j) ?smq)) ?js) \<or> (\<exists> j\<in> set ?js. \<exists> b\<in> set ?B. ?I i (subst0 (Add b (C j)) ?q)))" 
    by (simp only: evaldjf_ex subst0_I[OF qfq])
  also have "\<dots>= (?I i ?md \<or> (\<exists> (b,j) \<in> set ?Bjs. (\<lambda> (b,j). ?I i (simpfm (subst0 (Add b (C j)) ?q))) (b,j)))"

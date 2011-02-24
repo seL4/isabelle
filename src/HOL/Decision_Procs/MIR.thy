@@ -37,18 +37,6 @@ next
   with P show "\<exists>x\<in>set xs. \<exists>y\<in>set xs. P x y" by blast
 qed
 
-  (* generate a list from i to j*)
-consts iupt :: "int \<times> int \<Rightarrow> int list"
-recdef iupt "measure (\<lambda> (i,j). nat (j-i +1))" 
-  "iupt (i,j) = (if j <i then [] else (i# iupt(i+1, j)))"
-
-lemma iupt_set: "set (iupt(i,j)) = {i .. j}"
-proof(induct rule: iupt.induct)
-  case (1 a b)
-  show ?case
-    using 1 by (simp add: simp_from_to)
-qed
-
 lemma nth_pos2: "0 < n \<Longrightarrow> (x#xs) ! n = xs ! (n - 1)"
 using Nat.gr0_conv_Suc
 by clarsimp
@@ -3538,7 +3526,7 @@ recdef rsplit0 "measure num_size"
   "rsplit0 (Neg a) = map (\<lambda> (p,n,s). (p,-n,Neg s)) (rsplit0 a)"
   "rsplit0 (Floor a) = foldl (op @) [] (map 
       (\<lambda> (p,n,s). if n=0 then [(p,0,Floor s)]
-          else (map (\<lambda> j. (fp p n s j, 0, Add (Floor s) (C j))) (if n > 0 then iupt (0,n) else iupt(n,0))))
+          else (map (\<lambda> j. (fp p n s j, 0, Add (Floor s) (C j))) (if n > 0 then [0 .. n] else [n .. 0])))
        (rsplit0 a))"
   "rsplit0 (CN 0 c a) = map (\<lambda> (p,n,s). (p,n+c,s)) (rsplit0 a)"
   "rsplit0 (CN m c a) = map (\<lambda> (p,n,s). (p,n,CN m c s)) (rsplit0 a)"
@@ -3562,26 +3550,26 @@ proof(induct t rule: rsplit0.induct)
   case (5 a) 
   let ?p = "\<lambda> (p,n,s) j. fp p n s j"
   let ?f = "(\<lambda> (p,n,s) j. (?p (p,n,s) j, (0::int),Add (Floor s) (C j)))"
-  let ?J = "\<lambda> n. if n>0 then iupt (0,n) else iupt (n,0)"
+  let ?J = "\<lambda> n. if n>0 then [0..n] else [n..0]"
   let ?ff=" (\<lambda> (p,n,s). if n= 0 then [(p,0,Floor s)] else map (?f (p,n,s)) (?J n))"
   have int_cases: "\<forall> (i::int). i= 0 \<or> i < 0 \<or> i > 0" by arith
   have U1: "(UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) = 
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). set [(p,0,Floor s)]))" by auto
   have U2': "\<forall> (p,n,s) \<in> {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0}. 
-    ?ff (p,n,s) = map (?f(p,n,s)) (iupt(0,n))" by auto
+    ?ff (p,n,s) = map (?f(p,n,s)) [0..n]" by auto
   hence U2: "(UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) = 
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). 
-    set (map (?f(p,n,s)) (iupt(0,n)))))"
+    set (map (?f(p,n,s)) [0..n])))"
   proof-
     fix M :: "('a\<times>'b\<times>'c) set" and f :: "('a\<times>'b\<times>'c) \<Rightarrow> 'd list" and g
     assume "\<forall> (a,b,c) \<in> M. f (a,b,c) = g a b c"
     thus "(UNION M (\<lambda> (a,b,c). set (f (a,b,c)))) = (UNION M (\<lambda> (a,b,c). set (g a b c)))"
       by (auto simp add: split_def)
   qed
-  have U3': "\<forall> (p,n,s) \<in> {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0}. ?ff (p,n,s) = map (?f(p,n,s)) (iupt(n,0))"
+  have U3': "\<forall> (p,n,s) \<in> {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0}. ?ff (p,n,s) = map (?f(p,n,s)) [n..0]"
     by auto
   hence U3: "(UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) = 
-    (UNION {(p,n,s). (p,n,s)\<in> ?SS a\<and>n<0} (\<lambda>(p,n,s). set (map (?f(p,n,s)) (iupt(n,0)))))"
+    (UNION {(p,n,s). (p,n,s)\<in> ?SS a\<and>n<0} (\<lambda>(p,n,s). set (map (?f(p,n,s)) [n..0])))"
       proof-
     fix M :: "('a\<times>'b\<times>'c) set" and f :: "('a\<times>'b\<times>'c) \<Rightarrow> 'd list" and g
     assume "\<forall> (a,b,c) \<in> M. f (a,b,c) = g a b c"
@@ -3589,7 +3577,7 @@ proof(induct t rule: rsplit0.induct)
       by (auto simp add: split_def)
   qed
   have "?SS (Floor a) = UNION (?SS a) (\<lambda>x. set (?ff x))"
-    by (auto simp add: foldl_conv_concat simp del: iupt.simps)
+    by (auto simp add: foldl_conv_concat)
   also have "\<dots> = UNION (?SS a) (\<lambda> (p,n,s). set (?ff (p,n,s)))" by blast
   also have "\<dots> = 
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) Un 
@@ -3598,14 +3586,14 @@ proof(induct t rule: rsplit0.induct)
     using int_cases[rule_format] by blast
   also have "\<dots> =  
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). set [(p,0,Floor s)])) Un 
-   (UNION {(p,n,s). (p,n,s)\<in> ?SS a\<and>n>0} (\<lambda>(p,n,s). set(map(?f(p,n,s)) (iupt(0,n))))) Un 
+   (UNION {(p,n,s). (p,n,s)\<in> ?SS a\<and>n>0} (\<lambda>(p,n,s). set(map(?f(p,n,s)) [0..n]))) Un 
    (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0} (\<lambda> (p,n,s). 
-    set (map (?f(p,n,s)) (iupt(n,0))))))" by (simp only: U1 U2 U3)
+    set (map (?f(p,n,s)) [n..0]))))" by (simp only: U1 U2 U3)
   also have "\<dots> =  
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). {(p,0,Floor s)})) Un 
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). (?f(p,n,s)) ` {0 .. n})) Un 
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0} (\<lambda> (p,n,s). (?f(p,n,s)) ` {n .. 0})))"
-    by (simp only: set_map iupt_set set.simps)
+    by (simp only: set_map set_upto set.simps)
   also have "\<dots> =   
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). {(p,0,Floor s)})) Un 
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). {?f(p,n,s) j| j. j\<in> {0 .. n}})) Un 
@@ -3723,22 +3711,22 @@ next
   case (5 a) 
   let ?p = "\<lambda> (p,n,s) j. fp p n s j"
   let ?f = "(\<lambda> (p,n,s) j. (?p (p,n,s) j, (0::int),(Add (Floor s) (C j))))"
-  let ?J = "\<lambda> n. if n>0 then iupt (0,n) else iupt (n,0)"
+  let ?J = "\<lambda> n. if n>0 then [0..n] else [n..0]"
   let ?ff=" (\<lambda> (p,n,s). if n= 0 then [(p,0,Floor s)] else map (?f (p,n,s)) (?J n))"
   have int_cases: "\<forall> (i::int). i= 0 \<or> i < 0 \<or> i > 0" by arith
   have U1: "(UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) = (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). set [(p,0,Floor s)]))" by auto
-  have U2': "\<forall> (p,n,s) \<in> {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0}. ?ff (p,n,s) = map (?f(p,n,s)) (iupt(0,n))"
+  have U2': "\<forall> (p,n,s) \<in> {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0}. ?ff (p,n,s) = map (?f(p,n,s)) [0..n]"
     by auto
-  hence U2: "(UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) = (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). set (map (?f(p,n,s)) (iupt(0,n)))))"
+  hence U2: "(UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) = (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). set (map (?f(p,n,s)) [0..n])))"
   proof-
     fix M :: "('a\<times>'b\<times>'c) set" and f :: "('a\<times>'b\<times>'c) \<Rightarrow> 'd list" and g
     assume "\<forall> (a,b,c) \<in> M. f (a,b,c) = g a b c"
     thus "(UNION M (\<lambda> (a,b,c). set (f (a,b,c)))) = (UNION M (\<lambda> (a,b,c). set (g a b c)))"
       by (auto simp add: split_def)
   qed
-  have U3': "\<forall> (p,n,s) \<in> {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0}. ?ff (p,n,s) = map (?f(p,n,s)) (iupt(n,0))"
+  have U3': "\<forall> (p,n,s) \<in> {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0}. ?ff (p,n,s) = map (?f(p,n,s)) [n..0]"
     by auto
-  hence U3: "(UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) = (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0} (\<lambda> (p,n,s). set (map (?f(p,n,s)) (iupt(n,0)))))"
+  hence U3: "(UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) = (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0} (\<lambda> (p,n,s). set (map (?f(p,n,s)) [n..0])))"
   proof-
     fix M :: "('a\<times>'b\<times>'c) set" and f :: "('a\<times>'b\<times>'c) \<Rightarrow> 'd list" and g
     assume "\<forall> (a,b,c) \<in> M. f (a,b,c) = g a b c"
@@ -3746,7 +3734,7 @@ next
       by (auto simp add: split_def)
   qed
 
-  have "?SS (Floor a) = UNION (?SS a) (\<lambda>x. set (?ff x))" by (auto simp add: foldl_conv_concat simp del: iupt.simps) 
+  have "?SS (Floor a) = UNION (?SS a) (\<lambda>x. set (?ff x))" by (auto simp add: foldl_conv_concat) 
   also have "\<dots> = UNION (?SS a) (\<lambda> (p,n,s). set (?ff (p,n,s)))" by blast
   also have "\<dots> = 
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). set (?ff (p,n,s)))) Un 
@@ -3755,13 +3743,13 @@ next
     using int_cases[rule_format] by blast
   also have "\<dots> =  
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). set [(p,0,Floor s)])) Un 
-    (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). set (map (?f(p,n,s)) (iupt(0,n))))) Un 
-    (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0} (\<lambda> (p,n,s). set (map (?f(p,n,s)) (iupt(n,0))))))" by (simp only: U1 U2 U3)
+    (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). set (map (?f(p,n,s)) [0..n]))) Un 
+    (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0} (\<lambda> (p,n,s). set (map (?f(p,n,s)) [n..0]))))" by (simp only: U1 U2 U3)
   also have "\<dots> =  
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). {(p,0,Floor s)})) Un 
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). (?f(p,n,s)) ` {0 .. n})) Un 
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n<0} (\<lambda> (p,n,s). (?f(p,n,s)) ` {n .. 0})))"
-    by (simp only: set_map iupt_set set.simps)
+    by (simp only: set_map set_upto set.simps)
   also have "\<dots> =   
     ((UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n=0} (\<lambda> (p,n,s). {(p,0,Floor s)})) Un 
     (UNION {(p,n,s). (p,n,s) \<in> ?SS a \<and> n>0} (\<lambda> (p,n,s). {?f(p,n,s) j| j. j\<in> {0 .. n}})) Un 
@@ -4023,12 +4011,12 @@ qed
 definition
   DVDJ:: "int \<Rightarrow> int \<Rightarrow> num \<Rightarrow> fm"
 where
-  DVDJ_def: "DVDJ i n s = (foldr disj (map (\<lambda> j. conj (Eq (CN 0 n (Add s (Sub (Floor (Neg s)) (C j))))) (Dvd i (Sub (C j) (Floor (Neg s))))) (iupt(0,n - 1))) F)"
+  DVDJ_def: "DVDJ i n s = (foldr disj (map (\<lambda> j. conj (Eq (CN 0 n (Add s (Sub (Floor (Neg s)) (C j))))) (Dvd i (Sub (C j) (Floor (Neg s))))) [0..n - 1]) F)"
 
 definition
   NDVDJ:: "int \<Rightarrow> int \<Rightarrow> num \<Rightarrow> fm"
 where
-  NDVDJ_def: "NDVDJ i n s = (foldr conj (map (\<lambda> j. disj (NEq (CN 0 n (Add s (Sub (Floor (Neg s)) (C j))))) (NDvd i (Sub (C j) (Floor (Neg s))))) (iupt(0,n - 1))) T)"
+  NDVDJ_def: "NDVDJ i n s = (foldr conj (map (\<lambda> j. disj (NEq (CN 0 n (Add s (Sub (Floor (Neg s)) (C j))))) (NDvd i (Sub (C j) (Floor (Neg s))))) [0..n - 1]) T)"
 
 lemma DVDJ_DVD: 
   assumes xp:"x\<ge> 0" and x1: "x < 1" and np:"real n > 0"
@@ -4036,9 +4024,9 @@ lemma DVDJ_DVD:
 proof-
   let ?f = "\<lambda> j. conj (Eq(CN 0 n (Add s (Sub(Floor (Neg s)) (C j))))) (Dvd i (Sub (C j) (Floor (Neg s))))"
   let ?s= "Inum (x#bs) s"
-  from foldr_disj_map[where xs="iupt(0,n - 1)" and bs="x#bs" and f="?f"]
+  from foldr_disj_map[where xs="[0..n - 1]" and bs="x#bs" and f="?f"]
   have "Ifm (x#bs) (DVDJ i n s) = (\<exists> j\<in> {0 .. (n - 1)}. Ifm (x#bs) (?f j))" 
-    by (simp add: iupt_set np DVDJ_def del: iupt.simps)
+    by (simp add: np DVDJ_def)
   also have "\<dots> = (\<exists> j\<in> {0 .. (n - 1)}. real n * x = (- ?s) - real (floor (- ?s)) + real j \<and> real i rdvd real (j - floor (- ?s)))" by (simp add: algebra_simps diff_minus[symmetric])
   also from rdvd01_cs[OF xp x1 np, where i="i" and s="-?s"] 
   have "\<dots> = (real i rdvd real n * x - (-?s))" by simp
@@ -4051,9 +4039,9 @@ lemma NDVDJ_NDVD:
 proof-
   let ?f = "\<lambda> j. disj(NEq(CN 0 n (Add s (Sub (Floor (Neg s)) (C j))))) (NDvd i (Sub (C j) (Floor(Neg s))))"
   let ?s= "Inum (x#bs) s"
-  from foldr_conj_map[where xs="iupt(0,n - 1)" and bs="x#bs" and f="?f"]
+  from foldr_conj_map[where xs="[0..n - 1]" and bs="x#bs" and f="?f"]
   have "Ifm (x#bs) (NDVDJ i n s) = (\<forall> j\<in> {0 .. (n - 1)}. Ifm (x#bs) (?f j))" 
-    by (simp add: iupt_set np NDVDJ_def del: iupt.simps)
+    by (simp add: np NDVDJ_def)
   also have "\<dots> = (\<not> (\<exists> j\<in> {0 .. (n - 1)}. real n * x = (- ?s) - real (floor (- ?s)) + real j \<and> real i rdvd real (j - floor (- ?s))))" by (simp add: algebra_simps diff_minus[symmetric])
   also from rdvd01_cs[OF xp x1 np, where i="i" and s="-?s"] 
   have "\<dots> = (\<not> (real i rdvd real n * x - (-?s)))" by simp
@@ -5422,7 +5410,7 @@ qed
 
 definition cooper :: "fm \<Rightarrow> fm" where
   "cooper p \<equiv> 
-  (let (q,B,d) = unit p; js = iupt (1,d);
+  (let (q,B,d) = unit p; js = [1..d];
        mq = simpfm (minusinf q);
        md = evaldjf (\<lambda> j. simpfm (subst0 (C j) mq)) js
    in if md = T then T else
@@ -5439,7 +5427,7 @@ proof-
   let ?q = "fst (unit p)"
   let ?B = "fst (snd(unit p))"
   let ?d = "snd (snd (unit p))"
-  let ?js = "iupt (1,?d)"
+  let ?js = "[1..?d]"
   let ?mq = "minusinf ?q"
   let ?smq = "simpfm ?mq"
   let ?md = "evaldjf (\<lambda> j. simpfm (subst0 (C j) ?smq)) ?js"
@@ -5476,7 +5464,7 @@ proof-
   have mdqdb: "bound0 (disj ?md ?qd)" by (simp only: disj_def, cases "?md=T \<or> ?qd=T", simp_all)
   from trans [OF pq_ex cp_thm'[OF lq uq dd dp]] B
   have "?lhs = (\<exists> j\<in> {1.. ?d}. ?I j ?mq \<or> (\<exists> b\<in> ?N ` set ?B. Ifm ((b+ real j)#bs) ?q))" by auto
-  also have "\<dots> = ((\<exists> j\<in> set ?js. ?I j ?smq) \<or> (\<exists> (b,j) \<in> (?N ` set ?B \<times> set ?js). Ifm ((b+ real j)#bs) ?q))" apply (simp only: iupt_set simpfm) by auto
+  also have "\<dots> = ((\<exists> j\<in> set ?js. ?I j ?smq) \<or> (\<exists> (b,j) \<in> (?N ` set ?B \<times> set ?js). Ifm ((b+ real j)#bs) ?q))" by auto
   also have "\<dots>= ((\<exists> j\<in> set ?js. ?I j ?smq) \<or> (\<exists> t \<in> (\<lambda> (b,j). ?N (Add b (C j))) ` set ?bjs. Ifm (t #bs) ?q))" by simp
   also have "\<dots>= ((\<exists> j\<in> set ?js. ?I j ?smq) \<or> (\<exists> t \<in> (\<lambda> (b,j). ?N (simpnum (Add b (C j)))) ` set ?bjs. Ifm (t #bs) ?q))" by (simp only: simpnum_ci)
   also  have "\<dots>= ((\<exists> j\<in> set ?js. ?I j ?smq) \<or> (\<exists> t \<in> set ?sbjs. Ifm (?N t #bs) ?q))" 
@@ -5625,16 +5613,16 @@ proof-
 qed
 
 definition stage :: "fm \<Rightarrow> int \<Rightarrow> (num \<times> int) \<Rightarrow> fm" where
-  "stage p d \<equiv> (\<lambda> (e,c). evaldjf (\<lambda> j. simpfm (\<sigma> p c (Add e (C j)))) (iupt (1,c*d)))"
+  "stage p d \<equiv> (\<lambda> (e,c). evaldjf (\<lambda> j. simpfm (\<sigma> p c (Add e (C j)))) [1..c*d])"
 lemma stage:
   shows "Ifm bs (stage p d (e,c)) = (\<exists> j\<in>{1 .. c*d}. Ifm bs (\<sigma> p c (Add e (C j))))"
-  by (unfold stage_def split_def ,simp only: evaldjf_ex iupt_set simpfm) simp
+  by (unfold stage_def split_def ,simp only: evaldjf_ex simpfm) simp
 
 lemma stage_nb: assumes lp: "iszlfm p (a#bs)" and cp: "c >0" and nb:"numbound0 e"
   shows "bound0 (stage p d (e,c))"
 proof-
   let ?f = "\<lambda> j. simpfm (\<sigma> p c (Add e (C j)))"
-  have th: "\<forall> j\<in> set (iupt(1,c*d)). bound0 (?f j)"
+  have th: "\<forall> j\<in> set [1..c*d]. bound0 (?f j)"
   proof
     fix j
     from nb have nb':"numbound0 (Add e (C j))" by simp
@@ -5648,7 +5636,7 @@ definition redlove :: "fm \<Rightarrow> fm" where
   "redlove p \<equiv> 
   (let (q,B,d) = chooset p;
        mq = simpfm (minusinf q);
-       md = evaldjf (\<lambda> j. simpfm (subst0 (C j) mq)) (iupt (1,d))
+       md = evaldjf (\<lambda> j. simpfm (subst0 (C j) mq)) [1..d]
    in if md = T then T else
     (let qd = evaldjf (stage q d) B
      in decr (disj md qd)))"
@@ -5662,7 +5650,7 @@ proof-
   let ?q = "fst (chooset p)"
   let ?B = "fst (snd(chooset p))"
   let ?d = "snd (snd (chooset p))"
-  let ?js = "iupt (1,?d)"
+  let ?js = "[1..?d]"
   let ?mq = "minusinf ?q"
   let ?smq = "simpfm ?mq"
   let ?md = "evaldjf (\<lambda> j. simpfm (subst0 (C j) ?smq)) ?js"
@@ -5692,7 +5680,7 @@ proof-
     by (simp add: simpfm stage split_def)
   also have "\<dots> = ((\<exists> j\<in> {1 .. ?d}. ?I i (subst0 (C j) ?smq))  \<or> ?I i ?qd)"
     by (simp add: evaldjf_ex subst0_I[OF qfmq])
-  finally have mdqd:"?lhs = (?I i ?md \<or> ?I i ?qd)" by (simp only: evaldjf_ex iupt_set simpfm) 
+  finally have mdqd:"?lhs = (?I i ?md \<or> ?I i ?qd)" by (simp only: evaldjf_ex set_upto simpfm) 
   also have "\<dots> = (?I i (disj ?md ?qd))" by (simp add: disj)
   also have "\<dots> = (Ifm bs (decr (disj ?md ?qd)))" by (simp only: decr [OF mdqdb]) 
   finally have mdqd2: "?lhs = (Ifm bs (decr (disj ?md ?qd)))" . 
