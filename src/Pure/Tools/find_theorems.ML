@@ -13,9 +13,11 @@ sig
   val limit: int Unsynchronized.ref
   val find_theorems: Proof.context -> thm option -> int option -> bool ->
     (bool * string criterion) list -> int option * (Facts.ref * thm) list
+  val filter_facts: Proof.context -> (Facts.ref * thm) list -> thm option ->
+    int option -> bool -> (bool * string criterion) list ->
+    int option * (Facts.ref * thm) list
+
   val pretty_thm: Proof.context -> Facts.ref * thm -> Pretty.T
-  val print_theorems: Proof.context -> thm option -> int option -> bool ->
-    (bool * string criterion) list -> unit
 end;
 
 structure Find_Theorems: FIND_THEOREMS =
@@ -388,7 +390,7 @@ fun all_facts_of ctxt =
 
 val limit = Unsynchronized.ref 40;
 
-fun find_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
+fun filter_facts ctxt facts opt_goal opt_limit rem_dups raw_criteria =
   let
     val assms =
       ProofContext.get_fact ctxt (Facts.named "local.assms")
@@ -417,19 +419,19 @@ fun find_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
       then find_all
       else pair NONE o Seq.list_of o Seq.take (the opt_limit) o lazy_filter filters;
 
-  in find (all_facts_of ctxt) end;
+  in find facts end;
 
+fun find_theorems ctxt = filter_facts ctxt (all_facts_of ctxt)
 
 fun pretty_thm ctxt (thmref, thm) = Pretty.block
   [Pretty.str (Facts.string_of_ref thmref), Pretty.str ":", Pretty.brk 1,
     Display.pretty_thm ctxt thm];
 
-fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
+fun print_theorems ctxt (foundo, thms) raw_criteria =
   let
     val start = start_timing ();
 
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
-    val (foundo, thms) = find_theorems ctxt opt_goal opt_limit rem_dups raw_criteria;
     val returned = length thms;
 
     val tally_msg =
@@ -484,7 +486,8 @@ val _ =
           let
             val ctxt = Toplevel.context_of state;
             val opt_goal = try (Proof.simple_goal o Toplevel.proof_of) state |> Option.map #goal;
-          in print_theorems ctxt opt_goal opt_lim rem_dups spec end)));
+            val found = find_theorems ctxt opt_goal opt_lim rem_dups spec;
+          in print_theorems ctxt found spec end)));
 
 end;
 
