@@ -702,7 +702,7 @@ text {*
   for a zero of a given function f. 
 *}
 
-function (*<*)(domintros, tailrec)(*>*)findzero :: "(nat \<Rightarrow> nat) \<Rightarrow> nat \<Rightarrow> nat"
+function (*<*)(domintros)(*>*)findzero :: "(nat \<Rightarrow> nat) \<Rightarrow> nat \<Rightarrow> nat"
 where
   "findzero f n = (if f n = 0 then n else findzero f (Suc n))"
 by pat_completeness auto
@@ -957,79 +957,6 @@ text {*
   lemmas which are occasionally useful are @{text accpI}, @{text
   accp_downward}, and of course the introduction and elimination rules
   for the recursion relation @{text "findzero.intros"} and @{text "findzero.cases"}.
-*}
-
-(*lemma findzero_nicer_domintros:
-  "f x = 0 \<Longrightarrow> findzero_dom (f, x)"
-  "findzero_dom (f, Suc x) \<Longrightarrow> findzero_dom (f, x)"
-by (rule accpI, erule findzero_rel.cases, auto)+
-*)
-  
-subsection {* A Useful Special Case: Tail recursion *}
-
-text {*
-  The domain predicate is our trick that allows us to model partiality
-  in a world of total functions. The downside of this is that we have
-  to carry it around all the time. The termination proof above allowed
-  us to replace the abstract @{term "findzero_dom (f, n)"} by the more
-  concrete @{term "(x \<ge> n \<and> f x = (0::nat))"}, but the condition is still
-  there and can only be discharged for special cases.
-  In particular, the domain predicate guards the unfolding of our
-  function, since it is there as a condition in the @{text psimp}
-  rules. 
-
-  Now there is an important special case: We can actually get rid
-  of the condition in the simplification rules, \emph{if the function
-  is tail-recursive}. The reason is that for all tail-recursive
-  equations there is a total function satisfying them, even if they
-  are non-terminating. 
-
-%  A function is tail recursive, if each call to the function is either
-%  equal
-%
-%  So the outer form of the 
-%
-%if it can be written in the following
-%  form:
-%  {term[display] "f x = (if COND x then BASE x else f (LOOP x))"}
-
-
-  The function package internally does the right construction and can
-  derive the unconditional simp rules, if we ask it to do so. Luckily,
-  our @{const "findzero"} function is tail-recursive, so we can just go
-  back and add another option to the \cmd{function} command:
-
-\vspace{1ex}
-\noindent\cmd{function} @{text "(domintros, tailrec) findzero :: \"(nat \<Rightarrow> nat) \<Rightarrow> nat \<Rightarrow> nat\""}\\%
-\cmd{where}\isanewline%
-\ \ \ldots\\%
-
-  
-  \noindent Now, we actually get unconditional simplification rules, even
-  though the function is partial:
-*}
-
-thm findzero.simps
-
-text {*
-  @{thm[display] findzero.simps}
-
-  \noindent Of course these would make the simplifier loop, so we better remove
-  them from the simpset:
-*}
-
-declare findzero.simps[simp del]
-
-text {* 
-  Getting rid of the domain conditions in the simplification rules is
-  not only useful because it simplifies proofs. It is also required in
-  order to use Isabelle's code generator to generate ML code
-  from a function definition.
-  Since the code generator only works with equations, it cannot be
-  used with @{text "psimp"} rules. Thus, in order to generate code for
-  partial functions, they must be defined as a tail recursion.
-  Luckily, many functions have a relatively natural tail recursive
-  definition.
 *}
 
 section {* Nested recursion *}

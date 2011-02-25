@@ -817,61 +817,9 @@ fun mk_nest_term_rule thy globals R R_cases clauses =
 
 
 
-(* Tail recursion (probably very fragile)
- *
- * FIXME:
- * - Need to do forall_elim_vars on psimps: Unneccesary, if psimps would be taken from the same context.
- * - Must we really replace the fvar by f here?
- * - Splitting is not configured automatically: Problems with case?
- *)
-fun mk_trsimps octxt globals f G R f_def R_cases G_induct clauses psimps =
-  let
-    val Globals {domT, ranT, fvar, ...} = globals
-
-    val R_cases = Thm.forall_elim_vars 0 R_cases (* FIXME: Should be already in standard form. *)
-
-    val graph_implies_dom = (* "G ?x ?y ==> dom ?x"  *)
-      Goal.prove octxt ["x", "y"] [HOLogic.mk_Trueprop (G $ Free ("x", domT) $ Free ("y", ranT))]
-        (HOLogic.mk_Trueprop (mk_acc domT R $ Free ("x", domT)))
-        (fn {prems=[a], ...} =>
-          ((rtac (G_induct OF [a]))
-          THEN_ALL_NEW rtac accI
-          THEN_ALL_NEW etac R_cases
-          THEN_ALL_NEW asm_full_simp_tac (simpset_of octxt)) 1)
-
-    val default_thm =
-      forall_intr_vars graph_implies_dom COMP (f_def COMP fundef_default_value)
-
-    fun mk_trsimp clause psimp =
-      let
-        val ClauseInfo {qglr = (oqs, _, _, _), cdata =
-          ClauseContext {ctxt, cqs, gs, lhs, rhs, ...}, ...} = clause
-        val thy = ProofContext.theory_of ctxt
-        val rhs_f = Pattern.rewrite_term thy [(fvar, f)] [] rhs
-
-        val trsimp = Logic.list_implies(gs,
-          HOLogic.mk_Trueprop (HOLogic.mk_eq(f $ lhs, rhs_f))) (* "f lhs = rhs" *)
-        val lhs_acc = (mk_acc domT R $ lhs) (* "acc R lhs" *)
-        fun simp_default_tac ss =
-          asm_full_simp_tac (ss addsimps [default_thm, Let_def])
-      in
-        Goal.prove ctxt [] [] trsimp (fn _ =>
-          rtac (instantiate' [] [SOME (cterm_of thy lhs_acc)] case_split) 1
-          THEN (rtac (Thm.forall_elim_vars 0 psimp) THEN_ALL_NEW assume_tac) 1
-          THEN (simp_default_tac (simpset_of ctxt) 1)
-          THEN TRY ((etac not_acc_down 1)
-            THEN ((etac R_cases)
-              THEN_ALL_NEW (simp_default_tac (simpset_of ctxt))) 1))
-        |> fold_rev forall_intr_rename (map fst oqs ~~ cqs)
-      end
-  in
-    map2 mk_trsimp clauses psimps
-  end
-
-
 fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy =
   let
-    val FunctionConfig {domintros, tailrec, default=default_opt, ...} = config
+    val FunctionConfig {domintros, default=default_opt, ...} = config
 
     val default_str = the_default "%x. undefined" default_opt (*FIXME dynamic scoping*)
     val fvar = Free (fname, fT)
@@ -932,9 +880,6 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
       (prove_stuff lthy globals G f R xclauses complete compat
          compat_store G_elim) f_defthm
 
-    val mk_trsimps =
-      mk_trsimps lthy globals f G R f_defthm R_elim G_induct xclauses
-
     fun mk_partial_rules provedgoal =
       let
         val newthy = theory_of_thm provedgoal (*FIXME*)
@@ -959,13 +904,10 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
           if domintros then SOME (PROFILE "Proving domain introduction rules"
              (map (mk_domain_intro lthy globals R R_elim)) xclauses)
            else NONE
-        val trsimps = if tailrec then SOME (mk_trsimps psimps) else NONE
-
       in
         FunctionResult {fs=[f], G=G, R=R, cases=complete_thm,
           psimps=psimps, simple_pinducts=[simple_pinduct],
-          termination=total_intro, trsimps=trsimps,
-          domintros=dom_intros}
+          termination=total_intro, domintros=dom_intros}
       end
   in
     ((f, goalstate, mk_partial_rules), lthy)

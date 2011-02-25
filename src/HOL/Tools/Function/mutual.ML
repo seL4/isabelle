@@ -249,7 +249,7 @@ fun mutual_induct_rules lthy induct all_f_defs (Mutual {n, ST, parts, ...}) =
 fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {parts, fqgars, ...}) proof =
   let
     val result = inner_cont proof
-    val FunctionResult {G, R, cases, psimps, trsimps, simple_pinducts=[simple_pinduct],
+    val FunctionResult {G, R, cases, psimps, simple_pinducts=[simple_pinduct],
       termination, domintros, ...} = result
 
     val (all_f_defs, fs) =
@@ -266,7 +266,6 @@ fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {parts, fqgars, ...}) p
 
     val rew_ss = HOL_basic_ss addsimps all_f_defs
     val mpsimps = map2 mk_mpsimp fqgars psimps
-    val mtrsimps = Option.map (map2 mk_mpsimp fqgars) trsimps
     val minducts = mutual_induct_rules lthy simple_pinduct all_f_defs m
     val mtermination = full_simplify rew_ss termination
     val mdomintros = Option.map (map (full_simplify rew_ss)) domintros
@@ -274,7 +273,7 @@ fun mk_partial_rules_mutual lthy inner_cont (m as Mutual {parts, fqgars, ...}) p
     FunctionResult { fs=fs, G=G, R=R,
       psimps=mpsimps, simple_pinducts=minducts,
       cases=cases, termination=mtermination,
-      domintros=mdomintros, trsimps=mtrsimps}
+      domintros=mdomintros}
   end
 
 fun prepare_function_mutual config defname fixes eqss lthy =

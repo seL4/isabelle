@@ -444,7 +444,7 @@ text {*
     ;
     equations: (thmdecl? prop + '|')
     ;
-    functionopts: '(' (('sequential' | 'domintros' | 'tailrec' | 'default' term) + ',') ')'
+    functionopts: '(' (('sequential' | 'domintros') + ',') ')'
     ;
     'termination' ( term )?
   \end{rail}
@@ -514,14 +514,6 @@ text {*
   \item @{text domintros} enables the automated generation of
   introduction rules for the domain predicate. While mostly not
   needed, they can be helpful in some proofs about partial functions.
-
-  \item @{text tailrec} generates the unconstrained recursive
-  equations even without a termination proof, provided that the
-  function is tail-recursive. This currently only works
-
-  \item @{text "default d"} allows to specify a default value for a
-  (partial) function, which will ensure that @{text "f x = d x"}
-  whenever @{text "x \<notin> f_dom"}.
 
   \end{description}
 *}

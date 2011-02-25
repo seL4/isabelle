@@ -27,6 +27,9 @@ obsolete since Isabelle2009-2.
   - sledgehammer available_provers ~> sledgehammer supported_provers
     INCOMPATIBILITY.
 
+* Function package: discontinued option "tailrec".
+INCOMPATIBILITY. Use partial_function instead.
+
 
 *** Document preparation ***
 

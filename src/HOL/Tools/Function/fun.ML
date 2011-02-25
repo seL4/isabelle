@@ -137,7 +137,7 @@ val setup =
 
 
 val fun_config = FunctionConfig { sequential=true, default=NONE,
-  domintros=false, partials=false, tailrec=false }
+  domintros=false, partials=false }
 
 fun gen_add_fun add fixes statements config lthy =
   let

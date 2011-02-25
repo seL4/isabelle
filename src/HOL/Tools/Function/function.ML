@@ -85,11 +85,7 @@ fun prepare_function is_external prep default_constraint fixspec eqns config lth
     val (eqs, post, sort_cont, cnames) = get_preproc lthy config ctxt' fixes spec
 
     val defname = mk_defname fixes
-    val FunctionConfig {partials, tailrec, default, ...} = config
-    val _ =
-      if tailrec then Output.legacy_feature
-        "'function (tailrec)' command. Use 'partial_function (tailrec)'."
-      else ()
+    val FunctionConfig {partials, default, ...} = config
     val _ =
       if is_some default then Output.legacy_feature
         "'function (default)'. Use 'partial_function'."
@@ -100,7 +96,7 @@ fun prepare_function is_external prep default_constraint fixspec eqns config lth
 
     fun afterqed [[proof]] lthy =
       let
-        val FunctionResult {fs, R, psimps, trsimps, simple_pinducts,
+        val FunctionResult {fs, R, psimps, simple_pinducts,
           termination, domintros, cases, ...} =
           cont (Thm.close_derivation proof)
 
@@ -115,9 +111,6 @@ fun prepare_function is_external prep default_constraint fixspec eqns config lth
           lthy
           |> addsmps (conceal_partial o Binding.qualify false "partial")
                "psimps" conceal_partial psimp_attribs psimps
-          ||> (case trsimps of NONE => I | SOME thms =>
-                   addsmps I "simps" I simp_attribs thms #> snd
-                   #> Spec_Rules.add Spec_Rules.Equational (fs, thms))
           ||>> Local_Theory.note ((conceal_partial (qualify "pinduct"),
                  [Attrib.internal (K (Rule_Cases.case_names cnames)),
                   Attrib.internal (K (Rule_Cases.consumes 1)),
