@@ -11,8 +11,7 @@ sig
     Pattern of 'term
 
   datatype theorem =
-    Internal of Facts.ref * thm |
-    External of Facts.ref * term
+    Internal of Facts.ref * thm | External of Facts.ref * term
 
   val tac_limit: int Unsynchronized.ref
   val limit: int Unsynchronized.ref
@@ -22,7 +21,9 @@ sig
     int option -> bool -> (bool * string criterion) list ->
     int option * theorem list
 
+  val pretty_theorem: Proof.context -> theorem -> Pretty.T
   val pretty_thm: Proof.context -> Facts.ref * thm -> Pretty.T
+
 end;
 
 structure Find_Theorems: FIND_THEOREMS =
@@ -80,7 +81,7 @@ fun pretty_criterion ctxt (b, c) =
   end;
 
 
-(** theorems, either internal or external (without proof) *)
+(** theorems, either internal or external (without proof) **)
 
 datatype theorem =
   Internal of Facts.ref * thm |
@@ -452,16 +453,23 @@ fun find_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
      rem_dups raw_criteria
   |> apsnd (map (fn Internal f => f));
 
-fun pretty_thm ctxt (thmref, thm) = Pretty.block
-  [Pretty.str (Facts.string_of_ref thmref), Pretty.str ":", Pretty.brk 1,
-    Display.pretty_thm ctxt thm];
+fun pretty_theorem ctxt (Internal (thmref, thm)) = Pretty.block
+      [Pretty.str (Facts.string_of_ref thmref), Pretty.str ":", Pretty.brk 1,
+        Display.pretty_thm ctxt thm]
+  | pretty_theorem ctxt (External (thmref, prop)) = Pretty.block
+      [Pretty.str (Facts.string_of_ref thmref), Pretty.str ":", Pretty.brk 1,
+        Syntax.unparse_term ctxt prop];
 
-fun print_theorems ctxt (foundo, thms) raw_criteria =
+fun pretty_thm ctxt (thmref, thm) = pretty_theorem ctxt (Internal (thmref, thm));
+
+fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
   let
     val start = start_timing ();
 
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
-    val returned = length thms;
+    val (foundo, theorems) = filter_theorems ctxt (map Internal (all_facts_of ctxt))
+      opt_goal opt_limit rem_dups raw_criteria;
+    val returned = length theorems;
 
     val tally_msg =
       (case foundo of
@@ -476,10 +484,10 @@ fun print_theorems ctxt (foundo, thms) raw_criteria =
   in
     Pretty.big_list "searched for:" (map (pretty_criterion ctxt) criteria) ::
     Pretty.str "" ::
-    (if null thms then [Pretty.str ("nothing found" ^ end_msg)]
+    (if null theorems then [Pretty.str ("nothing found" ^ end_msg)]
      else
       [Pretty.str (tally_msg ^ end_msg ^ ":"), Pretty.str ""] @
-        map (pretty_thm ctxt) thms)
+        map (pretty_theorem ctxt) theorems)
   end |> Pretty.chunks |> Pretty.writeln;
 
 
@@ -515,8 +523,7 @@ val _ =
           let
             val ctxt = Toplevel.context_of state;
             val opt_goal = try (Proof.simple_goal o Toplevel.proof_of) state |> Option.map #goal;
-            val found = find_theorems ctxt opt_goal opt_lim rem_dups spec;
-          in print_theorems ctxt found spec end)));
+          in print_theorems ctxt opt_goal opt_lim rem_dups spec end)));
 
 end;
 
