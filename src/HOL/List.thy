@@ -1321,6 +1321,9 @@ by auto
 
 declare nth.simps [simp del]
 
+lemma nth_Cons_pos[simp]: "0 < n \<Longrightarrow> (x#xs) ! n = xs ! (n - 1)"
+by(auto simp: Nat.gr0_conv_Suc)
+
 lemma nth_append:
   "(xs @ ys)!n = (if n < length xs then xs!n else ys!(n - length xs))"
 apply (induct xs arbitrary: n, simp)

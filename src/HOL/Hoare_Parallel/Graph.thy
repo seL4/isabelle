@@ -140,11 +140,8 @@ apply(case_tac "length path - (length path - Suc m)")
 apply simp
 apply(subgoal_tac "(length path - Suc m) + nat \<le> length path")
  prefer 2 apply arith
-apply(drule nth_drop)
-apply simp
 apply(subgoal_tac "length path - Suc m + nat = length path - Suc 0")
  prefer 2 apply arith 
-apply simp
 apply clarify
 apply(case_tac "i")
  apply(force simp add: nth_list_update)

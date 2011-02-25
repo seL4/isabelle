@@ -67,7 +67,7 @@ lemma tmbound0_I:
   assumes nb: "tmbound0 a"
   shows "Itm vs (b#bs) a = Itm vs (b'#bs) a"
 using nb
-by (induct a rule: tm.induct,auto simp add: nth_pos2)
+by (induct a rule: tm.induct,auto)
 
 primrec tmbound:: "nat \<Rightarrow> tm \<Rightarrow> bool" (* a tm is INDEPENDENT of Bound n *) where
   "tmbound n (CP c) = True"
@@ -105,10 +105,10 @@ fun incrtm0:: "tm \<Rightarrow> tm" where
 
 lemma decrtm0: assumes nb: "tmbound0 t"
   shows "Itm vs (x#bs) t = Itm vs bs (decrtm0 t)"
-  using nb by (induct t rule: decrtm0.induct, simp_all add: nth_pos2)
+  using nb by (induct t rule: decrtm0.induct, simp_all)
 
 lemma incrtm0: "Itm vs (x#bs) (incrtm0 t) = Itm vs bs t"
-  by (induct t rule: decrtm0.induct, simp_all add: nth_pos2)
+  by (induct t rule: decrtm0.induct, simp_all)
 
 primrec decrtm:: "nat \<Rightarrow> tm \<Rightarrow> tm" where
   "decrtm m (CP c) = (CP c)"
@@ -175,10 +175,10 @@ primrec tmsubst0:: "tm \<Rightarrow> tm \<Rightarrow> tm" where
 | "tmsubst0 t (Mul i a) = Mul i (tmsubst0 t a)"
 lemma tmsubst0:
   shows "Itm vs (x#bs) (tmsubst0 t a) = Itm vs ((Itm vs (x#bs) t)#bs) a"
-  by (induct a rule: tm.induct) (auto simp add: nth_pos2)
+  by (induct a rule: tm.induct) auto
 
 lemma tmsubst0_nb: "tmbound0 t \<Longrightarrow> tmbound0 (tmsubst0 t a)"
-  by (induct a rule: tm.induct) (auto simp add: nth_pos2)
+  by (induct a rule: tm.induct) auto
 
 primrec tmsubst:: "nat \<Rightarrow> tm \<Rightarrow> tm \<Rightarrow> tm" where
   "tmsubst n t (CP c) = CP c"
@@ -193,7 +193,7 @@ primrec tmsubst:: "nat \<Rightarrow> tm \<Rightarrow> tm \<Rightarrow> tm" where
 lemma tmsubst: assumes nb: "tmboundslt (length bs) a" and nlt: "n \<le> length bs"
   shows "Itm vs bs (tmsubst n t a) = Itm vs (bs[n:= Itm vs bs t]) a"
 using nb nlt
-by (induct a rule: tm.induct,auto simp add: nth_pos2)
+by (induct a rule: tm.induct,auto)
 
 lemma tmsubst_nb0: assumes tnb: "tmbound0 t"
 shows "tmbound0 (tmsubst 0 t a)"
@@ -534,7 +534,7 @@ lemma bound0_I:
   assumes bp: "bound0 p"
   shows "Ifm vs (b#bs) p = Ifm vs (b'#bs) p"
 using bp tmbound0_I[where b="b" and bs="bs" and b'="b'"]
-by (induct p rule: bound0.induct,auto simp add: nth_pos2)
+by (induct p rule: bound0.induct,auto)
 
 primrec bound:: "nat \<Rightarrow> fm \<Rightarrow> bool" (* A Formula is independent of Bound n *) where
   "bound m T = True"
@@ -1585,7 +1585,7 @@ lemma minusinf_uset0:
 proof-
   have "\<exists> (c,s) \<in> set (uset p). (Ipoly vs c < 0 \<and> Ipoly vs c * x \<le> - Itm vs (x#bs) s) \<or>  (Ipoly vs c > 0 \<and> Ipoly vs c * x \<ge> - Itm vs (x#bs) s)" 
     using lp nmi ex
-    apply (induct p rule: minusinf.induct, auto simp add: eq le lt nth_pos2 polyneg_norm)
+    apply (induct p rule: minusinf.induct, auto simp add: eq le lt polyneg_norm)
     apply (auto simp add: linorder_not_less order_le_less)
     done 
   then obtain c s where csU: "(c,s) \<in> set (uset p)" and x: "(Ipoly vs c < 0 \<and> Ipoly vs c * x \<le> - Itm vs (x#bs) s) \<or>  (Ipoly vs c > 0 \<and> Ipoly vs c * x \<ge> - Itm vs (x#bs) s)" by blast
@@ -1618,7 +1618,7 @@ lemma plusinf_uset0:
 proof-
   have "\<exists> (c,s) \<in> set (uset p). (Ipoly vs c < 0 \<and> Ipoly vs c * x \<ge> - Itm vs (x#bs) s) \<or>  (Ipoly vs c > 0 \<and> Ipoly vs c * x \<le> - Itm vs (x#bs) s)" 
     using lp nmi ex
-    apply (induct p rule: minusinf.induct, auto simp add: eq le lt nth_pos2 polyneg_norm)
+    apply (induct p rule: minusinf.induct, auto simp add: eq le lt polyneg_norm)
     apply (auto simp add: linorder_not_less order_le_less)
     done 
   then obtain c s where csU: "(c,s) \<in> set (uset p)" and x: "(Ipoly vs c < 0 \<and> Ipoly vs c * x \<ge> - Itm vs (x#bs) s) \<or>  (Ipoly vs c > 0 \<and> Ipoly vs c * x \<le> - Itm vs (x#bs) s)" by blast
@@ -1798,7 +1798,7 @@ next
     from yne c eq_divide_eq[of "y" "- ?Nt x s" "?N c"] have ?case
       by (simp add: field_simps tmbound0_I[OF lin(3), of vs x bs y] sum_eq[symmetric]) }
   ultimately show ?case by blast
-qed (auto simp add: nth_pos2 tmbound0_I[where vs=vs and bs="bs" and b="y" and b'="x"] bound0_I[where vs=vs and bs="bs" and b="y" and b'="x"])
+qed (auto simp add: tmbound0_I[where vs=vs and bs="bs" and b="y" and b'="x"] bound0_I[where vs=vs and bs="bs" and b="y" and b'="x"])
 
 lemma one_plus_one_pos[simp]: "(1::'a::{linordered_field}) + 1 > 0"
 proof-
@@ -2467,10 +2467,6 @@ next
   from xy have "x \<in> set xs \<and> y\<in> set xs" using alluopairs_set1 by blast
   with P show "\<exists>x\<in>set xs. \<exists>y\<in>set xs. P x y" by blast
 qed
-
-lemma nth_pos2: "0 < n \<Longrightarrow> (x#xs) ! n = xs ! (n - 1)"
-using Nat.gr0_conv_Suc
-by clarsimp
 
 lemma simpfm_lin:   assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
   shows "qfree p \<Longrightarrow> islin (simpfm p)"

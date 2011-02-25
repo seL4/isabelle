@@ -130,8 +130,6 @@ subsection {* Equivalence of Both Definitions.*}
 lemma last_length: "((a#xs)!(length xs))=last (a#xs)"
 apply simp
 apply(induct xs,simp+)
-apply(case_tac xs)
-apply simp_all
 done
 
 lemma div_seq [rule_format]: "list \<in> cptn_mod \<Longrightarrow>
@@ -304,10 +302,10 @@ apply(erule cptn_mod.induct)
        apply(erule CptnEnv)
       apply(erule CptnComp,simp)
      apply(rule CptnComp)
-     apply(erule CondT,simp)
+      apply(erule CondT,simp)
     apply(rule CptnComp)
-    apply(erule CondF,simp)
---{* Seq1 *}   
+     apply(erule CondF,simp)
+--{* Seq1 *}
 apply(erule cptn.cases,simp_all)
   apply(rule CptnOne)
  apply clarify
@@ -332,37 +330,27 @@ apply(rule cptn_append_is_cptn)
   apply(drule_tac P=P1 in lift_is_cptn)
   apply(simp add:lift_def)
  apply simp
-apply(case_tac "xs\<noteq>[]")
- apply(drule_tac P=P1 in last_lift)
-  apply(rule last_fst_esp)
-  apply (simp add:last_length)
- apply(simp add:Cons_lift del:map.simps)
- apply(rule conjI, clarify, simp)
- apply(case_tac "(((Some P0, s) # xs) ! length xs)")
- apply clarify
- apply (simp add:lift_def last_length)
-apply (simp add:last_length)
+apply(simp split: split_if_asm)
+apply(frule_tac P=P1 in last_lift)
+ apply(rule last_fst_esp)
+ apply (simp add:last_length)
+apply(simp add:Cons_lift lift_def split_def last_conv_nth)
 --{* While1 *}
 apply(rule CptnComp)
-apply(rule WhileT,simp)
+ apply(rule WhileT,simp)
 apply(drule_tac P="While b P" in lift_is_cptn)
 apply(simp add:lift_def)
 --{* While2 *}
 apply(rule CptnComp)
-apply(rule WhileT,simp)
+ apply(rule WhileT,simp)
 apply(rule cptn_append_is_cptn)
-apply(drule_tac P="While b P" in lift_is_cptn)
+  apply(drule_tac P="While b P" in lift_is_cptn)
   apply(simp add:lift_def)
  apply simp
-apply(case_tac "xs\<noteq>[]")
- apply(drule_tac P="While b P" in last_lift)
-  apply(rule last_fst_esp,simp add:last_length)
- apply(simp add:Cons_lift del:map.simps)
- apply(rule conjI, clarify, simp)
- apply(case_tac "(((Some P, s) # xs) ! length xs)")
- apply clarify
- apply (simp add:last_length lift_def)
-apply simp
+apply(simp split: split_if_asm)
+apply(frule_tac P="While b P" in last_lift)
+ apply(rule last_fst_esp,simp add:last_length)
+apply(simp add:Cons_lift lift_def split_def last_conv_nth)
 done
 
 theorem cptn_iff_cptn_mod: "(c \<in> cptn) = (c \<in> cptn_mod)"
