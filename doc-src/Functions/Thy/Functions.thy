@@ -706,7 +706,6 @@ function (*<*)(domintros)(*>*)findzero :: "(nat \<Rightarrow> nat) \<Rightarrow>
 where
   "findzero f n = (if f n = 0 then n else findzero f (Suc n))"
 by pat_completeness auto
-(*<*)declare findzero.simps[simp del](*>*)
 
 text {*
   \noindent Clearly, any attempt of a termination proof must fail. And without
