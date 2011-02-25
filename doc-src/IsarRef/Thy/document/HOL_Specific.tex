@@ -454,7 +454,7 @@ The record package proves several results internally, declaring
     ;
     equations: (thmdecl? prop + '|')
     ;
-    functionopts: '(' (('sequential' | 'domintros' | 'tailrec' | 'default' term) + ',') ')'
+    functionopts: '(' (('sequential' | 'domintros') + ',') ')'
     ;
     'termination' ( term )?
   \end{rail}
@@ -522,14 +522,6 @@ The record package proves several results internally, declaring
   \item \isa{domintros} enables the automated generation of
   introduction rules for the domain predicate. While mostly not
   needed, they can be helpful in some proofs about partial functions.
-
-  \item \isa{tailrec} generates the unconstrained recursive
-  equations even without a termination proof, provided that the
-  function is tail-recursive. This currently only works
-
-  \item \isa{{\isaliteral{22}{\isachardoublequote}}default\ d{\isaliteral{22}{\isachardoublequote}}} allows to specify a default value for a
-  (partial) function, which will ensure that \isa{{\isaliteral{22}{\isachardoublequote}}f\ x\ {\isaliteral{3D}{\isacharequal}}\ d\ x{\isaliteral{22}{\isachardoublequote}}}
-  whenever \isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ f{\isaliteral{5F}{\isacharunderscore}}dom{\isaliteral{22}{\isachardoublequote}}}.
 
   \end{description}%
 \end{isamarkuptext}%
