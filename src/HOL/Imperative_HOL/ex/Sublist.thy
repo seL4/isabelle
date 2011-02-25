@@ -421,11 +421,6 @@ lemma sublist'_back: "\<lbrakk> i < j; j \<le> length xs \<rbrakk> \<Longrightar
 apply (induct xs arbitrary: a i j)
 apply simp
 apply simp
-apply (case_tac j)
-apply simp
-apply auto
-apply (case_tac nat)
-apply auto
 done
 
 (* suffices that j \<le> length xs and length ys *) 
@@ -443,7 +438,6 @@ next
     apply (case_tac i', auto)
     apply (erule_tac x="Suc i'" in allE, auto)
     apply (erule_tac x="i' - 1" in allE, auto)
-    apply (case_tac i', auto)
     apply (erule_tac x="Suc i'" in allE, auto)
     done
 qed
@@ -459,10 +453,8 @@ by (induct xs arbitrary: i j k) auto
 
 lemma nth_sublist': "\<lbrakk> k < j - i; j \<le> length xs \<rbrakk> \<Longrightarrow> (sublist' i j xs) ! k = xs ! (i + k)"
 apply (induct xs arbitrary: i j k)
-apply auto
+apply simp
 apply (case_tac k)
-apply auto
-apply (case_tac i)
 apply auto
 done
 

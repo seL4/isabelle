@@ -111,8 +111,6 @@ apply(rule Parallel)
      apply simp
     apply clarify
     apply simp
-    apply(case_tac j,simp)
-    apply simp
    apply simp
    apply(rule conjI)
     apply clarify

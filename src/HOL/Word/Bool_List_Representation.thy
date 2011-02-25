@@ -308,12 +308,7 @@ lemma nth_bin_to_bl_aux [rule_format] :
    apply clarsimp
   apply clarsimp
   apply (case_tac w rule: bin_exhaust)
-  apply clarsimp
-  apply (case_tac "n - m")
-   apply arith
   apply simp
-  apply (rule_tac f = "%n. bl ! n" in arg_cong) 
-  apply arith
   done
   
 lemma nth_bin_to_bl: "n < m ==> (bin_to_bl m w) ! n = bin_nth w (m - Suc n)"

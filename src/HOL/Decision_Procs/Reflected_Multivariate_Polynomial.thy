@@ -210,11 +210,6 @@ fun poly_deriv :: "poly \<Rightarrow> poly" where
   "poly_deriv (CN c 0 p) = poly_deriv_aux 1 p"
 | "poly_deriv p = 0\<^sub>p"
 
-  (* Verification *)
-lemma nth_pos2[simp]: "0 < n \<Longrightarrow> (x#xs) ! n = xs ! (n - 1)"
-using Nat.gr0_conv_Suc
-by clarsimp
-
 subsection{* Semantics of the polynomial representation *}
 
 primrec Ipoly :: "'a list \<Rightarrow> poly \<Rightarrow> 'a::{field_char_0, field_inverse_zero, power}" where

@@ -39,10 +39,6 @@ next
   with P show "\<exists>x\<in>set xs. \<exists>y\<in>set xs. P x y" by blast
 qed
 
-lemma nth_pos2: "0 < n \<Longrightarrow> (x#xs) ! n = xs ! (n - 1)"
-using Nat.gr0_conv_Suc
-by clarsimp
-
 
   (*********************************************************************************)
   (****                            SHADOW SYNTAX AND SEMANTICS                  ****)
@@ -240,7 +236,7 @@ lemma numbound0_I:
   assumes nb: "numbound0 a"
   shows "Inum (b#bs) a = Inum (b'#bs) a"
 using nb
-by (induct a) (simp_all add: nth_pos2)
+by (induct a) simp_all
 
 primrec bound0:: "fm \<Rightarrow> bool" (* A Formula is independent of Bound 0 *) where
   "bound0 T = True"
@@ -263,7 +259,7 @@ lemma bound0_I:
   assumes bp: "bound0 p"
   shows "Ifm (b#bs) p = Ifm (b'#bs) p"
 using bp numbound0_I[where b="b" and bs="bs" and b'="b'"]
-by (induct p) (auto simp add: nth_pos2)
+by (induct p) auto
 
 lemma not_qf[simp]: "qfree p \<Longrightarrow> qfree (not p)"
 by (cases p, auto)
@@ -316,12 +312,12 @@ fun decr :: "fm \<Rightarrow> fm" where
 
 lemma decrnum: assumes nb: "numbound0 t"
   shows "Inum (x#bs) t = Inum bs (decrnum t)"
-  using nb by (induct t rule: decrnum.induct, simp_all add: nth_pos2)
+  using nb by (induct t rule: decrnum.induct, simp_all)
 
 lemma decr: assumes nb: "bound0 p"
   shows "Ifm (x#bs) p = Ifm bs (decr p)"
   using nb 
-  by (induct p rule: decr.induct, simp_all add: nth_pos2 decrnum)
+  by (induct p rule: decr.induct, simp_all add: decrnum)
 
 lemma decr_qf: "bound0 p \<Longrightarrow> qfree (decr p)"
 by (induct p, simp_all)
@@ -1420,7 +1416,7 @@ next
   also have "\<dots> = (real c *?t + ?n* (?N x e) \<noteq> 0)"
     using np by simp 
   finally show ?case using nbt nb by (simp add: algebra_simps)
-qed(simp_all add: nbt numbound0_I[where bs ="bs" and b="(Inum (x#bs) t)/ real n" and b'="x"] nth_pos2)
+qed(simp_all add: nbt numbound0_I[where bs ="bs" and b="(Inum (x#bs) t)/ real n" and b'="x"])
 
 lemma uset_l:
   assumes lp: "isrlfm p"
@@ -1436,7 +1432,7 @@ lemma rminusinf_uset:
 proof-
   have "\<exists> (s,m) \<in> set (uset p). real m * x \<ge> Inum (a#bs) s " (is "\<exists> (s,m) \<in> ?U p. real m *x \<ge> ?N a s")
     using lp nmi ex
-    by (induct p rule: minusinf.induct, auto simp add:numbound0_I[where bs="bs" and b="a" and b'="x"] nth_pos2)
+    by (induct p rule: minusinf.induct, auto simp add:numbound0_I[where bs="bs" and b="a" and b'="x"])
   then obtain s m where smU: "(s,m) \<in> set (uset p)" and mx: "real m * x \<ge> ?N a s" by blast
   from uset_l[OF lp] smU have mp: "real m > 0" by auto
   from pos_divide_le_eq[OF mp, where a="x" and b="?N a s", symmetric] mx have "x \<ge> ?N a s / real m" 
@@ -1452,7 +1448,7 @@ lemma rplusinf_uset:
 proof-
   have "\<exists> (s,m) \<in> set (uset p). real m * x \<le> Inum (a#bs) s " (is "\<exists> (s,m) \<in> ?U p. real m *x \<le> ?N a s")
     using lp nmi ex
-    by (induct p rule: minusinf.induct, auto simp add:numbound0_I[where bs="bs" and b="a" and b'="x"] nth_pos2)
+    by (induct p rule: minusinf.induct, auto simp add:numbound0_I[where bs="bs" and b="a" and b'="x"])
   then obtain s m where smU: "(s,m) \<in> set (uset p)" and mx: "real m * x \<le> ?N a s" by blast
   from uset_l[OF lp] smU have mp: "real m > 0" by auto
   from pos_le_divide_eq[OF mp, where a="x" and b="?N a s", symmetric] mx have "x \<le> ?N a s / real m" 
@@ -1563,7 +1559,7 @@ next
   hence "y* real c + ?N x e \<noteq> 0" by (simp add: algebra_simps)
   thus ?case using numbound0_I[OF nb, where bs="bs" and b="x" and b'="y"] 
     by (simp add: algebra_simps)
-qed (auto simp add: nth_pos2 numbound0_I[where bs="bs" and b="y" and b'="x"])
+qed (auto simp add: numbound0_I[where bs="bs" and b="y" and b'="x"])
 
 lemma finite_set_intervals:
   assumes px: "P (x::real)" 

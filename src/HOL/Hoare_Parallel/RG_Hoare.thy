@@ -871,12 +871,8 @@ apply(rule conjI)
  apply(simp add:comm_def)
 apply clarify
 apply(erule_tac x="Suc(length xs + i)" in allE,simp)
-apply(case_tac i, simp add:nth_append Cons_lift_append snd_lift del:map.simps)
- apply(simp add:last_length)
- apply(erule mp)
- apply(case_tac "last xs")
- apply(simp add:lift_def)
-apply(simp add:Cons_lift_append nth_append snd_lift del:map.simps)
+apply(case_tac i, simp add:nth_append Cons_lift_append snd_lift last_conv_nth lift_def split_def)
+apply(simp add:Cons_lift_append nth_append snd_lift)
 done
 
 lemma While_sound_aux [rule_format]: 
