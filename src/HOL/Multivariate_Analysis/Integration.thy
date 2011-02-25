@@ -4473,6 +4473,24 @@ proof- have *:"e / (2 * (real DIM('n) + 1)) > 0" apply(rule divide_pos_pos) usin
 
 subsection {* monotone convergence (bounded interval first). *}
 
+lemma upper_bound_finite_set:
+  assumes fS: "finite S"
+  shows "\<exists>(a::'a::linorder). \<forall>x \<in> S. f x \<le> a"
+proof(induct rule: finite_induct[OF fS])
+  case 1 thus ?case by simp
+next
+  case (2 x F)
+  from "2.hyps" obtain a where a:"\<forall>x \<in>F. f x \<le> a" by blast
+  let ?a = "max a (f x)"
+  have m: "a \<le> ?a" "f x \<le> ?a" by simp_all
+  {fix y assume y: "y \<in> insert x F"
+    {assume "y = x" hence "f y \<le> ?a" using m by simp}
+    moreover
+    {assume yF: "y\<in> F" from a[rule_format, OF yF] m have "f y \<le> ?a" by (simp add: max_def)}
+    ultimately have "f y \<le> ?a" using y by blast}
+  then show ?case by blast
+qed
+
 lemma monotone_convergence_interval: fixes f::"nat \<Rightarrow> 'n::ordered_euclidean_space \<Rightarrow> real"
   assumes "\<forall>k. (f k) integrable_on {a..b}"
   "\<forall>k. \<forall>x\<in>{a..b}.(f k x) \<le> (f (Suc k) x)"
@@ -4530,7 +4548,8 @@ next assume ab:"content {a..b} \<noteq> 0"
     proof safe show "gauge d" using c(1) unfolding gauge_def d_def by auto
     next fix p assume p:"p tagged_division_of {a..b}" "d fine p"
       note p'=tagged_division_ofD[OF p(1)]
-      have "\<exists>a. \<forall>x\<in>p. m (fst x) \<le> a" by(rule upper_bound_finite_set,fact)
+      have "\<exists>a. \<forall>x\<in>p. m (fst x) \<le> a"
+        by (metis finite_imageI finite_nat_set_iff_bounded_le p'(1) rev_image_eqI)
       then guess s .. note s=this
       have *:"\<forall>a b c d. norm(a - b) \<le> e / 4 \<and> norm(b - c) < e / 2 \<and>
             norm(c - d) < e / 4 \<longrightarrow> norm(a - d) < e" 
