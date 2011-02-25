@@ -1,80 +1,22 @@
 (*  Title:      HOL/Tools/TFL/casesplit.ML
     Author:     Lucas Dixon, University of Edinburgh
 
-A structure that defines a tactic to program case splits.
-
-    casesplit_free :
-      string * typ -> int -> thm -> thm Seq.seq
-
-    casesplit_name :
-      string -> int -> thm -> thm Seq.seq
-
-These use the induction theorem associated with the recursive data
-type to be split.
-
-The structure includes a function to try and recursively split a
-conjecture into a list sub-theorems:
-
-    splitto : thm list -> thm -> thm
+Extra case splitting for TFL.
 *)
-
-(* logic-specific *)
-signature CASE_SPLIT_DATA =
-sig
-  val dest_Trueprop : term -> term
-  val mk_Trueprop : term -> term
-  val atomize : thm list
-  val rulify : thm list
-end;
-
-structure CaseSplitData_HOL : CASE_SPLIT_DATA =
-struct
-val dest_Trueprop = HOLogic.dest_Trueprop;
-val mk_Trueprop = HOLogic.mk_Trueprop;
-
-val atomize = @{thms induct_atomize};
-val rulify = @{thms induct_rulify};
-val rulify_fallback = @{thms induct_rulify_fallback};
-
-end;
-
 
 signature CASE_SPLIT =
 sig
-  (* failure to find a free to split on *)
-  exception find_split_exp of string
-
-  (* getting a case split thm from the induction thm *)
-  val case_thm_of_ty : theory -> typ -> thm
-  val cases_thm_of_induct_thm : thm -> thm
-
-  (* case split tactics *)
-  val casesplit_free :
-      string * typ -> int -> thm -> thm Seq.seq
-  val casesplit_name : string -> int -> thm -> thm Seq.seq
-
-  (* finding a free var to split *)
-  val find_term_split :
-      term * term -> (string * typ) option
-  val find_thm_split :
-      thm -> int -> thm -> (string * typ) option
-  val find_thms_split :
-      thm list -> int -> thm -> (string * typ) option
 
   (* try to recursively split conjectured thm to given list of thms *)
   val splitto : thm list -> thm -> thm
 
-  (* for use with the recdef package *)
-  val derive_init_eqs :
-      theory ->
-      (thm * int) list -> term list -> (thm * int) list
 end;
 
-functor CaseSplitFUN(Data : CASE_SPLIT_DATA) =
+structure CaseSplit: CASE_SPLIT =
 struct
 
-val rulify_goals = Raw_Simplifier.rewrite_goals_rule Data.rulify;
-val atomize_goals = Raw_Simplifier.rewrite_goals_rule Data.atomize;
+val rulify_goals = Raw_Simplifier.rewrite_goals_rule @{thms induct_rulify};
+val atomize_goals = Raw_Simplifier.rewrite_goals_rule @{thms induct_atomize};
 
 (* beta-eta contract the theorem *)
 fun beta_eta_contract thm =
@@ -98,10 +40,6 @@ fun case_thm_of_ty thy ty  =
     in
       cases_thm_of_induct_thm (#induct dt)
     end;
-
-(*
- val ty = (snd o hd o map Term.dest_Free o OldTerm.term_frees) t;
-*)
 
 
 (* for use when there are no prems to the subgoal *)
@@ -137,71 +75,6 @@ fun mk_casesplit_goal_thm sgn (vstr,ty) gt =
             |> Thm.instantiate (type_cinsts, [])
             |> Thm.instantiate ([], [(cPv, abs_ct), (cDv, free_ct)])))
     end;
-
-
-(* for use when there are no prems to the subgoal *)
-(* does a case split on the given variable (Free fv) *)
-fun casesplit_free fv i th =
-    let
-      val (subgoalth, exp) = IsaND.fix_alls i th;
-      val subgoalth' = atomize_goals subgoalth;
-      val gt = Data.dest_Trueprop (Logic.get_goal (Thm.prop_of subgoalth') 1);
-      val sgn = Thm.theory_of_thm th;
-
-      val splitter_thm = mk_casesplit_goal_thm sgn fv gt;
-      val nsplits = Thm.nprems_of splitter_thm;
-
-      val split_goal_th = splitter_thm RS subgoalth';
-      val rulified_split_goal_th = rulify_goals split_goal_th;
-    in
-      IsaND.export_back exp rulified_split_goal_th
-    end;
-
-
-(* for use when there are no prems to the subgoal *)
-(* does a case split on the given variable *)
-fun casesplit_name vstr i th =
-    let
-      val (subgoalth, exp) = IsaND.fix_alls i th;
-      val subgoalth' = atomize_goals subgoalth;
-      val gt = Data.dest_Trueprop (Logic.get_goal (Thm.prop_of subgoalth') 1);
-
-      val freets = OldTerm.term_frees gt;
-      fun getter x =
-          let val (n,ty) = Term.dest_Free x in
-            (if vstr = n orelse vstr = Name.dest_skolem n
-             then SOME (n,ty) else NONE )
-            handle Fail _ => NONE (* dest_skolem *)
-          end;
-      val (n,ty) = case Library.get_first getter freets
-                of SOME (n, ty) => (n, ty)
-                 | _ => error ("no such variable " ^ vstr);
-      val sgn = Thm.theory_of_thm th;
-
-      val splitter_thm = mk_casesplit_goal_thm sgn (n,ty) gt;
-      val nsplits = Thm.nprems_of splitter_thm;
-
-      val split_goal_th = splitter_thm RS subgoalth';
-
-      val rulified_split_goal_th = rulify_goals split_goal_th;
-    in
-      IsaND.export_back exp rulified_split_goal_th
-    end;
-
-
-(* small example:
-Goal "P (x :: nat) & (C y --> Q (y :: nat))";
-by (rtac (thm "conjI") 1);
-val th = topthm();
-val i = 2;
-val vstr = "y";
-
-by (casesplit_name "y" 2);
-
-val th = topthm();
-val i = 1;
-val th' = casesplit_name "x" i th;
-*)
 
 
 (* the find_XXX_split functions are simply doing a lightwieght (I
@@ -275,7 +148,7 @@ fun splitto splitths genth =
               error "splitto: cannot find variable to split on")
             | SOME v =>
              let
-               val gt = Data.dest_Trueprop (List.nth(Thm.prems_of th, 0));
+               val gt = HOLogic.dest_Trueprop (List.nth(Thm.prems_of th, 0));
                val split_thm = mk_casesplit_goal_thm sgn v gt;
                val (subthms, expf) = IsaND.fixed_subgoal_thms split_thm;
              in
@@ -292,36 +165,4 @@ fun splitto splitths genth =
       recsplitf genth
     end;
 
-
-(* Note: We dont do this if wf conditions fail to be solved, as each
-case may have a different wf condition - we could group the conditions
-togeather and say that they must be true to solve the general case,
-but that would hide from the user which sub-case they were related
-to. Probably this is not important, and it would work fine, but I
-prefer leaving more fine grain control to the user. *)
-
-(* derive eqs, assuming strict, ie the rules have no assumptions = all
-   the well-foundness conditions have been solved. *)
-fun derive_init_eqs sgn rules eqs =
-  let
-    fun get_related_thms i =
-      map_filter ((fn (r, x) => if x = i then SOME r else NONE));
-    fun add_eq (i, e) xs =
-      (e, (get_related_thms i rules), i) :: xs
-    fun solve_eq (th, [], i) =
-          error "derive_init_eqs: missing rules"
-      | solve_eq (th, [a], i) = (a, i)
-      | solve_eq (th, splitths as (_ :: _), i) = (splitto splitths th, i);
-    val eqths =
-      map (Thm.trivial o Thm.cterm_of sgn o Data.mk_Trueprop) eqs;
-  in
-    []
-    |> fold_index add_eq eqths
-    |> map solve_eq
-    |> rev
-  end;
-
 end;
-
-
-structure CaseSplit = CaseSplitFUN(CaseSplitData_HOL);
