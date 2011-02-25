@@ -5,9 +5,7 @@
 header{* A formalization of Ferrante and Rackoff's procedure with polynomial parameters, see Paper in CALCULEMUS 2008 *}
 
 theory Parametric_Ferrante_Rackoff
-imports
-  Reflected_Multivariate_Polynomial
-  Dense_Linear_Order
+imports Reflected_Multivariate_Polynomial Dense_Linear_Order DP_Library
   "~~/src/HOL/Library/Efficient_Nat"
 begin
 
@@ -2440,34 +2438,6 @@ ultimately have th': "(\<exists> (c,t) \<in> set (uset p). \<exists> (d,s) \<in>
 from fr_eq[OF lp, of vs bs x, simplified th'] show ?thesis .
 qed 
 
-text {* Rest of the implementation *}
-
-primrec alluopairs:: "'a list \<Rightarrow> ('a \<times> 'a) list" where
-  "alluopairs [] = []"
-| "alluopairs (x#xs) = (map (Pair x) (x#xs))@(alluopairs xs)"
-
-lemma alluopairs_set1: "set (alluopairs xs) \<le> {(x,y). x\<in> set xs \<and> y\<in> set xs}"
-by (induct xs, auto)
-
-lemma alluopairs_set:
-  "\<lbrakk>x\<in> set xs ; y \<in> set xs\<rbrakk> \<Longrightarrow> (x,y) \<in> set (alluopairs xs) \<or> (y,x) \<in> set (alluopairs xs) "
-by (induct xs, auto)
-
-lemma alluopairs_ex:
-  assumes Pc: "\<forall> x \<in> set xs. \<forall>y\<in> set xs. P x y = P y x"
-  shows "(\<exists> x \<in> set xs. \<exists> y \<in> set xs. P x y) = (\<exists> (x,y) \<in> set (alluopairs xs). P x y)"
-proof
-  assume "\<exists>x\<in>set xs. \<exists>y\<in>set xs. P x y"
-  then obtain x y where x: "x \<in> set xs" and y:"y \<in> set xs" and P: "P x y"  by blast
-  from alluopairs_set[OF x y] P Pc x y show"\<exists>(x, y)\<in>set (alluopairs xs). P x y" 
-    by auto
-next
-  assume "\<exists>(x, y)\<in>set (alluopairs xs). P x y"
-  then obtain "x" and "y"  where xy:"(x,y) \<in> set (alluopairs xs)" and P: "P x y" by blast+
-  from xy have "x \<in> set xs \<and> y\<in> set xs" using alluopairs_set1 by blast
-  with P show "\<exists>x\<in>set xs. \<exists>y\<in>set xs. P x y" by blast
-qed
-
 lemma simpfm_lin:   assumes "SORT_CONSTRAINT('a::{field_char_0, field_inverse_zero})"
   shows "qfree p \<Longrightarrow> islin (simpfm p)"
   by (induct p rule: simpfm.induct, auto simp add: conj_lin disj_lin)
@@ -2516,7 +2486,7 @@ proof-
   from decr0_qf[OF th1] have thqf: "qfree (ferrack p)" by (simp add: ferrack_def Let_def)
   have "?lhs \<longleftrightarrow> (\<exists>x. Ifm vs (x#bs) ?q)" by simp
   also have "\<dots> \<longleftrightarrow> ?I ?mp \<or> ?I ?pp \<or> (\<exists>(c, t)\<in>set ?U. \<exists>(d, s)\<in>set ?U. ?I (msubst (simpfm p) ((c, t), d, s)))" using fr_eq_msubst[OF lq, of vs bs x] by simp
-  also have "\<dots> \<longleftrightarrow> ?I ?mp \<or> ?I ?pp \<or> (\<exists> (x,y) \<in> set ?Up. ?I ((simpfm o (msubst ?q)) (x,y)))" using alluopairs_ex[OF th0] by simp
+  also have "\<dots> \<longleftrightarrow> ?I ?mp \<or> ?I ?pp \<or> (\<exists> (x,y) \<in> set ?Up. ?I ((simpfm o (msubst ?q)) (x,y)))" using alluopairs_bex[OF th0] by simp
   also have "\<dots> \<longleftrightarrow> ?I ?mp \<or> ?I ?pp \<or> ?I (evaldjf (simpfm o (msubst ?q)) ?Up)" 
     by (simp add: evaldjf_ex)
   also have "\<dots> \<longleftrightarrow> ?I (disj ?mp (disj ?pp (evaldjf (simpfm o (msubst ?q)) ?Up)))" by simp
@@ -2857,7 +2827,7 @@ proof-
   also have "\<dots> \<longleftrightarrow> ?I ?mp \<or> ?I ?pp \<or> ?I (subst0 (CP 0\<^sub>p) ?q) \<or> (\<exists>(n,t) \<in> set ?U. ?I (msubst2 ?q (n *\<^sub>p C (-2, 1)) t)) \<or> (\<exists> x\<in>set ?U. \<exists> y \<in>set ?U. ?I (?s (x,y)))"
     by (simp add: split_def)
   also have "\<dots> \<longleftrightarrow> ?I ?mp \<or> ?I ?pp \<or> ?I (subst0 (CP 0\<^sub>p) ?q) \<or> (\<exists>(n,t) \<in> set ?U. ?I (msubst2 ?q (n *\<^sub>p C (-2, 1)) t)) \<or> (\<exists> (x,y) \<in> set ?Up. ?I (?s (x,y)))"
-    using alluopairs_ex[OF th0] by simp 
+    using alluopairs_bex[OF th0] by simp 
   also have "\<dots> \<longleftrightarrow> ?I ?R" 
     by (simp add: list_disj_def evaldjf_ex split_def)
   also have "\<dots> \<longleftrightarrow> ?rhs"

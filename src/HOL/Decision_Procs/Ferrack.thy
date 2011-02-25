@@ -3,42 +3,12 @@
 *)
 
 theory Ferrack
-imports Complex_Main Dense_Linear_Order "~~/src/HOL/Library/Efficient_Nat"
+imports Complex_Main Dense_Linear_Order DP_Library
+  "~~/src/HOL/Library/Efficient_Nat"
 uses ("ferrack_tac.ML")
 begin
 
 section {* Quantifier elimination for @{text "\<real> (0, 1, +, <)"} *}
-
-  (*********************************************************************************)
-  (*          SOME GENERAL STUFF< HAS TO BE MOVED IN SOME LIB                      *)
-  (*********************************************************************************)
-
-primrec alluopairs:: "'a list \<Rightarrow> ('a \<times> 'a) list" where
-  "alluopairs [] = []"
-| "alluopairs (x#xs) = (map (Pair x) (x#xs))@(alluopairs xs)"
-
-lemma alluopairs_set1: "set (alluopairs xs) \<le> {(x,y). x\<in> set xs \<and> y\<in> set xs}"
-by (induct xs, auto)
-
-lemma alluopairs_set:
-  "\<lbrakk>x\<in> set xs ; y \<in> set xs\<rbrakk> \<Longrightarrow> (x,y) \<in> set (alluopairs xs) \<or> (y,x) \<in> set (alluopairs xs) "
-by (induct xs, auto)
-
-lemma alluopairs_ex:
-  assumes Pc: "\<forall> x y. P x y = P y x"
-  shows "(\<exists> x \<in> set xs. \<exists> y \<in> set xs. P x y) = (\<exists> (x,y) \<in> set (alluopairs xs). P x y)"
-proof
-  assume "\<exists>x\<in>set xs. \<exists>y\<in>set xs. P x y"
-  then obtain x y where x: "x \<in> set xs" and y:"y \<in> set xs" and P: "P x y"  by blast
-  from alluopairs_set[OF x y] P Pc show"\<exists>(x, y)\<in>set (alluopairs xs). P x y" 
-    by auto
-next
-  assume "\<exists>(x, y)\<in>set (alluopairs xs). P x y"
-  then obtain "x" and "y"  where xy:"(x,y) \<in> set (alluopairs xs)" and P: "P x y" by blast+
-  from xy have "x \<in> set xs \<and> y\<in> set xs" using alluopairs_set1 by blast
-  with P show "\<exists>x\<in>set xs. \<exists>y\<in>set xs. P x y" by blast
-qed
-
 
   (*********************************************************************************)
   (****                            SHADOW SYNTAX AND SEMANTICS                  ****)
@@ -1594,20 +1564,6 @@ proof-
     ultimately show "False" by blast
   qed
   from ainS binS noy ax xb px show ?thesis by blast
-qed
-
-lemma finite_set_intervals2:
-  assumes px: "P (x::real)" 
-  and lx: "l \<le> x" and xu: "x \<le> u"
-  and linS: "l\<in> S" and uinS: "u \<in> S"
-  and fS:"finite S" and lS: "\<forall> x\<in> S. l \<le> x" and Su: "\<forall> x\<in> S. x \<le> u"
-  shows "(\<exists> s\<in> S. P s) \<or> (\<exists> a \<in> S. \<exists> b \<in> S. (\<forall> y. a < y \<and> y < b \<longrightarrow> y \<notin> S) \<and> a < x \<and> x < b \<and> P x)"
-proof-
-  from finite_set_intervals[where P="P", OF px lx xu linS uinS fS lS Su]
-  obtain a and b where 
-    as: "a\<in> S" and bs: "b\<in> S" and noS:"\<forall>y. a < y \<and> y < b \<longrightarrow> y \<notin> S" and axb: "a \<le> x \<and> x \<le> b \<and> P x"  by auto
-  from axb have "x= a \<or> x= b \<or> (a < x \<and> x < b)" by auto
-  thus ?thesis using px as bs noS by blast 
 qed
 
 lemma rinf_uset:

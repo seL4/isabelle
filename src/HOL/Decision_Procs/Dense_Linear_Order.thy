@@ -277,10 +277,7 @@ declare dlo_simps[langfordsimp]
 end
 
 (* FIXME: Move to HOL -- together with the conj_aci_rule in langford.ML *)
-lemma dnf[no_atp]:
-  "(P & (Q | R)) = ((P&Q) | (P&R))" 
-  "((Q | R) & P) = ((Q&P) | (R&P))"
-  by blast+
+lemmas dnf[no_atp] = conj_disj_distribL conj_disj_distribR
 
 lemmas weak_dnf_simps[no_atp] = simp_thms dnf
 
@@ -875,7 +872,7 @@ Ferrante_Rackoff_Data.funs @{thm "class_dense_linordered_field.ferrack_axiom"}
   {isolate_conv = field_isolate_conv, whatis = classfield_whatis, simpset = class_field_ss}
 end
 *}
-
+(*
 lemma upper_bound_finite_set:
   assumes fS: "finite S"
   shows "\<exists>(a::'a::linorder). \<forall>x \<in> S. f x \<le> a"
@@ -927,7 +924,6 @@ proof-
   hence ?thesis by blast}
 ultimately show ?thesis by blast
 qed
-
-
+*)
 
 end 
