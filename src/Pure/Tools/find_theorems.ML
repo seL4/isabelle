@@ -9,13 +9,18 @@ sig
   datatype 'term criterion =
     Name of string | Intro | IntroIff | Elim | Dest | Solves | Simp of 'term |
     Pattern of 'term
+
+  datatype theorem =
+    Internal of Facts.ref * thm |
+    External of Facts.ref * term
+
   val tac_limit: int Unsynchronized.ref
   val limit: int Unsynchronized.ref
   val find_theorems: Proof.context -> thm option -> int option -> bool ->
     (bool * string criterion) list -> int option * (Facts.ref * thm) list
-  val filter_facts: Proof.context -> (Facts.ref * thm) list -> thm option ->
+  val filter_theorems: Proof.context -> theorem list -> thm option ->
     int option -> bool -> (bool * string criterion) list ->
-    int option * (Facts.ref * thm) list
+    int option * theorem list
 
   val pretty_thm: Proof.context -> Facts.ref * thm -> Pretty.T
 end;
@@ -75,11 +80,29 @@ fun pretty_criterion ctxt (b, c) =
   end;
 
 
+(** theorems, either internal or external (without proof) *)
+
+datatype theorem =
+  Internal of Facts.ref * thm |
+  External of Facts.ref * term;
+
+fun prop_of (Internal (_, thm)) = Thm.full_prop_of thm
+  | prop_of (External (_, prop)) = prop;
+
+fun nprems_of (Internal (_, thm)) = Thm.nprems_of thm
+  | nprems_of (External (_, prop)) = Logic.count_prems prop;
+
+fun major_prem_of (Internal (_, thm)) = Thm.major_prem_of thm
+  | major_prem_of (External (_, prop)) =
+      Logic.strip_assums_concl (hd (Logic.strip_imp_prems prop));
+
+fun fact_ref_of (Internal (fact_ref, _)) = fact_ref
+  | fact_ref_of (External (fact_ref, _)) = fact_ref;
 
 (** search criterion filters **)
 
 (*generated filters are to be of the form
-  input: (Facts.ref * thm)
+  input: theorem
   output: (p:int, s:int) option, where
     NONE indicates no match
     p is the primary sorting criterion
@@ -142,43 +165,43 @@ fun is_matching_thm doiff (extract_terms, refine_term) ctxt po obj term_src =
 
 (* filter_name *)
 
-fun filter_name str_pat (thmref, _) =
-  if match_string str_pat (Facts.name_of_ref thmref)
+fun filter_name str_pat theorem =
+  if match_string str_pat (Facts.name_of_ref (fact_ref_of theorem))
   then SOME (0, 0) else NONE;
 
 
 (* filter intro/elim/dest/solves rules *)
 
-fun filter_dest ctxt goal (_, thm) =
+fun filter_dest ctxt goal theorem =
   let
     val extract_dest =
-     (fn thm => if Thm.no_prems thm then [] else [Thm.full_prop_of thm],
+     (fn theorem => if nprems_of theorem = 0 then [] else [prop_of theorem],
       hd o Logic.strip_imp_prems);
     val prems = Logic.prems_of_goal goal 1;
 
-    fun try_subst prem = is_matching_thm false extract_dest ctxt true prem thm;
+    fun try_subst prem = is_matching_thm false extract_dest ctxt true prem theorem;
     val successful = prems |> map_filter try_subst;
   in
     (*if possible, keep best substitution (one with smallest size)*)
     (*dest rules always have assumptions, so a dest with one
       assumption is as good as an intro rule with none*)
     if not (null successful)
-    then SOME (Thm.nprems_of thm - 1, foldl1 Int.min successful) else NONE
+    then SOME (nprems_of theorem - 1, foldl1 Int.min successful) else NONE
   end;
 
-fun filter_intro doiff ctxt goal (_, thm) =
+fun filter_intro doiff ctxt goal theorem =
   let
-    val extract_intro = (single o Thm.full_prop_of, Logic.strip_imp_concl);
+    val extract_intro = (single o prop_of, Logic.strip_imp_concl);
     val concl = Logic.concl_of_goal goal 1;
-    val ss = is_matching_thm doiff extract_intro ctxt true concl thm;
+    val ss = is_matching_thm doiff extract_intro ctxt true concl theorem;
   in
-    if is_some ss then SOME (Thm.nprems_of thm, the ss) else NONE
+    if is_some ss then SOME (nprems_of theorem, the ss) else NONE
   end;
 
-fun filter_elim ctxt goal (_, thm) =
-  if not (Thm.no_prems thm) then
+fun filter_elim ctxt goal theorem =
+  if nprems_of theorem > 0 then
     let
-      val rule = Thm.full_prop_of thm;
+      val rule = prop_of theorem;
       val prems = Logic.prems_of_goal goal 1;
       val goal_concl = Logic.concl_of_goal goal 1;
       val rule_mp = hd (Logic.strip_imp_prems rule);
@@ -192,9 +215,9 @@ fun filter_elim ctxt goal (_, thm) =
     in
       (*elim rules always have assumptions, so an elim with one
         assumption is as good as an intro rule with none*)
-      if is_nontrivial (ProofContext.theory_of ctxt) (Thm.major_prem_of thm)
+      if is_nontrivial (ProofContext.theory_of ctxt) (major_prem_of theorem)
         andalso not (null successful)
-      then SOME (Thm.nprems_of thm - 1, foldl1 Int.min successful) else NONE
+      then SOME (nprems_of theorem - 1, foldl1 Int.min successful) else NONE
     end
   else NONE
 
@@ -207,29 +230,30 @@ fun filter_solves ctxt goal =
       if Thm.no_prems thm then rtac thm 1 goal
       else (etacn thm THEN_ALL_NEW (Goal.norm_hhf_tac THEN' Method.assm_tac ctxt)) 1 goal;
   in
-    fn (_, thm) =>
+    fn Internal (_, thm) =>
       if is_some (Seq.pull (try_thm thm))
       then SOME (Thm.nprems_of thm, 0) else NONE
+     | External _ => NONE
   end;
 
 
 (* filter_simp *)
 
-fun filter_simp ctxt t (_, thm) =
-  let
-    val mksimps = Simplifier.mksimps (simpset_of ctxt);
-    val extract_simp =
-      (map Thm.full_prop_of o mksimps, #1 o Logic.dest_equals o Logic.strip_imp_concl);
-    val ss = is_matching_thm false extract_simp ctxt false t thm;
-  in
-    if is_some ss then SOME (Thm.nprems_of thm, the ss) else NONE
-  end;
+fun filter_simp ctxt t (Internal (_, thm)) =
+      let
+        val mksimps = Simplifier.mksimps (simpset_of ctxt);
+        val extract_simp =
+          (map Thm.full_prop_of o mksimps, #1 o Logic.dest_equals o Logic.strip_imp_concl);
+        val ss = is_matching_thm false extract_simp ctxt false t thm;
+      in
+        if is_some ss then SOME (Thm.nprems_of thm, the ss) else NONE
+      end
+  | filter_simp _ _ (External _) = NONE;
 
 
 (* filter_pattern *)
 
 fun get_names t = Term.add_const_names t (Term.add_free_names t []);
-fun get_thm_names (_, thm) = get_names (Thm.full_prop_of thm);
 
 (*Including all constants and frees is only sound because
   matching uses higher-order patterns. If full matching
@@ -246,10 +270,10 @@ fun filter_pattern ctxt pat =
   let
     val pat_consts = get_names pat;
 
-    fun check (t, NONE) = check (t, SOME (get_thm_names t))
-      | check ((_, thm), c as SOME thm_consts) =
+    fun check (theorem, NONE) = check (theorem, SOME (get_names (prop_of theorem)))
+      | check (theorem, c as SOME thm_consts) =
          (if subset (op =) (pat_consts, thm_consts) andalso
-            Pattern.matches_subterm (ProofContext.theory_of ctxt) (pat, Thm.full_prop_of thm)
+            Pattern.matches_subterm (ProofContext.theory_of ctxt) (pat, prop_of theorem)
           then SOME (0, 0) else NONE, c);
   in check end;
 
@@ -297,16 +321,16 @@ in
 fun filter_criterion ctxt opt_goal (b, c) =
   (if b then I else (apfst opt_not)) o filter_crit ctxt opt_goal c;
 
-fun sorted_filter filters thms =
+fun sorted_filter filters theorems =
   let
-    fun eval_filters thm = app_filters thm (SOME (0, 0), NONE, filters);
+    fun eval_filters theorem = app_filters theorem (SOME (0, 0), NONE, filters);
 
     (*filters return: (number of assumptions, substitution size) option, so
       sort (desc. in both cases) according to number of assumptions first,
       then by the substitution size*)
-    fun thm_ord (((p0, s0), _), ((p1, s1), _)) =
+    fun result_ord (((p0, s0), _), ((p1, s1), _)) =
       prod_ord int_ord int_ord ((p1, s1), (p0, s0));
-  in map_filter eval_filters thms |> sort thm_ord |> map #2 end;
+  in map_filter eval_filters theorems |> sort result_ord |> map #2 end;
 
 fun lazy_filter filters =
   let
@@ -342,9 +366,9 @@ fun rem_cdups nicer xs =
   let
     fun rem_c rev_seen [] = rev rev_seen
       | rem_c rev_seen [x] = rem_c (x :: rev_seen) []
-      | rem_c rev_seen ((x as ((n, t), _)) :: (y as ((n', t'), _)) :: xs) =
-          if Thm.eq_thm_prop (t, t')
-          then rem_c rev_seen ((if nicer n n' then x else y) :: xs)
+      | rem_c rev_seen ((x as (t, _)) :: (y as (t', _)) :: xs) =
+          if (prop_of t) aconv (prop_of t')
+          then rem_c rev_seen ((if nicer (fact_ref_of t) (fact_ref_of t') then x else y) :: xs)
           else rem_c (x :: rev_seen) (y :: xs)
   in rem_c [] xs end;
 
@@ -367,7 +391,7 @@ fun nicer_shortest ctxt =
 
 fun rem_thm_dups nicer xs =
   xs ~~ (1 upto length xs)
-  |> sort (Term_Ord.fast_term_ord o pairself (Thm.prop_of o #2 o #1))
+  |> sort (Term_Ord.fast_term_ord o pairself (prop_of o #1))
   |> rem_cdups nicer
   |> sort (int_ord o pairself #2)
   |> map #1;
@@ -385,12 +409,14 @@ fun all_facts_of ctxt =
   in
     maps Facts.selections
      (visible_facts (Global_Theory.facts_of (ProofContext.theory_of ctxt)) @
+
+
       visible_facts (ProofContext.facts_of ctxt))
   end;
 
 val limit = Unsynchronized.ref 40;
 
-fun filter_facts ctxt facts opt_goal opt_limit rem_dups raw_criteria =
+fun filter_theorems ctxt theorems opt_goal opt_limit rem_dups raw_criteria =
   let
     val assms =
       ProofContext.get_fact ctxt (Facts.named "local.assms")
@@ -401,9 +427,9 @@ fun filter_facts ctxt facts opt_goal opt_limit rem_dups raw_criteria =
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
     val filters = map (filter_criterion ctxt opt_goal') criteria;
 
-    fun find_all facts =
+    fun find_all theorems =
       let
-        val raw_matches = sorted_filter filters facts;
+        val raw_matches = sorted_filter filters theorems;
 
         val matches =
           if rem_dups
@@ -419,9 +445,12 @@ fun filter_facts ctxt facts opt_goal opt_limit rem_dups raw_criteria =
       then find_all
       else pair NONE o Seq.list_of o Seq.take (the opt_limit) o lazy_filter filters;
 
-  in find facts end;
+  in find theorems end;
 
-fun find_theorems ctxt = filter_facts ctxt (all_facts_of ctxt)
+fun find_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
+  filter_theorems ctxt (map Internal (all_facts_of ctxt)) opt_goal opt_limit
+     rem_dups raw_criteria
+  |> apsnd (map (fn Internal f => f));
 
 fun pretty_thm ctxt (thmref, thm) = Pretty.block
   [Pretty.str (Facts.string_of_ref thmref), Pretty.str ":", Pretty.brk 1,
