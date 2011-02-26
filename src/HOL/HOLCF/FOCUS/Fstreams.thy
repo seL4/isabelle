@@ -83,11 +83,11 @@ by (simp add: first_def)
 lemma jth_n[simp]: "Fin n = #s ==> jth n (s ooo <a>) = a"
 apply (simp add: jth_def, auto)
 apply (simp add: i_th_def rt_sconc1)
-by (simp add: inat_defs split: inat_splits)
+by (simp add: inat_defs split: inat.splits)
 
 lemma last_sconc[simp]: "Fin n = #s ==> last (s ooo <a>) = a"
 apply (simp add: last_def)
-apply (simp add: inat_defs split:inat_splits)
+apply (simp add: inat_defs split:inat.splits)
 by (drule sym, auto)
 
 lemma last_fsingleton[simp]: "last (<a>) = a"
@@ -103,7 +103,7 @@ lemma last_infinite[simp]:"#s = Infty ==> last s = undefined"
 by (simp add: last_def)
 
 lemma jth_slen_lemma1:"n <= k & Fin n = #s ==> jth k s = undefined"
-by (simp add: jth_def inat_defs split:inat_splits, auto)
+by (simp add: jth_def inat_defs split:inat.splits, auto)
 
 lemma jth_UU[simp]:"jth n UU = undefined" 
 by (simp add: jth_def)

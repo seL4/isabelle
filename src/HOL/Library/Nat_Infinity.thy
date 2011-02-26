@@ -32,6 +32,10 @@ lemma not_Fin_eq [iff]: "(ALL y. x ~= Fin y) = (x = Infty)"
 by (cases x) auto
 
 
+primrec the_Fin :: "inat \<Rightarrow> nat"
+where "the_Fin (Fin n) = n"
+
+
 subsection {* Constructors and numbers *}
 
 instantiation inat :: "{zero, one, number}"
@@ -283,6 +287,12 @@ lemmas idiff_Fin_0_right[simp] = idiff_0_right[unfolded zero_inat_def]
 lemma idiff_self[simp]: "n \<noteq> \<infinity> \<Longrightarrow> (n::inat) - n = 0"
 by(auto simp: zero_inat_def)
 
+lemma iSuc_minus_iSuc [simp]: "iSuc n - iSuc m = n - m"
+by(simp add: iSuc_def split: inat.split)
+
+lemma iSuc_minus_1 [simp]: "iSuc n - 1 = n"
+by(simp add: one_inat_def iSuc_Fin[symmetric] zero_inat_def[symmetric])
+
 (*lemmas idiff_self_eq_0_Fin = idiff_self_eq_0[unfolded zero_inat_def]*)
 
 
@@ -487,7 +497,5 @@ subsection {* Traditional theorem names *}
 
 lemmas inat_defs = zero_inat_def one_inat_def number_of_inat_def iSuc_def
   plus_inat_def less_eq_inat_def less_inat_def
-
-lemmas inat_splits = inat.splits
 
 end
