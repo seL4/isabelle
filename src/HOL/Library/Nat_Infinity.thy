@@ -1,5 +1,6 @@
 (*  Title:      HOL/Library/Nat_Infinity.thy
     Author:     David von Oheimb, TU Muenchen;  Florian Haftmann, TU Muenchen
+    Contributions: David Trachtenherz, TU Muenchen
 *)
 
 header {* Natural numbers with infinity *}
@@ -168,8 +169,16 @@ lemma iSuc_plus_1:
 lemma plus_1_iSuc:
   "1 + q = iSuc q"
   "q + 1 = iSuc q"
-  unfolding iSuc_plus_1 by (simp_all add: add_ac)
+by (simp_all add: iSuc_plus_1 add_ac)
 
+lemma iadd_Suc: "iSuc m + n = iSuc (m + n)"
+by (simp_all add: iSuc_plus_1 add_ac)
+
+lemma iadd_Suc_right: "m + iSuc n = iSuc (m + n)"
+by (simp only: add_commute[of m] iadd_Suc)
+
+lemma iadd_is_0: "(m + n = (0::inat)) = (m = 0 \<and> n = 0)"
+by (cases m, cases n, simp_all add: zero_inat_def)
 
 subsection {* Multiplication *}
 
@@ -232,6 +241,50 @@ instance inat :: semiring_char_0 proof
   then show "inj (\<lambda>n. of_nat n :: inat)" by (simp add: of_nat_eq_Fin)
 qed
 
+lemma imult_is_0[simp]: "((m::inat) * n = 0) = (m = 0 \<or> n = 0)"
+by(auto simp add: times_inat_def zero_inat_def split: inat.split)
+
+lemma imult_is_Infty: "((a::inat) * b = \<infinity>) = (a = \<infinity> \<and> b \<noteq> 0 \<or> b = \<infinity> \<and> a \<noteq> 0)"
+by(auto simp add: times_inat_def zero_inat_def split: inat.split)
+
+
+subsection {* Subtraction *}
+
+instantiation inat :: minus
+begin
+
+definition diff_inat_def:
+"a - b = (case a of (Fin x) \<Rightarrow> (case b of (Fin y) \<Rightarrow> Fin (x - y) | \<infinity> \<Rightarrow> 0)
+          | \<infinity> \<Rightarrow> \<infinity>)"
+
+instance ..
+
+end
+
+lemma idiff_Fin_Fin[simp,code]: "Fin a - Fin b = Fin (a - b)"
+by(simp add: diff_inat_def)
+
+lemma idiff_Infty[simp,code]: "\<infinity> - n = \<infinity>"
+by(simp add: diff_inat_def)
+
+lemma idiff_Infty_right[simp,code]: "Fin a - \<infinity> = 0"
+by(simp add: diff_inat_def)
+
+lemma idiff_0[simp]: "(0::inat) - n = 0"
+by (cases n, simp_all add: zero_inat_def)
+
+lemmas idiff_Fin_0[simp] = idiff_0[unfolded zero_inat_def]
+
+lemma idiff_0_right[simp]: "(n::inat) - 0 = n"
+by (cases n) (simp_all add: zero_inat_def)
+
+lemmas idiff_Fin_0_right[simp] = idiff_0_right[unfolded zero_inat_def]
+
+lemma idiff_self[simp]: "n \<noteq> \<infinity> \<Longrightarrow> (n::inat) - n = 0"
+by(auto simp: zero_inat_def)
+
+(*lemmas idiff_self_eq_0_Fin = idiff_self_eq_0[unfolded zero_inat_def]*)
+
 
 subsection {* Ordering *}
 
@@ -286,8 +339,8 @@ lemma inat_ord_number [simp]:
 lemma i0_lb [simp]: "(0\<Colon>inat) \<le> n"
   by (simp add: zero_inat_def less_eq_inat_def split: inat.splits)
 
-lemma i0_neq [simp]: "n \<le> (0\<Colon>inat) \<longleftrightarrow> n = 0"
-  by (simp add: zero_inat_def less_eq_inat_def split: inat.splits)
+lemma ile0_eq [simp]: "n \<le> (0\<Colon>inat) \<longleftrightarrow> n = 0"
+by (simp add: zero_inat_def less_eq_inat_def split: inat.splits)
 
 lemma Infty_ileE [elim!]: "\<infinity> \<le> Fin m \<Longrightarrow> R"
   by (simp add: zero_inat_def less_eq_inat_def split: inat.splits)
@@ -295,11 +348,11 @@ lemma Infty_ileE [elim!]: "\<infinity> \<le> Fin m \<Longrightarrow> R"
 lemma Infty_ilessE [elim!]: "\<infinity> < Fin m \<Longrightarrow> R"
   by simp
 
-lemma not_ilessi0 [simp]: "\<not> n < (0\<Colon>inat)"
+lemma not_iless0 [simp]: "\<not> n < (0\<Colon>inat)"
   by (simp add: zero_inat_def less_inat_def split: inat.splits)
 
-lemma i0_eq [simp]: "(0\<Colon>inat) < n \<longleftrightarrow> n \<noteq> 0"
-  by (simp add: zero_inat_def less_inat_def split: inat.splits)
+lemma i0_less [simp]: "(0\<Colon>inat) < n \<longleftrightarrow> n \<noteq> 0"
+by (simp add: zero_inat_def less_inat_def split: inat.splits)
 
 lemma iSuc_ile_mono [simp]: "iSuc n \<le> iSuc m \<longleftrightarrow> n \<le> m"
   by (simp add: iSuc_def less_eq_inat_def split: inat.splits)
@@ -316,6 +369,9 @@ lemma not_iSuc_ilei0 [simp]: "\<not> iSuc n \<le> 0"
 lemma i0_iless_iSuc [simp]: "0 < iSuc n"
   by (simp add: zero_inat_def iSuc_def less_inat_def split: inat.splits)
 
+lemma iless_iSuc0[simp]: "(n < iSuc 0) = (n = 0)"
+by (simp add: zero_inat_def iSuc_def less_inat_def split: inat.split)
+
 lemma ileI1: "m < n \<Longrightarrow> iSuc m \<le> n"
   by (simp add: iSuc_def less_eq_inat_def less_inat_def split: inat.splits)
 
@@ -324,6 +380,19 @@ lemma Suc_ile_eq: "Fin (Suc m) \<le> n \<longleftrightarrow> Fin m < n"
 
 lemma iless_Suc_eq [simp]: "Fin m < iSuc n \<longleftrightarrow> Fin m \<le> n"
   by (auto simp add: iSuc_def less_inat_def split: inat.splits)
+
+lemma imult_Infty: "(0::inat) < n \<Longrightarrow> \<infinity> * n = \<infinity>"
+by (simp add: zero_inat_def less_inat_def split: inat.splits)
+
+lemma imult_Infty_right: "(0::inat) < n \<Longrightarrow> n * \<infinity> = \<infinity>"
+by (simp add: zero_inat_def less_inat_def split: inat.splits)
+
+lemma inat_0_less_mult_iff: "(0 < (m::inat) * n) = (0 < m \<and> 0 < n)"
+by (simp only: i0_less imult_is_0, simp)
+
+lemma mono_iSuc: "mono iSuc"
+by(simp add: mono_def)
+
 
 lemma min_inat_simps [simp]:
   "min (Fin m) (Fin n) = Fin (min m n)"
