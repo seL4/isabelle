@@ -1530,6 +1530,7 @@ $(LOG)/HOLCF-Tutorial.gz: $(OUT)/HOLCF \
 HOLCF-Library: HOLCF $(LOG)/HOLCF-Library.gz
 
 $(LOG)/HOLCF-Library.gz: $(OUT)/HOLCF \
+  Library/Nat_Infinity.thy \
   HOLCF/Library/Defl_Bifinite.thy \
   HOLCF/Library/Bool_Discrete.thy \
   HOLCF/Library/Char_Discrete.thy \
@@ -1563,7 +1564,6 @@ $(LOG)/HOLCF-IMP.gz: $(OUT)/HOLCF \
 HOLCF-ex: HOLCF $(LOG)/HOLCF-ex.gz
 
 $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF \
-  Library/Nat_Infinity.thy \
   HOLCF/ex/Dagstuhl.thy \
   HOLCF/ex/Dnat.thy \
   HOLCF/ex/Domain_Proofs.thy \
