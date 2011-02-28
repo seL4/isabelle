@@ -327,16 +327,30 @@ fun original_name s =
   else
     s
 
-fun is_higher_order_type (Type (@{type_name fun}, _)) = true
-  | is_higher_order_type (Type (_, Ts)) = exists is_higher_order_type Ts
-  | is_higher_order_type _ = false
+val evil_nix = 0
+val evil_prod = 1
+val evil_fun = 2
+
+(* Returns an approximation of how evil a type is (i.e., how much are we willing
+   to try to specialize the argument even if it contains bound variables). *)
+fun type_evil (Type (@{type_name fun}, _)) = evil_fun
+  | type_evil (Type (s, Ts)) =
+    (if s = @{type_name prod} then evil_prod else evil_nix)
+    |> fold (Integer.max o type_evil) Ts
+  | type_evil _ = evil_nix
+
+fun is_higher_order_type T = (type_evil T = evil_fun)
 
 fun is_special_eligible_arg strict Ts t =
-  let val bad_Ts = map snd (Term.add_vars t []) @ map (nth Ts) (loose_bnos t) in
-    null bad_Ts orelse
-    (is_higher_order_type (fastype_of1 (Ts, t)) andalso
-     not strict orelse forall (not o is_higher_order_type) bad_Ts)
-  end
+  case map snd (Term.add_vars t []) @ map (nth Ts) (loose_bnos t) of
+    [] => true
+  | bad_Ts =>
+    case type_evil (fastype_of1 (Ts, t)) of
+      0 => false
+    | T_evil =>
+      let val bad_Ts_evil = fold (Integer.max o type_evil) bad_Ts evil_nix in
+        (bad_Ts_evil, T_evil) |> (if strict then op < else op <=)
+      end
 
 fun abs_var ((s, j), T) body = Abs (s, T, abstract_over (Var ((s, j), T), body))
 
