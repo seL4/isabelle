@@ -9,7 +9,7 @@ sig
   val compile_generator_expr:
     Proof.context -> term -> int -> term list option * Quickcheck.report option
   val compile_generator_exprs:
-    Proof.context -> term list -> (int -> term list option * Quickcheck.report option) list
+    Proof.context -> term list -> (int -> term list option) list
   val put_counterexample: (unit -> int -> term list option)
     -> Proof.context -> Proof.context
   val put_counterexample_batch: (unit -> (int -> term list option) list)
@@ -365,8 +365,7 @@ fun compile_generator_exprs ctxt ts =
       thy (SOME target) (fn proc => map (fn g => g #> (Option.map o map) proc))
       (HOLogic.mk_list @{typ "code_numeral => term list option"} ts') [];
   in
-    map (fn compile => fn size => rpair NONE (compile size |> Option.map (map post_process_term)))
-      compiles
+    map (fn compile => fn size => compile size |> Option.map (map post_process_term)) compiles
   end;
   
   
@@ -377,6 +376,8 @@ val setup =
     (Quickcheck_Generators.ensure_sort_datatype (@{sort full_small}, instantiate_smallvalue_datatype))
   #> setup_smart_quantifier
   #> Context.theory_map
-    (Quickcheck.add_generator ("exhaustive", compile_generator_expr));
+    (Quickcheck.add_generator ("exhaustive", compile_generator_expr))
+  #> Context.theory_map
+    (Quickcheck.add_batch_generator ("exhaustive", compile_generator_exprs));
 
 end;
