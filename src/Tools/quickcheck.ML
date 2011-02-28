@@ -30,6 +30,9 @@ sig
   val add_generator:
     string * (Proof.context -> term -> int -> term list option * report option)
       -> Context.generic -> Context.generic
+  val add_batch_generator:
+    string * (Proof.context -> term list -> (int -> term list option) list)
+      -> Context.generic -> Context.generic
   (* testing terms and proof states *)
   val test_term: Proof.context -> bool * bool -> term ->
     (string * term) list option * ((string * int) list * ((int * report) list) option)
@@ -37,6 +40,8 @@ sig
     Proof.context -> bool * bool -> (string * typ) list -> term list
       -> (string * term) list option * ((string * int) list * ((int * report) list) option) list
   val quickcheck: (string * string list) list -> int -> Proof.state -> (string * term) list option
+  (* testing a batch of terms *)
+  val test_terms: Proof.context -> term list -> (string * term) list option list option
 end;
 
 structure Quickcheck : QUICKCHECK =
@@ -104,12 +109,14 @@ fun merge_test_params
 structure Data = Generic_Data
 (
   type T =
-    (string * (Proof.context -> term -> int -> term list option * report option)) list
+    ((string * (Proof.context -> term -> int -> term list option * report option)) list
+      * (string * (Proof.context -> term list -> (int -> term list option) list)) list)
       * test_params;
-  val empty = ([], Test_Params {default_type = [], expect = No_Expectation});
+  val empty = (([], []), Test_Params {default_type = [], expect = No_Expectation});
   val extend = I;
-  fun merge ((generators1, params1), (generators2, params2)) : T =
-    (AList.merge (op =) (K true) (generators1, generators2),
+  fun merge (((generators1, batch_generators1), params1), ((generators2, batch_generators2), params2)) : T =
+    ((AList.merge (op =) (K true) (generators1, generators2),
+    AList.merge (op =) (K true) (batch_generators1, batch_generators2)),
       merge_test_params (params1, params2));
 );
 
@@ -121,28 +128,34 @@ val expect = snd o dest_test_params o test_params_of
 
 val map_test_params = Data.map o apsnd o map_test_params'
 
-val add_generator = Data.map o apfst o AList.update (op =);
+val add_generator = Data.map o apfst o apfst o AList.update (op =);
+
+val add_batch_generator = Data.map o apfst o apsnd o AList.update (op =);
 
 (* generating tests *)
 
-fun mk_tester ctxt t =
+fun gen_mk_tester lookup ctxt v =
   let
     val name = Config.get ctxt tester
-    val tester = case AList.lookup (op =) ((fst o Data.get o Context.Proof) ctxt) name
+    val tester = case lookup ctxt name
       of NONE => error ("No such quickcheck tester: " ^ name)
       | SOME tester => tester ctxt;
   in
     if Config.get ctxt quiet then
-      try tester t
+      try tester v
     else
       let
-        val tester = Exn.interruptible_capture tester t
+        val tester = Exn.interruptible_capture tester v
       in case Exn.get_result tester of
           NONE => SOME (Exn.release tester)
         | SOME tester => SOME tester
       end
   end
 
+val mk_tester = gen_mk_tester (fn ctxt =>
+  AList.lookup (op =) ((fst o fst o Data.get o Context.Proof) ctxt))
+val mk_batch_tester = gen_mk_tester (fn ctxt => AList.lookup (op =) ((snd o fst o Data.get o Context.Proof) ctxt))
+  
 (* testing propositions *)
 
 fun prep_test_term t =
@@ -203,6 +216,21 @@ fun test_term ctxt (limit_time, is_interactive) t =
                if Config.get ctxt report andalso not (null reports) then SOME reports else NONE))
           end) (fn () => error (excipit "ran out of time")) ()
   end;
+
+fun test_terms ctxt ts =
+  let
+    val (namess, ts') = split_list (map (fn t => apfst (map fst) (prep_test_term t)) ts)
+    val test_funs = mk_batch_tester ctxt ts'
+    fun with_size tester k =
+      if k > Config.get ctxt size then NONE
+      else case tester k of SOME ts => SOME ts | NONE => with_size tester (k + 1)
+    val results =
+      Option.map (map (fn test_fun => TimeLimit.timeLimit (seconds (Config.get ctxt timeout))
+            (fn () => with_size test_fun 1)  ()
+           handle TimeLimit.TimeOut => NONE)) test_funs
+  in
+    Option.map (map2 (fn names => Option.map (fn ts => names ~~ ts)) namess) results
+  end
 
 (* FIXME: this function shows that many assumptions are made upon the generation *)
 (* In the end there is probably no generic quickcheck interface left... *)
@@ -403,7 +431,7 @@ fun read_expectation "no_expectation" = No_Expectation
   | read_expectation "counterexample" = Counterexample
   | read_expectation s = error ("Not an expectation value: " ^ s)
 
-fun valid_tester_name genctxt = AList.defined (op =) (fst (Data.get genctxt))
+fun valid_tester_name genctxt = AList.defined (op =) (fst (fst (Data.get genctxt)))
 
 fun parse_tester name genctxt =
   if valid_tester_name genctxt name then

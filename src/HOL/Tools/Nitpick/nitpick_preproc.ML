@@ -1165,12 +1165,10 @@ val push_quantifiers_inward =
                  aux "" [] [] t1 $ aux "" [] [] t2
                else
                  let
-                   val typical_card = 4
                    fun big_union proj ps =
                      fold (fold (insert (op =)) o proj) ps []
                    val (ts, connective) = strip_any_connective t
-                   val T_costs =
-                     map (bounded_card_of_type 65536 typical_card []) Ts
+                   val T_costs = map typical_card_of_type Ts
                    val t_costs = map size_of_term ts
                    val num_Ts = length Ts
                    val flip = curry (op -) (num_Ts - 1)

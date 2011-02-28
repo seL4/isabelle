@@ -2477,6 +2477,14 @@ preconstructed.
 Specifies the default preconstruction setting to use. This can be overridden on
 a per-term basis using the \textit{preconstr}~\qty{term} option described above.
 
+\opsmart{total\_consts}{partial\_consts}
+Specifies whether constants occurring in the problem other than constructors can
+be assumed to be considered total for the representable values that approximate
+a datatype. This option is highly incomplete; it should be used only for
+problems that do not construct datatype values explicitly. Since this option is
+(in rare cases) unsound, counterexamples generated under these conditions are
+tagged as ``quasi genuine.''
+
 \opdefault{datatype\_sym\_break}{int}{\upshape 5}
 Specifies an upper bound on the number of datatypes for which Nitpick generates
 symmetry breaking predicates. Symmetry breaking can speed up the SAT solver
