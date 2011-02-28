@@ -489,7 +489,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                                     string_of_int j0))
                          (Typtab.dest ofs)
 *)
-        val total_consts =
+        val effective_total_consts =
           case total_consts of
             SOME b => b
           | NONE => forall (is_exact_type datatypes true) all_Ts
@@ -505,7 +505,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                                     NameTable.empty
         val (sel_names, rep_table) = choose_reps_for_all_sels scope rep_table
         val (nonsel_names, rep_table) =
-          choose_reps_for_consts scope total_consts nonsel_names rep_table
+          choose_reps_for_consts scope effective_total_consts nonsel_names
+                                 rep_table
         val (guiltiest_party, min_highest_arity) =
           NameTable.fold (fn (name, R) => fn (s, n) =>
                              let val n' = arity_of_rep R in
@@ -642,7 +643,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
               nonsel_names rel_table bounds
         val genuine_means_genuine =
           got_all_user_axioms andalso none_true wfs andalso
-          sound_finitizes andalso codatatypes_ok
+          sound_finitizes andalso total_consts <> SOME true andalso
+          codatatypes_ok
         fun assms_prop () = Logic.mk_conjunction_list (neg_t :: assm_ts)
       in
         (pprint (Pretty.chunks
@@ -698,6 +700,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                           ? cons ("wf", "\"smart\" or \"false\"")
                        |> not sound_finitizes
                           ? cons ("finitize", "\"smart\" or \"false\"")
+                       |> total_consts = SOME true
+                          ? cons ("total_consts", "\"smart\" or \"false\"")
                        |> not codatatypes_ok
                           ? cons ("bisim_depth", "a nonnegative value")
                   val ss =
