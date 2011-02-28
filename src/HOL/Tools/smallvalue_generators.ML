@@ -8,7 +8,11 @@ signature SMALLVALUE_GENERATORS =
 sig
   val compile_generator_expr:
     Proof.context -> term -> int -> term list option * Quickcheck.report option
+  val compile_generator_exprs:
+    Proof.context -> term list -> (int -> term list option * Quickcheck.report option) list
   val put_counterexample: (unit -> int -> term list option)
+    -> Proof.context -> Proof.context
+  val put_counterexample_batch: (unit -> (int -> term list option) list)
     -> Proof.context -> Proof.context
   val smart_quantifier : bool Config.T;
   val setup: theory -> theory
@@ -218,6 +222,14 @@ structure Counterexample = Proof_Data
 );
 val put_counterexample = Counterexample.put;
 
+structure Counterexample_Batch = Proof_Data
+(
+  type T = unit -> (int -> term list option) list
+  (* FIXME avoid user error with non-user text *)
+  fun init _ () = error "Counterexample"
+);
+val put_counterexample_batch = Counterexample_Batch.put;
+
 val target = "Quickcheck";
 
 fun mk_smart_generator_expr ctxt t =
@@ -338,9 +350,26 @@ fun compile_generator_expr ctxt t =
       (Counterexample.get, put_counterexample, "Smallvalue_Generators.put_counterexample")
       thy (SOME target) (fn proc => fn g => g #> (Option.map o map) proc) t' [];
   in
-    fn size => rpair NONE (compile size |> Option.map (map post_process_term)) 
+    fn size => rpair NONE (compile size |> Option.map (map post_process_term))
   end;
 
+fun compile_generator_exprs ctxt ts =
+  let
+    val thy = ProofContext.theory_of ctxt
+    val mk_generator_expr =
+      if Config.get ctxt smart_quantifier then mk_smart_generator_expr else mk_generator_expr
+    val ts' = map (mk_generator_expr ctxt) ts;
+    val compiles = Code_Runtime.dynamic_value_strict
+      (Counterexample_Batch.get, put_counterexample_batch,
+        "Smallvalue_Generators.put_counterexample_batch")
+      thy (SOME target) (fn proc => map (fn g => g #> (Option.map o map) proc))
+      (HOLogic.mk_list @{typ "code_numeral => term list option"} ts') [];
+  in
+    map (fn compile => fn size => rpair NONE (compile size |> Option.map (map post_process_term)))
+      compiles
+  end;
+  
+  
 (** setup **)
 
 val setup =
