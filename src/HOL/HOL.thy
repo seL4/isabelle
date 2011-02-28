@@ -908,6 +908,8 @@ lemma contrapos_np: "~ Q ==> (~ P ==> Q) ==> P"
 declare ex_ex1I [rule del, intro! 2]
   and ex1I [intro]
 
+declare ext [intro]
+
 lemmas [intro?] = ext
   and [elim?] = ex1_implies_ex
 

@@ -158,10 +158,7 @@ apply (auto simp add: bigo_def func_zero)
 by (metis mult_zero_left order_refl)
 
 lemma bigo_zero2: "O(%x.0) = {%x.0}"
-  apply (auto simp add: bigo_def) 
-  apply (rule ext)
-  apply auto
-done
+  by (auto simp add: bigo_def) 
 
 lemma bigo_plus_self_subset [intro]: 
   "O(f) \<oplus> O(f) <= O(f)"
@@ -393,7 +390,7 @@ lemma bigo_mult [intro]: "O(f)\<otimes>O(g) <= O(f * g)"
   apply (subst bigo_def)
   apply (auto simp del: abs_mult mult_ac
               simp add: bigo_alt_def set_times_def func_times)
-(*sledgehammer*); 
+(*sledgehammer*)
   apply (rule_tac x = "c * ca" in exI)
   apply(rule allI)
   apply(erule_tac x = x in allE)+
@@ -413,12 +410,12 @@ by (metis abs_ge_zero mult_mono')
 declare [[ sledgehammer_problem_prefix = "BigO__bigo_mult2" ]]
 lemma bigo_mult2 [intro]: "f *o O(g) <= O(f * g)"
   apply (auto simp add: bigo_def elt_set_times_def func_times abs_mult)
-(*sledgehammer*); 
+(*sledgehammer*)
   apply (rule_tac x = c in exI)
   apply clarify
   apply (drule_tac x = x in spec)
 using [[ sledgehammer_problem_prefix = "BigO__bigo_mult2_simpler" ]]
-(*sledgehammer [no luck]*); 
+(*sledgehammer [no luck]*)
   apply (subgoal_tac "abs(f x) * abs(b x) <= abs(f x) * (c * abs(g x))")
   apply (simp add: mult_ac)
   apply (rule mult_left_mono, assumption)
@@ -534,7 +531,7 @@ qed
 
 declare [[ sledgehammer_problem_prefix = "BigO__bigo_plus_absorb" ]]
 lemma bigo_plus_absorb [simp]: "f : O(g) ==> f +o O(g) = O(g)"
-by (metis bigo_plus_absorb_lemma1 bigo_plus_absorb_lemma2 order_eq_iff);
+by (metis bigo_plus_absorb_lemma1 bigo_plus_absorb_lemma2 order_eq_iff)
 
 lemma bigo_plus_absorb2 [intro]: "f : O(g) ==> A <= O(g) ==> f +o A <= O(g)"
   apply (subgoal_tac "f +o A <= f +o O(g)")
@@ -561,9 +558,9 @@ by (auto simp add: bigo_def mult_ac)
 
 declare [[ sledgehammer_problem_prefix = "BigO__bigo_const2" ]]
 lemma (*bigo_const2 [intro]:*) "O(%x. c) <= O(%x. 1)"
-by (metis bigo_const1 bigo_elt_subset);
+by (metis bigo_const1 bigo_elt_subset)
 
-lemma bigo_const2 [intro]: "O(%x. c::'b::linordered_idom) <= O(%x. 1)";
+lemma bigo_const2 [intro]: "O(%x. c::'b::linordered_idom) <= O(%x. 1)"
 (* "thus" had to be replaced by "show" with an explicit reference to "F1" *)
 proof -
   have F1: "\<forall>u. (\<lambda>Q. u) \<in> O(\<lambda>Q. 1)" by (metis bigo_const1)
@@ -597,7 +594,7 @@ lemma bigo_const_mult3: "(c::'a::linordered_field) ~= 0 ==> f : O(%x. c * f x)"
   apply (rule_tac x = "abs(inverse c)" in exI)
   apply (simp only: abs_mult [symmetric] mult_assoc [symmetric])
 apply (subst left_inverse) 
-apply (auto ); 
+apply (auto )
 done
 
 lemma bigo_const_mult4: "(c::'a::linordered_field) ~= 0 ==> 
@@ -649,7 +646,7 @@ lemma bigo_const_mult6 [intro]: "(%x. c) *o O(f) <= O(f)"
   apply (auto intro!: subsetI
     simp add: bigo_def elt_set_times_def func_times
     simp del: abs_mult mult_ac)
-(*sledgehammer*); 
+(*sledgehammer*)
   apply (rule_tac x = "ca * (abs c)" in exI)
   apply (rule allI)
   apply (subgoal_tac "ca * abs(c) * abs(f x) = abs(c) * (ca * abs(f x))")
@@ -706,7 +703,7 @@ lemma bigo_setsum1: "ALL x y. 0 <= h x y ==>
     EX c. ALL x y. abs(f x y) <= c * (h x y) ==>
       (%x. SUM y : A x. f x y) =o O(%x. SUM y : A x. h x y)"
   apply (rule bigo_setsum_main)
-(*sledgehammer*); 
+(*sledgehammer*)
   apply force
   apply clarsimp
   apply (rule_tac x = c in exI)
@@ -726,8 +723,8 @@ lemma bigo_setsum3: "f =o O(h) ==>
   apply (rule allI)+
   apply (rule abs_ge_zero)
   apply (unfold bigo_def)
-  apply (auto simp add: abs_mult);
-(*sledgehammer*); 
+  apply (auto simp add: abs_mult)
+(*sledgehammer*)
   apply (rule_tac x = c in exI)
   apply (rule allI)+
   apply (subst mult_left_commute)
@@ -810,7 +807,7 @@ declare [[ sledgehammer_problem_prefix = "BigO__bigo_fix" ]]
 lemma bigo_fix: "(%x. f ((x::nat) + 1)) =o O(%x. h(x + 1)) ==> f 0 = 0 ==>
     f =o O(h)"
   apply (simp add: bigo_alt_def)
-(*sledgehammer*); 
+(*sledgehammer*)
   apply clarify
   apply (rule_tac x = c in exI)
   apply safe
@@ -895,7 +892,7 @@ lemma bigo_lesso2: "f =o g +o O(h) ==>
   apply (rule allI)
   apply (subst fun_diff_def)
 apply (erule thin_rl)
-(*sledgehammer*);  
+(*sledgehammer*)
   apply (case_tac "0 <= k x - g x")
 (* apply (metis abs_le_iff add_le_imp_le_right diff_minus le_less
                 le_max_iff_disj min_max.le_supE min_max.sup_absorb2
@@ -931,7 +928,7 @@ lemma bigo_lesso3: "f =o g +o O(h) ==>
   apply (rule allI)
   apply (subst fun_diff_def)
 apply (erule thin_rl) 
-(*sledgehammer*); 
+(*sledgehammer*)
   apply (case_tac "0 <= f x - k x")
   apply (simp)
   apply (subst abs_of_nonneg)
