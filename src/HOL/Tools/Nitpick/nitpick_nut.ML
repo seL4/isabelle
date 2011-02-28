@@ -649,7 +649,7 @@ fun choose_rep_for_free_var scope pseudo_frees v (vs, table) =
                best_non_opt_set_rep_for_type) scope (type_of v)
     val v = modify_name_rep v R
   in (v :: vs, NameTable.update (v, R) table) end
-fun choose_rep_for_const (scope as {hol_ctxt = {ctxt, ...}, ...}) all_exact v
+fun choose_rep_for_const (scope as {hol_ctxt = {ctxt, ...}, ...}) total_consts v
                          (vs, table) =
   let
     val x as (s, T) = (nickname_of v, type_of v)
@@ -657,7 +657,7 @@ fun choose_rep_for_const (scope as {hol_ctxt = {ctxt, ...}, ...}) all_exact v
                rep_for_abs_fun
              else if is_rep_fun ctxt x then
                Func oo best_non_opt_symmetric_reps_for_fun_type
-             else if all_exact orelse is_skolem_name v orelse
+             else if total_consts orelse is_skolem_name v orelse
                      member (op =) [@{const_name bisim},
                                     @{const_name bisim_iterator_max}]
                             (original_name s) then
@@ -674,8 +674,8 @@ fun choose_rep_for_const (scope as {hol_ctxt = {ctxt, ...}, ...}) all_exact v
 
 fun choose_reps_for_free_vars scope pseudo_frees vs table =
   fold (choose_rep_for_free_var scope pseudo_frees) vs ([], table)
-fun choose_reps_for_consts scope all_exact vs table =
-  fold (choose_rep_for_const scope all_exact) vs ([], table)
+fun choose_reps_for_consts scope total_consts vs table =
+  fold (choose_rep_for_const scope total_consts) vs ([], table)
 
 fun choose_rep_for_nth_sel_for_constr (scope as {hol_ctxt, binarize, ...})
                                       (x as (_, T)) n (vs, table) =
