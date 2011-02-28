@@ -7,7 +7,6 @@ header {* (Real) Vectors in Euclidean space, and elementary linear algebra.*}
 theory Euclidean_Space
 imports
   Complex_Main
-  "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
   "~~/src/HOL/Library/Infinite_Set"
   "~~/src/HOL/Library/Inner_Product"
   L2_Norm
@@ -48,7 +47,8 @@ proof-
     by (metis linorder_linear not_le)
     have th1: "\<And>z x e d :: real. z <= x + e \<Longrightarrow> e < d ==> z < x \<or> abs(z - x) < d" by arith
     have th2: "\<And>e x:: real. 0 < e ==> ~(x + e <= x)" by arith
-    have th3: "\<And>d::real. d > 0 \<Longrightarrow> \<exists>e > 0. e < d" by dlo
+    have "\<And>d::real. 0 < d \<Longrightarrow> 0 < d/2 \<and> d/2 < d" by simp
+    then have th3: "\<And>d::real. d > 0 \<Longrightarrow> \<exists>e > 0. e < d" by blast
     {assume le2: "f l \<in> e2"
       from le2 fa fb e12 alb have la: "l \<noteq> a" by metis
       hence lap: "l - a > 0" using alb by arith
@@ -56,8 +56,10 @@ proof-
         e: "e > 0" "\<forall>y. dist y (f l) < e \<longrightarrow> y \<in> e2" by metis
       from dst[OF alb e(1)] obtain d where
         d: "d > 0" "\<forall>y. \<bar>y - l\<bar> < d \<longrightarrow> dist (f y) (f l) < e" by metis
-      have "\<exists>d'. d' < d \<and> d' >0 \<and> l - d' > a" using lap d(1)
-        apply ferrack by arith
+      let ?d' = "min (d/2) ((l - a)/2)"
+      have "?d' < d \<and> 0 < ?d' \<and> ?d' < l - a" using lap d(1)
+        by (simp add: min_max.less_infI2)
+      then have "\<exists>d'. d' < d \<and> d' >0 \<and> l - d' > a" by auto
       then obtain d' where d': "d' > 0" "d' < d" "l - d' > a" by metis
       from d e have th0: "\<forall>y. \<bar>y - l\<bar> < d \<longrightarrow> f y \<in> e2" by metis
       from th0[rule_format, of "l - d'"] d' have "f (l - d') \<in> e2" by auto
@@ -72,7 +74,8 @@ proof-
         e: "e > 0" "\<forall>y. dist y (f l) < e \<longrightarrow> y \<in> e1" by metis
       from dst[OF alb e(1)] obtain d where
         d: "d > 0" "\<forall>y. \<bar>y - l\<bar> < d \<longrightarrow> dist (f y) (f l) < e" by metis
-      have "\<exists>d'. d' < d \<and> d' >0" using d(1) by dlo
+      have "\<And>d::real. 0 < d \<Longrightarrow> d/2 < d \<and> 0 < d/2" by simp
+      then have "\<exists>d'. d' < d \<and> d' >0" using d(1) by blast
       then obtain d' where d': "d' > 0" "d' < d" by metis
       from d e have th0: "\<forall>y. \<bar>y - l\<bar> < d \<longrightarrow> f y \<in> e1" by auto
       hence "\<forall>y. l \<le> y \<and> y \<le> l + d' \<longrightarrow> f y \<in> e1" using d' by auto
@@ -1995,7 +1998,7 @@ proof-
         by (simp add: mult_less_0_iff)
       with B[rule_format, of "(\<chi>\<chi> i. 1)::'a"] norm_ge_zero[of "f ((\<chi>\<chi> i. 1)::'a)"] have False by simp
     }
-    then have Bp: "B \<ge> 0" by ferrack
+    then have Bp: "B \<ge> 0" by (metis not_leE)
     {fix x::"'a"
       have "norm (f x) \<le> ?K *  norm x"
       using B[rule_format, of x] norm_ge_zero[of x] norm_ge_zero[of "f x"] Bp

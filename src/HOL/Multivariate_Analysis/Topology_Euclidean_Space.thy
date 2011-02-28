@@ -589,7 +589,7 @@ lemma finite_set_avoid:
   fixes a :: "'a::metric_space"
   assumes fS: "finite S" shows  "\<exists>d>0. \<forall>x\<in>S. x \<noteq> a \<longrightarrow> d <= dist a x"
 proof(induct rule: finite_induct[OF fS])
-  case 1 thus ?case apply auto by ferrack
+  case 1 thus ?case by (auto intro: zero_less_one)
 next
   case (2 x F)
   from 2 obtain d where d: "d >0" "\<forall>x\<in>F. x\<noteq>a \<longrightarrow> d \<le> dist a x" by blast
@@ -5767,7 +5767,10 @@ proof-
     hence "\<exists>N. \<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (z m) (z n) < e"
     proof(cases "d = 0")
       case True
-      hence "\<And>n. z n = z0" using cf_z2[of 0] and c unfolding z_def by (auto simp add: pos_prod_le[OF `1 - c > 0`])
+      have *: "\<And>x. ((1 - c) * x \<le> 0) = (x \<le> 0)" using `1 - c > 0`
+        by (metis mult_zero_left real_mult_commute real_mult_le_cancel_iff1)
+      from True have "\<And>n. z n = z0" using cf_z2[of 0] and c unfolding z_def
+        by (simp add: *)
       thus ?thesis using `e>0` by auto
     next
       case False hence "d>0" unfolding d_def using zero_le_dist[of "z 0" "z 1"]

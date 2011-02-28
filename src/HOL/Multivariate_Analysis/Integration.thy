@@ -6,15 +6,12 @@ header {* Kurzweil-Henstock Gauge Integration in many dimensions. *}
 theory Integration
 imports
   Derivative
-  "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
   "~~/src/HOL/Library/Indicator_Function"
 begin
 
 declare [[smt_certificates="Integration.certs"]]
 declare [[smt_fixed=true]]
 declare [[smt_oracle=false]]
-
-setup {* Arith_Data.add_tactic "Ferrante-Rackoff" (K FerranteRackoff.dlo_tac) *}
 
 (*declare not_less[simp] not_le[simp]*)
 
@@ -2879,7 +2876,7 @@ subsection {* Specialization of additivity to one dimension. *}
 lemma operative_1_lt: assumes "monoidal opp"
   shows "operative opp f \<longleftrightarrow> ((\<forall>a b. b \<le> a \<longrightarrow> f {a..b::real} = neutral opp) \<and>
                 (\<forall>a b c. a < c \<and> c < b \<longrightarrow> opp (f{a..c})(f{c..b}) = f {a..b}))"
-  unfolding operative_def content_eq_0 DIM_real less_one dnf_simps(39,41) Eucl_real_simps
+  unfolding operative_def content_eq_0 DIM_real less_one simp_thms(39,41) Eucl_real_simps
     (* The dnf_simps simplify "\<exists> x. x= _ \<and> _" and "\<forall>k. k = _ \<longrightarrow> _" *)
 proof safe fix a b c::"real" assume as:"\<forall>a b c. f {a..b} = opp (f ({a..b} \<inter> {x. x \<le> c}))
     (f ({a..b} \<inter> {x. c \<le> x}))" "a < c" "c < b"
@@ -4354,7 +4351,7 @@ lemma henstock_lemma_part1: fixes f::"'n::ordered_euclidean_space \<Rightarrow> 
   "(\<forall>p. p tagged_division_of {a..b} \<and> d fine p \<longrightarrow> norm (setsum (\<lambda>(x,k). content k *\<^sub>R f x) p - integral({a..b}) f) < e)"
   and p:"p tagged_partial_division_of {a..b}" "d fine p"
   shows "norm(setsum (\<lambda>(x,k). content k *\<^sub>R f x - integral k f) p) \<le> e" (is "?x \<le> e")
-proof-  { presume "\<And>k. 0<k \<Longrightarrow> ?x \<le> e + k" thus ?thesis by arith }
+proof-  { presume "\<And>k. 0<k \<Longrightarrow> ?x \<le> e + k" thus ?thesis by (blast intro: field_le_epsilon) }
   fix k::real assume k:"k>0" note p' = tagged_partial_division_ofD[OF p(1)]
   have "\<Union>snd ` p \<subseteq> {a..b}" using p'(3) by fastsimp
   note partial_division_of_tagged_division[OF p(1)] this
