@@ -92,10 +92,7 @@ lemma bigo_zero: "0 : O(g)"
   done
 
 lemma bigo_zero2: "O(%x.0) = {%x.0}"
-  apply (auto simp add: bigo_def) 
-  apply (rule ext)
-  apply auto
-  done
+  by (auto simp add: bigo_def) 
 
 lemma bigo_plus_self_subset [intro]: 
   "O(f) \<oplus> O(f) <= O(f)"
