@@ -66,12 +66,6 @@ sig
   val strip_first_name_sep : string -> string * string
   val original_name : string -> string
   val abs_var : indexname * typ -> term -> term
-  val is_higher_order_type : typ -> bool
-  val is_special_eligible_arg : bool -> typ list -> term -> bool
-  val s_let :
-    typ list -> string -> int -> typ -> typ -> (term -> term) -> term -> term
-  val s_betapply : typ list -> term * term -> term
-  val s_betapplys : typ list -> term * term list -> term
   val s_conj : term * term -> term
   val s_disj : term * term -> term
   val strip_any_connective : term -> term list * term
@@ -105,6 +99,7 @@ sig
   val is_integer_like_type : typ -> bool
   val is_record_type : typ -> bool
   val is_number_type : Proof.context -> typ -> bool
+  val is_higher_order_type : typ -> bool
   val const_for_iterator_type : typ -> styp
   val strip_n_binders : int -> typ -> typ list * typ
   val nth_range_type : int -> typ -> typ
@@ -165,6 +160,18 @@ sig
   val num_datatype_constrs : hol_context -> typ -> int
   val constr_name_for_sel_like : string -> string
   val binarized_and_boxed_constr_for_sel : hol_context -> bool -> styp -> styp
+  val card_of_type : (typ * int) list -> typ -> int
+  val bounded_card_of_type : int -> int -> (typ * int) list -> typ -> int
+  val bounded_exact_card_of_type :
+    hol_context -> typ list -> int -> int -> (typ * int) list -> typ -> int
+  val typical_card_of_type : typ -> int
+  val is_finite_type : hol_context -> typ -> bool
+  val is_small_finite_type : hol_context -> typ -> bool
+  val is_special_eligible_arg : bool -> typ list -> term -> bool
+  val s_let :
+    typ list -> string -> int -> typ -> typ -> (term -> term) -> term -> term
+  val s_betapply : typ list -> term * term -> term
+  val s_betapplys : typ list -> term * term list -> term
   val discriminate_value : hol_context -> styp -> term -> term
   val select_nth_constr_arg :
     Proof.context -> (typ option * bool) list -> styp -> term -> int -> typ
@@ -172,12 +179,6 @@ sig
   val construct_value :
     Proof.context -> (typ option * bool) list -> styp -> term list -> term
   val coerce_term : hol_context -> typ list -> typ -> typ -> term -> term
-  val card_of_type : (typ * int) list -> typ -> int
-  val bounded_card_of_type : int -> int -> (typ * int) list -> typ -> int
-  val bounded_exact_card_of_type :
-    hol_context -> typ list -> int -> int -> (typ * int) list -> typ -> int
-  val is_finite_type : hol_context -> typ -> bool
-  val is_small_finite_type : hol_context -> typ -> bool
   val special_bounds : term list -> (indexname * typ) list
   val is_funky_typedef : Proof.context -> typ -> bool
   val all_axioms_of :
@@ -326,82 +327,6 @@ fun original_name s =
     case strip_first_name_sep s of (s1, "") => s1 | (_, s2) => original_name s2
   else
     s
-
-val evil_nix = 0
-val evil_prod = 1
-val evil_fun = 2
-
-(* Returns an approximation of how evil a type is (i.e., how much are we willing
-   to try to specialize the argument even if it contains bound variables). *)
-fun type_evil (Type (@{type_name fun}, _)) = evil_fun
-  | type_evil (Type (s, Ts)) =
-    (if s = @{type_name prod} then evil_prod else evil_nix)
-    |> fold (Integer.max o type_evil) Ts
-  | type_evil _ = evil_nix
-
-fun is_higher_order_type T = (type_evil T = evil_fun)
-
-fun is_special_eligible_arg strict Ts t =
-  case map snd (Term.add_vars t []) @ map (nth Ts) (loose_bnos t) of
-    [] => true
-  | bad_Ts =>
-    case type_evil (fastype_of1 (Ts, t)) of
-      0 => false
-    | T_evil =>
-      let val bad_Ts_evil = fold (Integer.max o type_evil) bad_Ts evil_nix in
-        (bad_Ts_evil, T_evil) |> (if strict then op < else op <=)
-      end
-
-fun abs_var ((s, j), T) body = Abs (s, T, abstract_over (Var ((s, j), T), body))
-
-fun let_var s = (nitpick_prefix ^ s, 999)
-val let_inline_threshold = 20
-
-fun s_let Ts s n abs_T body_T f t =
-  if (n - 1) * (size_of_term t - 1) <= let_inline_threshold orelse
-     is_special_eligible_arg false Ts t then
-    f t
-  else
-    let val z = (let_var s, abs_T) in
-      Const (@{const_name Let}, abs_T --> (abs_T --> body_T) --> body_T)
-      $ t $ abs_var z (incr_boundvars 1 (f (Var z)))
-    end
-
-fun loose_bvar1_count (Bound i, k) = if i = k then 1 else 0
-  | loose_bvar1_count (t1 $ t2, k) =
-    loose_bvar1_count (t1, k) + loose_bvar1_count (t2, k)
-  | loose_bvar1_count (Abs (_, _, t), k) = loose_bvar1_count (t, k + 1)
-  | loose_bvar1_count _ = 0
-
-fun s_betapply _ (Const (@{const_name If}, _) $ @{const True} $ t1', _) = t1'
-  | s_betapply _ (Const (@{const_name If}, _) $ @{const False} $ _, t2) = t2
-  | s_betapply Ts (Const (@{const_name Let},
-                          Type (_, [bound_T, Type (_, [_, body_T])]))
-                   $ t12 $ Abs (s, T, t13'), t2) =
-    let val body_T' = range_type body_T in
-      Const (@{const_name Let}, bound_T --> (bound_T --> body_T') --> body_T')
-      $ t12 $ Abs (s, T, s_betapply (T :: Ts) (t13', incr_boundvars 1 t2))
-    end
-  | s_betapply Ts (t1 as Abs (s1, T1, t1'), t2) =
-    (s_let Ts s1 (loose_bvar1_count (t1', 0)) T1 (fastype_of1 (T1 :: Ts, t1'))
-              (curry betapply t1) t2
-     handle TERM _ => betapply (t1, t2)) (* FIXME: fix all uses *)
-  | s_betapply _ (t1, t2) = t1 $ t2
-fun s_betapplys Ts = Library.foldl (s_betapply Ts)
-
-fun s_beta_norm Ts t =
-  let
-    fun aux _ (Var _) = raise Same.SAME
-      | aux Ts (Abs (s, T, t')) = Abs (s, T, aux (T :: Ts) t')
-      | aux Ts ((t1 as Abs _) $ t2) =
-        Same.commit (aux Ts) (s_betapply Ts (t1, t2))
-      | aux Ts (t1 $ t2) =
-        ((case aux Ts t1 of
-           t1 as Abs _ => Same.commit (aux Ts) (s_betapply Ts (t1, t2))
-         | t1 => t1 $ Same.commit (aux Ts) t2)
-        handle Same.SAME => t1 $ aux Ts t2)
-      | aux _ _ = raise Same.SAME
-  in aux Ts t handle Same.SAME => t end
 
 fun s_conj (t1, @{const True}) = t1
   | s_conj (@{const True}, t2) = t2
@@ -568,6 +493,9 @@ fun is_frac_type ctxt (Type (s, [])) =
       |> these |> null |> not
   | is_frac_type _ _ = false
 fun is_number_type ctxt = is_integer_like_type orf is_frac_type ctxt
+fun is_higher_order_type (Type (@{type_name fun}, _)) = true
+  | is_higher_order_type (Type (_, Ts)) = exists is_higher_order_type Ts
+  | is_higher_order_type _ = false
 
 fun iterator_type_for_const gfp (s, T) =
   Type ((if gfp then gfp_iterator_prefix else lfp_iterator_prefix) ^ s,
@@ -1014,6 +942,162 @@ fun binarized_and_boxed_constr_for_sel hol_ctxt binarize (s', T') =
     |> the |> pair s
   end
 
+fun card_of_type assigns (Type (@{type_name fun}, [T1, T2])) =
+    reasonable_power (card_of_type assigns T2) (card_of_type assigns T1)
+  | card_of_type assigns (Type (@{type_name prod}, [T1, T2])) =
+    card_of_type assigns T1 * card_of_type assigns T2
+  | card_of_type _ (Type (@{type_name itself}, _)) = 1
+  | card_of_type _ @{typ prop} = 2
+  | card_of_type _ @{typ bool} = 2
+  | card_of_type assigns T =
+    case AList.lookup (op =) assigns T of
+      SOME k => k
+    | NONE => if T = @{typ bisim_iterator} then 0
+              else raise TYPE ("Nitpick_HOL.card_of_type", [T], [])
+
+fun bounded_card_of_type max default_card assigns
+                         (Type (@{type_name fun}, [T1, T2])) =
+    let
+      val k1 = bounded_card_of_type max default_card assigns T1
+      val k2 = bounded_card_of_type max default_card assigns T2
+    in
+      if k1 = max orelse k2 = max then max
+      else Int.min (max, reasonable_power k2 k1)
+    end
+  | bounded_card_of_type max default_card assigns
+                         (Type (@{type_name prod}, [T1, T2])) =
+    let
+      val k1 = bounded_card_of_type max default_card assigns T1
+      val k2 = bounded_card_of_type max default_card assigns T2
+    in if k1 = max orelse k2 = max then max else Int.min (max, k1 * k2) end
+  | bounded_card_of_type max default_card assigns T =
+    Int.min (max, if default_card = ~1 then
+                    card_of_type assigns T
+                  else
+                    card_of_type assigns T
+                    handle TYPE ("Nitpick_HOL.card_of_type", _, _) =>
+                           default_card)
+
+fun bounded_exact_card_of_type hol_ctxt finitizable_dataTs max default_card
+                               assigns T =
+  let
+    fun aux avoid T =
+      (if member (op =) avoid T then
+         0
+       else if member (op =) finitizable_dataTs T then
+         raise SAME ()
+       else case T of
+         Type (@{type_name fun}, [T1, T2]) =>
+         let
+           val k1 = aux avoid T1
+           val k2 = aux avoid T2
+         in
+           if k1 = 0 orelse k2 = 0 then 0
+           else if k1 >= max orelse k2 >= max then max
+           else Int.min (max, reasonable_power k2 k1)
+         end
+       | Type (@{type_name prod}, [T1, T2]) =>
+         let
+           val k1 = aux avoid T1
+           val k2 = aux avoid T2
+         in
+           if k1 = 0 orelse k2 = 0 then 0
+           else if k1 >= max orelse k2 >= max then max
+           else Int.min (max, k1 * k2)
+         end
+       | Type (@{type_name itself}, _) => 1
+       | @{typ prop} => 2
+       | @{typ bool} => 2
+       | Type _ =>
+         (case datatype_constrs hol_ctxt T of
+            [] => if is_integer_type T orelse is_bit_type T then 0
+                  else raise SAME ()
+          | constrs =>
+            let
+              val constr_cards =
+                map (Integer.prod o map (aux (T :: avoid)) o binder_types o snd)
+                    constrs
+            in
+              if exists (curry (op =) 0) constr_cards then 0
+              else Integer.sum constr_cards
+            end)
+       | _ => raise SAME ())
+      handle SAME () =>
+             AList.lookup (op =) assigns T |> the_default default_card
+  in Int.min (max, aux [] T) end
+
+val typical_atomic_card = 4
+val typical_card_of_type = bounded_card_of_type 65536 typical_atomic_card []
+
+val small_type_max_card = 5
+
+fun is_finite_type hol_ctxt T =
+  bounded_exact_card_of_type hol_ctxt [] 1 2 [] T > 0
+fun is_small_finite_type hol_ctxt T =
+  let val n = bounded_exact_card_of_type hol_ctxt [] 1 2 [] T in
+    n > 0 andalso n <= small_type_max_card
+  end
+
+fun is_special_eligible_arg strict Ts t =
+  case map snd (Term.add_vars t []) @ map (nth Ts) (loose_bnos t) of
+    [] => true
+  | bad_Ts =>
+    let
+      val bad_Ts_cost = fold (Integer.max o typical_card_of_type) bad_Ts 0
+      val T_cost = typical_card_of_type (fastype_of1 (Ts, t))
+    in (bad_Ts_cost, T_cost) |> (if strict then op < else op <=) end
+
+fun abs_var ((s, j), T) body = Abs (s, T, abstract_over (Var ((s, j), T), body))
+
+fun let_var s = (nitpick_prefix ^ s, 999)
+val let_inline_threshold = 20
+
+fun s_let Ts s n abs_T body_T f t =
+  if (n - 1) * (size_of_term t - 1) <= let_inline_threshold orelse
+     is_special_eligible_arg false Ts t then
+    f t
+  else
+    let val z = (let_var s, abs_T) in
+      Const (@{const_name Let}, abs_T --> (abs_T --> body_T) --> body_T)
+      $ t $ abs_var z (incr_boundvars 1 (f (Var z)))
+    end
+
+fun loose_bvar1_count (Bound i, k) = if i = k then 1 else 0
+  | loose_bvar1_count (t1 $ t2, k) =
+    loose_bvar1_count (t1, k) + loose_bvar1_count (t2, k)
+  | loose_bvar1_count (Abs (_, _, t), k) = loose_bvar1_count (t, k + 1)
+  | loose_bvar1_count _ = 0
+
+fun s_betapply _ (Const (@{const_name If}, _) $ @{const True} $ t1', _) = t1'
+  | s_betapply _ (Const (@{const_name If}, _) $ @{const False} $ _, t2) = t2
+  | s_betapply Ts (Const (@{const_name Let},
+                          Type (_, [bound_T, Type (_, [_, body_T])]))
+                   $ t12 $ Abs (s, T, t13'), t2) =
+    let val body_T' = range_type body_T in
+      Const (@{const_name Let}, bound_T --> (bound_T --> body_T') --> body_T')
+      $ t12 $ Abs (s, T, s_betapply (T :: Ts) (t13', incr_boundvars 1 t2))
+    end
+  | s_betapply Ts (t1 as Abs (s1, T1, t1'), t2) =
+    (s_let Ts s1 (loose_bvar1_count (t1', 0)) T1 (fastype_of1 (T1 :: Ts, t1'))
+              (curry betapply t1) t2
+     handle TERM _ => betapply (t1, t2)) (* FIXME: fix all uses *)
+  | s_betapply _ (t1, t2) = t1 $ t2
+fun s_betapplys Ts = Library.foldl (s_betapply Ts)
+
+fun s_beta_norm Ts t =
+  let
+    fun aux _ (Var _) = raise Same.SAME
+      | aux Ts (Abs (s, T, t')) = Abs (s, T, aux (T :: Ts) t')
+      | aux Ts ((t1 as Abs _) $ t2) =
+        Same.commit (aux Ts) (s_betapply Ts (t1, t2))
+      | aux Ts (t1 $ t2) =
+        ((case aux Ts t1 of
+           t1 as Abs _ => Same.commit (aux Ts) (s_betapply Ts (t1, t2))
+         | t1 => t1 $ Same.commit (aux Ts) t2)
+        handle Same.SAME => t1 $ aux Ts t2)
+      | aux _ _ = raise Same.SAME
+  in aux Ts t handle Same.SAME => t end
+
 fun discr_term_for_constr hol_ctxt (x as (s, T)) =
   let val dataT = body_type T in
     if s = @{const_name Suc} then
@@ -1149,97 +1233,6 @@ and coerce_term (hol_ctxt as {ctxt, stds, ...}) Ts new_T old_T t =
       else
         raise TYPE ("Nitpick_HOL.coerce_term", [new_T, old_T], [t])
     | _ => raise TYPE ("Nitpick_HOL.coerce_term", [new_T, old_T], [t])
-
-fun card_of_type assigns (Type (@{type_name fun}, [T1, T2])) =
-    reasonable_power (card_of_type assigns T2) (card_of_type assigns T1)
-  | card_of_type assigns (Type (@{type_name prod}, [T1, T2])) =
-    card_of_type assigns T1 * card_of_type assigns T2
-  | card_of_type _ (Type (@{type_name itself}, _)) = 1
-  | card_of_type _ @{typ prop} = 2
-  | card_of_type _ @{typ bool} = 2
-  | card_of_type assigns T =
-    case AList.lookup (op =) assigns T of
-      SOME k => k
-    | NONE => if T = @{typ bisim_iterator} then 0
-              else raise TYPE ("Nitpick_HOL.card_of_type", [T], [])
-fun bounded_card_of_type max default_card assigns
-                         (Type (@{type_name fun}, [T1, T2])) =
-    let
-      val k1 = bounded_card_of_type max default_card assigns T1
-      val k2 = bounded_card_of_type max default_card assigns T2
-    in
-      if k1 = max orelse k2 = max then max
-      else Int.min (max, reasonable_power k2 k1)
-    end
-  | bounded_card_of_type max default_card assigns
-                         (Type (@{type_name prod}, [T1, T2])) =
-    let
-      val k1 = bounded_card_of_type max default_card assigns T1
-      val k2 = bounded_card_of_type max default_card assigns T2
-    in if k1 = max orelse k2 = max then max else Int.min (max, k1 * k2) end
-  | bounded_card_of_type max default_card assigns T =
-    Int.min (max, if default_card = ~1 then
-                    card_of_type assigns T
-                  else
-                    card_of_type assigns T
-                    handle TYPE ("Nitpick_HOL.card_of_type", _, _) =>
-                           default_card)
-fun bounded_exact_card_of_type hol_ctxt finitizable_dataTs max default_card
-                               assigns T =
-  let
-    fun aux avoid T =
-      (if member (op =) avoid T then
-         0
-       else if member (op =) finitizable_dataTs T then
-         raise SAME ()
-       else case T of
-         Type (@{type_name fun}, [T1, T2]) =>
-         let
-           val k1 = aux avoid T1
-           val k2 = aux avoid T2
-         in
-           if k1 = 0 orelse k2 = 0 then 0
-           else if k1 >= max orelse k2 >= max then max
-           else Int.min (max, reasonable_power k2 k1)
-         end
-       | Type (@{type_name prod}, [T1, T2]) =>
-         let
-           val k1 = aux avoid T1
-           val k2 = aux avoid T2
-         in
-           if k1 = 0 orelse k2 = 0 then 0
-           else if k1 >= max orelse k2 >= max then max
-           else Int.min (max, k1 * k2)
-         end
-       | Type (@{type_name itself}, _) => 1
-       | @{typ prop} => 2
-       | @{typ bool} => 2
-       | Type _ =>
-         (case datatype_constrs hol_ctxt T of
-            [] => if is_integer_type T orelse is_bit_type T then 0
-                  else raise SAME ()
-          | constrs =>
-            let
-              val constr_cards =
-                map (Integer.prod o map (aux (T :: avoid)) o binder_types o snd)
-                    constrs
-            in
-              if exists (curry (op =) 0) constr_cards then 0
-              else Integer.sum constr_cards
-            end)
-       | _ => raise SAME ())
-      handle SAME () =>
-             AList.lookup (op =) assigns T |> the_default default_card
-  in Int.min (max, aux [] T) end
-
-val small_type_max_card = 5
-
-fun is_finite_type hol_ctxt T =
-  bounded_exact_card_of_type hol_ctxt [] 1 2 [] T > 0
-fun is_small_finite_type hol_ctxt T =
-  let val n = bounded_exact_card_of_type hol_ctxt [] 1 2 [] T in
-    n > 0 andalso n <= small_type_max_card
-  end
 
 fun is_ground_term (t1 $ t2) = is_ground_term t1 andalso is_ground_term t2
   | is_ground_term (Const _) = true
