@@ -27,6 +27,7 @@ sig
      destroy_constrs: bool,
      specialize: bool,
      star_linear_preds: bool,
+     total_consts: bool option,
      preconstrs: (term option * bool option) list,
      tac_timeout: Time.time option,
      evals: term list,
@@ -259,6 +260,7 @@ type hol_context =
    destroy_constrs: bool,
    specialize: bool,
    star_linear_preds: bool,
+   total_consts: bool option,
    preconstrs: (term option * bool option) list,
    tac_timeout: Time.time option,
    evals: term list,
@@ -1634,13 +1636,15 @@ fun optimized_record_update (hol_ctxt as {thy, ctxt, stds, ...}) s rec_T fun_t
 val unfold_max_depth = 255
 
 (* Inline definitions or define as an equational constant? Booleans tend to
-   benefit more from inlining, due to the polarity analysis. *)
+   benefit more from inlining, due to the polarity analysis. (However, if
+   "total_consts" is set, the polarity analysis is likely not to be so
+   crucial.) *)
 val def_inline_threshold_for_booleans = 60
 val def_inline_threshold_for_non_booleans = 20
 
 fun unfold_defs_in_term
-        (hol_ctxt as {thy, ctxt, stds, whacks, case_names, def_tables,
-                      ground_thm_table, ersatz_table, ...}) =
+        (hol_ctxt as {thy, ctxt, stds, whacks, total_consts, case_names,
+                      def_tables, ground_thm_table, ersatz_table, ...}) =
   let
     fun do_term depth Ts t =
       case t of
@@ -1718,7 +1722,8 @@ fun unfold_defs_in_term
       | NONE =>
         let
           fun def_inline_threshold () =
-            if is_boolean_type (nth_range_type (length ts) T) then
+            if is_boolean_type (nth_range_type (length ts) T) andalso
+               total_consts <> SOME true then
               def_inline_threshold_for_booleans
             else
               def_inline_threshold_for_non_booleans
