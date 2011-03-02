@@ -1284,7 +1284,9 @@ fun preprocess_formulas
     val preconstr_ts =
       (* FIXME: Implement preconstruction inference. *)
       preconstrs
-      |> map_filter (fn (SOME t, SOME true) => SOME (t |> do_middle false)
+      |> map_filter (fn (SOME t, SOME true) =>
+                        SOME (t |> unfold_defs_in_term hol_ctxt
+                                |> do_middle false)
                       | _ => NONE)
     val nondef_ts = nondef_ts |> map (do_tail false)
     val def_ts = def_ts |> map (do_middle true #> do_tail true)
