@@ -258,16 +258,16 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                      o Date.fromTimeLocal o Time.now)
     val neg_t = if falsify then Logic.mk_implies (orig_t, @{prop False})
                 else orig_t
+    val conj_ts = neg_t :: assm_ts @ evals @ map_filter fst preconstrs
     val tfree_table =
-      if merge_type_vars then
-        merged_type_var_table_for_terms thy (neg_t :: assm_ts @ evals)
-      else
-        []
-    val neg_t = merge_type_vars_in_term thy merge_type_vars tfree_table neg_t
-    val assm_ts = map (merge_type_vars_in_term thy merge_type_vars tfree_table)
-                      assm_ts
-    val evals = map (merge_type_vars_in_term thy merge_type_vars tfree_table)
-                    evals
+      if merge_type_vars then merged_type_var_table_for_terms thy conj_ts
+      else []
+    val merge_tfrees = merge_type_vars_in_term thy merge_type_vars tfree_table
+    val neg_t = neg_t |> merge_tfrees
+    val assm_ts = assm_ts |> map merge_tfrees
+    val evals = evals |> map merge_tfrees
+    val preconstrs = preconstrs |> map (apfst (Option.map merge_tfrees))
+    val conj_ts = neg_t :: assm_ts @ evals @ map_filter fst preconstrs
     val original_max_potential = max_potential
     val original_max_genuine = max_genuine
     val max_bisim_depth = fold Integer.max bisim_depths ~1
@@ -299,9 +299,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
        unrolled_preds = Unsynchronized.ref [], wf_cache = Unsynchronized.ref [],
        constr_cache = Unsynchronized.ref []}
     val pseudo_frees = []
-    val real_frees = fold Term.add_frees (neg_t :: assm_ts) []
-    val _ = null (fold Term.add_tvars (neg_t :: assm_ts) []) orelse
-            raise NOT_SUPPORTED "schematic type variables"
+    val real_frees = fold Term.add_frees conj_ts []
+    val _ = null (fold Term.add_tvars conj_ts []) orelse
+            error "Nitpick cannot handle goals with schematic type variables."
     val (nondef_ts, def_ts, preconstr_ts, got_all_mono_user_axioms,
          no_poly_user_axioms, binarize) =
       preprocess_formulas hol_ctxt assm_ts neg_t
