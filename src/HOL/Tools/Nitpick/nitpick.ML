@@ -335,7 +335,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val need_us = need_ts |> map (nut_from_term hol_ctxt Eq)
     val _ = List.app check_constr_nut need_us
     val (free_names, const_names) =
-      fold add_free_and_const_names (nondef_us @ def_us) ([], [])
+      fold add_free_and_const_names (nondef_us @ def_us @ need_us) ([], [])
     val (sel_names, nonsel_names) =
       List.partition (is_sel o nickname_of) const_names
     val sound_finitizes =
@@ -343,7 +343,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                           | _ => false) finitizes)
     val standard = forall snd stds
 (*
-    val _ = List.app (print_g o string_for_nut ctxt) (nondef_us @ def_us)
+    val _ =
+      List.app (print_g o string_for_nut ctxt) (nondef_us @ def_us @ need_us)
 *)
 
     val unique_scope = forall (curry (op =) 1 o length o snd) cards_assigns
@@ -531,7 +532,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
 (*
         val _ = List.app (print_g o string_for_nut ctxt)
                          (free_names @ sel_names @ nonsel_names @
-                          nondef_us @ def_us)
+                          nondef_us @ def_us @ need_us)
 *)
         val (free_rels, pool, rel_table) =
           rename_free_vars free_names initial_pool NameTable.empty
