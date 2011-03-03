@@ -18,8 +18,9 @@ fun read f path = f (Position.file (Path.implode path)) (File.read path);
 fun spark_open vc_name thy =
   let
     val (vc_path, _) = Thy_Load.check_file
-      [Thy_Load.master_directory thy] (Path.explode vc_name);
-    val (base, header) = (case Path.split_ext vc_path of
+      (Thy_Load.master_directory thy) (Path.explode vc_name);
+    val (base, header) =
+      (case Path.split_ext vc_path of
         (base, "vcg") => (base, Fdl_Lexer.vcg_header >> K ())
       | (base, "siv") => (base, Fdl_Lexer.siv_header >> K ())
       | _ => error "File name must end with .vcg or .siv");

@@ -1,5 +1,5 @@
-(*   Title: case_product.ML
-     Author: Lars Noschinski
+(*  Title:      Tools/case_product.ML
+    Author:     Lars Noschinski, TU Muenchen
 
 Combines two case rules into a single one.
 
@@ -9,8 +9,7 @@ where m is given by the "consumes" attribute of the theorem.
 *)
 
 signature CASE_PRODUCT =
-  sig
-
+sig
   val combine: Proof.context -> thm -> thm -> thm
   val combine_annotated: Proof.context -> thm -> thm -> thm
   val setup: theory -> theory
@@ -104,7 +103,8 @@ fun combine_annotated ctxt thm1 thm2 =
 
 (* Attribute setup *)
 
-val case_prod_attr = let
+val case_prod_attr =
+  let
     fun combine_list ctxt = fold (fn x => fn y => combine_annotated ctxt y x)
   in
     Attrib.thms >> (fn thms => Thm.rule_attribute (fn ctxt => fn thm =>

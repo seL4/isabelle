@@ -13,8 +13,6 @@ begin
 
 default_sort "domain"
 
-ML {* Thy_Load.legacy_path_add "~~/src/HOL/HOLCF/Library" *}
-
 text {* Legacy theorem names deprecated after Isabelle2009-2: *}
 
 lemmas expand_fun_below = fun_below_iff

@@ -7,7 +7,7 @@ theory Candidates
 imports
   Complex_Main
   Library
-  List_Prefix
+  "~~/src/HOL/Library/List_Prefix"
   "~~/src/HOL/Number_Theory/Primes"
   "~~/src/HOL/ex/Records"
 begin

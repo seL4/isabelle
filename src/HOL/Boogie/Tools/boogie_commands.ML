@@ -23,7 +23,7 @@ fun boogie_open ((quiet, base_name), offsets) thy =
 
     val base_path = Path.explode base_name |> tap check_ext
     val (full_path, _) =
-      Thy_Load.check_file [Thy_Load.master_directory thy] base_path
+      Thy_Load.check_file (Thy_Load.master_directory thy) base_path
 
     val _ = Boogie_VCs.is_closed thy orelse
       error ("Found the beginning of a new Boogie environment, " ^

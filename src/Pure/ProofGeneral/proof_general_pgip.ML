@@ -764,35 +764,8 @@ fun retracttheory (Retracttheory vs) =
 
 (*** Files ***)
 
-(* Path management: we allow theory files to have dependencies in
-   their own directory, but when we change directory for a new file we
-   remove the path.  Leaving it there can cause confusion with
-   difference in batch mode.
-   NB: PGIP does not assume that the prover has a load path.
-*)
-
-local
-    val current_working_dir = Unsynchronized.ref (NONE : string option)
-in
-fun changecwd_dir newdirpath =
-   let
-       val newdir = File.platform_path newdirpath
-   in
-       (case (!current_working_dir) of
-            NONE => ()
-          | SOME dir => Thy_Load.legacy_del_path dir;
-        Thy_Load.legacy_add_path newdir;
-        current_working_dir := SOME newdir)
-   end
-end
-
-fun changecwd (Changecwd vs) =
-    let
-        val url = #url vs
-        val newdir = PgipTypes.path_of_pgipurl url
-    in
-        changecwd_dir url
-    end
+fun changecwd (Changecwd {url, ...}) =
+  Thy_Load.set_master_path (PgipTypes.path_of_pgipurl url)
 
 fun openfile (Openfile vs) =
   let
@@ -806,7 +779,7 @@ fun openfile (Openfile vs) =
           SOME f => raise PGIP ("<openfile> when a file is already open!\nCurrently open file: " ^
                                 PgipTypes.string_of_pgipurl url)
         | NONE => (openfile_retract filepath;
-                   changecwd_dir filedir;
+                   Thy_Load.set_master_path filedir;
                    Output.urgent_message ("Working in file: " ^ PgipTypes.string_of_pgipurl url);
                    currently_open_file := SOME url)
   end

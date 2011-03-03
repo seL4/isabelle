@@ -15,12 +15,7 @@ sig
   val master_directory: theory -> Path.T
   val imports_of: theory -> string list
   val provide: Path.T * (Path.T * file_ident) -> theory -> theory
-  val legacy_show_path: unit -> string list
-  val legacy_add_path: string -> unit
-  val legacy_path_add: string -> unit
-  val legacy_del_path: string -> unit
-  val legacy_reset_path: unit -> unit
-  val check_file: Path.T list -> Path.T -> Path.T * file_ident
+  val check_file: Path.T -> Path.T -> Path.T * file_ident
   val check_thy: Path.T -> string -> Path.T * file_ident
   val deps_thy: Path.T -> string ->
    {master: Path.T * file_ident, text: string, imports: string list, uses: Path.T list}
@@ -122,29 +117,11 @@ fun provide (src_path, path_id) =
     else (master_dir, imports, required, (src_path, path_id) :: provided));
 
 
-(* maintain default paths *)
+(* stateful master path *)
 
 local
-  val load_path = Synchronized.var "load_path" [Path.current];
   val master_path = Unsynchronized.ref Path.current;
 in
-
-fun legacy_show_path () = map Path.implode (Synchronized.value load_path);
-
-fun legacy_del_path s = Synchronized.change load_path (remove (op =) (Path.explode s));
-
-fun legacy_add_path s = Synchronized.change load_path (update (op =) (Path.explode s));
-
-fun legacy_path_add s =
-  Synchronized.change load_path (fn path =>
-    let val p = Path.explode s
-    in remove (op =) p path @ [p] end);
-
-fun legacy_reset_path () = Synchronized.change load_path (K [Path.current]);
-
-fun search_path dir path =
-  distinct (op =)
-    (dir :: (if Path.is_basic path then (Synchronized.value load_path) else [Path.current]));
 
 fun set_master_path path = master_path := path;
 fun get_master_path () = ! master_path;
@@ -154,36 +131,25 @@ end;
 
 (* check files *)
 
-fun get_file dirs src_path =
+fun get_file dir src_path =
   let
     val path = Path.expand src_path;
     val _ = Path.is_current path andalso error "Bad file specification";
+    val full_path = File.full_path (Path.append dir path);
   in
-    dirs |> get_first (fn dir =>
-      let val full_path = File.full_path (Path.append dir path) in
-        (case file_ident full_path of
-          NONE => NONE
-        | SOME id => SOME (dir, (full_path, id)))
-      end)
+    (case file_ident full_path of
+      NONE => NONE
+    | SOME id => SOME (full_path, id))
   end;
 
-fun check_file dirs file =
-  (case get_file dirs file of
-    SOME (_, path_id) =>
-     (if is_some (get_file [hd dirs] file) then ()
-      else
-        legacy_feature ("File " ^ quote (Path.implode file) ^
-          " located via secondary search path: " ^
-          quote (Path.implode (#1 (the (get_file (tl dirs) file)))));
-      path_id)
+fun check_file dir file =
+  (case get_file dir file of
+    SOME path_id => path_id
   | NONE => error ("Could not find file " ^ quote (Path.implode file) ^
-      "\nin " ^ commas_quote (map Path.implode dirs)));
+      "\nin " ^ quote (Path.implode dir)));
 
-fun check_thy master_dir name =
-  let
-    val thy_file = Thy_Header.thy_path name;
-    val dirs = search_path master_dir thy_file;
-  in check_file dirs thy_file end;
+fun check_thy dir name =
+  check_file dir (Thy_Header.thy_path name);
 
 
 (* theory deps *)
@@ -221,9 +187,9 @@ fun all_current thy =
   let
     val {master_dir, provided, ...} = Files.get thy;
     fun current (src_path, (_, id)) =
-      (case get_file [master_dir] src_path of
+      (case get_file master_dir src_path of
         NONE => false
-      | SOME (_, (_, id')) => id = id');
+      | SOME (_, id') => id = id');
   in can check_loaded thy andalso forall current provided end;
 
 val _ = Context.>> (Context.map_theory (Theory.at_end (fn thy => (check_loaded thy; NONE))));
@@ -232,15 +198,15 @@ val _ = Context.>> (Context.map_theory (Theory.at_end (fn thy => (check_loaded t
 (* provide files *)
 
 fun provide_file src_path thy =
-  provide (src_path, check_file [master_directory thy] src_path) thy;
+  provide (src_path, check_file (master_directory thy) src_path) thy;
 
 fun use_ml src_path =
   if is_none (Context.thread_data ()) then
-    ML_Context.eval_file (#1 (check_file [Path.current] src_path))
+    ML_Context.eval_file (#1 (check_file Path.current src_path))
   else
     let
       val thy = ML_Context.the_global_context ();
-      val (path, id) = check_file [master_directory thy] src_path;
+      val (path, id) = check_file (master_directory thy) src_path;
 
       val _ = ML_Context.eval_file path;
       val _ = Context.>> Local_Theory.propagate_ml_env;

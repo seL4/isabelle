@@ -16,6 +16,11 @@ without proper multithreading and TimeLimit implementation.
 * Discontinued old lib/scripts/polyml-platform, which has been
 obsolete since Isabelle2009-2.
 
+* Theory loader: source files are exclusively located via the master
+directory of each theory node (where the .thy file itself resides).
+The global load path (such as src/HOL/Library) is has been
+discontinued.  INCOMPATIBILITY.
+
 
 *** HOL ***
 
