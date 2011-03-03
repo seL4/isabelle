@@ -59,7 +59,6 @@ val default_default_params =
    ("specialize", "true"),
    ("star_linear_preds", "true"),
    ("total_consts", "smart"),
-   ("need", "smart"),
    ("peephole_optim", "true"),
    ("datatype_sym_break", "5"),
    ("kodkod_sym_break", "15"),
@@ -93,7 +92,6 @@ val negated_params =
    ("dont_specialize", "specialize"),
    ("dont_star_linear_preds", "star_linear_preds"),
    ("partial_consts", "total_consts"),
-   ("dont_need", "need"),
    ("no_peephole_optim", "peephole_optim"),
    ("no_debug", "debug"),
    ("quiet", "verbose"),
@@ -106,11 +104,12 @@ val negated_params =
 fun is_known_raw_param s =
   AList.defined (op =) default_default_params s orelse
   AList.defined (op =) negated_params s orelse
-  member (op =) ["max", "show_all", "whack", "eval", "atoms", "expect"] s orelse
+  member (op =) ["max", "show_all", "whack", "eval", "need", "atoms",
+                 "expect"] s orelse
   exists (fn p => String.isPrefix (p ^ " ") s)
          ["card", "max", "iter", "box", "dont_box", "finitize", "dont_finitize",
-          "mono", "non_mono", "std", "non_std", "wf", "non_wf", "need",
-          "dont_need", "format", "atoms"]
+          "mono", "non_mono", "std", "non_std", "wf", "non_wf", "format",
+          "atoms"]
 
 fun check_raw_param (s, _) =
   if is_known_raw_param s then ()
@@ -226,8 +225,8 @@ fun extract_params ctxt auto default_params override_params =
       #> singleton (Variable.polymorphic ctxt) #> Logic.dest_type
     val read_term_polymorphic =
       Syntax.read_term ctxt #> singleton (Variable.polymorphic ctxt)
-    val lookup_term_list_polymorphic =
-      AList.lookup (op =) raw_params #> these #> map read_term_polymorphic
+    val lookup_term_list_option_polymorphic =
+      AList.lookup (op =) raw_params #> Option.map (map read_term_polymorphic)
     val read_const_polymorphic = read_term_polymorphic #> dest_Const
     val cards_assigns = lookup_ints_assigns read_type_polymorphic "card" 1
                         |> auto ? map (apsnd (take max_auto_scopes))
@@ -249,14 +248,14 @@ fun extract_params ctxt auto default_params override_params =
     val overlord = lookup_bool "overlord"
     val user_axioms = lookup_bool_option "user_axioms"
     val assms = lookup_bool "assms"
-    val whacks = lookup_term_list_polymorphic "whack"
+    val whacks = lookup_term_list_option_polymorphic "whack" |> these
     val merge_type_vars = lookup_bool "merge_type_vars"
     val binary_ints = lookup_bool_option "binary_ints"
     val destroy_constrs = lookup_bool "destroy_constrs"
     val specialize = lookup_bool "specialize"
     val star_linear_preds = lookup_bool "star_linear_preds"
     val total_consts = lookup_bool_option "total_consts"
-    val needs = lookup_bool_option_assigns read_term_polymorphic "need"
+    val needs = lookup_term_list_option_polymorphic "need"
     val peephole_optim = lookup_bool "peephole_optim"
     val datatype_sym_break = lookup_int "datatype_sym_break"
     val kodkod_sym_break = lookup_int "kodkod_sym_break"
@@ -265,7 +264,7 @@ fun extract_params ctxt auto default_params override_params =
     val max_threads = if auto then 1 else Int.max (0, lookup_int "max_threads")
     val show_datatypes = debug orelse lookup_bool "show_datatypes"
     val show_consts = debug orelse lookup_bool "show_consts"
-    val evals = lookup_term_list_polymorphic "eval"
+    val evals = lookup_term_list_option_polymorphic "eval" |> these
     val formats = lookup_ints_assigns read_term_polymorphic "format" 0
     val atomss = lookup_strings_assigns read_type_polymorphic "atoms"
     val max_potential =

@@ -1282,11 +1282,10 @@ fun preprocess_formulas
       #> Term.map_abs_vars shortest_name
     val nondef_ts = nondef_ts |> map (do_middle false)
     val need_ts =
-      (* FIXME: Implement inference. *)
-      needs |> map_filter (fn (SOME t, SOME true) =>
-                              SOME (t |> unfold_defs_in_term hol_ctxt
-                                      |> do_middle false)
-                            | _ => NONE)
+      case needs of
+        SOME needs =>
+        needs |> map (unfold_defs_in_term hol_ctxt #> do_middle false)
+      | NONE => [] (* FIXME: Implement inference. *)
     val nondef_ts = nondef_ts |> map (do_tail false)
     val def_ts = def_ts |> map (do_middle true #> do_tail true)
   in

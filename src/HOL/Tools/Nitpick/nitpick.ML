@@ -35,7 +35,7 @@ sig
      specialize: bool,
      star_linear_preds: bool,
      total_consts: bool option,
-     needs: (term option * bool option) list,
+     needs: term list option,
      peephole_optim: bool,
      datatype_sym_break: int,
      kodkod_sym_break: int,
@@ -110,7 +110,7 @@ type params =
    specialize: bool,
    star_linear_preds: bool,
    total_consts: bool option,
-   needs: (term option * bool option) list,
+   needs: term list option,
    peephole_optim: bool,
    datatype_sym_break: int,
    kodkod_sym_break: int,
@@ -258,7 +258,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                      o Date.fromTimeLocal o Time.now)
     val neg_t = if falsify then Logic.mk_implies (orig_t, @{prop False})
                 else orig_t
-    val conj_ts = neg_t :: assm_ts @ evals @ map_filter fst needs
+    val conj_ts = neg_t :: assm_ts @ evals @ these needs
     val tfree_table =
       if merge_type_vars then merged_type_var_table_for_terms thy conj_ts
       else []
@@ -266,8 +266,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val neg_t = neg_t |> merge_tfrees
     val assm_ts = assm_ts |> map merge_tfrees
     val evals = evals |> map merge_tfrees
-    val needs = needs |> map (apfst (Option.map merge_tfrees))
-    val conj_ts = neg_t :: assm_ts @ evals @ map_filter fst needs
+    val needs = needs |> Option.map (map merge_tfrees)
+    val conj_ts = neg_t :: assm_ts @ evals @ these needs
     val original_max_potential = max_potential
     val original_max_genuine = max_genuine
     val max_bisim_depth = fold Integer.max bisim_depths ~1
