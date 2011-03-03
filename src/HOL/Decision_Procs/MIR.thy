@@ -5621,6 +5621,4 @@ lemma "ALL (x::real) (y::real). \<lfloor>x\<rfloor> = \<lfloor>y\<rfloor> \<long
 apply mir
 done
 
-unused_thms
-
 end
