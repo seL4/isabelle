@@ -768,14 +768,16 @@ fun add_def types funs pfuns consts (id, (s, e)) (ids as (tab, ctxt), thy) =
      SOME ty =>
        let
          val (t, ty') = term_of_expr thy types funs pfuns ids e;
-         val _ = ty = ty' orelse
+         val T = mk_type thy ty;
+         val T' = mk_type thy ty';
+         val _ = T = T' orelse
            error ("Declared type " ^ ty ^ " of " ^ s ^
              "\ndoes not match type " ^ ty' ^ " in definition");
          val id' = mk_rulename id;
          val lthy = Named_Target.theory_init thy;
          val ((t', (_, th)), lthy') = Specification.definition
            (NONE, ((id', []), HOLogic.mk_Trueprop (HOLogic.mk_eq
-             (Free (s, mk_type thy ty), t)))) lthy;
+             (Free (s, T), t)))) lthy;
          val phi = ProofContext.export_morphism lthy' lthy
        in
          ((id', Morphism.thm phi th),
@@ -813,7 +815,7 @@ fun sort_defs _ _ [] sdefs = rev sdefs
          forall (Symtab.defined pfuns) (add_expr_pfuns e []) andalso
          forall (fn id =>
            member (fn (s, (_, (s', _))) => s = s') sdefs id orelse
-           member (fn (s, (s', _)) => s = s') consts id)
+           consts id)
              (add_expr_idents e [])) defs of
          SOME d => sort_defs pfuns consts
            (remove (op =) d defs) (d :: sdefs)
@@ -822,10 +824,9 @@ fun sort_defs _ _ [] sdefs = rev sdefs
 fun set_vcs ({types, vars, consts, funs} : decls) (rules, _) vcs path thy =
   let
     val {pfuns, ...} = VCs.get thy;
-    val (defs', rules') = partition_opt dest_def rules;
+    val (defs, rules') = partition_opt dest_def rules;
     val consts' =
-      subtract (fn ((_, (s, _)), (s', _)) => s = s') defs' (items consts);
-    val defs = sort_defs pfuns consts' defs' [];
+      subtract (fn ((_, (s, _)), (s', _)) => s = s') defs (items consts);
     (* ignore all complex rules in rls files *)
     val (rules'', other_rules) =
       List.partition (complex_rule o snd) rules';
@@ -847,10 +848,12 @@ fun set_vcs ({types, vars, consts, funs} : decls) (rules, _) vcs path thy =
         Symtab.update ("true", (HOLogic.true_const, booleanN)),
         Name.context), thy) |>
       fold add_type_def (items types) |>
-      fold (snd oo add_const) consts' |>
-      fold_map (add_def types funs pfuns consts) defs ||>>
-      fold_map add_var (items vars) ||>>
-      add_init_vars vcs';
+      fold (snd oo add_const) consts' |> (fn ids_thy as ((tab, _), _) =>
+        ids_thy |>
+        fold_map (add_def types funs pfuns consts)
+          (sort_defs pfuns (Symtab.defined tab) defs []) ||>>
+        fold_map add_var (items vars) ||>>
+        add_init_vars vcs');
 
     val ctxt =
       [Element.Fixes (map (fn (s, T) =>
