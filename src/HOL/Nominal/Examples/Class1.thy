@@ -6532,7 +6532,7 @@ proof(nominal_induct N avoiding: x y c P rule: trm.strong_induct)
     by (auto simp add: abs_fresh fresh_atm forget trm.inject)
 next 
   case (Cut d M u M' x' y' c P)
-  from prems show ?case
+  with assms show ?case
     apply(simp)
     apply(auto)
     apply(rule trans)
@@ -6840,7 +6840,7 @@ proof(nominal_induct N avoiding: a b y P rule: trm.strong_induct)
     by (auto simp add: abs_fresh fresh_atm forget trm.inject)
 next 
   case (Cut d M u M' x' y' c P)
-  from prems show ?case
+  with assms show ?case
     apply(simp)
     apply(auto simp add: trm.inject)
     apply(rule trans)
@@ -7163,15 +7163,15 @@ next
   case (Cut c M z N)
   { assume asm: "M = Ax x c \<and> N = Ax z b"
     have "(Cut <c>.M (z).N){x:=<a>.P}{b:=(y).Q} = (Cut <a>.P (z).(N{x:=<a>.P})){b:=(y).Q}" 
-      using asm prems by simp
-    also have "\<dots> = (Cut <a>.P (z).N){b:=(y).Q}" using asm prems by (simp add: fresh_atm)
-    also have "\<dots> = (Cut <a>.(P{b:=(y).Q}) (y).Q)" using asm prems by (auto simp add: fresh_prod fresh_atm)
+      using Cut asm by simp
+    also have "\<dots> = (Cut <a>.P (z).N){b:=(y).Q}" using Cut asm by (simp add: fresh_atm)
+    also have "\<dots> = (Cut <a>.(P{b:=(y).Q}) (y).Q)" using Cut asm by (auto simp add: fresh_prod fresh_atm)
     finally have eq1: "(Cut <c>.M (z).N){x:=<a>.P}{b:=(y).Q} = (Cut <a>.(P{b:=(y).Q}) (y).Q)" by simp
     have "(Cut <c>.M (z).N){b:=(y).Q}{x:=<a>.(P{b:=(y).Q})} = (Cut <c>.M (y).Q){x:=<a>.(P{b:=(y).Q})}"
-      using prems asm by (simp add: fresh_atm)
-    also have "\<dots> = Cut <a>.(P{b:=(y).Q}) (y).(Q{x:=<a>.(P{b:=(y).Q})})" using asm prems
+      using Cut asm by (simp add: fresh_atm)
+    also have "\<dots> = Cut <a>.(P{b:=(y).Q}) (y).(Q{x:=<a>.(P{b:=(y).Q})})" using Cut asm
       by (auto simp add: fresh_prod fresh_atm subst_fresh)
-    also have "\<dots> = Cut <a>.(P{b:=(y).Q}) (y).Q" using asm prems by (simp add: forget)
+    also have "\<dots> = Cut <a>.(P{b:=(y).Q}) (y).Q" using Cut asm by (simp add: forget)
     finally have eq2: "(Cut <c>.M (z).N){b:=(y).Q}{x:=<a>.(P{b:=(y).Q})} = Cut <a>.(P{b:=(y).Q}) (y).Q"
       by simp
     have "(Cut <c>.M (z).N){x:=<a>.P}{b:=(y).Q} = (Cut <c>.M (z).N){b:=(y).Q}{x:=<a>.(P{b:=(y).Q})}" 
@@ -7186,18 +7186,18 @@ next
       case False then show ?thesis by (simp add: not_Ax1)
     qed
     have "(Cut <c>.M (z).N){x:=<a>.P}{b:=(y).Q} = (Cut <c>.(M{x:=<a>.P}) (z).(N{x:=<a>.P})){b:=(y).Q}"
-      using asm prems by simp
-    also have "\<dots> = (Cut <c>.(M{x:=<a>.P}) (z).N){b:=(y).Q}" using asm prems by (simp add: fresh_atm)
-    also have "\<dots> = Cut <c>.(M{x:=<a>.P}{b:=(y).Q}) (y).Q" using asm prems by (simp add: abs_fresh)
-    also have "\<dots> = Cut <c>.(M{b:=(y).Q}{x:=<a>.P{b:=(y).Q}}) (y).Q" using asm prems by simp
+      using Cut asm by simp
+    also have "\<dots> = (Cut <c>.(M{x:=<a>.P}) (z).N){b:=(y).Q}" using Cut asm by (simp add: fresh_atm)
+    also have "\<dots> = Cut <c>.(M{x:=<a>.P}{b:=(y).Q}) (y).Q" using Cut asm by (simp add: abs_fresh)
+    also have "\<dots> = Cut <c>.(M{b:=(y).Q}{x:=<a>.P{b:=(y).Q}}) (y).Q" using Cut asm by simp
     finally 
     have eq1: "(Cut <c>.M (z).N){x:=<a>.P}{b:=(y).Q} = Cut <c>.(M{b:=(y).Q}{x:=<a>.P{b:=(y).Q}}) (y).Q" 
       by simp
     have "(Cut <c>.M (z).N){b:=(y).Q}{x:=<a>.(P{b:=(y).Q})} = 
-               (Cut <c>.(M{b:=(y).Q}) (y).Q){x:=<a>.(P{b:=(y).Q})}" using asm prems by simp
+               (Cut <c>.(M{b:=(y).Q}) (y).Q){x:=<a>.(P{b:=(y).Q})}" using Cut asm by simp
     also have "\<dots> = Cut <c>.(M{b:=(y).Q}{x:=<a>.(P{b:=(y).Q})}) (y).(Q{x:=<a>.(P{b:=(y).Q})})"
-      using asm prems neq by (auto simp add: fresh_prod fresh_atm subst_fresh abs_fresh)
-    also have "\<dots> = Cut <c>.(M{b:=(y).Q}{x:=<a>.(P{b:=(y).Q})}) (y).Q" using asm prems by (simp add: forget)
+      using Cut asm neq by (auto simp add: fresh_prod fresh_atm subst_fresh abs_fresh)
+    also have "\<dots> = Cut <c>.(M{b:=(y).Q}{x:=<a>.(P{b:=(y).Q})}) (y).Q" using Cut asm by (simp add: forget)
     finally have eq2: "(Cut <c>.M (z).N){b:=(y).Q}{x:=<a>.(P{b:=(y).Q})} 
                                        = Cut <c>.(M{b:=(y).Q}{x:=<a>.(P{b:=(y).Q})}) (y).Q" by simp
     have "(Cut <c>.M (z).N){x:=<a>.P}{b:=(y).Q} = (Cut <c>.M (z).N){b:=(y).Q}{x:=<a>.(P{b:=(y).Q})}" 
@@ -7212,19 +7212,19 @@ next
       case False then show ?thesis by (simp add: not_Ax2)
     qed
     have "(Cut <c>.M (z).N){x:=<a>.P}{b:=(y).Q} = (Cut <a>.P (z).(N{x:=<a>.P})){b:=(y).Q}"
-      using asm prems by simp
-    also have "\<dots> = Cut <a>.(P{b:=(y).Q}) (z).(N{x:=<a>.P}{b:=(y).Q})" using asm prems neq 
+      using Cut asm by simp
+    also have "\<dots> = Cut <a>.(P{b:=(y).Q}) (z).(N{x:=<a>.P}{b:=(y).Q})" using Cut asm neq 
       by (simp add: abs_fresh)
-    also have "\<dots> = Cut <a>.(P{b:=(y).Q}) (z).(N{b:=(y).Q}{x:=<a>.(P{b:=(y).Q})})" using asm prems by simp
+    also have "\<dots> = Cut <a>.(P{b:=(y).Q}) (z).(N{b:=(y).Q}{x:=<a>.(P{b:=(y).Q})})" using Cut asm by simp
     finally have eq1: "(Cut <c>.M (z).N){x:=<a>.P}{b:=(y).Q} 
                     = Cut <a>.(P{b:=(y).Q}) (z).(N{b:=(y).Q}{x:=<a>.(P{b:=(y).Q})})" by simp
     have "(Cut <c>.M (z).N){b:=(y).Q}{x:=<a>.(P{b:=(y).Q})} 
                     = (Cut <c>.(M{b:=(y).Q}) (z).(N{b:=(y).Q})){x:=<a>.(P{b:=(y).Q})}"
-      using asm prems by auto
+      using Cut asm by auto
     also have "\<dots> = (Cut <c>.M (z).(N{b:=(y).Q})){x:=<a>.(P{b:=(y).Q})}"
-      using asm prems by (auto simp add: fresh_atm)
+      using Cut asm by (auto simp add: fresh_atm)
     also have "\<dots> = Cut <a>.(P{b:=(y).Q}) (z).(N{b:=(y).Q}{x:=<a>.(P{b:=(y).Q})})" 
-      using asm prems by (simp add: fresh_prod fresh_atm subst_fresh)
+      using Cut asm by (simp add: fresh_prod fresh_atm subst_fresh)
     finally 
     have eq2: "(Cut <c>.M (z).N){b:=(y).Q}{x:=<a>.(P{b:=(y).Q})} 
          = Cut <a>.(P{b:=(y).Q}) (z).(N{b:=(y).Q}{x:=<a>.(P{b:=(y).Q})})" by simp
@@ -7246,17 +7246,17 @@ next
       case False then show ?thesis by (simp add: not_Ax1)
     qed
     have "(Cut <c>.M (z).N){x:=<a>.P}{b:=(y).Q} = (Cut <c>.(M{x:=<a>.P}) (z).(N{x:=<a>.P})){b:=(y).Q}"
-      using asm prems by simp
-    also have "\<dots> = Cut <c>.(M{x:=<a>.P}{b:=(y).Q}) (z).(N{x:=<a>.P}{b:=(y).Q})" using asm prems neq1
+      using Cut asm by simp
+    also have "\<dots> = Cut <c>.(M{x:=<a>.P}{b:=(y).Q}) (z).(N{x:=<a>.P}{b:=(y).Q})" using Cut asm neq1
       by (simp add: abs_fresh)
     also have "\<dots> = Cut <c>.(M{b:=(y).Q}{x:=<a>.(P{b:=(y).Q})}) (z).(N{b:=(y).Q}{x:=<a>.(P{b:=(y).Q})})"
-      using asm prems by simp
+      using Cut asm by simp
     finally have eq1: "(Cut <c>.M (z).N){x:=<a>.P}{b:=(y).Q}
              = Cut <c>.(M{b:=(y).Q}{x:=<a>.(P{b:=(y).Q})}) (z).(N{b:=(y).Q}{x:=<a>.(P{b:=(y).Q})})" by simp
     have "(Cut <c>.M (z).N){b:=(y).Q}{x:=<a>.(P{b:=(y).Q})} = 
-                (Cut <c>.(M{b:=(y).Q}) (z).(N{b:=(y).Q})){x:=<a>.(P{b:=(y).Q})}" using asm neq1 prems by simp
+                (Cut <c>.(M{b:=(y).Q}) (z).(N{b:=(y).Q})){x:=<a>.(P{b:=(y).Q})}" using Cut asm neq1 by simp
     also have "\<dots> = Cut <c>.(M{b:=(y).Q}{x:=<a>.(P{b:=(y).Q})}) (z).(N{b:=(y).Q}{x:=<a>.(P{b:=(y).Q})})"
-      using asm neq2 prems by (simp add: fresh_prod fresh_atm subst_fresh)
+      using Cut asm neq2 by (simp add: fresh_prod fresh_atm subst_fresh)
     finally have eq2: "(Cut <c>.M (z).N){b:=(y).Q}{x:=<a>.(P{b:=(y).Q})} = 
            Cut <c>.(M{b:=(y).Q}{x:=<a>.(P{b:=(y).Q})}) (z).(N{b:=(y).Q}{x:=<a>.(P{b:=(y).Q})})" by simp
     have "(Cut <c>.M (z).N){x:=<a>.P}{b:=(y).Q} = (Cut <c>.M (z).N){b:=(y).Q}{x:=<a>.(P{b:=(y).Q})}"

@@ -536,7 +536,7 @@ next
   case (Var x \<Gamma> \<theta> T)
   have "\<Gamma> \<turnstile> (Var x) : T" by fact
   then have "(x,T)\<in>set \<Gamma>" by (cases) (auto simp add: trm.inject)
-  with prems have "\<theta><Var x> \<Down> \<theta><Var x> \<and> \<theta><Var x>\<in> V T" 
+  with Var have "\<theta><Var x> \<Down> \<theta><Var x> \<and> \<theta><Var x>\<in> V T" 
     by (auto intro!: Vs_reduce_to_themselves)
   then show "\<exists>v. \<theta><Var x> \<Down> v \<and> v \<in> V T" by auto
 qed 

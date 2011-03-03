@@ -433,7 +433,7 @@ lemma freshs_mem:
   assumes "x \<in> S"
   and     "S \<sharp>* z"
   shows  "x \<sharp> z"
-using prems  by (simp add: fresh_star_def)
+using assms by (simp add: fresh_star_def)
 
 lemma fresh_gen_set:
   fixes X::"tvar"
