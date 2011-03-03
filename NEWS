@@ -20,6 +20,7 @@ obsolete since Isabelle2009-2.
 *** HOL ***
 
 * Nitpick:
+  - Added "need" and "total_consts" options.
   - Renamed attribute: nitpick_def ~> nitpick_unfold.
     INCOMPATIBILITY.
 
