@@ -2465,17 +2465,17 @@ constant might not be needed to find a countermodel.
 
 {\small See also \textit{debug} (\S\ref{output-format}).}
 
-\opargboolorsmart{preconstr}{term}{dont\_preconstr}
-Specifies whether a datatype value should be preconstructed, meaning Nitpick
+\opargboolorsmart{need}{term}{dont\_need}
+Specifies whether a datatype value is required by the problem, meaning Nitpick
 will reserve a Kodkod atom for it. If a value must necessarily belong to the
-subset of representable values that approximates a datatype, preconstructing
-it can speed up the search significantly, especially for high cardinalities. By
-default, Nitpick inspects the conjecture to infer terms that can be
-preconstructed.
+subset of representable values that approximates a datatype, specifying it can
+speed up the search significantly, especially for high cardinalities. By
+default, Nitpick inspects the conjecture to infer needed datatype values.
 
-\opsmart{preconstr}{dont\_preconstr}
-Specifies the default preconstruction setting to use. This can be overridden on
-a per-term basis using the \textit{preconstr}~\qty{term} option described above.
+\opsmart{need}{dont\_need}
+Specifies the default needed datatype value setting to use. This can be
+overridden on a per-term basis using the \textit{preconstr}~\qty{term} option
+described above.
 
 \opsmart{total\_consts}{partial\_consts}
 Specifies whether constants occurring in the problem other than constructors can

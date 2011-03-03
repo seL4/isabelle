@@ -862,7 +862,7 @@ fun bisimilar_values _ 0 _ = true
 fun reconstruct_hol_model {show_datatypes, show_consts}
         ({hol_ctxt = {thy, ctxt, max_bisim_depth, boxes, stds, wfs, user_axioms,
                       debug, whacks, binary_ints, destroy_constrs, specialize,
-                      star_linear_preds, total_consts, preconstrs, tac_timeout,
+                      star_linear_preds, total_consts, needs, tac_timeout,
                       evals, case_names, def_tables, nondef_table, user_nondefs,
                       simp_table, psimp_table, choice_spec_table, intro_table,
                       ground_thm_table, ersatz_table, skolems, special_funs,
@@ -880,7 +880,7 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
        whacks = whacks, binary_ints = binary_ints,
        destroy_constrs = destroy_constrs, specialize = specialize,
        star_linear_preds = star_linear_preds, total_consts = total_consts,
-       preconstrs = preconstrs, tac_timeout = tac_timeout, evals = evals,
+       needs = needs, tac_timeout = tac_timeout, evals = evals,
        case_names = case_names, def_tables = def_tables,
        nondef_table = nondef_table, user_nondefs = user_nondefs,
        simp_table = simp_table, psimp_table = psimp_table,

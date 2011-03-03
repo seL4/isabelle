@@ -35,7 +35,7 @@ sig
      specialize: bool,
      star_linear_preds: bool,
      total_consts: bool option,
-     preconstrs: (term option * bool option) list,
+     needs: (term option * bool option) list,
      peephole_optim: bool,
      datatype_sym_break: int,
      kodkod_sym_break: int,
@@ -110,7 +110,7 @@ type params =
    specialize: bool,
    star_linear_preds: bool,
    total_consts: bool option,
-   preconstrs: (term option * bool option) list,
+   needs: (term option * bool option) list,
    peephole_optim: bool,
    datatype_sym_break: int,
    kodkod_sym_break: int,
@@ -199,7 +199,7 @@ fun plazy f = Pretty.blk (0, pstrs (f ()))
 
 fun check_constr_nut (Construct (_, _, _, us)) = List.app check_constr_nut us
   | check_constr_nut _ =
-    error "The \"preconstr\" option requires a constructor term."
+    error "The \"need\" option requires a constructor term."
 
 fun pick_them_nits_in_term deadline state (params : params) auto i n step
                            subst assm_ts orig_t =
@@ -217,7 +217,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
          boxes, finitizes, monos, stds, wfs, sat_solver, falsify, debug,
          verbose, overlord, user_axioms, assms, whacks, merge_type_vars,
          binary_ints, destroy_constrs, specialize, star_linear_preds,
-         total_consts, preconstrs, peephole_optim, datatype_sym_break,
+         total_consts, needs, peephole_optim, datatype_sym_break,
          kodkod_sym_break, tac_timeout, max_threads, show_datatypes,
          show_consts, evals, formats, atomss, max_potential, max_genuine,
          check_potential, check_genuine, batch_size, ...} = params
@@ -258,7 +258,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                      o Date.fromTimeLocal o Time.now)
     val neg_t = if falsify then Logic.mk_implies (orig_t, @{prop False})
                 else orig_t
-    val conj_ts = neg_t :: assm_ts @ evals @ map_filter fst preconstrs
+    val conj_ts = neg_t :: assm_ts @ evals @ map_filter fst needs
     val tfree_table =
       if merge_type_vars then merged_type_var_table_for_terms thy conj_ts
       else []
@@ -266,8 +266,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val neg_t = neg_t |> merge_tfrees
     val assm_ts = assm_ts |> map merge_tfrees
     val evals = evals |> map merge_tfrees
-    val preconstrs = preconstrs |> map (apfst (Option.map merge_tfrees))
-    val conj_ts = neg_t :: assm_ts @ evals @ map_filter fst preconstrs
+    val needs = needs |> map (apfst (Option.map merge_tfrees))
+    val conj_ts = neg_t :: assm_ts @ evals @ map_filter fst needs
     val original_max_potential = max_potential
     val original_max_genuine = max_genuine
     val max_bisim_depth = fold Integer.max bisim_depths ~1
@@ -289,7 +289,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
        whacks = whacks, binary_ints = binary_ints,
        destroy_constrs = destroy_constrs, specialize = specialize,
        star_linear_preds = star_linear_preds, total_consts = total_consts,
-       preconstrs = preconstrs, tac_timeout = tac_timeout, evals = evals,
+       needs = needs, tac_timeout = tac_timeout, evals = evals,
        case_names = case_names, def_tables = def_tables,
        nondef_table = nondef_table, user_nondefs = user_nondefs,
        simp_table = simp_table, psimp_table = psimp_table,
@@ -302,7 +302,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val real_frees = fold Term.add_frees conj_ts []
     val _ = null (fold Term.add_tvars conj_ts []) orelse
             error "Nitpick cannot handle goals with schematic type variables."
-    val (nondef_ts, def_ts, preconstr_ts, got_all_mono_user_axioms,
+    val (nondef_ts, def_ts, need_ts, got_all_mono_user_axioms,
          no_poly_user_axioms, binarize) =
       preprocess_formulas hol_ctxt assm_ts neg_t
     val got_all_user_axioms =
@@ -332,8 +332,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
 
     val nondef_us = nondef_ts |> map (nut_from_term hol_ctxt Eq)
     val def_us = def_ts |> map (nut_from_term hol_ctxt DefEq)
-    val preconstr_us = preconstr_ts |> map (nut_from_term hol_ctxt Eq)
-    val _ = List.app check_constr_nut preconstr_us
+    val need_us = need_ts |> map (nut_from_term hol_ctxt Eq)
+    val _ = List.app check_constr_nut need_us
     val (free_names, const_names) =
       fold add_free_and_const_names (nondef_us @ def_us) ([], [])
     val (sel_names, nonsel_names) =
@@ -526,8 +526,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
           def_us |> map (choose_reps_in_nut scope unsound rep_table true)
         val nondef_us =
           nondef_us |> map (choose_reps_in_nut scope unsound rep_table false)
-        val preconstr_us =
-          preconstr_us |> map (choose_reps_in_nut scope unsound rep_table false)
+        val need_us =
+          need_us |> map (choose_reps_in_nut scope unsound rep_table false)
 (*
         val _ = List.app (print_g o string_for_nut ctxt)
                          (free_names @ sel_names @ nonsel_names @
@@ -541,8 +541,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
           rename_free_vars nonsel_names pool rel_table
         val nondef_us = nondef_us |> map (rename_vars_in_nut pool rel_table)
         val def_us = def_us |> map (rename_vars_in_nut pool rel_table)
-        val preconstr_us =
-          preconstr_us |> map (rename_vars_in_nut pool rel_table)
+        val need_us = need_us |> map (rename_vars_in_nut pool rel_table)
         val nondef_fs = map (kodkod_formula_from_nut ofs kk) nondef_us
         val def_fs = map (kodkod_formula_from_nut ofs kk) def_us
         val formula = fold (fold s_and) [def_fs, nondef_fs] KK.True
@@ -568,7 +567,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val plain_axioms = map (declarative_axiom_for_plain_rel kk) plain_rels
         val sel_bounds = map (bound_for_sel_rel ctxt debug datatypes) sel_rels
         val dtype_axioms =
-          declarative_axioms_for_datatypes hol_ctxt binarize preconstr_us
+          declarative_axioms_for_datatypes hol_ctxt binarize need_us
               datatype_sym_break bits ofs kk rel_table datatypes
         val declarative_axioms = plain_axioms @ dtype_axioms
         val univ_card = Int.max (univ_card nat_card int_card main_j0

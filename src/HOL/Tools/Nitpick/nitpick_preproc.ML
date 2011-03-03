@@ -1244,7 +1244,7 @@ val max_skolem_depth = 3
 
 fun preprocess_formulas
         (hol_ctxt as {thy, ctxt, stds, binary_ints, destroy_constrs, boxes,
-                      preconstrs, ...}) assm_ts neg_t =
+                      needs, ...}) assm_ts neg_t =
   let
     val (nondef_ts, def_ts, got_all_mono_user_axioms, no_poly_user_axioms) =
       neg_t |> unfold_defs_in_term hol_ctxt
@@ -1281,18 +1281,17 @@ fun preprocess_formulas
       #> close_form
       #> Term.map_abs_vars shortest_name
     val nondef_ts = nondef_ts |> map (do_middle false)
-    val preconstr_ts =
-      (* FIXME: Implement preconstruction inference. *)
-      preconstrs
-      |> map_filter (fn (SOME t, SOME true) =>
-                        SOME (t |> unfold_defs_in_term hol_ctxt
-                                |> do_middle false)
-                      | _ => NONE)
+    val need_ts =
+      (* FIXME: Implement inference. *)
+      needs |> map_filter (fn (SOME t, SOME true) =>
+                              SOME (t |> unfold_defs_in_term hol_ctxt
+                                      |> do_middle false)
+                            | _ => NONE)
     val nondef_ts = nondef_ts |> map (do_tail false)
     val def_ts = def_ts |> map (do_middle true #> do_tail true)
   in
-    (nondef_ts, def_ts, preconstr_ts, got_all_mono_user_axioms,
-     no_poly_user_axioms, binarize)
+    (nondef_ts, def_ts, need_ts, got_all_mono_user_axioms, no_poly_user_axioms,
+     binarize)
   end
 
 end;

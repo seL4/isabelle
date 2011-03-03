@@ -59,7 +59,7 @@ val default_default_params =
    ("specialize", "true"),
    ("star_linear_preds", "true"),
    ("total_consts", "smart"),
-   ("preconstr", "smart"),
+   ("need", "smart"),
    ("peephole_optim", "true"),
    ("datatype_sym_break", "5"),
    ("kodkod_sym_break", "15"),
@@ -93,7 +93,7 @@ val negated_params =
    ("dont_specialize", "specialize"),
    ("dont_star_linear_preds", "star_linear_preds"),
    ("partial_consts", "total_consts"),
-   ("dont_preconstr", "preconstr"),
+   ("dont_need", "need"),
    ("no_peephole_optim", "peephole_optim"),
    ("no_debug", "debug"),
    ("quiet", "verbose"),
@@ -109,8 +109,8 @@ fun is_known_raw_param s =
   member (op =) ["max", "show_all", "whack", "eval", "atoms", "expect"] s orelse
   exists (fn p => String.isPrefix (p ^ " ") s)
          ["card", "max", "iter", "box", "dont_box", "finitize", "dont_finitize",
-          "mono", "non_mono", "std", "non_std", "wf", "non_wf", "preconstr",
-          "dont_preconstr", "format", "atoms"]
+          "mono", "non_mono", "std", "non_std", "wf", "non_wf", "need",
+          "dont_need", "format", "atoms"]
 
 fun check_raw_param (s, _) =
   if is_known_raw_param s then ()
@@ -256,8 +256,7 @@ fun extract_params ctxt auto default_params override_params =
     val specialize = lookup_bool "specialize"
     val star_linear_preds = lookup_bool "star_linear_preds"
     val total_consts = lookup_bool_option "total_consts"
-    val preconstrs =
-      lookup_bool_option_assigns read_term_polymorphic "preconstr"
+    val needs = lookup_bool_option_assigns read_term_polymorphic "need"
     val peephole_optim = lookup_bool "peephole_optim"
     val datatype_sym_break = lookup_int "datatype_sym_break"
     val kodkod_sym_break = lookup_int "kodkod_sym_break"
@@ -289,7 +288,7 @@ fun extract_params ctxt auto default_params override_params =
      merge_type_vars = merge_type_vars, binary_ints = binary_ints,
      destroy_constrs = destroy_constrs, specialize = specialize,
      star_linear_preds = star_linear_preds, total_consts = total_consts,
-     preconstrs = preconstrs, peephole_optim = peephole_optim,
+     needs = needs, peephole_optim = peephole_optim,
      datatype_sym_break = datatype_sym_break,
      kodkod_sym_break = kodkod_sym_break, timeout = timeout,
      tac_timeout = tac_timeout, max_threads = max_threads,
