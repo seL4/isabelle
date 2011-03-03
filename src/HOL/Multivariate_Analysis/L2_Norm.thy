@@ -44,7 +44,7 @@ lemma setL2_mono:
   assumes "\<And>i. i \<in> K \<Longrightarrow> 0 \<le> f i"
   shows "setL2 f K \<le> setL2 g K"
   unfolding setL2_def
-  by (simp add: setsum_nonneg setsum_mono power_mono prems)
+  by (simp add: setsum_nonneg setsum_mono power_mono assms)
 
 lemma setL2_strict_mono:
   assumes "finite K" and "K \<noteq> {}"

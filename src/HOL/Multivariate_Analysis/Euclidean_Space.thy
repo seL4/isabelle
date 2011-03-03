@@ -644,7 +644,7 @@ subsection{* Interlude: Some properties of real sets *}
 
 lemma seq_mono_lemma: assumes "\<forall>(n::nat) \<ge> m. (d n :: real) < e n" and "\<forall>n \<ge> m. e n <= e m"
   shows "\<forall>n \<ge> m. d n < e m"
-  using prems apply auto
+  using assms apply auto
   apply (erule_tac x="n" in allE)
   apply (erule_tac x="n" in allE)
   apply auto
