@@ -45,7 +45,7 @@ fun add_proof_fun_cmd pf thy =
 fun get_vc thy vc_name =
   (case SPARK_VCs.lookup_vc thy vc_name of
     SOME (ctxt, (_, proved, ctxt', stmt)) =>
-      if proved then
+      if is_some proved then
         error ("The verification condition " ^
           quote vc_name ^ " has already been proved.")
       else (ctxt @ [ctxt'], stmt)
@@ -58,12 +58,13 @@ fun prove_vc vc_name lthy =
     val (ctxt, stmt) = get_vc thy vc_name
   in
     Specification.theorem Thm.theoremK NONE
-      (K (Local_Theory.background_theory (SPARK_VCs.mark_proved vc_name)))
+      (fn thmss => (Local_Theory.background_theory
+         (SPARK_VCs.mark_proved vc_name (flat thmss))))
       (Binding.name vc_name, []) ctxt stmt true lthy
   end;
 
-fun string_of_status false = "(unproved)"
-  | string_of_status true = "(proved)";
+fun string_of_status NONE = "(unproved)"
+  | string_of_status (SOME _) = "(proved)";
 
 fun show_status (p, f) = Toplevel.no_timing o Toplevel.keep (fn state =>
   let
@@ -131,8 +132,8 @@ val _ =
     Keyword.diag
     (Scan.optional
        (Args.parens
-          (   Args.$$$ "proved" >> K (I, K "")
-           || Args.$$$ "unproved" >> K (not, K "")))
+          (   Args.$$$ "proved" >> K (is_some, K "")
+           || Args.$$$ "unproved" >> K (is_none, K "")))
        (K true, string_of_status) >> show_status);
 
 val _ =

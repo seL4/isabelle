@@ -13,11 +13,11 @@ sig
     string * ((string list * string) option * 'a) ->
     theory -> theory
   val lookup_vc: theory -> string -> (Element.context_i list *
-    (string * bool * Element.context_i * Element.statement_i)) option
+    (string * thm list option * Element.context_i * Element.statement_i)) option
   val get_vcs: theory ->
-    Element.context_i list * (binding * thm) list *
-    (string * (string * bool * Element.context_i * Element.statement_i)) list
-  val mark_proved: string -> theory -> theory
+    Element.context_i list * (binding * thm) list * (string *
+    (string * thm list option * Element.context_i * Element.statement_i)) list
+  val mark_proved: string -> thm list -> theory -> theory
   val close: theory -> theory
   val is_closed: theory -> bool
 end;
@@ -616,7 +616,7 @@ structure VCs = Theory_Data
         funs: (string list * string) tab,
         ids: (term * string) Symtab.table * Name.context,
         proving: bool,
-        vcs: (string * bool *
+        vcs: (string * thm list option *
           (string * expr) list * (string * expr) list) VCtab.table,
         path: Path.T} option}
   val empty : T = {pfuns = Symtab.empty, env = NONE}
@@ -713,27 +713,28 @@ fun get_vcs thy = (case VCs.get thy of
       end
   | _ => ([], [], []));
 
-fun mark_proved name = VCs.map (fn
+fun mark_proved name thms = VCs.map (fn
     {pfuns, env = SOME {ctxt, defs, types, funs, ids, vcs, path, ...}} =>
       {pfuns = pfuns,
        env = SOME {ctxt = ctxt, defs = defs,
          types = types, funs = funs, ids = ids,
          proving = true,
          vcs = VCtab.map_entry name (fn (trace, _, ps, cs) =>
-           (trace, true, ps, cs)) vcs,
+           (trace, SOME thms, ps, cs)) vcs,
          path = path}}
   | x => x);
 
 fun close thy = VCs.map (fn
     {pfuns, env = SOME {vcs, path, ...}} =>
-      (case VCtab.fold_rev (fn (s, (_, p, _, _)) =>
-           (if p then apfst else apsnd) (cons s)) vcs ([], []) of
+      (case VCtab.fold_rev (fn vc as (_, (_, p, _, _)) =>
+           (if is_some p then apfst else apsnd) (cons vc)) vcs ([], []) of
          (proved, []) =>
-           (File.write (Path.ext "prv" path)
-              (concat (map (fn s => snd (strip_number s) ^
+           (Thm.join_proofs (maps (the o #2 o snd) proved);
+            File.write (Path.ext "prv" path)
+              (concat (map (fn (s, _) => snd (strip_number s) ^
                  " -- proved by " ^ Distribution.version ^ "\n") proved));
             {pfuns = pfuns, env = NONE})
-       | (_, unproved) => err_vcs unproved)
+       | (_, unproved) => err_vcs (map fst unproved))
   | x => x) thy;
 
 
@@ -834,7 +835,7 @@ fun set_vcs ({types, vars, consts, funs} : decls) (rules, _) vcs path thy =
       else warning ("Ignoring rules: " ^ rulenames rules'');
 
     val vcs' = VCtab.make (maps (fn (tr, vcs) =>
-      map (fn (s, (ps, cs)) => (s, (tr, false, ps, cs)))
+      map (fn (s, (ps, cs)) => (s, (tr, NONE, ps, cs)))
         (filter_out (is_trivial_vc o snd) vcs)) vcs);
 
     val _ = (case filter_out (is_some o lookup funs)
