@@ -161,38 +161,24 @@ fun simplify_defn strict thy cs ss congs wfs id pats def0 =
 
 
 (* Derive the initial equations from the case-split rules to meet the
-users specification of the recursive function. 
- Note: We don't do this if the wf conditions fail to be solved, as each
-case may have a different wf condition. We could group the conditions
-together and say that they must be true to solve the general case,
-but that would hide from the user which sub-case they were related
-to. Probably this is not important, and it would work fine, but, for now, I
-prefer leaving more fine-grain control to the user. 
--- Lucas Dixon, Aug 2004 *)
+users specification of the recursive function. *)
 local
   fun get_related_thms i = 
       map_filter ((fn (r,x) => if x = i then SOME r else NONE));
 
-  fun solve_eq (th, [], i) = 
-        error "derive_init_eqs: missing rules"
+  fun solve_eq (th, [], i) =  error "derive_init_eqs: missing rules"
     | solve_eq (th, [a], i) = [(a, i)]
-    | solve_eq (th, splitths as (_ :: _), i) = 
+    | solve_eq (th, splitths, i) =
       (writeln "Proving unsplit equation...";
       [((Drule.export_without_context o Object_Logic.rulify_no_asm)
           (CaseSplit.splitto splitths th), i)])
-      (* if there's an error, pretend nothing happened with this definition 
-         We should probably print something out so that the user knows...? *)
       handle ERROR s => 
              (warning ("recdef (solve_eq): " ^ s); map (fn x => (x,i)) splitths);
 in
-fun derive_init_eqs sgn rules eqs = 
-    let 
-      val eqths = map (Thm.trivial o (Thm.cterm_of sgn) o HOLogic.mk_Trueprop) eqs
-      fun countlist l =
-        rev (snd (fold (fn e => fn (i, L) => (i + 1, (e, i) :: L)) l (0, [])))
-    in
-      maps (fn (e, i) => solve_eq (e, (get_related_thms i rules), i)) (countlist eqths)
-    end;
+fun derive_init_eqs thy rules eqs =
+  map (Thm.trivial o Thm.cterm_of thy o HOLogic.mk_Trueprop) eqs
+  |> map_index (fn (i, e) => solve_eq (e, (get_related_thms i rules), i))
+  |> flat;
 end;
 
 
