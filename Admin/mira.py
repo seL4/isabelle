@@ -79,7 +79,7 @@ def extract_isabelle_run_timing(logdata):
 
 def extract_isabelle_run_summary(logdata):
 
-    re_error = re.compile(r'^\*\*\* (.*)$', re.MULTILINE)
+    re_error = re.compile(r'^(?:make: )?\*\*\* (.*)$', re.MULTILINE)
     summary = '\n'.join(re_error.findall(logdata))
     if summary == '':
         summary = 'ok'
