@@ -521,7 +521,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val min_univ_card =
           NameTable.fold (Integer.max o min_univ_card_of_rep o snd) rep_table
                          (univ_card nat_card int_card main_j0 [] KK.True)
-        val _ = check_arity guiltiest_party min_univ_card min_highest_arity
+        val _ = if debug then ()
+                else check_arity guiltiest_party min_univ_card min_highest_arity
 
         val def_us =
           def_us |> map (choose_reps_in_nut scope unsound rep_table true)
@@ -584,7 +585,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
           fold Integer.max (map (fst o fst) (maps fst bounds)) 0
         val formula = fold_rev s_and axioms formula
         val _ = if bits = 0 then () else check_bits bits formula
-        val _ = if formula = KK.False then ()
+        val _ = if debug orelse formula = KK.False then ()
                 else check_arity "" univ_card highest_arity
       in
         SOME ({comment = comment, settings = settings, univ_card = univ_card,
