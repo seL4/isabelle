@@ -167,7 +167,6 @@ sig
     hol_context -> typ list -> int -> int -> (typ * int) list -> typ -> int
   val typical_card_of_type : typ -> int
   val is_finite_type : hol_context -> typ -> bool
-  val is_small_finite_type : hol_context -> typ -> bool
   val is_special_eligible_arg : bool -> typ list -> term -> bool
   val s_let :
     typ list -> string -> int -> typ -> typ -> (term -> term) -> term -> term
@@ -1029,23 +1028,19 @@ fun bounded_exact_card_of_type hol_ctxt finitizable_dataTs max default_card
   in Int.min (max, aux [] T) end
 
 val typical_atomic_card = 4
-val typical_card_of_type = bounded_card_of_type 65536 typical_atomic_card []
-
-val small_type_max_card = 5
+val typical_card_of_type = bounded_card_of_type 16777217 typical_atomic_card []
 
 fun is_finite_type hol_ctxt T =
   bounded_exact_card_of_type hol_ctxt [] 1 2 [] T > 0
-fun is_small_finite_type hol_ctxt T =
-  let val n = bounded_exact_card_of_type hol_ctxt [] 1 2 [] T in
-    n > 0 andalso n <= small_type_max_card
-  end
 
 fun is_special_eligible_arg strict Ts t =
   case map snd (Term.add_vars t []) @ map (nth Ts) (loose_bnos t) of
     [] => true
   | bad_Ts =>
     let
-      val bad_Ts_cost = fold (Integer.max o typical_card_of_type) bad_Ts 0
+      val bad_Ts_cost =
+        if strict then fold (curry (op *) o typical_card_of_type) bad_Ts 1
+        else fold (Integer.max o typical_card_of_type) bad_Ts 0
       val T_cost = typical_card_of_type (fastype_of1 (Ts, t))
     in (bad_Ts_cost, T_cost) |> (if strict then op < else op <=) end
 
