@@ -177,7 +177,8 @@ fun abs_abs f cvs ct =
   let val (cv, cu) = Thm.dest_abs NONE ct
   in f (cv :: cvs) cu #>> Thm.cabs cv end
 
-val is_atomic = (fn _ $ _ => false | Abs _ => false | _ => true)
+val is_atomic =
+  (fn Free _ => true | Var _ => true | Bound _ => true | _ => false)
 
 fun abstract (ext_logic, with_theories) =
   let

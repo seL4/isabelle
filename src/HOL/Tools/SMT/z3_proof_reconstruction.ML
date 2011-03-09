@@ -716,13 +716,12 @@ local
   val prove_conj_disj_eq =
     Z3_Proof_Tools.with_conv unfold_conv Z3_Proof_Literals.prove_conj_disj_eq
 
-  fun assume_prems ctxt thm =
-    Assumption.add_assumes (Drule.cprems_of thm) ctxt
-    |>> (fn thms => fold Thm.elim_implies thms thm)
+  fun declare_hyps ctxt thm =
+    (thm, snd (Assumption.add_assumes (#hyps (Thm.crep_thm thm)) ctxt))
 in
 
 fun rewrite simpset ths ct ctxt =
-  apfst Thm (assume_prems ctxt (with_conv ctxt ths (try_apply ctxt [] [
+  apfst Thm (declare_hyps ctxt (with_conv ctxt ths (try_apply ctxt [] [
     named ctxt "conj/disj/distinct" prove_conj_disj_eq,
     Z3_Proof_Tools.by_abstraction (true, false) ctxt [] (fn ctxt' =>
       Z3_Proof_Tools.by_tac (

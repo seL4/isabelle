@@ -194,7 +194,12 @@ lemma
 
 lemma
   "distinct [a, b, c] \<and> (\<forall>x y. f x = f y \<longrightarrow> y = x) \<longrightarrow> f a \<noteq> f b"
-  sorry  (* FIXME: injective function *)
+  by smt
+
+lemma
+  "(\<forall>x y z. f x y = f x z \<longrightarrow> y = z) \<and> b \<noteq> c \<longrightarrow> f a b \<noteq> f a c"
+  "(\<forall>x y z. f x y = f z y \<longrightarrow> x = z) \<and> a \<noteq> d \<longrightarrow> f a b \<noteq> f d b"
+  by smt+
 
 lemma
   assumes "\<forall>x. SMT.trigger [[SMT.pat (f x)]] (f x = x)"

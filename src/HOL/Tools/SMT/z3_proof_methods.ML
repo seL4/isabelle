@@ -64,8 +64,7 @@ fun prove_rhs ctxt def lhs =
   Z3_Proof_Tools.by_tac (
     CONVERSION (Conv.top_sweep_conv (K (Conv.rewr_conv def)) ctxt)
     THEN' REPEAT_ALL_NEW (Tactic.match_tac @{thms allI})
-    THEN' Tactic.rtac (@{thm inv_f_f} OF [prove_inj_prop ctxt def lhs])) #>
-  Thm.elim_implies def
+    THEN' Tactic.rtac (@{thm inv_f_f} OF [prove_inj_prop ctxt def lhs]))
 
 
 fun expand thm ct =
@@ -100,8 +99,9 @@ fun prove_inj_eq ctxt ct =
   let
     val (lhs, rhs) =
       pairself SMT_Utils.mk_cprop (Thm.dest_binop (SMT_Utils.dest_cprop ct))
-    val lhs_thm = prove_lhs ctxt rhs lhs
-    val rhs_thm = prove_rhs ctxt (mk_inv_def ctxt rhs) lhs rhs
+    val lhs_thm = Thm.implies_intr rhs (prove_lhs ctxt rhs lhs)
+    val rhs_thm =
+      Thm.implies_intr lhs (prove_rhs ctxt (mk_inv_def ctxt rhs) lhs rhs)
   in lhs_thm COMP (rhs_thm COMP @{thm iffI}) end
 
 
