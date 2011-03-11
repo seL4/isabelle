@@ -134,7 +134,7 @@ subsubsection {* Invalid Lemma due to typo in lbal *}
 
 lemma is_ord_l_bal:
  "\<lbrakk> is_ord(MKT (x :: nat) l r h); height l = height r + 2 \<rbrakk> \<Longrightarrow> is_ord(l_bal(x,l,r))"
-quickcheck[tester = lazy_exhaustive, finite_types = false, default_type = nat, size = 1, timeout = 80, expect = counterexample]
+quickcheck[tester = lazy_exhaustive, finite_types = false, default_type = nat, size = 1, timeout = 100, expect = counterexample]
 oops
 
 
