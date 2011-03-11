@@ -1,10 +1,10 @@
-(*  Title:      HOL/Tools/quickcheck_generators.ML
+(*  Title:      HOL/Tools/Quickcheck/random_generators.ML
     Author:     Florian Haftmann, TU Muenchen
 
-Quickcheck generators for various types.
+Random generators for various types.
 *)
 
-signature QUICKCHECK_GENERATORS =
+signature RANDOM_GENERATORS =
 sig
   type seed = Random_Engine.seed
   val random_fun: typ -> typ -> ('a -> 'a -> bool) -> ('a -> term)
@@ -25,7 +25,7 @@ sig
   val setup: theory -> theory
 end;
 
-structure Quickcheck_Generators : QUICKCHECK_GENERATORS =
+structure Random_Generators : RANDOM_GENERATORS =
 struct
 
 (** abstract syntax **)
@@ -424,7 +424,7 @@ fun compile_generator_expr ctxt t =
       let
         val t' = mk_reporting_generator_expr thy t Ts;
         val compile = Code_Runtime.dynamic_value_strict
-          (Counterexample_Report.get, put_counterexample_report, "Quickcheck_Generators.put_counterexample_report")
+          (Counterexample_Report.get, put_counterexample_report, "Random_Generators.put_counterexample_report")
           thy (SOME target) (fn proc => fn g => fn s => g s #>> (apfst o Option.map o map) proc) t' [];
         val single_tester = compile #> Random_Engine.run
         fun iterate_and_collect size 0 report = (NONE, report)
@@ -445,7 +445,7 @@ fun compile_generator_expr ctxt t =
       let
         val t' = mk_generator_expr thy t Ts;
         val compile = Code_Runtime.dynamic_value_strict
-          (Counterexample.get, put_counterexample, "Quickcheck_Generators.put_counterexample")
+          (Counterexample.get, put_counterexample, "Random_Generators.put_counterexample")
           thy (SOME target) (fn proc => fn g => fn s => g s #>> (Option.map o map) proc) t' [];
         val single_tester = compile #> Random_Engine.run
         fun iterate size 0 = NONE

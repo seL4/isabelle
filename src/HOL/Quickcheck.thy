@@ -127,7 +127,7 @@ lemma random_aux_rec:
   using assms by (rule code_numeral.induct)
 
 use "Tools/Quickcheck/random_generators.ML"
-setup Quickcheck_Generators.setup
+setup Random_Generators.setup
 
 
 subsection {* Code setup *}

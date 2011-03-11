@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/exhaustive_generators.ML
+(*  Title:      HOL/Tools/Quickcheck/exhaustive_generators.ML
     Author:     Lukas Bulwahn, TU Muenchen
 
 Exhaustive generators for various types.
