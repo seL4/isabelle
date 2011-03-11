@@ -4,7 +4,9 @@ header {* A simple counterexample generator performing random testing *}
 
 theory Quickcheck
 imports Random Code_Evaluation Enum
-uses ("Tools/Quickcheck/random_generators.ML")
+uses
+  "Tools/Quickcheck/quickcheck_common.ML"
+  ("Tools/Quickcheck/random_generators.ML")
 begin
 
 notation fcomp (infixl "\<circ>>" 60)

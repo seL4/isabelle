@@ -338,6 +338,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Qelim/qelim.ML \
   Tools/Quickcheck/exhaustive_generators.ML \
   Tools/Quickcheck/random_generators.ML \
+  Tools/Quickcheck/quickcheck_common.ML \
   Tools/Quotient/quotient_def.ML \
   Tools/Quotient/quotient_info.ML \
   Tools/Quotient/quotient_tacs.ML \

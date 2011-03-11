@@ -396,7 +396,7 @@ fun compile_generator_exprs ctxt ts =
 
 val setup =
   Datatype.interpretation
-    (Quickcheck_Generators.ensure_sort_datatype (@{sort exhaustive}, instantiate_exhaustive_datatype))
+    (Quickcheck_Common.ensure_sort_datatype (@{sort exhaustive}, instantiate_exhaustive_datatype))
   #> setup_smart_quantifier
   #> setup_quickcheck_pretty
   #> Context.theory_map (Quickcheck.add_generator ("exhaustive", compile_generator_expr))
