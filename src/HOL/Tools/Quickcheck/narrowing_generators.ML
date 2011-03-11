@@ -79,7 +79,7 @@ fun dynamic_value_strict cookie thy postproc t args =
 structure Counterexample = Proof_Data
 (
   type T = unit -> term list option
-  fun init _ () = error " Quickcheck_Narrowing_Result"
+  fun init _ () = error "Counterexample"
 )
 
 val put_counterexample =  Counterexample.put
@@ -99,6 +99,6 @@ fun compile_generator_expr ctxt t size =
 
 val setup =
   Context.theory_map
-    (Quickcheck.add_generator ("lazy_exhaustive", compile_generator_expr))
+    (Quickcheck.add_generator ("narrowing", compile_generator_expr))
     
 end;
