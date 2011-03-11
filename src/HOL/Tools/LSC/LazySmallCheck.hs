@@ -6,7 +6,7 @@ import System.IO;
 import System.Exit;
 import Code;
 
-type Pos = [Integer];
+type Pos = [Int];
 
 -- Term refinement
 
@@ -19,7 +19,7 @@ refine (Var p (SumOfProd ss)) [] = new p ss;
 refine (Ctr c xs) p = map (Ctr c) (refineList xs p);
 
 refineList :: [Term] -> Pos -> [[Term]];
-refineList xs (i:is) = let (ls, x:rs) = splitAt (fromInteger i) xs in [ls ++ y:rs | y <- refine x is];
+refineList xs (i:is) = let (ls, x:rs) = splitAt i xs in [ls ++ y:rs | y <- refine x is];
 
 -- Find total instantiations of a partial value
 
@@ -34,7 +34,7 @@ answer a known unknown =
   try (evaluate a) >>= (\res ->
      case res of
        Right b -> known b
-       Left (ErrorCall ('\0':p)) -> unknown (map (toInteger . fromEnum) p)
+       Left (ErrorCall ('\0':p)) -> unknown (map fromEnum p)
        Left e -> throw e);
 
 -- Refute
@@ -42,26 +42,26 @@ answer a known unknown =
 str_of_list [] = "[]";
 str_of_list (x:xs) = "(" ++ x ++ " :: " ++ str_of_list xs ++ ")";
 
-report :: Result -> [Term] -> IO Integer;
+report :: Result -> [Term] -> IO Int;
 report r xs = putStrLn ("SOME (" ++ (str_of_list $ zipWith ($) (showArgs r) $ head [ys | ys <- mapM total xs]) ++ ")") >> hFlush stdout >> exitWith ExitSuccess;
 
 eval :: Bool -> (Bool -> IO a) -> (Pos -> IO a) -> IO a;
 eval p k u = answer p (\p -> answer p k u) u;
 
-ref :: Result -> [Term] -> IO Integer;
+ref :: Result -> [Term] -> IO Int;
 ref r xs = eval (apply_fun r xs) (\res -> if res then return 1 else report r xs) (\p -> sumMapM (ref r) 1 (refineList xs p));
           
-refute :: Result -> IO Integer;
+refute :: Result -> IO Int;
 refute r = ref r (args r);
 
-sumMapM :: (a -> IO Integer) -> Integer -> [a] -> IO Integer;
+sumMapM :: (a -> IO Int) -> Int -> [a] -> IO Int;
 sumMapM f n [] = return n;
 sumMapM f n (a:as) = seq n (do m <- f a ; sumMapM f (n+m) as);
 
 -- Testable
 
 instance Show Typerep where {
-  show (Typerepa c ts) = "Type (\"" ++ c ++ "\", " ++ show ts ++ ")";
+  show (Typerep c ts) = "Type (\"" ++ c ++ "\", " ++ show ts ++ ")";
 };
 
 instance Show Terma where {
@@ -76,9 +76,9 @@ data Result =
          , apply_fun    :: [Term] -> Bool
          };
 
-data P = P (Integer -> Integer -> Result);
+data P = P (Int -> Int -> Result);
 
-run :: Testable a => ([Term] -> a) -> Integer -> Integer -> Result;
+run :: Testable a => ([Term] -> a) -> Int -> Int -> Result;
 run a = let P f = property a in f;
 
 class Testable a where {
@@ -99,11 +99,11 @@ instance (Term_of a, Serial a, Testable b) => Testable (a -> b) where {
 
 -- Top-level interface
 
-depthCheck :: Testable a => Integer -> a -> IO ();
+depthCheck :: Testable a => Int -> a -> IO ();
 depthCheck d p =
   (refute $ run (const p) 0 d) >>= (\n -> putStrLn $ "OK, required " ++ show n ++ " tests at depth " ++ show d);
 
-smallCheck :: Testable a => Integer -> a -> IO ();
+smallCheck :: Testable a => Int -> a -> IO ();
 smallCheck d p = mapM_ (`depthCheck` p) [0..d] >> putStrLn ("NONE");
 
 }

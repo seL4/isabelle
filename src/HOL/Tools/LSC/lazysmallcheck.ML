@@ -26,7 +26,9 @@ fun exec verbose code =
 fun value ctxt (get, put, put_ml) (code, value) =
   let
     val prefix = "LSC"
-    fun make_cmd files = getenv "EXEC_GHC" ^ " -fglasgow-exts -e \"Main.main\" " ^ (space_implode " " (map Path.implode files))
+    fun make_cmd executable files =
+      getenv "EXEC_GHC" ^ " -fglasgow-exts " ^ (space_implode " " (map Path.implode files)) ^
+        " -o " ^ executable ^ " && " ^ executable
     fun run in_path = 
       let
         val code_file = Path.append in_path (Path.basic "Code.hs")
@@ -35,17 +37,17 @@ fun value ctxt (get, put, put_ml) (code, value) =
         val main = "module Main where {\n\n" ^
           "import LazySmallCheck;\n" ^
           "import Code;\n\n" ^
-          "main = LazySmallCheck.smallCheck 10 (Code.value ())\n\n" ^
+          "main = LazySmallCheck.smallCheck 7 (Code.value ())\n\n" ^
           "}\n"
         val _ = File.write code_file code
         val _ = File.write lsc_file lsc_module
         val _ = File.write main_file main
-        val cmd = make_cmd [code_file, lsc_file, main_file]
+        val executable = Path.implode (Path.append in_path (Path.basic "isa_lsc"))
+        val cmd = make_cmd executable [code_file, lsc_file, main_file]
       in
         bash_output cmd
       end 
     val result = Isabelle_System.with_tmp_dir prefix run
-    val _ = tracing (fst result)
     val output_value = the_default "NONE"
       (try (snd o split_last o filter_out (fn s => s = "") o split_lines o fst) result)
     val ml_code = "\nval _ = Context.set_thread_data (SOME (Context.map_proof (" ^ put_ml
@@ -53,7 +55,6 @@ fun value ctxt (get, put, put_ml) (code, value) =
     val ctxt' = ctxt
       |> put (fn () => error ("Bad evaluation for " ^ quote put_ml))
       |> Context.proof_map (exec false ml_code);
-    val _ = tracing "after exec"
   in get ctxt' () end;
 
 fun evaluation cookie thy evaluator vs_t args =
@@ -88,7 +89,6 @@ fun compile_generator_expr ctxt t size =
     val t = dynamic_value_strict
       (Lazysmallcheck_Result.get, Lazysmallcheck_Result.put, "Lazysmallcheck.put_counterexample")
       thy (Option.map o map) (ensure_testable t) []
-    val _ = tracing "end of compile generator..."
   in
     (t, NONE)
   end;
