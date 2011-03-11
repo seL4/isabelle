@@ -73,9 +73,11 @@ use_thys [
   "Quicksort",
   "Birthday_Paradoxon",
   "List_to_Set_Comprehension_Examples",
-  "Set_Algebras",
-  "LSC_Examples"
+  "Set_Algebras"
 ];
+
+if getenv "EXEC_GHC" = "" then ()
+else use_thy "LSC_Examples";
 
 use_thy "SVC_Oracle";
 if getenv "SVC_HOME" = "" then ()
