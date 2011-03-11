@@ -28,6 +28,9 @@ lemma int_of_inject [simp]:
   "int_of k = int_of l \<longleftrightarrow> k = l"
   by (rule int_of_inject)
 
+definition nat_of :: "code_int => nat"
+where
+  "nat_of i = nat (int_of i)"
 
 instantiation code_int :: "{zero, one, minus, linorder}"
 begin
@@ -147,12 +150,32 @@ where
       case b d of C (SumOfProd ssb) cb =>
       C (SumOfProd (ssa @ ssb)) (ca @ cb))"
 
+lemma [fundef_cong]:
+  assumes "a d = a' d" "b d = b' d" "d = d'"
+  shows "sum a b d = sum a' b' d'"
+using assms unfolding sum_def by (auto split: cons.split type.split)
+
+lemma [fundef_cong]:
+  assumes "f d = f' d" "(\<And>d'. 0 <= d' & d' < d ==> a d' = a' d')"
+  assumes "d = d'"
+  shows "apply f a d = apply f' a' d'"
+proof -
+  note assms moreover
+  have "int_of (LSC.of_int 0) < int_of d' ==> int_of (LSC.of_int 0) <= int_of (LSC.of_int (int_of d' - int_of (LSC.of_int 1)))"
+    by (simp add: of_int_inverse)
+  moreover
+  have "int_of (LSC.of_int (int_of d' - int_of (LSC.of_int 1))) < int_of d'"
+    by (simp add: of_int_inverse)
+  ultimately show ?thesis
+    unfolding apply_def by (auto split: cons.split type.split simp add: Let_def)
+qed
+
 definition cons0 :: "'a => 'a series"
 where
   "cons0 f = cons f"
 
 type_synonym pos = "code_int list"
-
+(*
 subsubsection {* Term refinement *}
 
 definition new :: "pos => type list list => term list"
@@ -174,7 +197,7 @@ where
 by pat_completeness auto
 
 termination sorry
-
+*)
 subsubsection {* LSC's type class for enumeration *}
 
 class serial =
@@ -236,8 +259,9 @@ where
   "series_list d = sum (cons []) (apply (apply (cons Cons) series) series_list) d"
 by pat_completeness auto
 
-termination sorry
-
+termination proof (relation "measure nat_of")
+qed (auto simp add: of_int_inverse nat_of_def)
+    
 instance ..
 
 end
@@ -250,7 +274,8 @@ where
   "series_nat d = sum (cons 0) (apply (cons Suc) series_nat) d"
 by pat_completeness auto
 
-termination sorry
+termination proof (relation "measure nat_of")
+qed (auto simp add: of_int_inverse nat_of_def)
 
 instance ..
 

@@ -123,7 +123,8 @@ where
   "series_tree d = sum (cons ET) (apply (apply (apply (apply (cons MKT) series) series_tree) series_tree) series) d"
 by pat_completeness auto
 
-termination sorry
+termination proof (relation "measure nat_of")
+qed (auto simp add: of_int_inverse nat_of_def)
 
 instance ..
 
