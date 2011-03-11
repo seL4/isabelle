@@ -15,6 +15,7 @@ sig
   val put_counterexample_batch: (unit -> (int -> term list option) list)
     -> Proof.context -> Proof.context
   val smart_quantifier : bool Config.T;
+  val quickcheck_pretty : bool Config.T;
   val setup: theory -> theory
 end;
 
@@ -30,6 +31,9 @@ val define_foundationally = false
 val (smart_quantifier, setup_smart_quantifier) =
   Attrib.config_bool "quickcheck_smart_quantifier" (K true)
 
+val (quickcheck_pretty, setup_quickcheck_pretty) =
+  Attrib.config_bool "quickcheck_pretty" (K true)
+ 
 (** general term functions **)
 
 fun mk_measure f =
@@ -336,7 +340,7 @@ fun make_map T1 T2 [] = Const (@{const_abbrev Map.empty}, T1 --> T2)
   
 fun post_process_term t =
   let
-    (*val _ = tracing ("post_process:" ^ Syntax.string_of_term ctxt t)*)
+    val _ = tracing (Syntax.string_of_term @{context} t)
     fun map_Abs f t =
       case t of Abs (x, T, t') => Abs (x, T, f t') | _ => raise TERM ("map_Abs", [t]) 
     fun process_args t = case strip_comb t of
@@ -360,7 +364,7 @@ fun post_process_term t =
                 | Abs(_, _, Const (@{const_name undefined}, _)) => fst #> make_map T1 T2
                 | _ => make_fun_upds T1 T2) 
             | _ => make_fun_upds T1 T2)
-        | NONE => raise TERM ("post_process_term", [t]))
+        | NONE => process_args t)
     | _ => process_args t
   end
 
@@ -376,7 +380,8 @@ fun compile_generator_expr ctxt t =
       (Counterexample.get, put_counterexample, "Smallvalue_Generators.put_counterexample")
       thy (SOME target) (fn proc => fn g => g #> (Option.map o map) proc) t' [];
   in
-    fn size => rpair NONE (compile size |> Option.map (map post_process_term))
+    fn size => rpair NONE (compile size |> 
+      (if Config.get ctxt quickcheck_pretty then Option.map (map post_process_term) else I))
   end;
 
 fun compile_generator_exprs ctxt ts =
@@ -401,6 +406,7 @@ val setup =
   Datatype.interpretation
     (Quickcheck_Generators.ensure_sort_datatype (@{sort full_small}, instantiate_smallvalue_datatype))
   #> setup_smart_quantifier
+  #> setup_quickcheck_pretty
   #> Context.theory_map (Quickcheck.add_generator ("exhaustive", compile_generator_expr))
   #> Context.theory_map (Quickcheck.add_batch_generator ("exhaustive", compile_generator_exprs));
 
