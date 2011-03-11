@@ -9,6 +9,16 @@ begin
 
 subsection {* Counterexample generator *}
 
+subsubsection {* Code generation setup *}
+
+code_type typerep
+  ("Haskell" "Typerep")
+
+code_const Typerep.Typerep
+  ("Haskell" "Typerep")
+
+code_reserved Haskell Typerep
+
 subsubsection {* Type code_int for Haskell's Int type *}
 
 typedef (open) code_int = "UNIV \<Colon> int set"

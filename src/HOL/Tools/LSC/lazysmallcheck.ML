@@ -25,7 +25,7 @@ fun exec verbose code =
 
 fun value ctxt (get, put, put_ml) (code, value) =
   let
-    val prefix = "LSC"
+    val tmp_prefix = "LSC"
     fun make_cmd executable files =
       getenv "EXEC_GHC" ^ " -fglasgow-exts " ^ (space_implode " " (map Path.implode files)) ^
         " -o " ^ executable ^ " && " ^ executable
@@ -39,7 +39,9 @@ fun value ctxt (get, put, put_ml) (code, value) =
           "import Code;\n\n" ^
           "main = LazySmallCheck.smallCheck 7 (Code.value ())\n\n" ^
           "}\n"
-        val _ = File.write code_file code
+        val code' = prefix "module Code where {\n\ndata Typerep = Typerep String [Typerep];\n"
+          (unprefix "module Code where {" code)
+        val _ = File.write code_file code'
         val _ = File.write lsc_file lsc_module
         val _ = File.write main_file main
         val executable = Path.implode (Path.append in_path (Path.basic "isa_lsc"))
@@ -47,7 +49,7 @@ fun value ctxt (get, put, put_ml) (code, value) =
       in
         bash_output cmd
       end 
-    val result = Isabelle_System.with_tmp_dir prefix run
+    val result = Isabelle_System.with_tmp_dir tmp_prefix run
     val output_value = the_default "NONE"
       (try (snd o split_last o filter_out (fn s => s = "") o split_lines o fst) result)
     val ml_code = "\nval _ = Context.set_thread_data (SOME (Context.map_proof (" ^ put_ml
