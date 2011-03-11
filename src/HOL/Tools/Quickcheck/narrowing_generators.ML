@@ -34,9 +34,9 @@ fun value ctxt (get, put, put_ml) (code, value) =
         val narrowing_engine_file = Path.append in_path (Path.basic "Narrowing_Engine.hs")
         val main_file = Path.append in_path (Path.basic "Main.hs")
         val main = "module Main where {\n\n" ^
-          "import LazySmallCheck;\n" ^
+          "import Narrowing_Engine;\n" ^
           "import Code;\n\n" ^
-          "main = LazySmallCheck.smallCheck 7 (Code.value ())\n\n" ^
+          "main = Narrowing_Engine.smallCheck 7 (Code.value ())\n\n" ^
           "}\n"
         val code' = prefix "module Code where {\n\ndata Typerep = Typerep String [Typerep];\n"
           (unprefix "module Code where {" code)

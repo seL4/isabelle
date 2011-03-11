@@ -1,4 +1,4 @@
-module LazySmallCheck where {
+module Narrowing_Engine where {
 
 import Monad;
 import Control.Exception;
@@ -10,20 +10,20 @@ type Pos = [Int];
 
 -- Term refinement
 
-new :: Pos -> [[Type]] -> [Term];
+new :: Pos -> [[Type]] -> [Terma];
 new p ps = [ Ctr c (zipWith (\i t -> Var (p++[i]) t) [0..] ts)
            | (c, ts) <- zip [0..] ps ];
 
-refine :: Term -> Pos -> [Term];
+refine :: Terma -> Pos -> [Terma];
 refine (Var p (SumOfProd ss)) [] = new p ss;
 refine (Ctr c xs) p = map (Ctr c) (refineList xs p);
 
-refineList :: [Term] -> Pos -> [[Term]];
+refineList :: [Terma] -> Pos -> [[Terma]];
 refineList xs (i:is) = let (ls, x:rs) = splitAt i xs in [ls ++ y:rs | y <- refine x is];
 
 -- Find total instantiations of a partial value
 
-total :: Term -> [Term];
+total :: Terma -> [Terma];
 total (Ctr c xs) = [Ctr c ys | ys <- mapM total xs];
 total (Var p (SumOfProd ss)) = [y | x <- new p ss, y <- total x];
 
@@ -42,13 +42,13 @@ answer a known unknown =
 str_of_list [] = "[]";
 str_of_list (x:xs) = "(" ++ x ++ " :: " ++ str_of_list xs ++ ")";
 
-report :: Result -> [Term] -> IO Int;
+report :: Result -> [Terma] -> IO Int;
 report r xs = putStrLn ("SOME (" ++ (str_of_list $ zipWith ($) (showArgs r) $ head [ys | ys <- mapM total xs]) ++ ")") >> hFlush stdout >> exitWith ExitSuccess;
 
 eval :: Bool -> (Bool -> IO a) -> (Pos -> IO a) -> IO a;
 eval p k u = answer p (\p -> answer p k u) u;
 
-ref :: Result -> [Term] -> IO Int;
+ref :: Result -> [Terma] -> IO Int;
 ref r xs = eval (apply_fun r xs) (\res -> if res then return 1 else report r xs) (\p -> sumMapM (ref r) 1 (refineList xs p));
           
 refute :: Result -> IO Int;
@@ -64,25 +64,25 @@ instance Show Typerep where {
   show (Typerep c ts) = "Type (\"" ++ c ++ "\", " ++ show ts ++ ")";
 };
 
-instance Show Terma where {
+instance Show Term where {
   show (Const c t) = "Const (\"" ++ c ++ "\", " ++ show t ++ ")";
   show (App s t) = "(" ++ show s ++ ") $ (" ++ show t ++ ")";
   show (Abs s ty t) = "Abs (\"" ++ s ++ "\", " ++ show ty ++ ", " ++ show t ++ ")";  
 };
 
 data Result =
-  Result { args     :: [Term]
-         , showArgs :: [Term -> String]
-         , apply_fun    :: [Term] -> Bool
+  Result { args     :: [Terma]
+         , showArgs :: [Terma -> String]
+         , apply_fun    :: [Terma] -> Bool
          };
 
 data P = P (Int -> Int -> Result);
 
-run :: Testable a => ([Term] -> a) -> Int -> Int -> Result;
+run :: Testable a => ([Terma] -> a) -> Int -> Int -> Result;
 run a = let P f = property a in f;
 
 class Testable a where {
-  property :: ([Term] -> a) -> P;
+  property :: ([Terma] -> a) -> P;
 };
 
 instance Testable Bool where {
