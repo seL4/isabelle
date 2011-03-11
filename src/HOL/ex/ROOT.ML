@@ -77,7 +77,7 @@ use_thys [
 ];
 
 if getenv "EXEC_GHC" = "" then ()
-else use_thy "LSC_Examples";
+else use_thy "Quickcheck_Narrowing_Examples";
 
 use_thy "SVC_Oracle";
 if getenv "SVC_HOME" = "" then ()

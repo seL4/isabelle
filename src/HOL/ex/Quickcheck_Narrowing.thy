@@ -1,11 +1,11 @@
-(*  Title:      HOL/ex/LSC_Examples.thy
+(*  Title:      HOL/ex/Quickcheck_Narrowing_Examples.thy
     Author:     Lukas Bulwahn
     Copyright   2011 TU Muenchen
 *)
 
-header {* Examples for invoking lazysmallcheck (LSC) *}
+header {* Examples for narrowing-based testing  *}
 
-theory LSC_Examples
+theory Quickcheck_Narrowing_Examples
 imports "~~/src/HOL/Library/LSC"
 begin
 

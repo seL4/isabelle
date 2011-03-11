@@ -76,13 +76,13 @@ fun dynamic_value_strict cookie thy postproc t args =
 
 (* counterexample generator *)
   
-structure Quickcheck_Narrowing_Result = Proof_Data
+structure Counterexample = Proof_Data
 (
   type T = unit -> term list option
   fun init _ () = error " Quickcheck_Narrowing_Result"
 )
 
-val put_counterexample =  Quickcheck_Narrowing_Result.put
+val put_counterexample =  Counterexample.put
   
 fun compile_generator_expr ctxt t size =
   let
@@ -90,8 +90,7 @@ fun compile_generator_expr ctxt t size =
     fun ensure_testable t =
       Const (@{const_name Quickcheck_Narrowing.ensure_testable}, fastype_of t --> fastype_of t) $ t
     val t = dynamic_value_strict
-      (Quickcheck_Narrowing_Result.get, Quickcheck_Narrowing_Result.put,
-        "Quickcheck_Narrowing.put_counterexample")
+      (Counterexample.get, Counterexample.put, "Narrowing_Generators.put_counterexample")
       thy (Option.map o map) (ensure_testable t) []
   in
     (t, NONE)
