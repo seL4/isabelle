@@ -1,10 +1,10 @@
 (* Author: Lukas Bulwahn, TU Muenchen *)
 
-header {* Counterexample generator based on LazySmallCheck *}
+header {* Counterexample generator preforming narrowing-based testing *}
 
-theory LSC
+theory Quickcheck_Narrowing
 imports Main "~~/src/HOL/Library/Code_Char"
-uses ("~~/src/HOL/Tools/LSC/lazysmallcheck.ML")
+uses ("~~/src/HOL/Tools/Quickcheck/narrowing_generators.ML")
 begin
 
 subsection {* Counterexample generator *}
@@ -161,10 +161,10 @@ lemma [fundef_cong]:
   shows "apply f a d = apply f' a' d'"
 proof -
   note assms moreover
-  have "int_of (LSC.of_int 0) < int_of d' ==> int_of (LSC.of_int 0) <= int_of (LSC.of_int (int_of d' - int_of (LSC.of_int 1)))"
+  have "int_of (of_int 0) < int_of d' ==> int_of (of_int 0) <= int_of (of_int (int_of d' - int_of (of_int 1)))"
     by (simp add: of_int_inverse)
   moreover
-  have "int_of (LSC.of_int (int_of d' - int_of (LSC.of_int 1))) < int_of d'"
+  have "int_of (of_int (int_of d' - int_of (of_int 1))) < int_of d'"
     by (simp add: of_int_inverse)
   ultimately show ?thesis
     unfolding apply_def by (auto split: cons.split type.split simp add: Let_def)
@@ -343,9 +343,9 @@ declare simp_thms(17,19)[code del]
 
 subsubsection {* Setting up the counterexample generator *}
   
-use "~~/src/HOL/Tools/LSC/lazysmallcheck.ML"
+use "~~/src/HOL/Tools/Quickcheck/narrowing_generators.ML"
 
-setup {* Lazysmallcheck.setup *}
+setup {* Narrowing_Generators.setup *}
 
 hide_const (open) empty
 

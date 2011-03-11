@@ -1,11 +1,11 @@
-(*  Title:      HOL/Tools/LSC/lazysmallcheck.ML
+(*  Title:      HOL/Tools/Quickcheck/narrowing_generators.ML
     Author:     Lukas Bulwahn, TU Muenchen
 
-Prototypic implementation to invoke lazysmallcheck in Isabelle
+Narrowing-based counterexample generation 
 
 *)
 
-signature LAZYSMALLCHECK =
+signature NARROWING_GENERATORS =
 sig
   val compile_generator_expr:
     Proof.context -> term -> int -> term list option * Quickcheck.report option
@@ -13,26 +13,25 @@ sig
   val setup: theory -> theory
 end;
 
-structure Lazysmallcheck : LAZYSMALLCHECK =
+structure Narrowing_Generators : NARROWING_GENERATORS =
 struct
+
+val target = "Haskell"
 
 (* invocation of Haskell interpreter *)
 
-val lsc_module = File.read (Path.explode "~~/src/HOL/Tools/LSC/LazySmallCheck.hs")
+val narrowing_engine = File.read (Path.explode "~~/src/HOL/Tools/Quickcheck/Narrowing_Engine.hs")
 
 fun exec verbose code =
   ML_Context.exec (fn () => Secure.use_text ML_Env.local_context (0, "generated code") verbose code)
 
 fun value ctxt (get, put, put_ml) (code, value) =
   let
-    val tmp_prefix = "LSC"
-    fun make_cmd executable files =
-      getenv "EXEC_GHC" ^ " -fglasgow-exts " ^ (space_implode " " (map Path.implode files)) ^
-        " -o " ^ executable ^ " && " ^ executable
+    val tmp_prefix = "Quickcheck_Narrowing"
     fun run in_path = 
       let
         val code_file = Path.append in_path (Path.basic "Code.hs")
-        val lsc_file = Path.append in_path (Path.basic "LazySmallCheck.hs")
+        val narrowing_engine_file = Path.append in_path (Path.basic "Narrowing_Engine.hs")
         val main_file = Path.append in_path (Path.basic "Main.hs")
         val main = "module Main where {\n\n" ^
           "import LazySmallCheck;\n" ^
@@ -42,13 +41,15 @@ fun value ctxt (get, put, put_ml) (code, value) =
         val code' = prefix "module Code where {\n\ndata Typerep = Typerep String [Typerep];\n"
           (unprefix "module Code where {" code)
         val _ = File.write code_file code'
-        val _ = File.write lsc_file lsc_module
+        val _ = File.write narrowing_engine_file narrowing_engine
         val _ = File.write main_file main
         val executable = Path.implode (Path.append in_path (Path.basic "isa_lsc"))
-        val cmd = make_cmd executable [code_file, lsc_file, main_file]
+        val cmd = getenv "EXEC_GHC" ^ " -fglasgow-exts " ^ 
+          (space_implode " " (map Path.implode [code_file, narrowing_engine_file, main_file])) ^
+          " -o " ^ executable ^ " && " ^ executable
       in
         bash_output cmd
-      end 
+      end
     val result = Isabelle_System.with_tmp_dir tmp_prefix run
     val output_value = the_default "NONE"
       (try (snd o split_last o filter_out (fn s => s = "") o split_lines o fst) result)
@@ -70,26 +71,27 @@ fun evaluation cookie thy evaluator vs_t args =
 fun dynamic_value_strict cookie thy postproc t args =
   let
     fun evaluator naming program ((_, vs_ty), t) deps =
-      evaluation cookie thy (Code_Target.evaluator thy "Haskell" naming program deps) (vs_ty, t) args;
+      evaluation cookie thy (Code_Target.evaluator thy target naming program deps) (vs_ty, t) args;
   in Exn.release (Code_Thingol.dynamic_value thy (Exn.map_result o postproc) evaluator t) end;
 
 (* counterexample generator *)
   
-structure Lazysmallcheck_Result = Proof_Data
+structure Quickcheck_Narrowing_Result = Proof_Data
 (
   type T = unit -> term list option
-  fun init _ () = error "Lazysmallcheck_Result"
+  fun init _ () = error " Quickcheck_Narrowing_Result"
 )
 
-val put_counterexample = Lazysmallcheck_Result.put
+val put_counterexample =  Quickcheck_Narrowing_Result.put
   
 fun compile_generator_expr ctxt t size =
   let
     val thy = ProofContext.theory_of ctxt
     fun ensure_testable t =
-      Const (@{const_name LSC.ensure_testable}, fastype_of t --> fastype_of t) $ t
+      Const (@{const_name Quickcheck_Narrowing.ensure_testable}, fastype_of t --> fastype_of t) $ t
     val t = dynamic_value_strict
-      (Lazysmallcheck_Result.get, Lazysmallcheck_Result.put, "Lazysmallcheck.put_counterexample")
+      (Quickcheck_Narrowing_Result.get, Quickcheck_Narrowing_Result.put,
+        "Quickcheck_Narrowing.put_counterexample")
       thy (Option.map o map) (ensure_testable t) []
   in
     (t, NONE)
