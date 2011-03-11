@@ -134,12 +134,12 @@ setup Random_Generators.setup
 
 subsection {* Code setup *}
 
-code_const random_fun_aux (Quickcheck "Quickcheck'_Generators.random'_fun")
+code_const random_fun_aux (Quickcheck "Random'_Generators.random'_fun")
   -- {* With enough criminal energy this can be abused to derive @{prop False};
   for this reason we use a distinguished target @{text Quickcheck}
   not spoiling the regular trusted code generation *}
 
-code_reserved Quickcheck Quickcheck_Generators
+code_reserved Quickcheck Random_Generators
 
 no_notation fcomp (infixl "\<circ>>" 60)
 no_notation scomp (infixl "\<circ>\<rightarrow>" 60)

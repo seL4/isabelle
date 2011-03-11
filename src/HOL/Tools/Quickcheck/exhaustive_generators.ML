@@ -291,75 +291,6 @@ fun mk_generator_expr ctxt t =
         $ absdummy (T, absdummy (@{typ "unit => term"}, t))) $ Bound i
   in Abs ("d", @{typ code_numeral}, fold_rev mk_exhaustive_closure bounds check) end
 
-(** post-processing of function terms **)
-
-fun dest_fun_upd (Const (@{const_name fun_upd}, _) $ t0 $ t1 $ t2) = (t0, (t1, t2))
-  | dest_fun_upd t = raise TERM ("dest_fun_upd", [t])
-
-fun mk_fun_upd T1 T2 (t1, t2) t = 
-  Const (@{const_name fun_upd}, (T1 --> T2) --> T1 --> T2 --> T1 --> T2) $ t $ t1 $ t2
-
-fun dest_fun_upds t =
-  case try dest_fun_upd t of
-    NONE =>
-      (case t of
-        Abs (_, _, _) => ([], t) 
-      | _ => raise TERM ("dest_fun_upds", [t]))
-  | SOME (t0, (t1, t2)) => apfst (cons (t1, t2)) (dest_fun_upds t0)
-
-fun make_fun_upds T1 T2 (tps, t) = fold_rev (mk_fun_upd T1 T2) tps t
-
-fun make_set T1 [] = Const (@{const_abbrev Set.empty}, T1 --> @{typ bool})
-  | make_set T1 ((_, @{const False}) :: tps) = make_set T1 tps
-  | make_set T1 ((t1, @{const True}) :: tps) =
-    Const (@{const_name insert}, T1 --> (T1 --> @{typ bool}) --> T1 --> @{typ bool})
-      $ t1 $ (make_set T1 tps)
-  | make_set T1 ((_, t) :: tps) = raise TERM ("make_set", [t])
-
-fun make_coset T [] = Const (@{const_abbrev UNIV}, T --> @{typ bool})
-  | make_coset T tps = 
-    let
-      val U = T --> @{typ bool}
-      fun invert @{const False} = @{const True}
-        | invert @{const True} = @{const False}
-    in
-      Const (@{const_name "Groups.minus_class.minus"}, U --> U --> U)
-        $ Const (@{const_abbrev UNIV}, U) $ make_set T (map (apsnd invert) tps)
-    end
-
-fun make_map T1 T2 [] = Const (@{const_abbrev Map.empty}, T1 --> T2)
-  | make_map T1 T2 ((_, Const (@{const_name None}, _)) :: tps) = make_map T1 T2 tps
-  | make_map T1 T2 ((t1, t2) :: tps) = mk_fun_upd T1 T2 (t1, t2) (make_map T1 T2 tps)
-  
-fun post_process_term t =
-  let
-    fun map_Abs f t =
-      case t of Abs (x, T, t') => Abs (x, T, f t') | _ => raise TERM ("map_Abs", [t]) 
-    fun process_args t = case strip_comb t of
-      (c as Const (_, _), ts) => list_comb (c, map post_process_term ts) 
-  in
-    case fastype_of t of
-      Type (@{type_name fun}, [T1, T2]) =>
-        (case try dest_fun_upds t of
-          SOME (tps, t) =>
-            (map (pairself post_process_term) tps, map_Abs post_process_term t)
-            |> (case T2 of
-              @{typ bool} => 
-                (case t of
-                   Abs(_, _, @{const True}) => fst #> rev #> make_set T1
-                 | Abs(_, _, @{const False}) => fst #> rev #> make_coset T1
-                 | Abs(_, _, Const (@{const_name undefined}, _)) => fst #> rev #> make_set T1
-                 | _ => raise TERM ("post_process_term", [t]))
-            | Type (@{type_name option}, _) =>
-                (case t of
-                  Abs(_, _, Const(@{const_name None}, _)) => fst #> make_map T1 T2
-                | Abs(_, _, Const (@{const_name undefined}, _)) => fst #> make_map T1 T2
-                | _ => make_fun_upds T1 T2) 
-            | _ => make_fun_upds T1 T2)
-        | NONE => process_args t)
-    | _ => process_args t
-  end
-
 (** generator compiliation **)
 
 fun compile_generator_expr ctxt t =
@@ -373,7 +304,8 @@ fun compile_generator_expr ctxt t =
       thy (SOME target) (fn proc => fn g => g #> (Option.map o map) proc) t' [];
   in
     fn size => rpair NONE (compile size |> 
-      (if Config.get ctxt quickcheck_pretty then Option.map (map post_process_term) else I))
+      (if Config.get ctxt quickcheck_pretty then
+        Option.map (map Quickcheck_Common.post_process_term) else I))
   end;
 
 fun compile_generator_exprs ctxt ts =
@@ -388,7 +320,8 @@ fun compile_generator_exprs ctxt ts =
       thy (SOME target) (fn proc => map (fn g => g #> (Option.map o map) proc))
       (HOLogic.mk_list @{typ "code_numeral => term list option"} ts') [];
   in
-    map (fn compile => fn size => compile size |> Option.map (map post_process_term)) compiles
+    map (fn compile => fn size => compile size
+      |> Option.map (map Quickcheck_Common.post_process_term)) compiles
   end;
   
   
