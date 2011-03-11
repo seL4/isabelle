@@ -276,6 +276,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Presburger.thy \
   Predicate_Compile.thy \
   Quickcheck.thy \
+  Quickcheck_Exhaustive.thy \
   Quotient.thy \
   Random.thy \
   Random_Sequence.thy \
@@ -285,7 +286,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Semiring_Normalization.thy \
   SetInterval.thy \
   Sledgehammer.thy \
-  Smallcheck.thy \
   SMT.thy \
   String.thy \
   Typerep.thy \
@@ -299,8 +299,9 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/ATP/atp_systems.ML \
   Tools/choice_specification.ML \
   Tools/code_evaluation.ML \
-  Tools/int_arith.ML \
+  Tools/exhaustive_generators.ML \
   Tools/groebner.ML \
+  Tools/int_arith.ML \
   Tools/list_code.ML \
   Tools/list_to_set_comprehension.ML \
   Tools/nat_numeral_simprocs.ML \
@@ -354,7 +355,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Sledgehammer/sledgehammer_provers.ML \
   Tools/Sledgehammer/sledgehammer_run.ML \
   Tools/Sledgehammer/sledgehammer_util.ML \
-  Tools/smallvalue_generators.ML \
   Tools/SMT/smtlib_interface.ML \
   Tools/SMT/smt_builtin.ML \
   Tools/SMT/smt_config.ML \
