@@ -129,10 +129,6 @@ instance ..
 
 end
 
-code_thms implies
-declare simp_thms(17,19)[code del]
-code_thms implies
-
 subsubsection {* Invalid Lemma due to typo in lbal *}
 
 lemma is_ord_l_bal:

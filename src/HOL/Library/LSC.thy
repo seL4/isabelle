@@ -289,6 +289,17 @@ instance ..
 
 end
 
+instantiation Enum.finite_4 :: serial
+begin
+
+definition series_finite_4 :: "Enum.finite_4 series"
+where
+  "series_finite_4 = sum (cons Enum.finite_4.a\<^isub>1) (sum (cons Enum.finite_4.a\<^isub>2) (sum (cons Enum.finite_4.a\<^isub>3) (cons Enum.finite_4.a\<^isub>4)))"
+
+instance ..
+
+end
+
 subsubsection {* class is_testable *}
 
 text {* The class is_testable ensures that all necessary type instances are generated. *}
@@ -302,6 +313,8 @@ instance "fun" :: ("{term_of, serial}", is_testable) is_testable ..
 definition ensure_testable :: "'a :: is_testable => 'a :: is_testable"
 where
   "ensure_testable f = f"
+
+declare simp_thms(17,19)[code del]
 
 subsubsection {* Setting up the counterexample generator *}
   
