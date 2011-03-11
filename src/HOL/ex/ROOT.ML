@@ -73,7 +73,8 @@ use_thys [
   "Quicksort",
   "Birthday_Paradoxon",
   "List_to_Set_Comprehension_Examples",
-  "Set_Algebras"
+  "Set_Algebras",
+  "LSC_Examples"
 ];
 
 use_thy "SVC_Oracle";
