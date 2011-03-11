@@ -1835,7 +1835,7 @@ fun ensure_random_record ext_tyco vs extN Ts thy =
   in
     if has_inst then thy
     else
-      (case Quickcheck_Generators.perhaps_constrain thy (map (rpair @{sort random}) Ts) vs of
+      (case Random_Generators.perhaps_constrain thy (map (rpair @{sort random}) Ts) vs of
         SOME constrain =>
           instantiate_random_record ext_tyco (map constrain vs) extN
             ((map o map_atyps) (fn TFree v => TFree (constrain v)) Ts) thy
