@@ -299,7 +299,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/ATP/atp_systems.ML \
   Tools/choice_specification.ML \
   Tools/code_evaluation.ML \
-  Tools/exhaustive_generators.ML \
   Tools/groebner.ML \
   Tools/int_arith.ML \
   Tools/list_code.ML \
@@ -338,6 +337,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Qelim/cooper.ML \
   Tools/Qelim/cooper_procedure.ML \
   Tools/Qelim/qelim.ML \
+  Tools/Quickcheck/exhaustive_generators.ML \
   Tools/Quotient/quotient_def.ML \
   Tools/Quotient/quotient_info.ML \
   Tools/Quotient/quotient_tacs.ML \

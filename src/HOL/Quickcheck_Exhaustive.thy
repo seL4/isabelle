@@ -4,7 +4,7 @@ header {* A simple counterexample generator performing exhaustive testing *}
 
 theory Quickcheck_Exhaustive
 imports Quickcheck
-uses ("Tools/exhaustive_generators.ML")
+uses ("Tools/Quickcheck/exhaustive_generators.ML")
 begin
 
 subsection {* basic operations for exhaustive generators *}
@@ -366,9 +366,9 @@ where
   [code del]: "catch_match t1 t2 = (SOME t. t = t1 \<or> t = t2)"
 
 code_const catch_match 
-  (SML "(_) handle Match => _")
+  (Quickcheck "(_) handle Match => _")
 
-use "Tools/exhaustive_generators.ML"
+use "Tools/Quickcheck/exhaustive_generators.ML"
 
 setup {* Exhaustive_Generators.setup *}
 

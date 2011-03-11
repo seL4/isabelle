@@ -1132,11 +1132,11 @@ end
 no_notation fcomp (infixl "\<circ>>" 60)
 no_notation scomp (infixl "\<circ>\<rightarrow>" 60)
 
-instantiation rat :: full_small
+instantiation rat :: exhaustive
 begin
 
 definition
-  "full_small f d = full_small (%(k, kt). full_small (%(l, lt).
+  "exhaustive f d = exhaustive (%(k, kt). exhaustive (%(l, lt).
      f (valterm_fract (Code_Numeral.int_of k, %_. Code_Evaluation.term_of (Code_Numeral.int_of k)) (Code_Numeral.int_of l, %_. Code_Evaluation.term_of (Code_Numeral.int_of l)))) d) d"
 
 instance ..
