@@ -1,118 +1,80 @@
 (* Author: Lukas Bulwahn, TU Muenchen *)
 
-header {* Another simple counterexample generator *}
+header {* A simple counterexample generator performing exhaustive testing *}
 
-theory Smallcheck
+theory Quickcheck_Exhautive
 imports Quickcheck
-uses ("Tools/smallvalue_generators.ML")
+uses ("Tools/exhaustive_generators.ML")
 begin
 
-subsection {* basic operations for generators *}
+subsection {* basic operations for exhaustive generators *}
 
 definition orelse :: "'a option => 'a option => 'a option" (infixr "orelse" 55)
 where
   [code_unfold]: "x orelse y = (case x of Some x' => Some x' | None => y)"
 
-subsection {* small value generator type classes *}
+subsection {* exhaustive generator type classes *}
 
-class small = term_of +
-fixes small :: "('a \<Rightarrow> term list option) \<Rightarrow> code_numeral \<Rightarrow> term list option"
+class exhaustive = term_of +
+fixes exhaustive :: "('a * (unit => term) \<Rightarrow> term list option) \<Rightarrow> code_numeral \<Rightarrow> term list option"
 
-instantiation unit :: small
+instantiation unit :: exhaustive
 begin
 
-definition "small f d = f ()"
+definition "exhaustive f d = f (Code_Evaluation.valtermify ())"
 
 instance ..
 
 end
 
-instantiation int :: small
+instantiation code_numeral :: exhaustive
 begin
 
-function small' :: "(int => term list option) => int => int => term list option"
-where "small' f d i = (if d < i then None else (case f i of Some t => Some t | None => small' f d (i + 1)))"
-by pat_completeness auto
-
-termination 
-  by (relation "measure (%(_, d, i). nat (d + 1 - i))") auto
-
-definition "small f d = small' f (Code_Numeral.int_of d) (- (Code_Numeral.int_of d))"
-
-instance ..
-
-end
-
-instantiation prod :: (small, small) small
-begin
-
-definition
-  "small f d = small (%x. small (%y. f (x, y)) d) d"
-
-instance ..
-
-end
-
-subsection {* full small value generator type classes *}
-
-class full_small = term_of +
-fixes full_small :: "('a * (unit => term) \<Rightarrow> term list option) \<Rightarrow> code_numeral \<Rightarrow> term list option"
-
-instantiation unit :: full_small
-begin
-
-definition "full_small f d = f (Code_Evaluation.valtermify ())"
-
-instance ..
-
-end
-
-instantiation code_numeral :: full_small
-begin
-
-function full_small_code_numeral' :: "(code_numeral * (unit => term) => term list option) => code_numeral => code_numeral => term list option"
-  where "full_small_code_numeral' f d i = (if d < i then None else (case f (i, %_. Code_Evaluation.term_of i) of Some t => Some t | None => full_small_code_numeral' f d (i + 1)))"
+function exhaustive_code_numeral' :: "(code_numeral * (unit => term) => term list option) => code_numeral => code_numeral => term list option"
+  where "exhaustive_code_numeral' f d i =
+    (if d < i then None
+    else (f (i, %_. Code_Evaluation.term_of i)) orelse (exhaustive_code_numeral' f d (i + 1)))"
 by pat_completeness auto
 
 termination 
   by (relation "measure (%(_, d, i). Code_Numeral.nat_of (d + 1 - i))") auto
 
-definition "full_small f d = full_small_code_numeral' f d 0"
+definition "exhaustive f d = exhaustive_code_numeral' f d 0"
 
 instance ..
 
 end
 
-instantiation nat :: full_small
+instantiation nat :: exhaustive
 begin
 
-definition "full_small f d = full_small (%(x, xt). f (Code_Numeral.nat_of x, %_. Code_Evaluation.term_of (Code_Numeral.nat_of x))) d"
+definition "exhaustive f d = exhaustive (%(x, xt). f (Code_Numeral.nat_of x, %_. Code_Evaluation.term_of (Code_Numeral.nat_of x))) d"
 
 instance ..
 
 end
 
-instantiation int :: full_small
+instantiation int :: exhaustive
 begin
 
-function full_small' :: "(int * (unit => term) => term list option) => int => int => term list option"
-  where "full_small' f d i = (if d < i then None else (case f (i, %_. Code_Evaluation.term_of i) of Some t => Some t | None => full_small' f d (i + 1)))"
+function exhaustive' :: "(int * (unit => term) => term list option) => int => int => term list option"
+  where "exhaustive' f d i = (if d < i then None else (case f (i, %_. Code_Evaluation.term_of i) of Some t => Some t | None => exhaustive' f d (i + 1)))"
 by pat_completeness auto
 
 termination 
   by (relation "measure (%(_, d, i). nat (d + 1 - i))") auto
 
-definition "full_small f d = full_small' f (Code_Numeral.int_of d) (- (Code_Numeral.int_of d))"
+definition "exhaustive f d = exhaustive' f (Code_Numeral.int_of d) (- (Code_Numeral.int_of d))"
 
 instance ..
 
 end
 
-instantiation prod :: (full_small, full_small) full_small
+instantiation prod :: (exhaustive, exhaustive) exhaustive
 begin
 
 definition
-  "full_small f d = full_small (%(x, t1). full_small (%(y, t2). f ((x, y),
+  "exhaustive f d = exhaustive (%(x, t1). exhaustive (%(y, t2). f ((x, y),
     %u. let T1 = (Typerep.typerep (TYPE('a)));
             T2 = (Typerep.typerep (TYPE('b)))
     in Code_Evaluation.App (Code_Evaluation.App (
@@ -124,14 +86,14 @@ instance ..
 
 end
 
-instantiation "fun" :: ("{equal, full_small}", full_small) full_small
+instantiation "fun" :: ("{equal, exhaustive}", exhaustive) exhaustive
 begin
 
-fun full_small_fun' :: "(('a => 'b) * (unit => term) => term list option) => code_numeral => code_numeral => term list option"
+fun exhaustive_fun' :: "(('a => 'b) * (unit => term) => term list option) => code_numeral => code_numeral => term list option"
 where
-  "full_small_fun' f i d = (if i > 1 then
-    full_small (%(a, at). full_small (%(b, bt).
-      full_small_fun' (%(g, gt). f (g(a := b),
+  "exhaustive_fun' f i d = (if i > 1 then
+    exhaustive (%(a, at). exhaustive (%(b, bt).
+      exhaustive_fun' (%(g, gt). f (g(a := b),
         (%_. let T1 = (Typerep.typerep (TYPE('a)));
                  T2 = (Typerep.typerep (TYPE('b)))
              in
@@ -141,18 +103,17 @@ where
                        Typerep.Typerep (STR ''fun'') [T1, Typerep.Typerep (STR ''fun'') [T2, Typerep.Typerep (STR ''fun'') [T1, T2]]]]))
                (gt ())) (at ())) (bt ())))) (i - 1) d) d) d
   else (if i > 0 then
-    full_small (%(b, t). f (%_. b, %_. Code_Evaluation.Abs (STR ''x'') (Typerep.typerep TYPE('a)) (t ()))) d else None))"
+    exhaustive (%(b, t). f (%_. b, %_. Code_Evaluation.Abs (STR ''x'') (Typerep.typerep TYPE('a)) (t ()))) d else None))"
 
-definition full_small_fun :: "(('a => 'b) * (unit => term) => term list option) => code_numeral => term list option"
+definition exhaustive_fun :: "(('a => 'b) * (unit => term) => term list option) => code_numeral => term list option"
 where
-  "full_small_fun f d = full_small_fun' f d d" 
+  "exhaustive_fun f d = exhaustive_fun' f d d" 
 
 instance ..
 
 end
 
 subsubsection {* A smarter enumeration scheme for functions over finite datatypes *}
-
 
 class check_all = enum + term_of +
   fixes check_all :: "('a * (unit \<Rightarrow> term) \<Rightarrow> term list option) \<Rightarrow> term list option"
