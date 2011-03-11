@@ -340,7 +340,6 @@ fun make_map T1 T2 [] = Const (@{const_abbrev Map.empty}, T1 --> T2)
   
 fun post_process_term t =
   let
-    val _ = tracing (Syntax.string_of_term @{context} t)
     fun map_Abs f t =
       case t of Abs (x, T, t') => Abs (x, T, f t') | _ => raise TERM ("map_Abs", [t]) 
     fun process_args t = case strip_comb t of
