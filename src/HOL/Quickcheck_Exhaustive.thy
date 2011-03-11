@@ -2,7 +2,7 @@
 
 header {* A simple counterexample generator performing exhaustive testing *}
 
-theory Quickcheck_Exhautive
+theory Quickcheck_Exhaustive
 imports Quickcheck
 uses ("Tools/exhaustive_generators.ML")
 begin
@@ -368,9 +368,9 @@ where
 code_const catch_match 
   (SML "(_) handle Match => _")
 
-use "Tools/smallvalue_generators.ML"
+use "Tools/exhaustive_generators.ML"
 
-setup {* Smallvalue_Generators.setup *}
+setup {* Exhaustive_Generators.setup *}
 
 declare [[quickcheck_tester = exhaustive]]
 
