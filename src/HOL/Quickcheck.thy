@@ -1,10 +1,10 @@
-(* Author: Florian Haftmann, TU Muenchen *)
+(* Author: Florian Haftmann & Lukas Bulwahn, TU Muenchen *)
 
-header {* A simple counterexample generator *}
+header {* A simple counterexample generator performing random testing *}
 
 theory Quickcheck
 imports Random Code_Evaluation Enum
-uses ("Tools/quickcheck_generators.ML")
+uses ("Tools/Quickcheck/random_generators.ML")
 begin
 
 notation fcomp (infixl "\<circ>>" 60)
@@ -126,7 +126,7 @@ lemma random_aux_rec:
   shows "random_aux k = rhs k"
   using assms by (rule code_numeral.induct)
 
-use "Tools/quickcheck_generators.ML"
+use "Tools/Quickcheck/random_generators.ML"
 setup Quickcheck_Generators.setup
 
 
