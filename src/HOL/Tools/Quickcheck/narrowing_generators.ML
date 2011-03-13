@@ -1,8 +1,7 @@
 (*  Title:      HOL/Tools/Quickcheck/narrowing_generators.ML
     Author:     Lukas Bulwahn, TU Muenchen
 
-Narrowing-based counterexample generation 
-
+Narrowing-based counterexample generation.
 *)
 
 signature NARROWING_GENERATORS =

@@ -1,8 +1,7 @@
 (*  Title:      HOL/Tools/Quickcheck/quickcheck_common.ML
     Author:     Florian Haftmann, Lukas Bulwahn, TU Muenchen
 
-Common functions for quickcheck's generators
-
+Common functions for quickcheck's generators.
 *)
 
 signature QUICKCHECK_COMMON =
