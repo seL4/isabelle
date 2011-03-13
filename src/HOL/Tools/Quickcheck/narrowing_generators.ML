@@ -43,7 +43,7 @@ fun value ctxt (get, put, put_ml) (code, value) =
         val _ = File.write narrowing_engine_file narrowing_engine
         val _ = File.write main_file main
         val executable = File.shell_path (Path.append in_path (Path.basic "isa_lsc"))
-        val cmd = "\"$ISABELLE_GHC\" -fglasgow-exts " ^
+        val cmd = "exec \"$ISABELLE_GHC\" -fglasgow-exts " ^
           (space_implode " " (map File.shell_path [code_file, narrowing_engine_file, main_file])) ^
           " -o " ^ executable ^ " && " ^ executable
       in
