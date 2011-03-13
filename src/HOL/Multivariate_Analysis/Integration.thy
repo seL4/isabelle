@@ -136,33 +136,33 @@ lemma inter_interior_unions_intervals: fixes f::"('a::ordered_euclidean_space) s
     case True show ?thesis proof(cases "x\<in>{a<..<b}")
       case True then guess d unfolding open_contains_ball_eq[OF open_interval,rule_format] ..
       thus ?thesis apply(rule_tac x=i in bexI,rule_tac x=x in exI,rule_tac x="min d e" in exI)
-	unfolding ab using interval_open_subset_closed[of a b] and e by fastsimp+ next
+        unfolding ab using interval_open_subset_closed[of a b] and e by fastsimp+ next
     case False then obtain k where "x$$k \<le> a$$k \<or> x$$k \<ge> b$$k" and k:"k<DIM('a)" unfolding mem_interval by(auto simp add:not_less) 
     hence "x$$k = a$$k \<or> x$$k = b$$k" using True unfolding ab and mem_interval apply(erule_tac x=k in allE) by auto
     hence "\<exists>x. ball x (e/2) \<subseteq> s \<inter> (\<Union>f)" proof(erule_tac disjE)
       let ?z = "x - (e/2) *\<^sub>R basis k" assume as:"x$$k = a$$k" have "ball ?z (e / 2) \<inter> i = {}" apply(rule ccontr) unfolding ex_in_conv[THEN sym] proof(erule exE)
-	fix y assume "y \<in> ball ?z (e / 2) \<inter> i" hence "dist ?z y < e/2" and yi:"y\<in>i" by auto
-	hence "\<bar>(?z - y) $$ k\<bar> < e/2" using component_le_norm[of "?z - y" k] unfolding dist_norm by auto
-	hence "y$$k < a$$k" using e[THEN conjunct1] k by(auto simp add:field_simps basis_component as)
-	hence "y \<notin> i" unfolding ab mem_interval not_all apply(rule_tac x=k in exI) using k by auto thus False using yi by auto qed
+        fix y assume "y \<in> ball ?z (e / 2) \<inter> i" hence "dist ?z y < e/2" and yi:"y\<in>i" by auto
+        hence "\<bar>(?z - y) $$ k\<bar> < e/2" using component_le_norm[of "?z - y" k] unfolding dist_norm by auto
+        hence "y$$k < a$$k" using e[THEN conjunct1] k by(auto simp add:field_simps basis_component as)
+        hence "y \<notin> i" unfolding ab mem_interval not_all apply(rule_tac x=k in exI) using k by auto thus False using yi by auto qed
       moreover have "ball ?z (e/2) \<subseteq> s \<inter> (\<Union>insert i f)" apply(rule order_trans[OF _ e[THEN conjunct2, unfolded lem1]]) proof
-	fix y assume as:"y\<in> ball ?z (e/2)" have "norm (x - y) \<le> \<bar>e\<bar> / 2 + norm (x - y - (e / 2) *\<^sub>R basis k)"
-	   apply-apply(rule order_trans,rule norm_triangle_sub[of "x - y" "(e/2) *\<^sub>R basis k"])
-	  unfolding norm_scaleR norm_basis by auto
-	also have "\<dots> < \<bar>e\<bar> / 2 + \<bar>e\<bar> / 2" apply(rule add_strict_left_mono) using as unfolding mem_ball dist_norm using e by(auto simp add:field_simps)
-	finally show "y\<in>ball x e" unfolding mem_ball dist_norm using e by(auto simp add:field_simps) qed
+        fix y assume as:"y\<in> ball ?z (e/2)" have "norm (x - y) \<le> \<bar>e\<bar> / 2 + norm (x - y - (e / 2) *\<^sub>R basis k)"
+           apply-apply(rule order_trans,rule norm_triangle_sub[of "x - y" "(e/2) *\<^sub>R basis k"])
+          unfolding norm_scaleR norm_basis by auto
+        also have "\<dots> < \<bar>e\<bar> / 2 + \<bar>e\<bar> / 2" apply(rule add_strict_left_mono) using as unfolding mem_ball dist_norm using e by(auto simp add:field_simps)
+        finally show "y\<in>ball x e" unfolding mem_ball dist_norm using e by(auto simp add:field_simps) qed
       ultimately show ?thesis apply(rule_tac x="?z" in exI) unfolding Union_insert by auto
     next let ?z = "x + (e/2) *\<^sub>R basis k" assume as:"x$$k = b$$k" have "ball ?z (e / 2) \<inter> i = {}" apply(rule ccontr) unfolding ex_in_conv[THEN sym] proof(erule exE)
-	fix y assume "y \<in> ball ?z (e / 2) \<inter> i" hence "dist ?z y < e/2" and yi:"y\<in>i" by auto
-	hence "\<bar>(?z - y) $$ k\<bar> < e/2" using component_le_norm[of "?z - y" k] unfolding dist_norm by auto
-	hence "y$$k > b$$k" using e[THEN conjunct1] k by(auto simp add:field_simps as)
-	hence "y \<notin> i" unfolding ab mem_interval not_all using k by(rule_tac x=k in exI,auto) thus False using yi by auto qed
+        fix y assume "y \<in> ball ?z (e / 2) \<inter> i" hence "dist ?z y < e/2" and yi:"y\<in>i" by auto
+        hence "\<bar>(?z - y) $$ k\<bar> < e/2" using component_le_norm[of "?z - y" k] unfolding dist_norm by auto
+        hence "y$$k > b$$k" using e[THEN conjunct1] k by(auto simp add:field_simps as)
+        hence "y \<notin> i" unfolding ab mem_interval not_all using k by(rule_tac x=k in exI,auto) thus False using yi by auto qed
       moreover have "ball ?z (e/2) \<subseteq> s \<inter> (\<Union>insert i f)" apply(rule order_trans[OF _ e[THEN conjunct2, unfolded lem1]]) proof
-	fix y assume as:"y\<in> ball ?z (e/2)" have "norm (x - y) \<le> \<bar>e\<bar> / 2 + norm (x - y + (e / 2) *\<^sub>R basis k)"
-	   apply-apply(rule order_trans,rule norm_triangle_sub[of "x - y" "- (e/2) *\<^sub>R basis k"])
-	  unfolding norm_scaleR by auto
-	also have "\<dots> < \<bar>e\<bar> / 2 + \<bar>e\<bar> / 2" apply(rule add_strict_left_mono) using as unfolding mem_ball dist_norm using e by(auto simp add:field_simps)
-	finally show "y\<in>ball x e" unfolding mem_ball dist_norm using e by(auto simp add:field_simps) qed
+        fix y assume as:"y\<in> ball ?z (e/2)" have "norm (x - y) \<le> \<bar>e\<bar> / 2 + norm (x - y + (e / 2) *\<^sub>R basis k)"
+           apply-apply(rule order_trans,rule norm_triangle_sub[of "x - y" "- (e/2) *\<^sub>R basis k"])
+          unfolding norm_scaleR by auto
+        also have "\<dots> < \<bar>e\<bar> / 2 + \<bar>e\<bar> / 2" apply(rule add_strict_left_mono) using as unfolding mem_ball dist_norm using e by(auto simp add:field_simps)
+        finally show "y\<in>ball x e" unfolding mem_ball dist_norm using e by(auto simp add:field_simps) qed
       ultimately show ?thesis apply(rule_tac x="?z" in exI) unfolding Union_insert by auto qed 
     then guess x .. hence "x \<in> s \<inter> interior (\<Union>f)" unfolding lem1[where U="\<Union>f",THEN sym] using centre_in_ball e[THEN conjunct1] by auto
     thus ?thesis apply-apply(rule lem2,rule insert(3)) using insert(4) by auto qed qed qed qed note * = this
@@ -576,11 +576,11 @@ lemma partial_division_extend_interval: assumes "p division_of (\<Union>p)" "(\<
       apply(rule inter_interior_unions_intervals) apply(rule p open_interior ballI)+ proof(assumption,rule)
       fix k assume k:"k\<in>p" have *:"\<And>u t s. u \<subseteq> s \<Longrightarrow> s \<inter> t = {} \<Longrightarrow> u \<inter> t = {}" by auto
       show "interior (\<Inter>(\<lambda>i. \<Union>(q i - {i})) ` p) \<inter> interior k = {}" apply(rule *[of _ "interior (\<Union>(q k - {k}))"])
-	defer apply(subst Int_commute) apply(rule inter_interior_unions_intervals) proof- note qk=division_ofD[OF q(1)[OF k]]
-	show "finite (q k - {k})" "open (interior k)"  "\<forall>t\<in>q k - {k}. \<exists>a b. t = {a..b}" using qk by auto
-	show "\<forall>t\<in>q k - {k}. interior k \<inter> interior t = {}" using qk(5) using q(2)[OF k] by auto
-	have *:"\<And>x s. x \<in> s \<Longrightarrow> \<Inter>s \<subseteq> x" by auto show "interior (\<Inter>(\<lambda>i. \<Union>(q i - {i})) ` p) \<subseteq> interior (\<Union>(q k - {k}))"
-	  apply(rule subset_interior *)+ using k by auto qed qed qed auto qed
+        defer apply(subst Int_commute) apply(rule inter_interior_unions_intervals) proof- note qk=division_ofD[OF q(1)[OF k]]
+        show "finite (q k - {k})" "open (interior k)"  "\<forall>t\<in>q k - {k}. \<exists>a b. t = {a..b}" using qk by auto
+        show "\<forall>t\<in>q k - {k}. interior k \<inter> interior t = {}" using qk(5) using q(2)[OF k] by auto
+        have *:"\<And>x s. x \<in> s \<Longrightarrow> \<Inter>s \<subseteq> x" by auto show "interior (\<Inter>(\<lambda>i. \<Union>(q i - {i})) ` p) \<subseteq> interior (\<Union>(q k - {k}))"
+          apply(rule subset_interior *)+ using k by auto qed qed qed auto qed
 
 lemma elementary_bounded[dest]: "p division_of s \<Longrightarrow> bounded (s::('a::ordered_euclidean_space) set)"
   unfolding division_of_def by(metis bounded_Union bounded_interval) 
