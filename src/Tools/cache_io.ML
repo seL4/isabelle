@@ -84,7 +84,7 @@ fun load cache_path =
 
 fun make path =
   let val table = if File.exists path then load path else (1, Symtab.empty)
-  in Cache {path=path, table=Synchronized.var (Path.implode path) table} end
+  in Cache {path=path, table=Synchronized.var "Cache_IO" table} end
 
 fun load_cached_result cache_path (p, len1, len2) =
   let
