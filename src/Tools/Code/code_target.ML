@@ -35,8 +35,8 @@ sig
   type serializer
   type literals = Code_Printer.literals
   val add_target: string * { serializer: serializer, literals: literals,
-    check: { env_var: string, make_destination: Path.T -> Path.T,
-      make_command: string -> string -> string } } -> theory -> theory
+    check: { env_var: string, make_destination: Path.T -> Path.T, make_command: string -> string } }
+    -> theory -> theory
   val extend_target: string *
       (string * (Code_Thingol.naming -> Code_Thingol.program -> Code_Thingol.program))
     -> theory -> theory
@@ -129,7 +129,7 @@ type serializer = Token.T list
 datatype description = Fundamental of { serializer: serializer,
       literals: literals,
       check: { env_var: string, make_destination: Path.T -> Path.T,
-        make_command: string -> string -> string } }
+        make_command: string -> string } }
   | Extension of string *
       (Code_Thingol.naming -> Code_Thingol.program -> Code_Thingol.program);
 
@@ -392,18 +392,17 @@ fun check_code_for thy target strict args naming program names_cs =
     val module_name = "Code";
     val { env_var, make_destination, make_command } =
       (#check o the_fundamental thy) target;
-    val env_param = getenv env_var;
     fun ext_check p =
       let 
         val destination = make_destination p;
         val _ = export (SOME destination) (invoke_serializer thy target (SOME 80)
           module_name args naming program names_cs);
-        val cmd = make_command env_param module_name;
+        val cmd = make_command module_name;
       in if bash ("cd " ^ File.shell_path p ^ " && " ^ cmd ^ " 2>&1") <> 0
         then error ("Code check failed for " ^ target ^ ": " ^ cmd)
         else ()
       end;
-  in if env_param = ""
+  in if getenv env_var = ""
     then if strict
       then error (env_var ^ " not set; cannot check code for " ^ target)
       else warning (env_var ^ " not set; skipped checking code for " ^ target)

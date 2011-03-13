@@ -782,17 +782,16 @@ fun query system nsols =
 fun prelude system =
   case system of SWI_PROLOG => swi_prolog_prelude | YAP => yap_prelude
 
-fun invoke system file_name =
+fun invoke system file =
   let
-    val env_var =
-      (case system of SWI_PROLOG => "EXEC_SWIPL"| YAP => "EXEC_YAP")
-    val prog = getenv env_var
-    val cmd =
-      case system of SWI_PROLOG => prog ^ " -f " | YAP => prog ^ " -L "
+    val (env_var, cmd) =
+      (case system of
+        SWI_PROLOG => ("EXEC_SWIPL", "\"$EXEC_SWIPL\" -f ")
+      | YAP => ("EXEC_YAP", "\"$EXEC_YAP\" -L "))
   in
-    if prog = "" then
+    if getenv env_var = "" then
       (warning (env_var ^ " not set; could not execute code for " ^ string_of_system system); "")
-    else fst (bash_output (cmd ^ file_name))
+    else fst (bash_output (cmd ^ File.shell_path file))
   end
 
 (* parsing prolog solution *)
@@ -857,7 +856,7 @@ fun run (timeout, system) p (query_rel, args) vnames nsols =
     val _ = tracing ("Generated prolog program:\n" ^ prog)
     val solution = TimeLimit.timeLimit timeout (fn prog =>
       Isabelle_System.with_tmp_file "prolog_file" (fn prolog_file =>
-        (File.write prolog_file prog; invoke system (Path.implode prolog_file)))) prog
+        (File.write prolog_file prog; invoke system prolog_file))) prog
     val _ = tracing ("Prolog returned solution(s):\n" ^ solution)
     val tss = parse_solutions solution
   in

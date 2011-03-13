@@ -836,12 +836,14 @@ val serializer_ocaml : Code_Target.serializer =
 val setup =
   Code_Target.add_target
     (target_SML, { serializer = serializer_sml, literals = literals_sml,
-      check = { env_var = "ISABELLE_PROCESS", make_destination = fn p => Path.append p (Path.explode "ROOT.ML"),
-        make_command = fn isabelle => fn _ => isabelle ^ " -r -q -u Pure" } })
+      check = { env_var = "ISABELLE_PROCESS",
+        make_destination = fn p => Path.append p (Path.explode "ROOT.ML"),
+        make_command = fn _ => "\"$ISABELLE_PROCESS\" -r -q -u Pure" } })
   #> Code_Target.add_target
     (target_OCaml, { serializer = serializer_ocaml, literals = literals_ocaml,
-      check = { env_var = "EXEC_OCAML", make_destination = fn p => Path.append p (Path.explode "ROOT.ocaml"),
-        make_command = fn ocaml => fn _ => ocaml ^ " -w pu nums.cma ROOT.ocaml" } })
+      check = { env_var = "EXEC_OCAML",
+        make_destination = fn p => Path.append p (Path.explode "ROOT.ocaml"),
+        make_command = fn _ => "\"$EXEC_OCAML\" -w pu nums.cma ROOT.ocaml" } })
   #> Code_Target.add_tyco_syntax target_SML "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy (
         print_typ (INFX (1, X)) ty1,
