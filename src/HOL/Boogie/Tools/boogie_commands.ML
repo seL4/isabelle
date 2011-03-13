@@ -18,7 +18,7 @@ fun boogie_open ((quiet, base_name), offsets) thy =
   let
     val ext = "b2i"
     fun check_ext path = snd (Path.split_ext path) = ext orelse
-      error ("Bad file ending of file " ^ quote (Path.implode path) ^ ", " ^
+      error ("Bad file ending of file " ^ Path.print path ^ ", " ^
         "expected file ending " ^ quote ext)
 
     val base_path = Path.explode base_name |> tap check_ext

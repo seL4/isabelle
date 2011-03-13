@@ -258,7 +258,7 @@ fun create_index dir =
 
 fun update_index dir name = CRITICAL (fn () =>
   (case try get_entries dir of
-    NONE => warning ("Browser info: cannot access session index of " ^ quote (Path.implode dir))
+    NONE => warning ("Browser info: cannot access session index of " ^ Path.print dir)
   | SOME es => (put_entries ((remove (op =) name es) @ [name]) dir; create_index dir)));
 
 
@@ -503,7 +503,7 @@ fun drafts doc_format src_paths =
       in
         if File.exists path then
           (((name, base, File.read path), (i, Latex.theory_entry name)), i + 1)
-        else error ("Bad file: " ^ quote (Path.implode path))
+        else error ("Bad file: " ^ Path.print path)
       end;
     val (srcs, tex_index) = split_list (fst (fold_map prep_draft src_paths 0));
 

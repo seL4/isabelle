@@ -946,7 +946,7 @@ val _ =
 val _ =
   Outer_Syntax.improper_command "pwd" "print current working directory" Keyword.diag
     (Scan.succeed (Toplevel.no_timing o
-      Toplevel.imperative (fn () => writeln (Path.implode (File.pwd ())))));
+      Toplevel.imperative (fn () => writeln (Path.print (File.pwd ())))));
 
 val _ =
   Outer_Syntax.improper_command "use_thy" "use theory file" Keyword.control

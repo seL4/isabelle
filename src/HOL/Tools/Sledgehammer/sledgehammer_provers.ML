@@ -426,7 +426,7 @@ fun run_atp auto name
                      | result => result)
           in ((pool, conjecture_shape, fact_names), result) end
         else
-          error ("Bad executable: " ^ Path.implode command ^ ".")
+          error ("Bad executable: " ^ Path.print command ^ ".")
 
     (* If the problem file has not been exported, remove it; otherwise, export
        the proof file too. *)

@@ -75,11 +75,10 @@ val thy_path = Path.ext "thy" o Path.basic;
 fun split_thy_path path =
   (case Path.split_ext path of
     (path', "thy") => (Path.dir path', Path.implode (Path.base path'))
-  | _ => error ("Bad theory file specification: " ^ Path.implode path));
+  | _ => error ("Bad theory file specification: " ^ Path.print path));
 
 fun consistent_name name name' =
   if name = name' then ()
-  else error ("Bad file name " ^ quote (Path.implode (thy_path name)) ^
-    " for theory " ^ quote name');
+  else error ("Bad file name " ^ Path.print (thy_path name) ^ " for theory " ^ quote name');
 
 end;

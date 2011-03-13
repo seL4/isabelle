@@ -70,7 +70,7 @@ fun file_ident path =
                       ("\"$ISABELLE_HOME/lib/scripts/fileident\" " ^ File.shell_quote physical_path);
                 in
                   if id <> "" andalso rc = 0 then (update_cache (physical_path, (mod_time, id)); id)
-                  else error ("Failed to identify file " ^ quote (Path.implode path) ^ " by " ^ cmd)
+                  else error ("Failed to identify file " ^ Path.print path ^ " by " ^ cmd)
                 end))))
   end;
 
@@ -107,13 +107,13 @@ fun put_deps dir imports = map_files (fn _ => (dir, imports, [], []));
 fun require src_path =
   map_files (fn (master_dir, imports, required, provided) =>
     if member (op =) required src_path then
-      error ("Duplicate source file dependency: " ^ Path.implode src_path)
+      error ("Duplicate source file dependency: " ^ Path.print src_path)
     else (master_dir, imports, src_path :: required, provided));
 
 fun provide (src_path, path_id) =
   map_files (fn (master_dir, imports, required, provided) =>
     if AList.defined (op =) provided src_path then
-      error ("Duplicate resolution of source file dependency: " ^ Path.implode src_path)
+      error ("Duplicate resolution of source file dependency: " ^ Path.print src_path)
     else (master_dir, imports, required, (src_path, path_id) :: provided));
 
 
@@ -145,8 +145,7 @@ fun get_file dir src_path =
 fun check_file dir file =
   (case get_file dir file of
     SOME path_id => path_id
-  | NONE => error ("Could not find file " ^ quote (Path.implode file) ^
-      "\nin " ^ quote (Path.implode dir)));
+  | NONE => error ("Could not find file " ^ Path.print file ^ "\nin " ^ Path.print dir));
 
 fun check_thy dir name =
   check_file dir (Thy_Header.thy_path name);
@@ -176,11 +175,11 @@ fun check_loaded thy =
     val _ =
       (case subtract (op =) provided_paths required of
         [] => NONE
-      | bad => error ("Pending source file dependencies: " ^ commas (map Path.implode (rev bad))));
+      | bad => error ("Pending source file dependencies: " ^ commas (map Path.print (rev bad))));
     val _ =
       (case subtract (op =) required provided_paths of
         [] => NONE
-      | bad => error ("Undeclared source file dependencies: " ^ commas (map Path.implode (rev bad))));
+      | bad => error ("Undeclared source file dependencies: " ^ commas (map Path.print (rev bad))));
   in () end;
 
 fun all_current thy =

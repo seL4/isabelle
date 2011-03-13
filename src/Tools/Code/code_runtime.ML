@@ -436,7 +436,7 @@ fun process_file filepath (definienda, thy) =
     val superfluous = subtract (fn ((name1, _), name2) => name1 = name2) definienda ml_names;
     val _ = if null superfluous then ()
       else error ("Value binding(s) " ^ commas_quote superfluous
-        ^ " found in external file " ^ quote (Path.implode filepath)
+        ^ " found in external file " ^ Path.print filepath
         ^ " not present among the given contants binding(s).");
     val these_definienda = AList.make (the o AList.lookup (op =) definienda) ml_names;
     val thy'' = fold add_definiendum these_definienda thy';

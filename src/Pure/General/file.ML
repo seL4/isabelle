@@ -68,7 +68,7 @@ val exists = can OS.FileSys.modTime o platform_path;
 
 fun check path =
   if exists path then ()
-  else error ("No such file or directory: " ^ quote (Path.implode path));
+  else error ("No such file or directory: " ^ Path.print path);
 
 val rm = OS.FileSys.remove o platform_path;
 

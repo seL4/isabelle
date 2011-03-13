@@ -578,8 +578,8 @@ let
     val cmd        = getenv "MINISAT_HOME" ^ "/minisat " ^ File.shell_path inpath ^ " -r " ^ File.shell_path outpath ^ " -t " ^ File.shell_path proofpath ^ "> /dev/null"
     fun writefn fm = SatSolver.write_dimacs_cnf_file inpath fm
     fun readfn ()  = SatSolver.read_std_result_file outpath ("SAT", "", "UNSAT")
-    val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.implode inpath)) else ()
-    val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.implode outpath)) else ()
+    val _ = if File.exists inpath then warning ("overwriting existing file " ^ Path.print inpath) else ()
+    val _ = if File.exists outpath then warning ("overwriting existing file " ^ Path.print outpath) else ()
     val cnf        = Prop_Logic.defcnf fm
     val result     = SatSolver.make_external_solver cmd writefn readfn cnf
     val _          = try File.rm inpath
@@ -763,8 +763,8 @@ let
     val cmd        = getenv "MINISAT_HOME" ^ "/minisat " ^ File.shell_path inpath ^ " -r " ^ File.shell_path outpath ^ " > /dev/null"
     fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (Prop_Logic.defcnf fm)
     fun readfn ()  = SatSolver.read_std_result_file outpath ("SAT", "", "UNSAT")
-    val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.implode inpath)) else ()
-    val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.implode outpath)) else ()
+    val _ = if File.exists inpath then warning ("overwriting existing file " ^ Path.print inpath) else ()
+    val _ = if File.exists outpath then warning ("overwriting existing file " ^ Path.print outpath) else ()
     val result     = SatSolver.make_external_solver cmd writefn readfn fm
     val _          = try File.rm inpath
     val _          = try File.rm outpath
@@ -922,8 +922,8 @@ let
     val cmd        = getenv "ZCHAFF_HOME" ^ "/zchaff " ^ File.shell_path inpath ^ " > " ^ File.shell_path outpath
     fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (Prop_Logic.defcnf fm)
     fun readfn ()  = SatSolver.read_std_result_file outpath ("Instance Satisfiable", "", "Instance Unsatisfiable")
-    val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.implode inpath)) else ()
-    val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.implode outpath)) else ()
+    val _ = if File.exists inpath then warning ("overwriting existing file " ^ Path.print inpath) else ()
+    val _ = if File.exists outpath then warning ("overwriting existing file " ^ Path.print outpath) else ()
     val result     = SatSolver.make_external_solver cmd writefn readfn fm
     val _          = try File.rm inpath
     val _          = try File.rm outpath
@@ -949,8 +949,8 @@ let
     val cmd        = getenv "BERKMIN_HOME" ^ "/" ^ (if exec = "" then "BerkMin561" else exec) ^ " " ^ File.shell_path inpath ^ " > " ^ File.shell_path outpath
     fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (Prop_Logic.defcnf fm)
     fun readfn ()  = SatSolver.read_std_result_file outpath ("Satisfiable          !!", "solution =", "UNSATISFIABLE          !!")
-    val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.implode inpath)) else ()
-    val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.implode outpath)) else ()
+    val _ = if File.exists inpath then warning ("overwriting existing file " ^ Path.print inpath) else ()
+    val _ = if File.exists outpath then warning ("overwriting existing file " ^ Path.print outpath) else ()
     val result     = SatSolver.make_external_solver cmd writefn readfn fm
     val _          = try File.rm inpath
     val _          = try File.rm outpath
@@ -975,8 +975,8 @@ let
     val cmd        = getenv "JERUSAT_HOME" ^ "/Jerusat1.3 " ^ File.shell_path inpath ^ " > " ^ File.shell_path outpath
     fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (Prop_Logic.defcnf fm)
     fun readfn ()  = SatSolver.read_std_result_file outpath ("s SATISFIABLE", "v ", "s UNSATISFIABLE")
-    val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.implode inpath)) else ()
-    val _          = if File.exists outpath then warning ("overwriting existing file " ^ quote (Path.implode outpath)) else ()
+    val _ = if File.exists inpath then warning ("overwriting existing file " ^ Path.print inpath) else ()
+    val _ = if File.exists outpath then warning ("overwriting existing file " ^ Path.print outpath) else ()
     val result     = SatSolver.make_external_solver cmd writefn readfn fm
     val _          = try File.rm inpath
     val _          = try File.rm outpath

@@ -20,6 +20,7 @@ sig
   val append: T -> T -> T
   val appends: T list -> T
   val make: string list -> T
+  val print: T -> string
   val implode: T -> string
   val explode: string -> T
   val dir: T -> T
@@ -118,6 +119,8 @@ fun implode_path (Path []) = "."
   | implode_path (Path xs) = space_implode "/" (rev (map implode_elem xs));
 
 end;
+
+val print = quote o implode_path;
 
 
 (* explode *)

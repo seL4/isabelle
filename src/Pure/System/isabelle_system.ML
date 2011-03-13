@@ -56,7 +56,7 @@ fun fresh_path name =
   let
     val path = File.tmp_path (Path.basic (name ^ serial_string ()));
     val _ = File.exists path andalso
-      raise Fail ("Temporary file already exists: " ^ quote (Path.implode path));
+      raise Fail ("Temporary file already exists: " ^ Path.print path);
   in path end;
 
 fun rm_tree path = system_command ("rm -r -f " ^ File.shell_path path);

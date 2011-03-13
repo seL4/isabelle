@@ -279,7 +279,7 @@ fun print_setup ctxt =
 
     val certs_filename =
       (case get_certificates_path ctxt of
-        SOME path => Path.implode path
+        SOME path => Path.print path
       | NONE => "(disabled)")
   in
     Pretty.writeln (Pretty.big_list "SMT setup:" [
