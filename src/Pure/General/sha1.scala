@@ -1,7 +1,7 @@
 /*  Title:      Pure/General/sha1.scala
     Author:     Makarius
 
-Digesting strings according to SHA-1 (see RFC 3174).
+Digest strings according to SHA-1 (see RFC 3174).
 */
 
 package isabelle
@@ -12,7 +12,12 @@ import java.security.MessageDigest
 
 object SHA1
 {
-  def digest_bytes(bytes: Array[Byte]): String =
+  case class Digest(rep: String)
+  {
+    override def toString: String = rep
+  }
+
+  def digest_bytes(bytes: Array[Byte]): Digest =
   {
     val result = new StringBuilder
     for (b <- MessageDigest.getInstance("SHA").digest(bytes)) {
@@ -20,9 +25,9 @@ object SHA1
       if (i < 16) result += '0'
       result ++= Integer.toHexString(i)
     }
-    result.toString
+    Digest(result.toString)
   }
 
-  def digest(s: String): String = digest_bytes(Standard_System.string_bytes(s))
+  def digest(s: String): Digest = digest_bytes(Standard_System.string_bytes(s))
 }
 

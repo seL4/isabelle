@@ -7,7 +7,9 @@ version in pure ML.
 
 signature SHA1 =
 sig
-  val digest: string -> string
+  eqtype digest
+  val digest: string -> digest
+  val rep: digest -> string
 end;
 
 structure SHA1: SHA1 =
@@ -58,7 +60,7 @@ fun padded_text str =
   in ((len + size padding) div 4, word) end;
 
 
-(* digest *)
+(* digest_string *)
 
 fun digest_word (i, w, {a, b, c, d, e}) =
   let
@@ -84,7 +86,7 @@ fun digest_word (i, w, {a, b, c, d, e}) =
      e = d}
   end;
 
-fun digest str =
+fun digest_string str =
   let
     val (text_len, text) = padded_text str;
 
@@ -125,5 +127,13 @@ fun digest str =
 
     val hex = hex_word o hash;
   in hex 0 ^ hex 1 ^ hex 2 ^ hex 3 ^ hex 4 end;
+
+
+(* type digest *)
+
+datatype digest = Digest of string;
+
+val digest = Digest o digest_string;
+fun rep (Digest s) = s;
 
 end;

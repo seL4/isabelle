@@ -67,7 +67,7 @@ fun load cache_path =
     fun int_of_string s =
       (case read_int (raw_explode s) of
         (i, []) => i
-      | _ => err ())    
+      | _ => err ())
 
     fun split line =
       (case space_explode " " line of
@@ -80,7 +80,7 @@ fun load cache_path =
         let val (key, l1, l2) = split line
         in ((i+1, l+l1+l2+1), Symtab.update (key, (i+1, l1, l2)) tab) end
       else ((i+1, l), tab)
-  in apfst fst (File.fold_lines parse cache_path ((1, 1), Symtab.empty)) end 
+  in apfst fst (File.fold_lines parse cache_path ((1, 1), Symtab.empty)) end
 
 fun make path =
   let val table = if File.exists path then load path else (1, Symtab.empty)
@@ -98,7 +98,7 @@ fun load_cached_result cache_path (p, len1, len2) =
   in {output=err, redirected_output=out, return_code=0} end
 
 fun lookup (Cache {path=cache_path, table}) str =
-  let val key = SHA1.digest str
+  let val key = SHA1.rep (SHA1.digest str)
   in
     (case Symtab.lookup (snd (Synchronized.value table)) key of
       NONE => (NONE, key)

@@ -9,6 +9,8 @@ implementation.
 structure SHA1: SHA1 =
 struct
 
+(* digesting *)
+
 fun hex_digit i = if i < 10 then chr (ord "0" + i) else chr (ord "a" + i - 10);
 
 fun hex_string arr i =
@@ -28,8 +30,16 @@ fun digest_external str =
         CInterface.POINTER (str, size str, CInterface.address digest);
   in fold (suffix o hex_string digest) (0 upto 19) "" end;
 
-fun digest str = digest_external str
+fun digest_string str = digest_external str
   handle CInterface.Foreign msg =>
-    (warning (msg ^ "\nUsing slow ML implementation of SHA1.digest"); SHA1.digest str);
+    (warning (msg ^ "\nUsing slow ML implementation of SHA1.digest"); SHA1.rep (SHA1.digest str));
+
+
+(* type digest *)
+
+datatype digest = Digest of string;
+
+val digest = Digest o digest_string;
+fun rep (Digest s) = s;
 
 end;
