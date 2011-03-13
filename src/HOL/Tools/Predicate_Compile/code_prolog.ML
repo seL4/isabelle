@@ -751,7 +751,7 @@ fun swi_prolog_query_firstn n (rel, args) vnames =
     "\\n', [" ^ space_implode ", " vnames ^ "]), writelist(SolutionTail).\n"
   
 val swi_prolog_prelude =
-  "#!/usr/bin/swipl -q -t main -f\n\n" ^
+  "#!/usr/bin/swipl -q -t main -f\n\n" ^  (* FIXME hardwired executable!? *)
   ":- use_module(library('dialect/ciao/aggregates')).\n" ^
   ":- style_check(-singleton).\n" ^
   ":- style_check(-discontiguous).\n" ^
@@ -787,13 +787,14 @@ fun invoke system file =
   let
     val (env_var, cmd) =
       (case system of
-        SWI_PROLOG => ("EXEC_SWIPL", "\"$EXEC_SWIPL\" -f ")
-      | YAP => ("EXEC_YAP", "\"$EXEC_YAP\" -L "))
+        SWI_PROLOG => ("ISABELLE_SWIPL", "\"$ISABELLE_SWIPL\" -f ")
+      | YAP => ("ISABELLE_YAP", "\"$ISABELLE_YAP\" -L "))
   in
     if getenv env_var = "" then
       (warning (env_var ^ " not set; could not execute code for " ^ string_of_system system); "")
     else fst (bash_output (cmd ^ File.shell_path file))
   end
+
 
 (* parsing prolog solution *)
 

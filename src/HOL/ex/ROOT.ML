@@ -76,7 +76,7 @@ use_thys [
   "Set_Algebras"
 ];
 
-if getenv "EXEC_GHC" = "" then ()
+if getenv "ISABELLE_GHC" = "" then ()
 else use_thy "Quickcheck_Narrowing_Examples";
 
 use_thy "SVC_Oracle";

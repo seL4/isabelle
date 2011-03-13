@@ -841,9 +841,9 @@ val setup =
         make_command = fn _ => "\"$ISABELLE_PROCESS\" -r -q -u Pure" } })
   #> Code_Target.add_target
     (target_OCaml, { serializer = serializer_ocaml, literals = literals_ocaml,
-      check = { env_var = "EXEC_OCAML",
+      check = { env_var = "ISABELLE_OCAML",
         make_destination = fn p => Path.append p (Path.explode "ROOT.ocaml"),
-        make_command = fn _ => "\"$EXEC_OCAML\" -w pu nums.cma ROOT.ocaml" } })
+        make_command = fn _ => "\"$ISABELLE_OCAML\" -w pu nums.cma ROOT.ocaml" } })
   #> Code_Target.add_tyco_syntax target_SML "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy (
         print_typ (INFX (1, X)) ty1,

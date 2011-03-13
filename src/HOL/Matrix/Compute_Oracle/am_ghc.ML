@@ -2,7 +2,8 @@
     Author:     Steven Obua
 *)
 
-structure AM_GHC : ABSTRACT_MACHINE = struct
+structure AM_GHC : ABSTRACT_MACHINE =
+struct
 
 open AbstractMachine;
 
@@ -214,8 +215,6 @@ fun wrap s = "\""^s^"\""
 
 fun writeTextFile name s = File.write (Path.explode name) s
     
-val ghc = Unsynchronized.ref (case getenv "GHC_PATH" of "" => "ghc" | s => s)
-
 fun fileExists name = ((OS.FileSys.fileSize name; true) handle OS.SysErr _ => false)
 
 fun compile cache_patterns const_arity eqs = 
@@ -228,8 +227,11 @@ fun compile cache_patterns const_arity eqs =
         val module_file = tmp_file (module^".hs")
         val object_file = tmp_file (module^".o")
         val _ = writeTextFile module_file source
-        val _ = bash ((!ghc)^" -c "^module_file)
-        val _ = if not (fileExists object_file) then raise Compile ("Failure compiling haskell code (GHC_PATH = '"^(!ghc)^"')") else ()
+        val _ = bash ("\"$ISABELLE_GHC\" -c " ^ module_file)
+        val _ =
+          if not (fileExists object_file) then
+            raise Compile ("Failure compiling haskell code (ISABELLE_GHC='" ^ getenv "ISABELLE_GHC" ^ "')")
+          else ()
     in
         (guid, module_file, arity)      
     end
@@ -309,8 +311,9 @@ fun run (guid, module_file, arity) t =
         val term = print_term arity_of 0 t
         val call_source = "module "^call^" where\n\nimport "^module^"\n\ncall = "^module^".calc \""^result_file^"\" ("^term^")"
         val _ = writeTextFile call_file call_source
-        val _ = bash ((!ghc)^" -e \""^call^".call\" "^module_file^" "^call_file)
-        val result = readResultFile result_file handle IO.Io _ => raise Run ("Failure running haskell compiler (GHC_PATH = '"^(!ghc)^"')")
+        val _ = bash ("\"$ISABELLE_GHC\" -e \""^call^".call\" "^module_file^" "^call_file)
+        val result = readResultFile result_file handle IO.Io _ =>
+          raise Run ("Failure running haskell compiler (ISABELLE_GHC='" ^ getenv "ISABELLE_GHC" ^ "')")
         val t' = parse_result arity_of result
         val _ = OS.FileSys.remove call_file
         val _ = OS.FileSys.remove result_file

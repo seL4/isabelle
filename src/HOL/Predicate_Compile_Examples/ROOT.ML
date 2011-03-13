@@ -9,10 +9,12 @@ use_thys [
 (*  "IMP_3",
   "IMP_4"*)];
 
-if getenv "EXEC_SWIPL" = "" andalso getenv "EXEC_YAP" = "" then
+if getenv "ISABELLE_SWIPL" = "" andalso getenv "ISABELLE_YAP" = "" then
   (warning "No prolog system found - skipping some example theories"; ())
 else
-  if not (getenv "EXEC_SWIPL" = "") orelse (getenv "SWIPL_VERSION" = "5.10.1") then
+  if not (getenv "ISABELLE_SWIPL" = "") orelse
+    #1 (bash_output "\"$ISABELLE_PREDICATE_COMPILE/lib/scripts/swipl_version\"") = "5.10.1"
+  then
      (use_thys [
         "Code_Prolog_Examples",
         "Context_Free_Grammar_Example",
@@ -20,4 +22,4 @@ else
         "Lambda_Example",
         "List_Examples"];
       Unsynchronized.setmp quick_and_dirty true use_thys ["Reg_Exp_Example"])
-    else (warning "Unsupported SWI-Prolog version - skipping some example theories"; ());
+  else (warning "Unsupported SWI-Prolog version - skipping some example theories"; ());

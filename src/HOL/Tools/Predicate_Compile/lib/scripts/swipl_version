@@ -4,14 +4,12 @@
 #
 # Determine SWI-Prolog version
 
-if [ "$EXEC_SWIPL" = "" ]; then
-  echo ""
-else
-  VERSION="$("$EXEC_SWIPL" --version)"
+if [ "$ISABELLE_SWIPL" != "" ]; then
+  VERSION="$("$ISABELLE_SWIPL" --version)"
   REGEXP='^SWI-Prolog version ([0-9\.]*) for .*$'
   if [[ "$VERSION" =~ $REGEXP ]]; then
-    echo "${BASH_REMATCH[1]}"
+    echo -n "${BASH_REMATCH[1]}"
   else
-    echo undefined
+    echo -n undefined
   fi
 fi

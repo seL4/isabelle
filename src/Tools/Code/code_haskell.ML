@@ -452,9 +452,9 @@ val _ =
 val setup =
   Code_Target.add_target
     (target, { serializer = serializer, literals = literals,
-      check = { env_var = "EXEC_GHC", make_destination = I,
+      check = { env_var = "ISABELLE_GHC", make_destination = I,
         make_command = fn module_name =>
-          "\"$EXEC_GHC\" -fglasgow-exts -odir build -hidir build -stubdir build -e \"\" " ^
+          "\"$ISABELLE_GHC\" -fglasgow-exts -odir build -hidir build -stubdir build -e \"\" " ^
             module_name ^ ".hs" } })
   #> Code_Target.add_tyco_syntax target "fun" (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy (

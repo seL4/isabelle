@@ -22,11 +22,16 @@ The global load path (such as src/HOL/Library) is has been
 discontinued.  INCOMPATIBILITY.
 
 * Various optional external tools are referenced more robustly and
-uniformly by explicit Isabelle settings as follows, without automated
-detection from the shell environment or path (potential
-INCOMPATIBILITY):
+uniformly by explicit Isabelle settings as follows:
 
-  ISABELLE_CSDP  (formerly CSDP_EXE)
+  ISABELLE_CSDP   (formerly CSDP_EXE)
+  ISABELLE_GHC    (formerly EXEC_GHC or GHC_PATH)
+  ISABELLE_OCAML  (formerly EXEC_OCAML)
+  ISABELLE_SWIPL  (formerly EXEC_SWIPL)
+  ISABELLE_YAP    (formerly EXEC_YAP)
+
+Note that automated detection from the file-system or search path has
+been discontinued.  INCOMPATIBILITY.
 
 
 *** HOL ***
