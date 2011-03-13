@@ -6,6 +6,10 @@ New in this Isabelle version
 
 *** General ***
 
+* Theory loader: source files are identified by content via SHA1
+digests.  Discontinued former path/modtime identification and optional
+ISABELLE_FILE_IDENT plugin scripts.
+
 * Parallelization of nested Isar proofs is subject to
 Goal.parallel_proofs_threshold (default 100).  See also isabelle
 usedir option -Q.

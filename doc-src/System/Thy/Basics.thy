@@ -228,13 +228,6 @@ text {*
   usedir} is the basic utility for managing logic sessions (cf.\ the
   @{verbatim IsaMakefile}s in the distribution).
 
-  \item[@{setting_def ISABELLE_FILE_IDENT}] specifies a shell command
-  for producing a source file identification, based on the actual
-  content instead of the full physical path and date stamp (which is
-  the default). A typical identification would produce a ``digest'' of
-  the text, using a cryptographic hash function like SHA-1, for
-  example.
-  
   \item[@{setting_def ISABELLE_LATEX}, @{setting_def
   ISABELLE_PDFLATEX}, @{setting_def ISABELLE_BIBTEX}, @{setting_def
   ISABELLE_DVIPS}] refer to {\LaTeX} related tools for Isabelle

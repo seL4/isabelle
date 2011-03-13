@@ -80,13 +80,6 @@ ISABELLE_LINE_EDITOR=""
 
 ISABELLE_USEDIR_OPTIONS="-M max -p 1 -q 2 -v true -V outline=/proof,/ML"
 
-#Source file identification (default: full name + date stamp)
-ISABELLE_FILE_IDENT=""
-#ISABELLE_FILE_IDENT="md5"
-#ISABELLE_FILE_IDENT="md5sum"
-#ISABELLE_FILE_IDENT="sha1sum"
-#ISABELLE_FILE_IDENT="openssl dgst -sha1"
-
 
 ###
 ### Document preparation (cf. isabelle latex/document)

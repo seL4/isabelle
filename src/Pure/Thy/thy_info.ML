@@ -65,7 +65,7 @@ fun new_entry name parents entry =
 (* thy database *)
 
 type deps =
- {master: (Path.T * Thy_Load.file_ident),  (*master dependencies for thy file*)
+ {master: (Path.T * SHA1.digest),  (*master dependencies for thy file*)
   imports: string list};  (*source specification of imports (partially qualified)*)
 
 fun make_deps master imports : deps = {master = master, imports = imports};
