@@ -1,9 +1,9 @@
 (*  Title:      HOL/Tools/Predicate_Compile/core_data.ML
     Author:     Lukas Bulwahn, TU Muenchen
 
-Data of the predicate compiler core
-
+Data of the predicate compiler core.
 *)
+
 signature CORE_DATA =
 sig
   type mode = Predicate_Compile_Aux.mode

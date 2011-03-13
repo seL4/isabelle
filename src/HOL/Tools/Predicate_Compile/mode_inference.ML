@@ -1,8 +1,7 @@
 (*  Title:      HOL/Tools/Predicate_Compile/mode_inference.ML
     Author:     Lukas Bulwahn, TU Muenchen
 
-Mode inference for the predicate compiler
-
+Mode inference for the predicate compiler.
 *)
 
 signature MODE_INFERENCE =

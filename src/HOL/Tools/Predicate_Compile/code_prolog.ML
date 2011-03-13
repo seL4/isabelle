@@ -1,7 +1,8 @@
 (*  Title:      HOL/Tools/Predicate_Compile/code_prolog.ML
     Author:     Lukas Bulwahn, TU Muenchen
 
-Prototype of an code generator for logic programming languages (a.k.a. Prolog)
+Prototype of an code generator for logic programming languages
+(a.k.a. Prolog).
 *)
 
 signature CODE_PROLOG =

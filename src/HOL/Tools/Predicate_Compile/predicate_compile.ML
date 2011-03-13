@@ -1,7 +1,8 @@
 (*  Title:      HOL/Tools/Predicate_Compile/predicate_compile.ML
     Author:     Lukas Bulwahn, TU Muenchen
 
-Entry point for the predicate compiler; definition of Toplevel commands code_pred and values
+Entry point for the predicate compiler; definition of Toplevel
+commands code_pred and values.
 *)
 
 signature PREDICATE_COMPILE =

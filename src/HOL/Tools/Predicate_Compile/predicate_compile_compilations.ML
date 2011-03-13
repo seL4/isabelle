@@ -1,7 +1,7 @@
 (*  Title:      HOL/Tools/Predicate_Compile/predicate_compile_compilations.ML
     Author:     Lukas Bulwahn, TU Muenchen
 
-Structures for different compilations of the predicate compiler
+Structures for different compilations of the predicate compiler.
 *)
 
 structure PredicateCompFuns =
