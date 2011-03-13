@@ -19,7 +19,7 @@ code_const Typerep.Typerep
 
 code_reserved Haskell Typerep
 
-subsubsection {* Type code_int for Haskell's Int type *}
+subsubsection {* Type @{text code_int} for Haskell's Int type *}
 
 typedef (open) code_int = "UNIV \<Colon> int set"
   morphisms int_of of_int by rule
@@ -325,9 +325,9 @@ instance ..
 
 end
 
-subsubsection {* class is_testable *}
+subsubsection {* class @{text is_testable} *}
 
-text {* The class is_testable ensures that all necessary type instances are generated. *}
+text {* The class @{text is_testable} ensures that all necessary type instances are generated. *}
 
 class is_testable
 
