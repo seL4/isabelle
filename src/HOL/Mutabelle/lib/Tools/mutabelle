@@ -12,9 +12,9 @@ function usage() {
   echo "Usage: isabelle $PRG [OPTIONS] THEORY"
   echo
   echo "  Options are:"
-  echo "    -L LOGIC     parent logic to use (default $DEFAULT_MUTABELLE_LOGIC)"
-  echo "    -T THEORY    parent theory to use (default $DEFAULT_MUTABELLE_IMPORT_THEORY)"
-  echo "    -O DIR       output directory for test data (default $DEFAULT_MUTABELLE_OUTPUT_PATH)"
+  echo "    -L LOGIC     parent logic to use (default $MUTABELLE_LOGIC)"
+  echo "    -T THEORY    parent theory to use (default $MUTABELLE_IMPORT_THEORY)"
+  echo "    -O DIR       output directory for test data (default $MUTABELLE_OUTPUT_PATH)"
   echo
   echo "  THEORY is the name of the theory of which all theorems should be"
   echo "  mutated and tested."
@@ -27,10 +27,7 @@ function usage() {
 
 # options
 
-MUTABELLE_LOGIC="$DEFAULT_MUTABELLE_LOGIC"
-MUTABELLE_OUTPUT_PATH="$DEFAULT_MUTABELLE_OUTPUT_PATH"
-
-MUTABELLE_IMPORT_THEORY=""
+MUTABELLE_IMPORTS=""
 
 while getopts "L:T:O:" OPT
 do
@@ -39,7 +36,7 @@ do
       MUTABELLE_LOGIC="$OPTARG"
       ;;
     T)
-      MUTABELLE_IMPORT_THEORY="$MUTABELLE_IMPORT_THEORY \"$OPTARG\""
+      MUTABELLE_IMPORTS="$MUTABELLE_IMPORTS \"$OPTARG\""
       ;;
     O)      
       MUTABELLE_OUTPUT_PATH="$OPTARG"
@@ -52,9 +49,9 @@ done
 
 shift $(($OPTIND - 1))
 
-if [ "$MUTABELLE_IMPORT_THEORY" = "" ]
+if [ "$MUTABELLE_IMPORTS" = "" ]
 then
-  MUTABELLE_IMPORT_THEORY="$DEFAULT_MUTABELLE_IMPORT_THEORY"
+  MUTABELLE_IMPORTS="$MUTABELLE_IMPORT_THEORY"
 fi
 
 [ "$#" -ne 1 ] && usage
@@ -63,16 +60,18 @@ MUTABELLE_TEST_THEORY="$1"
 
 export MUTABELLE_OUTPUT_PATH
 
+
 ## main
 
 echo "Starting Mutabelle..."
+
 
 # setup
 
 mkdir -p "$MUTABELLE_OUTPUT_PATH"
 
 echo "theory Mutabelle_Test
-imports $MUTABELLE_IMPORT_THEORY
+imports $MUTABELLE_IMPORTS
 uses     
   \"$MUTABELLE_HOME/mutabelle.ML\"
   \"$MUTABELLE_HOME/mutabelle_extra.ML\"
@@ -100,12 +99,14 @@ ML {*
 
 end" > "$MUTABELLE_OUTPUT_PATH/Mutabelle_Test.thy"
 
+
 # execution
 
-"$ISABELLE_PROCESS" -e 'use_thy "$MUTABELLE_OUTPUT_PATH/Mutabelle_Test"' -q $MUTABELLE_LOGIC > /dev/null 2>&1
+"$ISABELLE_PROCESS" -e 'use_thy "$MUTABELLE_OUTPUT_PATH/Mutabelle_Test"' -q "$MUTABELLE_LOGIC" > /dev/null 2>&1
 
 
 [ $? -ne 0 ] && echo "isabelle processing of mutabelle failed"
+
 
 # make statistics
 
