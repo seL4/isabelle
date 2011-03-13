@@ -64,7 +64,7 @@ fun print_scala_stmt labelled_name tyco_syntax const_syntax reserved
               str "=>",
               print_term tyvars false some_thm vars' NOBR t
             ]
-          end 
+          end
       | print_term tyvars is_pat some_thm vars fxy (ICase (cases as (_, t0))) =
           (case Code_Thingol.unfold_const_app t0
            of SOME (c_ts as ((c, _), _)) => if is_none (const_syntax c)
@@ -133,7 +133,7 @@ fun print_scala_stmt labelled_name tyco_syntax const_syntax reserved
           in brackify_block fxy
             (concat [print_term tyvars false some_thm vars NOBR t, str "match", str "{"])
             (map print_select clauses)
-            (str "}") 
+            (str "}")
           end
       | print_case tyvars some_thm vars fxy ((_, []), _) =
           (brackify fxy o Pretty.breaks o map str) ["error(\"empty case\")"];
@@ -273,7 +273,7 @@ fun print_scala_stmt labelled_name tyco_syntax const_syntax reserved
                 val aux_abstr = if null auxs then [] else [enum "," "(" ")"
                   (map (fn (aux, ty) => constraint ((str o lookup_var vars) aux)
                   (print_typ tyvars NOBR ty)) aux_tys), str "=>"];
-              in 
+              in
                 concat ([str "val", print_method classparam, str "="]
                   @ aux_abstr @| print_app tyvars false (SOME thm) vars NOBR
                     (const, map (IVar o SOME) auxs))
@@ -329,9 +329,11 @@ fun scala_program_of_program labelled_name reserved module_alias program =
       | modify_stmt (_, Code_Thingol.Classparam _) = NONE
       | modify_stmt (_, stmt) = SOME stmt;
   in
-    Code_Namespace.hierarchical_program labelled_name { module_alias = module_alias, reserved = reserved,
-      empty_nsp = ((reserved, reserved), reserved), namify_module = namify_module, namify_stmt = namify_stmt,
-      cyclic_modules = true, empty_data = [], memorize_data = memorize_implicits, modify_stmts = map modify_stmt } program
+    Code_Namespace.hierarchical_program labelled_name
+      { module_alias = module_alias, reserved = reserved,
+        empty_nsp = ((reserved, reserved), reserved), namify_module = namify_module,
+        namify_stmt = namify_stmt, cyclic_modules = true, empty_data = [],
+        memorize_data = memorize_implicits, modify_stmts = map modify_stmt } program
   end;
 
 fun serialize_scala { labelled_name, reserved_syms, includes,
@@ -417,10 +419,12 @@ in Literals {
 val setup =
   Code_Target.add_target
     (target, { serializer = serializer, literals = literals,
-      check = { env_var = "SCALA_HOME", make_destination = fn p => Path.append p (Path.explode "ROOT.scala"),
+      check = { env_var = "SCALA_HOME",
+        make_destination = fn p => Path.append p (Path.explode "ROOT.scala"),
         make_command = fn scala_home => fn _ =>
           "export JAVA_OPTS='-Xms128m -Xmx512m -Xss2m' && "
-            ^ Path.implode (Path.append (Path.explode scala_home) (Path.explode "bin/scalac")) ^ " ROOT.scala" } })
+            ^ Path.implode (Path.append (Path.explode scala_home) (Path.explode "bin/scalac"))
+            ^ " ROOT.scala" } })
   #> Code_Target.add_tyco_syntax target "fun"
      (SOME (2, fn print_typ => fn fxy => fn [ty1, ty2] =>
         brackify_infix (1, R) fxy (

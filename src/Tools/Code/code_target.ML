@@ -393,7 +393,7 @@ fun check_code_for thy target strict args naming program names_cs =
     val { env_var, make_destination, make_command } =
       (#check o the_fundamental thy) target;
     val env_param = getenv env_var;
-    fun ext_check env_param p =
+    fun ext_check p =
       let 
         val destination = make_destination p;
         val _ = export (SOME destination) (invoke_serializer thy target (SOME 80)
@@ -407,7 +407,7 @@ fun check_code_for thy target strict args naming program names_cs =
     then if strict
       then error (env_var ^ " not set; cannot check code for " ^ target)
       else warning (env_var ^ " not set; skipped checking code for " ^ target)
-    else Isabelle_System.with_tmp_dir "Code_Test" (ext_check env_param)
+    else Isabelle_System.with_tmp_dir "Code_Test" ext_check
   end;
 
 fun evaluation mounted_serializer prepared_program consts ((vs, ty), t) =
