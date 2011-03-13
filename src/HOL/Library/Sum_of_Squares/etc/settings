@@ -3,3 +3,6 @@
 ISABELLE_SUM_OF_SQUARES="$COMPONENT"
 ISABELLE_NEOS_SERVER="http://neos-server.org:3332"
 
+# local SDP Solver, cf. https://projects.coin-or.org/Csdp
+#ISABELLE_CSDP="/usr/local/bin/csdp"
+

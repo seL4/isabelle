@@ -21,6 +21,13 @@ directory of each theory node (where the .thy file itself resides).
 The global load path (such as src/HOL/Library) is has been
 discontinued.  INCOMPATIBILITY.
 
+* Various optional external tools are referenced more robustly and
+uniformly by explicit Isabelle settings as follows, without automated
+detection from the shell environment or path (potential
+INCOMPATIBILITY):
+
+  ISABELLE_CSDP  (formerly CSDP_EXE)
+
 
 *** HOL ***
 

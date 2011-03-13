@@ -38,7 +38,7 @@ fun filename dir name =
     else error ("No such directory: " ^ dir)
   end
 
-fun run_solver ctxt name cmd find_failure input =
+fun run_solver ctxt name exe find_failure input =
   let
     val _ = warning ("Calling solver: " ^ name)
 
@@ -51,10 +51,9 @@ fun run_solver ctxt name cmd find_failure input =
     val output_file = filename dir "sos_out"
     val (output, rv) =
       bash_output
-       (if File.exists cmd then
-          space_implode " "
-            [File.shell_path cmd, File.shell_path input_file, File.shell_path output_file]
-        else error ("Bad executable: " ^ File.platform_path cmd))
+       (if File.exists exe then
+          space_implode " " (map File.shell_path [exe, input_file, output_file])
+        else error ("Bad executable: " ^ File.platform_path exe))
 
     (* read and analyze output *)
     val (res, res_msg) = find_failure rv
@@ -98,7 +97,7 @@ fun find_csdp_failure rv =
   | 9 => (Failure, "Detected NaN or Inf values")
   | _ => (Error, "return code is " ^ string_of_int rv)
 
-val csdp = ("$CSDP_EXE", find_csdp_failure)
+val csdp = (Path.explode "$ISABELLE_CSDP", find_csdp_failure)
 
 
 (* remote neos server *)
@@ -109,7 +108,7 @@ fun find_neos_failure rv =
   | 21 => (Error, "interrupt")
   |  _ => find_csdp_failure rv
 
-val neos_csdp = ("$ISABELLE_SUM_OF_SQUARES/neos_csdp_client", find_neos_failure)
+val neos_csdp = (Path.explode "$ISABELLE_SUM_OF_SQUARES/neos_csdp_client", find_neos_failure)
 
 
 (* named provers *)
@@ -123,8 +122,8 @@ val (prover_name, setup_prover_name) = Attrib.config_string "sos_prover_name" (K
 fun call_solver ctxt opt_name =
   let
     val name = the_default (Config.get ctxt prover_name) opt_name
-    val (cmd, find_failure) = prover name
-  in run_solver ctxt name (Path.explode cmd) find_failure end
+    val (exe, find_failure) = prover name
+  in run_solver ctxt name exe find_failure end
 
 
 (* certificate output *)

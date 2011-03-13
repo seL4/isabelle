@@ -16,16 +16,26 @@ uses
 begin
 
 text {*
-  In order to use the method sos, call it with @{text "(sos
-  remote_csdp)"} to use the remote solver.  Or install CSDP
-  (https://projects.coin-or.org/Csdp), configure the Isabelle setting
-  @{text CSDP_EXE}, and call it with @{text "(sos csdp)"}.  By
-  default, sos calls @{text remote_csdp}.  This can take of the order
-  of a minute for one sos call, because sos calls CSDP repeatedly.  If
-  you install CSDP locally, sos calls typically takes only a few
-  seconds.
-  sos generates a certificate which can be used to repeat the proof
-  without calling an external prover.
+  Proof method sos invocations:
+  \begin{itemize}
+
+  \item remote solver: @{text "(sos remote_csdp)"}
+
+  \item local solver: @{text "(sos csdp)"}
+
+  The latter requires a local executable from
+  https://projects.coin-or.org/Csdp and the Isabelle settings variable
+  variable @{text ISABELLE_CSDP} pointing to it.
+
+  \end{itemize}
+
+  By default, method sos calls @{text remote_csdp}.  This can take of
+  the order of a minute for one sos call, because sos calls CSDP
+  repeatedly.  If you install CSDP locally, sos calls typically takes
+  only a few seconds.
+
+  The sos method generates a certificate which can be used to repeat
+  the proof without calling an external prover.
 *}
 
 setup Sum_of_Squares.setup
