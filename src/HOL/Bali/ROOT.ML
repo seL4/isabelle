@@ -1,1 +1,1 @@
-use_thys ["Bali"];
+use_thys ["AxExample", "AxSound", "AxCompl", "Trans"];
