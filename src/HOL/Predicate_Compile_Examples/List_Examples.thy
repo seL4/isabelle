@@ -1,5 +1,8 @@
 theory List_Examples
-imports Main "~~/src/HOL/Library/Predicate_Compile_Quickcheck" "Code_Prolog"
+imports
+  Main
+  "~~/src/HOL/Library/Predicate_Compile_Quickcheck"
+  "~~/src/HOL/Library/Code_Prolog"
 begin
 
 setup {* Context.theory_map (Quickcheck.add_generator ("prolog", Code_Prolog.quickcheck)) *}

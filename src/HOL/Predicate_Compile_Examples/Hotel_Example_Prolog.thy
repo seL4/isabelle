@@ -1,5 +1,8 @@
 theory Hotel_Example_Prolog
-imports Hotel_Example "~~/src/HOL/Library/Predicate_Compile_Alternative_Defs" Code_Prolog
+imports
+  Hotel_Example
+  "~~/src/HOL/Library/Predicate_Compile_Alternative_Defs"
+  "~~/src/HOL/Library/Code_Prolog"
 begin
 
 declare Let_def[code_pred_inline]

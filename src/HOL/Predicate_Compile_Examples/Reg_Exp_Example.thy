@@ -1,5 +1,7 @@
 theory Reg_Exp_Example
-imports "~~/src/HOL/Library/Predicate_Compile_Quickcheck" Code_Prolog
+imports
+  "~~/src/HOL/Library/Predicate_Compile_Quickcheck"
+  "~~/src/HOL/Library/Code_Prolog"
 begin
 
 text {* An example from the experiments from SmallCheck (http://www.cs.york.ac.uk/fp/smallcheck/) *}
