@@ -13,8 +13,6 @@ end
 structure SPARK_Commands: SPARK_COMMANDS =
 struct
 
-fun read f path = f (Position.file (Path.implode path)) (File.read path);
-
 fun spark_open vc_name thy =
   let
     val (vc_path, _) = Thy_Load.check_file
@@ -28,9 +26,9 @@ fun spark_open vc_name thy =
     val rls_path = Path.ext "rls" base;
   in
     SPARK_VCs.set_vcs
-      (snd (read Fdl_Parser.parse_declarations fdl_path))
-      (read Fdl_Parser.parse_rules rls_path)
-      (snd (snd (read (Fdl_Parser.parse_vcs header) vc_path)))
+      (snd (Fdl_Parser.parse_declarations (Path.position fdl_path) (File.read fdl_path)))
+      (Fdl_Parser.parse_rules (Path.position rls_path) (File.read rls_path))
+      (snd (snd (Fdl_Parser.parse_vcs header (Path.position vc_path) (File.read vc_path))))
       base thy
   end;
 
