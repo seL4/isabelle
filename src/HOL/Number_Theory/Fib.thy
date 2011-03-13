@@ -1,5 +1,6 @@
-(*  Title:      Fib.thy
-    Authors:    Lawrence C. Paulson, Jeremy Avigad
+(*  Title:      HOL/Number_Theory/Fib.thy
+    Author:     Lawrence C. Paulson
+    Author:     Jeremy Avigad
 
 Defines the fibonacci function.
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/IMP/Hoare_Def.thy
+(*  Title:      HOL/IMP/Hoare_Den.thy
     Author:     Tobias Nipkow
 *)
 

@@ -1,4 +1,4 @@
-(*  Title:      Library/Multivariate_Analysis/Euclidean_Space.thy
+(*  Title:      HOL/Multivariate_Analysis/Euclidean_Space.thy
     Author:     Amine Chaieb, University of Cambridge
 *)
 

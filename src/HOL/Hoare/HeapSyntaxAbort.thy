@@ -1,4 +1,4 @@
-(*  Title:      HOL/Hoare/HeapSyntax.thy
+(*  Title:      HOL/Hoare/HeapSyntaxAbort.thy
     Author:     Tobias Nipkow
     Copyright   2002 TUM
 *)

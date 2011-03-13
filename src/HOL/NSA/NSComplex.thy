@@ -1,7 +1,6 @@
-(*  Title:       NSComplex.thy
-    Author:      Jacques D. Fleuriot
-    Copyright:   2001  University of Edinburgh
-    Conversion to Isar and new proofs by Lawrence C Paulson, 2003/4
+(*  Title:      HOL/NSA/NSComplex.thy
+    Author:     Jacques D. Fleuriot, University of Edinburgh
+    Author:     Lawrence C Paulson
 *)
 
 header{*Nonstandard Complex Numbers*}

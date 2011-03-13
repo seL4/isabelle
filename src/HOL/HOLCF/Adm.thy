@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Adm.thy
+(*  Title:      HOL/HOLCF/Adm.thy
     Author:     Franz Regensburger and Brian Huffman
 *)
 

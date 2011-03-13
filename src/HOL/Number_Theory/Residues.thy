@@ -1,8 +1,8 @@
-(*  Title:      HOL/Library/Residues.thy
+(*  Title:      HOL/Number_Theory/Residues.thy
     Author:     Jeremy Avigad
 
 An algebraic treatment of residue rings, and resulting proofs of
-Euler's theorem and Wilson's theorem. 
+Euler's theorem and Wilson's theorem.
 *)
 
 header {* Residue rings *}

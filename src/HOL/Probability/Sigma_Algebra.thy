@@ -1,7 +1,7 @@
-(*  Title:      Sigma_Algebra.thy
-    Author:     Stefan Richter, Markus Wenzel, TU Muenchen
-    Plus material from the Hurd/Coble measure theory development,
-    translated by Lawrence Paulson.
+(*  Title:      HOL/Probability/Sigma_Algebra.thy
+    Author:     Stefan Richter
+    Author:     Markus Wenzel
+    Author:     Lawrence Paulson
 *)
 
 header {* Sigma Algebras *}

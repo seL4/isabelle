@@ -1,4 +1,4 @@
-(*  Title:      Tools/Compute_Oracle/linker.ML
+(*  Title:      HOL/Matrix/Compute_Oracle/linker.ML
     Author:     Steven Obua
 
 This module solves the problem that the computing oracle does not

@@ -1,5 +1,5 @@
-(* Title:      Library/Permutations
-   Author:     Amine Chaieb, University of Cambridge
+(*  Title:      HOL/Library/Permutations.thy
+    Author:     Amine Chaieb, University of Cambridge
 *)
 
 header {* Permutations, both general and specifically on finite sets.*}

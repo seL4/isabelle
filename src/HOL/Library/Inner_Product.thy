@@ -1,5 +1,5 @@
-(* Title:      Inner_Product.thy
-   Author:     Brian Huffman
+(*  Title:      HOL/Library/Inner_Product.thy
+    Author:     Brian Huffman
 *)
 
 header {* Inner Product Spaces and the Gradient Derivative *}

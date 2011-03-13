@@ -1,5 +1,7 @@
-(*  Title:      Test file for Stefan Berghofer's SML code generator
+(*  Title:      HOL/ex/CodegenSML_Test.thy
     Author:     Tobias Nipkow, TU Muenchen
+
+Test file for Stefan Berghofer's SML code generator.
 *)
 
 theory CodegenSML_Test

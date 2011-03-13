@@ -1,8 +1,9 @@
-(*  Title:      Divisibility in monoids and rings
-    Author:     Clemens Ballarin, started 18 July 2008
-
-Based on work by Stephan Hohe.
+(*  Title:      HOL/Algebra/Divisibility.thy
+    Author:     Clemens Ballarin
+    Author:     Stephan Hohe
 *)
+
+header {* Divisibility in monoids and rings *}
 
 theory Divisibility
 imports "~~/src/HOL/Library/Permutation" Coset Group

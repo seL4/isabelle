@@ -1,5 +1,5 @@
-(* Title:      Archimedean_Field.thy
-   Author:     Brian Huffman
+(*  Title:      HOL/Archimedean_Field.thy
+    Author:     Brian Huffman
 *)
 
 header {* Archimedean Fields, Floor and Ceiling Functions *}

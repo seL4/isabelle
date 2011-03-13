@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/Arithmetic_Series_Complex
+(*  Title:      HOL/ex/Arithmetic_Series_Complex.thy
     Author:     Benjamin Porter, 2006
 *)
 

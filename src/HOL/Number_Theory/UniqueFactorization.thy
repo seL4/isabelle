@@ -1,4 +1,4 @@
-(*  Title:      UniqueFactorization.thy
+(*  Title:      HOL/Number_Theory/UniqueFactorization.thy
     Author:     Jeremy Avigad
 
 Unique factorization for the natural numbers and the integers.

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Induct/QuoDataType
+(*  Title:      HOL/Induct/QuoDataType.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2004  University of Cambridge
 *)

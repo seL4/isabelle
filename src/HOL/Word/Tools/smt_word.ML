@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/SMT/smt_word.ML
+(*  Title:      HOL/Word/Tools/smt_word.ML
     Author:     Sascha Boehme, TU Muenchen
 
 SMT setup for words.

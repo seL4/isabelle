@@ -1,4 +1,4 @@
-(*  Title:      Ln.thy
+(*  Title:      HOL/Ln.thy
     Author:     Jeremy Avigad
 *)
 

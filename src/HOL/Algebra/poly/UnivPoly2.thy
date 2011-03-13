@@ -1,4 +1,4 @@
-(*  Title:      Univariate Polynomials
+(*  Title:      HOL/Algebra/poly/UnivPoly2.thy
     Author:     Clemens Ballarin, started 9 December 1996
     Copyright:  Clemens Ballarin
 *)

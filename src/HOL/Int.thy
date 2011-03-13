@@ -1,8 +1,6 @@
-(*  Title:      Int.thy
+(*  Title:      HOL/Int.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-                Tobias Nipkow, Florian Haftmann, TU Muenchen
-    Copyright   1994  University of Cambridge
-
+    Author:     Tobias Nipkow, Florian Haftmann, TU Muenchen
 *)
 
 header {* The Integers as Equivalence Classes over Pairs of Natural Numbers *} 

@@ -1,4 +1,4 @@
-(*  Title:      StateSpaceSyntax.thy
+(*  Title:      HOL/Statespace/StateSpaceSyntax.thy
     Author:     Norbert Schirmer, TU Muenchen
 *)
 

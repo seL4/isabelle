@@ -1,4 +1,4 @@
-(*  Title:      The algebraic hierarchy of rings
+(*  Title:      HOL/Algebra/Ring.thy
     Author:     Clemens Ballarin, started 9 December 1996
     Copyright:  Clemens Ballarin
 *)

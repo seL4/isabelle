@@ -1,4 +1,4 @@
-(*  Title:      sledgehammer_tactics.ML
+(*  Title:      HOL/Mirabelle/Tools/sledgehammer_tactics.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2010
 

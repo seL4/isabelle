@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/While_Combinator.thy
+(*  Title:      HOL/ex/While_Combinator_Example.thy
     Author:     Tobias Nipkow
     Copyright   2000 TU Muenchen
 *)

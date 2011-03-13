@@ -1,5 +1,6 @@
-(*  Title:      HOL/Library/Parity.thy
-    Author:     Jeremy Avigad, Jacques D. Fleuriot
+(*  Title:      HOL/Parity.thy
+    Author:     Jeremy Avigad
+    Author:     Jacques D. Fleuriot
 *)
 
 header {* Even and Odd for int and nat *}

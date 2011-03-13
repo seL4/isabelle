@@ -1,4 +1,4 @@
-(*  Title:      MiscAlgebra.thy
+(*  Title:      HOL/Number_Theory/MiscAlgebra.thy
     Author:     Jeremy Avigad
 
 These are things that can be added to the Algebra library.

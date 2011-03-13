@@ -1,4 +1,4 @@
-(*  Title:      LK/Quantifiers.thy
+(*  Title:      Sequents/LK/Quantifiers.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 

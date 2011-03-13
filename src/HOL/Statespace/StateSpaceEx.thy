@@ -1,4 +1,4 @@
-(*  Title:      StateSpaceEx.thy
+(*  Title:      HOL/Statespace/StateSpaceEx.thy
     Author:     Norbert Schirmer, TU Muenchen
 *)
 

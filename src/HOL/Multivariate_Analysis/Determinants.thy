@@ -1,5 +1,5 @@
-(* Title:      Determinants
-   Author:     Amine Chaieb, University of Cambridge
+(*  Title:      HOL/Multivariate_Analysis/Determinants.thy
+    Author:     Amine Chaieb, University of Cambridge
 *)
 
 header {* Traces, Determinant of square matrices and some properties *}

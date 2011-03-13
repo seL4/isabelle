@@ -1,4 +1,4 @@
-(*  Title:      StateSpaceLocale.thy
+(*  Title:      HOL/Statespace/StateSpaceLocale.thy
     Author:     Norbert Schirmer, TU Muenchen
 *)
 

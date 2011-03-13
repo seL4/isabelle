@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Convex_Euclidean_Space.thy
+(*  Title:      HOL/Multivariate_Analysis/Convex_Euclidean_Space.thy
     Author:     Robert Himmelmann, TU Muenchen
     Author:     Bogdan Grechuk, University of Edinburgh
 *)

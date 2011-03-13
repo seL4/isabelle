@@ -1,4 +1,4 @@
-(*  Title:      Pure/Isar/theory_target.ML
+(*  Title:      Pure/Isar/named_target.ML
     Author:     Makarius
     Author:     Florian Haftmann, TU Muenchen
 

@@ -1,5 +1,5 @@
-(* Title:      Bit.thy
-   Author:     Brian Huffman
+(*  Title:      HOL/Library/Bit.thy
+    Author:     Brian Huffman
 *)
 
 header {* The Field of Integers mod 2 *}

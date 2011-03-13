@@ -1,4 +1,4 @@
-(*  Title:      HLim.thy
+(*  Title:      HOL/NSA/HLim.thy
     Author:     Jacques D. Fleuriot, University of Cambridge
     Author:     Lawrence C Paulson
 *)

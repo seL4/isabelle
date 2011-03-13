@@ -1,4 +1,4 @@
-(*  Title:      Multivariate_Analysis/Path_Connected.thy
+(*  Title:      HOL/Multivariate_Analysis/Path_Connected.thy
     Author:     Robert Himmelmann, TU Muenchen
 *)
 

@@ -1,6 +1,6 @@
-(*  Title:      HOL/Polynomial.thy
+(*  Title:      HOL/Library/Polynomial.thy
     Author:     Brian Huffman
-                Based on an earlier development by Clemens Ballarin
+    Author:     Clemens Ballarin
 *)
 
 header {* Univariate Polynomials *}

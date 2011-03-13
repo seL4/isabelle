@@ -1,4 +1,4 @@
-(*  Title:      HOL/Hoare/HoareAbort.thy
+(*  Title:      HOL/Hoare/Hoare_Logic_Abort.thy
     Author:     Leonor Prensa Nieto & Tobias Nipkow
     Copyright   2003 TUM
 

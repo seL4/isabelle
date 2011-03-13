@@ -1,4 +1,4 @@
-(*  Title:      Modal/S43.thy
+(*  Title:      Sequents/S43.thy
     Author:     Martin Coen
     Copyright   1991  University of Cambridge
 

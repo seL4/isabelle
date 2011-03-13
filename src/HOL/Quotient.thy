@@ -1,4 +1,4 @@
-(*  Title:      Quotient.thy
+(*  Title:      HOL/Quotient.thy
     Author:     Cezary Kaliszyk and Christian Urban
 *)
 

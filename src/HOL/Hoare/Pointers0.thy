@@ -1,4 +1,4 @@
-(*  Title:      HOL/Hoare/Pointers.thy
+(*  Title:      HOL/Hoare/Pointers0.thy
     Author:     Tobias Nipkow
     Copyright   2002 TUM
 

@@ -1,4 +1,4 @@
-(*  Title:      HOL/Algebra/CIdeal.thy
+(*  Title:      HOL/Algebra/Ideal.thy
     Author:     Stephan Hohe, TU Muenchen
 *)
 

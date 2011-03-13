@@ -1,4 +1,4 @@
-(*  Title:      HOL/IMP/Compiler.thy
+(*  Title:      HOL/IMP/Compiler0.thy
     Author:     Tobias Nipkow, TUM
     Copyright   1996 TUM
 

@@ -1,4 +1,4 @@
-(*  Title:      Filter.thy
+(*  Title:      HOL/NSA/Filter.thy
     Author:     Jacques D. Fleuriot, University of Cambridge
     Author:     Lawrence C Paulson
     Author:     Brian Huffman

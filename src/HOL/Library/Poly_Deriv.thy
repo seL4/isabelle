@@ -1,6 +1,6 @@
-(*  Title:      Poly_Deriv.thy
+(*  Title:      HOL/Library/Poly_Deriv.thy
     Author:     Amine Chaieb
-                Ported to new Polynomial library by Brian Huffman
+    Author:     Brian Huffman
 *)
 
 header{* Polynomials and Differentiation *}

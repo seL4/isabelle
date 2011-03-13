@@ -1,8 +1,8 @@
-(*  Title:      HOL/Hoare/Pointers.thy
+(*  Title:      HOL/Hoare/Pointer_Examples.thy
     Author:     Tobias Nipkow
     Copyright   2002 TUM
 
-Examples of verifications of pointer programs
+Examples of verifications of pointer programs.
 *)
 
 theory Pointer_Examples imports HeapSyntax begin

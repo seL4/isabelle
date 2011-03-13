@@ -1,4 +1,4 @@
-(*  Title:      Binomial.thy
+(*  Title:      HOL/Number_Theory/Binomial.thy
     Authors:    Lawrence C. Paulson, Jeremy Avigad, Tobias Nipkow
 
 Defines the "choose" function, and establishes basic properties.

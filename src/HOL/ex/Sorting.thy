@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/sorting.thy
+(*  Title:      HOL/ex/Sorting.thy
     Author:     Tobias Nipkow
     Copyright   1994 TU Muenchen
 *)

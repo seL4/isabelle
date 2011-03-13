@@ -1,4 +1,4 @@
-(*  Title:       Complex.thy
+(*  Title:       HOL/Complex.thy
     Author:      Jacques D. Fleuriot
     Copyright:   2001 University of Edinburgh
     Conversion to Isar and new proofs by Lawrence C Paulson, 2003/4

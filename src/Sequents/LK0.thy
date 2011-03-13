@@ -1,4 +1,4 @@
-(*  Title:      LK/LK0.thy
+(*  Title:      Sequents/LK0.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 

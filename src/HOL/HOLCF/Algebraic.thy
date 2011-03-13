@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Algebraic.thy
+(*  Title:      HOL/HOLCF/Algebraic.thy
     Author:     Brian Huffman
 *)
 

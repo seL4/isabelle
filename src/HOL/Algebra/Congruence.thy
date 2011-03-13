@@ -1,4 +1,4 @@
-(*  Title:      Algebra/Congruence.thy
+(*  Title:      HOL/Algebra/Congruence.thy
     Author:     Clemens Ballarin, started 3 January 2008
     Copyright:  Clemens Ballarin
 *)

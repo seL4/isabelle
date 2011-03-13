@@ -1,4 +1,4 @@
-(*  Title:      HOL/Library/Cong.thy
+(*  Title:      HOL/Number_Theory/Cong.thy
     Authors:    Christophe Tabacznyj, Lawrence C. Paulson, Amine Chaieb,
                 Thomas M. Rasmussen, Jeremy Avigad
 

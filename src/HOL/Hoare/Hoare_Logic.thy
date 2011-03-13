@@ -1,4 +1,4 @@
-(*  Title:      HOL/Hoare/Hoare.thy
+(*  Title:      HOL/Hoare/Hoare_Logic.thy
     Author:     Leonor Prensa Nieto & Tobias Nipkow
     Copyright   1998 TUM
 

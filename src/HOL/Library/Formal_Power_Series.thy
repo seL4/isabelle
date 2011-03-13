@@ -1,4 +1,4 @@
-(*  Title:      Formal_Power_Series.thy
+(*  Title:      HOL/Library/Formal_Power_Series.thy
     Author:     Amine Chaieb, University of Cambridge
 *)
 

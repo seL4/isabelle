@@ -1,5 +1,5 @@
-(*  Title:  HOL/Tools/ComputeFloat.thy
-    Author: Steven Obua
+(*  Title:      HOL/Matrix/ComputeFloat.thy
+    Author:     Steven Obua
 *)
 
 header {* Floating Point Representation of the Reals *}

@@ -1,4 +1,4 @@
-(*  Title:      Multivariate_Analysis/L2_Norm.thy
+(*  Title:      HOL/Multivariate_Analysis/L2_Norm.thy
     Author:     Brian Huffman, Portland State University
 *)
 

@@ -1,4 +1,4 @@
-(*  Title:      LK/Hard_Quantifiers.thy
+(*  Title:      Sequents/LK/Hard_Quantifiers.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 

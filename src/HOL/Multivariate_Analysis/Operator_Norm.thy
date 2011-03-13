@@ -1,4 +1,4 @@
-(*  Title:      Library/Operator_Norm.thy
+(*  Title:      HOL/Multivariate_Analysis/Operator_Norm.thy
     Author:     Amine Chaieb, University of Cambridge
 *)
 

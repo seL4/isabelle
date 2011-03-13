@@ -1,4 +1,4 @@
-(*  Title:      HOL/Nat_Bijection.thy
+(*  Title:      HOL/Library/Nat_Bijection.thy
     Author:     Brian Huffman
     Author:     Florian Haftmann
     Author:     Stefan Richter

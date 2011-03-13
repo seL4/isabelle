@@ -1,4 +1,4 @@
-(*  Title:      StateFun.thy
+(*  Title:      HOL/Statespace/StateFun.thy
     Author:     Norbert Schirmer, TU Muenchen
 *)
 

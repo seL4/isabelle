@@ -1,4 +1,4 @@
-(*  Title:      HOL/Hoare/Heap.thy
+(*  Title:      HOL/Hoare/SepLogHeap.thy
     Author:     Tobias Nipkow
     Copyright   2002 TUM
 
