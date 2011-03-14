@@ -416,7 +416,7 @@ next
   show "?f -` A \<inter> space ?P \<in> sets ?P" by simp
 qed
 
-lemma (in pair_sigma_algebra) measurable_cut_fst:
+lemma (in pair_sigma_algebra) measurable_cut_fst[simp,intro]:
   assumes "Q \<in> sets P" shows "Pair x -` Q \<in> sets M2"
 proof -
   let ?Q' = "{Q. Q \<subseteq> space P \<and> Pair x -` Q \<in> sets M2}"
@@ -504,15 +504,14 @@ proof -
     fix A assume "A \<in> sets ?D"
     with sets_into_space have "\<And>x. measure M2 (Pair x -` (space M1 \<times> space M2 - A)) =
         (if x \<in> space M1 then measure M2 (space M2) - ?s A x else 0)"
-      by (auto intro!: M2.finite_measure_compl measurable_cut_fst
-               simp: vimage_Diff)
+      by (auto intro!: M2.measure_compl simp: vimage_Diff)
     with `A \<in> sets ?D` top show "space ?D - A \<in> sets ?D"
-      by (auto intro!: Diff M1.measurable_If M1.borel_measurable_pextreal_diff)
+      by (auto intro!: Diff M1.measurable_If M1.borel_measurable_extreal_diff)
   next
     fix F :: "nat \<Rightarrow> ('a\<times>'b) set" assume "disjoint_family F" "range F \<subseteq> sets ?D"
-    moreover then have "\<And>x. measure M2 (\<Union>i. Pair x -` F i) = (\<Sum>\<^isub>\<infinity> i. ?s (F i) x)"
+    moreover then have "\<And>x. measure M2 (\<Union>i. Pair x -` F i) = (\<Sum>i. ?s (F i) x)"
       by (intro M2.measure_countably_additive[symmetric])
-         (auto intro!: measurable_cut_fst simp: disjoint_family_on_def)
+         (auto simp: disjoint_family_on_def)
     ultimately show "(\<Union>i. F i) \<in> sets ?D"
       by (auto simp: vimage_UN intro!: M1.borel_measurable_psuminf)
   qed
@@ -546,7 +545,7 @@ proof -
   have [intro]: "sigma_algebra M1" and [intro]: "sigma_algebra M2" by default+
   have M1: "sigma_finite_measure M1" by default
   from M2.disjoint_sigma_finite guess F .. note F = this
-  then have "\<And>i. F i \<in> sets M2" by auto
+  then have F_sets: "\<And>i. F i \<in> sets M2" by auto
   let "?C x i" = "F i \<inter> Pair x -` Q"
   { fix i
     let ?R = "M2.restricted_space (F i)"
@@ -578,10 +577,10 @@ proof -
       by simp }
   moreover
   { fix x
-    have "(\<Sum>\<^isub>\<infinity>i. measure M2 (?C x i)) = measure M2 (\<Union>i. ?C x i)"
+    have "(\<Sum>i. measure M2 (?C x i)) = measure M2 (\<Union>i. ?C x i)"
     proof (intro M2.measure_countably_additive)
       show "range (?C x) \<subseteq> sets M2"
-        using F `Q \<in> sets P` by (auto intro!: M2.Int measurable_cut_fst)
+        using F `Q \<in> sets P` by (auto intro!: M2.Int)
       have "disjoint_family F" using F by auto
       show "disjoint_family (?C x)"
         by (rule disjoint_family_on_bisimulation[OF `disjoint_family F`]) auto
@@ -589,10 +588,10 @@ proof -
     also have "(\<Union>i. ?C x i) = Pair x -` Q"
       using F sets_into_space `Q \<in> sets P`
       by (auto simp: space_pair_measure)
-    finally have "measure M2 (Pair x -` Q) = (\<Sum>\<^isub>\<infinity>i. measure M2 (?C x i))"
+    finally have "measure M2 (Pair x -` Q) = (\<Sum>i. measure M2 (?C x i))"
       by simp }
-  ultimately show ?thesis
-    by (auto intro!: M1.borel_measurable_psuminf)
+  ultimately show ?thesis using `Q \<in> sets P` F_sets
+    by (auto intro!: M1.borel_measurable_psuminf M2.Int)
 qed
 
 lemma (in pair_sigma_finite) measure_cut_measurable_snd:
@@ -620,7 +619,7 @@ lemma (in pair_sigma_finite) pair_measure_alt:
   apply (simp add: pair_measure_def pair_measure_generator_def)
 proof (rule M1.positive_integral_cong)
   fix x assume "x \<in> space M1"
-  have *: "\<And>y. indicator A (x, y) = (indicator (Pair x -` A) y :: pextreal)"
+  have *: "\<And>y. indicator A (x, y) = (indicator (Pair x -` A) y :: extreal)"
     unfolding indicator_def by auto
   show "(\<integral>\<^isup>+ y. indicator A (x, y) \<partial>M2) = measure M2 (Pair x -` A)"
     unfolding *
@@ -639,18 +638,21 @@ proof -
     by (simp add: M1.positive_integral_cmult_indicator ac_simps)
 qed
 
+lemma (in measure_space) measure_not_negative[simp,intro]:
+  assumes A: "A \<in> sets M" shows "\<mu> A \<noteq> - \<infinity>"
+  using positive_measure[OF A] by auto
+
 lemma (in pair_sigma_finite) sigma_finite_up_in_pair_measure_generator:
-  "\<exists>F::nat \<Rightarrow> ('a \<times> 'b) set. range F \<subseteq> sets E \<and> F \<up> space E \<and>
-    (\<forall>i. measure (M1 \<Otimes>\<^isub>M M2) (F i) \<noteq> \<omega>)"
+  "\<exists>F::nat \<Rightarrow> ('a \<times> 'b) set. range F \<subseteq> sets E \<and> incseq F \<and> (\<Union>i. F i) = space E \<and>
+    (\<forall>i. measure (M1 \<Otimes>\<^isub>M M2) (F i) \<noteq> \<infinity>)"
 proof -
   obtain F1 :: "nat \<Rightarrow> 'a set" and F2 :: "nat \<Rightarrow> 'b set" where
-    F1: "range F1 \<subseteq> sets M1" "F1 \<up> space M1" "\<And>i. M1.\<mu> (F1 i) \<noteq> \<omega>" and
-    F2: "range F2 \<subseteq> sets M2" "F2 \<up> space M2" "\<And>i. M2.\<mu> (F2 i) \<noteq> \<omega>"
+    F1: "range F1 \<subseteq> sets M1" "incseq F1" "(\<Union>i. F1 i) = space M1" "\<And>i. M1.\<mu> (F1 i) \<noteq> \<infinity>" and
+    F2: "range F2 \<subseteq> sets M2" "incseq F2" "(\<Union>i. F2 i) = space M2" "\<And>i. M2.\<mu> (F2 i) \<noteq> \<infinity>"
     using M1.sigma_finite_up M2.sigma_finite_up by auto
-  then have space: "space M1 = (\<Union>i. F1 i)" "space M2 = (\<Union>i. F2 i)"
-    unfolding isoton_def by auto
+  then have space: "space M1 = (\<Union>i. F1 i)" "space M2 = (\<Union>i. F2 i)" by auto
   let ?F = "\<lambda>i. F1 i \<times> F2 i"
-  show ?thesis unfolding isoton_def space_pair_measure
+  show ?thesis unfolding space_pair_measure
   proof (intro exI[of _ ?F] conjI allI)
     show "range ?F \<subseteq> sets E" using F1 F2
       by (fastsimp intro!: pair_measure_generatorI)
@@ -661,8 +663,8 @@ proof -
       then obtain i j where "fst x \<in> F1 i" "snd x \<in> F2 j"
         by (auto simp: space)
       then have "fst x \<in> F1 (max i j)" "snd x \<in> F2 (max j i)"
-        using `F1 \<up> space M1` `F2 \<up> space M2`
-        by (auto simp: max_def dest: isoton_mono_le)
+        using `incseq F1` `incseq F2` unfolding incseq_def
+        by (force split: split_max)+
       then have "(fst x, snd x) \<in> F1 (max i j) \<times> F2 (max i j)"
         by (intro SigmaI) (auto simp add: min_max.sup_commute)
       then show "x \<in> (\<Union>i. ?F i)" by auto
@@ -670,21 +672,22 @@ proof -
     then show "(\<Union>i. ?F i) = space E"
       using space by (auto simp: space pair_measure_generator_def)
   next
-    fix i show "F1 i \<times> F2 i \<subseteq> F1 (Suc i) \<times> F2 (Suc i)"
-      using `F1 \<up> space M1` `F2 \<up> space M2` unfolding isoton_def
-      by auto
+    fix i show "incseq (\<lambda>i. F1 i \<times> F2 i)"
+      using `incseq F1` `incseq F2` unfolding incseq_Suc_iff by auto
   next
     fix i
     from F1 F2 have "F1 i \<in> sets M1" "F2 i \<in> sets M2" by auto
-    with F1 F2 show "measure P (F1 i \<times> F2 i) \<noteq> \<omega>"
+    with F1 F2 M1.positive_measure[OF this(1)] M2.positive_measure[OF this(2)]
+    show "measure P (F1 i \<times> F2 i) \<noteq> \<infinity>"
       by (simp add: pair_measure_times)
   qed
 qed
 
 sublocale pair_sigma_finite \<subseteq> sigma_finite_measure P
 proof
-  show "measure P {} = 0"
-    unfolding pair_measure_def pair_measure_generator_def sigma_def by auto
+  show "positive P (measure P)"
+    unfolding pair_measure_def pair_measure_generator_def sigma_def positive_def
+    by (auto intro: M1.positive_integral_positive M2.positive_integral_positive)
 
   show "countably_additive P (measure P)"
     unfolding countably_additive_def
@@ -697,20 +700,20 @@ proof
     moreover have "\<And>x. disjoint_family (\<lambda>i. Pair x -` F i)"
       by (intro disjoint_family_on_bisimulation[OF F(2)]) auto
     moreover have "\<And>x. x \<in> space M1 \<Longrightarrow> range (\<lambda>i. Pair x -` F i) \<subseteq> sets M2"
-      using F by (auto intro!: measurable_cut_fst)
-    ultimately show "(\<Sum>\<^isub>\<infinity>n. measure P (F n)) = measure P (\<Union>i. F i)"
-      by (simp add: pair_measure_alt vimage_UN M1.positive_integral_psuminf[symmetric]
+      using F by auto
+    ultimately show "(\<Sum>n. measure P (F n)) = measure P (\<Union>i. F i)"
+      by (simp add: pair_measure_alt vimage_UN M1.positive_integral_suminf[symmetric]
                     M2.measure_countably_additive
                cong: M1.positive_integral_cong)
   qed
 
   from sigma_finite_up_in_pair_measure_generator guess F :: "nat \<Rightarrow> ('a \<times> 'b) set" .. note F = this
-  show "\<exists>F::nat \<Rightarrow> ('a \<times> 'b) set. range F \<subseteq> sets P \<and> (\<Union>i. F i) = space P \<and> (\<forall>i. measure P (F i) \<noteq> \<omega>)"
+  show "\<exists>F::nat \<Rightarrow> ('a \<times> 'b) set. range F \<subseteq> sets P \<and> (\<Union>i. F i) = space P \<and> (\<forall>i. measure P (F i) \<noteq> \<infinity>)"
   proof (rule exI[of _ F], intro conjI)
     show "range F \<subseteq> sets P" using F by (auto simp: pair_measure_def)
     show "(\<Union>i. F i) = space P"
-      using F by (auto simp: pair_measure_def pair_measure_generator_def isoton_def)
-    show "\<forall>i. measure P (F i) \<noteq> \<omega>" using F by auto
+      using F by (auto simp: pair_measure_def pair_measure_generator_def)
+    show "\<forall>i. measure P (F i) \<noteq> \<infinity>" using F by auto
   qed
 qed
 
@@ -741,7 +744,7 @@ proof -
     show "(\<lambda>(y, x). (x, y)) \<in> measurable Q.P P" by (rule Q.pair_sigma_algebra_swap_measurable)
     show "sets (sigma E) = sets P" "space E = space P" "A \<in> sets (sigma E)"
       using assms unfolding pair_measure_def by auto
-    show "range F \<subseteq> sets E" "F \<up> space E" "\<And>i. \<mu> (F i) \<noteq> \<omega>"
+    show "range F \<subseteq> sets E" "incseq F" "(\<Union>i. F i) = space E" "\<And>i. \<mu> (F i) \<noteq> \<infinity>"
       using F `A \<in> sets P` by (auto simp: pair_measure_def)
     fix X assume "X \<in> sets E"
     then obtain A B where X[simp]: "X = A \<times> B" and AB: "A \<in> sets M1" "B \<in> sets M2"
@@ -758,8 +761,8 @@ proof -
 qed
 
 lemma pair_sigma_algebra_sigma:
-  assumes 1: "S1 \<up> (space E1)" "range S1 \<subseteq> sets E1" and E1: "sets E1 \<subseteq> Pow (space E1)"
-  assumes 2: "S2 \<up> (space E2)" "range S2 \<subseteq> sets E2" and E2: "sets E2 \<subseteq> Pow (space E2)"
+  assumes 1: "incseq S1" "(\<Union>i. S1 i) = space E1" "range S1 \<subseteq> sets E1" and E1: "sets E1 \<subseteq> Pow (space E1)"
+  assumes 2: "decseq S2" "(\<Union>i. S2 i) = space E2" "range S2 \<subseteq> sets E2" and E2: "sets E2 \<subseteq> Pow (space E2)"
   shows "sets (sigma (pair_measure_generator (sigma E1) (sigma E2))) = sets (sigma (pair_measure_generator E1 E2))"
     (is "sets ?S = sets ?E")
 proof -
@@ -771,22 +774,22 @@ proof -
     using E1 E2 by (intro sigma_algebra_sigma) auto
   { fix A assume "A \<in> sets E1"
     then have "fst -` A \<inter> space ?E = A \<times> (\<Union>i. S2 i)"
-      using E1 2 unfolding isoton_def pair_measure_generator_def by auto
+      using E1 2 unfolding pair_measure_generator_def by auto
     also have "\<dots> = (\<Union>i. A \<times> S2 i)" by auto
     also have "\<dots> \<in> sets ?E" unfolding pair_measure_generator_def sets_sigma
       using 2 `A \<in> sets E1`
       by (intro sigma_sets.Union)
-         (auto simp: image_subset_iff intro!: sigma_sets.Basic)
+         (force simp: image_subset_iff intro!: sigma_sets.Basic)
     finally have "fst -` A \<inter> space ?E \<in> sets ?E" . }
   moreover
   { fix B assume "B \<in> sets E2"
     then have "snd -` B \<inter> space ?E = (\<Union>i. S1 i) \<times> B"
-      using E2 1 unfolding isoton_def pair_measure_generator_def by auto
+      using E2 1 unfolding pair_measure_generator_def by auto
     also have "\<dots> = (\<Union>i. S1 i \<times> B)" by auto
     also have "\<dots> \<in> sets ?E"
       using 1 `B \<in> sets E2` unfolding pair_measure_generator_def sets_sigma
       by (intro sigma_sets.Union)
-         (auto simp: image_subset_iff intro!: sigma_sets.Basic)
+         (force simp: image_subset_iff intro!: sigma_sets.Basic)
     finally have "snd -` B \<inter> space ?E \<in> sets ?E" . }
   ultimately have proj:
     "fst \<in> measurable ?E (sigma E1) \<and> snd \<in> measurable ?E (sigma E2)"
@@ -819,12 +822,12 @@ qed
 section "Fubinis theorem"
 
 lemma (in pair_sigma_finite) simple_function_cut:
-  assumes f: "simple_function P f"
+  assumes f: "simple_function P f" "\<And>x. 0 \<le> f x"
   shows "(\<lambda>x. \<integral>\<^isup>+y. f (x, y) \<partial>M2) \<in> borel_measurable M1"
     and "(\<integral>\<^isup>+ x. (\<integral>\<^isup>+ y. f (x, y) \<partial>M2) \<partial>M1) = integral\<^isup>P P f"
 proof -
   have f_borel: "f \<in> borel_measurable P"
-    using f by (rule borel_measurable_simple_function)
+    using f(1) by (rule borel_measurable_simple_function)
   let "?F z" = "f -` {z} \<inter> space P"
   let "?F' x z" = "Pair x -` ?F z"
   { fix x assume "x \<in> space M1"
@@ -836,15 +839,15 @@ proof -
       by (intro borel_measurable_vimage measurable_cut_fst)
     ultimately have "simple_function M2 (\<lambda> y. f (x, y))"
       apply (rule_tac M2.simple_function_cong[THEN iffD2, OF _])
-      apply (rule simple_function_indicator_representation[OF f])
+      apply (rule simple_function_indicator_representation[OF f(1)])
       using `x \<in> space M1` by (auto simp del: space_sigma) }
   note M2_sf = this
   { fix x assume x: "x \<in> space M1"
     then have "(\<integral>\<^isup>+y. f (x, y) \<partial>M2) = (\<Sum>z\<in>f ` space P. z * M2.\<mu> (?F' x z))"
-      unfolding M2.positive_integral_eq_simple_integral[OF M2_sf[OF x]]
+      unfolding M2.positive_integral_eq_simple_integral[OF M2_sf[OF x] f(2)]
       unfolding simple_integral_def
     proof (safe intro!: setsum_mono_zero_cong_left)
-      from f show "finite (f ` space P)" by (rule simple_functionD)
+      from f(1) show "finite (f ` space P)" by (rule simple_functionD)
     next
       fix y assume "y \<in> space M2" then show "f (x, y) \<in> f ` space P"
         using `x \<in> space M1` by (auto simp: space_pair_measure)
@@ -862,11 +865,16 @@ proof -
     by (auto intro!: f_borel borel_measurable_vimage simp del: space_sigma)
   moreover then have "\<And>z. (\<lambda>x. M2.\<mu> (?F' x z)) \<in> borel_measurable M1"
     by (auto intro!: measure_cut_measurable_fst simp del: vimage_Int)
+  moreover have *: "\<And>i x. 0 \<le> M2.\<mu> (Pair x -` (f -` {i} \<inter> space P))"
+    using f(1)[THEN simple_functionD(2)] f(2) by (intro M2.positive_measure measurable_cut_fst)
+  moreover { fix i assume "i \<in> f`space P"
+    with * have "\<And>x. 0 \<le> i * M2.\<mu> (Pair x -` (f -` {i} \<inter> space P))"
+      using f(2) by auto }
   ultimately
   show "(\<lambda>x. \<integral>\<^isup>+y. f (x, y) \<partial>M2) \<in> borel_measurable M1"
-    and "(\<integral>\<^isup>+ x. (\<integral>\<^isup>+ y. f (x, y) \<partial>M2) \<partial>M1) = integral\<^isup>P P f"
+    and "(\<integral>\<^isup>+ x. (\<integral>\<^isup>+ y. f (x, y) \<partial>M2) \<partial>M1) = integral\<^isup>P P f" using f(2)
     by (auto simp del: vimage_Int cong: measurable_cong
-             intro!: M1.borel_measurable_pextreal_setsum
+             intro!: M1.borel_measurable_extreal_setsum setsum_cong
              simp add: M1.positive_integral_setsum simple_integral_def
                        M1.positive_integral_cmult
                        M1.positive_integral_cong[OF eq]
@@ -880,42 +888,38 @@ lemma (in pair_sigma_finite) positive_integral_fst_measurable:
       (is "?C f \<in> borel_measurable M1")
     and "(\<integral>\<^isup>+ x. (\<integral>\<^isup>+ y. f (x, y) \<partial>M2) \<partial>M1) = integral\<^isup>P P f"
 proof -
-  from borel_measurable_implies_simple_function_sequence[OF f]
-  obtain F where F: "\<And>i. simple_function P (F i)" "F \<up> f" by auto
+  from borel_measurable_implies_simple_function_sequence'[OF f] guess F . note F = this
   then have F_borel: "\<And>i. F i \<in> borel_measurable P"
-    and F_mono: "\<And>i x. F i x \<le> F (Suc i) x"
-    and F_SUPR: "\<And>x. (SUP i. F i x) = f x"
-    unfolding isoton_fun_expand unfolding isoton_def le_fun_def
     by (auto intro: borel_measurable_simple_function)
-  note sf = simple_function_cut[OF F(1)]
+  note sf = simple_function_cut[OF F(1,5)]
   then have "(\<lambda>x. SUP i. ?C (F i) x) \<in> borel_measurable M1"
     using F(1) by auto
   moreover
   { fix x assume "x \<in> space M1"
-    have isotone: "(\<lambda> i y. F i (x, y)) \<up> (\<lambda>y. f (x, y))"
-      using `F \<up> f` unfolding isoton_fun_expand
-      by (auto simp: isoton_def)
-    note measurable_pair_image_snd[OF F_borel`x \<in> space M1`]
-    from M2.positive_integral_isoton[OF isotone this]
-    have "(SUP i. ?C (F i) x) = ?C f x"
-      by (simp add: isoton_def) }
+    from F measurable_pair_image_snd[OF F_borel`x \<in> space M1`]
+    have "(\<integral>\<^isup>+y. (SUP i. F i (x, y)) \<partial>M2) = (SUP i. ?C (F i) x)"
+      by (intro M2.positive_integral_monotone_convergence_SUP)
+         (auto simp: incseq_Suc_iff le_fun_def)
+    then have "(SUP i. ?C (F i) x) = ?C f x"
+      unfolding F(4) positive_integral_max_0 by simp }
   note SUPR_C = this
   ultimately show "?C f \<in> borel_measurable M1"
     by (simp cong: measurable_cong)
   have "(\<integral>\<^isup>+x. (SUP i. F i x) \<partial>P) = (SUP i. integral\<^isup>P P (F i))"
-    using F_borel F_mono
-    by (auto intro!: positive_integral_monotone_convergence_SUP[symmetric])
+    using F_borel F
+    by (intro positive_integral_monotone_convergence_SUP) auto
   also have "(SUP i. integral\<^isup>P P (F i)) = (SUP i. \<integral>\<^isup>+ x. (\<integral>\<^isup>+ y. F i (x, y) \<partial>M2) \<partial>M1)"
     unfolding sf(2) by simp
-  also have "\<dots> = \<integral>\<^isup>+ x. (SUP i. \<integral>\<^isup>+ y. F i (x, y) \<partial>M2) \<partial>M1"
-    by (auto intro!: M1.positive_integral_monotone_convergence_SUP[OF _ sf(1)]
-                     M2.positive_integral_mono F_mono)
+  also have "\<dots> = \<integral>\<^isup>+ x. (SUP i. \<integral>\<^isup>+ y. F i (x, y) \<partial>M2) \<partial>M1" using F sf(1)
+    by (intro M1.positive_integral_monotone_convergence_SUP[symmetric])
+       (auto intro!: M2.positive_integral_mono M2.positive_integral_positive
+                simp: incseq_Suc_iff le_fun_def)
   also have "\<dots> = \<integral>\<^isup>+ x. (\<integral>\<^isup>+ y. (SUP i. F i (x, y)) \<partial>M2) \<partial>M1"
-    using F_borel F_mono
-    by (auto intro!: M2.positive_integral_monotone_convergence_SUP
-                     M1.positive_integral_cong measurable_pair_image_snd)
+    using F_borel F(2,5)
+    by (auto intro!: M1.positive_integral_cong M2.positive_integral_monotone_convergence_SUP[symmetric]
+             simp: incseq_Suc_iff le_fun_def measurable_pair_image_snd)
   finally show "(\<integral>\<^isup>+ x. (\<integral>\<^isup>+ y. f (x, y) \<partial>M2) \<partial>M1) = integral\<^isup>P P f"
-    unfolding F_SUPR by simp
+    using F by (simp add: positive_integral_max_0)
 qed
 
 lemma (in pair_sigma_finite) measure_preserving_swap:
@@ -963,8 +967,8 @@ lemma (in pair_sigma_finite) Fubini:
   unfolding positive_integral_fst_measurable[OF assms] ..
 
 lemma (in pair_sigma_finite) AE_pair:
-  assumes "almost_everywhere (\<lambda>x. Q x)"
-  shows "M1.almost_everywhere (\<lambda>x. M2.almost_everywhere (\<lambda>y. Q (x, y)))"
+  assumes "AE x in P. Q x"
+  shows "AE x in M1. (AE y in M2. Q (x, y))"
 proof -
   obtain N where N: "N \<in> sets P" "\<mu> N = 0" "{x\<in>space P. \<not> Q x} \<subseteq> N"
     using assms unfolding almost_everywhere_def by auto
@@ -972,9 +976,9 @@ proof -
   proof (rule M1.AE_I)
     from N measure_cut_measurable_fst[OF `N \<in> sets P`]
     show "M1.\<mu> {x\<in>space M1. M2.\<mu> (Pair x -` N) \<noteq> 0} = 0"
-      by (simp add: M1.positive_integral_0_iff pair_measure_alt vimage_def)
+      by (auto simp: pair_measure_alt M1.positive_integral_0_iff)
     show "{x \<in> space M1. M2.\<mu> (Pair x -` N) \<noteq> 0} \<in> sets M1"
-      by (intro M1.borel_measurable_pextreal_neq_const measure_cut_measurable_fst N)
+      by (intro M1.borel_measurable_extreal_neq_const measure_cut_measurable_fst N)
     { fix x assume "x \<in> space M1" "M2.\<mu> (Pair x -` N) = 0"
       have "M2.almost_everywhere (\<lambda>y. Q (x, y))"
       proof (rule M2.AE_I)
@@ -1036,41 +1040,52 @@ lemma (in pair_sigma_finite) integrable_fst_measurable:
   shows "M1.almost_everywhere (\<lambda>x. integrable M2 (\<lambda> y. f (x, y)))" (is "?AE")
     and "(\<integral>x. (\<integral>y. f (x, y) \<partial>M2) \<partial>M1) = integral\<^isup>L P f" (is "?INT")
 proof -
-  let "?pf x" = "Real (f x)" and "?nf x" = "Real (- f x)"
+  let "?pf x" = "extreal (f x)" and "?nf x" = "extreal (- f x)"
   have
     borel: "?nf \<in> borel_measurable P""?pf \<in> borel_measurable P" and
-    int: "integral\<^isup>P P ?nf \<noteq> \<omega>" "integral\<^isup>P P ?pf \<noteq> \<omega>"
+    int: "integral\<^isup>P P ?nf \<noteq> \<infinity>" "integral\<^isup>P P ?pf \<noteq> \<infinity>"
     using assms by auto
-  have "(\<integral>\<^isup>+x. (\<integral>\<^isup>+y. Real (f (x, y)) \<partial>M2) \<partial>M1) \<noteq> \<omega>"
-     "(\<integral>\<^isup>+x. (\<integral>\<^isup>+y. Real (- f (x, y)) \<partial>M2) \<partial>M1) \<noteq> \<omega>"
+  have "(\<integral>\<^isup>+x. (\<integral>\<^isup>+y. extreal (f (x, y)) \<partial>M2) \<partial>M1) \<noteq> \<infinity>"
+     "(\<integral>\<^isup>+x. (\<integral>\<^isup>+y. extreal (- f (x, y)) \<partial>M2) \<partial>M1) \<noteq> \<infinity>"
     using borel[THEN positive_integral_fst_measurable(1)] int
     unfolding borel[THEN positive_integral_fst_measurable(2)] by simp_all
   with borel[THEN positive_integral_fst_measurable(1)]
-  have AE: "M1.almost_everywhere (\<lambda>x. (\<integral>\<^isup>+y. Real (f (x, y)) \<partial>M2) \<noteq> \<omega>)"
-    "M1.almost_everywhere (\<lambda>x. (\<integral>\<^isup>+y. Real (- f (x, y)) \<partial>M2) \<noteq> \<omega>)"
-    by (auto intro!: M1.positive_integral_omega_AE)
-  then show ?AE using assms
+  have AE_pos: "AE x in M1. (\<integral>\<^isup>+y. extreal (f (x, y)) \<partial>M2) \<noteq> \<infinity>"
+    "AE x in M1. (\<integral>\<^isup>+y. extreal (- f (x, y)) \<partial>M2) \<noteq> \<infinity>"
+    by (auto intro!: M1.positive_integral_PInf_AE )
+  then have AE: "AE x in M1. \<bar>\<integral>\<^isup>+y. extreal (f (x, y)) \<partial>M2\<bar> \<noteq> \<infinity>"
+    "AE x in M1. \<bar>\<integral>\<^isup>+y. extreal (- f (x, y)) \<partial>M2\<bar> \<noteq> \<infinity>"
+    by (auto simp: M2.positive_integral_positive)
+  from AE_pos show ?AE using assms
     by (simp add: measurable_pair_image_snd integrable_def)
-  { fix f assume borel: "(\<lambda>x. Real (f x)) \<in> borel_measurable P"
-      and int: "integral\<^isup>P P (\<lambda>x. Real (f x)) \<noteq> \<omega>"
-      and AE: "M1.almost_everywhere (\<lambda>x. (\<integral>\<^isup>+y. Real (f (x, y)) \<partial>M2) \<noteq> \<omega>)"
-    have "integrable M1 (\<lambda>x. real (\<integral>\<^isup>+y. Real (f (x, y)) \<partial>M2))" (is "integrable M1 ?f")
+  { fix f have "(\<integral>\<^isup>+ x. - \<integral>\<^isup>+ y. extreal (f x y) \<partial>M2 \<partial>M1) = (\<integral>\<^isup>+x. 0 \<partial>M1)"
+      using M2.positive_integral_positive
+      by (intro M1.positive_integral_cong_pos) (auto simp: extreal_uminus_le_reorder)
+    then have "(\<integral>\<^isup>+ x. - \<integral>\<^isup>+ y. extreal (f x y) \<partial>M2 \<partial>M1) = 0" by simp }
+  note this[simp]
+  { fix f assume borel: "(\<lambda>x. extreal (f x)) \<in> borel_measurable P"
+      and int: "integral\<^isup>P P (\<lambda>x. extreal (f x)) \<noteq> \<infinity>"
+      and AE: "M1.almost_everywhere (\<lambda>x. (\<integral>\<^isup>+y. extreal (f (x, y)) \<partial>M2) \<noteq> \<infinity>)"
+    have "integrable M1 (\<lambda>x. real (\<integral>\<^isup>+y. extreal (f (x, y)) \<partial>M2))" (is "integrable M1 ?f")
     proof (intro integrable_def[THEN iffD2] conjI)
       show "?f \<in> borel_measurable M1"
-        using borel by (auto intro!: M1.borel_measurable_real positive_integral_fst_measurable)
-      have "(\<integral>\<^isup>+x. Real (?f x) \<partial>M1) = (\<integral>\<^isup>+x. (\<integral>\<^isup>+y. Real (f (x, y))  \<partial>M2) \<partial>M1)"
-        using AE by (auto intro!: M1.positive_integral_cong_AE simp: Real_real)
-      then show "(\<integral>\<^isup>+x. Real (?f x) \<partial>M1) \<noteq> \<omega>"
+        using borel by (auto intro!: M1.borel_measurable_real_of_extreal positive_integral_fst_measurable)
+      have "(\<integral>\<^isup>+x. extreal (?f x) \<partial>M1) = (\<integral>\<^isup>+x. (\<integral>\<^isup>+y. extreal (f (x, y))  \<partial>M2) \<partial>M1)"
+        using AE M2.positive_integral_positive
+        by (auto intro!: M1.positive_integral_cong_AE simp: extreal_real)
+      then show "(\<integral>\<^isup>+x. extreal (?f x) \<partial>M1) \<noteq> \<infinity>"
         using positive_integral_fst_measurable[OF borel] int by simp
-      have "(\<integral>\<^isup>+x. Real (- ?f x) \<partial>M1) = (\<integral>\<^isup>+x. 0 \<partial>M1)"
-        by (intro M1.positive_integral_cong) simp
-      then show "(\<integral>\<^isup>+x. Real (- ?f x) \<partial>M1) \<noteq> \<omega>" by simp
+      have "(\<integral>\<^isup>+x. extreal (- ?f x) \<partial>M1) = (\<integral>\<^isup>+x. 0 \<partial>M1)"
+        by (intro M1.positive_integral_cong_pos)
+           (simp add: M2.positive_integral_positive real_of_extreal_pos)
+      then show "(\<integral>\<^isup>+x. extreal (- ?f x) \<partial>M1) \<noteq> \<infinity>" by simp
     qed }
-  from this[OF borel(1) int(1) AE(2)] this[OF borel(2) int(2) AE(1)]
+  with this[OF borel(1) int(1) AE_pos(2)] this[OF borel(2) int(2) AE_pos(1)]
   show ?INT
     unfolding lebesgue_integral_def[of P] lebesgue_integral_def[of M2]
       borel[THEN positive_integral_fst_measurable(2), symmetric]
-    using AE by (simp add: M1.integral_real)
+    using AE[THEN M1.integral_real]
+    by simp
 qed
 
 lemma (in pair_sigma_finite) integrable_snd_measurable:
@@ -1195,7 +1210,8 @@ section "Generating set generates also product algebra"
 
 lemma sigma_product_algebra_sigma_eq:
   assumes "finite I"
-  assumes isotone: "\<And>i. i \<in> I \<Longrightarrow> (S i) \<up> (space (E i))"
+  assumes mono: "\<And>i. i \<in> I \<Longrightarrow> incseq (S i)"
+  assumes union: "\<And>i. i \<in> I \<Longrightarrow> (\<Union>j. S i j) = space (E i)"
   assumes sets_into: "\<And>i. i \<in> I \<Longrightarrow> range (S i) \<subseteq> sets (E i)"
   and E: "\<And>i. sets (E i) \<subseteq> Pow (space (E i))"
   shows "sets (\<Pi>\<^isub>M i\<in>I. sigma (E i)) = sets (\<Pi>\<^isub>M i\<in>I. E i)"
@@ -1214,13 +1230,13 @@ next
     by (intro sigma_algebra.sigma_algebra_cong[OF sigma_algebra_sigma]) (auto dest: Pi_mem)
   { fix A i assume "i \<in> I" and A: "A \<in> sets (E i)"
     then have "(\<lambda>x. x i) -` A \<inter> space ?E = (\<Pi>\<^isub>E j\<in>I. if j = i then A else \<Union>n. S j n) \<inter> space ?E"
-      using isotone unfolding isoton_def space_product_algebra
+      using mono union unfolding incseq_Suc_iff space_product_algebra
       by (auto dest: Pi_mem)
     also have "\<dots> = (\<Union>n. (\<Pi>\<^isub>E j\<in>I. if j = i then A else S j n))"
       unfolding space_product_algebra
       apply simp
       apply (subst Pi_UN[OF `finite I`])
-      using isotone[THEN isoton_mono_le] apply simp
+      using mono[THEN incseqD] apply simp
       apply (simp add: PiE_Int)
       apply (intro PiE_cong)
       using A sets_into by (auto intro!: into_space)
@@ -1324,7 +1340,7 @@ proof -
     obtain E where E: "A = Pi\<^isub>E (I \<union> J) E" "E \<in> (\<Pi> i\<in>I \<union> J. sets (M i))" .
     then have *: "?f -` A \<inter> space (?I \<Otimes>\<^isub>M ?J) = Pi\<^isub>E I E \<times> Pi\<^isub>E J E"
       using sets_into_space `I \<inter> J = {}`
-      by (auto simp add: space_pair_measure) blast+
+      by (auto simp add: space_pair_measure) fast+
     then show "?f -` A \<inter> space (?I \<Otimes>\<^isub>M ?J) \<in> sets (?I \<Otimes>\<^isub>M ?J)"
       using E unfolding * by (auto intro!: pair_measureI in_sigma product_algebra_generatorI
         simp: product_algebra_def)
@@ -1360,6 +1376,44 @@ sublocale product_sigma_finite \<subseteq> product_sigma_algebra
 sublocale finite_product_sigma_finite \<subseteq> finite_product_sigma_algebra
   by default (fact finite_index')
 
+lemma setprod_extreal_0:
+  fixes f :: "'a \<Rightarrow> extreal"
+  shows "(\<Prod>i\<in>A. f i) = 0 \<longleftrightarrow> (finite A \<and> (\<exists>i\<in>A. f i = 0))"
+proof cases
+  assume "finite A"
+  then show ?thesis by (induct A) auto
+qed auto
+
+lemma setprod_extreal_pos:
+  fixes f :: "'a \<Rightarrow> extreal" assumes pos: "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i" shows "0 \<le> (\<Prod>i\<in>I. f i)"
+proof cases
+  assume "finite I" from this pos show ?thesis by induct auto
+qed simp
+
+lemma setprod_PInf:
+  assumes "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i"
+  shows "(\<Prod>i\<in>I. f i) = \<infinity> \<longleftrightarrow> finite I \<and> (\<exists>i\<in>I. f i = \<infinity>) \<and> (\<forall>i\<in>I. f i \<noteq> 0)"
+proof cases
+  assume "finite I" from this assms show ?thesis
+  proof (induct I)
+    case (insert i I)
+    then have pos: "0 \<le> f i" "0 \<le> setprod f I" by (auto intro!: setprod_extreal_pos)
+    from insert have "(\<Prod>j\<in>insert i I. f j) = \<infinity> \<longleftrightarrow> setprod f I * f i = \<infinity>" by auto
+    also have "\<dots> \<longleftrightarrow> (setprod f I = \<infinity> \<or> f i = \<infinity>) \<and> f i \<noteq> 0 \<and> setprod f I \<noteq> 0"
+      using setprod_extreal_pos[of I f] pos
+      by (cases rule: extreal2_cases[of "f i" "setprod f I"]) auto
+    also have "\<dots> \<longleftrightarrow> finite (insert i I) \<and> (\<exists>j\<in>insert i I. f j = \<infinity>) \<and> (\<forall>j\<in>insert i I. f j \<noteq> 0)"
+      using insert by (auto simp: setprod_extreal_0)
+    finally show ?case .
+  qed simp
+qed simp
+
+lemma setprod_extreal: "(\<Prod>i\<in>A. extreal (f i)) = extreal (setprod f A)"
+proof cases
+  assume "finite A" then show ?thesis
+    by induct (auto simp: one_extreal_def)
+qed (simp add: one_extreal_def)
+
 lemma (in finite_product_sigma_finite) product_algebra_generator_measure:
   assumes "Pi\<^isub>E I F \<in> sets G"
   shows "measure G (Pi\<^isub>E I F) = (\<Prod>i\<in>I. M.\<mu> i (F i))"
@@ -1373,13 +1427,13 @@ proof cases
 next
   assume empty: "\<not> (\<forall>j\<in>I. F j \<noteq> {})"
   then have "(\<Prod>j\<in>I. M.\<mu> j (F j)) = 0"
-    by (auto simp: setprod_pextreal_0 intro!: bexI)
+    by (auto simp: setprod_extreal_0 intro!: bexI)
   moreover
   have "\<exists>j\<in>I. (SOME F'. Pi\<^isub>E I F = Pi\<^isub>E I F') j = {}"
     by (rule someI2[where P="\<lambda>F'. Pi\<^isub>E I F = Pi\<^isub>E I F'"])
        (insert empty, auto simp: Pi_eq_empty_iff[symmetric])
   then have "(\<Prod>j\<in>I. M.\<mu> j ((SOME F'. Pi\<^isub>E I F = Pi\<^isub>E I F') j)) = 0"
-    by (auto simp: setprod_pextreal_0 intro!: bexI)
+    by (auto simp: setprod_extreal_0 intro!: bexI)
   ultimately show ?thesis
     unfolding product_algebra_generator_def by simp
 qed
@@ -1387,34 +1441,32 @@ qed
 lemma (in finite_product_sigma_finite) sigma_finite_pairs:
   "\<exists>F::'i \<Rightarrow> nat \<Rightarrow> 'a set.
     (\<forall>i\<in>I. range (F i) \<subseteq> sets (M i)) \<and>
-    (\<forall>k. \<forall>i\<in>I. \<mu> i (F i k) \<noteq> \<omega>) \<and>
-    (\<lambda>k. \<Pi>\<^isub>E i\<in>I. F i k) \<up> space G"
+    (\<forall>k. \<forall>i\<in>I. \<mu> i (F i k) \<noteq> \<infinity>) \<and> incseq (\<lambda>k. \<Pi>\<^isub>E i\<in>I. F i k) \<and>
+    (\<Union>k. \<Pi>\<^isub>E i\<in>I. F i k) = space G"
 proof -
-  have "\<forall>i::'i. \<exists>F::nat \<Rightarrow> 'a set. range F \<subseteq> sets (M i) \<and> F \<up> space (M i) \<and> (\<forall>k. \<mu> i (F k) \<noteq> \<omega>)"
+  have "\<forall>i::'i. \<exists>F::nat \<Rightarrow> 'a set. range F \<subseteq> sets (M i) \<and> incseq F \<and> (\<Union>i. F i) = space (M i) \<and> (\<forall>k. \<mu> i (F k) \<noteq> \<infinity>)"
     using M.sigma_finite_up by simp
   from choice[OF this] guess F :: "'i \<Rightarrow> nat \<Rightarrow> 'a set" ..
-  then have "\<And>i. range (F i) \<subseteq> sets (M i)" "\<And>i. F i \<up> space (M i)" "\<And>i k. \<mu> i (F i k) \<noteq> \<omega>"
+  then have F: "\<And>i. range (F i) \<subseteq> sets (M i)" "\<And>i. incseq (F i)" "\<And>i. (\<Union>j. F i j) = space (M i)" "\<And>i k. \<mu> i (F i k) \<noteq> \<infinity>"
     by auto
   let ?F = "\<lambda>k. \<Pi>\<^isub>E i\<in>I. F i k"
   note space_product_algebra[simp]
   show ?thesis
-  proof (intro exI[of _ F] conjI allI isotoneI set_eqI iffI ballI)
+  proof (intro exI[of _ F] conjI allI incseq_SucI set_eqI iffI ballI)
     fix i show "range (F i) \<subseteq> sets (M i)" by fact
   next
-    fix i k show "\<mu> i (F i k) \<noteq> \<omega>" by fact
+    fix i k show "\<mu> i (F i k) \<noteq> \<infinity>" by fact
   next
     fix A assume "A \<in> (\<Union>i. ?F i)" then show "A \<in> space G"
       using `\<And>i. range (F i) \<subseteq> sets (M i)` M.sets_into_space
       by (force simp: image_subset_iff)
   next
     fix f assume "f \<in> space G"
-    with Pi_UN[OF finite_index, of "\<lambda>k i. F i k"]
-      `\<And>i. F i \<up> space (M i)`[THEN isotonD(2)]
-      `\<And>i. F i \<up> space (M i)`[THEN isoton_mono_le]
-    show "f \<in> (\<Union>i. ?F i)" by auto
+    with Pi_UN[OF finite_index, of "\<lambda>k i. F i k"] F
+    show "f \<in> (\<Union>i. ?F i)" by (auto simp: incseq_def)
   next
     fix i show "?F i \<subseteq> ?F (Suc i)"
-      using `\<And>i. F i \<up> space (M i)`[THEN isotonD(1)] by auto
+      using `\<And>i. incseq (F i)`[THEN incseq_SucD] by auto
   qed
 qed
 
@@ -1438,7 +1490,7 @@ lemma (in product_sigma_finite) product_measure_exists:
 using `finite I` proof induct
   case empty
   interpret finite_product_sigma_finite M "{}" by default simp
-  let ?\<nu> = "(\<lambda>A. if A = {} then 0 else 1) :: 'd set \<Rightarrow> pextreal"
+  let ?\<nu> = "(\<lambda>A. if A = {} then 0 else 1) :: 'd set \<Rightarrow> extreal"
   show ?case
   proof (intro exI conjI ballI)
     have "sigma_algebra (sigma G \<lparr>measure := ?\<nu>\<rparr>)"
@@ -1488,22 +1540,23 @@ next
     proof (unfold *, default, simp)
       from I'.sigma_finite_pairs guess F :: "'i \<Rightarrow> nat \<Rightarrow> 'a set" ..
       then have F: "\<And>j. j \<in> insert i I \<Longrightarrow> range (F j) \<subseteq> sets (M j)"
-        "(\<lambda>k. \<Pi>\<^isub>E j \<in> insert i I. F j k) \<up> space I'.G"
-        "\<And>k. \<And>j. j \<in> insert i I \<Longrightarrow> \<mu> j (F j k) \<noteq> \<omega>"
+        "incseq (\<lambda>k. \<Pi>\<^isub>E j \<in> insert i I. F j k)"
+        "(\<Union>k. \<Pi>\<^isub>E j \<in> insert i I. F j k) = space I'.G"
+        "\<And>k. \<And>j. j \<in> insert i I \<Longrightarrow> \<mu> j (F j k) \<noteq> \<infinity>"
         by blast+
       let "?F k" = "\<Pi>\<^isub>E j \<in> insert i I. F j k"
       show "\<exists>F::nat \<Rightarrow> ('i \<Rightarrow> 'a) set. range F \<subseteq> sets I'.P \<and>
-          (\<Union>i. F i) = (\<Pi>\<^isub>E i\<in>insert i I. space (M i)) \<and> (\<forall>i. ?m (F i) \<noteq> \<omega>)"
+          (\<Union>i. F i) = (\<Pi>\<^isub>E i\<in>insert i I. space (M i)) \<and> (\<forall>i. ?m (F i) \<noteq> \<infinity>)"
       proof (intro exI[of _ ?F] conjI allI)
         show "range ?F \<subseteq> sets I'.P" using F(1) by auto
       next
-        from F(2)[THEN isotonD(2)]
-        show "(\<Union>i. ?F i) = (\<Pi>\<^isub>E i\<in>insert i I. space (M i))" by simp
+        from F(3) show "(\<Union>i. ?F i) = (\<Pi>\<^isub>E i\<in>insert i I. space (M i))" by simp
       next
         fix j
-        show "?\<nu> (?F j) \<noteq> \<omega>"
-          using F `finite I`
-          by (subst product) (auto simp: setprod_\<omega>)
+        have "\<And>k. k \<in> insert i I \<Longrightarrow> 0 \<le> measure (M k) (F k j)"
+          using F(1) by auto
+        with F `finite I` setprod_PInf[of "insert i I", OF this] show "?\<nu> (?F j) \<noteq> \<infinity>"
+          by (subst product) auto
       qed
     qed
   qed
@@ -1542,7 +1595,8 @@ lemma (in finite_product_sigma_algebra) P_empty:
   by (simp_all add: sigma_def image_constant)
 
 lemma (in product_sigma_finite) positive_integral_empty:
-  "integral\<^isup>P (Pi\<^isub>M {} M) f = f (\<lambda>k. undefined)"
+  assumes pos: "0 \<le> f (\<lambda>k. undefined)"
+  shows "integral\<^isup>P (Pi\<^isub>M {} M) f = f (\<lambda>k. undefined)"
 proof -
   interpret finite_product_sigma_finite M "{}" by default (fact finite.emptyI)
   have "\<And>A. measure (Pi\<^isub>M {} M) (Pi\<^isub>E {} A) = 1"
@@ -1550,10 +1604,10 @@ proof -
   then show ?thesis
     unfolding positive_integral_def simple_function_def simple_integral_def_raw
   proof (simp add: P_empty, intro antisym)
-    show "f (\<lambda>k. undefined) \<le> (SUP f:{g. g \<le> f}. f (\<lambda>k. undefined))"
-      by (intro le_SUPI) auto
-    show "(SUP f:{g. g \<le> f}. f (\<lambda>k. undefined)) \<le> f (\<lambda>k. undefined)"
-      by (intro SUP_leI) (auto simp: le_fun_def)
+    show "f (\<lambda>k. undefined) \<le> (SUP f:{g. g \<le> max 0 \<circ> f}. f (\<lambda>k. undefined))"
+      by (intro le_SUPI) (auto simp: le_fun_def split: split_max)
+    show "(SUP f:{g. g \<le> max 0 \<circ> f}. f (\<lambda>k. undefined)) \<le> f (\<lambda>k. undefined)" using pos
+      by (intro SUP_leI) (auto simp: le_fun_def simp: max_def split: split_if_asm)
   qed
 qed
 
@@ -1572,8 +1626,9 @@ proof -
   let "?X S" = "?g -` S \<inter> space P.P"
   from IJ.sigma_finite_pairs obtain F where
     F: "\<And>i. i\<in> I \<union> J \<Longrightarrow> range (F i) \<subseteq> sets (M i)"
-       "(\<lambda>k. \<Pi>\<^isub>E i\<in>I \<union> J. F i k) \<up> space IJ.G"
-       "\<And>k. \<forall>i\<in>I\<union>J. \<mu> i (F i k) \<noteq> \<omega>"
+       "incseq (\<lambda>k. \<Pi>\<^isub>E i\<in>I \<union> J. F i k)"
+       "(\<Union>k. \<Pi>\<^isub>E i\<in>I \<union> J. F i k) = space IJ.G"
+       "\<And>k. \<forall>i\<in>I\<union>J. \<mu> i (F i k) \<noteq> \<infinity>"
     by auto
   let ?F = "\<lambda>k. \<Pi>\<^isub>E i\<in>I \<union> J. F i k"
   show "IJ.\<mu> A = P.\<mu> (?X A)"
@@ -1589,12 +1644,13 @@ proof -
     show "range ?F \<subseteq> sets IJ.G" using F
       by (simp add: image_subset_iff product_algebra_def
                     product_algebra_generator_def)
-    show "?F \<up> space IJ.G " using F(2) by simp
-    show "\<And>k. IJ.\<mu> (?F k) \<noteq> \<omega>"
-      using `finite I` F
-      by (subst IJ.measure_times) (auto simp add: setprod_\<omega>)
-    show "?g \<in> measurable P.P IJ.P"
-      using IJ by (rule measurable_merge)
+    show "incseq ?F" "(\<Union>i. ?F i) = space IJ.G " by fact+
+  next
+    fix k
+    have "\<And>j. j \<in> I \<union> J \<Longrightarrow> 0 \<le> measure (M j) (F j k)"
+      using F(1) by auto
+    with F `finite I` setprod_PInf[of "I \<union> J", OF this]
+    show "IJ.\<mu> (?F k) \<noteq> \<infinity>" by (subst IJ.measure_times) auto
   next
     fix A assume "A \<in> sets IJ.G"
     then obtain F where A: "A = Pi\<^isub>E (I \<union> J) F"
@@ -1611,7 +1667,7 @@ proof -
       using `finite J` `finite I` F unfolding A
       by (intro IJ.measure_times[symmetric]) auto
     finally show "IJ.\<mu> A = P.\<mu> (?X A)" by (rule sym)
-  qed
+  qed (rule measurable_merge[OF IJ])
 qed
 
 lemma (in product_sigma_finite) measure_preserving_merge:
@@ -1692,8 +1748,9 @@ proof -
 qed
 
 lemma (in product_sigma_finite) product_positive_integral_setprod:
-  fixes f :: "'i \<Rightarrow> 'a \<Rightarrow> pextreal"
+  fixes f :: "'i \<Rightarrow> 'a \<Rightarrow> extreal"
   assumes "finite I" and borel: "\<And>i. i \<in> I \<Longrightarrow> f i \<in> borel_measurable (M i)"
+  and pos: "\<And>i x. i \<in> I \<Longrightarrow> 0 \<le> f i x"
   shows "(\<integral>\<^isup>+ x. (\<Prod>i\<in>I. f i (x i)) \<partial>Pi\<^isub>M I M) = (\<Prod>i\<in>I. integral\<^isup>P (M i) (f i))"
 using assms proof induct
   case empty
@@ -1707,12 +1764,15 @@ next
     using insert by (auto intro!: setprod_cong)
   have prod: "\<And>J. J \<subseteq> insert i I \<Longrightarrow> (\<lambda>x. (\<Prod>i\<in>J. f i (x i))) \<in> borel_measurable (Pi\<^isub>M J M)"
     using sets_into_space insert
-    by (intro sigma_algebra.borel_measurable_pextreal_setprod sigma_algebra_product_algebra
+    by (intro sigma_algebra.borel_measurable_extreal_setprod sigma_algebra_product_algebra
               measurable_comp[OF measurable_component_singleton, unfolded comp_def])
        auto
-  show ?case
-    by (simp add: product_positive_integral_insert[OF insert(1,2) prod])
-       (simp add: insert I.positive_integral_cmult M.positive_integral_multc * prod subset_insertI)
+  then show ?case
+    apply (simp add: product_positive_integral_insert[OF insert(1,2) prod])
+    apply (simp add: insert * pos borel setprod_extreal_pos M.positive_integral_multc)
+    apply (subst I.positive_integral_cmult)
+    apply (auto simp add: pos borel insert setprod_extreal_pos positive_integral_positive)
+    done
 qed
 
 lemma (in product_sigma_finite) product_integral_singleton:
@@ -1720,8 +1780,8 @@ lemma (in product_sigma_finite) product_integral_singleton:
   shows "(\<integral>x. f (x i) \<partial>Pi\<^isub>M {i} M) = integral\<^isup>L (M i) f"
 proof -
   interpret I: finite_product_sigma_finite M "{i}" by default simp
-  have *: "(\<lambda>x. Real (f x)) \<in> borel_measurable (M i)"
-    "(\<lambda>x. Real (- f x)) \<in> borel_measurable (M i)"
+  have *: "(\<lambda>x. extreal (f x)) \<in> borel_measurable (M i)"
+    "(\<lambda>x. extreal (- f x)) \<in> borel_measurable (M i)"
     using assms by auto
   show ?thesis
     unfolding lebesgue_integral_def *[THEN product_positive_integral_singleton] ..
@@ -1795,15 +1855,17 @@ proof -
   proof (unfold integrable_def, intro conjI)
     show "(\<lambda>x. abs (?f x)) \<in> borel_measurable P"
       using borel by auto
-    have "(\<integral>\<^isup>+x. Real (abs (?f x)) \<partial>P) = (\<integral>\<^isup>+x. (\<Prod>i\<in>I. Real (abs (f i (x i)))) \<partial>P)"
-      by (simp add: Real_setprod abs_setprod)
-    also have "\<dots> = (\<Prod>i\<in>I. (\<integral>\<^isup>+x. Real (abs (f i x)) \<partial>M i))"
+    have "(\<integral>\<^isup>+x. extreal (abs (?f x)) \<partial>P) = (\<integral>\<^isup>+x. (\<Prod>i\<in>I. extreal (abs (f i (x i)))) \<partial>P)"
+      by (simp add: setprod_extreal abs_setprod)
+    also have "\<dots> = (\<Prod>i\<in>I. (\<integral>\<^isup>+x. extreal (abs (f i x)) \<partial>M i))"
       using f by (subst product_positive_integral_setprod) auto
-    also have "\<dots> < \<omega>"
+    also have "\<dots> < \<infinity>"
       using integrable[THEN M.integrable_abs]
-      unfolding pextreal_less_\<omega> setprod_\<omega> integrable_def by simp
-    finally show "(\<integral>\<^isup>+x. Real (abs (?f x)) \<partial>P) \<noteq> \<omega>" by auto
-    show "(\<integral>\<^isup>+x. Real (- abs (?f x)) \<partial>P) \<noteq> \<omega>" by simp
+      by (simp add: setprod_PInf integrable_def M.positive_integral_positive)
+    finally show "(\<integral>\<^isup>+x. extreal (abs (?f x)) \<partial>P) \<noteq> \<infinity>" by auto
+    have "(\<integral>\<^isup>+x. extreal (- abs (?f x)) \<partial>P) = (\<integral>\<^isup>+x. 0 \<partial>P)"
+      by (intro positive_integral_cong_pos) auto
+    then show "(\<integral>\<^isup>+x. extreal (- abs (?f x)) \<partial>P) \<noteq> \<infinity>" by simp
   qed
   ultimately show ?thesis
     by (rule integrable_abs_iff[THEN iffD1])

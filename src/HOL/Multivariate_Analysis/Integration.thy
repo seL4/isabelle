@@ -1,4 +1,3 @@
-
 header {* Kurzweil-Henstock Gauge Integration in many dimensions. *}
 (*  Author:                     John Harrison
     Translation from HOL light: Robert Himmelmann, TU Muenchen *)
@@ -3780,7 +3779,7 @@ lemma has_derivative_zero_unique_strong_connected: fixes f::"'a::ordered_euclide
   shows "f x = y"
 proof- have "{x \<in> s. f x \<in> {y}} = {} \<or> {x \<in> s. f x \<in> {y}} = s"
     apply(rule assms(1)[unfolded connected_clopen,rule_format]) apply rule defer
-    apply(rule continuous_closed_in_preimage[OF assms(4) closed_sing])
+    apply(rule continuous_closed_in_preimage[OF assms(4) closed_singleton])
     apply(rule open_openin_trans[OF assms(2)]) unfolding open_contains_ball
   proof safe fix x assume "x\<in>s" 
     from assms(2)[unfolded open_contains_ball,rule_format,OF this] guess e .. note e=conjunctD2[OF this]

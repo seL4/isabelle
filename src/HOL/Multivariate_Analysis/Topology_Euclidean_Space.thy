@@ -424,80 +424,6 @@ qed
 lemma connected_empty[simp, intro]: "connected {}"
   by (simp add: connected_def)
 
-subsection{* Hausdorff and other separation properties *}
-
-class t0_space = topological_space +
-  assumes t0_space: "x \<noteq> y \<Longrightarrow> \<exists>U. open U \<and> \<not> (x \<in> U \<longleftrightarrow> y \<in> U)"
-
-class t1_space = topological_space +
-  assumes t1_space: "x \<noteq> y \<Longrightarrow> \<exists>U. open U \<and> x \<in> U \<and> y \<notin> U"
-
-instance t1_space \<subseteq> t0_space
-proof qed (fast dest: t1_space)
-
-lemma separation_t1:
-  fixes x y :: "'a::t1_space"
-  shows "x \<noteq> y \<longleftrightarrow> (\<exists>U. open U \<and> x \<in> U \<and> y \<notin> U)"
-  using t1_space[of x y] by blast
-
-lemma closed_sing:
-  fixes a :: "'a::t1_space"
-  shows "closed {a}"
-proof -
-  let ?T = "\<Union>{S. open S \<and> a \<notin> S}"
-  have "open ?T" by (simp add: open_Union)
-  also have "?T = - {a}"
-    by (simp add: set_eq_iff separation_t1, auto)
-  finally show "closed {a}" unfolding closed_def .
-qed
-
-lemma closed_insert [simp]:
-  fixes a :: "'a::t1_space"
-  assumes "closed S" shows "closed (insert a S)"
-proof -
-  from closed_sing assms
-  have "closed ({a} \<union> S)" by (rule closed_Un)
-  thus "closed (insert a S)" by simp
-qed
-
-lemma finite_imp_closed:
-  fixes S :: "'a::t1_space set"
-  shows "finite S \<Longrightarrow> closed S"
-by (induct set: finite, simp_all)
-
-text {* T2 spaces are also known as Hausdorff spaces. *}
-
-class t2_space = topological_space +
-  assumes hausdorff: "x \<noteq> y \<Longrightarrow> \<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
-
-instance t2_space \<subseteq> t1_space
-proof qed (fast dest: hausdorff)
-
-instance metric_space \<subseteq> t2_space
-proof
-  fix x y :: "'a::metric_space"
-  assume xy: "x \<noteq> y"
-  let ?U = "ball x (dist x y / 2)"
-  let ?V = "ball y (dist x y / 2)"
-  have th0: "\<And>d x y z. (d x z :: real) <= d x y + d y z \<Longrightarrow> d y z = d z y
-               ==> ~(d x y * 2 < d x z \<and> d z y * 2 < d x z)" by arith
-  have "open ?U \<and> open ?V \<and> x \<in> ?U \<and> y \<in> ?V \<and> ?U \<inter> ?V = {}"
-    using dist_pos_lt[OF xy] th0[of dist,OF dist_triangle dist_commute]
-    by (auto simp add: set_eq_iff)
-  then show "\<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
-    by blast
-qed
-
-lemma separation_t2:
-  fixes x y :: "'a::t2_space"
-  shows "x \<noteq> y \<longleftrightarrow> (\<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {})"
-  using hausdorff[of x y] by blast
-
-lemma separation_t0:
-  fixes x y :: "'a::t0_space"
-  shows "x \<noteq> y \<longleftrightarrow> (\<exists>U. open U \<and> ~(x\<in>U \<longleftrightarrow> y\<in>U))"
-  using t0_space[of x y] by blast
-
 subsection{* Limit points *}
 
 definition
@@ -994,10 +920,6 @@ qed auto
 
 text {* Identify Trivial limits, where we can't approach arbitrarily closely. *}
 
-definition
-  trivial_limit :: "'a net \<Rightarrow> bool" where
-  "trivial_limit net \<longleftrightarrow> eventually (\<lambda>x. False) net"
-
 lemma trivial_limit_within:
   shows "trivial_limit (at a within S) \<longleftrightarrow> \<not> a islimpt S"
 proof
@@ -1040,9 +962,6 @@ lemma trivial_limit_at_infinity:
   apply (simp add: norm_sgn)
   done
 
-lemma trivial_limit_sequentially[intro]: "\<not> trivial_limit sequentially"
-  by (auto simp add: trivial_limit_def eventually_sequentially)
-
 text {* Some property holds "sufficiently close" to the limit point. *}
 
 lemma eventually_at: (* FIXME: this replaces Limits.eventually_at *)
@@ -1073,6 +992,7 @@ lemma trivial_limit_eventually: "trivial_limit net \<Longrightarrow> eventually 
 
 lemma eventually_False: "eventually (\<lambda>x. False) net \<longleftrightarrow> trivial_limit net"
   unfolding trivial_limit_def ..
+
 
 lemma trivial_limit_eq: "trivial_limit net \<longleftrightarrow> (\<forall>P. eventually P net)"
   apply (safe elim!: trivial_limit_eventually)
@@ -1417,35 +1337,10 @@ qed
 
 text{* Uniqueness of the limit, when nontrivial. *}
 
-lemma Lim_unique:
-  fixes f :: "'a \<Rightarrow> 'b::t2_space"
-  assumes "\<not> trivial_limit net"  "(f ---> l) net"  "(f ---> l') net"
-  shows "l = l'"
-proof (rule ccontr)
-  assume "l \<noteq> l'"
-  obtain U V where "open U" "open V" "l \<in> U" "l' \<in> V" "U \<inter> V = {}"
-    using hausdorff [OF `l \<noteq> l'`] by fast
-  have "eventually (\<lambda>x. f x \<in> U) net"
-    using `(f ---> l) net` `open U` `l \<in> U` by (rule topological_tendstoD)
-  moreover
-  have "eventually (\<lambda>x. f x \<in> V) net"
-    using `(f ---> l') net` `open V` `l' \<in> V` by (rule topological_tendstoD)
-  ultimately
-  have "eventually (\<lambda>x. False) net"
-  proof (rule eventually_elim2)
-    fix x
-    assume "f x \<in> U" "f x \<in> V"
-    hence "f x \<in> U \<inter> V" by simp
-    with `U \<inter> V = {}` show "False" by simp
-  qed
-  with `\<not> trivial_limit net` show "False"
-    by (simp add: eventually_False)
-qed
-
 lemma tendsto_Lim:
   fixes f :: "'a \<Rightarrow> 'b::t2_space"
   shows "~(trivial_limit net) \<Longrightarrow> (f ---> l) net ==> Lim net f = l"
-  unfolding Lim_def using Lim_unique[of net f] by auto
+  unfolding Lim_def using tendsto_unique[of net f] by auto
 
 text{* Limit under bilinear function *}
 
@@ -1518,7 +1413,7 @@ unfolding netlimit_def
 apply (rule some_equality)
 apply (rule Lim_at_within)
 apply (rule Lim_ident_at)
-apply (erule Lim_unique [OF assms])
+apply (erule tendsto_unique [OF assms])
 apply (rule Lim_at_within)
 apply (rule Lim_ident_at)
 done
@@ -2558,7 +2453,7 @@ proof -
       unfolding islimpt_sequential by auto
     then obtain l where l: "l\<in>s" "(f ---> l) sequentially"
       using `complete s`[unfolded complete_def] using convergent_imp_cauchy[of f x] by auto
-    hence "x \<in> s"  using Lim_unique[of sequentially f l x] trivial_limit_sequentially f(2) by auto
+    hence "x \<in> s"  using tendsto_unique[of sequentially f l x] trivial_limit_sequentially f(2) by auto
   }
   thus "closed s" unfolding closed_limpt by auto
 qed
@@ -3131,7 +3026,7 @@ proof-
     using assms(1) unfolding uniformly_convergent_eq_cauchy[THEN sym] by auto
   moreover
   { fix x assume "P x"
-    hence "l x = l' x" using Lim_unique[OF trivial_limit_sequentially, of "\<lambda>n. s n x" "l x" "l' x"]
+    hence "l x = l' x" using tendsto_unique[OF trivial_limit_sequentially, of "\<lambda>n. s n x" "l x" "l' x"]
       using l and assms(2) unfolding Lim_sequentially by blast  }
   ultimately show ?thesis by auto
 qed
@@ -5954,7 +5849,7 @@ next
   hence "((snd \<circ> h \<circ> r) ---> g a) sequentially" unfolding continuous_on_sequentially
     apply (rule allE[where x="\<lambda>n. (fst \<circ> h \<circ> r) n"]) apply (erule ballE[where x=a])
     using lima unfolding h_def o_def using fs[OF `x\<in>s`] by (auto simp add: y_def)
-  hence "g a = a" using Lim_unique[OF trivial_limit_sequentially limb, of "g a"]
+  hence "g a = a" using tendsto_unique[OF trivial_limit_sequentially limb, of "g a"]
     unfolding `a=b` and o_assoc by auto
   moreover
   { fix x assume "x\<in>s" "g x = x" "x\<noteq>a"

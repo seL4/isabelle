@@ -89,24 +89,44 @@ lemma Sup_le_iff: "Sup A \<sqsubseteq> b \<longleftrightarrow> (\<forall>a\<in>A
   by (auto intro: Sup_least dest: Sup_upper)
 
 lemma Inf_mono:
-  assumes "\<And>b. b \<in> B \<Longrightarrow> \<exists>a\<in>A. a \<le> b"
-  shows "Inf A \<le> Inf B"
+  assumes "\<And>b. b \<in> B \<Longrightarrow> \<exists>a\<in>A. a \<sqsubseteq> b"
+  shows "Inf A \<sqsubseteq> Inf B"
 proof (rule Inf_greatest)
   fix b assume "b \<in> B"
-  with assms obtain a where "a \<in> A" and "a \<le> b" by blast
-  from `a \<in> A` have "Inf A \<le> a" by (rule Inf_lower)
-  with `a \<le> b` show "Inf A \<le> b" by auto
+  with assms obtain a where "a \<in> A" and "a \<sqsubseteq> b" by blast
+  from `a \<in> A` have "Inf A \<sqsubseteq> a" by (rule Inf_lower)
+  with `a \<sqsubseteq> b` show "Inf A \<sqsubseteq> b" by auto
 qed
 
 lemma Sup_mono:
-  assumes "\<And>a. a \<in> A \<Longrightarrow> \<exists>b\<in>B. a \<le> b"
-  shows "Sup A \<le> Sup B"
+  assumes "\<And>a. a \<in> A \<Longrightarrow> \<exists>b\<in>B. a \<sqsubseteq> b"
+  shows "Sup A \<sqsubseteq> Sup B"
 proof (rule Sup_least)
   fix a assume "a \<in> A"
-  with assms obtain b where "b \<in> B" and "a \<le> b" by blast
-  from `b \<in> B` have "b \<le> Sup B" by (rule Sup_upper)
-  with `a \<le> b` show "a \<le> Sup B" by auto
+  with assms obtain b where "b \<in> B" and "a \<sqsubseteq> b" by blast
+  from `b \<in> B` have "b \<sqsubseteq> Sup B" by (rule Sup_upper)
+  with `a \<sqsubseteq> b` show "a \<sqsubseteq> Sup B" by auto
 qed
+
+lemma top_le:
+  "top \<sqsubseteq> x \<Longrightarrow> x = top"
+  by (rule antisym) auto
+
+lemma le_bot:
+  "x \<sqsubseteq> bot \<Longrightarrow> x = bot"
+  by (rule antisym) auto
+
+lemma not_less_bot[simp]: "\<not> (x \<sqsubset> bot)"
+  using bot_least[of x] by (auto simp: le_less)
+
+lemma not_top_less[simp]: "\<not> (top \<sqsubset> x)"
+  using top_greatest[of x] by (auto simp: le_less)
+
+lemma Sup_upper2: "u \<in> A \<Longrightarrow> v \<sqsubseteq> u \<Longrightarrow> v \<sqsubseteq> Sup A"
+  using Sup_upper[of u A] by auto
+
+lemma Inf_lower2: "u \<in> A \<Longrightarrow> u \<sqsubseteq> v \<Longrightarrow> Inf A \<sqsubseteq> v"
+  using Inf_lower[of u A] by auto
 
 definition INFI :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
   "INFI A f = \<Sqinter> (f ` A)"
@@ -146,14 +166,26 @@ print_translation {*
 context complete_lattice
 begin
 
+lemma SUP_cong: "(\<And>x. x \<in> A \<Longrightarrow> f x = g x) \<Longrightarrow> SUPR A f = SUPR A g"
+  by (simp add: SUPR_def cong: image_cong)
+
+lemma INF_cong: "(\<And>x. x \<in> A \<Longrightarrow> f x = g x) \<Longrightarrow> INFI A f = INFI A g"
+  by (simp add: INFI_def cong: image_cong)
+
 lemma le_SUPI: "i : A \<Longrightarrow> M i \<sqsubseteq> (SUP i:A. M i)"
   by (auto simp add: SUPR_def intro: Sup_upper)
+
+lemma le_SUPI2: "i \<in> A \<Longrightarrow> u \<sqsubseteq> M i \<Longrightarrow> u \<sqsubseteq> (SUP i:A. M i)"
+  using le_SUPI[of i A M] by auto
 
 lemma SUP_leI: "(\<And>i. i : A \<Longrightarrow> M i \<sqsubseteq> u) \<Longrightarrow> (SUP i:A. M i) \<sqsubseteq> u"
   by (auto simp add: SUPR_def intro: Sup_least)
 
 lemma INF_leI: "i : A \<Longrightarrow> (INF i:A. M i) \<sqsubseteq> M i"
   by (auto simp add: INFI_def intro: Inf_lower)
+
+lemma INF_leI2: "i \<in> A \<Longrightarrow> M i \<sqsubseteq> u \<Longrightarrow> (INF i:A. M i) \<sqsubseteq> u"
+  using INF_leI[of i A M] by auto
 
 lemma le_INFI: "(\<And>i. i : A \<Longrightarrow> u \<sqsubseteq> M i) \<Longrightarrow> u \<sqsubseteq> (INF i:A. M i)"
   by (auto simp add: INFI_def intro: Inf_greatest)

@@ -437,10 +437,10 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/ContNotDenum.thy Library/Continuity.thy Library/Convex.thy	\
   Library/Countable.thy Library/Diagonalize.thy Library/Dlist.thy	\
   Library/Efficient_Nat.thy Library/Eval_Witness.thy 			\
-  Library/Executable_Set.thy Library/Float.thy				\
-  Library/Formal_Power_Series.thy Library/Fraction_Field.thy		\
-  Library/FrechetDeriv.thy Library/Cset.thy Library/FuncSet.thy		\
-  Library/Function_Algebras.thy						\
+  Library/Executable_Set.thy Library/Extended_Reals.thy			\
+  Library/Float.thy Library/Formal_Power_Series.thy			\
+  Library/Fraction_Field.thy Library/FrechetDeriv.thy Library/Cset.thy	\
+  Library/FuncSet.thy Library/Function_Algebras.thy			\
   Library/Fundamental_Theorem_Algebra.thy Library/Glbs.thy		\
   Library/Indicator_Function.thy Library/Infinite_Set.thy		\
   Library/Inner_Product.thy Library/Kleene_Algebra.thy			\
@@ -619,7 +619,7 @@ $(LOG)/HOL-Number_Theory.gz: $(OUT)/HOL $(ALGEBRA_DEPENDENCIES) \
   Number_Theory/UniqueFactorization.thy  \
   Number_Theory/ROOT.ML
 	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Number_Theory
-                                     
+
 
 ## HOL-Old_Number_Theory
 
@@ -1154,6 +1154,7 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL				\
   Multivariate_Analysis/Derivative.thy					\
   Multivariate_Analysis/Determinants.thy				\
   Multivariate_Analysis/Euclidean_Space.thy				\
+  Multivariate_Analysis/Extended_Real_Limits.thy			\
   Multivariate_Analysis/Fashoda.thy					\
   Multivariate_Analysis/Finite_Cartesian_Product.thy			\
   Multivariate_Analysis/Integration.certs				\
@@ -1167,9 +1168,10 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL				\
   Multivariate_Analysis/Topology_Euclidean_Space.thy			\
   Multivariate_Analysis/document/root.tex				\
   Multivariate_Analysis/normarith.ML Library/Glbs.thy			\
-  Library/Indicator_Function.thy Library/Inner_Product.thy		\
-  Library/Numeral_Type.thy Library/Convex.thy Library/FrechetDeriv.thy	\
-  Library/Product_Vector.thy Library/Product_plus.thy
+  Library/Extended_Reals.thy Library/Indicator_Function.thy		\
+  Library/Inner_Product.thy Library/Numeral_Type.thy Library/Convex.thy	\
+  Library/FrechetDeriv.thy Library/Product_Vector.thy			\
+  Library/Product_plus.thy
 	@cd Multivariate_Analysis; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Multivariate_Analysis
 
 
@@ -1184,7 +1186,6 @@ $(OUT)/HOL-Probability: $(OUT)/HOL-Multivariate_Analysis		\
   Probability/ex/Koepf_Duermuth_Countermeasure.thy			\
   Probability/Information.thy Probability/Lebesgue_Integration.thy	\
   Probability/Lebesgue_Measure.thy Probability/Measure.thy		\
-  Probability/Positive_Extended_Real.thy				\
   Probability/Probability_Space.thy Probability/Probability.thy		\
   Probability/Product_Measure.thy Probability/Radon_Nikodym.thy		\
   Probability/ROOT.ML Probability/Sigma_Algebra.thy			\
