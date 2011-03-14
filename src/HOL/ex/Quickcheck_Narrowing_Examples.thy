@@ -112,23 +112,6 @@ lemma is_ord_mkt:
 by (simp add: set_of')
 
 declare is_ord.simps(1)[code] is_ord_mkt[code]
-                 
-subsection {* Necessary instantiation for quickcheck generator *}
-
-instantiation tree :: (narrowing) narrowing
-begin
-
-function narrowing_tree
-where
-  "narrowing_tree d = sum (cons ET) (apply (apply (apply (apply (cons MKT) narrowing) narrowing_tree) narrowing_tree) narrowing) d"
-by pat_completeness auto
-
-termination proof (relation "measure nat_of")
-qed (auto simp add: of_int_inverse nat_of_def)
-
-instance ..
-
-end
 
 subsubsection {* Invalid Lemma due to typo in lbal *}
 

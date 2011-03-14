@@ -87,11 +87,11 @@ fun exhaustiveT T = (termifyT T --> @{typ "Code_Evaluation.term list option"})
 fun check_allT T = (termifyT T --> @{typ "Code_Evaluation.term list option"})
   --> @{typ "Code_Evaluation.term list option"}
 
-fun mk_equations thy descr vs tycos exhaustives (Ts, Us) =
+fun mk_equations descr vs tycos exhaustives (Ts, Us) =
   let
     fun mk_call T =
       let
-        val exhaustive = Const (@{const_name "Quickcheck_Exhaustive.exhaustive_class.exhaustive"}, exhaustiveT T)        
+        val exhaustive = Const (@{const_name "Quickcheck_Exhaustive.exhaustive_class.exhaustive"}, exhaustiveT T)
       in
         (T, (fn t => exhaustive $
           (HOLogic.split_const (T, @{typ "unit => Code_Evaluation.term"}, @{typ "Code_Evaluation.term list option"})
@@ -173,7 +173,7 @@ fun instantiate_exhaustive_datatype config descr vs tycos prfx (names, auxnames)
     |> (if define_foundationally then
       let
         val exhaustives = map2 (fn name => fn T => Free (name, exhaustiveT T)) exhaustivesN (Ts @ Us)
-        val eqs = mk_equations thy descr vs tycos exhaustives (Ts, Us)
+        val eqs = mk_equations descr vs tycos exhaustives (Ts, Us)
       in
         Function.add_function
           (map (fn (name, T) =>
@@ -206,7 +206,7 @@ fun instantiate_exhaustive_datatype config descr vs tycos prfx (names, auxnames)
     |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
   end handle FUNCTION_TYPE =>
     (Datatype_Aux.message config
-      "Creation of exhaustivevalue generators failed because the datatype contains a function type";
+      "Creation of exhaustive generators failed because the datatype contains a function type";
     thy)
 
 (** building and compiling generator expressions **)

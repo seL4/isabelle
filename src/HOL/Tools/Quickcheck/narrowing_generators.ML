@@ -15,6 +15,100 @@ end;
 structure Narrowing_Generators : NARROWING_GENERATORS =
 struct
 
+fun mk_undefined T = Const(@{const_name undefined}, T)
+
+(* narrowing specific names and types *)
+
+exception FUNCTION_TYPE;
+
+val narrowingN = "narrowing";
+
+fun narrowingT T =
+  @{typ Quickcheck_Narrowing.code_int} --> Type (@{type_name Quickcheck_Narrowing.cons}, [T])
+
+fun mk_empty T = Const (@{const_name Quickcheck_Narrowing.empty}, narrowingT T)
+
+fun mk_cons c T = Const (@{const_name Quickcheck_Narrowing.cons}, T --> narrowingT T) $ Const (c, T)
+
+fun mk_apply (T, t) (U, u) =
+  let
+    val (_, U') = dest_funT U
+  in
+    (U', Const (@{const_name Quickcheck_Narrowing.apply},
+      narrowingT U --> narrowingT T --> narrowingT U') $ u $ t)
+  end
+  
+fun mk_sum (t, u) =
+  let
+    val T = fastype_of t
+  in
+    Const (@{const_name Quickcheck_Narrowing.sum}, T --> T --> T) $ t $ u
+  end
+
+(* creating narrowing instances *)
+
+fun mk_equations descr vs tycos narrowings (Ts, Us) =
+  let
+    fun mk_call T =
+      let
+        val narrowing =
+          Const (@{const_name "Quickcheck_Narrowing.narrowing_class.narrowing"}, narrowingT T)
+      in
+        (T, narrowing)
+      end
+    fun mk_aux_call fTs (k, _) (tyco, Ts) =
+      let
+        val T = Type (tyco, Ts)
+        val _ = if not (null fTs) then raise FUNCTION_TYPE else ()
+      in
+        (T, nth narrowings k)
+      end
+    fun mk_consexpr simpleT (c, xs) =
+      let
+        val Ts = map fst xs
+      in snd (fold mk_apply xs (Ts ---> simpleT, mk_cons c (Ts ---> simpleT))) end
+    fun mk_rhs exprs = foldr1 mk_sum exprs
+    val rhss =
+      Datatype_Aux.interpret_construction descr vs
+        { atyp = mk_call, dtyp = mk_aux_call }
+      |> (map o apfst) Type
+      |> map (fn (T, cs) => map (mk_consexpr T) cs)
+      |> map mk_rhs
+    val lhss = narrowings
+    val eqs = map (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhss ~~ rhss)
+  in
+    eqs
+  end
+
+
+fun instantiate_narrowing_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
+  let
+    val _ = Datatype_Aux.message config "Creating narrowing generators ...";
+    val narrowingsN = map (prefix (narrowingN ^ "_")) (names @ auxnames);
+  in
+    thy
+    |> Class.instantiation (tycos, vs, @{sort narrowing})
+    |> (fold_map (fn (name, T) => Local_Theory.define
+          ((Binding.conceal (Binding.name name), NoSyn),
+            (apfst Binding.conceal Attrib.empty_binding, mk_undefined (narrowingT T)))
+        #> apfst fst) (narrowingsN ~~ (Ts @ Us))
+      #> (fn (narrowings, lthy) =>
+        let
+          val eqs_t = mk_equations descr vs tycos narrowings (Ts, Us)
+          val eqs = map (fn eq => Goal.prove lthy ["f", "i"] [] eq
+            (fn _ => Skip_Proof.cheat_tac (ProofContext.theory_of lthy))) eqs_t
+        in
+          fold (fn (name, eq) => Local_Theory.note
+          ((Binding.conceal (Binding.qualify true prfx
+             (Binding.qualify true name (Binding.name "simps"))),
+             Code.add_default_eqn_attrib :: map (Attrib.internal o K)
+               [Simplifier.simp_add, Nitpick_Simps.add]), [eq]) #> snd) (narrowingsN ~~ eqs) lthy
+        end))
+    |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
+  end;
+
+(* testing framework *)
+
 val target = "Haskell"
 
 (* invocation of Haskell interpreter *)
@@ -43,9 +137,10 @@ fun value ctxt (get, put, put_ml) (code, value) =
         val _ = File.write narrowing_engine_file narrowing_engine
         val _ = File.write main_file main
         val executable = File.shell_path (Path.append in_path (Path.basic "isa_lsc"))
-        val cmd = "exec \"$ISABELLE_GHC\" -fglasgow-exts " ^
+        val cmd = "\"$ISABELLE_GHC\" -fglasgow-exts " ^
           (space_implode " " (map File.shell_path [code_file, narrowing_engine_file, main_file])) ^
           " -o " ^ executable ^ " && " ^ executable
+          (* FIXME: should use bash command exec but does not work with && *) 
       in
         bash_output cmd
       end
@@ -97,7 +192,9 @@ fun compile_generator_expr ctxt t size =
 
 
 val setup =
-  Context.theory_map
+  Datatype.interpretation
+    (Quickcheck_Common.ensure_sort_datatype (@{sort narrowing}, instantiate_narrowing_datatype))
+  #> Context.theory_map
     (Quickcheck.add_generator ("narrowing", compile_generator_expr))
     
 end;
