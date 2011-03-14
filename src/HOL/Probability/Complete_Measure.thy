@@ -1,7 +1,6 @@
-(*  Title:      HOL/Probability/Complete_Measure.thy
+(*  Title:      Complete_Measure.thy
     Author:     Robert Himmelmann, Johannes Hoelzl, TU Muenchen
 *)
-
 theory Complete_Measure
 imports Product_Measure
 begin
@@ -177,7 +176,8 @@ sublocale completeable_measure_space \<subseteq> completion!: measure_space comp
 proof -
   show "measure_space completion"
   proof
-    show "measure completion {} = 0" by (auto simp: completion_def)
+    show "positive completion (measure completion)"
+      by (auto simp: completion_def positive_def)
   next
     show "countably_additive completion (measure completion)"
     proof (intro countably_additiveI)
@@ -189,9 +189,9 @@ proof -
           using A by (subst (1 2) main_part_null_part_Un) auto
         then show "main_part (A n) \<inter> main_part (A m) = {}" by auto
       qed
-      then have "(\<Sum>\<^isub>\<infinity>n. measure completion (A n)) = \<mu> (\<Union>i. main_part (A i))"
+      then have "(\<Sum>n. measure completion (A n)) = \<mu> (\<Union>i. main_part (A i))"
         unfolding completion_def using A by (auto intro!: measure_countably_additive)
-      then show "(\<Sum>\<^isub>\<infinity>n. measure completion (A n)) = measure completion (UNION UNIV A)"
+      then show "(\<Sum>n. measure completion (A n)) = measure completion (UNION UNIV A)"
         by (simp add: completion_def \<mu>_main_part_UN[OF A(1)])
     qed
   qed
@@ -251,30 +251,52 @@ proof -
   qed
 qed
 
-lemma (in completeable_measure_space) completion_ex_borel_measurable:
-  fixes g :: "'a \<Rightarrow> pextreal"
-  assumes g: "g \<in> borel_measurable completion"
+lemma (in completeable_measure_space) completion_ex_borel_measurable_pos:
+  fixes g :: "'a \<Rightarrow> extreal"
+  assumes g: "g \<in> borel_measurable completion" and "\<And>x. 0 \<le> g x"
   shows "\<exists>g'\<in>borel_measurable M. (AE x. g x = g' x)"
 proof -
-  from g[THEN completion.borel_measurable_implies_simple_function_sequence]
-  obtain f where "\<And>i. simple_function completion (f i)" "f \<up> g" by auto
-  then have "\<forall>i. \<exists>f'. simple_function M f' \<and> (AE x. f i x = f' x)"
-    using completion_ex_simple_function by auto
+  from g[THEN completion.borel_measurable_implies_simple_function_sequence'] guess f . note f = this
+  from this(1)[THEN completion_ex_simple_function]
+  have "\<forall>i. \<exists>f'. simple_function M f' \<and> (AE x. f i x = f' x)" ..
   from this[THEN choice] obtain f' where
     sf: "\<And>i. simple_function M (f' i)" and
     AE: "\<forall>i. AE x. f i x = f' i x" by auto
   show ?thesis
   proof (intro bexI)
-    from AE[unfolded all_AE_countable]
+    from AE[unfolded AE_all_countable[symmetric]]
     show "AE x. g x = (SUP i. f' i x)" (is "AE x. g x = ?f x")
     proof (elim AE_mp, safe intro!: AE_I2)
       fix x assume eq: "\<forall>i. f i x = f' i x"
-      moreover have "g = SUPR UNIV f" using `f \<up> g` unfolding isoton_def by simp
-      ultimately show "g x = ?f x" by (simp add: SUPR_apply)
+      moreover have "g x = (SUP i. f i x)"
+        unfolding f using `0 \<le> g x` by (auto split: split_max)
+      ultimately show "g x = ?f x" by auto
     qed
     show "?f \<in> borel_measurable M"
       using sf by (auto intro: borel_measurable_simple_function)
   qed
+qed
+
+lemma (in completeable_measure_space) completion_ex_borel_measurable:
+  fixes g :: "'a \<Rightarrow> extreal"
+  assumes g: "g \<in> borel_measurable completion"
+  shows "\<exists>g'\<in>borel_measurable M. (AE x. g x = g' x)"
+proof -
+  have "(\<lambda>x. max 0 (g x)) \<in> borel_measurable completion" "\<And>x. 0 \<le> max 0 (g x)" using g by auto
+  from completion_ex_borel_measurable_pos[OF this] guess g_pos ..
+  moreover
+  have "(\<lambda>x. max 0 (- g x)) \<in> borel_measurable completion" "\<And>x. 0 \<le> max 0 (- g x)" using g by auto
+  from completion_ex_borel_measurable_pos[OF this] guess g_neg ..
+  ultimately
+  show ?thesis
+  proof (safe intro!: bexI[of _ "\<lambda>x. g_pos x - g_neg x"])
+    show "AE x. max 0 (- g x) = g_neg x \<longrightarrow> max 0 (g x) = g_pos x \<longrightarrow> g x = g_pos x - g_neg x"
+    proof (intro AE_I2 impI)
+      fix x assume g: "max 0 (- g x) = g_neg x" "max 0 (g x) = g_pos x"
+      show "g x = g_pos x - g_neg x" unfolding g[symmetric]
+        by (cases "g x") (auto split: split_max)
+    qed
+  qed auto
 qed
 
 end

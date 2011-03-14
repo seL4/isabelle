@@ -1168,9 +1168,10 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL				\
   Multivariate_Analysis/Topology_Euclidean_Space.thy			\
   Multivariate_Analysis/document/root.tex				\
   Multivariate_Analysis/normarith.ML Library/Glbs.thy			\
-  Library/Indicator_Function.thy Library/Inner_Product.thy		\
-  Library/Numeral_Type.thy Library/Convex.thy Library/FrechetDeriv.thy	\
-  Library/Product_Vector.thy Library/Product_plus.thy
+  Library/Extended_Reals.thy Library/Indicator_Function.thy		\
+  Library/Inner_Product.thy Library/Numeral_Type.thy Library/Convex.thy	\
+  Library/FrechetDeriv.thy Library/Product_Vector.thy			\
+  Library/Product_plus.thy
 	@cd Multivariate_Analysis; $(ISABELLE_TOOL) usedir -b -g true $(OUT)/HOL HOL-Multivariate_Analysis
 
 
@@ -1185,7 +1186,6 @@ $(OUT)/HOL-Probability: $(OUT)/HOL-Multivariate_Analysis		\
   Probability/ex/Koepf_Duermuth_Countermeasure.thy			\
   Probability/Information.thy Probability/Lebesgue_Integration.thy	\
   Probability/Lebesgue_Measure.thy Probability/Measure.thy		\
-  Probability/Positive_Extended_Real.thy				\
   Probability/Probability_Space.thy Probability/Probability.thy		\
   Probability/Product_Measure.thy Probability/Radon_Nikodym.thy		\
   Probability/ROOT.ML Probability/Sigma_Algebra.thy			\

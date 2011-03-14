@@ -1,7 +1,7 @@
-(*  Title:      HOL/Probability/Sigma_Algebra.thy
-    Author:     Stefan Richter
-    Author:     Markus Wenzel
-    Author:     Lawrence Paulson
+(*  Title:      Sigma_Algebra.thy
+    Author:     Stefan Richter, Markus Wenzel, TU Muenchen
+    Plus material from the Hurd/Coble measure theory development,
+    translated by Lawrence Paulson.
 *)
 
 header {* Sigma Algebras *}
@@ -69,6 +69,16 @@ qed
 lemma (in algebra) finite_union [intro]:
   "finite X \<Longrightarrow> X \<subseteq> sets M \<Longrightarrow> Union X \<in> sets M"
   by (induct set: finite) (auto simp add: Un)
+
+lemma (in algebra) finite_UN[intro]:
+  assumes "finite I" and "\<And>i. i \<in> I \<Longrightarrow> A i \<in> sets M"
+  shows "(\<Union>i\<in>I. A i) \<in> sets M"
+  using assms by induct auto
+
+lemma (in algebra) finite_INT[intro]:
+  assumes "finite I" "I \<noteq> {}" "\<And>i. i \<in> I \<Longrightarrow> A i \<in> sets M"
+  shows "(\<Inter>i\<in>I. A i) \<in> sets M"
+  using assms by (induct rule: finite_ne_induct) auto
 
 lemma algebra_iff_Int:
      "algebra M \<longleftrightarrow>
@@ -149,11 +159,6 @@ proof -
   ultimately show ?thesis by simp
 qed
 
-lemma (in sigma_algebra) finite_UN:
-  assumes "finite I" and "\<And>i. i \<in> I \<Longrightarrow> A i \<in> sets M"
-  shows "(\<Union>i\<in>I. A i) \<in> sets M"
-  using assms by induct auto
-
 lemma (in sigma_algebra) countable_INT [intro]:
   fixes A :: "'i::countable \<Rightarrow> 'a set"
   assumes A: "A`X \<subseteq> sets M" "X \<noteq> {}"
@@ -166,11 +171,6 @@ proof -
     by blast
   ultimately show ?thesis by metis
 qed
-
-lemma (in sigma_algebra) finite_INT:
-  assumes "finite I" "I \<noteq> {}" "\<And>i. i \<in> I \<Longrightarrow> A i \<in> sets M"
-  shows "(\<Inter>i\<in>I. A i) \<in> sets M"
-  using assms by (induct rule: finite_ne_induct) auto
 
 lemma algebra_Pow:
      "algebra \<lparr> space = sp, sets = Pow sp, \<dots> = X \<rparr>"

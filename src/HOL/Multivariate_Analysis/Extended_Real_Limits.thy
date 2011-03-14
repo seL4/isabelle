@@ -1028,7 +1028,7 @@ next
   qed simp
 qed
 
-lemma setsum_of_pextreal:
+lemma setsum_real_of_extreal:
   assumes "\<And>x. x \<in> S \<Longrightarrow> \<bar>f x\<bar> \<noteq> \<infinity>"
   shows "(\<Sum>x\<in>S. real (f x)) = real (setsum f S)"
 proof -
@@ -1060,17 +1060,6 @@ lemma setsum_extreal_right_distrib:
 proof cases
   assume "finite A" then show ?thesis using assms
     by induct (auto simp: extreal_right_distrib setsum_nonneg)
-qed simp
-
-lemma setsum_real_of_extreal:
-  assumes "\<And>x. x \<in> A \<Longrightarrow> \<bar>f x\<bar> \<noteq> \<infinity>"
-  shows "real (\<Sum>x\<in>A. f x) = (\<Sum>x\<in>A. real (f x))"
-proof cases
-  assume "finite A" from this assms show ?thesis
-  proof induct
-    case (insert a A) then show ?case
-      by (simp add: real_of_extreal_add setsum_Inf)
-  qed simp
 qed simp
 
 lemma sums_extreal_positive:

@@ -3,7 +3,7 @@
 header {* Formalization of a Countermeasure by Koepf \& Duermuth 2009 *}
 
 theory Koepf_Duermuth_Countermeasure
-  imports Information "~~/src/HOL/Library/Permutation"
+  imports "~~/src/HOL/Probability/Information" "~~/src/HOL/Library/Permutation"
 begin
 
 lemma
@@ -201,14 +201,17 @@ locale finite_information =
 lemma (in finite_information) positive_p_sum[simp]: "0 \<le> setsum p X"
    by (auto intro!: setsum_nonneg)
 
-sublocale finite_information \<subseteq> finite_measure_space "\<lparr> space = \<Omega>, sets = Pow \<Omega>, measure = \<lambda>S. Real (setsum p S)\<rparr>"
+sublocale finite_information \<subseteq> finite_measure_space "\<lparr> space = \<Omega>, sets = Pow \<Omega>, measure = \<lambda>S. extreal (setsum p S)\<rparr>"
   by (rule finite_measure_spaceI) (simp_all add: setsum_Un_disjoint finite_subset)
 
-sublocale finite_information \<subseteq> finite_prob_space "\<lparr> space = \<Omega>, sets = Pow \<Omega>, measure = \<lambda>S. Real (setsum p S)\<rparr>"
+sublocale finite_information \<subseteq> finite_prob_space "\<lparr> space = \<Omega>, sets = Pow \<Omega>, measure = \<lambda>S. extreal (setsum p S)\<rparr>"
+  by default (simp add: one_extreal_def)
+
+sublocale finite_information \<subseteq> information_space "\<lparr> space = \<Omega>, sets = Pow \<Omega>, measure = \<lambda>S. extreal (setsum p S)\<rparr>" b
   by default simp
 
-sublocale finite_information \<subseteq> information_space "\<lparr> space = \<Omega>, sets = Pow \<Omega>, measure = \<lambda>S. Real (setsum p S)\<rparr>" b
-  by default simp
+lemma (in finite_information) \<mu>'_eq: "A \<subseteq> \<Omega> \<Longrightarrow> \<mu>' A = setsum p A"
+  unfolding \<mu>'_def by auto
 
 locale koepf_duermuth = K: finite_information keys K b + M: finite_information messages M b
     for b :: real
@@ -258,16 +261,6 @@ qed auto
 lemma SIGMA_image_vimage:
   "snd ` (SIGMA x:f`X. f -` {x} \<inter> X) = X"
   by (auto simp: image_iff)
-
-lemma zero_le_eq_True: "0 \<le> (x::pextreal) \<longleftrightarrow> True" by simp
-
-lemma Real_setprod:
-  assumes"\<And>i. i\<in>X \<Longrightarrow> 0 \<le> f i"
-  shows "(\<Prod>i\<in>X. Real (f i)) = Real (\<Prod>i\<in>X. f i)"
-proof cases
-  assume "finite X"
-  from this assms show ?thesis by induct (auto simp: mult_le_0_iff)
-qed simp
 
 lemma inj_Cons[simp]: "\<And>X. inj_on (\<lambda>(xs, x). x#xs) X" by (auto intro!: inj_onI)
 
@@ -323,10 +316,10 @@ abbreviation
  "p A \<equiv> setsum P A"
 
 abbreviation probability ("\<P>'(_') _") where
- "\<P>(X) x \<equiv> real (distribution X x)"
+ "\<P>(X) x \<equiv> distribution X x"
 
 abbreviation joint_probability ("\<P>'(_, _') _") where
- "\<P>(X, Y) x \<equiv> real (joint_distribution X Y x)"
+ "\<P>(X, Y) x \<equiv> joint_distribution X Y x"
 
 abbreviation conditional_probability ("\<P>'(_|_') _") where
  "\<P>(X|Y) x \<equiv> \<P>(X, Y) x / \<P>(Y) (snd`x)"
@@ -355,11 +348,12 @@ proof -
   from assms have *:
       "fst -` {k} \<inter> msgs = {k}\<times>{ms. length ms = n \<and> (\<forall>M\<in>set ms. M \<in> messages)}"
     unfolding msgs_def by auto
-  show "\<P>(fst) {k} = K k" unfolding distribution_def
-    apply (simp add: *) unfolding P_def
+  show "\<P>(fst) {k} = K k"
+    apply (simp add: \<mu>'_eq distribution_def)
+    apply (simp add: * P_def)
     apply (simp add: setsum_cartesian_product')
-    using setprod_setsum_distrib_lists[OF M.finite_space, of M n "\<lambda>x x. True"]
-    by (simp add: setsum_right_distrib[symmetric] subset_eq setprod_1)
+    using setprod_setsum_distrib_lists[OF M.finite_space, of M n "\<lambda>x x. True"] `k \<in> keys`
+    by (auto simp add: setsum_right_distrib[symmetric] subset_eq setprod_1)
 qed
 
 lemma fst_image_msgs[simp]: "fst`msgs = keys"
@@ -390,7 +384,7 @@ proof -
 
       have "\<P>(OB, fst) {(obs, k)} / K k =
           p ({k}\<times>{ms. (k,ms) \<in> msgs \<and> OB (k,ms) = obs}) / K k"
-        unfolding distribution_def by (auto intro!: arg_cong[where f=p])
+        apply (simp add: distribution_def \<mu>'_eq) by (auto intro!: arg_cong[where f=p])
       also have "\<dots> =
           (\<Prod>i<n. \<Sum>m\<in>{m\<in>messages. observe k m = obs ! i}. M m)"
         unfolding P_def using `K k \<noteq> 0` `k \<in> keys`
@@ -415,7 +409,7 @@ proof -
       unfolding disjoint_family_on_def by auto
     have "\<P>(t\<circ>OB, fst) {(t obs, k)} = (\<Sum>obs'\<in>?S obs. \<P>(OB, fst) {(obs', k)})"
       unfolding distribution_def comp_def
-      using real_finite_measure_finite_Union[OF _ df]
+      using finite_measure_finite_Union[OF _ _ df]
       by (force simp add: * intro!: setsum_nonneg)
     also have "(\<Sum>obs'\<in>?S obs. \<P>(OB, fst) {(obs', k)}) = real (card (?S obs)) * \<P>(OB, fst) {(obs, k)}"
       by (simp add: t_eq_imp[OF `k \<in> keys` `K k \<noteq> 0` obs] real_eq_of_nat)
@@ -433,11 +427,11 @@ proof -
     then have "real (card ?S) \<noteq> 0" by auto
 
     have "\<P>(fst | t\<circ>OB) {(k, t obs)} = \<P>(t\<circ>OB | fst) {(t obs, k)} * \<P>(fst) {k} / \<P>(t\<circ>OB) {t obs}"
-      using real_distribution_order'[of fst k "t\<circ>OB" "t obs"]
+      using distribution_order(7,8)[where X=fst and x=k and Y="t\<circ>OB" and y="t obs"]
       by (subst joint_distribution_commute) auto
     also have "\<P>(t\<circ>OB) {t obs} = (\<Sum>k'\<in>keys. \<P>(t\<circ>OB|fst) {(t obs, k')} * \<P>(fst) {k'})"
-      using setsum_real_distribution(2)[of "t\<circ>OB" fst "t obs", symmetric]
-      using real_distribution_order'[of fst _ "t\<circ>OB" "t obs"] by (auto intro!: setsum_cong)
+      using setsum_distribution(2)[of "t\<circ>OB" fst "t obs", symmetric]
+      by (auto intro!: setsum_cong distribution_order(8))
     also have "\<P>(t\<circ>OB | fst) {(t obs, k)} * \<P>(fst) {k} / (\<Sum>k'\<in>keys. \<P>(t\<circ>OB|fst) {(t obs, k')} * \<P>(fst) {k'}) =
       \<P>(OB | fst) {(obs, k)} * \<P>(fst) {k} / (\<Sum>k'\<in>keys. \<P>(OB|fst) {(obs, k')} * \<P>(fst) {k'})"
       using CP_t_K[OF `k\<in>keys` obs] CP_t_K[OF _ obs] `real (card ?S) \<noteq> 0`
@@ -445,11 +439,10 @@ proof -
           mult_divide_mult_cancel_left[OF `real (card ?S) \<noteq> 0`]
         cong: setsum_cong)
     also have "(\<Sum>k'\<in>keys. \<P>(OB|fst) {(obs, k')} * \<P>(fst) {k'}) = \<P>(OB) {obs}"
-      using setsum_real_distribution(2)[of OB fst obs, symmetric]
-      using real_distribution_order'[of fst _ OB obs] by (auto intro!: setsum_cong)
+      using setsum_distribution(2)[of OB fst obs, symmetric]
+      by (auto intro!: setsum_cong distribution_order(8))
     also have "\<P>(OB | fst) {(obs, k)} * \<P>(fst) {k} / \<P>(OB) {obs} = \<P>(fst | OB) {(k, obs)}"
-      using real_distribution_order'[of fst k OB obs]
-      by (subst joint_distribution_commute) auto
+      by (subst joint_distribution_commute) (auto intro!: distribution_order(8))
     finally have "\<P>(fst | t\<circ>OB) {(k, t obs)} = \<P>(fst | OB) {(k, obs)}" . }
   note CP_T_eq_CP_O = this
 
@@ -472,7 +465,7 @@ proof -
       unfolding disjoint_family_on_def by auto
     have "\<P>(t\<circ>OB) {t (OB x)} = (\<Sum>obs\<in>?S (OB x). \<P>(OB) {obs})"
       unfolding distribution_def comp_def
-      using real_finite_measure_finite_Union[OF _ df]
+      using finite_measure_finite_Union[OF _ _ df]
       by (force simp add: * intro!: setsum_nonneg) }
   note P_t_sum_P_O = this
 
