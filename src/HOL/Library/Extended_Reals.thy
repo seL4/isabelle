@@ -3076,4 +3076,51 @@ lemma extreal_max_least:
   "[| (a::extreal) <= x; c <= x |] ==> max a c <= x"
   by (metis sup_extreal_def sup_least)
 
+subsection {* Sums *}
+
+lemma setsum_extreal[simp]:
+  "(\<Sum>x\<in>A. extreal (f x)) = extreal (\<Sum>x\<in>A. f x)"
+proof cases
+  assume "finite A" then show ?thesis by induct auto
+qed simp
+
+lemma setsum_Pinfty: "(\<Sum>x\<in>P. f x) = \<infinity> \<longleftrightarrow> (finite P \<and> (\<exists>i\<in>P. f i = \<infinity>))"
+proof safe
+  assume *: "setsum f P = \<infinity>"
+  show "finite P"
+  proof (rule ccontr) assume "infinite P" with * show False by auto qed
+  show "\<exists>i\<in>P. f i = \<infinity>"
+  proof (rule ccontr)
+    assume "\<not> ?thesis" then have "\<And>i. i \<in> P \<Longrightarrow> f i \<noteq> \<infinity>" by auto
+    from `finite P` this have "setsum f P \<noteq> \<infinity>"
+      by induct auto
+    with * show False by auto
+  qed
+next
+  fix i assume "finite P" "i \<in> P" "f i = \<infinity>"
+  thus "setsum f P = \<infinity>"
+  proof induct
+    case (insert x A)
+    show ?case using insert by (cases "x = i") auto
+  qed simp
+qed
+
+lemma setsum_of_pextreal:
+  assumes "\<And>x. x \<in> S \<Longrightarrow> \<bar>f x\<bar> \<noteq> \<infinity>"
+  shows "(\<Sum>x\<in>S. real (f x)) = real (setsum f S)"
+proof -
+  have "\<forall>x\<in>S. \<exists>r. f x = extreal r"
+  proof
+    fix x assume "x \<in> S"
+    from assms[OF this] show "\<exists>r. f x = extreal r" by (cases "f x") auto
+  qed
+  from bchoice[OF this] guess r ..
+  then show ?thesis by simp
+qed
+
+lemma setsum_0:
+  fixes f :: "'a \<Rightarrow> pextreal" assumes "finite A"
+  shows "(\<Sum>x\<in>A. f x) = 0 \<longleftrightarrow> (\<forall>i\<in>A. f i = 0)"
+  using assms by induct auto
+
 end
