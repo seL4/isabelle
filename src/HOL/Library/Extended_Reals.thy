@@ -53,69 +53,8 @@ lemma extreal_cases[case_names real PInf MInf, cases type: extreal]:
   shows P
   using assms by (cases x) auto
 
-lemma extreal2_cases[case_names
-  real_real real_PInf real_MInf
-  PInf_real PInf_PInf PInf_MInf
-  MInf_real MInf_PInf MInf_MInf]:
-  assumes "\<And>r p. y = extreal p \<Longrightarrow> x = extreal r \<Longrightarrow> P"
-  assumes "\<And>p. y = extreal p \<Longrightarrow> x = \<infinity> \<Longrightarrow> P"
-  assumes "\<And>p. y = extreal p \<Longrightarrow> x = -\<infinity> \<Longrightarrow> P"
-  assumes "\<And>r. y = \<infinity> \<Longrightarrow> x = extreal r \<Longrightarrow> P"
-  assumes "y = \<infinity> \<Longrightarrow> x = \<infinity> \<Longrightarrow> P"
-  assumes "y = \<infinity> \<Longrightarrow> x = -\<infinity> \<Longrightarrow> P"
-  assumes "\<And>r. y = -\<infinity> \<Longrightarrow> x = extreal r \<Longrightarrow> P"
-  assumes "y = -\<infinity> \<Longrightarrow> x = \<infinity> \<Longrightarrow> P"
-  assumes "y = -\<infinity> \<Longrightarrow> x = -\<infinity> \<Longrightarrow> P"
-  shows P
-  apply (cases x)
-  apply (cases y) using assms apply simp_all
-  apply (cases y) using assms apply simp_all
-  apply (cases y) using assms apply simp_all
-  done
-
-lemma extreal3_cases[case_names
-  real_real_real real_real_PInf real_real_MInf
-  real_PInf_real real_PInf_PInf real_PInf_MInf
-  real_MInf_real real_MInf_PInf real_MInf_MInf
-  PInf_real_real PInf_real_PInf PInf_real_MInf
-  PInf_PInf_real PInf_PInf_PInf PInf_PInf_MInf
-  PInf_MInf_real PInf_MInf_PInf PInf_MInf_MInf
-  MInf_real_real MInf_real_PInf MInf_real_MInf
-  MInf_PInf_real MInf_PInf_PInf MInf_PInf_MInf
-  MInf_MInf_real MInf_MInf_PInf MInf_MInf_MInf]:
-  assumes "\<And>r p q. z = extreal q \<Longrightarrow> y = extreal p \<Longrightarrow> x = extreal r \<Longrightarrow> P"
-  assumes "\<And>p q. z = extreal q \<Longrightarrow> y = extreal p \<Longrightarrow> x = \<infinity> \<Longrightarrow> P"
-  assumes "\<And>p q. z = extreal q \<Longrightarrow> y = extreal p \<Longrightarrow> x = -\<infinity> \<Longrightarrow> P"
-  assumes "\<And>r q. z = extreal q \<Longrightarrow> y = \<infinity> \<Longrightarrow> x = extreal r \<Longrightarrow> P"
-  assumes "\<And>q. z = extreal q \<Longrightarrow> y = \<infinity> \<Longrightarrow> x = \<infinity> \<Longrightarrow> P"
-  assumes "\<And>q. z = extreal q \<Longrightarrow> y = \<infinity> \<Longrightarrow> x = -\<infinity> \<Longrightarrow> P"
-  assumes "\<And>q r. z = extreal q \<Longrightarrow> y = -\<infinity> \<Longrightarrow> x = extreal r \<Longrightarrow> P"
-  assumes "\<And>q. z = extreal q \<Longrightarrow> y = -\<infinity> \<Longrightarrow> x = \<infinity> \<Longrightarrow> P"
-  assumes "\<And>q. z = extreal q \<Longrightarrow> y = -\<infinity> \<Longrightarrow> x = -\<infinity> \<Longrightarrow> P"
-  assumes "\<And>r p. z = \<infinity> \<Longrightarrow> y = extreal p \<Longrightarrow> x = extreal r \<Longrightarrow> P"
-  assumes "\<And>p. z = \<infinity> \<Longrightarrow> y = extreal p \<Longrightarrow> x = \<infinity> \<Longrightarrow> P"
-  assumes "\<And>p. z = \<infinity> \<Longrightarrow> y = extreal p \<Longrightarrow> x = -\<infinity> \<Longrightarrow> P"
-  assumes "\<And>r. z = \<infinity> \<Longrightarrow> y = \<infinity> \<Longrightarrow> x = extreal r \<Longrightarrow> P"
-  assumes "z = \<infinity> \<Longrightarrow> y = \<infinity> \<Longrightarrow> x = \<infinity> \<Longrightarrow> P"
-  assumes "z = \<infinity> \<Longrightarrow> y = \<infinity> \<Longrightarrow> x = -\<infinity> \<Longrightarrow> P"
-  assumes "\<And>r. z = \<infinity> \<Longrightarrow> y = -\<infinity> \<Longrightarrow> x = extreal r \<Longrightarrow> P"
-  assumes "z = \<infinity> \<Longrightarrow> y = -\<infinity> \<Longrightarrow> x = \<infinity> \<Longrightarrow> P"
-  assumes "z = \<infinity> \<Longrightarrow> y = -\<infinity> \<Longrightarrow> x = -\<infinity> \<Longrightarrow> P"
-  assumes "\<And>r p. z = -\<infinity> \<Longrightarrow> y = extreal p \<Longrightarrow> x = extreal r \<Longrightarrow> P"
-  assumes "\<And>p. z = -\<infinity> \<Longrightarrow> y = extreal p \<Longrightarrow> x = \<infinity> \<Longrightarrow> P"
-  assumes "\<And>p. z = -\<infinity> \<Longrightarrow> y = extreal p \<Longrightarrow> x = -\<infinity> \<Longrightarrow> P"
-  assumes "\<And>r. z = -\<infinity> \<Longrightarrow> y = \<infinity> \<Longrightarrow> x = extreal r \<Longrightarrow> P"
-  assumes "z = -\<infinity> \<Longrightarrow> y = \<infinity> \<Longrightarrow> x = \<infinity> \<Longrightarrow> P"
-  assumes "z = -\<infinity> \<Longrightarrow> y = \<infinity> \<Longrightarrow> x = -\<infinity> \<Longrightarrow> P"
-  assumes "\<And>r. z = -\<infinity> \<Longrightarrow> y = -\<infinity> \<Longrightarrow> x = extreal r \<Longrightarrow> P"
-  assumes "z = -\<infinity> \<Longrightarrow> y = -\<infinity> \<Longrightarrow> x = \<infinity> \<Longrightarrow> P"
-  assumes "z = -\<infinity> \<Longrightarrow> y = -\<infinity> \<Longrightarrow> x = -\<infinity> \<Longrightarrow> P"
-  shows P
-  apply (cases x)
-  apply (cases rule: extreal2_cases[of y z]) using assms apply simp_all
-  apply (cases  rule: extreal2_cases[of y z]) using assms apply simp_all
-  apply (cases  rule: extreal2_cases[of y z]) using assms apply simp_all
-  done
+lemmas extreal2_cases = extreal_cases[case_product extreal_cases]
+lemmas extreal3_cases = extreal2_cases[case_product extreal_cases]
 
 lemma extreal_uminus_eq_iff[simp]:
   fixes a b :: extreal shows "-a = -b \<longleftrightarrow> a = b"
