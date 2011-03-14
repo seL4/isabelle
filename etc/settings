@@ -228,3 +228,8 @@ ISABELLE_SYMBOLS="$ISABELLE_HOME/etc/symbols:$ISABELLE_HOME_USER/etc/symbols"
 # Second option: use the open source glpk solver
 #LP_SOLVER=GLPK
 #GLPK_PATH=glpsol
+
+# Misc programming languages
+#ISABELLE_GHC="/usr/local/ghc/$ISABELLE_PLATFORM/ghc"
+#ISABELLE_OCAML="/usr/local/ocaml/$ISABELLE_PLATFORM/ocaml"
+#ISABELLE_SWIPL="/usr/local/swipl/$ISABELLE_PLATFORM/swipl"
