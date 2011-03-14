@@ -27,6 +27,9 @@ begin
   instance ..
 end
 
+lemma inj_extreal[simp]: "inj_on extreal A"
+  unfolding inj_on_def by auto
+
 lemma MInfty_neq_PInfty[simp]:
   "\<infinity> \<noteq> - \<infinity>" "- \<infinity> \<noteq> \<infinity>" by simp_all
 
@@ -88,6 +91,26 @@ definition [simp]: "number_of x = extreal (number_of x)"
 instance proof qed
 end
 
+instantiation extreal :: abs
+begin
+  function abs_extreal where
+    "\<bar>extreal r\<bar> = extreal \<bar>r\<bar>"
+  | "\<bar>-\<infinity>\<bar> = \<infinity>"
+  | "\<bar>\<infinity>\<bar> = \<infinity>"
+  by (auto intro: extreal_cases)
+  termination proof qed (rule wf_empty)
+  instance ..
+end
+
+lemma abs_eq_infinity_cases[elim!]: "\<lbrakk> \<bar>x\<bar> = \<infinity> ; x = \<infinity> \<Longrightarrow> P ; x = -\<infinity> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (cases x) auto
+
+lemma abs_neq_infinity_cases[elim!]: "\<lbrakk> \<bar>x\<bar> \<noteq> \<infinity> ; \<And>r. x = extreal r \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (cases x) auto
+
+lemma abs_extreal_uminus[simp]: "\<bar>- x\<bar> = \<bar>x::extreal\<bar>"
+  by (cases x) auto
+
 subsubsection "Addition"
 
 instantiation extreal :: comm_monoid_add
@@ -131,6 +154,9 @@ proof
 qed
 end
 
+lemma abs_extreal_zero[simp]: "\<bar>0\<bar> = (0::extreal)"
+  unfolding zero_extreal_def abs_extreal.simps by simp
+
 lemma extreal_uminus_zero[simp]:
   "- 0 = (0::extreal)"
   by (simp add: zero_extreal_def)
@@ -159,7 +185,7 @@ lemma extreal_add_cancel_right:
   using assms by (cases rule: extreal3_cases[of a b c]) auto
 
 lemma extreal_real:
-  "extreal (real x) = (if x = \<infinity> \<or> x = -\<infinity> then 0 else x)"
+  "extreal (real x) = (if \<bar>x\<bar> = \<infinity> then 0 else x)"
   by (cases x) simp_all
 
 subsubsection "Linear order on @{typ extreal}"
@@ -258,19 +284,19 @@ lemma extreal_minus_less_minus[simp]:
   by (cases rule: extreal2_cases[of a b]) auto
 
 lemma extreal_le_real_iff:
-  "x \<le> real y \<longleftrightarrow> ((y \<noteq> -\<infinity> \<and> y \<noteq> \<infinity> \<longrightarrow> extreal x \<le> y) \<and> (y = -\<infinity> \<or> y = \<infinity> \<longrightarrow> x \<le> 0))"
+  "x \<le> real y \<longleftrightarrow> ((\<bar>y\<bar> \<noteq> \<infinity> \<longrightarrow> extreal x \<le> y) \<and> (\<bar>y\<bar> = \<infinity> \<longrightarrow> x \<le> 0))"
   by (cases y) auto
 
 lemma real_le_extreal_iff:
-  "real y \<le> x \<longleftrightarrow> ((y \<noteq> -\<infinity> \<and> y \<noteq> \<infinity> \<longrightarrow> y \<le> extreal x) \<and> (y = -\<infinity> \<or> y = \<infinity> \<longrightarrow> 0 \<le> x))"
+  "real y \<le> x \<longleftrightarrow> ((\<bar>y\<bar> \<noteq> \<infinity> \<longrightarrow> y \<le> extreal x) \<and> (\<bar>y\<bar> = \<infinity> \<longrightarrow> 0 \<le> x))"
   by (cases y) auto
 
 lemma extreal_less_real_iff:
-  "x < real y \<longleftrightarrow> ((y \<noteq> -\<infinity> \<and> y \<noteq> \<infinity> \<longrightarrow> extreal x < y) \<and> (y = -\<infinity> \<or> y = \<infinity> \<longrightarrow> x < 0))"
+  "x < real y \<longleftrightarrow> ((\<bar>y\<bar> \<noteq> \<infinity> \<longrightarrow> extreal x < y) \<and> (\<bar>y\<bar> = \<infinity> \<longrightarrow> x < 0))"
   by (cases y) auto
 
 lemma real_less_extreal_iff:
-  "real y < x \<longleftrightarrow> ((y \<noteq> -\<infinity> \<and> y \<noteq> \<infinity> \<longrightarrow> y < extreal x) \<and> (y = -\<infinity> \<or> y = \<infinity> \<longrightarrow> 0 < x))"
+  "real y < x \<longleftrightarrow> ((\<bar>y\<bar> \<noteq> \<infinity> \<longrightarrow> y < extreal x) \<and> (\<bar>y\<bar> = \<infinity> \<longrightarrow> 0 < x))"
   by (cases y) auto
 
 lemmas real_of_extreal_ord_simps =
@@ -310,10 +336,17 @@ lemma extreal_dense2:
 
 subsubsection "Multiplication"
 
-instantiation extreal :: comm_monoid_mult
+instantiation extreal :: "{comm_monoid_mult, sgn}"
 begin
 
 definition "1 = extreal 1"
+
+function sgn_extreal where
+  "sgn (extreal r) = extreal (sgn r)"
+| "sgn \<infinity> = 1"
+| "sgn (-\<infinity>) = -1"
+by (auto intro: extreal_cases)
+termination proof qed (rule wf_empty)
 
 function times_extreal where
 "extreal r * extreal p = extreal (r * p)" |
@@ -343,6 +376,9 @@ proof
        (simp_all add: zero_extreal_def zero_less_mult_iff)
 qed
 end
+
+lemma abs_extreal_one[simp]: "\<bar>1\<bar> = (1::extreal)"
+  unfolding one_extreal_def by simp
 
 lemma extreal_mult_zero[simp]:
   fixes a :: extreal shows "a * 0 = 0"
@@ -470,13 +506,13 @@ lemma extreal_minus[simp]:
   by (simp_all add: minus_extreal_def)
 
 lemma extreal_x_minus_x[simp]:
-  "x - x = (if x = -\<infinity> \<or> x = \<infinity> then \<infinity> else 0)"
+  "x - x = (if \<bar>x\<bar> = \<infinity> then \<infinity> else 0)"
   by (cases x) simp_all
 
 lemma extreal_eq_minus_iff:
   fixes x y z :: extreal
   shows "x = z - y \<longleftrightarrow>
-    (y \<noteq> \<infinity> \<longrightarrow> y \<noteq> -\<infinity> \<longrightarrow> x + y = z) \<and>
+    (\<bar>y\<bar> \<noteq> \<infinity> \<longrightarrow> x + y = z) \<and>
     (y = -\<infinity> \<longrightarrow> x = \<infinity>) \<and>
     (y = \<infinity> \<longrightarrow> z = \<infinity> \<longrightarrow> x = \<infinity>) \<and>
     (y = \<infinity> \<longrightarrow> z \<noteq> \<infinity> \<longrightarrow> x = -\<infinity>)"
@@ -484,33 +520,33 @@ lemma extreal_eq_minus_iff:
 
 lemma extreal_eq_minus:
   fixes x y z :: extreal
-  shows "y \<noteq> \<infinity> \<Longrightarrow> y \<noteq> -\<infinity> \<Longrightarrow> x = z - y \<longleftrightarrow> x + y = z"
-  by (simp add: extreal_eq_minus_iff)
+  shows "\<bar>y\<bar> \<noteq> \<infinity> \<Longrightarrow> x = z - y \<longleftrightarrow> x + y = z"
+  by (auto simp: extreal_eq_minus_iff)
 
 lemma extreal_less_minus_iff:
   fixes x y z :: extreal
   shows "x < z - y \<longleftrightarrow>
     (y = \<infinity> \<longrightarrow> z = \<infinity> \<and> x \<noteq> \<infinity>) \<and>
     (y = -\<infinity> \<longrightarrow> x \<noteq> \<infinity>) \<and>
-    (y \<noteq> \<infinity> \<longrightarrow> y \<noteq> -\<infinity> \<longrightarrow> x + y < z)"
+    (\<bar>y\<bar> \<noteq> \<infinity>\<longrightarrow> x + y < z)"
   by (cases rule: extreal3_cases[of x y z]) auto
 
 lemma extreal_less_minus:
   fixes x y z :: extreal
-  shows "y \<noteq> \<infinity> \<Longrightarrow> y \<noteq> -\<infinity> \<Longrightarrow> x < z - y \<longleftrightarrow> x + y < z"
-  by (simp add: extreal_less_minus_iff)
+  shows "\<bar>y\<bar> \<noteq> \<infinity> \<Longrightarrow> x < z - y \<longleftrightarrow> x + y < z"
+  by (auto simp: extreal_less_minus_iff)
 
 lemma extreal_le_minus_iff:
   fixes x y z :: extreal
   shows "x \<le> z - y \<longleftrightarrow>
     (y = \<infinity> \<longrightarrow> z \<noteq> \<infinity> \<longrightarrow> x = -\<infinity>) \<and>
-    (y \<noteq> \<infinity> \<longrightarrow> y \<noteq> -\<infinity> \<longrightarrow> x + y \<le> z)"
+    (\<bar>y\<bar> \<noteq> \<infinity> \<longrightarrow> x + y \<le> z)"
   by (cases rule: extreal3_cases[of x y z]) auto
 
 lemma extreal_le_minus:
   fixes x y z :: extreal
-  shows "y \<noteq> \<infinity> \<Longrightarrow> y \<noteq> -\<infinity> \<Longrightarrow> x \<le> z - y \<longleftrightarrow> x + y \<le> z"
-  by (simp add: extreal_le_minus_iff)
+  shows "\<bar>y\<bar> \<noteq> \<infinity> \<Longrightarrow> x \<le> z - y \<longleftrightarrow> x + y \<le> z"
+  by (auto simp: extreal_le_minus_iff)
 
 lemma extreal_minus_less_iff:
   fixes x y z :: extreal
@@ -521,21 +557,21 @@ lemma extreal_minus_less_iff:
 
 lemma extreal_minus_less:
   fixes x y z :: extreal
-  shows "y \<noteq> \<infinity> \<Longrightarrow> y \<noteq> -\<infinity> \<Longrightarrow> x - y < z \<longleftrightarrow> x < z + y"
-  by (simp add: extreal_minus_less_iff)
+  shows "\<bar>y\<bar> \<noteq> \<infinity> \<Longrightarrow> x - y < z \<longleftrightarrow> x < z + y"
+  by (auto simp: extreal_minus_less_iff)
 
 lemma extreal_minus_le_iff:
   fixes x y z :: extreal
   shows "x - y \<le> z \<longleftrightarrow>
     (y = -\<infinity> \<longrightarrow> z = \<infinity>) \<and>
     (y = \<infinity> \<longrightarrow> x = \<infinity> \<longrightarrow> z = \<infinity>) \<and>
-    (y \<noteq> \<infinity> \<longrightarrow> y \<noteq> -\<infinity> \<longrightarrow> x \<le> z + y)"
+    (\<bar>y\<bar> \<noteq> \<infinity> \<longrightarrow> x \<le> z + y)"
   by (cases rule: extreal3_cases[of x y z]) auto
 
 lemma extreal_minus_le:
   fixes x y z :: extreal
-  shows "y \<noteq> \<infinity> \<Longrightarrow> y \<noteq> -\<infinity> \<Longrightarrow> x - y \<le> z \<longleftrightarrow> x \<le> z + y"
-  by (simp add: extreal_minus_le_iff)
+  shows "\<bar>y\<bar> \<noteq> \<infinity> \<Longrightarrow> x - y \<le> z \<longleftrightarrow> x \<le> z + y"
+  by (auto simp: extreal_minus_le_iff)
 
 lemma extreal_minus_eq_minus_iff:
   fixes a b c :: extreal
@@ -549,20 +585,19 @@ lemma extreal_add_le_add_iff:
   by (cases rule: extreal3_cases[of a b c]) (simp_all add: field_simps)
 
 lemma extreal_mult_le_mult_iff:
-  "c \<noteq> \<infinity> \<Longrightarrow> c \<noteq> -\<infinity> \<Longrightarrow> c * a \<le> c * b \<longleftrightarrow>
-    (0 < c \<longrightarrow> a \<le> b) \<and> (c < 0 \<longrightarrow> b \<le> a)"
+  "\<bar>c\<bar> \<noteq> \<infinity> \<Longrightarrow> c * a \<le> c * b \<longleftrightarrow> (0 < c \<longrightarrow> a \<le> b) \<and> (c < 0 \<longrightarrow> b \<le> a)"
   by (cases rule: extreal3_cases[of a b c]) (simp_all add: mult_le_cancel_left)
 
 lemma extreal_between:
   fixes x e :: extreal
-  assumes "x \<noteq> \<infinity>" "x \<noteq> -\<infinity>" "0 < e"
+  assumes "\<bar>x\<bar> \<noteq> \<infinity>" "0 < e"
   shows "x - e < x" "x < x + e"
 using assms apply (cases x, cases e) apply auto
 using assms by (cases x, cases e) auto
 
 lemma extreal_distrib:
   fixes a b c :: extreal
-  assumes "a \<noteq> \<infinity> \<or> b \<noteq> -\<infinity>" "a \<noteq> -\<infinity> \<or> b \<noteq> \<infinity>" "c \<noteq> \<infinity>" "c \<noteq> -\<infinity>"
+  assumes "a \<noteq> \<infinity> \<or> b \<noteq> -\<infinity>" "a \<noteq> -\<infinity> \<or> b \<noteq> \<infinity>" "\<bar>c\<bar> \<noteq> \<infinity>"
   shows "(a + b) * c = a * c + b * c"
   using assms
   by (cases rule: extreal3_cases[of a b c]) (simp_all add: field_simps)
@@ -594,7 +629,7 @@ lemma extreal_divide[simp]:
   unfolding divide_extreal_def by (auto simp: divide_real_def)
 
 lemma extreal_divide_same[simp]:
-  "x / x = (if x = \<infinity> \<or> x = -\<infinity> \<or> x = 0 then 0 else 1)"
+  "x / x = (if \<bar>x\<bar> = \<infinity> \<or> x = 0 then 0 else 1)"
   by (cases x)
      (simp_all add: divide_real_def divide_extreal_def one_extreal_def)
 
@@ -711,7 +746,7 @@ end
 instantiation extreal :: complete_lattice
 begin
 
-definition "bot = (-\<infinity>)"
+definition "bot = -\<infinity>"
 definition "top = \<infinity>"
 
 definition "Sup S = (LEAST z. ALL x:S. x <= z :: extreal)"
@@ -941,19 +976,16 @@ lemma extreal_INFI:
 
 lemma Sup_extreal_close:
   fixes e :: extreal
-  assumes "0 < e" and S: "Sup S \<noteq> \<infinity>" "Sup S \<noteq> -\<infinity>" "S \<noteq> {}"
+  assumes "0 < e" and S: "\<bar>Sup S\<bar> \<noteq> \<infinity>" "S \<noteq> {}"
   shows "\<exists>x\<in>S. Sup S - e < x"
-proof (rule less_Sup_iff[THEN iffD1])
-  show "Sup S - e < Sup S " using assms
-    by (cases "Sup S", cases e) auto
-qed
+  using assms by (cases e) (auto intro!: less_Sup_iff[THEN iffD1])
 
 lemma Inf_extreal_close:
-  fixes e :: extreal assumes "Inf X \<noteq> \<infinity>" "Inf X \<noteq> -\<infinity>" "0 < e"
+  fixes e :: extreal assumes "\<bar>Inf X\<bar> \<noteq> \<infinity>" "0 < e"
   shows "\<exists>x\<in>X. x < Inf X + e"
 proof (rule Inf_less_iff[THEN iffD1])
   show "Inf X < Inf X + e" using assms
-    by (cases "Inf X", cases e) auto
+    by (cases e) auto
 qed
 
 lemma (in complete_lattice) top_le:
@@ -1134,6 +1166,12 @@ next
 qed
 end
 
+lemma open_extreal: "open S \<Longrightarrow> open (extreal ` S)"
+  by (auto simp: inj_vimage_image_eq open_extreal_def)
+
+lemma open_extreal_vimage: "open S \<Longrightarrow> open (extreal -` S)"
+  unfolding open_extreal_def by auto
+
 lemma continuous_on_extreal[intro, simp]: "continuous_on A extreal"
   unfolding continuous_on_topological open_extreal_def by auto
 
@@ -1184,25 +1222,24 @@ lemma closed_extreal_singleton:
 by (metis atLeastAtMost_singleton closed_extreal_atLeastAtMost)
 
 lemma extreal_open_cont_interval:
-  assumes "open S" "x \<in> S" and "x \<noteq> \<infinity>" "x \<noteq> - \<infinity>"
+  assumes "open S" "x \<in> S" "\<bar>x\<bar> \<noteq> \<infinity>"
   obtains e where "e>0" "{x-e <..< x+e} \<subseteq> S"
 proof-
-  obtain m where m_def: "x = extreal m" using assms by (cases x) auto
   from `open S` have "open (extreal -` S)" by (rule extreal_openE)
-  then obtain e where "0 < e" and e: "ball m e \<subseteq> extreal -` S"
-    using `x \<in> S` unfolding open_contains_ball m_def by force
+  then obtain e where "0 < e" and e: "ball (real x) e \<subseteq> extreal -` S"
+    using assms unfolding open_contains_ball by force
   show thesis
   proof (intro that subsetI)
     show "0 < extreal e" using `0 < e` by auto
     fix y assume "y \<in> {x - extreal e<..<x + extreal e}"
-    then obtain t where "y = extreal t" "t \<in> ball m e"
-      unfolding m_def by (cases y) (auto simp: ball_def dist_real_def)
+    with assms obtain t where "y = extreal t" "t \<in> ball (real x) e"
+      by (cases y) (auto simp: ball_def dist_real_def)
     then show "y \<in> S" using e by auto
   qed
 qed
 
 lemma extreal_open_cont_interval2:
-  assumes "open S" "x \<in> S" and x: "x \<noteq> \<infinity>" "x \<noteq> -\<infinity>"
+  assumes "open S" "x \<in> S" and x: "\<bar>x\<bar> \<noteq> \<infinity>"
   obtains a b where "a < x" "x < b" "{a <..< b} \<subseteq> S"
 proof-
   guess e using extreal_open_cont_interval[OF assms] .
@@ -1264,26 +1301,28 @@ using assms unfolding closed_def
 using extreal_open_uminus[of "- S"] extreal_uminus_complement by auto
 
 lemma not_open_extreal_singleton:
-  "~(open {a :: extreal})"
+  "\<not> (open {a :: extreal})"
 proof(rule ccontr)
-  assume "~ ~ open {a}" hence a: "open {a}" by auto
-  { assume "a=(-\<infinity>)"
+  assume "\<not> \<not> open {a}" hence a: "open {a}" by auto
+  show False
+  proof (cases a)
+    case MInf
     then obtain y where "{..<extreal y} <= {a}" using a open_MInfty2[of "{a}"] by auto
     hence "extreal(y - 1):{a}" apply (subst subsetD[of "{..<extreal y}"]) by auto
-    hence False using `a=(-\<infinity>)` by auto
-  } moreover
-  { assume "a=\<infinity>"
+    then show False using `a=(-\<infinity>)` by auto
+  next
+    case PInf
     then obtain y where "{extreal y<..} <= {a}" using a open_PInfty2[of "{a}"] by auto
     hence "extreal(y+1):{a}" apply (subst subsetD[of "{extreal y<..}"]) by auto
-    hence False using `a=\<infinity>` by auto
-  } moreover
-  { assume fin: "a~=(-\<infinity>)" "a~=\<infinity>"
-    from extreal_open_cont_interval[OF a singletonI this(2,1)] guess e . note e = this
+    then show False using `a=\<infinity>` by auto
+  next
+    case (real r) then have fin: "\<bar>a\<bar> \<noteq> \<infinity>" by simp
+    from extreal_open_cont_interval[OF a singletonI this] guess e . note e = this
     then obtain b where b_def: "a<b & b<a+e"
       using fin extreal_between extreal_dense[of a "a+e"] by auto
     then have "b: {a-e <..< a+e}" using fin extreal_between[of a e] e by auto
-    then have False using b_def e by auto
-  } ultimately show False by auto
+    then show False using b_def e by auto
+  qed
 qed
 
 lemma extreal_closed_contains_Inf:
@@ -1291,26 +1330,28 @@ lemma extreal_closed_contains_Inf:
   assumes "closed S" "S ~= {}"
   shows "Inf S : S"
 proof(rule ccontr)
-assume "~(Inf S:S)" hence a: "open (-S)" "Inf S:(- S)" using assms by auto
-{ assume minf: "Inf S=(-\<infinity>)" hence "(-\<infinity>) : - S" using a by auto
-  then obtain y where "{..<extreal y} <= (-S)" using a open_MInfty2[of "- S"] by auto
-  hence "extreal y <= Inf S" by (metis Compl_anti_mono Compl_lessThan atLeast_iff
-     complete_lattice_class.Inf_greatest double_complement set_rev_mp)
-  hence False using minf by auto
-} moreover
-{ assume pinf: "Inf S=\<infinity>" hence "S={\<infinity>}" by (metis Inf_eq_PInfty assms(2))
-  hence False by (metis `Inf S ~: S` insert_code mem_def pinf)
-} moreover
-{ assume fin: "Inf S ~= \<infinity>" "Inf S ~= (-\<infinity>)"
-  from extreal_open_cont_interval[OF a this] guess e . note e = this
-  { fix x assume "x:S" hence "x>=Inf S" by (rule complete_lattice_class.Inf_lower)
-    hence *: "x>Inf S-e" using e by (metis fin extreal_between(1) order_less_le_trans)
-    { assume "x<Inf S+e" hence "x:{Inf S-e <..< Inf S+e}" using * by auto
-      hence False using e `x:S` by auto
-    } hence "x>=Inf S+e" by (metis linorder_le_less_linear)
-  } hence "Inf S + e <= Inf S" by (metis le_Inf_iff)
-  hence False by (metis calculation(1) calculation(2) e extreal_between(2) leD)
-} ultimately show False by auto
+  assume "Inf S \<notin> S" hence a: "open (-S)" "Inf S:(- S)" using assms by auto
+  show False
+  proof (cases "Inf S")
+    case MInf hence "(-\<infinity>) : - S" using a by auto
+    then obtain y where "{..<extreal y} <= (-S)" using a open_MInfty2[of "- S"] by auto
+    hence "extreal y <= Inf S" by (metis Compl_anti_mono Compl_lessThan atLeast_iff
+      complete_lattice_class.Inf_greatest double_complement set_rev_mp)
+    then show False using MInf by auto
+  next
+    case PInf then have "S={\<infinity>}" by (metis Inf_eq_PInfty assms(2))
+    then show False by (metis `Inf S ~: S` insert_code mem_def PInf)
+  next
+    case (real r) then have fin: "\<bar>Inf S\<bar> \<noteq> \<infinity>" by simp
+    from extreal_open_cont_interval[OF a this] guess e . note e = this
+    { fix x assume "x:S" hence "x>=Inf S" by (rule complete_lattice_class.Inf_lower)
+      hence *: "x>Inf S-e" using e by (metis fin extreal_between(1) order_less_le_trans)
+      { assume "x<Inf S+e" hence "x:{Inf S-e <..< Inf S+e}" using * by auto
+        hence False using e `x:S` by auto
+      } hence "x>=Inf S+e" by (metis linorder_le_less_linear)
+    } hence "Inf S + e <= Inf S" by (metis le_Inf_iff)
+    then show False using real e by (cases e) auto
+  qed
 qed
 
 lemma extreal_closed_contains_Sup:
@@ -1337,7 +1378,7 @@ proof(rule ccontr)
   { assume "Inf S=\<infinity>" hence "S={\<infinity>}" by (metis Inf_eq_PInfty `S ~= {}`)
     hence False by (metis assms(1) not_open_extreal_singleton) }
   moreover
-  { assume fin: "~(Inf S=\<infinity>)" "~(Inf S=(-\<infinity>))"
+  { assume fin: "\<bar>Inf S\<bar> \<noteq> \<infinity>"
     from extreal_open_cont_interval[OF assms(1) * fin] guess e . note e = this
     then obtain b where b_def: "Inf S-e<b & b<Inf S"
       using fin extreal_between[of "Inf S" e] extreal_dense[of "Inf S-e"] by auto
@@ -1443,15 +1484,6 @@ proof
   next assume "y < x" from *[OF this] show ?thesis by auto
   qed
 qed
-
-lemma inj_extreal[simp]: "inj_on extreal A"
-  unfolding inj_on_def by auto
-
-lemma open_extreal: "open S \<Longrightarrow> open (extreal ` S)"
-  by (auto simp: inj_vimage_image_eq open_extreal_def)
-
-lemma open_extreal_vimage: "open S \<Longrightarrow> open (extreal -` S)"
-  unfolding open_extreal_def by auto
 
 subsubsection {* Convergent sequences *}
 
@@ -1643,7 +1675,7 @@ qed
 
 lemma tendsto_extreal_realI:
   fixes f :: "'a \<Rightarrow> extreal"
-  assumes x: "x \<noteq> \<infinity>" "x \<noteq> -\<infinity>" and tendsto: "(f ---> x) net"
+  assumes x: "\<bar>x\<bar> \<noteq> \<infinity>" and tendsto: "(f ---> x) net"
   shows "((\<lambda>x. extreal (real (f x))) ---> x) net"
 proof (intro topological_tendstoI)
   fix S assume "open S" "x \<in> S"
@@ -1655,12 +1687,12 @@ qed
 
 lemma extreal_mult_cancel_left:
   fixes a b c :: extreal shows "a * b = a * c \<longleftrightarrow>
-    (((a = \<infinity> \<or> a = -\<infinity>) \<and> 0 < b * c) \<or> a = 0 \<or> b = c)"
+    ((\<bar>a\<bar> = \<infinity> \<and> 0 < b * c) \<or> a = 0 \<or> b = c)"
   by (cases rule: extreal3_cases[of a b c])
      (simp_all add: zero_less_mult_iff)
 
 lemma extreal_inj_affinity:
-  assumes "m \<noteq> \<infinity>" "m \<noteq> -\<infinity>" "m \<noteq> 0" "t \<noteq> \<infinity>" "t \<noteq> -\<infinity>"
+  assumes "\<bar>m\<bar> \<noteq> \<infinity>" "m \<noteq> 0" "\<bar>t\<bar> \<noteq> \<infinity>"
   shows "inj_on (\<lambda>x. m * x + t) A"
   using assms
   by (cases rule: extreal2_cases[of m t])
@@ -1683,11 +1715,11 @@ lemma extreal_divide_less_pos:
   by (cases rule: extreal3_cases[of x y z]) (auto simp: field_simps)
 
 lemma extreal_open_affinity_pos:
-  assumes "open S" and m: "m \<noteq> \<infinity>" "0 < m" and t: "t \<noteq> \<infinity>" "t \<noteq> -\<infinity>"
+  assumes "open S" and m: "m \<noteq> \<infinity>" "0 < m" and t: "\<bar>t\<bar> \<noteq> \<infinity>"
   shows "open ((\<lambda>x. m * x + t) ` S)"
 proof -
   obtain r where r[simp]: "m = extreal r" using m by (cases m) auto
-  obtain p where p[simp]: "t = extreal p" using t by (cases t) auto
+  obtain p where p[simp]: "t = extreal p" using t by auto
   have "r \<noteq> 0" "0 < r" and m': "m \<noteq> \<infinity>" "m \<noteq> -\<infinity>" "m \<noteq> 0" using m by auto
   from `open S`[THEN extreal_openE] guess l u . note T = this
   let ?f = "(\<lambda>x. m * x + t)"
@@ -1729,22 +1761,22 @@ proof -
 qed
 
 lemma extreal_open_affinity:
-  assumes "open S" and m: "m \<noteq> \<infinity>" "m \<noteq> -\<infinity>" "m \<noteq> 0" and t: "t \<noteq> \<infinity>" "t \<noteq> -\<infinity>"
+  assumes "open S" and m: "\<bar>m\<bar> \<noteq> \<infinity>" "m \<noteq> 0" and t: "\<bar>t\<bar> \<noteq> \<infinity>"
   shows "open ((\<lambda>x. m * x + t) ` S)"
 proof cases
   assume "0 < m" then show ?thesis
-    using extreal_open_affinity_pos[OF `open S` `m \<noteq> \<infinity>` _ t] by auto
+    using extreal_open_affinity_pos[OF `open S` _ _ t, of m] m by auto
 next
   assume "\<not> 0 < m" then
   have "0 < -m" using `m \<noteq> 0` by (cases m) auto
-  then have m: "-m \<noteq> \<infinity>" "0 < -m" using `m \<noteq> -\<infinity>`
-    by (simp_all add: extreal_uminus_eq_reorder)
+  then have m: "-m \<noteq> \<infinity>" "0 < -m" using `\<bar>m\<bar> \<noteq> \<infinity>`
+    by (auto simp: extreal_uminus_eq_reorder)
   from extreal_open_affinity_pos[OF extreal_open_uminus[OF `open S`] m t]
   show ?thesis unfolding image_image by simp
 qed
 
 lemma extreal_divide_eq:
-  "b \<noteq> 0 \<Longrightarrow> b \<noteq> \<infinity> \<Longrightarrow> b \<noteq> -\<infinity> \<Longrightarrow> a / b = c \<longleftrightarrow> a = b * c"
+  "b \<noteq> 0 \<Longrightarrow> \<bar>b\<bar> \<noteq> \<infinity> \<Longrightarrow> a / b = c \<longleftrightarrow> a = b * c"
   by (cases rule: extreal3_cases[of a b c])
      (simp_all add: field_simps)
 
@@ -1753,7 +1785,7 @@ lemma extreal_inverse_not_MInfty[simp]: "inverse a \<noteq> -\<infinity>"
 
 lemma extreal_lim_mult:
   fixes X :: "'a \<Rightarrow> extreal"
-  assumes lim: "(X ---> L) net" and a: "a \<noteq> \<infinity>" "a \<noteq> -\<infinity>"
+  assumes lim: "(X ---> L) net" and a: "\<bar>a\<bar> \<noteq> \<infinity>"
   shows "((\<lambda>i. a * X i) ---> a * L) net"
 proof cases
   assume "a \<noteq> 0"
@@ -1766,7 +1798,7 @@ proof cases
       using `a * L \<in> S` by (force simp: image_iff)
     moreover have "open ((\<lambda>x. x / a) ` S)"
       using extreal_open_affinity[OF `open S`, of "inverse a" 0] `a \<noteq> 0` a
-      by (simp add: extreal_divide_eq extreal_inverse_eq_0 divide_extreal_def ac_simps)
+      by (auto simp: extreal_divide_eq extreal_inverse_eq_0 divide_extreal_def ac_simps)
     note * = lim[THEN topological_tendstoD, OF this L]
     { fix x from a `a \<noteq> 0` have "a * (x / a) = x"
         by (cases rule: extreal2_cases[of a x]) auto }
@@ -1800,7 +1832,7 @@ qed
 
 
 lemma extreal_LimI_finite:
-  assumes "x ~= \<infinity>" "x ~= (-\<infinity>)"
+  assumes "\<bar>x\<bar> \<noteq> \<infinity>"
   assumes "!!r. 0 < r ==> EX N. ALL n>=N. u n < x + r & x < u n + r"
   shows "u ----> x"
 proof (rule topological_tendstoI, unfold eventually_sequentially)
@@ -1811,7 +1843,7 @@ proof (rule topological_tendstoI, unfold eventually_sequentially)
     unfolding open_real_def rx_def by auto
   then obtain n where
     upper: "!!N. n <= N ==> u N < x + extreal r" and
-    lower: "!!N. n <= N ==> x < u N + extreal r" using assms(3)[of "extreal r"] by auto
+    lower: "!!N. n <= N ==> x < u N + extreal r" using assms(2)[of "extreal r"] by auto
   show "EX N. ALL n>=N. u n : S"
   proof (safe intro!: exI[of _ n])
     fix N assume "n <= N"
@@ -1823,25 +1855,27 @@ proof (rule topological_tendstoI, unfold eventually_sequentially)
     hence "dist (real (u N)) rx < r"
       using rx_def ra_def
       by (auto simp: dist_real_def abs_diff_less_iff field_simps)
-    from dist[OF this] show "u N : S" using `u N  ~: {\<infinity>,(-\<infinity>)}`
-      by (auto intro!: image_eqI[of _ _ "real (u N)"] simp: extreal_real)
+    from dist[OF this] show "u N : S" using `u N  ~: {\<infinity>, -\<infinity>}`
+      by (auto simp: extreal_real split: split_if_asm)
   qed
 qed
 
 lemma extreal_LimI_finite_iff:
-  assumes "x ~= \<infinity>" "x ~= (-\<infinity>)"
+  assumes "\<bar>x\<bar> \<noteq> \<infinity>"
   shows "u ----> x <-> (ALL r. 0 < r --> (EX N. ALL n>=N. u n < x + r & x < u n + r))"
   (is "?lhs <-> ?rhs")
-proof-
-{ assume lim: "u ----> x"
+proof
+  assume lim: "u ----> x"
   { fix r assume "(r::extreal)>0"
     from this obtain N where N_def: "ALL n>=N. u n : {x - r <..< x + r}"
        apply (subst tendsto_obtains_N[of u x "{x - r <..< x + r}"])
        using lim extreal_between[of x r] assms `r>0` by auto
     hence "EX N. ALL n>=N. u n < x + r & x < u n + r"
       using extreal_minus_less[of r x] by (cases r) auto
-  } hence "?rhs" by auto
-} from this show ?thesis using extreal_LimI_finite assms by blast
+  } then show "?rhs" by auto
+next
+  assume ?rhs then show "u ----> x"
+    using extreal_LimI_finite[of x] assms by auto
 qed
 
 
@@ -2406,10 +2440,8 @@ from this show ?thesis apply(rule Topology_Euclidean_Space.bounded_increasing_co
    using assms by auto
 qed
 
-
-lemma extreal_real': assumes "x~=\<infinity>" and "x~=(-\<infinity>)" shows "extreal (real x) = x"
-   using assms extreal_real by auto
-
+lemma extreal_real': assumes "\<bar>x\<bar> \<noteq> \<infinity>" shows "extreal (real x) = x"
+  using assms by auto
 
 lemma lim_extreal_increasing: assumes "\<And>n m. n >= m \<Longrightarrow> f n >= f m"
   obtains l where "f ----> (l::extreal)"
@@ -2432,7 +2464,7 @@ next
     hence "ALL n. Y n < extreal B" using Y_def by auto note B = this[rule_format]
     { fix n have "Y n < \<infinity>" using B[of n] apply (subst less_le_trans) by auto
       hence "Y n ~= \<infinity> & Y n ~= (-\<infinity>)" using minfy by auto
-    } hence *: "ALL n. Y n ~= \<infinity> & Y n ~= (-\<infinity>)" by auto
+    } hence *: "ALL n. \<bar>Y n\<bar> \<noteq> \<infinity>" by auto
     { fix n have "real (Y n) < B" proof- case goal1 thus ?case
         using B[of n] apply-apply(subst(asm) extreal_real'[THEN sym]) defer defer
         unfolding extreal_less using * by auto
@@ -2454,7 +2486,6 @@ next
        apply (subst tail_same_limit[of Y _ N]) using Y_def by auto
   qed
 qed
-
 
 lemma lim_extreal_decreasing: assumes "\<And>n m. n >= m \<Longrightarrow> f n <= f m"
   obtains l where "f ----> (l::extreal)"
@@ -2491,51 +2522,52 @@ by (metis Lim_bounded2_extreal assms complete_lattice_class.Inf_lower)
 lemma incseq_le_extreal: assumes inc: "!!n m. n>=m ==> X n >= X m"
   and lim: "X ----> (L::extreal)" shows "X N <= L"
 proof(cases "X N = (-\<infinity>)")
-case True thus ?thesis by auto
+  case True thus ?thesis by auto
 next
-case False
-   have "ALL n>=N. X n >= X N" using inc by auto
-   hence minf: "ALL n>=N. X n > (-\<infinity>)" using False by auto
-   def Y == "(%n. (if n>=N then X n else X N))"
-   hence incy: "!!n m. n>=m ==> Y n >= Y m" using inc by auto
-   from minf have minfy: "ALL n. Y n ~= (-\<infinity>)" using Y_def by auto
-   from lim have limy: "Y ----> L"
-      apply (subst tail_same_limit[of X _ N]) using Y_def by auto
-show ?thesis
-proof(cases "L = \<infinity> | L=(-\<infinity>)")
-  case False have "ALL n. Y n ~= \<infinity>"
-  proof(rule ccontr,unfold not_all not_not,safe)
-    case goal1 hence "ALL n>=x. Y n = \<infinity>" using incy[of x] by auto
-    hence "Y ----> \<infinity>" unfolding tendsto_def eventually_sequentially
-      apply safe apply(rule_tac x=x in exI) by auto
-    note Lim_unique[OF trivial_limit_sequentially this limy]
-    with False show False by auto
-  qed note * =this[rule_format]
+  case False
+  have "ALL n>=N. X n >= X N" using inc by auto
+  hence minf: "ALL n>=N. X n > (-\<infinity>)" using False by auto
+  def Y == "(%n. (if n>=N then X n else X N))"
+  hence incy: "!!n m. n>=m ==> Y n >= Y m" using inc by auto
+  from minf have minfy: "ALL n. Y n ~= (-\<infinity>)" using Y_def by auto
+  from lim have limy: "Y ----> L"
+    apply (subst tail_same_limit[of X _ N]) using Y_def by auto
+  show ?thesis
+  proof (cases "\<bar>L\<bar> = \<infinity>")
+    case False have "ALL n. Y n ~= \<infinity>"
+    proof(rule ccontr,unfold not_all not_not,safe)
+      case goal1 hence "ALL n>=x. Y n = \<infinity>" using incy[of x] by auto
+      hence "Y ----> \<infinity>" unfolding tendsto_def eventually_sequentially
+        apply safe apply(rule_tac x=x in exI) by auto
+      note Lim_unique[OF trivial_limit_sequentially this limy]
+      with False show False by auto
+    qed
+    with minfy have *: "\<And>n. \<bar>Y n\<bar> \<noteq> \<infinity>" by auto
 
-  have **:"ALL m n. m <= n --> extreal (real (Y m)) <= extreal (real (Y n))"
-    unfolding extreal_real using minfy * incy apply (cases "Y m", cases "Y n") by auto
-  have "real (Y N) <= real L" apply-apply(rule incseq_le) defer
-  apply(subst lim_extreal[THEN sym])
-    unfolding extreal_real
-    unfolding incseq_def using minfy * ** limy False by auto
-  hence "extreal (real (Y N)) <= extreal (real L)" by auto
-  hence ***: "Y N <= L" unfolding extreal_real using minfy * False by auto
-  thus ?thesis using Y_def by auto
-next
-case True
-show ?thesis proof(cases "L=(-\<infinity>)")
-  case True
-  have "open {..<X N}" by auto
-  moreover have "(-\<infinity>) : {..<X N}" using False by auto
-  ultimately obtain N1 where "ALL n>=N1. X n : {..<X N}" using lim True
-     unfolding tendsto_def eventually_sequentially by metis
-  hence "X (max N N1) : {..<X N}" by auto
-  with inc[of N "max N N1"] show ?thesis by auto
-next
-case False thus ?thesis using True by auto qed
+    have **:"ALL m n. m <= n --> extreal (real (Y m)) <= extreal (real (Y n))"
+      unfolding extreal_real using minfy * incy apply (cases "Y m", cases "Y n") by auto
+    have "real (Y N) <= real L" apply-apply(rule incseq_le) defer
+      apply(subst lim_extreal[THEN sym])
+      unfolding extreal_real
+      unfolding incseq_def using * ** limy False by auto
+    hence "extreal (real (Y N)) <= extreal (real L)" by auto
+    hence ***: "Y N <= L" unfolding extreal_real using * False by auto
+    thus ?thesis using Y_def by auto
+  next
+    case True
+    show ?thesis
+    proof(cases "L=(-\<infinity>)")
+      case True
+      have "open {..<X N}" by auto
+      moreover have "(-\<infinity>) : {..<X N}" using False by auto
+      ultimately obtain N1 where "ALL n>=N1. X n : {..<X N}" using lim True
+        unfolding tendsto_def eventually_sequentially by metis
+      hence "X (max N N1) : {..<X N}" by auto
+      with inc[of N "max N N1"] show ?thesis by auto
+    next
+      case False thus ?thesis using True by auto qed
+  qed
 qed
-qed
-
 
 lemma decseq_ge_extreal: assumes dec: "!!n m. n>=m ==> X n <= X m"
   and lim: "X ----> (L::extreal)" shows "X N >= L"
@@ -2561,21 +2593,19 @@ proof (safe intro!: Least_equality)
     using assms by auto
 next fix y assume y:"ALL x:range f. x <= y" show "l <= y"
   proof-
-    { assume ym: "y ~= (-\<infinity>)" and yp: "y ~= \<infinity>"
+    { assume yinf: "\<bar>y\<bar> \<noteq> \<infinity>"
       { assume as:"y < l"
-        hence lm: "l ~= (-\<infinity>)" by auto
-        have lp:"l ~= \<infinity>" apply(rule Lim_bounded_PInfty[OF assms(2), of "real y"])
-          using y yp unfolding extreal_real by auto
+        hence linf: "\<bar>l\<bar> \<noteq> \<infinity>"
+          using Lim_bounded_PInfty[OF assms(2), of "real y"] y yinf by auto
         have [simp]: "extreal (1 / 2) = 1 / 2" by (auto simp: divide_extreal_def)
-        have yl:"real y < real l" using as apply-
-          apply(subst(asm) extreal_real'[THEN sym,OF `y~=\<infinity>` `y~=(-\<infinity>)`])
-          apply(subst(asm) extreal_real'[THEN sym,OF `l~=\<infinity>` `l~=(-\<infinity>)`])
-          unfolding extreal_less by auto
+        have yl:"real y < real l" using as
+          apply(subst(asm) extreal_real'[THEN sym,OF yinf])
+          apply(subst(asm) extreal_real'[THEN sym,OF linf]) by auto
         hence "y + (l - y) * 1 / 2 < l" apply-
-          apply(subst extreal_real'[THEN sym,OF `y~=\<infinity>` `y~=(-\<infinity>)`])
-          apply(subst(2) extreal_real'[THEN sym,OF `y~=\<infinity>` `y~=(-\<infinity>)`])
-          apply(subst extreal_real'[THEN sym,OF `l~=\<infinity>` `l~=(-\<infinity>)`])
-          apply(subst(2) extreal_real'[THEN sym,OF `l~=\<infinity>` `l~=(-\<infinity>)`])
+          apply(subst extreal_real'[THEN sym,OF yinf])
+          apply(subst(2) extreal_real'[THEN sym,OF yinf])
+          apply(subst extreal_real'[THEN sym,OF linf])
+          apply(subst(2) extreal_real'[THEN sym,OF linf])
           using real_interm by auto
         hence *:"l : {y + (l - y) / 2<..}" by auto
         have "open {y + (l-y)/2 <..}" by auto
@@ -2583,7 +2613,7 @@ next fix y assume y:"ALL x:range f. x <= y" show "l <= y"
         from this[unfolded eventually_sequentially] guess N .. note this[rule_format, of N]
         hence "y + (l - y)  / 2 < y" using y[rule_format,of "f N"] by auto
         hence "extreal (real y) + (extreal (real l) - extreal (real y)) / 2 < extreal (real y)"
-          unfolding extreal_real using `y~=\<infinity>` `y~=(-\<infinity>)` `l~=\<infinity>` `l~=(-\<infinity>)` by auto
+          unfolding extreal_real using yinf linf by auto
         hence False using yl by auto
       } hence ?thesis using not_le by auto
     }
@@ -2871,9 +2901,9 @@ from this show ?thesis using continuous_imp_tendsto by auto
 qed
 
 lemma continuous_at_of_extreal:
-fixes x0 :: extreal
-assumes "x0 ~: {\<infinity>, (-\<infinity>)}"
-shows "continuous (at x0) real"
+  fixes x0 :: extreal
+  assumes "\<bar>x0\<bar> \<noteq> \<infinity>"
+  shows "continuous (at x0) real"
 proof-
 { fix T assume T_def: "open T & real x0 : T"
   def S == "extreal ` T"
@@ -2925,13 +2955,13 @@ lemma continuous_on_real: "continuous_on (UNIV-{\<infinity>,(-\<infinity>)}) rea
 
 
 lemma continuous_on_iff_real:
-fixes f :: "'a::t2_space => extreal"
-assumes "ALL x. x:A --> (f x ~: {\<infinity>,(-\<infinity>)})"
-shows "continuous_on A f <-> continuous_on A (real o f)"
+  fixes f :: "'a::t2_space => extreal"
+  assumes "\<And>x. x \<in> A \<Longrightarrow> \<bar>f x\<bar> \<noteq> \<infinity>"
+  shows "continuous_on A f \<longleftrightarrow> continuous_on A (real \<circ> f)"
 proof-
-have "f ` A <= UNIV-{\<infinity>,(-\<infinity>)}" using assms by auto
-hence *: "continuous_on (f ` A) real"
-   using continuous_on_real by (simp add: continuous_on_subset)
+  have "f ` A <= UNIV-{\<infinity>,(-\<infinity>)}" using assms by force
+  hence *: "continuous_on (f ` A) real"
+     using continuous_on_real by (simp add: continuous_on_subset)
 have **: "continuous_on ((real o f) ` A) extreal"
    using continuous_on_extreal continuous_on_subset[of "UNIV" "extreal" "(real o f) ` A"] by blast
 { assume "continuous_on A f" hence "continuous_on A (real o f)"
