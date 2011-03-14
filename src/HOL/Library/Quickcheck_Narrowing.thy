@@ -171,10 +171,6 @@ proof -
     unfolding apply_def by (auto split: cons.split type.split simp add: Let_def)
 qed
 
-definition cons0 :: "'a => 'a narrowing"
-where
-  "cons0 f = cons f"
-
 type_synonym pos = "code_int list"
 (*
 subsubsection {* Term refinement *}
@@ -216,7 +212,7 @@ instantiation unit :: narrowing
 begin
 
 definition
-  "narrowing = cons0 ()"
+  "narrowing = cons ()"
 
 instance ..
 
@@ -226,7 +222,7 @@ instantiation bool :: narrowing
 begin
 
 definition
-  "narrowing = sum (cons0 True) (cons0 False)" 
+  "narrowing = sum (cons True) (cons False)" 
 
 instance ..
 
@@ -236,7 +232,7 @@ instantiation option :: (narrowing) narrowing
 begin
 
 definition
-  "narrowing = sum (cons0 None) (cons1 Some)"
+  "narrowing = sum (cons None) (cons1 Some)"
 
 instance ..
 
@@ -348,6 +344,8 @@ use "~~/src/HOL/Tools/Quickcheck/narrowing_generators.ML"
 
 setup {* Narrowing_Generators.setup *}
 
-hide_const (open) empty
+hide_type (open) code_int type "term" cons
+hide_const (open) int_of of_int nth error toEnum map_index split_At empty
+  cons conv nonEmpty "apply" sum cons1 cons2 ensure_testable
 
 end
