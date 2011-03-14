@@ -103,7 +103,6 @@ lemma eventually_elim2:
   shows "eventually (\<lambda>i. R i) net"
 using assms by (auto elim!: eventually_rev_mp)
 
-
 subsection {* Finer-than relation *}
 
 text {* @{term "net \<le> net'"} means that @{term net} is finer than
@@ -231,7 +230,6 @@ lemma eventually_False:
   "eventually (\<lambda>x. False) net \<longleftrightarrow> net = bot"
 unfolding expand_net_eq by (auto elim: eventually_rev_mp)
 
-
 subsection {* Map function for nets *}
 
 definition netmap :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a net \<Rightarrow> 'b net" where
@@ -286,6 +284,13 @@ lemma le_sequentially:
 unfolding le_net_def eventually_sequentially
 by (safe, fast, drule_tac x=N in spec, auto elim: eventually_rev_mp)
 
+
+definition
+  trivial_limit :: "'a net \<Rightarrow> bool" where
+  "trivial_limit net \<longleftrightarrow> eventually (\<lambda>x. False) net"
+
+lemma trivial_limit_sequentially[intro]: "\<not> trivial_limit sequentially"
+  by (auto simp add: trivial_limit_def eventually_sequentially)
 
 subsection {* Standard Nets *}
 
@@ -826,5 +831,30 @@ lemma tendsto_divide [tendsto_intros]:
   shows "\<lbrakk>(f ---> a) net; (g ---> b) net; b \<noteq> 0\<rbrakk>
     \<Longrightarrow> ((\<lambda>x. f x / g x) ---> a / b) net"
 by (simp add: mult.tendsto tendsto_inverse divide_inverse)
+
+lemma tendsto_unique:
+  fixes f :: "'a \<Rightarrow> 'b::t2_space"
+  assumes "\<not> trivial_limit net"  "(f ---> l) net"  "(f ---> l') net"
+  shows "l = l'"
+proof (rule ccontr)
+  assume "l \<noteq> l'"
+  obtain U V where "open U" "open V" "l \<in> U" "l' \<in> V" "U \<inter> V = {}"
+    using hausdorff [OF `l \<noteq> l'`] by fast
+  have "eventually (\<lambda>x. f x \<in> U) net"
+    using `(f ---> l) net` `open U` `l \<in> U` by (rule topological_tendstoD)
+  moreover
+  have "eventually (\<lambda>x. f x \<in> V) net"
+    using `(f ---> l') net` `open V` `l' \<in> V` by (rule topological_tendstoD)
+  ultimately
+  have "eventually (\<lambda>x. False) net"
+  proof (rule eventually_elim2)
+    fix x
+    assume "f x \<in> U" "f x \<in> V"
+    hence "f x \<in> U \<inter> V" by simp
+    with `U \<inter> V = {}` show "False" by simp
+  qed
+  with `\<not> trivial_limit net` show "False"
+    by (simp add: trivial_limit_def)
+qed
 
 end

@@ -1129,11 +1129,11 @@ lemma has_derivative_sequence: fixes f::"nat\<Rightarrow> 'm::euclidean_space \<
     show "bounded_linear (g' x)" unfolding linear_linear linear_def apply(rule,rule,rule) defer proof(rule,rule)
       fix x' y z::"'m" and c::real
       note lin = assms(2)[rule_format,OF `x\<in>s`,THEN derivative_linear]
-      show "g' x (c *\<^sub>R x') = c *\<^sub>R g' x x'" apply(rule Lim_unique[OF trivial_limit_sequentially])
+      show "g' x (c *\<^sub>R x') = c *\<^sub>R g' x x'" apply(rule tendsto_unique[OF trivial_limit_sequentially])
         apply(rule lem3[rule_format])
         unfolding lin[unfolded bounded_linear_def bounded_linear_axioms_def,THEN conjunct2,THEN conjunct1,rule_format]
         apply(rule Lim_cmul) by(rule lem3[rule_format])
-      show "g' x (y + z) = g' x y + g' x z" apply(rule Lim_unique[OF trivial_limit_sequentially])
+      show "g' x (y + z) = g' x y + g' x z" apply(rule tendsto_unique[OF trivial_limit_sequentially])
         apply(rule lem3[rule_format]) unfolding lin[unfolded bounded_linear_def additive_def,THEN conjunct1,rule_format]
         apply(rule Lim_add) by(rule lem3[rule_format])+ qed 
     show "\<forall>e>0. \<exists>d>0. \<forall>y\<in>s. norm (y - x) < d \<longrightarrow> norm (g y - g x - g' x (y - x)) \<le> e * norm (y - x)" proof(rule,rule) case goal1
