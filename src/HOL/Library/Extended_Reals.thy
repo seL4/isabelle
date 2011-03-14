@@ -1076,128 +1076,89 @@ subsection "Limits on @{typ extreal}"
 
 subsubsection "Topological space"
 
+lemma
+  shows extreal_max[simp]: "extreal (max x y) = max (extreal x) (extreal y)"
+    and extreal_min[simp]: "extreal (min x y) = min (extreal x) (extreal y)"
+  by (simp_all add: min_def max_def)
+
 instantiation extreal :: topological_space
 begin
 
-definition "open A \<longleftrightarrow>
-  (\<exists>T. open T \<and> extreal ` T = A - {\<infinity>, -\<infinity>})
+definition "open A \<longleftrightarrow> open (extreal -` A)
        \<and> (\<infinity> \<in> A \<longrightarrow> (\<exists>x. {extreal x <..} \<subseteq> A))
        \<and> (-\<infinity> \<in> A \<longrightarrow> (\<exists>x. {..<extreal x} \<subseteq> A))"
 
-lemma open_PInfty: "open A ==> \<infinity> : A ==> (EX x. {extreal x<..} <= A)"
+lemma open_PInfty: "open A \<Longrightarrow> \<infinity> \<in> A \<Longrightarrow> (\<exists>x. {extreal x<..} \<subseteq> A)"
   unfolding open_extreal_def by auto
 
-lemma open_MInfty: "open A ==> (-\<infinity>) : A ==> (EX x. {..<extreal x} <= A)"
+lemma open_MInfty: "open A \<Longrightarrow> -\<infinity> \<in> A \<Longrightarrow> (\<exists>x. {..<extreal x} \<subseteq> A)"
   unfolding open_extreal_def by auto
 
-lemma open_PInfty2: assumes "open A" "\<infinity> : A" obtains x where "{extreal x<..} <= A"
+lemma open_PInfty2: assumes "open A" "\<infinity> \<in> A" obtains x where "{extreal x<..} \<subseteq> A"
   using open_PInfty[OF assms] by auto
 
-lemma open_MInfty2: assumes "open A" "(-\<infinity>) : A" obtains x where "{..<extreal x} <= A"
+lemma open_MInfty2: assumes "open A" "-\<infinity> \<in> A" obtains x where "{..<extreal x} \<subseteq> A"
   using open_MInfty[OF assms] by auto
 
-lemma extreal_openE: assumes "open A" obtains A' x y where
-  "open A'" "extreal ` A' = A - {\<infinity>, (-\<infinity>)}"
-  "\<infinity> : A ==> {extreal x<..} <= A"
-  "(-\<infinity>) : A ==> {..<extreal y} <= A"
+lemma extreal_openE: assumes "open A" obtains x y where
+  "open (extreal -` A)"
+  "\<infinity> \<in> A \<Longrightarrow> {extreal x<..} \<subseteq> A"
+  "-\<infinity> \<in> A \<Longrightarrow> {..<extreal y} \<subseteq> A"
   using assms open_extreal_def by auto
 
 instance
 proof
   let ?U = "UNIV::extreal set"
   show "open ?U" unfolding open_extreal_def
-    by (auto intro!: exI[of _ "UNIV"] exI[of _ 0])
+    by (auto intro!: exI[of _ 0])
 next
   fix S T::"extreal set" assume "open S" and "open T"
-  from `open S`[THEN extreal_openE] guess S' xS yS . note S' = this
-  from `open T`[THEN extreal_openE] guess T' xT yT . note T' = this
-
-  have "extreal ` (S' Int T') = (extreal ` S') Int (extreal ` T')" by auto
-  also have "... = S Int T - {\<infinity>, (-\<infinity>)}" using S' T' by auto
-  finally have "extreal ` (S' Int T') =  S Int T - {\<infinity>, (-\<infinity>)}" by auto
-  moreover have "open (S' Int T')" using S' T' by auto
-  moreover
-  { assume a: "\<infinity> : S Int T"
-    hence "EX x. {extreal x<..} <= S Int T"
-    apply(rule_tac x="max xS xT" in exI)
-    proof-
-    { fix x assume *: "extreal (max xS xT) < x"
-      hence "x : S Int T" apply (cases x, auto simp: max_def split: split_if_asm)
-      using a S' T' by auto
-    } thus "{extreal (max xS xT)<..} <= S Int T" by auto
-    qed }
-  moreover
-  { assume a: "(-\<infinity>) : S Int T"
-    hence "EX x. {..<extreal x} <= S Int T"
-    apply(rule_tac x="min yS yT" in exI)
-    proof-
-    { fix x assume *: "extreal (min yS yT) > x"
-      hence "x<extreal yS & x<extreal yT" by (cases x) auto
-      hence "x : S Int T" using a S' T' by auto
-    } thus "{..<extreal (min yS yT)} <= S Int T" by auto
-    qed }
-  ultimately show "open (S Int T)" unfolding open_extreal_def by auto
+  from `open S`[THEN extreal_openE] guess xS yS .
+  moreover from `open T`[THEN extreal_openE] guess xT yT .
+  ultimately have
+    "open (extreal -` (S \<inter> T))"
+    "\<infinity> \<in> S \<inter> T \<Longrightarrow> {extreal (max xS xT) <..} \<subseteq> S \<inter> T"
+    "-\<infinity> \<in> S \<inter> T \<Longrightarrow> {..< extreal (min yS yT)} \<subseteq> S \<inter> T"
+    by auto
+  then show "open (S Int T)" unfolding open_extreal_def by blast
 next
-  fix K assume openK: "ALL S : K. open (S:: extreal set)"
-  hence "ALL S:K. EX T. open T & extreal ` T = S - {\<infinity>, (-\<infinity>)}" by (auto simp: open_extreal_def)
-  from bchoice[OF this] guess T .. note T = this[rule_format]
-
-  show "open (Union K)" unfolding open_extreal_def
-  proof (safe intro!: exI[of _ "Union (T ` K)"])
-    fix x S assume "x : T S" "S : K"
-    with T[OF `S : K`] show "extreal x : Union K" by auto
-  next
-    fix x S assume x: "x ~: extreal ` (Union (T ` K))" "S : K" "x : S" "x ~= \<infinity>"
-    hence "x ~: extreal ` (T S)"
-      by (auto simp: image_UN UN_simps[symmetric] simp del: UN_simps)
-    thus "x=(-\<infinity>)" using T[OF `S : K`] `x : S` `x ~= \<infinity>` by auto
-  next
-    fix S assume "\<infinity> : S" "S : K"
-    from openK[rule_format, OF `S : K`, THEN extreal_openE] guess S' x .
-    from this(3) `\<infinity> : S`
-    show "EX x. {extreal x<..} <= Union K"
-      by (auto intro!: exI[of _ x] bexI[OF _ `S : K`])
-  next
-    fix S assume "(-\<infinity>) : S" "S : K"
-    from openK[rule_format, OF `S : K`, THEN extreal_openE] guess S' x y .
-    from this(4) `(-\<infinity>) : S`
-    show "EX y. {..<extreal y} <= Union K"
-      by (auto intro!: exI[of _ y] bexI[OF _ `S : K`])
-  next
-    from T[THEN conjunct1] show "open (Union (T`K))" by auto
-  qed auto
+  fix K :: "extreal set set" assume "\<forall>S\<in>K. open S"
+  then have *: "\<forall>S. \<exists>x y. S \<in> K \<longrightarrow> open (extreal -` S) \<and>
+    (\<infinity> \<in> S \<longrightarrow> {extreal x <..} \<subseteq> S) \<and> (-\<infinity> \<in> S \<longrightarrow> {..< extreal y} \<subseteq> S)"
+    by (auto simp: open_extreal_def)
+  then show "open (Union K)" unfolding open_extreal_def
+  proof (intro conjI impI)
+    show "open (extreal -` \<Union>K)"
+      using *[unfolded choice_iff] by (auto simp: vimage_Union)
+  qed ((metis UnionE Union_upper subset_trans *)+)
 qed
 end
 
-lemma open_extreal_lessThan[simp]:
-  "open {..< a :: extreal}"
-proof (cases a)
-  case (real x)
-  then show ?thesis unfolding open_extreal_def
-  proof (safe intro!: exI[of _ "{..< x}"])
-    fix y assume "y < extreal x"
-    moreover assume "y ~: (extreal ` {..<x})"
-    ultimately have "y ~= extreal (real y)" using real by (cases y) auto
-    thus "y = (-\<infinity>)" apply (cases y) using `y < extreal x` by auto
-  qed auto
-qed (auto simp: open_extreal_def)
+lemma continuous_on_extreal[intro, simp]: "continuous_on A extreal"
+  unfolding continuous_on_topological open_extreal_def by auto
 
-lemma open_extreal_greaterThan[simp]:
+lemma continuous_at_extreal[intro, simp]: "continuous (at x) extreal"
+  using continuous_on_eq_continuous_at[of UNIV] by auto
+
+lemma continuous_within_extreal[intro, simp]: "x \<in> A \<Longrightarrow> continuous (at x within A) extreal"
+  using continuous_on_eq_continuous_within[of A] by auto
+
+lemma open_extreal_lessThan[intro, simp]: "open {..< a :: extreal}"
+proof -
+  have "\<And>x. extreal -` {..<extreal x} = {..< x}"
+    "extreal -` {..< \<infinity>} = UNIV" "extreal -` {..< -\<infinity>} = {}" by auto
+  then show ?thesis by (cases a) (auto simp: open_extreal_def)
+qed
+
+lemma open_extreal_greaterThan[intro, simp]:
   "open {a :: extreal <..}"
-proof (cases a)
-  case (real x)
-  then show ?thesis unfolding open_extreal_def
-  proof (safe intro!: exI[of _ "{x<..}"])
-    fix y assume "extreal x < y"
-    moreover assume "y ~: (extreal ` {x<..})"
-    moreover assume "y ~= \<infinity>"
-    ultimately have "y ~= extreal (real y)" using real by (cases y) auto
-    hence False apply (cases y) using `extreal x < y` `y ~= \<infinity>` by auto
-    thus "y = (-\<infinity>)" by auto
-  qed auto
-qed (auto simp: open_extreal_def)
+proof -
+  have "\<And>x. extreal -` {extreal x<..} = {x<..}"
+    "extreal -` {\<infinity><..} = {}" "extreal -` {-\<infinity><..} = UNIV" by auto
+  then show ?thesis by (cases a) (auto simp: open_extreal_def)
+qed
 
-lemma extreal_open_greaterThanLessThan[simp]: "open {a::extreal <..< b}"
+lemma extreal_open_greaterThanLessThan[intro, simp]: "open {a::extreal <..< b}"
   unfolding greaterThanLessThan_def by auto
 
 lemma closed_extreal_atLeast[simp, intro]: "closed {a :: extreal ..}"
@@ -1227,19 +1188,17 @@ lemma extreal_open_cont_interval:
   obtains e where "e>0" "{x-e <..< x+e} \<subseteq> S"
 proof-
   obtain m where m_def: "x = extreal m" using assms by (cases x) auto
-  obtain A where "open A" and A_def: "extreal ` A = S - {\<infinity>,(-\<infinity>)}"
-    using assms by (auto elim!: extreal_openE)
-  hence "m : A" using m_def assms by auto
-  from this obtain e where e_def: "e>0 & ball m e <= A"
-    using open_contains_ball[of A] `open A` by auto
-  moreover have "ball m e = {m-e <..< m+e}" unfolding ball_def dist_norm by auto
-  ultimately have *: "{m-e <..< m+e} <= A" using e_def by auto
-  { fix y assume y_def: "y:{x-extreal e <..< x+extreal e}"
-    from this obtain z where z_def: "y = extreal z" by (cases y) auto
-    hence "z:A" using y_def m_def * by auto
-    hence "y:S" using z_def A_def by auto
-  } hence "{x-extreal e <..< x+extreal e} <= S" by auto
-  thus thesis apply- apply(rule that[of "extreal e"]) using e_def by auto
+  from `open S` have "open (extreal -` S)" by (rule extreal_openE)
+  then obtain e where "0 < e" and e: "ball m e \<subseteq> extreal -` S"
+    using `x \<in> S` unfolding open_contains_ball m_def by force
+  show thesis
+  proof (intro that subsetI)
+    show "0 < extreal e" using `0 < e` by auto
+    fix y assume "y \<in> {x - extreal e<..<x + extreal e}"
+    then obtain t where "y = extreal t" "t \<in> ball m e"
+      unfolding m_def by (cases y) (auto simp: ball_def dist_real_def)
+    then show "y \<in> S" using e by auto
+  qed
 qed
 
 lemma extreal_open_cont_interval2:
@@ -1266,41 +1225,36 @@ lemma extreal_open_uminus:
   fixes S :: "extreal set"
   assumes "open S"
   shows "open (uminus ` S)"
-proof-
-  obtain T x y where T_def: "open T & extreal ` T = S - {\<infinity>, (-\<infinity>)} &
-     (\<infinity> : S --> {extreal x<..} <= S) & ((-\<infinity>) : S --> {..<extreal y} <= S)"
-     using assms extreal_openE[of S] by metis
-  have "extreal ` uminus ` T = uminus ` extreal ` T" apply auto
-     by (metis imageI extreal_uminus_uminus uminus_extreal.simps)
-  also have "...=uminus ` (S - {\<infinity>, (-\<infinity>)})" using T_def by auto
-  finally have "extreal ` uminus ` T = uminus ` S - {\<infinity>, (-\<infinity>)}" by (auto simp: extreal_uminus_reorder)
-  moreover have "open (uminus ` T)" using T_def open_negations[of T] by auto
-  ultimately have "EX T. open T & extreal ` T = uminus ` S - {\<infinity>, (-\<infinity>)}" by auto
-  moreover
-  { assume "\<infinity>: uminus ` S"
-    hence "(-\<infinity>) : S" by (metis image_iff extreal_uminus_uminus)
-    hence "uminus ` {..<extreal y} <= uminus ` S" using T_def by (intro image_mono) auto
-    hence "EX x. {extreal x<..} <= uminus ` S" using extreal_uminus_lessThan by auto
-  } moreover
-  { assume "(-\<infinity>): uminus ` S"
-    hence "\<infinity> : S" by (metis image_iff extreal_uminus_uminus)
-    hence "uminus ` {extreal x<..} <= uminus ` S" using T_def by (intro image_mono) auto
-    hence "EX y. {..<extreal y} <= uminus ` S" using extreal_uminus_greaterThan by auto
-  }
-  ultimately show ?thesis unfolding open_extreal_def by auto
+  unfolding open_extreal_def
+proof (intro conjI impI)
+  obtain x y where S: "open (extreal -` S)"
+    "\<infinity> \<in> S \<Longrightarrow> {extreal x<..} \<subseteq> S" "-\<infinity> \<in> S \<Longrightarrow> {..< extreal y} \<subseteq> S"
+    using `open S` unfolding open_extreal_def by auto
+  have "extreal -` uminus ` S = uminus ` (extreal -` S)"
+  proof safe
+    fix x y assume "extreal x = - y" "y \<in> S"
+    then show "x \<in> uminus ` extreal -` S" by (cases y) auto
+  next
+    fix x assume "extreal x \<in> S"
+    then show "- x \<in> extreal -` uminus ` S"
+      by (auto intro: image_eqI[of _ _ "extreal x"])
+  qed
+  then show "open (extreal -` uminus ` S)"
+    using S by (auto intro: open_negations)
+  { assume "\<infinity> \<in> uminus ` S"
+    then have "-\<infinity> \<in> S" by (metis image_iff extreal_uminus_uminus)
+    then have "uminus ` {..<extreal y} \<subseteq> uminus ` S" using S by (intro image_mono) auto
+    then show "\<exists>x. {extreal x<..} \<subseteq> uminus ` S" using extreal_uminus_lessThan by auto }
+  { assume "-\<infinity> \<in> uminus ` S"
+    then have "\<infinity> : S" by (metis image_iff extreal_uminus_uminus)
+    then have "uminus ` {extreal x<..} <= uminus ` S" using S by (intro image_mono) auto
+    then show "\<exists>y. {..<extreal y} <= uminus ` S" using extreal_uminus_greaterThan by auto }
 qed
 
 lemma extreal_uminus_complement:
   fixes S :: "extreal set"
-  shows "(uminus ` (- S)) = (- uminus ` S)"
-proof-
-{ fix x
-  have "x:uminus ` (- S) <-> -x:(- S)" by (metis image_iff extreal_uminus_uminus)
-  also have "... <-> x:(- uminus ` S)"
-     by (metis ComplI Compl_iff image_eqI extreal_uminus_uminus extreal_minus_minus_image)
-  finally have "x:uminus ` (- S) <-> x:(- uminus ` S)" by auto
-} thus ?thesis by auto
-qed
+  shows "uminus ` (- S) = - uminus ` S"
+  by (auto intro!: bij_image_Compl_eq surjI[of _ uminus] simp: bij_betw_def)
 
 lemma extreal_closed_uminus:
   fixes S :: "extreal set"
@@ -1308,7 +1262,6 @@ lemma extreal_closed_uminus:
   shows "closed (uminus ` S)"
 using assms unfolding closed_def
 using extreal_open_uminus[of "- S"] extreal_uminus_complement by auto
-
 
 lemma not_open_extreal_singleton:
   "~(open {a :: extreal})"
@@ -1491,21 +1444,16 @@ proof
   qed
 qed
 
-lemma open_extreal: assumes "open S" shows "open (extreal ` S)"
-  unfolding open_extreal_def apply(rule,rule,rule,rule assms) by auto
+lemma inj_extreal[simp]: "inj_on extreal A"
+  unfolding inj_on_def by auto
 
-lemma open_real_of_extreal:
-  fixes S :: "extreal set" assumes "open S"
-  shows "open (real ` (S - {\<infinity>, -\<infinity>}))"
-proof -
-  from `open S` obtain T where T: "open T" "S - {\<infinity>, -\<infinity>} = extreal ` T"
-    unfolding open_extreal_def by auto
-  show ?thesis using T by (simp add: image_image)
-qed
+lemma open_extreal: "open S \<Longrightarrow> open (extreal ` S)"
+  by (auto simp: inj_vimage_image_eq open_extreal_def)
+
+lemma open_extreal_vimage: "open S \<Longrightarrow> open (extreal -` S)"
+  unfolding open_extreal_def by auto
 
 subsubsection {* Convergent sequences *}
-
-lemma inj_extreal[simp, intro]: "inj_on extreal A" by (auto intro: inj_onI)
 
 lemma lim_extreal[simp]:
   "((\<lambda>n. extreal (f n)) ---> extreal x) net \<longleftrightarrow> (f ---> x) net" (is "?l = ?r")
@@ -1516,12 +1464,9 @@ proof (intro iffI topological_tendstoI)
     by (simp add: inj_image_mem_iff)
 next
   fix S assume "?r" "open S" "extreal x \<in> S"
-  have *: "\<And>x. x \<in> real ` (S - {\<infinity>, - \<infinity>}) \<longleftrightarrow> extreal x \<in> S"
-    apply (safe intro!: rev_image_eqI)
-    by (case_tac xa) auto
   show "eventually (\<lambda>x. extreal (f x) \<in> S) net"
-    using `?r`[THEN topological_tendstoD, OF open_real_of_extreal, OF `open S`]
-    using `extreal x \<in> S` by (simp add: *)
+    using `?r`[THEN topological_tendstoD, OF open_extreal_vimage, OF `open S`]
+    using `extreal x \<in> S` by auto
 qed
 
 lemma lim_real_of_extreal[simp]:
@@ -1744,21 +1689,18 @@ proof -
   obtain r where r[simp]: "m = extreal r" using m by (cases m) auto
   obtain p where p[simp]: "t = extreal p" using t by (cases t) auto
   have "r \<noteq> 0" "0 < r" and m': "m \<noteq> \<infinity>" "m \<noteq> -\<infinity>" "m \<noteq> 0" using m by auto
-  from `open S`[THEN extreal_openE] guess T l u . note T = this
+  from `open S`[THEN extreal_openE] guess l u . note T = this
   let ?f = "(\<lambda>x. m * x + t)"
   show ?thesis unfolding open_extreal_def
   proof (intro conjI impI exI subsetI)
-    show "open ((\<lambda>x. r*x + p)`T)"
-      using open_affinity[OF `open T` `r \<noteq> 0`] by (auto simp: ac_simps)
-    have affine_infy: "?f ` {\<infinity>, - \<infinity>} = {\<infinity>, -\<infinity>}"
-      using `r \<noteq> 0` by auto
-    have "extreal ` (\<lambda>x. r * x + p) ` T = ?f ` (extreal ` T)"
-      by (simp add: image_image)
-    also have "\<dots> = ?f ` (S - {\<infinity>, -\<infinity>})"
-      using T(2) by simp
-    also have "\<dots> = ?f ` S - {\<infinity>, -\<infinity>}"
-      using extreal_inj_affinity[OF m' t] by (simp only: image_set_diff affine_infy)
-    finally show "extreal ` (\<lambda>x. r * x + p) ` T = ?f ` S - {\<infinity>, -\<infinity>}" .
+    have "extreal -` ?f ` S = (\<lambda>x. r * x + p) ` (extreal -` S)"
+    proof safe
+      fix x y assume "extreal y = m * x + t" "x \<in> S"
+      then show "y \<in> (\<lambda>x. r * x + p) ` extreal -` S"
+        using `r \<noteq> 0` by (cases x) (auto intro!: image_eqI[of _ _ "real x"] split: split_if_asm)
+    qed force
+    then show "open (extreal -` ?f ` S)"
+      using open_affinity[OF T(1) `r \<noteq> 0`] by (auto simp: ac_simps)
   next
     assume "\<infinity> \<in> ?f`S" with `0 < r` have "\<infinity> \<in> S" by auto
     fix x assume "x \<in> {extreal (r * l + p)<..}"
@@ -1769,7 +1711,7 @@ proof -
         using m t by (cases rule: extreal3_cases[of m x t]) auto
       have "extreal l < (x - t)/m"
         using m t by (simp add: extreal_less_divide_pos extreal_less_minus)
-      then show "(x - t)/m \<in> S" using T(3)[OF `\<infinity> \<in> S`] by auto
+      then show "(x - t)/m \<in> S" using T(2)[OF `\<infinity> \<in> S`] by auto
     qed
   next
     assume "-\<infinity> \<in> ?f`S" with `0 < r` have "-\<infinity> \<in> S" by auto
@@ -1781,7 +1723,7 @@ proof -
         using m t by (cases rule: extreal3_cases[of m x t]) auto
       have "(x - t)/m < extreal u"
         using m t by (simp add: extreal_divide_less_pos extreal_minus_less)
-      then show "(x - t)/m \<in> S" using T(4)[OF `-\<infinity> \<in> S`] by auto
+      then show "(x - t)/m \<in> S" using T(3)[OF `-\<infinity> \<in> S`] by auto
     qed
   qed
 qed
@@ -1864,12 +1806,9 @@ lemma extreal_LimI_finite:
 proof (rule topological_tendstoI, unfold eventually_sequentially)
   obtain rx where rx_def: "x=extreal rx" using assms by (cases x) auto
   fix S assume "open S" "x : S"
-  then obtain A where "open A" and A_eq: "extreal ` A = S - {\<infinity>,(-\<infinity>)}"
-     by (auto elim!: extreal_openE)
-  then have "x : extreal ` A" using `x : S` assms by auto
-  then have "rx : A" using rx_def by auto
-  then obtain r where "0 < r" and dist: "!!y. dist y (real x) < r ==> y : A"
-    using `open A` unfolding open_real_def rx_def by auto
+  then have "open (extreal -` S)" unfolding open_extreal_def by auto
+  with `x \<in> S` obtain r where "0 < r" and dist: "!!y. dist y rx < r ==> extreal y \<in> S"
+    unfolding open_real_def rx_def by auto
   then obtain n where
     upper: "!!N. n <= N ==> u N < x + extreal r" and
     lower: "!!N. n <= N ==> x < u N + extreal r" using assms(3)[of "extreal r"] by auto
@@ -1881,13 +1820,11 @@ proof (rule topological_tendstoI, unfold eventually_sequentially)
     from this obtain ra where ra_def: "(u N) = extreal ra" by (cases "u N") auto
     hence "rx < ra + r" and "ra < rx + r"
        using rx_def assms `0 < r` lower[OF `n <= N`] upper[OF `n <= N`] by auto
-    hence "dist (real (u N)) (real x) < r"
+    hence "dist (real (u N)) rx < r"
       using rx_def ra_def
       by (auto simp: dist_real_def abs_diff_less_iff field_simps)
-    from dist[OF this]
-    have "u N : extreal ` A" using `u N  ~: {\<infinity>,(-\<infinity>)}`
+    from dist[OF this] show "u N : S" using `u N  ~: {\<infinity>,(-\<infinity>)}`
       by (auto intro!: image_eqI[of _ _ "real (u N)"] simp: extreal_real)
-    thus "u N : S" using A_eq by simp
   qed
 qed
 
@@ -2933,21 +2870,6 @@ proof-
 from this show ?thesis using continuous_imp_tendsto by auto
 qed
 
-
-lemma continuous_at_extreal:
-fixes x0 :: real
-shows "continuous (at x0) extreal"
-proof-
-{ fix T assume T_def: "open T & extreal x0 : T"
-  from this obtain S where S_def: "open S & extreal ` S = T - {\<infinity>, (-\<infinity>)}"
-     using extreal_openE[of T] by metis
-  moreover hence "x0 : S" using T_def by auto
-  moreover have "ALL y:S. extreal y : T" using S_def by auto
-  ultimately have "EX S. x0 : S & open S & (ALL y:S. extreal y : T)" by auto
-} from this show ?thesis unfolding continuous_at_open by blast
-qed
-
-
 lemma continuous_at_of_extreal:
 fixes x0 :: extreal
 assumes "x0 ~: {\<infinity>, (-\<infinity>)}"
@@ -2994,9 +2916,6 @@ fixes A assumes "open A"
 shows "continuous_on A f <-> continuous_on A (extreal o f)"
    using continuous_at_iff_extreal assms by (auto simp add: continuous_on_eq_continuous_at)
 
-
-lemma continuous_on_extreal: "continuous_on UNIV extreal"
-   using continuous_at_extreal continuous_on_eq_continuous_at by auto
 
 lemma open_image_extreal: "open(UNIV-{\<infinity>,(-\<infinity>)})"
 by (metis range_extreal open_extreal open_UNIV)
