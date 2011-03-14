@@ -619,7 +619,7 @@ $(LOG)/HOL-Number_Theory.gz: $(OUT)/HOL $(ALGEBRA_DEPENDENCIES) \
   Number_Theory/UniqueFactorization.thy  \
   Number_Theory/ROOT.ML
 	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL Number_Theory
-                                     
+
 
 ## HOL-Old_Number_Theory
 
@@ -1154,6 +1154,7 @@ $(OUT)/HOL-Multivariate_Analysis: $(OUT)/HOL				\
   Multivariate_Analysis/Derivative.thy					\
   Multivariate_Analysis/Determinants.thy				\
   Multivariate_Analysis/Euclidean_Space.thy				\
+  Multivariate_Analysis/Extended_Real_Limits.thy			\
   Multivariate_Analysis/Fashoda.thy					\
   Multivariate_Analysis/Finite_Cartesian_Product.thy			\
   Multivariate_Analysis/Integration.certs				\
