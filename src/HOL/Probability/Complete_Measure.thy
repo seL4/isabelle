@@ -1,6 +1,7 @@
-(*  Title:      Complete_Measure.thy
+(*  Title:      HOL/Probability/Complete_Measure.thy
     Author:     Robert Himmelmann, Johannes Hoelzl, TU Muenchen
 *)
+
 theory Complete_Measure
 imports Product_Measure
 begin

@@ -1,8 +1,9 @@
-(* Title: src/HOL/Multivariate_Analysis/Extended_Reals.thy
-   Author: Johannes Hölzl; TU München
-   Author: Robert Himmelmann; TU München
-   Author: Armin Heller; TU München
-   Author: Bogdan Grechuk; University of Edinburgh *)
+(*  Title:      HOL/Multivariate_Analysis/Extended_Real_Limits.thy
+    Author:     Johannes Hölzl, TU München
+    Author:     Robert Himmelmann, TU München
+    Author:     Armin Heller, TU München
+    Author:     Bogdan Grechuk, University of Edinburgh
+*)
 
 header {* Limits on the Extended real number line *}
 

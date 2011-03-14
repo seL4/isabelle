@@ -1,8 +1,9 @@
-(* Title: src/HOL/Library/Extended_Reals.thy
-   Author: Johannes Hölzl; TU München
-   Author: Robert Himmelmann; TU München
-   Author: Armin Heller; TU München
-   Author: Bogdan Grechuk; University of Edinburgh *)
+(*  Title:      HOL/Library/Extended_Reals.thy
+    Author:     Johannes Hölzl, TU München
+    Author:     Robert Himmelmann, TU München
+    Author:     Armin Heller, TU München
+    Author:     Bogdan Grechuk, University of Edinburgh
+*)
 
 header {* Extended real number line *}
 
