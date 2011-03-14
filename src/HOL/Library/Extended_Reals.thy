@@ -1,4 +1,4 @@
- (* Title: Extended_Reals.thy
+(* Title: Extended_Reals.thy
    Author: Johannes Hölzl, Robert Himmelmann, Armin Heller; TU München
    Author: Bogdan Grechuk; University of Edinburgh *)
 
@@ -254,6 +254,12 @@ proof
 qed
 end
 
+instance extreal :: ordered_ab_semigroup_add
+proof
+  fix a b c :: extreal assume "a \<le> b" then show "c + a \<le> c + b"
+    by (cases rule: extreal3_cases[of a b c]) auto
+qed
+
 lemma extreal_MInfty_lessI[intro, simp]:
   "a \<noteq> -\<infinity> \<Longrightarrow> -\<infinity> < a"
   by (cases a) auto
@@ -333,6 +339,33 @@ lemma extreal_dense2:
   fixes x y :: extreal assumes "x < y"
   shows "EX z. x < extreal z & extreal z < y"
   by (metis extreal_dense[OF `x < y`] extreal_cases less_extreal.simps(2,3))
+
+lemma
+  fixes f :: "nat \<Rightarrow> extreal"
+  shows incseq_uminus[simp]: "incseq (\<lambda>x. - f x) \<longleftrightarrow> decseq f"
+  and decseq_uminus[simp]: "decseq (\<lambda>x. - f x) \<longleftrightarrow> incseq f"
+  unfolding decseq_def incseq_def by auto
+
+lemma incseqD: "\<And>i j. incseq f \<Longrightarrow> i \<le> j \<Longrightarrow> f i \<le> f j"
+  by (auto simp: incseq_def)
+
+lemma extreal_add_nonneg_nonneg:
+  fixes a b :: extreal shows "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> a + b"
+  using add_mono[of 0 a 0 b] by simp
+
+lemma image_eqD: "f ` A = B \<Longrightarrow> (\<forall>x\<in>A. f x \<in> B)"
+  by auto
+
+lemma incseq_setsumI:
+  fixes f :: "nat \<Rightarrow> extreal"
+  assumes "\<And>i. 0 \<le> f i"
+  shows "incseq (\<lambda>i. setsum f {..< i})"
+proof (intro incseq_SucI)
+  fix n have "setsum f {..< n} + 0 \<le> setsum f {..<n} + f n"
+    using assms by (rule add_left_mono)
+  then show "setsum f {..< n} \<le> setsum f {..< Suc n}"
+    by auto
+qed
 
 subsubsection "Multiplication"
 
@@ -467,6 +500,36 @@ lemma extreal_mult_right_mono:
 lemma extreal_mult_left_mono:
   fixes a b c :: extreal shows "\<lbrakk>a \<le> b; 0 \<le> c\<rbrakk> \<Longrightarrow> c * a \<le> c * b"
   using extreal_mult_right_mono by (simp add: mult_commute[of c])
+
+lemma zero_less_one_extreal[simp]: "0 \<le> (1::extreal)"
+  by (simp add: one_extreal_def zero_extreal_def)
+
+lemma extreal_distrib_right:
+  fixes a b c :: extreal
+  shows "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> c \<Longrightarrow> c * (a + b) = c * a + c * b"
+  by (cases rule: extreal3_cases[of a b c])
+     (simp_all add: field_simps)
+
+subsubsection {* Power *}
+
+instantiation extreal :: power
+begin
+primrec power_extreal where
+  "power_extreal x 0 = 1" |
+  "power_extreal x (Suc n) = x * x ^ n"
+instance ..
+end
+
+lemma extreal_power[simp]: "(extreal x) ^ n = extreal (x^n)"
+  by (induct n) (auto simp: one_extreal_def)
+
+lemma extreal_power_PInf[simp]: "\<infinity> ^ n = (if n = 0 then 1 else \<infinity>)"
+  by (induct n) (auto simp: one_extreal_def)
+
+lemma extreal_power_uminus[simp]:
+  fixes x :: extreal
+  shows "(- x) ^ n = (if even n then x ^ n else - (x^n))"
+  by (induct n) (auto simp: one_extreal_def)
 
 subsubsection {* Subtraction *}
 
@@ -657,6 +720,11 @@ lemma extreal_divide_extreal[simp]:
   "\<infinity> / extreal r = (if 0 \<le> r then \<infinity> else -\<infinity>)"
   unfolding divide_extreal_def by simp
 
+lemma zero_le_divide_extreal[simp]:
+  fixes a :: extreal assumes "0 \<le> a" "0 \<le> b"
+  shows "0 \<le> a / b"
+  using assms by (cases rule: extreal2_cases[of a b]) (auto simp: zero_le_divide_iff)
+
 lemma extreal_mult_le_0_iff:
   fixes a b :: extreal
   shows "a * b \<le> 0 \<longleftrightarrow> (0 \<le> a \<and> b \<le> 0) \<or> (a \<le> 0 \<and> 0 \<le> b)"
@@ -717,6 +785,11 @@ lemma extreal_mult_less_right:
   using assms
   by (cases rule: extreal3_cases[of a b c])
      (auto split: split_if_asm simp: zero_less_mult_iff zero_le_mult_iff)
+
+lemma zero_le_power_extreal[simp]:
+  fixes a :: extreal assumes "0 \<le> a"
+  shows "0 \<le> a ^ n"
+  using assms by (induct n) (auto simp: extreal_zero_le_0_iff)
 
 subsection "Complete lattice"
 
@@ -1102,6 +1175,72 @@ lemma same_SUP:
 proof-
 have "f ` A = g ` A" unfolding image_def using assms by auto
 thus ?thesis unfolding SUPR_def by auto
+qed
+
+lemma SUP_extreal_le_addI:
+  assumes "\<And>i. f i + y \<le> z" and "y \<noteq> -\<infinity>"
+  shows "SUPR UNIV f + y \<le> z"
+proof (cases y)
+  case (real r)
+  then have "\<And>i. f i \<le> z - y" using assms by (simp add: extreal_le_minus_iff)
+  then have "SUPR UNIV f \<le> z - y" by (rule SUP_leI)
+  then show ?thesis using real by (simp add: extreal_le_minus_iff)
+qed (insert assms, auto)
+
+lemma SUPR_extreal_add:
+  fixes f g :: "nat \<Rightarrow> extreal"
+  assumes "incseq f" "incseq g" and pos: "\<And>i. 0 \<le> f i" "\<And>i. 0 \<le> g i"
+  shows "(SUP i. f i + g i) = SUPR UNIV f + SUPR UNIV g"
+proof (rule extreal_SUPI)
+  fix y assume *: "\<And>i. i \<in> UNIV \<Longrightarrow> f i + g i \<le> y"
+  have f: "SUPR UNIV f \<noteq> -\<infinity>" using pos
+    unfolding SUPR_def Sup_eq_MInfty by (auto dest: image_eqD)
+  { fix j
+    { fix i
+      have "f i + g j \<le> f i + g (max i j)"
+        using `incseq g`[THEN incseqD] by (rule add_left_mono) auto
+      also have "\<dots> \<le> f (max i j) + g (max i j)"
+        using `incseq f`[THEN incseqD] by (rule add_right_mono) auto
+      also have "\<dots> \<le> y" using * by auto
+      finally have "f i + g j \<le> y" . }
+    then have "SUPR UNIV f + g j \<le> y"
+      using assms(4)[of j] by (intro SUP_extreal_le_addI) auto
+    then have "g j + SUPR UNIV f \<le> y" by (simp add: ac_simps) }
+  then have "SUPR UNIV g + SUPR UNIV f \<le> y"
+    using f by (rule SUP_extreal_le_addI)
+  then show "SUPR UNIV f + SUPR UNIV g \<le> y" by (simp add: ac_simps)
+qed (auto intro!: add_mono le_SUPI)
+
+lemma SUPR_extreal_cmult:
+  fixes f :: "nat \<Rightarrow> extreal" assumes "\<And>i. 0 \<le> f i" "0 \<le> c"
+  shows "(SUP i. c * f i) = c * SUPR UNIV f"
+proof (rule extreal_SUPI)
+  fix i have "f i \<le> SUPR UNIV f" by (rule le_SUPI) auto
+  then show "c * f i \<le> c * SUPR UNIV f"
+    using `0 \<le> c` by (rule extreal_mult_left_mono)
+next
+  fix y assume *: "\<And>i. i \<in> UNIV \<Longrightarrow> c * f i \<le> y"
+  show "c * SUPR UNIV f \<le> y"
+  proof cases
+    assume c: "0 < c \<and> c \<noteq> \<infinity>"
+    with * have "SUPR UNIV f \<le> y / c"
+      by (intro SUP_leI) (auto simp: extreal_le_divide_pos)
+    with c show ?thesis
+      by (auto simp: extreal_le_divide_pos)
+  next
+    { assume "c = \<infinity>" have ?thesis
+      proof cases
+        assume "\<forall>i. f i = 0"
+        moreover then have "range f = {0}" by auto
+        ultimately show "c * SUPR UNIV f \<le> y" using * by (auto simp: SUPR_def)
+      next
+        assume "\<not> (\<forall>i. f i = 0)"
+        then obtain i where "f i \<noteq> 0" by auto
+        with *[of i] `c = \<infinity>` `0 \<le> f i` show ?thesis by (auto split: split_if_asm)
+      qed }
+    moreover assume "\<not> (0 < c \<and> c \<noteq> \<infinity>)"
+    ultimately show ?thesis using * `0 \<le> c` by auto
+  qed
 qed
 
 subsection "Limits on @{typ extreal}"
@@ -2337,6 +2476,31 @@ lemma limsup_mono:
 
 declare trivial_limit_sequentially[simp]
 
+lemma
+  fixes X :: "nat \<Rightarrow> extreal"
+  shows incseq_uminus[simp]: "incseq (\<lambda>i. - X i) = decseq X"
+    and decseq_uminus[simp]: "decseq (\<lambda>i. - X i) = incseq X"
+  unfolding incseq_def decseq_def by auto
+
+lemma extreal_lim_mono:
+  fixes X Y :: "nat => extreal"
+  assumes "\<And>n. N \<le> n \<Longrightarrow> X n <= Y n"
+  assumes "X ----> x" "Y ----> y"
+  shows "x <= y"
+  by (metis extreal_Liminf_eq_Limsup_iff[OF trivial_limit_sequentially] assms liminf_mono)
+
+lemma incseq_le_extreal:
+  fixes X :: "nat \<Rightarrow> extreal"
+  assumes inc: "incseq X" and lim: "X ----> L"
+  shows "X N \<le> L"
+  using inc
+  by (intro extreal_lim_mono[of N, OF _ Lim_const lim]) (simp add: incseq_def)
+
+lemma decseq_ge_extreal: assumes dec: "decseq X"
+  and lim: "X ----> (L::extreal)" shows "X N >= L"
+  using dec
+  by (intro extreal_lim_mono[of N, OF _ lim Lim_const]) (simp add: decseq_def)
+
 lemma liminf_bounded:
   fixes X Y :: "nat \<Rightarrow> extreal"
   assumes "\<And>n. N \<le> n \<Longrightarrow> C \<le> X n"
@@ -2388,14 +2552,6 @@ next
     } ultimately have "EX N. (ALL n>=N. x n : S)" by auto
   } then show "?P x0" by auto
 qed
-
-
-lemma extreal_lim_mono:
-  fixes X Y :: "nat => extreal"
-  assumes "\<And>n. N \<le> n \<Longrightarrow> X n <= Y n"
-  assumes "X ----> x" "Y ----> y"
-  shows "x <= y"
-  by (metis extreal_Liminf_eq_Limsup_iff[OF trivial_limit_sequentially] assms liminf_mono)
 
 lemma liminf_subseq_mono:
   fixes X :: "nat \<Rightarrow> extreal"
@@ -2492,7 +2648,7 @@ lemma lim_extreal_decreasing: assumes "\<And>n m. n >= m \<Longrightarrow> f n <
 proof -
   from lim_extreal_increasing[of "\<lambda>x. - f x"] assms
   obtain l where "(\<lambda>x. - f x) ----> l" by auto
-  from extreal_lim_mult[OF this, of "- 1"] show thesis 
+  from extreal_lim_mult[OF this, of "- 1"] show thesis
     by (intro that[of "-l"]) (simp add: extreal_uminus_eq_reorder)
 qed
 
@@ -2519,182 +2675,86 @@ lemma extreal_Inf_lim:
   shows "Inf s \<le> a"
 by (metis Lim_bounded2_extreal assms complete_lattice_class.Inf_lower)
 
-lemma incseq_le_extreal: assumes inc: "!!n m. n>=m ==> X n >= X m"
-  and lim: "X ----> (L::extreal)" shows "X N <= L"
-proof(cases "X N = (-\<infinity>)")
-  case True thus ?thesis by auto
-next
-  case False
-  have "ALL n>=N. X n >= X N" using inc by auto
-  hence minf: "ALL n>=N. X n > (-\<infinity>)" using False by auto
-  def Y == "(%n. (if n>=N then X n else X N))"
-  hence incy: "!!n m. n>=m ==> Y n >= Y m" using inc by auto
-  from minf have minfy: "ALL n. Y n ~= (-\<infinity>)" using Y_def by auto
-  from lim have limy: "Y ----> L"
-    apply (subst tail_same_limit[of X _ N]) using Y_def by auto
-  show ?thesis
-  proof (cases "\<bar>L\<bar> = \<infinity>")
-    case False have "ALL n. Y n ~= \<infinity>"
-    proof(rule ccontr,unfold not_all not_not,safe)
-      case goal1 hence "ALL n>=x. Y n = \<infinity>" using incy[of x] by auto
-      hence "Y ----> \<infinity>" unfolding tendsto_def eventually_sequentially
-        apply safe apply(rule_tac x=x in exI) by auto
-      note Lim_unique[OF trivial_limit_sequentially this limy]
-      with False show False by auto
-    qed
-    with minfy have *: "\<And>n. \<bar>Y n\<bar> \<noteq> \<infinity>" by auto
 
-    have **:"ALL m n. m <= n --> extreal (real (Y m)) <= extreal (real (Y n))"
-      unfolding extreal_real using minfy * incy apply (cases "Y m", cases "Y n") by auto
-    have "real (Y N) <= real L" apply-apply(rule incseq_le) defer
-      apply(subst lim_extreal[THEN sym])
-      unfolding extreal_real
-      unfolding incseq_def using * ** limy False by auto
-    hence "extreal (real (Y N)) <= extreal (real L)" by auto
-    hence ***: "Y N <= L" unfolding extreal_real using * False by auto
-    thus ?thesis using Y_def by auto
+lemma extreal_le_extreal_bounded:
+  fixes x y z :: extreal
+  assumes "z \<le> y"
+  assumes *: "\<And>B. z < B \<Longrightarrow> B < x \<Longrightarrow> B \<le> y"
+  shows "x \<le> y"
+proof (rule extreal_le_extreal)
+  fix B assume "B < x"
+  show "B \<le> y"
+  proof cases
+    assume "z < B" from *[OF this `B < x`] show "B \<le> y" .
   next
-    case True
-    show ?thesis
-    proof(cases "L=(-\<infinity>)")
-      case True
-      have "open {..<X N}" by auto
-      moreover have "(-\<infinity>) : {..<X N}" using False by auto
-      ultimately obtain N1 where "ALL n>=N1. X n : {..<X N}" using lim True
-        unfolding tendsto_def eventually_sequentially by metis
-      hence "X (max N N1) : {..<X N}" by auto
-      with inc[of N "max N N1"] show ?thesis by auto
-    next
-      case False thus ?thesis using True by auto qed
+    assume "\<not> z < B" with `z \<le> y` show "B \<le> y" by auto
   qed
 qed
 
-lemma decseq_ge_extreal: assumes dec: "!!n m. n>=m ==> X n <= X m"
-  and lim: "X ----> (L::extreal)" shows "X N >= L"
-proof-
-def Y == "(%i. -(X i))"
-hence inc: "!!n m. n>=m ==> Y n >= Y m" using dec extreal_minus_le_minus by auto
-moreover have limy: "Y ----> (-L)" using Y_def extreal_lim_uminus lim by auto
-ultimately have "Y N <= -L" using incseq_le_extreal[of Y "-L"] by auto
-from this show ?thesis using Y_def extreal_minus_le_minus by auto
+lemma fixes x y :: extreal
+  shows Sup_atMost[simp]: "Sup {.. y} = y"
+    and Sup_lessThan[simp]: "Sup {..< y} = y"
+    and Sup_atLeastAtMost[simp]: "x \<le> y \<Longrightarrow> Sup { x .. y} = y"
+    and Sup_greaterThanAtMost[simp]: "x < y \<Longrightarrow> Sup { x <.. y} = y"
+    and Sup_atLeastLessThan[simp]: "x < y \<Longrightarrow> Sup { x ..< y} = y"
+  by (auto simp: Sup_extreal_def intro!: Least_equality
+           intro: extreal_le_extreal extreal_le_extreal_bounded[of x])
+
+lemma Sup_greaterThanlessThan[simp]:
+  fixes x y :: extreal assumes "x < y" shows "Sup { x <..< y} = y"
+  unfolding Sup_extreal_def
+proof (intro Least_equality extreal_le_extreal_bounded[of _ _ y])
+  fix z assume z: "\<forall>u\<in>{x<..<y}. u \<le> z"
+  from extreal_dense[OF `x < y`] guess w .. note w = this
+  with z[THEN bspec, of w] show "x \<le> z" by auto
+qed auto
+
+lemma SUP_Lim_extreal:
+  fixes X :: "nat \<Rightarrow> extreal" assumes "incseq X" "X ----> l" shows "(SUP n. X n) = l"
+proof (rule extreal_SUPI)
+  fix n from assms show "X n \<le> l"
+    by (intro incseq_le_extreal) (simp add: incseq_def)
+next
+  fix y assume "\<And>n. n \<in> UNIV \<Longrightarrow> X n \<le> y"
+  with extreal_Sup_lim[OF _ `X ----> l`, of "{..y}"]
+  show "l \<le> y" by auto
 qed
 
-
-lemma real_interm:
- assumes "(a::real)<b"
- shows "a + (b-a)/2 < b"
-by (metis Bit0_def assms comm_semiring_1_class.normalizing_semiring_rules(24) diff_minus_eq_add number_of_is_id one_is_num_one pth_2 real_average_minus_second real_gt_half_sum succ_def)
-
-
-lemma SUP_Lim_extreal: assumes "!!n m. n>=m ==> f n >= f m" "f ----> l"
-  shows "(SUP n. f n) = (l::extreal)" unfolding SUPR_def Sup_extreal_def
-proof (safe intro!: Least_equality)
-  fix n::nat show "f n <= l" apply(rule incseq_le_extreal)
-    using assms by auto
-next fix y assume y:"ALL x:range f. x <= y" show "l <= y"
-  proof-
-    { assume yinf: "\<bar>y\<bar> \<noteq> \<infinity>"
-      { assume as:"y < l"
-        hence linf: "\<bar>l\<bar> \<noteq> \<infinity>"
-          using Lim_bounded_PInfty[OF assms(2), of "real y"] y yinf by auto
-        have [simp]: "extreal (1 / 2) = 1 / 2" by (auto simp: divide_extreal_def)
-        have yl:"real y < real l" using as
-          apply(subst(asm) extreal_real'[THEN sym,OF yinf])
-          apply(subst(asm) extreal_real'[THEN sym,OF linf]) by auto
-        hence "y + (l - y) * 1 / 2 < l" apply-
-          apply(subst extreal_real'[THEN sym,OF yinf])
-          apply(subst(2) extreal_real'[THEN sym,OF yinf])
-          apply(subst extreal_real'[THEN sym,OF linf])
-          apply(subst(2) extreal_real'[THEN sym,OF linf])
-          using real_interm by auto
-        hence *:"l : {y + (l - y) / 2<..}" by auto
-        have "open {y + (l-y)/2 <..}" by auto
-        note topological_tendstoD[OF assms(2) this *]
-        from this[unfolded eventually_sequentially] guess N .. note this[rule_format, of N]
-        hence "y + (l - y)  / 2 < y" using y[rule_format,of "f N"] by auto
-        hence "extreal (real y) + (extreal (real l) - extreal (real y)) / 2 < extreal (real y)"
-          unfolding extreal_real using yinf linf by auto
-        hence False using yl by auto
-      } hence ?thesis using not_le by auto
-    }
-    moreover
-    { assume "y=(-\<infinity>)" hence "f = (\<lambda>_. -\<infinity>)" using y by (auto simp: fun_eq_iff)
-      hence "l=(-\<infinity>)" using `f ----> l` using tendsto_const[of "-\<infinity>"]
-         Lim_unique[OF trivial_limit_sequentially] by auto
-      hence ?thesis by auto
-    }
-    moreover have "y=\<infinity> --> l <= y" by auto
-    ultimately show ?thesis by blast
-  qed
+lemma LIMSEQ_extreal_SUPR:
+  fixes X :: "nat \<Rightarrow> extreal" assumes "incseq X" shows "X ----> (SUP n. X n)"
+proof (rule lim_extreal_increasing)
+  fix n m :: nat assume "m \<le> n" then show "X m \<le> X n"
+    using `incseq X` by (simp add: incseq_def)
+next
+  fix l assume "X ----> l"
+  with SUP_Lim_extreal[of X, OF assms this] show ?thesis by simp
 qed
 
-lemma INF_Lim_extreal: assumes "!!n m. n>=m ==> f n <= f m" "f ----> l"
-  shows "(INF n. f n) = (l::extreal)"
-proof-
-def Y == "(%i. -(f i))"
-hence inc: "!!n m. n>=m ==> Y n >= Y m" using assms extreal_minus_le_minus by auto
-moreover have limy: "Y ----> (-l)" using Y_def extreal_lim_uminus assms by auto
-ultimately have "(SUP n. Y n) = -l" using SUP_Lim_extreal[of Y "-l"] by auto
-hence "- (INF n. f n) = - l" using Y_def extreal_SUPR_uminus[of "UNIV" f] by auto
-from this show ?thesis by simp
-qed
+lemma INF_Lim_extreal: "decseq X \<Longrightarrow> X ----> l \<Longrightarrow> (INF n. X n) = (l::extreal)"
+  using SUP_Lim_extreal[of "\<lambda>i. - X i" "- l"]
+  by (simp add: extreal_SUPR_uminus extreal_lim_uminus)
 
+lemma LIMSEQ_extreal_INFI: "decseq X \<Longrightarrow> X ----> (INF n. X n :: extreal)"
+  using LIMSEQ_extreal_SUPR[of "\<lambda>i. - X i"]
+  by (simp add: extreal_SUPR_uminus extreal_lim_uminus)
 
-lemma incseq_mono: "mono f <-> incseq f"
+lemma incseq_mono: "mono f \<longleftrightarrow> incseq f"
   unfolding mono_def incseq_def by auto
-
 
 lemma SUP_eq_LIMSEQ:
   assumes "mono f"
-  shows "(SUP n. extreal (f n)) = extreal x <-> f ----> x"
+  shows "(SUP n. extreal (f n)) = extreal x \<longleftrightarrow> f ----> x"
 proof
-  assume x: "(SUP n. extreal (f n)) = extreal x"
-  { fix n
-    have "extreal (f n) <= extreal x" using x[symmetric] by (auto intro: le_SUPI)
-    hence "f n <= x" using assms by simp }
-  show "f ----> x"
-  proof (rule LIMSEQ_I)
-    fix r :: real assume "0 < r"
-    show "EX no. ALL n>=no. norm (f n - x) < r"
-    proof (rule ccontr)
-      assume *: "~ ?thesis"
-      { fix N
-        from * obtain n where "N <= n" "r <= x - f n"
-          using `!!n. f n <= x` by (auto simp: not_less)
-        hence "f N <= f n" using `mono f` by (auto dest: monoD)
-        hence "f N <= x - r" using `r <= x - f n` by auto
-        hence "extreal (f N) <= extreal (x - r)" by auto }
-      hence "(SUP n. extreal (f n)) <= extreal (x - r)"
-        and "extreal (x - r) < extreal x" using `0 < r` by (auto intro: SUP_leI)
-      hence "(SUP n. extreal (f n)) < extreal x" by (rule le_less_trans)
-      thus False using x by auto
-    qed
-  qed
-next
-  assume "f ----> x"
-  show "(SUP n. extreal (f n)) = extreal x"
-  proof (rule extreal_SUPI)
-    fix n
-    from incseq_le[of f x] `mono f` `f ----> x`
-    show "extreal (f n) <= extreal x" using assms incseq_mono by auto
-  next
-    fix y assume *: "!!n. n:UNIV ==> extreal (f n) <= y"
-    show "extreal x <= y"
-    proof-
-    { assume "EX r. y = extreal r"
-      from this obtain r where r_def: "y = extreal r" by auto
-      with * have "EX N. ALL n>=N. f n <= r" using assms by fastsimp
-      from LIMSEQ_le_const2[OF `f ----> x` this]
-      have "extreal x <= y" using r_def by auto
-    }
-    moreover
-    { assume "y=\<infinity> | y=(-\<infinity>)"
-      hence ?thesis using * by auto
-    } ultimately show ?thesis by (cases y) auto
-    qed
-  qed
+  have inc: "incseq (\<lambda>i. extreal (f i))"
+    using `mono f` unfolding mono_def incseq_def by auto
+  { assume "f ----> x"
+   then have "(\<lambda>i. extreal (f i)) ----> extreal x" by auto
+   from SUP_Lim_extreal[OF inc this]
+   show "(SUP n. extreal (f n)) = extreal x" . }
+  { assume "(SUP n. extreal (f n)) = extreal x"
+    with LIMSEQ_extreal_SUPR[OF inc]
+    show "f ----> x" by auto }
 qed
-
 
 lemma Liminf_within:
   fixes f :: "'a::metric_space => extreal"
@@ -3118,9 +3178,128 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma setsum_0:
-  fixes f :: "'a \<Rightarrow> pextreal" assumes "finite A"
+lemma setsum_extreal_0:
+  fixes f :: "'a \<Rightarrow> extreal" assumes "finite A" "\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i"
   shows "(\<Sum>x\<in>A. f x) = 0 \<longleftrightarrow> (\<forall>i\<in>A. f i = 0)"
-  using assms by induct auto
+proof
+  assume *: "(\<Sum>x\<in>A. f x) = 0"
+  then have "(\<Sum>x\<in>A. f x) \<noteq> \<infinity>" by auto
+  then have "\<forall>i\<in>A. \<bar>f i\<bar> \<noteq> \<infinity>" using assms by (force simp: setsum_Pinfty)
+  then have "\<forall>i\<in>A. \<exists>r. f i = extreal r" by auto
+  from bchoice[OF this] * assms show "\<forall>i\<in>A. f i = 0"
+    using setsum_nonneg_eq_0_iff[of A "\<lambda>i. real (f i)"] by auto
+qed (rule setsum_0')
+
+lemma setsum_extreal_right_distrib:
+  fixes f :: "'a \<Rightarrow> extreal" assumes "\<And>i. i \<in> A \<Longrightarrow> 0 \<le> f i" "0 \<le> r"
+  shows "r * setsum f A = (\<Sum>n\<in>A. r * f n)"
+proof cases
+  assume "finite A" then show ?thesis using assms
+    by induct (auto simp: extreal_distrib_right setsum_nonneg)
+qed simp
+
+lemma sums_extreal_positive:
+  fixes f :: "nat \<Rightarrow> extreal" assumes "\<And>i. 0 \<le> f i" shows "f sums (SUP n. \<Sum>i<n. f i)"
+proof -
+  have "incseq (\<lambda>i. \<Sum>j=0..<i. f j)"
+    using extreal_add_mono[OF _ assms] by (auto intro!: incseq_SucI)
+  from LIMSEQ_extreal_SUPR[OF this]
+  show ?thesis unfolding sums_def by (simp add: atLeast0LessThan)
+qed
+
+lemma summable_extreal:
+  fixes f :: "nat \<Rightarrow> extreal" assumes "\<And>i. 0 \<le> f i" shows "summable f"
+  using sums_extreal_positive[of f, OF assms] unfolding summable_def by auto
+
+lemma suminf_extreal_eq_SUPR:
+  fixes f :: "nat \<Rightarrow> extreal" assumes "\<And>i. 0 \<le> f i"
+  shows "(\<Sum>x. f x) = (SUP n. \<Sum>i<n. f i)"
+  using sums_extreal_positive[of f, OF assms, THEN sums_unique] by simp
+
+lemma suminf_extreal:
+  "(\<lambda>x. extreal (f x)) sums extreal x \<longleftrightarrow> f sums x"
+  unfolding sums_def by simp
+
+lemma suminf_bound:
+  fixes f :: "nat \<Rightarrow> extreal"
+  assumes "\<forall>N. (\<Sum>n<N. f n) \<le> x" and pos: "\<And>n. 0 \<le> f n"
+  shows "suminf f \<le> x"
+proof (rule Lim_bounded_extreal)
+  have "summable f" using pos[THEN summable_extreal] .
+  then show "(\<lambda>N. \<Sum>n<N. f n) ----> suminf f"
+    by (auto dest!: summable_sums simp: sums_def atLeast0LessThan)
+  show "\<forall>n\<ge>0. setsum f {..<n} \<le> x"
+    using assms by auto
+qed
+
+lemma suminf_bound_add:
+  fixes f :: "nat \<Rightarrow> extreal"
+  assumes "\<forall>N. (\<Sum>n<N. f n) + y \<le> x" and pos: "\<And>n. 0 \<le> f n" and "y \<noteq> -\<infinity>"
+  shows "suminf f + y \<le> x"
+proof (cases y)
+  case (real r) then have "\<forall>N. (\<Sum>n<N. f n) \<le> x - y"
+    using assms by (simp add: extreal_le_minus)
+  then have "(\<Sum> n. f n) \<le> x - y" using pos by (rule suminf_bound)
+  then show "(\<Sum> n. f n) + y \<le> x"
+    using assms real by (simp add: extreal_le_minus)
+qed (insert assms, auto)
+
+lemma sums_finite:
+  assumes "\<forall>N\<ge>n. f N = 0"
+  shows "f sums (\<Sum>N<n. f N)"
+proof -
+  { fix i have "(\<Sum>N<i + n. f N) = (\<Sum>N<n. f N)"
+      by (induct i) (insert assms, auto) }
+  note this[simp]
+  show ?thesis unfolding sums_def
+    by (rule LIMSEQ_offset[of _ n]) (auto simp add: atLeast0LessThan)
+qed
+
+lemma suminf_finite:
+  fixes f :: "nat \<Rightarrow> 'a::{comm_monoid_add,t2_space}" assumes "\<forall>N\<ge>n. f N = 0"
+  shows "suminf f = (\<Sum>N<n. f N)"
+  using sums_finite[OF assms, THEN sums_unique] by simp
+
+lemma suminf_upper:
+  fixes f :: "nat \<Rightarrow> extreal" assumes "\<And>n. 0 \<le> f n"
+  shows "(\<Sum>n<N. f n) \<le> (\<Sum>n. f n)"
+  unfolding suminf_extreal_eq_SUPR[OF assms] SUPR_def
+  by (auto intro: complete_lattice_class.Sup_upper image_eqI)
+
+lemma suminf_0_le:
+  fixes f :: "nat \<Rightarrow> extreal" assumes "\<And>n. 0 \<le> f n"
+  shows "0 \<le> (\<Sum>n. f n)"
+  using suminf_upper[of f 0, OF assms] by simp
+
+lemma suminf_le_pos:
+  fixes f g :: "nat \<Rightarrow> extreal"
+  assumes "\<And>N. f N \<le> g N" "\<And>N. 0 \<le> f N"
+  shows "suminf f \<le> suminf g"
+proof (safe intro!: suminf_bound)
+  fix n { fix N have "0 \<le> g N" using assms(2,1)[of N] by auto }
+  have "setsum f {..<n} \<le> setsum g {..<n}" using assms by (auto intro: setsum_mono)
+  also have "... \<le> suminf g" using `\<And>N. 0 \<le> g N` by (rule suminf_upper)
+  finally show "setsum f {..<n} \<le> suminf g" .
+qed (rule assms(2))
+
+lemma suminf_half_series_extreal: "(\<Sum>n. (1/2 :: extreal)^Suc n) = 1"
+  using suminf_extreal[THEN iffD2, OF power_half_series, THEN sums_unique, symmetric]
+  by (simp add: one_extreal_def)
+
+lemma suminf_add_extreal:
+  fixes f g :: "nat \<Rightarrow> extreal"
+  assumes "\<And>i. 0 \<le> f i" "\<And>i. 0 \<le> g i"
+  shows "(\<Sum>i. f i + g i) = suminf f + suminf g"
+  apply (subst (1 2 3) suminf_extreal_eq_SUPR)
+  unfolding setsum_addf
+  by (intro assms extreal_add_nonneg_nonneg SUPR_extreal_add incseq_setsumI setsum_nonneg ballI)+
+
+lemma suminf_cmult_extreal:
+  fixes f g :: "nat \<Rightarrow> extreal"
+  assumes "\<And>i. 0 \<le> f i" "0 \<le> a"
+  shows "(\<Sum>i. a * f i) = a * suminf f"
+  by (auto simp: setsum_extreal_right_distrib[symmetric] assms
+                 extreal_zero_le_0_iff setsum_nonneg suminf_extreal_eq_SUPR
+           intro!: SUPR_extreal_cmult )
 
 end
