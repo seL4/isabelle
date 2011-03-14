@@ -4,7 +4,8 @@ header {* Counterexample generator preforming narrowing-based testing *}
 
 theory Quickcheck_Narrowing
 imports Main "~~/src/HOL/Library/Code_Char"
-uses ("~~/src/HOL/Tools/Quickcheck/narrowing_generators.ML")
+uses
+  ("~~/src/HOL/Tools/Quickcheck/narrowing_generators.ML")
 begin
 
 subsection {* Counterexample generator *}

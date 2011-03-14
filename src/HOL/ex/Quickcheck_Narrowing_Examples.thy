@@ -115,12 +115,12 @@ declare is_ord.simps(1)[code] is_ord_mkt[code]
                  
 subsection {* Necessary instantiation for quickcheck generator *}
 
-instantiation tree :: (serial) serial
+instantiation tree :: (narrowing) narrowing
 begin
 
-function series_tree
+function narrowing_tree
 where
-  "series_tree d = sum (cons ET) (apply (apply (apply (apply (cons MKT) series) series_tree) series_tree) series) d"
+  "narrowing_tree d = sum (cons ET) (apply (apply (apply (apply (cons MKT) narrowing) narrowing_tree) narrowing_tree) narrowing) d"
 by pat_completeness auto
 
 termination proof (relation "measure nat_of")

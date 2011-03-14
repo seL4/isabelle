@@ -89,9 +89,9 @@ instance Testable Bool where {
   property app = P $ \n d -> Result [] [] (app . reverse);
 };
 
-instance (Term_of a, Serial a, Testable b) => Testable (a -> b) where {
+instance (Term_of a, Narrowing a, Testable b) => Testable (a -> b) where {
   property f = P $ \n d ->
-    let C t c = series d
+    let C t c = narrowing d
         c' = conv c
         r = run (\(x:xs) -> f xs (c' x)) (n+1) d
     in  r { args = Var [n] t : args r, showArgs = (show . term_of . c') : showArgs r };
