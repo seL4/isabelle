@@ -57,7 +57,7 @@ lemma (in sigma_algebra) borel_measurable_vimage:
   shows "f -` {x} \<inter> space M \<in> sets M"
 proof (cases "x \<in> f ` space M")
   case True then obtain y where "x = f y" by auto
-  from closed_sing[of "f y"]
+  from closed_singleton[of "f y"]
   have "{f y} \<in> sets borel" by (rule borel_closed)
   with assms show ?thesis
     unfolding in_borel_measurable_borel `x = f y` by auto
@@ -81,7 +81,7 @@ lemma borel_singleton[simp, intro]:
   shows "A \<in> sets borel \<Longrightarrow> insert x A \<in> sets borel"
   proof (rule borel.insert_in_sets)
     show "{x} \<in> sets borel"
-      using closed_sing[of x] by (rule borel_closed)
+      using closed_singleton[of x] by (rule borel_closed)
   qed simp
 
 lemma (in sigma_algebra) borel_measurable_const[simp, intro]:

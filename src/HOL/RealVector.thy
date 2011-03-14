@@ -534,6 +534,34 @@ using dist_triangle2 [of x z y] by (simp add: dist_commute)
 lemma dist_triangle3: "dist x y \<le> dist a x + dist a y"
 using dist_triangle2 [of x y a] by (simp add: dist_commute)
 
+lemma dist_triangle_alt:
+  shows "dist y z <= dist x y + dist x z"
+by (rule dist_triangle3)
+
+lemma dist_pos_lt:
+  shows "x \<noteq> y ==> 0 < dist x y"
+by (simp add: zero_less_dist_iff)
+
+lemma dist_nz:
+  shows "x \<noteq> y \<longleftrightarrow> 0 < dist x y"
+by (simp add: zero_less_dist_iff)
+
+lemma dist_triangle_le:
+  shows "dist x z + dist y z <= e \<Longrightarrow> dist x y <= e"
+by (rule order_trans [OF dist_triangle2])
+
+lemma dist_triangle_lt:
+  shows "dist x z + dist y z < e ==> dist x y < e"
+by (rule le_less_trans [OF dist_triangle2])
+
+lemma dist_triangle_half_l:
+  shows "dist x1 y < e / 2 \<Longrightarrow> dist x2 y < e / 2 \<Longrightarrow> dist x1 x2 < e"
+by (rule dist_triangle_lt [where z=y], simp)
+
+lemma dist_triangle_half_r:
+  shows "dist y x1 < e / 2 \<Longrightarrow> dist y x2 < e / 2 \<Longrightarrow> dist x1 x2 < e"
+by (rule dist_triangle_half_l, simp_all add: dist_commute)
+
 subclass topological_space
 proof
   have "\<exists>e::real. 0 < e"
@@ -552,6 +580,13 @@ next
 next
   fix K assume "\<forall>S\<in>K. open S" thus "open (\<Union>K)"
     unfolding open_dist by fast
+qed
+
+lemma (in metric_space) open_ball: "open {y. dist x y < d}"
+proof (unfold open_dist, intro ballI)
+  fix y assume *: "y \<in> {y. dist x y < d}"
+  then show "\<exists>e>0. \<forall>z. dist z y < e \<longrightarrow> z \<in> {y. dist x y < d}"
+    by (auto intro!: exI[of _ "d - dist x y"] simp: field_simps dist_triangle_lt)
 qed
 
 end
@@ -1059,5 +1094,79 @@ by (rule scaleR.bounded_linear_right)
 
 interpretation of_real: bounded_linear "\<lambda>r. of_real r"
 unfolding of_real_def by (rule scaleR.bounded_linear_left)
+
+subsection{* Hausdorff and other separation properties *}
+
+class t0_space = topological_space +
+  assumes t0_space: "x \<noteq> y \<Longrightarrow> \<exists>U. open U \<and> \<not> (x \<in> U \<longleftrightarrow> y \<in> U)"
+
+class t1_space = topological_space +
+  assumes t1_space: "x \<noteq> y \<Longrightarrow> \<exists>U. open U \<and> x \<in> U \<and> y \<notin> U"
+
+instance t1_space \<subseteq> t0_space
+proof qed (fast dest: t1_space)
+
+lemma separation_t1:
+  fixes x y :: "'a::t1_space"
+  shows "x \<noteq> y \<longleftrightarrow> (\<exists>U. open U \<and> x \<in> U \<and> y \<notin> U)"
+  using t1_space[of x y] by blast
+
+lemma closed_singleton:
+  fixes a :: "'a::t1_space"
+  shows "closed {a}"
+proof -
+  let ?T = "\<Union>{S. open S \<and> a \<notin> S}"
+  have "open ?T" by (simp add: open_Union)
+  also have "?T = - {a}"
+    by (simp add: set_eq_iff separation_t1, auto)
+  finally show "closed {a}" unfolding closed_def .
+qed
+
+lemma closed_insert [simp]:
+  fixes a :: "'a::t1_space"
+  assumes "closed S" shows "closed (insert a S)"
+proof -
+  from closed_singleton assms
+  have "closed ({a} \<union> S)" by (rule closed_Un)
+  thus "closed (insert a S)" by simp
+qed
+
+lemma finite_imp_closed:
+  fixes S :: "'a::t1_space set"
+  shows "finite S \<Longrightarrow> closed S"
+by (induct set: finite, simp_all)
+
+text {* T2 spaces are also known as Hausdorff spaces. *}
+
+class t2_space = topological_space +
+  assumes hausdorff: "x \<noteq> y \<Longrightarrow> \<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
+
+instance t2_space \<subseteq> t1_space
+proof qed (fast dest: hausdorff)
+
+instance metric_space \<subseteq> t2_space
+proof
+  fix x y :: "'a::metric_space"
+  assume xy: "x \<noteq> y"
+  let ?U = "{y'. dist x y' < dist x y / 2}"
+  let ?V = "{x'. dist y x' < dist x y / 2}"
+  have th0: "\<And>d x y z. (d x z :: real) \<le> d x y + d y z \<Longrightarrow> d y z = d z y
+               \<Longrightarrow> \<not>(d x y * 2 < d x z \<and> d z y * 2 < d x z)" by arith
+  have "open ?U \<and> open ?V \<and> x \<in> ?U \<and> y \<in> ?V \<and> ?U \<inter> ?V = {}"
+    using dist_pos_lt[OF xy] th0[of dist, OF dist_triangle dist_commute]
+    using open_ball[of _ "dist x y / 2"] by auto
+  then show "\<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
+    by blast
+qed
+
+lemma separation_t2:
+  fixes x y :: "'a::t2_space"
+  shows "x \<noteq> y \<longleftrightarrow> (\<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {})"
+  using hausdorff[of x y] by blast
+
+lemma separation_t0:
+  fixes x y :: "'a::t0_space"
+  shows "x \<noteq> y \<longleftrightarrow> (\<exists>U. open U \<and> ~(x\<in>U \<longleftrightarrow> y\<in>U))"
+  using t0_space[of x y] by blast
 
 end

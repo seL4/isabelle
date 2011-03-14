@@ -326,42 +326,6 @@ method_setup norm = {* Scan.succeed (SIMPLE_METHOD' o NormArith.norm_arith_tac)
 
 text{* Hence more metric properties. *}
 
-lemma dist_triangle_alt:
-  fixes x y z :: "'a::metric_space"
-  shows "dist y z <= dist x y + dist x z"
-by (rule dist_triangle3)
-
-lemma dist_pos_lt:
-  fixes x y :: "'a::metric_space"
-  shows "x \<noteq> y ==> 0 < dist x y"
-by (simp add: zero_less_dist_iff)
-
-lemma dist_nz:
-  fixes x y :: "'a::metric_space"
-  shows "x \<noteq> y \<longleftrightarrow> 0 < dist x y"
-by (simp add: zero_less_dist_iff)
-
-lemma dist_triangle_le:
-  fixes x y z :: "'a::metric_space"
-  shows "dist x z + dist y z <= e \<Longrightarrow> dist x y <= e"
-by (rule order_trans [OF dist_triangle2])
-
-lemma dist_triangle_lt:
-  fixes x y z :: "'a::metric_space"
-  shows "dist x z + dist y z < e ==> dist x y < e"
-by (rule le_less_trans [OF dist_triangle2])
-
-lemma dist_triangle_half_l:
-  fixes x1 x2 y :: "'a::metric_space"
-  shows "dist x1 y < e / 2 \<Longrightarrow> dist x2 y < e / 2 \<Longrightarrow> dist x1 x2 < e"
-by (rule dist_triangle_lt [where z=y], simp)
-
-lemma dist_triangle_half_r:
-  fixes x1 x2 y :: "'a::metric_space"
-  shows "dist y x1 < e / 2 \<Longrightarrow> dist y x2 < e / 2 \<Longrightarrow> dist x1 x2 < e"
-by (rule dist_triangle_half_l, simp_all add: dist_commute)
-
-
 lemma norm_triangle_half_r:
   shows "norm (y - x1) < e / 2 \<Longrightarrow> norm (y - x2) < e / 2 \<Longrightarrow> norm (x1 - x2) < e"
   using dist_triangle_half_r unfolding dist_norm[THEN sym] by auto
