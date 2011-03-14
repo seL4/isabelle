@@ -193,7 +193,7 @@ fun instantiate_exhaustive_datatype config descr vs tycos prfx (names, auxnames)
         #> apfst fst) (exhaustivesN ~~ (Ts @ Us))
       #> (fn (exhaustives, lthy) =>
         let
-          val eqs_t = mk_equations thy descr vs tycos exhaustives (Ts, Us)
+          val eqs_t = mk_equations descr vs tycos exhaustives (Ts, Us)
           val eqs = map (fn eq => Goal.prove lthy ["f", "i"] [] eq
             (fn _ => Skip_Proof.cheat_tac (ProofContext.theory_of lthy))) eqs_t
         in
