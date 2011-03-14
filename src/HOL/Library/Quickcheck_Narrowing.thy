@@ -86,7 +86,7 @@ code_const "op < \<Colon> code_int \<Rightarrow> code_int \<Rightarrow> bool"
 code_type code_int
   (Haskell "Int")
 
-subsubsection {* LSC's deep representation of types of terms *}
+subsubsection {* Narrowing's deep representation of types and terms *}
 
 datatype type = SumOfProd "type list list"
 
@@ -94,7 +94,7 @@ datatype "term" = Var "code_int list" type | Ctr code_int "term list"
 
 datatype 'a cons = C type "(term list => 'a) list"
 
-subsubsection {* auxilary functions for LSC *}
+subsubsection {* auxilary functions for Narrowing *}
 
 consts nth :: "'a list => code_int => 'a"
 
@@ -112,15 +112,15 @@ consts map_index :: "(code_int * 'a => 'b) => 'a list => 'b list"
 
 consts split_At :: "code_int => 'a list => 'a list * 'a list"
  
-subsubsection {* LSC's basic operations *}
+subsubsection {* Narrowing's basic operations *}
 
-type_synonym 'a series = "code_int => 'a cons"
+type_synonym 'a narrowing = "code_int => 'a cons"
 
-definition empty :: "'a series"
+definition empty :: "'a narrowing"
 where
   "empty d = C (SumOfProd []) []"
   
-definition cons :: "'a => 'a series"
+definition cons :: "'a => 'a narrowing"
 where
   "cons a d = (C (SumOfProd [[]]) [(%_. a)])"
 
@@ -133,7 +133,7 @@ fun nonEmpty :: "type => bool"
 where
   "nonEmpty (SumOfProd ps) = (\<not> (List.null ps))"
 
-definition "apply" :: "('a => 'b) series => 'a series => 'b series"
+definition "apply" :: "('a => 'b) narrowing => 'a narrowing => 'b narrowing"
 where
   "apply f a d =
      (case f d of C (SumOfProd ps) cfs =>
@@ -143,7 +143,7 @@ where
          cs = [(%xs'. (case xs' of [] => undefined | x # xs => cf xs (conv cas x))). shallow, cf <- cfs]
        in C (SumOfProd [ta # p. shallow, p <- ps]) cs)"
 
-definition sum :: "'a series => 'a series => 'a series"
+definition sum :: "'a narrowing => 'a narrowing => 'a narrowing"
 where
   "sum a b d =
     (case a d of C (SumOfProd ssa) ca => 
@@ -170,7 +170,7 @@ proof -
     unfolding apply_def by (auto split: cons.split type.split simp add: Let_def)
 qed
 
-definition cons0 :: "'a => 'a series"
+definition cons0 :: "'a => 'a narrowing"
 where
   "cons0 f = cons f"
 
@@ -198,65 +198,65 @@ by pat_completeness auto
 
 termination sorry
 *)
-subsubsection {* LSC's type class for enumeration *}
+subsubsection {* Narrowing generator type class *}
 
-class serial =
-  fixes series :: "code_int => 'a cons"
+class narrowing =
+  fixes narrowing :: "code_int => 'a cons"
 
-definition cons1 :: "('a::serial => 'b) => 'b series"
+definition cons1 :: "('a::narrowing => 'b) => 'b narrowing"
 where
-  "cons1 f = apply (cons f) series"
+  "cons1 f = apply (cons f) narrowing"
 
-definition cons2 :: "('a :: serial => 'b :: serial => 'c) => 'c series"
+definition cons2 :: "('a :: narrowing => 'b :: narrowing => 'c) => 'c narrowing"
 where
-  "cons2 f = apply (apply (cons f) series) series"
+  "cons2 f = apply (apply (cons f) narrowing) narrowing"
   
-instantiation unit :: serial
+instantiation unit :: narrowing
 begin
 
 definition
-  "series = cons0 ()"
+  "narrowing = cons0 ()"
 
 instance ..
 
 end
 
-instantiation bool :: serial
+instantiation bool :: narrowing
 begin
 
 definition
-  "series = sum (cons0 True) (cons0 False)" 
+  "narrowing = sum (cons0 True) (cons0 False)" 
 
 instance ..
 
 end
 
-instantiation option :: (serial) serial
+instantiation option :: (narrowing) narrowing
 begin
 
 definition
-  "series = sum (cons0 None) (cons1 Some)"
+  "narrowing = sum (cons0 None) (cons1 Some)"
 
 instance ..
 
 end
 
-instantiation sum :: (serial, serial) serial
+instantiation sum :: (narrowing, narrowing) narrowing
 begin
 
 definition
-  "series = sum (cons1 Inl) (cons1 Inr)"
+  "narrowing = sum (cons1 Inl) (cons1 Inr)"
 
 instance ..
 
 end
 
-instantiation list :: (serial) serial
+instantiation list :: (narrowing) narrowing
 begin
 
-function series_list :: "'a list series"
+function narrowing_list :: "'a list narrowing"
 where
-  "series_list d = sum (cons []) (apply (apply (cons Cons) series) series_list) d"
+  "narrowing_list d = sum (cons []) (apply (apply (cons Cons) narrowing) narrowing_list) d"
 by pat_completeness auto
 
 termination proof (relation "measure nat_of")
@@ -266,12 +266,12 @@ instance ..
 
 end
 
-instantiation nat :: serial
+instantiation nat :: narrowing
 begin
 
-function series_nat :: "nat series"
+function narrowing_nat :: "nat narrowing"
 where
-  "series_nat d = sum (cons 0) (apply (cons Suc) series_nat) d"
+  "narrowing_nat d = sum (cons 0) (apply (cons Suc) narrowing_nat) d"
 by pat_completeness auto
 
 termination proof (relation "measure nat_of")
@@ -281,45 +281,45 @@ instance ..
 
 end
 
-instantiation Enum.finite_1 :: serial
+instantiation Enum.finite_1 :: narrowing
 begin
 
-definition series_finite_1 :: "Enum.finite_1 series"
+definition narrowing_finite_1 :: "Enum.finite_1 narrowing"
 where
-  "series_finite_1 = cons (Enum.finite_1.a\<^isub>1 :: Enum.finite_1)"
+  "narrowing_finite_1 = cons (Enum.finite_1.a\<^isub>1 :: Enum.finite_1)"
 
 instance ..
 
 end
 
-instantiation Enum.finite_2 :: serial
+instantiation Enum.finite_2 :: narrowing
 begin
 
-definition series_finite_2 :: "Enum.finite_2 series"
+definition narrowing_finite_2 :: "Enum.finite_2 narrowing"
 where
-  "series_finite_2 = sum (cons (Enum.finite_2.a\<^isub>1 :: Enum.finite_2)) (cons (Enum.finite_2.a\<^isub>2 :: Enum.finite_2))"
+  "narrowing_finite_2 = sum (cons (Enum.finite_2.a\<^isub>1 :: Enum.finite_2)) (cons (Enum.finite_2.a\<^isub>2 :: Enum.finite_2))"
 
 instance ..
 
 end
 
-instantiation Enum.finite_3 :: serial
+instantiation Enum.finite_3 :: narrowing
 begin
 
-definition series_finite_3 :: "Enum.finite_3 series"
+definition narrowing_finite_3 :: "Enum.finite_3 narrowing"
 where
-  "series_finite_3 = sum (cons (Enum.finite_3.a\<^isub>1 :: Enum.finite_3)) (sum (cons (Enum.finite_3.a\<^isub>2 :: Enum.finite_3)) (cons (Enum.finite_3.a\<^isub>3 :: Enum.finite_3)))"
+  "narrowing_finite_3 = sum (cons (Enum.finite_3.a\<^isub>1 :: Enum.finite_3)) (sum (cons (Enum.finite_3.a\<^isub>2 :: Enum.finite_3)) (cons (Enum.finite_3.a\<^isub>3 :: Enum.finite_3)))"
 
 instance ..
 
 end
 
-instantiation Enum.finite_4 :: serial
+instantiation Enum.finite_4 :: narrowing
 begin
 
-definition series_finite_4 :: "Enum.finite_4 series"
+definition narrowing_finite_4 :: "Enum.finite_4 narrowing"
 where
-  "series_finite_4 = sum (cons Enum.finite_4.a\<^isub>1) (sum (cons Enum.finite_4.a\<^isub>2) (sum (cons Enum.finite_4.a\<^isub>3) (cons Enum.finite_4.a\<^isub>4)))"
+  "narrowing_finite_4 = sum (cons Enum.finite_4.a\<^isub>1) (sum (cons Enum.finite_4.a\<^isub>2) (sum (cons Enum.finite_4.a\<^isub>3) (cons Enum.finite_4.a\<^isub>4)))"
 
 instance ..
 
@@ -333,7 +333,7 @@ class is_testable
 
 instance bool :: is_testable ..
 
-instance "fun" :: ("{term_of, serial}", is_testable) is_testable ..
+instance "fun" :: ("{term_of, narrowing}", is_testable) is_testable ..
 
 definition ensure_testable :: "'a :: is_testable => 'a :: is_testable"
 where
