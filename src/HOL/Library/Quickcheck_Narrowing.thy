@@ -20,7 +20,7 @@ code_const Typerep.Typerep
 
 code_reserved Haskell Typerep
 
-subsubsection {* Type @{text code_int} for Haskell's Int type *}
+subsubsection {* Type @{text "code_int"} for Haskell's Int type *}
 
 typedef (open) code_int = "UNIV \<Colon> int set"
   morphisms int_of of_int by rule
@@ -95,7 +95,7 @@ datatype "term" = Var "code_int list" type | Ctr code_int "term list"
 
 datatype 'a cons = C type "(term list => 'a) list"
 
-subsubsection {* auxilary functions for Narrowing *}
+subsubsection {* Auxilary functions for Narrowing *}
 
 consts nth :: "'a list => code_int => 'a"
 
