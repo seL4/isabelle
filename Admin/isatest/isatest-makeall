@@ -153,6 +153,7 @@ for SETTINGS in $@; do
         rm -rf $ISABELLE_HOME_USER
     fi
 
+    cp $DISTPREFIX/Isabelle/etc/settings.orig $DISTPREFIX/Isabelle/etc/settings
     cat $SETTINGS >> $DISTPREFIX/Isabelle/etc/settings
     (ulimit -t $MAXTIME; cd $DIR; $NICE $TOOL >> $TESTLOG 2>&1)
 
