@@ -2466,12 +2466,12 @@ constant might not be needed to find a countermodel.
 {\small See also \textit{debug} (\S\ref{output-format}).}
 
 \opnodefault{need}{term\_list}
-Specifies a list of datatype values (ground constructor terms) that should be
-part of the subterm-closed subsets used to approximate datatypes. If you know
-that a value must necessarily belong to the subset of representable values that
-approximates a datatype, specifying it can speed up the search, especially for
-high cardinalities. By default, Nitpick inspects the conjecture to infer needed
-datatype values.
+Specifies a list of datatype values (normally ground constructor terms) that
+should be part of the subterm-closed subsets used to approximate datatypes. If
+you know that a value must necessarily belong to the subset of representable
+values that approximates a datatype, specifying it can speed up the search,
+especially for high cardinalities.
+%By default, Nitpick inspects the conjecture to infer needed datatype values.
 
 \opsmart{total\_consts}{partial\_consts}
 Specifies whether constants occurring in the problem other than constructors can

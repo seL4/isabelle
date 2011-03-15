@@ -197,10 +197,6 @@ val has_syntactic_sorts = exists_type (exists_subtype has_tfree_syntactic_sort)
 
 fun plazy f = Pretty.blk (0, pstrs (f ()))
 
-fun check_constr_nut (Construct (_, _, _, us)) = List.app check_constr_nut us
-  | check_constr_nut _ =
-    error "The \"need\" option requires a constructor term."
-
 fun pick_them_nits_in_term deadline state (params : params) auto i n step
                            subst assm_ts orig_t =
   let
@@ -333,7 +329,6 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val nondef_us = nondef_ts |> map (nut_from_term hol_ctxt Eq)
     val def_us = def_ts |> map (nut_from_term hol_ctxt DefEq)
     val need_us = need_ts |> map (nut_from_term hol_ctxt Eq)
-    val _ = List.app check_constr_nut need_us
     val (free_names, const_names) =
       fold add_free_and_const_names (nondef_us @ def_us @ need_us) ([], [])
     val (sel_names, nonsel_names) =

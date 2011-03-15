@@ -1506,8 +1506,7 @@ fun needed_value_axioms_for_datatype [] _ _ _ = []
                      end
                  else
                    accum)
-        | aux u =
-          raise NUT ("Nitpick_Kodkod.needed_value_axioms_for_datatype.aux", [u])
+        | aux _ = I
     in
       case SOME (index_seq 0 card, []) |> fold aux need_us of
         SOME (_, fixed) => fixed |> map (atom_equation_for_nut ofs kk)
