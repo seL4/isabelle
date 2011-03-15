@@ -206,6 +206,8 @@ mv "${DISTNAME}-old/README" "${DISTNAME}-old/NEWS" "${DISTNAME}-old/ANNOUNCE" \
 mkdir "$DISTNAME/doc"
 mv "${DISTNAME}-old/doc/"*.pdf "${DISTNAME}-old/doc/Contents" "$DISTNAME/doc"
 
+rm -f Isabelle && ln -sf "$DISTNAME" Isabelle
+
 chgrp -R isabelle "$DISTNAME"
 
 rm -rf "${DISTNAME}-old"
