@@ -4449,28 +4449,48 @@ lemma lexord_take_index_conv:
   by (simp add: drop_Suc_conv_tl) 
 
 -- {* lexord is extension of partial ordering List.lex *} 
-lemma lexord_lex: " (x,y) \<in> lex r = ((x,y) \<in> lexord r \<and> length x = length y)"
+lemma lexord_lex: "(x,y) \<in> lex r = ((x,y) \<in> lexord r \<and> length x = length y)"
   apply (rule_tac x = y in spec) 
   apply (induct_tac x, clarsimp) 
   by (clarify, case_tac x, simp, force)
 
-lemma lexord_irreflexive: "(! x. (x,x) \<notin> r) \<Longrightarrow> (y,y) \<notin> lexord r"
-  by (induct y, auto)
+lemma lexord_irreflexive: "ALL x. (x,x) \<notin> r \<Longrightarrow> (xs,xs) \<notin> lexord r"
+by (induct xs) auto
+
+text{* By Ren\'e Thiemann: *}
+lemma lexord_partial_trans: 
+  "(\<And>x y z. x \<in> set xs \<Longrightarrow> (x,y) \<in> r \<Longrightarrow> (y,z) \<in> r \<Longrightarrow> (x,z) \<in> r)
+   \<Longrightarrow>  (xs,ys) \<in> lexord r  \<Longrightarrow>  (ys,zs) \<in> lexord r \<Longrightarrow>  (xs,zs) \<in> lexord r"
+proof (induct xs arbitrary: ys zs)
+  case Nil
+  from Nil(3) show ?case unfolding lexord_def by (cases zs, auto)
+next
+  case (Cons x xs yys zzs)
+  from Cons(3) obtain y ys where yys: "yys = y # ys" unfolding lexord_def
+    by (cases yys, auto)
+  note Cons = Cons[unfolded yys]
+  from Cons(3) have one: "(x,y) \<in> r \<or> x = y \<and> (xs,ys) \<in> lexord r" by auto
+  from Cons(4) obtain z zs where zzs: "zzs = z # zs" unfolding lexord_def
+    by (cases zzs, auto)
+  note Cons = Cons[unfolded zzs]
+  from Cons(4) have two: "(y,z) \<in> r \<or> y = z \<and> (ys,zs) \<in> lexord r" by auto
+  {
+    assume "(xs,ys) \<in> lexord r" and "(ys,zs) \<in> lexord r"
+    from Cons(1)[OF _ this] Cons(2)
+    have "(xs,zs) \<in> lexord r" by auto
+  } note ind1 = this
+  {
+    assume "(x,y) \<in> r" and "(y,z) \<in> r"
+    from Cons(2)[OF _ this] have "(x,z) \<in> r" by auto
+  } note ind2 = this
+  from one two ind1 ind2
+  have "(x,z) \<in> r \<or> x = z \<and> (xs,zs) \<in> lexord r" by blast
+  thus ?case unfolding zzs by auto
+qed
 
 lemma lexord_trans: 
     "\<lbrakk> (x, y) \<in> lexord r; (y, z) \<in> lexord r; trans r \<rbrakk> \<Longrightarrow> (x, z) \<in> lexord r"
-   apply (erule rev_mp)+
-   apply (rule_tac x = x in spec) 
-  apply (rule_tac x = z in spec) 
-  apply ( induct_tac y, simp, clarify)
-  apply (case_tac xa, erule ssubst) 
-  apply (erule allE, erule allE) -- {* avoid simp recursion *} 
-  apply (case_tac x, simp, simp) 
-  apply (case_tac x, erule allE, erule allE, simp)
-  apply (erule_tac x = listb in allE) 
-  apply (erule_tac x = lista in allE, simp)
-  apply (unfold trans_def)
-  by blast
+by(auto simp: trans_def intro:lexord_partial_trans)
 
 lemma lexord_transI:  "trans r \<Longrightarrow> trans (lexord r)"
 by (rule transI, drule lexord_trans, blast) 
