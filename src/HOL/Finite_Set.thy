@@ -1929,6 +1929,12 @@ by (simp add: card_insert_if card_Suc_Diff1 del:card_Diff_insert)
 lemma card_insert_le: "finite A ==> card A <= card (insert x A)"
 by (simp add: card_insert_if)
 
+lemma card_Collect_less_nat[simp]: "card{i::nat. i < n} = n"
+by (induct n) (simp_all add:less_Suc_eq Collect_disj_eq)
+
+lemma card_Collect_le_nat[simp]: "card{i::nat. i <= n} = n+1"
+using card_Collect_less_nat[of "Suc n"] by(simp add: less_Suc_eq_le)
+
 lemma card_mono:
   assumes "finite B" and "A \<subseteq> B"
   shows "card A \<le> card B"
@@ -2251,7 +2257,7 @@ apply (unfold inj_on_def)
 apply (blast elim!: equalityE)
 done
 
-text {* Relates to equivalence classes.  Based on a theorem of F. Kammüller.  *}
+text {* Relates to equivalence classes.  Based on a theorem of F. Kamm\"uller.  *}
 
 lemma dvd_partition:
   "finite (Union C) ==>

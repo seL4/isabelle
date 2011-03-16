@@ -644,7 +644,7 @@ lemma trancl_subset_Field2: "r^+ <= Field r \<times> Field r"
    apply (auto simp add: Field_def)
   done
 
-lemma finite_trancl: "finite (r^+) = finite r"
+lemma finite_trancl[simp]: "finite (r^+) = finite r"
   apply auto
    prefer 2
    apply (rule trancl_subset_Field2 [THEN finite_subset])
@@ -833,14 +833,148 @@ lemma rtrancl_imp_rel_pow:
   "p \<in> R^* \<Longrightarrow> \<exists>n. p \<in> R ^^ n"
   by (auto dest: rtrancl_imp_UN_rel_pow)
 
+text{* By Sternagel/Thiemann: *}
+lemma rel_pow_fun_conv:
+  "((a,b) \<in> R ^^ n) = (\<exists>f. f 0 = a \<and> f n = b \<and> (\<forall>i<n. (f i, f(Suc i)) \<in> R))"
+proof (induct n arbitrary: b)
+  case 0 show ?case by auto
+next
+  case (Suc n)
+  show ?case
+  proof (simp add: rel_comp_def Suc)
+    show "(\<exists>y. (\<exists>f. f 0 = a \<and> f n = y \<and> (\<forall>i<n. (f i,f(Suc i)) \<in> R)) \<and> (y,b) \<in> R)
+     = (\<exists>f. f 0 = a \<and> f(Suc n) = b \<and> (\<forall>i<Suc n. (f i, f (Suc i)) \<in> R))"
+    (is "?l = ?r")
+    proof
+      assume ?l
+      then obtain c f where 1: "f 0 = a"  "f n = c"  "\<And>i. i < n \<Longrightarrow> (f i, f (Suc i)) \<in> R"  "(c,b) \<in> R" by auto
+      let ?g = "\<lambda> m. if m = Suc n then b else f m"
+      show ?r by (rule exI[of _ ?g], simp add: 1)
+    next
+      assume ?r
+      then obtain f where 1: "f 0 = a"  "b = f (Suc n)"  "\<And>i. i < Suc n \<Longrightarrow> (f i, f (Suc i)) \<in> R" by auto
+      show ?l by (rule exI[of _ "f n"], rule conjI, rule exI[of _ f], insert 1, auto)
+    qed
+  qed
+qed
+
+lemma rel_pow_finite_bounded1:
+assumes "finite(R :: ('a*'a)set)" and "k>0"
+shows "R^^k \<subseteq> (UN n:{n. 0<n & n <= card R}. R^^n)" (is "_ \<subseteq> ?r")
+proof-
+  { fix a b k
+    have "(a,b) : R^^(Suc k) \<Longrightarrow> EX n. 0<n & n <= card R & (a,b) : R^^n"
+    proof(induct k arbitrary: b)
+      case 0
+      hence "R \<noteq> {}" by auto
+      with card_0_eq[OF `finite R`] have "card R >= Suc 0" by auto
+      thus ?case using 0 by force
+    next
+      case (Suc k)
+      then obtain a' where "(a,a') : R^^(Suc k)" and "(a',b) : R" by auto
+      from Suc(1)[OF `(a,a') : R^^(Suc k)`]
+      obtain n where "n \<le> card R" and "(a,a') \<in> R ^^ n" by auto
+      have "(a,b) : R^^(Suc n)" using `(a,a') \<in> R^^n` and `(a',b)\<in> R` by auto
+      { assume "n < card R"
+        hence ?case using `(a,b): R^^(Suc n)` Suc_leI[OF `n < card R`] by blast
+      } moreover
+      { assume "n = card R"
+        from `(a,b) \<in> R ^^ (Suc n)`[unfolded rel_pow_fun_conv]
+        obtain f where "f 0 = a" and "f(Suc n) = b"
+          and steps: "\<And>i. i <= n \<Longrightarrow> (f i, f (Suc i)) \<in> R" by auto
+        let ?p = "%i. (f i, f(Suc i))"
+        let ?N = "{i. i \<le> n}"
+        have "?p ` ?N <= R" using steps by auto
+        from card_mono[OF assms(1) this]
+        have "card(?p ` ?N) <= card R" .
+        also have "\<dots> < card ?N" using `n = card R` by simp
+        finally have "~ inj_on ?p ?N" by(rule pigeonhole)
+        then obtain i j where i: "i <= n" and j: "j <= n" and ij: "i \<noteq> j" and
+          pij: "?p i = ?p j" by(auto simp: inj_on_def)
+        let ?i = "min i j" let ?j = "max i j"
+        have i: "?i <= n" and j: "?j <= n" and pij: "?p ?i = ?p ?j" 
+          and ij: "?i < ?j"
+          using i j ij pij unfolding min_def max_def by auto
+        from i j pij ij obtain i j where i: "i<=n" and j: "j<=n" and ij: "i<j"
+          and pij: "?p i = ?p j" by blast
+        let ?g = "\<lambda> l. if l \<le> i then f l else f (l + (j - i))"
+        let ?n = "Suc(n - (j - i))"
+        have abl: "(a,b) \<in> R ^^ ?n" unfolding rel_pow_fun_conv
+        proof (rule exI[of _ ?g], intro conjI impI allI)
+          show "?g ?n = b" using `f(Suc n) = b` j ij by auto
+        next
+          fix k assume "k < ?n"
+          show "(?g k, ?g (Suc k)) \<in> R"
+          proof (cases "k < i")
+            case True
+            with i have "k <= n" by auto
+            from steps[OF this] show ?thesis using True by simp
+          next
+            case False
+            hence "i \<le> k" by auto
+            show ?thesis
+            proof (cases "k = i")
+              case True
+              thus ?thesis using ij pij steps[OF i] by simp
+            next
+              case False
+              with `i \<le> k` have "i < k" by auto
+              hence small: "k + (j - i) <= n" using `k<?n` by arith
+              show ?thesis using steps[OF small] `i<k` by auto
+            qed
+          qed
+        qed (simp add: `f 0 = a`)
+        moreover have "?n <= n" using i j ij by arith
+        ultimately have ?case using `n = card R` by blast
+      }
+      ultimately show ?case using `n \<le> card R` by force
+    qed
+  }
+  thus ?thesis using gr0_implies_Suc[OF `k>0`] by auto
+qed
+
+lemma rel_pow_finite_bounded:
+assumes "finite(R :: ('a*'a)set)"
+shows "R^^k \<subseteq> (UN n:{n. n <= card R}. R^^n)"
+apply(cases k)
+ apply force
+using rel_pow_finite_bounded1[OF assms, of k] by auto
+
+lemma rtrancl_finite_eq_rel_pow:
+  "finite R \<Longrightarrow> R^* = (UN n : {n. n <= card R}. R^^n)"
+by(fastsimp simp: rtrancl_power dest: rel_pow_finite_bounded)
+
+lemma trancl_finite_eq_rel_pow:
+  "finite R \<Longrightarrow> R^+ = (UN n : {n. 0 < n & n <= card R}. R^^n)"
+apply(auto simp add: trancl_power)
+apply(auto dest: rel_pow_finite_bounded1)
+done
+
+lemma finite_rel_comp[simp,intro]:
+assumes "finite R" and "finite S"
+shows "finite(R O S)"
+proof-
+  have "R O S = (UN (x,y) : R. \<Union>((%(u,v). if u=y then {(x,v)} else {}) ` S))"
+    by(force simp add: split_def)
+  thus ?thesis using assms by(clarsimp)
+qed
+
+lemma finite_relpow[simp,intro]:
+  assumes "finite(R :: ('a*'a)set)" shows "n>0 \<Longrightarrow> finite(R^^n)"
+apply(induct n)
+ apply simp
+apply(case_tac n)
+ apply(simp_all add: assms)
+done
+
 lemma single_valued_rel_pow:
   fixes R :: "('a * 'a) set"
   shows "single_valued R \<Longrightarrow> single_valued (R ^^ n)"
-  apply (induct n arbitrary: R)
-  apply simp_all
-  apply (rule single_valuedI)
-  apply (fast dest: single_valuedD elim: rel_pow_Suc_E)
-  done
+apply (induct n arbitrary: R)
+apply simp_all
+apply (rule single_valuedI)
+apply (fast dest: single_valuedD elim: rel_pow_Suc_E)
+done
 
 subsection {* Setup of transitivity reasoner *}
 
