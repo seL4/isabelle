@@ -2193,6 +2193,12 @@ be displayed as part of counterexamples. Such subsets are sometimes helpful when
 investigating whether a potentially spurious counterexample is genuine, but
 their potential for clutter is real.
 
+\optrue{show\_skolems}{hide\_skolem}
+Specifies whether the values of Skolem constants should be displayed as part of
+counterexamples. Skolem constants correspond to bound variables in the original
+formula and usually help us to understand why the counterexample falsifies the
+formula.
+
 \opfalse{show\_consts}{hide\_consts}
 Specifies whether the values of constants occurring in the formula (including
 its axioms) should be displayed along with any counterexample. These values are
@@ -2200,7 +2206,8 @@ sometimes helpful when investigating why a counterexample is
 genuine, but they can clutter the output.
 
 \opnodefault{show\_all}{bool}
-Abbreviation for \textit{show\_datatypes} and \textit{show\_consts}.
+Abbreviation for \textit{show\_datatypes}, \textit{show\_skolems}, and
+\textit{show\_consts}.
 
 \opdefault{max\_potential}{int}{\upshape 1}
 Specifies the maximum number of potentially spurious counterexamples to display.

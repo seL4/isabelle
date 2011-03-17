@@ -69,6 +69,7 @@ val default_default_params =
    ("verbose", "false"),
    ("overlord", "false"),
    ("show_datatypes", "false"),
+   ("show_skolems", "true"),
    ("show_consts", "false"),
    ("format", "1"),
    ("max_potential", "1"),
@@ -97,6 +98,7 @@ val negated_params =
    ("quiet", "verbose"),
    ("no_overlord", "overlord"),
    ("hide_datatypes", "show_datatypes"),
+   ("hide_skolems", "show_skolems"),
    ("hide_consts", "show_consts"),
    ("trust_potential", "check_potential"),
    ("trust_genuine", "check_genuine")]
@@ -129,7 +131,8 @@ fun normalize_raw_param (name, value) =
                            | [] => ["false"]
                            | _ => value)]
   | NONE => if name = "show_all" then
-              [("show_datatypes", value), ("show_consts", value)]
+              [("show_datatypes", value), ("show_skolems", value),
+               ("show_consts", value)]
             else
               [(name, value)]
 
@@ -263,6 +266,7 @@ fun extract_params ctxt auto default_params override_params =
     val tac_timeout = lookup_time "tac_timeout"
     val max_threads = if auto then 1 else Int.max (0, lookup_int "max_threads")
     val show_datatypes = debug orelse lookup_bool "show_datatypes"
+    val show_skolems = debug orelse lookup_bool "show_skolems"
     val show_consts = debug orelse lookup_bool "show_consts"
     val evals = lookup_term_list_option_polymorphic "eval" |> these
     val formats = lookup_ints_assigns read_term_polymorphic "format" 0
@@ -291,9 +295,9 @@ fun extract_params ctxt auto default_params override_params =
      datatype_sym_break = datatype_sym_break,
      kodkod_sym_break = kodkod_sym_break, timeout = timeout,
      tac_timeout = tac_timeout, max_threads = max_threads,
-     show_datatypes = show_datatypes, show_consts = show_consts,
-     evals = evals, formats = formats, atomss = atomss,
-     max_potential = max_potential, max_genuine = max_genuine,
+     show_datatypes = show_datatypes, show_skolems = show_skolems,
+     show_consts = show_consts, evals = evals, formats = formats,
+     atomss = atomss, max_potential = max_potential, max_genuine = max_genuine,
      check_potential = check_potential, check_genuine = check_genuine,
      batch_size = batch_size, expect = expect}
   end

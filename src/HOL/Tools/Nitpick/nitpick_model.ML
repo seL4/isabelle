@@ -14,6 +14,7 @@ sig
 
   type params =
     {show_datatypes: bool,
+     show_skolems: bool,
      show_consts: bool}
 
   type term_postprocessor =
@@ -58,6 +59,7 @@ structure KK = Kodkod
 
 type params =
   {show_datatypes: bool,
+   show_skolems: bool,
    show_consts: bool}
 
 type term_postprocessor =
@@ -859,7 +861,7 @@ fun bisimilar_values _ 0 _ = true
         t1 = t2
     end
 
-fun reconstruct_hol_model {show_datatypes, show_consts}
+fun reconstruct_hol_model {show_datatypes, show_skolems, show_consts}
         ({hol_ctxt = {thy, ctxt, max_bisim_depth, boxes, stds, wfs, user_axioms,
                       debug, whacks, binary_ints, destroy_constrs, specialize,
                       star_linear_preds, total_consts, needs, tac_timeout,
@@ -991,7 +993,7 @@ fun reconstruct_hol_model {show_datatypes, show_consts}
       ||> append (map_filter (free_name_for_term false) pseudo_frees)
     val real_free_names = map_filter (free_name_for_term true) real_frees
     val chunks = block_of_names true "Free variable" real_free_names @
-                 block_of_names true "Skolem constant" skolem_names @
+                 block_of_names show_skolems "Skolem constant" skolem_names @
                  block_of_names true "Evaluated term" eval_names @
                  block_of_datatypes @ block_of_codatatypes @
                  block_of_names show_consts "Constant"

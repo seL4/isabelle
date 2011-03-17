@@ -43,6 +43,7 @@ sig
      tac_timeout: Time.time option,
      max_threads: int,
      show_datatypes: bool,
+     show_skolems: bool,
      show_consts: bool,
      evals: term list,
      formats: (term option * int list) list,
@@ -118,6 +119,7 @@ type params =
    tac_timeout: Time.time option,
    max_threads: int,
    show_datatypes: bool,
+   show_skolems: bool,
    show_consts: bool,
    evals: term list,
    formats: (term option * int list) list,
@@ -215,8 +217,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
          binary_ints, destroy_constrs, specialize, star_linear_preds,
          total_consts, needs, peephole_optim, datatype_sym_break,
          kodkod_sym_break, tac_timeout, max_threads, show_datatypes,
-         show_consts, evals, formats, atomss, max_potential, max_genuine,
-         check_potential, check_genuine, batch_size, ...} = params
+         show_skolems, show_consts, evals, formats, atomss, max_potential,
+         max_genuine, check_potential, check_genuine, batch_size, ...} = params
     val state_ref = Unsynchronized.ref state
     val pprint =
       if auto then
@@ -638,8 +640,9 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
              : problem_extension) =
       let
         val (reconstructed_model, codatatypes_ok) =
-          reconstruct_hol_model {show_datatypes = show_datatypes,
-                                 show_consts = show_consts}
+          reconstruct_hol_model
+              {show_datatypes = show_datatypes, show_skolems = show_skolems,
+               show_consts = show_consts}
               scope formats atomss real_frees pseudo_frees free_names sel_names
               nonsel_names rel_table bounds
         val genuine_means_genuine =

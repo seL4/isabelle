@@ -42,6 +42,7 @@ been discontinued.  INCOMPATIBILITY.
 
 * Nitpick:
   - Added "need" and "total_consts" options.
+  - Reintroduced "show_skolems" option by popular demand.
   - Renamed attribute: nitpick_def ~> nitpick_unfold.
     INCOMPATIBILITY.
 
