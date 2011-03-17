@@ -216,7 +216,8 @@ fun scope_less_eq (s1 : scope) (s2 : scope) =
 
 fun rank_of_row (_, ks) = length ks
 fun rank_of_block block = fold Integer.max (map rank_of_row block) 1
-fun project_row column (y, ks) = (y, [nth ks (Int.min (column, length ks - 1))])
+fun project_row _ (y, []) = (y, [1]) (* desperate measure *)
+  | project_row column (y, ks) = (y, [nth ks (Int.min (column, length ks - 1))])
 fun project_block (column, block) = map (project_row column) block
 
 fun lookup_ints_assign eq assigns key =
@@ -353,13 +354,14 @@ fun scope_descriptor_from_combination (hol_ctxt as {ctxt, ...}) binarize blocks
   let
     val (card_assigns, max_assigns) =
       maps project_block (columns ~~ blocks) |> scope_descriptor_from_block
-    val card_assigns =
-      repair_card_assigns hol_ctxt binarize (card_assigns, max_assigns) |> the
   in
-    SOME (map (repair_iterator_assign ctxt card_assigns) card_assigns,
-          max_assigns)
+    (card_assigns, max_assigns)
+    |> repair_card_assigns hol_ctxt binarize
+    |> Option.map
+           (fn card_assigns =>
+               (map (repair_iterator_assign ctxt card_assigns) card_assigns,
+                max_assigns))
   end
-  handle Option.Option => NONE
 
 fun offset_table_for_card_assigns dtypes assigns =
   let
