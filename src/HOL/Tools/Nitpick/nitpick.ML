@@ -605,16 +605,16 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                NONE
              else
                (Unsynchronized.change too_big_scopes (cons scope);
-                print_v (fn () => ("Limit reached: " ^ msg ^
-                                   ". Skipping " ^ (if unsound then "potential"
-                                                    else "genuine") ^
-                                   " component of scope."));
+                print_v (fn () =>
+                    "Limit reached: " ^ msg ^ ". Skipping " ^
+                    (if unsound then "potential component of " else "") ^
+                    "scope.");
                 NONE)
            | TOO_SMALL (_, msg) =>
-             (print_v (fn () => ("Limit reached: " ^ msg ^
-                                 ". Skipping " ^ (if unsound then "potential"
-                                                  else "genuine") ^
-                                 " component of scope."));
+             (print_v (fn () =>
+                  "Limit reached: " ^ msg ^ ". Skipping " ^
+                  (if unsound then "potential component of " else "") ^
+                  "scope.");
               NONE)
 
     val das_wort_model =
@@ -651,7 +651,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         (pprint (Pretty.chunks
              [Pretty.blk (0,
                   (pstrs ((if auto then "Auto " else "") ^ "Nitpick found a" ^
-                          (if not genuine then " potential "
+                          (if not genuine then " potentially spurious "
                            else if genuine_means_genuine then " "
                            else " quasi genuine ") ^ das_wort_model) @
                    (case pretties_for_scope scope verbose of
@@ -908,7 +908,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                     \fragment." ^
                     (if exists (not o KK.is_problem_trivially_false o fst)
                                unsound_problems then
-                       " Only potential " ^ das_wort_model ^ "s may be found."
+                       " Only potentially spurious " ^ das_wort_model ^
+                       "s may be found."
                      else
                        ""))
               else

@@ -467,25 +467,26 @@ the \textit{bits} option. For example:
 \postw
 
 With infinite types, we don't always have the luxury of a genuine counterexample
-and must often content ourselves with a potential one. The tedious task of
-finding out whether the potential counterexample is in fact genuine can be
-outsourced to \textit{auto} by passing \textit{check\_potential}. For example:
+and must often content ourselves with a potentially spurious one. The tedious
+task of finding out whether the potentially spurious counterexample is in fact
+genuine can be delegated to \textit{auto} by passing \textit{check\_potential}.
+For example:
 
 \prew
 \textbf{lemma} ``$\forall n.\; \textit{Suc}~n \mathbin{\not=} n \,\Longrightarrow\, P$'' \\
 \textbf{nitpick} [\textit{card~nat}~= 50, \textit{check\_potential}] \\[2\smallskipamount]
 \slshape Warning: The conjecture either trivially holds for the given scopes or lies outside Nitpick's supported
-fragment. Only potential counterexamples may be found. \\[2\smallskipamount]
-Nitpick found a potential counterexample: \\[2\smallskipamount]
+fragment. Only potentially spurious counterexamples may be found. \\[2\smallskipamount]
+Nitpick found a potentially spurious counterexample: \\[2\smallskipamount]
 \hbox{}\qquad Free variable: \nopagebreak \\
 \hbox{}\qquad\qquad $P = \textit{False}$ \\[2\smallskipamount]
 Confirmation by ``\textit{auto}'': The above counterexample is genuine.
 \postw
 
-You might wonder why the counterexample is first reported as potential. The root
-of the problem is that the bound variable in $\forall n.\; \textit{Suc}~n
-\mathbin{\not=} n$ ranges over an infinite type. If Nitpick finds an $n$ such
-that $\textit{Suc}~n \mathbin{=} n$, it evaluates the assumption to
+You might wonder why the counterexample is first reported as potentially
+spurious. The root of the problem is that the bound variable in $\forall n.\;
+\textit{Suc}~n \mathbin{\not=} n$ ranges over an infinite type. If Nitpick finds
+an $n$ such that $\textit{Suc}~n \mathbin{=} n$, it evaluates the assumption to
 \textit{False}; but otherwise, it does not know anything about values of $n \ge
 \textit{card~nat}$ and must therefore evaluate the assumption to $\unk$, not
 \textit{True}. Since the assumption can never be satisfied, the putative lemma
@@ -797,9 +798,9 @@ Let's try an example:
 Nitpick can compute it efficiently. \\[2\smallskipamount]
 Trying 1 scope: \\
 \hbox{}\qquad \textit{card nat}~= 50. \\[2\smallskipamount]
-Nitpick found a potential counterexample for \textit{card nat}~= 50: \\[2\smallskipamount]
+Nitpick found a potentially spurious counterexample for \textit{card nat}~= 50: \\[2\smallskipamount]
 \hbox{}\qquad Empty assignment \\[2\smallskipamount]
-Nitpick could not find a better counterexample. It checked 0 of 1 scope. \\[2\smallskipamount]
+Nitpick could not find a better counterexample. \\[2\smallskipamount]
 Total time: 1.43 s.
 \postw
 
@@ -2189,7 +2190,7 @@ option is implicitly disabled for automatic runs.
 \opfalse{show\_datatypes}{hide\_datatypes}
 Specifies whether the subsets used to approximate (co)in\-duc\-tive datatypes should
 be displayed as part of counterexamples. Such subsets are sometimes helpful when
-investigating whether a potential counterexample is genuine or spurious, but
+investigating whether a potentially spurious counterexample is genuine, but
 their potential for clutter is real.
 
 \opfalse{show\_consts}{hide\_consts}
@@ -2202,10 +2203,10 @@ genuine, but they can clutter the output.
 Abbreviation for \textit{show\_datatypes} and \textit{show\_consts}.
 
 \opdefault{max\_potential}{int}{\upshape 1}
-Specifies the maximum number of potential counterexamples to display. Setting
-this option to 0 speeds up the search for a genuine counterexample. This option
-is implicitly set to 0 for automatic runs. If you set this option to a value
-greater than 1, you will need an incremental SAT solver, such as
+Specifies the maximum number of potentially spurious counterexamples to display.
+Setting this option to 0 speeds up the search for a genuine counterexample. This
+option is implicitly set to 0 for automatic runs. If you set this option to a
+value greater than 1, you will need an incremental SAT solver, such as
 \textit{MiniSat\_JNI} (recommended) and \textit{SAT4J}. Be aware that many of
 the counterexamples may be identical.
 
@@ -2269,9 +2270,10 @@ the \textit{format}~\qty{term} option described above.
 
 \begin{enum}
 \opfalse{check\_potential}{trust\_potential}
-Specifies whether potential counterexamples should be given to Isabelle's
-\textit{auto} tactic to assess their validity. If a potential counterexample is
-shown to be genuine, Nitpick displays a message to this effect and terminates.
+Specifies whether potentially spurious counterexamples should be given to
+Isabelle's \textit{auto} tactic to assess their validity. If a potentially
+spurious counterexample is shown to be genuine, Nitpick displays a message to
+this effect and terminates.
 
 \nopagebreak
 {\small See also \textit{max\_potential} (\S\ref{output-format}).}
@@ -2294,7 +2296,8 @@ Specifies the expected outcome, which must be one of the following:
 \item[$\bullet$] \textbf{\textit{quasi\_genuine}:} Nitpick found a ``quasi
 genuine'' counterexample (i.e., a counterexample that is genuine unless
 it contradicts a missing axiom or a dangerous option was used inappropriately).
-\item[$\bullet$] \textbf{\textit{potential}:} Nitpick found a potential counterexample.
+\item[$\bullet$] \textbf{\textit{potential}:} Nitpick found a potentially
+spurious counterexample.
 \item[$\bullet$] \textbf{\textit{none}:} Nitpick found no counterexample.
 \item[$\bullet$] \textbf{\textit{unknown}:} Nitpick encountered some problem (e.g.,
 Kodkod ran out of memory).
