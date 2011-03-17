@@ -23,7 +23,7 @@ sig
   val types_dangerous_types : type_system -> bool
   val num_atp_type_args : theory -> type_system -> string -> int
   val translate_atp_fact :
-    Proof.context -> (string * 'a) * thm
+    Proof.context -> bool -> (string * 'a) * thm
     -> translated_formula option * ((string * 'a) * thm)
   val prepare_atp_problem :
     Proof.context -> bool -> bool -> type_system -> bool -> term list -> term
@@ -241,10 +241,12 @@ fun make_formula ctxt eq_as_iff presimp name kind t =
      ctypes_sorts = ctypes_sorts}
   end
 
-fun make_fact ctxt eq_as_iff presimp ((name, _), th) =
-  case make_formula ctxt eq_as_iff presimp name Axiom (prop_of th) of
-    {combformula = AAtom (CombConst (("c_True", _), _, _)), ...} => NONE
-  | formula => SOME formula
+fun make_fact ctxt keep_trivial eq_as_iff presimp ((name, _), th) =
+  case (keep_trivial,
+        make_formula ctxt eq_as_iff presimp name Axiom (prop_of th)) of
+    (false, {combformula = AAtom (CombConst (("c_True", _), _, _)), ...}) =>
+    NONE
+  | (_, formula) => SOME formula
 fun make_conjecture ctxt ts =
   let val last = length ts - 1 in
     map2 (fn j => make_formula ctxt true true (string_of_int j)
@@ -276,7 +278,7 @@ fun get_helper_facts ctxt explicit_forall type_sys formulas =
     fun dub c needs_full_types (th, j) =
       ((c ^ "_" ^ string_of_int j ^ (if needs_full_types then "ft" else ""),
         false), th)
-    fun make_facts eq_as_iff = map_filter (make_fact ctxt eq_as_iff false)
+    fun make_facts eq_as_iff = map_filter (make_fact ctxt false eq_as_iff false)
   in
     (metis_helpers
      |> filter (is_used o fst)
@@ -300,7 +302,8 @@ fun get_helper_facts ctxt explicit_forall type_sys formulas =
        [])
   end
 
-fun translate_atp_fact ctxt = `(make_fact ctxt true true)
+fun translate_atp_fact ctxt keep_trivial =
+  `(make_fact ctxt keep_trivial true true)
 
 fun translate_formulas ctxt type_sys hyp_ts concl_t rich_facts =
   let

@@ -308,7 +308,7 @@ fun untranslated_fact (Untranslated_Fact p) = p
   | untranslated_fact (SMT_Weighted_Fact (info, (_, th))) = (info, th)
 fun atp_translated_fact _ (ATP_Translated_Fact p) = p
   | atp_translated_fact ctxt fact =
-    translate_atp_fact ctxt (untranslated_fact fact)
+    translate_atp_fact ctxt false (untranslated_fact fact)
 fun smt_weighted_fact _ _ (SMT_Weighted_Fact p, _) = p
   | smt_weighted_fact thy num_facts (fact, j) =
     (untranslated_fact fact, j) |> weight_smt_fact thy num_facts

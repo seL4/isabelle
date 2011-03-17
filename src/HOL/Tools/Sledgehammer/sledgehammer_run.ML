@@ -246,7 +246,7 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
         else
           launch_provers state
               (get_facts "ATP" no_dangerous_types atp_relevance_fudge o K atps)
-              (ATP_Translated_Fact oo K (translate_atp_fact ctxt o fst))
+              (ATP_Translated_Fact oo K (translate_atp_fact ctxt false o fst))
               (K (K NONE)) atps
       fun launch_smts accum =
         if null smts then
