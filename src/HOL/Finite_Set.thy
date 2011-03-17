@@ -1932,7 +1932,7 @@ by (simp add: card_insert_if)
 lemma card_Collect_less_nat[simp]: "card{i::nat. i < n} = n"
 by (induct n) (simp_all add:less_Suc_eq Collect_disj_eq)
 
-lemma card_Collect_le_nat[simp]: "card{i::nat. i <= n} = n+1"
+lemma card_Collect_le_nat[simp]: "card{i::nat. i <= n} = Suc n"
 using card_Collect_less_nat[of "Suc n"] by(simp add: less_Suc_eq_le)
 
 lemma card_mono:
