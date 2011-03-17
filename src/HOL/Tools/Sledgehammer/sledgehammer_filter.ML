@@ -40,8 +40,8 @@ sig
     Proof.context -> unit Symtab.table -> thm list
     -> Facts.ref * Attrib.src list -> ((string * locality) * thm) list
   val all_facts :
-    Proof.context -> 'a Symtab.table -> bool -> relevance_fudge -> thm list
-    -> thm list -> (((unit -> string) * locality) * (bool * thm)) list
+    Proof.context -> 'a Symtab.table -> bool -> bool -> relevance_fudge
+    -> thm list -> thm list -> (((unit -> string) * locality) * (bool * thm)) list
   val const_names_in_fact :
     theory -> (string * typ -> term list -> bool * term list) -> term
     -> string list
@@ -793,7 +793,7 @@ fun clasimpset_rules_of ctxt =
     val simps = ctxt |> simpset_of |> dest_ss |> #simps |> map snd
   in (mk_fact_table I intros, mk_fact_table I elims, mk_fact_table I simps) end
 
-fun all_facts ctxt reserved no_dangerous_types
+fun all_facts ctxt reserved really_all no_dangerous_types
               ({intro_bonus, elim_bonus, simp_bonus, ...} : relevance_fudge)
               add_ths chained_ths =
   let
@@ -819,7 +819,7 @@ fun all_facts ctxt reserved no_dangerous_types
       Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)
     fun add_facts global foldx facts =
       foldx (fn (name0, ths) =>
-        if name0 <> "" andalso
+        if not really_all andalso name0 <> "" andalso
            forall (not o member Thm.eq_thm add_ths) ths andalso
            (Facts.is_concealed facts name0 orelse
             (respect_no_atp andalso is_package_def name0) orelse
@@ -901,7 +901,8 @@ fun relevant_facts ctxt no_dangerous_types (threshold0, threshold1)
          maps (map (fn ((name, loc), th) => ((K name, loc), (true, th)))
                o fact_from_ref ctxt reserved chained_ths) add
        else
-         all_facts ctxt reserved no_dangerous_types fudge add_ths chained_ths)
+         all_facts ctxt reserved false no_dangerous_types fudge add_ths
+                   chained_ths)
       |> instantiate_inducts
          ? maps (instantiate_if_induct_rule ctxt ind_stmt ind_stmt_xs)
       |> rearrange_facts ctxt (respect_no_atp andalso not only)
