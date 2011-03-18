@@ -468,4 +468,17 @@ hide_type (open) code_int type "term" cons
 hide_const (open) int_of of_int nth error toEnum map_index split_At empty
   cons conv nonEmpty "apply" sum cons1 cons2 ensure_testable
 
+subsubsection {* Defining a simple datatype to represent functions in an incomplete and redundant way *}
+
+datatype ('a, 'b) ffun = Constant 'b | Update 'a 'b "('a, 'b) ffun"
+
+primrec eval_ffun :: "('a, 'b) ffun => 'a => 'b"
+where
+  "eval_ffun (Constant c) x = c"
+| "eval_ffun (Update x' y f) x = (if x = x' then y else eval_ffun f x)"
+
+hide_type (open) ffun
+hide_const (open) Constant Update eval_ffun
+
+
 end
