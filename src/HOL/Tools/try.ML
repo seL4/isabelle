@@ -7,7 +7,9 @@ Try a combination of proof methods.
 signature TRY =
 sig
   val auto : bool Unsynchronized.ref
-  val invoke_try : Time.time option -> Proof.state -> bool
+  val invoke_try :
+    Time.time option -> string list * string list * string list -> Proof.state
+    -> bool
   val setup : theory -> theory
 end;
 
@@ -40,59 +42,85 @@ fun do_generic timeout_opt command pre post apply st =
       NONE
   end
 
-fun named_method thy name =
-  Method.method thy (Args.src ((name, []), Position.none))
+val parse_method =
+  enclose "(" ")"
+  #> Outer_Syntax.scan Position.start
+  #> filter Token.is_proper
+  #> Scan.read Token.stopper Method.parse
+  #> (fn SOME (Method.Source src) => src | _ => raise Fail "expected Source")
 
-fun apply_named_method_on_first_goal name ctxt =
-  let val thy = ProofContext.theory_of ctxt in
-    Proof.refine (Method.SelectGoals (1, Method.Basic (named_method thy name)))
-  end
+fun apply_named_method_on_first_goal method thy =
+  method |> parse_method
+         |> Method.method thy
+         |> Method.Basic
+         |> curry Method.SelectGoals 1
+         |> Proof.refine
   handle ERROR _ => K Seq.empty (* e.g., the method isn't available yet *)
 
-fun do_named_method (name, (all_goals, run_if_auto)) auto timeout_opt st =
+fun add_attr_text (NONE, _) s = s
+  | add_attr_text (_, []) s = s
+  | add_attr_text (SOME x, fs) s =
+    s ^ " " ^ (if x = "" then "" else x ^ ": ") ^ space_implode " " fs
+fun attrs_text (sx, ix, ex) (ss, is, es) =
+  "" |> fold add_attr_text [(sx, ss), (ix, is), (ex, es)]
+
+fun do_named_method (name, ((all_goals, run_if_auto), attrs)) auto timeout_opt
+                    triple st =
   if not auto orelse run_if_auto then
-    do_generic timeout_opt
-               (name ^ (if all_goals andalso
-                           nprems_of (#goal (Proof.goal st)) > 1 then
-                          "[1]"
-                        else
-                          "")) I (#goal o Proof.goal)
-               (apply_named_method_on_first_goal name (Proof.context_of st)) st
+    let val attrs = attrs_text attrs triple in
+      do_generic timeout_opt
+                 (name ^ (if all_goals andalso
+                             nprems_of (#goal (Proof.goal st)) > 1 then
+                            "[1]"
+                          else
+                            "") ^
+                  attrs) I (#goal o Proof.goal)
+                 (apply_named_method_on_first_goal (name ^ attrs)
+                                                   (Proof.theory_of st)) st
+    end
   else
     NONE
 
-(* name * (all_goals, run_if_auto) *)
+val full_attrs = (SOME "simp", SOME "intro", SOME "elim")
+val clas_attrs = (NONE, SOME "intro", SOME "elim")
+val simp_attrs = (SOME "add", NONE, NONE)
+val metis_attrs = (SOME "", SOME "", SOME "")
+val no_attrs = (NONE, NONE, NONE)
+
+(* name * ((all_goals, run_if_auto), (simp, intro, elim) *)
 val named_methods =
-  [("simp", (false, true)),
-   ("auto", (true, true)),
-   ("fast", (false, false)),
-   ("fastsimp", (false, false)),
-   ("force", (false, false)),
-   ("blast", (false, true)),
-   ("metis", (false, true)),
-   ("linarith", (false, true)),
-   ("presburger", (false, true))]
+  [("simp", ((false, true), simp_attrs)),
+   ("auto", ((true, true), full_attrs)),
+   ("fast", ((false, false), clas_attrs)),
+   ("fastsimp", ((false, false), full_attrs)),
+   ("force", ((false, false), full_attrs)),
+   ("blast", ((false, true), clas_attrs)),
+   ("metis", ((false, true), metis_attrs)),
+   ("linarith", ((false, true), no_attrs)),
+   ("presburger", ((false, true), no_attrs))]
 val do_methods = map do_named_method named_methods
 
 fun time_string (s, ms) = s ^ ": " ^ string_of_int ms ^ " ms"
 
-fun do_try auto timeout_opt st =
+fun do_try auto timeout_opt triple st =
   let
     val st = st |> Proof.map_context (Config.put Metis_Tactics.verbose false)
   in
-    case do_methods |> Par_List.map (fn f => f auto timeout_opt st)
+    case do_methods |> Par_List.map (fn f => f auto timeout_opt triple st)
                     |> map_filter I |> sort (int_ord o pairself snd) of
       [] => (if auto then () else writeln "No proof found."; (false, st))
     | xs as (s, _) :: _ =>
       let
-        val xs = xs |> map swap |> AList.coalesce (op =)
+        val xs = xs |> map (fn (s, n) => (n, hd (space_explode " " s)))
+                    |> AList.coalesce (op =)
                     |> map (swap o apsnd commas)
+        val need_parens = exists_string (curry (op =) " ") s
         val message =
           (if auto then "Auto Try found a proof" else "Try this command") ^
           ": " ^
           Markup.markup Markup.sendback
               ((if nprems_of (#goal (Proof.goal st)) = 1 then "by"
-                else "apply") ^ " " ^ s) ^
+                else "apply") ^ " " ^ (s |> need_parens ? enclose "(" ")")) ^
           "\n(" ^ space_implode "; " (map time_string xs) ^ ").\n"
       in
         (true, st |> (if auto then
@@ -105,17 +133,43 @@ fun do_try auto timeout_opt st =
       end
   end
 
-val invoke_try = fst oo do_try false
+fun invoke_try timeout_opt = fst oo do_try false timeout_opt
 
 val tryN = "try"
 
+fun try_trans triple =
+  Toplevel.keep (K () o do_try false (SOME default_timeout) triple
+                 o Toplevel.proof_of)
+
+fun merge_attrs (s1, i1, e1) (s2, i2, e2) = (s1 @ s2, i1 @ i2, e1 @ e2)
+
+fun string_of_xthm (xref, args) =
+  Facts.string_of_ref xref ^
+  implode (map (enclose "[" "]" o Pretty.str_of
+                o Args.pretty_src @{context}) args)
+
+val parse_fact_refs =
+  Scan.repeat1 (Scan.unless (Parse.name -- Args.colon)
+                            (Parse_Spec.xthm >> string_of_xthm))
+val parse_attr =
+     Args.$$$ "simp" |-- Args.colon |-- parse_fact_refs
+     >> (fn ss => (ss, [], []))
+  || Args.$$$ "intro" |-- Args.colon |-- parse_fact_refs
+     >> (fn is => ([], is, []))
+  || Args.$$$ "elim" |-- Args.colon |-- parse_fact_refs
+     >> (fn es => ([], [], es))
+fun parse_attrs x =
+    (Args.parens parse_attrs
+  || Scan.repeat parse_attr
+     >> (fn triple => fold merge_attrs triple ([], [], []))) x
+
+val parse_try_command = Scan.optional parse_attrs ([], [], []) #>> try_trans
+
 val _ =
   Outer_Syntax.improper_command tryN
-      "try a combination of proof methods" Keyword.diag
-      (Scan.succeed (Toplevel.keep (K () o do_try false (SOME default_timeout)
-                                    o Toplevel.proof_of)))
+      "try a combination of proof methods" Keyword.diag parse_try_command
 
-val auto_try = do_try true NONE
+val auto_try = do_try true NONE ([], [], [])
 
 val setup = Auto_Tools.register_tool (auto, auto_try)
 

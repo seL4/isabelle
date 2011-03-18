@@ -50,6 +50,9 @@ been discontinued.  INCOMPATIBILITY.
   - sledgehammer available_provers ~> sledgehammer supported_provers
     INCOMPATIBILITY.
 
+* "try":
+  - Added "simp:", "intro:", and "elim:" options.
+
 * Function package: discontinued option "tailrec".
 INCOMPATIBILITY. Use partial_function instead.
 
