@@ -300,6 +300,11 @@ fun bound_for_plain_rel ctxt debug (u as FreeRel (x, T, R, nick)) =
   | bound_for_plain_rel _ _ u =
     raise NUT ("Nitpick_Kodkod.bound_for_plain_rel", [u])
 
+fun is_datatype_nat_like ({typ, constrs, ...} : datatype_spec) =
+  case constrs |> map (snd o #const) |> List.partition is_fun_type of
+    ([Type (_, Ts1)], [T2]) => forall (curry (op =) typ) (T2 :: Ts1)
+  | _ => false
+
 fun bound_for_sel_rel ctxt debug need_vals dtypes
         (FreeRel (x, T as Type (@{type_name fun}, [T1, T2]),
                   R as Func (Atom (_, j0), R2), nick)) =
@@ -344,7 +349,10 @@ fun bound_for_sel_rel ctxt debug need_vals dtypes
                 index_seq delta (epsilon - delta)
                 |> map (fn j =>
                            KK.TupleProduct (KK.TupleSet [KK.Tuple [j + j0]],
-                                            KK.TupleAtomSeq (j, j0)))
+                                            if is_datatype_nat_like dtype then
+                                              KK.TupleAtomSeq (1, j + j0 - 1)
+                                            else
+                                              KK.TupleAtomSeq (j, j0)))
                 |> foldl1 KK.TupleUnion
               else
                 KK.TupleProduct (upper_bound_ts (), upper_bound_for_rep R2)]
