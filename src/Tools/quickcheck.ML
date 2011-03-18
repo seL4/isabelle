@@ -458,18 +458,20 @@ fun parse_test_param ("tester", [arg]) = parse_tester arg
       Config.put_generic tester name genctxt
     else error ("Unknown tester or test parameter: " ^ name);
 
-fun parse_test_param_inst (name, arg) (insts, ctxt) =
+fun parse_test_param_inst (name, arg) ((insts, eval_terms), ctxt) =
       case try (ProofContext.read_typ ctxt) name
-       of SOME (TFree (v, _)) => (apfst o AList.update (op =))
-              (v, ProofContext.read_typ ctxt (the_single arg)) (insts, ctxt)
-        | _ => (apsnd o Context.proof_map o parse_test_param) (name, arg) (insts, ctxt);
+       of SOME (TFree (v, _)) =>
+         ((AList.update (op =) (v, ProofContext.read_typ ctxt (the_single arg)) insts, eval_terms), ctxt)
+        | NONE => (case name of
+            "eval" => ((insts, eval_terms @ map (Syntax.read_term ctxt) arg), ctxt)
+          | _ => ((insts, eval_terms), Context.proof_map (parse_test_param (name, arg)) ctxt));
 
 fun quickcheck_params_cmd args = Context.theory_map (fold parse_test_param args);
 
 fun gen_quickcheck args i state =
   state
-  |> Proof.map_context_result (fn ctxt => fold parse_test_param_inst args ([], ctxt))
-  |> (fn (insts, state') => test_goal (true, true) insts i state'
+  |> Proof.map_context_result (fn ctxt => fold parse_test_param_inst args (([], []), ctxt))
+  |> (fn ((insts, eval_terms), state') => test_goal (true, true) insts i state'
   |> tap (fn (SOME x, _) => if expect (Proof.context_of state') = No_Counterexample then
                error ("quickcheck expected to find no counterexample but found one") else ()
            | (NONE, _) => if expect (Proof.context_of state') = Counterexample then
