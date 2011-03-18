@@ -27,15 +27,18 @@ sig
     -> Kodkod.bound list * Kodkod.formula list
   val bound_for_plain_rel : Proof.context -> bool -> nut -> Kodkod.bound
   val bound_for_sel_rel :
-    Proof.context -> bool -> datatype_spec list -> nut -> Kodkod.bound
+    Proof.context -> bool -> (typ * (nut * int) list option) list
+    -> datatype_spec list -> nut -> Kodkod.bound
   val merge_bounds : Kodkod.bound list -> Kodkod.bound list
   val kodkod_formula_from_nut :
     int Typtab.table -> kodkod_constrs -> nut -> Kodkod.formula
+  val needed_values_for_datatype :
+    nut list -> int Typtab.table -> datatype_spec -> (nut * int) list option
   val declarative_axiom_for_plain_rel : kodkod_constrs -> nut -> Kodkod.formula
   val declarative_axioms_for_datatypes :
-    hol_context -> bool -> nut list -> int -> int -> int Typtab.table
-    -> kodkod_constrs -> nut NameTable.table -> datatype_spec list
-    -> Kodkod.formula list
+    hol_context -> bool -> nut list -> (typ * (nut * int) list option) list
+    -> int -> int -> int Typtab.table -> kodkod_constrs -> nut NameTable.table
+    -> datatype_spec list -> Kodkod.formula list
 end;
 
 structure Nitpick_Kodkod : NITPICK_KODKOD =
@@ -297,24 +300,39 @@ fun bound_for_plain_rel ctxt debug (u as FreeRel (x, T, R, nick)) =
   | bound_for_plain_rel _ _ u =
     raise NUT ("Nitpick_Kodkod.bound_for_plain_rel", [u])
 
-fun bound_for_sel_rel ctxt debug dtypes
+fun bound_for_sel_rel ctxt debug need_vals dtypes
         (FreeRel (x, T as Type (@{type_name fun}, [T1, T2]),
                   R as Func (Atom (_, j0), R2), nick)) =
     let
+      val constr_s = original_name nick
       val {delta, epsilon, exclusive, explicit_max, ...} =
-        constr_spec dtypes (original_name nick, T1)
+        constr_spec dtypes (constr_s, T1)
+      val dtype as {card, ...} = datatype_spec dtypes T1 |> the
+      val need_vals =
+        AList.lookup (op =) need_vals T1 |> the_default NONE |> these
     in
       ([(x, bound_comment ctxt debug nick T R)],
-       if explicit_max = 0 then
-         [KK.TupleSet []]
-       else
-         let val ts = KK.TupleAtomSeq (epsilon - delta, delta + j0) in
+       let
+         val ts = KK.TupleAtomSeq (epsilon - delta, delta + j0)
+         val complete_need_vals = (length need_vals = card)
+         val (my_need_vals, other_need_vals) =
+           need_vals
+           |> List.partition
+                  (fn (Construct (sel_us, _, _, _), _) =>
+                      exists (fn FreeRel (x', _, _, _) => x = x'
+                               | _ => false) sel_us
+                    | _ => false)
+       in
+         if explicit_max = 0 orelse
+            (complete_need_vals andalso null my_need_vals) then
+           [KK.TupleSet []]
+         else
            if R2 = Formula Neut then
              [ts] |> not exclusive ? cons (KK.TupleSet [])
            else
              [KK.TupleSet [],
               if T1 = T2 andalso epsilon > delta andalso
-                 is_datatype_acyclic (the (datatype_spec dtypes T1)) then
+                 is_datatype_acyclic dtype then
                 index_seq delta (epsilon - delta)
                 |> map (fn j =>
                            KK.TupleProduct (KK.TupleSet [KK.Tuple [j + j0]],
@@ -324,7 +342,7 @@ fun bound_for_sel_rel ctxt debug dtypes
                 KK.TupleProduct (ts, upper_bound_for_rep R2)]
          end)
     end
-  | bound_for_sel_rel _ _ _ u =
+  | bound_for_sel_rel _ _ _ _ u =
     raise NUT ("Nitpick_Kodkod.bound_for_sel_rel", [u])
 
 fun merge_bounds bs =
@@ -1478,8 +1496,8 @@ fun atom_equation_for_nut ofs kk (u, j) =
                       "malformed Kodkod formula")
   end
 
-fun needed_value_axioms_for_datatype [] _ _ _ = []
-  | needed_value_axioms_for_datatype need_us ofs kk
+fun needed_values_for_datatype [] _ _ = SOME []
+  | needed_values_for_datatype need_us ofs
         ({typ, card, constrs, ...} : datatype_spec) =
     let
       fun aux (u as Construct (FreeRel (_, _, _, s) :: _, T, _, us)) =
@@ -1507,11 +1525,11 @@ fun needed_value_axioms_for_datatype [] _ _ _ = []
                  else
                    accum)
         | aux _ = I
-    in
-      case SOME (index_seq 0 card, []) |> fold aux need_us of
-        SOME (_, fixed) => fixed |> map (atom_equation_for_nut ofs kk)
-      | NONE => [KK.False]
-    end
+    in SOME (index_seq 0 card, []) |> fold aux need_us |> Option.map snd end
+
+fun needed_value_axioms_for_datatype _ _ NONE = [KK.False]
+  | needed_value_axioms_for_datatype ofs kk (SOME fixed) =
+    fixed |> map (atom_equation_for_nut ofs kk)
 
 fun all_ge ({kk_join, kk_reflexive_closure, ...} : kodkod_constrs) z r =
   kk_join r (kk_reflexive_closure (KK.Rel (suc_rel_for_atom_seq z)))
@@ -1679,7 +1697,6 @@ fun sym_break_axioms_for_datatypes hol_ctxt binarize need_us datatype_sym_break
            |> maps (sym_break_axioms_for_datatype hol_ctxt binarize kk rel_table
                                                   nfas dtypes)
 
-
 fun sel_axiom_for_sel hol_ctxt binarize j0
         (kk as {kk_all, kk_formula_if, kk_subset, kk_no, kk_join, ...})
         rel_table dom_r ({const, delta, epsilon, exclusive, ...} : constr_spec)
@@ -1776,7 +1793,7 @@ fun other_axioms_for_datatype _ _ _ _ _ _ {deep = false, ...} = []
       partition_axioms_for_datatype j0 kk rel_table dtype
     end
 
-fun declarative_axioms_for_datatypes hol_ctxt binarize need_us
+fun declarative_axioms_for_datatypes hol_ctxt binarize need_us need_vals
         datatype_sym_break bits ofs kk rel_table dtypes =
   let
     val nfas =
@@ -1785,7 +1802,7 @@ fun declarative_axioms_for_datatypes hol_ctxt binarize need_us
              |> strongly_connected_sub_nfas
   in
     acyclicity_axioms_for_datatypes kk nfas @
-    maps (needed_value_axioms_for_datatype need_us ofs kk) dtypes @
+    maps (needed_value_axioms_for_datatype ofs kk o snd) need_vals @
     sym_break_axioms_for_datatypes hol_ctxt binarize need_us datatype_sym_break
                                    kk rel_table nfas dtypes @
     maps (other_axioms_for_datatype hol_ctxt binarize bits ofs kk rel_table)

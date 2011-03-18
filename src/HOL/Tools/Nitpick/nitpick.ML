@@ -564,9 +564,13 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         val plain_rels = free_rels @ other_rels
         val plain_bounds = map (bound_for_plain_rel ctxt debug) plain_rels
         val plain_axioms = map (declarative_axiom_for_plain_rel kk) plain_rels
-        val sel_bounds = map (bound_for_sel_rel ctxt debug datatypes) sel_rels
+        val need_vals =
+          map (fn dtype as {typ, ...} =>
+                  (typ, needed_values_for_datatype need_us ofs dtype)) datatypes
+        val sel_bounds =
+          map (bound_for_sel_rel ctxt debug need_vals datatypes) sel_rels
         val dtype_axioms =
-          declarative_axioms_for_datatypes hol_ctxt binarize need_us
+          declarative_axioms_for_datatypes hol_ctxt binarize need_us need_vals
               datatype_sym_break bits ofs kk rel_table datatypes
         val declarative_axioms = plain_axioms @ dtype_axioms
         val univ_card = Int.max (univ_card nat_card int_card main_j0
