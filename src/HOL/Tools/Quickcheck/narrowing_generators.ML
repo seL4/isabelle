@@ -147,6 +147,7 @@ fun value ctxt (get, put, put_ml) (code, value) size =
     val result = Isabelle_System.with_tmp_dir tmp_prefix run
     val output_value = the_default "NONE"
       (try (snd o split_last o filter_out (fn s => s = "") o split_lines o fst) result)
+      |> translate_string (fn s => if s = "\\" then "\\\\" else s)
     val ml_code = "\nval _ = Context.set_thread_data (SOME (Context.map_proof (" ^ put_ml
       ^ " (fn () => " ^ output_value ^ ")) (ML_Context.the_generic_context ())))";
     val ctxt' = ctxt

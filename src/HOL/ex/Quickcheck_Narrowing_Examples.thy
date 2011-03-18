@@ -9,18 +9,30 @@ theory Quickcheck_Narrowing_Examples
 imports "~~/src/HOL/Library/Quickcheck_Narrowing"
 begin
 
-subsection {* Simple list examples *}
+subsection {* Minimalistic examples *}
 
-lemma "rev xs = xs"
+lemma
+  "x = y"
 quickcheck[tester = narrowing, finite_types = false, default_type = nat, expect = counterexample]
 oops
 
-text {* Example fails due to some strange thing... *}
 (*
-lemma "rev xs = xs"
-quickcheck[tester = lazy_exhaustive, finite_types = true]
+lemma
+  "x = y"
+quickcheck[tester = narrowing, finite_types = true, expect = counterexample]
 oops
 *)
+
+subsection {* Simple list examples *}
+
+lemma "rev xs = xs"
+  quickcheck[tester = narrowing, finite_types = false, default_type = nat, expect = counterexample]
+oops
+
+lemma "rev xs = xs"
+  quickcheck[tester = narrowing, finite_types = true]
+oops
+
 
 subsection {* AVL Trees *}
 
@@ -117,7 +129,7 @@ subsubsection {* Invalid Lemma due to typo in lbal *}
 
 lemma is_ord_l_bal:
  "\<lbrakk> is_ord(MKT (x :: nat) l r h); height l = height r + 2 \<rbrakk> \<Longrightarrow> is_ord(l_bal(x,l,r))"
-quickcheck[tester = narrowing, finite_types = false, default_type = nat, size = 1, timeout = 100, expect = counterexample]
+quickcheck[tester = narrowing, finite_types = false, default_type = nat, size = 6, timeout = 100, expect = counterexample]
 oops
 
 
