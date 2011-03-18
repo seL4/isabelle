@@ -10,12 +10,12 @@ imports "~~/src/HOL/Library/Quickcheck_Narrowing"
 begin
 
 subsection {* Minimalistic examples *}
-
+(*
 lemma
   "x = y"
-quickcheck[tester = narrowing, finite_types = false, default_type = nat, expect = counterexample]
+quickcheck[tester = narrowing, finite_types = false, default_type = int, expect = counterexample]
 oops
-
+*)
 (*
 lemma
   "x = y"
@@ -27,6 +27,10 @@ subsection {* Simple list examples *}
 
 lemma "rev xs = xs"
   quickcheck[tester = narrowing, finite_types = false, default_type = nat, expect = counterexample]
+oops
+
+lemma "rev xs = xs"
+  quickcheck[tester = narrowing, finite_types = false, default_type = int]
 oops
 
 lemma "rev xs = xs"

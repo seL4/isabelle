@@ -25,15 +25,67 @@ subsubsection {* Type @{text "code_int"} for Haskell's Int type *}
 typedef (open) code_int = "UNIV \<Colon> int set"
   morphisms int_of of_int by rule
 
+lemma of_int_int_of [simp]:
+  "of_int (int_of k) = k"
+  by (rule int_of_inverse)
+
+lemma int_of_of_int [simp]:
+  "int_of (of_int n) = n"
+  by (rule of_int_inverse) (rule UNIV_I)
+
+lemma code_int:
+  "(\<And>n\<Colon>code_int. PROP P n) \<equiv> (\<And>n\<Colon>int. PROP P (of_int n))"
+proof
+  fix n :: int
+  assume "\<And>n\<Colon>code_int. PROP P n"
+  then show "PROP P (of_int n)" .
+next
+  fix n :: code_int
+  assume "\<And>n\<Colon>int. PROP P (of_int n)"
+  then have "PROP P (of_int (int_of n))" .
+  then show "PROP P n" by simp
+qed
+
+
 lemma int_of_inject [simp]:
   "int_of k = int_of l \<longleftrightarrow> k = l"
   by (rule int_of_inject)
+
+lemma of_int_inject [simp]:
+  "of_int n = of_int m \<longleftrightarrow> n = m"
+  by (rule of_int_inject) (rule UNIV_I)+
+
+instantiation code_int :: equal
+begin
+
+definition
+  "HOL.equal k l \<longleftrightarrow> HOL.equal (int_of k) (int_of l)"
+
+instance proof
+qed (auto simp add: equal_code_int_def equal_int_def eq_int_refl)
+
+end
+
+instantiation code_int :: number
+begin
+
+definition
+  "number_of = of_int"
+
+instance ..
+
+end
+
+lemma int_of_number [simp]:
+  "int_of (number_of k) = number_of k"
+  by (simp add: number_of_code_int_def number_of_is_id)
+
 
 definition nat_of :: "code_int => nat"
 where
   "nat_of i = nat (int_of i)"
 
-instantiation code_int :: "{zero, one, minus, linorder}"
+instantiation code_int :: "{minus, linordered_semidom, semiring_div, linorder}"
 begin
 
 definition [simp, code del]:
@@ -43,7 +95,19 @@ definition [simp, code del]:
   "1 = of_int 1"
 
 definition [simp, code del]:
+  "n + m = of_int (int_of n + int_of m)"
+
+definition [simp, code del]:
   "n - m = of_int (int_of n - int_of m)"
+
+definition [simp, code del]:
+  "n * m = of_int (int_of n * int_of m)"
+
+definition [simp, code del]:
+  "n div m = of_int (int_of n div int_of m)"
+
+definition [simp, code del]:
+  "n mod m = of_int (int_of n mod int_of m)"
 
 definition [simp, code del]:
   "n \<le> m \<longleftrightarrow> int_of n \<le> int_of m"
@@ -52,7 +116,8 @@ definition [simp, code del]:
   "n < m \<longleftrightarrow> int_of n < int_of m"
 
 
-instance proof qed (auto)
+instance proof
+qed (auto simp add: code_int left_distrib zmult_zless_mono2)
 
 end
 (*
@@ -69,6 +134,40 @@ lemma [code_post]: "Numeral1 = (1\<Colon>code_int)"
   using one_code_numeral_code ..
 *)
 
+definition div_mod_code_int :: "code_int \<Rightarrow> code_int \<Rightarrow> code_int \<times> code_int" where
+  [code del]: "div_mod_code_int n m = (n div m, n mod m)"
+
+lemma [code]:
+  "div_mod_code_int n m = (if m = 0 then (0, n) else (n div m, n mod m))"
+  unfolding div_mod_code_int_def by auto
+
+lemma [code]:
+  "n div m = fst (div_mod_code_int n m)"
+  unfolding div_mod_code_int_def by simp
+
+lemma [code]:
+  "n mod m = snd (div_mod_code_int n m)"
+  unfolding div_mod_code_int_def by simp
+
+lemma int_of_code [code]:
+  "int_of k = (if k = 0 then 0
+    else (if k mod 2 = 0 then 2 * int_of (k div 2) else 2 * int_of (k div 2) + 1))"
+proof -
+  have 1: "(int_of k div 2) * 2 + int_of k mod 2 = int_of k" 
+    by (rule mod_div_equality)
+  have "int_of k mod 2 = 0 \<or> int_of k mod 2 = 1" by auto
+  from this show ?thesis
+    apply auto
+    apply (insert 1) by (auto simp add: mult_ac)
+qed
+
+
+code_instance code_numeral :: equal
+  (Haskell -)
+
+setup {* fold (Numeral.add_code @{const_name number_code_int_inst.number_of_code_int}
+  false Code_Printer.literal_numeral) ["Haskell"]  *}
+
 code_const "0 \<Colon> code_int"
   (Haskell "0")
 
@@ -78,6 +177,12 @@ code_const "1 \<Colon> code_int"
 code_const "minus \<Colon> code_int \<Rightarrow> code_int \<Rightarrow> code_int"
   (Haskell "(_/ -/ _)")
 
+code_const div_mod_code_int
+  (Haskell "divMod")
+
+code_const "HOL.equal \<Colon> code_int \<Rightarrow> code_int \<Rightarrow> bool"
+  (Haskell infix 4 "==")
+
 code_const "op \<le> \<Colon> code_int \<Rightarrow> code_int \<Rightarrow> bool"
   (Haskell infix 4 "<=")
 
@@ -86,6 +191,8 @@ code_const "op < \<Colon> code_int \<Rightarrow> code_int \<Rightarrow> bool"
 
 code_type code_int
   (Haskell "Int")
+
+code_abort of_int
 
 subsubsection {* Narrowing's deep representation of types and terms *}
 
@@ -207,7 +314,20 @@ where
 definition cons2 :: "('a :: narrowing => 'b :: narrowing => 'c) => 'c narrowing"
 where
   "cons2 f = apply (apply (cons f) narrowing) narrowing"
-  
+
+definition drawn_from :: "'a list => 'a cons"
+where "drawn_from xs = C (SumOfProd (map (%_. []) xs)) (map (%x y. x) xs)"
+
+instantiation int :: narrowing
+begin
+
+definition
+  "narrowing_int d = (let i = Quickcheck_Narrowing.int_of d in drawn_from [-i .. i])"
+
+instance ..
+
+end
+
 instantiation unit :: narrowing
 begin
 
