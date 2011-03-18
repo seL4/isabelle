@@ -28,16 +28,16 @@ sig
   val map_test_params : (typ list * expectation -> typ list * expectation)
     -> Context.generic -> Context.generic
   val add_generator:
-    string * (Proof.context -> term -> int -> term list option * report option)
+    string * (Proof.context -> term * term list -> int -> term list option * report option)
       -> Context.generic -> Context.generic
   val add_batch_generator:
     string * (Proof.context -> term list -> (int -> term list option) list)
       -> Context.generic -> Context.generic
   (* testing terms and proof states *)
-  val test_term: Proof.context -> bool * bool -> term ->
+  val test_term: Proof.context -> bool * bool -> term * term list ->
     (string * term) list option * ((string * int) list * ((int * report) list) option)
   val test_goal_terms:
-    Proof.context -> bool * bool -> (string * typ) list -> term list
+    Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list  
       -> (string * term) list option * ((string * int) list * ((int * report) list) option) list
   val quickcheck: (string * string list) list -> int -> Proof.state -> (string * term) list option
   (* testing a batch of terms *)
@@ -109,7 +109,7 @@ fun merge_test_params
 structure Data = Generic_Data
 (
   type T =
-    ((string * (Proof.context -> term -> int -> term list option * report option)) list
+    ((string * (Proof.context -> term * term list -> int -> term list option * report option)) list
       * (string * (Proof.context -> term list -> (int -> term list option) list)) list)
       * test_params;
   val empty = (([], []), Test_Params {default_type = [], expect = No_Expectation});
@@ -182,13 +182,14 @@ fun limit ctxt (limit_time, is_interactive) f exc () =
   else
     f ()
 
-fun test_term ctxt (limit_time, is_interactive) t =
+fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
   let
     val (names, t') = apfst (map fst) (prep_test_term t);
     val current_size = Unsynchronized.ref 0
     fun excipit s =
       "Quickcheck " ^ s ^ " while testing at size " ^ string_of_int (!current_size)
-    val (test_fun, comp_time) = cpu_time "quickcheck compilation" (fn () => mk_tester ctxt t');
+    val (test_fun, comp_time) = cpu_time "quickcheck compilation"
+      (fn () => mk_tester ctxt (t', eval_terms));
     fun with_size test_fun k reports =
       if k > Config.get ctxt size then
         (NONE, reports)
@@ -238,10 +239,11 @@ fun test_terms ctxt ts =
 fun test_term_with_increasing_cardinality ctxt (limit_time, is_interactive) ts =
   let
     val thy = ProofContext.theory_of ctxt
+    val (ts, eval_terms) = split_list ts
     val (freess, ts') = split_list (map prep_test_term ts)
     val Ts = map snd (hd freess)
     val (test_funs, comp_time) = cpu_time "quickcheck compilation"
-      (fn () => map (mk_tester ctxt) ts')
+      (fn () => map (mk_tester ctxt) (ts' ~~ eval_terms))
     fun test_card_size (card, size) =
       (* FIXME: why decrement size by one? *)
       case fst (the (nth test_funs (card - 1)) (size - 1)) of
@@ -290,22 +292,23 @@ fun monomorphic_term thy insts default_T =
       | subst T = T;
   in (map_types o map_atyps) subst end;
 
-datatype wellsorted_error = Wellsorted_Error of string | Term of term
+datatype wellsorted_error = Wellsorted_Error of string | Term of term * term list
 
 fun test_goal_terms lthy (limit_time, is_interactive) insts check_goals =
   let
+    fun map_goal_and_eval_terms f (check_goal, eval_terms) = (f check_goal, map f eval_terms)
     val thy = ProofContext.theory_of lthy
     val default_insts =
       if Config.get lthy finite_types then (get_finite_types lthy) else (default_type lthy)
     val inst_goals =
-      map (fn check_goal =>
+      map (fn (check_goal, eval_terms) =>
         if not (null (Term.add_tfree_names check_goal [])) then
           map (fn T =>
-            (pair (SOME T) o Term o Object_Logic.atomize_term thy o monomorphic_term thy insts T)
-              check_goal
+            (pair (SOME T) o Term o apfst (Object_Logic.atomize_term thy))
+              (map_goal_and_eval_terms (monomorphic_term thy insts T) (check_goal, eval_terms))
               handle WELLSORTED s => (SOME T, Wellsorted_Error s)) default_insts
         else
-          [(NONE, Term (Object_Logic.atomize_term thy check_goal))]) check_goals
+          [(NONE, Term (Object_Logic.atomize_term thy check_goal, eval_terms))]) check_goals
     val error_msg =
       cat_lines
         (maps (map_filter (fn (_, Term t) => NONE | (_, Wellsorted_Error s) => SOME s)) inst_goals)
@@ -332,7 +335,7 @@ fun test_goal_terms lthy (limit_time, is_interactive) insts check_goals =
       collect_results (test_term lthy (limit_time, is_interactive)) [] (maps (map snd) correct_inst_goals)
   end;
 
-fun test_goal (time_limit, is_interactive) insts i state =
+fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
   let
     val lthy = Proof.context_of state;
     val thy = Proof.theory_of state;
@@ -349,9 +352,10 @@ fun test_goal (time_limit, is_interactive) insts i state =
       | SOME locale => Assumption.local_assms_of lthy (Locale.init locale thy);
     val proto_goal = Logic.list_implies (map Thm.term_of assms, subst_bounds (frees, strip gi));
     val check_goals = case some_locale
-     of NONE => [proto_goal]
-      | SOME locale => map (fn (_, phi) => Morphism.term phi proto_goal)
-        (Locale.registrations_of (Context.Theory thy) (*FIXME*) locale);
+     of NONE => [(proto_goal, eval_terms)]
+      | SOME locale =>
+        map (fn (_, phi) => (Morphism.term phi proto_goal, map (Morphism.term phi) eval_terms))
+          (Locale.registrations_of (Context.Theory thy) (*FIXME*) locale);
   in
     test_goal_terms lthy (time_limit, is_interactive) insts check_goals
   end
@@ -398,7 +402,7 @@ fun auto_quickcheck state =
     val res =
       state
       |> Proof.map_context (Config.put report false #> Config.put quiet true)
-      |> try (test_goal (false, false) [] 1);
+      |> try (test_goal (false, false) ([], []) 1);
   in
     case res of
       NONE => (false, state)
@@ -471,7 +475,7 @@ fun quickcheck_params_cmd args = Context.theory_map (fold parse_test_param args)
 fun gen_quickcheck args i state =
   state
   |> Proof.map_context_result (fn ctxt => fold parse_test_param_inst args (([], []), ctxt))
-  |> (fn ((insts, eval_terms), state') => test_goal (true, true) insts i state'
+  |> (fn ((insts, eval_terms), state') => test_goal (true, true) (insts, eval_terms) i state'
   |> tap (fn (SOME x, _) => if expect (Proof.context_of state') = No_Counterexample then
                error ("quickcheck expected to find no counterexample but found one") else ()
            | (NONE, _) => if expect (Proof.context_of state') = Counterexample then
