@@ -118,7 +118,7 @@ val narrowing_engine = File.read (Path.explode "~~/src/HOL/Tools/Quickcheck/Narr
 fun exec verbose code =
   ML_Context.exec (fn () => Secure.use_text ML_Env.local_context (0, "generated code") verbose code)
 
-fun value ctxt (get, put, put_ml) (code, value) =
+fun value ctxt (get, put, put_ml) (code, value) size =
   let
     val tmp_prefix = "Quickcheck_Narrowing"
     fun run in_path = 
@@ -129,7 +129,7 @@ fun value ctxt (get, put, put_ml) (code, value) =
         val main = "module Main where {\n\n" ^
           "import Narrowing_Engine;\n" ^
           "import Code;\n\n" ^
-          "main = Narrowing_Engine.smallCheck 7 (Code.value ())\n\n" ^
+          "main = Narrowing_Engine.smallCheck " ^ string_of_int size ^ " (Code.value ())\n\n" ^
           "}\n"
         val code' = prefix "module Code where {\n\ndata Typerep = Typerep String [Typerep];\n"
           (unprefix "module Code where {" code)
@@ -154,18 +154,18 @@ fun value ctxt (get, put, put_ml) (code, value) =
       |> Context.proof_map (exec false ml_code);
   in get ctxt' () end;
 
-fun evaluation cookie thy evaluator vs_t args =
+fun evaluation cookie thy evaluator vs_t args size =
   let
     val ctxt = ProofContext.init_global thy;
     val (program_code, value_name) = evaluator vs_t;
     val value_code = space_implode " "
       (value_name :: "()" :: map (enclose "(" ")") args);
-  in Exn.interruptible_capture (value ctxt cookie) (program_code, value_code) end;
+  in Exn.interruptible_capture (value ctxt cookie (program_code, value_code)) size end;
 
-fun dynamic_value_strict cookie thy postproc t args =
+fun dynamic_value_strict cookie thy postproc t args size =
   let
     fun evaluator naming program ((_, vs_ty), t) deps =
-      evaluation cookie thy (Code_Target.evaluator thy target naming program deps) (vs_ty, t) args;
+      evaluation cookie thy (Code_Target.evaluator thy target naming program deps) (vs_ty, t) args size;
   in Exn.release (Code_Thingol.dynamic_value thy (Exn.map_result o postproc) evaluator t) end;
 
 (* counterexample generator *)
@@ -185,7 +185,7 @@ fun compile_generator_expr ctxt t size =
       Const (@{const_name Quickcheck_Narrowing.ensure_testable}, fastype_of t --> fastype_of t) $ t
     val t = dynamic_value_strict
       (Counterexample.get, Counterexample.put, "Narrowing_Generators.put_counterexample")
-      thy (Option.map o map) (ensure_testable t) []
+      thy (Option.map o map) (ensure_testable t) [] size
   in
     (t, NONE)
   end;
