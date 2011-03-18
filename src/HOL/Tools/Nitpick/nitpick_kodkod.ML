@@ -313,7 +313,6 @@ fun bound_for_sel_rel ctxt debug need_vals dtypes
     in
       ([(x, bound_comment ctxt debug nick T R)],
        let
-         val ts = KK.TupleAtomSeq (epsilon - delta, delta + j0)
          val complete_need_vals = (length need_vals = card)
          val (my_need_vals, other_need_vals) =
            need_vals
@@ -322,13 +321,22 @@ fun bound_for_sel_rel ctxt debug need_vals dtypes
                       exists (fn FreeRel (x', _, _, _) => x = x'
                                | _ => false) sel_us
                     | _ => false)
+         fun upper_bound_ts () =
+           if complete_need_vals then
+             my_need_vals |> map (KK.Tuple o single o snd) |> KK.TupleSet
+           else if not (null other_need_vals) then
+             index_seq (delta + j0) (epsilon - delta)
+             |> filter_out (member (op = o apsnd snd) other_need_vals)
+             |> map (KK.Tuple o single) |> KK.TupleSet
+           else
+             KK.TupleAtomSeq (epsilon - delta, delta + j0)
        in
          if explicit_max = 0 orelse
-            (complete_need_vals andalso null my_need_vals) then
+            (complete_need_vals andalso null my_need_vals) (* ### needed? *) then
            [KK.TupleSet []]
          else
            if R2 = Formula Neut then
-             [ts] |> not exclusive ? cons (KK.TupleSet [])
+             [upper_bound_ts ()] |> not exclusive ? cons (KK.TupleSet [])
            else
              [KK.TupleSet [],
               if T1 = T2 andalso epsilon > delta andalso
@@ -339,7 +347,7 @@ fun bound_for_sel_rel ctxt debug need_vals dtypes
                                             KK.TupleAtomSeq (j, j0)))
                 |> foldl1 KK.TupleUnion
               else
-                KK.TupleProduct (ts, upper_bound_for_rep R2)]
+                KK.TupleProduct (upper_bound_ts (), upper_bound_for_rep R2)]
          end)
     end
   | bound_for_sel_rel _ _ _ _ u =
@@ -1525,7 +1533,9 @@ fun needed_values_for_datatype [] _ _ = SOME []
                  else
                    accum)
         | aux _ = I
-    in SOME (index_seq 0 card, []) |> fold aux need_us |> Option.map snd end
+    in
+      SOME (index_seq 0 card, []) |> fold aux need_us |> Option.map (rev o snd)
+    end
 
 fun needed_value_axioms_for_datatype _ _ NONE = [KK.False]
   | needed_value_axioms_for_datatype ofs kk (SOME fixed) =
