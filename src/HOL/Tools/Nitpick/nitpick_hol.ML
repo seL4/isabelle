@@ -214,6 +214,7 @@ sig
   val fixpoint_kind_of_const :
     theory -> const_table * const_table -> string * typ -> fixpoint_kind
   val is_real_inductive_pred : hol_context -> styp -> bool
+  val is_constr_pattern : Proof.context -> term -> bool
   val is_constr_pattern_lhs : Proof.context -> term -> bool
   val is_constr_pattern_formula : Proof.context -> term -> bool
   val nondef_props_for_const :

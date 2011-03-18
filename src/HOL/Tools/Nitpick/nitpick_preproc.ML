@@ -387,7 +387,7 @@ fun pull_out_existential_constrs hol_ctxt t =
           (list_comb (t, args), seen)
   in aux [] 0 t [] [] |> fst end
 
-fun destroy_pulled_out_constrs (hol_ctxt as {ctxt, stds, ...}) axiom t =
+fun destroy_pulled_out_constrs (hol_ctxt as {ctxt, stds, ...}) axiom strong t =
   let
     val num_occs_of_var =
       fold_aterms (fn Var z => (fn f => fn z' => f z' |> z = z' ? Integer.add 1)
@@ -404,7 +404,8 @@ fun destroy_pulled_out_constrs (hol_ctxt as {ctxt, stds, ...}) axiom t =
       | aux Ts careful (t1 $ t2) = aux Ts careful t1 $ aux Ts careful t2
       | aux _ _ t = t
     and aux_eq Ts careful pass1 t0 t1 t2 =
-      ((if careful then
+      ((if careful orelse
+           not (strong orelse forall (is_constr_pattern ctxt) [t1, t2]) then
           raise SAME ()
         else if axiom andalso is_Var t2 andalso
                 num_occs_of_var (dest_Var t2) = 1 then
@@ -1270,8 +1271,8 @@ fun preprocess_formulas
       #> box ? box_fun_and_pair_in_term hol_ctxt def
     fun do_tail def =
       destroy_constrs ? (pull_out_universal_constrs hol_ctxt def
-                         #> pull_out_existential_constrs hol_ctxt
-                         #> destroy_pulled_out_constrs hol_ctxt def)
+                         #> pull_out_existential_constrs hol_ctxt)
+      #> destroy_pulled_out_constrs hol_ctxt def destroy_constrs
       #> curry_assms
       #> destroy_universal_equalities
       #> destroy_existential_equalities hol_ctxt
