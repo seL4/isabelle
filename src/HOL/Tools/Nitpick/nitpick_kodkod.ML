@@ -305,6 +305,16 @@ fun is_datatype_nat_like ({typ, constrs, ...} : datatype_spec) =
     ([Type (_, Ts1)], [T2]) => forall (curry (op =) typ) (T2 :: Ts1)
   | _ => false
 
+fun needed_values need_vals T =
+  AList.lookup (op =) need_vals T |> the_default NONE |> these
+
+fun all_values_are_needed need_vals ({typ, card, ...} : datatype_spec) =
+  length (needed_values need_vals typ) = card
+
+fun is_sel_of_constr x (Construct (sel_us, _, _, _), _) =
+    exists (fn FreeRel (x', _, _, _) => x = x' | _ => false) sel_us
+  | is_sel_of_constr _ _ = false
+
 fun bound_for_sel_rel ctxt debug need_vals dtypes
         (FreeRel (x, T as Type (@{type_name fun}, [T1, T2]),
                   R as Func (Atom (_, j0), R2), nick)) =
@@ -313,19 +323,13 @@ fun bound_for_sel_rel ctxt debug need_vals dtypes
       val {delta, epsilon, exclusive, explicit_max, ...} =
         constr_spec dtypes (constr_s, T1)
       val dtype as {card, ...} = datatype_spec dtypes T1 |> the
-      val need_vals =
-        AList.lookup (op =) need_vals T1 |> the_default NONE |> these
+      val T1_need_vals = needed_values need_vals T1
     in
       ([(x, bound_comment ctxt debug nick T R)],
        let
-         val complete_need_vals = (length need_vals = card)
+         val complete_need_vals = (length T1_need_vals = card)
          val (my_need_vals, other_need_vals) =
-           need_vals
-           |> List.partition
-                  (fn (Construct (sel_us, _, _, _), _) =>
-                      exists (fn FreeRel (x', _, _, _) => x = x'
-                               | _ => false) sel_us
-                    | _ => false)
+           T1_need_vals |> List.partition (is_sel_of_constr x)
          fun upper_bound_ts () =
            if complete_need_vals then
              my_need_vals |> map (KK.Tuple o single o snd) |> KK.TupleSet
@@ -337,11 +341,13 @@ fun bound_for_sel_rel ctxt debug need_vals dtypes
              KK.TupleAtomSeq (epsilon - delta, delta + j0)
        in
          if explicit_max = 0 orelse
-            (complete_need_vals andalso null my_need_vals) (* ### needed? *) then
+            (complete_need_vals andalso null my_need_vals) then
            [KK.TupleSet []]
          else
            if R2 = Formula Neut then
-             [upper_bound_ts ()] |> not exclusive ? cons (KK.TupleSet [])
+             [upper_bound_ts ()]
+             |> not (exclusive orelse all_values_are_needed need_vals dtype)
+                ? cons (KK.TupleSet [])
            else
              [KK.TupleSet [],
               if T1 = T2 andalso epsilon > delta andalso
@@ -1715,27 +1721,35 @@ fun sym_break_axioms_for_datatypes hol_ctxt binarize need_us datatype_sym_break
            |> maps (sym_break_axioms_for_datatype hol_ctxt binarize kk rel_table
                                                   nfas dtypes)
 
-fun sel_axiom_for_sel hol_ctxt binarize j0
-        (kk as {kk_all, kk_formula_if, kk_subset, kk_no, kk_join, ...})
-        rel_table dom_r ({const, delta, epsilon, exclusive, ...} : constr_spec)
-        n =
+fun sel_axioms_for_sel hol_ctxt binarize j0
+        (kk as {kk_all, kk_formula_if, kk_subset, kk_no, kk_join, kk_union,
+                ...}) need_vals rel_table dom_r (dtype as {typ, ...})
+        ({const, delta, epsilon, exclusive, ...} : constr_spec) n =
   let
     val x = binarized_and_boxed_nth_sel_for_constr hol_ctxt binarize const n
     val (r, R, _) = const_triple rel_table x
+    val rel_x =
+      case r of
+        KK.Rel x => x
+      | _ => raise BAD ("Nitpick_Kodkod.sel_axioms_for_sel", "non-Rel")
     val R2 = dest_Func R |> snd
     val z = (epsilon - delta, delta + j0)
   in
     if exclusive then
-      kk_n_ary_function kk (Func (Atom z, R2)) r
+      [kk_n_ary_function kk (Func (Atom z, R2)) r]
+    else if all_values_are_needed need_vals dtype then
+      typ |> needed_values need_vals
+          |> filter (is_sel_of_constr rel_x)
+          |> map (fn (_, j) => kk_n_ary_function kk R2 (kk_join (KK.Atom j) r))
     else
       let val r' = kk_join (KK.Var (1, 0)) r in
-        kk_all [KK.DeclOne ((1, 0), KK.AtomSeq z)]
-               (kk_formula_if (kk_subset (KK.Var (1, 0)) dom_r)
-                              (kk_n_ary_function kk R2 r') (kk_no r'))
+        [kk_all [KK.DeclOne ((1, 0), KK.AtomSeq z)]
+                (kk_formula_if (kk_subset (KK.Var (1, 0)) dom_r)
+                               (kk_n_ary_function kk R2 r') (kk_no r'))]
       end
   end
-fun sel_axioms_for_constr hol_ctxt binarize bits j0 kk rel_table
-        (constr as {const, delta, epsilon, explicit_max, ...}) =
+fun sel_axioms_for_constr hol_ctxt binarize bits j0 kk need_vals rel_table
+        dtype (constr as {const, delta, epsilon, explicit_max, ...}) =
   let
     val honors_explicit_max =
       explicit_max < 0 orelse epsilon - delta <= explicit_max
@@ -1757,17 +1771,20 @@ fun sel_axioms_for_constr hol_ctxt binarize bits j0 kk rel_table
                              " too small for \"max\"")
       in
         max_axiom ::
-        map (sel_axiom_for_sel hol_ctxt binarize j0 kk rel_table dom_r constr)
-            (index_seq 0 (num_sels_for_constr_type (snd const)))
+        maps (sel_axioms_for_sel hol_ctxt binarize j0 kk need_vals rel_table
+                                 dom_r dtype constr)
+             (index_seq 0 (num_sels_for_constr_type (snd const)))
       end
   end
-fun sel_axioms_for_datatype hol_ctxt binarize bits j0 kk rel_table
-                            ({constrs, ...} : datatype_spec) =
-  maps (sel_axioms_for_constr hol_ctxt binarize bits j0 kk rel_table) constrs
+fun sel_axioms_for_datatype hol_ctxt binarize bits j0 kk rel_table need_vals
+                            (dtype as {constrs, ...}) =
+  maps (sel_axioms_for_constr hol_ctxt binarize bits j0 kk rel_table need_vals
+                              dtype) constrs
 
-fun uniqueness_axiom_for_constr hol_ctxt binarize
+fun uniqueness_axioms_for_constr hol_ctxt binarize
         ({kk_all, kk_implies, kk_and, kk_rel_eq, kk_lone, kk_join, ...}
-         : kodkod_constrs) rel_table ({const, ...} : constr_spec) =
+         : kodkod_constrs) need_vals rel_table dtype
+        ({const, ...} : constr_spec) =
   let
     fun conjunct_for_sel r =
       kk_rel_eq (kk_join (KK.Var (1, 0)) r) (kk_join (KK.Var (1, 1)) r)
@@ -1779,36 +1796,42 @@ fun uniqueness_axiom_for_constr hol_ctxt binarize
     val set_r = triples |> hd |> #1
   in
     if num_sels = 0 then
-      kk_lone set_r
+      [kk_lone set_r]
+    else if all_values_are_needed need_vals dtype then
+      []
     else
-      kk_all (map (KK.DeclOne o rpair set_r o pair 1) [0, 1])
-             (kk_implies
-                  (fold1 kk_and (map (conjunct_for_sel o #1) (tl triples)))
-                  (kk_rel_eq (KK.Var (1, 0)) (KK.Var (1, 1))))
+      [kk_all (map (KK.DeclOne o rpair set_r o pair 1) [0, 1])
+              (kk_implies
+                   (fold1 kk_and (map (conjunct_for_sel o #1) (tl triples)))
+                   (kk_rel_eq (KK.Var (1, 0)) (KK.Var (1, 1))))]
   end
-fun uniqueness_axioms_for_datatype hol_ctxt binarize kk rel_table
-                                   ({constrs, ...} : datatype_spec) =
-  map (uniqueness_axiom_for_constr hol_ctxt binarize kk rel_table) constrs
+fun uniqueness_axioms_for_datatype hol_ctxt binarize kk need_vals rel_table
+                                   (dtype as {constrs, ...}) =
+  maps (uniqueness_axioms_for_constr hol_ctxt binarize kk need_vals rel_table
+                                     dtype) constrs
 
 fun effective_constr_max ({delta, epsilon, ...} : constr_spec) = epsilon - delta
 fun partition_axioms_for_datatype j0 (kk as {kk_rel_eq, kk_union, ...})
-                                  rel_table
-                                  ({card, constrs, ...} : datatype_spec) =
+        need_vals rel_table (dtype as {card, constrs, ...}) =
   if forall #exclusive constrs then
     [Integer.sum (map effective_constr_max constrs) = card |> formula_for_bool]
+  else if all_values_are_needed need_vals dtype then
+    []
   else
     let val rs = map (discr_rel_expr rel_table o #const) constrs in
       [kk_rel_eq (fold1 kk_union rs) (KK.AtomSeq (card, j0)),
        kk_disjoint_sets kk rs]
     end
 
-fun other_axioms_for_datatype _ _ _ _ _ _ {deep = false, ...} = []
-  | other_axioms_for_datatype hol_ctxt binarize bits ofs kk rel_table
+fun other_axioms_for_datatype _ _ _ _ _ _ _ {deep = false, ...} = []
+  | other_axioms_for_datatype hol_ctxt binarize need_vals bits ofs kk rel_table
                               (dtype as {typ, ...}) =
     let val j0 = offset_of_type ofs typ in
-      sel_axioms_for_datatype hol_ctxt binarize bits j0 kk rel_table dtype @
-      uniqueness_axioms_for_datatype hol_ctxt binarize kk rel_table dtype @
-      partition_axioms_for_datatype j0 kk rel_table dtype
+      sel_axioms_for_datatype hol_ctxt binarize bits j0 kk need_vals rel_table
+                              dtype @
+      uniqueness_axioms_for_datatype hol_ctxt binarize kk need_vals rel_table
+                                     dtype @
+      partition_axioms_for_datatype j0 kk need_vals rel_table dtype
     end
 
 fun declarative_axioms_for_datatypes hol_ctxt binarize need_us need_vals
@@ -1823,8 +1846,8 @@ fun declarative_axioms_for_datatypes hol_ctxt binarize need_us need_vals
     maps (needed_value_axioms_for_datatype ofs kk o snd) need_vals @
     sym_break_axioms_for_datatypes hol_ctxt binarize need_us datatype_sym_break
                                    kk rel_table nfas dtypes @
-    maps (other_axioms_for_datatype hol_ctxt binarize bits ofs kk rel_table)
-         dtypes
+    maps (other_axioms_for_datatype hol_ctxt binarize need_vals bits ofs kk
+                                    rel_table) dtypes
   end
 
 end;
