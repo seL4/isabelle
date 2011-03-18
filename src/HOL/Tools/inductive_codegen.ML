@@ -810,8 +810,9 @@ val (size_offset, setup_size_offset) = Attrib.config_int "ind_quickcheck_size_of
 
 fun test_term ctxt (t, []) =
   let
+    val t' = list_abs_free (Term.add_frees t [], t)
     val thy = ProofContext.theory_of ctxt;
-    val (xs, p) = strip_abs t;
+    val (xs, p) = strip_abs t';
     val args' = map_index (fn (i, (_, T)) => ("arg" ^ string_of_int i, T)) xs;
     val args = map Free args';
     val (ps, q) = strip_imp p;

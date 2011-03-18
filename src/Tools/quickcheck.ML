@@ -35,10 +35,10 @@ sig
       -> Context.generic -> Context.generic
   (* testing terms and proof states *)
   val test_term: Proof.context -> bool * bool -> term * term list ->
-    (string * term) list option * ((string * int) list * ((int * report) list) option)
+    ((string * term) list * (term * term) list) option * ((string * int) list * ((int * report) list) option)
   val test_goal_terms:
     Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list  
-      -> (string * term) list option * ((string * int) list * ((int * report) list) option) list
+      -> ((string * term) list * (term * term) list) option * ((string * int) list * ((int * report) list) option) list
   val quickcheck: (string * string list) list -> int -> Proof.state -> (string * term) list option
   (* testing a batch of terms *)
   val test_terms: Proof.context -> term list -> (string * term) list option list option
@@ -158,14 +158,13 @@ val mk_batch_tester = gen_mk_tester (fn ctxt => AList.lookup (op =) ((snd o fst 
   
 (* testing propositions *)
 
-fun prep_test_term t =
+fun check_test_term t =
   let
     val _ = (null (Term.add_tvars t []) andalso null (Term.add_tfrees t [])) orelse
       error "Term to be tested contains type variables";
     val _ = null (Term.add_vars t []) orelse
       error "Term to be tested contains schematic variables";
-    val frees = Term.add_frees t [];
-  in (frees, list_abs_free (frees, t)) end
+  in () end
 
 fun cpu_time description f =
   let
@@ -182,14 +181,22 @@ fun limit ctxt (limit_time, is_interactive) f exc () =
   else
     f ()
 
+fun mk_result names eval_terms ts =
+  let
+    val (ts1, ts2) = chop (length names) ts
+  in
+    (names ~~ ts1, eval_terms ~~ ts2) 
+  end
+
 fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
   let
-    val (names, t') = apfst (map fst) (prep_test_term t);
+    val _ = check_test_term t
+    val names = Term.add_free_names t []
     val current_size = Unsynchronized.ref 0
     fun excipit s =
       "Quickcheck " ^ s ^ " while testing at size " ^ string_of_int (!current_size)
     val (test_fun, comp_time) = cpu_time "quickcheck compilation"
-      (fn () => mk_tester ctxt (t', eval_terms));
+      (fn () => mk_tester ctxt (t, eval_terms));
     fun with_size test_fun k reports =
       if k > Config.get ctxt size then
         (NONE, reports)
@@ -212,7 +219,7 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
             val ((result, reports), exec_time) =
               cpu_time "quickcheck execution" (fn () => with_size test_fun 1 [])
           in
-            (case result of NONE => NONE | SOME ts => SOME (names ~~ ts),
+            (Option.map (mk_result names eval_terms) result,
               ([exec_time, comp_time],
                if Config.get ctxt report andalso not (null reports) then SOME reports else NONE))
           end) (fn () => error (excipit "ran out of time")) ()
@@ -220,8 +227,9 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
 
 fun test_terms ctxt ts =
   let
-    val (namess, ts') = split_list (map (fn t => apfst (map fst) (prep_test_term t)) ts)
-    val test_funs = mk_batch_tester ctxt ts'
+    val _ = map check_test_term ts
+    val namess = map (fn t => Term.add_free_names t []) ts
+    val test_funs = mk_batch_tester ctxt ts
     fun with_size tester k =
       if k > Config.get ctxt size then NONE
       else case tester k of SOME ts => SOME ts | NONE => with_size tester (k + 1)
@@ -240,14 +248,15 @@ fun test_term_with_increasing_cardinality ctxt (limit_time, is_interactive) ts =
   let
     val thy = ProofContext.theory_of ctxt
     val (ts, eval_terms) = split_list ts
-    val (freess, ts') = split_list (map prep_test_term ts)
-    val Ts = map snd (hd freess)
+    val _ = map check_test_term ts
+    val names = Term.add_free_names (hd ts) []
+    val Ts = map snd (Term.add_frees (hd ts) [])
     val (test_funs, comp_time) = cpu_time "quickcheck compilation"
-      (fn () => map (mk_tester ctxt) (ts' ~~ eval_terms))
+      (fn () => map (mk_tester ctxt) (ts ~~ eval_terms))
     fun test_card_size (card, size) =
       (* FIXME: why decrement size by one? *)
       case fst (the (nth test_funs (card - 1)) (size - 1)) of
-        SOME ts => SOME (map fst (nth freess (card - 1)) ~~ ts)
+        SOME ts => SOME (mk_result names (nth eval_terms (card - 1)) ts)
       | NONE => NONE
     val enumeration_card_size =
       if forall (fn T => Sign.of_sort thy (T,  ["Enum.enum"])) Ts then
@@ -365,10 +374,14 @@ fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
 fun tool_name auto = (if auto then "Auto " else "") ^ "Quickcheck"
 
 fun pretty_counterex ctxt auto NONE = Pretty.str (tool_name auto ^ " found no counterexample.")
-  | pretty_counterex ctxt auto (SOME cex) =
-      Pretty.chunks (Pretty.str (tool_name auto ^ " found a counterexample:\n") ::
+  | pretty_counterex ctxt auto (SOME (cex, eval_terms)) =
+      Pretty.chunks ((Pretty.str (tool_name auto ^ " found a counterexample:\n") ::
         map (fn (s, t) =>
-          Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1, Syntax.pretty_term ctxt t]) (rev cex));
+          Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1, Syntax.pretty_term ctxt t]) (rev cex))
+        @ (Pretty.str ("Evaluated terms:\n") ::
+        map (fn (t, u) =>
+          Pretty.block [Syntax.pretty_term ctxt t, Pretty.str " =", Pretty.brk 1, Syntax.pretty_term ctxt u])
+          (rev eval_terms)));
 
 fun pretty_report (Report {iterations = iterations, raised_match_errors = raised_match_errors,
     satisfied_assms = satisfied_assms, positive_concl_tests = positive_concl_tests}) =
@@ -481,7 +494,7 @@ fun gen_quickcheck args i state =
            | (NONE, _) => if expect (Proof.context_of state') = Counterexample then
                error ("quickcheck expected to find a counterexample but did not find one") else ()))
 
-fun quickcheck args i state = fst (gen_quickcheck args i state);
+fun quickcheck args i state = Option.map fst (fst (gen_quickcheck args i state));
 
 fun quickcheck_cmd args i state =
   gen_quickcheck args i (Toplevel.proof_of state)

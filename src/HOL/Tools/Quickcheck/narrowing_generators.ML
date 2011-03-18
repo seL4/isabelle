@@ -216,12 +216,13 @@ fun finitize_functions t =
 fun compile_generator_expr ctxt (t, eval_terms) size =
   let
     val thy = ProofContext.theory_of ctxt
-    val t' = if Config.get ctxt finite_functions then finitize_functions t else t
+    val t' = list_abs_free (Term.add_frees t [], t)
+    val t'' = if Config.get ctxt finite_functions then finitize_functions t' else t'
     fun ensure_testable t =
       Const (@{const_name Quickcheck_Narrowing.ensure_testable}, fastype_of t --> fastype_of t) $ t
     val result = dynamic_value_strict
       (Counterexample.get, Counterexample.put, "Narrowing_Generators.put_counterexample")
-      thy (Option.map o map) (ensure_testable t') [] size
+      thy (Option.map o map) (ensure_testable t'') [] size
   in
     (result, NONE)
   end;

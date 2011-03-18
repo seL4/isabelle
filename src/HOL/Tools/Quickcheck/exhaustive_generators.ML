@@ -211,6 +211,61 @@ fun instantiate_exhaustive_datatype config descr vs tycos prfx (names, auxnames)
 
 (** building and compiling generator expressions **)
 
+fun mk_generator_expr ctxt (t, eval_terms) =
+  let
+    val thy = ProofContext.theory_of ctxt
+    val ctxt' = Variable.auto_fixes t ctxt
+    val names = Term.add_free_names t []
+    val frees = map Free (Term.add_frees t [])
+    val ([depth_name], ctxt'') = Variable.variant_fixes ["depth"] ctxt'
+    val (term_names, ctxt''') = Variable.variant_fixes (map (prefix "t_") names) ctxt''
+    val depth = Free (depth_name, @{typ code_numeral})
+    val term_vars = map (fn n => Free (n, @{typ "unit => term"})) term_names
+    val terms = HOLogic.mk_list @{typ term} (map (fn v => v $ @{term "()"}) term_vars)
+    val appendC = @{term "List.append :: term list => term list => term list"}  
+    val return = @{term "Some :: term list => term list option"} $ (appendC $ terms $
+      (HOLogic.mk_list @{typ "term"} (map (fn t => HOLogic.mk_term_of (fastype_of t) t) eval_terms)))
+    fun mk_exhaustive_closure (free as Free (_, T), term_var) t =
+      if Sign.of_sort thy (T, @{sort enum}) then
+        Const (@{const_name "Quickcheck_Exhaustive.check_all_class.check_all"}, check_allT T)
+          $ (HOLogic.split_const (T, @{typ "unit => term"}, @{typ "term list option"}) 
+            $ lambda free (lambda term_var t))
+      else
+        Const (@{const_name "Quickcheck_Exhaustive.exhaustive_class.exhaustive"}, exhaustiveT T)
+          $ (HOLogic.split_const (T, @{typ "unit => term"}, @{typ "term list option"})
+            $ lambda free (lambda term_var t)) $ depth
+    val none_t = @{term "None :: term list option"}
+    fun mk_safe_if (cond, then_t, else_t) =
+      @{term "Quickcheck_Exhaustive.catch_match :: term list option => term list option => term list option"} $
+        (@{term "If :: bool => term list option => term list option => term list option"}
+        $ cond $ then_t $ else_t) $ none_t;
+    fun strip_imp (Const(@{const_name HOL.implies},_) $ A $ B) = apfst (cons A) (strip_imp B)
+        | strip_imp A = ([], A)
+    fun lookup v = the (AList.lookup (op =) (names ~~ (frees ~~ term_vars)) v)
+    fun mk_naive_test_term t =
+      fold_rev mk_exhaustive_closure (frees ~~ term_vars) (mk_safe_if (t, none_t, return)) 
+    fun mk_smart_test_term' concl bound_vars assms =
+      let
+        fun vars_of t = subtract (op =) bound_vars (Term.add_free_names t [])
+        val (vars, check) =
+          case assms of [] => (vars_of concl, (concl, none_t, return))
+            | assm :: assms => (vars_of assm, (assm,
+                mk_smart_test_term' concl (union (op =) (vars_of assm) bound_vars) assms, none_t))
+      in
+        fold_rev mk_exhaustive_closure (map lookup vars) (mk_safe_if check)
+      end
+    fun mk_smart_test_term t =
+      let
+        val (assms, concl) = strip_imp t
+      in
+        mk_smart_test_term' concl [] assms
+      end
+    val mk_test_term =
+      if Config.get ctxt smart_quantifier then mk_smart_test_term else mk_naive_test_term 
+  in lambda depth (mk_test_term t) end
+
+(** generator compiliation **)
+
 structure Counterexample = Proof_Data
 (
   type T = unit -> int -> term list option
@@ -229,76 +284,10 @@ val put_counterexample_batch = Counterexample_Batch.put;
 
 val target = "Quickcheck";
 
-fun mk_smart_generator_expr ctxt t =
-  let
-    val thy = ProofContext.theory_of ctxt
-    val ((vnames, Ts), t') = apfst split_list (strip_abs t)
-    val ([depth_name], ctxt') = Variable.variant_fixes ["depth"] ctxt
-    val (names, ctxt'') = Variable.variant_fixes vnames ctxt'
-    val (term_names, ctxt''') = Variable.variant_fixes (map (prefix "t_") vnames) ctxt''
-    val depth = Free (depth_name, @{typ code_numeral})
-    val frees = map2 (curry Free) names Ts
-    val term_vars = map (fn n => Free (n, @{typ "unit => term"})) term_names 
-    fun strip_imp (Const(@{const_name HOL.implies},_) $ A $ B) = apfst (cons A) (strip_imp B)
-      | strip_imp A = ([], A)
-    val (assms, concl) = strip_imp (subst_bounds (rev frees, t'))
-    val terms = HOLogic.mk_list @{typ term} (map (fn v => v $ @{term "()"}) term_vars)
-    fun mk_exhaustive_closure (free as Free (_, T), term_var) t =
-      if Sign.of_sort thy (T, @{sort enum}) then
-        Const (@{const_name "Quickcheck_Exhaustive.check_all_class.check_all"}, check_allT T)
-          $ (HOLogic.split_const (T, @{typ "unit => term"}, @{typ "term list option"}) 
-            $ lambda free (lambda term_var t))
-      else
-        Const (@{const_name "Quickcheck_Exhaustive.exhaustive_class.exhaustive"}, exhaustiveT T)
-          $ (HOLogic.split_const (T, @{typ "unit => term"}, @{typ "term list option"}) 
-            $ lambda free (lambda term_var t)) $ depth
-    fun lookup v = the (AList.lookup (op =) (names ~~ (frees ~~ term_vars)) v)
-    val none_t = @{term "None :: term list option"}
-    fun mk_safe_if (cond, then_t, else_t) =
-      @{term "Quickcheck_Exhaustive.catch_match :: term list option => term list option => term list option"} $
-        (@{term "If :: bool => term list option => term list option => term list option"}
-        $ cond $ then_t $ else_t) $ none_t;
-    fun mk_test_term bound_vars assms =
-      let
-        fun vars_of t = subtract (op =) bound_vars (Term.add_free_names t [])
-        val (vars, check) =
-          case assms of [] =>
-            (vars_of concl, (concl, none_t, @{term "Some :: term list => term list option"} $ terms))
-          | assm :: assms =>
-            (vars_of assm, (assm, mk_test_term (union (op =) (vars_of assm) bound_vars) assms, none_t))
-      in
-        fold_rev mk_exhaustive_closure (map lookup vars) (mk_safe_if check)
-      end
-  in lambda depth (mk_test_term [] assms) end
-
-fun mk_generator_expr ctxt t =
-  let
-    val Ts = (map snd o fst o strip_abs) t;
-    val thy = ProofContext.theory_of ctxt
-    val bound_max = length Ts - 1;
-    val bounds = map_index (fn (i, ty) =>
-      (2 * (bound_max - i) + 1, 2 * (bound_max - i), 2 * i, ty)) Ts;
-    val result = list_comb (t, map (fn (i, _, _, _) => Bound i) bounds);
-    val terms = HOLogic.mk_list @{typ term} (map (fn (_, i, _, _) => Bound i $ @{term "()"}) bounds);
-    val check =
-      @{term "Quickcheck_Exhaustive.catch_match :: term list option => term list option => term list option"} $
-        (@{term "If :: bool => term list option => term list option => term list option"}
-        $ result $ @{term "None :: term list option"} $ (@{term "Some :: term list => term list option"} $ terms))
-      $ @{term "None :: term list option"};
-    fun mk_exhaustive_closure (_, _, i, T) t =
-      Const (@{const_name "Quickcheck_Exhaustive.exhaustive_class.exhaustive"}, exhaustiveT T)
-        $ (HOLogic.split_const (T, @{typ "unit => term"}, @{typ "term list option"}) 
-        $ absdummy (T, absdummy (@{typ "unit => term"}, t))) $ Bound i
-  in Abs ("d", @{typ code_numeral}, fold_rev mk_exhaustive_closure bounds check) end
-
-(** generator compiliation **)
-
 fun compile_generator_expr ctxt (t, eval_terms) =
   let
     val thy = ProofContext.theory_of ctxt
-    val t' =
-      (if Config.get ctxt smart_quantifier then mk_smart_generator_expr else mk_generator_expr)
-        ctxt t;
+    val t' = mk_generator_expr ctxt (t, eval_terms);
     val compile = Code_Runtime.dynamic_value_strict
       (Counterexample.get, put_counterexample, "Exhaustive_Generators.put_counterexample")
       thy (SOME target) (fn proc => fn g => g #> (Option.map o map) proc) t' [];
@@ -311,9 +300,7 @@ fun compile_generator_expr ctxt (t, eval_terms) =
 fun compile_generator_exprs ctxt ts =
   let
     val thy = ProofContext.theory_of ctxt
-    val mk_generator_expr =
-      if Config.get ctxt smart_quantifier then mk_smart_generator_expr else mk_generator_expr
-    val ts' = map (mk_generator_expr ctxt) ts;
+    val ts' = map (fn t => mk_generator_expr ctxt (t, [])) ts;
     val compiles = Code_Runtime.dynamic_value_strict
       (Counterexample_Batch.get, put_counterexample_batch,
         "Exhaustive_Generators.put_counterexample_batch")
@@ -323,7 +310,7 @@ fun compile_generator_exprs ctxt ts =
     map (fn compile => fn size => compile size
       |> Option.map (map Quickcheck_Common.post_process_term)) compiles
   end;
-  
+
   
 (** setup **)
 
