@@ -458,16 +458,6 @@ where
 
 declare simp_thms(17,19)[code del]
 
-subsubsection {* Setting up the counterexample generator *}
-  
-use "~~/src/HOL/Tools/Quickcheck/narrowing_generators.ML"
-
-setup {* Narrowing_Generators.setup *}
-
-hide_type (open) code_int type "term" cons
-hide_const (open) int_of of_int nth error toEnum map_index split_At empty
-  cons conv nonEmpty "apply" sum cons1 cons2 ensure_testable
-
 subsubsection {* Defining a simple datatype to represent functions in an incomplete and redundant way *}
 
 datatype ('a, 'b) ffun = Constant 'b | Update 'a 'b "('a, 'b) ffun"
@@ -480,5 +470,23 @@ where
 hide_type (open) ffun
 hide_const (open) Constant Update eval_ffun
 
+datatype 'b cfun = Constant 'b
+
+primrec eval_cfun :: "'b cfun => 'a => 'b"
+where
+  "eval_cfun (Constant c) y = c"
+
+hide_type (open) cfun
+hide_const (open) Constant eval_cfun
+
+subsubsection {* Setting up the counterexample generator *}
+  
+use "~~/src/HOL/Tools/Quickcheck/narrowing_generators.ML"
+
+setup {* Narrowing_Generators.setup *}
+
+hide_type (open) code_int type "term" cons
+hide_const (open) int_of of_int nth error toEnum map_index split_At empty
+  cons conv nonEmpty "apply" sum cons1 cons2 ensure_testable
 
 end

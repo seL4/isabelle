@@ -42,12 +42,31 @@ subsection {* Simple examples with functions *}
 declare [[quickcheck_finite_functions]]
 
 lemma "map f xs = map g xs"
-  quickcheck[tester = narrowing, finite_types = true]
+  quickcheck[tester = narrowing, finite_types = true, expect = counterexample]
 oops
 
 lemma "map f xs = map f ys ==> xs = ys"
-  quickcheck[tester = narrowing, finite_types = true]
+  quickcheck[tester = narrowing, finite_types = true, expect = counterexample]
 oops
+
+lemma
+  "list_all2 P (rev xs) (rev ys) = list_all2 P xs (rev ys)"
+  quickcheck[tester = narrowing, expect = counterexample]
+oops
+
+lemma "map f xs = F f xs"
+  quickcheck[tester = narrowing, finite_types = true, expect = counterexample]
+oops
+
+lemma "map f xs = F f xs"
+  quickcheck[tester = narrowing, finite_types = false, expect = counterexample]
+oops
+
+(* requires some work...
+lemma "R O S = S O R"
+  quickcheck[tester = narrowing, size = 2]
+oops
+*)
 
 subsection {* AVL Trees *}
 

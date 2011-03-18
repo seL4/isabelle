@@ -184,9 +184,34 @@ structure Counterexample = Proof_Data
   fun init _ () = error "Counterexample"
 )
 
-val put_counterexample =  Counterexample.put
+val put_counterexample = Counterexample.put
 
-fun finitize_functions t = t
+fun finitize_functions t =
+  let
+    val ((names, Ts), t') = apfst split_list (strip_abs t)
+    fun mk_eval_ffun dT rT =
+      Const (@{const_name "Quickcheck_Narrowing.eval_ffun"}, 
+        Type (@{type_name "Quickcheck_Narrowing.ffun"}, [dT, rT]) --> dT --> rT)
+    fun mk_eval_cfun dT rT =
+      Const (@{const_name "Quickcheck_Narrowing.eval_cfun"}, 
+        Type (@{type_name "Quickcheck_Narrowing.cfun"}, [rT]) --> dT --> rT)
+    fun eval_function (T as Type (@{type_name fun}, [dT, rT])) =
+      let
+        val (rt', rT') = eval_function rT
+      in
+        case dT of
+          Type (@{type_name fun}, _) =>
+            (fn t => absdummy (dT, rt' (mk_eval_cfun dT rT' $ incr_boundvars 1 t $ Bound 0)),
+            Type (@{type_name "Quickcheck_Narrowing.cfun"}, [rT']))
+        | _ => (fn t => absdummy (dT, rt' (mk_eval_ffun dT rT' $ incr_boundvars 1 t $ Bound 0)),
+            Type (@{type_name "Quickcheck_Narrowing.ffun"}, [dT, rT']))
+      end
+      | eval_function T = (I, T)
+    val (tt, Ts') = split_list (map eval_function Ts)
+    val t'' = subst_bounds (map2 (fn f => fn x => f x) (rev tt) (map_index (Bound o fst) Ts), t')
+  in
+    list_abs (names ~~ Ts', t'')
+  end
 
 fun compile_generator_expr ctxt t size =
   let
