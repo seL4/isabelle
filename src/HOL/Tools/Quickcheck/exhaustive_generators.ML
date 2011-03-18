@@ -7,7 +7,7 @@ Exhaustive generators for various types.
 signature EXHAUSTIVE_GENERATORS =
 sig
   val compile_generator_expr:
-    Proof.context -> term -> int -> term list option * Quickcheck.report option
+    Proof.context -> term * term list -> int -> term list option * Quickcheck.report option
   val compile_generator_exprs:
     Proof.context -> term list -> (int -> term list option) list
   val put_counterexample: (unit -> int -> term list option)
@@ -293,7 +293,7 @@ fun mk_generator_expr ctxt t =
 
 (** generator compiliation **)
 
-fun compile_generator_expr ctxt t =
+fun compile_generator_expr ctxt (t, eval_terms) =
   let
     val thy = ProofContext.theory_of ctxt
     val t' =
