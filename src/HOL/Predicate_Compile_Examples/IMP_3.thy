@@ -8,9 +8,8 @@ text {*
   In this example, the state is one integer variable and the commands are Skip, Ass, Seq, IF, and While.
 *}
 
-types
-  var = unit
-  state = int
+type_synonym var = unit
+type_synonym state = int
 
 datatype com =
   Skip |

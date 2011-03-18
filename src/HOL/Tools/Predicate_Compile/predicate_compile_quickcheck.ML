@@ -22,7 +22,7 @@ sig
   val tracing : bool Unsynchronized.ref;
   val quiet : bool Unsynchronized.ref;
   val quickcheck_compile_term : Predicate_Compile_Aux.compilation -> bool -> bool -> int ->
-    Proof.context -> term -> int -> term list option * Quickcheck.report option;
+    Proof.context -> term * term list -> int -> term list option * Quickcheck.report option;
 (*  val test_term : Proof.context -> bool -> int -> int -> int -> int -> term -> *)
   val nrandom : int Unsynchronized.ref;
   val debug : bool Unsynchronized.ref;
@@ -218,11 +218,12 @@ fun cpu_time description f =
     val time = Time.toMilliseconds (#cpu (end_timing start))
   in (Exn.release result, (description, time)) end
 
-fun compile_term compilation options ctxt t =
+fun compile_term compilation options ctxt (t, eval_terms) =
   let
+    val t' = list_abs_free (Term.add_frees t [], t)
     val thy = Theory.copy (ProofContext.theory_of ctxt)
     val ((((full_constname, constT), vs'), intro), thy1) =
-      Predicate_Compile_Aux.define_quickcheck_predicate t thy
+      Predicate_Compile_Aux.define_quickcheck_predicate t' thy
     val thy2 = Context.theory_map (Predicate_Compile_Alternative_Defs.add_thm intro) thy1
     val (thy3, preproc_time) = cpu_time "predicate preprocessing"
         (fn () => Predicate_Compile.preprocess options (Const (full_constname, constT)) thy2)

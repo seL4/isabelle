@@ -8,9 +8,8 @@ text {*
   In this example, the state is one boolean variable and the commands are Skip, Ass, Seq, IF and While.
 *}
 
-types
-  var = unit
-  state = bool
+type_synonym var = unit
+type_synonym state = bool
 
 datatype com =
   Skip |
