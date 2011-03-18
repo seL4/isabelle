@@ -9,11 +9,18 @@ sig
   val compile_generator_expr:
     Proof.context -> term -> int -> term list option * Quickcheck.report option
   val put_counterexample: (unit -> term list option) -> Proof.context -> Proof.context
+  val finite_functions : bool Config.T
   val setup: theory -> theory
 end;
 
 structure Narrowing_Generators : NARROWING_GENERATORS =
 struct
+
+(* configurations *)
+
+val (finite_functions, setup_finite_functions) =
+  Attrib.config_bool "quickcheck_finite_functions" (K true)
+
 
 fun mk_undefined T = Const(@{const_name undefined}, T)
 
@@ -178,23 +185,27 @@ structure Counterexample = Proof_Data
 )
 
 val put_counterexample =  Counterexample.put
-  
+
+fun finitize_functions t = t
+
 fun compile_generator_expr ctxt t size =
   let
     val thy = ProofContext.theory_of ctxt
+    val t' = if Config.get ctxt finite_functions then finitize_functions t else t
     fun ensure_testable t =
       Const (@{const_name Quickcheck_Narrowing.ensure_testable}, fastype_of t --> fastype_of t) $ t
-    val t = dynamic_value_strict
+    val result = dynamic_value_strict
       (Counterexample.get, Counterexample.put, "Narrowing_Generators.put_counterexample")
-      thy (Option.map o map) (ensure_testable t) [] size
+      thy (Option.map o map) (ensure_testable t') [] size
   in
-    (t, NONE)
+    (result, NONE)
   end;
 
 
 val setup =
   Datatype.interpretation
     (Quickcheck_Common.ensure_sort_datatype (@{sort narrowing}, instantiate_narrowing_datatype))
+  #> setup_finite_functions
   #> Context.theory_map
     (Quickcheck.add_generator ("narrowing", compile_generator_expr))
     

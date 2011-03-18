@@ -30,13 +30,24 @@ lemma "rev xs = xs"
 oops
 
 lemma "rev xs = xs"
-  quickcheck[tester = narrowing, finite_types = false, default_type = int]
+  quickcheck[tester = narrowing, finite_types = false, default_type = int, expect = counterexample]
 oops
 
 lemma "rev xs = xs"
+  quickcheck[tester = narrowing, finite_types = true, expect = counterexample]
+oops
+
+subsection {* Simple examples with functions *}
+
+declare [[quickcheck_finite_functions]]
+
+lemma "map f xs = map g xs"
   quickcheck[tester = narrowing, finite_types = true]
 oops
 
+lemma "map f xs = map f ys ==> xs = ys"
+  quickcheck[tester = narrowing, finite_types = true]
+oops
 
 subsection {* AVL Trees *}
 
