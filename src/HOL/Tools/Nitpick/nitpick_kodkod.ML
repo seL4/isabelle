@@ -330,41 +330,76 @@ fun bound_for_sel_rel ctxt debug need_vals dtypes
     in
       ([(x, bound_comment ctxt debug nick T R)],
        let
+         val discr = (R2 = Formula Neut)
          val complete_need_vals = (length T1_need_vals = card)
          val (my_need_vals, other_need_vals) =
            T1_need_vals |> List.partition (is_sel_of_constr x)
-         fun upper_bound_ts () =
-           if complete_need_vals then
-             my_need_vals |> map (KK.Tuple o single o snd) |> KK.TupleSet
-           else if not (null other_need_vals) then
-             index_seq (delta + j0) (epsilon - delta)
-             |> filter_out (member (op = o apsnd snd) other_need_vals)
-             |> map (KK.Tuple o single) |> KK.TupleSet
+         fun atom_seq_for_self_rec j =
+           if is_datatype_nat_like dtype then (1, j + j0 - 1) else (j, j0)
+         fun exact_bound_for_perhaps_needy_atom j =
+           case AList.find (op =) my_need_vals j of
+             [constr_u] =>
+             let
+               val n = sel_no_from_name nick
+               val arg_u =
+                 case constr_u of
+                   Construct (_, _, _, arg_us) => nth arg_us n
+                 | _ => raise Fail "expected \"Construct\""
+               val T2_need_vals = needed_values need_vals T2
+             in
+               case AList.lookup (op =) T2_need_vals arg_u of
+                 SOME arg_j => SOME (KK.TupleAtomSeq (1, arg_j))
+               | _ => NONE
+             end
+           | _ => NONE
+         fun n_fold_tuple_union [] = KK.TupleSet []
+           | n_fold_tuple_union (ts :: tss) =
+             fold (curry (KK.TupleUnion o swap)) tss ts
+         fun tuple_perhaps_needy_atom upper j =
+           single_atom j
+           |> not discr
+              ? (fn ts => KK.TupleProduct (ts,
+                              case exact_bound_for_perhaps_needy_atom j of
+                                SOME ts => ts
+                              | NONE => if upper then upper_bound_for_rep R2
+                                        else KK.TupleSet []))
+         fun bound_tuples upper =
+           if null T1_need_vals then
+             if upper then
+               KK.TupleAtomSeq (epsilon - delta, delta + j0)
+               |> not discr
+                  ? (fn ts => KK.TupleProduct (ts, upper_bound_for_rep R2))
+             else
+               KK.TupleSet []
            else
-             KK.TupleAtomSeq (epsilon - delta, delta + j0)
+             (if complete_need_vals then
+                my_need_vals |> map snd
+              else
+                index_seq (delta + j0) (epsilon - delta)
+                |> filter_out (member (op = o apsnd snd) other_need_vals))
+             |> map (tuple_perhaps_needy_atom upper)
+             |> n_fold_tuple_union
        in
          if explicit_max = 0 orelse
             (complete_need_vals andalso null my_need_vals) then
            [KK.TupleSet []]
          else
-           if R2 = Formula Neut then
-             [upper_bound_ts ()]
+           if discr then
+             [bound_tuples true]
              |> not (exclusive orelse all_values_are_needed need_vals dtype)
                 ? cons (KK.TupleSet [])
            else
-             [KK.TupleSet [],
+             [bound_tuples false,
               if T1 = T2 andalso epsilon > delta andalso
                  is_datatype_acyclic dtype then
                 index_seq delta (epsilon - delta)
                 |> map (fn j =>
                            KK.TupleProduct (KK.TupleSet [KK.Tuple [j + j0]],
-                                            if is_datatype_nat_like dtype then
-                                              KK.TupleAtomSeq (1, j + j0 - 1)
-                                            else
-                                              KK.TupleAtomSeq (j, j0)))
-                |> foldl1 KK.TupleUnion
+                               KK.TupleAtomSeq (atom_seq_for_self_rec j)))
+                |> n_fold_tuple_union
               else
-                KK.TupleProduct (upper_bound_ts (), upper_bound_for_rep R2)]
+                bound_tuples true]
+             |> distinct (op =)
          end)
     end
   | bound_for_sel_rel _ _ _ _ u =
@@ -1516,14 +1551,14 @@ fun atom_equation_for_nut ofs kk (u, j) =
   let val dummy_u = RelReg (0, type_of u, rep_of u) in
     case Op2 (DefEq, bool_T, Formula Pos, dummy_u, u)
          |> kodkod_formula_from_nut ofs kk of
-      KK.RelEq (KK.RelReg _, r) => KK.RelEq (KK.Atom j, r)
+      KK.RelEq (KK.RelReg _, r) => SOME (KK.RelEq (KK.Atom j, r))
     | _ => raise BAD ("Nitpick_Kodkod.atom_equation_for_nut",
                       "malformed Kodkod formula")
   end
 
 fun needed_values_for_datatype [] _ _ = SOME []
   | needed_values_for_datatype need_us ofs
-                               (dtype as {typ, card, constrs, ...}) =
+                               ({typ, card, constrs, ...} : datatype_spec) =
     let
       fun aux (u as Construct (FreeRel (_, _, _, s) :: _, T, _, us)) =
           fold aux us
@@ -1551,16 +1586,13 @@ fun needed_values_for_datatype [] _ _ = SOME []
                    accum)
         | aux _ = I
     in
-      if is_datatype_nat_like dtype then
-        SOME []
-      else
-        SOME (index_seq 0 card, [])
-        |> fold aux need_us |> Option.map (rev o snd)
+      SOME (index_seq 0 card, []) |> fold aux need_us |> Option.map (rev o snd)
     end
 
-fun needed_value_axioms_for_datatype _ _ NONE = [KK.False]
-  | needed_value_axioms_for_datatype ofs kk (SOME fixed) =
-    fixed |> map (atom_equation_for_nut ofs kk)
+fun needed_value_axioms_for_datatype _ _ _ (_, NONE) = [KK.False]
+  | needed_value_axioms_for_datatype ofs kk dtypes (T, SOME fixed) =
+    if is_datatype_nat_like (the (datatype_spec dtypes T)) then []
+    else fixed |> map_filter (atom_equation_for_nut ofs kk)
 
 fun all_ge ({kk_join, kk_reflexive_closure, ...} : kodkod_constrs) z r =
   kk_join r (kk_reflexive_closure (KK.Rel (suc_rel_for_atom_seq z)))
@@ -1729,8 +1761,8 @@ fun sym_break_axioms_for_datatypes hol_ctxt binarize need_us datatype_sym_break
                                                   nfas dtypes)
 
 fun sel_axioms_for_sel hol_ctxt binarize j0
-        (kk as {kk_all, kk_formula_if, kk_subset, kk_no, kk_join, kk_union,
-                ...}) need_vals rel_table dom_r (dtype as {typ, ...})
+        (kk as {kk_all, kk_formula_if, kk_subset, kk_no, kk_join, ...})
+        need_vals rel_table dom_r (dtype as {typ, ...})
         ({const, delta, epsilon, exclusive, ...} : constr_spec) n =
   let
     val x = binarized_and_boxed_nth_sel_for_constr hol_ctxt binarize const n
@@ -1850,7 +1882,7 @@ fun declarative_axioms_for_datatypes hol_ctxt binarize need_us need_vals
              |> strongly_connected_sub_nfas
   in
     acyclicity_axioms_for_datatypes kk nfas @
-    maps (needed_value_axioms_for_datatype ofs kk o snd) need_vals @
+    maps (needed_value_axioms_for_datatype ofs kk dtypes) need_vals @
     sym_break_axioms_for_datatypes hol_ctxt binarize need_us datatype_sym_break
                                    kk rel_table nfas dtypes @
     maps (other_axioms_for_datatype hol_ctxt binarize need_vals bits ofs kk
