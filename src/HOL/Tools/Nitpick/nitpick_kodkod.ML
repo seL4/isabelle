@@ -301,8 +301,11 @@ fun bound_for_plain_rel ctxt debug (u as FreeRel (x, T, R, nick)) =
     raise NUT ("Nitpick_Kodkod.bound_for_plain_rel", [u])
 
 fun is_datatype_nat_like ({typ, constrs, ...} : datatype_spec) =
-  case constrs |> map (snd o #const) |> List.partition is_fun_type of
-    ([Type (_, Ts1)], [T2]) => forall (curry (op =) typ) (T2 :: Ts1)
+  case constrs of
+    [_, _] =>
+    (case constrs |> map (snd o #const) |> List.partition is_fun_type of
+       ([Type (_, Ts1)], [T2]) => forall (curry (op =) typ) (T2 :: Ts1)
+     | _ => false)
   | _ => false
 
 fun needed_values need_vals T =
@@ -1520,7 +1523,7 @@ fun atom_equation_for_nut ofs kk (u, j) =
 
 fun needed_values_for_datatype [] _ _ = SOME []
   | needed_values_for_datatype need_us ofs
-        ({typ, card, constrs, ...} : datatype_spec) =
+                               (dtype as {typ, card, constrs, ...}) =
     let
       fun aux (u as Construct (FreeRel (_, _, _, s) :: _, T, _, us)) =
           fold aux us
@@ -1548,7 +1551,11 @@ fun needed_values_for_datatype [] _ _ = SOME []
                    accum)
         | aux _ = I
     in
-      SOME (index_seq 0 card, []) |> fold aux need_us |> Option.map (rev o snd)
+      if is_datatype_nat_like dtype then
+        SOME []
+      else
+        SOME (index_seq 0 card, [])
+        |> fold aux need_us |> Option.map (rev o snd)
     end
 
 fun needed_value_axioms_for_datatype _ _ NONE = [KK.False]
