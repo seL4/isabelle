@@ -108,7 +108,6 @@ fun init_graph remote_path curr_sess = rev o map (fn thy =>
   let
     val name = Context.theory_name thy;
     val {name = sess_name, session, is_local} = get_info thy;
-    val path' = Path.append (Path.make session) (html_path name);
     val entry =
      {name = name, ID = ID_of session name, dir = sess_name,
       path =
@@ -173,7 +172,7 @@ fun init_theory_info name info =
     (Symtab.update (name, info) theories, files, tex_index, html_index, graph));
 
 fun change_theory_info name f =
-  change_browser_info (fn (info as (theories, files, tex_index, html_index, graph)) =>
+  change_browser_info (fn (theories, files, tex_index, html_index, graph) =>
     (case Symtab.lookup theories name of
       NONE => error ("Browser info: cannot access theory document " ^ quote name)
     | SOME info => (Symtab.update (name, map_theory_info f info) theories, files,
@@ -203,9 +202,6 @@ fun add_tex_source name txt =
 
 fun add_html_source name txt = change_theory_info name (fn (tex_source, html_source, html) =>
   (tex_source, Buffer.add txt html_source, html));
-
-fun add_html name txt = change_theory_info name (fn (tex_source, html_source, html) =>
-  (tex_source, html_source, Buffer.add txt html));
 
 
 
