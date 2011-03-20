@@ -527,10 +527,10 @@ fun check_modes_pred' mode_analysis_options options thy param_vs clauses modes (
     val rs = these (AList.lookup (op =) clauses p)
     fun check_mode m =
       let
-        val res = Output.cond_timeit false "work part of check_mode for one mode" (fn _ => 
+        val res = cond_timeit false "work part of check_mode for one mode" (fn _ => 
           map (check_mode_clause' mode_analysis_options thy p param_vs modes m) rs)
       in
-        Output.cond_timeit false "aux part of check_mode for one mode" (fn _ => 
+        cond_timeit false "aux part of check_mode for one mode" (fn _ => 
         case find_indices is_none res of
           [] => Success (exists (fn SOME (_, _, true) => true | _ => false) res)
         | is => (print_failed_mode options thy modes p m rs is; Error (error_of p m is)))
@@ -538,7 +538,7 @@ fun check_modes_pred' mode_analysis_options options thy param_vs clauses modes (
     val _ = if show_mode_inference options then
         tracing ("checking " ^ string_of_int (length ms) ^ " modes ...")
       else ()
-    val res = Output.cond_timeit false "check_mode" (fn _ => map (fn (m, _) => (m, check_mode m)) ms)
+    val res = cond_timeit false "check_mode" (fn _ => map (fn (m, _) => (m, check_mode m)) ms)
     val (ms', errors) = split res
   in
     ((p, (ms' : ((bool * mode) * bool) list)), errors)
@@ -622,7 +622,7 @@ fun infer_modes mode_analysis_options options (lookup_mode, lookup_neg_mode, nee
       (check_modes_pred' mode_analysis_options options ctxt param_vs clauses
         (modes @ extra_modes)) modes
     val ((modes : (string * ((bool * mode) * bool) list) list), errors) =
-      Output.cond_timeit false "Fixpount computation of mode analysis" (fn () =>
+      cond_timeit false "Fixpount computation of mode analysis" (fn () =>
       if show_invalid_clauses options then
         fixp_with_state (fn (modes, errors) =>
           let
