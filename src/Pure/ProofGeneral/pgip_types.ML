@@ -364,7 +364,9 @@ fun path_of_pgipurl p = p  (* potentially raises PGIP, but not with this impleme
 
 fun string_of_pgipurl p = Path.implode p
 
-fun attrval_of_pgipurl purl = "file:" ^ (XML.text (File.platform_path (File.full_path purl)))
+fun attrval_of_pgipurl purl =
+  "file:" ^ XML.text (File.platform_path (File.full_path Path.current purl))
+
 fun attrs_of_pgipurl purl = [("url", attrval_of_pgipurl purl)]
 
 val pgipurl_of_attrs = pgipurl_of_string o get_attr "url"

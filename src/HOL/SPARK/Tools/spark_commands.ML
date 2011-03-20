@@ -15,8 +15,7 @@ struct
 
 fun spark_open vc_name thy =
   let
-    val (vc_path, _) = Thy_Load.check_file
-      (Thy_Load.master_directory thy) (Path.explode vc_name);
+    val vc_path = Thy_Load.check_file (Thy_Load.master_directory thy) (Path.explode vc_name);
     val (base, header) =
       (case Path.split_ext vc_path of
         (base, "vcg") => (base, Fdl_Lexer.vcg_header >> K ())

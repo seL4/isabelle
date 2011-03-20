@@ -350,7 +350,7 @@ fun serialize_haskell module_prefix string_classes { labelled_name, reserved_sym
     (*serialization*)
     fun write_module width (SOME destination) (module_name, content) =
           let
-            val _ = File.check destination;
+            val _ = File.check_dir destination;
             val filepath = (Path.append destination o Path.ext "hs" o Path.explode o implode
               o separate "/" o Long_Name.explode) module_name;
             val _ = Isabelle_System.mkdirs (Path.dir filepath);
