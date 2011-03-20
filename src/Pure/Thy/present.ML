@@ -215,15 +215,15 @@ fun add_html name txt = change_theory_info name (fn (tex_source, html_source, ht
 type session_info =
   {name: string, parent: string, session: string, path: string list, html_prefix: Path.T,
     info: bool, doc_format: string, doc_graph: bool, documents: (string * string) list,
-    doc_prefix1: (Path.T * Path.T) option, doc_prefix2: (bool * Path.T) option,
+    doc_prefix1: (Path.T * Path.T) option, dump_prefix: (bool * Path.T) option,
     remote_path: Url.T option, verbose: bool, readme: Path.T option};
 
 fun make_session_info
   (name, parent, session, path, html_prefix, info, doc_format, doc_graph, documents,
-    doc_prefix1, doc_prefix2, remote_path, verbose, readme) =
+    doc_prefix1, dump_prefix, remote_path, verbose, readme) =
   {name = name, parent = parent, session = session, path = path, html_prefix = html_prefix,
     info = info, doc_format = doc_format, doc_graph = doc_graph, documents = documents,
-    doc_prefix1 = doc_prefix1, doc_prefix2 = doc_prefix2, remote_path = remote_path,
+    doc_prefix1 = doc_prefix1, dump_prefix = dump_prefix, remote_path = remote_path,
     verbose = verbose, readme = readme}: session_info;
 
 
@@ -279,9 +279,9 @@ fun read_variants strs =
 
 fun name_of_session elems = space_implode "/" ("Isabelle" :: elems);
 
-fun init build info doc doc_graph doc_variants path name doc_prefix2
+fun init build info doc doc_graph doc_variants path name dump_prefix
     (remote_path, first_time) verbose thys = CRITICAL (fn () =>
-  if not build andalso not info andalso doc = "" andalso is_none doc_prefix2 then
+  if not build andalso not info andalso doc = "" andalso is_none dump_prefix then
     (browser_info := empty_browser_info; session_info := NONE)
   else
     let
@@ -314,7 +314,7 @@ fun init build info doc doc_graph doc_variants path name doc_prefix2
         (Url.File index_path, session_name) docs (Url.explode "medium.html");
     in
       session_info := SOME (make_session_info (name, parent_name, session_name, path, html_prefix,
-        info, doc, doc_graph, documents, doc_prefix1, doc_prefix2, remote_path, verbose, readme));
+        info, doc, doc_graph, documents, doc_prefix1, dump_prefix, remote_path, verbose, readme));
       browser_info := init_browser_info remote_path path thys;
       add_html_index (0, index_text)
     end);
@@ -367,7 +367,7 @@ fun write_tex_index tex_index path =
 
 fun finish () = CRITICAL (fn () =>
     with_session () (fn {name, info, html_prefix, doc_format, doc_graph,
-      documents, doc_prefix1, doc_prefix2, path, verbose, readme, ...} =>
+      documents, doc_prefix1, dump_prefix, path, verbose, readme, ...} =>
   let
     val {theories, files, tex_index, html_index, graph} = ! browser_info;
     val thys = Symtab.dest theories;
@@ -379,7 +379,7 @@ fun finish () = CRITICAL (fn () =>
 
     val sorted_graph = sorted_index graph;
     val opt_graphs =
-      if doc_graph andalso (is_some doc_prefix1 orelse is_some doc_prefix2) then
+      if doc_graph andalso (is_some doc_prefix1 orelse is_some dump_prefix) then
         SOME (isabelle_browser sorted_graph)
       else NONE;
 
@@ -412,7 +412,7 @@ fun finish () = CRITICAL (fn () =>
       if verbose then Output.raw_stderr ("Browser info at " ^ show_path html_prefix ^ "\n") else ())
     else ();
 
-    (case doc_prefix2 of NONE => () | SOME (cp, path) =>
+    (case dump_prefix of NONE => () | SOME (cp, path) =>
      (prepare_sources cp path;
       if verbose then Output.raw_stderr ("Document sources at " ^ show_path path ^ "\n") else ()));
 
