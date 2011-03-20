@@ -84,7 +84,7 @@ datatype thy = Thy of
 
 fun make_thy (axioms, defs, wrappers) = Thy {axioms = axioms, defs = defs, wrappers = wrappers};
 
-structure ThyData = Theory_Data_PP
+structure Thy = Theory_Data_PP
 (
   type T = thy;
   val empty_axioms = Name_Space.empty_table "axiom" : term Name_Space.table;
@@ -104,9 +104,9 @@ structure ThyData = Theory_Data_PP
     in make_thy (axioms', defs', (bgs', ens')) end;
 );
 
-fun rep_theory thy = ThyData.get thy |> (fn Thy args => args);
+fun rep_theory thy = Thy.get thy |> (fn Thy args => args);
 
-fun map_thy f = ThyData.map (fn (Thy {axioms, defs, wrappers}) =>
+fun map_thy f = Thy.map (fn (Thy {axioms, defs, wrappers}) =>
   make_thy (f (axioms, defs, wrappers)));
 
 

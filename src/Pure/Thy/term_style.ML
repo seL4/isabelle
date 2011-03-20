@@ -19,7 +19,7 @@ struct
 fun err_dup_style name =
   error ("Duplicate declaration of antiquote style: " ^ quote name);
 
-structure StyleData = Theory_Data
+structure Styles = Theory_Data
 (
   type T = ((Proof.context -> term -> term) parser * stamp) Symtab.table;
   val empty = Symtab.empty;
@@ -32,12 +32,12 @@ structure StyleData = Theory_Data
 (* accessors *)
 
 fun the_style thy name =
-  (case Symtab.lookup (StyleData.get thy) name of
+  (case Symtab.lookup (Styles.get thy) name of
     NONE => error ("Unknown antiquote style: " ^ quote name)
   | SOME (style, _) => style);
 
 fun setup name style thy =
-  StyleData.map (Symtab.update_new (name, (style, stamp ()))) thy
+  Styles.map (Symtab.update_new (name, (style, stamp ()))) thy
     handle Symtab.DUP _ => err_dup_style name;
 
 
