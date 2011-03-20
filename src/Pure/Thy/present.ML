@@ -215,16 +215,16 @@ fun add_html name txt = change_theory_info name (fn (tex_source, html_source, ht
 type session_info =
   {name: string, parent: string, session: string, path: string list, html_prefix: Path.T,
     info: bool, doc_format: string, doc_graph: bool, documents: (string * string) list,
-    doc_prefix1: (Path.T * Path.T) option, dump_prefix: (bool * Path.T) option,
-    remote_path: Url.T option, verbose: bool, readme: Path.T option};
+    dump_prefix: (bool * Path.T) option, remote_path: Url.T option, verbose: bool,
+    readme: Path.T option};
 
 fun make_session_info
   (name, parent, session, path, html_prefix, info, doc_format, doc_graph, documents,
-    doc_prefix1, dump_prefix, remote_path, verbose, readme) =
+    dump_prefix, remote_path, verbose, readme) =
   {name = name, parent = parent, session = session, path = path, html_prefix = html_prefix,
     info = info, doc_format = doc_format, doc_graph = doc_graph, documents = documents,
-    doc_prefix1 = doc_prefix1, dump_prefix = dump_prefix, remote_path = remote_path,
-    verbose = verbose, readme = readme}: session_info;
+    dump_prefix = dump_prefix, remote_path = remote_path, verbose = verbose,
+    readme = readme}: session_info;
 
 
 (* state *)
@@ -290,16 +290,15 @@ fun init build info doc doc_graph doc_variants path name dump_prefix
       val sess_prefix = Path.make path;
       val html_prefix = Path.append (Path.expand output_path) sess_prefix;
 
-      val (doc_prefix1, documents) =
-        if doc = "" then (NONE, [])
+      val documents =
+        if doc = "" then []
         else if not (can File.check_dir document_path) then
-          (if verbose then Output.raw_stderr "Warning: missing document directory\n" else ();
-            (NONE, []))
-        else (SOME (Path.append html_prefix document_path, html_prefix),
-          read_variants doc_variants);
+          (if verbose then Output.raw_stderr "Warning: missing document directory\n" else (); [])
+        else read_variants doc_variants;
 
       val parent_index_path = Path.append Path.parent index_path;
-      val index_up_lnk = if first_time then
+      val index_up_lnk =
+        if first_time then
           Url.append (the remote_path) (Url.File (Path.append sess_prefix parent_index_path))
         else Url.File parent_index_path;
       val readme =
@@ -309,12 +308,13 @@ fun init build info doc doc_graph doc_variants path name dump_prefix
 
       val docs =
         (case readme of NONE => [] | SOME p => [(Url.File p, "README")]) @
-        map (fn (name, _) => (Url.File (Path.ext doc (Path.basic name)), name)) documents;
+          map (fn (name, _) => (Url.File (Path.ext doc (Path.basic name)), name)) documents;
       val index_text = HTML.begin_index (index_up_lnk, parent_name)
         (Url.File index_path, session_name) docs (Url.explode "medium.html");
     in
-      session_info := SOME (make_session_info (name, parent_name, session_name, path, html_prefix,
-        info, doc, doc_graph, documents, doc_prefix1, dump_prefix, remote_path, verbose, readme));
+      session_info :=
+        SOME (make_session_info (name, parent_name, session_name, path, html_prefix,
+          info, doc, doc_graph, documents, dump_prefix, remote_path, verbose, readme));
       browser_info := init_browser_info remote_path path thys;
       add_html_index (0, index_text)
     end);
@@ -366,8 +366,8 @@ fun write_tex_index tex_index path =
 
 
 fun finish () = CRITICAL (fn () =>
-    with_session () (fn {name, info, html_prefix, doc_format, doc_graph,
-      documents, doc_prefix1, dump_prefix, path, verbose, readme, ...} =>
+    with_session () (fn {name, info, html_prefix, doc_format, doc_graph, documents,
+      dump_prefix, path, verbose, readme, ...} =>
   let
     val {theories, files, tex_index, html_index, graph} = ! browser_info;
     val thys = Symtab.dest theories;
@@ -379,7 +379,7 @@ fun finish () = CRITICAL (fn () =>
 
     val sorted_graph = sorted_index graph;
     val opt_graphs =
-      if doc_graph andalso (is_some doc_prefix1 orelse is_some dump_prefix) then
+      if doc_graph andalso (not (null documents) orelse is_some dump_prefix) then
         SOME (isabelle_browser sorted_graph)
       else NONE;
 
@@ -393,38 +393,43 @@ fun finish () = CRITICAL (fn () =>
           File.write (Path.append path graph_eps_path) eps));
       write_tex_index tex_index path;
       List.app (finish_tex path) thys);
+    val _ =
+      if info then
+       (Isabelle_System.mkdirs (Path.append html_prefix session_path);
+        File.write_buffer (Path.append html_prefix pre_index_path) (index_buffer html_index);
+        File.write (Path.append html_prefix session_entries_path) "";
+        create_index html_prefix;
+        if length path > 1 then update_index parent_html_prefix name else ();
+        (case readme of NONE => () | SOME path => File.copy path html_prefix);
+        write_graph sorted_graph (Path.append html_prefix graph_path);
+        Isabelle_System.isabelle_tool "browser" "-b";
+        File.copy (Path.explode "~~/lib/browser/GraphBrowser.jar") html_prefix;
+        List.app (fn (a, txt) => File.write (Path.append html_prefix (Path.basic a)) txt)
+          (HTML.applet_pages name (Url.File index_path, name));
+        File.copy (Path.explode "~~/lib/html/isabelle.css") html_prefix;
+        List.app finish_html thys;
+        List.app (uncurry File.write) files;
+        if verbose then Output.raw_stderr ("Browser info at " ^ show_path html_prefix ^ "\n")
+        else ())
+      else ();
+
+    val _ =
+      (case dump_prefix of NONE => () | SOME (cp, path) =>
+       (prepare_sources cp path;
+        if verbose then Output.raw_stderr ("Document sources at " ^ show_path path ^ "\n")
+        else ()));
+
+    val doc_paths =
+      documents |> map (fn (name, tags) =>
+        let
+          val path = Path.append html_prefix document_path;
+          val _ = prepare_sources true path;
+        in isabelle_document true doc_format name tags path html_prefix end);
+    val _ =
+      if verbose then
+        doc_paths |> List.app (fn doc => Output.raw_stderr ("Document at " ^ show_path doc ^ "\n"))
+      else ();
   in
-    if info then
-     (Isabelle_System.mkdirs (Path.append html_prefix session_path);
-      File.write_buffer (Path.append html_prefix pre_index_path) (index_buffer html_index);
-      File.write (Path.append html_prefix session_entries_path) "";
-      create_index html_prefix;
-      if length path > 1 then update_index parent_html_prefix name else ();
-      (case readme of NONE => () | SOME path => File.copy path html_prefix);
-      write_graph sorted_graph (Path.append html_prefix graph_path);
-      Isabelle_System.isabelle_tool "browser" "-b";
-      File.copy (Path.explode "~~/lib/browser/GraphBrowser.jar") html_prefix;
-      List.app (fn (a, txt) => File.write (Path.append html_prefix (Path.basic a)) txt)
-        (HTML.applet_pages name (Url.File index_path, name));
-      File.copy (Path.explode "~~/lib/html/isabelle.css") html_prefix;
-      List.app finish_html thys;
-      List.app (uncurry File.write) files;
-      if verbose then Output.raw_stderr ("Browser info at " ^ show_path html_prefix ^ "\n") else ())
-    else ();
-
-    (case dump_prefix of NONE => () | SOME (cp, path) =>
-     (prepare_sources cp path;
-      if verbose then Output.raw_stderr ("Document sources at " ^ show_path path ^ "\n") else ()));
-
-    (case doc_prefix1 of NONE => () | SOME (path, result_path) =>
-      documents |> List.app (fn (name, tags) =>
-       let
-         val _ = prepare_sources true path;
-         val doc_path = isabelle_document true doc_format name tags path result_path;
-       in
-         if verbose then Output.raw_stderr ("Document at " ^ show_path doc_path ^ "\n") else ()
-       end));
-
     browser_info := empty_browser_info;
     session_info := NONE
   end));
