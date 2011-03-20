@@ -682,15 +682,15 @@ Usage: document [OPTIONS] [DIR]
   corresponding output files named after @{verbatim root} as well,
   e.g.\ @{verbatim root.dvi} for target format @{verbatim dvi}.
 
-  \medskip When running the session, Isabelle copies the original
-  @{verbatim document} directory into its proper place within
-  @{setting ISABELLE_BROWSER_INFO} according to the session path.
-  Then, for any processed theory @{text A} some {\LaTeX} source is
-  generated and put there as @{text A}@{verbatim ".tex"}.
-  Furthermore, a list of all generated theory files is put into
-  @{verbatim session.tex}.  Typically, the root {\LaTeX} file provided
-  by the user would include @{verbatim session.tex} to get a document
-  containing all the theories.
+  \medskip When running the session, Isabelle copies the content of
+  the original @{verbatim document} directory into its proper place
+  within @{setting ISABELLE_BROWSER_INFO}, according to the session
+  path and document variant.  Then, for any processed theory @{text A}
+  some {\LaTeX} source is generated and put there as @{text
+  A}@{verbatim ".tex"}.  Furthermore, a list of all generated theory
+  files is put into @{verbatim session.tex}.  Typically, the root
+  {\LaTeX} file provided by the user would include @{verbatim
+  session.tex} to get a document containing all the theories.
 
   The {\LaTeX} versions of the theories require some macros defined in
   @{file "~~/lib/texinputs/isabelle.sty"}.  Doing @{verbatim

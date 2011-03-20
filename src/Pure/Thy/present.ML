@@ -420,9 +420,9 @@ fun finish () =
         else ()));
 
     val doc_paths =
-      documents |> map (fn (name, tags) =>
+      documents |> Par_List.map (fn (name, tags) =>
         let
-          val path = Path.append html_prefix document_path;
+          val path = Path.append html_prefix (Path.basic name);
           val _ = prepare_sources true path;
         in isabelle_document true doc_format name tags path html_prefix end);
     val _ =
