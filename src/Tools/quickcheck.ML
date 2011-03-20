@@ -167,12 +167,9 @@ fun prep_test_term t =
     val frees = Term.add_frees t [];
   in (frees, list_abs_free (frees, t)) end
 
-fun cpu_time description f =  (* FIXME !? *)
-  let
-    val start = Timing.start ()
-    val result = Exn.capture f ()
-    val time = Time.toMilliseconds (#cpu (Timing.result start))
-  in (Exn.release result, (description, time)) end
+fun cpu_time description e =
+  let val ({cpu, ...}, result) = Timing.timing e ()
+  in (result, (description, Time.toMilliseconds cpu)) end
 
 fun limit ctxt (limit_time, is_interactive) f exc () =
   if limit_time then
