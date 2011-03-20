@@ -292,7 +292,7 @@ fun init build info doc doc_graph doc_variants path name doc_prefix2
 
       val (doc_prefix1, documents) =
         if doc = "" then (NONE, [])
-        else if not (File.exists document_path) then
+        else if not (can File.check_dir document_path) then
           (if verbose then Output.raw_stderr "Warning: missing document directory\n" else ();
             (NONE, []))
         else (SOME (Path.append html_prefix document_path, html_prefix),
@@ -314,7 +314,7 @@ fun init build info doc doc_graph doc_variants path name doc_prefix2
         (Url.File index_path, session_name) docs (Url.explode "medium.html");
     in
       session_info := SOME (make_session_info (name, parent_name, session_name, path, html_prefix,
-      info, doc, doc_graph, documents, doc_prefix1, doc_prefix2, remote_path, verbose, readme));
+        info, doc, doc_graph, documents, doc_prefix1, doc_prefix2, remote_path, verbose, readme));
       browser_info := init_browser_info remote_path path thys;
       add_html_index (0, index_text)
     end);
