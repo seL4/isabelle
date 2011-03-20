@@ -1,14 +1,11 @@
 (*  Title:      Pure/Thy/thy_load.ML
-    Author:     Markus Wenzel, TU Muenchen
+    Author:     Makarius
 
-Loading files that contribute to a theory, including global load path
-management.
+Loading files that contribute to a theory.  Global master path.
 *)
 
 signature THY_LOAD =
 sig
-  val set_master_path: Path.T -> unit
-  val get_master_path: unit -> Path.T
   val master_directory: theory -> Path.T
   val imports_of: theory -> string list
   val provide: Path.T * (Path.T * SHA1.digest) -> theory -> theory
@@ -22,6 +19,8 @@ sig
   val use_ml: Path.T -> unit
   val exec_ml: Path.T -> generic_theory -> generic_theory
   val begin_theory: Path.T -> string -> string list -> theory list -> (Path.T * bool) list -> theory
+  val set_master_path: Path.T -> unit
+  val get_master_path: unit -> Path.T
 end;
 
 structure Thy_Load: THY_LOAD =
@@ -67,18 +66,6 @@ fun provide (src_path, path_id) =
     if AList.defined (op =) provided src_path then
       error ("Duplicate resolution of source file dependency: " ^ Path.print src_path)
     else (master_dir, imports, required, (src_path, path_id) :: provided));
-
-
-(* stateful master path *)
-
-local
-  val master_path = Unsynchronized.ref Path.current;
-in
-
-fun set_master_path path = master_path := path;
-fun get_master_path () = ! master_path;
-
-end;
 
 
 (* check files *)
@@ -178,5 +165,16 @@ fun begin_theory dir name imports parents uses =
   |> fold (fn (path, true) => Context.theory_map (exec_ml path) o Theory.checkpoint | _ => I) uses
   |> Theory.checkpoint;
 
+
+(* global master path *)
+
+local
+  val master_path = Unsynchronized.ref Path.current;
+in
+
+fun set_master_path path = master_path := path;
+fun get_master_path () = ! master_path;
+
 end;
 
+end;
