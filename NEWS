@@ -65,6 +65,9 @@ subscripted form x\<^isub>1, y\<^isub>2\<^isub>3.
 
 *** ML ***
 
+* Structure Timing provides various operations for timing; supersedes
+former start_timing/end_timing etc.
+
 * Path.print is the official way to show file-system paths to users
 (including quotes etc.).
 
