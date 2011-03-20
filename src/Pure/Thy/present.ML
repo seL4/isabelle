@@ -262,16 +262,16 @@ fun update_index dir name = CRITICAL (fn () =>
   | SOME es => (put_entries ((remove (op =) name es) @ [name]) dir; create_index dir)));
 
 
-(* document versions *)
+(* document variants *)
 
-fun read_version str =
+fun read_variant str =
   (case space_explode "=" str of
     [name] => (name, "")
   | [name, tags] => (name, tags)
-  | _ => error ("Malformed document version specification: " ^ quote str));
+  | _ => error ("Malformed document variant specification: " ^ quote str));
 
-fun read_versions strs =
-  rev (distinct (eq_fst (op =)) (rev ((documentN, "") :: map read_version strs)))
+fun read_variants strs =
+  rev (distinct (eq_fst (op =)) (rev ((documentN, "") :: map read_variant strs)))
   |> filter_out (fn (_, s) => s = "-");
 
 
@@ -279,7 +279,7 @@ fun read_versions strs =
 
 fun name_of_session elems = space_implode "/" ("Isabelle" :: elems);
 
-fun init build info doc doc_graph doc_versions path name doc_prefix2
+fun init build info doc doc_graph doc_variants path name doc_prefix2
     (remote_path, first_time) verbose thys = CRITICAL (fn () =>
   if not build andalso not info andalso doc = "" andalso is_none doc_prefix2 then
     (browser_info := empty_browser_info; session_info := NONE)
@@ -296,7 +296,7 @@ fun init build info doc doc_graph doc_versions path name doc_prefix2
           (if verbose then Output.raw_stderr "Warning: missing document directory\n" else ();
             (NONE, []))
         else (SOME (Path.append html_prefix document_path, html_prefix),
-          read_versions doc_versions);
+          read_variants doc_variants);
 
       val parent_index_path = Path.append Path.parent index_path;
       val index_up_lnk = if first_time then

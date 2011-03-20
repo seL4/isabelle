@@ -92,12 +92,12 @@ fun get_rpath rpath =
 fun dumping (_, "") = NONE
   | dumping (cp, path) = SOME (cp, Path.explode path);
 
-fun use_dir item root build modes reset info doc doc_graph doc_versions parent
+fun use_dir item root build modes reset info doc doc_graph doc_variants parent
     name dump rpath level timing verbose max_threads trace_threads
     parallel_proofs parallel_proofs_threshold =
   ((fn () =>
      (init reset parent name;
-      Present.init build info doc doc_graph doc_versions (path ()) name
+      Present.init build info doc doc_graph doc_variants (path ()) name
         (dumping dump) (get_rpath rpath) verbose (map Thy_Info.get_theory (Thy_Info.get_names ()));
       if timing then
         let
