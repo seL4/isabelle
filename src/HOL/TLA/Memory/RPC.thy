@@ -8,10 +8,9 @@ theory RPC
 imports RPCParameters ProcedureInterface Memory
 begin
 
-types
-  rpcSndChType  = "(rpcOp,Vals) channel"
-  rpcRcvChType  = "memChType"
-  rpcStType     = "(PrIds => rpcState) stfun"
+type_synonym rpcSndChType = "(rpcOp,Vals) channel"
+type_synonym rpcRcvChType = "memChType"
+type_synonym rpcStType = "(PrIds => rpcState) stfun"
 
 consts
   (* state predicates *)

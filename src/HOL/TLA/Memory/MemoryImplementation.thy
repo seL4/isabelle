@@ -10,8 +10,7 @@ begin
 
 datatype histState = histA | histB
 
-types
-  histType  = "(PrIds => histState) stfun"     (* the type of the history variable *)
+type_synonym histType = "(PrIds => histState) stfun"  (* the type of the history variable *)
 
 consts
   (* the specification *)

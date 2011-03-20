@@ -13,9 +13,8 @@ typedecl state
 
 arities state :: world
 
-types
-  'a stfun = "state => 'a"
-  stpred  = "bool stfun"
+type_synonym 'a stfun = "state => 'a"
+type_synonym stpred  = "bool stfun"
 
 
 consts

@@ -10,11 +10,10 @@ begin
 
 datatype mClkState = clkA | clkB
 
-types
-  (* types sent on the clerk's send and receive channels are argument types
-     of the memory and the RPC, respectively *)
-  mClkSndArgType   = "memOp"
-  mClkRcvArgType   = "rpcOp"
+(* types sent on the clerk's send and receive channels are argument types
+   of the memory and the RPC, respectively *)
+type_synonym mClkSndArgType = "memOp"
+type_synonym mClkRcvArgType = "rpcOp"
 
 definition
   (* translate a memory call to an RPC call *)

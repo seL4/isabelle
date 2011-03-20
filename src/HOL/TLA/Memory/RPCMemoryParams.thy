@@ -8,10 +8,10 @@ theory RPCMemoryParams
 imports Main
 begin
 
-types
-  bit = "bool"   (* Signal wires for the procedure interface.
-                    Defined as bool for simplicity. All I should really need is
-                    the existence of two distinct values. *)
+type_synonym bit = "bool"
+ (* Signal wires for the procedure interface.
+    Defined as bool for simplicity. All I should really need is
+    the existence of two distinct values. *)
 
 (* all of these are simple (HOL) types *)
 typedecl Locs    (* "syntactic" value type *)

@@ -14,8 +14,7 @@ begin
 typedecl behavior
 arities behavior :: world
 
-types
-  temporal = "behavior form"
+type_synonym temporal = "behavior form"
 
 
 consts
