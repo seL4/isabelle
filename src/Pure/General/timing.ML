@@ -19,6 +19,7 @@ sig
   type start
   val start: unit -> start
   val result: start -> timing
+  val timing: ('a -> 'b) -> 'a -> timing * 'b
   val message: timing -> string
 end
 
@@ -57,6 +58,12 @@ fun result (Start (real_timer, real_time, cpu_timer, cpu_times)) =
 
 end;
 
+fun timing f x =
+  let
+    val start = start ();
+    val y = f x;
+  in (result start, y) end;
+
 
 (* timing messages *)
 
@@ -68,11 +75,12 @@ fun message {elapsed, cpu, gc} =
 fun cond_timeit enabled msg e =
   if enabled then
     let
-      val timing_start = start ();
-      val res = Exn.capture e ();
-      val end_msg = message (result timing_start);
-      val _ = warning (if msg = "" then end_msg else msg ^ "\n" ^ end_msg);
-    in Exn.release res end
+      val (timing, result) = timing (Exn.capture e) ();
+      val end_msg = message timing;
+      val _ =
+        if Exn.is_interrupt_exn result then ()
+        else warning (if msg = "" then end_msg else msg ^ "\n" ^ end_msg);
+    in Exn.release result end
   else e ();
 
 fun timeit e = cond_timeit true "" e;
