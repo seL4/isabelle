@@ -914,7 +914,7 @@ and matchs [] [] = true
 
 fun printStats (State {ntried, nclosed, ...}) (b, start, tacs) =
   if b then
-    writeln (#message (end_timing start) ^ " for search.  Closed: "
+    writeln (Timing.message (Timing.result start) ^ " for search.  Closed: "
              ^ string_of_int (!nclosed) ^
              " tried: " ^ string_of_int (!ntried) ^
              " tactics: " ^ string_of_int (length tacs))
@@ -1256,7 +1256,7 @@ fun timing_depth_tac start cs lim i st0 =
       val hyps  = strip_imp_prems skoprem
       and concl = strip_imp_concl skoprem
       fun cont (tacs,_,choices) =
-          let val start = start_timing ()
+          let val start = Timing.start ()
           in
           case Seq.pull(EVERY' (rev tacs) i st) of
               NONE => (writeln ("PROOF FAILED for depth " ^
@@ -1265,7 +1265,7 @@ fun timing_depth_tac start cs lim i st0 =
                        else ();
                        backtrack choices)
             | cell => (if (!trace orelse !stats)
-                       then writeln (#message (end_timing start) ^ " for reconstruction")
+                       then writeln (Timing.message (Timing.result start) ^ " for reconstruction")
                        else ();
                        Seq.make(fn()=> cell))
           end
@@ -1273,13 +1273,13 @@ fun timing_depth_tac start cs lim i st0 =
   handle PROVE     => Seq.empty
 
 (*Public version with fixed depth*)
-fun depth_tac cs lim i st = timing_depth_tac (start_timing ()) cs lim i st;
+fun depth_tac cs lim i st = timing_depth_tac (Timing.start ()) cs lim i st;
 
 val (depth_limit, setup_depth_limit) = Attrib.config_int_global "blast_depth_limit" (K 20);
 
 fun blast_tac cs i st =
     ((DEEPEN (1, Config.get_global (Thm.theory_of_thm st) depth_limit)
-        (timing_depth_tac (start_timing ()) cs) 0) i
+        (timing_depth_tac (Timing.start ()) cs) 0) i
      THEN flexflex_tac) st
     handle TRANS s =>
       ((if !trace then warning ("blast: " ^ s) else ());
@@ -1299,7 +1299,7 @@ fun tryInThy thy cs lim s =
   let
     val state as State {fullTrace = ft, ...} = initialize thy;
     val res = timeap prove
-      (state, start_timing(), cs, [initBranch ([readGoal thy s], lim)], I);
+      (state, Timing.start (), cs, [initBranch ([readGoal thy s], lim)], I);
     val _ = fullTrace := !ft;
   in res end;
 

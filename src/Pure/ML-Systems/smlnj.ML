@@ -13,7 +13,6 @@ use "ML-Systems/single_assignment.ML";
 use "ML-Systems/universal.ML";
 use "ML-Systems/thread_dummy.ML";
 use "ML-Systems/multithreading.ML";
-use "General/timing.ML";
 use "ML-Systems/ml_name_space.ML";
 use "ML-Systems/ml_pretty.ML";
 structure PolyML = struct end;
@@ -21,8 +20,9 @@ use "ML-Systems/pp_dummy.ML";
 use "ML-Systems/use_context.ML";
 
 
-(*low-level pointer equality*)
+val seconds = Time.fromReal;
 
+(*low-level pointer equality*)
 CM.autoload "$smlnj/init/init.cmi";
 val pointer_eq = InlineT.ptreql;
 

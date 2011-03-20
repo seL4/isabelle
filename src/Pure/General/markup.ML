@@ -100,7 +100,7 @@ sig
   val elapsedN: string
   val cpuN: string
   val gcN: string
-  val timingN: string val timing: timing -> T
+  val timingN: string val timing: Timing.timing -> T
   val subgoalsN: string
   val proof_stateN: string val proof_state: int -> T
   val stateN: string val state: T
@@ -312,7 +312,7 @@ val elapsedN = "elapsed";
 val cpuN = "cpu";
 val gcN = "gc";
 
-fun timing ({elapsed, cpu, gc, ...}: timing) =
+fun timing {elapsed, cpu, gc} =
   (timingN,
    [(elapsedN, Time.toString elapsed),
     (cpuN, Time.toString cpu),

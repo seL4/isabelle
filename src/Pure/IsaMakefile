@@ -21,7 +21,6 @@ LOG = $(OUT)/log
 
 BOOTSTRAP_FILES = 					\
   General/exn.ML					\
-  General/timing.ML					\
   ML-Systems/compiler_polyml-5.2.ML			\
   ML-Systems/compiler_polyml-5.3.ML			\
   ML-Systems/ml_name_space.ML				\
@@ -101,6 +100,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   General/symbol.ML					\
   General/symbol_pos.ML					\
   General/table.ML					\
+  General/timing.ML					\
   General/url.ML					\
   General/xml.ML					\
   General/xml_data.ML					\

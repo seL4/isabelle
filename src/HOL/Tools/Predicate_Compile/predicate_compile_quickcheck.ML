@@ -211,11 +211,11 @@ val mk_gen_bind =
 
 val mk_split_lambda = HOLogic.tupled_lambda o HOLogic.mk_tuple
 
-fun cpu_time description f =
+fun cpu_time description f =  (* FIXME !? *)
   let
-    val start = start_timing ()
+    val start = Timing.start ()
     val result = Exn.capture f ()
-    val time = Time.toMilliseconds (#cpu (end_timing start))
+    val time = Time.toMilliseconds (#cpu (Timing.result start))
   in (Exn.release result, (description, time)) end
 
 fun compile_term compilation options ctxt t =

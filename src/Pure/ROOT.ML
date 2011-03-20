@@ -21,6 +21,7 @@ use "General/print_mode.ML";
 use "General/alist.ML";
 use "General/table.ML";
 use "General/output.ML";
+use "General/timing.ML";
 use "General/properties.ML";
 use "General/markup.ML";
 use "General/scan.ML";

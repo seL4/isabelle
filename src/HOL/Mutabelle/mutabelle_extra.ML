@@ -332,11 +332,11 @@ fun thms_of all thy =
 
 fun count x = (length oo filter o equal) x
 
-fun cpu_time description f =
+fun cpu_time description f =  (* FIXME !? *)
   let
-    val start = start_timing ()
+    val start = Timing.start ()
     val result = Exn.capture f ()
-    val time = Time.toMilliseconds (#cpu (end_timing start))
+    val time = Time.toMilliseconds (#cpu (Timing.result start))
   in (Exn.release result, (description, time)) end
 (*
 fun unsafe_invoke_mtd thy (mtd_name, invoke_mtd) t =

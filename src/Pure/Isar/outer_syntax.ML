@@ -271,7 +271,7 @@ fun prepare_command pos str =
 fun load_thy name init pos text =
   let
     val (lexs, commands) = get_syntax ();
-    val time = ! Output.timing;
+    val time = ! Toplevel.timing;
 
     val _ = Present.init_theory name;
 

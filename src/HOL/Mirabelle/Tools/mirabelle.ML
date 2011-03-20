@@ -209,11 +209,11 @@ fun get_int_setting settings (key, default) =
   | SOME NONE => error ("bad option: " ^ key)
   | NONE => default)
 
-fun cpu_time f x =
+fun cpu_time f x =  (* FIXME !? *)
   let
-    val start = start_timing ()
+    val start = Timing.start ()
     val result = Exn.capture (fn () => f x) ()
-    val time = Time.toMilliseconds (#cpu (end_timing start))
+    val time = Time.toMilliseconds (#cpu (Timing.result start))
   in (Exn.release result, time) end
 
 end
