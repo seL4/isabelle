@@ -6,7 +6,7 @@ Theory presentation: HTML, graph files, (PDF)LaTeX documents.
 
 signature BASIC_PRESENT =
 sig
-  val no_document: ('a -> 'b) -> 'a -> 'b
+  val no_document: ('a -> 'b) -> 'a -> 'b  (*not thread-safe!*)
 end;
 
 signature PRESENT =
@@ -18,8 +18,9 @@ sig
   val display_graph: {name: string, ID: string, dir: string, unfold: bool,
    path: string, parents: string list} list -> unit
   val init: bool -> bool -> string -> bool -> string list -> string list ->
-    string -> (bool * Path.T) option -> Url.T option * bool -> bool -> theory list -> unit
-  val finish: unit -> unit
+    string -> (bool * Path.T) option -> Url.T option * bool -> bool ->
+    theory list -> unit  (*not thread-safe!*)
+  val finish: unit -> unit  (*not thread-safe!*)
   val init_theory: string -> unit
   val theory_source: string -> (unit -> HTML.text) -> unit
   val theory_output: string -> string -> unit
@@ -64,7 +65,7 @@ fun show_path path = Path.implode (Path.append (File.pwd ()) path);
 
 (** additional theory data **)
 
-structure BrowserInfoData = Theory_Data
+structure Browser_Info = Theory_Data
 (
   type T = {name: string, session: string list, is_local: bool};
   val empty = {name = "", session = [], is_local = false}: T;
@@ -72,8 +73,8 @@ structure BrowserInfoData = Theory_Data
   fun merge _ = empty;
 );
 
-val put_info = BrowserInfoData.put;
-val get_info = BrowserInfoData.get;
+val put_info = Browser_Info.put;
+val get_info = Browser_Info.get;
 val session_name = #name o get_info;
 
 
@@ -165,7 +166,7 @@ fun change_browser_info f =
   CRITICAL (fn () => Unsynchronized.change browser_info (map_browser_info f));
 
 val suppress_tex_source = Unsynchronized.ref false;
-fun no_document f x = Unsynchronized.setmp suppress_tex_source true f x;  (* FIXME unreliable *)
+fun no_document f x = Unsynchronized.setmp suppress_tex_source true f x;
 
 fun init_theory_info name info =
   change_browser_info (fn (theories, files, tex_index, html_index, graph) =>
@@ -232,7 +233,6 @@ fun make_session_info
 val session_info = Unsynchronized.ref (NONE: session_info option);
 
 fun with_session x f = (case ! session_info of NONE => x | SOME info => f info);
-fun with_context f = f (Context.theory_name (ML_Context.the_global_context ()));
 
 
 
@@ -256,10 +256,10 @@ fun create_index dir =
     session_entries (get_entries dir) ^ HTML.end_document
   |> File.write (Path.append dir index_path);
 
-fun update_index dir name = CRITICAL (fn () =>
+fun update_index dir name =
   (case try get_entries dir of
     NONE => warning ("Browser info: cannot access session index of " ^ Path.print dir)
-  | SOME es => (put_entries ((remove (op =) name es) @ [name]) dir; create_index dir)));
+  | SOME es => (put_entries ((remove (op =) name es) @ [name]) dir; create_index dir));
 
 
 (* document variants *)
@@ -280,7 +280,7 @@ fun read_variants strs =
 fun name_of_session elems = space_implode "/" ("Isabelle" :: elems);
 
 fun init build info doc doc_graph doc_variants path name dump_prefix
-    (remote_path, first_time) verbose thys = CRITICAL (fn () =>
+    (remote_path, first_time) verbose thys =
   if not build andalso not info andalso doc = "" andalso is_none dump_prefix then
     (browser_info := empty_browser_info; session_info := NONE)
   else
@@ -317,7 +317,7 @@ fun init build info doc doc_graph doc_variants path name dump_prefix
           info, doc, doc_graph, documents, dump_prefix, remote_path, verbose, readme));
       browser_info := init_browser_info remote_path path thys;
       add_html_index (0, index_text)
-    end);
+    end;
 
 
 (* isabelle tool wrappers *)
@@ -365,9 +365,9 @@ fun write_tex_index tex_index path =
   write_tex (index_buffer tex_index |> Buffer.add Latex.tex_trailer) doc_indexN path;
 
 
-fun finish () = CRITICAL (fn () =>
-    with_session () (fn {name, info, html_prefix, doc_format, doc_graph, documents,
-      dump_prefix, path, verbose, readme, ...} =>
+fun finish () =
+  with_session () (fn {name, info, html_prefix, doc_format,
+    doc_graph, documents, dump_prefix, path, verbose, readme, ...} =>
   let
     val {theories, files, tex_index, html_index, graph} = ! browser_info;
     val thys = Symtab.dest theories;
@@ -432,7 +432,7 @@ fun finish () = CRITICAL (fn () =>
   in
     browser_info := empty_browser_info;
     session_info := NONE
-  end));
+  end);
 
 
 (* theory elements *)
