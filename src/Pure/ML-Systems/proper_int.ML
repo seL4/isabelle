@@ -13,8 +13,6 @@ val dest_int = IntInf.toInt: IntInf.int -> Int.int;
 
 (* Int *)
 
-structure OrigInt = Int;
-structure OrigIntInf = IntInf;
 type int = IntInf.int;
 
 structure IntInf =
