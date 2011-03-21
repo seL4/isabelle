@@ -347,10 +347,8 @@ fun mk_binder_tr' (name, syn) =
 
 (* idtyp constraints *)
 
-fun idtyp_ast_tr' a [Ast.Appl [Ast.Constant c, x, ty], xs] =
-      if c = "_constrain" then
-        Ast.Appl [Ast.Constant a, Ast.Appl [Ast.Constant "_idtyp", x, ty], xs]
-      else raise Match
+fun idtyp_ast_tr' a [Ast.Appl [Ast.Constant "_constrain", x, ty], xs] =
+      Ast.Appl [Ast.Constant a, Ast.Appl [Ast.Constant "_idtyp", x, ty], xs]
   | idtyp_ast_tr' _ _ = raise Match;
 
 
