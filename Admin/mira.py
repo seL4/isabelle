@@ -294,20 +294,10 @@ def judgement_day(base_path, theory, opts, env, case, paths, dep_paths, playgrou
     return (some_success, '', data, raw_attachments, None)
 
 
-@configuration(repos = [Isabelle, AFP], deps = [(HOL, [0])])
-def JD_Arrow(*args):
-    """Judgement Day regression suite Arrow"""
-    return judgement_day('Afp/thys/ArrowImpossibilityGS/Thys', 'Arrow_Order', 'prover_timeout=10', *args)
-
 @configuration(repos = [Isabelle], deps = [(HOL, [0])])
 def JD_NS(*args):
     """Judgement Day regression suite NS"""
     return judgement_day('Isabelle/src/HOL/Auth', 'NS_Shared', 'prover_timeout=10', *args)
-
-@configuration(repos = [Isabelle, AFP], deps = [(HOL, [0])])
-def JD_FFT(*args):
-    """Judgement Day regression suite FFT"""
-    return judgement_day('Afp/thys/FFT', 'FFT', 'prover_timeout=10', *args)
 
 @configuration(repos = [Isabelle], deps = [(HOL, [0])])
 def JD_FTA(*args):
@@ -317,25 +307,10 @@ def JD_FTA(*args):
 @configuration(repos = [Isabelle], deps = [(HOL, [0])])
 def JD_Hoare(*args):
     """Judgement Day regression suite Hoare"""
-    return judgement_day('Isabelle/src/HOL/IMP', 'Hoare', 'prover_timeout=10', *args)
-
-@configuration(repos = [Isabelle, AFP], deps = [(HOL, [0])])
-def JD_Jinja(*args):
-    """Judgement Day regression suite Jinja"""
-    return judgement_day('Afp/thys/Jinja/J', 'TypeSafe', 'prover_timeout=10', *args)
+    return judgement_day('Isabelle/src/HOL/IMPP', 'Hoare', 'prover_timeout=10', *args)
 
 @configuration(repos = [Isabelle], deps = [(HOL, [0])])
 def JD_SN(*args):
     """Judgement Day regression suite SN"""
-    return judgement_day('Isabelle/src/HOL/Lambda', 'StrongNorm', 'prover_timeout=10', *args)
-
-@configuration(repos = [Isabelle, AFP], deps = [(HOL, [0])])
-def JD_QE(*args):
-    """Judgement Day regression suite QE"""
-    return judgement_day('Afp/thys/LinearQuantifierElim/Thys', 'QEpres', 'prover_timeout=10', *args)
-
-@configuration(repos = [Isabelle, AFP], deps = [(HOL, [0])])
-def JD_S2S(*args):
-    """Judgement Day regression suite S2S"""
-    return judgement_day('Afp/thys/SumSquares', 'TwoSquares', 'prover_timeout=10', *args)
+    return judgement_day('Isabelle/src/HOL/Proofs/Lambda', 'StrongNorm', 'prover_timeout=10', *args)
 
