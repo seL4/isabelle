@@ -75,11 +75,9 @@ fun message {elapsed, cpu, gc} =
 fun cond_timeit enabled msg e =
   if enabled then
     let
-      val (timing, result) = timing (Exn.capture e) ();
+      val (timing, result) = timing (Exn.interruptible_capture e) ();
       val end_msg = message timing;
-      val _ =
-        if Exn.is_interrupt_exn result then ()
-        else warning (if msg = "" then end_msg else msg ^ "\n" ^ end_msg);
+      val _ = warning (if msg = "" then end_msg else msg ^ "\n" ^ end_msg);
     in Exn.release result end
   else e ();
 
