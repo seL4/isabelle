@@ -687,6 +687,14 @@ fun guess_infix (Syntax ({gram, ...}, _)) c =
 
 (** read **)
 
+fun some_results f xs =
+  let
+    val exn_results = map (Exn.interruptible_capture f) xs;
+    val exns = map_filter Exn.get_exn exn_results;
+    val results = map_filter Exn.get_result exn_results;
+  in (case (results, exns) of ([], exn :: _) => reraise exn | _ => results) end;
+
+
 (* read_ast *)
 
 val ambiguity_enabled =
@@ -724,27 +732,19 @@ fun read_asts ctxt (Syntax (tabs, _)) xids root (syms, pos) =
             "\nproduces " ^ string_of_int len ^ " parse trees" ^
             (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
             map show_pt (take limit pts))));
-
-    val ast_of = Syn_Trans.parsetree_to_ast ctxt (lookup_tr parse_ast_trtab);
-    val exn_results = map (Exn.interruptible_capture ast_of) pts;
-    val exns = map_filter Exn.get_exn exn_results;
-    val results = map_filter Exn.get_result exn_results
-  in (case (results, exns) of ([], exn :: _) => reraise exn | _ => results) end;
+  in
+    some_results (Syn_Trans.parsetree_to_ast ctxt (lookup_tr parse_ast_trtab)) pts
+  end;
 
 
 (* read *)
 
 fun read ctxt (syn as Syntax (tabs, _)) root inp =
-  let
-    val {parse_ruletab, parse_trtab, ...} = tabs;
-    val asts = read_asts ctxt syn false root inp
-      |> map (Ast.normalize ctxt (Symtab.lookup_list parse_ruletab));
-
-    val term_of = Syn_Trans.ast_to_term ctxt (lookup_tr parse_trtab);
-    val exn_results = map (Exn.interruptible_capture term_of) asts;
-    val exns = map_filter Exn.get_exn exn_results;
-    val results = map_filter Exn.get_result exn_results
-  in (case (results, exns) of ([], exn :: _) => reraise exn | _ => results) end;
+  let val {parse_ruletab, parse_trtab, ...} = tabs in
+    read_asts ctxt syn false root inp
+    |> map (Ast.normalize ctxt (Symtab.lookup_list parse_ruletab))
+    |> some_results (Syn_Trans.ast_to_term ctxt (lookup_tr parse_trtab))
+  end;
 
 
 (* read terms *)
