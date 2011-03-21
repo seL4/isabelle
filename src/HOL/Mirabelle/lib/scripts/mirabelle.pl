@@ -116,11 +116,6 @@ open(NEW_FILE, ">$new_thy_file") || die "Cannot create file '$new_thy_file'";
 print NEW_FILE $thy_text;
 close(NEW_FILE);
 
-my $root_file = "$output_path/ROOT_$thy_name.ML";
-open(ROOT_FILE, ">$root_file") || die "Cannot create file '$root_file'";
-print ROOT_FILE "use_thy \"$path/$new_thy_name\" handle _ => exit 1;\n";
-close(ROOT_FILE);
-
 
 # run isabelle
 
@@ -139,14 +134,13 @@ if (defined $be_quiet and $be_quiet ne "") {
 print "Mirabelle: $thy_file\n" if ($quiet ne "");
 
 my $result = system "\"$ENV{'ISABELLE_PROCESS'}\" " .
-  "-e 'use \"$root_file\";' -q $mirabelle_logic" . $quiet;
+  "-e 'use_thy \"$path/$new_thy_name\" handle _ => exit 1;\n' -q $mirabelle_logic" . $quiet;
 
 print "Finished:  $thy_file\n" if ($quiet ne "");
 
 
 # cleanup
 
-unlink $root_file;
 unlink $setup_file;
 unlink $new_thy_file;
 
