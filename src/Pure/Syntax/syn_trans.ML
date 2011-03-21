@@ -55,11 +55,10 @@ sig
   val prop_tr': term -> term
   val appl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val applC_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
-  val pts_to_asts: Proof.context ->
-    (string -> (Proof.context -> Ast.ast list -> Ast.ast) option) ->
-    Parser.parsetree list -> Ast.ast list
-  val asts_to_terms: Proof.context ->
-    (string -> (Proof.context -> term list -> term) option) -> Ast.ast list -> term list
+  val parsetree_to_ast: Proof.context ->
+    (string -> (Proof.context -> Ast.ast list -> Ast.ast) option) -> Parser.parsetree -> Ast.ast
+  val ast_to_term: Proof.context ->
+    (string -> (Proof.context -> term list -> term) option) -> Ast.ast -> term
 end;
 
 structure Syn_Trans: SYN_TRANS =
@@ -534,29 +533,24 @@ fun struct_trfuns structs =
 
 
 
-(** pts_to_asts **)
+(** parsetree_to_ast **)
 
-fun pts_to_asts ctxt trf pts =
+fun parsetree_to_ast ctxt trf =
   let
     fun trans a args =
       (case trf a of
         NONE => Ast.mk_appl (Ast.Constant a) args
       | SOME f => f ctxt args);
 
-    (*translate pt bottom-up*)
     fun ast_of (Parser.Node (a, pts)) = trans a (map ast_of pts)
       | ast_of (Parser.Tip tok) = Ast.Variable (Lexicon.str_of_token tok);
-
-    val exn_results = map (Exn.interruptible_capture ast_of) pts;
-    val exns = map_filter Exn.get_exn exn_results;
-    val results = map_filter Exn.get_result exn_results
-  in (case (results, exns) of ([], exn :: _) => reraise exn | _ => results) end;
+  in ast_of end;
 
 
 
-(** asts_to_terms **)
+(** ast_to_term **)
 
-fun asts_to_terms ctxt trf asts =
+fun ast_to_term ctxt trf =
   let
     fun trans a args =
       (case trf a of
@@ -570,10 +564,6 @@ fun asts_to_terms ctxt trf asts =
       | term_of (Ast.Appl (ast :: (asts as _ :: _))) =
           Term.list_comb (term_of ast, map term_of asts)
       | term_of (ast as Ast.Appl _) = raise Ast.AST ("ast_to_term: malformed ast", [ast]);
-
-    val exn_results = map (Exn.interruptible_capture term_of) asts;
-    val exns = map_filter Exn.get_exn exn_results;
-    val results = map_filter Exn.get_result exn_results
-  in (case (results, exns) of ([], exn :: _) => reraise exn | _ => results) end;
+  in term_of end;
 
 end;

@@ -714,18 +714,22 @@ fun read_asts ctxt (Syntax (tabs, _)) xids root (syms, pos) =
 
     val limit = Config.get ctxt ambiguity_limit;
     fun show_pt pt =
-      Pretty.string_of (Ast.pretty_ast (hd (Syn_Trans.pts_to_asts ctxt (K NONE) [pt])));
-  in
-    if len <= Config.get ctxt ambiguity_level then ()
-    else if not (Config.get ctxt ambiguity_enabled) then error (ambiguity_msg pos)
-    else
-      (Context_Position.if_visible ctxt warning (cat_lines
-        (("Ambiguous input" ^ Position.str_of pos ^
-          "\nproduces " ^ string_of_int len ^ " parse trees" ^
-          (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
-          map show_pt (take limit pts))));
-    Syn_Trans.pts_to_asts ctxt (lookup_tr parse_ast_trtab) pts
-  end;
+      Pretty.string_of (Ast.pretty_ast (Syn_Trans.parsetree_to_ast ctxt (K NONE) pt));
+    val _ =
+      if len <= Config.get ctxt ambiguity_level then ()
+      else if not (Config.get ctxt ambiguity_enabled) then error (ambiguity_msg pos)
+      else
+        (Context_Position.if_visible ctxt warning (cat_lines
+          (("Ambiguous input" ^ Position.str_of pos ^
+            "\nproduces " ^ string_of_int len ^ " parse trees" ^
+            (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
+            map show_pt (take limit pts))));
+
+    val ast_of = Syn_Trans.parsetree_to_ast ctxt (lookup_tr parse_ast_trtab);
+    val exn_results = map (Exn.interruptible_capture ast_of) pts;
+    val exns = map_filter Exn.get_exn exn_results;
+    val results = map_filter Exn.get_result exn_results
+  in (case (results, exns) of ([], exn :: _) => reraise exn | _ => results) end;
 
 
 (* read *)
@@ -733,11 +737,14 @@ fun read_asts ctxt (Syntax (tabs, _)) xids root (syms, pos) =
 fun read ctxt (syn as Syntax (tabs, _)) root inp =
   let
     val {parse_ruletab, parse_trtab, ...} = tabs;
-    val asts = read_asts ctxt syn false root inp;
-  in
-    Syn_Trans.asts_to_terms ctxt (lookup_tr parse_trtab)
-      (map (Ast.normalize ctxt (Symtab.lookup_list parse_ruletab)) asts)
-  end;
+    val asts = read_asts ctxt syn false root inp
+      |> map (Ast.normalize ctxt (Symtab.lookup_list parse_ruletab));
+
+    val term_of = Syn_Trans.ast_to_term ctxt (lookup_tr parse_trtab);
+    val exn_results = map (Exn.interruptible_capture term_of) asts;
+    val exns = map_filter Exn.get_exn exn_results;
+    val results = map_filter Exn.get_result exn_results
+  in (case (results, exns) of ([], exn :: _) => reraise exn | _ => results) end;
 
 
 (* read terms *)
