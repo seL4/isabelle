@@ -247,3 +247,95 @@ def Mutabelle_MacLaurin(*args):
 def Mutabelle_Fun(*args):
     """Mutabelle regression suite on Fun theory"""
     return invoke_mutabelle('Fun', *args)
+
+
+# Judgement Day configurations
+
+judgement_day_provers = ('e', 'spass', 'vampire')
+
+def judgement_day(base_path, theory, opts, env, case, paths, dep_paths, playground):
+    """Judgement Day regression suite"""
+
+    isa = paths[0]
+    dep_path = dep_paths[0]
+
+    os.chdir(path.join(playground, '..', base_path)) # Mirabelle requires specific cwd
+    prepare_isabelle_repository(isa, env.settings.contrib, dep_path)
+
+    output = {}
+    success_rates = {}
+    some_success = False
+
+    for atp in judgement_day_provers:
+
+        log_dir = path.join(playground, 'mirabelle_log_' + atp)
+        os.makedirs(log_dir)
+
+        cmd = ('%s/bin/isabelle mirabelle -q -O %s sledgehammer[prover=%s,%s] %s.thy'
+               % (isa, log_dir, atp, opts, theory))
+
+        os.system(cmd)
+        output[atp] = util.readfile(path.join(log_dir, theory + '.log'))
+
+        percentages = list(re.findall(r'Success rate: (\d+)%', output[atp]))
+        if len(percentages) == 2:
+            success_rates[atp] = {
+                'sledgehammer': int(percentages[0]),
+                'metis': int(percentages[1])}
+            if success_rates[atp]['sledgehammer'] > 0:
+                some_success = True
+        else:
+            success_rates[atp] = {}
+
+
+    data = {'success_rates': success_rates}
+    raw_attachments = dict((atp + "_output", output[atp]) for atp in judgement_day_provers)
+    # FIXME: summary?
+    return (some_success, '', data, raw_attachments, None)
+
+
+@configuration(repos = [Isabelle, AFP], deps = [(HOL, [0])])
+def JD_Arrow(*args):
+    """Judgement Day regression suite Arrow"""
+    return judgement_day('Afp/thys/ArrowImpossibilityGS/Thys', 'Arrow_Order', 'prover_timeout=10', *args)
+
+@configuration(repos = [Isabelle], deps = [(HOL, [0])])
+def JD_NS(*args):
+    """Judgement Day regression suite NS"""
+    return judgement_day('Isabelle/src/HOL/Auth', 'NS_Shared', 'prover_timeout=10', *args)
+
+@configuration(repos = [Isabelle, AFP], deps = [(HOL, [0])])
+def JD_FFT(*args):
+    """Judgement Day regression suite FFT"""
+    return judgement_day('Afp/thys/FFT', 'FFT', 'prover_timeout=10', *args)
+
+@configuration(repos = [Isabelle], deps = [(HOL, [0])])
+def JD_FTA(*args):
+    """Judgement Day regression suite FTA"""
+    return judgement_day('Isabelle/src/HOL/Library', 'Fundamental_Theorem_Algebra', 'prover_timeout=10', *args)
+
+@configuration(repos = [Isabelle], deps = [(HOL, [0])])
+def JD_Hoare(*args):
+    """Judgement Day regression suite Hoare"""
+    return judgement_day('Isabelle/src/HOL/IMP', 'Hoare', 'prover_timeout=10', *args)
+
+@configuration(repos = [Isabelle, AFP], deps = [(HOL, [0])])
+def JD_Jinja(*args):
+    """Judgement Day regression suite Jinja"""
+    return judgement_day('Afp/thys/Jinja/J', 'TypeSafe', 'prover_timeout=10', *args)
+
+@configuration(repos = [Isabelle], deps = [(HOL, [0])])
+def JD_SN(*args):
+    """Judgement Day regression suite SN"""
+    return judgement_day('Isabelle/src/HOL/Lambda', 'StrongNorm', 'prover_timeout=10', *args)
+
+@configuration(repos = [Isabelle, AFP], deps = [(HOL, [0])])
+def JD_QE(*args):
+    """Judgement Day regression suite QE"""
+    return judgement_day('Afp/thys/LinearQuantifierElim/Thys', 'QEpres', 'prover_timeout=10', *args)
+
+@configuration(repos = [Isabelle, AFP], deps = [(HOL, [0])])
+def JD_S2S(*args):
+    """Judgement Day regression suite S2S"""
+    return judgement_day('Afp/thys/SumSquares', 'TwoSquares', 'prover_timeout=10', *args)
+
