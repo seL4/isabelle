@@ -7,7 +7,7 @@ Theory headers -- independent of outer syntax.
 signature THY_HEADER =
 sig
   val args: Token.T list -> (string * string list * (string * bool) list) * Token.T list
-  val read: Position.T -> string -> string * string list * (string * bool) list
+  val read: Position.T -> string -> string * string list * (Path.T * bool) list
   val thy_path: string -> Path.T
   val split_thy_path: Path.T -> Path.T * string
   val consistent_name: string -> string -> unit
@@ -63,7 +63,8 @@ fun read pos str =
     |> Source.source Token.stopper (Scan.single (Scan.error (Parse.!!! header))) NONE
     |> Source.get_single;
   in
-    (case res of SOME (x, _) => x
+    (case res of
+      SOME ((name, imports, uses), _) => (name, imports, map (apfst Path.explode) uses)
     | NONE => error ("Unexpected end of input" ^ Position.str_of pos))
   end;
 

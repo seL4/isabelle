@@ -15,9 +15,8 @@ classrel world < type
 
 (** abstract syntax **)
 
-types
-  ('w,'a) expr = "'w => 'a"               (* intention: 'w::world, 'a::type *)
-  'w form = "('w, bool) expr"
+type_synonym ('w,'a) expr = "'w => 'a"   (* intention: 'w::world, 'a::type *)
+type_synonym 'w form = "('w, bool) expr"
 
 consts
   Valid    :: "('w::world) form => bool"

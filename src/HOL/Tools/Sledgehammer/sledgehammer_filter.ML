@@ -115,8 +115,8 @@ fun fact_from_ref ctxt reserved chained_ths (xthm as (xref, args)) =
   let
     val ths = Attrib.eval_thms ctxt [xthm]
     val bracket =
-      implode (map (fn arg => "[" ^ Pretty.str_of (Args.pretty_src ctxt arg)
-                               ^ "]") args)
+      map (enclose "[" "]" o Pretty.str_of o Args.pretty_src ctxt) args
+      |> implode
     fun nth_name j =
       case xref of
         Facts.Fact s => backquote s ^ bracket

@@ -8,15 +8,13 @@ theory ProcedureInterface
 imports "../TLA" RPCMemoryParams
 begin
 
-typedecl
+typedecl ('a,'r) chan
   (* type of channels with argument type 'a and return type 'r.
      we model a channel as an array of variables (of type chan)
      rather than a single array-valued variable because the
      notation gets a little simpler.
   *)
-  ('a,'r) chan
-types
-  ('a,'r) channel =" (PrIds => ('a,'r) chan) stfun"
+type_synonym ('a,'r) channel =" (PrIds => ('a,'r) chan) stfun"
 
 consts
   (* data-level functions *)

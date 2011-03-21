@@ -210,10 +210,7 @@ fun get_int_setting settings (key, default) =
   | NONE => default)
 
 fun cpu_time f x =
-  let
-    val start = start_timing ()
-    val result = Exn.capture (fn () => f x) ()
-    val time = Time.toMilliseconds (#cpu (end_timing start))
-  in (Exn.release result, time) end
+  let val ({cpu, ...}, y) = Timing.timing f x
+  in (y, Time.toMilliseconds cpu) end
 
 end

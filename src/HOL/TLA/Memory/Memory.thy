@@ -8,10 +8,9 @@ theory Memory
 imports MemoryParameters ProcedureInterface
 begin
 
-types
-  memChType  = "(memOp, Vals) channel"
-  memType = "(Locs => Vals) stfun"      (* intention: MemLocs => MemVals *)
-  resType = "(PrIds => Vals) stfun"
+type_synonym memChType = "(memOp, Vals) channel"
+type_synonym memType = "(Locs => Vals) stfun"  (* intention: MemLocs => MemVals *)
+type_synonym resType = "(PrIds => Vals) stfun"
 
 consts
   (* state predicates *)

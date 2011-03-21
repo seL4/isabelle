@@ -150,7 +150,7 @@ fun invoke_try thy t =
   let
     val state = Proof.theorem NONE (K I) (map (single o rpair []) [t]) (ProofContext.init_global thy)
   in
-    case Try.invoke_try (SOME (seconds 5.0)) state of
+    case Try.invoke_try (SOME (seconds 5.0)) ([], [], []) state of
       true => (Solved, ([], NONE))
     | false => (Unsolved, ([], NONE))
   end
@@ -332,12 +332,9 @@ fun thms_of all thy =
 
 fun count x = (length oo filter o equal) x
 
-fun cpu_time description f =
-  let
-    val start = start_timing ()
-    val result = Exn.capture f ()
-    val time = Time.toMilliseconds (#cpu (end_timing start))
-  in (Exn.release result, (description, time)) end
+fun cpu_time description e =
+  let val ({cpu, ...}, result) = Timing.timing e ()
+  in (result, (description, Time.toMilliseconds cpu)) end
 (*
 fun unsafe_invoke_mtd thy (mtd_name, invoke_mtd) t =
   let

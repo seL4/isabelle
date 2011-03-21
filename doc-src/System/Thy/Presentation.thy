@@ -448,7 +448,7 @@ Usage: usedir [OPTIONS] LOGIC NAME
     -P PATH      set path for remote theory browsing information
     -Q INT       set threshold for sub-proof parallelization (default 50)
     -T LEVEL     multithreading: trace level (default 0)
-    -V VERSION   declare alternative document VERSION
+    -V VARIANT   declare alternative document VARIANT
     -b           build mode (output heap image, using current dir)
     -d FORMAT    build document as FORMAT (default false)
     -f NAME      use ML file NAME (default ROOT.ML)
@@ -523,16 +523,16 @@ text {*
   \secref{sec:tool-latex} for more details.
 
   \medskip The @{verbatim "-V"} option declares alternative document
-  versions, consisting of name/tags pairs (cf.\ options @{verbatim
+  variants, consisting of name/tags pairs (cf.\ options @{verbatim
   "-n"} and @{verbatim "-t"} of the @{tool_ref document} tool).  The
   standard document is equivalent to ``@{verbatim
   "document=theory,proof,ML"}'', which means that all theory begin/end
   commands, proof body texts, and ML code will be presented
-  faithfully.  An alternative version ``@{verbatim
+  faithfully.  An alternative variant ``@{verbatim
   "outline=/proof/ML"}'' would fold proof and ML parts, replacing the
   original text by a short place-holder.  The form ``@{text
   name}@{verbatim "=-"},'' means to remove document @{text name} from
-  the list of versions to be processed.  Any number of @{verbatim
+  the list of variants to be processed.  Any number of @{verbatim
   "-V"} options may be given; later declarations have precedence over
   earlier ones.
 
@@ -682,15 +682,15 @@ Usage: document [OPTIONS] [DIR]
   corresponding output files named after @{verbatim root} as well,
   e.g.\ @{verbatim root.dvi} for target format @{verbatim dvi}.
 
-  \medskip When running the session, Isabelle copies the original
-  @{verbatim document} directory into its proper place within
-  @{setting ISABELLE_BROWSER_INFO} according to the session path.
-  Then, for any processed theory @{text A} some {\LaTeX} source is
-  generated and put there as @{text A}@{verbatim ".tex"}.
-  Furthermore, a list of all generated theory files is put into
-  @{verbatim session.tex}.  Typically, the root {\LaTeX} file provided
-  by the user would include @{verbatim session.tex} to get a document
-  containing all the theories.
+  \medskip When running the session, Isabelle copies the content of
+  the original @{verbatim document} directory into its proper place
+  within @{setting ISABELLE_BROWSER_INFO}, according to the session
+  path and document variant.  Then, for any processed theory @{text A}
+  some {\LaTeX} source is generated and put there as @{text
+  A}@{verbatim ".tex"}.  Furthermore, a list of all generated theory
+  files is put into @{verbatim session.tex}.  Typically, the root
+  {\LaTeX} file provided by the user would include @{verbatim
+  session.tex} to get a document containing all the theories.
 
   The {\LaTeX} versions of the theories require some macros defined in
   @{file "~~/lib/texinputs/isabelle.sty"}.  Doing @{verbatim

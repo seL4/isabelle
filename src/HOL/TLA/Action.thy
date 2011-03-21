@@ -12,9 +12,8 @@ begin
 
 (** abstract syntax **)
 
-types
-  'a trfun = "(state * state) => 'a"
-  action   = "bool trfun"
+type_synonym 'a trfun = "(state * state) => 'a"
+type_synonym action   = "bool trfun"
 
 arities prod :: (world, world) world
 

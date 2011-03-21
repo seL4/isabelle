@@ -4,19 +4,46 @@
 Basic support for time measurement.
 *)
 
-val seconds = Time.fromReal;
+signature BASIC_TIMING =
+sig
+  val cond_timeit: bool -> string -> (unit -> 'a) -> 'a
+  val timeit: (unit -> 'a) -> 'a
+  val timeap: ('a -> 'b) -> 'a -> 'b
+  val timeap_msg: string -> ('a -> 'b) -> 'a -> 'b
+end
 
-fun start_timing () =
+signature TIMING =
+sig
+  include BASIC_TIMING
+  type timing = {elapsed: Time.time, cpu: Time.time, gc: Time.time}
+  type start
+  val start: unit -> start
+  val result: start -> timing
+  val timing: ('a -> 'b) -> 'a -> timing * 'b
+  val message: timing -> string
+end
+
+structure Timing: TIMING =
+struct
+
+(* timer control *)
+
+type timing = {elapsed: Time.time, cpu: Time.time, gc: Time.time};
+
+abstype start = Start of
+  Timer.real_timer * Time.time * Timer.cpu_timer *
+    {gc: {sys: Time.time, usr: Time.time}, nongc: {sys: Time.time, usr: Time.time}}
+with
+
+fun start () =
   let
     val real_timer = Timer.startRealTimer ();
     val real_time = Timer.checkRealTimer real_timer;
     val cpu_timer = Timer.startCPUTimer ();
     val cpu_times = Timer.checkCPUTimes cpu_timer;
-  in (real_timer, real_time, cpu_timer, cpu_times) end;
+  in Start (real_timer, real_time, cpu_timer, cpu_times) end;
 
-type timing = {message: string, elapsed: Time.time, cpu: Time.time, gc: Time.time};
-
-fun end_timing (real_timer, real_time, cpu_timer, cpu_times) : timing =
+fun result (Start (real_timer, real_time, cpu_timer, cpu_times)) =
   let
     val real_time2 = Timer.checkRealTimer real_timer;
     val {nongc = {sys, usr}, gc = {sys = gc_sys, usr = gc_usr}} = cpu_times;
@@ -27,10 +54,41 @@ fun end_timing (real_timer, real_time, cpu_timer, cpu_times) : timing =
     val elapsed = real_time2 - real_time;
     val gc = gc_usr2 - gc_usr + gc_sys2 - gc_sys;
     val cpu = usr2 - usr + sys2 - sys + gc;
+  in {elapsed = elapsed, cpu = cpu, gc = gc} end;
 
-    val message =
-     (toString elapsed ^ "s elapsed time, " ^
-      toString cpu ^ "s cpu time, " ^
-      toString gc ^ "s GC time") handle Time.Time => "";
-  in {message = message, elapsed = elapsed, cpu = cpu, gc = gc} end;
+end;
+
+fun timing f x =
+  let
+    val start = start ();
+    val y = f x;
+  in (result start, y) end;
+
+
+(* timing messages *)
+
+fun message {elapsed, cpu, gc} =
+  Time.toString elapsed ^ "s elapsed time, " ^
+  Time.toString cpu ^ "s cpu time, " ^
+  Time.toString gc ^ "s GC time" handle Time.Time => "";
+
+fun cond_timeit enabled msg e =
+  if enabled then
+    let
+      val (timing, result) = timing (Exn.capture e) ();
+      val end_msg = message timing;
+      val _ =
+        if Exn.is_interrupt_exn result then ()
+        else warning (if msg = "" then end_msg else msg ^ "\n" ^ end_msg);
+    in Exn.release result end
+  else e ();
+
+fun timeit e = cond_timeit true "" e;
+fun timeap f x = timeit (fn () => f x);
+fun timeap_msg msg f x = cond_timeit true msg (fn () => f x);
+
+end;
+
+structure Basic_Timing: BASIC_TIMING = Timing;
+open Basic_Timing;
 

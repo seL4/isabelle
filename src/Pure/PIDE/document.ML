@@ -241,9 +241,9 @@ fun run_command thy_name raw_tr st =
         val is_proof = Keyword.is_proof (Toplevel.name_of tr);
         val do_print = not is_init andalso (Toplevel.print_of tr orelse is_proof);
 
-        val start = start_timing ();
+        val start = Timing.start ();
         val (errs, result) = run (is_init orelse is_proof) (Toplevel.set_print false tr) st;
-        val _ = timing tr (end_timing start);
+        val _ = timing tr (Timing.result start);
         val _ = List.app (Toplevel.error_msg tr) errs;
         val res =
           (case result of

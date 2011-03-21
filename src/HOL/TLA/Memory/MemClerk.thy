@@ -8,11 +8,10 @@ theory MemClerk
 imports Memory RPC MemClerkParameters
 begin
 
-types
-  (* The clerk takes the same arguments as the memory and sends requests to the RPC *)
-  mClkSndChType = "memChType"
-  mClkRcvChType = "rpcSndChType"
-  mClkStType    = "(PrIds => mClkState) stfun"
+(* The clerk takes the same arguments as the memory and sends requests to the RPC *)
+type_synonym mClkSndChType = "memChType"
+type_synonym mClkRcvChType = "rpcSndChType"
+type_synonym mClkStType = "(PrIds => mClkState) stfun"
 
 definition
   (* state predicates *)

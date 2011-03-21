@@ -232,7 +232,7 @@ fun load_thy initiators update_time (deps: deps) text name parent_thys =
     val {master = (thy_path, _), imports} = deps;
     val dir = Path.dir thy_path;
     val pos = Path.position thy_path;
-    val uses = map (apfst Path.explode) (#3 (Thy_Header.read pos text));
+    val (_, _, uses) = Thy_Header.read pos text;
     fun init _ =
       Thy_Load.begin_theory dir name imports parent_thys uses
       |> Present.begin_theory update_time dir uses;
@@ -251,24 +251,20 @@ fun load_thy initiators update_time (deps: deps) text name parent_thys =
 
 fun check_deps dir name =
   (case lookup_deps name of
-    SOME NONE => (true, NONE, get_parents name, NONE)
+    SOME NONE => (true, NONE, get_parents name)
   | NONE =>
-      let val {master, text, imports, ...} = Thy_Load.deps_thy dir name
-      in (false, SOME (make_deps master imports), imports, SOME text) end
+      let val {master, text, imports, ...} = Thy_Load.check_thy dir name
+      in (false, SOME (make_deps master imports, text), imports) end
   | SOME (SOME {master, imports}) =>
-      let val master' = Thy_Load.check_thy dir name in
-        if #2 master <> #2 master' then
-          let val {text = text', imports = imports', ...} = Thy_Load.deps_thy dir name;
-          in (false, SOME (make_deps master' imports'), imports', SOME text') end
-        else
-          let
-            val current =
-              (case lookup_theory name of
-                NONE => false
-              | SOME theory => Thy_Load.all_current theory);
-            val deps' = SOME (make_deps master' imports);
-          in (current, deps', imports, NONE) end
-      end);
+      let
+        val {master = master', text = text', imports = imports', ...} = Thy_Load.check_thy dir name;
+        val deps' = SOME (make_deps master' imports', text');
+        val current =
+          #2 master = #2 master' andalso
+            (case lookup_theory name of
+              NONE => false
+            | SOME theory => Thy_Load.all_current theory);
+      in (current, deps', imports') end);
 
 in
 
@@ -285,14 +281,15 @@ and require_thy initiators dir str tasks =
       SOME task => (task_finished task, tasks)
     | NONE =>
         let
-          val (current, deps, imports, opt_text) = check_deps dir' name
+          val (current, deps, imports) = check_deps dir' name
             handle ERROR msg => cat_error msg
               (loader_msg "the error(s) above occurred while examining theory" [name] ^
                 required_by "\n" initiators);
 
           val parents = map base_name imports;
           val (parents_current, tasks') =
-            require_thys (name :: initiators) (Path.append dir (master_dir deps)) imports tasks;
+            require_thys (name :: initiators)
+              (Path.append dir (master_dir (Option.map #1 deps))) imports tasks;
 
           val all_current = current andalso parents_current;
           val task =
@@ -300,10 +297,8 @@ and require_thy initiators dir str tasks =
             else
               (case deps of
                 NONE => raise Fail "Malformed deps"
-              | SOME (dep as {master = (thy_path, _), ...}) =>
-                  let
-                    val text = (case opt_text of SOME text => text | NONE => File.read thy_path);
-                    val update_time = serial ();
+              | SOME (dep, text) =>
+                  let val update_time = serial ()
                   in Task (parents, load_thy initiators update_time dep text name) end);
         in (all_current, new_entry name parents task tasks') end)
   end;
@@ -336,7 +331,7 @@ fun toplevel_begin_theory master name imports uses =
 fun register_thy theory =
   let
     val name = Context.theory_name theory;
-    val master = Thy_Load.check_thy (Thy_Load.master_directory theory) name;
+    val {master, ...} = Thy_Load.check_thy (Thy_Load.master_directory theory) name;
     val parents = map Context.theory_name (Theory.parents_of theory);
     val imports = Thy_Load.imports_of theory;
     val deps = make_deps master imports;

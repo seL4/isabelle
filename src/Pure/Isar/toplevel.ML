@@ -218,7 +218,7 @@ fun pretty_abstract state = Pretty.str ("<Isar " ^ str_of_state state ^ ">");
 val quiet = Unsynchronized.ref false;
 val debug = Runtime.debug;
 val interact = Unsynchronized.ref false;
-val timing = Output.timing;
+val timing = Unsynchronized.ref false;
 val profiling = Unsynchronized.ref 0;
 val skip_proofs = Unsynchronized.ref false;
 

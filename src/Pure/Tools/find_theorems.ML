@@ -464,7 +464,7 @@ fun pretty_thm ctxt (thmref, thm) = pretty_theorem ctxt (Internal (thmref, thm))
 
 fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
   let
-    val start = start_timing ();
+    val start = Timing.start ();
 
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
     val (foundo, theorems) = filter_theorems ctxt (map Internal (all_facts_of ctxt))
@@ -480,7 +480,7 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
              then " (" ^ string_of_int returned ^ " displayed)"
              else ""));
 
-    val end_msg = " in " ^ Time.toString (#cpu (end_timing start)) ^ " secs";
+    val end_msg = " in " ^ Time.toString (#cpu (Timing.result start)) ^ " secs";
   in
     Pretty.big_list "searched for:" (map (pretty_criterion ctxt) criteria) ::
     Pretty.str "" ::

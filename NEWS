@@ -50,6 +50,9 @@ been discontinued.  INCOMPATIBILITY.
   - sledgehammer available_provers ~> sledgehammer supported_provers
     INCOMPATIBILITY.
 
+* "try":
+  - Added "simp:", "intro:", and "elim:" options.
+
 * Function package: discontinued option "tailrec".
 INCOMPATIBILITY. Use partial_function instead.
 
@@ -61,6 +64,9 @@ subscripted form x\<^isub>1, y\<^isub>2\<^isub>3.
 
 
 *** ML ***
+
+* Structure Timing provides various operations for timing; supersedes
+former start_timing/end_timing etc.
 
 * Path.print is the official way to show file-system paths to users
 (including quotes etc.).

@@ -156,7 +156,7 @@ val tracing_preferences =
   bool_pref Pattern.trace_unify_fail
     "trace-unification"
     "Output error diagnostics during unification",
-  bool_pref Output.timing
+  bool_pref Toplevel.timing
     "global-timing"
     "Whether to enable timing in Isabelle.",
   bool_pref Toplevel.debug

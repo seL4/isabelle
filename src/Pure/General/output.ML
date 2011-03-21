@@ -1,7 +1,7 @@
 (*  Title:      Pure/General/output.ML
     Author:     Makarius, Hagia Maria Sion Abbey (Jerusalem)
 
-Output channels and timing messages.
+Isabelle output channels.
 *)
 
 signature BASIC_OUTPUT =
@@ -10,11 +10,6 @@ sig
   val tracing: string -> unit
   val warning: string -> unit
   val legacy_feature: string -> unit
-  val cond_timeit: bool -> string -> (unit -> 'a) -> 'a
-  val timeit: (unit -> 'a) -> 'a
-  val timeap: ('a -> 'b) -> 'a -> 'b
-  val timeap_msg: string -> ('a -> 'b) -> 'a -> 'b
-  val timing: bool Unsynchronized.ref
 end;
 
 signature OUTPUT =
@@ -110,31 +105,6 @@ fun status s = ! Private_Hooks.status_fn (output s);
 fun report s = ! Private_Hooks.report_fn (output s);
 
 fun legacy_feature s = warning ("Legacy feature! " ^ s);
-
-
-
-(** timing **)
-
-(*conditional timing with message*)
-fun cond_timeit flag msg e =
-  if flag then
-    let
-      val start = start_timing ();
-      val result = Exn.capture e ();
-      val end_msg = #message (end_timing start);
-      val _ = warning (if msg = "" then end_msg else msg ^ "\n" ^ end_msg);
-    in Exn.release result end
-  else e ();
-
-(*unconditional timing*)
-fun timeit e = cond_timeit true "" e;
-
-(*timed application function*)
-fun timeap f x = timeit (fn () => f x);
-fun timeap_msg msg f x = cond_timeit true msg (fn () => f x);
-
-(*global timing mode*)
-val timing = Unsynchronized.ref false;
 
 end;
 

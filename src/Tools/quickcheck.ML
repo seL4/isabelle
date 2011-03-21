@@ -166,12 +166,9 @@ fun check_test_term t =
       error "Term to be tested contains schematic variables";
   in () end
 
-fun cpu_time description f =
-  let
-    val start = start_timing ()
-    val result = Exn.capture f ()
-    val time = Time.toMilliseconds (#cpu (end_timing start))
-  in (Exn.release result, (description, time)) end
+fun cpu_time description e =
+  let val ({cpu, ...}, result) = Timing.timing e ()
+  in (result, (description, Time.toMilliseconds cpu)) end
 
 fun limit ctxt (limit_time, is_interactive) f exc () =
   if limit_time then
