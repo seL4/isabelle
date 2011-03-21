@@ -31,7 +31,7 @@ if ($thy_file =~ /^(.*)\[([0-9]+)\:(~?[0-9]+)\]$/) {
   $end_line = $3;
 }
 my ($thy_name, $path, $ext) = fileparse($thy_file, ".thy");
-my $rand_suffix = map { ('a'..'z')[rand(26)] } 1 .. 10;
+my $rand_suffix = join('', map { ('a'..'z')[rand(26)] } 1 .. 10);
 my $new_thy_name = $thy_name . "_Mirabelle_" . $rand_suffix;
 my $new_thy_file = $path . "/" . $new_thy_name . $ext;
 
