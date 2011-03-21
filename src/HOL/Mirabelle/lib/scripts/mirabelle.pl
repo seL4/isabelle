@@ -118,7 +118,7 @@ close(NEW_FILE);
 
 my $root_file = "$output_path/ROOT_$thy_name.ML";
 open(ROOT_FILE, ">$root_file") || die "Cannot create file '$root_file'";
-print ROOT_FILE "use_thy \"$path/$new_thy_name\";\n";
+print ROOT_FILE "use_thy \"$path/$new_thy_name\" handle _ => exit 1;\n";
 close(ROOT_FILE);
 
 
@@ -150,4 +150,4 @@ unlink $root_file;
 unlink $setup_file;
 unlink $new_thy_file;
 
-exit $result;
+exit ($result ? 1 : 0);

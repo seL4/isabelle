@@ -56,6 +56,12 @@ function usage() {
   exit 1
 }
 
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
 
 ## process command line
 
@@ -103,6 +109,6 @@ mkdir -p "$MIRABELLE_OUTPUT_PATH"
 
 for FILE in "$@"
 do
-  perl -w "$MIRABELLE_HOME/lib/scripts/mirabelle.pl" "$FILE"
+  perl -w "$MIRABELLE_HOME/lib/scripts/mirabelle.pl" "$FILE" || fail "Mirabelle failed."
 done
 
