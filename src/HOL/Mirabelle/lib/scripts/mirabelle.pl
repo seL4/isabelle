@@ -31,8 +31,9 @@ if ($thy_file =~ /^(.*)\[([0-9]+)\:(~?[0-9]+)\]$/) {
   $end_line = $3;
 }
 my ($thy_name, $path, $ext) = fileparse($thy_file, ".thy");
-my $new_thy_name = $thy_name . "_Mirabelle";
-my $new_thy_file = $output_path . "/" . $new_thy_name . $ext;
+my $rand_suffix = map { ('a'..'z')[rand(26)] } 1 .. 10;
+my $new_thy_name = $thy_name . "_Mirabelle_" . $rand_suffix;
+my $new_thy_file = $path . "/" . $new_thy_name . $ext;
 
 
 # setup
@@ -108,7 +109,7 @@ close(OLD_FILE);
 my $thy_text = join("", @lines);
 my $old_len = length($thy_text);
 $thy_text =~ s/(theory\s+)\"?$thy_name\"?/$1"$new_thy_name"/g;
-$thy_text =~ s/(imports)(\s+)/$1 "$setup_thy_name"$2/g;
+$thy_text =~ s/(imports)(\s+)/$1 "$output_path\/$setup_thy_name"$2/g;
 die "No 'imports' found" if length($thy_text) == $old_len;
 
 open(NEW_FILE, ">$new_thy_file") || die "Cannot create file '$new_thy_file'";
@@ -117,7 +118,7 @@ close(NEW_FILE);
 
 my $root_file = "$output_path/ROOT_$thy_name.ML";
 open(ROOT_FILE, ">$root_file") || die "Cannot create file '$root_file'";
-print ROOT_FILE "use_thy \"$output_path/$new_thy_name\";\n";
+print ROOT_FILE "use_thy \"$path/$new_thy_name\";\n";
 close(ROOT_FILE);
 
 
@@ -147,5 +148,6 @@ print "Finished:  $thy_file\n" if ($quiet ne "");
 
 unlink $root_file;
 unlink $setup_file;
+unlink $new_thy_file;
 
 exit $result;
