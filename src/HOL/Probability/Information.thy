@@ -1,3 +1,10 @@
+(*  Title:      HOL/Probability/Information.thy
+    Author:     Johannes Hölzl, TU München
+    Author:     Armin Heller, TU München
+*)
+
+header {*Information theory*}
+
 theory Information
 imports
   Probability_Space

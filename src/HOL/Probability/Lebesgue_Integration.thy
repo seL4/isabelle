@@ -1,4 +1,7 @@
-(* Author: Armin Heller, Johannes Hoelzl, TU Muenchen *)
+(*  Title:      HOL/Probability/Lebesgue_Integration.thy
+    Author:     Johannes Hölzl, TU München
+    Author:     Armin Heller, TU München
+*)
 
 header {*Lebesgue Integration*}
 

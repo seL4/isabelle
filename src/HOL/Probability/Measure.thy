@@ -1,4 +1,10 @@
-(* Author: Lawrence C Paulson; Armin Heller, Johannes Hoelzl, TU Muenchen *)
+(*  Title:      HOL/Probability/Measure.thy
+    Author:     Lawrence C Paulson
+    Author:     Johannes Hölzl, TU München
+    Author:     Armin Heller, TU München
+*)
+
+header {* Properties about measure spaces *}
 
 theory Measure
   imports Caratheodory

@@ -1,3 +1,9 @@
+(*  Title:      HOL/Probability/Radon_Nikodym.thy
+    Author:     Johannes Hölzl, TU München
+*)
+
+header {*Radon-Nikod{\'y}m derivative*}
+
 theory Radon_Nikodym
 imports Lebesgue_Integration
 begin

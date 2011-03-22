@@ -1,5 +1,10 @@
-(*  Author: Robert Himmelmann, TU Muenchen *)
+(*  Title:      HOL/Probability/Lebesgue_Measure.thy
+    Author:     Johannes Hölzl, TU München
+    Author:     Robert Himmelmann, TU München
+*)
+
 header {* Lebsegue measure *}
+
 theory Lebesgue_Measure
   imports Product_Measure
 begin

@@ -1,5 +1,6 @@
 (*  Title:      HOL/Probability/Sigma_Algebra.thy
-    Author:     Stefan Richter, Markus Wenzel, TU Muenchen
+    Author:     Stefan Richter, Markus Wenzel, TU München
+    Author:     Johannes Hölzl, TU München
     Plus material from the Hurd/Coble measure theory development,
     translated by Lawrence Paulson.
 *)

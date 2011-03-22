@@ -1,8 +1,17 @@
+(*  Title:      HOL/Probability/Caratheodory.thy
+    Author:     Lawrence C Paulson
+    Author:     Johannes Hölzl, TU München
+*)
+
 header {*Caratheodory Extension Theorem*}
 
 theory Caratheodory
   imports Sigma_Algebra Extended_Real_Limits
 begin
+
+text {*
+  Originally from the Hurd/Coble measure theory development, translated by Lawrence Paulson.
+*}
 
 lemma suminf_extreal_2dimen:
   fixes f:: "nat \<times> nat \<Rightarrow> extreal"
@@ -35,8 +44,6 @@ proof -
                      setsum_nonneg suminf_extreal_eq_SUPR SUPR_pair
                      SUPR_extreal_setsum[symmetric] incseq_setsumI setsum_nonneg)
 qed
-
-text{*From the Hurd/Coble measure theory development, translated by Lawrence Paulson.*}
 
 subsection {* Measure Spaces *}
 

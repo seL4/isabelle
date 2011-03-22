@@ -1,3 +1,9 @@
+(*  Title:      HOL/Probability/Product_Measure.thy
+    Author:     Johannes Hölzl, TU München
+*)
+
+header {*Product measure spaces*}
+
 theory Product_Measure
 imports Lebesgue_Integration
 begin
