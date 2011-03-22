@@ -40,16 +40,16 @@ consts
   letrec3    :: "[[i,i,i,i=>i=>i=>i]=>i,(i=>i=>i=>i)=>i]=>i"
 
 syntax
-  "_let"     :: "[idt,i,i]=>i"             ("(3let _ be _/ in _)"
+  "_let"     :: "[id,i,i]=>i"             ("(3let _ be _/ in _)"
                         [0,0,60] 60)
 
-  "_letrec"  :: "[idt,idt,i,i]=>i"         ("(3letrec _ _ be _/ in _)"
+  "_letrec"  :: "[id,id,i,i]=>i"         ("(3letrec _ _ be _/ in _)"
                         [0,0,0,60] 60)
 
-  "_letrec2" :: "[idt,idt,idt,i,i]=>i"     ("(3letrec _ _ _ be _/ in _)"
+  "_letrec2" :: "[id,id,id,i,i]=>i"     ("(3letrec _ _ _ be _/ in _)"
                         [0,0,0,0,60] 60)
 
-  "_letrec3" :: "[idt,idt,idt,idt,i,i]=>i" ("(3letrec _ _ _ _ be _/ in _)"
+  "_letrec3" :: "[id,id,id,id,i,i]=>i" ("(3letrec _ _ _ _ be _/ in _)"
                         [0,0,0,0,0,60] 60)
 
 ML {*

@@ -42,6 +42,11 @@ sig
     case_fixed: string -> 'a,
     case_default: string -> 'a} -> string -> 'a
   val is_marked: string -> bool
+  val dummy_type: term
+  val fun_type: term
+  val pretty_position: Position.T -> Pretty.T
+  val encode_position: Position.T -> string
+  val decode_position: string -> Position.T option
 end;
 
 signature LEXICON =
@@ -377,6 +382,9 @@ val is_marked =
   unmark {case_class = K true, case_type = K true, case_const = K true,
     case_fixed = K true, case_default = K false};
 
+val dummy_type = const (mark_type "dummy");
+val fun_type = const (mark_type "fun");
+
 
 (* read numbers *)
 
@@ -449,6 +457,26 @@ fun read_float str =
   in
    {mant = sign * #1 (Library.read_int (intpart @ fracpart)),
     exp = length fracpart}
-  end
+  end;
+
+
+(* positions *)
+
+val position_dummy = "<position>";
+val position_text = XML.Text position_dummy;
+
+fun pretty_position pos =
+  Pretty.markup (Position.markup pos Markup.position) [Pretty.str position_dummy];
+
+fun encode_position pos =
+  YXML.string_of (XML.Elem (Position.markup pos Markup.position, [position_text]));
+
+fun decode_position str =
+  (case YXML.parse_body str handle Fail msg => error msg of
+    [XML.Elem ((name, props), [arg])] =>
+      if name = Markup.positionN andalso arg = position_text
+      then SOME (Position.of_properties props)
+      else NONE
+  | _ => NONE);
 
 end;

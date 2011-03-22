@@ -91,8 +91,10 @@ fun assn_tr r xs = Syntax.const @{const_syntax Collect} $ mk_abstuple xs r;
 *}
 (* com_tr *)
 ML{*
-fun com_tr (Const (@{syntax_const "_assign"},_) $ Free (a,_) $ e) xs =
-      Syntax.const @{const_syntax Basic} $ mk_fexp a e xs
+fun com_tr (t as (Const (@{syntax_const "_assign"},_) $ x $ e)) xs =
+      (case Syntax.strip_positions x of
+        Free (a, _) => Syntax.const @{const_syntax Basic} $ mk_fexp a e xs
+      | _ => t)
   | com_tr (Const (@{const_syntax Basic},_) $ f) xs = Syntax.const @{const_syntax Basic} $ f
   | com_tr (Const (@{const_syntax Seq},_) $ c1 $ c2) xs =
       Syntax.const @{const_syntax Seq} $ com_tr c1 xs $ com_tr c2 xs
@@ -103,15 +105,16 @@ fun com_tr (Const (@{syntax_const "_assign"},_) $ Free (a,_) $ e) xs =
   | com_tr t _ = t (* if t is just a Free/Var *)
 *}
 
-(* triple_tr *)  (* FIXME does not handle "_idtdummy" *)
+(* triple_tr *)    (* FIXME does not handle "_idtdummy" *)
 ML{*
 local
 
 fun var_tr (Free (a, _)) = (a, Bound 0) (* Bound 0 = dummy term *)
   | var_tr (Const (@{syntax_const "_constrain"}, _) $ Free (a, _) $ T) = (a, T);
 
-fun vars_tr (Const (@{syntax_const "_idts"}, _) $ idt $ vars) = var_tr idt :: vars_tr vars
-  | vars_tr t = [var_tr t]
+fun vars_tr (Const (@{syntax_const "_idts"}, _) $ idt $ vars) =
+      var_tr (Syntax.strip_positions idt) :: vars_tr vars
+  | vars_tr t = [var_tr (Syntax.strip_positions t)]
 
 in
 fun hoare_vars_tr [vars, pre, prg, post] =

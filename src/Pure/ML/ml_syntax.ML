@@ -106,7 +106,7 @@ fun pretty_string max_len str =
         handle Fail _ => Symbol.explode str;
     val body' =
       if length body <= max_len then body
-      else take max_len body @ ["..."];
+      else take (Int.max (max_len, 0)) body @ ["..."];
   in Pretty.str (quote (implode (map print_char body'))) end;
 
 end;

@@ -458,7 +458,7 @@ fun add_case_combinator
       fun con1 authentic n (con,args) =
           Library.foldl capp (c_ast authentic con, argvars n args)
       fun case1 authentic (n, c) =
-          app "_case1" (con1 authentic n c, expvar n)
+          app "_case1" (Syntax.strip_positions_ast (con1 authentic n c), expvar n)
       fun arg1 (n, (con,args)) = List.foldr cabs (expvar n) (argvars n args)
       fun when1 n (m, c) =
           if n = m then arg1 (n, c) else (Constant @{const_syntax bottom})

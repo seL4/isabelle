@@ -55,11 +55,10 @@ sig
   val prop_tr': term -> term
   val appl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val applC_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
-  val pts_to_asts: Proof.context ->
-    (string -> (Proof.context -> Ast.ast list -> Ast.ast) option) ->
-    Parser.parsetree list -> Ast.ast list
-  val asts_to_terms: Proof.context ->
-    (string -> (Proof.context -> term list -> term) option) -> Ast.ast list -> term list
+  val parsetree_to_ast: Proof.context -> bool ->
+    (string -> (Proof.context -> Ast.ast list -> Ast.ast) option) -> Parser.parsetree -> Ast.ast
+  val ast_to_term: Proof.context ->
+    (string -> (Proof.context -> term list -> term) option) -> Ast.ast -> term
 end;
 
 structure Syn_Trans: SYN_TRANS =
@@ -67,6 +66,12 @@ struct
 
 
 (** parse (ast) translations **)
+
+(* strip_positions *)
+
+fun strip_positions_ast_tr [ast] = Type_Ext.strip_positions_ast ast
+  | strip_positions_ast_tr asts = raise Ast.AST ("strip_positions_ast_tr", asts);
+
 
 (* constify *)
 
@@ -99,33 +104,26 @@ fun lambda_ast_tr (*"_lambda"*) [pats, body] =
 val constrainAbsC = "_constrainAbs";
 
 fun absfree_proper (x, T, t) =
-  if can Name.dest_internal x then error ("Illegal internal variable in abstraction: " ^ quote x)
+  if can Name.dest_internal x
+  then error ("Illegal internal variable in abstraction: " ^ quote x)
   else Term.absfree (x, T, t);
 
-fun abs_tr (*"_abs"*) [Free (x, T), t] = absfree_proper (x, T, t)
-  | abs_tr (*"_abs"*) [Const ("_idtdummy", T), t] = Term.absdummy (T, t)
-  | abs_tr (*"_abs"*) [Const ("_constrain", _) $ Free (x, T) $ tT, t] =
-      Lexicon.const constrainAbsC $ absfree_proper (x, T, t) $ tT
-  | abs_tr (*"_abs"*) [Const ("_constrain", _) $ Const ("_idtdummy", T) $ tT, t] =
-      Lexicon.const constrainAbsC $ Term.absdummy (T, t) $ tT
-  | abs_tr (*"_abs"*) ts = raise TERM ("abs_tr", ts);
+fun abs_tr [Free (x, T), t] = absfree_proper (x, T, t)
+  | abs_tr [Const ("_idtdummy", T), t] = Term.absdummy (T, t)
+  | abs_tr [Const ("_constrain", _) $ x $ tT, t] = Lexicon.const constrainAbsC $ abs_tr [x, t] $ tT
+  | abs_tr ts = raise TERM ("abs_tr", ts);
 
 
 (* binder *)
 
 fun mk_binder_tr (syn, name) =
   let
-    fun tr (Free (x, T), t) = Lexicon.const name $ absfree_proper (x, T, t)
-      | tr (Const ("_idtdummy", T), t) = Lexicon.const name $ Term.absdummy (T, t)
-      | tr (Const ("_constrain", _) $ Free (x, T) $ tT, t) =
-          Lexicon.const name $ (Lexicon.const constrainAbsC $ absfree_proper (x, T, t) $ tT)
-      | tr (Const ("_constrain", _) $ Const ("_idtdummy", T) $ tT, t) =
-          Lexicon.const name $ (Lexicon.const constrainAbsC $ Term.absdummy (T, t) $ tT)
-      | tr (Const ("_idts", _) $ idt $ idts, t) = tr (idt, tr (idts, t))
-      | tr (t1, t2) = raise TERM ("binder_tr", [t1, t2]);
-
-    fun binder_tr [idts, body] = tr (idts, body)
-      | binder_tr ts = raise TERM ("binder_tr", ts);
+    fun err ts = raise TERM ("binder_tr: " ^ syn, ts)
+    fun binder_tr [Const ("_idts", _) $ idt $ idts, t] = binder_tr [idt, binder_tr [idts, t]]
+      | binder_tr [x, t] =
+          let val abs = abs_tr [x, t] handle TERM _ => err [x, t]
+          in Lexicon.const name $ abs end
+      | binder_tr ts = err ts;
   in (syn, binder_tr) end;
 
 
@@ -197,8 +195,10 @@ fun quote_antiquote_tr quoteN antiquoteN name =
 fun update_name_tr (Free (x, T) :: ts) = list_comb (Free (suffix "_update" x, T), ts)
   | update_name_tr (Const (x, T) :: ts) = list_comb (Const (suffix "_update" x, T), ts)
   | update_name_tr (((c as Const ("_constrain", _)) $ t $ ty) :: ts) =
-      list_comb (c $ update_name_tr [t] $
-        (Lexicon.const "\\<^type>fun" $ ty $ Lexicon.const "\\<^type>dummy"), ts)
+      if Type_Ext.is_position ty then list_comb (c $ update_name_tr [t] $ ty, ts)
+      else
+        list_comb (c $ update_name_tr [t] $
+          (Lexicon.fun_type $ (Lexicon.fun_type $ ty $ ty) $ Lexicon.dummy_type), ts)
   | update_name_tr ts = raise TERM ("update_name_tr", ts);
 
 
@@ -348,10 +348,8 @@ fun mk_binder_tr' (name, syn) =
 
 (* idtyp constraints *)
 
-fun idtyp_ast_tr' a [Ast.Appl [Ast.Constant c, x, ty], xs] =
-      if c = "_constrain" then
-        Ast.Appl [Ast.Constant a, Ast.Appl [Ast.Constant "_idtyp", x, ty], xs]
-      else raise Match
+fun idtyp_ast_tr' a [Ast.Appl [Ast.Constant "_constrain", x, ty], xs] =
+      Ast.Appl [Ast.Constant a, Ast.Appl [Ast.Constant "_idtyp", x, ty], xs]
   | idtyp_ast_tr' _ _ = raise Match;
 
 
@@ -498,7 +496,8 @@ fun struct_ast_tr' structs (*"_struct"*) [Ast.Constant "_indexdefault"] =
 (** Pure translations **)
 
 val pure_trfuns =
-  ([("_constify", constify_ast_tr),
+  ([("_strip_positions", strip_positions_ast_tr),
+    ("_constify", constify_ast_tr),
     ("_appl", appl_ast_tr),
     ("_applC", applC_ast_tr),
     ("_lambda", lambda_ast_tr),
@@ -534,29 +533,29 @@ fun struct_trfuns structs =
 
 
 
-(** pts_to_asts **)
+(** parsetree_to_ast **)
 
-fun pts_to_asts ctxt trf pts =
+fun parsetree_to_ast ctxt constrain_pos trf =
   let
     fun trans a args =
       (case trf a of
         NONE => Ast.mk_appl (Ast.Constant a) args
       | SOME f => f ctxt args);
 
-    (*translate pt bottom-up*)
-    fun ast_of (Parser.Node (a, pts)) = trans a (map ast_of pts)
+    fun ast_of (Parser.Node ("_constrain_position", [pt as Parser.Tip tok])) =
+          if constrain_pos then
+            Ast.Appl [Ast.Constant "_constrain", ast_of pt,
+              Ast.Variable (Lexicon.encode_position (Lexicon.pos_of_token tok))]
+          else ast_of pt
+      | ast_of (Parser.Node (a, pts)) = trans a (map ast_of pts)
       | ast_of (Parser.Tip tok) = Ast.Variable (Lexicon.str_of_token tok);
-
-    val exn_results = map (Exn.interruptible_capture ast_of) pts;
-    val exns = map_filter Exn.get_exn exn_results;
-    val results = map_filter Exn.get_result exn_results
-  in (case (results, exns) of ([], exn :: _) => reraise exn | _ => results) end;
+  in ast_of end;
 
 
 
-(** asts_to_terms **)
+(** ast_to_term **)
 
-fun asts_to_terms ctxt trf asts =
+fun ast_to_term ctxt trf =
   let
     fun trans a args =
       (case trf a of
@@ -570,10 +569,6 @@ fun asts_to_terms ctxt trf asts =
       | term_of (Ast.Appl (ast :: (asts as _ :: _))) =
           Term.list_comb (term_of ast, map term_of asts)
       | term_of (ast as Ast.Appl _) = raise Ast.AST ("ast_to_term: malformed ast", [ast]);
-
-    val exn_results = map (Exn.interruptible_capture term_of) asts;
-    val exns = map_filter Exn.get_exn exn_results;
-    val results = map_filter Exn.get_result exn_results
-  in (case (results, exns) of ([], exn :: _) => reraise exn | _ => results) end;
+  in term_of end;
 
 end;

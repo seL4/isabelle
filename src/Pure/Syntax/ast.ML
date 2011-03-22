@@ -17,7 +17,6 @@ signature AST1 =
 sig
   include AST0
   val mk_appl: ast -> ast list -> ast
-  val str_of_ast: ast -> string
   val pretty_ast: ast -> Pretty.T
   val pretty_rule: ast * ast -> Pretty.T
   val fold_ast: string -> ast list -> ast
@@ -70,12 +69,11 @@ exception AST of string * ast list;
 
 (** print asts in a LISP-like style **)
 
-fun str_of_ast (Constant a) = quote a
-  | str_of_ast (Variable x) = x
-  | str_of_ast (Appl asts) = "(" ^ (space_implode " " (map str_of_ast asts)) ^ ")";
-
 fun pretty_ast (Constant a) = Pretty.quote (Pretty.str a)
-  | pretty_ast (Variable x) = Pretty.str x
+  | pretty_ast (Variable x) =
+      (case Lexicon.decode_position x of
+        SOME pos => Lexicon.pretty_position pos
+      | NONE => Pretty.str x)
   | pretty_ast (Appl asts) = Pretty.enclose "(" ")" (Pretty.breaks (map pretty_ast asts));
 
 fun pretty_rule (lhs, rhs) =
@@ -175,6 +173,9 @@ val ast_trace = Config.bool ast_trace_raw;
 val ast_stat_raw = Config.declare "syntax_ast_stat" (fn _ => Config.Bool false);
 val ast_stat = Config.bool ast_stat_raw;
 
+fun message head body =
+  Pretty.string_of (Pretty.block [Pretty.str head, Pretty.brk 1, body]);
+
 (*the normalizer works yoyo-like: top-down, bottom-up, top-down, ...*)
 fun normalize ctxt get_rules pre_ast =
   let
@@ -209,8 +210,7 @@ fun normalize ctxt get_rules pre_ast =
       | rewrite ast = try_headless_rules ast;
 
     fun rewrote old_ast new_ast =
-      if trace then
-        tracing ("rewrote: " ^ str_of_ast old_ast ^ "  ->  " ^ str_of_ast new_ast)
+      if trace then tracing (message "rewrote:" (pretty_rule (old_ast, new_ast)))
       else ();
 
     fun norm_root ast =
@@ -239,11 +239,11 @@ fun normalize ctxt get_rules pre_ast =
       end;
 
 
-    val _ = if trace then tracing ("pre: " ^ str_of_ast pre_ast) else ();
+    val _ = if trace then tracing (message "pre:" (pretty_ast pre_ast)) else ();
     val post_ast = normal pre_ast;
     val _ =
       if trace orelse stat then
-        tracing ("post: " ^ str_of_ast post_ast ^ "\nnormalize: " ^
+        tracing (message "post:" (pretty_ast post_ast) ^ "\nnormalize: " ^
           string_of_int (! passes) ^ " passes, " ^
           string_of_int (! changes) ^ " changes, " ^
           string_of_int (! failed_matches) ^ " matches failed")

@@ -999,7 +999,7 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
     val test_proof =
       try (local_skip_proof true)
       |> Unsynchronized.setmp testing true
-      |> Exn.capture;
+      |> Exn.interruptible_capture;
 
     fun after_qed' results =
       refine_goals print_rule (context_of state) (flat results)
@@ -1012,9 +1012,7 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
       (case test_proof goal_state of
         Exn.Result (SOME _) => goal_state
       | Exn.Result NONE => error (fail_msg (context_of goal_state))
-      | Exn.Exn exn =>
-          if Exn.is_interrupt exn then reraise exn
-          else raise Exn.EXCEPTIONS ([exn, ERROR (fail_msg (context_of goal_state))])))
+      | Exn.Exn exn => raise Exn.EXCEPTIONS ([exn, ERROR (fail_msg (context_of goal_state))])))
   end;
 
 in
