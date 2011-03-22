@@ -9,6 +9,7 @@ sig
   val sort_of_term: term -> sort
   val term_sorts: term -> (indexname * sort) list
   val typ_of_term: (indexname -> sort) -> term -> typ
+  val strip_positions: term -> term
   val decode_term: (((string * int) * sort) list -> string * int -> sort) ->
     (string -> bool * string) -> (string -> string option) -> term -> term
   val term_of_typ: bool -> typ -> term
@@ -101,10 +102,21 @@ fun typ_of_term get_sort tm =
   in typ_of tm end;
 
 
-(* decode_term -- transform parse tree into raw term *)
+(* positions *)
 
 fun is_position (Free (x, _)) = is_some (Lexicon.decode_position x)
   | is_position _ = false;
+
+fun strip_positions ((t as Const (c, _)) $ u $ v) =
+      if (c = "_constrain" orelse c = "_constrainAbs") andalso is_position v
+      then strip_positions u
+      else t $ strip_positions u $ strip_positions v
+  | strip_positions (t $ u) = strip_positions t $ strip_positions u
+  | strip_positions (Abs (x, T, t)) = Abs (x, T, strip_positions t)
+  | strip_positions t = t;
+
+
+(* decode_term -- transform parse tree into raw term *)
 
 fun decode_term get_sort map_const map_free tm =
   let

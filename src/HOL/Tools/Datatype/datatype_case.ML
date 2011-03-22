@@ -339,7 +339,7 @@ fun case_tr err tab_of ctxt [t, u] =
           | dest_case1 t = case_error "dest_case1";
         fun dest_case2 (Const (@{syntax_const "_case2"}, _) $ t $ u) = t :: dest_case2 u
           | dest_case2 t = [t];
-        val (cases, cnstrts) = split_list (map dest_case1 (dest_case2 u));
+        val (cases, cnstrts) = split_list (map dest_case1 (dest_case2 (Syntax.strip_positions u)));
         val (case_tm, _) = make_case_untyped (tab_of thy) ctxt
           (if err then Error else Warning) []
           (fold (fn tT => fn t => Syntax.const @{syntax_const "_constrain"} $ t $ tT)
