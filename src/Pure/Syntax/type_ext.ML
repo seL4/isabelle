@@ -103,15 +103,19 @@ fun typ_of_term get_sort tm =
 
 (* decode_term -- transform parse tree into raw term *)
 
+fun is_position (Free (x, _)) = is_some (Lexicon.decode_position x)
+  | is_position _ = false;
+
 fun decode_term get_sort map_const map_free tm =
   let
     val decodeT = typ_of_term (get_sort (term_sorts tm));
 
     fun decode (Const ("_constrain", _) $ t $ typ) =
-          Type.constraint (decodeT typ) (decode t)
-      | decode (Const ("_constrainAbs", _) $ (Abs (x, T, t)) $ typ) =
-          if T = dummyT then Abs (x, decodeT typ, decode t)
-          else Type.constraint (decodeT typ --> dummyT) (Abs (x, T, decode t))
+          if is_position typ then decode t
+          else Type.constraint (decodeT typ) (decode t)
+      | decode (Const ("_constrainAbs", _) $ t $ typ) =
+          if is_position typ then decode t
+          else Type.constraint (decodeT typ --> dummyT) (decode t)
       | decode (Abs (x, T, t)) = Abs (x, T, decode t)
       | decode (t $ u) = decode t $ decode u
       | decode (Const (a, T)) =
@@ -162,7 +166,9 @@ fun term_of_typ show_sorts ty =
 
     fun term_of (Type (a, Ts)) =
           Term.list_comb (Lexicon.const (Lexicon.mark_type a), map term_of Ts)
-      | term_of (TFree (x, S)) = of_sort (Lexicon.const "_tfree" $ Lexicon.free x) S
+      | term_of (TFree (x, S)) =
+          if is_some (Lexicon.decode_position x) then Lexicon.free x
+          else of_sort (Lexicon.const "_tfree" $ Lexicon.free x) S
       | term_of (TVar (xi, S)) = of_sort (Lexicon.const "_tvar" $ Lexicon.var xi) S;
   in term_of ty end;
 

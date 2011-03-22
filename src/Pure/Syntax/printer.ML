@@ -415,7 +415,7 @@ fun pretty extern ctxt tabs trf tokentrf type_mode curried ast0 =
       | tokentrT _ _ = NONE
 
     and astT (c as Ast.Constant a, p) = combT (c, a, [], p)
-      | astT (Ast.Variable x, _) = [Pretty.str x]
+      | astT (ast as Ast.Variable x, _) = [Ast.pretty_ast ast]
       | astT (Ast.Appl ((c as Ast.Constant a) :: (args as _ :: _)), p) = combT (c, a, args, p)
       | astT (Ast.Appl (f :: (args as _ :: _)), p) = astT (appT (f, args), p)
       | astT (ast as Ast.Appl _, _) = raise Ast.AST ("pretty: malformed ast", [ast]);

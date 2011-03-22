@@ -55,7 +55,7 @@ sig
   val prop_tr': term -> term
   val appl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val applC_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
-  val parsetree_to_ast: Proof.context ->
+  val parsetree_to_ast: Proof.context -> bool ->
     (string -> (Proof.context -> Ast.ast list -> Ast.ast) option) -> Parser.parsetree -> Ast.ast
   val ast_to_term: Proof.context ->
     (string -> (Proof.context -> term list -> term) option) -> Ast.ast -> term
@@ -98,32 +98,24 @@ fun lambda_ast_tr (*"_lambda"*) [pats, body] =
 val constrainAbsC = "_constrainAbs";
 
 fun absfree_proper (x, T, t) =
-  if can Name.dest_internal x then error ("Illegal internal variable in abstraction: " ^ quote x)
+  if can Name.dest_internal x
+  then error ("Illegal internal variable in abstraction: " ^ quote x)
   else Term.absfree (x, T, t);
 
-fun abs_tr (*"_abs"*) [Free (x, T), t] = absfree_proper (x, T, t)
-  | abs_tr (*"_abs"*) [Const ("_idtdummy", T), t] = Term.absdummy (T, t)
-  | abs_tr (*"_abs"*) [Const ("_constrain", _) $ Free (x, T) $ tT, t] =
-      Lexicon.const constrainAbsC $ absfree_proper (x, T, t) $ tT
-  | abs_tr (*"_abs"*) [Const ("_constrain", _) $ Const ("_idtdummy", T) $ tT, t] =
-      Lexicon.const constrainAbsC $ Term.absdummy (T, t) $ tT
-  | abs_tr (*"_abs"*) ts = raise TERM ("abs_tr", ts);
+fun abs_tr [Free (x, T), t] = absfree_proper (x, T, t)
+  | abs_tr [Const ("_idtdummy", T), t] = Term.absdummy (T, t)
+  | abs_tr [Const ("_constrain", _) $ x $ tT, t] = Lexicon.const constrainAbsC $ abs_tr [x, t] $ tT
+  | abs_tr ts = raise TERM ("abs_tr", ts);
 
 
 (* binder *)
 
 fun mk_binder_tr (syn, name) =
   let
-    fun tr (Free (x, T), t) = Lexicon.const name $ absfree_proper (x, T, t)
-      | tr (Const ("_idtdummy", T), t) = Lexicon.const name $ Term.absdummy (T, t)
-      | tr (Const ("_constrain", _) $ Free (x, T) $ tT, t) =
-          Lexicon.const name $ (Lexicon.const constrainAbsC $ absfree_proper (x, T, t) $ tT)
-      | tr (Const ("_constrain", _) $ Const ("_idtdummy", T) $ tT, t) =
-          Lexicon.const name $ (Lexicon.const constrainAbsC $ Term.absdummy (T, t) $ tT)
-      | tr (Const ("_idts", _) $ idt $ idts, t) = tr (idt, tr (idts, t))
-      | tr (t1, t2) = raise TERM ("binder_tr", [t1, t2]);
-
-    fun binder_tr [idts, body] = tr (idts, body)
+    fun binder_tr [Const ("_idts", _) $ idt $ idts, t] = binder_tr [idt, binder_tr [idts, t]]
+      | binder_tr [x, t] =
+          let val abs = abs_tr [x, t] handle TERM _ => raise TERM ("binder_tr", [x, t])
+          in Lexicon.const name $ abs end
       | binder_tr ts = raise TERM ("binder_tr", ts);
   in (syn, binder_tr) end;
 
@@ -533,14 +525,19 @@ fun struct_trfuns structs =
 
 (** parsetree_to_ast **)
 
-fun parsetree_to_ast ctxt trf =
+fun parsetree_to_ast ctxt constrain_pos trf =
   let
     fun trans a args =
       (case trf a of
         NONE => Ast.mk_appl (Ast.Constant a) args
       | SOME f => f ctxt args);
 
-    fun ast_of (Parser.Node (a, pts)) = trans a (map ast_of pts)
+    fun ast_of (Parser.Node ("_constrain_position", [pt as Parser.Tip tok])) =
+          if constrain_pos then
+            Ast.Appl [Ast.Constant "_constrain", ast_of pt,
+              Ast.Variable (Lexicon.encode_position (Lexicon.pos_of_token tok))]
+          else ast_of pt
+      | ast_of (Parser.Node (a, pts)) = trans a (map ast_of pts)
       | ast_of (Parser.Tip tok) = Ast.Variable (Lexicon.str_of_token tok);
   in ast_of end;
 

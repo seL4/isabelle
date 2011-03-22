@@ -620,7 +620,7 @@ val basic_nonterms =
   (Lexicon.terminals @ [Syn_Ext.logic, "type", "types", "sort", "classes",
     Syn_Ext.args, Syn_Ext.cargs, "pttrn", "pttrns", "idt", "idts", "aprop",
     "asms", Syn_Ext.any, Syn_Ext.sprop, "num_const", "float_const",
-    "index", "struct"]);
+    "index", "struct", "id_position", "longid_position"]);
 
 
 
@@ -708,10 +708,10 @@ val ambiguity_limit =
 
 fun ambiguity_msg pos = "Parse error: ambiguous syntax" ^ Position.str_of pos;
 
-fun read_asts ctxt (Syntax (tabs, _)) xids root (syms, pos) =
+fun read_asts ctxt (Syntax (tabs, _)) raw root (syms, pos) =
   let
     val {lexicon, gram, parse_ast_trtab, ...} = tabs;
-    val toks = Lexicon.tokenize lexicon xids syms;
+    val toks = Lexicon.tokenize lexicon raw syms;
     val _ = List.app (Lexicon.report_token ctxt) toks;
 
     val pts = Parser.parse ctxt gram root (filter Lexicon.is_proper toks)
@@ -722,7 +722,7 @@ fun read_asts ctxt (Syntax (tabs, _)) xids root (syms, pos) =
 
     val limit = Config.get ctxt ambiguity_limit;
     fun show_pt pt =
-      Pretty.string_of (Ast.pretty_ast (Syn_Trans.parsetree_to_ast ctxt (K NONE) pt));
+      Pretty.string_of (Ast.pretty_ast (Syn_Trans.parsetree_to_ast ctxt false (K NONE) pt));
     val _ =
       if len <= Config.get ctxt ambiguity_level then ()
       else if not (Config.get ctxt ambiguity_enabled) then error (ambiguity_msg pos)
@@ -733,7 +733,7 @@ fun read_asts ctxt (Syntax (tabs, _)) xids root (syms, pos) =
             (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
             map show_pt (take limit pts))));
   in
-    some_results (Syn_Trans.parsetree_to_ast ctxt (lookup_tr parse_ast_trtab)) pts
+    some_results (Syn_Trans.parsetree_to_ast ctxt false (lookup_tr parse_ast_trtab)) pts
   end;
 
 
@@ -829,11 +829,11 @@ fun is_const (Syntax ({consts, ...}, _)) c = member (op =) consts c;
 
 local
 
-fun check_rule (rule as (lhs, rhs)) =
+fun check_rule rule =
   (case Ast.rule_error rule of
     SOME msg =>
       error ("Error in syntax translation rule: " ^ msg ^ "\n" ^
-        Ast.str_of_ast lhs ^ "  ->  " ^ Ast.str_of_ast rhs)
+        Pretty.string_of (Ast.pretty_rule rule))
   | NONE => rule);
 
 fun read_pattern ctxt syn (root, str) =

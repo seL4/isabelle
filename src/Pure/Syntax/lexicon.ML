@@ -42,6 +42,7 @@ sig
     case_fixed: string -> 'a,
     case_default: string -> 'a} -> string -> 'a
   val is_marked: string -> bool
+  val pretty_position: Position.T -> Pretty.T
   val encode_position: Position.T -> string
   val decode_position: string -> Position.T option
 end;
@@ -456,13 +457,20 @@ fun read_float str =
 
 (* positions *)
 
+val position_dummy = "<position>";
+val position_text = XML.Text position_dummy;
+
+fun pretty_position pos =
+  Pretty.markup (Position.markup pos Markup.position) [Pretty.str position_dummy];
+
 fun encode_position pos =
-  op ^ (YXML.output_markup (Position.markup pos Markup.position));
+  YXML.string_of (XML.Elem (Position.markup pos Markup.position, [position_text]));
 
 fun decode_position str =
   (case YXML.parse_body str handle Fail msg => error msg of
-    [XML.Elem ((name, props), [])] =>
-      if name = Markup.positionN then SOME (Position.of_properties props)
+    [XML.Elem ((name, props), [arg])] =>
+      if name = Markup.positionN andalso arg = position_text
+      then SOME (Position.of_properties props)
       else NONE
   | _ => NONE);
 
