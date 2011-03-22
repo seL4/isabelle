@@ -74,10 +74,12 @@ former start_timing/end_timing etc.
 * Inner syntax: identifiers in parse trees of generic categories
 "logic", "aprop", "idt" etc. carry position information (disguised as
 type constraints).  Occasional INCOMPATIBILITY with non-compliant
-translations that choke on unexpected type constraints: use
-Syntax.strip_positions or Syntax.strip_positions_ast.  As last resort,
-reset the configuration option Syntax.positions, which is called
-"syntax_positions" in Isar attribute source.
+translations that choke on unexpected type constraints.  Positions can
+be stripped in ML translations via Syntax.strip_positions /
+Syntax.strip_positions_ast, or via the syntax constant
+"_strip_positions" within parse trees.  As last resort, positions can
+be disabled via the configuration option Syntax.positions, which is
+called "syntax_positions" in Isar attribute syntax.
 
 
 

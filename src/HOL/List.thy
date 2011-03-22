@@ -384,7 +384,7 @@ let
     let
       val x = Free (Name.variant (fold Term.add_free_names [p, e] []) "x", dummyT);
       val e = if opti then singl e else e;
-      val case1 = Syntax.const @{syntax_const "_case1"} $ p $ e;
+      val case1 = Syntax.const @{syntax_const "_case1"} $ Syntax.strip_positions p $ e;
       val case2 =
         Syntax.const @{syntax_const "_case1"} $
           Syntax.const @{const_syntax dummy_pattern} $ NilC;

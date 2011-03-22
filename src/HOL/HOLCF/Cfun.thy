@@ -30,8 +30,6 @@ notation (HTML output)
 
 subsection {* Syntax for continuous lambda abstraction *}
 
-declare [[syntax_positions = false]]  (* FIXME pattern translations choke on position constraints *)
-
 syntax "_cabs" :: "[logic, logic] \<Rightarrow> logic"
 
 parse_translation {*
@@ -59,7 +57,7 @@ parse_ast_translation {*
   let
     fun Lambda_ast_tr [pats, body] =
           Syntax.fold_ast_p @{syntax_const "_cabs"}
-            (Syntax.unfold_ast @{syntax_const "_cargs"} pats, body)
+            (Syntax.unfold_ast @{syntax_const "_cargs"} (Syntax.strip_positions_ast pats), body)
       | Lambda_ast_tr asts = raise Syntax.AST ("Lambda_ast_tr", asts);
   in [(@{syntax_const "_Lambda"}, Lambda_ast_tr)] end;
 *}

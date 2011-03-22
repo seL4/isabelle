@@ -67,6 +67,12 @@ struct
 
 (** parse (ast) translations **)
 
+(* strip_positions *)
+
+fun strip_positions_ast_tr [ast] = Type_Ext.strip_positions_ast ast
+  | strip_positions_ast_tr asts = raise Ast.AST ("strip_positions_ast_tr", asts);
+
+
 (* constify *)
 
 fun constify_ast_tr [Ast.Variable c] = Ast.Constant c
@@ -490,7 +496,8 @@ fun struct_ast_tr' structs (*"_struct"*) [Ast.Constant "_indexdefault"] =
 (** Pure translations **)
 
 val pure_trfuns =
-  ([("_constify", constify_ast_tr),
+  ([("_strip_positions", strip_positions_ast_tr),
+    ("_constify", constify_ast_tr),
     ("_appl", appl_ast_tr),
     ("_applC", applC_ast_tr),
     ("_lambda", lambda_ast_tr),
