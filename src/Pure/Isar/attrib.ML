@@ -400,6 +400,7 @@ end;
 val _ = Context.>> (Context.map_theory
  (register_config Syntax.ast_trace_raw #>
   register_config Syntax.ast_stat_raw #>
+  register_config Syntax.positions_raw #>
   register_config Syntax.show_brackets_raw #>
   register_config Syntax.show_sorts_raw #>
   register_config Syntax.show_types_raw #>

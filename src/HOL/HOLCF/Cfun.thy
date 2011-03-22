@@ -30,6 +30,8 @@ notation (HTML output)
 
 subsection {* Syntax for continuous lambda abstraction *}
 
+declare [[syntax_positions = false]]  (* FIXME pattern translations choke on position constraints *)
+
 syntax "_cabs" :: "[logic, logic] \<Rightarrow> logic"
 
 parse_translation {*

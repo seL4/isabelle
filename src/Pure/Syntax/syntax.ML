@@ -110,6 +110,8 @@ sig
   val print_trans: syntax -> unit
   val print_syntax: syntax -> unit
   val guess_infix: syntax -> string -> mixfix option
+  val positions_raw: Config.raw
+  val positions: bool Config.T
   val ambiguity_enabled: bool Config.T
   val ambiguity_level_raw: Config.raw
   val ambiguity_level: int Config.T
@@ -697,6 +699,9 @@ fun some_results f xs =
 
 (* read_ast *)
 
+val positions_raw = Config.declare "syntax_positions" (fn _ => Config.Bool true);
+val positions = Config.bool positions_raw;
+
 val ambiguity_enabled =
   Config.bool (Config.declare "syntax_ambiguity_enabled" (fn _ => Config.Bool true));
 
@@ -732,8 +737,10 @@ fun read_asts ctxt (Syntax (tabs, _)) raw root (syms, pos) =
             "\nproduces " ^ string_of_int len ^ " parse trees" ^
             (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
             map show_pt (take limit pts))));
+
+    val constrain_pos = not raw andalso Config.get ctxt positions;
   in
-    some_results (Syn_Trans.parsetree_to_ast ctxt false (lookup_tr parse_ast_trtab)) pts
+    some_results (Syn_Trans.parsetree_to_ast ctxt constrain_pos (lookup_tr parse_ast_trtab)) pts
   end;
 
 

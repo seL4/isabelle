@@ -71,6 +71,14 @@ former start_timing/end_timing etc.
 * Path.print is the official way to show file-system paths to users
 (including quotes etc.).
 
+* Inner syntax: identifiers in parse trees of generic categories
+"logic", "aprop", "idt" etc. carry position information (disguised as
+type constraints).  Occasional INCOMPATIBILITY with non-compliant
+translations that choke on unexpected type constraints: use
+Syntax.strip_positions or Syntax.strip_positions_ast.  As last resort,
+reset the configuration option Syntax.positions, which is called
+"syntax_positions" in Isar attribute source.
+
 
 
 New in Isabelle2011 (January 2011)
