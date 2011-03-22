@@ -261,6 +261,27 @@ let
 in [(@{const_syntax prod_case}, split_guess_names_tr')] end
 *}
 
+(* Force eta-contraction for terms of the form "Q A (%p. prod_case P p)"
+   where Q is some bounded quantifier or set operator.
+   Reason: the above prints as "Q p : A. case p of (x,y) \<Rightarrow> P x y"
+   whereas we want "Q (x,y):A. P x y".
+   Otherwise prevent eta-contraction.
+*)
+print_translation {*
+let
+  fun contract Q f ts =
+    case ts of
+      [A, Abs(_, _, (s as Const (@{const_syntax prod_case},_) $ t) $ Bound 0)]
+      => if loose_bvar1 (t,0) then f ts else Syntax.const Q $ A $ s
+    | _ => f ts;
+  fun contract2 (Q,f) = (Q, contract Q f);
+  val pairs =
+    [Syntax.preserve_binder_abs2_tr' @{const_syntax Ball} @{syntax_const "_Ball"},
+     Syntax.preserve_binder_abs2_tr' @{const_syntax Bex} @{syntax_const "_Bex"},
+     Syntax.preserve_binder_abs2_tr' @{const_syntax INFI} @{syntax_const "_INF"},
+     Syntax.preserve_binder_abs2_tr' @{const_syntax SUPR} @{syntax_const "_SUP"}]
+in map contract2 pairs end
+*}
 
 subsubsection {* Code generator setup *}
 
