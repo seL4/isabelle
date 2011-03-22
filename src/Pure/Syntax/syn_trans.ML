@@ -112,11 +112,12 @@ fun abs_tr [Free (x, T), t] = absfree_proper (x, T, t)
 
 fun mk_binder_tr (syn, name) =
   let
+    fun err ts = raise TERM ("binder_tr: " ^ syn, ts)
     fun binder_tr [Const ("_idts", _) $ idt $ idts, t] = binder_tr [idt, binder_tr [idts, t]]
       | binder_tr [x, t] =
-          let val abs = abs_tr [x, t] handle TERM _ => raise TERM ("binder_tr", [x, t])
+          let val abs = abs_tr [x, t] handle TERM _ => err [x, t]
           in Lexicon.const name $ abs end
-      | binder_tr ts = raise TERM ("binder_tr", ts);
+      | binder_tr ts = err ts;
   in (syn, binder_tr) end;
 
 
