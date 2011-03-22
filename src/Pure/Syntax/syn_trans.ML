@@ -188,8 +188,10 @@ fun quote_antiquote_tr quoteN antiquoteN name =
 fun update_name_tr (Free (x, T) :: ts) = list_comb (Free (suffix "_update" x, T), ts)
   | update_name_tr (Const (x, T) :: ts) = list_comb (Const (suffix "_update" x, T), ts)
   | update_name_tr (((c as Const ("_constrain", _)) $ t $ ty) :: ts) =
-      list_comb (c $ update_name_tr [t] $
-        (Lexicon.const "\\<^type>fun" $ ty $ Lexicon.const "\\<^type>dummy"), ts)
+      if Type_Ext.is_position ty then list_comb (c $ update_name_tr [t] $ ty, ts)
+      else
+        list_comb (c $ update_name_tr [t] $
+          (Lexicon.fun_type $ (Lexicon.fun_type $ ty $ ty) $ Lexicon.dummy_type), ts)
   | update_name_tr ts = raise TERM ("update_name_tr", ts);
 
 

@@ -42,6 +42,8 @@ sig
     case_fixed: string -> 'a,
     case_default: string -> 'a} -> string -> 'a
   val is_marked: string -> bool
+  val dummy_type: term
+  val fun_type: term
   val pretty_position: Position.T -> Pretty.T
   val encode_position: Position.T -> string
   val decode_position: string -> Position.T option
@@ -379,6 +381,9 @@ fun unmark {case_class, case_type, case_const, case_fixed, case_default} s =
 val is_marked =
   unmark {case_class = K true, case_type = K true, case_const = K true,
     case_fixed = K true, case_default = K false};
+
+val dummy_type = const (mark_type "dummy");
+val fun_type = const (mark_type "fun");
 
 
 (* read numbers *)

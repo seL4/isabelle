@@ -302,7 +302,7 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma assign: "|- P [\<acute>a/\<acute>x] \<acute>x := \<acute>a P"
+lemma assign: "|- P [\<acute>a/\<acute>x::'a] \<acute>x := \<acute>a P"
   by (rule basic)
 
 text {* Note that above formulation of assignment corresponds to our

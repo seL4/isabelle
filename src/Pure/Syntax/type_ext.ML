@@ -9,6 +9,7 @@ sig
   val sort_of_term: term -> sort
   val term_sorts: term -> (indexname * sort) list
   val typ_of_term: (indexname -> sort) -> term -> typ
+  val is_position: term -> bool
   val strip_positions: term -> term
   val strip_positions_ast: Ast.ast -> Ast.ast
   val decode_term: (((string * int) * sort) list -> string * int -> sort) ->
