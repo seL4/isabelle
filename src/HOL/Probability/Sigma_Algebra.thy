@@ -28,88 +28,110 @@ record 'a algebra =
   space :: "'a set"
   sets :: "'a set set"
 
-locale algebra =
+locale subset_class =
   fixes M :: "('a, 'b) algebra_scheme"
   assumes space_closed: "sets M \<subseteq> Pow (space M)"
-     and  empty_sets [iff]: "{} \<in> sets M"
-     and  compl_sets [intro]: "!!a. a \<in> sets M \<Longrightarrow> space M - a \<in> sets M"
-     and  Un [intro]: "!!a b. a \<in> sets M \<Longrightarrow> b \<in> sets M \<Longrightarrow> a \<union> b \<in> sets M"
 
-lemma (in algebra) top [iff]: "space M \<in> sets M"
-  by (metis Diff_empty compl_sets empty_sets)
-
-lemma (in algebra) sets_into_space: "x \<in> sets M \<Longrightarrow> x \<subseteq> space M"
+lemma (in subset_class) sets_into_space: "x \<in> sets M \<Longrightarrow> x \<subseteq> space M"
   by (metis PowD contra_subsetD space_closed)
 
-lemma (in algebra) Int [intro]:
+locale ring_of_sets = subset_class +
+  assumes empty_sets [iff]: "{} \<in> sets M"
+     and  Diff [intro]: "\<And>a b. a \<in> sets M \<Longrightarrow> b \<in> sets M \<Longrightarrow> a - b \<in> sets M"
+     and  Un [intro]: "\<And>a b. a \<in> sets M \<Longrightarrow> b \<in> sets M \<Longrightarrow> a \<union> b \<in> sets M"
+
+lemma (in ring_of_sets) Int [intro]:
   assumes a: "a \<in> sets M" and b: "b \<in> sets M" shows "a \<inter> b \<in> sets M"
 proof -
-  have "((space M - a) \<union> (space M - b)) \<in> sets M"
-    by (metis a b compl_sets Un)
-  moreover
-  have "a \<inter> b = space M - ((space M - a) \<union> (space M - b))"
-    using space_closed a b
-    by blast
-  ultimately show ?thesis
-    by (metis compl_sets)
+  have "a \<inter> b = a - (a - b)"
+    by auto
+  then show "a \<inter> b \<in> sets M"
+    using a b by auto
 qed
 
-lemma (in algebra) Diff [intro]:
-  assumes a: "a \<in> sets M" and b: "b \<in> sets M" shows "a - b \<in> sets M"
-proof -
-  have "(a \<inter> (space M - b)) \<in> sets M"
-    by (metis a b compl_sets Int)
-  moreover
-  have "a - b = (a \<inter> (space M - b))"
-    by (metis Int_Diff Int_absorb1 Int_commute a sets_into_space)
-  ultimately show ?thesis
-    by metis
-qed
-
-lemma (in algebra) finite_union [intro]:
+lemma (in ring_of_sets) finite_Union [intro]:
   "finite X \<Longrightarrow> X \<subseteq> sets M \<Longrightarrow> Union X \<in> sets M"
   by (induct set: finite) (auto simp add: Un)
 
-lemma (in algebra) finite_UN[intro]:
+lemma (in ring_of_sets) finite_UN[intro]:
   assumes "finite I" and "\<And>i. i \<in> I \<Longrightarrow> A i \<in> sets M"
   shows "(\<Union>i\<in>I. A i) \<in> sets M"
   using assms by induct auto
 
-lemma (in algebra) finite_INT[intro]:
+lemma (in ring_of_sets) finite_INT[intro]:
   assumes "finite I" "I \<noteq> {}" "\<And>i. i \<in> I \<Longrightarrow> A i \<in> sets M"
   shows "(\<Inter>i\<in>I. A i) \<in> sets M"
   using assms by (induct rule: finite_ne_induct) auto
 
-lemma algebra_iff_Int:
-     "algebra M \<longleftrightarrow>
-       sets M \<subseteq> Pow (space M) & {} \<in> sets M &
-       (\<forall>a \<in> sets M. space M - a \<in> sets M) &
-       (\<forall>a \<in> sets M. \<forall> b \<in> sets M. a \<inter> b \<in> sets M)"
-proof (auto simp add: algebra.Int, auto simp add: algebra_def)
-  fix a b
-  assume ab: "sets M \<subseteq> Pow (space M)"
-             "\<forall>a\<in>sets M. space M - a \<in> sets M"
-             "\<forall>a\<in>sets M. \<forall>b\<in>sets M. a \<inter> b \<in> sets M"
-             "a \<in> sets M" "b \<in> sets M"
-  hence "a \<union> b = space M - ((space M - a) \<inter> (space M - b))"
-    by blast
-  also have "... \<in> sets M"
-    by (metis ab)
-  finally show "a \<union> b \<in> sets M" .
-qed
-
-lemma (in algebra) insert_in_sets:
+lemma (in ring_of_sets) insert_in_sets:
   assumes "{x} \<in> sets M" "A \<in> sets M" shows "insert x A \<in> sets M"
 proof -
   have "{x} \<union> A \<in> sets M" using assms by (rule Un)
   thus ?thesis by auto
 qed
 
-lemma (in algebra) Int_space_eq1 [simp]: "x \<in> sets M \<Longrightarrow> space M \<inter> x = x"
+lemma (in ring_of_sets) Int_space_eq1 [simp]: "x \<in> sets M \<Longrightarrow> space M \<inter> x = x"
   by (metis Int_absorb1 sets_into_space)
 
-lemma (in algebra) Int_space_eq2 [simp]: "x \<in> sets M \<Longrightarrow> x \<inter> space M = x"
+lemma (in ring_of_sets) Int_space_eq2 [simp]: "x \<in> sets M \<Longrightarrow> x \<inter> space M = x"
   by (metis Int_absorb2 sets_into_space)
+
+locale algebra = ring_of_sets +
+  assumes top [iff]: "space M \<in> sets M"
+
+lemma (in algebra) compl_sets [intro]:
+  "a \<in> sets M \<Longrightarrow> space M - a \<in> sets M"
+  by auto
+
+lemma algebra_iff_Un:
+  "algebra M \<longleftrightarrow>
+    sets M \<subseteq> Pow (space M) &
+    {} \<in> sets M &
+    (\<forall>a \<in> sets M. space M - a \<in> sets M) &
+    (\<forall>a \<in> sets M. \<forall> b \<in> sets M. a \<union> b \<in> sets M)" (is "_ \<longleftrightarrow> ?Un")
+proof
+  assume "algebra M"
+  then interpret algebra M .
+  show ?Un using sets_into_space by auto
+next
+  assume ?Un
+  show "algebra M"
+  proof
+    show space: "sets M \<subseteq> Pow (space M)" "{} \<in> sets M" "space M \<in> sets M"
+      using `?Un` by auto
+    fix a b assume a: "a \<in> sets M" and b: "b \<in> sets M"
+    then show "a \<union> b \<in> sets M" using `?Un` by auto
+    have "a - b = space M - ((space M - a) \<union> b)"
+      using space a b by auto
+    then show "a - b \<in> sets M"
+      using a b  `?Un` by auto
+  qed
+qed
+
+lemma algebra_iff_Int:
+     "algebra M \<longleftrightarrow>
+       sets M \<subseteq> Pow (space M) & {} \<in> sets M &
+       (\<forall>a \<in> sets M. space M - a \<in> sets M) &
+       (\<forall>a \<in> sets M. \<forall> b \<in> sets M. a \<inter> b \<in> sets M)" (is "_ \<longleftrightarrow> ?Int")
+proof
+  assume "algebra M"
+  then interpret algebra M .
+  show ?Int using sets_into_space by auto
+next
+  assume ?Int
+  show "algebra M"
+  proof (unfold algebra_iff_Un, intro conjI ballI)
+    show space: "sets M \<subseteq> Pow (space M)" "{} \<in> sets M"
+      using `?Int` by auto
+    from `?Int` show "\<And>a. a \<in> sets M \<Longrightarrow> space M - a \<in> sets M" by auto
+    fix a b assume sets: "a \<in> sets M" "b \<in> sets M"
+    hence "a \<union> b = space M - ((space M - a) \<inter> (space M - b))"
+      using space by blast
+    also have "... \<in> sets M"
+      using sets `?Int` by auto
+    finally show "a \<union> b \<in> sets M" .
+  qed
+qed
 
 section {* Restricted algebras *}
 
@@ -174,7 +196,7 @@ qed
 
 lemma algebra_Pow:
      "algebra \<lparr> space = sp, sets = Pow sp, \<dots> = X \<rparr>"
-  by (auto simp add: algebra_def)
+  by (auto simp add: algebra_iff_Un)
 
 lemma sigma_algebra_Pow:
      "sigma_algebra \<lparr> space = sp, sets = Pow sp, \<dots> = X \<rparr>"
@@ -205,7 +227,7 @@ lemma sigma_algebra_iff2:
        {} \<in> sets M \<and> (\<forall>s \<in> sets M. space M - s \<in> sets M) \<and>
        (\<forall>A. range A \<subseteq> sets M \<longrightarrow> (\<Union>i::nat. A i) \<in> sets M)"
   by (auto simp add: range_binary_eq sigma_algebra_def sigma_algebra_axioms_def
-         algebra_def Un_range_binary)
+         algebra_iff_Un Un_range_binary)
 
 subsection {* Initial Sigma Algebra *}
 
@@ -513,7 +535,7 @@ proof (rule measurable_If[OF measure])
   thus "{x \<in> space M. x \<in> A} \<in> sets M" using `A \<in> sets M` by auto
 qed
 
-lemma (in algebra) measurable_ident[intro, simp]: "id \<in> measurable M M"
+lemma (in ring_of_sets) measurable_ident[intro, simp]: "id \<in> measurable M M"
   by (auto simp add: measurable_def)
 
 lemma measurable_comp[intro]:
@@ -666,7 +688,7 @@ lemma disjoint_family_disjointed: "disjoint_family (disjointed A)"
 lemma disjointed_subset: "disjointed A n \<subseteq> A n"
   by (auto simp add: disjointed_def)
 
-lemma (in algebra) UNION_in_sets:
+lemma (in ring_of_sets) UNION_in_sets:
   fixes A:: "nat \<Rightarrow> 'a set"
   assumes A: "range A \<subseteq> sets M "
   shows  "(\<Union>i\<in>{0..<n}. A i) \<in> sets M"
@@ -678,7 +700,7 @@ next
     by (simp add: atLeastLessThanSuc) (metis A Un UNIV_I image_subset_iff)
 qed
 
-lemma (in algebra) range_disjointed_sets:
+lemma (in ring_of_sets) range_disjointed_sets:
   assumes A: "range A \<subseteq> sets M "
   shows  "range (disjointed A) \<subseteq> sets M"
 proof (auto simp add: disjointed_def)
@@ -686,6 +708,10 @@ proof (auto simp add: disjointed_def)
   show "A n - (\<Union>i\<in>{0..<n}. A i) \<in> sets M" using UNION_in_sets
     by (metis A Diff UNIV_I image_subset_iff)
 qed
+
+lemma (in algebra) range_disjointed_sets':
+  "range A \<subseteq> sets M \<Longrightarrow> range (disjointed A) \<subseteq> sets M"
+  using range_disjointed_sets .
 
 lemma sigma_algebra_disjoint_iff:
      "sigma_algebra M \<longleftrightarrow>
@@ -702,7 +728,7 @@ proof (auto simp add: sigma_algebra_iff)
          disjoint_family (disjointed A) \<longrightarrow>
          (\<Union>i. disjointed A i) \<in> sets M" by blast
   hence "(\<Union>i. disjointed A i) \<in> sets M"
-    by (simp add: algebra.range_disjointed_sets M A disjoint_family_disjointed)
+    by (simp add: algebra.range_disjointed_sets' M A disjoint_family_disjointed)
   thus "(\<Union>i::nat. A i) \<in> sets M" by (simp add: UN_disjointed_eq)
 qed
 
@@ -867,7 +893,6 @@ definition
    (\<forall>A. (range A \<subseteq> sets M) & (A 0 = {}) & (\<forall>n. A n \<subseteq> A (Suc n)) \<longrightarrow>
         (\<Union>i. A i) \<in> sets M) &
    (\<forall>A. (range A \<subseteq> sets M) & disjoint_family A \<longrightarrow> (\<Union>i::nat. A i) \<in> sets M)"
-
 
 inductive_set
   smallest_ccdi_sets :: "('a, 'b) algebra_scheme \<Rightarrow> 'a set set"
@@ -1117,16 +1142,11 @@ qed
 
 section {* Dynkin systems *}
 
-locale dynkin_system =
-  fixes M :: "('a, 'b) algebra_scheme"
-  assumes space_closed: "sets M \<subseteq> Pow (space M)"
-    and   space: "space M \<in> sets M"
+locale dynkin_system = subset_class +
+  assumes space: "space M \<in> sets M"
     and   compl[intro!]: "\<And>A. A \<in> sets M \<Longrightarrow> space M - A \<in> sets M"
     and   UN[intro!]: "\<And>A. disjoint_family A \<Longrightarrow> range A \<subseteq> sets M
                            \<Longrightarrow> (\<Union>i::nat. A i) \<in> sets M"
-
-lemma (in dynkin_system) sets_into_space: "\<And> A. A \<in> sets M \<Longrightarrow> A \<subseteq> space M"
-  using space_closed by auto
 
 lemma (in dynkin_system) empty[intro, simp]: "{} \<in> sets M"
   using space compl[of "space M"] by simp
@@ -1156,7 +1176,7 @@ lemma dynkin_systemI:
   assumes "\<And> A. disjoint_family A \<Longrightarrow> range A \<subseteq> sets M
           \<Longrightarrow> (\<Union>i::nat. A i) \<in> sets M"
   shows "dynkin_system M"
-  using assms by (auto simp: dynkin_system_def)
+  using assms by (auto simp: dynkin_system_def dynkin_system_axioms_def subset_class_def)
 
 lemma dynkin_system_trivial:
   shows "dynkin_system \<lparr> space = A, sets = Pow A \<rparr>"
@@ -1184,7 +1204,7 @@ proof
 next
   assume "Int_stable M"
   show "sigma_algebra M"
-    unfolding sigma_algebra_disjoint_iff algebra_def
+    unfolding sigma_algebra_disjoint_iff algebra_iff_Un
   proof (intro conjI ballI allI impI)
     show "sets M \<subseteq> Pow (space M)" using sets_into_space by auto
   next
@@ -1211,13 +1231,12 @@ proof (rule dynkin_systemI)
   fix A assume "A \<in> sets (dynkin M)"
   moreover
   { fix D assume "A \<in> D" and d: "dynkin_system \<lparr> space = space M, sets = D \<rparr>"
-    from dynkin_system.sets_into_space[OF d] `A \<in> D`
-    have "A \<subseteq> space M" by auto }
+    then have "A \<subseteq> space M" by (auto simp: dynkin_system_def subset_class_def) }
   moreover have "{D. dynkin_system \<lparr> space = space M, sets = D\<rparr> \<and> sets M \<subseteq> D} \<noteq> {}"
     using assms dynkin_system_trivial by fastsimp
   ultimately show "A \<subseteq> space (dynkin M)"
     unfolding dynkin_def using assms
-    by simp (metis dynkin_system.sets_into_space in_mono mem_def)
+    by simp (metis dynkin_system_def subset_class_def in_mono mem_def)
 next
   show "space (dynkin M) \<in> sets (dynkin M)"
     unfolding dynkin_def using dynkin_system.space by fastsimp
@@ -1277,7 +1296,7 @@ lemma (in dynkin_system) dynkin_subset:
 proof -
   have "dynkin_system M" by default
   then have "dynkin_system \<lparr>space = space N, sets = sets M \<rparr>"
-    using assms unfolding dynkin_system_def by simp
+    using assms unfolding dynkin_system_def dynkin_system_axioms_def subset_class_def by simp
   with `sets N \<subseteq> sets M` show ?thesis by (auto simp add: dynkin_def)
 qed
 

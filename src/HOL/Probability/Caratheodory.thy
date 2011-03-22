@@ -217,7 +217,7 @@ qed
 
 lemma (in algebra) lambda_system_algebra:
   "positive M f \<Longrightarrow> algebra (M\<lparr>sets := lambda_system M f\<rparr>)"
-  apply (auto simp add: algebra_def)
+  apply (auto simp add: algebra_iff_Un)
   apply (metis lambda_system_sets set_mp sets_into_space)
   apply (metis lambda_system_empty)
   apply (metis lambda_system_Compl)
@@ -332,9 +332,10 @@ next
     by (force simp add: disjoint_family_on_def neq_iff)
   have 3: "A n \<in> lambda_system M f" using A
     by blast
+  interpret l: algebra "M\<lparr>sets := lambda_system M f\<rparr>"
+    using f by (rule lambda_system_algebra)
   have 4: "UNION {0..<n} A \<in> lambda_system M f"
-    using A algebra.UNION_in_sets [OF local.lambda_system_algebra, of f, OF f]
-    by simp
+    using A l.UNION_in_sets by simp
   from Suc.hyps show ?case
     by (simp add: atLeastLessThanSuc lambda_system_strong_additive [OF a 2 3 4])
 qed
@@ -352,8 +353,8 @@ proof -
     by (metis countably_subadditive_subadditive csa pos)
   have A': "range A \<subseteq> sets (M(|sets := lambda_system M f|))" using A
     by simp
-  have alg_ls: "algebra (M(|sets := lambda_system M f|))"
-    by (rule lambda_system_algebra) (rule pos)
+  interpret ls: algebra "M\<lparr>sets := lambda_system M f\<rparr>"
+    using pos by (rule lambda_system_algebra)
   have A'': "range A \<subseteq> sets M"
      by (metis A image_subset_iff lambda_system_sets)
 
@@ -366,7 +367,7 @@ proof -
     have *: "\<And>i. 0 \<le> f (A i)" using pos A'' unfolding positive_def by auto
     have dis: "\<And>N. disjoint_family_on A {..<N}" by (intro disjoint_family_on_mono[OF _ disj]) auto
     show "(\<Sum>i. f (A i)) \<le> f (\<Union>i. A i)"
-      using algebra.additive_sum [OF alg_ls lambda_system_positive[OF pos] lambda_system_additive _ A' dis]
+      using ls.additive_sum [OF lambda_system_positive[OF pos] lambda_system_additive _ A' dis]
       using A''
       by (intro suminf_bound[OF _ *]) (auto intro!: increasingD[OF inc] allI countable_UN)
   qed
@@ -401,8 +402,7 @@ proof -
             have le_fa: "f (UNION {0..<n} A \<inter> a) \<le> f a" using A''
               by (blast intro: increasingD [OF inc] A'' UNION_in_sets)
             have ls: "(\<Union>i\<in>{0..<n}. A i) \<in> lambda_system M f"
-              using algebra.UNION_in_sets [OF lambda_system_algebra [of f, OF pos]]
-              by (simp add: A)
+              using ls.UNION_in_sets by (simp add: A)
             hence eq_fa: "f a = f (a \<inter> (\<Union>i\<in>{0..<n}. A i)) + f (a - (\<Union>i\<in>{0..<n}. A i))"
               by (simp add: lambda_system_eq UNION_in)
             have "f (a - (\<Union>i. A i)) \<le> f (a - (\<Union>i\<in>{0..<n}. A i))"
@@ -441,8 +441,8 @@ proof -
     by (metis oms outer_measure_space_def)
   have alg: "algebra ?M"
     using lambda_system_algebra [of f, OF pos]
-    by (simp add: algebra_def)
-  then moreover
+    by (simp add: algebra_iff_Un)
+  then
   have "sigma_algebra ?M"
     using lambda_system_caratheodory [OF oms]
     by (simp add: sigma_algebra_disjoint_iff)
@@ -453,7 +453,7 @@ proof -
                   countably_additive_def o_def)
   ultimately
   show ?thesis
-    by intro_locales (auto simp add: sigma_algebra_def)
+    by (simp add: measure_space_def)
 qed
 
 lemma (in algebra) additive_increasing:

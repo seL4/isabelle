@@ -18,7 +18,7 @@ lemma measure_sigma[simp]: "measure (sigma A) = measure A"
 
 lemma algebra_measure_update[simp]:
   "algebra (M'\<lparr>measure := m\<rparr>) \<longleftrightarrow> algebra M'"
-  unfolding algebra_def by simp
+  unfolding algebra_iff_Un by simp
 
 lemma sigma_algebra_measure_update[simp]:
   "sigma_algebra (M'\<lparr>measure := m\<rparr>) \<longleftrightarrow> sigma_algebra M'"
