@@ -32,8 +32,8 @@ sig
   val extract_known_failure :
     (failure * string) list -> string -> failure option
   val extract_tstplike_proof_and_outcome :
-    bool -> bool -> int -> (string * string) list -> (failure * string) list
-    -> string -> string * failure option
+    bool -> bool -> bool -> int -> (string * string) list
+    -> (failure * string) list -> string -> string * failure option
   val is_same_step : step_name * step_name -> bool
   val atp_proof_from_tstplike_string : bool -> string -> string proof
   val map_term_names_in_atp_proof :
@@ -80,7 +80,10 @@ fun elide_string threshold s =
   else
     s
 fun short_output verbose output =
-  if verbose then elide_string 1000 output else ""
+  if verbose then
+    if output = "" then "No details available" else elide_string 1000 output
+  else
+    ""
 
 val missing_message_tail =
   " appears to be missing. You will need to install it if you want to invoke \
@@ -154,17 +157,19 @@ fun extract_known_failure known_failures output =
   |> find_first (fn (_, pattern) => String.isSubstring pattern output)
   |> Option.map fst
 
-fun extract_tstplike_proof_and_outcome verbose complete res_code proof_delims
-                                       known_failures output =
+fun extract_tstplike_proof_and_outcome debug verbose complete res_code
+                                       proof_delims known_failures output =
   case extract_known_failure known_failures output of
-    NONE => (case extract_tstplike_proof proof_delims output of
-             "" => ("", SOME (if res_code = 0 andalso output = "" then
-                                ProofMissing
-                              else
-                                UnknownError (short_output verbose output)))
-           | tstplike_proof =>
-             if res_code = 0 then (tstplike_proof, NONE)
-             else ("", SOME (UnknownError (short_output verbose output))))
+    NONE =>
+    (case extract_tstplike_proof proof_delims output of
+       "" =>
+       ("", SOME (if res_code = 0 andalso (not debug orelse output = "") then
+                    ProofMissing
+                  else
+                    UnknownError (short_output verbose output)))
+     | tstplike_proof =>
+       if res_code = 0 then (tstplike_proof, NONE)
+       else ("", SOME (UnknownError (short_output verbose output))))
   | SOME failure =>
     ("", SOME (if failure = IncompleteUnprovable andalso complete then
                  Unprovable

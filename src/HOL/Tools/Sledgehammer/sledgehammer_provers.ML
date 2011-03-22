@@ -403,8 +403,8 @@ fun run_atp auto name
                          I)
                   |>> (if measure_run_time then split_time else rpair NONE)
                 val (tstplike_proof, outcome) =
-                  extract_tstplike_proof_and_outcome verbose complete res_code
-                      proof_delims known_failures output
+                  extract_tstplike_proof_and_outcome debug verbose complete
+                      res_code proof_delims known_failures output
               in (output, msecs, tstplike_proof, outcome) end
             val run_twice =
               has_incomplete_mode andalso not auto andalso
