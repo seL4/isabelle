@@ -623,7 +623,11 @@ fun gen_lookup_tr ctxt s n =
            then Syntax.const "StateFun.lookup" $ Syntax.const "undefined" $ Syntax.free n $ s
            else raise TERM ("StateSpace.gen_lookup_tr: component " ^ n ^ " not defined",[]));
 
-fun lookup_tr ctxt [s,Free (n,_)] = gen_lookup_tr ctxt s n;
+fun lookup_tr ctxt [s, x] =
+  (case Syntax.strip_positions x of
+    Free (n,_) => gen_lookup_tr ctxt s n
+  | _ => raise Match);
+
 fun lookup_swap_tr ctxt [Free (n,_),s] = gen_lookup_tr ctxt s n;
 
 fun lookup_tr' ctxt [_$Free (prj,_),n as (_$Free (name,_)),s] =
@@ -651,7 +655,10 @@ fun gen_update_tr id ctxt n v s =
          else raise TERM ("StateSpace.gen_update_tr: component " ^ n ^ " not defined",[]))
    end;
 
-fun update_tr ctxt [s,Free (n,_),v] = gen_update_tr false ctxt n v s;
+fun update_tr ctxt [s, x, v] =
+  (case Syntax.strip_positions x of
+    Free (n, _) => gen_update_tr false ctxt n v s
+  | _ => raise Match);
 
 fun update_tr' ctxt [_$Free (prj,_),_$Free (inj,_),n as (_$Free (name,_)),(Const (k,_)$v),s] =
      if Long_Name.base_name k = Long_Name.base_name KN then

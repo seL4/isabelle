@@ -10,6 +10,7 @@ sig
   val term_sorts: term -> (indexname * sort) list
   val typ_of_term: (indexname -> sort) -> term -> typ
   val strip_positions: term -> term
+  val strip_positions_ast: Ast.ast -> Ast.ast
   val decode_term: (((string * int) * sort) list -> string * int -> sort) ->
     (string -> bool * string) -> (string -> string option) -> term -> term
   val term_of_typ: bool -> typ -> term
@@ -114,6 +115,13 @@ fun strip_positions ((t as Const (c, _)) $ u $ v) =
   | strip_positions (t $ u) = strip_positions t $ strip_positions u
   | strip_positions (Abs (x, T, t)) = Abs (x, T, strip_positions t)
   | strip_positions t = t;
+
+fun strip_positions_ast (Ast.Appl ((t as Ast.Constant c) :: u :: (v as Ast.Variable x) :: asts)) =
+      if (c = "_constrain" orelse c = "_constrainAbs") andalso is_some (Lexicon.decode_position x)
+      then Ast.mk_appl (strip_positions_ast u) (map strip_positions_ast asts)
+      else Ast.Appl (map strip_positions_ast (t :: u :: v :: asts))
+  | strip_positions_ast (Ast.Appl asts) = Ast.Appl (map strip_positions_ast asts)
+  | strip_positions_ast ast = ast;
 
 
 (* decode_term -- transform parse tree into raw term *)
