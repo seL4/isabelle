@@ -107,10 +107,7 @@ proof -
 qed
 
 lemma (in measure_space) additive: "additive M \<mu>"
-proof (rule algebra.countably_additive_additive [OF _ _ ca])
-  show "algebra M" by default
-  show "positive M \<mu>" by (simp add: positive_def)
-qed
+  using ca by (auto intro!: countably_additive_additive simp: positive_def)
 
 lemma (in measure_space) measure_additive:
      "a \<in> sets M \<Longrightarrow> b \<in> sets M \<Longrightarrow> a \<inter> b = {}
