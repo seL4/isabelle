@@ -36,6 +36,7 @@ theorem "map g (map f xs) = map (f o g) xs"
 theorem "rev (xs @ ys) = rev ys @ rev xs"
   quickcheck[random, expect = no_counterexample]
   quickcheck[exhaustive, expect = no_counterexample]
+  quickcheck[exhaustive, size = 1000, timeout = 0.1]
   oops
 
 theorem "rev (xs @ ys) = rev xs @ rev ys"

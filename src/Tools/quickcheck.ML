@@ -190,8 +190,8 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
     val _ = check_test_term t
     val names = Term.add_free_names t []
     val current_size = Unsynchronized.ref 0
-    fun excipit s =
-      "Quickcheck " ^ s ^ " while testing at size " ^ string_of_int (!current_size)
+    fun excipit () =
+      "Quickcheck ran out of time while testing at size " ^ string_of_int (!current_size)
     val (test_fun, comp_time) = cpu_time "quickcheck compilation"
       (fn () => mk_tester ctxt (t, eval_terms));
     fun with_size test_fun k reports =
@@ -219,7 +219,7 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
             (Option.map (mk_result names eval_terms) result,
               ([exec_time, comp_time],
                if Config.get ctxt report andalso not (null reports) then SOME reports else NONE))
-          end) (fn () => error (excipit "ran out of time")) ()
+          end) (fn () => (Output.urgent_message (excipit ()); (NONE, ([comp_time], NONE)))) ()
   end;
 
 fun test_terms ctxt ts =
@@ -269,7 +269,7 @@ fun test_term_with_increasing_cardinality ctxt (limit_time, is_interactive) ts =
       else if (forall is_some test_funs) then
         limit ctxt (limit_time, is_interactive) (fn () =>
           (get_first test_card_size enumeration_card_size, ([comp_time], NONE)))
-          (fn () => error "Quickcheck ran out of time") ()
+          (fn () => (Output.urgent_message "Quickcheck ran out of time"; (NONE, ([comp_time], NONE)))) ()
       else
         error "Unexpectedly, testers of some cardinalities are executable but others are not"
     end
