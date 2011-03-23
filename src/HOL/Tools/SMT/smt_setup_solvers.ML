@@ -6,7 +6,11 @@ Setup SMT solvers.
 
 signature SMT_SETUP_SOLVERS =
 sig
-  val z3_non_commercial: unit -> bool
+  datatype z3_non_commercial =
+    Z3_Non_Commercial_Unknown |
+    Z3_Non_Commercial_Accepted |
+    Z3_Non_Commercial_Declined
+  val z3_non_commercial: unit -> z3_non_commercial
   val setup: theory -> theory
 end
 
@@ -96,18 +100,34 @@ fun yices () = {
 
 (* Z3 *)
 
+datatype z3_non_commercial =
+  Z3_Non_Commercial_Unknown |
+  Z3_Non_Commercial_Accepted |
+  Z3_Non_Commercial_Declined
+
+
 local
   val flagN = "Z3_NON_COMMERCIAL"
+
+  val accepted = member (op =) ["yes", "Yes", "YES"]
+  val declined = member (op =) ["no", "No", "NO"]
 in
 
-fun z3_non_commercial () = (getenv flagN = "yes")
+fun z3_non_commercial () =
+  if accepted (getenv flagN) then Z3_Non_Commercial_Accepted
+  else if declined (getenv flagN) then Z3_Non_Commercial_Declined
+  else Z3_Non_Commercial_Unknown
 
 fun if_z3_non_commercial f =
-  if z3_non_commercial () then f ()
-  else
-    error ("The SMT solver Z3 is not enabled. To enable it, set " ^
-      "the environment variable " ^ quote flagN ^ " to " ^ quote ("yes") ^
-      ".")
+  (case z3_non_commercial () of
+    Z3_Non_Commercial_Accepted => f ()
+  | Z3_Non_Commercial_Declined =>
+      error ("The SMT solver Z3 may only be used for non-commercial " ^
+        "applications.")
+  | Z3_Non_Commercial_Unknown =>
+      error ("The SMT solver Z3 is not activated. To activate it, set " ^
+        "the environment variable " ^ quote flagN ^ " to " ^ quote ("yes") ^
+        "."))
 
 end
 
