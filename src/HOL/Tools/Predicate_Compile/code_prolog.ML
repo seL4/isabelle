@@ -1009,12 +1009,13 @@ val _ = Outer_Syntax.improper_command "values" "enumerate and print comprehensio
 
 (* FIXME: a small clone of Predicate_Compile_Quickcheck - maybe refactor out commons *)
 
-fun quickcheck ctxt t size =
+fun quickcheck ctxt (t, []) size =
   let
+    val t' = list_abs_free (Term.add_frees t [], t)
     val options = code_options_of (ProofContext.theory_of ctxt)
     val thy = Theory.copy (ProofContext.theory_of ctxt)
     val ((((full_constname, constT), vs'), intro), thy1) =
-      Predicate_Compile_Aux.define_quickcheck_predicate t thy
+      Predicate_Compile_Aux.define_quickcheck_predicate t' thy
     val thy2 = Context.theory_map (Predicate_Compile_Alternative_Defs.add_thm intro) thy1
     val thy3 = Predicate_Compile.preprocess preprocess_options (Const (full_constname, constT)) thy2
     val ctxt' = ProofContext.init_global thy3
