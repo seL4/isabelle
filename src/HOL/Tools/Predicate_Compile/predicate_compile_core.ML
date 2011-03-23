@@ -1363,7 +1363,7 @@ fun add_equations_of steps mode_analysis_options options prednames thy =
     val (lookup_mode, lookup_neg_mode, needs_random) = (modes_of compilation ctxt,
       modes_of (negative_compilation_of compilation) ctxt, needs_random ctxt)
     val ((moded_clauses, needs_random), errors) =
-      cond_timeit (!Quickcheck.timing) "Infering modes"
+      cond_timeit (Config.get ctxt Quickcheck.timing) "Infering modes"
       (fn _ => infer_modes mode_analysis_options
         options (lookup_mode, lookup_neg_mode, needs_random) ctxt preds all_modes param_vs clauses)
     val thy' = fold (fn (s, ms) => set_needs_random s ms) needs_random thy
@@ -1373,19 +1373,19 @@ fun add_equations_of steps mode_analysis_options options prednames thy =
     val _ = print_modes options modes
     val _ = print_step options "Defining executable functions..."
     val thy'' =
-      cond_timeit (!Quickcheck.timing) "Defining executable functions..."
+      cond_timeit (Config.get ctxt Quickcheck.timing) "Defining executable functions..."
       (fn _ => fold (#define_functions (dest_steps steps) options preds) modes thy'
       |> Theory.checkpoint)
     val ctxt'' = ProofContext.init_global thy''
     val _ = print_step options "Compiling equations..."
     val compiled_terms =
-      cond_timeit (!Quickcheck.timing) "Compiling equations...." (fn _ =>
+      cond_timeit (Config.get ctxt Quickcheck.timing) "Compiling equations...." (fn _ =>
         compile_preds options
           (#comp_modifiers (dest_steps steps)) ctxt'' all_vs param_vs preds moded_clauses)
     val _ = print_compiled_terms options ctxt'' compiled_terms
     val _ = print_step options "Proving equations..."
     val result_thms =
-      cond_timeit (!Quickcheck.timing) "Proving equations...." (fn _ =>
+      cond_timeit (Config.get ctxt Quickcheck.timing) "Proving equations...." (fn _ =>
       #prove (dest_steps steps) options thy'' clauses preds moded_clauses compiled_terms)
     val result_thms' = #add_code_equations (dest_steps steps) ctxt'' preds
       (maps_modes result_thms)
@@ -1393,7 +1393,7 @@ fun add_equations_of steps mode_analysis_options options prednames thy =
     val attrib = fn thy => Attrib.attribute_i thy (Attrib.internal (K (Thm.declaration_attribute
       (fn thm => Context.mapping (Code.add_eqn thm) I))))
     val thy''' =
-      cond_timeit (!Quickcheck.timing) "Setting code equations...." (fn _ =>
+      cond_timeit (Config.get ctxt Quickcheck.timing) "Setting code equations...." (fn _ =>
       fold (fn (name, result_thms) => fn thy => snd (Global_Theory.add_thmss
       [((Binding.qualify true (Long_Name.base_name name) (Binding.name qname), result_thms),
         [attrib thy ])] thy))

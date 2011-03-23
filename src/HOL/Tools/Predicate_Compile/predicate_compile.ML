@@ -130,12 +130,12 @@ fun preprocess_strong_conn_constnames options gr ts thy =
 fun preprocess options t thy =
   let
     val _ = print_step options "Fetching definitions from theory..."
-    val gr = cond_timeit (!Quickcheck.timing) "preprocess-obtain graph"
+    val gr = cond_timeit (Config.get_global thy Quickcheck.timing) "preprocess-obtain graph"
           (fn () => Predicate_Compile_Data.obtain_specification_graph options thy t
           |> (fn gr => Term_Graph.subgraph (member (op =) (Term_Graph.all_succs gr [t])) gr))
     val _ = if !present_graph then Predicate_Compile_Data.present_graph gr else ()
   in
-    cond_timeit (!Quickcheck.timing) "preprocess-process"
+    cond_timeit (Config.get_global thy Quickcheck.timing) "preprocess-process"
       (fn () => (fold_rev (preprocess_strong_conn_constnames options gr)
         (Term_Graph.strong_conn gr) thy))
   end

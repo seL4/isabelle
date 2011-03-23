@@ -9,12 +9,12 @@ sig
   val setup: theory -> theory
   (* configuration *)
   val auto: bool Unsynchronized.ref
-  val timing : bool Unsynchronized.ref
   val tester : string Config.T
   val size : int Config.T
   val iterations : int Config.T
   val no_assms : bool Config.T
   val report : bool Config.T
+  val timing : bool Config.T
   val quiet : bool Config.T
   val timeout : real Config.T
   val finite_types : bool Config.T
@@ -33,13 +33,19 @@ sig
   val add_batch_generator:
     string * (Proof.context -> term list -> (int -> term list option) list)
       -> Context.generic -> Context.generic
+  datatype result =
+    Result of
+     {counterexample : (string * term) list option,
+      evaluation_terms : (term * term) list option,
+      timings : (string * int) list,
+      reports : (int * report) list}
   (* testing terms and proof states *)
-  val test_term: Proof.context -> bool * bool -> term * term list ->
-    ((string * term) list * (term * term) list) option * ((string * int) list * ((int * report) list) option)
+  val test_term: Proof.context -> bool * bool -> term * term list -> result
   val test_goal_terms:
     Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list  
-      -> ((string * term) list * (term * term) list) option * ((string * int) list * ((int * report) list) option) list
+      -> result list
   val quickcheck: (string * string list) list -> int -> Proof.state -> (string * term) list option
+  
   (* testing a batch of terms *)
   val test_terms: Proof.context -> term list -> (string * term) list option list option
 end;
@@ -50,8 +56,6 @@ struct
 (* preferences *)
 
 val auto = Unsynchronized.ref false;
-
-val timing = Unsynchronized.ref false;
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
@@ -66,6 +70,50 @@ datatype report = Report of
   { iterations : int, raised_match_errors : int,
     satisfied_assms : int list, positive_concl_tests : int }
 
+(* Quickcheck Result *)
+
+datatype result = Result of
+  { counterexample : (string * term) list option, evaluation_terms : (term * term) list option,
+    timings : (string * int) list, reports : (int * report) list}
+
+val empty_result =
+  Result {counterexample = NONE, evaluation_terms = NONE, timings = [], reports = []}
+
+fun counterexample_of (Result r) = #counterexample r
+
+fun found_counterexample (Result r) = is_some (#counterexample r)
+
+fun response_of (Result r) = case (#counterexample r, #evaluation_terms r) of
+    (SOME ts, SOME evals) => SOME (ts, evals)
+  | (NONE, NONE) => NONE
+
+fun timings_of (Result r) = #timings r
+
+fun set_reponse names eval_terms (SOME ts) (Result r) =
+  let
+    val (ts1, ts2) = chop (length names) ts
+  in
+    Result {counterexample = SOME (names ~~ ts1), evaluation_terms = SOME (eval_terms ~~ ts2),
+      timings = #timings r, reports = #reports r}
+  end
+  | set_reponse _ _ NONE result = result
+
+fun cons_timing timing (Result r) =
+  Result {counterexample = #counterexample r, evaluation_terms = #evaluation_terms r,
+    timings = cons timing (#timings r), reports = #reports r}
+
+fun cons_report size (SOME report) (Result r) =
+  Result {counterexample = #counterexample r, evaluation_terms = #evaluation_terms r,
+    timings = #timings r, reports = cons (size, report) (#reports r)}
+  | cons_report _ NONE result = result
+
+fun add_timing timing result_ref = (result_ref := cons_timing timing (!result_ref))
+
+fun add_report size report result_ref = (result_ref := cons_report size report (!result_ref))
+
+fun add_response names eval_terms response result_ref =
+  (result_ref := set_reponse names eval_terms response (!result_ref))
+
 (* expectation *)
 
 datatype expectation = No_Expectation | No_Counterexample | Counterexample;
@@ -79,6 +127,7 @@ val (size, setup_size) = Attrib.config_int "quickcheck_size" (K 10)
 val (iterations, setup_iterations) = Attrib.config_int "quickcheck_iterations" (K 100)
 val (no_assms, setup_no_assms) = Attrib.config_bool "quickcheck_no_assms" (K false)
 val (report, setup_report) = Attrib.config_bool "quickcheck_report" (K true)
+val (timing, setup_timing) = Attrib.config_bool "quickcheck_timing" (K false)
 val (quiet, setup_quiet) = Attrib.config_bool "quickcheck_quiet" (K false)
 val (timeout, setup_timeout) = Attrib.config_real "quickcheck_timeout" (K 30.0)
 val (finite_types, setup_finite_types) = Attrib.config_bool "quickcheck_finite_types" (K true)
@@ -86,8 +135,8 @@ val (finite_type_size, setup_finite_type_size) =
   Attrib.config_int "quickcheck_finite_type_size" (K 3)
 
 val setup_config =
-  setup_tester #> setup_size #> setup_iterations #> setup_no_assms #> setup_report #> setup_quiet
-    #> setup_timeout #> setup_finite_types #> setup_finite_type_size
+  setup_tester #> setup_size #> setup_iterations #> setup_no_assms #> setup_report #> setup_timing
+    #> setup_quiet #> setup_timeout #> setup_finite_types #> setup_finite_type_size
 
 datatype test_params = Test_Params of
   {default_type: typ list, expect : expectation};
@@ -178,48 +227,44 @@ fun limit ctxt (limit_time, is_interactive) f exc () =
   else
     f ()
 
-fun mk_result names eval_terms ts =
-  let
-    val (ts1, ts2) = chop (length names) ts
-  in
-    (names ~~ ts1, eval_terms ~~ ts2) 
-  end
-
 fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
   let
+    fun message s = if Config.get ctxt quiet then () else Output.urgent_message s
     val _ = check_test_term t
     val names = Term.add_free_names t []
     val current_size = Unsynchronized.ref 0
+    val current_result = Unsynchronized.ref empty_result 
     fun excipit () =
       "Quickcheck ran out of time while testing at size " ^ string_of_int (!current_size)
     val (test_fun, comp_time) = cpu_time "quickcheck compilation"
       (fn () => mk_tester ctxt (t, eval_terms));
-    fun with_size test_fun k reports =
+    val _ = add_timing comp_time current_result
+    fun with_size test_fun k =
       if k > Config.get ctxt size then
-        (NONE, reports)
+        NONE
       else
         let
-          val _ = if Config.get ctxt quiet then () else Output.urgent_message
-            ("Test data size: " ^ string_of_int k)
+          val _ = message ("Test data size: " ^ string_of_int k)
           val _ = current_size := k
-          val ((result, new_report), timing) =
+          val ((result, report), timing) =
             cpu_time ("size " ^ string_of_int k) (fn () => test_fun (k - 1))
-          val reports = case new_report of NONE => reports | SOME rep => (k, rep) :: reports
+          val _ = add_timing timing current_result
+          val _ = add_report k report current_result
         in
-          case result of NONE => with_size test_fun (k + 1) reports | SOME q => (SOME q, reports)
+          case result of NONE => with_size test_fun (k + 1) | SOME q => SOME q
         end;
   in
-    case test_fun of NONE => (NONE, ([comp_time], NONE))
+    case test_fun of NONE => !current_result
       | SOME test_fun =>
         limit ctxt (limit_time, is_interactive) (fn () =>
           let
-            val ((result, reports), exec_time) =
-              cpu_time "quickcheck execution" (fn () => with_size test_fun 1 [])
+            val (response, exec_time) =
+              cpu_time "quickcheck execution" (fn () => with_size test_fun 1)
+            val _ = add_response names eval_terms response current_result
+            val _ = add_timing exec_time current_result
           in
-            (Option.map (mk_result names eval_terms) result,
-              ([exec_time, comp_time],
-               if Config.get ctxt report andalso not (null reports) then SOME reports else NONE))
-          end) (fn () => (Output.urgent_message (excipit ()); (NONE, ([comp_time], NONE)))) ()
+            !current_result
+          end) (fn () => (message (excipit ()); !current_result)) ()
   end;
 
 fun test_terms ctxt ts =
@@ -244,17 +289,24 @@ fun test_terms ctxt ts =
 fun test_term_with_increasing_cardinality ctxt (limit_time, is_interactive) ts =
   let
     val thy = ProofContext.theory_of ctxt
+    fun message s = if Config.get ctxt quiet then () else Output.urgent_message s
     val (ts, eval_terms) = split_list ts
     val _ = map check_test_term ts
     val names = Term.add_free_names (hd ts) []
     val Ts = map snd (Term.add_frees (hd ts) [])
+    val current_result = Unsynchronized.ref empty_result 
     val (test_funs, comp_time) = cpu_time "quickcheck compilation"
       (fn () => map (mk_tester ctxt) (ts ~~ eval_terms))
+    val _ = add_timing comp_time current_result
     fun test_card_size (card, size) =
       (* FIXME: why decrement size by one? *)
-      case fst (the (nth test_funs (card - 1)) (size - 1)) of
-        SOME ts => SOME (mk_result names (nth eval_terms (card - 1)) ts)
-      | NONE => NONE
+      let
+        val (ts, timing) = cpu_time ("size " ^ string_of_int size ^ " and card " ^ string_of_int card)
+          (fn () => fst (the (nth test_funs (card - 1)) (size - 1)))
+        val _ = add_timing timing current_result
+      in
+        Option.map (pair card) ts
+      end
     val enumeration_card_size =
       if forall (fn T => Sign.of_sort thy (T,  ["Enum.enum"])) Ts then
         (* size does not matter *)
@@ -264,12 +316,15 @@ fun test_term_with_increasing_cardinality ctxt (limit_time, is_interactive) ts =
         map_product pair (1 upto (length ts)) (1 upto (Config.get ctxt size))
         |> sort (fn ((c1, s1), (c2, s2)) => int_ord ((c1 + s1), (c2 + s2)))
     in
-      if (forall is_none test_funs) then
-        (NONE, ([comp_time], NONE))
+      if (forall is_none test_funs) then !current_result
       else if (forall is_some test_funs) then
         limit ctxt (limit_time, is_interactive) (fn () =>
-          (get_first test_card_size enumeration_card_size, ([comp_time], NONE)))
-          (fn () => (Output.urgent_message "Quickcheck ran out of time"; (NONE, ([comp_time], NONE)))) ()
+          let
+            val _ = case get_first test_card_size enumeration_card_size of
+              SOME (card, ts) => add_response names (nth eval_terms (card - 1)) (SOME ts) current_result
+            | NONE => ()
+          in !current_result end)
+          (fn () => (message "Quickcheck ran out of time"; !current_result)) ()
       else
         error "Unexpectedly, testers of some cardinalities are executable but others are not"
     end
@@ -325,20 +380,25 @@ fun test_goal_terms lthy (limit_time, is_interactive) insts check_goals =
         [[]] => error error_msg
       | xs => xs
     val _ = if Config.get lthy quiet then () else warning error_msg
-    fun collect_results f reports [] = (NONE, rev reports)
-      | collect_results f reports (t :: ts) =
-        case f t of
-          (SOME res, report) => (SOME res, rev (report :: reports))
-        | (NONE, report) => collect_results f (report :: reports) ts
+    fun collect_results f [] results = results
+      | collect_results f (t :: ts) results =
+        let
+          val result = f t
+        in
+          if found_counterexample result then
+            (result :: results)
+          else
+            collect_results f ts (result :: results)
+        end
     fun test_term' goal =
       case goal of
         [(NONE, t)] => test_term lthy (limit_time, is_interactive) t
       | ts => test_term_with_increasing_cardinality lthy (limit_time, is_interactive) (map snd ts)
   in
     if Config.get lthy finite_types then
-      collect_results test_term' [] correct_inst_goals
+      collect_results test_term' correct_inst_goals []
     else
-      collect_results (test_term lthy (limit_time, is_interactive)) [] (maps (map snd) correct_inst_goals)
+      collect_results (test_term lthy (limit_time, is_interactive)) (maps (map snd) correct_inst_goals) []
   end;
 
 fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
@@ -400,9 +460,15 @@ fun pretty_reports ctxt (SOME reports) =
       (rev reports))
   | pretty_reports ctxt NONE = Pretty.str ""
 
-fun pretty_counterex_and_reports ctxt auto (cex, timing_and_reports) =
-  Pretty.chunks (pretty_counterex ctxt auto cex ::
-    map (pretty_reports ctxt) (map snd timing_and_reports))
+fun pretty_timings timings =
+  Pretty.chunks (Pretty.fbrk :: Pretty.str "timings:" ::
+    maps (fn (label, time) =>
+      Pretty.str (label ^ ": " ^ string_of_int time ^ " ms") :: Pretty.brk 1 :: []) (rev timings))
+
+fun pretty_counterex_and_reports ctxt auto (result :: _) =
+  Pretty.chunks (pretty_counterex ctxt auto (response_of result) ::
+    (* map (pretty_reports ctxt) (reports_of result) :: *)
+    (if Config.get ctxt timing then cons (pretty_timings (timings_of result)) else I) [])
 
 (* automatic testing *)
 
@@ -416,9 +482,11 @@ fun auto_quickcheck state =
   in
     case res of
       NONE => (false, state)
-    | SOME (NONE, report) => (false, state)
-    | SOME (cex, report) => (true, Proof.goal_message (K (Pretty.chunks [Pretty.str "",
-        Pretty.mark Markup.hilite (pretty_counterex ctxt true cex)])) state)
+    | SOME (result :: _) => if found_counterexample result then
+        (true, Proof.goal_message (K (Pretty.chunks [Pretty.str "",
+          Pretty.mark Markup.hilite (pretty_counterex ctxt true (response_of result))])) state)
+      else
+        (false, state)
   end
 
 val setup = Auto_Tools.register_tool (auto, auto_quickcheck)
@@ -482,16 +550,23 @@ fun parse_test_param_inst (name, arg) ((insts, eval_terms), ctxt) =
 
 fun quickcheck_params_cmd args = Context.theory_map (fold parse_test_param args);
 
+fun check_expectation state results =
+  (if found_counterexample (hd results) andalso expect (Proof.context_of state) = No_Counterexample
+  then
+    error ("quickcheck expected to find no counterexample but found one")
+  else
+    (if not (found_counterexample (hd results)) andalso expect (Proof.context_of state) = Counterexample
+    then
+      error ("quickcheck expected to find a counterexample but did not find one")
+    else ()))
+
 fun gen_quickcheck args i state =
   state
   |> Proof.map_context_result (fn ctxt => fold parse_test_param_inst args (([], []), ctxt))
   |> (fn ((insts, eval_terms), state') => test_goal (true, true) (insts, eval_terms) i state'
-  |> tap (fn (SOME x, _) => if expect (Proof.context_of state') = No_Counterexample then
-               error ("quickcheck expected to find no counterexample but found one") else ()
-           | (NONE, _) => if expect (Proof.context_of state') = Counterexample then
-               error ("quickcheck expected to find a counterexample but did not find one") else ()))
+  |> tap (check_expectation state'))
 
-fun quickcheck args i state = Option.map fst (fst (gen_quickcheck args i state));
+fun quickcheck args i state = counterexample_of (hd (gen_quickcheck args i state))
 
 fun quickcheck_cmd args i state =
   gen_quickcheck args i (Toplevel.proof_of state)
