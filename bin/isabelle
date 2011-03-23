@@ -17,8 +17,6 @@ PRG="$(basename "$0")"
 ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
 source "$ISABELLE_HOME/lib/scripts/getsettings" || exit 2
 
-splitarray ":" "$ISABELLE_TOOLS"; TOOLS=("${SPLITARRAY[@]}")
-
 
 ## diagnostics
 
@@ -30,19 +28,7 @@ function usage()
   echo "  Start Isabelle tool NAME with ARGS; pass \"-?\" for tool specific help."
   echo
   echo "  Available tools are:"
-  for DIR in "${TOOLS[@]}"
-  do
-    if [ -d "$DIR" ]; then
-      for TOOL in "$DIR"/*
-      do
-        if [ -f "$TOOL" -a -x "$TOOL" ]; then
-          NAME="$(basename "$TOOL")"
-          DESCRLINE="$(fgrep DESCRIPTION: "$TOOL" | sed -e 's/^.*DESCRIPTION: *//')"
-          echo "    $NAME - $DESCRLINE"
-        fi
-      done
-    fi
-  done
+  perl -w "$ISABELLE_HOME/lib/scripts/tools.pl"
   exit 1
 }
 
@@ -63,10 +49,15 @@ shift
 
 ## main
 
+splitarray ":" "$ISABELLE_TOOLS"; TOOLS=("${SPLITARRAY[@]}")
+
 for DIR in "${TOOLS[@]}"
 do
   TOOL="$DIR/$TOOLNAME"
-  [ -f "$TOOL" -a -x "$TOOL" ] && exec "$TOOL" "$@"
+  case "$TOOL" in
+    *~) ;;
+    *) [ -f "$TOOL" -a -x "$TOOL" ] && exec "$TOOL" "$@" ;;
+  esac
 done
 
 fail "Unknown Isabelle tool: $TOOLNAME"
