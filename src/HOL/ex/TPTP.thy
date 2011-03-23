@@ -14,7 +14,7 @@ declare mem_def [simp add]
 
 declare [[smt_oracle]]
 
-ML {* proofs := 0 *}
+ML {* Proofterm.proofs := 0 *}
 
 ML {*
 fun SOLVE_TIMEOUT seconds name tac st =

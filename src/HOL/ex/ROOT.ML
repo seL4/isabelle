@@ -73,9 +73,11 @@ use_thys [
   "Quicksort",
   "Birthday_Paradoxon",
   "List_to_Set_Comprehension_Examples",
-  "Set_Algebras",
-  "TPTP"
+  "Set_Algebras"
 ];
+
+Unsynchronized.setmp Proofterm.proofs (! Proofterm.proofs)
+  use_thy "TPTP";
 
 if getenv "ISABELLE_GHC" = "" then ()
 else use_thy "Quickcheck_Narrowing_Examples";
