@@ -22,9 +22,9 @@ struct
 
 open Meson
 
-(* the extra "?" helps prevent clashes *)
-val new_skolem_var_prefix = "?SK"
-val new_nonskolem_var_prefix = "?V"
+(* the extra "Meson" helps prevent clashes (FIXME) *)
+val new_skolem_var_prefix = "MesonSK"
+val new_nonskolem_var_prefix = "MesonV"
 
 (**** Transformation of Elimination Rules into First-Order Formulas****)
 
