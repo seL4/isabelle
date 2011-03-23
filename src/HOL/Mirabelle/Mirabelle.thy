@@ -5,7 +5,7 @@
 theory Mirabelle
 imports Sledgehammer
 uses "Tools/mirabelle.ML"
-     "Tools/sledgehammer_tactics.ML"
+     "../ex/sledgehammer_tactics.ML"
 begin
 
 (* no multithreading, no parallel proofs *)  (* FIXME *)

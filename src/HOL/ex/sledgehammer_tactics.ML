@@ -1,6 +1,6 @@
-(*  Title:      HOL/Mirabelle/Tools/sledgehammer_tactics.ML
+(*  Title:      HOL/ex/sledgehammer_tactics.ML
     Author:     Jasmin Blanchette, TU Muenchen
-    Copyright   2010
+    Copyright   2010, 2011
 
 Sledgehammer as a tactic.
 *)
@@ -14,7 +14,7 @@ end;
 
 structure Sledgehammer_Tactics : SLEDGEHAMMER_TACTICS =
 struct
-  
+
 fun run_atp force_full_types timeout i n ctxt goal name =
   let
     val chained_ths = [] (* a tactic has no chained ths *)
@@ -55,7 +55,7 @@ fun to_period ("." :: _) = []
   | to_period (s :: ss) = s :: to_period ss
   | to_period [] = []
 
-val atp = "vampire" (* or "e" or "spass" etc. *)
+val atp = "e" (* or "vampire" or "spass" etc. *)
 
 fun thms_of_name ctxt name =
   let

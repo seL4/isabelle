@@ -1,6 +1,13 @@
+(*  Title:      HOL/ex/TPTP.thy
+    Author:     Jasmin Blanchette
+    Copyright   2011
+
+TPTP "IsabelleP" tactic.
+*)
+
 theory TPTP
 imports Main
-uses "~~/src/HOL/Mirabelle/Tools/sledgehammer_tactics.ML"
+uses "sledgehammer_tactics.ML"
 begin
 
 declare mem_def [simp add]
