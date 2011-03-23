@@ -982,6 +982,9 @@ text {*
     \item[@{text size}] specifies the maximum size of the search space
     for assignment values.
 
+    \item[@{text eval}] takes a term or a list of terms and evaluates
+      these terms under the variable assignment found by quickcheck.
+    
     \item[@{text iterations}] sets how many sets of assignments are
     generated for each particular size.
 
