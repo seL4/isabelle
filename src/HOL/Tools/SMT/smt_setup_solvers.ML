@@ -6,6 +6,7 @@ Setup SMT solvers.
 
 signature SMT_SETUP_SOLVERS =
 sig
+  val z3_non_commercial: unit -> bool
   val setup: theory -> theory
 end
 
@@ -97,13 +98,23 @@ fun yices () = {
 
 local
   val flagN = "Z3_NON_COMMERCIAL"
+in
 
+fun z3_non_commercial () = (getenv flagN = "yes")
+
+fun if_z3_non_commercial f =
+  if z3_non_commercial () then f ()
+  else
+    error ("The SMT solver Z3 is not enabled. To enable it, set " ^
+      "the environment variable " ^ quote flagN ^ " to " ^ quote ("yes") ^
+      ".")
+
+end
+
+
+local
   fun z3_make_command is_remote name () =
-    if getenv flagN = "yes" then make_command is_remote name ()
-    else
-      error ("The SMT solver Z3 is not enabled. To enable it, set " ^
-        "the environment variable " ^ quote flagN ^ " to " ^ quote ("yes") ^
-        ".")
+    if_z3_non_commercial (make_command is_remote name)
 
   fun z3_options ctxt =
     ["-rs:" ^ string_of_int (Config.get ctxt SMT_Config.random_seed),
