@@ -16,7 +16,7 @@ function print_action_names() {
 }
 
 function usage() {
-  out="$MIRABELLE_OUTPUT_PATH"
+  [ -n "$MIRABELLE_OUTPUT_PATH" ] && out="$MIRABELLE_OUTPUT_PATH" || out="None"
   timeout="$MIRABELLE_TIMEOUT"
   echo
   echo "Usage: isabelle $PRG [OPTIONS] ACTIONS FILES"
@@ -102,8 +102,14 @@ shift
 
 # setup
 
+if [ -z "$MIRABELLE_OUTPUT_PATH" ]; then
+  MIRABELLE_OUTPUT_PATH="${ISABELLE_TMP_PREFIX}-mirabelle$$"
+  PURGE_OUTPUT="true"
+fi
+
 mkdir -p "$MIRABELLE_OUTPUT_PATH"
 
+export MIRABELLE_OUTPUT_PATH
 
 ## main
 
@@ -112,3 +118,9 @@ do
   perl -w "$MIRABELLE_HOME/lib/scripts/mirabelle.pl" "$FILE" || fail "Mirabelle failed."
 done
 
+
+## cleanup
+
+if [ -n "$PURGE_OUTPUT" ]; then
+  rm -rf "$MIRABELLE_OUTPUT_PATH"
+fi
