@@ -101,10 +101,10 @@ instance (Term_of a, Narrowing a, Testable b) => Testable (a -> b) where {
 
 depthCheck :: Testable a => Int -> a -> IO ();
 depthCheck d p =
-  (refute $ run (const p) 0 d) >>= (\n -> putStrLn $ "OK, required " ++ show n ++ " tests at depth " ++ show d);
+  (refute $ run (const p) 0 d) >> putStrLn ("NONE") >> hFlush stdout;
 
 smallCheck :: Testable a => Int -> a -> IO ();
-smallCheck d p = mapM_ (`depthCheck` p) [0..d] >> putStrLn ("NONE");
+smallCheck d p = mapM_ (`depthCheck` p) [0..d] >> putStrLn ("NONE") >> hFlush stdout;
 
 }
 
