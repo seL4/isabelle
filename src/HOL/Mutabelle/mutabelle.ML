@@ -507,11 +507,11 @@ fun is_executable thy insts th =
 fun qc_recursive usedthy [] insts sz qciter acc = rev acc
  | qc_recursive usedthy (x::xs) insts sz qciter acc = qc_recursive usedthy xs insts sz qciter 
      (Output.urgent_message ("qc_recursive: " ^ string_of_int (length xs));
-     ((x, pretty (the_default [] (Option.map fst (fst (Quickcheck.test_term
+     ((x, pretty (the_default [] (Quickcheck.counterexample_of (Quickcheck.test_term
        ((Config.put Quickcheck.size sz #> Config.put Quickcheck.iterations qciter
         #> Config.put Quickcheck.tester (!testgen_name))
          (ProofContext.init_global usedthy))
-       (true, false) (preprocess usedthy insts x, [])))))) :: acc))
+       (true, false) (preprocess usedthy insts x, []))))) :: acc))
           handle ERROR msg => (Output.urgent_message msg; qc_recursive usedthy xs insts sz qciter acc);
 
 

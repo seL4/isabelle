@@ -10,11 +10,11 @@ sig
 val take_random : int -> 'a list -> 'a list
 
 datatype outcome = GenuineCex | PotentialCex | NoCex | Donno | Timeout | Error | Solved | Unsolved
-type timing = (string * int) list
+type timings = (string * int) list
 
-type mtd = string * (theory -> term -> outcome * (timing * (int * Quickcheck.report list) list option))
+type mtd = string * (theory -> term -> outcome * timings)
 
-type mutant_subentry = term * (string * (outcome * (timing * Quickcheck.report option))) list
+type mutant_subentry = term * (string * (outcome * timings)) list
 type detailed_entry = string * bool * term * mutant_subentry list
 
 type subentry = string * int * int * int * int * int * int
@@ -103,11 +103,11 @@ fun string_of_outcome GenuineCex = "GenuineCex"
   | string_of_outcome Solved = "Solved"
   | string_of_outcome Unsolved = "Unsolved"
 
-type timing = (string * int) list
+type timings = (string * int) list
 
-type mtd = string * (theory -> term -> outcome * (timing * (int * Quickcheck.report list) list option))
+type mtd = string * (theory -> term -> outcome * timings)
 
-type mutant_subentry = term * (string * (outcome * (timing * Quickcheck.report option))) list
+type mutant_subentry = term * (string * (outcome * timings)) list
 type detailed_entry = string * bool * term * mutant_subentry list
 
 type subentry = string * int * int * int * int * int * int
@@ -121,12 +121,16 @@ type report = entry list
 fun invoke_quickcheck change_options quickcheck_generator thy t =
   TimeLimit.timeLimit (seconds (!Auto_Tools.time_limit))
       (fn _ =>
-          case Quickcheck.test_goal_terms (change_options (ProofContext.init_global thy))
-              (false, false) [] [(t, [])] of
-            (NONE, _) => (NoCex, ([], NONE))
-          | (SOME _, _) => (GenuineCex, ([], NONE))) ()
+          let
+            val [result] = Quickcheck.test_goal_terms (change_options (ProofContext.init_global thy))
+              (false, false) [] [(t, [])]
+          in
+            case Quickcheck.counterexample_of result of 
+              NONE => (NoCex, Quickcheck.timings_of result)
+            | SOME _ => (GenuineCex, Quickcheck.timings_of result)
+          end) ()
   handle TimeLimit.TimeOut =>
-         (Timeout, ([("timelimit", Real.floor (!Auto_Tools.time_limit))], NONE))
+         (Timeout, [("timelimit", Real.floor (!Auto_Tools.time_limit))])
 
 fun quickcheck_mtd change_options quickcheck_generator =
   ("quickcheck_" ^ quickcheck_generator, invoke_quickcheck change_options quickcheck_generator)
@@ -138,8 +142,8 @@ fun invoke_solve_direct thy t =
     val state = Proof.theorem NONE (K I) (map (single o rpair []) [t]) (ProofContext.init_global thy) 
   in
     case Solve_Direct.solve_direct false state of
-      (true, _) => (Solved, ([], NONE))
-    | (false, _) => (Unsolved, ([], NONE))
+      (true, _) => (Solved, [])
+    | (false, _) => (Unsolved, [])
   end
 
 val solve_direct_mtd = ("solve_direct", invoke_solve_direct) 
@@ -151,8 +155,8 @@ fun invoke_try thy t =
     val state = Proof.theorem NONE (K I) (map (single o rpair []) [t]) (ProofContext.init_global thy)
   in
     case Try.invoke_try (SOME (seconds 5.0)) ([], [], []) state of
-      true => (Solved, ([], NONE))
-    | false => (Unsolved, ([], NONE))
+      true => (Solved, [])
+    | false => (Unsolved, [])
   end
 
 val try_mtd = ("try", invoke_try)
@@ -198,7 +202,7 @@ fun invoke_nitpick thy t =
       (Nitpick_Isar.default_params thy []) false 1 1 1 [] [] t
     val _ = Output.urgent_message ("Nitpick: " ^ res)
   in
-    rpair ([], NONE) (case res of
+    (rpair []) (case res of
       "genuine" => GenuineCex
     | "likely_genuine" => GenuineCex
     | "potential" => PotentialCex
@@ -347,13 +351,13 @@ fun unsafe_invoke_mtd thy (mtd_name, invoke_mtd) t =
 fun safe_invoke_mtd thy (mtd_name, invoke_mtd) t =
   let
     val _ = Output.urgent_message ("Invoking " ^ mtd_name)
-    val (res, (timing, reports)) = (*cpu_time "total time"
+    val (res, timing) = (*cpu_time "total time"
       (fn () => *)case try (invoke_mtd thy) t of
-          SOME (res, (timing, reports)) => (res, (timing, reports))
+          SOME (res, timing) => (res, timing)
         | NONE => (Output.urgent_message ("**** PROBLEMS WITH " ^ Syntax.string_of_term_global thy t);
-           (Error, ([], NONE)))
+           (Error, []))
     val _ = Output.urgent_message (" Done")
-  in (res, (timing, reports)) end
+  in (res, timing) end
 
 (* theory -> term list -> mtd -> subentry *)
 
@@ -431,14 +435,14 @@ val unyxml = XML.content_of o YXML.parse_body
 
 fun string_of_mutant_subentry' thy thm_name (t, results) =
   let
-    fun string_of_report (Quickcheck.Report {iterations = i, raised_match_errors = e,
+   (* fun string_of_report (Quickcheck.Report {iterations = i, raised_match_errors = e,
       satisfied_assms = s, positive_concl_tests = p}) =
       "errors: " ^ string_of_int e ^ "; conclusion tests: " ^ string_of_int p
     fun string_of_reports NONE = ""
       | string_of_reports (SOME reports) =
         cat_lines (map (fn (size, [report]) =>
-          "size " ^ string_of_int size ^ ": " ^ string_of_report report) (rev reports))
-    fun string_of_mtd_result (mtd_name, (outcome, (timing, reports))) =
+          "size " ^ string_of_int size ^ ": " ^ string_of_report report) (rev reports))*)
+    fun string_of_mtd_result (mtd_name, (outcome, timing)) =
       mtd_name ^ ": " ^ string_of_outcome outcome
       (*" with time " ^ " (" ^ space_implode "; " (map (fn (s, t) => (s ^ ": " ^ string_of_int t)) timing) ^ ")"*)
       (*^ "\n" ^ string_of_reports reports*)

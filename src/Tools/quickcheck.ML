@@ -19,33 +19,36 @@ sig
   val timeout : real Config.T
   val finite_types : bool Config.T
   val finite_type_size : int Config.T
-  datatype report = Report of
-    { iterations : int, raised_match_errors : int,
-      satisfied_assms : int list, positive_concl_tests : int }
   datatype expectation = No_Expectation | No_Counterexample | Counterexample;
   datatype test_params = Test_Params of {default_type: typ list, expect : expectation};
   val test_params_of : Proof.context -> test_params
   val map_test_params : (typ list * expectation -> typ list * expectation)
     -> Context.generic -> Context.generic
+  datatype report = Report of
+    { iterations : int, raised_match_errors : int,
+      satisfied_assms : int list, positive_concl_tests : int }
+  (* registering generators *)
   val add_generator:
     string * (Proof.context -> term * term list -> int -> term list option * report option)
       -> Context.generic -> Context.generic
   val add_batch_generator:
     string * (Proof.context -> term list -> (int -> term list option) list)
       -> Context.generic -> Context.generic
+  (* quickcheck's result *)
   datatype result =
     Result of
      {counterexample : (string * term) list option,
       evaluation_terms : (term * term) list option,
       timings : (string * int) list,
       reports : (int * report) list}
+  val counterexample_of : result -> (string * term) list option
+  val timings_of : result -> (string * int) list
   (* testing terms and proof states *)
   val test_term: Proof.context -> bool * bool -> term * term list -> result
   val test_goal_terms:
     Proof.context -> bool * bool -> (string * typ) list -> (term * term list) list  
       -> result list
   val quickcheck: (string * string list) list -> int -> Proof.state -> (string * term) list option
-  
   (* testing a batch of terms *)
   val test_terms: Proof.context -> term list -> (string * term) list option list option
 end;
