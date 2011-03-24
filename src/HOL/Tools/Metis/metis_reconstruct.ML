@@ -38,10 +38,6 @@ fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 fun verbose_warning ctxt msg =
   if Config.get ctxt verbose then warning msg else ()
 
-val is_zapped_var_name =
-  String.isPrefix Meson_Clausify.new_skolem_var_prefix orf
-  String.isPrefix Meson_Clausify.new_nonskolem_var_prefix
-
 datatype term_or_type = SomeTerm of term | SomeType of typ
 
 fun terms_of [] = []
@@ -619,7 +615,7 @@ fun unify_first_prem_with_concl thy i th =
     fun unify_potential_flex comb atom =
       if is_flex comb then unify_flex comb atom
       else if is_Var atom then add_terms (atom, comb)
-      else raise TERM ("unify_terms", [comb, atom])
+      else raise TERM ("unify_potential_flex", [comb, atom])
     fun unify_terms (t, u) =
       case (t, u) of
         (t1 $ t2, u1 $ u2) =>
@@ -662,7 +658,7 @@ fun instantiate_forall_tac thy t i st =
     fun do_instantiate th =
       let
         val var = Term.add_vars (prop_of th) []
-                  |> filter (is_zapped_var_name o fst o fst)
+                  |> filter (Meson_Clausify.is_zapped_var_name o fst o fst)
                   |> the_single
       in th |> term_instantiate thy [(Var var, t')] end
   in
@@ -751,7 +747,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
             Pattern.first_order_match thy p (Vartab.empty, Vartab.empty)
           val tsubst =
             tenv |> Vartab.dest
-                 |> filter (is_zapped_var_name o fst o fst)
+                 |> filter (Meson_Clausify.is_zapped_var_name o fst o fst)
                  |> sort (cluster_ord
                           o pairself (Meson_Clausify.cluster_of_zapped_var_name
                                       o fst o fst))
@@ -801,7 +797,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
                      \\"Hilbert_Choice\"."
       val outer_param_names =
         [] |> fold (Term.add_var_names o snd) (map_filter I axioms)
-           |> filter (is_zapped_var_name o fst)
+           |> filter (Meson_Clausify.is_zapped_var_name o fst)
            |> map (`(Meson_Clausify.cluster_of_zapped_var_name o fst))
            |> filter (fn (((_, (cluster_no, _)), skolem), _) =>
                          cluster_no = 0 andalso skolem)
@@ -837,7 +833,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
               THEN ALLGOALS (fn i =>
                        rtac @{thm Meson.skolem_COMBK_I} i
                        THEN rotate_tac (rotation_for_subgoal i) i
-(*                       THEN PRIMITIVE (unify_first_prem_with_concl thy i) ### FIXME: needed? *)
+(*                       THEN PRIMITIVE (unify_first_prem_with_concl thy i)  FIXME: needed? *)
                        THEN assume_tac i)))
       handle ERROR _ =>
              error ("Cannot replay Metis proof in Isabelle:\n\

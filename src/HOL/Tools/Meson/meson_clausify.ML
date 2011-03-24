@@ -9,6 +9,7 @@ signature MESON_CLAUSIFY =
 sig
   val new_skolem_var_prefix : string
   val new_nonskolem_var_prefix : string
+  val is_zapped_var_name : string -> bool
   val extensionalize_theorem : thm -> thm
   val introduce_combinators_in_cterm : cterm -> thm
   val introduce_combinators_in_theorem : thm -> thm
@@ -26,6 +27,10 @@ open Meson
 (* the extra "Meson" helps prevent clashes (FIXME) *)
 val new_skolem_var_prefix = "MesonSK"
 val new_nonskolem_var_prefix = "MesonV"
+
+fun is_zapped_var_name s =
+  exists (fn prefix => String.isPrefix prefix s)
+         [new_skolem_var_prefix, new_nonskolem_var_prefix]
 
 (**** Transformation of Elimination Rules into First-Order Formulas****)
 
@@ -328,13 +333,20 @@ fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
         val no_choice = null choice_ths
         val discharger_th =
           th |> (if no_choice then pull_out else skolemize choice_ths)
-        val fully_skolemized_t =
+        val zapped_th =
           discharger_th |> prop_of |> rename_bound_vars_to_be_zapped ax_no
           |> (if no_choice then
                 Skip_Proof.make_thm thy #> skolemize [cheat_choice] #> cprop_of
               else
                 cterm_of thy)
-          |> zap true |> Drule.export_without_context
+          |> zap true
+        val fixes =
+          Term.add_free_names (prop_of zapped_th) []
+          |> filter is_zapped_var_name
+        val ctxt' = ctxt |> Variable.add_fixes_direct fixes (*###*)
+        val fully_skolemized_t =
+          zapped_th
+          |> singleton (Variable.export ctxt' ctxt)
           |> cprop_of |> Thm.dest_equals |> snd |> term_of
       in
         if exists_subterm (fn Var ((s, _), _) =>
