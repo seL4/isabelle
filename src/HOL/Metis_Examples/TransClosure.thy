@@ -9,13 +9,15 @@ theory TransClosure
 imports Main
 begin
 
-types addr = nat
+declare [[metis_new_skolemizer]]
+
+type_synonym addr = nat
 
 datatype val
   = Unit        -- "dummy result value of void expressions"
   | Null        -- "null reference"
   | Bool bool   -- "Boolean value"
-  | Intg int    -- "integer value" 
+  | Intg int    -- "integer value"
   | Addr addr   -- "addresses of objects in the heap"
 
 consts R :: "(addr \<times> addr) set"
@@ -32,7 +34,7 @@ proof -
   assume A4: "(b, c) \<in> R\<^sup>*"
   have F1: "f c \<noteq> f b" using A2 A1 by metis
   have F2: "\<forall>u. (b, u) \<in> R \<longrightarrow> (a, u) \<in> R\<^sup>*" using A3 by (metis transitive_closure_trans(6))
-  have F3: "\<exists>x. (b, x R b c) \<in> R \<or> c = b" using A4 by (metis converse_rtranclE)
+  have F3: "\<exists>x. (b, x b c R) \<in> R \<or> c = b" using A4 by (metis converse_rtranclE)
   have "c \<noteq> b" using F1 by metis
   hence "\<exists>u. (b, u) \<in> R" using F3 by metis
   thus "\<exists>c. (b, c) \<in> R \<and> (a, c) \<in> R\<^sup>*" using F2 by metis
@@ -53,7 +55,7 @@ proof -
   thus "\<exists>c. (b, c) \<in> R \<and> (a, c) \<in> R\<^sup>*" using F1 by (metis transitive_closure_trans(6))
 qed
 
-lemma "\<lbrakk>f c = Intg x; \<forall>y. f b = Intg y \<longrightarrow> y \<noteq> x; (a, b) \<in> R\<^sup>*; (b, c) \<in> R\<^sup>*\<rbrakk> 
+lemma "\<lbrakk>f c = Intg x; \<forall>y. f b = Intg y \<longrightarrow> y \<noteq> x; (a, b) \<in> R\<^sup>*; (b, c) \<in> R\<^sup>*\<rbrakk>
        \<Longrightarrow> \<exists>c. (b, c) \<in> R \<and> (a, c) \<in> R\<^sup>*"
 apply (erule_tac x = b in converse_rtranclE)
  apply metis
