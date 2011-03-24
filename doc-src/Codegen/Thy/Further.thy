@@ -4,6 +4,107 @@ begin
 
 section {* Further issues \label{sec:further} *}
 
+subsection {* Specialities of the @{text Scala} target language \label{sec:scala} *}
+
+text {*
+  @{text Scala} deviates from languages of the ML family in a couple
+  of aspects; those which affect code generation mainly have to do with
+  @{text Scala}'s type system:
+
+  \begin{itemize}
+
+    \item @{text Scala} prefers tupled syntax over curried syntax.
+
+    \item @{text Scala} sacrifices Hindely-Milner type inference for a
+      much more rich type system with subtyping etc.  For this reason
+      type arguments sometimes have to be given explicitly in square
+      brackets (mimicing System F syntax).
+
+    \item In contrast to @{text Haskell} where most specialities of
+      the type system are implemented using \emph{type classes},
+      @{text Scala} provides a sophisticated system of \emph{implicit
+      arguments}.
+
+  \end{itemize}
+
+  \noindent Concerning currying, the @{text Scala} serializer counts
+  arguments in code equations to determine how many arguments
+  shall be tupled; remaining arguments and abstractions in terms
+  rather than function definitions are always curried.
+
+  The second aspect affects user-defined adaptations with @{command
+  code_const}.  For regular terms, the @{text Scala} serializer prints
+  all type arguments explicitly.  For user-defined term adaptations
+  this is only possible for adaptations which take no arguments: here
+  the type arguments are just appended.  Otherwise they are ignored;
+  hence user-defined adaptations for polymorphic constants have to be
+  designed very carefully to avoid ambiguity.
+
+  Isabelle's type classes are mapped onto @{text Scala} implicits; in
+  cases with diamonds in the subclass hierarchy this can lead to
+  ambiguities in the generated code:
+*}
+
+class %quote class1 =
+  fixes foo :: "'a \<Rightarrow> 'a"
+
+class %quote class2 = class1
+
+class %quote class3 = class1
+
+text {*
+  \noindent Here both @{class class2} and @{class class3} inherit from @{class class1},
+  forming the upper part of a diamond.
+*}
+
+definition %quote bar :: "'a :: {class2, class3} \<Rightarrow> 'a" where
+  "bar = foo"
+
+text {*
+  \noindent This yields the following code:
+*}
+
+text %quotetypewriter {*
+  @{code_stmts bar (Scala)}
+*}
+
+text {*
+  \noindent This code is rejected by the @{text Scala} compiler: in
+  the definition of @{text bar}, it is not clear from where to derive
+  the implicit argument for @{text foo}.
+
+  The solution to the problem is to close the diamond by a further
+  class with inherits from both @{class class2} and @{class class3}:
+*}
+
+class %quote class4 = class2 + class3
+
+text {*
+  \noindent Then the offending code equation can be restricted to
+  @{class class4}:
+*}
+
+lemma %quote [code]:
+  "(bar :: 'a::class4 \<Rightarrow> 'a) = foo"
+  by (simp only: bar_def)
+
+text {*
+  \noindent with the following code:
+*}
+
+text %quotetypewriter {*
+  @{code_stmts bar (Scala)}
+*}
+
+text {*
+  \noindent which exposes no ambiguity.
+
+  Since the preprocessor (cf.~\secref{sec:preproc}) propagates sort
+  constraints through a system of code equations, it is usually not
+  very difficult to identify the set of code equations which actually
+  needs more restricted sort constraints.
+*}
+
 subsection {* Modules namespace *}
 
 text {*

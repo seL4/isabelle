@@ -221,6 +221,9 @@ text {*
     \item You may want to skim over the more technical sections
       \secref{sec:adaptation} and \secref{sec:further}.
 
+    \item The target language Scala \cite{scala-overview-tech-report}
+      comes with some specialities discussed in \secref{sec:scala}.
+
     \item For exhaustive syntax diagrams etc. you should visit the
       Isabelle/Isar Reference Manual \cite{isabelle-isar-ref}.
 

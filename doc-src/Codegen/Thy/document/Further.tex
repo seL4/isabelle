@@ -22,6 +22,227 @@
 }
 \isamarkuptrue%
 %
+\isamarkupsubsection{Specialities of the \isa{Scala} target language \label{sec:scala}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\isa{Scala} deviates from languages of the ML family in a couple
+  of aspects; those which affect code generation mainly have to do with
+  \isa{Scala}'s type system:
+
+  \begin{itemize}
+
+    \item \isa{Scala} prefers tupled syntax over curried syntax.
+
+    \item \isa{Scala} sacrifices Hindely-Milner type inference for a
+      much more rich type system with subtyping etc.  For this reason
+      type arguments sometimes have to be given explicitly in square
+      brackets (mimicing System F syntax).
+
+    \item In contrast to \isa{Haskell} where most specialities of
+      the type system are implemented using \emph{type classes},
+      \isa{Scala} provides a sophisticated system of \emph{implicit
+      arguments}.
+
+  \end{itemize}
+
+  \noindent Concerning currying, the \isa{Scala} serializer counts
+  arguments in code equations to determine how many arguments
+  shall be tupled; remaining arguments and abstractions in terms
+  rather than function definitions are always curried.
+
+  The second aspect affects user-defined adaptations with \hyperlink{command.code-const}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}const}}}}.  For regular terms, the \isa{Scala} serializer prints
+  all type arguments explicitly.  For user-defined term adaptations
+  this is only possible for adaptations which take no arguments: here
+  the type arguments are just appended.  Otherwise they are ignored;
+  hence user-defined adaptations for polymorphic constants have to be
+  designed very carefully to avoid ambiguity.
+
+  Isabelle's type classes are mapped onto \isa{Scala} implicits; in
+  cases with diamonds in the subclass hierarchy this can lead to
+  ambiguities in the generated code:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{class}\isamarkupfalse%
+\ class{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \isakeyword{fixes}\ foo\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isanewline
+\isacommand{class}\isamarkupfalse%
+\ class{\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ class{\isadigit{1}}\isanewline
+\isanewline
+\isacommand{class}\isamarkupfalse%
+\ class{\isadigit{3}}\ {\isaliteral{3D}{\isacharequal}}\ class{\isadigit{1}}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent Here both \isa{class{\isadigit{2}}} and \isa{class{\isadigit{3}}} inherit from \isa{class{\isadigit{1}}},
+  forming the upper part of a diamond.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{definition}\isamarkupfalse%
+\ bar\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{7B}{\isacharbraceleft}}class{\isadigit{2}}{\isaliteral{2C}{\isacharcomma}}\ class{\isadigit{3}}{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{where}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}bar\ {\isaliteral{3D}{\isacharequal}}\ foo{\isaliteral{22}{\isachardoublequoteclose}}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent This yields the following code:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquotetypewriter
+%
+\endisadelimquotetypewriter
+%
+\isatagquotetypewriter
+%
+\begin{isamarkuptext}%
+object\ Example\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
+\isanewline
+trait\ class{\isadigit{1}}{\isaliteral{5B}{\isacharbrackleft}}A{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
+\ \ val\ {\isaliteral{60}{\isacharbackquote}}Example{\isaliteral{2E}{\isachardot}}foo{\isaliteral{60}{\isacharbackquote}}{\isaliteral{3A}{\isacharcolon}}\ A\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ A\isanewline
+{\isaliteral{7D}{\isacharbraceright}}\isanewline
+def\ foo{\isaliteral{5B}{\isacharbrackleft}}A{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{28}{\isacharparenleft}}a{\isaliteral{3A}{\isacharcolon}}\ A{\isaliteral{29}{\isacharparenright}}{\isaliteral{28}{\isacharparenleft}}implicit\ A{\isaliteral{3A}{\isacharcolon}}\ class{\isadigit{1}}{\isaliteral{5B}{\isacharbrackleft}}A{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3A}{\isacharcolon}}\ A\ {\isaliteral{3D}{\isacharequal}}\ A{\isaliteral{2E}{\isachardot}}{\isaliteral{60}{\isacharbackquote}}Example{\isaliteral{2E}{\isachardot}}foo{\isaliteral{60}{\isacharbackquote}}{\isaliteral{28}{\isacharparenleft}}a{\isaliteral{29}{\isacharparenright}}\isanewline
+\isanewline
+trait\ class{\isadigit{2}}{\isaliteral{5B}{\isacharbrackleft}}A{\isaliteral{5D}{\isacharbrackright}}\ extends\ class{\isadigit{1}}{\isaliteral{5B}{\isacharbrackleft}}A{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
+{\isaliteral{7D}{\isacharbraceright}}\isanewline
+\isanewline
+trait\ class{\isadigit{3}}{\isaliteral{5B}{\isacharbrackleft}}A{\isaliteral{5D}{\isacharbrackright}}\ extends\ class{\isadigit{1}}{\isaliteral{5B}{\isacharbrackleft}}A{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
+{\isaliteral{7D}{\isacharbraceright}}\isanewline
+\isanewline
+def\ bar{\isaliteral{5B}{\isacharbrackleft}}A\ {\isaliteral{3A}{\isacharcolon}}\ class{\isadigit{2}}\ {\isaliteral{3A}{\isacharcolon}}\ class{\isadigit{3}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ A\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ A\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}a{\isaliteral{3A}{\isacharcolon}}\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ foo{\isaliteral{5B}{\isacharbrackleft}}A{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{28}{\isacharparenleft}}a{\isaliteral{29}{\isacharparenright}}\isanewline
+\isanewline
+{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{2F}{\isacharslash}}{\isaliteral{2A}{\isacharasterisk}}\ object\ Example\ {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{2F}{\isacharslash}}\isanewline%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagquotetypewriter
+{\isafoldquotetypewriter}%
+%
+\isadelimquotetypewriter
+%
+\endisadelimquotetypewriter
+%
+\begin{isamarkuptext}%
+\noindent This code is rejected by the \isa{Scala} compiler: in
+  the definition of \isa{bar}, it is not clear from where to derive
+  the implicit argument for \isa{foo}.
+
+  The solution to the problem is to close the diamond by a further
+  class with inherits from both \isa{class{\isadigit{2}}} and \isa{class{\isadigit{3}}}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{class}\isamarkupfalse%
+\ class{\isadigit{4}}\ {\isaliteral{3D}{\isacharequal}}\ class{\isadigit{2}}\ {\isaliteral{2B}{\isacharplus}}\ class{\isadigit{3}}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent Then the offending code equation can be restricted to
+  \isa{class{\isadigit{4}}}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\isatagquote
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{5B}{\isacharbrackleft}}code{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}bar\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}class{\isadigit{4}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ foo{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}simp\ only{\isaliteral{3A}{\isacharcolon}}\ bar{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}%
+\endisatagquote
+{\isafoldquote}%
+%
+\isadelimquote
+%
+\endisadelimquote
+%
+\begin{isamarkuptext}%
+\noindent with the following code:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimquotetypewriter
+%
+\endisadelimquotetypewriter
+%
+\isatagquotetypewriter
+%
+\begin{isamarkuptext}%
+object\ Example\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
+\isanewline
+trait\ class{\isadigit{1}}{\isaliteral{5B}{\isacharbrackleft}}A{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
+\ \ val\ {\isaliteral{60}{\isacharbackquote}}Example{\isaliteral{2E}{\isachardot}}foo{\isaliteral{60}{\isacharbackquote}}{\isaliteral{3A}{\isacharcolon}}\ A\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ A\isanewline
+{\isaliteral{7D}{\isacharbraceright}}\isanewline
+def\ foo{\isaliteral{5B}{\isacharbrackleft}}A{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{28}{\isacharparenleft}}a{\isaliteral{3A}{\isacharcolon}}\ A{\isaliteral{29}{\isacharparenright}}{\isaliteral{28}{\isacharparenleft}}implicit\ A{\isaliteral{3A}{\isacharcolon}}\ class{\isadigit{1}}{\isaliteral{5B}{\isacharbrackleft}}A{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3A}{\isacharcolon}}\ A\ {\isaliteral{3D}{\isacharequal}}\ A{\isaliteral{2E}{\isachardot}}{\isaliteral{60}{\isacharbackquote}}Example{\isaliteral{2E}{\isachardot}}foo{\isaliteral{60}{\isacharbackquote}}{\isaliteral{28}{\isacharparenleft}}a{\isaliteral{29}{\isacharparenright}}\isanewline
+\isanewline
+trait\ class{\isadigit{2}}{\isaliteral{5B}{\isacharbrackleft}}A{\isaliteral{5D}{\isacharbrackright}}\ extends\ class{\isadigit{1}}{\isaliteral{5B}{\isacharbrackleft}}A{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
+{\isaliteral{7D}{\isacharbraceright}}\isanewline
+\isanewline
+trait\ class{\isadigit{3}}{\isaliteral{5B}{\isacharbrackleft}}A{\isaliteral{5D}{\isacharbrackright}}\ extends\ class{\isadigit{1}}{\isaliteral{5B}{\isacharbrackleft}}A{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
+{\isaliteral{7D}{\isacharbraceright}}\isanewline
+\isanewline
+trait\ class{\isadigit{4}}{\isaliteral{5B}{\isacharbrackleft}}A{\isaliteral{5D}{\isacharbrackright}}\ extends\ class{\isadigit{2}}{\isaliteral{5B}{\isacharbrackleft}}A{\isaliteral{5D}{\isacharbrackright}}\ with\ class{\isadigit{3}}{\isaliteral{5B}{\isacharbrackleft}}A{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{7B}{\isacharbraceleft}}\isanewline
+{\isaliteral{7D}{\isacharbraceright}}\isanewline
+\isanewline
+def\ bar{\isaliteral{5B}{\isacharbrackleft}}A\ {\isaliteral{3A}{\isacharcolon}}\ class{\isadigit{4}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{3A}{\isacharcolon}}\ A\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ A\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}a{\isaliteral{3A}{\isacharcolon}}\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ foo{\isaliteral{5B}{\isacharbrackleft}}A{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{28}{\isacharparenleft}}a{\isaliteral{29}{\isacharparenright}}\isanewline
+\isanewline
+{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{2F}{\isacharslash}}{\isaliteral{2A}{\isacharasterisk}}\ object\ Example\ {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{2F}{\isacharslash}}\isanewline%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagquotetypewriter
+{\isafoldquotetypewriter}%
+%
+\isadelimquotetypewriter
+%
+\endisadelimquotetypewriter
+%
+\begin{isamarkuptext}%
+\noindent which exposes no ambiguity.
+
+  Since the preprocessor (cf.~\secref{sec:preproc}) propagates sort
+  constraints through a system of code equations, it is usually not
+  very difficult to identify the set of code equations which actually
+  needs more restricted sort constraints.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsubsection{Modules namespace%
 }
 \isamarkuptrue%
