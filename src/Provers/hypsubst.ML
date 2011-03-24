@@ -58,8 +58,6 @@ struct
 
 exception EQ_VAR;
 
-fun loose (i,t) = member (op =) (add_loose_bnos (t, i, [])) 0;
-
 (*Simplifier turns Bound variables to special Free variables:
   change it back (any Bound variable will do)*)
 fun contract t =
@@ -84,22 +82,24 @@ fun inspect_pair bnd novars (t, u) =
   if novars andalso (has_tvars t orelse has_tvars u)
   then raise Match   (*variables in the type!*)
   else
-  case (contract t, contract u) of
-       (Bound i, _) => if loose(i,u) orelse novars andalso has_vars u
-                       then raise Match
-                       else true                (*eliminates t*)
-     | (_, Bound i) => if loose(i,t) orelse novars andalso has_vars t
-                       then raise Match
-                       else false               (*eliminates u*)
-     | (t' as Free _, _) => if bnd orelse Logic.occs(t',u) orelse
-                          novars andalso has_vars u
-                       then raise Match
-                       else true                (*eliminates t*)
-     | (_, u' as Free _) => if bnd orelse Logic.occs(u',t) orelse
-                          novars andalso has_vars t
-                       then raise Match
-                       else false               (*eliminates u*)
-     | _ => raise Match;
+    (case (contract t, contract u) of
+      (Bound i, _) =>
+        if loose_bvar1 (u, i) orelse novars andalso has_vars u
+        then raise Match
+        else true                (*eliminates t*)
+    | (_, Bound i) =>
+        if loose_bvar1 (t, i) orelse novars andalso has_vars t
+        then raise Match
+        else false               (*eliminates u*)
+    | (t' as Free _, _) =>
+        if bnd orelse Logic.occs (t', u) orelse novars andalso has_vars u
+        then raise Match
+        else true                (*eliminates t*)
+    | (_, u' as Free _) =>
+        if bnd orelse Logic.occs (u', t) orelse novars andalso has_vars t
+        then raise Match
+        else false               (*eliminates u*)
+    | _ => raise Match);
 
 (*Locates a substitutable variable on the left (resp. right) of an equality
    assumption.  Returns the number of intervening assumptions. *)
