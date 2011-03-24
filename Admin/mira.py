@@ -49,6 +49,7 @@ ISABELLE_BROWSER_INFO="$ISABELLE_HOME/browser_info"
 ISABELLE_PATH="%s"
 
 ISABELLE_USEDIR_OPTIONS="$ISABELLE_USEDIR_OPTIONS %s -t true -v true -d pdf -g true -i true"
+Z3_NON_COMMERCIAL="yes"
 ''' % (isabelle_path, parallelism_options)
 
     writer = open(path.join(loc_isabelle, 'etc', 'settings'), 'a')
