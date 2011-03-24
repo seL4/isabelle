@@ -13,7 +13,7 @@ import util
 
 # build and evaluation tools
 
-def prepare_isabelle_repository(loc_isabelle, loc_contrib, loc_dependency_heaps, parallelism = True):
+def prepare_isabelle_repository(loc_isabelle, loc_contrib, loc_dependency_heaps, parallelism = True, more_settings=''):
 
     loc_contrib = path.expanduser(loc_contrib)
     if not path.exists(loc_contrib):
@@ -50,7 +50,8 @@ ISABELLE_PATH="%s"
 
 ISABELLE_USEDIR_OPTIONS="$ISABELLE_USEDIR_OPTIONS %s -t true -v true -d pdf -g true -i true"
 Z3_NON_COMMERCIAL="yes"
-''' % (isabelle_path, parallelism_options)
+%s
+''' % (isabelle_path, parallelism_options, more_settings)
 
     writer = open(path.join(loc_isabelle, 'etc', 'settings'), 'a')
     writer.write(extra_settings)
@@ -105,11 +106,11 @@ def isabelle_dependency_only(env, case, paths, dep_paths, playground):
     return (True, 'ok', {}, {}, result)
 
 
-def build_isabelle_image(subdir, base, img, env, case, paths, dep_paths, playground):
+def build_isabelle_image(subdir, base, img, env, case, paths, dep_paths, playground, more_settings=''):
 
     p = paths[0]
     dep_path = dep_paths[0]
-    prepare_isabelle_repository(p, env.settings.contrib, dep_path)
+    prepare_isabelle_repository(p, env.settings.contrib, dep_path, more_settings=more_settings)
     os.chdir(path.join(p, 'src', subdir))
 
     (return_code, log) = isabelle_usedir(env, p, '-b', base, img)
@@ -119,14 +120,14 @@ def build_isabelle_image(subdir, base, img, env, case, paths, dep_paths, playgro
       {'timing': extract_isabelle_run_timing(log)}, {'log': log}, result)
 
 
-def isabelle_makeall(env, case, paths, dep_paths, playground):
+def isabelle_makeall(env, case, paths, dep_paths, playground, more_settings='', target='all'):
 
     p = paths[0]
     dep_path = dep_paths[0]
-    prepare_isabelle_repository(p, env.settings.contrib, dep_path)
+    prepare_isabelle_repository(p, env.settings.contrib, dep_path, more_settings=more_settings)
     os.chdir(p)
 
-    (return_code, log) = env.run_process('%s/bin/isabelle' % p, 'makeall', '-k', 'all')
+    (return_code, log) = env.run_process('%s/bin/isabelle' % p, 'makeall', '-k', target)
 
     return (return_code == 0, extract_isabelle_run_summary(log),
       {'timing': extract_isabelle_run_timing(log)}, {'log': log}, None)
