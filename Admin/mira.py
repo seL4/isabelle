@@ -251,7 +251,7 @@ def Mutabelle_Fun(*args):
 
 # Judgement Day configurations
 
-judgement_day_provers = ('e', 'spass', 'vampire')
+judgement_day_provers = ('e', 'spass', 'vampire', 'z3', 'cvc3', 'yices')
 
 def judgement_day(base_path, theory, opts, env, case, paths, dep_paths, playground):
     """Judgement Day regression suite"""
