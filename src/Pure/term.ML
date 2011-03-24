@@ -154,6 +154,8 @@ sig
   val match_bvars: (term * term) * (string * string) list -> (string * string) list
   val map_abs_vars: (string -> string) -> term -> term
   val rename_abs: term -> term -> term -> term option
+  val is_open: term -> bool
+  val is_dependent: term -> bool
   val lambda_name: string * term -> term -> term
   val close_schematic_term: term -> term
   val maxidx_typ: typ -> int -> int
@@ -649,6 +651,9 @@ fun loose_bvar1(Bound i,k) = i = k
   | loose_bvar1(f$t, k) = loose_bvar1(f,k) orelse loose_bvar1(t,k)
   | loose_bvar1(Abs(_,_,t),k) = loose_bvar1(t,k+1)
   | loose_bvar1 _ = false;
+
+fun is_open t = loose_bvar (t, 0);
+fun is_dependent t = loose_bvar1 (t, 0);
 
 (*Substitute arguments for loose bound variables.
   Beta-reduction of arg(n-1)...arg0 into t replacing (Bound i) with (argi).

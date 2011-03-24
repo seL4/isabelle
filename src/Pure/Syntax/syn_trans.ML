@@ -274,7 +274,7 @@ fun strip_abss vars_of body_of tm =
     val body = body_of tm;
     val rev_new_vars = Term.rename_wrt_term body vars;
     fun subst (x, T) b =
-      if can Name.dest_internal x andalso not (Term.loose_bvar1 (b, 0))
+      if can Name.dest_internal x andalso not (Term.is_dependent b)
       then (Const ("_idtdummy", T), incr_boundvars ~1 b)
       else (mark_boundT (x, T), Term.subst_bound (mark_bound x, b));
     val (rev_vars', body') = fold_map subst rev_new_vars body;
@@ -297,8 +297,8 @@ fun eta_contr ctxt tm =
             t' as f $ u =>
               (case eta_abs u of
                 Bound 0 =>
-                  if Term.loose_bvar1 (f, 0) orelse is_aprop f then Abs (a, T, t')
-                  else  incr_boundvars ~1 f
+                  if Term.is_dependent f orelse is_aprop f then Abs (a, T, t')
+                  else incr_boundvars ~1 f
               | _ => Abs (a, T, t'))
           | t' => Abs (a, T, t'))
       | eta_abs t = t;
@@ -432,10 +432,10 @@ val variant_abs = var_abs Free;
 val variant_abs' = var_abs mark_boundT;
 
 fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
-      if Term.loose_bvar1 (B, 0) then
+      if Term.is_dependent B then
         let val (x', B') = variant_abs' (x, dummyT, B);
         in Term.list_comb (Lexicon.const q $ mark_boundT (x', T) $ A $ B', ts) end
-      else Term.list_comb (Lexicon.const r $ A $ B, ts)
+      else Term.list_comb (Lexicon.const r $ A $ B, ts)  (* FIXME decr!? *)
   | dependent_tr' _ _ = raise Match;
 
 

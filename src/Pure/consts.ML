@@ -255,7 +255,7 @@ fun constrain (c, C) consts =
 local
 
 fun strip_abss (t as Abs (x, T, b)) =
-      if Term.loose_bvar1 (b, 0) then strip_abss b |>> cons (x, T)
+      if Term.is_dependent b then strip_abss b |>> cons (x, T)  (* FIXME decr!? *)
       else ([], t)
   | strip_abss t = ([], t);
 

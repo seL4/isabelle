@@ -272,7 +272,7 @@ let
   fun contract Q f ts =
     case ts of
       [A, Abs(_, _, (s as Const (@{const_syntax prod_case},_) $ t) $ Bound 0)]
-      => if loose_bvar1 (t,0) then f ts else Syntax.const Q $ A $ s
+      => if Term.is_dependent t then f ts else Syntax.const Q $ A $ s
     | _ => f ts;
   fun contract2 (Q,f) = (Q, contract Q f);
   val pairs =

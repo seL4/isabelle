@@ -119,8 +119,8 @@ fun abstract ct =
         | Var _ => makeK()  (*though Var isn't expected*)
         | Bound 0 => instantiate' [SOME cxT] [] @{thm abs_I} (*identity: I*)
         | rator$rand =>
-            if loose_bvar1 (rator,0) then (*C or S*)
-               if loose_bvar1 (rand,0) then (*S*)
+            if Term.is_dependent rator then (*C or S*)
+               if Term.is_dependent rand then (*S*)
                  let val crator = cterm_of thy (Abs(x,xT,rator))
                      val crand = cterm_of thy (Abs(x,xT,rand))
                      val abs_S' = cterm_instantiate [(f_S,crator),(g_S,crand)] @{thm abs_S}
@@ -135,7 +135,7 @@ fun abstract ct =
                  in
                    Thm.transitive abs_C' (Conv.fun_conv (Conv.arg_conv abstract) rhs)
                  end
-            else if loose_bvar1 (rand,0) then (*B or eta*)
+            else if Term.is_dependent rand then (*B or eta*)
                if rand = Bound 0 then Thm.eta_conversion ct
                else (*B*)
                  let val crand = cterm_of thy (Abs(x,xT,rand))

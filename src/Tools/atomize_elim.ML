@@ -80,7 +80,7 @@ fun thesis_miniscope_conv inner_cv ctxt =
       fun movea_conv ctxt ct =
           let
             val _ $ Abs (_, _, b) = term_of ct
-            val idxs = fold_index (fn (i, t) => not (loose_bvar1 (t, 0)) ? cons i)
+            val idxs = fold_index (fn (i, t) => not (Term.is_dependent t) ? cons i)
                        (Logic.strip_imp_prems b) []
                        |> rev
 

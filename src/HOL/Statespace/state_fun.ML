@@ -275,10 +275,10 @@ val ex_lookup_eq_simproc =
          fun mkeq (swap,Teq,lT,lo,d,n,x,s) i =
                let val (_::nT::_) = binder_types lT;
                          (*  ('v => 'a) => 'n => ('n => 'v) => 'a *)
-                   val x' = if not (loose_bvar1 (x,0))
+                   val x' = if not (Term.is_dependent x)
                             then Bound 1
                             else raise TERM ("",[x]);
-                   val n' = if not (loose_bvar1 (n,0))
+                   val n' = if not (Term.is_dependent n)
                             then Bound 2
                             else raise TERM ("",[n]);
                    val sel' = lo $ d $ n' $ s;

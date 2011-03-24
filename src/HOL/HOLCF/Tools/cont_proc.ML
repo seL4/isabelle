@@ -23,9 +23,6 @@ val cont_A = @{thm cont2cont_APP}
 val cont_L = @{thm cont2cont_LAM}
 val cont_R = @{thm cont_Rep_cfun2}
 
-(* checks whether a term contains no dangling bound variables *)
-fun is_closed_term t = not (Term.loose_bvar (t, 0))
-
 (* checks whether a term is written entirely in the LCF sublanguage *)
 fun is_lcf_term (Const (@{const_name Rep_cfun}, _) $ t $ u) =
       is_lcf_term t andalso is_lcf_term u
@@ -34,7 +31,7 @@ fun is_lcf_term (Const (@{const_name Rep_cfun}, _) $ t $ u) =
   | is_lcf_term (Const (@{const_name Abs_cfun}, _) $ t) =
       is_lcf_term (Term.incr_boundvars 1 t $ Bound 0)
   | is_lcf_term (Bound _) = true
-  | is_lcf_term t = is_closed_term t
+  | is_lcf_term t = not (Term.is_open t)
 
 (*
   efficiently generates a cont thm for every LAM abstraction in a term,

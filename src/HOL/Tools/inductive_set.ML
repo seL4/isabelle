@@ -40,7 +40,7 @@ val collect_mem_simproc =
              (case try (HOLogic.strip_ptuple ps) q of
                 NONE => NONE
               | SOME ts =>
-                  if not (loose_bvar (S', 0)) andalso
+                  if not (Term.is_open S') andalso
                     ts = map Bound (length ps downto 0)
                   then
                     let val simp = full_simp_tac (Simplifier.inherit_context ss
@@ -128,7 +128,7 @@ fun eta_contract p =
     fun eta b (Abs (a, T, body)) =
           (case eta b body of
              body' as (f $ Bound 0) =>
-               if loose_bvar1 (f, 0) orelse not b then Abs (a, T, body')
+               if Term.is_dependent f orelse not b then Abs (a, T, body')
                else incr_boundvars ~1 f
            | body' => Abs (a, T, body'))
       | eta b (t $ u) = eta b t $ eta (p (head_of t)) u

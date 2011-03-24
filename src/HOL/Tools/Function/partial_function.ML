@@ -87,7 +87,7 @@ val split_cases_tac = Subgoal.FOCUS_PARAMS (fn {context=ctxt, ...} =>
          NONE => no_tac
        | SOME (arg, conv) =>
            let open Conv in
-              if not (null (loose_bnos arg)) then no_tac
+              if Term.is_open arg then no_tac
               else ((DETERM o strip_cases o Induct.cases_tac ctxt false [[SOME arg]] NONE [])
                 THEN_ALL_NEW (rewrite_with_asm_tac ctxt 0)
                 THEN_ALL_NEW etac @{thm thin_rl}

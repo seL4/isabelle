@@ -738,10 +738,10 @@ fun inductive_codegen thy defs dep module brack t gr  = (case strip_comb t of
                   val ts2' = map
                     (fn Bound i => Term.dummy_pattern (nth Ts (length Ts - i - 1)) | t => t) ts2;
                   val (ots, its) = List.partition is_Bound ts2;
-                  val no_loose = forall (fn t => not (loose_bvar (t, 0)))
+                  val closed = forall (not o Term.is_open)
                 in
                   if null (duplicates op = ots) andalso
-                    no_loose ts1 andalso no_loose its
+                    closed ts1 andalso closed its
                   then
                     let val (call_p, gr') = mk_ind_call thy defs dep module true
                       s T (ts1 @ ts2') names thyname k intrs gr 

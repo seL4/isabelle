@@ -316,7 +316,7 @@ fun first_order_match thy =
   let
     fun mtch k (instsp as (tyinsts,insts)) = fn
         (Var(ixn,T), t)  =>
-          if k > 0 andalso loose_bvar(t,0) then raise MATCH
+          if k > 0 andalso Term.is_open t then raise MATCH
           else (case Envir.lookup' (insts, (ixn, T)) of
                   NONE => (typ_match thy (T, fastype_of t) tyinsts,
                            Vartab.update_new (ixn, (T, t)) insts)
