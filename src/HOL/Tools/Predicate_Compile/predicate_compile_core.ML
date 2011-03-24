@@ -1683,21 +1683,47 @@ structure Lseq_Random_Stats_Result = Proof_Data
 );
 val put_lseq_random_stats_result = Lseq_Random_Stats_Result.put;
 
+fun dest_special_compr t =
+  let
+    val (inner_t, T_compr) = case t of (Const (@{const_name Collect}, _) $ Abs (x, T, t)) => (t, T)
+      | _ => raise TERM ("dest_special_compr", [t])
+    val (Ts, conj) = apfst (map snd) (Predicate_Compile_Aux.strip_ex inner_t)
+    val [eq, body] = HOLogic.dest_conj conj
+    val rhs = case HOLogic.dest_eq eq of
+        (Bound i, rhs) => if i = length Ts then rhs else raise TERM ("dest_special_compr", [t])
+      | _ => raise TERM ("dest_special_compr", [t])
+    val output_names = Name.variant_list (fold Term.add_free_names [rhs, body] [])
+      (map (fn i => "x" ^ string_of_int i) (1 upto length Ts))
+    val output_frees = map2 (curry Free) output_names (rev Ts)
+    val body = subst_bounds (output_frees, body)
+    val output = subst_bounds (output_frees, rhs)
+  in
+    (((body, output), T_compr), output_names)
+  end
+
+fun dest_general_compr ctxt t_compr =
+  let      
+    val inner_t = case t_compr of (Const (@{const_name Collect}, _) $ t) => t
+      | _ => error ("Not a set comprehension: " ^ Syntax.string_of_term ctxt t_compr);    
+    val (body, Ts, fp) = HOLogic.strip_psplits inner_t;
+    val output_names = Name.variant_list (Term.add_free_names body [])
+      (map (fn i => "x" ^ string_of_int i) (1 upto length Ts))
+    val output_frees = map2 (curry Free) output_names (rev Ts)
+    val body = subst_bounds (output_frees, body)
+    val T_compr = HOLogic.mk_ptupleT fp Ts
+    val output = HOLogic.mk_ptuple fp T_compr (rev output_frees)
+  in
+    (((body, output), T_compr), output_names)
+  end
+
 (*FIXME turn this into an LCF-guarded preprocessor for comprehensions*)
 fun analyze_compr ctxt (comp_modifiers, additional_arguments) param_user_modes
   (compilation, arguments) t_compr =
   let
     val compfuns = Comp_Mod.compfuns comp_modifiers
     val all_modes_of = all_modes_of compilation
-    val split = case t_compr of (Const (@{const_name Collect}, _) $ t) => t
-      | _ => error ("Not a set comprehension: " ^ Syntax.string_of_term ctxt t_compr);
-    val (body, Ts, fp) = HOLogic.strip_psplits split;
-    val output_names = Name.variant_list (Term.add_free_names body [])
-      (map (fn i => "x" ^ string_of_int i) (1 upto length Ts))
-    val output_frees = map2 (curry Free) output_names (rev Ts)
-    val body = subst_bounds (output_frees, body)
-    val T_compr = HOLogic.mk_ptupleT fp Ts
-    val output_tuple = HOLogic.mk_ptuple fp T_compr (rev output_frees)
+    val (((body, output), T_compr), output_names) =
+      case try dest_special_compr t_compr of SOME r => r | NONE => dest_general_compr ctxt t_compr
     val (pred as Const (name, T), all_args) =
       case strip_comb body of
         (Const (name, T), all_args) => (Const (name, T), all_args)
@@ -1752,7 +1778,7 @@ fun analyze_compr ctxt (comp_modifiers, additional_arguments) param_user_modes
         val t_pred = compile_expr comp_modifiers ctxt
           (body, deriv) [] additional_arguments;
         val T_pred = dest_predT compfuns (fastype_of t_pred)
-        val arrange = HOLogic.tupled_lambda (HOLogic.mk_tuple outargs) output_tuple
+        val arrange = HOLogic.tupled_lambda (HOLogic.mk_tuple outargs) output
       in
         if null outargs then t_pred else mk_map compfuns T_pred T_compr arrange t_pred
       end

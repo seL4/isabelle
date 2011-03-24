@@ -291,6 +291,12 @@ code_pred big_step .
 
 thm big_step.equation
 
+definition list :: "(nat \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a list" where
+  "list s n = map s [0 ..< n]"
+
+values [expected "{[42, (43 :: nat)]}"] "{list s 2|s. (SKIP, nth [42, 43]) \<Rightarrow> s}"
+
+
 subsection {* CCS *}
 
 text{* This example formalizes finite CCS processes without communication or

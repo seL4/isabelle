@@ -51,6 +51,7 @@ sig
   val is_predT : typ -> bool
   val is_constrt : theory -> term -> bool
   val is_constr : Proof.context -> string -> bool
+  val strip_ex : term -> (string * typ) list * term
   val focus_ex : term -> Name.context -> ((string * typ) list * term) * Name.context
   val strip_all : term -> (string * typ) list * term
   val strip_intro_concl : thm -> term * term list
