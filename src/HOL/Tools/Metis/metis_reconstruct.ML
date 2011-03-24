@@ -585,50 +585,6 @@ fun replay_one_inference ctxt mode skolem_params (fol_th, inf) thpairs =
 
 fun term_instantiate thy = cterm_instantiate o map (pairself (cterm_of thy))
 
-(* In principle, it should be sufficient to apply "assume_tac" to unify the
-   conclusion with one of the premises. However, in practice, this is unreliable
-   because of the mildly higher-order nature of the unification problems.
-   Typical constraints are of the form
-   "?SK_a_b_c_x SK_d_e_f_y ... SK_a_b_c_x ... SK_g_h_i_z =?= SK_a_b_c_x",
-   where the nonvariables are goal parameters. *)
-(* FIXME: ### try Pattern.match instead *)
-fun unify_first_prem_with_concl thy i th =
-  let
-    val goal = Logic.get_goal (prop_of th) i |> Envir.beta_eta_contract
-    val prem = goal |> Logic.strip_assums_hyp |> hd
-    val concl = goal |> Logic.strip_assums_concl
-    fun pair_untyped_aconv (t1, t2) (u1, u2) =
-      untyped_aconv t1 u1 andalso untyped_aconv t2 u2
-    fun add_terms tp inst =
-      if exists (pair_untyped_aconv tp) inst then inst
-      else tp :: map (apsnd (subst_atomic [tp])) inst
-    fun is_flex t =
-      case strip_comb t of
-        (Var _, args) => forall is_Bound args
-      | _ => false
-    fun unify_flex flex rigid =
-      case strip_comb flex of
-        (Var (z as (_, T)), args) =>
-        add_terms (Var z,
-          fold_rev (curry absdummy) (take (length args) (binder_types T)) rigid)
-      | _ => raise TERM ("unify_flex: expected flex", [flex])
-    fun unify_potential_flex comb atom =
-      if is_flex comb then unify_flex comb atom
-      else if is_Var atom then add_terms (atom, comb)
-      else raise TERM ("unify_potential_flex", [comb, atom])
-    fun unify_terms (t, u) =
-      case (t, u) of
-        (t1 $ t2, u1 $ u2) =>
-        if is_flex t then unify_flex t u
-        else if is_flex u then unify_flex u t
-        else fold unify_terms [(t1, u1), (t2, u2)]
-      | (_ $ _, _) => unify_potential_flex t u
-      | (_, _ $ _) => unify_potential_flex u t
-      | (Var _, _) => add_terms (t, u)
-      | (_, Var _) => add_terms (u, t)
-      | _ => if untyped_aconv t u then I else raise TERM ("unify_terms", [t, u])
-  in th |> term_instantiate thy (unify_terms (prem, concl) []) end
-
 val copy_prem = @{lemma "P ==> (P ==> P ==> Q) ==> Q" by fast}
 
 fun copy_prems_tac [] ns i =
@@ -730,16 +686,6 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
   else
     let
       val thy = ProofContext.theory_of ctxt
-      (* distinguish variables with same name but different types *)
-      (* ### FIXME: needed? *)
-      val prems_imp_false' =
-        prems_imp_false |> try (forall_intr_vars #> gen_all)
-                        |> the_default prems_imp_false
-      val prems_imp_false =
-        if prop_of prems_imp_false aconv prop_of prems_imp_false' then
-          prems_imp_false
-        else
-          prems_imp_false'
       fun match_term p =
         let
           val (tyenv, tenv) =
@@ -832,7 +778,6 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
               THEN ALLGOALS (fn i =>
                        rtac @{thm Meson.skolem_COMBK_I} i
                        THEN rotate_tac (rotation_for_subgoal i) i
-(*                       THEN PRIMITIVE (unify_first_prem_with_concl thy i)  FIXME: needed? *)
                        THEN assume_tac i)))
       handle ERROR _ =>
              error ("Cannot replay Metis proof in Isabelle:\n\

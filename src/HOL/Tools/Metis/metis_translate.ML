@@ -805,7 +805,7 @@ fun prepare_metis_problem mode0 ctxt type_lits cls thss =
             val helper_ths =
               metis_helpers
               |> filter (is_used o fst)
-              |> maps (fn (c, (needs_full_types, thms)) =>
+              |> maps (fn (_, (needs_full_types, thms)) =>
                           if needs_full_types andalso mode <> FT then []
                           else map prepare_helper thms)
           in lmap |> fold (add_thm false) helper_ths end
