@@ -86,7 +86,7 @@ local
 
   fun ppField f ppA a =
       Print.blockProgram Print.Inconsistent 2
-        [Print.addString (f ^ " ="),
+        [Print.ppString (f ^ " ="),
          Print.addBreak 1,
          ppA a];
 
@@ -112,24 +112,24 @@ local
 in
   fun pp (Rewrite {known,redexes,subterms,waiting,...}) =
       Print.blockProgram Print.Inconsistent 2
-        [Print.addString "Rewrite",
+        [Print.ppString "Rewrite",
          Print.addBreak 1,
          Print.blockProgram Print.Inconsistent 1
-           [Print.addString "{",
+           [Print.ppString "{",
             ppKnown known,
 (*MetisTrace5
-            Print.addString ",",
+            Print.ppString ",",
             Print.addBreak 1,
             ppRedexes redexes,
-            Print.addString ",",
+            Print.ppString ",",
             Print.addBreak 1,
             ppSubterms subterms,
-            Print.addString ",",
+            Print.ppString ",",
             Print.addBreak 1,
             ppWaiting waiting,
 *)
             Print.skip],
-         Print.addString "}"]
+         Print.ppString "}"]
 end;
 *)
 
@@ -192,10 +192,15 @@ fun add (rw as Rewrite {known,...}) (id,eqn) =
     else
       let
         val Rewrite {order,redexes,subterms,waiting, ...} = rw
+
         val ort = orderToOrient (order (fst eqn))
+
         val known = IntMap.insert known (id,(eqn,ort))
+
         val redexes = addRedexes id (eqn,ort) redexes
+
         val waiting = IntSet.add waiting id
+
         val rw =
             Rewrite
               {order = order, known = known, redexes = redexes,
@@ -207,7 +212,11 @@ fun add (rw as Rewrite {known,...}) (id,eqn) =
         rw
       end;
 
-fun addList x = List.foldl (fn (eqn,rw) => add rw eqn) x;
+local
+  fun uncurriedAdd (eqn,rw) = add rw eqn;
+in
+  fun addList rw = List.foldl uncurriedAdd rw;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Rewriting (the order must be a refinement of the rewrite order).          *)
@@ -640,7 +649,7 @@ val reduce' = fn rw =>
       val ppResult = Print.ppPair pp (Print.ppList Print.ppInt)
       val () = Print.trace ppResult "Rewrite.reduce': result" result
 *)
-      val ths = map (fn (id,((_,th),_)) => (id,th)) (IntMap.toList known')
+      val ths = List.map (fn (id,((_,th),_)) => (id,th)) (IntMap.toList known')
       val _ =
           not (List.exists (uncurry (thmReducible order known')) ths) orelse
           raise Bug "Rewrite.reduce': not fully reduced"
@@ -667,6 +676,10 @@ in
     end;
 end;
 
-fun rewrite x = orderedRewrite (K (SOME GREATER)) x;
+local
+  val order : reductionOrder = K (SOME GREATER);
+in
+  val rewrite = orderedRewrite order;
+end;
 
 end

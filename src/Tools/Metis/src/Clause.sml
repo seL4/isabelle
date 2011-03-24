@@ -69,7 +69,7 @@ fun toString cl = Print.toString pp cl;
 
 val default : parameters =
     {ordering = KnuthBendixOrder.default,
-     orderLiterals = UnsignedLiteralOrder,
+     orderLiterals = PositiveLiteralOrder,
      orderTerms = true};
 
 fun mk info = Clause info
@@ -261,7 +261,7 @@ fun factor (cl as Clause {parameters,thm,...}) =
 
       fun apply sub = new parameters (Thm.subst sub thm)
     in
-      map apply (Rule.factor' lits)
+      List.map apply (Rule.factor' lits)
     end;
 
 (*MetisTrace5

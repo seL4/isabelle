@@ -63,7 +63,7 @@ val pp =
 val pp =
     Print.ppMap
       (fn Waiting {clauses,...} =>
-          map (fn (w,(_,cl)) => (w, Clause.id cl, cl)) (Heap.toList clauses))
+          List.map (fn (w,(_,cl)) => (w, Clause.id cl, cl)) (Heap.toList clauses))
       (Print.ppList (Print.ppTriple Print.ppReal Print.ppInt Clause.pp));
 *)
 
@@ -81,10 +81,10 @@ fun mkModelClause cl =
       (fvs,lits)
     end;
 
-val mkModelClauses = map mkModelClause;
+val mkModelClauses = List.map mkModelClause;
 
 fun perturbModel M cls =
-    if null cls then K ()
+    if List.null cls then K ()
     else
       let
         val N = {size = Model.size M}
@@ -195,6 +195,14 @@ fun add' waiting dist mcls cls =
       val Waiting {parameters,clauses,models} = waiting
       val {models = modelParameters, ...} = parameters
 
+(*MetisDebug
+      val _ = not (List.null cls) orelse
+              raise Bug "Waiting.add': null"
+
+      val _ = length mcls = length cls orelse
+              raise Bug "Waiting.add': different lengths"
+*)
+
       val dist = dist + Math.ln (Real.fromInt (length cls))
 
       fun addCl ((mcl,cl),acc) =
@@ -211,22 +219,23 @@ fun add' waiting dist mcls cls =
       Waiting {parameters = parameters, clauses = clauses, models = models}
     end;
 
-fun add waiting (_,[]) = waiting
-  | add waiting (dist,cls) =
-    let
+fun add waiting (dist,cls) =
+    if List.null cls then waiting
+    else
+      let
 (*MetisTrace3
-      val () = Print.trace pp "Waiting.add: waiting" waiting
-      val () = Print.trace (Print.ppList Clause.pp) "Waiting.add: cls" cls
+        val () = Print.trace pp "Waiting.add: waiting" waiting
+        val () = Print.trace (Print.ppList Clause.pp) "Waiting.add: cls" cls
 *)
 
-      val waiting = add' waiting dist (mkModelClauses cls) cls
+        val waiting = add' waiting dist (mkModelClauses cls) cls
 
 (*MetisTrace3
-      val () = Print.trace pp "Waiting.add: waiting" waiting
+        val () = Print.trace pp "Waiting.add: waiting" waiting
 *)
-    in
-      waiting
-    end;
+      in
+        waiting
+      end;
 
 local
   fun cmp ((w1,_),(w2,_)) = Real.compare (w1,w2);
@@ -235,7 +244,7 @@ local
       let
         val {models = modelParameters, ...} = parameters
         val clauses = Heap.new cmp
-        and models = map (initialModel axioms conjecture) modelParameters
+        and models = List.map (initialModel axioms conjecture) modelParameters
       in
         Waiting {parameters = parameters, clauses = clauses, models = models}
       end;
@@ -247,8 +256,17 @@ in
 
         val waiting = empty parameters mAxioms mConjecture
       in
-        add' waiting 0.0 (mAxioms @ mConjecture) (axioms @ conjecture)
-      end;
+        if List.null axioms andalso List.null conjecture then waiting
+        else add' waiting 0.0 (mAxioms @ mConjecture) (axioms @ conjecture)
+      end
+(*MetisDebug
+      handle e =>
+        let
+          val () = Print.trace Print.ppException "Waiting.new: exception" e
+        in
+          raise e
+        end;
+*)
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -260,9 +278,12 @@ fun remove (Waiting {parameters,clauses,models}) =
     else
       let
         val ((_,dcl),clauses) = Heap.remove clauses
+
         val waiting =
             Waiting
-              {parameters = parameters, clauses = clauses, models = models}
+              {parameters = parameters,
+               clauses = clauses,
+               models = models}
       in
         SOME (dcl,waiting)
       end;

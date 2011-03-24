@@ -84,7 +84,7 @@ fun subterm _ [] = raise Bug "Atom.subterm: empty path"
 
 fun subterms ((_,tms) : atom) =
     let
-      fun f ((n,tm),l) = map (fn (p,s) => (n :: p, s)) (Term.subterms tm) @ l
+      fun f ((n,tm),l) = List.map (fn (p,s) => (n :: p, s)) (Term.subterms tm) @ l
     in
       List.foldl f [] (enumerate tms)
     end;

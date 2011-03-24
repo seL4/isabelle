@@ -46,7 +46,7 @@ end;
 
 fun escapeString {escape} =
     let
-      val escapeMap = map (fn c => (c, "\\" ^ str c)) escape
+      val escapeMap = List.map (fn c => (c, "\\" ^ str c)) escape
 
       fun escapeChar c =
           case c of
@@ -215,7 +215,7 @@ fun isEmptyBlock block =
     let
       val Block {indent = _, style = _, size, chunks} = block
 
-      val empty = null chunks
+      val empty = List.null chunks
 
 (*BasicDebug
       val _ = not empty orelse size = 0 orelse
@@ -787,7 +787,7 @@ local
                 lines
               end
       in
-        if null lines then Stream.Nil else Stream.singleton lines
+        if List.null lines then Stream.Nil else Stream.singleton lines
       end;
 in
   fun execute {lineLength} =
@@ -860,7 +860,7 @@ fun ppOpList' s ppA =
       fun ppOpA a = sequence (ppOp' s) (ppA a)
     in
       fn [] => skip
-       | h :: t => blockProgram Inconsistent 0 (ppA h :: map ppOpA t)
+       | h :: t => blockProgram Inconsistent 0 (ppA h :: List.map ppOpA t)
     end;
 
 fun ppOpStream' s ppA =
@@ -1011,6 +1011,8 @@ fun ppStep step =
         | AddNewline => []));
 
 val ppPpstream = ppStream ppStep;
+
+fun ppException e = ppString (exnMessage e);
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing infix operators.                                          *)

@@ -81,6 +81,7 @@ fun symEq lit th =
       else
         let
           val sub = Subst.fromList [(xVarName,x),(yVarName,y)]
+
           val symTh = Thm.subst sub symmetry
         in
           Thm.resolve lit th symTh
@@ -94,9 +95,9 @@ fun symEq lit th =
 
 type equation = (Term.term * Term.term) * Thm.thm;
 
-fun ppEquation (_,th) = Thm.pp th;
+fun ppEquation ((_,th) : equation) = Thm.pp th;
 
-fun equationToString x = Print.toString ppEquation x;
+val equationToString = Print.toString ppEquation;
 
 fun equationLiteral (t_u,th) =
     let
@@ -210,7 +211,7 @@ fun everyConv [] tm = allConv tm
 
 fun rewrConv (eqn as ((x,y), eqTh)) path tm =
     if Term.equal x y then allConv tm
-    else if null path then (y,eqTh)
+    else if List.null path then (y,eqTh)
     else
       let
         val reflTh = Thm.refl tm
@@ -249,7 +250,7 @@ fun subtermConv conv i = pathConv conv [i];
 
 fun subtermsConv _ (tm as Term.Var _) = allConv tm
   | subtermsConv conv (tm as Term.Fn (_,a)) =
-    everyConv (map (subtermConv conv) (interval 0 (length a))) tm;
+    everyConv (List.map (subtermConv conv) (interval 0 (length a))) tm;
 
 (* ------------------------------------------------------------------------- *)
 (* Applying a conversion to every subterm, with some traversal strategy.     *)
@@ -363,7 +364,7 @@ fun argumentLiterule conv i = pathLiterule conv [i];
 
 fun allArgumentsLiterule conv lit =
     everyLiterule
-      (map (argumentLiterule conv) (interval 0 (Literal.arity lit))) lit;
+      (List.map (argumentLiterule conv) (interval 0 (Literal.arity lit))) lit;
 
 (* ------------------------------------------------------------------------- *)
 (* A rule takes one theorem and either deduces another or raises an Error    *)
@@ -779,7 +780,7 @@ fun factor th =
     let
       fun fact sub = removeSym (Thm.subst sub th)
     in
-      map fact (factor' (Thm.clause th))
+      List.map fact (factor' (Thm.clause th))
     end;
 
 end

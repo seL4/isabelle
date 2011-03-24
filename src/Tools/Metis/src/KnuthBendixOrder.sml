@@ -113,7 +113,7 @@ val ppWeightList =
 fun ppWeight (Weight (m,c)) =
     let
       val l = NameMap.toList m
-      val l = map (fn (v,n) => (SOME v, n)) l
+      val l = List.map (fn (v,n) => (SOME v, n)) l
       val l = if c = 0 then l else l @ [(NONE,c)]
     in
       ppWeightList l

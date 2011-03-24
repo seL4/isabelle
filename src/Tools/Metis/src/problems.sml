@@ -22,7 +22,7 @@ local
   fun mkProblem collection description (problem : problem) : problem =
       let
         val {name,comments,goal} = problem
-        val comments = if null comments then [] else "" :: comments
+        val comments = if List.null comments then [] else "" :: comments
         val comments = "Description: " ^ description :: comments
         val comments = mkCollection collection :: comments
       in
@@ -33,7 +33,7 @@ in
       Useful.mem (mkCollection collection) comments;
 
   fun mkProblems collection description problems =
-      map (mkProblem collection description) problems;
+      List.map (mkProblem collection description) problems;
 end;
 
 (* ========================================================================= *)

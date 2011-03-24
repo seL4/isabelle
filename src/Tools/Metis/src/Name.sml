@@ -33,22 +33,21 @@ local
 in
   fun newName () = numName (newInt ());
 
-  fun newNames n = map numName (newInts n);
+  fun newNames n = List.map numName (newInts n);
 end;
 
-fun variantPrime acceptable =
+fun variantPrime {avoid} =
     let
-      fun variant n = if acceptable n then n else variant (n ^ "'")
+      fun variant n = if avoid n then variant (n ^ "'") else n
     in
       variant
     end;
 
 local
-  fun isDigitOrPrime #"'" = true
-    | isDigitOrPrime c = Char.isDigit c;
+  fun isDigitOrPrime c = c = #"'" orelse Char.isDigit c;
 in
-  fun variantNum acceptable n =
-      if acceptable n then n
+  fun variantNum {avoid} n =
+      if not (avoid n) then n
       else
         let
           val n = stripSuffix isDigitOrPrime n
@@ -57,7 +56,7 @@ in
               let
                 val n_i = n ^ Int.toString i
               in
-                if acceptable n_i then n_i else variant (i + 1)
+                if avoid n_i then variant (i + 1) else n_i
               end
         in
           variant 0

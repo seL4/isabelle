@@ -34,7 +34,7 @@ fun checkProblems (problems : problem list) =
           if x <> x' then dups xs
           else raise Error ("duplicate problem name: " ^ x)
 
-      val names = sort String.compare (map #name problems)
+      val names = sort String.compare (List.map #name problems)
     in
       dups names
     end;
@@ -56,8 +56,8 @@ fun outputProblem outputDir {name,comments,goal} =
       val comments =
           [comment_bar] @
           ["Name: " ^ name] @
-          (if null comments then [] else "" :: comments) @
-          (if null comment_footer then [] else "" :: comment_footer) @
+          (if List.null comments then [] else "" :: comments) @
+          (if List.null comment_footer then [] else "" :: comment_footer) @
           [comment_bar]
 
       val includes = []
@@ -145,7 +145,7 @@ fun usage mesg = Options.usage programOptions mesg;
 val (opts,work) =
     Options.processOptions programOptions (CommandLine.arguments ());
 
-val () = if null work then () else usage "too many arguments";
+val () = if List.null work then () else usage "too many arguments";
 
 (* ------------------------------------------------------------------------- *)
 (* Top level.                                                                *)

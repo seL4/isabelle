@@ -13,23 +13,25 @@ val PROGRAM = "metis";
 
 val VERSION = "2.3";
 
-val versionString = PROGRAM^" "^VERSION^" (release 20100916)"^"\n";
+val versionString = PROGRAM^" "^VERSION^" (release 20101229)"^"\n";
 
 (* ------------------------------------------------------------------------- *)
 (* Program options.                                                          *)
 (* ------------------------------------------------------------------------- *)
 
+val ITEMS = ["name","goal","clauses","size","category","proof","saturation"];
+
+val TIMEOUT : int option ref = ref NONE;
+
+val TPTP : string option ref = ref NONE;
+
 val QUIET = ref false;
 
 val TEST = ref false;
 
-val TPTP : string option ref = ref NONE;
-
-val ITEMS = ["name","goal","clauses","size","category","proof","saturation"];
-
 val extended_items = "all" :: ITEMS;
 
-val show_items = map (fn s => (s, ref false)) ITEMS;
+val show_items = List.map (fn s => (s, ref false)) ITEMS;
 
 fun show_ref s =
     case List.find (equal s o fst) show_items of
@@ -68,6 +70,11 @@ in
       description = "hide ITEM (see below for list)",
       processor =
         beginOpt (enumOpt extended_items endOpt) (fn _ => fn s => hide s)},
+     {switches = ["--time-limit"], arguments = ["N"],
+      description = "give up after N seconds",
+      processor =
+        beginOpt (optionOpt ("-", intOpt (SOME 0, NONE)) endOpt)
+          (fn _ => fn n => TIMEOUT := n)},
      {switches = ["--tptp"], arguments = ["DIR"],
       description = "specify the TPTP installation directory",
       processor =
@@ -112,6 +119,25 @@ fun processOptions () =
 (* ------------------------------------------------------------------------- *)
 (* The core application.                                                     *)
 (* ------------------------------------------------------------------------- *)
+
+fun newLimit () =
+    case !TIMEOUT of
+      NONE => K true
+    | SOME lim =>
+      let
+        val timer = Timer.startRealTimer ()
+
+        val lim = Time.fromReal (Real.fromInt lim)
+
+        fun check () =
+            let
+              val time = Timer.checkRealTimer timer
+            in
+              Time.<= (time,lim)
+            end
+      in
+        check
+      end;
 
 (*MetisDebug
 val next_cnf =
@@ -237,7 +263,7 @@ local
                        names = Tptp.noClauseNames,
                        roles = Tptp.noClauseRoles,
                        problem = {axioms = [],
-                                  conjecture = map Thm.clause ths}}
+                                  conjecture = List.map Thm.clause ths}}
 
                 val mapping =
                     Tptp.addVarSetMapping Tptp.defaultMapping
@@ -294,21 +320,25 @@ local
             end
 *)
         val () = display_clauses cls
+
         val () = display_size cls
+
         val () = display_category cls
       in
         ()
       end;
 
   fun mkTptpFilename filename =
-      case !TPTP of
-        NONE => filename
-      | SOME tptp =>
-        let
-          val tptp = stripSuffix (equal #"/") tptp
-        in
-          tptp ^ "/" ^ filename
-        end;
+      if isPrefix "/" filename then filename
+      else
+        case !TPTP of
+          NONE => filename
+        | SOME tptp =>
+          let
+            val tptp = stripSuffix (equal #"/") tptp
+          in
+            tptp ^ "/" ^ filename
+          end;
 
   fun readIncludes mapping seen formulas includes =
       case includes of
@@ -338,7 +368,7 @@ local
 
         val Tptp.Problem {comments,includes,formulas} = problem
       in
-        if null includes then problem
+        if List.null includes then problem
         else
           let
             val seen = StringSet.empty
@@ -356,8 +386,7 @@ local
 
   val resolutionParameters =
       let
-        val {active,
-             waiting} = Resolution.default
+        val {active,waiting} = Resolution.default
 
         val waiting =
             let
@@ -394,17 +423,25 @@ local
          waiting = waiting}
       end;
 
-  fun refute {axioms,conjecture} =
+  fun resolutionLoop limit res =
+      case Resolution.iterate res of
+        Resolution.Decided dec => SOME dec
+      | Resolution.Undecided res =>
+        if limit () then resolutionLoop limit res else NONE;
+
+  fun refute limit {axioms,conjecture} =
       let
-        val axioms = map Thm.axiom axioms
-        and conjecture = map Thm.axiom conjecture
+        val axioms = List.map Thm.axiom axioms
+        and conjecture = List.map Thm.axiom conjecture
+
         val problem = {axioms = axioms, conjecture = conjecture}
-        val resolution = Resolution.new resolutionParameters problem
+
+        val res = Resolution.new resolutionParameters problem
       in
-        Resolution.loop resolution
+        resolutionLoop limit res
       end;
 
-  fun refuteAll filename tptp probs acc =
+  fun refuteAll limit filename tptp probs acc =
       case probs of
         [] =>
         let
@@ -427,10 +464,10 @@ local
 
           val () = display_problem filename problem
         in
-          if !TEST then refuteAll filename tptp probs acc
+          if !TEST then refuteAll limit filename tptp probs acc
           else
-            case refute problem of
-              Resolution.Contradiction th =>
+            case refute limit problem of
+              SOME (Resolution.Contradiction th) =>
               let
                 val subgoalProof =
                     {subgoal = subgoal,
@@ -439,9 +476,9 @@ local
 
                 val acc = subgoalProof :: acc
               in
-                refuteAll filename tptp probs acc
+                refuteAll limit filename tptp probs acc
               end
-            | Resolution.Satisfiable ths =>
+            | SOME (Resolution.Satisfiable ths) =>
               let
                 val status =
                     if Tptp.hasFofConjecture tptp then
@@ -450,29 +487,42 @@ local
                       Tptp.SatisfiableStatus
 
                 val () = display_status filename status
+
                 val () = display_saturation filename ths
+              in
+                false
+              end
+            | NONE =>
+              let
+                val status = Tptp.UnknownStatus
+
+                val () = display_status filename status
               in
                 false
               end
         end;
 in
-  fun prove mapping filename =
+  fun prove limit mapping filename =
       let
         val () = display_sep ()
+
         val () = display_name filename
+
         val tptp = read mapping filename
+
         val () = display_goal tptp
+
         val problems = Tptp.normalize tptp
       in
-        refuteAll filename tptp problems []
+        refuteAll limit filename tptp problems []
       end;
-
-  fun proveAll mapping filenames =
-      List.all
-        (if !QUIET then prove mapping
-         else fn filename => prove mapping filename orelse true)
-        filenames;
 end;
+
+fun proveAll limit mapping filenames =
+    List.all
+      (if !QUIET then prove limit mapping
+       else fn filename => prove limit mapping filename orelse true)
+      filenames;
 
 (* ------------------------------------------------------------------------- *)
 (* Top level.                                                                *)
@@ -482,11 +532,13 @@ val () =
 let
   val work = processOptions ()
 
-  val () = if null work then usage "no input problem files" else ()
+  val () = if List.null work then usage "no input problem files" else ()
+
+  val limit = newLimit ()
 
   val mapping = Tptp.defaultMapping
 
-  val success = proveAll mapping work
+  val success = proveAll limit mapping work
 in
   exit {message = NONE, usage = false, success = success}
 end

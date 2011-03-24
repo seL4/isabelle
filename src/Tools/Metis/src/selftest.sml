@@ -84,7 +84,7 @@ and A = Atom.parse
 and L = Literal.parse
 and F = Formula.parse
 and S = Subst.fromList;
-val LS = LiteralSet.fromList o map L;
+val LS = LiteralSet.fromList o List.map L;
 val AX = Thm.axiom o LS;
 val CL = mkCl Clause.default o AX;
 val Q = (fn th => (Thm.destUnitEq th, th)) o AX o singleton
@@ -116,7 +116,7 @@ fun unquote (QUOTE q) = q
 val () = SAY "The parser and pretty-printer";
 (* ------------------------------------------------------------------------- *)
 
-fun prep l = (chop_newline o String.concat o map unquote) l;
+fun prep l = (chop_newline o String.concat o List.map unquote) l;
 
 fun mini_print n fm = withRef (Print.lineLength,n) Formula.toString fm;
 
@@ -509,7 +509,7 @@ local
   fun clauseToFormula cl =
       Formula.listMkDisj (LiteralSet.transform Literal.toFormula cl);
 in
-  fun clausesToFormula cls = Formula.listMkConj (map clauseToFormula cls);
+  fun clausesToFormula cls = Formula.listMkConj (List.map clauseToFormula cls);
 end;
 
 val cnf' = pvFm o clausesToFormula o Normalize.cnf o F;
@@ -565,7 +565,7 @@ local
 in
   fun checkModel M cls =
       let
-        val table = map (checkModelClause M) cls
+        val table = List.map (checkModelClause M) cls
 
         val rows = alignTable format table
 
@@ -587,7 +587,7 @@ fun perturbModel M cls n =
             else Model.perturbClause M V cl
           end
 
-      val cls = map (fn cl => (LiteralSet.freeVars cl, cl)) cls
+      val cls = List.map (fn cl => (LiteralSet.freeVars cl, cl)) cls
 
       fun perturbClauses () = app perturbClause cls
 
@@ -1085,7 +1085,7 @@ local
 
   val quot_clauses =
       Formula.listMkConj o sort Formula.compare o
-      map (quot o snd o Formula.stripForall) o Formula.stripConj;
+      List.map (quot o snd o Formula.stripForall) o Formula.stripConj;
 
   fun quotient (Formula.Imp (a, Formula.Imp (b, Formula.False))) =
       Formula.Imp (quot_clauses a, Formula.Imp (quot_clauses b, Formula.False))
@@ -1142,6 +1142,8 @@ fun tptp f =
     end;
 
 val _ = tptp "PUZ001-1";
+val _ = tptp "NO_FORMULAS";
+val _ = tptp "SEPARATED_COMMENTS";
 val _ = tptp "NUMBERED_FORMULAS";
 val _ = tptp "DEFINED_TERMS";
 val _ = tptp "SYSTEM_TERMS";

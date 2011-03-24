@@ -430,8 +430,8 @@ val defaultMapping =
       fun lift {name,arity,tptp} =
           {name = Name.fromString name, arity = arity, tptp = tptp}
 
-      val functionMapping = map lift defaultFunctionMapping
-      and relationMapping = map lift defaultRelationMapping
+      val functionMapping = List.map lift defaultFunctionMapping
+      and relationMapping = List.map lift defaultRelationMapping
 
       val mapping =
           {functionMapping = functionMapping,
@@ -448,7 +448,7 @@ fun mkFixedMap funcModel relModel =
     let
       fun mkEntry {name,arity,model} = ((Name.fromString name, arity), model)
 
-      fun mkMap l = NameArityMap.fromList (map mkEntry l)
+      fun mkMap l = NameArityMap.fromList (List.map mkEntry l)
     in
       {functionMap = mkMap funcModel,
        relationMap = mkMap relModel}
@@ -766,8 +766,12 @@ local
   val lexToken = alphaNumToken || punctToken || quoteToken;
 
   val space = many (some Char.isSpace) >> K ();
+
+  val space1 = atLeastOne (some Char.isSpace) >> K ();
 in
-  val lexer = (space ++ lexToken ++ space) >> (fn ((),(tok,())) => tok);
+  val lexer =
+      (space ++ lexToken) >> (fn ((),tok) => [tok]) ||
+      space1 >> K [];
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -800,11 +804,11 @@ val clauseFreeVars =
       List.foldl fvs NameSet.empty
     end;
 
-fun clauseSubst sub lits = map (literalSubst sub) lits;
+fun clauseSubst sub lits = List.map (literalSubst sub) lits;
 
-fun clauseToFormula lits = Formula.listMkDisj (map literalToFormula lits);
+fun clauseToFormula lits = Formula.listMkDisj (List.map literalToFormula lits);
 
-fun clauseFromFormula fm = map literalFromFormula (Formula.stripDisj fm);
+fun clauseFromFormula fm = List.map literalFromFormula (Formula.stripDisj fm);
 
 fun clauseFromLiteralSet cl =
     clauseFromFormula
@@ -1105,7 +1109,7 @@ in
         end
       | ProofFormulaSource {inference,parents} =>
         let
-          val isTaut = null parents
+          val isTaut = List.null parents
 
           val gen = if isTaut then GEN_INTRODUCED else GEN_INFERENCE
 
@@ -1118,7 +1122,7 @@ in
                       Proof.Subst (s,_) => s
                     | _ => Subst.empty
               in
-                map (fn parent => (parent,sub)) parents
+                List.map (fn parent => (parent,sub)) parents
               end
         in
           Print.blockProgram Print.Inconsistent (size gen + 1)
@@ -1300,7 +1304,7 @@ local
       | f [x] = x
       | f (h :: t) = (h ++ f t) >> K ();
   in
-    fun symbolParser s = f (map punctParser (String.explode s));
+    fun symbolParser s = f (List.map punctParser (String.explode s));
   end;
 
   val definedParser =
@@ -1568,7 +1572,7 @@ local
 
   and quantifiedFormulaParser mapping input =
       let
-        fun mk (q,(vs,((),f))) = q (map (mkVarName mapping) vs, f)
+        fun mk (q,(vs,((),f))) = q (List.map (mkVarName mapping) vs, f)
       in
         (quantifierParser ++ varListParser ++ punctParser #":" ++
          unitaryFormulaParser mapping) >> mk
@@ -1699,7 +1703,7 @@ local
 
   fun parseChars parser chars =
       let
-        val tokens = Parse.everything (lexer >> singleton) chars
+        val tokens = Parse.everything lexer chars
       in
         Parse.everything (parser >> singleton) tokens
       end;
@@ -1904,7 +1908,7 @@ local
         val {problem,sources} : normalization = acc
         val {axioms,conjecture} = problem
 
-        val cls = map fst clauses
+        val cls = List.map fst clauses
         val (axioms,conjecture) =
             if isCnfConjectureRole role then (axioms, cls @ conjecture)
             else (cls @ axioms, conjecture)
@@ -1939,7 +1943,7 @@ local
         fun sourcify (cl,inf) = (cl, FofClauseSource inf)
 
         val (clauses,cnf) = Normalize.addCnf th cnf
-        val clauses = map sourcify clauses
+        val clauses = List.map sourcify clauses
         val norm = addClauses role clauses norm
       in
         (norm,cnf)
@@ -1978,26 +1982,26 @@ local
             let
               val subgoals = Formula.splitGoal goal
               val subgoals =
-                  if null subgoals then [Formula.True] else subgoals
+                  if List.null subgoals then [Formula.True] else subgoals
 
               val parents = [name]
             in
-              map (mk parents) subgoals
+              List.map (mk parents) subgoals
             end
       in
-        fn goals => List.concat (map split goals)
+        fn goals => List.concat (List.map split goals)
       end;
 
   fun clausesToGoal cls =
       let
-        val cls = map (Formula.generalize o clauseToFormula o snd) cls
+        val cls = List.map (Formula.generalize o clauseToFormula o snd) cls
       in
         Formula.listMkConj cls
       end;
 
   fun formulasToGoal fms =
       let
-        val fms = map (Formula.generalize o snd) fms
+        val fms = List.map (Formula.generalize o snd) fms
       in
         Formula.listMkConj fms
       end;
@@ -2013,11 +2017,11 @@ in
             | FofGoal goals => formulasToGoal goals
 
         val fm =
-            if null fofAxioms then fm
+            if List.null fofAxioms then fm
             else Formula.Imp (formulasToGoal fofAxioms, fm)
 
         val fm =
-            if null cnfAxioms then fm
+            if List.null cnfAxioms then fm
             else Formula.Imp (clausesToGoal cnfAxioms, fm)
       in
         fm
@@ -2137,8 +2141,8 @@ in
       let
         val Problem {comments,includes,formulas} = problem
 
-        val includesTop = null comments
-        val formulasTop = includesTop andalso null includes
+        val includesTop = List.null comments
+        val formulasTop = includesTop andalso List.null includes
       in
         Stream.toTextFile
           {filename = filename}
@@ -2153,8 +2157,8 @@ end;
 local
   fun refute {axioms,conjecture} =
       let
-        val axioms = map Thm.axiom axioms
-        and conjecture = map Thm.axiom conjecture
+        val axioms = List.map Thm.axiom axioms
+        and conjecture = List.map Thm.axiom conjecture
         val problem = {axioms = axioms, conjecture = conjecture}
         val resolution = Resolution.new Resolution.default problem
       in
@@ -2166,7 +2170,7 @@ in
   fun prove filename =
       let
         val problem = read filename
-        val problems = map #problem (normalize problem)
+        val problems = List.map #problem (normalize problem)
       in
         List.all refute problems
       end;
@@ -2334,7 +2338,7 @@ local
         val number = i - 1
 
         val (subgoal,formulas) =
-            if null pars then (NONE,formulas)
+            if List.null pars then (NONE,formulas)
             else
               let
                 val role = PlainRole
@@ -2374,7 +2378,7 @@ local
             | Normalize.Definition (_,fm) => fm :: fms
             | _ => fms
 
-        val parents = map (lookupFormulaName fmNames) fms
+        val parents = List.map (lookupFormulaName fmNames) fms
       in
         NormalizeFormulaSource
           {inference = inference,
@@ -2388,9 +2392,9 @@ local
               Proof.Axiom cl => [lookupClauseSourceName sources fmNames cl]
             | _ =>
               let
-                val cls = map Thm.clause (Proof.parents inference)
+                val cls = List.map Thm.clause (Proof.parents inference)
               in
-                map (lookupClauseName clNames) cls
+                List.map (lookupClauseName clNames) cls
               end
       in
         ProofFormulaSource

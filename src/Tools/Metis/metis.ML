@@ -555,7 +555,20 @@ fun can f = Option.isSome o total f;
 (* Tracing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val tracePrint = Unsynchronized.ref TextIO.print;
+local
+  val traceOut = TextIO.stdOut;
+
+  fun tracePrintFn mesg =
+      let
+        val () = TextIO.output (traceOut,mesg)
+
+        val () = TextIO.flushOut traceOut
+      in
+        ()
+      end;
+in
+  val tracePrint = Unsynchronized.ref tracePrintFn;
+end;
 
 fun trace mesg = !tracePrint mesg;
 
@@ -759,7 +772,7 @@ fun groups f =
           case l of
             [] =>
             let
-              val acc = if null row then acc else rev row :: acc
+              val acc = if List.null row then acc else rev row :: acc
             in
               rev acc
             end
@@ -788,9 +801,9 @@ fun groupsBy eq =
 local
   fun fstEq ((x,_),(y,_)) = x = y;
 
-  fun collapse l = (fst (hd l), map snd l);
+  fun collapse l = (fst (hd l), List.map snd l);
 in
-  fun groupsByFst l = map collapse (groupsBy fstEq l);
+  fun groupsByFst l = List.map collapse (groupsBy fstEq l);
 end;
 
 fun groupsOf n =
@@ -935,10 +948,10 @@ fun sortMap _ _ [] = []
   | sortMap f cmp xs =
     let
       fun ncmp ((m,_),(n,_)) = cmp (m,n)
-      val nxs = map (fn x => (f x, x)) xs
+      val nxs = List.map (fn x => (f x, x)) xs
       val nys = sort ncmp nxs
     in
-      map snd nys
+      List.map snd nys
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -1146,7 +1159,7 @@ type columnAlignment = {leftAlign : bool, padChar : char}
 
 fun alignColumn {leftAlign,padChar} column =
     let
-      val (n,_) = maximum Int.compare (map size column)
+      val (n,_) = maximum Int.compare (List.map size column)
 
       fun pad entry row =
           let
@@ -1162,13 +1175,18 @@ fun alignColumn {leftAlign,padChar} column =
 local
   fun alignTab aligns rows =
       case aligns of
-        [] => map (K "") rows
-      | [{leftAlign = true, padChar = #" "}] => map hd rows
+        [] => List.map (K "") rows
+      | [{leftAlign = true, padChar = #" "}] => List.map hd rows
       | align :: aligns =>
-        alignColumn align (map hd rows) (alignTab aligns (map tl rows));
+        let
+          val col = List.map hd rows
+          and cols = alignTab aligns (List.map tl rows)
+        in
+          alignColumn align col cols
+        end;
 in
   fun alignTable aligns rows =
-      if null rows then [] else alignTab aligns rows;
+      if List.null rows then [] else alignTab aligns rows;
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -6599,6 +6617,8 @@ val ppStep : step pp
 
 val ppPpstream : ppstream pp
 
+val ppException : exn pp
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing infix operators.                                          *)
 (* ------------------------------------------------------------------------- *)
@@ -6689,7 +6709,7 @@ end;
 
 fun escapeString {escape} =
     let
-      val escapeMap = map (fn c => (c, "\\" ^ str c)) escape
+      val escapeMap = List.map (fn c => (c, "\\" ^ str c)) escape
 
       fun escapeChar c =
           case c of
@@ -6858,7 +6878,7 @@ fun isEmptyBlock block =
     let
       val Block {indent = _, style = _, size, chunks} = block
 
-      val empty = null chunks
+      val empty = List.null chunks
 
 (*BasicDebug
       val _ = not empty orelse size = 0 orelse
@@ -7430,7 +7450,7 @@ local
                 lines
               end
       in
-        if null lines then Metis_Stream.Nil else Metis_Stream.singleton lines
+        if List.null lines then Metis_Stream.Nil else Metis_Stream.singleton lines
       end;
 in
   fun execute {lineLength} =
@@ -7503,7 +7523,7 @@ fun ppOpList' s ppA =
       fun ppOpA a = sequence (ppOp' s) (ppA a)
     in
       fn [] => skip
-       | h :: t => blockProgram Inconsistent 0 (ppA h :: map ppOpA t)
+       | h :: t => blockProgram Inconsistent 0 (ppA h :: List.map ppOpA t)
     end;
 
 fun ppOpStream' s ppA =
@@ -7654,6 +7674,8 @@ fun ppStep step =
         | AddNewline => []));
 
 val ppPpstream = ppStream ppStep;
+
+fun ppException e = ppString (exnMessage e);
 
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing infix operators.                                          *)
@@ -8258,9 +8280,9 @@ val newName : unit -> name
 
 val newNames : int -> name list
 
-val variantPrime : (name -> bool) -> name -> name
+val variantPrime : {avoid : name -> bool} -> name -> name
 
-val variantNum : (name -> bool) -> name -> name
+val variantNum : {avoid : name -> bool} -> name -> name
 
 (* ------------------------------------------------------------------------- *)
 (* Parsing and pretty printing.                                              *)
@@ -8311,22 +8333,21 @@ local
 in
   fun newName () = numName (newInt ());
 
-  fun newNames n = map numName (newInts n);
+  fun newNames n = List.map numName (newInts n);
 end;
 
-fun variantPrime acceptable =
+fun variantPrime {avoid} =
     let
-      fun variant n = if acceptable n then n else variant (n ^ "'")
+      fun variant n = if avoid n then variant (n ^ "'") else n
     in
       variant
     end;
 
 local
-  fun isDigitOrPrime #"'" = true
-    | isDigitOrPrime c = Char.isDigit c;
+  fun isDigitOrPrime c = c = #"'" orelse Char.isDigit c;
 in
-  fun variantNum acceptable n =
-      if acceptable n then n
+  fun variantNum {avoid} n =
+      if not (avoid n) then n
       else
         let
           val n = stripSuffix isDigitOrPrime n
@@ -8335,7 +8356,7 @@ in
               let
                 val n_i = n ^ Int.toString i
               in
-                if acceptable n_i then n_i else variant (i + 1)
+                if avoid n_i then variant (i + 1) else n_i
               end
         in
           variant 0
@@ -8878,7 +8899,7 @@ local
       in
         case tm of
           Var _ => subtms rest acc
-        | Fn (_,args) => subtms (map f (enumerate args) @ rest) acc
+        | Fn (_,args) => subtms (List.map f (enumerate args) @ rest) acc
       end;
 in
   fun subterms tm = subtms [([],tm)] [];
@@ -8909,7 +8930,7 @@ fun find pred =
               Var _ => search rest
             | Fn (_,a) =>
               let
-                val subtms = map (fn (i,t) => (i :: path, t)) (enumerate a)
+                val subtms = List.map (fn (i,t) => (i :: path, t)) (enumerate a)
               in
                 search (subtms @ rest)
               end
@@ -8949,14 +8970,14 @@ end;
 
 fun newVar () = Var (Metis_Name.newName ());
 
-fun newVars n = map Var (Metis_Name.newNames n);
+fun newVars n = List.map Var (Metis_Name.newNames n);
 
 local
-  fun avoidAcceptable avoid n = not (Metis_NameSet.member n avoid);
+  fun avoid av n = Metis_NameSet.member n av;
 in
-  fun variantPrime avoid = Metis_Name.variantPrime (avoidAcceptable avoid);
+  fun variantPrime av = Metis_Name.variantPrime {avoid = avoid av};
 
-  fun variantNum avoid = Metis_Name.variantNum (avoidAcceptable avoid);
+  fun variantNum av = Metis_Name.variantNum {avoid = avoid av};
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -9028,7 +9049,7 @@ local
 
             val acc = (rev path, tm) :: acc
 
-            val rest = map f (enumerate args) @ rest
+            val rest = List.map f (enumerate args) @ rest
           in
             subtms rest acc
           end;
@@ -9237,7 +9258,7 @@ fun pp inputTerm =
       and basic bv (Var v) = varName bv v
         | basic bv (Fn (f,args)) =
           Metis_Print.blockProgram Metis_Print.Inconsistent 2
-            (functionName bv f :: map (functionArgument bv) args)
+            (functionName bv f :: List.map (functionArgument bv) args)
 
       and customBracket bv tm =
           case destBrack tm of
@@ -9249,13 +9270,13 @@ fun pp inputTerm =
             NONE => term bv tm
           | SOME (q,v,vs,tm) =>
             let
-              val bv = Metis_StringSet.addList bv (map Metis_Name.toString (v :: vs))
+              val bv = Metis_StringSet.addList bv (List.map Metis_Name.toString (v :: vs))
             in
               Metis_Print.program
                 [Metis_Print.ppString q,
                  varName bv v,
                  Metis_Print.program
-                   (map (Metis_Print.sequence (Metis_Print.addBreak 1) o varName bv) vs),
+                   (List.map (Metis_Print.sequence (Metis_Print.addBreak 1) o varName bv) vs),
                  Metis_Print.ppString ".",
                  Metis_Print.addBreak 1,
                  innerQuant bv tm]
@@ -9342,9 +9363,9 @@ local
         and neg = !negation
         and bracks = ("(",")") :: !brackets
 
-        val bracks = map (fn (b1,b2) => (b1 ^ b2, b1, b2)) bracks
+        val bracks = List.map (fn (b1,b2) => (b1 ^ b2, b1, b2)) bracks
 
-        val bTokens = map #2 bracks @ map #3 bracks
+        val bTokens = List.map #2 bracks @ List.map #3 bracks
 
         fun possibleVarName "" = false
           | possibleVarName s = isAlphaNum (String.sub (s,0))
@@ -9399,8 +9420,8 @@ local
             in
               var ||
               const ||
-              first (map bracket bracks) ||
-              first (map quantifier quants)
+              first (List.map bracket bracks) ||
+              first (List.map quantifier quants)
             end tokens
 
         and molecule bv tokens =
@@ -10057,7 +10078,7 @@ fun subterm _ [] = raise Bug "Metis_Atom.subterm: empty path"
 
 fun subterms ((_,tms) : atom) =
     let
-      fun f ((n,tm),l) = map (fn (p,s) => (n :: p, s)) (Metis_Term.subterms tm) @ l
+      fun f ((n,tm),l) = List.map (fn (p,s) => (n :: p, s)) (Metis_Term.subterms tm) @ l
     in
       List.foldl f [] (enumerate tms)
     end;
@@ -10941,9 +10962,9 @@ local
 
   fun promote (Metis_Term.Var v) = Metis_Atom (v,[])
     | promote (Metis_Term.Fn (f,tms)) =
-      if Metis_Name.equal f truthName andalso null tms then
+      if Metis_Name.equal f truthName andalso List.null tms then
         True
-      else if Metis_Name.equal f falsityName andalso null tms then
+      else if Metis_Name.equal f falsityName andalso List.null tms then
         False
       else if Metis_Name.toString f = !Metis_Term.negation andalso length tms = 1 then
         Not (promote (hd tms))
@@ -10973,7 +10994,7 @@ val parse = Metis_Parse.parseQuotation toString fromString;
 
 local
   fun add_asms asms goal =
-      if null asms then goal else Imp (listMkConj (rev asms), goal);
+      if List.null asms then goal else Imp (listMkConj (rev asms), goal);
 
   fun add_var_asms asms v goal = add_asms asms (Forall (v,goal));
 
@@ -10987,7 +11008,7 @@ local
       | (true, Imp (f1,f2)) => split (f1 :: asms) true f2
       | (true, Iff (f1,f2)) =>
         split (f1 :: asms) true f2 @ split (f2 :: asms) true f1
-      | (true, Forall (v,f)) => map (add_var_asms asms v) (split [] true f)
+      | (true, Forall (v,f)) => List.map (add_var_asms asms v) (split [] true f)
         (* Negative splittables *)
       | (false,False) => []
       | (false, Not f) => split asms true f
@@ -10997,7 +11018,7 @@ local
       | (false, Imp (f1,f2)) => split asms true f1 @ split (f1 :: asms) false f2
       | (false, Iff (f1,f2)) =>
         split (f1 :: asms) false f2 @ split (f2 :: asms) false f1
-      | (false, Exists (v,f)) => map (add_var_asms asms v) (split [] false f)
+      | (false, Exists (v,f)) => List.map (add_var_asms asms v) (split [] false f)
         (* Unsplittables *)
       | _ => [add_asms asms (if pol then fm else Not fm)];
 in
@@ -11750,7 +11771,7 @@ fun ppInferenceType inf =
 local
   fun toFormula th =
       Metis_Formula.listMkDisj
-        (map Metis_Literal.toFormula (Metis_LiteralSet.toList (clause th)));
+        (List.map Metis_Literal.toFormula (Metis_LiteralSet.toList (clause th)));
 in
   fun pp th =
       Metis_Print.blockProgram Metis_Print.Inconsistent 3
@@ -12057,7 +12078,7 @@ in
         Metis_Print.blockProgram Metis_Print.Consistent 0
           [Metis_Print.ppString "START OF PROOF",
            Metis_Print.addNewline,
-           Metis_Print.program (map ppStep prf),
+           Metis_Print.program (List.map ppStep prf),
            Metis_Print.ppString "END OF PROOF"]
       end
 (*MetisDebug
@@ -12737,6 +12758,7 @@ fun symEq lit th =
       else
         let
           val sub = Metis_Subst.fromList [(xVarName,x),(yVarName,y)]
+
           val symTh = Metis_Thm.subst sub symmetry
         in
           Metis_Thm.resolve lit th symTh
@@ -12750,9 +12772,9 @@ fun symEq lit th =
 
 type equation = (Metis_Term.term * Metis_Term.term) * Metis_Thm.thm;
 
-fun ppEquation (_,th) = Metis_Thm.pp th;
+fun ppEquation ((_,th) : equation) = Metis_Thm.pp th;
 
-fun equationToString x = Metis_Print.toString ppEquation x;
+val equationToString = Metis_Print.toString ppEquation;
 
 fun equationLiteral (t_u,th) =
     let
@@ -12866,7 +12888,7 @@ fun everyConv [] tm = allConv tm
 
 fun rewrConv (eqn as ((x,y), eqTh)) path tm =
     if Metis_Term.equal x y then allConv tm
-    else if null path then (y,eqTh)
+    else if List.null path then (y,eqTh)
     else
       let
         val reflTh = Metis_Thm.refl tm
@@ -12905,7 +12927,7 @@ fun subtermConv conv i = pathConv conv [i];
 
 fun subtermsConv _ (tm as Metis_Term.Var _) = allConv tm
   | subtermsConv conv (tm as Metis_Term.Fn (_,a)) =
-    everyConv (map (subtermConv conv) (interval 0 (length a))) tm;
+    everyConv (List.map (subtermConv conv) (interval 0 (length a))) tm;
 
 (* ------------------------------------------------------------------------- *)
 (* Applying a conversion to every subterm, with some traversal strategy.     *)
@@ -13019,7 +13041,7 @@ fun argumentLiterule conv i = pathLiterule conv [i];
 
 fun allArgumentsLiterule conv lit =
     everyLiterule
-      (map (argumentLiterule conv) (interval 0 (Metis_Literal.arity lit))) lit;
+      (List.map (argumentLiterule conv) (interval 0 (Metis_Literal.arity lit))) lit;
 
 (* ------------------------------------------------------------------------- *)
 (* A rule takes one theorem and either deduces another or raises an Error    *)
@@ -13435,7 +13457,7 @@ fun factor th =
     let
       fun fact sub = removeSym (Metis_Thm.subst sub th)
     in
-      map fact (factor' (Metis_Thm.clause th))
+      List.map fact (factor' (Metis_Thm.clause th))
     end;
 
 end
@@ -14453,11 +14475,11 @@ local
 
             val deps = List.filter (isUnproved proved) pars
           in
-            if null deps then
+            if List.null deps then
               let
                 val (fm,inf) = destThm th
 
-                val fms = map (lookupProved proved) pars
+                val fms = List.map (lookupProved proved) pars
 
                 val acc = (fm,inf,fms) :: acc
 
@@ -14884,7 +14906,7 @@ fun cnf fm =
     let
       val cls = proveCnf [mkAxiom fm]
     in
-      map fst cls
+      List.map fst cls
     end;
 
 end
@@ -15441,7 +15463,7 @@ fun mapFixed fixMap fix =
 local
   fun mkEntry tag (na,n) = (tag,na,n);
 
-  fun mkList tag m = map (mkEntry tag) (Metis_NameArityMap.toList m);
+  fun mkList tag m = List.map (mkEntry tag) (Metis_NameArityMap.toList m);
 
   fun ppEntry (tag,source_arity,target) =
       Metis_Print.blockProgram Metis_Print.Inconsistent 2
@@ -15461,7 +15483,7 @@ in
         | entry :: entries =>
           Metis_Print.blockProgram Metis_Print.Consistent 0
             (ppEntry entry ::
-             map (Metis_Print.sequence Metis_Print.addNewline o ppEntry) entries)
+             List.map (Metis_Print.sequence Metis_Print.addNewline o ppEntry) entries)
       end;
 end;
 
@@ -15507,7 +15529,7 @@ fun arityProjectionFixed arity =
     end;
 
 val projectionFixed =
-    unionListFixed (map arityProjectionFixed projectionList);
+    unionListFixed (List.map arityProjectionFixed projectionList);
 
 (* Arithmetic *)
 
@@ -15610,7 +15632,7 @@ in
       let
         val fns =
             Metis_NameArityMap.fromList
-              (map (fn i => ((numeralName i,0), fixed0 (numeralFn i)))
+              (List.map (fn i => ((numeralName i,0), fixed0 (numeralFn i)))
                  numeralList @
                [((addName,2), fixed2 addFn),
                 ((divName,2), fixed2 divFn),
@@ -15710,7 +15732,7 @@ in
       let
         val fns =
             Metis_NameArityMap.fromList
-              (map (fn i => ((numeralName i,0), fixed0 (numeralFn i)))
+              (List.map (fn i => ((numeralName i,0), fixed0 (numeralFn i)))
                  numeralList @
                [((addName,2), fixed2 addFn),
                 ((divName,2), fixed2 divFn),
@@ -16202,13 +16224,13 @@ fun interpretTerm M V =
       fun interpret tm =
           case destTerm tm of
             Metis_Term.Var v => getValuation V v
-          | Metis_Term.Fn (f,tms) => interpretFunction M (f, map interpret tms)
+          | Metis_Term.Fn (f,tms) => interpretFunction M (f, List.map interpret tms)
     in
       interpret
     end;
 
 fun interpretAtom M V (r,tms) =
-    interpretRelation M (r, map (interpretTerm M V) tms);
+    interpretRelation M (r, List.map (interpretTerm M V) tms);
 
 fun interpretFormula M =
     let
@@ -16325,7 +16347,7 @@ fun modelTerm M V =
             Metis_Term.Var v => (ModelVar, getValuation V v)
           | Metis_Term.Fn (f,tms) =>
             let
-              val (tms,xs) = unzip (map modelTm tms)
+              val (tms,xs) = unzip (List.map modelTm tms)
             in
               (ModelFn (f,tms,xs), interpretFunction M (f,xs))
             end
@@ -16408,7 +16430,7 @@ local
       let
         fun onTarget ys = interpretRelation M (rel,ys) = target
 
-        val (tms,xs) = unzip (map (modelTerm M V) tms)
+        val (tms,xs) = unzip (List.map (modelTerm M V) tms)
 
         val rel_xs = (rel,xs)
 
@@ -16424,7 +16446,7 @@ local
   fun pertClause M V cl acc = Metis_LiteralSet.foldl (pertLiteral M V) acc cl;
 
   fun pickPerturb M perts =
-      if null perts then ()
+      if List.null perts then ()
       else perturb M (List.nth (perts, Metis_Portable.randomInt (length perts)));
 in
   fun perturbTerm M V (tm,target) =
@@ -16564,16 +16586,16 @@ local
       Metis_Formula.listMkDisj (Metis_LiteralSet.transform Metis_Literal.toFormula cl);
 in
   fun toFormula prob =
-      Metis_Formula.listMkConj (map clauseToFormula (toClauses prob));
+      Metis_Formula.listMkConj (List.map clauseToFormula (toClauses prob));
 
   fun toGoal {axioms,conjecture} =
       let
         val clToFm = Metis_Formula.generalize o clauseToFormula
-        val clsToFm = Metis_Formula.listMkConj o map clToFm
+        val clsToFm = Metis_Formula.listMkConj o List.map clToFm
 
         val fm = Metis_Formula.False
         val fm =
-            if null conjecture then fm
+            if List.null conjecture then fm
             else Metis_Formula.Imp (clsToFm conjecture, fm)
         val fm = Metis_Formula.Imp (clsToFm axioms, fm)
       in
@@ -16641,7 +16663,7 @@ fun categorize prob =
       val horn =
           if List.exists Metis_LiteralSet.null cls then Trivial
           else if List.all (fn cl => Metis_LiteralSet.size cl = 1) cls then Unit
-          else 
+          else
             let
               fun pos cl = Metis_LiteralSet.count Metis_Literal.positive cl <= 1
               fun neg cl = Metis_LiteralSet.count Metis_Literal.negative cl <= 1
@@ -16786,7 +16808,7 @@ fun equalQterm q1 q2 = compareQterm (q1,q2) = EQUAL;
 fun equalFnQterm f1 f2 = compareFnQterm (f1,f2) = EQUAL;
 
 fun termToQterm (Metis_Term.Var _) = Var
-  | termToQterm (Metis_Term.Fn (f,l)) = Fn ((f, length l), map termToQterm l);
+  | termToQterm (Metis_Term.Fn (f,l)) = Fn ((f, length l), List.map termToQterm l);
 
 local
   fun qm [] = true
@@ -16852,7 +16874,7 @@ end;
 
 local
   fun qtermToTerm Var = anonymousVar
-    | qtermToTerm (Fn ((f,_),l)) = Metis_Term.Fn (f, map qtermToTerm l);
+    | qtermToTerm (Fn ((f,_),l)) = Metis_Term.Fn (f, List.map qtermToTerm l);
 in
   val ppQterm = Metis_Print.ppMap qtermToTerm Metis_Term.pp;
 end;
@@ -17075,7 +17097,7 @@ local
 
   fun fifoize ({fifo, ...} : parameters) l = if fifo then sort idwise l else l;
 in
-  fun finally parm l = map snd (fifoize parm l);
+  fun finally parm l = List.map snd (fifoize parm l);
 end;
 
 local
@@ -17966,7 +17988,7 @@ val ppWeightList =
 fun ppWeight (Weight (m,c)) =
     let
       val l = Metis_NameMap.toList m
-      val l = map (fn (v,n) => (SOME v, n)) l
+      val l = List.map (fn (v,n) => (SOME v, n)) l
       val l = if c = 0 then l else l @ [(NONE,c)]
     in
       ppWeightList l
@@ -18243,7 +18265,7 @@ local
 
   fun ppField f ppA a =
       Metis_Print.blockProgram Metis_Print.Inconsistent 2
-        [Metis_Print.addString (f ^ " ="),
+        [Metis_Print.ppString (f ^ " ="),
          Metis_Print.addBreak 1,
          ppA a];
 
@@ -18269,24 +18291,24 @@ local
 in
   fun pp (Metis_Rewrite {known,redexes,subterms,waiting,...}) =
       Metis_Print.blockProgram Metis_Print.Inconsistent 2
-        [Metis_Print.addString "Metis_Rewrite",
+        [Metis_Print.ppString "Metis_Rewrite",
          Metis_Print.addBreak 1,
          Metis_Print.blockProgram Metis_Print.Inconsistent 1
-           [Metis_Print.addString "{",
+           [Metis_Print.ppString "{",
             ppKnown known,
 (*MetisTrace5
-            Metis_Print.addString ",",
+            Metis_Print.ppString ",",
             Metis_Print.addBreak 1,
             ppRedexes redexes,
-            Metis_Print.addString ",",
+            Metis_Print.ppString ",",
             Metis_Print.addBreak 1,
             ppSubterms subterms,
-            Metis_Print.addString ",",
+            Metis_Print.ppString ",",
             Metis_Print.addBreak 1,
             ppWaiting waiting,
 *)
             Metis_Print.skip],
-         Metis_Print.addString "}"]
+         Metis_Print.ppString "}"]
 end;
 *)
 
@@ -18349,10 +18371,15 @@ fun add (rw as Metis_Rewrite {known,...}) (id,eqn) =
     else
       let
         val Metis_Rewrite {order,redexes,subterms,waiting, ...} = rw
+
         val ort = orderToOrient (order (fst eqn))
+
         val known = Metis_IntMap.insert known (id,(eqn,ort))
+
         val redexes = addRedexes id (eqn,ort) redexes
+
         val waiting = Metis_IntSet.add waiting id
+
         val rw =
             Metis_Rewrite
               {order = order, known = known, redexes = redexes,
@@ -18364,7 +18391,11 @@ fun add (rw as Metis_Rewrite {known,...}) (id,eqn) =
         rw
       end;
 
-fun addList x = List.foldl (fn (eqn,rw) => add rw eqn) x;
+local
+  fun uncurriedAdd (eqn,rw) = add rw eqn;
+in
+  fun addList rw = List.foldl uncurriedAdd rw;
+end;
 
 (* ------------------------------------------------------------------------- *)
 (* Rewriting (the order must be a refinement of the rewrite order).          *)
@@ -18797,7 +18828,7 @@ val reduce' = fn rw =>
       val ppResult = Metis_Print.ppPair pp (Metis_Print.ppList Metis_Print.ppInt)
       val () = Metis_Print.trace ppResult "Metis_Rewrite.reduce': result" result
 *)
-      val ths = map (fn (id,((_,th),_)) => (id,th)) (Metis_IntMap.toList known')
+      val ths = List.map (fn (id,((_,th),_)) => (id,th)) (Metis_IntMap.toList known')
       val _ =
           not (List.exists (uncurry (thmReducible order known')) ths) orelse
           raise Bug "Metis_Rewrite.reduce': not fully reduced"
@@ -18824,7 +18855,11 @@ in
     end;
 end;
 
-fun rewrite x = orderedRewrite (K (SOME GREATER)) x;
+local
+  val order : reductionOrder = K (SOME GREATER);
+in
+  val rewrite = orderedRewrite order;
+end;
 
 end
 
@@ -19172,7 +19207,7 @@ fun toString cl = Metis_Print.toString pp cl;
 
 val default : parameters =
     {ordering = Metis_KnuthBendixOrder.default,
-     orderLiterals = UnsignedLiteralOrder,
+     orderLiterals = PositiveLiteralOrder,
      orderTerms = true};
 
 fun mk info = Metis_Clause info
@@ -19364,7 +19399,7 @@ fun factor (cl as Metis_Clause {parameters,thm,...}) =
 
       fun apply sub = new parameters (Metis_Thm.subst sub thm)
     in
-      map apply (Metis_Rule.factor' lits)
+      List.map apply (Metis_Rule.factor' lits)
     end;
 
 (*MetisTrace5
@@ -20409,8 +20444,8 @@ fun new parameters {axioms,conjecture} =
           Metis_Clause.mk {parameters = clause, id = Metis_Clause.newId (), thm = th}
 
       val active = empty parameters
-      val (active,axioms) = factor active (map mk_clause axioms)
-      val (active,conjecture) = factor active (map mk_clause conjecture)
+      val (active,axioms) = factor active (List.map mk_clause axioms)
+      val (active,conjecture) = factor active (List.map mk_clause conjecture)
     in
       (active, {axioms = axioms, conjecture = conjecture})
     end;
@@ -20591,7 +20626,7 @@ val pp =
 val pp =
     Metis_Print.ppMap
       (fn Metis_Waiting {clauses,...} =>
-          map (fn (w,(_,cl)) => (w, Metis_Clause.id cl, cl)) (Metis_Heap.toList clauses))
+          List.map (fn (w,(_,cl)) => (w, Metis_Clause.id cl, cl)) (Metis_Heap.toList clauses))
       (Metis_Print.ppList (Metis_Print.ppTriple Metis_Print.ppReal Metis_Print.ppInt Metis_Clause.pp));
 *)
 
@@ -20609,10 +20644,10 @@ fun mkModelClause cl =
       (fvs,lits)
     end;
 
-val mkModelClauses = map mkModelClause;
+val mkModelClauses = List.map mkModelClause;
 
 fun perturbModel M cls =
-    if null cls then K ()
+    if List.null cls then K ()
     else
       let
         val N = {size = Metis_Model.size M}
@@ -20723,6 +20758,14 @@ fun add' waiting dist mcls cls =
       val Metis_Waiting {parameters,clauses,models} = waiting
       val {models = modelParameters, ...} = parameters
 
+(*MetisDebug
+      val _ = not (List.null cls) orelse
+              raise Bug "Metis_Waiting.add': null"
+
+      val _ = length mcls = length cls orelse
+              raise Bug "Metis_Waiting.add': different lengths"
+*)
+
       val dist = dist + Math.ln (Real.fromInt (length cls))
 
       fun addCl ((mcl,cl),acc) =
@@ -20739,22 +20782,23 @@ fun add' waiting dist mcls cls =
       Metis_Waiting {parameters = parameters, clauses = clauses, models = models}
     end;
 
-fun add waiting (_,[]) = waiting
-  | add waiting (dist,cls) =
-    let
+fun add waiting (dist,cls) =
+    if List.null cls then waiting
+    else
+      let
 (*MetisTrace3
-      val () = Metis_Print.trace pp "Metis_Waiting.add: waiting" waiting
-      val () = Metis_Print.trace (Metis_Print.ppList Metis_Clause.pp) "Metis_Waiting.add: cls" cls
+        val () = Metis_Print.trace pp "Metis_Waiting.add: waiting" waiting
+        val () = Metis_Print.trace (Metis_Print.ppList Metis_Clause.pp) "Metis_Waiting.add: cls" cls
 *)
 
-      val waiting = add' waiting dist (mkModelClauses cls) cls
+        val waiting = add' waiting dist (mkModelClauses cls) cls
 
 (*MetisTrace3
-      val () = Metis_Print.trace pp "Metis_Waiting.add: waiting" waiting
+        val () = Metis_Print.trace pp "Metis_Waiting.add: waiting" waiting
 *)
-    in
-      waiting
-    end;
+      in
+        waiting
+      end;
 
 local
   fun cmp ((w1,_),(w2,_)) = Real.compare (w1,w2);
@@ -20763,7 +20807,7 @@ local
       let
         val {models = modelParameters, ...} = parameters
         val clauses = Metis_Heap.new cmp
-        and models = map (initialModel axioms conjecture) modelParameters
+        and models = List.map (initialModel axioms conjecture) modelParameters
       in
         Metis_Waiting {parameters = parameters, clauses = clauses, models = models}
       end;
@@ -20775,8 +20819,17 @@ in
 
         val waiting = empty parameters mAxioms mConjecture
       in
-        add' waiting 0.0 (mAxioms @ mConjecture) (axioms @ conjecture)
-      end;
+        if List.null axioms andalso List.null conjecture then waiting
+        else add' waiting 0.0 (mAxioms @ mConjecture) (axioms @ conjecture)
+      end
+(*MetisDebug
+      handle e =>
+        let
+          val () = Metis_Print.trace Metis_Print.ppException "Metis_Waiting.new: exception" e
+        in
+          raise e
+        end;
+*)
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -20788,9 +20841,12 @@ fun remove (Metis_Waiting {parameters,clauses,models}) =
     else
       let
         val ((_,dcl),clauses) = Metis_Heap.remove clauses
+
         val waiting =
             Metis_Waiting
-              {parameters = parameters, clauses = clauses, models = models}
+              {parameters = parameters,
+               clauses = clauses,
+               models = models}
       in
         SOME (dcl,waiting)
       end;
@@ -20888,11 +20944,21 @@ val default : parameters =
 fun new parameters ths =
     let
       val {active = activeParm, waiting = waitingParm} = parameters
+
       val (active,cls) = Metis_Active.new activeParm ths  (* cls = factored ths *)
+
       val waiting = Metis_Waiting.new waitingParm cls
     in
       Metis_Resolution {parameters = parameters, active = active, waiting = waiting}
-    end;
+    end
+(*MetisDebug
+    handle e =>
+      let
+        val () = Metis_Print.trace Metis_Print.ppException "Metis_Resolution.new: exception" e
+      in
+        raise e
+      end;
+*)
 
 fun active (Metis_Resolution {active = a, ...}) = a;
 
@@ -20917,9 +20983,10 @@ datatype state =
     Decided of decision
   | Undecided of resolution;
 
-fun iterate resolution =
+fun iterate res =
     let
-      val Metis_Resolution {parameters,active,waiting} = resolution
+      val Metis_Resolution {parameters,active,waiting} = res
+
 (*MetisTrace2
       val () = Metis_Print.trace Metis_Active.pp "Metis_Resolution.iterate: active" active
       val () = Metis_Print.trace Metis_Waiting.pp "Metis_Resolution.iterate: waiting" waiting
@@ -20927,7 +20994,11 @@ fun iterate resolution =
     in
       case Metis_Waiting.remove waiting of
         NONE =>
-        Decided (Satisfiable (map Metis_Clause.thm (Metis_Active.saturation active)))
+        let
+          val sat = Satisfiable (List.map Metis_Clause.thm (Metis_Active.saturation active))
+        in
+          Decided sat
+        end
       | SOME ((d,cl),waiting) =>
         if Metis_Clause.isContradiction cl then
           Decided (Contradiction (Metis_Clause.thm cl))
@@ -20937,18 +21008,23 @@ fun iterate resolution =
             val () = Metis_Print.trace Metis_Clause.pp "Metis_Resolution.iterate: cl" cl
 *)
             val (active,cls) = Metis_Active.add active cl
+
             val waiting = Metis_Waiting.add waiting (d,cls)
+
+            val res =
+                Metis_Resolution
+                  {parameters = parameters,
+                   active = active,
+                   waiting = waiting}
           in
-            Undecided
-              (Metis_Resolution
-                 {parameters = parameters, active = active, waiting = waiting})
+            Undecided res
           end
     end;
 
-fun loop resolution =
-    case iterate resolution of
-      Decided decision => decision
-    | Undecided resolution => loop resolution;
+fun loop res =
+    case iterate res of
+      Decided dec => dec
+    | Undecided res => loop res;
 
 end
 ;

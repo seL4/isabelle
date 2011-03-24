@@ -44,16 +44,16 @@ local
       Formula.listMkDisj (LiteralSet.transform Literal.toFormula cl);
 in
   fun toFormula prob =
-      Formula.listMkConj (map clauseToFormula (toClauses prob));
+      Formula.listMkConj (List.map clauseToFormula (toClauses prob));
 
   fun toGoal {axioms,conjecture} =
       let
         val clToFm = Formula.generalize o clauseToFormula
-        val clsToFm = Formula.listMkConj o map clToFm
+        val clsToFm = Formula.listMkConj o List.map clToFm
 
         val fm = Formula.False
         val fm =
-            if null conjecture then fm
+            if List.null conjecture then fm
             else Formula.Imp (clsToFm conjecture, fm)
         val fm = Formula.Imp (clsToFm axioms, fm)
       in
@@ -121,7 +121,7 @@ fun categorize prob =
       val horn =
           if List.exists LiteralSet.null cls then Trivial
           else if List.all (fn cl => LiteralSet.size cl = 1) cls then Unit
-          else 
+          else
             let
               fun pos cl = LiteralSet.count Literal.positive cl <= 1
               fun neg cl = LiteralSet.count Literal.negative cl <= 1

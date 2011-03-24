@@ -107,7 +107,7 @@ fun ppInferenceType inf =
 local
   fun toFormula th =
       Formula.listMkDisj
-        (map Literal.toFormula (LiteralSet.toList (clause th)));
+        (List.map Literal.toFormula (LiteralSet.toList (clause th)));
 in
   fun pp th =
       Print.blockProgram Print.Inconsistent 3

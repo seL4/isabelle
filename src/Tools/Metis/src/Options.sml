@@ -155,7 +155,7 @@ fun usageInformation ({name,version,header,footer,options} : allOptions) =
         [{leftAlign = true, padChar = #"."},
          {leftAlign = true, padChar = #" "}]
 
-    val table = alignTable alignment (map listOpts options)
+    val table = alignTable alignment (List.map listOpts options)
   in
     header ^ join "\n" table ^ "\n" ^ footer
   end;

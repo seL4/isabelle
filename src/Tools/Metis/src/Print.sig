@@ -131,6 +131,8 @@ val ppStep : step pp
 
 val ppPpstream : ppstream pp
 
+val ppException : exn pp
+
 (* ------------------------------------------------------------------------- *)
 (* Pretty-printing infix operators.                                          *)
 (* ------------------------------------------------------------------------- *)

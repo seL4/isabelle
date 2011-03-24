@@ -164,7 +164,7 @@ local
       in
         case tm of
           Var _ => subtms rest acc
-        | Fn (_,args) => subtms (map f (enumerate args) @ rest) acc
+        | Fn (_,args) => subtms (List.map f (enumerate args) @ rest) acc
       end;
 in
   fun subterms tm = subtms [([],tm)] [];
@@ -195,7 +195,7 @@ fun find pred =
               Var _ => search rest
             | Fn (_,a) =>
               let
-                val subtms = map (fn (i,t) => (i :: path, t)) (enumerate a)
+                val subtms = List.map (fn (i,t) => (i :: path, t)) (enumerate a)
               in
                 search (subtms @ rest)
               end
@@ -235,14 +235,14 @@ end;
 
 fun newVar () = Var (Name.newName ());
 
-fun newVars n = map Var (Name.newNames n);
+fun newVars n = List.map Var (Name.newNames n);
 
 local
-  fun avoidAcceptable avoid n = not (NameSet.member n avoid);
+  fun avoid av n = NameSet.member n av;
 in
-  fun variantPrime avoid = Name.variantPrime (avoidAcceptable avoid);
+  fun variantPrime av = Name.variantPrime {avoid = avoid av};
 
-  fun variantNum avoid = Name.variantNum (avoidAcceptable avoid);
+  fun variantNum av = Name.variantNum {avoid = avoid av};
 end;
 
 (* ------------------------------------------------------------------------- *)
@@ -314,7 +314,7 @@ local
 
             val acc = (rev path, tm) :: acc
 
-            val rest = map f (enumerate args) @ rest
+            val rest = List.map f (enumerate args) @ rest
           in
             subtms rest acc
           end;
@@ -523,7 +523,7 @@ fun pp inputTerm =
       and basic bv (Var v) = varName bv v
         | basic bv (Fn (f,args)) =
           Print.blockProgram Print.Inconsistent 2
-            (functionName bv f :: map (functionArgument bv) args)
+            (functionName bv f :: List.map (functionArgument bv) args)
 
       and customBracket bv tm =
           case destBrack tm of
@@ -535,13 +535,13 @@ fun pp inputTerm =
             NONE => term bv tm
           | SOME (q,v,vs,tm) =>
             let
-              val bv = StringSet.addList bv (map Name.toString (v :: vs))
+              val bv = StringSet.addList bv (List.map Name.toString (v :: vs))
             in
               Print.program
                 [Print.ppString q,
                  varName bv v,
                  Print.program
-                   (map (Print.sequence (Print.addBreak 1) o varName bv) vs),
+                   (List.map (Print.sequence (Print.addBreak 1) o varName bv) vs),
                  Print.ppString ".",
                  Print.addBreak 1,
                  innerQuant bv tm]
@@ -628,9 +628,9 @@ local
         and neg = !negation
         and bracks = ("(",")") :: !brackets
 
-        val bracks = map (fn (b1,b2) => (b1 ^ b2, b1, b2)) bracks
+        val bracks = List.map (fn (b1,b2) => (b1 ^ b2, b1, b2)) bracks
 
-        val bTokens = map #2 bracks @ map #3 bracks
+        val bTokens = List.map #2 bracks @ List.map #3 bracks
 
         fun possibleVarName "" = false
           | possibleVarName s = isAlphaNum (String.sub (s,0))
@@ -685,8 +685,8 @@ local
             in
               var ||
               const ||
-              first (map bracket bracks) ||
-              first (map quantifier quants)
+              first (List.map bracket bracks) ||
+              first (List.map quantifier quants)
             end tokens
 
         and molecule bv tokens =

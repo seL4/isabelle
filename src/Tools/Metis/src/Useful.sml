@@ -50,7 +50,20 @@ fun can f = Option.isSome o total f;
 (* Tracing.                                                                  *)
 (* ------------------------------------------------------------------------- *)
 
-val tracePrint = ref TextIO.print;
+local
+  val traceOut = TextIO.stdOut;
+
+  fun tracePrintFn mesg =
+      let
+        val () = TextIO.output (traceOut,mesg)
+
+        val () = TextIO.flushOut traceOut
+      in
+        ()
+      end;
+in
+  val tracePrint = ref tracePrintFn;
+end;
 
 fun trace mesg = !tracePrint mesg;
 
@@ -254,7 +267,7 @@ fun groups f =
           case l of
             [] =>
             let
-              val acc = if null row then acc else rev row :: acc
+              val acc = if List.null row then acc else rev row :: acc
             in
               rev acc
             end
@@ -283,9 +296,9 @@ fun groupsBy eq =
 local
   fun fstEq ((x,_),(y,_)) = x = y;
 
-  fun collapse l = (fst (hd l), map snd l);
+  fun collapse l = (fst (hd l), List.map snd l);
 in
-  fun groupsByFst l = map collapse (groupsBy fstEq l);
+  fun groupsByFst l = List.map collapse (groupsBy fstEq l);
 end;
 
 fun groupsOf n =
@@ -430,10 +443,10 @@ fun sortMap _ _ [] = []
   | sortMap f cmp xs =
     let
       fun ncmp ((m,_),(n,_)) = cmp (m,n)
-      val nxs = map (fn x => (f x, x)) xs
+      val nxs = List.map (fn x => (f x, x)) xs
       val nys = sort ncmp nxs
     in
-      map snd nys
+      List.map snd nys
     end;
 
 (* ------------------------------------------------------------------------- *)
@@ -641,7 +654,7 @@ type columnAlignment = {leftAlign : bool, padChar : char}
 
 fun alignColumn {leftAlign,padChar} column =
     let
-      val (n,_) = maximum Int.compare (map size column)
+      val (n,_) = maximum Int.compare (List.map size column)
 
       fun pad entry row =
           let
@@ -657,13 +670,18 @@ fun alignColumn {leftAlign,padChar} column =
 local
   fun alignTab aligns rows =
       case aligns of
-        [] => map (K "") rows
-      | [{leftAlign = true, padChar = #" "}] => map hd rows
+        [] => List.map (K "") rows
+      | [{leftAlign = true, padChar = #" "}] => List.map hd rows
       | align :: aligns =>
-        alignColumn align (map hd rows) (alignTab aligns (map tl rows));
+        let
+          val col = List.map hd rows
+          and cols = alignTab aligns (List.map tl rows)
+        in
+          alignColumn align col cols
+        end;
 in
   fun alignTable aligns rows =
-      if null rows then [] else alignTab aligns rows;
+      if List.null rows then [] else alignTab aligns rows;
 end;
 
 (* ------------------------------------------------------------------------- *)

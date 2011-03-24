@@ -876,8 +876,8 @@ fun new parameters {axioms,conjecture} =
           Clause.mk {parameters = clause, id = Clause.newId (), thm = th}
 
       val active = empty parameters
-      val (active,axioms) = factor active (map mk_clause axioms)
-      val (active,conjecture) = factor active (map mk_clause conjecture)
+      val (active,axioms) = factor active (List.map mk_clause axioms)
+      val (active,conjecture) = factor active (List.map mk_clause conjecture)
     in
       (active, {axioms = axioms, conjecture = conjecture})
     end;

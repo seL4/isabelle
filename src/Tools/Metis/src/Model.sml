@@ -268,7 +268,7 @@ fun mapFixed fixMap fix =
 local
   fun mkEntry tag (na,n) = (tag,na,n);
 
-  fun mkList tag m = map (mkEntry tag) (NameArityMap.toList m);
+  fun mkList tag m = List.map (mkEntry tag) (NameArityMap.toList m);
 
   fun ppEntry (tag,source_arity,target) =
       Print.blockProgram Print.Inconsistent 2
@@ -288,7 +288,7 @@ in
         | entry :: entries =>
           Print.blockProgram Print.Consistent 0
             (ppEntry entry ::
-             map (Print.sequence Print.addNewline o ppEntry) entries)
+             List.map (Print.sequence Print.addNewline o ppEntry) entries)
       end;
 end;
 
@@ -334,7 +334,7 @@ fun arityProjectionFixed arity =
     end;
 
 val projectionFixed =
-    unionListFixed (map arityProjectionFixed projectionList);
+    unionListFixed (List.map arityProjectionFixed projectionList);
 
 (* Arithmetic *)
 
@@ -437,7 +437,7 @@ in
       let
         val fns =
             NameArityMap.fromList
-              (map (fn i => ((numeralName i,0), fixed0 (numeralFn i)))
+              (List.map (fn i => ((numeralName i,0), fixed0 (numeralFn i)))
                  numeralList @
                [((addName,2), fixed2 addFn),
                 ((divName,2), fixed2 divFn),
@@ -537,7 +537,7 @@ in
       let
         val fns =
             NameArityMap.fromList
-              (map (fn i => ((numeralName i,0), fixed0 (numeralFn i)))
+              (List.map (fn i => ((numeralName i,0), fixed0 (numeralFn i)))
                  numeralList @
                [((addName,2), fixed2 addFn),
                 ((divName,2), fixed2 divFn),
@@ -1029,13 +1029,13 @@ fun interpretTerm M V =
       fun interpret tm =
           case destTerm tm of
             Term.Var v => getValuation V v
-          | Term.Fn (f,tms) => interpretFunction M (f, map interpret tms)
+          | Term.Fn (f,tms) => interpretFunction M (f, List.map interpret tms)
     in
       interpret
     end;
 
 fun interpretAtom M V (r,tms) =
-    interpretRelation M (r, map (interpretTerm M V) tms);
+    interpretRelation M (r, List.map (interpretTerm M V) tms);
 
 fun interpretFormula M =
     let
@@ -1152,7 +1152,7 @@ fun modelTerm M V =
             Term.Var v => (ModelVar, getValuation V v)
           | Term.Fn (f,tms) =>
             let
-              val (tms,xs) = unzip (map modelTm tms)
+              val (tms,xs) = unzip (List.map modelTm tms)
             in
               (ModelFn (f,tms,xs), interpretFunction M (f,xs))
             end
@@ -1235,7 +1235,7 @@ local
       let
         fun onTarget ys = interpretRelation M (rel,ys) = target
 
-        val (tms,xs) = unzip (map (modelTerm M V) tms)
+        val (tms,xs) = unzip (List.map (modelTerm M V) tms)
 
         val rel_xs = (rel,xs)
 
@@ -1251,7 +1251,7 @@ local
   fun pertClause M V cl acc = LiteralSet.foldl (pertLiteral M V) acc cl;
 
   fun pickPerturb M perts =
-      if null perts then ()
+      if List.null perts then ()
       else perturb M (List.nth (perts, Portable.randomInt (length perts)));
 in
   fun perturbTerm M V (tm,target) =

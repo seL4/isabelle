@@ -50,7 +50,7 @@ fun equalQterm q1 q2 = compareQterm (q1,q2) = EQUAL;
 fun equalFnQterm f1 f2 = compareFnQterm (f1,f2) = EQUAL;
 
 fun termToQterm (Term.Var _) = Var
-  | termToQterm (Term.Fn (f,l)) = Fn ((f, length l), map termToQterm l);
+  | termToQterm (Term.Fn (f,l)) = Fn ((f, length l), List.map termToQterm l);
 
 local
   fun qm [] = true
@@ -116,7 +116,7 @@ end;
 
 local
   fun qtermToTerm Var = anonymousVar
-    | qtermToTerm (Fn ((f,_),l)) = Term.Fn (f, map qtermToTerm l);
+    | qtermToTerm (Fn ((f,_),l)) = Term.Fn (f, List.map qtermToTerm l);
 in
   val ppQterm = Print.ppMap qtermToTerm Term.pp;
 end;
@@ -339,7 +339,7 @@ local
 
   fun fifoize ({fifo, ...} : parameters) l = if fifo then sort idwise l else l;
 in
-  fun finally parm l = map snd (fifoize parm l);
+  fun finally parm l = List.map snd (fifoize parm l);
 end;
 
 local

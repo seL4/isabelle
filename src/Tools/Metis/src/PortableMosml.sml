@@ -67,7 +67,7 @@ prim_val catch_interrupt : bool -> unit = 1 "sys_catch_break";
 val _ = catch_interrupt true;
 
 (* ------------------------------------------------------------------------- *)
-(* Forcing fully qualified names of some key functions.                      *)
+(* Forcing fully qualified names of functions with generic names.            *)
 (* ------------------------------------------------------------------------- *)
 
 (*BasicDebug
@@ -75,6 +75,8 @@ val explode = ()
 and foldl = ()
 and foldr = ()
 and implode = ()
+and map = ()
+and null = ()
 and print = ();
 *)
 
@@ -112,10 +114,18 @@ fun Array_modifyi f a =
 
 fun OS_Process_isSuccess s = s = OS.Process.success;
 
-fun String_concatWith s l =
-    case l of
-      [] => ""
-    | h :: t => List.foldl (fn (x,y) => y ^ s ^ x) h t;
+fun String_concatWith s =
+    let
+      fun add (x,l) = s :: x :: l
+    in
+      fn [] => ""
+       | x :: xs =>
+         let
+           val xs = List.foldl add [] (rev xs)
+         in
+           String.concat (x :: xs)
+         end
+    end;
 
 fun String_isSubstring p s =
     let

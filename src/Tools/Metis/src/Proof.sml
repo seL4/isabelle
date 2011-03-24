@@ -133,7 +133,7 @@ in
         Print.blockProgram Print.Consistent 0
           [Print.ppString "START OF PROOF",
            Print.addNewline,
-           Print.program (map ppStep prf),
+           Print.program (List.map ppStep prf),
            Print.ppString "END OF PROOF"]
       end
 (*MetisDebug

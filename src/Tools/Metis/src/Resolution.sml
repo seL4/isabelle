@@ -33,11 +33,21 @@ val default : parameters =
 fun new parameters ths =
     let
       val {active = activeParm, waiting = waitingParm} = parameters
+
       val (active,cls) = Active.new activeParm ths  (* cls = factored ths *)
+
       val waiting = Waiting.new waitingParm cls
     in
       Resolution {parameters = parameters, active = active, waiting = waiting}
-    end;
+    end
+(*MetisDebug
+    handle e =>
+      let
+        val () = Print.trace Print.ppException "Resolution.new: exception" e
+      in
+        raise e
+      end;
+*)
 
 fun active (Resolution {active = a, ...}) = a;
 
@@ -62,9 +72,10 @@ datatype state =
     Decided of decision
   | Undecided of resolution;
 
-fun iterate resolution =
+fun iterate res =
     let
-      val Resolution {parameters,active,waiting} = resolution
+      val Resolution {parameters,active,waiting} = res
+
 (*MetisTrace2
       val () = Print.trace Active.pp "Resolution.iterate: active" active
       val () = Print.trace Waiting.pp "Resolution.iterate: waiting" waiting
@@ -72,7 +83,11 @@ fun iterate resolution =
     in
       case Waiting.remove waiting of
         NONE =>
-        Decided (Satisfiable (map Clause.thm (Active.saturation active)))
+        let
+          val sat = Satisfiable (List.map Clause.thm (Active.saturation active))
+        in
+          Decided sat
+        end
       | SOME ((d,cl),waiting) =>
         if Clause.isContradiction cl then
           Decided (Contradiction (Clause.thm cl))
@@ -82,17 +97,22 @@ fun iterate resolution =
             val () = Print.trace Clause.pp "Resolution.iterate: cl" cl
 *)
             val (active,cls) = Active.add active cl
+
             val waiting = Waiting.add waiting (d,cls)
+
+            val res =
+                Resolution
+                  {parameters = parameters,
+                   active = active,
+                   waiting = waiting}
           in
-            Undecided
-              (Resolution
-                 {parameters = parameters, active = active, waiting = waiting})
+            Undecided res
           end
     end;
 
-fun loop resolution =
-    case iterate resolution of
-      Decided decision => decision
-    | Undecided resolution => loop resolution;
+fun loop res =
+    case iterate res of
+      Decided dec => dec
+    | Undecided res => loop res;
 
 end
