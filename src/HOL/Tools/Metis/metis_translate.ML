@@ -36,6 +36,7 @@ sig
      tfrees: type_literal list,
      old_skolems: (string * term) list}
 
+  val metis_generated_var_prefix : string
   val type_tag_name : string
   val bound_var_prefix : string
   val schematic_var_prefix: string
@@ -82,6 +83,8 @@ end
 
 structure Metis_Translate : METIS_TRANSLATE =
 struct
+
+val metis_generated_var_prefix = "_"
 
 val type_tag_name = "ti"
 

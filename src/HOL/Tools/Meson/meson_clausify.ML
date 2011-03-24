@@ -8,6 +8,7 @@ Transformation of HOL theorems into CNF forms.
 signature MESON_CLAUSIFY =
 sig
   val new_skolem_var_prefix : string
+  val new_nonskolem_var_prefix : string
   val extensionalize_theorem : thm -> thm
   val introduce_combinators_in_cterm : cterm -> thm
   val introduce_combinators_in_theorem : thm -> thm
