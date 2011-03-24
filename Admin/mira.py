@@ -329,3 +329,22 @@ def JD_SN(*args):
     """Judgement Day regression suite SN"""
     return judgement_day('Isabelle/src/HOL/Proofs/Lambda', 'StrongNorm', 'prover_timeout=10', *args)
 
+
+# SML/NJ
+
+smlnj_settings = '''
+ML_SYSTEM=smlnj
+ML_HOME="/home/smlnj/110.72/bin"
+ML_OPTIONS="@SMLdebug=/dev/null @SMLalloc=256"
+ML_PLATFORM=$(eval $("$ML_HOME/.arch-n-opsys" 2>/dev/null); echo "$HEAP_SUFFIX")
+'''
+
+@configuration(repos = [Isabelle], deps = [])
+def SML_HOL(*args):
+    """HOL image built with SML/NJ"""
+    return isabelle_make('src/HOL', *args, more_settings=smlnj_settings, target='HOL')
+
+@configuration(repos = [Isabelle], deps = [])
+def SML_makeall(*args):
+    """Makeall built with SML/NJ"""
+    return isabelle_makeall(*args, more_settings=smlnj_settings)
