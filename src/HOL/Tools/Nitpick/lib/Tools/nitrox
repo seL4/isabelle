@@ -16,6 +16,8 @@ function usage() {
   exit 1
 }
 
+[ "$#" -eq 0 -o "$1" = "-?" ] && usage
+
 for FILE in "$@"
 do
   (echo "theory Nitrox_Run imports Main begin" &&
