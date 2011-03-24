@@ -11,6 +11,8 @@ theory Tarski
 imports Main "~~/src/HOL/Library/FuncSet"
 begin
 
+declare [[metis_new_skolemizer]]
+
 (*Many of these higher-order problems appear to be impossible using the
 current linkup. They often seem to need either higher-order unification
 or explicit reasoning about connectives such as conjunction. The numerous

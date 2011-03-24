@@ -11,6 +11,8 @@ theory BT
 imports Main
 begin
 
+declare [[metis_new_skolemizer]]
+
 datatype 'a bt =
     Lf
   | Br 'a  "'a bt"  "'a bt"

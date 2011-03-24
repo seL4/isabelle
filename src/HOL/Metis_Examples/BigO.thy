@@ -15,6 +15,8 @@ imports
   "~~/src/HOL/Library/Set_Algebras"
 begin
 
+declare [[metis_new_skolemizer]]
+
 subsection {* Definitions *}
 
 definition bigo :: "('a => 'b::linordered_idom) => ('a => 'b) set"    ("(1O'(_'))") where

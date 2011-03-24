@@ -8,6 +8,8 @@ theory HO_Reas
 imports Main
 begin
 
+declare [[metis_new_skolemizer]]
+
 sledgehammer_params [prover = e, blocking, isar_proof, timeout = 10]
 
 lemma "id True"

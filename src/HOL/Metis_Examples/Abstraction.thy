@@ -9,6 +9,8 @@ theory Abstraction
 imports Main "~~/src/HOL/Library/FuncSet"
 begin
 
+declare [[metis_new_skolemizer]]
+
 (*For Christoph Benzmueller*)
 lemma "x<1 & ((op=) = (op=)) ==> ((op=) = (op=)) & (x<(2::nat))";
   by (metis One_nat_def less_Suc0 not_less0 not_less_eq numeral_2_eq_2)

@@ -9,6 +9,8 @@ theory set
 imports Main
 begin
 
+declare [[metis_new_skolemizer]]
+
 lemma "EX x X. ALL y. EX z Z. (~P(y,y) | P(x,x) | ~S(z,x)) &
                (S(x,y) | ~S(y,z) | Q(Z,Z))  &
                (Q(X,y) | ~Q(y,Z) | S(X,X))" 
