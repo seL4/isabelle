@@ -658,7 +658,6 @@ fun instantiate_forall_tac thy t i st =
     fun do_instantiate th =
       let
         val var = Term.add_vars (prop_of th) []
-                  |> filter (Meson_Clausify.is_zapped_var_name o fst o fst)
                   |> the_single
       in th |> term_instantiate thy [(Var var, t')] end
   in
