@@ -198,7 +198,8 @@ fun update_name_tr (Free (x, T) :: ts) = list_comb (Free (suffix "_update" x, T)
       if Type_Ext.is_position ty then list_comb (c $ update_name_tr [t] $ ty, ts)
       else
         list_comb (c $ update_name_tr [t] $
-          (Lexicon.fun_type $ (Lexicon.fun_type $ ty $ ty) $ Lexicon.dummy_type), ts)
+          (Lexicon.fun_type $
+            (Lexicon.fun_type $ Lexicon.dummy_type $ ty) $ Lexicon.dummy_type), ts)
   | update_name_tr ts = raise TERM ("update_name_tr", ts);
 
 
@@ -461,15 +462,24 @@ fun quote_antiquote_tr' quoteN antiquoteN name =
 
 (* corresponding updates *)
 
+local
+
+fun upd_type (Type ("fun", [Type ("fun", [_, T]), _])) = T
+  | upd_type _ = dummyT;
+
 fun upd_tr' (x_upd, T) =
   (case try (unsuffix "_update") x_upd of
-    SOME x => (x, if T = dummyT then T else Term.domain_type T)
+    SOME x => (x, upd_type T)
   | NONE => raise Match);
+
+in
 
 fun update_name_tr' (Free x) = Free (upd_tr' x)
   | update_name_tr' ((c as Const ("_free", _)) $ Free x) = c $ Free (upd_tr' x)
   | update_name_tr' (Const x) = Const (upd_tr' x)
   | update_name_tr' _ = raise Match;
+
+end;
 
 
 (* indexed syntax *)
