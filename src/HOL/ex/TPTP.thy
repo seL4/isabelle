@@ -14,6 +14,10 @@ declare mem_def [simp add]
 
 declare [[smt_oracle]]
 
+refute_params [maxtime = 10000, no_assms, expect = genuine]
+nitpick_params [timeout = none, card = 1-50, verbose, dont_box, no_assms,
+                expect = genuine]
+
 ML {* Proofterm.proofs := 0 *}
 
 ML {*

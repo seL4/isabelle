@@ -50,11 +50,6 @@ fun run_atp force_full_types timeout i n ctxt goal name =
       handle ERROR message => (warning ("Error: " ^ message ^ "\n"); NONE)
   end
 
-fun to_period ("." :: _) = []
-  | to_period ("" :: ss) = to_period ss
-  | to_period (s :: ss) = s :: to_period ss
-  | to_period [] = []
-
 val atp = "e" (* or "vampire" or "spass" etc. *)
 
 fun thms_of_name ctxt name =
