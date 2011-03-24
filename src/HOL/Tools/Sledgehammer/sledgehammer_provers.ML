@@ -495,7 +495,9 @@ val unix_failures =
 val smt_failures =
   remote_smt_failures @ z3_wrapper_failures @ z3_failures @ unix_failures
 
-fun failure_from_smt_failure (SMT_Failure.Counterexample _) = Unprovable
+
+fun failure_from_smt_failure (SMT_Failure.Counterexample {is_real_cex, ...}) =
+    if is_real_cex then Unprovable else IncompleteUnprovable
   | failure_from_smt_failure SMT_Failure.Time_Out = TimedOut
   | failure_from_smt_failure (SMT_Failure.Abnormal_Termination code) =
     (case AList.lookup (op =) smt_failures code of
