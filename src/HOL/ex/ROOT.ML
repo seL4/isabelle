@@ -76,6 +76,9 @@ use_thys [
   "Set_Algebras"
 ];
 
+Unsynchronized.setmp Proofterm.proofs (! Proofterm.proofs)
+  use_thy "TPTP";
+
 if getenv "ISABELLE_GHC" = "" then ()
 else use_thy "Quickcheck_Narrowing_Examples";
 

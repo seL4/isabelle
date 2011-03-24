@@ -127,16 +127,18 @@ foreach $name (@action_names) {
 close(LOG_FILE);
 
 my $quiet = "";
+my $output_log = 1;
 if (defined $be_quiet and $be_quiet ne "") {
   $quiet = " > /dev/null 2>&1";
+  $output_log = 0;
 }
 
-print "Mirabelle: $thy_file\n" if ($quiet ne "");
+if ($output_log) { print "Mirabelle: $thy_file\n"; }
 
 my $result = system "\"$ENV{'ISABELLE_PROCESS'}\" " .
   "-e 'use_thy \"$path/$new_thy_name\" handle _ => exit 1;\n' -q $mirabelle_logic" . $quiet;
 
-print "Finished:  $thy_file\n" if ($quiet ne "");
+if ($output_log) { print "Finished:  $thy_file\n"; }
 
 
 # cleanup
