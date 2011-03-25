@@ -110,7 +110,7 @@ def build_isabelle_image(subdir, base, img, env, case, paths, dep_paths, playgro
 
     isabelle_home = paths[0]
     dep_path = dep_paths[0]
-    prepare_isabelle_repository(p, env.settings.contrib, dep_path, more_settings=more_settings)
+    prepare_isabelle_repository(isabelle_home, env.settings.contrib, dep_path, more_settings=more_settings)
     os.chdir(path.join(isabelle_home, 'src', subdir))
 
     (return_code, log) = isabelle_usedir(env, isabelle_home, '-b', base, img)
