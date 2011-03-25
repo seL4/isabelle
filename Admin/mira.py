@@ -133,14 +133,14 @@ def isabelle_make(subdir, env, case, paths, dep_paths, playground, more_settings
       {'timing': extract_isabelle_run_timing(log)}, {'log': log}, None)
 
 
-def isabelle_makeall(env, case, paths, dep_paths, playground, more_settings='', target='all'):
+def isabelle_makeall(env, case, paths, dep_paths, playground, more_settings='', target='all', make_options=()):
 
     isabelle_home = paths[0]
     dep_path = dep_paths[0] if dep_paths else None
     prepare_isabelle_repository(isabelle_home, env.settings.contrib, dep_path, more_settings=more_settings)
     os.chdir(isabelle_home)
 
-    (return_code, log) = env.run_process('%s/bin/isabelle' % isabelle_home, 'makeall', '-k', target)
+    (return_code, log) = env.run_process('%s/bin/isabelle' % isabelle_home, 'makeall', '-k', *(make_options + (target,)))
 
     return (return_code == 0, extract_isabelle_run_summary(log),
       {'timing': extract_isabelle_run_timing(log)}, {'log': log}, None)
@@ -347,4 +347,4 @@ def SML_HOL(*args):
 @configuration(repos = [Isabelle], deps = [])
 def SML_makeall(*args):
     """Makeall built with SML/NJ"""
-    return isabelle_makeall(*args, more_settings=smlnj_settings)
+    return isabelle_makeall(*args, more_settings=smlnj_settings, make_options=('-j', '3'))
