@@ -1115,7 +1115,7 @@ declare [[coercion "real::int\<Rightarrow>real"]]
 declare [[coercion "int"]]
 
 declare [[coercion_map map]]
-declare [[coercion_map "% f g h . g o h o f"]]
+declare [[coercion_map "% f g h x. g (h (f x))"]]
 declare [[coercion_map "% f g (x,y) . (f x, g y)"]]
 
 lemma real_eq_of_nat: "real = of_nat"
