@@ -39,7 +39,7 @@ sig
   val write_program : logic_program -> string
   val run : (Time.time * prolog_system) -> logic_program -> (string * prol_term list) -> string list -> int option -> prol_term list list
   
-  val quickcheck : Proof.context -> term -> int -> term list option * Quickcheck.report option
+  val quickcheck : Proof.context -> term * term list -> int -> term list option * Quickcheck.report option
 
   val trace : bool Unsynchronized.ref
   
