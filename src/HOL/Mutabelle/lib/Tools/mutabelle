@@ -8,6 +8,7 @@
 PRG="$(basename "$0")"
 
 function usage() {
+  [ -n "$MUTABELLE_OUTPUT_PATH" ] || MUTABELLE_OUTPUT_PATH="None"
   echo
   echo "Usage: isabelle $PRG [OPTIONS] THEORY"
   echo
@@ -57,6 +58,11 @@ fi
 [ "$#" -ne 1 ] && usage
 
 MUTABELLE_TEST_THEORY="$1"
+
+if [ -z "$MUTABELLE_OUTPUT_PATH" ]; then
+  MUTABELLE_OUTPUT_PATH="${ISABELLE_TMP_PREFIX}-mutabelle$$"
+  PURGE_OUTPUT="true"
+fi
 
 export MUTABELLE_OUTPUT_PATH
 
@@ -121,3 +127,9 @@ T: $(count "quickcheck_exhaustive" "Timeout") E: $(count "quickcheck_exhaustive"
 echo "nitpick     : C: $(count "nitpick" "GenuineCex") N: $(count "nitpick" "NoCex") \
 T: $(count "nitpick" "Timeout") E: $(count "nitpick" "Error")"
 
+
+## cleanup
+
+if [ -n "$PURGE_OUTPUT" ]; then
+  rm -rf "$MUTABELLE_OUTPUT_PATH"
+fi
