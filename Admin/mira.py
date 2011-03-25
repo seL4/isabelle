@@ -13,7 +13,7 @@ import util
 
 # build and evaluation tools
 
-def prepare_isabelle_repository(loc_isabelle, loc_contrib, loc_dependency_heaps, parallelism = True):
+def prepare_isabelle_repository(loc_isabelle, loc_contrib, loc_dependency_heaps, parallelism = True, more_settings=''):
 
     loc_contrib = path.expanduser(loc_contrib)
     if not path.exists(loc_contrib):
@@ -50,7 +50,8 @@ ISABELLE_PATH="%s"
 
 ISABELLE_USEDIR_OPTIONS="$ISABELLE_USEDIR_OPTIONS %s -t true -v true -d pdf -g true -i true"
 Z3_NON_COMMERCIAL="yes"
-''' % (isabelle_path, parallelism_options)
+%s
+''' % (isabelle_path, parallelism_options, more_settings)
 
     writer = open(path.join(loc_isabelle, 'etc', 'settings'), 'a')
     writer.write(extra_settings)
@@ -96,8 +97,8 @@ def isabelle_usedir(env, isa_path, isabelle_usedir_opts, base_image, dir_name):
 
 def isabelle_dependency_only(env, case, paths, dep_paths, playground):
 
-    p = paths[0]
-    result = path.join(p, 'heaps')
+    isabelle_home = paths[0]
+    result = path.join(isabelle_home, 'heaps')
     os.makedirs(result)
     for dep_path in dep_paths:
         subprocess.check_call(['cp', '-R'] + glob(dep_path + '/*') + [result])
@@ -105,28 +106,41 @@ def isabelle_dependency_only(env, case, paths, dep_paths, playground):
     return (True, 'ok', {}, {}, result)
 
 
-def build_isabelle_image(subdir, base, img, env, case, paths, dep_paths, playground):
+def build_isabelle_image(subdir, base, img, env, case, paths, dep_paths, playground, more_settings=''):
 
-    p = paths[0]
+    isabelle_home = paths[0]
     dep_path = dep_paths[0]
-    prepare_isabelle_repository(p, env.settings.contrib, dep_path)
-    os.chdir(path.join(p, 'src', subdir))
+    prepare_isabelle_repository(p, env.settings.contrib, dep_path, more_settings=more_settings)
+    os.chdir(path.join(isabelle_home, 'src', subdir))
 
-    (return_code, log) = isabelle_usedir(env, p, '-b', base, img)
+    (return_code, log) = isabelle_usedir(env, isabelle_home, '-b', base, img)
 
-    result = path.join(p, 'heaps')
+    result = path.join(isabelle_home, 'heaps')
     return (return_code == 0, extract_isabelle_run_summary(log),
       {'timing': extract_isabelle_run_timing(log)}, {'log': log}, result)
 
 
-def isabelle_makeall(env, case, paths, dep_paths, playground):
+def isabelle_make(subdir, env, case, paths, dep_paths, playground, more_settings='', target='all'):
 
-    p = paths[0]
-    dep_path = dep_paths[0]
-    prepare_isabelle_repository(p, env.settings.contrib, dep_path)
-    os.chdir(p)
+    isabelle_home = paths[0]
+    dep_path = dep_paths[0] if dep_paths else None
+    prepare_isabelle_repository(isabelle_home, env.settings.contrib, dep_path, more_settings=more_settings)
+    os.chdir(path.join(isabelle_home, subdir))
 
-    (return_code, log) = env.run_process('%s/bin/isabelle' % p, 'makeall', '-k', 'all')
+    (return_code, log) = env.run_process('%s/bin/isabelle' % isabelle_home, 'make', '-k', target)
+
+    return (return_code == 0, extract_isabelle_run_summary(log),
+      {'timing': extract_isabelle_run_timing(log)}, {'log': log}, None)
+
+
+def isabelle_makeall(env, case, paths, dep_paths, playground, more_settings='', target='all'):
+
+    isabelle_home = paths[0]
+    dep_path = dep_paths[0] if dep_paths else None
+    prepare_isabelle_repository(isabelle_home, env.settings.contrib, dep_path, more_settings=more_settings)
+    os.chdir(isabelle_home)
+
+    (return_code, log) = env.run_process('%s/bin/isabelle' % isabelle_home, 'makeall', '-k', target)
 
     return (return_code == 0, extract_isabelle_run_summary(log),
       {'timing': extract_isabelle_run_timing(log)}, {'log': log}, None)
@@ -138,13 +152,13 @@ def isabelle_makeall(env, case, paths, dep_paths, playground):
 def Pure(env, case, paths, dep_paths, playground):
     """Pure image"""
 
-    p = paths[0]
-    prepare_isabelle_repository(p, env.settings.contrib, '')
-    os.chdir(path.join(p, 'src', 'Pure'))
+    isabelle_home = paths[0]
+    prepare_isabelle_repository(isabelle_home, env.settings.contrib, '')
+    os.chdir(path.join(isabelle_home, 'src', 'Pure'))
 
-    (return_code, log) = env.run_process('%s/bin/isabelle' % p, 'make', 'Pure')
+    (return_code, log) = env.run_process('%s/bin/isabelle' % isabelle_home, 'make', 'Pure')
 
-    result = path.join(p, 'heaps')
+    result = path.join(isabelle_home, 'heaps')
     return (return_code == 0, extract_isabelle_run_summary(log),
       {'timing': extract_isabelle_run_timing(log)}, {'log': log}, result)
 
@@ -315,3 +329,22 @@ def JD_SN(*args):
     """Judgement Day regression suite SN"""
     return judgement_day('Isabelle/src/HOL/Proofs/Lambda', 'StrongNorm', 'prover_timeout=10', *args)
 
+
+# SML/NJ
+
+smlnj_settings = '''
+ML_SYSTEM=smlnj
+ML_HOME="/home/smlnj/110.72/bin"
+ML_OPTIONS="@SMLdebug=/dev/null @SMLalloc=256"
+ML_PLATFORM=$(eval $("$ML_HOME/.arch-n-opsys" 2>/dev/null); echo "$HEAP_SUFFIX")
+'''
+
+@configuration(repos = [Isabelle], deps = [])
+def SML_HOL(*args):
+    """HOL image built with SML/NJ"""
+    return isabelle_make('src/HOL', *args, more_settings=smlnj_settings, target='HOL')
+
+@configuration(repos = [Isabelle], deps = [])
+def SML_makeall(*args):
+    """Makeall built with SML/NJ"""
+    return isabelle_makeall(*args, more_settings=smlnj_settings)
