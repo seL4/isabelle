@@ -98,7 +98,7 @@ fun post_process_term t =
     fun map_Abs f t =
       case t of Abs (x, T, t') => Abs (x, T, f t') | _ => raise TERM ("map_Abs", [t]) 
     fun process_args t = case strip_comb t of
-      (c as Const (_, _), ts) => list_comb (c, map post_process_term ts) 
+      (c as Const (_, _), ts) => list_comb (c, map post_process_term ts)
   in
     case fastype_of t of
       Type (@{type_name fun}, [T1, T2]) =>
@@ -108,15 +108,15 @@ fun post_process_term t =
             |> (case T2 of
               @{typ bool} => 
                 (case t of
-                   Abs(_, _, @{const True}) => fst #> rev #> make_set T1
-                 | Abs(_, _, @{const False}) => fst #> rev #> make_coset T1
+                   Abs(_, _, @{const False}) => fst #> rev #> make_set T1
+                 | Abs(_, _, @{const True}) => fst #> rev #> make_coset T1
                  | Abs(_, _, Const (@{const_name undefined}, _)) => fst #> rev #> make_set T1
                  | _ => raise TERM ("post_process_term", [t]))
             | Type (@{type_name option}, _) =>
                 (case t of
-                  Abs(_, _, Const(@{const_name None}, _)) => fst #> make_map T1 T2
+                  Abs(_, _, Const (@{const_name None}, _)) => fst #> make_map T1 T2
                 | Abs(_, _, Const (@{const_name undefined}, _)) => fst #> make_map T1 T2
-                | _ => make_fun_upds T1 T2) 
+                | _ => make_fun_upds T1 T2)
             | _ => make_fun_upds T1 T2)
         | NONE => process_args t)
     | _ => process_args t
