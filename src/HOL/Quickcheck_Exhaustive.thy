@@ -91,19 +91,17 @@ begin
 
 fun exhaustive_fun' :: "(('a => 'b) * (unit => term) => term list option) => code_numeral => code_numeral => term list option"
 where
-  "exhaustive_fun' f i d = (if i > 1 then
-    exhaustive (%(a, at). exhaustive (%(b, bt).
-      exhaustive_fun' (%(g, gt). f (g(a := b),
-        (%_. let T1 = (Typerep.typerep (TYPE('a)));
-                 T2 = (Typerep.typerep (TYPE('b)))
-             in
-               Code_Evaluation.App (Code_Evaluation.App (Code_Evaluation.App
-                 (Code_Evaluation.Const (STR ''Fun.fun_upd'')
-                    (Typerep.Typerep (STR ''fun'') [Typerep.Typerep (STR ''fun'') [T1, T2],
-                       Typerep.Typerep (STR ''fun'') [T1, Typerep.Typerep (STR ''fun'') [T2, Typerep.Typerep (STR ''fun'') [T1, T2]]]]))
-               (gt ())) (at ())) (bt ())))) (i - 1) d) d) d
-  else (if i > 0 then
-    exhaustive (%(b, t). f (%_. b, %_. Code_Evaluation.Abs (STR ''x'') (Typerep.typerep TYPE('a)) (t ()))) d else None))"
+  "exhaustive_fun' f i d = (exhaustive (%(b, t). f (%_. b, %_. Code_Evaluation.Abs (STR ''x'') (Typerep.typerep TYPE('a)) (t ()))) d)
+   orelse (if i > 1 then
+     exhaustive_fun' (%(g, gt). exhaustive (%(a, at). exhaustive (%(b, bt).
+       f (g(a := b),
+         (%_. let A = (Typerep.typerep (TYPE('a)));
+                  B = (Typerep.typerep (TYPE('b)));
+                  fun = (%T U. Typerep.Typerep (STR ''fun'') [T, U])
+              in
+                Code_Evaluation.App (Code_Evaluation.App (Code_Evaluation.App
+                  (Code_Evaluation.Const (STR ''Fun.fun_upd'') (fun (fun A B) (fun A (fun B (fun A B)))))
+                (gt ())) (at ())) (bt ())))) d) d) (i - 1) d else None)"
 
 definition exhaustive_fun :: "(('a => 'b) * (unit => term) => term list option) => code_numeral => term list option"
 where
