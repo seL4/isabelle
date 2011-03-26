@@ -49,6 +49,9 @@ sig
   val join: 'a future -> 'a
   val value: 'a -> 'a future
   val map: ('a -> 'b) -> 'a future -> 'b future
+  val cond_forks:
+    {name: string, group: Task_Queue.group option, deps: Task_Queue.task list, pri: int} ->
+      (unit -> 'a) list -> 'a future list
   val promise_group: Task_Queue.group -> 'a future
   val promise: unit -> 'a future
   val fulfill_result: 'a future -> 'a Exn.result -> unit
@@ -499,6 +502,10 @@ fun map_future f x =
           deps = [task], pri = Task_Queue.pri_of_task task})
         (fn () => f (join x))
   end;
+
+fun cond_forks args es =
+  if Multithreading.enabled () then forks args es
+  else map (fn e => value (e ())) es;
 
 
 (* promised futures -- fulfilled by external means *)
