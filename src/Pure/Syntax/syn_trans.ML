@@ -10,10 +10,10 @@ sig
   val eta_contract_raw: Config.raw
   val eta_contract: bool Config.T
   val atomic_abs_tr': string * typ * term -> term * term
-  val preserve_binder_abs_tr': string -> string -> string * (term list -> term)
-  val preserve_binder_abs2_tr': string -> string -> string * (term list -> term)
   val mk_binder_tr: string * string -> string * (term list -> term)
   val mk_binder_tr': string * string -> string * (term list -> term)
+  val preserve_binder_abs_tr': string -> string -> string * (term list -> term)
+  val preserve_binder_abs2_tr': string -> string -> string * (term list -> term)
   val dependent_tr': string * string -> term list -> term
   val antiquote_tr: string -> term -> term
   val quote_tr: string -> term -> term
@@ -260,6 +260,28 @@ fun applC_ast_tr' (f, []) = raise Ast.AST ("applC_ast_tr'", [f])
   | applC_ast_tr' (f, args) = Ast.Appl [Ast.Constant "_applC", f, Ast.fold_ast "_cargs" args];
 
 
+(* partial eta-contraction before printing *)
+
+fun eta_abs (Abs (a, T, t)) =
+      (case eta_abs t of
+        t' as Const ("_aprop", _) $ _ => Abs (a, T, t')
+      | t' as f $ u =>
+          (case eta_abs u of
+            Bound 0 =>
+              if Term.is_dependent f then Abs (a, T, t')
+              else incr_boundvars ~1 f
+          | _ => Abs (a, T, t'))
+      | t' => Abs (a, T, t'))
+  | eta_abs t = t;
+
+val eta_contract_default = Unsynchronized.ref true;
+val eta_contract_raw = Config.declare "eta_contract" (fn _ => Config.Bool (! eta_contract_default));
+val eta_contract = Config.bool eta_contract_raw;
+
+fun eta_contr ctxt tm =
+  if Config.get ctxt eta_contract then eta_abs tm else tm;
+
+
 (* abstraction *)
 
 fun mark_boundT (x, T) = Const ("_bound", T --> T) $ Free (x, T);
@@ -281,32 +303,6 @@ fun strip_abss vars_of body_of tm =
   in (rev rev_vars', body') end;
 
 
-(*do (partial) eta-contraction before printing*)
-
-val eta_contract_default = Unsynchronized.ref true;
-val eta_contract_raw = Config.declare "eta_contract" (fn _ => Config.Bool (! eta_contract_default));
-val eta_contract = Config.bool eta_contract_raw;
-
-fun eta_contr ctxt tm =
-  let
-    fun is_aprop (Const ("_aprop", _)) = true
-      | is_aprop _ = false;
-
-    fun eta_abs (Abs (a, T, t)) =
-          (case eta_abs t of
-            t' as f $ u =>
-              (case eta_abs u of
-                Bound 0 =>
-                  if Term.is_dependent f orelse is_aprop f then Abs (a, T, t')
-                  else incr_boundvars ~1 f
-              | _ => Abs (a, T, t'))
-          | t' => Abs (a, T, t'))
-      | eta_abs t = t;
-  in
-    if Config.get ctxt eta_contract then eta_abs tm else tm
-  end;
-
-
 fun abs_tr' ctxt tm =
   uncurry (fold_rev (fn x => fn t => Lexicon.const "_abs" $ x $ t))
     (strip_abss strip_abs_vars strip_abs_body (eta_contr ctxt tm));
@@ -315,21 +311,13 @@ fun atomic_abs_tr' (x, T, t) =
   let val [xT] = Term.rename_wrt_term t [(x, T)]
   in (mark_boundT xT, subst_bound (mark_bound (fst xT), t)) end;
 
-fun abs_ast_tr' (*"_abs"*) asts =
+fun abs_ast_tr' asts =
   (case Ast.unfold_ast_p "_abs" (Ast.Appl (Ast.Constant "_abs" :: asts)) of
     ([], _) => raise Ast.AST ("abs_ast_tr'", asts)
   | (xs, body) => Ast.Appl [Ast.Constant "_lambda", Ast.fold_ast "_pttrns" xs, body]);
 
-fun preserve_binder_abs_tr' name syn = (name, fn (Abs abs :: ts) =>
-  let val (x, t) = atomic_abs_tr' abs
-  in list_comb (Lexicon.const syn $ x $ t, ts) end);
 
-fun preserve_binder_abs2_tr' name syn = (name, fn (A :: Abs abs :: ts) =>
-  let val (x, t) = atomic_abs_tr' abs
-  in list_comb (Lexicon.const syn $ x $ A $ t, ts) end);
-
-
-(* binder *)
+(* binders *)
 
 fun mk_binder_tr' (name, syn) =
   let
@@ -345,6 +333,14 @@ fun mk_binder_tr' (name, syn) =
     fun binder_tr' (t :: ts) = Term.list_comb (tr' (Lexicon.const name $ t), ts)
       | binder_tr' [] = raise Match;
   in (name, binder_tr') end;
+
+fun preserve_binder_abs_tr' name syn = (name, fn Abs abs :: ts =>
+  let val (x, t) = atomic_abs_tr' abs
+  in list_comb (Lexicon.const syn $ x $ t, ts) end);
+
+fun preserve_binder_abs2_tr' name syn = (name, fn A :: Abs abs :: ts =>
+  let val (x, t) = atomic_abs_tr' abs
+  in list_comb (Lexicon.const syn $ x $ A $ t, ts) end);
 
 
 (* idtyp constraints *)
