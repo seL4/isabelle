@@ -255,12 +255,12 @@ and decrh lev t = (decr lev t handle Same.SAME => t);
 fun eta (Abs (a, T, body)) =
     ((case eta body of
         body' as (f $ Bound 0) =>
-          if loose_bvar1 (f, 0) then Abs (a, T, body')
+          if Term.is_dependent f then Abs (a, T, body')
           else decrh 0 f
      | body' => Abs (a, T, body')) handle Same.SAME =>
         (case body of
           f $ Bound 0 =>
-            if loose_bvar1 (f, 0) then raise Same.SAME
+            if Term.is_dependent f then raise Same.SAME
             else decrh 0 f
         | _ => raise Same.SAME))
   | eta (t $ u) = (eta t $ Same.commit eta u handle Same.SAME => t $ eta u)

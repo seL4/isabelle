@@ -10,10 +10,11 @@ sig
   val eta_contract_raw: Config.raw
   val eta_contract: bool Config.T
   val atomic_abs_tr': string * typ * term -> term * term
-  val preserve_binder_abs_tr': string -> string -> string * (term list -> term)
-  val preserve_binder_abs2_tr': string -> string -> string * (term list -> term)
+  val const_abs_tr': term -> term
   val mk_binder_tr: string * string -> string * (term list -> term)
   val mk_binder_tr': string * string -> string * (term list -> term)
+  val preserve_binder_abs_tr': string -> string -> string * (term list -> term)
+  val preserve_binder_abs2_tr': string -> string -> string * (term list -> term)
   val dependent_tr': string * string -> term list -> term
   val antiquote_tr: string -> term -> term
   val quote_tr: string -> term -> term
@@ -198,7 +199,8 @@ fun update_name_tr (Free (x, T) :: ts) = list_comb (Free (suffix "_update" x, T)
       if Type_Ext.is_position ty then list_comb (c $ update_name_tr [t] $ ty, ts)
       else
         list_comb (c $ update_name_tr [t] $
-          (Lexicon.fun_type $ (Lexicon.fun_type $ ty $ ty) $ Lexicon.dummy_type), ts)
+          (Lexicon.fun_type $
+            (Lexicon.fun_type $ Lexicon.dummy_type $ ty) $ Lexicon.dummy_type), ts)
   | update_name_tr ts = raise TERM ("update_name_tr", ts);
 
 
@@ -259,6 +261,28 @@ fun applC_ast_tr' (f, []) = raise Ast.AST ("applC_ast_tr'", [f])
   | applC_ast_tr' (f, args) = Ast.Appl [Ast.Constant "_applC", f, Ast.fold_ast "_cargs" args];
 
 
+(* partial eta-contraction before printing *)
+
+fun eta_abs (Abs (a, T, t)) =
+      (case eta_abs t of
+        t' as Const ("_aprop", _) $ _ => Abs (a, T, t')
+      | t' as f $ u =>
+          (case eta_abs u of
+            Bound 0 =>
+              if Term.is_dependent f then Abs (a, T, t')
+              else incr_boundvars ~1 f
+          | _ => Abs (a, T, t'))
+      | t' => Abs (a, T, t'))
+  | eta_abs t = t;
+
+val eta_contract_default = Unsynchronized.ref true;
+val eta_contract_raw = Config.declare "eta_contract" (fn _ => Config.Bool (! eta_contract_default));
+val eta_contract = Config.bool eta_contract_raw;
+
+fun eta_contr ctxt tm =
+  if Config.get ctxt eta_contract then eta_abs tm else tm;
+
+
 (* abstraction *)
 
 fun mark_boundT (x, T) = Const ("_bound", T --> T) $ Free (x, T);
@@ -273,37 +297,11 @@ fun strip_abss vars_of body_of tm =
     val body = body_of tm;
     val rev_new_vars = Term.rename_wrt_term body vars;
     fun subst (x, T) b =
-      if can Name.dest_internal x andalso not (Term.loose_bvar1 (b, 0))
+      if can Name.dest_internal x andalso not (Term.is_dependent b)
       then (Const ("_idtdummy", T), incr_boundvars ~1 b)
       else (mark_boundT (x, T), Term.subst_bound (mark_bound x, b));
     val (rev_vars', body') = fold_map subst rev_new_vars body;
   in (rev rev_vars', body') end;
-
-
-(*do (partial) eta-contraction before printing*)
-
-val eta_contract_default = Unsynchronized.ref true;
-val eta_contract_raw = Config.declare "eta_contract" (fn _ => Config.Bool (! eta_contract_default));
-val eta_contract = Config.bool eta_contract_raw;
-
-fun eta_contr ctxt tm =
-  let
-    fun is_aprop (Const ("_aprop", _)) = true
-      | is_aprop _ = false;
-
-    fun eta_abs (Abs (a, T, t)) =
-          (case eta_abs t of
-            t' as f $ u =>
-              (case eta_abs u of
-                Bound 0 =>
-                  if Term.loose_bvar1 (f, 0) orelse is_aprop f then Abs (a, T, t')
-                  else  incr_boundvars ~1 f
-              | _ => Abs (a, T, t'))
-          | t' => Abs (a, T, t'))
-      | eta_abs t = t;
-  in
-    if Config.get ctxt eta_contract then eta_abs tm else tm
-  end;
 
 
 fun abs_tr' ctxt tm =
@@ -314,21 +312,20 @@ fun atomic_abs_tr' (x, T, t) =
   let val [xT] = Term.rename_wrt_term t [(x, T)]
   in (mark_boundT xT, subst_bound (mark_bound (fst xT), t)) end;
 
-fun abs_ast_tr' (*"_abs"*) asts =
+fun abs_ast_tr' asts =
   (case Ast.unfold_ast_p "_abs" (Ast.Appl (Ast.Constant "_abs" :: asts)) of
     ([], _) => raise Ast.AST ("abs_ast_tr'", asts)
   | (xs, body) => Ast.Appl [Ast.Constant "_lambda", Ast.fold_ast "_pttrns" xs, body]);
 
-fun preserve_binder_abs_tr' name syn = (name, fn (Abs abs :: ts) =>
-  let val (x, t) = atomic_abs_tr' abs
-  in list_comb (Lexicon.const syn $ x $ t, ts) end);
+fun const_abs_tr' t =
+  (case eta_abs t of
+    Abs (_, _, t') =>
+      if Term.is_dependent t' then raise Match
+      else incr_boundvars ~1 t'
+  | _ => raise Match);
 
-fun preserve_binder_abs2_tr' name syn = (name, fn (A :: Abs abs :: ts) =>
-  let val (x, t) = atomic_abs_tr' abs
-  in list_comb (Lexicon.const syn $ x $ A $ t, ts) end);
 
-
-(* binder *)
+(* binders *)
 
 fun mk_binder_tr' (name, syn) =
   let
@@ -344,6 +341,14 @@ fun mk_binder_tr' (name, syn) =
     fun binder_tr' (t :: ts) = Term.list_comb (tr' (Lexicon.const name $ t), ts)
       | binder_tr' [] = raise Match;
   in (name, binder_tr') end;
+
+fun preserve_binder_abs_tr' name syn = (name, fn Abs abs :: ts =>
+  let val (x, t) = atomic_abs_tr' abs
+  in list_comb (Lexicon.const syn $ x $ t, ts) end);
+
+fun preserve_binder_abs2_tr' name syn = (name, fn A :: Abs abs :: ts =>
+  let val (x, t) = atomic_abs_tr' abs
+  in list_comb (Lexicon.const syn $ x $ A $ t, ts) end);
 
 
 (* idtyp constraints *)
@@ -431,10 +436,10 @@ val variant_abs = var_abs Free;
 val variant_abs' = var_abs mark_boundT;
 
 fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
-      if Term.loose_bvar1 (B, 0) then
+      if Term.is_dependent B then
         let val (x', B') = variant_abs' (x, dummyT, B);
         in Term.list_comb (Lexicon.const q $ mark_boundT (x', T) $ A $ B', ts) end
-      else Term.list_comb (Lexicon.const r $ A $ B, ts)
+      else Term.list_comb (Lexicon.const r $ A $ incr_boundvars ~1 B, ts)
   | dependent_tr' _ _ = raise Match;
 
 
@@ -443,8 +448,8 @@ fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
 fun antiquote_tr' name =
   let
     fun tr' i (t $ u) =
-      if u aconv Bound i then Lexicon.const name $ tr' i t
-      else tr' i t $ tr' i u
+          if u aconv Bound i then Lexicon.const name $ tr' i t
+          else tr' i t $ tr' i u
       | tr' i (Abs (x, T, t)) = Abs (x, T, tr' (i + 1) t)
       | tr' i a = if a aconv Bound i then raise Match else a;
   in tr' 0 end;
@@ -461,15 +466,24 @@ fun quote_antiquote_tr' quoteN antiquoteN name =
 
 (* corresponding updates *)
 
+local
+
+fun upd_type (Type ("fun", [Type ("fun", [_, T]), _])) = T
+  | upd_type _ = dummyT;
+
 fun upd_tr' (x_upd, T) =
   (case try (unsuffix "_update") x_upd of
-    SOME x => (x, if T = dummyT then T else Term.domain_type T)
+    SOME x => (x, upd_type T)
   | NONE => raise Match);
+
+in
 
 fun update_name_tr' (Free x) = Free (upd_tr' x)
   | update_name_tr' ((c as Const ("_free", _)) $ Free x) = c $ Free (upd_tr' x)
   | update_name_tr' (Const x) = Const (upd_tr' x)
   | update_name_tr' _ = raise Match;
+
+end;
 
 
 (* indexed syntax *)

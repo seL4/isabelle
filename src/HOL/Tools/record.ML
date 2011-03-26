@@ -961,21 +961,11 @@ fun dest_update ctxt c =
 fun field_updates_tr' ctxt (tm as Const (c, _) $ k $ u) =
       (case dest_update ctxt c of
         SOME name =>
-          let
-            val opt_t =
-              (case k of
-                Abs (_, _, Abs (_, _, t) $ Bound 0) =>
-                  if null (loose_bnos t) then SOME t else NONE
-              | Abs (_, _, t) =>
-                  if null (loose_bnos t) then SOME t else NONE
-              | _ => NONE);
-          in
-            (case opt_t of
-              SOME t =>
-                apfst (cons (Syntax.const @{syntax_const "_field_update"} $ Syntax.free name $ t))
-                  (field_updates_tr' ctxt u)
-            | NONE => ([], tm))
-          end
+          (case try Syntax.const_abs_tr' k of
+            SOME t =>
+              apfst (cons (Syntax.const @{syntax_const "_field_update"} $ Syntax.free name $ t))
+                (field_updates_tr' ctxt u)
+          | NONE => ([], tm))
       | NONE => ([], tm))
   | field_updates_tr' _ tm = ([], tm);
 
