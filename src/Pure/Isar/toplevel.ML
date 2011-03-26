@@ -89,7 +89,8 @@ sig
   val add_hook: (transition -> state -> state -> unit) -> unit
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
   val command: transition -> state -> state
-  val excursion: (transition * transition list) list -> (transition * state) list lazy * theory
+  val excursion:
+    (transition * transition list) list -> (transition * state) list future list * theory
 end;
 
 structure Toplevel: TOPLEVEL =
@@ -655,7 +656,7 @@ fun proof_result immediate (tr, proof_trs) st =
       Proof.is_relevant (proof_of st')
     then
       let val (states, st'') = fold_map command_result proof_trs st'
-      in (Lazy.value ((tr, st') :: (proof_trs ~~ states)), st'') end
+      in (Future.value ((tr, st') :: (proof_trs ~~ states)), st'') end
     else
       let
         val (body_trs, end_tr) = split_last proof_trs;
@@ -679,8 +680,8 @@ fun proof_result immediate (tr, proof_trs) st =
           (case States.get (presentation_context_of st'') of
             NONE => raise Fail ("No future states for " ^ name_of tr ^ Position.str_of (pos_of tr))
           | SOME states => states);
-        val result = Lazy.lazy
-          (fn () => (tr, st') :: (body_trs ~~ Future.join states) @ [(end_tr, st'')]);
+        val result = states
+          |> Future.map (fn sts => (tr, st') :: (body_trs ~~ sts) @ [(end_tr, st'')]);
 
       in (result, st'') end
   end;
@@ -691,6 +692,6 @@ fun excursion input =
     val immediate = not (Goal.future_enabled ());
     val (results, end_state) = fold_map (proof_result immediate) input toplevel;
     val thy = end_theory end_pos end_state;
-  in (Lazy.lazy (fn () => maps Lazy.force results), thy) end;
+  in (results, thy) end;
 
 end;

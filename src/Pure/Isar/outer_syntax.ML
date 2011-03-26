@@ -31,7 +31,7 @@ sig
   type isar
   val isar: TextIO.instream -> bool -> isar
   val prepare_command: Position.T -> string -> Toplevel.transition
-  val load_thy: string -> (Path.T option -> theory) -> Position.T -> string -> (unit -> unit) * theory
+  val load_thy: string -> (Path.T option -> theory) -> Position.T -> string -> theory * unit future
 end;
 
 structure Outer_Syntax: OUTER_SYNTAX =
@@ -288,11 +288,16 @@ fun load_thy name init pos text =
     val (results, thy) = cond_timeit time "" (fn () => Toplevel.excursion atoms);
     val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();
 
-    fun after_load () =
-      Thy_Output.present_thy (#1 lexs) Keyword.command_tags is_markup (Lazy.force results) toks
-      |> Buffer.content
-      |> Present.theory_output name;
-  in (after_load, thy) end;
+    val present =
+      singleton (Future.cond_forks {name = "Outer_Syntax.present:" ^ name, group = NONE,
+        deps = map Future.task_of results, pri = 0})
+      (fn () =>
+        Thy_Output.present_thy (#1 lexs) Keyword.command_tags is_markup
+          (maps Future.join results) toks
+        |> Buffer.content
+        |> Present.theory_output name);
+
+  in (thy, present) end;
 
 end;
 

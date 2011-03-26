@@ -155,7 +155,7 @@ fun kill_thy name = NAMED_CRITICAL "Thy_Info" (fn () =>
 (* scheduling loader tasks *)
 
 datatype task =
-  Task of string list * (theory list -> (theory * (unit -> unit))) |
+  Task of string list * (theory list -> (theory * unit future * (unit -> unit))) |
   Finished of theory;
 
 fun task_finished (Task _) = false
@@ -168,8 +168,9 @@ fun schedule_seq task_graph =
     (case Graph.get_node task_graph name of
       Task (parents, body) =>
         let
-          val (thy, after_load) = body (map (the o Symtab.lookup tab) parents);
-          val _ = after_load ();
+          val (thy, present, commit) = body (map (the o Symtab.lookup tab) parents);
+          val _ = Future.join present;
+          val _ = commit ();
         in Symtab.update (name, thy) tab end
     | Finished thy => Symtab.update (name, thy) tab))) |> ignore;
 
@@ -194,13 +195,14 @@ fun schedule_futures task_graph = uninterruptible (fn _ => fn () =>
                   | bad => error (loader_msg ("failed to load " ^ quote name ^
                       " (unresolved " ^ commas_quote bad ^ ")") [])));
           in Symtab.update (name, future) tab end
-      | Finished thy => Symtab.update (name, Future.value (thy, I)) tab));
+      | Finished thy => Symtab.update (name, Future.value (thy, Future.value (), I)) tab));
     val _ =
       tasks |> maps (fn name =>
         let
-          val (thy, after_load) = Future.join (the (Symtab.lookup futures name));
+          val (thy, present, commit) = Future.join (the (Symtab.lookup futures name));
           val _ = Global_Theory.join_proofs thy;
-          val _ = after_load ();
+          val _ = Future.join present;
+          val _ = commit ();
         in [] end handle exn => [Exn.Exn exn])
       |> rev |> Exn.release_all;
   in () end) ();
@@ -237,17 +239,15 @@ fun load_thy initiators update_time (deps: deps) text name parent_thys =
       Thy_Load.begin_theory dir name imports parent_thys uses
       |> Present.begin_theory update_time dir uses;
 
-    val (after_load, theory) = Outer_Syntax.load_thy name init pos text;
+    val (theory, present) = Outer_Syntax.load_thy name init pos text;
 
     val parents = map Context.theory_name parent_thys;
-    fun after_load' () =
-     (after_load ();
+    fun commit () =
       NAMED_CRITICAL "Thy_Info" (fn () =>
        (map get_theory parents;
         change_thys (new_entry name parents (SOME deps, SOME theory));
-        perform Update name)));
-
-  in (theory, after_load') end;
+        perform Update name));
+  in (theory, present, commit) end;
 
 fun check_deps dir name =
   (case lookup_deps name of
@@ -255,7 +255,7 @@ fun check_deps dir name =
   | NONE =>
       let val {master, text, imports, ...} = Thy_Load.check_thy dir name
       in (false, SOME (make_deps master imports, text), imports) end
-  | SOME (SOME {master, imports}) =>
+  | SOME (SOME {master, ...}) =>
       let
         val {master = master', text = text', imports = imports', ...} = Thy_Load.check_thy dir name;
         val deps' = SOME (make_deps master' imports', text');
