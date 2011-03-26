@@ -24,7 +24,7 @@ text {*
   \end{rail}
 
   \begin{description}
-  
+
   \item @{command (HOL) "typedef"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = A"}
   axiomatizes a Gordon/HOL-style type definition in the background
   theory of the current context, depending on a non-emptiness result
@@ -36,7 +36,7 @@ text {*
   multiple interpretations in target contexts.  Thus the established
   bijection between the representing set @{text A} and the new type
   @{text t} may semantically depend on local assumptions.
-  
+
   By default, @{command (HOL) "typedef"} defines both a type @{text t}
   and a set (term constant) of the same name, unless an alternative
   base name is given in parentheses, or the ``@{text "(open)"}''
@@ -44,7 +44,7 @@ text {*
   altogether.  The injection from type to set is called @{text Rep_t},
   its inverse @{text Abs_t} --- this may be changed via an explicit
   @{keyword (HOL) "morphisms"} declaration.
-  
+
   Theorems @{text Rep_t}, @{text Rep_t_inverse}, and @{text
   Abs_t_inverse} provide the most basic characterization as a
   corresponding injection/surjection pair (in both directions).  Rules
@@ -55,7 +55,7 @@ text {*
   @{text Abs_t_cases}/@{text Abs_t_induct} provide alternative views
   on surjectivity; these are already declared as set or type rules for
   the generic @{method cases} and @{method induct} methods.
-  
+
   An alternative name for the set definition (and other derived
   entities) may be specified in parentheses; the default is to use
   @{text t} as indicated before.
@@ -77,7 +77,7 @@ text {*
   \end{rail}
 
   \begin{description}
-  
+
   \item @{attribute (HOL) split_format}\ @{text "(complete)"} causes
   arguments in function applications to be represented canonically
   according to their tuple type structure.
@@ -140,7 +140,7 @@ text {*
   ``@{text "\<dots>"}'' is properly terminated by the @{text "() :: unit"}
   element.  In fact, @{text "\<lparr>x = a, y = b\<rparr>"} is just an abbreviation
   for @{text "\<lparr>x = a, y = b, \<dots> = ()\<rparr>"}.
-  
+
   \medskip Two key observations make extensible records in a simply
   typed language like HOL work out:
 
@@ -261,7 +261,7 @@ text {*
   \medskip
   \begin{tabular}{lll}
     @{text "c\<^sub>i"} & @{text "::"} & @{text "\<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow> \<sigma>\<^sub>i"} \\
-    @{text "c\<^sub>i_update"} & @{text "::"} & @{text "\<sigma>\<^sub>i \<Rightarrow> 
+    @{text "c\<^sub>i_update"} & @{text "::"} & @{text "\<sigma>\<^sub>i \<Rightarrow>
       \<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr> \<Rightarrow>
       \<lparr>\<^vec>b :: \<^vec>\<rho>, \<^vec>c :: \<^vec>\<sigma>, \<dots> :: \<zeta>\<rparr>"} \\
     @{text "t.make"} & @{text "::"} & @{text "\<rho>\<^sub>1 \<Rightarrow> \<dots> \<rho>\<^sub>k \<Rightarrow> \<sigma>\<^sub>1 \<Rightarrow> \<dots> \<sigma>\<^sub>n \<Rightarrow>
@@ -299,13 +299,13 @@ text {*
   @{text t} is a record type as specified above.
 
   \begin{enumerate}
-  
+
   \item Standard conversions for selectors or updates applied to
   record constructor terms are made part of the default Simplifier
   context; thus proofs by reduction of basic operations merely require
   the @{method simp} method without further arguments.  These rules
   are available as @{text "t.simps"}, too.
-  
+
   \item Selectors applied to updated records are automatically reduced
   by an internal simplification procedure, which is also part of the
   standard Simplifier setup.
@@ -325,7 +325,7 @@ text {*
   induct} format (cf.\ the generic proof methods of the same name,
   \secref{sec:cases-induct}).  Several variations are available, for
   fixed records, record schemes, more parts etc.
-  
+
   The generic proof methods are sufficiently smart to pick the most
   sensible rule according to the type of the indicated record
   expression: users just need to apply something like ``@{text "(cases
@@ -614,7 +614,7 @@ text {*
   The mandatory @{text mode} argument specifies the mode of operation
   of the command, which directly corresponds to a complete partial
   order on the result type. By default, the following modes are
-  defined: 
+  defined:
 
   \begin{description}
   \item @{text option} defines functions that map into the @{type
@@ -623,7 +623,7 @@ text {*
   None} is returned by a recursive call, then the overall result
   must also be @{term None}. This is best achieved through the use of
   the monadic operator @{const "Option.bind"}.
-  
+
   \item @{text tailrec} defines functions with an arbitrary result
   type and uses the slightly degenerated partial order where @{term
   "undefined"} is the bottom element.  Now, monotonicity requires that
@@ -671,7 +671,7 @@ text {*
   \end{rail}
 
   \begin{description}
-  
+
   \item @{command (HOL) "recdef"} defines general well-founded
   recursive functions (using the TFL package), see also
   \cite{isabelle-HOL}.  The ``@{text "(permissive)"}'' option tells
@@ -682,12 +682,12 @@ text {*
   declarations (cf.\ \secref{sec:clasimp}) may be given to tune the
   context of the Simplifier (cf.\ \secref{sec:simplifier}) and
   Classical reasoner (cf.\ \secref{sec:classical}).
-  
+
   \item @{command (HOL) "recdef_tc"}~@{text "c (i)"} recommences the
   proof for leftover termination condition number @{text i} (default
   1) as generated by a @{command (HOL) "recdef"} definition of
   constant @{text c}.
-  
+
   Note that in most cases, @{command (HOL) "recdef"} is able to finish
   its internal proofs without manual intervention.
 
@@ -984,7 +984,7 @@ text {*
 
     \item[@{text eval}] takes a term or a list of terms and evaluates
       these terms under the variable assignment found by quickcheck.
-    
+
     \item[@{text iterations}] sets how many sets of assignments are
     generated for each particular size.
 
@@ -1060,7 +1060,7 @@ text {*
   induct} method, @{method induct_tac} does not handle structured rule
   statements, only the compact object-logic conclusion of the subgoal
   being addressed.
-  
+
   \item @{method (HOL) ind_cases} and @{command (HOL)
   "inductive_cases"} provide an interface to the internal @{ML_text
   mk_cases} operation.  Rules are simplified in an unrestricted
@@ -1224,7 +1224,7 @@ text {*
   Serializers take an optional list of arguments in parentheses.  For
   \emph{SML} and \emph{OCaml}, ``@{text no_signatures}`` omits
   explicit module signatures.
-  
+
   For \emph{Haskell} a module name prefix may be given using the
   ``@{text "root:"}'' argument; ``@{text string_classes}'' adds a
   ``@{verbatim "deriving (Read, Show)"}'' clause to each appropriate
@@ -1318,7 +1318,7 @@ text {*
     @{command_def (HOL) "code_module"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "code_library"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "consts_code"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "types_code"} & : & @{text "theory \<rightarrow> theory"} \\  
+    @{command_def (HOL) "types_code"} & : & @{text "theory \<rightarrow> theory"} \\
     @{attribute_def (HOL) code} & : & @{text attribute} \\
   \end{matharray}
 

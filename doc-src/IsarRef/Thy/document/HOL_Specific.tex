@@ -44,7 +44,7 @@
   \end{rail}
 
   \begin{description}
-  
+
   \item \hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{29}{\isacharparenright}}\ t\ {\isaliteral{3D}{\isacharequal}}\ A{\isaliteral{22}{\isachardoublequote}}}
   axiomatizes a Gordon/HOL-style type definition in the background
   theory of the current context, depending on a non-emptiness result
@@ -56,7 +56,7 @@
   multiple interpretations in target contexts.  Thus the established
   bijection between the representing set \isa{A} and the new type
   \isa{t} may semantically depend on local assumptions.
-  
+
   By default, \hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}} defines both a type \isa{t}
   and a set (term constant) of the same name, unless an alternative
   base name is given in parentheses, or the ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}open{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}''
@@ -64,7 +64,7 @@
   altogether.  The injection from type to set is called \isa{Rep{\isaliteral{5F}{\isacharunderscore}}t},
   its inverse \isa{Abs{\isaliteral{5F}{\isacharunderscore}}t} --- this may be changed via an explicit
   \hyperlink{keyword.HOL.morphisms}{\mbox{\isa{\isakeyword{morphisms}}}} declaration.
-  
+
   Theorems \isa{Rep{\isaliteral{5F}{\isacharunderscore}}t}, \isa{Rep{\isaliteral{5F}{\isacharunderscore}}t{\isaliteral{5F}{\isacharunderscore}}inverse}, and \isa{Abs{\isaliteral{5F}{\isacharunderscore}}t{\isaliteral{5F}{\isacharunderscore}}inverse} provide the most basic characterization as a
   corresponding injection/surjection pair (in both directions).  Rules
   \isa{Rep{\isaliteral{5F}{\isacharunderscore}}t{\isaliteral{5F}{\isacharunderscore}}inject} and \isa{Abs{\isaliteral{5F}{\isacharunderscore}}t{\isaliteral{5F}{\isacharunderscore}}inject} provide a slightly
@@ -74,7 +74,7 @@
   \isa{Abs{\isaliteral{5F}{\isacharunderscore}}t{\isaliteral{5F}{\isacharunderscore}}cases}/\isa{Abs{\isaliteral{5F}{\isacharunderscore}}t{\isaliteral{5F}{\isacharunderscore}}induct} provide alternative views
   on surjectivity; these are already declared as set or type rules for
   the generic \hyperlink{method.cases}{\mbox{\isa{cases}}} and \hyperlink{method.induct}{\mbox{\isa{induct}}} methods.
-  
+
   An alternative name for the set definition (and other derived
   entities) may be specified in parentheses; the default is to use
   \isa{t} as indicated before.
@@ -98,7 +98,7 @@
   \end{rail}
 
   \begin{description}
-  
+
   \item \hyperlink{attribute.HOL.split-format}{\mbox{\isa{split{\isaliteral{5F}{\isacharunderscore}}format}}}\ \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}complete{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} causes
   arguments in function applications to be represented canonically
   according to their tuple type structure.
@@ -163,7 +163,7 @@ Isabelle/HOL supports both \emph{fixed} and \emph{schematic} records
   ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}'' is properly terminated by the \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ unit{\isaliteral{22}{\isachardoublequote}}}
   element.  In fact, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} is just an abbreviation
   for \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}}.
-  
+
   \medskip Two key observations make extensible records in a simply
   typed language like HOL work out:
 
@@ -312,13 +312,13 @@ The record package proves several results internally, declaring
   \isa{t} is a record type as specified above.
 
   \begin{enumerate}
-  
+
   \item Standard conversions for selectors or updates applied to
   record constructor terms are made part of the default Simplifier
   context; thus proofs by reduction of basic operations merely require
   the \hyperlink{method.simp}{\mbox{\isa{simp}}} method without further arguments.  These rules
   are available as \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}simps{\isaliteral{22}{\isachardoublequote}}}, too.
-  
+
   \item Selectors applied to updated records are automatically reduced
   by an internal simplification procedure, which is also part of the
   standard Simplifier setup.
@@ -335,7 +335,7 @@ The record package proves several results internally, declaring
   constructor terms are provided both in \hyperlink{method.cases}{\mbox{\isa{cases}}} and \hyperlink{method.induct}{\mbox{\isa{induct}}} format (cf.\ the generic proof methods of the same name,
   \secref{sec:cases-induct}).  Several variations are available, for
   fixed records, record schemes, more parts etc.
-  
+
   The generic proof methods are sufficiently smart to pick the most
   sensible rule according to the type of the indicated record
   expression: users just need to apply something like ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}cases\ r{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}'' to a certain proof problem.
@@ -626,14 +626,14 @@ The record package proves several results internally, declaring
   The mandatory \isa{mode} argument specifies the mode of operation
   of the command, which directly corresponds to a complete partial
   order on the result type. By default, the following modes are
-  defined: 
+  defined:
 
   \begin{description}
   \item \isa{option} defines functions that map into the \isa{option} type. Here, the value \isa{None} is used to model a
   non-terminating computation. Monotonicity requires that if \isa{None} is returned by a recursive call, then the overall result
   must also be \isa{None}. This is best achieved through the use of
   the monadic operator \isa{{\isaliteral{22}{\isachardoublequote}}Option{\isaliteral{2E}{\isachardot}}bind{\isaliteral{22}{\isachardoublequote}}}.
-  
+
   \item \isa{tailrec} defines functions with an arbitrary result
   type and uses the slightly degenerated partial order where \isa{{\isaliteral{22}{\isachardoublequote}}undefined{\isaliteral{22}{\isachardoublequote}}} is the bottom element.  Now, monotonicity requires that
   if \isa{undefined} is returned by a recursive call, then the
@@ -680,7 +680,7 @@ The old TFL commands \hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recde
   \end{rail}
 
   \begin{description}
-  
+
   \item \hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recdef}}}} defines general well-founded
   recursive functions (using the TFL package), see also
   \cite{isabelle-HOL}.  The ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}permissive{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}'' option tells
@@ -690,12 +690,12 @@ The old TFL commands \hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recde
   declarations (cf.\ \secref{sec:clasimp}) may be given to tune the
   context of the Simplifier (cf.\ \secref{sec:simplifier}) and
   Classical reasoner (cf.\ \secref{sec:classical}).
-  
+
   \item \hyperlink{command.HOL.recdef-tc}{\mbox{\isa{\isacommand{recdef{\isaliteral{5F}{\isacharunderscore}}tc}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}c\ {\isaliteral{28}{\isacharparenleft}}i{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} recommences the
   proof for leftover termination condition number \isa{i} (default
   1) as generated by a \hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recdef}}}} definition of
   constant \isa{c}.
-  
+
   Note that in most cases, \hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recdef}}}} is able to finish
   its internal proofs without manual intervention.
 
@@ -1000,6 +1000,9 @@ Identifying incorrect propositions usually involves evaluation of
     \item[\isa{size}] specifies the maximum size of the search space
     for assignment values.
 
+    \item[\isa{eval}] takes a term or a list of terms and evaluates
+      these terms under the variable assignment found by quickcheck.
+
     \item[\isa{iterations}] sets how many sets of assignments are
     generated for each particular size.
 
@@ -1074,7 +1077,7 @@ The following tools of Isabelle/HOL support cases analysis and
   methods (see \secref{sec:cases-induct}).  Unlike the \hyperlink{method.induct}{\mbox{\isa{induct}}} method, \hyperlink{method.induct-tac}{\mbox{\isa{induct{\isaliteral{5F}{\isacharunderscore}}tac}}} does not handle structured rule
   statements, only the compact object-logic conclusion of the subgoal
   being addressed.
-  
+
   \item \hyperlink{method.HOL.ind-cases}{\mbox{\isa{ind{\isaliteral{5F}{\isacharunderscore}}cases}}} and \hyperlink{command.HOL.inductive-cases}{\mbox{\isa{\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}cases}}}} provide an interface to the internal \verb|mk_cases| operation.  Rules are simplified in an unrestricted
   forward manner.
 
@@ -1235,7 +1238,7 @@ Isabelle/Pure provides two generic frameworks to support code
   Serializers take an optional list of arguments in parentheses.  For
   \emph{SML} and \emph{OCaml}, ``\isa{no{\isaliteral{5F}{\isacharunderscore}}signatures}`` omits
   explicit module signatures.
-  
+
   For \emph{Haskell} a module name prefix may be given using the
   ``\isa{{\isaliteral{22}{\isachardoublequote}}root{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}}'' argument; ``\isa{string{\isaliteral{5F}{\isacharunderscore}}classes}'' adds a
   ``\verb|deriving (Read, Show)|'' clause to each appropriate
@@ -1327,7 +1330,7 @@ Isabelle/Pure provides two generic frameworks to support code
     \indexdef{HOL}{command}{code\_module}\hypertarget{command.HOL.code-module}{\hyperlink{command.HOL.code-module}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}module}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{HOL}{command}{code\_library}\hypertarget{command.HOL.code-library}{\hyperlink{command.HOL.code-library}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}library}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{HOL}{command}{consts\_code}\hypertarget{command.HOL.consts-code}{\hyperlink{command.HOL.consts-code}{\mbox{\isa{\isacommand{consts{\isaliteral{5F}{\isacharunderscore}}code}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
-    \indexdef{HOL}{command}{types\_code}\hypertarget{command.HOL.types-code}{\hyperlink{command.HOL.types-code}{\mbox{\isa{\isacommand{types{\isaliteral{5F}{\isacharunderscore}}code}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\  
+    \indexdef{HOL}{command}{types\_code}\hypertarget{command.HOL.types-code}{\hyperlink{command.HOL.types-code}{\mbox{\isa{\isacommand{types{\isaliteral{5F}{\isacharunderscore}}code}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{HOL}{attribute}{code}\hypertarget{attribute.HOL.code}{\hyperlink{attribute.HOL.code}{\mbox{\isa{code}}}} & : & \isa{attribute} \\
   \end{matharray}
 
