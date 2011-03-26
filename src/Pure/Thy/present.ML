@@ -228,7 +228,7 @@ fun make_session_info
 
 val session_info = Unsynchronized.ref (NONE: session_info option);
 
-fun with_session x f = (case ! session_info of NONE => x | SOME info => f info);
+fun session_default x f = (case ! session_info of NONE => x | SOME info => f info);
 
 
 
@@ -362,7 +362,7 @@ fun write_tex_index tex_index path =
 
 
 fun finish () =
-  with_session () (fn {name, info, html_prefix, doc_format,
+  session_default () (fn {name, info, html_prefix, doc_format,
     doc_graph, documents, dump_prefix, path, verbose, readme, ...} =>
   let
     val {theories, files, tex_index, html_index, graph} = ! browser_info;
@@ -433,13 +433,13 @@ fun finish () =
 
 (* theory elements *)
 
-fun init_theory name = with_session () (fn _ => init_theory_info name empty_theory_info);
+fun init_theory name = session_default () (fn _ => init_theory_info name empty_theory_info);
 
 fun theory_source name mk_text =
-  with_session () (fn _ => add_html_source name (HTML.theory_source (mk_text ())));
+  session_default () (fn _ => add_html_source name (HTML.theory_source (mk_text ())));
 
 fun theory_output name s =
-  with_session () (fn _ => add_tex_source name (Latex.isabelle_file name s));
+  session_default () (fn _ => add_tex_source name (Latex.isabelle_file name s));
 
 
 fun parent_link remote_path curr_session thy =
@@ -455,7 +455,7 @@ fun parent_link remote_path curr_session thy =
   in (link, name) end;
 
 fun begin_theory update_time dir files thy =
-    with_session thy (fn {name = sess_name, session, path, html_prefix, remote_path, ...} =>
+    session_default thy (fn {name = sess_name, session, path, html_prefix, remote_path, ...} =>
   let
     val name = Context.theory_name thy;
     val parents = Theory.parents_of thy;
