@@ -10,6 +10,7 @@ sig
   val eta_contract_raw: Config.raw
   val eta_contract: bool Config.T
   val atomic_abs_tr': string * typ * term -> term * term
+  val const_abs_tr': term -> term
   val mk_binder_tr: string * string -> string * (term list -> term)
   val mk_binder_tr': string * string -> string * (term list -> term)
   val preserve_binder_abs_tr': string -> string -> string * (term list -> term)
@@ -315,6 +316,13 @@ fun abs_ast_tr' asts =
   (case Ast.unfold_ast_p "_abs" (Ast.Appl (Ast.Constant "_abs" :: asts)) of
     ([], _) => raise Ast.AST ("abs_ast_tr'", asts)
   | (xs, body) => Ast.Appl [Ast.Constant "_lambda", Ast.fold_ast "_pttrns" xs, body]);
+
+fun const_abs_tr' t =
+  (case eta_abs t of
+    Abs (_, _, t') =>
+      if Term.is_dependent t' then raise Match
+      else incr_boundvars ~1 t'
+  | _ => raise Match);
 
 
 (* binders *)
