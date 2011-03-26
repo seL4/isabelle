@@ -45,8 +45,8 @@ fun raw_run make_cmd str in_path out_path =
   in {output=split_lines out2, redirected_output=out1, return_code=rc} end
 
 fun run make_cmd str =
-  Isabelle_System.with_tmp_file cache_io_prefix (fn in_path =>
-    Isabelle_System.with_tmp_file cache_io_prefix (fn out_path =>
+  Isabelle_System.with_tmp_file cache_io_prefix "" (fn in_path =>
+    Isabelle_System.with_tmp_file cache_io_prefix "" (fn out_path =>
       raw_run make_cmd str in_path out_path))
 
 

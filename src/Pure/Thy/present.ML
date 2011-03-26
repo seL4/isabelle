@@ -92,9 +92,9 @@ fun write_graph gr path =
 
 fun display_graph gr =
   let
-    val _ = writeln "Displaying graph ...";
-    val path = File.tmp_path (Path.explode "tmp.graph");
+    val path = Isabelle_System.create_tmp_path "graph" "";
     val _ = write_graph gr path;
+    val _ = writeln "Displaying graph ...";
     val _ = Isabelle_System.isabelle_tool "browser" ("-c " ^ File.shell_path path ^ " &");
   in () end;
 
@@ -332,21 +332,19 @@ fun isabelle_document verbose format name tags path result_path =
       else ();
   in doc_path end;
 
-fun isabelle_browser graph =
+fun isabelle_browser graph = Isabelle_System.with_tmp_dir "browser" (fn dir =>
   let
-    val pdf_path = File.tmp_path graph_pdf_path;
-    val eps_path = File.tmp_path graph_eps_path;
-    val gr_path = File.tmp_path graph_path;
-    val args = "-o " ^ File.shell_path pdf_path ^ " " ^ File.shell_path gr_path;
+    val pdf_path = Path.append dir graph_pdf_path;
+    val eps_path = Path.append dir graph_eps_path;
+    val graph_path = Path.append dir graph_path;
+    val _ = write_graph graph graph_path;
+    val args = "-o " ^ File.shell_path pdf_path ^ " " ^ File.shell_path graph_path;
   in
-    write_graph graph gr_path;
-    if Isabelle_System.isabelle_tool "browser" args <> 0 orelse
-      not (File.exists eps_path) orelse not (File.exists pdf_path)
-    then error "Failed to prepare dependency graph"
-    else
-      let val pdf = File.read pdf_path and eps = File.read eps_path
-      in File.rm pdf_path; File.rm eps_path; File.rm gr_path; (pdf, eps) end
-  end;
+    if Isabelle_System.isabelle_tool "browser" args = 0 andalso
+      File.exists pdf_path andalso File.exists eps_path
+    then (File.read pdf_path, File.read eps_path)
+    else error "Failed to prepare dependency graph"
+  end);
 
 
 (* finish session -- output all generated text *)
@@ -490,9 +488,9 @@ fun begin_theory update_time dir files thy =
 
 
 
-(** draft document output **)  (* FIXME doc_path etc. not thread-safe *)
+(** draft document output **)
 
-fun drafts doc_format src_paths =
+fun drafts doc_format src_paths = Isabelle_System.with_tmp_dir "drafts" (fn dir =>
   let
     fun prep_draft path i =
       let
@@ -508,8 +506,7 @@ fun drafts doc_format src_paths =
       end;
     val (srcs, tex_index) = split_list (fst (fold_map prep_draft src_paths 0));
 
-    val doc_path = File.tmp_path document_path;
-    val result_path = Path.append doc_path Path.parent;
+    val doc_path = Path.append dir document_path;
     val _ = Isabelle_System.mkdirs doc_path;
     val root_path = Path.append doc_path (Path.basic "root.tex");
     val _ = File.copy (Path.explode "~~/lib/texinputs/draft.tex") root_path;
@@ -527,8 +524,11 @@ fun drafts doc_format src_paths =
       |> Latex.symbol_source (known_syms, known_ctrls) (Path.implode base)
       |> File.write (Path.append doc_path (tex_path name)));
     val _ = write_tex_index tex_index doc_path;
-  in isabelle_document false doc_format documentN "" doc_path result_path end;
 
+    val result = isabelle_document false doc_format documentN "" doc_path dir;
+    val result' = Isabelle_System.create_tmp_path documentN doc_format;
+    val _ = File.copy result result';
+  in result' end);
 
 end;
 

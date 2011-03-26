@@ -10,7 +10,8 @@ sig
   val mkdirs: Path.T -> unit
   val mkdir: Path.T -> unit
   val copy_dir: Path.T -> Path.T -> unit
-  val with_tmp_file: string -> (Path.T -> 'a) -> 'a
+  val create_tmp_path: string -> string -> Path.T
+  val with_tmp_file: string -> string -> (Path.T -> 'a) -> 'a
   val with_tmp_dir: string -> (Path.T -> 'a) -> 'a
 end;
 
@@ -50,30 +51,24 @@ fun copy_dir src dst =
 
 (* unique tmp files *)
 
-local
-
-fun fresh_path name =
+fun create_tmp_path name ext =
   let
-    val path = File.tmp_path (Path.basic (name ^ serial_string ()));
+    val path = File.tmp_path (Path.basic (name ^ serial_string ()) |> Path.ext ext);
     val _ = File.exists path andalso
       raise Fail ("Temporary file already exists: " ^ Path.print path);
   in path end;
 
-fun rm_tree path = system_command ("rm -r -f " ^ File.shell_path path);
-
-in
-
-fun with_tmp_file name f =
-  let val path = fresh_path name
+fun with_tmp_file name ext f =
+  let val path = create_tmp_path name ext
   in Exn.release (Exn.capture f path before ignore (try File.rm path)) end;
+
+fun rm_tree path = system_command ("rm -r -f " ^ File.shell_path path);
 
 fun with_tmp_dir name f =
   let
-    val path = fresh_path name;
+    val path = create_tmp_path name "";
     val _ = mkdirs path;
   in Exn.release (Exn.capture f path before ignore (try rm_tree path)) end;
-
-end;
 
 end;
 
