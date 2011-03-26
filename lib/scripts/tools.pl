@@ -14,7 +14,7 @@ for my $dir (split(":", $ENV{"ISABELLE_TOOLS"})) {
     if (opendir DIR, $dir) {
       for my $name (readdir DIR) {
         my $file = "$dir/$name";
-        if (-f $file and -x $file and !($file =~ /~$/)) {
+        if (-f $file and -x $file and !($file =~ /~$/ or $file =~ /\.orig$/)) {
           if (open FILE, $file) {
             my $description;
             while (<FILE>) {

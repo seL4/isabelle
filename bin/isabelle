@@ -55,7 +55,7 @@ for DIR in "${TOOLS[@]}"
 do
   TOOL="$DIR/$TOOLNAME"
   case "$TOOL" in
-    *~) ;;
+    *~ | *.orig) ;;
     *) [ -f "$TOOL" -a -x "$TOOL" ] && exec "$TOOL" "$@" ;;
   esac
 done

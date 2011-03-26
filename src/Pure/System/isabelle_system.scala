@@ -290,7 +290,10 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
   {
     getenv_strict("ISABELLE_TOOLS").split(":").find { dir =>
       val file = platform_file(dir + "/" + name)
-      try { file.isFile && file.canRead && file.canExecute }
+      try {
+        file.isFile && file.canRead && file.canExecute &&
+          !name.endsWith("~") && !name.endsWith(".orig")
+      }
       catch { case _: SecurityException => false }
     } match {
       case Some(dir) =>
