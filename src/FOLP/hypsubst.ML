@@ -33,24 +33,26 @@ local open Data in
 
 exception EQ_VAR;
 
-fun loose (i, t) = member (op =) (add_loose_bnos (t, i, [])) 0;
-
 (*It's not safe to substitute for a constant; consider 0=1.
   It's not safe to substitute for x=t[x] since x is not eliminated.
   It's not safe to substitute for a Var; what if it appears in other goals?
   It's not safe to substitute for a variable free in the premises,
     but how could we check for this?*)
-fun inspect_pair bnd (t,u) =
-  case (Envir.eta_contract t, Envir.eta_contract u) of
-       (Bound i, _) => if loose(i,u) then raise Match
-                       else sym         (*eliminates t*)
-     | (_, Bound i) => if loose(i,t) then raise Match
-                       else asm_rl      (*eliminates u*)
-     | (Free _, _) => if bnd orelse Logic.occs(t,u) then raise Match
-                      else sym          (*eliminates t*)
-     | (_, Free _) => if bnd orelse Logic.occs(u,t) then raise Match
-                      else asm_rl       (*eliminates u*)
-     | _ => raise Match;
+fun inspect_pair bnd (t, u) =
+  (case (Envir.eta_contract t, Envir.eta_contract u) of
+    (Bound i, _) =>
+      if loose_bvar1 (u, i) then raise Match
+      else sym         (*eliminates t*)
+   | (_, Bound i) =>
+      if loose_bvar (t, i) then raise Match
+      else asm_rl      (*eliminates u*)
+   | (Free _, _) =>
+      if bnd orelse Logic.occs (t, u) then raise Match
+      else sym          (*eliminates t*)
+   | (_, Free _) =>
+      if bnd orelse Logic.occs(u,t) then raise Match
+      else asm_rl       (*eliminates u*)
+   | _ => raise Match);
 
 (*Locates a substitutable variable on the left (resp. right) of an equality
    assumption.  Returns the number of intervening assumptions, paried with
