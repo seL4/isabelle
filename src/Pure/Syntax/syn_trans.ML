@@ -435,7 +435,7 @@ fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
       if Term.is_dependent B then
         let val (x', B') = variant_abs' (x, dummyT, B);
         in Term.list_comb (Lexicon.const q $ mark_boundT (x', T) $ A $ B', ts) end
-      else Term.list_comb (Lexicon.const r $ A $ B, ts)  (* FIXME decr!? *)
+      else Term.list_comb (Lexicon.const r $ A $ incr_boundvars ~1 B, ts)
   | dependent_tr' _ _ = raise Match;
 
 
@@ -444,8 +444,8 @@ fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
 fun antiquote_tr' name =
   let
     fun tr' i (t $ u) =
-      if u aconv Bound i then Lexicon.const name $ tr' i t
-      else tr' i t $ tr' i u
+          if u aconv Bound i then Lexicon.const name $ tr' i t
+          else tr' i t $ tr' i u
       | tr' i (Abs (x, T, t)) = Abs (x, T, tr' (i + 1) t)
       | tr' i a = if a aconv Bound i then raise Match else a;
   in tr' 0 end;
