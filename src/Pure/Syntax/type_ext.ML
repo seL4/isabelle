@@ -133,7 +133,9 @@ fun strip_positions_ast (Ast.Appl ((t as Ast.Constant c) :: u :: (v as Ast.Varia
 val markup_const = Markup.const;
 fun markup_free x = Markup.name x Markup.free;
 fun markup_var xi = Markup.name (Term.string_of_vname xi) Markup.var;
-fun markup_bound id = Markup.properties [(Markup.idN, id)] Markup.bound;
+
+fun markup_bound def id =
+  Markup.properties [(if def then Markup.defN else Markup.refN, id)] Markup.bound;
 
 fun decode_term get_sort map_const map_free tm =
   let
@@ -145,23 +147,21 @@ fun decode_term get_sort map_const map_free tm =
           let val m = markup x
           in Unsynchronized.change reports (fold (fn p => cons (p, m)) ps) end;
 
-    val env0 = ([], [], []);
-
-    fun decode (env as (ps, qs, bs)) (Const ("_constrain", _) $ t $ typ) =
+    fun decode ps qs bs (Const ("_constrain", _) $ t $ typ) =
           (case decode_position typ of
-            SOME p => decode (p :: ps, qs, bs) t
-          | NONE => Type.constraint (decodeT typ) (decode env t))
-      | decode (env as (ps, qs, bs)) (Const ("_constrainAbs", _) $ t $ typ) =
+            SOME p => decode (p :: ps) qs bs t
+          | NONE => Type.constraint (decodeT typ) (decode ps qs bs t))
+      | decode ps qs bs (Const ("_constrainAbs", _) $ t $ typ) =
           (case decode_position typ of
-            SOME q => decode (ps, q :: qs, bs) t
-          | NONE => Type.constraint (decodeT typ --> dummyT) (decode env t))
-      | decode (_, qs, bs) (Abs (x, T, t)) =
+            SOME q => decode ps (q :: qs) bs t
+          | NONE => Type.constraint (decodeT typ --> dummyT) (decode ps qs bs t))
+      | decode _ qs bs (Abs (x, T, t)) =
           let
             val id = serial_string ();
-            val _ = report qs markup_bound id;
-          in Abs (x, T, decode ([], [], (qs, id) :: bs) t) end
-      | decode _ (t $ u) = decode env0 t $ decode env0 u
-      | decode (ps, _, _) (Const (a, T)) =
+            val _ = report qs (markup_bound true) id;
+          in Abs (x, T, decode [] [] (id :: bs) t) end
+      | decode _ _ bs (t $ u) = decode [] [] bs t $ decode [] [] bs u
+      | decode ps _ _ (Const (a, T)) =
           (case try Lexicon.unmark_fixed a of
             SOME x => (report ps markup_free x; Free (x, T))
           | NONE =>
@@ -172,7 +172,7 @@ fun decode_term get_sort map_const map_free tm =
                   | NONE => snd (map_const a));
                 val _ = report ps markup_const c;
               in Const (c, T) end)
-      | decode (ps, _, _) (Free (a, T)) =
+      | decode ps _ _ (Free (a, T)) =
           (case (map_free a, map_const a) of
             (SOME x, _) => (report ps markup_free x; Free (x, T))
           | (_, (true, c)) => (report ps markup_const c; Const (c, T))
@@ -180,13 +180,13 @@ fun decode_term get_sort map_const map_free tm =
               if Long_Name.is_qualified c
               then (report ps markup_const c; Const (c, T))
               else (report ps markup_free c; Free (c, T)))
-      | decode (ps, _, _) (Var (xi, T)) = (report ps markup_var xi; Var (xi, T))
-      | decode (_, _, bs) (t as Bound i) =
+      | decode ps _ _ (Var (xi, T)) = (report ps markup_var xi; Var (xi, T))
+      | decode ps _ bs (t as Bound i) =
           (case try (nth bs) i of
-            SOME (qs, id) => (report qs markup_bound id; t)
+            SOME id => (report ps (markup_bound false) id; t)
           | NONE => t);
 
-    val tm' = decode env0 tm;
+    val tm' = decode [] [] [] tm;
   in (! reports, tm') end;
 
 
