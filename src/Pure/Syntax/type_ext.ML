@@ -12,9 +12,8 @@ sig
   val is_position: term -> bool
   val strip_positions: term -> term
   val strip_positions_ast: Ast.ast -> Ast.ast
-  val decode_term: (((string * int) * sort) list -> string * int -> sort) ->
-    (string -> bool * string) -> (string -> string option) -> term ->
-    (Position.T * Markup.T) list * term
+  type term_context
+  val decode_term: term_context -> term -> (Position.T * Markup.T) list * term
   val term_of_typ: bool -> typ -> term
   val no_brackets: unit -> bool
   val no_type_brackets: unit -> bool
@@ -137,7 +136,12 @@ fun markup_var xi = Markup.name (Term.string_of_vname xi) Markup.var;
 fun markup_bound def id =
   Markup.properties [(if def then Markup.defN else Markup.refN, id)] Markup.bound;
 
-fun decode_term get_sort map_const map_free tm =
+type term_context =
+ {get_sort: (indexname * sort) list -> indexname -> sort,
+  get_const: string -> bool * string,
+  get_free: string -> string option};
+
+fun decode_term ({get_sort, get_const, get_free}: term_context) tm =
   let
     val decodeT = typ_of_term (get_sort (term_sorts tm));
 
@@ -169,11 +173,11 @@ fun decode_term get_sort map_const map_free tm =
                 val c =
                   (case try Lexicon.unmark_const a of
                     SOME c => c
-                  | NONE => snd (map_const a));
+                  | NONE => snd (get_const a));
                 val _ = report ps markup_const c;
               in Const (c, T) end)
       | decode ps _ _ (Free (a, T)) =
-          (case (map_free a, map_const a) of
+          (case (get_free a, get_const a) of
             (SOME x, _) => (report ps markup_free x; Free (x, T))
           | (_, (true, c)) => (report ps markup_const c; Const (c, T))
           | (_, (false, c)) =>

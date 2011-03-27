@@ -664,15 +664,13 @@ fun intern_skolem ctxt def_type x =
 
 in
 
-fun term_context ctxt =
+fun term_context ctxt : Syntax.term_context =
   {get_sort = get_sort ctxt,
-   map_const = fn a => ((true, #1 (Term.dest_Const (read_const_proper ctxt false a)))
+   get_const = fn a => ((true, #1 (Term.dest_Const (read_const_proper ctxt false a)))
      handle ERROR _ => (false, Consts.intern (consts_of ctxt) a)),
-   map_free = intern_skolem ctxt (Variable.def_type ctxt false)};
+   get_free = intern_skolem ctxt (Variable.def_type ctxt false)};
 
-fun decode_term ctxt =
-  let val {get_sort, map_const, map_free} = term_context ctxt
-  in Syntax.decode_term get_sort map_const map_free end;
+val decode_term = Syntax.decode_term o term_context;
 
 end;
 
@@ -757,8 +755,6 @@ fun parse_typ ctxt text =
 
 fun parse_term T ctxt text =
   let
-    val {get_sort, map_const, map_free} = term_context ctxt;
-
     val (T', _) = Type_Infer.paramify_dummies T 0;
     val (markup, kind) =
       if T' = propT then (Markup.prop, "proposition") else (Markup.term, "term");
@@ -775,9 +771,8 @@ fun parse_term T ctxt text =
     fun check t = (Syntax.check_term ctxt (Type.constraint T' t); NONE)
       handle ERROR msg => SOME msg;
     val t =
-      Syntax.standard_parse_term check get_sort map_const map_free
-        ctxt (syn_of ctxt) root (syms, pos)
-      handle ERROR msg => parse_failed ctxt pos msg kind;
+      Syntax.standard_parse_term check (term_context ctxt) ctxt (syn_of ctxt) root (syms, pos)
+        handle ERROR msg => parse_failed ctxt pos msg kind;
   in t end;
 
 

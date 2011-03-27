@@ -116,10 +116,8 @@ sig
   val ambiguity_level_raw: Config.raw
   val ambiguity_level: int Config.T
   val ambiguity_limit: int Config.T
-  val standard_parse_term: (term -> string option) ->
-    (((string * int) * sort) list -> string * int -> Term.sort) ->
-    (string -> bool * string) -> (string -> string option) -> Proof.context ->
-    syntax -> string -> Symbol_Pos.T list * Position.T -> term
+  val standard_parse_term: (term -> string option) -> term_context ->
+    Proof.context -> syntax -> string -> Symbol_Pos.T list * Position.T -> term
   val standard_parse_typ: Proof.context -> syntax ->
     ((indexname * sort) list -> indexname -> sort) -> Symbol_Pos.T list * Position.T -> typ
   val standard_parse_sort: Proof.context -> syntax -> Symbol_Pos.T list * Position.T -> sort
@@ -792,9 +790,9 @@ fun disambig ctxt _ [arg] = report_result ctxt arg
             map (show_term o snd) (take limit results)))
       end;
 
-fun standard_parse_term check get_sort map_const map_free ctxt syn root (syms, pos) =
+fun standard_parse_term check term_ctxt ctxt syn root (syms, pos) =
   read ctxt syn root (syms, pos)
-  |> map (Type_Ext.decode_term get_sort map_const map_free)
+  |> map (Type_Ext.decode_term term_ctxt)
   |> disambig ctxt check;
 
 
