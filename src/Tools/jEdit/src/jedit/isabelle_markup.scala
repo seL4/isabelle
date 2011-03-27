@@ -152,10 +152,10 @@ object Isabelle_Markup
       Markup.LOCAL_FACT -> NULL,
       // inner syntax
       Markup.TFREE -> NULL,
-      Markup.FREE -> NULL,
+      Markup.FREE -> MARKUP,
       Markup.TVAR -> NULL,
       Markup.SKOLEM -> NULL,
-      Markup.BOUND -> NULL,
+      Markup.BOUND -> LABEL,
       Markup.VAR -> NULL,
       Markup.NUM -> DIGIT,
       Markup.FLOAT -> DIGIT,
