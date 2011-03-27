@@ -1136,7 +1136,7 @@ fun find_model ctxt
             Output.urgent_message "Invoking SAT solver...";
             (case solver fm of
               SatSolver.SATISFIABLE assignment =>
-                (Output.urgent_message ("*** Model found: ***\n" ^ print_model ctxt model
+                (Output.urgent_message ("Model found:\n" ^ print_model ctxt model
                   (fn i => case assignment i of SOME b => b | NONE => true));
                  if maybe_spurious then "potential" else "genuine")
             | SatSolver.UNSATISFIABLE _ =>
