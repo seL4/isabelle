@@ -756,22 +756,25 @@ fun read ctxt (syn as Syntax (tabs, _)) root inp =
 
 (* read terms *)
 
+fun report_result ctxt (reports, res) =
+  (List.app (fn (pos, m) => Context_Position.report ctxt pos m) reports; res);
+
 (*brute-force disambiguation via type-inference*)
-fun disambig _ _ [t] = t
-  | disambig ctxt check ts =
+fun disambig ctxt _ [arg] = report_result ctxt arg
+  | disambig ctxt check args =
       let
         val level = Config.get ctxt ambiguity_level;
         val limit = Config.get ctxt ambiguity_limit;
 
-        val ambiguity = length ts;
+        val ambiguity = length args;
         fun ambig_msg () =
           if ambiguity > 1 andalso ambiguity <= level then
             "Got more than one parse tree.\n\
             \Retry with smaller syntax_ambiguity_level for more information."
           else "";
 
-        val errs = Par_List.map_name "Syntax.disambig" check ts;
-        val results = map_filter (fn (t, NONE) => SOME t | _ => NONE) (ts ~~ errs);
+        val errs = Par_List.map_name "Syntax.disambig" (check o snd) args;
+        val results = map_filter (fn (arg, NONE) => SOME arg | _ => NONE) (args ~~ errs);
         val len = length results;
 
         val show_term = string_of_term (Config.put Printer.show_brackets true ctxt);
@@ -782,11 +785,11 @@ fun disambig _ _ [t] = t
             Context_Position.if_visible ctxt warning
               "Fortunately, only one parse tree is type correct.\n\
               \You may still want to disambiguate your grammar or your input."
-          else (); hd results)
+          else (); report_result ctxt (hd results))
         else cat_error (ambig_msg ()) (cat_lines
           (("Ambiguous input, " ^ string_of_int len ^ " terms are type correct" ^
             (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
-            map show_term (take limit results)))
+            map (show_term o snd) (take limit results)))
       end;
 
 fun standard_parse_term check get_sort map_const map_free ctxt syn root (syms, pos) =

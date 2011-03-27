@@ -65,7 +65,7 @@ sig
   val allow_dummies: Proof.context -> Proof.context
   val check_tvar: Proof.context -> indexname * sort -> indexname * sort
   val check_tfree: Proof.context -> string * sort -> string * sort
-  val decode_term: Proof.context -> term -> term
+  val decode_term: Proof.context -> term -> (Position.T * Markup.T) list * term
   val standard_infer_types: Proof.context -> term list -> term list
   val read_term_pattern: Proof.context -> string -> term
   val read_term_schematic: Proof.context -> string -> term
