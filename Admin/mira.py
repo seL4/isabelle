@@ -347,4 +347,4 @@ def SML_HOL(*args):
 @configuration(repos = [Isabelle], deps = [])
 def SML_makeall(*args):
     """Makeall built with SML/NJ"""
-    return isabelle_makeall(*args, more_settings=smlnj_settings, make_options=('-j', '3'))
+    return isabelle_makeall(*args, more_settings=smlnj_settings, target='smlnj', make_options=('-j', '3'))

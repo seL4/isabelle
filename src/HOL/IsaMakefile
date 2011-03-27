@@ -15,7 +15,6 @@ images: \
   HOL-Multivariate_Analysis \
   HOL-NSA \
   HOL-Nominal \
-  HOL-Probability \
   HOL-Proofs \
   HOL-SPARK \
   HOL-Word \
@@ -27,13 +26,11 @@ images: \
   HOL-Main \
   HOL-Plain
 
-#Note: keep targets sorted (except for HOL-ex)
+#Note: keep targets sorted
 test: \
-  HOL-ex \
   HOL-Auth \
   HOL-Bali \
   HOL-Boogie-Examples \
-  HOL-Decision_Procs \
   HOL-Hahn_Banach \
   HOL-Hoare \
   HOL-Hoare_Parallel \
@@ -62,14 +59,12 @@ test: \
   HOL-Mutabelle \
   HOL-NanoJava \
   HOL-Nitpick_Examples \
-  HOL-Nominal-Examples \
   HOL-Number_Theory \
   HOL-Old_Number_Theory \
   HOL-Quotient_Examples \
   HOL-Predicate_Compile_Examples \
   HOL-Prolog \
   HOL-Proofs-ex \
-  HOL-Proofs-Extraction \
   HOL-Proofs-Lambda \
   HOL-SET_Protocol \
   HOL-SPARK-Examples \
@@ -85,8 +80,17 @@ test: \
   HOL-ZF
     # ^ this is the sort position
 
-all: test images
+images-no-smlnj: \
+  HOL-Probability
 
+test-no-smlnj: \
+  HOL-ex \
+  HOL-Decision_Procs \
+  HOL-Proofs-Extraction \
+  HOL-Nominal-Examples
+
+all: test-no-smlnj test images-no-smlnj images
+smlnj: test images
 
 ## global settings
 

@@ -8,6 +8,7 @@ default: FOL
 images: FOL
 test: FOL-ex
 all: images test
+smlnj: all
 
 
 ## global settings

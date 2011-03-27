@@ -8,6 +8,7 @@ default: Pure
 images: Pure
 test: RAW
 all: images test
+smlnj: all
 
 
 ## global settings
