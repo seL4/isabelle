@@ -84,7 +84,10 @@ object Markup
   /* misc properties */
 
   val NAME = "name"
+  val Name = new Property(NAME)
+
   val KIND = "kind"
+  val Kind = new Property(KIND)
 
 
   /* formal entities */
@@ -129,7 +132,7 @@ object Markup
   val FIXED_DECL = "fixed_decl"
   val FIXED = "fixed"
   val CONST_DECL = "const_decl"
-  val CONST = "const"
+  val CONST = "constant"
   val FACT_DECL = "fact_decl"
   val FACT = "fact"
   val DYNAMIC_FACT = "dynamic_fact"

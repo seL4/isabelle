@@ -24,6 +24,7 @@ sig
   val kind_of: T -> string
   val the_entry: T -> string ->
     {concealed: bool, group: serial option, theory_name: string, pos: Position.T, id: serial}
+  val markup_entry: T -> string -> Markup.T
   val is_concealed: T -> string -> bool
   val intern: T -> xstring -> string
   val extern_flags: {long_names: bool, short_names: bool, unique_names: bool} ->
@@ -79,15 +80,18 @@ type entry =
   pos: Position.T,
   id: serial};
 
-fun str_of_entry def (name, {pos, id, ...}: entry) =
+fun entry_markup def kind (name, {pos, id, ...}: entry) =
   let
     val occurrence = (if def then Markup.defN else Markup.refN, string_of_int id);
     val props = occurrence :: Position.properties_of pos;
-  in Markup.markup (Markup.properties props (Markup.entity name)) name end;
+  in Markup.properties props (Markup.entity kind name) end;
+
+fun print_entry def kind (name, entry) =
+  quote (Markup.markup (entry_markup def kind (name, entry)) name);
 
 fun err_dup kind entry1 entry2 =
   error ("Duplicate " ^ kind ^ " declaration " ^
-    quote (str_of_entry true entry1) ^ " vs. " ^ quote (str_of_entry true entry2));
+    print_entry true kind entry1 ^ " vs. " ^ print_entry true kind entry2);
 
 
 (* datatype T *)
@@ -116,6 +120,11 @@ fun the_entry (Name_Space {kind, entries, ...}) name =
   (case Symtab.lookup entries name of
     NONE => error ("Unknown " ^ kind ^ " " ^ quote name)
   | SOME (_, entry) => entry);
+
+fun markup_entry (Name_Space {kind, entries, ...}) name =
+  (case Symtab.lookup entries name of
+    NONE => Markup.malformed
+  | SOME (_, entry) => entry_markup false kind (name, entry));
 
 fun is_concealed space name = #concealed (the_entry space name);
 

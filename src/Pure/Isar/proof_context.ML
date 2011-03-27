@@ -65,7 +65,7 @@ sig
   val allow_dummies: Proof.context -> Proof.context
   val check_tvar: Proof.context -> indexname * sort -> indexname * sort
   val check_tfree: Proof.context -> string * sort -> string * sort
-  val decode_term: Proof.context -> term -> term
+  val decode_term: Proof.context -> term -> (Position.T * Markup.T) list * term
   val standard_infer_types: Proof.context -> term list -> term list
   val read_term_pattern: Proof.context -> string -> term
   val read_term_schematic: Proof.context -> string -> term
@@ -261,6 +261,7 @@ val set_defsort = map_tsig o apfst o Type.set_defsort;
 fun default_sort ctxt = the_default (Type.defaultS (tsig_of ctxt)) o Variable.def_sort ctxt;
 
 val consts_of = #1 o #consts o rep_context;
+val const_space = Consts.space_of o consts_of;
 val the_const_constraint = Consts.the_constraint o consts_of;
 
 val facts_of = #facts o rep_context;
@@ -664,15 +665,16 @@ fun intern_skolem ctxt def_type x =
 
 in
 
-fun term_context ctxt =
-  {get_sort = get_sort ctxt,
-   map_const = fn a => ((true, #1 (Term.dest_Const (read_const_proper ctxt false a)))
-     handle ERROR _ => (false, Consts.intern (consts_of ctxt) a)),
-   map_free = intern_skolem ctxt (Variable.def_type ctxt false)};
+fun term_context ctxt : Syntax.term_context =
+ {get_sort = get_sort ctxt,
+  get_const = fn a => ((true, #1 (Term.dest_Const (read_const_proper ctxt false a)))
+    handle ERROR _ => (false, Consts.intern (consts_of ctxt) a)),
+  get_free = intern_skolem ctxt (Variable.def_type ctxt false),
+  markup_const = Name_Space.markup_entry (const_space ctxt),
+  markup_free = fn x => Markup.name x Markup.free,
+  markup_var = fn xi => Markup.name (Term.string_of_vname xi) Markup.var};
 
-fun decode_term ctxt =
-  let val {get_sort, map_const, map_free} = term_context ctxt
-  in Syntax.decode_term get_sort map_const map_free end;
+val decode_term = Syntax.decode_term o term_context;
 
 end;
 
@@ -757,8 +759,6 @@ fun parse_typ ctxt text =
 
 fun parse_term T ctxt text =
   let
-    val {get_sort, map_const, map_free} = term_context ctxt;
-
     val (T', _) = Type_Infer.paramify_dummies T 0;
     val (markup, kind) =
       if T' = propT then (Markup.prop, "proposition") else (Markup.term, "term");
@@ -775,9 +775,8 @@ fun parse_term T ctxt text =
     fun check t = (Syntax.check_term ctxt (Type.constraint T' t); NONE)
       handle ERROR msg => SOME msg;
     val t =
-      Syntax.standard_parse_term check get_sort map_const map_free
-        ctxt (syn_of ctxt) root (syms, pos)
-      handle ERROR msg => parse_failed ctxt pos msg kind;
+      Syntax.standard_parse_term check (term_context ctxt) ctxt (syn_of ctxt) root (syms, pos)
+        handle ERROR msg => parse_failed ctxt pos msg kind;
   in t end;
 
 

@@ -109,7 +109,7 @@ fun syn_ext_types type_decls =
       | mfix_of (t, ty, Infix (sy, p)) = SOME (mk_infix sy ty t (p + 1) (p + 1) p)
       | mfix_of (t, ty, Infixl (sy, p)) = SOME (mk_infix sy ty t p (p + 1) p)
       | mfix_of (t, ty, Infixr (sy, p)) = SOME (mk_infix sy ty t (p + 1) p p)
-      | mfix_of (t, _, _) = error ("Bad mixfix declaration for " ^ quote t);  (* FIXME printable t (!?) *)
+      | mfix_of (t, _, _) = error ("Bad mixfix declaration for " ^ quote t);
 
     fun check_args (_, ty, _) (SOME (mfix as Syn_Ext.Mfix (sy, _, _, _, _))) =
           if length (Term.binder_types ty) = Syn_Ext.mfix_args sy then ()
@@ -145,7 +145,7 @@ fun syn_ext_consts is_logtype const_decls =
       | mfix_of (c, ty, Infixr (sy, p)) = mk_infix sy ty c (p + 1) p p
       | mfix_of (c, ty, Binder (sy, p, q)) =
           [Syn_Ext.Mfix ("(3" ^ sy ^ "_./ _)", binder_typ c ty, (binder_name c), [0, p], q)]
-      | mfix_of (c, _, _) = error ("Bad mixfix declaration for " ^ quote c);   (* FIXME printable c (!?) *)
+      | mfix_of (c, _, _) = error ("Bad mixfix declaration for " ^ quote c);
 
     fun binder (c, _, Binder _) = SOME (binder_name c, c)
       | binder _ = NONE;

@@ -144,7 +144,7 @@ object Isabelle_Markup
       Markup.FIXED_DECL -> FUNCTION,
       Markup.FIXED -> NULL,
       Markup.CONST_DECL -> FUNCTION,
-      Markup.CONST -> NULL,
+      Markup.CONST -> LITERAL2,
       Markup.FACT_DECL -> FUNCTION,
       Markup.FACT -> NULL,
       Markup.DYNAMIC_FACT -> LABEL,
@@ -152,10 +152,10 @@ object Isabelle_Markup
       Markup.LOCAL_FACT -> NULL,
       // inner syntax
       Markup.TFREE -> NULL,
-      Markup.FREE -> NULL,
+      Markup.FREE -> MARKUP,
       Markup.TVAR -> NULL,
       Markup.SKOLEM -> NULL,
-      Markup.BOUND -> NULL,
+      Markup.BOUND -> LABEL,
       Markup.VAR -> NULL,
       Markup.NUM -> DIGIT,
       Markup.FLOAT -> DIGIT,
@@ -203,6 +203,9 @@ object Isabelle_Markup
   {
     case Text.Info(_, XML.Elem(Markup(Markup.COMMAND, List((Markup.NAME, name))), _))
     if syntax.keyword_kind(name).isDefined => command_style(syntax.keyword_kind(name).get)
+
+    case Text.Info(_, XML.Elem(Markup(Markup.ENTITY, Markup.Kind(kind)), _))
+    if token_style(kind) != Token.NULL => token_style(kind)
 
     case Text.Info(_, XML.Elem(Markup(name, _), _))
     if token_style(name) != Token.NULL => token_style(name)
