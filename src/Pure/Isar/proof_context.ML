@@ -261,6 +261,7 @@ val set_defsort = map_tsig o apfst o Type.set_defsort;
 fun default_sort ctxt = the_default (Type.defaultS (tsig_of ctxt)) o Variable.def_sort ctxt;
 
 val consts_of = #1 o #consts o rep_context;
+val const_space = Consts.space_of o consts_of;
 val the_const_constraint = Consts.the_constraint o consts_of;
 
 val facts_of = #facts o rep_context;
@@ -665,10 +666,13 @@ fun intern_skolem ctxt def_type x =
 in
 
 fun term_context ctxt : Syntax.term_context =
-  {get_sort = get_sort ctxt,
-   get_const = fn a => ((true, #1 (Term.dest_Const (read_const_proper ctxt false a)))
-     handle ERROR _ => (false, Consts.intern (consts_of ctxt) a)),
-   get_free = intern_skolem ctxt (Variable.def_type ctxt false)};
+ {get_sort = get_sort ctxt,
+  get_const = fn a => ((true, #1 (Term.dest_Const (read_const_proper ctxt false a)))
+    handle ERROR _ => (false, Consts.intern (consts_of ctxt) a)),
+  get_free = intern_skolem ctxt (Variable.def_type ctxt false),
+  markup_const = Name_Space.markup_entry (const_space ctxt),
+  markup_free = fn x => Markup.name x Markup.free,
+  markup_var = fn xi => Markup.name (Term.string_of_vname xi) Markup.var};
 
 val decode_term = Syntax.decode_term o term_context;
 

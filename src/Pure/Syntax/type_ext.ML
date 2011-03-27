@@ -129,20 +129,20 @@ fun strip_positions_ast (Ast.Appl ((t as Ast.Constant c) :: u :: (v as Ast.Varia
 
 (* decode_term -- transform parse tree into raw term *)
 
-val markup_const = Markup.const;
-fun markup_free x = Markup.name x Markup.free;
-fun markup_var xi = Markup.name (Term.string_of_vname xi) Markup.var;
-
 fun markup_bound def id =
   Markup.properties [(if def then Markup.defN else Markup.refN, id)] Markup.bound;
 
 type term_context =
  {get_sort: (indexname * sort) list -> indexname -> sort,
   get_const: string -> bool * string,
-  get_free: string -> string option};
+  get_free: string -> string option,
+  markup_const: string -> Markup.T,
+  markup_free: string -> Markup.T,
+  markup_var: indexname -> Markup.T};
 
-fun decode_term ({get_sort, get_const, get_free}: term_context) tm =
+fun decode_term (term_context: term_context) tm =
   let
+    val {get_sort, get_const, get_free, markup_const, markup_free, markup_var} = term_context;
     val decodeT = typ_of_term (get_sort (term_sorts tm));
 
     val reports = Unsynchronized.ref ([]: (Position.T * Markup.T) list);

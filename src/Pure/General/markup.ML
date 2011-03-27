@@ -16,7 +16,7 @@ sig
   val name: string -> T -> T
   val kindN: string
   val bindingN: string val binding: string -> T
-  val entityN: string val entity: string -> T
+  val entityN: string val entity: string -> string -> T
   val defN: string
   val refN: string
   val lineN: string
@@ -174,7 +174,9 @@ val kindN = "kind";
 (* formal entities *)
 
 val (bindingN, binding) = markup_string "binding" nameN;
-val (entityN, entity) = markup_string "entity" nameN;
+
+val entityN = "entity";
+fun entity kind name = (entityN, [(kindN, kind), (nameN, name)]);
 
 val defN = "def";
 val refN = "ref";
@@ -218,7 +220,7 @@ val (tyconN, tycon) = markup_string "tycon" nameN;
 val (fixed_declN, fixed_decl) = markup_string "fixed_decl" nameN;
 val (fixedN, fixed) = markup_string "fixed" nameN;
 val (const_declN, const_decl) = markup_string "const_decl" nameN;
-val (constN, const) = markup_string "const" nameN;
+val (constN, const) = markup_string "constant" nameN;
 val (fact_declN, fact_decl) = markup_string "fact_decl" nameN;
 val (factN, fact) = markup_string "fact" nameN;
 val (dynamic_factN, dynamic_fact) = markup_string "dynamic_fact" nameN;
