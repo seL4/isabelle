@@ -341,16 +341,17 @@ expressions. During proofs, they may become unreadable (and
 mangled). In such cases it can be advisable to introduce separate
 definitions for the list comprehensions in question.  *}
 
-nonterminal lc_qual and lc_quals
+nonterminal lc_gen and lc_qual and lc_quals
 
 syntax
 "_listcompr" :: "'a \<Rightarrow> lc_qual \<Rightarrow> lc_quals \<Rightarrow> 'a list"  ("[_ . __")
-"_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ <- _")
+"_lc_gen" :: "lc_gen \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ <- _")
 "_lc_test" :: "bool \<Rightarrow> lc_qual" ("_")
 (*"_lc_let" :: "letbinds => lc_qual"  ("let _")*)
 "_lc_end" :: "lc_quals" ("]")
 "_lc_quals" :: "lc_qual \<Rightarrow> lc_quals \<Rightarrow> lc_quals" (", __")
 "_lc_abs" :: "'a => 'b list => 'b list"
+"_strip_positions" :: "'a \<Rightarrow> lc_gen"  ("_")
 
 (* These are easier than ML code but cannot express the optimized
    translation of [e. p<-xs]
@@ -366,9 +367,9 @@ translations
 *)
 
 syntax (xsymbols)
-"_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ \<leftarrow> _")
+"_lc_gen" :: "lc_gen \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ \<leftarrow> _")
 syntax (HTML output)
-"_lc_gen" :: "'a \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ \<leftarrow> _")
+"_lc_gen" :: "lc_gen \<Rightarrow> 'a list \<Rightarrow> lc_qual" ("_ \<leftarrow> _")
 
 parse_translation (advanced) {*
 let
