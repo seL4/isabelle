@@ -93,7 +93,7 @@ fun prepare_typ typ params_idx =
 
 (* prepare_term *)
 
-fun prepare_term const_type tm (vparams, params, idx) =
+fun prepare_term ctxt const_type tm (vparams, params, idx) =
   let
     fun add_vparm xi (ps_idx as (ps, idx)) =
       if not (Vartab.defined ps xi) then
@@ -118,9 +118,12 @@ fun prepare_term const_type tm (vparams, params, idx) =
 
     fun prepare (Const ("_type_constraint_", T) $ t) ps_idx =
           let
-            val (T', ps_idx') = prepare_typ T ps_idx;
+            fun err () =
+              error ("Malformed internal type constraint: " ^ Syntax.string_of_typ ctxt T);
+            val A = (case T of Type ("fun", [A, B]) => if A = B then A else err () | _ => err ());
+            val (A', ps_idx') = prepare_typ A ps_idx;
             val (t', ps_idx'') = prepare t ps_idx';
-          in (Const ("_type_constraint_", T') $ t', ps_idx'') end
+          in (Const ("_type_constraint_", A' --> A') $ t', ps_idx'') end
       | prepare (Const (c, T)) (ps, idx) =
           (case const_type c of
             SOME U =>
@@ -344,8 +347,8 @@ fun prepare ctxt const_type var_type raw_ts =
 
     val ts = burrow_types (Syntax.check_typs ctxt) raw_ts;
     val (ts', (_, _, idx)) =
-      fold_map (prepare_term const_type o constrain_vars) ts
-      (Vartab.empty, Vartab.empty, 0);
+      fold_map (prepare_term ctxt const_type o constrain_vars) ts
+        (Vartab.empty, Vartab.empty, 0);
   in (idx, ts') end;
 
 fun infer_types ctxt const_type var_type raw_ts =
