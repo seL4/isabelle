@@ -17,6 +17,8 @@ sig
   val values_cmd : string list -> mode option list option
     -> ((string option * bool) * (compilation * int list)) -> int -> string -> Toplevel.state -> unit
 
+  val values_timeout : real Config.T
+  
   val print_stored_rules : Proof.context -> unit
   val print_all_modes : compilation -> Proof.context -> unit
 
@@ -1562,14 +1564,18 @@ fun attrib' f opt_case_name =
 
 val code_pred_intro_attrib = attrib' add_intro NONE;
 
-
 (*FIXME
 - Naming of auxiliary rules necessary?
 *)
 
+(* values_timeout configuration *)
+
+val (values_timeout, setup_values_timeout) = Attrib.config_real "values_timeout" (K 20.0)
+
 val setup = PredData.put (Graph.empty) #>
   Attrib.setup @{binding code_pred_intro} (Scan.lift (Scan.option Args.name) >> attrib' add_intro)
     "adding alternative introduction rules for code generation of inductive predicates"
+  #> setup_values_timeout
 
 (* TODO: make Theory_Data to Generic_Data & remove duplication of local theory and theory *)
 (* FIXME ... this is important to avoid changing the background theory below *)
@@ -1829,6 +1835,7 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
       else
         mk_map compfuns T HOLogic.termT (HOLogic.term_of_const T) t
     val thy = ProofContext.theory_of ctxt
+    val time_limit = seconds (Config.get ctxt values_timeout)
     val (ts, statistics) =
       (case compilation of
        (* Random =>
@@ -1840,7 +1847,7 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
           let
             val [nrandom, size, depth] = arguments
           in
-            rpair NONE (TimeLimit.timeLimit (seconds 20.0) (fn () => fst (DSequence.yieldn k
+            rpair NONE (TimeLimit.timeLimit time_limit (fn () => fst (DSequence.yieldn k
               (Code_Runtime.dynamic_value_strict (Dseq_Random_Result.get, put_dseq_random_result, "Predicate_Compile_Core.put_dseq_random_result")
                 thy NONE (fn proc => fn g => fn nrandom => fn size => fn s => g nrandom size s |>> DSequence.map proc)
                   t' [] nrandom size
@@ -1848,14 +1855,14 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
               depth true)) ())
           end
       | DSeq =>
-          rpair NONE (TimeLimit.timeLimit (seconds 20.0) (fn () => fst (DSequence.yieldn k
+          rpair NONE (TimeLimit.timeLimit time_limit (fn () => fst (DSequence.yieldn k
             (Code_Runtime.dynamic_value_strict (Dseq_Result.get, put_dseq_result, "Predicate_Compile_Core.put_dseq_result")
               thy NONE DSequence.map t' []) (the_single arguments) true)) ())
       | Pos_Generator_DSeq =>
           let
             val depth = (the_single arguments)
           in
-            rpair NONE (TimeLimit.timeLimit (seconds 20.0) (fn () => fst (Lazy_Sequence.yieldn k
+            rpair NONE (TimeLimit.timeLimit time_limit (fn () => fst (Lazy_Sequence.yieldn k
               (Code_Runtime.dynamic_value_strict (New_Dseq_Result.get, put_new_dseq_result, "Predicate_Compile_Core.put_new_dseq_result")
               thy NONE (fn proc => fn g => fn depth => g depth |> Lazy_Sequence.mapa proc)
               t' [] depth))) ())
@@ -1866,7 +1873,7 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
             val seed = Random_Engine.next_seed ()
           in
             if stats then
-              apsnd (SOME o accumulate) (split_list (TimeLimit.timeLimit (seconds 20.0)
+              apsnd (SOME o accumulate) (split_list (TimeLimit.timeLimit time_limit
               (fn () => fst (Lazy_Sequence.yieldn k
                 (Code_Runtime.dynamic_value_strict
                   (Lseq_Random_Stats_Result.get, put_lseq_random_stats_result, "Predicate_Compile_Core.put_lseq_random_stats_result")
@@ -1875,7 +1882,7 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
                     |> Lazy_Sequence.mapa (apfst proc))
                     t' [] nrandom size seed depth))) ()))
             else rpair NONE
-              (TimeLimit.timeLimit (seconds 20.0) (fn () => fst (Lazy_Sequence.yieldn k
+              (TimeLimit.timeLimit time_limit (fn () => fst (Lazy_Sequence.yieldn k
                 (Code_Runtime.dynamic_value_strict
                   (Lseq_Random_Result.get, put_lseq_random_result, "Predicate_Compile_Core.put_lseq_random_result")
                   thy NONE 
@@ -1884,7 +1891,7 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
                     t' [] nrandom size seed depth))) ())
           end
       | _ =>
-          rpair NONE (TimeLimit.timeLimit (seconds 20.0) (fn () => fst (Predicate.yieldn k
+          rpair NONE (TimeLimit.timeLimit time_limit (fn () => fst (Predicate.yieldn k
             (Code_Runtime.dynamic_value_strict (Pred_Result.get, put_pred_result, "Predicate_Compile_Core.put_pred_result")
               thy NONE Predicate.map t' []))) ()))
      handle TimeLimit.TimeOut => error "Reached timeout during execution of values"
