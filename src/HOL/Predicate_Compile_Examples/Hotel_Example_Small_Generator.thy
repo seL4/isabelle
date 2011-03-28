@@ -50,8 +50,8 @@ setup {* Context.theory_map (Quickcheck.add_generator ("small_generators_depth_1
 
 lemma
   "hotel s ==> feels_safe s r ==> g \<in> isin s r ==> owns s r = Some g"
-(*quickcheck[tester = small_generators_depth_14, finite_types = false, iterations = 1, size = 1, timeout = 60.0, expect = no_counterexample, timeout = 60]*)
-quickcheck[tester = small_generators_depth_15, finite_types = false, iterations = 1, size = 1, timeout = 60.0, expect = counterexample, timeout = 60]
+(*quickcheck[tester = small_generators_depth_14, finite_types = false, iterations = 1, size = 1, timeout = 600.0, expect = no_counterexample]*)
+quickcheck[tester = small_generators_depth_15, finite_types = false, iterations = 1, size = 1, timeout = 600.0, expect = counterexample]
 oops
 
 

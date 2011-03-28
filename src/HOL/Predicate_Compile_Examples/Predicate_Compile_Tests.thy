@@ -2,6 +2,8 @@ theory Predicate_Compile_Tests
 imports "~~/src/HOL/Library/Predicate_Compile_Alternative_Defs"
 begin
 
+declare [[values_timeout = 240.0]]
+
 subsection {* Basic predicates *}
 
 inductive False' :: "bool"
