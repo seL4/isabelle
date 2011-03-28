@@ -120,7 +120,7 @@ def build_isabelle_image(subdir, base, img, env, case, paths, dep_paths, playgro
       {'timing': extract_isabelle_run_timing(log)}, {'log': log}, result)
 
 
-def isabelle_make(subdir, env, case, paths, dep_paths, playground, more_settings='', target='all'):
+def isabelle_make(subdir, env, case, paths, dep_paths, playground, more_settings='', target='all', keep_results=False):
 
     isabelle_home = paths[0]
     dep_path = dep_paths[0] if dep_paths else None
@@ -129,8 +129,9 @@ def isabelle_make(subdir, env, case, paths, dep_paths, playground, more_settings
 
     (return_code, log) = env.run_process('%s/bin/isabelle' % isabelle_home, 'make', '-k', target)
 
+    result = path.join(isabelle_home, 'heaps') if keep_results else None
     return (return_code == 0, extract_isabelle_run_summary(log),
-      {'timing': extract_isabelle_run_timing(log)}, {'log': log}, None)
+      {'timing': extract_isabelle_run_timing(log)}, {'log': log}, result)
 
 
 def isabelle_makeall(env, case, paths, dep_paths, playground, more_settings='', target='all', make_options=()):
@@ -342,7 +343,7 @@ ML_PLATFORM=$(eval $("$ML_HOME/.arch-n-opsys" 2>/dev/null); echo "$HEAP_SUFFIX")
 @configuration(repos = [Isabelle], deps = [])
 def SML_HOL(*args):
     """HOL image built with SML/NJ"""
-    return isabelle_make('src/HOL', *args, more_settings=smlnj_settings, target='HOL')
+    return isabelle_make('src/HOL', *args, more_settings=smlnj_settings, target='HOL', keep_results=True)
 
 @configuration(repos = [Isabelle], deps = [])
 def SML_makeall(*args):
