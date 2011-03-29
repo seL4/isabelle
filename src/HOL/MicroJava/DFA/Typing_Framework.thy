@@ -1,4 +1,4 @@
-(*  Title:      HOL/MicroJava/BV/Typing_Framework.thy
+(*  Title:      HOL/MicroJava/DFA/Typing_Framework.thy
     Author:     Tobias Nipkow
     Copyright   2000 TUM
 *)

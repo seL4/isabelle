@@ -1,4 +1,4 @@
-(*  Title:      HOL/MicroJava/BV/Semilat.thy
+(*  Title:      HOL/MicroJava/DFA/Semilat.thy
     Author:     Tobias Nipkow
     Copyright   2000 TUM
 *)

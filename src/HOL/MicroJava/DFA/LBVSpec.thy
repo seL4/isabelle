@@ -1,4 +1,4 @@
-(*  Title:      HOL/MicroJava/BV/LBVSpec.thy
+(*  Title:      HOL/MicroJava/DFA/LBVSpec.thy
     Author:     Gerwin Klein
     Copyright   1999 Technische Universitaet Muenchen
 *)

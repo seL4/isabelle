@@ -1,4 +1,4 @@
-(*  Title:      HOL/MicroJava/BV/BVNoTypeErrors.thy
+(*  Title:      HOL/MicroJava/BV/BVNoTypeError.thy
     Author:     Gerwin Klein
 *)
 

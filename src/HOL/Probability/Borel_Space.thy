@@ -1,4 +1,4 @@
-(*  Title:      HOL/Probability/Lebesgue_Integration.thy
+(*  Title:      HOL/Probability/Borel_Space.thy
     Author:     Johannes Hölzl, TU München
     Author:     Armin Heller, TU München
 *)

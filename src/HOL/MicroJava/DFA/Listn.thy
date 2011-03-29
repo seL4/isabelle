@@ -1,4 +1,4 @@
-(*  Title:      HOL/MicroJava/BV/Listn.thy
+(*  Title:      HOL/MicroJava/DFA/Listn.thy
     Author:     Tobias Nipkow
     Copyright   2000 TUM
 *)

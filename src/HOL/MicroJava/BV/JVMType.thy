@@ -1,4 +1,4 @@
-(*  Title:      HOL/MicroJava/BV/JVM.thy
+(*  Title:      HOL/MicroJava/BV/JVMType.thy
     Author:     Gerwin Klein
     Copyright   2000 TUM
 *)

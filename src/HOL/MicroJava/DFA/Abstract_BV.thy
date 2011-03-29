@@ -1,4 +1,4 @@
-(*  Title:      HOL/MicroJava/BV/Semilat.thy
+(*  Title:      HOL/MicroJava/DFA/Abstract_BV.thy
     Author:     Gerwin Klein
     Copyright   2003 TUM
 *)

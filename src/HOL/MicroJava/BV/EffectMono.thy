@@ -1,4 +1,4 @@
-(*  Title:      HOL/MicroJava/BV/EffMono.thy
+(*  Title:      HOL/MicroJava/BV/EffectMono.thy
     Author:     Gerwin Klein
     Copyright   2000 Technische Universitaet Muenchen
 *)

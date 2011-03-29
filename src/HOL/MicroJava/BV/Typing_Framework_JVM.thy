@@ -1,4 +1,4 @@
-(*  Title:      HOL/MicroJava/BV/JVM.thy
+(*  Title:      HOL/MicroJava/BV/Typing_Framework_JVM.thy
     Author:     Tobias Nipkow, Gerwin Klein
     Copyright   2000 TUM
 *)

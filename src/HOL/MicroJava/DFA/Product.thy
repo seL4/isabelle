@@ -1,4 +1,4 @@
-(*  Title:      HOL/MicroJava/BV/Product.thy
+(*  Title:      HOL/MicroJava/DFA/Product.thy
     Author:     Tobias Nipkow
     Copyright   2000 TUM
 *)

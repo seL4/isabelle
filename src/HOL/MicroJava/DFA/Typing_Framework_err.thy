@@ -1,4 +1,4 @@
-(*  Title:      HOL/MicroJava/BV/Typing_Framework_err.thy
+(*  Title:      HOL/MicroJava/DFA/Typing_Framework_err.thy
     Author:     Gerwin Klein
     Copyright   2000 TUM
 *)

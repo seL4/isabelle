@@ -1,4 +1,4 @@
-(*  Title:      HOL/MicroJava/BV/Err.thy
+(*  Title:      HOL/MicroJava/DFA/Err.thy
     Author:     Tobias Nipkow
     Copyright   2000 TUM
 *)

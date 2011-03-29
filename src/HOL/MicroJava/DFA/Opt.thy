@@ -1,4 +1,4 @@
-(*  Title:      HOL/MicroJava/BV/Opt.thy
+(*  Title:      HOL/MicroJava/DFA/Opt.thy
     Author:     Tobias Nipkow
     Copyright   2000 TUM
 *)
