@@ -9,37 +9,44 @@ theory Nat
 imports Wfd
 begin
 
-consts
+definition not :: "i=>i"
+  where "not(b) == if b then false else true"
 
-  not   :: "i=>i"
-  add   :: "[i,i]=>i"            (infixr "#+" 60)
-  mult  :: "[i,i]=>i"            (infixr "#*" 60)
-  sub   :: "[i,i]=>i"            (infixr "#-" 60)
-  div   :: "[i,i]=>i"            (infixr "##" 60)
-  lt    :: "[i,i]=>i"            (infixr "#<" 60)
-  le    :: "[i,i]=>i"            (infixr "#<=" 60)
-  ackermann :: "[i,i]=>i"
+definition add :: "[i,i]=>i"  (infixr "#+" 60)
+  where "a #+ b == nrec(a,b,%x g. succ(g))"
 
-defs
+definition mult :: "[i,i]=>i"  (infixr "#*" 60)
+  where "a #* b == nrec(a,zero,%x g. b #+ g)"
 
-  not_def:     "not(b) == if b then false else true"
+definition sub :: "[i,i]=>i"  (infixr "#-" 60)
+  where
+    "a #- b ==
+      letrec sub x y be ncase(y,x,%yy. ncase(x,zero,%xx. sub(xx,yy)))
+      in sub(a,b)"
 
-  add_def:     "a #+ b == nrec(a,b,%x g. succ(g))"
-  mult_def:    "a #* b == nrec(a,zero,%x g. b #+ g)"
-  sub_def:     "a #- b == letrec sub x y be ncase(y,x,%yy. ncase(x,zero,%xx. sub(xx,yy)))
-                        in sub(a,b)"
-  le_def:     "a #<= b == letrec le x y be ncase(x,true,%xx. ncase(y,false,%yy. le(xx,yy)))
-                        in le(a,b)"
-  lt_def:     "a #< b == not(b #<= a)"
+definition le :: "[i,i]=>i"  (infixr "#<=" 60)
+  where
+    "a #<= b ==
+      letrec le x y be ncase(x,true,%xx. ncase(y,false,%yy. le(xx,yy)))
+      in le(a,b)"
 
-  div_def:    "a ## b == letrec div x y be if x #< y then zero else succ(div(x#-y,y))
-                       in div(a,b)"
-  ack_def:
-  "ackermann(a,b) == letrec ack n m be ncase(n,succ(m),%x.
-                          ncase(m,ack(x,succ(zero)),%y. ack(x,ack(succ(x),y))))
-                    in ack(a,b)"
+definition lt :: "[i,i]=>i"  (infixr "#<" 60)
+  where "a #< b == not(b #<= a)"
 
-lemmas nat_defs = not_def add_def mult_def sub_def le_def lt_def ack_def napply_def
+definition div :: "[i,i]=>i"  (infixr "##" 60)
+  where
+    "a ## b ==
+      letrec div x y be if x #< y then zero else succ(div(x#-y,y))
+      in div(a,b)"
+
+definition ackermann :: "[i,i]=>i"
+  where
+    "ackermann(a,b) ==
+      letrec ack n m be ncase(n,succ(m),%x.
+        ncase(m,ack(x,succ(zero)),%y. ack(x,ack(succ(x),y))))
+      in ack(a,b)"
+
+lemmas nat_defs = not_def add_def mult_def sub_def le_def lt_def ackermann_def napply_def
 
 lemma natBs [simp]:
   "not(true) = false"
@@ -94,7 +101,7 @@ subsection {* Termination Conditions for Ackermann's Function *}
 lemmas relI = NatPR_wf [THEN NatPR_wf [THEN lex_wf, THEN wfI]]
 
 lemma "[| a:Nat;  b:Nat |] ==> ackermann(a,b) : Nat"
-  apply (unfold ack_def)
+  apply (unfold ackermann_def)
   apply (tactic {* gen_ccs_tac @{context} [] 1 *})
   apply (erule NatPRI [THEN lexI1 [THEN relI]] NatPRI [THEN lexI2 [THEN relI]])+
   done
