@@ -56,6 +56,11 @@ been discontinued.  INCOMPATIBILITY.
 * Function package: discontinued option "tailrec".
 INCOMPATIBILITY. Use partial_function instead.
 
+* HOL-Probability:
+  - Caratheodory's extension lemma is now proved for ring_of_sets.
+  - Infinite products of probability measures are now available.
+  - Use extended reals instead of positive extended reals.
+    INCOMPATIBILITY.
 
 *** Document preparation ***
 
