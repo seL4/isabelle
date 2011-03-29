@@ -9,17 +9,12 @@ theory Fix
 imports Type
 begin
 
-consts
-  idgen      ::       "[i]=>i"
-  INCL      :: "[i=>o]=>o"
+definition idgen :: "i => i"
+  where "idgen(f) == lam t. case(t,true,false,%x y.<f`x, f`y>,%u. lam x. f ` u(x))"
 
-defs
-  idgen_def:
-  "idgen(f) == lam t. case(t,true,false,%x y.<f`x, f`y>,%u. lam x. f ` u(x))"
-
-axioms
-  INCL_def:   "INCL(%x. P(x)) == (ALL f.(ALL n:Nat. P(f^n`bot)) --> P(fix(f)))"
-  po_INCL:    "INCL(%x. a(x) [= b(x))"
+axiomatization INCL :: "[i=>o]=>o" where
+  INCL_def: "INCL(%x. P(x)) == (ALL f.(ALL n:Nat. P(f^n`bot)) --> P(fix(f)))" and
+  po_INCL: "INCL(%x. a(x) [= b(x))" and
   INCL_subst: "INCL(P) ==> INCL(%x. P((g::i=>i)(x)))"
 
 
