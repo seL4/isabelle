@@ -5,7 +5,7 @@
 header {*Infinite Product Measure*}
 
 theory Infinite_Product_Measure
-  imports Probability_Space
+  imports Probability_Measure
 begin
 
 lemma restrict_extensional_sub[intro]: "A \<subseteq> B \<Longrightarrow> restrict f A \<in> extensional B"

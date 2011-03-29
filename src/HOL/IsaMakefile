@@ -1193,7 +1193,7 @@ $(OUT)/HOL-Probability: $(OUT)/HOL-Multivariate_Analysis		\
   Probability/Finite_Product_Measure.thy				\
   Probability/Infinite_Product_Measure.thy Probability/Information.thy	\
   Probability/Lebesgue_Integration.thy Probability/Lebesgue_Measure.thy \
-  Probability/Measure.thy Probability/Probability_Space.thy		\
+  Probability/Measure.thy Probability/Probability_Measure.thy		\
   Probability/Probability.thy Probability/Radon_Nikodym.thy		\
   Probability/ROOT.ML Probability/Sigma_Algebra.thy			\
   Library/Countable.thy Library/FuncSet.thy Library/Nat_Bijection.thy

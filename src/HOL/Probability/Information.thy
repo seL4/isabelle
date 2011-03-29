@@ -7,7 +7,7 @@ header {*Information theory*}
 
 theory Information
 imports
-  Probability_Space
+  Probability_Measure
   "~~/src/HOL/Library/Convex"
 begin
 

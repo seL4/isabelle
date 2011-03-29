@@ -1,11 +1,11 @@
-(*  Title:      HOL/Probability/Probability_Space.thy
+(*  Title:      HOL/Probability/Probability_Measure.thy
     Author:     Johannes Hölzl, TU München
     Author:     Armin Heller, TU München
 *)
 
-header {*Probability spaces*}
+header {*Probability measure*}
 
-theory Probability_Space
+theory Probability_Measure
 imports Lebesgue_Integration Radon_Nikodym Finite_Product_Measure
 begin
 
