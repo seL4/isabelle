@@ -49,7 +49,7 @@ definition Valid :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> 'a bexp \<Righta
 (** parse translations **)
 
 syntax
-  "_assign"  :: "id => 'b => 'a com"        ("(2_ :=/ _)" [70,65] 61)
+  "_assign" :: "idt => 'b => 'a com"  ("(2_ :=/ _)" [70, 65] 61)
 
 syntax
  "_hoare_vars" :: "[idts, 'a assn,'a com,'a assn] => bool"
@@ -57,74 +57,54 @@ syntax
 syntax ("" output)
  "_hoare"      :: "['a assn,'a com,'a assn] => bool"
                  ("{_} // _ // {_}" [0,55,0] 50)
-ML {*
 
-local
+parse_translation {*
+  let
+    fun mk_abstuple [x] body = Syntax.abs_tr [x, body]
+      | mk_abstuple (x :: xs) body =
+          Syntax.const @{const_syntax prod_case} $ Syntax.abs_tr [x, mk_abstuple xs body];
 
-fun abs((a,T),body) =
-  let val a = absfree(a, dummyT, body)
-  in if T = Bound 0 then a else Const(Syntax.constrainAbsC,dummyT) $ a $ T end
-in
+    fun mk_fbody x e [y] = if Syntax.eq_idt (x, y) then e else y
+      | mk_fbody x e (y :: xs) =
+          Syntax.const @{const_syntax Pair} $
+            (if Syntax.eq_idt (x, y) then e else y) $ mk_fbody x e xs;
 
-fun mk_abstuple [x] body = abs (x, body)
-  | mk_abstuple (x::xs) body =
-      Syntax.const @{const_syntax prod_case} $ abs (x, mk_abstuple xs body);
+    fun mk_fexp x e xs = mk_abstuple xs (mk_fbody x e xs);
 
-fun mk_fbody a e [x as (b,_)] = if a=b then e else Syntax.free b
-  | mk_fbody a e ((b,_)::xs) =
-      Syntax.const @{const_syntax Pair} $ (if a=b then e else Syntax.free b) $ mk_fbody a e xs;
+    (* bexp_tr & assn_tr *)
+    (*all meta-variables for bexp except for TRUE are translated as if they
+      were boolean expressions*)
 
-fun mk_fexp a e xs = mk_abstuple xs (mk_fbody a e xs)
-end
+    fun bexp_tr (Const ("TRUE", _)) xs = Syntax.const "TRUE"   (* FIXME !? *)
+      | bexp_tr b xs = Syntax.const @{const_syntax Collect} $ mk_abstuple xs b;
+
+    fun assn_tr r xs = Syntax.const @{const_syntax Collect} $ mk_abstuple xs r;
+
+    (* com_tr *)
+
+    fun com_tr (Const (@{syntax_const "_assign"}, _) $ x $ e) xs =
+          Syntax.const @{const_syntax Basic} $ mk_fexp x e xs
+      | com_tr (Const (@{const_syntax Basic},_) $ f) xs = Syntax.const @{const_syntax Basic} $ f
+      | com_tr (Const (@{const_syntax Seq},_) $ c1 $ c2) xs =
+          Syntax.const @{const_syntax Seq} $ com_tr c1 xs $ com_tr c2 xs
+      | com_tr (Const (@{const_syntax Cond},_) $ b $ c1 $ c2) xs =
+          Syntax.const @{const_syntax Cond} $ bexp_tr b xs $ com_tr c1 xs $ com_tr c2 xs
+      | com_tr (Const (@{const_syntax While},_) $ b $ I $ c) xs =
+          Syntax.const @{const_syntax While} $ bexp_tr b xs $ assn_tr I xs $ com_tr c xs
+      | com_tr t _ = t;
+
+    fun vars_tr (Const (@{syntax_const "_idts"}, _) $ idt $ vars) = idt :: vars_tr vars
+      | vars_tr t = [t];
+
+    fun hoare_vars_tr [vars, pre, prg, post] =
+          let val xs = vars_tr vars
+          in Syntax.const @{const_syntax Valid} $
+             assn_tr pre xs $ com_tr prg xs $ assn_tr post xs
+          end
+      | hoare_vars_tr ts = raise TERM ("hoare_vars_tr", ts);
+
+  in [(@{syntax_const "_hoare_vars"}, hoare_vars_tr)] end
 *}
-
-(* bexp_tr & assn_tr *)
-(*all meta-variables for bexp except for TRUE are translated as if they
-  were boolean expressions*)
-ML{*
-fun bexp_tr (Const ("TRUE", _)) xs = Syntax.const "TRUE"   (* FIXME !? *)
-  | bexp_tr b xs = Syntax.const @{const_syntax Collect} $ mk_abstuple xs b;
-
-fun assn_tr r xs = Syntax.const @{const_syntax Collect} $ mk_abstuple xs r;
-*}
-(* com_tr *)
-ML{*
-fun com_tr (t as (Const(@{syntax_const "_assign"},_) $ x $ e)) xs =
-      (case Syntax.strip_positions x of
-        Free (a, _) => Syntax.const @{const_syntax Basic} $ mk_fexp a e xs
-      | _ => t)
-  | com_tr (Const (@{const_syntax Basic},_) $ f) xs = Syntax.const @{const_syntax Basic} $ f
-  | com_tr (Const (@{const_syntax Seq},_) $ c1 $ c2) xs =
-      Syntax.const @{const_syntax Seq} $ com_tr c1 xs $ com_tr c2 xs
-  | com_tr (Const (@{const_syntax Cond},_) $ b $ c1 $ c2) xs =
-      Syntax.const @{const_syntax Cond} $ bexp_tr b xs $ com_tr c1 xs $ com_tr c2 xs
-  | com_tr (Const (@{const_syntax While},_) $ b $ I $ c) xs =
-      Syntax.const @{const_syntax While} $ bexp_tr b xs $ assn_tr I xs $ com_tr c xs
-  | com_tr t _ = t (* if t is just a Free/Var *)
-*}
-
-(* triple_tr *)    (* FIXME does not handle "_idtdummy" *)
-ML{*
-local
-
-fun var_tr (Free (a, _)) = (a, Bound 0) (* Bound 0 = dummy term *)
-  | var_tr (Const (@{syntax_const "_constrain"}, _) $ Free (a, _) $ T) = (a, T);
-
-fun vars_tr (Const (@{syntax_const "_idts"}, _) $ idt $ vars) =
-      var_tr (Syntax.strip_positions idt) :: vars_tr vars
-  | vars_tr t = [var_tr (Syntax.strip_positions t)]
-
-in
-fun hoare_vars_tr [vars, pre, prg, post] =
-      let val xs = vars_tr vars
-      in Syntax.const @{const_syntax Valid} $
-         assn_tr pre xs $ com_tr prg xs $ assn_tr post xs
-      end
-  | hoare_vars_tr ts = raise TERM ("hoare_vars_tr", ts);
-end
-*}
-
-parse_translation {* [(@{syntax_const "_hoare_vars"}, hoare_vars_tr)] *}
 
 
 (*****************************************************************************)

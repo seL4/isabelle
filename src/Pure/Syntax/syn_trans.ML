@@ -36,6 +36,8 @@ sig
   val non_typed_tr': (term list -> term) -> bool -> typ -> term list -> term
   val non_typed_tr'': ('a -> term list -> term) -> 'a -> bool -> typ -> term list -> term
   val constrainAbsC: string
+  val abs_tr: term list -> term
+  val eq_idt: term * term -> bool
   val pure_trfuns:
     (string * (Ast.ast list -> Ast.ast)) list *
     (string * (term list -> term)) list *
@@ -97,7 +99,6 @@ fun idtyp_ast_tr (*"_idtyp"*) [x, ty] = Ast.Appl [Ast.Constant "_constrain", x, 
 fun idtypdummy_ast_tr (*"_idtypdummy"*) [ty] =
       Ast.Appl [Ast.Constant "_constrain", Ast.Constant "_idtdummy", ty]
   | idtypdummy_ast_tr (*"_idtypdummy"*) asts = raise Ast.AST ("idtyp_ast_tr", asts);
-
 fun lambda_ast_tr (*"_lambda"*) [pats, body] =
       Ast.fold_ast_p "_abs" (Ast.unfold_ast "_pttrns" pats, body)
   | lambda_ast_tr (*"_lambda"*) asts = raise Ast.AST ("lambda_ast_tr", asts);
@@ -113,6 +114,18 @@ fun abs_tr [Free (x, T), t] = absfree_proper (x, T, t)
   | abs_tr [Const ("_idtdummy", T), t] = Term.absdummy (T, t)
   | abs_tr [Const ("_constrain", _) $ x $ tT, t] = Lexicon.const constrainAbsC $ abs_tr [x, t] $ tT
   | abs_tr ts = raise TERM ("abs_tr", ts);
+
+
+(* equality on idt *)
+
+fun idt_name (Free (x, _)) = SOME x
+  | idt_name (Const ("_constrain", _) $ t $ _) = idt_name t
+  | idt_name _ = NONE;
+
+fun eq_idt tu =
+  (case pairself idt_name tu of
+    (SOME x, SOME y) => x = y
+  | _ => false);
 
 
 (* binder *)
