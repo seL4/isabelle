@@ -37,7 +37,6 @@ sig
   val non_typed_tr'': ('a -> term list -> term) -> 'a -> bool -> typ -> term list -> term
   val constrainAbsC: string
   val abs_tr: term list -> term
-  val eq_idt: term * term -> bool
   val pure_trfuns:
     (string * (Ast.ast list -> Ast.ast)) list *
     (string * (term list -> term)) list *
@@ -114,18 +113,6 @@ fun abs_tr [Free (x, T), t] = absfree_proper (x, T, t)
   | abs_tr [Const ("_idtdummy", T), t] = Term.absdummy (T, t)
   | abs_tr [Const ("_constrain", _) $ x $ tT, t] = Lexicon.const constrainAbsC $ abs_tr [x, t] $ tT
   | abs_tr ts = raise TERM ("abs_tr", ts);
-
-
-(* equality on idt *)
-
-fun idt_name (Free (x, _)) = SOME x
-  | idt_name (Const ("_constrain", _) $ t $ _) = idt_name t
-  | idt_name _ = NONE;
-
-fun eq_idt tu =
-  (case pairself idt_name tu of
-    (SOME x, SOME y) => x = y
-  | _ => false);
 
 
 (* binder *)
