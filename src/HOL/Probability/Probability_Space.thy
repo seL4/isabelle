@@ -6,7 +6,7 @@
 header {*Probability spaces*}
 
 theory Probability_Space
-imports Lebesgue_Integration Radon_Nikodym Product_Measure
+imports Lebesgue_Integration Radon_Nikodym Finite_Product_Measure
 begin
 
 lemma real_of_extreal_inverse[simp]:

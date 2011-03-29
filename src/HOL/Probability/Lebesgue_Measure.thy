@@ -6,7 +6,7 @@
 header {* Lebsegue measure *}
 
 theory Lebesgue_Measure
-  imports Product_Measure
+  imports Finite_Product_Measure
 begin
 
 subsection {* Standard Cubes *}
@@ -49,9 +49,6 @@ qed
 
 lemma cube_subset_Suc[intro]: "cube n \<subseteq> cube (Suc n)"
   unfolding cube_def_raw subset_eq apply safe unfolding mem_interval by auto
-
-lemma Pi_iff: "f \<in> Pi I X \<longleftrightarrow> (\<forall>i\<in>I. f i \<in> X i)"
-  unfolding Pi_def by auto
 
 subsection {* Lebesgue measure *} 
 

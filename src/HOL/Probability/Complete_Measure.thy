@@ -3,7 +3,7 @@
 *)
 
 theory Complete_Measure
-imports Product_Measure
+imports Lebesgue_Integration
 begin
 
 locale completeable_measure_space = measure_space
