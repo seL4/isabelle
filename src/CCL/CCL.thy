@@ -85,6 +85,8 @@ axioms
 
   apply_def:     "f ` t == case(f,bot,bot,%x y. bot,%u. u(t))"
   bot_def:         "bot == (lam x. x`x)`(lam x. x`x)"
+
+defs
   fix_def:      "fix(f) == (lam x. f(x`x))`(lam x. f(x`x))"
 
   (*  The pre-order ([=) is defined as a simulation, and behavioural equivalence (=) *)
@@ -106,6 +108,7 @@ axioms
 
   (** Partial Order **)
 
+axioms
   po_refl:        "a [= a"
   po_trans:       "[| a [= b;  b [= c |] ==> a [= c"
   po_cong:        "a [= b ==> f(a) [= f(b)"
@@ -136,6 +139,7 @@ axioms
 
   (*** Definitions of Termination and Divergence ***)
 
+defs
   Dvg_def:  "Dvg(t) == t = bot"
   Trm_def:  "Trm(t) == ~ Dvg(t)"
 

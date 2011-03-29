@@ -9,15 +9,11 @@ theory Stream
 imports List
 begin
 
-consts
-  iter1   ::  "[i=>i,i]=>i"
-  iter2   ::  "[i=>i,i]=>i"
+definition iter1 :: "[i=>i,i]=>i"
+  where "iter1(f,a) == letrec iter x be x$iter(f(x)) in iter(a)"
 
-defs
-
-  iter1_def:   "iter1(f,a) == letrec iter x be x$iter(f(x)) in iter(a)"
-  iter2_def:   "iter2(f,a) == letrec iter x be x$map(f,iter(x)) in iter(a)"
-
+definition iter2 :: "[i=>i,i]=>i"
+  where "iter2(f,a) == letrec iter x be x$map(f,iter(x)) in iter(a)"
 
 (*
 Proving properties about infinite lists using coinduction:
@@ -30,9 +26,9 @@ subsection {* Map of composition is composition of maps *}
 
 lemma map_comp:
   assumes 1: "l:Lists(A)"
-  shows "map(f o g,l) = map(f,map(g,l))"
+  shows "map(f \<circ> g,l) = map(f,map(g,l))"
   apply (tactic {* eq_coinduct3_tac @{context}
-    "{p. EX x y. p=<x,y> & (EX l:Lists (A) .x=map (f o g,l) & y=map (f,map (g,l)))}" 1 *})
+    "{p. EX x y. p=<x,y> & (EX l:Lists (A) .x=map (f \<circ> g,l) & y=map (f,map (g,l)))}" 1 *})
    apply (blast intro: 1)
   apply safe
   apply (drule ListsXH [THEN iffD1])

@@ -36,6 +36,7 @@ sig
   val non_typed_tr': (term list -> term) -> bool -> typ -> term list -> term
   val non_typed_tr'': ('a -> term list -> term) -> 'a -> bool -> typ -> term list -> term
   val constrainAbsC: string
+  val abs_tr: term list -> term
   val pure_trfuns:
     (string * (Ast.ast list -> Ast.ast)) list *
     (string * (term list -> term)) list *
@@ -97,7 +98,6 @@ fun idtyp_ast_tr (*"_idtyp"*) [x, ty] = Ast.Appl [Ast.Constant "_constrain", x, 
 fun idtypdummy_ast_tr (*"_idtypdummy"*) [ty] =
       Ast.Appl [Ast.Constant "_constrain", Ast.Constant "_idtdummy", ty]
   | idtypdummy_ast_tr (*"_idtypdummy"*) asts = raise Ast.AST ("idtyp_ast_tr", asts);
-
 fun lambda_ast_tr (*"_lambda"*) [pats, body] =
       Ast.fold_ast_p "_abs" (Ast.unfold_ast "_pttrns" pats, body)
   | lambda_ast_tr (*"_lambda"*) asts = raise Ast.AST ("lambda_ast_tr", asts);

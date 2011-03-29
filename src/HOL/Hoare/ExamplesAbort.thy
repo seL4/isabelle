@@ -14,8 +14,7 @@ by vcg_simp
 lemma
  "VARS a i j
  {k <= length a & i < k & j < k} j < length a \<rightarrow> a[i] := a!j {True}"
-apply vcg_simp
-done
+by vcg_simp
 
 lemma "VARS (a::int list) i
  {True}
@@ -24,7 +23,6 @@ lemma "VARS (a::int list) i
  INV {i <= length a}
  DO a[i] := 7; i := i+1 OD
  {True}"
-apply vcg_simp
-done
+by vcg_simp
 
 end

@@ -111,8 +111,7 @@ print_translation {*
 consts
   napply     :: "[i=>i,i,i]=>i"            ("(_ ^ _ ` _)" [56,56,56] 56)
 
-axioms
-
+defs
   one_def:                    "one == true"
   if_def:     "if b then t else u  == case(b,t,u,% x y. bot,%v. bot)"
   inl_def:                 "inl(a) == <true,a>"

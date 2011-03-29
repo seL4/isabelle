@@ -90,7 +90,7 @@ lemma power_by_mult: "VARS a b c
  {c = A^B}"
 apply vcg_simp
 apply(case_tac "b")
- apply(simp add: mod_less)
+ apply simp
 apply simp
 done
 

@@ -10,24 +10,24 @@ theory Flag
 imports List
 begin
 
-consts
-  Colour             :: "i set"
-  red                :: "i"
-  white              :: "i"
-  blue               :: "i"
-  ccase              :: "[i,i,i,i]=>i"
-  flag               :: "i"
+definition Colour :: "i set"
+  where "Colour == Unit + Unit + Unit"
 
-axioms
+definition red :: "i"
+  where "red == inl(one)"
 
-  Colour_def:  "Colour == Unit + Unit + Unit"
-  red_def:        "red == inl(one)"
-  white_def:    "white == inr(inl(one))"
-  blue_def:     "blue == inr(inr(one))"
+definition white :: "i"
+  where "white == inr(inl(one))"
 
-  ccase_def:   "ccase(c,r,w,b) == when(c,%x. r,%wb. when(wb,%x. w,%x. b))"
+definition blue :: "i"
+  where "blue == inr(inr(one))"
 
-  flag_def:    "flag == lam l. letrec
+definition ccase :: "[i,i,i,i]=>i"
+  where "ccase(c,r,w,b) == when(c,%x. r,%wb. when(wb,%x. w,%x. b))"
+
+definition flag :: "i"
+  where
+    "flag == lam l. letrec
       flagx l be lcase(l,<[],<[],[]>>,
                        %h t. split(flagx(t),%lr p. split(p,%lw lb.
                             ccase(h, <red$lr,<lw,lb>>,
@@ -35,13 +35,14 @@ axioms
                                      <lr,<lw,blue$lb>>))))
       in flagx(l)"
 
-  Flag_def:
-     "Flag(l,x) == ALL lr:List(Colour).ALL lw:List(Colour).ALL lb:List(Colour).
-                    x = <lr,<lw,lb>> -->
-                  (ALL c:Colour.(c mem lr = true --> c=red) &
-                                (c mem lw = true --> c=white) &
-                                (c mem lb = true --> c=blue)) &
-                  Perm(l,lr @ lw @ lb)"
+axiomatization Perm :: "i => i => o"
+definition Flag :: "i => i => o" where
+  "Flag(l,x) == ALL lr:List(Colour).ALL lw:List(Colour).ALL lb:List(Colour).
+                x = <lr,<lw,lb>> -->
+              (ALL c:Colour.(c mem lr = true --> c=red) &
+                            (c mem lw = true --> c=white) &
+                            (c mem lb = true --> c=blue)) &
+              Perm(l,lr @ lw @ lb)"
 
 
 lemmas flag_defs = Colour_def red_def white_def blue_def ccase_def
@@ -68,7 +69,7 @@ lemma "flag : List(Colour)->List(Colour)*List(Colour)*List(Colour)"
   apply assumption
   done
 
-lemma "flag : PROD l:List(Colour).{x:List(Colour)*List(Colour)*List(Colour).FLAG(x,l)}"
+lemma "flag : PROD l:List(Colour).{x:List(Colour)*List(Colour)*List(Colour).Flag(x,l)}"
   apply (unfold flag_def)
   apply (tactic {* gen_ccs_tac @{context}
     [@{thm redT}, @{thm whiteT}, @{thm blueT}, @{thm ccaseT}] 1 *})

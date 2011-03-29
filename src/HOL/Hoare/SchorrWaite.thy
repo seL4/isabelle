@@ -40,7 +40,7 @@ apply blast
 done
 
 lemma still_reachable: "\<lbrakk>B\<subseteq>Ra\<^sup>*``A; \<forall> (x,y) \<in> Rb-Ra. y\<in> (Ra\<^sup>*``A)\<rbrakk> \<Longrightarrow> Rb\<^sup>* `` B \<subseteq> Ra\<^sup>* `` A "
-apply (clarsimp simp only:Image_iff intro:subsetI)
+apply (clarsimp simp only:Image_iff)
 apply (erule rtrancl_induct)
  apply blast
 apply (subgoal_tac "(y, z) \<in> Ra\<union>(Rb-Ra)")

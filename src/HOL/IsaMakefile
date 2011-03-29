@@ -650,12 +650,12 @@ $(LOG)/HOL-Old_Number_Theory.gz: $(OUT)/HOL Library/Permutation.thy	\
 HOL-Hoare: HOL $(LOG)/HOL-Hoare.gz
 
 $(LOG)/HOL-Hoare.gz: $(OUT)/HOL Hoare/Arith2.thy Hoare/Examples.thy	\
-  Hoare/Hoare.thy Hoare/hoare_tac.ML Hoare/Heap.thy			\
-  Hoare/Hoare_Logic.thy	Hoare/Hoare_Logic_Abort.thy			\
+  Hoare/Hoare.thy Hoare/hoare_syntax.ML Hoare/hoare_tac.ML		\
+  Hoare/Heap.thy Hoare/Hoare_Logic.thy Hoare/Hoare_Logic_Abort.thy	\
   Hoare/HeapSyntax.thy Hoare/Pointer_Examples.thy Hoare/ROOT.ML		\
   Hoare/ExamplesAbort.thy Hoare/HeapSyntaxAbort.thy			\
-  Hoare/SchorrWaite.thy Hoare/Separation.thy				\
-  Hoare/SepLogHeap.thy Hoare/document/root.tex Hoare/document/root.bib
+  Hoare/SchorrWaite.thy Hoare/Separation.thy Hoare/SepLogHeap.thy	\
+  Hoare/document/root.tex Hoare/document/root.bib
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Hoare
 
 

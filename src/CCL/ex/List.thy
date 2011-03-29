@@ -9,46 +9,47 @@ theory List
 imports Nat
 begin
 
-consts
-  map       :: "[i=>i,i]=>i"
-  comp      :: "[i=>i,i=>i]=>i=>i"    (infixr "o" 55)
-  append    :: "[i,i]=>i"             (infixr "@" 55)
-  member    :: "[i,i]=>i"             (infixr "mem" 55)
-  filter    :: "[i,i]=>i"
-  flat      :: "i=>i"
-  partition :: "[i,i]=>i"
-  insert    :: "[i,i,i]=>i"
-  isort     :: "i=>i"
-  qsort     :: "i=>i"
+definition map :: "[i=>i,i]=>i"
+  where "map(f,l) == lrec(l,[],%x xs g. f(x)$g)"
 
-axioms
+definition comp :: "[i=>i,i=>i]=>i=>i"  (infixr "\<circ>" 55)
+  where "f \<circ> g == (%x. f(g(x)))"
 
-  map_def:     "map(f,l)   == lrec(l,[],%x xs g. f(x)$g)"
-  comp_def:    "f o g == (%x. f(g(x)))"
-  append_def:  "l @ m == lrec(l,m,%x xs g. x$g)"
-  member_def:  "a mem l == lrec(l,false,%h t g. if eq(a,h) then true else g)"
-  filter_def:  "filter(f,l) == lrec(l,[],%x xs g. if f`x then x$g else g)"
-  flat_def:    "flat(l) == lrec(l,[],%h t g. h @ g)"
+definition append :: "[i,i]=>i"  (infixr "@" 55)
+  where "l @ m == lrec(l,m,%x xs g. x$g)"
 
-  insert_def:  "insert(f,a,l) == lrec(l,a$[],%h t g. if f`a`h then a$h$t else h$g)"
-  isort_def:   "isort(f) == lam l. lrec(l,[],%h t g. insert(f,h,g))"
+axiomatization member :: "[i,i]=>i"  (infixr "mem" 55)  (* FIXME dangling eq *)
+  where "a mem l == lrec(l,false,%h t g. if eq(a,h) then true else g)"
 
-  partition_def:
+definition filter :: "[i,i]=>i"
+  where "filter(f,l) == lrec(l,[],%x xs g. if f`x then x$g else g)"
+
+definition flat :: "i=>i"
+  where "flat(l) == lrec(l,[],%h t g. h @ g)"
+
+definition partition :: "[i,i]=>i" where
   "partition(f,l) == letrec part l a b be lcase(l,<a,b>,%x xs.
                             if f`x then part(xs,x$a,b) else part(xs,a,x$b))
                     in part(l,[],[])"
-  qsort_def:   "qsort(f) == lam l. letrec qsortx l be lcase(l,[],%h t.
+
+definition insert :: "[i,i,i]=>i"
+  where "insert(f,a,l) == lrec(l,a$[],%h t g. if f`a`h then a$h$t else h$g)"
+
+definition isort :: "i=>i"
+  where "isort(f) == lam l. lrec(l,[],%h t g. insert(f,h,g))"
+
+definition qsort :: "i=>i" where
+  "qsort(f) == lam l. letrec qsortx l be lcase(l,[],%h t.
                                    let p be partition(f`h,t)
                                    in split(p,%x y. qsortx(x) @ h$qsortx(y)))
                           in qsortx(l)"
-
 
 lemmas list_defs = map_def comp_def append_def filter_def flat_def
   insert_def isort_def partition_def qsort_def
 
 lemma listBs [simp]:
-  "!!f g. (f o g) = (%a. f(g(a)))"
-  "!!a f g. (f o g)(a) = f(g(a))"
+  "!!f g. (f \<circ> g) = (%a. f(g(a)))"
+  "!!a f g. (f \<circ> g)(a) = f(g(a))"
   "!!f. map(f,[]) = []"
   "!!f x xs. map(f,x$xs) = f(x)$map(f,xs)"
   "!!m. [] @ m = m"
@@ -85,7 +86,7 @@ lemma appendT: "[| l : List(A);  m : List(A) |] ==> l @ m : List(A)"
 
 lemma appendTS:
   "[| l : {l:List(A). m : {m:List(A).P(l @ m)}} |] ==> l @ m : {x:List(A). P(x)}"
-  by (blast intro!: SubtypeI appendT elim!: SubtypeE)
+  by (blast intro!: appendT)
 
 lemma filterT: "[| f:A->Bool;   l : List(A) |] ==> filter(f,l) : List(A)"
   apply (unfold filter_def)
@@ -105,7 +106,7 @@ lemma insertT: "[|  f : A->A->Bool; a:A; l : List(A) |] ==> insert(f,a,l) : List
 lemma insertTS:
   "[| f : {f:A->A->Bool. a : {a:A. l : {l:List(A).P(insert(f,a,l))}}} |] ==>  
    insert(f,a,l)  : {x:List(A). P(x)}"
-  by (blast intro!: SubtypeI insertT elim!: SubtypeE)
+  by (blast intro!: insertT)
 
 lemma partitionT:
   "[| f:A->Bool;  l : List(A) |] ==> partition(f,l) : List(A)*List(A)"

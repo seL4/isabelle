@@ -50,7 +50,7 @@ print_translation {*
   (@{const_syntax Sigma}, dependent_tr' (@{syntax_const "_Sigma"}, @{syntax_const "_star"}))]
 *}
 
-axioms
+defs
   Subtype_def: "{x:A. P(x)} == {x. x:A & P(x)}"
   Unit_def:          "Unit == {x. x=one}"
   Bool_def:          "Bool == {x. x=true | x=false}"

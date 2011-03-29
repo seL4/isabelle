@@ -46,9 +46,9 @@ translations
   "ALL x:A. P"  == "CONST Ball(A, %x. P)"
   "EX x:A. P"   == "CONST Bex(A, %x. P)"
 
-axioms
-  mem_Collect_iff:       "(a : {x. P(x)}) <-> P(a)"
-  set_extension:         "A=B <-> (ALL x. x:A <-> x:B)"
+axiomatization where
+  mem_Collect_iff: "(a : {x. P(x)}) <-> P(a)" and
+  set_extension: "A = B <-> (ALL x. x:A <-> x:B)"
 
 defs
   Ball_def:      "Ball(A, P)  == ALL x. x:A --> P(x)"
