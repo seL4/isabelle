@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Tr.thy
+(*  Title:      HOL/HOLCF/Tr.thy
     Author:     Franz Regensburger
 *)
 

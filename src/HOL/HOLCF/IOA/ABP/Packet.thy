@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/IOA/ABP/Packet.thy
+(*  Title:      HOL/HOLCF/IOA/ABP/Packet.thy
     Author:     Olaf Müller
 *)
 

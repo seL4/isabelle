@@ -1,4 +1,4 @@
-(*  Title:      HOL/IOA/NTP/Spec.thy
+(*  Title:      HOL/HOLCF/IOA/NTP/Spec.thy
     Author:     Tobias Nipkow & Konrad Slind
 *)
 

@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Deflation.thy
+(*  Title:      HOL/HOLCF/Deflation.thy
     Author:     Brian Huffman
 *)
 

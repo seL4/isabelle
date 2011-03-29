@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Tools/cont_consts.ML
+(*  Title:      HOL/HOLCF/Tools/cont_consts.ML
     Author:     Tobias Mayr, David von Oheimb, and Markus Wenzel
 
 HOLCF version of consts: handle continuous function types in mixfix

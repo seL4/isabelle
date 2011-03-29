@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/IOA/ABP/Lemmas.thy
+(*  Title:      HOL/HOLCF/IOA/ABP/Lemmas.thy
     Author:     Olaf Müller
 *)
 

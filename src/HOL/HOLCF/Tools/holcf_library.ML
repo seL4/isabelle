@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Tools/holcf_library.ML
+(*  Title:      HOL/HOLCF/Tools/holcf_library.ML
     Author:     Brian Huffman
 
 Functions for constructing HOLCF types and terms.

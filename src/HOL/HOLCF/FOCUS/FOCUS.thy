@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/FOCUS/FOCUS.thy
+(*  Title:      HOL/HOLCF/FOCUS/FOCUS.thy
     Author:     David von Oheimb, TU Muenchen
 *)
 

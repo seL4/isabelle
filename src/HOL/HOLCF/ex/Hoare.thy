@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/ex/hoare.thy
+(*  Title:      HOL/HOLCF/ex/Hoare.thy
     Author:     Franz Regensburger
 
 Theory for an example by C.A.R. Hoare

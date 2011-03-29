@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/IOA/ABP/Abschannels.thy
+(*  Title:      HOL/HOLCF/IOA/ABP/Abschannel_finite.thy
     Author:     Olaf Müller
 *)
 

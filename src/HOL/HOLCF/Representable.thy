@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Representable.thy
+(*  Title:      HOL/HOLCF/Representable.thy
     Author:     Brian Huffman
 *)
 

@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/ex/Fix2.thy
+(*  Title:      HOL/HOLCF/ex/Fix2.thy
     Author:     Franz Regensburger
 
 Show that fix is the unique least fixed-point operator.

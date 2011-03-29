@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/IOA/ABP/Impl.thy
+(*  Title:      HOL/HOLCF/IOA/ABP/Env.thy
     Author:     Olaf Müller
 *)
 

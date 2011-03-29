@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/IOA/ABP/Action.thy
+(*  Title:      HOL/HOLCF/IOA/Storage/Action.thy
     Author:     Olaf Müller
 *)
 

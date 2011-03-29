@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Cont.thy
+(*  Title:      HOL/HOLCF/Cont.thy
     Author:     Franz Regensburger
     Author:     Brian Huffman
 *)

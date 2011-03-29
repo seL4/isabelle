@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Bifinite.thy
+(*  Title:      HOL/HOLCF/Bifinite.thy
     Author:     Brian Huffman
 *)
 

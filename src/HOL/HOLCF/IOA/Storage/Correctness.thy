@@ -1,4 +1,4 @@
-(*  Title:      HOL/IOA/example/Correctness.thy
+(*  Title:      HOL/HOLCF/IOA/Storage/Correctness.thy
     Author:     Olaf Müller
 *)
 

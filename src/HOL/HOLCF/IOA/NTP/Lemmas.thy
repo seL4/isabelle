@@ -1,4 +1,4 @@
-(*  Title:      HOL/IOA/NTP/Lemmas.thy
+(*  Title:      HOL/HOLCF/IOA/NTP/Lemmas.thy
     Author:     Tobias Nipkow & Konrad Slind
 *)
 

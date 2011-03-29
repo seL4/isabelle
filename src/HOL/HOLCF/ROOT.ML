@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/ROOT.ML
+(*  Title:      HOL/HOLCF/ROOT.ML
     Author:     Franz Regensburger
 
 HOLCF -- a semantic extension of HOL by the LCF logic.

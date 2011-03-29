@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/IOA/ABP/Sender.thy
+(*  Title:      HOL/HOLCF/IOA/ABP/Sender.thy
     Author:     Olaf Müller
 *)
 

@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/HOLCF.thy
+(*  Title:      HOL/HOLCF/HOLCF.thy
     Author:     Franz Regensburger
 
 HOLCF -- a semantic extension of HOL by the LCF logic.

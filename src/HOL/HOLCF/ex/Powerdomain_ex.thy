@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/ex/Powerdomain_ex.thy
+(*  Title:      HOL/HOLCF/ex/Powerdomain_ex.thy
     Author:     Brian Huffman
 *)
 

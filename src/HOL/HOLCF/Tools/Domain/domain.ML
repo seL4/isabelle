@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Tools/Domain/domain.ML
+(*  Title:      HOL/HOLCF/Tools/Domain/domain.ML
     Author:     David von Oheimb
     Author:     Brian Huffman
 

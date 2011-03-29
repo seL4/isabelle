@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Dnat.thy
+(*  Title:      HOL/HOLCF/ex/Dnat.thy
     Author:     Franz Regensburger
 
 Theory for the domain of natural numbers  dnat = one ++ dnat

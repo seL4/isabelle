@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Plain_HOLCF.thy
+(*  Title:      HOL/HOLCF/Plain_HOLCF.thy
     Author:     Brian Huffman
 *)
 

@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Tools/Domain/domain_isomorphism.ML
+(*  Title:      HOL/HOLCF/Tools/Domain/domain_isomorphism.ML
     Author:     Brian Huffman
 
 Defines new types satisfying the given domain equations.

@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Tools/Domain/domain_induction.ML
+(*  Title:      HOL/HOLCF/Tools/Domain/domain_induction.ML
     Author:     David von Oheimb
     Author:     Brian Huffman
 

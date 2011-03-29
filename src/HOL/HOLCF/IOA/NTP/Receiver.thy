@@ -1,4 +1,4 @@
-(*  Title:      HOL/IOA/NTP/Receiver.thy
+(*  Title:      HOL/HOLCF/IOA/NTP/Receiver.thy
     Author:     Tobias Nipkow & Konrad Slind
 *)
 

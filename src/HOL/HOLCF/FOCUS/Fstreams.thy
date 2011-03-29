@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/FOCUS/Fstreams.thy
+(*  Title:      HOL/HOLCF/FOCUS/Fstreams.thy
     Author:     Borislav Gajanovic
 
 FOCUS flat streams (with lifted elements).

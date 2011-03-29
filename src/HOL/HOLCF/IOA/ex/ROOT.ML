@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/IOA/ex/ROOT.ML
+(*  Title:      HOL/HOLCF/IOA/ex/ROOT.ML
     Author:     Olaf Mueller
 *)
 

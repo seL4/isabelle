@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Discrete.thy
+(*  Title:      HOL/HOLCF/Discrete.thy
     Author:     Tobias Nipkow
 *)
 

@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/FOCUS/Buffer_adm.thy
+(*  Title:      HOL/HOLCF/FOCUS/Buffer_adm.thy
     Author:     David von Oheimb, TU Muenchen
 *)
 

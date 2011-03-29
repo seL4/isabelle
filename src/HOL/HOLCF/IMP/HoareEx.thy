@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/IMP/HoareEx.thy
+(*  Title:      HOL/HOLCF/IMP/HoareEx.thy
     Author:     Tobias Nipkow, TUM
     Copyright   1997 TUM
 *)

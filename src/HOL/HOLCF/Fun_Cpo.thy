@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Fun_Cpo.thy
+(*  Title:      HOL/HOLCF/Fun_Cpo.thy
     Author:     Franz Regensburger
     Author:     Brian Huffman
 *)

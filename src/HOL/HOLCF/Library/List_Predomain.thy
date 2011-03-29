@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Library/List_Predomain.thy
+(*  Title:      HOL/HOLCF/Library/List_Predomain.thy
     Author:     Brian Huffman
 *)
 

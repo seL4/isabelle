@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/IOA/meta_theory/Seq.thy
+(*  Title:      HOL/HOLCF/IOA/meta_theory/Seq.thy
     Author:     Olaf Müller
 *)
 

@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/LowerPD.thy
+(*  Title:      HOL/HOLCF/LowerPD.thy
     Author:     Brian Huffman
 *)
 

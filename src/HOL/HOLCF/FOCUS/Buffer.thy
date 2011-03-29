@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/FOCUS/Buffer.thy
+(*  Title:      HOL/HOLCF/FOCUS/Buffer.thy
     Author:     David von Oheimb, TU Muenchen
 
 Formalization of section 4 of

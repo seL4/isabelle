@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/IOA/ABP/Action.thy
+(*  Title:      HOL/HOLCF/IOA/ABP/Action.thy
     Author:     Olaf Müller
 *)
 

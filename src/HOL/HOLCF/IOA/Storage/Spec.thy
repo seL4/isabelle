@@ -1,4 +1,4 @@
-(*  Title:      HOL/IOA/example/Spec.thy
+(*  Title:      HOL/HOLCF/IOA/Storage/Spec.thy
     Author:     Olaf Müller
 *)
 

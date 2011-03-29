@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Tools/cont_proc.ML
+(*  Title:      HOL/HOLCF/Tools/cont_proc.ML
     Author:     Brian Huffman
 *)
 

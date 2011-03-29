@@ -1,4 +1,4 @@
-(*  Title:      HOL/IOA/NTP/Multiset.thy
+(*  Title:      HOL/HOLCF/IOA/NTP/Multiset.thy
     Author:     Tobias Nipkow & Konrad Slind
 *)
 

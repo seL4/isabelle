@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Tools/Domain/domain_take_proofs.ML
+(*  Title:      HOL/HOLCF/Tools/Domain/domain_take_proofs.ML
     Author:     Brian Huffman
 
 Defines take functions for the given domain equation

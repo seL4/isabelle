@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/IOA/NTP/ROOT.ML
+(*  Title:      HOL/HOLCF/IOA/NTP/ROOT.ML
     Author:     Tobias Nipkow & Konrad Slind
 
 This is the ROOT file for a network transmission protocol (NTP

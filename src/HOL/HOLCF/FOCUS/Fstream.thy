@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/FOCUS/Fstream.thy
+(*  Title:      HOL/HOLCF/FOCUS/Fstream.thy
     Author:     David von Oheimb, TU Muenchen
 
 FOCUS streams (with lifted elements).

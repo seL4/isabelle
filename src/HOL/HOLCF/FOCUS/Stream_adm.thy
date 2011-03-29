@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/ex/Stream_adm.thy
+(*  Title:      HOL/HOLCF/FOCUS/Stream_adm.thy
     Author:     David von Oheimb, TU Muenchen
 *)
 

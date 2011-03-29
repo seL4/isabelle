@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/ex/Domain_Proofs.thy
+(*  Title:      HOL/HOLCF/ex/Domain_Proofs.thy
     Author:     Brian Huffman
 *)
 

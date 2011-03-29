@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Lift.thy
+(*  Title:      HOL/HOLCF/Lift.thy
     Author:     Olaf Mueller
 *)
 

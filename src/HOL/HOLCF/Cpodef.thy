@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Pcpodef.thy
+(*  Title:      HOL/HOLCF/Cpodef.thy
     Author:     Brian Huffman
 *)
 

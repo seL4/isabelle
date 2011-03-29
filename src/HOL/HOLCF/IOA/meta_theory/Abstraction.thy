@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/IOA/meta_theory/Abstraction.thy
+(*  Title:      HOL/HOLCF/IOA/meta_theory/Abstraction.thy
     Author:     Olaf Müller
 *)
 

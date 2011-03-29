@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/IOA/ABP/Check.ML
+(*  Title:      HOL/HOLCF/IOA/ABP/Check.ML
     Author:     Olaf Mueller
 
 The Model Checker.

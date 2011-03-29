@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Library/Char_Discrete.thy
+(*  Title:      HOL/HOLCF/Library/Char_Discrete.thy
     Author:     Brian Huffman
 *)
 

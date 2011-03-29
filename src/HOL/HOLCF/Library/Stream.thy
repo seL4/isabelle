@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/ex/Stream.thy
+(*  Title:      HOL/HOLCF/Library/Stream.thy
     Author:     Franz Regensburger, David von Oheimb, Borislav Gajanovic
 *)
 

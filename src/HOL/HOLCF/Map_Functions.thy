@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Map_Functions.thy
+(*  Title:      HOL/HOLCF/Map_Functions.thy
     Author:     Brian Huffman
 *)
 

@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Pcpo.thy
+(*  Title:      HOL/HOLCF/Pcpo.thy
     Author:     Franz Regensburger
 *)
 

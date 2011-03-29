@@ -1,4 +1,4 @@
-(*  Title:      HOL/IOA/NTP/Packet.thy
+(*  Title:      HOL/HOLCF/IOA/NTP/Packet.thy
     Author:     Tobias Nipkow & Konrad Slind
 *)
 

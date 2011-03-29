@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Sprod.thy
+(*  Title:      HOL/HOLCF/Sprod.thy
     Author:     Franz Regensburger
     Author:     Brian Huffman
 *)

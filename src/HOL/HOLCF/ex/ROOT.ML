@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/ex/ROOT.ML
+(*  Title:      HOL/HOLCF/ex/ROOT.ML
 
 Misc HOLCF examples.
 *)

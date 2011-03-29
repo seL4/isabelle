@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/ex/Pattern_Match.thy
+(*  Title:      HOL/HOLCF/ex/Pattern_Match.thy
     Author:     Brian Huffman
 *)
 

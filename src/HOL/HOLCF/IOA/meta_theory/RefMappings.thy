@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/IOA/meta_theory/RefMappings.thy
+(*  Title:      HOL/HOLCF/IOA/meta_theory/RefMappings.thy
     Author:     Olaf Müller
 *)
 

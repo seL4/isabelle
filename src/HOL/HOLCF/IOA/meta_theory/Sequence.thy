@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/IOA/meta_theory/Sequence.thy
+(*  Title:      HOL/HOLCF/IOA/meta_theory/Sequence.thy
     Author:     Olaf Müller
 
 Sequences over flat domains with lifted elements.

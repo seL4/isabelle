@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Fixrec.thy
+(*  Title:      HOL/HOLCF/Fixrec.thy
     Author:     Amber Telfer and Brian Huffman
 *)
 

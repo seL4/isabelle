@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Tools/fixrec.ML
+(*  Title:      HOL/HOLCF/Tools/fixrec.ML
     Author:     Amber Telfer and Brian Huffman
 
 Recursive function definition package for HOLCF.

@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/IMP/Denotational.thy
+(*  Title:      HOL/HOLCF/IMP/Denotational.thy
     Author:     Tobias Nipkow and Robert Sandner, TUM
     Copyright   1996 TUM
 *)

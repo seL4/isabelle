@@ -1,4 +1,4 @@
-(*  Title:      HOL/IOA/NTP/Abschannel.thy
+(*  Title:      HOL/HOLCF/IOA/NTP/Abschannel.thy
     Author:     Olaf Müller
 *)
 

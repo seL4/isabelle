@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/ex/Letrec.thy
+(*  Title:      HOL/HOLCF/ex/Letrec.thy
     Author:     Brian Huffman
 *)
 

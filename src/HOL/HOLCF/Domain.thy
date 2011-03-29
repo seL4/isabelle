@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Domain.thy
+(*  Title:      HOL/HOLCF/Domain.thy
     Author:     Brian Huffman
 *)
 

@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Tools/Domain/domain_axioms.ML
+(*  Title:      HOL/HOLCF/Tools/Domain/domain_axioms.ML
     Author:     David von Oheimb
     Author:     Brian Huffman
 

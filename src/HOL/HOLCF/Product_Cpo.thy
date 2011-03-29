@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Product_Cpo.thy
+(*  Title:      HOL/HOLCF/Product_Cpo.thy
     Author:     Franz Regensburger
 *)
 

@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Cprod.thy
+(*  Title:      HOL/HOLCF/Cprod.thy
     Author:     Franz Regensburger
 *)
 

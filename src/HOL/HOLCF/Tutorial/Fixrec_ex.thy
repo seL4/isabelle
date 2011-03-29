@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/ex/Fixrec_ex.thy
+(*  Title:      HOL/HOLCF/Tutorial/Fixrec_ex.thy
     Author:     Brian Huffman
 *)
 

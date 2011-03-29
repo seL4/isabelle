@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Porder.thy
+(*  Title:      HOL/HOLCF/Porder.thy
     Author:     Franz Regensburger and Brian Huffman
 *)
 

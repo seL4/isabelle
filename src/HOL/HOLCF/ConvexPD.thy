@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/ConvexPD.thy
+(*  Title:      HOL/HOLCF/ConvexPD.thy
     Author:     Brian Huffman
 *)
 

@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/IOA/TrivEx.thy
+(*  Title:      HOL/HOLCF/IOA/ex/TrivEx.thy
     Author:     Olaf Müller
 *)
 

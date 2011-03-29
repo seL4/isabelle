@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Tools/repdef.ML
+(*  Title:      HOL/HOLCF/Tools/domaindef.ML
     Author:     Brian Huffman
 
 Defining representable domains using algebraic deflations.

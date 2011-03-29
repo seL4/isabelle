@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/One.thy
+(*  Title:      HOL/HOLCF/One.thy
     Author:     Oscar Slotosch
 *)
 

@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/ex/Loop.thy
+(*  Title:      HOL/HOLCF/ex/Loop.thy
     Author:     Franz Regensburger
 *)
 

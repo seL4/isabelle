@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/IOA/meta_theory/Traces.thy
+(*  Title:      HOL/HOLCF/IOA/meta_theory/Traces.thy
     Author:     Olaf Müller
 *)
 

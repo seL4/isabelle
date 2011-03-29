@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Up.thy
+(*  Title:      HOL/HOLCF/Up.thy
     Author:     Franz Regensburger
     Author:     Brian Huffman
 *)

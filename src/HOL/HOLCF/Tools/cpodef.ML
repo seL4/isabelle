@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Tools/cpodef.ML
+(*  Title:      HOL/HOLCF/Tools/cpodef.ML
     Author:     Brian Huffman
 
 Primitive domain definitions for HOLCF, similar to Gordon/HOL-style

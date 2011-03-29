@@ -1,4 +1,4 @@
-(*  Title:      HOL/IOA/NTP/Correctness.thy
+(*  Title:      HOL/HOLCF/IOA/NTP/Correctness.thy
     Author:     Tobias Nipkow & Konrad Slind
 *)
 

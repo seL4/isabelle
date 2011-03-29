@@ -1,4 +1,4 @@
-(*  Title:      HOLCF/Compact_Basis.thy
+(*  Title:      HOL/HOLCF/Compact_Basis.thy
     Author:     Brian Huffman
 *)
 
