@@ -9,7 +9,7 @@ header {* Sigma Algebras *}
 
 theory Sigma_Algebra
 imports
-  Main
+  Complex_Main
   "~~/src/HOL/Library/Countable"
   "~~/src/HOL/Library/FuncSet"
   "~~/src/HOL/Library/Indicator_Function"
@@ -195,13 +195,17 @@ proof -
   ultimately show ?thesis by metis
 qed
 
+lemma ring_of_sets_Pow:
+ "ring_of_sets \<lparr> space = sp, sets = Pow sp, \<dots> = X \<rparr>"
+  by default auto
+
 lemma algebra_Pow:
-     "algebra \<lparr> space = sp, sets = Pow sp, \<dots> = X \<rparr>"
-  by (auto simp add: algebra_iff_Un)
+  "algebra \<lparr> space = sp, sets = Pow sp, \<dots> = X \<rparr>"
+  by default auto
 
 lemma sigma_algebra_Pow:
      "sigma_algebra \<lparr> space = sp, sets = Pow sp, \<dots> = X \<rparr>"
-  by (auto simp add: sigma_algebra_def sigma_algebra_axioms_def algebra_Pow)
+  by default auto
 
 lemma sigma_algebra_iff:
      "sigma_algebra M \<longleftrightarrow>
@@ -713,6 +717,18 @@ qed
 lemma (in algebra) range_disjointed_sets':
   "range A \<subseteq> sets M \<Longrightarrow> range (disjointed A) \<subseteq> sets M"
   using range_disjointed_sets .
+
+lemma disjointed_0[simp]: "disjointed A 0 = A 0"
+  by (simp add: disjointed_def)
+
+lemma incseq_Un:
+  "incseq A \<Longrightarrow> (\<Union>i\<le>n. A i) = A n"
+  unfolding incseq_def by auto
+
+lemma disjointed_incseq:
+  "incseq A \<Longrightarrow> disjointed A (Suc n) = A (Suc n) - A n"
+  using incseq_Un[of A]
+  by (simp add: disjointed_def atLeastLessThanSuc_atLeastAtMost atLeast0AtMost)
 
 lemma sigma_algebra_disjoint_iff:
      "sigma_algebra M \<longleftrightarrow>
