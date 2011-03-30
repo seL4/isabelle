@@ -14,8 +14,7 @@ text {*
 subsection "Arithmetic expressions"
 typedecl loc
 
-types
-  state = "loc => nat"
+type_synonym state = "loc => nat"
 
 datatype
   aexp = N nat

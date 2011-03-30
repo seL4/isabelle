@@ -16,7 +16,7 @@ text {*
   vs. simultaneous recursion in call rule
 *}
 
-types 'a assn = "'a => state => bool"
+type_synonym 'a assn = "'a => state => bool"
 translations
   (type) "'a assn" <= (type) "'a => state => bool"
 

@@ -7,9 +7,8 @@ theory OG_Com imports Main begin
 
 text {* Type abbreviations for boolean expressions and assertions: *}
 
-types
-    'a bexp = "'a set"
-    'a assn = "'a set"
+type_synonym 'a bexp = "'a set"
+type_synonym 'a assn = "'a set"
 
 text {* The syntax of commands is defined by two mutually recursive
 datatypes: @{text "'a ann_com"} for annotated commands and @{text "'a

@@ -6,10 +6,9 @@ theory Graph imports Main begin
 
 datatype node = Black | White
 
-types 
-  nodes = "node list"
-  edge  = "nat \<times> nat"
-  edges = "edge list"
+type_synonym nodes = "node list"
+type_synonym edge = "nat \<times> nat"
+type_synonym edges = "edge list"
 
 consts Roots :: "nat set"
 

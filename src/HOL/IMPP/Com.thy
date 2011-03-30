@@ -8,8 +8,9 @@ theory Com
 imports Main
 begin
 
-types    val = nat   (* for the meta theory, this may be anything, but with
-                        current Isabelle, types cannot be refined later *)
+type_synonym val = nat
+  (* for the meta theory, this may be anything, but types cannot be refined later *)
+
 typedecl glb
 typedecl loc
 
@@ -18,15 +19,15 @@ axiomatization
   Res :: loc
 
 datatype vname  = Glb glb | Loc loc
-types    globs  = "glb => val"
-         locals = "loc => val"
+type_synonym globs = "glb => val"
+type_synonym locals = "loc => val"
 datatype state  = st globs locals
 (* for the meta theory, the following would be sufficient:
 typedecl state
 consts   st :: "[globs , locals] => state"
 *)
-types    aexp   = "state => val"
-         bexp   = "state => bool"
+type_synonym aexp = "state => val"
+type_synonym bexp = "state => bool"
 
 typedecl pname
 

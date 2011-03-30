@@ -10,7 +10,7 @@ theory SepLogHeap
 imports Main
 begin
 
-types heap = "(nat \<Rightarrow> nat option)"
+type_synonym heap = "(nat \<Rightarrow> nat option)"
 
 text{* @{text "Some"} means allocated, @{text "None"} means
 free. Address @{text "0"} serves as the null reference. *}

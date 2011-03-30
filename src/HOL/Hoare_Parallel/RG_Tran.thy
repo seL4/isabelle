@@ -8,7 +8,7 @@ subsection {* Semantics of Component Programs *}
 
 subsubsection {* Environment transitions *}
 
-types 'a conf = "(('a com) option) \<times> 'a"
+type_synonym 'a conf = "(('a com) option) \<times> 'a"
 
 inductive_set
   etran :: "('a conf \<times> 'a conf) set" 
@@ -48,7 +48,7 @@ monos "rtrancl_mono"
 
 subsection {* Semantics of Parallel Programs *}
 
-types 'a par_conf = "('a par_com) \<times> 'a"
+type_synonym 'a par_conf = "('a par_com) \<times> 'a"
 
 inductive_set
   par_etran :: "('a par_conf \<times> 'a par_conf) set"
@@ -73,9 +73,9 @@ subsection {* Computations *}
 
 subsubsection {* Sequential computations *}
 
-types 'a confs = "('a conf) list"
+type_synonym 'a confs = "'a conf list"
 
-inductive_set cptn :: "('a confs) set"
+inductive_set cptn :: "'a confs set"
 where
   CptnOne: "[(P,s)] \<in> cptn"
 | CptnEnv: "(P, t)#xs \<in> cptn \<Longrightarrow> (P,s)#(P,t)#xs \<in> cptn"
@@ -86,9 +86,9 @@ definition cp :: "('a com) option \<Rightarrow> 'a \<Rightarrow> ('a confs) set"
 
 subsubsection {* Parallel computations *}
 
-types  'a par_confs = "('a par_conf) list"
+type_synonym 'a par_confs = "'a par_conf list"
 
-inductive_set par_cptn :: "('a par_confs) set"
+inductive_set par_cptn :: "'a par_confs set"
 where
   ParCptnOne: "[(P,s)] \<in> par_cptn"
 | ParCptnEnv: "(P,t)#xs \<in> par_cptn \<Longrightarrow> (P,s)#(P,t)#xs \<in> par_cptn"
@@ -363,7 +363,8 @@ section {* Validity  of Correctness Formulas*}
 
 subsection {* Validity for Component Programs. *}
 
-types 'a rgformula = "'a com \<times> 'a set \<times> ('a \<times> 'a) set \<times> ('a \<times> 'a) set \<times> 'a set"
+type_synonym 'a rgformula =
+  "'a com \<times> 'a set \<times> ('a \<times> 'a) set \<times> ('a \<times> 'a) set \<times> 'a set"
 
 definition assum :: "('a set \<times> ('a \<times> 'a) set) \<Rightarrow> ('a confs) set" where
   "assum \<equiv> \<lambda>(pre, rely). {c. snd(c!0) \<in> pre \<and> (\<forall>i. Suc i<length c \<longrightarrow> 

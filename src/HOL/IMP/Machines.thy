@@ -14,7 +14,7 @@ subsection "Instructions"
 text {* There are only three instructions: *}
 datatype instr = SET loc aexp | JMPF bexp nat | JMPB nat
 
-types instrs = "instr list"
+type_synonym instrs = "instr list"
 
 subsection "M0 with PC"
 
@@ -47,7 +47,7 @@ text {* We describe execution of programs in the machine by
   an operational (small step) semantics:
 *}
 
-types config = "instrs \<times> instrs \<times> state"
+type_synonym config = "instrs \<times> instrs \<times> state"
 
 
 inductive_set
