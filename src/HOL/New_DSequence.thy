@@ -9,7 +9,7 @@ begin
 
 subsection {* Positive Depth-Limited Sequence *}
 
-types 'a pos_dseq = "code_numeral => 'a Lazy_Sequence.lazy_sequence"
+type_synonym 'a pos_dseq = "code_numeral => 'a Lazy_Sequence.lazy_sequence"
 
 definition pos_empty :: "'a pos_dseq"
 where
@@ -49,7 +49,7 @@ where
 
 subsection {* Negative Depth-Limited Sequence *}
 
-types 'a neg_dseq = "code_numeral => 'a Lazy_Sequence.hit_bound_lazy_sequence"
+type_synonym 'a neg_dseq = "code_numeral => 'a Lazy_Sequence.hit_bound_lazy_sequence"
 
 definition neg_empty :: "'a neg_dseq"
 where

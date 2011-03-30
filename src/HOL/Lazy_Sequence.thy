@@ -208,7 +208,7 @@ end
 subsection {* With Hit Bound Value *}
 text {* assuming in negative context *}
 
-types 'a hit_bound_lazy_sequence = "'a option lazy_sequence"
+type_synonym 'a hit_bound_lazy_sequence = "'a option lazy_sequence"
 
 definition hit_bound :: "'a hit_bound_lazy_sequence"
 where

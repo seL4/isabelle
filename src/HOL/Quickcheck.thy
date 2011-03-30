@@ -164,7 +164,7 @@ lemma [code]:
    in Predicate.Seq (%u. Predicate.Insert x (iter (nrandom - 1) sz seed')))"
 unfolding iter_def iter'.simps[of _ nrandom] ..
 
-types 'a randompred = "Random.seed \<Rightarrow> ('a Predicate.pred \<times> Random.seed)"
+type_synonym 'a randompred = "Random.seed \<Rightarrow> ('a Predicate.pred \<times> Random.seed)"
 
 definition empty :: "'a randompred"
   where "empty = Pair (bot_class.bot)"

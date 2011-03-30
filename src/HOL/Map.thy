@@ -11,7 +11,7 @@ theory Map
 imports List
 begin
 
-types ('a,'b) "map" = "'a => 'b option" (infixr "~=>" 0)
+type_synonym ('a,'b) "map" = "'a => 'b option" (infixr "~=>" 0)
 
 type_notation (xsymbols)
   "map" (infixr "\<rightharpoonup>" 0)

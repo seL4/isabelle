@@ -8,7 +8,7 @@ begin
 
 subsection {* Sets as predicates *}
 
-types 'a set = "'a \<Rightarrow> bool"
+type_synonym 'a set = "'a \<Rightarrow> bool"
 
 definition Collect :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set" where -- "comprehension"
   "Collect P = P"

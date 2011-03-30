@@ -5,7 +5,7 @@ theory Random_Sequence
 imports Quickcheck DSequence
 begin
 
-types 'a random_dseq = "code_numeral \<Rightarrow> code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('a DSequence.dseq \<times> Random.seed)"
+type_synonym 'a random_dseq = "code_numeral \<Rightarrow> code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('a DSequence.dseq \<times> Random.seed)"
 
 definition empty :: "'a random_dseq"
 where

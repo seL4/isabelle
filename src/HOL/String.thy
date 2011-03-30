@@ -74,7 +74,7 @@ syntax
 
 subsection {* Strings *}
 
-types string = "char list"
+type_synonym string = "char list"
 
 syntax
   "_String" :: "xstr => string"    ("_")

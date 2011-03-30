@@ -28,8 +28,8 @@ typedef (Node)
 
 text{*Datatypes will be represented by sets of type @{text node}*}
 
-types 'a item        = "('a, unit) node set"
-      ('a, 'b) dtree = "('a, 'b) node set"
+type_synonym 'a item        = "('a, unit) node set"
+type_synonym ('a, 'b) dtree = "('a, 'b) node set"
 
 consts
   Push      :: "[('b + nat), nat => ('b + nat)] => (nat => ('b + nat))"

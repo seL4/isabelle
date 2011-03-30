@@ -7,7 +7,7 @@ theory DSequence
 imports Lazy_Sequence Code_Numeral
 begin
 
-types 'a dseq = "code_numeral => bool => 'a Lazy_Sequence.lazy_sequence option"
+type_synonym 'a dseq = "code_numeral => bool => 'a Lazy_Sequence.lazy_sequence option"
 
 definition empty :: "'a dseq"
 where

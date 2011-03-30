@@ -25,7 +25,7 @@ definition minus_shift :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow>
 
 subsection {* Random seeds *}
 
-types seed = "code_numeral \<times> code_numeral"
+type_synonym seed = "code_numeral \<times> code_numeral"
 
 primrec "next" :: "seed \<Rightarrow> code_numeral \<times> seed" where
   "next (v, w) = (let

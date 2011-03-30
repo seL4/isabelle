@@ -5,8 +5,8 @@ theory New_Random_Sequence
 imports Quickcheck New_DSequence
 begin
 
-types 'a pos_random_dseq = "code_numeral \<Rightarrow> code_numeral \<Rightarrow> Random.seed \<Rightarrow> 'a New_DSequence.pos_dseq"
-types 'a neg_random_dseq = "code_numeral \<Rightarrow> code_numeral \<Rightarrow> Random.seed \<Rightarrow> 'a New_DSequence.neg_dseq"
+type_synonym 'a pos_random_dseq = "code_numeral \<Rightarrow> code_numeral \<Rightarrow> Random.seed \<Rightarrow> 'a New_DSequence.pos_dseq"
+type_synonym 'a neg_random_dseq = "code_numeral \<Rightarrow> code_numeral \<Rightarrow> Random.seed \<Rightarrow> 'a New_DSequence.neg_dseq"
 
 definition pos_empty :: "'a pos_random_dseq"
 where
