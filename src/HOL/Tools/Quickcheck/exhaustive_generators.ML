@@ -287,20 +287,6 @@ structure Counterexample_Batch = Proof_Data
 val put_counterexample_batch = Counterexample_Batch.put;
 
 val target = "Quickcheck";
-(*
-fun compile_simple_generator_expr ctxt (t, eval_terms) =
-  let
-    val thy = ProofContext.theory_of ctxt
-    val t' = mk_generator_expr ctxt (t, eval_terms);
-    val compile = Code_Runtime.dynamic_value_strict
-      (Counterexample.get, put_counterexample, "Exhaustive_Generators.put_counterexample")
-      thy (SOME target) (fn proc => fn g => g #> (Option.map o map) proc) t' [];
-  in
-    fn [size] => rpair NONE (compile [size] |> 
-      (if Config.get ctxt quickcheck_pretty then
-        Option.map (map Quickcheck_Common.post_process_term) else I))
-  end;
-*)
   
 fun compile_generator_expr ctxt ts =
   let
