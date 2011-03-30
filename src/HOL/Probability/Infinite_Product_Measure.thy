@@ -750,4 +750,38 @@ proof -
   with \<mu>G_eq[OF assms] infprod_spec show ?thesis by auto
 qed
 
+sublocale product_prob_space \<subseteq> prob_space "Pi\<^isub>P I M"
+proof
+  obtain i where "i \<in> I" using I_not_empty by auto
+  interpret i: finite_product_sigma_finite M "{i}" by default auto
+  let ?X = "\<Pi>\<^isub>E i\<in>{i}. space (M i)"
+  have "?X \<in> sets (Pi\<^isub>M {i} M)"
+    by auto
+  from measure_infprod_emb[OF _ _ _ this] `i \<in> I`
+  have "measure (Pi\<^isub>P I M) (emb I {i} ?X) = measure (M i) (space (M i))"
+    by (simp add: i.measure_times)
+  also have "emb I {i} ?X = space (Pi\<^isub>P I M)"
+    using `i \<in> I` by (auto simp: emb_def infprod_algebra_def generator_def)
+  finally show "measure (Pi\<^isub>P I M) (space (Pi\<^isub>P I M)) = 1"
+    using M.measure_space_1 by simp
+qed
+
+lemma (in product_prob_space) measurable_component:
+  assumes "i \<in> I"
+  shows "(\<lambda>x. x i) \<in> measurable (Pi\<^isub>P I M) (M i)"
+proof (unfold measurable_def, safe)
+  fix x assume "x \<in> space (Pi\<^isub>P I M)"
+  then show "x i \<in> space (M i)"
+    using `i \<in> I` by (auto simp: infprod_algebra_def generator_def)
+next
+  fix A assume "A \<in> sets (M i)"
+  with `i \<in> I` have
+    "(\<Pi>\<^isub>E x \<in> {i}. A) \<in> sets (Pi\<^isub>M {i} M)"
+    "(\<lambda>x. x i) -` A \<inter> space (Pi\<^isub>P I M) = emb I {i} (\<Pi>\<^isub>E x \<in> {i}. A)"
+    by (auto simp: infprod_algebra_def generator_def emb_def)
+  from generatorI[OF _ _ _ this] `i \<in> I`
+  show "(\<lambda>x. x i) -` A \<inter> space (Pi\<^isub>P I M) \<in> sets (Pi\<^isub>P I M)"
+    unfolding infprod_algebra_def by auto
+qed
+
 end
