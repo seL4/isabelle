@@ -51,7 +51,7 @@ fun rewr_conv' th = Conv.rewr_conv (mk_meta_eq th)
 
 fun conjunct_assoc_conv ct =
   Conv.try_conv
-    ((rewr_conv' @{thm conj_assoc}) then_conv conj_conv Conv.all_conv conjunct_assoc_conv) ct
+    (rewr_conv' @{thm conj_assoc} then_conv conj_conv Conv.all_conv conjunct_assoc_conv) ct
 
 fun right_hand_set_comprehension_conv conv ctxt =
   Trueprop_conv (eq_conv Conv.all_conv
@@ -107,7 +107,7 @@ fun simproc ss redex =
       end
     (* returns condition continuing term option *)
     fun dest_if (Const (@{const_name If}, _) $ cond $ then_t $ Const (@{const_name Nil}, _)) =
-        SOME (cond, then_t)
+          SOME (cond, then_t)
       | dest_if _ = NONE
     fun tac _ [] = rtac set_singleton 1 ORELSE rtac inst_Collect_mem_eq 1
       | tac ctxt (If :: cont) =
@@ -117,13 +117,14 @@ fun simproc ss redex =
           THEN Subgoal.FOCUS (fn {prems, context, ...} =>
             CONVERSION (right_hand_set_comprehension_conv (K
               (conj_conv (Conv.rewr_conv (List.last prems RS @{thm Eq_TrueI})) Conv.all_conv
-               then_conv rewr_conv' @{thm simp_thms(22)})) context) 1) ctxt 1
+               then_conv
+               rewr_conv' @{lemma "(True & P) = P" by simp})) context) 1) ctxt 1
           THEN tac ctxt cont
           THEN rtac @{thm impI} 1
           THEN Subgoal.FOCUS (fn {prems, context, ...} =>
               CONVERSION (right_hand_set_comprehension_conv (K
                 (conj_conv (Conv.rewr_conv (List.last prems RS @{thm Eq_FalseI})) Conv.all_conv
-                 then_conv rewr_conv' @{thm simp_thms(24)})) context) 1) ctxt 1
+                 then_conv rewr_conv' @{lemma "(False & P) = False" by simp})) context) 1) ctxt 1
           THEN rtac set_Nil_I 1
       | tac ctxt (Case (T, i) :: cont) =
           let
@@ -148,22 +149,26 @@ fun simproc ss redex =
                     then_conv (Trueprop_conv (eq_conv Conv.all_conv (Collect_conv (fn (_, ctxt) =>
                       Conv.repeat_conv
                         (all_but_last_exists_conv
-                          (K (rewr_conv' @{thm simp_thms(39)})) ctxt)) context)))) 1) ctxt 1
+                          (K (rewr_conv'
+                            @{lemma "(EX x. x = t & P x) = P t" by simp})) ctxt)) context)))) 1) ctxt 1
                 THEN tac ctxt cont
               else
                 Subgoal.FOCUS (fn {prems, context, ...} =>
-                  CONVERSION ((right_hand_set_comprehension_conv (K
-                    (conj_conv
-                      ((eq_conv Conv.all_conv
-                        (rewr_conv' (List.last prems))) then_conv
-                        (Conv.rewrs_conv (map (fn th => th RS @{thm Eq_FalseI}) (#distinct info))))
-                      Conv.all_conv then_conv
-                      (rewr_conv' @{thm simp_thms(24)}))) context) then_conv
-                      (Trueprop_conv
-                        (eq_conv Conv.all_conv (Collect_conv (fn (_, ctxt) =>
-                          Conv.repeat_conv
-                            (Conv.bottom_conv
-                              (K (rewr_conv' @{thm simp_thms(36)})) ctxt)) context)))) 1) ctxt 1
+                  CONVERSION
+                    (right_hand_set_comprehension_conv (K
+                      (conj_conv
+                        ((eq_conv Conv.all_conv
+                          (rewr_conv' (List.last prems))) then_conv
+                          (Conv.rewrs_conv (map (fn th => th RS @{thm Eq_FalseI}) (#distinct info))))
+                        Conv.all_conv then_conv
+                        (rewr_conv' @{lemma "(False & P) = False" by simp}))) context then_conv
+                      Trueprop_conv
+                        (eq_conv Conv.all_conv
+                          (Collect_conv (fn (_, ctxt) =>
+                            Conv.repeat_conv
+                              (Conv.bottom_conv
+                                (K (rewr_conv'
+                                  @{lemma "(EX x. P) = P" by simp})) ctxt)) context))) 1) ctxt 1
                 THEN rtac set_Nil_I 1)) (#case_rewrites info))
           end
     fun make_inner_eqs bound_vs Tis eqs t =
