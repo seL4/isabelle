@@ -980,4 +980,97 @@ lemma borel_fubini:
   shows "integral\<^isup>L lborel f = \<integral>x. f (p2e x) \<partial>(lborel_space.P DIM('a))"
   using f by (simp add: borel_fubini_positiv_integral lebesgue_integral_def)
 
+
+lemma Int_stable_atLeastAtMost:
+  "Int_stable \<lparr>space = UNIV, sets = range (\<lambda>(a,b). {a::'a::ordered_euclidean_space .. b}) \<rparr>"
+proof (simp add: Int_stable_def image_iff, intro allI)
+  fix a1 b1 a2 b2 :: 'a
+  have "\<forall>i<DIM('a). \<exists>a b. {a1$$i..b1$$i} \<inter> {a2$$i..b2$$i} = {a..b}" by auto
+  then have "\<exists>a b. \<forall>i<DIM('a). {a1$$i..b1$$i} \<inter> {a2$$i..b2$$i} = {a i..b i}"
+    unfolding choice_iff' .
+  then guess a b by safe
+  then have "{a1..b1} \<inter> {a2..b2} = {(\<chi>\<chi> i. a i) .. (\<chi>\<chi> i. b i)}"
+    by (simp add: set_eq_iff eucl_le[where 'a='a] all_conj_distrib[symmetric]) blast
+  then show "\<exists>a' b'. {a1..b1} \<inter> {a2..b2} = {a'..b'}" by blast
+qed
+
+lemma (in sigma_algebra) borel_measurable_sets:
+  assumes "f \<in> measurable borel M" "A \<in> sets M"
+  shows "f -` A \<in> sets borel"
+  using measurable_sets[OF assms] by simp
+
+lemma (in sigma_algebra) measurable_identity[intro,simp]:
+  "(\<lambda>x. x) \<in> measurable M M"
+  unfolding measurable_def by auto
+
+lemma lebesgue_real_affine:
+  fixes X :: "real set"
+  assumes "X \<in> sets borel" and "c \<noteq> 0"
+  shows "measure lebesgue X = extreal \<bar>c\<bar> * measure lebesgue ((\<lambda>x. t + c * x) -` X)"
+    (is "_ = ?\<nu> X")
+proof -
+  let ?E = "\<lparr>space = UNIV, sets = range (\<lambda>(a,b). {a::real .. b})\<rparr> :: real algebra"
+  let "?M \<nu>" = "\<lparr>space = space ?E, sets = sets (sigma ?E), measure = \<nu>\<rparr> :: real measure_space"
+  have *: "?M (measure lebesgue) = lborel"
+    unfolding borel_eq_atLeastAtMost[symmetric]
+    by (simp add: lborel_def lebesgue_def)
+  have **: "?M ?\<nu> = lborel \<lparr> measure := ?\<nu> \<rparr>"
+    unfolding borel_eq_atLeastAtMost[symmetric]
+    by (simp add: lborel_def lebesgue_def)
+  show ?thesis
+  proof (rule measure_unique_Int_stable[where X=X, OF Int_stable_atLeastAtMost], unfold * **)
+    show "X \<in> sets (sigma ?E)"
+      unfolding borel_eq_atLeastAtMost[symmetric] by fact
+    have "\<And>x. \<exists>xa. x \<in> cube xa" apply(rule_tac x=x in mem_big_cube) by fastsimp
+    then show "(\<Union>i. cube i) = space ?E" by auto
+    show "incseq cube" by (intro incseq_SucI cube_subset_Suc)
+    show "range cube \<subseteq> sets ?E"
+      unfolding cube_def_raw by auto
+    show "\<And>i. measure lebesgue (cube i) \<noteq> \<infinity>"
+      by (simp add: cube_def)
+    show "measure_space lborel" by default
+    then interpret sigma_algebra "lborel\<lparr>measure := ?\<nu>\<rparr>"
+      by (auto simp add: measure_space_def)
+    show "measure_space (lborel\<lparr>measure := ?\<nu>\<rparr>)"
+    proof
+      show "positive (lborel\<lparr>measure := ?\<nu>\<rparr>) (measure (lborel\<lparr>measure := ?\<nu>\<rparr>))"
+        by (auto simp: positive_def intro!: extreal_0_le_mult borel.borel_measurable_sets)
+      show "countably_additive (lborel\<lparr>measure := ?\<nu>\<rparr>) (measure (lborel\<lparr>measure := ?\<nu>\<rparr>))"
+      proof (simp add: countably_additive_def, safe)
+        fix A :: "nat \<Rightarrow> real set" assume A: "range A \<subseteq> sets borel" "disjoint_family A"
+        then have Ai: "\<And>i. A i \<in> sets borel" by auto
+        have "(\<Sum>n. measure lebesgue ((\<lambda>x. t + c * x) -` A n)) = measure lebesgue (\<Union>n. (\<lambda>x. t + c * x) -` A n)"
+        proof (intro lborel.measure_countably_additive)
+          { fix n have "(\<lambda>x. t + c * x) -` A n \<inter> space borel \<in> sets borel"
+              using A borel.measurable_ident unfolding id_def
+              by (intro measurable_sets[where A=borel] borel.borel_measurable_add[OF _ borel.borel_measurable_times]) auto }
+          then show "range (\<lambda>i. (\<lambda>x. t + c * x) -` A i) \<subseteq> sets borel" by auto
+          from `disjoint_family A`
+          show "disjoint_family (\<lambda>i. (\<lambda>x. t + c * x) -` A i)"
+            by (rule disjoint_family_on_bisimulation) auto
+        qed
+        with Ai show "(\<Sum>n. ?\<nu> (A n)) = ?\<nu> (UNION UNIV A)"
+          by (subst suminf_cmult_extreal)
+             (auto simp: vimage_UN borel.borel_measurable_sets)
+      qed
+    qed
+    fix X assume "X \<in> sets ?E"
+    then obtain a b where [simp]: "X = {a .. b}" by auto
+    show "measure lebesgue X = ?\<nu> X"
+    proof cases
+      assume "0 < c"
+      then have "(\<lambda>x. t + c * x) -` {a..b} = {(a - t) / c .. (b - t) / c}"
+        by (auto simp: field_simps)
+      with `0 < c` show ?thesis
+        by (cases "a \<le> b") (auto simp: field_simps)
+    next
+      assume "\<not> 0 < c" with `c \<noteq> 0` have "c < 0" by auto
+      then have *: "(\<lambda>x. t + c * x) -` {a..b} = {(b - t) / c .. (a - t) / c}"
+        by (auto simp: field_simps)
+      with `c < 0` show ?thesis
+        by (cases "a \<le> b") (auto simp: field_simps)
+    qed
+  qed
+qed
+
 end
