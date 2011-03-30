@@ -673,7 +673,7 @@ fun term_context ctxt : Syntax.term_context =
   markup_const = fn x => [Name_Space.markup_entry (const_space ctxt) x],
   markup_free = fn x =>
     [if can Name.dest_skolem x then Markup.skolem else Markup.free] @
-    (if Variable.is_fixed ctxt x then [] else [Markup.hilite]),
+    (if not (Variable.is_body ctxt) orelse Variable.is_fixed ctxt x then [] else [Markup.hilite]),
   markup_var = fn xi => [Markup.name (Term.string_of_vname xi) Markup.var]};
 
 val decode_term = Syntax.decode_term o term_context;
