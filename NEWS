@@ -53,6 +53,12 @@ been discontinued.  INCOMPATIBILITY.
 * "try":
   - Added "simp:", "intro:", and "elim:" options.
 
+* Quickcheck:
+  - Added "eval" option to evaluate terms for the found counterexample
+    (currently only supported by the default (exhaustive) tester)
+  - Added post-processing of terms to obtain readable counterexamples
+    (currently only supported by the default (exhaustive) tester)
+
 * Function package: discontinued option "tailrec".
 INCOMPATIBILITY. Use partial_function instead.
 
