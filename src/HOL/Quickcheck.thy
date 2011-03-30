@@ -209,12 +209,5 @@ hide_fact (open) iter'.simps iter_def empty_def single_def bind_def union_def if
 hide_type (open) randompred
 hide_const (open) random collapse beyond random_fun_aux random_fun_lift
   iter' iter empty single bind union if_randompred iterate_upto not_randompred Random map
-declare [[quickcheck_timing]]
-lemma
-  "rev xs = xs"
-quickcheck[tester = random, finite_types = true, report = false]
-
-quickcheck[tester = random, finite_types = false, report = false]
-oops
 
 end
