@@ -26,6 +26,7 @@ object Isabelle_Markup
   val warning_color = new Color(255, 140, 0)
   val error_color = new Color(178, 34, 34)
   val bad_color = new Color(255, 106, 106, 100)
+  val hilite_color = new Color(255, 204, 102, 100)
 
   class Icon(val priority: Int, val icon: javax.swing.Icon)
   {
@@ -100,6 +101,7 @@ object Isabelle_Markup
   val background1: Markup_Tree.Select[Color] =
   {
     case Text.Info(_, XML.Elem(Markup(Markup.BAD, _), _)) => bad_color
+    case Text.Info(_, XML.Elem(Markup(Markup.HILITE, _), _)) => hilite_color
   }
 
   val background2: Markup_Tree.Select[Color] =
@@ -154,7 +156,7 @@ object Isabelle_Markup
       Markup.TFREE -> NULL,
       Markup.FREE -> MARKUP,
       Markup.TVAR -> NULL,
-      Markup.SKOLEM -> NULL,
+      Markup.SKOLEM -> COMMENT2,
       Markup.BOUND -> LABEL,
       Markup.VAR -> NULL,
       Markup.NUM -> DIGIT,
