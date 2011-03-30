@@ -10,7 +10,8 @@ setup {*
   Context.theory_map (Quickcheck.add_generator ("SML",
     fn ctxt => fn [(t, eval_terms)] =>
       let
-        val test_fun = Codegen.test_term ctxt t 
+        val prop = list_abs_free (Term.add_frees t [], t)
+        val test_fun = Codegen.test_term ctxt prop 
         val iterations = Config.get ctxt Quickcheck.iterations
         fun iterate size 0 = NONE
           | iterate size j =
@@ -21,7 +22,7 @@ setup {*
             in
               case result of NONE => iterate size (j - 1) | SOME q => SOME q
             end
-     in fn [size] => (iterate size iterations, NONE) end))
+     in fn [_, size] => (iterate size iterations, NONE) end))
 *}
 
 end
