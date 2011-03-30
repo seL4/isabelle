@@ -3829,7 +3829,8 @@ lemma continuous_mul:
              ==> continuous net (\<lambda>x. c(x) *\<^sub>R f x) "
   unfolding continuous_def by (intro tendsto_intros)
 
-lemmas continuous_intros = continuous_add continuous_vmul continuous_cmul continuous_const continuous_sub continuous_at_id continuous_within_id continuous_mul
+lemmas continuous_intros = continuous_add continuous_vmul continuous_cmul
+  continuous_const continuous_sub continuous_at_id continuous_within_id continuous_mul
 
 lemma continuous_on_vmul:
   fixes c :: "'a::metric_space \<Rightarrow> real" and v :: "'b::real_normed_vector"
@@ -3843,9 +3844,20 @@ lemma continuous_on_mul:
              ==> continuous_on s (\<lambda>x. c(x) *\<^sub>R f x)"
   unfolding continuous_on_eq_continuous_within using continuous_mul[of _ c] by auto
 
-lemmas continuous_on_intros = continuous_on_add continuous_on_const continuous_on_id continuous_on_compose continuous_on_cmul continuous_on_neg continuous_on_sub
-  uniformly_continuous_on_add uniformly_continuous_on_const uniformly_continuous_on_id uniformly_continuous_on_compose uniformly_continuous_on_cmul uniformly_continuous_on_neg uniformly_continuous_on_sub
-  continuous_on_mul continuous_on_vmul
+lemma continuous_on_mul_real:
+  fixes f :: "'a::metric_space \<Rightarrow> real"
+  fixes g :: "'a::metric_space \<Rightarrow> real"
+  shows "continuous_on s f \<Longrightarrow> continuous_on s g
+             ==> continuous_on s (\<lambda>x. f x * g x)"
+  using continuous_on_mul[of s f g] unfolding real_scaleR_def .
+
+lemmas continuous_on_intros = continuous_on_add continuous_on_const
+  continuous_on_id continuous_on_compose continuous_on_cmul continuous_on_neg
+  continuous_on_sub continuous_on_mul continuous_on_vmul continuous_on_mul_real
+  uniformly_continuous_on_add uniformly_continuous_on_const
+  uniformly_continuous_on_id uniformly_continuous_on_compose
+  uniformly_continuous_on_cmul uniformly_continuous_on_neg
+  uniformly_continuous_on_sub
 
 text{* And so we have continuity of inverse.                                     *}
 
