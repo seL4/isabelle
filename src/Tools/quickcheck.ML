@@ -239,9 +239,6 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
     val current_result = Unsynchronized.ref empty_result 
     fun excipit () =
       "Quickcheck ran out of time while testing at size " ^ string_of_int (!current_size)
-    val (test_fun, comp_time) = cpu_time "quickcheck compilation"
-      (fn () => mk_tester ctxt [(t, eval_terms)]);
-    val _ = add_timing comp_time current_result
     fun with_size test_fun k =
       if k > Config.get ctxt size then
         NONE
@@ -257,17 +254,24 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
           case result of NONE => with_size test_fun (k + 1) | SOME q => SOME q
         end;
   in
-    case test_fun of NONE => !current_result
-      | SOME test_fun =>
-        limit ctxt (limit_time, is_interactive) (fn () =>
-          let
-            val (response, exec_time) =
-              cpu_time "quickcheck execution" (fn () => with_size test_fun 1)
-            val _ = add_response names eval_terms response current_result
-            val _ = add_timing exec_time current_result
-          in
-            !current_result
-          end) (fn () => (message (excipit ()); !current_result)) ()
+    limit ctxt (limit_time, is_interactive) (fn () =>
+      let
+        val (test_fun, comp_time) = cpu_time "quickcheck compilation"
+          (fn () => mk_tester ctxt [(t, eval_terms)]);
+        val _ = add_timing comp_time current_result
+      in
+        case test_fun of NONE => !current_result
+          | SOME test_fun =>
+            let
+              val (response, exec_time) =
+                cpu_time "quickcheck execution" (fn () => with_size test_fun 1)
+              val _ = add_response names eval_terms response current_result
+              val _ = add_timing exec_time current_result
+            in
+              !current_result
+            end
+       end)
+     (fn () => (message (excipit ()); !current_result)) ()
   end;
 
 fun test_terms ctxt ts =
@@ -297,14 +301,12 @@ fun test_term_with_increasing_cardinality ctxt (limit_time, is_interactive) ts =
     val _ = map check_test_term ts'
     val names = Term.add_free_names (hd ts') []
     val Ts = map snd (Term.add_frees (hd ts') [])
-    val current_result = Unsynchronized.ref empty_result 
-    val (test_fun, comp_time) = cpu_time "quickcheck compilation" (fn () => mk_tester ctxt ts)
-    val _ = add_timing comp_time current_result
-    fun test_card_size (card, size) =
+    val current_result = Unsynchronized.ref empty_result
+    fun test_card_size test_fun (card, size) =
       (* FIXME: why decrement size by one? *)
       let
         val (ts, timing) = cpu_time ("size " ^ string_of_int size ^ " and card " ^ string_of_int card)
-          (fn () => fst ((the test_fun) [card - 1, size - 1]))
+          (fn () => fst (test_fun [card - 1, size - 1]))
         val _ = add_timing timing current_result
       in
         Option.map (pair card) ts
@@ -317,18 +319,23 @@ fun test_term_with_increasing_cardinality ctxt (limit_time, is_interactive) ts =
         (* size does matter *)
         map_product pair (1 upto (length ts)) (1 upto (Config.get ctxt size))
         |> sort (fn ((c1, s1), (c2, s2)) => int_ord ((c1 + s1), (c2 + s2)))
-    in
-      case test_fun of
+  in
+    limit ctxt (limit_time, is_interactive) (fn () =>
+      let
+        val (test_fun, comp_time) = cpu_time "quickcheck compilation" (fn () => mk_tester ctxt ts)
+        val _ = add_timing comp_time current_result
+      in
+        case test_fun of
           NONE => !current_result
         | SOME test_fun =>
-        limit ctxt (limit_time, is_interactive) (fn () =>
           let
-            val _ = case get_first test_card_size enumeration_card_size of
+            val _ = case get_first (test_card_size test_fun) enumeration_card_size of
               SOME (card, ts) => add_response names (nth eval_terms (card - 1)) (SOME ts) current_result
             | NONE => ()
-          in !current_result end)
-          (fn () => (message "Quickcheck ran out of time"; !current_result)) ()
-    end
+          in !current_result end
+      end)
+      (fn () => (message "Quickcheck ran out of time"; !current_result)) ()
+  end
 
 fun get_finite_types ctxt =
   fst (chop (Config.get ctxt finite_type_size)
