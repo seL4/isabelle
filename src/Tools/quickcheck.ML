@@ -29,7 +29,7 @@ sig
       satisfied_assms : int list, positive_concl_tests : int }
   (* registering generators *)
   val add_generator:
-    string * (Proof.context -> term * term list -> int -> term list option * report option)
+    string * (Proof.context -> (term * term list) list -> int list -> term list option * report option)
       -> Context.generic -> Context.generic
   val add_batch_generator:
     string * (Proof.context -> term list -> (int -> term list option) list)
@@ -161,7 +161,7 @@ fun merge_test_params
 structure Data = Generic_Data
 (
   type T =
-    ((string * (Proof.context -> term * term list -> int -> term list option * report option)) list
+    ((string * (Proof.context -> (term * term list) list -> int list -> term list option * report option)) list
       * (string * (Proof.context -> term list -> (int -> term list option) list)) list)
       * test_params;
   val empty = (([], []), Test_Params {default_type = [], expect = No_Expectation});
@@ -240,7 +240,7 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
     fun excipit () =
       "Quickcheck ran out of time while testing at size " ^ string_of_int (!current_size)
     val (test_fun, comp_time) = cpu_time "quickcheck compilation"
-      (fn () => mk_tester ctxt (t, eval_terms));
+      (fn () => mk_tester ctxt [(t, eval_terms)]);
     val _ = add_timing comp_time current_result
     fun with_size test_fun k =
       if k > Config.get ctxt size then
@@ -250,7 +250,7 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
           val _ = message ("Test data size: " ^ string_of_int k)
           val _ = current_size := k
           val ((result, report), timing) =
-            cpu_time ("size " ^ string_of_int k) (fn () => test_fun (k - 1))
+            cpu_time ("size " ^ string_of_int k) (fn () => test_fun [1, k - 1])
           val _ = add_timing timing current_result
           val _ = add_report k report current_result
         in
@@ -293,19 +293,18 @@ fun test_term_with_increasing_cardinality ctxt (limit_time, is_interactive) ts =
   let
     val thy = ProofContext.theory_of ctxt
     fun message s = if Config.get ctxt quiet then () else Output.urgent_message s
-    val (ts, eval_terms) = split_list ts
-    val _ = map check_test_term ts
-    val names = Term.add_free_names (hd ts) []
-    val Ts = map snd (Term.add_frees (hd ts) [])
+    val (ts', eval_terms) = split_list ts
+    val _ = map check_test_term ts'
+    val names = Term.add_free_names (hd ts') []
+    val Ts = map snd (Term.add_frees (hd ts') [])
     val current_result = Unsynchronized.ref empty_result 
-    val (test_funs, comp_time) = cpu_time "quickcheck compilation"
-      (fn () => map (mk_tester ctxt) (ts ~~ eval_terms))
+    val (test_fun, comp_time) = cpu_time "quickcheck compilation" (fn () => mk_tester ctxt ts)
     val _ = add_timing comp_time current_result
     fun test_card_size (card, size) =
       (* FIXME: why decrement size by one? *)
       let
         val (ts, timing) = cpu_time ("size " ^ string_of_int size ^ " and card " ^ string_of_int card)
-          (fn () => fst (the (nth test_funs (card - 1)) (size - 1)))
+          (fn () => fst ((the test_fun) [card - 1, size - 1]))
         val _ = add_timing timing current_result
       in
         Option.map (pair card) ts
@@ -319,8 +318,9 @@ fun test_term_with_increasing_cardinality ctxt (limit_time, is_interactive) ts =
         map_product pair (1 upto (length ts)) (1 upto (Config.get ctxt size))
         |> sort (fn ((c1, s1), (c2, s2)) => int_ord ((c1 + s1), (c2 + s2)))
     in
-      if (forall is_none test_funs) then !current_result
-      else if (forall is_some test_funs) then
+      case test_fun of
+          NONE => !current_result
+        | SOME test_fun =>
         limit ctxt (limit_time, is_interactive) (fn () =>
           let
             val _ = case get_first test_card_size enumeration_card_size of
@@ -328,8 +328,6 @@ fun test_term_with_increasing_cardinality ctxt (limit_time, is_interactive) ts =
             | NONE => ()
           in !current_result end)
           (fn () => (message "Quickcheck ran out of time"; !current_result)) ()
-      else
-        error "Unexpectedly, testers of some cardinalities are executable but others are not"
     end
 
 fun get_finite_types ctxt =

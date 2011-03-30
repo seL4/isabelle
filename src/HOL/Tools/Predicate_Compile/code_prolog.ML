@@ -39,7 +39,7 @@ sig
   val write_program : logic_program -> string
   val run : (Time.time * prolog_system) -> logic_program -> (string * prol_term list) -> string list -> int option -> prol_term list list
   
-  val quickcheck : Proof.context -> term * term list -> int -> term list option * Quickcheck.report option
+  val quickcheck : Proof.context -> (term * term list) list -> int list -> term list option * Quickcheck.report option
 
   val trace : bool Unsynchronized.ref
   
@@ -1009,7 +1009,7 @@ val _ = Outer_Syntax.improper_command "values" "enumerate and print comprehensio
 
 (* FIXME: a small clone of Predicate_Compile_Quickcheck - maybe refactor out commons *)
 
-fun quickcheck ctxt (t, []) size =
+fun quickcheck ctxt [(t, [])] [_, size] =
   let
     val t' = list_abs_free (Term.add_frees t [], t)
     val options = code_options_of (ProofContext.theory_of ctxt)

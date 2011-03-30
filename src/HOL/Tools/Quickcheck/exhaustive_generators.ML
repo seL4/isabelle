@@ -7,10 +7,9 @@ Exhaustive generators for various types.
 signature EXHAUSTIVE_GENERATORS =
 sig
   val compile_generator_expr:
-    Proof.context -> term * term list -> int -> term list option * Quickcheck.report option
-  val compile_generator_exprs:
-    Proof.context -> term list -> (int -> term list option) list
-  val put_counterexample: (unit -> int -> term list option)
+    Proof.context -> (term * term list) list -> int list -> term list option * Quickcheck.report option
+  val compile_generator_exprs: Proof.context -> term list -> (int -> term list option) list
+  val put_counterexample: (unit -> int -> int -> term list option)
     -> Proof.context -> Proof.context
   val put_counterexample_batch: (unit -> (int -> term list option) list)
     -> Proof.context -> Proof.context
@@ -264,11 +263,16 @@ fun mk_generator_expr ctxt (t, eval_terms) =
       if Config.get ctxt smart_quantifier then mk_smart_test_term else mk_naive_test_term 
   in lambda depth (mk_test_term t) end
 
+val mk_parametric_generator_expr =
+  Quickcheck_Common.gen_mk_parametric_generator_expr 
+    ((mk_generator_expr, absdummy (@{typ "code_numeral"}, @{term "None :: term list option"})),
+      @{typ "code_numeral => term list option"})
+  
 (** generator compiliation **)
 
 structure Counterexample = Proof_Data
 (
-  type T = unit -> int -> term list option
+  type T = unit -> int -> int -> term list option
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Counterexample"
 );
@@ -283,8 +287,8 @@ structure Counterexample_Batch = Proof_Data
 val put_counterexample_batch = Counterexample_Batch.put;
 
 val target = "Quickcheck";
-
-fun compile_generator_expr ctxt (t, eval_terms) =
+(*
+fun compile_simple_generator_expr ctxt (t, eval_terms) =
   let
     val thy = ProofContext.theory_of ctxt
     val t' = mk_generator_expr ctxt (t, eval_terms);
@@ -292,11 +296,26 @@ fun compile_generator_expr ctxt (t, eval_terms) =
       (Counterexample.get, put_counterexample, "Exhaustive_Generators.put_counterexample")
       thy (SOME target) (fn proc => fn g => g #> (Option.map o map) proc) t' [];
   in
-    fn size => rpair NONE (compile size |> 
+    fn [size] => rpair NONE (compile [size] |> 
       (if Config.get ctxt quickcheck_pretty then
         Option.map (map Quickcheck_Common.post_process_term) else I))
   end;
-
+*)
+  
+fun compile_generator_expr ctxt ts =
+  let
+    val thy = ProofContext.theory_of ctxt
+    val t' = mk_parametric_generator_expr ctxt ts;
+    val compile = Code_Runtime.dynamic_value_strict
+      (Counterexample.get, put_counterexample, "Exhaustive_Generators.put_counterexample")
+      thy (SOME target) (fn proc => fn g =>
+        fn card => fn size => g card size |> (Option.map o map) proc) t' [];
+  in
+    fn [card, size] => rpair NONE (compile card size |> 
+      (if Config.get ctxt quickcheck_pretty then
+        Option.map (map Quickcheck_Common.post_process_term) else I))
+  end;
+ 
 fun compile_generator_exprs ctxt ts =
   let
     val thy = ProofContext.theory_of ctxt
@@ -310,7 +329,6 @@ fun compile_generator_exprs ctxt ts =
     map (fn compile => fn size => compile size
       |> Option.map (map Quickcheck_Common.post_process_term)) compiles
   end;
-
   
 (** setup **)
 

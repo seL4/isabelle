@@ -22,7 +22,7 @@ sig
   val tracing : bool Unsynchronized.ref;
   val quiet : bool Unsynchronized.ref;
   val quickcheck_compile_term : Predicate_Compile_Aux.compilation -> bool -> bool -> int ->
-    Proof.context -> term * term list -> int -> term list option * Quickcheck.report option;
+    Proof.context -> (term * term list) list -> int list -> term list option * Quickcheck.report option;
 (*  val test_term : Proof.context -> bool -> int -> int -> int -> int -> term -> *)
   val nrandom : int Unsynchronized.ref;
   val debug : bool Unsynchronized.ref;
@@ -215,7 +215,7 @@ fun cpu_time description e =
   let val ({cpu, ...}, result) = Timing.timing e ()
   in (result, (description, Time.toMilliseconds cpu)) end
 
-fun compile_term compilation options ctxt (t, eval_terms) =
+fun compile_term compilation options ctxt [(t, eval_terms)] =
   let
     val t' = list_abs_free (Term.add_frees t [], t)
     val thy = Theory.copy (ProofContext.theory_of ctxt)
@@ -353,7 +353,7 @@ fun compile_term' compilation options depth ctxt t =
   let
     val c = compile_term compilation options ctxt t
   in
-    fn size => (try_upto (!quiet) (c size (!nrandom)) depth, NONE)
+    fn [card, size] => (try_upto (!quiet) (c size (!nrandom)) depth, NONE)
   end
 
 fun quickcheck_compile_term compilation function_flattening fail_safe_function_flattening depth =

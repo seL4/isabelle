@@ -9,7 +9,7 @@ sig
   val add : string option -> int option -> attribute
   val test_fn : (int * int * int -> term list option) Unsynchronized.ref  (* FIXME *)
   val test_term:
-    Proof.context -> term * term list -> int -> term list option * Quickcheck.report option
+    Proof.context -> (term * term list) list -> int list -> term list option * Quickcheck.report option
   val setup : theory -> theory
   val quickcheck_setup : theory -> theory
 end;
@@ -808,7 +808,7 @@ val (depth_start, setup_depth_start) = Attrib.config_int "ind_quickcheck_depth_s
 val (random_values, setup_random_values) = Attrib.config_int "ind_quickcheck_random" (K 5);
 val (size_offset, setup_size_offset) = Attrib.config_int "ind_quickcheck_size_offset" (K 0);
 
-fun test_term ctxt (t, []) =
+fun test_term ctxt [(t, [])] =
   let
     val t' = list_abs_free (Term.add_frees t [], t)
     val thy = ProofContext.theory_of ctxt;
@@ -852,11 +852,12 @@ fun test_term ctxt (t, []) =
     val bound = Config.get ctxt depth_bound;
     val start = Config.get ctxt depth_start;
     val offset = Config.get ctxt size_offset;
-    fun test k = (deepen bound (fn i =>
+    fun test [k] = (deepen bound (fn i =>
       (Output.urgent_message ("Search depth: " ^ string_of_int i);
        test_fn' (i, values, k+offset))) start, NONE);
   in test end
-  | test_term ctxt (t, _) = error "Option eval is not supported by tester SML_inductive";
+  | test_term ctxt [(t, _)] = error "Option eval is not supported by tester SML_inductive"
+  | test_term ctxt _ = error "Compilation of multiple instances is not supported by tester SML_inductive";
 
 val quickcheck_setup =
   setup_depth_bound #>

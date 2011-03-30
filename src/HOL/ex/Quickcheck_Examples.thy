@@ -50,9 +50,14 @@ theorem "rev (rev xs) = xs"
   oops
 
 theorem "rev xs = xs"
-  quickcheck[random, expect = counterexample]
-  quickcheck[exhaustive, expect = counterexample]
-  oops
+  quickcheck[tester = random, finite_types = true, report = false, expect = counterexample]
+  quickcheck[tester = random, finite_types = false, report = false, expect = counterexample]
+  quickcheck[tester = random, finite_types = true, report = true, expect = counterexample]
+  quickcheck[tester = random, finite_types = false, report = true, expect = counterexample]
+  quickcheck[tester = exhaustive, finite_types = true, expect = counterexample]
+  quickcheck[tester = exhaustive, finite_types = false, expect = counterexample]
+oops
+
 
 text {* An example involving functions inside other data structures *}
 

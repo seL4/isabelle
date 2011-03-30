@@ -8,7 +8,7 @@ begin
 setup {*
   Inductive_Codegen.quickcheck_setup #>
   Context.theory_map (Quickcheck.add_generator ("SML",
-    fn ctxt => fn (t, eval_terms) =>
+    fn ctxt => fn [(t, eval_terms)] =>
       let
         val test_fun = Codegen.test_term ctxt t 
         val iterations = Config.get ctxt Quickcheck.iterations
@@ -21,7 +21,7 @@ setup {*
             in
               case result of NONE => iterate size (j - 1) | SOME q => SOME q
             end
-     in fn size => (iterate size iterations, NONE) end))
+     in fn [size] => (iterate size iterations, NONE) end))
 *}
 
 end

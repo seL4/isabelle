@@ -11,10 +11,10 @@ sig
     -> (seed -> ('b * (unit -> term)) * seed) -> (seed -> seed * seed)
     -> seed -> (('a -> 'b) * (unit -> term)) * seed
   val compile_generator_expr:
-    Proof.context -> term * term list -> int -> term list option * Quickcheck.report option
-  val put_counterexample: (unit -> int -> seed -> term list option * seed)
+    Proof.context -> (term * term list) list -> int list -> term list option * Quickcheck.report option
+  val put_counterexample: (unit -> int -> int -> seed -> term list option * seed)
     -> Proof.context -> Proof.context
-  val put_counterexample_report: (unit -> int -> seed -> (term list option * (bool list * bool)) * seed)
+  val put_counterexample_report: (unit -> int -> int -> seed -> (term list option * (bool list * bool)) * seed)
     -> Proof.context -> Proof.context
   val setup: theory -> theory
 end;
@@ -272,7 +272,7 @@ fun instantiate_random_datatype config descr vs tycos prfx (names, auxnames) (Ts
 
 structure Counterexample = Proof_Data
 (
-  type T = unit -> int -> int * int -> term list option * (int * int)
+  type T = unit -> int -> int -> int * int -> term list option * (int * int)
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Counterexample"
 );
@@ -280,7 +280,7 @@ val put_counterexample = Counterexample.put;
 
 structure Counterexample_Report = Proof_Data
 (
-  type T = unit -> int -> seed -> (term list option * (bool list * bool)) * seed
+  type T = unit -> int -> int -> seed -> (term list option * (bool list * bool)) * seed
   (* FIXME avoid user error with non-user text *)
   fun init _ () = error "Counterexample_Report"
 );
@@ -288,8 +288,11 @@ val put_counterexample_report = Counterexample_Report.put;
 
 val target = "Quickcheck";
 
-fun mk_generator_expr thy prop Ts =
-  let
+fun mk_generator_expr ctxt (t, eval_terms) =
+  let  
+    val thy = ProofContext.theory_of ctxt
+    val prop = list_abs_free (Term.add_frees t [], t)
+    val Ts = (map snd o fst o strip_abs) prop
     val bound_max = length Ts - 1;
     val bounds = map_index (fn (i, ty) =>
       (2 * (bound_max - i) + 1, 2 * (bound_max - i), 2 * i, ty)) Ts;
@@ -311,9 +314,12 @@ fun mk_generator_expr thy prop Ts =
       (Sign.mk_const thy (@{const_name Quickcheck.random}, [T]) $ Bound i);
   in Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check)) end;
 
-fun mk_reporting_generator_expr thy prop Ts =
+fun mk_reporting_generator_expr ctxt (t, eval_terms) =
   let
-    val bound_max = length Ts - 1;
+    val thy = ProofContext.theory_of ctxt
+    val prop = list_abs_free (Term.add_frees t [], t)
+    val Ts = (map snd o fst o strip_abs) prop
+    val bound_max = length Ts - 1
     val bounds = map_index (fn (i, ty) =>
       (2 * (bound_max - i) + 1, 2 * (bound_max - i), 2 * i, ty)) Ts;
     fun strip_imp (Const(@{const_name HOL.implies},_) $ A $ B) = apfst (cons A) (strip_imp B)
@@ -354,6 +360,18 @@ fun mk_reporting_generator_expr thy prop Ts =
     Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check))
   end
 
+val mk_parametric_generator_expr = Quickcheck_Common.gen_mk_parametric_generator_expr 
+  ((mk_generator_expr, 
+    absdummy (@{typ code_numeral}, @{term "Pair None :: Random.seed => term list option * Random.seed"})),
+    @{typ "code_numeral => Random.seed => term list option * Random.seed"})
+
+val mk_parametric_reporting_generator_expr = Quickcheck_Common.gen_mk_parametric_generator_expr 
+  ((mk_reporting_generator_expr,
+    absdummy (@{typ code_numeral},
+      @{term "Pair (None, ([], False)) :: Random.seed => (term list option * (bool list * bool)) * Random.seed"})),
+    @{typ "code_numeral => Random.seed => (term list option * (bool list * bool)) * Random.seed"})
+    
+    
 (* single quickcheck report *)
 
 datatype single_report = Run of bool list * bool | MatchExc
@@ -375,52 +393,50 @@ fun collect_single_report single_report
 val empty_report = Quickcheck.Report { iterations = 0, raised_match_errors = 0,
   satisfied_assms = [], positive_concl_tests = 0 }
     
-fun compile_generator_expr ctxt (t, eval_terms) =
+fun compile_generator_expr ctxt ts =
   let
-    val t' = list_abs_free (Term.add_frees t [], t)
-    val Ts = (map snd o fst o strip_abs) t';
     val thy = ProofContext.theory_of ctxt
     val iterations = Config.get ctxt Quickcheck.iterations
   in
     if Config.get ctxt Quickcheck.report then
       let
-        val t'' = mk_reporting_generator_expr thy t' Ts;
+        val t' = mk_parametric_reporting_generator_expr ctxt ts;
         val compile = Code_Runtime.dynamic_value_strict
           (Counterexample_Report.get, put_counterexample_report, "Random_Generators.put_counterexample_report")
-          thy (SOME target) (fn proc => fn g => fn s => g s #>> (apfst o Option.map o map) proc) t'' [];
-        val single_tester = compile #> Random_Engine.run
-        fun iterate_and_collect size 0 report = (NONE, report)
-          | iterate_and_collect size j report =
+          thy (SOME target) (fn proc => fn g => fn c => fn s => g c s #>> (apfst o Option.map o map) proc) t' [];
+        fun single_tester c s = compile c s |> Random_Engine.run
+        fun iterate_and_collect (card, size) 0 report = (NONE, report)
+          | iterate_and_collect (card, size) j report =
             let
-              val (test_result, single_report) = apsnd Run (single_tester size) handle Match => 
+              val (test_result, single_report) = apsnd Run (single_tester card size) handle Match => 
                 (if Config.get ctxt Quickcheck.quiet then ()
                  else warning "Exception Match raised during quickcheck"; (NONE, MatchExc))
               val report = collect_single_report single_report report
             in
-              case test_result of NONE => iterate_and_collect size (j - 1) report
+              case test_result of NONE => iterate_and_collect (card, size) (j - 1) report
                 | SOME q => (SOME q, report)
             end
       in
-        fn size => apsnd SOME (iterate_and_collect size iterations empty_report)
+        fn [card, size] => apsnd SOME (iterate_and_collect (card, size) iterations empty_report)
       end
     else
       let
-        val t'' = mk_generator_expr thy t' Ts;
+        val t' = mk_parametric_generator_expr ctxt ts;
         val compile = Code_Runtime.dynamic_value_strict
           (Counterexample.get, put_counterexample, "Random_Generators.put_counterexample")
-          thy (SOME target) (fn proc => fn g => fn s => g s #>> (Option.map o map) proc) t'' [];
-        val single_tester = compile #> Random_Engine.run
-        fun iterate size 0 = NONE
-          | iterate size j =
+          thy (SOME target) (fn proc => fn g => fn c => fn s => g c s #>> (Option.map o map) proc) t' [];
+        fun single_tester c s = compile c s |> Random_Engine.run
+        fun iterate (card, size) 0 = NONE
+          | iterate (card, size) j =
             let
-              val result = single_tester size handle Match => 
+              val result = single_tester card size handle Match => 
                 (if Config.get ctxt Quickcheck.quiet then ()
                  else warning "Exception Match raised during quickcheck"; NONE)
             in
-              case result of NONE => iterate size (j - 1) | SOME q => SOME q
+              case result of NONE => iterate (card, size) (j - 1) | SOME q => SOME q
             end
       in
-        fn size => (rpair NONE (iterate size iterations))
+        fn [card, size] => (rpair NONE (iterate (card, size) iterations))
       end
   end;
 
