@@ -341,15 +341,20 @@ fun run_atp auto name
          : params)
         minimize_command ({state, goal, subgoal, facts, ...} : prover_problem) =
   let
+    val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal
     fun monomorphize_facts facts =
       let
         val facts = facts |> map untranslated_fact
+        (* pseudo-theorem involving the same constants as the subgoal *)
+        val subgoal_th =
+          Logic.list_implies (hyp_ts, concl_t) |> Skip_Proof.make_thm thy
         val indexed_facts =
-          (~1, goal) :: (0 upto length facts - 1 ~~ map snd facts)
+          (~1, subgoal_th) :: (0 upto length facts - 1 ~~ map snd facts)
         val (mono_facts, ctxt') =
-          ctxt |> Config.put SMT_Config.monomorph_limit monomorphize_limit
+          ctxt |> Config.put SMT_Config.verbose debug
+               |> Config.put SMT_Config.monomorph_limit monomorphize_limit
                |> SMT_Monomorph.monomorph indexed_facts
       in
         mono_facts
