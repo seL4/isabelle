@@ -555,6 +555,19 @@ Specifies the maximum number of facts that may be returned by the relevance
 filter. If the option is set to \textit{smart}, it is set to a value that was
 empirically found to be appropriate for the prover. A typical value would be
 300.
+
+\opfalse{monomorphize}{dont\_monomorphize}
+Specifies whether the relevant facts should be monomorphized---i.e., whether
+their type variables should be instantiated with relevant ground types.
+Monomorphization is always performed for SMT solvers, irrespective of this
+option. Monomorphization can simplify reasoning but also leads to larger fact
+bases, which can slow down the ATPs.
+
+\opdefault{monomorphize\_limit}{int}{\upshape 4}
+Specifies the maximum number of iterations for the monomorphization fixpoint
+construction. The higher this limit is, the more monomorphic instances are
+potentially generated.
+
 \end{enum}
 
 \subsection{Output Format}

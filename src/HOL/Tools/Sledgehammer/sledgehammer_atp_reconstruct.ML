@@ -88,6 +88,8 @@ val extract_clause_formula_relation =
   #> raw_explode #> filter_out Symbol.is_blank #> parse_clause_formula_relation
   #> fst
 
+val unprefix_fact_number = space_implode "_" o tl o space_explode "_"
+
 fun repair_conjecture_shape_and_fact_names output conjecture_shape fact_names =
   if String.isSubstring set_ClauseFormulaRelationN output then
     let
@@ -100,7 +102,8 @@ fun repair_conjecture_shape_and_fact_names output conjecture_shape fact_names =
         |> map (fn s => find_index (curry (op =) s) seq + 1)
       fun names_for_number j =
         j |> AList.lookup (op =) name_map |> these
-          |> map_filter (try (unprefix fact_prefix)) |> map unascii_of
+          |> map_filter (try (unascii_of o unprefix_fact_number
+                              o unprefix fact_prefix))
           |> map (fn name =>
                      (name, name |> find_first_in_list_vector fact_names |> the)
                      handle Option.Option =>
@@ -145,16 +148,19 @@ fun minimize_line _ [] = ""
       "\nTo minimize the number of lemmas, try this: " ^
       Markup.markup Markup.sendback command ^ "."
 
-val vampire_fact_prefix = "f" (* grrr... *)
+val vampire_step_prefix = "f" (* grrr... *)
 
 fun resolve_fact fact_names ((_, SOME s)) =
-    (case strip_prefix_and_unascii fact_prefix s of
-       SOME s' => (case find_first_in_list_vector fact_names s' of
-                     SOME x => [(s', x)]
-                   | NONE => [])
+    (case try (unprefix fact_prefix) s of
+       SOME s' =>
+       let val s' = s' |> unprefix_fact_number |> unascii_of in
+         case find_first_in_list_vector fact_names s' of
+           SOME x => [(s', x)]
+         | NONE => []
+       end
      | NONE => [])
   | resolve_fact fact_names (num, NONE) =
-    case Int.fromString (perhaps (try (unprefix vampire_fact_prefix)) num) of
+    case Int.fromString (perhaps (try (unprefix vampire_step_prefix)) num) of
       SOME j =>
       if j > 0 andalso j <= Vector.length fact_names then
         Vector.sub (fact_names, j - 1)
@@ -233,7 +239,7 @@ val no_label = ("", ~1)
 
 val raw_prefix = "X"
 val assum_prefix = "A"
-val fact_prefix = "F"
+val have_prefix = "F"
 
 fun resolve_conjecture conjecture_shape (num, s_opt) =
   let
@@ -847,7 +853,7 @@ val relabel_proof =
               (l, subst, next_fact)
             else
               let
-                val l' = (prefix_for_depth depth fact_prefix, next_fact)
+                val l' = (prefix_for_depth depth have_prefix, next_fact)
               in (l', (l, l') :: subst, next_fact + 1) end
           val relabel_facts =
             apfst (maps (the_list o AList.lookup (op =) subst))

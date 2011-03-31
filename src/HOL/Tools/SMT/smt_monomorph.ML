@@ -28,8 +28,9 @@ variables are never mapped to schematic type variables.
 
 signature SMT_MONOMORPH =
 sig
-  val monomorph: (int * thm) list -> Proof.context ->
-    (int * thm) list * Proof.context
+  val typ_has_tvars: typ -> bool
+  val monomorph: bool -> ('a * thm) list -> Proof.context ->
+    ('a * thm) list * Proof.context
 end
 
 structure SMT_Monomorph: SMT_MONOMORPH =
@@ -159,37 +160,44 @@ fun filter_most_specific thy =
 
   in most_specific [] end
 
-fun instantiate (i, thm) substs (ithms, ctxt) =
+fun instantiate full (i, thm) substs (ithms, ctxt) =
   let
+    val thy = ProofContext.theory_of ctxt
+
     val (vs, Ss) = split_list (Term.add_tvars (Thm.prop_of thm) [])
     val (Tenv, ctxt') =
       ctxt
       |> Variable.invent_types Ss
       |>> map2 (fn v => fn (n, S) => (v, (S, TFree (n, S)))) vs
 
-    val thy = ProofContext.theory_of ctxt'
+    exception PARTIAL_INST of unit
+
+    fun update_subst vT subst =
+      if full then Vartab.update vT subst
+      else raise PARTIAL_INST ()
 
     fun replace (v, (_, T)) (U as TVar (u, _)) = if u = v then T else U
       | replace _ T = T
 
     fun complete (vT as (v, _)) subst =
       subst
-      |> not (Vartab.defined subst v) ? Vartab.update vT
+      |> not (Vartab.defined subst v) ? update_subst vT
       |> Vartab.map (K (apsnd (Term.map_atyps (replace vT))))
 
     fun cert (ix, (S, T)) = pairself (Thm.ctyp_of thy) (TVar (ix, S), T)
 
     fun inst subst =
       let val cTs = Vartab.fold (cons o cert) (fold complete Tenv subst) []
-      in (i, Thm.instantiate (cTs, []) thm) end
+      in SOME (i, Thm.instantiate (cTs, []) thm) end
+      handle PARTIAL_INST () => NONE
 
-  in (map inst substs @ ithms, ctxt') end
+  in (map_filter inst substs @ ithms, if full then ctxt' else ctxt) end
 
 
 
 (* overall procedure *)
 
-fun mono_all ctxt polys monos =
+fun mono_all full ctxt polys monos =
   let
     val scss = map (single o pair Vartab.empty o tvar_consts_of o snd) polys
 
@@ -208,13 +216,13 @@ fun mono_all ctxt polys monos =
     |> search_substitutions ctxt limit instances Symtab.empty grounds
     |> map (filter_most_specific (ProofContext.theory_of ctxt))
     |> rpair (monos, ctxt)
-    |-> fold2 instantiate polys
+    |-> fold2 (instantiate full) polys
   end
 
-fun monomorph irules ctxt =
+fun monomorph full irules ctxt =
   irules
   |> List.partition (Term.exists_type typ_has_tvars o Thm.prop_of o snd)
   |>> incr_indexes  (* avoid clashes of schematic type variables *)
-  |-> (fn [] => rpair ctxt | polys => mono_all ctxt polys)
+  |-> (fn [] => rpair ctxt | polys => mono_all full ctxt polys)
 
 end

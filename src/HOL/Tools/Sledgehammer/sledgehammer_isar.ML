@@ -79,10 +79,12 @@ val default_default_params =
    ("verbose", "false"),
    ("overlord", "false"),
    ("blocking", "false"),
-   ("type_sys", "smart"),
-   ("explicit_apply", "false"),
    ("relevance_thresholds", "0.45 0.85"),
    ("max_relevant", "smart"),
+   ("monomorphize", "false"),
+   ("monomorphize_limit", "4"),
+   ("type_sys", "smart"),
+   ("explicit_apply", "false"),
    ("isar_proof", "false"),
    ("isar_shrink_factor", "1")]
 
@@ -95,6 +97,7 @@ val negated_alias_params =
    ("quiet", "verbose"),
    ("no_overlord", "overlord"),
    ("non_blocking", "blocking"),
+   ("dont_monomorphize", "monomorphize"),
    ("partial_types", "full_types"),
    ("implicit_apply", "explicit_apply"),
    ("no_isar_proof", "isar_proof")]
@@ -233,6 +236,10 @@ fun extract_params auto default_params override_params =
     val blocking = auto orelse debug orelse lookup_bool "blocking"
     val provers = lookup_string "provers" |> space_explode " "
                   |> auto ? single o hd
+    val relevance_thresholds = lookup_real_pair "relevance_thresholds"
+    val max_relevant = lookup_int_option "max_relevant"
+    val monomorphize = lookup_bool "monomorphize"
+    val monomorphize_limit = lookup_int "monomorphize_limit"
     val type_sys =
       case (lookup_string "type_sys", lookup_bool "full_types") of
         ("tags", full_types) => Tags full_types
@@ -245,18 +252,18 @@ fun extract_params auto default_params override_params =
         else
           error ("Unknown type system: " ^ quote type_sys ^ ".")
     val explicit_apply = lookup_bool "explicit_apply"
-    val relevance_thresholds = lookup_real_pair "relevance_thresholds"
-    val max_relevant = lookup_int_option "max_relevant"
     val isar_proof = lookup_bool "isar_proof"
     val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
     val timeout = (if auto then NONE else lookup_time "timeout") |> the_timeout
     val expect = lookup_string "expect"
   in
     {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
-     provers = provers, type_sys = type_sys, explicit_apply = explicit_apply,
-     relevance_thresholds = relevance_thresholds, max_relevant = max_relevant,
-     isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
-     timeout = timeout, expect = expect}
+     provers = provers, relevance_thresholds = relevance_thresholds,
+     max_relevant = max_relevant, monomorphize = monomorphize,
+     monomorphize_limit = monomorphize_limit, type_sys = type_sys,
+     explicit_apply = explicit_apply, isar_proof = isar_proof,
+     isar_shrink_factor = isar_shrink_factor, timeout = timeout,
+     expect = expect}
   end
 
 fun get_params auto ctxt = extract_params auto (default_raw_params ctxt)

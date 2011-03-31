@@ -631,7 +631,7 @@ fun normalize iwthms ctxt =
   |> gen_normalize ctxt
   |> unfold1 ctxt
   |> rpair ctxt
-  |-> SMT_Monomorph.monomorph
+  |-> SMT_Monomorph.monomorph true
   |-> unfold2
   |-> apply_extra_norms
 

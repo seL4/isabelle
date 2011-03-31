@@ -164,9 +164,9 @@ fun dest_SMT_Weighted_Fact (SMT_Weighted_Fact p) = p
 (* FUDGE *)
 val auto_max_relevant_divisor = 2
 
-fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
-                                 relevance_thresholds, max_relevant, timeout,
-                                 ...})
+fun run_sledgehammer (params as {debug, blocking, provers, monomorphize,
+                                 type_sys, relevance_thresholds, max_relevant,
+                                 timeout, ...})
                      auto i (relevance_override as {only, ...}) minimize_command
                      state =
   if null provers then
@@ -246,7 +246,10 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
         else
           launch_provers state
               (get_facts "ATP" no_dangerous_types atp_relevance_fudge o K atps)
-              (ATP_Translated_Fact oo K (translate_atp_fact ctxt false o fst))
+              (if monomorphize then
+                 K (Untranslated_Fact o fst)
+               else
+                 ATP_Translated_Fact oo K (translate_atp_fact ctxt false o fst))
               (K (K NONE)) atps
       fun launch_smts accum =
         if null smts then
