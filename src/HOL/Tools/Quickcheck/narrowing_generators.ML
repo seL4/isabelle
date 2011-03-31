@@ -7,7 +7,7 @@ Narrowing-based counterexample generation.
 signature NARROWING_GENERATORS =
 sig
   val compile_generator_expr:
-    Proof.context -> term * term list -> int list -> term list option * Quickcheck.report option
+    Proof.context -> (term * term list) list -> int list -> term list option * Quickcheck.report option
   val put_counterexample: (unit -> term list option) -> Proof.context -> Proof.context
   val finite_functions : bool Config.T
   val setup: theory -> theory
@@ -212,7 +212,7 @@ fun finitize_functions t =
     list_abs (names ~~ Ts', t'')
   end
 
-fun compile_generator_expr ctxt (t, eval_terms) [size] =
+fun compile_generator_expr ctxt [(t, eval_terms)] [_, size] =
   let
     val thy = ProofContext.theory_of ctxt
     val t' = list_abs_free (Term.add_frees t [], t)
@@ -221,7 +221,7 @@ fun compile_generator_expr ctxt (t, eval_terms) [size] =
       Const (@{const_name Quickcheck_Narrowing.ensure_testable}, fastype_of t --> fastype_of t) $ t
     val result = dynamic_value_strict
       (Counterexample.get, Counterexample.put, "Narrowing_Generators.put_counterexample")
-      thy (Option.map o map) (ensure_testable t'') []
+      thy (Option.map o map) (ensure_testable t'') [] size
   in
     (result, NONE)
   end;

@@ -32,15 +32,15 @@ oops
 lemma "rev xs = xs"
   quickcheck[tester = narrowing, finite_types = false, default_type = int, expect = counterexample]
 oops
-
+(*
 lemma "rev xs = xs"
   quickcheck[tester = narrowing, finite_types = true, expect = counterexample]
 oops
-
+*)
 subsection {* Simple examples with functions *}
 
 declare [[quickcheck_finite_functions]]
-
+(*
 lemma "map f xs = map g xs"
   quickcheck[tester = narrowing, finite_types = true, expect = counterexample]
 oops
@@ -57,7 +57,7 @@ oops
 lemma "map f xs = F f xs"
   quickcheck[tester = narrowing, finite_types = true, expect = counterexample]
 oops
-
+*)
 lemma "map f xs = F f xs"
   quickcheck[tester = narrowing, finite_types = false, expect = counterexample]
 oops
@@ -163,7 +163,7 @@ subsubsection {* Invalid Lemma due to typo in lbal *}
 
 lemma is_ord_l_bal:
  "\<lbrakk> is_ord(MKT (x :: nat) l r h); height l = height r + 2 \<rbrakk> \<Longrightarrow> is_ord(l_bal(x,l,r))"
-quickcheck[tester = narrowing, finite_types = false, default_type = nat, size = 6, timeout = 100, expect = counterexample]
+quickcheck[tester = narrowing, finite_types = false, default_type = nat, size = 6, timeout = 1000, expect = counterexample]
 oops
 
 
