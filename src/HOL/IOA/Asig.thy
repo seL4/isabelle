@@ -9,7 +9,7 @@ theory Asig
 imports Main
 begin
 
-types
+type_synonym
   'a signature = "('a set * 'a set * 'a set)"
 
 consts

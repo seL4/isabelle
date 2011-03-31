@@ -13,9 +13,8 @@ imports Main
 uses ("hoare_syntax.ML") ("hoare_tac.ML")
 begin
 
-types
-    'a bexp = "'a set"
-    'a assn = "'a set"
+type_synonym 'a bexp = "'a set"
+type_synonym 'a assn = "'a set"
 
 datatype
  'a com = Basic "'a \<Rightarrow> 'a"
@@ -25,7 +24,7 @@ datatype
 
 abbreviation annskip ("SKIP") where "SKIP == Basic id"
 
-types 'a sem = "'a => 'a => bool"
+type_synonym 'a sem = "'a => 'a => bool"
 
 inductive Sem :: "'a com \<Rightarrow> 'a sem"
 where

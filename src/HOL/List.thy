@@ -426,25 +426,44 @@ let
 in [(@{syntax_const "_listcompr"}, lc_tr)] end
 *}
 
-term "[(x,y,z). b]"
-term "[(x,y,z). x\<leftarrow>xs]"
-term "[e x y. x\<leftarrow>xs, y\<leftarrow>ys]"
-term "[(x,y,z). x<a, x>b]"
-term "[(x,y,z). x\<leftarrow>xs, x>b]"
-term "[(x,y,z). x<a, x\<leftarrow>xs]"
-term "[(x,y). Cons True x \<leftarrow> xs]"
-term "[(x,y,z). Cons x [] \<leftarrow> xs]"
-term "[(x,y,z). x<a, x>b, x=d]"
-term "[(x,y,z). x<a, x>b, y\<leftarrow>ys]"
-term "[(x,y,z). x<a, x\<leftarrow>xs,y>b]"
-term "[(x,y,z). x<a, x\<leftarrow>xs, y\<leftarrow>ys]"
-term "[(x,y,z). x\<leftarrow>xs, x>b, y<a]"
-term "[(x,y,z). x\<leftarrow>xs, x>b, y\<leftarrow>ys]"
-term "[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys,y>x]"
-term "[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys,z\<leftarrow>zs]"
+ML {*
+  let
+    val read = Syntax.read_term @{context};
+    fun check s1 s2 = read s1 aconv read s2 orelse error ("Check failed: " ^ quote s1);
+  in
+    check "[(x,y,z). b]" "if b then [(x, y, z)] else []";
+    check "[(x,y,z). x\<leftarrow>xs]" "map (\<lambda>x. (x, y, z)) xs";
+    check "[e x y. x\<leftarrow>xs, y\<leftarrow>ys]" "concat (map (\<lambda>x. map (\<lambda>y. e x y) ys) xs)";
+    check "[(x,y,z). x<a, x>b]" "if x < a then if b < x then [(x, y, z)] else [] else []";
+    check "[(x,y,z). x\<leftarrow>xs, x>b]" "concat (map (\<lambda>x. if b < x then [(x, y, z)] else []) xs)";
+    check "[(x,y,z). x<a, x\<leftarrow>xs]" "if x < a then map (\<lambda>x. (x, y, z)) xs else []";
+    check "[(x,y). Cons True x \<leftarrow> xs]"
+      "concat (map (\<lambda>xa. case xa of [] \<Rightarrow> [] | True # x \<Rightarrow> [(x, y)] | False # x \<Rightarrow> []) xs)";
+    check "[(x,y,z). Cons x [] \<leftarrow> xs]"
+      "concat (map (\<lambda>xa. case xa of [] \<Rightarrow> [] | [x] \<Rightarrow> [(x, y, z)] | x # aa # lista \<Rightarrow> []) xs)";
+    check "[(x,y,z). x<a, x>b, x=d]"
+      "if x < a then if b < x then if x = d then [(x, y, z)] else [] else [] else []";
+    check "[(x,y,z). x<a, x>b, y\<leftarrow>ys]"
+      "if x < a then if b < x then map (\<lambda>y. (x, y, z)) ys else [] else []";
+    check "[(x,y,z). x<a, x\<leftarrow>xs,y>b]"
+      "if x < a then concat (map (\<lambda>x. if b < y then [(x, y, z)] else []) xs) else []";
+    check "[(x,y,z). x<a, x\<leftarrow>xs, y\<leftarrow>ys]"
+      "if x < a then concat (map (\<lambda>x. map (\<lambda>y. (x, y, z)) ys) xs) else []";
+    check "[(x,y,z). x\<leftarrow>xs, x>b, y<a]"
+      "concat (map (\<lambda>x. if b < x then if y < a then [(x, y, z)] else [] else []) xs)";
+    check "[(x,y,z). x\<leftarrow>xs, x>b, y\<leftarrow>ys]"
+      "concat (map (\<lambda>x. if b < x then map (\<lambda>y. (x, y, z)) ys else []) xs)";
+    check "[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys,y>x]"
+      "concat (map (\<lambda>x. concat (map (\<lambda>y. if x < y then [(x, y, z)] else []) ys)) xs)";
+    check "[(x,y,z). x\<leftarrow>xs, y\<leftarrow>ys,z\<leftarrow>zs]"
+      "concat (map (\<lambda>x. concat (map (\<lambda>y. map (\<lambda>z. (x, y, z)) zs) ys)) xs)"
+  end;
+*}
+
 (*
 term "[(x,y). x\<leftarrow>xs, let xx = x+x, y\<leftarrow>ys, y \<noteq> xx]"
 *)
+
 
 use "Tools/list_to_set_comprehension.ML"
 

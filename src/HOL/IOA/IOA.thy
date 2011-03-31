@@ -9,12 +9,11 @@ theory IOA
 imports Asig
 begin
 
-types
-   'a seq            =   "nat => 'a"
-   'a oseq           =   "nat => 'a option"
-   ('a,'b)execution  =   "'a oseq * 'b seq"
-   ('a,'s)transition =   "('s * 'a * 's)"
-   ('a,'s)ioa        =   "'a signature * 's set * ('a,'s)transition set"
+type_synonym 'a seq = "nat => 'a"
+type_synonym 'a oseq = "nat => 'a option"
+type_synonym ('a, 'b) execution = "'a oseq * 'b seq"
+type_synonym ('a, 's) transition = "('s * 'a * 's)"
+type_synonym ('a,'s) ioa = "'a signature * 's set * ('a, 's) transition set"
 
 consts
 

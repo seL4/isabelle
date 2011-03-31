@@ -6,7 +6,7 @@ header "Inductive Definition of Hoare Logic"
 
 theory Hoare imports Natural begin
 
-types assn = "state => bool"
+type_synonym assn = "state => bool"
 
 inductive
   hoare :: "assn => com => assn => bool" ("|- ({(1_)}/ (_)/ {(1_)})" 50)

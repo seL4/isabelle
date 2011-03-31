@@ -6,7 +6,7 @@ header "Denotational Semantics of Commands"
 
 theory Denotation imports Natural begin
 
-types com_den = "(state\<times>state)set"
+type_synonym com_den = "(state \<times> state) set"
 
 definition
   Gamma :: "[bexp,com_den] => (com_den => com_den)" where

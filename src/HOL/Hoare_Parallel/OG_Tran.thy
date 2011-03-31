@@ -3,9 +3,8 @@ header {* \section{Operational Semantics} *}
 
 theory OG_Tran imports OG_Com begin
 
-types
-  'a ann_com_op = "('a ann_com) option"
-  'a ann_triple_op = "('a ann_com_op \<times> 'a assn)"
+type_synonym 'a ann_com_op = "('a ann_com) option"
+type_synonym 'a ann_triple_op = "('a ann_com_op \<times> 'a assn)"
   
 primrec com :: "'a ann_triple_op \<Rightarrow> 'a ann_com_op" where
   "com (c, q) = c"

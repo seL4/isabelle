@@ -55,7 +55,8 @@ definition Com :: "'a rgformula \<Rightarrow> 'a com" where
 
 subsection {* Proof System for Parallel Programs *}
 
-types 'a par_rgformula = "('a rgformula) list \<times> 'a set \<times> ('a \<times> 'a) set \<times> ('a \<times> 'a) set \<times> 'a set"
+type_synonym 'a par_rgformula =
+  "('a rgformula) list \<times> 'a set \<times> ('a \<times> 'a) set \<times> ('a \<times> 'a) set \<times> 'a set"
 
 inductive
   par_rghoare :: "('a rgformula) list \<Rightarrow> 'a set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> 'a set \<Rightarrow> bool"

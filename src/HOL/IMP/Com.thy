@@ -11,11 +11,10 @@ typedecl loc
   -- "an unspecified (arbitrary) type of locations 
       (adresses/names) for variables"
       
-types 
-  val   = nat -- "or anything else, @{text nat} used in examples"
-  state = "loc \<Rightarrow> val"
-  aexp  = "state \<Rightarrow> val"  
-  bexp  = "state \<Rightarrow> bool"
+type_synonym val = nat -- "or anything else, @{text nat} used in examples"
+type_synonym state = "loc \<Rightarrow> val"
+type_synonym aexp = "state \<Rightarrow> val"
+type_synonym bexp = "state \<Rightarrow> bool"
   -- "arithmetic and boolean expressions are not modelled explicitly here,"
   -- "they are just functions on states"
 
