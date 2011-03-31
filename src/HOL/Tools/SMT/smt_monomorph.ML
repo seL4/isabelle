@@ -28,6 +28,7 @@ variables are never mapped to schematic type variables.
 
 signature SMT_MONOMORPH =
 sig
+  val typ_has_tvars: typ -> bool
   val monomorph: ('a * thm) list -> Proof.context ->
     ('a * thm) list * Proof.context
 end

@@ -348,12 +348,20 @@ fun run_atp auto name
         val facts = facts |> map untranslated_fact
         val indexed_facts =
           (~1, goal) :: (0 upto length facts - 1 ~~ map snd facts)
+        val (mono_facts, ctxt') =
+          ctxt |> Config.put SMT_Config.monomorph_limit monomorphize_limit
+               |> SMT_Monomorph.monomorph indexed_facts
       in
-        ctxt |> Config.put SMT_Config.monomorph_limit monomorphize_limit
-             |> SMT_Monomorph.monomorph indexed_facts |> fst
-             |> sort (int_ord o pairself fst)
-             |> filter_out (curry (op =) ~1 o fst)
-             |> map (Untranslated_Fact o apfst (fst o nth facts))
+        mono_facts
+        |> sort (int_ord o pairself fst)
+        |> filter_out (curry (op =) ~1 o fst)
+        (* The next step shouldn't be necessary but currently the monomorphizer
+           generates unexpected instances with fresh TFrees, which typically
+           become TVars once exported. *)
+        |> filter_out (Term.exists_type SMT_Monomorph.typ_has_tvars
+                       o singleton (Variable.export_terms ctxt' ctxt)
+                       o prop_of o snd)
+        |> map (Untranslated_Fact o apfst (fst o nth facts))
       end
     val facts = facts |> monomorphize ? monomorphize_facts
                       |> map (atp_translated_fact ctxt)
