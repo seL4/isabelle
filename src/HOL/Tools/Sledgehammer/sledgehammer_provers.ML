@@ -21,10 +21,12 @@ sig
      overlord: bool,
      blocking: bool,
      provers: string list,
-     type_sys: type_system,
-     explicit_apply: bool,
      relevance_thresholds: real * real,
      max_relevant: int option,
+     monomorphize: bool,
+     monomorphize_limit: int,
+     type_sys: type_system,
+     explicit_apply: bool,
      isar_proof: bool,
      isar_shrink_factor: int,
      timeout: Time.time,
@@ -66,7 +68,6 @@ sig
   val smt_iter_fact_frac : real Unsynchronized.ref
   val smt_iter_time_frac : real Unsynchronized.ref
   val smt_iter_min_msecs : int Unsynchronized.ref
-  val smt_monomorphize_limit : int Unsynchronized.ref
 
   val das_Tool : string
   val select_smt_solver : string -> Proof.context -> Proof.context
@@ -229,10 +230,12 @@ type params =
    overlord: bool,
    blocking: bool,
    provers: string list,
-   type_sys: type_system,
-   explicit_apply: bool,
    relevance_thresholds: real * real,
    max_relevant: int option,
+   monomorphize: bool,
+   monomorphize_limit: int,
+   type_sys: type_system,
+   explicit_apply: bool,
    isar_proof: bool,
    isar_shrink_factor: int,
    timeout: Time.time,
@@ -333,13 +336,27 @@ fun run_atp auto name
         ({exec, required_execs, arguments, has_incomplete_mode, proof_delims,
           known_failures, explicit_forall, use_conjecture_for_hypotheses, ...}
           : atp_config)
-        ({debug, verbose, overlord, type_sys, explicit_apply, isar_proof,
-          isar_shrink_factor, timeout, ...} : params)
+        ({debug, verbose, overlord, monomorphize, monomorphize_limit, type_sys,
+          explicit_apply, isar_proof, isar_shrink_factor, timeout, ...}
+         : params)
         minimize_command ({state, goal, subgoal, facts, ...} : prover_problem) =
   let
     val ctxt = Proof.context_of state
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal
-    val facts = facts |> map (atp_translated_fact ctxt)
+    fun monomorphize_facts facts =
+      let
+        val facts = facts |> map untranslated_fact
+        val indexed_facts =
+          (~1, goal) :: (0 upto length facts - 1 ~~ map snd facts)
+      in
+        ctxt |> Config.put SMT_Config.monomorph_limit monomorphize_limit
+             |> SMT_Monomorph.monomorph indexed_facts |> fst
+             |> sort (int_ord o pairself fst)
+             |> filter_out (curry (op =) ~1 o fst)
+             |> map (Untranslated_Fact o apfst (fst o nth facts))
+      end
+    val facts = facts |> monomorphize ? monomorphize_facts
+                      |> map (atp_translated_fact ctxt)
     val (dest_dir, problem_prefix) =
       if overlord then overlord_file_location_for_prover name
       else (Config.get ctxt dest_dir, Config.get ctxt problem_prefix)
@@ -513,9 +530,9 @@ val smt_max_iters = Unsynchronized.ref 8
 val smt_iter_fact_frac = Unsynchronized.ref 0.5
 val smt_iter_time_frac = Unsynchronized.ref 0.5
 val smt_iter_min_msecs = Unsynchronized.ref 5000
-val smt_monomorphize_limit = Unsynchronized.ref 4
 
-fun smt_filter_loop name ({debug, verbose, overlord, timeout, ...} : params)
+fun smt_filter_loop name ({debug, verbose, overlord, monomorphize_limit,
+                           timeout, ...} : params)
                     state i smt_filter =
   let
     val ctxt = Proof.context_of state
@@ -529,7 +546,7 @@ fun smt_filter_loop name ({debug, verbose, overlord, timeout, ...} : params)
           else
             I)
       #> Config.put SMT_Config.infer_triggers (!smt_triggers)
-      #> Config.put SMT_Config.monomorph_limit (!smt_monomorphize_limit)
+      #> Config.put SMT_Config.monomorph_limit monomorphize_limit
     val state = state |> Proof.map_context repair_context
 
     fun iter timeout iter_num outcome0 time_so_far facts =

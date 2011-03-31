@@ -42,8 +42,8 @@ fun n_facts names =
 
 fun print silent f = if silent then () else Output.urgent_message (f ())
 
-fun test_facts ({debug, verbose, overlord, provers, type_sys, isar_proof,
-                 isar_shrink_factor, ...} : params)
+fun test_facts ({debug, verbose, overlord, provers, monomorphize_limit,
+                 type_sys, isar_proof, isar_shrink_factor, ...} : params)
         explicit_apply_opt silent (prover : prover) timeout i n state facts =
   let
     val thy = Proof.theory_of state
@@ -65,6 +65,7 @@ fun test_facts ({debug, verbose, overlord, provers, type_sys, isar_proof,
       {debug = debug, verbose = verbose, overlord = overlord, blocking = true,
        provers = provers, type_sys = type_sys, explicit_apply = explicit_apply,
        relevance_thresholds = (1.01, 1.01), max_relevant = NONE,
+       monomorphize = false, monomorphize_limit = monomorphize_limit,
        isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
        timeout = timeout, expect = ""}
     val facts =

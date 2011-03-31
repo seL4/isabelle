@@ -442,9 +442,13 @@ fun formula_for_fact ctxt type_sys
                 (atp_type_literals_for_types type_sys ctypes_sorts))
            (formula_for_combformula ctxt type_sys combformula)
 
-fun problem_line_for_fact ctxt prefix type_sys (formula as {name, kind, ...}) =
-  Fof (prefix ^ ascii_of name, kind, formula_for_fact ctxt type_sys formula,
-       NONE)
+(* Each fact is given a unique fact number to avoid name clashes (e.g., because
+   of monomorphization). The TPTP explicitly forbids name clashes, and some of
+   the remote provers might care. *)
+fun problem_line_for_fact ctxt prefix type_sys
+                          (j, formula as {name, kind, ...}) =
+  Fof (prefix ^ string_of_int j ^ "_" ^ ascii_of name, kind,
+       formula_for_fact ctxt type_sys formula, NONE)
 
 fun problem_line_for_class_rel_clause (ClassRelClause {name, subclass,
                                                        superclass, ...}) =
@@ -626,7 +630,8 @@ fun prepare_atp_problem ctxt readable_names explicit_forall type_sys
     (* Reordering these might or might not confuse the proof reconstruction
        code or the SPASS Flotter hack. *)
     val problem =
-      [(factsN, map (problem_line_for_fact ctxt fact_prefix type_sys) facts),
+      [(factsN, map (problem_line_for_fact ctxt fact_prefix type_sys)
+                    (0 upto length facts - 1 ~~ facts)),
        (class_relsN, map problem_line_for_class_rel_clause class_rel_clauses),
        (aritiesN, map problem_line_for_arity_clause arity_clauses),
        (helpersN, []),
@@ -638,7 +643,8 @@ fun prepare_atp_problem ctxt readable_names explicit_forall type_sys
     val helper_lines =
       get_helper_facts ctxt explicit_forall type_sys
                        (maps (map (#3 o dest_Fof) o snd) problem)
-      |>> map (problem_line_for_fact ctxt helper_prefix type_sys
+      |>> map (pair 0
+               #> problem_line_for_fact ctxt helper_prefix type_sys
                #> repair_problem_line thy explicit_forall type_sys const_tab)
       |> op @
     val (problem, pool) =

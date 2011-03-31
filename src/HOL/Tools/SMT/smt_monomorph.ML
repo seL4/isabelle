@@ -28,8 +28,8 @@ variables are never mapped to schematic type variables.
 
 signature SMT_MONOMORPH =
 sig
-  val monomorph: (int * thm) list -> Proof.context ->
-    (int * thm) list * Proof.context
+  val monomorph: ('a * thm) list -> Proof.context ->
+    ('a * thm) list * Proof.context
 end
 
 structure SMT_Monomorph: SMT_MONOMORPH =

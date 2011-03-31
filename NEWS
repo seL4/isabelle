@@ -49,6 +49,7 @@ been discontinued.  INCOMPATIBILITY.
 * Sledgehammer:
   - sledgehammer available_provers ~> sledgehammer supported_provers
     INCOMPATIBILITY.
+  - Added "monomorphize" and "monomorphize_limit" options.
 
 * "try":
   - Added "simp:", "intro:", and "elim:" options.
