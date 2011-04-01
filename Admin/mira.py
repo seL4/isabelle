@@ -338,7 +338,7 @@ def JD_SN(*args):
 JD_confs = 'JD_NS JD_FTA JD_Hoare JD_SN JD_Arrow JD_FFT JD_Jinja JD_QE JD_S2S'.split(' ')
 
 @scheduler()
-def judgement_day(env):
+def judgement_day_scheduler(env):
     """Scheduler for Judgement Day."""
     return schedule.age_scheduler(env, 'Isabelle', JD_confs)
 
