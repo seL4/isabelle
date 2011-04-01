@@ -346,26 +346,22 @@ fun run_atp auto name
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal
     fun monomorphize_facts facts =
       let
+        val repair_context =
+          Config.put SMT_Config.verbose debug
+          #> Config.put SMT_Config.monomorph_full false
+          #> Config.put SMT_Config.monomorph_limit monomorphize_limit
         val facts = facts |> map untranslated_fact
         (* pseudo-theorem involving the same constants as the subgoal *)
         val subgoal_th =
           Logic.list_implies (hyp_ts, concl_t) |> Skip_Proof.make_thm thy
         val indexed_facts =
           (~1, subgoal_th) :: (0 upto length facts - 1 ~~ map snd facts)
-        val (mono_facts, ctxt') =
-          ctxt |> Config.put SMT_Config.verbose debug
-               |> Config.put SMT_Config.monomorph_limit monomorphize_limit
-               |> SMT_Monomorph.monomorph indexed_facts
+        val mono_facts =
+          SMT_Monomorph.monomorph indexed_facts (repair_context ctxt) |> fst
       in
         mono_facts
         |> sort (int_ord o pairself fst)
         |> filter_out (curry (op =) ~1 o fst)
-        (* The next step shouldn't be necessary but currently the monomorphizer
-           generates unexpected instances with fresh TFrees, which typically
-           become TVars once exported. *)
-        |> filter_out (Term.exists_type SMT_Monomorph.typ_has_tvars
-                       o singleton (Variable.export_terms ctxt' ctxt)
-                       o prop_of o snd)
         |> map (Untranslated_Fact o apfst (fst o nth facts))
       end
     val facts = facts |> monomorphize ? monomorphize_facts
@@ -559,6 +555,7 @@ fun smt_filter_loop name ({debug, verbose, overlord, monomorphize_limit,
           else
             I)
       #> Config.put SMT_Config.infer_triggers (!smt_triggers)
+      #> Config.put SMT_Config.monomorph_full false
       #> Config.put SMT_Config.monomorph_limit monomorphize_limit
     val state = state |> Proof.map_context repair_context
 
