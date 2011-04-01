@@ -34,6 +34,9 @@ sig
   val add_batch_generator:
     string * (Proof.context -> term list -> (int -> term list option) list)
       -> Context.generic -> Context.generic
+  val add_batch_validator:
+    string * (Proof.context -> term list -> (int -> bool) list)
+      -> Context.generic -> Context.generic
   (* quickcheck's result *)
   datatype result =
     Result of
@@ -52,6 +55,7 @@ sig
   (* testing a batch of terms *)
   val test_terms:
     Proof.context -> term list -> (string * term) list option list option * (string * int) list
+  val validate_terms: Proof.context -> term list -> bool list option * (string * int) list
 end;
 
 structure Quickcheck : QUICKCHECK =
@@ -163,13 +167,16 @@ structure Data = Generic_Data
 (
   type T =
     ((string * (Proof.context -> (term * term list) list -> int list -> term list option * report option)) list
-      * (string * (Proof.context -> term list -> (int -> term list option) list)) list)
+      * ((string * (Proof.context -> term list -> (int -> term list option) list)) list
+      * ((string * (Proof.context -> term list -> (int -> bool) list)) list)))
       * test_params;
-  val empty = (([], []), Test_Params {default_type = [], expect = No_Expectation});
+  val empty = (([], ([], [])), Test_Params {default_type = [], expect = No_Expectation});
   val extend = I;
-  fun merge (((generators1, batch_generators1), params1), ((generators2, batch_generators2), params2)) : T =
+  fun merge (((generators1, (batch_generators1, batch_validators1)), params1),
+    ((generators2, (batch_generators2, batch_validators2)), params2)) : T =
     ((AList.merge (op =) (K true) (generators1, generators2),
-    AList.merge (op =) (K true) (batch_generators1, batch_generators2)),
+     (AList.merge (op =) (K true) (batch_generators1, batch_generators2),
+      AList.merge (op =) (K true) (batch_validators1, batch_validators2))),
       merge_test_params (params1, params2));
 );
 
@@ -183,7 +190,9 @@ val map_test_params = Data.map o apsnd o map_test_params'
 
 val add_generator = Data.map o apfst o apfst o AList.update (op =);
 
-val add_batch_generator = Data.map o apfst o apsnd o AList.update (op =);
+val add_batch_generator = Data.map o apfst o apsnd o apfst o AList.update (op =);
+
+val add_batch_validator = Data.map o apfst o apsnd o apsnd o AList.update (op =);
 
 (* generating tests *)
 
@@ -205,10 +214,13 @@ fun gen_mk_tester lookup ctxt v =
       end
   end
 
-val mk_tester = gen_mk_tester (fn ctxt =>
-  AList.lookup (op =) ((fst o fst o Data.get o Context.Proof) ctxt))
-val mk_batch_tester = gen_mk_tester (fn ctxt => AList.lookup (op =) ((snd o fst o Data.get o Context.Proof) ctxt))
-  
+val mk_tester =
+  gen_mk_tester (fn ctxt => AList.lookup (op =) ((fst o fst o Data.get o Context.Proof) ctxt))
+val mk_batch_tester =
+  gen_mk_tester (fn ctxt => AList.lookup (op =) ((fst o snd o fst o Data.get o Context.Proof) ctxt))
+val mk_batch_validator =
+  gen_mk_tester (fn ctxt => AList.lookup (op =) ((snd o snd o fst o Data.get o Context.Proof) ctxt))
+
 (* testing propositions *)
 
 fun check_test_term t =
@@ -275,17 +287,35 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
      (fn () => (message (excipit ()); !current_result)) ()
   end;
 
+fun validate_terms ctxt ts =
+  let
+    val _ = map check_test_term ts
+    val size = Config.get ctxt size
+    val (test_funs, comp_time) = cpu_time "quickcheck batch compilation"
+      (fn () => mk_batch_validator ctxt ts) 
+    fun with_size tester k =
+      if k > size then true
+      else if tester k then with_size tester (k + 1) else false
+    val (results, exec_time) = cpu_time "quickcheck batch execution" (fn () =>
+        Option.map (map (fn test_fun => TimeLimit.timeLimit (seconds (Config.get ctxt timeout))
+              (fn () => with_size test_fun 1) ()
+             handle TimeLimit.TimeOut => true)) test_funs)
+  in
+    (results, [comp_time, exec_time])
+  end
+  
 fun test_terms ctxt ts =
   let
     val _ = map check_test_term ts
+    val size = Config.get ctxt size
     val namess = map (fn t => Term.add_free_names t []) ts
     val (test_funs, comp_time) = cpu_time "quickcheck batch compilation" (fn () => mk_batch_tester ctxt ts) 
     fun with_size tester k =
-      if k > Config.get ctxt size then NONE
+      if k > size then NONE
       else case tester k of SOME ts => SOME ts | NONE => with_size tester (k + 1)
     val (results, exec_time) = cpu_time "quickcheck batch execution" (fn () =>
         Option.map (map (fn test_fun => TimeLimit.timeLimit (seconds (Config.get ctxt timeout))
-              (fn () => with_size test_fun 1)  ()
+              (fn () => with_size test_fun 1) ()
              handle TimeLimit.TimeOut => NONE)) test_funs)
   in
     (Option.map (map2 (fn names => Option.map (fn ts => names ~~ ts)) namess) results,
