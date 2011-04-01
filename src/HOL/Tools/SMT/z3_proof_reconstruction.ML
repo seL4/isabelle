@@ -596,8 +596,7 @@ val quant_inst = Thm o Z3_Proof_Tools.by_tac (
 end
 
 
-(* c = SOME x. P x |- (EX x. P x) = P c
-   c = SOME x. ~ P x |- ~(ALL x. P x) = ~ P c *)
+(* |- (EX x. P x) = P c     |- ~(ALL x. P x) = ~ P c *)
 local
   val forall =
     SMT_Utils.mk_const_pat @{theory} @{const_name all}
@@ -619,8 +618,7 @@ local
     in (Thm.instantiate ([], vars_of (Thm.prop_of thm) ~~ vs) thm, ctxt') end
 
   val sk_rules = @{lemma
-    "a = (SOME x. P x) ==> (EX x. P x) = P a"
-    "a = (SOME x. ~P x) ==> (~(ALL x. P x)) = (~P a)"
+    "(EX x. P x) = P (SOME x. P x)"   "(~(ALL x. P x)) = (~P (SOME x. ~P x))"
     by (metis someI_ex)+}
 in
 
@@ -628,10 +626,9 @@ fun skolemize vars =
   apfst Thm oo close vars (yield_singleton Assumption.add_assumes)
 
 fun discharge_sk_tac i st = (
-  Tactic.rtac @{thm trans} i
-  THEN Tactic.resolve_tac sk_rules i
-  THEN (Tactic.rtac @{thm refl} ORELSE' discharge_sk_tac) (i+1)
-  THEN Tactic.rtac @{thm refl} i) st
+  Tactic.rtac @{thm trans}
+  THEN' Tactic.resolve_tac sk_rules
+  THEN' (Tactic.rtac @{thm refl} ORELSE' discharge_sk_tac)) i st
 
 end
 
