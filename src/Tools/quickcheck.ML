@@ -50,7 +50,8 @@ sig
       -> result list
   val quickcheck: (string * string list) list -> int -> Proof.state -> (string * term) list option
   (* testing a batch of terms *)
-  val test_terms: Proof.context -> term list -> (string * term) list option list option
+  val test_terms:
+    Proof.context -> term list -> (string * term) list option list option * (string * int) list
 end;
 
 structure Quickcheck : QUICKCHECK =
@@ -278,16 +279,17 @@ fun test_terms ctxt ts =
   let
     val _ = map check_test_term ts
     val namess = map (fn t => Term.add_free_names t []) ts
-    val test_funs = mk_batch_tester ctxt ts
+    val (test_funs, comp_time) = cpu_time "quickcheck batch compilation" (fn () => mk_batch_tester ctxt ts) 
     fun with_size tester k =
       if k > Config.get ctxt size then NONE
       else case tester k of SOME ts => SOME ts | NONE => with_size tester (k + 1)
-    val results =
-      Option.map (map (fn test_fun => TimeLimit.timeLimit (seconds (Config.get ctxt timeout))
-            (fn () => with_size test_fun 1)  ()
-           handle TimeLimit.TimeOut => NONE)) test_funs
+    val (results, exec_time) = cpu_time "quickcheck batch execution" (fn () =>
+        Option.map (map (fn test_fun => TimeLimit.timeLimit (seconds (Config.get ctxt timeout))
+              (fn () => with_size test_fun 1)  ()
+             handle TimeLimit.TimeOut => NONE)) test_funs)
   in
-    Option.map (map2 (fn names => Option.map (fn ts => names ~~ ts)) namess) results
+    (Option.map (map2 (fn names => Option.map (fn ts => names ~~ ts)) namess) results,
+      [comp_time, exec_time])
   end
 
 (* FIXME: this function shows that many assumptions are made upon the generation *)
