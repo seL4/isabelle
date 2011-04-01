@@ -2,6 +2,8 @@ theory Examples
 imports Main "~~/src/HOL/Library/Predicate_Compile_Alternative_Defs"
 begin
 
+declare [[values_timeout = 240.0]]
+
 section {* Formal Languages *}
 
 subsection {* General Context Free Grammars *}
