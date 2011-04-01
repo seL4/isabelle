@@ -36,7 +36,6 @@ qed
 
 abbreviation (in prob_space) "events \<equiv> sets M"
 abbreviation (in prob_space) "prob \<equiv> \<mu>'"
-abbreviation (in prob_space) "prob_preserving \<equiv> measure_preserving"
 abbreviation (in prob_space) "random_variable M' X \<equiv> sigma_algebra M' \<and> X \<in> measurable M M'"
 abbreviation (in prob_space) "expectation \<equiv> integral\<^isup>L M"
 
