@@ -201,22 +201,33 @@ proof -
   finally show ?thesis .
 qed
 
-lemma (in prob_space) distribution_prob_space:
-  assumes "random_variable S X"
-  shows "prob_space (S\<lparr>measure := extreal \<circ> distribution X\<rparr>)"
+lemma (in prob_space) prob_space_vimage:
+  assumes S: "sigma_algebra S"
+  assumes T: "T \<in> measure_preserving M S"
+  shows "prob_space S"
 proof -
-  interpret S: measure_space "S\<lparr>measure := extreal \<circ> distribution X\<rparr>"
-  proof (rule measure_space.measure_space_cong)
-    show "measure_space (S\<lparr> measure := \<lambda>A. \<mu> (X -` A \<inter> space M) \<rparr>)"
-      using assms by (auto intro!: measure_space_vimage simp: measure_preserving_def)
-  qed (insert assms, auto simp add: finite_measure_eq distribution_def measurable_sets)
+  interpret S: measure_space S
+    using S and T by (rule measure_space_vimage)
   show ?thesis
-  proof (default, simp)
-    have "X -` space S \<inter> space M = space M"
-      using `random_variable S X` by (auto simp: measurable_def)
-    then show "extreal (distribution X (space S)) = 1"
-      by (simp add: distribution_def one_extreal_def prob_space)
+  proof
+    from T[THEN measure_preservingD2]
+    have "T -` space S \<inter> space M = space M"
+      by (auto simp: measurable_def)
+    with T[THEN measure_preservingD, of "space S", symmetric]
+    show  "measure S (space S) = 1"
+      using measure_space_1 by simp
   qed
+qed
+
+lemma (in prob_space) distribution_prob_space:
+  assumes X: "random_variable S X"
+  shows "prob_space (S\<lparr>measure := extreal \<circ> distribution X\<rparr>)" (is "prob_space ?S")
+proof (rule prob_space_vimage)
+  show "X \<in> measure_preserving M ?S"
+    using X
+    unfolding measure_preserving_def distribution_def_raw
+    by (auto simp: finite_measure_eq measurable_sets)
+  show "sigma_algebra ?S" using X by simp
 qed
 
 lemma (in prob_space) AE_distribution:
