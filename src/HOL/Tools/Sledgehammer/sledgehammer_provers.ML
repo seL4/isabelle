@@ -355,7 +355,7 @@ fun run_atp auto name
         val (mono_facts, ctxt') =
           ctxt |> Config.put SMT_Config.verbose debug
                |> Config.put SMT_Config.monomorph_limit monomorphize_limit
-               |> SMT_Monomorph.monomorph true indexed_facts
+               |> SMT_Monomorph.monomorph indexed_facts
       in
         mono_facts
         |> sort (int_ord o pairself fst)

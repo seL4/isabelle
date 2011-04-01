@@ -29,7 +29,7 @@ variables are never mapped to schematic type variables.
 signature SMT_MONOMORPH =
 sig
   val typ_has_tvars: typ -> bool
-  val monomorph: bool -> ('a * thm) list -> Proof.context ->
+  val monomorph: ('a * thm) list -> Proof.context ->
     ('a * thm) list * Proof.context
 end
 
@@ -197,7 +197,7 @@ fun instantiate full (i, thm) substs (ithms, ctxt) =
 
 (* overall procedure *)
 
-fun mono_all full ctxt polys monos =
+fun mono_all ctxt polys monos =
   let
     val scss = map (single o pair Vartab.empty o tvar_consts_of o snd) polys
 
@@ -211,6 +211,7 @@ fun mono_all full ctxt polys monos =
 
     val limit = Config.get ctxt SMT_Config.monomorph_limit
     val instances = Config.get ctxt SMT_Config.monomorph_instances
+    val full = Config.get ctxt SMT_Config.monomorph_full
   in
     scss
     |> search_substitutions ctxt limit instances Symtab.empty grounds
@@ -219,10 +220,10 @@ fun mono_all full ctxt polys monos =
     |-> fold2 (instantiate full) polys
   end
 
-fun monomorph full irules ctxt =
+fun monomorph irules ctxt =
   irules
   |> List.partition (Term.exists_type typ_has_tvars o Thm.prop_of o snd)
   |>> incr_indexes  (* avoid clashes of schematic type variables *)
-  |-> (fn [] => rpair ctxt | polys => mono_all full ctxt polys)
+  |-> (fn [] => rpair ctxt | polys => mono_all ctxt polys)
 
 end
