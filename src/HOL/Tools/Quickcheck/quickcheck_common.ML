@@ -6,6 +6,7 @@ Common functions for quickcheck's generators.
 
 signature QUICKCHECK_COMMON =
 sig
+  val strip_imp : term -> (term list * term)
   val perhaps_constrain: theory -> (typ * sort) list -> (string * sort) list
     -> (string * sort -> string * sort) option
   val ensure_sort_datatype:
@@ -19,6 +20,11 @@ end;
 
 structure Quickcheck_Common : QUICKCHECK_COMMON =
 struct
+
+(* HOLogic's term functions *)
+
+fun strip_imp (Const(@{const_name HOL.implies},_) $ A $ B) = apfst (cons A) (strip_imp B)
+  | strip_imp A = ([], A)
 
 (** ensuring sort constraints **)
 

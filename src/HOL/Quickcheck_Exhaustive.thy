@@ -355,7 +355,22 @@ instance ..
 
 end
 
+subsection {* Bounded universal quantifiers *}
 
+class bounded_forall =
+  fixes bounded_forall :: "('a \<Rightarrow> bool) \<Rightarrow> code_numeral \<Rightarrow> bool"
+
+
+instantiation nat :: bounded_forall
+begin
+
+fun bounded_forall_nat :: "(nat => bool) => code_numeral => bool"
+where
+  "bounded_forall P d = ((P 0) \<and> (if d > 0 then bounded_forall (%n. P (Suc n)) (d - 1) else True))"
+
+instance ..
+
+end
 
 subsection {* Defining combinators for any first-order data type *}
 

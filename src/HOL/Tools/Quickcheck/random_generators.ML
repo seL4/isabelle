@@ -322,11 +322,9 @@ fun mk_reporting_generator_expr ctxt (t, eval_terms) =
     val bound_max = length Ts - 1
     val bounds = map_index (fn (i, ty) =>
       (2 * (bound_max - i) + 1, 2 * (bound_max - i), 2 * i, ty)) Ts;
-    fun strip_imp (Const(@{const_name HOL.implies},_) $ A $ B) = apfst (cons A) (strip_imp B)
-      | strip_imp A = ([], A)
     val prop' = betapplys (prop, map (fn (i, _, _, _) => Bound i) bounds);
     val terms = HOLogic.mk_list @{typ term} (map (fn (_, i, _, _) => Bound i $ @{term "()"}) bounds)
-    val (assms, concl) = strip_imp prop'
+    val (assms, concl) = Quickcheck_Common.strip_imp prop'
     val return =
       @{term "Pair :: term list option * (bool list * bool) => Random.seed => (term list option * (bool list * bool)) * Random.seed"};
     fun mk_assms_report i =
