@@ -115,12 +115,14 @@ fun cons_report size (SOME report) (Result r) =
     timings = #timings r, reports = cons (size, report) (#reports r)}
   | cons_report _ NONE result = result
 
-fun add_timing timing result_ref = (result_ref := cons_timing timing (!result_ref))
+fun add_timing timing result_ref =
+  Unsynchronized.change result_ref (cons_timing timing)
 
-fun add_report size report result_ref = (result_ref := cons_report size report (!result_ref))
+fun add_report size report result_ref =
+  Unsynchronized.change result_ref (cons_report size report)
 
 fun add_response names eval_terms response result_ref =
-  (result_ref := set_reponse names eval_terms response (!result_ref))
+  Unsynchronized.change result_ref (set_reponse names eval_terms response)
 
 (* expectation *)
 
