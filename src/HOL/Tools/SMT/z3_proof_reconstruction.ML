@@ -599,71 +599,42 @@ end
 (* c = SOME x. P x |- (EX x. P x) = P c
    c = SOME x. ~ P x |- ~(ALL x. P x) = ~ P c *)
 local
-  val elim_ex = @{lemma "EX x. P == P" by simp}
-  val elim_all = @{lemma "~ (ALL x. P) == ~P" by simp}
-  val sk_ex = @{lemma "c == SOME x. P x ==> EX x. P x == P c"
-    by simp (intro eq_reflection some_eq_ex[symmetric])}
-  val sk_all = @{lemma "c == SOME x. ~ P x ==> ~(ALL x. P x) == ~ P c"
-    by (simp only: not_all) (intro eq_reflection some_eq_ex[symmetric])}
-  val sk_ex_rule = ((sk_ex, I), elim_ex)
-  and sk_all_rule = ((sk_all, Thm.dest_arg), elim_all)
+  val forall =
+    SMT_Utils.mk_const_pat @{theory} @{const_name all}
+      (SMT_Utils.destT1 o SMT_Utils.destT1)
+  fun mk_forall cv ct =
+    Thm.capply (SMT_Utils.instT' cv forall) (Thm.cabs cv ct)
 
-  fun dest f sk_rule = 
-    Thm.dest_comb (f (Thm.dest_arg (Thm.dest_arg (Thm.cprop_of sk_rule))))
-  fun type_of f sk_rule = Thm.ctyp_of_term (snd (dest f sk_rule))
-  fun pair2 (a, b) (c, d) = [(a, c), (b, d)]
-  fun inst_sk (sk_rule, f) p c =
-    Thm.instantiate ([(type_of f sk_rule, Thm.ctyp_of_term c)], []) sk_rule
-    |> (fn sk' => Thm.instantiate ([], (pair2 (dest f sk') (p, c))) sk')
-    |> Conv.fconv_rule (Thm.beta_conversion true)
+  fun get_vars f mk pred ctxt t =
+    Term.fold_aterms f t []
+    |> map_filter (fn v =>
+         if pred v then SOME (SMT_Utils.certify ctxt (mk v)) else NONE)
 
-  fun kind (Const (@{const_name Ex}, _) $ _) = (sk_ex_rule, I, I)
-    | kind (@{const Not} $ (Const (@{const_name All}, _) $ _)) =
-        (sk_all_rule, Thm.dest_arg, Z3_Proof_Literals.negate)
-    | kind t = raise TERM ("skolemize", [t])
-
-  fun dest_abs_type (Abs (_, T, _)) = T
-    | dest_abs_type t = raise TERM ("dest_abs_type", [t])
-
-  fun bodies_of thy lhs rhs =
+  fun close vars f ct ctxt =
     let
-      val (rule, dest, make) = kind (Thm.term_of lhs)
+      val frees_of = get_vars Term.add_frees Free (member (op =) vars o fst)
+      val vs = frees_of ctxt (Thm.term_of ct)
+      val (thm, ctxt') = f (fold_rev mk_forall vs ct) ctxt
+      val vars_of = get_vars Term.add_vars Var (K true) ctxt'
+    in (Thm.instantiate ([], vars_of (Thm.prop_of thm) ~~ vs) thm, ctxt') end
 
-      fun dest_body idx cbs ct =
-        let
-          val cb = Thm.dest_arg (dest ct)
-          val T = dest_abs_type (Thm.term_of cb)
-          val cv = Thm.cterm_of thy (Var (("x", idx), T))
-          val cu = make (Drule.beta_conv cb cv)
-          val cbs' = (cv, cb) :: cbs
-        in
-          (snd (Thm.first_order_match (cu, rhs)), rev cbs')
-          handle Pattern.MATCH => dest_body (idx+1) cbs' cu
-        end
-    in (rule, dest_body 1 [] lhs) end
-
-  fun transitive f thm = Thm.transitive thm (f (Thm.rhs_of thm))
-
-  fun sk_step (rule, elim) (cv, mct, cb) ((is, thm), ctxt) =
-    (case mct of
-      SOME ct =>
-        ctxt
-        |> Z3_Proof_Tools.make_hyp_def
-             (inst_sk rule (Thm.instantiate_cterm ([], is) cb) ct)
-        |>> pair ((cv, ct) :: is) o Thm.transitive thm
-    | NONE => ((is, transitive (Conv.rewr_conv elim) thm), ctxt))
+  val sk_rules = @{lemma
+    "a = (SOME x. P x) ==> (EX x. P x) = P a"
+    "a = (SOME x. ~P x) ==> (~(ALL x. P x)) = (~P a)"
+    by (metis someI_ex)+}
 in
-fun skolemize ct ctxt =
-  let
-    val (lhs, rhs) = Thm.dest_binop (Thm.dest_arg ct)
-    val (rule, (ctab, cbs)) = bodies_of (ProofContext.theory_of ctxt) lhs rhs
-    fun lookup_var (cv, cb) = (cv, AList.lookup (op aconvc) ctab cv, cb)
-  in
-    (([], Thm.reflexive lhs), ctxt)
-    |> fold (sk_step rule) (map lookup_var cbs)
-    |>> MetaEq o snd
-  end
+
+fun skolemize vars =
+  apfst Thm oo close vars (yield_singleton Assumption.add_assumes)
+
+fun discharge_sk_tac i st = (
+  Tactic.rtac @{thm trans} i
+  THEN Tactic.resolve_tac sk_rules i
+  THEN (Tactic.rtac @{thm refl} ORELSE' discharge_sk_tac) (i+1)
+  THEN Tactic.rtac @{thm refl} i) st
+
 end
+
 
 
 (** theory proof rules **)
@@ -816,7 +787,7 @@ local
     | (Z3_Proof_Parser.Elim_Unused_Vars, _) => (elim_unused_vars cx ct, cxp)
     | (Z3_Proof_Parser.Dest_Eq_Res, _) => (dest_eq_res cx ct, cxp)
     | (Z3_Proof_Parser.Quant_Inst, _) => (quant_inst ct, cxp)
-    | (Z3_Proof_Parser.Skolemize, _) => skolemize ct cx ||> rpair ptab
+    | (Z3_Proof_Parser.Skolemize, _) => skolemize vars ct cx ||> rpair ptab
 
       (* theory rules *)
     | (Z3_Proof_Parser.Th_Lemma _, _) =>  (* FIXME: use arguments *)
@@ -850,21 +821,23 @@ local
         |> tap (check_after idx r ps prop)
     in (thm, (ctxt', Inttab.update (idx, thm) ptab')) end
 
-  val disch_rules = [@{thm allI}, @{thm refl}, @{thm reflexive},
-    Z3_Proof_Literals.true_thm]
-  fun all_disch_rules rules = map (pair false) (disch_rules @ rules)
+  fun make_discharge_rules rules = rules @ [@{thm allI}, @{thm refl},
+    @{thm reflexive}, Z3_Proof_Literals.true_thm]
 
-  fun disch_assm rules thm =
-    if Thm.nprems_of thm = 0 then Drule.flexflex_unique thm
+  fun discharge_tac rules =
+    Tactic.resolve_tac rules ORELSE' SOLVED' discharge_sk_tac
+
+  fun discharge_assms rules thm =
+    if Thm.nprems_of thm = 0 then Goal.norm_result thm
     else
-      (case Seq.pull (Thm.biresolution false rules 1 thm) of
-        SOME (thm', _) => disch_assm rules thm'
+      (case Seq.pull (discharge_tac rules 1 thm) of
+        SOME (thm', _) => discharge_assms rules thm'
       | NONE => raise THM ("failed to discharge premise", 1, [thm]))
 
   fun discharge rules outer_ctxt (p, (inner_ctxt, _)) =
     thm_of p
     |> singleton (ProofContext.export inner_ctxt outer_ctxt)
-    |> disch_assm rules
+    |> discharge_assms (make_discharge_rules rules)
 in
 
 fun reconstruct outer_ctxt recon output =
@@ -882,7 +855,7 @@ fun reconstruct outer_ctxt recon output =
     else
       (Thm @{thm TrueI}, cxp)
       |> fold (prove simpset vars) steps 
-      |> discharge (all_disch_rules rules) outer_ctxt
+      |> discharge rules outer_ctxt
       |> pair []
   end
 
