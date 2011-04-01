@@ -10,6 +10,9 @@ import re
 
 import util
 
+from mira import schedule
+from mira.environment import scheduler
+
 
 # build and evaluation tools
 
@@ -330,6 +333,14 @@ def JD_Hoare(*args):
 def JD_SN(*args):
     """Judgement Day regression suite SN"""
     return judgement_day('Isabelle/src/HOL/Proofs/Lambda', 'StrongNorm', 'prover_timeout=10', *args)
+
+
+JD_confs = 'JD_NS JD_FTA JD_Hoare JD_SN JD_Arrow JD_FFT JD_Jinja JD_QE JD_S2S'.split(' ')
+
+@scheduler()
+def judgement_day(env):
+    """Scheduler for Judgement Day."""
+    return schedule.age_scheduler(env, 'Isabelle', JD_confs)
 
 
 # SML/NJ
