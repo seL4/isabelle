@@ -63,10 +63,10 @@ def extract_isabelle_run_timing(logdata):
     def to_secs(h, m, s):
         return (int(h) * 60 + int(m)) * 60 + int(s)
     pat = r'Finished (\S+) \((\d+):(\d+):(\d+) elapsed time, (\d+):(\d+):(\d+) cpu time'
-    pat2 = r'Timing (\S+) \((\d+) threads, (\d+\.\d+)s elapsed time, (\d+\.\d+)s cpu time, (\d+\.\d+)s GC time\)'
+    pat2 = r'Timing (\S+) \((\d+) threads, (\d+\.\d+)s elapsed time, (\d+\.\d+)s cpu time, (\d+\.\d+)s GC time, factor (\d+\.\d+)\)'
     t = dict((name, {'elapsed': to_secs(eh,em,es), 'cpu': to_secs(ch,cm,cs)})
              for name, eh, em, es, ch, cm, cs in re.findall(pat, logdata))
-    for name, threads, elapsed, cpu, gc in re.findall(pat2, logdata):
+    for name, threads, elapsed, cpu, gc, factor in re.findall(pat2, logdata):
 
         if name not in t:
             t[name] = {}
@@ -75,6 +75,7 @@ def extract_isabelle_run_timing(logdata):
         t[name]['elapsed_inner'] = elapsed
         t[name]['cpu_inner'] = cpu
         t[name]['gc'] = gc
+        t[name]['factor'] = factor
 
     return t
 
