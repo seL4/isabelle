@@ -246,24 +246,20 @@ lemma finite_image_set [simp]:
   by (simp add: image_Collect [symmetric])
 
 lemma finite_imageD:
-  "finite (f ` A) \<Longrightarrow> inj_on f A \<Longrightarrow> finite A"
-proof -
-  have aux: "!!A. finite (A - {}) = finite A" by simp
-  fix B :: "'a set"
-  assume "finite B"
-  thus "!!A. f`A = B ==> inj_on f A ==> finite A"
-    apply induct
-     apply simp
-    apply (subgoal_tac "EX y:A. f y = x & F = f ` (A - {y})")
-     apply clarify
-     apply (simp (no_asm_use) add: inj_on_def)
-     apply (blast dest!: aux [THEN iffD1], atomize)
-    apply (erule_tac V = "ALL A. ?PP (A)" in thin_rl)
-    apply (frule subsetD [OF equalityD2 insertI1], clarify)
-    apply (rule_tac x = xa in bexI)
-     apply (simp_all add: inj_on_image_set_diff)
-    done
-qed (rule refl)
+  assumes "finite (f ` A)" and "inj_on f A"
+  shows "finite A"
+using assms proof (induct "f ` A" arbitrary: A)
+  case empty then show ?case by simp
+next
+  case (insert x B)
+  then have B_A: "insert x B = f ` A" by simp
+  then obtain y where "x = f y" and "y \<in> A" by blast
+  from B_A `x \<notin> B` have "B = f ` A - {x}" by blast
+  with B_A `x \<notin> B` `x = f y` `inj_on f A` `y \<in> A` have "B = f ` (A - {y})" by (simp add: inj_on_image_set_diff)
+  moreover from `inj_on f A` have "inj_on f (A - {y})" by (rule inj_on_diff)
+  ultimately have "finite (A - {y})" by (rule insert.hyps)
+  then show "finite A" by simp
+qed
 
 lemma finite_surj:
   "finite A \<Longrightarrow> B \<subseteq> f ` A \<Longrightarrow> finite B"
