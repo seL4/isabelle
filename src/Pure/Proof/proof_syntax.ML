@@ -70,7 +70,7 @@ fun add_proof_syntax thy =
        (Syntax.mark_const "AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ \\<bullet>/ _)", [4, 5], 4))]
   |> Sign.add_modesyntax_i ("latex", false)
       [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1\\<^bold>\\<lambda>_./ _)", [0, 3], 3))]
-  |> Sign.add_trrules_i (map Syntax.ParsePrintRule
+  |> Sign.add_trrules (map Syntax.Parse_Print_Rule
       [(Syntax.mk_appl (Constant "_Lam")
           [Syntax.mk_appl (Constant "_Lam0") [Variable "l", Variable "m"], Variable "A"],
         Syntax.mk_appl (Constant "_Lam")
