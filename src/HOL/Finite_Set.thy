@@ -355,34 +355,32 @@ lemma finite_Prod_UNIV:
   by (simp only: UNIV_Times_UNIV [symmetric] finite_cartesian_product)
 
 lemma finite_cartesian_productD1:
-  "finite (A \<times> B) \<Longrightarrow> B \<noteq> {} \<Longrightarrow> finite A"
-apply (auto simp add: finite_conv_nat_seg_image) 
-apply (drule_tac x=n in spec) 
-apply (drule_tac x="fst o f" in spec) 
-apply (auto simp add: o_def) 
- prefer 2 apply (force dest!: equalityD2) 
-apply (drule equalityD1) 
-apply (rename_tac y x)
-apply (subgoal_tac "\<exists>k. k<n & f k = (x,y)") 
- prefer 2 apply force
-apply clarify
-apply (rule_tac x=k in image_eqI, auto)
-done
+  assumes "finite (A \<times> B)" and "B \<noteq> {}"
+  shows "finite A"
+proof -
+  from assms obtain n f where "A \<times> B = f ` {i::nat. i < n}"
+    by (auto simp add: finite_conv_nat_seg_image)
+  then have "fst ` (A \<times> B) = fst ` f ` {i::nat. i < n}" by simp
+  with `B \<noteq> {}` have "A = (fst \<circ> f) ` {i::nat. i < n}"
+    by (simp add: image_compose)
+  then have "\<exists>n f. A = f ` {i::nat. i < n}" by blast
+  then show ?thesis
+    by (auto simp add: finite_conv_nat_seg_image)
+qed
 
 lemma finite_cartesian_productD2:
-     "[| finite (A <*> B); A \<noteq> {} |] ==> finite B"
-apply (auto simp add: finite_conv_nat_seg_image) 
-apply (drule_tac x=n in spec) 
-apply (drule_tac x="snd o f" in spec) 
-apply (auto simp add: o_def) 
- prefer 2 apply (force dest!: equalityD2) 
-apply (drule equalityD1)
-apply (rename_tac x y)
-apply (subgoal_tac "\<exists>k. k<n & f k = (x,y)") 
- prefer 2 apply force
-apply clarify
-apply (rule_tac x=k in image_eqI, auto)
-done
+  assumes "finite (A \<times> B)" and "A \<noteq> {}"
+  shows "finite B"
+proof -
+  from assms obtain n f where "A \<times> B = f ` {i::nat. i < n}"
+    by (auto simp add: finite_conv_nat_seg_image)
+  then have "snd ` (A \<times> B) = snd ` f ` {i::nat. i < n}" by simp
+  with `A \<noteq> {}` have "B = (snd \<circ> f) ` {i::nat. i < n}"
+    by (simp add: image_compose)
+  then have "\<exists>n f. B = f ` {i::nat. i < n}" by blast
+  then show ?thesis
+    by (auto simp add: finite_conv_nat_seg_image)
+qed
 
 lemma finite_Pow_iff [iff]:
   "finite (Pow A) \<longleftrightarrow> finite A"
