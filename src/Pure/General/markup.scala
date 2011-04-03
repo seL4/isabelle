@@ -97,6 +97,19 @@ object Markup
   val DEF = "def"
   val REF = "ref"
 
+  object Entity
+  {
+    def unapply(markup: Markup): Option[(String, String)] =
+      markup match {
+        case Markup(ENTITY, props @ Kind(kind)) =>
+          props match {
+            case Name(name) => Some(kind, name)
+            case _ => None
+          }
+        case _ => None
+      }
+  }
+
 
   /* position */
 
