@@ -71,7 +71,7 @@ object Isabelle_Markup
 
   private val subexp_include =
     Set(Markup.SORT, Markup.TYP, Markup.TERM, Markup.PROP, Markup.ML_TYPING, Markup.TOKEN_RANGE,
-      Markup.ENTITY)
+      Markup.ENTITY, Markup.FREE, Markup.SKOLEM, Markup.BOUND, Markup.VAR)
 
   val subexp: Markup_Tree.Select[(Text.Range, Color)] =
   {
@@ -121,6 +121,10 @@ object Isabelle_Markup
     case Text.Info(_, XML.Elem(Markup(Markup.TERM, _), _)) => "term"
     case Text.Info(_, XML.Elem(Markup(Markup.PROP, _), _)) => "proposition"
     case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => "inner syntax token"
+    case Text.Info(_, XML.Elem(Markup(Markup.FREE, _), _)) => "free variable (globally fixed)"
+    case Text.Info(_, XML.Elem(Markup(Markup.SKOLEM, _), _)) => "skolem variable (locally fixed)"
+    case Text.Info(_, XML.Elem(Markup(Markup.BOUND, _), _)) => "bound variable (internally fixed)"
+    case Text.Info(_, XML.Elem(Markup(Markup.VAR, _), _)) => "schematic variable"
   }
 
 
