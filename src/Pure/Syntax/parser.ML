@@ -706,15 +706,15 @@ fun get_states Estate i ii A max_prec =
 
 
 fun movedot_term c (A, j, ts, Terminal a :: sa, id, i) =
-  if Lexicon.valued_token c then (A, j, ts @ [Tip c], sa, id, i)
+  if Lexicon.valued_token c then (A, j, Tip c :: ts, sa, id, i)
   else (A, j, ts, sa, id, i);
 
 fun movedot_nonterm tt (A, j, ts, Nonterminal _ :: sa, id, i) =
-  (A, j, ts @ tt, sa, id, i);
+  (A, j, List.revAppend (tt, ts), sa, id, i);
 
 fun movedot_lambda [] _ = []
   | movedot_lambda ((t, ki) :: ts) (state as (B, j, tss, Nonterminal (A, k) :: sa, id, i)) =
-      if k <= ki then (B, j, tss @ t, sa, id, i) :: movedot_lambda ts state
+      if k <= ki then (B, j, List.revAppend (t, tss), sa, id, i) :: movedot_lambda ts state
       else movedot_lambda ts state;
 
 
@@ -784,7 +784,7 @@ fun PROCESSS ctxt warned prods chains Estate i c states =
                 (S :: Si,
                   if Lexicon.matching_tokens (a, c) then movedot_term c S :: Sii else Sii)
           | (A, prec, ts, [], id, j) => (*completer operation*)
-              let val tt = if id = "" then ts else [Node (id, ts)] in
+              let val tt = if id = "" then ts else [Node (id, rev ts)] in
                 if j = i then (*lambda production?*)
                   let
                     val (used', prec') = update_trees used (A, (tt, prec));
