@@ -920,27 +920,88 @@ text {*
 *}
 
 
+section {* Proving propositions *}
+
+text {*
+  In addition to the standard proof methods, a number of diagnosis
+  tools search for proofs and provide an Isar proof snippet on success.
+  These tools are available via the following commands.
+
+  \begin{matharray}{rcl}
+    @{command_def (HOL) "solve_direct"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
+    @{command_def (HOL) "try"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
+    @{command_def (HOL) "sledgehammer"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
+    @{command_def (HOL) "sledgehammer_params"} & : & @{text "theory \<rightarrow> theory"}
+  \end{matharray}
+
+  \begin{rail}
+    'solve_direct'
+    ;
+
+    'try' ( ( ( 'simp' | 'intro' | 'elim' | 'dest' ) ':' thmrefs ) + ) ? nat?
+    ;
+
+    'sledgehammer' ( '[' args ']' ) ? facts? nat?
+    ;
+
+    'sledgehammer_params' ( ( '[' args ']' ) ? )
+    ;
+
+    args: ( name '=' value + ',' )
+    ;
+
+    facts: '(' ( ( ( ( 'add' | 'del' ) ':' ) ? thmrefs ) + ) ? ')'
+    ;
+  \end{rail}
+
+  \begin{description}
+
+  \item @{command (HOL) "solve_direct"} checks whether the current subgoals can
+    be solved directly by an existing theorem. Duplicate lemmas can be detected
+    in this way.
+
+  \item @{command (HOL) "try"} attempts to prove a subgoal using a combination
+    of standard proof methods (@{text auto}, @{text simp}, @{text blast}, etc.).
+    Additional facts supplied via @{text "simp:"}, @{text "intro:"},
+    @{text "elim:"}, and @{text "dest:"} are passed to the appropriate proof
+    methods.
+
+  \item @{command (HOL) "sledgehammer"} attempts to prove a subgoal using external
+    automatic provers (resolution provers and SMT solvers). See the Sledgehammer
+    manual \cite{isabelle-sledgehammer} for details.
+
+  \item @{command (HOL) "sledgehammer_params"} changes
+    @{command (HOL) "sledgehammer"} configuration options persistently.
+
+  \end{description}
+*}
+
+
 section {* Checking and refuting propositions *}
 
 text {*
   Identifying incorrect propositions usually involves evaluation of
-  particular assignments and systematic counter example search.  This
+  particular assignments and systematic counterexample search.  This
   is supported by the following commands.
 
   \begin{matharray}{rcl}
     @{command_def (HOL) "value"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def (HOL) "quickcheck"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
-    @{command_def (HOL) "quickcheck_params"} & : & @{text "theory \<rightarrow> theory"}
+    @{command_def (HOL) "refute"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
+    @{command_def (HOL) "nitpick"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
+    @{command_def (HOL) "quickcheck_params"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "refute_params"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "nitpick_params"} & : & @{text "theory \<rightarrow> theory"}
   \end{matharray}
 
   \begin{rail}
     'value' ( ( '[' name ']' ) ? ) modes? term
     ;
 
-    'quickcheck' ( ( '[' args ']' ) ? ) nat?
+    ('quickcheck' | 'refute' | 'nitpick')  ( ( '[' args ']' ) ? ) nat?
     ;
 
-    'quickcheck_params' ( ( '[' args ']' ) ? )
+    ('quickcheck_params' | 'refute_params' | 'nitpick_params') ( ( '[' args ']' ) ? )
     ;
 
     modes: '(' (name + ) ')'
@@ -964,7 +1025,7 @@ text {*
     and \emph{code} for code generation in SML.
 
   \item @{command (HOL) "quickcheck"} tests the current goal for
-    counter examples using a series of assignments for its
+    counterexamples using a series of assignments for its
     free variables; by default the first subgoal is tested, an other
     can be selected explicitly using an optional goal index.
     Assignments can be chosen exhausting the search space upto a given
@@ -1010,8 +1071,49 @@ text {*
 
     These option can be given within square brackets.
 
-  \item @{command (HOL) "quickcheck_params"} changes quickcheck
-    configuration options persitently.
+  \item @{command (HOL) "quickcheck_params"} changes
+    @{command (HOL) "quickcheck"} configuration options persistently.
+
+  \item @{command (HOL) "refute"} tests the current goal for
+    counterexamples using a reduction to SAT. The following configuration
+    options are supported:
+
+    \begin{description}
+
+    \item[@{text minsize}] specifies the minimum size (cardinality) of the
+      models to search for.
+
+    \item[@{text maxsize}] specifies the maximum size (cardinality) of the
+      models to search for. Nonpositive values mean $\infty$.
+
+    \item[@{text maxvars}] specifies the maximum number of Boolean variables
+    to use when transforming the term into a propositional formula.
+    Nonpositive values mean $\infty$.
+
+    \item[@{text satsolver}] specifies the SAT solver to use.
+
+    \item[@{text no_assms}] specifies whether assumptions in
+    structured proofs should be ignored.
+
+    \item[@{text maxtime}] sets the time limit in seconds.
+
+    \item[@{text expect}] can be used to check if the user's
+    expectation was met (@{text genuine}, @{text potential},
+    @{text none}, or @{text unknown}).
+
+    \end{description}
+
+    These option can be given within square brackets.
+
+  \item @{command (HOL) "refute_params"} changes
+    @{command (HOL) "refute"} configuration options persistently.
+
+  \item @{command (HOL) "nitpick"} tests the current goal for counterexamples
+    using a reduction to first-order relational logic. See the Nitpick manual
+    \cite{isabelle-nitpick} for details.
+
+  \item @{command (HOL) "nitpick_params"} changes
+    @{command (HOL) "nitpick"} configuration options persistently.
 
   \end{description}
 *}

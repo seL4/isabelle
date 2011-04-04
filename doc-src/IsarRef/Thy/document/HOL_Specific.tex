@@ -936,29 +936,92 @@ Each theory contains a default set of theorems that are used in
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsection{Proving propositions%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+In addition to the standard proof methods, a number of diagnosis
+  tools search for proofs and provide an Isar proof snippet on success.
+  These tools are available via the following commands.
+
+  \begin{matharray}{rcl}
+    \indexdef{HOL}{command}{solve\_direct}\hypertarget{command.HOL.solve-direct}{\hyperlink{command.HOL.solve-direct}{\mbox{\isa{\isacommand{solve{\isaliteral{5F}{\isacharunderscore}}direct}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{HOL}{command}{try}\hypertarget{command.HOL.try}{\hyperlink{command.HOL.try}{\mbox{\isa{\isacommand{try}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{HOL}{command}{sledgehammer}\hypertarget{command.HOL.sledgehammer}{\hyperlink{command.HOL.sledgehammer}{\mbox{\isa{\isacommand{sledgehammer}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{HOL}{command}{sledgehammer\_params}\hypertarget{command.HOL.sledgehammer-params}{\hyperlink{command.HOL.sledgehammer-params}{\mbox{\isa{\isacommand{sledgehammer{\isaliteral{5F}{\isacharunderscore}}params}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}}
+  \end{matharray}
+
+  \begin{rail}
+    'solve_direct'
+    ;
+
+    'try' ( ( ( 'simp' | 'intro' | 'elim' | 'dest' ) ':' thmrefs ) + ) ? nat?
+    ;
+
+    'sledgehammer' ( '[' args ']' ) ? facts? nat?
+    ;
+
+    'sledgehammer_params' ( ( '[' args ']' ) ? )
+    ;
+
+    args: ( name '=' value + ',' )
+    ;
+
+    facts: '(' ( ( ( ( 'add' | 'del' ) ':' ) ? thmrefs ) + ) ? ')'
+    ;
+  \end{rail}
+
+  \begin{description}
+
+  \item \hyperlink{command.HOL.solve-direct}{\mbox{\isa{\isacommand{solve{\isaliteral{5F}{\isacharunderscore}}direct}}}} checks whether the current subgoals can
+    be solved directly by an existing theorem. Duplicate lemmas can be detected
+    in this way.
+
+  \item \hyperlink{command.HOL.try}{\mbox{\isa{\isacommand{try}}}} attempts to prove a subgoal using a combination
+    of standard proof methods (\isa{auto}, \isa{simp}, \isa{blast}, etc.).
+    Additional facts supplied via \isa{{\isaliteral{22}{\isachardoublequote}}simp{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}intro{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}},
+    \isa{{\isaliteral{22}{\isachardoublequote}}elim{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}}, and \isa{{\isaliteral{22}{\isachardoublequote}}dest{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} are passed to the appropriate proof
+    methods.
+
+  \item \hyperlink{command.HOL.sledgehammer}{\mbox{\isa{\isacommand{sledgehammer}}}} attempts to prove a subgoal using external
+    automatic provers (resolution provers and SMT solvers). See the Sledgehammer
+    manual \cite{isabelle-sledgehammer} for details.
+
+  \item \hyperlink{command.HOL.sledgehammer-params}{\mbox{\isa{\isacommand{sledgehammer{\isaliteral{5F}{\isacharunderscore}}params}}}} changes
+    \hyperlink{command.HOL.sledgehammer}{\mbox{\isa{\isacommand{sledgehammer}}}} configuration options persistently.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsection{Checking and refuting propositions%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 Identifying incorrect propositions usually involves evaluation of
-  particular assignments and systematic counter example search.  This
+  particular assignments and systematic counterexample search.  This
   is supported by the following commands.
 
   \begin{matharray}{rcl}
     \indexdef{HOL}{command}{value}\hypertarget{command.HOL.value}{\hyperlink{command.HOL.value}{\mbox{\isa{\isacommand{value}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{HOL}{command}{quickcheck}\hypertarget{command.HOL.quickcheck}{\hyperlink{command.HOL.quickcheck}{\mbox{\isa{\isacommand{quickcheck}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
-    \indexdef{HOL}{command}{quickcheck\_params}\hypertarget{command.HOL.quickcheck-params}{\hyperlink{command.HOL.quickcheck-params}{\mbox{\isa{\isacommand{quickcheck{\isaliteral{5F}{\isacharunderscore}}params}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}}
+    \indexdef{HOL}{command}{refute}\hypertarget{command.HOL.refute}{\hyperlink{command.HOL.refute}{\mbox{\isa{\isacommand{refute}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{HOL}{command}{nitpick}\hypertarget{command.HOL.nitpick}{\hyperlink{command.HOL.nitpick}{\mbox{\isa{\isacommand{nitpick}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{HOL}{command}{quickcheck\_params}\hypertarget{command.HOL.quickcheck-params}{\hyperlink{command.HOL.quickcheck-params}{\mbox{\isa{\isacommand{quickcheck{\isaliteral{5F}{\isacharunderscore}}params}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{HOL}{command}{refute\_params}\hypertarget{command.HOL.refute-params}{\hyperlink{command.HOL.refute-params}{\mbox{\isa{\isacommand{refute{\isaliteral{5F}{\isacharunderscore}}params}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{HOL}{command}{nitpick\_params}\hypertarget{command.HOL.nitpick-params}{\hyperlink{command.HOL.nitpick-params}{\mbox{\isa{\isacommand{nitpick{\isaliteral{5F}{\isacharunderscore}}params}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}}
   \end{matharray}
 
   \begin{rail}
     'value' ( ( '[' name ']' ) ? ) modes? term
     ;
 
-    'quickcheck' ( ( '[' args ']' ) ? ) nat?
+    ('quickcheck' | 'refute' | 'nitpick')  ( ( '[' args ']' ) ? ) nat?
     ;
 
-    'quickcheck_params' ( ( '[' args ']' ) ? )
+    ('quickcheck_params' | 'refute_params' | 'nitpick_params') ( ( '[' args ']' ) ? )
     ;
 
     modes: '(' (name + ) ')'
@@ -982,7 +1045,7 @@ Identifying incorrect propositions usually involves evaluation of
     and \emph{code} for code generation in SML.
 
   \item \hyperlink{command.HOL.quickcheck}{\mbox{\isa{\isacommand{quickcheck}}}} tests the current goal for
-    counter examples using a series of assignments for its
+    counterexamples using a series of assignments for its
     free variables; by default the first subgoal is tested, an other
     can be selected explicitly using an optional goal index.
     Assignments can be chosen exhausting the search space upto a given
@@ -1027,8 +1090,49 @@ Identifying incorrect propositions usually involves evaluation of
 
     These option can be given within square brackets.
 
-  \item \hyperlink{command.HOL.quickcheck-params}{\mbox{\isa{\isacommand{quickcheck{\isaliteral{5F}{\isacharunderscore}}params}}}} changes quickcheck
-    configuration options persitently.
+  \item \hyperlink{command.HOL.quickcheck-params}{\mbox{\isa{\isacommand{quickcheck{\isaliteral{5F}{\isacharunderscore}}params}}}} changes
+    \hyperlink{command.HOL.quickcheck}{\mbox{\isa{\isacommand{quickcheck}}}} configuration options persistently.
+
+  \item \hyperlink{command.HOL.refute}{\mbox{\isa{\isacommand{refute}}}} tests the current goal for
+    counterexamples using a reduction to SAT. The following configuration
+    options are supported:
+
+    \begin{description}
+
+    \item[\isa{minsize}] specifies the minimum size (cardinality) of the
+      models to search for.
+
+    \item[\isa{maxsize}] specifies the maximum size (cardinality) of the
+      models to search for. Nonpositive values mean $\infty$.
+
+    \item[\isa{maxvars}] specifies the maximum number of Boolean variables
+    to use when transforming the term into a propositional formula.
+    Nonpositive values mean $\infty$.
+
+    \item[\isa{satsolver}] specifies the SAT solver to use.
+
+    \item[\isa{no{\isaliteral{5F}{\isacharunderscore}}assms}] specifies whether assumptions in
+    structured proofs should be ignored.
+
+    \item[\isa{maxtime}] sets the time limit in seconds.
+
+    \item[\isa{expect}] can be used to check if the user's
+    expectation was met (\isa{genuine}, \isa{potential},
+    \isa{none}, or \isa{unknown}).
+
+    \end{description}
+
+    These option can be given within square brackets.
+
+  \item \hyperlink{command.HOL.refute-params}{\mbox{\isa{\isacommand{refute{\isaliteral{5F}{\isacharunderscore}}params}}}} changes
+    \hyperlink{command.HOL.refute}{\mbox{\isa{\isacommand{refute}}}} configuration options persistently.
+
+  \item \hyperlink{command.HOL.nitpick}{\mbox{\isa{\isacommand{nitpick}}}} tests the current goal for counterexamples
+    using a reduction to first-order relational logic. See the Nitpick manual
+    \cite{isabelle-nitpick} for details.
+
+  \item \hyperlink{command.HOL.nitpick-params}{\mbox{\isa{\isacommand{nitpick{\isaliteral{5F}{\isacharunderscore}}params}}}} changes
+    \hyperlink{command.HOL.nitpick}{\mbox{\isa{\isacommand{nitpick}}}} configuration options persistently.
 
   \end{description}%
 \end{isamarkuptext}%
