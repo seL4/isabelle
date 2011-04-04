@@ -516,17 +516,17 @@ fun add_pattern_combinators
           val ps = map (fn n => Variable ("p"^(string_of_int n))) ns;
           val vs = map (fn n => Variable ("v"^(string_of_int n))) ns;
         in
-          [ParseRule (app_pat (capps (cname, xs)),
+          [Parse_Rule (app_pat (capps (cname, xs)),
                       mk_appl pname (map app_pat xs)),
-           ParseRule (app_var (capps (cname, xs)),
+           Parse_Rule (app_var (capps (cname, xs)),
                       app_var (args_list xs)),
-           PrintRule (capps (cname, ListPair.map (app "_match") (ps,vs)),
+           Print_Rule (capps (cname, ListPair.map (app "_match") (ps,vs)),
                       app "_match" (mk_appl pname ps, args_list vs))]
         end;
       val trans_rules : Syntax.ast Syntax.trrule list =
           maps one_case_trans (pat_consts ~~ spec);
     in
-      val thy = Sign.add_trrules_i trans_rules thy;
+      val thy = Sign.add_trrules trans_rules thy;
     end;
 
     (* prove strictness and reduction rules of pattern combinators *)

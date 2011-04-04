@@ -65,7 +65,9 @@ sig
   val allow_dummies: Proof.context -> Proof.context
   val check_tvar: Proof.context -> indexname * sort -> indexname * sort
   val check_tfree: Proof.context -> string * sort -> string * sort
-  val decode_term: Proof.context -> term -> (Position.T * Markup.T) list * term
+  val type_context: Proof.context -> Syntax.type_context
+  val term_context: Proof.context -> Syntax.term_context
+  val decode_term: Proof.context -> Position.reports * term -> Position.reports * term
   val standard_infer_types: Proof.context -> term list -> term list
   val read_term_pattern: Proof.context -> string -> term
   val read_term_schematic: Proof.context -> string -> term
@@ -665,12 +667,18 @@ fun intern_skolem ctxt def_type x =
 
 in
 
+fun type_context ctxt : Syntax.type_context =
+ {get_class = read_class ctxt,
+  get_type = #1 o dest_Type o read_type_name_proper ctxt false,
+  markup_class = fn c => [Name_Space.markup_entry (Type.class_space (tsig_of ctxt)) c],
+  markup_type = fn c => [Name_Space.markup_entry (Type.type_space (tsig_of ctxt)) c]};
+
 fun term_context ctxt : Syntax.term_context =
  {get_sort = get_sort ctxt,
   get_const = fn a => ((true, #1 (Term.dest_Const (read_const_proper ctxt false a)))
     handle ERROR _ => (false, Consts.intern (consts_of ctxt) a)),
   get_free = intern_skolem ctxt (Variable.def_type ctxt false),
-  markup_const = fn x => [Name_Space.markup_entry (const_space ctxt) x],
+  markup_const = fn c => [Name_Space.markup_entry (const_space ctxt) c],
   markup_free = fn x =>
     [if can Name.dest_skolem x then Markup.skolem else Markup.free] @
     (if not (Variable.is_body ctxt) orelse Variable.is_fixed ctxt x then [] else [Markup.hilite]),
@@ -748,14 +756,16 @@ fun parse_failed ctxt pos msg kind =
 fun parse_sort ctxt text =
   let
     val (syms, pos) = Syntax.parse_token ctxt Markup.sort text;
-    val S = Syntax.standard_parse_sort ctxt (syn_of ctxt) (syms, pos)
+    val S =
+      Syntax.standard_parse_sort ctxt (type_context ctxt) (syn_of ctxt) (syms, pos)
       handle ERROR msg => parse_failed ctxt pos msg "sort";
   in Type.minimize_sort (tsig_of ctxt) S end;
 
 fun parse_typ ctxt text =
   let
     val (syms, pos) = Syntax.parse_token ctxt Markup.typ text;
-    val T = Syntax.standard_parse_typ ctxt (syn_of ctxt) (get_sort ctxt) (syms, pos)
+    val T =
+      Syntax.standard_parse_typ ctxt (type_context ctxt) (syn_of ctxt) (get_sort ctxt) (syms, pos)
       handle ERROR msg => parse_failed ctxt pos msg "type";
   in T end;
 
@@ -777,8 +787,9 @@ fun parse_term T ctxt text =
     fun check t = (Syntax.check_term ctxt (Type.constraint T' t); NONE)
       handle ERROR msg => SOME msg;
     val t =
-      Syntax.standard_parse_term check (term_context ctxt) ctxt (syn_of ctxt) root (syms, pos)
-        handle ERROR msg => parse_failed ctxt pos msg kind;
+      Syntax.standard_parse_term check ctxt (type_context ctxt) (term_context ctxt) (syn_of ctxt)
+        root (syms, pos)
+      handle ERROR msg => parse_failed ctxt pos msg kind;
   in t end;
 
 
@@ -1078,13 +1089,6 @@ end;
 
 
 (* authentic syntax *)
-
-val _ = Context.>>
-  (Context.map_theory
-    (Sign.add_advanced_trfuns
-      (Syntax.type_ast_trs
-        {read_class = read_class,
-          read_type = fn ctxt => #1 o dest_Type o read_type_name_proper ctxt false}, [], [], [])));
 
 local
 

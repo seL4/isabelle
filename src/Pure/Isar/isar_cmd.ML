@@ -13,6 +13,8 @@ sig
   val print_translation: bool * (Symbol_Pos.text * Position.T) -> theory -> theory
   val typed_print_translation: bool * (Symbol_Pos.text * Position.T) -> theory -> theory
   val print_ast_translation: bool * (Symbol_Pos.text * Position.T) -> theory -> theory
+  val translations: (xstring * string) Syntax.trrule list -> theory -> theory
+  val no_translations: (xstring * string) Syntax.trrule list -> theory -> theory
   val oracle: bstring * Position.T -> Symbol_Pos.text * Position.T -> theory -> theory
   val add_axioms: (Attrib.binding * string) list -> theory -> theory
   val add_defs: (bool * bool) * ((binding * string) * Attrib.src list) list -> theory -> theory
@@ -152,6 +154,22 @@ fun typed_print_translation (a, (txt, pos)) =
   |> Context.theory_map;
 
 end;
+
+
+(* translation rules *)
+
+fun read_trrules thy raw_rules =
+  let
+    val ctxt = ProofContext.init_global thy;
+    val type_ctxt = ProofContext.type_context ctxt;
+    val syn = ProofContext.syn_of ctxt;
+  in
+    raw_rules |> map (Syntax.map_trrule (fn (r, s) =>
+      Syntax.read_rule_pattern ctxt type_ctxt syn (Sign.intern_type thy r, s)))
+  end;
+
+fun translations args thy = Sign.add_trrules (read_trrules thy args) thy;
+fun no_translations args thy = Sign.del_trrules (read_trrules thy args) thy;
 
 
 (* oracles *)

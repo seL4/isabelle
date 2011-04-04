@@ -70,7 +70,8 @@ object Isabelle_Markup
   /* markup selectors */
 
   private val subexp_include =
-    Set(Markup.SORT, Markup.TYP, Markup.TERM, Markup.PROP, Markup.ML_TYPING, Markup.TOKEN_RANGE)
+    Set(Markup.SORT, Markup.TYP, Markup.TERM, Markup.PROP, Markup.ML_TYPING, Markup.TOKEN_RANGE,
+      Markup.ENTITY, Markup.FREE, Markup.SKOLEM, Markup.BOUND, Markup.VAR)
 
   val subexp: Markup_Tree.Select[(Text.Range, Color)] =
   {
@@ -111,6 +112,7 @@ object Isabelle_Markup
 
   val tooltip: Markup_Tree.Select[String] =
   {
+    case Text.Info(_, XML.Elem(Markup.Entity(kind, name), _)) => kind + " " + name
     case Text.Info(_, XML.Elem(Markup(Markup.ML_TYPING, _), body)) =>
       Pretty.string_of(List(Pretty.block(XML.Text("ML:") :: Pretty.Break(1) :: body)),
         margin = Isabelle.Int_Property("tooltip-margin"))
@@ -119,6 +121,10 @@ object Isabelle_Markup
     case Text.Info(_, XML.Elem(Markup(Markup.TERM, _), _)) => "term"
     case Text.Info(_, XML.Elem(Markup(Markup.PROP, _), _)) => "proposition"
     case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => "inner syntax token"
+    case Text.Info(_, XML.Elem(Markup(Markup.FREE, _), _)) => "free variable (globally fixed)"
+    case Text.Info(_, XML.Elem(Markup(Markup.SKOLEM, _), _)) => "skolem variable (locally fixed)"
+    case Text.Info(_, XML.Elem(Markup(Markup.BOUND, _), _)) => "bound variable (internally fixed)"
+    case Text.Info(_, XML.Elem(Markup(Markup.VAR, _), _)) => "schematic variable"
   }
 
 

@@ -116,17 +116,20 @@ sig
   val ambiguity_level_raw: Config.raw
   val ambiguity_level: int Config.T
   val ambiguity_limit: int Config.T
-  val standard_parse_term: (term -> string option) -> term_context ->
-    Proof.context -> syntax -> string -> Symbol_Pos.T list * Position.T -> term
-  val standard_parse_typ: Proof.context -> syntax ->
+  val standard_parse_term: (term -> string option) ->
+    Proof.context -> type_context -> term_context -> syntax ->
+    string -> Symbol_Pos.T list * Position.T -> term
+  val standard_parse_typ: Proof.context -> type_context -> syntax ->
     ((indexname * sort) list -> indexname -> sort) -> Symbol_Pos.T list * Position.T -> typ
-  val standard_parse_sort: Proof.context -> syntax -> Symbol_Pos.T list * Position.T -> sort
+  val standard_parse_sort: Proof.context -> type_context -> syntax ->
+    Symbol_Pos.T list * Position.T -> sort
   datatype 'a trrule =
-    ParseRule of 'a * 'a |
-    PrintRule of 'a * 'a |
-    ParsePrintRule of 'a * 'a
+    Parse_Rule of 'a * 'a |
+    Print_Rule of 'a * 'a |
+    Parse_Print_Rule of 'a * 'a
   val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
   val is_const: syntax -> string -> bool
+  val read_rule_pattern: Proof.context -> type_context -> syntax -> string * string -> ast
   val standard_unparse_term: {structs: string list, fixes: string list} ->
     {extern_class: string -> xstring, extern_type: string -> xstring,
       extern_const: string -> xstring} -> Proof.context -> syntax -> bool -> term -> Pretty.T
@@ -149,10 +152,8 @@ sig
   val update_type_gram: bool -> mode -> (string * typ * mixfix) list -> syntax -> syntax
   val update_const_gram: bool -> (string -> bool) ->
     mode -> (string * typ * mixfix) list -> syntax -> syntax
-  val update_trrules: Proof.context -> syntax -> (string * string) trrule list -> syntax -> syntax
-  val remove_trrules: Proof.context -> syntax -> (string * string) trrule list -> syntax -> syntax
-  val update_trrules_i: ast trrule list -> syntax -> syntax
-  val remove_trrules_i: ast trrule list -> syntax -> syntax
+  val update_trrules: ast trrule list -> syntax -> syntax
+  val remove_trrules: ast trrule list -> syntax -> syntax
 end;
 
 structure Syntax: SYNTAX =
@@ -619,8 +620,8 @@ val basic_syntax =
 val basic_nonterms =
   (Lexicon.terminals @ [Syn_Ext.logic, "type", "types", "sort", "classes",
     Syn_Ext.args, Syn_Ext.cargs, "pttrn", "pttrns", "idt", "idts", "aprop",
-    "asms", Syn_Ext.any, Syn_Ext.sprop, "num_const", "float_const",
-    "index", "struct", "id_position", "longid_position"]);
+    "asms", Syn_Ext.any, Syn_Ext.sprop, "num_const", "float_const", "index",
+    "struct", "id_position", "longid_position", "type_name", "class_name"]);
 
 
 
@@ -711,7 +712,7 @@ val ambiguity_limit =
 
 fun ambiguity_msg pos = "Parse error: ambiguous syntax" ^ Position.str_of pos;
 
-fun read_asts ctxt (Syntax (tabs, _)) raw root (syms, pos) =
+fun read_asts ctxt type_ctxt (Syntax (tabs, _)) raw root (syms, pos) =
   let
     val {lexicon, gram, parse_ast_trtab, ...} = tabs;
     val toks = Lexicon.tokenize lexicon raw syms;
@@ -724,8 +725,6 @@ fun read_asts ctxt (Syntax (tabs, _)) raw root (syms, pos) =
     val len = length pts;
 
     val limit = Config.get ctxt ambiguity_limit;
-    fun show_pt pt =
-      Pretty.string_of (Ast.pretty_ast (Syn_Trans.parsetree_to_ast ctxt false (K NONE) pt));
     val _ =
       if len <= Config.get ctxt ambiguity_level then ()
       else if not (Config.get ctxt ambiguity_enabled) then error (ambiguity_msg pos)
@@ -734,21 +733,22 @@ fun read_asts ctxt (Syntax (tabs, _)) raw root (syms, pos) =
           (("Ambiguous input" ^ Position.str_of pos ^
             "\nproduces " ^ string_of_int len ^ " parse trees" ^
             (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
-            map show_pt (take limit pts))));
+            map (Pretty.string_of o Parser.pretty_parsetree) (take limit pts))));
 
     val constrain_pos = not raw andalso Config.get ctxt positions;
   in
-    some_results (Syn_Trans.parsetree_to_ast ctxt constrain_pos (lookup_tr parse_ast_trtab)) pts
+    some_results
+      (Syn_Trans.parsetree_to_ast ctxt type_ctxt constrain_pos (lookup_tr parse_ast_trtab)) pts
   end;
 
 
 (* read *)
 
-fun read ctxt (syn as Syntax (tabs, _)) root inp =
+fun read ctxt type_ctxt (syn as Syntax (tabs, _)) root inp =
   let val {parse_ruletab, parse_trtab, ...} = tabs in
-    read_asts ctxt syn false root inp
-    |> map (Ast.normalize ctxt (Symtab.lookup_list parse_ruletab))
-    |> some_results (Syn_Trans.ast_to_term ctxt (lookup_tr parse_trtab))
+    read_asts ctxt type_ctxt syn false root inp
+    |> map (apsnd (Ast.normalize ctxt (Symtab.lookup_list parse_ruletab)))
+    |> some_results (apsnd (Syn_Trans.ast_to_term ctxt (lookup_tr parse_trtab)))
   end;
 
 
@@ -790,50 +790,59 @@ fun disambig ctxt _ [arg] = report_result ctxt arg
             map (show_term o snd) (take limit results)))
       end;
 
-fun standard_parse_term check term_ctxt ctxt syn root (syms, pos) =
-  read ctxt syn root (syms, pos)
+fun standard_parse_term check ctxt type_ctxt term_ctxt syn root (syms, pos) =
+  read ctxt type_ctxt syn root (syms, pos)
   |> map (Type_Ext.decode_term term_ctxt)
   |> disambig ctxt check;
 
 
 (* read types *)
 
-fun standard_parse_typ ctxt syn get_sort (syms, pos) =
-  (case read ctxt syn (Syn_Ext.typ_to_nonterm Syn_Ext.typeT) (syms, pos) of
-    [t] => Type_Ext.typ_of_term (get_sort (Type_Ext.term_sorts t)) t
+fun standard_parse_typ ctxt type_ctxt syn get_sort (syms, pos) =
+  (case read ctxt type_ctxt syn (Syn_Ext.typ_to_nonterm Syn_Ext.typeT) (syms, pos) of
+    [res] =>
+      let val t = report_result ctxt res
+      in Type_Ext.typ_of_term (get_sort (Type_Ext.term_sorts t)) t end
   | _ => error (ambiguity_msg pos));
 
 
 (* read sorts *)
 
-fun standard_parse_sort ctxt syn (syms, pos) =
-  (case read ctxt syn (Syn_Ext.typ_to_nonterm Type_Ext.sortT) (syms, pos) of
-    [t] => Type_Ext.sort_of_term t
+fun standard_parse_sort ctxt type_ctxt syn (syms, pos) =
+  (case read ctxt type_ctxt syn (Syn_Ext.typ_to_nonterm Type_Ext.sortT) (syms, pos) of
+    [res] =>
+      let val t = report_result ctxt res
+      in Type_Ext.sort_of_term t end
   | _ => error (ambiguity_msg pos));
 
 
 
 (** prepare translation rules **)
 
+(* rules *)
+
 datatype 'a trrule =
-  ParseRule of 'a * 'a |
-  PrintRule of 'a * 'a |
-  ParsePrintRule of 'a * 'a;
+  Parse_Rule of 'a * 'a |
+  Print_Rule of 'a * 'a |
+  Parse_Print_Rule of 'a * 'a;
 
-fun map_trrule f (ParseRule (x, y)) = ParseRule (f x, f y)
-  | map_trrule f (PrintRule (x, y)) = PrintRule (f x, f y)
-  | map_trrule f (ParsePrintRule (x, y)) = ParsePrintRule (f x, f y);
+fun map_trrule f (Parse_Rule (x, y)) = Parse_Rule (f x, f y)
+  | map_trrule f (Print_Rule (x, y)) = Print_Rule (f x, f y)
+  | map_trrule f (Parse_Print_Rule (x, y)) = Parse_Print_Rule (f x, f y);
 
-fun parse_rule (ParseRule pats) = SOME pats
-  | parse_rule (PrintRule _) = NONE
-  | parse_rule (ParsePrintRule pats) = SOME pats;
+fun parse_rule (Parse_Rule pats) = SOME pats
+  | parse_rule (Print_Rule _) = NONE
+  | parse_rule (Parse_Print_Rule pats) = SOME pats;
 
-fun print_rule (ParseRule _) = NONE
-  | print_rule (PrintRule pats) = SOME (swap pats)
-  | print_rule (ParsePrintRule pats) = SOME (swap pats);
+fun print_rule (Parse_Rule _) = NONE
+  | print_rule (Print_Rule pats) = SOME (swap pats)
+  | print_rule (Parse_Print_Rule pats) = SOME (swap pats);
 
 
 fun is_const (Syntax ({consts, ...}, _)) c = member (op =) consts c;
+
+
+(* check_rules *)
 
 local
 
@@ -844,7 +853,18 @@ fun check_rule rule =
         Pretty.string_of (Ast.pretty_rule rule))
   | NONE => rule);
 
-fun read_pattern ctxt syn (root, str) =
+in
+
+fun check_rules rules =
+ (map check_rule (map_filter parse_rule rules),
+  map check_rule (map_filter print_rule rules));
+
+end;
+
+
+(* read_rule_pattern *)
+
+fun read_rule_pattern ctxt type_ctxt syn (root, str) =
   let
     fun constify (ast as Ast.Constant _) = ast
       | constify (ast as Ast.Variable x) =
@@ -854,24 +874,12 @@ fun read_pattern ctxt syn (root, str) =
 
     val (syms, pos) = read_token str;
   in
-    (case read_asts ctxt syn true root (syms, pos) of
-      [ast] => constify ast
+    (case read_asts ctxt type_ctxt syn true root (syms, pos) of
+      [res] =>
+        let val ast = report_result ctxt res
+        in constify ast end
     | _ => error (ambiguity_msg pos))
   end;
-
-fun prep_rules rd_pat raw_rules =
-  let val rules = map (map_trrule rd_pat) raw_rules in
-    (map check_rule (map_filter parse_rule rules),
-      map check_rule (map_filter print_rule rules))
-  end
-
-in
-
-val cert_rules = prep_rules I;
-
-fun read_rules ctxt syn = prep_rules (read_pattern ctxt syn);
-
-end;
 
 
 
@@ -920,14 +928,8 @@ fun update_type_gram add prmode decls =
 fun update_const_gram add is_logtype prmode decls =
   (if add then update_syntax else remove_syntax) prmode (Mixfix.syn_ext_consts is_logtype decls);
 
-fun update_trrules ctxt syn =
-  ext_syntax Syn_Ext.syn_ext_rules o read_rules ctxt syn;
-
-fun remove_trrules ctxt syn =
-  remove_syntax mode_default o Syn_Ext.syn_ext_rules o read_rules ctxt syn;
-
-val update_trrules_i = ext_syntax Syn_Ext.syn_ext_rules o cert_rules;
-val remove_trrules_i = remove_syntax mode_default o Syn_Ext.syn_ext_rules o cert_rules;
+val update_trrules = ext_syntax Syn_Ext.syn_ext_rules o check_rules;
+val remove_trrules = remove_syntax mode_default o Syn_Ext.syn_ext_rules o check_rules;
 
 
 (*export parts of internal Syntax structures*)

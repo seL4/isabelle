@@ -13,14 +13,10 @@ sig
   val strip_positions: term -> term
   val strip_positions_ast: Ast.ast -> Ast.ast
   type term_context
-  val decode_term: term_context -> term -> (Position.T * Markup.T) list * term
+  val decode_term: term_context -> Position.reports * term -> Position.reports * term
   val term_of_typ: bool -> typ -> term
   val no_brackets: unit -> bool
   val no_type_brackets: unit -> bool
-  val type_ast_trs:
-   {read_class: Proof.context -> string -> string,
-    read_type: Proof.context -> string -> string} ->
-    (string * (Proof.context -> Ast.ast list -> Ast.ast)) list
 end;
 
 signature TYPE_EXT =
@@ -140,16 +136,13 @@ type term_context =
   markup_free: string -> Markup.T list,
   markup_var: indexname -> Markup.T list};
 
-fun decode_term (term_context: term_context) tm =
+fun decode_term (term_context: term_context) (reports0: Position.reports, tm) =
   let
     val {get_sort, get_const, get_free, markup_const, markup_free, markup_var} = term_context;
     val decodeT = typ_of_term (get_sort (term_sorts tm));
 
-    val reports = Unsynchronized.ref ([]: (Position.T * Markup.T) list);
-    fun report [] _ _ = ()
-      | report ps markup x =
-          let val ms = markup x
-          in Unsynchronized.change reports (fold (fn p => fold (fn m => cons (p, m)) ms) ps) end;
+    val reports = Unsynchronized.ref reports0;
+    fun report ps = Position.reports reports ps;
 
     fun decode ps qs bs (Const ("_constrain", _) $ t $ typ) =
           (case decode_position typ of
@@ -252,30 +245,14 @@ fun no_type_brackets () =
 
 (* parse ast translations *)
 
-val class_ast = Ast.Constant o Lexicon.mark_class;
-val type_ast = Ast.Constant o Lexicon.mark_type;
+fun tapp_ast_tr [ty, c] = Ast.Appl [c, ty]
+  | tapp_ast_tr asts = raise Ast.AST ("tapp_ast_tr", asts);
 
-fun class_name_tr read_class (*"_class_name"*) [Ast.Variable c] = class_ast (read_class c)
-  | class_name_tr _ (*"_class_name"*) asts = raise Ast.AST ("class_name_tr", asts);
+fun tappl_ast_tr [ty, tys, c] = Ast.mk_appl c (ty :: Ast.unfold_ast "_types" tys)
+  | tappl_ast_tr asts = raise Ast.AST ("tappl_ast_tr", asts);
 
-fun classes_tr read_class (*"_classes"*) [Ast.Variable c, ast] =
-      Ast.mk_appl (Ast.Constant "_classes") [class_ast (read_class c), ast]
-  | classes_tr _ (*"_classes"*) asts = raise Ast.AST ("classes_tr", asts);
-
-fun type_name_tr read_type (*"_type_name"*) [Ast.Variable c] = type_ast (read_type c)
-  | type_name_tr _ (*"_type_name"*) asts = raise Ast.AST ("type_name_tr", asts);
-
-fun tapp_ast_tr read_type (*"_tapp"*) [ty, Ast.Variable c] =
-      Ast.Appl [type_ast (read_type c), ty]
-  | tapp_ast_tr _ (*"_tapp"*) asts = raise Ast.AST ("tapp_ast_tr", asts);
-
-fun tappl_ast_tr read_type (*"_tappl"*) [ty, tys, Ast.Variable c] =
-      Ast.Appl (type_ast (read_type c) :: ty :: Ast.unfold_ast "_types" tys)
-  | tappl_ast_tr _ (*"_tappl"*) asts = raise Ast.AST ("tappl_ast_tr", asts);
-
-fun bracket_ast_tr (*"_bracket"*) [dom, cod] =
-      Ast.fold_ast_p "\\<^type>fun" (Ast.unfold_ast "_types" dom, cod)
-  | bracket_ast_tr (*"_bracket"*) asts = raise Ast.AST ("bracket_ast_tr", asts);
+fun bracket_ast_tr [dom, cod] = Ast.fold_ast_p "\\<^type>fun" (Ast.unfold_ast "_types" dom, cod)
+  | bracket_ast_tr asts = raise Ast.AST ("bracket_ast_tr", asts);
 
 
 (* print ast translations *)
@@ -296,32 +273,35 @@ fun fun_ast_tr' (*"\\<^type>fun"*) asts =
 
 (* type_ext *)
 
-val sortT = Type ("sort", []);
-val classesT = Type ("classes", []);
-val typesT = Type ("types", []);
+fun typ c = Type (c, []);
+
+val class_nameT = typ "class_name";
+val type_nameT = typ "type_name";
+
+val sortT = typ "sort";
+val classesT = typ "classes";
+val typesT = typ "types";
 
 local open Lexicon Syn_Ext in
 
 val type_ext = syn_ext' false (K false)
   [Mfix ("_",           tidT --> typeT,                "", [], max_pri),
    Mfix ("_",           tvarT --> typeT,               "", [], max_pri),
-   Mfix ("_",           idT --> typeT,                 "_type_name", [], max_pri),
-   Mfix ("_",           longidT --> typeT,             "_type_name", [], max_pri),
+   Mfix ("_",           type_nameT --> typeT,          "", [], max_pri),
+   Mfix ("_",           idT --> type_nameT,            "_type_name", [], max_pri),
+   Mfix ("_",           longidT --> type_nameT,        "_type_name", [], max_pri),
    Mfix ("_::_",        [tidT, sortT] ---> typeT,      "_ofsort", [max_pri, 0], max_pri),
    Mfix ("_::_",        [tvarT, sortT] ---> typeT,     "_ofsort", [max_pri, 0], max_pri),
    Mfix ("'_()::_",     sortT --> typeT,               "_dummy_ofsort", [0], max_pri),
-   Mfix ("_",           idT --> sortT,                 "_class_name", [], max_pri),
-   Mfix ("_",           longidT --> sortT,             "_class_name", [], max_pri),
+   Mfix ("_",           class_nameT --> sortT,         "", [], max_pri),
+   Mfix ("_",           idT --> class_nameT,           "_class_name", [], max_pri),
+   Mfix ("_",           longidT --> class_nameT,       "_class_name", [], max_pri),
    Mfix ("{}",          sortT,                         "_topsort", [], max_pri),
    Mfix ("{_}",         classesT --> sortT,            "_sort", [], max_pri),
-   Mfix ("_",           idT --> classesT,              "_class_name", [], max_pri),
-   Mfix ("_",           longidT --> classesT,          "_class_name", [], max_pri),
-   Mfix ("_,_",         [idT, classesT] ---> classesT, "_classes", [], max_pri),
-   Mfix ("_,_",         [longidT, classesT] ---> classesT, "_classes", [], max_pri),
-   Mfix ("_ _",         [typeT, idT] ---> typeT,       "_tapp", [max_pri, 0], max_pri),
-   Mfix ("_ _",         [typeT, longidT] ---> typeT,   "_tapp", [max_pri, 0], max_pri),
-   Mfix ("((1'(_,/ _')) _)", [typeT, typesT, idT] ---> typeT, "_tappl", [], max_pri),
-   Mfix ("((1'(_,/ _')) _)", [typeT, typesT, longidT] ---> typeT, "_tappl", [], max_pri),
+   Mfix ("_",           class_nameT --> classesT,      "", [], max_pri),
+   Mfix ("_,_",         [class_nameT, classesT] ---> classesT, "_classes", [], max_pri),
+   Mfix ("_ _",         [typeT, type_nameT] ---> typeT, "_tapp", [max_pri, 0], max_pri),
+   Mfix ("((1'(_,/ _')) _)", [typeT, typesT, type_nameT] ---> typeT, "_tappl", [], max_pri),
    Mfix ("_",           typeT --> typesT,              "", [], max_pri),
    Mfix ("_,/ _",       [typeT, typesT] ---> typesT,   "_types", [], max_pri),
    Mfix ("(_/ => _)",   [typeT, typeT] ---> typeT,     "\\<^type>fun", [1, 0], 0),
@@ -329,17 +309,11 @@ val type_ext = syn_ext' false (K false)
    Mfix ("'(_')",       typeT --> typeT,               "", [0], max_pri),
    Mfix ("'_",          typeT,                         "\\<^type>dummy", [], max_pri)]
   ["_type_prop"]
-  ([], [], [], map Syn_Ext.mk_trfun [("\\<^type>fun", K fun_ast_tr')])
+  (map Syn_Ext.mk_trfun
+    [("_tapp", K tapp_ast_tr), ("_tappl", K tappl_ast_tr), ("_bracket", K bracket_ast_tr)],
+   [], [], map Syn_Ext.mk_trfun [("\\<^type>fun", K fun_ast_tr')])
   []
   ([], []);
-
-fun type_ast_trs {read_class, read_type} =
- [("_class_name", class_name_tr o read_class),
-  ("_classes", classes_tr o read_class),
-  ("_type_name", type_name_tr o read_type),
-  ("_tapp", tapp_ast_tr o read_type),
-  ("_tappl", tappl_ast_tr o read_type),
-  ("_bracket", K bracket_ast_tr)];
 
 end;
 

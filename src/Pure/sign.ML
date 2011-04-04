@@ -108,10 +108,8 @@ sig
     (string * string * (Proof.context -> string -> Pretty.T)) list -> theory -> theory
   val add_mode_tokentrfuns: string -> (string * (Proof.context -> string -> Pretty.T)) list
     -> theory -> theory
-  val add_trrules: (xstring * string) Syntax.trrule list -> theory -> theory
-  val del_trrules: (xstring * string) Syntax.trrule list -> theory -> theory
-  val add_trrules_i: ast Syntax.trrule list -> theory -> theory
-  val del_trrules_i: ast Syntax.trrule list -> theory -> theory
+  val add_trrules: ast Syntax.trrule list -> theory -> theory
+  val del_trrules: ast Syntax.trrule list -> theory -> theory
   val new_group: theory -> theory
   val reset_group: theory -> theory
   val add_path: string -> theory -> theory
@@ -497,14 +495,8 @@ fun add_mode_tokentrfuns m = add_tokentrfuns o map (fn (s, f) => (m, s, f));
 
 (* translation rules *)
 
-fun gen_trrules f args thy = thy |> map_syn (fn syn =>
-  let val rules = map (Syntax.map_trrule (apfst (intern_type thy))) args
-  in f (ProofContext.init_global thy) syn rules syn end);
-
-val add_trrules = gen_trrules Syntax.update_trrules;
-val del_trrules = gen_trrules Syntax.remove_trrules;
-val add_trrules_i = map_syn o Syntax.update_trrules_i;
-val del_trrules_i = map_syn o Syntax.remove_trrules_i;
+val add_trrules = map_syn o Syntax.update_trrules;
+val del_trrules = map_syn o Syntax.remove_trrules;
 
 
 (* naming *)

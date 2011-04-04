@@ -464,13 +464,13 @@ fun add_case_combinator
           if n = m then arg1 (n, c) else (Constant @{const_syntax bottom})
       val case_constant = Constant (syntax (case_const dummyT))
       fun case_trans authentic =
-          (if authentic then ParsePrintRule else ParseRule)
+          (if authentic then Parse_Print_Rule else Parse_Rule)
             (app "_case_syntax"
               (Variable "x",
                foldr1 (app "_case2") (map_index (case1 authentic) spec)),
              capp (capps (case_constant, map_index arg1 spec), Variable "x"))
       fun one_abscon_trans authentic (n, c) =
-          (if authentic then ParsePrintRule else ParseRule)
+          (if authentic then Parse_Print_Rule else Parse_Rule)
             (cabs (con1 authentic n c, expvar n),
              capps (case_constant, map_index (when1 n) spec))
       fun abscon_trans authentic =
@@ -479,7 +479,7 @@ fun add_case_combinator
           case_trans false :: case_trans true ::
           abscon_trans false @ abscon_trans true
     in
-      val thy = Sign.add_trrules_i trans_rules thy
+      val thy = Sign.add_trrules trans_rules thy
     end
 
     (* prove beta reduction rule for case combinator *)

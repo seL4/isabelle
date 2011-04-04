@@ -175,9 +175,9 @@ val trans_pat =
     -- Parse.string;
 
 fun trans_arrow toks =
-  ((Parse.$$$ "\\<rightharpoonup>" || Parse.$$$ "=>") >> K Syntax.ParseRule ||
-    (Parse.$$$ "\\<leftharpoondown>" || Parse.$$$ "<=") >> K Syntax.PrintRule ||
-    (Parse.$$$ "\\<rightleftharpoons>" || Parse.$$$ "==") >> K Syntax.ParsePrintRule) toks;
+  ((Parse.$$$ "\\<rightharpoonup>" || Parse.$$$ "=>") >> K Syntax.Parse_Rule ||
+    (Parse.$$$ "\\<leftharpoondown>" || Parse.$$$ "<=") >> K Syntax.Print_Rule ||
+    (Parse.$$$ "\\<rightleftharpoons>" || Parse.$$$ "==") >> K Syntax.Parse_Print_Rule) toks;
 
 val trans_line =
   trans_pat -- Parse.!!! (trans_arrow -- trans_pat)
@@ -185,11 +185,11 @@ val trans_line =
 
 val _ =
   Outer_Syntax.command "translations" "declare syntax translation rules" Keyword.thy_decl
-    (Scan.repeat1 trans_line >> (Toplevel.theory o Sign.add_trrules));
+    (Scan.repeat1 trans_line >> (Toplevel.theory o Isar_Cmd.translations));
 
 val _ =
   Outer_Syntax.command "no_translations" "remove syntax translation rules" Keyword.thy_decl
-    (Scan.repeat1 trans_line >> (Toplevel.theory o Sign.del_trrules));
+    (Scan.repeat1 trans_line >> (Toplevel.theory o Isar_Cmd.no_translations));
 
 
 (* axioms and definitions *)

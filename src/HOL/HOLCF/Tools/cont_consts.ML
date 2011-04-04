@@ -24,9 +24,9 @@ fun change_arrow 0 T = T
 fun trans_rules name2 name1 n mx =
   let
     val vnames = Name.invents Name.context "a" n
-    val extra_parse_rule = Syntax.ParseRule (Constant name2, Constant name1)
+    val extra_parse_rule = Syntax.Parse_Rule (Constant name2, Constant name1)
   in
-    [Syntax.ParsePrintRule
+    [Syntax.Parse_Print_Rule
       (Syntax.mk_appl (Constant name2) (map Variable vnames),
         fold (fn a => fn t => Syntax.mk_appl (Constant @{const_syntax Rep_cfun}) [t, Variable a])
           vnames (Constant name1))] @
@@ -80,7 +80,7 @@ fun gen_add_consts prep_typ raw_decls thy =
   in
     thy
     |> Sign.add_consts_i (normal_decls @ map #1 transformed_decls @ map #2 transformed_decls)
-    |> Sign.add_trrules_i (maps #3 transformed_decls)
+    |> Sign.add_trrules (maps #3 transformed_decls)
   end
 
 in
