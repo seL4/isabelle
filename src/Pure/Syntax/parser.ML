@@ -707,19 +707,19 @@ fun get_states Estate i ii A max_prec =
     (Array.sub (Estate, ii));
 
 
-fun movedot_term (A, j, ts, Terminal a :: sa, id, i) c =
+fun movedot_term c (A, j, ts, Terminal a :: sa, id, i) =
   if Lexicon.valued_token c then (A, j, ts @ [Tip c], sa, id, i)
   else (A, j, ts, sa, id, i);
 
-fun movedot_nonterm ts (A, j, tss, Nonterminal _ :: sa, id, i) =
-  (A, j, tss @ ts, sa, id, i);
+fun movedot_nonterm tt (A, j, ts, Nonterminal _ :: sa, id, i) =
+  (A, j, ts @ tt, sa, id, i);
 
-fun movedot_lambda _ [] = []
-  | movedot_lambda (B, j, tss, Nonterminal (A, k) :: sa, id, i) ((t, ki) :: ts) =
+fun movedot_lambda [] _ = []
+  | movedot_lambda ((t, ki) :: ts) (B, j, tss, Nonterminal (A, k) :: sa, id, i) =
       if k <= ki then
         (B, j, tss @ t, sa, id, i) ::
-          movedot_lambda (B, j, tss, Nonterminal (A, k) :: sa, id, i) ts
-      else movedot_lambda (B, j, tss, Nonterminal (A, k) :: sa, id, i) ts;
+          movedot_lambda ts (B, j, tss, Nonterminal (A, k) :: sa, id, i)
+      else movedot_lambda ts (B, j, tss, Nonterminal (A, k) :: sa, id, i);
 
 
 (*trigger value for warnings*)
@@ -760,13 +760,13 @@ fun PROCESSS ctxt warned prods chains Estate i c states =
                     SOME (used_prec, l) => (*nonterminal has been processed*)
                       if used_prec <= min_prec then
                         (*wanted precedence has been processed*)
-                        (used, movedot_lambda S l)
+                        (used, movedot_lambda l S)
                       else (*wanted precedence hasn't been parsed yet*)
                         let
                           val tk_prods = all_prods_for nt;
                           val States' =
                             mk_states i min_prec nt (get_RHS' min_prec used_prec tk_prods);
-                        in (update_prec (nt, min_prec) used, movedot_lambda S l @ States') end
+                        in (update_prec (nt, min_prec) used, movedot_lambda l S @ States') end
                   | NONE => (*nonterminal is parsed for the first time*)
                       let
                         val tk_prods = all_prods_for nt;
@@ -786,7 +786,7 @@ fun PROCESSS ctxt warned prods chains Estate i c states =
           | (_, _, _, Terminal a :: _, _, _) => (*scanner operation*)
               processS used States
                 (S :: Si,
-                  if Lexicon.matching_tokens (a, c) then movedot_term S c :: Sii else Sii)
+                  if Lexicon.matching_tokens (a, c) then movedot_term c S :: Sii else Sii)
           | (A, prec, ts, [], id, j) => (*completer operation*)
               let val tt = if id = "" then ts else [Node (id, ts)] in
                 if j = i then (*lambda production?*)
