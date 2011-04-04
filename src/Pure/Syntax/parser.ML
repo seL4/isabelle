@@ -689,16 +689,15 @@ fun update_prec (A: nt_tag, prec) used =
       else update (used, hd :: used')
   in update (used, []) end;
 
-fun getS A max_prec Si =
-  filter
-    (fn (_, _, _, Nonterminal (B, prec) :: _, _, _) => A = B andalso prec <= max_prec
-      | _ => false) Si;
-
-fun getS' A max_prec min_prec Si =
-  filter
-    (fn (_, _, _, Nonterminal (B, prec) :: _, _, _)
-          => A = B andalso prec > min_prec andalso prec <= max_prec
-      | _ => false) Si;
+fun getS A max_prec NONE Si =
+      filter
+        (fn (_, _, _, Nonterminal (B, prec) :: _, _, _) => A = B andalso prec <= max_prec
+          | _ => false) Si
+  | getS A max_prec (SOME min_prec) Si =
+      filter
+        (fn (_, _, _, Nonterminal (B, prec) :: _, _, _) =>
+            A = B andalso prec > min_prec andalso prec <= max_prec
+          | _ => false) Si;
 
 fun get_states Estate i ii A max_prec =
   filter
@@ -791,22 +790,10 @@ fun PROCESSS ctxt warned prods chains Estate i c states =
               let val tt = if id = "" then ts else [Node (id, ts)] in
                 if j = i then (*lambda production?*)
                   let
-                    val (used', O) = update_trees used (A, (tt, prec));
-                  in
-                    (case O of
-                      NONE =>
-                        let
-                          val Slist = getS A prec Si;
-                          val States' = map (movedot_nonterm tt) Slist;
-                        in processS used' (States' @ States) (S :: Si, Sii) end
-                    | SOME n =>
-                        if n >= prec then processS used' States (S :: Si, Sii)
-                        else
-                          let
-                            val Slist = getS' A prec n Si;
-                            val States' = map (movedot_nonterm tt) Slist;
-                          in processS used' (States' @ States) (S :: Si, Sii) end)
-                  end
+                    val (used', prec') = update_trees used (A, (tt, prec));
+                    val Slist = getS A prec prec' Si;
+                    val States' = map (movedot_nonterm tt) Slist;
+                  in processS used' (States' @ States) (S :: Si, Sii) end
                 else
                   let val Slist = get_states Estate i j A prec
                   in processS used (map (movedot_nonterm tt) Slist @ States) (S :: Si, Sii) end
