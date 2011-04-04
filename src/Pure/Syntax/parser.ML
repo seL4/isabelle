@@ -53,6 +53,8 @@ datatype gram =
      lambda productions are stored as normal productions
      and also as an entry in "lambdas"*)
 
+val union_token = union Lexicon.matching_tokens;
+val subtract_token = subtract Lexicon.matching_tokens;
 
 (*productions for which no starting token is
   known yet are associated with this token*)
@@ -118,7 +120,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
           if forall
             (fn Nonterminal (id, _) => member (op =) lambdas' id
               | Terminal _ => false) rhs
-          then (true, union (op =) lambdas' (connected_with chains' [lhs] [lhs]))
+          then (true, union (op =) (connected_with chains' [lhs] [lhs]) lambdas')
           else (false, lambdas');
 
         (*list optional terminal and all nonterminals on which the lookahead
@@ -132,8 +134,6 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
 
         (*get all known starting tokens for a nonterminal*)
         fun starts_for_nt nt = snd (fst (Array.sub (prods, nt)));
-
-        val token_union = uncurry (union Lexicon.matching_tokens);
 
         (*update prods, lookaheads, and lambdas according to new lambda NTs*)
         val (added_starts', lambdas') =
@@ -155,11 +155,12 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                               let
                                 val new_lambda = is_none tk andalso subset (op =) (nts, lambdas);
 
-                                val new_tks = subtract (op =) l_starts
-                                  ((if is_some tk then [the tk] else []) @
-                                    Library.foldl token_union ([], map starts_for_nt nts));
+                                val new_tks =
+                                  (if is_some tk then [the tk] else [])
+                                  |> fold (union_token o starts_for_nt) nts
+                                  |> subtract (op =) l_starts;
 
-                                val added_tks' = token_union (new_tks, added_tks);
+                                val added_tks' = union_token added_tks new_tks;
 
                                 val nt_dependencies' = union (op =) nts nt_dependencies;
 
@@ -243,9 +244,8 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
               val (start_tk, start_nts) = lookahead_dependency lambdas' rhs [];
 
               val start_tks =
-                Library.foldl token_union
-                  (if is_some start_tk then [the start_tk] else [],
-                    map starts_for_nt start_nts);
+                (if is_some start_tk then [the start_tk] else [])
+                |> fold (union_token o starts_for_nt) start_nts;
 
               val opt_starts =
                (if new_lambda then [NONE]
@@ -267,7 +267,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                     let
                       val ((old_nts, old_tks), nt_prods) = Array.sub (prods, nt);
 
-                      val new_tks = subtract Lexicon.matching_tokens old_tks start_tks;
+                      val new_tks = subtract_token old_tks start_tks;
 
                       (*store new production*)
                       fun store [] prods is_new =
@@ -287,8 +287,10 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                                   else (new_prod :: tk_prods, true)
                                 else (new_prod :: tk_prods, true);
 
-                              val prods' = prods
-                                |> is_new' ? AList.update (op =) (tk: Lexicon.token option, tk_prods');
+                              val prods' =
+                                if is_new' then
+                                  AList.update (op =) (tk: Lexicon.token option, tk_prods') prods
+                                else prods;
                             in store tks prods' (is_new orelse is_new') end;
 
                       val (nt_prods', prod_count', changed) =
@@ -379,7 +381,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                                 AList.update (op =) (key, tk_prods') nt_prods'
                               else nt_prods';
 
-                            val added_tks = subtract Lexicon.matching_tokens old_tks new_tks;
+                            val added_tks = subtract_token old_tks new_tks;
                           in
                             if null added_tks then
                               (Array.update (prods, nt, (lookahead, nt_prods''));
@@ -422,8 +424,8 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
         fun prod_of_chain from = ([Nonterminal (from, ~1)], "", ~1);
 
         val nt_prods =
-          Library.foldl (uncurry (union (op =))) ([], map snd (snd (Vector.sub (prods, tag)))) @
-          map prod_of_chain (these (AList.lookup (op =) chains tag));
+          fold (union (op =) o snd) (snd (Vector.sub (prods, tag))) [] @
+            map prod_of_chain (these (AList.lookup (op =) chains tag));
       in map (pretty_prod name) nt_prods end;
 
   in maps pretty_nt (sort_wrt fst (Symtab.dest tags)) end;
@@ -583,8 +585,7 @@ fun merge_gram (gram_a, gram_b) =
     fun process_nt ~1 result = result
       | process_nt nt result =
           let
-            val nt_prods = Library.foldl (uncurry (union (op =)))
-              ([], map snd (snd (Vector.sub (prods2, nt))));
+            val nt_prods = fold (union (op =) o snd) (snd (Vector.sub (prods2, nt))) [];
             val lhs_tag = convert_tag nt;
 
             (*convert tags in rhs*)
@@ -828,7 +829,7 @@ fun produce ctxt warned prods tags chains stateset i indata prev_token =
       end
   | s =>
       (case indata of
-        [] => Array.sub (stateset, i)
+        [] => s
       | c :: cs =>
           let
             val (si, sii) = PROCESSS ctxt warned prods chains stateset i c s;
