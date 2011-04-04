@@ -552,15 +552,14 @@ fun merge_gram (gram_a, gram_b) =
 
     val ((nt_count1', tags1'), tag_table) =
       let
-        val tag_list = Symtab.dest tags2;
-
         val table = Array.array (nt_count2, ~1);
 
+        fun the_nt tag =
+          the (Symtab.get_first (fn (n, t) => if t = tag then SOME n else NONE) tags2);
         fun store_tag nt_count tags ~1 = (nt_count, tags)
           | store_tag nt_count tags tag =
               let
-                val (nt_count', tags', tag') =
-                  get_tag nt_count tags (fst (the (find_first (fn (n, t) => t = tag) tag_list)));
+                val (nt_count', tags', tag') = get_tag nt_count tags (the_nt tag);
                 val _ = Array.update (table, tag, tag');
               in store_tag nt_count' tags' (tag - 1) end;
       in (store_tag nt_count1 tags1 (nt_count2 - 1), table) end;
@@ -714,11 +713,9 @@ fun movedot_nonterm tt (A, j, ts, Nonterminal _ :: sa, id, i) =
   (A, j, ts @ tt, sa, id, i);
 
 fun movedot_lambda [] _ = []
-  | movedot_lambda ((t, ki) :: ts) (B, j, tss, Nonterminal (A, k) :: sa, id, i) =
-      if k <= ki then
-        (B, j, tss @ t, sa, id, i) ::
-          movedot_lambda ts (B, j, tss, Nonterminal (A, k) :: sa, id, i)
-      else movedot_lambda ts (B, j, tss, Nonterminal (A, k) :: sa, id, i);
+  | movedot_lambda ((t, ki) :: ts) (state as (B, j, tss, Nonterminal (A, k) :: sa, id, i)) =
+      if k <= ki then (B, j, tss @ t, sa, id, i) :: movedot_lambda ts state
+      else movedot_lambda ts state;
 
 
 (*trigger value for warnings*)
