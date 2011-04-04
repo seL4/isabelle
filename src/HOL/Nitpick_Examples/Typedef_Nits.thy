@@ -12,7 +12,7 @@ imports Complex_Main
 begin
 
 nitpick_params [verbose, card = 1\<midarrow>4, sat_solver = MiniSat_JNI, max_threads = 1,
-                timeout = 60]
+                timeout = 240]
 
 typedef three = "{0\<Colon>nat, 1, 2}"
 by blast
@@ -159,7 +159,7 @@ nitpick [expect = none]
 by (rule Rep_Nat_inverse)
 
 lemma "0 \<equiv> Abs_Integ (intrel `` {(0, 0)})"
-nitpick [card = 1, unary_ints, max_potential = 0, timeout = 240, expect = none]
+nitpick [card = 1, unary_ints, max_potential = 0, expect = none]
 by (rule Zero_int_def_raw)
 
 lemma "Abs_list (Rep_list a) = a"

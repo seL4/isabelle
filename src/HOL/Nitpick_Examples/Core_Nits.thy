@@ -12,7 +12,7 @@ imports Main
 begin
 
 nitpick_params [verbose, card = 1\<midarrow>6, unary_ints, max_potential = 0,
-                sat_solver = MiniSat_JNI, max_threads = 1, timeout = 60]
+                sat_solver = MiniSat_JNI, max_threads = 1, timeout = 240]
 
 subsection {* Curry in a Hurry *}
 

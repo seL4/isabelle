@@ -12,7 +12,7 @@ imports Main
 begin
 
 nitpick_params [verbose, card = 4, sat_solver = MiniSat_JNI, max_threads = 1,
-                timeout = 60]
+                timeout = 240]
 
 fun f1 :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat" where
 "f1 a b c d e = a + b + c + d + e"
