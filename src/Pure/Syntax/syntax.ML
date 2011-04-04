@@ -562,7 +562,7 @@ fun remove_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
     Syntax
     ({input = input',
       lexicon = if changed then Scan.make_lexicon (Syn_Ext.delims_of input') else lexicon,
-      gram = if changed then Parser.make_gram input' else gram,
+      gram = if changed then Parser.extend_gram input' Parser.empty_gram else gram,
       consts = consts,
       prmodes = prmodes,
       parse_ast_trtab = remove_trtab (if_inout parse_ast_translation) parse_ast_trtab,

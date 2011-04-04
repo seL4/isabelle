@@ -9,7 +9,6 @@ sig
   type gram
   val empty_gram: gram
   val extend_gram: Syn_Ext.xprod list -> gram -> gram
-  val make_gram: Syn_Ext.xprod list -> gram
   val merge_gram: gram * gram -> gram
   val pretty_gram: gram -> Pretty.T list
   datatype parsetree =
@@ -125,8 +124,8 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
         (*list optional terminal and all nonterminals on which the lookahead
           of a production depends*)
         fun lookahead_dependency _ [] nts = (NONE, nts)
-          | lookahead_dependency _ ((Terminal tk) :: _) nts = (SOME tk, nts)
-          | lookahead_dependency lambdas ((Nonterminal (nt, _)) :: symbs) nts =
+          | lookahead_dependency _ (Terminal tk :: _) nts = (SOME tk, nts)
+          | lookahead_dependency lambdas (Nonterminal (nt, _) :: symbs) nts =
               if member (op =) lambdas nt then
                 lookahead_dependency lambdas symbs (nt :: nts)
               else (NONE, nt :: nts);
@@ -140,7 +139,7 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
         val (added_starts', lambdas') =
           let
             (*propagate added lambda NT*)
-            fun propagate_lambda [] added_starts lambdas= (added_starts, lambdas)
+            fun propagate_lambda [] added_starts lambdas = (added_starts, lambdas)
               | propagate_lambda (l :: ls) added_starts lambdas =
                   let
                     (*get lookahead for lambda NT*)
@@ -256,10 +255,10 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
               (*add lhs NT to list of dependent NTs in lookahead*)
               fun add_nts [] = ()
                 | add_nts (nt :: nts) =
-                  let val ((old_nts, old_tks), ps) = Array.sub (prods, nt) in
-                    if member (op =) old_nts lhs then ()
-                    else Array.update (prods, nt, ((lhs :: old_nts, old_tks), ps))
-                  end;
+                    let val ((old_nts, old_tks), ps) = Array.sub (prods, nt) in
+                      if member (op =) old_nts lhs then ()
+                      else Array.update (prods, nt, ((lhs :: old_nts, old_tks), ps))
+                    end;
 
               (*add new start tokens to chained NTs' lookahead list;
                 also store new production for lhs NT*)
@@ -375,17 +374,18 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
                             (*associate productions with new lookahead tokens*)
                             val (tk_prods', nt_prods') = update_prods tk_prods ([], nt_prods);
 
-                            val nt_prods' =
-                              nt_prods'
-                              |> (key = SOME unknown_start) ? AList.update (op =) (key, tk_prods');
+                            val nt_prods'' =
+                              if key = SOME unknown_start then
+                                AList.update (op =) (key, tk_prods') nt_prods'
+                              else nt_prods';
 
                             val added_tks = subtract Lexicon.matching_tokens old_tks new_tks;
                           in
                             if null added_tks then
-                              (Array.update (prods, nt, (lookahead, nt_prods'));
+                              (Array.update (prods, nt, (lookahead, nt_prods''));
                                 process_nts nts added)
                             else
-                              (Array.update (prods, nt, ((old_nts, added_tks @ old_tks), nt_prods'));
+                              (Array.update (prods, nt, ((old_nts, added_tks @ old_tks), nt_prods''));
                                 process_nts nts ((nt, added_tks) :: added))
                           end;
 
@@ -429,6 +429,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
   in maps pretty_nt (sort_wrt fst (Symtab.dest tags)) end;
 
 
+
 (** Operations on gramars **)
 
 val empty_gram =
@@ -465,10 +466,10 @@ fun extend_gram [] gram = gram
           delimiters and predefined terms are stored as terminals,
           nonterminals are converted to integer tags*)
         fun symb_of [] nt_count tags result = (nt_count, tags, rev result)
-          | symb_of ((Syn_Ext.Delim s) :: ss) nt_count tags result =
+          | symb_of (Syn_Ext.Delim s :: ss) nt_count tags result =
               symb_of ss nt_count tags
                 (Terminal (Lexicon.Token (Lexicon.Literal, s, Position.no_range)) :: result)
-          | symb_of ((Syn_Ext.Argument (s, p)) :: ss) nt_count tags result =
+          | symb_of (Syn_Ext.Argument (s, p) :: ss) nt_count tags result =
               let
                 val (nt_count', tags', new_symb) =
                   (case Lexicon.predef_term s of
@@ -482,7 +483,7 @@ fun extend_gram [] gram = gram
         (*Convert list of productions by invoking symb_of for each of them*)
         fun prod_of [] nt_count prod_count tags result =
               (nt_count, prod_count, tags, result)
-          | prod_of ((Syn_Ext.XProd (lhs, xsymbs, const, pri)) :: ps)
+          | prod_of (Syn_Ext.XProd (lhs, xsymbs, const, pri) :: ps)
                 nt_count prod_count tags result =
               let
                 val (nt_count', tags', lhs_tag) = get_tag nt_count tags lhs;
@@ -521,8 +522,6 @@ fun extend_gram [] gram = gram
           lambdas = lambdas',
           prods = Array.vector prods'}
       end;
-
-fun make_gram xprods = extend_gram xprods empty_gram;
 
 
 (*Merge two grammars*)
@@ -627,6 +626,7 @@ fun merge_gram (gram_a, gram_b) =
   end;
 
 
+
 (** Parser **)
 
 datatype parsetree =
@@ -647,11 +647,11 @@ type state =
 
 
 (*Get all rhss with precedence >= min_prec*)
-fun get_RHS min_prec = filter (fn (_, _, prec:int) => prec >= min_prec);
+fun get_RHS min_prec = filter (fn (_, _, prec: int) => prec >= min_prec);
 
 (*Get all rhss with precedence >= min_prec and < max_prec*)
 fun get_RHS' min_prec max_prec =
-  filter (fn (_, _, prec:int) => prec >= min_prec andalso prec < max_prec);
+  filter (fn (_, _, prec: int) => prec >= min_prec andalso prec < max_prec);
 
 (*Make states using a list of rhss*)
 fun mk_states i min_prec lhs_ID rhss =
@@ -660,7 +660,7 @@ fun mk_states i min_prec lhs_ID rhss =
 
 (*Add parse tree to list and eliminate duplicates
   saving the maximum precedence*)
-fun conc (t: parsetree list, prec:int) [] = (NONE, [(t, prec)])
+fun conc (t: parsetree list, prec: int) [] = (NONE, [(t, prec)])
   | conc (t, prec) ((t', prec') :: ts) =
       if t = t' then
         (SOME prec',
@@ -741,7 +741,7 @@ fun prods_for prods chains include_none tk nts =
     fun get_prods [] result = result
       | get_prods (nt :: nts) result =
           let val nt_prods = snd (Vector.sub (prods, nt));
-          in get_prods nts ((token_assoc (nt_prods, tk)) @ result) end;
+          in get_prods nts (token_assoc (nt_prods, tk) @ result) end;
   in get_prods (connected_with chains nts nts) [] end;
 
 
@@ -763,22 +763,18 @@ fun PROCESSS ctxt warned prods chains Estate i c states =
                       else (*wanted precedence hasn't been parsed yet*)
                         let
                           val tk_prods = all_prods_for nt;
-
-                          val States' = mk_states i min_prec nt
-                                          (get_RHS' min_prec used_prec tk_prods);
-                        in (update_prec (nt, min_prec) used,
-                            movedot_lambda S l @ States')
-                        end
-
+                          val States' =
+                            mk_states i min_prec nt (get_RHS' min_prec used_prec tk_prods);
+                        in (update_prec (nt, min_prec) used, movedot_lambda S l @ States') end
                   | NONE => (*nonterminal is parsed for the first time*)
                       let
                         val tk_prods = all_prods_for nt;
                         val States' = mk_states i min_prec nt (get_RHS min_prec tk_prods);
                       in ((nt, (min_prec, [])) :: used, States') end);
 
-                val dummy =
+                val _ =
                   if not (! warned) andalso
-                     length (new_states @ States) > Config.get ctxt branching_level then
+                     length new_states + length States > Config.get ctxt branching_level then
                     (Context_Position.if_visible ctxt warning
                       "Currently parsed expression could be extremely ambiguous";
                      warned := true)
@@ -832,16 +828,16 @@ fun produce ctxt warned prods tags chains stateset i indata prev_token =
       end
   | s =>
       (case indata of
-         [] => Array.sub (stateset, i)
-       | c :: cs =>
-         let val (si, sii) = PROCESSS ctxt warned prods chains stateset i c s;
-         in Array.update (stateset, i, si);
-            Array.update (stateset, i + 1, sii);
-            produce ctxt warned prods tags chains stateset (i + 1) cs c
-         end));
+        [] => Array.sub (stateset, i)
+      | c :: cs =>
+          let
+            val (si, sii) = PROCESSS ctxt warned prods chains stateset i c s;
+            val _ = Array.update (stateset, i, si);
+            val _ = Array.update (stateset, i + 1, sii);
+          in produce ctxt warned prods tags chains stateset (i + 1) cs c end));
 
 
-fun get_trees l = map_filter (fn (_, _, [pt], _, _, _) => SOME pt | _ => NONE) l;
+fun get_trees states = map_filter (fn (_, _, [pt], _, _, _) => SOME pt | _ => NONE) states;
 
 fun earley ctxt prods tags chains startsymbol indata =
   let
