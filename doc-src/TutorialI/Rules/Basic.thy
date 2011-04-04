@@ -52,14 +52,14 @@ substitution
 
 @{thm[display] ssubst}
 \rulename{ssubst}
-*};
+*}
 
 lemma "\<lbrakk> x = f x; P(f x) \<rbrakk> \<Longrightarrow> P x"
 by (erule ssubst)
 
 text {*
 also provable by simp (re-orients)
-*};
+*}
 
 text {*
 the subst method
@@ -69,17 +69,17 @@ the subst method
 
 this would fail:
 apply (simp add: mult_commute) 
-*};
+*}
 
 
 lemma "\<lbrakk>P x y z; Suc x < y\<rbrakk> \<Longrightarrow> f z = x*y"
 txt{*
 @{subgoals[display,indent=0,margin=65]}
-*};
+*}
 apply (subst mult_commute) 
 txt{*
 @{subgoals[display,indent=0,margin=65]}
-*};
+*}
 oops
 
 (*exercise involving THEN*)
@@ -143,7 +143,7 @@ negation
 
 @{thm[display] contrapos_nn}
 \rulename{contrapos_nn}
-*};
+*}
 
 
 lemma "\<lbrakk>\<not>(P\<longrightarrow>Q); \<not>(R\<longrightarrow>Q)\<rbrakk> \<Longrightarrow> R"
@@ -156,7 +156,7 @@ by (erule notE)
 text {*
 @{thm[display] disjCI}
 \rulename{disjCI}
-*};
+*}
 
 lemma "(P \<or> Q) \<and> R \<Longrightarrow> P \<or> Q \<and> R"
 apply (intro disjCI conjI)
@@ -226,7 +226,7 @@ text {*
 
 @{thm[display] spec}
 \rulename{spec}
-*};
+*}
 
 lemma "\<forall>x. P x \<longrightarrow> P x"
 apply (rule allI)
@@ -267,7 +267,7 @@ text {*
 
 @{thm[display]"exE"}
 \rulename{exE}
-*};
+*}
 
 
 text{*
@@ -285,7 +285,7 @@ by (drule mp)
 text {*
 @{thm[display]"dvd_def"}
 \rulename{dvd_def}
-*};
+*}
 
 lemma mult_dvd_mono: "\<lbrakk>i dvd m; j dvd n\<rbrakk> \<Longrightarrow> i*j dvd (m*n :: nat)"
 apply (simp add: dvd_def)
@@ -344,7 +344,7 @@ apply (simp add: Least_def)
  
 txt{*
 @{subgoals[display,indent=0,margin=65]}
-*};
+*}
    
 apply (rule the_equality)
 
@@ -352,7 +352,7 @@ txt{*
 @{subgoals[display,indent=0,margin=65]}
 
 first subgoal is existence; second is uniqueness
-*};
+*}
 by (auto intro: order_antisym)
 
 
@@ -364,7 +364,7 @@ txt{*
 @{subgoals[display,indent=0,margin=65]}
 
 state after intro rules
-*};
+*}
 apply (drule spec, erule exE)
 
 txt{*
@@ -372,18 +372,18 @@ txt{*
 
 applying @text{someI} automatically instantiates
 @{term f} to @{term "\<lambda>x. SOME y. P x y"}
-*};
+*}
 
 by (rule someI)
 
 (*both can be done by blast, which however hasn't been introduced yet*)
-lemma "[| P (k::nat);  \<forall>x. P x \<longrightarrow> k \<le> x |] ==> (LEAST x. P(x)) = k";
+lemma "[| P (k::nat);  \<forall>x. P x \<longrightarrow> k \<le> x |] ==> (LEAST x. P(x)) = k"
 apply (simp add: Least_def LeastM_def)
-by (blast intro: some_equality order_antisym);
+by (blast intro: some_equality order_antisym)
 
 theorem axiom_of_choice': "(\<forall>x. \<exists>y. P x y) \<Longrightarrow> \<exists>f. \<forall>x. P x (f x)"
 apply (rule exI [of _  "\<lambda>x. SOME y. P x y"])
-by (blast intro: someI);
+by (blast intro: someI)
 
 text{*end of Epsilon section*}
 
