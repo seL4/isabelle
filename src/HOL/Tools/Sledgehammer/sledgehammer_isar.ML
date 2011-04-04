@@ -190,9 +190,6 @@ fun default_raw_params ctxt =
                          end)]
   end
 
-val smart_full_type_sys = Tags true
-val smart_partial_type_sys = Const_Args
-
 val infinity_time_in_secs = 60 * 60 * 24 * 365
 val the_timeout = the_default (Time.fromSeconds infinity_time_in_secs)
 
@@ -245,10 +242,14 @@ fun extract_params auto default_params override_params =
         ("tags", full_types) => Tags full_types
       | ("preds", full_types) => Preds full_types
       | ("const_args", false) => Const_Args
+      | ("mangled", false) => if monomorphize then Mangled else Const_Args
       | ("none", false) => No_Types
       | (type_sys, full_types) =>
-        if member (op =) ["const_args", "none", "smart"] type_sys then
-          if full_types then smart_full_type_sys else smart_partial_type_sys
+        if member (op =) ["const_args", "mangled", "none", "smart"]
+                  type_sys then
+          if full_types then Tags true
+          else if monomorphize then Mangled
+          else Const_Args
         else
           error ("Unknown type system: " ^ quote type_sys ^ ".")
     val explicit_apply = lookup_bool "explicit_apply"

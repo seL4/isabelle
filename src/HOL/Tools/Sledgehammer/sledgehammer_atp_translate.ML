@@ -8,6 +8,7 @@ Translation of HOL to FOL for Sledgehammer.
 
 signature SLEDGEHAMMER_ATP_TRANSLATE =
 sig
+  type 'a fo_term = 'a ATP_Problem.fo_term
   type 'a problem = 'a ATP_Problem.problem
   type translated_formula
 
@@ -15,6 +16,7 @@ sig
     Tags of bool |
     Preds of bool |
     Const_Args |
+    Mangled |
     No_Types
 
   val precise_overloaded_args : bool Unsynchronized.ref
@@ -25,6 +27,7 @@ sig
   val translate_atp_fact :
     Proof.context -> bool -> (string * 'a) * thm
     -> translated_formula option * ((string * 'a) * thm)
+  val unmangled_const : string -> string * string fo_term list
   val prepare_atp_problem :
     Proof.context -> bool -> bool -> type_system -> bool -> term list -> term
     -> (translated_formula option * ((string * 'a) * thm)) list
@@ -63,6 +66,7 @@ datatype type_system =
   Tags of bool |
   Preds of bool |
   Const_Args |
+  Mangled |
   No_Types
 
 fun types_dangerous_types (Tags _) = true
@@ -84,10 +88,22 @@ fun needs_type_args thy type_sys s =
     Tags full_types => not full_types andalso is_overloaded thy s
   | Preds _ => is_overloaded thy s (* FIXME: could be more precise *)
   | Const_Args => is_overloaded thy s
+  | Mangled => true
   | No_Types => false
 
+datatype type_arg_policy = No_Type_Args | Explicit_Type_Args | Mangled_Types
+
+fun type_arg_policy thy type_sys s =
+  if needs_type_args thy type_sys s then
+    if type_sys = Mangled then Mangled_Types else Explicit_Type_Args
+  else
+    No_Type_Args
+
 fun num_atp_type_args thy type_sys s =
-  if needs_type_args thy type_sys s then num_type_args thy s else 0
+  if type_arg_policy thy type_sys s = Explicit_Type_Args then
+    num_type_args thy s
+  else
+    0
 
 fun atp_type_literals_for_types type_sys Ts =
   if type_sys = No_Types then [] else type_literals_for_types Ts
@@ -389,6 +405,41 @@ val fname_table =
    ("c_implies", (2, ("c_fimplies", @{const_name Metis.fimplies}))),
    ("equal", (2, ("c_fequal", @{const_name Metis.fequal})))]
 
+(* We are crossing our fingers that it doesn't clash with anything else. *)
+val mangled_type_sep = "\000"
+
+fun mangled_combtyp f (CombTFree name) = f name
+  | mangled_combtyp f (CombType (name, tys)) =
+    "(" ^ commas (map (mangled_combtyp f) tys) ^ ")" ^ f name
+  | mangled_combtyp _ _ = raise Fail "impossible schematic type variable"
+
+fun mangled_type_suffix f g tys =
+  fold_rev (curry (op ^) o g o prefix mangled_type_sep o mangled_combtyp f)
+           tys ""
+
+val parse_mangled_ident =
+  Scan.many1 (not o member (op =) ["(", ")", ","]) >> implode
+
+fun parse_mangled_type x =
+  ($$ "(" |-- Scan.optional parse_mangled_types [] --| $$ ")"
+      -- parse_mangled_ident >> (ATerm o swap)
+   || parse_mangled_ident >> (ATerm o rpair [])) x
+and parse_mangled_types x =
+  (parse_mangled_type ::: Scan.repeat ($$ "," |-- parse_mangled_type)) x
+
+fun unmangled_type s =
+  s |> suffix ")" |> raw_explode
+    |> Scan.finite Symbol.stopper
+           (Scan.error (!! (fn _ => raise Fail ("unrecognized mangled type " ^
+                                                quote s)) parse_mangled_type))
+    |> fst
+    |> tap (fn u => PolyML.makestring u |> warning) (*###*)
+
+fun unmangled_const s =
+  let val ss = space_explode mangled_type_sep s in
+    (hd ss, map unmangled_type (tl ss))
+  end
+
 fun fo_term_for_combterm ctxt type_sys =
   let
     val thy = ProofContext.theory_of ctxt
@@ -411,11 +462,14 @@ fun fo_term_for_combterm ctxt type_sys =
                case strip_prefix_and_unascii const_prefix s of
                  NONE => (name, ty_args)
                | SOME s'' =>
-                 let
-                   val s'' = invert_const s''
-                   val ty_args =
-                     if needs_type_args thy type_sys s'' then ty_args else []
-                  in (name, ty_args) end)
+                 let val s'' = invert_const s'' in
+                   case type_arg_policy thy type_sys s'' of
+                     No_Type_Args => (name, [])
+                   | Explicit_Type_Args => (name, ty_args)
+                   | Mangled_Types =>
+                     ((s ^ mangled_type_suffix fst ascii_of ty_args,
+                       s' ^ mangled_type_suffix snd I ty_args), [])
+                 end)
           | CombVar (name, _) => (name, [])
           | CombApp _ => raise Fail "impossible \"CombApp\""
         val t =
@@ -529,7 +583,9 @@ fun min_arity_of thy type_sys NONE s =
         String.isPrefix class_prefix s then
        16383 (* large number *)
      else case strip_prefix_and_unascii const_prefix s of
-       SOME s' => num_atp_type_args thy type_sys (invert_const s')
+       SOME s' =>
+       s' |> unmangled_const |> fst |> invert_const
+          |> num_atp_type_args thy type_sys
      | NONE => 0)
   | min_arity_of _ _ (SOME the_const_tab) s =
     case Symtab.lookup the_const_tab s of

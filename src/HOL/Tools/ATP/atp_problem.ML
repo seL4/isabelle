@@ -123,6 +123,16 @@ fun pool_fold f xs z = pair z #> fold_rev (fn x => uncurry (f x)) xs
 fun pool_map f xs =
   pool_fold (fn x => fn ys => fn pool => f x pool |>> (fn y => y :: ys)) xs []
 
+val no_qualifiers =
+  let
+    fun skip [] = []
+      | skip (#"." :: cs) = skip cs
+      | skip (c :: cs) = if Char.isAlphaNum c then skip cs else c :: keep cs
+    and keep [] = []
+      | keep (#"." :: cs) = skip cs
+      | keep (c :: cs) = c :: keep cs
+  in String.explode #> rev #> keep #> rev #> String.implode end
+
 (* "op" is also reserved, to avoid the unreadable "op_1", "op_2", etc., in the
    problem files. "equal" is reserved by some ATPs. "eq" is reserved to ensure
    that "HOL.eq" is correctly mapped to equality. *)
@@ -132,7 +142,7 @@ fun readable_name full_name s =
     s
   else
     let
-      val s = s |> Long_Name.base_name
+      val s = s |> no_qualifiers
                 |> Name.desymbolize (Char.isUpper (String.sub (full_name, 0)))
     in if member (op =) reserved_nice_names s then full_name else s end
 

@@ -345,23 +345,23 @@ fun raw_term_from_pred thy type_sys tfrees =
           end
         | SOME b =>
           let
-            val c = invert_const b
+            val (c, mangled_us) = b |> unmangled_const |>> invert_const
             val num_ty_args = num_atp_type_args thy type_sys c
-            val (type_us, term_us) = chop num_ty_args us
+            val (type_us, term_us) = chop num_ty_args us |>> append mangled_us
             (* Extra args from "hAPP" come after any arguments given directly to
                the constant. *)
             val term_ts = map (aux NONE []) term_us
             val extra_ts = map (aux NONE []) extra_us
-            val t =
-              Const (c, case opt_T of
-                          SOME T => map fastype_of term_ts ---> T
-                        | NONE =>
-                          if num_type_args thy c = length type_us then
-                            Sign.const_instance thy (c,
-                                map (type_from_fo_term tfrees) type_us)
-                          else
-                            HOLogic.typeT)
-          in list_comb (t, term_ts @ extra_ts) end
+            val T =
+              case opt_T of
+                SOME T => map fastype_of term_ts ---> T
+              | NONE =>
+                if num_type_args thy c = length type_us then
+                  Sign.const_instance thy (c,
+                      map (type_from_fo_term tfrees) type_us)
+                else
+                  HOLogic.typeT
+          in list_comb (Const (c, T), term_ts @ extra_ts) end
         | NONE => (* a free or schematic variable *)
           let
             val ts = map (aux NONE []) (us @ extra_us)
@@ -399,7 +399,8 @@ fun uncombine_term (t1 $ t2) = betapply (pairself uncombine_term (t1, t2))
   | uncombine_term (Abs (s, T, t')) = Abs (s, T, uncombine_term t')
   | uncombine_term (t as Const (x as (s, _))) =
     (case AList.lookup (op =) combinator_table s of
-       SOME thm => thm |> prop_of |> specialize_type @{theory} x |> Logic.dest_equals |> snd
+       SOME thm => thm |> prop_of |> specialize_type @{theory} x
+                       |> Logic.dest_equals |> snd
      | NONE => t)
   | uncombine_term t = t
 
