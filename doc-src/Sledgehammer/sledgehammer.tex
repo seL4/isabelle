@@ -476,7 +476,7 @@ as an ATP'' runs on Geoff Sutcliffe's Miami servers.
 \end{enum}
 
 By default, Sledgehammer will run E, SPASS, Vampire, SInE-E, and Z3 (or whatever
-the SMT module's \emph{smt\_solver} configuration option is set to) in
+the SMT module's \textit{smt\_solver} configuration option is set to) in
 parallel---either locally or remotely, depending on the number of processor
 cores available. For historical reasons, the default value of this option can be
 overridden using the option ``Sledgehammer: Provers'' from the ``Isabelle'' menu
@@ -536,6 +536,55 @@ this option can prevent the discovery of type-incorrect proofs, but it also
 tends to slow down the ATPs significantly. For historical reasons, the default
 value of this option can be overridden using the option ``Sledgehammer: Full
 Types'' from the ``Isabelle'' menu in Proof General.
+
+\opfalse{full\_types}{partial\_types}
+Specifies whether full-type information is encoded in ATP problems. Enabling
+this option can prevent the discovery of type-incorrect proofs, but it also
+tends to slow down the ATPs significantly. For historical reasons, the default
+value of this option can be overridden using the option ``Sledgehammer: Full
+Types'' from the ``Isabelle'' menu in Proof General.
+
+\opfalse{monomorphize}{dont\_monomorphize}
+Specifies whether the relevant facts should be monomorphized---i.e., whether
+their type variables should be instantiated with relevant ground types.
+Monomorphization is always performed for SMT solvers, irrespective of this
+option. Monomorphization can simplify reasoning but also leads to larger fact
+bases, which can slow down the ATPs.
+
+\opdefault{monomorphize\_limit}{int}{\upshape 4}
+Specifies the maximum number of iterations for the monomorphization fixpoint
+construction. The higher this limit is, the more monomorphic instances are
+potentially generated.
+
+\opdefault{type\_sys}{string}{smart}
+Specifies the type system to use in ATP problems. The option can take the
+following values:
+
+\begin{enum}
+\item[$\bullet$] \textbf{\textit{tags}:} Each term (and subterm) is tagged with
+its type.
+
+% NOT YET IMPLEMENTED:
+%\item[$\bullet$] \textbf{\textit{preds}:} Types are represented by predicates.
+
+\item[$\bullet$] \textbf{\textit{mangled}:} Types are mangled in constant names.
+This value is available only if \textit{monomorphize} is enabled and
+\textit{full\_types} is enabled.
+
+\item[$\bullet$] \textbf{\textit{const\_args}:} Constants are annotated with
+their type parameters, which are passed as extra arguments. This value is not
+available if \textit{full\_types} is enabled.
+
+\item[$\bullet$] \textbf{\textit{none}:} No type information is supplied to the
+ATP.
+
+\item[$\bullet$] \textbf{\textit{smart}:} This is the same as
+\textit{tags} if \textit{full\_types} is enabled; otherwise, this is the
+same as \textit{mangled} if \textit{monomorphize} is enabled and
+\textit{const\_args} otherwise.
+\end{enum}
+
+For SMT solvers, the type system is always \textit{mangled}.
 \end{enum}
 
 \subsection{Relevance Filter}
@@ -555,18 +604,6 @@ Specifies the maximum number of facts that may be returned by the relevance
 filter. If the option is set to \textit{smart}, it is set to a value that was
 empirically found to be appropriate for the prover. A typical value would be
 300.
-
-\opfalse{monomorphize}{dont\_monomorphize}
-Specifies whether the relevant facts should be monomorphized---i.e., whether
-their type variables should be instantiated with relevant ground types.
-Monomorphization is always performed for SMT solvers, irrespective of this
-option. Monomorphization can simplify reasoning but also leads to larger fact
-bases, which can slow down the ATPs.
-
-\opdefault{monomorphize\_limit}{int}{\upshape 4}
-Specifies the maximum number of iterations for the monomorphization fixpoint
-construction. The higher this limit is, the more monomorphic instances are
-potentially generated.
 
 \end{enum}
 
