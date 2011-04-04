@@ -725,9 +725,6 @@ fun read_asts ctxt type_ctxt (Syntax (tabs, _)) raw root (syms, pos) =
     val len = length pts;
 
     val limit = Config.get ctxt ambiguity_limit;
-    fun show_pt pt =
-      Pretty.string_of
-        (Ast.pretty_ast (#2 (Syn_Trans.parsetree_to_ast ctxt type_ctxt false (K NONE) pt)));
     val _ =
       if len <= Config.get ctxt ambiguity_level then ()
       else if not (Config.get ctxt ambiguity_enabled) then error (ambiguity_msg pos)
@@ -736,7 +733,7 @@ fun read_asts ctxt type_ctxt (Syntax (tabs, _)) raw root (syms, pos) =
           (("Ambiguous input" ^ Position.str_of pos ^
             "\nproduces " ^ string_of_int len ^ " parse trees" ^
             (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
-            map show_pt (take limit pts))));
+            map (Pretty.string_of o Parser.pretty_parsetree) (take limit pts))));
 
     val constrain_pos = not raw andalso Config.get ctxt positions;
   in

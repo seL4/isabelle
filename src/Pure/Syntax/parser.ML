@@ -15,6 +15,7 @@ sig
   datatype parsetree =
     Node of string * parsetree list |
     Tip of Lexicon.token
+  val pretty_parsetree: parsetree -> Pretty.T
   val parse: Proof.context -> gram -> string -> Lexicon.token list -> parsetree list
   val guess_infix_lr: gram -> string -> (string * bool * bool * int) option
   val branching_level: int Config.T
@@ -631,6 +632,11 @@ fun merge_gram (gram_a, gram_b) =
 datatype parsetree =
   Node of string * parsetree list |
   Tip of Lexicon.token;
+
+fun pretty_parsetree (Node (c, pts)) =
+      Pretty.enclose "(" ")" (Pretty.breaks
+        (Pretty.quote (Pretty.str c) :: map pretty_parsetree pts))
+  | pretty_parsetree (Tip tok) = Pretty.str (Lexicon.str_of_token tok);
 
 type state =
   nt_tag * int *    (*identification and production precedence*)
