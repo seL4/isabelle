@@ -21,9 +21,6 @@ struct
 val (finite_functions, setup_finite_functions) =
   Attrib.config_bool "quickcheck_finite_functions" (K true)
 
-
-fun mk_undefined T = Const(@{const_name undefined}, T)
-
 (* narrowing specific names and types *)
 
 exception FUNCTION_TYPE;
@@ -57,12 +54,7 @@ fun mk_sum (t, u) =
 fun mk_equations descr vs tycos narrowings (Ts, Us) =
   let
     fun mk_call T =
-      let
-        val narrowing =
-          Const (@{const_name "Quickcheck_Narrowing.narrowing_class.narrowing"}, narrowingT T)
-      in
-        (T, narrowing)
-      end
+      (T, Const (@{const_name "Quickcheck_Narrowing.narrowing_class.narrowing"}, narrowingT T))
     fun mk_aux_call fTs (k, _) (tyco, Ts) =
       let
         val T = Type (tyco, Ts)
@@ -86,8 +78,7 @@ fun mk_equations descr vs tycos narrowings (Ts, Us) =
   in
     eqs
   end
-
-
+  
 fun instantiate_narrowing_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
   let
     val _ = Datatype_Aux.message config "Creating narrowing generators ...";
@@ -95,22 +86,9 @@ fun instantiate_narrowing_datatype config descr vs tycos prfx (names, auxnames) 
   in
     thy
     |> Class.instantiation (tycos, vs, @{sort narrowing})
-    |> (fold_map (fn (name, T) => Local_Theory.define
-          ((Binding.conceal (Binding.name name), NoSyn),
-            (apfst Binding.conceal Attrib.empty_binding, mk_undefined (narrowingT T)))
-        #> apfst fst) (narrowingsN ~~ (Ts @ Us))
-      #> (fn (narrowings, lthy) =>
-        let
-          val eqs_t = mk_equations descr vs tycos narrowings (Ts, Us)
-          val eqs = map (fn eq => Goal.prove lthy ["f", "i"] [] eq
-            (fn _ => Skip_Proof.cheat_tac (ProofContext.theory_of lthy))) eqs_t
-        in
-          fold (fn (name, eq) => Local_Theory.note
-          ((Binding.conceal (Binding.qualify true prfx
-             (Binding.qualify true name (Binding.name "simps"))),
-             Code.add_default_eqn_attrib :: map (Attrib.internal o K)
-               [Simplifier.simp_add, Nitpick_Simps.add]), [eq]) #> snd) (narrowingsN ~~ eqs) lthy
-        end))
+    |> Quickcheck_Common.define_functions
+      (fn narrowings => mk_equations descr vs tycos narrowings (Ts, Us), NONE)
+      prfx [] narrowingsN (map narrowingT (Ts @ Us))
     |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
   end;
 

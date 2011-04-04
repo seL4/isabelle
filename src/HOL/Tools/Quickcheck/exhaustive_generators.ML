@@ -23,10 +23,6 @@ end;
 structure Exhaustive_Generators : EXHAUSTIVE_GENERATORS =
 struct
 
-(* static options *)
-
-val define_foundationally = false
-
 (* dynamic options *)
 
 val (smart_quantifier, setup_smart_quantifier) =
@@ -71,8 +67,7 @@ fun mk_none_continuation (x, y) =
   let
     val (T as Type(@{type_name "option"}, [T'])) = fastype_of x
   in
-    Const (@{const_name "Quickcheck_Exhaustive.orelse"}, T --> T --> T)
-      $ x $ y
+    Const (@{const_name "Quickcheck_Exhaustive.orelse"}, T --> T --> T) $ x $ y
   end
 
 (** datatypes **)
@@ -157,11 +152,6 @@ fun termination_tac ctxt =
     (HOL_basic_ss addsimps [@{thm in_measure}, @{thm o_def}, @{thm snd_conv},
      @{thm nat_mono_iff}, less_int_pred] @ @{thms sum.cases}) 1))
 
-fun pat_completeness_auto ctxt =
-  Pat_Completeness.pat_completeness_tac ctxt 1
-  THEN auto_tac (clasimpset_of ctxt)    
-
-
 (* creating the instances *)
 
 fun instantiate_exhaustive_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
@@ -171,39 +161,9 @@ fun instantiate_exhaustive_datatype config descr vs tycos prfx (names, auxnames)
   in
     thy
     |> Class.instantiation (tycos, vs, @{sort exhaustive})
-    |> (if define_foundationally then
-      let
-        val exhaustives = map2 (fn name => fn T => Free (name, exhaustiveT T)) exhaustivesN (Ts @ Us)
-        val eqs = mk_equations descr vs tycos exhaustives (Ts, Us)
-      in
-        Function.add_function
-          (map (fn (name, T) =>
-              Syntax.no_syn (Binding.conceal (Binding.name name), SOME (exhaustiveT T)))
-                (exhaustivesN ~~ (Ts @ Us)))
-            (map (pair (apfst Binding.conceal Attrib.empty_binding)) eqs)
-          Function_Common.default_config pat_completeness_auto
-        #> snd
-        #> Local_Theory.restore
-        #> (fn lthy => Function.prove_termination NONE (termination_tac lthy) lthy)
-        #> snd
-      end
-    else
-      fold_map (fn (name, T) => Local_Theory.define
-          ((Binding.conceal (Binding.name name), NoSyn),
-            (apfst Binding.conceal Attrib.empty_binding, mk_undefined (exhaustiveT T)))
-        #> apfst fst) (exhaustivesN ~~ (Ts @ Us))
-      #> (fn (exhaustives, lthy) =>
-        let
-          val eqs_t = mk_equations descr vs tycos exhaustives (Ts, Us)
-          val eqs = map (fn eq => Goal.prove lthy ["f", "i"] [] eq
-            (fn _ => Skip_Proof.cheat_tac (ProofContext.theory_of lthy))) eqs_t
-        in
-          fold (fn (name, eq) => Local_Theory.note
-          ((Binding.conceal (Binding.qualify true prfx
-             (Binding.qualify true name (Binding.name "simps"))),
-             Code.add_default_eqn_attrib :: map (Attrib.internal o K)
-               [Simplifier.simp_add, Nitpick_Simps.add]), [eq]) #> snd) (exhaustivesN ~~ eqs) lthy
-        end))
+    |> Quickcheck_Common.define_functions
+        (fn exhaustives => mk_equations descr vs tycos exhaustives (Ts, Us), SOME termination_tac)
+        prfx ["f", "i"] exhaustivesN (map exhaustiveT (Ts @ Us))
     |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
   end handle FUNCTION_TYPE =>
     (Datatype_Aux.message config

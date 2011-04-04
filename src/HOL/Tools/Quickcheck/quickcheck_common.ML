@@ -7,6 +7,8 @@ Common functions for quickcheck's generators.
 signature QUICKCHECK_COMMON =
 sig
   val strip_imp : term -> (term list * term)
+  val define_functions : ((term list -> term list) * (Proof.context -> tactic) option)
+    -> string -> string list -> string list -> typ list -> Proof.context -> Proof.context 
   val perhaps_constrain: theory -> (typ * sort) list -> (string * sort) list
     -> (string * sort -> string * sort) option
   val ensure_sort_datatype:
@@ -21,10 +23,56 @@ end;
 structure Quickcheck_Common : QUICKCHECK_COMMON =
 struct
 
+(* static options *)
+
+val define_foundationally = false
+
 (* HOLogic's term functions *)
 
 fun strip_imp (Const(@{const_name HOL.implies},_) $ A $ B) = apfst (cons A) (strip_imp B)
   | strip_imp A = ([], A)
+
+fun mk_undefined T = Const(@{const_name undefined}, T)
+  
+(* defining functions *)
+
+fun pat_completeness_auto ctxt =
+  Pat_Completeness.pat_completeness_tac ctxt 1
+  THEN auto_tac (clasimpset_of ctxt)    
+
+fun define_functions (mk_equations, termination_tac) prfx argnames names Ts =
+  if define_foundationally andalso is_some termination_tac then
+    let
+      val eqs_t = mk_equations (map2 (fn name => fn T => Free (name, T)) names Ts)
+    in
+      Function.add_function
+        (map (fn (name, T) =>
+            Syntax.no_syn (Binding.conceal (Binding.name name), SOME T))
+              (names ~~ Ts))
+          (map (pair (apfst Binding.conceal Attrib.empty_binding)) eqs_t)
+        Function_Common.default_config pat_completeness_auto
+      #> snd
+      #> Local_Theory.restore
+      #> (fn lthy => Function.prove_termination NONE (the termination_tac lthy) lthy)
+      #> snd
+    end
+  else
+    fold_map (fn (name, T) => Local_Theory.define
+        ((Binding.conceal (Binding.name name), NoSyn),
+          (apfst Binding.conceal Attrib.empty_binding, mk_undefined T))
+      #> apfst fst) (names ~~ Ts)
+    #> (fn (consts, lthy) =>
+      let
+        val eqs_t = mk_equations consts
+        val eqs = map (fn eq => Goal.prove lthy argnames [] eq
+          (fn _ => Skip_Proof.cheat_tac (ProofContext.theory_of lthy))) eqs_t
+      in
+        fold (fn (name, eq) => Local_Theory.note
+        ((Binding.conceal (Binding.qualify true prfx
+           (Binding.qualify true name (Binding.name "simps"))),
+           Code.add_default_eqn_attrib :: map (Attrib.internal o K)
+             [Simplifier.simp_add, Nitpick_Simps.add]), [eq]) #> snd) (names ~~ eqs) lthy
+      end)
 
 (** ensuring sort constraints **)
 
