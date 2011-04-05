@@ -1,4 +1,4 @@
-(*  Title:      Pure/Isar/local_syntax.ML
+(*  Title:      Pure/Syntax/local_syntax.ML
     Author:     Makarius
 
 Local syntax depending on theory syntax.
