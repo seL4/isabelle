@@ -58,4 +58,7 @@ code_const explode
   (Haskell "_")
   (Scala "!(_.toList)")
 
+
+declare Quickcheck_Exhaustive.char.bounded_forall_char.simps [code del]
+
 end
