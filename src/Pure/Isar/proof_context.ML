@@ -67,7 +67,8 @@ sig
   val check_tfree: Proof.context -> string * sort -> string * sort
   val type_context: Proof.context -> Syntax.type_context
   val term_context: Proof.context -> Syntax.term_context
-  val decode_term: Proof.context -> Position.reports * term -> Position.reports * term
+  val decode_term: Proof.context ->
+    Position.reports * term Exn.result -> Position.reports * term Exn.result
   val standard_infer_types: Proof.context -> term list -> term list
   val read_term_pattern: Proof.context -> string -> term
   val read_term_schematic: Proof.context -> string -> term
@@ -784,8 +785,8 @@ fun parse_term T ctxt text =
           then default_root else c
       | _ => default_root);
 
-    fun check t = (Syntax.check_term ctxt (Type.constraint T' t); NONE)
-      handle ERROR msg => SOME msg;
+    fun check t = (Syntax.check_term ctxt (Type.constraint T' t); Exn.Result t)
+      handle exn as ERROR _ => Exn.Exn exn;
     val t =
       Syntax.standard_parse_term check ctxt (type_context ctxt) (term_context ctxt) (syn_of ctxt)
         root (syms, pos)

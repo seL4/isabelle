@@ -60,7 +60,7 @@ sig
   val applC_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val parsetree_to_ast: Proof.context -> type_context -> bool ->
     (string -> (Proof.context -> Ast.ast list -> Ast.ast) option) ->
-    Parser.parsetree -> Position.reports * Ast.ast
+    Parser.parsetree -> Position.reports * Ast.ast Exn.result
   val ast_to_term: Proof.context ->
     (string -> (Proof.context -> term list -> term) option) -> Ast.ast -> term
 end;
@@ -587,7 +587,7 @@ fun parsetree_to_ast ctxt (type_context: type_context) constrain_pos trf parsetr
       | ast_of (Parser.Node (a, pts)) = trans a (map ast_of pts)
       | ast_of (Parser.Tip tok) = Ast.Variable (Lexicon.str_of_token tok);
 
-    val ast = ast_of parsetree;
+    val ast = Exn.interruptible_capture ast_of parsetree;
   in (! reports, ast) end;
 
 
