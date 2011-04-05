@@ -48,7 +48,6 @@ sig
     (string * (term list -> term)) list *
     (string * (bool -> typ -> term list -> term)) list *
     (string * (Ast.ast list -> Ast.ast)) list
-  type type_context
 end;
 
 signature SYN_TRANS =
@@ -58,11 +57,6 @@ sig
   val prop_tr': term -> term
   val appl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val applC_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
-  val parsetree_to_ast: Proof.context -> type_context -> bool ->
-    (string -> (Proof.context -> Ast.ast list -> Ast.ast) option) ->
-    Parser.parsetree -> Position.reports * Ast.ast Exn.result
-  val ast_to_term: Proof.context ->
-    (string -> (Proof.context -> term list -> term) option) -> Ast.ast -> term
 end;
 
 structure Syn_Trans: SYN_TRANS =
@@ -546,68 +540,5 @@ val pure_trfunsT =
 
 fun struct_trfuns structs =
   ([], [("_struct", struct_tr structs)], [], [("_struct", struct_ast_tr' structs)]);
-
-
-
-(** parsetree_to_ast **)
-
-type type_context =
- {get_class: string -> string,
-  get_type: string -> string,
-  markup_class: string -> Markup.T list,
-  markup_type: string -> Markup.T list};
-
-fun parsetree_to_ast ctxt (type_context: type_context) constrain_pos trf parsetree =
-  let
-    val {get_class, get_type, markup_class, markup_type} = type_context;
-
-    val reports = Unsynchronized.ref ([]: Position.reports);
-    fun report pos = Position.reports reports [pos];
-
-    fun trans a args =
-      (case trf a of
-        NONE => Ast.mk_appl (Ast.Constant a) args
-      | SOME f => f ctxt args);
-
-    fun ast_of (Parser.Node ("_class_name", [Parser.Tip tok])) =
-          let
-            val c = get_class (Lexicon.str_of_token tok);
-            val _ = report (Lexicon.pos_of_token tok) markup_class c;
-          in Ast.Constant (Lexicon.mark_class c) end
-      | ast_of (Parser.Node ("_type_name", [Parser.Tip tok])) =
-          let
-            val c = get_type (Lexicon.str_of_token tok);
-            val _ = report (Lexicon.pos_of_token tok) markup_type c;
-          in Ast.Constant (Lexicon.mark_type c) end
-      | ast_of (Parser.Node ("_constrain_position", [pt as Parser.Tip tok])) =
-          if constrain_pos then
-            Ast.Appl [Ast.Constant "_constrain", ast_of pt,
-              Ast.Variable (Lexicon.encode_position (Lexicon.pos_of_token tok))]
-          else ast_of pt
-      | ast_of (Parser.Node (a, pts)) = trans a (map ast_of pts)
-      | ast_of (Parser.Tip tok) = Ast.Variable (Lexicon.str_of_token tok);
-
-    val ast = Exn.interruptible_capture ast_of parsetree;
-  in (! reports, ast) end;
-
-
-
-(** ast_to_term **)
-
-fun ast_to_term ctxt trf =
-  let
-    fun trans a args =
-      (case trf a of
-        NONE => Term.list_comb (Lexicon.const a, args)
-      | SOME f => f ctxt args);
-
-    fun term_of (Ast.Constant a) = trans a []
-      | term_of (Ast.Variable x) = Lexicon.read_var x
-      | term_of (Ast.Appl (Ast.Constant a :: (asts as _ :: _))) =
-          trans a (map term_of asts)
-      | term_of (Ast.Appl (ast :: (asts as _ :: _))) =
-          Term.list_comb (term_of ast, map term_of asts)
-      | term_of (ast as Ast.Appl _) = raise Ast.AST ("ast_to_term: malformed ast", [ast]);
-  in term_of end;
 
 end;

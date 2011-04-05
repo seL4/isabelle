@@ -662,7 +662,7 @@ fun decode_type thy t =
     fun get_sort env xi =
       the_default (Sign.defaultS thy) (AList.lookup (op =) env (xi: indexname));
   in
-    Syntax.typ_of_term (get_sort (Syntax.term_sorts t)) t
+    Standard_Syntax.typ_of_term (get_sort (Standard_Syntax.term_sorts t)) t
   end;
 
 

@@ -67,10 +67,10 @@ sig
   val check_tvar: Proof.context -> indexname * sort -> indexname * sort
   val check_tfree: Proof.context -> string * sort -> string * sort
   val get_sort: Proof.context -> (indexname * sort) list -> indexname -> sort
-  val type_context: Proof.context -> Syntax.type_context
-  val term_context: Proof.context -> Syntax.term_context
-  val decode_term: Proof.context ->
-    Position.reports * term Exn.result -> Position.reports * term Exn.result
+  type type_context
+  val type_context: Proof.context -> type_context
+  type term_context
+  val term_context: Proof.context -> term_context
   val standard_infer_types: Proof.context -> term list -> term list
   val read_term_pattern: Proof.context -> string -> term
   val read_term_schematic: Proof.context -> string -> term
@@ -670,15 +670,27 @@ fun intern_skolem ctxt def_type x =
 
 in
 
-fun type_context ctxt : Syntax.type_context =
+type type_context =
+ {get_class: string -> string,
+  get_type: string -> string,
+  markup_class: string -> Markup.T list,
+  markup_type: string -> Markup.T list};
+
+fun type_context ctxt : type_context =
  {get_class = read_class ctxt,
   get_type = #1 o dest_Type o read_type_name_proper ctxt false,
   markup_class = fn c => [Name_Space.markup_entry (Type.class_space (tsig_of ctxt)) c],
   markup_type = fn c => [Name_Space.markup_entry (Type.type_space (tsig_of ctxt)) c]};
 
-fun term_context ctxt : Syntax.term_context =
- {get_sort = get_sort ctxt,
-  get_const = fn a => ((true, #1 (Term.dest_Const (read_const_proper ctxt false a)))
+type term_context =
+ {get_const: string -> bool * string,
+  get_free: string -> string option,
+  markup_const: string -> Markup.T list,
+  markup_free: string -> Markup.T list,
+  markup_var: indexname -> Markup.T list};
+
+fun term_context ctxt : term_context =
+ {get_const = fn a => ((true, #1 (Term.dest_Const (read_const_proper ctxt false a)))
     handle ERROR _ => (false, Consts.intern (consts_of ctxt) a)),
   get_free = intern_skolem ctxt (Variable.def_type ctxt false),
   markup_const = fn c => [Name_Space.markup_entry (const_space ctxt) c],
@@ -686,8 +698,6 @@ fun term_context ctxt : Syntax.term_context =
     [if can Name.dest_skolem x then Markup.skolem else Markup.free] @
     (if not (Variable.is_body ctxt) orelse Variable.is_fixed ctxt x then [] else [Markup.hilite]),
   markup_var = fn xi => [Markup.name (Term.string_of_vname xi) Markup.var]};
-
-val decode_term = Syntax.decode_term o term_context;
 
 end;
 

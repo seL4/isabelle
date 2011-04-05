@@ -6,15 +6,10 @@ Utilities for input and output of types.  The concrete syntax of types.
 
 signature TYPE_EXT0 =
 sig
-  val sort_of_term: term -> sort
-  val term_sorts: term -> (indexname * sort) list
-  val typ_of_term: (indexname -> sort) -> term -> typ
+  val decode_position_term: term -> Position.T option
   val is_position: term -> bool
   val strip_positions: term -> term
   val strip_positions_ast: Ast.ast -> Ast.ast
-  type term_context
-  val decode_term: term_context ->
-    Position.reports * term Exn.result -> Position.reports * term Exn.result
   val term_of_typ: bool -> typ -> term
   val no_brackets: unit -> bool
   val no_type_brackets: unit -> bool
@@ -25,7 +20,6 @@ sig
   include TYPE_EXT0
   val term_of_sort: sort -> term
   val tappl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
-  val sortT: typ
   val type_ext: Syn_Ext.syn_ext
 end;
 
@@ -34,79 +28,12 @@ struct
 
 (** input utils **)
 
-(* sort_of_term *)
-
-fun sort_of_term tm =
-  let
-    fun err () = raise TERM ("sort_of_term: bad encoding of classes", [tm]);
-
-    fun class s = Lexicon.unmark_class s handle Fail _ => err ();
-
-    fun classes (Const (s, _)) = [class s]
-      | classes (Const ("_classes", _) $ Const (s, _) $ cs) = class s :: classes cs
-      | classes _ = err ();
-
-    fun sort (Const ("_topsort", _)) = []
-      | sort (Const (s, _)) = [class s]
-      | sort (Const ("_sort", _) $ cs) = classes cs
-      | sort _ = err ();
-  in sort tm end;
-
-
-(* term_sorts *)
-
-fun term_sorts tm =
-  let
-    val sort_of = sort_of_term;
-
-    fun add_env (Const ("_ofsort", _) $ Free (x, _) $ cs) =
-          insert (op =) ((x, ~1), sort_of cs)
-      | add_env (Const ("_ofsort", _) $ (Const ("_tfree", _) $ Free (x, _)) $ cs) =
-          insert (op =) ((x, ~1), sort_of cs)
-      | add_env (Const ("_ofsort", _) $ Var (xi, _) $ cs) =
-          insert (op =) (xi, sort_of cs)
-      | add_env (Const ("_ofsort", _) $ (Const ("_tvar", _) $ Var (xi, _)) $ cs) =
-          insert (op =) (xi, sort_of cs)
-      | add_env (Abs (_, _, t)) = add_env t
-      | add_env (t1 $ t2) = add_env t1 #> add_env t2
-      | add_env _ = I;
-  in add_env tm [] end;
-
-
-(* typ_of_term *)
-
-fun typ_of_term get_sort tm =
-  let
-    fun err () = raise TERM ("typ_of_term: bad encoding of type", [tm]);
-
-    fun typ_of (Free (x, _)) = TFree (x, get_sort (x, ~1))
-      | typ_of (Var (xi, _)) = TVar (xi, get_sort xi)
-      | typ_of (Const ("_tfree",_) $ (t as Free _)) = typ_of t
-      | typ_of (Const ("_tvar",_) $ (t as Var _)) = typ_of t
-      | typ_of (Const ("_ofsort", _) $ Free (x, _) $ _) = TFree (x, get_sort (x, ~1))
-      | typ_of (Const ("_ofsort", _) $ (Const ("_tfree",_) $ Free (x, _)) $ _) =
-          TFree (x, get_sort (x, ~1))
-      | typ_of (Const ("_ofsort", _) $ Var (xi, _) $ _) = TVar (xi, get_sort xi)
-      | typ_of (Const ("_ofsort", _) $ (Const ("_tvar",_) $ Var (xi, _)) $ _) =
-          TVar (xi, get_sort xi)
-      | typ_of (Const ("_dummy_ofsort", _) $ t) = TFree ("'_dummy_", sort_of_term t)
-      | typ_of t =
-          let
-            val (head, args) = Term.strip_comb t;
-            val a =
-              (case head of
-                Const (c, _) => (Lexicon.unmark_type c handle Fail _ => err ())
-              | _ => err ());
-          in Type (a, map typ_of args) end;
-  in typ_of tm end;
-
-
 (* positions *)
 
-fun decode_position (Free (x, _)) = Lexicon.decode_position x
-  | decode_position _ = NONE;
+fun decode_position_term (Free (x, _)) = Lexicon.decode_position x
+  | decode_position_term _ = NONE;
 
-val is_position = is_some o decode_position;
+val is_position = is_some o decode_position_term;
 
 fun strip_positions ((t as Const (c, _)) $ u $ v) =
       if (c = "_constrain" orelse c = "_constrainAbs") andalso is_position v
@@ -122,71 +49,6 @@ fun strip_positions_ast (Ast.Appl ((t as Ast.Constant c) :: u :: (v as Ast.Varia
       else Ast.Appl (map strip_positions_ast (t :: u :: v :: asts))
   | strip_positions_ast (Ast.Appl asts) = Ast.Appl (map strip_positions_ast asts)
   | strip_positions_ast ast = ast;
-
-
-(* decode_term -- transform parse tree into raw term *)
-
-fun markup_bound def id =
-  [Markup.properties [(if def then Markup.defN else Markup.refN, id)] Markup.bound];
-
-type term_context =
- {get_sort: (indexname * sort) list -> indexname -> sort,
-  get_const: string -> bool * string,
-  get_free: string -> string option,
-  markup_const: string -> Markup.T list,
-  markup_free: string -> Markup.T list,
-  markup_var: indexname -> Markup.T list};
-
-fun decode_term _ (result as (_: Position.reports, Exn.Exn _)) = result
-  | decode_term (term_context: term_context) (reports0, Exn.Result tm) =
-      let
-        val {get_sort, get_const, get_free, markup_const, markup_free, markup_var} = term_context;
-        val decodeT = typ_of_term (get_sort (term_sorts tm));
-
-        val reports = Unsynchronized.ref reports0;
-        fun report ps = Position.reports reports ps;
-
-        fun decode ps qs bs (Const ("_constrain", _) $ t $ typ) =
-              (case decode_position typ of
-                SOME p => decode (p :: ps) qs bs t
-              | NONE => Type.constraint (decodeT typ) (decode ps qs bs t))
-          | decode ps qs bs (Const ("_constrainAbs", _) $ t $ typ) =
-              (case decode_position typ of
-                SOME q => decode ps (q :: qs) bs t
-              | NONE => Type.constraint (decodeT typ --> dummyT) (decode ps qs bs t))
-          | decode _ qs bs (Abs (x, T, t)) =
-              let
-                val id = serial_string ();
-                val _ = report qs (markup_bound true) id;
-              in Abs (x, T, decode [] [] (id :: bs) t) end
-          | decode _ _ bs (t $ u) = decode [] [] bs t $ decode [] [] bs u
-          | decode ps _ _ (Const (a, T)) =
-              (case try Lexicon.unmark_fixed a of
-                SOME x => (report ps markup_free x; Free (x, T))
-              | NONE =>
-                  let
-                    val c =
-                      (case try Lexicon.unmark_const a of
-                        SOME c => c
-                      | NONE => snd (get_const a));
-                    val _ = report ps markup_const c;
-                  in Const (c, T) end)
-          | decode ps _ _ (Free (a, T)) =
-              (case (get_free a, get_const a) of
-                (SOME x, _) => (report ps markup_free x; Free (x, T))
-              | (_, (true, c)) => (report ps markup_const c; Const (c, T))
-              | (_, (false, c)) =>
-                  if Long_Name.is_qualified c
-                  then (report ps markup_const c; Const (c, T))
-                  else (report ps markup_free c; Free (c, T)))
-          | decode ps _ _ (Var (xi, T)) = (report ps markup_var xi; Var (xi, T))
-          | decode ps _ bs (t as Bound i) =
-              (case try (nth bs) i of
-                SOME id => (report ps (markup_bound false) id; t)
-              | NONE => t);
-
-        val tm' = Exn.interruptible_capture (fn () => decode [] [] [] tm) ();
-      in (! reports, tm') end;
 
 
 
