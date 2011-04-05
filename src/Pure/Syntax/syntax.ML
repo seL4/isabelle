@@ -941,7 +941,7 @@ val remove_trrules = remove_syntax mode_default o Syn_Ext.syn_ext_rules o check_
 
 
 (*export parts of internal Syntax structures*)
-open Lexicon Syn_Ext Parser Type_Ext Syn_Trans Mixfix Printer;
+open Lexicon Syn_Ext Type_Ext Syn_Trans Mixfix Printer;
 
 end;
 
@@ -949,7 +949,6 @@ structure Basic_Syntax: BASIC_SYNTAX = Syntax;
 open Basic_Syntax;
 
 forget_structure "Syn_Ext";
-forget_structure "Parser";
 forget_structure "Type_Ext";
 forget_structure "Syn_Trans";
 forget_structure "Mixfix";
