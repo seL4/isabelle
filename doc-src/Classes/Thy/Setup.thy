@@ -15,16 +15,16 @@ syntax
 
 parse_ast_translation {*
   let
-    fun alpha_ast_tr [] = Syntax.Variable "'a"
-      | alpha_ast_tr asts = raise Syntax.AST ("alpha_ast_tr", asts);
+    fun alpha_ast_tr [] = Ast.Variable "'a"
+      | alpha_ast_tr asts = raise Ast.AST ("alpha_ast_tr", asts);
     fun alpha_ofsort_ast_tr [ast] =
-      Syntax.Appl [Syntax.Constant @{syntax_const "_ofsort"}, Syntax.Variable "'a", ast]
-      | alpha_ofsort_ast_tr asts = raise Syntax.AST ("alpha_ast_tr", asts);
-    fun beta_ast_tr [] = Syntax.Variable "'b"
-      | beta_ast_tr asts = raise Syntax.AST ("beta_ast_tr", asts);
+          Ast.Appl [Ast.Constant @{syntax_const "_ofsort"}, Ast.Variable "'a", ast]
+      | alpha_ofsort_ast_tr asts = raise Ast.AST ("alpha_ast_tr", asts);
+    fun beta_ast_tr [] = Ast.Variable "'b"
+      | beta_ast_tr asts = raise Ast.AST ("beta_ast_tr", asts);
     fun beta_ofsort_ast_tr [ast] =
-      Syntax.Appl [Syntax.Constant @{syntax_const "_ofsort"}, Syntax.Variable "'b", ast]
-      | beta_ofsort_ast_tr asts = raise Syntax.AST ("beta_ast_tr", asts);
+          Ast.Appl [Ast.Constant @{syntax_const "_ofsort"}, Ast.Variable "'b", ast]
+      | beta_ofsort_ast_tr asts = raise Ast.AST ("beta_ast_tr", asts);
   in
    [(@{syntax_const "_alpha"}, alpha_ast_tr),
     (@{syntax_const "_alpha_ofsort"}, alpha_ofsort_ast_tr),

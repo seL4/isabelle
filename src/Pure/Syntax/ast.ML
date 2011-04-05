@@ -4,21 +4,18 @@
 Abstract syntax trees, translation rules, matching and normalization of asts.
 *)
 
-signature AST0 =
+signature AST =
 sig
   datatype ast =
     Constant of string |
     Variable of string |
     Appl of ast list
-  exception AST of string * ast list
-end;
-
-signature AST1 =
-sig
-  include AST0
   val mk_appl: ast -> ast list -> ast
+  exception AST of string * ast list
   val pretty_ast: ast -> Pretty.T
   val pretty_rule: ast * ast -> Pretty.T
+  val head_of_rule: ast * ast -> string
+  val rule_error: ast * ast -> string option
   val fold_ast: string -> ast list -> ast
   val fold_ast_p: string -> ast list * ast -> ast
   val unfold_ast: string -> ast -> ast list
@@ -27,17 +24,10 @@ sig
   val ast_trace: bool Config.T
   val ast_stat_raw: Config.raw
   val ast_stat: bool Config.T
-end;
-
-signature AST =
-sig
-  include AST1
-  val head_of_rule: ast * ast -> string
-  val rule_error: ast * ast -> string option
   val normalize: Proof.context -> (string -> (ast * ast) list) -> ast -> ast
 end;
 
-structure Ast : AST =
+structure Ast: AST =
 struct
 
 (** abstract syntax trees **)
@@ -53,16 +43,12 @@ datatype ast =
   Variable of string |    (*x, ?x, 'a, ?'a*)
   Appl of ast list;       (*(f x y z), ("fun" 'a 'b), ("_abs" x t)*)
 
-
 (*the list of subasts of an Appl node has to contain at least 2 elements, i.e.
   there are no empty asts or nullary applications; use mk_appl for convenience*)
-
 fun mk_appl f [] = f
   | mk_appl f args = Appl (f :: args);
 
-
 (*exception for system errors involving asts*)
-
 exception AST of string * ast list;
 
 

@@ -117,7 +117,7 @@ fun parse_ast_translation (a, (txt, pos)) =
   ML_Lex.read pos txt
   |> ML_Context.expression pos
     ("val parse_ast_translation: (string * (" ^ advancedT a ^
-      "Syntax.ast list -> Syntax.ast)) list")
+      "Ast.ast list -> Ast.ast)) list")
     ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfuns (parse_ast_translation, [], [], []))")
   |> Context.theory_map;
 
@@ -141,7 +141,7 @@ fun print_ast_translation (a, (txt, pos)) =
   ML_Lex.read pos txt
   |> ML_Context.expression pos
     ("val print_ast_translation: (string * (" ^ advancedT a ^
-      "Syntax.ast list -> Syntax.ast)) list")
+      "Ast.ast list -> Ast.ast)) list")
     ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfuns ([], [], [], print_ast_translation))")
   |> Context.theory_map;
 

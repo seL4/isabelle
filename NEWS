@@ -93,6 +93,10 @@ Syntax.strip_positions_ast, or via the syntax constant
 be disabled via the configuration option Syntax.positions, which is
 called "syntax_positions" in Isar attribute syntax.
 
+* Discontinued special treatment of structure Ast: no pervasive
+content, no inclusion in structure Syntax.  INCOMPATIBILITY, refer to
+qualified names like Ast.Constant etc.
+
 
 
 New in Isabelle2011 (January 2011)

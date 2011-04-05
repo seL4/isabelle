@@ -497,33 +497,32 @@ fun add_pattern_combinators
 
     (* syntax translations for pattern combinators *)
     local
-      open Syntax
       fun syntax c = Syntax.mark_const (fst (dest_Const c));
-      fun app s (l, r) = Syntax.mk_appl (Constant s) [l, r];
+      fun app s (l, r) = Ast.mk_appl (Ast.Constant s) [l, r];
       val capp = app @{const_syntax Rep_cfun};
       val capps = Library.foldl capp
 
-      fun app_var x = Syntax.mk_appl (Constant "_variable") [x, Variable "rhs"];
-      fun app_pat x = Syntax.mk_appl (Constant "_pat") [x];
-      fun args_list [] = Constant "_noargs"
+      fun app_var x = Ast.mk_appl (Ast.Constant "_variable") [x, Ast.Variable "rhs"];
+      fun app_pat x = Ast.mk_appl (Ast.Constant "_pat") [x];
+      fun args_list [] = Ast.Constant "_noargs"
         | args_list xs = foldr1 (app "_args") xs;
       fun one_case_trans (pat, (con, args)) =
         let
-          val cname = Constant (syntax con);
-          val pname = Constant (syntax pat);
+          val cname = Ast.Constant (syntax con);
+          val pname = Ast.Constant (syntax pat);
           val ns = 1 upto length args;
-          val xs = map (fn n => Variable ("x"^(string_of_int n))) ns;
-          val ps = map (fn n => Variable ("p"^(string_of_int n))) ns;
-          val vs = map (fn n => Variable ("v"^(string_of_int n))) ns;
+          val xs = map (fn n => Ast.Variable ("x"^(string_of_int n))) ns;
+          val ps = map (fn n => Ast.Variable ("p"^(string_of_int n))) ns;
+          val vs = map (fn n => Ast.Variable ("v"^(string_of_int n))) ns;
         in
-          [Parse_Rule (app_pat (capps (cname, xs)),
-                      mk_appl pname (map app_pat xs)),
-           Parse_Rule (app_var (capps (cname, xs)),
-                      app_var (args_list xs)),
-           Print_Rule (capps (cname, ListPair.map (app "_match") (ps,vs)),
-                      app "_match" (mk_appl pname ps, args_list vs))]
+          [Syntax.Parse_Rule (app_pat (capps (cname, xs)),
+            Ast.mk_appl pname (map app_pat xs)),
+           Syntax.Parse_Rule (app_var (capps (cname, xs)),
+            app_var (args_list xs)),
+           Syntax.Print_Rule (capps (cname, ListPair.map (app "_match") (ps,vs)),
+            app "_match" (Ast.mk_appl pname ps, args_list vs))]
         end;
-      val trans_rules : Syntax.ast Syntax.trrule list =
+      val trans_rules : Ast.ast Syntax.trrule list =
           maps one_case_trans (pat_consts ~~ spec);
     in
       val thy = Sign.add_trrules trans_rules thy;
