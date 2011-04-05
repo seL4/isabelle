@@ -14,7 +14,7 @@ sig
 
   datatype type_system =
     Tags of bool |
-    Const_Args |
+    Args |
     Mangled |
     No_Types
 
@@ -63,7 +63,7 @@ type translated_formula =
 
 datatype type_system =
   Tags of bool |
-  Const_Args |
+  Args |
   Mangled |
   No_Types
 
@@ -83,7 +83,7 @@ fun is_overloaded thy s =
 fun needs_type_args thy type_sys s =
   case type_sys of
     Tags full_types => not full_types andalso is_overloaded thy s
-  | Const_Args => is_overloaded thy s
+  | Args => is_overloaded thy s
   | Mangled => true
   | No_Types => false
 

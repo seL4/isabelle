@@ -564,21 +564,20 @@ following values:
 \item[$\bullet$] \textbf{\textit{tags}:} Each term (and subterm) is tagged with
 its type.
 
+\item[$\bullet$] \textbf{\textit{args}:} Constants are annotated with
+their type parameters, which are passed as extra arguments. This value is
+ignored if \textit{full\_types} is enabled.
+
 \item[$\bullet$] \textbf{\textit{mangled}:} Types are mangled in constant names.
 This value is available only if \textit{monomorphize} is enabled and
 \textit{full\_types} is disabled.
 
-\item[$\bullet$] \textbf{\textit{const\_args}:} Constants are annotated with
-their type parameters, which are passed as extra arguments. This value is
-ignored if \textit{full\_types} is enabled.
-
 \item[$\bullet$] \textbf{\textit{none}:} No type information is supplied to the
 ATP. This value is ignored if \textit{full\_types} is enabled.
 
-\item[$\bullet$] \textbf{\textit{smart}:} This is the same as
-\textit{tags} if \textit{full\_types} is enabled; otherwise, this is the
-same as \textit{mangled} if \textit{monomorphize} is enabled and
-\textit{const\_args} otherwise.
+\item[$\bullet$] \textbf{\textit{smart}:} If \textit{full\_types} is enabled,
+this is the same as \textit{tags}; otherwise, this is the
+same as \textit{args} otherwise.
 \end{enum}
 
 For SMT solvers, the type system is always \textit{mangled}.

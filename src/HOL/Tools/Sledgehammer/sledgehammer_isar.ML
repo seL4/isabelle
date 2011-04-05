@@ -240,15 +240,13 @@ fun extract_params auto default_params override_params =
     val type_sys =
       case (lookup_string "type_sys", lookup_bool "full_types") of
         ("tags", full_types) => Tags full_types
-      | ("const_args", false) => Const_Args
-      | ("mangled", false) => if monomorphize then Mangled else Const_Args
+      | ("args", false) => Args
+      | ("mangled", false) => if monomorphize then Mangled else Args
       | ("none", false) => No_Types
       | (type_sys, full_types) =>
-        if member (op =) ["const_args", "mangled", "none", "smart"]
+        if member (op =) ["args", "mangled", "none", "smart"]
                   type_sys then
-          if full_types then Tags true
-          else if monomorphize then Mangled
-          else Const_Args
+          if full_types then Tags true else Args
         else
           error ("Unknown type system: " ^ quote type_sys ^ ".")
     val explicit_apply = lookup_bool "explicit_apply"
