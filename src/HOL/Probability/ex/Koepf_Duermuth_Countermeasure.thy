@@ -95,11 +95,11 @@ abbreviation (in information_space)
 lemma zero_notin_Suc_image[simp]: "0 \<notin> Suc ` A"
   by auto
 
-definition extensional :: "'b \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'b) set" where
-  "extensional d A = {f. \<forall>x. x \<notin> A \<longrightarrow> f x = d}"
+definition extensionalD :: "'b \<Rightarrow> 'a set \<Rightarrow> ('a \<Rightarrow> 'b) set" where
+  "extensionalD d A = {f. \<forall>x. x \<notin> A \<longrightarrow> f x = d}"
 
-lemma extensional_empty[simp]: "extensional d {} = {\<lambda>x. d}"
-  unfolding extensional_def by (simp add: set_eq_iff fun_eq_iff)
+lemma extensionalD_empty[simp]: "extensionalD d {} = {\<lambda>x. d}"
+  unfolding extensionalD_def by (simp add: set_eq_iff fun_eq_iff)
 
 lemma funset_eq_UN_fun_upd_I:
   assumes *: "\<And>f. f \<in> F (insert a A) \<Longrightarrow> f(a := d) \<in> F A"
@@ -121,16 +121,16 @@ next
   from ***[OF this] show "f(a := x) \<in> F (insert a A)" .
 qed
 
-lemma extensional_insert[simp]:
+lemma extensionalD_insert[simp]:
   assumes "a \<notin> A"
-  shows "extensional d (insert a A) \<inter> (insert a A \<rightarrow> B) = (\<Union>f \<in> extensional d A \<inter> (A \<rightarrow> B). (\<lambda>b. f(a := b)) ` B)"
+  shows "extensionalD d (insert a A) \<inter> (insert a A \<rightarrow> B) = (\<Union>f \<in> extensionalD d A \<inter> (A \<rightarrow> B). (\<lambda>b. f(a := b)) ` B)"
   apply (rule funset_eq_UN_fun_upd_I)
   using assms
-  by (auto intro!: inj_onI dest: inj_onD split: split_if_asm simp: extensional_def)
+  by (auto intro!: inj_onI dest: inj_onD split: split_if_asm simp: extensionalD_def)
 
-lemma finite_extensional_funcset[simp, intro]:
+lemma finite_extensionalD_funcset[simp, intro]:
   assumes "finite A" "finite B"
-  shows "finite (extensional d A \<inter> (A \<rightarrow> B))"
+  shows "finite (extensionalD d A \<inter> (A \<rightarrow> B))"
   using assms by induct auto
 
 lemma fun_upd_eq_iff: "f(a := b) = g(a := b') \<longleftrightarrow> b = b' \<and> f(a := d) = g(a := d)"
@@ -138,27 +138,27 @@ lemma fun_upd_eq_iff: "f(a := b) = g(a := b') \<longleftrightarrow> b = b' \<and
 
 lemma card_funcset:
   assumes "finite A" "finite B"
-  shows "card (extensional d A \<inter> (A \<rightarrow> B)) = card B ^ card A"
+  shows "card (extensionalD d A \<inter> (A \<rightarrow> B)) = card B ^ card A"
 using `finite A` proof induct
-  case (insert a A) thus ?case unfolding extensional_insert[OF `a \<notin> A`]
+  case (insert a A) thus ?case unfolding extensionalD_insert[OF `a \<notin> A`]
   proof (subst card_UN_disjoint, safe, simp_all)
-    show "finite (extensional d A \<inter> (A \<rightarrow> B))" "\<And>f. finite (fun_upd f a ` B)"
+    show "finite (extensionalD d A \<inter> (A \<rightarrow> B))" "\<And>f. finite (fun_upd f a ` B)"
       using `finite B` `finite A` by simp_all
   next
     fix f g b b' assume "f \<noteq> g" and eq: "f(a := b) = g(a := b')" and
-      ext: "f \<in> extensional d A" "g \<in> extensional d A"
+      ext: "f \<in> extensionalD d A" "g \<in> extensionalD d A"
     have "f a = d" "g a = d"
-      using ext `a \<notin> A` by (auto simp add: extensional_def)
+      using ext `a \<notin> A` by (auto simp add: extensionalD_def)
     with `f \<noteq> g` eq show False unfolding fun_upd_eq_iff[of _ _ b _ _ d]
       by (auto simp: fun_upd_idem fun_upd_eq_iff)
   next
-    { fix f assume "f \<in> extensional d A \<inter> (A \<rightarrow> B)"
+    { fix f assume "f \<in> extensionalD d A \<inter> (A \<rightarrow> B)"
       have "card (fun_upd f a ` B) = card B"
       proof (auto intro!: card_image inj_onI)
         fix b b' assume "f(a := b) = f(a := b')"
         from fun_upd_eq_iff[THEN iffD1, OF this] show "b = b'" by simp
       qed }
-    then show "(\<Sum>i\<in>extensional d A \<inter> (A \<rightarrow> B). card (fun_upd i a ` B)) = card B * card B ^ card A"
+    then show "(\<Sum>i\<in>extensionalD d A \<inter> (A \<rightarrow> B). card (fun_upd i a ` B)) = card B * card B ^ card A"
       using insert by simp
   qed
 qed simp
@@ -301,11 +301,11 @@ definition t :: "'observation list \<Rightarrow> 'observation \<Rightarrow> nat"
 
 lemma card_T_bound: "card ((t\<circ>OB)`msgs) \<le> (n+1)^card observations"
 proof -
-  have "(t\<circ>OB)`msgs \<subseteq> extensional 0 observations \<inter> (observations \<rightarrow> {.. n})"
-    unfolding observations_def extensional_def OB_def msgs_def
+  have "(t\<circ>OB)`msgs \<subseteq> extensionalD 0 observations \<inter> (observations \<rightarrow> {.. n})"
+    unfolding observations_def extensionalD_def OB_def msgs_def
     by (auto simp add: t_def comp_def image_iff)
-  with finite_extensional_funcset
-  have "card ((t\<circ>OB)`msgs) \<le> card (extensional 0 observations \<inter> (observations \<rightarrow> {.. n}))"
+  with finite_extensionalD_funcset
+  have "card ((t\<circ>OB)`msgs) \<le> card (extensionalD 0 observations \<inter> (observations \<rightarrow> {.. n}))"
     by (rule card_mono) auto
   also have "\<dots> = (n + 1) ^ card observations"
     by (subst card_funcset) auto
