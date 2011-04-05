@@ -156,7 +156,7 @@ fun termination_tac ctxt =
 
 fun instantiate_exhaustive_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
   let
-    val _ = Datatype_Aux.message config "Creating exhaustive generators ...";
+    val _ = Datatype_Aux.message config "Creating exhaustive generators...";
     val exhaustivesN = map (prefix (exhaustiveN ^ "_")) (names @ auxnames);
   in
     thy
@@ -170,6 +170,71 @@ fun instantiate_exhaustive_datatype config descr vs tycos prfx (names, auxnames)
       "Creation of exhaustive generators failed because the datatype contains a function type";
     thy)
 
+(* constructing bounded_forall instances on datatypes *)
+
+val bounded_forallN = "bounded_forall";
+
+fun bounded_forallT T = (T --> @{typ bool}) --> @{typ code_numeral} --> @{typ bool}
+
+fun mk_bounded_forall_equations descr vs tycos bounded_foralls (Ts, Us) =
+  let
+    fun mk_call T =
+      let
+        val bounded_forall =
+          Const (@{const_name "Quickcheck_Exhaustive.bounded_forall_class.bounded_forall"},
+            bounded_forallT T)
+      in
+        (T, (fn t => bounded_forall $ absdummy (T, t) $ size_pred))
+      end
+    fun mk_aux_call fTs (k, _) (tyco, Ts) =
+      let
+        val T = Type (tyco, Ts)
+        val _ = if not (null fTs) then raise FUNCTION_TYPE else ()
+      in
+        (T, (fn t => nth bounded_foralls k $ absdummy (T, t) $ size_pred))
+      end
+    fun mk_consexpr simpleT (c, xs) =
+      let
+        val (Ts, fns) = split_list xs
+        val constr = Const (c, Ts ---> simpleT)
+        val bounds = map Bound (((length xs) - 1) downto 0)
+        val start_term = Free ("P", simpleT --> @{typ bool}) $ list_comb (constr, bounds)
+      in fold_rev (fn f => fn t => f t) fns start_term end
+    fun mk_rhs exprs =
+      @{term "If :: bool => bool => bool => bool"} $ size_ge_zero $
+        (foldr1 HOLogic.mk_disj exprs) $ @{term "True"}
+    val rhss =
+      Datatype_Aux.interpret_construction descr vs
+        { atyp = mk_call, dtyp = mk_aux_call }
+      |> (map o apfst) Type
+      |> map (fn (T, cs) => map (mk_consexpr T) cs)
+      |> map mk_rhs
+    val lhss =
+      map2 (fn t => fn T => t $ Free ("P", T --> @{typ bool}) $ size) bounded_foralls (Ts @ Us)
+    val eqs = map (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhss ~~ rhss)
+  in
+    eqs
+  end
+
+(* creating the bounded_forall instances *)
+
+fun instantiate_bounded_forall_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
+  let
+    val _ = Datatype_Aux.message config "Creating bounded universal quantifiers...";
+    val bounded_forallsN = map (prefix (bounded_forallN ^ "_")) (names @ auxnames);
+  in
+    thy
+    |> Class.instantiation (tycos, vs, @{sort bounded_forall})
+    |> Quickcheck_Common.define_functions
+        (fn bounded_foralls => 
+          mk_bounded_forall_equations descr vs tycos bounded_foralls (Ts, Us), NONE)
+        prfx ["P", "i"] bounded_forallsN (map bounded_forallT (Ts @ Us))
+    |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
+  end handle FUNCTION_TYPE =>
+    (Datatype_Aux.message config
+      "Creation of bounded universal quantifiers failed because the datatype contains a function type";
+    thy)
+    
 (** building and compiling generator expressions **)
 
 fun mk_generator_expr ctxt (t, eval_terms) =
@@ -334,6 +399,8 @@ fun compile_validator_exprs ctxt ts =
 val setup =
   Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
       (((@{sort typerep}, @{sort term_of}), @{sort exhaustive}), instantiate_exhaustive_datatype))
+  #> Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
+      (((@{sort type}, @{sort type}), @{sort bounded_forall}), instantiate_bounded_forall_datatype))
   #> setup_smart_quantifier
   #> setup_quickcheck_pretty
   #> Context.theory_map (Quickcheck.add_generator ("exhaustive", compile_generator_expr))
