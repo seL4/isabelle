@@ -72,9 +72,9 @@ fun exn_messages exn_position e =
         | Fail msg => [raised exn "Fail" [msg]]
         | THEORY (msg, thys) =>
             [raised exn "THEORY" (msg :: (if detailed then map Context.str_of_thy thys else []))]
-        | Syntax.AST (msg, asts) =>
+        | Ast.AST (msg, asts) =>
             [raised exn "AST" (msg ::
-              (if detailed then map (Pretty.string_of o Syntax.pretty_ast) asts else []))]
+              (if detailed then map (Pretty.string_of o Ast.pretty_ast) asts else []))]
         | TYPE (msg, Ts, ts) =>
             [raised exn "TYPE" (msg ::
               (if detailed then

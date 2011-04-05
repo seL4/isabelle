@@ -71,17 +71,20 @@ fun add_proof_syntax thy =
   |> Sign.add_modesyntax_i ("latex", false)
       [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1\\<^bold>\\<lambda>_./ _)", [0, 3], 3))]
   |> Sign.add_trrules (map Syntax.Parse_Print_Rule
-      [(Syntax.mk_appl (Constant "_Lam")
-          [Syntax.mk_appl (Constant "_Lam0") [Variable "l", Variable "m"], Variable "A"],
-        Syntax.mk_appl (Constant "_Lam")
-          [Variable "l", Syntax.mk_appl (Constant "_Lam") [Variable "m", Variable "A"]]),
-       (Syntax.mk_appl (Constant "_Lam")
-          [Syntax.mk_appl (Constant "_Lam1") [Variable "x", Variable "A"], Variable "B"],
-        Syntax.mk_appl (Constant (Syntax.mark_const "AbsP")) [Variable "A",
-          (Syntax.mk_appl (Constant "_abs") [Variable "x", Variable "B"])]),
-       (Syntax.mk_appl (Constant "_Lam") [Variable "x", Variable "A"],
-        Syntax.mk_appl (Constant (Syntax.mark_const "Abst"))
-          [(Syntax.mk_appl (Constant "_abs") [Variable "x", Variable "A"])])]);
+      [(Ast.mk_appl (Ast.Constant "_Lam")
+          [Ast.mk_appl (Ast.Constant "_Lam0")
+            [Ast.Variable "l", Ast.Variable "m"], Ast.Variable "A"],
+        Ast.mk_appl (Ast.Constant "_Lam")
+          [Ast.Variable "l",
+            Ast.mk_appl (Ast.Constant "_Lam") [Ast.Variable "m", Ast.Variable "A"]]),
+       (Ast.mk_appl (Ast.Constant "_Lam")
+          [Ast.mk_appl (Ast.Constant "_Lam1")
+            [Ast.Variable "x", Ast.Variable "A"], Ast.Variable "B"],
+        Ast.mk_appl (Ast.Constant (Syntax.mark_const "AbsP")) [Ast.Variable "A",
+          (Ast.mk_appl (Ast.Constant "_abs") [Ast.Variable "x", Ast.Variable "B"])]),
+       (Ast.mk_appl (Ast.Constant "_Lam") [Ast.Variable "x", Ast.Variable "A"],
+        Ast.mk_appl (Ast.Constant (Syntax.mark_const "Abst"))
+          [(Ast.mk_appl (Ast.Constant "_abs") [Ast.Variable "x", Ast.Variable "A"])])]);
 
 
 (**** translation between proof terms and pure terms ****)

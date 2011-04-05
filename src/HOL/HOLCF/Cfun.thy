@@ -56,9 +56,9 @@ parse_ast_translation {*
 (* cf. Syntax.lambda_ast_tr from src/Pure/Syntax/syn_trans.ML *)
   let
     fun Lambda_ast_tr [pats, body] =
-          Syntax.fold_ast_p @{syntax_const "_cabs"}
-            (Syntax.unfold_ast @{syntax_const "_cargs"} (Syntax.strip_positions_ast pats), body)
-      | Lambda_ast_tr asts = raise Syntax.AST ("Lambda_ast_tr", asts);
+          Ast.fold_ast_p @{syntax_const "_cabs"}
+            (Ast.unfold_ast @{syntax_const "_cargs"} (Syntax.strip_positions_ast pats), body)
+      | Lambda_ast_tr asts = raise Ast.AST ("Lambda_ast_tr", asts);
   in [(@{syntax_const "_Lambda"}, Lambda_ast_tr)] end;
 *}
 
@@ -67,12 +67,12 @@ print_ast_translation {*
 (* cf. Syntax.abs_ast_tr' from src/Pure/Syntax/syn_trans.ML *)
   let
     fun cabs_ast_tr' asts =
-      (case Syntax.unfold_ast_p @{syntax_const "_cabs"}
-          (Syntax.Appl (Syntax.Constant @{syntax_const "_cabs"} :: asts)) of
-        ([], _) => raise Syntax.AST ("cabs_ast_tr'", asts)
-      | (xs, body) => Syntax.Appl
-          [Syntax.Constant @{syntax_const "_Lambda"},
-           Syntax.fold_ast @{syntax_const "_cargs"} xs, body]);
+      (case Ast.unfold_ast_p @{syntax_const "_cabs"}
+          (Ast.Appl (Ast.Constant @{syntax_const "_cabs"} :: asts)) of
+        ([], _) => raise Ast.AST ("cabs_ast_tr'", asts)
+      | (xs, body) => Ast.Appl
+          [Ast.Constant @{syntax_const "_Lambda"},
+           Ast.fold_ast @{syntax_const "_cargs"} xs, body]);
   in [(@{syntax_const "_cabs"}, cabs_ast_tr')] end
 *}
 

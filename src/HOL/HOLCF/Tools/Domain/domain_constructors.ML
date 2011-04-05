@@ -442,16 +442,14 @@ fun add_case_combinator
     (* define syntax for case combinator *)
     (* TODO: re-implement case syntax using a parse translation *)
     local
-      open Syntax
       fun syntax c = Syntax.mark_const (fst (dest_Const c))
       fun xconst c = Long_Name.base_name (fst (dest_Const c))
-      fun c_ast authentic con =
-          Constant (if authentic then syntax con else xconst con)
+      fun c_ast authentic con = Ast.Constant (if authentic then syntax con else xconst con)
       fun showint n = string_of_int (n+1)
-      fun expvar n = Variable ("e" ^ showint n)
-      fun argvar n (m, _) = Variable ("a" ^ showint n ^ "_" ^ showint m)
+      fun expvar n = Ast.Variable ("e" ^ showint n)
+      fun argvar n (m, _) = Ast.Variable ("a" ^ showint n ^ "_" ^ showint m)
       fun argvars n args = map_index (argvar n) args
-      fun app s (l, r) = mk_appl (Constant s) [l, r]
+      fun app s (l, r) = Ast.mk_appl (Ast.Constant s) [l, r]
       val cabs = app "_cabs"
       val capp = app @{const_syntax Rep_cfun}
       val capps = Library.foldl capp
@@ -460,22 +458,21 @@ fun add_case_combinator
       fun case1 authentic (n, c) =
           app "_case1" (Syntax.strip_positions_ast (con1 authentic n c), expvar n)
       fun arg1 (n, (con,args)) = List.foldr cabs (expvar n) (argvars n args)
-      fun when1 n (m, c) =
-          if n = m then arg1 (n, c) else (Constant @{const_syntax bottom})
-      val case_constant = Constant (syntax (case_const dummyT))
+      fun when1 n (m, c) = if n = m then arg1 (n, c) else Ast.Constant @{const_syntax bottom}
+      val case_constant = Ast.Constant (syntax (case_const dummyT))
       fun case_trans authentic =
-          (if authentic then Parse_Print_Rule else Parse_Rule)
-            (app "_case_syntax"
-              (Variable "x",
-               foldr1 (app "_case2") (map_index (case1 authentic) spec)),
-             capp (capps (case_constant, map_index arg1 spec), Variable "x"))
+        (if authentic then Syntax.Parse_Print_Rule else Syntax.Parse_Rule)
+          (app "_case_syntax"
+            (Ast.Variable "x",
+             foldr1 (app "_case2") (map_index (case1 authentic) spec)),
+           capp (capps (case_constant, map_index arg1 spec), Ast.Variable "x"))
       fun one_abscon_trans authentic (n, c) =
-          (if authentic then Parse_Print_Rule else Parse_Rule)
-            (cabs (con1 authentic n c, expvar n),
-             capps (case_constant, map_index (when1 n) spec))
+        (if authentic then Syntax.Parse_Print_Rule else Syntax.Parse_Rule)
+          (cabs (con1 authentic n c, expvar n),
+           capps (case_constant, map_index (when1 n) spec))
       fun abscon_trans authentic =
           map_index (one_abscon_trans authentic) spec
-      val trans_rules : ast Syntax.trrule list =
+      val trans_rules : Ast.ast Syntax.trrule list =
           case_trans false :: case_trans true ::
           abscon_trans false @ abscon_trans true
     in

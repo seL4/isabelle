@@ -1093,12 +1093,12 @@ end;
 
 local
 
-fun const_ast_tr intern ctxt [Syntax.Variable c] =
+fun const_ast_tr intern ctxt [Ast.Variable c] =
       let
         val Const (c', _) = read_const_proper ctxt false c;
         val d = if intern then Syntax.mark_const c' else c;
-      in Syntax.Constant d end
-  | const_ast_tr _ _ asts = raise Syntax.AST ("const_ast_tr", asts);
+      in Ast.Constant d end
+  | const_ast_tr _ _ asts = raise Ast.AST ("const_ast_tr", asts);
 
 val typ = Simple_Syntax.read_typ;
 

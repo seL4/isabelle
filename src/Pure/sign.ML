@@ -91,25 +91,25 @@ sig
   val primitive_classrel: class * class -> theory -> theory
   val primitive_arity: arity -> theory -> theory
   val add_trfuns:
-    (string * (ast list -> ast)) list *
+    (string * (Ast.ast list -> Ast.ast)) list *
     (string * (term list -> term)) list *
     (string * (term list -> term)) list *
-    (string * (ast list -> ast)) list -> theory -> theory
+    (string * (Ast.ast list -> Ast.ast)) list -> theory -> theory
   val add_trfunsT:
     (string * (bool -> typ -> term list -> term)) list -> theory -> theory
   val add_advanced_trfuns:
-    (string * (Proof.context -> ast list -> ast)) list *
+    (string * (Proof.context -> Ast.ast list -> Ast.ast)) list *
     (string * (Proof.context -> term list -> term)) list *
     (string * (Proof.context -> term list -> term)) list *
-    (string * (Proof.context -> ast list -> ast)) list -> theory -> theory
+    (string * (Proof.context -> Ast.ast list -> Ast.ast)) list -> theory -> theory
   val add_advanced_trfunsT:
     (string * (Proof.context -> bool -> typ -> term list -> term)) list -> theory -> theory
   val add_tokentrfuns:
     (string * string * (Proof.context -> string -> Pretty.T)) list -> theory -> theory
   val add_mode_tokentrfuns: string -> (string * (Proof.context -> string -> Pretty.T)) list
     -> theory -> theory
-  val add_trrules: ast Syntax.trrule list -> theory -> theory
-  val del_trrules: ast Syntax.trrule list -> theory -> theory
+  val add_trrules: Ast.ast Syntax.trrule list -> theory -> theory
+  val del_trrules: Ast.ast Syntax.trrule list -> theory -> theory
   val new_group: theory -> theory
   val reset_group: theory -> theory
   val add_path: string -> theory -> theory

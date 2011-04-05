@@ -7,7 +7,6 @@ Standard Isabelle syntax, based on arbitrary context-free grammars
 
 signature BASIC_SYNTAX =
 sig
-  include AST0
   include SYN_TRANS0
   include MIXFIX0
   include PRINTER0
@@ -15,7 +14,6 @@ end;
 
 signature SYNTAX =
 sig
-  include AST1
   include LEXICON0
   include SYN_EXT0
   include TYPE_EXT0
@@ -129,7 +127,7 @@ sig
     Parse_Print_Rule of 'a * 'a
   val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
   val is_const: syntax -> string -> bool
-  val read_rule_pattern: Proof.context -> type_context -> syntax -> string * string -> ast
+  val read_rule_pattern: Proof.context -> type_context -> syntax -> string * string -> Ast.ast
   val standard_unparse_sort: {extern_class: string -> xstring} ->
     Proof.context -> syntax -> sort -> Pretty.T
   val standard_unparse_typ: {extern_class: string -> xstring, extern_type: string -> xstring} ->
@@ -138,22 +136,22 @@ sig
     {extern_class: string -> xstring, extern_type: string -> xstring,
       extern_const: string -> xstring} -> Proof.context -> syntax -> bool -> term -> Pretty.T
   val update_trfuns:
-    (string * ((ast list -> ast) * stamp)) list *
+    (string * ((Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((term list -> term) * stamp)) list *
     (string * ((bool -> typ -> term list -> term) * stamp)) list *
-    (string * ((ast list -> ast) * stamp)) list -> syntax -> syntax
+    (string * ((Ast.ast list -> Ast.ast) * stamp)) list -> syntax -> syntax
   val update_advanced_trfuns:
-    (string * ((Proof.context -> ast list -> ast) * stamp)) list *
+    (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list *
-    (string * ((Proof.context -> ast list -> ast) * stamp)) list -> syntax -> syntax
+    (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list -> syntax -> syntax
   val extend_tokentrfuns: (string * string * (Proof.context -> string -> Pretty.T)) list ->
     syntax -> syntax
   val update_type_gram: bool -> mode -> (string * typ * mixfix) list -> syntax -> syntax
   val update_const_gram: bool -> (string -> bool) ->
     mode -> (string * typ * mixfix) list -> syntax -> syntax
-  val update_trrules: ast trrule list -> syntax -> syntax
-  val remove_trrules: ast trrule list -> syntax -> syntax
+  val update_trrules: Ast.ast trrule list -> syntax -> syntax
+  val remove_trrules: Ast.ast trrule list -> syntax -> syntax
 end;
 
 structure Syntax: SYNTAX =
@@ -943,14 +941,13 @@ val remove_trrules = remove_syntax mode_default o Syn_Ext.syn_ext_rules o check_
 
 
 (*export parts of internal Syntax structures*)
-open Lexicon Syn_Ext Ast Parser Type_Ext Syn_Trans Mixfix Printer;
+open Lexicon Syn_Ext Parser Type_Ext Syn_Trans Mixfix Printer;
 
 end;
 
 structure Basic_Syntax: BASIC_SYNTAX = Syntax;
 open Basic_Syntax;
 
-forget_structure "Ast";
 forget_structure "Syn_Ext";
 forget_structure "Parser";
 forget_structure "Type_Ext";

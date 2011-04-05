@@ -24,12 +24,13 @@ fun change_arrow 0 T = T
 fun trans_rules name2 name1 n mx =
   let
     val vnames = Name.invents Name.context "a" n
-    val extra_parse_rule = Syntax.Parse_Rule (Constant name2, Constant name1)
+    val extra_parse_rule = Syntax.Parse_Rule (Ast.Constant name2, Ast.Constant name1)
   in
     [Syntax.Parse_Print_Rule
-      (Syntax.mk_appl (Constant name2) (map Variable vnames),
-        fold (fn a => fn t => Syntax.mk_appl (Constant @{const_syntax Rep_cfun}) [t, Variable a])
-          vnames (Constant name1))] @
+      (Ast.mk_appl (Ast.Constant name2) (map Ast.Variable vnames),
+        fold (fn a => fn t =>
+            Ast.mk_appl (Ast.Constant @{const_syntax Rep_cfun}) [t, Ast.Variable a])
+          vnames (Ast.Constant name1))] @
     (case mx of
       Infix _ => [extra_parse_rule]
     | Infixl _ => [extra_parse_rule]
