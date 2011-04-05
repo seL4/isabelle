@@ -1,14 +1,12 @@
 It's a good idea to update the Metis source code regularly, to benefit
 from the latest developments, to avoid a permanent fork, and to detect
 Metis problems early. This file explains how to update the source code
-for Metis with the latest Metis package. The procedure is
-unfortunately somewhat involved and frustrating, and hopefully
-temporary.
+for Metis with the latest Metis package.
 
  1. The files "Makefile" and "script/mlpp" and the directory "src/"
     were initially copied from Joe Hurd's official Metis package. The
     package that was used when these notes where written was Metis 2.3
-    (16 Sept. 2010).
+    (29 Dec. 2010).
 
  2. The license in each source file will probably not be something we
     can use in Isabelle. The "fix_metis_license" script can be run to
@@ -24,7 +22,7 @@ temporary.
     files. The ultimate way to track them down is to use Mercurial.
     The command
 
-        hg diff -rcffceed8e7fa: src
+        hg diff -r90c7c97f0c21: src
 
     should do the trick. You might need to specify a different
     revision number if somebody updated the Metis sources without
@@ -55,4 +53,4 @@ temporary.
 Good luck!
 
     Jasmin Blanchette
-    17 Sept. 2010
+    23 March 2011
