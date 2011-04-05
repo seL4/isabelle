@@ -26,6 +26,7 @@ sig
   val naming_of: Proof.context -> Name_Space.naming
   val restore_naming: Proof.context -> Proof.context -> Proof.context
   val full_name: Proof.context -> binding -> string
+  val syntax_of: Proof.context -> Local_Syntax.T
   val syn_of: Proof.context -> Syntax.syntax
   val tsig_of: Proof.context -> Type.tsig
   val set_defsort: sort -> Proof.context -> Proof.context
@@ -65,6 +66,7 @@ sig
   val allow_dummies: Proof.context -> Proof.context
   val check_tvar: Proof.context -> indexname * sort -> indexname * sort
   val check_tfree: Proof.context -> string * sort -> string * sort
+  val get_sort: Proof.context -> (indexname * sort) list -> indexname -> sort
   val type_context: Proof.context -> Syntax.type_context
   val term_context: Proof.context -> Syntax.term_context
   val decode_term: Proof.context ->
@@ -741,93 +743,6 @@ val _ = add (op aconv) (Syntax.add_term_check 0 "standard") standard_term_check;
 val _ = add (op aconv) (Syntax.add_term_check 100 "fixate") prepare_patterns;
 
 val _ = add (op aconv) (Syntax.add_term_uncheck 0 "standard") standard_term_uncheck;
-
-end;
-
-
-
-(** inner syntax operations **)
-
-local
-
-fun parse_failed ctxt pos msg kind =
-  cat_error msg ("Failed to parse " ^ kind ^
-    Markup.markup Markup.report (Context_Position.reported_text ctxt pos Markup.bad ""));
-
-fun parse_sort ctxt text =
-  let
-    val (syms, pos) = Syntax.parse_token ctxt Markup.sort text;
-    val S =
-      Syntax.standard_parse_sort ctxt (type_context ctxt) (syn_of ctxt) (syms, pos)
-      handle ERROR msg => parse_failed ctxt pos msg "sort";
-  in Type.minimize_sort (tsig_of ctxt) S end;
-
-fun parse_typ ctxt text =
-  let
-    val (syms, pos) = Syntax.parse_token ctxt Markup.typ text;
-    val T =
-      Syntax.standard_parse_typ ctxt (type_context ctxt) (syn_of ctxt) (get_sort ctxt) (syms, pos)
-      handle ERROR msg => parse_failed ctxt pos msg "type";
-  in T end;
-
-fun parse_term T ctxt text =
-  let
-    val (T', _) = Type_Infer.paramify_dummies T 0;
-    val (markup, kind) =
-      if T' = propT then (Markup.prop, "proposition") else (Markup.term, "term");
-    val (syms, pos) = Syntax.parse_token ctxt markup text;
-
-    val default_root = Config.get ctxt Syntax.default_root;
-    val root =
-      (case T' of
-        Type (c, _) =>
-          if c <> "prop" andalso Type.is_logtype (tsig_of ctxt) c
-          then default_root else c
-      | _ => default_root);
-
-    fun check t = (Syntax.check_term ctxt (Type.constraint T' t); Exn.Result t)
-      handle exn as ERROR _ => Exn.Exn exn;
-    val t =
-      Syntax.standard_parse_term check ctxt (type_context ctxt) (term_context ctxt) (syn_of ctxt)
-        root (syms, pos)
-      handle ERROR msg => parse_failed ctxt pos msg kind;
-  in t end;
-
-
-fun unparse_sort ctxt =
-  Syntax.standard_unparse_sort {extern_class = Type.extern_class (tsig_of ctxt)}
-    ctxt (syn_of ctxt);
-
-fun unparse_typ ctxt =
-  let
-    val tsig = tsig_of ctxt;
-    val extern = {extern_class = Type.extern_class tsig, extern_type = Type.extern_type tsig};
-  in Syntax.standard_unparse_typ extern ctxt (syn_of ctxt) end;
-
-fun unparse_term ctxt =
-  let
-    val tsig = tsig_of ctxt;
-    val syntax = syntax_of ctxt;
-    val consts = consts_of ctxt;
-    val extern =
-     {extern_class = Type.extern_class tsig,
-      extern_type = Type.extern_type tsig,
-      extern_const = Consts.extern consts};
-  in
-    Syntax.standard_unparse_term (Local_Syntax.idents_of syntax) extern ctxt
-      (Local_Syntax.syn_of syntax) (not (Pure_Thy.old_appl_syntax (theory_of ctxt)))
-  end;
-
-in
-
-val _ = Syntax.install_operations
-  {parse_sort = parse_sort,
-   parse_typ = parse_typ,
-   parse_term = parse_term dummyT,
-   parse_prop = parse_term propT,
-   unparse_sort = unparse_sort,
-   unparse_typ = unparse_typ,
-   unparse_term = unparse_term};
 
 end;
 

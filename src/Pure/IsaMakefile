@@ -184,6 +184,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Syntax/parser.ML					\
   Syntax/printer.ML					\
   Syntax/simple_syntax.ML				\
+  Syntax/standard_syntax.ML				\
   Syntax/syn_ext.ML					\
   Syntax/syn_trans.ML					\
   Syntax/syntax.ML					\
