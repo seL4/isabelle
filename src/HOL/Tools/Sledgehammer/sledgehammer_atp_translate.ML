@@ -405,9 +405,11 @@ val fname_table =
 val mangled_type_sep = "\000"
 
 fun mangled_combtyp f (CombTFree name) = f name
+  | mangled_combtyp f (CombTVar name) =
+    f name (* FIXME: shouldn't happen *)
+    (* raise Fail "impossible schematic type variable" *)
   | mangled_combtyp f (CombType (name, tys)) =
     "(" ^ commas (map (mangled_combtyp f) tys) ^ ")" ^ f name
-  | mangled_combtyp _ _ = raise Fail "impossible schematic type variable"
 
 fun mangled_type_suffix f g tys =
   fold_rev (curry (op ^) o g o prefix mangled_type_sep o mangled_combtyp f)
