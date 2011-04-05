@@ -433,7 +433,6 @@ fun unmangled_type s =
            (Scan.error (!! (fn _ => raise Fail ("unrecognized mangled type " ^
                                                 quote s)) parse_mangled_type))
     |> fst
-    |> tap (fn u => PolyML.makestring u |> warning) (*###*)
 
 fun unmangled_const s =
   let val ss = space_explode mangled_type_sep s in
