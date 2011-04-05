@@ -319,7 +319,7 @@ abbreviation
 translations
   "PIP x:I. M" == "CONST Pi\<^isub>P I (%x. M)"
 
-sublocale product_prob_space \<subseteq> G: algebra generator
+sublocale product_prob_space \<subseteq> G!: algebra generator
 proof
   let ?G = generator
   show "sets ?G \<subseteq> Pow (space ?G)"
@@ -738,19 +738,19 @@ proof -
     done
 qed
 
-sublocale product_prob_space \<subseteq> measure_space "Pi\<^isub>P I M"
+sublocale product_prob_space \<subseteq> P: measure_space "Pi\<^isub>P I M"
   using infprod_spec by auto
 
 lemma (in product_prob_space) measure_infprod_emb:
   assumes "J \<noteq> {}" "finite J" "J \<subseteq> I" "X \<in> sets (Pi\<^isub>M J M)"
-  shows "measure (Pi\<^isub>P I M) (emb I J X) = measure (Pi\<^isub>M J M) X"
+  shows "\<mu> (emb I J X) = measure (Pi\<^isub>M J M) X"
 proof -
   have "emb I J X \<in> sets generator"
     using assms by (rule generatorI')
   with \<mu>G_eq[OF assms] infprod_spec show ?thesis by auto
 qed
 
-sublocale product_prob_space \<subseteq> prob_space "Pi\<^isub>P I M"
+sublocale product_prob_space \<subseteq> P: prob_space "Pi\<^isub>P I M"
 proof
   obtain i where "i \<in> I" using I_not_empty by auto
   interpret i: finite_product_sigma_finite M "{i}" by default auto
@@ -758,11 +758,11 @@ proof
   have "?X \<in> sets (Pi\<^isub>M {i} M)"
     by auto
   from measure_infprod_emb[OF _ _ _ this] `i \<in> I`
-  have "measure (Pi\<^isub>P I M) (emb I {i} ?X) = measure (M i) (space (M i))"
+  have "\<mu> (emb I {i} ?X) = measure (M i) (space (M i))"
     by (simp add: i.measure_times)
   also have "emb I {i} ?X = space (Pi\<^isub>P I M)"
     using `i \<in> I` by (auto simp: emb_def infprod_algebra_def generator_def)
-  finally show "measure (Pi\<^isub>P I M) (space (Pi\<^isub>P I M)) = 1"
+  finally show "\<mu> (space (Pi\<^isub>P I M)) = 1"
     using M.measure_space_1 by simp
 qed
 
@@ -782,6 +782,201 @@ next
   from generatorI[OF _ _ _ this] `i \<in> I`
   show "(\<lambda>x. x i) -` A \<inter> space (Pi\<^isub>P I M) \<in> sets (Pi\<^isub>P I M)"
     unfolding infprod_algebra_def by auto
+qed
+
+lemma (in product_prob_space) emb_in_infprod_algebra[intro]:
+  fixes J assumes J: "finite J" "J \<subseteq> I" and X: "X \<in> sets (Pi\<^isub>M J M)"
+  shows "emb I J X \<in> sets (\<Pi>\<^isub>P i\<in>I. M i)"
+proof cases
+  assume "J = {}"
+  with X have "emb I J X = space (\<Pi>\<^isub>P i\<in>I. M i) \<or> emb I J X = {}"
+    by (auto simp: emb_def infprod_algebra_def generator_def
+                   product_algebra_def product_algebra_generator_def image_constant sigma_def)
+  then show ?thesis by auto
+next
+  assume "J \<noteq> {}"
+  show ?thesis unfolding infprod_algebra_def
+    by simp (intro in_sigma generatorI'  `J \<noteq> {}` J X)
+qed
+
+lemma (in product_prob_space) finite_measure_infprod_emb:
+  assumes "J \<noteq> {}" "finite J" "J \<subseteq> I" "X \<in> sets (Pi\<^isub>M J M)"
+  shows "\<mu>' (emb I J X) = finite_measure.\<mu>' (Pi\<^isub>M J M) X"
+proof -
+  interpret J: finite_product_prob_space M J by default fact+
+  from assms have "emb I J X \<in> sets (Pi\<^isub>P I M)" by auto
+  with assms show "\<mu>' (emb I J X) = J.\<mu>' X"
+    unfolding \<mu>'_def J.\<mu>'_def
+    unfolding measure_infprod_emb[OF assms]
+    by auto
+qed
+
+lemma (in finite_product_prob_space) finite_measure_times:
+  assumes "\<And>i. i \<in> I \<Longrightarrow> A i \<in> sets (M i)"
+  shows "\<mu>' (Pi\<^isub>E I A) = (\<Prod>i\<in>I. M.\<mu>' i (A i))"
+  using assms
+  unfolding \<mu>'_def M.\<mu>'_def
+  by (subst measure_times[OF assms])
+     (auto simp: finite_measure_eq M.finite_measure_eq setprod_extreal)
+
+lemma (in product_prob_space) finite_measure_infprod_emb_Pi:
+  assumes J: "finite J" "J \<subseteq> I" "\<And>j. j \<in> J \<Longrightarrow> X j \<in> sets (M j)"
+  shows "\<mu>' (emb I J (Pi\<^isub>E J X)) = (\<Prod>j\<in>J. M.\<mu>' j (X j))"
+proof cases
+  assume "J = {}"
+  then have "emb I J (Pi\<^isub>E J X) = space infprod_algebra"
+    by (auto simp: infprod_algebra_def generator_def sigma_def emb_def)
+  then show ?thesis using `J = {}` prob_space by simp
+next
+  assume "J \<noteq> {}"
+  interpret J: finite_product_prob_space M J by default fact+
+  have "(\<Prod>i\<in>J. M.\<mu>' i (X i)) = J.\<mu>' (Pi\<^isub>E J X)"
+    using J `J \<noteq> {}` by (subst J.finite_measure_times) auto
+  also have "\<dots> = \<mu>' (emb I J (Pi\<^isub>E J X))"
+    using J `J \<noteq> {}` by (intro finite_measure_infprod_emb[symmetric]) auto
+  finally show ?thesis by simp
+qed
+
+lemma sigma_sets_mono: assumes "A \<subseteq> sigma_sets X B" shows "sigma_sets X A \<subseteq> sigma_sets X B"
+proof
+  fix x assume "x \<in> sigma_sets X A" then show "x \<in> sigma_sets X B"
+    by induct (insert `A \<subseteq> sigma_sets X B`, auto intro: sigma_sets.intros)
+qed
+
+lemma sigma_sets_mono': assumes "A \<subseteq> B" shows "sigma_sets X A \<subseteq> sigma_sets X B"
+proof
+  fix x assume "x \<in> sigma_sets X A" then show "x \<in> sigma_sets X B"
+    by induct (insert `A \<subseteq> B`, auto intro: sigma_sets.intros)
+qed
+
+lemma sigma_sets_subseteq: "A \<subseteq> sigma_sets X A"
+  by (auto intro: sigma_sets.Basic)
+
+lemma (in product_prob_space) infprod_algebra_alt:
+  "Pi\<^isub>P I M = sigma \<lparr> space = space (Pi\<^isub>P I M),
+    sets = (\<Union>J\<in>{J. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I}. emb I J ` Pi\<^isub>E J ` (\<Pi> i \<in> J. sets (M i))),
+    measure = measure (Pi\<^isub>P I M) \<rparr>"
+  (is "_ = sigma \<lparr> space = ?O, sets = ?M, measure = ?m \<rparr>")
+proof (rule measure_space.equality)
+  let ?G = "\<Union>J\<in>{J. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I}. emb I J ` sets (Pi\<^isub>M J M)"
+  have "sigma_sets ?O ?M = sigma_sets ?O ?G"
+  proof (intro equalityI sigma_sets_mono UN_least)
+    fix J assume J: "J \<in> {J. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I}"
+    have "emb I J ` Pi\<^isub>E J ` (\<Pi> i\<in>J. sets (M i)) \<subseteq> emb I J ` sets (Pi\<^isub>M J M)" by auto
+    also have "\<dots> \<subseteq> ?G" using J by (rule UN_upper)
+    also have "\<dots> \<subseteq> sigma_sets ?O ?G" by (rule sigma_sets_subseteq)
+    finally show "emb I J ` Pi\<^isub>E J ` (\<Pi> i\<in>J. sets (M i)) \<subseteq> sigma_sets ?O ?G" .
+    have "emb I J ` sets (Pi\<^isub>M J M) = emb I J ` sigma_sets (space (Pi\<^isub>M J M)) (Pi\<^isub>E J ` (\<Pi> i \<in> J. sets (M i)))"
+      by (simp add: sets_sigma product_algebra_generator_def product_algebra_def)
+    also have "\<dots> = sigma_sets (space (Pi\<^isub>M I M)) (emb I J ` Pi\<^isub>E J ` (\<Pi> i \<in> J. sets (M i)))"
+      using J M.sets_into_space
+      by (auto simp: emb_def_raw intro!: sigma_sets_vimage[symmetric]) blast
+    also have "\<dots> \<subseteq> sigma_sets (space (Pi\<^isub>M I M)) ?M"
+      using J by (intro sigma_sets_mono') auto
+    finally show "emb I J ` sets (Pi\<^isub>M J M) \<subseteq> sigma_sets ?O ?M"
+      by (simp add: infprod_algebra_def generator_def)
+  qed
+  then show "sets (Pi\<^isub>P I M) = sets (sigma \<lparr> space = ?O, sets = ?M, measure = ?m \<rparr>)"
+    by (simp_all add: infprod_algebra_def generator_def sets_sigma)
+qed simp_all
+
+lemma (in product_prob_space) infprod_algebra_alt2:
+  "Pi\<^isub>P I M = sigma \<lparr> space = space (Pi\<^isub>P I M),
+    sets = (\<Union>i\<in>I. (\<lambda>A. (\<lambda>x. x i) -` A \<inter> space (Pi\<^isub>P I M)) ` sets (M i)),
+    measure = measure (Pi\<^isub>P I M) \<rparr>"
+  (is "_ = ?S")
+proof (rule measure_space.equality)
+  let "sigma \<lparr> space = ?O, sets = ?A, \<dots> = _ \<rparr>" = ?S
+  let ?G = "(\<Union>J\<in>{J. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I}. emb I J ` Pi\<^isub>E J ` (\<Pi> i \<in> J. sets (M i)))"
+  have "sets (Pi\<^isub>P I M) = sigma_sets ?O ?G"
+    by (subst infprod_algebra_alt) (simp add: sets_sigma)
+  also have "\<dots> = sigma_sets ?O ?A"
+  proof (intro equalityI sigma_sets_mono subsetI)
+    interpret A: sigma_algebra ?S
+      by (rule sigma_algebra_sigma) auto
+    fix A assume "A \<in> ?G"
+    then obtain J B where "finite J" "J \<noteq> {}" "J \<subseteq> I" "A = emb I J (Pi\<^isub>E J B)"
+        and B: "\<And>i. i \<in> J \<Longrightarrow> B i \<in> sets (M i)"
+      by auto
+    then have A: "A = (\<Inter>j\<in>J. (\<lambda>x. x j) -` (B j) \<inter> space (Pi\<^isub>P I M))"
+      by (auto simp: emb_def infprod_algebra_def generator_def Pi_iff)
+    { fix j assume "j\<in>J"
+      with `J \<subseteq> I` have "j \<in> I" by auto
+      with `j \<in> J` B have "(\<lambda>x. x j) -` (B j) \<inter> space (Pi\<^isub>P I M) \<in> sets ?S"
+        by (auto simp: sets_sigma intro: sigma_sets.Basic) }
+    with `finite J` `J \<noteq> {}` have "A \<in> sets ?S"
+      unfolding A by (intro A.finite_INT) auto
+    then show "A \<in> sigma_sets ?O ?A" by (simp add: sets_sigma)
+  next
+    fix A assume "A \<in> ?A"
+    then obtain i B where i: "i \<in> I" "B \<in> sets (M i)"
+        and "A = (\<lambda>x. x i) -` B \<inter> space (Pi\<^isub>P I M)"
+      by auto
+    then have "A = emb I {i} (Pi\<^isub>E {i} (\<lambda>_. B))"
+      by (auto simp: emb_def infprod_algebra_def generator_def Pi_iff)
+    with i show "A \<in> sigma_sets ?O ?G"
+      by (intro sigma_sets.Basic UN_I[where a="{i}"]) auto
+  qed
+  finally show "sets (Pi\<^isub>P I M) = sets ?S"
+    by (simp add: sets_sigma)
+qed simp_all
+
+lemma (in product_prob_space) measurable_into_infprod_algebra:
+  assumes "sigma_algebra N"
+  assumes f: "\<And>i. i \<in> I \<Longrightarrow> (\<lambda>x. f x i) \<in> measurable N (M i)"
+  assumes ext: "\<And>x. x \<in> space N \<Longrightarrow> f x \<in> extensional I"
+  shows "f \<in> measurable N (Pi\<^isub>P I M)"
+proof -
+  interpret N: sigma_algebra N by fact
+  have f_in: "\<And>i. i \<in> I \<Longrightarrow> (\<lambda>x. f x i) \<in> space N \<rightarrow> space (M i)"
+    using f by (auto simp: measurable_def)
+  { fix i A assume i: "i \<in> I" "A \<in> sets (M i)"
+    then have "f -` (\<lambda>x. x i) -` A \<inter> f -` space infprod_algebra \<inter> space N = (\<lambda>x. f x i) -` A \<inter> space N"
+      using f_in ext by (auto simp: infprod_algebra_def generator_def)
+    also have "\<dots> \<in> sets N"
+      by (rule measurable_sets f i)+
+    finally have "f -` (\<lambda>x. x i) -` A \<inter> f -` space infprod_algebra \<inter> space N \<in> sets N" . }
+  with f_in ext show ?thesis
+    by (subst infprod_algebra_alt2)
+       (auto intro!: N.measurable_sigma simp: Pi_iff infprod_algebra_def generator_def)
+qed
+
+subsection {* Sequence space *}
+
+locale sequence_space = product_prob_space M "UNIV :: nat set" for M
+
+lemma (in sequence_space) infprod_in_sets[intro]:
+  fixes E :: "nat \<Rightarrow> 'a set" assumes E: "\<And>i. E i \<in> sets (M i)"
+  shows "Pi UNIV E \<in> sets (Pi\<^isub>P UNIV M)"
+proof -
+  have "Pi UNIV E = (\<Inter>i. emb UNIV {..i} (\<Pi>\<^isub>E j\<in>{..i}. E j))"
+    using E E[THEN M.sets_into_space]
+    by (auto simp: emb_def Pi_iff extensional_def) blast
+  with E show ?thesis
+    by (auto intro: emb_in_infprod_algebra)
+qed
+
+lemma (in sequence_space) measure_infprod:
+  fixes E :: "nat \<Rightarrow> 'a set" assumes E: "\<And>i. E i \<in> sets (M i)"
+  shows "(\<lambda>n. \<Prod>i\<le>n. M.\<mu>' i (E i)) ----> \<mu>' (Pi UNIV E)"
+proof -
+  let "?E n" = "emb UNIV {..n} (Pi\<^isub>E {.. n} E)"
+  { fix n :: nat
+    interpret n: finite_product_prob_space M "{..n}" by default auto
+    have "(\<Prod>i\<le>n. M.\<mu>' i (E i)) = n.\<mu>' (Pi\<^isub>E {.. n} E)"
+      using E by (subst n.finite_measure_times) auto
+    also have "\<dots> = \<mu>' (?E n)"
+      using E by (intro finite_measure_infprod_emb[symmetric]) auto
+    finally have "(\<Prod>i\<le>n. M.\<mu>' i (E i)) = \<mu>' (?E n)" . }
+  moreover have "Pi UNIV E = (\<Inter>n. ?E n)"
+    using E E[THEN M.sets_into_space]
+    by (auto simp: emb_def extensional_def Pi_iff) blast
+  moreover have "range ?E \<subseteq> sets (Pi\<^isub>P UNIV M)"
+    using E by auto
+  moreover have "decseq ?E"
+    by (auto simp: emb_def Pi_iff decseq_def)
+  ultimately show ?thesis
+    by (simp add: finite_continuity_from_above)
 qed
 
 end
