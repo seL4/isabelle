@@ -442,7 +442,8 @@ fun compile_generator_expr ctxt ts =
 (** setup **)
 
 val setup =
-  Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype (@{sort random}, instantiate_random_datatype))
+  Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
+    (((@{sort typerep}, @{sort term_of}), @{sort random}), instantiate_random_datatype))
   #> Code_Target.extend_target (target, (Code_Runtime.target, K I))
   #> Context.theory_map
     (Quickcheck.add_generator ("random", compile_generator_expr));
