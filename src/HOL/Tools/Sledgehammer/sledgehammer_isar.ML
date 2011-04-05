@@ -240,7 +240,6 @@ fun extract_params auto default_params override_params =
     val type_sys =
       case (lookup_string "type_sys", lookup_bool "full_types") of
         ("tags", full_types) => Tags full_types
-      | ("preds", full_types) => Preds full_types
       | ("const_args", false) => Const_Args
       | ("mangled", false) => if monomorphize then Mangled else Const_Args
       | ("none", false) => No_Types

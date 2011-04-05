@@ -14,7 +14,6 @@ sig
 
   datatype type_system =
     Tags of bool |
-    Preds of bool |
     Const_Args |
     Mangled |
     No_Types
@@ -64,13 +63,11 @@ type translated_formula =
 
 datatype type_system =
   Tags of bool |
-  Preds of bool |
   Const_Args |
   Mangled |
   No_Types
 
 fun types_dangerous_types (Tags _) = true
-  | types_dangerous_types (Preds _) = true
   | types_dangerous_types _ = false
 
 (* This is an approximation. If it returns "true" for a constant that isn't
@@ -86,7 +83,6 @@ fun is_overloaded thy s =
 fun needs_type_args thy type_sys s =
   case type_sys of
     Tags full_types => not full_types andalso is_overloaded thy s
-  | Preds _ => is_overloaded thy s (* FIXME: could be more precise *)
   | Const_Args => is_overloaded thy s
   | Mangled => true
   | No_Types => false
