@@ -671,22 +671,15 @@ fun conc (t: parsetree list, prec: int) [] = (NONE, [(t, prec)])
         in (n, (t', prec') :: ts') end;
 
 (*Update entry in used*)
-fun update_trees ((B: nt_tag, (i, ts)) :: used) (A, t) =
-  if A = B then
-    let val (n, ts') = conc t ts
-    in ((A, (i, ts')) :: used, n) end
-  else
-    let val (used', n) = update_trees used (A, t)
-    in ((B, (i, ts)) :: used', n) end;
+fun update_trees (A, t) used =
+  let
+    val (i, ts) = the (Inttab.lookup used A);
+    val (n, ts') = conc t ts;
+  in (n, Inttab.update (A, (i, ts')) used) end;
 
 (*Replace entry in used*)
-fun update_prec (A: nt_tag, prec) used =
-  let
-    fun update ((hd as (B, (_, ts))) :: used, used') =
-      if A = B
-      then used' @ ((A, (prec, ts)) :: used)
-      else update (used, hd :: used')
-  in update (used, []) end;
+fun update_prec (A, prec) =
+  Inttab.map_entry A (fn (_, ts) => (prec, ts));
 
 fun getS A max_prec NONE Si =
       filter
@@ -752,7 +745,7 @@ fun PROCESSS ctxt warned prods chains Estate i c states =
             (_, _, _, Nonterminal (nt, min_prec) :: _, _, _) =>
               let (*predictor operation*)
                 val (used', new_states) =
-                  (case AList.lookup (op =) used nt of
+                  (case Inttab.lookup used nt of
                     SOME (used_prec, l) => (*nonterminal has been processed*)
                       if used_prec <= min_prec then
                         (*wanted precedence has been processed*)
@@ -767,7 +760,7 @@ fun PROCESSS ctxt warned prods chains Estate i c states =
                       let
                         val tk_prods = all_prods_for nt;
                         val States' = mk_states i min_prec nt (get_RHS min_prec tk_prods);
-                      in ((nt, (min_prec, [])) :: used, States') end);
+                      in (Inttab.update (nt, (min_prec, [])) used, States') end);
 
                 val _ =
                   if not (! warned) andalso
@@ -787,7 +780,7 @@ fun PROCESSS ctxt warned prods chains Estate i c states =
               let val tt = if id = "" then ts else [Node (id, rev ts)] in
                 if j = i then (*lambda production?*)
                   let
-                    val (used', prec') = update_trees used (A, (tt, prec));
+                    val (prec', used') = update_trees (A, (tt, prec)) used;
                     val Slist = getS A prec prec' Si;
                     val States' = map (movedot_nonterm tt) Slist;
                   in processS used' (States' @ States) (S :: Si, Sii) end
@@ -795,7 +788,7 @@ fun PROCESSS ctxt warned prods chains Estate i c states =
                   let val Slist = get_states Estate i j A prec
                   in processS used (map (movedot_nonterm tt) Slist @ States) (S :: Si, Sii) end
               end)
-  in processS [] states ([], []) end;
+  in processS Inttab.empty states ([], []) end;
 
 
 fun produce ctxt warned prods tags chains stateset i indata prev_token =
