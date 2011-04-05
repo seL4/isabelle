@@ -770,7 +770,7 @@ lemma the_inv_f_f:
 
 subsection {* Cantor's Paradox *}
 
-lemma Cantors_paradox:
+lemma Cantors_paradox [no_atp]:
   "\<not>(\<exists>f. f ` A = Pow A)"
 proof clarify
   fix f assume "f ` A = Pow A" hence *: "Pow A \<le> f ` A" by blast
