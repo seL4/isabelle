@@ -118,6 +118,12 @@ sig
   val is_keyword: syntax -> string -> bool
   val tokenize: syntax -> bool -> Symbol_Pos.T list -> Lexicon.token list
   val parse: Proof.context -> syntax -> string -> Lexicon.token list -> Parser.parsetree list
+  val parse_ast_translation: syntax -> string -> (Proof.context -> Ast.ast list -> Ast.ast) option
+  val parse_translation: syntax -> string -> (Proof.context -> term list -> term) option
+  val print_translation: syntax -> string -> (Proof.context -> typ -> term list -> term) list
+  val print_ast_translation: syntax -> string -> (Proof.context -> Ast.ast list -> Ast.ast) list
+  val token_translation: syntax -> string list ->
+    string -> (Proof.context -> string -> Pretty.T) option
   type mode
   val mode_default: mode
   val mode_input: mode
@@ -402,6 +408,8 @@ fun pp_global thy = Pretty.pp
 fun err_dup_trfun name c =
   error ("More than one " ^ name ^ " for " ^ quote c);
 
+fun lookup_tr tab c = Option.map fst (Symtab.lookup tab c);
+
 fun remove_trtab trfuns = fold (Symtab.remove Syn_Ext.eq_trfun) trfuns;
 
 fun update_trtab name trfuns tab = fold Symtab.update_new trfuns (remove_trtab trfuns tab)
@@ -412,6 +420,8 @@ fun merge_trtabs name tab1 tab2 = Symtab.merge Syn_Ext.eq_trfun (tab1, tab2)
 
 
 (* print (ast) translations *)
+
+fun lookup_tr' tab c = map fst (Symtab.lookup_list tab c);
 
 fun update_tr'tab trfuns = fold_rev (Symtab.update_list Syn_Ext.eq_trfun) trfuns;
 fun remove_tr'tab trfuns = fold (Symtab.remove_list Syn_Ext.eq_trfun) trfuns;
@@ -494,6 +504,12 @@ fun eq_syntax (Syntax (_, s1), Syntax (_, s2)) = s1 = s2;
 fun is_keyword (Syntax ({lexicon, ...}, _)) = Scan.is_literal lexicon o Symbol.explode;
 fun tokenize (Syntax ({lexicon, ...}, _)) = Lexicon.tokenize lexicon;
 fun parse ctxt (Syntax ({gram, ...}, _)) = Parser.parse ctxt gram;
+
+fun parse_ast_translation (Syntax ({parse_ast_trtab, ...}, _)) = lookup_tr parse_ast_trtab;
+fun parse_translation (Syntax ({parse_trtab, ...}, _)) = lookup_tr parse_trtab;
+fun print_translation (Syntax ({print_trtab, ...}, _)) = lookup_tr' print_trtab;
+fun print_ast_translation (Syntax ({print_ast_trtab, ...}, _)) = lookup_tr' print_ast_trtab;
+fun token_translation (Syntax ({tokentrtab, ...}, _)) = lookup_tokentr tokentrtab;
 
 type mode = string * bool;
 val mode_default = ("", true);

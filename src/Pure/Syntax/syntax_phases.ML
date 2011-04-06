@@ -89,8 +89,6 @@ fun typ_of_term get_sort tm =
 
 (* parsetree_to_ast *)
 
-fun lookup_tr tab c = Option.map fst (Symtab.lookup tab c);
-
 fun parsetree_to_ast ctxt constrain_pos trf parsetree =
   let
     val tsig = ProofContext.tsig_of ctxt;
@@ -240,7 +238,7 @@ fun report_result ctxt pos results =
 fun parse_asts ctxt raw root (syms, pos) =
   let
     val syn = ProofContext.syn_of ctxt;
-    val {parse_ast_trtab, ...} = Syntax.rep_syntax syn;
+    val ast_tr = Syntax.parse_ast_translation syn;
 
     val toks = Syntax.tokenize syn raw syms;
     val _ = List.app (Lexicon.report_token ctxt) toks;
@@ -263,14 +261,16 @@ fun parse_asts ctxt raw root (syms, pos) =
             map (Pretty.string_of o Parser.pretty_parsetree) (take limit pts))));
 
     val constrain_pos = not raw andalso Config.get ctxt Syntax.positions;
-    val parsetree_to_ast = parsetree_to_ast ctxt constrain_pos (lookup_tr parse_ast_trtab);
+    val parsetree_to_ast = parsetree_to_ast ctxt constrain_pos ast_tr;
   in map parsetree_to_ast pts end;
 
 fun parse_raw ctxt root input =
   let
-    val {parse_ruletab, parse_trtab, ...} = Syntax.rep_syntax (ProofContext.syn_of ctxt);
+    val syn = ProofContext.syn_of ctxt;
+    val tr = Syntax.parse_translation syn;
+    val {parse_ruletab, ...} = Syntax.rep_syntax syn;
     val norm = Ast.normalize ctxt (Symtab.lookup_list parse_ruletab);
-    val ast_to_term = ast_to_term ctxt (lookup_tr parse_trtab);
+    val ast_to_term = ast_to_term ctxt tr;
   in
     parse_asts ctxt false root input
     |> (map o apsnd o Exn.maps_result) (norm #> Exn.interruptible_capture ast_to_term)
@@ -558,17 +558,18 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
 
 local
 
-fun lookup_tr' tab c = map fst (Symtab.lookup_list tab c);
-
 fun unparse_t t_to_ast prt_t markup ctxt curried t =
   let
-    val {print_trtab, print_ruletab, print_ast_trtab, tokentrtab, prtabs, ...} =
-      Syntax.rep_syntax (ProofContext.syn_of ctxt);
-    val ast = t_to_ast ctxt (lookup_tr' print_trtab) t;
+    val syn = ProofContext.syn_of ctxt;
+    val tr' = Syntax.print_translation syn;
+    val ast_tr' = Syntax.print_ast_translation syn;
+    val tokentr = Syntax.token_translation syn (print_mode_value ());
+    val {print_ruletab, tokentrtab, prtabs, ...} = Syntax.rep_syntax syn;
   in
-    Pretty.markup markup (prt_t ctxt curried prtabs (lookup_tr' print_ast_trtab)
-      (Syntax.lookup_tokentr tokentrtab (print_mode_value ()))
-      (Ast.normalize ctxt (Symtab.lookup_list print_ruletab) ast))
+    t_to_ast ctxt tr' t
+    |> Ast.normalize ctxt (Symtab.lookup_list print_ruletab)
+    |> prt_t ctxt curried prtabs ast_tr' tokentr
+    |> Pretty.markup markup
   end;
 
 in
