@@ -122,7 +122,9 @@ fun prepare prep_vars parse_prop prep_att do_close raw_vars raw_specss ctxt =
     val (vars, vars_ctxt) = ctxt |> prep_vars raw_vars;
     val (xs, params_ctxt) = vars_ctxt |> ProofContext.add_fixes vars;
 
-    val Asss = (map o map) (map (parse_prop params_ctxt) o snd) raw_specss;
+    val Asss =
+      (map o map) snd raw_specss
+      |> (burrow o burrow) (Par_List.map_name "Specification.parse_prop" (parse_prop params_ctxt));
     val names = Variable.names_of (params_ctxt |> (fold o fold o fold) Variable.declare_term Asss)
       |> fold Name.declare xs;
     val Asss' = #1 ((fold_map o fold_map o fold_map) Term.free_dummy_patterns Asss names);
