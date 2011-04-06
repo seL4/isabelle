@@ -7,7 +7,6 @@ Syntax extension (internal interface).
 signature SYN_EXT0 =
 sig
   val dddot_indexname: indexname
-  val constrainC: string
   val typeT: typ
   val spropT: typ
   val default_root: string Config.T
@@ -93,7 +92,6 @@ struct
 (** misc definitions **)
 
 val dddot_indexname = ("dddot", 0);
-val constrainC = "_constrain";
 
 
 (* syntactic categories *)

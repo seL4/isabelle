@@ -73,7 +73,7 @@ fun numeral_tr' ctxt (Type (@{type_name fun}, [_, T])) (t :: ts) =
       let val t' =
         if not (Config.get ctxt show_types) andalso can Term.dest_Type T then syntax_numeral t
         else
-          Syntax.const Syntax.constrainC $ syntax_numeral t $
+          Syntax.const @{syntax_const "_constrain"} $ syntax_numeral t $
             Syntax_Phases.term_of_typ ctxt T
       in list_comb (t', ts) end
   | numeral_tr' _ T (t :: ts) =

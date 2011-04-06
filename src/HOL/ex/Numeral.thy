@@ -309,7 +309,7 @@ let
       case T of
         Type (@{type_name fun}, [_, T']) =>
           if not (Config.get ctxt show_types) andalso can Term.dest_Type T' then t'
-          else Syntax.const Syntax.constrainC $ t' $ Syntax_Phases.term_of_typ ctxt T'
+          else Syntax.const @{syntax_const "_constrain"} $ t' $ Syntax_Phases.term_of_typ ctxt T'
       | T' => if T' = dummyT then t' else raise Match
     end;
 in [(@{const_syntax of_num}, num_tr')] end

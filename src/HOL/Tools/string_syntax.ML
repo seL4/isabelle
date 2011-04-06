@@ -68,7 +68,7 @@ fun string_ast_tr [Ast.Variable xstr] =
       (case Syntax.explode_xstr xstr of
         [] =>
           Ast.Appl
-            [Ast.Constant Syntax.constrainC,
+            [Ast.Constant @{syntax_const "_constrain"},
               Ast.Constant @{const_syntax Nil}, Ast.Constant @{type_syntax string}]
       | cs => mk_string cs)
   | string_ast_tr asts = raise Ast.AST ("string_tr", asts);

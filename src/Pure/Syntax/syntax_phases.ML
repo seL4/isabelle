@@ -545,7 +545,7 @@ fun term_to_ast idents consts ctxt trf tm =
 
     and constrain t T =
       if show_types andalso T <> dummyT then
-        Ast.Appl [Ast.Constant Syntax.constrainC, simple_ast_of ctxt t,
+        Ast.Appl [Ast.Constant "_constrain", simple_ast_of ctxt t,
           ast_of_termT ctxt trf (term_of_typ ctxt T)]
       else simple_ast_of ctxt t;
   in
@@ -639,7 +639,7 @@ fun type_tr' ctxt (Type ("itself", [T])) ts =
 (* type constraints *)
 
 fun type_constraint_tr' ctxt (Type ("fun", [T, _])) (t :: ts) =
-      Term.list_comb (Lexicon.const Syntax.constrainC $ t $ term_of_typ ctxt T, ts)
+      Term.list_comb (Lexicon.const "_constrain" $ t $ term_of_typ ctxt T, ts)
   | type_constraint_tr' _ _ _ = raise Match;
 
 
