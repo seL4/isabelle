@@ -268,12 +268,11 @@ fun parse_raw ctxt root input =
   let
     val syn = ProofContext.syn_of ctxt;
     val tr = Syntax.parse_translation syn;
-    val {parse_ruletab, ...} = Syntax.rep_syntax syn;
-    val norm = Ast.normalize ctxt (Symtab.lookup_list parse_ruletab);
-    val ast_to_term = ast_to_term ctxt tr;
+    val parse_rules = Syntax.parse_rules syn;
   in
     parse_asts ctxt false root input
-    |> (map o apsnd o Exn.maps_result) (norm #> Exn.interruptible_capture ast_to_term)
+    |> (map o apsnd o Exn.maps_result)
+        (Ast.normalize ctxt parse_rules #> Exn.interruptible_capture (ast_to_term ctxt tr))
   end;
 
 
@@ -557,14 +556,11 @@ local
 fun unparse_t t_to_ast prt_t markup ctxt curried t =
   let
     val syn = ProofContext.syn_of ctxt;
-    val tr' = Syntax.print_translation syn;
-    val ast_tr' = Syntax.print_ast_translation syn;
     val tokentr = Syntax.token_translation syn (print_mode_value ());
-    val {print_ruletab, prtabs, ...} = Syntax.rep_syntax syn;
   in
-    t_to_ast ctxt tr' t
-    |> Ast.normalize ctxt (Symtab.lookup_list print_ruletab)
-    |> prt_t ctxt curried prtabs ast_tr' tokentr
+    t_to_ast ctxt (Syntax.print_translation syn) t
+    |> Ast.normalize ctxt (Syntax.print_rules syn)
+    |> prt_t ctxt curried (Syntax.prtabs syn) (Syntax.print_ast_translation syn) tokentr
     |> Pretty.markup markup
   end;
 

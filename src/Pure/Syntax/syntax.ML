@@ -100,32 +100,21 @@ sig
       string list -> string -> (Proof.context -> string -> Pretty.T) option
   type ruletab
   type syntax
-  val rep_syntax: syntax ->
-   {input: Syn_Ext.xprod list,
-    lexicon: Scan.lexicon,
-    gram: Parser.gram,
-    consts: string list,
-    prmodes: string list,
-    parse_ast_trtab: ((Proof.context -> Ast.ast list -> Ast.ast) * stamp) Symtab.table,
-    parse_ruletab: ruletab,
-    parse_trtab: ((Proof.context -> term list -> term) * stamp) Symtab.table,
-    print_trtab: ((Proof.context -> typ -> term list -> term) * stamp) list Symtab.table,
-    print_ruletab: ruletab,
-    print_ast_trtab: ((Proof.context -> Ast.ast list -> Ast.ast) * stamp) list Symtab.table,
-    tokentrtab: (string * (string * ((Proof.context -> string -> Pretty.T) * stamp)) list) list,
-    prtabs: Printer.prtabs}
   val eq_syntax: syntax * syntax -> bool
   val is_keyword: syntax -> string -> bool
   val tokenize: syntax -> bool -> Symbol_Pos.T list -> Lexicon.token list
   val parse: Proof.context -> syntax -> string -> Lexicon.token list -> Parser.parsetree list
   val parse_ast_translation: syntax -> string -> (Proof.context -> Ast.ast list -> Ast.ast) option
+  val parse_rules: syntax -> string -> (Ast.ast * Ast.ast) list
   val parse_translation: syntax -> string -> (Proof.context -> term list -> term) option
   val print_translation: syntax -> string ->
     Proof.context -> typ -> term list -> term  (*exception Match*)
+  val print_rules: syntax -> string -> (Ast.ast * Ast.ast) list
   val print_ast_translation: syntax -> string ->
     Proof.context -> Ast.ast list -> Ast.ast  (*exception Match*)
   val token_translation: syntax -> string list ->
     string -> (Proof.context -> string -> Pretty.T) option
+  val prtabs: syntax -> Printer.prtabs
   type mode
   val mode_default: mode
   val mode_input: mode
@@ -521,9 +510,13 @@ fun parse ctxt (Syntax ({gram, ...}, _)) = Parser.parse ctxt gram;
 
 fun parse_ast_translation (Syntax ({parse_ast_trtab, ...}, _)) = lookup_tr parse_ast_trtab;
 fun parse_translation (Syntax ({parse_trtab, ...}, _)) = lookup_tr parse_trtab;
+fun parse_rules (Syntax ({parse_ruletab, ...}, _)) = Symtab.lookup_list parse_ruletab;
 fun print_translation (Syntax ({print_trtab, ...}, _)) = apply_tr' print_trtab;
+fun print_rules (Syntax ({print_ruletab, ...}, _)) = Symtab.lookup_list print_ruletab;
 fun print_ast_translation (Syntax ({print_ast_trtab, ...}, _)) = apply_ast_tr' print_ast_trtab;
 fun token_translation (Syntax ({tokentrtab, ...}, _)) = lookup_tokentr tokentrtab;
+
+fun prtabs (Syntax ({prtabs, ...}, _)) = prtabs;
 
 type mode = string * bool;
 val mode_default = ("", true);
