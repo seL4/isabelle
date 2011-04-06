@@ -93,7 +93,12 @@ fun lookup_tr tab c = Option.map fst (Symtab.lookup tab c);
 
 fun parsetree_to_ast ctxt constrain_pos trf parsetree =
   let
-    val {get_class, get_type, markup_class, markup_type} = ProofContext.type_context ctxt;
+    val tsig = ProofContext.tsig_of ctxt;
+
+    val get_class = ProofContext.read_class ctxt;
+    val get_type = #1 o dest_Type o ProofContext.read_type_name_proper ctxt false;
+    fun markup_class c = [Name_Space.markup_entry (Type.class_space tsig) c];
+    fun markup_type c = [Name_Space.markup_entry (Type.type_space tsig) c];
 
     val reports = Unsynchronized.ref ([]: Position.reports);
     fun report pos = Position.reports reports [pos];
@@ -146,14 +151,23 @@ fun ast_to_term ctxt trf =
 
 (* decode_term -- transform parse tree into raw term *)
 
-fun markup_bound def id =
-  [Markup.properties [(if def then Markup.defN else Markup.refN, id)] Markup.bound];
-
 fun decode_term _ (result as (_: Position.reports, Exn.Exn _)) = result
   | decode_term ctxt (reports0, Exn.Result tm) =
       let
-        val {get_const, get_free, markup_const, markup_free, markup_var} =
-          ProofContext.term_context ctxt;
+        val consts = ProofContext.consts_of ctxt;
+        fun get_const a =
+          ((true, #1 (Term.dest_Const (ProofContext.read_const_proper ctxt false a)))
+            handle ERROR _ => (false, Consts.intern consts a));
+        val get_free = ProofContext.intern_skolem ctxt;
+        fun markup_const c = [Name_Space.markup_entry (Consts.space_of consts) c];
+        fun markup_free x =
+          [if can Name.dest_skolem x then Markup.skolem else Markup.free] @
+          (if not (Variable.is_body ctxt) orelse Variable.is_fixed ctxt x then []
+           else [Markup.hilite]);
+        fun markup_var xi = [Markup.name (Term.string_of_vname xi) Markup.var];
+        fun markup_bound def id =
+          [Markup.properties [(if def then Markup.defN else Markup.refN, id)] Markup.bound];
+
         val decodeT = typ_of_term (ProofContext.get_sort ctxt (term_sorts tm));
 
         val reports = Unsynchronized.ref reports0;

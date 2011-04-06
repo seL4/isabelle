@@ -64,14 +64,11 @@ sig
   val read_const_proper: Proof.context -> bool -> string -> term
   val read_const: Proof.context -> bool -> typ -> string -> term
   val allow_dummies: Proof.context -> Proof.context
+  val get_sort: Proof.context -> (indexname * sort) list -> indexname -> sort
   val check_tvar: Proof.context -> indexname * sort -> indexname * sort
   val check_tfree: Proof.context -> string * sort -> string * sort
-  val get_sort: Proof.context -> (indexname * sort) list -> indexname -> sort
-  type type_context
-  val type_context: Proof.context -> type_context
-  type term_context
-  val term_context: Proof.context -> term_context
   val standard_infer_types: Proof.context -> term list -> term list
+  val intern_skolem: Proof.context -> string -> string option
   val read_term_pattern: Proof.context -> string -> term
   val read_term_schematic: Proof.context -> string -> term
   val read_term_abbrev: Proof.context -> string -> term
@@ -266,7 +263,6 @@ val set_defsort = map_tsig o apfst o Type.set_defsort;
 fun default_sort ctxt = the_default (Type.defaultS (tsig_of ctxt)) o Variable.def_sort ctxt;
 
 val consts_of = #1 o #consts o rep_context;
-val const_space = Consts.space_of o consts_of;
 val the_const_constraint = Consts.the_constraint o consts_of;
 
 val facts_of = #facts o rep_context;
@@ -526,6 +522,22 @@ fun read_const ctxt strict ty text =
 end;
 
 
+(* skolem variables *)
+
+fun intern_skolem ctxt x =
+  let
+    val _ = no_skolem false x;
+    val sko = lookup_skolem ctxt x;
+    val is_const = can (read_const_proper ctxt false) x orelse Long_Name.is_qualified x;
+    val is_declared = is_some (Variable.def_type ctxt false (x, ~1));
+  in
+    if Variable.is_const ctxt x then NONE
+    else if is_some sko then sko
+    else if not is_const orelse is_declared then SOME x
+    else NONE
+  end;
+
+
 (* read_term *)
 
 fun read_term_mode mode ctxt = Syntax.read_term (set_mode mode ctxt);
@@ -618,9 +630,7 @@ fun prepare_patterns ctxt =
 end;
 
 
-(* decoding raw terms (syntax trees) *)
-
-(* types *)
+(* sort constraints *)
 
 fun get_sort ctxt raw_text =
   let
@@ -652,54 +662,6 @@ fun get_sort ctxt raw_text =
 
 fun check_tvar ctxt (xi, S) = (xi, get_sort ctxt [(xi, S)] xi);
 fun check_tfree ctxt (x, S) = apfst fst (check_tvar ctxt ((x, ~1), S));
-
-local
-
-fun intern_skolem ctxt def_type x =
-  let
-    val _ = no_skolem false x;
-    val sko = lookup_skolem ctxt x;
-    val is_const = can (read_const_proper ctxt false) x orelse Long_Name.is_qualified x;
-    val is_declared = is_some (def_type (x, ~1));
-  in
-    if Variable.is_const ctxt x then NONE
-    else if is_some sko then sko
-    else if not is_const orelse is_declared then SOME x
-    else NONE
-  end;
-
-in
-
-type type_context =
- {get_class: string -> string,
-  get_type: string -> string,
-  markup_class: string -> Markup.T list,
-  markup_type: string -> Markup.T list};
-
-fun type_context ctxt : type_context =
- {get_class = read_class ctxt,
-  get_type = #1 o dest_Type o read_type_name_proper ctxt false,
-  markup_class = fn c => [Name_Space.markup_entry (Type.class_space (tsig_of ctxt)) c],
-  markup_type = fn c => [Name_Space.markup_entry (Type.type_space (tsig_of ctxt)) c]};
-
-type term_context =
- {get_const: string -> bool * string,
-  get_free: string -> string option,
-  markup_const: string -> Markup.T list,
-  markup_free: string -> Markup.T list,
-  markup_var: indexname -> Markup.T list};
-
-fun term_context ctxt : term_context =
- {get_const = fn a => ((true, #1 (Term.dest_Const (read_const_proper ctxt false a)))
-    handle ERROR _ => (false, Consts.intern (consts_of ctxt) a)),
-  get_free = intern_skolem ctxt (Variable.def_type ctxt false),
-  markup_const = fn c => [Name_Space.markup_entry (const_space ctxt) c],
-  markup_free = fn x =>
-    [if can Name.dest_skolem x then Markup.skolem else Markup.free] @
-    (if not (Variable.is_body ctxt) orelse Variable.is_fixed ctxt x then [] else [Markup.hilite]),
-  markup_var = fn xi => [Markup.name (Term.string_of_vname xi) Markup.var]};
-
-end;
 
 
 (* certify terms *)
