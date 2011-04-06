@@ -10,14 +10,11 @@ sig
   val is_position: term -> bool
   val strip_positions: term -> term
   val strip_positions_ast: Ast.ast -> Ast.ast
-  val no_brackets: unit -> bool
-  val no_type_brackets: unit -> bool
 end;
 
 signature TYPE_EXT =
 sig
   include TYPE_EXT0
-  val tappl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val type_ext: Syn_Ext.syn_ext
 end;
 
@@ -51,53 +48,6 @@ fun strip_positions_ast (Ast.Appl ((t as Ast.Constant c) :: u :: (v as Ast.Varia
 
 
 (** the type syntax **)
-
-(* print mode *)
-
-val bracketsN = "brackets";
-val no_bracketsN = "no_brackets";
-
-fun no_brackets () =
-  find_first (fn mode => mode = bracketsN orelse mode = no_bracketsN)
-    (print_mode_value ()) = SOME no_bracketsN;
-
-val type_bracketsN = "type_brackets";
-val no_type_bracketsN = "no_type_brackets";
-
-fun no_type_brackets () =
-  find_first (fn mode => mode = type_bracketsN orelse mode = no_type_bracketsN)
-    (print_mode_value ()) <> SOME type_bracketsN;
-
-
-(* parse ast translations *)
-
-fun tapp_ast_tr [ty, c] = Ast.Appl [c, ty]
-  | tapp_ast_tr asts = raise Ast.AST ("tapp_ast_tr", asts);
-
-fun tappl_ast_tr [ty, tys, c] = Ast.mk_appl c (ty :: Ast.unfold_ast "_types" tys)
-  | tappl_ast_tr asts = raise Ast.AST ("tappl_ast_tr", asts);
-
-fun bracket_ast_tr [dom, cod] = Ast.fold_ast_p "\\<^type>fun" (Ast.unfold_ast "_types" dom, cod)
-  | bracket_ast_tr asts = raise Ast.AST ("bracket_ast_tr", asts);
-
-
-(* print ast translations *)
-
-fun tappl_ast_tr' (f, []) = raise Ast.AST ("tappl_ast_tr'", [f])
-  | tappl_ast_tr' (f, [ty]) = Ast.Appl [Ast.Constant "_tapp", ty, f]
-  | tappl_ast_tr' (f, ty :: tys) =
-      Ast.Appl [Ast.Constant "_tappl", ty, Ast.fold_ast "_types" tys, f];
-
-fun fun_ast_tr' (*"\\<^type>fun"*) asts =
-  if no_brackets () orelse no_type_brackets () then raise Match
-  else
-    (case Ast.unfold_ast_p "\\<^type>fun" (Ast.Appl (Ast.Constant "\\<^type>fun" :: asts)) of
-      (dom as _ :: _ :: _, cod)
-        => Ast.Appl [Ast.Constant "_bracket", Ast.fold_ast "_types" dom, cod]
-    | _ => raise Match);
-
-
-(* type_ext *)
 
 fun typ c = Type (c, []);
 
@@ -135,9 +85,7 @@ val type_ext = syn_ext' false (K false)
    Mfix ("'(_')",       typeT --> typeT,               "", [0], max_pri),
    Mfix ("'_",          typeT,                         "\\<^type>dummy", [], max_pri)]
   ["_type_prop"]
-  (map Syn_Ext.mk_trfun
-    [("_tapp", K tapp_ast_tr), ("_tappl", K tappl_ast_tr), ("_bracket", K bracket_ast_tr)],
-   [], [], map Syn_Ext.mk_trfun [("\\<^type>fun", K fun_ast_tr')])
+  ([], [], [], [])
   []
   ([], []);
 

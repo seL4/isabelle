@@ -180,7 +180,7 @@ fun pretty extern ctxt tabs trf tokentrf type_mode curried ast0 =
 
     (*default applications: prefix / postfix*)
     val appT =
-      if type_mode then Type_Ext.tappl_ast_tr'
+      if type_mode then Syn_Trans.tappl_ast_tr'
       else if curried then Syn_Trans.applC_ast_tr'
       else Syn_Trans.appl_ast_tr';
 
