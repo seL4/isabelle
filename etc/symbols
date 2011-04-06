@@ -124,7 +124,7 @@
 \<theta>                code: 0x0003b8  font: Isabelle
 \<iota>                 code: 0x0003b9  font: Isabelle
 \<kappa>                code: 0x0003ba  font: Isabelle
-\<lambda>               code: 0x0003bb  font: Isabelle
+\<lambda>               code: 0x0003bb  font: Isabelle  abbrev: %
 \<mu>                   code: 0x0003bc  font: Isabelle
 \<nu>                   code: 0x0003bd  font: Isabelle
 \<xi>                   code: 0x0003be  font: Isabelle
