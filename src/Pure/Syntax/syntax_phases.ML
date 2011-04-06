@@ -467,7 +467,7 @@ fun typ_to_ast ctxt trf T = ast_of_termT ctxt trf (term_of_typ ctxt T);
 
 (* term_to_ast *)
 
-fun term_to_ast idents consts ctxt trf tm =
+fun term_to_ast idents is_syntax_const ctxt trf tm =
   let
     val show_types =
       Config.get ctxt show_types orelse Config.get ctxt show_sorts orelse
@@ -484,7 +484,7 @@ fun term_to_ast idents consts ctxt trf tm =
       | mark_atoms (t $ u) = mark_atoms t $ mark_atoms u
       | mark_atoms (Abs (x, T, t)) = Abs (x, T, mark_atoms t)
       | mark_atoms (t as Const (c, T)) =
-          if member (op =) consts c then t
+          if is_syntax_const c then t
           else Const (Lexicon.mark_const c, T)
       | mark_atoms (t as Free (x, T)) =
           let val i = find_index (fn s => s = x) structs + 1 in
@@ -562,9 +562,9 @@ fun lookup_tr' tab c = map fst (Symtab.lookup_list tab c);
 
 fun unparse_t t_to_ast prt_t markup ctxt curried t =
   let
-    val {consts, print_trtab, print_ruletab, print_ast_trtab, tokentrtab, prtabs, ...} =
+    val {print_trtab, print_ruletab, print_ast_trtab, tokentrtab, prtabs, ...} =
       Syntax.rep_syntax (ProofContext.syn_of ctxt);
-    val ast = t_to_ast consts ctxt (lookup_tr' print_trtab) t;
+    val ast = t_to_ast ctxt (lookup_tr' print_trtab) t;
   in
     Pretty.markup markup (prt_t ctxt curried prtabs (lookup_tr' print_ast_trtab)
       (Syntax.lookup_tokentr tokentrtab (print_mode_value ()))
@@ -577,27 +577,29 @@ fun unparse_sort ctxt =
   let
     val tsig = ProofContext.tsig_of ctxt;
     val extern = {extern_class = Type.extern_class tsig, extern_type = I};
-  in unparse_t (K sort_to_ast) (Printer.pretty_typ_ast extern) Markup.sort ctxt false end;
+  in unparse_t sort_to_ast (Printer.pretty_typ_ast extern) Markup.sort ctxt false end;
 
 fun unparse_typ ctxt =
   let
     val tsig = ProofContext.tsig_of ctxt;
     val extern = {extern_class = Type.extern_class tsig, extern_type = Type.extern_type tsig};
-  in unparse_t (K typ_to_ast) (Printer.pretty_typ_ast extern) Markup.typ ctxt false end;
+  in unparse_t typ_to_ast (Printer.pretty_typ_ast extern) Markup.typ ctxt false end;
 
 fun unparse_term ctxt =
   let
+    val thy = ProofContext.theory_of ctxt;
+    val syn = ProofContext.syn_of ctxt;
     val tsig = ProofContext.tsig_of ctxt;
-    val syntax = ProofContext.syntax_of ctxt;
-    val idents = Local_Syntax.idents_of syntax;
+    val idents = Local_Syntax.idents_of (ProofContext.syntax_of ctxt);
+    val is_syntax_const = Syntax.is_const syn;
     val consts = ProofContext.consts_of ctxt;
     val extern =
      {extern_class = Type.extern_class tsig,
       extern_type = Type.extern_type tsig,
       extern_const = Consts.extern consts};
   in
-    unparse_t (term_to_ast idents) (Printer.pretty_term_ast extern) Markup.term ctxt
-      (not (Pure_Thy.old_appl_syntax (ProofContext.theory_of ctxt)))
+    unparse_t (term_to_ast idents is_syntax_const) (Printer.pretty_term_ast extern)
+      Markup.term ctxt (not (Pure_Thy.old_appl_syntax thy))
   end;
 
 end;
