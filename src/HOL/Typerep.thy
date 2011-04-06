@@ -36,7 +36,7 @@ let
           (Type (@{type_name fun}, [Type (@{type_name itself}, [T]), _]))
           (Const (@{const_syntax TYPE}, _) :: ts) =
         Term.list_comb
-          (Syntax.const @{syntax_const "_TYPEREP"} $ Syntax.term_of_typ show_sorts T, ts)
+          (Syntax.const @{syntax_const "_TYPEREP"} $ Syntax_Phases.term_of_typ show_sorts T, ts)
     | typerep_tr' _ T ts = raise Match;
 in [(@{const_syntax typerep}, typerep_tr')] end
 *}

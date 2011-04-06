@@ -20,6 +20,7 @@ sig
     string -> (string * (Proof.context -> string -> Pretty.T)) list ->
     (string * string * (Proof.context -> string -> Pretty.T)) list
   val standard_token_classes: string list
+  val standard_token_markers: string list
 end;
 
 signature SYN_EXT =
@@ -83,7 +84,6 @@ sig
     (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list -> syn_ext
   val syn_ext_tokentrfuns: (string * string * (Proof.context -> string -> Pretty.T)) list -> syn_ext
-  val standard_token_markers: string list
   val pure_ext: syn_ext
 end;
 

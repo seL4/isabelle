@@ -130,7 +130,7 @@ let
     if not (null ts) orelse T = dummyT
       orelse not (Config.get ctxt show_types) andalso can Term.dest_Type T
     then raise Match
-    else Syntax.const Syntax.constrainC $ Syntax.const c $ Syntax.term_of_typ show_sorts T);
+    else Syntax.const Syntax.constrainC $ Syntax.const c $ Syntax_Phases.term_of_typ show_sorts T);
 in map tr' [@{const_syntax Groups.one}, @{const_syntax Groups.zero}] end;
 *} -- {* show types that are presumably too general *}
 

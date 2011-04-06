@@ -95,6 +95,9 @@ sig
   val string_of_sort_global: theory -> sort -> string
   val pp: Proof.context -> Pretty.pp
   val pp_global: theory -> Pretty.pp
+  val lookup_tokentr:
+    (string * (string * ((Proof.context -> string -> Pretty.T) * stamp)) list) list ->
+      string list -> string -> (Proof.context -> string -> Pretty.T) option
   type ruletab
   type syntax
   val rep_syntax: syntax ->
@@ -135,13 +138,6 @@ sig
     Parse_Print_Rule of 'a * 'a
   val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
   val is_const: syntax -> string -> bool
-  val standard_unparse_sort: {extern_class: string -> xstring} ->
-    Proof.context -> syntax -> sort -> Pretty.T
-  val standard_unparse_typ: {extern_class: string -> xstring, extern_type: string -> xstring} ->
-    Proof.context -> syntax -> typ -> Pretty.T
-  val standard_unparse_term: {structs: string list, fixes: string list} ->
-    {extern_class: string -> xstring, extern_type: string -> xstring,
-      extern_const: string -> xstring} -> Proof.context -> syntax -> bool -> term -> Pretty.T
   val update_trfuns:
     (string * ((Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((term list -> term) * stamp)) list *
@@ -415,7 +411,6 @@ fun merge_trtabs name tab1 tab2 = Symtab.merge Syn_Ext.eq_trfun (tab1, tab2)
 
 (* print (ast) translations *)
 
-fun lookup_tr' tab c = map fst (Symtab.lookup_list tab c);
 fun update_tr'tab trfuns = fold_rev (Symtab.update_list Syn_Ext.eq_trfun) trfuns;
 fun remove_tr'tab trfuns = fold (Symtab.remove_list Syn_Ext.eq_trfun) trfuns;
 fun merge_tr'tabs tab1 tab2 = Symtab.merge_list Syn_Ext.eq_trfun (tab1, tab2);
@@ -425,12 +420,14 @@ fun merge_tr'tabs tab1 tab2 = Symtab.merge_list Syn_Ext.eq_trfun (tab1, tab2);
 (** tables of token translation functions **)
 
 fun lookup_tokentr tabs modes =
-  let val trs = distinct (eq_fst (op =)) (maps (these o AList.lookup (op =) tabs) (modes @ [""]))
+  let val trs =
+    distinct (eq_fst (op = : string * string -> bool))
+      (maps (these o AList.lookup (op =) tabs) (modes @ [""]))
   in fn c => Option.map fst (AList.lookup (op =) trs c) end;
 
 fun merge_tokentrtabs tabs1 tabs2 =
   let
-    fun eq_tr ((c1, (_, s1)), (c2, (_, s2))) = c1 = c2 andalso s1 = s2;
+    fun eq_tr ((c1, (_, s1: stamp)), (c2, (_, s2))) = c1 = c2 andalso s1 = s2;
 
     fun name (s, _) = implode (tl (Symbol.explode s));
 
@@ -754,37 +751,6 @@ end;
 
 
 
-(** unparse terms, typs, sorts **)
-
-local
-
-fun unparse_t t_to_ast prt_t markup ctxt (Syntax (tabs, _)) curried t =
-  let
-    val {consts, print_trtab, print_ruletab, print_ast_trtab, tokentrtab, prtabs, ...} = tabs;
-    val ast = t_to_ast consts ctxt (lookup_tr' print_trtab) t;
-  in
-    Pretty.markup markup (prt_t ctxt curried prtabs (lookup_tr' print_ast_trtab)
-      (lookup_tokentr tokentrtab (print_mode_value ()))
-      (Ast.normalize ctxt (Symtab.lookup_list print_ruletab) ast))
-  end;
-
-in
-
-fun standard_unparse_sort {extern_class} ctxt syn =
-  unparse_t (K Printer.sort_to_ast)
-    (Printer.pretty_typ_ast {extern_class = extern_class, extern_type = I})
-    Markup.sort ctxt syn false;
-
-fun standard_unparse_typ extern ctxt syn =
-  unparse_t (K Printer.typ_to_ast) (Printer.pretty_typ_ast extern) Markup.typ ctxt syn false;
-
-fun standard_unparse_term idents extern =
-  unparse_t (Printer.term_to_ast idents) (Printer.pretty_term_ast extern) Markup.term;
-
-end;
-
-
-
 (** modify syntax **)
 
 fun ext_syntax f decls = update_syntax mode_default (f decls);
@@ -813,6 +779,5 @@ open Basic_Syntax;
 
 forget_structure "Syn_Ext";
 forget_structure "Type_Ext";
-forget_structure "Syn_Trans";
 forget_structure "Mixfix";
-forget_structure "Printer";
+

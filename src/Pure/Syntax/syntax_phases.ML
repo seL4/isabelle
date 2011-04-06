@@ -12,6 +12,7 @@ sig
   val decode_term: Proof.context ->
     Position.reports * term Exn.result -> Position.reports * term Exn.result
   val parse_ast_pattern: Proof.context -> string * string -> Ast.ast
+  val term_of_typ: bool -> typ -> term
 end
 
 structure Syntax_Phases: SYNTAX_PHASES =
@@ -390,17 +391,214 @@ fun parse_ast_pattern ctxt (root, str) =
 
 
 
+(** encode parse trees **)
+
+(* term_of_sort *)
+
+fun term_of_sort S =
+  let
+    val class = Lexicon.const o Lexicon.mark_class;
+
+    fun classes [c] = class c
+      | classes (c :: cs) = Lexicon.const "_classes" $ class c $ classes cs;
+  in
+    (case S of
+      [] => Lexicon.const "_topsort"
+    | [c] => class c
+    | cs => Lexicon.const "_sort" $ classes cs)
+  end;
+
+
+(* term_of_typ *)
+
+fun term_of_typ show_sorts ty =
+  let
+    fun of_sort t S =
+      if show_sorts then Lexicon.const "_ofsort" $ t $ term_of_sort S
+      else t;
+
+    fun term_of (Type (a, Ts)) =
+          Term.list_comb (Lexicon.const (Lexicon.mark_type a), map term_of Ts)
+      | term_of (TFree (x, S)) =
+          if is_some (Lexicon.decode_position x) then Lexicon.free x
+          else of_sort (Lexicon.const "_tfree" $ Lexicon.free x) S
+      | term_of (TVar (xi, S)) = of_sort (Lexicon.const "_tvar" $ Lexicon.var xi) S;
+  in term_of ty end;
+
+
+(* simple_ast_of *)
+
+fun simple_ast_of ctxt =
+  let
+    val tune_var = if Config.get ctxt show_question_marks then I else unprefix "?";
+    fun ast_of (Const (c, _)) = Ast.Constant c
+      | ast_of (Free (x, _)) = Ast.Variable x
+      | ast_of (Var (xi, _)) = Ast.Variable (tune_var (Term.string_of_vname xi))
+      | ast_of (t as _ $ _) =
+          let val (f, args) = strip_comb t
+          in Ast.mk_appl (ast_of f) (map ast_of args) end
+      | ast_of (Bound i) = Ast.Variable ("B." ^ string_of_int i)
+      | ast_of (Abs _) = raise Fail "simple_ast_of: Abs";
+  in ast_of end;
+
+
+(* sort_to_ast and typ_to_ast *)
+
+fun apply_typed x fs = map (fn f => fn ctxt => f ctxt (Config.get ctxt show_sorts) x) fs;
+
+fun ast_of_termT ctxt trf tm =
+  let
+    val ctxt' = Config.put show_sorts false ctxt;
+    fun ast_of (t as Const ("_tfree", _) $ Free _) = simple_ast_of ctxt t
+      | ast_of (t as Const ("_tvar", _) $ Var _) = simple_ast_of ctxt t
+      | ast_of (Const (a, _)) = trans a []
+      | ast_of (t as _ $ _) =
+          (case strip_comb t of
+            (Const (a, _), args) => trans a args
+          | (f, args) => Ast.Appl (map ast_of (f :: args)))
+      | ast_of t = simple_ast_of ctxt t
+    and trans a args =
+      ast_of (Syntax.apply_trans ctxt' (apply_typed dummyT (trf a)) args)
+        handle Match => Ast.mk_appl (Ast.Constant a) (map ast_of args);
+  in ast_of tm end;
+
+fun sort_to_ast ctxt trf S = ast_of_termT ctxt trf (term_of_sort S);
+fun typ_to_ast ctxt trf T = ast_of_termT ctxt trf (term_of_typ (Config.get ctxt show_sorts) T);
+
+
+(* term_to_ast *)
+
+fun term_to_ast idents consts ctxt trf tm =
+  let
+    val show_types =
+      Config.get ctxt show_types orelse Config.get ctxt show_sorts orelse
+      Config.get ctxt show_all_types;
+    val show_sorts = Config.get ctxt show_sorts;
+    val show_structs = Config.get ctxt show_structs;
+    val show_free_types = Config.get ctxt show_free_types;
+    val show_all_types = Config.get ctxt show_all_types;
+
+    val {structs, fixes} = idents;
+
+    fun mark_atoms ((t as Const (c, T)) $ u) =
+          if member (op =) Syntax.standard_token_markers c
+          then t $ u else mark_atoms t $ mark_atoms u
+      | mark_atoms (t $ u) = mark_atoms t $ mark_atoms u
+      | mark_atoms (Abs (x, T, t)) = Abs (x, T, mark_atoms t)
+      | mark_atoms (t as Const (c, T)) =
+          if member (op =) consts c then t
+          else Const (Lexicon.mark_const c, T)
+      | mark_atoms (t as Free (x, T)) =
+          let val i = find_index (fn s => s = x) structs + 1 in
+            if i = 0 andalso member (op =) fixes x then
+              Const (Lexicon.mark_fixed x, T)
+            else if i = 1 andalso not show_structs then
+              Lexicon.const "_struct" $ Lexicon.const "_indexdefault"
+            else Lexicon.const "_free" $ t
+          end
+      | mark_atoms (t as Var (xi, T)) =
+          if xi = Syntax.dddot_indexname then Const ("_DDDOT", T)
+          else Lexicon.const "_var" $ t
+      | mark_atoms a = a;
+
+    fun prune_typs (t_seen as (Const _, _)) = t_seen
+      | prune_typs (t as Free (x, ty), seen) =
+          if ty = dummyT then (t, seen)
+          else if not show_free_types orelse member (op aconv) seen t then (Lexicon.free x, seen)
+          else (t, t :: seen)
+      | prune_typs (t as Var (xi, ty), seen) =
+          if ty = dummyT then (t, seen)
+          else if not show_free_types orelse member (op aconv) seen t then (Lexicon.var xi, seen)
+          else (t, t :: seen)
+      | prune_typs (t_seen as (Bound _, _)) = t_seen
+      | prune_typs (Abs (x, ty, t), seen) =
+          let val (t', seen') = prune_typs (t, seen);
+          in (Abs (x, ty, t'), seen') end
+      | prune_typs (t1 $ t2, seen) =
+          let
+            val (t1', seen') = prune_typs (t1, seen);
+            val (t2', seen'') = prune_typs (t2, seen');
+          in (t1' $ t2', seen'') end;
+
+    fun ast_of tm =
+      (case strip_comb tm of
+        (t as Abs _, ts) => Ast.mk_appl (ast_of (Syn_Trans.abs_tr' ctxt t)) (map ast_of ts)
+      | ((c as Const ("_free", _)), Free (x, T) :: ts) =>
+          Ast.mk_appl (constrain (c $ Lexicon.free x) T) (map ast_of ts)
+      | ((c as Const ("_var", _)), Var (xi, T) :: ts) =>
+          Ast.mk_appl (constrain (c $ Lexicon.var xi) T) (map ast_of ts)
+      | ((c as Const ("_bound", _)), Free (x, T) :: ts) =>
+          Ast.mk_appl (constrain (c $ Lexicon.free x) T) (map ast_of ts)
+      | (Const ("_idtdummy", T), ts) =>
+          Ast.mk_appl (constrain (Lexicon.const "_idtdummy") T) (map ast_of ts)
+      | (const as Const (c, T), ts) =>
+          if show_all_types
+          then Ast.mk_appl (constrain const T) (map ast_of ts)
+          else trans c T ts
+      | (t, ts) => Ast.mk_appl (simple_ast_of ctxt t) (map ast_of ts))
+
+    and trans a T args =
+      ast_of (Syntax.apply_trans ctxt (apply_typed T (trf a)) args)
+        handle Match => Ast.mk_appl (Ast.Constant a) (map ast_of args)
+
+    and constrain t T =
+      if show_types andalso T <> dummyT then
+        Ast.Appl [Ast.Constant Syntax.constrainC, simple_ast_of ctxt t,
+          ast_of_termT ctxt trf (term_of_typ show_sorts T)]
+      else simple_ast_of ctxt t;
+  in
+    tm
+    |> Syn_Trans.prop_tr'
+    |> show_types ? (#1 o prune_typs o rpair [])
+    |> mark_atoms
+    |> ast_of
+  end;
+
+
+
 (** unparse **)
 
+(** unparse terms, typs, sorts **)
+
+local
+
+fun lookup_tr' tab c = map fst (Symtab.lookup_list tab c);
+
+fun unparse_t t_to_ast prt_t markup ctxt curried t =
+  let
+    val {consts, print_trtab, print_ruletab, print_ast_trtab, tokentrtab, prtabs, ...} =
+      Syntax.rep_syntax (ProofContext.syn_of ctxt);
+    val ast = t_to_ast consts ctxt (lookup_tr' print_trtab) t;
+  in
+    Pretty.markup markup (prt_t ctxt curried prtabs (lookup_tr' print_ast_trtab)
+      (Syntax.lookup_tokentr tokentrtab (print_mode_value ()))
+      (Ast.normalize ctxt (Symtab.lookup_list print_ruletab) ast))
+  end;
+
+in
+
+fun standard_unparse_sort {extern_class} ctxt =
+  unparse_t (K sort_to_ast)
+    (Printer.pretty_typ_ast {extern_class = extern_class, extern_type = I})
+    Markup.sort ctxt false;
+
+fun standard_unparse_typ extern ctxt =
+  unparse_t (K typ_to_ast) (Printer.pretty_typ_ast extern) Markup.typ ctxt false;
+
+fun standard_unparse_term idents extern =
+  unparse_t (term_to_ast idents) (Printer.pretty_term_ast extern) Markup.term;
+
+end;
+
+
 fun unparse_sort ctxt =
-  Syntax.standard_unparse_sort {extern_class = Type.extern_class (ProofContext.tsig_of ctxt)}
-    ctxt (ProofContext.syn_of ctxt);
+  standard_unparse_sort {extern_class = Type.extern_class (ProofContext.tsig_of ctxt)} ctxt;
 
 fun unparse_typ ctxt =
   let
     val tsig = ProofContext.tsig_of ctxt;
     val extern = {extern_class = Type.extern_class tsig, extern_type = Type.extern_type tsig};
-  in Syntax.standard_unparse_typ extern ctxt (ProofContext.syn_of ctxt) end;
+  in standard_unparse_typ extern ctxt end;
 
 fun unparse_term ctxt =
   let
@@ -412,9 +610,45 @@ fun unparse_term ctxt =
       extern_type = Type.extern_type tsig,
       extern_const = Consts.extern consts};
   in
-    Syntax.standard_unparse_term (Local_Syntax.idents_of syntax) extern ctxt
-      (Local_Syntax.syn_of syntax) (not (Pure_Thy.old_appl_syntax (ProofContext.theory_of ctxt)))
+    standard_unparse_term (Local_Syntax.idents_of syntax) extern ctxt
+      (not (Pure_Thy.old_appl_syntax (ProofContext.theory_of ctxt)))
   end;
+
+
+
+(** translations **)
+
+(* type propositions *)
+
+fun type_prop_tr' _ T [Const ("\\<^const>Pure.sort_constraint", _)] =
+      Lexicon.const "_sort_constraint" $ term_of_typ true T
+  | type_prop_tr' show_sorts T [t] =
+      Lexicon.const "_ofclass" $ term_of_typ show_sorts T $ t
+  | type_prop_tr' _ T ts = raise TYPE ("type_prop_tr'", [T], ts);
+
+
+(* type reflection *)
+
+fun type_tr' show_sorts (Type ("itself", [T])) ts =
+      Term.list_comb (Lexicon.const "_TYPE" $ term_of_typ show_sorts T, ts)
+  | type_tr' _ _ _ = raise Match;
+
+
+(* type constraints *)
+
+fun type_constraint_tr' show_sorts (Type ("fun", [T, _])) (t :: ts) =
+      Term.list_comb (Lexicon.const Syntax.constrainC $ t $ term_of_typ show_sorts T, ts)
+  | type_constraint_tr' _ _ _ = raise Match;
+
+
+(* setup translations *)
+
+val _ = Context.>> (Context.map_theory
+  (Sign.add_trfunsT
+   [("_type_prop", type_prop_tr'),
+    ("\\<^const>TYPE", type_tr'),
+    ("_type_constraint_", type_constraint_tr')]));
+
 
 
 (** install operations **)

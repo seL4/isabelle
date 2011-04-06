@@ -23,17 +23,12 @@ sig
   val show_question_marks_raw: Config.raw
   val show_question_marks: bool Config.T
   val pretty_priority: int Config.T
+  val apply_trans: 'a -> ('a -> 'b -> 'c) list -> 'b -> 'c
 end;
 
 signature PRINTER =
 sig
   include PRINTER0
-  val sort_to_ast: Proof.context ->
-    (string -> (Proof.context -> bool -> typ -> term list -> term) list) -> sort -> Ast.ast
-  val typ_to_ast: Proof.context ->
-    (string -> (Proof.context -> bool -> typ -> term list -> term) list) -> typ -> Ast.ast
-  val term_to_ast: {structs: string list, fixes: string list} -> string list -> Proof.context ->
-    (string -> (Proof.context -> bool -> typ -> term list -> term) list) -> term -> Ast.ast
   type prtabs
   val empty_prtabs: prtabs
   val update_prtabs: string -> Syn_Ext.xprod list -> prtabs -> prtabs
@@ -51,7 +46,6 @@ end;
 
 structure Printer: PRINTER =
 struct
-
 
 (** options for printing **)
 
@@ -78,150 +72,6 @@ val show_question_marks_default = Unsynchronized.ref true;
 val show_question_marks_raw =
   Config.declare "show_question_marks" (fn _ => Config.Bool (! show_question_marks_default));
 val show_question_marks = Config.bool show_question_marks_raw;
-
-
-
-(** misc utils **)
-
-(* apply print (ast) translation function *)
-
-fun apply_trans ctxt fns args =
-  let
-    fun app_first [] = raise Match
-      | app_first (f :: fs) = f ctxt args handle Match => app_first fs;
-  in app_first fns end;
-
-fun apply_typed x fs = map (fn f => fn ctxt => f ctxt (Config.get ctxt show_sorts) x) fs;
-
-
-(* simple_ast_of *)
-
-fun simple_ast_of ctxt =
-  let
-    val tune_var = if Config.get ctxt show_question_marks then I else unprefix "?";
-    fun ast_of (Const (c, _)) = Ast.Constant c
-      | ast_of (Free (x, _)) = Ast.Variable x
-      | ast_of (Var (xi, _)) = Ast.Variable (tune_var (Term.string_of_vname xi))
-      | ast_of (t as _ $ _) =
-          let val (f, args) = strip_comb t
-          in Ast.mk_appl (ast_of f) (map ast_of args) end
-      | ast_of (Bound i) = Ast.Variable ("B." ^ string_of_int i)
-      | ast_of (Abs _) = raise Fail "simple_ast_of: Abs";
-  in ast_of end;
-
-
-
-(** sort_to_ast, typ_to_ast **)
-
-fun ast_of_termT ctxt trf tm =
-  let
-    val ctxt' = Config.put show_sorts false ctxt;
-    fun ast_of (t as Const ("_tfree", _) $ Free _) = simple_ast_of ctxt t
-      | ast_of (t as Const ("_tvar", _) $ Var _) = simple_ast_of ctxt t
-      | ast_of (Const (a, _)) = trans a []
-      | ast_of (t as _ $ _) =
-          (case strip_comb t of
-            (Const (a, _), args) => trans a args
-          | (f, args) => Ast.Appl (map ast_of (f :: args)))
-      | ast_of t = simple_ast_of ctxt t
-    and trans a args =
-      ast_of (apply_trans ctxt' (apply_typed dummyT (trf a)) args)
-        handle Match => Ast.mk_appl (Ast.Constant a) (map ast_of args);
-  in ast_of tm end;
-
-fun sort_to_ast ctxt trf S = ast_of_termT ctxt trf (Type_Ext.term_of_sort S);
-fun typ_to_ast ctxt trf T =
-  ast_of_termT ctxt trf (Type_Ext.term_of_typ (Config.get ctxt show_sorts) T);
-
-
-
-(** term_to_ast **)
-
-fun term_to_ast idents consts ctxt trf tm =
-  let
-    val show_types =
-      Config.get ctxt show_types orelse Config.get ctxt show_sorts orelse
-      Config.get ctxt show_all_types;
-    val show_sorts = Config.get ctxt show_sorts;
-    val show_structs = Config.get ctxt show_structs;
-    val show_free_types = Config.get ctxt show_free_types;
-    val show_all_types = Config.get ctxt show_all_types;
-
-    val {structs, fixes} = idents;
-
-    fun mark_atoms ((t as Const (c, T)) $ u) =
-          if member (op =) Syn_Ext.standard_token_markers c
-          then t $ u else mark_atoms t $ mark_atoms u
-      | mark_atoms (t $ u) = mark_atoms t $ mark_atoms u
-      | mark_atoms (Abs (x, T, t)) = Abs (x, T, mark_atoms t)
-      | mark_atoms (t as Const (c, T)) =
-          if member (op =) consts c then t
-          else Const (Lexicon.mark_const c, T)
-      | mark_atoms (t as Free (x, T)) =
-          let val i = find_index (fn s => s = x) structs + 1 in
-            if i = 0 andalso member (op =) fixes x then
-              Const (Lexicon.mark_fixed x, T)
-            else if i = 1 andalso not show_structs then
-              Lexicon.const "_struct" $ Lexicon.const "_indexdefault"
-            else Lexicon.const "_free" $ t
-          end
-      | mark_atoms (t as Var (xi, T)) =
-          if xi = Syn_Ext.dddot_indexname then Const ("_DDDOT", T)
-          else Lexicon.const "_var" $ t
-      | mark_atoms a = a;
-
-    fun prune_typs (t_seen as (Const _, _)) = t_seen
-      | prune_typs (t as Free (x, ty), seen) =
-          if ty = dummyT then (t, seen)
-          else if not show_free_types orelse member (op aconv) seen t then (Lexicon.free x, seen)
-          else (t, t :: seen)
-      | prune_typs (t as Var (xi, ty), seen) =
-          if ty = dummyT then (t, seen)
-          else if not show_free_types orelse member (op aconv) seen t then (Lexicon.var xi, seen)
-          else (t, t :: seen)
-      | prune_typs (t_seen as (Bound _, _)) = t_seen
-      | prune_typs (Abs (x, ty, t), seen) =
-          let val (t', seen') = prune_typs (t, seen);
-          in (Abs (x, ty, t'), seen') end
-      | prune_typs (t1 $ t2, seen) =
-          let
-            val (t1', seen') = prune_typs (t1, seen);
-            val (t2', seen'') = prune_typs (t2, seen');
-          in (t1' $ t2', seen'') end;
-
-    fun ast_of tm =
-      (case strip_comb tm of
-        (t as Abs _, ts) => Ast.mk_appl (ast_of (Syn_Trans.abs_tr' ctxt t)) (map ast_of ts)
-      | ((c as Const ("_free", _)), Free (x, T) :: ts) =>
-          Ast.mk_appl (constrain (c $ Lexicon.free x) T) (map ast_of ts)
-      | ((c as Const ("_var", _)), Var (xi, T) :: ts) =>
-          Ast.mk_appl (constrain (c $ Lexicon.var xi) T) (map ast_of ts)
-      | ((c as Const ("_bound", _)), Free (x, T) :: ts) =>
-          Ast.mk_appl (constrain (c $ Lexicon.free x) T) (map ast_of ts)
-      | (Const ("_idtdummy", T), ts) =>
-          Ast.mk_appl (constrain (Lexicon.const "_idtdummy") T) (map ast_of ts)
-      | (const as Const (c, T), ts) =>
-          if show_all_types
-          then Ast.mk_appl (constrain const T) (map ast_of ts)
-          else trans c T ts
-      | (t, ts) => Ast.mk_appl (simple_ast_of ctxt t) (map ast_of ts))
-
-    and trans a T args =
-      ast_of (apply_trans ctxt (apply_typed T (trf a)) args)
-        handle Match => Ast.mk_appl (Ast.Constant a) (map ast_of args)
-
-    and constrain t T =
-      if show_types andalso T <> dummyT then
-        Ast.Appl [Ast.Constant Syn_Ext.constrainC, simple_ast_of ctxt t,
-          ast_of_termT ctxt trf (Type_Ext.term_of_typ show_sorts T)]
-      else simple_ast_of ctxt t;
-  in
-    tm
-    |> Syn_Trans.prop_tr'
-    |> show_types ? (#1 o prune_typs o rpair [])
-    |> mark_atoms
-    |> ast_of
-  end;
 
 
 
@@ -310,6 +160,12 @@ fun merge_prtabs prtabs1 prtabs2 =
 
 
 (** pretty term or typ asts **)
+
+fun apply_trans ctxt fns args =
+  let
+    fun app_first [] = raise Match
+      | app_first (f :: fs) = f ctxt args handle Match => app_first fs;
+  in app_first fns end;
 
 fun is_chain [Block (_, pr)] = is_chain pr
   | is_chain [Arg _] = true

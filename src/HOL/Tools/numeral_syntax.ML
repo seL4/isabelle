@@ -72,7 +72,9 @@ in
 fun numeral_tr' ctxt show_sorts (*"number_of"*) (Type (@{type_name fun}, [_, T])) (t :: ts) =
       let val t' =
         if not (Config.get ctxt show_types) andalso can Term.dest_Type T then syntax_numeral t
-        else Syntax.const Syntax.constrainC $ syntax_numeral t $ Syntax.term_of_typ show_sorts T
+        else
+          Syntax.const Syntax.constrainC $ syntax_numeral t $
+            Syntax_Phases.term_of_typ show_sorts T
       in list_comb (t', ts) end
   | numeral_tr' _ _ (*"number_of"*) T (t :: ts) =
       if T = dummyT then list_comb (syntax_numeral t, ts)

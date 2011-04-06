@@ -42,7 +42,6 @@ sig
     (string * (term list -> term)) list *
     (string * (term list -> term)) list *
     (string * (Ast.ast list -> Ast.ast)) list
-  val pure_trfunsT: (string * (bool -> typ -> term list -> term)) list
   val struct_trfuns: string list ->
     (string * (Ast.ast list -> Ast.ast)) list *
     (string * (term list -> term)) list *
@@ -354,15 +353,6 @@ fun idtyp_ast_tr' a [Ast.Appl [Ast.Constant "_constrain", x, ty], xs] =
   | idtyp_ast_tr' _ _ = raise Match;
 
 
-(* type propositions *)
-
-fun type_prop_tr' _ (*"_type_prop"*) T [Const ("\\<^const>Pure.sort_constraint", _)] =
-      Lexicon.const "_sort_constraint" $ Type_Ext.term_of_typ true T
-  | type_prop_tr' show_sorts (*"_type_prop"*) T [t] =
-      Lexicon.const "_ofclass" $ Type_Ext.term_of_typ show_sorts T $ t
-  | type_prop_tr' _ (*"_type_prop"*) T ts = raise TYPE ("type_prop_tr'", [T], ts);
-
-
 (* meta propositions *)
 
 fun prop_tr' tm =
@@ -406,20 +396,6 @@ fun impl_ast_tr' (*"==>"*) asts =
           val asms' = Ast.fold_ast_p "_asms" (asms, Ast.Appl [Ast.Constant "_asm", asm]);
         in Ast.Appl [Ast.Constant "_bigimpl", asms', concl] end
     | _ => raise Match);
-
-
-(* type reflection *)
-
-fun type_tr' show_sorts (*"TYPE"*) (Type ("itself", [T])) ts =
-      Term.list_comb (Lexicon.const "_TYPE" $ Type_Ext.term_of_typ show_sorts T, ts)
-  | type_tr' _ _ _ = raise Match;
-
-
-(* type constraints *)
-
-fun type_constraint_tr' show_sorts (*"_type_constraint_"*) (Type ("fun", [T, _])) (t :: ts) =
-      Term.list_comb (Lexicon.const Syn_Ext.constrainC $ t $ Type_Ext.term_of_typ show_sorts T, ts)
-  | type_constraint_tr' _ _ _ = raise Match;
 
 
 (* dependent / nondependent quantifiers *)
@@ -532,11 +508,6 @@ val pure_trfuns =
     ("_pttrns", idtyp_ast_tr' "_pttrns"),
     ("\\<^const>==>", impl_ast_tr'),
     ("_index", index_ast_tr')]);
-
-val pure_trfunsT =
- [("_type_prop", type_prop_tr'),
-  ("\\<^const>TYPE", type_tr'),
-  ("_type_constraint_", type_constraint_tr')];
 
 fun struct_trfuns structs =
   ([], [("_struct", struct_tr structs)], [], [("_struct", struct_ast_tr' structs)]);

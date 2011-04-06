@@ -37,7 +37,7 @@ translations "CARD('t)" => "CONST card (CONST UNIV \<Colon> 't set)"
 typed_print_translation {*
 let
   fun card_univ_tr' show_sorts _ [Const (@{const_syntax UNIV}, Type(_, [T, _]))] =
-    Syntax.const @{syntax_const "_type_card"} $ Syntax.term_of_typ show_sorts T;
+    Syntax.const @{syntax_const "_type_card"} $ Syntax_Phases.term_of_typ show_sorts T;
 in [(@{const_syntax card}, card_univ_tr')]
 end
 *}

@@ -10,7 +10,6 @@ sig
   val is_position: term -> bool
   val strip_positions: term -> term
   val strip_positions_ast: Ast.ast -> Ast.ast
-  val term_of_typ: bool -> typ -> term
   val no_brackets: unit -> bool
   val no_type_brackets: unit -> bool
 end;
@@ -18,7 +17,6 @@ end;
 signature TYPE_EXT =
 sig
   include TYPE_EXT0
-  val term_of_sort: sort -> term
   val tappl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val type_ext: Syn_Ext.syn_ext
 end;
@@ -49,42 +47,6 @@ fun strip_positions_ast (Ast.Appl ((t as Ast.Constant c) :: u :: (v as Ast.Varia
       else Ast.Appl (map strip_positions_ast (t :: u :: v :: asts))
   | strip_positions_ast (Ast.Appl asts) = Ast.Appl (map strip_positions_ast asts)
   | strip_positions_ast ast = ast;
-
-
-
-(** output utils **)
-
-(* term_of_sort *)
-
-fun term_of_sort S =
-  let
-    val class = Lexicon.const o Lexicon.mark_class;
-
-    fun classes [c] = class c
-      | classes (c :: cs) = Lexicon.const "_classes" $ class c $ classes cs;
-  in
-    (case S of
-      [] => Lexicon.const "_topsort"
-    | [c] => class c
-    | cs => Lexicon.const "_sort" $ classes cs)
-  end;
-
-
-(* term_of_typ *)
-
-fun term_of_typ show_sorts ty =
-  let
-    fun of_sort t S =
-      if show_sorts then Lexicon.const "_ofsort" $ t $ term_of_sort S
-      else t;
-
-    fun term_of (Type (a, Ts)) =
-          Term.list_comb (Lexicon.const (Lexicon.mark_type a), map term_of Ts)
-      | term_of (TFree (x, S)) =
-          if is_some (Lexicon.decode_position x) then Lexicon.free x
-          else of_sort (Lexicon.const "_tfree" $ Lexicon.free x) S
-      | term_of (TVar (xi, S)) = of_sort (Lexicon.const "_tvar" $ Lexicon.var xi) S;
-  in term_of ty end;
 
 
 

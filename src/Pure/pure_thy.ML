@@ -146,7 +146,6 @@ val _ = Context.>> (Context.map_theory
   #> Theory.add_deps "TYPE" ("TYPE", typ "'a itself") []
   #> Theory.add_deps Term.dummy_patternN (Term.dummy_patternN, typ "'a") []
   #> Sign.add_trfuns Syntax.pure_trfuns
-  #> Sign.add_trfunsT Syntax.pure_trfunsT
   #> Sign.local_path
   #> Sign.add_consts_i
    [(Binding.name "term", typ "'a => prop", NoSyn),
