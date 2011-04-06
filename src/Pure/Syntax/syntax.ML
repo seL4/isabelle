@@ -640,10 +640,7 @@ fun merge_syntaxes (Syntax (tabs1, _)) (Syntax (tabs2, _)) =
 
 (* basic syntax *)
 
-val basic_syntax =
-  empty_syntax
-  |> update_syntax mode_default Type_Ext.type_ext
-  |> update_syntax mode_default Syn_Ext.pure_ext;
+val basic_syntax = update_syntax mode_default Syn_Ext.pure_ext empty_syntax;
 
 val basic_nonterms =
   (Lexicon.terminals @ [Syn_Ext.logic, "type", "types", "sort", "classes",
