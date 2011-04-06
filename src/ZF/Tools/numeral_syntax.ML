@@ -1,16 +1,13 @@
 (*  Title:      ZF/Tools/numeral_syntax.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 
-Concrete syntax for generic numerals.  Assumes consts and syntax of
-theory Bin.
+Concrete syntax for generic numerals.
 *)
 
 signature NUMERAL_SYNTAX =
 sig
   val make_binary: int -> int list
   val dest_binary: int list -> int
-  val int_tr: term list -> term
-  val int_tr': bool -> typ -> term list -> term
   val setup: theory -> theory
 end;
 
@@ -73,17 +70,15 @@ fun show_int t =
 
 (* translation of integer constant tokens to and from binary *)
 
-fun int_tr (*"_Int"*) [t as Free (str, _)] =
+fun int_tr [t as Free (str, _)] =
       Syntax.const @{const_syntax integ_of} $ mk_bin (#value (Syntax.read_xnum str))
-  | int_tr (*"_Int"*) ts = raise TERM ("int_tr", ts);
+  | int_tr ts = raise TERM ("int_tr", ts);
 
-fun int_tr' _ _ (*"integ_of"*) [t] =
-      Syntax.const @{syntax_const "_Int"} $ Syntax.free (show_int t)
-  | int_tr' (_: bool) (_: typ) _ = raise Match;
+fun int_tr' [t] = Syntax.const @{syntax_const "_Int"} $ Syntax.free (show_int t)
+  | int_tr' _ = raise Match;
 
 
 val setup =
- (Sign.add_trfuns ([], [(@{syntax_const "_Int"}, int_tr)], [], []) #>
-  Sign.add_trfunsT [(@{const_syntax integ_of}, int_tr')]);
+ Sign.add_trfuns ([], [(@{syntax_const "_Int"}, int_tr)], [(@{const_syntax integ_of}, int_tr')], []);
 
 end;

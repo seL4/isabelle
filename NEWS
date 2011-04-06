@@ -97,6 +97,9 @@ called "syntax_positions" in Isar attribute syntax.
 content, no inclusion in structure Syntax.  INCOMPATIBILITY, refer to
 qualified names like Ast.Constant etc.
 
+* Typed print translation: discontinued show_sorts argument, which is
+already available via context of "advanced" translation.
+
 
 
 New in Isabelle2011 (January 2011)

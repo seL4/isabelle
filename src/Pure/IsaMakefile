@@ -121,7 +121,6 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Isar/isar_syn.ML					\
   Isar/keyword.ML					\
   Isar/local_defs.ML					\
-  Isar/local_syntax.ML					\
   Isar/local_theory.ML					\
   Isar/locale.ML					\
   Isar/method.ML					\
@@ -180,6 +179,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   ROOT.ML						\
   Syntax/ast.ML						\
   Syntax/lexicon.ML					\
+  Syntax/local_syntax.ML				\
   Syntax/mixfix.ML					\
   Syntax/parser.ML					\
   Syntax/printer.ML					\
@@ -187,6 +187,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Syntax/syn_ext.ML					\
   Syntax/syn_trans.ML					\
   Syntax/syntax.ML					\
+  Syntax/syntax_phases.ML				\
   Syntax/type_ext.ML					\
   System/isabelle_process.ML				\
   System/isabelle_system.ML				\

@@ -125,13 +125,15 @@ simproc_setup reorient_zero ("0 = x") = Reorient_Proc.proc
 simproc_setup reorient_one ("1 = x") = Reorient_Proc.proc
 
 typed_print_translation (advanced) {*
-let
-  fun tr' c = (c, fn ctxt => fn show_sorts => fn T => fn ts =>
-    if not (null ts) orelse T = dummyT
-      orelse not (Config.get ctxt show_types) andalso can Term.dest_Type T
-    then raise Match
-    else Syntax.const Syntax.constrainC $ Syntax.const c $ Syntax.term_of_typ show_sorts T);
-in map tr' [@{const_syntax Groups.one}, @{const_syntax Groups.zero}] end;
+  let
+    fun tr' c = (c, fn ctxt => fn T => fn ts =>
+      if not (null ts) orelse T = dummyT
+        orelse not (Config.get ctxt show_types) andalso can Term.dest_Type T
+      then raise Match
+      else
+        Syntax.const @{syntax_const "_constrain"} $ Syntax.const c $
+          Syntax_Phases.term_of_typ ctxt T);
+  in map tr' [@{const_syntax Groups.one}, @{const_syntax Groups.zero}] end;
 *} -- {* show types that are presumably too general *}
 
 class plus =

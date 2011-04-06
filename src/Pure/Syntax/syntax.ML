@@ -95,9 +95,26 @@ sig
   val string_of_sort_global: theory -> sort -> string
   val pp: Proof.context -> Pretty.pp
   val pp_global: theory -> Pretty.pp
+  val lookup_tokentr:
+    (string * (string * ((Proof.context -> string -> Pretty.T) * stamp)) list) list ->
+      string list -> string -> (Proof.context -> string -> Pretty.T) option
+  type ruletab
   type syntax
   val eq_syntax: syntax * syntax -> bool
   val is_keyword: syntax -> string -> bool
+  val tokenize: syntax -> bool -> Symbol_Pos.T list -> Lexicon.token list
+  val parse: Proof.context -> syntax -> string -> Lexicon.token list -> Parser.parsetree list
+  val parse_ast_translation: syntax -> string -> (Proof.context -> Ast.ast list -> Ast.ast) option
+  val parse_rules: syntax -> string -> (Ast.ast * Ast.ast) list
+  val parse_translation: syntax -> string -> (Proof.context -> term list -> term) option
+  val print_translation: syntax -> string ->
+    Proof.context -> typ -> term list -> term  (*exception Match*)
+  val print_rules: syntax -> string -> (Ast.ast * Ast.ast) list
+  val print_ast_translation: syntax -> string ->
+    Proof.context -> Ast.ast list -> Ast.ast  (*exception Match*)
+  val token_translation: syntax -> string list ->
+    string -> (Proof.context -> string -> Pretty.T) option
+  val prtabs: syntax -> Printer.prtabs
   type mode
   val mode_default: mode
   val mode_input: mode
@@ -114,36 +131,21 @@ sig
   val ambiguity_level_raw: Config.raw
   val ambiguity_level: int Config.T
   val ambiguity_limit: int Config.T
-  val standard_parse_sort: Proof.context -> type_context -> syntax ->
-    Symbol_Pos.T list * Position.T -> sort
-  val standard_parse_typ: Proof.context -> type_context -> syntax ->
-    ((indexname * sort) list -> indexname -> sort) -> Symbol_Pos.T list * Position.T -> typ
-  val standard_parse_term: (term -> term Exn.result) ->
-    Proof.context -> type_context -> term_context -> syntax ->
-    string -> Symbol_Pos.T list * Position.T -> term
   datatype 'a trrule =
     Parse_Rule of 'a * 'a |
     Print_Rule of 'a * 'a |
     Parse_Print_Rule of 'a * 'a
   val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
   val is_const: syntax -> string -> bool
-  val read_rule_pattern: Proof.context -> type_context -> syntax -> string * string -> Ast.ast
-  val standard_unparse_sort: {extern_class: string -> xstring} ->
-    Proof.context -> syntax -> sort -> Pretty.T
-  val standard_unparse_typ: {extern_class: string -> xstring, extern_type: string -> xstring} ->
-    Proof.context -> syntax -> typ -> Pretty.T
-  val standard_unparse_term: {structs: string list, fixes: string list} ->
-    {extern_class: string -> xstring, extern_type: string -> xstring,
-      extern_const: string -> xstring} -> Proof.context -> syntax -> bool -> term -> Pretty.T
   val update_trfuns:
     (string * ((Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((term list -> term) * stamp)) list *
-    (string * ((bool -> typ -> term list -> term) * stamp)) list *
+    (string * ((typ -> term list -> term) * stamp)) list *
     (string * ((Ast.ast list -> Ast.ast) * stamp)) list -> syntax -> syntax
   val update_advanced_trfuns:
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
-    (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list *
+    (string * ((Proof.context -> typ -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list -> syntax -> syntax
   val extend_tokentrfuns: (string * string * (Proof.context -> string -> Pretty.T)) list ->
     syntax -> syntax
@@ -394,10 +396,10 @@ fun pp_global thy = Pretty.pp
 
 (* parse (ast) translations *)
 
-fun lookup_tr tab c = Option.map fst (Symtab.lookup tab c);
-
 fun err_dup_trfun name c =
   error ("More than one " ^ name ^ " for " ^ quote c);
+
+fun lookup_tr tab c = Option.map fst (Symtab.lookup tab c);
 
 fun remove_trtab trfuns = fold (Symtab.remove Syn_Ext.eq_trfun) trfuns;
 
@@ -410,7 +412,20 @@ fun merge_trtabs name tab1 tab2 = Symtab.merge Syn_Ext.eq_trfun (tab1, tab2)
 
 (* print (ast) translations *)
 
-fun lookup_tr' tab c = map fst (Symtab.lookup_list tab c);
+fun apply_tr' tab c ctxt T args =
+  let
+    val fns = map fst (Symtab.lookup_list tab c);
+    fun app_first [] = raise Match
+      | app_first (f :: fs) = f ctxt T args handle Match => app_first fs;
+  in app_first fns end;
+
+fun apply_ast_tr' tab c ctxt args =
+  let
+    val fns = map fst (Symtab.lookup_list tab c);
+    fun app_first [] = raise Match
+      | app_first (f :: fs) = f ctxt args handle Match => app_first fs;
+  in app_first fns end;
+
 fun update_tr'tab trfuns = fold_rev (Symtab.update_list Syn_Ext.eq_trfun) trfuns;
 fun remove_tr'tab trfuns = fold (Symtab.remove_list Syn_Ext.eq_trfun) trfuns;
 fun merge_tr'tabs tab1 tab2 = Symtab.merge_list Syn_Ext.eq_trfun (tab1, tab2);
@@ -420,12 +435,14 @@ fun merge_tr'tabs tab1 tab2 = Symtab.merge_list Syn_Ext.eq_trfun (tab1, tab2);
 (** tables of token translation functions **)
 
 fun lookup_tokentr tabs modes =
-  let val trs = distinct (eq_fst (op =)) (maps (these o AList.lookup (op =) tabs) (modes @ [""]))
+  let val trs =
+    distinct (eq_fst (op = : string * string -> bool))
+      (maps (these o AList.lookup (op =) tabs) (modes @ [""]))
   in fn c => Option.map fst (AList.lookup (op =) trs c) end;
 
 fun merge_tokentrtabs tabs1 tabs2 =
   let
-    fun eq_tr ((c1, (_, s1)), (c2, (_, s2))) = c1 = c2 andalso s1 = s2;
+    fun eq_tr ((c1, (_, s1: stamp)), (c2, (_, s2))) = c1 = c2 andalso s1 = s2;
 
     fun name (s, _) = implode (tl (Symbol.explode s));
 
@@ -478,15 +495,28 @@ datatype syntax =
     parse_ast_trtab: ((Proof.context -> Ast.ast list -> Ast.ast) * stamp) Symtab.table,
     parse_ruletab: ruletab,
     parse_trtab: ((Proof.context -> term list -> term) * stamp) Symtab.table,
-    print_trtab: ((Proof.context -> bool -> typ -> term list -> term) * stamp) list Symtab.table,
+    print_trtab: ((Proof.context -> typ -> term list -> term) * stamp) list Symtab.table,
     print_ruletab: ruletab,
     print_ast_trtab: ((Proof.context -> Ast.ast list -> Ast.ast) * stamp) list Symtab.table,
     tokentrtab: (string * (string * ((Proof.context -> string -> Pretty.T) * stamp)) list) list,
     prtabs: Printer.prtabs} * stamp;
 
+fun rep_syntax (Syntax (tabs, _)) = tabs;
 fun eq_syntax (Syntax (_, s1), Syntax (_, s2)) = s1 = s2;
 
 fun is_keyword (Syntax ({lexicon, ...}, _)) = Scan.is_literal lexicon o Symbol.explode;
+fun tokenize (Syntax ({lexicon, ...}, _)) = Lexicon.tokenize lexicon;
+fun parse ctxt (Syntax ({gram, ...}, _)) = Parser.parse ctxt gram;
+
+fun parse_ast_translation (Syntax ({parse_ast_trtab, ...}, _)) = lookup_tr parse_ast_trtab;
+fun parse_translation (Syntax ({parse_trtab, ...}, _)) = lookup_tr parse_trtab;
+fun parse_rules (Syntax ({parse_ruletab, ...}, _)) = Symtab.lookup_list parse_ruletab;
+fun print_translation (Syntax ({print_trtab, ...}, _)) = apply_tr' print_trtab;
+fun print_rules (Syntax ({print_ruletab, ...}, _)) = Symtab.lookup_list print_ruletab;
+fun print_ast_translation (Syntax ({print_ast_trtab, ...}, _)) = apply_ast_tr' print_ast_trtab;
+fun token_translation (Syntax ({tokentrtab, ...}, _)) = lookup_tokentr tokentrtab;
+
+fun prtabs (Syntax ({prtabs, ...}, _)) = prtabs;
 
 type mode = string * bool;
 val mode_default = ("", true);
@@ -700,131 +730,6 @@ val ambiguity_level = Config.int ambiguity_level_raw;
 val ambiguity_limit =
   Config.int (Config.declare "syntax_ambiguity_limit" (fn _ => Config.Int 10));
 
-fun ambiguity_msg pos = "Parse error: ambiguous syntax" ^ Position.str_of pos;
-
-
-(* results *)
-
-fun proper_results results = map_filter (fn (y, Exn.Result x) => SOME (y, x) | _ => NONE) results;
-fun failed_results results = map_filter (fn (y, Exn.Exn e) => SOME (y, e) | _ => NONE) results;
-
-fun report ctxt = List.app (fn (pos, m) => Context_Position.report ctxt pos m);
-
-fun report_result ctxt pos results =
-  (case (proper_results results, failed_results results) of
-    ([], (reports, exn) :: _) => (report ctxt reports; reraise exn)
-  | ([(reports, x)], _) => (report ctxt reports; x)
-  | _ => error (ambiguity_msg pos));
-
-
-(* read_asts *)
-
-fun read_asts ctxt type_ctxt (Syntax (tabs, _)) raw root (syms, pos) =
-  let
-    val {lexicon, gram, parse_ast_trtab, ...} = tabs;
-    val toks = Lexicon.tokenize lexicon raw syms;
-    val _ = List.app (Lexicon.report_token ctxt) toks;
-
-    val pts = Parser.parse ctxt gram root (filter Lexicon.is_proper toks)
-      handle ERROR msg =>
-        error (msg ^
-          implode (map (Markup.markup Markup.report o Lexicon.reported_token_range ctxt) toks));
-    val len = length pts;
-
-    val limit = Config.get ctxt ambiguity_limit;
-    val _ =
-      if len <= Config.get ctxt ambiguity_level then ()
-      else if not (Config.get ctxt ambiguity_enabled) then error (ambiguity_msg pos)
-      else
-        (Context_Position.if_visible ctxt warning (cat_lines
-          (("Ambiguous input" ^ Position.str_of pos ^
-            "\nproduces " ^ string_of_int len ^ " parse trees" ^
-            (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
-            map (Pretty.string_of o Parser.pretty_parsetree) (take limit pts))));
-
-    val constrain_pos = not raw andalso Config.get ctxt positions;
-    val parsetree_to_ast =
-      Syn_Trans.parsetree_to_ast ctxt type_ctxt constrain_pos (lookup_tr parse_ast_trtab);
-  in map parsetree_to_ast pts end;
-
-
-(* read_raw *)
-
-fun read_raw ctxt type_ctxt (syn as Syntax (tabs, _)) root input =
-  let
-    val {parse_ruletab, parse_trtab, ...} = tabs;
-    val norm = Ast.normalize ctxt (Symtab.lookup_list parse_ruletab);
-    val ast_to_term = Syn_Trans.ast_to_term ctxt (lookup_tr parse_trtab);
-  in
-    read_asts ctxt type_ctxt syn false root input
-    |> (map o apsnd o Exn.maps_result) (norm #> Exn.interruptible_capture ast_to_term)
-  end;
-
-
-(* read sorts *)
-
-fun standard_parse_sort ctxt type_ctxt syn (syms, pos) =
-  read_raw ctxt type_ctxt syn (Syn_Ext.typ_to_nonterm Type_Ext.sortT) (syms, pos)
-  |> report_result ctxt pos
-  |> Type_Ext.sort_of_term;
-
-
-(* read types *)
-
-fun standard_parse_typ ctxt type_ctxt syn get_sort (syms, pos) =
-  read_raw ctxt type_ctxt syn (Syn_Ext.typ_to_nonterm Syn_Ext.typeT) (syms, pos)
-  |> report_result ctxt pos
-  |> (fn t => Type_Ext.typ_of_term (get_sort (Type_Ext.term_sorts t)) t);
-
-
-(* read terms -- brute-force disambiguation via type-inference *)
-
-fun standard_parse_term check ctxt type_ctxt term_ctxt syn root (syms, pos) =
-  let
-    val results =
-      read_raw ctxt type_ctxt syn root (syms, pos)
-      |> map (Type_Ext.decode_term term_ctxt);
-
-    val level = Config.get ctxt ambiguity_level;
-    val limit = Config.get ctxt ambiguity_limit;
-
-    val ambiguity = length (proper_results results);
-
-    fun ambig_msg () =
-      if ambiguity > 1 andalso ambiguity <= level then
-        "Got more than one parse tree.\n\
-        \Retry with smaller syntax_ambiguity_level for more information."
-      else "";
-
-    val results' =
-      if ambiguity > 1 then
-        (Par_List.map_name "Syntax.disambig" o apsnd o Exn.maps_result) check results
-      else results;
-    val reports' = fst (hd results');
-
-    val errs = map snd (failed_results results');
-    val checked = map snd (proper_results results');
-    val len = length checked;
-
-    val show_term = string_of_term (Config.put Printer.show_brackets true ctxt);
-  in
-    if len = 0 then
-      report_result ctxt pos
-        [(reports', Exn.Exn (Exn.EXCEPTIONS (ERROR (ambig_msg ()) :: errs)))]
-    else if len = 1 then
-      (if ambiguity > level then
-        Context_Position.if_visible ctxt warning
-          "Fortunately, only one parse tree is type correct.\n\
-          \You may still want to disambiguate your grammar or your input."
-      else (); report_result ctxt pos results')
-    else
-      report_result ctxt pos
-        [(reports', Exn.Exn (ERROR (cat_lines (ambig_msg () ::
-          (("Ambiguous input, " ^ string_of_int len ^ " terms are type correct" ^
-            (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
-            map show_term (take limit checked))))))]
-  end;
-
 
 
 (** prepare translation rules **)
@@ -872,55 +777,6 @@ fun check_rules rules =
 end;
 
 
-(* read_rule_pattern *)
-
-fun read_rule_pattern ctxt type_ctxt syn (root, str) =
-  let
-    fun constify (ast as Ast.Constant _) = ast
-      | constify (ast as Ast.Variable x) =
-          if is_const syn x orelse Long_Name.is_qualified x then Ast.Constant x
-          else ast
-      | constify (Ast.Appl asts) = Ast.Appl (map constify asts);
-
-    val (syms, pos) = read_token str;
-  in
-    read_asts ctxt type_ctxt syn true root (syms, pos)
-    |> report_result ctxt pos
-    |> constify
-  end;
-
-
-
-(** unparse terms, typs, sorts **)
-
-local
-
-fun unparse_t t_to_ast prt_t markup ctxt (Syntax (tabs, _)) curried t =
-  let
-    val {consts, print_trtab, print_ruletab, print_ast_trtab, tokentrtab, prtabs, ...} = tabs;
-    val ast = t_to_ast consts ctxt (lookup_tr' print_trtab) t;
-  in
-    Pretty.markup markup (prt_t ctxt curried prtabs (lookup_tr' print_ast_trtab)
-      (lookup_tokentr tokentrtab (print_mode_value ()))
-      (Ast.normalize ctxt (Symtab.lookup_list print_ruletab) ast))
-  end;
-
-in
-
-fun standard_unparse_sort {extern_class} ctxt syn =
-  unparse_t (K Printer.sort_to_ast)
-    (Printer.pretty_typ_ast {extern_class = extern_class, extern_type = I})
-    Markup.sort ctxt syn false;
-
-fun standard_unparse_typ extern ctxt syn =
-  unparse_t (K Printer.typ_to_ast) (Printer.pretty_typ_ast extern) Markup.typ ctxt syn false;
-
-fun standard_unparse_term idents extern =
-  unparse_t (Printer.term_to_ast idents) (Printer.pretty_term_ast extern) Markup.term;
-
-end;
-
-
 
 (** modify syntax **)
 
@@ -941,7 +797,9 @@ val remove_trrules = remove_syntax mode_default o Syn_Ext.syn_ext_rules o check_
 
 
 (*export parts of internal Syntax structures*)
+val syntax_tokenize = tokenize;
 open Lexicon Syn_Ext Type_Ext Syn_Trans Mixfix Printer;
+val tokenize = syntax_tokenize;
 
 end;
 
@@ -950,6 +808,5 @@ open Basic_Syntax;
 
 forget_structure "Syn_Ext";
 forget_structure "Type_Ext";
-forget_structure "Syn_Trans";
 forget_structure "Mixfix";
-forget_structure "Printer";
+

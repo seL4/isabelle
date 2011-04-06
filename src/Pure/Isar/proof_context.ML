@@ -26,6 +26,7 @@ sig
   val naming_of: Proof.context -> Name_Space.naming
   val restore_naming: Proof.context -> Proof.context -> Proof.context
   val full_name: Proof.context -> binding -> string
+  val syntax_of: Proof.context -> Local_Syntax.T
   val syn_of: Proof.context -> Syntax.syntax
   val tsig_of: Proof.context -> Type.tsig
   val set_defsort: sort -> Proof.context -> Proof.context
@@ -63,13 +64,11 @@ sig
   val read_const_proper: Proof.context -> bool -> string -> term
   val read_const: Proof.context -> bool -> typ -> string -> term
   val allow_dummies: Proof.context -> Proof.context
+  val get_sort: Proof.context -> (indexname * sort) list -> indexname -> sort
   val check_tvar: Proof.context -> indexname * sort -> indexname * sort
   val check_tfree: Proof.context -> string * sort -> string * sort
-  val type_context: Proof.context -> Syntax.type_context
-  val term_context: Proof.context -> Syntax.term_context
-  val decode_term: Proof.context ->
-    Position.reports * term Exn.result -> Position.reports * term Exn.result
   val standard_infer_types: Proof.context -> term list -> term list
+  val intern_skolem: Proof.context -> string -> string option
   val read_term_pattern: Proof.context -> string -> term
   val read_term_schematic: Proof.context -> string -> term
   val read_term_abbrev: Proof.context -> string -> term
@@ -264,7 +263,6 @@ val set_defsort = map_tsig o apfst o Type.set_defsort;
 fun default_sort ctxt = the_default (Type.defaultS (tsig_of ctxt)) o Variable.def_sort ctxt;
 
 val consts_of = #1 o #consts o rep_context;
-val const_space = Consts.space_of o consts_of;
 val the_const_constraint = Consts.the_constraint o consts_of;
 
 val facts_of = #facts o rep_context;
@@ -524,6 +522,22 @@ fun read_const ctxt strict ty text =
 end;
 
 
+(* skolem variables *)
+
+fun intern_skolem ctxt x =
+  let
+    val _ = no_skolem false x;
+    val sko = lookup_skolem ctxt x;
+    val is_const = can (read_const_proper ctxt false) x orelse Long_Name.is_qualified x;
+    val is_declared = is_some (Variable.def_type ctxt false (x, ~1));
+  in
+    if Variable.is_const ctxt x then NONE
+    else if is_some sko then sko
+    else if not is_const orelse is_declared then SOME x
+    else NONE
+  end;
+
+
 (* read_term *)
 
 fun read_term_mode mode ctxt = Syntax.read_term (set_mode mode ctxt);
@@ -616,9 +630,7 @@ fun prepare_patterns ctxt =
 end;
 
 
-(* decoding raw terms (syntax trees) *)
-
-(* types *)
+(* sort constraints *)
 
 fun get_sort ctxt raw_text =
   let
@@ -650,44 +662,6 @@ fun get_sort ctxt raw_text =
 
 fun check_tvar ctxt (xi, S) = (xi, get_sort ctxt [(xi, S)] xi);
 fun check_tfree ctxt (x, S) = apfst fst (check_tvar ctxt ((x, ~1), S));
-
-local
-
-fun intern_skolem ctxt def_type x =
-  let
-    val _ = no_skolem false x;
-    val sko = lookup_skolem ctxt x;
-    val is_const = can (read_const_proper ctxt false) x orelse Long_Name.is_qualified x;
-    val is_declared = is_some (def_type (x, ~1));
-  in
-    if Variable.is_const ctxt x then NONE
-    else if is_some sko then sko
-    else if not is_const orelse is_declared then SOME x
-    else NONE
-  end;
-
-in
-
-fun type_context ctxt : Syntax.type_context =
- {get_class = read_class ctxt,
-  get_type = #1 o dest_Type o read_type_name_proper ctxt false,
-  markup_class = fn c => [Name_Space.markup_entry (Type.class_space (tsig_of ctxt)) c],
-  markup_type = fn c => [Name_Space.markup_entry (Type.type_space (tsig_of ctxt)) c]};
-
-fun term_context ctxt : Syntax.term_context =
- {get_sort = get_sort ctxt,
-  get_const = fn a => ((true, #1 (Term.dest_Const (read_const_proper ctxt false a)))
-    handle ERROR _ => (false, Consts.intern (consts_of ctxt) a)),
-  get_free = intern_skolem ctxt (Variable.def_type ctxt false),
-  markup_const = fn c => [Name_Space.markup_entry (const_space ctxt) c],
-  markup_free = fn x =>
-    [if can Name.dest_skolem x then Markup.skolem else Markup.free] @
-    (if not (Variable.is_body ctxt) orelse Variable.is_fixed ctxt x then [] else [Markup.hilite]),
-  markup_var = fn xi => [Markup.name (Term.string_of_vname xi) Markup.var]};
-
-val decode_term = Syntax.decode_term o term_context;
-
-end;
 
 
 (* certify terms *)
@@ -741,93 +715,6 @@ val _ = add (op aconv) (Syntax.add_term_check 0 "standard") standard_term_check;
 val _ = add (op aconv) (Syntax.add_term_check 100 "fixate") prepare_patterns;
 
 val _ = add (op aconv) (Syntax.add_term_uncheck 0 "standard") standard_term_uncheck;
-
-end;
-
-
-
-(** inner syntax operations **)
-
-local
-
-fun parse_failed ctxt pos msg kind =
-  cat_error msg ("Failed to parse " ^ kind ^
-    Markup.markup Markup.report (Context_Position.reported_text ctxt pos Markup.bad ""));
-
-fun parse_sort ctxt text =
-  let
-    val (syms, pos) = Syntax.parse_token ctxt Markup.sort text;
-    val S =
-      Syntax.standard_parse_sort ctxt (type_context ctxt) (syn_of ctxt) (syms, pos)
-      handle ERROR msg => parse_failed ctxt pos msg "sort";
-  in Type.minimize_sort (tsig_of ctxt) S end;
-
-fun parse_typ ctxt text =
-  let
-    val (syms, pos) = Syntax.parse_token ctxt Markup.typ text;
-    val T =
-      Syntax.standard_parse_typ ctxt (type_context ctxt) (syn_of ctxt) (get_sort ctxt) (syms, pos)
-      handle ERROR msg => parse_failed ctxt pos msg "type";
-  in T end;
-
-fun parse_term T ctxt text =
-  let
-    val (T', _) = Type_Infer.paramify_dummies T 0;
-    val (markup, kind) =
-      if T' = propT then (Markup.prop, "proposition") else (Markup.term, "term");
-    val (syms, pos) = Syntax.parse_token ctxt markup text;
-
-    val default_root = Config.get ctxt Syntax.default_root;
-    val root =
-      (case T' of
-        Type (c, _) =>
-          if c <> "prop" andalso Type.is_logtype (tsig_of ctxt) c
-          then default_root else c
-      | _ => default_root);
-
-    fun check t = (Syntax.check_term ctxt (Type.constraint T' t); Exn.Result t)
-      handle exn as ERROR _ => Exn.Exn exn;
-    val t =
-      Syntax.standard_parse_term check ctxt (type_context ctxt) (term_context ctxt) (syn_of ctxt)
-        root (syms, pos)
-      handle ERROR msg => parse_failed ctxt pos msg kind;
-  in t end;
-
-
-fun unparse_sort ctxt =
-  Syntax.standard_unparse_sort {extern_class = Type.extern_class (tsig_of ctxt)}
-    ctxt (syn_of ctxt);
-
-fun unparse_typ ctxt =
-  let
-    val tsig = tsig_of ctxt;
-    val extern = {extern_class = Type.extern_class tsig, extern_type = Type.extern_type tsig};
-  in Syntax.standard_unparse_typ extern ctxt (syn_of ctxt) end;
-
-fun unparse_term ctxt =
-  let
-    val tsig = tsig_of ctxt;
-    val syntax = syntax_of ctxt;
-    val consts = consts_of ctxt;
-    val extern =
-     {extern_class = Type.extern_class tsig,
-      extern_type = Type.extern_type tsig,
-      extern_const = Consts.extern consts};
-  in
-    Syntax.standard_unparse_term (Local_Syntax.idents_of syntax) extern ctxt
-      (Local_Syntax.syn_of syntax) (not (Pure_Thy.old_appl_syntax (theory_of ctxt)))
-  end;
-
-in
-
-val _ = Syntax.install_operations
-  {parse_sort = parse_sort,
-   parse_typ = parse_typ,
-   parse_term = parse_term dummyT,
-   parse_prop = parse_term propT,
-   unparse_sort = unparse_sort,
-   unparse_typ = unparse_typ,
-   unparse_term = unparse_term};
 
 end;
 

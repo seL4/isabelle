@@ -148,8 +148,7 @@ fun print_ast_translation (a, (txt, pos)) =
 fun typed_print_translation (a, (txt, pos)) =
   ML_Lex.read pos txt
   |> ML_Context.expression pos
-    ("val typed_print_translation: (string * (" ^ advancedT a ^
-      "bool -> typ -> term list -> term)) list")
+    ("val typed_print_translation: (string * (" ^ advancedT a ^ "typ -> term list -> term)) list")
     ("Context.map_theory (Sign.add_" ^ advancedN a ^ "trfunsT typed_print_translation)")
   |> Context.theory_map;
 
@@ -161,11 +160,9 @@ end;
 fun read_trrules thy raw_rules =
   let
     val ctxt = ProofContext.init_global thy;
-    val type_ctxt = ProofContext.type_context ctxt;
-    val syn = ProofContext.syn_of ctxt;
   in
     raw_rules |> map (Syntax.map_trrule (fn (r, s) =>
-      Syntax.read_rule_pattern ctxt type_ctxt syn (Sign.intern_type thy r, s)))
+      Syntax_Phases.parse_ast_pattern ctxt (Sign.intern_type thy r, s)))
   end;
 
 fun translations args thy = Sign.add_trrules (read_trrules thy args) thy;

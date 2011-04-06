@@ -30,13 +30,13 @@ let
 in [(@{syntax_const "_TYPEREP"}, typerep_tr)] end
 *}
 
-typed_print_translation {*
+typed_print_translation (advanced) {*
 let
-  fun typerep_tr' show_sorts (*"typerep"*)
+  fun typerep_tr' ctxt (*"typerep"*)
           (Type (@{type_name fun}, [Type (@{type_name itself}, [T]), _]))
           (Const (@{const_syntax TYPE}, _) :: ts) =
         Term.list_comb
-          (Syntax.const @{syntax_const "_TYPEREP"} $ Syntax.term_of_typ show_sorts T, ts)
+          (Syntax.const @{syntax_const "_TYPEREP"} $ Syntax_Phases.term_of_typ ctxt T, ts)
     | typerep_tr' _ T ts = raise Match;
 in [(@{const_syntax typerep}, typerep_tr')] end
 *}

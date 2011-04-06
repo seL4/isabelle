@@ -7,7 +7,6 @@ Syntax extension (internal interface).
 signature SYN_EXT0 =
 sig
   val dddot_indexname: indexname
-  val constrainC: string
   val typeT: typ
   val spropT: typ
   val default_root: string Config.T
@@ -20,6 +19,7 @@ sig
     string -> (string * (Proof.context -> string -> Pretty.T)) list ->
     (string * string * (Proof.context -> string -> Pretty.T)) list
   val standard_token_classes: string list
+  val standard_token_markers: string list
 end;
 
 signature SYN_EXT =
@@ -49,8 +49,7 @@ sig
       parse_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list,
       parse_rules: (Ast.ast * Ast.ast) list,
       parse_translation: (string * ((Proof.context -> term list -> term) * stamp)) list,
-      print_translation:
-        (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list,
+      print_translation: (string * ((Proof.context -> typ -> term list -> term) * stamp)) list,
       print_rules: (Ast.ast * Ast.ast) list,
       print_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list,
       token_translation: (string * string * (Proof.context -> string -> Pretty.T)) list}
@@ -59,14 +58,14 @@ sig
   val syn_ext': bool -> (string -> bool) -> mfix list ->
     string list -> (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
-    (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list *
+    (string * ((Proof.context -> typ -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list
     -> (string * string * (Proof.context -> string -> Pretty.T)) list
     -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
   val syn_ext: mfix list -> string list ->
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
-    (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list *
+    (string * ((Proof.context -> typ -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list
     -> (string * string * (Proof.context -> string -> Pretty.T)) list
     -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
@@ -75,15 +74,14 @@ sig
   val syn_ext_trfuns:
     (string * ((Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((term list -> term) * stamp)) list *
-    (string * ((bool -> typ -> term list -> term) * stamp)) list *
+    (string * ((typ -> term list -> term) * stamp)) list *
     (string * ((Ast.ast list -> Ast.ast) * stamp)) list -> syn_ext
   val syn_ext_advanced_trfuns:
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
-    (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list *
+    (string * ((Proof.context -> typ -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list -> syn_ext
   val syn_ext_tokentrfuns: (string * string * (Proof.context -> string -> Pretty.T)) list -> syn_ext
-  val standard_token_markers: string list
   val pure_ext: syn_ext
 end;
 
@@ -94,7 +92,6 @@ struct
 (** misc definitions **)
 
 val dddot_indexname = ("dddot", 0);
-val constrainC = "_constrain";
 
 
 (* syntactic categories *)
@@ -337,8 +334,7 @@ datatype syn_ext =
     parse_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list,
     parse_rules: (Ast.ast * Ast.ast) list,
     parse_translation: (string * ((Proof.context -> term list -> term) * stamp)) list,
-    print_translation:
-      (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list,
+    print_translation: (string * ((Proof.context -> typ -> term list -> term) * stamp)) list,
     print_rules: (Ast.ast * Ast.ast) list,
     print_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list,
     token_translation: (string * string * (Proof.context -> string -> Pretty.T)) list};
