@@ -119,7 +119,7 @@ fun parsetree_to_ast ctxt constrain_pos trf parsetree =
       | ast_of (Parser.Node ("_constrain_position", [pt as Parser.Tip tok])) =
           if constrain_pos then
             Ast.Appl [Ast.Constant "_constrain", ast_of pt,
-              Ast.Variable (Lexicon.encode_position (Lexicon.pos_of_token tok))]
+              Ast.Variable (Term_Position.encode (Lexicon.pos_of_token tok))]
           else ast_of pt
       | ast_of (Parser.Node (a, pts)) = trans a (map ast_of pts)
       | ast_of (Parser.Tip tok) = Ast.Variable (Lexicon.str_of_token tok);
@@ -172,11 +172,11 @@ fun decode_term _ (result as (_: Position.reports, Exn.Exn _)) = result
         fun report ps = Position.reports reports ps;
 
         fun decode ps qs bs (Const ("_constrain", _) $ t $ typ) =
-              (case Syntax.decode_position_term typ of
+              (case Term_Position.decode_position typ of
                 SOME p => decode (p :: ps) qs bs t
               | NONE => Type.constraint (decodeT typ) (decode ps qs bs t))
           | decode ps qs bs (Const ("_constrainAbs", _) $ t $ typ) =
-              (case Syntax.decode_position_term typ of
+              (case Term_Position.decode_position typ of
                 SOME q => decode ps (q :: qs) bs t
               | NONE => Type.constraint (decodeT typ --> dummyT) (decode ps qs bs t))
           | decode _ qs bs (Abs (x, T, t)) =
@@ -418,7 +418,7 @@ fun term_of_typ ctxt ty =
     fun term_of (Type (a, Ts)) =
           Term.list_comb (Lexicon.const (Lexicon.mark_type a), map term_of Ts)
       | term_of (TFree (x, S)) =
-          if is_some (Lexicon.decode_position x) then Lexicon.free x
+          if is_some (Term_Position.decode x) then Lexicon.free x
           else of_sort (Lexicon.const "_tfree" $ Lexicon.free x) S
       | term_of (TVar (xi, S)) = of_sort (Lexicon.const "_tvar" $ Lexicon.var xi) S;
   in term_of ty end;

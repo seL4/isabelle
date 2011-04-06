@@ -16,7 +16,6 @@ signature SYNTAX =
 sig
   include LEXICON0
   include SYN_EXT0
-  include TYPE_EXT0
   include SYN_TRANS1
   include MIXFIX1
   include PRINTER0
@@ -795,7 +794,7 @@ val remove_trrules = remove_syntax mode_default o Syn_Ext.syn_ext_rules o check_
 
 (*export parts of internal Syntax structures*)
 val syntax_tokenize = tokenize;
-open Lexicon Syn_Ext Type_Ext Syn_Trans Mixfix Printer;
+open Lexicon Syn_Ext Syn_Trans Mixfix Printer;
 val tokenize = syntax_tokenize;
 
 end;
@@ -804,6 +803,5 @@ structure Basic_Syntax: BASIC_SYNTAX = Syntax;
 open Basic_Syntax;
 
 forget_structure "Syn_Ext";
-forget_structure "Type_Ext";
 forget_structure "Mixfix";
 

@@ -624,7 +624,7 @@ fun gen_lookup_tr ctxt s n =
            else raise TERM ("StateSpace.gen_lookup_tr: component " ^ n ^ " not defined",[]));
 
 fun lookup_tr ctxt [s, x] =
-  (case Syntax.strip_positions x of
+  (case Term_Position.strip_positions x of
     Free (n,_) => gen_lookup_tr ctxt s n
   | _ => raise Match);
 
@@ -656,7 +656,7 @@ fun gen_update_tr id ctxt n v s =
    end;
 
 fun update_tr ctxt [s, x, v] =
-  (case Syntax.strip_positions x of
+  (case Term_Position.strip_positions x of
     Free (n, _) => gen_update_tr false ctxt n v s
   | _ => raise Match);
 

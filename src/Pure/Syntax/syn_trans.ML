@@ -86,7 +86,7 @@ fun no_type_brackets () =
 
 (* strip_positions *)
 
-fun strip_positions_ast_tr [ast] = Type_Ext.strip_positions_ast ast
+fun strip_positions_ast_tr [ast] = Ast.strip_positions ast
   | strip_positions_ast_tr asts = raise Ast.AST ("strip_positions_ast_tr", asts);
 
 
@@ -223,7 +223,7 @@ fun quote_antiquote_tr quoteN antiquoteN name =
 fun update_name_tr (Free (x, T) :: ts) = list_comb (Free (suffix "_update" x, T), ts)
   | update_name_tr (Const (x, T) :: ts) = list_comb (Const (suffix "_update" x, T), ts)
   | update_name_tr (((c as Const ("_constrain", _)) $ t $ ty) :: ts) =
-      if Type_Ext.is_position ty then list_comb (c $ update_name_tr [t] $ ty, ts)
+      if Term_Position.is_position ty then list_comb (c $ update_name_tr [t] $ ty, ts)
       else
         list_comb (c $ update_name_tr [t] $
           (Lexicon.fun_type $

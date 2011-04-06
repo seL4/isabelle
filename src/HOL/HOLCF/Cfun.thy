@@ -57,7 +57,7 @@ parse_ast_translation {*
   let
     fun Lambda_ast_tr [pats, body] =
           Ast.fold_ast_p @{syntax_const "_cabs"}
-            (Ast.unfold_ast @{syntax_const "_cargs"} (Syntax.strip_positions_ast pats), body)
+            (Ast.unfold_ast @{syntax_const "_cargs"} (Ast.strip_positions pats), body)
       | Lambda_ast_tr asts = raise Ast.AST ("Lambda_ast_tr", asts);
   in [(@{syntax_const "_Lambda"}, Lambda_ast_tr)] end;
 *}
