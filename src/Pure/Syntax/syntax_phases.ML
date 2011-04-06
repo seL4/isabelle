@@ -443,8 +443,6 @@ fun simple_ast_of ctxt =
 
 (* sort_to_ast and typ_to_ast *)
 
-fun apply_typed x fs = map (fn f => fn ctxt => f ctxt x) fs;
-
 fun ast_of_termT ctxt trf tm =
   let
     val ctxt' = Config.put show_sorts false ctxt;
@@ -456,9 +454,8 @@ fun ast_of_termT ctxt trf tm =
             (Const (a, _), args) => trans a args
           | (f, args) => Ast.Appl (map ast_of (f :: args)))
       | ast_of t = simple_ast_of ctxt t
-    and trans a args =
-      ast_of (Syntax.apply_trans ctxt' (apply_typed dummyT (trf a)) args)
-        handle Match => Ast.mk_appl (Ast.Constant a) (map ast_of args);
+    and trans a args = ast_of (trf a ctxt' dummyT args)
+      handle Match => Ast.mk_appl (Ast.Constant a) (map ast_of args);
   in ast_of tm end;
 
 fun sort_to_ast ctxt trf S = ast_of_termT ctxt trf (term_of_sort S);
@@ -535,9 +532,8 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
           else trans c T ts
       | (t, ts) => Ast.mk_appl (simple_ast_of ctxt t) (map ast_of ts))
 
-    and trans a T args =
-      ast_of (Syntax.apply_trans ctxt (apply_typed T (trf a)) args)
-        handle Match => Ast.mk_appl (Ast.Constant a) (map ast_of args)
+    and trans a T args = ast_of (trf a ctxt T args)
+      handle Match => Ast.mk_appl (Ast.Constant a) (map ast_of args)
 
     and constrain t T =
       if show_types andalso T <> dummyT then
@@ -564,7 +560,7 @@ fun unparse_t t_to_ast prt_t markup ctxt curried t =
     val tr' = Syntax.print_translation syn;
     val ast_tr' = Syntax.print_ast_translation syn;
     val tokentr = Syntax.token_translation syn (print_mode_value ());
-    val {print_ruletab, tokentrtab, prtabs, ...} = Syntax.rep_syntax syn;
+    val {print_ruletab, prtabs, ...} = Syntax.rep_syntax syn;
   in
     t_to_ast ctxt tr' t
     |> Ast.normalize ctxt (Symtab.lookup_list print_ruletab)

@@ -23,7 +23,6 @@ sig
   val show_question_marks_raw: Config.raw
   val show_question_marks: bool Config.T
   val pretty_priority: int Config.T
-  val apply_trans: 'a -> ('a -> 'b -> 'c) list -> 'b -> 'c
 end;
 
 signature PRINTER =
@@ -36,11 +35,11 @@ sig
   val merge_prtabs: prtabs -> prtabs -> prtabs
   val pretty_term_ast: {extern_class: string -> xstring, extern_type: string -> xstring,
       extern_const: string -> xstring} -> Proof.context -> bool -> prtabs ->
-    (string -> (Proof.context -> Ast.ast list -> Ast.ast) list) ->
+    (string -> Proof.context -> Ast.ast list -> Ast.ast) ->
     (string -> (Proof.context -> string -> Pretty.T) option) -> Ast.ast -> Pretty.T list
   val pretty_typ_ast: {extern_class: string -> xstring, extern_type: string -> xstring} ->
     Proof.context -> bool -> prtabs ->
-    (string -> (Proof.context -> Ast.ast list -> Ast.ast) list) ->
+    (string -> Proof.context -> Ast.ast list -> Ast.ast) ->
     (string -> (Proof.context -> string -> Pretty.T) option) -> Ast.ast -> Pretty.T list
 end;
 
@@ -161,12 +160,6 @@ fun merge_prtabs prtabs1 prtabs2 =
 
 (** pretty term or typ asts **)
 
-fun apply_trans ctxt fns args =
-  let
-    fun app_first [] = raise Match
-      | app_first (f :: fs) = f ctxt args handle Match => app_first fs;
-  in app_first fns end;
-
 fun is_chain [Block (_, pr)] = is_chain pr
   | is_chain [Arg _] = true
   | is_chain _  = false;
@@ -264,7 +257,7 @@ fun pretty extern ctxt tabs trf tokentrf type_mode curried ast0 =
       in
         (case tokentrT a args of
           SOME prt => [prt]
-        | NONE => astT (apply_trans ctxt (trf a) args, p) handle Match => prnt ([], tabs))
+        | NONE => astT (trf a ctxt args, p) handle Match => prnt ([], tabs))
       end
 
     and tokentrT a [Ast.Variable x] = token_trans a x

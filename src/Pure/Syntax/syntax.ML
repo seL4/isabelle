@@ -120,8 +120,10 @@ sig
   val parse: Proof.context -> syntax -> string -> Lexicon.token list -> Parser.parsetree list
   val parse_ast_translation: syntax -> string -> (Proof.context -> Ast.ast list -> Ast.ast) option
   val parse_translation: syntax -> string -> (Proof.context -> term list -> term) option
-  val print_translation: syntax -> string -> (Proof.context -> typ -> term list -> term) list
-  val print_ast_translation: syntax -> string -> (Proof.context -> Ast.ast list -> Ast.ast) list
+  val print_translation: syntax -> string ->
+    Proof.context -> typ -> term list -> term  (*exception Match*)
+  val print_ast_translation: syntax -> string ->
+    Proof.context -> Ast.ast list -> Ast.ast  (*exception Match*)
   val token_translation: syntax -> string list ->
     string -> (Proof.context -> string -> Pretty.T) option
   type mode
@@ -421,7 +423,19 @@ fun merge_trtabs name tab1 tab2 = Symtab.merge Syn_Ext.eq_trfun (tab1, tab2)
 
 (* print (ast) translations *)
 
-fun lookup_tr' tab c = map fst (Symtab.lookup_list tab c);
+fun apply_tr' tab c ctxt T args =
+  let
+    val fns = map fst (Symtab.lookup_list tab c);
+    fun app_first [] = raise Match
+      | app_first (f :: fs) = f ctxt T args handle Match => app_first fs;
+  in app_first fns end;
+
+fun apply_ast_tr' tab c ctxt args =
+  let
+    val fns = map fst (Symtab.lookup_list tab c);
+    fun app_first [] = raise Match
+      | app_first (f :: fs) = f ctxt args handle Match => app_first fs;
+  in app_first fns end;
 
 fun update_tr'tab trfuns = fold_rev (Symtab.update_list Syn_Ext.eq_trfun) trfuns;
 fun remove_tr'tab trfuns = fold (Symtab.remove_list Syn_Ext.eq_trfun) trfuns;
@@ -507,8 +521,8 @@ fun parse ctxt (Syntax ({gram, ...}, _)) = Parser.parse ctxt gram;
 
 fun parse_ast_translation (Syntax ({parse_ast_trtab, ...}, _)) = lookup_tr parse_ast_trtab;
 fun parse_translation (Syntax ({parse_trtab, ...}, _)) = lookup_tr parse_trtab;
-fun print_translation (Syntax ({print_trtab, ...}, _)) = lookup_tr' print_trtab;
-fun print_ast_translation (Syntax ({print_ast_trtab, ...}, _)) = lookup_tr' print_ast_trtab;
+fun print_translation (Syntax ({print_trtab, ...}, _)) = apply_tr' print_trtab;
+fun print_ast_translation (Syntax ({print_ast_trtab, ...}, _)) = apply_ast_tr' print_ast_trtab;
 fun token_translation (Syntax ({tokentrtab, ...}, _)) = lookup_tokentr tokentrtab;
 
 type mode = string * bool;
