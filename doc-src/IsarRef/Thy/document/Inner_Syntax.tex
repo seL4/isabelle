@@ -824,8 +824,7 @@ The inner lexical syntax vaguely resembles the outer one
 val parse_ast_translation   : (string * (ast list -> ast)) list
 val parse_translation       : (string * (term list -> term)) list
 val print_translation       : (string * (term list -> term)) list
-val typed_print_translation :
-  (string * (bool -> typ -> term list -> term)) list
+val typed_print_translation : (string * (typ -> term list -> term)) list
 val print_ast_translation   : (string * (ast list -> ast)) list
 \end{ttbox}
 
@@ -847,7 +846,7 @@ val parse_translation:
 val print_translation:
   (string * (Proof.context -> term list -> term)) list
 val typed_print_translation:
-  (string * (Proof.context -> bool -> typ -> term list -> term)) list
+  (string * (Proof.context -> typ -> term list -> term)) list
 val print_ast_translation:
   (string * (Proof.context -> ast list -> ast)) list
 \end{ttbox}%

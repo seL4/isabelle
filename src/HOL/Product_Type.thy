@@ -232,8 +232,8 @@ in [(@{const_syntax prod_case}, split_tr')] end
 (* print "split f" as "\<lambda>(x,y). f x y" and "split (\<lambda>x. f x)" as "\<lambda>(x,y). f x y" *) 
 typed_print_translation {*
 let
-  fun split_guess_names_tr' _ T [Abs (x, _, Abs _)] = raise Match
-    | split_guess_names_tr' _ T [Abs (x, xT, t)] =
+  fun split_guess_names_tr' T [Abs (x, _, Abs _)] = raise Match
+    | split_guess_names_tr' T [Abs (x, xT, t)] =
         (case (head_of t) of
           Const (@{const_syntax prod_case}, _) => raise Match
         | _ =>
@@ -245,7 +245,7 @@ let
             Syntax.const @{syntax_const "_abs"} $
               (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
           end)
-    | split_guess_names_tr' _ T [t] =
+    | split_guess_names_tr' T [t] =
         (case head_of t of
           Const (@{const_syntax prod_case}, _) => raise Match
         | _ =>
@@ -257,7 +257,7 @@ let
             Syntax.const @{syntax_const "_abs"} $
               (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
           end)
-    | split_guess_names_tr' _ _ _ = raise Match;
+    | split_guess_names_tr' _ _ = raise Match;
 in [(@{const_syntax prod_case}, split_guess_names_tr')] end
 *}
 

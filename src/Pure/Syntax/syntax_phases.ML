@@ -12,7 +12,7 @@ sig
   val decode_term: Proof.context ->
     Position.reports * term Exn.result -> Position.reports * term Exn.result
   val parse_ast_pattern: Proof.context -> string * string -> Ast.ast
-  val term_of_typ: bool -> typ -> term
+  val term_of_typ: Proof.context -> typ -> term
 end
 
 structure Syntax_Phases: SYNTAX_PHASES =
@@ -411,8 +411,10 @@ fun term_of_sort S =
 
 (* term_of_typ *)
 
-fun term_of_typ show_sorts ty =
+fun term_of_typ ctxt ty =
   let
+    val show_sorts = Config.get ctxt show_sorts;
+
     fun of_sort t S =
       if show_sorts then Lexicon.const "_ofsort" $ t $ term_of_sort S
       else t;
@@ -444,7 +446,7 @@ fun simple_ast_of ctxt =
 
 (* sort_to_ast and typ_to_ast *)
 
-fun apply_typed x fs = map (fn f => fn ctxt => f ctxt (Config.get ctxt show_sorts) x) fs;
+fun apply_typed x fs = map (fn f => fn ctxt => f ctxt x) fs;
 
 fun ast_of_termT ctxt trf tm =
   let
@@ -463,7 +465,7 @@ fun ast_of_termT ctxt trf tm =
   in ast_of tm end;
 
 fun sort_to_ast ctxt trf S = ast_of_termT ctxt trf (term_of_sort S);
-fun typ_to_ast ctxt trf T = ast_of_termT ctxt trf (term_of_typ (Config.get ctxt show_sorts) T);
+fun typ_to_ast ctxt trf T = ast_of_termT ctxt trf (term_of_typ ctxt T);
 
 
 (* term_to_ast *)
@@ -544,7 +546,7 @@ fun term_to_ast idents consts ctxt trf tm =
     and constrain t T =
       if show_types andalso T <> dummyT then
         Ast.Appl [Ast.Constant Syntax.constrainC, simple_ast_of ctxt t,
-          ast_of_termT ctxt trf (term_of_typ show_sorts T)]
+          ast_of_termT ctxt trf (term_of_typ ctxt T)]
       else simple_ast_of ctxt t;
   in
     tm
@@ -620,31 +622,31 @@ fun unparse_term ctxt =
 
 (* type propositions *)
 
-fun type_prop_tr' _ T [Const ("\\<^const>Pure.sort_constraint", _)] =
-      Lexicon.const "_sort_constraint" $ term_of_typ true T
-  | type_prop_tr' show_sorts T [t] =
-      Lexicon.const "_ofclass" $ term_of_typ show_sorts T $ t
+fun type_prop_tr' ctxt T [Const ("\\<^const>Pure.sort_constraint", _)] =
+      Lexicon.const "_sort_constraint" $ term_of_typ (Config.put show_sorts true ctxt) T
+  | type_prop_tr' ctxt T [t] =
+      Lexicon.const "_ofclass" $ term_of_typ ctxt T $ t
   | type_prop_tr' _ T ts = raise TYPE ("type_prop_tr'", [T], ts);
 
 
 (* type reflection *)
 
-fun type_tr' show_sorts (Type ("itself", [T])) ts =
-      Term.list_comb (Lexicon.const "_TYPE" $ term_of_typ show_sorts T, ts)
+fun type_tr' ctxt (Type ("itself", [T])) ts =
+      Term.list_comb (Lexicon.const "_TYPE" $ term_of_typ ctxt T, ts)
   | type_tr' _ _ _ = raise Match;
 
 
 (* type constraints *)
 
-fun type_constraint_tr' show_sorts (Type ("fun", [T, _])) (t :: ts) =
-      Term.list_comb (Lexicon.const Syntax.constrainC $ t $ term_of_typ show_sorts T, ts)
+fun type_constraint_tr' ctxt (Type ("fun", [T, _])) (t :: ts) =
+      Term.list_comb (Lexicon.const Syntax.constrainC $ t $ term_of_typ ctxt T, ts)
   | type_constraint_tr' _ _ _ = raise Match;
 
 
 (* setup translations *)
 
 val _ = Context.>> (Context.map_theory
-  (Sign.add_trfunsT
+  (Sign.add_advanced_trfunsT
    [("_type_prop", type_prop_tr'),
     ("\\<^const>TYPE", type_tr'),
     ("_type_constraint_", type_constraint_tr')]));

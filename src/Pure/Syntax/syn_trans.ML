@@ -33,8 +33,8 @@ end;
 signature SYN_TRANS1 =
 sig
   include SYN_TRANS0
-  val non_typed_tr': (term list -> term) -> bool -> typ -> term list -> term
-  val non_typed_tr'': ('a -> term list -> term) -> 'a -> bool -> typ -> term list -> term
+  val non_typed_tr': (term list -> term) -> typ -> term list -> term
+  val non_typed_tr'': ('a -> term list -> term) -> 'a -> typ -> term list -> term
   val constrainAbsC: string
   val abs_tr: term list -> term
   val pure_trfuns:
@@ -45,7 +45,7 @@ sig
   val struct_trfuns: string list ->
     (string * (Ast.ast list -> Ast.ast)) list *
     (string * (term list -> term)) list *
-    (string * (bool -> typ -> term list -> term)) list *
+    (string * (typ -> term list -> term)) list *
     (string * (Ast.ast list -> Ast.ast)) list
 end;
 
@@ -243,8 +243,8 @@ fun struct_tr structs (*"_struct"*) [Const ("_indexdefault", _)] =
 
 (* types *)
 
-fun non_typed_tr' f _ _ ts = f ts;
-fun non_typed_tr'' f x _ _ ts = f x ts;
+fun non_typed_tr' f _ ts = f ts;
+fun non_typed_tr'' f x _ ts = f x ts;
 
 
 (* application *)

@@ -109,7 +109,7 @@ sig
     parse_ast_trtab: ((Proof.context -> Ast.ast list -> Ast.ast) * stamp) Symtab.table,
     parse_ruletab: ruletab,
     parse_trtab: ((Proof.context -> term list -> term) * stamp) Symtab.table,
-    print_trtab: ((Proof.context -> bool -> typ -> term list -> term) * stamp) list Symtab.table,
+    print_trtab: ((Proof.context -> typ -> term list -> term) * stamp) list Symtab.table,
     print_ruletab: ruletab,
     print_ast_trtab: ((Proof.context -> Ast.ast list -> Ast.ast) * stamp) list Symtab.table,
     tokentrtab: (string * (string * ((Proof.context -> string -> Pretty.T) * stamp)) list) list,
@@ -141,12 +141,12 @@ sig
   val update_trfuns:
     (string * ((Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((term list -> term) * stamp)) list *
-    (string * ((bool -> typ -> term list -> term) * stamp)) list *
+    (string * ((typ -> term list -> term) * stamp)) list *
     (string * ((Ast.ast list -> Ast.ast) * stamp)) list -> syntax -> syntax
   val update_advanced_trfuns:
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
-    (string * ((Proof.context -> bool -> typ -> term list -> term) * stamp)) list *
+    (string * ((Proof.context -> typ -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list -> syntax -> syntax
   val extend_tokentrfuns: (string * string * (Proof.context -> string -> Pretty.T)) list ->
     syntax -> syntax
@@ -480,7 +480,7 @@ datatype syntax =
     parse_ast_trtab: ((Proof.context -> Ast.ast list -> Ast.ast) * stamp) Symtab.table,
     parse_ruletab: ruletab,
     parse_trtab: ((Proof.context -> term list -> term) * stamp) Symtab.table,
-    print_trtab: ((Proof.context -> bool -> typ -> term list -> term) * stamp) list Symtab.table,
+    print_trtab: ((Proof.context -> typ -> term list -> term) * stamp) list Symtab.table,
     print_ruletab: ruletab,
     print_ast_trtab: ((Proof.context -> Ast.ast list -> Ast.ast) * stamp) list Symtab.table,
     tokentrtab: (string * (string * ((Proof.context -> string -> Pretty.T) * stamp)) list) list,

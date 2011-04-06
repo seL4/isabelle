@@ -95,15 +95,14 @@ sig
     (string * (term list -> term)) list *
     (string * (term list -> term)) list *
     (string * (Ast.ast list -> Ast.ast)) list -> theory -> theory
-  val add_trfunsT:
-    (string * (bool -> typ -> term list -> term)) list -> theory -> theory
+  val add_trfunsT: (string * (typ -> term list -> term)) list -> theory -> theory
   val add_advanced_trfuns:
     (string * (Proof.context -> Ast.ast list -> Ast.ast)) list *
     (string * (Proof.context -> term list -> term)) list *
     (string * (Proof.context -> term list -> term)) list *
     (string * (Proof.context -> Ast.ast list -> Ast.ast)) list -> theory -> theory
   val add_advanced_trfunsT:
-    (string * (Proof.context -> bool -> typ -> term list -> term)) list -> theory -> theory
+    (string * (Proof.context -> typ -> term list -> term)) list -> theory -> theory
   val add_tokentrfuns:
     (string * string * (Proof.context -> string -> Pretty.T)) list -> theory -> theory
   val add_mode_tokentrfuns: string -> (string * (Proof.context -> string -> Pretty.T)) list
