@@ -206,8 +206,8 @@ fun compile_generator_expr ctxt [(t, eval_terms)] [_, size] =
 
 
 val setup =
-  Datatype.interpretation
-    (Quickcheck_Common.ensure_sort_datatype (@{sort narrowing}, instantiate_narrowing_datatype))
+  Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
+    (((@{sort typerep}, @{sort term_of}), @{sort narrowing}), instantiate_narrowing_datatype))
   #> setup_finite_functions
   #> Context.theory_map
     (Quickcheck.add_generator ("narrowing", compile_generator_expr))
