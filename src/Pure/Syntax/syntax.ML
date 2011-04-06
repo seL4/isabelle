@@ -116,6 +116,8 @@ sig
     prtabs: Printer.prtabs}
   val eq_syntax: syntax * syntax -> bool
   val is_keyword: syntax -> string -> bool
+  val tokenize: syntax -> bool -> Symbol_Pos.T list -> Lexicon.token list
+  val parse: Proof.context -> syntax -> string -> Lexicon.token list -> Parser.parsetree list
   type mode
   val mode_default: mode
   val mode_input: mode
@@ -490,6 +492,8 @@ fun rep_syntax (Syntax (tabs, _)) = tabs;
 fun eq_syntax (Syntax (_, s1), Syntax (_, s2)) = s1 = s2;
 
 fun is_keyword (Syntax ({lexicon, ...}, _)) = Scan.is_literal lexicon o Symbol.explode;
+fun tokenize (Syntax ({lexicon, ...}, _)) = Lexicon.tokenize lexicon;
+fun parse ctxt (Syntax ({gram, ...}, _)) = Parser.parse ctxt gram;
 
 type mode = string * bool;
 val mode_default = ("", true);
@@ -770,7 +774,9 @@ val remove_trrules = remove_syntax mode_default o Syn_Ext.syn_ext_rules o check_
 
 
 (*export parts of internal Syntax structures*)
+val syntax_tokenize = tokenize;
 open Lexicon Syn_Ext Type_Ext Syn_Trans Mixfix Printer;
+val tokenize = syntax_tokenize;
 
 end;
 

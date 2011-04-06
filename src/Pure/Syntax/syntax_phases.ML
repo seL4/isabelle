@@ -239,12 +239,13 @@ fun report_result ctxt pos results =
 
 fun parse_asts ctxt raw root (syms, pos) =
   let
-    val {lexicon, gram, parse_ast_trtab, ...} = Syntax.rep_syntax (ProofContext.syn_of ctxt);
+    val syn = ProofContext.syn_of ctxt;
+    val {parse_ast_trtab, ...} = Syntax.rep_syntax syn;
 
-    val toks = Lexicon.tokenize lexicon raw syms;
+    val toks = Syntax.tokenize syn raw syms;
     val _ = List.app (Lexicon.report_token ctxt) toks;
 
-    val pts = Parser.parse ctxt gram root (filter Lexicon.is_proper toks)
+    val pts = Syntax.parse ctxt syn root (filter Lexicon.is_proper toks)
       handle ERROR msg =>
         error (msg ^
           implode (map (Markup.markup Markup.report o Lexicon.reported_token_range ctxt) toks));
