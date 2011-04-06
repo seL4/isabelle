@@ -221,7 +221,7 @@ fun report_result ctxt pos results =
   | _ => error (ambiguity_msg pos));
 
 
-(* parse_asts *)
+(* parse raw asts *)
 
 fun parse_asts ctxt raw root (syms, pos) =
   let
@@ -251,10 +251,7 @@ fun parse_asts ctxt raw root (syms, pos) =
     val parsetree_to_ast = parsetree_to_ast ctxt constrain_pos (lookup_tr parse_ast_trtab);
   in map parsetree_to_ast pts end;
 
-
-(* read_raw *)
-
-fun read_raw ctxt root input =
+fun parse_raw ctxt root input =
   let
     val {parse_ruletab, parse_trtab, ...} = Syntax.rep_syntax (ProofContext.syn_of ctxt);
     val norm = Ast.normalize ctxt (Symtab.lookup_list parse_ruletab);
@@ -265,70 +262,7 @@ fun read_raw ctxt root input =
   end;
 
 
-(* read sorts *)
-
-fun standard_parse_sort ctxt (syms, pos) =
-  read_raw ctxt "sort" (syms, pos)
-  |> report_result ctxt pos
-  |> sort_of_term;
-
-
-(* read types *)
-
-fun standard_parse_typ ctxt (syms, pos) =
-  read_raw ctxt "type" (syms, pos)
-  |> report_result ctxt pos
-  |> (fn t => typ_of_term (ProofContext.get_sort ctxt (term_sorts t)) t);
-
-
-(* read terms -- brute-force disambiguation via type-inference *)
-
-fun standard_parse_term check ctxt root (syms, pos) =
-  let
-    val results = read_raw ctxt root (syms, pos) |> map (decode_term ctxt);
-
-    val level = Config.get ctxt Syntax.ambiguity_level;
-    val limit = Config.get ctxt Syntax.ambiguity_limit;
-
-    val ambiguity = length (proper_results results);
-
-    fun ambig_msg () =
-      if ambiguity > 1 andalso ambiguity <= level then
-        "Got more than one parse tree.\n\
-        \Retry with smaller syntax_ambiguity_level for more information."
-      else "";
-
-    val results' =
-      if ambiguity > 1 then
-        (Par_List.map_name "Syntax.disambig" o apsnd o Exn.maps_result) check results
-      else results;
-    val reports' = fst (hd results');
-
-    val errs = map snd (failed_results results');
-    val checked = map snd (proper_results results');
-    val len = length checked;
-
-    val show_term = Syntax.string_of_term (Config.put Syntax.show_brackets true ctxt);
-  in
-    if len = 0 then
-      report_result ctxt pos
-        [(reports', Exn.Exn (Exn.EXCEPTIONS (ERROR (ambig_msg ()) :: errs)))]
-    else if len = 1 then
-      (if ambiguity > level then
-        Context_Position.if_visible ctxt warning
-          "Fortunately, only one parse tree is type correct.\n\
-          \You may still want to disambiguate your grammar or your input."
-      else (); report_result ctxt pos results')
-    else
-      report_result ctxt pos
-        [(reports', Exn.Exn (ERROR (cat_lines (ambig_msg () ::
-          (("Ambiguous input, " ^ string_of_int len ^ " terms are type correct" ^
-            (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
-            map show_term (take limit checked))))))]
-  end;
-
-
-(* standard operations *)
+(* parse logical entities *)
 
 fun parse_failed ctxt pos msg kind =
   cat_error msg ("Failed to parse " ^ kind ^
@@ -337,14 +271,20 @@ fun parse_failed ctxt pos msg kind =
 fun parse_sort ctxt text =
   let
     val (syms, pos) = Syntax.parse_token ctxt Markup.sort text;
-    val S = standard_parse_sort ctxt (syms, pos)
+    val S =
+      parse_raw ctxt "sort" (syms, pos)
+      |> report_result ctxt pos
+      |> sort_of_term
       handle ERROR msg => parse_failed ctxt pos msg "sort";
   in Type.minimize_sort (ProofContext.tsig_of ctxt) S end;
 
 fun parse_typ ctxt text =
   let
     val (syms, pos) = Syntax.parse_token ctxt Markup.typ text;
-    val T = standard_parse_typ ctxt (syms, pos)
+    val T =
+      parse_raw ctxt "type" (syms, pos)
+      |> report_result ctxt pos
+      |> (fn t => typ_of_term (ProofContext.get_sort ctxt (term_sorts t)) t)
       handle ERROR msg => parse_failed ctxt pos msg "type";
   in T end;
 
@@ -362,12 +302,54 @@ fun parse_term T ctxt text =
           if c <> "prop" andalso Type.is_logtype (ProofContext.tsig_of ctxt) c
           then default_root else c
       | _ => default_root);
+  in
+    let
+      val results = parse_raw ctxt root (syms, pos) |> map (decode_term ctxt);
+      val ambiguity = length (proper_results results);
 
-    fun check t = (Syntax.check_term ctxt (Type.constraint T' t); Exn.Result t)
-      handle exn as ERROR _ => Exn.Exn exn;
-    val t = standard_parse_term check ctxt root (syms, pos)
-      handle ERROR msg => parse_failed ctxt pos msg kind;
-  in t end;
+      val level = Config.get ctxt Syntax.ambiguity_level;
+      val limit = Config.get ctxt Syntax.ambiguity_limit;
+
+      fun ambig_msg () =
+        if ambiguity > 1 andalso ambiguity <= level then
+          "Got more than one parse tree.\n\
+          \Retry with smaller syntax_ambiguity_level for more information."
+        else "";
+
+      (*brute-force disambiguation via type-inference*)
+      fun check t = (Syntax.check_term ctxt (Type.constraint T' t); Exn.Result t)
+        handle exn as ERROR _ => Exn.Exn exn;
+
+      val results' =
+        if ambiguity > 1 then
+          (Par_List.map_name "Syntax_Phases.parse_term" o apsnd o Exn.maps_result)
+            check results
+        else results;
+      val reports' = fst (hd results');
+
+      val errs = map snd (failed_results results');
+      val checked = map snd (proper_results results');
+      val len = length checked;
+
+      val show_term = Syntax.string_of_term (Config.put Syntax.show_brackets true ctxt);
+    in
+      if len = 0 then
+        report_result ctxt pos
+          [(reports', Exn.Exn (Exn.EXCEPTIONS (ERROR (ambig_msg ()) :: errs)))]
+      else if len = 1 then
+        (if ambiguity > level then
+          Context_Position.if_visible ctxt warning
+            "Fortunately, only one parse tree is type correct.\n\
+            \You may still want to disambiguate your grammar or your input."
+        else (); report_result ctxt pos results')
+      else
+        report_result ctxt pos
+          [(reports', Exn.Exn (ERROR (cat_lines (ambig_msg () ::
+            (("Ambiguous input, " ^ string_of_int len ^ " terms are type correct" ^
+              (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
+              map show_term (take limit checked))))))]
+    end handle ERROR msg => parse_failed ctxt pos msg kind
+  end;
 
 
 (* parse_ast_pattern *)
@@ -475,14 +457,13 @@ fun term_to_ast idents consts ctxt trf tm =
     val show_types =
       Config.get ctxt show_types orelse Config.get ctxt show_sorts orelse
       Config.get ctxt show_all_types;
-    val show_sorts = Config.get ctxt show_sorts;
     val show_structs = Config.get ctxt show_structs;
     val show_free_types = Config.get ctxt show_free_types;
     val show_all_types = Config.get ctxt show_all_types;
 
     val {structs, fixes} = idents;
 
-    fun mark_atoms ((t as Const (c, T)) $ u) =
+    fun mark_atoms ((t as Const (c, _)) $ u) =
           if member (op =) Syntax.standard_token_markers c
           then t $ u else mark_atoms t $ mark_atoms u
       | mark_atoms (t $ u) = mark_atoms t $ mark_atoms u
@@ -560,8 +541,6 @@ fun term_to_ast idents consts ctxt trf tm =
 
 (** unparse **)
 
-(** unparse terms, typs, sorts **)
-
 local
 
 fun lookup_tr' tab c = map fst (Symtab.lookup_list tab c);
@@ -579,42 +558,34 @@ fun unparse_t t_to_ast prt_t markup ctxt curried t =
 
 in
 
-fun standard_unparse_sort {extern_class} ctxt =
-  unparse_t (K sort_to_ast)
-    (Printer.pretty_typ_ast {extern_class = extern_class, extern_type = I})
-    Markup.sort ctxt false;
-
-fun standard_unparse_typ extern ctxt =
-  unparse_t (K typ_to_ast) (Printer.pretty_typ_ast extern) Markup.typ ctxt false;
-
-fun standard_unparse_term idents extern =
-  unparse_t (term_to_ast idents) (Printer.pretty_term_ast extern) Markup.term;
-
-end;
-
-
 fun unparse_sort ctxt =
-  standard_unparse_sort {extern_class = Type.extern_class (ProofContext.tsig_of ctxt)} ctxt;
+  let
+    val tsig = ProofContext.tsig_of ctxt;
+    val extern = {extern_class = Type.extern_class tsig, extern_type = I};
+  in unparse_t (K sort_to_ast) (Printer.pretty_typ_ast extern) Markup.sort ctxt false end;
 
 fun unparse_typ ctxt =
   let
     val tsig = ProofContext.tsig_of ctxt;
     val extern = {extern_class = Type.extern_class tsig, extern_type = Type.extern_type tsig};
-  in standard_unparse_typ extern ctxt end;
+  in unparse_t (K typ_to_ast) (Printer.pretty_typ_ast extern) Markup.typ ctxt false end;
 
 fun unparse_term ctxt =
   let
     val tsig = ProofContext.tsig_of ctxt;
     val syntax = ProofContext.syntax_of ctxt;
+    val idents = Local_Syntax.idents_of syntax;
     val consts = ProofContext.consts_of ctxt;
     val extern =
      {extern_class = Type.extern_class tsig,
       extern_type = Type.extern_type tsig,
       extern_const = Consts.extern consts};
   in
-    standard_unparse_term (Local_Syntax.idents_of syntax) extern ctxt
+    unparse_t (term_to_ast idents) (Printer.pretty_term_ast extern) Markup.term ctxt
       (not (Pure_Thy.old_appl_syntax (ProofContext.theory_of ctxt)))
   end;
+
+end;
 
 
 
