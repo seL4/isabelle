@@ -163,7 +163,7 @@ fun read_trrules thy raw_rules =
     val ctxt = ProofContext.init_global thy;
   in
     raw_rules |> map (Syntax.map_trrule (fn (r, s) =>
-      Standard_Syntax.parse_ast_pattern ctxt (Sign.intern_type thy r, s)))
+      Syntax_Phases.parse_ast_pattern ctxt (Sign.intern_type thy r, s)))
   end;
 
 fun translations args thy = Sign.add_trrules (read_trrules thy args) thy;

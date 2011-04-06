@@ -173,7 +173,7 @@ use "Isar/auto_bind.ML";
 use "type_infer.ML";
 use "Syntax/local_syntax.ML";
 use "Isar/proof_context.ML";
-use "Syntax/standard_syntax.ML";
+use "Syntax/syntax_phases.ML";
 use "Isar/local_defs.ML";
 
 (*proof term operations*)

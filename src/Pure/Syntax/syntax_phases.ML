@@ -1,10 +1,11 @@
-(*  Title:      Pure/Syntax/standard_syntax.ML
+(*  Title:      Pure/Syntax/syntax_phases.ML
     Author:     Makarius
 
-Standard implementation of inner syntax operations.
+Main phases of inner syntax processing, with standard implementations
+of parse/unparse operations.
 *)
 
-signature STANDARD_SYNTAX =
+signature SYNTAX_PHASES =
 sig
   val term_sorts: term -> (indexname * sort) list
   val typ_of_term: (indexname -> sort) -> term -> typ
@@ -13,7 +14,7 @@ sig
   val parse_ast_pattern: Proof.context -> string * string -> Ast.ast
 end
 
-structure Standard_Syntax: STANDARD_SYNTAX =
+structure Syntax_Phases: SYNTAX_PHASES =
 struct
 
 (** decode parse trees **)
