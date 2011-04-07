@@ -202,7 +202,7 @@ fun mk_bounded_forall_equations descr vs tycos bounded_foralls (Ts, Us) =
       in fold_rev (fn f => fn t => f t) fns start_term end
     fun mk_rhs exprs =
       @{term "If :: bool => bool => bool => bool"} $ size_ge_zero $
-        (foldr1 HOLogic.mk_disj exprs) $ @{term "True"}
+        (foldr1 HOLogic.mk_conj exprs) $ @{term "True"}
     val rhss =
       Datatype_Aux.interpret_construction descr vs
         { atyp = mk_call, dtyp = mk_aux_call }
@@ -304,7 +304,7 @@ fun mk_validator_expr ctxt t =
       Const (@{const_name "Quickcheck_Exhaustive.bounded_forall_class.bounded_forall"}, bounded_forallT T)
         $ lambda (Free (s, T)) t $ depth
     fun mk_implies (cond, then_t) =
-      @{term "If :: bool => bool => bool => bool"} $ cond $ then_t $ @{term False}
+      @{term "If :: bool => bool => bool => bool"} $ cond $ then_t $ @{term True}
     fun mk_naive_test_term t = fold_rev mk_bounded_forall (Term.add_frees t []) t 
     fun mk_smart_test_term' concl bound_frees assms =
       let
@@ -387,7 +387,7 @@ fun compile_generator_exprs ctxt ts =
 fun compile_validator_exprs ctxt ts =
   let
     val thy = ProofContext.theory_of ctxt
-    val ts' = map (mk_validator_expr ctxt) ts;
+    val ts' = map (mk_validator_expr ctxt) ts
   in
     Code_Runtime.dynamic_value_strict
       (Validator_Batch.get, put_validator_batch, "Exhaustive_Generators.put_validator_batch")
