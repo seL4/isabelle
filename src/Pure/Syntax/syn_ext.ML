@@ -15,11 +15,7 @@ sig
   val mk_trfun: string * 'a -> string * ('a * stamp)
   val eq_trfun: ('a * stamp) * ('a * stamp) -> bool
   val escape: string -> string
-  val tokentrans_mode:
-    string -> (string * (Proof.context -> string -> Pretty.T)) list ->
-    (string * string * (Proof.context -> string -> Pretty.T)) list
-  val standard_token_classes: string list
-  val standard_token_markers: string list
+  val token_markers: string list
 end;
 
 signature SYN_EXT =
@@ -383,17 +379,10 @@ fun mk_trfun tr = stamp_trfun (stamp ()) tr;
 fun eq_trfun ((_, s1: stamp), (_, s2)) = s1 = s2;
 
 
-(* token translations *)
-
-fun tokentrans_mode m trs = map (fn (s, f) => (m, s, f)) trs;
-
-val standard_token_classes =
-  ["tfree", "tvar", "free", "bound", "var", "numeral", "inner_string"];
-
-val standard_token_markers = map (fn s => "_" ^ s) standard_token_classes;
-
-
 (* pure_ext *)
+
+val token_markers =
+  ["_tfree", "_tvar", "_free", "_bound", "_var", "_numeral", "_inner_string"];
 
 val pure_ext = syn_ext' false (K false)
   [Mfix ("_", spropT --> propT, "", [0], 0),
@@ -403,7 +392,7 @@ val pure_ext = syn_ext' false (K false)
    Mfix ("'(_')", spropT --> spropT, "", [0], max_pri),
    Mfix ("_::_",  [logicT, typeT] ---> logicT, "_constrain", [4, 0], 3),
    Mfix ("_::_",  [spropT, typeT] ---> spropT, "_constrain", [4, 0], 3)]
-  standard_token_markers
+  token_markers
   ([], [], [], [])
   []
   ([], []);

@@ -475,7 +475,7 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
     val {structs, fixes} = idents;
 
     fun mark_atoms ((t as Const (c, _)) $ u) =
-          if member (op =) Syntax.standard_token_markers c
+          if member (op =) Syntax.token_markers c
           then t $ u else mark_atoms t $ mark_atoms u
       | mark_atoms (t $ u) = mark_atoms t $ mark_atoms u
       | mark_atoms (Abs (x, T, t)) = Abs (x, T, mark_atoms t)
@@ -553,46 +553,66 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
 
 local
 
-fun unparse_t t_to_ast prt_t markup ctxt curried t =
+fun free_or_skolem ctxt x =
+  let
+    val m =
+      if Variable.is_fixed ctxt x orelse Syntax.is_pretty_global ctxt
+      then Markup.fixed x
+      else Markup.hilite;
+  in
+    if can Name.dest_skolem x
+    then ([m, Markup.skolem], ProofContext.revert_skolem ctxt x)
+    else ([m, Markup.free], x)
+  end;
+
+fun var_or_skolem s =
+  (case Lexicon.read_variable s of
+    SOME (x, i) =>
+      (case try Name.dest_skolem x of
+        NONE => (Markup.var, s)
+      | SOME x' => (Markup.skolem, Term.string_of_vname (x', i)))
+  | NONE => (Markup.var, s));
+
+fun unparse_t t_to_ast prt_t markup ctxt t =
   let
     val syn = ProofContext.syn_of ctxt;
-    val tokentr = Syntax.token_translation syn (print_mode_value ());
+
+    fun token_trans "_tfree" x = SOME (Pretty.mark_str (Markup.tfree, x))
+      | token_trans "_tvar" x = SOME (Pretty.mark_str (Markup.tvar, x))
+      | token_trans "_free" x = SOME (Pretty.marks_str (free_or_skolem ctxt x))
+      | token_trans "_bound" x = SOME (Pretty.mark_str (Markup.bound, x))
+      | token_trans "_var" x = SOME (Pretty.mark_str (var_or_skolem x))
+      | token_trans "_numeral" x = SOME (Pretty.mark_str (Markup.numeral, x))
+      | token_trans "_inner_string" x = SOME (Pretty.mark_str (Markup.inner_string, x))
+      | token_trans _ _ = NONE;
+
+    val markup_extern = Lexicon.unmark
+     {case_class = fn x => ([Markup.tclass x], Type.extern_class (ProofContext.tsig_of ctxt) x),
+      case_type = fn x => ([Markup.tycon x], Type.extern_type (ProofContext.tsig_of ctxt) x),
+      case_const = fn x => ([Markup.const x], Consts.extern (ProofContext.consts_of ctxt) x),
+      case_fixed = fn x => free_or_skolem ctxt x,
+      case_default = fn x => ([], x)};
   in
     t_to_ast ctxt (Syntax.print_translation syn) t
     |> Ast.normalize ctxt (Syntax.print_rules syn)
-    |> prt_t ctxt curried (Syntax.prtabs syn) (Syntax.print_ast_translation syn) tokentr
+    |> prt_t ctxt (Syntax.prtabs syn) (Syntax.print_ast_translation syn) token_trans markup_extern
     |> Pretty.markup markup
   end;
 
 in
 
-fun unparse_sort ctxt =
-  let
-    val tsig = ProofContext.tsig_of ctxt;
-    val extern = {extern_class = Type.extern_class tsig, extern_type = I};
-  in unparse_t sort_to_ast (Printer.pretty_typ_ast extern) Markup.sort ctxt false end;
-
-fun unparse_typ ctxt =
-  let
-    val tsig = ProofContext.tsig_of ctxt;
-    val extern = {extern_class = Type.extern_class tsig, extern_type = Type.extern_type tsig};
-  in unparse_t typ_to_ast (Printer.pretty_typ_ast extern) Markup.typ ctxt false end;
+val unparse_sort = unparse_t sort_to_ast Printer.pretty_typ_ast Markup.sort;
+val unparse_typ = unparse_t typ_to_ast Printer.pretty_typ_ast Markup.typ;
 
 fun unparse_term ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     val syn = ProofContext.syn_of ctxt;
-    val tsig = ProofContext.tsig_of ctxt;
     val idents = Local_Syntax.idents_of (ProofContext.syntax_of ctxt);
-    val is_syntax_const = Syntax.is_const syn;
-    val consts = ProofContext.consts_of ctxt;
-    val extern =
-     {extern_class = Type.extern_class tsig,
-      extern_type = Type.extern_type tsig,
-      extern_const = Consts.extern consts};
   in
-    unparse_t (term_to_ast idents is_syntax_const) (Printer.pretty_term_ast extern)
-      Markup.term ctxt (not (Pure_Thy.old_appl_syntax thy))
+    unparse_t (term_to_ast idents (Syntax.is_const syn))
+      (Printer.pretty_term_ast (not (Pure_Thy.old_appl_syntax thy)))
+      Markup.term ctxt
   end;
 
 end;
