@@ -18,15 +18,6 @@ subsection {* exhaustive generator type classes *}
 class exhaustive = term_of +
 fixes exhaustive :: "('a * (unit => term) \<Rightarrow> term list option) \<Rightarrow> code_numeral \<Rightarrow> term list option"
 
-instantiation unit :: exhaustive
-begin
-
-definition "exhaustive f d = f (Code_Evaluation.valtermify ())"
-
-instance ..
-
-end
-
 instantiation code_numeral :: exhaustive
 begin
 
