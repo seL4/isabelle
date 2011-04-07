@@ -561,14 +561,6 @@ It allows the removal of finiteness assumptions from the theorems
 @{text fold_comm}, @{text fold_reindex} and @{text fold_distrib}.
 The proofs become ugly. It is not worth the effort. (???) *}
 
-
-lemma Diff1_fold_graph:
-  "fold_graph f z (A - {x}) y \<Longrightarrow> x \<in> A \<Longrightarrow> fold_graph f z A (f x y)"
-by (erule insert_Diff [THEN subst], rule fold_graph.intros, auto)
-
-lemma fold_graph_imp_finite: "fold_graph f z A x \<Longrightarrow> finite A"
-by (induct set: fold_graph) auto
-
 lemma finite_imp_fold_graph: "finite A \<Longrightarrow> \<exists>x. fold_graph f z A x"
 by (induct rule: finite_induct) auto
 
@@ -617,13 +609,16 @@ lemma fold_equality:
   "fold_graph f z A y \<Longrightarrow> fold f z A = y"
 by (unfold fold_def) (blast intro: fold_graph_determ)
 
-lemma fold_graph_fold: "finite A \<Longrightarrow> fold_graph f z A (fold f z A)"
-unfolding fold_def
-apply (rule theI')
-apply (rule ex_ex1I)
-apply (erule finite_imp_fold_graph)
-apply (erule (1) fold_graph_determ)
-done
+lemma fold_graph_fold:
+  assumes "finite A"
+  shows "fold_graph f z A (fold f z A)"
+proof -
+  from assms have "\<exists>x. fold_graph f z A x" by (rule finite_imp_fold_graph)
+  moreover note fold_graph_determ
+  ultimately have "\<exists>!x. fold_graph f z A x" by (rule ex_ex1I)
+  then have "fold_graph f z A (The (fold_graph f z A))" by (rule theI')
+  then show ?thesis by (unfold fold_def)
+qed
 
 text{* The base case for @{text fold}: *}
 
