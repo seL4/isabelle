@@ -596,7 +596,7 @@ fun print_dpairs thy msg (env, dpairs) =
       let
         fun termT t =
           Syntax.pretty_term_global thy (Envir.norm_term env (Logic.rlist_abs (rbinder, t)));
-        val bsymbs = [termT u, Pretty.str" =?=", Pretty.brk 1, termT t];
+        val bsymbs = [termT u, Pretty.str " =?=", Pretty.brk 1, termT t];
       in tracing (Pretty.string_of (Pretty.blk (0, bsymbs))) end;
   in tracing msg; List.app pdp dpairs end;
 
