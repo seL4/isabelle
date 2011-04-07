@@ -343,7 +343,7 @@ fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
         val fixes =
           Term.add_free_names (prop_of zapped_th) []
           |> filter is_zapped_var_name
-        val ctxt' = ctxt |> Variable.add_fixes_direct fixes (*###*)
+        val ctxt' = ctxt |> Variable.add_fixes_direct fixes
         val fully_skolemized_t =
           zapped_th
           |> singleton (Variable.export ctxt' ctxt)
