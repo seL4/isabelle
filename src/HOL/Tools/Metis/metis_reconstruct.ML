@@ -105,7 +105,7 @@ fun hol_term_from_metis_PT ctxt new_skolem_var_count fol_tm =
                 | NONE =>
               case strip_prefix_and_unascii schematic_var_prefix v of
                   SOME w => SomeTerm (mk_var (w, HOLogic.typeT))
-                | NONE   => SomeTerm (mk_var (v, HOLogic.typeT)) )
+                | NONE   => SomeTerm (mk_var (v, HOLogic.typeT)))
                     (*Var from Metis with a name like _nnn; possibly a type variable*)
         | tm_to_tt (Metis_Term.Fn ("{}", [arg])) = tm_to_tt arg   (*hBOOL*)
         | tm_to_tt (t as Metis_Term.Fn (".",_)) =
@@ -612,10 +612,11 @@ fun instantiate_forall_tac thy t i st =
       | repair t = t
     val t' = t |> repair |> fold (curry absdummy) (map snd params)
     fun do_instantiate th =
-      let
-        val var = Term.add_vars (prop_of th) []
-                  |> the_single
-      in th |> term_instantiate thy [(Var var, t')] end
+      case Term.add_vars (prop_of th) []
+           |> filter_out (Meson_Clausify.is_zapped_var_name o fst o fst) of
+        [] => th
+      | [var] => th |> term_instantiate thy [(Var var, t')]
+      | _ => raise Fail "expected a single non-zapped Var"
   in
     (etac @{thm allE} i
      THEN rotate_tac ~1 i
@@ -753,7 +754,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
                     Int_Tysubst_Table.map_default ((ax_no, tysubst), 0)
                                                   (Integer.add 1)) substs
         |> Int_Tysubst_Table.dest
-(* for debugging:
+(* for debugging only:
       fun string_for_subst_info (ax_no, (subgoal_no, (tysubst, tsubst))) =
         "ax: " ^ string_of_int ax_no ^ "; asm: " ^ string_of_int subgoal_no ^
         "; tysubst: " ^ PolyML.makestring tysubst ^ "; tsubst: {" ^
@@ -778,7 +779,8 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
               THEN ALLGOALS (fn i =>
                        rtac @{thm Meson.skolem_COMBK_I} i
                        THEN rotate_tac (rotation_for_subgoal i) i
-                       THEN assume_tac i)))
+                       THEN assume_tac 1
+                       THEN flexflex_tac)))
       handle ERROR _ =>
              error ("Cannot replay Metis proof in Isabelle:\n\
                     \Error when discharging Skolem assumptions.")
