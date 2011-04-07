@@ -34,6 +34,8 @@ sig
   val strs: string list -> T
   val markup: Markup.T -> T list -> T
   val mark: Markup.T -> T -> T
+  val mark_str: Markup.T * string -> T
+  val marks_str: Markup.T list * string -> T
   val keyword: string -> T
   val command: string -> T
   val markup_chunks: Markup.T -> T list -> T
@@ -138,9 +140,12 @@ fun block prts = blk (2, prts);
 val strs = block o breaks o map str;
 
 fun markup m prts = markup_block m (0, prts);
-fun mark m prt = markup m [prt];
-fun keyword name = mark Markup.keyword (str name);
-fun command name = mark Markup.command (str name);
+fun mark m prt = if m = Markup.empty then prt else markup m [prt];
+fun mark_str (m, s) = mark m (str s);
+fun marks_str (ms, s) = fold_rev mark ms (str s);
+
+fun keyword name = mark_str (Markup.keyword, name);
+fun command name = mark_str (Markup.command, name);
 
 fun markup_chunks m prts = markup m (fbreaks prts);
 val chunks = markup_chunks Markup.empty;

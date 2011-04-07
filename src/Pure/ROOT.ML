@@ -114,16 +114,16 @@ use "context_position.ML";
 use "sorts.ML";
 use "type.ML";
 use "logic.ML";
-use "Syntax/lexicon.ML";
-use "Syntax/simple_syntax.ML";
 
 
 (* inner syntax *)
 
+use "Syntax/term_position.ML";
+use "Syntax/lexicon.ML";
+use "Syntax/simple_syntax.ML";
 use "Syntax/ast.ML";
 use "Syntax/syn_ext.ML";
 use "Syntax/parser.ML";
-use "Syntax/type_ext.ML";
 use "Syntax/syn_trans.ML";
 use "Syntax/mixfix.ML";
 use "Syntax/printer.ML";

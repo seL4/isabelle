@@ -33,6 +33,8 @@ end;
 signature SYN_TRANS1 =
 sig
   include SYN_TRANS0
+  val no_brackets: unit -> bool
+  val no_type_brackets: unit -> bool
   val non_typed_tr': (term list -> term) -> typ -> term list -> term
   val non_typed_tr'': ('a -> term list -> term) -> 'a -> typ -> term list -> term
   val constrainAbsC: string
@@ -52,6 +54,7 @@ end;
 signature SYN_TRANS =
 sig
   include SYN_TRANS1
+  val tappl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
   val abs_tr': Proof.context -> term -> term
   val prop_tr': term -> term
   val appl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
@@ -61,12 +64,29 @@ end;
 structure Syn_Trans: SYN_TRANS =
 struct
 
+(* print mode *)
+
+val bracketsN = "brackets";
+val no_bracketsN = "no_brackets";
+
+fun no_brackets () =
+  find_first (fn mode => mode = bracketsN orelse mode = no_bracketsN)
+    (print_mode_value ()) = SOME no_bracketsN;
+
+val type_bracketsN = "type_brackets";
+val no_type_bracketsN = "no_type_brackets";
+
+fun no_type_brackets () =
+  find_first (fn mode => mode = type_bracketsN orelse mode = no_type_bracketsN)
+    (print_mode_value ()) <> SOME type_bracketsN;
+
+
 
 (** parse (ast) translations **)
 
 (* strip_positions *)
 
-fun strip_positions_ast_tr [ast] = Type_Ext.strip_positions_ast ast
+fun strip_positions_ast_tr [ast] = Ast.strip_positions ast
   | strip_positions_ast_tr asts = raise Ast.AST ("strip_positions_ast_tr", asts);
 
 
@@ -74,6 +94,18 @@ fun strip_positions_ast_tr [ast] = Type_Ext.strip_positions_ast ast
 
 fun constify_ast_tr [Ast.Variable c] = Ast.Constant c
   | constify_ast_tr asts = raise Ast.AST ("constify_ast_tr", asts);
+
+
+(* type syntax *)
+
+fun tapp_ast_tr [ty, c] = Ast.Appl [c, ty]
+  | tapp_ast_tr asts = raise Ast.AST ("tapp_ast_tr", asts);
+
+fun tappl_ast_tr [ty, tys, c] = Ast.mk_appl c (ty :: Ast.unfold_ast "_types" tys)
+  | tappl_ast_tr asts = raise Ast.AST ("tappl_ast_tr", asts);
+
+fun bracket_ast_tr [dom, cod] = Ast.fold_ast_p "\\<^type>fun" (Ast.unfold_ast "_types" dom, cod)
+  | bracket_ast_tr asts = raise Ast.AST ("bracket_ast_tr", asts);
 
 
 (* application *)
@@ -191,7 +223,7 @@ fun quote_antiquote_tr quoteN antiquoteN name =
 fun update_name_tr (Free (x, T) :: ts) = list_comb (Free (suffix "_update" x, T), ts)
   | update_name_tr (Const (x, T) :: ts) = list_comb (Const (suffix "_update" x, T), ts)
   | update_name_tr (((c as Const ("_constrain", _)) $ t $ ty) :: ts) =
-      if Type_Ext.is_position ty then list_comb (c $ update_name_tr [t] $ ty, ts)
+      if Term_Position.is_position ty then list_comb (c $ update_name_tr [t] $ ty, ts)
       else
         list_comb (c $ update_name_tr [t] $
           (Lexicon.fun_type $
@@ -245,6 +277,22 @@ fun struct_tr structs (*"_struct"*) [Const ("_indexdefault", _)] =
 
 fun non_typed_tr' f _ ts = f ts;
 fun non_typed_tr'' f x _ ts = f x ts;
+
+
+(* type syntax *)
+
+fun tappl_ast_tr' (f, []) = raise Ast.AST ("tappl_ast_tr'", [f])
+  | tappl_ast_tr' (f, [ty]) = Ast.Appl [Ast.Constant "_tapp", ty, f]
+  | tappl_ast_tr' (f, ty :: tys) =
+      Ast.Appl [Ast.Constant "_tappl", ty, Ast.fold_ast "_types" tys, f];
+
+fun fun_ast_tr' asts =
+  if no_brackets () orelse no_type_brackets () then raise Match
+  else
+    (case Ast.unfold_ast_p "\\<^type>fun" (Ast.Appl (Ast.Constant "\\<^type>fun" :: asts)) of
+      (dom as _ :: _ :: _, cod)
+        => Ast.Appl [Ast.Constant "_bracket", Ast.fold_ast "_types" dom, cod]
+    | _ => raise Match);
 
 
 (* application *)
@@ -387,7 +435,7 @@ fun prop_tr' tm =
 (* meta implication *)
 
 fun impl_ast_tr' (*"==>"*) asts =
-  if Type_Ext.no_brackets () then raise Match
+  if no_brackets () then raise Match
   else
     (case Ast.unfold_ast_p "\\<^const>==>" (Ast.Appl (Ast.Constant "\\<^const>==>" :: asts)) of
       (prems as _ :: _ :: _, concl) =>
@@ -484,6 +532,9 @@ fun struct_ast_tr' structs (*"_struct"*) [Ast.Constant "_indexdefault"] =
 val pure_trfuns =
   ([("_strip_positions", strip_positions_ast_tr),
     ("_constify", constify_ast_tr),
+    ("_tapp", tapp_ast_tr),
+    ("_tappl", tappl_ast_tr),
+    ("_bracket", bracket_ast_tr),
     ("_appl", appl_ast_tr),
     ("_applC", applC_ast_tr),
     ("_lambda", lambda_ast_tr),
@@ -503,7 +554,8 @@ val pure_trfuns =
     ("_update_name", update_name_tr),
     ("_index", index_tr)],
    ([]: (string * (term list -> term)) list),
-   [("_abs", abs_ast_tr'),
+   [("\\<^type>fun", fun_ast_tr'),
+    ("_abs", abs_ast_tr'),
     ("_idts", idtyp_ast_tr' "_idts"),
     ("_pttrns", idtyp_ast_tr' "_pttrns"),
     ("\\<^const>==>", impl_ast_tr'),

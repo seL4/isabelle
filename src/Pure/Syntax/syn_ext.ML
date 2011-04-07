@@ -15,11 +15,7 @@ sig
   val mk_trfun: string * 'a -> string * ('a * stamp)
   val eq_trfun: ('a * stamp) * ('a * stamp) -> bool
   val escape: string -> string
-  val tokentrans_mode:
-    string -> (string * (Proof.context -> string -> Pretty.T)) list ->
-    (string * string * (Proof.context -> string -> Pretty.T)) list
-  val standard_token_classes: string list
-  val standard_token_markers: string list
+  val token_markers: string list
 end;
 
 signature SYN_EXT =
@@ -45,30 +41,26 @@ sig
     Syn_Ext of {
       xprods: xprod list,
       consts: string list,
-      prmodes: string list,
       parse_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list,
       parse_rules: (Ast.ast * Ast.ast) list,
       parse_translation: (string * ((Proof.context -> term list -> term) * stamp)) list,
       print_translation: (string * ((Proof.context -> typ -> term list -> term) * stamp)) list,
       print_rules: (Ast.ast * Ast.ast) list,
-      print_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list,
-      token_translation: (string * string * (Proof.context -> string -> Pretty.T)) list}
+      print_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list}
   val mfix_delims: string -> string list
   val mfix_args: string -> int
   val syn_ext': bool -> (string -> bool) -> mfix list ->
     string list -> (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> typ -> term list -> term) * stamp)) list *
-    (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list
-    -> (string * string * (Proof.context -> string -> Pretty.T)) list
-    -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
+    (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list ->
+    (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
   val syn_ext: mfix list -> string list ->
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> typ -> term list -> term) * stamp)) list *
-    (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list
-    -> (string * string * (Proof.context -> string -> Pretty.T)) list
-    -> (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
+    (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list ->
+    (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
   val syn_ext_const_names: string list -> syn_ext
   val syn_ext_rules: (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
   val syn_ext_trfuns:
@@ -81,7 +73,6 @@ sig
     (string * ((Proof.context -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> typ -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list -> syn_ext
-  val syn_ext_tokentrfuns: (string * string * (Proof.context -> string -> Pretty.T)) list -> syn_ext
   val pure_ext: syn_ext
 end;
 
@@ -330,19 +321,17 @@ datatype syn_ext =
   Syn_Ext of {
     xprods: xprod list,
     consts: string list,
-    prmodes: string list,
     parse_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list,
     parse_rules: (Ast.ast * Ast.ast) list,
     parse_translation: (string * ((Proof.context -> term list -> term) * stamp)) list,
     print_translation: (string * ((Proof.context -> typ -> term list -> term) * stamp)) list,
     print_rules: (Ast.ast * Ast.ast) list,
-    print_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list,
-    token_translation: (string * string * (Proof.context -> string -> Pretty.T)) list};
+    print_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list};
 
 
 (* syn_ext *)
 
-fun syn_ext' convert is_logtype mfixes consts trfuns tokentrfuns (parse_rules, print_rules) =
+fun syn_ext' convert is_logtype mfixes consts trfuns (parse_rules, print_rules) =
   let
     val (parse_ast_translation, parse_translation, print_translation,
       print_ast_translation) = trfuns;
@@ -355,23 +344,20 @@ fun syn_ext' convert is_logtype mfixes consts trfuns tokentrfuns (parse_rules, p
     Syn_Ext {
       xprods = xprods,
       consts = union (op =) consts mfix_consts,
-      prmodes = distinct (op =) (map (fn (m, _, _) => m) tokentrfuns),
       parse_ast_translation = parse_ast_translation,
       parse_rules = parse_rules' @ parse_rules,
       parse_translation = parse_translation,
       print_translation = print_translation,
       print_rules = map swap parse_rules' @ print_rules,
-      print_ast_translation = print_ast_translation,
-      token_translation = tokentrfuns}
+      print_ast_translation = print_ast_translation}
   end;
 
 
 val syn_ext = syn_ext' true (K false);
 
-fun syn_ext_const_names cs = syn_ext [] cs ([], [], [], []) [] ([], []);
-fun syn_ext_rules rules = syn_ext [] [] ([], [], [], []) [] rules;
-fun syn_ext_advanced_trfuns trfuns = syn_ext [] [] trfuns [] ([], []);
-fun syn_ext_tokentrfuns trfuns = syn_ext [] [] ([], [], [], []) trfuns ([], []);
+fun syn_ext_const_names cs = syn_ext [] cs ([], [], [], []) ([], []);
+fun syn_ext_rules rules = syn_ext [] [] ([], [], [], []) rules;
+fun syn_ext_advanced_trfuns trfuns = syn_ext [] [] trfuns ([], []);
 
 fun syn_ext_trfuns (atrs, trs, tr's, atr's) =
   let fun simple (name, (f, s)) = (name, (K f, s)) in
@@ -383,17 +369,10 @@ fun mk_trfun tr = stamp_trfun (stamp ()) tr;
 fun eq_trfun ((_, s1: stamp), (_, s2)) = s1 = s2;
 
 
-(* token translations *)
-
-fun tokentrans_mode m trs = map (fn (s, f) => (m, s, f)) trs;
-
-val standard_token_classes =
-  ["tfree", "tvar", "free", "bound", "var", "numeral", "inner_string"];
-
-val standard_token_markers = map (fn s => "_" ^ s) standard_token_classes;
-
-
 (* pure_ext *)
+
+val token_markers =
+  ["_tfree", "_tvar", "_free", "_bound", "_var", "_numeral", "_inner_string"];
 
 val pure_ext = syn_ext' false (K false)
   [Mfix ("_", spropT --> propT, "", [0], 0),
@@ -403,9 +382,8 @@ val pure_ext = syn_ext' false (K false)
    Mfix ("'(_')", spropT --> spropT, "", [0], max_pri),
    Mfix ("_::_",  [logicT, typeT] ---> logicT, "_constrain", [4, 0], 3),
    Mfix ("_::_",  [spropT, typeT] ---> spropT, "_constrain", [4, 0], 3)]
-  standard_token_markers
+  token_markers
   ([], [], [], [])
-  []
   ([], []);
 
 end;

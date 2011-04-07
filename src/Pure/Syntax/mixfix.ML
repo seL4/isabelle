@@ -119,7 +119,7 @@ fun syn_ext_types type_decls =
     val mfix = map mfix_of type_decls;
     val _ = map2 check_args type_decls mfix;
     val xconsts = map #1 type_decls;
-  in Syn_Ext.syn_ext (map_filter I mfix) xconsts ([], [], [], []) [] ([], []) end;
+  in Syn_Ext.syn_ext (map_filter I mfix) xconsts ([], [], [], []) ([], []) end;
 
 
 (* syn_ext_consts *)
@@ -160,7 +160,7 @@ fun syn_ext_consts is_logtype const_decls =
           apsnd (K o Syn_Trans.non_typed_tr') o Syn_Trans.mk_binder_tr' o swap);
   in
     Syn_Ext.syn_ext' true is_logtype
-      mfix xconsts ([], binder_trs, binder_trs', []) [] ([], [])
+      mfix xconsts ([], binder_trs, binder_trs', []) ([], [])
   end;
 
 end;

@@ -400,40 +400,6 @@ fun revert_skolem ctxt x =
   | NONE => x);
 
 
-(* default token translations *)
-
-local
-
-fun free_or_skolem ctxt x =
-  (if can Name.dest_skolem x then Pretty.mark Markup.skolem (Pretty.str (revert_skolem ctxt x))
-   else Pretty.mark Markup.free (Pretty.str x))
-  |> Pretty.mark
-    (if Variable.is_fixed ctxt x orelse Syntax.is_pretty_global ctxt then Markup.fixed x
-     else Markup.hilite);
-
-fun var_or_skolem _ s =
-  (case Lexicon.read_variable s of
-    SOME (x, i) =>
-      (case try Name.dest_skolem x of
-        NONE => Pretty.mark Markup.var (Pretty.str s)
-      | SOME x' => Pretty.mark Markup.skolem (Pretty.str (Term.string_of_vname (x', i))))
-  | NONE => Pretty.mark Markup.var (Pretty.str s));
-
-fun plain_markup m _ s = Pretty.mark m (Pretty.str s);
-
-val token_trans =
- Syntax.tokentrans_mode ""
-  [("tfree", plain_markup Markup.tfree),
-   ("tvar", plain_markup Markup.tvar),
-   ("free", free_or_skolem),
-   ("bound", plain_markup Markup.bound),
-   ("var", var_or_skolem),
-   ("numeral", plain_markup Markup.numeral),
-   ("inner_string", plain_markup Markup.inner_string)];
-
-in val _ = Context.>> (Context.map_theory (Sign.add_tokentrfuns token_trans)) end;
-
-
 
 (** prepare terms and propositions **)
 

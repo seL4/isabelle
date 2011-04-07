@@ -14,6 +14,7 @@ sig
   exception AST of string * ast list
   val pretty_ast: ast -> Pretty.T
   val pretty_rule: ast * ast -> Pretty.T
+  val strip_positions: ast -> ast
   val head_of_rule: ast * ast -> string
   val rule_error: ast * ast -> string option
   val fold_ast: string -> ast list -> ast
@@ -57,8 +58,8 @@ exception AST of string * ast list;
 
 fun pretty_ast (Constant a) = Pretty.quote (Pretty.str a)
   | pretty_ast (Variable x) =
-      (case Lexicon.decode_position x of
-        SOME pos => Lexicon.pretty_position pos
+      (case Term_Position.decode x of
+        SOME pos => Term_Position.pretty pos
       | NONE => Pretty.str x)
   | pretty_ast (Appl asts) = Pretty.enclose "(" ")" (Pretty.breaks (map pretty_ast asts));
 
@@ -66,7 +67,17 @@ fun pretty_rule (lhs, rhs) =
   Pretty.block [pretty_ast lhs, Pretty.str "  ->", Pretty.brk 2, pretty_ast rhs];
 
 
-(* head_of_ast, head_of_rule *)
+(* strip_positions *)
+
+fun strip_positions (Appl ((t as Constant c) :: u :: (v as Variable x) :: asts)) =
+      if (c = "_constrain" orelse c = "_constrainAbs") andalso is_some (Term_Position.decode x)
+      then mk_appl (strip_positions u) (map strip_positions asts)
+      else Appl (map strip_positions (t :: u :: v :: asts))
+  | strip_positions (Appl asts) = Appl (map strip_positions asts)
+  | strip_positions ast = ast;
+
+
+(* head_of_ast and head_of_rule *)
 
 fun head_of_ast (Constant a) = a
   | head_of_ast (Appl (Constant a :: _)) = a
