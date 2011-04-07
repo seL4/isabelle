@@ -398,8 +398,8 @@ end;
 (* theory setup *)
 
 val _ = Context.>> (Context.map_theory
- (register_config Ast.ast_trace_raw #>
-  register_config Ast.ast_stat_raw #>
+ (register_config Ast.trace_raw #>
+  register_config Ast.stat_raw #>
   register_config Syntax.positions_raw #>
   register_config Syntax.show_brackets_raw #>
   register_config Syntax.show_sorts_raw #>
