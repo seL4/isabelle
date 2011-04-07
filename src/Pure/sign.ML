@@ -103,10 +103,6 @@ sig
     (string * (Proof.context -> Ast.ast list -> Ast.ast)) list -> theory -> theory
   val add_advanced_trfunsT:
     (string * (Proof.context -> typ -> term list -> term)) list -> theory -> theory
-  val add_tokentrfuns:
-    (string * string * (Proof.context -> string -> Pretty.T)) list -> theory -> theory
-  val add_mode_tokentrfuns: string -> (string * (Proof.context -> string -> Pretty.T)) list
-    -> theory -> theory
   val add_trrules: Ast.ast Syntax.trrule list -> theory -> theory
   val del_trrules: Ast.ast Syntax.trrule list -> theory -> theory
   val new_group: theory -> theory
@@ -487,9 +483,6 @@ val add_advanced_trfuns = gen_add_trfuns Syntax.update_advanced_trfuns Syntax.no
 val add_advanced_trfunsT = gen_add_trfunsT Syntax.update_advanced_trfuns;
 
 end;
-
-val add_tokentrfuns = map_syn o Syntax.extend_tokentrfuns;
-fun add_mode_tokentrfuns m = add_tokentrfuns o map (fn (s, f) => (m, s, f));
 
 
 (* translation rules *)

@@ -19,6 +19,12 @@ sig
   include SYN_TRANS1
   include MIXFIX1
   include PRINTER0
+  val positions_raw: Config.raw
+  val positions: bool Config.T
+  val ambiguity_enabled: bool Config.T
+  val ambiguity_level_raw: Config.raw
+  val ambiguity_level: int Config.T
+  val ambiguity_limit: int Config.T
   val read_token: string -> Symbol_Pos.T list * Position.T
   val parse_token: Proof.context -> Markup.T -> string -> Symbol_Pos.T list * Position.T
   val parse_sort: Proof.context -> string -> sort
@@ -94,9 +100,6 @@ sig
   val string_of_sort_global: theory -> sort -> string
   val pp: Proof.context -> Pretty.pp
   val pp_global: theory -> Pretty.pp
-  val lookup_tokentr:
-    (string * (string * ((Proof.context -> string -> Pretty.T) * stamp)) list) list ->
-      string list -> string -> (Proof.context -> string -> Pretty.T) option
   type ruletab
   type syntax
   val eq_syntax: syntax * syntax -> bool
@@ -111,8 +114,6 @@ sig
   val print_rules: syntax -> string -> (Ast.ast * Ast.ast) list
   val print_ast_translation: syntax -> string ->
     Proof.context -> Ast.ast list -> Ast.ast  (*exception Match*)
-  val token_translation: syntax -> string list ->
-    string -> (Proof.context -> string -> Pretty.T) option
   val prtabs: syntax -> Printer.prtabs
   type mode
   val mode_default: mode
@@ -124,12 +125,6 @@ sig
   val print_trans: syntax -> unit
   val print_syntax: syntax -> unit
   val guess_infix: syntax -> string -> mixfix option
-  val positions_raw: Config.raw
-  val positions: bool Config.T
-  val ambiguity_enabled: bool Config.T
-  val ambiguity_level_raw: Config.raw
-  val ambiguity_level: int Config.T
-  val ambiguity_limit: int Config.T
   datatype 'a trrule =
     Parse_Rule of 'a * 'a |
     Print_Rule of 'a * 'a |
@@ -146,8 +141,6 @@ sig
     (string * ((Proof.context -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> typ -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list -> syntax -> syntax
-  val extend_tokentrfuns: (string * string * (Proof.context -> string -> Pretty.T)) list ->
-    syntax -> syntax
   val update_type_gram: bool -> mode -> (string * typ * mixfix) list -> syntax -> syntax
   val update_const_gram: bool -> (string -> bool) ->
     mode -> (string * typ * mixfix) list -> syntax -> syntax
@@ -159,6 +152,21 @@ structure Syntax: SYNTAX =
 struct
 
 (** inner syntax operations **)
+
+(* configuration options *)
+
+val positions_raw = Config.declare "syntax_positions" (fn _ => Config.Bool true);
+val positions = Config.bool positions_raw;
+
+val ambiguity_enabled =
+  Config.bool (Config.declare "syntax_ambiguity_enabled" (fn _ => Config.Bool true));
+
+val ambiguity_level_raw = Config.declare "syntax_ambiguity_level" (fn _ => Config.Int 1);
+val ambiguity_level = Config.int ambiguity_level_raw;
+
+val ambiguity_limit =
+  Config.int (Config.declare "syntax_ambiguity_limit" (fn _ => Config.Int 10));
+
 
 (* read token -- with optional YXML encoding of position *)
 
@@ -431,50 +439,11 @@ fun merge_tr'tabs tab1 tab2 = Symtab.merge_list Syn_Ext.eq_trfun (tab1, tab2);
 
 
 
-(** tables of token translation functions **)
-
-fun lookup_tokentr tabs modes =
-  let val trs =
-    distinct (eq_fst (op = : string * string -> bool))
-      (maps (these o AList.lookup (op =) tabs) (modes @ [""]))
-  in fn c => Option.map fst (AList.lookup (op =) trs c) end;
-
-fun merge_tokentrtabs tabs1 tabs2 =
-  let
-    fun eq_tr ((c1, (_, s1: stamp)), (c2, (_, s2))) = c1 = c2 andalso s1 = s2;
-
-    fun name (s, _) = implode (tl (Symbol.explode s));
-
-    fun merge mode =
-      let
-        val trs1 = these (AList.lookup (op =) tabs1 mode);
-        val trs2 = these (AList.lookup (op =) tabs2 mode);
-        val trs = distinct eq_tr (trs1 @ trs2);
-      in
-        (case duplicates (eq_fst (op =)) trs of
-          [] => (mode, trs)
-        | dups => error ("More than one token translation function in mode " ^
-            quote mode ^ " for " ^ commas_quote (map name dups)))
-      end;
-  in map merge (distinct (op =) (map fst (tabs1 @ tabs2))) end;
-
-fun extend_tokentrtab tokentrs tabs =
-  let
-    fun ins_tokentr (m, c, f) =
-      AList.default (op =) (m, [])
-      #> AList.map_entry (op =) m (cons ("_" ^ c, (f, stamp ())));
-  in merge_tokentrtabs tabs (fold ins_tokentr tokentrs []) end;
-
-
-
 (** tables of translation rules **)
 
 type ruletab = (Ast.ast * Ast.ast) list Symtab.table;
 
 fun dest_ruletab tab = maps snd (Symtab.dest tab);
-
-
-(* empty, update, merge ruletabs *)
 
 val update_ruletab = fold_rev (fn r => Symtab.update_list (op =) (Ast.head_of_rule r, r));
 val remove_ruletab = fold (fn r => Symtab.remove_list (op =) (Ast.head_of_rule r, r));
@@ -497,7 +466,6 @@ datatype syntax =
     print_trtab: ((Proof.context -> typ -> term list -> term) * stamp) list Symtab.table,
     print_ruletab: ruletab,
     print_ast_trtab: ((Proof.context -> Ast.ast list -> Ast.ast) * stamp) list Symtab.table,
-    tokentrtab: (string * (string * ((Proof.context -> string -> Pretty.T) * stamp)) list) list,
     prtabs: Printer.prtabs} * stamp;
 
 fun rep_syntax (Syntax (tabs, _)) = tabs;
@@ -513,7 +481,6 @@ fun parse_rules (Syntax ({parse_ruletab, ...}, _)) = Symtab.lookup_list parse_ru
 fun print_translation (Syntax ({print_trtab, ...}, _)) = apply_tr' print_trtab;
 fun print_rules (Syntax ({print_ruletab, ...}, _)) = Symtab.lookup_list print_ruletab;
 fun print_ast_translation (Syntax ({print_ast_trtab, ...}, _)) = apply_ast_tr' print_ast_trtab;
-fun token_translation (Syntax ({tokentrtab, ...}, _)) = lookup_tokentr tokentrtab;
 
 fun prtabs (Syntax ({prtabs, ...}, _)) = prtabs;
 
@@ -536,7 +503,6 @@ val empty_syntax = Syntax
     print_trtab = Symtab.empty,
     print_ruletab = Symtab.empty,
     print_ast_trtab = Symtab.empty,
-    tokentrtab = [],
     prtabs = Printer.empty_prtabs}, stamp ());
 
 
@@ -544,12 +510,11 @@ val empty_syntax = Syntax
 
 fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
   let
-    val {input, lexicon, gram, consts = consts1, prmodes = prmodes1,
-      parse_ast_trtab, parse_ruletab, parse_trtab, print_trtab, print_ruletab,
-      print_ast_trtab, tokentrtab, prtabs} = tabs;
-    val Syn_Ext.Syn_Ext {xprods, consts = consts2, prmodes = prmodes2,
-      parse_ast_translation, parse_rules, parse_translation, print_translation, print_rules,
-      print_ast_translation, token_translation} = syn_ext;
+    val {input, lexicon, gram, consts = consts1, prmodes, parse_ast_trtab, parse_ruletab,
+      parse_trtab, print_trtab, print_ruletab, print_ast_trtab, prtabs} = tabs;
+    val Syn_Ext.Syn_Ext {xprods, consts = consts2, parse_ast_translation,
+      parse_rules, parse_translation, print_translation, print_rules,
+      print_ast_translation} = syn_ext;
     val new_xprods =
       if inout then distinct (op =) (filter_out (member (op =) input) xprods) else [];
     fun if_inout xs = if inout then xs else [];
@@ -559,7 +524,7 @@ fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
       lexicon = fold Scan.extend_lexicon (Syn_Ext.delims_of new_xprods) lexicon,
       gram = Parser.extend_gram new_xprods gram,
       consts = Library.merge (op =) (consts1, filter_out Lexicon.is_marked consts2),
-      prmodes = insert (op =) mode (Library.merge (op =) (prmodes1, prmodes2)),
+      prmodes = insert (op =) mode prmodes,
       parse_ast_trtab =
         update_trtab "parse ast translation" (if_inout parse_ast_translation) parse_ast_trtab,
       parse_ruletab = update_ruletab (if_inout parse_rules) parse_ruletab,
@@ -567,7 +532,6 @@ fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
       print_trtab = update_tr'tab print_translation print_trtab,
       print_ruletab = update_ruletab print_rules print_ruletab,
       print_ast_trtab = update_tr'tab print_ast_translation print_ast_trtab,
-      tokentrtab = extend_tokentrtab token_translation tokentrtab,
       prtabs = Printer.update_prtabs mode xprods prtabs}, stamp ())
   end;
 
@@ -576,12 +540,10 @@ fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
 
 fun remove_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
   let
-    val Syn_Ext.Syn_Ext {xprods, consts = _, prmodes = _,
-      parse_ast_translation, parse_rules, parse_translation, print_translation, print_rules,
-      print_ast_translation, token_translation = _} = syn_ext;
-    val {input, lexicon, gram, consts, prmodes,
-      parse_ast_trtab, parse_ruletab, parse_trtab, print_trtab, print_ruletab,
-      print_ast_trtab, tokentrtab, prtabs} = tabs;
+    val Syn_Ext.Syn_Ext {xprods, consts = _, parse_ast_translation, parse_rules,
+      parse_translation, print_translation, print_rules, print_ast_translation} = syn_ext;
+    val {input, lexicon, gram, consts, prmodes, parse_ast_trtab, parse_ruletab,
+      parse_trtab, print_trtab, print_ruletab, print_ast_trtab, prtabs} = tabs;
     val input' = if inout then subtract (op =) xprods input else input;
     val changed = length input <> length input';
     fun if_inout xs = if inout then xs else [];
@@ -598,7 +560,6 @@ fun remove_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
       print_trtab = remove_tr'tab print_translation print_trtab,
       print_ruletab = remove_ruletab print_rules print_ruletab,
       print_ast_trtab = remove_tr'tab print_ast_translation print_ast_trtab,
-      tokentrtab = tokentrtab,
       prtabs = Printer.remove_prtabs mode xprods prtabs}, stamp ())
   end;
 
@@ -608,16 +569,14 @@ fun remove_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
 fun merge_syntaxes (Syntax (tabs1, _)) (Syntax (tabs2, _)) =
   let
     val {input = input1, lexicon = lexicon1, gram = gram1, consts = consts1,
-      prmodes = prmodes1, parse_ast_trtab = parse_ast_trtab1,
-      parse_ruletab = parse_ruletab1, parse_trtab = parse_trtab1,
-      print_trtab = print_trtab1, print_ruletab = print_ruletab1,
-      print_ast_trtab = print_ast_trtab1, tokentrtab = tokentrtab1, prtabs = prtabs1} = tabs1;
+      prmodes = prmodes1, parse_ast_trtab = parse_ast_trtab1, parse_ruletab = parse_ruletab1,
+      parse_trtab = parse_trtab1, print_trtab = print_trtab1, print_ruletab = print_ruletab1,
+      print_ast_trtab = print_ast_trtab1, prtabs = prtabs1} = tabs1;
 
     val {input = input2, lexicon = lexicon2, gram = gram2, consts = consts2,
-      prmodes = prmodes2, parse_ast_trtab = parse_ast_trtab2,
-      parse_ruletab = parse_ruletab2, parse_trtab = parse_trtab2,
-      print_trtab = print_trtab2, print_ruletab = print_ruletab2,
-      print_ast_trtab = print_ast_trtab2, tokentrtab = tokentrtab2, prtabs = prtabs2} = tabs2;
+      prmodes = prmodes2, parse_ast_trtab = parse_ast_trtab2, parse_ruletab = parse_ruletab2,
+      parse_trtab = parse_trtab2, print_trtab = print_trtab2, print_ruletab = print_ruletab2,
+      print_ast_trtab = print_ast_trtab2, prtabs = prtabs2} = tabs2;
   in
     Syntax
     ({input = Library.merge (op =) (input1, input2),
@@ -632,7 +591,6 @@ fun merge_syntaxes (Syntax (tabs1, _)) (Syntax (tabs2, _)) =
       print_trtab = merge_tr'tabs print_trtab1 print_trtab2,
       print_ruletab = merge_ruletabs print_ruletab1 print_ruletab2,
       print_ast_trtab = merge_tr'tabs print_ast_trtab1 print_ast_trtab2,
-      tokentrtab = merge_tokentrtabs tokentrtab1 tokentrtab2,
       prtabs = Printer.merge_prtabs prtabs1 prtabs2}, stamp ())
   end;
 
@@ -674,10 +632,8 @@ fun pretty_trans (Syntax (tabs, _)) =
     fun pretty_ruletab name tab =
       Pretty.big_list name (map Ast.pretty_rule (dest_ruletab tab));
 
-    fun pretty_tokentr (mode, trs) = Pretty.strs (quote mode ^ ":" :: map fst trs);
-
     val {consts, parse_ast_trtab, parse_ruletab, parse_trtab, print_trtab,
-      print_ruletab, print_ast_trtab, tokentrtab, ...} = tabs;
+      print_ruletab, print_ast_trtab, ...} = tabs;
   in
     [pretty_strs_qs "consts:" consts,
       pretty_trtab "parse_ast_translation:" parse_ast_trtab,
@@ -685,8 +641,7 @@ fun pretty_trans (Syntax (tabs, _)) =
       pretty_trtab "parse_translation:" parse_trtab,
       pretty_trtab "print_translation:" print_trtab,
       pretty_ruletab "print_rules:" print_ruletab,
-      pretty_trtab "print_ast_translation:" print_ast_trtab,
-      Pretty.big_list "token_translation:" (map pretty_tokentr tokentrtab)]
+      pretty_trtab "print_ast_translation:" print_ast_trtab]
   end;
 
 in
@@ -707,24 +662,6 @@ fun guess_infix (Syntax ({gram, ...}, _)) c =
       else if r then Mixfix.Infixr (s, j)
       else Mixfix.Infix (s, j))
   | NONE => NONE);
-
-
-
-(** read **)  (* FIXME rename!? *)
-
-(* configuration options *)
-
-val positions_raw = Config.declare "syntax_positions" (fn _ => Config.Bool true);
-val positions = Config.bool positions_raw;
-
-val ambiguity_enabled =
-  Config.bool (Config.declare "syntax_ambiguity_enabled" (fn _ => Config.Bool true));
-
-val ambiguity_level_raw = Config.declare "syntax_ambiguity_level" (fn _ => Config.Int 1);
-val ambiguity_level = Config.int ambiguity_level_raw;
-
-val ambiguity_limit =
-  Config.int (Config.declare "syntax_ambiguity_limit" (fn _ => Config.Int 10));
 
 
 
@@ -780,7 +717,6 @@ fun ext_syntax f decls = update_syntax mode_default (f decls);
 
 val update_trfuns = ext_syntax Syn_Ext.syn_ext_trfuns;
 val update_advanced_trfuns = ext_syntax Syn_Ext.syn_ext_advanced_trfuns;
-val extend_tokentrfuns = ext_syntax Syn_Ext.syn_ext_tokentrfuns;
 
 fun update_type_gram add prmode decls =
   (if add then update_syntax else remove_syntax) prmode (Mixfix.syn_ext_types decls);
