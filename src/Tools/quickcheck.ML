@@ -340,7 +340,7 @@ fun test_term_with_increasing_cardinality ctxt (limit_time, is_interactive) ts =
       (* FIXME: why decrement size by one? *)
       let
         val (ts, timing) = cpu_time ("size " ^ string_of_int size ^ " and card " ^ string_of_int card)
-          (fn () => fst (test_fun [card - 1, size - 1]))
+          (fn () => fst (test_fun [card, size - 1]))
         val _ = add_timing timing current_result
       in
         Option.map (pair card) ts
