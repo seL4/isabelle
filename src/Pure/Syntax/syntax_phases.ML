@@ -302,20 +302,13 @@ fun parse_typ ctxt text =
       handle ERROR msg => parse_failed ctxt pos msg "type";
   in T end;
 
-fun parse_term T ctxt text =
+fun parse_term is_prop ctxt text =
   let
-    val (T', _) = Type_Infer.paramify_dummies T 0;
-    val (markup, kind) =
-      if T' = propT then (Markup.prop, "proposition") else (Markup.term, "term");
+    val (markup, kind, root, constrain) =
+      if is_prop
+      then (Markup.prop, "proposition", "prop", Type.constraint propT)
+      else (Markup.term, "term", Config.get ctxt Syntax.default_root, I);
     val (syms, pos) = Syntax.parse_token ctxt markup text;
-
-    val default_root = Config.get ctxt Syntax.default_root;
-    val root =
-      (case T' of
-        Type (c, _) =>
-          if c <> "prop" andalso Type.is_logtype (ProofContext.tsig_of ctxt) c
-          then default_root else c
-      | _ => default_root);
   in
     let
       val results = parse_raw ctxt root (syms, pos) |> map (decode_term ctxt);
@@ -331,7 +324,7 @@ fun parse_term T ctxt text =
         else "";
 
       (*brute-force disambiguation via type-inference*)
-      fun check t = (Syntax.check_term ctxt (Type.constraint T' t); Exn.Result t)
+      fun check t = (Syntax.check_term ctxt (constrain t); Exn.Result t)
         handle exn as ERROR _ => Exn.Exn exn;
 
       val results' =
@@ -659,8 +652,8 @@ val _ = Context.>> (Context.map_theory
 val _ = Syntax.install_operations
   {parse_sort = parse_sort,
    parse_typ = parse_typ,
-   parse_term = parse_term dummyT,
-   parse_prop = parse_term propT,
+   parse_term = parse_term false,
+   parse_prop = parse_term true,
    unparse_sort = unparse_sort,
    unparse_typ = unparse_typ,
    unparse_term = unparse_term};
