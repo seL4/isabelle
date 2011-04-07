@@ -128,7 +128,7 @@ fun hol_term_from_metis_PT ctxt new_skolem_var_count fol_tm =
                     val nterms = length ts - ntypes
                     val tts = map tm_to_tt ts
                     val tys = types_of (List.take(tts,ntypes))
-                    val j = !new_skolem_var_count + 1
+                    val j = !new_skolem_var_count + 0 (* FIXME ### *)
                     val _ = new_skolem_var_count := j
                     val t =
                       if String.isPrefix new_skolem_const_prefix c then
@@ -594,6 +594,9 @@ fun copy_prems_tac [] ns i =
   | copy_prems_tac (m :: ms) ns i =
     etac copy_prem i THEN copy_prems_tac ms (m div 2 :: (m + 1) div 2 :: ns) i
 
+(* Metis generates variables of the form _nnn. *)
+val is_metis_fresh_variable = String.isPrefix "_"
+
 fun instantiate_forall_tac thy t i st =
   let
     val params = Logic.strip_params (Logic.get_goal (prop_of st) i) |> rev
@@ -613,13 +616,31 @@ fun instantiate_forall_tac thy t i st =
     val t' = t |> repair |> fold (curry absdummy) (map snd params)
     fun do_instantiate th =
       case Term.add_vars (prop_of th) []
-           |> filter_out (Meson_Clausify.is_zapped_var_name o fst o fst) of
+           |> filter_out ((Meson_Clausify.is_zapped_var_name orf
+                           is_metis_fresh_variable) o fst o fst) of
         [] => th
-      | [var] => th |> term_instantiate thy [(Var var, t')]
-      | _ => raise Fail "expected a single non-zapped Var"
+      | [var as (_, T)] =>
+        let
+          val var_binder_Ts = T |> binder_types |> take (length params) |> rev
+          val var_body_T = T |> funpow (length params) range_type
+          val tyenv =
+            Vartab.empty |> Type.raw_unifys (fastype_of t :: map snd params,
+                                             var_body_T :: var_binder_Ts)
+          val env =
+            Envir.Envir {maxidx = Vartab.fold (Integer.max o snd o fst) tyenv 0,
+                         tenv = Vartab.empty, tyenv = tyenv}
+          val ty_inst =
+            Vartab.fold (fn (x, (S, T)) =>
+                            cons (pairself (ctyp_of thy) (TVar (x, S), T)))
+                        tyenv []
+          val t_inst =
+            [pairself (cterm_of thy o Envir.norm_term env) (Var var, t')]
+        in
+          th |> instantiate (ty_inst, t_inst)
+        end
+      | _ => raise Fail "expected a single non-zapped, non-Metis Var"
   in
-    (etac @{thm allE} i
-     THEN rotate_tac ~1 i
+    (DETERM (etac @{thm allE} i THEN rotate_tac ~1 i)
      THEN PRIMITIVE do_instantiate) st
   end
 
@@ -674,7 +695,7 @@ structure Int_Tysubst_Table =
 structure Int_Pair_Graph =
   Graph(type key = int * int val ord = prod_ord int_ord int_ord)
 
-fun shuffle_key (((axiom_no, (_, index_no)), _), _) = (index_no, axiom_no)
+fun shuffle_key (((axiom_no, (_, index_no)), _), _) = (axiom_no, index_no)
 fun shuffle_ord p = prod_ord int_ord int_ord (pairself shuffle_key p)
 
 (* Attempts to derive the theorem "False" from a theorem of the form
@@ -760,26 +781,29 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
         "; tysubst: " ^ PolyML.makestring tysubst ^ "; tsubst: {" ^
         commas (map ((fn (s, t) => s ^ " |-> " ^ t)
                      o pairself (Syntax.string_of_term ctxt)) tsubst) ^ "}"
+      val _ = tracing ("OUTER PARAMS: " ^ PolyML.makestring outer_param_names)
       val _ = tracing ("ORDERED CLUSTERS: " ^ PolyML.makestring ordered_clusters)
       val _ = tracing ("AXIOM COUNTS: " ^ PolyML.makestring ax_counts)
       val _ = tracing ("SUBSTS (" ^ string_of_int (length substs) ^ "):\n" ^
                        cat_lines (map string_for_subst_info substs))
 *)
+      fun cut_and_ex_tac axiom =
+        cut_rules_tac [axiom] 1
+        THEN TRY (REPEAT_ALL_NEW (etac @{thm exE}) 1)
       fun rotation_for_subgoal i =
         find_index (fn (_, (subgoal_no, _)) => subgoal_no = i) substs
     in
       Goal.prove ctxt [] [] @{prop False}
-          (K (cut_rules_tac
-                  (map (fst o the o nth axioms o fst o fst) ax_counts) 1
-              THEN TRY (REPEAT_ALL_NEW (etac @{thm exE}) 1)
-              THEN rename_tac outer_param_names 1
-              THEN copy_prems_tac (map snd ax_counts) [] 1
+          (K (DETERM (EVERY (map (cut_and_ex_tac o fst o the o nth axioms o fst
+                                  o fst) ax_counts)
+                      THEN rename_tac outer_param_names 1
+                      THEN copy_prems_tac (map snd ax_counts) [] 1)
               THEN release_clusters_tac thy ax_counts substs ordered_clusters 1
               THEN match_tac [prems_imp_false] 1
               THEN ALLGOALS (fn i =>
                        rtac @{thm Meson.skolem_COMBK_I} i
                        THEN rotate_tac (rotation_for_subgoal i) i
-                       THEN assume_tac 1
+                       THEN assume_tac i
                        THEN flexflex_tac)))
       handle ERROR _ =>
              error ("Cannot replay Metis proof in Isabelle:\n\
