@@ -100,9 +100,9 @@ sig
   val string_of_sort_global: theory -> sort -> string
   val pp: Proof.context -> Pretty.pp
   val pp_global: theory -> Pretty.pp
-  type ruletab
   type syntax
   val eq_syntax: syntax * syntax -> bool
+  val is_const: syntax -> string -> bool
   val is_keyword: syntax -> string -> bool
   val tokenize: syntax -> bool -> Symbol_Pos.T list -> Lexicon.token list
   val parse: Proof.context -> syntax -> string -> Lexicon.token list -> Parser.parsetree list
@@ -130,7 +130,6 @@ sig
     Print_Rule of 'a * 'a |
     Parse_Print_Rule of 'a * 'a
   val map_trrule: ('a -> 'b) -> 'a trrule -> 'b trrule
-  val is_const: syntax -> string -> bool
   val update_trfuns:
     (string * ((Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((term list -> term) * stamp)) list *
@@ -471,6 +470,7 @@ datatype syntax =
 fun rep_syntax (Syntax (tabs, _)) = tabs;
 fun eq_syntax (Syntax (_, s1), Syntax (_, s2)) = s1 = s2;
 
+fun is_const (Syntax ({consts, ...}, _)) c = member (op =) consts c;
 fun is_keyword (Syntax ({lexicon, ...}, _)) = Scan.is_literal lexicon o Symbol.explode;
 fun tokenize (Syntax ({lexicon, ...}, _)) = Lexicon.tokenize lexicon;
 fun parse ctxt (Syntax ({gram, ...}, _)) = Parser.parse ctxt gram;
@@ -685,9 +685,6 @@ fun parse_rule (Parse_Rule pats) = SOME pats
 fun print_rule (Parse_Rule _) = NONE
   | print_rule (Print_Rule pats) = SOME (swap pats)
   | print_rule (Parse_Print_Rule pats) = SOME (swap pats);
-
-
-fun is_const (Syntax ({consts, ...}, _)) c = member (op =) consts c;
 
 
 (* check_rules *)
