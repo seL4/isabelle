@@ -699,15 +699,16 @@ fun get_states Estate i ii A max_prec =
 
 
 fun movedot_term c (A, j, ts, Terminal a :: sa, id, i) =
-  if Lexicon.valued_token c then (A, j, Tip c :: ts, sa, id, i)
+  if Lexicon.valued_token c orelse id <> ""
+  then (A, j, Tip c :: ts, sa, id, i)
   else (A, j, ts, sa, id, i);
 
 fun movedot_nonterm tt (A, j, ts, Nonterminal _ :: sa, id, i) =
-  (A, j, List.revAppend (tt, ts), sa, id, i);
+  (A, j, tt @ ts, sa, id, i);
 
 fun movedot_lambda [] _ = []
   | movedot_lambda ((t, ki) :: ts) (state as (B, j, tss, Nonterminal (A, k) :: sa, id, i)) =
-      if k <= ki then (B, j, List.revAppend (t, tss), sa, id, i) :: movedot_lambda ts state
+      if k <= ki then (B, j, t @ tss, sa, id, i) :: movedot_lambda ts state
       else movedot_lambda ts state;
 
 

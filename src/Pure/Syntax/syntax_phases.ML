@@ -89,6 +89,14 @@ fun typ_of_term get_sort tm =
 
 (* parsetree_to_ast *)
 
+fun markup_const ctxt c =
+  [Name_Space.markup_entry (Consts.space_of (ProofContext.consts_of ctxt)) c];
+
+fun markup_free ctxt x =
+  [if can Name.dest_skolem x then Markup.skolem else Markup.free] @
+  (if not (Variable.is_body ctxt) orelse Variable.is_fixed ctxt x then []
+   else [Markup.hilite]);
+
 fun parsetree_to_ast ctxt constrain_pos trf parsetree =
   let
     val tsig = ProofContext.tsig_of ctxt;
@@ -98,6 +106,13 @@ fun parsetree_to_ast ctxt constrain_pos trf parsetree =
     fun markup_class c = [Name_Space.markup_entry (Type.class_space tsig) c];
     fun markup_type c = [Name_Space.markup_entry (Type.type_space tsig) c];
 
+    val markup_entity = Lexicon.unmark
+     {case_class = markup_class,
+      case_type = markup_type,
+      case_const = markup_const ctxt,
+      case_fixed = markup_free ctxt,
+      case_default = K []};
+
     val reports = Unsynchronized.ref ([]: Position.reports);
     fun report pos = Position.reports reports [pos];
 
@@ -106,23 +121,37 @@ fun parsetree_to_ast ctxt constrain_pos trf parsetree =
         NONE => Ast.mk_appl (Ast.Constant a) args
       | SOME f => f ctxt args);
 
-    fun ast_of (Parser.Node ("_class_name", [Parser.Tip tok])) =
+    fun asts_of (Parser.Node ("_class_name", [Parser.Tip tok])) =
           let
             val c = get_class (Lexicon.str_of_token tok);
             val _ = report (Lexicon.pos_of_token tok) markup_class c;
-          in Ast.Constant (Lexicon.mark_class c) end
-      | ast_of (Parser.Node ("_type_name", [Parser.Tip tok])) =
+          in [Ast.Constant (Lexicon.mark_class c)] end
+      | asts_of (Parser.Node ("_type_name", [Parser.Tip tok])) =
           let
             val c = get_type (Lexicon.str_of_token tok);
             val _ = report (Lexicon.pos_of_token tok) markup_type c;
-          in Ast.Constant (Lexicon.mark_type c) end
-      | ast_of (Parser.Node ("_constrain_position", [pt as Parser.Tip tok])) =
+          in [Ast.Constant (Lexicon.mark_type c)] end
+      | asts_of (Parser.Node ("_constrain_position", [pt as Parser.Tip tok])) =
           if constrain_pos then
-            Ast.Appl [Ast.Constant "_constrain", ast_of pt,
-              Ast.Variable (Term_Position.encode (Lexicon.pos_of_token tok))]
-          else ast_of pt
-      | ast_of (Parser.Node (a, pts)) = trans a (map ast_of pts)
-      | ast_of (Parser.Tip tok) = Ast.Variable (Lexicon.str_of_token tok);
+            [Ast.Appl [Ast.Constant "_constrain", ast_of pt,
+              Ast.Variable (Term_Position.encode (Lexicon.pos_of_token tok))]]
+          else [ast_of pt]
+      | asts_of (Parser.Node (a, pts)) =
+          let
+            val _ = pts |> List.app
+              (fn Parser.Node _ => () | Parser.Tip tok =>
+                if Lexicon.valued_token tok then ()
+                else report (Lexicon.pos_of_token tok) markup_entity a);
+          in [trans a (maps asts_of pts)] end
+      | asts_of (Parser.Tip tok) =
+          if Lexicon.valued_token tok
+          then [Ast.Variable (Lexicon.str_of_token tok)]
+          else []
+
+    and ast_of pt =
+      (case asts_of pt of
+        [ast] => ast
+      | asts => raise Ast.AST ("parsetree_to_ast: malformed parsetree", asts));
 
     val ast = Exn.interruptible_capture ast_of parsetree;
   in (! reports, ast) end;
@@ -152,16 +181,10 @@ fun ast_to_term ctxt trf =
 fun decode_term _ (result as (_: Position.reports, Exn.Exn _)) = result
   | decode_term ctxt (reports0, Exn.Result tm) =
       let
-        val consts = ProofContext.consts_of ctxt;
         fun get_const a =
           ((true, #1 (Term.dest_Const (ProofContext.read_const_proper ctxt false a)))
-            handle ERROR _ => (false, Consts.intern consts a));
+            handle ERROR _ => (false, Consts.intern (ProofContext.consts_of ctxt) a));
         val get_free = ProofContext.intern_skolem ctxt;
-        fun markup_const c = [Name_Space.markup_entry (Consts.space_of consts) c];
-        fun markup_free x =
-          [if can Name.dest_skolem x then Markup.skolem else Markup.free] @
-          (if not (Variable.is_body ctxt) orelse Variable.is_fixed ctxt x then []
-           else [Markup.hilite]);
         fun markup_var xi = [Markup.name (Term.string_of_vname xi) Markup.var];
         fun markup_bound def id =
           [Markup.properties [(if def then Markup.defN else Markup.refN, id)] Markup.bound];
@@ -187,23 +210,23 @@ fun decode_term _ (result as (_: Position.reports, Exn.Exn _)) = result
           | decode _ _ bs (t $ u) = decode [] [] bs t $ decode [] [] bs u
           | decode ps _ _ (Const (a, T)) =
               (case try Lexicon.unmark_fixed a of
-                SOME x => (report ps markup_free x; Free (x, T))
+                SOME x => (report ps (markup_free ctxt) x; Free (x, T))
               | NONE =>
                   let
                     val c =
                       (case try Lexicon.unmark_const a of
                         SOME c => c
                       | NONE => snd (get_const a));
-                    val _ = report ps markup_const c;
+                    val _ = report ps (markup_const ctxt) c;
                   in Const (c, T) end)
           | decode ps _ _ (Free (a, T)) =
               (case (get_free a, get_const a) of
-                (SOME x, _) => (report ps markup_free x; Free (x, T))
-              | (_, (true, c)) => (report ps markup_const c; Const (c, T))
+                (SOME x, _) => (report ps (markup_free ctxt) x; Free (x, T))
+              | (_, (true, c)) => (report ps (markup_const ctxt) c; Const (c, T))
               | (_, (false, c)) =>
                   if Long_Name.is_qualified c
-                  then (report ps markup_const c; Const (c, T))
-                  else (report ps markup_free c; Free (c, T)))
+                  then (report ps (markup_const ctxt) c; Const (c, T))
+                  else (report ps (markup_free ctxt) c; Free (c, T)))
           | decode ps _ _ (Var (xi, T)) = (report ps markup_var xi; Var (xi, T))
           | decode ps _ bs (t as Bound i) =
               (case try (nth bs) i of
