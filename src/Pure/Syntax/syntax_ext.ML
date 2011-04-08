@@ -21,7 +21,7 @@ sig
   datatype syn_ext =
     Syn_Ext of {
       xprods: xprod list,
-      consts: string list,
+      consts: (string * string) list,
       parse_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list,
       parse_rules: (Ast.ast * Ast.ast) list,
       parse_translation: (string * ((Proof.context -> term list -> term) * stamp)) list,
@@ -32,18 +32,17 @@ sig
   val mfix_args: string -> int
   val escape: string -> string
   val syn_ext': (string -> bool) -> mfix list ->
-    string list -> (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
+    (string * string) list -> (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> typ -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list ->
     (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
-  val syn_ext: mfix list -> string list ->
+  val syn_ext: mfix list -> (string * string) list ->
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> typ -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list ->
     (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
-  val syn_ext_const_names: string list -> syn_ext
   val syn_ext_rules: (Ast.ast * Ast.ast) list * (Ast.ast * Ast.ast) list -> syn_ext
   val syn_ext_trfuns:
     (string * ((Ast.ast list -> Ast.ast) * stamp)) list *
@@ -283,7 +282,7 @@ fun mfix_to_xprod is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) =
 datatype syn_ext =
   Syn_Ext of {
     xprods: xprod list,
-    consts: string list,
+    consts: (string * string) list,
     parse_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list,
     parse_rules: (Ast.ast * Ast.ast) list,
     parse_translation: (string * ((Proof.context -> term list -> term) * stamp)) list,
@@ -301,12 +300,11 @@ fun syn_ext' is_logtype mfixes consts trfuns (parse_rules, print_rules) =
 
     val (xprods, parse_rules') = map (mfix_to_xprod is_logtype) mfixes
       |> split_list |> apsnd (rev o flat);
-    val mfix_consts =
-      distinct (op =) (map (fn Mfix x => #3 x) mfixes @ map (fn XProd x => #3 x) xprods);
+    val mfix_consts = map (fn Mfix x => (#3 x, "")) mfixes @ map (fn XProd x => (#3 x, "")) xprods;
   in
     Syn_Ext {
       xprods = xprods,
-      consts = union (op =) consts mfix_consts,
+      consts = mfix_consts @ consts,
       parse_ast_translation = parse_ast_translation,
       parse_rules = parse_rules' @ parse_rules,
       parse_translation = parse_translation,
@@ -318,7 +316,6 @@ fun syn_ext' is_logtype mfixes consts trfuns (parse_rules, print_rules) =
 
 val syn_ext = syn_ext' (K false);
 
-fun syn_ext_const_names cs = syn_ext [] cs ([], [], [], []) ([], []);
 fun syn_ext_rules rules = syn_ext [] [] ([], [], [], []) rules;
 fun syn_ext_advanced_trfuns trfuns = syn_ext [] [] trfuns ([], []);
 

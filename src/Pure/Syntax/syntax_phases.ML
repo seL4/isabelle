@@ -18,6 +18,40 @@ end
 structure Syntax_Phases: SYNTAX_PHASES =
 struct
 
+(** markup logical entities **)
+
+fun markup_class ctxt c =
+  [Name_Space.markup_entry (Type.class_space (ProofContext.tsig_of ctxt)) c];
+
+fun markup_type ctxt c =
+  [Name_Space.markup_entry (Type.type_space (ProofContext.tsig_of ctxt)) c];
+
+fun markup_const ctxt c =
+  [Name_Space.markup_entry (Consts.space_of (ProofContext.consts_of ctxt)) c];
+
+fun markup_free ctxt x =
+  [if can Name.dest_skolem x then Markup.skolem else Markup.free] @
+  (if not (Variable.is_body ctxt) orelse Variable.is_fixed ctxt x then []
+   else [Markup.hilite]);
+
+fun markup_var xi = [Markup.name (Term.string_of_vname xi) Markup.var];
+
+fun markup_bound def id =
+  [Markup.properties [(if def then Markup.defN else Markup.refN, id)] Markup.bound];
+
+fun markup_entity ctxt c =
+  (case Syntax.lookup_const (ProofContext.syn_of ctxt) c of
+    SOME "" => []
+  | SOME b => markup_entity ctxt b
+  | NONE => c |> Lexicon.unmark
+     {case_class = markup_class ctxt,
+      case_type = markup_type ctxt,
+      case_const = markup_const ctxt,
+      case_fixed = markup_free ctxt,
+      case_default = K []});
+
+
+
 (** decode parse trees **)
 
 (* sort_of_term *)
@@ -89,29 +123,10 @@ fun typ_of_term get_sort tm =
 
 (* parsetree_to_ast *)
 
-fun markup_const ctxt c =
-  [Name_Space.markup_entry (Consts.space_of (ProofContext.consts_of ctxt)) c];
-
-fun markup_free ctxt x =
-  [if can Name.dest_skolem x then Markup.skolem else Markup.free] @
-  (if not (Variable.is_body ctxt) orelse Variable.is_fixed ctxt x then []
-   else [Markup.hilite]);
-
 fun parsetree_to_ast ctxt constrain_pos trf parsetree =
   let
-    val tsig = ProofContext.tsig_of ctxt;
-
     val get_class = ProofContext.read_class ctxt;
     val get_type = #1 o dest_Type o ProofContext.read_type_name_proper ctxt false;
-    fun markup_class c = [Name_Space.markup_entry (Type.class_space tsig) c];
-    fun markup_type c = [Name_Space.markup_entry (Type.type_space tsig) c];
-
-    val markup_entity = Lexicon.unmark
-     {case_class = markup_class,
-      case_type = markup_type,
-      case_const = markup_const ctxt,
-      case_fixed = markup_free ctxt,
-      case_default = K []};
 
     val reports = Unsynchronized.ref ([]: Position.reports);
     fun report pos = Position.reports reports [pos];
@@ -124,12 +139,12 @@ fun parsetree_to_ast ctxt constrain_pos trf parsetree =
     fun asts_of (Parser.Node ("_class_name", [Parser.Tip tok])) =
           let
             val c = get_class (Lexicon.str_of_token tok);
-            val _ = report (Lexicon.pos_of_token tok) markup_class c;
+            val _ = report (Lexicon.pos_of_token tok) (markup_class ctxt) c;
           in [Ast.Constant (Lexicon.mark_class c)] end
       | asts_of (Parser.Node ("_type_name", [Parser.Tip tok])) =
           let
             val c = get_type (Lexicon.str_of_token tok);
-            val _ = report (Lexicon.pos_of_token tok) markup_type c;
+            val _ = report (Lexicon.pos_of_token tok) (markup_type ctxt) c;
           in [Ast.Constant (Lexicon.mark_type c)] end
       | asts_of (Parser.Node ("_constrain_position", [pt as Parser.Tip tok])) =
           if constrain_pos then
@@ -141,7 +156,7 @@ fun parsetree_to_ast ctxt constrain_pos trf parsetree =
             val _ = pts |> List.app
               (fn Parser.Node _ => () | Parser.Tip tok =>
                 if Lexicon.valued_token tok then ()
-                else report (Lexicon.pos_of_token tok) markup_entity a);
+                else report (Lexicon.pos_of_token tok) (markup_entity ctxt) a);
           in [trans a (maps asts_of pts)] end
       | asts_of (Parser.Tip tok) =
           if Lexicon.valued_token tok
@@ -185,9 +200,6 @@ fun decode_term _ (result as (_: Position.reports, Exn.Exn _)) = result
           ((true, #1 (Term.dest_Const (ProofContext.read_const_proper ctxt false a)))
             handle ERROR _ => (false, Consts.intern (ProofContext.consts_of ctxt) a));
         val get_free = ProofContext.intern_skolem ctxt;
-        fun markup_var xi = [Markup.name (Term.string_of_vname xi) Markup.var];
-        fun markup_bound def id =
-          [Markup.properties [(if def then Markup.defN else Markup.refN, id)] Markup.bound];
 
         val decodeT = typ_of_term (ProofContext.get_sort ctxt (term_sorts tm));
 
@@ -390,7 +402,8 @@ fun parse_ast_pattern ctxt (root, str) =
 
     fun constify (ast as Ast.Constant _) = ast
       | constify (ast as Ast.Variable x) =
-          if Syntax.is_const syn x orelse Long_Name.is_qualified x then Ast.Constant x
+          if is_some (Syntax.lookup_const syn x) orelse Long_Name.is_qualified x
+          then Ast.Constant x
           else ast
       | constify (Ast.Appl asts) = Ast.Appl (map constify asts);
 
@@ -626,7 +639,7 @@ fun unparse_term ctxt =
     val syn = ProofContext.syn_of ctxt;
     val idents = Local_Syntax.idents_of (ProofContext.syntax_of ctxt);
   in
-    unparse_t (term_to_ast idents (Syntax.is_const syn))
+    unparse_t (term_to_ast idents (is_some o Syntax.lookup_const syn))
       (Printer.pretty_term_ast (not (Pure_Thy.old_appl_syntax thy)))
       Markup.term ctxt
   end;
