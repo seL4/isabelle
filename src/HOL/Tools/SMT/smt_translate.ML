@@ -184,7 +184,7 @@ local
     let val Ts = drop i (fst (SMT_Utils.dest_funT k T))
     in
       Term.incr_boundvars (length Ts) t
-      |> fold_index (fn (i, _) => fn u => u $ Bound i) Ts
+      |> fold_rev (fn i => fn u => u $ Bound i) (0 upto length Ts - 1)
       |> fold_rev (fn T => fn u => Abs (Name.uu, T, u)) Ts
     end
 in
