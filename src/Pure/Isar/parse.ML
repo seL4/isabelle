@@ -78,7 +78,7 @@ sig
   val opt_mixfix: mixfix parser
   val opt_mixfix': mixfix parser
   val where_: string parser
-  val const: (string * string * mixfix) parser
+  val const_decl: (string * string * mixfix) parser
   val const_binding: (binding * string * mixfix) parser
   val params: (binding * string option) list parser
   val simple_fixes: (binding * string option) list parser
@@ -295,7 +295,7 @@ val opt_mixfix' = opt_annotation I (mfix || binder || infxl || infxr || infx);
 
 val where_ = $$$ "where";
 
-val const = name -- ($$$ "::" |-- !!! typ) -- opt_mixfix >> triple1;
+val const_decl = name -- ($$$ "::" |-- !!! typ) -- opt_mixfix >> triple1;
 val const_binding = binding -- ($$$ "::" |-- !!! typ) -- opt_mixfix >> triple1;
 
 val params = Scan.repeat1 binding -- Scan.option ($$$ "::" |-- !!! typ)

@@ -161,11 +161,11 @@ val opt_mode =
 
 val _ =
   Outer_Syntax.command "syntax" "declare syntactic constants" Keyword.thy_decl
-    (opt_mode -- Scan.repeat1 Parse.const >> (Toplevel.theory o uncurry Sign.add_modesyntax));
+    (opt_mode -- Scan.repeat1 Parse.const_decl >> (Toplevel.theory o uncurry Sign.add_modesyntax));
 
 val _ =
   Outer_Syntax.command "no_syntax" "delete syntax declarations" Keyword.thy_decl
-    (opt_mode -- Scan.repeat1 Parse.const >> (Toplevel.theory o uncurry Sign.del_modesyntax));
+    (opt_mode -- Scan.repeat1 Parse.const_decl >> (Toplevel.theory o uncurry Sign.del_modesyntax));
 
 
 (* translations *)
