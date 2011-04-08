@@ -246,78 +246,45 @@ fun termination_tac ctxt =
      @{thm nat_mono_iff}, less_int_pred] @ @{thms sum.cases}) 1))
 
 (** instantiating generator classes **)
-
-fun instantiate_exhaustive_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
-  let
-    val _ = Datatype_Aux.message config "Creating exhaustive generators...";
-    val exhaustivesN = map (prefix (exhaustiveN ^ "_")) (names @ auxnames)
-  in
-    thy
-    |> Class.instantiation (tycos, vs, @{sort exhaustive})
-    |> Quickcheck_Common.define_functions
-        (fn functerms => mk_equations functerms (descr, vs, Ts @ Us), SOME termination_tac)
-        prfx ["f", "i"] exhaustivesN (map exhaustiveT (Ts @ Us))
-    |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
-  end handle FUNCTION_TYPE =>
-    (Datatype_Aux.message config
-      "Creation of exhaustive generators failed because the datatype contains a function type";
-    thy)
-
-
-fun instantiate_full_exhaustive_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
-  let
-    val _ = Datatype_Aux.message config "Creating exhaustive generators...";
-    val full_exhaustivesN = map (prefix (full_exhaustiveN ^ "_")) (names @ auxnames)
-  in
-    thy
-    |> Class.instantiation (tycos, vs, @{sort full_exhaustive})
-    |> Quickcheck_Common.define_functions
-        (fn functerms => mk_full_equations functerms (descr, vs, Ts @ Us), SOME termination_tac)
-        prfx ["f", "i"] full_exhaustivesN (map full_exhaustiveT (Ts @ Us))
-    |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
-  end handle FUNCTION_TYPE =>
-    (Datatype_Aux.message config
-      "Creation of exhaustive generators failed because the datatype contains a function type";
-    thy)
-     
-fun instantiate_fast_exhaustive_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
-  let
-    val _ = Datatype_Aux.message config "Creating fast exhaustive generators...";
-    val fast_exhaustivesN = map (prefix (fast_exhaustiveN ^ "_")) (names @ auxnames)
-  in
-    thy
-    |> Class.instantiation (tycos, vs, @{sort fast_exhaustive})
-    |> Quickcheck_Common.define_functions
-        (fn functerms => mk_fast_equations functerms (descr, vs, Ts @ Us), SOME termination_tac)
-        prfx ["f", "i"] fast_exhaustivesN (map fast_exhaustiveT (Ts @ Us))
-    |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
-  end handle FUNCTION_TYPE =>
-    (Datatype_Aux.message config
-      "Creation of exhaustive generators failed because the datatype contains a function type";
-    thy)
-
+  
 val contains_recursive_type_under_function_types =
   exists (fn (_, (_, _, cs)) => cs |> exists (snd #> exists (fn dT =>
     (case Datatype_Aux.strip_dtyp dT of (_ :: _, Datatype.DtRec _) => true | _ => false))))
     
-fun instantiate_bounded_forall_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
+fun instantiate_datatype (name, constprfx, sort, mk_equations, mk_T, argnames)
+    config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
   if not (contains_recursive_type_under_function_types descr) then
     let
-      val _ = Datatype_Aux.message config "Creating bounded universal quantifiers..."
-      val bounded_forallsN = map (prefix (bounded_forallN ^ "_")) (names @ auxnames)
+      val _ = Datatype_Aux.message config ("Creating " ^ name ^ "...")
+      val fullnames = map (prefix (constprfx ^ "_")) (names @ auxnames)
     in
       thy
-      |> Class.instantiation (tycos, vs, @{sort bounded_forall})
+      |> Class.instantiation (tycos, vs, sort)
       |> Quickcheck_Common.define_functions
-          (fn functerms => mk_bounded_forall_equations functerms (descr, vs, Ts @ Us), NONE)
-          prfx ["P", "i"] bounded_forallsN (map bounded_forallT (Ts @ Us))
+          (fn functerms => mk_equations functerms (descr, vs, Ts @ Us), NONE)
+          prfx argnames fullnames (map mk_T (Ts @ Us))
       |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
     end
   else
     (Datatype_Aux.message config
-      "Creation of bounded universal quantifiers failed because the datatype is recursive under a function type";
+      ("Creation of " ^ name ^ " failed because the datatype is recursive under a function type");
     thy)
-    
+
+val instantiate_bounded_forall_datatype = instantiate_datatype
+ ("bounded universal quantifiers", bounded_forallN, @{sort bounded_forall},
+   mk_bounded_forall_equations, bounded_forallT, ["P", "i"]);
+
+val instantiate_fast_exhaustive_datatype = instantiate_datatype 
+ ("fast exhaustive generators", fast_exhaustiveN, @{sort fast_exhaustive},
+   mk_fast_equations, fast_exhaustiveT, ["f", "i"])
+
+val instantiate_exhaustive_datatype = instantiate_datatype  
+  ("exhaustive generators", exhaustiveN, @{sort full_exhaustive}, mk_equations, exhaustiveT, ["f", "i"])
+
+val instantiate_full_exhaustive_datatype = instantiate_datatype
+  ("full exhaustive generators", full_exhaustiveN, @{sort full_exhaustive},
+  mk_full_equations, full_exhaustiveT, ["f", "i"])
+  
 (* building and compiling generator expressions *)
 
 fun mk_fast_generator_expr ctxt (t, eval_terms) =
