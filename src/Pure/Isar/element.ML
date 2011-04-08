@@ -169,7 +169,7 @@ fun pretty_ctxt ctxt =
     val prt_name_atts = pretty_name_atts ctxt;
 
     fun prt_mixfix NoSyn = []
-      | prt_mixfix mx = [Pretty.brk 2, Syntax.pretty_mixfix mx];
+      | prt_mixfix mx = [Pretty.brk 2, Mixfix.pretty_mixfix mx];
 
     fun prt_fix (x, SOME T, mx) = Pretty.block (Pretty.str (Binding.name_of x ^ " ::") ::
           Pretty.brk 1 :: prt_typ T :: Pretty.brk 1 :: prt_mixfix mx)

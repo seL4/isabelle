@@ -1,44 +1,48 @@
-(*  Title:      Pure/Syntax/syn_trans.ML
+(*  Title:      Pure/Syntax/syntax_trans.ML
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
 Syntax translation functions.
 *)
 
-signature SYN_TRANS0 =
+signature BASIC_SYNTAX_TRANS =
 sig
-  val eta_contract_default: bool Unsynchronized.ref
-  val eta_contract_raw: Config.raw
   val eta_contract: bool Config.T
-  val atomic_abs_tr': string * typ * term -> term * term
-  val const_abs_tr': term -> term
+end
+
+signature SYNTAX_TRANS =
+sig
+  include BASIC_SYNTAX_TRANS
+  val no_brackets: unit -> bool
+  val no_type_brackets: unit -> bool
+  val abs_tr: term list -> term
   val mk_binder_tr: string * string -> string * (term list -> term)
-  val mk_binder_tr': string * string -> string * (term list -> term)
-  val preserve_binder_abs_tr': string -> string -> string * (term list -> term)
-  val preserve_binder_abs2_tr': string -> string -> string * (term list -> term)
-  val dependent_tr': string * string -> term list -> term
   val antiquote_tr: string -> term -> term
   val quote_tr: string -> term -> term
   val quote_antiquote_tr: string -> string -> string -> string * (term list -> term)
+  val non_typed_tr': (term list -> term) -> typ -> term list -> term
+  val non_typed_tr'': ('a -> term list -> term) -> 'a -> typ -> term list -> term
+  val tappl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
+  val appl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
+  val applC_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
+  val eta_contract_default: bool Unsynchronized.ref
+  val eta_contract_raw: Config.raw
+  val mark_bound: string -> term
+  val mark_boundT: string * typ -> term
+  val bound_vars: (string * typ) list -> term -> term
+  val abs_tr': Proof.context -> term -> term
+  val atomic_abs_tr': string * typ * term -> term * term
+  val const_abs_tr': term -> term
+  val mk_binder_tr': string * string -> string * (term list -> term)
+  val preserve_binder_abs_tr': string -> string -> string * (term list -> term)
+  val preserve_binder_abs2_tr': string -> string -> string * (term list -> term)
+  val prop_tr': term -> term
+  val variant_abs: string * typ * term -> string * term
+  val variant_abs': string * typ * term -> string * term
+  val dependent_tr': string * string -> term list -> term
   val antiquote_tr': string -> term -> term
   val quote_tr': string -> term -> term
   val quote_antiquote_tr': string -> string -> string -> string * (term list -> term)
   val update_name_tr': term -> term
-  val mark_bound: string -> term
-  val mark_boundT: string * typ -> term
-  val bound_vars: (string * typ) list -> term -> term
-  val variant_abs: string * typ * term -> string * term
-  val variant_abs': string * typ * term -> string * term
-end;
-
-signature SYN_TRANS1 =
-sig
-  include SYN_TRANS0
-  val no_brackets: unit -> bool
-  val no_type_brackets: unit -> bool
-  val non_typed_tr': (term list -> term) -> typ -> term list -> term
-  val non_typed_tr'': ('a -> term list -> term) -> 'a -> typ -> term list -> term
-  val constrainAbsC: string
-  val abs_tr: term list -> term
   val pure_trfuns:
     (string * (Ast.ast list -> Ast.ast)) list *
     (string * (term list -> term)) list *
@@ -51,17 +55,7 @@ sig
     (string * (Ast.ast list -> Ast.ast)) list
 end;
 
-signature SYN_TRANS =
-sig
-  include SYN_TRANS1
-  val tappl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
-  val abs_tr': Proof.context -> term -> term
-  val prop_tr': term -> term
-  val appl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
-  val applC_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
-end;
-
-structure Syn_Trans: SYN_TRANS =
+structure Syntax_Trans: SYNTAX_TRANS =
 struct
 
 (* print mode *)
@@ -119,17 +113,14 @@ fun applC_ast_tr [f, args] = Ast.Appl (f :: Ast.unfold_ast "_cargs" args)
 
 (* abstraction *)
 
-fun idtyp_ast_tr (*"_idtyp"*) [x, ty] = Ast.Appl [Ast.Constant "_constrain", x, ty]
-  | idtyp_ast_tr (*"_idtyp"*) asts = raise Ast.AST ("idtyp_ast_tr", asts);
+fun idtyp_ast_tr [x, ty] = Ast.Appl [Ast.Constant "_constrain", x, ty]
+  | idtyp_ast_tr asts = raise Ast.AST ("idtyp_ast_tr", asts);
 
-fun idtypdummy_ast_tr (*"_idtypdummy"*) [ty] =
-      Ast.Appl [Ast.Constant "_constrain", Ast.Constant "_idtdummy", ty]
-  | idtypdummy_ast_tr (*"_idtypdummy"*) asts = raise Ast.AST ("idtyp_ast_tr", asts);
-fun lambda_ast_tr (*"_lambda"*) [pats, body] =
-      Ast.fold_ast_p "_abs" (Ast.unfold_ast "_pttrns" pats, body)
-  | lambda_ast_tr (*"_lambda"*) asts = raise Ast.AST ("lambda_ast_tr", asts);
+fun idtypdummy_ast_tr [ty] = Ast.Appl [Ast.Constant "_constrain", Ast.Constant "_idtdummy", ty]
+  | idtypdummy_ast_tr asts = raise Ast.AST ("idtyp_ast_tr", asts);
 
-val constrainAbsC = "_constrainAbs";
+fun lambda_ast_tr [pats, body] = Ast.fold_ast_p "_abs" (Ast.unfold_ast "_pttrns" pats, body)
+  | lambda_ast_tr asts = raise Ast.AST ("lambda_ast_tr", asts);
 
 fun absfree_proper (x, T, t) =
   if can Name.dest_internal x
@@ -138,7 +129,8 @@ fun absfree_proper (x, T, t) =
 
 fun abs_tr [Free (x, T), t] = absfree_proper (x, T, t)
   | abs_tr [Const ("_idtdummy", T), t] = Term.absdummy (T, t)
-  | abs_tr [Const ("_constrain", _) $ x $ tT, t] = Lexicon.const constrainAbsC $ abs_tr [x, t] $ tT
+  | abs_tr [Const ("_constrain", _) $ x $ tT, t] =
+      Lexicon.const "_constrainAbs" $ abs_tr [x, t] $ tT
   | abs_tr ts = raise TERM ("abs_tr", ts);
 
 
@@ -161,40 +153,39 @@ fun mk_type ty =
   Lexicon.const "_constrain" $
     Lexicon.const "\\<^const>TYPE" $ (Lexicon.const "\\<^type>itself" $ ty);
 
-fun ofclass_tr (*"_ofclass"*) [ty, cls] = cls $ mk_type ty
-  | ofclass_tr (*"_ofclass"*) ts = raise TERM ("ofclass_tr", ts);
+fun ofclass_tr [ty, cls] = cls $ mk_type ty
+  | ofclass_tr ts = raise TERM ("ofclass_tr", ts);
 
-fun sort_constraint_tr (*"_sort_constraint"*) [ty] =
-      Lexicon.const "\\<^const>Pure.sort_constraint" $ mk_type ty
-  | sort_constraint_tr (*"_sort_constraint"*) ts = raise TERM ("sort_constraint_tr", ts);
+fun sort_constraint_tr [ty] = Lexicon.const "\\<^const>Pure.sort_constraint" $ mk_type ty
+  | sort_constraint_tr ts = raise TERM ("sort_constraint_tr", ts);
 
 
 (* meta propositions *)
 
-fun aprop_tr (*"_aprop"*) [t] = Lexicon.const "_constrain" $ t $ Lexicon.const "\\<^type>prop"
-  | aprop_tr (*"_aprop"*) ts = raise TERM ("aprop_tr", ts);
+fun aprop_tr [t] = Lexicon.const "_constrain" $ t $ Lexicon.const "\\<^type>prop"
+  | aprop_tr ts = raise TERM ("aprop_tr", ts);
 
 
 (* meta implication *)
 
-fun bigimpl_ast_tr (*"_bigimpl"*) (asts as [asms, concl]) =
+fun bigimpl_ast_tr (asts as [asms, concl]) =
       let val prems =
         (case Ast.unfold_ast_p "_asms" asms of
           (asms', Ast.Appl [Ast.Constant "_asm", asm']) => asms' @ [asm']
         | _ => raise Ast.AST ("bigimpl_ast_tr", asts))
       in Ast.fold_ast_p "\\<^const>==>" (prems, concl) end
-  | bigimpl_ast_tr (*"_bigimpl"*) asts = raise Ast.AST ("bigimpl_ast_tr", asts);
+  | bigimpl_ast_tr asts = raise Ast.AST ("bigimpl_ast_tr", asts);
 
 
 (* type/term reflection *)
 
-fun type_tr (*"_TYPE"*) [ty] = mk_type ty
-  | type_tr (*"_TYPE"*) ts = raise TERM ("type_tr", ts);
+fun type_tr [ty] = mk_type ty
+  | type_tr ts = raise TERM ("type_tr", ts);
 
 
 (* dddot *)
 
-fun dddot_tr (*"_DDDOT"*) ts = Term.list_comb (Lexicon.var Syn_Ext.dddot_indexname, ts);
+fun dddot_tr ts = Term.list_comb (Lexicon.var Syntax_Ext.dddot_indexname, ts);
 
 
 (* quote / antiquote *)
@@ -233,27 +224,23 @@ fun update_name_tr (Free (x, T) :: ts) = list_comb (Free (suffix "_update" x, T)
 
 (* indexed syntax *)
 
-fun struct_ast_tr (*"_struct"*) [Ast.Appl [Ast.Constant "_index", ast]] = ast
-  | struct_ast_tr (*"_struct"*) asts = Ast.mk_appl (Ast.Constant "_struct") asts;
+fun struct_ast_tr [Ast.Appl [Ast.Constant "_index", ast]] = ast
+  | struct_ast_tr asts = Ast.mk_appl (Ast.Constant "_struct") asts;
 
 fun index_ast_tr ast =
   Ast.mk_appl (Ast.Constant "_index") [Ast.mk_appl (Ast.Constant "_struct") [ast]];
 
-fun indexdefault_ast_tr (*"_indexdefault"*) [] =
-      index_ast_tr (Ast.Constant "_indexdefault")
-  | indexdefault_ast_tr (*"_indexdefault"*) asts =
-      raise Ast.AST ("indexdefault_ast_tr", asts);
+fun indexdefault_ast_tr [] = index_ast_tr (Ast.Constant "_indexdefault")
+  | indexdefault_ast_tr asts = raise Ast.AST ("indexdefault_ast_tr", asts);
 
-fun indexnum_ast_tr (*"_indexnum"*) [ast] =
-      index_ast_tr (Ast.mk_appl (Ast.Constant "_indexnum") [ast])
-  | indexnum_ast_tr (*"_indexnum"*) asts = raise Ast.AST ("indexnum_ast_tr", asts);
+fun indexnum_ast_tr [ast] = index_ast_tr (Ast.mk_appl (Ast.Constant "_indexnum") [ast])
+  | indexnum_ast_tr asts = raise Ast.AST ("indexnum_ast_tr", asts);
 
-fun indexvar_ast_tr (*"_indexvar"*) [] =
-      Ast.mk_appl (Ast.Constant "_index") [Ast.Variable "some_index"]
-  | indexvar_ast_tr (*"_indexvar"*) asts = raise Ast.AST ("indexvar_ast_tr", asts);
+fun indexvar_ast_tr [] = Ast.mk_appl (Ast.Constant "_index") [Ast.Variable "some_index"]
+  | indexvar_ast_tr asts = raise Ast.AST ("indexvar_ast_tr", asts);
 
-fun index_tr (*"_index"*) [t] = t
-  | index_tr (*"_index"*) ts = raise TERM ("index_tr", ts);
+fun index_tr [t] = t
+  | index_tr ts = raise TERM ("index_tr", ts);
 
 
 (* implicit structures *)
@@ -262,12 +249,12 @@ fun the_struct structs i =
   if 1 <= i andalso i <= length structs then nth structs (i - 1)
   else error ("Illegal reference to implicit structure #" ^ string_of_int i);
 
-fun struct_tr structs (*"_struct"*) [Const ("_indexdefault", _)] =
+fun struct_tr structs [Const ("_indexdefault", _)] =
       Lexicon.free (the_struct structs 1)
-  | struct_tr structs (*"_struct"*) [t as (Const ("_indexnum", _) $ Const (s, _))] =
+  | struct_tr structs [t as (Const ("_indexnum", _) $ Const (s, _))] =
       Lexicon.free (the_struct structs
         (case Lexicon.read_nat s of SOME n => n | NONE => raise TERM ("struct_tr", [t])))
-  | struct_tr _ (*"_struct"*) ts = raise TERM ("struct_tr", ts);
+  | struct_tr _ ts = raise TERM ("struct_tr", ts);
 
 
 
@@ -434,7 +421,7 @@ fun prop_tr' tm =
 
 (* meta implication *)
 
-fun impl_ast_tr' (*"==>"*) asts =
+fun impl_ast_tr' asts =
   if no_brackets () then raise Match
   else
     (case Ast.unfold_ast_p "\\<^const>==>" (Ast.Appl (Ast.Constant "\\<^const>==>" :: asts)) of
@@ -508,7 +495,7 @@ end;
 
 (* indexed syntax *)
 
-fun index_ast_tr' (*"_index"*) [Ast.Appl [Ast.Constant "_struct", ast]] = ast
+fun index_ast_tr' [Ast.Appl [Ast.Constant "_struct", ast]] = ast
   | index_ast_tr' _ = raise Match;
 
 
@@ -519,9 +506,8 @@ fun the_struct' structs s =
     SOME i => Ast.Variable (the_struct structs i handle ERROR _ => raise Match)
   | NONE => raise Match)] |> Ast.mk_appl (Ast.Constant "_free");
 
-fun struct_ast_tr' structs (*"_struct"*) [Ast.Constant "_indexdefault"] =
-      the_struct' structs "1"
-  | struct_ast_tr' structs (*"_struct"*) [Ast.Appl [Ast.Constant "_indexnum", Ast.Constant s]] =
+fun struct_ast_tr' structs [Ast.Constant "_indexdefault"] = the_struct' structs "1"
+  | struct_ast_tr' structs [Ast.Appl [Ast.Constant "_indexnum", Ast.Constant s]] =
       the_struct' structs s
   | struct_ast_tr' _ _ = raise Match;
 
@@ -565,3 +551,6 @@ fun struct_trfuns structs =
   ([], [("_struct", struct_tr structs)], [], [("_struct", struct_ast_tr' structs)]);
 
 end;
+
+structure Basic_Syntax_Trans: BASIC_SYNTAX_TRANS = Syntax_Trans;
+open Basic_Syntax_Trans;

@@ -224,7 +224,7 @@ fun strip_case ctxt = Datatype_Case.strip_case
 fun add_case_tr' case_names thy =
   Sign.add_advanced_trfuns ([], [],
     map (fn case_name =>
-      let val case_name' = Syntax.mark_const case_name
+      let val case_name' = Lexicon.mark_const case_name
       in (case_name', Datatype_Case.case_tr' info_of_case case_name')
       end) case_names, []) thy;
 
@@ -244,7 +244,7 @@ val _ = Thy_Output.antiquotation "datatype" (Args.type_name true)
       val (vs, cos) = the_spec thy dtco;
       val ty = Type (dtco, map TFree vs);
       val pretty_typ_bracket =
-        Syntax.pretty_typ (Config.put Syntax.pretty_priority (Syntax.max_pri + 1) ctxt);
+        Syntax.pretty_typ (Config.put pretty_priority (Syntax.max_pri + 1) ctxt);
       fun pretty_constr (co, tys) =
         Pretty.block (Pretty.breaks
           (Syntax.pretty_term ctxt (Const (co, tys ---> ty)) ::

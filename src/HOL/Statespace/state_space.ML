@@ -344,8 +344,6 @@ fun update_const T nT V =
 
 fun K_const T = Const ("StateFun.K_statefun",T --> T --> T);
 
-val no_syn = #3 (Syntax.no_syn ((),()));
-
 
 fun add_declaration name decl thy =
   thy

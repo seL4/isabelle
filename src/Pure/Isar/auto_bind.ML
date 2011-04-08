@@ -45,8 +45,8 @@ fun get_arg thy prop =
 fun facts _ [] = []
   | facts thy props =
       let val prop = List.last props
-      in [(Syntax.dddot_indexname, get_arg thy prop)] @ statement_binds thy thisN prop end;
+      in [(Syntax_Ext.dddot_indexname, get_arg thy prop)] @ statement_binds thy thisN prop end;
 
-val no_facts = [(Syntax.dddot_indexname, NONE), ((thisN, 0), NONE)];
+val no_facts = [(Syntax_Ext.dddot_indexname, NONE), ((thisN, 0), NONE)];
 
 end;

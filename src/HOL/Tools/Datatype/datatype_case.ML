@@ -418,7 +418,7 @@ fun gen_dest_case name_of type_of tab d used t =
   | _ => NONE);
 
 val dest_case = gen_dest_case (try (dest_Const #> fst)) fastype_of;
-val dest_case' = gen_dest_case (try (dest_Const #> fst #> Syntax.unmark_const)) (K dummyT);
+val dest_case' = gen_dest_case (try (dest_Const #> fst #> Lexicon.unmark_const)) (K dummyT);
 
 
 (* destruct nested patterns *)
@@ -454,12 +454,12 @@ fun case_tr' tab_of cname ctxt ts =
       let val xs = Term.add_frees pat [] in
         Syntax.const @{syntax_const "_case1"} $
           map_aterms
-            (fn Free p => Syntax.mark_boundT p
-              | Const (s, _) => Syntax.const (Syntax.mark_const s)
+            (fn Free p => Syntax_Trans.mark_boundT p
+              | Const (s, _) => Syntax.const (Lexicon.mark_const s)
               | t => t) pat $
           map_aterms
             (fn x as Free (s, T) =>
-                  if member (op =) xs (s, T) then Syntax.mark_bound s else x
+                  if member (op =) xs (s, T) then Syntax_Trans.mark_bound s else x
               | t => t) rhs
       end;
   in

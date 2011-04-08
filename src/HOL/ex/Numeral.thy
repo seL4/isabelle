@@ -285,7 +285,7 @@ let
     else raise Match;
   fun numeral_tr [Free (num, _)] =
         let
-          val {leading_zeros, value, ...} = Syntax.read_xnum num;
+          val {leading_zeros, value, ...} = Lexicon.read_xnum num;
           val _ = leading_zeros = 0 andalso value > 0
             orelse error ("Bad numeral: " ^ num);
         in Const (@{const_name of_num}, @{typ num} --> dummyT) $ num_of_int value end

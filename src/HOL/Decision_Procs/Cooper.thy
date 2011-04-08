@@ -1924,12 +1924,12 @@ fun fm_of_term ps vs @{term True} = @{code T}
       @{code NOT} (fm_of_term ps vs t')
   | fm_of_term ps vs (Const (@{const_name Ex}, _) $ Abs (xn, xT, p)) =
       let
-        val (xn', p') = variant_abs (xn, xT, p);
+        val (xn', p') = Syntax_Trans.variant_abs (xn, xT, p);  (* FIXME !? *)
         val vs' = (Free (xn', xT), 0) :: map (fn (v, n) => (v, n + 1)) vs;
       in @{code E} (fm_of_term ps vs' p) end
   | fm_of_term ps vs (Const (@{const_name All}, _) $ Abs (xn, xT, p)) =
       let
-        val (xn', p') = variant_abs (xn, xT, p);
+        val (xn', p') = Syntax_Trans.variant_abs (xn, xT, p);  (* FIXME !? *)
         val vs' = (Free (xn', xT), 0) :: map (fn (v, n) => (v, n + 1)) vs;
       in @{code A} (fm_of_term ps vs' p) end
   | fm_of_term ps vs t = error ("fm_of_term : unknown term " ^ Syntax.string_of_term @{context} t);
@@ -1988,7 +1988,7 @@ fun term_bools acc t =
         else insert (op aconv) t acc
     | f $ a => if is_ty t orelse is_op t then term_bools (term_bools acc f) a  
         else insert (op aconv) t acc
-    | Abs p => term_bools acc (snd (variant_abs p))
+    | Abs p => term_bools acc (snd (Syntax_Trans.variant_abs p))  (* FIXME !? *)
     | _ => if is_ty t orelse is_op t then acc else insert (op aconv) t acc
   end;
 

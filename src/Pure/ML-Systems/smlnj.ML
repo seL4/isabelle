@@ -103,8 +103,6 @@ fun use_file context verbose name =
     val txt = Exn.release (Exn.capture TextIO.inputAll instream before TextIO.closeIn instream);
   in use_text context (1, name) verbose txt end;
 
-fun forget_structure _ = ();
-
 
 (* toplevel pretty printing *)
 

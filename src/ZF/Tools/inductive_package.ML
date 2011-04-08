@@ -78,7 +78,7 @@ let
   and (Const(_,recT),rec_params) = strip_comb (hd rec_tms);
 
   val rec_base_names = map Long_Name.base_name rec_names;
-  val dummy = assert_all Syntax.is_identifier rec_base_names
+  val dummy = assert_all Lexicon.is_identifier rec_base_names
     (fn a => "Base name of recursive set not an identifier: " ^ a);
 
   local (*Checking the introduction rules*)

@@ -99,7 +99,7 @@ val theory_const_suffix = Long_Name.separator ^ " 1"
 
 fun needs_quoting reserved s =
   Symtab.defined reserved s orelse
-  exists (not o Syntax.is_identifier) (Long_Name.explode s)
+  exists (not o Lexicon.is_identifier) (Long_Name.explode s)
 
 fun make_name reserved multi j name =
   (name |> needs_quoting reserved name ? quote) ^

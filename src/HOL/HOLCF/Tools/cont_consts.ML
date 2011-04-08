@@ -47,10 +47,10 @@ fun trans_rules name2 name1 n mx =
 *)
 fun transform thy (c, T, mx) =
   let
-    fun syntax b = Syntax.mark_const (Sign.full_bname thy b)
+    fun syntax b = Lexicon.mark_const (Sign.full_bname thy b)
     val c1 = Binding.name_of c
     val c2 = c1 ^ "_cont_syntax"
-    val n = Syntax.mixfix_args mx
+    val n = Mixfix.mixfix_args mx
   in
     ((c, T, NoSyn),
       (Binding.name c2, change_arrow n T, mx),
@@ -64,7 +64,7 @@ fun is_contconst (_, _, NoSyn) = false
   | is_contconst (_, _, Binder _) = false    (* FIXME ? *)
   | is_contconst (c, T, mx) =
       let
-        val n = Syntax.mixfix_args mx handle ERROR msg =>
+        val n = Mixfix.mixfix_args mx handle ERROR msg =>
           cat_error msg ("in mixfix annotation for " ^ quote (Binding.str_of c))
       in cfun_arity T >= n end
 

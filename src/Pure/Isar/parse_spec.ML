@@ -87,7 +87,7 @@ val locale_mixfix =
 val locale_fixes =
   Parse.and_list1 (Parse.binding -- Scan.option (Parse.$$$ "::" |-- Parse.typ) -- locale_mixfix
     >> (single o Parse.triple1) ||
-  Parse.params >> map Syntax.no_syn) >> flat;
+  Parse.params >> map (fn (x, y) => (x, y, NoSyn))) >> flat;
 
 val locale_insts =
   Scan.optional

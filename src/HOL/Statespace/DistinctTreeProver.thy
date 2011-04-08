@@ -643,8 +643,7 @@ val nums' = (200 upto 3000);
 *)
 val nums = (0 upto 10000);
 val nums' = (0 upto 3000);
-val const_decls = map (fn i => Syntax.no_syn 
-                                 ("const" ^ string_of_int i,Type ("nat",[]))) nums
+val const_decls = map (fn i => ("const" ^ string_of_int i, Type ("nat", []), NoSyn)) nums
 
 val consts = sort Term_Ord.fast_term_ord 
               (map (fn i => Const ("DistinctTreeProver.const"^string_of_int i,Type ("nat",[]))) nums)

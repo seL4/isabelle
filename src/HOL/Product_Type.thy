@@ -199,8 +199,8 @@ let
   fun split_tr' [Abs (x, T, t as (Abs abs))] =
         (* split (%x y. t) => %(x,y) t *)
         let
-          val (y, t') = atomic_abs_tr' abs;
-          val (x', t'') = atomic_abs_tr' (x, T, t');
+          val (y, t') = Syntax_Trans.atomic_abs_tr' abs;
+          val (x', t'') = Syntax_Trans.atomic_abs_tr' (x, T, t');
         in
           Syntax.const @{syntax_const "_abs"} $
             (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
@@ -210,7 +210,7 @@ let
         let
           val Const (@{syntax_const "_abs"}, _) $
             (Const (@{syntax_const "_pattern"}, _) $ y $ z) $ t' = split_tr' [t];
-          val (x', t'') = atomic_abs_tr' (x, T, t');
+          val (x', t'') = Syntax_Trans.atomic_abs_tr' (x, T, t');
         in
           Syntax.const @{syntax_const "_abs"} $
             (Syntax.const @{syntax_const "_pattern"} $ x' $
@@ -221,7 +221,7 @@ let
         split_tr' [(split_tr' [t])] (* inner split_tr' creates next pattern *)
     | split_tr' [Const (@{syntax_const "_abs"}, _) $ x_y $ Abs abs] =
         (* split (%pttrn z. t) => %(pttrn,z). t *)
-        let val (z, t) = atomic_abs_tr' abs in
+        let val (z, t) = Syntax_Trans.atomic_abs_tr' abs in
           Syntax.const @{syntax_const "_abs"} $
             (Syntax.const @{syntax_const "_pattern"} $ x_y $ z) $ t
         end
@@ -239,8 +239,8 @@ let
         | _ =>
           let 
             val (_ :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
-            val (y, t') = atomic_abs_tr' ("y", yT, incr_boundvars 1 t $ Bound 0);
-            val (x', t'') = atomic_abs_tr' (x, xT, t');
+            val (y, t') = Syntax_Trans.atomic_abs_tr' ("y", yT, incr_boundvars 1 t $ Bound 0);
+            val (x', t'') = Syntax_Trans.atomic_abs_tr' (x, xT, t');
           in
             Syntax.const @{syntax_const "_abs"} $
               (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
@@ -251,8 +251,9 @@ let
         | _ =>
           let
             val (xT :: yT :: _) = binder_types (domain_type T) handle Bind => raise Match;
-            val (y, t') = atomic_abs_tr' ("y", yT, incr_boundvars 2 t $ Bound 1 $ Bound 0);
-            val (x', t'') = atomic_abs_tr' ("x", xT, t');
+            val (y, t') =
+              Syntax_Trans.atomic_abs_tr' ("y", yT, incr_boundvars 2 t $ Bound 1 $ Bound 0);
+            val (x', t'') = Syntax_Trans.atomic_abs_tr' ("x", xT, t');
           in
             Syntax.const @{syntax_const "_abs"} $
               (Syntax.const @{syntax_const "_pattern"} $ x' $ y) $ t''
@@ -276,10 +277,10 @@ let
     | _ => f ts;
   fun contract2 (Q,f) = (Q, contract Q f);
   val pairs =
-    [Syntax.preserve_binder_abs2_tr' @{const_syntax Ball} @{syntax_const "_Ball"},
-     Syntax.preserve_binder_abs2_tr' @{const_syntax Bex} @{syntax_const "_Bex"},
-     Syntax.preserve_binder_abs2_tr' @{const_syntax INFI} @{syntax_const "_INF"},
-     Syntax.preserve_binder_abs2_tr' @{const_syntax SUPR} @{syntax_const "_SUP"}]
+    [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax Ball} @{syntax_const "_Ball"},
+     Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax Bex} @{syntax_const "_Bex"},
+     Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax INFI} @{syntax_const "_INF"},
+     Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax SUPR} @{syntax_const "_SUP"}]
 in map contract2 pairs end
 *}
 

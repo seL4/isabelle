@@ -132,12 +132,12 @@ val intern = Name_Space.intern o space_of;
 val extern = Name_Space.extern o space_of;
 
 fun intern_syntax consts s =
-  (case try Syntax.unmark_const s of
+  (case try Lexicon.unmark_const s of
     SOME c => c
   | NONE => intern consts s);
 
 fun extern_syntax consts s =
-  (case try Syntax.unmark_const s of
+  (case try Lexicon.unmark_const s of
     SOME c => extern consts c
   | NONE => s);
 

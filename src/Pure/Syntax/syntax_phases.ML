@@ -89,6 +89,14 @@ fun typ_of_term get_sort tm =
 
 (* parsetree_to_ast *)
 
+fun markup_const ctxt c =
+  [Name_Space.markup_entry (Consts.space_of (ProofContext.consts_of ctxt)) c];
+
+fun markup_free ctxt x =
+  [if can Name.dest_skolem x then Markup.skolem else Markup.free] @
+  (if not (Variable.is_body ctxt) orelse Variable.is_fixed ctxt x then []
+   else [Markup.hilite]);
+
 fun parsetree_to_ast ctxt constrain_pos trf parsetree =
   let
     val tsig = ProofContext.tsig_of ctxt;
@@ -98,6 +106,13 @@ fun parsetree_to_ast ctxt constrain_pos trf parsetree =
     fun markup_class c = [Name_Space.markup_entry (Type.class_space tsig) c];
     fun markup_type c = [Name_Space.markup_entry (Type.type_space tsig) c];
 
+    val markup_entity = Lexicon.unmark
+     {case_class = markup_class,
+      case_type = markup_type,
+      case_const = markup_const ctxt,
+      case_fixed = markup_free ctxt,
+      case_default = K []};
+
     val reports = Unsynchronized.ref ([]: Position.reports);
     fun report pos = Position.reports reports [pos];
 
@@ -106,23 +121,37 @@ fun parsetree_to_ast ctxt constrain_pos trf parsetree =
         NONE => Ast.mk_appl (Ast.Constant a) args
       | SOME f => f ctxt args);
 
-    fun ast_of (Parser.Node ("_class_name", [Parser.Tip tok])) =
+    fun asts_of (Parser.Node ("_class_name", [Parser.Tip tok])) =
           let
             val c = get_class (Lexicon.str_of_token tok);
             val _ = report (Lexicon.pos_of_token tok) markup_class c;
-          in Ast.Constant (Lexicon.mark_class c) end
-      | ast_of (Parser.Node ("_type_name", [Parser.Tip tok])) =
+          in [Ast.Constant (Lexicon.mark_class c)] end
+      | asts_of (Parser.Node ("_type_name", [Parser.Tip tok])) =
           let
             val c = get_type (Lexicon.str_of_token tok);
             val _ = report (Lexicon.pos_of_token tok) markup_type c;
-          in Ast.Constant (Lexicon.mark_type c) end
-      | ast_of (Parser.Node ("_constrain_position", [pt as Parser.Tip tok])) =
+          in [Ast.Constant (Lexicon.mark_type c)] end
+      | asts_of (Parser.Node ("_constrain_position", [pt as Parser.Tip tok])) =
           if constrain_pos then
-            Ast.Appl [Ast.Constant "_constrain", ast_of pt,
-              Ast.Variable (Term_Position.encode (Lexicon.pos_of_token tok))]
-          else ast_of pt
-      | ast_of (Parser.Node (a, pts)) = trans a (map ast_of pts)
-      | ast_of (Parser.Tip tok) = Ast.Variable (Lexicon.str_of_token tok);
+            [Ast.Appl [Ast.Constant "_constrain", ast_of pt,
+              Ast.Variable (Term_Position.encode (Lexicon.pos_of_token tok))]]
+          else [ast_of pt]
+      | asts_of (Parser.Node (a, pts)) =
+          let
+            val _ = pts |> List.app
+              (fn Parser.Node _ => () | Parser.Tip tok =>
+                if Lexicon.valued_token tok then ()
+                else report (Lexicon.pos_of_token tok) markup_entity a);
+          in [trans a (maps asts_of pts)] end
+      | asts_of (Parser.Tip tok) =
+          if Lexicon.valued_token tok
+          then [Ast.Variable (Lexicon.str_of_token tok)]
+          else []
+
+    and ast_of pt =
+      (case asts_of pt of
+        [ast] => ast
+      | asts => raise Ast.AST ("parsetree_to_ast: malformed parsetree", asts));
 
     val ast = Exn.interruptible_capture ast_of parsetree;
   in (! reports, ast) end;
@@ -152,16 +181,10 @@ fun ast_to_term ctxt trf =
 fun decode_term _ (result as (_: Position.reports, Exn.Exn _)) = result
   | decode_term ctxt (reports0, Exn.Result tm) =
       let
-        val consts = ProofContext.consts_of ctxt;
         fun get_const a =
           ((true, #1 (Term.dest_Const (ProofContext.read_const_proper ctxt false a)))
-            handle ERROR _ => (false, Consts.intern consts a));
+            handle ERROR _ => (false, Consts.intern (ProofContext.consts_of ctxt) a));
         val get_free = ProofContext.intern_skolem ctxt;
-        fun markup_const c = [Name_Space.markup_entry (Consts.space_of consts) c];
-        fun markup_free x =
-          [if can Name.dest_skolem x then Markup.skolem else Markup.free] @
-          (if not (Variable.is_body ctxt) orelse Variable.is_fixed ctxt x then []
-           else [Markup.hilite]);
         fun markup_var xi = [Markup.name (Term.string_of_vname xi) Markup.var];
         fun markup_bound def id =
           [Markup.properties [(if def then Markup.defN else Markup.refN, id)] Markup.bound];
@@ -187,23 +210,23 @@ fun decode_term _ (result as (_: Position.reports, Exn.Exn _)) = result
           | decode _ _ bs (t $ u) = decode [] [] bs t $ decode [] [] bs u
           | decode ps _ _ (Const (a, T)) =
               (case try Lexicon.unmark_fixed a of
-                SOME x => (report ps markup_free x; Free (x, T))
+                SOME x => (report ps (markup_free ctxt) x; Free (x, T))
               | NONE =>
                   let
                     val c =
                       (case try Lexicon.unmark_const a of
                         SOME c => c
                       | NONE => snd (get_const a));
-                    val _ = report ps markup_const c;
+                    val _ = report ps (markup_const ctxt) c;
                   in Const (c, T) end)
           | decode ps _ _ (Free (a, T)) =
               (case (get_free a, get_const a) of
-                (SOME x, _) => (report ps markup_free x; Free (x, T))
-              | (_, (true, c)) => (report ps markup_const c; Const (c, T))
+                (SOME x, _) => (report ps (markup_free ctxt) x; Free (x, T))
+              | (_, (true, c)) => (report ps (markup_const ctxt) c; Const (c, T))
               | (_, (false, c)) =>
                   if Long_Name.is_qualified c
-                  then (report ps markup_const c; Const (c, T))
-                  else (report ps markup_free c; Free (c, T)))
+                  then (report ps (markup_const ctxt) c; Const (c, T))
+                  else (report ps (markup_free ctxt) c; Free (c, T)))
           | decode ps _ _ (Var (xi, T)) = (report ps markup_var xi; Var (xi, T))
           | decode ps _ bs (t as Bound i) =
               (case try (nth bs) i of
@@ -302,20 +325,13 @@ fun parse_typ ctxt text =
       handle ERROR msg => parse_failed ctxt pos msg "type";
   in T end;
 
-fun parse_term T ctxt text =
+fun parse_term is_prop ctxt text =
   let
-    val (T', _) = Type_Infer.paramify_dummies T 0;
-    val (markup, kind) =
-      if T' = propT then (Markup.prop, "proposition") else (Markup.term, "term");
+    val (markup, kind, root, constrain) =
+      if is_prop
+      then (Markup.prop, "proposition", "prop", Type.constraint propT)
+      else (Markup.term, "term", Config.get ctxt Syntax.root, I);
     val (syms, pos) = Syntax.parse_token ctxt markup text;
-
-    val default_root = Config.get ctxt Syntax.default_root;
-    val root =
-      (case T' of
-        Type (c, _) =>
-          if c <> "prop" andalso Type.is_logtype (ProofContext.tsig_of ctxt) c
-          then default_root else c
-      | _ => default_root);
   in
     let
       val results = parse_raw ctxt root (syms, pos) |> map (decode_term ctxt);
@@ -331,7 +347,7 @@ fun parse_term T ctxt text =
         else "";
 
       (*brute-force disambiguation via type-inference*)
-      fun check t = (Syntax.check_term ctxt (Type.constraint T' t); Exn.Result t)
+      fun check t = (Syntax.check_term ctxt (constrain t); Exn.Result t)
         handle exn as ERROR _ => Exn.Exn exn;
 
       val results' =
@@ -345,7 +361,7 @@ fun parse_term T ctxt text =
       val checked = map snd (proper_results results');
       val len = length checked;
 
-      val show_term = Syntax.string_of_term (Config.put Syntax.show_brackets true ctxt);
+      val show_term = Syntax.string_of_term (Config.put Printer.show_brackets true ctxt);
     in
       if len = 0 then
         report_result ctxt pos
@@ -418,9 +434,9 @@ fun term_of_typ ctxt ty =
     fun term_of (Type (a, Ts)) =
           Term.list_comb (Lexicon.const (Lexicon.mark_type a), map term_of Ts)
       | term_of (TFree (x, S)) =
-          if is_some (Term_Position.decode x) then Lexicon.free x
-          else of_sort (Lexicon.const "_tfree" $ Lexicon.free x) S
-      | term_of (TVar (xi, S)) = of_sort (Lexicon.const "_tvar" $ Lexicon.var xi) S;
+          if is_some (Term_Position.decode x) then Syntax.free x
+          else of_sort (Lexicon.const "_tfree" $ Syntax.free x) S
+      | term_of (TVar (xi, S)) = of_sort (Lexicon.const "_tvar" $ Syntax.var xi) S;
   in term_of ty end;
 
 
@@ -475,7 +491,7 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
     val {structs, fixes} = idents;
 
     fun mark_atoms ((t as Const (c, _)) $ u) =
-          if member (op =) Syntax.token_markers c
+          if member (op =) Syntax_Ext.token_markers c
           then t $ u else mark_atoms t $ mark_atoms u
       | mark_atoms (t $ u) = mark_atoms t $ mark_atoms u
       | mark_atoms (Abs (x, T, t)) = Abs (x, T, mark_atoms t)
@@ -491,18 +507,18 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
             else Lexicon.const "_free" $ t
           end
       | mark_atoms (t as Var (xi, T)) =
-          if xi = Syntax.dddot_indexname then Const ("_DDDOT", T)
+          if xi = Syntax_Ext.dddot_indexname then Const ("_DDDOT", T)
           else Lexicon.const "_var" $ t
       | mark_atoms a = a;
 
     fun prune_typs (t_seen as (Const _, _)) = t_seen
       | prune_typs (t as Free (x, ty), seen) =
           if ty = dummyT then (t, seen)
-          else if not show_free_types orelse member (op aconv) seen t then (Lexicon.free x, seen)
+          else if not show_free_types orelse member (op aconv) seen t then (Syntax.free x, seen)
           else (t, t :: seen)
       | prune_typs (t as Var (xi, ty), seen) =
           if ty = dummyT then (t, seen)
-          else if not show_free_types orelse member (op aconv) seen t then (Lexicon.var xi, seen)
+          else if not show_free_types orelse member (op aconv) seen t then (Syntax.var xi, seen)
           else (t, t :: seen)
       | prune_typs (t_seen as (Bound _, _)) = t_seen
       | prune_typs (Abs (x, ty, t), seen) =
@@ -516,13 +532,13 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
 
     fun ast_of tm =
       (case strip_comb tm of
-        (t as Abs _, ts) => Ast.mk_appl (ast_of (Syn_Trans.abs_tr' ctxt t)) (map ast_of ts)
+        (t as Abs _, ts) => Ast.mk_appl (ast_of (Syntax_Trans.abs_tr' ctxt t)) (map ast_of ts)
       | ((c as Const ("_free", _)), Free (x, T) :: ts) =>
-          Ast.mk_appl (constrain (c $ Lexicon.free x) T) (map ast_of ts)
+          Ast.mk_appl (constrain (c $ Syntax.free x) T) (map ast_of ts)
       | ((c as Const ("_var", _)), Var (xi, T) :: ts) =>
-          Ast.mk_appl (constrain (c $ Lexicon.var xi) T) (map ast_of ts)
+          Ast.mk_appl (constrain (c $ Syntax.var xi) T) (map ast_of ts)
       | ((c as Const ("_bound", _)), Free (x, T) :: ts) =>
-          Ast.mk_appl (constrain (c $ Lexicon.free x) T) (map ast_of ts)
+          Ast.mk_appl (constrain (c $ Syntax.free x) T) (map ast_of ts)
       | (Const ("_idtdummy", T), ts) =>
           Ast.mk_appl (constrain (Lexicon.const "_idtdummy") T) (map ast_of ts)
       | (const as Const (c, T), ts) =>
@@ -541,7 +557,7 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
       else simple_ast_of ctxt t;
   in
     tm
-    |> Syn_Trans.prop_tr'
+    |> Syntax_Trans.prop_tr'
     |> show_types ? (#1 o prune_typs o rpair [])
     |> mark_atoms
     |> ast_of
@@ -659,8 +675,8 @@ val _ = Context.>> (Context.map_theory
 val _ = Syntax.install_operations
   {parse_sort = parse_sort,
    parse_typ = parse_typ,
-   parse_term = parse_term dummyT,
-   parse_prop = parse_term propT,
+   parse_term = parse_term false,
+   parse_prop = parse_term true,
    unparse_sort = unparse_sort,
    unparse_typ = unparse_typ,
    unparse_term = unparse_term};

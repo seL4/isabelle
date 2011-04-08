@@ -34,12 +34,12 @@ syntax "_cabs" :: "[logic, logic] \<Rightarrow> logic"
 
 parse_translation {*
 (* rewrite (_cabs x t) => (Abs_cfun (%x. t)) *)
-  [mk_binder_tr (@{syntax_const "_cabs"}, @{const_syntax Abs_cfun})];
+  [Syntax_Trans.mk_binder_tr (@{syntax_const "_cabs"}, @{const_syntax Abs_cfun})];
 *}
 
 print_translation {*
   [(@{const_syntax Abs_cfun}, fn [Abs abs] =>
-      let val (x, t) = atomic_abs_tr' abs
+      let val (x, t) = Syntax_Trans.atomic_abs_tr' abs
       in Syntax.const @{syntax_const "_cabs"} $ x $ t end)]
 *}  -- {* To avoid eta-contraction of body *}
 

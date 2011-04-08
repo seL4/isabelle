@@ -25,11 +25,13 @@ definition
   where "Expr exp env = exp env"
 
 parse_translation {*
-  [Syntax.quote_antiquote_tr @{syntax_const "_Expr"} @{const_syntax var} @{const_syntax Expr}]
+  [Syntax_Trans.quote_antiquote_tr
+    @{syntax_const "_Expr"} @{const_syntax var} @{const_syntax Expr}]
 *}
 
 print_translation {*
-  [Syntax.quote_antiquote_tr' @{syntax_const "_Expr"} @{const_syntax var} @{const_syntax Expr}]
+  [Syntax_Trans.quote_antiquote_tr'
+    @{syntax_const "_Expr"} @{const_syntax var} @{const_syntax Expr}]
 *}
 
 term "EXPR (a + b + c)"

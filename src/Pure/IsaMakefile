@@ -184,10 +184,10 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Syntax/parser.ML					\
   Syntax/printer.ML					\
   Syntax/simple_syntax.ML				\
-  Syntax/syn_ext.ML					\
-  Syntax/syn_trans.ML					\
   Syntax/syntax.ML					\
+  Syntax/syntax_ext.ML					\
   Syntax/syntax_phases.ML				\
+  Syntax/syntax_trans.ML				\
   Syntax/term_position.ML				\
   System/isabelle_process.ML				\
   System/isabelle_system.ML				\

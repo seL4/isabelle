@@ -715,7 +715,7 @@ fun record_field_types_tr more ctxt t =
                     val more' = mk_ext rest;
                   in
                     list_comb
-                      (Syntax.const (Syntax.mark_type (suffix ext_typeN ext)), alphas' @ [more'])
+                      (Syntax.const (Lexicon.mark_type (suffix ext_typeN ext)), alphas' @ [more'])
                   end
               | NONE => err ("no fields defined for " ^ ext))
           | NONE => err (name ^ " is no proper field"))
@@ -760,7 +760,7 @@ fun record_fields_tr more ctxt t =
                   let
                     val (args, rest) = split_args (map fst (fst (split_last fields))) fargs;
                     val more' = mk_ext rest;
-                  in list_comb (Syntax.const (Syntax.mark_const (ext ^ extN)), args @ [more']) end
+                  in list_comb (Syntax.const (Lexicon.mark_const (ext ^ extN)), args @ [more']) end
               | NONE => err ("no fields defined for " ^ ext))
           | NONE => err (name ^ " is no proper field"))
       | mk_ext [] = more;
@@ -889,14 +889,14 @@ in
 
 fun record_ext_type_tr' name =
   let
-    val ext_type_name = Syntax.mark_type (suffix ext_typeN name);
+    val ext_type_name = Lexicon.mark_type (suffix ext_typeN name);
     fun tr' ctxt ts =
       record_type_tr' ctxt (list_comb (Syntax.const ext_type_name, ts));
   in (ext_type_name, tr') end;
 
 fun record_ext_type_abbr_tr' abbr alphas zeta last_ext schemeT name =
   let
-    val ext_type_name = Syntax.mark_type (suffix ext_typeN name);
+    val ext_type_name = Lexicon.mark_type (suffix ext_typeN name);
     fun tr' ctxt ts =
       record_type_abbr_tr' abbr alphas zeta last_ext schemeT ctxt
         (list_comb (Syntax.const ext_type_name, ts));
@@ -919,7 +919,7 @@ fun record_tr' ctxt t =
     fun strip_fields t =
       (case strip_comb t of
         (Const (ext, _), args as (_ :: _)) =>
-          (case try (Syntax.unmark_const o unsuffix extN) ext of
+          (case try (Lexicon.unmark_const o unsuffix extN) ext of
             SOME ext' =>
               (case get_extfields thy ext' of
                 SOME fields =>
@@ -946,7 +946,7 @@ in
 
 fun record_ext_tr' name =
   let
-    val ext_name = Syntax.mark_const (name ^ extN);
+    val ext_name = Lexicon.mark_const (name ^ extN);
     fun tr' ctxt ts = record_tr' ctxt (list_comb (Syntax.const ext_name, ts));
   in (ext_name, tr') end;
 
@@ -956,14 +956,14 @@ end;
 local
 
 fun dest_update ctxt c =
-  (case try Syntax.unmark_const c of
+  (case try Lexicon.unmark_const c of
     SOME d => try (unsuffix updateN) (Consts.extern (ProofContext.consts_of ctxt) d)
   | NONE => NONE);
 
 fun field_updates_tr' ctxt (tm as Const (c, _) $ k $ u) =
       (case dest_update ctxt c of
         SOME name =>
-          (case try Syntax.const_abs_tr' k of
+          (case try Syntax_Trans.const_abs_tr' k of
             SOME t =>
               apfst (cons (Syntax.const @{syntax_const "_field_update"} $ Syntax.free name $ t))
                 (field_updates_tr' ctxt u)
@@ -982,7 +982,7 @@ in
 
 fun field_update_tr' name =
   let
-    val update_name = Syntax.mark_const (name ^ updateN);
+    val update_name = Lexicon.mark_const (name ^ updateN);
     fun tr' ctxt [t, u] = record_update_tr' ctxt (Syntax.const update_name $ t $ u)
       | tr' _ _ = raise Match;
   in (update_name, tr') end;

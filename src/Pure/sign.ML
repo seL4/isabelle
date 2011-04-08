@@ -334,7 +334,7 @@ val no_vars = no_variables "schematic" Term.add_vars Term.add_tvars Var TVar;
 fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
   let
     fun type_syntax (b, n, mx) =
-      (Syntax.mark_type (Name_Space.full_name naming b), Syntax.make_type n, mx);
+      (Lexicon.mark_type (Name_Space.full_name naming b), Mixfix.make_type n, mx);
     val syn' = Syntax.update_type_gram true Syntax.mode_default (map type_syntax types) syn;
     val tsig' = fold (fn (a, n, _) => Type.add_type naming (a, n)) types tsig;
   in (naming, syn', tsig', consts) end);
@@ -373,7 +373,7 @@ val del_modesyntax_i = gen_syntax (Syntax.update_const_gram false) (K I);
 fun type_notation add mode args =
   let
     fun type_syntax (Type (c, args), mx) =
-          SOME (Syntax.mark_type c, Syntax.make_type (length args), mx)
+          SOME (Lexicon.mark_type c, Mixfix.make_type (length args), mx)
       | type_syntax _ = NONE;
   in map_syn (Syntax.update_type_gram add mode (map_filter type_syntax args)) end;
 
@@ -381,7 +381,7 @@ fun notation add mode args thy =
   let
     fun const_syntax (Const (c, _), mx) =
           (case try (Consts.type_scheme (consts_of thy)) c of
-            SOME T => SOME (Syntax.mark_const c, T, mx)
+            SOME T => SOME (Lexicon.mark_const c, T, mx)
           | NONE => NONE)
       | const_syntax _ = NONE;
   in gen_syntax (Syntax.update_const_gram add) (K I) mode (map_filter const_syntax args) thy end;
@@ -401,7 +401,7 @@ fun gen_add_consts parse_typ raw_args thy =
         val T = (prepT raw_T handle TYPE (msg, _, _) => error msg) handle ERROR msg =>
           cat_error msg ("in declaration of constant " ^ quote (Binding.str_of b));
         val T' = Logic.varifyT_global T;
-      in ((b, T'), (Syntax.mark_const c, T', mx), Const (c, T)) end;
+      in ((b, T'), (Lexicon.mark_const c, T', mx), Const (c, T)) end;
     val args = map prep raw_args;
   in
     thy
@@ -468,7 +468,7 @@ fun primitive_arity arg thy = thy |> map_tsig (Type.add_arity (Syntax.pp_global 
 
 local
 
-fun mk trs = map Syntax.mk_trfun trs;
+fun mk trs = map Syntax_Ext.mk_trfun trs;
 
 fun gen_add_trfuns ext non_typed (atrs, trs, tr's, atr's) =
   map_syn (ext (mk atrs, mk trs, mk (map (apsnd non_typed) tr's), mk atr's));
@@ -477,9 +477,9 @@ fun gen_add_trfunsT ext tr's = map_syn (ext ([], [], mk tr's, []));
 
 in
 
-val add_trfuns = gen_add_trfuns Syntax.update_trfuns Syntax.non_typed_tr';
+val add_trfuns = gen_add_trfuns Syntax.update_trfuns Syntax_Trans.non_typed_tr';
 val add_trfunsT = gen_add_trfunsT Syntax.update_trfuns;
-val add_advanced_trfuns = gen_add_trfuns Syntax.update_advanced_trfuns Syntax.non_typed_tr'';
+val add_advanced_trfuns = gen_add_trfuns Syntax.update_advanced_trfuns Syntax_Trans.non_typed_tr'';
 val add_advanced_trfunsT = gen_add_trfunsT Syntax.update_advanced_trfuns;
 
 end;

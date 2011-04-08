@@ -4,10 +4,11 @@
 Lexer for the inner Isabelle syntax (terms and types).
 *)
 
-signature LEXICON0 =
+signature LEXICON =
 sig
   val is_identifier: string -> bool
   val is_ascii_identifier: string -> bool
+  val is_xid: string -> bool
   val is_tid: string -> bool
   val scan_id: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
   val scan_longid: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
@@ -19,37 +20,6 @@ sig
   val scan_bin: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
   val scan_var: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
   val scan_tvar: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
-  val implode_xstr: string list -> string
-  val explode_xstr: string -> string list
-  val read_indexname: string -> indexname
-  val read_var: string -> term
-  val read_variable: string -> indexname option
-  val const: string -> term
-  val free: string -> term
-  val var: indexname -> term
-  val read_nat: string -> int option
-  val read_int: string -> int option
-  val read_xnum: string -> {radix: int, leading_zeros: int, value: int}
-  val read_float: string -> {mant: int, exp: int}
-  val mark_class: string -> string val unmark_class: string -> string
-  val mark_type: string -> string val unmark_type: string -> string
-  val mark_const: string -> string val unmark_const: string -> string
-  val mark_fixed: string -> string val unmark_fixed: string -> string
-  val unmark:
-   {case_class: string -> 'a,
-    case_type: string -> 'a,
-    case_const: string -> 'a,
-    case_fixed: string -> 'a,
-    case_default: string -> 'a} -> string -> 'a
-  val is_marked: string -> bool
-  val dummy_type: term
-  val fun_type: term
-end;
-
-signature LEXICON =
-sig
-  include LEXICON0
-  val is_xid: string -> bool
   datatype token_kind =
     Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy |
     NumSy | FloatSy | XNumSy | StrSy | Space | Comment | EOF
@@ -73,7 +43,32 @@ sig
   val matching_tokens: token * token -> bool
   val valued_token: token -> bool
   val predef_term: string -> token option
+  val implode_xstr: string list -> string
+  val explode_xstr: string -> string list
   val tokenize: Scan.lexicon -> bool -> Symbol_Pos.T list -> token list
+  val read_indexname: string -> indexname
+  val const: string -> term
+  val free: string -> term
+  val var: indexname -> term
+  val read_var: string -> term
+  val read_variable: string -> indexname option
+  val read_nat: string -> int option
+  val read_int: string -> int option
+  val read_xnum: string -> {radix: int, leading_zeros: int, value: int}
+  val read_float: string -> {mant: int, exp: int}
+  val mark_class: string -> string val unmark_class: string -> string
+  val mark_type: string -> string val unmark_type: string -> string
+  val mark_const: string -> string val unmark_const: string -> string
+  val mark_fixed: string -> string val unmark_fixed: string -> string
+  val unmark:
+   {case_class: string -> 'a,
+    case_type: string -> 'a,
+    case_const: string -> 'a,
+    case_fixed: string -> 'a,
+    case_default: string -> 'a} -> string -> 'a
+  val is_marked: string -> bool
+  val dummy_type: term
+  val fun_type: term
 end;
 
 structure Lexicon: LEXICON =
@@ -352,37 +347,6 @@ fun read_variable str =
   in Scan.read Symbol_Pos.stopper scan (Symbol_Pos.explode (str, Position.none)) end;
 
 
-(* logical entities *)
-
-fun marker s = (prefix s, unprefix s);
-
-val (mark_class, unmark_class) = marker "\\<^class>";
-val (mark_type, unmark_type) = marker "\\<^type>";
-val (mark_const, unmark_const) = marker "\\<^const>";
-val (mark_fixed, unmark_fixed) = marker "\\<^fixed>";
-
-fun unmark {case_class, case_type, case_const, case_fixed, case_default} s =
-  (case try unmark_class s of
-    SOME c => case_class c
-  | NONE =>
-      (case try unmark_type s of
-        SOME c => case_type c
-      | NONE =>
-          (case try unmark_const s of
-            SOME c => case_const c
-          | NONE =>
-              (case try unmark_fixed s of
-                SOME c => case_fixed c
-              | NONE => case_default s))));
-
-val is_marked =
-  unmark {case_class = K true, case_type = K true, case_const = K true,
-    case_fixed = K true, case_default = K false};
-
-val dummy_type = const (mark_type "dummy");
-val fun_type = const (mark_type "fun");
-
-
 (* read numbers *)
 
 local
@@ -455,5 +419,36 @@ fun read_float str =
    {mant = sign * #1 (Library.read_int (intpart @ fracpart)),
     exp = length fracpart}
   end;
+
+
+(* marked logical entities *)
+
+fun marker s = (prefix s, unprefix s);
+
+val (mark_class, unmark_class) = marker "\\<^class>";
+val (mark_type, unmark_type) = marker "\\<^type>";
+val (mark_const, unmark_const) = marker "\\<^const>";
+val (mark_fixed, unmark_fixed) = marker "\\<^fixed>";
+
+fun unmark {case_class, case_type, case_const, case_fixed, case_default} s =
+  (case try unmark_class s of
+    SOME c => case_class c
+  | NONE =>
+      (case try unmark_type s of
+        SOME c => case_type c
+      | NONE =>
+          (case try unmark_const s of
+            SOME c => case_const c
+          | NONE =>
+              (case try unmark_fixed s of
+                SOME c => case_fixed c
+              | NONE => case_default s))));
+
+val is_marked =
+  unmark {case_class = K true, case_type = K true, case_const = K true,
+    case_fixed = K true, case_default = K false};
+
+val dummy_type = const (mark_type "dummy");
+val fun_type = const (mark_type "fun");
 
 end;

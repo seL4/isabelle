@@ -51,7 +51,7 @@ fun label_name line col =
 
 fun mk_syntax name i =
   let
-    val syn = Syntax.escape name
+    val syn = Syntax_Ext.escape name
     val args = space_implode ",/ " (replicate i "_")
   in
     if i = 0 then Mixfix (syn, [], 1000)
