@@ -16,8 +16,8 @@ struct
 val typ = Simple_Syntax.read_typ;
 val prop = Simple_Syntax.read_prop;
 
-val tycon = Syntax.mark_type;
-val const = Syntax.mark_const;
+val tycon = Lexicon.mark_type;
+val const = Lexicon.mark_const;
 
 val typeT = Syntax_Ext.typeT;
 val spropT = Syntax_Ext.spropT;

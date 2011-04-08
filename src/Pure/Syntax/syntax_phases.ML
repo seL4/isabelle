@@ -434,9 +434,9 @@ fun term_of_typ ctxt ty =
     fun term_of (Type (a, Ts)) =
           Term.list_comb (Lexicon.const (Lexicon.mark_type a), map term_of Ts)
       | term_of (TFree (x, S)) =
-          if is_some (Term_Position.decode x) then Lexicon.free x
-          else of_sort (Lexicon.const "_tfree" $ Lexicon.free x) S
-      | term_of (TVar (xi, S)) = of_sort (Lexicon.const "_tvar" $ Lexicon.var xi) S;
+          if is_some (Term_Position.decode x) then Syntax.free x
+          else of_sort (Lexicon.const "_tfree" $ Syntax.free x) S
+      | term_of (TVar (xi, S)) = of_sort (Lexicon.const "_tvar" $ Syntax.var xi) S;
   in term_of ty end;
 
 
@@ -514,11 +514,11 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
     fun prune_typs (t_seen as (Const _, _)) = t_seen
       | prune_typs (t as Free (x, ty), seen) =
           if ty = dummyT then (t, seen)
-          else if not show_free_types orelse member (op aconv) seen t then (Lexicon.free x, seen)
+          else if not show_free_types orelse member (op aconv) seen t then (Syntax.free x, seen)
           else (t, t :: seen)
       | prune_typs (t as Var (xi, ty), seen) =
           if ty = dummyT then (t, seen)
-          else if not show_free_types orelse member (op aconv) seen t then (Lexicon.var xi, seen)
+          else if not show_free_types orelse member (op aconv) seen t then (Syntax.var xi, seen)
           else (t, t :: seen)
       | prune_typs (t_seen as (Bound _, _)) = t_seen
       | prune_typs (Abs (x, ty, t), seen) =
@@ -534,11 +534,11 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
       (case strip_comb tm of
         (t as Abs _, ts) => Ast.mk_appl (ast_of (Syntax_Trans.abs_tr' ctxt t)) (map ast_of ts)
       | ((c as Const ("_free", _)), Free (x, T) :: ts) =>
-          Ast.mk_appl (constrain (c $ Lexicon.free x) T) (map ast_of ts)
+          Ast.mk_appl (constrain (c $ Syntax.free x) T) (map ast_of ts)
       | ((c as Const ("_var", _)), Var (xi, T) :: ts) =>
-          Ast.mk_appl (constrain (c $ Lexicon.var xi) T) (map ast_of ts)
+          Ast.mk_appl (constrain (c $ Syntax.var xi) T) (map ast_of ts)
       | ((c as Const ("_bound", _)), Free (x, T) :: ts) =>
-          Ast.mk_appl (constrain (c $ Lexicon.free x) T) (map ast_of ts)
+          Ast.mk_appl (constrain (c $ Syntax.free x) T) (map ast_of ts)
       | (Const ("_idtdummy", T), ts) =>
           Ast.mk_appl (constrain (Lexicon.const "_idtdummy") T) (map ast_of ts)
       | (const as Const (c, T), ts) =>

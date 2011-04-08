@@ -22,7 +22,7 @@ fun mk_bin num =
     fun mk 0 = Syntax.const @{const_name Int.Pls}
       | mk ~1 = Syntax.const @{const_name Int.Min}
       | mk i = let val (q, r) = Integer.div_mod i 2 in bit r (mk q) end;
-  in mk (#value (Syntax.read_xnum num)) end;
+  in mk (#value (Lexicon.read_xnum num)) end;
 
 in
 

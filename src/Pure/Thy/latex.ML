@@ -130,7 +130,7 @@ fun output_basic tok =
     if invisible_token tok then ""
     else if Token.is_kind Token.Command tok then
       "\\isacommand{" ^ output_syms s ^ "}"
-    else if Token.is_kind Token.Keyword tok andalso Syntax.is_ascii_identifier s then
+    else if Token.is_kind Token.Keyword tok andalso Lexicon.is_ascii_identifier s then
       "\\isakeyword{" ^ output_syms s ^ "}"
     else if Token.is_kind Token.String tok then
       output_syms s |> enclose

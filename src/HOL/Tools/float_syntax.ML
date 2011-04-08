@@ -27,7 +27,7 @@ fun mk_number i =
 
 fun mk_frac str =
   let
-    val {mant = i, exp = n} = Syntax.read_float str;
+    val {mant = i, exp = n} = Lexicon.read_float str;
     val exp = Syntax.const @{const_syntax Power.power};
     val ten = mk_number 10;
     val exp10 = if n = 1 then ten else exp $ ten $ mk_number n;

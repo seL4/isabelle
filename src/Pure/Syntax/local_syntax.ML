@@ -83,7 +83,7 @@ fun prep_mixfix _ _ (_, (_, _, Structure)) = NONE
   | prep_mixfix add mode (Type, decl as (x, _, _)) = SOME ((x, false), ((true, add, mode), decl))
   | prep_mixfix add mode (Const, decl as (x, _, _)) = SOME ((x, false), ((false, add, mode), decl))
   | prep_mixfix add mode (Fixed, (x, T, mx)) =
-      SOME ((x, true), ((false, add, mode), (Syntax.mark_fixed x, T, mx)));
+      SOME ((x, true), ((false, add, mode), (Lexicon.mark_fixed x, T, mx)));
 
 fun prep_struct (Fixed, (c, _, Structure)) = SOME c
   | prep_struct (_, (c, _, Structure)) = error ("Bad mixfix declaration for " ^ quote c)

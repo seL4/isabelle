@@ -7,8 +7,10 @@ Standard Isabelle syntax, based on arbitrary context-free grammars
 
 signature SYNTAX =
 sig
-  include LEXICON0
   val max_pri: int
+  val const: string -> term
+  val free: string -> term
+  val var: indexname -> term
   val root: string Config.T
   val positions_raw: Config.raw
   val positions: bool Config.T
@@ -142,6 +144,11 @@ structure Syntax: SYNTAX =
 struct
 
 val max_pri = Syntax_Ext.max_pri;
+
+val const = Lexicon.const;
+val free = Lexicon.free;
+val var = Lexicon.var;
+
 
 
 (** inner syntax operations **)
@@ -718,12 +725,6 @@ fun update_const_gram add is_logtype prmode decls =
 
 val update_trrules = ext_syntax Syntax_Ext.syn_ext_rules o check_rules;
 val remove_trrules = remove_syntax mode_default o Syntax_Ext.syn_ext_rules o check_rules;
-
-
-(*export parts of internal Syntax structures*)
-val syntax_tokenize = tokenize;
-open Lexicon;
-val tokenize = syntax_tokenize;
 
 end;
 

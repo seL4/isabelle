@@ -144,7 +144,7 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
       error ("Not a set type: " ^ quote (Syntax.string_of_typ lthy setT));
 
     val goal = mk_inhabited set;
-    val goal_pat = mk_inhabited (Var (the_default (bname, 0) (Syntax.read_variable bname), setT));
+    val goal_pat = mk_inhabited (Var (the_default (bname, 0) (Lexicon.read_variable bname), setT));
 
 
     (* lhs *)
