@@ -496,7 +496,6 @@ text {*
 
   @{syntax_def (inner) prop} & = & @{verbatim "("} @{text prop} @{verbatim ")"} \\
     & @{text "|"} & @{text "prop\<^sup>(\<^sup>4\<^sup>)"} @{verbatim "::"} @{text type} & @{text "(3)"} \\
-    & @{text "|"} & @{text "any\<^sup>(\<^sup>3\<^sup>)"} @{verbatim "=?="} @{text "any\<^sup>(\<^sup>2\<^sup>)"} & @{text "(2)"} \\
     & @{text "|"} & @{text "any\<^sup>(\<^sup>3\<^sup>)"} @{verbatim "=="} @{text "any\<^sup>(\<^sup>2\<^sup>)"} & @{text "(2)"} \\
     & @{text "|"} & @{text "any\<^sup>(\<^sup>3\<^sup>)"} @{text "\<equiv>"} @{text "any\<^sup>(\<^sup>2\<^sup>)"} & @{text "(2)"} \\
     & @{text "|"} & @{text "prop\<^sup>(\<^sup>3\<^sup>)"} @{verbatim "&&&"} @{text "prop\<^sup>(\<^sup>2\<^sup>)"} & @{text "(2)"} \\

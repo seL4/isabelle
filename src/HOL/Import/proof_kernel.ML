@@ -178,14 +178,14 @@ fun ERR f mesg = PK (f,mesg)
 
 (* Compatibility. *)
 
-val string_of_mixfix = Pretty.string_of o Syntax.pretty_mixfix;
+val string_of_mixfix = Pretty.string_of o Mixfix.pretty_mixfix;
 
 fun mk_syn thy c =
-  if Syntax.is_identifier c andalso not (Syntax.is_keyword (Sign.syn_of thy) c) then NoSyn
-  else Delimfix (Syntax.escape c)
+  if Lexicon.is_identifier c andalso not (Syntax.is_keyword (Sign.syn_of thy) c) then NoSyn
+  else Delimfix (Syntax_Ext.escape c)
 
 fun quotename c =
-  if Syntax.is_identifier c andalso not (Keyword.is_keyword c) then c else quote c
+  if Lexicon.is_identifier c andalso not (Keyword.is_keyword c) then c else quote c
 
 fun simple_smart_string_of_cterm ctxt0 ct =
     let
@@ -454,7 +454,7 @@ fun protect_tyvarname s =
 val protected_varnames = Unsynchronized.ref (Symtab.empty:string Symtab.table)
 val invented_isavar = Unsynchronized.ref 0
 
-fun innocent_varname s = Syntax.is_identifier s andalso not (String.isPrefix "u_" s)
+fun innocent_varname s = Lexicon.is_identifier s andalso not (String.isPrefix "u_" s)
 
 fun valid_boundvarname s =
   can (fn () => Syntax.read_term_global @{theory Main} ("SOME "^s^". True")) ();

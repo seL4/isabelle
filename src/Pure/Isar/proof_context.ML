@@ -447,7 +447,7 @@ fun read_type_name ctxt strict text =
     val tsig = tsig_of ctxt;
     val (c, pos) = token_content text;
   in
-    if Syntax.is_tid c then
+    if Lexicon.is_tid c then
      (Context_Position.report ctxt pos Markup.tfree;
       TFree (c, default_sort ctxt (c, ~1)))
     else
@@ -915,7 +915,7 @@ end;
 (* variables *)
 
 fun declare_var (x, opt_T, mx) ctxt =
-  let val T = (case opt_T of SOME T => T | NONE => Syntax.mixfixT mx)
+  let val T = (case opt_T of SOME T => T | NONE => Mixfix.mixfixT mx)
   in ((x, T, mx), ctxt |> Variable.declare_constraints (Free (x, T))) end;
 
 local
@@ -924,7 +924,7 @@ fun prep_vars prep_typ internal =
   fold_map (fn (b, raw_T, mx) => fn ctxt =>
     let
       val x = Name.of_binding b;
-      val _ = Syntax.is_identifier (no_skolem internal x) orelse
+      val _ = Lexicon.is_identifier (no_skolem internal x) orelse
         error ("Illegal variable name: " ^ quote (Binding.str_of b));
 
       fun cond_tvars T =
@@ -949,7 +949,7 @@ local
 fun const_ast_tr intern ctxt [Ast.Variable c] =
       let
         val Const (c', _) = read_const_proper ctxt false c;
-        val d = if intern then Syntax.mark_const c' else c;
+        val d = if intern then Lexicon.mark_const c' else c;
       in Ast.Constant d end
   | const_ast_tr _ _ asts = raise Ast.AST ("const_ast_tr", asts);
 
@@ -978,13 +978,13 @@ end;
 local
 
 fun type_syntax (Type (c, args), mx) =
-      SOME (Local_Syntax.Type, (Syntax.mark_type c, Syntax.make_type (length args), mx))
+      SOME (Local_Syntax.Type, (Lexicon.mark_type c, Mixfix.make_type (length args), mx))
   | type_syntax _ = NONE;
 
 fun const_syntax _ (Free (x, T), mx) = SOME (Local_Syntax.Fixed, (x, T, mx))
   | const_syntax ctxt (Const (c, _), mx) =
       (case try (Consts.type_scheme (consts_of ctxt)) c of
-        SOME T => SOME (Local_Syntax.Const, (Syntax.mark_const c, T, mx))
+        SOME T => SOME (Local_Syntax.Const, (Lexicon.mark_const c, T, mx))
       | NONE => NONE)
   | const_syntax _ _ = NONE;
 

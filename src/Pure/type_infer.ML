@@ -300,7 +300,7 @@ fun infer ctxt =
         val (Ts', Ts'') = chop (length Ts) Ts_bTs';
         fun prep t =
           let val xs = rev (Term.variant_frees t (rev (map fst bs ~~ Ts'')))
-          in Term.subst_bounds (map Syntax.mark_boundT xs, t) end;
+          in Term.subst_bounds (map Syntax_Trans.mark_boundT xs, t) end;
       in (map prep ts', Ts') end;
 
     fun err_loose i = error ("Loose bound variable: B." ^ string_of_int i);

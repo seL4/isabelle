@@ -25,9 +25,6 @@ The main changes in this version are as follows:
   the form @{text "f < g + O(h)"}.
 \end{itemize}
 
-See \verb,Complex/ex/BigO_Complex.thy, for additional lemmas that
-require the \verb,HOL-Complex, logic image.
-
 Note also since the Big O library includes rules that demonstrate set
 inclusion, to use the automated reasoners effectively with the library
 one should redeclare the theorem @{text "subsetI"} as an intro rule,

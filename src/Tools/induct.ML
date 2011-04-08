@@ -580,7 +580,7 @@ fun guess_instance ctxt rule i st =
   in
     if not (null params) then
       (warning ("Cannot determine rule instantiation due to pending parameter(s): " ^
-        commas_quote (map (Syntax.string_of_term ctxt o Syntax.mark_boundT) params));
+        commas_quote (map (Syntax.string_of_term ctxt o Syntax_Trans.mark_boundT) params));
       Seq.single rule)
     else
       let

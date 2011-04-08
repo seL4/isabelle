@@ -279,7 +279,7 @@ fun is_symid str =
 fun ident_or_symbolic "begin" = false
   | ident_or_symbolic ":" = true
   | ident_or_symbolic "::" = true
-  | ident_or_symbolic s = Syntax.is_identifier s orelse is_symid s;
+  | ident_or_symbolic s = Lexicon.is_identifier s orelse is_symid s;
 
 
 (* scan verbatim text *)
@@ -335,13 +335,13 @@ fun scan (lex1, lex2) = !!! "bad input"
       (Scan.max token_leq
         (Scan.literal lex2 >> pair Command)
         (Scan.literal lex1 >> pair Keyword))
-      (Syntax.scan_longid >> pair LongIdent ||
-        Syntax.scan_id >> pair Ident ||
-        Syntax.scan_var >> pair Var ||
-        Syntax.scan_tid >> pair TypeIdent ||
-        Syntax.scan_tvar >> pair TypeVar ||
-        Syntax.scan_float >> pair Float ||
-        Syntax.scan_nat >> pair Nat ||
+      (Lexicon.scan_longid >> pair LongIdent ||
+        Lexicon.scan_id >> pair Ident ||
+        Lexicon.scan_var >> pair Var ||
+        Lexicon.scan_tid >> pair TypeIdent ||
+        Lexicon.scan_tvar >> pair TypeVar ||
+        Lexicon.scan_float >> pair Float ||
+        Lexicon.scan_nat >> pair Nat ||
         scan_symid >> pair SymIdent) >> uncurry token));
 
 fun recover msg =

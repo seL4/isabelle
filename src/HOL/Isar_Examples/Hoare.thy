@@ -185,8 +185,8 @@ text {* The following specification of syntax and translations is for
   of the concrete syntactic representation of our Hoare language, the
   actual ``ML drivers'' is quite involved.  Just note that the we
   re-use the basic quote/antiquote translations as already defined in
-  Isabelle/Pure (see \verb,Syntax.quote_tr, and
-  \verb,Syntax.quote_tr',). *}
+  Isabelle/Pure (see @{ML Syntax_Trans.quote_tr}, and
+  @{ML Syntax_Trans.quote_tr'},). *}
 
 syntax
   "_quote"       :: "'b => ('a => 'b)"       ("(.'(_').)" [0] 1000)
@@ -215,7 +215,7 @@ translations
 
 parse_translation {*
   let
-    fun quote_tr [t] = Syntax.quote_tr @{syntax_const "_antiquote"} t
+    fun quote_tr [t] = Syntax_Trans.quote_tr @{syntax_const "_antiquote"} t
       | quote_tr ts = raise TERM ("quote_tr", ts);
   in [(@{syntax_const "_quote"}, quote_tr)] end
 *}
@@ -228,7 +228,7 @@ text {* As usual in Isabelle syntax translations, the part for
 print_translation {*
   let
     fun quote_tr' f (t :: ts) =
-          Term.list_comb (f $ Syntax.quote_tr' @{syntax_const "_antiquote"} t, ts)
+          Term.list_comb (f $ Syntax_Trans.quote_tr' @{syntax_const "_antiquote"} t, ts)
       | quote_tr' _ _ = raise Match;
 
     val assert_tr' = quote_tr' (Syntax.const @{syntax_const "_Assert"});
@@ -238,8 +238,8 @@ print_translation {*
       | bexp_tr' _ _ = raise Match;
 
     fun assign_tr' (Abs (x, _, f $ k $ Bound 0) :: ts) =
-          quote_tr' (Syntax.const @{syntax_const "_Assign"} $ Syntax.update_name_tr' f)
-            (Abs (x, dummyT, Syntax.const_abs_tr' k) :: ts)
+          quote_tr' (Syntax.const @{syntax_const "_Assign"} $ Syntax_Trans.update_name_tr' f)
+            (Abs (x, dummyT, Syntax_Trans.const_abs_tr' k) :: ts)
       | assign_tr' _ = raise Match;
   in
    [(@{const_syntax Collect}, assert_tr'),

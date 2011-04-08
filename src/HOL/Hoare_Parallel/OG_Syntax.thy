@@ -76,11 +76,11 @@ translations
 print_translation {*
   let
     fun quote_tr' f (t :: ts) =
-          Term.list_comb (f $ Syntax.quote_tr' @{syntax_const "_antiquote"} t, ts)
+          Term.list_comb (f $ Syntax_Trans.quote_tr' @{syntax_const "_antiquote"} t, ts)
       | quote_tr' _ _ = raise Match;
 
     fun annquote_tr' f (r :: t :: ts) =
-          Term.list_comb (f $ r $ Syntax.quote_tr' @{syntax_const "_antiquote"} t, ts)
+          Term.list_comb (f $ r $ Syntax_Trans.quote_tr' @{syntax_const "_antiquote"} t, ts)
       | annquote_tr' _ _ = raise Match;
 
     val assert_tr' = quote_tr' (Syntax.const @{syntax_const "_Assert"});
@@ -94,13 +94,13 @@ print_translation {*
       | annbexp_tr' _ _ = raise Match;
 
     fun assign_tr' (Abs (x, _, f $ k $ Bound 0) :: ts) =
-          quote_tr' (Syntax.const @{syntax_const "_Assign"} $ Syntax.update_name_tr' f)
-            (Abs (x, dummyT, Syntax.const_abs_tr' k) :: ts)
+          quote_tr' (Syntax.const @{syntax_const "_Assign"} $ Syntax_Trans.update_name_tr' f)
+            (Abs (x, dummyT, Syntax_Trans.const_abs_tr' k) :: ts)
       | assign_tr' _ = raise Match;
 
     fun annassign_tr' (r :: Abs (x, _, f $ k $ Bound 0) :: ts) =
-          quote_tr' (Syntax.const @{syntax_const "_AnnAssign"} $ r $ Syntax.update_name_tr' f)
-            (Abs (x, dummyT, Syntax.const_abs_tr' k) :: ts)
+          quote_tr' (Syntax.const @{syntax_const "_AnnAssign"} $ r $ Syntax_Trans.update_name_tr' f)
+            (Abs (x, dummyT, Syntax_Trans.const_abs_tr' k) :: ts)
       | annassign_tr' _ = raise Match;
 
     fun Parallel_PAR [(Const (@{const_syntax Cons}, _) $
@@ -115,13 +115,13 @@ print_translation {*
   in
    [(@{const_syntax Collect}, assert_tr'),
     (@{const_syntax Basic}, assign_tr'),
-    (@{const_syntax Cond}, bexp_tr' "_Cond"),
-    (@{const_syntax While}, bexp_tr' "_While_inv"),
+    (@{const_syntax Cond}, bexp_tr' @{syntax_const "_Cond"}),
+    (@{const_syntax While}, bexp_tr' @{syntax_const "_While_inv"}),
     (@{const_syntax AnnBasic}, annassign_tr'),
-    (@{const_syntax AnnWhile}, annbexp_tr' "_AnnWhile"),
-    (@{const_syntax AnnAwait}, annbexp_tr' "_AnnAwait"),
-    (@{const_syntax AnnCond1}, annbexp_tr' "_AnnCond1"),
-    (@{const_syntax AnnCond2}, annbexp_tr' "_AnnCond2")]
+    (@{const_syntax AnnWhile}, annbexp_tr' @{syntax_const "_AnnWhile"}),
+    (@{const_syntax AnnAwait}, annbexp_tr' @{syntax_const "_AnnAwait"}),
+    (@{const_syntax AnnCond1}, annbexp_tr' @{syntax_const "_AnnCond1"}),
+    (@{const_syntax AnnCond2}, annbexp_tr' @{syntax_const "_AnnCond2"})]
   end;
 *}
 

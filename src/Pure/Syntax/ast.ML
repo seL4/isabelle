@@ -21,10 +21,10 @@ sig
   val fold_ast_p: string -> ast list * ast -> ast
   val unfold_ast: string -> ast -> ast list
   val unfold_ast_p: string -> ast -> ast list * ast
-  val ast_trace_raw: Config.raw
-  val ast_trace: bool Config.T
-  val ast_stat_raw: Config.raw
-  val ast_stat: bool Config.T
+  val trace_raw: Config.raw
+  val trace: bool Config.T
+  val stat_raw: Config.raw
+  val stat: bool Config.T
   val normalize: Proof.context -> (string -> (ast * ast) list) -> ast -> ast
 end;
 
@@ -164,11 +164,11 @@ fun match ast pat =
 
 (* normalize *)
 
-val ast_trace_raw = Config.declare "syntax_ast_trace" (fn _ => Config.Bool false);
-val ast_trace = Config.bool ast_trace_raw;
+val trace_raw = Config.declare "syntax_ast_trace" (fn _ => Config.Bool false);
+val trace = Config.bool trace_raw;
 
-val ast_stat_raw = Config.declare "syntax_ast_stat" (fn _ => Config.Bool false);
-val ast_stat = Config.bool ast_stat_raw;
+val stat_raw = Config.declare "syntax_ast_stat" (fn _ => Config.Bool false);
+val stat = Config.bool stat_raw;
 
 fun message head body =
   Pretty.string_of (Pretty.block [Pretty.str head, Pretty.brk 1, body]);
@@ -176,8 +176,8 @@ fun message head body =
 (*the normalizer works yoyo-like: top-down, bottom-up, top-down, ...*)
 fun normalize ctxt get_rules pre_ast =
   let
-    val trace = Config.get ctxt ast_trace;
-    val stat = Config.get ctxt ast_stat;
+    val trace = Config.get ctxt trace;
+    val stat = Config.get ctxt stat;
 
     val passes = Unsynchronized.ref 0;
     val failed_matches = Unsynchronized.ref 0;

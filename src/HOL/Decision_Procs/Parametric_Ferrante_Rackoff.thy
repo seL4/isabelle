@@ -2939,13 +2939,13 @@ fun fm_of_term m m' fm =
   | Const(@{const_name Orderings.less_eq},_)$p$q => 
         @{code Le} (@{code Sub} (tm_of_term m m' p, tm_of_term m m' q))
   | Const(@{const_name Ex},_)$Abs(xn,xT,p) => 
-     let val (xn', p') =  variant_abs (xn,xT,p)
+     let val (xn', p') = Syntax_Trans.variant_abs (xn,xT,p)  (* FIXME !? *)
          val x = Free(xn',xT)
          fun incr i = i + 1
          val m0 = (x,0):: (map (apsnd incr) m)
       in @{code E} (fm_of_term m0 m' p') end
   | Const(@{const_name All},_)$Abs(xn,xT,p) => 
-     let val (xn', p') =  variant_abs (xn,xT,p)
+     let val (xn', p') = Syntax_Trans.variant_abs (xn,xT,p)  (* FIXME !? *)
          val x = Free(xn',xT)
          fun incr i = i + 1
          val m0 = (x,0):: (map (apsnd incr) m)

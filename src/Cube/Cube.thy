@@ -53,7 +53,8 @@ syntax (xsymbols)
   "_arrow" :: "[term, term] => term"    (infixr "\<rightarrow>" 10)
 
 print_translation {*
-  [(@{const_syntax Prod}, dependent_tr' (@{syntax_const "_Pi"}, @{syntax_const "_arrow"}))]
+  [(@{const_syntax Prod},
+    Syntax_Trans.dependent_tr' (@{syntax_const "_Pi"}, @{syntax_const "_arrow"}))]
 *}
 
 axioms

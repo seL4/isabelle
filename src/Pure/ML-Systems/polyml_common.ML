@@ -23,8 +23,6 @@ val seconds = Time.fromReal;
 
 (** ML system and platform related **)
 
-val forget_structure = PolyML.Compiler.forgetStructure;
-
 val _ = PolyML.Compiler.forgetValue "isSome";
 val _ = PolyML.Compiler.forgetValue "getOpt";
 val _ = PolyML.Compiler.forgetValue "valOf";

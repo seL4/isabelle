@@ -61,7 +61,7 @@ local
 fun strip_context_aux (params, Hs, Const ("==>", _) $ H $ B) =
       strip_context_aux (params, H :: Hs, B)
   | strip_context_aux (params, Hs, Const ("all",_) $ Abs (a, T, t)) =
-      let val (b, u) = Syntax.variant_abs (a, T, t)
+      let val (b, u) = Syntax_Trans.variant_abs (a, T, t)
       in strip_context_aux ((b, T) :: params, Hs, u) end
   | strip_context_aux (params, Hs, B) = (rev params, rev Hs, B);
 

@@ -232,7 +232,7 @@ fun mk_fun_dtyp [] U = U
 fun name_of_typ (Type (s, Ts)) =
       let val s' = Long_Name.base_name s
       in space_implode "_" (filter_out (equal "") (map name_of_typ Ts) @
-        [if Syntax.is_identifier s' then s' else "x"])
+        [if Lexicon.is_identifier s' then s' else "x"])
       end
   | name_of_typ _ = "";
 

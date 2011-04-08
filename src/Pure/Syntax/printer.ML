@@ -4,34 +4,34 @@
 Pretty printing of asts, terms, types and print (ast) translation.
 *)
 
-signature PRINTER0 =
+signature BASIC_PRINTER =
 sig
-  val show_brackets_default: bool Unsynchronized.ref
-  val show_brackets_raw: Config.raw
   val show_brackets: bool Config.T
-  val show_types_default: bool Unsynchronized.ref
-  val show_types_raw: Config.raw
   val show_types: bool Config.T
-  val show_sorts_default: bool Unsynchronized.ref
-  val show_sorts_raw: Config.raw
   val show_sorts: bool Config.T
   val show_free_types: bool Config.T
   val show_all_types: bool Config.T
-  val show_structs_raw: Config.raw
   val show_structs: bool Config.T
-  val show_question_marks_default: bool Unsynchronized.ref
-  val show_question_marks_raw: Config.raw
   val show_question_marks: bool Config.T
   val pretty_priority: int Config.T
 end;
 
 signature PRINTER =
 sig
-  include PRINTER0
+  include BASIC_PRINTER
+  val show_brackets_default: bool Unsynchronized.ref
+  val show_brackets_raw: Config.raw
+  val show_types_default: bool Unsynchronized.ref
+  val show_types_raw: Config.raw
+  val show_sorts_default: bool Unsynchronized.ref
+  val show_sorts_raw: Config.raw
+  val show_structs_raw: Config.raw
+  val show_question_marks_default: bool Unsynchronized.ref
+  val show_question_marks_raw: Config.raw
   type prtabs
   val empty_prtabs: prtabs
-  val update_prtabs: string -> Syn_Ext.xprod list -> prtabs -> prtabs
-  val remove_prtabs: string -> Syn_Ext.xprod list -> prtabs -> prtabs
+  val update_prtabs: string -> Syntax_Ext.xprod list -> prtabs -> prtabs
+  val remove_prtabs: string -> Syntax_Ext.xprod list -> prtabs -> prtabs
   val merge_prtabs: prtabs -> prtabs -> prtabs
   val pretty_term_ast: bool -> Proof.context -> prtabs ->
     (string -> Proof.context -> Ast.ast list -> Ast.ast) ->
@@ -93,29 +93,29 @@ fun mode_tabs prtabs modes = map_filter (AList.lookup (op =) prtabs) (modes @ ["
 
 (* xprod_to_fmt *)
 
-fun xprod_to_fmt (Syn_Ext.XProd (_, _, "", _)) = NONE
-  | xprod_to_fmt (Syn_Ext.XProd (_, xsymbs, const, pri)) =
+fun xprod_to_fmt (Syntax_Ext.XProd (_, _, "", _)) = NONE
+  | xprod_to_fmt (Syntax_Ext.XProd (_, xsymbs, const, pri)) =
       let
         fun arg (s, p) =
           (if s = "type" then TypArg else Arg)
-          (if Lexicon.is_terminal s then Syn_Ext.max_pri else p);
+          (if Lexicon.is_terminal s then Syntax_Ext.max_pri else p);
 
-        fun xsyms_to_syms (Syn_Ext.Delim s :: xsyms) =
+        fun xsyms_to_syms (Syntax_Ext.Delim s :: xsyms) =
               apfst (cons (String s)) (xsyms_to_syms xsyms)
-          | xsyms_to_syms (Syn_Ext.Argument s_p :: xsyms) =
+          | xsyms_to_syms (Syntax_Ext.Argument s_p :: xsyms) =
               apfst (cons (arg s_p)) (xsyms_to_syms xsyms)
-          | xsyms_to_syms (Syn_Ext.Space s :: xsyms) =
+          | xsyms_to_syms (Syntax_Ext.Space s :: xsyms) =
               apfst (cons (Space s)) (xsyms_to_syms xsyms)
-          | xsyms_to_syms (Syn_Ext.Bg i :: xsyms) =
+          | xsyms_to_syms (Syntax_Ext.Bg i :: xsyms) =
               let
                 val (bsyms, xsyms') = xsyms_to_syms xsyms;
                 val (syms, xsyms'') = xsyms_to_syms xsyms';
               in
                 (Block (i, bsyms) :: syms, xsyms'')
               end
-          | xsyms_to_syms (Syn_Ext.Brk i :: xsyms) =
+          | xsyms_to_syms (Syntax_Ext.Brk i :: xsyms) =
               apfst (cons (Break i)) (xsyms_to_syms xsyms)
-          | xsyms_to_syms (Syn_Ext.En :: xsyms) = ([], xsyms)
+          | xsyms_to_syms (Syntax_Ext.En :: xsyms) = ([], xsyms)
           | xsyms_to_syms [] = ([], []);
 
         fun nargs (Arg _ :: syms) = nargs syms + 1
@@ -145,7 +145,7 @@ fun update_prtabs mode xprods prtabs =
 fun remove_prtabs mode xprods prtabs =
   let
     val tab = mode_tab prtabs mode;
-    val fmts = map_filter (fn xprod as Syn_Ext.XProd (_, _, c, _) =>
+    val fmts = map_filter (fn xprod as Syntax_Ext.XProd (_, _, c, _) =>
       if null (Symtab.lookup_list tab c) then NONE
       else xprod_to_fmt xprod) xprods;
     val tab' = fold (Symtab.remove_list (op =)) fmts tab;
@@ -173,9 +173,9 @@ fun pretty type_mode curried ctxt tabs trf token_trans markup_extern ast0 =
 
     (*default applications: prefix / postfix*)
     val appT =
-      if type_mode then Syn_Trans.tappl_ast_tr'
-      else if curried then Syn_Trans.applC_ast_tr'
-      else Syn_Trans.appl_ast_tr';
+      if type_mode then Syntax_Trans.tappl_ast_tr'
+      else if curried then Syntax_Trans.applC_ast_tr'
+      else Syntax_Trans.appl_ast_tr';
 
     fun synT _ ([], args) = ([], args)
       | synT m (Arg p :: symbs, t :: args) =
@@ -210,10 +210,12 @@ fun pretty type_mode curried ctxt tabs trf token_trans markup_extern ast0 =
             val T = if i < 0 then Pretty.fbrk else Pretty.brk i;
           in (T :: Ts, args') end
 
-    and parT m (pr, args, p, p': int) = #1 (synT m
-          (if p > p' orelse (show_brackets andalso p' <> Syn_Ext.max_pri andalso not (is_chain pr))
-            then [Block (1, Space "(" :: pr @ [Space ")"])]
-            else pr, args))
+    and parT m (pr, args, p, p': int) =
+      #1 (synT m
+          (if p > p' orelse
+            (show_brackets andalso p' <> Syntax_Ext.max_pri andalso not (is_chain pr))
+           then [Block (1, Space "(" :: pr @ [Space ")"])]
+           else pr, args))
 
     and atomT a = Pretty.marks_str (markup_extern a)
 
@@ -265,3 +267,7 @@ fun pretty_typ_ast ctxt prtabs trf tokentrf extern ast =
   pretty true false ctxt (mode_tabs prtabs (print_mode_value ())) trf tokentrf extern ast;
 
 end;
+
+structure Basic_Printer: BASIC_PRINTER = Printer;
+open Basic_Printer;
+

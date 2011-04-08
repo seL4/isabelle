@@ -105,7 +105,7 @@ val _ = value "cpat"
 
 fun class syn = Args.context -- Scan.lift Args.name_source >> (fn (ctxt, s) =>
   ProofContext.read_class ctxt s
-  |> syn ? Syntax.mark_class
+  |> syn ? Lexicon.mark_class
   |> ML_Syntax.print_string);
 
 val _ = inline "class" (class false);
@@ -131,7 +131,7 @@ fun type_name kind check = Args.context -- Scan.lift (Parse.position Args.name_s
 val _ = inline "type_name" (type_name "logical type" (fn (c, Type.LogicalType _) => c));
 val _ = inline "type_abbrev" (type_name "type abbreviation" (fn (c, Type.Abbreviation _) => c));
 val _ = inline "nonterminal" (type_name "nonterminal" (fn (c, Type.Nonterminal) => c));
-val _ = inline "type_syntax" (type_name "type" (fn (c, _) => Syntax.mark_type c));
+val _ = inline "type_syntax" (type_name "type" (fn (c, _) => Lexicon.mark_type c));
 
 
 (* constants *)
@@ -146,7 +146,7 @@ fun const_name check = Args.context -- Scan.lift (Parse.position Args.name_sourc
 
 val _ = inline "const_name" (const_name (fn (consts, c) => (Consts.the_type consts c; c)));
 val _ = inline "const_abbrev" (const_name (fn (consts, c) => (Consts.the_abbreviation consts c; c)));
-val _ = inline "const_syntax" (const_name (fn (_, c) => Syntax.mark_const c));
+val _ = inline "const_syntax" (const_name (fn (_, c) => Lexicon.mark_const c));
 
 
 val _ = inline "syntax_const"

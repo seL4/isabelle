@@ -112,7 +112,7 @@ object Isabelle_Markup
 
   val tooltip: Markup_Tree.Select[String] =
   {
-    case Text.Info(_, XML.Elem(Markup.Entity(kind, name), _)) => kind + " " + name
+    case Text.Info(_, XML.Elem(Markup.Entity(kind, name), _)) => kind + " \"" + name + "\""
     case Text.Info(_, XML.Elem(Markup(Markup.ML_TYPING, _), body)) =>
       Pretty.string_of(List(Pretty.block(XML.Text("ML:") :: Pretty.Break(1) :: body)),
         margin = Isabelle.Int_Property("tooltip-margin"))

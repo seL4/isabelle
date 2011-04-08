@@ -191,11 +191,11 @@ syntax
 parse_translation {*
 let
   val syntax_consts =
-    map_aterms (fn Const (c, T) => Const (Syntax.mark_const c, T) | a => a);
+    map_aterms (fn Const (c, T) => Const (Lexicon.mark_const c, T) | a => a);
 
   fun binary_tr [Const (num, _)] =
         let
-          val {leading_zeros = z, value = n, ...} = Syntax.read_xnum num;
+          val {leading_zeros = z, value = n, ...} = Lexicon.read_xnum num;
           val _ = z = 0 andalso n >= 0 orelse error ("Bad binary number: " ^ num);
         in syntax_consts (mk_binary n) end
     | binary_tr ts = raise TERM ("binary_tr", ts);

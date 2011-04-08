@@ -130,7 +130,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
 
   (*The function variable for a single constructor*)
   fun add_case ((_, T, _), name, args, _) (opno, cases) =
-    if Syntax.is_identifier name then
+    if Lexicon.is_identifier name then
       (opno, (Free (case_varname ^ "_" ^ name, T), args) :: cases)
     else
       (opno + 1, (Free (case_varname ^ "_op_" ^ string_of_int opno, T), args)

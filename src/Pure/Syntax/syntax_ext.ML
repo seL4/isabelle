@@ -1,31 +1,20 @@
-(*  Title:      Pure/Syntax/syn_ext.ML
+(*  Title:      Pure/Syntax/syntax_ext.ML
     Author:     Markus Wenzel and Carsten Clasohm, TU Muenchen
 
-Syntax extension (internal interface).
+Syntax extension.
 *)
 
-signature SYN_EXT0 =
+signature SYNTAX_EXT =
 sig
   val dddot_indexname: indexname
-  val typeT: typ
-  val spropT: typ
-  val default_root: string Config.T
-  val max_pri: int
-  val stamp_trfun: stamp -> string * 'a -> string * ('a * stamp)
-  val mk_trfun: string * 'a -> string * ('a * stamp)
-  val eq_trfun: ('a * stamp) * ('a * stamp) -> bool
-  val escape: string -> string
-  val token_markers: string list
-end;
-
-signature SYN_EXT =
-sig
-  include SYN_EXT0
   val logic: string
   val args: string
   val cargs: string
+  val typeT: typ
   val any: string
   val sprop: string
+  val spropT: typ
+  val max_pri: int
   datatype mfix = Mfix of string * typ * string * int list * int
   val err_in_mfix: string -> mfix -> 'a
   val typ_to_nonterm: typ -> string
@@ -49,6 +38,7 @@ sig
       print_ast_translation: (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list}
   val mfix_delims: string -> string list
   val mfix_args: string -> int
+  val escape: string -> string
   val syn_ext': bool -> (string -> bool) -> mfix list ->
     string list -> (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
@@ -73,10 +63,14 @@ sig
     (string * ((Proof.context -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> typ -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list -> syn_ext
+  val stamp_trfun: stamp -> string * 'a -> string * ('a * stamp)
+  val mk_trfun: string * 'a -> string * ('a * stamp)
+  val eq_trfun: ('a * stamp) * ('a * stamp) -> bool
+  val token_markers: string list
   val pure_ext: syn_ext
 end;
 
-structure Syn_Ext: SYN_EXT =
+structure Syntax_Ext: SYNTAX_EXT =
 struct
 
 
@@ -100,9 +94,6 @@ val spropT = Type (sprop, []);
 
 val any = "any";
 val anyT = Type (any, []);
-
-val default_root =
-  Config.string (Config.declare "Syntax.default_root" (K (Config.String any)));
 
 
 

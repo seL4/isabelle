@@ -26,7 +26,7 @@ translations
 
 print_translation {*
   [(@{const_syntax Eps}, fn [Abs abs] =>
-      let val (x, t) = atomic_abs_tr' abs
+      let val (x, t) = Syntax_Trans.atomic_abs_tr' abs
       in Syntax.const @{syntax_const "_Eps"} $ x $ t end)]
 *} -- {* to avoid eta-contraction of body *}
 
