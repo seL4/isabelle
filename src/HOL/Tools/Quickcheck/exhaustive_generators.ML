@@ -28,6 +28,9 @@ struct
 val (smart_quantifier, setup_smart_quantifier) =
   Attrib.config_bool "quickcheck_smart_quantifier" (K true)
 
+val (full_support, setup_full_support) =
+  Attrib.config_bool "quickcheck_full_support" (K true)
+
 val (quickcheck_pretty, setup_quickcheck_pretty) =
   Attrib.config_bool "quickcheck_pretty" (K true)
  
@@ -61,7 +64,9 @@ fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit => Code_Evaluation.term"});
 val size = @{term "i :: code_numeral"}
 val size_pred = @{term "(i :: code_numeral) - 1"}
 val size_ge_zero = @{term "(i :: code_numeral) > 0"}
-fun test_function T = Free ("f", termifyT T --> @{typ "term list option"})
+
+fun test_function T = Free ("f", T --> @{typ "term list option"})
+fun full_test_function T = Free ("f", termifyT T --> @{typ "term list option"})
 
 fun mk_none_continuation (x, y) =
   let
@@ -76,8 +81,12 @@ fun mk_none_continuation (x, y) =
 
 exception FUNCTION_TYPE;
 val exhaustiveN = "exhaustive";
+val full_exhaustiveN = "full_exhaustive";
 
-fun exhaustiveT T = (termifyT T --> @{typ "Code_Evaluation.term list option"})
+fun exhaustiveT T = (T --> @{typ "Code_Evaluation.term list option"})
+  --> @{typ code_numeral} --> @{typ "Code_Evaluation.term list option"}
+
+fun full_exhaustiveT T = (termifyT T --> @{typ "Code_Evaluation.term list option"})
   --> @{typ code_numeral} --> @{typ "Code_Evaluation.term list option"}
 
 fun check_allT T = (termifyT T --> @{typ "Code_Evaluation.term list option"})
@@ -89,7 +98,45 @@ fun mk_equations descr vs tycos exhaustives (Ts, Us) =
       let
         val exhaustive = Const (@{const_name "Quickcheck_Exhaustive.exhaustive_class.exhaustive"}, exhaustiveT T)
       in
-        (T, (fn t => exhaustive $
+        (T, fn t => exhaustive $ absdummy (T, t) $ size_pred)
+      end
+    fun mk_aux_call fTs (k, _) (tyco, Ts) =
+      let
+        val T = Type (tyco, Ts)
+        val _ = if not (null fTs) then raise FUNCTION_TYPE else ()
+      in
+       (T, fn t => nth exhaustives k $ absdummy (T, t) $ size_pred)
+      end
+    fun mk_consexpr simpleT (c, xs) =
+      let
+        val (Ts, fns) = split_list xs
+        val constr = Const (c, Ts ---> simpleT)
+        val bounds = map Bound (((length xs) - 1) downto 0)
+        val term_bounds = map (fn x => Bound (2 * x)) (((length xs) - 1) downto 0)
+        val start_term = test_function simpleT $ list_comb (constr, bounds)
+      in fold_rev (fn f => fn t => f t) fns start_term end
+    fun mk_rhs exprs =
+        @{term "If :: bool => term list option => term list option => term list option"}
+            $ size_ge_zero $ (foldr1 mk_none_continuation exprs) $ @{term "None :: term list option"}
+    val rhss =
+      Datatype_Aux.interpret_construction descr vs
+        { atyp = mk_call, dtyp = mk_aux_call }
+      |> (map o apfst) Type
+      |> map (fn (T, cs) => map (mk_consexpr T) cs)
+      |> map mk_rhs
+    val lhss = map2 (fn t => fn T => t $ test_function T $ size) exhaustives (Ts @ Us)
+    val eqs = map (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhss ~~ rhss)
+  in
+    eqs
+  end
+    
+fun mk_full_equations descr vs tycos full_exhaustives (Ts, Us) =
+  let
+    fun mk_call T =
+      let
+        val full_exhaustive = Const (@{const_name "Quickcheck_Exhaustive.exhaustive_class.full_exhaustive"}, full_exhaustiveT T)
+      in
+        (T, (fn t => full_exhaustive $
           (HOLogic.split_const (T, @{typ "unit => Code_Evaluation.term"}, @{typ "Code_Evaluation.term list option"})
           $ absdummy (T, absdummy (@{typ "unit => Code_Evaluation.term"}, t))) $ size_pred))
       end
@@ -98,7 +145,7 @@ fun mk_equations descr vs tycos exhaustives (Ts, Us) =
         val T = Type (tyco, Ts)
         val _ = if not (null fTs) then raise FUNCTION_TYPE else ()
       in
-       (T, (fn t => nth exhaustives k $
+       (T, (fn t => nth full_exhaustives k $
           (HOLogic.split_const (T, @{typ "unit => Code_Evaluation.term"}, @{typ "Code_Evaluation.term list option"})
             $ absdummy (T, absdummy (@{typ "unit => Code_Evaluation.term"}, t))) $ size_pred))
       end
@@ -112,7 +159,7 @@ fun mk_equations descr vs tycos exhaustives (Ts, Us) =
         val Eval_Const = Const ("Code_Evaluation.Const", HOLogic.literalT --> @{typ typerep} --> HOLogic.termT)
         val term = fold (fn u => fn t => Eval_App $ t $ (u $ @{term "()"}))
           bounds (Eval_Const $ HOLogic.mk_literal c $ HOLogic.mk_typerep (Ts ---> simpleT))
-        val start_term = test_function simpleT $ 
+        val start_term = full_test_function simpleT $ 
         (HOLogic.pair_const simpleT @{typ "unit => Code_Evaluation.term"}
           $ (list_comb (constr, bounds)) $ absdummy (@{typ unit}, term))
       in fold_rev (fn f => fn t => f t) fns start_term end
@@ -125,7 +172,7 @@ fun mk_equations descr vs tycos exhaustives (Ts, Us) =
       |> (map o apfst) Type
       |> map (fn (T, cs) => map (mk_consexpr T) cs)
       |> map mk_rhs
-    val lhss = map2 (fn t => fn T => t $ test_function T $ size) exhaustives (Ts @ Us);
+    val lhss = map2 (fn t => fn T => t $ full_test_function T $ size) full_exhaustives (Ts @ Us);
     val eqs = map (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhss ~~ rhss)
   in
     eqs
@@ -157,13 +204,18 @@ fun termination_tac ctxt =
 fun instantiate_exhaustive_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
   let
     val _ = Datatype_Aux.message config "Creating exhaustive generators...";
-    val exhaustivesN = map (prefix (exhaustiveN ^ "_")) (names @ auxnames);
+    val exhaustivesN = map (prefix (exhaustiveN ^ "_")) (names @ auxnames)
+    val full_exhaustivesN = map (prefix (full_exhaustiveN ^ "_")) (names @ auxnames)
   in
     thy
     |> Class.instantiation (tycos, vs, @{sort exhaustive})
     |> Quickcheck_Common.define_functions
         (fn exhaustives => mk_equations descr vs tycos exhaustives (Ts, Us), SOME termination_tac)
         prfx ["f", "i"] exhaustivesN (map exhaustiveT (Ts @ Us))
+    |> Quickcheck_Common.define_functions
+        (fn full_exhaustives => mk_full_equations descr vs tycos full_exhaustives (Ts, Us),
+        SOME termination_tac)
+        prfx ["f", "i"] full_exhaustivesN (map full_exhaustiveT (Ts @ Us))
     |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
   end handle FUNCTION_TYPE =>
     (Datatype_Aux.message config
@@ -244,6 +296,48 @@ fun mk_generator_expr ctxt (t, eval_terms) =
     val names = Term.add_free_names t []
     val frees = map Free (Term.add_frees t [])
     val ([depth_name], ctxt'') = Variable.variant_fixes ["depth"] ctxt'
+    val depth = Free (depth_name, @{typ code_numeral})
+    val return = @{term "Some :: term list => term list option"} $
+      (HOLogic.mk_list @{typ "term"}
+        (map (fn t => HOLogic.mk_term_of (fastype_of t) t) (frees @ eval_terms)))
+    fun mk_exhaustive_closure (free as Free (_, T)) t =
+      Const (@{const_name "Quickcheck_Exhaustive.exhaustive_class.exhaustive"}, exhaustiveT T)
+        $ lambda free t $ depth
+    val none_t = @{term "None :: term list option"}
+    fun mk_safe_if (cond, then_t, else_t) =
+      @{term "Quickcheck_Exhaustive.catch_match :: term list option => term list option => term list option"} $
+        (@{term "If :: bool => term list option => term list option => term list option"}
+        $ cond $ then_t $ else_t) $ none_t;
+    fun lookup v = the (AList.lookup (op =) (names ~~ frees) v)
+    fun mk_naive_test_term t =
+      fold_rev mk_exhaustive_closure frees (mk_safe_if (t, none_t, return)) 
+    fun mk_smart_test_term' concl bound_vars assms =
+      let
+        fun vars_of t = subtract (op =) bound_vars (Term.add_free_names t [])
+        val (vars, check) =
+          case assms of [] => (vars_of concl, (concl, none_t, return))
+            | assm :: assms => (vars_of assm, (assm,
+                mk_smart_test_term' concl (union (op =) (vars_of assm) bound_vars) assms, none_t))
+      in
+        fold_rev mk_exhaustive_closure (map lookup vars) (mk_safe_if check)
+      end
+    fun mk_smart_test_term t =
+      let
+        val (assms, concl) = Quickcheck_Common.strip_imp t
+      in
+        mk_smart_test_term' concl [] assms
+      end
+    val mk_test_term =
+      if Config.get ctxt smart_quantifier then mk_smart_test_term else mk_naive_test_term 
+  in lambda depth (mk_test_term t) end
+
+fun mk_full_generator_expr ctxt (t, eval_terms) =
+  let
+    val thy = ProofContext.theory_of ctxt
+    val ctxt' = Variable.auto_fixes t ctxt
+    val names = Term.add_free_names t []
+    val frees = map Free (Term.add_frees t [])
+    val ([depth_name], ctxt'') = Variable.variant_fixes ["depth"] ctxt'
     val (term_names, ctxt''') = Variable.variant_fixes (map (prefix "t_") names) ctxt''
     val depth = Free (depth_name, @{typ code_numeral})
     val term_vars = map (fn n => Free (n, @{typ "unit => term"})) term_names
@@ -288,7 +382,7 @@ fun mk_generator_expr ctxt (t, eval_terms) =
       if Config.get ctxt smart_quantifier then mk_smart_test_term else mk_naive_test_term 
   in lambda depth (mk_test_term t) end
 
-val mk_parametric_generator_expr =
+fun mk_parametric_generator_expr mk_generator_expr =
   Quickcheck_Common.gen_mk_parametric_generator_expr 
     ((mk_generator_expr, absdummy (@{typ "code_numeral"}, @{term "None :: term list option"})),
       @{typ "code_numeral => term list option"})
@@ -359,7 +453,9 @@ val target = "Quickcheck";
 fun compile_generator_expr ctxt ts =
   let
     val thy = ProofContext.theory_of ctxt
-    val t' = mk_parametric_generator_expr ctxt ts;
+    val mk_generator_expr =
+      if Config.get ctxt full_support then mk_full_generator_expr else mk_generator_expr
+    val t' = mk_parametric_generator_expr mk_generator_expr ctxt ts;
     val compile = Code_Runtime.dynamic_value_strict
       (Counterexample.get, put_counterexample, "Exhaustive_Generators.put_counterexample")
       thy (SOME target) (fn proc => fn g =>
@@ -402,6 +498,7 @@ val setup =
   #> Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
       (((@{sort type}, @{sort type}), @{sort bounded_forall}), instantiate_bounded_forall_datatype))
   #> setup_smart_quantifier
+  #> setup_full_support
   #> setup_quickcheck_pretty
   #> Context.theory_map (Quickcheck.add_generator ("exhaustive", compile_generator_expr))
   #> Context.theory_map (Quickcheck.add_batch_generator ("exhaustive", compile_generator_exprs))

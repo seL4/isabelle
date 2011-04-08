@@ -16,21 +16,34 @@ where
 subsection {* exhaustive generator type classes *}
 
 class exhaustive = term_of +
-fixes exhaustive :: "('a * (unit => term) \<Rightarrow> term list option) \<Rightarrow> code_numeral \<Rightarrow> term list option"
+  fixes exhaustive :: "('a \<Rightarrow> term list option) \<Rightarrow> code_numeral \<Rightarrow> term list option"
+  fixes full_exhaustive :: "('a * (unit => term) \<Rightarrow> term list option) \<Rightarrow> code_numeral \<Rightarrow> term list option"
 
 instantiation code_numeral :: exhaustive
 begin
 
-function exhaustive_code_numeral' :: "(code_numeral * (unit => term) => term list option) => code_numeral => code_numeral => term list option"
-  where "exhaustive_code_numeral' f d i =
+function full_exhaustive_code_numeral' :: "(code_numeral * (unit => term) => term list option) => code_numeral => code_numeral => term list option"
+  where "full_exhaustive_code_numeral' f d i =
     (if d < i then None
-    else (f (i, %_. Code_Evaluation.term_of i)) orelse (exhaustive_code_numeral' f d (i + 1)))"
+    else (f (i, %_. Code_Evaluation.term_of i)) orelse (full_exhaustive_code_numeral' f d (i + 1)))"
 by pat_completeness auto
 
-termination 
+termination
+  by (relation "measure (%(_, d, i). Code_Numeral.nat_of (d + 1 - i))") auto
+
+definition "full_exhaustive f d = full_exhaustive_code_numeral' f d 0"
+
+function exhaustive_code_numeral' :: "(code_numeral => term list option) => code_numeral => code_numeral => term list option"
+  where "exhaustive_code_numeral' f d i =
+    (if d < i then None
+    else (f i orelse exhaustive_code_numeral' f d (i + 1)))"
+by pat_completeness auto
+
+termination
   by (relation "measure (%(_, d, i). Code_Numeral.nat_of (d + 1 - i))") auto
 
 definition "exhaustive f d = exhaustive_code_numeral' f d 0"
+
 
 instance ..
 
@@ -39,7 +52,9 @@ end
 instantiation nat :: exhaustive
 begin
 
-definition "exhaustive f d = exhaustive (%(x, xt). f (Code_Numeral.nat_of x, %_. Code_Evaluation.term_of (Code_Numeral.nat_of x))) d"
+definition "exhaustive f d = exhaustive (%x. f (Code_Numeral.nat_of x)) d"
+
+definition "full_exhaustive f d = full_exhaustive (%(x, xt). f (Code_Numeral.nat_of x, %_. Code_Evaluation.term_of (Code_Numeral.nat_of x))) d"
 
 instance ..
 
@@ -48,14 +63,23 @@ end
 instantiation int :: exhaustive
 begin
 
-function exhaustive' :: "(int * (unit => term) => term list option) => int => int => term list option"
-  where "exhaustive' f d i = (if d < i then None else (case f (i, %_. Code_Evaluation.term_of i) of Some t => Some t | None => exhaustive' f d (i + 1)))"
+function exhaustive' :: "(int => term list option) => int => int => term list option"
+  where "exhaustive' f d i = (if d < i then None else (f i orelse exhaustive' f d (i + 1)))"
 by pat_completeness auto
 
 termination 
   by (relation "measure (%(_, d, i). nat (d + 1 - i))") auto
 
 definition "exhaustive f d = exhaustive' f (Code_Numeral.int_of d) (- (Code_Numeral.int_of d))"
+
+function full_exhaustive' :: "(int * (unit => term) => term list option) => int => int => term list option"
+  where "full_exhaustive' f d i = (if d < i then None else (case f (i, %_. Code_Evaluation.term_of i) of Some t => Some t | None => full_exhaustive' f d (i + 1)))"
+by pat_completeness auto
+
+termination 
+  by (relation "measure (%(_, d, i). nat (d + 1 - i))") auto
+
+definition "full_exhaustive f d = full_exhaustive' f (Code_Numeral.int_of d) (- (Code_Numeral.int_of d))"
 
 instance ..
 
@@ -65,7 +89,10 @@ instantiation prod :: (exhaustive, exhaustive) exhaustive
 begin
 
 definition
-  "exhaustive f d = exhaustive (%(x, t1). exhaustive (%(y, t2). f ((x, y),
+  "exhaustive f d = exhaustive (%x. exhaustive (%y. f ((x, y))) d) d"
+
+definition
+  "full_exhaustive f d = full_exhaustive (%(x, t1). full_exhaustive (%(y, t2). f ((x, y),
     %u. let T1 = (Typerep.typerep (TYPE('a)));
             T2 = (Typerep.typerep (TYPE('b)))
     in Code_Evaluation.App (Code_Evaluation.App (
@@ -80,11 +107,23 @@ end
 instantiation "fun" :: ("{equal, exhaustive}", exhaustive) exhaustive
 begin
 
-fun exhaustive_fun' :: "(('a => 'b) * (unit => term) => term list option) => code_numeral => code_numeral => term list option"
+fun exhaustive_fun' :: "(('a => 'b) => term list option) => code_numeral => code_numeral => term list option"
 where
-  "exhaustive_fun' f i d = (exhaustive (%(b, t). f (%_. b, %_. Code_Evaluation.Abs (STR ''x'') (Typerep.typerep TYPE('a)) (t ()))) d)
+  "exhaustive_fun' f i d = (exhaustive (%b. f (%_. b)) d)
    orelse (if i > 1 then
-     exhaustive_fun' (%(g, gt). exhaustive (%(a, at). exhaustive (%(b, bt).
+     exhaustive_fun' (%g. exhaustive (%a. exhaustive (%b.
+       f (g(a := b))) d) d) (i - 1) d else None)"
+
+definition exhaustive_fun :: "(('a => 'b) => term list option) => code_numeral => term list option"
+where
+  "exhaustive_fun f d = exhaustive_fun' f d d" 
+
+
+fun full_exhaustive_fun' :: "(('a => 'b) * (unit => term) => term list option) => code_numeral => code_numeral => term list option"
+where
+  "full_exhaustive_fun' f i d = (full_exhaustive (%(b, t). f (%_. b, %_. Code_Evaluation.Abs (STR ''x'') (Typerep.typerep TYPE('a)) (t ()))) d)
+   orelse (if i > 1 then
+     full_exhaustive_fun' (%(g, gt). full_exhaustive (%(a, at). full_exhaustive (%(b, bt).
        f (g(a := b),
          (%_. let A = (Typerep.typerep (TYPE('a)));
                   B = (Typerep.typerep (TYPE('b)));
@@ -94,9 +133,9 @@ where
                   (Code_Evaluation.Const (STR ''Fun.fun_upd'') (fun (fun A B) (fun A (fun B (fun A B)))))
                 (gt ())) (at ())) (bt ())))) d) d) (i - 1) d else None)"
 
-definition exhaustive_fun :: "(('a => 'b) * (unit => term) => term list option) => code_numeral => term list option"
+definition full_exhaustive_fun :: "(('a => 'b) * (unit => term) => term list option) => code_numeral => term list option"
 where
-  "exhaustive_fun f d = exhaustive_fun' f d d" 
+  "full_exhaustive_fun f d = full_exhaustive_fun' f d d" 
 
 instance ..
 
