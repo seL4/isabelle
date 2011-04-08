@@ -91,6 +91,8 @@ sig
   val prop_group: string parser
   val term: string parser
   val prop: string parser
+  val type_const: string parser
+  val const: string parser
   val literal_fact: string parser
   val propp: (string * string list) parser
   val termp: (string * string list) parser
@@ -326,6 +328,9 @@ val prop_group = group "proposition" tm;
 
 val term = inner_syntax term_group;
 val prop = inner_syntax prop_group;
+
+val type_const = inner_syntax (group "type constructor" xname);
+val const = inner_syntax (group "constant" xname);
 
 val literal_fact = inner_syntax (group "literal fact" alt_string);
 

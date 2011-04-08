@@ -227,25 +227,25 @@ val _ =
 val _ =
   Outer_Syntax.local_theory "type_notation" "add concrete syntax for type constructors"
     Keyword.thy_decl
-    (opt_mode -- Parse.and_list1 (Parse.xname -- Parse.mixfix)
+    (opt_mode -- Parse.and_list1 (Parse.type_const -- Parse.mixfix)
       >> (fn (mode, args) => Specification.type_notation_cmd true mode args));
 
 val _ =
   Outer_Syntax.local_theory "no_type_notation" "delete concrete syntax for type constructors"
     Keyword.thy_decl
-    (opt_mode -- Parse.and_list1 (Parse.xname -- Parse.mixfix)
+    (opt_mode -- Parse.and_list1 (Parse.type_const -- Parse.mixfix)
       >> (fn (mode, args) => Specification.type_notation_cmd false mode args));
 
 val _ =
   Outer_Syntax.local_theory "notation" "add concrete syntax for constants / fixed variables"
     Keyword.thy_decl
-    (opt_mode -- Parse.and_list1 (Parse.xname -- Parse_Spec.locale_mixfix)
+    (opt_mode -- Parse.and_list1 (Parse.const -- Parse_Spec.locale_mixfix)
       >> (fn (mode, args) => Specification.notation_cmd true mode args));
 
 val _ =
   Outer_Syntax.local_theory "no_notation" "delete concrete syntax for constants / fixed variables"
     Keyword.thy_decl
-    (opt_mode -- Parse.and_list1 (Parse.xname -- Parse_Spec.locale_mixfix)
+    (opt_mode -- Parse.and_list1 (Parse.const -- Parse_Spec.locale_mixfix)
       >> (fn (mode, args) => Specification.notation_cmd false mode args));
 
 
@@ -626,7 +626,7 @@ val _ =
 val _ =
   Outer_Syntax.command "write" "add concrete syntax for constants / fixed variables"
     (Keyword.tag_proof Keyword.prf_decl)
-    (opt_mode -- Parse.and_list1 (Parse.xname -- Parse_Spec.locale_mixfix)
+    (opt_mode -- Parse.and_list1 (Parse.const -- Parse_Spec.locale_mixfix)
     >> (fn (mode, args) => Toplevel.print o Toplevel.proof (Proof.write_cmd mode args)));
 
 val case_spec =
