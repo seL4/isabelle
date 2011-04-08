@@ -60,8 +60,6 @@ fun mk_sumcases rT f (Type (@{type_name Sum_Type.sum}, [TL, TR])) =
   end
   | mk_sumcases _ f T = f T
 
-fun mk_undefined T = Const(@{const_name undefined}, T)
-
 (** abstract syntax **)
 
 fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit => Code_Evaluation.term"});
