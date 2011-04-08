@@ -390,6 +390,20 @@ subsection {* Bounded universal quantifiers *}
 class bounded_forall =
   fixes bounded_forall :: "('a \<Rightarrow> bool) \<Rightarrow> code_numeral \<Rightarrow> bool"
 
+subsection {* Fast exhaustive combinators *}
+
+
+class fast_exhaustive = term_of +
+  fixes fast_exhaustive :: "('a \<Rightarrow> unit) \<Rightarrow> code_numeral \<Rightarrow> unit"
+
+consts throw_Counterexample :: "term list => unit"
+consts catch_Counterexample :: "unit => term list option"
+
+code_const throw_Counterexample
+  (Quickcheck "raise (Exhaustive'_Generators.Counterexample _)")
+code_const catch_Counterexample
+  (Quickcheck "(((_); NONE) handle Exhaustive'_Generators.Counterexample ts => SOME ts)")
+
 subsection {* Defining combinators for any first-order data type *}
 
 definition catch_match :: "term list option => term list option => term list option"
