@@ -4,30 +4,30 @@
 Pretty printing of asts, terms, types and print (ast) translation.
 *)
 
-signature PRINTER0 =
+signature BASIC_PRINTER =
 sig
-  val show_brackets_default: bool Unsynchronized.ref
-  val show_brackets_raw: Config.raw
   val show_brackets: bool Config.T
-  val show_types_default: bool Unsynchronized.ref
-  val show_types_raw: Config.raw
   val show_types: bool Config.T
-  val show_sorts_default: bool Unsynchronized.ref
-  val show_sorts_raw: Config.raw
   val show_sorts: bool Config.T
   val show_free_types: bool Config.T
   val show_all_types: bool Config.T
-  val show_structs_raw: Config.raw
   val show_structs: bool Config.T
-  val show_question_marks_default: bool Unsynchronized.ref
-  val show_question_marks_raw: Config.raw
   val show_question_marks: bool Config.T
   val pretty_priority: int Config.T
 end;
 
 signature PRINTER =
 sig
-  include PRINTER0
+  include BASIC_PRINTER
+  val show_brackets_default: bool Unsynchronized.ref
+  val show_brackets_raw: Config.raw
+  val show_types_default: bool Unsynchronized.ref
+  val show_types_raw: Config.raw
+  val show_sorts_default: bool Unsynchronized.ref
+  val show_sorts_raw: Config.raw
+  val show_structs_raw: Config.raw
+  val show_question_marks_default: bool Unsynchronized.ref
+  val show_question_marks_raw: Config.raw
   type prtabs
   val empty_prtabs: prtabs
   val update_prtabs: string -> Syntax_Ext.xprod list -> prtabs -> prtabs
@@ -267,3 +267,7 @@ fun pretty_typ_ast ctxt prtabs trf tokentrf extern ast =
   pretty true false ctxt (mode_tabs prtabs (print_mode_value ())) trf tokentrf extern ast;
 
 end;
+
+structure Basic_Printer: BASIC_PRINTER = Printer;
+open Basic_Printer;
+

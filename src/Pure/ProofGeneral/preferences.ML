@@ -115,19 +115,19 @@ val print_depth_pref =
 
 
 val display_preferences =
- [bool_pref show_types_default
+ [bool_pref Printer.show_types_default
     "show-types"
     "Include types in display of Isabelle terms",
-  bool_pref show_sorts_default
+  bool_pref Printer.show_sorts_default
     "show-sorts"
     "Include sorts in display of Isabelle terms",
-  bool_pref show_consts_default
+  bool_pref Goal_Display.show_consts_default
     "show-consts"
     "Show types of consts in Isabelle goal display",
   bool_pref long_names
     "long-names"
     "Show fully qualified names in Isabelle terms",
-  bool_pref show_brackets_default
+  bool_pref Printer.show_brackets_default
     "show-brackets"
     "Show full bracketing in Isabelle terms",
   bool_pref Goal_Display.show_main_goal_default
@@ -142,7 +142,7 @@ val advanced_display_preferences =
     "goals-limit"
     "Setting for maximum number of goals printed",
   print_depth_pref,
-  bool_pref show_question_marks_default
+  bool_pref Printer.show_question_marks_default
     "show-question-marks"
     "Show leading question mark of variable name"];
 

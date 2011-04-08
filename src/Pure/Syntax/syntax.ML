@@ -5,15 +5,9 @@ Standard Isabelle syntax, based on arbitrary context-free grammars
 (specified by mixfix declarations).
 *)
 
-signature BASIC_SYNTAX =
-sig
-  include PRINTER0
-end;
-
 signature SYNTAX =
 sig
   include LEXICON0
-  include PRINTER0
   val max_pri: int
   val root: string Config.T
   val positions_raw: Config.raw
@@ -469,7 +463,6 @@ datatype syntax =
     print_ast_trtab: ((Proof.context -> Ast.ast list -> Ast.ast) * stamp) list Symtab.table,
     prtabs: Printer.prtabs} * stamp;
 
-fun rep_syntax (Syntax (tabs, _)) = tabs;
 fun eq_syntax (Syntax (_, s1), Syntax (_, s2)) = s1 = s2;
 
 fun is_const (Syntax ({consts, ...}, _)) c = member (op =) consts c;
@@ -729,11 +722,8 @@ val remove_trrules = remove_syntax mode_default o Syntax_Ext.syn_ext_rules o che
 
 (*export parts of internal Syntax structures*)
 val syntax_tokenize = tokenize;
-open Lexicon Printer;
+open Lexicon;
 val tokenize = syntax_tokenize;
 
 end;
-
-structure Basic_Syntax: BASIC_SYNTAX = Syntax;
-open Basic_Syntax;
 

@@ -236,7 +236,7 @@ fun find_theorems (req as ScgiReq.Req {request_method, query_string, ...},
   end;
 in
 
-val () = show_question_marks_default := false;
+val () = Printer.show_question_marks_default := false;
 val () = ScgiServer.register (find_theorems_url, SOME Mime.html, find_theorems);
 
 end;

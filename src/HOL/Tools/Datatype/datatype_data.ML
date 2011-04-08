@@ -244,7 +244,7 @@ val _ = Thy_Output.antiquotation "datatype" (Args.type_name true)
       val (vs, cos) = the_spec thy dtco;
       val ty = Type (dtco, map TFree vs);
       val pretty_typ_bracket =
-        Syntax.pretty_typ (Config.put Syntax.pretty_priority (Syntax.max_pri + 1) ctxt);
+        Syntax.pretty_typ (Config.put pretty_priority (Syntax.max_pri + 1) ctxt);
       fun pretty_constr (co, tys) =
         Pretty.block (Pretty.breaks
           (Syntax.pretty_term ctxt (Const (co, tys ---> ty)) ::

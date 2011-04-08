@@ -361,7 +361,7 @@ fun parse_term is_prop ctxt text =
       val checked = map snd (proper_results results');
       val len = length checked;
 
-      val show_term = Syntax.string_of_term (Config.put Syntax.show_brackets true ctxt);
+      val show_term = Syntax.string_of_term (Config.put Printer.show_brackets true ctxt);
     in
       if len = 0 then
         report_result ctxt pos

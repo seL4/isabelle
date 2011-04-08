@@ -382,14 +382,14 @@ fun declare_config make coerce global name default =
     val config = coerce config_value;
   in (config, register_config config_value) end;
 
-val config_bool   = declare_config Config.Bool Config.bool false;
-val config_int    = declare_config Config.Int Config.int false;
-val config_real   = declare_config Config.Real Config.real false;
+val config_bool = declare_config Config.Bool Config.bool false;
+val config_int = declare_config Config.Int Config.int false;
+val config_real = declare_config Config.Real Config.real false;
 val config_string = declare_config Config.String Config.string false;
 
-val config_bool_global   = declare_config Config.Bool Config.bool true;
-val config_int_global    = declare_config Config.Int Config.int true;
-val config_real_global   = declare_config Config.Real Config.real true;
+val config_bool_global = declare_config Config.Bool Config.bool true;
+val config_int_global = declare_config Config.Int Config.int true;
+val config_real_global = declare_config Config.Real Config.real true;
 val config_string_global = declare_config Config.String Config.string true;
 
 end;
@@ -401,11 +401,11 @@ val _ = Context.>> (Context.map_theory
  (register_config Ast.trace_raw #>
   register_config Ast.stat_raw #>
   register_config Syntax.positions_raw #>
-  register_config Syntax.show_brackets_raw #>
-  register_config Syntax.show_sorts_raw #>
-  register_config Syntax.show_types_raw #>
-  register_config Syntax.show_structs_raw #>
-  register_config Syntax.show_question_marks_raw #>
+  register_config Printer.show_brackets_raw #>
+  register_config Printer.show_sorts_raw #>
+  register_config Printer.show_types_raw #>
+  register_config Printer.show_structs_raw #>
+  register_config Printer.show_question_marks_raw #>
   register_config Syntax.ambiguity_level_raw #>
   register_config Syntax_Trans.eta_contract_raw #>
   register_config ML_Context.trace_raw #>
