@@ -1136,7 +1136,17 @@ instantiation rat :: exhaustive
 begin
 
 definition
-  "exhaustive f d = exhaustive (%(k, kt). exhaustive (%(l, lt).
+  "exhaustive f d = exhaustive (%k. exhaustive (%l. f (Fract (Code_Numeral.int_of k) (Code_Numeral.int_of l))) d) d"
+
+instance ..
+
+end
+
+instantiation rat :: full_exhaustive
+begin
+
+definition
+  "full_exhaustive f d = full_exhaustive (%(k, kt). full_exhaustive (%(l, lt).
      f (valterm_fract (Code_Numeral.int_of k, %_. Code_Evaluation.term_of (Code_Numeral.int_of k)) (Code_Numeral.int_of l, %_. Code_Evaluation.term_of (Code_Numeral.int_of l)))) d) d"
 
 instance ..

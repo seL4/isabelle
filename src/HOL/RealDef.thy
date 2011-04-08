@@ -1772,7 +1772,17 @@ instantiation real :: exhaustive
 begin
 
 definition
-  "exhaustive f d = exhaustive (%r. f (valterm_ratreal r)) d"
+  "exhaustive f d = exhaustive (%r. f (Ratreal r)) d"
+
+instance ..
+
+end
+
+instantiation real :: full_exhaustive
+begin
+
+definition
+  "full_exhaustive f d = full_exhaustive (%r. f (valterm_ratreal r)) d"
 
 instance ..
 
