@@ -19,9 +19,6 @@ val prop = Simple_Syntax.read_prop;
 val tycon = Lexicon.mark_type;
 val const = Lexicon.mark_const;
 
-val typeT = Syntax_Ext.typeT;
-val spropT = Syntax_Ext.spropT;
-
 
 (* application syntax variants *)
 
@@ -143,7 +140,7 @@ val _ = Context.>> (Context.map_theory
     ("_bracket",          typ "types => type => type",  Mixfix ("([_]/ \\<Rightarrow> _)", [0, 0], 0)),
     ("_ofsort",           typ "tid => sort => type",    Mixfix ("_\\<Colon>_", [1000, 0], 1000)),
     ("_constrain",        typ "logic => type => logic", Mixfix ("_\\<Colon>_", [4, 0], 3)),
-    ("_constrain",        [spropT, typeT] ---> spropT,  Mixfix ("_\\<Colon>_", [4, 0], 3)),
+    ("_constrain",        typ "prop' => type => prop'", Mixfix ("_\\<Colon>_", [4, 0], 3)),
     ("_idtyp",            typ "id_position => type => idt", Mixfix ("_\\<Colon>_", [], 0)),
     ("_idtypdummy",       typ "type => idt",            Mixfix ("'_()\\<Colon>_", [], 0)),
     ("_lambda",           typ "pttrns => 'a => logic",  Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3)),

@@ -7,13 +7,6 @@ Syntax extension.
 signature SYNTAX_EXT =
 sig
   val dddot_indexname: indexname
-  val logic: string
-  val args: string
-  val cargs: string
-  val typeT: typ
-  val any: string
-  val sprop: string
-  val spropT: typ
   val max_pri: int
   datatype mfix = Mfix of string * typ * string * int list * int
   val err_in_mfix: string -> mfix -> 'a
@@ -39,7 +32,7 @@ sig
   val mfix_delims: string -> string list
   val mfix_args: string -> int
   val escape: string -> string
-  val syn_ext': bool -> (string -> bool) -> mfix list ->
+  val syn_ext': (string -> bool) -> mfix list ->
     string list -> (string * ((Proof.context -> Ast.ast list -> Ast.ast) * stamp)) list *
     (string * ((Proof.context -> term list -> term) * stamp)) list *
     (string * ((Proof.context -> typ -> term list -> term) * stamp)) list *
@@ -77,24 +70,6 @@ struct
 (** misc definitions **)
 
 val dddot_indexname = ("dddot", 0);
-
-
-(* syntactic categories *)
-
-val logic = "logic";
-val logicT = Type (logic, []);
-
-val args = "args";
-val cargs = "cargs";
-
-val typeT = Type ("type", []);
-
-val sprop = "#prop";
-val spropT = Type (sprop, []);
-
-val any = "any";
-val anyT = Type (any, []);
-
 
 
 (** datatype xprod **)
@@ -165,10 +140,10 @@ fun typ_to_nt _ (Type (c, _)) = c
   | typ_to_nt default _ = default;
 
 (*get nonterminal for rhs*)
-val typ_to_nonterm = typ_to_nt any;
+val typ_to_nonterm = typ_to_nt "any";
 
 (*get nonterminal for lhs*)
-val typ_to_nonterm1 = typ_to_nt logic;
+val typ_to_nonterm1 = typ_to_nt "logic";
 
 
 (* read mixfix annotations *)
@@ -219,7 +194,7 @@ end;
 
 (* mfix_to_xprod *)
 
-fun mfix_to_xprod convert is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) =
+fun mfix_to_xprod is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) =
   let
     fun check_pri p =
       if p >= 0 andalso p <= max_pri then ()
@@ -255,7 +230,7 @@ fun mfix_to_xprod convert is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) 
       | rem_pri sym = sym;
 
     fun logify_types (a as (Argument (s, p))) =
-          if s <> "prop" andalso is_logtype s then Argument (logic, p) else a
+          if s <> "prop" andalso is_logtype s then Argument ("logic", p) else a
       | logify_types a = a;
 
 
@@ -287,8 +262,9 @@ fun mfix_to_xprod convert is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) 
         andalso not (null symbs)
         andalso not (exists is_delim symbs);
     val lhs' =
-      if convert andalso not copy_prod then
-       (if lhs = "prop" then sprop else if is_logtype lhs then logic else lhs)
+      if copy_prod orelse lhs = "prop" andalso symbs = [Argument ("prop'", 0)] then lhs
+      else if lhs = "prop" then "prop'"
+      else if is_logtype lhs then "logic"
       else lhs;
     val symbs' = map logify_types symbs;
     val xprod = XProd (lhs', symbs', const', pri);
@@ -322,12 +298,12 @@ datatype syn_ext =
 
 (* syn_ext *)
 
-fun syn_ext' convert is_logtype mfixes consts trfuns (parse_rules, print_rules) =
+fun syn_ext' is_logtype mfixes consts trfuns (parse_rules, print_rules) =
   let
     val (parse_ast_translation, parse_translation, print_translation,
       print_ast_translation) = trfuns;
 
-    val (xprods, parse_rules') = map (mfix_to_xprod convert is_logtype) mfixes
+    val (xprods, parse_rules') = map (mfix_to_xprod is_logtype) mfixes
       |> split_list |> apsnd (rev o flat);
     val mfix_consts =
       distinct (op =) (map (fn Mfix x => #3 x) mfixes @ map (fn XProd x => #3 x) xprods);
@@ -344,7 +320,7 @@ fun syn_ext' convert is_logtype mfixes consts trfuns (parse_rules, print_rules) 
   end;
 
 
-val syn_ext = syn_ext' true (K false);
+val syn_ext = syn_ext' (K false);
 
 fun syn_ext_const_names cs = syn_ext [] cs ([], [], [], []) ([], []);
 fun syn_ext_rules rules = syn_ext [] [] ([], [], [], []) rules;
@@ -365,14 +341,16 @@ fun eq_trfun ((_, s1: stamp), (_, s2)) = s1 = s2;
 val token_markers =
   ["_tfree", "_tvar", "_free", "_bound", "_var", "_numeral", "_inner_string"];
 
-val pure_ext = syn_ext' false (K false)
-  [Mfix ("_", spropT --> propT, "", [0], 0),
-   Mfix ("_", logicT --> anyT, "", [0], 0),
-   Mfix ("_", spropT --> anyT, "", [0], 0),
-   Mfix ("'(_')", logicT --> logicT, "", [0], max_pri),
-   Mfix ("'(_')", spropT --> spropT, "", [0], max_pri),
-   Mfix ("_::_",  [logicT, typeT] ---> logicT, "_constrain", [4, 0], 3),
-   Mfix ("_::_",  [spropT, typeT] ---> spropT, "_constrain", [4, 0], 3)]
+val typ = Simple_Syntax.read_typ;
+
+val pure_ext = syn_ext' (K false)
+  [Mfix ("_", typ "prop' => prop", "", [0], 0),
+   Mfix ("_", typ "logic => any", "", [0], 0),
+   Mfix ("_", typ "prop' => any", "", [0], 0),
+   Mfix ("'(_')", typ "logic => logic", "", [0], max_pri),
+   Mfix ("'(_')", typ "prop' => prop'", "", [0], max_pri),
+   Mfix ("_::_", typ "logic => type => logic", "_constrain", [4, 0], 3),
+   Mfix ("_::_", typ "prop' => type => prop'", "_constrain", [4, 0], 3)]
   token_markers
   ([], [], [], [])
   ([], []);

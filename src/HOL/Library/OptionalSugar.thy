@@ -51,15 +51,13 @@ translations
 setup {*
 let
   val typ = Simple_Syntax.read_typ;
-  val typeT = Syntax_Ext.typeT;
-  val spropT = Syntax_Ext.spropT;
 in
-  Sign.del_modesyntax_i (Symbol.xsymbolsN, false) [
-    ("_constrain", typ "logic => type => logic", Mixfix ("_\<Colon>_", [4, 0], 3)),
-    ("_constrain", [spropT, typeT] ---> spropT, Mixfix ("_\<Colon>_", [4, 0], 3))]
-  #> Sign.add_modesyntax_i (Symbol.xsymbolsN, false) [
-      ("_constrain", typ "logic => type => logic", Mixfix ("_ \<Colon>  _", [4, 0], 3)),
-      ("_constrain", [spropT, typeT] ---> spropT, Mixfix ("_ \<Colon> _", [4, 0], 3))]
+  Sign.del_modesyntax_i (Symbol.xsymbolsN, false)
+   [("_constrain", typ "logic => type => logic", Mixfix ("_\<Colon>_", [4, 0], 3)),
+    ("_constrain", typ "prop' => type => prop'", Mixfix ("_\<Colon>_", [4, 0], 3))] #>
+  Sign.add_modesyntax_i (Symbol.xsymbolsN, false)
+   [("_constrain", typ "logic => type => logic", Mixfix ("_ \<Colon>  _", [4, 0], 3)),
+    ("_constrain", typ "prop' => type => prop'", Mixfix ("_ \<Colon> _", [4, 0], 3))]
 end
 *}
 

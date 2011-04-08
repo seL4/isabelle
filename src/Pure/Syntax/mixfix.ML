@@ -88,7 +88,8 @@ fun mixfixT (Binder _) = (dummyT --> dummyT) --> dummyT
 
 (* syn_ext_types *)
 
-fun make_type n = replicate n Syntax_Ext.typeT ---> Syntax_Ext.typeT;
+val typeT = Type ("type", []);
+fun make_type n = replicate n typeT ---> typeT;
 
 fun syn_ext_types type_decls =
   let
@@ -150,8 +151,7 @@ fun syn_ext_consts is_logtype const_decls =
       |> map (Syntax_Ext.stamp_trfun binder_stamp o
           apsnd (K o Syntax_Trans.non_typed_tr') o Syntax_Trans.mk_binder_tr' o swap);
   in
-    Syntax_Ext.syn_ext' true is_logtype
-      mfix xconsts ([], binder_trs, binder_trs', []) ([], [])
+    Syntax_Ext.syn_ext' is_logtype mfix xconsts ([], binder_trs, binder_trs', []) ([], [])
   end;
 
 end;

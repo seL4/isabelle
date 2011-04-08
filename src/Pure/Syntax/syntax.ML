@@ -155,7 +155,7 @@ val var = Lexicon.var;
 
 (* configuration options *)
 
-val root = Config.string (Config.declare "syntax_root" (K (Config.String Syntax_Ext.any)));
+val root = Config.string (Config.declare "syntax_root" (K (Config.String "any")));
 
 val positions_raw = Config.declare "syntax_positions" (fn _ => Config.Bool true);
 val positions = Config.bool positions_raw;
@@ -602,10 +602,10 @@ fun merge_syntaxes (Syntax (tabs1, _)) (Syntax (tabs2, _)) =
 val basic_syntax = update_syntax mode_default Syntax_Ext.pure_ext empty_syntax;
 
 val basic_nonterms =
-  (Lexicon.terminals @ [Syntax_Ext.logic, "type", "types", "sort", "classes",
-    Syntax_Ext.args, Syntax_Ext.cargs, "pttrn", "pttrns", "idt", "idts", "aprop",
-    "asms", Syntax_Ext.any, Syntax_Ext.sprop, "num_const", "float_const", "index",
-    "struct", "id_position", "longid_position", "type_name", "class_name"]);
+  (Lexicon.terminals @ ["logic", "type", "types", "sort", "classes",
+    "args", "cargs", "pttrn", "pttrns", "idt", "idts", "aprop", "asms",
+    "any", "prop'", "num_const", "float_const", "index", "struct",
+    "id_position", "longid_position", "type_name", "class_name"]);
 
 
 
