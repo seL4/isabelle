@@ -97,7 +97,7 @@ fun syn_ext_types type_decls =
 
     fun mfix_of (_, _, NoSyn) = NONE
       | mfix_of (t, ty, Mixfix (sy, ps, p)) = SOME (Syntax_Ext.Mfix (sy, ty, t, ps, p))
-      | mfix_of (t, ty, Delimfix sy) = SOME (Syntax_Ext.Mfix (sy, ty, t, [], Syntax_Ext.max_pri))
+      | mfix_of (t, ty, Delimfix sy) = SOME (Syntax_Ext.Mfix (sy, ty, t, [], 1000))
       | mfix_of (t, ty, Infix (sy, p)) = SOME (mk_infix sy ty t (p + 1) (p + 1) p)
       | mfix_of (t, ty, Infixl (sy, p)) = SOME (mk_infix sy ty t p (p + 1) p)
       | mfix_of (t, ty, Infixr (sy, p)) = SOME (mk_infix sy ty t (p + 1) p p)
@@ -122,7 +122,7 @@ val binder_name = suffix "_binder";
 fun syn_ext_consts is_logtype const_decls =
   let
     fun mk_infix sy ty c p1 p2 p3 =
-      [Syntax_Ext.Mfix ("op " ^ sy, ty, c, [], Syntax_Ext.max_pri),
+      [Syntax_Ext.Mfix ("op " ^ sy, ty, c, [], 1000),
        Syntax_Ext.Mfix ("(_ " ^ sy ^ "/ _)", ty, c, [p1, p2], p3)];
 
     fun binder_typ _ (Type ("fun", [Type ("fun", [_, ty2]), ty3])) =
@@ -131,7 +131,7 @@ fun syn_ext_consts is_logtype const_decls =
 
     fun mfix_of (_, _, NoSyn) = []
       | mfix_of (c, ty, Mixfix (sy, ps, p)) = [Syntax_Ext.Mfix (sy, ty, c, ps, p)]
-      | mfix_of (c, ty, Delimfix sy) = [Syntax_Ext.Mfix (sy, ty, c, [], Syntax_Ext.max_pri)]
+      | mfix_of (c, ty, Delimfix sy) = [Syntax_Ext.Mfix (sy, ty, c, [], 1000)]
       | mfix_of (c, ty, Infix (sy, p)) = mk_infix sy ty c (p + 1) (p + 1) p
       | mfix_of (c, ty, Infixl (sy, p)) = mk_infix sy ty c p (p + 1) p
       | mfix_of (c, ty, Infixr (sy, p)) = mk_infix sy ty c (p + 1) p p

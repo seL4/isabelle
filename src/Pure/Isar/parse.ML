@@ -272,7 +272,7 @@ val type_args_constrained = type_arguments (type_ident -- Scan.option ($$$ "::" 
 
 val mfix = string --
   !!! (Scan.optional ($$$ "[" |-- !!! (list nat --| $$$ "]")) [] --
-    Scan.optional nat Syntax.max_pri) >> (Mixfix o triple2);
+    Scan.optional nat 1000) >> (Mixfix o triple2);
 
 val infx = $$$ "infix" |-- !!! (string -- nat >> Infix);
 val infxl = $$$ "infixl" |-- !!! (string -- nat >> Infixl);

@@ -7,7 +7,6 @@ Syntax extension.
 signature SYNTAX_EXT =
 sig
   val dddot_indexname: indexname
-  val max_pri: int
   datatype mfix = Mfix of string * typ * string * int list * int
   val err_in_mfix: string -> mfix -> 'a
   val typ_to_nonterm: typ -> string
@@ -107,7 +106,6 @@ val index = Argument ("index", 1000);
 
 datatype xprod = XProd of string * xsymb list * string * int;
 
-val max_pri = 1000;   (*maximum legal priority*)
 val chain_pri = ~1;   (*dummy for chain productions*)
 
 fun delims_of xprods =
@@ -195,7 +193,7 @@ end;
 fun mfix_to_xprod is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) =
   let
     fun check_pri p =
-      if p >= 0 andalso p <= max_pri then ()
+      if p >= 0 andalso p <= 1000 then ()
       else err_in_mfix ("Precedence out of range: " ^ string_of_int p) mfix;
 
     fun blocks_ok [] 0 = true

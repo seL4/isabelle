@@ -7,7 +7,6 @@ Standard Isabelle syntax, based on arbitrary context-free grammars
 
 signature SYNTAX =
 sig
-  val max_pri: int
   val const: string -> term
   val free: string -> term
   val var: indexname -> term
@@ -143,8 +142,6 @@ end;
 
 structure Syntax: SYNTAX =
 struct
-
-val max_pri = Syntax_Ext.max_pri;
 
 val const = Lexicon.const;
 val free = Lexicon.free;

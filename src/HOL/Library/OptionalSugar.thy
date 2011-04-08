@@ -68,10 +68,10 @@ let
   val classesT = Type ("classes", []); (*FIXME*)
 in
   Sign.add_modesyntax_i (Symbol.xsymbolsN, false) [
-    ("_topsort", sortT, Mixfix ("\<top>", [], Syntax.max_pri)),
-    ("_sort", classesT --> sortT, Mixfix ("'(_')", [], Syntax.max_pri)),
-    ("_classes", Lexicon.idT --> classesT --> classesT, Mixfix ("_ \<inter> _", [], Syntax.max_pri)),
-    ("_classes", Lexicon.longidT --> classesT --> classesT, Mixfix ("_ \<inter> _", [], Syntax.max_pri))
+    ("_topsort", sortT, Mixfix ("\<top>", [], 1000)),
+    ("_sort", classesT --> sortT, Mixfix ("'(_')", [], 1000)),
+    ("_classes", Lexicon.idT --> classesT --> classesT, Mixfix ("_ \<inter> _", [], 1000)),
+    ("_classes", Lexicon.longidT --> classesT --> classesT, Mixfix ("_ \<inter> _", [], 1000))
   ]
 end
 *}

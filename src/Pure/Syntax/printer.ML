@@ -98,7 +98,7 @@ fun xprod_to_fmt (Syntax_Ext.XProd (_, _, "", _)) = NONE
       let
         fun arg (s, p) =
           (if s = "type" then TypArg else Arg)
-          (if Lexicon.is_terminal s then Syntax_Ext.max_pri else p);
+          (if Lexicon.is_terminal s then 1000 else p);
 
         fun xsyms_to_syms (Syntax_Ext.Delim s :: xsyms) =
               apfst (cons (String s)) (xsyms_to_syms xsyms)
@@ -210,10 +210,8 @@ fun pretty type_mode curried ctxt tabs trf token_trans markup_extern ast0 =
             val T = if i < 0 then Pretty.fbrk else Pretty.brk i;
           in (T :: Ts, args') end
 
-    and parT m (pr, args, p, p': int) =
-      #1 (synT m
-          (if p > p' orelse
-            (show_brackets andalso p' <> Syntax_Ext.max_pri andalso not (is_chain pr))
+    and parT m (pr, args, p, p': int) = #1 (synT m
+          (if p > p' orelse (show_brackets andalso p' <> 1000 andalso not (is_chain pr))
            then [Block (1, Space "(" :: pr @ [Space ")"])]
            else pr, args))
 
