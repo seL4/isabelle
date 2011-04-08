@@ -638,8 +638,8 @@ translations
 
 print_translation {*
 let
-  val All_binder = Syntax.binder_name @{const_syntax All};
-  val Ex_binder = Syntax.binder_name @{const_syntax Ex};
+  val All_binder = Mixfix.binder_name @{const_syntax All};
+  val Ex_binder = Mixfix.binder_name @{const_syntax Ex};
   val impl = @{const_syntax HOL.implies};
   val conj = @{const_syntax HOL.conj};
   val less = @{const_syntax less};

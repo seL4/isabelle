@@ -915,7 +915,7 @@ end;
 (* variables *)
 
 fun declare_var (x, opt_T, mx) ctxt =
-  let val T = (case opt_T of SOME T => T | NONE => Syntax.mixfixT mx)
+  let val T = (case opt_T of SOME T => T | NONE => Mixfix.mixfixT mx)
   in ((x, T, mx), ctxt |> Variable.declare_constraints (Free (x, T))) end;
 
 local
@@ -978,7 +978,7 @@ end;
 local
 
 fun type_syntax (Type (c, args), mx) =
-      SOME (Local_Syntax.Type, (Syntax.mark_type c, Syntax.make_type (length args), mx))
+      SOME (Local_Syntax.Type, (Syntax.mark_type c, Mixfix.make_type (length args), mx))
   | type_syntax _ = NONE;
 
 fun const_syntax _ (Free (x, T), mx) = SOME (Local_Syntax.Fixed, (x, T, mx))

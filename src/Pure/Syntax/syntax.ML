@@ -7,7 +7,6 @@ Standard Isabelle syntax, based on arbitrary context-free grammars
 
 signature BASIC_SYNTAX =
 sig
-  include MIXFIX0
   include PRINTER0
 end;
 
@@ -15,7 +14,6 @@ signature SYNTAX =
 sig
   include LEXICON0
   include SYN_EXT0
-  include MIXFIX1
   include PRINTER0
   val positions_raw: Config.raw
   val positions: bool Config.T
@@ -725,7 +723,7 @@ val remove_trrules = remove_syntax mode_default o Syn_Ext.syn_ext_rules o check_
 
 (*export parts of internal Syntax structures*)
 val syntax_tokenize = tokenize;
-open Lexicon Syn_Ext Mixfix Printer;
+open Lexicon Syn_Ext Printer;
 val tokenize = syntax_tokenize;
 
 end;
@@ -734,5 +732,4 @@ structure Basic_Syntax: BASIC_SYNTAX = Syntax;
 open Basic_Syntax;
 
 forget_structure "Syn_Ext";
-forget_structure "Mixfix";
 

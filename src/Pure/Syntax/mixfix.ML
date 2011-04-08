@@ -4,7 +4,7 @@
 Mixfix declarations, infixes, binders.
 *)
 
-signature MIXFIX0 =
+signature BASIC_MIXFIX =
 sig
   datatype mixfix =
     NoSyn |
@@ -15,29 +15,22 @@ sig
     Infixr of string * int |
     Binder of string * int * int |
     Structure
-  val binder_name: string -> string
-end;
-
-signature MIXFIX1 =
-sig
-  include MIXFIX0
-  val no_syn: 'a * 'b -> 'a * 'b * mixfix
-  val pretty_mixfix: mixfix -> Pretty.T
-  val mixfix_args: mixfix -> int
-  val mixfixT: mixfix -> typ
-  val make_type: int -> typ
 end;
 
 signature MIXFIX =
 sig
-  include MIXFIX1
+  include BASIC_MIXFIX
+  val pretty_mixfix: mixfix -> Pretty.T
+  val mixfix_args: mixfix -> int
+  val mixfixT: mixfix -> typ
+  val make_type: int -> typ
+  val binder_name: string -> string
   val syn_ext_types: (string * typ * mixfix) list -> Syn_Ext.syn_ext
   val syn_ext_consts: (string -> bool) -> (string * typ * mixfix) list -> Syn_Ext.syn_ext
 end;
 
 structure Mixfix: MIXFIX =
 struct
-
 
 (** mixfix declarations **)
 
@@ -50,8 +43,6 @@ datatype mixfix =
   Infixr of string * int |
   Binder of string * int * int |
   Structure;
-
-fun no_syn (x, y) = (x, y, NoSyn);
 
 
 (* pretty_mixfix *)
@@ -164,3 +155,7 @@ fun syn_ext_consts is_logtype const_decls =
   end;
 
 end;
+
+structure Basic_Mixfix: BASIC_MIXFIX = Mixfix;
+open Basic_Mixfix;
+

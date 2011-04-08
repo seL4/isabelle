@@ -566,7 +566,7 @@ val write = gen_write (K I);
 
 val write_cmd =
   gen_write (fn ctxt => fn (c, mx) =>
-    (ProofContext.read_const ctxt false (Syntax.mixfixT mx) c, mx));
+    (ProofContext.read_const ctxt false (Mixfix.mixfixT mx) c, mx));
 
 end;
 

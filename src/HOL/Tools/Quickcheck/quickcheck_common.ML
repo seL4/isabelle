@@ -47,10 +47,9 @@ fun define_functions (mk_equations, termination_tac) prfx argnames names Ts =
       val eqs_t = mk_equations (map2 (fn name => fn T => Free (name, T)) names Ts)
     in
       Function.add_function
-        (map (fn (name, T) =>
-            Syntax.no_syn (Binding.conceal (Binding.name name), SOME T))
-              (names ~~ Ts))
-          (map (pair (apfst Binding.conceal Attrib.empty_binding)) eqs_t)
+        (map (fn (name, T) => (Binding.conceal (Binding.name name), SOME T, NoSyn))
+          (names ~~ Ts))
+        (map (pair (apfst Binding.conceal Attrib.empty_binding)) eqs_t)
         Function_Common.default_config pat_completeness_auto
       #> snd
       #> Local_Theory.restore

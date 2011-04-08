@@ -42,7 +42,7 @@ fun check_mixfix ctxt (b, extra_tfrees) mx =
       ("Additional type variable(s) in specification of " ^ Binding.str_of b ^ ": " ^
         commas (map (Syntax.string_of_typ ctxt o TFree) (sort_wrt #1 extra_tfrees)) ^
         (if mx = NoSyn then ""
-         else "\nDropping mixfix syntax " ^ Pretty.string_of (Syntax.pretty_mixfix mx)));
+         else "\nDropping mixfix syntax " ^ Pretty.string_of (Mixfix.pretty_mixfix mx)));
       NoSyn);
 
 

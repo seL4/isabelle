@@ -334,7 +334,7 @@ val no_vars = no_variables "schematic" Term.add_vars Term.add_tvars Var TVar;
 fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
   let
     fun type_syntax (b, n, mx) =
-      (Syntax.mark_type (Name_Space.full_name naming b), Syntax.make_type n, mx);
+      (Syntax.mark_type (Name_Space.full_name naming b), Mixfix.make_type n, mx);
     val syn' = Syntax.update_type_gram true Syntax.mode_default (map type_syntax types) syn;
     val tsig' = fold (fn (a, n, _) => Type.add_type naming (a, n)) types tsig;
   in (naming, syn', tsig', consts) end);
@@ -373,7 +373,7 @@ val del_modesyntax_i = gen_syntax (Syntax.update_const_gram false) (K I);
 fun type_notation add mode args =
   let
     fun type_syntax (Type (c, args), mx) =
-          SOME (Syntax.mark_type c, Syntax.make_type (length args), mx)
+          SOME (Syntax.mark_type c, Mixfix.make_type (length args), mx)
       | type_syntax _ = NONE;
   in map_syn (Syntax.update_type_gram add mode (map_filter type_syntax args)) end;
 
