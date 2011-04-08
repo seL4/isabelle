@@ -15018,3 +15018,64 @@ decl f4 :: (-> S2 S1)
 #36 := [asserted]: #16
 [mp #36 #70]: false
 unsat
+1953a39a3cc38daf2fde4846aa1d5cbc2ff95785 60 0
+#2 := false
+#8 := 0::Int
+decl ?v1!0 :: Int
+#67 := ?v1!0
+#70 := (<= ?v1!0 0::Int)
+#63 := (not #70)
+#11 := 1::Int
+#68 := (>= ?v1!0 1::Int)
+#69 := (not #68)
+#79 := (or #69 #63)
+#82 := (not #79)
+#64 := (or #63 #69)
+#71 := (not #64)
+#83 := (iff #71 #82)
+#80 := (iff #64 #79)
+#81 := [rewrite]: #80
+#84 := [monotonicity #81]: #83
+#9 := (:var 0 Int)
+#48 := (>= #9 1::Int)
+#46 := (not #48)
+#42 := (<= #9 0::Int)
+#43 := (not #42)
+#50 := (or #43 #46)
+#53 := (forall (vars (?v1 Int)) #50)
+#56 := (not #53)
+#72 := (~ #56 #71)
+#73 := [sk]: #72
+#12 := (< #9 1::Int)
+#10 := (< 0::Int #9)
+#13 := (or #10 #12)
+#14 := (forall (vars (?v0 Int) (?v1 Int)) #13)
+#15 := (not #14)
+#59 := (iff #15 #56)
+#36 := (forall (vars (?v1 Int)) #13)
+#39 := (not #36)
+#57 := (iff #39 #56)
+#54 := (iff #36 #53)
+#51 := (iff #13 #50)
+#47 := (iff #12 #46)
+#49 := [rewrite]: #47
+#44 := (iff #10 #43)
+#45 := [rewrite]: #44
+#52 := [monotonicity #45 #49]: #51
+#55 := [quant-intro #52]: #54
+#58 := [monotonicity #55]: #57
+#40 := (iff #15 #39)
+#37 := (iff #14 #36)
+#38 := [elim-unused]: #37
+#41 := [monotonicity #38]: #40
+#60 := [trans #41 #58]: #59
+#35 := [asserted]: #15
+#61 := [mp #35 #60]: #56
+#76 := [mp~ #61 #73]: #71
+#77 := [mp #76 #84]: #82
+#85 := [not-or-elim #77]: #70
+#78 := [not-or-elim #77]: #68
+#141 := [th-lemma arith farkas 1 1]: #64
+#142 := [unit-resolution #141 #78]: #63
+[unit-resolution #142 #85]: false
+unsat

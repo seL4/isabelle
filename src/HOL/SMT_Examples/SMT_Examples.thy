@@ -390,10 +390,11 @@ lemma "\<exists>x::int. \<forall>x y. 0 < x \<and> 0 < y \<longrightarrow> (0::i
 
 lemma "\<exists>u::int. \<forall>(x::int) y::real. 0 < x \<and> 0 < y \<longrightarrow> -1 < x" by smt
 
-
 lemma "\<exists>x::int. (\<forall>y. y \<ge> x \<longrightarrow> y > 0) \<longrightarrow> x > 0" by smt
 
 lemma "\<forall>x::int. SMT.trigger [[SMT.pat x]] (x < a \<longrightarrow> 2 * x < 2 * a)" by smt
+
+lemma "\<forall>(a::int) b::int. 0 < b \<or> b < 1" by smt
 
 
 subsection {* Non-linear arithmetic over integers and reals *}

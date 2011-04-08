@@ -564,19 +564,19 @@ fun push_quant ctxt = Thm o try_apply ctxt [] [
 
 (* |- (ALL x1 ... xn y1 ... yn. P x1 ... xn) = (ALL x1 ... xn. P x1 ... xn) *)
 local
-  val elim_all = @{lemma "(ALL x. P) == P" by simp}
-  val elim_ex = @{lemma "(EX x. P) == P" by simp}
+  val elim_all = @{lemma "P = Q ==> (ALL x. P) = Q" by fast}
+  val elim_ex = @{lemma "P = Q ==> (EX x. P) = Q" by fast}
 
-  fun elim_unused_conv ctxt =
-    Conv.params_conv ~1 (K (Conv.arg_conv (Conv.arg1_conv
-      (Conv.rewrs_conv [elim_all, elim_ex])))) ctxt
-
-  fun elim_unused_tac ctxt =
-    REPEAT_ALL_NEW (
-      Tactic.match_tac [@{thm refl}, @{thm iff_allI}, @{thm iff_exI}]
-      ORELSE' CONVERSION (elim_unused_conv ctxt))
+  fun elim_unused_tac i st = (
+    Tactic.match_tac [@{thm refl}]
+    ORELSE' (Tactic.match_tac [elim_all, elim_ex] THEN' elim_unused_tac)
+    ORELSE' (
+      Tactic.match_tac [@{thm iff_allI}, @{thm iff_exI}]
+      THEN' elim_unused_tac)) i st
 in
-fun elim_unused_vars ctxt = Thm o Z3_Proof_Tools.by_tac (elim_unused_tac ctxt)
+
+val elim_unused_vars = Thm o Z3_Proof_Tools.by_tac elim_unused_tac
+
 end
 
 
@@ -781,7 +781,7 @@ local
     | (Z3_Proof_Parser.Quant_Intro, [(p, _)]) => (quant_intro vars p ct, cxp)
     | (Z3_Proof_Parser.Pull_Quant, _) => (pull_quant cx ct, cxp)
     | (Z3_Proof_Parser.Push_Quant, _) => (push_quant cx ct, cxp)
-    | (Z3_Proof_Parser.Elim_Unused_Vars, _) => (elim_unused_vars cx ct, cxp)
+    | (Z3_Proof_Parser.Elim_Unused_Vars, _) => (elim_unused_vars ct, cxp)
     | (Z3_Proof_Parser.Dest_Eq_Res, _) => (dest_eq_res cx ct, cxp)
     | (Z3_Proof_Parser.Quant_Inst, _) => (quant_inst ct, cxp)
     | (Z3_Proof_Parser.Skolemize, _) => skolemize vars ct cx ||> rpair ptab
