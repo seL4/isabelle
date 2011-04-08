@@ -615,12 +615,16 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
       | token_trans "_inner_string" x = SOME (Pretty.mark_str (Markup.inner_string, x))
       | token_trans _ _ = NONE;
 
-    val markup_extern = Lexicon.unmark
-     {case_class = fn x => ([Markup.tclass x], Type.extern_class (ProofContext.tsig_of ctxt) x),
-      case_type = fn x => ([Markup.tycon x], Type.extern_type (ProofContext.tsig_of ctxt) x),
-      case_const = fn x => ([Markup.const x], Consts.extern (ProofContext.consts_of ctxt) x),
-      case_fixed = fn x => free_or_skolem ctxt x,
-      case_default = fn x => ([], x)};
+    fun markup_extern c =
+      (case Syntax.lookup_const syn c of
+        SOME "" => ([], c)
+      | SOME b => markup_extern b
+      | NONE => c |> Lexicon.unmark
+         {case_class = fn x => ([Markup.tclass x], Type.extern_class (ProofContext.tsig_of ctxt) x),
+          case_type = fn x => ([Markup.tycon x], Type.extern_type (ProofContext.tsig_of ctxt) x),
+          case_const = fn x => ([Markup.const x], Consts.extern (ProofContext.consts_of ctxt) x),
+          case_fixed = fn x => free_or_skolem ctxt x,
+          case_default = fn x => ([], x)});
   in
     t_to_ast ctxt (Syntax.print_translation syn) t
     |> Ast.normalize ctxt (Syntax.print_rules syn)
