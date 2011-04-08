@@ -590,7 +590,7 @@ structure Project_Rule = Project_Rule
 
 use "fologic.ML"
 
-lemma thin_refl: "!!X. [|x=x; PROP W|] ==> PROP W" .
+lemma thin_refl: "[|x=x; PROP W|] ==> PROP W" .
 
 use "hypsubstdata.ML"
 setup hypsubst_setup
