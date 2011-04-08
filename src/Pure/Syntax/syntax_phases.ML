@@ -667,6 +667,8 @@ fun const_ast_tr intern ctxt [Ast.Variable c] =
         val Const (c', _) = ProofContext.read_const_proper ctxt false c;
         val d = if intern then Lexicon.mark_const c' else c;
       in Ast.Constant d end
+  | const_ast_tr intern ctxt [Ast.Appl [Ast.Constant "_constrain", x, T]] =
+      Ast.Appl [Ast.Constant "_constrain", const_ast_tr intern ctxt [x], T]
   | const_ast_tr _ _ asts = raise Ast.AST ("const_ast_tr", asts);
 
 
