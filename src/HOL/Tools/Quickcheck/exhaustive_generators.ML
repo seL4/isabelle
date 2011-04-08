@@ -69,10 +69,6 @@ val size = @{term "i :: code_numeral"}
 val size_pred = @{term "(i :: code_numeral) - 1"}
 val size_ge_zero = @{term "(i :: code_numeral) > 0"}
 
-fun test_function T = Free ("f", T --> @{typ "term list option"})
-fun full_test_function T = Free ("f", termifyT T --> @{typ "term list option"})
-fun fast_test_function T = Free ("f", T --> @{typ "unit"})
-
 fun mk_none_continuation (x, y) =
   let
     val (T as Type(@{type_name "option"}, [T'])) = fastype_of x
@@ -98,7 +94,6 @@ val fast_exhaustiveN = "fast_exhaustive";
 fun fast_exhaustiveT T = (T --> @{typ unit})
   --> @{typ code_numeral} --> @{typ unit}
 
-
 fun exhaustiveT T = (T --> @{typ "Code_Evaluation.term list option"})
   --> @{typ code_numeral} --> @{typ "Code_Evaluation.term list option"}
 
@@ -108,13 +103,28 @@ fun full_exhaustiveT T = (termifyT T --> @{typ "Code_Evaluation.term list option
 fun check_allT T = (termifyT T --> @{typ "Code_Evaluation.term list option"})
   --> @{typ "Code_Evaluation.term list option"}
 
-
-fun mk_fast_equations descr vs tycos fast_exhaustives (Ts, Us) =
+fun mk_equation_terms generics (descr, vs, Ts) =
   let
+    val (mk_call, mk_aux_call, mk_consexpr, mk_rhs, test_function, exhaustives) = generics
+    val rhss =
+      Datatype_Aux.interpret_construction descr vs
+        { atyp = mk_call, dtyp = mk_aux_call }
+      |> (map o apfst) Type
+      |> map (fn (T, cs) => map (mk_consexpr T) cs)
+      |> map mk_rhs
+    val lhss = map2 (fn t => fn T => t $ test_function T $ size) exhaustives Ts
+  in
+    map (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhss ~~ rhss)
+  end
+
+fun mk_fast_equations functerms =
+  let
+    fun test_function T = Free ("f", T --> @{typ "unit"})
     fun mk_call T =
       let
         val fast_exhaustive =
-          Const (@{const_name "Quickcheck_Exhaustive.fast_exhaustive_class.fast_exhaustive"}, fast_exhaustiveT T)
+          Const (@{const_name "Quickcheck_Exhaustive.fast_exhaustive_class.fast_exhaustive"},
+            fast_exhaustiveT T)
       in
         (T, fn t => fast_exhaustive $ absdummy (T, t) $ size_pred)
       end
@@ -123,7 +133,7 @@ fun mk_fast_equations descr vs tycos fast_exhaustives (Ts, Us) =
         val T = Type (tyco, Ts)
         val _ = if not (null fTs) then raise FUNCTION_TYPE else ()
       in
-       (T, fn t => nth fast_exhaustives k $ absdummy (T, t) $ size_pred)
+       (T, fn t => nth functerms k $ absdummy (T, t) $ size_pred)
       end
     fun mk_consexpr simpleT (c, xs) =
       let
@@ -131,28 +141,21 @@ fun mk_fast_equations descr vs tycos fast_exhaustives (Ts, Us) =
         val constr = Const (c, Ts ---> simpleT)
         val bounds = map Bound (((length xs) - 1) downto 0)
         val term_bounds = map (fn x => Bound (2 * x)) (((length xs) - 1) downto 0)
-        val start_term = fast_test_function simpleT $ list_comb (constr, bounds)
+        val start_term = test_function simpleT $ list_comb (constr, bounds)
       in fold_rev (fn f => fn t => f t) fns start_term end
-    fun mk_rhs exprs =
-        @{term "If :: bool => unit => unit => unit"}
-            $ size_ge_zero $ (foldr1 mk_unit_let exprs) $ @{term "()"}
-    val rhss =
-      Datatype_Aux.interpret_construction descr vs
-        { atyp = mk_call, dtyp = mk_aux_call }
-      |> (map o apfst) Type
-      |> map (fn (T, cs) => map (mk_consexpr T) cs)
-      |> map mk_rhs
-    val lhss = map2 (fn t => fn T => t $ fast_test_function T $ size) fast_exhaustives (Ts @ Us)
-    val eqs = map (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhss ~~ rhss)
+    fun mk_rhs exprs = @{term "If :: bool => unit => unit => unit"}
+        $ size_ge_zero $ (foldr1 mk_unit_let exprs) $ @{term "()"}
   in
-    eqs
+    mk_equation_terms (mk_call, mk_aux_call, mk_consexpr, mk_rhs, test_function, functerms)
   end
-  
-fun mk_equations descr vs tycos exhaustives (Ts, Us) =
+
+fun mk_equations functerms =
   let
+    fun test_function T = Free ("f", T --> @{typ "term list option"})
     fun mk_call T =
       let
-        val exhaustive = Const (@{const_name "Quickcheck_Exhaustive.exhaustive_class.exhaustive"}, exhaustiveT T)
+        val exhaustive =
+          Const (@{const_name "Quickcheck_Exhaustive.exhaustive_class.exhaustive"}, exhaustiveT T)
       in
         (T, fn t => exhaustive $ absdummy (T, t) $ size_pred)
       end
@@ -161,7 +164,7 @@ fun mk_equations descr vs tycos exhaustives (Ts, Us) =
         val T = Type (tyco, Ts)
         val _ = if not (null fTs) then raise FUNCTION_TYPE else ()
       in
-       (T, fn t => nth exhaustives k $ absdummy (T, t) $ size_pred)
+        (T, fn t => nth functerms k $ absdummy (T, t) $ size_pred)
       end
     fun mk_consexpr simpleT (c, xs) =
       let
@@ -174,23 +177,17 @@ fun mk_equations descr vs tycos exhaustives (Ts, Us) =
     fun mk_rhs exprs =
         @{term "If :: bool => term list option => term list option => term list option"}
             $ size_ge_zero $ (foldr1 mk_none_continuation exprs) $ @{term "None :: term list option"}
-    val rhss =
-      Datatype_Aux.interpret_construction descr vs
-        { atyp = mk_call, dtyp = mk_aux_call }
-      |> (map o apfst) Type
-      |> map (fn (T, cs) => map (mk_consexpr T) cs)
-      |> map mk_rhs
-    val lhss = map2 (fn t => fn T => t $ test_function T $ size) exhaustives (Ts @ Us)
-    val eqs = map (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhss ~~ rhss)
   in
-    eqs
+    mk_equation_terms (mk_call, mk_aux_call, mk_consexpr, mk_rhs, test_function, functerms)
   end
     
-fun mk_full_equations descr vs tycos full_exhaustives (Ts, Us) =
+fun mk_full_equations functerms =
   let
+    fun test_function T = Free ("f", termifyT T --> @{typ "term list option"})
     fun mk_call T =
       let
-        val full_exhaustive = Const (@{const_name "Quickcheck_Exhaustive.exhaustive_class.full_exhaustive"}, full_exhaustiveT T)
+        val full_exhaustive =
+          Const (@{const_name "Quickcheck_Exhaustive.exhaustive_class.full_exhaustive"}, full_exhaustiveT T)
       in
         (T, (fn t => full_exhaustive $
           (HOLogic.split_const (T, @{typ "unit => Code_Evaluation.term"}, @{typ "Code_Evaluation.term list option"})
@@ -201,7 +198,7 @@ fun mk_full_equations descr vs tycos full_exhaustives (Ts, Us) =
         val T = Type (tyco, Ts)
         val _ = if not (null fTs) then raise FUNCTION_TYPE else ()
       in
-       (T, (fn t => nth full_exhaustives k $
+        (T, (fn t => nth functerms k $
           (HOLogic.split_const (T, @{typ "unit => Code_Evaluation.term"}, @{typ "Code_Evaluation.term list option"})
             $ absdummy (T, absdummy (@{typ "unit => Code_Evaluation.term"}, t))) $ size_pred))
       end
@@ -215,25 +212,17 @@ fun mk_full_equations descr vs tycos full_exhaustives (Ts, Us) =
         val Eval_Const = Const ("Code_Evaluation.Const", HOLogic.literalT --> @{typ typerep} --> HOLogic.termT)
         val term = fold (fn u => fn t => Eval_App $ t $ (u $ @{term "()"}))
           bounds (Eval_Const $ HOLogic.mk_literal c $ HOLogic.mk_typerep (Ts ---> simpleT))
-        val start_term = full_test_function simpleT $ 
+        val start_term = test_function simpleT $ 
         (HOLogic.pair_const simpleT @{typ "unit => Code_Evaluation.term"}
           $ (list_comb (constr, bounds)) $ absdummy (@{typ unit}, term))
       in fold_rev (fn f => fn t => f t) fns start_term end
     fun mk_rhs exprs =
         @{term "If :: bool => term list option => term list option => term list option"}
             $ size_ge_zero $ (foldr1 mk_none_continuation exprs) $ @{term "None :: term list option"}
-    val rhss =
-      Datatype_Aux.interpret_construction descr vs
-        { atyp = mk_call, dtyp = mk_aux_call }
-      |> (map o apfst) Type
-      |> map (fn (T, cs) => map (mk_consexpr T) cs)
-      |> map mk_rhs
-    val lhss = map2 (fn t => fn T => t $ full_test_function T $ size) full_exhaustives (Ts @ Us);
-    val eqs = map (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhss ~~ rhss)
   in
-    eqs
+    mk_equation_terms (mk_call, mk_aux_call, mk_consexpr, mk_rhs, test_function, functerms)
   end
-
+  
 (* foundational definition with the function package *)
 
 val less_int_pred = @{lemma "i > 0 ==> Code_Numeral.nat_of ((i :: code_numeral) - 1) < Code_Numeral.nat_of i" by auto}
@@ -266,11 +255,10 @@ fun instantiate_exhaustive_datatype config descr vs tycos prfx (names, auxnames)
     thy
     |> Class.instantiation (tycos, vs, @{sort exhaustive})
     |> Quickcheck_Common.define_functions
-        (fn exhaustives => mk_equations descr vs tycos exhaustives (Ts, Us), SOME termination_tac)
+        (fn functerms => mk_equations functerms (descr, vs, Ts @ Us), SOME termination_tac)
         prfx ["f", "i"] exhaustivesN (map exhaustiveT (Ts @ Us))
     |> Quickcheck_Common.define_functions
-        (fn full_exhaustives => mk_full_equations descr vs tycos full_exhaustives (Ts, Us),
-        SOME termination_tac)
+        (fn functerms => mk_full_equations functerms (descr, vs, Ts @ Us), SOME termination_tac)
         prfx ["f", "i"] full_exhaustivesN (map full_exhaustiveT (Ts @ Us))
     |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
   end handle FUNCTION_TYPE =>
@@ -286,7 +274,7 @@ fun instantiate_fast_exhaustive_datatype config descr vs tycos prfx (names, auxn
     thy
     |> Class.instantiation (tycos, vs, @{sort fast_exhaustive})
     |> Quickcheck_Common.define_functions
-        (fn exhaustives => mk_fast_equations descr vs tycos exhaustives (Ts, Us), SOME termination_tac)
+        (fn functerms => mk_fast_equations functerms (descr, vs, Ts @ Us), SOME termination_tac)
         prfx ["f", "i"] fast_exhaustivesN (map fast_exhaustiveT (Ts @ Us))
     |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
   end handle FUNCTION_TYPE =>
@@ -300,8 +288,9 @@ val bounded_forallN = "bounded_forall";
 
 fun bounded_forallT T = (T --> @{typ bool}) --> @{typ code_numeral} --> @{typ bool}
 
-fun mk_bounded_forall_equations descr vs tycos bounded_foralls (Ts, Us) =
+fun mk_bounded_forall_equations functerms =
   let
+    fun test_function T = Free ("P", T --> @{typ bool})
     fun mk_call T =
       let
         val bounded_forall =
@@ -315,29 +304,20 @@ fun mk_bounded_forall_equations descr vs tycos bounded_foralls (Ts, Us) =
         val T = Type (tyco, Ts)
         val _ = if not (null fTs) then raise FUNCTION_TYPE else ()
       in
-        (T, (fn t => nth bounded_foralls k $ absdummy (T, t) $ size_pred))
+        (T, (fn t => nth functerms k $ absdummy (T, t) $ size_pred))
       end
     fun mk_consexpr simpleT (c, xs) =
       let
         val (Ts, fns) = split_list xs
         val constr = Const (c, Ts ---> simpleT)
         val bounds = map Bound (((length xs) - 1) downto 0)
-        val start_term = Free ("P", simpleT --> @{typ bool}) $ list_comb (constr, bounds)
+        val start_term = test_function simpleT $ list_comb (constr, bounds)
       in fold_rev (fn f => fn t => f t) fns start_term end
     fun mk_rhs exprs =
       @{term "If :: bool => bool => bool => bool"} $ size_ge_zero $
         (foldr1 HOLogic.mk_conj exprs) $ @{term "True"}
-    val rhss =
-      Datatype_Aux.interpret_construction descr vs
-        { atyp = mk_call, dtyp = mk_aux_call }
-      |> (map o apfst) Type
-      |> map (fn (T, cs) => map (mk_consexpr T) cs)
-      |> map mk_rhs
-    val lhss =
-      map2 (fn t => fn T => t $ Free ("P", T --> @{typ bool}) $ size) bounded_foralls (Ts @ Us)
-    val eqs = map (HOLogic.mk_Trueprop o HOLogic.mk_eq) (lhss ~~ rhss)
   in
-    eqs
+    mk_equation_terms (mk_call, mk_aux_call, mk_consexpr, mk_rhs, test_function, functerms)
   end
 
 (* creating the bounded_forall instances *)
@@ -350,8 +330,7 @@ fun instantiate_bounded_forall_datatype config descr vs tycos prfx (names, auxna
     thy
     |> Class.instantiation (tycos, vs, @{sort bounded_forall})
     |> Quickcheck_Common.define_functions
-        (fn bounded_foralls => 
-          mk_bounded_forall_equations descr vs tycos bounded_foralls (Ts, Us), NONE)
+        (fn functerms => mk_bounded_forall_equations functerms (descr, vs, Ts @ Us), NONE)
         prfx ["P", "i"] bounded_forallsN (map bounded_forallT (Ts @ Us))
     |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
   end handle FUNCTION_TYPE =>
