@@ -468,7 +468,7 @@ fun primitive_arity arg thy = thy |> map_tsig (Type.add_arity (Syntax.pp_global 
 
 local
 
-fun mk trs = map Syntax.mk_trfun trs;
+fun mk trs = map Syntax_Ext.mk_trfun trs;
 
 fun gen_add_trfuns ext non_typed (atrs, trs, tr's, atr's) =
   map_syn (ext (mk atrs, mk trs, mk (map (apsnd non_typed) tr's), mk atr's));

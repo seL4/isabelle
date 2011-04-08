@@ -122,7 +122,7 @@ use "Syntax/term_position.ML";
 use "Syntax/lexicon.ML";
 use "Syntax/simple_syntax.ML";
 use "Syntax/ast.ML";
-use "Syntax/syn_ext.ML";
+use "Syntax/syntax_ext.ML";
 use "Syntax/parser.ML";
 use "Syntax/syntax_trans.ML";
 use "Syntax/mixfix.ML";

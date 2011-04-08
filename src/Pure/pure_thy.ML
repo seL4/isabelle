@@ -19,8 +19,8 @@ val prop = Simple_Syntax.read_prop;
 val tycon = Syntax.mark_type;
 val const = Syntax.mark_const;
 
-val typeT = Syntax.typeT;
-val spropT = Syntax.spropT;
+val typeT = Syntax_Ext.typeT;
+val spropT = Syntax_Ext.spropT;
 
 
 (* application syntax variants *)

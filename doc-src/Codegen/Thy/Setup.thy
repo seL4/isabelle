@@ -10,8 +10,8 @@ begin
 setup {*
 let
   val typ = Simple_Syntax.read_typ;
-  val typeT = Syntax.typeT;
-  val spropT = Syntax.spropT;
+  val typeT = Syntax_Ext.typeT;
+  val spropT = Syntax_Ext.spropT;
 in
   Sign.del_modesyntax_i (Symbol.xsymbolsN, false) [
     ("_constrain", typ "logic => type => logic", Mixfix ("_\<Colon>_", [4, 0], 3)),

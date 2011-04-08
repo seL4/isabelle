@@ -330,7 +330,7 @@ fun parse_term is_prop ctxt text =
     val (markup, kind, root, constrain) =
       if is_prop
       then (Markup.prop, "proposition", "prop", Type.constraint propT)
-      else (Markup.term, "term", Config.get ctxt Syntax.default_root, I);
+      else (Markup.term, "term", Config.get ctxt Syntax.root, I);
     val (syms, pos) = Syntax.parse_token ctxt markup text;
   in
     let
@@ -491,7 +491,7 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
     val {structs, fixes} = idents;
 
     fun mark_atoms ((t as Const (c, _)) $ u) =
-          if member (op =) Syntax.token_markers c
+          if member (op =) Syntax_Ext.token_markers c
           then t $ u else mark_atoms t $ mark_atoms u
       | mark_atoms (t $ u) = mark_atoms t $ mark_atoms u
       | mark_atoms (Abs (x, T, t)) = Abs (x, T, mark_atoms t)
@@ -507,7 +507,7 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
             else Lexicon.const "_free" $ t
           end
       | mark_atoms (t as Var (xi, T)) =
-          if xi = Syntax.dddot_indexname then Const ("_DDDOT", T)
+          if xi = Syntax_Ext.dddot_indexname then Const ("_DDDOT", T)
           else Lexicon.const "_var" $ t
       | mark_atoms a = a;
 

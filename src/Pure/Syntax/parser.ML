@@ -8,7 +8,7 @@ signature PARSER =
 sig
   type gram
   val empty_gram: gram
-  val extend_gram: Syn_Ext.xprod list -> gram -> gram
+  val extend_gram: Syntax_Ext.xprod list -> gram -> gram
   val merge_gram: gram * gram -> gram
   val pretty_gram: gram -> Pretty.T list
   datatype parsetree =
@@ -468,10 +468,10 @@ fun extend_gram [] gram = gram
           delimiters and predefined terms are stored as terminals,
           nonterminals are converted to integer tags*)
         fun symb_of [] nt_count tags result = (nt_count, tags, rev result)
-          | symb_of (Syn_Ext.Delim s :: ss) nt_count tags result =
+          | symb_of (Syntax_Ext.Delim s :: ss) nt_count tags result =
               symb_of ss nt_count tags
                 (Terminal (Lexicon.Token (Lexicon.Literal, s, Position.no_range)) :: result)
-          | symb_of (Syn_Ext.Argument (s, p) :: ss) nt_count tags result =
+          | symb_of (Syntax_Ext.Argument (s, p) :: ss) nt_count tags result =
               let
                 val (nt_count', tags', new_symb) =
                   (case Lexicon.predef_term s of
@@ -485,7 +485,7 @@ fun extend_gram [] gram = gram
         (*Convert list of productions by invoking symb_of for each of them*)
         fun prod_of [] nt_count prod_count tags result =
               (nt_count, prod_count, tags, result)
-          | prod_of (Syn_Ext.XProd (lhs, xsymbs, const, pri) :: ps)
+          | prod_of (Syntax_Ext.XProd (lhs, xsymbs, const, pri) :: ps)
                 nt_count prod_count tags result =
               let
                 val (nt_count', tags', lhs_tag) = get_tag nt_count tags lhs;

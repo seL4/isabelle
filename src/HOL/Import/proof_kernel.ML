@@ -182,7 +182,7 @@ val string_of_mixfix = Pretty.string_of o Mixfix.pretty_mixfix;
 
 fun mk_syn thy c =
   if Syntax.is_identifier c andalso not (Syntax.is_keyword (Sign.syn_of thy) c) then NoSyn
-  else Delimfix (Syntax.escape c)
+  else Delimfix (Syntax_Ext.escape c)
 
 fun quotename c =
   if Syntax.is_identifier c andalso not (Keyword.is_keyword c) then c else quote c

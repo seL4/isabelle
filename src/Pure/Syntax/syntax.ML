@@ -13,8 +13,9 @@ end;
 signature SYNTAX =
 sig
   include LEXICON0
-  include SYN_EXT0
   include PRINTER0
+  val max_pri: int
+  val root: string Config.T
   val positions_raw: Config.raw
   val positions: bool Config.T
   val ambiguity_enabled: bool Config.T
@@ -146,9 +147,14 @@ end;
 structure Syntax: SYNTAX =
 struct
 
+val max_pri = Syntax_Ext.max_pri;
+
+
 (** inner syntax operations **)
 
 (* configuration options *)
+
+val root = Config.string (Config.declare "syntax_root" (K (Config.String Syntax_Ext.any)));
 
 val positions_raw = Config.declare "syntax_positions" (fn _ => Config.Bool true);
 val positions = Config.bool positions_raw;
@@ -403,12 +409,12 @@ fun err_dup_trfun name c =
 
 fun lookup_tr tab c = Option.map fst (Symtab.lookup tab c);
 
-fun remove_trtab trfuns = fold (Symtab.remove Syn_Ext.eq_trfun) trfuns;
+fun remove_trtab trfuns = fold (Symtab.remove Syntax_Ext.eq_trfun) trfuns;
 
 fun update_trtab name trfuns tab = fold Symtab.update_new trfuns (remove_trtab trfuns tab)
   handle Symtab.DUP c => err_dup_trfun name c;
 
-fun merge_trtabs name tab1 tab2 = Symtab.merge Syn_Ext.eq_trfun (tab1, tab2)
+fun merge_trtabs name tab1 tab2 = Symtab.merge Syntax_Ext.eq_trfun (tab1, tab2)
   handle Symtab.DUP c => err_dup_trfun name c;
 
 
@@ -428,9 +434,9 @@ fun apply_ast_tr' tab c ctxt args =
       | app_first (f :: fs) = f ctxt args handle Match => app_first fs;
   in app_first fns end;
 
-fun update_tr'tab trfuns = fold_rev (Symtab.update_list Syn_Ext.eq_trfun) trfuns;
-fun remove_tr'tab trfuns = fold (Symtab.remove_list Syn_Ext.eq_trfun) trfuns;
-fun merge_tr'tabs tab1 tab2 = Symtab.merge_list Syn_Ext.eq_trfun (tab1, tab2);
+fun update_tr'tab trfuns = fold_rev (Symtab.update_list Syntax_Ext.eq_trfun) trfuns;
+fun remove_tr'tab trfuns = fold (Symtab.remove_list Syntax_Ext.eq_trfun) trfuns;
+fun merge_tr'tabs tab1 tab2 = Symtab.merge_list Syntax_Ext.eq_trfun (tab1, tab2);
 
 
 
@@ -450,7 +456,7 @@ fun merge_ruletabs tab1 tab2 = Symtab.merge_list (op =) (tab1, tab2);
 
 datatype syntax =
   Syntax of {
-    input: Syn_Ext.xprod list,
+    input: Syntax_Ext.xprod list,
     lexicon: Scan.lexicon,
     gram: Parser.gram,
     consts: string list,
@@ -508,7 +514,7 @@ fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
   let
     val {input, lexicon, gram, consts = consts1, prmodes, parse_ast_trtab, parse_ruletab,
       parse_trtab, print_trtab, print_ruletab, print_ast_trtab, prtabs} = tabs;
-    val Syn_Ext.Syn_Ext {xprods, consts = consts2, parse_ast_translation,
+    val Syntax_Ext.Syn_Ext {xprods, consts = consts2, parse_ast_translation,
       parse_rules, parse_translation, print_translation, print_rules,
       print_ast_translation} = syn_ext;
     val new_xprods =
@@ -517,7 +523,7 @@ fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
   in
     Syntax
     ({input = new_xprods @ input,
-      lexicon = fold Scan.extend_lexicon (Syn_Ext.delims_of new_xprods) lexicon,
+      lexicon = fold Scan.extend_lexicon (Syntax_Ext.delims_of new_xprods) lexicon,
       gram = Parser.extend_gram new_xprods gram,
       consts = Library.merge (op =) (consts1, filter_out Lexicon.is_marked consts2),
       prmodes = insert (op =) mode prmodes,
@@ -536,7 +542,7 @@ fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
 
 fun remove_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
   let
-    val Syn_Ext.Syn_Ext {xprods, consts = _, parse_ast_translation, parse_rules,
+    val Syntax_Ext.Syn_Ext {xprods, consts = _, parse_ast_translation, parse_rules,
       parse_translation, print_translation, print_rules, print_ast_translation} = syn_ext;
     val {input, lexicon, gram, consts, prmodes, parse_ast_trtab, parse_ruletab,
       parse_trtab, print_trtab, print_ruletab, print_ast_trtab, prtabs} = tabs;
@@ -546,7 +552,7 @@ fun remove_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
   in
     Syntax
     ({input = input',
-      lexicon = if changed then Scan.make_lexicon (Syn_Ext.delims_of input') else lexicon,
+      lexicon = if changed then Scan.make_lexicon (Syntax_Ext.delims_of input') else lexicon,
       gram = if changed then Parser.extend_gram input' Parser.empty_gram else gram,
       consts = consts,
       prmodes = prmodes,
@@ -593,12 +599,12 @@ fun merge_syntaxes (Syntax (tabs1, _)) (Syntax (tabs2, _)) =
 
 (* basic syntax *)
 
-val basic_syntax = update_syntax mode_default Syn_Ext.pure_ext empty_syntax;
+val basic_syntax = update_syntax mode_default Syntax_Ext.pure_ext empty_syntax;
 
 val basic_nonterms =
-  (Lexicon.terminals @ [Syn_Ext.logic, "type", "types", "sort", "classes",
-    Syn_Ext.args, Syn_Ext.cargs, "pttrn", "pttrns", "idt", "idts", "aprop",
-    "asms", Syn_Ext.any, Syn_Ext.sprop, "num_const", "float_const", "index",
+  (Lexicon.terminals @ [Syntax_Ext.logic, "type", "types", "sort", "classes",
+    Syntax_Ext.args, Syntax_Ext.cargs, "pttrn", "pttrns", "idt", "idts", "aprop",
+    "asms", Syntax_Ext.any, Syntax_Ext.sprop, "num_const", "float_const", "index",
     "struct", "id_position", "longid_position", "type_name", "class_name"]);
 
 
@@ -708,8 +714,8 @@ end;
 
 fun ext_syntax f decls = update_syntax mode_default (f decls);
 
-val update_trfuns = ext_syntax Syn_Ext.syn_ext_trfuns;
-val update_advanced_trfuns = ext_syntax Syn_Ext.syn_ext_advanced_trfuns;
+val update_trfuns = ext_syntax Syntax_Ext.syn_ext_trfuns;
+val update_advanced_trfuns = ext_syntax Syntax_Ext.syn_ext_advanced_trfuns;
 
 fun update_type_gram add prmode decls =
   (if add then update_syntax else remove_syntax) prmode (Mixfix.syn_ext_types decls);
@@ -717,19 +723,17 @@ fun update_type_gram add prmode decls =
 fun update_const_gram add is_logtype prmode decls =
   (if add then update_syntax else remove_syntax) prmode (Mixfix.syn_ext_consts is_logtype decls);
 
-val update_trrules = ext_syntax Syn_Ext.syn_ext_rules o check_rules;
-val remove_trrules = remove_syntax mode_default o Syn_Ext.syn_ext_rules o check_rules;
+val update_trrules = ext_syntax Syntax_Ext.syn_ext_rules o check_rules;
+val remove_trrules = remove_syntax mode_default o Syntax_Ext.syn_ext_rules o check_rules;
 
 
 (*export parts of internal Syntax structures*)
 val syntax_tokenize = tokenize;
-open Lexicon Syn_Ext Printer;
+open Lexicon Printer;
 val tokenize = syntax_tokenize;
 
 end;
 
 structure Basic_Syntax: BASIC_SYNTAX = Syntax;
 open Basic_Syntax;
-
-forget_structure "Syn_Ext";
 

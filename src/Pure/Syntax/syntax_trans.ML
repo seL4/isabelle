@@ -185,7 +185,7 @@ fun type_tr [ty] = mk_type ty
 
 (* dddot *)
 
-fun dddot_tr ts = Term.list_comb (Lexicon.var Syn_Ext.dddot_indexname, ts);
+fun dddot_tr ts = Term.list_comb (Lexicon.var Syntax_Ext.dddot_indexname, ts);
 
 
 (* quote / antiquote *)

@@ -61,8 +61,8 @@ fun build_syntax thy mode mixfixes (idents as (structs, _)) =
     val (atrs, trs, trs', atrs') = Syntax_Trans.struct_trfuns structs;
     val local_syntax = thy_syntax
       |> Syntax.update_trfuns
-          (map Syntax.mk_trfun atrs, map Syntax.mk_trfun trs,
-           map Syntax.mk_trfun trs', map Syntax.mk_trfun atrs')
+          (map Syntax_Ext.mk_trfun atrs, map Syntax_Ext.mk_trfun trs,
+           map Syntax_Ext.mk_trfun trs', map Syntax_Ext.mk_trfun atrs')
       |> fold update_gram (AList.coalesce (op =) (rev (map snd mixfixes)));
   in make_syntax (thy_syntax, local_syntax, mode, mixfixes, idents) end;
 
