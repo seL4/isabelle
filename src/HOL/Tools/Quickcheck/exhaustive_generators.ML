@@ -422,7 +422,7 @@ fun mk_full_generator_expr ctxt (t, eval_terms) =
           $ (HOLogic.split_const (T, @{typ "unit => term"}, @{typ "term list option"}) 
             $ lambda free (lambda term_var t))
       else
-        Const (@{const_name "Quickcheck_Exhaustive.exhaustive_class.exhaustive"}, exhaustiveT T)
+        Const (@{const_name "Quickcheck_Exhaustive.full_exhaustive_class.full_exhaustive"}, full_exhaustiveT T)
           $ (HOLogic.split_const (T, @{typ "unit => term"}, @{typ "term list option"})
             $ lambda free (lambda term_var t)) $ depth
     val none_t = @{term "None :: term list option"}
