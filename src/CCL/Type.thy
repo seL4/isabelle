@@ -46,8 +46,10 @@ translations
   "{x: A. B}"   == "CONST Subtype(A, %x. B)"
 
 print_translation {*
- [(@{const_syntax Pi}, dependent_tr' (@{syntax_const "_Pi"}, @{syntax_const "_arrow"})),
-  (@{const_syntax Sigma}, dependent_tr' (@{syntax_const "_Sigma"}, @{syntax_const "_star"}))]
+ [(@{const_syntax Pi},
+    Syntax_Trans.dependent_tr' (@{syntax_const "_Pi"}, @{syntax_const "_arrow"})),
+  (@{const_syntax Sigma},
+    Syntax_Trans.dependent_tr' (@{syntax_const "_Sigma"}, @{syntax_const "_star"}))]
 *}
 
 defs

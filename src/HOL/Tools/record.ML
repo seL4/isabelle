@@ -963,7 +963,7 @@ fun dest_update ctxt c =
 fun field_updates_tr' ctxt (tm as Const (c, _) $ k $ u) =
       (case dest_update ctxt c of
         SOME name =>
-          (case try Syntax.const_abs_tr' k of
+          (case try Syntax_Trans.const_abs_tr' k of
             SOME t =>
               apfst (cons (Syntax.const @{syntax_const "_field_update"} $ Syntax.free name $ t))
                 (field_updates_tr' ctxt u)

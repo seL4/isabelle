@@ -124,7 +124,7 @@ use "Syntax/simple_syntax.ML";
 use "Syntax/ast.ML";
 use "Syntax/syn_ext.ML";
 use "Syntax/parser.ML";
-use "Syntax/syn_trans.ML";
+use "Syntax/syntax_trans.ML";
 use "Syntax/mixfix.ML";
 use "Syntax/printer.ML";
 use "Syntax/syntax.ML";

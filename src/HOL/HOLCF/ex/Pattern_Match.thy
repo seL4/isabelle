@@ -132,7 +132,7 @@ parse_translation {*
 (* rewrite (_pat x) => (succeed) *)
 (* rewrite (_variable x t) => (Abs_cfun (%x. t)) *)
  [(@{syntax_const "_pat"}, fn _ => Syntax.const @{const_syntax Fixrec.succeed}),
-  mk_binder_tr (@{syntax_const "_variable"}, @{const_syntax Abs_cfun})];
+  Syntax_Trans.mk_binder_tr (@{syntax_const "_variable"}, @{const_syntax Abs_cfun})];
 *}
 
 text {* Printing Case expressions *}
@@ -154,7 +154,7 @@ print_translation {*
             val abs =
               case t of Abs abs => abs
                 | _ => ("x", dummyT, incr_boundvars 1 t $ Bound 0);
-            val (x, t') = atomic_abs_tr' abs;
+            val (x, t') = Syntax_Trans.atomic_abs_tr' abs;
           in (Syntax.const @{syntax_const "_variable"} $ x, t') end
     |   dest_LAM _ = raise Match; (* too few vars: abort translation *)
 

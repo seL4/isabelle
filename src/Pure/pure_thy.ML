@@ -128,7 +128,7 @@ val _ = Context.>> (Context.map_theory
     ("_indexvar",   typ "index",                       Delimfix "'\\<index>"),
     ("_struct",     typ "index => logic",              Mixfix ("\\<struct>_", [1000], 1000)),
     ("_update_name", typ "idt",                        NoSyn),
-    (Syntax.constrainAbsC, typ "'a",                   NoSyn),
+    ("_constrainAbs", typ "'a",                       NoSyn),
     ("_constrain_position", typ "id => id_position",   Delimfix "_"),
     ("_constrain_position", typ "longid => longid_position", Delimfix "_"),
     ("_type_constraint_", typ "'a",                    NoSyn),
@@ -169,7 +169,7 @@ val _ = Context.>> (Context.map_theory
   #> Theory.add_deps "all" ("all", typ "('a => prop) => prop") []
   #> Theory.add_deps "TYPE" ("TYPE", typ "'a itself") []
   #> Theory.add_deps Term.dummy_patternN (Term.dummy_patternN, typ "'a") []
-  #> Sign.add_trfuns Syntax.pure_trfuns
+  #> Sign.add_trfuns Syntax_Trans.pure_trfuns
   #> Sign.local_path
   #> Sign.add_consts_i
    [(Binding.name "term", typ "'a => prop", NoSyn),

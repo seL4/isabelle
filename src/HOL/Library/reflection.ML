@@ -125,7 +125,7 @@ fun genreif ctxt raw_eqs t =
              Abs(xn,xT,ta) => (
                let
                  val ([xn],ctxt') = Variable.variant_fixes ["x"] ctxt
-                 val (xn,ta) = variant_abs (xn,xT,ta)
+                 val (xn,ta) = Syntax_Trans.variant_abs (xn,xT,ta)  (* FIXME !? *)
                  val x = Free(xn,xT)
                  val bds = (case AList.lookup Type.could_unify bds (HOLogic.listT xT)
                           of NONE => error "tryabsdecomp: Type not found in the Environement"

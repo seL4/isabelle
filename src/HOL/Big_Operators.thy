@@ -86,10 +86,10 @@ let
         if x <> y then raise Match
         else
           let
-            val x' = Syntax.mark_bound x;
+            val x' = Syntax_Trans.mark_bound x;
             val t' = subst_bound (x', t);
             val P' = subst_bound (x', P);
-          in Syntax.const @{syntax_const "_qsetsum"} $ Syntax.mark_bound x $ P' $ t' end
+          in Syntax.const @{syntax_const "_qsetsum"} $ Syntax_Trans.mark_bound x $ P' $ t' end
     | setsum_tr' _ = raise Match;
 in [(@{const_syntax setsum}, setsum_tr')] end
 *}

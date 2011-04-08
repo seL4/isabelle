@@ -159,8 +159,8 @@ translations
   "SUP x:A. B"   == "CONST SUPR A (%x. B)"
 
 print_translation {*
-  [Syntax.preserve_binder_abs2_tr' @{const_syntax INFI} @{syntax_const "_INF"},
-    Syntax.preserve_binder_abs2_tr' @{const_syntax SUPR} @{syntax_const "_SUP"}]
+  [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax INFI} @{syntax_const "_INF"},
+    Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax SUPR} @{syntax_const "_SUP"}]
 *} -- {* to avoid eta-contraction of body *}
 
 context complete_lattice
@@ -409,7 +409,7 @@ translations
   "INT x:A. B"  == "CONST INTER A (%x. B)"
 
 print_translation {*
-  [Syntax.preserve_binder_abs2_tr' @{const_syntax INTER} @{syntax_const "_INTER"}]
+  [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax INTER} @{syntax_const "_INTER"}]
 *} -- {* to avoid eta-contraction of body *}
 
 lemma INTER_eq_Inter_image:
@@ -612,7 +612,7 @@ text {*
 *}
 
 print_translation {*
-  [Syntax.preserve_binder_abs2_tr' @{const_syntax UNION} @{syntax_const "_UNION"}]
+  [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax UNION} @{syntax_const "_UNION"}]
 *} -- {* to avoid eta-contraction of body *}
 
 lemma UNION_eq_Union_image:

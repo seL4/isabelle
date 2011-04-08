@@ -173,9 +173,9 @@ fun pretty type_mode curried ctxt tabs trf token_trans markup_extern ast0 =
 
     (*default applications: prefix / postfix*)
     val appT =
-      if type_mode then Syn_Trans.tappl_ast_tr'
-      else if curried then Syn_Trans.applC_ast_tr'
-      else Syn_Trans.appl_ast_tr';
+      if type_mode then Syntax_Trans.tappl_ast_tr'
+      else if curried then Syntax_Trans.applC_ast_tr'
+      else Syntax_Trans.appl_ast_tr';
 
     fun synT _ ([], args) = ([], args)
       | synT m (Arg p :: symbs, t :: args) =

@@ -26,9 +26,9 @@ fun eq_idt tu =
     (SOME x, SOME y) => x = y
   | _ => false);
 
-fun mk_abstuple [x] body = Syntax.abs_tr [x, body]
+fun mk_abstuple [x] body = Syntax_Trans.abs_tr [x, body]
   | mk_abstuple (x :: xs) body =
-      Syntax.const @{const_syntax prod_case} $ Syntax.abs_tr [x, mk_abstuple xs body];
+      Syntax.const @{const_syntax prod_case} $ Syntax_Trans.abs_tr [x, mk_abstuple xs body];
 
 fun mk_fbody x e [y] = if eq_idt (x, y) then e else y
   | mk_fbody x e (y :: xs) =

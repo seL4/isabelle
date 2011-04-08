@@ -532,7 +532,7 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
 
     fun ast_of tm =
       (case strip_comb tm of
-        (t as Abs _, ts) => Ast.mk_appl (ast_of (Syn_Trans.abs_tr' ctxt t)) (map ast_of ts)
+        (t as Abs _, ts) => Ast.mk_appl (ast_of (Syntax_Trans.abs_tr' ctxt t)) (map ast_of ts)
       | ((c as Const ("_free", _)), Free (x, T) :: ts) =>
           Ast.mk_appl (constrain (c $ Lexicon.free x) T) (map ast_of ts)
       | ((c as Const ("_var", _)), Var (xi, T) :: ts) =>
@@ -557,7 +557,7 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
       else simple_ast_of ctxt t;
   in
     tm
-    |> Syn_Trans.prop_tr'
+    |> Syntax_Trans.prop_tr'
     |> show_types ? (#1 o prune_typs o rpair [])
     |> mark_atoms
     |> ast_of

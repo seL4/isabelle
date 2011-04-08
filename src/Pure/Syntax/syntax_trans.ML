@@ -1,44 +1,48 @@
-(*  Title:      Pure/Syntax/syn_trans.ML
+(*  Title:      Pure/Syntax/syntax_trans.ML
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
 Syntax translation functions.
 *)
 
-signature SYN_TRANS0 =
+signature BASIC_SYNTAX_TRANS =
 sig
-  val eta_contract_default: bool Unsynchronized.ref
-  val eta_contract_raw: Config.raw
   val eta_contract: bool Config.T
-  val atomic_abs_tr': string * typ * term -> term * term
-  val const_abs_tr': term -> term
+end
+
+signature SYNTAX_TRANS =
+sig
+  include BASIC_SYNTAX_TRANS
+  val no_brackets: unit -> bool
+  val no_type_brackets: unit -> bool
+  val abs_tr: term list -> term
   val mk_binder_tr: string * string -> string * (term list -> term)
-  val mk_binder_tr': string * string -> string * (term list -> term)
-  val preserve_binder_abs_tr': string -> string -> string * (term list -> term)
-  val preserve_binder_abs2_tr': string -> string -> string * (term list -> term)
-  val dependent_tr': string * string -> term list -> term
   val antiquote_tr: string -> term -> term
   val quote_tr: string -> term -> term
   val quote_antiquote_tr: string -> string -> string -> string * (term list -> term)
+  val non_typed_tr': (term list -> term) -> typ -> term list -> term
+  val non_typed_tr'': ('a -> term list -> term) -> 'a -> typ -> term list -> term
+  val tappl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
+  val appl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
+  val applC_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
+  val eta_contract_default: bool Unsynchronized.ref
+  val eta_contract_raw: Config.raw
+  val mark_bound: string -> term
+  val mark_boundT: string * typ -> term
+  val bound_vars: (string * typ) list -> term -> term
+  val abs_tr': Proof.context -> term -> term
+  val atomic_abs_tr': string * typ * term -> term * term
+  val const_abs_tr': term -> term
+  val mk_binder_tr': string * string -> string * (term list -> term)
+  val preserve_binder_abs_tr': string -> string -> string * (term list -> term)
+  val preserve_binder_abs2_tr': string -> string -> string * (term list -> term)
+  val prop_tr': term -> term
+  val variant_abs: string * typ * term -> string * term
+  val variant_abs': string * typ * term -> string * term
+  val dependent_tr': string * string -> term list -> term
   val antiquote_tr': string -> term -> term
   val quote_tr': string -> term -> term
   val quote_antiquote_tr': string -> string -> string -> string * (term list -> term)
   val update_name_tr': term -> term
-  val mark_bound: string -> term
-  val mark_boundT: string * typ -> term
-  val bound_vars: (string * typ) list -> term -> term
-  val variant_abs: string * typ * term -> string * term
-  val variant_abs': string * typ * term -> string * term
-end;
-
-signature SYN_TRANS1 =
-sig
-  include SYN_TRANS0
-  val no_brackets: unit -> bool
-  val no_type_brackets: unit -> bool
-  val non_typed_tr': (term list -> term) -> typ -> term list -> term
-  val non_typed_tr'': ('a -> term list -> term) -> 'a -> typ -> term list -> term
-  val constrainAbsC: string
-  val abs_tr: term list -> term
   val pure_trfuns:
     (string * (Ast.ast list -> Ast.ast)) list *
     (string * (term list -> term)) list *
@@ -51,17 +55,7 @@ sig
     (string * (Ast.ast list -> Ast.ast)) list
 end;
 
-signature SYN_TRANS =
-sig
-  include SYN_TRANS1
-  val tappl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
-  val abs_tr': Proof.context -> term -> term
-  val prop_tr': term -> term
-  val appl_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
-  val applC_ast_tr': Ast.ast * Ast.ast list -> Ast.ast
-end;
-
-structure Syn_Trans: SYN_TRANS =
+structure Syntax_Trans: SYNTAX_TRANS =
 struct
 
 (* print mode *)
@@ -128,8 +122,6 @@ fun idtypdummy_ast_tr [ty] = Ast.Appl [Ast.Constant "_constrain", Ast.Constant "
 fun lambda_ast_tr [pats, body] = Ast.fold_ast_p "_abs" (Ast.unfold_ast "_pttrns" pats, body)
   | lambda_ast_tr asts = raise Ast.AST ("lambda_ast_tr", asts);
 
-val constrainAbsC = "_constrainAbs";
-
 fun absfree_proper (x, T, t) =
   if can Name.dest_internal x
   then error ("Illegal internal variable in abstraction: " ^ quote x)
@@ -137,7 +129,8 @@ fun absfree_proper (x, T, t) =
 
 fun abs_tr [Free (x, T), t] = absfree_proper (x, T, t)
   | abs_tr [Const ("_idtdummy", T), t] = Term.absdummy (T, t)
-  | abs_tr [Const ("_constrain", _) $ x $ tT, t] = Lexicon.const constrainAbsC $ abs_tr [x, t] $ tT
+  | abs_tr [Const ("_constrain", _) $ x $ tT, t] =
+      Lexicon.const "_constrainAbs" $ abs_tr [x, t] $ tT
   | abs_tr ts = raise TERM ("abs_tr", ts);
 
 
@@ -558,3 +551,6 @@ fun struct_trfuns structs =
   ([], [("_struct", struct_tr structs)], [], [("_struct", struct_ast_tr' structs)]);
 
 end;
+
+structure Basic_Syntax_Trans: BASIC_SYNTAX_TRANS = Syntax_Trans;
+open Basic_Syntax_Trans;

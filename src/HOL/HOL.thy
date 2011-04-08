@@ -130,7 +130,7 @@ translations
 
 print_translation {*
   [(@{const_syntax The}, fn [Abs abs] =>
-      let val (x, t) = atomic_abs_tr' abs
+      let val (x, t) = Syntax_Trans.atomic_abs_tr' abs
       in Syntax.const @{syntax_const "_The"} $ x $ t end)]
 *}  -- {* To avoid eta-contraction of body *}
 

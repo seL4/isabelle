@@ -93,9 +93,10 @@ Syntax.strip_positions_ast, or via the syntax constant
 be disabled via the configuration option Syntax.positions, which is
 called "syntax_positions" in Isar attribute syntax.
 
-* Discontinued special treatment of structure Ast: no pervasive
-content, no inclusion in structure Syntax.  INCOMPATIBILITY, refer to
-qualified names like Ast.Constant etc.
+* Discontinued special treatment of various ML structures of inner
+syntax, such as structure Ast: no pervasive content, no inclusion in
+structure Syntax.  INCOMPATIBILITY, refer to qualified names like
+Ast.Constant etc.
 
 * Typed print translation: discontinued show_sorts argument, which is
 already available via context of "advanced" translation.

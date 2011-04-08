@@ -246,7 +246,7 @@ let
 
   fun mk v v' c n P =
     if v = v' andalso not (Term.exists_subterm (fn Free (x, _) => x = v | _ => false) n)
-    then Syntax.const c $ Syntax.mark_bound v' $ n $ P else raise Match;
+    then Syntax.const c $ Syntax_Trans.mark_bound v' $ n $ P else raise Match;
 
   fun tr' q = (q,
         fn [Const (@{syntax_const "_bound"}, _) $ Free (v, Type (T, _)),
@@ -275,7 +275,7 @@ syntax
 
 parse_translation {*
   let
-    val ex_tr = snd (mk_binder_tr ("EX ", @{const_syntax Ex}));
+    val ex_tr = snd (Syntax_Trans.mk_binder_tr ("EX ", @{const_syntax Ex}));
 
     fun nvars (Const (@{syntax_const "_idts"}, _) $ _ $ idts) = nvars idts + 1
       | nvars _ = 1;
@@ -291,13 +291,13 @@ parse_translation {*
 *}
 
 print_translation {*
- [Syntax.preserve_binder_abs2_tr' @{const_syntax Ball} @{syntax_const "_Ball"},
-  Syntax.preserve_binder_abs2_tr' @{const_syntax Bex} @{syntax_const "_Bex"}]
+ [Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax Ball} @{syntax_const "_Ball"},
+  Syntax_Trans.preserve_binder_abs2_tr' @{const_syntax Bex} @{syntax_const "_Bex"}]
 *} -- {* to avoid eta-contraction of body *}
 
 print_translation {*
 let
-  val ex_tr' = snd (mk_binder_tr' (@{const_syntax Ex}, "DUMMY"));
+  val ex_tr' = snd (Syntax_Trans.mk_binder_tr' (@{const_syntax Ex}, "DUMMY"));
 
   fun setcompr_tr' [Abs (abs as (_, _, P))] =
     let
@@ -315,7 +315,7 @@ let
       if check (P, 0) then tr' P
       else
         let
-          val (x as _ $ Free(xN, _), t) = atomic_abs_tr' abs;
+          val (x as _ $ Free(xN, _), t) = Syntax_Trans.atomic_abs_tr' abs;
           val M = Syntax.const @{syntax_const "_Coll"} $ x $ t;
         in
           case t of

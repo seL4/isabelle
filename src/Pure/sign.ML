@@ -477,9 +477,9 @@ fun gen_add_trfunsT ext tr's = map_syn (ext ([], [], mk tr's, []));
 
 in
 
-val add_trfuns = gen_add_trfuns Syntax.update_trfuns Syntax.non_typed_tr';
+val add_trfuns = gen_add_trfuns Syntax.update_trfuns Syntax_Trans.non_typed_tr';
 val add_trfunsT = gen_add_trfunsT Syntax.update_trfuns;
-val add_advanced_trfuns = gen_add_trfuns Syntax.update_advanced_trfuns Syntax.non_typed_tr'';
+val add_advanced_trfuns = gen_add_trfuns Syntax.update_advanced_trfuns Syntax_Trans.non_typed_tr'';
 val add_advanced_trfunsT = gen_add_trfunsT Syntax.update_advanced_trfuns;
 
 end;
