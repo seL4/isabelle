@@ -160,8 +160,8 @@ fun mk_equations functerms =
     val mk_aux_call = gen_mk_aux_call functerms
     val mk_consexpr = gen_mk_consexpr test_function functerms
     fun mk_rhs exprs =
-        @{term "If :: bool => term list option => term list option => term list option"}
-            $ size_ge_zero $ (foldr1 mk_none_continuation exprs) $ @{term "None :: term list option"}
+      @{term "If :: bool => term list option => term list option => term list option"}
+          $ size_ge_zero $ (foldr1 mk_none_continuation exprs) $ @{term "None :: term list option"}
   in
     mk_equation_terms (mk_call, mk_aux_call, mk_consexpr, mk_rhs, test_function, functerms)
   end
@@ -296,20 +296,26 @@ fun instantiate_fast_exhaustive_datatype config descr vs tycos prfx (names, auxn
       "Creation of exhaustive generators failed because the datatype contains a function type";
     thy)
 
+val contains_recursive_type_under_function_types =
+  exists (fn (_, (_, _, cs)) => cs |> exists (snd #> exists (fn dT =>
+    (case Datatype_Aux.strip_dtyp dT of (_ :: _, Datatype.DtRec _) => true | _ => false))))
+    
 fun instantiate_bounded_forall_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
-  let
-    val _ = Datatype_Aux.message config "Creating bounded universal quantifiers...";
-    val bounded_forallsN = map (prefix (bounded_forallN ^ "_")) (names @ auxnames);
-  in
-    thy
-    |> Class.instantiation (tycos, vs, @{sort bounded_forall})
-    |> Quickcheck_Common.define_functions
-        (fn functerms => mk_bounded_forall_equations functerms (descr, vs, Ts @ Us), NONE)
-        prfx ["P", "i"] bounded_forallsN (map bounded_forallT (Ts @ Us))
-    |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
-  end handle FUNCTION_TYPE =>
+  if not (contains_recursive_type_under_function_types descr) then
+    let
+      val _ = Datatype_Aux.message config "Creating bounded universal quantifiers..."
+      val bounded_forallsN = map (prefix (bounded_forallN ^ "_")) (names @ auxnames)
+    in
+      thy
+      |> Class.instantiation (tycos, vs, @{sort bounded_forall})
+      |> Quickcheck_Common.define_functions
+          (fn functerms => mk_bounded_forall_equations functerms (descr, vs, Ts @ Us), NONE)
+          prfx ["P", "i"] bounded_forallsN (map bounded_forallT (Ts @ Us))
+      |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
+    end
+  else
     (Datatype_Aux.message config
-      "Creation of bounded universal quantifiers failed because the datatype contains a function type";
+      "Creation of bounded universal quantifiers failed because the datatype is recursive under a function type";
     thy)
     
 (* building and compiling generator expressions *)
