@@ -111,8 +111,9 @@ sig
   type mode
   val mode_default: mode
   val mode_input: mode
+  val empty_syntax: syntax
   val merge_syntaxes: syntax -> syntax -> syntax
-  val basic_syntax: syntax
+  val token_markers: string list
   val basic_nonterms: string list
   val print_gram: syntax -> unit
   val print_trans: syntax -> unit
@@ -599,7 +600,8 @@ fun merge_syntaxes (Syntax (tabs1, _)) (Syntax (tabs2, _)) =
 
 (* basic syntax *)
 
-val basic_syntax = update_syntax mode_default Syntax_Ext.pure_ext empty_syntax;
+val token_markers =
+  ["_tfree", "_tvar", "_free", "_bound", "_var", "_numeral", "_inner_string"];
 
 val basic_nonterms =
   (Lexicon.terminals @ ["logic", "type", "types", "sort", "classes",

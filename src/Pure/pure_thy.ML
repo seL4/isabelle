@@ -61,8 +61,16 @@ val _ = Context.>> (Context.map_theory
     (Binding.name "itself", 1, NoSyn),
     (Binding.name "dummy", 0, NoSyn)]
   #> Sign.add_nonterminals (map Binding.name Syntax.basic_nonterms)
+  #> Sign.add_syntax_i (map (fn x => (x, typ "'a", NoSyn)) Syntax.token_markers)
   #> Sign.add_syntax_i
-   [("",            typ "tid => type",                 Delimfix "_"),
+   [("",            typ "prop' => prop",               Delimfix "_"),
+    ("",            typ "logic => any",                Delimfix "_"),
+    ("",            typ "prop' => any",                Delimfix "_"),
+    ("",            typ "logic => logic",              Delimfix "'(_')"),
+    ("",            typ "prop' => prop'",              Delimfix "'(_')"),
+    ("_constrain",  typ "logic => type => logic",      Mixfix ("_::_", [4, 0], 3)),
+    ("_constrain",  typ "prop' => type => prop'",      Mixfix ("_::_", [4, 0], 3)),
+    ("",            typ "tid => type",                 Delimfix "_"),
     ("",            typ "tvar => type",                Delimfix "_"),
     ("",            typ "type_name => type",           Delimfix "_"),
     ("_type_name",  typ "id => type_name",             Delimfix "_"),

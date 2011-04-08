@@ -59,8 +59,6 @@ sig
   val stamp_trfun: stamp -> string * 'a -> string * ('a * stamp)
   val mk_trfun: string * 'a -> string * ('a * stamp)
   val eq_trfun: ('a * stamp) * ('a * stamp) -> bool
-  val token_markers: string list
-  val pure_ext: syn_ext
 end;
 
 structure Syntax_Ext: SYNTAX_EXT =
@@ -334,25 +332,5 @@ fun syn_ext_trfuns (atrs, trs, tr's, atr's) =
 fun stamp_trfun s (c, f) = (c, (f, s));
 fun mk_trfun tr = stamp_trfun (stamp ()) tr;
 fun eq_trfun ((_, s1: stamp), (_, s2)) = s1 = s2;
-
-
-(* pure_ext *)
-
-val token_markers =
-  ["_tfree", "_tvar", "_free", "_bound", "_var", "_numeral", "_inner_string"];
-
-val typ = Simple_Syntax.read_typ;
-
-val pure_ext = syn_ext' (K false)
-  [Mfix ("_", typ "prop' => prop", "", [0], 0),
-   Mfix ("_", typ "logic => any", "", [0], 0),
-   Mfix ("_", typ "prop' => any", "", [0], 0),
-   Mfix ("'(_')", typ "logic => logic", "", [0], max_pri),
-   Mfix ("'(_')", typ "prop' => prop'", "", [0], max_pri),
-   Mfix ("_::_", typ "logic => type => logic", "_constrain", [4, 0], 3),
-   Mfix ("_::_", typ "prop' => type => prop'", "_constrain", [4, 0], 3)]
-  token_markers
-  ([], [], [], [])
-  ([], []);
 
 end;
