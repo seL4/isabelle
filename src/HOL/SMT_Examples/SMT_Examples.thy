@@ -469,6 +469,7 @@ lemma
   "f (\<forall>x. g x) \<Longrightarrow> True"
   by smt+
 
+lemma True using let_rsp by smt
 
 lemma "map (\<lambda>i::nat. i + 1) [0, 1] = [1, 2]" by (smt map.simps)
 

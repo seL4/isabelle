@@ -168,17 +168,17 @@ fun collect_datatypes_and_records (tr_context, ctxt) ts =
 (** eta-expand quantifiers, let expressions and built-ins *)
 
 local
-  fun eta T t = Abs (Name.uu, T, Term.incr_boundvars 1 t $ Bound 0)
+  fun eta f T t = Abs (Name.uu, T, f (Term.incr_boundvars 1 t $ Bound 0))
 
-  fun exp T = eta (Term.domain_type (Term.domain_type T))
+  fun exp f T = eta f (Term.domain_type (Term.domain_type T))
 
   fun exp2 T q =
     let val U = Term.domain_type T
-    in Abs (Name.uu, U, q $ eta (Term.domain_type U) (Bound 0)) end
+    in Abs (Name.uu, U, q $ eta I (Term.domain_type U) (Bound 0)) end
 
   fun exp2' T l =
     let val (U1, U2) = Term.dest_funT T ||> Term.domain_type
-    in Abs (Name.uu, U1, eta U2 (l $ Bound 0)) end
+    in Abs (Name.uu, U1, eta I U2 (l $ Bound 0)) end
 
   fun expf k i T t =
     let val Ts = drop i (fst (SMT_Utils.dest_funT k T))
@@ -189,7 +189,7 @@ local
     end
 in
 
-fun eta_expand ctxt funcs =
+fun eta_expand ctxt is_fol funcs =
   let
     fun exp_func t T ts =
       (case Termtab.lookup funcs t of
@@ -199,18 +199,30 @@ fun eta_expand ctxt funcs =
       | NONE => Term.list_comb (t, ts))
 
     fun expand ((q as Const (@{const_name All}, _)) $ Abs a) = q $ abs_expand a
-      | expand ((q as Const (@{const_name All}, T)) $ t) = q $ exp T t
+      | expand ((q as Const (@{const_name All}, T)) $ t) = q $ exp expand T t
       | expand (q as Const (@{const_name All}, T)) = exp2 T q
       | expand ((q as Const (@{const_name Ex}, _)) $ Abs a) = q $ abs_expand a
-      | expand ((q as Const (@{const_name Ex}, T)) $ t) = q $ exp T t
+      | expand ((q as Const (@{const_name Ex}, T)) $ t) = q $ exp expand T t
       | expand (q as Const (@{const_name Ex}, T)) = exp2 T q
       | expand ((l as Const (@{const_name Let}, _)) $ t $ Abs a) =
-          l $ expand t $ abs_expand a
+          if is_fol then expand (Term.betapply (Abs a, t))
+          else l $ expand t $ abs_expand a
       | expand ((l as Const (@{const_name Let}, T)) $ t $ u) =
-          l $ expand t $ exp (Term.range_type T) u
+          if is_fol then expand (u $ t)
+          else l $ expand t $ exp expand (Term.range_type T) u
       | expand ((l as Const (@{const_name Let}, T)) $ t) =
-          exp2 T (l $ expand t)
-      | expand (l as Const (@{const_name Let}, T)) = exp2' T l
+          if is_fol then
+            let val U = Term.domain_type (Term.range_type T)
+            in Abs (Name.uu, U, Bound 0 $ Term.incr_boundvars 1 t) end
+          else exp2 T (l $ expand t)
+      | expand (l as Const (@{const_name Let}, T)) =
+          if is_fol then 
+            let val U = Term.domain_type (Term.range_type T)
+            in
+              Abs (Name.uu, Term.domain_type T, Abs (Name.uu, U,
+                Bound 0 $ Bound 1))
+            end
+          else exp2' T l
       | expand t =
           (case Term.strip_comb t of
             (u as Const (c as (_, T)), ts) =>
@@ -363,12 +375,6 @@ local
     @{lemma "P = True == P" by (rule eq_reflection) simp},
     @{lemma "if P then True else False == P" by (rule eq_reflection) simp}]
 
-  fun reduce_let (Const (@{const_name Let}, _) $ t $ u) =
-        reduce_let (Term.betapply (u, t))
-    | reduce_let (t $ u) = reduce_let t $ reduce_let u
-    | reduce_let (Abs (n, T, t)) = Abs (n, T, reduce_let t)
-    | reduce_let t = t
-
   fun as_term t = @{const HOL.eq (bool)} $ t $ @{const SMT.term_true}
 
   fun wrap_in_if t =
@@ -432,7 +438,7 @@ fun folify ctxt =
               | NONE => as_term (in_term t)))
       | _ => as_term (in_term t))
   in
-    map (reduce_let #> in_form) #>
+    map in_form #>
     cons (SMT_Utils.prop_of term_bool) #>
     pair (fol_rules, [term_bool], builtin)
   end
@@ -566,7 +572,7 @@ fun translate ctxt comments ithms =
 
     val (ctxt2, ts3) =
       ts2
-      |> eta_expand ctxt1 funcs
+      |> eta_expand ctxt1 is_fol funcs
       |> lift_lambdas ctxt1
       ||> intro_explicit_application
 
