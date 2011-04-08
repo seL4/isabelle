@@ -17,9 +17,11 @@ subsection {* exhaustive generator type classes *}
 
 class exhaustive = term_of +
   fixes exhaustive :: "('a \<Rightarrow> term list option) \<Rightarrow> code_numeral \<Rightarrow> term list option"
+  
+class full_exhaustive = term_of +
   fixes full_exhaustive :: "('a * (unit => term) \<Rightarrow> term list option) \<Rightarrow> code_numeral \<Rightarrow> term list option"
 
-instantiation code_numeral :: exhaustive
+instantiation code_numeral :: full_exhaustive
 begin
 
 function full_exhaustive_code_numeral' :: "(code_numeral * (unit => term) => term list option) => code_numeral => code_numeral => term list option"
@@ -33,6 +35,13 @@ termination
 
 definition "full_exhaustive f d = full_exhaustive_code_numeral' f d 0"
 
+instance ..
+
+end
+
+instantiation code_numeral :: exhaustive
+begin
+
 function exhaustive_code_numeral' :: "(code_numeral => term list option) => code_numeral => code_numeral => term list option"
   where "exhaustive_code_numeral' f d i =
     (if d < i then None
@@ -44,7 +53,6 @@ termination
 
 definition "exhaustive f d = exhaustive_code_numeral' f d 0"
 
-
 instance ..
 
 end
@@ -53,6 +61,13 @@ instantiation nat :: exhaustive
 begin
 
 definition "exhaustive f d = exhaustive (%x. f (Code_Numeral.nat_of x)) d"
+
+instance ..
+
+end
+
+instantiation nat :: full_exhaustive
+begin
 
 definition "full_exhaustive f d = full_exhaustive (%(x, xt). f (Code_Numeral.nat_of x, %_. Code_Evaluation.term_of (Code_Numeral.nat_of x))) d"
 
@@ -72,6 +87,13 @@ termination
 
 definition "exhaustive f d = exhaustive' f (Code_Numeral.int_of d) (- (Code_Numeral.int_of d))"
 
+instance ..
+
+end
+
+instantiation int :: full_exhaustive
+begin
+
 function full_exhaustive' :: "(int * (unit => term) => term list option) => int => int => term list option"
   where "full_exhaustive' f d i = (if d < i then None else (case f (i, %_. Code_Evaluation.term_of i) of Some t => Some t | None => full_exhaustive' f d (i + 1)))"
 by pat_completeness auto
@@ -90,6 +112,13 @@ begin
 
 definition
   "exhaustive f d = exhaustive (%x. exhaustive (%y. f ((x, y))) d) d"
+
+instance ..
+
+end
+
+instantiation prod :: (full_exhaustive, full_exhaustive) full_exhaustive
+begin
 
 definition
   "full_exhaustive f d = full_exhaustive (%(x, t1). full_exhaustive (%(y, t2). f ((x, y),
@@ -118,6 +147,12 @@ definition exhaustive_fun :: "(('a => 'b) => term list option) => code_numeral =
 where
   "exhaustive_fun f d = exhaustive_fun' f d d" 
 
+instance ..
+
+end
+
+instantiation "fun" :: ("{equal, full_exhaustive}", full_exhaustive) full_exhaustive
+begin
 
 fun full_exhaustive_fun' :: "(('a => 'b) * (unit => term) => term list option) => code_numeral => code_numeral => term list option"
 where

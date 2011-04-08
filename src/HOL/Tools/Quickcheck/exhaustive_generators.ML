@@ -187,7 +187,7 @@ fun mk_full_equations functerms =
     fun mk_call T =
       let
         val full_exhaustive =
-          Const (@{const_name "Quickcheck_Exhaustive.exhaustive_class.full_exhaustive"},
+          Const (@{const_name "Quickcheck_Exhaustive.full_exhaustive_class.full_exhaustive"},
             full_exhaustiveT T)
       in
         (T, (fn t => full_exhaustive $
@@ -251,13 +251,26 @@ fun instantiate_exhaustive_datatype config descr vs tycos prfx (names, auxnames)
   let
     val _ = Datatype_Aux.message config "Creating exhaustive generators...";
     val exhaustivesN = map (prefix (exhaustiveN ^ "_")) (names @ auxnames)
-    val full_exhaustivesN = map (prefix (full_exhaustiveN ^ "_")) (names @ auxnames)
   in
     thy
     |> Class.instantiation (tycos, vs, @{sort exhaustive})
     |> Quickcheck_Common.define_functions
         (fn functerms => mk_equations functerms (descr, vs, Ts @ Us), SOME termination_tac)
         prfx ["f", "i"] exhaustivesN (map exhaustiveT (Ts @ Us))
+    |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
+  end handle FUNCTION_TYPE =>
+    (Datatype_Aux.message config
+      "Creation of exhaustive generators failed because the datatype contains a function type";
+    thy)
+
+
+fun instantiate_full_exhaustive_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
+  let
+    val _ = Datatype_Aux.message config "Creating exhaustive generators...";
+    val full_exhaustivesN = map (prefix (full_exhaustiveN ^ "_")) (names @ auxnames)
+  in
+    thy
+    |> Class.instantiation (tycos, vs, @{sort full_exhaustive})
     |> Quickcheck_Common.define_functions
         (fn functerms => mk_full_equations functerms (descr, vs, Ts @ Us), SOME termination_tac)
         prfx ["f", "i"] full_exhaustivesN (map full_exhaustiveT (Ts @ Us))
@@ -266,7 +279,7 @@ fun instantiate_exhaustive_datatype config descr vs tycos prfx (names, auxnames)
     (Datatype_Aux.message config
       "Creation of exhaustive generators failed because the datatype contains a function type";
     thy)
-
+     
 fun instantiate_fast_exhaustive_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
   let
     val _ = Datatype_Aux.message config "Creating fast exhaustive generators...";
@@ -549,9 +562,11 @@ val setup =
   Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
       (((@{sort typerep}, @{sort term_of}), @{sort exhaustive}), instantiate_exhaustive_datatype))
   #> Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
-      (((@{sort type}, @{sort type}), @{sort bounded_forall}), instantiate_bounded_forall_datatype))
+      (((@{sort typerep}, @{sort term_of}), @{sort full_exhaustive}), instantiate_full_exhaustive_datatype))
   #> Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
       (((@{sort typerep}, @{sort term_of}), @{sort fast_exhaustive}), instantiate_fast_exhaustive_datatype))
+  #> Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
+      (((@{sort type}, @{sort type}), @{sort bounded_forall}), instantiate_bounded_forall_datatype))
   #> setup_smart_quantifier
   #> setup_full_support
   #> setup_fast
