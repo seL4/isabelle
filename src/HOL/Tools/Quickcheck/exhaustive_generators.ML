@@ -32,7 +32,7 @@ val (smart_quantifier, setup_smart_quantifier) =
   Attrib.config_bool "quickcheck_smart_quantifier" (K true)
 
 val (fast, setup_fast) =
-  Attrib.config_bool "quickcheck_fast" (K true)
+  Attrib.config_bool "quickcheck_fast" (K false)
   
 val (full_support, setup_full_support) =
   Attrib.config_bool "quickcheck_full_support" (K true)
