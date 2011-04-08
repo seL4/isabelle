@@ -942,37 +942,6 @@ val cert_vars = prep_vars (K I) true;
 end;
 
 
-(* authentic syntax *)
-
-local
-
-fun const_ast_tr intern ctxt [Ast.Variable c] =
-      let
-        val Const (c', _) = read_const_proper ctxt false c;
-        val d = if intern then Lexicon.mark_const c' else c;
-      in Ast.Constant d end
-  | const_ast_tr _ _ asts = raise Ast.AST ("const_ast_tr", asts);
-
-val typ = Simple_Syntax.read_typ;
-
-in
-
-val _ = Context.>> (Context.map_theory
- (Sign.add_syntax_i
-   [("_context_const", typ "id => logic", Delimfix "CONST _"),
-    ("_context_const", typ "id => aprop", Delimfix "CONST _"),
-    ("_context_const", typ "longid => logic", Delimfix "CONST _"),
-    ("_context_const", typ "longid => aprop", Delimfix "CONST _"),
-    ("_context_xconst", typ "id => logic", Delimfix "XCONST _"),
-    ("_context_xconst", typ "id => aprop", Delimfix "XCONST _"),
-    ("_context_xconst", typ "longid => logic", Delimfix "XCONST _"),
-    ("_context_xconst", typ "longid => aprop", Delimfix "XCONST _")] #>
-  Sign.add_advanced_trfuns
-    ([("_context_const", const_ast_tr true), ("_context_xconst", const_ast_tr false)], [], [], [])));
-
-end;
-
-
 (* notation *)
 
 local

@@ -660,10 +660,23 @@ fun type_constraint_tr' ctxt (Type ("fun", [T, _])) (t :: ts) =
   | type_constraint_tr' _ _ _ = raise Match;
 
 
+(* authentic syntax *)
+
+fun const_ast_tr intern ctxt [Ast.Variable c] =
+      let
+        val Const (c', _) = ProofContext.read_const_proper ctxt false c;
+        val d = if intern then Lexicon.mark_const c' else c;
+      in Ast.Constant d end
+  | const_ast_tr _ _ asts = raise Ast.AST ("const_ast_tr", asts);
+
+
 (* setup translations *)
 
 val _ = Context.>> (Context.map_theory
-  (Sign.add_advanced_trfunsT
+ (Sign.add_advanced_trfuns
+  ([("_context_const", const_ast_tr true),
+    ("_context_xconst", const_ast_tr false)], [], [], []) #>
+  Sign.add_advanced_trfunsT
    [("_type_prop", type_prop_tr'),
     ("\\<^const>TYPE", type_tr'),
     ("_type_constraint_", type_constraint_tr')]));
