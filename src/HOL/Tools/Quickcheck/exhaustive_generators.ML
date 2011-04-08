@@ -533,13 +533,13 @@ fun compile_validator_exprs ctxt ts =
 
 val setup =
   Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
-      (((@{sort typerep}, @{sort term_of}), @{sort exhaustive}), instantiate_exhaustive_datatype))
-  #> Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
       (((@{sort typerep}, @{sort term_of}), @{sort full_exhaustive}), instantiate_full_exhaustive_datatype))
+(* #> Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
+      (((@{sort typerep}, @{sort term_of}), @{sort exhaustive}), instantiate_exhaustive_datatype))
   #> Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
       (((@{sort typerep}, @{sort term_of}), @{sort fast_exhaustive}), instantiate_fast_exhaustive_datatype))
   #> Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
-      (((@{sort type}, @{sort type}), @{sort bounded_forall}), instantiate_bounded_forall_datatype))
+      (((@{sort type}, @{sort type}), @{sort bounded_forall}), instantiate_bounded_forall_datatype))*)
   #> setup_smart_quantifier
   #> setup_full_support
   #> setup_fast
