@@ -7,7 +7,6 @@ Standard Isabelle syntax, based on arbitrary context-free grammars
 
 signature SYNTAX =
 sig
-  val max_pri: int
   val const: string -> term
   val free: string -> term
   val var: indexname -> term
@@ -95,7 +94,7 @@ sig
   val pp_global: theory -> Pretty.pp
   type syntax
   val eq_syntax: syntax * syntax -> bool
-  val is_const: syntax -> string -> bool
+  val lookup_const: syntax -> string -> string option
   val is_keyword: syntax -> string -> bool
   val tokenize: syntax -> bool -> Symbol_Pos.T list -> Lexicon.token list
   val parse: Proof.context -> syntax -> string -> Lexicon.token list -> Parser.parsetree list
@@ -111,8 +110,9 @@ sig
   type mode
   val mode_default: mode
   val mode_input: mode
+  val empty_syntax: syntax
   val merge_syntaxes: syntax -> syntax -> syntax
-  val basic_syntax: syntax
+  val token_markers: string list
   val basic_nonterms: string list
   val print_gram: syntax -> unit
   val print_trans: syntax -> unit
@@ -143,8 +143,6 @@ end;
 structure Syntax: SYNTAX =
 struct
 
-val max_pri = Syntax_Ext.max_pri;
-
 val const = Lexicon.const;
 val free = Lexicon.free;
 val var = Lexicon.var;
@@ -155,7 +153,7 @@ val var = Lexicon.var;
 
 (* configuration options *)
 
-val root = Config.string (Config.declare "syntax_root" (K (Config.String Syntax_Ext.any)));
+val root = Config.string (Config.declare "syntax_root" (K (Config.String "any")));
 
 val positions_raw = Config.declare "syntax_positions" (fn _ => Config.Bool true);
 val positions = Config.bool positions_raw;
@@ -460,7 +458,7 @@ datatype syntax =
     input: Syntax_Ext.xprod list,
     lexicon: Scan.lexicon,
     gram: Parser.gram,
-    consts: string list,
+    consts: string Symtab.table,
     prmodes: string list,
     parse_ast_trtab: ((Proof.context -> Ast.ast list -> Ast.ast) * stamp) Symtab.table,
     parse_ruletab: ruletab,
@@ -472,7 +470,7 @@ datatype syntax =
 
 fun eq_syntax (Syntax (_, s1), Syntax (_, s2)) = s1 = s2;
 
-fun is_const (Syntax ({consts, ...}, _)) c = member (op =) consts c;
+fun lookup_const (Syntax ({consts, ...}, _)) = Symtab.lookup consts;
 fun is_keyword (Syntax ({lexicon, ...}, _)) = Scan.is_literal lexicon o Symbol.explode;
 fun tokenize (Syntax ({lexicon, ...}, _)) = Lexicon.tokenize lexicon;
 fun parse ctxt (Syntax ({gram, ...}, _)) = Parser.parse ctxt gram;
@@ -497,7 +495,7 @@ val empty_syntax = Syntax
   ({input = [],
     lexicon = Scan.empty_lexicon,
     gram = Parser.empty_gram,
-    consts = [],
+    consts = Symtab.empty,
     prmodes = [],
     parse_ast_trtab = Symtab.empty,
     parse_ruletab = Symtab.empty,
@@ -509,6 +507,11 @@ val empty_syntax = Syntax
 
 
 (* update_syntax *)
+
+fun update_const (c, b) tab =
+  if c = "" orelse (b = "" andalso (Lexicon.is_marked c orelse Symtab.defined tab c))
+  then tab
+  else Symtab.update (c, b) tab;
 
 fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
   let
@@ -525,7 +528,7 @@ fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
     ({input = new_xprods @ input,
       lexicon = fold Scan.extend_lexicon (Syntax_Ext.delims_of new_xprods) lexicon,
       gram = Parser.extend_gram new_xprods gram,
-      consts = Library.merge (op =) (consts1, filter_out Lexicon.is_marked consts2),
+      consts = fold update_const consts2 consts1,
       prmodes = insert (op =) mode prmodes,
       parse_ast_trtab =
         update_trtab "parse ast translation" (if_inout parse_ast_translation) parse_ast_trtab,
@@ -584,7 +587,7 @@ fun merge_syntaxes (Syntax (tabs1, _)) (Syntax (tabs2, _)) =
     ({input = Library.merge (op =) (input1, input2),
       lexicon = Scan.merge_lexicons (lexicon1, lexicon2),
       gram = Parser.merge_gram (gram1, gram2),
-      consts = sort_distinct string_ord (consts1 @ consts2),
+      consts = Symtab.merge (K true) (consts1, consts2),
       prmodes = Library.merge (op =) (prmodes1, prmodes2),
       parse_ast_trtab =
         merge_trtabs "parse ast translation" parse_ast_trtab1 parse_ast_trtab2,
@@ -599,13 +602,14 @@ fun merge_syntaxes (Syntax (tabs1, _)) (Syntax (tabs2, _)) =
 
 (* basic syntax *)
 
-val basic_syntax = update_syntax mode_default Syntax_Ext.pure_ext empty_syntax;
+val token_markers =
+  ["_tfree", "_tvar", "_free", "_bound", "_var", "_numeral", "_inner_string"];
 
 val basic_nonterms =
-  (Lexicon.terminals @ [Syntax_Ext.logic, "type", "types", "sort", "classes",
-    Syntax_Ext.args, Syntax_Ext.cargs, "pttrn", "pttrns", "idt", "idts", "aprop",
-    "asms", Syntax_Ext.any, Syntax_Ext.sprop, "num_const", "float_const", "index",
-    "struct", "id_position", "longid_position", "type_name", "class_name"]);
+  (Lexicon.terminals @ ["logic", "type", "types", "sort", "classes",
+    "args", "cargs", "pttrn", "pttrns", "idt", "idts", "aprop", "asms",
+    "any", "prop'", "num_const", "float_const", "index", "struct",
+    "id_position", "longid_position", "type_name", "class_name"]);
 
 
 
@@ -628,8 +632,8 @@ fun pretty_gram (Syntax (tabs, _)) =
 
 fun pretty_trans (Syntax (tabs, _)) =
   let
-    fun pretty_trtab name tab =
-      pretty_strs_qs name (Symtab.keys tab);
+    fun pretty_tab name tab =
+      pretty_strs_qs name (sort_strings (Symtab.keys tab));
 
     fun pretty_ruletab name tab =
       Pretty.big_list name (map Ast.pretty_rule (dest_ruletab tab));
@@ -637,13 +641,13 @@ fun pretty_trans (Syntax (tabs, _)) =
     val {consts, parse_ast_trtab, parse_ruletab, parse_trtab, print_trtab,
       print_ruletab, print_ast_trtab, ...} = tabs;
   in
-    [pretty_strs_qs "consts:" consts,
-      pretty_trtab "parse_ast_translation:" parse_ast_trtab,
-      pretty_ruletab "parse_rules:" parse_ruletab,
-      pretty_trtab "parse_translation:" parse_trtab,
-      pretty_trtab "print_translation:" print_trtab,
-      pretty_ruletab "print_rules:" print_ruletab,
-      pretty_trtab "print_ast_translation:" print_ast_trtab]
+   [pretty_tab "consts:" consts,
+    pretty_tab "parse_ast_translation:" parse_ast_trtab,
+    pretty_ruletab "parse_rules:" parse_ruletab,
+    pretty_tab "parse_translation:" parse_trtab,
+    pretty_tab "print_translation:" print_trtab,
+    pretty_ruletab "print_rules:" print_ruletab,
+    pretty_tab "print_ast_translation:" print_ast_trtab]
   end;
 
 in

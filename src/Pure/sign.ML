@@ -140,7 +140,7 @@ structure Data = Theory_Data_PP
     make_sign (Name_Space.default_naming, syn, tsig, consts);
 
   val empty =
-    make_sign (Name_Space.default_naming, Syntax.basic_syntax, Type.empty_tsig, Consts.empty);
+    make_sign (Name_Space.default_naming, Syntax.empty_syntax, Type.empty_tsig, Consts.empty);
 
   fun merge pp (sign1, sign2) =
     let

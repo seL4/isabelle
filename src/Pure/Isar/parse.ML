@@ -78,7 +78,7 @@ sig
   val opt_mixfix: mixfix parser
   val opt_mixfix': mixfix parser
   val where_: string parser
-  val const: (string * string * mixfix) parser
+  val const_decl: (string * string * mixfix) parser
   val const_binding: (binding * string * mixfix) parser
   val params: (binding * string option) list parser
   val simple_fixes: (binding * string option) list parser
@@ -91,6 +91,8 @@ sig
   val prop_group: string parser
   val term: string parser
   val prop: string parser
+  val type_const: string parser
+  val const: string parser
   val literal_fact: string parser
   val propp: (string * string list) parser
   val termp: (string * string list) parser
@@ -272,7 +274,7 @@ val type_args_constrained = type_arguments (type_ident -- Scan.option ($$$ "::" 
 
 val mfix = string --
   !!! (Scan.optional ($$$ "[" |-- !!! (list nat --| $$$ "]")) [] --
-    Scan.optional nat Syntax.max_pri) >> (Mixfix o triple2);
+    Scan.optional nat 1000) >> (Mixfix o triple2);
 
 val infx = $$$ "infix" |-- !!! (string -- nat >> Infix);
 val infxl = $$$ "infixl" |-- !!! (string -- nat >> Infixl);
@@ -295,7 +297,7 @@ val opt_mixfix' = opt_annotation I (mfix || binder || infxl || infxr || infx);
 
 val where_ = $$$ "where";
 
-val const = name -- ($$$ "::" |-- !!! typ) -- opt_mixfix >> triple1;
+val const_decl = name -- ($$$ "::" |-- !!! typ) -- opt_mixfix >> triple1;
 val const_binding = binding -- ($$$ "::" |-- !!! typ) -- opt_mixfix >> triple1;
 
 val params = Scan.repeat1 binding -- Scan.option ($$$ "::" |-- !!! typ)
@@ -326,6 +328,9 @@ val prop_group = group "proposition" tm;
 
 val term = inner_syntax term_group;
 val prop = inner_syntax prop_group;
+
+val type_const = inner_syntax (group "type constructor" xname);
+val const = inner_syntax (group "constant" xname);
 
 val literal_fact = inner_syntax (group "literal fact" alt_string);
 

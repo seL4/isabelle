@@ -88,7 +88,8 @@ fun mixfixT (Binder _) = (dummyT --> dummyT) --> dummyT
 
 (* syn_ext_types *)
 
-fun make_type n = replicate n Syntax_Ext.typeT ---> Syntax_Ext.typeT;
+val typeT = Type ("type", []);
+fun make_type n = replicate n typeT ---> typeT;
 
 fun syn_ext_types type_decls =
   let
@@ -96,7 +97,7 @@ fun syn_ext_types type_decls =
 
     fun mfix_of (_, _, NoSyn) = NONE
       | mfix_of (t, ty, Mixfix (sy, ps, p)) = SOME (Syntax_Ext.Mfix (sy, ty, t, ps, p))
-      | mfix_of (t, ty, Delimfix sy) = SOME (Syntax_Ext.Mfix (sy, ty, t, [], Syntax_Ext.max_pri))
+      | mfix_of (t, ty, Delimfix sy) = SOME (Syntax_Ext.Mfix (sy, ty, t, [], 1000))
       | mfix_of (t, ty, Infix (sy, p)) = SOME (mk_infix sy ty t (p + 1) (p + 1) p)
       | mfix_of (t, ty, Infixl (sy, p)) = SOME (mk_infix sy ty t p (p + 1) p)
       | mfix_of (t, ty, Infixr (sy, p)) = SOME (mk_infix sy ty t (p + 1) p p)
@@ -109,8 +110,8 @@ fun syn_ext_types type_decls =
 
     val mfix = map mfix_of type_decls;
     val _ = map2 check_args type_decls mfix;
-    val xconsts = map #1 type_decls;
-  in Syntax_Ext.syn_ext (map_filter I mfix) xconsts ([], [], [], []) ([], []) end;
+    val consts = map (fn (t, _, _) => (t, "")) type_decls;
+  in Syntax_Ext.syn_ext (map_filter I mfix) consts ([], [], [], []) ([], []) end;
 
 
 (* syn_ext_consts *)
@@ -121,7 +122,7 @@ val binder_name = suffix "_binder";
 fun syn_ext_consts is_logtype const_decls =
   let
     fun mk_infix sy ty c p1 p2 p3 =
-      [Syntax_Ext.Mfix ("op " ^ sy, ty, c, [], Syntax_Ext.max_pri),
+      [Syntax_Ext.Mfix ("op " ^ sy, ty, c, [], 1000),
        Syntax_Ext.Mfix ("(_ " ^ sy ^ "/ _)", ty, c, [p1, p2], p3)];
 
     fun binder_typ _ (Type ("fun", [Type ("fun", [_, ty2]), ty3])) =
@@ -130,7 +131,7 @@ fun syn_ext_consts is_logtype const_decls =
 
     fun mfix_of (_, _, NoSyn) = []
       | mfix_of (c, ty, Mixfix (sy, ps, p)) = [Syntax_Ext.Mfix (sy, ty, c, ps, p)]
-      | mfix_of (c, ty, Delimfix sy) = [Syntax_Ext.Mfix (sy, ty, c, [], Syntax_Ext.max_pri)]
+      | mfix_of (c, ty, Delimfix sy) = [Syntax_Ext.Mfix (sy, ty, c, [], 1000)]
       | mfix_of (c, ty, Infix (sy, p)) = mk_infix sy ty c (p + 1) (p + 1) p
       | mfix_of (c, ty, Infixl (sy, p)) = mk_infix sy ty c p (p + 1) p
       | mfix_of (c, ty, Infixr (sy, p)) = mk_infix sy ty c (p + 1) p p
@@ -142,16 +143,16 @@ fun syn_ext_consts is_logtype const_decls =
       | binder _ = NONE;
 
     val mfix = maps mfix_of const_decls;
-    val xconsts = map #1 const_decls;
     val binders = map_filter binder const_decls;
     val binder_trs = binders
       |> map (Syntax_Ext.stamp_trfun binder_stamp o apsnd K o Syntax_Trans.mk_binder_tr);
     val binder_trs' = binders
       |> map (Syntax_Ext.stamp_trfun binder_stamp o
           apsnd (K o Syntax_Trans.non_typed_tr') o Syntax_Trans.mk_binder_tr' o swap);
+
+    val consts = binders @ map (fn (c, _, _) => (c, "")) const_decls;
   in
-    Syntax_Ext.syn_ext' true is_logtype
-      mfix xconsts ([], binder_trs, binder_trs', []) ([], [])
+    Syntax_Ext.syn_ext' is_logtype mfix consts ([], binder_trs, binder_trs', []) ([], [])
   end;
 
 end;

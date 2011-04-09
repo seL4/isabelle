@@ -19,9 +19,6 @@ val prop = Simple_Syntax.read_prop;
 val tycon = Lexicon.mark_type;
 val const = Lexicon.mark_const;
 
-val typeT = Syntax_Ext.typeT;
-val spropT = Syntax_Ext.spropT;
-
 
 (* application syntax variants *)
 
@@ -64,15 +61,23 @@ val _ = Context.>> (Context.map_theory
     (Binding.name "itself", 1, NoSyn),
     (Binding.name "dummy", 0, NoSyn)]
   #> Sign.add_nonterminals (map Binding.name Syntax.basic_nonterms)
+  #> Sign.add_syntax_i (map (fn x => (x, typ "'a", NoSyn)) Syntax.token_markers)
   #> Sign.add_syntax_i
-   [("",            typ "tid => type",                 Delimfix "_"),
+   [("",            typ "prop' => prop",               Delimfix "_"),
+    ("",            typ "logic => any",                Delimfix "_"),
+    ("",            typ "prop' => any",                Delimfix "_"),
+    ("",            typ "logic => logic",              Delimfix "'(_')"),
+    ("",            typ "prop' => prop'",              Delimfix "'(_')"),
+    ("_constrain",  typ "logic => type => logic",      Mixfix ("_::_", [4, 0], 3)),
+    ("_constrain",  typ "prop' => type => prop'",      Mixfix ("_::_", [4, 0], 3)),
+    ("",            typ "tid => type",                 Delimfix "_"),
     ("",            typ "tvar => type",                Delimfix "_"),
     ("",            typ "type_name => type",           Delimfix "_"),
     ("_type_name",  typ "id => type_name",             Delimfix "_"),
     ("_type_name",  typ "longid => type_name",         Delimfix "_"),
-    ("_ofsort",     typ "tid => sort => type",         Mixfix ("_::_", [Syntax.max_pri, 0], Syntax.max_pri)),
-    ("_ofsort",     typ "tvar => sort => type",        Mixfix ("_::_", [Syntax.max_pri, 0], Syntax.max_pri)),
-    ("_dummy_ofsort", typ "sort => type",              Mixfix ("'_()::_", [0], Syntax.max_pri)),
+    ("_ofsort",     typ "tid => sort => type",         Mixfix ("_::_", [1000, 0], 1000)),
+    ("_ofsort",     typ "tvar => sort => type",        Mixfix ("_::_", [1000, 0], 1000)),
+    ("_dummy_ofsort", typ "sort => type",              Mixfix ("'_()::_", [0], 1000)),
     ("",            typ "class_name => sort",          Delimfix "_"),
     ("_class_name", typ "id => class_name",            Delimfix "_"),
     ("_class_name", typ "longid => class_name",        Delimfix "_"),
@@ -80,7 +85,7 @@ val _ = Context.>> (Context.map_theory
     ("_sort",       typ "classes => sort",             Delimfix "{_}"),
     ("",            typ "class_name => classes",       Delimfix "_"),
     ("_classes",    typ "class_name => classes => classes", Delimfix "_,_"),
-    ("_tapp",       typ "type => type_name => type",   Mixfix ("_ _", [Syntax.max_pri, 0], Syntax.max_pri)),
+    ("_tapp",       typ "type => type_name => type",   Mixfix ("_ _", [1000, 0], 1000)),
     ("_tappl",      typ "type => types => type_name => type", Delimfix "((1'(_,/ _')) _)"),
     ("",            typ "type => types",               Delimfix "_"),
     ("_types",      typ "type => types => types",      Delimfix "_,/ _"),
@@ -128,10 +133,18 @@ val _ = Context.>> (Context.map_theory
     ("_indexvar",   typ "index",                       Delimfix "'\\<index>"),
     ("_struct",     typ "index => logic",              Mixfix ("\\<struct>_", [1000], 1000)),
     ("_update_name", typ "idt",                        NoSyn),
-    ("_constrainAbs", typ "'a",                       NoSyn),
+    ("_constrainAbs", typ "'a",                        NoSyn),
     ("_constrain_position", typ "id => id_position",   Delimfix "_"),
     ("_constrain_position", typ "longid => longid_position", Delimfix "_"),
     ("_type_constraint_", typ "'a",                    NoSyn),
+    ("_context_const", typ "id_position => logic",     Delimfix "CONST _"),
+    ("_context_const", typ "id_position => aprop",     Delimfix "CONST _"),
+    ("_context_const", typ "longid_position => logic", Delimfix "CONST _"),
+    ("_context_const", typ "longid_position => aprop", Delimfix "CONST _"),
+    ("_context_xconst", typ "id_position => logic",    Delimfix "XCONST _"),
+    ("_context_xconst", typ "id_position => aprop",    Delimfix "XCONST _"),
+    ("_context_xconst", typ "longid_position => logic", Delimfix "XCONST _"),
+    ("_context_xconst", typ "longid_position => aprop", Delimfix "XCONST _"),
     (const "==>",   typ "prop => prop => prop",        Delimfix "op ==>"),
     (const Term.dummy_patternN, typ "aprop",           Delimfix "'_"),
     ("_sort_constraint", typ "type => prop",           Delimfix "(1SORT'_CONSTRAINT/(1'(_')))"),
@@ -143,7 +156,7 @@ val _ = Context.>> (Context.map_theory
     ("_bracket",          typ "types => type => type",  Mixfix ("([_]/ \\<Rightarrow> _)", [0, 0], 0)),
     ("_ofsort",           typ "tid => sort => type",    Mixfix ("_\\<Colon>_", [1000, 0], 1000)),
     ("_constrain",        typ "logic => type => logic", Mixfix ("_\\<Colon>_", [4, 0], 3)),
-    ("_constrain",        [spropT, typeT] ---> spropT,  Mixfix ("_\\<Colon>_", [4, 0], 3)),
+    ("_constrain",        typ "prop' => type => prop'", Mixfix ("_\\<Colon>_", [4, 0], 3)),
     ("_idtyp",            typ "id_position => type => idt", Mixfix ("_\\<Colon>_", [], 0)),
     ("_idtypdummy",       typ "type => idt",            Mixfix ("'_()\\<Colon>_", [], 0)),
     ("_lambda",           typ "pttrns => 'a => logic",  Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3)),

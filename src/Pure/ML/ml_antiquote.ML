@@ -151,7 +151,8 @@ val _ = inline "const_syntax" (const_name (fn (_, c) => Lexicon.mark_const c));
 
 val _ = inline "syntax_const"
   (Args.context -- Scan.lift (Parse.position Args.name) >> (fn (ctxt, (c, pos)) =>
-    if Syntax.is_const (ProofContext.syn_of ctxt) c then ML_Syntax.print_string c
+    if is_some (Syntax.lookup_const (ProofContext.syn_of ctxt) c)
+    then ML_Syntax.print_string c
     else error ("Unknown syntax const: " ^ quote c ^ Position.str_of pos)));
 
 val _ = inline "const"
