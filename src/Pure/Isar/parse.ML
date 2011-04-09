@@ -15,7 +15,8 @@ sig
   val triple2: 'a * ('b * 'c) -> 'a * 'b * 'c
   val triple_swap: ('a * 'b) * 'c -> ('a * 'c) * 'b
   val not_eof: Token.T parser
-  val position: (Token.T list -> 'a * 'b) -> Token.T list -> ('a * Position.T) * 'b
+  val position: 'a parser -> ('a * Position.T) parser
+  val inner_syntax: 'a parser -> string parser
   val command: string parser
   val keyword: string parser
   val short_ident: string parser

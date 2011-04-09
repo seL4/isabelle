@@ -171,8 +171,9 @@ val _ =
 (* translations *)
 
 val trans_pat =
-  Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Parse.xname --| Parse.$$$ ")")) "logic"
-    -- Parse.string;
+  Scan.optional
+    (Parse.$$$ "(" |-- Parse.!!! (Parse.xname --| Parse.$$$ ")")) "logic"
+    -- Parse.inner_syntax Parse.string;
 
 fun trans_arrow toks =
   ((Parse.$$$ "\\<rightharpoonup>" || Parse.$$$ "=>") >> K Syntax.Parse_Rule ||
