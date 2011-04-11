@@ -37,5 +37,15 @@ object Position
       }
   }
 
-  def purge(props: T): T = props.filterNot(p => Markup.POSITION_PROPERTIES(p._1))
+  private val purge_pos = Map(
+    Markup.DEF_LINE -> Markup.LINE,
+    Markup.DEF_COLUMN -> Markup.COLUMN,
+    Markup.DEF_OFFSET -> Markup.OFFSET,
+    Markup.DEF_END_OFFSET -> Markup.END_OFFSET,
+    Markup.DEF_FILE -> Markup.FILE,
+    Markup.DEF_ID -> Markup.ID)
+
+  def purge(props: T): T =
+    for ((x, y) <- props if !Markup.POSITION_PROPERTIES(x))
+      yield (if (purge_pos.isDefinedAt(x)) (purge_pos(x), y) else (x, y))
 }

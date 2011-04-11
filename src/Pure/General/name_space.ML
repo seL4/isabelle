@@ -82,8 +82,9 @@ type entry =
 
 fun entry_markup def kind (name, {pos, id, ...}: entry) =
   let
-    val occurrence = (if def then Markup.defN else Markup.refN, string_of_int id);
-    val props = occurrence :: Position.properties_of pos;
+    val props =
+      if def then (Markup.defN, string_of_int id) :: Position.properties_of pos
+      else (Markup.refN, string_of_int id) :: Position.def_properties_of pos;
   in Markup.properties props (Markup.entity kind name) end;
 
 fun print_entry def kind (name, entry) =

@@ -28,6 +28,7 @@ sig
   val put_id: string -> T -> T
   val of_properties: Properties.T -> T
   val properties_of: T -> Properties.T
+  val def_properties_of: T -> Properties.T
   val default_properties: T -> Properties.T -> Properties.T
   val markup: T -> Markup.T -> Markup.T
   val is_reported: T -> bool
@@ -141,6 +142,8 @@ fun value k i = if valid i then [(k, string_of_int i)] else [];
 fun properties_of (Pos ((i, j, k, l), props)) =
   value Markup.lineN i @ value Markup.columnN j @
   value Markup.offsetN k @ value Markup.end_offsetN l @ props;
+
+val def_properties_of = properties_of #> (map (fn (x, y) => ("def_" ^ x, y)));
 
 fun default_properties default props =
   if exists (member (op =) Markup.position_properties o #1) props then props

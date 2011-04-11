@@ -40,19 +40,21 @@ fun report_parse_tree depth space =
         SOME (Context.Proof ctxt) => Context_Position.report_text ctxt
       | _ => Position.report_text);
 
-    fun report_decl markup loc decl =
-      report_text (position_of loc) Markup.ML_ref
-        (Markup.markup (Position.markup (position_of decl) markup) "");
+    fun report_entity kind loc decl =
+      report_text (position_of loc)
+        (Markup.entityN, (Markup.kindN, kind) :: Position.def_properties_of (position_of decl)) "";
 
     fun report loc (PolyML.PTtype types) =
           cons (fn () =>
             PolyML.NameSpace.displayTypeExpression (types, depth, space)
             |> pretty_ml |> Pretty.from_ML |> Pretty.string_of
             |> report_text (position_of loc) Markup.ML_typing)
-      | report loc (PolyML.PTdeclaredAt decl) = cons (fn () => report_decl Markup.ML_def loc decl)
-      | report loc (PolyML.PTopenedAt decl) = cons (fn () => report_decl Markup.ML_open loc decl)
+      | report loc (PolyML.PTdeclaredAt decl) =
+          cons (fn () => report_entity Markup.ML_defN loc decl)
+      | report loc (PolyML.PTopenedAt decl) =
+          cons (fn () => report_entity Markup.ML_openN loc decl)
       | report loc (PolyML.PTstructureAt decl) =
-          cons (fn () => report_decl Markup.ML_struct loc decl)
+          cons (fn () => report_entity Markup.ML_structN loc decl)
       | report _ (PolyML.PTnextSibling tree) = report_tree (tree ())
       | report _ (PolyML.PTfirstChild tree) = report_tree (tree ())
       | report _ _ = I

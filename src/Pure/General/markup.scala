@@ -120,6 +120,13 @@ object Markup
   val FILE = "file"
   val ID = "id"
 
+  val DEF_LINE = "def_line"
+  val DEF_COLUMN = "def_column"
+  val DEF_OFFSET = "def_offset"
+  val DEF_END_OFFSET = "def_end_offset"
+  val DEF_FILE = "def_file"
+  val DEF_ID = "def_id"
+
   val POSITION_PROPERTIES = Set(LINE, COLUMN, OFFSET, END_OFFSET, FILE, ID)
 
   val POSITION = "position"
@@ -204,7 +211,6 @@ object Markup
   val ML_DEF = "ML_def"
   val ML_OPEN = "ML_open"
   val ML_STRUCT = "ML_struct"
-  val ML_REF = "ML_ref"
   val ML_TYPING = "ML_typing"
 
 
