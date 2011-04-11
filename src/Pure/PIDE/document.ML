@@ -242,7 +242,9 @@ fun run_command thy_name raw_tr st =
         val do_print = not is_init andalso (Toplevel.print_of tr orelse is_proof);
 
         val start = Timing.start ();
-        val (errs, result) = run (is_init orelse is_proof) (Toplevel.set_print false tr) st;
+        val (errs, result) =
+          if Toplevel.is_toplevel st andalso not is_init then ([], SOME st)
+          else run (is_init orelse is_proof) (Toplevel.set_print false tr) st;
         val _ = timing tr (Timing.result start);
         val _ = List.app (Toplevel.error_msg tr) errs;
         val res =
