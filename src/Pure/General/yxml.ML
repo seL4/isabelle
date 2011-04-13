@@ -21,6 +21,7 @@ sig
   val string_of: XML.tree -> string
   val parse_body: string -> XML.body
   val parse: string -> XML.tree
+  val parse_file: (XML.tree -> 'a) -> Path.T -> 'a list
 end;
 
 structure YXML: YXML =
@@ -139,7 +140,7 @@ fun parse source =
   | [] => XML.Text ""
   | _ => err "multiple results");
 
-fun parse_file' f path =
+fun parse_file f path =
   (case File.fold_fields (is_char X) (preparse_chunk f)
       path  (stack_init, []) of
     ([(("", _), [])], result) => rev result
