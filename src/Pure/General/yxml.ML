@@ -106,6 +106,7 @@ fun push "" _ _ = err_element ()
 fun pop ((("", _), _) :: _) = err_unbalanced ""
   | pop ((markup, body) :: pending) = add (XML.Elem (markup, rev body)) pending;
 
+val stack_init = [(("", []), [])];
 
 (* parsing *)
 
@@ -119,10 +120,16 @@ fun parse_chunk ["", ""] = pop
   | parse_chunk ("" :: name :: atts) = push name (map parse_attrib atts)
   | parse_chunk txts = fold (add o XML.Text) txts;
 
+fun preparse_chunk _ "" x = x
+  | preparse_chunk f str (pending, results) =
+      (case parse_chunk (String.fields (is_char Y) str) pending of
+        [(("", _), [result])] => (stack_init, f result :: results)
+      | foo => (foo, results));
+
 in
 
 fun parse_body source =
-  (case fold parse_chunk (split_string source) [(("", []), [])] of
+  (case fold parse_chunk (split_string source) stack_init of
     [(("", _), result)] => rev result
   | ((name, _), _) :: _ => err_unbalanced name);
 
@@ -131,6 +138,12 @@ fun parse source =
     [result] => result
   | [] => XML.Text ""
   | _ => err "multiple results");
+
+fun parse_file' f path =
+  (case File.fold_fields (is_char X) (preparse_chunk f)
+      path  (stack_init, []) of
+    ([(("", _), [])], result) => rev result
+  | (((name, _), _) :: _, _) => err_unbalanced name);
 
 end;
 
