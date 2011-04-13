@@ -21,6 +21,7 @@ sig
   val open_input: (TextIO.instream -> 'a) -> Path.T -> 'a
   val open_output: (TextIO.outstream -> 'a) -> Path.T -> 'a
   val open_append: (TextIO.outstream -> 'a) -> Path.T -> 'a
+  val fold_fields: (char -> bool) -> (string -> 'a -> 'a) -> Path.T -> 'a -> 'a
   val fold_lines: (string -> 'a -> 'a) -> Path.T -> 'a -> 'a
   val read: Path.T -> string
   val write: Path.T -> string -> unit
@@ -110,18 +111,20 @@ end;
 (* input *)
 
 (*scalable iterator -- avoid size limit of TextIO.inputAll, and overhead of many TextIO.inputLine*)
-fun fold_lines f path a = open_input (fn file =>
+fun fold_fields sep f path a = open_input (fn file =>
   let
     fun read buf x =
       (case TextIO.input file of
         "" => (case Buffer.content buf of "" => x | line => f line x)
       | input =>
-          (case String.fields (fn c => c = #"\n") input of
+          (case String.fields sep input of
             [rest] => read (Buffer.add rest buf) x
-          | line :: more => read_lines more (f (Buffer.content (Buffer.add line buf)) x)))
-    and read_lines [rest] x = read (Buffer.add rest Buffer.empty) x
-      | read_lines (line :: more) x = read_lines more (f line x);
+          | field :: more => read_fields more (f (Buffer.content (Buffer.add field buf)) x)))
+    and read_fields [rest] x = read (Buffer.add rest Buffer.empty) x
+      | read_fields (field :: more) x = read_fields more (f field x);
   in read Buffer.empty a end) path;
+
+fun fold_lines f path a = fold_fields (fn c => c = #"\n") f path a;
 
 val read = open_input TextIO.inputAll;
 
