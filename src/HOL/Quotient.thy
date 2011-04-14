@@ -647,6 +647,7 @@ lemma Quotient:
   proof (intro conjI allI)
     fix a r s
     show "Abs (R (Eps (Rep a))) = a"
+      using [[metis_new_skolemizer = false]]
       by (metis equivp exE_some part_equivp_def rep_inverse rep_prop)
     show "R r s \<longleftrightarrow> R r r \<and> R s s \<and> (Abs (R r) = Abs (R s))"
       by (metis homeier6 equivp[simplified part_equivp_def])
