@@ -18,7 +18,7 @@ sig
   val lookth : (Metis_Thm.thm * 'a) list -> Metis_Thm.thm -> 'a
   val untyped_aconv : term -> term -> bool
   val replay_one_inference :
-    Proof.context -> mode -> (string * term) list * int Unsynchronized.ref
+    Proof.context -> mode -> (string * term) list
     -> Metis_Thm.thm * Metis_Proof.inference -> (Metis_Thm.thm * thm) list
     -> (Metis_Thm.thm * thm) list
   val discharge_skolem_premises :
@@ -95,7 +95,7 @@ fun hol_type_from_metis_term _ (Metis_Term.Var v) =
         | NONE    => raise Fail ("hol_type_from_metis_term: " ^ x));
 
 (*Maps metis terms to isabelle terms*)
-fun hol_term_from_metis_PT ctxt new_skolem_var_count fol_tm =
+fun hol_term_from_metis_PT ctxt fol_tm =
   let val thy = ProofContext.theory_of ctxt
       val _ = trace_msg ctxt (fn () => "hol_term_from_metis_PT: " ^
                                        Metis_Term.toString fol_tm)
@@ -128,11 +128,9 @@ fun hol_term_from_metis_PT ctxt new_skolem_var_count fol_tm =
                     val nterms = length ts - ntypes
                     val tts = map tm_to_tt ts
                     val tys = types_of (List.take(tts,ntypes))
-                    val j = !new_skolem_var_count + 0 (* FIXME ### *)
-                    val _ = new_skolem_var_count := j
                     val t =
                       if String.isPrefix new_skolem_const_prefix c then
-                        Var ((new_skolem_var_name_from_const c, j),
+                        Var ((new_skolem_var_name_from_const c, 1),
                              Type_Infer.paramify_vars (tl tys ---> hd tys))
                       else
                         Const (c, dummyT)
@@ -166,7 +164,7 @@ fun hol_term_from_metis_PT ctxt new_skolem_var_count fol_tm =
   end
 
 (*Maps fully-typed metis terms to isabelle terms*)
-fun hol_term_from_metis_FT ctxt new_skolem_var_count fol_tm =
+fun hol_term_from_metis_FT ctxt fol_tm =
   let val _ = trace_msg ctxt (fn () => "hol_term_from_metis_FT: " ^
                                        Metis_Term.toString fol_tm)
       fun do_const c =
@@ -204,17 +202,17 @@ fun hol_term_from_metis_FT ctxt new_skolem_var_count fol_tm =
                 SOME v => Free (v, dummyT)
               | NONE => (trace_msg ctxt (fn () =>
                                       "hol_term_from_metis_FT bad const: " ^ x);
-                         hol_term_from_metis_PT ctxt new_skolem_var_count t))
+                         hol_term_from_metis_PT ctxt t))
         | cvt t = (trace_msg ctxt (fn () =>
                    "hol_term_from_metis_FT bad term: " ^ Metis_Term.toString t);
-                   hol_term_from_metis_PT ctxt new_skolem_var_count t)
+                   hol_term_from_metis_PT ctxt t)
   in fol_tm |> cvt end
 
 fun hol_term_from_metis FT = hol_term_from_metis_FT
   | hol_term_from_metis _ = hol_term_from_metis_PT
 
-fun hol_terms_from_metis ctxt mode (old_skolems, new_skolem_var_count) fol_tms =
-  let val ts = map (hol_term_from_metis mode ctxt new_skolem_var_count) fol_tms
+fun hol_terms_from_metis ctxt mode old_skolems fol_tms =
+  let val ts = map (hol_term_from_metis mode ctxt) fol_tms
       val _ = trace_msg ctxt (fn () => "  calling type inference:")
       val _ = app (fn t => trace_msg ctxt
                                      (fn () => Syntax.string_of_term ctxt t)) ts
@@ -271,7 +269,7 @@ fun assume_inf ctxt mode skolem_params atm =
    sorts. Instead we try to arrange that new TVars are distinct and that types
    can be inferred from terms. *)
 
-fun inst_inf ctxt mode (old_skolems, new_skolem_var_count) thpairs fsubst th =
+fun inst_inf ctxt mode old_skolems thpairs fsubst th =
   let val thy = ProofContext.theory_of ctxt
       val i_th = lookth thpairs th
       val i_th_vars = Term.add_vars (prop_of i_th) []
@@ -279,7 +277,7 @@ fun inst_inf ctxt mode (old_skolems, new_skolem_var_count) thpairs fsubst th =
       fun subst_translation (x,y) =
         let val v = find_var x
             (* We call "reveal_old_skolem_terms" and "infer_types" below. *)
-            val t = hol_term_from_metis mode ctxt new_skolem_var_count y
+            val t = hol_term_from_metis mode ctxt y
         in  SOME (cterm_of thy (Var v), t)  end
         handle Option.Option =>
                (trace_msg ctxt (fn () => "\"find_var\" failed for " ^ x ^
