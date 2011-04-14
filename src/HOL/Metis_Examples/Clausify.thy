@@ -71,6 +71,18 @@ by (metis rax)
 lemma "r 0 0 \<or> r 1 1 \<or> r 2 2 \<or> r 3 3"
 by (metisFT rax)
 
+lemma "(r 0 0 \<and> r 0 1 \<and> r 0 2 \<and> r 0 3) \<or>
+       (r 1 0 \<and> r 1 1 \<and> r 1 2 \<and> r 1 3) \<or>
+       (r 2 0 \<and> r 2 1 \<and> r 2 2 \<and> r 2 3) \<or>
+       (r 3 0 \<and> r 3 1 \<and> r 3 2 \<and> r 3 3)"
+by (metis rax)
+
+lemma "(r 0 0 \<and> r 0 1 \<and> r 0 2 \<and> r 0 3) \<or>
+       (r 1 0 \<and> r 1 1 \<and> r 1 2 \<and> r 1 3) \<or>
+       (r 2 0 \<and> r 2 1 \<and> r 2 2 \<and> r 2 3) \<or>
+       (r 3 0 \<and> r 3 1 \<and> r 3 2 \<and> r 3 3)"
+by (metisFT rax)
+
 text {* Definitional CNF for goal *}
 
 axiomatization p :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
