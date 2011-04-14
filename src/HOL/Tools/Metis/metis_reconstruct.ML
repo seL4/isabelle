@@ -611,7 +611,50 @@ fun replay_one_inference ctxt mode skolem_params (fol_th, inf) thpairs =
                   (fn () => "=============================================")
     in (fol_th, th) :: thpairs end
 
-fun term_instantiate thy = cterm_instantiate o map (pairself (cterm_of thy))
+(* It is normally sufficient to apply "assume_tac" to unify the conclusion with
+   one of the premises. Unfortunately, this sometimes yields "Variable
+   ?SK_a_b_c_x has two distinct types" errors. To avoid this, we instantiate the
+   variables before applying "assume_tac". Typical constraints are of the form
+     ?SK_a_b_c_x SK_d_e_f_y ... SK_a_b_c_x ... SK_g_h_i_z =?= SK_a_b_c_x,
+   where the nonvariables are goal parameters. *)
+fun unify_first_prem_with_concl thy i th =
+  let
+    val goal = Logic.get_goal (prop_of th) i |> Envir.beta_eta_contract
+    val prem = goal |> Logic.strip_assums_hyp |> hd
+    val concl = goal |> Logic.strip_assums_concl
+    fun pair_untyped_aconv (t1, t2) (u1, u2) =
+      untyped_aconv t1 u1 andalso untyped_aconv t2 u2
+    fun add_terms tp inst =
+      if exists (pair_untyped_aconv tp) inst then inst
+      else tp :: map (apsnd (subst_atomic [tp])) inst
+    fun is_flex t =
+      case strip_comb t of
+        (Var _, args) => forall is_Bound args
+      | _ => false
+    fun unify_flex flex rigid =
+      case strip_comb flex of
+        (Var (z as (_, T)), args) =>
+        add_terms (Var z,
+          fold_rev (curry absdummy) (take (length args) (binder_types T)) rigid)
+      | _ => I
+    fun unify_potential_flex comb atom =
+      if is_flex comb then unify_flex comb atom
+      else if is_Var atom then add_terms (atom, comb)
+      else I
+    fun unify_terms (t, u) =
+      case (t, u) of
+        (t1 $ t2, u1 $ u2) =>
+        if is_flex t then unify_flex t u
+        else if is_flex u then unify_flex u t
+        else fold unify_terms [(t1, u1), (t2, u2)]
+      | (_ $ _, _) => unify_potential_flex t u
+      | (_, _ $ _) => unify_potential_flex u t
+      | (Var _, _) => add_terms (t, u)
+      | (_, Var _) => add_terms (u, t)
+      | _ => I
+    val t_inst = [] |> unify_terms (prem, concl)
+                    |> map (pairself (cterm_of thy))
+  in th |> cterm_instantiate t_inst end
 
 val copy_prem = @{lemma "P ==> (P ==> P ==> Q) ==> Q" by fast}
 
@@ -663,9 +706,7 @@ fun instantiate_forall_tac thy t i st =
                         tyenv []
           val t_inst =
             [pairself (cterm_of thy o Envir.norm_term env) (Var var, t')]
-        in
-          th |> instantiate (ty_inst, t_inst)
-        end
+        in th |> instantiate (ty_inst, t_inst) end
       | _ => raise Fail "expected a single non-zapped, non-Metis Var"
   in
     (DETERM (etac @{thm allE} i THEN rotate_tac ~1 i)
@@ -841,6 +882,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
               THEN ALLGOALS (fn i =>
                        rtac @{thm Meson.skolem_COMBK_I} i
                        THEN rotate_tac (rotation_for_subgoal i) i
+                       THEN PRIMITIVE (unify_first_prem_with_concl thy i)
                        THEN assume_tac i
                        THEN flexflex_tac)))
       handle ERROR _ =>

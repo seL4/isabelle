@@ -8,15 +8,6 @@ theory Clausifier
 imports Complex_Main
 begin
 
-text {* Outstanding issues *}
-
-lemma ex_tl: "EX ys. tl ys = xs"
-using tl.simps(2) by fast
-
-lemma "(\<exists>ys\<Colon>nat list. tl ys = xs) \<and> (\<exists>bs\<Colon>int list. tl bs = as)"
-using [[metis_new_skolemizer = false]] (* FAILS with "= true" *)
-by (metis ex_tl)
-
 text {* Definitional CNF for goal *}
 
 (* FIXME: shouldn't need this *)
@@ -52,7 +43,7 @@ declare [[metis_new_skolemizer]]
 
 lemma
   fixes x :: real
-  assumes fn_le: "!!n. f n \<le> x" and 1: "f----> lim f"
+  assumes fn_le: "!!n. f n \<le> x" and 1: "f ----> lim f"
   shows "lim f \<le> x"
 by (metis 1 LIMSEQ_le_const2 fn_le)
 
@@ -71,7 +62,13 @@ by metisFT
 
 lemma
   "(\<exists>x \<in> set xs. P x) \<longleftrightarrow>
-   (\<exists>ys x zs. xs = ys@x#zs \<and> P x \<and> (\<forall>z \<in> set zs. \<not> P z))"
+   (\<exists>ys x zs. xs = ys @ x # zs \<and> P x \<and> (\<forall>z \<in> set zs. \<not> P z))"
 by (metis split_list_last_prop [where P = P] in_set_conv_decomp)
+
+lemma ex_tl: "EX ys. tl ys = xs"
+using tl.simps(2) by fast
+
+lemma "(\<exists>ys\<Colon>nat list. tl ys = xs) \<and> (\<exists>bs\<Colon>int list. tl bs = as)"
+by (metis ex_tl)
 
 end
