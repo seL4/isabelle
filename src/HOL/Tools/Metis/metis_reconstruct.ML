@@ -792,28 +792,38 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
         handle Int_Pair_Graph.CYCLES _ =>
                error "Cannot replay Metis proof in Isabelle without \
                      \\"Hilbert_Choice\"."
-      val outer_param_names =
-        [] |> fold (Term.add_var_names o snd) (map_filter I axioms)
-           |> filter (Meson_Clausify.is_zapped_var_name o fst)
-           |> map (`(Meson_Clausify.cluster_of_zapped_var_name o fst))
-           |> filter (fn (((_, (cluster_no, _)), skolem), _) =>
-                         cluster_no = 0 andalso skolem)
-           |> sort shuffle_ord |> map (fst o snd)
       val ax_counts =
         Int_Tysubst_Table.empty
         |> fold (fn (ax_no, (_, (tysubst, _))) =>
                     Int_Tysubst_Table.map_default ((ax_no, tysubst), 0)
                                                   (Integer.add 1)) substs
         |> Int_Tysubst_Table.dest
+      val needed_axiom_props =
+        0 upto length axioms - 1 ~~ axioms
+        |> map_filter (fn (_, NONE) => NONE
+                        | (ax_no, SOME (_, t)) =>
+                          if exists (fn ((ax_no', _), n) =>
+                                        ax_no' = ax_no andalso n > 0)
+                                    ax_counts then
+                            SOME t
+                          else
+                            NONE)
+      val outer_param_names =
+        [] |> fold Term.add_var_names needed_axiom_props
+           |> filter (Meson_Clausify.is_zapped_var_name o fst)
+           |> map (`(Meson_Clausify.cluster_of_zapped_var_name o fst))
+           |> filter (fn (((_, (cluster_no, _)), skolem), _) =>
+                         cluster_no = 0 andalso skolem)
+           |> sort shuffle_ord |> map (fst o snd)
 (* for debugging only:
       fun string_for_subst_info (ax_no, (subgoal_no, (tysubst, tsubst))) =
         "ax: " ^ string_of_int ax_no ^ "; asm: " ^ string_of_int subgoal_no ^
         "; tysubst: " ^ PolyML.makestring tysubst ^ "; tsubst: {" ^
         commas (map ((fn (s, t) => s ^ " |-> " ^ t)
                      o pairself (Syntax.string_of_term ctxt)) tsubst) ^ "}"
-      val _ = tracing ("OUTER PARAMS: " ^ PolyML.makestring outer_param_names)
       val _ = tracing ("ORDERED CLUSTERS: " ^ PolyML.makestring ordered_clusters)
       val _ = tracing ("AXIOM COUNTS: " ^ PolyML.makestring ax_counts)
+      val _ = tracing ("OUTER PARAMS: " ^ PolyML.makestring outer_param_names)
       val _ = tracing ("SUBSTS (" ^ string_of_int (length substs) ^ "):\n" ^
                        cat_lines (map string_for_subst_info substs))
 *)
