@@ -641,8 +641,9 @@ fun metis_of_type_literals pos (TyLitVar ((s, _), (s', _))) =
   | metis_of_type_literals pos (TyLitFree ((s, _), (s', _))) =
     metis_lit pos s [Metis_Term.Fn (s',[])]
 
-fun default_sort _ (TVar _) = false
-  | default_sort ctxt (TFree (x, s)) = (s = the_default [] (Variable.def_sort ctxt (x, ~1)));
+fun has_default_sort _ (TVar _) = false
+  | has_default_sort ctxt (TFree (x, s)) =
+    (s = the_default [] (Variable.def_sort ctxt (x, ~1)));
 
 fun metis_of_tfree tf =
   Metis_Thm.axiom (Metis_LiteralSet.singleton (metis_of_type_literals true tf));
@@ -660,8 +661,8 @@ fun hol_thm_to_fol is_conjecture ctxt type_lits mode j old_skolems th =
        type_literals_for_types types_sorts, old_skolems)
     else
       let
-        val tylits = filter_out (default_sort ctxt) types_sorts
-                     |> type_literals_for_types
+        val tylits = types_sorts |> filter_out (has_default_sort ctxt)
+                                 |> type_literals_for_types
         val mtylits =
           if type_lits then map (metis_of_type_literals false) tylits else []
       in
