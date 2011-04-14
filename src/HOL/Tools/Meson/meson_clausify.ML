@@ -15,6 +15,7 @@ sig
   val introduce_combinators_in_theorem : thm -> thm
   val to_definitional_cnf_with_quantifiers : Proof.context -> thm -> thm
   val cluster_of_zapped_var_name : string -> (int * (int * int)) * bool
+  val ss_only : thm list -> simpset
   val cnf_axiom :
     Proof.context -> bool -> int -> thm -> (thm * term) option * thm list
 end;

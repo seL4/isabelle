@@ -142,7 +142,8 @@ val neg_clausify =
 fun preskolem_tac ctxt st0 =
   (if exists (Meson.has_too_many_clauses ctxt)
              (Logic.prems_of_goal (prop_of st0) 1) then
-     cnf.cnfx_rewrite_tac ctxt 1
+     Simplifier.full_simp_tac (Meson_Clausify.ss_only @{thms not_all not_ex}) 1
+     THEN cnf.cnfx_rewrite_tac ctxt 1
    else
      all_tac) st0
 
