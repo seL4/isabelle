@@ -378,15 +378,18 @@ fun make_last i th =
       else raise THM("select_literal", i, [th])
   end;
 
-val neg_neg_imp = @{lemma "~ ~ Q ==> Q" by blast}
-
-val not_atomize =
-  @{lemma "(~ A ==> False) == Trueprop A"
-    by (cut_tac atomize_not [of "~ A"]) simp}
-
 (* Maps a rule that ends "... ==> P ==> False" to "... ==> ~ P" while avoiding
-   to create double negations. *)
-val negate_head = fold (rewrite_rule o single) [not_atomize, atomize_not]
+   to create double negations. The "select" wrapper is a trick to ensure that
+   "P ==> ~ False ==> False" is rewritten to "P ==> False", not to "~ P". We
+   don't use this trick in general because it makes the proof object uglier than
+   necessary. FIXME. *)
+fun negate_head th =
+  if exists (fn t => t aconv @{prop "~ False"}) (prems_of th) then
+    (th RS @{thm select_FalseI})
+    |> fold (rewrite_rule o single)
+            @{thms not_atomize_select atomize_not_select}
+  else
+    th |> fold (rewrite_rule o single) @{thms not_atomize atomize_not}
 
 (* Maps the clause  [P1,...Pn]==>False to [P1,...,P(i-1),P(i+1),...Pn] ==> ~P *)
 val select_literal = negate_head oo make_last
