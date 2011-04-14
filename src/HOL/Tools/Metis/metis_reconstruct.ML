@@ -555,6 +555,34 @@ fun is_isabelle_literal_genuine t =
 
 fun count p xs = fold (fn x => if p x then Integer.add 1 else I) xs 0
 
+(* Seldomly needed hack. A Metis clause is represented as a set, so duplicate
+   disjuncts are impossible. In the Isabelle proof, in spite of efforts to
+   eliminate them, duplicates sometimes appear with slightly different (but
+   unifiable) types. *)
+fun resynchronize ctxt fol_th th =
+  let
+    val num_metis_lits =
+      count is_metis_literal_genuine
+            (Metis_LiteralSet.toList (Metis_Thm.clause fol_th))
+    val num_isabelle_lits = count is_isabelle_literal_genuine (prems_of th)
+  in
+    if num_metis_lits >= num_isabelle_lits then
+      th
+    else
+      let
+        val (prems0, concl) = th |> prop_of |> Logic.strip_horn
+        val prems = prems0 |> distinct (uncurry untyped_aconv)
+        val goal = Logic.list_implies (prems, concl)
+      in
+        if length prems = length prems0 then
+          error "Cannot replay Metis proof in Isabelle: Out of sync."
+        else
+          Goal.prove ctxt [] [] goal (K (cut_rules_tac [th] 1
+                                         THEN ALLGOALS assume_tac))
+          |> resynchronize ctxt fol_th
+      end
+  end
+
 fun replay_one_inference ctxt mode skolem_params (fol_th, inf) thpairs =
   if not (null thpairs) andalso prop_of (snd (hd thpairs)) aconv @{prop False} then
     (* Isabelle sometimes identifies literals (premises) that are distinct in
@@ -571,16 +599,11 @@ fun replay_one_inference ctxt mode skolem_params (fol_th, inf) thpairs =
                   (fn () => "INFERENCE: " ^ Metis_Proof.inferenceToString inf)
       val th = step ctxt mode skolem_params thpairs (fol_th, inf)
                |> flexflex_first_order
+               |> resynchronize ctxt fol_th
       val _ = trace_msg ctxt
                   (fn () => "ISABELLE THM: " ^ Display.string_of_thm ctxt th)
       val _ = trace_msg ctxt
                   (fn () => "=============================================")
-      val num_metis_lits =
-        count is_metis_literal_genuine
-              (Metis_LiteralSet.toList (Metis_Thm.clause fol_th))
-      val num_isabelle_lits = count is_isabelle_literal_genuine (prems_of th)
-      val _ = if num_metis_lits >= num_isabelle_lits then ()
-              else error "Cannot replay Metis proof in Isabelle: Out of sync."
     in (fol_th, th) :: thpairs end
 
 fun term_instantiate thy = cterm_instantiate o map (pairself (cterm_of thy))
