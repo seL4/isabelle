@@ -21,7 +21,7 @@ sig
   val string_of: XML.tree -> string
   val parse_body: string -> XML.body
   val parse: string -> XML.tree
-  val parse_file: (XML.tree -> 'a) -> Path.T -> 'a list
+  val parse_file: (XML.tree -> 'a -> 'a) -> Path.T -> 'a -> 'a
 end;
 
 structure YXML: YXML =
@@ -124,8 +124,8 @@ fun parse_chunk ["", ""] = pop
 fun preparse_chunk _ "" x = x
   | preparse_chunk f str (pending, results) =
       (case parse_chunk (String.fields (is_char Y) str) pending of
-        [(("", _), [result])] => (stack_init, f result :: results)
-      | foo => (foo, results));
+        [(("", _), [result])] => (stack_init, f result results)
+      | x => (x, results));
 
 in
 
@@ -140,10 +140,11 @@ fun parse source =
   | [] => XML.Text ""
   | _ => err "multiple results");
 
-fun parse_file f path =
+(*folds a function over each XML.Tree in the file*)
+fun parse_file f path s =
   (case File.fold_fields (is_char X) (preparse_chunk f)
-      path  (stack_init, []) of
-    ([(("", _), [])], result) => rev result
+      path (stack_init, s) of
+    ([(("", _), [])], result) => result
   | (((name, _), _) :: _, _) => err_unbalanced name);
 
 end;
