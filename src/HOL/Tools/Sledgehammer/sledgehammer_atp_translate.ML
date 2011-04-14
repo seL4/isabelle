@@ -101,8 +101,13 @@ fun num_atp_type_args thy type_sys s =
   else
     0
 
-fun atp_type_literals_for_types type_sys Ts =
-  if type_sys = No_Types then [] else type_literals_for_types Ts
+fun atp_type_literals_for_types type_sys kind Ts =
+  if type_sys = No_Types then
+    []
+  else
+    Ts |> type_literals_for_types
+       |> filter (fn TyLitVar _ => kind <> Conjecture
+                   | TyLitFree _ => kind = Conjecture)
 
 fun mk_anot phi = AConn (ANot, [phi])
 fun mk_aconn c phi1 phi2 = AConn (c, [phi1, phi2])
@@ -223,7 +228,7 @@ fun introduce_combinators_in_term ctxt kind t =
   end
 
 (* Metis's use of "resolve_tac" freezes the schematic variables. We simulate the
-   same in Sledgehammer to prevent the discovery of unreplable proofs. *)
+   same in Sledgehammer to prevent the discovery of unreplayable proofs. *)
 fun freeze_term t =
   let
     fun aux (t $ u) = aux t $ aux u
@@ -330,10 +335,10 @@ fun translate_formulas ctxt type_sys hyp_ts concl_t rich_facts =
        boost an ATP's performance (for some reason). *)
     val hyp_ts = hyp_ts |> filter_out (member (op aconv) fact_ts)
     val goal_t = Logic.list_implies (hyp_ts, concl_t)
-    val subs = tfree_classes_of_terms [goal_t]
-    val supers = tvar_classes_of_terms fact_ts
-    val tycons = type_consts_of_terms thy (goal_t :: fact_ts)
-    (* TFrees in the conjecture; TVars in the facts *)
+    val all_ts = goal_t :: fact_ts
+    val subs = tfree_classes_of_terms all_ts
+    val supers = tvar_classes_of_terms all_ts
+    val tycons = type_consts_of_terms thy all_ts
     val conjs = make_conjecture ctxt (hyp_ts @ [concl_t])
     val (supers', arity_clauses) =
       if type_sys = No_Types then ([], [])
@@ -490,7 +495,7 @@ fun formula_for_combformula ctxt type_sys =
 fun formula_for_fact ctxt type_sys
                      ({combformula, ctypes_sorts, ...} : translated_formula) =
   mk_ahorn (map (formula_for_fo_literal o fo_literal_for_type_literal)
-                (atp_type_literals_for_types type_sys ctypes_sorts))
+                (atp_type_literals_for_types type_sys Axiom ctypes_sorts))
            (formula_for_combformula ctxt type_sys combformula)
 
 (* Each fact is given a unique fact number to avoid name clashes (e.g., because
@@ -527,17 +532,16 @@ fun problem_line_for_conjecture ctxt type_sys
   Fof (conjecture_prefix ^ name, kind,
        formula_for_combformula ctxt type_sys combformula, NONE)
 
-fun free_type_literals_for_conjecture type_sys
-        ({ctypes_sorts, ...} : translated_formula) =
-  ctypes_sorts |> atp_type_literals_for_types type_sys
+fun free_type_literals type_sys ({ctypes_sorts, ...} : translated_formula) =
+  ctypes_sorts |> atp_type_literals_for_types type_sys Conjecture
                |> map fo_literal_for_type_literal
 
 fun problem_line_for_free_type j lit =
   Fof (tfree_prefix ^ string_of_int j, Hypothesis, formula_for_fo_literal lit,
        NONE)
-fun problem_lines_for_free_types type_sys conjs =
+fun problem_lines_for_free_types type_sys facts =
   let
-    val litss = map (free_type_literals_for_conjecture type_sys) conjs
+    val litss = map (free_type_literals type_sys) facts
     val lits = fold (union (op =)) litss []
   in map2 problem_line_for_free_type (0 upto length lits - 1) lits end
 
@@ -689,7 +693,7 @@ fun prepare_atp_problem ctxt readable_names explicit_forall type_sys
        (aritiesN, map problem_line_for_arity_clause arity_clauses),
        (helpersN, []),
        (conjsN, map (problem_line_for_conjecture ctxt type_sys) conjs),
-       (free_typesN, problem_lines_for_free_types type_sys conjs)]
+       (free_typesN, problem_lines_for_free_types type_sys (facts @ conjs))]
     val const_tab = const_table_for_problem explicit_apply problem
     val problem =
       problem |> repair_problem thy explicit_forall type_sys const_tab
