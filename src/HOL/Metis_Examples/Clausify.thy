@@ -1,10 +1,10 @@
-(*  Title:      HOL/Metis_Examples/Clausifier.thy
+(*  Title:      HOL/Metis_Examples/Clausify.thy
     Author:     Jasmin Blanchette, TU Muenchen
 
 Testing Metis's clausifier.
 *)
 
-theory Clausifier
+theory Clausify
 imports Complex_Main
 begin
 
