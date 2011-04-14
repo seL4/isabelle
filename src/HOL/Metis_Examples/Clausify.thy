@@ -8,14 +8,73 @@ theory Clausify
 imports Complex_Main
 begin
 
-text {* Definitional CNF for goal *}
-
 (* FIXME: shouldn't need this *)
 declare [[unify_search_bound = 100]]
 declare [[unify_trace_bound = 100]]
 
+text {* Definitional CNF for facts *}
+
+declare [[meson_max_clauses = 10]]
+
+axiomatization q :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
+qax: "\<exists>b. \<forall>a. (q b a \<and> q 0 0 \<and> q 1 a \<and> q a 1) \<or> (q 0 1 \<and> q 1 0 \<and> q a b \<and> q 1 1)"
+
+declare [[metis_new_skolemizer = false]]
+
+lemma "\<exists>b. \<forall>a. (q b a \<or> q a b)"
+by (metis qax)
+
+lemma "\<exists>b. \<forall>a. (q b a \<or> q a b)"
+by (metisFT qax)
+
+lemma "\<exists>b. \<forall>a. (q b a \<and> q 0 0 \<and> q 1 a \<and> q a 1) \<or> (q 0 1 \<and> q 1 0 \<and> q a b \<and> q 1 1)"
+by (metis qax)
+
+lemma "\<exists>b. \<forall>a. (q b a \<and> q 0 0 \<and> q 1 a \<and> q a 1) \<or> (q 0 1 \<and> q 1 0 \<and> q a b \<and> q 1 1)"
+by (metisFT qax)
+
+declare [[metis_new_skolemizer]]
+
+lemma "\<exists>b. \<forall>a. (q b a \<or> q a b)"
+by (metis qax)
+
+lemma "\<exists>b. \<forall>a. (q b a \<or> q a b)"
+by (metisFT qax)
+
+lemma "\<exists>b. \<forall>a. (q b a \<and> q 0 0 \<and> q 1 a \<and> q a 1) \<or> (q 0 1 \<and> q 1 0 \<and> q a b \<and> q 1 1)"
+by (metis qax)
+
+lemma "\<exists>b. \<forall>a. (q b a \<and> q 0 0 \<and> q 1 a \<and> q a 1) \<or> (q 0 1 \<and> q 1 0 \<and> q a b \<and> q 1 1)"
+by (metisFT qax)
+
+declare [[meson_max_clauses = 60]]
+
+axiomatization r :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
+rax: "(r 0 0 \<and> r 0 1 \<and> r 0 2 \<and> r 0 3) \<or>
+      (r 1 0 \<and> r 1 1 \<and> r 1 2 \<and> r 1 3) \<or>
+      (r 2 0 \<and> r 2 1 \<and> r 2 2 \<and> r 2 3) \<or>
+      (r 3 0 \<and> r 3 1 \<and> r 3 2 \<and> r 3 3)"
+
+declare [[metis_new_skolemizer = false]]
+
+lemma "r 0 0 \<or> r 1 1 \<or> r 2 2 \<or> r 3 3"
+by (metis rax)
+
+lemma "r 0 0 \<or> r 1 1 \<or> r 2 2 \<or> r 3 3"
+by (metisFT rax)
+
+declare [[metis_new_skolemizer]]
+
+lemma "r 0 0 \<or> r 1 1 \<or> r 2 2 \<or> r 3 3"
+by (metis rax)
+
+lemma "r 0 0 \<or> r 1 1 \<or> r 2 2 \<or> r 3 3"
+by (metisFT rax)
+
+text {* Definitional CNF for goal *}
+
 axiomatization p :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
-pax: "\<exists>b. \<forall>a. ((p b a \<and> p 0 0 \<and> p 1 a) \<or> (p 0 1 \<and> p 1 0 \<and> p a b))"
+pax: "\<exists>b. \<forall>a. (p b a \<and> p 0 0 \<and> p 1 a) \<or> (p 0 1 \<and> p 1 0 \<and> p a b)"
 
 declare [[metis_new_skolemizer = false]]
 
