@@ -652,8 +652,9 @@ fun unify_first_prem_with_concl thy i th =
       | (Var _, _) => add_terms (t, u)
       | (_, Var _) => add_terms (u, t)
       | _ => I
-    val t_inst = [] |> unify_terms (prem, concl)
-                    |> map (pairself (cterm_of thy))
+    val t_inst =
+      [] |> try (unify_terms (prem, concl) #> map (pairself (cterm_of thy)))
+         |> the_default [] (* FIXME *)
   in th |> cterm_instantiate t_inst end
 
 val copy_prem = @{lemma "P ==> (P ==> P ==> Q) ==> Q" by fast}
