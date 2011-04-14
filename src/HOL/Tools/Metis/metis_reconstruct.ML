@@ -169,6 +169,13 @@ fun hol_term_from_metis_PT ctxt new_skolem_var_count fol_tm =
 fun hol_term_from_metis_FT ctxt new_skolem_var_count fol_tm =
   let val _ = trace_msg ctxt (fn () => "hol_term_from_metis_FT: " ^
                                        Metis_Term.toString fol_tm)
+      fun do_const c =
+        let val c = c |> invert_const in
+          if String.isPrefix new_skolem_const_prefix c then
+            Var ((new_skolem_var_name_from_const c, 1), dummyT)
+          else
+            Const (c, dummyT)
+        end
       fun cvt (Metis_Term.Fn ("ti", [Metis_Term.Var v, _])) =
              (case strip_prefix_and_unascii schematic_var_prefix v of
                   SOME w =>  mk_var(w, dummyT)
@@ -177,7 +184,7 @@ fun hol_term_from_metis_FT ctxt new_skolem_var_count fol_tm =
             Const (@{const_name HOL.eq}, HOLogic.typeT)
         | cvt (Metis_Term.Fn ("ti", [Metis_Term.Fn (x,[]), ty])) =
            (case strip_prefix_and_unascii const_prefix x of
-                SOME c => Const (invert_const c, dummyT)
+                SOME c => do_const c
               | NONE => (*Not a constant. Is it a fixed variable??*)
             case strip_prefix_and_unascii fixed_var_prefix x of
                 SOME v => Free (v, hol_type_from_metis_term ctxt ty)
@@ -191,7 +198,7 @@ fun hol_term_from_metis_FT ctxt new_skolem_var_count fol_tm =
             list_comb(Const (@{const_name HOL.eq}, HOLogic.typeT), map cvt [tm1,tm2])
         | cvt (t as Metis_Term.Fn (x, [])) =
            (case strip_prefix_and_unascii const_prefix x of
-                SOME c => Const (invert_const c, dummyT)
+                SOME c => do_const c
               | NONE => (*Not a constant. Is it a fixed variable??*)
             case strip_prefix_and_unascii fixed_var_prefix x of
                 SOME v => Free (v, dummyT)
