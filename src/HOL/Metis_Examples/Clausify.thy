@@ -8,6 +8,14 @@ theory Clausifier
 imports Complex_Main
 begin
 
+text {* Outstanding issues *}
+
+lemma ex_tl: "EX ys. tl ys = xs"
+using tl.simps(2) by fast
+
+lemma "(\<exists>ys\<Colon>nat list. tl ys = xs) \<and> (\<exists>bs\<Colon>int list. tl bs = as)"
+using [[metis_new_skolemizer = false]] (* FAILS with "= true" *)
+by (metis ex_tl)
 
 text {* Definitional CNF for goal *}
 
@@ -37,7 +45,6 @@ by (metis pax)
 lemma "\<exists>b. \<forall>a. \<exists>x. (p b a \<or> x) \<and> (p 0 0 \<or> x) \<and> (p 1 a \<or> x) \<and>
                    (p 0 1 \<or> \<not> x) \<and> (p 1 0 \<or> \<not> x) \<and> (p a b \<or> \<not> x)"
 by (metisFT pax)
-
 
 text {* New Skolemizer *}
 
