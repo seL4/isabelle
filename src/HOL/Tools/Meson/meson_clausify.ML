@@ -13,7 +13,7 @@ sig
   val extensionalize_theorem : thm -> thm
   val introduce_combinators_in_cterm : cterm -> thm
   val introduce_combinators_in_theorem : thm -> thm
-  val to_definitional_cnf_with_quantifiers : theory -> thm -> thm
+  val to_definitional_cnf_with_quantifiers : Proof.context -> thm -> thm
   val cluster_of_zapped_var_name : string -> (int * (int * int)) * bool
   val cnf_axiom :
     Proof.context -> bool -> int -> thm -> (thm * term) option * thm list
@@ -229,9 +229,9 @@ fun old_skolem_theorem_from_def thy rhs0 =
     |> Thm.varifyT_global
   end
 
-fun to_definitional_cnf_with_quantifiers thy th =
+fun to_definitional_cnf_with_quantifiers ctxt th =
   let
-    val eqth = cnf.make_cnfx_thm thy (HOLogic.dest_Trueprop (prop_of th))
+    val eqth = cnf.make_cnfx_thm ctxt (HOLogic.dest_Trueprop (prop_of th))
     val eqth = eqth RS @{thm eq_reflection}
     val eqth = eqth RS @{thm TruepropI}
   in Thm.equal_elim eqth th end
@@ -341,8 +341,8 @@ fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
                 cterm_of thy)
           |> zap true
         val fixes =
-          Term.add_free_names (prop_of zapped_th) []
-          |> filter is_zapped_var_name
+          [] |> Term.add_free_names (prop_of zapped_th)
+             |> filter is_zapped_var_name
         val ctxt' = ctxt |> Variable.add_fixes_direct fixes
         val fully_skolemized_t =
           zapped_th |> singleton (Variable.export ctxt' ctxt)
@@ -366,6 +366,58 @@ fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
       (NONE, (th, ctxt))
   end
 
+val all_out_ss =
+  Simplifier.clear_ss HOL_basic_ss addsimps @{thms all_simps[symmetric]}
+
+val meta_allI = @{lemma "ALL x. P x ==> (!!x. P x)" by auto}
+
+fun repeat f x =
+  case try f x of
+    SOME y => repeat f y
+  | NONE => x
+
+fun close_thm thy th =
+  fold (Thm.forall_intr o cterm_of thy o Var) (Term.add_vars (prop_of th) []) th
+
+fun cnf_axiom_xxx ctxt0 new_skolemizer ax_no th =
+  let
+    val ctxt0 = Variable.global_thm_context th
+    val thy = ProofContext.theory_of ctxt0
+    val choice_ths = choice_theorems thy
+    val (opt, (nnf_th, ctxt)) =
+      nnf_axiom choice_ths new_skolemizer ax_no th ctxt0
+    val skolem_ths = map (old_skolem_theorem_from_def thy) o old_skolem_defs
+    fun make_cnf th = Meson.make_cnf (skolem_ths th) th
+    val (cnf_ths, ctxt) =
+       make_cnf nnf_th ctxt
+       |> (fn (cnf, _) =>
+              let
+                val _ = tracing ("nondef CNF: " ^ string_of_int (length cnf) ^ " clause(s)")
+                val sko_th =
+                  nnf_th |> Simplifier.simplify all_out_ss
+                         |> repeat (fn th => th RS meta_allI)
+                         |> Meson.make_xxx_skolem ctxt (skolem_ths nnf_th)
+                         |> close_thm thy
+                         |> Conv.fconv_rule Object_Logic.atomize
+                         |> to_definitional_cnf_with_quantifiers ctxt
+              in make_cnf sko_th ctxt end
+           | p => p)
+    fun intr_imp ct th =
+      Thm.instantiate ([], map (pairself (cterm_of thy))
+                               [(Var (("i", 0), @{typ nat}),
+                                 HOLogic.mk_nat ax_no)])
+                      (zero_var_indexes @{thm skolem_COMBK_D})
+      RS Thm.implies_intr ct th
+  in
+    (NONE (*###*),
+     cnf_ths |> map (introduce_combinators_in_theorem
+                     #> (case opt of SOME (_, ct) => intr_imp ct | NONE => I))
+             |> Variable.export ctxt ctxt0
+             |> finish_cnf
+             |> map Thm.close_derivation)
+  end
+
+
 (* Convert a theorem to CNF, with additional premises due to skolemization. *)
 fun cnf_axiom ctxt0 new_skolemizer ax_no th =
   let
@@ -382,8 +434,23 @@ fun cnf_axiom ctxt0 new_skolemizer ax_no th =
     val (cnf_ths, ctxt) =
       clausify nnf_th
       |> (fn ([], _) =>
-             (* FIXME: This probably doesn't work with the new Skolemizer *)
-             clausify (to_definitional_cnf_with_quantifiers thy nnf_th)
+             if new_skolemizer then
+               let
+val _ = tracing ("**** NEW CLAUSIFIER, DEF-CNF: " ^ Display.string_of_thm ctxt (to_definitional_cnf_with_quantifiers ctxt nnf_th)) (*###*)
+val _ = tracing (" *** th: " ^ Display.string_of_thm ctxt th) (*###*)
+                 val (_, (th1, ctxt)) = nnf_axiom choice_ths true ax_no th ctxt0
+val _ = tracing (" *** th1: " ^ Display.string_of_thm ctxt th1) (*###*)
+                 val th2 = to_definitional_cnf_with_quantifiers ctxt th1
+val _ = tracing (" *** th2: " ^ Display.string_of_thm ctxt th2) (*###*)
+                 val (ths3, ctxt) = clausify th2
+val _ = tracing (" *** hd ths3: " ^ Display.string_of_thm ctxt (hd ths3)) (*###*)
+               in (ths3, ctxt) end
+             else
+let
+val _ = tracing ("**** OLD CLAUSIFIER, DEF-CNF: " ^ Display.string_of_thm ctxt (to_definitional_cnf_with_quantifiers ctxt nnf_th))
+(*###*) in
+               clausify (to_definitional_cnf_with_quantifiers ctxt nnf_th)
+end
            | p => p)
     fun intr_imp ct th =
       Thm.instantiate ([], map (pairself (cterm_of thy))

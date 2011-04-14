@@ -14,6 +14,7 @@ sig
   val size_of_subgoals: thm -> int
   val has_too_many_clauses: Proof.context -> term -> bool
   val make_cnf: thm list -> thm -> Proof.context -> thm list * Proof.context
+  val make_xxx_skolem: Proof.context -> thm list -> thm -> thm
   val finish_cnf: thm list -> thm list
   val presimplify: thm -> thm
   val make_nnf: Proof.context -> thm -> thm
@@ -392,6 +393,48 @@ fun cnf old_skolem_ths ctxt (th, ths) =
   in  (cls, !ctxtr)  end;
 
 fun make_cnf old_skolem_ths th ctxt = cnf old_skolem_ths ctxt (th, [])
+
+val disj_imp_cong =
+  @{lemma "[| P --> P'; Q --> Q'; P | Q |] ==> P' | Q'" by auto}
+
+val impI = @{thm impI}
+
+(* ### *)
+(* Match untyped terms. *)
+fun untyped_aconv (Const (a, _)) (Const(b, _)) = (a = b)
+  | untyped_aconv (Free (a, _)) (Free (b, _)) = (a = b)
+  | untyped_aconv (Var ((a, _), _)) (Var ((b, _), _)) = true
+  | untyped_aconv (Free (a, _)) (Var ((b, _), _)) = true
+  | untyped_aconv (Var ((a, _), _)) (Free (b, _)) = true
+  | untyped_aconv (Bound i) (Bound j) = (i = j)
+  | untyped_aconv (Abs (_, _, t)) (Abs (_, _, u)) = untyped_aconv t u
+  | untyped_aconv (t1 $ t2) (u1 $ u2) =
+    untyped_aconv t1 u1 andalso untyped_aconv t2 u2
+  | untyped_aconv _ _ = false
+
+fun make_xxx_skolem ctxt skolem_ths th =
+  let
+    val thy = ProofContext.theory_of ctxt
+    fun do_connective fwd_thm t1 t2 =
+      do_formula t1
+      COMP rotate_prems 1 (do_formula t2 COMP (rotate_prems 2 fwd_thm))
+    and do_formula t =
+      case t of
+        @{const Trueprop} $ t' => do_formula t'
+      | @{const conj} $ t1 $ t2 => do_connective @{thm conj_forward} t1 t2
+      | @{const disj} $ t1 $ t2 => do_connective @{thm disj_forward} t1 t2
+      | Const (@{const_name Ex}, _) $ Abs _ =>
+        let
+          val th =
+            find_first (fn sko_th => (untyped_aconv (Logic.nth_prem (1, prop_of sko_th)) (HOLogic.mk_Trueprop t)))
+                       skolem_ths |> the
+        in
+          th
+          RS
+          do_formula (Logic.strip_imp_concl (prop_of th))
+        end
+      | _ => Thm.trivial (cterm_of thy (HOLogic.mk_Trueprop t))
+  in th COMP do_formula (HOLogic.dest_Trueprop (prop_of th)) end
 
 (*Generalization, removal of redundant equalities, removal of tautologies.*)
 fun finish_cnf ths = filter (not o is_taut) (map refl_clause ths);

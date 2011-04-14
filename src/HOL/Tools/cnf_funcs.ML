@@ -40,11 +40,12 @@ sig
   val clause_is_trivial: term -> bool
 
   val clause2raw_thm: thm -> thm
+  val make_nnf_thm: theory -> term -> thm
 
   val weakening_tac: int -> tactic  (* removes the first hypothesis of a subgoal *)
 
-  val make_cnf_thm: theory -> term -> thm
-  val make_cnfx_thm: theory -> term -> thm
+  val make_cnf_thm: Proof.context -> term -> thm
+  val make_cnfx_thm: Proof.context -> term -> thm
   val cnf_rewrite_tac: Proof.context -> int -> tactic  (* converts all prems of a subgoal to CNF *)
   val cnfx_rewrite_tac: Proof.context -> int -> tactic
     (* converts all prems of a subgoal to (almost) definitional CNF *)
@@ -252,6 +253,24 @@ fun make_nnf_thm thy (Const (@{const_name HOL.conj}, _) $ x $ y) =
       end
   | make_nnf_thm thy t = inst_thm thy [t] iff_refl;
 
+val meta_eq_to_obj_eq = @{thm meta_eq_to_obj_eq}
+val eq_reflection = @{thm eq_reflection}
+
+fun make_under_quantifiers ctxt make t =
+  let
+    val thy = ProofContext.theory_of ctxt
+    fun conv ctxt ct =
+      case term_of ct of
+        (t1 as Const _) $ (t2 as Abs _) =>
+        Conv.comb_conv (conv ctxt) ct
+      | Abs _ => Conv.abs_conv (conv o snd) ctxt ct
+      | Const _ => Conv.all_conv ct
+      | t => make t RS eq_reflection
+  in conv ctxt (cterm_of thy t) RS meta_eq_to_obj_eq end
+
+fun make_nnf_thm_under_quantifiers ctxt =
+  make_under_quantifiers ctxt (make_nnf_thm (ProofContext.theory_of ctxt))
+
 (* ------------------------------------------------------------------------- *)
 (* simp_True_False_thm: produces a theorem t = t', where t' is equivalent to *)
 (*      t, but simplified wrt. the following theorems:                       *)
@@ -323,8 +342,9 @@ fun simp_True_False_thm thy (Const (@{const_name HOL.conj}, _) $ x $ y) =
 (*      in the length of the term.                                           *)
 (* ------------------------------------------------------------------------- *)
 
-fun make_cnf_thm thy t =
+fun make_cnf_thm ctxt t =
   let
+    val thy = ProofContext.theory_of ctxt
     fun make_cnf_thm_from_nnf (Const (@{const_name HOL.conj}, _) $ x $ y) =
           let
             val thm1 = make_cnf_thm_from_nnf x
@@ -361,13 +381,19 @@ fun make_cnf_thm thy t =
           end
       | make_cnf_thm_from_nnf t = inst_thm thy [t] iff_refl
     (* convert 't' to NNF first *)
+    val nnf_thm = make_nnf_thm_under_quantifiers ctxt t
+(*###
     val nnf_thm = make_nnf_thm thy t
+*)
     val nnf = (snd o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) nnf_thm
     (* then simplify wrt. True/False (this should preserve NNF) *)
     val simp_thm = simp_True_False_thm thy nnf
     val simp = (snd o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) simp_thm
     (* finally, convert to CNF (this should preserve the simplification) *)
+    val cnf_thm = make_under_quantifiers ctxt make_cnf_thm_from_nnf simp
+(* ###
     val cnf_thm = make_cnf_thm_from_nnf simp
+*)
   in
     iff_trans OF [iff_trans OF [nnf_thm, simp_thm], cnf_thm]
   end;
@@ -386,8 +412,9 @@ fun make_cnf_thm thy t =
 (*      in the case of nested equivalences.                                  *)
 (* ------------------------------------------------------------------------- *)
 
-fun make_cnfx_thm thy t =
+fun make_cnfx_thm ctxt t =
   let
+    val thy = ProofContext.theory_of ctxt
     val var_id = Unsynchronized.ref 0  (* properly initialized below *)
     fun new_free () =
       Free ("cnfx_" ^ string_of_int (Unsynchronized.inc var_id), HOLogic.boolT)
@@ -465,7 +492,10 @@ fun make_cnfx_thm thy t =
             end
       | make_cnfx_thm_from_nnf t = inst_thm thy [t] iff_refl
     (* convert 't' to NNF first *)
+    val nnf_thm = make_nnf_thm_under_quantifiers ctxt t
+(* ###
     val nnf_thm = make_nnf_thm thy t
+*)
     val nnf = (snd o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) nnf_thm
     (* then simplify wrt. True/False (this should preserve NNF) *)
     val simp_thm = simp_True_False_thm thy nnf
@@ -483,7 +513,10 @@ fun make_cnfx_thm thy t =
         Int.max (max, the_default 0 idx)
       end) (OldTerm.term_frees simp) 0)
     (* finally, convert to definitional CNF (this should preserve the simplification) *)
+    val cnfx_thm = make_under_quantifiers ctxt make_cnfx_thm_from_nnf simp
+(*###
     val cnfx_thm = make_cnfx_thm_from_nnf simp
+*)
   in
     iff_trans OF [iff_trans OF [nnf_thm, simp_thm], cnfx_thm]
   end;
@@ -509,8 +542,7 @@ fun cnf_rewrite_tac ctxt i =
   (* cut the CNF formulas as new premises *)
   Subgoal.FOCUS (fn {prems, ...} =>
     let
-      val thy = ProofContext.theory_of ctxt
-      val cnf_thms = map (make_cnf_thm thy o HOLogic.dest_Trueprop o Thm.prop_of) prems
+      val cnf_thms = map (make_cnf_thm ctxt o HOLogic.dest_Trueprop o Thm.prop_of) prems
       val cut_thms = map (fn (th, pr) => cnftac_eq_imp OF [th, pr]) (cnf_thms ~~ prems)
     in
       cut_facts_tac cut_thms 1
@@ -532,8 +564,7 @@ fun cnfx_rewrite_tac ctxt i =
   (* cut the CNF formulas as new premises *)
   Subgoal.FOCUS (fn {prems, ...} =>
     let
-      val thy = ProofContext.theory_of ctxt;
-      val cnfx_thms = map (make_cnfx_thm thy o HOLogic.dest_Trueprop o prop_of) prems
+      val cnfx_thms = map (make_cnfx_thm ctxt o HOLogic.dest_Trueprop o prop_of) prems
       val cut_thms = map (fn (th, pr) => cnftac_eq_imp OF [th, pr]) (cnfx_thms ~~ prems)
     in
       cut_facts_tac cut_thms 1
