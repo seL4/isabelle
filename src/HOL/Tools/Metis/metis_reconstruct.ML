@@ -424,6 +424,8 @@ fun resolve_inf ctxt mode skolem_params thpairs atm th1 th2 =
         val _ = trace_msg ctxt (fn () => "  index_th2: " ^ string_of_int index_th2)
     in
       resolve_inc_tyvars thy (select_literal index_th1 i_th1) index_th2 i_th2
+      handle TERM (s, _) => error ("Cannot replay Metis proof in Isabelle:\n" ^
+                                   "resolve_inf: " ^ s)
     end
   end;
 
