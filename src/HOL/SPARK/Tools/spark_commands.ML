@@ -27,7 +27,7 @@ fun spark_open vc_name thy =
     SPARK_VCs.set_vcs
       (snd (Fdl_Parser.parse_declarations (Path.position fdl_path) (File.read fdl_path)))
       (Fdl_Parser.parse_rules (Path.position rls_path) (File.read rls_path))
-      (snd (snd (Fdl_Parser.parse_vcs header (Path.position vc_path) (File.read vc_path))))
+      (snd (Fdl_Parser.parse_vcs header (Path.position vc_path) (File.read vc_path)))
       base thy
   end;
 
@@ -38,6 +38,9 @@ fun add_proof_fun_cmd pf thy =
        the_default I (Option.map Type.constraint optT) #>
        Syntax.check_term ctxt) pf thy
   end;
+
+fun add_spark_type_cmd (s, raw_typ) thy =
+  SPARK_VCs.add_type (s, Syntax.read_typ_global thy raw_typ) thy;
 
 fun get_vc thy vc_name =
   (case SPARK_VCs.lookup_vc thy vc_name of
@@ -115,6 +118,13 @@ val _ =
     Keyword.thy_decl
     (Scan.repeat1 (Parse.name -- (pfun_type --| Args.$$$ "=" -- Parse.term)) >>
        (Toplevel.theory o fold add_proof_fun_cmd));
+
+val _ =
+  Outer_Syntax.command "spark_types"
+    "associate SPARK types with types"
+    Keyword.thy_decl
+    (Scan.repeat1 (Parse.name --| Args.$$$ "=" -- Parse.typ) >>
+       (Toplevel.theory o fold add_spark_type_cmd));
 
 val _ =
   Outer_Syntax.command "spark_vc"
