@@ -95,8 +95,8 @@ fun prove thy r asms =
     fun inst thm =
       let val SOME (_, _, r', _) = decomp (concl_of thm)
       in Drule.cterm_instantiate [(cterm_of thy r', cterm_of thy r)] thm end;
-    fun pr (Asm i) = List.nth (asms, i)
-      | pr (Thm (prfs, thm)) = map pr prfs MRS inst thm
+    fun pr (Asm i) = nth asms i
+      | pr (Thm (prfs, thm)) = map pr prfs MRS inst thm;
   in pr end;
 
 

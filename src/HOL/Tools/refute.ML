@@ -1628,7 +1628,7 @@ fun stlc_interpreter ctxt model args t =
           Const (_, T) => interpret_groundterm T
         | Free (_, T) => interpret_groundterm T
         | Var (_, T) => interpret_groundterm T
-        | Bound i => SOME (List.nth (#bounds args, i), model, args)
+        | Bound i => SOME (nth (#bounds args) i, model, args)
         | Abs (x, T, body) =>
             let
               (* create all constants of type 'T' *)
@@ -2271,7 +2271,7 @@ fun IDT_recursion_interpreter ctxt model args t =
                         else ()
                       (* the type of a recursion operator is *)
                       (* [T1, ..., Tn, IDT] ---> Tresult     *)
-                      val IDT = List.nth (binder_types T, mconstrs_count)
+                      val IDT = nth (binder_types T) mconstrs_count
                       (* by our assumption on the order of recursion operators *)
                       (* and datatypes, this is the index of the datatype      *)
                       (* corresponding to the given recursion operator         *)
@@ -2463,15 +2463,15 @@ fun IDT_recursion_interpreter ctxt model args t =
                               (* find the indices of the constructor's /recursive/ *)
                               (* arguments                                         *)
                               val (_, _, constrs) = the (AList.lookup (op =) descr idx)
-                              val (_, dtyps)      = List.nth (constrs, c)
-                              val rec_dtyps_args  = filter
+                              val (_, dtyps) = nth constrs c
+                              val rec_dtyps_args = filter
                                 (Datatype_Aux.is_rec_type o fst) (dtyps ~~ args)
                               (* map those indices to interpretations *)
                               val rec_dtyps_intrs = map (fn (dtyp, arg) =>
                                 let
-                                  val dT     = typ_of_dtyp descr typ_assoc dtyp
+                                  val dT = typ_of_dtyp descr typ_assoc dtyp
                                   val consts = make_constants ctxt (typs, []) dT
-                                  val arg_i  = List.nth (consts, arg)
+                                  val arg_i = nth consts arg
                                 in
                                   (dtyp, arg_i)
                                 end) rec_dtyps_args
@@ -3104,7 +3104,7 @@ fun IDT_printer ctxt model T intr assignment =
                       (* generate all constants                                 *)
                       val consts = make_constants ctxt (typs, []) dT
                     in
-                      print ctxt (typs, []) dT (List.nth (consts, n)) assignment
+                      print ctxt (typs, []) dT (nth consts n) assignment
                     end) (cargs ~~ args)
                 in
                   SOME (list_comb (cTerm, argsTerms))

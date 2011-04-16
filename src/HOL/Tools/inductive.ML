@@ -621,8 +621,7 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
               let
                 val k = length Ts;
                 val bs = map Bound (k - 1 downto 0);
-                val P = list_comb (List.nth (preds, i),
-                  map (incr_boundvars k) ys @ bs);
+                val P = list_comb (nth preds i, map (incr_boundvars k) ys @ bs);
                 val Q = list_abs (mk_names "x" k ~~ Ts,
                   HOLogic.mk_binop inductive_conj_name
                     (list_comb (incr_boundvars k s, bs), P))
@@ -641,10 +640,11 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
         val SOME (_, i, ys, _) = dest_predicate cs params
           (HOLogic.dest_Trueprop (Logic.strip_assums_concl r))
 
-      in list_all_free (Logic.strip_params r,
-        Logic.list_implies (map HOLogic.mk_Trueprop (fold_rev mk_prem
-          (map HOLogic.dest_Trueprop (Logic.strip_assums_hyp r)) []),
-            HOLogic.mk_Trueprop (list_comb (List.nth (preds, i), ys))))
+      in
+        list_all_free (Logic.strip_params r,
+          Logic.list_implies (map HOLogic.mk_Trueprop (fold_rev mk_prem
+            (map HOLogic.dest_Trueprop (Logic.strip_assums_hyp r)) []),
+              HOLogic.mk_Trueprop (list_comb (nth preds i, ys))))
       end;
 
     val ind_prems = map mk_ind_prem intr_ts;

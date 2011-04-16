@@ -443,9 +443,9 @@ fun IHinst tac rls = SUBGOAL (fn (Bi,i) =>
       val ihs = filter could_IH (Logic.strip_assums_hyp Bi)
       val rnames = map (fn x=>
                     let val (a,b) = get_bno [] 0 x
-                    in (List.nth(bvs,a),b) end) ihs
+                    in (nth bvs a, b) end) ihs
       fun try_IHs [] = no_tac
-        | try_IHs ((x,y)::xs) = tac [(("g", 0), x)] (List.nth(rls,y-1)) i ORELSE (try_IHs xs)
+        | try_IHs ((x,y)::xs) = tac [(("g", 0), x)] (nth rls (y - 1)) i ORELSE (try_IHs xs)
   in try_IHs rnames end)
 
 fun is_rigid_prog t =

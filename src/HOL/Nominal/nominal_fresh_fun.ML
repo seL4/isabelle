@@ -55,7 +55,7 @@ fun generate_fresh_tac atom_name i thm =
    val thy = theory_of_thm thm;
 (* the parsing function returns a qualified name, we get back the base name *)
    val atom_basename = Long_Name.base_name atom_name;
-   val goal = List.nth(prems_of thm, i-1);
+   val goal = nth (prems_of thm) (i - 1);
    val ps = Logic.strip_params goal;
    val Ts = rev (map snd ps);
    fun is_of_fs_name T = Sign.of_sort thy (T, [Sign.intern_class thy ("fs_"^atom_basename)]);
@@ -97,7 +97,7 @@ fun get_inner_fresh_fun (Bound j) = NONE
 
 fun generate_fresh_fun_tac i thm =
   let
-    val goal = List.nth(prems_of thm, i-1);
+    val goal = nth (prems_of thm) (i - 1);
     val atom_name_opt = get_inner_fresh_fun goal;
   in
   case atom_name_opt of

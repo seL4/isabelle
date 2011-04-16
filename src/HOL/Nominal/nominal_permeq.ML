@@ -288,7 +288,7 @@ fun collect_vars i (Bound j) vs = if j < i then vs else insert (op =) (Bound (j 
   | collect_vars i (t $ u) vs = collect_vars i u (collect_vars i t vs);
 
 fun finite_guess_tac_i tactical ss i st =
-    let val goal = List.nth(cprems_of st, i-1)
+    let val goal = nth (cprems_of st) (i - 1)
     in
       case Envir.eta_contract (Logic.strip_assums_concl (term_of goal)) of
           _ $ (Const ("Finite_Set.finite", _) $ (Const ("Nominal.supp", T) $ x)) =>
@@ -326,7 +326,7 @@ fun finite_guess_tac_i tactical ss i st =
 (* support of these free variables (op supports) the goal          *)
 fun fresh_guess_tac_i tactical ss i st =
     let 
-        val goal = List.nth(cprems_of st, i-1)
+        val goal = nth (cprems_of st) (i - 1)
         val fin_supp = dynamic_thms st ("fin_supp")
         val fresh_atm = dynamic_thms st ("fresh_atm")
         val ss1 = ss addsimps [Thm.symmetric fresh_def,fresh_prod,fresh_unit,conj_absorb,not_false]@fresh_atm

@@ -214,21 +214,24 @@ fun reverse_n_tac 0 i = all_tac
 
 (*Use imp_intr, comparing the old hyps with the new ones as they come out.*)
 fun all_imp_intr_tac hyps i =
-  let fun imptac (r, [])    st = reverse_n_tac r i st
-        | imptac (r, hyp::hyps) st =
-           let val (hyp',_) = List.nth (prems_of st, i-1) |>
-                              Logic.strip_assums_concl    |>
-                              Data.dest_Trueprop          |> Data.dest_imp
-               val (r',tac) = if Pattern.aeconv (hyp,hyp')
-                              then (r, imp_intr_tac i THEN rotate_tac ~1 i)
-                              else (*leave affected hyps at end*)
-                                   (r+1, imp_intr_tac i)
-           in
-               case Seq.pull(tac st) of
-                   NONE       => Seq.single(st)
-                 | SOME(st',_) => imptac (r',hyps) st'
-           end
-  in  imptac (0, rev hyps)  end;
+  let
+    fun imptac (r, []) st = reverse_n_tac r i st
+      | imptac (r, hyp::hyps) st =
+          let
+            val (hyp', _) =
+              nth (prems_of st) (i - 1)
+              |> Logic.strip_assums_concl
+              |> Data.dest_Trueprop |> Data.dest_imp;
+            val (r', tac) =
+              if Pattern.aeconv (hyp, hyp')
+              then (r, imp_intr_tac i THEN rotate_tac ~1 i)
+              else (*leave affected hyps at end*) (r + 1, imp_intr_tac i);
+          in
+            (case Seq.pull (tac st) of
+              NONE => Seq.single st
+            | SOME (st', _) => imptac (r', hyps) st')
+          end
+  in imptac (0, rev hyps) end;
 
 
 fun blast_hyp_subst_tac trace = SUBGOAL(fn (Bi,i) =>

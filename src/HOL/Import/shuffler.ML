@@ -610,7 +610,7 @@ fun gen_shuffle_tac ctxt search thms i st =
     let
         val thy = Proof_Context.theory_of ctxt
         val _ = message ("Shuffling " ^ (string_of_thm st))
-        val t = List.nth(prems_of st,i-1)
+        val t = nth (prems_of st) (i - 1)
         val set = set_prop thy t
         fun process_tac thms st =
             case set thms of

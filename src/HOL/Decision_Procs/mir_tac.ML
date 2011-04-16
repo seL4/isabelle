@@ -93,7 +93,7 @@ fun mir_tac ctxt q i =
         THEN REPEAT_DETERM (split_tac [@{thm "split_min"}, @{thm "split_max"}, @{thm "abs_split"}] i)
         THEN (fn st =>
   let
-    val g = List.nth (prems_of st, i - 1)
+    val g = nth (prems_of st) (i - 1)
     val thy = Proof_Context.theory_of ctxt
     (* Transform the term*)
     val (t,np,nh) = prepare_for_mir thy q g

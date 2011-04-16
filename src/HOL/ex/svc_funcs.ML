@@ -137,7 +137,7 @@ struct
     fun var (Free(a,T), is)      = trans_var ("F_" ^ a, T, is)
       | var (Var((a, 0), T), is) = trans_var (a, T, is)
       | var (Bound i, is)        =
-          let val (a,T) = List.nth (params, i)
+          let val (a,T) = nth params i
           in  trans_var ("B_" ^ a, T, is)  end
       | var (t $ Bound i, is)    = var(t,i::is)
             (*removing a parameter from a Var: the bound var index will

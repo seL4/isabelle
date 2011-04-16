@@ -132,35 +132,35 @@ having to (re)search for variables to split. *)
 fun splitto splitths genth =
     let
       val _ = not (null splitths) orelse error "splitto: no given splitths";
-      val sgn = Thm.theory_of_thm genth;
+      val thy = Thm.theory_of_thm genth;
 
       (* check if we are a member of splitths - FIXME: quicker and
       more flexible with discrim net. *)
       fun solve_by_splitth th split =
-          Thm.biresolution false [(false,split)] 1 th;
+        Thm.biresolution false [(false,split)] 1 th;
 
       fun split th =
-          (case find_thms_split splitths 1 th of
-             NONE =>
-             (writeln (cat_lines
-              (["th:", Display.string_of_thm_without_context th, "split ths:"] @
-                map Display.string_of_thm_without_context splitths @ ["\n--"]));
-              error "splitto: cannot find variable to split on")
-            | SOME v =>
-             let
-               val gt = HOLogic.dest_Trueprop (List.nth(Thm.prems_of th, 0));
-               val split_thm = mk_casesplit_goal_thm sgn v gt;
-               val (subthms, expf) = IsaND.fixed_subgoal_thms split_thm;
-             in
-               expf (map recsplitf subthms)
-             end)
+        (case find_thms_split splitths 1 th of
+          NONE =>
+           (writeln (cat_lines
+            (["th:", Display.string_of_thm_without_context th, "split ths:"] @
+              map Display.string_of_thm_without_context splitths @ ["\n--"]));
+            error "splitto: cannot find variable to split on")
+        | SOME v =>
+            let
+              val gt = HOLogic.dest_Trueprop (nth (Thm.prems_of th) 0);
+              val split_thm = mk_casesplit_goal_thm thy v gt;
+              val (subthms, expf) = IsaND.fixed_subgoal_thms split_thm;
+            in
+              expf (map recsplitf subthms)
+            end)
 
       and recsplitf th =
-          (* note: multiple unifiers! we only take the first element,
-             probably fine -- there is probably only one anyway. *)
-          (case Library.get_first (Seq.pull o solve_by_splitth th) splitths of
-             NONE => split th
-           | SOME (solved_th, more) => solved_th)
+        (* note: multiple unifiers! we only take the first element,
+           probably fine -- there is probably only one anyway. *)
+        (case get_first (Seq.pull o solve_by_splitth th) splitths of
+          NONE => split th
+        | SOME (solved_th, more) => solved_th);
     in
       recsplitf genth
     end;

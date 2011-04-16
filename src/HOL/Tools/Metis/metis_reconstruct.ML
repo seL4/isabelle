@@ -466,7 +466,7 @@ fun equality_inf ctxt mode skolem_params (pos, atm) fp fr =
             let val (tm1,args) = strip_comb tm
                 val adjustment = get_ty_arg_size thy tm1
                 val p' = if adjustment > p then p else p-adjustment
-                val tm_p = List.nth(args,p')
+                val tm_p = nth args p'
                   handle Subscript =>
                          error ("Cannot replay Metis proof in Isabelle:\n" ^
                                 "equality_inf: " ^ string_of_int p ^ " adj " ^

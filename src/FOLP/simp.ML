@@ -83,7 +83,7 @@ fun lhs_net_tac net =
           biresolve_tac (Net.unify_term net
                        (lhs_of (Logic.strip_assums_concl prem))) i);
 
-fun nth_subgoal i thm = List.nth(prems_of thm,i-1);
+fun nth_subgoal i thm = nth (prems_of thm) (i - 1);
 
 fun goal_concl i thm = Logic.strip_assums_concl (nth_subgoal i thm);
 
@@ -422,7 +422,7 @@ fun simp_lhs(thm,ss,anet,ats,cs) =
                     let val ps = prems_of thm
                         and ps' = prems_of thm';
                         val n = length(ps')-length(ps);
-                        val a = length(Logic.strip_assums_hyp(List.nth(ps,i-1)))
+                        val a = length(Logic.strip_assums_hyp(nth ps (i - 1)))
                         val l = map (length o Logic.strip_assums_hyp) (take n (drop (i-1) ps'));
                     in (simp_refl(rev(l),a,REW::ss),thm',anet,ats,cs) end
           | NONE => (REW::ss,thm,anet,ats,cs);

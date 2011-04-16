@@ -30,8 +30,6 @@ fun clear_result () = (saved_result := NONE)
 
 val list_nth = List.nth
 
-(*fun list_nth (l,n) = (writeln (makestring ("list_nth", (length l,n))); List.nth (l,n))*)
-
 val compiled_rewriter = Unsynchronized.ref (NONE:(term -> term)Option.option)
 
 fun set_compiled_rewriter r = (compiled_rewriter := SOME r)

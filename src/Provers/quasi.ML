@@ -86,8 +86,9 @@ exception Contr of proof;
   (* Internal exception, raised if contradiction ( x < x ) was derived *)
 
 fun prove asms =
-  let fun pr (Asm i) = List.nth (asms, i)
-  |       pr (Thm (prfs, thm)) = (map pr prfs) MRS thm
+  let
+    fun pr (Asm i) = nth asms i
+      | pr (Thm (prfs, thm)) = map pr prfs MRS thm;
   in pr end;
 
 (* Internal datatype for inequalities *)

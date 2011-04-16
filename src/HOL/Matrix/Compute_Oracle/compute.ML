@@ -119,7 +119,7 @@ local
 in
 fun infer_types naming encoding =
     let
-        fun infer_types _ bounds _ (AbstractMachine.Var v) = (Bound v, List.nth (bounds, v))
+        fun infer_types _ bounds _ (AbstractMachine.Var v) = (Bound v, nth bounds v)
           | infer_types _ bounds _ (AbstractMachine.Const code) = 
             let
                 val c = the (Encode.lookup_term code encoding)
@@ -605,7 +605,7 @@ let
     fun run vars_allowed t = 
         runprog (prog_of computer) (apply_subst vars_allowed varsubst t)
 in
-    case List.nth (prems, prem_no) of
+    case nth prems prem_no of
         Prem _ => raise Compute "evaluate_prem: no equality premise"
       | EqPrem (a, b, ty, _) =>         
         let
@@ -648,7 +648,7 @@ let
     fun run vars_allowed t =
         runprog (prog_of computer) (apply_subst vars_allowed varsubst t)
     val prems = prems_of_theorem th
-    val prem = run true (prem2term (List.nth (prems, prem_no)))
+    val prem = run true (prem2term (nth prems prem_no))
     val concl = run false (concl_of_theorem th')    
 in
     case match_aterms varsubst prem concl of

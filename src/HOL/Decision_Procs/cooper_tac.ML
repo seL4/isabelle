@@ -68,7 +68,7 @@ fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
 
 fun linz_tac ctxt q i = Object_Logic.atomize_prems_tac i THEN (fn st =>
   let
-    val g = List.nth (prems_of st, i - 1)
+    val g = nth (prems_of st) (i - 1)
     val thy = Proof_Context.theory_of ctxt
     (* Transform the term*)
     val (t,np,nh) = prepare_for_linz q g

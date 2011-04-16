@@ -1261,7 +1261,7 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
                 val th1 = (SOME (Global_Theory.get_thm thy thmname)
                            handle ERROR _ =>
                                   (case split_name thmname of
-                                       SOME (listname,idx) => (SOME (List.nth(Global_Theory.get_thms thy listname,idx-1))
+                                       SOME (listname,idx) => (SOME (nth (Global_Theory.get_thms thy listname) (idx - 1))
                                                                handle _ => NONE)  (* FIXME avoid handle _ *)
                                      | NONE => NONE))
             in

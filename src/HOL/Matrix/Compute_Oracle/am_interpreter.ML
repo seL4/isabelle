@@ -35,7 +35,7 @@ fun term_of_clos (CVar x) = Var x
   | term_of_clos (Closure (e, u)) = raise (Run "internal error: closure in normalized term found")
   | term_of_clos CDummy = raise (Run "internal error: dummy in normalized term found")
 
-fun resolve_closure closures (CVar x) = (case List.nth (closures, x) of CDummy => CVar x | r => r)
+fun resolve_closure closures (CVar x) = (case nth closures x of CDummy => CVar x | r => r)
   | resolve_closure closures (CConst c) = CConst c
   | resolve_closure closures (CApp (u, v)) = CApp (resolve_closure closures u, resolve_closure closures v)
   | resolve_closure closures (CAbs u) = CAbs (resolve_closure (CDummy::closures) u)
@@ -160,7 +160,7 @@ and match_closure (p as (Program prog)) clos =
 
 and weak_reduce (false, prog, stack, Closure (e, CApp (a, b))) = Continue (false, prog, SAppL (Closure (e, b), stack), Closure (e, a))
   | weak_reduce (false, prog, SAppL (b, stack), Closure (e, CAbs m)) = Continue (false, prog, stack, Closure (b::e, m))
-  | weak_reduce (false, prog, stack, Closure (e, CVar n)) = Continue (false, prog, stack, case List.nth (e, n) of CDummy => CVar n | r => r)
+  | weak_reduce (false, prog, stack, Closure (e, CVar n)) = Continue (false, prog, stack, case nth e n of CDummy => CVar n | r => r)
   | weak_reduce (false, prog, stack, Closure (e, c as CConst _)) = Continue (false, prog, stack, c)
   | weak_reduce (false, prog, stack, clos) =
     (case match_closure prog clos of

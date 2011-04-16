@@ -59,8 +59,9 @@ fun lift_meta_eq_to_obj_eq i st =
   let
     fun count_imp (Const (@{const_name HOL.simp_implies}, _) $ P $ Q) = 1 + count_imp Q
       | count_imp _ = 0;
-    val j = count_imp (Logic.strip_assums_concl (List.nth (prems_of st, i - 1)))
-  in if j = 0 then @{thm meta_eq_to_obj_eq}
+    val j = count_imp (Logic.strip_assums_concl (nth (prems_of st) (i - 1)))
+  in
+    if j = 0 then @{thm meta_eq_to_obj_eq}
     else
       let
         val Ps = map (fn k => Free ("P" ^ string_of_int k, propT)) (1 upto j);
@@ -69,13 +70,14 @@ fun lift_meta_eq_to_obj_eq i st =
         val aT = TFree ("'a", HOLogic.typeS);
         val x = Free ("x", aT);
         val y = Free ("y", aT)
-      in Goal.prove_global (Thm.theory_of_thm st) []
-        [mk_simp_implies (Logic.mk_equals (x, y))]
-        (mk_simp_implies (HOLogic.mk_Trueprop (HOLogic.mk_eq (x, y))))
-        (fn {prems, ...} => EVERY
-         [rewrite_goals_tac @{thms simp_implies_def},
-          REPEAT (ares_tac (@{thm meta_eq_to_obj_eq} ::
-            map (rewrite_rule @{thms simp_implies_def}) prems) 1)])
+      in
+        Goal.prove_global (Thm.theory_of_thm st) []
+          [mk_simp_implies (Logic.mk_equals (x, y))]
+          (mk_simp_implies (HOLogic.mk_Trueprop (HOLogic.mk_eq (x, y))))
+          (fn {prems, ...} => EVERY
+           [rewrite_goals_tac @{thms simp_implies_def},
+            REPEAT (ares_tac (@{thm meta_eq_to_obj_eq} ::
+              map (rewrite_rule @{thms simp_implies_def}) prems) 1)])
       end
   end;
 

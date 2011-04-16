@@ -274,8 +274,9 @@ exception Contr of proof;
   (* Internal exception, raised if contradiction ( x < x ) was derived *)
 
 fun prove asms =
-  let fun pr (Asm i) = List.nth (asms, i)
-  |       pr (Thm (prfs, thm)) = (map pr prfs) MRS thm
+  let
+    fun pr (Asm i) = nth asms i
+      | pr (Thm (prfs, thm)) = map pr prfs MRS thm;
   in pr end;
 
 (* Internal datatype for inequalities *)
@@ -847,16 +848,17 @@ let
                val v = upper edge
            in
              if (getIndex u ntc) = xi then
-               (completeTermPath x u (List.nth(sccSubgraphs, xi)) )@[edge]
-               @(completeTermPath v y' (List.nth(sccSubgraphs, getIndex y' ntc)) )
-             else (rev_completeComponentPath u)@[edge]
-                  @(completeTermPath v y' (List.nth(sccSubgraphs, getIndex y' ntc)) )
+               completeTermPath x u (nth sccSubgraphs xi) @ [edge] @
+               completeTermPath v y' (nth sccSubgraphs (getIndex y' ntc))
+             else
+              rev_completeComponentPath u @ [edge] @
+                completeTermPath v y' (nth sccSubgraphs (getIndex y' ntc))
            end
    in
-      if x aconv y then
-        [(Le (x, y, (Thm ([], #le_refl less_thms))))]
-      else ( if xi = yi then completeTermPath x y (List.nth(sccSubgraphs, xi))
-             else rev_completeComponentPath y )
+     if x aconv y then
+       [(Le (x, y, (Thm ([], #le_refl less_thms))))]
+     else if xi = yi then completeTermPath x y (nth sccSubgraphs xi)
+     else rev_completeComponentPath y
    end;
 
 (* ******************************************************************* *)
@@ -1016,15 +1018,18 @@ in
                 (* if SCC_x is linked to SCC_y via edge e *)
                  else if ui = xi andalso vi = yi then (
                    case e of (Less (_, _,_)) => (
-                        let val xypath = (completeTermPath x u (List.nth(sccSubgraphs, ui)) ) @ [e] @ (completeTermPath v y (List.nth(sccSubgraphs, vi)) )
-                            val xyLesss = transPath (tl xypath, hd xypath)
+                        let
+                          val xypath =
+                            completeTermPath x u (nth sccSubgraphs ui) @ [e] @
+                            completeTermPath v y (nth sccSubgraphs vi)
+                          val xyLesss = transPath (tl xypath, hd xypath)
                         in  (Thm ([getprf xyLesss], #less_imp_neq less_thms)) end)
                    | _ => (
                         let
-                            val xupath = completeTermPath x u  (List.nth(sccSubgraphs, ui))
-                            val uxpath = completeTermPath u x  (List.nth(sccSubgraphs, ui))
-                            val vypath = completeTermPath v y  (List.nth(sccSubgraphs, vi))
-                            val yvpath = completeTermPath y v  (List.nth(sccSubgraphs, vi))
+                            val xupath = completeTermPath x u (nth sccSubgraphs ui)
+                            val uxpath = completeTermPath u x (nth sccSubgraphs ui)
+                            val vypath = completeTermPath v y (nth sccSubgraphs vi)
+                            val yvpath = completeTermPath y v (nth sccSubgraphs vi)
                             val xuLesss = transPath (tl xupath, hd xupath)
                             val uxLesss = transPath (tl uxpath, hd uxpath)
                             val vyLesss = transPath (tl vypath, hd vypath)
@@ -1037,15 +1042,18 @@ in
                         )
                   ) else if ui = yi andalso vi = xi then (
                      case e of (Less (_, _,_)) => (
-                        let val xypath = (completeTermPath y u (List.nth(sccSubgraphs, ui)) ) @ [e] @ (completeTermPath v x (List.nth(sccSubgraphs, vi)) )
-                            val xyLesss = transPath (tl xypath, hd xypath)
+                        let
+                          val xypath =
+                            completeTermPath y u (nth sccSubgraphs ui) @ [e] @
+                            completeTermPath v x (nth sccSubgraphs vi)
+                          val xyLesss = transPath (tl xypath, hd xypath)
                         in (Thm ([(Thm ([getprf xyLesss], #less_imp_neq less_thms))] , #not_sym less_thms)) end )
                      | _ => (
 
-                        let val yupath = completeTermPath y u (List.nth(sccSubgraphs, ui))
-                            val uypath = completeTermPath u y (List.nth(sccSubgraphs, ui))
-                            val vxpath = completeTermPath v x (List.nth(sccSubgraphs, vi))
-                            val xvpath = completeTermPath x v (List.nth(sccSubgraphs, vi))
+                        let val yupath = completeTermPath y u (nth sccSubgraphs ui)
+                            val uypath = completeTermPath u y (nth sccSubgraphs ui)
+                            val vxpath = completeTermPath v x (nth sccSubgraphs vi)
+                            val xvpath = completeTermPath x v (nth sccSubgraphs vi)
                             val yuLesss = transPath (tl yupath, hd yupath)
                             val uyLesss = transPath (tl uypath, hd uypath)
                             val vxLesss = transPath (tl vxpath, hd vxpath)

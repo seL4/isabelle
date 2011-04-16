@@ -122,7 +122,7 @@ fun make_ind descr sorts =
 
     fun make_pred i T =
       let val T' = T --> HOLogic.boolT
-      in Free (List.nth (pnames, i), T') end;
+      in Free (nth pnames i, T') end;
 
     fun make_ind_prem k T (cname, cargs) =
       let
@@ -199,11 +199,10 @@ fun make_primrec_Ts descr sorts used =
           val recs = filter (Datatype_Aux.is_rec_type o fst) (cargs ~~ Ts);
 
           fun mk_argT (dt, T) =
-            binder_types T ---> List.nth (rec_result_Ts, Datatype_Aux.body_index dt);
+            binder_types T ---> nth rec_result_Ts (Datatype_Aux.body_index dt);
 
           val argTs = Ts @ map mk_argT recs
-        in argTs ---> List.nth (rec_result_Ts, i)
-        end) constrs) descr';
+        in argTs ---> nth rec_result_Ts i end) constrs) descr';
 
   in (rec_result_Ts, reccomb_fn_Ts) end;
 
@@ -238,9 +237,9 @@ fun make_primrecs new_type_names descr sorts thy =
         val frees' = map Free (rec_tnames ~~ recTs');
 
         fun mk_reccomb ((dt, T), t) =
-          let val (Us, U) = strip_type T
-          in list_abs (map (pair "x") Us,
-            List.nth (reccombs, Datatype_Aux.body_index dt) $ Datatype_Aux.app_bnds t (length Us))
+          let val (Us, U) = strip_type T in
+            list_abs (map (pair "x") Us,
+              nth reccombs (Datatype_Aux.body_index dt) $ Datatype_Aux.app_bnds t (length Us))
           end;
 
         val reccombs' = map mk_reccomb (recs ~~ recTs' ~~ frees')

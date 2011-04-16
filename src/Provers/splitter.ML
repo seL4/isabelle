@@ -157,7 +157,7 @@ fun add_lbnos t is = add_loose_bnos (t, 0, is);
    has a body of type T; otherwise the expansion thm will fail later on
 *)
 fun type_test (T, lbnos, apsns) =
-  let val (_, U: typ, _) = List.nth (apsns, foldl1 Int.min lbnos)
+  let val (_, U: typ, _) = nth apsns (foldl1 Int.min lbnos)
   in T = U end;
 
 (*************************************************************************
@@ -270,7 +270,7 @@ fun split_posns (cmap : (string * (typ * term * thm * typ * int) list) list) sg 
           in snd (fold iter ts (0, a)) end
   in posns Ts [] [] t end;
 
-fun nth_subgoal i thm = List.nth (prems_of thm, i-1);
+fun nth_subgoal i thm = nth (prems_of thm) (i - 1);
 
 fun shorter ((_,ps,pos,_,_), (_,qs,qos,_,_)) =
   prod_ord (int_ord o pairself length) (order o pairself length)

@@ -3011,7 +3011,7 @@ fun frpar_tac T ps ctxt i =
  Object_Logic.full_atomize_tac i
  THEN (fn st =>
   let
-    val g = List.nth (cprems_of st, i - 1)
+    val g = nth (cprems_of st) (i - 1)
     val thy = Proof_Context.theory_of ctxt
     val fs = subtract (op aconv) (map Free (Term.add_frees (term_of g) [])) ps
     val th = frpar_oracle (T, fs,ps, (* Pattern.eta_long [] *)g)
@@ -3021,7 +3021,7 @@ fun frpar2_tac T ps ctxt i =
  Object_Logic.full_atomize_tac i
  THEN (fn st =>
   let
-    val g = List.nth (cprems_of st, i - 1)
+    val g = nth (cprems_of st) (i - 1)
     val thy = Proof_Context.theory_of ctxt
     val fs = subtract (op aconv) (map Free (Term.add_frees (term_of g) [])) ps
     val th = frpar_oracle2 (T, fs,ps, (* Pattern.eta_long [] *)g)

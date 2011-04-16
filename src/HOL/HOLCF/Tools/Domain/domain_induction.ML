@@ -386,11 +386,11 @@ local
         is_rec arg andalso not (member (op =) ns (rec_of arg)) andalso
         ((rec_of arg =  n andalso not (lazy_rec orelse is_lazy arg)) orelse 
           rec_of arg <> n andalso rec_to (rec_of arg::ns) 
-            (lazy_rec orelse is_lazy arg) (n, (List.nth(conss,rec_of arg))))
+            (lazy_rec orelse is_lazy arg) (n, nth conss (rec_of arg)))
         ) o snd) cons
   fun warn (n,cons) =
     if rec_to [] false (n,cons)
-    then (warning ("domain "^List.nth(dnames,n)^" is empty!") true)
+    then (warning ("domain " ^ nth dnames n ^ " is empty!") true)
     else false
 in
   val n__eqs = mapn (fn n => fn (_,cons) => (n,cons)) 0 eqs

@@ -132,7 +132,7 @@ fun indtac indrule indnames i st =
   let
     val ts = HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of indrule));
     val ts' = HOLogic.dest_conj (HOLogic.dest_Trueprop
-      (Logic.strip_imp_concl (List.nth (prems_of st, i - 1))));
+      (Logic.strip_imp_concl (nth (prems_of st) (i - 1))));
     val getP = if can HOLogic.dest_imp (hd ts) then
       (apfst SOME) o HOLogic.dest_imp else pair NONE;
     val flt = if null indnames then I else

@@ -40,8 +40,8 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : Datatype_Aux
 
     fun make_pred i T U r x =
       if member (op =) is i then
-        Free (List.nth (pnames, i), T --> U --> HOLogic.boolT) $ r $ x
-      else Free (List.nth (pnames, i), U --> HOLogic.boolT) $ x;
+        Free (nth pnames i, T --> U --> HOLogic.boolT) $ r $ x
+      else Free (nth pnames i, U --> HOLogic.boolT) $ x;
 
     fun mk_all i s T t =
       if member (op =) is i then list_all_free ([(s, T)], t) else t;
@@ -117,7 +117,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induct, ...} : Datatype_Aux
       |> Drule.export_without_context;
 
     val ind_name = Thm.derivation_name induct;
-    val vs = map (fn i => List.nth (pnames, i)) is;
+    val vs = map (nth pnames) is;
     val (thm', thy') = thy
       |> Sign.root_path
       |> Global_Theory.store_thm
@@ -172,7 +172,7 @@ fun make_casedists sorts
       end;
 
     val SOME (_, _, constrs) = AList.lookup (op =) descr index;
-    val T = List.nth (Datatype_Aux.get_rec_types descr sorts, index);
+    val T = nth (Datatype_Aux.get_rec_types descr sorts) index;
     val (rs, prems) = split_list (map (make_casedist_prem T) constrs);
     val r = Const (case_name, map fastype_of rs ---> T --> rT);
 
