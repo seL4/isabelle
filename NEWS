@@ -112,6 +112,9 @@ Syntax_Trans.mk_binder_tr etc.
 * Typed print translation: discontinued show_sorts argument, which is
 already available via context of "advanced" translation.
 
+* Refined PARALLEL_GOALS tactical: degrades gracefully for schematic
+goal states; body tactic needs to address all subgoals uniformly.
+
 
 
 New in Isabelle2011 (January 2011)

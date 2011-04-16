@@ -37,7 +37,7 @@ fun boogie_tac ctxt rules =
   THEN' SMT_Solver.smt_tac ctxt (Boogie_Axioms.get ctxt @ boogie_rules @ rules)
 
 fun boogie_all_tac ctxt rules =
-  PARALLEL_GOALS (HEADGOAL (boogie_tac ctxt rules))
+  PARALLEL_GOALS (ALLGOALS (boogie_tac ctxt rules))
 
 fun boogie_method all =
   Scan.optional Attrib.thms [] >> (fn thms => fn ctxt => METHOD (fn facts =>
