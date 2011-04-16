@@ -219,7 +219,7 @@ fun all_imp_intr_tac hyps i =
       | imptac (r, hyp::hyps) st =
           let
             val (hyp', _) =
-              nth (prems_of st) (i - 1)
+              term_of (Thm.cprem_of st i)
               |> Logic.strip_assums_concl
               |> Data.dest_Trueprop |> Data.dest_imp;
             val (r', tac) =
