@@ -201,7 +201,7 @@ fun mk_auto_tac (cs, ss) m n =
           blast_depth_tac cs m               (* fast but can't use wrappers *)
           ORELSE'
           (CHANGED o nodup_depth_tac cs' n); (* slower but more general *)
-    in  EVERY [ALLGOALS (Simplifier.asm_full_simp_tac ss),
+    in  EVERY [PARALLEL_GOALS (ALLGOALS (Simplifier.asm_full_simp_tac ss)),
                TRY (Classical.safe_tac cs),
                REPEAT_DETERM (FIRSTGOAL maintac),
                TRY (Classical.safe_tac (cs addSss ss)),
