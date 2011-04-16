@@ -347,7 +347,7 @@ exception FAILED of unit;
 fun PARALLEL_GOALS tac =
   Thm.adjust_maxidx_thm ~1 #>
   (fn st =>
-    if not (future_enabled ()) orelse Thm.maxidx_of st >= 0 orelse Thm.nprems_of st <= 1
+    if not (Multithreading.enabled ()) orelse Thm.maxidx_of st >= 0 orelse Thm.nprems_of st <= 1
     then DETERM tac st
     else
       let
