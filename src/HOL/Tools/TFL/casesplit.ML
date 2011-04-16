@@ -148,7 +148,7 @@ fun splitto splitths genth =
             error "splitto: cannot find variable to split on")
         | SOME v =>
             let
-              val gt = HOLogic.dest_Trueprop (nth (Thm.prems_of th) 0);
+              val gt = HOLogic.dest_Trueprop (#1 (Logic.dest_implies (Thm.prop_of th)));
               val split_thm = mk_casesplit_goal_thm thy v gt;
               val (subthms, expf) = IsaND.fixed_subgoal_thms split_thm;
             in
