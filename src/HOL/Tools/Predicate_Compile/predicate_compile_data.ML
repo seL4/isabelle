@@ -134,7 +134,7 @@ fun declare_names s xs ctxt =
   
 fun split_all_pairs thy th =
   let
-    val ctxt = ProofContext.init_global thy
+    val ctxt = Proof_Context.init_global thy
     val ((_, [th']), ctxt') = Variable.import true [th] ctxt
     val t = prop_of th'
     val frees = Term.add_frees t [] 
@@ -158,7 +158,7 @@ fun split_all_pairs thy th =
 
 fun inline_equations thy th =
   let
-    val inline_defs = Predicate_Compile_Inline_Defs.get (ProofContext.init_global thy)
+    val inline_defs = Predicate_Compile_Inline_Defs.get (Proof_Context.init_global thy)
     val th' = (Simplifier.full_simplify (HOL_basic_ss addsimps inline_defs)) th
     (*val _ = print_step options 
       ("Inlining " ^ (Syntax.string_of_term_global thy (prop_of th))
@@ -193,7 +193,7 @@ fun get_specification options thy t =
         tracing ("getting specification of " ^ Syntax.string_of_term_global thy t ^
           " with type " ^ Syntax.string_of_typ_global thy (fastype_of t))
       else ()
-    val ctxt = ProofContext.init_global thy
+    val ctxt = Proof_Context.init_global thy
     fun filtering th =
       if is_equationlike th andalso
         defining_const_of_equation (normalize_equation thy th) = fst (dest_Const t) then
@@ -259,7 +259,7 @@ fun print_specification options thy constname specs =
 
 fun obtain_specification_graph options thy t =
   let
-    val ctxt = ProofContext.init_global thy
+    val ctxt = Proof_Context.init_global thy
     fun is_nondefining_const (c, T) = member (op =) logic_operator_names c
     fun has_code_pred_intros (c, T) = can (Core_Data.intros_of ctxt) c
     fun case_consts (c, T) = is_some (Datatype.info_of_case thy c)

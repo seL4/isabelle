@@ -77,7 +77,7 @@ fun maps_lookup thy s =
   | NONE => raise NotFound)
 
 fun maps_update_thy k minfo = MapsData.map (Symtab.update (k, minfo))
-fun maps_update k minfo = ProofContext.background_theory (maps_update_thy k minfo)  (* FIXME *)
+fun maps_update k minfo = Proof_Context.background_theory (maps_update_thy k minfo)  (* FIXME *)
 
 fun maps_attribute_aux s minfo = Thm.declaration_attribute
   (fn _ => Context.mapping (maps_update_thy s minfo) (maps_update s minfo))
@@ -85,7 +85,7 @@ fun maps_attribute_aux s minfo = Thm.declaration_attribute
 (* attribute to be used in declare statements *)
 fun maps_attribute (ctxt, (tystr, (mapstr, relstr))) =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val tyname = Sign.intern_type thy tystr
     val mapname = Sign.intern_const thy mapstr
     val relname = Sign.intern_const thy relstr
@@ -111,7 +111,7 @@ fun print_mapsinfo ctxt =
           "map:", mapfun,
           "relation map:", relmap]))
   in
-    MapsData.get (ProofContext.theory_of ctxt)
+    MapsData.get (Proof_Context.theory_of ctxt)
     |> Symtab.dest
     |> map (prt_map)
     |> Pretty.big_list "maps for type constructors:"
@@ -147,7 +147,7 @@ fun quotdata_update_thy str qinfo = QuotData.map (Symtab.update (str, qinfo))
 fun quotdata_update_gen str qinfo = Context.mapping (quotdata_update_thy str qinfo) I
 
 fun quotdata_dest lthy =
-  map snd (Symtab.dest (QuotData.get (ProofContext.theory_of lthy)))
+  map snd (Symtab.dest (QuotData.get (Proof_Context.theory_of lthy)))
 
 fun print_quotinfo ctxt =
   let
@@ -162,7 +162,7 @@ fun print_quotinfo ctxt =
         Pretty.str "equiv. thm:",
         Syntax.pretty_term ctxt (prop_of equiv_thm)])
   in
-    QuotData.get (ProofContext.theory_of ctxt)
+    QuotData.get (Proof_Context.theory_of ctxt)
     |> Symtab.dest
     |> map (prt_quot o snd)
     |> Pretty.big_list "quotients:"
@@ -195,7 +195,7 @@ fun qconsts_update_thy name qcinfo = QConstsData.map (Symtab.cons_list (name, qc
 fun qconsts_update_gen name qcinfo = Context.mapping (qconsts_update_thy name qcinfo) I
 
 fun qconsts_dest lthy =
-  flat (map snd (Symtab.dest (QConstsData.get (ProofContext.theory_of lthy))))
+  flat (map snd (Symtab.dest (QConstsData.get (Proof_Context.theory_of lthy))))
 
 fun qconsts_lookup thy t =
   let
@@ -225,7 +225,7 @@ fun print_qconstinfo ctxt =
         Pretty.str "as",
         Syntax.pretty_term ctxt (prop_of def)])
   in
-    QConstsData.get (ProofContext.theory_of ctxt)
+    QConstsData.get (Proof_Context.theory_of ctxt)
     |> Symtab.dest
     |> map snd
     |> flat

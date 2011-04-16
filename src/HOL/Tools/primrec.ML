@@ -225,7 +225,7 @@ fun distill lthy fixes eqs =
     val eqns = fold_rev (process_eqn (fn v => Variable.is_fixed lthy v
       orelse exists (fn ((w, _), _) => v = Binding.name_of w) fixes)) eqs [];
     val tnames = distinct (op =) (map (#1 o snd) eqns);
-    val dts = find_dts (Datatype_Data.get_all (ProofContext.theory_of lthy)) tnames tnames;
+    val dts = find_dts (Datatype_Data.get_all (Proof_Context.theory_of lthy)) tnames tnames;
     val main_fns = map (fn (tname, {index, ...}) =>
       (index, (fst o the o find_first (fn (_, x) => #1 x = tname)) eqns)) dts;
     val {descr, rec_names, rec_rewrites, ...} =
@@ -300,14 +300,14 @@ fun add_primrec_global fixes specs thy =
   let
     val lthy = Named_Target.theory_init thy;
     val ((ts, simps), lthy') = add_primrec fixes specs lthy;
-    val simps' = ProofContext.export lthy' lthy simps;
+    val simps' = Proof_Context.export lthy' lthy simps;
   in ((ts, simps'), Local_Theory.exit_global lthy') end;
 
 fun add_primrec_overloaded ops fixes specs thy =
   let
     val lthy = Overloading.overloading ops thy;
     val ((ts, simps), lthy') = add_primrec fixes specs lthy;
-    val simps' = ProofContext.export lthy' lthy simps;
+    val simps' = Proof_Context.export lthy' lthy simps;
   in ((ts, simps'), Local_Theory.exit_global lthy') end;
 
 

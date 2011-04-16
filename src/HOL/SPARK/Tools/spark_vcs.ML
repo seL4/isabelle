@@ -95,7 +95,7 @@ fun mk_type _ "integer" = HOLogic.intT
   | mk_type thy ty =
       (case get_type thy ty of
          NONE =>
-           Syntax.check_typ (ProofContext.init_global thy)
+           Syntax.check_typ (Proof_Context.init_global thy)
              (Type (Sign.full_name thy (Binding.name ty), []))
        | SOME T => T);
 
@@ -108,8 +108,8 @@ fun define_overloaded (def_name, eq) lthy =
       Logic.dest_equals |>> dest_Free;
     val ((_, (_, thm)), lthy') = Local_Theory.define
       ((Binding.name c, NoSyn), ((Binding.name def_name, []), rhs)) lthy
-    val ctxt_thy = ProofContext.init_global (ProofContext.theory_of lthy');
-    val thm' = singleton (ProofContext.export lthy' ctxt_thy) thm
+    val ctxt_thy = Proof_Context.init_global (Proof_Context.theory_of lthy');
+    val thm' = singleton (Proof_Context.export lthy' ctxt_thy) thm
   in (thm', lthy') end;
 
 fun strip_underscores s =
@@ -183,7 +183,7 @@ fun add_enum_type tyname tyname' thy =
          rtac @{thm subset_antisym} 1 THEN
          rtac @{thm subsetI} 1 THEN
          Datatype_Aux.exh_tac (K (#exhaust (Datatype_Data.the_info
-           (ProofContext.theory_of lthy) tyname'))) 1 THEN
+           (Proof_Context.theory_of lthy) tyname'))) 1 THEN
          ALLGOALS (asm_full_simp_tac (simpset_of lthy)));
 
     val finite_UNIV = Goal.prove lthy [] []
@@ -904,7 +904,7 @@ fun add_def types funs pfuns consts (id, (s, e)) (ids as (tab, ctxt), thy) =
          val ((t', (_, th)), lthy') = Specification.definition
            (NONE, ((id', []), HOLogic.mk_Trueprop (HOLogic.mk_eq
              (Free (s, T), t)))) lthy;
-         val phi = ProofContext.export_morphism lthy' lthy
+         val phi = Proof_Context.export_morphism lthy' lthy
        in
          ((id', Morphism.thm phi th),
           ((Symtab.update (s, (Morphism.term phi t', ty)) tab,

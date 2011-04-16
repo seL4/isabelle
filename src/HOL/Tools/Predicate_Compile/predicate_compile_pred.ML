@@ -32,10 +32,10 @@ fun try_destruct_case thy names atom =
     NONE => NONE
   | SOME raw_split_thm =>
     let
-      val split_thm = prepare_split_thm (ProofContext.init_global thy) raw_split_thm
+      val split_thm = prepare_split_thm (Proof_Context.init_global thy) raw_split_thm
       (* TODO: contextify things - this line is to unvarify the split_thm *)
       (*val ((_, [isplit_thm]), _) =
-        Variable.import true [split_thm] (ProofContext.init_global thy)*)
+        Variable.import true [split_thm] (Proof_Context.init_global thy)*)
       val (assms, concl) = Logic.strip_horn (prop_of split_thm)
       val (P, [split_t]) = strip_comb (HOLogic.dest_Trueprop concl) 
       val atom' = case_betapply thy atom
@@ -127,11 +127,11 @@ fun flatten constname atom (defs, thy) =
 
 fun flatten_intros constname intros thy =
   let
-    val ctxt = ProofContext.init_global thy
+    val ctxt = Proof_Context.init_global thy
     val ((_, intros), ctxt') = Variable.import true intros ctxt
     val (intros', (local_defs, thy')) = (fold_map o fold_map_atoms)
       (flatten constname) (map prop_of intros) ([], thy)
-    val ctxt'' = ProofContext.transfer thy' ctxt'
+    val ctxt'' = Proof_Context.transfer thy' ctxt'
     val tac = fn _ => Skip_Proof.cheat_tac thy'
     val intros'' = map (fn t => Goal.prove ctxt'' [] [] t tac) intros'
       |> Variable.export ctxt'' ctxt
@@ -146,7 +146,7 @@ fun select_disj 1 1 = []
 
 fun introrulify thy ths = 
   let
-    val ctxt = ProofContext.init_global thy
+    val ctxt = Proof_Context.init_global thy
     val ((_, ths'), ctxt') = Variable.import true ths ctxt
     fun introrulify' th =
       let
@@ -189,7 +189,7 @@ fun rewrite_intros thy =
   Simplifier.full_simplify (HOL_basic_ss addsimps [@{thm all_not_ex}])
   #> Simplifier.full_simplify
     (HOL_basic_ss addsimps (tl @{thms bool_simps}) addsimps @{thms nnf_simps})
-  #> split_conjuncts_in_assms (ProofContext.init_global thy)
+  #> split_conjuncts_in_assms (Proof_Context.init_global thy)
 
 fun print_specs options thy msg ths =
   if show_intermediate_results options then
@@ -202,7 +202,7 @@ fun preprocess options (constname, specs) thy =
     SOME specss => (specss, thy)
   | NONE =>*)
     let
-      val ctxt = ProofContext.init_global thy
+      val ctxt = Proof_Context.init_global thy
       val intros =
         if forall is_pred_equation specs then 
           map (split_conjuncts_in_assms ctxt) (introrulify thy (map rewrite specs))

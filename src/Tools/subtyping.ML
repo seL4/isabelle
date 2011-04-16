@@ -97,7 +97,7 @@ exception NO_UNIFIER of string * typ Vartab.table;
 
 fun unify weak ctxt =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val pp = Syntax.pp ctxt;
     val arity_sorts = Type.arity_sorts pp (Sign.tsig_of thy);
 
@@ -279,7 +279,7 @@ fun process_constraints ctxt err cs tye_idx =
   let
     val coes_graph = coes_graph_of ctxt;
     val tmaps = tmaps_of ctxt;
-    val tsig = Sign.tsig_of (ProofContext.theory_of ctxt);
+    val tsig = Sign.tsig_of (Proof_Context.theory_of ctxt);
     val pp = Syntax.pp ctxt;
     val arity_sorts = Type.arity_sorts pp tsig;
     val subsort = Type.subsort tsig;
@@ -718,8 +718,8 @@ fun infer_types ctxt const_type var_type raw_ts =
 
 fun coercion_infer_types ctxt =
   infer_types ctxt
-    (try (Consts.the_constraint (ProofContext.consts_of ctxt)))
-    (ProofContext.def_type ctxt);
+    (try (Consts.the_constraint (Proof_Context.consts_of ctxt)))
+    (Proof_Context.def_type ctxt);
 
 val (coercion_enabled, coercion_enabled_setup) = Attrib.config_bool "coercion_enabled" (K false);
 

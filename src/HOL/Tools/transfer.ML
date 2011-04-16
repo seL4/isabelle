@@ -118,7 +118,7 @@ fun transfer_thm ((raw_a, raw_D), (inj, embed, return, cong)) leave ctxt1 thm =
       |> Variable.declare_thm thm
       |> Variable.declare_term (term_of a)
       |> Variable.declare_term (term_of D);
-    val certify = Thm.cterm_of (ProofContext.theory_of ctxt3);
+    val certify = Thm.cterm_of (Proof_Context.theory_of ctxt3);
     val vars = filter (fn ((v, _), T) => Type.could_unify (T, aT) andalso
       not (member (op =) leave v)) (Term.add_vars (Thm.prop_of thm) []);
     val c_vars = map (certify o Var) vars;

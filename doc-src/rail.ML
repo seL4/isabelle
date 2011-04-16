@@ -47,7 +47,7 @@ fun no_check _ _ = true;
 fun false_check _ _ = false;
 
 fun thy_check intern defined ctxt =
-  let val thy = ProofContext.theory_of ctxt
+  let val thy = Proof_Context.theory_of ctxt
   in defined thy o intern thy end;
 
 fun check_tool name =

@@ -193,7 +193,7 @@ fun read_sort thy (SOME s) = Syntax.read_sort_global thy s
 (* Adapted from src/HOL/Tools/Datatype/datatype_data.ML *)
 fun read_typ thy sorts str =
   let
-    val ctxt = ProofContext.init_global thy
+    val ctxt = Proof_Context.init_global thy
       |> fold (Variable.declare_typ o TFree) sorts
   in Syntax.read_typ ctxt str end
 

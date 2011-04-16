@@ -151,7 +151,7 @@ fun define_projections fixes mutual fsum lthy =
 
 fun in_context ctxt (f, pre_qs, pre_gs, pre_args, pre_rhs) F =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
 
     val oqnames = map fst pre_qs
     val (qs, _) = Variable.variant_fixes oqnames ctxt
@@ -198,7 +198,7 @@ fun recover_mutual_psimp all_orig_fdefs parts ctxt (fname, _, _, args, rhs)
 
 fun mk_applied_form ctxt caTs thm =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val xs = map_index (fn (i,T) => cterm_of thy (Free ("x" ^ string_of_int i, T))) caTs (* FIXME: Bind xs properly *)
   in
     fold (fn x => fn thm => Thm.combination thm (Thm.reflexive x)) xs thm
@@ -209,7 +209,7 @@ fun mk_applied_form ctxt caTs thm =
 
 fun mutual_induct_rules lthy induct all_f_defs (Mutual {n, ST, parts, ...}) =
   let
-    val cert = cterm_of (ProofContext.theory_of lthy)
+    val cert = cterm_of (Proof_Context.theory_of lthy)
     val newPs =
       map2 (fn Pname => fn MutualPart {cargTs, ...} =>
           Free (Pname, cargTs ---> HOLogic.boolT))

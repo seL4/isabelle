@@ -155,7 +155,7 @@ fun set_finite_tac i =
 
 fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val Multiset
           { msetT, mk_mset,
             mset_regroup_conv, mset_pwleq_tac, set_of_simps,
@@ -300,7 +300,7 @@ fun reconstruct_tac ctxt D cs (GP (_, gs)) certificate =
 
 fun single_scnp_tac use_tags orders ctxt D = Termination.CALLS (fn (cs, i) =>
   let
-    val ms_configured = is_some (Multiset_Setup.get (ProofContext.theory_of ctxt))
+    val ms_configured = is_some (Multiset_Setup.get (Proof_Context.theory_of ctxt))
     val orders' = if ms_configured then orders
                   else filter_out (curry op = MS) orders
     val gp = gen_probl D cs

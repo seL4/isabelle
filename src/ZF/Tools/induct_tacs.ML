@@ -91,7 +91,7 @@ fun find_tname ctxt var As =
 
 fun exhaust_induct_tac exh ctxt var i state =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val ({context = ctxt', asms, ...}, _) = Subgoal.focus ctxt i state
     val tn = find_tname ctxt' var (map term_of asms)
     val rule =
@@ -166,7 +166,7 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
 
 fun rep_datatype raw_elim raw_induct raw_case_eqns raw_recursor_eqns thy =
   let
-    val ctxt = ProofContext.init_global thy;
+    val ctxt = Proof_Context.init_global thy;
     val elim = Facts.the_single "elimination" (Attrib.eval_thms ctxt [raw_elim]);
     val induct = Facts.the_single "induction" (Attrib.eval_thms ctxt [raw_induct]);
     val case_eqns = Attrib.eval_thms ctxt raw_case_eqns;

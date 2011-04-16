@@ -115,7 +115,7 @@ end
 
 fun atomize_elim_tac ctxt = SUBGOAL (fn (subg, i) =>
     let
-      val thy = ProofContext.theory_of ctxt
+      val thy = Proof_Context.theory_of ctxt
       val _ $ thesis = Logic.strip_assums_concl subg
                        
       (* Introduce a quantifier first if the thesis is not bound *)

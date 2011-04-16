@@ -289,7 +289,7 @@ val instantiate_full_exhaustive_datatype = instantiate_datatype
 
 fun mk_fast_generator_expr ctxt (t, eval_terms) =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val ctxt' = Variable.auto_fixes t ctxt
     val names = Term.add_free_names t []
     val frees = map Free (Term.add_frees t [])
@@ -329,7 +329,7 @@ fun mk_fast_generator_expr ctxt (t, eval_terms) =
 
 fun mk_generator_expr ctxt (t, eval_terms) =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val ctxt' = Variable.auto_fixes t ctxt
     val names = Term.add_free_names t []
     val frees = map Free (Term.add_frees t [])
@@ -371,7 +371,7 @@ fun mk_generator_expr ctxt (t, eval_terms) =
 
 fun mk_full_generator_expr ctxt (t, eval_terms) =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val ctxt' = Variable.auto_fixes t ctxt
     val names = Term.add_free_names t []
     val frees = map Free (Term.add_frees t [])
@@ -428,7 +428,7 @@ fun mk_parametric_generator_expr mk_generator_expr =
 fun mk_validator_expr ctxt t =
   let
     fun bounded_forallT T = (T --> @{typ bool}) --> @{typ code_numeral} --> @{typ bool}
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val ctxt' = Variable.auto_fixes t ctxt
     val ([depth_name], ctxt'') = Variable.variant_fixes ["depth"] ctxt'
     val depth = Free (depth_name, @{typ code_numeral})
@@ -490,7 +490,7 @@ val target = "Quickcheck";
   
 fun compile_generator_expr ctxt ts =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val mk_generator_expr = 
       if Config.get ctxt fast then mk_fast_generator_expr
       else if Config.get ctxt full_support then mk_full_generator_expr else mk_generator_expr
@@ -507,7 +507,7 @@ fun compile_generator_expr ctxt ts =
  
 fun compile_generator_exprs ctxt ts =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val ts' = map (fn t => mk_generator_expr ctxt (t, [])) ts;
     val compiles = Code_Runtime.dynamic_value_strict
       (Counterexample_Batch.get, put_counterexample_batch,
@@ -521,7 +521,7 @@ fun compile_generator_exprs ctxt ts =
 
 fun compile_validator_exprs ctxt ts =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val ts' = map (mk_validator_expr ctxt) ts
   in
     Code_Runtime.dynamic_value_strict

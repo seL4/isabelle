@@ -128,7 +128,7 @@ fun print_compiled_terms options ctxt =
 
 fun print_stored_rules ctxt =
   let
-    val preds = Graph.keys (PredData.get (ProofContext.theory_of ctxt))
+    val preds = Graph.keys (PredData.get (Proof_Context.theory_of ctxt))
     fun print pred () = let
       val _ = writeln ("predicate: " ^ pred)
       val _ = writeln ("introrules: ")
@@ -818,7 +818,7 @@ fun find_switch_test ctxt (i, is) (ts, prems) =
     case T of
       TFree _ => NONE
     | Type (Tcon, _) =>
-      (case Datatype_Data.get_constrs (ProofContext.theory_of ctxt) Tcon of
+      (case Datatype_Data.get_constrs (Proof_Context.theory_of ctxt) Tcon of
         NONE => NONE
       | SOME cs =>
         (case strip_comb t of
@@ -881,7 +881,7 @@ fun compile_switch compilation_modifiers ctxt all_vs param_modes additional_argu
   in_ts' outTs switch_tree =
   let
     val compfuns = Comp_Mod.compfuns compilation_modifiers
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     fun compile_switch_tree _ _ (Atom []) = NONE
       | compile_switch_tree all_vs ctxt_eqs (Atom moded_clauses) =
         let
@@ -1125,7 +1125,7 @@ fun create_definitions options preds (name, modes) thy =
         val ([definition], thy') = thy |>
           Sign.add_consts_i [(Binding.name mode_cbasename, funT, NoSyn)] |>
           Global_Theory.add_defs false [((Binding.name (mode_cbasename ^ "_def"), def), [])]
-        val ctxt' = ProofContext.init_global thy'
+        val ctxt' = Proof_Context.init_global thy'
         val rules as ((intro, elim), _) =
           create_intro_elim_rule ctxt' mode definition mode_cname funT (Const (name, T))
         in thy'
@@ -1202,7 +1202,7 @@ fun dest_prem ctxt params t =
 
 fun prepare_intrs options ctxt prednames intros =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val intrs = map prop_of intros
     val preds = map (fn c => Const (c, Sign.the_const_type thy c)) prednames
     val (preds, intrs) = unify_consts thy preds intrs
@@ -1289,7 +1289,7 @@ fun check_intros_elim_match thy prednames =
         val nparams = nparams_of thy predname
         val elim' =
           (Drule.export_without_context o Skip_Proof.make_thm thy)
-          (mk_casesrule (ProofContext.init_global thy) nparams intros)
+          (mk_casesrule (Proof_Context.init_global thy) nparams intros)
       in
         if not (Thm.equiv_thm (elim, elim')) then
           error "Introduction and elimination rules do not match!"
@@ -1349,7 +1349,7 @@ fun add_equations_of steps mode_analysis_options options prednames thy =
   let
     fun dest_steps (Steps s) = s
     val compilation = Comp_Mod.compilation (#comp_modifiers (dest_steps steps))
-    val ctxt = ProofContext.init_global thy
+    val ctxt = Proof_Context.init_global thy
     val _ = print_step options
       ("Starting predicate compiler (compilation: " ^ string_of_compilation compilation
         ^ ") for predicates " ^ commas prednames ^ "...")
@@ -1378,7 +1378,7 @@ fun add_equations_of steps mode_analysis_options options prednames thy =
       cond_timeit (Config.get ctxt Quickcheck.timing) "Defining executable functions..."
       (fn _ => fold (#define_functions (dest_steps steps) options preds) modes thy'
       |> Theory.checkpoint)
-    val ctxt'' = ProofContext.init_global thy''
+    val ctxt'' = Proof_Context.init_global thy''
     val _ = print_step options "Compiling equations..."
     val compiled_terms =
       cond_timeit (Config.get ctxt Quickcheck.timing) "Compiling equations...." (fn _ =>
@@ -1415,7 +1415,7 @@ fun gen_add_equations steps options names thy =
     val thy'' = fold preprocess_intros (flat scc) thy'
     val thy''' = fold_rev
       (fn preds => fn thy =>
-        if not (forall (defined (ProofContext.init_global thy)) preds) then
+        if not (forall (defined (Proof_Context.init_global thy)) preds) then
           let
             val mode_analysis_options = {use_generators = #use_generators (dest_steps steps),
               reorder_premises =
@@ -1581,11 +1581,11 @@ val setup = PredData.put (Graph.empty) #>
 (* FIXME ... this is important to avoid changing the background theory below *)
 fun generic_code_pred prep_const options raw_const lthy =
   let
-    val thy = ProofContext.theory_of lthy
+    val thy = Proof_Context.theory_of lthy
     val const = prep_const thy raw_const
     val lthy' = Local_Theory.background_theory (extend_intro_graph [const]) lthy
-    val thy' = ProofContext.theory_of lthy'
-    val ctxt' = ProofContext.init_global thy'
+    val thy' = Proof_Context.theory_of lthy'
+    val ctxt' = Proof_Context.init_global thy'
     val preds = Graph.all_succs (PredData.get thy') [const] |> filter_out (has_elim ctxt')
     fun mk_cases const =
       let
@@ -1603,11 +1603,11 @@ fun generic_code_pred prep_const options raw_const lthy =
     val case_env = map2 (fn p => fn c => (Long_Name.base_name p, SOME c)) preds cases
     val lthy'' = lthy'
       |> fold Variable.auto_fixes cases_rules
-      |> ProofContext.add_cases true case_env
+      |> Proof_Context.add_cases true case_env
     fun after_qed thms goal_ctxt =
       let
-        val global_thms = ProofContext.export goal_ctxt
-          (ProofContext.init_global (ProofContext.theory_of goal_ctxt)) (map the_single thms)
+        val global_thms = Proof_Context.export goal_ctxt
+          (Proof_Context.init_global (Proof_Context.theory_of goal_ctxt)) (map the_single thms)
       in
         goal_ctxt |> Local_Theory.background_theory (fold set_elim global_thms #>
           ((case compilation options of
@@ -1834,7 +1834,7 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
             @{term Code_Numeral.of_nat} $ (HOLogic.size_const T $ Bound 0)))) t
       else
         mk_map compfuns T HOLogic.termT (HOLogic.term_of_const T) t
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val time_limit = seconds (Config.get ctxt values_timeout)
     val (ts, statistics) =
       (case compilation of

@@ -93,7 +93,7 @@ fun gen_add_domaindef
 
     (*rhs*)
     val tmp_ctxt =
-      ProofContext.init_global thy
+      Proof_Context.init_global thy
       |> fold (Variable.declare_typ o TFree) raw_args
     val defl = prep_term tmp_ctxt raw_defl
     val tmp_ctxt = tmp_ctxt |> Variable.declare_constraints defl
@@ -103,7 +103,7 @@ fun gen_add_domaindef
             else error ("Not type defl: " ^ quote (Syntax.string_of_typ tmp_ctxt deflT))
 
     (*lhs*)
-    val lhs_tfrees = map (ProofContext.check_tfree tmp_ctxt) raw_args
+    val lhs_tfrees = map (Proof_Context.check_tfree tmp_ctxt) raw_args
     val lhs_sorts = map snd lhs_tfrees
     val full_tname = Sign.full_name thy tname
     val newT = Type (full_tname, map TFree lhs_tfrees)
@@ -161,13 +161,13 @@ fun gen_add_domaindef
         Specification.definition (NONE, (liftprj_bind, liftprj_eqn)) lthy
     val ((_, (_, liftdefl_ldef)), lthy) =
         Specification.definition (NONE, (liftdefl_bind, liftdefl_eqn)) lthy
-    val ctxt_thy = ProofContext.init_global (ProofContext.theory_of lthy)
-    val emb_def = singleton (ProofContext.export lthy ctxt_thy) emb_ldef
-    val prj_def = singleton (ProofContext.export lthy ctxt_thy) prj_ldef
-    val defl_def = singleton (ProofContext.export lthy ctxt_thy) defl_ldef
-    val liftemb_def = singleton (ProofContext.export lthy ctxt_thy) liftemb_ldef
-    val liftprj_def = singleton (ProofContext.export lthy ctxt_thy) liftprj_ldef
-    val liftdefl_def = singleton (ProofContext.export lthy ctxt_thy) liftdefl_ldef
+    val ctxt_thy = Proof_Context.init_global (Proof_Context.theory_of lthy)
+    val emb_def = singleton (Proof_Context.export lthy ctxt_thy) emb_ldef
+    val prj_def = singleton (Proof_Context.export lthy ctxt_thy) prj_ldef
+    val defl_def = singleton (Proof_Context.export lthy ctxt_thy) defl_ldef
+    val liftemb_def = singleton (Proof_Context.export lthy ctxt_thy) liftemb_ldef
+    val liftprj_def = singleton (Proof_Context.export lthy ctxt_thy) liftprj_ldef
+    val liftdefl_def = singleton (Proof_Context.export lthy ctxt_thy) liftdefl_ldef
     val type_definition_thm =
       Raw_Simplifier.rewrite_rule
         (the_list (#set_def (#2 info)))
@@ -208,7 +208,7 @@ fun add_domaindef def opt_name typ defl opt_morphs thy =
 
 fun domaindef_cmd ((def, name), (b, raw_args, mx), A, morphs) thy =
   let
-    val ctxt = ProofContext.init_global thy
+    val ctxt = Proof_Context.init_global thy
     val args = map (apsnd (Typedecl.read_constraint ctxt)) raw_args
   in snd (gen_add_domaindef Syntax.read_term def name (b, args, mx) A morphs thy) end
 

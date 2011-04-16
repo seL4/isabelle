@@ -64,7 +64,7 @@ fun mk_fun_compose flag (trm1, trm2) =
 
 fun get_mapfun ctxt s =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val mapfun = #mapfun (Quotient_Info.maps_lookup thy s) handle Quotient_Info.NotFound =>
       raise LIFT_MATCH ("No map function for type " ^ quote s ^ " found.")
   in
@@ -101,7 +101,7 @@ fun mk_mapfun ctxt vs rty =
 *)
 fun get_rty_qty ctxt s =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val qdata = Quotient_Info.quotdata_lookup thy s handle Quotient_Info.NotFound =>
       raise LIFT_MATCH ("No quotient type " ^ quote s ^ " found.")
   in
@@ -122,7 +122,7 @@ fun double_lookup rtyenv qtyenv v =
 (* matches a type pattern with a type *)
 fun match ctxt err ty_pat ty =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
   in
     Sign.typ_match thy (ty_pat, ty) Vartab.empty
       handle Type.TYPE_MATCH => err ctxt ty_pat ty
@@ -258,7 +258,7 @@ fun absrep_fun_chk flag ctxt (rty, qty) =
 (* instantiates TVars so that the term is of type ty *)
 fun force_typ ctxt trm ty =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val trm_ty = fastype_of trm
     val ty_inst = Sign.typ_match thy (trm_ty, ty) Vartab.empty
   in
@@ -273,7 +273,7 @@ fun mk_rel_compose (trm1, trm2) =
 
 fun get_relmap ctxt s =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val relmap = #relmap (Quotient_Info.maps_lookup thy s) handle Quotient_Info.NotFound =>
       raise LIFT_MATCH ("get_relmap (no relation map function found for type " ^ s ^ ")")
   in
@@ -296,7 +296,7 @@ fun mk_relmap ctxt vs rty =
 
 fun get_equiv_rel ctxt s =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
   in
     #equiv_rel (Quotient_Info.quotdata_lookup thy s) handle Quotient_Info.NotFound =>
       raise LIFT_MATCH ("get_quotdata (no quotient found for type " ^ s ^ ")")
@@ -554,7 +554,7 @@ fun regularize_trm ctxt (rtrm, qtrm) =
 
   | (_, Const _) =>
       let
-        val thy = ProofContext.theory_of ctxt
+        val thy = Proof_Context.theory_of ctxt
         fun same_const (Const (s, T)) (Const (s', T')) = (s = s') andalso matches_typ thy T T'
           | same_const _ _ = false
       in
@@ -707,7 +707,7 @@ fun subst_typ ctxt ty_subst rty =
   case rty of
     Type (s, rtys) =>
       let
-        val thy = ProofContext.theory_of ctxt
+        val thy = Proof_Context.theory_of ctxt
         val rty' = Type (s, map (subst_typ ctxt ty_subst) rtys)
 
         fun matches [] = rty'
@@ -729,7 +729,7 @@ fun subst_trm ctxt ty_subst trm_subst rtrm =
   | Bound i => Bound i
   | Const (a, ty) =>
       let
-        val thy = ProofContext.theory_of ctxt
+        val thy = Proof_Context.theory_of ctxt
 
         fun matches [] = Const (a, subst_typ ctxt ty_subst ty)
           | matches ((rconst, qconst)::tail) =
@@ -749,7 +749,7 @@ fun subst_trm ctxt ty_subst trm_subst rtrm =
 *)
 fun mk_ty_subst qtys direction ctxt =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
   in
     Quotient_Info.quotdata_dest ctxt
     |> map (fn x => (#rtyp x, #qtyp x))

@@ -331,9 +331,9 @@ A proof context is a container for pure data with a
 \begin{isamarkuptext}%
 \begin{mldecls}
   \indexdef{}{ML type}{Proof.context}\verb|type Proof.context| \\
-  \indexdef{}{ML}{ProofContext.init\_global}\verb|ProofContext.init_global: theory -> Proof.context| \\
-  \indexdef{}{ML}{ProofContext.theory\_of}\verb|ProofContext.theory_of: Proof.context -> theory| \\
-  \indexdef{}{ML}{ProofContext.transfer}\verb|ProofContext.transfer: theory -> Proof.context -> Proof.context| \\
+  \indexdef{}{ML}{Proof\_Context.init\_global}\verb|Proof_Context.init_global: theory -> Proof.context| \\
+  \indexdef{}{ML}{Proof\_Context.theory\_of}\verb|Proof_Context.theory_of: Proof.context -> theory| \\
+  \indexdef{}{ML}{Proof\_Context.transfer}\verb|Proof_Context.transfer: theory -> Proof.context -> Proof.context| \\
   \end{mldecls}
 
   \begin{description}
@@ -342,14 +342,14 @@ A proof context is a container for pure data with a
   Elements of this type are essentially pure values, with a sliding
   reference to the background theory.
 
-  \item \verb|ProofContext.init_global|~\isa{thy} produces a proof context
+  \item \verb|Proof_Context.init_global|~\isa{thy} produces a proof context
   derived from \isa{thy}, initializing all data.
 
-  \item \verb|ProofContext.theory_of|~\isa{ctxt} selects the
+  \item \verb|Proof_Context.theory_of|~\isa{ctxt} selects the
   background theory from \isa{ctxt}, dereferencing its internal
   \verb|theory_ref|.
 
-  \item \verb|ProofContext.transfer|~\isa{thy\ ctxt} promotes the
+  \item \verb|Proof_Context.transfer|~\isa{thy\ ctxt} promotes the
   background theory of \isa{ctxt} to the super theory \isa{thy}.
 
   \end{description}%
@@ -432,10 +432,10 @@ A generic context is the disjoint sum of either a theory or proof
   constructors \verb|Context.Theory| and \verb|Context.Proof|.
 
   \item \verb|Context.theory_of|~\isa{context} always produces a
-  theory from the generic \isa{context}, using \verb|ProofContext.theory_of| as required.
+  theory from the generic \isa{context}, using \verb|Proof_Context.theory_of| as required.
 
   \item \verb|Context.proof_of|~\isa{context} always produces a
-  proof context from the generic \isa{context}, using \verb|ProofContext.init_global| as required (note that this re-initializes the
+  proof context from the generic \isa{context}, using \verb|Proof_Context.init_global| as required (note that this re-initializes the
   context data with each invocation).
 
   \end{description}%

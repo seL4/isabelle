@@ -30,7 +30,7 @@ fun declare name f = IndCasesData.map (Symtab.update (name, f));
 
 fun smart_cases ctxt s =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     fun err msg = cat_error msg ("Malformed set membership statement: " ^ s);
     val A = Syntax.read_prop ctxt s handle ERROR msg => err msg;
     val c = #1 (Term.dest_Const (Term.head_of (#2 (Ind_Syntax.dest_mem (FOLogic.dest_Trueprop
@@ -46,7 +46,7 @@ fun smart_cases ctxt s =
 
 fun inductive_cases args thy =
   let
-    val ctxt = ProofContext.init_global thy;
+    val ctxt = Proof_Context.init_global thy;
     val facts = args |> map (fn ((name, srcs), props) =>
       ((name, map (Attrib.attribute thy) srcs),
         map (Thm.no_attributes o single o smart_cases ctxt) props));

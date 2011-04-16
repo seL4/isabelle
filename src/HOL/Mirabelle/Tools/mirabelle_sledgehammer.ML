@@ -411,7 +411,7 @@ fun run_sh prover_name prover type_sys max_relevant hard_timeout timeout dir st 
 fun thms_of_name ctxt name =
   let
     val lex = Keyword.get_lexicons
-    val get = maps (ProofContext.get_fact ctxt o fst)
+    val get = maps (Proof_Context.get_fact ctxt o fst)
   in
     Source.of_string name
     |> Symbol.source

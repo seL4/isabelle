@@ -109,8 +109,8 @@ fun get_typedef_info tyco vs
 
 fun do_typedef raw_tyco repT raw_vs thy =
   let
-    val ctxt = ProofContext.init_global thy |> Variable.declare_typ repT;
-    val vs = map (ProofContext.check_tfree ctxt) raw_vs;
+    val ctxt = Proof_Context.init_global thy |> Variable.declare_typ repT;
+    val vs = map (Proof_Context.check_tfree ctxt) raw_vs;
     val tac = Tactic.rtac UNIV_witness 1;
   in
     thy
@@ -680,7 +680,7 @@ fun field_types_tr (Const (@{syntax_const "_field_types"}, _) $ t $ u) =
 
 fun record_field_types_tr more ctxt t =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     fun err msg = raise TERM ("Error in record-type input: " ^ msg, [t]);
 
     fun split_args (field :: fields) ((name, arg) :: fargs) =
@@ -693,7 +693,7 @@ fun record_field_types_tr more ctxt t =
       | split_args _ _ = ([], []);
 
     fun mk_ext (fargs as (name, _) :: _) =
-          (case get_fieldext thy (ProofContext.intern_const ctxt name) of
+          (case get_fieldext thy (Proof_Context.intern_const ctxt name) of
             SOME (ext, alphas) =>
               (case get_extfields thy ext of
                 SOME fields =>
@@ -739,7 +739,7 @@ fun fields_tr (Const (@{syntax_const "_fields"}, _) $ t $ u) = field_tr t :: fie
 
 fun record_fields_tr more ctxt t =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     fun err msg = raise TERM ("Error in record input: " ^ msg, [t]);
 
     fun split_args (field :: fields) ((name, arg) :: fargs) =
@@ -753,7 +753,7 @@ fun record_fields_tr more ctxt t =
       | split_args _ _ = ([], []);
 
     fun mk_ext (fargs as (name, _) :: _) =
-          (case get_fieldext thy (ProofContext.intern_const ctxt name) of
+          (case get_fieldext thy (Proof_Context.intern_const ctxt name) of
             SOME (ext, _) =>
               (case get_extfields thy ext of
                 SOME fields =>
@@ -814,7 +814,7 @@ fun field_types_tr' (t, u) = Syntax.const @{syntax_const "_field_types"} $ t $ u
 
 fun record_type_tr' ctxt t =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
 
     val T = decode_type thy t;
     val varifyT = varifyT (Term.maxidx_of_typ T);
@@ -831,7 +831,7 @@ fun record_type_tr' ctxt t =
                      (let
                         val (f :: fs, _) = split_last fields;
                         val fields' =
-                          apfst (ProofContext.extern_const ctxt) f ::
+                          apfst (Proof_Context.extern_const ctxt) f ::
                             map (apfst Long_Name.base_name) fs;
                         val (args', more) = split_last args;
                         val alphavars = map varifyT (#1 (split_last alphas));
@@ -861,7 +861,7 @@ fun record_type_tr' ctxt t =
   the (nested) extension types*)
 fun record_type_abbr_tr' abbr alphas zeta last_ext schemeT ctxt tm =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val T = decode_type thy tm;
     val midx = maxidx_of_typ T;
     val varifyT = varifyT midx;
@@ -914,7 +914,7 @@ fun fields_tr' (t, u) = Syntax.const @{syntax_const "_fields"} $ t $ u;
 
 fun record_tr' ctxt t =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
 
     fun strip_fields t =
       (case strip_comb t of
@@ -925,7 +925,7 @@ fun record_tr' ctxt t =
                 SOME fields =>
                  (let
                     val (f :: fs, _) = split_last (map fst fields);
-                    val fields' = ProofContext.extern_const ctxt f :: map Long_Name.base_name fs;
+                    val fields' = Proof_Context.extern_const ctxt f :: map Long_Name.base_name fs;
                     val (args', more) = split_last args;
                   in (fields' ~~ args') @ strip_fields more end
                   handle ListPair.UnequalLengths => [("", t)])
@@ -957,7 +957,7 @@ local
 
 fun dest_update ctxt c =
   (case try Lexicon.unmark_const c of
-    SOME d => try (unsuffix updateN) (ProofContext.extern_const ctxt d)
+    SOME d => try (unsuffix updateN) (Proof_Context.extern_const ctxt d)
   | NONE => NONE);
 
 fun field_updates_tr' ctxt (tm as Const (c, _) $ k $ u) =
@@ -997,7 +997,7 @@ fun future_forward_prf_standard thy prf prop () =
   let val thm =
     if ! quick_and_dirty then Skip_Proof.make_thm thy prop
     else if Goal.future_enabled () then
-      Goal.future_result (ProofContext.init_global thy) (Goal.fork prf) prop
+      Goal.future_result (Proof_Context.init_global thy) (Goal.fork prf) prop
     else prf ()
   in Drule.export_without_context thm end;
 
@@ -1007,7 +1007,7 @@ fun prove_common immediate stndrd thy asms prop tac =
       if ! quick_and_dirty then Skip_Proof.prove
       else if immediate orelse not (Goal.future_enabled ()) then Goal.prove
       else Goal.prove_future;
-    val prf = prv (ProofContext.init_global thy) [] asms prop tac;
+    val prf = prv (Proof_Context.init_global thy) [] asms prop tac;
   in if stndrd then Drule.export_without_context prf else prf end;
 
 val prove_future_global = prove_common false;
@@ -1040,7 +1040,7 @@ fun get_accupd_simps thy term defset =
           else mk_comp_id acc;
         val prop = lhs === rhs;
         val othm =
-          Goal.prove (ProofContext.init_global thy) [] [] prop
+          Goal.prove (Proof_Context.init_global thy) [] [] prop
             (fn _ =>
               simp_tac defset 1 THEN
               REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac 1) THEN
@@ -1064,7 +1064,7 @@ fun get_updupd_simp thy defset u u' comp =
       else HOLogic.mk_comp (u' $ f', u $ f);
     val prop = lhs === rhs;
     val othm =
-      Goal.prove (ProofContext.init_global thy) [] [] prop
+      Goal.prove (Proof_Context.init_global thy) [] [] prop
         (fn _ =>
           simp_tac defset 1 THEN
           REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac 1) THEN
@@ -1105,7 +1105,7 @@ fun prove_unfold_defs thy ex_simps ex_simprs prop =
     val (_, args) = strip_comb lhs;
     val simps = (if length args = 1 then get_accupd_simps else get_updupd_simps) thy lhs defset;
   in
-    Goal.prove (ProofContext.init_global thy) [] [] prop'
+    Goal.prove (Proof_Context.init_global thy) [] [] prop'
       (fn _ =>
         simp_tac (HOL_basic_ss addsimps (simps @ [K_record_comp])) 1 THEN
         TRY (simp_tac (HOL_basic_ss addsimps ex_simps addsimprocs ex_simprs) 1))
@@ -1197,7 +1197,7 @@ fun get_upd_acc_cong_thm upd acc thy simpset =
     val insts = [("upd", cterm_of thy upd), ("ac", cterm_of thy acc)];
     val prop = Thm.concl_of (named_cterm_instantiate insts updacc_cong_triv);
   in
-    Goal.prove (ProofContext.init_global thy) [] [] prop
+    Goal.prove (Proof_Context.init_global thy) [] [] prop
       (fn _ =>
         simp_tac simpset 1 THEN
         REPEAT_DETERM (Iso_Tuple_Support.iso_tuple_intros_tac 1) THEN
@@ -1525,7 +1525,7 @@ fun read_typ ctxt raw_T env =
 
 fun cert_typ ctxt raw_T env =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val T = Type.no_tvars (Sign.certify_typ thy raw_T)
       handle TYPE (msg, _, _) => error msg;
     val env' = OldTerm.add_typ_tfrees (T, env);
@@ -2392,7 +2392,7 @@ local
 
 fun read_parent NONE ctxt = (NONE, ctxt)
   | read_parent (SOME raw_T) ctxt =
-      (case ProofContext.read_typ_abbrev ctxt raw_T of
+      (case Proof_Context.read_typ_abbrev ctxt raw_T of
         Type (name, Ts) => (SOME (Ts, name), fold Variable.declare_typ Ts ctxt)
       | T => error ("Bad parent record specification: " ^ Syntax.string_of_typ ctxt T));
 
@@ -2413,8 +2413,8 @@ fun add_record quiet_mode (params, binding) raw_parent raw_fields thy =
       if quiet_mode then ()
       else writeln ("Defining record " ^ quote (Binding.str_of binding) ^ " ...");
 
-    val ctxt = ProofContext.init_global thy;
-    fun cert_typ T = Type.no_tvars (ProofContext.cert_typ ctxt T)
+    val ctxt = Proof_Context.init_global thy;
+    fun cert_typ T = Type.no_tvars (Proof_Context.cert_typ ctxt T)
       handle TYPE (msg, _, _) => error msg;
 
 
@@ -2463,12 +2463,12 @@ fun add_record quiet_mode (params, binding) raw_parent raw_fields thy =
 
 fun add_record_cmd quiet_mode (raw_params, binding) raw_parent raw_fields thy =
   let
-    val ctxt = ProofContext.init_global thy;
+    val ctxt = Proof_Context.init_global thy;
     val params = map (apsnd (Typedecl.read_constraint ctxt)) raw_params;
     val ctxt1 = fold (Variable.declare_typ o TFree) params ctxt;
     val (parent, ctxt2) = read_parent raw_parent ctxt1;
     val (fields, ctxt3) = fold_map read_field raw_fields ctxt2;
-    val params' = map (ProofContext.check_tfree ctxt3) params;
+    val params' = map (Proof_Context.check_tfree ctxt3) params;
   in thy |> add_record quiet_mode (params', binding) parent fields end;
 
 end;

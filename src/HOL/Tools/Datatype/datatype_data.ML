@@ -166,7 +166,7 @@ fun get_constrs thy dtco =
 
 fun read_typ thy str sorts =
   let
-    val ctxt = ProofContext.init_global thy
+    val ctxt = Proof_Context.init_global thy
       |> fold (Variable.declare_typ o TFree) sorts;
     val T = Syntax.read_typ ctxt str;
   in (T, Term.add_tfreesT T sorts) end;
@@ -216,10 +216,10 @@ end;
 (* translation rules for case *)
 
 fun make_case ctxt = Datatype_Case.make_case
-  (info_of_constr (ProofContext.theory_of ctxt)) ctxt;
+  (info_of_constr (Proof_Context.theory_of ctxt)) ctxt;
 
 fun strip_case ctxt = Datatype_Case.strip_case
-  (info_of_case (ProofContext.theory_of ctxt));
+  (info_of_case (Proof_Context.theory_of ctxt));
 
 fun add_case_tr' case_names thy =
   Sign.add_advanced_trfuns ([], [],
@@ -240,7 +240,7 @@ val trfun_setup =
 val _ = Thy_Output.antiquotation "datatype" (Args.type_name true)
   (fn {source = src, context = ctxt, ...} => fn dtco =>
     let
-      val thy = ProofContext.theory_of ctxt;
+      val thy = Proof_Context.theory_of ctxt;
       val (vs, cos) = the_spec thy dtco;
       val ty = Type (dtco, map TFree vs);
       val pretty_typ_bracket = Syntax.pretty_typ (Config.put pretty_priority 1001 ctxt);
@@ -318,7 +318,7 @@ fun derive_datatype_props config dt_names alt_names descr sorts
     val (splits, thy9) = Datatype_Abs_Proofs.prove_split_thms
       config new_type_names descr sorts inject distinct exhaust case_rewrites thy8;
 
-    val inducts = Project_Rule.projections (ProofContext.init_global thy2) induct;
+    val inducts = Project_Rule.projections (Proof_Context.init_global thy2) induct;
     val dt_infos = map_index
       (make_dt_info alt_names flat_descr sorts induct inducts rec_names rec_rewrites)
       (hd descr ~~ inject ~~ distinct ~~ exhaust ~~ nchotomys ~~
@@ -378,12 +378,12 @@ fun prove_rep_datatype config dt_names alt_names descr sorts
 
 fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
   let
-    val ctxt = ProofContext.init_global thy;
+    val ctxt = Proof_Context.init_global thy;
 
     fun constr_of_term (Const (c, T)) = (c, T)
       | constr_of_term t = error ("Not a constant: " ^ Syntax.string_of_term ctxt t);
     fun no_constr (c, T) =
-      error ("Bad constructor: " ^ ProofContext.extern_const ctxt c ^ "::" ^
+      error ("Bad constructor: " ^ Proof_Context.extern_const ctxt c ^ "::" ^
         Syntax.string_of_typ ctxt T);
     fun type_of_constr (cT as (_, T)) =
       let
@@ -432,7 +432,7 @@ fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
           unflat rules (map Drule.zero_var_indexes_list raw_thms);
             (*FIXME somehow dubious*)
       in
-        ProofContext.background_theory_result
+        Proof_Context.background_theory_result
           (prove_rep_datatype config dt_names alt_names descr vs
             raw_inject half_distinct raw_induct)
         #-> after_qed

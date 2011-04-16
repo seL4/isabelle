@@ -833,7 +833,7 @@ local
 
   fun discharge rules outer_ctxt (p, (inner_ctxt, _)) =
     thm_of p
-    |> singleton (ProofContext.export inner_ctxt outer_ctxt)
+    |> singleton (Proof_Context.export inner_ctxt outer_ctxt)
     |> discharge_assms (make_discharge_rules rules)
 in
 

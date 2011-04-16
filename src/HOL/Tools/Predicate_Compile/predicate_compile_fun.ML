@@ -183,7 +183,7 @@ fun flatten thy lookup_pred t (names, prems) =
           SOME raw_split_thm =>
           let
             val (f, args) = strip_comb t
-            val split_thm = prepare_split_thm (ProofContext.init_global thy) raw_split_thm
+            val split_thm = prepare_split_thm (Proof_Context.init_global thy) raw_split_thm
             val (assms, concl) = Logic.strip_horn (prop_of split_thm)
             val (P, [split_t]) = strip_comb (HOLogic.dest_Trueprop concl)
             val t' = case_betapply thy t

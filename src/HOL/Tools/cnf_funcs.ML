@@ -258,7 +258,7 @@ val eq_reflection = @{thm eq_reflection}
 
 fun make_under_quantifiers ctxt make t =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     fun conv ctxt ct =
       case term_of ct of
         (t1 as Const _) $ (t2 as Abs _) =>
@@ -269,7 +269,7 @@ fun make_under_quantifiers ctxt make t =
   in conv ctxt (cterm_of thy t) RS meta_eq_to_obj_eq end
 
 fun make_nnf_thm_under_quantifiers ctxt =
-  make_under_quantifiers ctxt (make_nnf_thm (ProofContext.theory_of ctxt))
+  make_under_quantifiers ctxt (make_nnf_thm (Proof_Context.theory_of ctxt))
 
 (* ------------------------------------------------------------------------- *)
 (* simp_True_False_thm: produces a theorem t = t', where t' is equivalent to *)
@@ -344,7 +344,7 @@ fun simp_True_False_thm thy (Const (@{const_name HOL.conj}, _) $ x $ y) =
 
 fun make_cnf_thm ctxt t =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     fun make_cnf_thm_from_nnf (Const (@{const_name HOL.conj}, _) $ x $ y) =
           let
             val thm1 = make_cnf_thm_from_nnf x
@@ -414,7 +414,7 @@ fun make_cnf_thm ctxt t =
 
 fun make_cnfx_thm ctxt t =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val var_id = Unsynchronized.ref 0  (* properly initialized below *)
     fun new_free () =
       Free ("cnfx_" ^ string_of_int (Unsynchronized.inc var_id), HOLogic.boolT)

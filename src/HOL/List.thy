@@ -395,8 +395,8 @@ let
 
   fun abs_tr ctxt (p as Free (s, T)) e opti =
         let
-          val thy = ProofContext.theory_of ctxt;
-          val s' = ProofContext.intern_const ctxt s;
+          val thy = Proof_Context.theory_of ctxt;
+          val s' = Proof_Context.intern_const ctxt s;
         in
           if Sign.declared_const thy s'
           then (pat_tr ctxt p e opti, false)

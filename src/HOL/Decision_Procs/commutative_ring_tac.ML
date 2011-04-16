@@ -86,7 +86,7 @@ val cring_simps =
 
 fun tac ctxt = SUBGOAL (fn (g, i) =>
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val cring_ss = Simplifier.simpset_of ctxt  (*FIXME really the full simpset!?*)
       addsimps cring_simps;
     val (ca, cvs, clhs, crhs) = reif_eq thy (HOLogic.dest_Trueprop g)

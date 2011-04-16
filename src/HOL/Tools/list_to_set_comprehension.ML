@@ -65,7 +65,7 @@ datatype termlets = If | Case of (typ * int)
 fun simproc ss redex =
   let
     val ctxt = Simplifier.the_context ss
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val set_Nil_I = @{thm trans} OF [@{thm set.simps(1)}, @{thm empty_def}]
     val set_singleton = @{lemma "set [a] = {x. x = a}" by simp}
     val inst_Collect_mem_eq = @{lemma "set A = {x. x : set A}" by simp}

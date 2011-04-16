@@ -77,7 +77,7 @@ fun linr_tac ctxt q =
         THEN' (REPEAT_DETERM o split_tac [@{thm split_min}, @{thm split_max}, @{thm abs_split}])
         THEN' SUBGOAL (fn (g, i) =>
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     (* Transform the term*)
     val (t,np,nh) = prepare_for_linr thy q g
     (* Some simpsets for dealing with mod div abs and nat*)

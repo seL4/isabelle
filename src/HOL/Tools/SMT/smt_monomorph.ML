@@ -121,7 +121,7 @@ val limit_reached_warning = "Warning: Monomorphization limit reached"
 
 fun search_substitutions ctxt limit instances all_grounds new_grounds scss =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val all_grounds' = Symtab.merge_list (op =) (all_grounds, new_grounds)
     val spec = specialize thy limit all_grounds' new_grounds
     val (scss', (new_grounds', instances')) =
@@ -162,7 +162,7 @@ fun filter_most_specific thy =
 
 fun instantiate full (i, thm) substs (ithms, ctxt) =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
 
     val (vs, Ss) = split_list (Term.add_tvars (Thm.prop_of thm) [])
     val (Tenv, ctxt') =
@@ -215,7 +215,7 @@ fun mono_all ctxt polys monos =
   in
     scss
     |> search_substitutions ctxt limit instances Symtab.empty grounds
-    |> map (filter_most_specific (ProofContext.theory_of ctxt))
+    |> map (filter_most_specific (Proof_Context.theory_of ctxt))
     |> rpair (monos, ctxt)
     |-> fold2 (instantiate full) polys
   end

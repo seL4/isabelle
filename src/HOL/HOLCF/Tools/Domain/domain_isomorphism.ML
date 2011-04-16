@@ -177,7 +177,7 @@ fun add_fixdefs
     val cont_thm =
       let
         val prop = mk_trp (mk_cont functional)
-        val rules = Cont2ContData.get (ProofContext.init_global thy)
+        val rules = Cont2ContData.get (Proof_Context.init_global thy)
         val tac = REPEAT_ALL_NEW (match_tac rules) 1
       in
         Goal.prove_global thy [] [] prop (K tac)
@@ -185,7 +185,7 @@ fun add_fixdefs
 
     val tuple_unfold_thm =
       (@{thm def_cont_fix_eq} OF [tuple_fixdef_thm, cont_thm])
-      |> Local_Defs.unfold (ProofContext.init_global thy) @{thms split_conv}
+      |> Local_Defs.unfold (Proof_Context.init_global thy) @{thms split_conv}
 
     fun mk_unfold_thms [] thm = []
       | mk_unfold_thms (n::[]) thm = [(n, thm)]
@@ -214,7 +214,7 @@ fun defl_of_typ
     (tab2 : (typ * term) list)
     (T : typ) : term =
   let
-    val defl_simps = RepData.get (ProofContext.init_global thy)
+    val defl_simps = RepData.get (Proof_Context.init_global thy)
     val rules = map (Thm.concl_of #> HOLogic.dest_Trueprop #> HOLogic.dest_eq) defl_simps
     val rules' = map (apfst mk_DEFL) tab1 @ map (apfst mk_LIFTDEFL) tab2
     fun proc1 t =
@@ -389,7 +389,7 @@ fun define_map_functions
 
 fun read_typ thy str sorts =
   let
-    val ctxt = ProofContext.init_global thy
+    val ctxt = Proof_Context.init_global thy
       |> fold (Variable.declare_typ o TFree) sorts
     val T = Syntax.read_typ ctxt str
   in (T, Term.add_tfreesT T sorts) end
@@ -541,7 +541,7 @@ fun gen_domain_isomorphism
     fun mk_DEFL_eq_thm (lhsT, rhsT) =
       let
         val goal = mk_eqs (mk_DEFL lhsT, mk_DEFL rhsT)
-        val DEFL_simps = RepData.get (ProofContext.init_global thy)
+        val DEFL_simps = RepData.get (Proof_Context.init_global thy)
         val tac =
           rewrite_goals_tac (map mk_meta_eq DEFL_simps)
           THEN TRY (resolve_tac defl_unfold_thms 1)
@@ -647,7 +647,7 @@ fun gen_domain_isomorphism
         val isodefl_rules =
           @{thms conjI isodefl_ID_DEFL isodefl_LIFTDEFL}
           @ isodefl_abs_rep_thms
-          @ IsodeflData.get (ProofContext.init_global thy)
+          @ IsodeflData.get (Proof_Context.init_global thy)
       in
         Goal.prove_global thy [] assms goal (fn {prems, ...} =>
          EVERY

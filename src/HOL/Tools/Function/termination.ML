@@ -197,7 +197,7 @@ fun prove_descent thy tac sk (c, (m1, m2)) =
 
 fun create ctxt chain_tac descent_tac T rel =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val sk = mk_sum_skel rel
     val Ts = node_types sk T
     val M = Inttab.make (map_index (apsnd (MeasureFunctions.get_measure_functions ctxt)) Ts)
@@ -272,7 +272,7 @@ in
 
 fun wf_union_tac ctxt st =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val cert = cterm_of (theory_of_thm st)
     val ((_ $ (_ $ rel)) :: ineqs) = prems_of st
 

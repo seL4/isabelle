@@ -83,7 +83,7 @@ in
 
 fun random_aux_primrec eq lthy =
   let
-    val thy = ProofContext.theory_of lthy;
+    val thy = Proof_Context.theory_of lthy;
     val ((t_random_aux as Free (random_aux, T)) $ (t_k as Free (v, _)), proto_t_rhs) =
       (HOLogic.dest_eq o HOLogic.dest_Trueprop) eq;
     val Type (_, [_, iT]) = T;
@@ -104,7 +104,7 @@ fun random_aux_primrec eq lthy =
            [(cT_random_aux, cert t_random_aux), (cT_rhs, cert t_rhs)]);
     val tac = ALLGOALS (rtac rule)
       THEN ALLGOALS (simp_tac rew_ss)
-      THEN (ALLGOALS (ProofContext.fact_tac eqs2))
+      THEN (ALLGOALS (Proof_Context.fact_tac eqs2))
     val simp = Skip_Proof.prove lthy' [v] [] eq (K tac);
   in (simp, lthy') end;
 
@@ -116,7 +116,7 @@ fun random_aux_primrec_multi auxname [eq] lthy =
       |>> (fn simp => [simp])
   | random_aux_primrec_multi auxname (eqs as _ :: _ :: _) lthy =
       let
-        val thy = ProofContext.theory_of lthy;
+        val thy = Proof_Context.theory_of lthy;
         val (lhss, rhss) = map_split (HOLogic.dest_eq o HOLogic.dest_Trueprop) eqs;
         val (vs, (arg as Free (v, _)) :: _) = map_split (fn (t1 $ t2) => (t1, t2)) lhss;
         val Ts = map fastype_of lhss;
@@ -162,7 +162,7 @@ fun random_aux_specification prfx name eqs lthy =
     fun prove_simps proto_simps lthy =
       let
         val ext_simps = map (fn thm => fun_cong OF [fun_cong OF [thm]]) proto_simps;
-        val tac = ALLGOALS (ProofContext.fact_tac ext_simps);
+        val tac = ALLGOALS (Proof_Context.fact_tac ext_simps);
       in (map (fn prop => Skip_Proof.prove lthy vs [] prop (K tac)) eqs, lthy) end;
     val b = Binding.conceal (Binding.qualify true prfx
       (Binding.qualify true name (Binding.name "simps")));
@@ -290,7 +290,7 @@ val target = "Quickcheck";
 
 fun mk_generator_expr ctxt (t, eval_terms) =
   let  
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val prop = list_abs_free (Term.add_frees t [], t)
     val Ts = (map snd o fst o strip_abs) prop
     val bound_max = length Ts - 1;
@@ -316,7 +316,7 @@ fun mk_generator_expr ctxt (t, eval_terms) =
 
 fun mk_reporting_generator_expr ctxt (t, eval_terms) =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val prop = list_abs_free (Term.add_frees t [], t)
     val Ts = (map snd o fst o strip_abs) prop
     val bound_max = length Ts - 1
@@ -393,7 +393,7 @@ val empty_report = Quickcheck.Report { iterations = 0, raised_match_errors = 0,
     
 fun compile_generator_expr ctxt ts =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val iterations = Config.get ctxt Quickcheck.iterations
   in
     if Config.get ctxt Quickcheck.report then

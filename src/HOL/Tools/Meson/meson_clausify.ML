@@ -313,7 +313,7 @@ val cheat_choice =
 (* Converts an Isabelle theorem into NNF. *)
 fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val th =
       th |> transform_elim_theorem
          |> zero_var_indexes
@@ -376,7 +376,7 @@ fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
 (* Convert a theorem to CNF, with additional premises due to skolemization. *)
 fun cnf_axiom ctxt0 new_skolemizer ax_no th =
   let
-    val thy = ProofContext.theory_of ctxt0
+    val thy = Proof_Context.theory_of ctxt0
     val choice_ths = choice_theorems thy
     val (opt, (nnf_th, ctxt)) =
       nnf_axiom choice_ths new_skolemizer ax_no th ctxt0

@@ -113,7 +113,7 @@ fun extract_quant extract q =
   in exqu [] end;
 
 fun prove_conv tac thy tu =
-  let val ctxt = ProofContext.init_global thy;
+  let val ctxt = Proof_Context.init_global thy;
       val eq_tu = Logic.mk_equals tu;
       val ([fixed_goal], ctxt') = Variable.import_terms true [eq_tu] ctxt;
       val thm = Goal.prove ctxt' [] [] fixed_goal

@@ -98,7 +98,7 @@ fun get_match_inst thy pat trm =
 *)
 fun calculate_inst ctxt ball_bex_thm redex R1 R2 =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     fun get_lhs thm = fst (Logic.dest_equals (Thm.concl_of thm))
     val ty_inst = map (SOME o ctyp_of thy) [domain_type (fastype_of R2)]
     val trm_inst = map (SOME o cterm_of thy) [R2, R1]
@@ -156,7 +156,7 @@ fun eq_imp_rel_get ctxt = map (OF1 eq_imp_rel) (Quotient_Info.equiv_rules_get ct
 
 fun regularize_tac ctxt =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val ball_pat = @{term "Ball (Respects (R1 ===> R2)) P"}
     val bex_pat = @{term "Bex (Respects (R1 ===> R2)) P"}
     val simproc =
@@ -201,7 +201,7 @@ fun quot_true_simple_conv ctxt fnctn ctrm =
     (Const (@{const_name Quot_True}, _) $ x) =>
       let
         val fx = fnctn x;
-        val thy = ProofContext.theory_of ctxt;
+        val thy = Proof_Context.theory_of ctxt;
         val cx = cterm_of thy x;
         val cfx = cterm_of thy fx;
         val cxt = ctyp_of thy (fastype_of x);
@@ -253,7 +253,7 @@ val apply_rsp_tac =
               val ty_x = fastype_of x
               val ty_b = fastype_of qt_arg
               val ty_f = range_type (fastype_of f)
-              val thy = ProofContext.theory_of context
+              val thy = Proof_Context.theory_of context
               val ty_inst = map (SOME o (ctyp_of thy)) [ty_x, ty_b, ty_f]
               val t_inst = map (SOME o (cterm_of thy)) [R2, f, g, x, y];
               val inst_thm = Drule.instantiate' ty_inst
@@ -269,7 +269,7 @@ val apply_rsp_tac =
 *)
 fun equals_rsp_tac R ctxt =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
   in
     case try (cterm_of thy) R of (* There can be loose bounds in R *)
       SOME ctm =>
@@ -290,7 +290,7 @@ fun rep_abs_rsp_tac ctxt =
       SOME (rel $ _ $ (rep $ (Bound _ $ _))) => no_tac
     | SOME (rel $ _ $ (rep $ (abs $ _))) =>
         let
-          val thy = ProofContext.theory_of ctxt;
+          val thy = Proof_Context.theory_of ctxt;
           val (ty_a, ty_b) = dest_funT (fastype_of abs);
           val ty_inst = map (SOME o (ctyp_of thy)) [ty_a, ty_b];
         in
@@ -478,7 +478,7 @@ fun lambda_prs_simple_conv ctxt ctrm =
   (case term_of ctrm of
     (Const (@{const_name map_fun}, _) $ r1 $ a2) $ (Abs _) =>
       let
-        val thy = ProofContext.theory_of ctxt
+        val thy = Proof_Context.theory_of ctxt
         val (ty_b, ty_a) = dest_funT (fastype_of r1)
         val (ty_c, ty_d) = dest_funT (fastype_of a2)
         val tyinst = map (SOME o (ctyp_of thy)) [ty_a, ty_b, ty_c, ty_d]
@@ -556,7 +556,7 @@ fun apply_under_Trueprop f =
 fun gen_frees_tac ctxt =
   SUBGOAL (fn (concl, i) =>
     let
-      val thy = ProofContext.theory_of ctxt
+      val thy = Proof_Context.theory_of ctxt
       val vrs = Term.add_frees concl []
       val cvrs = map (cterm_of thy o Free) vrs
       val concl' = apply_under_Trueprop (all_list vrs) concl
@@ -600,7 +600,7 @@ fun lift_match_error ctxt msg rtrm qtrm =
 
 fun procedure_inst ctxt rtrm qtrm =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val rtrm' = HOLogic.dest_Trueprop rtrm
     val qtrm' = HOLogic.dest_Trueprop qtrm
     val reg_goal = Quotient_Term.regularize_trm_chk ctxt (rtrm', qtrm')
@@ -704,7 +704,7 @@ fun lifted ctxt qtys simps rthm =
   in
     Goal.prove ctxt' [] [] goal
       (K (HEADGOAL (lift_single_tac ctxt' simps rthm')))
-    |> singleton (ProofContext.export ctxt' ctxt)
+    |> singleton (Proof_Context.export ctxt' ctxt)
   end
 
 

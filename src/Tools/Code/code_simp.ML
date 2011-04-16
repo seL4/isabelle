@@ -59,9 +59,9 @@ fun dynamic_tac thy = CONVERSION (dynamic_conv thy) THEN' conclude_tac thy NONE;
 fun dynamic_value thy = snd o Logic.dest_equals o Thm.prop_of o dynamic_conv thy o Thm.cterm_of thy;
 
 val setup = Method.setup (Binding.name "code_simp")
-  (Scan.succeed (SIMPLE_METHOD' o (CHANGED_PROP oo dynamic_tac o ProofContext.theory_of)))
+  (Scan.succeed (SIMPLE_METHOD' o (CHANGED_PROP oo dynamic_tac o Proof_Context.theory_of)))
   "simplification with code equations"
-  #> Value.add_evaluator ("simp", dynamic_value o ProofContext.theory_of);
+  #> Value.add_evaluator ("simp", dynamic_value o Proof_Context.theory_of);
 
 
 (* evaluation with static code context *)

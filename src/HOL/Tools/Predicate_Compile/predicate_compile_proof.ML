@@ -157,7 +157,7 @@ fun check_format ctxt st =
 
 fun prove_match options ctxt nargs out_ts =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val eval_if_P =
       @{lemma "P ==> Predicate.eval x z ==> Predicate.eval (if P then x else y) z" by simp} 
     fun get_case_rewrite t =
@@ -324,7 +324,7 @@ fun prove_one_direction options ctxt clauses preds pred mode moded_clauses =
 
 fun prove_match2 options ctxt out_ts =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     fun split_term_tac (Free _) = all_tac
       | split_term_tac t =
         if (is_constructor thy t) then
@@ -507,7 +507,7 @@ fun prove_other_direction options ctxt pred mode moded_clauses =
 
 fun prove_pred options thy clauses preds pred (pol, mode) (moded_clauses, compiled_term) =
   let
-    val ctxt = ProofContext.init_global thy
+    val ctxt = Proof_Context.init_global thy
     val clauses = case AList.lookup (op =) clauses pred of SOME rs => rs | NONE => []
   in
     Goal.prove ctxt (Term.add_free_names compiled_term []) [] compiled_term

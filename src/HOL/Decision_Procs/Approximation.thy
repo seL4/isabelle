@@ -3341,10 +3341,10 @@ ML {*
     end
 
   fun approximation_conv ctxt ct =
-    approximation_oracle (ProofContext.theory_of ctxt, Thm.term_of ct |> tap (tracing o Syntax.string_of_term ctxt));
+    approximation_oracle (Proof_Context.theory_of ctxt, Thm.term_of ct |> tap (tracing o Syntax.string_of_term ctxt));
 
   fun approximate ctxt t =
-    approximation_oracle (ProofContext.theory_of ctxt, t)
+    approximation_oracle (Proof_Context.theory_of ctxt, t)
     |> Thm.prop_of |> Logic.dest_equals |> snd;
 
   (* Should be in HOL.thy ? *)
@@ -3366,16 +3366,16 @@ ML {*
                |> HOLogic.dest_list
       val p = prec
               |> HOLogic.mk_number @{typ nat}
-              |> Thm.cterm_of (ProofContext.theory_of ctxt)
+              |> Thm.cterm_of (Proof_Context.theory_of ctxt)
     in case taylor
     of NONE => let
          val n = vs |> length
                  |> HOLogic.mk_number @{typ nat}
-                 |> Thm.cterm_of (ProofContext.theory_of ctxt)
+                 |> Thm.cterm_of (Proof_Context.theory_of ctxt)
          val s = vs
                  |> map lookup_splitting
                  |> HOLogic.mk_list @{typ nat}
-                 |> Thm.cterm_of (ProofContext.theory_of ctxt)
+                 |> Thm.cterm_of (Proof_Context.theory_of ctxt)
        in
          (rtac (Thm.instantiate ([], [(@{cpat "?n::nat"}, n),
                                      (@{cpat "?prec::nat"}, p),
@@ -3388,9 +3388,9 @@ ML {*
        else let
          val t = t
               |> HOLogic.mk_number @{typ nat}
-              |> Thm.cterm_of (ProofContext.theory_of ctxt)
+              |> Thm.cterm_of (Proof_Context.theory_of ctxt)
          val s = vs |> map lookup_splitting |> hd
-              |> Thm.cterm_of (ProofContext.theory_of ctxt)
+              |> Thm.cterm_of (Proof_Context.theory_of ctxt)
        in
          rtac (Thm.instantiate ([], [(@{cpat "?s::nat"}, s),
                                      (@{cpat "?t::nat"}, t),
@@ -3530,9 +3530,9 @@ ML {*
 
   fun approx_form prec ctxt t =
           realify t
-       |> prepare_form (ProofContext.theory_of ctxt)
+       |> prepare_form (Proof_Context.theory_of ctxt)
        |> (fn arith_term =>
-          reify_form (ProofContext.theory_of ctxt) arith_term
+          reify_form (Proof_Context.theory_of ctxt) arith_term
        |> HOLogic.dest_Trueprop |> dest_interpret_form
        |> (fn (data, xs) =>
           mk_approx_form_eval prec data (HOLogic.mk_list @{typ "(float * float) option"}

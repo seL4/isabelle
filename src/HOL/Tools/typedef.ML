@@ -149,7 +149,7 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
 
     (* lhs *)
 
-    val args = map (ProofContext.check_tfree tmp_ctxt') raw_args;
+    val args = map (Proof_Context.check_tfree tmp_ctxt') raw_args;
     val (newT, typedecl_lthy) = lthy
       |> Typedecl.typedecl (tname, args, mx)
       ||> Variable.declare_term set;
@@ -179,17 +179,17 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
 
     val ((RepC, AbsC, axiom_name, typedef), typedef_lthy) =
       let
-        val thy = ProofContext.theory_of set_lthy;
+        val thy = Proof_Context.theory_of set_lthy;
         val cert = Thm.cterm_of thy;
         val (defs, A) =
-          Local_Defs.export_cterm set_lthy (ProofContext.init_global thy) (cert set')
+          Local_Defs.export_cterm set_lthy (Proof_Context.init_global thy) (cert set')
           ||> Thm.term_of;
 
         val ((RepC, AbsC, axiom_name, axiom), axiom_lthy) = set_lthy |>
           Local_Theory.background_theory_result
             (primitive_typedef typedef_name newT oldT Rep_name Abs_name A);
 
-        val cert = Thm.cterm_of (ProofContext.theory_of axiom_lthy);
+        val cert = Thm.cterm_of (Proof_Context.theory_of axiom_lthy);
         val typedef =
           Local_Defs.contract axiom_lthy defs (cert (mk_typedef newT oldT RepC AbsC set')) axiom;
       in ((RepC, AbsC, axiom_name, typedef), axiom_lthy) end;
@@ -207,7 +207,7 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
 
     fun typedef_result inhabited lthy1 =
       let
-        val cert = Thm.cterm_of (ProofContext.theory_of lthy1);
+        val cert = Thm.cterm_of (Proof_Context.theory_of lthy1);
         val inhabited' =
           Local_Defs.contract lthy1 (the_list set_def) (cert (mk_inhabited set')) inhabited;
         val typedef' = inhabited' RS typedef;

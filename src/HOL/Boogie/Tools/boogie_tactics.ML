@@ -90,7 +90,7 @@ local
     Seq.maps (fn (names, st) =>
       CASES
         (Rule_Cases.make_common
-          (ProofContext.theory_of ctxt,
+          (Proof_Context.theory_of ctxt,
            Thm.prop_of (Rule_Cases.internalize_params st)) names)
         Tactical.all_tac st))
 in

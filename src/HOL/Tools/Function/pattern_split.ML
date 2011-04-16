@@ -57,7 +57,7 @@ fun pattern_subtract_subst ctx vs t t' =
             map (fn (vs, subst) => (vs, (v,t)::subst)) substs
           end
       in
-        maps foo (inst_constrs_of (ProofContext.theory_of ctx) T)
+        maps foo (inst_constrs_of (Proof_Context.theory_of ctx) T)
       end
      | pattern_subtract_subst_aux vs t t' =
      let
@@ -76,7 +76,7 @@ fun pattern_subtract_subst ctx vs t t' =
 (* p - q *)
 fun pattern_subtract ctx eq2 eq1 =
   let
-    val thy = ProofContext.theory_of ctx
+    val thy = Proof_Context.theory_of ctx
 
     val (vs, feq1 as (_ $ (_ $ lhs1 $ _))) = dest_all_all eq1
     val (_,  _ $ (_ $ lhs2 $ _)) = dest_all_all eq2

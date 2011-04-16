@@ -188,7 +188,7 @@ fun extensionalize_term t =
   in aux (maxidx_of_term t + 1) t end
 
 fun introduce_combinators_in_term ctxt kind t =
-  let val thy = ProofContext.theory_of ctxt in
+  let val thy = Proof_Context.theory_of ctxt in
     if Meson.is_fol_term thy t then
       t
     else
@@ -241,7 +241,7 @@ fun freeze_term t =
 (* making fact and conjecture formulas *)
 fun make_formula ctxt eq_as_iff presimp name kind t =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val t = t |> Envir.beta_eta_contract
               |> transform_elim_term
               |> Object_Logic.atomize_term thy
@@ -324,7 +324,7 @@ fun translate_atp_fact ctxt keep_trivial =
 
 fun translate_formulas ctxt type_sys hyp_ts concl_t rich_facts =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val fact_ts = map (prop_of o snd o snd) rich_facts
     val (facts, fact_names) =
       rich_facts
@@ -375,7 +375,7 @@ and is_type_dangerous ctxt (Type (s, Ts)) =
     is_type_constr_dangerous ctxt s andalso forall (is_type_dangerous ctxt) Ts
   | is_type_dangerous _ _ = false
 and is_type_constr_dangerous ctxt s =
-  let val thy = ProofContext.theory_of ctxt in
+  let val thy = Proof_Context.theory_of ctxt in
     case Datatype_Data.get_info thy s of
       SOME {descr, ...} =>
       forall (fn (_, (_, _, constrs)) =>
@@ -444,7 +444,7 @@ fun unmangled_const s =
 
 fun fo_term_for_combterm ctxt type_sys =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     fun aux top_level u =
       let
         val (head, args) = strip_combterm_comb u
@@ -681,7 +681,7 @@ fun offset_of_heading_in_problem _ [] j = j
 fun prepare_atp_problem ctxt readable_names explicit_forall type_sys
                         explicit_apply hyp_ts concl_t facts =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
       translate_formulas ctxt type_sys hyp_ts concl_t facts
     (* Reordering these might or might not confuse the proof reconstruction

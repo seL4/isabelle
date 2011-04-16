@@ -148,7 +148,7 @@ fun prove_interpretation_in ctxt_tac (name, expr) thy =
    |> Expression.sublocale_cmd I name expr []
    |> Proof.global_terminal_proof
          (Method.Basic (fn ctxt => SIMPLE_METHOD (ctxt_tac ctxt)), NONE)
-   |> ProofContext.theory_of
+   |> Proof_Context.theory_of
 
 fun add_locale name expr elems thy =
   thy 
@@ -197,7 +197,7 @@ fun mk_free ctxt name =
   if Variable.is_fixed ctxt name orelse Variable.is_declared ctxt name
   then
     let val n' = lookupI (op =) (Variable.fixes_of ctxt) name
-    in SOME (Free (n',ProofContext.infer_type ctxt (n', dummyT))) end
+    in SOME (Free (n',Proof_Context.infer_type ctxt (n', dummyT))) end
   else NONE
 
 
@@ -251,7 +251,7 @@ fun interprete_parent name dist_thm_name parent_expr thy =
 
     fun solve_tac ctxt (_,i) st =
       let
-        val distinct_thm = ProofContext.get_thm ctxt dist_thm_name;
+        val distinct_thm = Proof_Context.get_thm ctxt dist_thm_name;
         val goal = List.nth (cprems_of st,i-1);
         val rule = DistinctTreeProver.distinct_implProver distinct_thm goal;
       in EVERY [rtac rule i] st
@@ -312,7 +312,7 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
                       ([]))])];
   in thy
      |> add_locale name ([],vars) [assumes]
-     |> ProofContext.theory_of
+     |> Proof_Context.theory_of
      |> interprete_parent name dist_thm_full_name parent_expr
   end;
 
@@ -428,7 +428,7 @@ fun statespace_definition state_type args name parents parent_comps components t
           let
             fun upd (n,v) =
               let
-                val nT = ProofContext.infer_type (Local_Theory.target_of lthy) (n, dummyT)
+                val nT = Proof_Context.infer_type (Local_Theory.target_of lthy) (n, dummyT)
               in Context.proof_map
                   (update_declinfo (Morphism.term phi (Free (n,nT)),v))
               end;
@@ -458,12 +458,12 @@ fun statespace_definition state_type args name parents parent_comps components t
            (map fst parent_comps) (map fst components)
      |> Context.theory_map (add_statespace full_name args parents components [])
      |> add_locale (suffix valuetypesN name) (locinsts,locs) []
-     |> ProofContext.theory_of 
+     |> Proof_Context.theory_of 
      |> fold interprete_parent_valuetypes parents
      |> add_locale_cmd name
               ([(suffix namespaceN full_name ,(("",false),Expression.Named [])),
                 (suffix valuetypesN full_name,(("",false),Expression.Named  []))],[]) fixestate
-     |> ProofContext.theory_of 
+     |> Proof_Context.theory_of 
      |> fold interprete_parent parents
      |> add_declaration full_name (declare_declinfo components')
   end;
@@ -472,7 +472,7 @@ fun statespace_definition state_type args name parents parent_comps components t
 (* prepare arguments *)
 
 fun read_raw_parent ctxt raw_T =
-  (case ProofContext.read_typ_abbrev ctxt raw_T of
+  (case Proof_Context.read_typ_abbrev ctxt raw_T of
     Type (name, Ts) => (Ts, name)
   | T => error ("Bad parent statespace specification: " ^ Syntax.string_of_typ ctxt T));
 
@@ -485,7 +485,7 @@ fun read_typ ctxt raw_T env =
 
 fun cert_typ ctxt raw_T env =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val T = Type.no_tvars (Sign.certify_typ thy raw_T)
       handle TYPE (msg, _, _) => error msg;
     val env' = OldTerm.add_typ_tfrees (T, env);
@@ -500,7 +500,7 @@ fun gen_define_statespace prep_typ state_space args name parents comps thy =
       *)
     val _ = writeln ("Defining statespace " ^ quote name ^ " ...");
 
-    val ctxt = ProofContext.init_global thy;
+    val ctxt = Proof_Context.init_global thy;
 
     fun add_parent (Ts,pname,rs) env =
       let

@@ -25,11 +25,11 @@ fun message s = if !debug then writeln s else ()
 
 fun import_tac ctxt (thyname, thmname) =
     if ! quick_and_dirty
-    then Skip_Proof.cheat_tac (ProofContext.theory_of ctxt)
+    then Skip_Proof.cheat_tac (Proof_Context.theory_of ctxt)
     else
      fn th =>
         let
-            val thy = ProofContext.theory_of ctxt
+            val thy = Proof_Context.theory_of ctxt
             val prem = hd (prems_of th)
             val _ = message ("Import_tac: thyname=" ^ thyname ^ ", thmname=" ^ thmname)
             val _ = message ("Import trying to prove " ^ Syntax.string_of_term ctxt prem)

@@ -462,7 +462,7 @@ An \emph{assumption} is a proposition that it is postulated in the
   exports result \isa{thm} from the the \isa{inner} context
   back into the \isa{outer} one; \isa{is{\isaliteral{5F}{\isacharunderscore}}goal\ {\isaliteral{3D}{\isacharequal}}\ true} means
   this is a goal context.  The result is in HHF normal form.  Note
-  that \verb|ProofContext.export| combines \verb|Variable.export|
+  that \verb|Proof_Context.export| combines \verb|Variable.export|
   and \verb|Assumption.export| in the canonical way.
 
   \end{description}%
@@ -532,7 +532,7 @@ cprop\ {\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{5C3C65717569763E}{\
 \begin{isamarkuptext}%
 Note that the variables of the resulting rule are not
   generalized.  This would have required to fix them properly in the
-  context beforehand, and export wrt.\ variables afterwards (cf.\ \verb|Variable.export| or the combined \verb|ProofContext.export|).%
+  context beforehand, and export wrt.\ variables afterwards (cf.\ \verb|Variable.export| or the combined \verb|Proof_Context.export|).%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -786,7 +786,7 @@ thm\ ex{}%
 \ \ {\isaliteral{2A7D}{\isacharverbatimclose}}\isanewline
 \ \ \isacommand{ML{\isaliteral{5F}{\isacharunderscore}}prf}\isamarkupfalse%
 \ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
-\ \ \ \ singleton\ {\isaliteral{28}{\isacharparenleft}}ProofContext{\isaliteral{2E}{\isachardot}}export\ ctxt{\isadigit{1}}\ ctxt{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ %
+\ \ \ \ singleton\ {\isaliteral{28}{\isacharparenleft}}Proof{\isaliteral{5F}{\isacharunderscore}}Context{\isaliteral{2E}{\isachardot}}export\ ctxt{\isadigit{1}}\ ctxt{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ %
 \isaantiq
 thm\ refl{}%
 \endisaantiq
@@ -794,7 +794,7 @@ thm\ refl{}%
 \ \ {\isaliteral{2A7D}{\isacharverbatimclose}}\isanewline
 \ \ \isacommand{ML{\isaliteral{5F}{\isacharunderscore}}prf}\isamarkupfalse%
 \ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
-\ \ \ \ ProofContext{\isaliteral{2E}{\isachardot}}export\ ctxt{\isadigit{1}}\ ctxt{\isadigit{0}}\ {\isaliteral{5B}{\isacharbrackleft}}Thm{\isaliteral{2E}{\isachardot}}reflexive\ x{\isaliteral{5D}{\isacharbrackright}}\isanewline
+\ \ \ \ Proof{\isaliteral{5F}{\isacharunderscore}}Context{\isaliteral{2E}{\isachardot}}export\ ctxt{\isadigit{1}}\ ctxt{\isadigit{0}}\ {\isaliteral{5B}{\isacharbrackleft}}Thm{\isaliteral{2E}{\isachardot}}reflexive\ x{\isaliteral{5D}{\isacharbrackright}}\isanewline
 \ \ \ \ \ \ handle\ ERROR\ msg\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{28}{\isacharparenleft}}warning\ msg{\isaliteral{3B}{\isacharsemicolon}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \ \ {\isaliteral{2A7D}{\isacharverbatimclose}}\isanewline
 \isacommand{end}\isamarkupfalse%

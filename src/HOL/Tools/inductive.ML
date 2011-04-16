@@ -149,7 +149,7 @@ val get_inductives = InductiveData.get o Context.Proof;
 fun print_inductives ctxt =
   let
     val (tab, monos) = get_inductives ctxt;
-    val space = Consts.space_of (ProofContext.consts_of ctxt);
+    val space = Consts.space_of (Proof_Context.consts_of ctxt);
   in
     [Pretty.strs ("(co)inductives:" :: map #1 (Name_Space.extern_table ctxt (space, tab))),
      Pretty.big_list "monotonicity rules:" (map (Display.pretty_thm ctxt) monos)]
@@ -294,7 +294,7 @@ fun check_rule ctxt cs params ((binding, att), rule) =
     val concl = subst_bounds (frees, Logic.strip_assums_concl rule);
     val prems = map (curry subst_bounds frees) (Logic.strip_assums_hyp rule);
     val rule' = Logic.list_implies (prems, concl);
-    val aprems = map (atomize_term (ProofContext.theory_of ctxt)) prems;
+    val aprems = map (atomize_term (Proof_Context.theory_of ctxt)) prems;
     val arule = list_all_free (params', Logic.list_implies (aprems, concl));
 
     fun check_ind err t = case dest_predicate cs params t of
@@ -375,7 +375,7 @@ fun prove_intrs quiet_mode coind mono fp_def k intr_ts rec_preds_defs ctxt ctxt'
         (*Not ares_tac, since refl must be tried before any equality assumptions;
           backtracking may occur if the premises have extra variables!*)
         DEPTH_SOLVE_1 (resolve_tac rules 1 APPEND assume_tac 1)])
-       |> singleton (ProofContext.export ctxt ctxt')) intr_ts
+       |> singleton (Proof_Context.export ctxt ctxt')) intr_ts
 
   in (intrs, unfold) end;
 
@@ -421,7 +421,7 @@ fun prove_elims quiet_mode cs params intr_ts intr_names unfold rec_preds_defs ct
              REPEAT (FIRSTGOAL (eresolve_tac rules2)),
              EVERY (map (fn prem =>
                DEPTH_SOLVE_1 (ares_tac [rewrite_rule rec_preds_defs prem, conjI] 1)) (tl prems))])
-          |> singleton (ProofContext.export ctxt'' ctxt'''),
+          |> singleton (Proof_Context.export ctxt'' ctxt'''),
          map #2 c_intrs, length Ts)
       end
 
@@ -487,7 +487,7 @@ fun prove_eqs quiet_mode cs params intr_ts intrs (elims: (thm * bstring list * i
               THEN prove_intr2 last_c_intr
             end))
         |> rulify
-        |> singleton (ProofContext.export ctxt' ctxt'')
+        |> singleton (Proof_Context.export ctxt' ctxt'')
       end;  
   in
     map2 prove_eq cs elims
@@ -510,7 +510,7 @@ in
 
 fun mk_cases ctxt prop =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val ss = simpset_of ctxt;
 
     fun err msg =
@@ -536,7 +536,7 @@ end;
 
 fun gen_inductive_cases prep_att prep_prop args lthy =
   let
-    val thy = ProofContext.theory_of lthy;
+    val thy = Proof_Context.theory_of lthy;
     val facts = args |> Par_List.map (fn ((a, atts), props) =>
       ((a, map (prep_att thy) atts),
         Par_List.map (Thm.no_attributes o single o mk_cases lthy o prep_prop lthy) props));
@@ -555,7 +555,7 @@ val ind_cases_setup =
           val (_, ctxt') = Variable.add_fixes fixes ctxt;
           val props = Syntax.read_props ctxt' raw_props;
           val ctxt'' = fold Variable.declare_term props ctxt';
-          val rules = ProofContext.export ctxt'' ctxt (map (mk_cases ctxt'') props)
+          val rules = Proof_Context.export ctxt'' ctxt (map (mk_cases ctxt'') props)
         in Method.erule 0 rules end))
     "dynamic case analysis on predicates";
 
@@ -563,7 +563,7 @@ val ind_cases_setup =
 
 fun mk_simp_eq ctxt prop =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val ctxt' = Variable.auto_fixes prop ctxt
     val lhs_of = fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of
     val substs = Item_Net.retrieve (Equation_Data.get (Context.Proof ctxt)) (HOLogic.dest_Trueprop prop) 
@@ -588,7 +588,7 @@ fun mk_simp_eq ctxt prop =
 
 fun gen_inductive_simps prep_att prep_prop args lthy =
   let
-    val thy = ProofContext.theory_of lthy;
+    val thy = Proof_Context.theory_of lthy;
     val facts = args |> map (fn ((a, atts), props) =>
       ((a, map (prep_att thy) atts),
         map (Thm.no_attributes o single o mk_simp_eq lthy o prep_prop lthy) props));
@@ -603,7 +603,7 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
     fp_def rec_preds_defs ctxt ctxt''' =
   let
     val _ = clean_message quiet_mode "  Proving the induction rule ...";
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
 
     (* predicates for induction rule *)
 
@@ -702,7 +702,7 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
             rewrite_goals_tac simp_thms',
             atac 1])])
 
-  in singleton (ProofContext.export ctxt'' ctxt''') (induct RS lemma) end;
+  in singleton (Proof_Context.export ctxt'' ctxt''') (induct RS lemma) end;
 
 
 
@@ -779,7 +779,7 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind
            (Const (fp_name, (predT --> predT) --> predT) $ fp_fun)))
       ||> Local_Theory.restore_naming lthy;
     val fp_def' = Simplifier.rewrite (HOL_basic_ss addsimps [fp_def])
-      (cterm_of (ProofContext.theory_of lthy') (list_comb (rec_const, params)));
+      (cterm_of (Proof_Context.theory_of lthy') (list_comb (rec_const, params)));
     val specs =
       if length cs < 2 then []
       else
@@ -801,7 +801,7 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind
     val mono = prove_mono quiet_mode skip_mono fork_mono predT fp_fun monos lthy''';
     val (_, lthy'''') =
       Local_Theory.note (apfst Binding.conceal Attrib.empty_binding,
-        ProofContext.export lthy''' lthy'' [mono]) lthy'';
+        Proof_Context.export lthy''' lthy'' [mono]) lthy'';
 
   in (lthy'''', lthy''', rec_name, mono, fp_def', map (#2 o #2) consts_defs,
     list_comb (rec_const, params), preds, argTs, bs, xs)
@@ -903,7 +903,7 @@ fun add_ind_def {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mon
     val raw_induct = zero_var_indexes
       (if no_ind then Drule.asm_rl
        else if coind then
-         singleton (ProofContext.export lthy2 lthy1)
+         singleton (Proof_Context.export lthy2 lthy1)
            (rotate_prems ~1 (Object_Logic.rulify
              (fold_rule rec_preds_defs
                (rewrite_rule simp_thms'''
@@ -942,7 +942,7 @@ fun gen_add_inductive_i mk_def
     (flags as {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mono, fork_mono})
     cnames_syn pnames spec monos lthy =
   let
-    val thy = ProofContext.theory_of lthy;
+    val thy = Proof_Context.theory_of lthy;
     val _ = Theory.requires thy "Inductive" (coind_prefix coind ^ "inductive definitions");
 
 
@@ -979,7 +979,7 @@ fun gen_add_inductive_i mk_def
     val (_, ctxt2) = lthy |> Variable.add_fixes (map (Binding.name_of o fst o fst) cnames_syn');
     val _ = map (fn abbr => Local_Defs.fixed_abbrev abbr ctxt2) abbrevs;
     val ctxt3 = ctxt2 |> fold (snd oo Local_Defs.fixed_abbrev) abbrevs;
-    val expand = Assumption.export_term ctxt3 lthy #> ProofContext.cert_term lthy;
+    val expand = Assumption.export_term ctxt3 lthy #> Proof_Context.cert_term lthy;
 
     fun close_rule r = list_all_free (rev (fold_aterms
       (fn t as Free (v as (s, _)) =>
@@ -998,7 +998,7 @@ fun gen_add_inductive_i mk_def
 fun gen_add_inductive mk_def verbose coind cnames_syn pnames_syn intro_srcs raw_monos int lthy =
   let
     val ((vars, intrs), _) = lthy
-      |> ProofContext.set_mode ProofContext.mode_abbrev
+      |> Proof_Context.set_mode Proof_Context.mode_abbrev
       |> Specification.read_spec (cnames_syn @ pnames_syn) intro_srcs;
     val (cs, ps) = chop (length cnames_syn) vars;
     val monos = Attrib.eval_thms lthy raw_monos;
@@ -1020,7 +1020,7 @@ fun add_inductive_global flags cnames_syn pnames pre_intros monos thy =
       |> add_inductive_i flags cnames_syn pnames pre_intros monos |> snd
       |> Local_Theory.exit;
     val info = #2 (the_inductive ctxt' name);
-  in (info, ProofContext.theory_of ctxt') end;
+  in (info, Proof_Context.theory_of ctxt') end;
 
 
 (* read off arities of inductive predicates from raw induction rule *)

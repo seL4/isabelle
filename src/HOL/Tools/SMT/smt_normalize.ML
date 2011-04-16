@@ -170,7 +170,7 @@ local
     (case Term.strip_comb t of
       (Const c, ts as _ :: _) =>
         not (SMT_Builtin.is_builtin_fun_ext ctxt c ts) andalso
-        forall (is_constr_pat (ProofContext.theory_of ctxt)) ts
+        forall (is_constr_pat (Proof_Context.theory_of ctxt)) ts
     | _ => false)
 
   fun has_all_vars vs t =
@@ -218,7 +218,7 @@ local
       val (lhs, rhs) = dest_cond_eq ct
 
       val vs = map Thm.term_of cvs
-      val thy = ProofContext.theory_of ctxt
+      val thy = Proof_Context.theory_of ctxt
 
       fun get_mpats ct =
         if is_simp_lhs ctxt (Thm.term_of ct) then minimal_pats vs ct

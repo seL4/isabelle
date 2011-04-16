@@ -94,7 +94,7 @@ type atom_pool = ((string * int) * int list) list
 fun add_wacky_syntax ctxt =
   let
     val name_of = fst o dest_Const
-    val thy = ProofContext.theory_of ctxt |> Context.reject_draft
+    val thy = Proof_Context.theory_of ctxt |> Context.reject_draft
     val (maybe_t, thy) =
       Sign.declare_const ((@{binding nitpick_maybe}, @{typ "'a => 'a"}),
                           Mixfix (maybe_mixfix (), [1000], 1000)) thy
@@ -109,7 +109,7 @@ fun add_wacky_syntax ctxt =
                           Mixfix (step_mixfix (), [1000], 1000)) thy
   in
     (pairself (pairself name_of) ((maybe_t, abs_t), (base_t, step_t)),
-     ProofContext.transfer_syntax thy ctxt)
+     Proof_Context.transfer_syntax thy ctxt)
   end
 
 (** Term reconstruction **)
@@ -329,7 +329,7 @@ fun mk_tuple (Type (@{type_name prod}, [T1, T2])) ts =
   | mk_tuple T [] = raise TYPE ("Nitpick_Model.mk_tuple", [T], [])
 
 fun varified_type_match ctxt (candid_T, pat_T) =
-  let val thy = ProofContext.theory_of ctxt in
+  let val thy = Proof_Context.theory_of ctxt in
     strict_type_match thy (candid_T, varify_type ctxt pat_T)
   end
 

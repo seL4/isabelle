@@ -1262,7 +1262,7 @@ in fn _ => fn ss => fn ct => if is_trivial_let (Thm.term_of ct)
   then SOME @{thm Let_def} (*no or one ocurrence of bound variable*)
   else let (*Norbert Schirmer's case*)
     val ctxt = Simplifier.the_context ss;
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val t = Thm.term_of ct;
     val ([t'], ctxt') = Variable.import_terms false [t] ctxt;
   in Option.map (hd o Variable.export ctxt' ctxt o single)
@@ -1612,7 +1612,7 @@ struct
   fun proc phi ss ct =
     let
       val ctxt = Simplifier.the_context ss;
-      val thy = ProofContext.theory_of ctxt;
+      val thy = Proof_Context.theory_of ctxt;
     in
       case Thm.term_of ct of
         (_ $ t $ u) => if matches thy u then NONE else SOME meta_reorient
@@ -1964,12 +1964,12 @@ code_const undefined
 subsubsection {* Evaluation and normalization by evaluation *}
 
 setup {*
-  Value.add_evaluator ("SML", Codegen.eval_term o ProofContext.theory_of)  (* FIXME proper context!? *)
+  Value.add_evaluator ("SML", Codegen.eval_term o Proof_Context.theory_of)  (* FIXME proper context!? *)
 *}
 
 ML {*
 fun gen_eval_method conv ctxt = SIMPLE_METHOD'
-  (CONVERSION (Conv.params_conv (~1) (K (Conv.concl_conv (~1) (conv (ProofContext.theory_of ctxt)))) ctxt)
+  (CONVERSION (Conv.params_conv (~1) (K (Conv.concl_conv (~1) (conv (Proof_Context.theory_of ctxt)))) ctxt)
     THEN' rtac TrueI)
 *}
 
@@ -1981,7 +1981,7 @@ method_setup evaluation = {* Scan.succeed (gen_eval_method (K Codegen.evaluation
 
 method_setup normalization = {*
   Scan.succeed (fn ctxt => SIMPLE_METHOD'
-    (CHANGED_PROP o (CONVERSION (Nbe.dynamic_conv (ProofContext.theory_of ctxt))
+    (CHANGED_PROP o (CONVERSION (Nbe.dynamic_conv (Proof_Context.theory_of ctxt))
       THEN' (fn k => TRY (rtac TrueI k)))))
 *} "solve goal by normalization"
 

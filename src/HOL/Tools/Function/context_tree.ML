@@ -111,12 +111,12 @@ fun mk_branch ctx t =
 
 fun find_cong_rule ctx fvar h ((r,dep)::rs) t =
   (let
-     val thy = ProofContext.theory_of ctx
+     val thy = Proof_Context.theory_of ctx
 
      val tt' = Logic.mk_equals (Pattern.rewrite_term thy [(Free fvar, h)] [] t, t)
      val (c, subs) = (concl_of r, prems_of r)
 
-     val subst = Pattern.match (ProofContext.theory_of ctx) (c, tt') (Vartab.empty, Vartab.empty)
+     val subst = Pattern.match (Proof_Context.theory_of ctx) (c, tt') (Vartab.empty, Vartab.empty)
      val branches = map (mk_branch ctx o Envir.beta_norm o Envir.subst_term subst) subs
      val inst = map (fn v =>
        (cterm_of thy (Var v), cterm_of thy (Envir.subst_term subst (Var v)))) (Term.add_vars c [])
@@ -147,7 +147,7 @@ fun mk_tree fvar h ctxt t =
             val (r, dep, branches) = find_cong_rule ctx fvar h congs_deps t
             fun subtree (ctx', fixes, assumes, st) =
               ((fixes,
-                map (Thm.assume o cterm_of (ProofContext.theory_of ctx)) assumes),
+                map (Thm.assume o cterm_of (Proof_Context.theory_of ctx)) assumes),
                mk_tree' ctx' st)
           in
             Cong (r, dep, map subtree branches)

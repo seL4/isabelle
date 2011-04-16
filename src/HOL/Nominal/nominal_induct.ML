@@ -54,7 +54,7 @@ fun inst_mutual_rule ctxt insts avoiding rules =
       end;
      val substs =
        map2 subst insts concls |> flat |> distinct (op =)
-       |> map (pairself (Thm.cterm_of (ProofContext.theory_of ctxt)));
+       |> map (pairself (Thm.cterm_of (Proof_Context.theory_of ctxt)));
   in 
     (((cases, nconcls), consumes), Drule.cterm_instantiate substs joined_rule) 
   end;
@@ -83,7 +83,7 @@ fun rename_params_rule internal xs rule =
 
 fun nominal_induct_tac ctxt simp def_insts avoiding fixings rules facts =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val cert = Thm.cterm_of thy;
 
     val ((insts, defs), defs_ctxt) = fold_map Induct.add_defs def_insts ctxt |>> split_list;
@@ -92,7 +92,7 @@ fun nominal_induct_tac ctxt simp def_insts avoiding fixings rules facts =
     val finish_rule =
       split_all_tuples
       #> rename_params_rule true
-        (map (Name.clean o ProofContext.revert_skolem defs_ctxt o fst) avoiding);
+        (map (Name.clean o Proof_Context.revert_skolem defs_ctxt o fst) avoiding);
 
     fun rule_cases ctxt r =
       let val r' = if simp then Induct.simplified_rule ctxt r else r
@@ -126,7 +126,7 @@ fun nominal_induct_tac ctxt simp def_insts avoiding fixings rules facts =
             |> Seq.maps (fn rule' =>
               CASES (rule_cases ctxt rule' cases)
                 (Tactic.rtac (rename_params_rule false [] rule') i THEN
-                  PRIMITIVE (singleton (ProofContext.export defs_ctxt ctxt))) st'))))
+                  PRIMITIVE (singleton (Proof_Context.export defs_ctxt ctxt))) st'))))
     THEN_ALL_NEW_CASES
       ((if simp then Induct.simplify_tac ctxt THEN' (TRY o Induct.trivial_tac)
         else K all_tac)

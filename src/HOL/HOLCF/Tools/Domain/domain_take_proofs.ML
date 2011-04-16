@@ -142,10 +142,10 @@ fun add_deflation_thm thm =
     Context.theory_map (DeflMapData.add_thm thm)
 
 val get_rec_tab = Rec_Data.get
-fun get_deflation_thms thy = DeflMapData.get (ProofContext.init_global thy)
+fun get_deflation_thms thy = DeflMapData.get (Proof_Context.init_global thy)
 
 val map_ID_add = Map_Id_Data.add
-val get_map_ID_thms = Map_Id_Data.get o ProofContext.init_global
+val get_map_ID_thms = Map_Id_Data.get o Proof_Context.init_global
 
 val setup = DeflMapData.setup #> Map_Id_Data.setup
 

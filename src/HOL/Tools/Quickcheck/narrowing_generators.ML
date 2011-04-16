@@ -141,7 +141,7 @@ fun value ctxt (get, put, put_ml) (code, value) size =
 
 fun evaluation cookie thy evaluator vs_t args size =
   let
-    val ctxt = ProofContext.init_global thy;
+    val ctxt = Proof_Context.init_global thy;
     val (program_code, value_name) = evaluator vs_t;
     val value_code = space_implode " "
       (value_name :: "()" :: map (enclose "(" ")") args);
@@ -192,7 +192,7 @@ fun finitize_functions t =
 
 fun compile_generator_expr ctxt [(t, eval_terms)] [_, size] =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val t' = list_abs_free (Term.add_frees t [], t)
     val t'' = if Config.get ctxt finite_functions then finitize_functions t' else t'
     fun ensure_testable t =

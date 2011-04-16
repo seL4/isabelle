@@ -218,7 +218,7 @@ fun cpu_time description e =
 fun compile_term compilation options ctxt [(t, eval_terms)] =
   let
     val t' = list_abs_free (Term.add_frees t [], t)
-    val thy = Theory.copy (ProofContext.theory_of ctxt)
+    val thy = Theory.copy (Proof_Context.theory_of ctxt)
     val ((((full_constname, constT), vs'), intro), thy1) =
       Predicate_Compile_Aux.define_quickcheck_predicate t' thy
     val thy2 = Context.theory_map (Predicate_Compile_Alternative_Defs.add_thm intro) thy1
@@ -238,7 +238,7 @@ fun compile_term compilation options ctxt [(t, eval_terms)] =
     (*val _ = Predicate_Compile_Core.print_all_modes compilation thy4*)
     val _ = Output.tracing ("Preprocessing time: " ^ string_of_int (snd preproc_time))
     val _ = Output.tracing ("Core compilation time: " ^ string_of_int (snd core_comp_time))
-    val ctxt4 = ProofContext.init_global thy4
+    val ctxt4 = Proof_Context.init_global thy4
     val modes = Core_Data.modes_of compilation ctxt4 full_constname
     val output_mode = fold_rev (curry Fun) (map (K Output) (binder_types constT)) Bool
     val prog =

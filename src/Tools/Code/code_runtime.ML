@@ -83,14 +83,14 @@ type 'a cookie = (Proof.context -> unit -> 'a) * ((unit -> 'a) -> Proof.context 
 
 fun reject_vars thy t =
   let
-    val ctxt = ProofContext.init_global thy;
+    val ctxt = Proof_Context.init_global thy;
   in ((Sign.no_frees ctxt o Sign.no_vars ctxt o map_types (K dummyT)) t; t) end;
 
 fun obtain_evaluator thy some_target = Code_Target.evaluator thy (the_default target some_target);
 
 fun evaluation cookie thy evaluator vs_t args =
   let
-    val ctxt = ProofContext.init_global thy;
+    val ctxt = Proof_Context.init_global thy;
     val (program_code, value_name) = evaluator vs_t;
     val value_code = space_implode " "
       (value_name :: "()" :: map (enclose "(" ")") args);
@@ -188,7 +188,7 @@ end; (*local*)
 
 fun evaluation_code thy module_name tycos consts =
   let
-    val ctxt = ProofContext.init_global thy;
+    val ctxt = Proof_Context.init_global thy;
     val (consts', (naming, program)) = Code_Thingol.consts_program thy false consts;
     val tycos' = map (the o Code_Thingol.lookup_tyco naming) tycos;
     val (ml_code, target_names) =
@@ -202,7 +202,7 @@ fun evaluation_code thy module_name tycos consts =
        | SOME const'' => (const, const'')) consts consts''
     val tycos_map = map2 (fn tyco =>
       fn NONE =>
-          error ("Type " ^ quote (ProofContext.extern_type ctxt tyco) ^
+          error ("Type " ^ quote (Proof_Context.extern_type ctxt tyco) ^
             "\nhas a user-defined serialization")
         | SOME tyco'' => (tyco, tyco'')) tycos tycos'';
   in (ml_code, (tycos_map, consts_map)) end;
@@ -227,7 +227,7 @@ fun register_code new_tycos new_consts ctxt =
     val tycos' = fold (insert (op =)) new_tycos tycos;
     val consts' = fold (insert (op =)) new_consts consts;
     val acc_code = Lazy.lazy (fn () =>
-      evaluation_code (ProofContext.theory_of ctxt) "Code" tycos' consts'
+      evaluation_code (Proof_Context.theory_of ctxt) "Code" tycos' consts'
       |> apsnd snd);
   in Code_Antiq_Data.put ((tycos', consts'), (false, acc_code)) ctxt end;
 
@@ -245,7 +245,7 @@ in
 
 fun ml_code_antiq raw_const background =
   let
-    val const = Code.check_const (ProofContext.theory_of background) raw_const;
+    val const = Code.check_const (Proof_Context.theory_of background) raw_const;
     val is_first = is_first_occ background;
     val background' = register_const const background;
   in (print_code is_first const, background') end;

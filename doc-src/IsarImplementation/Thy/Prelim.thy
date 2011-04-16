@@ -279,9 +279,9 @@ text {* A proof context is a container for pure data with a
 text %mlref {*
   \begin{mldecls}
   @{index_ML_type Proof.context} \\
-  @{index_ML ProofContext.init_global: "theory -> Proof.context"} \\
-  @{index_ML ProofContext.theory_of: "Proof.context -> theory"} \\
-  @{index_ML ProofContext.transfer: "theory -> Proof.context -> Proof.context"} \\
+  @{index_ML Proof_Context.init_global: "theory -> Proof.context"} \\
+  @{index_ML Proof_Context.theory_of: "Proof.context -> theory"} \\
+  @{index_ML Proof_Context.transfer: "theory -> Proof.context -> Proof.context"} \\
   \end{mldecls}
 
   \begin{description}
@@ -290,14 +290,14 @@ text %mlref {*
   Elements of this type are essentially pure values, with a sliding
   reference to the background theory.
 
-  \item @{ML ProofContext.init_global}~@{text "thy"} produces a proof context
+  \item @{ML Proof_Context.init_global}~@{text "thy"} produces a proof context
   derived from @{text "thy"}, initializing all data.
 
-  \item @{ML ProofContext.theory_of}~@{text "ctxt"} selects the
+  \item @{ML Proof_Context.theory_of}~@{text "ctxt"} selects the
   background theory from @{text "ctxt"}, dereferencing its internal
   @{ML_type theory_ref}.
 
-  \item @{ML ProofContext.transfer}~@{text "thy ctxt"} promotes the
+  \item @{ML Proof_Context.transfer}~@{text "thy ctxt"} promotes the
   background theory of @{text "ctxt"} to the super theory @{text
   "thy"}.
 
@@ -354,11 +354,11 @@ text %mlref {*
 
   \item @{ML Context.theory_of}~@{text "context"} always produces a
   theory from the generic @{text "context"}, using @{ML
-  "ProofContext.theory_of"} as required.
+  "Proof_Context.theory_of"} as required.
 
   \item @{ML Context.proof_of}~@{text "context"} always produces a
   proof context from the generic @{text "context"}, using @{ML
-  "ProofContext.init_global"} as required (note that this re-initializes the
+  "Proof_Context.init_global"} as required (note that this re-initializes the
   context data with each invocation).
 
   \end{description}

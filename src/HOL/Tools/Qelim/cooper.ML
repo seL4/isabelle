@@ -682,7 +682,7 @@ end;
 val (_, oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (@{binding cooper},
     (fn (ctxt, t) =>
-      (Thm.cterm_of (ProofContext.theory_of ctxt) o Logic.mk_equals o pairself HOLogic.mk_Trueprop)
+      (Thm.cterm_of (Proof_Context.theory_of ctxt) o Logic.mk_equals o pairself HOLogic.mk_Trueprop)
         (t, procedure t)))));
 
 val comp_ss = HOL_ss addsimps @{thms semiring_norm};

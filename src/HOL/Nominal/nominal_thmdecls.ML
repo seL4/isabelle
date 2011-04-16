@@ -52,7 +52,7 @@ fun tactic ctxt (msg, tac) =
 
 fun prove_eqvt_tac ctxt orig_thm pi pi' =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val mypi = Thm.cterm_of thy pi
     val T = fastype_of pi'
     val mypifree = Thm.cterm_of thy (Const (@{const_name "rev"}, T --> T) $ pi')
@@ -70,7 +70,7 @@ fun prove_eqvt_tac ctxt orig_thm pi pi' =
 
 fun get_derived_thm ctxt hyp concl orig_thm pi typi =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val pi' = Var (pi, typi);
     val lhs = Const (@{const_name "perm"}, typi --> HOLogic.boolT --> HOLogic.boolT) $ pi' $ hyp;
     val ([goal_term, pi''], ctxt') = Variable.import_terms false
@@ -79,7 +79,7 @@ fun get_derived_thm ctxt hyp concl orig_thm pi typi =
   in
     Goal.prove ctxt' [] [] goal_term
       (fn _ => prove_eqvt_tac ctxt' orig_thm pi' pi'') |>
-    singleton (ProofContext.export ctxt' ctxt)
+    singleton (Proof_Context.export ctxt' ctxt)
   end
 
 (* replaces in t every variable, say x, with pi o x *)

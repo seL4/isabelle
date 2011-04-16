@@ -55,7 +55,7 @@ val resolution_params = {active = active_params, waiting = waiting_params}
 
 (* Main function to start Metis proof and reconstruction *)
 fun FOL_SOLVE mode ctxt cls ths0 =
-  let val thy = ProofContext.theory_of ctxt
+  let val thy = Proof_Context.theory_of ctxt
       val type_lits = Config.get ctxt type_lits
       val new_skolemizer =
         Config.get ctxt new_skolemizer orelse null (Meson.choice_theorems thy)

@@ -181,7 +181,7 @@ fun no_order_msg ctxt ltable tl measure_funs =
 
 fun lex_order_tac quiet ctxt solve_tac (st: thm) =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val ((_ $ (_ $ rel)) :: tl) = prems_of st
 
     val (domT, _) = HOLogic.dest_prodT (HOLogic.dest_setT (fastype_of rel))

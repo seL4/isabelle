@@ -55,7 +55,7 @@ val atp = "e" (* or "vampire" or "spass" etc. *)
 fun thms_of_name ctxt name =
   let
     val lex = Keyword.get_lexicons
-    val get = maps (ProofContext.get_fact ctxt o fst)
+    val get = maps (Proof_Context.get_fact ctxt o fst)
   in
     Source.of_string name
     |> Symbol.source
@@ -77,7 +77,7 @@ fun sledgehammer_with_metis_tac ctxt i th =
 
 fun generic_sledgehammer_as_oracle_tac force_full_types ctxt i th =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val timeout = Time.fromSeconds 30
     val xs = run_atp force_full_types timeout i i ctxt th atp
   in if is_some xs then Skip_Proof.cheat_tac thy th else Seq.empty end

@@ -577,7 +577,7 @@ fun instantiate_type thy T1 T1' T2 =
   handle Type.TYPE_MATCH =>
          raise TYPE ("Nitpick_HOL.instantiate_type", [T1, T1'], [])
 fun varify_and_instantiate_type ctxt T1 T1' T2 =
-  let val thy = ProofContext.theory_of ctxt in
+  let val thy = Proof_Context.theory_of ctxt in
     instantiate_type thy (varify_type ctxt T1) T1' (varify_type ctxt T2)
   end
 
@@ -639,11 +639,11 @@ fun is_real_quot_type thy (Type (s, _)) =
     is_some (Quotient_Info.quotdata_lookup_raw thy s)
   | is_real_quot_type _ _ = false
 fun is_quot_type ctxt T =
-  let val thy = ProofContext.theory_of ctxt in
+  let val thy = Proof_Context.theory_of ctxt in
     is_real_quot_type thy T andalso not (is_codatatype ctxt T)
   end
 fun is_pure_typedef ctxt (T as Type (s, _)) =
-    let val thy = ProofContext.theory_of ctxt in
+    let val thy = Proof_Context.theory_of ctxt in
       is_typedef ctxt s andalso
       not (is_real_datatype thy s orelse is_real_quot_type thy T orelse
            is_codatatype ctxt T orelse is_record_type T orelse
@@ -674,7 +674,7 @@ fun is_univ_typedef ctxt (Type (s, _)) =
      | NONE => false)
   | is_univ_typedef _ _ = false
 fun is_datatype ctxt stds (T as Type (s, _)) =
-    let val thy = ProofContext.theory_of ctxt in
+    let val thy = Proof_Context.theory_of ctxt in
       (is_typedef ctxt s orelse is_codatatype ctxt T orelse
        T = @{typ ind} orelse is_real_quot_type thy T) andalso
       not (is_basic_datatype thy stds s)
@@ -765,7 +765,7 @@ fun is_constr_like ctxt (s, T) =
                  @{const_name Quot}, @{const_name Zero_Rep},
                  @{const_name Suc_Rep}] s orelse
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val (x as (_, T)) = (s, unarize_unbox_etc_type T)
   in
     is_real_constr thy x orelse is_record_constr x orelse
@@ -776,7 +776,7 @@ fun is_stale_constr ctxt (x as (_, T)) =
   is_codatatype ctxt (body_type T) andalso is_constr_like ctxt x andalso
   not (is_coconstr ctxt x)
 fun is_constr ctxt stds (x as (_, T)) =
-  let val thy = ProofContext.theory_of ctxt in
+  let val thy = Proof_Context.theory_of ctxt in
     is_constr_like ctxt x andalso
     not (is_basic_datatype thy stds
                          (fst (dest_Type (unarize_type (body_type T))))) andalso
@@ -1135,7 +1135,7 @@ fun nth_arg_sel_term_for_constr thy stds (x as (s, T)) n =
       in Abs ("x", dataT, aux m (nth arg_Ts n) |> snd) end
   end
 fun select_nth_constr_arg ctxt stds x t n res_T =
-  let val thy = ProofContext.theory_of ctxt in
+  let val thy = Proof_Context.theory_of ctxt in
     (case strip_comb t of
        (Const x', args) =>
        if x = x' then nth args n
@@ -1300,7 +1300,7 @@ val is_plain_definition =
 
 fun all_axioms_of ctxt subst =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val axioms_of_thys =
       maps Thm.axioms_of
       #> map (apsnd (subst_atomic subst o prop_of))
@@ -1441,7 +1441,7 @@ fun unfold_mutually_inductive_preds thy table =
                | t => t)
 
 fun case_const_names ctxt stds =
-  let val thy = ProofContext.theory_of ctxt in
+  let val thy = Proof_Context.theory_of ctxt in
     Symtab.fold (fn (dtype_s, {index, descr, case_name, ...}) =>
                     if is_basic_datatype thy stds dtype_s then
                       I
@@ -1889,7 +1889,7 @@ fun const_choice_spec_table ctxt subst =
   |> const_nondef_table
 
 fun inductive_intro_table ctxt subst def_tables =
-  let val thy = ProofContext.theory_of ctxt in
+  let val thy = Proof_Context.theory_of ctxt in
     def_table_for
         (maps (map (unfold_mutually_inductive_preds thy def_tables o prop_of)
                o snd o snd)
@@ -1922,7 +1922,7 @@ fun add_simps simp_table s eqs =
 
 fun inverse_axioms_for_rep_fun ctxt (x as (_, T)) =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val abs_T = domain_type T
   in
     typedef_info ctxt (fst (dest_Type abs_T)) |> the
@@ -1932,7 +1932,7 @@ fun inverse_axioms_for_rep_fun ctxt (x as (_, T)) =
   end
 fun optimized_typedef_axioms ctxt (abs_z as (abs_s, _)) =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val abs_T = Type abs_z
   in
     if is_univ_typedef ctxt abs_T then
@@ -1957,7 +1957,7 @@ fun optimized_typedef_axioms ctxt (abs_z as (abs_s, _)) =
   end
 fun optimized_quot_type_axioms ctxt stds abs_z =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val abs_T = Type abs_z
     val rep_T = rep_type_for_quot_type thy abs_T
     val (equiv_rel, partial) = equiv_relation_for_quot_type thy abs_T

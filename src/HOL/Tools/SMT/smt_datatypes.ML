@@ -62,7 +62,7 @@ val record_name_of = Long_Name.implode o fst o split_last o Long_Name.explode
 fun get_record_decl ({ext_def, ...} : Record.info) T ctxt =
   let
     val (con, _) = Term.dest_Const (lhs_head_of ext_def)
-    val (fields, more) = Record.get_extT_fields (ProofContext.theory_of ctxt) T
+    val (fields, more) = Record.get_extT_fields (Proof_Context.theory_of ctxt) T
     val fieldTs = map snd fields @ [snd more]
 
     val constr = Const (con, fieldTs ---> T)
@@ -89,7 +89,7 @@ fun get_typedef_decl (info : Typedef.info) T Ts =
 fun declared declss T = exists (exists (equal T o fst)) declss
 
 fun get_decls T n Ts ctxt =
-  let val thy = ProofContext.theory_of ctxt
+  let val thy = Proof_Context.theory_of ctxt
   in
     (case Datatype.get_info thy n of
       SOME info => get_datatype_decl info n Ts ctxt

@@ -224,7 +224,7 @@ structure Data = Theory_Data
      parameters = Symtab.merge (op =) (pa1, pa2)};
 );
 
-val get_data = Data.get o ProofContext.theory_of;
+val get_data = Data.get o Proof_Context.theory_of;
 
 
 (* ------------------------------------------------------------------------- *)
@@ -683,7 +683,7 @@ fun unfold_defs thy t =
 
 fun collect_axioms ctxt t =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val _ = tracing "Adding axioms..."
     val axioms = Theory.all_axioms_of thy
     fun collect_this_axiom (axname, ax) axs =
@@ -858,7 +858,7 @@ fun collect_axioms ctxt t =
 
 fun ground_types ctxt t =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     fun collect_types T acc =
       (case T of
         Type ("fun", [T1, T2]) => collect_types T1 (collect_types T2 acc)
@@ -1049,7 +1049,7 @@ fun find_model ctxt
     {sizes, minsize, maxsize, maxvars, maxtime, satsolver, no_assms, expect}
     assm_ts t negate =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     (* string -> unit *)
     fun check_expect outcome_code =
       if expect = "" orelse outcome_code = expect then ()
@@ -1548,7 +1548,7 @@ fun size_of_dtyp ctxt typ_sizes descr typ_assoc constructors =
 
 fun stlc_interpreter ctxt model args t =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val (typs, terms) = model
     val {maxvars, def_eq, next_idx, bounds, wellformed} = args
     (* Term.typ -> (interpretation * model * arguments) option *)
@@ -1836,7 +1836,7 @@ fun HOLogic_interpreter ctxt model args t =
 
 fun IDT_interpreter ctxt model args t =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val (typs, terms) = model
     (* Term.typ -> (interpretation * model * arguments) option *)
     fun interpret_term (Type (s, Ts)) =
@@ -1929,7 +1929,7 @@ fun IDT_interpreter ctxt model args t =
 
 fun IDT_constructor_interpreter ctxt model args t =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     (* returns a list of canonical representations for terms of the type 'T' *)
     (* It would be nice if we could just use 'print' for this, but 'print'   *)
     (* for IDTs calls 'IDT_constructor_interpreter' again, and this could    *)
@@ -2194,7 +2194,7 @@ fun IDT_constructor_interpreter ctxt model args t =
 
 fun IDT_recursion_interpreter ctxt model args t =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
   in
     (* careful: here we descend arbitrarily deep into 't', possibly before *)
     (* any other interpreter for atomic terms has had a chance to look at  *)
@@ -3022,7 +3022,7 @@ fun stlc_printer ctxt model T intr assignment =
 
 fun IDT_printer ctxt model T intr assignment =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
   in
     (case T of
       Type (s, Ts) =>
@@ -3189,7 +3189,7 @@ val _ =
         let
           val thy' = fold set_default_param parms thy;
           val output =
-            (case get_default_params (ProofContext.init_global thy') of
+            (case get_default_params (Proof_Context.init_global thy') of
               [] => "none"
             | new_defaults => cat_lines (map (fn (x, y) => x ^ "=" ^ y) new_defaults));
           val _ = writeln ("Default parameters for 'refute':\n" ^ output);

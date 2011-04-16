@@ -128,7 +128,7 @@ fun prove_completeness thy xs P qss patss =
 
 fun pat_completeness_tac ctxt = SUBGOAL (fn (subgoal, i) =>
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val (vs, subgf) = dest_all_all subgoal
     val (cases, _ $ thesis) = Logic.strip_horn subgf
       handle Bind => raise COMPLETENESS

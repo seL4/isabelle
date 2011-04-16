@@ -100,11 +100,11 @@ fun add_equality vs tycos thy =
         val def' = Syntax.check_term lthy def;
         val ((_, (_, thm)), lthy') = Specification.definition
           (NONE, (Attrib.empty_binding, def')) lthy;
-        val ctxt_thy = ProofContext.init_global (ProofContext.theory_of lthy);
-        val thm' = singleton (ProofContext.export lthy' ctxt_thy) thm;
+        val ctxt_thy = Proof_Context.init_global (Proof_Context.theory_of lthy);
+        val thm' = singleton (Proof_Context.export lthy' ctxt_thy) thm;
       in (thm', lthy') end;
     fun tac thms = Class.intro_classes_tac []
-      THEN ALLGOALS (ProofContext.fact_tac thms);
+      THEN ALLGOALS (Proof_Context.fact_tac thms);
     fun prefix tyco = Binding.qualify true (Long_Name.base_name tyco) o Binding.qualify true "eq" o Binding.name;
     fun add_eq_thms tyco =
       Theory.checkpoint

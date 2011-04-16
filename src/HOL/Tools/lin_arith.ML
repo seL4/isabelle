@@ -267,7 +267,7 @@ fun decomp_negation data
 
 fun decomp ctxt : term -> decomp option =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val {discrete, inj_consts, ...} = get_arith_data ctxt
   in decomp_negation (thy, discrete, inj_consts) end;
 
@@ -336,7 +336,7 @@ fun subst_term ([] : (term * term) list) (t : term) = t
 fun split_once_items ctxt (Ts : typ list, terms : term list) :
                      (typ list * term list) list option =
 let
-  val thy = ProofContext.theory_of ctxt
+  val thy = Proof_Context.theory_of ctxt
   (* takes a list  [t1, ..., tn]  to the term                                *)
   (*   tn' --> ... --> t1' --> False  ,                                      *)
   (* where ti' = HOLogic.dest_Trueprop ti                                    *)
@@ -709,7 +709,7 @@ in
 fun split_once_tac ss split_thms =
   let
     val ctxt = Simplifier.the_context ss
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val cond_split_tac = SUBGOAL (fn (subgoal, i) =>
       let
         val Ts = rev (map snd (Logic.strip_params subgoal))

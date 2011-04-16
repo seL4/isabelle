@@ -89,7 +89,7 @@ fun add_variant ext_name name thy =
 
 fun unifiable_with ctxt T1 (c, T2) =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val maxidx1 = Term.maxidx_of_typ T1;
     val T2' = Logic.incr_tvar (maxidx1 + 1) T2;
     val maxidx2 = Int.max (maxidx1, Term.maxidx_of_typ T2');
@@ -100,14 +100,14 @@ fun unifiable_with ctxt T1 (c, T2) =
 
 fun insert_internal_same ctxt t (Const (c, T)) =
   (case map_filter (unifiable_with ctxt T) 
-     (Same.function (get_variants (ProofContext.theory_of ctxt)) c) of
+     (Same.function (get_variants (Proof_Context.theory_of ctxt)) c) of
       [] => unresolved_err ctxt (c, T) t "no instances"
     | [c'] => Const (c', dummyT)
     | _ => raise Same.SAME)
   | insert_internal_same _ _ _ = raise Same.SAME;
 
 fun insert_external_same ctxt _ (Const (c, T)) =
-    Const (Same.function (get_external (ProofContext.theory_of ctxt)) c, T)
+    Const (Same.function (get_external (Proof_Context.theory_of ctxt)) c, T)
   | insert_external_same _ _ _ = raise Same.SAME;
 
 fun gen_check_uncheck replace ts ctxt =
@@ -121,7 +121,7 @@ fun uncheck ts ctxt =
 
 fun reject_unresolved ts ctxt =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     fun check_unresolved t =
       case filter (is_overloaded thy o fst) (Term.add_consts t []) of
           [] => ()

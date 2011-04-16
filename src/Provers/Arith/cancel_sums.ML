@@ -61,7 +61,7 @@ fun proc ss t =
     NONE => NONE
   | SOME bal =>
       let
-        val thy = ProofContext.theory_of (Simplifier.the_context ss);
+        val thy = Proof_Context.theory_of (Simplifier.the_context ss);
         val (ts, us) = pairself (sort Term_Ord.term_ord o Data.dest_sum) bal;
         val (ts', us', vs) = cancel ts us [];
       in

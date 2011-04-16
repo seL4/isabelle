@@ -74,7 +74,7 @@ fun case_product_tac prems struc thm1 thm2 =
     (Tactic.rtac (thm1 OF p_cons1)
      THEN' EVERY' (map (fn p =>
        Tactic.rtac thm2'
-       THEN' EVERY' (map (ProofContext.fact_tac o single) p)) premss)
+       THEN' EVERY' (map (Proof_Context.fact_tac o single) p)) premss)
     )
   end
 

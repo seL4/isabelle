@@ -530,7 +530,7 @@ fun is_constructor thy t =
   else false
 *)
 
-val is_constr = Code.is_constr o ProofContext.theory_of;
+val is_constr = Code.is_constr o Proof_Context.theory_of;
 
 fun strip_all t = (Term.strip_all_vars t, Term.strip_all_body t)
 
@@ -830,7 +830,7 @@ fun rewrite_args [] (pats, intro_t, ctxt) = (pats, intro_t, ctxt)
           (args, (pats, intro_t, ctxt)) = rewrite_arg' (t2, T2) (args, (pats, intro_t, ctxt))
           | rewrite_arg' (t, Type (@{type_name Product_Type.prod}, [T1, T2])) (args, (pats, intro_t, ctxt)) =
             let
-              val thy = ProofContext.theory_of ctxt
+              val thy = Proof_Context.theory_of ctxt
               val ([x, y], ctxt') = Variable.variant_fixes ["x", "y"] ctxt
               val pat = (t, HOLogic.mk_prod (Free (x, T1), Free (y, T2)))
               val intro_t' = Pattern.rewrite_term thy [pat] [] intro_t
@@ -873,7 +873,7 @@ fun dest_conjunct_prem th =
 
 fun expand_tuples thy intro =
   let
-    val ctxt = ProofContext.init_global thy
+    val ctxt = Proof_Context.init_global thy
     val (((T_insts, t_insts), [intro']), ctxt1) = Variable.import false [intro] ctxt
     val intro_t = prop_of intro'
     val concl = Logic.strip_imp_concl intro_t
@@ -942,7 +942,7 @@ fun case_rewrites thy Tcon =
 fun instantiated_case_rewrites thy Tcon =
   let
     val rew_ths = case_rewrites thy Tcon
-    val ctxt = ProofContext.init_global thy
+    val ctxt = Proof_Context.init_global thy
     fun instantiate th =
     let
       val f = (fst (strip_comb (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop (prop_of th))))))
@@ -1045,7 +1045,7 @@ fun remove_pointless_clauses intro =
 fun peephole_optimisation thy intro =
   let
     val process =
-      Raw_Simplifier.rewrite_rule (Predicate_Compile_Simps.get (ProofContext.init_global thy))
+      Raw_Simplifier.rewrite_rule (Predicate_Compile_Simps.get (Proof_Context.init_global thy))
     fun process_False intro_t =
       if member (op =) (Logic.strip_imp_prems intro_t) @{prop "False"} then NONE else SOME intro_t
     fun process_True intro_t =
@@ -1072,7 +1072,7 @@ fun import_intros inp_pred [] ctxt =
   | import_intros inp_pred (th :: ths) ctxt =
     let
       val ((_, [th']), ctxt') = Variable.import true [th] ctxt
-      val thy = ProofContext.theory_of ctxt'
+      val thy = Proof_Context.theory_of ctxt'
       val (pred, args) = strip_intro_concl th'
       val T = fastype_of pred
       val ho_args = ho_args_of_typ T args
@@ -1206,7 +1206,7 @@ fun strip_horn A = (strip_imp_prems A, strip_imp_concl A);
 fun define_quickcheck_predicate t thy =
   let
     val (vs, t') = strip_abs t
-    val vs' = Variable.variant_frees (ProofContext.init_global thy) [] vs
+    val vs' = Variable.variant_frees (Proof_Context.init_global thy) [] vs
     val t'' = subst_bounds (map Free (rev vs'), t')
     val (prems, concl) = strip_horn t''
     val constname = "quickcheck"
@@ -1218,7 +1218,7 @@ fun define_quickcheck_predicate t thy =
       (map HOLogic.mk_Trueprop (prems @ [HOLogic.mk_not concl]),
        HOLogic.mk_Trueprop (list_comb (const, map Free vs')))
     val tac = fn _ => Skip_Proof.cheat_tac thy1
-    val intro = Goal.prove (ProofContext.init_global thy1) (map fst vs') [] t tac
+    val intro = Goal.prove (Proof_Context.init_global thy1) (map fst vs') [] t tac
   in
     ((((full_constname, constT), vs'), intro), thy1)
   end

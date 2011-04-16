@@ -63,7 +63,7 @@ fun apply_list rator nargs rands =
   end;
 
 fun infer_types ctxt =
-  Syntax.check_terms (ProofContext.set_mode ProofContext.mode_pattern ctxt);
+  Syntax.check_terms (Proof_Context.set_mode Proof_Context.mode_pattern ctxt);
 
 (*We use 1 rather than 0 because variable references in clauses may otherwise conflict
   with variable constraints in the goal...at least, type inference often fails otherwise.
@@ -96,7 +96,7 @@ fun hol_type_from_metis_term _ (Metis_Term.Var v) =
 
 (*Maps metis terms to isabelle terms*)
 fun hol_term_from_metis_PT ctxt fol_tm =
-  let val thy = ProofContext.theory_of ctxt
+  let val thy = Proof_Context.theory_of ctxt
       val _ = trace_msg ctxt (fn () => "hol_term_from_metis_PT: " ^
                                        Metis_Term.toString fol_tm)
       fun tm_to_tt (Metis_Term.Var v) =
@@ -260,7 +260,7 @@ fun inst_excluded_middle thy i_atm =
 
 fun assume_inf ctxt mode skolem_params atm =
   inst_excluded_middle
-      (ProofContext.theory_of ctxt)
+      (Proof_Context.theory_of ctxt)
       (singleton (hol_terms_from_metis ctxt mode skolem_params)
                  (Metis_Term.Fn atm))
 
@@ -270,7 +270,7 @@ fun assume_inf ctxt mode skolem_params atm =
    can be inferred from terms. *)
 
 fun inst_inf ctxt mode old_skolems thpairs fsubst th =
-  let val thy = ProofContext.theory_of ctxt
+  let val thy = Proof_Context.theory_of ctxt
       val i_th = lookth thpairs th
       val i_th_vars = Term.add_vars (prop_of i_th) []
       fun find_var x = the (List.find (fn ((a,_),_) => a=x) i_th_vars)
@@ -396,7 +396,7 @@ val select_literal = negate_head oo make_last
 
 fun resolve_inf ctxt mode skolem_params thpairs atm th1 th2 =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val i_th1 = lookth thpairs th1 and i_th2 = lookth thpairs th2
     val _ = trace_msg ctxt (fn () => "  isa th1 (pos): " ^ Display.string_of_thm ctxt i_th1)
     val _ = trace_msg ctxt (fn () => "  isa th2 (neg): " ^ Display.string_of_thm ctxt i_th2)
@@ -437,7 +437,7 @@ val refl_x = cterm_of @{theory} (Var (hd (Term.add_vars (prop_of REFL_THM) [])))
 val refl_idx = 1 + Thm.maxidx_of REFL_THM;
 
 fun refl_inf ctxt mode skolem_params t =
-  let val thy = ProofContext.theory_of ctxt
+  let val thy = Proof_Context.theory_of ctxt
       val i_t = singleton (hol_terms_from_metis ctxt mode skolem_params) t
       val _ = trace_msg ctxt (fn () => "  term: " ^ Syntax.string_of_term ctxt i_t)
       val c_t = cterm_incr_types thy refl_idx i_t
@@ -455,7 +455,7 @@ fun get_ty_arg_size _ (Const (@{const_name HOL.eq}, _)) = 0  (*equality has no t
   | get_ty_arg_size _ _ = 0;
 
 fun equality_inf ctxt mode skolem_params (pos, atm) fp fr =
-  let val thy = ProofContext.theory_of ctxt
+  let val thy = Proof_Context.theory_of ctxt
       val m_tm = Metis_Term.Fn atm
       val [i_atm,i_tm] = hol_terms_from_metis ctxt mode skolem_params [m_tm, fr]
       val _ = trace_msg ctxt (fn () => "sign of the literal: " ^ Bool.toString pos)
@@ -783,7 +783,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
     prems_imp_false
   else
     let
-      val thy = ProofContext.theory_of ctxt
+      val thy = Proof_Context.theory_of ctxt
       fun match_term p =
         let
           val (tyenv, tenv) =

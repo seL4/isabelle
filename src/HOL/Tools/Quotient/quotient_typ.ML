@@ -215,7 +215,7 @@ fun sanity_check ((vs, qty_name, _), (rty, rel, _)) =
 (* check for existence of map functions *)
 fun map_check ctxt (_, (rty, _, _)) =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
 
     fun map_check_aux rty warns =
       case rty of

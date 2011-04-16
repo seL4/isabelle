@@ -68,7 +68,7 @@ fun add optmod optnparms = Thm.declaration_attribute (fn thm => Context.mapping 
             | NONE =>
                 (case rules of
                   [] =>
-                    (case try (Inductive.the_inductive (ProofContext.init_global thy)) s of
+                    (case try (Inductive.the_inductive (Proof_Context.init_global thy)) s of
                       SOME (_, {raw_induct, ...}) =>
                         length (Inductive.params_of raw_induct)
                     | NONE => 0)
@@ -86,7 +86,7 @@ fun add optmod optnparms = Thm.declaration_attribute (fn thm => Context.mapping 
 fun get_clauses thy s =
   let val {intros, graph, ...} = CodegenData.get thy
   in case Symtab.lookup intros s of
-      NONE => (case try (Inductive.the_inductive (ProofContext.init_global thy)) s of
+      NONE => (case try (Inductive.the_inductive (Proof_Context.init_global thy)) s of
         NONE => NONE
       | SOME ({names, ...}, {intrs, raw_induct, ...}) =>
           SOME (names, Codegen.thyname_of_const thy s,
@@ -811,7 +811,7 @@ val (size_offset, setup_size_offset) = Attrib.config_int "ind_quickcheck_size_of
 fun test_term ctxt [(t, [])] =
   let
     val t' = list_abs_free (Term.add_frees t [], t)
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val (xs, p) = strip_abs t';
     val args' = map_index (fn (i, (_, T)) => ("arg" ^ string_of_int i, T)) xs;
     val args = map Free args';

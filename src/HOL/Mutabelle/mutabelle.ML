@@ -496,7 +496,7 @@ fun preprocess thy insts t = Object_Logic.atomize_term thy
 
 fun is_executable thy insts th =
   ((Quickcheck.test_term 
-      (ProofContext.init_global thy
+      (Proof_Context.init_global thy
       |> Config.put Quickcheck.size 1
       |> Config.put Quickcheck.iterations 1
       |> Config.put Quickcheck.tester (!testgen_name))
@@ -510,7 +510,7 @@ fun qc_recursive usedthy [] insts sz qciter acc = rev acc
      ((x, pretty (the_default [] (Quickcheck.counterexample_of (Quickcheck.test_term
        ((Config.put Quickcheck.size sz #> Config.put Quickcheck.iterations qciter
         #> Config.put Quickcheck.tester (!testgen_name))
-         (ProofContext.init_global usedthy))
+         (Proof_Context.init_global usedthy))
        (true, false) (preprocess usedthy insts x, []))))) :: acc))
           handle ERROR msg => (Output.urgent_message msg; qc_recursive usedthy xs insts sz qciter acc);
 

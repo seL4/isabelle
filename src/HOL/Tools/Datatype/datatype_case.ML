@@ -297,7 +297,7 @@ fun gen_make_case ty_match ty_inst type_of tab ctxt config used x clauses =
   end;
 
 fun make_case tab ctxt = gen_make_case
-  (match_type (ProofContext.theory_of ctxt)) Envir.subst_term_types fastype_of tab ctxt;
+  (match_type (Proof_Context.theory_of ctxt)) Envir.subst_term_types fastype_of tab ctxt;
 val make_case_untyped = gen_make_case (K (K Vartab.empty))
   (K (Term.map_types (K dummyT))) (K dummyT);
 
@@ -306,8 +306,8 @@ val make_case_untyped = gen_make_case (K (K Vartab.empty))
 
 fun case_tr err tab_of ctxt [t, u] =
       let
-        val thy = ProofContext.theory_of ctxt;
-        val intern_const_syntax = Consts.intern_syntax (ProofContext.consts_of ctxt);
+        val thy = Proof_Context.theory_of ctxt;
+        val intern_const_syntax = Consts.intern_syntax (Proof_Context.consts_of ctxt);
 
         (* replace occurrences of dummy_pattern by distinct variables *)
         (* internalize constant names                                 *)
@@ -320,7 +320,7 @@ fun case_tr err tab_of ctxt [t, u] =
           | prep_pat (Const (s, T)) used =
               (Const (intern_const_syntax s, T), used)
           | prep_pat (v as Free (s, T)) used =
-              let val s' = ProofContext.intern_const ctxt s in
+              let val s' = Proof_Context.intern_const ctxt s in
                 if Sign.declared_const thy s' then
                   (Const (s', T), used)
                 else (v, used)
@@ -449,7 +449,7 @@ val strip_case' = gen_strip_case oo dest_case';
 
 fun case_tr' tab_of cname ctxt ts =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     fun mk_clause (pat, rhs) =
       let val xs = Term.add_frees pat [] in
         Syntax.const @{syntax_const "_case1"} $

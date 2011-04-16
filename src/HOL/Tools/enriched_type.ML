@@ -41,7 +41,7 @@ val entries = Data.get o Context.Proof;
 (* type analysis *)
 
 fun term_with_typ ctxt T t = Envir.subst_term_types
-  (Type.typ_match (ProofContext.tsig_of ctxt) (fastype_of t, T) Vartab.empty) t;
+  (Type.typ_match (Proof_Context.tsig_of ctxt) (fastype_of t, T) Vartab.empty) t;
 
 fun find_atomic ctxt T =
   let
@@ -186,7 +186,7 @@ fun analyze_variances ctxt tyco T =
       let
         val coT = TFree var1 --> TFree var2;
         val contraT = TFree var2 --> TFree var1;
-        val sort = Sign.inter_sort (ProofContext.theory_of ctxt) (sort1, sort2);
+        val sort = Sign.inter_sort (Proof_Context.theory_of ctxt) (sort1, sort2);
       in
         consume (op =) coT
         ##>> consume (op =) contraT
@@ -218,7 +218,7 @@ fun gen_enriched_type prep_term some_prfx raw_mapper lthy =
     val qualify = Binding.qualify true prfx o Binding.name;
     fun mapper_declaration comp_thm id_thm phi context =
       let
-        val typ_instance = Type.typ_instance (ProofContext.tsig_of (Context.proof_of context));
+        val typ_instance = Type.typ_instance (Proof_Context.tsig_of (Context.proof_of context));
         val mapper' = Morphism.term phi mapper;
         val T_T' = pairself fastype_of (mapper, mapper');
       in if typ_instance T_T' andalso typ_instance (swap T_T')

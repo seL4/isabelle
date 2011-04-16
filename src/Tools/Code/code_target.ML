@@ -307,7 +307,7 @@ fun activate_symbol_syntax thy literals naming
 
 fun project_program thy abortable names_hidden names1 program2 =
   let
-    val ctxt = ProofContext.init_global thy;
+    val ctxt = Proof_Context.init_global thy;
     val names2 = subtract (op =) names_hidden names1;
     val program3 = Graph.subgraph (not o member (op =) names_hidden) program2;
     val names4 = Graph.all_succs program3 names2;
@@ -316,7 +316,7 @@ fun project_program thy abortable names_hidden names1 program2 =
     val _ =
       if null empty_funs then ()
       else error ("No code equations for " ^
-        commas (map (ProofContext.extern_const ctxt) empty_funs));
+        commas (map (Proof_Context.extern_const ctxt) empty_funs));
     val program4 = Graph.subgraph (member (op =) names4) program3;
   in (names4, program4) end;
 
@@ -515,7 +515,7 @@ val _ = Thy_Output.antiquotation "code_stmts"
   (parse_const_terms -- Scan.repeat (parse_consts || parse_types || parse_classes || parse_instances)
     -- Scan.lift (Args.parens (Args.name -- Scan.option Parse.int)))
   (fn {context = ctxt, ...} => fn ((mk_cs, mk_stmtss), (target, some_width)) =>
-    let val thy = ProofContext.theory_of ctxt in
+    let val thy = Proof_Context.theory_of ctxt in
       present_code thy (mk_cs thy)
         (fn naming => maps (fn f => f thy naming) mk_stmtss)
         target some_width "Example" []

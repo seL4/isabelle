@@ -163,7 +163,7 @@ fun prepare prep_term name (tname, raw_args, mx) raw_set opt_morphs thy =
 
     (*rhs*)
     val tmp_ctxt =
-      ProofContext.init_global thy
+      Proof_Context.init_global thy
       |> fold (Variable.declare_typ o TFree) raw_args
     val set = prep_term tmp_ctxt raw_set
     val tmp_ctxt' = tmp_ctxt |> Variable.declare_term set
@@ -173,7 +173,7 @@ fun prepare prep_term name (tname, raw_args, mx) raw_set opt_morphs thy =
       error ("Not a set type: " ^ quote (Syntax.string_of_typ tmp_ctxt setT))
 
     (*lhs*)
-    val lhs_tfrees = map (ProofContext.check_tfree tmp_ctxt') raw_args
+    val lhs_tfrees = map (Proof_Context.check_tfree tmp_ctxt') raw_args
     val full_tname = Sign.full_name thy tname
     val newT = Type (full_tname, map TFree lhs_tfrees)
 
@@ -199,8 +199,8 @@ fun add_podef def opt_name typ set opt_morphs tac thy =
       |> Class.instantiation ([full_tname], lhs_tfrees, @{sort po})
       |> Specification.definition (NONE,
           ((Binding.prefix_name "below_" (Binding.suffix_name "_def" name), []), below_eqn))
-    val ctxt_thy = ProofContext.init_global (ProofContext.theory_of lthy)
-    val below_def = singleton (ProofContext.export lthy ctxt_thy) below_ldef
+    val ctxt_thy = Proof_Context.init_global (Proof_Context.theory_of lthy)
+    val below_def = singleton (Proof_Context.export lthy ctxt_thy) below_ldef
     val thy = lthy
       |> Class.prove_instantiation_exit
           (K (Tactic.rtac (@{thm typedef_po} OF [type_definition, below_def]) 1))
@@ -313,22 +313,22 @@ local
 fun gen_cpodef_proof prep_term prep_constraint
     ((def, name), (b, raw_args, mx), set, opt_morphs) thy =
   let
-    val ctxt = ProofContext.init_global thy
+    val ctxt = Proof_Context.init_global thy
     val args = map (apsnd (prep_constraint ctxt)) raw_args
     val (goal1, goal2, make_result) =
       prepare_cpodef prep_term def name (b, args, mx) set opt_morphs thy
-    fun after_qed [[th1, th2]] = ProofContext.background_theory (snd o make_result th1 th2)
+    fun after_qed [[th1, th2]] = Proof_Context.background_theory (snd o make_result th1 th2)
       | after_qed _ = raise Fail "cpodef_proof"
   in Proof.theorem NONE after_qed [[(goal1, []), (goal2, [])]] ctxt end
 
 fun gen_pcpodef_proof prep_term prep_constraint
     ((def, name), (b, raw_args, mx), set, opt_morphs) thy =
   let
-    val ctxt = ProofContext.init_global thy
+    val ctxt = Proof_Context.init_global thy
     val args = map (apsnd (prep_constraint ctxt)) raw_args
     val (goal1, goal2, make_result) =
       prepare_pcpodef prep_term def name (b, args, mx) set opt_morphs thy
-    fun after_qed [[th1, th2]] = ProofContext.background_theory (snd o make_result th1 th2)
+    fun after_qed [[th1, th2]] = Proof_Context.background_theory (snd o make_result th1 th2)
       | after_qed _ = raise Fail "pcpodef_proof"
   in Proof.theorem NONE after_qed [[(goal1, []), (goal2, [])]] ctxt end
 

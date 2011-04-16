@@ -42,7 +42,7 @@ fun gen_interpretation prep_expr prep_decl parse_term parse_prop prep_attr
     expression raw_defs raw_eqns theory =
   let
     val (_, (_, defs_ctxt)) =
-      prep_decl expression I [] (ProofContext.init_global theory);
+      prep_decl expression I [] (Proof_Context.init_global theory);
 
     val rhss = map (parse_term defs_ctxt o snd o snd) raw_defs
       |> Syntax.check_terms defs_ctxt;
@@ -56,7 +56,7 @@ fun gen_interpretation prep_expr prep_decl parse_term parse_prop prep_attr
       |> Local_Theory.exit_result_global (map o Morphism.thm);
 
     val ((propss, deps, export), expr_ctxt) = theory'
-      |> ProofContext.init_global
+      |> Proof_Context.init_global
       |> prep_expr expression;
 
     val eqns = map (parse_prop expr_ctxt o snd) raw_eqns
@@ -66,7 +66,7 @@ fun gen_interpretation prep_expr prep_decl parse_term parse_prop prep_attr
     val export' = Variable.export_morphism goal_ctxt expr_ctxt;
 
     fun after_qed witss eqns =
-      (ProofContext.background_theory o Context.theory_map)
+      (Proof_Context.background_theory o Context.theory_map)
         (note_eqns_register deps witss def_eqns attrss eqns export export');
 
   in Element.witness_proof_eqs after_qed propss eqns goal_ctxt end;

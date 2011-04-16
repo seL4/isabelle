@@ -457,7 +457,7 @@ fun prop_from_formula thy type_sys tfrees phi =
 
 fun check_formula ctxt =
   Type.constraint HOLogic.boolT
-  #> Syntax.check_term (ProofContext.set_mode ProofContext.mode_schematic ctxt)
+  #> Syntax.check_term (Proof_Context.set_mode Proof_Context.mode_schematic ctxt)
 
 
 (**** Translation of TSTP files to Isar Proofs ****)
@@ -467,7 +467,7 @@ fun unvarify_term (Var ((s, 0), T)) = Free (s, T)
 
 fun decode_line type_sys tfrees (Definition (name, phi1, phi2)) ctxt =
     let
-      val thy = ProofContext.theory_of ctxt
+      val thy = Proof_Context.theory_of ctxt
       val t1 = prop_from_formula thy type_sys tfrees phi1
       val vars = snd (strip_comb t1)
       val frees = map unvarify_term vars
@@ -483,7 +483,7 @@ fun decode_line type_sys tfrees (Definition (name, phi1, phi2)) ctxt =
     end
   | decode_line type_sys tfrees (Inference (name, u, deps)) ctxt =
     let
-      val thy = ProofContext.theory_of ctxt
+      val thy = Proof_Context.theory_of ctxt
       val t = u |> prop_from_formula thy type_sys tfrees
                 |> uncombine_term |> check_formula ctxt
     in

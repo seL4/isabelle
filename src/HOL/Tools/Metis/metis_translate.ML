@@ -650,7 +650,7 @@ fun metis_of_tfree tf =
 
 fun hol_thm_to_fol is_conjecture ctxt type_lits mode j old_skolems th =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val (old_skolems, (mlits, types_sorts)) =
      th |> prop_of |> Logic.strip_imp_concl
         |> conceal_old_skolem_terms j old_skolems
@@ -766,7 +766,7 @@ fun type_ext thy tms =
 
 (* Function to generate metis clauses, including comb and type clauses *)
 fun prepare_metis_problem mode0 ctxt type_lits cls thss =
-  let val thy = ProofContext.theory_of ctxt
+  let val thy = Proof_Context.theory_of ctxt
       (*The modes FO and FT are sticky. HO can be downgraded to FO.*)
       fun set_mode FO = FO
         | set_mode HO =

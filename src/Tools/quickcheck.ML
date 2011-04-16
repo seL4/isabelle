@@ -329,7 +329,7 @@ fun test_terms ctxt ts =
 
 fun test_term_with_increasing_cardinality ctxt (limit_time, is_interactive) ts =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     fun message s = if Config.get ctxt quiet then () else Output.urgent_message s
     val (ts', eval_terms) = split_list ts
     val _ = map check_test_term ts'
@@ -400,7 +400,7 @@ datatype wellsorted_error = Wellsorted_Error of string | Term of term * term lis
 fun test_goal_terms lthy (limit_time, is_interactive) insts check_goals =
   let
     fun map_goal_and_eval_terms f (check_goal, eval_terms) = (f check_goal, map f eval_terms)
-    val thy = ProofContext.theory_of lthy
+    val thy = Proof_Context.theory_of lthy
     val default_insts =
       if Config.get lthy finite_types then (get_finite_types lthy) else (default_type lthy)
     val inst_goals =
@@ -568,7 +568,7 @@ fun parse_test_param ("tester", [arg]) = parse_tester arg
   | parse_test_param ("iterations", [arg]) = Config.put_generic iterations (read_nat arg)
   | parse_test_param ("default_type", arg) = (fn gen_ctxt =>
     map_test_params
-      ((apfst o K) (map (ProofContext.read_typ (Context.proof_of gen_ctxt)) arg)) gen_ctxt)
+      ((apfst o K) (map (Proof_Context.read_typ (Context.proof_of gen_ctxt)) arg)) gen_ctxt)
   | parse_test_param ("no_assms", [arg]) = Config.put_generic no_assms (read_bool arg)
   | parse_test_param ("expect", [arg]) = map_test_params ((apsnd o K) (read_expectation arg))
   | parse_test_param ("report", [arg]) = Config.put_generic report (read_bool arg)
@@ -583,9 +583,9 @@ fun parse_test_param ("tester", [arg]) = parse_tester arg
     else error ("Unknown tester or test parameter: " ^ name);
 
 fun parse_test_param_inst (name, arg) ((insts, eval_terms), ctxt) =
-      case try (ProofContext.read_typ ctxt) name
+      case try (Proof_Context.read_typ ctxt) name
        of SOME (TFree (v, _)) =>
-         ((AList.update (op =) (v, ProofContext.read_typ ctxt (the_single arg)) insts, eval_terms), ctxt)
+         ((AList.update (op =) (v, Proof_Context.read_typ ctxt (the_single arg)) insts, eval_terms), ctxt)
         | NONE => (case name of
             "eval" => ((insts, eval_terms @ map (Syntax.read_term ctxt) arg), ctxt)
           | _ => ((insts, eval_terms), Context.proof_map (parse_test_param (name, arg)) ctxt));

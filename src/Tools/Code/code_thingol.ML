@@ -490,18 +490,18 @@ fun contr_classparam_typs program name = case Graph.get_node program name
   | _ => [];
 
 fun labelled_name thy program name =
-  let val ctxt = ProofContext.init_global thy in
+  let val ctxt = Proof_Context.init_global thy in
     case Graph.get_node program name of
       Fun (c, _) => quote (Code.string_of_const thy c)
-    | Datatype (tyco, _) => "type " ^ quote (ProofContext.extern_type ctxt tyco)
+    | Datatype (tyco, _) => "type " ^ quote (Proof_Context.extern_type ctxt tyco)
     | Datatypecons (c, _) => quote (Code.string_of_const thy c)
-    | Class (class, _) => "class " ^ quote (ProofContext.extern_class ctxt class)
+    | Class (class, _) => "class " ^ quote (Proof_Context.extern_class ctxt class)
     | Classrel (sub, super) =>
         let
           val Class (sub, _) = Graph.get_node program sub;
           val Class (super, _) = Graph.get_node program super;
         in
-          quote (ProofContext.extern_class ctxt sub ^ " < " ^ ProofContext.extern_class ctxt super)
+          quote (Proof_Context.extern_class ctxt sub ^ " < " ^ Proof_Context.extern_class ctxt super)
         end
     | Classparam (c, _) => quote (Code.string_of_const thy c)
     | Classinst ((class, (tyco, _)), _) =>
@@ -509,7 +509,7 @@ fun labelled_name thy program name =
           val Class (class, _) = Graph.get_node program class;
           val Datatype (tyco, _) = Graph.get_node program tyco;
         in
-          quote (ProofContext.extern_type ctxt tyco ^ " :: " ^ ProofContext.extern_class ctxt class)
+          quote (Proof_Context.extern_type ctxt tyco ^ " :: " ^ Proof_Context.extern_class ctxt class)
         end
   end;
 

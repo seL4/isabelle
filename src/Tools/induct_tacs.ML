@@ -34,7 +34,7 @@ fun gen_case_tac ctxt0 s opt_rule i st =
         SOME rule => rule
       | NONE =>
           (case Induct.find_casesT ctxt
-              (#2 (check_type ctxt (ProofContext.read_term_schematic ctxt s))) of
+              (#2 (check_type ctxt (Proof_Context.read_term_schematic ctxt s))) of
             rule :: _ => rule
           | [] => @{thm case_split}));
     val _ = Method.trace ctxt [rule];

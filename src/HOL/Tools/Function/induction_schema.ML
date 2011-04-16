@@ -124,7 +124,7 @@ fun mk_completeness ctxt (IndScheme {cases, branches, ...}) bidx =
 
     val allqnames = fold (fn SchemeCase {qs, ...} => fold (insert (op =) o Free) qs) relevant_cases []
     val (Pbool :: xs') = map Free (Variable.variant_frees ctxt allqnames (("P", HOLogic.boolT) :: xs))
-    val Cs' = map (Pattern.rewrite_term (ProofContext.theory_of ctxt) (filter_out (op aconv) (map Free xs ~~ xs')) []) Cs
+    val Cs' = map (Pattern.rewrite_term (Proof_Context.theory_of ctxt) (filter_out (op aconv) (map Free xs ~~ xs')) []) Cs
 
     fun mk_case (SchemeCase {qs, oqnames, gs, lhs, ...}) =
       HOLogic.mk_Trueprop Pbool
@@ -211,7 +211,7 @@ fun mk_induct_rule ctxt R x complete_thms wf_thm ineqss
       SumTree.mk_inj T n (i + 1) (foldr1 HOLogic.mk_prod ts)
     val P_of = nth (map (fn (SchemeBranch { P, ... }) => P) branches)
 
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val cert = cterm_of thy
 
     val P_comp = mk_ind_goal thy branches
@@ -351,7 +351,7 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts =
     val ([Rn,xn], ctxt'') = Variable.variant_fixes ["R","x"] ctxt'
     val R = Free (Rn, mk_relT ST)
     val x = Free (xn, ST)
-    val cert = cterm_of (ProofContext.theory_of ctxt)
+    val cert = cterm_of (Proof_Context.theory_of ctxt)
 
     val ineqss = mk_ineqs R scheme
       |> map (map (pairself (Thm.assume o cert)))

@@ -389,7 +389,7 @@ fun assemble_eqnss idx_of deps eqnss =
 fun compile_eqnss thy nbe_program raw_deps [] = []
   | compile_eqnss thy nbe_program raw_deps eqnss =
       let
-        val ctxt = ProofContext.init_global thy;
+        val ctxt = Proof_Context.init_global thy;
         val (deps, deps_vals) = split_list (map_filter
           (fn dep => Option.map (fn univ => (dep, univ)) (fst ((Graph.get_node nbe_program dep)))) raw_deps);
         val idx_of = raw_deps
@@ -615,7 +615,7 @@ fun static_value thy consts = lift_triv_classes_rew thy
 
 (** setup **)
 
-val setup = Value.add_evaluator ("nbe", dynamic_value o ProofContext.theory_of);
+val setup = Value.add_evaluator ("nbe", dynamic_value o Proof_Context.theory_of);
 
 end;
  

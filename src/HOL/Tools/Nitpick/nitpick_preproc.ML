@@ -69,7 +69,7 @@ val should_use_binary_ints =
 
 fun add_to_uncurry_table ctxt t =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     fun aux (t1 $ t2) args table =
         let val table = aux t2 [] table in aux t1 (t2 :: args) table end
       | aux (Abs (_, _, t')) _ table = aux t' [] table

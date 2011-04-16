@@ -247,7 +247,7 @@ fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lth
     val eqns' = map unquantify spec'
     val eqns = fold_rev (process_eqn lthy (fn v => Variable.is_fixed lthy v
       orelse exists (fn ((w, _), _) => v = Binding.name_of w) fixes)) spec' [];
-    val dt_info = NominalDatatype.get_nominal_datatypes (ProofContext.theory_of lthy);
+    val dt_info = NominalDatatype.get_nominal_datatypes (Proof_Context.theory_of lthy);
     val lsrs :: lsrss = maps (fn (_, (_, _, eqns)) =>
       map (fn (_, (ls, _, rs, _, _)) => ls @ rs) eqns) eqns
     val _ =
@@ -284,7 +284,7 @@ fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lth
     val qualify = Binding.qualify false
       (space_implode "_" (map (Long_Name.base_name o #1) defs));
     val names_atts' = map (apfst qualify) names_atts;
-    val cert = cterm_of (ProofContext.theory_of lthy');
+    val cert = cterm_of (Proof_Context.theory_of lthy');
 
     fun mk_idx eq =
       let
@@ -366,7 +366,7 @@ fun gen_primrec prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lth
     Proof.theorem NONE
       (fn thss => fn goal_ctxt =>
          let
-           val simps = ProofContext.export goal_ctxt lthy' (flat thss);
+           val simps = Proof_Context.export goal_ctxt lthy' (flat thss);
            val (simps', lthy'') =
             fold_map Local_Theory.note (names_atts' ~~ map single simps) lthy';
          in

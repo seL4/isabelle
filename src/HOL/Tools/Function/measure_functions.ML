@@ -29,7 +29,7 @@ fun mk_is_measure t =
 fun find_measures ctxt T =
   DEPTH_SOLVE (resolve_tac (Measure_Heuristic_Rules.get ctxt) 1)
     (HOLogic.mk_Trueprop (mk_is_measure (Var (("f",0), T --> HOLogic.natT)))
-     |> cterm_of (ProofContext.theory_of ctxt) |> Goal.init)
+     |> cterm_of (Proof_Context.theory_of ctxt) |> Goal.init)
   |> Seq.map (prop_of #> (fn _ $ (_ $ (_ $ f)) => f))
   |> Seq.list_of
 

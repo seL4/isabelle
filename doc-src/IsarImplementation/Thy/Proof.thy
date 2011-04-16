@@ -314,7 +314,7 @@ text %mlref {*
   exports result @{text "thm"} from the the @{text "inner"} context
   back into the @{text "outer"} one; @{text "is_goal = true"} means
   this is a goal context.  The result is in HHF normal form.  Note
-  that @{ML "ProofContext.export"} combines @{ML "Variable.export"}
+  that @{ML "Proof_Context.export"} combines @{ML "Variable.export"}
   and @{ML "Assumption.export"} in the canonical way.
 
   \end{description}
@@ -341,7 +341,7 @@ ML {*
 text {* Note that the variables of the resulting rule are not
   generalized.  This would have required to fix them properly in the
   context beforehand, and export wrt.\ variables afterwards (cf.\ @{ML
-  Variable.export} or the combined @{ML "ProofContext.export"}).  *}
+  Variable.export} or the combined @{ML "Proof_Context.export"}).  *}
 
 
 section {* Structured goals and results \label{sec:struct-goals} *}
@@ -481,10 +481,10 @@ begin
       |> Obtain.result (fn _ => etac @{thm exE} 1) [@{thm ex}];
   *}
   ML_prf %"ML" {*
-    singleton (ProofContext.export ctxt1 ctxt0) @{thm refl};
+    singleton (Proof_Context.export ctxt1 ctxt0) @{thm refl};
   *}
   ML_prf %"ML" {*
-    ProofContext.export ctxt1 ctxt0 [Thm.reflexive x]
+    Proof_Context.export ctxt1 ctxt0 [Thm.reflexive x]
       handle ERROR msg => (warning msg; []);
   *}
 end

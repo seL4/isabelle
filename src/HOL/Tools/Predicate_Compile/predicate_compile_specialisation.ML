@@ -33,7 +33,7 @@ fun print_specialisations thy =
 
 fun import (pred, intros) args ctxt =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val ((Tinst, intros'), ctxt') = Variable.importT intros ctxt
     val pred' = fst (strip_comb (HOLogic.dest_Trueprop (Logic.strip_imp_concl (prop_of (hd intros')))))
     val Ts = binder_types (fastype_of pred')
@@ -64,7 +64,7 @@ fun is_nontrivial_constrt thy t =
 
 fun specialise_intros black_list (pred, intros) pats thy =
   let
-    val ctxt = ProofContext.init_global thy
+    val ctxt = Proof_Context.init_global thy
     val maxidx = fold (Term.maxidx_term o prop_of) intros ~1
     val pats = map (Logic.incr_indexes ([],  maxidx + 1)) pats
     val (((pred, intros), pats), ctxt') = import (pred, intros) pats ctxt
@@ -180,7 +180,7 @@ and find_specialisations black_list specs thy =
                     if member (op =) ((map fst specs) @ black_list) pred_name then
                       thy
                     else
-                      (case try (Core_Data.intros_of (ProofContext.init_global thy)) pred_name of
+                      (case try (Core_Data.intros_of (Proof_Context.init_global thy)) pred_name of
                         NONE => thy
                       | SOME [] => thy
                       | SOME intros =>

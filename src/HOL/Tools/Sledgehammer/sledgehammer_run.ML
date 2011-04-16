@@ -180,7 +180,7 @@ fun run_sledgehammer (params as {debug, blocking, provers, monomorphize,
       val state =
         state |> Proof.map_context (Config.put SMT_Config.verbose debug)
       val ctxt = Proof.context_of state
-      val thy = ProofContext.theory_of ctxt
+      val thy = Proof_Context.theory_of ctxt
       val {facts = chained_ths, goal, ...} = Proof.goal state
       val (_, hyp_ts, concl_t) = strip_subgoal goal i
       val no_dangerous_types = types_dangerous_types type_sys

@@ -553,7 +553,7 @@ fun solveQuasiOrder thy (asms, concl) =
 
 fun trans_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
  let
-  val thy = ProofContext.theory_of ctxt;
+  val thy = Proof_Context.theory_of ctxt;
   val rfrees = map Free (Term.rename_wrt_term A (Logic.strip_params A));
   val Hs = map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A);
   val C = subst_bounds (rfrees, Logic.strip_assums_concl A);
@@ -574,7 +574,7 @@ fun trans_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
 
 fun quasi_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
  let
-  val thy = ProofContext.theory_of ctxt
+  val thy = Proof_Context.theory_of ctxt
   val rfrees = map Free (Term.rename_wrt_term A (Logic.strip_params A));
   val Hs = map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A);
   val C = subst_bounds (rfrees, Logic.strip_assums_concl A);

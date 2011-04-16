@@ -122,7 +122,7 @@ fun invoke_quickcheck change_options quickcheck_generator thy t =
   TimeLimit.timeLimit (seconds (!Auto_Tools.time_limit))
       (fn _ =>
           let
-            val [result] = Quickcheck.test_goal_terms (change_options (ProofContext.init_global thy))
+            val [result] = Quickcheck.test_goal_terms (change_options (Proof_Context.init_global thy))
               (false, false) [] [(t, [])]
           in
             case Quickcheck.counterexample_of result of 
@@ -139,7 +139,7 @@ fun quickcheck_mtd change_options quickcheck_generator =
  
 fun invoke_solve_direct thy t =
   let
-    val state = Proof.theorem NONE (K I) (map (single o rpair []) [t]) (ProofContext.init_global thy) 
+    val state = Proof.theorem NONE (K I) (map (single o rpair []) [t]) (Proof_Context.init_global thy) 
   in
     case Solve_Direct.solve_direct false state of
       (true, _) => (Solved, [])
@@ -152,7 +152,7 @@ val solve_direct_mtd = ("solve_direct", invoke_solve_direct)
 
 fun invoke_try thy t =
   let
-    val state = Proof.theorem NONE (K I) (map (single o rpair []) [t]) (ProofContext.init_global thy)
+    val state = Proof.theorem NONE (K I) (map (single o rpair []) [t]) (Proof_Context.init_global thy)
   in
     case Try.invoke_try (SOME (seconds 5.0)) ([], [], [], []) state of
       true => (Solved, [])
@@ -196,7 +196,7 @@ val refute_mtd = ("refute", invoke_refute)
 
 fun invoke_nitpick thy t =
   let
-    val ctxt = ProofContext.init_global thy
+    val ctxt = Proof_Context.init_global thy
     val state = Proof.init ctxt
     val (res, _) = Nitpick.pick_nits_in_term state
       (Nitpick_Isar.default_params thy []) false 1 1 1 [] [] t
@@ -312,7 +312,7 @@ fun is_forbidden_mutant t =
 
 fun is_executable_term thy t =
   let
-    val ctxt = ProofContext.init_global thy
+    val ctxt = Proof_Context.init_global thy
   in
     can (TimeLimit.timeLimit (seconds 2.0)
       (Quickcheck.test_goal_terms
@@ -414,7 +414,7 @@ fun mutate_theorem create_entry thy mtds thm =
 (*          |> filter (not o is_forbidden_mutant) *)
           |> List.mapPartial (try (Sign.cert_term thy))
           |> List.filter (is_some o try (Thm.cterm_of thy))
-          |> List.filter (is_some o try (Syntax.check_term (ProofContext.init_global thy)))
+          |> List.filter (is_some o try (Syntax.check_term (Proof_Context.init_global thy)))
           |> take_random max_mutants
     val _ = map (fn t => Output.urgent_message ("MUTANT: " ^ Syntax.string_of_term_global thy t)) mutants
   in
@@ -490,7 +490,7 @@ fun write_report file_name =
 fun mutate_theorems_and_write_report thy mtds thms file_name =
   let
     val _ = Output.urgent_message "Starting Mutabelle..."
-    val ctxt = ProofContext.init_global thy
+    val ctxt = Proof_Context.init_global thy
     val path = Path.explode file_name
     (* for normal report: *)
     (*

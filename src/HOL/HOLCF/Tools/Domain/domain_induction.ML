@@ -225,7 +225,7 @@ let
         in bot :: map name_of (#con_specs constr_info) end
     in adms @ flat (map2 one_eq bottoms constr_infos) end
 
-  val inducts = Project_Rule.projections (ProofContext.init_global thy) ind
+  val inducts = Project_Rule.projections (Proof_Context.init_global thy) ind
   fun ind_rule (dname, rule) =
       ((Binding.empty, rule),
        [Rule_Cases.case_names case_ns, Induct.induct_type dname])

@@ -26,9 +26,9 @@ fun get_def thy = Thm.axiom thy o Name_Space.intern (Theory.axiom_space thy) o T
 
 fun simple_read_term thy T s =
   let
-    val ctxt = ProofContext.init_global thy
-      |> ProofContext.allow_dummies
-      |> ProofContext.set_mode ProofContext.mode_schematic;
+    val ctxt = Proof_Context.init_global thy
+      |> Proof_Context.allow_dummies
+      |> Proof_Context.set_mode Proof_Context.mode_schematic;
     val parse = if T = propT then Syntax.parse_prop else Syntax.parse_term;
   in parse ctxt s |> Type.constraint T |> Syntax.check_term ctxt end;
 

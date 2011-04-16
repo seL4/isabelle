@@ -5,7 +5,7 @@ begin
 
 ML {*
 fun pretty_term_type_only ctxt (t, T) =
-  (if fastype_of t = Sign.certify_typ (ProofContext.theory_of ctxt) T then ()
+  (if fastype_of t = Sign.certify_typ (Proof_Context.theory_of ctxt) T then ()
    else error "term_type_only: type mismatch";
    Syntax.pretty_typ ctxt T)
 

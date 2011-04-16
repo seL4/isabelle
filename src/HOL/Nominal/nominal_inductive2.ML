@@ -153,7 +153,7 @@ fun inst_params thy (vs, p) th cts =
 
 fun prove_strong_ind s alt_name avoids ctxt =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val ({names, ...}, {raw_induct, intrs, elims, ...}) =
       Inductive.the_inductive ctxt (Sign.intern_const thy s);
     val ind_params = Inductive.params_of raw_induct;
@@ -182,7 +182,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
       | xs => error ("No such case(s) in inductive definition: " ^ commas_quote xs));
     fun mk_avoids params name sets =
       let
-        val (_, ctxt') = ProofContext.add_fixes
+        val (_, ctxt') = Proof_Context.add_fixes
           (map (fn (s, T) => (Binding.name s, SOME T, NoSyn)) params) ctxt;
         fun mk s =
           let
@@ -311,7 +311,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
 
     fun obtain_fresh_name ts sets (T, fin) (freshs, ths1, ths2, ths3, ctxt) =
       let
-        val thy = ProofContext.theory_of ctxt;
+        val thy = Proof_Context.theory_of ctxt;
         (** protect terms to avoid that fresh_star_prod_set interferes with  **)
         (** pairs used in introduction rules of inductive predicate          **)
         fun protect t =
@@ -432,7 +432,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
                    (fn _ => cut_facts_tac [th] 1 THEN full_simp_tac (HOL_ss
                      addsimps vc_compat_ths1' @ fresh_ths1 @
                        perm_freshs_freshs') 1);
-                 val final' = ProofContext.export ctxt'' ctxt' [final];
+                 val final' = Proof_Context.export ctxt'' ctxt' [final];
                in resolve_tac final' 1 end) context 1])
                  (prems ~~ thss ~~ vc_compat' ~~ ihyps ~~ prems'')))
         in
@@ -442,7 +442,7 @@ fun prove_strong_ind s alt_name avoids ctxt =
             asm_full_simp_tac (simpset_of ctxt) 1)
         end) |>
         fresh_postprocess |>
-        singleton (ProofContext.export ctxt' ctxt);
+        singleton (Proof_Context.export ctxt' ctxt);
 
   in
     ctxt'' |>

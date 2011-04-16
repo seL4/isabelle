@@ -335,7 +335,7 @@ local
 in  
   fun freeze_spec th ctxt =
     let
-      val cert = Thm.cterm_of (ProofContext.theory_of ctxt);
+      val cert = Thm.cterm_of (Proof_Context.theory_of ctxt);
       val ([x], ctxt') = Variable.variant_fixes [name_of (HOLogic.dest_Trueprop (concl_of th))] ctxt;
       val spec' = Thm.instantiate ([], [(spec_var, cert (Free (x, spec_varT)))]) spec;
     in (th RS spec', ctxt') end
@@ -600,7 +600,7 @@ fun skolemize_with_choice_theorems ctxt choice_ths =
   in aux o make_nnf ctxt end
 
 fun skolemize ctxt =
-  let val thy = ProofContext.theory_of ctxt in
+  let val thy = Proof_Context.theory_of ctxt in
     skolemize_with_choice_theorems ctxt (choice_theorems thy)
   end
 

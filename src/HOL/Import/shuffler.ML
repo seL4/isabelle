@@ -608,7 +608,7 @@ fun find_potential thy t =
 
 fun gen_shuffle_tac ctxt search thms i st =
     let
-        val thy = ProofContext.theory_of ctxt
+        val thy = Proof_Context.theory_of ctxt
         val _ = message ("Shuffling " ^ (string_of_thm st))
         val t = List.nth(prems_of st,i-1)
         val set = set_prop thy t

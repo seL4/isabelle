@@ -83,7 +83,7 @@ fun dest_case thy t =
 val split_cases_tac = Subgoal.FOCUS_PARAMS (fn {context=ctxt, ...} =>
   SUBGOAL (fn (t, i) => case t of
     _ $ (_ $ Abs (_, _, body)) =>
-      (case dest_case (ProofContext.theory_of ctxt) body of
+      (case dest_case (Proof_Context.theory_of ctxt) body of
          NONE => no_tac
        | SOME (arg, conv) =>
            let open Conv in
@@ -122,7 +122,7 @@ fun cterm_instantiate' cts thm =
 application type correct*)
 fun apply_inst ctxt t u =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val T = domain_type (fastype_of t);
     val T' = fastype_of u;
     val subst = Type.typ_match (Sign.tsig_of thy) (T, T') Vartab.empty
@@ -170,7 +170,7 @@ fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
     val ((f_binding, fT), mixfix) = the_single fixes;
     val fname = Binding.name_of f_binding;
 
-    val cert = cterm_of (ProofContext.theory_of lthy);
+    val cert = cterm_of (Proof_Context.theory_of lthy);
     val (lhs, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop plain_eqn);
     val (head, args) = strip_comb lhs;
     val F = fold_rev lambda (head :: args) rhs;

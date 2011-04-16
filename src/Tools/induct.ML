@@ -128,7 +128,7 @@ fun swap_prems_conv 0 = Conv.all_conv
       Conv.implies_concl_conv (swap_prems_conv (i - 1)) then_conv
       Conv.rewr_conv Drule.swap_prems_eq
 
-fun drop_judgment ctxt = Object_Logic.drop_judgment (ProofContext.theory_of ctxt);
+fun drop_judgment ctxt = Object_Logic.drop_judgment (Proof_Context.theory_of ctxt);
 
 fun find_eq ctxt t =
   let
@@ -386,7 +386,7 @@ fun align_right msg xs ys =
 
 fun prep_inst ctxt align tune (tm, ts) =
   let
-    val cert = Thm.cterm_of (ProofContext.theory_of ctxt);
+    val cert = Thm.cterm_of (Proof_Context.theory_of ctxt);
     fun prep_var (x, SOME t) =
           let
             val cx = cert x;
@@ -470,7 +470,7 @@ in
 
 fun cases_tac ctxt simp insts opt_rule facts =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
 
     fun inst_rule r =
       (if null insts then r
@@ -573,7 +573,7 @@ in
 
 fun guess_instance ctxt rule i st =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val maxidx = Thm.maxidx_of st;
     val goal = Thm.term_of (Thm.cprem_of st i);  (*exception Subscript*)
     val params = rev (Term.rename_wrt_term goal (Logic.strip_params goal));
@@ -599,7 +599,7 @@ end;
 
 fun special_rename_params ctxt [[SOME (Free (z, Type (T, _)))]] [thm] =
       let
-        val x = Name.clean (ProofContext.revert_skolem ctxt z);
+        val x = Name.clean (Proof_Context.revert_skolem ctxt z);
         fun index i [] = []
           | index i (y :: ys) =
               if x = y then x ^ string_of_int i :: index (i + 1) ys
@@ -640,13 +640,13 @@ fun goal_params k (Const ("all", _) $ Abs (_, _, B)) = goal_params k B + 1
 
 fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val cert = Thm.cterm_of thy;
 
     val v = Free (x, T);
     fun spec_rule prfx (xs, body) =
       @{thm Pure.meta_spec}
-      |> Thm.rename_params_rule ([Name.clean (ProofContext.revert_skolem ctxt x)], 1)
+      |> Thm.rename_params_rule ([Name.clean (Proof_Context.revert_skolem ctxt x)], 1)
       |> Thm.lift_rule (cert prfx)
       |> `(Thm.prop_of #> Logic.strip_assums_concl)
       |-> (fn pred $ arg =>
@@ -722,7 +722,7 @@ fun get_inductP ctxt (fact :: _) = map single (find_inductP ctxt (Thm.concl_of f
 
 fun induct_tac ctxt simp def_insts arbitrary taking opt_rule facts =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
 
     val ((insts, defs), defs_ctxt) = fold_map add_defs def_insts ctxt |>> split_list;
     val atomized_defs = map (map (Conv.fconv_rule atomize_cterm)) defs;
@@ -777,7 +777,7 @@ fun induct_tac ctxt simp def_insts arbitrary taking opt_rule facts =
             |> Seq.maps (fn rule' =>
               CASES (rule_cases ctxt rule' cases)
                 (Tactic.rtac rule' i THEN
-                  PRIMITIVE (singleton (ProofContext.export defs_ctxt ctxt))) st'))))
+                  PRIMITIVE (singleton (Proof_Context.export defs_ctxt ctxt))) st'))))
     THEN_ALL_NEW_CASES
       ((if simp then simplify_tac ctxt THEN' (TRY o trivial_tac)
         else K all_tac)
@@ -809,7 +809,7 @@ in
 
 fun coinduct_tac ctxt inst taking opt_rule facts =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
 
     fun inst_rule r =
       if null inst then `Rule_Cases.get r

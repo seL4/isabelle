@@ -149,7 +149,7 @@ val perm_simproc =
   Simplifier.simproc_global @{theory} "perm_simp" ["pi1 \<bullet> (pi2 \<bullet> x)"] perm_simproc';
 
 fun projections rule =
-  Project_Rule.projections (ProofContext.init_global (Thm.theory_of_thm rule)) rule
+  Project_Rule.projections (Proof_Context.init_global (Thm.theory_of_thm rule)) rule
   |> map (Drule.export_without_context #> Rule_Cases.save rule);
 
 val supp_prod = @{thm supp_prod};
@@ -1374,7 +1374,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                                   resolve_tac freshs2' i
                               | _ => asm_simp_tac (HOL_basic_ss addsimps
                                   pt2_atoms addsimprocs [perm_simproc]) i)) 1])
-                       val final = ProofContext.export context3 context2 [th]
+                       val final = Proof_Context.export context3 context2 [th]
                      in
                        resolve_tac final 1
                      end) context1 1) (constrs ~~ constrs')) (descr'' ~~ ndescr)))
@@ -1615,7 +1615,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
             val y = Free ("y", U);
             val y' = Free ("y'", U)
           in
-            Drule.export_without_context (Goal.prove (ProofContext.init_global thy11) []
+            Drule.export_without_context (Goal.prove (Proof_Context.init_global thy11) []
               (map (augment_sort thy11 fs_cp_sort)
                 (finite_prems @
                    [HOLogic.mk_Trueprop (R $ x $ y),
@@ -1710,7 +1710,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
            (Const ("Nominal.supp", fsT' --> HOLogic.mk_setT aT) $ rec_ctxt))) dt_atomTs;
 
     val rec_unique_thms = split_conj_thm (Goal.prove
-      (ProofContext.init_global thy11) (map fst rec_unique_frees)
+      (Proof_Context.init_global thy11) (map fst rec_unique_frees)
       (map (augment_sort thy11 fs_cp_sort)
         (flat finite_premss @ finite_ctxt_prems @ rec_prems @ rec_prems'))
       (augment_sort thy11 fs_cp_sort
@@ -1993,7 +1993,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
                       (fn _ => cut_facts_tac [pi1_pi2_result RS sym] 1 THEN
                         full_simp_tac (HOL_basic_ss addsimps perm_fresh_fresh @
                           fresh_results @ fresh_results') 1);
-                    val final' = ProofContext.export context'' context' [final];
+                    val final' = Proof_Context.export context'' context' [final];
                     val _ = warning "finished!"
                   in
                     resolve_tac final' 1

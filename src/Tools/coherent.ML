@@ -82,7 +82,7 @@ fun valid_conj ctxt facts env [] = Seq.single (env, [])
   | valid_conj ctxt facts env (t :: ts) =
       Seq.maps (fn (u, x) => Seq.map (apsnd (cons x))
         (valid_conj ctxt facts
-           (Pattern.match (ProofContext.theory_of ctxt) (t, u) env) ts
+           (Pattern.match (Proof_Context.theory_of ctxt) (t, u) env) ts
          handle Pattern.MATCH => Seq.empty))
           (Seq.of_list (sort (int_ord o pairself snd) (Net.unify_term facts t)));
 
@@ -219,7 +219,7 @@ fun coherent_tac ctxt rules = SUBPROOF (fn {prems, concl, params, context, ...} 
            (mk_dom xs) Net.empty 0 0 of
          NONE => no_tac
        | SOME prf =>
-           rtac (thm_of_cl_prf (ProofContext.theory_of context) concl [] prf) 1
+           rtac (thm_of_cl_prf (Proof_Context.theory_of context) concl [] prf) 1
     end) context 1) ctxt;
 
 val setup = Method.setup @{binding coherent}

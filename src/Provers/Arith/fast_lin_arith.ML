@@ -168,7 +168,7 @@ fun set_number_of f =
 
 fun number_of ctxt =
   (case Data.get (Context.Proof ctxt) of
-    {number_of = SOME f, ...} => f (ProofContext.theory_of ctxt)
+    {number_of = SOME f, ...} => f (Proof_Context.theory_of ctxt)
   | _ => fn _ => fn _ => raise CTERM ("number_of", []));
 
 
@@ -474,7 +474,7 @@ in
 fun mkthm ss asms (just: injust) =
   let
     val ctxt = Simplifier.the_context ss;
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val {add_mono_thms, mult_mono_thms, inj_thms, lessD, simpset, ...} = get_data ctxt;
     val number_of = number_of ctxt;
     val simpset' = Simplifier.inherit_context ss simpset;
@@ -895,7 +895,7 @@ fun fwdproof ss (Tip asms : splittree) (j::js : injust list) = (mkthm ss asms j,
 fun prover ss thms Tconcl (js : injust list) split_neq pos : thm option =
   let
     val ctxt = Simplifier.the_context ss
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val nTconcl = LA_Logic.neg_prop Tconcl
     val cnTconcl = cterm_of thy nTconcl
     val nTconclthm = Thm.assume cnTconcl

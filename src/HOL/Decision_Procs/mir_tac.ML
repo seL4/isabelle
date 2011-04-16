@@ -94,7 +94,7 @@ fun mir_tac ctxt q i =
         THEN (fn st =>
   let
     val g = List.nth (prems_of st, i - 1)
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     (* Transform the term*)
     val (t,np,nh) = prepare_for_mir thy q g
     (* Some simpsets for dealing with mod div abs and nat*)

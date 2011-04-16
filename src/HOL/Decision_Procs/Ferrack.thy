@@ -1996,7 +1996,7 @@ in fn (ctxt, t) =>
   let 
     val vs = Term.add_frees t [];
     val t' = (term_of_fm vs o @{code linrqe} o fm_of_term vs) t;
-  in (Thm.cterm_of (ProofContext.theory_of ctxt) o HOLogic.mk_Trueprop o HOLogic.mk_eq) (t, t') end
+  in (Thm.cterm_of (Proof_Context.theory_of ctxt) o HOLogic.mk_Trueprop o HOLogic.mk_eq) (t, t') end
 end;
 *}
 

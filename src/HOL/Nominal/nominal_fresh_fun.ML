@@ -125,7 +125,7 @@ fun fresh_fun_tac no_asm i thm =
   (* Find the variable we instantiate *)
   let
     val thy = theory_of_thm thm;
-    val ctxt = ProofContext.init_global thy;
+    val ctxt = Proof_Context.init_global thy;
     val ss = global_simpset_of thy;
     val abs_fresh = Global_Theory.get_thms thy "abs_fresh";
     val fresh_perm_app = Global_Theory.get_thms thy "fresh_perm_app";

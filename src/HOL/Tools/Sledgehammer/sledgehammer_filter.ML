@@ -199,7 +199,7 @@ fun type_match thy (T1, T2) =
 fun instantiate_if_induct_rule ctxt stmt stmt_xs (ax as (_, (_, th))) =
   case struct_induct_rule_on th of
     SOME (p_name, ind_T) =>
-    let val thy = ProofContext.theory_of ctxt in
+    let val thy = Proof_Context.theory_of ctxt in
       stmt_xs |> filter (fn (_, T) => type_match thy (T, ind_T))
               |> map_filter (try (instantiate_induct_rule ctxt stmt p_name ax))
     end
@@ -542,7 +542,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
         (fudge as {threshold_divisor, ridiculous_threshold, ...})
         ({add, del, ...} : relevance_override) facts goal_ts =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val const_tab = fold (count_fact_consts thy fudge) facts Symtab.empty
     val goal_const_tab =
       pconsts_in_terms thy is_built_in_const false (SOME false) goal_ts
@@ -797,9 +797,9 @@ fun all_facts ctxt reserved really_all no_dangerous_types
               ({intro_bonus, elim_bonus, simp_bonus, ...} : relevance_fudge)
               add_ths chained_ths =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val global_facts = Global_Theory.facts_of thy
-    val local_facts = ProofContext.facts_of ctxt
+    val local_facts = Proof_Context.facts_of ctxt
     val named_locals = local_facts |> Facts.dest_static []
     val assms = Assumption.all_assms_of ctxt
     fun is_assum th = exists (fn ct => prop_of th aconv term_of ct) assms
@@ -832,7 +832,7 @@ fun all_facts ctxt reserved really_all no_dangerous_types
             val backquote_thm =
               backquote o string_for_term ctxt o close_form o prop_of
             fun check_thms a =
-              case try (ProofContext.get_thms ctxt) a of
+              case try (Proof_Context.get_thms ctxt) a of
                 NONE => false
               | SOME ths' => Thm.eq_thms (ths, ths')
           in
@@ -887,7 +887,7 @@ fun relevant_facts ctxt no_dangerous_types (threshold0, threshold1)
                    max_relevant is_built_in_const fudge
                    (override as {add, only, ...}) chained_ths hyp_ts concl_t =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val decay = Math.pow ((1.0 - threshold1) / (1.0 - threshold0),
                           1.0 / Real.fromInt (max_relevant + 1))
     val add_ths = Attrib.eval_thms ctxt add

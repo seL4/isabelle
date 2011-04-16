@@ -177,7 +177,7 @@ fun default_provers_param_value ctxt =
 
 val set_default_raw_param = Data.map o AList.update (op =) o unalias_raw_param
 fun default_raw_params ctxt =
-  let val thy = ProofContext.theory_of ctxt in
+  let val thy = Proof_Context.theory_of ctxt in
     Data.get thy
     |> fold (AList.default (op =))
             [("provers", [case !provers of
@@ -332,7 +332,7 @@ fun sledgehammer_params_trans params =
   Toplevel.theory
       (fold set_default_raw_param params
        #> tap (fn thy =>
-                  let val ctxt = ProofContext.init_global thy in
+                  let val ctxt = Proof_Context.init_global thy in
                     writeln ("Default parameters for Sledgehammer:\n" ^
                              (case default_raw_params ctxt |> rev of
                                 [] => "none"

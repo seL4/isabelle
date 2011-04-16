@@ -210,7 +210,7 @@ fun dup_intr th = zero_var_indexes (th RS classical);
 fun dup_elim th =
   let
     val rl = (th RSN (2, revcut_rl)) |> Thm.assumption 2 |> Seq.hd;
-    val ctxt = ProofContext.init_global (Thm.theory_of_thm rl);
+    val ctxt = Proof_Context.init_global (Thm.theory_of_thm rl);
   in rule_by_tactic ctxt (TRYALL (etac revcut_rl)) rl end;
 
 
@@ -850,13 +850,13 @@ structure GlobalClaset = Theory_Data
 val get_global_claset = #1 o GlobalClaset.get;
 val map_global_claset = GlobalClaset.map o apfst;
 
-val get_context_cs = #2 o GlobalClaset.get o ProofContext.theory_of;
+val get_context_cs = #2 o GlobalClaset.get o Proof_Context.theory_of;
 fun map_context_cs f = GlobalClaset.map (apsnd
   (fn ContextCS {swrappers, uwrappers} => make_context_cs (f (swrappers, uwrappers))));
 
 fun global_claset_of thy =
   let val (cs, ctxt_cs) = GlobalClaset.get thy
-  in context_cs (ProofContext.init_global thy) cs (ctxt_cs) end;
+  in context_cs (Proof_Context.init_global thy) cs (ctxt_cs) end;
 
 
 (* context dependent components *)

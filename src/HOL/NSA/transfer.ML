@@ -53,7 +53,7 @@ fun unstar_term consts term =
 
 fun transfer_thm_of ctxt ths t =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val {intros,unfolds,refolds,consts} = TransferData.get (Context.Proof ctxt);
     val meta = Local_Defs.meta_rewrite_rule ctxt;
     val ths' = map meta ths;

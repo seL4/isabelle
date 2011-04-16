@@ -32,7 +32,7 @@ fun spark_open vc_name thy =
   end;
 
 fun add_proof_fun_cmd pf thy =
-  let val ctxt = ProofContext.init_global thy
+  let val ctxt = Proof_Context.init_global thy
   in SPARK_VCs.add_proof_fun
     (fn optT => Syntax.parse_term ctxt #>
        the_default I (Option.map Type.constraint optT) #>
@@ -54,7 +54,7 @@ fun get_vc thy vc_name =
 
 fun prove_vc vc_name lthy =
   let
-    val thy = ProofContext.theory_of lthy;
+    val thy = Proof_Context.theory_of lthy;
     val (ctxt, stmt) = get_vc thy vc_name
   in
     Specification.theorem Thm.theoremK NONE
@@ -80,7 +80,7 @@ fun show_status (p, f) = Toplevel.no_timing o Toplevel.keep (fn state =>
 
     val ctxt = state |>
       Toplevel.theory_of |>
-      ProofContext.init_global |>
+      Proof_Context.init_global |>
       Context.proof_map (fold Element.init context)
   in
     [Pretty.str "Context:",

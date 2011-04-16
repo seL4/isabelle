@@ -73,7 +73,7 @@ fun merge_ttab ttabp =
   SMT_Utils.dict_merge (Ord_List.merge typ_ord) ttabp
 
 fun lookup_ttab ctxt ttab T =
-  let fun match (U, _) = Sign.typ_instance (ProofContext.theory_of ctxt) (T, U)
+  let fun match (U, _) = Sign.typ_instance (Proof_Context.theory_of ctxt) (T, U)
   in
     get_first (find_first match)
       (SMT_Utils.dict_lookup ttab (SMT_Config.solver_class_of ctxt))

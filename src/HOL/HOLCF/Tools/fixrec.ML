@@ -122,7 +122,7 @@ fun add_fixdefs
   (spec : (Attrib.binding * term) list)
   (lthy : local_theory) =
   let
-    val thy = ProofContext.theory_of lthy
+    val thy = Proof_Context.theory_of lthy
     val names = map (Binding.name_of o fst o fst) fixes
     val all_names = space_implode "_" names
     val (lhss, rhss) = ListPair.unzip (map (dest_eqs o snd) spec)
@@ -355,7 +355,7 @@ fun gen_fixrec
         (all_names ~~ (spec ~~ skips))
     val blocks = map block_of_name names
 
-    val matcher_tab = FixrecMatchData.get (ProofContext.theory_of lthy)
+    val matcher_tab = FixrecMatchData.get (Proof_Context.theory_of lthy)
     fun match_name c =
       case Symtab.lookup matcher_tab c of SOME m => m
         | NONE => fixrec_err ("unknown pattern constructor: " ^ c)

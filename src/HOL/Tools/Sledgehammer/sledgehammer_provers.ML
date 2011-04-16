@@ -123,15 +123,15 @@ fun is_smt_prover ctxt name =
   member (op =) (SMT_Solver.available_solvers_of ctxt) name
 
 fun is_prover_supported ctxt name =
-  let val thy = ProofContext.theory_of ctxt in
+  let val thy = Proof_Context.theory_of ctxt in
     is_smt_prover ctxt name orelse member (op =) (supported_atps thy) name
   end
 
 fun is_prover_installed ctxt =
-  is_smt_prover ctxt orf is_atp_installed (ProofContext.theory_of ctxt)
+  is_smt_prover ctxt orf is_atp_installed (Proof_Context.theory_of ctxt)
 
 fun default_max_relevant_for_prover ctxt name =
-  let val thy = ProofContext.theory_of ctxt in
+  let val thy = Proof_Context.theory_of ctxt in
     if is_smt_prover ctxt name then
       SMT_Solver.default_max_relevant ctxt name
     else
@@ -208,7 +208,7 @@ fun relevance_fudge_for_prover ctxt name =
 
 fun supported_provers ctxt =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val (remote_provers, local_provers) =
       sort_strings (supported_atps thy) @
       sort_strings (SMT_Solver.available_solvers_of ctxt)
@@ -695,7 +695,7 @@ fun run_smt_solver auto name (params as {debug, verbose, ...}) minimize_command
   end
 
 fun get_prover ctxt auto name =
-  let val thy = ProofContext.theory_of ctxt in
+  let val thy = Proof_Context.theory_of ctxt in
     if is_smt_prover ctxt name then
       run_smt_solver auto name
     else if member (op =) (supported_atps thy) name then

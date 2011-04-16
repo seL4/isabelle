@@ -65,7 +65,7 @@ datatype clause_context = ClauseContext of
 
 
 fun transfer_clause_ctx thy (ClauseContext { ctxt, qs, gs, lhs, rhs, cqs, ags, case_hyp }) =
-  ClauseContext { ctxt = ProofContext.transfer thy ctxt,
+  ClauseContext { ctxt = Proof_Context.transfer thy ctxt,
     qs = qs, gs = gs, lhs = lhs, rhs = rhs, cqs = cqs, ags = ags, case_hyp = case_hyp }
 
 
@@ -145,7 +145,7 @@ fun mk_clause_context x ctxt (pre_qs,pre_gs,pre_lhs,pre_rhs) =
     val (qs, ctxt') = Variable.variant_fixes (map fst pre_qs) ctxt
       |>> map2 (fn (_, T) => fn n => Free (n, T)) pre_qs
 
-    val thy = ProofContext.theory_of ctxt'
+    val thy = Proof_Context.theory_of ctxt'
 
     fun inst t = subst_bounds (rev qs, t)
     val gs = map inst pre_gs
@@ -183,7 +183,7 @@ fun mk_clause_info globals G f no cdata qglr tree RCs GIntro_thm RIntro_thms =
     val Globals {h, ...} = globals
 
     val ClauseContext { ctxt, qs, cqs, ags, ... } = cdata
-    val cert = Thm.cterm_of (ProofContext.theory_of ctxt)
+    val cert = Thm.cterm_of (Proof_Context.theory_of ctxt)
 
     (* Instantiate the GIntro thm with "f" and import into the clause context. *)
     val lGI = GIntro_thm
@@ -203,7 +203,7 @@ fun mk_clause_info globals G f no cdata qglr tree RCs GIntro_thm RIntro_thms =
           HOLogic.mk_Trueprop (G $ rcarg $ (h $ rcarg))
           |> fold_rev (curry Logic.mk_implies o prop_of) rcassm
           |> fold_rev (Logic.all o Free) rcfix
-          |> Pattern.rewrite_term (ProofContext.theory_of ctxt) [(f, h)] []
+          |> Pattern.rewrite_term (Proof_Context.theory_of ctxt) [(f, h)] []
           |> abstract_over_list (rev qs)
       in
         RCInfo {RIvs=rcfix, rcarg=rcarg, CCas=rcassm, llRI=llRI, h_assum=h_assum}
@@ -386,7 +386,7 @@ fun mk_uniqueness_case thy globals G f ihyp ih_intro G_cases compat_store clause
 fun prove_stuff ctxt globals G f R clauses complete compat compat_store G_elim f_def =
   let
     val Globals {h, domT, ranT, x, ...} = globals
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
 
     (* Inductive Hypothesis: !!z. (z,x):R ==> EX!y. (z,y):G *)
     val ihyp = Term.all domT $ Abs ("z", domT,
@@ -447,7 +447,7 @@ fun inductive_def (binding as ((R, T), _)) intrs lthy =
           [] (* no special monos *)
       ||> Local_Theory.restore_naming lthy
 
-    val cert = cterm_of (ProofContext.theory_of lthy)
+    val cert = cterm_of (Proof_Context.theory_of lthy)
     fun requantify orig_intro thm =
       let
         val (qs, t) = dest_all_all orig_intro
@@ -692,7 +692,7 @@ fun mk_partial_induct_rule thy globals R complete_thm clauses =
 (* FIXME: broken by design *)
 fun mk_domain_intro ctxt (Globals {domT, ...}) R R_cases clause =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val ClauseInfo {cdata = ClauseContext {gs, lhs, cqs, ...},
       qglr = (oqs, _, _, _), ...} = clause
     val goal = HOLogic.mk_Trueprop (mk_acc domT R $ lhs)
@@ -849,8 +849,8 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
     val ((f, (_, f_defthm)), lthy) =
       PROFILE "def_fun" (define_function (defname ^ "_sumC_def") (fname, mixfix) domT ranT G default) lthy
 
-    val RCss = map (map (inst_RC (ProofContext.theory_of lthy) fvar f)) RCss
-    val trees = map (Function_Ctx_Tree.inst_tree (ProofContext.theory_of lthy) fvar f) trees
+    val RCss = map (map (inst_RC (Proof_Context.theory_of lthy) fvar f)) RCss
+    val trees = map (Function_Ctx_Tree.inst_tree (Proof_Context.theory_of lthy) fvar f) trees
 
     val ((R, RIntro_thmss, R_elim), lthy) =
       PROFILE "def_rel" (define_recursion_relation (rel_name defname) domT abstract_qglrs clauses RCss) lthy
@@ -858,10 +858,10 @@ fun prepare_function config defname [((fname, fT), mixfix)] abstract_qglrs lthy 
     val (_, lthy) =
       Local_Theory.abbrev Syntax.mode_default ((Binding.name (dom_name defname), NoSyn), mk_acc domT R) lthy
 
-    val newthy = ProofContext.theory_of lthy
+    val newthy = Proof_Context.theory_of lthy
     val clauses = map (transfer_clause_ctx newthy) clauses
 
-    val cert = cterm_of (ProofContext.theory_of lthy)
+    val cert = cterm_of (Proof_Context.theory_of lthy)
 
     val xclauses = PROFILE "xclauses"
       (map7 (mk_clause_info globals G f) (1 upto n) clauses abstract_qglrs trees

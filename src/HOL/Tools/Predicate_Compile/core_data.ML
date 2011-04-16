@@ -136,7 +136,7 @@ structure PredData = Theory_Data
 (* queries *)
 
 fun lookup_pred_data ctxt name =
-  Option.map rep_pred_data (try (Graph.get_node (PredData.get (ProofContext.theory_of ctxt))) name)
+  Option.map rep_pred_data (try (Graph.get_node (PredData.get (Proof_Context.theory_of ctxt))) name)
 
 fun the_pred_data ctxt name = case lookup_pred_data ctxt name
  of NONE => error ("No such predicate " ^ quote name)  
@@ -144,7 +144,7 @@ fun the_pred_data ctxt name = case lookup_pred_data ctxt name
 
 val is_registered = is_some oo lookup_pred_data
 
-val all_preds_of = Graph.keys o PredData.get o ProofContext.theory_of
+val all_preds_of = Graph.keys o PredData.get o Proof_Context.theory_of
 
 val intros_of = map snd o #intros oo the_pred_data
 
@@ -203,11 +203,11 @@ val predfun_elim_of = #elim ooo the_predfun_data
 val predfun_neg_intro_of = #neg_intro ooo the_predfun_data
 
 val intros_graph_of =
-  Graph.map (K (map snd o #intros o rep_pred_data)) o PredData.get o ProofContext.theory_of
+  Graph.map (K (map snd o #intros o rep_pred_data)) o PredData.get o Proof_Context.theory_of
 
 fun prove_casesrule ctxt (pred, (pre_cases_rule, nparams)) cases_rule =
   let
-    val thy = ProofContext.theory_of ctxt
+    val thy = Proof_Context.theory_of ctxt
     val nargs = length (binder_types (fastype_of pred))
     fun PEEK f dependent_tactic st = dependent_tactic (f st) st
     fun meta_eq_of th = th RS @{thm eq_reflection}
@@ -257,7 +257,7 @@ fun fetch_pred_data ctxt name =
           let
             val (const, _) = strip_comb (HOLogic.dest_Trueprop (concl_of intro))
           in (fst (dest_Const const) = name) end;
-        val thy = ProofContext.theory_of ctxt
+        val thy = Proof_Context.theory_of ctxt
         val intros = map (preprocess_intro thy) (filter is_intro_of (#intrs result))
         val index = find_index (fn s => s = name) (#names (fst info))
         val pre_elim = nth (#elims result) index
@@ -330,7 +330,7 @@ fun register_intros (constname, pre_intros) thy =
     val pred = Const (constname, T)
     val pre_elim = 
       (Drule.export_without_context o Skip_Proof.make_thm thy)
-      (mk_casesrule (ProofContext.init_global thy) pred pre_intros)
+      (mk_casesrule (Proof_Context.init_global thy) pred pre_intros)
   in register_predicate (constname, pre_intros, pre_elim) thy end
 
 fun defined_function_of compilation pred =
@@ -371,7 +371,7 @@ fun extend value_of edges_of key G = fst (extend' value_of edges_of key (G, []))
 
 fun extend_intro_graph names thy =
   let
-    val ctxt = ProofContext.init_global thy
+    val ctxt = Proof_Context.init_global thy
   in
     PredData.map (fold (extend (fetch_pred_data ctxt) (depending_preds_of ctxt)) names) thy
   end
@@ -384,7 +384,7 @@ fun preprocess_intros name thy =
         val (named_intros, SOME elim) = rules
         val named_intros' = map (apsnd (preprocess_intro thy)) named_intros
         val pred = Const (name, Sign.the_const_type thy name)
-        val ctxt = ProofContext.init_global thy
+        val ctxt = Proof_Context.init_global thy
         val elim_t = mk_casesrule ctxt pred (map snd named_intros')
         val nparams = (case try (Inductive.the_inductive ctxt) name of
             SOME (_, result) => length (Inductive.params_of (#raw_induct result))
@@ -410,7 +410,7 @@ fun alternative_compilation_of_global thy pred_name mode =
 
 fun alternative_compilation_of ctxt pred_name mode =
   AList.lookup eq_mode
-    (Symtab.lookup_list (Alt_Compilations_Data.get (ProofContext.theory_of ctxt)) pred_name) mode
+    (Symtab.lookup_list (Alt_Compilations_Data.get (Proof_Context.theory_of ctxt)) pred_name) mode
 
 fun force_modes_and_compilations pred_name compilations =
   let

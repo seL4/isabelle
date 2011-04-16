@@ -76,7 +76,7 @@ fun process_specification options specs thy' =
 
 fun preprocess_strong_conn_constnames options gr ts thy =
   if forall (fn (Const (c, _)) =>
-      Core_Data.is_registered (ProofContext.init_global thy) c) ts then
+      Core_Data.is_registered (Proof_Context.init_global thy) c) ts then
     thy
   else
     let
@@ -149,7 +149,7 @@ fun extract_options lthy (((expected_modes, proposed_modes), (compilation, raw_o
     val proposed_modes = case proposed_modes of
           Single_Pred proposed_modes => [(const, proposed_modes)]
         | Multiple_Preds proposed_modes => map
-          (apfst (Code.read_const (ProofContext.theory_of lthy))) proposed_modes
+          (apfst (Code.read_const (Proof_Context.theory_of lthy))) proposed_modes
   in
     Options {
       expected_modes = Option.map (pair const) expected_modes,
@@ -181,7 +181,7 @@ fun extract_options lthy (((expected_modes, proposed_modes), (compilation, raw_o
 
 fun code_pred_cmd (((expected_modes, proposed_modes), raw_options), raw_const) lthy =
   let
-     val thy = ProofContext.theory_of lthy
+     val thy = Proof_Context.theory_of lthy
      val const = Code.read_const thy raw_const
      val T = Sign.the_const_type thy const
      val t = Const (const, T)
@@ -191,7 +191,7 @@ fun code_pred_cmd (((expected_modes, proposed_modes), raw_options), raw_const) l
       let
         val lthy' = Local_Theory.background_theory (preprocess options t) lthy
         val const =
-          case Predicate_Compile_Fun.pred_of_function (ProofContext.theory_of lthy') const of
+          case Predicate_Compile_Fun.pred_of_function (Proof_Context.theory_of lthy') const of
             SOME c => c
           | NONE => const
         val _ = print_step options "Starting Predicate Compile Core..."

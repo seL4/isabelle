@@ -26,11 +26,11 @@ structure Evaluator = Theory_Data
 val add_evaluator = Evaluator.map o AList.update (op =);
 
 fun value_select name ctxt =
-  case AList.lookup (op =) (Evaluator.get (ProofContext.theory_of ctxt)) name
+  case AList.lookup (op =) (Evaluator.get (Proof_Context.theory_of ctxt)) name
    of NONE => error ("No such evaluator: " ^ name)
     | SOME f => f ctxt;
 
-fun value ctxt t = let val evaluators = Evaluator.get (ProofContext.theory_of ctxt)
+fun value ctxt t = let val evaluators = Evaluator.get (Proof_Context.theory_of ctxt)
   in if null evaluators then error "No evaluators"
   else let val (evaluators, (_, evaluator)) = split_last evaluators
     in case get_first (fn (_, f) => try (f ctxt) t) evaluators

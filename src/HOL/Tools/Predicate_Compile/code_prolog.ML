@@ -312,7 +312,7 @@ fun preprocess_intro thy rule =
 
 fun translate_intros ensure_groundness ctxt gr const constant_table =
   let
-    val intros = map (preprocess_intro (ProofContext.theory_of ctxt)) (Graph.get_node gr const)
+    val intros = map (preprocess_intro (Proof_Context.theory_of ctxt)) (Graph.get_node gr const)
     val (intros', ctxt') = Variable.import_terms true (map prop_of intros) ctxt
     val constant_table' = declare_consts (fold Term.add_const_names intros' []) constant_table
     fun translate_intro intro =
@@ -550,7 +550,7 @@ fun mk_ground_impl ctxt limited_types (T as Type (Tcon, Targs)) (seen, constant_
         in
           (clause :: flat rec_clauses, (seen', constant_table''))
         end
-      val constrs = inst_constrs_of (ProofContext.theory_of ctxt) T
+      val constrs = inst_constrs_of (Proof_Context.theory_of ctxt) T
       val constrs' = (constrs ~~ map (is_recursive_constr T) constrs)
         |> (fn cs => filter_out snd cs @ filter snd cs)
       val (clauses, constant_table') =
@@ -873,7 +873,7 @@ fun restore_term ctxt constant_table (Var s, T) = Free (s, T)
   | restore_term ctxt constant_table (Cons s, T) = Const (restore_const constant_table s, T)
   | restore_term ctxt constant_table (AppF (f, args), T) =
     let
-      val thy = ProofContext.theory_of ctxt
+      val thy = Proof_Context.theory_of ctxt
       val c = restore_const constant_table f
       val cT = Sign.the_const_type thy c
       val (argsT, resT) = strip_type cT
@@ -923,7 +923,7 @@ val preprocess_options = Predicate_Compile_Aux.Options {
 
 fun values ctxt soln t_compr =
   let
-    val options = code_options_of (ProofContext.theory_of ctxt)
+    val options = code_options_of (Proof_Context.theory_of ctxt)
     val split = case t_compr of (Const (@{const_name Collect}, _) $ t) => t
       | _ => error ("Not a set comprehension: " ^ Syntax.string_of_term ctxt t_compr);
     val (body, Ts, fp) = HOLogic.strip_psplits split;
@@ -936,12 +936,12 @@ fun values ctxt soln t_compr =
         (Const (name, T), all_args) => (Const (name, T), all_args)
       | (head, _) => error ("Not a constant: " ^ Syntax.string_of_term ctxt head)
     val _ = tracing "Preprocessing specification..."
-    val T = Sign.the_const_type (ProofContext.theory_of ctxt) name
+    val T = Sign.the_const_type (Proof_Context.theory_of ctxt) name
     val t = Const (name, T)
     val thy' =
-      Theory.copy (ProofContext.theory_of ctxt)
+      Theory.copy (Proof_Context.theory_of ctxt)
       |> Predicate_Compile.preprocess preprocess_options t
-    val ctxt' = ProofContext.init_global thy'
+    val ctxt' = Proof_Context.init_global thy'
     val _ = tracing "Generating prolog program..."
     val (p, constant_table) = generate (NONE, #ensure_groundness options) ctxt' name (* FIXME *)
       |> post_process ctxt' options name
@@ -1012,13 +1012,13 @@ val _ = Outer_Syntax.improper_command "values" "enumerate and print comprehensio
 fun quickcheck ctxt [(t, [])] [_, size] =
   let
     val t' = list_abs_free (Term.add_frees t [], t)
-    val options = code_options_of (ProofContext.theory_of ctxt)
-    val thy = Theory.copy (ProofContext.theory_of ctxt)
+    val options = code_options_of (Proof_Context.theory_of ctxt)
+    val thy = Theory.copy (Proof_Context.theory_of ctxt)
     val ((((full_constname, constT), vs'), intro), thy1) =
       Predicate_Compile_Aux.define_quickcheck_predicate t' thy
     val thy2 = Context.theory_map (Predicate_Compile_Alternative_Defs.add_thm intro) thy1
     val thy3 = Predicate_Compile.preprocess preprocess_options (Const (full_constname, constT)) thy2
-    val ctxt' = ProofContext.init_global thy3
+    val ctxt' = Proof_Context.init_global thy3
     val _ = tracing "Generating prolog program..."
     val (p, constant_table) = generate (NONE, true) ctxt' full_constname
       |> post_process ctxt' (set_ensure_groundness options) full_constname

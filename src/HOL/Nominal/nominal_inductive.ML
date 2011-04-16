@@ -146,7 +146,7 @@ fun first_order_mrs ths th = ths MRS
 
 fun prove_strong_ind s avoids ctxt =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val ({names, ...}, {raw_induct, intrs, elims, ...}) =
       Inductive.the_inductive ctxt (Sign.intern_const thy s);
     val ind_params = Inductive.params_of raw_induct;
@@ -396,7 +396,7 @@ fun prove_strong_ind s avoids ctxt =
                    (fn _ => cut_facts_tac [th] 1 THEN full_simp_tac (HOL_ss
                      addsimps vc_compat_ths'' @ freshs2' @
                        perm_fresh_fresh @ fresh_atm) 1);
-                 val final' = ProofContext.export ctxt'' ctxt' [final];
+                 val final' = Proof_Context.export ctxt'' ctxt' [final];
                in resolve_tac final' 1 end) context 1])
                  (prems ~~ thss ~~ ihyps ~~ prems'')))
         in
@@ -404,7 +404,7 @@ fun prove_strong_ind s avoids ctxt =
           REPEAT (REPEAT (resolve_tac [conjI, impI] 1) THEN
             etac impE 1 THEN atac 1 THEN REPEAT (etac @{thm allE_Nil} 1) THEN
             asm_full_simp_tac (simpset_of ctxt) 1)
-        end) |> singleton (ProofContext.export ctxt' ctxt);
+        end) |> singleton (Proof_Context.export ctxt' ctxt);
 
     (** strong case analysis rule **)
 
@@ -536,10 +536,10 @@ fun prove_strong_ind s avoids ctxt =
                            REPEAT_DETERM (TRY (rtac conjI 1) THEN
                              resolve_tac case_hyps' 1)
                          end) ctxt4 1)
-                  val final = ProofContext.export ctxt3 ctxt2 [th]
+                  val final = Proof_Context.export ctxt3 ctxt2 [th]
                 in resolve_tac final 1 end) ctxt1 1)
                   (thss ~~ hyps ~~ prems))) |>
-                  singleton (ProofContext.export ctxt' ctxt))
+                  singleton (Proof_Context.export ctxt' ctxt))
 
   in
     ctxt'' |>
@@ -584,7 +584,7 @@ fun prove_strong_ind s avoids ctxt =
 
 fun prove_eqvt s xatoms ctxt =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val ({names, ...}, {raw_induct, intrs, elims, ...}) =
       Inductive.the_inductive ctxt (Sign.intern_const thy s);
     val raw_induct = atomize_induct ctxt raw_induct;
@@ -659,7 +659,7 @@ fun prove_eqvt s xatoms ctxt =
           (fn {context, ...} => EVERY (rtac raw_induct 1 :: map (fn intr_vs =>
               full_simp_tac eqvt_ss 1 THEN
               eqvt_tac context pi' intr_vs) intrs')) |>
-          singleton (ProofContext.export ctxt' ctxt)))
+          singleton (Proof_Context.export ctxt' ctxt)))
       end) atoms
   in
     ctxt |>

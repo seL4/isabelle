@@ -33,7 +33,7 @@ fun mk_congeq ctxt fs th =
   let
    val (f as Const(fN,fT)) = th |> prop_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq
      |> fst |> strip_comb |> fst
-   val thy = ProofContext.theory_of ctxt
+   val thy = Proof_Context.theory_of ctxt
    val cert = Thm.cterm_of thy
    val (((_,_),[th']), ctxt') = Variable.import true [th] ctxt
    val (lhs, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of th'))
@@ -118,7 +118,7 @@ fun genreif ctxt raw_eqs t =
        constructor and n is the number of the atom corresponding to t *)
     fun decomp_genreif da cgns (t,ctxt) bds =
       let
-        val thy = ProofContext.theory_of ctxt
+        val thy = Proof_Context.theory_of ctxt
         val cert = cterm_of thy
         fun tryabsdecomp (s,ctxt) bds =
           (case s of
@@ -192,7 +192,7 @@ fun genreif ctxt raw_eqs t =
                                       (insert (op aconv) vs vss, insert (op aconv) n ns)) nths ([],[])
             val (vsns, ctxt') = Variable.variant_fixes (replicate (length vss) "vs") ctxt
             val (xns, ctxt'') = Variable.variant_fixes (replicate (length nths) "x") ctxt'
-            val thy = ProofContext.theory_of ctxt''
+            val thy = Proof_Context.theory_of ctxt''
             val cert = cterm_of thy
             val certT = ctyp_of thy
             val vsns_map = vss ~~ vsns
@@ -247,7 +247,7 @@ fun genreif ctxt raw_eqs t =
         val tys = fold_rev (fn f => fold (insert (op =)) (f |> fastype_of |> binder_types |> tl)
                             ) fs []
         val (vs, ctxt') = Variable.variant_fixes (replicate (length tys) "vs") ctxt
-        val thy = ProofContext.theory_of ctxt'
+        val thy = Proof_Context.theory_of ctxt'
         val cert = cterm_of thy
         val vstys = map (fn (t,v) => (t,SOME (cert (Free(v,t)))))
                     (tys ~~ vs)
@@ -274,7 +274,7 @@ fun genreif ctxt raw_eqs t =
          | is_listVar _ = false
     val vars = th |> prop_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> snd
                   |> strip_comb |> snd |> filter is_listVar
-    val cert = cterm_of (ProofContext.theory_of ctxt)
+    val cert = cterm_of (Proof_Context.theory_of ctxt)
     val cvs = map (fn (v as Var(n,t)) => (cert v,
                   the (AList.lookup Type.could_unify bds t) |> snd |> HOLogic.mk_list (dest_listT t) |> cert)) vars
     val th' = instantiate ([], cvs) th

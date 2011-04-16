@@ -410,7 +410,7 @@ fun add_ind_set_def
     {quiet_mode, verbose, alt_name, coind, no_elim, no_ind, skip_mono, fork_mono}
     cs intros monos params cnames_syn lthy =
   let
-    val thy = ProofContext.theory_of lthy;
+    val thy = Proof_Context.theory_of lthy;
     val {set_arities, pred_arities, to_pred_simps, ...} =
       PredSetConvData.get (Context.Proof lthy);
     fun infer (Abs (_, _, t)) = infer t

@@ -102,11 +102,11 @@ fun chained_mk_builtin_typ bs sym =
   chained (fn {mk_builtin_typ=mk, ...} : mk_builtins => mk sym) bs
 
 fun chained_mk_builtin_num ctxt bs i T =
-  let val thy = ProofContext.theory_of ctxt
+  let val thy = Proof_Context.theory_of ctxt
   in chained (fn {mk_builtin_num=mk, ...} : mk_builtins => mk thy i T) bs end
 
 fun chained_mk_builtin_fun ctxt bs s cts =
-  let val thy = ProofContext.theory_of ctxt
+  let val thy = Proof_Context.theory_of ctxt
   in chained (fn {mk_builtin_fun=mk, ...} : mk_builtins => mk thy s cts) bs end
 
 fun fst_int_ord ((i1, _), (i2, _)) = int_ord (i1, i2)
