@@ -19,6 +19,7 @@ sig
   val is_fixed: Proof.context -> string -> bool
   val newly_fixed: Proof.context -> Proof.context -> string -> bool
   val add_fixed: Proof.context -> term -> (string * typ) list -> (string * typ) list
+  val name: binding -> string
   val default_type: Proof.context -> string -> typ option
   val def_type: Proof.context -> bool -> indexname -> typ option
   val def_sort: Proof.context -> indexname -> sort option
@@ -154,6 +155,9 @@ fun newly_fixed inner outer x = is_fixed inner x andalso not (is_fixed outer x);
 
 fun add_fixed ctxt = Term.fold_aterms
   (fn Free (x, T) => if is_fixed ctxt x then insert (op =) (x, T) else I | _ => I);
+
+(*checked name binding*)
+val name = Long_Name.base_name o Name_Space.full_name Name_Space.default_naming;
 
 
 

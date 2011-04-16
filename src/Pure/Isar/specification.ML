@@ -172,7 +172,7 @@ end;
 fun gen_axioms do_print prep raw_vars raw_specs thy =
   let
     val ((vars, specs), _) = prep raw_vars raw_specs (ProofContext.init_global thy);
-    val xs = map (fn ((b, T), _) => (Name.of_binding b, T)) vars;
+    val xs = map (fn ((b, T), _) => (Variable.name b, T)) vars;
 
     (*consts*)
     val (consts, consts_thy) = thy |> fold_map Theory.specify_const vars;
@@ -182,7 +182,7 @@ fun gen_axioms do_print prep raw_vars raw_specs thy =
     val (axioms, axioms_thy) = (specs, consts_thy) |-> fold_map (fn ((b, atts), props) =>
         fold_map Thm.add_axiom
           (map (apfst (fn a => Binding.map_name (K a) b))
-            (Global_Theory.name_multi (Name.of_binding b) (map subst props)))
+            (Global_Theory.name_multi (Variable.name b) (map subst props)))
         #>> (fn ths => ((b, atts), [(map #2 ths, [])])));
 
     (*facts*)
@@ -214,7 +214,7 @@ fun gen_def do_print prep (raw_var, raw_spec) lthy =
         [] => (Binding.name x, NoSyn)
       | [((b, _), mx)] =>
           let
-            val y = Name.of_binding b;
+            val y = Variable.name b;
             val _ = x = y orelse
               error ("Head of definition " ^ quote x ^ " differs from declaration " ^ quote y ^
                 Position.str_of (Binding.pos_of b));
@@ -253,7 +253,7 @@ fun gen_abbrev do_print prep mode (raw_var, raw_prop) lthy =
         [] => (Binding.name x, NoSyn)
       | [((b, _), mx)] =>
           let
-            val y = Name.of_binding b;
+            val y = Variable.name b;
             val _ = x = y orelse
               error ("Head of abbreviation " ^ quote x ^ " differs from declaration " ^ quote y ^
                 Position.str_of (Binding.pos_of b));
@@ -323,10 +323,10 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
   | Element.Obtains obtains =>
       let
         val case_names = obtains |> map_index (fn (i, (b, _)) =>
-          if Binding.is_empty b then string_of_int (i + 1) else Name.of_binding b);
+          if Binding.is_empty b then string_of_int (i + 1) else Variable.name b);
         val constraints = obtains |> map (fn (_, (vars, _)) =>
           Element.Constrains
-            (vars |> map_filter (fn (x, SOME T) => SOME (Name.of_binding x, T) | _ => NONE)));
+            (vars |> map_filter (fn (x, SOME T) => SOME (Variable.name x, T) | _ => NONE)));
 
         val raw_propp = obtains |> map (fn (_, (_, props)) => map (rpair []) props);
         val (propp, elems_ctxt) = prep_stmt (elems @ constraints) raw_propp ctxt;
@@ -336,7 +336,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
         fun assume_case ((name, (vars, _)), asms) ctxt' =
           let
             val bs = map fst vars;
-            val xs = map Name.of_binding bs;
+            val xs = map Variable.name bs;
             val props = map fst asms;
             val (Ts, _) = ctxt'
               |> fold Variable.declare_term props

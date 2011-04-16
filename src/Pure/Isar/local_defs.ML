@@ -92,7 +92,7 @@ fun add_defs defs ctxt =
   let
     val ((bvars, mxs), specs) = defs |> split_list |>> split_list;
     val ((bfacts, atts), rhss) = specs |> split_list |>> split_list;
-    val xs = map Name.of_binding bvars;
+    val xs = map Variable.name bvars;
     val names = map2 Thm.def_binding_optional bvars bfacts;
     val eqs = mk_def ctxt (xs ~~ rhss);
     val lhss = map (fst o Logic.dest_equals) eqs;

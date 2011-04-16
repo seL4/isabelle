@@ -51,7 +51,7 @@ fun quotient_def ((optbind, mx), (attr, (lhs, rhs))) lthy =
 
     fun sanity_test NONE _ = true
       | sanity_test (SOME bind) str =
-          if Name.of_binding bind = str then true
+          if Variable.name bind = str then true
           else error_msg bind str
 
     val _ = sanity_test optbind lhs_str

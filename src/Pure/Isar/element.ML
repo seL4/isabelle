@@ -99,7 +99,7 @@ fun facts_map f facts = Notes ("", facts) |> f |> (fn Notes (_, facts') => facts
 fun map_ctxt {binding, typ, term, pattern, fact, attrib} =
   fn Fixes fixes => Fixes (fixes |> map (fn (x, T, mx) => (binding x, Option.map typ T, mx)))
    | Constrains xs => Constrains (xs |> map (fn (x, T) =>
-      (Name.of_binding (binding (Binding.name x)), typ T)))
+      (Variable.name (binding (Binding.name x)), typ T)))
    | Assumes asms => Assumes (asms |> map (fn ((a, atts), propps) =>
       ((binding a, map attrib atts), propps |> map (fn (t, ps) => (term t, map pattern ps)))))
    | Defines defs => Defines (defs |> map (fn ((a, atts), (t, ps)) =>
@@ -526,7 +526,7 @@ fun activate_i elem ctxt =
 
 fun activate raw_elem ctxt =
   let val elem = raw_elem |> map_ctxt
-   {binding = tap Name.of_binding,
+   {binding = tap Variable.name,
     typ = I,
     term = I,
     pattern = I,

@@ -923,7 +923,7 @@ local
 fun prep_vars prep_typ internal =
   fold_map (fn (b, raw_T, mx) => fn ctxt =>
     let
-      val x = Name.of_binding b;
+      val x = Variable.name b;
       val _ = Lexicon.is_identifier (no_skolem internal x) orelse
         error ("Illegal variable name: " ^ quote (Binding.str_of b));
 
@@ -1023,7 +1023,7 @@ fun revert_abbrev mode c = (map_consts o apfst) (Consts.revert_abbrev mode c);
 fun add_fixes raw_vars ctxt =
   let
     val (vars, _) = cert_vars raw_vars ctxt;
-    val (xs', ctxt') = Variable.add_fixes (map (Name.of_binding o #1) vars) ctxt;
+    val (xs', ctxt') = Variable.add_fixes (map (Variable.name o #1) vars) ctxt;
     val ctxt'' =
       ctxt'
       |> fold_map declare_var (map2 (fn x' => fn (_, T, mx) => (x', T, mx)) xs' vars)
