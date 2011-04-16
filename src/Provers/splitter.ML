@@ -222,29 +222,29 @@ fun mk_split_pack (thm, T: typ, T', n, ts, apsns, pos, TB, t) =
 local
   exception MATCH
 in
-  fun typ_match sg (tyenv, TU) = (Sign.typ_match sg TU tyenv)
-                            handle Type.TYPE_MATCH => raise MATCH
+  fun typ_match thy (tyenv, TU) = Sign.typ_match thy TU tyenv
+    handle Type.TYPE_MATCH => raise MATCH;
 
-  fun fomatch sg args =
+  fun fomatch thy args =
     let
       fun mtch tyinsts = fn
           (Ts, Var(_,T), t) =>
-            typ_match sg (tyinsts, (T, fastype_of1(Ts,t)))
+            typ_match thy (tyinsts, (T, fastype_of1(Ts,t)))
         | (_, Free (a,T), Free (b,U)) =>
-            if a=b then typ_match sg (tyinsts,(T,U)) else raise MATCH
+            if a=b then typ_match thy (tyinsts,(T,U)) else raise MATCH
         | (_, Const (a,T), Const (b,U)) =>
-            if a=b then typ_match sg (tyinsts,(T,U)) else raise MATCH
+            if a=b then typ_match thy (tyinsts,(T,U)) else raise MATCH
         | (_, Bound i, Bound j) =>
             if i=j then tyinsts else raise MATCH
         | (Ts, Abs(_,T,t), Abs(_,U,u)) =>
-            mtch (typ_match sg (tyinsts,(T,U))) (U::Ts,t,u)
+            mtch (typ_match thy (tyinsts,(T,U))) (U::Ts,t,u)
         | (Ts, f$t, g$u) =>
             mtch (mtch tyinsts (Ts,f,g)) (Ts, t, u)
         | _ => raise MATCH
     in (mtch Vartab.empty args; true) handle MATCH => false end;
 end;
 
-fun split_posns (cmap : (string * (typ * term * thm * typ * int) list) list) sg Ts t =
+fun split_posns (cmap : (string * (typ * term * thm * typ * int) list) list) thy Ts t =
   let
     val T' = fastype_of1 (Ts, t);
     fun posns Ts pos apsns (Abs (_, T, t)) =
@@ -259,18 +259,15 @@ fun split_posns (cmap : (string * (typ * term * thm * typ * int) list) list) sg 
                 Const(c, cT) =>
                   let fun find [] = []
                         | find ((gcT, pat, thm, T, n)::tups) =
-                            let val t2 = list_comb (h, take n ts)
-                            in if Sign.typ_instance sg (cT, gcT)
-                                  andalso fomatch sg (Ts,pat,t2)
-                               then mk_split_pack(thm,T,T',n,ts,apsns,pos,type_of1(Ts,t2),t2)
-                               else find tups
+                            let val t2 = list_comb (h, take n ts) in
+                              if Sign.typ_instance thy (cT, gcT) andalso fomatch thy (Ts, pat, t2)
+                              then mk_split_pack(thm,T,T',n,ts,apsns,pos,type_of1(Ts,t2),t2)
+                              else find tups
                             end
                   in find (these (AList.lookup (op =) cmap c)) end
               | _ => []
           in snd (fold iter ts (0, a)) end
   in posns Ts [] [] t end;
-
-fun nth_subgoal i thm = nth (prems_of thm) (i - 1);
 
 fun shorter ((_,ps,pos,_,_), (_,qs,qos,_,_)) =
   prod_ord (int_ord o pairself length) (order o pairself length)
@@ -282,14 +279,15 @@ fun shorter ((_,ps,pos,_,_), (_,qs,qos,_,_)) =
 *************************************************************)
 
 fun select cmap state i =
-  let val sg = Thm.theory_of_thm state
-      val goali = nth_subgoal i state
-      val Ts = rev(map #2 (Logic.strip_params goali))
-      val _ $ t $ _ = Logic.strip_assums_concl goali;
-  in (Ts, t, sort shorter (split_posns cmap sg Ts t)) end;
+  let
+    val thy = Thm.theory_of_thm state
+    val goal = term_of (Thm.cprem_of state i);
+    val Ts = rev (map #2 (Logic.strip_params goal));
+    val _ $ t $ _ = Logic.strip_assums_concl goal;
+  in (Ts, t, sort shorter (split_posns cmap thy Ts t)) end;
 
-fun exported_split_posns cmap sg Ts t =
-  sort shorter (split_posns cmap sg Ts t);
+fun exported_split_posns cmap thy Ts t =
+  sort shorter (split_posns cmap thy Ts t);
 
 (*************************************************************
    instantiate lift theorem
