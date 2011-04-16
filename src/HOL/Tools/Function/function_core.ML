@@ -489,7 +489,7 @@ fun define_graph Gname fvar domT ranT clauses RCss lthy =
 fun define_function fdefname (fname, mixfix) domT ranT G default lthy =
   let
     val f_def =
-      Abs ("x", domT, Const (@{const_name FunDef.THE_default}, ranT --> (ranT --> boolT) --> ranT) 
+      Abs ("x", domT, Const (@{const_name FunDef.THE_default}, ranT --> (ranT --> boolT) --> ranT)
         $ (default $ Bound 0) $ Abs ("y", ranT, G $ Bound 1 $ Bound 0))
       |> Syntax.check_term lthy
   in
@@ -726,7 +726,7 @@ fun mk_nest_term_case thy globals R' ihyp clause =
     fun step (fixes, assumes) (_ $ arg) u (sub,(hyps,thms)) =
       let
         val used = (u @ sub)
-          |> map (fn (ctx,thm) => Function_Ctx_Tree.export_thm thy ctx thm)
+          |> map (fn (ctxt, thm) => Function_Ctx_Tree.export_thm thy ctxt thm)
 
         val hyp = HOLogic.mk_Trueprop (R' $ arg $ lhs)
           |> fold_rev (curry Logic.mk_implies o prop_of) used (* additional hyps *)

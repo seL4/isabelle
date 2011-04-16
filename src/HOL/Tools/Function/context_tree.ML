@@ -101,29 +101,31 @@ val default_congs =
   map (fn c => c RS eq_reflection) [@{thm "cong"}, @{thm "ext"}]
 
 (* Called on the INSTANTIATED branches of the congruence rule *)
-fun mk_branch ctx t =
+fun mk_branch ctxt t =
   let
-    val ((fixes, impl), ctx') = Function_Lib.focus_term t ctx
+    val ((fixes, impl), ctxt') = Function_Lib.focus_term t ctxt
     val (assms, concl) = Logic.strip_horn impl
   in
-    (ctx', fixes, assms, rhs_of concl)
+    (ctxt', fixes, assms, rhs_of concl)
   end
 
-fun find_cong_rule ctx fvar h ((r,dep)::rs) t =
-  (let
-     val thy = Proof_Context.theory_of ctx
+fun find_cong_rule ctxt fvar h ((r,dep)::rs) t =
+     (let
+        val thy = Proof_Context.theory_of ctxt
 
-     val tt' = Logic.mk_equals (Pattern.rewrite_term thy [(Free fvar, h)] [] t, t)
-     val (c, subs) = (concl_of r, prems_of r)
+        val tt' = Logic.mk_equals (Pattern.rewrite_term thy [(Free fvar, h)] [] t, t)
+        val (c, subs) = (concl_of r, prems_of r)
 
-     val subst = Pattern.match (Proof_Context.theory_of ctx) (c, tt') (Vartab.empty, Vartab.empty)
-     val branches = map (mk_branch ctx o Envir.beta_norm o Envir.subst_term subst) subs
-     val inst = map (fn v =>
-       (cterm_of thy (Var v), cterm_of thy (Envir.subst_term subst (Var v)))) (Term.add_vars c [])
-   in
-     (cterm_instantiate inst r, dep, branches)
-   end
-   handle Pattern.MATCH => find_cong_rule ctx fvar h rs t)
+        val subst =
+          Pattern.match (Proof_Context.theory_of ctxt) (c, tt') (Vartab.empty, Vartab.empty)
+        val branches = map (mk_branch ctxt o Envir.beta_norm o Envir.subst_term subst) subs
+        val inst = map (fn v =>
+            (cterm_of thy (Var v), cterm_of thy (Envir.subst_term subst (Var v))))
+          (Term.add_vars c [])
+      in
+         (cterm_instantiate inst r, dep, branches)
+      end
+      handle Pattern.MATCH => find_cong_rule ctxt fvar h rs t)
   | find_cong_rule _ _ _ [] _ = raise General.Fail "No cong rule found!"
 
 
@@ -137,18 +139,18 @@ fun mk_tree fvar h ctxt t =
     fun matchcall (a $ b) = if a = Free fvar then SOME b else NONE
       | matchcall _ = NONE
 
-    fun mk_tree' ctx t =
+    fun mk_tree' ctxt t =
       case matchcall t of
-        SOME arg => RCall (t, mk_tree' ctx arg)
+        SOME arg => RCall (t, mk_tree' ctxt arg)
       | NONE =>
         if not (exists_subterm (fn Free v => v = fvar | _ => false) t) then Leaf t
         else
           let
-            val (r, dep, branches) = find_cong_rule ctx fvar h congs_deps t
-            fun subtree (ctx', fixes, assumes, st) =
+            val (r, dep, branches) = find_cong_rule ctxt fvar h congs_deps t
+            fun subtree (ctxt', fixes, assumes, st) =
               ((fixes,
-                map (Thm.assume o cterm_of (Proof_Context.theory_of ctx)) assumes),
-               mk_tree' ctx' st)
+                map (Thm.assume o cterm_of (Proof_Context.theory_of ctxt)) assumes),
+               mk_tree' ctxt' st)
           in
             Cong (r, dep, map subtree branches)
           end
@@ -216,24 +218,24 @@ fun fold_deps G f x =
 
 fun traverse_tree rcOp tr =
   let
-    fun traverse_help ctx (Leaf _) _ x = ([], x)
-      | traverse_help ctx (RCall (t, st)) u x =
-        rcOp ctx t u (traverse_help ctx st u x)
-      | traverse_help ctx (Cong (_, deps, branches)) u x =
-      let
-        fun sub_step lu i x =
+    fun traverse_help ctxt (Leaf _) _ x = ([], x)
+      | traverse_help ctxt (RCall (t, st)) u x =
+          rcOp ctxt t u (traverse_help ctxt st u x)
+      | traverse_help ctxt (Cong (_, deps, branches)) u x =
           let
-            val (ctx', subtree) = nth branches i
-            val used = fold_rev (append o lu) (Int_Graph.imm_succs deps i) u
-            val (subs, x') = traverse_help (compose ctx ctx') subtree used x
-            val exported_subs = map (apfst (compose ctx')) subs (* FIXME: Right order of composition? *)
+            fun sub_step lu i x =
+              let
+                val (ctxt', subtree) = nth branches i
+                val used = fold_rev (append o lu) (Int_Graph.imm_succs deps i) u
+                val (subs, x') = traverse_help (compose ctxt ctxt') subtree used x
+                val exported_subs = map (apfst (compose ctxt')) subs (* FIXME: Right order of composition? *)
+              in
+                (exported_subs, x')
+              end
           in
-            (exported_subs, x')
+            fold_deps deps sub_step x
+            |> apfst flat
           end
-      in
-        fold_deps deps sub_step x
-        |> apfst flat
-      end
   in
     snd o traverse_help ([], []) tr []
   end

@@ -18,15 +18,15 @@ struct
 
 open Function_Lib
 
-fun new_var ctx vs T =
+fun new_var ctxt vs T =
   let
-    val [v] = Variable.variant_frees ctx vs [("v", T)]
+    val [v] = Variable.variant_frees ctxt vs [("v", T)]
   in
     (Free v :: vs, Free v)
   end
 
-fun saturate ctx vs t =
-  fold (fn T => fn (vs, t) => new_var ctx vs T |> apsnd (curry op $ t))
+fun saturate ctxt vs t =
+  fold (fn T => fn (vs, t) => new_var ctxt vs T |> apsnd (curry op $ t))
     (binder_types (fastype_of t)) (vs, t)
 
 
@@ -43,77 +43,77 @@ fun join_product (xs, ys) = map_product (curry join) xs ys
 
 exception DISJ
 
-fun pattern_subtract_subst ctx vs t t' =
+fun pattern_subtract_subst ctxt vs t t' =
   let
     exception DISJ
     fun pattern_subtract_subst_aux vs _ (Free v2) = []
       | pattern_subtract_subst_aux vs (v as (Free (_, T))) t' =
-      let
-        fun foo constr =
           let
-            val (vs', t) = saturate ctx vs constr
-            val substs = pattern_subtract_subst ctx vs' t t'
+            fun foo constr =
+              let
+                val (vs', t) = saturate ctxt vs constr
+                val substs = pattern_subtract_subst ctxt vs' t t'
+              in
+                map (fn (vs, subst) => (vs, (v,t)::subst)) substs
+              end
           in
-            map (fn (vs, subst) => (vs, (v,t)::subst)) substs
+            maps foo (inst_constrs_of (Proof_Context.theory_of ctxt) T)
           end
-      in
-        maps foo (inst_constrs_of (Proof_Context.theory_of ctx) T)
-      end
      | pattern_subtract_subst_aux vs t t' =
-     let
-       val (C, ps) = strip_comb t
-       val (C', qs) = strip_comb t'
-     in
-       if C = C'
-       then flat (map2 (pattern_subtract_subst_aux vs) ps qs)
-       else raise DISJ
-     end
+         let
+           val (C, ps) = strip_comb t
+           val (C', qs) = strip_comb t'
+         in
+           if C = C'
+           then flat (map2 (pattern_subtract_subst_aux vs) ps qs)
+           else raise DISJ
+         end
   in
     pattern_subtract_subst_aux vs t t'
     handle DISJ => [(vs, [])]
   end
 
 (* p - q *)
-fun pattern_subtract ctx eq2 eq1 =
+fun pattern_subtract ctxt eq2 eq1 =
   let
-    val thy = Proof_Context.theory_of ctx
+    val thy = Proof_Context.theory_of ctxt
 
     val (vs, feq1 as (_ $ (_ $ lhs1 $ _))) = dest_all_all eq1
     val (_,  _ $ (_ $ lhs2 $ _)) = dest_all_all eq2
 
-    val substs = pattern_subtract_subst ctx vs lhs1 lhs2
+    val substs = pattern_subtract_subst ctxt vs lhs1 lhs2
 
     fun instantiate (vs', sigma) =
       let
         val t = Pattern.rewrite_term thy sigma [] feq1
       in
-        fold_rev Logic.all (inter (op =) vs' (map Free (frees_in_term ctx t))) t
+        fold_rev Logic.all (inter (op =) vs' (map Free (frees_in_term ctxt t))) t
       end
   in
     map instantiate substs
   end
 
 (* ps - p' *)
-fun pattern_subtract_from_many ctx p'=
-  maps (pattern_subtract ctx p')
+fun pattern_subtract_from_many ctxt p'=
+  maps (pattern_subtract ctxt p')
 
 (* in reverse order *)
-fun pattern_subtract_many ctx ps' =
-  fold_rev (pattern_subtract_from_many ctx) ps'
+fun pattern_subtract_many ctxt ps' =
+  fold_rev (pattern_subtract_from_many ctxt) ps'
 
-fun split_some_equations ctx eqns =
+fun split_some_equations ctxt eqns =
   let
     fun split_aux prev [] = []
       | split_aux prev ((true, eq) :: es) =
-        pattern_subtract_many ctx prev [eq] :: split_aux (eq :: prev) es
+          pattern_subtract_many ctxt prev [eq] :: split_aux (eq :: prev) es
       | split_aux prev ((false, eq) :: es) =
-        [eq] :: split_aux (eq :: prev) es
+          [eq] :: split_aux (eq :: prev) es
   in
     split_aux [] eqns
   end
 
-fun split_all_equations ctx =
-  split_some_equations ctx o map (pair true)
+fun split_all_equations ctxt =
+  split_some_equations ctxt o map (pair true)
 
 
 end
