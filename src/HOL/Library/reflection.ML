@@ -298,23 +298,19 @@ fun genreflect ctxt conv corr_thms raw_eqs t =
              (simplify (HOL_basic_ss addsimps [rth]) th)
   end
 
-fun genreify_tac ctxt eqs to i = (fn st =>
+fun genreify_tac ctxt eqs to = SUBGOAL (fn (goal, i) =>
   let
-    fun P () = HOLogic.dest_Trueprop (nth (prems_of st) (i - 1))
-    val t = (case to of NONE => P () | SOME x => x)
-    val th = (genreif ctxt eqs t) RS ssubst
-  in rtac th i st
-  end);
+    val t = (case to of NONE => HOLogic.dest_Trueprop goal | SOME x => x)
+    val th = genreif ctxt eqs t RS ssubst
+  in rtac th i end);
 
     (* Reflection calls reification and uses the correctness *)
         (* theorem assumed to be the dead of the list *)
-fun gen_reflection_tac ctxt conv corr_thms raw_eqs to i = (fn st =>
+fun gen_reflection_tac ctxt conv corr_thms raw_eqs to = SUBGOAL (fn (goal, i) =>
   let
-    val P = HOLogic.dest_Trueprop (nth (prems_of st) (i - 1));
-    val t = the_default P to;
-    val th = genreflect ctxt conv corr_thms raw_eqs t
-      RS ssubst;
-  in (rtac th i THEN TRY(rtac TrueI i)) st end);
+    val t = (case to of NONE => HOLogic.dest_Trueprop goal | SOME x => x)
+    val th = genreflect ctxt conv corr_thms raw_eqs t RS ssubst
+  in rtac th i THEN TRY (rtac TrueI i) end);  (* FIXME THEN_ALL_NEW !? *)
 
 fun reflection_tac ctxt = gen_reflection_tac ctxt Codegen.evaluation_conv;
   (*FIXME why Codegen.evaluation_conv?  very specific...*)

@@ -66,9 +66,8 @@ fun spec_step n th = if (n=0) then th else (spec_step (n-1) th) RS spec ;
 fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
 
 
-fun linz_tac ctxt q i = Object_Logic.atomize_prems_tac i THEN (fn st =>
+fun linz_tac ctxt q = Object_Logic.atomize_prems_tac THEN' SUBGOAL (fn (g, i) =>
   let
-    val g = nth (prems_of st) (i - 1)
     val thy = Proof_Context.theory_of ctxt
     (* Transform the term*)
     val (t,np,nh) = prepare_for_linz q g
@@ -117,9 +116,7 @@ fun linz_tac ctxt q i = Object_Logic.atomize_prems_tac i THEN (fn st =>
             assm_tac (i + 1) THEN (if q then I else TRY) (rtac TrueI i))
     end
       | _ => (pre_thm, assm_tac i)
-  in (rtac (((mp_step nh) o (spec_step np)) th) i
-      THEN tac) st
-  end handle Subscript => no_tac st);
+  in rtac (((mp_step nh) o (spec_step np)) th) i THEN tac end);
 
 val setup =
   Method.setup @{binding cooper}

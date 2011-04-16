@@ -39,8 +39,7 @@ signature STATE_SPACE =
 
     val neq_x_y : Proof.context -> term -> term -> thm option
     val distinctNameSolver : Simplifier.solver
-    val distinctTree_tac :
-       Proof.context -> term * int -> Tactical.tactic
+    val distinctTree_tac : Proof.context -> int -> tactic
     val distinct_simproc : Simplifier.simproc
 
 
@@ -221,18 +220,20 @@ fun neq_x_y ctxt x y =
   in SOME thm
   end handle Option => NONE)
 
-fun distinctTree_tac ctxt
-      (Const (@{const_name Trueprop},_) $
-        (Const (@{const_name Not}, _) $ (Const (@{const_name HOL.eq}, _) $ (x as Free _)$ (y as Free _))), i) =
-  (case (neq_x_y ctxt x y) of
-     SOME neq => rtac neq i
-   | NONE => no_tac)
-  | distinctTree_tac _ _ = no_tac;
+fun distinctTree_tac ctxt = SUBGOAL (fn (goal, i) =>
+  (case goal of
+    Const (@{const_name Trueprop}, _) $
+      (Const (@{const_name Not}, _) $
+        (Const (@{const_name HOL.eq}, _) $ (x as Free _) $ (y as Free _))) =>
+      (case neq_x_y ctxt x y of
+        SOME neq => rtac neq i
+      | NONE => no_tac)
+  | _ => no_tac));
 
 val distinctNameSolver = mk_solver' "distinctNameSolver"
      (fn ss => case try Simplifier.the_context ss of
-                 SOME ctxt => SUBGOAL (distinctTree_tac ctxt)
-                | NONE => fn i => no_tac)
+                 SOME ctxt => distinctTree_tac ctxt
+                | NONE => K no_tac)
 
 val distinct_simproc =
   Simplifier.simproc_global @{theory HOL} "StateSpace.distinct_simproc" ["x = y"]
@@ -249,16 +250,14 @@ in
 fun interprete_parent name dist_thm_name parent_expr thy =
   let
 
-    fun solve_tac ctxt (_,i) st =
+    fun solve_tac ctxt = CSUBGOAL (fn (goal, i) =>
       let
         val distinct_thm = Proof_Context.get_thm ctxt dist_thm_name;
-        val goal = nth (cprems_of st) (i - 1);
         val rule = DistinctTreeProver.distinct_implProver distinct_thm goal;
-      in EVERY [rtac rule i] st
-      end
+      in rtac rule i end);
 
-    fun tac ctxt = EVERY [Locale.intro_locales_tac true ctxt [],
-                          ALLGOALS (SUBGOAL (solve_tac ctxt))]
+    fun tac ctxt =
+      Locale.intro_locales_tac true ctxt [] THEN ALLGOALS (solve_tac ctxt);
 
   in thy
      |> prove_interpretation_in tac (name,parent_expr)

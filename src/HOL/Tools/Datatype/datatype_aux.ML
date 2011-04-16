@@ -128,44 +128,49 @@ fun app_bnds t i = list_comb (t, map Bound (i - 1 downto 0));
 
 (* instantiate induction rule *)
 
-fun indtac indrule indnames i st =
+fun indtac indrule indnames = CSUBGOAL (fn (cgoal, i) =>
   let
+    val cert = cterm_of (Thm.theory_of_cterm cgoal);
+    val goal = term_of cgoal;
     val ts = HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of indrule));
-    val ts' = HOLogic.dest_conj (HOLogic.dest_Trueprop
-      (Logic.strip_imp_concl (nth (prems_of st) (i - 1))));
-    val getP = if can HOLogic.dest_imp (hd ts) then
-      (apfst SOME) o HOLogic.dest_imp else pair NONE;
-    val flt = if null indnames then I else
-      filter (fn Free (s, _) => member (op =) indnames s | _ => false);
-    fun abstr (t1, t2) = (case t1 of
-        NONE => (case flt (OldTerm.term_frees t2) of
+    val ts' = HOLogic.dest_conj (HOLogic.dest_Trueprop (Logic.strip_imp_concl goal));
+    val getP =
+      if can HOLogic.dest_imp (hd ts)
+      then apfst SOME o HOLogic.dest_imp
+      else pair NONE;
+    val flt =
+      if null indnames then I
+      else filter (fn Free (s, _) => member (op =) indnames s | _ => false);
+    fun abstr (t1, t2) =
+      (case t1 of
+        NONE =>
+          (case flt (OldTerm.term_frees t2) of
             [Free (s, T)] => SOME (absfree (s, T, t2))
           | _ => NONE)
       | SOME (_ $ t') => SOME (Abs ("x", fastype_of t', abstract_over (t', t2))))
-    val cert = cterm_of (Thm.theory_of_thm st);
-    val insts = map_filter (fn (t, u) => case abstr (getP u) of
+    val insts = map_filter (fn (t, u) =>
+      case abstr (getP u) of
         NONE => NONE
       | SOME u' => SOME (t |> getP |> snd |> head_of |> cert, cert u')) (ts ~~ ts');
     val indrule' = cterm_instantiate insts indrule
-  in
-    rtac indrule' i st
-  end;
+  in rtac indrule' i end);
+
 
 (* perform exhaustive case analysis on last parameter of subgoal i *)
 
-fun exh_tac exh_thm_of i state =
+fun exh_tac exh_thm_of = CSUBGOAL (fn (cgoal, i) =>
   let
-    val thy = Thm.theory_of_thm state;
-    val prem = nth (prems_of state) (i - 1);
-    val params = Logic.strip_params prem;
+    val thy = Thm.theory_of_cterm cgoal;
+    val goal = term_of cgoal;
+    val params = Logic.strip_params goal;
     val (_, Type (tname, _)) = hd (rev params);
-    val exhaustion = Thm.lift_rule (Thm.cprem_of state i) (exh_thm_of tname);
+    val exhaustion = Thm.lift_rule cgoal (exh_thm_of tname);
     val prem' = hd (prems_of exhaustion);
     val _ $ (_ $ lhs $ _) = hd (rev (Logic.strip_assums_hyp prem'));
-    val exhaustion' = cterm_instantiate [(cterm_of thy (head_of lhs),
-      cterm_of thy (fold_rev (fn (_, T) => fn t => Abs ("z", T, t)) params (Bound 0)))] exhaustion
-  in compose_tac (false, exhaustion', nprems_of exhaustion) i state
-  end;
+    val exhaustion' =
+      cterm_instantiate [(cterm_of thy (head_of lhs),
+        cterm_of thy (fold_rev (fn (_, T) => fn t => Abs ("z", T, t)) params (Bound 0)))] exhaustion
+  in compose_tac (false, exhaustion', nprems_of exhaustion) i end);
 
 
 (********************** Internal description of datatypes *********************)

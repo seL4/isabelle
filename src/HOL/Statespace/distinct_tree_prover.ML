@@ -13,7 +13,7 @@ sig
   val distinctTreeProver : thm -> Direction list -> Direction list -> thm
   val neq_x_y : Proof.context -> term -> term -> string -> thm option   
   val distinctFieldSolver : string list -> solver
-  val distinctTree_tac : string list -> Proof.context -> term * int -> tactic
+  val distinctTree_tac : string list -> Proof.context -> int -> tactic
   val distinct_implProver : thm -> cterm -> thm
   val subtractProver : term -> cterm -> thm -> thm
   val distinct_simproc : string list -> simproc
@@ -343,17 +343,19 @@ fun neq_x_y ctxt x y name =
   in SOME thm  
   end handle Option => NONE)
 
-fun distinctTree_tac names ctxt 
-      (Const (@{const_name Trueprop},_) $ (Const (@{const_name Not}, _) $ (Const (@{const_name HOL.eq}, _) $ x $ y)), i) =
-  (case get_fst_success (neq_x_y ctxt x y) names of
-     SOME neq => rtac neq i
-   | NONE => no_tac)
-  | distinctTree_tac _ _ _ = no_tac;
+fun distinctTree_tac names ctxt = SUBGOAL (fn (goal, i) =>
+    (case goal of
+      Const (@{const_name Trueprop}, _) $
+          (Const (@{const_name Not}, _) $ (Const (@{const_name HOL.eq}, _) $ x $ y)) =>
+        (case get_fst_success (neq_x_y ctxt x y) names of
+          SOME neq => rtac neq i
+        | NONE => no_tac)
+    | _ => no_tac))
 
 fun distinctFieldSolver names = mk_solver' "distinctFieldSolver"
      (fn ss => case try Simplifier.the_context ss of
-                 SOME ctxt => SUBGOAL (distinctTree_tac names ctxt)
-                | NONE => fn i => no_tac)
+                 SOME ctxt => distinctTree_tac names ctxt
+               | NONE => K no_tac)
 
 fun distinct_simproc names =
   Simplifier.simproc_global @{theory HOL} "DistinctTreeProver.distinct_simproc" ["x = y"]

@@ -87,13 +87,12 @@ fun spec_step n th = if (n=0) then th else (spec_step (n-1) th) RS spec ;
 fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
 
 
-fun mir_tac ctxt q i = 
-    Object_Logic.atomize_prems_tac i
-        THEN simp_tac (HOL_basic_ss addsimps [@{thm "abs_ge_zero"}] addsimps simp_thms) i
-        THEN REPEAT_DETERM (split_tac [@{thm "split_min"}, @{thm "split_max"}, @{thm "abs_split"}] i)
-        THEN (fn st =>
+fun mir_tac ctxt q = 
+    Object_Logic.atomize_prems_tac
+        THEN' simp_tac (HOL_basic_ss addsimps [@{thm "abs_ge_zero"}] addsimps simp_thms)
+        THEN' (REPEAT_DETERM o split_tac [@{thm "split_min"}, @{thm "split_max"}, @{thm "abs_split"}])
+        THEN' SUBGOAL (fn (g, i) =>
   let
-    val g = nth (prems_of st) (i - 1)
     val thy = Proof_Context.theory_of ctxt
     (* Transform the term*)
     val (t,np,nh) = prepare_for_mir thy q g
@@ -145,9 +144,7 @@ fun mir_tac ctxt q i =
             assm_tac (i + 1) THEN (if q then I else TRY) (rtac TrueI i)))
     end
       | _ => (pre_thm, assm_tac i)
-  in (rtac (((mp_step nh) o (spec_step np)) th) i 
-      THEN tac) st
-  end handle Subscript => no_tac st);
+  in rtac (((mp_step nh) o (spec_step np)) th) i THEN tac end);
 
 val setup =
   Method.setup @{binding mir}

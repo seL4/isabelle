@@ -606,21 +606,18 @@ fun find_potential thy t =
         filter (match_consts ignored t) all_thms
     end
 
-fun gen_shuffle_tac ctxt search thms i st =
+fun gen_shuffle_tac ctxt search thms = SUBGOAL (fn (t, i) =>
     let
         val thy = Proof_Context.theory_of ctxt
-        val _ = message ("Shuffling " ^ (string_of_thm st))
-        val t = nth (prems_of st) (i - 1)
         val set = set_prop thy t
         fun process_tac thms st =
             case set thms of
                 SOME (_,th) => Seq.of_list (compose (th,i,st))
               | NONE => Seq.empty
     in
-        (process_tac thms APPEND (if search
-                                  then process_tac (find_potential thy t)
-                                  else no_tac)) st
-    end
+        process_tac thms APPEND
+          (if search then process_tac (find_potential thy t) else no_tac)
+    end)
 
 fun shuffle_tac ctxt thms =
   gen_shuffle_tac ctxt false (map (pair "") thms);

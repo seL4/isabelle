@@ -3007,25 +3007,23 @@ ML{*
 structure FRParTac = 
 struct
 
-fun frpar_tac T ps ctxt i = 
- Object_Logic.full_atomize_tac i
- THEN (fn st =>
+fun frpar_tac T ps ctxt = 
+ Object_Logic.full_atomize_tac
+ THEN' CSUBGOAL (fn (g, i) =>
   let
-    val g = nth (cprems_of st) (i - 1)
     val thy = Proof_Context.theory_of ctxt
     val fs = subtract (op aconv) (map Free (Term.add_frees (term_of g) [])) ps
-    val th = frpar_oracle (T, fs,ps, (* Pattern.eta_long [] *)g)
-  in rtac (th RS iffD2) i st end);
+    val th = frpar_oracle (T, fs, ps, (* Pattern.eta_long [] *) g)
+  in rtac (th RS iffD2) i end);
 
-fun frpar2_tac T ps ctxt i = 
- Object_Logic.full_atomize_tac i
- THEN (fn st =>
+fun frpar2_tac T ps ctxt = 
+ Object_Logic.full_atomize_tac
+ THEN' CSUBGOAL (fn (g, i) =>
   let
-    val g = nth (cprems_of st) (i - 1)
     val thy = Proof_Context.theory_of ctxt
     val fs = subtract (op aconv) (map Free (Term.add_frees (term_of g) [])) ps
-    val th = frpar_oracle2 (T, fs,ps, (* Pattern.eta_long [] *)g)
-  in rtac (th RS iffD2) i st end);
+    val th = frpar_oracle2 (T, fs, ps, (* Pattern.eta_long [] *) g)
+  in rtac (th RS iffD2) i end);
 
 end;
 
