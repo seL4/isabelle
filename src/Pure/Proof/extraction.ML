@@ -162,9 +162,9 @@ fun get_var_type t =
 
 fun read_term thy T s =
   let
-    val ctxt = ProofContext.init_global thy
+    val ctxt = Proof_Context.init_global thy
       |> Proof_Syntax.strip_sorts_consttypes
-      |> ProofContext.set_defsort [];
+      |> Proof_Context.set_defsort [];
     val parse = if T = propT then Syntax.parse_prop else Syntax.parse_term;
   in parse ctxt s |> Type.constraint T |> Syntax.check_term ctxt end;
 

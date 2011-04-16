@@ -239,7 +239,7 @@ val declare_typ = declare_term o Logic.mk_type;
 val declare_prf = Proofterm.fold_proof_terms declare_internal (declare_internal o Logic.mk_type);
 
 val declare_thm = Thm.fold_terms declare_internal;
-fun global_thm_context th = declare_thm th (ProofContext.init_global (Thm.theory_of_thm th));
+fun global_thm_context th = declare_thm th (Proof_Context.init_global (Thm.theory_of_thm th));
 
 
 (* renaming term/type frees *)
@@ -430,7 +430,7 @@ fun import_terms is_open ts ctxt =
 
 fun importT ths ctxt =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val (instT, ctxt') = importT_inst (map Thm.full_prop_of ths) ctxt;
     val insts' as (instT', _) = Thm.certify_inst thy (instT, []);
     val ths' = map (Thm.instantiate insts') ths;
@@ -444,7 +444,7 @@ fun import_prf is_open prf ctxt =
 
 fun import is_open ths ctxt =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val (insts, ctxt') = import_inst is_open (map Thm.full_prop_of ths) ctxt;
     val insts' = Thm.certify_inst thy insts;
     val ths' = map (Thm.instantiate insts') ths;

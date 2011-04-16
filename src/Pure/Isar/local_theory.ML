@@ -134,10 +134,10 @@ fun map_target f = map_lthy (fn (naming, theory_prefix, operations, target) =>
 
 fun raw_theory_result f lthy =
   let
-    val (res, thy') = f (ProofContext.theory_of lthy);
+    val (res, thy') = f (Proof_Context.theory_of lthy);
     val lthy' = lthy
-      |> map_target (ProofContext.transfer thy')
-      |> ProofContext.transfer thy';
+      |> map_target (Proof_Context.transfer thy')
+      |> Proof_Context.transfer thy';
   in (res, lthy') end;
 
 fun raw_theory f = #2 o raw_theory_result (f #> pair ());
@@ -160,10 +160,10 @@ fun target_result f lthy =
       |> Context_Position.set_visible false
       |> f
       ||> Context_Position.restore_visible lthy;
-    val thy' = ProofContext.theory_of ctxt';
+    val thy' = Proof_Context.theory_of ctxt';
     val lthy' = lthy
       |> map_target (K ctxt')
-      |> ProofContext.transfer thy';
+      |> Proof_Context.transfer thy';
   in (res, lthy') end;
 
 fun target f = #2 o target_result (f #> pair ());
@@ -181,12 +181,12 @@ fun propagate_ml_env (context as Context.Proof lthy) =
 (* morphisms *)
 
 fun standard_morphism lthy ctxt =
-  ProofContext.norm_export_morphism lthy ctxt $>
+  Proof_Context.norm_export_morphism lthy ctxt $>
   Morphism.binding_morphism (Name_Space.transform_binding (naming_of lthy));
 
 fun target_morphism lthy = standard_morphism lthy (target_of lthy);
 fun global_morphism lthy =
-  standard_morphism lthy (ProofContext.init_global (ProofContext.theory_of lthy));
+  standard_morphism lthy (Proof_Context.init_global (Proof_Context.theory_of lthy));
 
 
 (* primitive operations *)
@@ -210,18 +210,18 @@ val notes = notes_kind "";
 fun note (a, ths) = notes [(a, [(ths, [])])] #>> the_single;
 
 fun set_defsort S =
-  syntax_declaration false (K (Context.mapping (Sign.set_defsort S) (ProofContext.set_defsort S)));
+  syntax_declaration false (K (Context.mapping (Sign.set_defsort S) (Proof_Context.set_defsort S)));
 
 
 (* notation *)
 
 fun type_notation add mode raw_args lthy =
   let val args = map (apfst (Morphism.typ (target_morphism lthy))) raw_args
-  in syntax_declaration false (ProofContext.target_type_notation add mode args) lthy end;
+  in syntax_declaration false (Proof_Context.target_type_notation add mode args) lthy end;
 
 fun notation add mode raw_args lthy =
   let val args = map (apfst (Morphism.term (target_morphism lthy))) raw_args
-  in syntax_declaration false (ProofContext.target_notation add mode args) lthy end;
+  in syntax_declaration false (Proof_Context.target_notation add mode args) lthy end;
 
 
 (* name space aliases *)
@@ -232,9 +232,9 @@ fun alias global_alias local_alias b name =
     in Context.mapping (global_alias b' name) (local_alias b' name) end)
   #> local_alias b name;
 
-val class_alias = alias Sign.class_alias ProofContext.class_alias;
-val type_alias = alias Sign.type_alias ProofContext.type_alias;
-val const_alias = alias Sign.const_alias ProofContext.const_alias;
+val class_alias = alias Sign.class_alias Proof_Context.class_alias;
+val type_alias = alias Sign.type_alias Proof_Context.type_alias;
+val const_alias = alias Sign.const_alias Proof_Context.const_alias;
 
 
 
@@ -244,7 +244,7 @@ val const_alias = alias Sign.const_alias ProofContext.const_alias;
 
 fun init group theory_prefix operations target =
   let val naming =
-    Sign.naming_of (ProofContext.theory_of target)
+    Sign.naming_of (Proof_Context.theory_of target)
     |> Name_Space.set_group group
     |> Name_Space.mandatory_path theory_prefix;
   in
@@ -261,8 +261,8 @@ fun restore lthy =
 
 (* exit *)
 
-val exit = ProofContext.background_theory Theory.checkpoint o operation #exit;
-val exit_global = ProofContext.theory_of o exit;
+val exit = Proof_Context.background_theory Theory.checkpoint o operation #exit;
+val exit_global = Proof_Context.theory_of o exit;
 
 fun exit_result f (x, lthy) =
   let
@@ -273,7 +273,7 @@ fun exit_result f (x, lthy) =
 fun exit_result_global f (x, lthy) =
   let
     val thy = exit_global lthy;
-    val thy_ctxt = ProofContext.init_global thy;
+    val thy_ctxt = Proof_Context.init_global thy;
     val phi = standard_morphism lthy thy_ctxt;
   in (f phi x, thy) end;
 

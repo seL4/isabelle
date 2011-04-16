@@ -56,3 +56,7 @@ fun use_thy name = Toplevel.program (fn () => Thy_Info.use_thy name);
 val cd = File.cd o Path.explode;
 
 Proofterm.proofs := 0;
+
+(*legacy*)
+structure ProofContext = Proof_Context;
+

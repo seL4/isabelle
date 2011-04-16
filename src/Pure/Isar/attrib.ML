@@ -73,7 +73,7 @@ structure Attributes = Theory_Data
 
 fun print_attributes thy =
   let
-    val ctxt = ProofContext.init_global thy;
+    val ctxt = Proof_Context.init_global thy;
     val attribs = Attributes.get thy;
     fun prt_attr (name, (_, comment)) = Pretty.block
       [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
@@ -91,7 +91,7 @@ fun add_attribute name att comment thy = thy
 val intern = Name_Space.intern o #1 o Attributes.get;
 val intern_src = Args.map_name o intern;
 
-fun extern ctxt = Name_Space.extern ctxt (#1 (Attributes.get (ProofContext.theory_of ctxt)));
+fun extern ctxt = Name_Space.extern ctxt (#1 (Attributes.get (Proof_Context.theory_of ctxt)));
 
 
 (* pretty printing *)
@@ -130,8 +130,8 @@ fun map_facts_refs f g = map_facts f #> map (apsnd (map (apfst g)));
 (* fact expressions *)
 
 fun eval_thms ctxt srcs = ctxt
-  |> ProofContext.note_thmss ""
-    (map_facts_refs (attribute (ProofContext.theory_of ctxt)) (ProofContext.get_fact ctxt)
+  |> Proof_Context.note_thmss ""
+    (map_facts_refs (attribute (Proof_Context.theory_of ctxt)) (Proof_Context.get_fact ctxt)
       [((Binding.empty, []), srcs)])
   |> fst |> maps snd;
 
@@ -143,7 +143,7 @@ fun eval_thms ctxt srcs = ctxt
   thm structure.*)
 
 fun crude_closure ctxt src =
- (try (fn () => attribute_i (ProofContext.theory_of ctxt) src
+ (try (fn () => attribute_i (Proof_Context.theory_of ctxt) src
     (Context.Proof ctxt, Drule.asm_rl)) ();
   Args.closure src);
 
@@ -185,7 +185,7 @@ val fact_name = Args.internal_fact >> K "<fact>" || Args.name;
 fun gen_thm pick = Scan.depend (fn context =>
   let
     val thy = Context.theory_of context;
-    val get = Context.cases (Global_Theory.get_fact context) ProofContext.get_fact context;
+    val get = Context.cases (Global_Theory.get_fact context) Proof_Context.get_fact context;
     val get_fact = get o Facts.Fact;
     fun get_named pos name = get (Facts.Named ((name, pos), NONE));
   in
@@ -336,7 +336,7 @@ structure Configs = Theory_Data
 
 fun print_configs ctxt =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     fun prt (name, config) =
       let val value = Config.get ctxt config in
         Pretty.block [Pretty.str (name ^ ": " ^ Config.print_type value ^ " ="), Pretty.brk 1,
@@ -413,7 +413,7 @@ val _ = Context.>> (Context.map_theory
   register_config Name_Space.short_names_raw #>
   register_config Name_Space.unique_names_raw #>
   register_config ML_Context.trace_raw #>
-  register_config ProofContext.show_abbrevs_raw #>
+  register_config Proof_Context.show_abbrevs_raw #>
   register_config Goal_Display.goals_limit_raw #>
   register_config Goal_Display.show_main_goal_raw #>
   register_config Goal_Display.show_consts_raw #>

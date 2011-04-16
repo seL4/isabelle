@@ -154,7 +154,7 @@ fun defer opt_i = METHOD (K (Tactic.defer_tac (the_default 1 opt_i)));
 
 fun cheating int ctxt =
   if int orelse ! quick_and_dirty then
-    METHOD (K (Skip_Proof.cheat_tac (ProofContext.theory_of ctxt)))
+    METHOD (K (Skip_Proof.cheat_tac (Proof_Context.theory_of ctxt)))
   else error "Cheating requires quick_and_dirty mode!";
 
 
@@ -183,8 +183,8 @@ val this = METHOD (EVERY o map (HEADGOAL o Tactic.rtac));
 
 (* fact -- composition by facts from context *)
 
-fun fact [] ctxt = SIMPLE_METHOD' (ProofContext.some_fact_tac ctxt)
-  | fact rules _ = SIMPLE_METHOD' (ProofContext.fact_tac rules);
+fun fact [] ctxt = SIMPLE_METHOD' (Proof_Context.some_fact_tac ctxt)
+  | fact rules _ = SIMPLE_METHOD' (Proof_Context.fact_tac rules);
 
 
 (* assumption *)
@@ -334,7 +334,7 @@ structure Methods = Theory_Data
 
 fun print_methods thy =
   let
-    val ctxt = ProofContext.init_global thy;
+    val ctxt = Proof_Context.init_global thy;
     val meths = Methods.get thy;
     fun prt_meth (name, (_, comment)) = Pretty.block
       [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];

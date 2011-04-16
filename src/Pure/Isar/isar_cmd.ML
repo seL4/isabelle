@@ -159,10 +159,10 @@ end;
 
 fun read_trrules thy raw_rules =
   let
-    val ctxt = ProofContext.init_global thy;
+    val ctxt = Proof_Context.init_global thy;
   in
     raw_rules |> map (Syntax.map_trrule (fn (r, s) =>
-      Syntax_Phases.parse_ast_pattern ctxt (ProofContext.intern_type ctxt r, s)))
+      Syntax_Phases.parse_ast_pattern ctxt (Proof_Context.intern_type ctxt r, s)))
   end;
 
 fun translations args thy = Sign.add_trrules (read_trrules thy args) thy;
@@ -326,24 +326,24 @@ fun print_theory verbose = Toplevel.unknown_theory o
   Toplevel.keep (Pretty.writeln o Proof_Display.pretty_full_theory verbose o Toplevel.theory_of);
 
 val print_syntax = Toplevel.unknown_context o
-  Toplevel.keep (ProofContext.print_syntax o Toplevel.context_of);
+  Toplevel.keep (Proof_Context.print_syntax o Toplevel.context_of);
 
 val print_abbrevs = Toplevel.unknown_context o
-  Toplevel.keep (ProofContext.print_abbrevs o Toplevel.context_of);
+  Toplevel.keep (Proof_Context.print_abbrevs o Toplevel.context_of);
 
 val print_facts = Toplevel.unknown_context o
-  Toplevel.keep (ProofContext.print_lthms o Toplevel.context_of);
+  Toplevel.keep (Proof_Context.print_lthms o Toplevel.context_of);
 
 val print_configs = Toplevel.unknown_context o
   Toplevel.keep (Attrib.print_configs o Toplevel.context_of);
 
 val print_theorems_proof =
-  Toplevel.keep (ProofContext.print_lthms o Proof.context_of o Toplevel.proof_of);
+  Toplevel.keep (Proof_Context.print_lthms o Proof.context_of o Toplevel.proof_of);
 
 fun print_theorems_theory verbose = Toplevel.keep (fn state =>
   Toplevel.theory_of state |>
   (case Toplevel.previous_context_of state of
-    SOME prev => Proof_Display.print_theorems_diff verbose (ProofContext.theory_of prev)
+    SOME prev => Proof_Display.print_theorems_diff verbose (Proof_Context.theory_of prev)
   | NONE => Proof_Display.print_theorems verbose));
 
 fun print_theorems verbose =
@@ -400,7 +400,7 @@ val thy_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
 val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let
     val ctxt = Toplevel.context_of state;
-    val {classes = (space, algebra), ...} = Type.rep_tsig (ProofContext.tsig_of ctxt);
+    val {classes = (space, algebra), ...} = Type.rep_tsig (Proof_Context.tsig_of ctxt);
     val classes = Sorts.classes_of algebra;
     fun entry (c, (i, (_, cs))) =
       (i, {name = Name_Space.extern ctxt space c, ID = c, parents = cs,
@@ -421,7 +421,7 @@ fun unused_thms opt_range = Toplevel.keep (fn state =>
   let
     val thy = Toplevel.theory_of state;
     val ctxt = Toplevel.context_of state;
-    fun pretty_thm (a, th) = ProofContext.pretty_fact ctxt (a, [th]);
+    fun pretty_thm (a, th) = Proof_Context.pretty_fact ctxt (a, [th]);
     val get_theory = Context.get_theory thy;
   in
     Thm_Deps.unused_thms
@@ -436,10 +436,10 @@ fun unused_thms opt_range = Toplevel.keep (fn state =>
 (* print proof context contents *)
 
 val print_binds = Toplevel.unknown_context o
-  Toplevel.keep (ProofContext.print_binds o Toplevel.context_of);
+  Toplevel.keep (Proof_Context.print_binds o Toplevel.context_of);
 
 val print_cases = Toplevel.unknown_context o
-  Toplevel.keep (ProofContext.print_cases o Toplevel.context_of);
+  Toplevel.keep (Proof_Context.print_cases o Toplevel.context_of);
 
 
 (* print theorems, terms, types etc. *)
@@ -460,7 +460,7 @@ fun string_of_prfs full state arg =
       NONE =>
         let
           val {context = ctxt, goal = thm} = Proof.simple_goal (Toplevel.proof_of state);
-          val thy = ProofContext.theory_of ctxt;
+          val thy = Proof_Context.theory_of ctxt;
           val prf = Thm.proof_of thm;
           val prop = Thm.full_prop_of thm;
           val prf' = Proofterm.rewrite_proof_notypes ([], []) prf;

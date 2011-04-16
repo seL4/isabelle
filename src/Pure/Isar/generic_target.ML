@@ -50,8 +50,8 @@ fun check_mixfix ctxt (b, extra_tfrees) mx =
 
 fun define foundation ((b, mx), ((proto_b_def, atts), rhs)) lthy =
   let
-    val thy = ProofContext.theory_of lthy;
-    val thy_ctxt = ProofContext.init_global thy;
+    val thy = Proof_Context.theory_of lthy;
+    val thy_ctxt = Proof_Context.init_global thy;
 
     val b_def = Thm.def_binding_optional b proto_b_def;
 
@@ -99,8 +99,8 @@ fun define foundation ((b, mx), ((proto_b_def, atts), rhs)) lthy =
 
 fun import_export_proof ctxt (name, raw_th) =
   let
-    val thy = ProofContext.theory_of ctxt;
-    val thy_ctxt = ProofContext.init_global thy;
+    val thy = Proof_Context.theory_of ctxt;
+    val thy_ctxt = Proof_Context.init_global thy;
     val certT = Thm.ctyp_of thy;
     val cert = Thm.cterm_of thy;
 
@@ -145,7 +145,7 @@ fun import_export_proof ctxt (name, raw_th) =
 
 fun notes target_notes kind facts lthy =
   let
-    val thy = ProofContext.theory_of lthy;
+    val thy = Proof_Context.theory_of lthy;
     val facts' = facts
       |> map (fn (a, bs) => (a, Global_Theory.burrow_fact (Global_Theory.name_multi
           (Local_Theory.full_name lthy (fst a))) bs))
@@ -155,7 +155,7 @@ fun notes target_notes kind facts lthy =
   in
     lthy
     |> target_notes kind global_facts local_facts
-    |> ProofContext.note_thmss kind (Attrib.map_facts (Attrib.attribute_i thy) local_facts)
+    |> Proof_Context.note_thmss kind (Attrib.map_facts (Attrib.attribute_i thy) local_facts)
   end;
 
 
@@ -163,7 +163,7 @@ fun notes target_notes kind facts lthy =
 
 fun abbrev target_abbrev prmode ((b, mx), t) lthy =
   let
-    val thy_ctxt = ProofContext.init_global (ProofContext.theory_of lthy);
+    val thy_ctxt = Proof_Context.init_global (Proof_Context.theory_of lthy);
     val target_ctxt = Local_Theory.target_of lthy;
 
     val t' = Assumption.export_term lthy target_ctxt t;
@@ -179,7 +179,7 @@ fun abbrev target_abbrev prmode ((b, mx), t) lthy =
   in
     lthy
     |> target_abbrev prmode (b, mx') (global_rhs, t') xs
-    |> ProofContext.add_abbrev Print_Mode.internal (b, t) |> snd
+    |> Proof_Context.add_abbrev Print_Mode.internal (b, t) |> snd
     |> Local_Defs.fixed_abbrev ((b, NoSyn), t)
   end;
 
@@ -207,12 +207,12 @@ fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lt
 
 fun theory_notes kind global_facts lthy =
   let
-    val thy = ProofContext.theory_of lthy;
+    val thy = Proof_Context.theory_of lthy;
     val global_facts' = Attrib.map_facts (Attrib.attribute_i thy) global_facts;
   in
     lthy
     |> Local_Theory.background_theory (Global_Theory.note_thmss kind global_facts' #> snd)
-    |> Local_Theory.target (ProofContext.note_thmss kind global_facts' #> snd)
+    |> Local_Theory.target (Proof_Context.note_thmss kind global_facts' #> snd)
   end;
 
 fun theory_abbrev prmode ((b, mx), t) =

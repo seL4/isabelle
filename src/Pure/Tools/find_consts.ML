@@ -71,7 +71,7 @@ fun find_consts ctxt raw_criteria =
   let
     val start = Timing.start ();
 
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val low_ranking = 10000;
 
     fun user_visible consts (nm, _) =
@@ -82,7 +82,7 @@ fun find_consts ctxt raw_criteria =
         val raw_T = Syntax.parse_typ ctxt crit;
         val t =
           Syntax.check_term
-            (ProofContext.set_mode ProofContext.mode_pattern ctxt)
+            (Proof_Context.set_mode Proof_Context.mode_pattern ctxt)
             (Term.dummy_pattern raw_T);
       in Term.type_of t end;
 

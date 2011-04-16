@@ -116,8 +116,8 @@ fun maintain_calculation int final calc state =
     val _ =
       if int then
         Pretty.writeln
-          (ProofContext.pretty_fact ctxt'
-            (ProofContext.full_name ctxt' (Binding.name calculationN), calc))
+          (Proof_Context.pretty_fact ctxt'
+            (Proof_Context.full_name ctxt' (Binding.name calculationN), calc))
       else ();
   in state' |> final ? (put_calculation NONE #> Proof.chain_facts calc) end;
 

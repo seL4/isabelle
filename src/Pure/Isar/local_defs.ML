@@ -58,7 +58,7 @@ val abs_def = Primitive_Defs.abs_def #>> Term.dest_Free;
 fun mk_def ctxt args =
   let
     val (xs, rhss) = split_list args;
-    val (bind, _) = ProofContext.bind_fixes xs ctxt;
+    val (bind, _) = Proof_Context.bind_fixes xs ctxt;
     val lhss = map (fn (x, rhs) => bind (Free (x, Term.fastype_of rhs))) args;
   in map Logic.mk_equals (lhss ~~ rhss) end;
 
@@ -98,9 +98,9 @@ fun add_defs defs ctxt =
     val lhss = map (fst o Logic.dest_equals) eqs;
   in
     ctxt
-    |> ProofContext.add_fixes (map2 (fn x => fn mx => (x, NONE, mx)) bvars mxs) |> #2
+    |> Proof_Context.add_fixes (map2 (fn x => fn mx => (x, NONE, mx)) bvars mxs) |> #2
     |> fold Variable.declare_term eqs
-    |> ProofContext.add_assms_i def_export
+    |> Proof_Context.add_assms_i def_export
       (map2 (fn a => fn eq => (a, [(eq, [])])) (names ~~ atts) eqs)
     |>> map2 (fn lhs => fn (name, [th]) => (lhs, (name, th))) lhss
   end;
@@ -117,7 +117,7 @@ fun fixed_abbrev ((x, mx), rhs) ctxt =
     val T = Term.fastype_of rhs;
     val ([x'], ctxt') = ctxt
       |> Variable.declare_term rhs
-      |> ProofContext.add_fixes [(x, SOME T, mx)];
+      |> Proof_Context.add_fixes [(x, SOME T, mx)];
     val lhs = Free (x', T);
     val _ = cert_def ctxt' (Logic.mk_equals (lhs, rhs));
     fun abbrev_export _ _ = (I, Envir.expand_term_frees [((x', T), rhs)]);
@@ -232,7 +232,7 @@ val fold_tac     = meta Raw_Simplifier.fold_goals_tac;
 fun derived_def ctxt conditional prop =
   let
     val ((c, T), rhs) = prop
-      |> Thm.cterm_of (ProofContext.theory_of ctxt)
+      |> Thm.cterm_of (Proof_Context.theory_of ctxt)
       |> meta_rewrite_conv ctxt
       |> (snd o Logic.dest_equals o Thm.prop_of)
       |> conditional ? Logic.strip_imp_concl

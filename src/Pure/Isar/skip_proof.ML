@@ -35,10 +35,10 @@ fun prove ctxt xs asms prop tac =
   (if Goal.future_enabled () then Goal.prove_future else Goal.prove) ctxt xs asms prop
     (fn args => fn st =>
       if ! quick_and_dirty
-      then cheat_tac (ProofContext.theory_of ctxt) st
+      then cheat_tac (Proof_Context.theory_of ctxt) st
       else tac args st);
 
 fun prove_global thy xs asms prop tac =
-  Drule.export_without_context (prove (ProofContext.init_global thy) xs asms prop tac);
+  Drule.export_without_context (prove (Proof_Context.init_global thy) xs asms prop tac);
 
 end;

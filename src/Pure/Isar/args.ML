@@ -184,25 +184,25 @@ fun named_attribute att =
 
 (* terms and types *)
 
-val typ_abbrev = Scan.peek (named_typ o ProofContext.read_typ_abbrev o Context.proof_of);
+val typ_abbrev = Scan.peek (named_typ o Proof_Context.read_typ_abbrev o Context.proof_of);
 val typ = Scan.peek (named_typ o Syntax.read_typ o Context.proof_of);
 val term = Scan.peek (named_term o Syntax.read_term o Context.proof_of);
-val term_abbrev = Scan.peek (named_term o ProofContext.read_term_abbrev o Context.proof_of);
+val term_abbrev = Scan.peek (named_term o Proof_Context.read_term_abbrev o Context.proof_of);
 val prop = Scan.peek (named_term o Syntax.read_prop o Context.proof_of);
 
 
 (* type and constant names *)
 
 fun type_name strict =
-  Scan.peek (fn ctxt => named_typ (ProofContext.read_type_name (Context.proof_of ctxt) strict))
+  Scan.peek (fn ctxt => named_typ (Proof_Context.read_type_name (Context.proof_of ctxt) strict))
   >> (fn Type (c, _) => c | TFree (a, _) => a | _ => "");
 
 fun const strict =
-  Scan.peek (fn ctxt => named_term (ProofContext.read_const (Context.proof_of ctxt) strict dummyT))
+  Scan.peek (fn ctxt => named_term (Proof_Context.read_const (Context.proof_of ctxt) strict dummyT))
   >> (fn Const (c, _) => c | Free (x, _) => x | _ => "");
 
 fun const_proper strict =
-  Scan.peek (fn ctxt => named_term (ProofContext.read_const_proper (Context.proof_of ctxt) strict))
+  Scan.peek (fn ctxt => named_term (Proof_Context.read_const_proper (Context.proof_of ctxt) strict))
   >> (fn Const (c, _) => c | _ => "");
 
 

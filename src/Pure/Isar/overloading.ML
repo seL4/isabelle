@@ -65,8 +65,8 @@ fun improve_term_check ts ctxt =
   let
     val { secondary_constraints, improve, subst, consider_abbrevs, passed, ... } =
       ImprovableSyntax.get ctxt;
-    val tsig = (Sign.tsig_of o ProofContext.theory_of) ctxt;
-    val is_abbrev = consider_abbrevs andalso ProofContext.abbrev_mode ctxt;
+    val tsig = (Sign.tsig_of o Proof_Context.theory_of) ctxt;
+    val is_abbrev = consider_abbrevs andalso Proof_Context.abbrev_mode ctxt;
     val passed_or_abbrev = passed orelse is_abbrev;
     fun accumulate_improvements (Const (c, ty)) = (case improve (c, ty)
          of SOME ty_ty' => Type.typ_match tsig ty_ty'
@@ -85,7 +85,7 @@ fun improve_term_check ts ctxt =
     if eq_list (op aconv) (ts, ts'') andalso passed_or_abbrev then NONE else
     if passed_or_abbrev then SOME (ts'', ctxt)
     else SOME (ts'', ctxt
-      |> fold (ProofContext.add_const_constraint o apsnd SOME) secondary_constraints
+      |> fold (Proof_Context.add_const_constraint o apsnd SOME) secondary_constraints
       |> mark_passed)
   end;
 
@@ -96,7 +96,7 @@ fun rewrite_liberal thy unchecks t =
 
 fun improve_term_uncheck ts ctxt =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val unchecks = (#unchecks o ImprovableSyntax.get) ctxt;
     val ts' = map (rewrite_liberal thy unchecks) ts;
   in if exists is_some ts' then SOME (map2 the_default ts ts', ctxt) else NONE end;
@@ -104,7 +104,7 @@ fun improve_term_uncheck ts ctxt =
 fun set_primary_constraints ctxt =
   let
     val { primary_constraints, ... } = ImprovableSyntax.get ctxt;
-  in fold (ProofContext.add_const_constraint o apsnd SOME) primary_constraints ctxt end;
+  in fold (Proof_Context.add_const_constraint o apsnd SOME) primary_constraints ctxt end;
 
 val activate_improvable_syntax =
   Context.proof_map
@@ -161,7 +161,7 @@ fun pretty lthy =
     val overloading = get_overloading lthy;
     fun pr_operation ((c, ty), (v, _)) =
       Pretty.block (Pretty.breaks
-        [Pretty.str v, Pretty.str "==", Pretty.str (ProofContext.extern_const lthy c),
+        [Pretty.str v, Pretty.str "==", Pretty.str (Proof_Context.extern_const lthy c),
           Pretty.str "::", Syntax.pretty_typ lthy ty]);
   in Pretty.str "overloading" :: map pr_operation overloading end;
 
@@ -177,14 +177,14 @@ fun conclude lthy =
 
 fun gen_overloading prep_const raw_overloading thy =
   let
-    val ctxt = ProofContext.init_global thy;
+    val ctxt = Proof_Context.init_global thy;
     val _ = if null raw_overloading then error "At least one parameter must be given" else ();
     val overloading = raw_overloading |> map (fn (v, const, checked) =>
       (Term.dest_Const (prep_const ctxt const), (v, checked)));
   in
     thy
     |> Theory.checkpoint
-    |> ProofContext.init_global
+    |> Proof_Context.init_global
     |> Data.put overloading
     |> fold (fn ((_, ty), (v, _)) => Variable.declare_names (Free (v, ty))) overloading
     |> activate_improvable_syntax

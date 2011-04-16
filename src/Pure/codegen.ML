@@ -821,7 +821,7 @@ fun gen_generate_code prep_term thy modules module xs =
 
 val generate_code_i = gen_generate_code Sign.cert_term;
 val generate_code =
-  gen_generate_code (Syntax.read_term o ProofContext.allow_dummies o ProofContext.init_global);
+  gen_generate_code (Syntax.read_term o Proof_Context.allow_dummies o Proof_Context.init_global);
 
 
 (**** Reflection ****)
@@ -872,7 +872,7 @@ val test_fn : (int -> term list option) Unsynchronized.ref =
 
 fun test_term ctxt t =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val (code, gr) = setmp_CRITICAL mode ["term_of", "test"]
       (generate_code_i thy [] "Generated") [("testf", t)];
     val Ts = map snd (fst (strip_abs t));
@@ -906,7 +906,7 @@ val eval_result = Unsynchronized.ref (fn () => Bound 0);
 
 fun eval_term thy t =
   let
-    val ctxt = ProofContext.init_global thy;  (* FIXME *)
+    val ctxt = Proof_Context.init_global thy;  (* FIXME *)
     val e =
       let
         val _ = (null (Term.add_tvars t []) andalso null (Term.add_tfrees t [])) orelse

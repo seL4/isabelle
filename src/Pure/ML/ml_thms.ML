@@ -62,7 +62,7 @@ val _ = ML_Context.add_antiq "lemma"
         val i = serial ();
         val prep_result = Goal.norm_result #> not is_open ? Thm.close_derivation;
         fun after_qed res goal_ctxt =
-          put_thms (i, map prep_result (ProofContext.export goal_ctxt ctxt (flat res))) goal_ctxt;
+          put_thms (i, map prep_result (Proof_Context.export goal_ctxt ctxt (flat res))) goal_ctxt;
         val ctxt' = ctxt
           |> Proof.theorem NONE after_qed propss
           |> Proof.global_terminal_proof methods;

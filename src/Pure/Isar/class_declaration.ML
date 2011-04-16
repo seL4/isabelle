@@ -27,7 +27,7 @@ local
 
 fun calculate thy class sups base_sort param_map assm_axiom =
   let
-    val empty_ctxt = ProofContext.init_global thy;
+    val empty_ctxt = Proof_Context.init_global thy;
 
     (* instantiation of canonical interpretation *)
     val aT = TFree (Name.aT, base_sort);
@@ -55,7 +55,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
           of (_, NONE) => all_tac
            | (_, SOME intro) => ALLGOALS (Tactic.rtac intro);
         val tac = loc_intro_tac
-          THEN ALLGOALS (ProofContext.fact_tac (sup_axioms @ the_list assm_axiom))
+          THEN ALLGOALS (Proof_Context.fact_tac (sup_axioms @ the_list assm_axiom))
       in Element.prove_witness empty_ctxt prop tac end) prop;
     val axiom = Option.map Element.conclude_witness wit;
 
@@ -73,7 +73,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
          of SOME eq_morph => const_morph $> eq_morph
           | NONE => const_morph
         val thm'' = Morphism.thm const_eq_morph thm';
-        val tac = ALLGOALS (ProofContext.fact_tac [thm'']);
+        val tac = ALLGOALS (Proof_Context.fact_tac [thm'']);
       in Skip_Proof.prove_global thy [] [] (Thm.prop_of thm'') (K tac) end;
     val assm_intro = Option.map prove_assm_intro
       (fst (Locale.intros_of thy class));
@@ -146,11 +146,11 @@ fun prep_class_elems prep_decl thy sups raw_elems =
     (* preprocessing elements, retrieving base sort from type-checked elements *)
     val raw_supexpr = (map (fn sup => (sup, (("", false),
       Expression.Positional []))) sups, []);
-    val init_class_body = fold (ProofContext.add_const_constraint o apsnd SOME) base_constraints
+    val init_class_body = fold (Proof_Context.add_const_constraint o apsnd SOME) base_constraints
       #> Class.redeclare_operations thy sups
       #> add_typ_check 10 "reject_bcd_etc" reject_bcd_etc
       #> add_typ_check ~10 "singleton_fixate" singleton_fixate;
-    val ((raw_supparams, _, raw_inferred_elems), _) = ProofContext.init_global thy
+    val ((raw_supparams, _, raw_inferred_elems), _) = Proof_Context.init_global thy
       |> add_typ_check 5 "after_infer_fixate" after_infer_fixate
       |> prep_decl raw_supexpr init_class_body raw_elems;
     fun filter_element (Element.Fixes []) = NONE
@@ -207,7 +207,7 @@ fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
     val sup_sort = inter_sort base_sort sups;
 
     (* process elements as class specification *)
-    val class_ctxt = Class.begin sups base_sort (ProofContext.init_global thy);
+    val class_ctxt = Class.begin sups base_sort (Proof_Context.init_global thy);
     val ((_, _, syntax_elems), _) = class_ctxt
       |> Expression.cert_declaration supexpr I inferred_elems;
     fun check_vars e vs = if null vs
@@ -324,7 +324,7 @@ local
 
 fun gen_subclass prep_class do_proof before_exit raw_sup lthy =
   let
-    val thy = ProofContext.theory_of lthy;
+    val thy = Proof_Context.theory_of lthy;
     val proto_sup = prep_class thy raw_sup;
     val proto_sub = case Named_Target.peek lthy
      of SOME {target, is_class = true, ...} => target
@@ -337,9 +337,9 @@ fun gen_subclass prep_class do_proof before_exit raw_sup lthy =
     val some_prop = try the_single props;
     val some_dep_morph = try the_single (map snd deps);
     fun after_qed some_wit =
-      ProofContext.background_theory (Class.register_subclass (sub, sup)
+      Proof_Context.background_theory (Class.register_subclass (sub, sup)
         some_dep_morph some_wit export)
-      #> ProofContext.theory_of #> Named_Target.init before_exit sub;
+      #> Proof_Context.theory_of #> Named_Target.init before_exit sub;
   in do_proof after_qed some_prop goal_ctxt end;
 
 fun user_proof after_qed some_prop =
@@ -354,7 +354,7 @@ in
 
 val subclass = gen_subclass (K I) user_proof;
 fun prove_subclass before_exit tac = gen_subclass (K I) (tactic_proof tac) before_exit;
-val subclass_cmd = gen_subclass (ProofContext.read_class o ProofContext.init_global) user_proof;
+val subclass_cmd = gen_subclass (Proof_Context.read_class o Proof_Context.init_global) user_proof;
 
 end; (*local*)
 

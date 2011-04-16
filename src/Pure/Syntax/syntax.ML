@@ -344,10 +344,10 @@ fun read_props ctxt = map (parse_prop ctxt) #> check_props ctxt;
 val read_term = singleton o read_terms;
 val read_prop = singleton o read_props;
 
-val read_sort_global = read_sort o ProofContext.init_global;
-val read_typ_global = read_typ o ProofContext.init_global;
-val read_term_global = read_term o ProofContext.init_global;
-val read_prop_global = read_prop o ProofContext.init_global;
+val read_sort_global = read_sort o Proof_Context.init_global;
+val read_typ_global = read_typ o Proof_Context.init_global;
+val read_term_global = read_term o Proof_Context.init_global;
+val read_prop_global = read_prop o Proof_Context.init_global;
 
 
 (* pretty = uncheck + unparse *)
@@ -370,7 +370,7 @@ val string_of_arity = Pretty.string_of oo pretty_arity;
 val pretty_global = Config.bool (Config.declare "Syntax.pretty_global" (K (Config.Bool false)));
 fun is_pretty_global ctxt = Config.get ctxt pretty_global;
 val set_pretty_global = Config.put pretty_global;
-val init_pretty_global = set_pretty_global true o ProofContext.init_global;
+val init_pretty_global = set_pretty_global true o Proof_Context.init_global;
 
 val pretty_term_global = pretty_term o init_pretty_global;
 val pretty_typ_global = pretty_typ o init_pretty_global;

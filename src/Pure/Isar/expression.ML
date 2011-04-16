@@ -185,7 +185,7 @@ fun inst_morph (parm_names, parm_types) ((prfx, mandatory), insts') ctxt =
     val instT = Symtab.make (type_parm_names ~~ map Logic.dest_type type_parms'');
     val inst = Symtab.make insts'';
   in
-    (Element.inst_morphism (ProofContext.theory_of ctxt) (instT, inst) $>
+    (Element.inst_morphism (Proof_Context.theory_of ctxt) (instT, inst) $>
       Morphism.binding_morphism (Binding.prefix mandatory prfx), ctxt')
   end;
 
@@ -198,15 +198,15 @@ fun parse_elem prep_typ prep_term ctxt =
   Element.map_ctxt
    {binding = I,
     typ = prep_typ ctxt,
-    term = prep_term (ProofContext.set_mode ProofContext.mode_schematic ctxt),
-    pattern = prep_term (ProofContext.set_mode ProofContext.mode_pattern ctxt),
+    term = prep_term (Proof_Context.set_mode Proof_Context.mode_schematic ctxt),
+    pattern = prep_term (Proof_Context.set_mode Proof_Context.mode_pattern ctxt),
     fact = I,
     attrib = I};
 
 fun parse_concl prep_term ctxt concl =
   (map o map) (fn (t, ps) =>
-    (prep_term (ProofContext.set_mode ProofContext.mode_schematic ctxt) t,
-      map (prep_term (ProofContext.set_mode ProofContext.mode_pattern ctxt)) ps)) concl;
+    (prep_term (Proof_Context.set_mode Proof_Context.mode_schematic ctxt) t,
+      map (prep_term (Proof_Context.set_mode Proof_Context.mode_pattern ctxt)) ps)) concl;
 
 
 (** Simultaneous type inference: instantiations + elements + conclusion **)
@@ -247,12 +247,12 @@ fun check cs context =
     fun prep (_, pats) (ctxt, t :: ts) =
       let val ctxt' = Variable.auto_fixes t ctxt
       in
-        ((t, Syntax.check_props (ProofContext.set_mode ProofContext.mode_pattern ctxt') pats),
+        ((t, Syntax.check_props (Proof_Context.set_mode Proof_Context.mode_pattern ctxt') pats),
           (ctxt', ts))
       end;
     val (cs', (context', _)) = fold_map prep cs
       (context, Syntax.check_terms
-        (ProofContext.set_mode ProofContext.mode_schematic context) (map fst cs));
+        (Proof_Context.set_mode Proof_Context.mode_schematic context) (map fst cs));
   in (cs', context') end;
 
 in
@@ -279,7 +279,7 @@ end;
 
 fun declare_elem prep_vars (Fixes fixes) ctxt =
       let val (vars, _) = prep_vars fixes ctxt
-      in ctxt |> ProofContext.add_fixes vars |> snd end
+      in ctxt |> Proof_Context.add_fixes vars |> snd end
   | declare_elem prep_vars (Constrains csts) ctxt =
       ctxt |> prep_vars (map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) csts) |> snd
   | declare_elem _ (Assumes _) ctxt = ctxt
@@ -322,7 +322,7 @@ fun finish_primitive parms _ (Fixes fixes) = Fixes (map (fn (binding, _, mx) =>
 
 fun finish_inst ctxt (loc, (prfx, inst)) =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val (parm_names, parm_types) = Locale.params_of thy loc |> map #1 |> split_list;
     val (morph, _) = inst_morph (parm_names, parm_types) (prfx, inst) ctxt;
   in (loc, morph) end;
@@ -346,7 +346,7 @@ local
 fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst prep_vars_inst prep_expr
     {strict, do_close, fixed_frees} raw_import init_body raw_elems raw_concl ctxt1 =
   let
-    val thy = ProofContext.theory_of ctxt1;
+    val thy = Proof_Context.theory_of ctxt1;
 
     val (raw_insts, fixed) = parameters_of thy strict (apfst (prep_expr thy) raw_import);
 
@@ -377,7 +377,7 @@ fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst pr
       in check_autofix insts elems concl ctxt end;
 
     val fors = prep_vars_inst fixed ctxt1 |> fst;
-    val ctxt2 = ctxt1 |> ProofContext.add_fixes fors |> snd;
+    val ctxt2 = ctxt1 |> Proof_Context.add_fixes fors |> snd;
     val (_, insts', ctxt3) = fold prep_insts_cumulative raw_insts (0, [], ctxt2);
 
     val add_free = fold_aterms
@@ -397,7 +397,7 @@ fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst pr
     (* Retrieve parameter types *)
     val xs = fold (fn Fixes fixes => (fn ps => ps @ map (Variable.name o #1) fixes)
       | _ => fn ps => ps) (Fixes fors :: elems') [];
-    val (Ts, ctxt7) = fold_map ProofContext.inferred_param xs ctxt6;
+    val (Ts, ctxt7) = fold_map Proof_Context.inferred_param xs ctxt6;
     val parms = xs ~~ Ts;  (* params from expression and elements *)
 
     val Fixes fors' = finish_primitive parms I (Fixes fors);
@@ -409,16 +409,16 @@ fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst pr
 in
 
 fun cert_full_context_statement x =
-  prep_full_context_statement (K I) (K I) ProofContext.cert_vars
-  make_inst ProofContext.cert_vars (K I) x;
+  prep_full_context_statement (K I) (K I) Proof_Context.cert_vars
+  make_inst Proof_Context.cert_vars (K I) x;
 
 fun cert_read_full_context_statement x =
-  prep_full_context_statement Syntax.parse_typ Syntax.parse_prop ProofContext.read_vars
-  make_inst ProofContext.cert_vars (K I) x;
+  prep_full_context_statement Syntax.parse_typ Syntax.parse_prop Proof_Context.read_vars
+  make_inst Proof_Context.cert_vars (K I) x;
 
 fun read_full_context_statement x =
-  prep_full_context_statement Syntax.parse_typ Syntax.parse_prop ProofContext.read_vars
-  parse_inst ProofContext.read_vars intern x;
+  prep_full_context_statement Syntax.parse_typ Syntax.parse_prop Proof_Context.read_vars
+  parse_inst Proof_Context.read_vars intern x;
 
 end;
 
@@ -433,7 +433,7 @@ fun prep_statement prep activate raw_elems raw_concl context =
        prep {strict = true, do_close = false, fixed_frees = true}
         ([], []) I raw_elems raw_concl context;
      val (_, context') = context |>
-       ProofContext.set_stmt true |>
+       Proof_Context.set_stmt true |>
        fold_map activate elems;
   in (concl, context') end;
 
@@ -448,7 +448,7 @@ end;
 (* Locale declaration: import + elements *)
 
 fun fix_params params =
-  ProofContext.add_fixes (map (fn ((x, T), mx) => (Binding.name x, SOME T, mx)) params) #> snd;
+  Proof_Context.add_fixes (map (fn ((x, T), mx) => (Binding.name x, SOME T, mx)) params) #> snd;
 
 local
 
@@ -462,7 +462,7 @@ fun prep_declaration prep activate raw_import init_body raw_elems context =
       fix_params fixed |>
       fold (Context.proof_map o Locale.activate_facts NONE) deps;
     val (elems', _) = context' |>
-      ProofContext.set_stmt true |>
+      Proof_Context.set_stmt true |>
       fold_map activate elems;
   in ((fixed, deps, elems'), (parms, ctxt')) end;
 
@@ -488,7 +488,7 @@ fun props_of thy (name, morph) =
 
 fun prep_goal_expression prep expression context =
   let
-    val thy = ProofContext.theory_of context;
+    val thy = Proof_Context.theory_of context;
 
     val ((fixed, deps, _, _), _) =
       prep {strict = true, do_close = true, fixed_frees = true} expression I [] [] context;
@@ -566,7 +566,7 @@ fun eval_text _ _ (Fixes _) text = text
 
 fun eval_inst ctxt (loc, morph) text =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val (asm, defs) = Locale.specification_of thy loc;
     val asm' = Option.map (Morphism.term morph) asm;
     val defs' = map (Morphism.term morph) defs;
@@ -616,7 +616,7 @@ fun atomize_spec thy ts =
 fun aprop_tr' n c = (Lexicon.mark_const c, fn ctxt => fn args =>
   if length args = n then
     Syntax.const "_aprop" $   (* FIXME avoid old-style early externing (!??) *)
-      Term.list_comb (Syntax.free (ProofContext.extern_const ctxt c), args)
+      Term.list_comb (Syntax.free (Proof_Context.extern_const ctxt c), args)
   else raise Match);
 
 (* define one predicate including its intro rule and axioms
@@ -651,7 +651,7 @@ fun def_pred binding parms defs ts norm_ts thy =
       |> Sign.declare_const ((Binding.conceal binding, predT), NoSyn) |> snd
       |> Global_Theory.add_defs false
         [((Binding.conceal (Thm.def_binding binding), Logic.mk_equals (head, body)), [])];
-    val defs_ctxt = ProofContext.init_global defs_thy |> Variable.declare_term head;
+    val defs_ctxt = Proof_Context.init_global defs_thy |> Variable.declare_term head;
 
     val cert = Thm.cterm_of defs_thy;
 
@@ -738,7 +738,7 @@ fun gen_add_locale prep_decl
       error ("Duplicate definition of locale " ^ quote name);
 
     val ((fixed, deps, body_elems), (parms, ctxt')) =
-      prep_decl raw_import I raw_body (ProofContext.init_global thy);
+      prep_decl raw_import I raw_body (Proof_Context.init_global thy);
     val text as (((_, exts'), _), defs) = eval ctxt' deps body_elems;
 
     val extraTs =
@@ -825,7 +825,7 @@ fun note_eqns_register deps witss attrss eqns export export' context =
 fun gen_interpretation prep_expr parse_prop prep_attr
     expression equations theory =
   let
-    val ((propss, deps, export), expr_ctxt) = ProofContext.init_global theory
+    val ((propss, deps, export), expr_ctxt) = Proof_Context.init_global theory
       |> prep_expr expression;
 
     val eqns = map (parse_prop expr_ctxt o snd) equations |> Syntax.check_terms expr_ctxt;
@@ -834,7 +834,7 @@ fun gen_interpretation prep_expr parse_prop prep_attr
     val export' = Variable.export_morphism goal_ctxt expr_ctxt;
 
     fun after_qed witss eqns =
-      (ProofContext.background_theory o Context.theory_map)
+      (Proof_Context.background_theory o Context.theory_map)
         (note_eqns_register deps witss attrss eqns export export');
 
   in Element.witness_proof_eqs after_qed propss eqns goal_ctxt end;
@@ -844,7 +844,7 @@ fun gen_interpret prep_expr parse_prop prep_attr
   let
     val _ = Proof.assert_forward_or_chain state;
     val ctxt = Proof.context_of state;
-    val theory = ProofContext.theory_of ctxt;
+    val theory = Proof_Context.theory_of ctxt;
 
     val ((propss, deps, export), expr_ctxt) = prep_expr expression ctxt;
 
@@ -891,7 +891,7 @@ fun note_eqns_dependency target deps witss attrss eqns export export' ctxt =
   in
     ctxt
     |> Locale.add_thmss target Thm.lemmaK facts
-    |> ProofContext.background_theory (fold (fn ((dep, morph), wits) =>
+    |> Proof_Context.background_theory (fold (fn ((dep, morph), wits) =>
       fn theory =>
         Locale.add_dependency target
           (dep, morph $> Element.satisfy_morphism

@@ -350,7 +350,7 @@ fun add_type_abbrev abbr = map_sign (fn (naming, syn, tsig, consts) =>
 
 fun gen_syntax change_gram parse_typ mode args thy =
   let
-    val ctxt = ProofContext.init_global thy;
+    val ctxt = Proof_Context.init_global thy;
     fun prep (c, T, mx) = (c, certify_typ_mode Type.mode_syntax thy (parse_typ ctxt T), mx)
       handle ERROR msg => cat_error msg ("in syntax declaration " ^ quote c);
   in thy |> map_syn (change_gram (is_logtype thy) mode (map prep args)) end;
@@ -387,7 +387,7 @@ local
 
 fun gen_add_consts parse_typ raw_args thy =
   let
-    val ctxt = ProofContext.init_global thy;
+    val ctxt = Proof_Context.init_global thy;
     val prepT = Type.no_tvars o Term.no_dummyT o certify_typ thy o parse_typ ctxt;
     fun prep (b, raw_T, mx) =
       let

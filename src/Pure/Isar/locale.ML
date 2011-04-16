@@ -162,7 +162,7 @@ structure Locales = Theory_Data
 );
 
 val intern = Name_Space.intern o #1 o Locales.get;
-fun extern thy = Name_Space.extern (ProofContext.init_global thy) (#1 (Locales.get thy));
+fun extern thy = Name_Space.extern (Proof_Context.init_global thy) (#1 (Locales.get thy));
 
 val get_locale = Symtab.lookup o #2 o Locales.get;
 val defined = Symtab.defined o #2 o Locales.get;
@@ -215,7 +215,7 @@ fun identity_on thy name morph =
 
 fun pretty_reg ctxt (name, morph) =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val name' = extern thy name;
     fun prt_qual (qual, mand) = Pretty.str (qual ^ (if mand then "!" else "?"));
     fun prt_quals qs = Pretty.separate "." (map prt_qual qs) |> Pretty.block;
@@ -469,7 +469,7 @@ fun activate_facts export dep context =
 
 fun init name thy =
   activate_all name thy Element.init (Element.transfer_morphism o Context.theory_of)
-    ([], Context.Proof (ProofContext.init_global thy)) |-> put_idents |> Context.proof_of;
+    ([], Context.Proof (Proof_Context.init_global thy)) |-> put_idents |> Context.proof_of;
 
 
 (*** Add and extend registrations ***)
@@ -556,7 +556,7 @@ fun add_dependency loc (name, morph) mixin export thy =
 fun add_thmss loc kind args ctxt =
   let
     val (Notes args', ctxt') = Element.activate_i (Notes (kind, args)) ctxt;
-    val ctxt'' = ctxt' |> ProofContext.background_theory
+    val ctxt'' = ctxt' |> Proof_Context.background_theory
      ((change_locale loc o apfst o apsnd) (cons (args', serial ()))
         #>
       (* Registrations *)
@@ -578,7 +578,7 @@ fun add_declaration loc decl =
       [([Drule.dummy_thm], [])])];
 
 fun add_syntax_declaration loc decl =
-  ProofContext.background_theory ((change_locale loc o apfst o apfst) (cons (decl, serial ())))
+  Proof_Context.background_theory ((change_locale loc o apfst o apfst) (cons (decl, serial ())))
   #> add_declaration loc decl;
 
 
@@ -631,7 +631,7 @@ val all_locales = Symtab.keys o snd o Locales.get;
 
 fun print_locales thy =
   Pretty.strs ("locales:" ::
-    map #1 (Name_Space.extern_table (ProofContext.init_global thy) (Locales.get thy)))
+    map #1 (Name_Space.extern_table (Proof_Context.init_global thy) (Locales.get thy)))
   |> Pretty.writeln;
 
 fun print_locale thy show_facts raw_name =
@@ -650,7 +650,7 @@ fun print_locale thy show_facts raw_name =
 
 fun print_registrations ctxt raw_name =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val name = intern thy raw_name;
     val _ = the_locale thy name;  (* error if locale unknown *)
   in
@@ -661,7 +661,7 @@ fun print_registrations ctxt raw_name =
 
 fun print_dependencies ctxt clean export insts =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val idents = if clean then [] else get_idents (Context.Proof ctxt);
   in
     (case fold (roundup thy cons export) insts (idents, []) |> snd of

@@ -132,7 +132,7 @@ val cong_del = attrib (op delcongs);
 fun map_simpset f = Context.theory_map (map_ss f);
 fun change_simpset f = Context.>> (Context.map_theory (map_simpset f));
 fun global_simpset_of thy =
-  Raw_Simplifier.context (ProofContext.init_global thy) (get_ss (Context.Theory thy));
+  Raw_Simplifier.context (Proof_Context.init_global thy) (get_ss (Context.Theory thy));
 
 fun Addsimprocs args = change_simpset (fn ss => ss addsimprocs args);
 fun Delsimprocs args = change_simpset (fn ss => ss delsimprocs args);
@@ -193,7 +193,7 @@ fun gen_simproc prep {name, lhss, proc, identifier} lthy =
             |> fold Variable.declare_term lhss'
             |> fold Variable.auto_fixes lhss';
         in Variable.export_terms ctxt' lthy lhss' end
-        |> map (Thm.cterm_of (ProofContext.theory_of lthy)),
+        |> map (Thm.cterm_of (Proof_Context.theory_of lthy)),
        proc = proc,
        identifier = identifier};
   in

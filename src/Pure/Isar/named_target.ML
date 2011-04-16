@@ -80,12 +80,12 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) ((b, mx)
     not is_canonical_class ?
       (Context.mapping_result
         (Sign.add_abbrev Print_Mode.internal arg)
-        (ProofContext.add_abbrev Print_Mode.internal arg)
+        (Proof_Context.add_abbrev Print_Mode.internal arg)
       #-> (fn (lhs' as Const (d, _), _) =>
           same_shape ?
             (Context.mapping
-              (Sign.revert_abbrev mode d) (ProofContext.revert_abbrev mode d) #>
-             Morphism.form (ProofContext.target_notation true prmode [(lhs', mx)]))))
+              (Sign.revert_abbrev mode d) (Proof_Context.revert_abbrev mode d) #>
+             Morphism.form (Proof_Context.target_notation true prmode [(lhs', mx)]))))
   end;
 
 fun locale_const_declaration (ta as Target {target, ...}) prmode arg =
@@ -153,12 +153,12 @@ fun target_abbrev (ta as Target {target, is_locale, is_class, ...})
 
 fun pretty (Target {target, is_locale, is_class, ...}) ctxt =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val target_name =
       [Pretty.command (if is_class then "class" else "locale"),
         Pretty.str (" " ^ Locale.extern thy target)];
     val fixes = map (fn (x, T) => (Binding.name x, SOME T, NoSyn))
-      (#1 (ProofContext.inferred_fixes ctxt));
+      (#1 (Proof_Context.inferred_fixes ctxt));
     val assumes = map (fn A => (Attrib.empty_binding, [(Thm.term_of A, [])]))
       (Assumption.all_assms_of ctxt);
     val elems =
@@ -171,14 +171,14 @@ fun pretty (Target {target, is_locale, is_class, ...}) ctxt =
         map (Pretty.chunks o Element.pretty_ctxt ctxt) elems))];
   in
     Pretty.block [Pretty.command "theory", Pretty.brk 1,
-      Pretty.str (Context.theory_name (ProofContext.theory_of ctxt))] :: body_elems
+      Pretty.str (Context.theory_name (Proof_Context.theory_of ctxt))] :: body_elems
   end;
 
 
 (* init *)
 
 fun init_context (Target {target, is_locale, is_class, ...}) =
-  if not is_locale then ProofContext.init_global
+  if not is_locale then Proof_Context.init_global
   else if not is_class then Locale.init target
   else Class.init target;
 

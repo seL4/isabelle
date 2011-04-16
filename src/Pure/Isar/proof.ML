@@ -166,8 +166,8 @@ fun map_node f (Node {context, facts, mode, goal}) =
   make_node (f (context, facts, mode, goal));
 
 val init_context =
-  ProofContext.set_stmt true #>
-  ProofContext.map_naming (K ProofContext.local_naming);
+  Proof_Context.set_stmt true #>
+  Proof_Context.map_naming (K Proof_Context.local_naming);
 
 fun init ctxt =
   State (Stack.init (make_node (init_context ctxt, NONE, Forward, NONE)));
@@ -200,7 +200,7 @@ fun assert_bottom b state =
 (* context *)
 
 val context_of = #context o current;
-val theory_of = ProofContext.theory_of o context_of;
+val theory_of = Proof_Context.theory_of o context_of;
 
 fun map_context f =
   map_current (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
@@ -213,8 +213,8 @@ fun map_contexts f = map_all (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mo
 fun propagate_ml_env state = map_contexts
   (Context.proof_map (ML_Env.inherit (Context.Proof (context_of state)))) state;
 
-val bind_terms = map_context o ProofContext.bind_terms;
-val put_thms = map_context oo ProofContext.put_thms;
+val bind_terms = map_context o Proof_Context.bind_terms;
+val put_thms = map_context oo Proof_Context.put_thms;
 
 
 (* facts *)
@@ -241,7 +241,7 @@ fun export_facts inner outer =
     NONE => put_facts NONE outer
   | SOME thms =>
       thms
-      |> ProofContext.export (context_of inner) (context_of outer)
+      |> Proof_Context.export (context_of inner) (context_of outer)
       |> (fn ths => put_facts (SOME ths) outer));
 
 
@@ -324,7 +324,7 @@ fun get_goal state =
 
 (** pretty_state **)
 
-val verbose = ProofContext.verbose;
+val verbose = Proof_Context.verbose;
 
 fun pretty_facts _ _ NONE = []
   | pretty_facts s ctxt (SOME ths) =
@@ -357,8 +357,8 @@ fun pretty_state nr state =
       | prt_goal NONE = [];
 
     val prt_ctxt =
-      if ! verbose orelse mode = Forward then ProofContext.pretty_context ctxt
-      else if mode = Backward then ProofContext.pretty_ctxt ctxt
+      if ! verbose orelse mode = Forward then Proof_Context.pretty_context ctxt
+      else if mode = Backward then Proof_Context.pretty_ctxt ctxt
       else [];
   in
     [Pretty.str ("proof (" ^ mode_name mode ^ "): step " ^ string_of_int nr ^
@@ -404,8 +404,8 @@ fun apply_method current_context meth state =
     Method.apply meth ctxt using goal |> Seq.map (fn (meth_cases, goal') =>
       state
       |> map_goal
-          (ProofContext.add_cases false (no_goal_cases goal @ goal_cases goal') #>
-           ProofContext.add_cases true meth_cases)
+          (Proof_Context.add_cases false (no_goal_cases goal @ goal_cases goal') #>
+           Proof_Context.add_cases true meth_cases)
           (K (statement, [], using, goal', before_qed, after_qed)))
   end;
 
@@ -465,7 +465,7 @@ fun refine_goals print_rule inner raw_rules state =
     fun refine rule st = (print_rule outer rule; FINDGOAL (goal_tac rule) st);
   in
     raw_rules
-    |> ProofContext.goal_export inner outer
+    |> Proof_Context.goal_export inner outer
     |> (fn rules => Seq.lift set_goal (EVERY (map refine rules) goal) state)
   end;
 
@@ -474,7 +474,7 @@ fun refine_goals print_rule inner raw_rules state =
 
 fun conclude_goal ctxt goal propss =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val string_of_term = Syntax.string_of_term ctxt;
     val string_of_thm = Display.string_of_thm ctxt;
 
@@ -545,8 +545,8 @@ fun gen_bind bind args state =
 
 in
 
-val let_bind = gen_bind ProofContext.match_bind_i;
-val let_bind_cmd = gen_bind ProofContext.match_bind;
+val let_bind = gen_bind Proof_Context.match_bind_i;
+val let_bind_cmd = gen_bind Proof_Context.match_bind;
 
 end;
 
@@ -557,7 +557,7 @@ local
 
 fun gen_write prep_arg mode args =
   assert_forward
-  #> map_context (fn ctxt => ctxt |> ProofContext.notation true mode (map (prep_arg ctxt) args))
+  #> map_context (fn ctxt => ctxt |> Proof_Context.notation true mode (map (prep_arg ctxt) args))
   #> put_facts NONE;
 
 in
@@ -566,7 +566,7 @@ val write = gen_write (K I);
 
 val write_cmd =
   gen_write (fn ctxt => fn (c, mx) =>
-    (ProofContext.read_const ctxt false (Mixfix.mixfixT mx) c, mx));
+    (Proof_Context.read_const ctxt false (Mixfix.mixfixT mx) c, mx));
 
 end;
 
@@ -577,13 +577,13 @@ local
 
 fun gen_fix prep_vars args =
   assert_forward
-  #> map_context (fn ctxt => snd (ProofContext.add_fixes (prep_vars ctxt args) ctxt))
+  #> map_context (fn ctxt => snd (Proof_Context.add_fixes (prep_vars ctxt args) ctxt))
   #> put_facts NONE;
 
 in
 
 val fix = gen_fix (K I);
-val fix_cmd = gen_fix (fn ctxt => fn args => fst (ProofContext.read_vars args ctxt));
+val fix_cmd = gen_fix (fn ctxt => fn args => fst (Proof_Context.read_vars args ctxt));
 
 end;
 
@@ -600,8 +600,8 @@ fun gen_assume asm prep_att exp args state =
 
 in
 
-val assm = gen_assume ProofContext.add_assms_i (K I);
-val assm_cmd = gen_assume ProofContext.add_assms Attrib.attribute;
+val assm = gen_assume Proof_Context.add_assms_i (K I);
+val assm_cmd = gen_assume Proof_Context.add_assms Attrib.attribute;
 val assume = assm Assumption.assume_export;
 val assume_cmd = assm_cmd Assumption.assume_export;
 val presume = assm Assumption.presume_export;
@@ -633,8 +633,8 @@ fun gen_def prep_att prep_vars prep_binds args state =
 
 in
 
-val def = gen_def (K I) ProofContext.cert_vars ProofContext.match_bind_i;
-val def_cmd = gen_def Attrib.attribute ProofContext.read_vars ProofContext.match_bind;
+val def = gen_def (K I) Proof_Context.cert_vars Proof_Context.match_bind_i;
+val def_cmd = gen_def Attrib.attribute Proof_Context.read_vars Proof_Context.match_bind;
 
 end;
 
@@ -666,7 +666,7 @@ local
 fun gen_thmss more_facts opt_chain opt_result prep_atts prep_fact args state =
   state
   |> assert_forward
-  |> map_context_result (ProofContext.note_thmss ""
+  |> map_context_result (Proof_Context.note_thmss ""
     (Attrib.map_facts_refs (prep_atts (theory_of state)) (prep_fact (context_of state)) args))
   |> these_factss (more_facts state)
   ||> opt_chain
@@ -675,13 +675,13 @@ fun gen_thmss more_facts opt_chain opt_result prep_atts prep_fact args state =
 in
 
 val note_thmss = gen_thmss (K []) I #2 (K I) (K I);
-val note_thmss_cmd = gen_thmss (K []) I #2 Attrib.attribute ProofContext.get_fact;
+val note_thmss_cmd = gen_thmss (K []) I #2 Attrib.attribute Proof_Context.get_fact;
 
 val from_thmss = gen_thmss (K []) chain #2 (K I) (K I) o no_binding;
-val from_thmss_cmd = gen_thmss (K []) chain #2 Attrib.attribute ProofContext.get_fact o no_binding;
+val from_thmss_cmd = gen_thmss (K []) chain #2 Attrib.attribute Proof_Context.get_fact o no_binding;
 
 val with_thmss = gen_thmss the_facts chain #2 (K I) (K I) o no_binding;
-val with_thmss_cmd = gen_thmss the_facts chain #2 Attrib.attribute ProofContext.get_fact o no_binding;
+val with_thmss_cmd = gen_thmss the_facts chain #2 Attrib.attribute Proof_Context.get_fact o no_binding;
 
 val local_results = gen_thmss (K []) I I (K I) (K I) o map (apsnd Thm.simple_fact);
 
@@ -696,7 +696,7 @@ fun gen_using f g prep_atts prep_fact args state =
   state
   |> assert_backward
   |> map_context_result
-    (ProofContext.note_thmss ""
+    (Proof_Context.note_thmss ""
       (Attrib.map_facts_refs (prep_atts (theory_of state)) (prep_fact (context_of state))
         (no_binding args)))
   |> (fn (named_facts, state') =>
@@ -713,9 +713,9 @@ val unfold_goals = Local_Defs.unfold_goals;
 in
 
 val using = gen_using append_using (K (K I)) (K I) (K I);
-val using_cmd = gen_using append_using (K (K I)) Attrib.attribute ProofContext.get_fact;
+val using_cmd = gen_using append_using (K (K I)) Attrib.attribute Proof_Context.get_fact;
 val unfolding = gen_using unfold_using unfold_goals (K I) (K I);
-val unfolding_cmd = gen_using unfold_using unfold_goals Attrib.attribute ProofContext.get_fact;
+val unfolding_cmd = gen_using unfold_using unfold_goals Attrib.attribute Proof_Context.get_fact;
 
 end;
 
@@ -731,7 +731,7 @@ fun gen_invoke_case prep_att (name, xs, raw_atts) state =
   let
     val atts = map (prep_att (theory_of state)) raw_atts;
     val (asms, state') = state |> map_context_result (fn ctxt =>
-      ctxt |> ProofContext.apply_case (ProofContext.get_case ctxt name xs));
+      ctxt |> Proof_Context.apply_case (Proof_Context.get_case ctxt name xs));
     val assumptions = asms |> map (fn (a, ts) => ((qualified_binding a, atts), map (rpair []) ts));
   in
     state'
@@ -881,7 +881,7 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
     goal_state
     |> map_context (init_context #> Variable.set_body true)
     |> put_goal (SOME (make_goal (statement, [], [], Goal.init goal, before_qed, after_qed')))
-    |> map_context (ProofContext.auto_bind_goal props)
+    |> map_context (Proof_Context.auto_bind_goal props)
     |> chaining ? (`the_facts #-> using_facts)
     |> put_facts NONE
     |> open_block
@@ -902,7 +902,7 @@ fun generic_qed after_ctxt state =
       |> Variable.exportT_terms goal_ctxt outer_ctxt;
     val results =
       tl (conclude_goal goal_ctxt goal stmt)
-      |> burrow (ProofContext.export goal_ctxt outer_ctxt);
+      |> burrow (Proof_Context.export goal_ctxt outer_ctxt);
   in
     outer_state
     |> map_context (after_ctxt props)
@@ -932,7 +932,7 @@ fun local_goal print_results prep_att prepp kind before_qed after_qed stmt state
 
 fun local_qeds txt =
   end_proof false txt
-  #> Seq.map (generic_qed ProofContext.auto_bind_facts #->
+  #> Seq.map (generic_qed Proof_Context.auto_bind_facts #->
     (fn ((after_qed, _), results) => after_qed results));
 
 fun local_qed txt = local_qeds txt #> check_finish;
@@ -942,10 +942,10 @@ fun local_qed txt = local_qeds txt #> check_finish;
 
 fun global_goal prepp before_qed after_qed propp ctxt =
   init ctxt
-  |> generic_goal (prepp #> ProofContext.auto_fixes) "" before_qed (K I, after_qed) propp;
+  |> generic_goal (prepp #> Proof_Context.auto_fixes) "" before_qed (K I, after_qed) propp;
 
-val theorem = global_goal ProofContext.bind_propp_schematic_i;
-val theorem_cmd = global_goal ProofContext.bind_propp_schematic;
+val theorem = global_goal Proof_Context.bind_propp_schematic_i;
+val theorem_cmd = global_goal Proof_Context.bind_propp_schematic;
 
 fun global_qeds txt =
   end_proof true txt
@@ -1017,10 +1017,10 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
 
 in
 
-val have = gen_have (K I) ProofContext.bind_propp_i;
-val have_cmd = gen_have Attrib.attribute ProofContext.bind_propp;
-val show = gen_show (K I) ProofContext.bind_propp_i;
-val show_cmd = gen_show Attrib.attribute ProofContext.bind_propp;
+val have = gen_have (K I) Proof_Context.bind_propp_i;
+val have_cmd = gen_have Attrib.attribute Proof_Context.bind_propp;
+val show = gen_show (K I) Proof_Context.bind_propp_i;
+val show_cmd = gen_show Attrib.attribute Proof_Context.bind_propp;
 
 end;
 
@@ -1064,9 +1064,9 @@ fun future_proof done get_context fork_proof state =
       (Drule.comp_no_flatten (goal, Thm.nprems_of goal) 1 Drule.protectI);
 
     fun after_local' [[th]] = put_thms false (Auto_Bind.thisN, SOME [th]);
-    fun after_global' [[th]] = ProofContext.put_thms false (Auto_Bind.thisN, SOME [th]);
+    fun after_global' [[th]] = Proof_Context.put_thms false (Auto_Bind.thisN, SOME [th]);
     val after_qed' = (after_local', after_global');
-    val this_name = ProofContext.full_name goal_ctxt (Binding.name Auto_Bind.thisN);
+    val this_name = Proof_Context.full_name goal_ctxt (Binding.name Auto_Bind.thisN);
 
     val result_ctxt =
       state
@@ -1075,7 +1075,7 @@ fun future_proof done get_context fork_proof state =
       |> fork_proof;
 
     val future_thm = result_ctxt |> Future.map (fn (_, x) =>
-      ProofContext.get_fact_single (get_context x) (Facts.named this_name));
+      Proof_Context.get_fact_single (get_context x) (Facts.named this_name));
     val finished_goal = Goal.future_result goal_ctxt future_thm prop';
     val state' =
       state

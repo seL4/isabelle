@@ -27,8 +27,8 @@ struct
 (* toplevel pretty printing *)
 
 fun pp_context ctxt =
- (if ! ProofContext.debug then
-    Pretty.quote (Pretty.big_list "proof context:" (ProofContext.pretty_context ctxt))
+ (if ! Proof_Context.debug then
+    Pretty.quote (Pretty.big_list "proof context:" (Proof_Context.pretty_context ctxt))
   else Pretty.str "<context>");
 
 fun pp_thm th =
@@ -48,7 +48,7 @@ fun pp_cterm ct = pp_term (Thm.theory_of_cterm ct) (Thm.term_of ct);
 
 fun pretty_theorems_diff verbose prev_thys thy =
   let
-    val pretty_fact = ProofContext.pretty_fact (ProofContext.init_global thy);
+    val pretty_fact = Proof_Context.pretty_fact (Proof_Context.init_global thy);
     val facts = Global_Theory.facts_of thy;
     val thmss =
       Facts.dest_static (map Global_Theory.facts_of prev_thys) facts
@@ -87,7 +87,7 @@ fun pretty_fact_name (kind, "") = Pretty.command kind
 
 fun pretty_facts ctxt =
   flat o (separate [Pretty.fbrk, Pretty.keyword "and", Pretty.str " "]) o
-    map (single o ProofContext.pretty_fact_aux ctxt false);
+    map (single o Proof_Context.pretty_fact_aux ctxt false);
 
 in
 
@@ -98,7 +98,7 @@ fun print_results do_print ctxt ((kind, name), facts) =
   else Pretty.writeln
     (case facts of
       [fact] => Pretty.blk (1, [pretty_fact_name (kind, name), Pretty.fbrk,
-        ProofContext.pretty_fact_aux ctxt false fact])
+        Proof_Context.pretty_fact_aux ctxt false fact])
     | _ => Pretty.blk (1, [pretty_fact_name (kind, name), Pretty.fbrk,
         Pretty.blk (1, Pretty.str "(" :: pretty_facts ctxt facts @ [Pretty.str ")"])]));
 
@@ -118,7 +118,7 @@ fun pretty_vars ctxt kind vs = Pretty.big_list kind (map (pretty_var ctxt) vs);
 in
 
 fun pretty_consts ctxt pred cs =
-  (case filter pred (#1 (ProofContext.inferred_fixes ctxt)) of
+  (case filter pred (#1 (Proof_Context.inferred_fixes ctxt)) of
     [] => pretty_vars ctxt "constants" cs
   | ps => Pretty.chunks [pretty_vars ctxt "parameters" ps, pretty_vars ctxt "constants" cs]);
 

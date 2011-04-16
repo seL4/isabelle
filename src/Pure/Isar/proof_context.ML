@@ -161,10 +161,10 @@ sig
   val pretty_context: Proof.context -> Pretty.T list
 end;
 
-structure ProofContext: PROOF_CONTEXT =
+structure Proof_Context: PROOF_CONTEXT =
 struct
 
-open ProofContext;
+open Proof_Context;
 
 
 (** inner syntax mode **)
@@ -597,7 +597,7 @@ fun prepare_patternT ctxt T =
 
 local
 
-val dummies = Config.bool (Config.declare "ProofContext.dummies" (K (Config.Bool false)));
+val dummies = Config.bool (Config.declare "Proof_Context.dummies" (K (Config.Bool false)));
 
 fun check_dummies ctxt t =
   if Config.get ctxt dummies then t
@@ -1345,5 +1345,5 @@ fun pretty_context ctxt =
 
 end;
 
-val show_abbrevs = ProofContext.show_abbrevs;
+val show_abbrevs = Proof_Context.show_abbrevs;
 

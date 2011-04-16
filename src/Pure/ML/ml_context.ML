@@ -48,8 +48,8 @@ val the_generic_context = Context.the_thread_data;
 val the_global_context = Context.theory_of o the_generic_context;
 val the_local_context = Context.proof_of o the_generic_context;
 
-fun thm name = ProofContext.get_thm (the_local_context ()) name;
-fun thms name = ProofContext.get_thms (the_local_context ()) name;
+fun thm name = Proof_Context.get_thm (the_local_context ()) name;
+fun thms name = Proof_Context.get_thms (the_local_context ()) name;
 
 fun exec (e: unit -> unit) context =
   (case Context.setmp_thread_data (SOME context) (fn () => (e (); Context.thread_data ())) () of

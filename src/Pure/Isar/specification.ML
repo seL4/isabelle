@@ -117,10 +117,10 @@ fun close_forms ctxt i xs As =
 
 fun prepare prep_vars parse_prop prep_att do_close raw_vars raw_specss ctxt =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
 
     val (vars, vars_ctxt) = ctxt |> prep_vars raw_vars;
-    val (xs, params_ctxt) = vars_ctxt |> ProofContext.add_fixes vars;
+    val (xs, params_ctxt) = vars_ctxt |> Proof_Context.add_fixes vars;
 
     val Asss =
       (map o map) snd raw_specss
@@ -137,7 +137,7 @@ fun prepare prep_vars parse_prop prep_att do_close raw_vars raw_specss ctxt =
       |> flat |> burrow (Syntax.check_props params_ctxt);
     val specs_ctxt = params_ctxt |> (fold o fold) Variable.declare_term specs;
 
-    val Ts = specs_ctxt |> fold_map ProofContext.inferred_param xs |> fst;
+    val Ts = specs_ctxt |> fold_map Proof_Context.inferred_param xs |> fst;
     val params = map2 (fn (b, _, mx) => fn T => ((b, T), mx)) vars Ts;
     val name_atts = map (fn ((name, atts), _) => (name, map (prep_att thy) atts)) (flat raw_specss);
   in ((params, name_atts ~~ specs), specs_ctxt) end;
@@ -152,17 +152,17 @@ fun prep_spec prep_vars parse_prop prep_att do_close vars specs =
 
 in
 
-fun check_spec x = prep_spec ProofContext.cert_vars (K I) (K I) true x;
-fun read_spec x = prep_spec ProofContext.read_vars Syntax.parse_prop Attrib.intern_src true x;
+fun check_spec x = prep_spec Proof_Context.cert_vars (K I) (K I) true x;
+fun read_spec x = prep_spec Proof_Context.read_vars Syntax.parse_prop Attrib.intern_src true x;
 
-fun check_free_spec x = prep_spec ProofContext.cert_vars (K I) (K I) false x;
-fun read_free_spec x = prep_spec ProofContext.read_vars Syntax.parse_prop Attrib.intern_src false x;
+fun check_free_spec x = prep_spec Proof_Context.cert_vars (K I) (K I) false x;
+fun read_free_spec x = prep_spec Proof_Context.read_vars Syntax.parse_prop Attrib.intern_src false x;
 
 fun check_specification vars specs =
-  prepare ProofContext.cert_vars (K I) (K I) true vars [specs];
+  prepare Proof_Context.cert_vars (K I) (K I) true vars [specs];
 
 fun read_specification vars specs =
-  prepare ProofContext.read_vars Syntax.parse_prop Attrib.intern_src true vars [specs];
+  prepare Proof_Context.read_vars Syntax.parse_prop Attrib.intern_src true vars [specs];
 
 end;
 
@@ -171,7 +171,7 @@ end;
 
 fun gen_axioms do_print prep raw_vars raw_specs thy =
   let
-    val ((vars, specs), _) = prep raw_vars raw_specs (ProofContext.init_global thy);
+    val ((vars, specs), _) = prep raw_vars raw_specs (Proof_Context.init_global thy);
     val xs = map (fn ((b, T), _) => (Variable.name b, T)) vars;
 
     (*consts*)
@@ -246,7 +246,7 @@ fun gen_abbrev do_print prep mode (raw_var, raw_prop) lthy =
   let
     val ((vars, [(_, prop)]), _) =
       prep (the_list raw_var) [(Attrib.empty_binding, raw_prop)]
-        (lthy |> ProofContext.set_mode ProofContext.mode_abbrev);
+        (lthy |> Proof_Context.set_mode Proof_Context.mode_abbrev);
     val ((x, T), rhs) = Local_Defs.abs_def (#2 (Local_Defs.cert_def lthy prop));
     val var =
       (case vars of
@@ -259,9 +259,9 @@ fun gen_abbrev do_print prep mode (raw_var, raw_prop) lthy =
                 Position.str_of (Binding.pos_of b));
           in (b, mx) end);
     val lthy' = lthy
-      |> ProofContext.set_syntax_mode mode    (* FIXME ?!? *)
+      |> Proof_Context.set_syntax_mode mode    (* FIXME ?!? *)
       |> Local_Theory.abbrev mode (var, rhs) |> snd
-      |> ProofContext.restore_syntax_mode lthy;
+      |> Proof_Context.restore_syntax_mode lthy;
 
     val _ = if not do_print then () else print_consts lthy' (K false) [(x, T)];
   in lthy' end;
@@ -283,10 +283,10 @@ fun gen_notation prep_const add mode args lthy =
 in
 
 val type_notation = gen_type_notation (K I);
-val type_notation_cmd = gen_type_notation (fn ctxt => ProofContext.read_type_name ctxt false);
+val type_notation_cmd = gen_type_notation (fn ctxt => Proof_Context.read_type_name ctxt false);
 
 val notation = gen_notation (K I);
-val notation_cmd = gen_notation (fn ctxt => ProofContext.read_const ctxt false dummyT);
+val notation_cmd = gen_notation (fn ctxt => Proof_Context.read_const ctxt false dummyT);
 
 end;
 
@@ -295,7 +295,7 @@ end;
 
 fun gen_theorems prep_fact prep_att kind raw_facts lthy =
   let
-    val attrib = prep_att (ProofContext.theory_of lthy);
+    val attrib = prep_att (Proof_Context.theory_of lthy);
     val facts = raw_facts |> map (fn ((name, atts), bs) =>
       ((name, map attrib atts),
         bs |> map (fn (b, more_atts) => (prep_fact lthy b, map attrib more_atts))));
@@ -304,7 +304,7 @@ fun gen_theorems prep_fact prep_att kind raw_facts lthy =
   in (res, lthy') end;
 
 val theorems = gen_theorems (K I) (K I);
-val theorems_cmd = gen_theorems ProofContext.get_fact Attrib.intern_src;
+val theorems_cmd = gen_theorems Proof_Context.get_fact Attrib.intern_src;
 
 
 (* complex goal statements *)
@@ -331,7 +331,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
         val raw_propp = obtains |> map (fn (_, (_, props)) => map (rpair []) props);
         val (propp, elems_ctxt) = prep_stmt (elems @ constraints) raw_propp ctxt;
 
-        val thesis = Object_Logic.fixed_judgment (ProofContext.theory_of ctxt) Auto_Bind.thesisN;
+        val thesis = Object_Logic.fixed_judgment (Proof_Context.theory_of ctxt) Auto_Bind.thesisN;
 
         fun assume_case ((name, (vars, _)), asms) ctxt' =
           let
@@ -340,12 +340,12 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
             val props = map fst asms;
             val (Ts, _) = ctxt'
               |> fold Variable.declare_term props
-              |> fold_map ProofContext.inferred_param xs;
+              |> fold_map Proof_Context.inferred_param xs;
             val asm = Term.list_all_free (xs ~~ Ts, Logic.list_implies (props, thesis));
           in
-            ctxt' |> (snd o ProofContext.add_fixes (map (fn b => (b, NONE, NoSyn)) bs));
+            ctxt' |> (snd o Proof_Context.add_fixes (map (fn b => (b, NONE, NoSyn)) bs));
             ctxt' |> Variable.auto_fixes asm
-            |> ProofContext.add_assms_i Assumption.assume_export
+            |> Proof_Context.add_assms_i Assumption.assume_export
               [((name, [Context_Rules.intro_query NONE]), [(asm, [])])]
             |>> (fn [(_, [th])] => th)
           end;
@@ -356,10 +356,10 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
         val stmt = [((Binding.empty, atts), [(thesis, [])])];
 
         val (facts, goal_ctxt) = elems_ctxt
-          |> (snd o ProofContext.add_fixes [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)])
+          |> (snd o Proof_Context.add_fixes [(Binding.name Auto_Bind.thesisN, NONE, NoSyn)])
           |> fold_map assume_case (obtains ~~ propp)
           |-> (fn ths =>
-            ProofContext.note_thmss "" [((Binding.name Obtain.thatN, []), [(ths, [])])] #>
+            Proof_Context.note_thmss "" [((Binding.name Obtain.thatN, []), [(ths, [])])] #>
             #2 #> pair ths);
       in ((prems, stmt, SOME facts), goal_ctxt) end);
 
@@ -375,7 +375,7 @@ fun gen_theorem schematic prep_att prep_stmt
     kind before_qed after_qed (name, raw_atts) raw_elems raw_concl int lthy =
   let
     val _ = Local_Theory.affirm lthy;
-    val thy = ProofContext.theory_of lthy;
+    val thy = Proof_Context.theory_of lthy;
 
     val attrib = prep_att thy;
     val atts = map attrib raw_atts;
@@ -385,7 +385,7 @@ fun gen_theorem schematic prep_att prep_stmt
 
     fun after_qed' results goal_ctxt' =
       let val results' =
-        burrow (map Goal.norm_result o ProofContext.export goal_ctxt' lthy) results
+        burrow (map Goal.norm_result o Proof_Context.export goal_ctxt' lthy) results
       in
         lthy
         |> Local_Theory.notes_kind kind
@@ -403,7 +403,7 @@ fun gen_theorem schematic prep_att prep_stmt
       end;
   in
     goal_ctxt
-    |> ProofContext.note_thmss "" [((Binding.name Auto_Bind.assmsN, []), [(prems, [])])]
+    |> Proof_Context.note_thmss "" [((Binding.name Auto_Bind.assmsN, []), [(prems, [])])]
     |> snd
     |> Proof.theorem before_qed after_qed' (map snd stmt)
     |> (case facts of NONE => I | SOME ths => Proof.refine_insert ths)

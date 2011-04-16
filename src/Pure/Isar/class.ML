@@ -151,7 +151,7 @@ val export_morphism = #export_morph oo the_class_data;
 
 fun print_classes ctxt =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val algebra = Sign.classes_of thy;
     val arities =
       Symtab.empty
@@ -164,10 +164,10 @@ fun print_classes ctxt =
         val Ss = Sorts.mg_domain algebra tyco [class];
       in Syntax.pretty_arity ctxt (tyco, Ss, [class]) end;
     fun mk_param (c, ty) =
-      Pretty.str (ProofContext.extern_const ctxt c ^ " :: " ^
+      Pretty.str (Proof_Context.extern_const ctxt c ^ " :: " ^
         Syntax.string_of_typ (Config.put show_sorts false ctxt) (Type.strip_sorts ty));
     fun mk_entry class = (Pretty.block o Pretty.fbreaks o map_filter I) [
-      (SOME o Pretty.str) ("class " ^ ProofContext.extern_class ctxt class ^ ":"),
+      (SOME o Pretty.str) ("class " ^ Proof_Context.extern_class ctxt class ^ ":"),
       (SOME o Pretty.block) [Pretty.str "supersort: ",
         (Syntax.pretty_sort ctxt o Sign.minimize_sort thy o Sign.super_classes thy) class],
       ((fn [] => NONE | ps => (SOME o Pretty.block o Pretty.fbreaks)
@@ -257,7 +257,7 @@ fun redeclare_const thy c =
 
 fun synchronize_class_syntax sort base_sort ctxt =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val algebra = Sign.classes_of thy;
     val operations = these_operations thy sort;
     fun subst_class_typ sort = map_type_tfree (K (TVar ((Name.aT, 0), sort)));
@@ -310,7 +310,7 @@ fun target_extension f class lthy =
   lthy
   |> Local_Theory.raw_theory f
   |> Local_Theory.target (synchronize_class_syntax [class]
-      (base_sort (ProofContext.theory_of lthy) class));
+      (base_sort (Proof_Context.theory_of lthy) class));
 
 local
 
@@ -369,10 +369,10 @@ local
 fun gen_classrel mk_prop classrel thy =
   let
     fun after_qed results =
-      ProofContext.background_theory ((fold o fold) AxClass.add_classrel results);
+      Proof_Context.background_theory ((fold o fold) AxClass.add_classrel results);
   in
     thy
-    |> ProofContext.init_global
+    |> Proof_Context.init_global
     |> Proof.theorem NONE after_qed [[(mk_prop thy classrel, [])]]
   end;
 
@@ -421,8 +421,8 @@ fun instantiation_param lthy b = instantiation_params lthy
 
 fun read_multi_arity thy (raw_tycos, raw_sorts, raw_sort) =
   let
-    val ctxt = ProofContext.init_global thy;
-    val all_arities = map (fn raw_tyco => ProofContext.read_arity ctxt
+    val ctxt = Proof_Context.init_global thy;
+    val all_arities = map (fn raw_tyco => Proof_Context.read_arity ctxt
       (raw_tyco, raw_sorts, raw_sort)) raw_tycos;
     val tycos = map #1 all_arities;
     val (_, sorts, sort) = hd all_arities;
@@ -437,7 +437,7 @@ fun synchronize_inst_syntax ctxt =
     val Instantiation { params, ... } = Instantiation.get ctxt;
 
     val lookup_inst_param = AxClass.lookup_inst_param
-      (Sign.consts_of (ProofContext.theory_of ctxt)) params;
+      (Sign.consts_of (Proof_Context.theory_of ctxt)) params;
     fun subst (c, ty) = case lookup_inst_param (c, ty)
      of SOME (v_ty as (_, ty)) => SOME (ty, Free v_ty)
       | NONE => NONE;
@@ -498,23 +498,23 @@ fun foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
 fun pretty lthy =
   let
     val { arities = (tycos, vs, sort), params } = the_instantiation lthy;
-    val thy = ProofContext.theory_of lthy;
+    val thy = Proof_Context.theory_of lthy;
     fun pr_arity tyco = Syntax.pretty_arity lthy (tyco, map snd vs, sort);
     fun pr_param ((c, _), (v, ty)) =
       Pretty.block (Pretty.breaks
-        [Pretty.str v, Pretty.str "==", Pretty.str (ProofContext.extern_const lthy c),
+        [Pretty.str v, Pretty.str "==", Pretty.str (Proof_Context.extern_const lthy c),
           Pretty.str "::", Syntax.pretty_typ lthy ty]);
   in Pretty.str "instantiation" :: map pr_arity tycos @ map pr_param params end;
 
 fun conclude lthy =
   let
     val (tycos, vs, sort) = #arities (the_instantiation lthy);
-    val thy = ProofContext.theory_of lthy;
+    val thy = Proof_Context.theory_of lthy;
     val _ = tycos |> List.app (fn tyco =>
       if Sign.of_sort thy
         (Type (tyco, map TFree vs), sort)
       then ()
-      else error ("Missing instance proof for type " ^ quote (ProofContext.extern_type lthy tyco)));
+      else error ("Missing instance proof for type " ^ quote (Proof_Context.extern_type lthy tyco)));
   in lthy end;
 
 fun instantiation (tycos, vs, sort) thy =
@@ -545,7 +545,7 @@ fun instantiation (tycos, vs, sort) thy =
   in
     thy
     |> Theory.checkpoint
-    |> ProofContext.init_global
+    |> Proof_Context.init_global
     |> Instantiation.put (mk_instantiation ((tycos, vs, sort), params))
     |> fold (Variable.declare_typ o TFree) vs
     |> fold (Variable.declare_names o Free o snd) params
@@ -593,8 +593,8 @@ fun prove_instantiation_exit tac = prove_instantiation_instance tac
 
 fun prove_instantiation_exit_result f tac x lthy =
   let
-    val morph = ProofContext.export_morphism lthy
-      (ProofContext.init_global (ProofContext.theory_of lthy));
+    val morph = Proof_Context.export_morphism lthy
+      (Proof_Context.init_global (Proof_Context.theory_of lthy));
     val y = f morph x;
   in
     lthy
@@ -610,11 +610,11 @@ fun instance_arity_cmd raw_arities thy =
     val (tycos, vs, sort) = read_multi_arity thy raw_arities;
     val sorts = map snd vs;
     val arities = maps (fn tyco => Logic.mk_arities (tyco, sorts, sort)) tycos;
-    fun after_qed results = ProofContext.background_theory
+    fun after_qed results = Proof_Context.background_theory
       ((fold o fold) AxClass.add_arity results);
   in
     thy
-    |> ProofContext.init_global
+    |> Proof_Context.init_global
     |> Proof.theorem NONE after_qed (map (fn t => [(t, [])]) arities)
   end;
 

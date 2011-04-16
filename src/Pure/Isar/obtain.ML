@@ -73,7 +73,7 @@ fun eliminate_term ctxt xs tm =
 
 fun eliminate fix_ctxt rule xs As thm =
   let
-    val thy = ProofContext.theory_of fix_ctxt;
+    val thy = Proof_Context.theory_of fix_ctxt;
 
     val _ = eliminate_term fix_ctxt xs (Thm.full_prop_of thm);
     val _ = Object_Logic.is_judgment thy (Thm.concl_of thm) orelse
@@ -99,8 +99,8 @@ fun obtain_export ctxt rule xs _ As =
 
 fun bind_judgment ctxt name =
   let
-    val (bind, ctxt') = ProofContext.bind_fixes [name] ctxt;
-    val (t as _ $ Free v) = bind (Object_Logic.fixed_judgment (ProofContext.theory_of ctxt) name);
+    val (bind, ctxt') = Proof_Context.bind_fixes [name] ctxt;
+    val (t as _ $ Free v) = bind (Object_Logic.fixed_judgment (Proof_Context.theory_of ctxt) name);
   in ((v, t), ctxt') end;
 
 val thatN = "that";
@@ -118,7 +118,7 @@ fun gen_obtain prep_att prep_vars prep_propp
 
     (*obtain vars*)
     val (vars, vars_ctxt) = prep_vars raw_vars ctxt;
-    val (_, fix_ctxt) = vars_ctxt |> ProofContext.add_fixes vars;
+    val (_, fix_ctxt) = vars_ctxt |> Proof_Context.add_fixes vars;
     val xs = map (Variable.name o #1) vars;
 
     (*obtain asms*)
@@ -134,7 +134,7 @@ fun gen_obtain prep_att prep_vars prep_propp
 
     val asm_frees = fold Term.add_frees asm_props [];
     val parms = xs |> map (fn x =>
-      let val x' = ProofContext.get_skolem fix_ctxt x
+      let val x' = Proof_Context.get_skolem fix_ctxt x
       in (x', the_default propT (AList.lookup (op =) asm_frees x')) end);
 
     val that_name = if name = "" then thatN else name;
@@ -166,8 +166,8 @@ fun gen_obtain prep_att prep_vars prep_propp
 
 in
 
-val obtain = gen_obtain (K I) ProofContext.cert_vars ProofContext.cert_propp;
-val obtain_cmd = gen_obtain Attrib.attribute ProofContext.read_vars ProofContext.read_propp;
+val obtain = gen_obtain (K I) Proof_Context.cert_vars Proof_Context.cert_propp;
+val obtain_cmd = gen_obtain Attrib.attribute Proof_Context.read_vars Proof_Context.read_propp;
 
 end;
 
@@ -186,7 +186,7 @@ fun check_result ctxt thesis th =
 
 fun result tac facts ctxt =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val cert = Thm.cterm_of thy;
 
     val ((thesis_var, thesis), thesis_ctxt) = bind_judgment ctxt Auto_Bind.thesisN;
@@ -212,7 +212,7 @@ local
 
 fun unify_params vars thesis_var raw_rule ctxt =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val certT = Thm.ctyp_of thy;
     val cert = Thm.cterm_of thy;
     val string_of_term = Syntax.string_of_term (Config.put show_types true ctxt);
@@ -258,7 +258,7 @@ fun unify_params vars thesis_var raw_rule ctxt =
 fun inferred_type (binding, _, mx) ctxt =
   let
     val x = Variable.name binding;
-    val (T, ctxt') = ProofContext.inferred_param x ctxt
+    val (T, ctxt') = Proof_Context.inferred_param x ctxt
   in ((x, T, mx), ctxt') end;
 
 fun polymorphic ctxt vars =
@@ -280,7 +280,7 @@ fun gen_guess prep_vars raw_vars int state =
       let
         val ((parms, rule), ctxt') =
           unify_params vars thesis_var raw_rule (Proof.context_of state');
-        val (bind, _) = ProofContext.bind_fixes (map (#1 o #1) parms) ctxt';
+        val (bind, _) = Proof_Context.bind_fixes (map (#1 o #1) parms) ctxt';
         val ts = map (bind o Free o #1) parms;
         val ps = map dest_Free ts;
         val asms =
@@ -316,8 +316,8 @@ fun gen_guess prep_vars raw_vars int state =
 
 in
 
-val guess = gen_guess ProofContext.cert_vars;
-val guess_cmd = gen_guess ProofContext.read_vars;
+val guess = gen_guess Proof_Context.cert_vars;
+val guess_cmd = gen_guess Proof_Context.read_vars;
 
 end;
 

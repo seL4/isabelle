@@ -202,9 +202,9 @@ fun cterm_of_proof thy prf =
   end;
 
 fun strip_sorts_consttypes ctxt =
-  let val {constants = (_, tab), ...} = Consts.dest (ProofContext.consts_of ctxt)
+  let val {constants = (_, tab), ...} = Consts.dest (Proof_Context.consts_of ctxt)
   in Symtab.fold (fn (s, (T, _)) =>
-      ProofContext.add_const_constraint (s, SOME (Type.strip_sorts T)))
+      Proof_Context.add_const_constraint (s, SOME (Type.strip_sorts T)))
     tab ctxt
   end;
 
@@ -216,12 +216,12 @@ fun read_term thy topsort =
       |> add_proof_syntax
       |> add_proof_atom_consts
         (map (Long_Name.append "axm") axm_names @ map (Long_Name.append "thm") thm_names)
-      |> ProofContext.init_global
-      |> ProofContext.allow_dummies
-      |> ProofContext.set_mode ProofContext.mode_schematic
+      |> Proof_Context.init_global
+      |> Proof_Context.allow_dummies
+      |> Proof_Context.set_mode Proof_Context.mode_schematic
       |> (if topsort then
             strip_sorts_consttypes #>
-            ProofContext.set_defsort []
+            Proof_Context.set_defsort []
           else I);
   in
     fn ty => fn s =>
@@ -259,8 +259,8 @@ fun proof_of full thm =
   in if full then Reconstruct.reconstruct_proof thy prop prf' else prf' end;
 
 fun pretty_proof ctxt prf =
-  ProofContext.pretty_term_abbrev
-    (ProofContext.transfer_syntax (proof_syntax prf (ProofContext.theory_of ctxt)) ctxt)
+  Proof_Context.pretty_term_abbrev
+    (Proof_Context.transfer_syntax (proof_syntax prf (Proof_Context.theory_of ctxt)) ctxt)
     (term_of_proof prf);
 
 fun pretty_proof_of ctxt full th =

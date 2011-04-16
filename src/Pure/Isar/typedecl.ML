@@ -51,7 +51,7 @@ fun global_type lthy (b, raw_args) =
     fun err msg = error (msg ^ " in type declaration " ^ quote (Binding.str_of b));
 
     val _ = has_duplicates (eq_fst op =) raw_args andalso err "Duplicate parameters";
-    val args = map (TFree o ProofContext.check_tfree lthy) raw_args;
+    val args = map (TFree o Proof_Context.check_tfree lthy) raw_args;
     val T = Type (Local_Theory.full_name lthy b, args);
 
     val bad_args =
@@ -98,7 +98,7 @@ fun gen_abbrev prep_typ (b, vs, mx) raw_rhs lthy =
 
 fun read_abbrev b ctxt raw_rhs =
   let
-    val rhs = ProofContext.read_typ_syntax (ctxt |> ProofContext.set_defsort []) raw_rhs;
+    val rhs = Proof_Context.read_typ_syntax (ctxt |> Proof_Context.set_defsort []) raw_rhs;
     val ignored = Term.fold_atyps_sorts (fn (_, []) => I | (T, _) => insert (op =) T) rhs [];
     val _ =
       if null ignored then ()
@@ -110,7 +110,7 @@ fun read_abbrev b ctxt raw_rhs =
 
 in
 
-val abbrev = gen_abbrev (K ProofContext.cert_typ_syntax);
+val abbrev = gen_abbrev (K Proof_Context.cert_typ_syntax);
 val abbrev_cmd = gen_abbrev read_abbrev;
 
 end;

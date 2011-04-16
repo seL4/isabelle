@@ -43,15 +43,15 @@ fun apply_dummies tm =
 
 fun parse_pattern ctxt nm =
   let
-    val consts = ProofContext.consts_of ctxt;
+    val consts = Proof_Context.consts_of ctxt;
     val nm' =
       (case Syntax.parse_term ctxt nm of
         Const (c, _) => c
       | _ => Consts.intern consts nm);
   in
     (case try (Consts.the_abbreviation consts) nm' of
-      SOME (_, rhs) => apply_dummies (ProofContext.expand_abbrevs ctxt rhs)
-    | NONE => ProofContext.read_term_pattern ctxt nm)
+      SOME (_, rhs) => apply_dummies (Proof_Context.expand_abbrevs ctxt rhs)
+    | NONE => Proof_Context.read_term_pattern ctxt nm)
   end;
 
 fun read_criterion _ (Name name) = Name name
@@ -60,7 +60,7 @@ fun read_criterion _ (Name name) = Name name
   | read_criterion _ Elim = Elim
   | read_criterion _ Dest = Dest
   | read_criterion _ Solves = Solves
-  | read_criterion ctxt (Simp str) = Simp (ProofContext.read_term_pattern ctxt str)
+  | read_criterion ctxt (Simp str) = Simp (Proof_Context.read_term_pattern ctxt str)
   | read_criterion ctxt (Pattern str) = Pattern (parse_pattern ctxt str);
 
 fun pretty_criterion ctxt (b, c) =
@@ -131,7 +131,7 @@ val iff_const = Const ("op =", boolT --> boolT --> boolT);
   returns: smallest substitution size*)
 fun is_matching_thm doiff (extract_terms, refine_term) ctxt po obj term_src =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
 
     fun check_match pat = Pattern.matches thy (if po then (pat, obj) else (obj, pat));
     fun matches pat =
@@ -216,7 +216,7 @@ fun filter_elim ctxt goal theorem =
     in
       (*elim rules always have assumptions, so an elim with one
         assumption is as good as an intro rule with none*)
-      if is_nontrivial (ProofContext.theory_of ctxt) (major_prem_of theorem)
+      if is_nontrivial (Proof_Context.theory_of ctxt) (major_prem_of theorem)
         andalso not (null successful)
       then SOME (nprems_of theorem - 1, foldl1 Int.min successful) else NONE
     end
@@ -274,7 +274,7 @@ fun filter_pattern ctxt pat =
     fun check (theorem, NONE) = check (theorem, SOME (get_names (prop_of theorem)))
       | check (theorem, c as SOME thm_consts) =
          (if subset (op =) (pat_consts, thm_consts) andalso
-            Pattern.matches_subterm (ProofContext.theory_of ctxt) (pat, prop_of theorem)
+            Pattern.matches_subterm (Proof_Context.theory_of ctxt) (pat, prop_of theorem)
           then SOME (0, 0) else NONE, c);
   in check end;
 
@@ -378,7 +378,7 @@ in
 fun nicer_shortest ctxt =
   let
     (* FIXME global name space!? *)
-    val space = Facts.space_of (Global_Theory.facts_of (ProofContext.theory_of ctxt));
+    val space = Facts.space_of (Global_Theory.facts_of (Proof_Context.theory_of ctxt));
 
     val shorten =
       Name_Space.extern
@@ -412,10 +412,10 @@ fun all_facts_of ctxt =
       |> filter_out (Facts.is_concealed facts o #1);
   in
     maps Facts.selections
-     (visible_facts (Global_Theory.facts_of (ProofContext.theory_of ctxt)) @
+     (visible_facts (Global_Theory.facts_of (Proof_Context.theory_of ctxt)) @
 
 
-      visible_facts (ProofContext.facts_of ctxt))
+      visible_facts (Proof_Context.facts_of ctxt))
   end;
 
 val limit = Unsynchronized.ref 40;
@@ -423,7 +423,7 @@ val limit = Unsynchronized.ref 40;
 fun filter_theorems ctxt theorems opt_goal opt_limit rem_dups raw_criteria =
   let
     val assms =
-      ProofContext.get_fact ctxt (Facts.named "local.assms")
+      Proof_Context.get_fact ctxt (Facts.named "local.assms")
         handle ERROR _ => [];
     val add_prems = Seq.hd o TRY (Method.insert_tac assms 1);
     val opt_goal' = Option.map add_prems opt_goal;

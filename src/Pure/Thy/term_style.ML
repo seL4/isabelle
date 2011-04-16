@@ -45,7 +45,7 @@ fun setup name style thy =
 
 fun parse_single ctxt = Parse.position (Parse.xname -- Args.parse)
   >> (fn x as ((name, _), _) => fst (Args.context_syntax "style"
-       (Scan.lift (the_style (ProofContext.theory_of ctxt) name))
+       (Scan.lift (the_style (Proof_Context.theory_of ctxt) name))
          (Args.src x) ctxt |>> (fn f => f ctxt)));
 
 val parse = Args.context :|-- (fn ctxt => Scan.lift 
@@ -56,7 +56,7 @@ val parse = Args.context :|-- (fn ctxt => Scan.lift
 val parse_bare = Args.context :|-- (fn ctxt => (Output.legacy_feature "Old-style antiquotation style.";
   Scan.lift Args.liberal_name
   >> (fn name => fst (Args.context_syntax "style"
-       (Scan.lift (the_style (ProofContext.theory_of ctxt) name))
+       (Scan.lift (the_style (Proof_Context.theory_of ctxt) name))
           (Args.src (("style", []), Position.none)) ctxt |>> (fn f => f ctxt)))));
 
 
@@ -65,7 +65,7 @@ val parse_bare = Args.context :|-- (fn ctxt => (Output.legacy_feature "Old-style
 fun style_lhs_rhs proj = Scan.succeed (fn ctxt => fn t =>
   let
     val concl =
-      Object_Logic.drop_judgment (ProofContext.theory_of ctxt) (Logic.strip_imp_concl t)
+      Object_Logic.drop_judgment (Proof_Context.theory_of ctxt) (Logic.strip_imp_concl t)
   in
     case concl of (_ $ l $ r) => proj (l, r)
     | _ => error ("Binary operator expected in term: " ^ Syntax.string_of_term ctxt concl)

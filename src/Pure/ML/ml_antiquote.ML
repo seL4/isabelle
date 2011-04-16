@@ -80,12 +80,12 @@ val _ = inline "prop" (Args.prop >> (ML_Syntax.atomic o ML_Syntax.print_term));
 val _ = macro "let" (Args.context --
   Scan.lift
     (Parse.and_list1 (Parse.and_list1 Args.name_source -- (Args.$$$ "=" |-- Args.name_source)))
-    >> (fn (ctxt, args) => #2 (ProofContext.match_bind true args ctxt)));
+    >> (fn (ctxt, args) => #2 (Proof_Context.match_bind true args ctxt)));
 
 val _ = macro "note" (Args.context :|-- (fn ctxt =>
   Parse.and_list1' (Scan.lift (Args.opt_thm_name I "=") -- Attrib.thms >> (fn ((a, srcs), ths) =>
-    ((a, map (Attrib.attribute (ProofContext.theory_of ctxt)) srcs), [(ths, [])])))
-  >> (fn args => #2 (ProofContext.note_thmss "" args ctxt))));
+    ((a, map (Attrib.attribute (Proof_Context.theory_of ctxt)) srcs), [(ths, [])])))
+  >> (fn args => #2 (Proof_Context.note_thmss "" args ctxt))));
 
 val _ = value "ctyp" (Args.typ >> (fn T =>
   "Thm.ctyp_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_typ T)));
@@ -97,14 +97,14 @@ val _ = value "cprop" (Args.prop >> (fn t =>
   "Thm.cterm_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t)));
 
 val _ = value "cpat"
-  (Args.context -- Scan.lift Args.name_source >> uncurry ProofContext.read_term_pattern >> (fn t =>
+  (Args.context -- Scan.lift Args.name_source >> uncurry Proof_Context.read_term_pattern >> (fn t =>
     "Thm.cterm_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_term t)));
 
 
 (* type classes *)
 
 fun class syn = Args.context -- Scan.lift Args.name_source >> (fn (ctxt, s) =>
-  ProofContext.read_class ctxt s
+  Proof_Context.read_class ctxt s
   |> syn ? Lexicon.mark_class
   |> ML_Syntax.print_string);
 
@@ -120,8 +120,8 @@ val _ = inline "sort" (Args.context -- Scan.lift Args.name_source >> (fn (ctxt, 
 fun type_name kind check = Args.context -- Scan.lift (Parse.position Args.name_source)
   >> (fn (ctxt, (s, pos)) =>
     let
-      val Type (c, _) = ProofContext.read_type_name_proper ctxt false s;
-      val decl = Type.the_decl (ProofContext.tsig_of ctxt) c;
+      val Type (c, _) = Proof_Context.read_type_name_proper ctxt false s;
+      val decl = Type.the_decl (Proof_Context.tsig_of ctxt) c;
       val res =
         (case try check (c, decl) of
           SOME res => res
@@ -139,8 +139,8 @@ val _ = inline "type_syntax" (type_name "type" (fn (c, _) => Lexicon.mark_type c
 fun const_name check = Args.context -- Scan.lift (Parse.position Args.name_source)
   >> (fn (ctxt, (s, pos)) =>
     let
-      val Const (c, _) = ProofContext.read_const_proper ctxt false s;
-      val res = check (ProofContext.consts_of ctxt, c)
+      val Const (c, _) = Proof_Context.read_const_proper ctxt false s;
+      val res = check (Proof_Context.consts_of ctxt, c)
         handle TYPE (msg, _, _) => error (msg ^ Position.str_of pos);
     in ML_Syntax.print_string res end);
 
@@ -151,7 +151,7 @@ val _ = inline "const_syntax" (const_name (fn (_, c) => Lexicon.mark_const c));
 
 val _ = inline "syntax_const"
   (Args.context -- Scan.lift (Parse.position Args.name) >> (fn (ctxt, (c, pos)) =>
-    if is_some (Syntax.lookup_const (ProofContext.syn_of ctxt) c)
+    if is_some (Syntax.lookup_const (Proof_Context.syn_of ctxt) c)
     then ML_Syntax.print_string c
     else error ("Unknown syntax const: " ^ quote c ^ Position.str_of pos)));
 
@@ -160,8 +160,8 @@ val _ = inline "const"
       (Scan.lift (Args.$$$ "(") |-- Parse.enum1' "," Args.typ --| Scan.lift (Args.$$$ ")")) []
     >> (fn ((ctxt, raw_c), Ts) =>
       let
-        val Const (c, _) = ProofContext.read_const_proper ctxt true raw_c;
-        val const = Const (c, Consts.instance (ProofContext.consts_of ctxt) (c, Ts));
+        val Const (c, _) = Proof_Context.read_const_proper ctxt true raw_c;
+        val const = Const (c, Consts.instance (Proof_Context.consts_of ctxt) (c, Ts));
       in ML_Syntax.atomic (ML_Syntax.print_term const) end));
 
 end;

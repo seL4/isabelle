@@ -219,7 +219,7 @@ exception NO_UNIFIER of string * typ Vartab.table;
 
 fun unify ctxt pp =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val arity_sorts = Type.arity_sorts pp (Sign.tsig_of thy);
 
 

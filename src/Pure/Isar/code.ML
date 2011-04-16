@@ -113,12 +113,12 @@ fun string_of_typ thy =
   Syntax.string_of_typ (Config.put show_sorts true (Syntax.init_pretty_global thy));
 
 fun string_of_const thy c =
-  let val ctxt = ProofContext.init_global thy in
+  let val ctxt = Proof_Context.init_global thy in
     case AxClass.inst_of_param thy c of
       SOME (c, tyco) =>
-        ProofContext.extern_const ctxt c ^ " " ^ enclose "[" "]"
-          (ProofContext.extern_type ctxt tyco)
-    | NONE => ProofContext.extern_const ctxt c
+        Proof_Context.extern_const ctxt c ^ " " ^ enclose "[" "]"
+          (Proof_Context.extern_type ctxt tyco)
+    | NONE => Proof_Context.extern_const ctxt c
   end;
 
 
@@ -353,7 +353,7 @@ fun build_tsig thy =
 fun cert_signature thy = Logic.varifyT_global o Type.cert_typ (build_tsig thy) o Type.no_tvars;
 
 fun read_signature thy = cert_signature thy o Type.strip_sorts
-  o Syntax.parse_typ (ProofContext.init_global thy);
+  o Syntax.parse_typ (Proof_Context.init_global thy);
 
 fun expand_signature thy = Type.cert_typ_mode Type.mode_syntax (Sign.tsig_of thy);
 
@@ -576,7 +576,7 @@ fun assert_abs_eqn thy some_tyco thm =
 
 fun assert_eqn thy = error_thm (gen_assert_eqn thy true);
 
-fun meta_rewrite thy = Local_Defs.meta_rewrite_rule (ProofContext.init_global thy);
+fun meta_rewrite thy = Local_Defs.meta_rewrite_rule (Proof_Context.init_global thy);
 
 fun mk_eqn thy = error_thm (gen_assert_eqn thy false) o
   apfst (meta_rewrite thy);
@@ -963,7 +963,7 @@ val undefineds = Symtab.keys o snd o the_cases o the_exec;
 
 fun print_codesetup thy =
   let
-    val ctxt = ProofContext.init_global thy;
+    val ctxt = Proof_Context.init_global thy;
     val exec = the_exec thy;
     fun pretty_equations const thms =
       (Pretty.block o Pretty.fbreaks) (
@@ -1150,7 +1150,7 @@ fun case_cong thy case_const (num_args, (pos, _)) =
     fun mk_concl z = list_comb (Const (case_const, T), map2 (curry Free) (ws @ z :: vs) Ts);
     val (prem, concl) = pairself Logic.mk_equals (pairself mk_prem (x, y), pairself mk_concl (x, y));
     fun tac { context, prems } = Simplifier.rewrite_goals_tac prems
-      THEN ALLGOALS (ProofContext.fact_tac [Drule.reflexive_thm]);
+      THEN ALLGOALS (Proof_Context.fact_tac [Drule.reflexive_thm]);
   in Skip_Proof.prove_global thy (x :: y :: zs) [prem] concl tac end;
 
 fun add_case thm thy =

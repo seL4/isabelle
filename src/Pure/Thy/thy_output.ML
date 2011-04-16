@@ -491,35 +491,35 @@ fun pretty_term_typeof ctxt (style, t) =
 
 fun pretty_const ctxt c =
   let
-    val t = Const (c, Consts.type_scheme (ProofContext.consts_of ctxt) c)
+    val t = Const (c, Consts.type_scheme (Proof_Context.consts_of ctxt) c)
       handle TYPE (msg, _, _) => error msg;
     val ([t'], _) = Variable.import_terms true [t] ctxt;
   in pretty_term ctxt t' end;
 
 fun pretty_abbrev ctxt s =
   let
-    val t = Syntax.parse_term ctxt s |> singleton (ProofContext.standard_infer_types ctxt);
+    val t = Syntax.parse_term ctxt s |> singleton (Proof_Context.standard_infer_types ctxt);
     fun err () = error ("Abbreviated constant expected: " ^ Syntax.string_of_term ctxt t);
     val (head, args) = Term.strip_comb t;
     val (c, T) = Term.dest_Const head handle TERM _ => err ();
-    val (U, u) = Consts.the_abbreviation (ProofContext.consts_of ctxt) c
+    val (U, u) = Consts.the_abbreviation (Proof_Context.consts_of ctxt) c
       handle TYPE _ => err ();
     val t' = Term.betapplys (Envir.expand_atom T (U, u), args);
     val eq = Logic.mk_equals (t, t');
     val ctxt' = Variable.auto_fixes eq ctxt;
-  in ProofContext.pretty_term_abbrev ctxt' eq end;
+  in Proof_Context.pretty_term_abbrev ctxt' eq end;
 
 fun pretty_class ctxt =
-  Pretty.str o ProofContext.extern_class ctxt o ProofContext.read_class ctxt;
+  Pretty.str o Proof_Context.extern_class ctxt o Proof_Context.read_class ctxt;
 
 fun pretty_type ctxt s =
-  let val Type (name, _) = ProofContext.read_type_name_proper ctxt false s
-  in Pretty.str (ProofContext.extern_type ctxt name) end;
+  let val Type (name, _) = Proof_Context.read_type_name_proper ctxt false s
+  in Pretty.str (Proof_Context.extern_type ctxt name) end;
 
 fun pretty_prf full ctxt = Proof_Syntax.pretty_proof_of ctxt full;
 
 fun pretty_theory ctxt name =
-  (Theory.requires (ProofContext.theory_of ctxt) name "presentation"; Pretty.str name);
+  (Theory.requires (Proof_Context.theory_of ctxt) name "presentation"; Pretty.str name);
 
 
 (* default output *)

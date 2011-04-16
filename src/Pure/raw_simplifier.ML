@@ -316,7 +316,7 @@ fun print_term ss warn a t ctxt = prnt ss warn (a () ^ "\n" ^
 in
 
 fun print_term_global ss warn a thy t =
-  print_term ss warn (K a) t (ProofContext.init_global thy);
+  print_term ss warn (K a) t (Proof_Context.init_global thy);
 
 fun debug warn a ss = if_enabled ss simp_debug (fn _ => prnt ss warn (a ()));
 fun trace warn a ss = if_enabled ss simp_trace (fn _ => prnt ss warn (a ()));
@@ -365,13 +365,13 @@ fun the_context (Simpset ({context = SOME ctxt, ...}, _)) = ctxt
 fun context ctxt =
   map_simpset1 (fn (rules, prems, bounds, depth, _) => (rules, prems, bounds, depth, SOME ctxt));
 
-val global_context = context o ProofContext.init_global;
+val global_context = context o Proof_Context.init_global;
 
 fun activate_context thy ss =
   let
     val ctxt = the_context ss;
     val ctxt' = ctxt
-      |> Context.raw_transfer (Theory.merge (thy, ProofContext.theory_of ctxt))
+      |> Context.raw_transfer (Theory.merge (thy, Proof_Context.theory_of ctxt))
       |> Context_Position.set_visible false;
   in context ctxt' ss end;
 
@@ -639,7 +639,7 @@ fun make_simproc {name, lhss, proc, identifier} =
 
 fun mk_simproc name lhss proc =
   make_simproc {name = name, lhss = lhss, proc = fn _ => fn ss => fn ct =>
-    proc (ProofContext.theory_of (the_context ss)) ss (Thm.term_of ct), identifier = []};
+    proc (Proof_Context.theory_of (the_context ss)) ss (Thm.term_of ct), identifier = []};
 
 (* FIXME avoid global thy and Logic.varify_global *)
 fun simproc_global_i thy name = mk_simproc name o map (Thm.cterm_of thy o Logic.varify_global);

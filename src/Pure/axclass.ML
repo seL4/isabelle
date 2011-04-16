@@ -198,7 +198,7 @@ fun the_classrel thy (c1, c2) =
   (case Symreltab.lookup (proven_classrels_of thy) (c1, c2) of
     SOME thm => thm
   | NONE => error ("Unproven class relation " ^
-      Syntax.string_of_classrel (ProofContext.init_global thy) [c1, c2]));  (* FIXME stale thy (!?) *)
+      Syntax.string_of_classrel (Proof_Context.init_global thy) [c1, c2]));  (* FIXME stale thy (!?) *)
 
 fun put_trancl_classrel ((c1, c2), th) thy =
   let
@@ -245,7 +245,7 @@ fun the_arity thy (a, Ss, c) =
   (case AList.lookup (op =) (Symtab.lookup_list (proven_arities_of thy) a) (c, Ss) of
     SOME (thm, _) => thm
   | NONE => error ("Unproven type arity " ^
-      Syntax.string_of_arity (ProofContext.init_global thy) (a, Ss, [c])));  (* FIXME stale thy (!?) *)
+      Syntax.string_of_arity (Proof_Context.init_global thy) (a, Ss, [c])));  (* FIXME stale thy (!?) *)
 
 fun thynames_of_arity thy (c, a) =
   Symtab.lookup_list (proven_arities_of thy) a
@@ -359,7 +359,7 @@ fun cert_classrel thy raw_rel =
   in (c1, c2) end;
 
 fun read_classrel thy raw_rel =
-  cert_classrel thy (pairself (ProofContext.read_class (ProofContext.init_global thy)) raw_rel)
+  cert_classrel thy (pairself (Proof_Context.read_class (Proof_Context.init_global thy)) raw_rel)
     handle TYPE (msg, _, _) => error msg;
 
 
@@ -464,7 +464,7 @@ fun add_arity raw_th thy =
 
 fun prove_classrel raw_rel tac thy =
   let
-    val ctxt = ProofContext.init_global thy;
+    val ctxt = Proof_Context.init_global thy;
     val (c1, c2) = cert_classrel thy raw_rel;
     val th = Goal.prove ctxt [] [] (Logic.mk_classrel (c1, c2)) (K tac) handle ERROR msg =>
       cat_error msg ("The error(s) above occurred while trying to prove class relation " ^
@@ -475,8 +475,8 @@ fun prove_classrel raw_rel tac thy =
 
 fun prove_arity raw_arity tac thy =
   let
-    val ctxt = ProofContext.init_global thy;
-    val arity = ProofContext.cert_arity ctxt raw_arity;
+    val ctxt = Proof_Context.init_global thy;
+    val arity = Proof_Context.cert_arity ctxt raw_arity;
     val names = map (prefix arity_prefix) (Logic.name_arities arity);
     val props = Logic.mk_arities arity;
     val ths = Goal.prove_multi ctxt [] [] props
@@ -617,7 +617,7 @@ fun ax_classrel prep =
     (map (prefix classrel_prefix o Logic.name_classrel)) add_classrel;
 
 fun ax_arity prep =
-  axiomatize (prep o ProofContext.init_global) Logic.mk_arities
+  axiomatize (prep o Proof_Context.init_global) Logic.mk_arities
     (map (prefix arity_prefix) o Logic.name_arities) add_arity;
 
 fun class_const c =
@@ -637,11 +637,11 @@ fun ax_class prep_class prep_classrel (bclass, raw_super) thy =
 in
 
 val axiomatize_class = ax_class Sign.certify_class cert_classrel;
-val axiomatize_class_cmd = ax_class (ProofContext.read_class o ProofContext.init_global) read_classrel;
+val axiomatize_class_cmd = ax_class (Proof_Context.read_class o Proof_Context.init_global) read_classrel;
 val axiomatize_classrel = ax_classrel cert_classrel;
 val axiomatize_classrel_cmd = ax_classrel read_classrel;
-val axiomatize_arity = ax_arity ProofContext.cert_arity;
-val axiomatize_arity_cmd = ax_arity ProofContext.read_arity;
+val axiomatize_arity = ax_arity Proof_Context.cert_arity;
+val axiomatize_arity_cmd = ax_arity Proof_Context.read_arity;
 
 end;
 

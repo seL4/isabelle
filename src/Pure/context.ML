@@ -17,7 +17,7 @@ sig
   type theory_ref
   exception THEORY of string * theory list
   structure Proof: sig type context end
-  structure ProofContext:
+  structure Proof_Context:
   sig
     val theory_of: Proof.context -> theory
     val init_global: theory -> Proof.context
@@ -492,7 +492,7 @@ fun raw_transfer thy' (Proof.Context (data, thy_ref)) =
     val thy_ref' = check_thy thy';
   in Proof.Context (data', thy_ref') end;
 
-structure ProofContext =
+structure Proof_Context =
 struct
   val theory_of = theory_of_proof;
   fun init_global thy = Proof.Context (init_data thy, check_thy thy);
@@ -510,7 +510,7 @@ fun declare init =
 fun get k dest prf =
   dest (case Datatab.lookup (data_of_proof prf) k of
     SOME x => x
-  | NONE => invoke_init k (ProofContext.theory_of prf));   (*adhoc value*)
+  | NONE => invoke_init k (Proof_Context.theory_of prf));   (*adhoc value*)
 
 fun put k mk x = map_prf (Datatab.update (k, mk x));
 
@@ -542,8 +542,8 @@ fun map_proof_result f = apsnd Proof o f o the_proof;
 fun theory_map f = the_theory o f o Theory;
 fun proof_map f = the_proof o f o Proof;
 
-val theory_of = cases I ProofContext.theory_of;
-val proof_of = cases ProofContext.init_global I;
+val theory_of = cases I Proof_Context.theory_of;
+val proof_of = cases Proof_Context.init_global I;
 
 
 

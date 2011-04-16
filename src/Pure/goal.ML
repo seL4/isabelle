@@ -154,7 +154,7 @@ fun local_future_enabled () =
 
 fun future_result ctxt result prop =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val _ = Context.reject_draft thy;
     val cert = Thm.cterm_of thy;
     val certT = Thm.ctyp_of thy;
@@ -203,7 +203,7 @@ fun prove_internal casms cprop tac =
 
 fun prove_common immediate ctxt xs asms props tac =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val string_of_term = Syntax.string_of_term ctxt;
 
     val pos = Position.thread_data ();
@@ -252,7 +252,7 @@ fun prove_future ctxt xs asms prop tac = hd (prove_common false ctxt xs asms [pr
 fun prove ctxt xs asms prop tac = hd (prove_common true ctxt xs asms [prop] tac);
 
 fun prove_global thy xs asms prop tac =
-  Drule.export_without_context (prove (ProofContext.init_global thy) xs asms prop tac);
+  Drule.export_without_context (prove (Proof_Context.init_global thy) xs asms prop tac);
 
 
 

@@ -83,7 +83,7 @@ fun read_termTs ctxt schematic ss Ts =
     val ts = map2 parse Ts ss;
     val ts' =
       map2 (Type.constraint o Type_Infer.paramify_vars) Ts ts
-      |> Syntax.check_terms ((schematic ? ProofContext.set_mode ProofContext.mode_schematic) ctxt)
+      |> Syntax.check_terms ((schematic ? Proof_Context.set_mode Proof_Context.mode_schematic) ctxt)
       |> Variable.polymorphic ctxt;
     val Ts' = map Term.fastype_of ts';
     val tyenv = fold Type.raw_match (Ts ~~ Ts') Vartab.empty;
@@ -91,7 +91,7 @@ fun read_termTs ctxt schematic ss Ts =
 
 fun read_insts ctxt mixed_insts (tvars, vars) =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val cert = Thm.cterm_of thy;
     val certT = Thm.ctyp_of thy;
 
@@ -193,7 +193,7 @@ end;
 (* instantiation of rule or goal state *)
 
 fun read_instantiate ctxt args thm =
-  read_instantiate_mixed (ctxt |> ProofContext.set_mode ProofContext.mode_schematic)  (* FIXME !? *)
+  read_instantiate_mixed (ctxt |> Proof_Context.set_mode Proof_Context.mode_schematic)  (* FIXME !? *)
     (map (fn (x, y) => (Token.eof, (x, Token.Text y))) args) thm;
 
 fun instantiate_tac ctxt args = PRIMITIVE (read_instantiate ctxt args);
@@ -260,7 +260,7 @@ end;
 
 fun bires_inst_tac bires_flag ctxt insts thm =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     (* Separate type and term insts *)
     fun has_type_var ((x, _), _) =
       (case Symbol.explode x of "'" :: _ => true | _ => false);
@@ -279,7 +279,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
         val (param_names, ctxt') = ctxt
           |> Variable.declare_thm thm
           |> Thm.fold_terms Variable.declare_constraints st
-          |> ProofContext.add_fixes (map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) params);
+          |> Proof_Context.add_fixes (map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) params);
 
         (* Process type insts: Tinsts_env *)
         fun absent xi = error

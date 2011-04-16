@@ -222,7 +222,7 @@ fun thm_name kind th prts =
 fun obtain prop ctxt =
   let
     val ((ps, prop'), ctxt') = Variable.focus prop ctxt;
-    fun fix (x, T) = (Binding.name (ProofContext.revert_skolem ctxt' x), SOME T);
+    fun fix (x, T) = (Binding.name (Proof_Context.revert_skolem ctxt' x), SOME T);
     val xs = map (fix o Term.dest_Free o Thm.term_of o #2) ps;
     val As = Logic.strip_imp_prems (Thm.term_of prop');
   in ((Binding.empty, (xs, As)), ctxt') end;
@@ -231,7 +231,7 @@ in
 
 fun pretty_statement ctxt kind raw_th =
   let
-    val thy = ProofContext.theory_of ctxt;
+    val thy = Proof_Context.theory_of ctxt;
     val cert = Thm.cterm_of thy;
 
     val (th, is_elim) = standard_elim (Raw_Simplifier.norm_hhf raw_th);
@@ -242,7 +242,7 @@ fun pretty_statement ctxt kind raw_th =
 
     val fixes = fold_aterms (fn v as Free (x, T) =>
         if Variable.newly_fixed ctxt' ctxt x andalso not (v aconv concl_term)
-        then insert (op =) (ProofContext.revert_skolem ctxt' x, T) else I | _ => I) prop [] |> rev;
+        then insert (op =) (Proof_Context.revert_skolem ctxt' x, T) else I | _ => I) prop [] |> rev;
     val (assumes, cases) = take_suffix (fn prem =>
       is_elim andalso concl aconv Logic.strip_assums_concl prem) prems;
   in
@@ -295,7 +295,7 @@ fun gen_witness_proof proof after_qed wit_propss eq_props =
 
 fun proof_local cmd goal_ctxt int after_qed' propss =
     Proof.map_context (K goal_ctxt)
-    #> Proof.local_goal (Proof_Display.print_results int) (K I) ProofContext.bind_propp_i
+    #> Proof.local_goal (Proof_Display.print_results int) (K I) Proof_Context.bind_propp_i
       cmd NONE after_qed' (map (pair Thm.empty_binding) propss);
 
 in
@@ -491,27 +491,27 @@ fun generic_note_thmss kind facts context =
   in
     context |> Context.mapping_result
       (Global_Theory.note_thmss kind facts')
-      (ProofContext.note_thmss kind facts')
+      (Proof_Context.note_thmss kind facts')
   end;
 
-fun init (Fixes fixes) = Context.map_proof (ProofContext.add_fixes fixes #> #2)
+fun init (Fixes fixes) = Context.map_proof (Proof_Context.add_fixes fixes #> #2)
   | init (Constrains _) = I
   | init (Assumes asms) = Context.map_proof (fn ctxt =>
       let
-        val asms' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) asms;
+        val asms' = Attrib.map_specs (Attrib.attribute_i (Proof_Context.theory_of ctxt)) asms;
         val (_, ctxt') = ctxt
           |> fold Variable.auto_fixes (maps (map #1 o #2) asms')
-          |> ProofContext.add_assms_i Assumption.assume_export asms';
+          |> Proof_Context.add_assms_i Assumption.assume_export asms';
       in ctxt' end)
   | init (Defines defs) = Context.map_proof (fn ctxt =>
       let
-        val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs;
+        val defs' = Attrib.map_specs (Attrib.attribute_i (Proof_Context.theory_of ctxt)) defs;
         val asms = defs' |> map (fn ((name, atts), (t, ps)) =>
             let val ((c, _), t') = Local_Defs.cert_def ctxt t  (* FIXME adapt ps? *)
             in (t', ((Thm.def_binding_optional (Binding.name c) name, atts), [(t', ps)])) end);
         val (_, ctxt') = ctxt
           |> fold Variable.auto_fixes (map #1 asms)
-          |> ProofContext.add_assms_i Local_Defs.def_export (map #2 asms);
+          |> Proof_Context.add_assms_i Local_Defs.def_export (map #2 asms);
       in ctxt' end)
   | init (Notes (kind, facts)) = generic_note_thmss kind facts #> #2;
 
@@ -530,8 +530,8 @@ fun activate raw_elem ctxt =
     typ = I,
     term = I,
     pattern = I,
-    fact = ProofContext.get_fact ctxt,
-    attrib = Attrib.intern_src (ProofContext.theory_of ctxt)}
+    fact = Proof_Context.get_fact ctxt,
+    attrib = Attrib.intern_src (Proof_Context.theory_of ctxt)}
   in activate_i elem ctxt end;
 
 end;

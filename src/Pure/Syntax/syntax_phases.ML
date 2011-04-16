@@ -21,13 +21,13 @@ struct
 (** markup logical entities **)
 
 fun markup_class ctxt c =
-  [Name_Space.markup_entry (Type.class_space (ProofContext.tsig_of ctxt)) c];
+  [Name_Space.markup_entry (Type.class_space (Proof_Context.tsig_of ctxt)) c];
 
 fun markup_type ctxt c =
-  [Name_Space.markup_entry (Type.type_space (ProofContext.tsig_of ctxt)) c];
+  [Name_Space.markup_entry (Type.type_space (Proof_Context.tsig_of ctxt)) c];
 
 fun markup_const ctxt c =
-  [Name_Space.markup_entry (Consts.space_of (ProofContext.consts_of ctxt)) c];
+  [Name_Space.markup_entry (Consts.space_of (Proof_Context.consts_of ctxt)) c];
 
 fun markup_free ctxt x =
   [if can Name.dest_skolem x then Markup.skolem else Markup.free] @
@@ -40,7 +40,7 @@ fun markup_bound def id =
   [Markup.properties [(if def then Markup.defN else Markup.refN, id)] Markup.bound];
 
 fun markup_entity ctxt c =
-  (case Syntax.lookup_const (ProofContext.syn_of ctxt) c of
+  (case Syntax.lookup_const (Proof_Context.syn_of ctxt) c of
     SOME "" => []
   | SOME b => markup_entity ctxt b
   | NONE => c |> Lexicon.unmark
@@ -125,8 +125,8 @@ fun typ_of_term get_sort tm =
 
 fun parsetree_to_ast ctxt constrain_pos trf parsetree =
   let
-    val get_class = ProofContext.read_class ctxt;
-    val get_type = #1 o dest_Type o ProofContext.read_type_name_proper ctxt false;
+    val get_class = Proof_Context.read_class ctxt;
+    val get_type = #1 o dest_Type o Proof_Context.read_type_name_proper ctxt false;
 
     val reports = Unsynchronized.ref ([]: Position.reports);
     fun report pos = Position.reports reports [pos];
@@ -197,11 +197,11 @@ fun decode_term _ (result as (_: Position.reports, Exn.Exn _)) = result
   | decode_term ctxt (reports0, Exn.Result tm) =
       let
         fun get_const a =
-          ((true, #1 (Term.dest_Const (ProofContext.read_const_proper ctxt false a)))
-            handle ERROR _ => (false, Consts.intern (ProofContext.consts_of ctxt) a));
-        val get_free = ProofContext.intern_skolem ctxt;
+          ((true, #1 (Term.dest_Const (Proof_Context.read_const_proper ctxt false a)))
+            handle ERROR _ => (false, Consts.intern (Proof_Context.consts_of ctxt) a));
+        val get_free = Proof_Context.intern_skolem ctxt;
 
-        val decodeT = typ_of_term (ProofContext.get_sort ctxt (term_sorts tm));
+        val decodeT = typ_of_term (Proof_Context.get_sort ctxt (term_sorts tm));
 
         val reports = Unsynchronized.ref reports0;
         fun report ps = Position.reports reports ps;
@@ -272,7 +272,7 @@ fun report_result ctxt pos results =
 
 fun parse_asts ctxt raw root (syms, pos) =
   let
-    val syn = ProofContext.syn_of ctxt;
+    val syn = Proof_Context.syn_of ctxt;
     val ast_tr = Syntax.parse_ast_translation syn;
 
     val toks = Syntax.tokenize syn raw syms;
@@ -301,7 +301,7 @@ fun parse_asts ctxt raw root (syms, pos) =
 
 fun parse_raw ctxt root input =
   let
-    val syn = ProofContext.syn_of ctxt;
+    val syn = Proof_Context.syn_of ctxt;
     val tr = Syntax.parse_translation syn;
     val parse_rules = Syntax.parse_rules syn;
   in
@@ -325,7 +325,7 @@ fun parse_sort ctxt text =
       |> report_result ctxt pos
       |> sort_of_term
       handle ERROR msg => parse_failed ctxt pos msg "sort";
-  in Type.minimize_sort (ProofContext.tsig_of ctxt) S end;
+  in Type.minimize_sort (Proof_Context.tsig_of ctxt) S end;
 
 fun parse_typ ctxt text =
   let
@@ -333,7 +333,7 @@ fun parse_typ ctxt text =
     val T =
       parse_raw ctxt "type" (syms, pos)
       |> report_result ctxt pos
-      |> (fn t => typ_of_term (ProofContext.get_sort ctxt (term_sorts t)) t)
+      |> (fn t => typ_of_term (Proof_Context.get_sort ctxt (term_sorts t)) t)
       handle ERROR msg => parse_failed ctxt pos msg "type";
   in T end;
 
@@ -398,7 +398,7 @@ fun parse_term is_prop ctxt text =
 
 fun parse_ast_pattern ctxt (root, str) =
   let
-    val syn = ProofContext.syn_of ctxt;
+    val syn = Proof_Context.syn_of ctxt;
 
     fun constify (ast as Ast.Constant _) = ast
       | constify (ast as Ast.Variable x) =
@@ -590,7 +590,7 @@ fun free_or_skolem ctxt x =
       else Markup.hilite;
   in
     if can Name.dest_skolem x
-    then ([m, Markup.skolem], ProofContext.revert_skolem ctxt x)
+    then ([m, Markup.skolem], Proof_Context.revert_skolem ctxt x)
     else ([m, Markup.free], x)
   end;
 
@@ -604,7 +604,7 @@ fun var_or_skolem s =
 
 fun unparse_t t_to_ast prt_t markup ctxt t =
   let
-    val syn = ProofContext.syn_of ctxt;
+    val syn = Proof_Context.syn_of ctxt;
 
     fun token_trans "_tfree" x = SOME (Pretty.mark_str (Markup.tfree, x))
       | token_trans "_tvar" x = SOME (Pretty.mark_str (Markup.tvar, x))
@@ -620,9 +620,9 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
         SOME "" => ([], c)
       | SOME b => markup_extern b
       | NONE => c |> Lexicon.unmark
-         {case_class = fn x => ([Markup.tclass x], ProofContext.extern_class ctxt x),
-          case_type = fn x => ([Markup.tycon x], ProofContext.extern_type ctxt x),
-          case_const = fn x => ([Markup.const x], ProofContext.extern_const ctxt x),
+         {case_class = fn x => ([Markup.tclass x], Proof_Context.extern_class ctxt x),
+          case_type = fn x => ([Markup.tycon x], Proof_Context.extern_type ctxt x),
+          case_const = fn x => ([Markup.const x], Proof_Context.extern_const ctxt x),
           case_fixed = fn x => free_or_skolem ctxt x,
           case_default = fn x => ([], x)});
   in
@@ -639,9 +639,9 @@ val unparse_typ = unparse_t typ_to_ast Printer.pretty_typ_ast Markup.typ;
 
 fun unparse_term ctxt =
   let
-    val thy = ProofContext.theory_of ctxt;
-    val syn = ProofContext.syn_of ctxt;
-    val idents = Local_Syntax.idents_of (ProofContext.syntax_of ctxt);
+    val thy = Proof_Context.theory_of ctxt;
+    val syn = Proof_Context.syn_of ctxt;
+    val idents = Local_Syntax.idents_of (Proof_Context.syntax_of ctxt);
   in
     unparse_t (term_to_ast idents (is_some o Syntax.lookup_const syn))
       (Printer.pretty_term_ast (not (Pure_Thy.old_appl_syntax thy)))
@@ -681,7 +681,7 @@ fun type_constraint_tr' ctxt (Type ("fun", [T, _])) (t :: ts) =
 
 fun const_ast_tr intern ctxt [Ast.Variable c] =
       let
-        val Const (c', _) = ProofContext.read_const_proper ctxt false c;
+        val Const (c', _) = Proof_Context.read_const_proper ctxt false c;
         val d = if intern then Lexicon.mark_const c' else c;
       in Ast.Constant d end
   | const_ast_tr intern ctxt [Ast.Appl [Ast.Constant "_constrain", x, T]] =

@@ -240,7 +240,7 @@ local
 
 fun check_def thy unchecked overloaded (b, tm) defs =
   let
-    val ctxt = ProofContext.init_global thy;
+    val ctxt = Proof_Context.init_global thy;
     val name = Sign.full_name thy b;
     val ((lhs, rhs), _) = Primitive_Defs.dest_def ctxt Term.is_Const (K false) (K false) tm
       handle TERM (msg, _) => error msg;

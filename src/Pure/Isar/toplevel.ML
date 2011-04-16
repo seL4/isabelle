@@ -516,7 +516,7 @@ fun local_theory_to_proof loc f = local_theory_to_proof' loc (K f);
 
 fun theory_to_proof f = begin_proof
   (K (fn Context.Theory thy => f (Theory.checkpoint (Sign.new_group thy)) | _ => raise UNDEF))
-  (K (Context.Theory o Sign.reset_group o ProofContext.theory_of));
+  (K (Context.Theory o Sign.reset_group o Proof_Context.theory_of));
 
 end;
 
@@ -660,7 +660,7 @@ fun proof_result immediate (tr, proof_trs) st =
     else
       let
         val (body_trs, end_tr) = split_last proof_trs;
-        val finish = Context.Theory o ProofContext.theory_of;
+        val finish = Context.Theory o Proof_Context.theory_of;
 
         val future_proof = Proof.global_future_proof
           (fn prf =>

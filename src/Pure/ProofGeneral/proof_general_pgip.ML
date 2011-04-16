@@ -522,7 +522,7 @@ fun theory_facts thy =
 
 fun thms_of_thy name =
   let val thy = Thy_Info.get_theory name
-  in map fst (theory_facts thy |-> Facts.extern_static (ProofContext.init_global thy)) end;
+  in map fst (theory_facts thy |-> Facts.extern_static (Proof_Context.init_global thy)) end;
 
 fun qualified_thms_of_thy name =
   map fst (theory_facts (Thy_Info.get_theory name) |-> Facts.dest_static);
@@ -610,7 +610,7 @@ fun askrefs (Askrefs vs) =
                 (* TODO: interim: this is probably not right.
                    What we want is mapping onto simple PGIP name/context model. *)
                 val ctx = Toplevel.context_of (Isar.state ()) (* NB: raises UNDEF *)
-                val thy = ProofContext.theory_of ctx
+                val thy = Proof_Context.theory_of ctx
                 val ths = [Global_Theory.get_thm thy thmname]
                 val deps = #2 (thms_deps ths);
             in
