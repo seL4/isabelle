@@ -450,9 +450,9 @@ val _ = add_option "show_sorts" (Config.put show_sorts o boolean);
 val _ = add_option "show_structs" (Config.put show_structs o boolean);
 val _ = add_option "show_question_marks" (Config.put show_question_marks o boolean);
 val _ = add_option "show_abbrevs" (Config.put show_abbrevs o boolean);
-val _ = add_option "long_names" (add_wrapper o setmp_CRITICAL Name_Space.long_names o boolean);
-val _ = add_option "short_names" (add_wrapper o setmp_CRITICAL Name_Space.short_names o boolean);
-val _ = add_option "unique_names" (add_wrapper o setmp_CRITICAL Name_Space.unique_names o boolean);
+val _ = add_option "long_names" (Config.put Name_Space.long_names o boolean);
+val _ = add_option "short_names" (Config.put Name_Space.short_names o boolean);
+val _ = add_option "unique_names" (Config.put Name_Space.unique_names o boolean);
 val _ = add_option "eta_contract" (Config.put Syntax_Trans.eta_contract o boolean);
 val _ = add_option "display" (Config.put display o boolean);
 val _ = add_option "break" (Config.put break o boolean);
@@ -510,11 +510,11 @@ fun pretty_abbrev ctxt s =
   in ProofContext.pretty_term_abbrev ctxt' eq end;
 
 fun pretty_class ctxt =
-  Pretty.str o Type.extern_class (ProofContext.tsig_of ctxt) o ProofContext.read_class ctxt;
+  Pretty.str o Type.extern_class ctxt (ProofContext.tsig_of ctxt) o ProofContext.read_class ctxt;
 
 fun pretty_type ctxt s =
   let val Type (name, _) = ProofContext.read_type_name_proper ctxt false s
-  in Pretty.str (Type.extern_type (ProofContext.tsig_of ctxt) name) end;
+  in Pretty.str (Type.extern_type ctxt (ProofContext.tsig_of ctxt) name) end;
 
 fun pretty_prf full ctxt = Proof_Syntax.pretty_proof_of ctxt full;
 

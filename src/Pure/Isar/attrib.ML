@@ -73,11 +73,12 @@ structure Attributes = Theory_Data
 
 fun print_attributes thy =
   let
+    val ctxt = ProofContext.init_global thy;
     val attribs = Attributes.get thy;
     fun prt_attr (name, (_, comment)) = Pretty.block
       [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
   in
-    [Pretty.big_list "attributes:" (map prt_attr (Name_Space.extern_table attribs))]
+    [Pretty.big_list "attributes:" (map prt_attr (Name_Space.extern_table ctxt attribs))]
     |> Pretty.chunks |> Pretty.writeln
   end;
 
@@ -90,7 +91,7 @@ fun add_attribute name att comment thy = thy
 val intern = Name_Space.intern o #1 o Attributes.get;
 val intern_src = Args.map_name o intern;
 
-val extern = Name_Space.extern o #1 o Attributes.get o ProofContext.theory_of;
+fun extern ctxt = Name_Space.extern ctxt (#1 (Attributes.get (ProofContext.theory_of ctxt)));
 
 
 (* pretty printing *)
@@ -341,7 +342,7 @@ fun print_configs ctxt =
         Pretty.block [Pretty.str (name ^ ": " ^ Config.print_type value ^ " ="), Pretty.brk 1,
           Pretty.str (Config.print_value value)]
       end;
-    val configs = Name_Space.extern_table (#1 (Attributes.get thy), Configs.get thy);
+    val configs = Name_Space.extern_table ctxt (#1 (Attributes.get thy), Configs.get thy);
   in Pretty.writeln (Pretty.big_list "configuration options" (map prt configs)) end;
 
 
@@ -408,6 +409,9 @@ val _ = Context.>> (Context.map_theory
   register_config Printer.show_question_marks_raw #>
   register_config Syntax.ambiguity_level_raw #>
   register_config Syntax_Trans.eta_contract_raw #>
+  register_config Name_Space.long_names_raw #>
+  register_config Name_Space.short_names_raw #>
+  register_config Name_Space.unique_names_raw #>
   register_config ML_Context.trace_raw #>
   register_config ProofContext.show_abbrevs_raw #>
   register_config Goal_Display.goals_limit_raw #>

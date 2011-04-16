@@ -187,25 +187,25 @@ fun pretty_full_theory verbose thy =
     val {restricts, reducts} = Defs.dest defs;
     val {naming = _, syn = _, tsig, consts} = Sign.rep_sg thy;
     val {constants, constraints} = Consts.dest consts;
-    val extern_const = Name_Space.extern (#1 constants);
+    val extern_const = Name_Space.extern ctxt (#1 constants);
     val {classes, default, types, ...} = Type.rep_tsig tsig;
     val (class_space, class_algebra) = classes;
     val classes = Sorts.classes_of class_algebra;
     val arities = Sorts.arities_of class_algebra;
 
-    val clsses = Name_Space.dest_table (class_space, Symtab.make (Graph.dest classes));
-    val tdecls = Name_Space.dest_table types;
-    val arties = Name_Space.dest_table (Sign.type_space thy, arities);
+    val clsses = Name_Space.dest_table ctxt (class_space, Symtab.make (Graph.dest classes));
+    val tdecls = Name_Space.dest_table ctxt types;
+    val arties = Name_Space.dest_table ctxt (Sign.type_space thy, arities);
 
     fun prune_const c = not verbose andalso Consts.is_concealed consts c;
-    val cnsts = Name_Space.extern_table (#1 constants,
+    val cnsts = Name_Space.extern_table ctxt (#1 constants,
       Symtab.make (filter_out (prune_const o fst) (Symtab.dest (#2 constants))));
 
     val log_cnsts = map_filter (fn (c, (ty, NONE)) => SOME (c, ty) | _ => NONE) cnsts;
     val abbrevs = map_filter (fn (c, (ty, SOME t)) => SOME (c, (ty, t)) | _ => NONE) cnsts;
-    val cnstrs = Name_Space.extern_table constraints;
+    val cnstrs = Name_Space.extern_table ctxt constraints;
 
-    val axms = Name_Space.extern_table axioms;
+    val axms = Name_Space.extern_table ctxt axioms;
 
     val (reds0, (reds1, reds2)) = filter_out (prune_const o fst o fst) reducts
       |> map (fn (lhs, rhs) =>
@@ -225,7 +225,7 @@ fun pretty_full_theory verbose thy =
       Pretty.big_list "abbreviations:" (map pretty_abbrev abbrevs),
       Pretty.big_list "constraints:" (map (Pretty.block o prt_const) cnstrs),
       Pretty.big_list "axioms:" (map pretty_axm axms),
-      Pretty.strs ("oracles:" :: Thm.extern_oracles thy),
+      Pretty.strs ("oracles:" :: Thm.extern_oracles ctxt),
       Pretty.big_list "definitions:"
         [pretty_finals reds0,
          Pretty.big_list "non-overloaded:" (map pretty_reduct reds1),

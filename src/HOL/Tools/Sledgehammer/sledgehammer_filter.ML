@@ -848,8 +848,8 @@ fun all_facts ctxt reserved really_all no_dangerous_types
                             th |> backquote_thm
                           else
                             let
-                              val name1 = Facts.extern facts name0
-                              val name2 = Name_Space.extern full_space name0
+                              val name1 = Facts.extern ctxt facts name0
+                              val name2 = Name_Space.extern ctxt full_space name0
                             in
                               case find_first check_thms [name1, name2, name0] of
                                 SOME name => make_name reserved multi j name

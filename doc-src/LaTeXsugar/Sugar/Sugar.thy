@@ -152,11 +152,8 @@ text{* If there are multiple declarations of the same name, Isabelle prints
 the qualified name, for example @{text "T.length"}, where @{text T} is the
 theory it is defined in, to distinguish it from the predefined @{const[source]
 "List.length"}. In case there is no danger of confusion, you can insist on
-short names (no qualifiers) by setting \verb!short_names!, typically
-in \texttt{ROOT.ML}:
-\begin{quote}
-@{ML "short_names := true"}\verb!;!
-\end{quote}
+short names (no qualifiers) by setting the \verb!short_names!
+configuration option in the context.
 *}
 
 subsection {*Variable names\label{sec:varnames}*}

@@ -37,6 +37,13 @@ uniformly by explicit Isabelle settings as follows:
 Note that automated detection from the file-system or search path has
 been discontinued.  INCOMPATIBILITY.
 
+* Name space: proper configuration options "long_names",
+"short_names", "unique_names" instead of former unsynchronized
+references.  Minor INCOMPATIBILITY, need to declare options in context
+like this:
+
+  declare [[unique_names = false]]
+
 
 *** HOL ***
 

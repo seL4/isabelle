@@ -162,7 +162,7 @@ structure Locales = Theory_Data
 );
 
 val intern = Name_Space.intern o #1 o Locales.get;
-val extern = Name_Space.extern o #1 o Locales.get;
+fun extern thy = Name_Space.extern (ProofContext.init_global thy) (#1 (Locales.get thy));
 
 val get_locale = Symtab.lookup o #2 o Locales.get;
 val defined = Symtab.defined o #2 o Locales.get;
@@ -630,7 +630,8 @@ val _ = Context.>> (Context.map_theory
 val all_locales = Symtab.keys o snd o Locales.get;
 
 fun print_locales thy =
-  Pretty.strs ("locales:" :: map #1 (Name_Space.extern_table (Locales.get thy)))
+  Pretty.strs ("locales:" ::
+    map #1 (Name_Space.extern_table (ProofContext.init_global thy) (Locales.get thy)))
   |> Pretty.writeln;
 
 fun print_locale thy show_facts raw_name =

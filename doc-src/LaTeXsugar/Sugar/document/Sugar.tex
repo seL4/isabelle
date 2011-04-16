@@ -195,11 +195,8 @@ obtain the much nicer \isa{x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadig
 If there are multiple declarations of the same name, Isabelle prints
 the qualified name, for example \isa{T{\isaliteral{2E}{\isachardot}}length}, where \isa{T} is the
 theory it is defined in, to distinguish it from the predefined \isa{{\isaliteral{22}{\isachardoublequote}}List{\isaliteral{2E}{\isachardot}}length{\isaliteral{22}{\isachardoublequote}}}. In case there is no danger of confusion, you can insist on
-short names (no qualifiers) by setting \verb!short_names!, typically
-in \texttt{ROOT.ML}:
-\begin{quote}
-\verb|short_names := true|\verb!;!
-\end{quote}%
+short names (no qualifiers) by setting the \verb!short_names!
+configuration option in the context.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

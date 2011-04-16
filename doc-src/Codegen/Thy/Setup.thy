@@ -22,6 +22,6 @@ end
 
 setup {* Code_Target.set_default_code_width 74 *}
 
-ML_command {* unique_names := false *}
+declare [[unique_names = false]]
 
 end

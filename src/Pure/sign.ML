@@ -233,11 +233,11 @@ fun type_alias b c thy = map_tsig (Type.type_alias (naming_of thy) b c) thy;
 fun const_alias b c thy = map_consts (Consts.alias (naming_of thy) b c) thy;
 
 val intern_class = Name_Space.intern o class_space;
-val extern_class = Name_Space.extern o class_space;
+fun extern_class thy = Name_Space.extern (ProofContext.init_global thy) (class_space thy);
 val intern_type = Name_Space.intern o type_space;
-val extern_type = Name_Space.extern o type_space;
+fun extern_type thy = Name_Space.extern (ProofContext.init_global thy) (type_space thy);
 val intern_const = Name_Space.intern o const_space;
-val extern_const = Name_Space.extern o const_space;
+fun extern_const thy = Name_Space.extern (ProofContext.init_global thy) (const_space thy);
 
 
 

@@ -381,8 +381,11 @@ fun nicer_shortest ctxt =
     val space = Facts.space_of (Global_Theory.facts_of (ProofContext.theory_of ctxt));
 
     val shorten =
-      Name_Space.extern_flags
-        {long_names = false, short_names = false, unique_names = false} space;
+      Name_Space.extern
+        (ctxt
+          |> Config.put Name_Space.long_names false
+          |> Config.put Name_Space.short_names false
+          |> Config.put Name_Space.unique_names false) space;
 
     fun nicer (Facts.Named ((x, _), i)) (Facts.Named ((y, _), j)) =
           nicer_name (shorten x, i) (shorten y, j)

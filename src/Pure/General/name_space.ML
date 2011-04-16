@@ -7,16 +7,8 @@ are considered global; no support for absolute addressing.
 
 type xstring = string;    (*external names*)
 
-signature BASIC_NAME_SPACE =
-sig
-  val long_names: bool Unsynchronized.ref
-  val short_names: bool Unsynchronized.ref
-  val unique_names: bool Unsynchronized.ref
-end;
-
 signature NAME_SPACE =
 sig
-  include BASIC_NAME_SPACE
   val hidden: string -> string
   val is_hidden: string -> bool
   type T
@@ -27,9 +19,16 @@ sig
   val markup_entry: T -> string -> Markup.T
   val is_concealed: T -> string -> bool
   val intern: T -> xstring -> string
-  val extern_flags: {long_names: bool, short_names: bool, unique_names: bool} ->
-    T -> string -> xstring
-  val extern: T -> string -> xstring
+  val long_names_default: bool Unsynchronized.ref
+  val long_names_raw: Config.raw
+  val long_names: bool Config.T
+  val short_names_default: bool Unsynchronized.ref
+  val short_names_raw: Config.raw
+  val short_names: bool Config.T
+  val unique_names_default: bool Unsynchronized.ref
+  val unique_names_raw: Config.raw
+  val unique_names: bool Config.T
+  val extern: Proof.context -> T -> string -> xstring
   val hide: bool -> string -> T -> T
   val merge: T * T -> T
   type naming
@@ -55,8 +54,8 @@ sig
   val merge_tables: 'a table * 'a table -> 'a table
   val join_tables: (string -> 'a * 'a -> 'a) (*Symtab.SAME*) ->
     'a table * 'a table -> 'a table
-  val dest_table: 'a table -> (string * 'a) list
-  val extern_table: 'a table -> (xstring * 'a) list
+  val dest_table: Proof.context -> 'a table -> (string * 'a) list
+  val extern_table: Proof.context -> 'a table -> (xstring * 'a) list
 end;
 
 structure Name_Space: NAME_SPACE =
@@ -154,8 +153,25 @@ fun valid_accesses (Name_Space {internals, ...}) name =
 
 fun intern space xname = #1 (lookup space xname);
 
-fun extern_flags {long_names, short_names, unique_names} space name =
+
+val long_names_default = Unsynchronized.ref false;
+val long_names_raw = Config.declare "long_names" (fn _ => Config.Bool (! long_names_default));
+val long_names = Config.bool long_names_raw;
+
+val short_names_default = Unsynchronized.ref false;
+val short_names_raw = Config.declare "short_names" (fn _ => Config.Bool (! short_names_default));
+val short_names = Config.bool short_names_raw;
+
+val unique_names_default = Unsynchronized.ref true;
+val unique_names_raw = Config.declare "unique_names" (fn _ => Config.Bool (! unique_names_default));
+val unique_names = Config.bool unique_names_raw;
+
+fun extern ctxt space name =
   let
+    val long_names = Config.get ctxt long_names;
+    val short_names = Config.get ctxt short_names;
+    val unique_names = Config.get ctxt unique_names;
+
     fun valid require_unique xname =
       let val (name', is_unique) = lookup space xname
       in name = name' andalso (not require_unique orelse is_unique) end;
@@ -167,16 +183,6 @@ fun extern_flags {long_names, short_names, unique_names} space name =
     else if short_names then Long_Name.base_name name
     else ext (get_accesses space name)
   end;
-
-val long_names = Unsynchronized.ref false;
-val short_names = Unsynchronized.ref false;
-val unique_names = Unsynchronized.ref true;
-
-fun extern space name =
-  extern_flags
-   {long_names = ! long_names,
-    short_names = ! short_names,
-    unique_names = ! unique_names} space name;
 
 
 (* modify internals *)
@@ -385,15 +391,12 @@ fun merge_tables ((space1, tab1), (space2, tab2)) =
 fun join_tables f ((space1, tab1), (space2, tab2)) =
   (merge (space1, space2), Symtab.join f (tab1, tab2));
 
-fun ext_table (space, tab) =
-  Symtab.fold (fn (name, x) => cons ((name, extern space name), x)) tab []
+fun ext_table ctxt (space, tab) =
+  Symtab.fold (fn (name, x) => cons ((name, extern ctxt space name), x)) tab []
   |> Library.sort_wrt (#2 o #1);
 
-fun dest_table tab = map (apfst #1) (ext_table tab);
-fun extern_table tab = map (apfst #2) (ext_table tab);
+fun dest_table ctxt tab = map (apfst #1) (ext_table ctxt tab);
+fun extern_table ctxt tab = map (apfst #2) (ext_table ctxt tab);
 
 end;
-
-structure Basic_Name_Space: BASIC_NAME_SPACE = Name_Space;
-open Basic_Name_Space;
 

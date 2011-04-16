@@ -1610,7 +1610,7 @@ A \isa{name\ space} manages a collection of long names,
   \indexdef{}{ML}{Name\_Space.declare}\verb|Name_Space.declare: bool -> Name_Space.naming -> binding -> Name_Space.T ->|\isasep\isanewline%
 \verb|  string * Name_Space.T| \\
   \indexdef{}{ML}{Name\_Space.intern}\verb|Name_Space.intern: Name_Space.T -> string -> string| \\
-  \indexdef{}{ML}{Name\_Space.extern}\verb|Name_Space.extern: Name_Space.T -> string -> string| \\
+  \indexdef{}{ML}{Name\_Space.extern}\verb|Name_Space.extern: Proof.context -> Name_Space.T -> string -> string| \\
   \indexdef{}{ML}{Name\_Space.is\_concealed}\verb|Name_Space.is_concealed: Name_Space.T -> string -> bool|
   \end{mldecls}
 
@@ -1679,7 +1679,7 @@ A \isa{name\ space} manages a collection of long names,
   (or their derivatives for \verb|theory| and
   \verb|Proof.context|).
 
-  \item \verb|Name_Space.extern|~\isa{space\ name} externalizes a
+  \item \verb|Name_Space.extern|~\isa{ctxt\ space\ name} externalizes a
   (fully qualified) internal name.
 
   This operation is mostly for printing!  User code should not rely on

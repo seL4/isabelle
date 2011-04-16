@@ -334,11 +334,12 @@ structure Methods = Theory_Data
 
 fun print_methods thy =
   let
+    val ctxt = ProofContext.init_global thy;
     val meths = Methods.get thy;
     fun prt_meth (name, (_, comment)) = Pretty.block
       [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
   in
-    [Pretty.big_list "methods:" (map prt_meth (Name_Space.extern_table meths))]
+    [Pretty.big_list "methods:" (map prt_meth (Name_Space.extern_table ctxt meths))]
     |> Pretty.chunks |> Pretty.writeln
   end;
 

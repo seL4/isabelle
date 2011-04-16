@@ -914,7 +914,7 @@ fun fields_tr' (t, u) = Syntax.const @{syntax_const "_fields"} $ t $ u;
 fun record_tr' ctxt t =
   let
     val thy = ProofContext.theory_of ctxt;
-    val extern = Consts.extern (ProofContext.consts_of ctxt);
+    val extern = Consts.extern ctxt (ProofContext.consts_of ctxt);
 
     fun strip_fields t =
       (case strip_comb t of
@@ -957,7 +957,7 @@ local
 
 fun dest_update ctxt c =
   (case try Lexicon.unmark_const c of
-    SOME d => try (unsuffix updateN) (Consts.extern (ProofContext.consts_of ctxt) d)
+    SOME d => try (unsuffix updateN) (Consts.extern ctxt (ProofContext.consts_of ctxt) d)
   | NONE => NONE);
 
 fun field_updates_tr' ctxt (tm as Const (c, _) $ k $ u) =

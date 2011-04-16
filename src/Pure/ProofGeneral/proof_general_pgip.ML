@@ -517,12 +517,15 @@ fun delids t  = issue_pgip (Delids {idtables = [t]})
 
 local
 
-fun theory_facts name =
-  let val thy = Thy_Info.get_theory name
-  in (map Global_Theory.facts_of (Theory.parents_of thy), Global_Theory.facts_of thy) end;
+fun theory_facts thy =
+  (map Global_Theory.facts_of (Theory.parents_of thy), Global_Theory.facts_of thy);
 
-fun thms_of_thy name = map fst (theory_facts name |-> Facts.extern_static);
-fun qualified_thms_of_thy name = map fst (theory_facts name |-> Facts.dest_static);
+fun thms_of_thy name =
+  let val thy = Thy_Info.get_theory name
+  in map fst (theory_facts thy |-> Facts.extern_static (ProofContext.init_global thy)) end;
+
+fun qualified_thms_of_thy name =
+  map fst (theory_facts (Thy_Info.get_theory name) |-> Facts.dest_static);
 
 in
 

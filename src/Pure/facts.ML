@@ -23,12 +23,12 @@ sig
   val space_of: T -> Name_Space.T
   val is_concealed: T -> string -> bool
   val intern: T -> xstring -> string
-  val extern: T -> string -> xstring
+  val extern: Proof.context -> T -> string -> xstring
   val lookup: Context.generic -> T -> string -> (bool * thm list) option
   val defined: T -> string -> bool
   val fold_static: (string * thm list -> 'a -> 'a) -> T -> 'a -> 'a
   val dest_static: T list -> T -> (string * thm list) list
-  val extern_static: T list -> T -> (xstring * thm list) list
+  val extern_static: Proof.context -> T list -> T -> (xstring * thm list) list
   val props: T -> thm list
   val could_unify: T -> term -> thm list
   val merge: T * T -> T
@@ -141,7 +141,7 @@ val table_of = #2 o facts_of;
 val is_concealed = Name_Space.is_concealed o space_of;
 
 val intern = Name_Space.intern o space_of;
-val extern = Name_Space.extern o space_of;
+fun extern ctxt = Name_Space.extern ctxt o space_of;
 
 val defined = Symtab.defined o table_of;
 
@@ -165,8 +165,8 @@ fun diff_table prev_facts facts =
 fun dest_static prev_facts facts =
   sort_wrt #1 (diff_table prev_facts facts);
 
-fun extern_static prev_facts facts =
-  sort_wrt #1 (diff_table prev_facts facts |> map (apfst (extern facts)));
+fun extern_static ctxt prev_facts facts =
+  sort_wrt #1 (diff_table prev_facts facts |> map (apfst (extern ctxt facts)));
 
 
 (* indexed props *)

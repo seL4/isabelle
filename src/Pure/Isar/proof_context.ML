@@ -304,8 +304,8 @@ fun extern_fact ctxt name =
     val global_facts = Global_Theory.facts_of (theory_of ctxt);
   in
     if is_some (Facts.lookup (Context.Proof ctxt) local_facts name)
-    then Facts.extern local_facts name
-    else Facts.extern global_facts name
+    then Facts.extern ctxt local_facts name
+    else Facts.extern ctxt global_facts name
   end;
 
 
@@ -1152,7 +1152,8 @@ fun pretty_abbrevs show_globals ctxt =
       | add_abbr (c, (T, SOME t)) =
           if not show_globals andalso Symtab.defined globals c then I
           else cons (c, Logic.mk_equals (Const (c, T), t));
-    val abbrevs = Name_Space.extern_table (space, Symtab.make (Symtab.fold add_abbr consts []));
+    val abbrevs =
+      Name_Space.extern_table ctxt (space, Symtab.make (Symtab.fold add_abbr consts []));
   in
     if null abbrevs then []
     else [Pretty.big_list "abbreviations:" (map (pretty_term_abbrev ctxt o #2) abbrevs)]

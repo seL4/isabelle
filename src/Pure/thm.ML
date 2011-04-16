@@ -147,7 +147,7 @@ sig
   val compose_no_flatten: bool -> thm * int -> int -> thm -> thm Seq.seq
   val bicompose: bool -> bool * thm * int -> int -> thm -> thm Seq.seq
   val biresolution: bool -> (bool * thm) list -> int -> thm -> thm Seq.seq
-  val extern_oracles: theory -> xstring list
+  val extern_oracles: Proof.context -> xstring list
   val add_oracle: binding * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
 end;
 
@@ -1734,7 +1734,8 @@ structure Oracles = Theory_Data
   fun merge data : T = Name_Space.merge_tables data;
 );
 
-val extern_oracles = map #1 o Name_Space.extern_table o Oracles.get;
+fun extern_oracles ctxt =
+  map #1 (Name_Space.extern_table ctxt (Oracles.get (ProofContext.theory_of ctxt)));
 
 fun add_oracle (b, oracle) thy =
   let

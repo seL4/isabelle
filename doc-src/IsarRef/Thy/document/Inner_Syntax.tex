@@ -122,10 +122,10 @@
     \indexdef{}{ML}{show\_sorts}\verb|show_sorts: bool Config.T| & default \verb|false| \\
     \indexdef{}{ML}{show\_consts}\verb|show_consts: bool Config.T| & default \verb|false| \\
     \indexdef{}{ML}{show\_abbrevs}\verb|show_abbrevs: bool Config.T| & default \verb|true| \\
-    \indexdef{}{ML}{long\_names}\verb|long_names: bool Unsynchronized.ref| & default \verb|false| \\
-    \indexdef{}{ML}{short\_names}\verb|short_names: bool Unsynchronized.ref| & default \verb|false| \\
-    \indexdef{}{ML}{unique\_names}\verb|unique_names: bool Unsynchronized.ref| & default \verb|true| \\
     \indexdef{}{ML}{show\_brackets}\verb|show_brackets: bool Config.T| & default \verb|false| \\
+    \indexdef{}{ML}{Name\_Space.long\_names}\verb|Name_Space.long_names: bool Config.T| & default \verb|false| \\
+    \indexdef{}{ML}{Name\_Space.short\_names}\verb|Name_Space.short_names: bool Config.T| & default \verb|false| \\
+    \indexdef{}{ML}{Name\_Space.unique\_names}\verb|Name_Space.unique_names: bool Config.T| & default \verb|true| \\
     \indexdef{}{ML}{eta\_contract}\verb|eta_contract: bool Config.T| & default \verb|true| \\
     \indexdef{}{ML}{Goal\_Display.goals\_limit}\verb|Goal_Display.goals_limit: int Config.T| & default \verb|10| \\
     \indexdef{}{ML}{Goal\_Display.show\_main\_goal}\verb|Goal_Display.show_main_goal: bool Config.T| & default \verb|false| \\
@@ -165,17 +165,18 @@
 
   \item \verb|show_abbrevs| controls folding of constant abbreviations.
 
-  \item \verb|long_names|, \verb|short_names|, and \verb|unique_names|
-  control the way of printing fully qualified internal names in
-  external form.  See also \secref{sec:antiq} for the document
-  antiquotation options of the same names.
-
   \item \verb|show_brackets| controls bracketing in pretty printed
   output.  If set to \verb|true|, all sub-expressions of the pretty
   printing tree will be parenthesized, even if this produces malformed
   term syntax!  This crude way of showing the internal structure of
   pretty printed entities may occasionally help to diagnose problems
   with operator priorities, for example.
+
+  \item \verb|Name_Space.long_names|, \verb|Name_Space.short_names|, and
+  \verb|Name_Space.unique_names| control the way of printing fully
+  qualified internal names in external form.  See also
+  \secref{sec:antiq} for the document antiquotation options of the
+  same names.
 
   \item \verb|eta_contract| controls \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6574613E}{\isasymeta}}{\isaliteral{22}{\isachardoublequote}}}-contracted printing of
   terms.

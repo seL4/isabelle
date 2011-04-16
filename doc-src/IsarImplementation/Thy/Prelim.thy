@@ -1112,7 +1112,7 @@ text %mlref {*
   @{index_ML Name_Space.declare: "bool -> Name_Space.naming -> binding -> Name_Space.T ->
   string * Name_Space.T"} \\
   @{index_ML Name_Space.intern: "Name_Space.T -> string -> string"} \\
-  @{index_ML Name_Space.extern: "Name_Space.T -> string -> string"} \\
+  @{index_ML Name_Space.extern: "Proof.context -> Name_Space.T -> string -> string"} \\
   @{index_ML Name_Space.is_concealed: "Name_Space.T -> string -> bool"}
   \end{mldecls}
 
@@ -1187,7 +1187,7 @@ text %mlref {*
   (or their derivatives for @{ML_type theory} and
   @{ML_type Proof.context}).
 
-  \item @{ML Name_Space.extern}~@{text "space name"} externalizes a
+  \item @{ML Name_Space.extern}~@{text "ctxt space name"} externalizes a
   (fully qualified) internal name.
 
   This operation is mostly for printing!  User code should not rely on

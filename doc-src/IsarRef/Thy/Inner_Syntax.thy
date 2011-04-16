@@ -100,10 +100,10 @@ text {*
     @{index_ML show_sorts: "bool Config.T"} & default @{ML false} \\
     @{index_ML show_consts: "bool Config.T"} & default @{ML false} \\
     @{index_ML show_abbrevs: "bool Config.T"} & default @{ML true} \\
-    @{index_ML long_names: "bool Unsynchronized.ref"} & default @{ML false} \\
-    @{index_ML short_names: "bool Unsynchronized.ref"} & default @{ML false} \\
-    @{index_ML unique_names: "bool Unsynchronized.ref"} & default @{ML true} \\
     @{index_ML show_brackets: "bool Config.T"} & default @{ML false} \\
+    @{index_ML Name_Space.long_names: "bool Config.T"} & default @{ML false} \\
+    @{index_ML Name_Space.short_names: "bool Config.T"} & default @{ML false} \\
+    @{index_ML Name_Space.unique_names: "bool Config.T"} & default @{ML true} \\
     @{index_ML eta_contract: "bool Config.T"} & default @{ML true} \\
     @{index_ML Goal_Display.goals_limit: "int Config.T"} & default @{ML 10} \\
     @{index_ML Goal_Display.show_main_goal: "bool Config.T"} & default @{ML false} \\
@@ -144,17 +144,18 @@ text {*
 
   \item @{ML show_abbrevs} controls folding of constant abbreviations.
 
-  \item @{ML long_names}, @{ML short_names}, and @{ML unique_names}
-  control the way of printing fully qualified internal names in
-  external form.  See also \secref{sec:antiq} for the document
-  antiquotation options of the same names.
-
   \item @{ML show_brackets} controls bracketing in pretty printed
   output.  If set to @{ML true}, all sub-expressions of the pretty
   printing tree will be parenthesized, even if this produces malformed
   term syntax!  This crude way of showing the internal structure of
   pretty printed entities may occasionally help to diagnose problems
   with operator priorities, for example.
+
+  \item @{ML Name_Space.long_names}, @{ML Name_Space.short_names}, and
+  @{ML Name_Space.unique_names} control the way of printing fully
+  qualified internal names in external form.  See also
+  \secref{sec:antiq} for the document antiquotation options of the
+  same names.
 
   \item @{ML eta_contract} controls @{text "\<eta>"}-contracted printing of
   terms.

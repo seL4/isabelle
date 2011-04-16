@@ -616,7 +616,7 @@ fun atomize_spec thy ts =
 fun aprop_tr' n c = (Lexicon.mark_const c, fn ctxt => fn args =>
   if length args = n then
     Syntax.const "_aprop" $   (* FIXME avoid old-style early externing (!??) *)
-      Term.list_comb (Syntax.free (Consts.extern (ProofContext.consts_of ctxt) c), args)
+      Term.list_comb (Syntax.free (Consts.extern ctxt (ProofContext.consts_of ctxt) c), args)
   else raise Match);
 
 (* define one predicate including its intro rule and axioms
