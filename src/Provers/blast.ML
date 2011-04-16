@@ -1251,14 +1251,16 @@ fun fromSubgoal thy t =
 fun timing_depth_tac start cs lim i st0 =
   let val thy = Thm.theory_of_thm st0
       val state = initialize thy
-      val st = Conv.gconv_rule Object_Logic.atomize_prems i st0
-      val skoprem = fromSubgoal thy (Thm.term_of (Thm.cprem_of st i))
+      val st = st0
+        |> rotate_prems (i - 1)
+        |> Conv.gconv_rule Object_Logic.atomize_prems 1
+      val skoprem = fromSubgoal thy (#1 (Logic.dest_implies (Thm.prop_of st)))
       val hyps  = strip_imp_prems skoprem
       and concl = strip_imp_concl skoprem
       fun cont (tacs,_,choices) =
           let val start = Timing.start ()
           in
-          case Seq.pull(EVERY' (rev tacs) i st) of
+          case Seq.pull(EVERY' (rev tacs) 1 st) of
               NONE => (writeln ("PROOF FAILED for depth " ^
                                 string_of_int lim);
                        if !trace then error "************************\n"
@@ -1269,8 +1271,11 @@ fun timing_depth_tac start cs lim i st0 =
                        else ();
                        Seq.make(fn()=> cell))
           end
-  in prove (state, start, cs, [initBranch (mkGoal concl :: hyps, lim)], cont) end
-  handle PROVE     => Seq.empty
+  in
+    prove (state, start, cs, [initBranch (mkGoal concl :: hyps, lim)], cont)
+    |> Seq.map (rotate_prems (1 - i))
+  end
+  handle PROVE => Seq.empty;
 
 (*Public version with fixed depth*)
 fun depth_tac cs lim i st = timing_depth_tac (Timing.start ()) cs lim i st;
