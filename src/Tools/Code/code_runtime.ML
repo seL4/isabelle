@@ -188,19 +188,23 @@ end; (*local*)
 
 fun evaluation_code thy module_name tycos consts =
   let
+    val ctxt = ProofContext.init_global thy;
     val (consts', (naming, program)) = Code_Thingol.consts_program thy false consts;
     val tycos' = map (the o Code_Thingol.lookup_tyco naming) tycos;
-    val (ml_code, target_names) = Code_Target.produce_code_for thy
-      target NONE module_name [] naming program (consts' @ tycos');
+    val (ml_code, target_names) =
+      Code_Target.produce_code_for thy
+        target NONE module_name [] naming program (consts' @ tycos');
     val (consts'', tycos'') = chop (length consts') target_names;
-    val consts_map = map2 (fn const => fn NONE =>
-        error ("Constant " ^ (quote o Code.string_of_const thy) const
-          ^ "\nhas a user-defined serialization")
-      | SOME const'' => (const, const'')) consts consts''
-    val tycos_map = map2 (fn tyco => fn NONE =>
-        error ("Type " ^ (quote o Sign.extern_type thy) tyco
-          ^ "\nhas a user-defined serialization")
-      | SOME tyco'' => (tyco, tyco'')) tycos tycos'';
+    val consts_map = map2 (fn const =>
+      fn NONE =>
+          error ("Constant " ^ (quote o Code.string_of_const thy) const ^
+            "\nhas a user-defined serialization")
+       | SOME const'' => (const, const'')) consts consts''
+    val tycos_map = map2 (fn tyco =>
+      fn NONE =>
+          error ("Type " ^ quote (ProofContext.extern_type ctxt tyco) ^
+            "\nhas a user-defined serialization")
+        | SOME tyco'' => (tyco, tyco'')) tycos tycos'';
   in (ml_code, (tycos_map, consts_map)) end;
 
 

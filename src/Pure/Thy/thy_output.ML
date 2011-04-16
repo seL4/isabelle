@@ -510,11 +510,11 @@ fun pretty_abbrev ctxt s =
   in ProofContext.pretty_term_abbrev ctxt' eq end;
 
 fun pretty_class ctxt =
-  Pretty.str o Type.extern_class ctxt (ProofContext.tsig_of ctxt) o ProofContext.read_class ctxt;
+  Pretty.str o ProofContext.extern_class ctxt o ProofContext.read_class ctxt;
 
 fun pretty_type ctxt s =
   let val Type (name, _) = ProofContext.read_type_name_proper ctxt false s
-  in Pretty.str (Type.extern_type ctxt (ProofContext.tsig_of ctxt) name) end;
+  in Pretty.str (ProofContext.extern_type ctxt name) end;
 
 fun pretty_prf full ctxt = Proof_Syntax.pretty_proof_of ctxt full;
 

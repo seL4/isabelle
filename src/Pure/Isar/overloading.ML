@@ -158,11 +158,11 @@ fun foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
 
 fun pretty lthy =
   let
-    val thy = ProofContext.theory_of lthy;
     val overloading = get_overloading lthy;
     fun pr_operation ((c, ty), (v, _)) =
-      (Pretty.block o Pretty.breaks) [Pretty.str v, Pretty.str "==",
-        Pretty.str (Sign.extern_const thy c), Pretty.str "::", Syntax.pretty_typ lthy ty];
+      Pretty.block (Pretty.breaks
+        [Pretty.str v, Pretty.str "==", Pretty.str (ProofContext.extern_const lthy c),
+          Pretty.str "::", Syntax.pretty_typ lthy ty]);
   in Pretty.str "overloading" :: map pr_operation overloading end;
 
 fun conclude lthy =

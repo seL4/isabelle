@@ -195,7 +195,7 @@ fun pretty_full_theory verbose thy =
 
     val clsses = Name_Space.dest_table ctxt (class_space, Symtab.make (Graph.dest classes));
     val tdecls = Name_Space.dest_table ctxt types;
-    val arties = Name_Space.dest_table ctxt (Sign.type_space thy, arities);
+    val arties = Name_Space.dest_table ctxt (Type.type_space tsig, arities);
 
     fun prune_const c = not verbose andalso Consts.is_concealed consts c;
     val cnsts = Name_Space.extern_table ctxt (#1 constants,

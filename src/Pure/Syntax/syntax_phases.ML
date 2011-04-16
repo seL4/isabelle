@@ -605,8 +605,6 @@ fun var_or_skolem s =
 fun unparse_t t_to_ast prt_t markup ctxt t =
   let
     val syn = ProofContext.syn_of ctxt;
-    val tsig = ProofContext.tsig_of ctxt;
-    val consts = ProofContext.consts_of ctxt;
 
     fun token_trans "_tfree" x = SOME (Pretty.mark_str (Markup.tfree, x))
       | token_trans "_tvar" x = SOME (Pretty.mark_str (Markup.tvar, x))
@@ -622,9 +620,9 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
         SOME "" => ([], c)
       | SOME b => markup_extern b
       | NONE => c |> Lexicon.unmark
-         {case_class = fn x => ([Markup.tclass x], Type.extern_class ctxt tsig x),
-          case_type = fn x => ([Markup.tycon x], Type.extern_type ctxt tsig x),
-          case_const = fn x => ([Markup.const x], Consts.extern ctxt consts x),
+         {case_class = fn x => ([Markup.tclass x], ProofContext.extern_class ctxt x),
+          case_type = fn x => ([Markup.tycon x], ProofContext.extern_type ctxt x),
+          case_const = fn x => ([Markup.const x], ProofContext.extern_const ctxt x),
           case_fixed = fn x => free_or_skolem ctxt x,
           case_default = fn x => ([], x)});
   in

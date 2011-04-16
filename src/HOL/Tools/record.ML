@@ -693,7 +693,7 @@ fun record_field_types_tr more ctxt t =
       | split_args _ _ = ([], []);
 
     fun mk_ext (fargs as (name, _) :: _) =
-          (case get_fieldext thy (Sign.intern_const thy name) of
+          (case get_fieldext thy (ProofContext.intern_const ctxt name) of
             SOME (ext, alphas) =>
               (case get_extfields thy ext of
                 SOME fields =>
@@ -753,7 +753,7 @@ fun record_fields_tr more ctxt t =
       | split_args _ _ = ([], []);
 
     fun mk_ext (fargs as (name, _) :: _) =
-          (case get_fieldext thy (Sign.intern_const thy name) of
+          (case get_fieldext thy (ProofContext.intern_const ctxt name) of
             SOME (ext, _) =>
               (case get_extfields thy ext of
                 SOME fields =>
@@ -831,7 +831,8 @@ fun record_type_tr' ctxt t =
                      (let
                         val (f :: fs, _) = split_last fields;
                         val fields' =
-                          apfst (Sign.extern_const thy) f :: map (apfst Long_Name.base_name) fs;
+                          apfst (ProofContext.extern_const ctxt) f ::
+                            map (apfst Long_Name.base_name) fs;
                         val (args', more) = split_last args;
                         val alphavars = map varifyT (#1 (split_last alphas));
                         val subst = Type.raw_matches (alphavars, args') Vartab.empty;
@@ -914,7 +915,6 @@ fun fields_tr' (t, u) = Syntax.const @{syntax_const "_fields"} $ t $ u;
 fun record_tr' ctxt t =
   let
     val thy = ProofContext.theory_of ctxt;
-    val extern = Consts.extern ctxt (ProofContext.consts_of ctxt);
 
     fun strip_fields t =
       (case strip_comb t of
@@ -925,7 +925,7 @@ fun record_tr' ctxt t =
                 SOME fields =>
                  (let
                     val (f :: fs, _) = split_last (map fst fields);
-                    val fields' = extern f :: map Long_Name.base_name fs;
+                    val fields' = ProofContext.extern_const ctxt f :: map Long_Name.base_name fs;
                     val (args', more) = split_last args;
                   in (fields' ~~ args') @ strip_fields more end
                   handle ListPair.UnequalLengths => [("", t)])
@@ -957,7 +957,7 @@ local
 
 fun dest_update ctxt c =
   (case try Lexicon.unmark_const c of
-    SOME d => try (unsuffix updateN) (Consts.extern ctxt (ProofContext.consts_of ctxt) d)
+    SOME d => try (unsuffix updateN) (ProofContext.extern_const ctxt d)
   | NONE => NONE);
 
 fun field_updates_tr' ctxt (tm as Const (c, _) $ k $ u) =

@@ -37,6 +37,15 @@ sig
   val restore_syntax_mode: Proof.context -> Proof.context -> Proof.context
   val facts_of: Proof.context -> Facts.T
   val cases_of: Proof.context -> (string * (Rule_Cases.T * bool)) list
+  val class_space: Proof.context -> Name_Space.T
+  val type_space: Proof.context -> Name_Space.T
+  val const_space: Proof.context -> Name_Space.T
+  val intern_class: Proof.context -> xstring -> string
+  val intern_type: Proof.context -> xstring -> string
+  val intern_const: Proof.context -> xstring -> string
+  val extern_class: Proof.context -> string -> xstring
+  val extern_type: Proof.context -> string -> xstring
+  val extern_const: Proof.context -> string -> xstring
   val transfer_syntax: theory -> Proof.context -> Proof.context
   val transfer: theory -> Proof.context -> Proof.context
   val background_theory: (theory -> theory) -> Proof.context -> Proof.context
@@ -269,6 +278,21 @@ val facts_of = #facts o rep_context;
 val cases_of = #cases o rep_context;
 
 
+(* name spaces *)
+
+val class_space = Type.class_space o tsig_of;
+val type_space = Type.type_space o tsig_of;
+val const_space = Consts.space_of o consts_of;
+
+val intern_class = Name_Space.intern o class_space;
+val intern_type = Name_Space.intern o type_space;
+val intern_const = Name_Space.intern o const_space;
+
+fun extern_class ctxt = Name_Space.extern ctxt (class_space ctxt);
+fun extern_type ctxt = Name_Space.extern ctxt (type_space ctxt);
+fun extern_const ctxt = Name_Space.extern ctxt (const_space ctxt);
+
+
 (* theory transfer *)
 
 fun transfer_syntax thy ctxt = ctxt |>
@@ -351,7 +375,7 @@ fun prep_arity prep_tycon prep_sort ctxt (t, Ss, S) =
 
 in
 
-val read_arity = prep_arity (Type.intern_type o tsig_of) Syntax.read_sort;
+val read_arity = prep_arity intern_type Syntax.read_sort;
 val cert_arity = prep_arity (K I) (Type.cert_sort o tsig_of);
 
 end;
@@ -452,7 +476,7 @@ fun read_type_name ctxt strict text =
       TFree (c, default_sort ctxt (c, ~1)))
     else
       let
-        val d = Type.intern_type tsig c;
+        val d = intern_type ctxt c;
         val decl = Type.the_decl tsig d;
         val _ = Context_Position.report ctxt pos (Markup.tycon d);
         fun err () = error ("Bad type name: " ^ quote d);

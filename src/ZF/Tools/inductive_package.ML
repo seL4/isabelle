@@ -143,7 +143,7 @@ let
     If no mutual recursion then it equals the one recursive set.
     If mutual recursion then it differs from all the recursive sets. *)
   val big_rec_base_name = space_implode "_" rec_base_names;
-  val big_rec_name = Sign.intern_const thy big_rec_base_name;
+  val big_rec_name = ProofContext.intern_const ctxt big_rec_base_name;
 
 
   val _ =

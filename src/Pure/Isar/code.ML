@@ -112,9 +112,14 @@ struct
 fun string_of_typ thy =
   Syntax.string_of_typ (Config.put show_sorts true (Syntax.init_pretty_global thy));
 
-fun string_of_const thy c = case AxClass.inst_of_param thy c
- of SOME (c, tyco) => Sign.extern_const thy c ^ " " ^ enclose "[" "]" (Sign.extern_type thy tyco)
-  | NONE => Sign.extern_const thy c;
+fun string_of_const thy c =
+  let val ctxt = ProofContext.init_global thy in
+    case AxClass.inst_of_param thy c of
+      SOME (c, tyco) =>
+        ProofContext.extern_const ctxt c ^ " " ^ enclose "[" "]"
+          (ProofContext.extern_type ctxt tyco)
+    | NONE => ProofContext.extern_const ctxt c
+  end;
 
 
 (* constants *)

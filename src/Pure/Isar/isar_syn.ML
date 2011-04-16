@@ -829,8 +829,8 @@ val _ =
 
 val _ =
   Outer_Syntax.improper_command "print_classes" "print classes of this theory" Keyword.diag
-    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_theory
-      o Toplevel.keep (Class.print_classes o Toplevel.theory_of)));
+    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_theory o
+      Toplevel.keep (Class.print_classes o Toplevel.context_of)));
 
 val _ =
   Outer_Syntax.improper_command "print_locale" "print locale of this theory" Keyword.diag

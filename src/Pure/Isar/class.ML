@@ -14,7 +14,7 @@ sig
   val these_defs: theory -> sort -> thm list
   val these_operations: theory -> sort
     -> (string * (class * (typ * term))) list
-  val print_classes: theory -> unit
+  val print_classes: Proof.context -> unit
   val init: class -> theory -> Proof.context
   val begin: class list -> sort -> Proof.context -> Proof.context
   val const: class -> (binding * mixfix) * (term list * term) -> local_theory -> local_theory
@@ -69,7 +69,7 @@ datatype class_data = ClassData of {
   assm_intro: thm option,
   of_class: thm,
   axiom: thm option,
-  
+
   (* dynamic part *)
   defs: thm list,
   operations: (string * (class * (typ * term))) list
@@ -149,9 +149,9 @@ fun morphism thy class = case Element.eq_morphism thy (these_defs thy [class])
   | NONE => base_morphism thy class;
 val export_morphism = #export_morph oo the_class_data;
 
-fun print_classes thy =
+fun print_classes ctxt =
   let
-    val ctxt = ProofContext.init_global thy;
+    val thy = ProofContext.theory_of ctxt;
     val algebra = Sign.classes_of thy;
     val arities =
       Symtab.empty
@@ -163,10 +163,11 @@ fun print_classes thy =
       let
         val Ss = Sorts.mg_domain algebra tyco [class];
       in Syntax.pretty_arity ctxt (tyco, Ss, [class]) end;
-    fun mk_param (c, ty) = Pretty.str (Sign.extern_const thy c ^ " :: "
-      ^ (Syntax.string_of_typ (Config.put show_sorts false ctxt) o Type.strip_sorts) ty);
+    fun mk_param (c, ty) =
+      Pretty.str (ProofContext.extern_const ctxt c ^ " :: " ^
+        Syntax.string_of_typ (Config.put show_sorts false ctxt) (Type.strip_sorts ty));
     fun mk_entry class = (Pretty.block o Pretty.fbreaks o map_filter I) [
-      (SOME o Pretty.str) ("class " ^ Sign.extern_class thy class ^ ":"),
+      (SOME o Pretty.str) ("class " ^ ProofContext.extern_class ctxt class ^ ":"),
       (SOME o Pretty.block) [Pretty.str "supersort: ",
         (Syntax.pretty_sort ctxt o Sign.minimize_sort thy o Sign.super_classes thy) class],
       ((fn [] => NONE | ps => (SOME o Pretty.block o Pretty.fbreaks)
@@ -500,18 +501,20 @@ fun pretty lthy =
     val thy = ProofContext.theory_of lthy;
     fun pr_arity tyco = Syntax.pretty_arity lthy (tyco, map snd vs, sort);
     fun pr_param ((c, _), (v, ty)) =
-      (Pretty.block o Pretty.breaks) [Pretty.str v, Pretty.str "==",
-        (Pretty.str o Sign.extern_const thy) c, Pretty.str "::", Syntax.pretty_typ_global thy ty];
+      Pretty.block (Pretty.breaks
+        [Pretty.str v, Pretty.str "==", Pretty.str (ProofContext.extern_const lthy c),
+          Pretty.str "::", Syntax.pretty_typ lthy ty]);
   in Pretty.str "instantiation" :: map pr_arity tycos @ map pr_param params end;
 
 fun conclude lthy =
   let
-    val (tycos, vs, sort) = (#arities o the_instantiation) lthy;
+    val (tycos, vs, sort) = #arities (the_instantiation lthy);
     val thy = ProofContext.theory_of lthy;
-    val _ = map (fn tyco => if Sign.of_sort thy
+    val _ = tycos |> List.app (fn tyco =>
+      if Sign.of_sort thy
         (Type (tyco, map TFree vs), sort)
-      then () else error ("Missing instance proof for type " ^ quote (Sign.extern_type thy tyco)))
-        tycos;
+      then ()
+      else error ("Missing instance proof for type " ^ quote (ProofContext.extern_type lthy tyco)));
   in lthy end;
 
 fun instantiation (tycos, vs, sort) thy =

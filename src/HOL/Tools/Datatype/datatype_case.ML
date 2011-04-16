@@ -307,7 +307,7 @@ val make_case_untyped = gen_make_case (K (K Vartab.empty))
 fun case_tr err tab_of ctxt [t, u] =
       let
         val thy = ProofContext.theory_of ctxt;
-        val intern_const_syntax = Consts.intern_syntax (Sign.consts_of thy);
+        val intern_const_syntax = Consts.intern_syntax (ProofContext.consts_of ctxt);
 
         (* replace occurrences of dummy_pattern by distinct variables *)
         (* internalize constant names                                 *)
@@ -320,7 +320,7 @@ fun case_tr err tab_of ctxt [t, u] =
           | prep_pat (Const (s, T)) used =
               (Const (intern_const_syntax s, T), used)
           | prep_pat (v as Free (s, T)) used =
-              let val s' = Sign.intern_const thy s in
+              let val s' = ProofContext.intern_const ctxt s in
                 if Sign.declared_const thy s' then
                   (Const (s', T), used)
                 else (v, used)
@@ -328,7 +328,7 @@ fun case_tr err tab_of ctxt [t, u] =
           | prep_pat (t $ u) used =
               let
                 val (t', used') = prep_pat t used;
-                val (u', used'') = prep_pat u used'
+                val (u', used'') = prep_pat u used';
               in
                 (t' $ u', used'')
               end

@@ -49,15 +49,12 @@ sig
   val class_space: theory -> Name_Space.T
   val type_space: theory -> Name_Space.T
   val const_space: theory -> Name_Space.T
+  val intern_class: theory -> xstring -> string
+  val intern_type: theory -> xstring -> string
+  val intern_const: theory -> xstring -> string
   val class_alias: binding -> class -> theory -> theory
   val type_alias: binding -> string -> theory -> theory
   val const_alias: binding -> string -> theory -> theory
-  val intern_class: theory -> xstring -> string
-  val extern_class: theory -> string -> xstring
-  val intern_type: theory -> xstring -> string
-  val extern_type: theory -> string -> xstring
-  val intern_const: theory -> xstring -> string
-  val extern_const: theory -> string -> xstring
   val arity_number: theory -> string -> int
   val arity_sorts: theory -> string -> sort -> sort list
   val certify_class: theory -> class -> class
@@ -222,22 +219,19 @@ val declared_const = can o the_const_constraint;
 
 
 
-(** intern / extern names **)
+(** name spaces **)
 
 val class_space = Type.class_space o tsig_of;
 val type_space = Type.type_space o tsig_of;
 val const_space = Consts.space_of o consts_of;
 
+val intern_class = Name_Space.intern o class_space;
+val intern_type = Name_Space.intern o type_space;
+val intern_const = Name_Space.intern o const_space;
+
 fun class_alias b c thy = map_tsig (Type.class_alias (naming_of thy) b c) thy;
 fun type_alias b c thy = map_tsig (Type.type_alias (naming_of thy) b c) thy;
 fun const_alias b c thy = map_consts (Consts.alias (naming_of thy) b c) thy;
-
-val intern_class = Name_Space.intern o class_space;
-fun extern_class thy = Name_Space.extern (ProofContext.init_global thy) (class_space thy);
-val intern_type = Name_Space.intern o type_space;
-fun extern_type thy = Name_Space.extern (ProofContext.init_global thy) (type_space thy);
-val intern_const = Name_Space.intern o const_space;
-fun extern_const thy = Name_Space.extern (ProofContext.init_global thy) (const_space thy);
 
 
 

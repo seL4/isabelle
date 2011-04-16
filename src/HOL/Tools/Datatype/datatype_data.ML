@@ -378,12 +378,13 @@ fun prove_rep_datatype config dt_names alt_names descr sorts
 
 fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
   let
+    val ctxt = ProofContext.init_global thy;
+
     fun constr_of_term (Const (c, T)) = (c, T)
-      | constr_of_term t =
-          error ("Not a constant: " ^ Syntax.string_of_term_global thy t);
-    fun no_constr (c, T) = error ("Bad constructor: "
-      ^ Sign.extern_const thy c ^ "::"
-      ^ Syntax.string_of_typ_global thy T);
+      | constr_of_term t = error ("Not a constant: " ^ Syntax.string_of_term ctxt t);
+    fun no_constr (c, T) =
+      error ("Bad constructor: " ^ ProofContext.extern_const ctxt c ^ "::" ^
+        Syntax.string_of_typ ctxt T);
     fun type_of_constr (cT as (_, T)) =
       let
         val frees = OldTerm.typ_tfrees T;
@@ -437,8 +438,7 @@ fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
         #-> after_qed
       end;
   in
-    thy
-    |> ProofContext.init_global
+    ctxt
     |> Proof.theorem NONE after_qed' ((map o map) (rpair []) (flat rules))
   end;
 

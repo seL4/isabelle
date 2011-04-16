@@ -489,20 +489,29 @@ fun contr_classparam_typs program name = case Graph.get_node program name
       end
   | _ => [];
 
-fun labelled_name thy program name = case Graph.get_node program name
- of Fun (c, _) => quote (Code.string_of_const thy c)
-  | Datatype (tyco, _) => "type " ^ quote (Sign.extern_type thy tyco)
-  | Datatypecons (c, _) => quote (Code.string_of_const thy c)
-  | Class (class, _) => "class " ^ quote (Sign.extern_class thy class)
-  | Classrel (sub, super) => let
-        val Class (sub, _) = Graph.get_node program sub
-        val Class (super, _) = Graph.get_node program super
-      in quote (Sign.extern_class thy sub ^ " < " ^ Sign.extern_class thy super) end
-  | Classparam (c, _) => quote (Code.string_of_const thy c)
-  | Classinst ((class, (tyco, _)), _) => let
-        val Class (class, _) = Graph.get_node program class
-        val Datatype (tyco, _) = Graph.get_node program tyco
-      in quote (Sign.extern_type thy tyco ^ " :: " ^ Sign.extern_class thy class) end
+fun labelled_name thy program name =
+  let val ctxt = ProofContext.init_global thy in
+    case Graph.get_node program name of
+      Fun (c, _) => quote (Code.string_of_const thy c)
+    | Datatype (tyco, _) => "type " ^ quote (ProofContext.extern_type ctxt tyco)
+    | Datatypecons (c, _) => quote (Code.string_of_const thy c)
+    | Class (class, _) => "class " ^ quote (ProofContext.extern_class ctxt class)
+    | Classrel (sub, super) =>
+        let
+          val Class (sub, _) = Graph.get_node program sub;
+          val Class (super, _) = Graph.get_node program super;
+        in
+          quote (ProofContext.extern_class ctxt sub ^ " < " ^ ProofContext.extern_class ctxt super)
+        end
+    | Classparam (c, _) => quote (Code.string_of_const thy c)
+    | Classinst ((class, (tyco, _)), _) =>
+        let
+          val Class (class, _) = Graph.get_node program class;
+          val Datatype (tyco, _) = Graph.get_node program tyco;
+        in
+          quote (ProofContext.extern_type ctxt tyco ^ " :: " ^ ProofContext.extern_class ctxt class)
+        end
+  end;
 
 fun linear_stmts program =
   rev (Graph.strong_conn program)
