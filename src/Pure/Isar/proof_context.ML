@@ -164,7 +164,9 @@ end;
 structure Proof_Context: PROOF_CONTEXT =
 struct
 
-open Proof_Context;
+val theory_of = Proof_Context.theory_of;
+val init_global = Proof_Context.init_global;
+
 
 
 (** inner syntax mode **)
