@@ -172,7 +172,7 @@ val kindN = "kind";
 val (bindingN, binding) = markup_string "binding" nameN;
 
 val entityN = "entity";
-fun entity kind name = (entityN, [(kindN, kind), (nameN, name)]);
+fun entity kind name = (entityN, [(nameN, name), (kindN, kind)]);
 
 val defN = "def";
 val refN = "ref";
