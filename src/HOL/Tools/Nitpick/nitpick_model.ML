@@ -96,16 +96,16 @@ fun add_wacky_syntax ctxt =
     val name_of = fst o dest_Const
     val thy = Proof_Context.theory_of ctxt |> Context.reject_draft
     val (maybe_t, thy) =
-      Sign.declare_const ((@{binding nitpick_maybe}, @{typ "'a => 'a"}),
+      Sign.declare_const_global ((@{binding nitpick_maybe}, @{typ "'a => 'a"}),
                           Mixfix (maybe_mixfix (), [1000], 1000)) thy
     val (abs_t, thy) =
-      Sign.declare_const ((@{binding nitpick_abs}, @{typ "'a => 'b"}),
+      Sign.declare_const_global ((@{binding nitpick_abs}, @{typ "'a => 'b"}),
                           Mixfix (abs_mixfix (), [40], 40)) thy
     val (base_t, thy) =
-      Sign.declare_const ((@{binding nitpick_base}, @{typ "'a => 'a"}),
+      Sign.declare_const_global ((@{binding nitpick_base}, @{typ "'a => 'a"}),
                           Mixfix (base_mixfix (), [1000], 1000)) thy
     val (step_t, thy) =
-      Sign.declare_const ((@{binding nitpick_step}, @{typ "'a => 'a"}),
+      Sign.declare_const_global ((@{binding nitpick_step}, @{typ "'a => 'a"}),
                           Mixfix (step_mixfix (), [1000], 1000)) thy
   in
     (pairself (pairself name_of) ((maybe_t, abs_t), (base_t, step_t)),

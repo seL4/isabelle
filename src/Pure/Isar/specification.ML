@@ -180,7 +180,7 @@ fun gen_axioms do_print prep raw_vars raw_specs thy =
 
     (*axioms*)
     val (axioms, axioms_thy) = (specs, consts_thy) |-> fold_map (fn ((b, atts), props) =>
-        fold_map Thm.add_axiom
+        fold_map Thm.add_axiom_global
           (map (apfst (fn a => Binding.map_name (K a) b))
             (Global_Theory.name_multi (Variable.name b) (map subst props)))
         #>> (fn ths => ((b, atts), [(map #2 ths, [])])));

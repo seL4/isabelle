@@ -36,7 +36,7 @@ fun add_syntax thy =
   thy
   |> Theory.copy
   |> Sign.root_path
-  |> Sign.add_types [(Binding.name "Type", 0, NoSyn), (Binding.name "Null", 0, NoSyn)]
+  |> Sign.add_types_global [(Binding.name "Type", 0, NoSyn), (Binding.name "Null", 0, NoSyn)]
   |> Sign.add_consts
       [(Binding.name "typeof", "'b::{} => Type", NoSyn),
        (Binding.name "Type", "'a::{} itself => Type", NoSyn),

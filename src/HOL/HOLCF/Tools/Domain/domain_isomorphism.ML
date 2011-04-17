@@ -239,7 +239,7 @@ fun define_const
     : (term * thm) * theory =
   let
     val typ = Term.fastype_of rhs
-    val (const, thy) = Sign.declare_const ((bind, typ), NoSyn) thy
+    val (const, thy) = Sign.declare_const_global ((bind, typ), NoSyn) thy
     val eqn = Logic.mk_equals (const, rhs)
     val def = Thm.no_attributes (Binding.suffix_name "_def" bind, eqn)
     val (def_thm, thy) = yield_singleton (Global_Theory.add_defs false) def thy
@@ -276,7 +276,7 @@ fun define_map_functions
         val map_type = mapT lhsT
         val map_bind = Binding.suffix_name "_map" tbind
       in
-        Sign.declare_const ((map_bind, map_type), NoSyn) thy
+        Sign.declare_const_global ((map_bind, map_type), NoSyn) thy
       end
     val (map_consts, thy) = thy |>
       fold_map declare_map_const (dbinds ~~ dom_eqns)
@@ -417,7 +417,7 @@ fun gen_domain_isomorphism
     (* this theory is used just for parsing *)
     val tmp_thy = thy |>
       Theory.copy |>
-      Sign.add_types (map (fn (tvs, tbind, mx, _, morphs) =>
+      Sign.add_types_global (map (fn (tvs, tbind, mx, _, morphs) =>
         (tbind, length tvs, mx)) doms_raw)
 
     fun prep_dom thy (vs, t, mx, typ_raw, morphs) sorts =
@@ -499,7 +499,7 @@ fun gen_domain_isomorphism
         val defl_type =
           map Term.itselfT typeTs ---> map fastype_of defl_args -->> deflT
       in
-        Sign.declare_const ((defl_bind, defl_type), NoSyn) thy
+        Sign.declare_const_global ((defl_bind, defl_type), NoSyn) thy
       end
     val (defl_consts, thy) =
       fold_map declare_defl_const (defl_flagss ~~ doms) thy

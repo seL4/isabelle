@@ -89,7 +89,7 @@ fun gen_add_judgment add_consts (b, T, mx) thy =
   let val c = Sign.full_name thy b in
     thy
     |> add_consts [(b, T, mx)]
-    |> (fn thy' => Theory.add_deps c (c, Sign.the_const_type thy' c) [] thy')
+    |> (fn thy' => Theory.add_deps_global c (c, Sign.the_const_type thy' c) [] thy')
     |> map_data (fn (base_sort, judgment, atomize_rulify) =>
         if is_some judgment then error "Attempt to redeclare object-logic judgment"
         else (base_sort, SOME c, atomize_rulify))

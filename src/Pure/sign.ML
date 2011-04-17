@@ -67,9 +67,11 @@ sig
   val cert_prop: theory -> term -> term
   val no_frees: Proof.context -> term -> term
   val no_vars: Proof.context -> term -> term
-  val add_types: (binding * int * mixfix) list -> theory -> theory
-  val add_nonterminals: binding list -> theory -> theory
-  val add_type_abbrev: binding * string list * typ -> theory -> theory
+  val add_types: Proof.context -> (binding * int * mixfix) list -> theory -> theory
+  val add_types_global: (binding * int * mixfix) list -> theory -> theory
+  val add_nonterminals: Proof.context -> binding list -> theory -> theory
+  val add_nonterminals_global: binding list -> theory -> theory
+  val add_type_abbrev: Proof.context -> binding * string list * typ -> theory -> theory
   val add_syntax: (string * string * mixfix) list -> theory -> theory
   val add_syntax_i: (string * typ * mixfix) list -> theory -> theory
   val add_modesyntax: Syntax.mode -> (string * string * mixfix) list -> theory -> theory
@@ -78,7 +80,8 @@ sig
   val del_modesyntax_i: Syntax.mode -> (string * typ * mixfix) list -> theory -> theory
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> theory -> theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> theory -> theory
-  val declare_const: (binding * typ) * mixfix -> theory -> term * theory
+  val declare_const: Proof.context -> (binding * typ) * mixfix -> theory -> term * theory
+  val declare_const_global: (binding * typ) * mixfix -> theory -> term * theory
   val add_consts: (binding * string * mixfix) list -> theory -> theory
   val add_consts_i: (binding * typ * mixfix) list -> theory -> theory
   val add_abbrev: string -> binding * term -> theory -> (term * term) * theory
@@ -325,25 +328,31 @@ val no_vars = no_variables "schematic" Term.add_vars Term.add_tvars Var TVar;
 
 (* add type constructors *)
 
-fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
+fun add_types ctxt types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
   let
     fun type_syntax (b, n, mx) =
       (Lexicon.mark_type (Name_Space.full_name naming b), Mixfix.make_type n, mx);
     val syn' = Syntax.update_type_gram true Syntax.mode_default (map type_syntax types) syn;
-    val tsig' = fold (fn (a, n, _) => Type.add_type naming (a, n)) types tsig;
+    val tsig' = fold (fn (a, n, _) => Type.add_type ctxt naming (a, n)) types tsig;
   in (naming, syn', tsig', consts) end);
+
+fun add_types_global types thy =
+  add_types (Syntax.init_pretty_global thy) types thy;
 
 
 (* add nonterminals *)
 
-fun add_nonterminals ns = map_sign (fn (naming, syn, tsig, consts) =>
-  (naming, syn, fold (Type.add_nonterminal naming) ns tsig, consts));
+fun add_nonterminals ctxt ns = map_sign (fn (naming, syn, tsig, consts) =>
+  (naming, syn, fold (Type.add_nonterminal ctxt naming) ns tsig, consts));
+
+fun add_nonterminals_global ns thy =
+  add_nonterminals (Syntax.init_pretty_global thy) ns thy;
 
 
 (* add type abbreviations *)
 
-fun add_type_abbrev abbr = map_sign (fn (naming, syn, tsig, consts) =>
-  (naming, syn, Type.add_abbrev naming abbr tsig, consts));
+fun add_type_abbrev ctxt abbr = map_sign (fn (naming, syn, tsig, consts) =>
+  (naming, syn, Type.add_abbrev ctxt naming abbr tsig, consts));
 
 
 (* modify syntax *)
@@ -385,9 +394,8 @@ fun notation add mode args thy =
 
 local
 
-fun gen_add_consts parse_typ raw_args thy =
+fun gen_add_consts parse_typ ctxt raw_args thy =
   let
-    val ctxt = Proof_Context.init_global thy;
     val prepT = Type.no_tvars o Term.no_dummyT o certify_typ thy o parse_typ ctxt;
     fun prep (b, raw_T, mx) =
       let
@@ -399,22 +407,26 @@ fun gen_add_consts parse_typ raw_args thy =
     val args = map prep raw_args;
   in
     thy
-    |> map_consts (fold (Consts.declare (naming_of thy) o #1) args)
+    |> map_consts (fold (Consts.declare ctxt (naming_of thy) o #1) args)
     |> add_syntax_i (map #2 args)
     |> pair (map #3 args)
   end;
 
 in
 
-fun add_consts args = snd o gen_add_consts Syntax.parse_typ args;
-fun add_consts_i args = snd o gen_add_consts (K I) args;
+fun add_consts args thy =
+  #2 (gen_add_consts Syntax.parse_typ (Proof_Context.init_global thy) args thy);
+fun add_consts_i args thy =
+  #2 (gen_add_consts (K I) (Proof_Context.init_global thy) args thy);
 
-fun declare_const ((b, T), mx) thy =
+fun declare_const ctxt ((b, T), mx) thy =
   let
     val pos = Binding.pos_of b;
-    val ([const as Const (c, _)], thy') = gen_add_consts (K I) [(b, T, mx)] thy;
+    val ([const as Const (c, _)], thy') = gen_add_consts (K I) ctxt [(b, T, mx)] thy;
     val _ = Position.report pos (Markup.const_decl c);
   in (const, thy') end;
+
+fun declare_const_global arg thy = declare_const (Proof_Context.init_global thy) arg thy;
 
 end;
 
@@ -428,7 +440,7 @@ fun add_abbrev mode (b, raw_t) thy =
     val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg)
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote (Binding.str_of b));
     val (res, consts') = consts_of thy
-      |> Consts.abbreviate (Syntax.pp ctxt) (tsig_of thy) (naming_of thy) mode (b, t);
+      |> Consts.abbreviate ctxt (tsig_of thy) (naming_of thy) mode (b, t);
   in (res, thy |> map_consts (K consts')) end;
 
 fun revert_abbrev mode c = map_consts (Consts.revert_abbrev mode c);
@@ -450,7 +462,8 @@ fun add_const_constraint (c, opt_T) thy =
 fun primitive_class (bclass, classes) thy =
   thy |> map_sign (fn (naming, syn, tsig, consts) =>
     let
-      val tsig' = Type.add_class (Syntax.pp_global thy) naming (bclass, classes) tsig;
+      val ctxt = Syntax.init_pretty_global thy;
+      val tsig' = Type.add_class ctxt (Syntax.pp ctxt) naming (bclass, classes) tsig;
     in (naming, syn, tsig', consts) end)
   |> add_consts_i [(Binding.map_name Logic.const_of_class bclass, Term.a_itselfT --> propT, NoSyn)];
 

@@ -326,9 +326,9 @@ fun target_const class ((c, mx), (type_params, dict)) thy =
       |> map_types Type.strip_sorts;
   in
     thy
-    |> Sign.declare_const ((b, Type.strip_sorts ty'), mx)
+    |> Sign.declare_const_global ((b, Type.strip_sorts ty'), mx)
     |> snd
-    |> Thm.add_def false false (b_def, def_eq)
+    |> Thm.add_def_global false false (b_def, def_eq)
     |>> apsnd Thm.varifyT_global
     |-> (fn (_, def_thm) => Global_Theory.store_thm (b_def, def_thm)
       #> snd

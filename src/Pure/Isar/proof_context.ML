@@ -906,7 +906,7 @@ local
 
 fun update_thms _ (b, NONE) ctxt = ctxt |> map_facts (Facts.del (full_name ctxt b))
   | update_thms do_props (b, SOME ths) ctxt = ctxt |> map_facts
-      (Facts.add_local do_props (naming_of ctxt) (b, ths) #> snd);
+      (Facts.add_local ctxt do_props (naming_of ctxt) (b, ths) #> snd);
 
 in
 
@@ -1033,7 +1033,7 @@ fun add_abbrev mode (b, raw_t) ctxt =
       handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote (Binding.str_of b));
     val [t] = Variable.exportT_terms (Variable.declare_term t0 ctxt) ctxt [t0];
     val ((lhs, rhs), consts') = consts_of ctxt
-      |> Consts.abbreviate (Syntax.pp ctxt) (tsig_of ctxt) (naming_of ctxt) mode (b, t);
+      |> Consts.abbreviate ctxt (tsig_of ctxt) (naming_of ctxt) mode (b, t);
   in
     ctxt
     |> (map_consts o apfst) (K consts')

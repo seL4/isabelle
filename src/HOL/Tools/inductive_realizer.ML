@@ -295,8 +295,9 @@ fun add_ind_realizer rsets intrs induct raw_induct elims vs thy =
 
     val thy1' = thy1 |>
       Theory.copy |>
-      Sign.add_types (map (fn s => (Binding.name (Long_Name.base_name s), ar, NoSyn)) tnames) |>
-        Extraction.add_typeof_eqns_i ty_eqs;
+      Sign.add_types_global
+        (map (fn s => (Binding.name (Long_Name.base_name s), ar, NoSyn)) tnames) |>
+      Extraction.add_typeof_eqns_i ty_eqs;
     val dts = map_filter (fn (s, rs) => if member (op =) rsets s then
       SOME (dt_of_intrs thy1' vs nparms rs) else NONE) rss;
 

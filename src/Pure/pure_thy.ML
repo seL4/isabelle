@@ -55,12 +55,12 @@ val old_appl_syntax_setup =
 val _ = Context.>> (Context.map_theory
   (Sign.map_naming (Name_Space.set_theory_name Context.PureN) #>
    Old_Appl_Syntax.put false #>
-   Sign.add_types
+   Sign.add_types_global
    [(Binding.name "fun", 2, NoSyn),
     (Binding.name "prop", 0, NoSyn),
     (Binding.name "itself", 1, NoSyn),
     (Binding.name "dummy", 0, NoSyn)]
-  #> Sign.add_nonterminals (map Binding.name Syntax.basic_nonterms)
+  #> Sign.add_nonterminals_global (map Binding.name Syntax.basic_nonterms)
   #> Sign.add_syntax_i (map (fn x => (x, typ "'a", NoSyn)) Syntax.token_markers)
   #> Sign.add_syntax_i
    [("",            typ "prop' => prop",               Delimfix "_"),
@@ -177,11 +177,11 @@ val _ = Context.>> (Context.map_theory
     (Binding.name "prop", typ "prop => prop", NoSyn),
     (Binding.name "TYPE", typ "'a itself", NoSyn),
     (Binding.name Term.dummy_patternN, typ "'a", Delimfix "'_")]
-  #> Theory.add_deps "==" ("==", typ "'a => 'a => prop") []
-  #> Theory.add_deps "==>" ("==>", typ "prop => prop => prop") []
-  #> Theory.add_deps "all" ("all", typ "('a => prop) => prop") []
-  #> Theory.add_deps "TYPE" ("TYPE", typ "'a itself") []
-  #> Theory.add_deps Term.dummy_patternN (Term.dummy_patternN, typ "'a") []
+  #> Theory.add_deps_global "==" ("==", typ "'a => 'a => prop") []
+  #> Theory.add_deps_global "==>" ("==>", typ "prop => prop => prop") []
+  #> Theory.add_deps_global "all" ("all", typ "('a => prop) => prop") []
+  #> Theory.add_deps_global "TYPE" ("TYPE", typ "'a itself") []
+  #> Theory.add_deps_global Term.dummy_patternN (Term.dummy_patternN, typ "'a") []
   #> Sign.add_trfuns Syntax_Trans.pure_trfuns
   #> Sign.local_path
   #> Sign.add_consts_i
@@ -199,6 +199,7 @@ val _ = Context.>> (Context.map_theory
   #> Sign.hide_const false "Pure.sort_constraint"
   #> Sign.hide_const false "Pure.conjunction"
   #> Global_Theory.add_thmss [((Binding.name "nothing", []), [])] #> snd
-  #> fold (fn (a, prop) => snd o Thm.add_axiom (Binding.name a, prop)) Proofterm.equality_axms));
+  #> fold (fn (a, prop) =>
+      snd o Thm.add_axiom_global (Binding.name a, prop)) Proofterm.equality_axms));
 
 end;

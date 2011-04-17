@@ -198,11 +198,12 @@ fun theory_declaration decl lthy =
 
 fun theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
   let
-    val (const, lthy2) = lthy |> Local_Theory.background_theory_result
-      (Sign.declare_const ((b, U), mx));
+    val (const, lthy2) = lthy
+      |> Local_Theory.background_theory_result (Sign.declare_const lthy ((b, U), mx));
     val lhs = list_comb (const, type_params @ term_params);
-    val ((_, def), lthy3) = lthy2 |> Local_Theory.background_theory_result
-      (Thm.add_def false false (b_def, Logic.mk_equals (lhs, rhs)));
+    val ((_, def), lthy3) = lthy2
+      |> Local_Theory.background_theory_result
+        (Thm.add_def lthy2 false false (b_def, Logic.mk_equals (lhs, rhs)));
   in ((lhs, def), lthy3) end;
 
 fun theory_notes kind global_facts lthy =

@@ -264,7 +264,7 @@ let
   val bisim_bind = Binding.suffix_name "_bisim" comp_dbind
   val bisim_type = R_types ---> boolT
   val (bisim_const, thy) =
-      Sign.declare_const ((bisim_bind, bisim_type), NoSyn) thy
+      Sign.declare_const_global ((bisim_bind, bisim_type), NoSyn) thy
 
   (* define bisimulation predicate *)
   local

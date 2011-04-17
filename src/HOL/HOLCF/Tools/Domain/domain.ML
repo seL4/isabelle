@@ -44,7 +44,7 @@ type info =
 
 fun add_arity ((b, sorts, mx), sort) thy : theory =
   thy
-  |> Sign.add_types [(b, length sorts, mx)]
+  |> Sign.add_types_global [(b, length sorts, mx)]
   |> AxClass.axiomatize_arity (Sign.full_name thy b, sorts, sort)
 
 fun gen_add_domain

@@ -153,7 +153,7 @@ fun add_iso_tuple_type (b, alphas) (leftT, rightT) thy =
 
     val ([isom_def], cdef_thy) =
       typ_thy
-      |> Sign.declare_const ((isom_binding, isomT), NoSyn) |> snd
+      |> Sign.declare_const_global ((isom_binding, isomT), NoSyn) |> snd
       |> Global_Theory.add_defs false
         [((Binding.conceal (Thm.def_binding isom_binding), Logic.mk_equals (isom, body)), [])];
 
@@ -1648,7 +1648,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
 
     fun mk_defs () =
       typ_thy
-      |> Sign.declare_const ((ext_binding, ext_type), NoSyn) |> snd
+      |> Sign.declare_const_global ((ext_binding, ext_type), NoSyn) |> snd
       |> Global_Theory.add_defs false [((Thm.def_binding ext_binding, ext_spec), [])]
       ||> Theory.checkpoint
     val ([ext_def], defs_thy) =
@@ -2087,9 +2087,9 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
       |> Typedecl.abbrev_global
         (Binding.suffix_name schemeN binding, map #1 (alphas @ [zeta]), NoSyn) rec_schemeT0 |> snd
       |> Sign.qualified_path false binding
-      |> fold (fn ((x, T), mx) => snd o Sign.declare_const ((Binding.name x, T), mx))
+      |> fold (fn ((x, T), mx) => snd o Sign.declare_const_global ((Binding.name x, T), mx))
         (sel_decls ~~ (field_syntax @ [NoSyn]))
-      |> fold (fn (x, T) => snd o Sign.declare_const ((Binding.name x, T), NoSyn))
+      |> fold (fn (x, T) => snd o Sign.declare_const_global ((Binding.name x, T), NoSyn))
         (upd_decls @ [make_decl, fields_decl, extend_decl, truncate_decl])
       |> (Global_Theory.add_defs false o
             map (Thm.no_attributes o apfst (Binding.conceal o Binding.name))) sel_specs

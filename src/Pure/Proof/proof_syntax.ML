@@ -45,8 +45,8 @@ fun add_proof_syntax thy =
   |> Theory.copy
   |> Sign.root_path
   |> Sign.set_defsort []
-  |> Sign.add_types [(Binding.name "proof", 0, NoSyn)]
-  |> fold (snd oo Sign.declare_const)
+  |> Sign.add_types_global [(Binding.name "proof", 0, NoSyn)]
+  |> fold (snd oo Sign.declare_const_global)
       [((Binding.name "Appt", [proofT, aT] ---> proofT), Mixfix ("(1_ %/ _)", [4, 5], 4)),
        ((Binding.name "AppP", [proofT, proofT] ---> proofT), Mixfix ("(1_ %%/ _)", [4, 5], 4)),
        ((Binding.name "Abst", (aT --> proofT) --> proofT), NoSyn),
@@ -55,7 +55,7 @@ fun add_proof_syntax thy =
        ((Binding.name "Oracle", propT --> proofT), NoSyn),
        ((Binding.name "OfClass", (Term.a_itselfT --> propT) --> proofT), NoSyn),
        ((Binding.name "MinProof", proofT), Delimfix "?")]
-  |> Sign.add_nonterminals [Binding.name "param", Binding.name "params"]
+  |> Sign.add_nonterminals_global [Binding.name "param", Binding.name "params"]
   |> Sign.add_syntax_i
       [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1Lam _./ _)", [0, 3], 3)),
        ("_Lam0", [paramT, paramsT] ---> paramsT, Mixfix ("_/ _", [1, 0], 0)),

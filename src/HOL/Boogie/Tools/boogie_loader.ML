@@ -177,7 +177,7 @@ local
           SOME t => (((name, t), log_builtin thy name t), thy)
         | NONE =>
             thy
-            |> Sign.declare_const ((Binding.name isa_name, T),
+            |> Sign.declare_const_global ((Binding.name isa_name, T),
                  mk_syntax name arity)
             |> (fn (t, thy') => (((name, t), log_new thy' name t), thy'))))
   fun declare (name, ((Ts, T), atts)) =

@@ -1740,7 +1740,8 @@ fun extern_oracles ctxt =
 fun add_oracle (b, oracle) thy =
   let
     val naming = Sign.naming_of thy;
-    val (name, tab') = Name_Space.define true naming (b, ()) (Oracles.get thy);
+    val (name, tab') =
+      Name_Space.define (Proof_Context.init_global thy) true naming (b, ()) (Oracles.get thy);
     val thy' = Oracles.put tab' thy;
   in ((name, invoke_oracle (Theory.check_thy thy') name oracle), thy') end;
 

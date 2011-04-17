@@ -321,7 +321,7 @@ fun prove_case_thms (config : Datatype_Aux.config)
                 fns2 @ (flat (drop (i + 1) case_dummy_fns)))));
           val ([def_thm], thy') =
             thy
-            |> Sign.declare_const decl |> snd
+            |> Sign.declare_const_global decl |> snd
             |> (Global_Theory.add_defs false o map Thm.no_attributes) [def];
 
         in (defs @ [def_thm], thy')

@@ -28,9 +28,10 @@ sig
   val at_end: (theory -> theory option) -> theory -> theory
   val begin_theory: string -> theory list -> theory
   val end_theory: theory -> theory
-  val add_axiom: binding * term -> theory -> theory
-  val add_deps: string -> string * typ -> (string * typ) list -> theory -> theory
-  val add_def: bool -> bool -> binding * term -> theory -> theory
+  val add_axiom: Proof.context -> binding * term -> theory -> theory
+  val add_deps: Proof.context -> string -> string * typ -> (string * typ) list -> theory -> theory
+  val add_deps_global: string -> string * typ -> (string * typ) list -> theory -> theory
+  val add_def: Proof.context -> bool -> bool -> binding * term -> theory -> theory
   val add_finals_i: bool -> term list -> theory -> theory
   val add_finals: bool -> string list -> theory -> theory
   val specify_const: (binding * typ) * mixfix -> theory -> term * theory
@@ -154,37 +155,35 @@ fun end_theory thy =
 
 (* raw axioms *)
 
-fun cert_axm thy (b, raw_tm) =
+fun cert_axm ctxt (b, raw_tm) =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val t = Sign.cert_prop thy raw_tm
       handle TYPE (msg, _, _) => error msg
         | TERM (msg, _) => error msg;
     val _ = Term.no_dummy_patterns t handle TERM (msg, _) => error msg;
 
-    val ctxt = Syntax.init_pretty_global thy
-      |> Config.put show_sorts true;
     val bad_sorts =
       rev ((fold_types o fold_atyps_sorts) (fn (_, []) => I | (T, _) => insert (op =) T) t []);
     val _ = null bad_sorts orelse
       error ("Illegal sort constraints in primitive specification: " ^
-        commas (map (Syntax.string_of_typ ctxt) bad_sorts));
-  in
-    (b, Sign.no_vars (Syntax.init_pretty_global thy) t)
-  end handle ERROR msg =>
+        commas (map (Syntax.string_of_typ (Config.put show_sorts true ctxt)) bad_sorts));
+  in (b, Sign.no_vars ctxt t) end
+  handle ERROR msg =>
     cat_error msg ("The error(s) above occurred in axiom " ^ quote (Binding.str_of b));
 
-fun add_axiom raw_axm thy = thy |> map_axioms (fn axioms =>
+fun add_axiom ctxt raw_axm thy = thy |> map_axioms (fn axioms =>
   let
-    val axm = apsnd Logic.varify_global (cert_axm thy raw_axm);
-    val (_, axioms') = Name_Space.define true (Sign.naming_of thy) axm axioms;
+    val axm = apsnd Logic.varify_global (cert_axm ctxt raw_axm);
+    val (_, axioms') = Name_Space.define ctxt true (Sign.naming_of thy) axm axioms;
   in axioms' end);
 
 
 (* dependencies *)
 
-fun dependencies thy unchecked def description lhs rhs =
+fun dependencies ctxt unchecked def description lhs rhs =
   let
-    val ctxt = Syntax.init_pretty_global thy;
+    val thy = Proof_Context.theory_of ctxt;
     val consts = Sign.consts_of thy;
     fun prep const =
       let val Const (c, T) = Sign.no_vars ctxt (Const const)
@@ -200,26 +199,29 @@ fun dependencies thy unchecked def description lhs rhs =
         "\nThe error(s) above occurred in " ^ quote description);
   in Defs.define (Syntax.pp ctxt) unchecked def description (prep lhs) (map prep rhs) end;
 
-fun add_deps a raw_lhs raw_rhs thy =
+fun add_deps ctxt a raw_lhs raw_rhs thy =
   let
     val lhs :: rhs = map (dest_Const o Sign.cert_term thy o Const) (raw_lhs :: raw_rhs);
     val description = if a = "" then #1 lhs ^ " axiom" else a;
-  in thy |> map_defs (dependencies thy false NONE description lhs rhs) end;
+  in thy |> map_defs (dependencies ctxt false NONE description lhs rhs) end;
+
+fun add_deps_global a x y thy = add_deps (Syntax.init_pretty_global thy) a x y thy;
 
 fun specify_const decl thy =
-  let val (t as Const const, thy') = Sign.declare_const decl thy
-  in (t, add_deps "" const [] thy') end;
+  let val (t as Const const, thy') = Sign.declare_const_global decl thy;
+  in (t, add_deps_global "" const [] thy') end;
 
 
 (* overloading *)
 
-fun check_overloading thy overloaded (c, T) =
+fun check_overloading ctxt overloaded (c, T) =
   let
+    val thy = Proof_Context.theory_of ctxt;
+
     val declT = Sign.the_const_constraint thy c
       handle TYPE (msg, _, _) => error msg;
     val T' = Logic.varifyT_global T;
 
-    val ctxt = Syntax.init_pretty_global thy;
     fun message sorts txt =
       [Pretty.block [Pretty.str "Specification of constant ",
         Pretty.str c, Pretty.str " ::", Pretty.brk 1,
@@ -238,27 +240,27 @@ fun check_overloading thy overloaded (c, T) =
 
 local
 
-fun check_def thy unchecked overloaded (b, tm) defs =
+fun check_def ctxt unchecked overloaded (b, tm) defs =
   let
-    val ctxt = Proof_Context.init_global thy;
+    val thy = Proof_Context.theory_of ctxt;
     val name = Sign.full_name thy b;
     val ((lhs, rhs), _) = Primitive_Defs.dest_def ctxt Term.is_Const (K false) (K false) tm
       handle TERM (msg, _) => error msg;
     val lhs_const = Term.dest_Const (Term.head_of lhs);
     val rhs_consts = fold_aterms (fn Const const => insert (op =) const | _ => I) rhs [];
-    val _ = check_overloading thy overloaded lhs_const;
-  in defs |> dependencies thy unchecked (SOME name) name lhs_const rhs_consts end
+    val _ = check_overloading ctxt overloaded lhs_const;
+  in defs |> dependencies ctxt unchecked (SOME name) name lhs_const rhs_consts end
   handle ERROR msg => cat_error msg (Pretty.string_of (Pretty.block
    [Pretty.str ("The error(s) above occurred in definition " ^ quote (Binding.str_of b) ^ ":"),
-    Pretty.fbrk, Pretty.quote (Syntax.pretty_term_global thy tm)]));
+    Pretty.fbrk, Pretty.quote (Syntax.pretty_term ctxt tm)]));
 
 in
 
-fun add_def unchecked overloaded raw_axm thy =
-  let val axm = cert_axm thy raw_axm in
+fun add_def ctxt unchecked overloaded raw_axm thy =
+  let val axm = cert_axm ctxt raw_axm in
     thy
-    |> map_defs (check_def thy unchecked overloaded axm)
-    |> add_axiom axm
+    |> map_defs (check_def ctxt unchecked overloaded axm)
+    |> add_axiom ctxt axm
   end;
 
 end;
@@ -270,18 +272,20 @@ local
 
 fun gen_add_finals prep_term overloaded args thy =
   let
+    val ctxt = Syntax.init_pretty_global thy;
     fun const_of (Const const) = const
       | const_of (Free _) = error "Attempt to finalize variable (or undeclared constant)"
       | const_of _ = error "Attempt to finalize non-constant term";
-    fun specify (c, T) = dependencies thy false NONE (c ^ " axiom") (c, T) [];
-    val finalize = specify o tap (check_overloading thy overloaded) o const_of o
-      Sign.cert_term thy o prep_term thy;
+    fun specify (c, T) = dependencies ctxt false NONE (c ^ " axiom") (c, T) [];
+    val finalize =
+      specify o tap (check_overloading ctxt overloaded) o const_of o
+        Sign.cert_term thy o prep_term ctxt;
   in thy |> map_defs (fold finalize args) end;
 
 in
 
 val add_finals_i = gen_add_finals (K I);
-val add_finals = gen_add_finals Syntax.read_term_global;
+val add_finals = gen_add_finals Syntax.read_term;
 
 end;
 

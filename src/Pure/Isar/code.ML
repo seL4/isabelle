@@ -339,21 +339,23 @@ fun arity_number thy tyco = case Symtab.lookup ((fst o the_signatures o the_exec
 
 fun build_tsig thy =
   let
-    val (tycos, _) = (the_signatures o the_exec) thy;
-    val decls = (#types o Type.rep_tsig o Sign.tsig_of) thy
+    val ctxt = Syntax.init_pretty_global thy;
+    val (tycos, _) = the_signatures (the_exec thy);
+    val decls = #types (Type.rep_tsig (Sign.tsig_of thy))
       |> snd 
       |> Symtab.fold (fn (tyco, n) =>
           Symtab.update (tyco, Type.LogicalType n)) tycos;
   in
     Type.empty_tsig
-    |> Symtab.fold (fn (tyco, Type.LogicalType n) => Type.add_type Name_Space.default_naming
+    |> Symtab.fold (fn (tyco, Type.LogicalType n) => Type.add_type ctxt Name_Space.default_naming
         (Binding.qualified_name tyco, n) | _ => I) decls
   end;
 
-fun cert_signature thy = Logic.varifyT_global o Type.cert_typ (build_tsig thy) o Type.no_tvars;
+fun cert_signature thy =
+  Logic.varifyT_global o Type.cert_typ (build_tsig thy) o Type.no_tvars;
 
-fun read_signature thy = cert_signature thy o Type.strip_sorts
-  o Syntax.parse_typ (Proof_Context.init_global thy);
+fun read_signature thy =
+  cert_signature thy o Type.strip_sorts o Syntax.parse_typ (Proof_Context.init_global thy);
 
 fun expand_signature thy = Type.cert_typ_mode Type.mode_syntax (Sign.tsig_of thy);
 

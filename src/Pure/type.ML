@@ -86,12 +86,13 @@ sig
   val eq_type: tyenv -> typ * typ -> bool
 
   (*extend and merge type signatures*)
-  val add_class: Pretty.pp -> Name_Space.naming -> binding * class list -> tsig -> tsig
+  val add_class: Proof.context -> Pretty.pp -> Name_Space.naming ->
+    binding * class list -> tsig -> tsig
   val hide_class: bool -> string -> tsig -> tsig
   val set_defsort: sort -> tsig -> tsig
-  val add_type: Name_Space.naming -> binding * int -> tsig -> tsig
-  val add_abbrev: Name_Space.naming -> binding * string list * typ -> tsig -> tsig
-  val add_nonterminal: Name_Space.naming -> binding -> tsig -> tsig
+  val add_type: Proof.context -> Name_Space.naming -> binding * int -> tsig -> tsig
+  val add_abbrev: Proof.context -> Name_Space.naming -> binding * string list * typ -> tsig -> tsig
+  val add_nonterminal: Proof.context -> Name_Space.naming -> binding -> tsig -> tsig
   val hide_type: bool -> string -> tsig -> tsig
   val add_arity: Pretty.pp -> arity -> tsig -> tsig
   val add_classrel: Pretty.pp -> class * class -> tsig -> tsig
@@ -576,13 +577,13 @@ fun eq_type tye =
 
 (* classes *)
 
-fun add_class pp naming (c, cs) tsig =
+fun add_class ctxt pp naming (c, cs) tsig =
   tsig |> map_tsig (fn ((space, classes), default, types) =>
     let
       val cs' = map (cert_class tsig) cs
         handle TYPE (msg, _, _) => error msg;
       val _ = Binding.check c;
-      val (c', space') = space |> Name_Space.declare true naming c;
+      val (c', space') = space |> Name_Space.declare ctxt true naming c;
       val classes' = classes |> Sorts.add_class pp (c', cs');
     in ((space', classes'), default, types) end);
 
@@ -626,8 +627,8 @@ fun set_defsort S tsig = tsig |> map_tsig (fn (classes, _, types) =>
 
 local
 
-fun new_decl naming (c, decl) types =
-  (Binding.check c; #2 (Name_Space.define true naming (c, decl) types));
+fun new_decl ctxt naming (c, decl) types =
+  (Binding.check c; #2 (Name_Space.define ctxt true naming (c, decl) types));
 
 fun map_types f = map_tsig (fn (classes, default, types) =>
   let
@@ -643,11 +644,11 @@ fun syntactic types (Type (c, Ts)) =
 
 in
 
-fun add_type naming (c, n) =
+fun add_type ctxt naming (c, n) =
   if n < 0 then error ("Bad type constructor declaration " ^ quote (Binding.str_of c))
-  else map_types (new_decl naming (c, LogicalType n));
+  else map_types (new_decl ctxt naming (c, LogicalType n));
 
-fun add_abbrev naming (a, vs, rhs) tsig = tsig |> map_types (fn types =>
+fun add_abbrev ctxt naming (a, vs, rhs) tsig = tsig |> map_types (fn types =>
   let
     fun err msg =
       cat_error msg ("The error(s) above occurred in type abbreviation " ^
@@ -662,9 +663,9 @@ fun add_abbrev naming (a, vs, rhs) tsig = tsig |> map_types (fn types =>
       (case subtract (op =) vs (map #1 (Term.add_tfreesT rhs' [])) of
         [] => []
       | extras => err ("Extra variables on rhs: " ^ commas_quote extras));
-  in types |> new_decl naming (a, Abbreviation (vs, rhs', syntactic (#2 types) rhs')) end);
+  in types |> new_decl ctxt naming (a, Abbreviation (vs, rhs', syntactic (#2 types) rhs')) end);
 
-fun add_nonterminal naming = map_types o new_decl naming o rpair Nonterminal;
+fun add_nonterminal ctxt naming = map_types o new_decl ctxt naming o rpair Nonterminal;
 
 end;
 

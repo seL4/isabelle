@@ -648,7 +648,7 @@ fun def_pred binding parms defs ts norm_ts thy =
     val ([pred_def], defs_thy) =
       thy
       |> bodyT = propT ? Sign.add_advanced_trfuns ([], [], [aprop_tr' (length args) name], [])
-      |> Sign.declare_const ((Binding.conceal binding, predT), NoSyn) |> snd
+      |> Sign.declare_const_global ((Binding.conceal binding, predT), NoSyn) |> snd
       |> Global_Theory.add_defs false
         [((Binding.conceal (Thm.def_binding binding), Logic.mk_equals (head, body)), [])];
     val defs_ctxt = Proof_Context.init_global defs_thy |> Variable.declare_term head;

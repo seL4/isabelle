@@ -384,9 +384,9 @@ fun declare_overloaded (c, T) thy =
   in
     thy
     |> Sign.qualified_path true (Binding.name name_inst)
-    |> Sign.declare_const ((Binding.name c', T'), NoSyn)
+    |> Sign.declare_const_global ((Binding.name c', T'), NoSyn)
     |-> (fn const' as Const (c'', _) =>
-      Thm.add_def false true
+      Thm.add_def_global false true
         (Binding.name (Thm.def_name c'), Logic.mk_equals (Const (c, T'), const'))
       #>> apsnd Thm.varifyT_global
       #-> (fn (_, thm) => add_inst_param (c, tyco) (c'', thm)
@@ -405,7 +405,7 @@ fun define_overloaded b (c, t) thy =
     val b' = Thm.def_binding_optional (Binding.name (instance_name (tyco, c))) b;
   in
     thy
-    |> Thm.add_def false false (b', prop)
+    |> Thm.add_def_global false false (b', prop)
     |>> (fn (_, thm) => Drule.transitive_thm OF [eq, thm])
   end;
 
@@ -608,7 +608,7 @@ fun axiomatize prep mk name add raw_args thy =
     val names = name args;
   in
     thy
-    |> fold_map Thm.add_axiom (map Binding.name names ~~ specs)
+    |> fold_map Thm.add_axiom_global (map Binding.name names ~~ specs)
     |-> fold (add o Drule.export_without_context o snd)
   end;
 
@@ -631,13 +631,14 @@ fun ax_class prep_class prep_classrel (bclass, raw_super) thy =
     thy
     |> Sign.primitive_class (bclass, super)
     |> ax_classrel prep_classrel (map (fn c => (class, c)) super)
-    |> Theory.add_deps "" (class_const class) (map class_const super)
+    |> Theory.add_deps_global "" (class_const class) (map class_const super)
   end;
 
 in
 
 val axiomatize_class = ax_class Sign.certify_class cert_classrel;
-val axiomatize_class_cmd = ax_class (Proof_Context.read_class o Proof_Context.init_global) read_classrel;
+val axiomatize_class_cmd =
+  ax_class (Proof_Context.read_class o Proof_Context.init_global) read_classrel;
 val axiomatize_classrel = ax_classrel cert_classrel;
 val axiomatize_classrel_cmd = ax_classrel read_classrel;
 val axiomatize_arity = ax_arity Proof_Context.cert_arity;

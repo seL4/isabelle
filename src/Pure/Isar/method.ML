@@ -344,7 +344,9 @@ fun print_methods thy =
   end;
 
 fun add_method name meth comment thy = thy
-  |> Methods.map (#2 o Name_Space.define true (Sign.naming_of thy) (name, (meth, comment)));
+  |> Methods.map
+    (Name_Space.define (Proof_Context.init_global thy) true (Sign.naming_of thy)
+      (name, (meth, comment)) #> snd);
 
 
 (* get methods *)

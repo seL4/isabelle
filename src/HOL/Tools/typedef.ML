@@ -92,7 +92,7 @@ fun mk_typedef newT oldT RepC AbsC A =
         (newT --> oldT) --> (oldT --> newT) --> HOLogic.mk_setT oldT --> HOLogic.boolT);
   in Logic.mk_implies (mk_inhabited A, HOLogic.mk_Trueprop (typedefC $ RepC $ AbsC $ A)) end;
 
-fun primitive_typedef typedef_name newT oldT Rep_name Abs_name A thy =
+fun primitive_typedef typedef_name newT oldT Rep_name Abs_name A lthy =
   let
     (* errors *)
 
@@ -111,18 +111,20 @@ fun primitive_typedef typedef_name newT oldT Rep_name Abs_name A thy =
 
     (* axiomatization *)
 
-    val ((RepC, AbsC), consts_thy) = thy
-      |> Sign.declare_const ((Rep_name, newT --> oldT), NoSyn)
-      ||>> Sign.declare_const ((Abs_name, oldT --> newT), NoSyn);
+    val ((RepC, AbsC), consts_lthy) = lthy
+      |> Local_Theory.background_theory_result
+        (Sign.declare_const lthy ((Rep_name, newT --> oldT), NoSyn) ##>>
+          Sign.declare_const lthy ((Abs_name, oldT --> newT), NoSyn));
 
     val typedef_deps = Term.add_consts A [];
 
-    val ((axiom_name, axiom), axiom_thy) = consts_thy
-      |> Thm.add_axiom (typedef_name, mk_typedef newT oldT RepC AbsC A)
-      ||> Theory.add_deps "" (dest_Const RepC) typedef_deps
-      ||> Theory.add_deps "" (dest_Const AbsC) typedef_deps;
+    val ((axiom_name, axiom), axiom_lthy) = consts_lthy
+      |> Local_Theory.background_theory_result
+        (Thm.add_axiom consts_lthy (typedef_name, mk_typedef newT oldT RepC AbsC A) ##>
+          Theory.add_deps consts_lthy "" (dest_Const RepC) typedef_deps ##>
+          Theory.add_deps consts_lthy "" (dest_Const AbsC) typedef_deps);
 
-  in ((RepC, AbsC, axiom_name, axiom), axiom_thy) end;
+  in ((RepC, AbsC, axiom_name, axiom), axiom_lthy) end;
 
 
 (* prepare_typedef *)
@@ -185,9 +187,8 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
           Local_Defs.export_cterm set_lthy (Proof_Context.init_global thy) (cert set')
           ||> Thm.term_of;
 
-        val ((RepC, AbsC, axiom_name, axiom), axiom_lthy) = set_lthy |>
-          Local_Theory.background_theory_result
-            (primitive_typedef typedef_name newT oldT Rep_name Abs_name A);
+        val ((RepC, AbsC, axiom_name, axiom), axiom_lthy) = set_lthy
+          |> primitive_typedef typedef_name newT oldT Rep_name Abs_name A;
 
         val cert = Thm.cterm_of (Proof_Context.theory_of axiom_lthy);
         val typedef =

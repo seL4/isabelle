@@ -129,7 +129,7 @@ val _ =
 val _ =
   Outer_Syntax.command "nonterminal"
     "declare syntactic type constructors (grammar nonterminal symbols)" Keyword.thy_decl
-    (Parse.and_list1 Parse.binding >> (Toplevel.theory o Sign.add_nonterminals));
+    (Parse.and_list1 Parse.binding >> (Toplevel.theory o Sign.add_nonterminals_global));
 
 val _ =
   Outer_Syntax.command "arities" "state type arities (axiomatic!)" Keyword.thy_decl

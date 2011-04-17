@@ -40,8 +40,9 @@ fun basic_decl decl (b, n, mx) lthy =
     |> pair name
   end;
 
-fun basic_typedecl (b, n, mx) =
-  basic_decl (fn name => Sign.add_types [(b, n, NoSyn)] #> object_logic_arity name) (b, n, mx);
+fun basic_typedecl (b, n, mx) lthy =
+  basic_decl (fn name => Sign.add_types lthy [(b, n, NoSyn)] #> object_logic_arity name)
+    (b, n, mx) lthy;
 
 
 (* global type -- without dependencies on type parameters of the context *)
@@ -91,7 +92,7 @@ fun gen_abbrev prep_typ (b, vs, mx) raw_rhs lthy =
       handle ERROR msg => cat_error msg ("in type abbreviation " ^ quote (Binding.str_of b));
   in
     lthy
-    |> basic_decl (fn _ => Sign.add_type_abbrev (b, vs, rhs)) (b, length vs, mx)
+    |> basic_decl (fn _ => Sign.add_type_abbrev lthy (b, vs, rhs)) (b, length vs, mx)
     |> snd
     |> pair name
   end;

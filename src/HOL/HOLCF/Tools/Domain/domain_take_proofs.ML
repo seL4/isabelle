@@ -262,7 +262,7 @@ fun define_take_functions
         val take_type = HOLogic.natT --> lhsT ->> lhsT
         val take_bind = Binding.suffix_name "_take" dbind
         val (take_const, thy) =
-          Sign.declare_const ((take_bind, take_type), NoSyn) thy
+          Sign.declare_const_global ((take_bind, take_type), NoSyn) thy
         val take_eqn = Logic.mk_equals (take_const, take_rhs)
         val (take_def_thm, thy) =
             add_qualified_def "take_def" (dbind, take_eqn) thy
@@ -401,7 +401,7 @@ fun define_take_functions
         val finite_type = lhsT --> boolT
         val finite_bind = Binding.suffix_name "_finite" dbind
         val (finite_const, thy) =
-          Sign.declare_const ((finite_bind, finite_type), NoSyn) thy
+          Sign.declare_const_global ((finite_bind, finite_type), NoSyn) thy
         val x = Free ("x", lhsT)
         val n = Free ("n", natT)
         val finite_rhs =

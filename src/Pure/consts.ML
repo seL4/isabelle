@@ -29,9 +29,9 @@ sig
   val certify: Pretty.pp -> Type.tsig -> bool -> T -> term -> term  (*exception TYPE*)
   val typargs: T -> string * typ -> typ list
   val instance: T -> string * typ list -> typ
-  val declare: Name_Space.naming -> binding * typ -> T -> T
+  val declare: Proof.context -> Name_Space.naming -> binding * typ -> T -> T
   val constrain: string * typ option -> T -> T
-  val abbreviate: Pretty.pp -> Type.tsig -> Name_Space.naming -> string ->
+  val abbreviate: Proof.context -> Type.tsig -> Name_Space.naming -> string ->
     binding * term -> T -> (term * term) * T
   val revert_abbrev: string -> string -> T -> T
   val hide: bool -> string -> T -> T
@@ -231,12 +231,12 @@ fun hide fully c = map_consts (fn (decls, constraints, rev_abbrevs) =>
 
 (* declarations *)
 
-fun declare naming (b, declT) =
+fun declare ctxt naming (b, declT) =
   map_consts (fn (decls, constraints, rev_abbrevs) =>
     let
       val decl = {T = declT, typargs = typargs_of declT};
       val _ = Binding.check b;
-      val (_, decls') = decls |> Name_Space.define true naming (b, (decl, NONE));
+      val (_, decls') = decls |> Name_Space.define ctxt true naming (b, (decl, NONE));
     in (decls', constraints, rev_abbrevs) end);
 
 
@@ -267,8 +267,9 @@ fun rev_abbrev lhs rhs =
 
 in
 
-fun abbreviate pp tsig naming mode (b, raw_rhs) consts =
+fun abbreviate ctxt tsig naming mode (b, raw_rhs) consts =
   let
+    val pp = Syntax.pp ctxt;
     val cert_term = certify pp tsig false consts;
     val expand_term = certify pp tsig true consts;
     val force_expand = mode = Print_Mode.internal;
@@ -290,7 +291,7 @@ fun abbreviate pp tsig naming mode (b, raw_rhs) consts =
         val abbr = {rhs = rhs, normal_rhs = normal_rhs, force_expand = force_expand};
         val _ = Binding.check b;
         val (_, decls') = decls
-          |> Name_Space.define true naming (b, (decl, SOME abbr));
+          |> Name_Space.define ctxt true naming (b, (decl, SOME abbr));
         val rev_abbrevs' = rev_abbrevs
           |> update_abbrevs mode (rev_abbrev lhs rhs);
       in (decls', constraints, rev_abbrevs') end)

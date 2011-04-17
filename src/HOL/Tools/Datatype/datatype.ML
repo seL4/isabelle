@@ -649,7 +649,7 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
     (* this theory is used just for parsing *)
     val tmp_thy = thy |>
       Theory.copy |>
-      Sign.add_types (map (fn (tvs, tname, mx, _) =>
+      Sign.add_types_global (map (fn (tvs, tname, mx, _) =>
         (tname, length tvs, mx)) dts);
 
     val (tyvars, _, _, _)::_ = dts;

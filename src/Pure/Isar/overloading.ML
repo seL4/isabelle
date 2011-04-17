@@ -143,7 +143,8 @@ fun synchronize_syntax ctxt =
 
 fun define_overloaded (c, U) (v, checked) (b_def, rhs) =
   Local_Theory.background_theory_result
-    (Thm.add_def (not checked) true (b_def, Logic.mk_equals (Const (c, Term.fastype_of rhs), rhs)))
+    (Thm.add_def_global (not checked) true
+      (b_def, Logic.mk_equals (Const (c, Term.fastype_of rhs), rhs)))
   ##> map_overloading (filter_out (fn (_, (v', _)) => v' = v))
   ##> Local_Theory.target synchronize_syntax
   #-> (fn (_, def) => pair (Const (c, U), def))

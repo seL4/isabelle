@@ -197,13 +197,15 @@ fun gen_simproc prep {name, lhss, proc, identifier} lthy =
        proc = proc,
        identifier = identifier};
   in
-    lthy |> Local_Theory.declaration false (fn phi =>
+    lthy |> Local_Theory.declaration false (fn phi => fn context =>
       let
         val b' = Morphism.binding phi b;
         val simproc' = morph_simproc phi simproc;
       in
-        Simprocs.map (#2 o Name_Space.define true naming (b', simproc'))
-        #> map_ss (fn ss => ss addsimprocs [simproc'])
+        context
+        |> Simprocs.map
+          (#2 o Name_Space.define (Context.proof_of context) true naming (b', simproc'))
+        |> map_ss (fn ss => ss addsimprocs [simproc'])
       end)
   end;
 

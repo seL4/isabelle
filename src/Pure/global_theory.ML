@@ -140,7 +140,9 @@ fun enter_thms pre_name post_name app_att (b, thms) thy =
       val (thy', thms') =
         register_proofs (apsnd (post_name name) (app_att (thy, pre_name name thms)));
       val thms'' = map (Thm.transfer thy') thms';
-      val thy'' = thy' |> (Data.map o apfst) (Facts.add_global naming (b, thms'') #> snd);
+      val thy'' = thy'
+        |> (Data.map o apfst)
+            (Facts.add_global (Proof_Context.init_global thy') naming (b, thms'') #> snd);
     in (thms'', thy'') end;
 
 
@@ -176,7 +178,7 @@ val add_thm = yield_singleton add_thms;
 
 fun add_thms_dynamic (b, f) thy = thy
   |> (Data.map o apfst)
-      (Facts.add_dynamic (Sign.naming_of thy) (b, f) #> snd);
+      (Facts.add_dynamic (Proof_Context.init_global thy) (Sign.naming_of thy) (b, f) #> snd);
 
 
 (* note_thmss *)
@@ -200,14 +202,15 @@ local
 
 fun no_read _ (_, t) = t;
 
-fun read thy (b, str) =
-  Syntax.read_prop_global thy str handle ERROR msg =>
+fun read ctxt (b, str) =
+  Syntax.read_prop ctxt str handle ERROR msg =>
     cat_error msg ("The error(s) above occurred in definition " ^ quote (Binding.str_of b));
 
 fun add prep unchecked overloaded = fold_map (fn ((b, raw_prop), atts) => fn thy =>
   let
-    val prop = prep thy (b, raw_prop);
-    val ((_, def), thy') = Thm.add_def unchecked overloaded (b, prop) thy;
+    val ctxt = Syntax.init_pretty_global thy;
+    val prop = prep ctxt (b, raw_prop);
+    val ((_, def), thy') = Thm.add_def ctxt unchecked overloaded (b, prop) thy;
     val thm = def
       |> Thm.forall_intr_frees
       |> Thm.forall_elim_vars 0

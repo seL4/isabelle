@@ -39,9 +39,9 @@ fun axiomatize_isomorphism
     val rep_bind = Binding.suffix_name "_rep" dbind
 
     val (abs_const, thy) =
-        Sign.declare_const ((abs_bind, rhsT ->> lhsT), NoSyn) thy
+        Sign.declare_const_global ((abs_bind, rhsT ->> lhsT), NoSyn) thy
     val (rep_const, thy) =
-        Sign.declare_const ((rep_bind, lhsT ->> rhsT), NoSyn) thy
+        Sign.declare_const_global ((rep_bind, lhsT ->> rhsT), NoSyn) thy
 
     val x = Free ("x", lhsT)
     val y = Free ("y", rhsT)
@@ -98,7 +98,7 @@ fun add_axioms
     (* declare new types *)
     fun thy_type (dbind, mx, (lhsT, _)) =
         (dbind, (length o snd o dest_Type) lhsT, mx)
-    val thy = Sign.add_types (map thy_type dom_eqns) thy
+    val thy = Sign.add_types_global (map thy_type dom_eqns) thy
 
     (* axiomatize type constructor arities *)
     fun thy_arity (_, _, (lhsT, _)) =

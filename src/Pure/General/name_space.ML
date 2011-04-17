@@ -46,10 +46,10 @@ sig
   val qualified_path: bool -> binding -> naming -> naming
   val transform_binding: naming -> binding -> binding
   val full_name: naming -> binding -> string
-  val declare: bool -> naming -> binding -> T -> string * T
+  val declare: Proof.context -> bool -> naming -> binding -> T -> string * T
   val alias: naming -> binding -> string -> T -> T
   type 'a table = T * 'a Symtab.table
-  val define: bool -> naming -> binding * 'a -> 'a table -> string * 'a table
+  val define: Proof.context -> bool -> naming -> binding * 'a -> 'a table -> string * 'a table
   val empty_table: string -> 'a table
   val merge_tables: 'a table * 'a table -> 'a table
   val join_tables: (string -> 'a * 'a -> 'a) (*Symtab.SAME*) ->
@@ -335,7 +335,7 @@ fun new_entry strict (name, (externals, entry)) =
             err_dup kind (dup, #2 (the (Symtab.lookup entries dup))) (name, entry);
     in (kind, internals, entries') end);
 
-fun declare strict naming binding space =
+fun declare ctxt strict naming binding space =
   let
     val Naming {group, theory_name, ...} = naming;
     val (concealed, spec) = name_spec naming binding;
@@ -344,15 +344,17 @@ fun declare strict naming binding space =
     val name = Long_Name.implode (map fst spec);
     val _ = name = "" andalso err_bad binding;
 
+    val pos = Position.default (Binding.pos_of binding);
     val entry =
      {concealed = concealed,
       group = group,
       theory_name = theory_name,
-      pos = Position.default (Binding.pos_of binding),
+      pos = pos,
       id = serial ()};
     val space' = space
       |> fold (add_name name) accs
       |> new_entry strict (name, (accs', entry));
+    val _ = Context_Position.report ctxt pos (entry_markup true (kind_of space) (name, entry));
   in (name, space') end;
 
 
@@ -379,8 +381,8 @@ fun alias naming binding name space =
 
 type 'a table = T * 'a Symtab.table;
 
-fun define strict naming (binding, x) (space, tab) =
-  let val (name, space') = declare strict naming binding space
+fun define ctxt strict naming (binding, x) (space, tab) =
+  let val (name, space') = declare ctxt strict naming binding space
   in (name, (space', Symtab.update (name, x) tab)) end;
 
 fun empty_table kind = (empty kind, Symtab.empty);

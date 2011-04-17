@@ -194,7 +194,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
 
     val tmp_thy = thy |>
       Theory.copy |>
-      Sign.add_types (map (fn (tvs, tname, mx, _) =>
+      Sign.add_types_global (map (fn (tvs, tname, mx, _) =>
         (Binding.name tname, length tvs, mx)) dts);
 
     val atoms = atoms_of thy;
