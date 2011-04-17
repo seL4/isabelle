@@ -21,13 +21,13 @@ struct
 (** markup logical entities **)
 
 fun markup_class ctxt c =
-  [Name_Space.markup_entry (Type.class_space (Proof_Context.tsig_of ctxt)) c];
+  [Name_Space.markup (Type.class_space (Proof_Context.tsig_of ctxt)) c];
 
 fun markup_type ctxt c =
-  [Name_Space.markup_entry (Type.type_space (Proof_Context.tsig_of ctxt)) c];
+  [Name_Space.markup (Type.type_space (Proof_Context.tsig_of ctxt)) c];
 
 fun markup_const ctxt c =
-  [Name_Space.markup_entry (Consts.space_of (Proof_Context.consts_of ctxt)) c];
+  [Name_Space.markup (Consts.space_of (Proof_Context.consts_of ctxt)) c];
 
 fun markup_free ctxt x =
   [if can Name.dest_skolem x then Markup.skolem else Markup.free] @

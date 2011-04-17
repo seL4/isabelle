@@ -16,7 +16,7 @@ sig
   val kind_of: T -> string
   val the_entry: T -> string ->
     {concealed: bool, group: serial option, theory_name: string, pos: Position.T, id: serial}
-  val markup_entry: T -> string -> Markup.T
+  val markup: T -> string -> Markup.T
   val is_concealed: T -> string -> bool
   val intern: T -> xstring -> string
   val long_names_default: bool Unsynchronized.ref
@@ -121,7 +121,7 @@ fun the_entry (Name_Space {kind, entries, ...}) name =
     NONE => error ("Unknown " ^ kind ^ " " ^ quote name)
   | SOME (_, entry) => entry);
 
-fun markup_entry (Name_Space {kind, entries, ...}) name =
+fun markup (Name_Space {kind, entries, ...}) name =
   (case Symtab.lookup entries name of
     NONE => Markup.malformed
   | SOME (_, entry) => entry_markup false kind (name, entry));

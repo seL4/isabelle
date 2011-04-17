@@ -333,7 +333,7 @@ fun which_facts ctxt name =
     then local_facts else global_facts
   end;
 
-fun markup_fact ctxt name = Name_Space.markup_entry (Facts.space_of (which_facts ctxt name)) name;
+fun markup_fact ctxt name = Name_Space.markup (Facts.space_of (which_facts ctxt name)) name;
 
 fun extern_fact ctxt name = Facts.extern ctxt (which_facts ctxt name) name;
 
@@ -888,7 +888,7 @@ fun retrieve_thms pick ctxt (Facts.Fact s) =
             (case Facts.lookup (Context.Proof ctxt) local_facts name of
               SOME (_, ths) =>
                 (Context_Position.report ctxt pos
-                  (Name_Space.markup_entry (Facts.space_of local_facts) name);
+                  (Name_Space.markup (Facts.space_of local_facts) name);
                  map (Thm.transfer thy) (Facts.select thmref ths))
             | NONE => Global_Theory.get_fact (Context.Proof ctxt) thy xthmref);
       in pick name thms end;
