@@ -36,12 +36,12 @@ sig
   val pretty_term_ast: bool -> Proof.context -> prtabs ->
     (string -> Proof.context -> Ast.ast list -> Ast.ast) ->
     (string -> string -> Pretty.T option) ->
-    (string -> Markup.T list * xstring) ->
+    (string -> Markup.T list * string) ->
     Ast.ast -> Pretty.T list
   val pretty_typ_ast: Proof.context -> prtabs ->
     (string -> Proof.context -> Ast.ast list -> Ast.ast) ->
     (string -> string -> Pretty.T option) ->
-    (string -> Markup.T list * xstring) -> Ast.ast -> Pretty.T list
+    (string -> Markup.T list * string) -> Ast.ast -> Pretty.T list
 end;
 
 structure Printer: PRINTER =

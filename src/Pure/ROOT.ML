@@ -103,24 +103,16 @@ use "Concurrent/cache.ML";
 
 use "name.ML";
 use "term.ML";
-use "term_ord.ML";
-use "term_subst.ML";
-use "old_term.ML";
 use "General/pretty.ML";
 use "context.ML";
 use "config.ML";
 use "context_position.ML";
-use "General/name_space.ML";
-use "sorts.ML";
-use "type.ML";
-use "logic.ML";
 
 
 (* inner syntax *)
 
 use "Syntax/term_position.ML";
 use "Syntax/lexicon.ML";
-use "Syntax/simple_syntax.ML";
 use "Syntax/ast.ML";
 use "Syntax/syntax_ext.ML";
 use "Syntax/parser.ML";
@@ -132,6 +124,14 @@ use "Syntax/syntax.ML";
 
 (* core of tactical proof system *)
 
+use "term_ord.ML";
+use "term_subst.ML";
+use "old_term.ML";
+use "General/name_space.ML";
+use "sorts.ML";
+use "type.ML";
+use "logic.ML";
+use "Syntax/simple_syntax.ML";
 use "net.ML";
 use "item_net.ML";
 use "envir.ML";

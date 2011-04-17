@@ -10,6 +10,8 @@ sig
   val const: string -> term
   val free: string -> term
   val var: indexname -> term
+  type operations
+  val install_operations: operations -> unit
   val root: string Config.T
   val positions_raw: Config.raw
   val positions: bool Config.T
@@ -28,14 +30,6 @@ sig
   val unparse_arity: Proof.context -> arity -> Pretty.T
   val unparse_typ: Proof.context -> typ -> Pretty.T
   val unparse_term: Proof.context -> term -> Pretty.T
-  val install_operations:
-   {parse_sort: Proof.context -> string -> sort,
-    parse_typ: Proof.context -> string -> typ,
-    parse_term: Proof.context -> string -> term,
-    parse_prop: Proof.context -> string -> term,
-    unparse_sort: Proof.context -> sort -> Pretty.T,
-    unparse_typ: Proof.context -> typ -> Pretty.T,
-    unparse_term: Proof.context -> term -> Pretty.T} -> unit
   val print_checks: Proof.context -> unit
   val add_typ_check: int -> string ->
     (typ list -> Proof.context -> (typ list * Proof.context) option) ->
@@ -49,6 +43,10 @@ sig
   val add_term_uncheck: int -> string ->
     (term list -> Proof.context -> (term list * Proof.context) option) ->
     Context.generic -> Context.generic
+  val typ_check: Proof.context -> typ list -> typ list
+  val term_check: Proof.context -> term list -> term list
+  val typ_uncheck: Proof.context -> typ list -> typ list
+  val term_uncheck: Proof.context -> term list -> term list
   val check_sort: Proof.context -> sort -> sort
   val check_typ: Proof.context -> typ -> typ
   val check_term: Proof.context -> term -> term
@@ -151,6 +149,31 @@ val var = Lexicon.var;
 
 (** inner syntax operations **)
 
+(* back-patched operations *)
+
+type operations =
+ {parse_sort: Proof.context -> string -> sort,
+  parse_typ: Proof.context -> string -> typ,
+  parse_term: Proof.context -> string -> term,
+  parse_prop: Proof.context -> string -> term,
+  unparse_sort: Proof.context -> sort -> Pretty.T,
+  unparse_typ: Proof.context -> typ -> Pretty.T,
+  unparse_term: Proof.context -> term -> Pretty.T,
+  check_typs: Proof.context -> typ list -> typ list,
+  check_terms: Proof.context -> term list -> term list,
+  check_props: Proof.context -> term list -> term list,
+  uncheck_typs: Proof.context -> typ list -> typ list,
+  uncheck_terms: Proof.context -> term list -> term list};
+
+val operations: operations Single_Assignment.var = Single_Assignment.var "Syntax.operations";
+fun install_operations ops = Single_Assignment.assign operations ops;
+
+fun operation which ctxt x =
+  (case Single_Assignment.peek operations of
+    NONE => raise Fail "Inner syntax operations not installed"
+  | SOME ops => which ops ctxt x);
+
+
 (* configuration options *)
 
 val root = Config.string (Config.declare "syntax_root" (K (Config.String "any")));
@@ -191,26 +214,6 @@ fun parse_token ctxt markup str =
     val _ = Context_Position.report ctxt pos markup;
   in (syms, pos) end;
 
-local
-
-type operations =
- {parse_sort: Proof.context -> string -> sort,
-  parse_typ: Proof.context -> string -> typ,
-  parse_term: Proof.context -> string -> term,
-  parse_prop: Proof.context -> string -> term,
-  unparse_sort: Proof.context -> sort -> Pretty.T,
-  unparse_typ: Proof.context -> typ -> Pretty.T,
-  unparse_term: Proof.context -> term -> Pretty.T};
-
-val operations: operations Single_Assignment.var = Single_Assignment.var "Syntax.operations";
-
-fun operation which ctxt x =
-  (case Single_Assignment.peek operations of
-    NONE => raise Fail "Inner syntax operations not installed"
-  | SOME ops => which ops ctxt x);
-
-in
-
 val parse_sort = operation #parse_sort;
 val parse_typ = operation #parse_typ;
 val parse_term = operation #parse_term;
@@ -218,10 +221,6 @@ val parse_prop = operation #parse_prop;
 val unparse_sort = operation #unparse_sort;
 val unparse_typ = operation #unparse_typ;
 val unparse_term = operation #unparse_term;
-
-fun install_operations ops = Single_Assignment.assign operations ops;
-
-end;
 
 
 (* context-sensitive (un)checking *)
@@ -290,17 +289,22 @@ fun add_term_check stage = gen_add apsnd (stage, false);
 fun add_typ_uncheck stage = gen_add apfst (stage, true);
 fun add_term_uncheck stage = gen_add apsnd (stage, true);
 
-val check_typs = gen_check fst false;
-val check_terms = gen_check snd false;
-fun check_props ctxt = map (Type.constraint propT) #> check_terms ctxt;
+val typ_check = gen_check fst false;
+val term_check = gen_check snd false;
+val typ_uncheck = gen_check fst true;
+val term_uncheck = gen_check snd true;
+
+val check_typs = operation #check_typs;
+val check_terms = operation #check_terms;
+val check_props = operation #check_props;
 
 val check_typ = singleton o check_typs;
 val check_term = singleton o check_terms;
 val check_prop = singleton o check_props;
 val check_sort = map_sort o check_typ;
 
-val uncheck_typs = gen_check fst true;
-val uncheck_terms = gen_check snd true;
+val uncheck_typs = operation #uncheck_typs;
+val uncheck_terms = operation #uncheck_terms;
 val uncheck_sort = map_sort o singleton o uncheck_typs;
 
 end;
