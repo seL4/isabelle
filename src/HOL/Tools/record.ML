@@ -2398,7 +2398,7 @@ fun read_parent NONE ctxt = (NONE, ctxt)
 
 fun prep_field prep (x, T, mx) = (x, prep T, mx)
   handle ERROR msg =>
-    cat_error msg ("The error(s) above occurred in record field " ^ quote (Binding.str_of x));
+    cat_error msg ("The error(s) above occurred in record field " ^ Binding.print x);
 
 fun read_field raw_field ctxt =
   let val field as (_, T, _) = prep_field (Syntax.read_typ ctxt) raw_field
@@ -2411,7 +2411,7 @@ fun add_record quiet_mode (params, binding) raw_parent raw_fields thy =
     val _ = Theory.requires thy "Record" "record definitions";
     val _ =
       if quiet_mode then ()
-      else writeln ("Defining record " ^ quote (Binding.str_of binding) ^ " ...");
+      else writeln ("Defining record " ^ Binding.print binding ^ " ...");
 
     val ctxt = Proof_Context.init_global thy;
     fun cert_typ T = Type.no_tvars (Proof_Context.cert_typ ctxt T)
@@ -2447,7 +2447,7 @@ fun add_record quiet_mode (params, binding) raw_parent raw_fields thy =
     val err_dup_fields =
       (case duplicates Binding.eq_name (map #1 bfields) of
         [] => []
-      | dups => ["Duplicate field(s) " ^ commas_quote (map Binding.str_of dups)]);
+      | dups => ["Duplicate field(s) " ^ commas (map Binding.print dups)]);
 
     val err_bad_fields =
       if forall (not_equal moreN o Binding.name_of o #1) bfields then []
@@ -2459,7 +2459,7 @@ fun add_record quiet_mode (params, binding) raw_parent raw_fields thy =
   in
     thy |> definition (params, binding) parent parents bfields
   end
-  handle ERROR msg => cat_error msg ("Failed to define record " ^ quote (Binding.str_of binding));
+  handle ERROR msg => cat_error msg ("Failed to define record " ^ Binding.print binding);
 
 fun add_record_cmd quiet_mode (raw_params, binding) raw_parent raw_fields thy =
   let

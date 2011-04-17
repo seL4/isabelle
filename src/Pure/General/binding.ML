@@ -30,6 +30,7 @@ sig
   val prefix: bool -> string -> binding -> binding
   val conceal: binding -> binding
   val str_of: binding -> string
+  val print: binding -> string
   val bad: binding -> string
   val check: binding -> unit
 end;
@@ -123,17 +124,18 @@ val conceal =
     (true, prefix, qualifier, name, pos));
 
 
-(* str_of *)
+(* print *)
 
 fun str_of binding =
   qualified_name_of binding
   |> Markup.markup (Position.markup (pos_of binding) (Markup.binding (name_of binding)));
 
+val print = quote o str_of;
+
 
 (* check *)
 
-fun bad binding =
-  "Bad name binding: " ^ quote (str_of binding) ^ Position.str_of (pos_of binding);
+fun bad binding = "Bad name binding: " ^ print binding ^ Position.str_of (pos_of binding);
 
 fun check binding =
   if Symbol.is_ident (Symbol.explode (name_of binding)) then ()

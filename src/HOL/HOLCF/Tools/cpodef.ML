@@ -237,7 +237,7 @@ fun prepare_cpodef
     (goal_nonempty, goal_admissible, cpodef_result)
   end
   handle ERROR msg =>
-    cat_error msg ("The error(s) above occurred in cpodef " ^ quote (Binding.str_of name))
+    cat_error msg ("The error(s) above occurred in cpodef " ^ Binding.print name)
 
 fun prepare_pcpodef
       (prep_term: Proof.context -> 'a -> term)
@@ -274,7 +274,7 @@ fun prepare_pcpodef
     (goal_bottom_mem, goal_admissible, pcpodef_result)
   end
   handle ERROR msg =>
-    cat_error msg ("The error(s) above occurred in pcpodef " ^ quote (Binding.str_of name))
+    cat_error msg ("The error(s) above occurred in pcpodef " ^ Binding.print name)
 
 
 (* tactic interface *)

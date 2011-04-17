@@ -645,14 +645,13 @@ fun syntactic types (Type (c, Ts)) =
 in
 
 fun add_type ctxt naming (c, n) =
-  if n < 0 then error ("Bad type constructor declaration " ^ quote (Binding.str_of c))
+  if n < 0 then error ("Bad type constructor declaration " ^ Binding.print c)
   else map_types (new_decl ctxt naming (c, LogicalType n));
 
 fun add_abbrev ctxt naming (a, vs, rhs) tsig = tsig |> map_types (fn types =>
   let
     fun err msg =
-      cat_error msg ("The error(s) above occurred in type abbreviation " ^
-        quote (Binding.str_of a));
+      cat_error msg ("The error(s) above occurred in type abbreviation " ^ Binding.print a);
     val rhs' = strip_sorts (no_tvars (cert_typ_mode mode_syntax tsig rhs))
       handle TYPE (msg, _, _) => err msg;
     val _ =

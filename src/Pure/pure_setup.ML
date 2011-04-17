@@ -22,7 +22,7 @@ toplevel_pp ["Pretty", "T"] "(fn _: Pretty.T => Pretty.str \"<pretty>\")";
 toplevel_pp ["Task_Queue", "task"] "Pretty.str o Task_Queue.str_of_task";
 toplevel_pp ["Task_Queue", "group"] "Pretty.str o Task_Queue.str_of_group";
 toplevel_pp ["Position", "T"] "Pretty.position";
-toplevel_pp ["Binding", "binding"] "Pretty.str o quote o Binding.str_of";
+toplevel_pp ["Binding", "binding"] "Pretty.str o Binding.print";
 toplevel_pp ["Thm", "thm"] "Proof_Display.pp_thm";
 toplevel_pp ["Thm", "cterm"] "Proof_Display.pp_cterm";
 toplevel_pp ["Thm", "ctyp"] "Proof_Display.pp_ctyp";

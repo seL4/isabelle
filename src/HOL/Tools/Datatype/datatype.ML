@@ -660,7 +660,7 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
           [] =>
             if eq_set (op =) (tyvars, tvs) then ((full_tname, tvs), (tname, mx))
             else error ("Mutually recursive datatypes must have same type parameters")
-        | dups => error ("Duplicate parameter(s) for datatype " ^ quote (Binding.str_of tname) ^
+        | dups => error ("Duplicate parameter(s) for datatype " ^ Binding.print tname ^
             " : " ^ commas dups))
       end) dts);
     val dt_names = map fst new_dts;
@@ -684,8 +684,8 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
             (constrs @ [(c, map (Datatype_Aux.dtyp_of_typ new_dts) cargs')],
               constr_syntax' @ [(cname, mx')], sorts'')
           end handle ERROR msg => cat_error msg
-           ("The error above occurred in constructor " ^ quote (Binding.str_of cname) ^
-            " of datatype " ^ quote (Binding.str_of tname));
+           ("The error above occurred in constructor " ^ Binding.print cname ^
+            " of datatype " ^ Binding.print tname);
 
         val (constrs', constr_syntax', sorts') =
           fold prep_constr constrs ([], [], sorts)
@@ -694,8 +694,8 @@ fun gen_add_datatype prep_typ config new_type_names dts thy =
           [] =>
             (dts' @ [(i, (Sign.full_name tmp_thy tname, map Datatype_Aux.DtTFree tvs, constrs'))],
               constr_syntax @ [constr_syntax'], sorts', i + 1)
-        | dups => error ("Duplicate constructors " ^ commas dups ^
-             " in datatype " ^ quote (Binding.str_of tname))
+        | dups =>
+            error ("Duplicate constructors " ^ commas dups ^ " in datatype " ^ Binding.print tname)
       end;
 
     val (dts', constr_syntax, sorts', i) =

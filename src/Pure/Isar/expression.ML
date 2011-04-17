@@ -746,7 +746,7 @@ fun gen_add_locale prep_decl
     val _ =
       if null extraTs then ()
       else warning ("Additional type variable(s) in locale specification " ^
-        quote (Binding.str_of binding) ^ ": " ^
+          Binding.print binding ^ ": " ^
           commas (map (Syntax.string_of_typ ctxt' o TFree) (sort_wrt #1 extraTs)));
 
     val predicate_binding =

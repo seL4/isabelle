@@ -169,8 +169,7 @@ fun cert_axm ctxt (b, raw_tm) =
       error ("Illegal sort constraints in primitive specification: " ^
         commas (map (Syntax.string_of_typ (Config.put show_sorts true ctxt)) bad_sorts));
   in (b, Sign.no_vars ctxt t) end
-  handle ERROR msg =>
-    cat_error msg ("The error(s) above occurred in axiom " ^ quote (Binding.str_of b));
+  handle ERROR msg => cat_error msg ("The error(s) above occurred in axiom " ^ Binding.print b);
 
 fun add_axiom ctxt raw_axm thy = thy |> map_axioms (fn axioms =>
   let
@@ -251,7 +250,7 @@ fun check_def ctxt unchecked overloaded (b, tm) defs =
     val _ = check_overloading ctxt overloaded lhs_const;
   in defs |> dependencies ctxt unchecked (SOME name) name lhs_const rhs_consts end
   handle ERROR msg => cat_error msg (Pretty.string_of (Pretty.block
-   [Pretty.str ("The error(s) above occurred in definition " ^ quote (Binding.str_of b) ^ ":"),
+   [Pretty.str ("The error(s) above occurred in definition " ^ Binding.print b ^ ":"),
     Pretty.fbrk, Pretty.quote (Syntax.pretty_term ctxt tm)]));
 
 in

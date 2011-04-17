@@ -65,7 +65,7 @@ fun is_contconst (_, _, NoSyn) = false
   | is_contconst (c, T, mx) =
       let
         val n = Mixfix.mixfix_args mx handle ERROR msg =>
-          cat_error msg ("in mixfix annotation for " ^ quote (Binding.str_of c))
+          cat_error msg ("in mixfix annotation for " ^ Binding.print c)
       in cfun_arity T >= n end
 
 

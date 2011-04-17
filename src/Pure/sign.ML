@@ -401,7 +401,7 @@ fun gen_add_consts parse_typ ctxt raw_args thy =
       let
         val c = full_name thy b;
         val T = (prepT raw_T handle TYPE (msg, _, _) => error msg) handle ERROR msg =>
-          cat_error msg ("in declaration of constant " ^ quote (Binding.str_of b));
+          cat_error msg ("in declaration of constant " ^ Binding.print b);
         val T' = Logic.varifyT_global T;
       in ((b, T'), (Lexicon.mark_const c, T', mx), Const (c, T)) end;
     val args = map prep raw_args;
@@ -432,7 +432,7 @@ fun add_abbrev mode (b, raw_t) thy =
     val ctxt = Syntax.init_pretty_global thy;
     val prep_tm = no_frees ctxt o Term.no_dummy_patterns o cert_term_abbrev thy;
     val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg)
-      handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote (Binding.str_of b));
+      handle ERROR msg => cat_error msg ("in constant abbreviation " ^ Binding.print b);
     val (res, consts') = consts_of thy
       |> Consts.abbreviate ctxt (tsig_of thy) (naming_of thy) mode (b, t);
   in (res, thy |> map_consts (K consts')) end;

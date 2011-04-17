@@ -462,7 +462,7 @@ fun gen_domain_isomorphism
           [] =>
             if eq_set (op =) (tyvars, tvs) then (full_tname, tvs)
             else error ("Mutually recursive domains must have same type parameters")
-        | dups => error ("Duplicate parameter(s) for domain " ^ quote (Binding.str_of tname) ^
+        | dups => error ("Duplicate parameter(s) for domain " ^ Binding.print tname ^
             " : " ^ commas dups))
       end) doms
     val dbinds = map (fn (_, dbind, _, _, _) => dbind) doms

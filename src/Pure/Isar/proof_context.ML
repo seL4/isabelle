@@ -952,7 +952,7 @@ fun prep_vars prep_typ internal =
     let
       val x = Variable.name b;
       val _ = Lexicon.is_identifier (no_skolem internal x) orelse
-        error ("Illegal variable name: " ^ quote (Binding.str_of b));
+        error ("Illegal variable name: " ^ Binding.print b);
 
       fun cond_tvars T =
         if internal then T
@@ -1031,7 +1031,7 @@ fun add_const_constraint (c, opt_T) ctxt =
 fun add_abbrev mode (b, raw_t) ctxt =
   let
     val t0 = cert_term (ctxt |> set_mode mode_abbrev) raw_t
-      handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote (Binding.str_of b));
+      handle ERROR msg => cat_error msg ("in constant abbreviation " ^ Binding.print b);
     val [t] = Variable.exportT_terms (Variable.declare_term t0 ctxt) ctxt [t0];
     val ((lhs, rhs), consts') = consts_of ctxt
       |> Consts.abbreviate ctxt (tsig_of ctxt) (naming_of ctxt) mode (b, t);

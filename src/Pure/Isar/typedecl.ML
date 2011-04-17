@@ -49,7 +49,7 @@ fun basic_typedecl (b, n, mx) lthy =
 
 fun global_type lthy (b, raw_args) =
   let
-    fun err msg = error (msg ^ " in type declaration " ^ quote (Binding.str_of b));
+    fun err msg = error (msg ^ " in type declaration " ^ Binding.print b);
 
     val _ = has_duplicates (eq_fst op =) raw_args andalso err "Duplicate parameters";
     val args = map (TFree o Proof_Context.check_tfree lthy) raw_args;
@@ -89,7 +89,7 @@ fun gen_abbrev prep_typ (b, vs, mx) raw_rhs lthy =
   let
     val Type (name, _) = global_type lthy (b, map (rpair dummyS) vs);
     val rhs = prep_typ b lthy raw_rhs
-      handle ERROR msg => cat_error msg ("in type abbreviation " ^ quote (Binding.str_of b));
+      handle ERROR msg => cat_error msg ("in type abbreviation " ^ Binding.print b);
   in
     lthy
     |> basic_decl (fn _ => Sign.add_type_abbrev lthy (b, vs, rhs)) (b, length vs, mx)
@@ -106,7 +106,7 @@ fun read_abbrev b ctxt raw_rhs =
       else Context_Position.if_visible ctxt warning
         ("Ignoring sort constraints in type variables(s): " ^
           commas_quote (map (Syntax.string_of_typ ctxt) (rev ignored)) ^
-          "\nin type abbreviation " ^ quote (Binding.str_of b));
+          "\nin type abbreviation " ^ Binding.print b);
   in rhs end;
 
 in

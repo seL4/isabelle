@@ -269,12 +269,12 @@ fun select_disj 1 1 = []
 local
 
 fun err_in_rule ctxt name t msg =
-  error (cat_lines ["Ill-formed introduction rule " ^ quote name,
+  error (cat_lines ["Ill-formed introduction rule " ^ Binding.print name,
     Syntax.string_of_term ctxt t, msg]);
 
 fun err_in_prem ctxt name t p msg =
   error (cat_lines ["Ill-formed premise", Syntax.string_of_term ctxt p,
-    "in introduction rule " ^ quote name, Syntax.string_of_term ctxt t, msg]);
+    "in introduction rule " ^ Binding.print name, Syntax.string_of_term ctxt t, msg]);
 
 val bad_concl = "Conclusion of introduction rule must be an inductive predicate";
 
@@ -288,7 +288,6 @@ in
 
 fun check_rule ctxt cs params ((binding, att), rule) =
   let
-    val err_name = Binding.str_of binding;
     val params' = Term.variant_frees rule (Logic.strip_params rule);
     val frees = rev (map Free params');
     val concl = subst_bounds (frees, Logic.strip_assums_concl rule);
@@ -306,7 +305,7 @@ fun check_rule ctxt cs params ((binding, att), rule) =
 
     fun check_prem' prem t =
       if member (op =) cs (head_of t) then
-        check_ind (err_in_prem ctxt err_name rule prem) t
+        check_ind (err_in_prem ctxt binding rule prem) t
       else (case t of
           Abs (_, _, t) => check_prem' prem t
         | t $ u => (check_prem' prem t; check_prem' prem u)
@@ -314,15 +313,15 @@ fun check_rule ctxt cs params ((binding, att), rule) =
 
     fun check_prem (prem, aprem) =
       if can HOLogic.dest_Trueprop aprem then check_prem' prem prem
-      else err_in_prem ctxt err_name rule prem "Non-atomic premise";
+      else err_in_prem ctxt binding rule prem "Non-atomic premise";
   in
     (case concl of
        Const (@{const_name Trueprop}, _) $ t =>
          if member (op =) cs (head_of t) then
-           (check_ind (err_in_rule ctxt err_name rule') t;
+           (check_ind (err_in_rule ctxt binding rule') t;
             List.app check_prem (prems ~~ aprems))
-         else err_in_rule ctxt err_name rule' bad_concl
-     | _ => err_in_rule ctxt err_name rule' bad_concl);
+         else err_in_rule ctxt binding rule' bad_concl
+     | _ => err_in_rule ctxt binding rule' bad_concl);
     ((binding, att), arule)
   end;
 

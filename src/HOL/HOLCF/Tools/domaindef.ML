@@ -197,7 +197,7 @@ fun gen_add_domaindef
     ((info, cpo_info, pcpo_info, rep_info), thy)
   end
   handle ERROR msg =>
-    cat_error msg ("The error(s) above occurred in domaindef " ^ quote (Binding.str_of name))
+    cat_error msg ("The error(s) above occurred in domaindef " ^ Binding.print name)
 
 fun add_domaindef def opt_name typ defl opt_morphs thy =
   let

@@ -254,7 +254,7 @@ fun prepare_typedef prep_term def_set name (tname, raw_args, mx) raw_set opt_mor
 
   in ((goal, goal_pat, typedef_result), alias_lthy) end
   handle ERROR msg =>
-    cat_error msg ("The error(s) above occurred in typedef " ^ quote (Binding.str_of name));
+    cat_error msg ("The error(s) above occurred in typedef " ^ Binding.print name);
 
 
 (* add_typedef: tactic interface *)

@@ -275,7 +275,7 @@ fun abbreviate ctxt tsig naming mode (b, raw_rhs) consts =
     val force_expand = mode = Print_Mode.internal;
 
     val _ = Term.exists_subterm Term.is_Var raw_rhs andalso
-      error ("Illegal schematic variables on rhs of abbreviation " ^ quote (Binding.str_of b));
+      error ("Illegal schematic variables on rhs of abbreviation " ^ Binding.print b);
 
     val rhs = raw_rhs
       |> Term.map_types (Type.cert_typ tsig)

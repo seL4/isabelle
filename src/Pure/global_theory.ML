@@ -205,7 +205,7 @@ fun no_read _ (_, t) = t;
 
 fun read ctxt (b, str) =
   Syntax.read_prop ctxt str handle ERROR msg =>
-    cat_error msg ("The error(s) above occurred in definition " ^ quote (Binding.str_of b));
+    cat_error msg ("The error(s) above occurred in definition " ^ Binding.print b);
 
 fun add prep unchecked overloaded = fold_map (fn ((b, raw_prop), atts) => fn thy =>
   let
