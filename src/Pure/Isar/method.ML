@@ -356,12 +356,12 @@ val defined = Symtab.defined o #2 o Methods.get;
 
 fun method_i thy =
   let
-    val meths = #2 (Methods.get thy);
+    val (space, tab) = Methods.get thy;
     fun meth src =
       let val ((name, _), pos) = Args.dest_src src in
-        (case Symtab.lookup meths name of
+        (case Symtab.lookup tab name of
           NONE => error ("Unknown proof method: " ^ quote name ^ Position.str_of pos)
-        | SOME (mth, _) => (Position.report pos (Markup.method name); mth src))
+        | SOME (mth, _) => (Position.report pos (Name_Space.markup space name); mth src))
       end;
   in meth end;
 

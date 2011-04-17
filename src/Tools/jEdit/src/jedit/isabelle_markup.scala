@@ -173,8 +173,6 @@ object Isabelle_Markup
       Markup.TYP -> NULL,
       Markup.TERM -> NULL,
       Markup.PROP -> NULL,
-      Markup.ATTRIBUTE -> NULL,
-      Markup.METHOD -> NULL,
       // ML syntax
       Markup.ML_KEYWORD -> KEYWORD1,
       Markup.ML_DELIMITER -> OPERATOR,

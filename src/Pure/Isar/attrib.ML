@@ -109,12 +109,12 @@ val defined = Symtab.defined o #2 o Attributes.get;
 
 fun attribute_i thy =
   let
-    val attrs = #2 (Attributes.get thy);
+    val (space, tab) = Attributes.get thy;
     fun attr src =
       let val ((name, _), pos) = Args.dest_src src in
-        (case Symtab.lookup attrs name of
+        (case Symtab.lookup tab name of
           NONE => error ("Unknown attribute: " ^ quote name ^ Position.str_of pos)
-        | SOME (att, _) => (Position.report pos (Markup.attribute name); att src))
+        | SOME (att, _) => (Position.report pos (Name_Space.markup space name); att src))
       end;
   in attr end;
 
