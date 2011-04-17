@@ -185,10 +185,7 @@ fun add_thms_dynamic (b, f) thy = thy
 
 fun note_thmss kind = fold_map (fn ((b, more_atts), ths_atts) => fn thy =>
   let
-    val pos = Binding.pos_of b;
     val name = Sign.full_name thy b;
-    val _ = Position.report pos (Markup.fact_decl name);
-
     fun app (x, (ths, atts)) = Library.foldl_map (Thm.theory_attributes atts) (x, ths);
     val (thms, thy') = thy |> enter_thms
       (name_thmss true) (name_thms false true) (apsnd flat o Library.foldl_map app)

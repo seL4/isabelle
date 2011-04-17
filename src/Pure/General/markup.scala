@@ -151,12 +151,9 @@ object Markup
   val TYCON = "tycon"
   val FIXED_DECL = "fixed_decl"
   val FIXED = "fixed"
-  val CONST_DECL = "const_decl"
   val CONST = "constant"
-  val FACT_DECL = "fact_decl"
   val FACT = "fact"
   val DYNAMIC_FACT = "dynamic_fact"
-  val LOCAL_FACT_DECL = "local_fact_decl"
   val LOCAL_FACT = "local_fact"
 
 

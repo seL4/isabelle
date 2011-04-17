@@ -912,10 +912,7 @@ in
 
 fun note_thmss kind = fold_map (fn ((b, more_attrs), raw_facts) => fn ctxt =>
   let
-    val pos = Binding.pos_of b;
     val name = full_name ctxt b;
-    val _ = Context_Position.report ctxt pos (Markup.local_fact_decl name);
-
     val facts = Global_Theory.name_thmss false name raw_facts;
     fun app (th, attrs) x =
       swap (Library.foldl_map

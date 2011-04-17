@@ -419,13 +419,7 @@ fun add_consts args thy =
 fun add_consts_i args thy =
   #2 (gen_add_consts (K I) (Proof_Context.init_global thy) args thy);
 
-fun declare_const ctxt ((b, T), mx) thy =
-  let
-    val pos = Binding.pos_of b;
-    val ([const as Const (c, _)], thy') = gen_add_consts (K I) ctxt [(b, T, mx)] thy;
-    val _ = Position.report pos (Markup.const_decl c);
-  in (const, thy') end;
-
+fun declare_const ctxt ((b, T), mx) = yield_singleton (gen_add_consts (K I) ctxt) (b, T, mx);
 fun declare_const_global arg thy = declare_const (Proof_Context.init_global thy) arg thy;
 
 end;
