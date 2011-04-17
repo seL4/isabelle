@@ -152,9 +152,7 @@ object Markup
   val FIXED_DECL = "fixed_decl"
   val FIXED = "fixed"
   val CONST = "constant"
-  val FACT = "fact"
   val DYNAMIC_FACT = "dynamic_fact"
-  val LOCAL_FACT = "local_fact"
 
 
   /* inner syntax */

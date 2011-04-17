@@ -78,17 +78,21 @@ fun join_proofs thy = Thm.join_proofs (rev (#2 (Data.get thy)));
 
 fun get_fact context thy xthmref =
   let
+    val ctxt = Context.proof_of context;
+
+    val facts = facts_of thy;
     val xname = Facts.name_of_ref xthmref;
     val pos = Facts.pos_of_ref xthmref;
 
     val name = intern_fact thy xname;
-    val res = Facts.lookup context (facts_of thy) name;
+    val res = Facts.lookup context facts name;
     val _ = Theory.check_thy thy;
   in
     (case res of
       NONE => error ("Unknown fact " ^ quote name ^ Position.str_of pos)
     | SOME (static, ths) =>
-        (Position.report pos ((if static then Markup.fact else Markup.dynamic_fact) name);
+        (Context_Position.report ctxt pos (Name_Space.markup_entry (Facts.space_of facts) name);
+         if static then () else Context_Position.report ctxt pos (Markup.dynamic_fact name);
          Facts.select xthmref (map (Thm.transfer thy) ths)))
   end;
 

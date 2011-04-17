@@ -155,9 +155,7 @@ object Isabelle_Markup
       Markup.FIXED_DECL -> FUNCTION,
       Markup.FIXED -> NULL,
       Markup.CONST -> LITERAL2,
-      Markup.FACT -> NULL,
       Markup.DYNAMIC_FACT -> LABEL,
-      Markup.LOCAL_FACT -> NULL,
       // inner syntax
       Markup.TFREE -> NULL,
       Markup.FREE -> MARKUP,

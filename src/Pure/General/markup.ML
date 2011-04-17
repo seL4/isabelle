@@ -39,9 +39,7 @@ sig
   val fixed_declN: string val fixed_decl: string -> T
   val fixedN: string val fixed: string -> T
   val constN: string val const: string -> T
-  val factN: string val fact: string -> T
   val dynamic_factN: string val dynamic_fact: string -> T
-  val local_factN: string val local_fact: string -> T
   val tfreeN: string val tfree: T
   val tvarN: string val tvar: T
   val freeN: string val free: T
@@ -216,9 +214,7 @@ val (tyconN, tycon) = markup_string "tycon" nameN;
 val (fixed_declN, fixed_decl) = markup_string "fixed_decl" nameN;
 val (fixedN, fixed) = markup_string "fixed" nameN;
 val (constN, const) = markup_string "constant" nameN;
-val (factN, fact) = markup_string "fact" nameN;
 val (dynamic_factN, dynamic_fact) = markup_string "dynamic_fact" nameN;
-val (local_factN, local_fact) = markup_string "local_fact" nameN;
 
 
 (* inner syntax *)
