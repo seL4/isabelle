@@ -33,6 +33,9 @@ val (smart_quantifier, setup_smart_quantifier) =
 
 val (fast, setup_fast) =
   Attrib.config_bool "quickcheck_fast" (K false)
+
+val (bounded_forall, setup_bounded_forall) =
+  Attrib.config_bool "quickcheck_bounded_forall" (K false)
   
 val (full_support, setup_full_support) =
   Attrib.config_bool "quickcheck_full_support" (K true)
@@ -409,6 +412,20 @@ fun mk_validator_expr ctxt t =
     val mk_test_term = mk_test_term lookup mk_bounded_forall mk_if @{term True} @{term False} ctxt
   in lambda depth (mk_test_term t) end
 
+
+fun mk_bounded_forall_generator_expr ctxt (t, eval_terms) = 
+  let
+    val frees = Term.add_free_names t []
+    val dummy_term = @{term "Code_Evaluation.Const (STR ''dummy_pattern'')
+      (Typerep.Typerep (STR ''dummy'') [])"}
+    val return = @{term "Some :: term list => term list option"} $
+      (HOLogic.mk_list @{typ "term"}
+        (replicate (length frees + length eval_terms) dummy_term))
+    val wrap = absdummy (@{typ bool},
+      @{term "If :: bool => term list option => term list option => term list option"} $
+      Bound 0 $ @{term "None :: term list option"} $ return)
+  in HOLogic.mk_comp (wrap, mk_validator_expr ctxt t) end
+  
 (** generator compiliation **)
 
 structure Counterexample = Proof_Data
@@ -437,12 +454,13 @@ val put_validator_batch = Validator_Batch.put;
 
 
 val target = "Quickcheck";
-  
+
 fun compile_generator_expr ctxt ts =
   let
     val thy = Proof_Context.theory_of ctxt
     val mk_generator_expr = 
       if Config.get ctxt fast then mk_fast_generator_expr
+      else if Config.get ctxt bounded_forall then mk_bounded_forall_generator_expr
       else if Config.get ctxt full_support then mk_full_generator_expr else mk_generator_expr
     val t' = mk_parametric_generator_expr mk_generator_expr ctxt ts;
     val compile = Code_Runtime.dynamic_value_strict
@@ -454,7 +472,7 @@ fun compile_generator_expr ctxt ts =
       (if Config.get ctxt quickcheck_pretty then
         Option.map (map Quickcheck_Common.post_process_term) else I))
   end;
- 
+
 fun compile_generator_exprs ctxt ts =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -493,6 +511,7 @@ val setup =
   #> setup_smart_quantifier
   #> setup_full_support
   #> setup_fast
+  #> setup_bounded_forall
   #> setup_quickcheck_pretty
   #> Context.theory_map (Quickcheck.add_generator ("exhaustive", compile_generator_expr))
   #> Context.theory_map (Quickcheck.add_batch_generator ("exhaustive", compile_generator_exprs))
