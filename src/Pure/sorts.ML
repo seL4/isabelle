@@ -48,7 +48,7 @@ sig
   val subalgebra: Context.pretty -> (class -> bool) -> (class * string -> sort list option)
     -> algebra -> (sort -> sort) * algebra
   type class_error
-  val class_error: Context.pretty -> class_error -> string
+  val class_error: Proof.context -> class_error -> string
   exception CLASS_ERROR of class_error
   val mg_domain: algebra -> string -> sort -> sort list   (*exception CLASS_ERROR*)
   val meet_sort: algebra -> typ * sort
@@ -335,14 +335,13 @@ datatype class_error =
   No_Arity of string * class |
   No_Subsort of sort * sort;
 
-fun class_error pp (No_Classrel (c1, c2)) =
-      "No class relation " ^ Syntax.string_of_classrel (Syntax.init_pretty pp) [c1, c2]
-  | class_error pp (No_Arity (a, c)) =
-      "No type arity " ^ Syntax.string_of_arity (Syntax.init_pretty pp) (a, [], [c])
-  | class_error pp (No_Subsort (S1, S2)) =
+fun class_error ctxt (No_Classrel (c1, c2)) =
+      "No class relation " ^ Syntax.string_of_classrel ctxt [c1, c2]
+  | class_error ctxt (No_Arity (a, c)) =
+      "No type arity " ^ Syntax.string_of_arity ctxt (a, [], [c])
+  | class_error ctxt (No_Subsort (S1, S2)) =
       "Cannot derive subsort relation " ^
-      Syntax.string_of_sort (Syntax.init_pretty pp) S1 ^ " < " ^
-      Syntax.string_of_sort (Syntax.init_pretty pp) S2;
+        Syntax.string_of_sort ctxt S1 ^ " < " ^ Syntax.string_of_sort ctxt S2;
 
 exception CLASS_ERROR of class_error;
 

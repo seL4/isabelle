@@ -450,15 +450,16 @@ fun synchronize_inst_syntax ctxt =
             (((primary_constraints, []), (((improve, subst), false), unchecks)), false))
   end;
 
-fun resort_terms pp algebra consts constraints ts =
+fun resort_terms ctxt algebra consts constraints ts =
   let
-    fun matchings (Const (c_ty as (c, _))) = (case constraints c
-         of NONE => I
-          | SOME sorts => fold2 (curry (Sorts.meet_sort algebra))
-              (Consts.typargs consts c_ty) sorts)
-      | matchings _ = I
+    fun matchings (Const (c_ty as (c, _))) =
+          (case constraints c of
+            NONE => I
+          | SOME sorts =>
+              fold2 (curry (Sorts.meet_sort algebra)) (Consts.typargs consts c_ty) sorts)
+      | matchings _ = I;
     val tvartab = (fold o fold_aterms) matchings ts Vartab.empty
-      handle Sorts.CLASS_ERROR e => error (Sorts.class_error pp e);
+      handle Sorts.CLASS_ERROR e => error (Sorts.class_error ctxt e);
     val inst = map_type_tvar
       (fn (vi, sort) => TVar (vi, the_default sort (Vartab.lookup tvartab vi)));
   in if Vartab.is_empty tvartab then NONE else SOME ((map o map_types) inst ts) end;
@@ -535,7 +536,7 @@ fun instantiation (tycos, vs, sort) thy =
     val improve_constraints = AList.lookup (op =)
       (map (fn (_, (class, (c, _))) => (c, [[class]])) class_params);
     fun resort_check ts ctxt =
-      (case resort_terms (Context.pretty ctxt) algebra consts improve_constraints ts of
+      (case resort_terms ctxt algebra consts improve_constraints ts of
         NONE => NONE
       | SOME ts' => SOME (ts', ctxt));
     val lookup_inst_param = AxClass.lookup_inst_param consts params;
@@ -560,7 +561,8 @@ fun instantiation (tycos, vs, sort) thy =
         notes = Generic_Target.notes
           (fn kind => fn global_facts => fn _ => Generic_Target.theory_notes kind global_facts),
         abbrev = Generic_Target.abbrev
-          (fn prmode => fn (b, mx) => fn (t, _) => fn _ => Generic_Target.theory_abbrev prmode ((b, mx), t)),
+          (fn prmode => fn (b, mx) => fn (t, _) => fn _ =>
+            Generic_Target.theory_abbrev prmode ((b, mx), t)),
         declaration = K Generic_Target.theory_declaration,
         syntax_declaration = K Generic_Target.theory_declaration,
         pretty = pretty,

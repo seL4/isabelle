@@ -310,7 +310,7 @@ fun arity_number tsig a =
 
 fun arity_sorts _ tsig a [] = replicate (arity_number tsig a) []
   | arity_sorts pp (TSig {classes, ...}) a S = Sorts.mg_domain (#2 classes) a S
-      handle Sorts.CLASS_ERROR err => error (Sorts.class_error pp err);
+      handle Sorts.CLASS_ERROR err => error (Sorts.class_error (Syntax.init_pretty pp) err);
 
 
 
