@@ -498,7 +498,7 @@ fun pretty_const ctxt c =
 
 fun pretty_abbrev ctxt s =
   let
-    val t = Syntax.parse_term ctxt s |> singleton (Proof_Context.standard_infer_types ctxt);
+    val t = Syntax.read_term (Proof_Context.set_mode Proof_Context.mode_abbrev ctxt) s;
     fun err () = error ("Abbreviated constant expected: " ^ Syntax.string_of_term ctxt t);
     val (head, args) = Term.strip_comb t;
     val (c, T) = Term.dest_Const head handle TERM _ => err ();
