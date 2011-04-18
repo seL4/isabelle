@@ -95,11 +95,12 @@ structure Thy = Theory_Data_PP
 
   fun merge pp (thy1, thy2) =
     let
+      val ctxt = Syntax.init_pretty pp;
       val Thy {axioms = _, defs = defs1, wrappers = (bgs1, ens1)} = thy1;
       val Thy {axioms = _, defs = defs2, wrappers = (bgs2, ens2)} = thy2;
 
       val axioms' = empty_axioms;
-      val defs' = Defs.merge pp (defs1, defs2);
+      val defs' = Defs.merge ctxt (defs1, defs2);
       val bgs' = Library.merge (eq_snd op =) (bgs1, bgs2);
       val ens' = Library.merge (eq_snd op =) (ens1, ens2);
     in make_thy (axioms', defs', (bgs', ens')) end;

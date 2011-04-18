@@ -18,7 +18,7 @@ sig
    {restricts: ((string * typ list) * string) list,
     reducts: ((string * typ list) * (string * typ list) list) list}
   val empty: T
-  val merge: Context.pretty -> T * T -> T
+  val merge: Proof.context -> T * T -> T
   val define: Proof.context -> bool -> string option -> string ->
     string * typ list -> (string * typ list) list -> T -> T
 end
@@ -187,9 +187,8 @@ end;
 
 (* merge *)
 
-fun merge pp (Defs defs1, Defs defs2) =
+fun merge ctxt (Defs defs1, Defs defs2) =
   let
-    val ctxt = Syntax.init_pretty pp;
     fun add_deps (c, args) restr deps defs =
       if AList.defined (op =) (reducts_of defs c) args then defs
       else dependencies ctxt (c, args) restr deps defs;
