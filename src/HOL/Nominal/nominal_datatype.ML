@@ -211,7 +211,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
     val tyvars = map (map (fn s =>
       (s, the (AList.lookup (op =) sorts s))) o #1) dts';
 
-    fun inter_sort thy S S' = Type.inter_sort (Sign.tsig_of thy) (S, S');
+    fun inter_sort thy S S' = Sign.inter_sort thy (S, S');
     fun augment_sort_typ thy S =
       let val S = Sign.minimize_sort thy (Sign.certify_sort thy S)
       in map_type_tfree (fn (s, S') => TFree (s,

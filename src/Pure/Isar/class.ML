@@ -540,10 +540,10 @@ fun instantiation (tycos, vs, sort) thy =
         NONE => NONE
       | SOME ts' => SOME (ts', ctxt));
     val lookup_inst_param = AxClass.lookup_inst_param consts params;
-    val typ_instance = Type.typ_instance (Sign.tsig_of thy);
-    fun improve (c, ty) = case lookup_inst_param (c, ty)
-     of SOME (_, ty') => if typ_instance (ty', ty) then SOME (ty, ty') else NONE
-      | NONE => NONE;
+    fun improve (c, ty) =
+      (case lookup_inst_param (c, ty) of
+        SOME (_, ty') => if Sign.typ_instance thy (ty', ty) then SOME (ty, ty') else NONE
+      | NONE => NONE);
   in
     thy
     |> Theory.checkpoint

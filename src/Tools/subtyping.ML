@@ -276,11 +276,11 @@ exception BOUND_ERROR of string;
 
 fun process_constraints ctxt err cs tye_idx =
   let
+    val thy = Proof_Context.theory_of ctxt;
+
     val coes_graph = coes_graph_of ctxt;
     val tmaps = tmaps_of ctxt;
-    val tsig = Sign.tsig_of (Proof_Context.theory_of ctxt);
-    val arity_sorts = Type.arity_sorts (Context.pretty ctxt) tsig;
-    val subsort = Type.subsort tsig;
+    val arity_sorts = Type.arity_sorts (Context.pretty ctxt) (Sign.tsig_of thy);
 
     fun split_cs _ [] = ([], [])
       | split_cs f (c :: cs) =
@@ -357,7 +357,7 @@ fun process_constraints ctxt err cs tye_idx =
             val (ch, done') = split_cs (test_update o Type_Infer.deref tye') done;
             val todo' = ch @ todo;
           in
-            if subsort (S', S) (*TODO check this*)
+            if Sign.subsort thy (S', S) (*TODO check this*)
             then simplify done' todo' (tye', idx)
             else error (gen_msg err "sort mismatch")
           end
@@ -429,7 +429,7 @@ fun process_constraints ctxt err cs tye_idx =
         fun adjust T U = if super then (T, U) else (U, T);
         fun styp_test U Ts = forall
           (fn T => T = U orelse Graph.is_edge coes_graph (adjust U T)) Ts;
-        fun fitting Ts S U = Type.of_sort tsig (t_of U, S) andalso styp_test U Ts
+        fun fitting Ts S U = Sign.of_sort thy (t_of U, S) andalso styp_test U Ts
       in
         forall (fn (Ts, S) => exists (fitting Ts S) (T :: styps super T)) styps_and_sorts
       end;
@@ -446,7 +446,7 @@ fun process_constraints ctxt err cs tye_idx =
     *)
     fun tightest sup S styps_and_sorts (T :: Ts) =
       let
-        fun restriction T = Type.of_sort tsig (t_of T, S)
+        fun restriction T = Sign.of_sort thy (t_of T, S)
           andalso ex_styp_of_sort (not sup) T styps_and_sorts;
         fun candidates T = inter (op =) (filter restriction (T :: styps sup T));
       in

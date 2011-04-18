@@ -125,7 +125,7 @@ fun apply_inst ctxt t u =
     val thy = Proof_Context.theory_of ctxt;
     val T = domain_type (fastype_of t);
     val T' = fastype_of u;
-    val subst = Type.typ_match (Sign.tsig_of thy) (T, T') Vartab.empty
+    val subst = Sign.typ_match thy (T, T') Vartab.empty
       handle Type.TYPE_MATCH => raise TYPE ("apply_inst", [T, T'], [t, u])
   in
     map_types (Envir.norm_type subst) t $ u

@@ -246,9 +246,9 @@ fun const_alias b c thy = map_consts (Consts.alias (naming_of thy) b c) thy;
 val arity_number = Type.arity_number o tsig_of;
 fun arity_sorts thy = Type.arity_sorts (Context.pretty_global thy) (tsig_of thy);
 
-val certify_class         = Type.cert_class o tsig_of;
-val certify_sort          = Type.cert_sort o tsig_of;
-val certify_typ           = Type.cert_typ o tsig_of;
+val certify_class = Type.cert_class o tsig_of;
+val certify_sort = Type.cert_sort o tsig_of;
+val certify_typ = Type.cert_typ o tsig_of;
 fun certify_typ_mode mode = Type.cert_typ_mode mode o tsig_of;
 
 

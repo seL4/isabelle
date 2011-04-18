@@ -63,20 +63,25 @@ val mark_passed = (map_improvable_syntax o apsnd) (K true);
 
 fun improve_term_check ts ctxt =
   let
+    val thy = Proof_Context.theory_of ctxt;
+
     val { secondary_constraints, improve, subst, consider_abbrevs, passed, ... } =
       ImprovableSyntax.get ctxt;
-    val tsig = (Sign.tsig_of o Proof_Context.theory_of) ctxt;
     val is_abbrev = consider_abbrevs andalso Proof_Context.abbrev_mode ctxt;
     val passed_or_abbrev = passed orelse is_abbrev;
-    fun accumulate_improvements (Const (c, ty)) = (case improve (c, ty)
-         of SOME ty_ty' => Type.typ_match tsig ty_ty'
+    fun accumulate_improvements (Const (c, ty)) =
+          (case improve (c, ty) of
+            SOME ty_ty' => Sign.typ_match thy ty_ty'
           | _ => I)
       | accumulate_improvements _ = I;
     val improvements = (fold o fold_aterms) accumulate_improvements ts Vartab.empty;
     val ts' = (map o map_types) (Envir.subst_type improvements) ts;
-    fun apply_subst t = Envir.expand_term (fn Const (c, ty) => (case subst (c, ty)
-         of SOME (ty', t') =>
-              if Type.typ_instance tsig (ty, ty')
+    fun apply_subst t =
+      Envir.expand_term
+        (fn Const (c, ty) =>
+          (case subst (c, ty) of
+            SOME (ty', t') =>
+              if Sign.typ_instance thy (ty, ty')
               then SOME (ty', apply_subst t') else NONE
           | NONE => NONE)
         | _ => NONE) t;
