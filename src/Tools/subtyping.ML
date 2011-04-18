@@ -6,13 +6,9 @@ Coercive subtyping via subtype constraints.
 
 signature SUBTYPING =
 sig
-  datatype variance = COVARIANT | CONTRAVARIANT | INVARIANT | INVARIANT_TO of typ;
   val coercion_enabled: bool Config.T
-  val infer_types: Proof.context -> (string -> typ option) -> (indexname -> typ option) ->
-    term list -> term list
   val add_type_map: term -> Context.generic -> Context.generic
   val add_coercion: term -> Context.generic -> Context.generic
-  val gen_coercion: Proof.context -> typ Vartab.table -> (typ * typ) -> term
   val setup: theory -> theory
 end;
 
@@ -666,8 +662,11 @@ fun insert_coercions ctxt tye ts =
 
 (** assembling the pipeline **)
 
-fun infer_types ctxt const_type var_type raw_ts =
+fun coercion_infer_types ctxt raw_ts =
   let
+    val const_type = try (Consts.the_constraint (Proof_Context.consts_of ctxt));
+    val var_type = Proof_Context.def_type ctxt;
+
     val (idx, ts) = Type_Infer.prepare ctxt const_type var_type raw_ts;
 
     fun inf _ (t as (Const (_, T))) tye_idx = (t, T, tye_idx)
@@ -713,11 +712,6 @@ fun infer_types ctxt const_type var_type raw_ts =
 (** installation **)
 
 (* term check *)
-
-fun coercion_infer_types ctxt =
-  infer_types ctxt
-    (try (Consts.the_constraint (Proof_Context.consts_of ctxt)))
-    (Proof_Context.def_type ctxt);
 
 val (coercion_enabled, coercion_enabled_setup) = Attrib.config_bool "coercion_enabled" (K false);
 
