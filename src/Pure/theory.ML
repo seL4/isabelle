@@ -240,9 +240,8 @@ fun check_overloading ctxt overloaded (c, T) =
 
 local
 
-fun check_def ctxt unchecked overloaded (b, tm) defs =
+fun check_def ctxt thy unchecked overloaded (b, tm) defs =
   let
-    val thy = Proof_Context.theory_of ctxt;
     val name = Sign.full_name thy b;
     val ((lhs, rhs), _) = Primitive_Defs.dest_def ctxt Term.is_Const (K false) (K false) tm
       handle TERM (msg, _) => error msg;
@@ -259,7 +258,7 @@ in
 fun add_def ctxt unchecked overloaded raw_axm thy =
   let val axm = cert_axm ctxt raw_axm in
     thy
-    |> map_defs (check_def ctxt unchecked overloaded axm)
+    |> map_defs (check_def ctxt thy unchecked overloaded axm)
     |> add_axiom ctxt axm
   end;
 
