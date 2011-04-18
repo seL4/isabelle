@@ -144,12 +144,13 @@ structure Data = Theory_Data_PP
 
   fun merge pp (sign1, sign2) =
     let
+      val ctxt = Syntax.init_pretty pp;
       val Sign {naming = _, syn = syn1, tsig = tsig1, consts = consts1} = sign1;
       val Sign {naming = _, syn = syn2, tsig = tsig2, consts = consts2} = sign2;
 
       val naming = Name_Space.default_naming;
       val syn = Syntax.merge_syntaxes syn1 syn2;
-      val tsig = Type.merge_tsig pp (tsig1, tsig2);
+      val tsig = Type.merge_tsig ctxt (tsig1, tsig2);
       val consts = Consts.merge (consts1, consts2);
     in make_sign (naming, syn, tsig, consts) end;
 );
@@ -455,15 +456,19 @@ fun add_const_constraint (c, opt_T) thy =
 (* primitive classes and arities *)
 
 fun primitive_class (bclass, classes) thy =
-  thy |> map_sign (fn (naming, syn, tsig, consts) =>
+  thy
+  |> map_sign (fn (naming, syn, tsig, consts) =>
     let
       val ctxt = Syntax.init_pretty_global thy;
-      val tsig' = Type.add_class ctxt (Context.pretty ctxt) naming (bclass, classes) tsig;
+      val tsig' = Type.add_class ctxt naming (bclass, classes) tsig;
     in (naming, syn, tsig', consts) end)
   |> add_consts_i [(Binding.map_name Logic.const_of_class bclass, Term.a_itselfT --> propT, NoSyn)];
 
-fun primitive_classrel arg thy = thy |> map_tsig (Type.add_classrel (Context.pretty_global thy) arg);
-fun primitive_arity arg thy = thy |> map_tsig (Type.add_arity (Context.pretty_global thy) arg);
+fun primitive_classrel arg thy =
+  thy |> map_tsig (Type.add_classrel (Syntax.init_pretty_global thy) arg);
+
+fun primitive_arity arg thy =
+  thy |> map_tsig (Type.add_arity (Syntax.init_pretty_global thy) arg);
 
 
 (* add translation functions *)
