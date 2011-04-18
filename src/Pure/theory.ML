@@ -137,7 +137,7 @@ fun at_end f = map_wrappers (apsnd (cons (f, stamp ())));
 
 fun begin_theory name imports =
   let
-    val thy = Context.begin_thy Syntax.pp_global name imports;
+    val thy = Context.begin_thy Context.pretty_global name imports;
     val wrappers = begin_wrappers thy;
   in
     thy
@@ -196,7 +196,7 @@ fun dependencies ctxt unchecked def description lhs rhs =
       else error ("Specification depends on extra type variables: " ^
         commas_quote (map (Syntax.string_of_typ ctxt o TFree) rhs_extras) ^
         "\nThe error(s) above occurred in " ^ quote description);
-  in Defs.define (Syntax.pp ctxt) unchecked def description (prep lhs) (map prep rhs) end;
+  in Defs.define (Context.pretty ctxt) unchecked def description (prep lhs) (map prep rhs) end;
 
 fun add_deps ctxt a raw_lhs raw_rhs thy =
   let

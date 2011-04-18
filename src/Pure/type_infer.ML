@@ -289,7 +289,7 @@ fun unify ctxt pp =
 
 fun infer ctxt =
   let
-    val pp = Syntax.pp ctxt;
+    val pp = Context.pretty ctxt;
 
 
     (* errors *)
@@ -310,7 +310,7 @@ fun infer ctxt =
 
     fun err_appl msg tye bs t T u U =
       let val ([t', u'], [T', U']) = prep_output tye bs [t, u] [T, U]
-      in error (unif_failed msg ^ Type.appl_error pp t' T' u' U' ^ "\n") end;
+      in error (unif_failed msg ^ Type.appl_error ctxt t' T' u' U' ^ "\n") end;
 
 
     (* main *)

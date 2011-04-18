@@ -64,18 +64,6 @@ sig
   val writeln: T -> unit
   val to_ML: T -> ML_Pretty.pretty
   val from_ML: ML_Pretty.pretty -> T
-  type pp
-  val pp: (term -> T) * (typ -> T) * (sort -> T) * (class list -> T) * (arity -> T) -> pp
-  val term: pp -> term -> T
-  val typ: pp -> typ -> T
-  val sort: pp -> sort -> T
-  val classrel: pp -> class list -> T
-  val arity: pp -> arity -> T
-  val string_of_term: pp -> term -> string
-  val string_of_typ: pp -> typ -> string
-  val string_of_sort: pp -> sort -> string
-  val string_of_classrel: pp -> class list -> string
-  val string_of_arity: pp -> arity -> string
 end;
 
 structure Pretty: PRETTY =
@@ -331,28 +319,5 @@ fun from_ML (ML_Pretty.Block (m, prts, ind)) = block_markup m (ind, map from_ML 
   | from_ML (ML_Pretty.Break b) = Break b;
 
 end;
-
-
-
-(** abstract pretty printing context **)
-
-datatype pp =
-  PP of (term -> T) * (typ -> T) * (sort -> T) * (class list -> T) * (arity -> T);
-
-val pp = PP;
-
-fun pp_fun f (PP x) = f x;
-
-val term     = pp_fun #1;
-val typ      = pp_fun #2;
-val sort     = pp_fun #3;
-val classrel = pp_fun #4;
-val arity    = pp_fun #5;
-
-val string_of_term     = string_of oo term;
-val string_of_typ      = string_of oo typ;
-val string_of_sort     = string_of oo sort;
-val string_of_classrel = string_of oo classrel;
-val string_of_arity    = string_of oo arity;
 
 end;

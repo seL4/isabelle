@@ -11,7 +11,7 @@ sig
   val mark_polymorphic: typ -> typ
   val constraint: typ -> term -> term
   val strip_constraints: term -> term
-  val appl_error: Pretty.pp -> term -> typ -> term -> typ -> string
+  val appl_error: Proof.context -> term -> typ -> term -> typ -> string
   (*type signatures and certified types*)
   datatype decl =
     LogicalType of int |
@@ -55,7 +55,7 @@ sig
   val cert_typ_mode: mode -> tsig -> typ -> typ
   val cert_typ: tsig -> typ -> typ
   val arity_number: tsig -> string -> int
-  val arity_sorts: Pretty.pp -> tsig -> string -> sort -> sort list
+  val arity_sorts: Context.pretty -> tsig -> string -> sort -> sort list
 
   (*special treatment of type vars*)
   val sort_of_atyp: typ -> sort
@@ -86,7 +86,7 @@ sig
   val eq_type: tyenv -> typ * typ -> bool
 
   (*extend and merge type signatures*)
-  val add_class: Proof.context -> Pretty.pp -> Name_Space.naming ->
+  val add_class: Proof.context -> Context.pretty -> Name_Space.naming ->
     binding * class list -> tsig -> tsig
   val hide_class: bool -> string -> tsig -> tsig
   val set_defsort: sort -> tsig -> tsig
@@ -94,9 +94,9 @@ sig
   val add_abbrev: Proof.context -> Name_Space.naming -> binding * string list * typ -> tsig -> tsig
   val add_nonterminal: Proof.context -> Name_Space.naming -> binding -> tsig -> tsig
   val hide_type: bool -> string -> tsig -> tsig
-  val add_arity: Pretty.pp -> arity -> tsig -> tsig
-  val add_classrel: Pretty.pp -> class * class -> tsig -> tsig
-  val merge_tsig: Pretty.pp -> tsig * tsig -> tsig
+  val add_arity: Context.pretty -> arity -> tsig -> tsig
+  val add_classrel: Context.pretty -> class * class -> tsig -> tsig
+  val merge_tsig: Context.pretty -> tsig * tsig -> tsig
 end;
 
 structure Type: TYPE =
@@ -116,15 +116,15 @@ fun strip_constraints (Const ("_type_constraint_", _) $ t) = strip_constraints t
   | strip_constraints (Abs (x, T, t)) = Abs (x, T, strip_constraints t)
   | strip_constraints a = a;
 
-fun appl_error pp (Const ("_type_constraint_", Type ("fun", [T, _]))) _ u U =
+fun appl_error ctxt (Const ("_type_constraint_", Type ("fun", [T, _]))) _ u U =
       cat_lines
        ["Failed to meet type constraint:", "",
         Pretty.string_of (Pretty.block
-         [Pretty.str "Term:", Pretty.brk 2, Pretty.term pp u,
-          Pretty.str " ::", Pretty.brk 1, Pretty.typ pp U]),
+         [Pretty.str "Term:", Pretty.brk 2, Syntax.pretty_term ctxt u,
+          Pretty.str " ::", Pretty.brk 1, Syntax.pretty_typ ctxt U]),
         Pretty.string_of (Pretty.block
-         [Pretty.str "Type:", Pretty.brk 2, Pretty.typ pp T])]
-  | appl_error pp t T u U =
+         [Pretty.str "Type:", Pretty.brk 2, Syntax.pretty_typ ctxt T])]
+  | appl_error ctxt t T u U =
       cat_lines
        ["Type error in application: " ^
           (case T of
@@ -132,11 +132,11 @@ fun appl_error pp (Const ("_type_constraint_", Type ("fun", [T, _]))) _ u U =
           | _ => "operator not of function type"),
         "",
         Pretty.string_of (Pretty.block
-          [Pretty.str "Operator:", Pretty.brk 2, Pretty.term pp t,
-            Pretty.str " ::", Pretty.brk 1, Pretty.typ pp T]),
+          [Pretty.str "Operator:", Pretty.brk 2, Syntax.pretty_term ctxt t,
+            Pretty.str " ::", Pretty.brk 1, Syntax.pretty_typ ctxt T]),
         Pretty.string_of (Pretty.block
-          [Pretty.str "Operand:", Pretty.brk 3, Pretty.term pp u,
-            Pretty.str " ::", Pretty.brk 1, Pretty.typ pp U])];
+          [Pretty.str "Operand:", Pretty.brk 3, Syntax.pretty_term ctxt u,
+            Pretty.str " ::", Pretty.brk 1, Syntax.pretty_typ ctxt U])];
 
 
 

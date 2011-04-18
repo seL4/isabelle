@@ -82,14 +82,13 @@ sig
   val is_pretty_global: Proof.context -> bool
   val set_pretty_global: bool -> Proof.context -> Proof.context
   val init_pretty_global: theory -> Proof.context
+  val init_pretty: Context.pretty -> Proof.context
   val pretty_term_global: theory -> term -> Pretty.T
   val pretty_typ_global: theory -> typ -> Pretty.T
   val pretty_sort_global: theory -> sort -> Pretty.T
   val string_of_term_global: theory -> term -> string
   val string_of_typ_global: theory -> typ -> string
   val string_of_sort_global: theory -> sort -> string
-  val pp: Proof.context -> Pretty.pp
-  val pp_global: theory -> Pretty.pp
   type syntax
   val eq_syntax: syntax * syntax -> bool
   val lookup_const: syntax -> string -> string option
@@ -375,6 +374,7 @@ val pretty_global = Config.bool (Config.declare "Syntax.pretty_global" (K (Confi
 fun is_pretty_global ctxt = Config.get ctxt pretty_global;
 val set_pretty_global = Config.put pretty_global;
 val init_pretty_global = set_pretty_global true o Proof_Context.init_global;
+val init_pretty = Context.pretty_context init_pretty_global;
 
 val pretty_term_global = pretty_term o init_pretty_global;
 val pretty_typ_global = pretty_typ o init_pretty_global;
@@ -383,23 +383,6 @@ val pretty_sort_global = pretty_sort o init_pretty_global;
 val string_of_term_global = string_of_term o init_pretty_global;
 val string_of_typ_global = string_of_typ o init_pretty_global;
 val string_of_sort_global = string_of_sort o init_pretty_global;
-
-
-(* pp operations -- deferred evaluation *)
-
-fun pp ctxt = Pretty.pp
- (fn x => pretty_term ctxt x,
-  fn x => pretty_typ ctxt x,
-  fn x => pretty_sort ctxt x,
-  fn x => pretty_classrel ctxt x,
-  fn x => pretty_arity ctxt x);
-
-fun pp_global thy = Pretty.pp
- (fn x => pretty_term_global thy x,
-  fn x => pretty_typ_global thy x,
-  fn x => pretty_sort_global thy x,
-  fn x => pretty_classrel (init_pretty_global thy) x,
-  fn x => pretty_arity (init_pretty_global thy) x);
 
 
 

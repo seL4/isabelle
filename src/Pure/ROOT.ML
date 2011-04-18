@@ -53,6 +53,7 @@ use "General/file.ML";
 use "General/xml.ML";
 use "General/xml_data.ML";
 use "General/yxml.ML";
+use "General/pretty.ML";
 
 use "General/sha1.ML";
 if String.isPrefix "polyml" ml_system
@@ -103,7 +104,6 @@ use "Concurrent/cache.ML";
 
 use "name.ML";
 use "term.ML";
-use "General/pretty.ML";
 use "context.ML";
 use "config.ML";
 use "context_position.ML";

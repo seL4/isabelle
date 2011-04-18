@@ -40,15 +40,15 @@ sig
   val minimal_sorts: algebra -> sort list -> sort Ord_List.T
   val certify_class: algebra -> class -> class    (*exception TYPE*)
   val certify_sort: algebra -> sort -> sort       (*exception TYPE*)
-  val add_class: Pretty.pp -> class * class list -> algebra -> algebra
-  val add_classrel: Pretty.pp -> class * class -> algebra -> algebra
-  val add_arities: Pretty.pp -> string * (class * sort list) list -> algebra -> algebra
+  val add_class: Context.pretty -> class * class list -> algebra -> algebra
+  val add_classrel: Context.pretty -> class * class -> algebra -> algebra
+  val add_arities: Context.pretty -> string * (class * sort list) list -> algebra -> algebra
   val empty_algebra: algebra
-  val merge_algebra: Pretty.pp -> algebra * algebra -> algebra
-  val subalgebra: Pretty.pp -> (class -> bool) -> (class * string -> sort list option)
+  val merge_algebra: Context.pretty -> algebra * algebra -> algebra
+  val subalgebra: Context.pretty -> (class -> bool) -> (class * string -> sort list option)
     -> algebra -> (sort -> sort) * algebra
   type class_error
-  val class_error: Pretty.pp -> class_error -> string
+  val class_error: Context.pretty -> class_error -> string
   exception CLASS_ERROR of class_error
   val mg_domain: algebra -> string -> sort -> sort list   (*exception CLASS_ERROR*)
   val meet_sort: algebra -> typ * sort
@@ -200,7 +200,7 @@ fun err_dup_class c = error ("Duplicate declaration of class: " ^ quote c);
 
 fun err_cyclic_classes pp css =
   error (cat_lines (map (fn cs =>
-    "Cycle in class relation: " ^ Pretty.string_of_classrel pp cs) css));
+    "Cycle in class relation: " ^ Syntax.string_of_classrel (Syntax.init_pretty pp) cs) css));
 
 fun add_class pp (c, cs) = map_classes (fn classes =>
   let
@@ -217,12 +217,12 @@ local
 
 fun for_classes _ NONE = ""
   | for_classes pp (SOME (c1, c2)) =
-      " for classes " ^ Pretty.string_of_classrel pp [c1, c2];
+      " for classes " ^ Syntax.string_of_classrel (Syntax.init_pretty pp) [c1, c2];
 
 fun err_conflict pp t cc (c, Ss) (c', Ss') =
   error ("Conflict of type arities" ^ for_classes pp cc ^ ":\n  " ^
-    Pretty.string_of_arity pp (t, Ss, [c]) ^ " and\n  " ^
-    Pretty.string_of_arity pp (t, Ss', [c']));
+    Syntax.string_of_arity (Syntax.init_pretty pp) (t, Ss, [c]) ^ " and\n  " ^
+    Syntax.string_of_arity (Syntax.init_pretty pp) (t, Ss', [c']));
 
 fun coregular pp algebra t (c, Ss) ars =
   let
@@ -336,12 +336,13 @@ datatype class_error =
   No_Subsort of sort * sort;
 
 fun class_error pp (No_Classrel (c1, c2)) =
-      "No class relation " ^ Pretty.string_of_classrel pp [c1, c2]
+      "No class relation " ^ Syntax.string_of_classrel (Syntax.init_pretty pp) [c1, c2]
   | class_error pp (No_Arity (a, c)) =
-      "No type arity " ^ Pretty.string_of_arity pp (a, [], [c])
+      "No type arity " ^ Syntax.string_of_arity (Syntax.init_pretty pp) (a, [], [c])
   | class_error pp (No_Subsort (S1, S2)) =
-     "Cannot derive subsort relation " ^ Pretty.string_of_sort pp S1
-       ^ " < " ^ Pretty.string_of_sort pp S2;
+      "Cannot derive subsort relation " ^
+      Syntax.string_of_sort (Syntax.init_pretty pp) S1 ^ " < " ^
+      Syntax.string_of_sort (Syntax.init_pretty pp) S2;
 
 exception CLASS_ERROR of class_error;
 

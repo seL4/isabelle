@@ -7,7 +7,7 @@ definitions and simple sub-structural overloading.
 
 signature DEFS =
 sig
-  val pretty_const: Pretty.pp -> string * typ list -> Pretty.T
+  val pretty_const: Context.pretty -> string * typ list -> Pretty.T
   val plain_args: typ list -> bool
   type T
   type spec =
@@ -18,8 +18,8 @@ sig
    {restricts: ((string * typ list) * string) list,
     reducts: ((string * typ list) * (string * typ list) list) list}
   val empty: T
-  val merge: Pretty.pp -> T * T -> T
-  val define: Pretty.pp -> bool -> string option -> string ->
+  val merge: Context.pretty -> T * T -> T
+  val define: Context.pretty -> bool -> string option -> string ->
     string * typ list -> (string * typ list) list -> T -> T
 end
 
@@ -34,7 +34,9 @@ fun pretty_const pp (c, args) =
   let
     val prt_args =
       if null args then []
-      else [Pretty.list "(" ")" (map (Pretty.typ pp o Logic.unvarifyT_global) args)];
+      else
+        [Pretty.list "(" ")"
+          (map (Syntax.pretty_typ (Syntax.init_pretty pp) o Logic.unvarifyT_global) args)];
   in Pretty.block (Pretty.str c :: prt_args) end;
 
 fun plain_args args =

@@ -98,7 +98,7 @@ exception NO_UNIFIER of string * typ Vartab.table;
 fun unify weak ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val pp = Syntax.pp ctxt;
+    val pp = Context.pretty ctxt;
     val arity_sorts = Type.arity_sorts pp (Sign.tsig_of thy);
 
 
@@ -190,8 +190,8 @@ fun maybe_new_nodes ss G = fold maybe_new_node ss G
 
 (** error messages **)
 
-fun gen_msg err msg = 
-  err () ^ "\nNow trying to infer coercions:\n\nCoercion inference failed" ^ 
+fun gen_msg err msg =
+  err () ^ "\nNow trying to infer coercions:\n\nCoercion inference failed" ^
   (if msg = "" then "" else ": " ^ msg) ^ "\n";
 
 fun prep_output ctxt tye bs ts Ts =
@@ -204,27 +204,26 @@ fun prep_output ctxt tye bs ts Ts =
   in (map prep ts', Ts') end;
 
 fun err_loose i = error ("Loose bound variable: B." ^ string_of_int i);
-  
+
 fun unif_failed msg =
   "Type unification failed" ^ (if msg = "" then "" else ": " ^ msg) ^ "\n\n";
-  
+
 fun err_appl_msg ctxt msg tye bs t T u U () =
   let val ([t', u'], [T', U']) = prep_output ctxt tye bs [t, u] [T, U]
-  in unif_failed msg ^ Type.appl_error (Syntax.pp ctxt) t' T' u' U' ^ "\n" end;
+  in unif_failed msg ^ Type.appl_error ctxt t' T' u' U' ^ "\n" end;
 
 fun err_list ctxt msg tye Ts =
   let
     val (_, Ts') = prep_output ctxt tye [] [] Ts;
-    val text = cat_lines ([msg,
-      "Cannot unify a list of types that should be the same:",
-      (Pretty.string_of (Pretty.list "[" "]" (map (Pretty.typ (Syntax.pp ctxt)) Ts')))]);
+    val text =
+      msg ^ "\n" ^ "Cannot unify a list of types that should be the same:" ^ "\n" ^
+        Pretty.string_of (Pretty.list "[" "]" (map (Syntax.pretty_typ ctxt) Ts'));
   in
     error text
   end;
 
 fun err_bound ctxt msg tye packs =
   let
-    val pp = Syntax.pp ctxt;
     val (ts, Ts) = fold
       (fn (bs, t $ u, U, _, U') => fn (ts, Ts) =>
         let val (t', T') = prep_output ctxt tye bs [t, u] [U', U]
@@ -233,9 +232,10 @@ fun err_bound ctxt msg tye packs =
     val text = cat_lines ([msg, "Cannot fulfil subtype constraints:"] @
         (map2 (fn [t, u] => fn [T, U] => Pretty.string_of (
           Pretty.block [
-            Pretty.typ pp T, Pretty.brk 2, Pretty.str "<:", Pretty.brk 2, Pretty.typ pp U,
-            Pretty.brk 3, Pretty.str "from function application", Pretty.brk 2,
-            Pretty.block [Pretty.term pp (t $ u)]]))
+            Syntax.pretty_typ ctxt T, Pretty.brk 2, Pretty.str "<:", Pretty.brk 2,
+            Syntax.pretty_typ ctxt U, Pretty.brk 3,
+            Pretty.str "from function application", Pretty.brk 2,
+            Pretty.block [Syntax.pretty_term ctxt (t $ u)]]))
         ts Ts))
   in
     error text
@@ -280,7 +280,7 @@ fun process_constraints ctxt err cs tye_idx =
     val coes_graph = coes_graph_of ctxt;
     val tmaps = tmaps_of ctxt;
     val tsig = Sign.tsig_of (Proof_Context.theory_of ctxt);
-    val pp = Syntax.pp ctxt;
+    val pp = Context.pretty ctxt;
     val arity_sorts = Type.arity_sorts pp tsig;
     val subsort = Type.subsort tsig;
 
@@ -289,9 +289,9 @@ fun process_constraints ctxt err cs tye_idx =
           (case pairself f (fst c) of
             (false, false) => apsnd (cons c) (split_cs f cs)
           | _ => apfst (cons c) (split_cs f cs));
-          
+
     fun unify_list (T :: Ts) tye_idx =
-      fold (fn U => fn tye_idx' => strong_unify ctxt (T, U) tye_idx') Ts tye_idx;      
+      fold (fn U => fn tye_idx' => strong_unify ctxt (T, U) tye_idx') Ts tye_idx;
 
 
     (* check whether constraint simplification will terminate using weak unification *)
@@ -317,12 +317,12 @@ fun process_constraints ctxt err cs tye_idx =
                 COVARIANT => (constraint :: cs, tye_idx)
               | CONTRAVARIANT => (swap constraint :: cs, tye_idx)
               | INVARIANT_TO T => (cs, unify_list [T, fst constraint, snd constraint] tye_idx
-                  handle NO_UNIFIER (msg, _) => 
-                    err_list ctxt (gen_msg err 
-                      "failed to unify invariant arguments w.r.t. to the known map function") 
+                  handle NO_UNIFIER (msg, _) =>
+                    err_list ctxt (gen_msg err
+                      "failed to unify invariant arguments w.r.t. to the known map function")
                       (fst tye_idx) Ts)
               | INVARIANT => (cs, strong_unify ctxt constraint tye_idx
-                  handle NO_UNIFIER (msg, _) => 
+                  handle NO_UNIFIER (msg, _) =>
                     error (gen_msg err ("failed to unify invariant arguments" ^ msg))));
             val (new, (tye', idx')) = apfst (fn cs => (cs ~~ replicate (length cs) error_pack))
               (fold new_constraints (arg_var ~~ (Ts ~~ Us)) ([], (tye, idx)));
@@ -394,11 +394,11 @@ fun process_constraints ctxt err cs tye_idx =
     (* do simplification *)
 
     val (cs', tye_idx') = simplify_constraints cs tye_idx;
-    
-    fun find_error_pack lower T' = map_filter 
+
+    fun find_error_pack lower T' = map_filter
       (fn ((T, U), pack) => if if lower then T' = U else T' = T then SOME pack else NONE) cs';
-      
-    fun find_cycle_packs nodes = 
+
+    fun find_cycle_packs nodes =
       let
         val (but_last, last) = split_last nodes
         val pairs = (last, hd nodes) :: (but_last ~~ tl nodes);
@@ -467,11 +467,11 @@ fun process_constraints ctxt err cs tye_idx =
             val (G'', tye_idx') = (add_edge (T, U) G', tye_idx)
               handle Typ_Graph.CYCLES cycles =>
                 let
-                  val (tye, idx) = 
-                    fold 
+                  val (tye, idx) =
+                    fold
                       (fn cycle => fn tye_idx' => (unify_list cycle tye_idx'
-                        handle NO_UNIFIER (msg, _) => 
-                          err_bound ctxt 
+                        handle NO_UNIFIER (msg, _) =>
+                          err_bound ctxt
                             (gen_msg err ("constraint cycle not unifiable" ^ msg)) (fst tye_idx)
                             (find_cycle_packs cycle)))
                       cycles tye_idx
@@ -495,13 +495,13 @@ fun process_constraints ctxt err cs tye_idx =
           in
             if not (is_typeT T) orelse not (is_typeT U) orelse T = U
             then if super then (hd nodes, T') else (T', hd nodes)
-            else 
-              if super andalso 
+            else
+              if super andalso
                 Graph.is_edge coes_graph (nameT T, nameT U) then (hd nodes, T')
-              else if not super andalso 
+              else if not super andalso
                 Graph.is_edge coes_graph (nameT U, nameT T) then (T', hd nodes)
               else err_bound ctxt (gen_msg err "cycle elimination produces inconsistent graph")
-                    (fst tye_idx) 
+                    (fst tye_idx)
                     (maps find_cycle_packs cycles @ find_error_pack super T')
           end;
       in
@@ -528,7 +528,7 @@ fun process_constraints ctxt err cs tye_idx =
           val assignment =
             if null bound orelse null not_params then NONE
             else SOME (tightest lower S styps_and_sorts (map nameT not_params)
-                handle BOUND_ERROR msg => 
+                handle BOUND_ERROR msg =>
                   err_bound ctxt (gen_msg err msg) tye (find_error_pack lower key))
         in
           (case assignment of
@@ -560,7 +560,7 @@ fun process_constraints ctxt err cs tye_idx =
           val (tye_idx' as (tye, _)) = fold (assign_lb G) ts tye_idx
             |> fold (assign_ub G) ts;
         in
-          assign_alternating ts 
+          assign_alternating ts
             (filter (Type_Infer.is_paramT o Type_Infer.deref tye) ts) G tye_idx'
         end;
 
@@ -573,7 +573,7 @@ fun process_constraints ctxt err cs tye_idx =
           filter (Type_Infer.is_paramT o Type_Infer.deref tye) (Typ_Graph.maximals G);
         val to_unify = map (fn T => T :: get_preds G T) max_params;
       in
-        fold 
+        fold
           (fn Ts => fn tye_idx' => unify_list Ts tye_idx'
             handle NO_UNIFIER (msg, _) => err_list ctxt (gen_msg err msg) (fst tye_idx) Ts)
           to_unify tye_idx
@@ -686,24 +686,24 @@ fun infer_types ctxt const_type var_type raw_ts =
             val (u', U, (tye, idx)) = inf bs u tye_idx';
             val V = Type_Infer.mk_param idx [];
             val (tu, tye_idx'') = (t' $ u', strong_unify ctxt (U --> V, T) (tye, idx + 1))
-              handle NO_UNIFIER (msg, tye') => 
+              handle NO_UNIFIER (msg, tye') =>
                 raise TYPE_INFERENCE_ERROR (err_appl_msg ctxt msg tye' bs t T u U);
           in (tu, V, tye_idx'') end;
 
-    fun infer_single t tye_idx = 
+    fun infer_single t tye_idx =
       let val (t, _, tye_idx') = inf [] t tye_idx;
       in (t, tye_idx') end;
-      
+
     val (ts', (tye, _)) = (fold_map infer_single ts (Vartab.empty, idx)
-      handle TYPE_INFERENCE_ERROR err =>     
+      handle TYPE_INFERENCE_ERROR err =>
         let
           fun gen_single t (tye_idx, constraints) =
             let val (_, tye_idx', constraints') = generate_constraints ctxt err t tye_idx
             in (tye_idx', constraints' @ constraints) end;
-      
+
           val (tye_idx, constraints) = fold gen_single ts ((Vartab.empty, idx), []);
           val (tye, idx) = process_constraints ctxt err constraints tye_idx;
-        in 
+        in
           (insert_coercions ctxt tye ts, (tye, idx))
         end);
 
@@ -739,15 +739,15 @@ fun add_type_map raw_t context =
     val ctxt = Context.proof_of context;
     val t = singleton (Variable.polymorphic ctxt) raw_t;
 
-    fun err_str t = "\n\nThe provided function has the type\n" ^ 
-      Syntax.string_of_typ ctxt (fastype_of t) ^ 
+    fun err_str t = "\n\nThe provided function has the type\n" ^
+      Syntax.string_of_typ ctxt (fastype_of t) ^
       "\n\nThe general type signature of a map function is" ^
       "\nf1 => f2 => ... => fn => C [x1, ..., xn] => C [y1, ..., yn]" ^
       "\nwhere C is a constructor and fi is of type (xi => yi) or (yi => xi)";
-      
+
     val ((fis, T1), T2) = apfst split_last (strip_type (fastype_of t))
       handle Empty => error ("Not a proper map function:" ^ err_str t);
-    
+
     fun gen_arg_var ([], []) = []
       | gen_arg_var ((T, T') :: Ts, (U, U') :: Us) =
           if U = U' then
@@ -756,8 +756,8 @@ fun add_type_map raw_t context =
           else if T = U andalso T' = U' then COVARIANT :: gen_arg_var (Ts, Us)
           else if T = U' andalso T' = U then CONTRAVARIANT :: gen_arg_var (Ts, Us)
           else error ("Functions do not apply to arguments correctly:" ^ err_str t)
-      | gen_arg_var (_, Ts) = 
-          if forall (op = andf is_stypeT o fst) Ts 
+      | gen_arg_var (_, Ts) =
+          if forall (op = andf is_stypeT o fst) Ts
           then map (INVARIANT_TO o fst) Ts
           else error ("Different numbers of functions and variant arguments\n" ^ err_str t);
 

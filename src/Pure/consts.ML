@@ -26,7 +26,7 @@ sig
   val intern_syntax: T -> xstring -> string
   val extern_syntax: Proof.context -> T -> string -> xstring
   val read_const: T -> string -> term
-  val certify: Pretty.pp -> Type.tsig -> bool -> T -> term -> term  (*exception TYPE*)
+  val certify: Context.pretty -> Type.tsig -> bool -> T -> term -> term  (*exception TYPE*)
   val typargs: T -> string * typ -> typ list
   val instance: T -> string * typ list -> typ
   val declare: Proof.context -> Name_Space.naming -> binding * typ -> T -> T
@@ -156,7 +156,8 @@ fun read_const consts raw_c =
 fun certify pp tsig do_expand consts =
   let
     fun err msg (c, T) =
-      raise TYPE (msg ^ " " ^ quote c ^ " :: " ^ Pretty.string_of_typ pp T, [], []);
+      raise TYPE (msg ^ " " ^ quote c ^ " :: " ^
+        Syntax.string_of_typ (Syntax.init_pretty pp) T, [], []);
     val certT = Type.cert_typ tsig;
     fun cert tm =
       let
@@ -269,7 +270,7 @@ in
 
 fun abbreviate ctxt tsig naming mode (b, raw_rhs) consts =
   let
-    val pp = Syntax.pp ctxt;
+    val pp = Context.pretty ctxt;
     val cert_term = certify pp tsig false consts;
     val expand_term = certify pp tsig true consts;
     val force_expand = mode = Print_Mode.internal;

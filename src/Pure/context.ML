@@ -28,6 +28,7 @@ signature CONTEXT =
 sig
   include BASIC_CONTEXT
   (*theory context*)
+  type pretty
   val parents_of: theory -> theory list
   val ancestors_of: theory -> theory list
   val theory_name: theory -> string
@@ -52,7 +53,7 @@ sig
   val copy_thy: theory -> theory
   val checkpoint_thy: theory -> theory
   val finish_thy: theory -> theory
-  val begin_thy: (theory -> Pretty.pp) -> string -> theory list -> theory
+  val begin_thy: (theory -> pretty) -> string -> theory list -> theory
   (*proof context*)
   val raw_transfer: theory -> Proof.context -> Proof.context
   (*generic context*)
@@ -71,6 +72,10 @@ sig
   val proof_map: (generic -> generic) -> Proof.context -> Proof.context
   val theory_of: generic -> theory  (*total*)
   val proof_of: generic -> Proof.context  (*total*)
+  (*pretty printing context*)
+  val pretty: Proof.context -> pretty
+  val pretty_global: theory -> pretty
+  val pretty_context: (theory -> Proof.context) -> pretty -> Proof.context
   (*thread data*)
   val thread_data: unit -> generic option
   val the_thread_data: unit -> generic
@@ -86,7 +91,7 @@ sig
   structure Theory_Data:
   sig
     val declare: Object.T -> (Object.T -> Object.T) ->
-      (Pretty.pp -> Object.T * Object.T -> Object.T) -> serial
+      (pretty -> Object.T * Object.T -> Object.T) -> serial
     val get: serial -> (Object.T -> 'a) -> theory -> 'a
     val put: serial -> ('a -> Object.T) -> 'a -> theory -> theory
   end
@@ -110,12 +115,14 @@ struct
 (*private copy avoids potential conflict of table exceptions*)
 structure Datatab = Table(type key = int val ord = int_ord);
 
+datatype pretty = Pretty of Object.T;
+
 local
 
 type kind =
  {empty: Object.T,
   extend: Object.T -> Object.T,
-  merge: Pretty.pp -> Object.T * Object.T -> Object.T};
+  merge: pretty -> Object.T * Object.T -> Object.T};
 
 val kinds = Unsynchronized.ref (Datatab.empty: kind Datatab.table);
 
@@ -546,6 +553,16 @@ val theory_of = cases I Proof_Context.theory_of;
 val proof_of = cases Proof_Context.init_global I;
 
 
+(* pretty printing context *)
+
+exception PRETTY of generic;
+
+val pretty = Pretty o PRETTY o Proof;
+val pretty_global = Pretty o PRETTY o Theory;
+
+fun pretty_context init (Pretty (PRETTY context)) = cases init I context;
+
+
 
 (** thread data **)
 
@@ -593,7 +610,7 @@ sig
   type T
   val empty: T
   val extend: T -> T
-  val merge: Pretty.pp -> T * T -> T
+  val merge: Context.pretty -> T * T -> T
 end;
 
 signature THEORY_DATA_ARGS =

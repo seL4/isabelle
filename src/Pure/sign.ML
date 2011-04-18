@@ -61,7 +61,7 @@ sig
   val certify_sort: theory -> sort -> sort
   val certify_typ: theory -> typ -> typ
   val certify_typ_mode: Type.mode -> theory -> typ -> typ
-  val certify': bool -> Pretty.pp -> bool -> Consts.T -> theory -> term -> term * typ * int
+  val certify': bool -> Context.pretty -> bool -> Consts.T -> theory -> term -> term * typ * int
   val certify_term: theory -> term -> term * typ * int
   val cert_term: theory -> term -> term
   val cert_prop: theory -> term -> term
@@ -243,7 +243,7 @@ fun const_alias b c thy = map_consts (Consts.alias (naming_of thy) b c) thy;
 (* certify wrt. type signature *)
 
 val arity_number = Type.arity_number o tsig_of;
-fun arity_sorts thy = Type.arity_sorts (Syntax.pp_global thy) (tsig_of thy);
+fun arity_sorts thy = Type.arity_sorts (Context.pretty_global thy) (tsig_of thy);
 
 val certify_class         = Type.cert_class o tsig_of;
 val certify_sort          = Type.cert_sort o tsig_of;
@@ -262,7 +262,7 @@ fun type_check pp tm =
         val xs = map Free bs;           (*we do not rename here*)
         val t' = subst_bounds (xs, t);
         val u' = subst_bounds (xs, u);
-        val msg = Type.appl_error pp t' T u' U;
+        val msg = Type.appl_error (Syntax.init_pretty pp) t' T u' U;
       in raise TYPE (msg, [T, U], [t', u']) end;
 
     fun typ_of (_, Const (_, T)) = T
@@ -301,10 +301,11 @@ fun certify' prop pp do_expand consts thy tm =
     val tm'' = Consts.certify pp (tsig_of thy) do_expand consts tm';
   in (if tm = tm'' then tm else tm'', T, Term.maxidx_of_term tm'') end;
 
-fun certify_term thy = certify' false (Syntax.pp_global thy) true (consts_of thy) thy;
-fun cert_term_abbrev thy = #1 o certify' false (Syntax.pp_global thy) false (consts_of thy) thy;
+fun certify_term thy = certify' false (Context.pretty_global thy) true (consts_of thy) thy;
+fun cert_term_abbrev thy =
+  #1 o certify' false (Context.pretty_global thy) false (consts_of thy) thy;
 val cert_term = #1 oo certify_term;
-fun cert_prop thy = #1 o certify' true (Syntax.pp_global thy) true (consts_of thy) thy;
+fun cert_prop thy = #1 o certify' true (Context.pretty_global thy) true (consts_of thy) thy;
 
 end;
 
@@ -457,12 +458,12 @@ fun primitive_class (bclass, classes) thy =
   thy |> map_sign (fn (naming, syn, tsig, consts) =>
     let
       val ctxt = Syntax.init_pretty_global thy;
-      val tsig' = Type.add_class ctxt (Syntax.pp ctxt) naming (bclass, classes) tsig;
+      val tsig' = Type.add_class ctxt (Context.pretty ctxt) naming (bclass, classes) tsig;
     in (naming, syn, tsig', consts) end)
   |> add_consts_i [(Binding.map_name Logic.const_of_class bclass, Term.a_itselfT --> propT, NoSyn)];
 
-fun primitive_classrel arg thy = thy |> map_tsig (Type.add_classrel (Syntax.pp_global thy) arg);
-fun primitive_arity arg thy = thy |> map_tsig (Type.add_arity (Syntax.pp_global thy) arg);
+fun primitive_classrel arg thy = thy |> map_tsig (Type.add_classrel (Context.pretty_global thy) arg);
+fun primitive_arity arg thy = thy |> map_tsig (Type.add_arity (Context.pretty_global thy) arg);
 
 
 (* add translation functions *)

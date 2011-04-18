@@ -62,9 +62,12 @@ type param = string * class;
 fun add_param pp ((x, c): param) params =
   (case AList.lookup (op =) params x of
     NONE => (x, c) :: params
-  | SOME c' => error ("Duplicate class parameter " ^ quote x ^
-      " for " ^ Pretty.string_of_sort pp [c] ^
-      (if c = c' then "" else " and " ^ Pretty.string_of_sort pp [c'])));
+  | SOME c' =>
+      let val ctxt = Syntax.init_pretty pp in
+        error ("Duplicate class parameter " ^ quote x ^
+          " for " ^ Syntax.string_of_sort ctxt [c] ^
+          (if c = c' then "" else " and " ^ Syntax.string_of_sort ctxt [c']))
+      end);
 
 
 (* setup data *)
@@ -590,7 +593,7 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
       |> #2
       |> Sign.restore_naming facts_thy
       |> map_axclasses (Symtab.update (class, axclass))
-      |> map_params (fold (fn (x, _) => add_param (Syntax.pp ctxt) (x, class)) params);
+      |> map_params (fold (fn (x, _) => add_param (Context.pretty ctxt) (x, class)) params);
 
   in (class, result_thy) end;
 

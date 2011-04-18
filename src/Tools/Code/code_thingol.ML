@@ -582,7 +582,7 @@ fun translation_error thy permissive some_thm msg sub_msg =
 
 fun not_wellsorted thy permissive some_thm ty sort e =
   let
-    val err_class = Sorts.class_error (Syntax.pp_global thy) e;
+    val err_class = Sorts.class_error (Context.pretty_global thy) e;
     val err_typ = "Type " ^ Syntax.string_of_typ_global thy ty ^ " not of sort "
       ^ Syntax.string_of_sort_global thy sort;
   in translation_error thy permissive some_thm "Wellsortedness error" (err_typ ^ "\n" ^ err_class) end;
