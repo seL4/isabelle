@@ -702,6 +702,17 @@ val _ = Context.>> (Context.map_theory
 
 
 
+(** check/uncheck **)
+
+val check_typs = Syntax.typ_check;
+val check_terms = Syntax.term_check;
+fun check_props ctxt = map (Type.constraint propT) #> check_terms ctxt;
+
+val uncheck_typs = Syntax.typ_uncheck;
+val uncheck_terms = Syntax.term_uncheck;
+
+
+
 (** install operations **)
 
 val _ = Syntax.install_operations
@@ -711,6 +722,11 @@ val _ = Syntax.install_operations
    parse_prop = parse_term true,
    unparse_sort = unparse_sort,
    unparse_typ = unparse_typ,
-   unparse_term = unparse_term};
+   unparse_term = unparse_term,
+   check_typs = check_typs,
+   check_terms = check_terms,
+   check_props = check_props,
+   uncheck_typs = uncheck_typs,
+   uncheck_terms = uncheck_terms};
 
 end;

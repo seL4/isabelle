@@ -11,7 +11,7 @@ sig
   val mark_polymorphic: typ -> typ
   val constraint: typ -> term -> term
   val strip_constraints: term -> term
-  val appl_error: Pretty.pp -> term -> typ -> term -> typ -> string
+  val appl_error: Proof.context -> term -> typ -> term -> typ -> string
   (*type signatures and certified types*)
   datatype decl =
     LogicalType of int |
@@ -55,7 +55,7 @@ sig
   val cert_typ_mode: mode -> tsig -> typ -> typ
   val cert_typ: tsig -> typ -> typ
   val arity_number: tsig -> string -> int
-  val arity_sorts: Pretty.pp -> tsig -> string -> sort -> sort list
+  val arity_sorts: Context.pretty -> tsig -> string -> sort -> sort list
 
   (*special treatment of type vars*)
   val sort_of_atyp: typ -> sort
@@ -86,17 +86,16 @@ sig
   val eq_type: tyenv -> typ * typ -> bool
 
   (*extend and merge type signatures*)
-  val add_class: Proof.context -> Pretty.pp -> Name_Space.naming ->
-    binding * class list -> tsig -> tsig
+  val add_class: Proof.context -> Name_Space.naming -> binding * class list -> tsig -> tsig
   val hide_class: bool -> string -> tsig -> tsig
   val set_defsort: sort -> tsig -> tsig
   val add_type: Proof.context -> Name_Space.naming -> binding * int -> tsig -> tsig
   val add_abbrev: Proof.context -> Name_Space.naming -> binding * string list * typ -> tsig -> tsig
   val add_nonterminal: Proof.context -> Name_Space.naming -> binding -> tsig -> tsig
   val hide_type: bool -> string -> tsig -> tsig
-  val add_arity: Pretty.pp -> arity -> tsig -> tsig
-  val add_classrel: Pretty.pp -> class * class -> tsig -> tsig
-  val merge_tsig: Pretty.pp -> tsig * tsig -> tsig
+  val add_arity: Proof.context -> arity -> tsig -> tsig
+  val add_classrel: Proof.context -> class * class -> tsig -> tsig
+  val merge_tsig: Proof.context -> tsig * tsig -> tsig
 end;
 
 structure Type: TYPE =
@@ -116,15 +115,15 @@ fun strip_constraints (Const ("_type_constraint_", _) $ t) = strip_constraints t
   | strip_constraints (Abs (x, T, t)) = Abs (x, T, strip_constraints t)
   | strip_constraints a = a;
 
-fun appl_error pp (Const ("_type_constraint_", Type ("fun", [T, _]))) _ u U =
+fun appl_error ctxt (Const ("_type_constraint_", Type ("fun", [T, _]))) _ u U =
       cat_lines
        ["Failed to meet type constraint:", "",
         Pretty.string_of (Pretty.block
-         [Pretty.str "Term:", Pretty.brk 2, Pretty.term pp u,
-          Pretty.str " ::", Pretty.brk 1, Pretty.typ pp U]),
+         [Pretty.str "Term:", Pretty.brk 2, Syntax.pretty_term ctxt u,
+          Pretty.str " ::", Pretty.brk 1, Syntax.pretty_typ ctxt U]),
         Pretty.string_of (Pretty.block
-         [Pretty.str "Type:", Pretty.brk 2, Pretty.typ pp T])]
-  | appl_error pp t T u U =
+         [Pretty.str "Type:", Pretty.brk 2, Syntax.pretty_typ ctxt T])]
+  | appl_error ctxt t T u U =
       cat_lines
        ["Type error in application: " ^
           (case T of
@@ -132,11 +131,11 @@ fun appl_error pp (Const ("_type_constraint_", Type ("fun", [T, _]))) _ u U =
           | _ => "operator not of function type"),
         "",
         Pretty.string_of (Pretty.block
-          [Pretty.str "Operator:", Pretty.brk 2, Pretty.term pp t,
-            Pretty.str " ::", Pretty.brk 1, Pretty.typ pp T]),
+          [Pretty.str "Operator:", Pretty.brk 2, Syntax.pretty_term ctxt t,
+            Pretty.str " ::", Pretty.brk 1, Syntax.pretty_typ ctxt T]),
         Pretty.string_of (Pretty.block
-          [Pretty.str "Operand:", Pretty.brk 3, Pretty.term pp u,
-            Pretty.str " ::", Pretty.brk 1, Pretty.typ pp U])];
+          [Pretty.str "Operand:", Pretty.brk 3, Syntax.pretty_term ctxt u,
+            Pretty.str " ::", Pretty.brk 1, Syntax.pretty_typ ctxt U])];
 
 
 
@@ -310,7 +309,7 @@ fun arity_number tsig a =
 
 fun arity_sorts _ tsig a [] = replicate (arity_number tsig a) []
   | arity_sorts pp (TSig {classes, ...}) a S = Sorts.mg_domain (#2 classes) a S
-      handle Sorts.CLASS_ERROR err => error (Sorts.class_error pp err);
+      handle Sorts.CLASS_ERROR err => error (Sorts.class_error (Syntax.init_pretty pp) err);
 
 
 
@@ -577,14 +576,14 @@ fun eq_type tye =
 
 (* classes *)
 
-fun add_class ctxt pp naming (c, cs) tsig =
+fun add_class ctxt naming (c, cs) tsig =
   tsig |> map_tsig (fn ((space, classes), default, types) =>
     let
       val cs' = map (cert_class tsig) cs
         handle TYPE (msg, _, _) => error msg;
       val _ = Binding.check c;
       val (c', space') = space |> Name_Space.declare ctxt true naming c;
-      val classes' = classes |> Sorts.add_class pp (c', cs');
+      val classes' = classes |> Sorts.add_class ctxt (c', cs');
     in ((space', classes'), default, types) end);
 
 fun hide_class fully c = map_tsig (fn ((space, classes), default, types) =>
@@ -593,7 +592,7 @@ fun hide_class fully c = map_tsig (fn ((space, classes), default, types) =>
 
 (* arities *)
 
-fun add_arity pp (t, Ss, S) tsig = tsig |> map_tsig (fn ((space, classes), default, types) =>
+fun add_arity ctxt (t, Ss, S) tsig = tsig |> map_tsig (fn ((space, classes), default, types) =>
   let
     val _ =
       (case lookup_type tsig t of
@@ -602,18 +601,18 @@ fun add_arity pp (t, Ss, S) tsig = tsig |> map_tsig (fn ((space, classes), defau
       | NONE => error (undecl_type t));
     val (Ss', S') = (map (cert_sort tsig) Ss, cert_sort tsig S)
       handle TYPE (msg, _, _) => error msg;
-    val classes' = classes |> Sorts.add_arities pp ((t, map (fn c' => (c', Ss')) S'));
+    val classes' = classes |> Sorts.add_arities ctxt ((t, map (fn c' => (c', Ss')) S'));
   in ((space, classes'), default, types) end);
 
 
 (* classrel *)
 
-fun add_classrel pp rel tsig =
+fun add_classrel ctxt rel tsig =
   tsig |> map_tsig (fn ((space, classes), default, types) =>
     let
       val rel' = pairself (cert_class tsig) rel
         handle TYPE (msg, _, _) => error msg;
-      val classes' = classes |> Sorts.add_classrel pp rel';
+      val classes' = classes |> Sorts.add_classrel ctxt rel';
     in ((space, classes'), default, types) end);
 
 
@@ -674,7 +673,7 @@ fun hide_type fully c = map_tsig (fn (classes, default, (space, types)) =>
 
 (* merge type signatures *)
 
-fun merge_tsig pp (tsig1, tsig2) =
+fun merge_tsig ctxt (tsig1, tsig2) =
   let
     val (TSig {classes = (space1, classes1), default = default1, types = types1,
       log_types = _}) = tsig1;
@@ -682,7 +681,7 @@ fun merge_tsig pp (tsig1, tsig2) =
       log_types = _}) = tsig2;
 
     val space' = Name_Space.merge (space1, space2);
-    val classes' = Sorts.merge_algebra pp (classes1, classes2);
+    val classes' = Sorts.merge_algebra ctxt (classes1, classes2);
     val default' = Sorts.inter_sort classes' (default1, default2);
     val types' = Name_Space.merge_tables (types1, types2);
   in build_tsig ((space', classes'), default', types') end;

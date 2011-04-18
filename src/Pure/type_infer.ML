@@ -217,10 +217,10 @@ fun fixate ctxt ts =
 
 exception NO_UNIFIER of string * typ Vartab.table;
 
-fun unify ctxt pp =
+fun unify ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val arity_sorts = Type.arity_sorts pp (Sign.tsig_of thy);
+    val arity_sorts = Type.arity_sorts (Context.pretty ctxt) (Sign.tsig_of thy);
 
 
     (* adjust sorts of parameters *)
@@ -289,9 +289,6 @@ fun unify ctxt pp =
 
 fun infer ctxt =
   let
-    val pp = Syntax.pp ctxt;
-
-
     (* errors *)
 
     fun prep_output tye bs ts Ts =
@@ -310,7 +307,7 @@ fun infer ctxt =
 
     fun err_appl msg tye bs t T u U =
       let val ([t', u'], [T', U']) = prep_output tye bs [t, u] [T, U]
-      in error (unif_failed msg ^ Type.appl_error pp t' T' u' U' ^ "\n") end;
+      in error (unif_failed msg ^ Type.appl_error ctxt t' T' u' U' ^ "\n") end;
 
 
     (* main *)
@@ -328,7 +325,7 @@ fun infer ctxt =
             val (T, tye_idx') = inf bs t tye_idx;
             val (U, (tye, idx)) = inf bs u tye_idx';
             val V = mk_param idx [];
-            val tye_idx'' = unify ctxt pp (U --> V, T) (tye, idx + 1)
+            val tye_idx'' = unify ctxt (U --> V, T) (tye, idx + 1)
               handle NO_UNIFIER (msg, tye') => err_appl msg tye' bs t T u U;
           in (V, tye_idx'') end;
 

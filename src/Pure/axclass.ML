@@ -59,12 +59,12 @@ fun make_axclass (def, intro, axioms, params): info =
 
 type param = string * class;
 
-fun add_param pp ((x, c): param) params =
+fun add_param ctxt ((x, c): param) params =
   (case AList.lookup (op =) params x of
     NONE => (x, c) :: params
-  | SOME c' => error ("Duplicate class parameter " ^ quote x ^
-      " for " ^ Pretty.string_of_sort pp [c] ^
-      (if c = c' then "" else " and " ^ Pretty.string_of_sort pp [c'])));
+  | SOME c' =>
+      error ("Duplicate class parameter " ^ quote x ^ " for " ^ Syntax.string_of_sort ctxt [c] ^
+        (if c = c' then "" else " and " ^ Syntax.string_of_sort ctxt [c'])));
 
 
 (* setup data *)
@@ -104,10 +104,14 @@ structure Data = Theory_Data_PP
         proven_arities = proven_arities2, inst_params = inst_params2,
         diff_classrels = diff_classrels2}) =
     let
+      val ctxt = Syntax.init_pretty pp;
+
       val axclasses' = Symtab.merge (K true) (axclasses1, axclasses2);
       val params' =
         if null params1 then params2
-        else fold_rev (fn p => if member (op =) params1 p then I else add_param pp p) params2 params1;
+        else
+          fold_rev (fn p => if member (op =) params1 p then I else add_param ctxt p)
+            params2 params1;
 
       (*transitive closure of classrels and arity completion is done in Theory.at_begin hook*)
       val proven_classrels' = Symreltab.join (K #1) (proven_classrels1, proven_classrels2);
@@ -590,7 +594,7 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
       |> #2
       |> Sign.restore_naming facts_thy
       |> map_axclasses (Symtab.update (class, axclass))
-      |> map_params (fold (fn (x, _) => add_param (Syntax.pp ctxt) (x, class)) params);
+      |> map_params (fold (fn (x, _) => add_param ctxt (x, class)) params);
 
   in (class, result_thy) end;
 

@@ -143,7 +143,7 @@ fun pretty_full_theory verbose thy =
     fun prt_term t = Pretty.quote (Syntax.pretty_term ctxt t);
     val prt_term_no_vars = prt_term o Logic.unvarify_global;
     fun prt_const (c, ty) = [Pretty.str c, Pretty.str " ::", Pretty.brk 1, prt_typ_no_tvars ty];
-    val prt_const' = Defs.pretty_const (Syntax.pp ctxt);
+    val prt_const' = Defs.pretty_const ctxt;
 
     fun pretty_classrel (c, []) = prt_cls c
       | pretty_classrel (c, cs) = Pretty.block

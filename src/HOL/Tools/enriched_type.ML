@@ -218,10 +218,11 @@ fun gen_enriched_type prep_term some_prfx raw_mapper lthy =
     val qualify = Binding.qualify true prfx o Binding.name;
     fun mapper_declaration comp_thm id_thm phi context =
       let
-        val typ_instance = Type.typ_instance (Proof_Context.tsig_of (Context.proof_of context));
+        val typ_instance = Sign.typ_instance (Context.theory_of context);
         val mapper' = Morphism.term phi mapper;
         val T_T' = pairself fastype_of (mapper, mapper');
-      in if typ_instance T_T' andalso typ_instance (swap T_T')
+      in
+        if typ_instance T_T' andalso typ_instance (swap T_T')
         then (Data.map o Symtab.cons_list) (tyco,
           { mapper = mapper', variances = variances,
             comp = Morphism.thm phi comp_thm, id = Morphism.thm phi id_thm }) context

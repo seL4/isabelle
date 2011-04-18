@@ -95,11 +95,12 @@ structure Thy = Theory_Data_PP
 
   fun merge pp (thy1, thy2) =
     let
+      val ctxt = Syntax.init_pretty pp;
       val Thy {axioms = _, defs = defs1, wrappers = (bgs1, ens1)} = thy1;
       val Thy {axioms = _, defs = defs2, wrappers = (bgs2, ens2)} = thy2;
 
       val axioms' = empty_axioms;
-      val defs' = Defs.merge pp (defs1, defs2);
+      val defs' = Defs.merge ctxt (defs1, defs2);
       val bgs' = Library.merge (eq_snd op =) (bgs1, bgs2);
       val ens' = Library.merge (eq_snd op =) (ens1, ens2);
     in make_thy (axioms', defs', (bgs', ens')) end;
@@ -137,7 +138,7 @@ fun at_end f = map_wrappers (apsnd (cons (f, stamp ())));
 
 fun begin_theory name imports =
   let
-    val thy = Context.begin_thy Syntax.pp_global name imports;
+    val thy = Context.begin_thy Context.pretty_global name imports;
     val wrappers = begin_wrappers thy;
   in
     thy
@@ -196,7 +197,7 @@ fun dependencies ctxt unchecked def description lhs rhs =
       else error ("Specification depends on extra type variables: " ^
         commas_quote (map (Syntax.string_of_typ ctxt o TFree) rhs_extras) ^
         "\nThe error(s) above occurred in " ^ quote description);
-  in Defs.define (Syntax.pp ctxt) unchecked def description (prep lhs) (map prep rhs) end;
+  in Defs.define ctxt unchecked def description (prep lhs) (map prep rhs) end;
 
 fun add_deps ctxt a raw_lhs raw_rhs thy =
   let
@@ -239,9 +240,8 @@ fun check_overloading ctxt overloaded (c, T) =
 
 local
 
-fun check_def ctxt unchecked overloaded (b, tm) defs =
+fun check_def ctxt thy unchecked overloaded (b, tm) defs =
   let
-    val thy = Proof_Context.theory_of ctxt;
     val name = Sign.full_name thy b;
     val ((lhs, rhs), _) = Primitive_Defs.dest_def ctxt Term.is_Const (K false) (K false) tm
       handle TERM (msg, _) => error msg;
@@ -258,7 +258,7 @@ in
 fun add_def ctxt unchecked overloaded raw_axm thy =
   let val axm = cert_axm ctxt raw_axm in
     thy
-    |> map_defs (check_def ctxt unchecked overloaded axm)
+    |> map_defs (check_def ctxt thy unchecked overloaded axm)
     |> add_axiom ctxt axm
   end;
 

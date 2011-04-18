@@ -574,18 +574,25 @@ exception PERMISSIVE of unit;
 fun translation_error thy permissive some_thm msg sub_msg =
   if permissive
   then raise PERMISSIVE ()
-  else let
-    val err_thm = case some_thm
-     of SOME thm => "\n(in code equation " ^ Display.string_of_thm_global thy thm ^ ")"
-      | NONE => "";
-  in error (msg ^ err_thm ^ ":\n" ^ sub_msg) end;
+  else
+    let
+      val err_thm =
+        (case some_thm of
+          SOME thm => "\n(in code equation " ^ Display.string_of_thm_global thy thm ^ ")"
+        | NONE => "");
+    in error (msg ^ err_thm ^ ":\n" ^ sub_msg) end;
 
 fun not_wellsorted thy permissive some_thm ty sort e =
   let
-    val err_class = Sorts.class_error (Syntax.pp_global thy) e;
-    val err_typ = "Type " ^ Syntax.string_of_typ_global thy ty ^ " not of sort "
-      ^ Syntax.string_of_sort_global thy sort;
-  in translation_error thy permissive some_thm "Wellsortedness error" (err_typ ^ "\n" ^ err_class) end;
+    val ctxt = Syntax.init_pretty_global thy;
+    val err_class = Sorts.class_error ctxt e;
+    val err_typ =
+      "Type " ^ Syntax.string_of_typ ctxt ty ^ " not of sort " ^
+        Syntax.string_of_sort_global thy sort;
+  in
+    translation_error thy permissive some_thm "Wellsortedness error"
+      (err_typ ^ "\n" ^ err_class)
+  end;
 
 
 (* translation *)

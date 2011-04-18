@@ -302,7 +302,7 @@ fun transfer_syntax thy ctxt = ctxt |>
   map_tsig (fn tsig as (local_tsig, global_tsig) =>
     let val thy_tsig = Sign.tsig_of thy in
       if Type.eq_tsig (thy_tsig, global_tsig) then tsig
-      else (Type.merge_tsig (Syntax.pp ctxt) (local_tsig, thy_tsig), thy_tsig)
+      else (Type.merge_tsig ctxt (local_tsig, thy_tsig), thy_tsig)
     end) |>
   map_consts (fn consts as (local_consts, global_consts) =>
     let val thy_consts = Sign.consts_of thy in
@@ -376,7 +376,7 @@ local
 
 fun prep_arity prep_tycon prep_sort ctxt (t, Ss, S) =
   let val arity = (prep_tycon ctxt t, map (prep_sort ctxt) Ss, prep_sort ctxt S)
-  in Type.add_arity (Syntax.pp ctxt) arity (tsig_of ctxt); arity end;
+  in Type.add_arity ctxt arity (tsig_of ctxt); arity end;
 
 in
 
@@ -546,7 +546,7 @@ val read_term_abbrev    = read_term_mode mode_abbrev;
 
 local
 
-fun certify_consts ctxt = Consts.certify (Syntax.pp ctxt) (tsig_of ctxt)
+fun certify_consts ctxt = Consts.certify (Context.pretty ctxt) (tsig_of ctxt)
   (not (abbrev_mode ctxt)) (consts_of ctxt);
 
 fun expand_binds ctxt =
@@ -666,9 +666,9 @@ local
 fun gen_cert prop ctxt t =
   t
   |> expand_abbrevs ctxt
-  |> (fn t' => #1 (Sign.certify' prop (Syntax.pp ctxt) false (consts_of ctxt) (theory_of ctxt) t')
-    handle TYPE (msg, _, _) => error msg
-      | TERM (msg, _) => error msg);
+  |> (fn t' =>
+      #1 (Sign.certify' prop (Context.pretty ctxt) false (consts_of ctxt) (theory_of ctxt) t')
+        handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg);
 
 in
 

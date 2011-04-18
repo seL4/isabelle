@@ -7,7 +7,7 @@ definitions and simple sub-structural overloading.
 
 signature DEFS =
 sig
-  val pretty_const: Pretty.pp -> string * typ list -> Pretty.T
+  val pretty_const: Proof.context -> string * typ list -> Pretty.T
   val plain_args: typ list -> bool
   type T
   type spec =
@@ -18,8 +18,8 @@ sig
    {restricts: ((string * typ list) * string) list,
     reducts: ((string * typ list) * (string * typ list) list) list}
   val empty: T
-  val merge: Pretty.pp -> T * T -> T
-  val define: Pretty.pp -> bool -> string option -> string ->
+  val merge: Proof.context -> T * T -> T
+  val define: Proof.context -> bool -> string option -> string ->
     string * typ list -> (string * typ list) list -> T -> T
 end
 
@@ -30,11 +30,11 @@ struct
 
 type args = typ list;
 
-fun pretty_const pp (c, args) =
+fun pretty_const ctxt (c, args) =
   let
     val prt_args =
       if null args then []
-      else [Pretty.list "(" ")" (map (Pretty.typ pp o Logic.unvarifyT_global) args)];
+      else [Pretty.list "(" ")" (map (Syntax.pretty_typ ctxt o Logic.unvarifyT_global) args)];
   in Pretty.block (Pretty.str c :: prt_args) end;
 
 fun plain_args args =
@@ -118,27 +118,27 @@ fun update_specs c spec = map_def c (fn (specs, restricts, reducts) =>
 local
 
 val prt = Pretty.string_of oo pretty_const;
-fun err pp (c, args) (d, Us) s1 s2 =
-  error (s1 ^ " dependency of constant " ^ prt pp (c, args) ^ " -> " ^ prt pp (d, Us) ^ s2);
+fun err ctxt (c, args) (d, Us) s1 s2 =
+  error (s1 ^ " dependency of constant " ^ prt ctxt (c, args) ^ " -> " ^ prt ctxt (d, Us) ^ s2);
 
 fun contained (U as TVar _) (Type (_, Ts)) = exists (fn T => T = U orelse contained U T) Ts
   | contained _ _ = false;
 
-fun acyclic pp (c, args) (d, Us) =
+fun acyclic ctxt (c, args) (d, Us) =
   c <> d orelse
   exists (fn U => exists (contained U) args) Us orelse
   is_none (match_args (args, Us)) orelse
-  err pp (c, args) (d, Us) "Circular" "";
+  err ctxt (c, args) (d, Us) "Circular" "";
 
-fun wellformed pp defs (c, args) (d, Us) =
+fun wellformed ctxt defs (c, args) (d, Us) =
   forall is_TVar Us orelse
   (case find_first (fn (Ts, _) => not (disjoint_args (Ts, Us))) (restricts_of defs d) of
     SOME (Ts, description) =>
-      err pp (c, args) (d, Us) "Malformed"
-        ("\n(restriction " ^ prt pp (d, Ts) ^ " from " ^ quote description ^ ")")
+      err ctxt (c, args) (d, Us) "Malformed"
+        ("\n(restriction " ^ prt ctxt (d, Ts) ^ " from " ^ quote description ^ ")")
   | NONE => true);
 
-fun reduction pp defs const deps =
+fun reduction ctxt defs const deps =
   let
     fun reduct Us (Ts, rhs) =
       (case match_args (Ts, Us) of
@@ -151,17 +151,17 @@ fun reduction pp defs const deps =
       if forall (is_none o #1) reds then NONE
       else SOME (fold_rev
         (fn (NONE, dp) => insert (op =) dp | (SOME dps, _) => fold (insert (op =)) dps) reds []);
-    val _ = forall (acyclic pp const) (the_default deps deps');
+    val _ = forall (acyclic ctxt const) (the_default deps deps');
   in deps' end;
 
 in
 
-fun normalize pp =
+fun normalize ctxt =
   let
     fun norm_update (c, {reducts, ...}: def) (changed, defs) =
       let
         val reducts' = reducts |> map (fn (args, deps) =>
-          (args, perhaps (reduction pp defs (c, args)) deps));
+          (args, perhaps (reduction ctxt defs (c, args)) deps));
       in
         if reducts = reducts' then (changed, defs)
         else (true, defs |> map_def c (fn (specs, restricts, _) => (specs, restricts, reducts')))
@@ -171,38 +171,38 @@ fun normalize pp =
         (true, defs') => norm_all defs'
       | (false, _) => defs);
     fun check defs (c, {reducts, ...}: def) =
-      reducts |> forall (fn (args, deps) => forall (wellformed pp defs (c, args)) deps);
+      reducts |> forall (fn (args, deps) => forall (wellformed ctxt defs (c, args)) deps);
   in norm_all #> (fn defs => tap (Symtab.forall (check defs)) defs) end;
 
-fun dependencies pp (c, args) restr deps =
+fun dependencies ctxt (c, args) restr deps =
   map_def c (fn (specs, restricts, reducts) =>
     let
       val restricts' = Library.merge (op =) (restricts, restr);
       val reducts' = insert (op =) (args, deps) reducts;
     in (specs, restricts', reducts') end)
-  #> normalize pp;
+  #> normalize ctxt;
 
 end;
 
 
 (* merge *)
 
-fun merge pp (Defs defs1, Defs defs2) =
+fun merge ctxt (Defs defs1, Defs defs2) =
   let
     fun add_deps (c, args) restr deps defs =
       if AList.defined (op =) (reducts_of defs c) args then defs
-      else dependencies pp (c, args) restr deps defs;
+      else dependencies ctxt (c, args) restr deps defs;
     fun add_def (c, {restricts, reducts, ...}: def) =
       fold (fn (args, deps) => add_deps (c, args) restricts deps) reducts;
   in
     Defs (Symtab.join join_specs (defs1, defs2)
-      |> normalize pp |> Symtab.fold add_def defs2)
+      |> normalize ctxt |> Symtab.fold add_def defs2)
   end;
 
 
 (* define *)
 
-fun define pp unchecked def description (c, args) deps (Defs defs) =
+fun define ctxt unchecked def description (c, args) deps (Defs defs) =
   let
     val restr =
       if plain_args args orelse
@@ -211,6 +211,6 @@ fun define pp unchecked def description (c, args) deps (Defs defs) =
     val spec =
       (serial (), {def = def, description = description, lhs = args, rhs = deps});
     val defs' = defs |> update_specs c spec;
-  in Defs (defs' |> (if unchecked then I else dependencies pp (c, args) restr deps)) end;
+  in Defs (defs' |> (if unchecked then I else dependencies ctxt (c, args) restr deps)) end;
 
 end;
