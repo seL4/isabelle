@@ -304,6 +304,12 @@ def Mutabelle_Fun(*args):
     """Mutabelle regression suite on Fun theory"""
     return invoke_mutabelle('Fun', *args)
 
+mutabelle_confs = 'Mutabelle_Relation Mutabelle_List Mutabelle_Set Mutabelle_Map Mutabelle_Divides Mutabelle_MacLaurin Mutabelle_Fun'.split(' ')
+
+@scheduler()
+def mutabelle_scheduler(env):
+    """Scheduler for Mutabelle."""
+    return schedule.age_scheduler(env, 'Isabelle', mutabelle_confs)
 
 # Judgement Day configurations
 
