@@ -13,7 +13,7 @@ end
 structure SPARK_Commands: SPARK_COMMANDS =
 struct
 
-fun spark_open vc_name thy =
+fun spark_open (vc_name, prfx) thy =
   let
     val vc_path = Thy_Load.check_file (Thy_Load.master_directory thy) (Path.explode vc_name);
     val (base, header) =
@@ -28,7 +28,7 @@ fun spark_open vc_name thy =
       (snd (Fdl_Parser.parse_declarations (Path.position fdl_path) (File.read fdl_path)))
       (Fdl_Parser.parse_rules (Path.position rls_path) (File.read rls_path))
       (snd (Fdl_Parser.parse_vcs header (Path.position vc_path) (File.read vc_path)))
-      base thy
+      base prfx thy
   end;
 
 fun add_proof_fun_cmd pf thy =
@@ -107,7 +107,7 @@ val _ =
   Outer_Syntax.command "spark_open"
     "open a new SPARK environment and load a SPARK-generated .vcg or .siv file"
     Keyword.thy_decl
-    (Parse.name >> (Toplevel.theory o spark_open));
+    (Parse.name -- Parse.parname >> (Toplevel.theory o spark_open));
 
 val pfun_type = Scan.option
   (Args.parens (Parse.list1 Parse.name) --| Args.colon -- Parse.name);
