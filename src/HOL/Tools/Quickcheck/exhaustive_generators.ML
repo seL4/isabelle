@@ -279,34 +279,20 @@ val instantiate_fast_exhaustive_datatype = instantiate_datatype
    mk_fast_equations, fast_exhaustiveT, ["f", "i"])
 
 val instantiate_exhaustive_datatype = instantiate_datatype  
-  ("exhaustive generators", exhaustiveN, @{sort full_exhaustive}, mk_equations, exhaustiveT, ["f", "i"])
+  ("exhaustive generators", exhaustiveN, @{sort exhaustive},
+    mk_equations, exhaustiveT, ["f", "i"])
 
 val instantiate_full_exhaustive_datatype = instantiate_datatype
   ("full exhaustive generators", full_exhaustiveN, @{sort full_exhaustive},
-  mk_full_equations, full_exhaustiveT, ["f", "i"])
-  
+    mk_full_equations, full_exhaustiveT, ["f", "i"])
+
 (* building and compiling generator expressions *)
 
-fun mk_fast_generator_expr ctxt (t, eval_terms) =
+
+fun mk_test_term lookup mk_closure mk_if none_t return ctxt =
   let
-    val thy = Proof_Context.theory_of ctxt
-    val ctxt' = Variable.auto_fixes t ctxt
-    val names = Term.add_free_names t []
-    val frees = map Free (Term.add_frees t [])
-    val ([depth_name], ctxt'') = Variable.variant_fixes ["depth"] ctxt'
-    val depth = Free (depth_name, @{typ code_numeral})
-    val return = @{term "throw_Counterexample :: term list => unit"} $
-      (HOLogic.mk_list @{typ "term"}
-        (map (fn t => HOLogic.mk_term_of (fastype_of t) t) (frees @ eval_terms)))
-    fun mk_exhaustive_closure (free as Free (_, T)) t =
-      Const (@{const_name "Quickcheck_Exhaustive.fast_exhaustive_class.fast_exhaustive"}, fast_exhaustiveT T)
-        $ lambda free t $ depth
-    val none_t = @{term "()"}
-    fun mk_safe_if (cond, then_t, else_t) =
-      @{term "If :: bool => unit => unit => unit"} $ cond $ then_t $ else_t
-    fun lookup v = the (AList.lookup (op =) (names ~~ frees) v)
     fun mk_naive_test_term t =
-      fold_rev mk_exhaustive_closure frees (mk_safe_if (t, none_t, return)) 
+      fold_rev mk_closure (map lookup (Term.add_free_names t [])) (mk_if (t, none_t, return)) 
     fun mk_smart_test_term' concl bound_vars assms =
       let
         fun vars_of t = subtract (op =) bound_vars (Term.add_free_names t [])
@@ -315,16 +301,34 @@ fun mk_fast_generator_expr ctxt (t, eval_terms) =
             | assm :: assms => (vars_of assm, (assm,
                 mk_smart_test_term' concl (union (op =) (vars_of assm) bound_vars) assms, none_t))
       in
-        fold_rev mk_exhaustive_closure (map lookup vars) (mk_safe_if check)
+        fold_rev mk_closure (map lookup vars) (mk_if check)
       end
-    fun mk_smart_test_term t =
-      let
-        val (assms, concl) = Quickcheck_Common.strip_imp t
-      in
-        mk_smart_test_term' concl [] assms
-      end
-    val mk_test_term =
-      if Config.get ctxt smart_quantifier then mk_smart_test_term else mk_naive_test_term 
+    val mk_smart_test_term =
+      Quickcheck_Common.strip_imp #> (fn (assms, concl) => mk_smart_test_term' concl [] assms)
+  in
+    if Config.get ctxt smart_quantifier then mk_smart_test_term else mk_naive_test_term 
+  end
+
+fun mk_fast_generator_expr ctxt (t, eval_terms) =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val ctxt' = Variable.auto_fixes t ctxt
+    val names = Term.add_free_names t []
+    val frees = map Free (Term.add_frees t [])
+    fun lookup v = the (AList.lookup (op =) (names ~~ frees) v)
+    val ([depth_name], ctxt'') = Variable.variant_fixes ["depth"] ctxt'
+    val depth = Free (depth_name, @{typ code_numeral})
+    val return = @{term "throw_Counterexample :: term list => unit"} $
+      (HOLogic.mk_list @{typ "term"}
+        (map (fn t => HOLogic.mk_term_of (fastype_of t) t) (frees @ eval_terms)))
+    fun mk_exhaustive_closure (free as Free (_, T)) t =
+      Const (@{const_name "Quickcheck_Exhaustive.fast_exhaustive_class.fast_exhaustive"},
+        fast_exhaustiveT T)
+        $ lambda free t $ depth
+    val none_t = @{term "()"}
+    fun mk_safe_if (cond, then_t, else_t) =
+      @{term "If :: bool => unit => unit => unit"} $ cond $ then_t $ else_t
+    val mk_test_term = mk_test_term lookup mk_exhaustive_closure mk_safe_if none_t return ctxt 
   in lambda depth (@{term "catch_Counterexample :: unit => term list option"} $ mk_test_term t) end
 
 fun mk_generator_expr ctxt (t, eval_terms) =
@@ -333,6 +337,7 @@ fun mk_generator_expr ctxt (t, eval_terms) =
     val ctxt' = Variable.auto_fixes t ctxt
     val names = Term.add_free_names t []
     val frees = map Free (Term.add_frees t [])
+    fun lookup v = the (AList.lookup (op =) (names ~~ frees) v)
     val ([depth_name], ctxt'') = Variable.variant_fixes ["depth"] ctxt'
     val depth = Free (depth_name, @{typ code_numeral})
     val return = @{term "Some :: term list => term list option"} $
@@ -346,27 +351,7 @@ fun mk_generator_expr ctxt (t, eval_terms) =
       @{term "Quickcheck_Exhaustive.catch_match :: term list option => term list option => term list option"} $
         (@{term "If :: bool => term list option => term list option => term list option"}
         $ cond $ then_t $ else_t) $ none_t;
-    fun lookup v = the (AList.lookup (op =) (names ~~ frees) v)
-    fun mk_naive_test_term t =
-      fold_rev mk_exhaustive_closure frees (mk_safe_if (t, none_t, return)) 
-    fun mk_smart_test_term' concl bound_vars assms =
-      let
-        fun vars_of t = subtract (op =) bound_vars (Term.add_free_names t [])
-        val (vars, check) =
-          case assms of [] => (vars_of concl, (concl, none_t, return))
-            | assm :: assms => (vars_of assm, (assm,
-                mk_smart_test_term' concl (union (op =) (vars_of assm) bound_vars) assms, none_t))
-      in
-        fold_rev mk_exhaustive_closure (map lookup vars) (mk_safe_if check)
-      end
-    fun mk_smart_test_term t =
-      let
-        val (assms, concl) = Quickcheck_Common.strip_imp t
-      in
-        mk_smart_test_term' concl [] assms
-      end
-    val mk_test_term =
-      if Config.get ctxt smart_quantifier then mk_smart_test_term else mk_naive_test_term 
+    val mk_test_term = mk_test_term lookup mk_exhaustive_closure mk_safe_if none_t return ctxt
   in lambda depth (mk_test_term t) end
 
 fun mk_full_generator_expr ctxt (t, eval_terms) =
@@ -379,6 +364,7 @@ fun mk_full_generator_expr ctxt (t, eval_terms) =
     val (term_names, ctxt''') = Variable.variant_fixes (map (prefix "t_") names) ctxt''
     val depth = Free (depth_name, @{typ code_numeral})
     val term_vars = map (fn n => Free (n, @{typ "unit => term"})) term_names
+    fun lookup v = the (AList.lookup (op =) (names ~~ (frees ~~ term_vars)) v)
     val terms = HOLogic.mk_list @{typ term} (map (fn v => v $ @{term "()"}) term_vars)
     val appendC = @{term "List.append :: term list => term list => term list"}  
     val return = @{term "Some :: term list => term list option"} $ (appendC $ terms $
@@ -397,27 +383,7 @@ fun mk_full_generator_expr ctxt (t, eval_terms) =
       @{term "Quickcheck_Exhaustive.catch_match :: term list option => term list option => term list option"} $
         (@{term "If :: bool => term list option => term list option => term list option"}
         $ cond $ then_t $ else_t) $ none_t;
-    fun lookup v = the (AList.lookup (op =) (names ~~ (frees ~~ term_vars)) v)
-    fun mk_naive_test_term t =
-      fold_rev mk_exhaustive_closure (frees ~~ term_vars) (mk_safe_if (t, none_t, return)) 
-    fun mk_smart_test_term' concl bound_vars assms =
-      let
-        fun vars_of t = subtract (op =) bound_vars (Term.add_free_names t [])
-        val (vars, check) =
-          case assms of [] => (vars_of concl, (concl, none_t, return))
-            | assm :: assms => (vars_of assm, (assm,
-                mk_smart_test_term' concl (union (op =) (vars_of assm) bound_vars) assms, none_t))
-      in
-        fold_rev mk_exhaustive_closure (map lookup vars) (mk_safe_if check)
-      end
-    fun mk_smart_test_term t =
-      let
-        val (assms, concl) = Quickcheck_Common.strip_imp t
-      in
-        mk_smart_test_term' concl [] assms
-      end
-    val mk_test_term =
-      if Config.get ctxt smart_quantifier then mk_smart_test_term else mk_naive_test_term 
+    val mk_test_term = mk_test_term lookup mk_exhaustive_closure mk_safe_if none_t return ctxt
   in lambda depth (mk_test_term t) end
 
 fun mk_parametric_generator_expr mk_generator_expr =
@@ -430,34 +396,18 @@ fun mk_validator_expr ctxt t =
     fun bounded_forallT T = (T --> @{typ bool}) --> @{typ code_numeral} --> @{typ bool}
     val thy = Proof_Context.theory_of ctxt
     val ctxt' = Variable.auto_fixes t ctxt
+    val names = Term.add_free_names t []
+    val frees = map Free (Term.add_frees t [])
+    fun lookup v = the (AList.lookup (op =) (names ~~ frees) v)
     val ([depth_name], ctxt'') = Variable.variant_fixes ["depth"] ctxt'
     val depth = Free (depth_name, @{typ code_numeral})
-    fun mk_bounded_forall (s, T) t =
+    fun mk_bounded_forall (Free (s, T)) t =
       Const (@{const_name "Quickcheck_Exhaustive.bounded_forall_class.bounded_forall"}, bounded_forallT T)
         $ lambda (Free (s, T)) t $ depth
-    fun mk_implies (cond, then_t) =
-      @{term "If :: bool => bool => bool => bool"} $ cond $ then_t $ @{term True}
-    fun mk_naive_test_term t = fold_rev mk_bounded_forall (Term.add_frees t []) t 
-    fun mk_smart_test_term' concl bound_frees assms =
-      let
-        fun vars_of t = subtract (op =) bound_frees (Term.add_frees t [])
-        val (vars, check) =
-          case assms of [] => (vars_of concl, concl)
-            | assm :: assms => (vars_of assm, mk_implies (assm,
-                mk_smart_test_term' concl (union (op =) (vars_of assm) bound_frees) assms))
-      in
-        fold_rev mk_bounded_forall vars check
-      end
-    fun mk_smart_test_term t =
-      let
-        val (assms, concl) = Quickcheck_Common.strip_imp t
-      in
-        mk_smart_test_term' concl [] assms
-      end
-    val mk_test_term =
-      if Config.get ctxt smart_quantifier then mk_smart_test_term else mk_naive_test_term 
+    fun mk_if (cond, then_t, else_t) =
+      @{term "If :: bool => bool => bool => bool"} $ cond $ then_t $ else_t
+    val mk_test_term = mk_test_term lookup mk_bounded_forall mk_if @{term True} @{term False} ctxt
   in lambda depth (mk_test_term t) end
-
 
 (** generator compiliation **)
 
