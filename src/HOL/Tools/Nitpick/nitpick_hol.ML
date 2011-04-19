@@ -1066,7 +1066,11 @@ fun loose_bvar1_count (Bound i, k) = if i = k then 1 else 0
   | loose_bvar1_count (Abs (_, _, t), k) = loose_bvar1_count (t, k + 1)
   | loose_bvar1_count _ = 0
 
-fun s_betapply _ (Const (@{const_name If}, _) $ @{const True} $ t1', _) = t1'
+fun s_betapply _ (t1 as Const (@{const_name "=="}, _) $ t1', t2) =
+    if t1' aconv t2 then @{prop True} else t1 $ t2
+  | s_betapply _ (t1 as Const (@{const_name HOL.eq}, _) $ t1', t2) =
+    if t1' aconv t2 then @{term True} else t1 $ t2
+  | s_betapply _ (Const (@{const_name If}, _) $ @{const True} $ t1', _) = t1'
   | s_betapply _ (Const (@{const_name If}, _) $ @{const False} $ _, t2) = t2
   | s_betapply Ts (Const (@{const_name Let},
                           Type (_, [bound_T, Type (_, [_, body_T])]))
