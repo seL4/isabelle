@@ -23,14 +23,13 @@ val ctxt = @{context}
 val stds = [(NONE, true)]
 val subst = []
 val case_names = case_const_names ctxt stds
-val (defs, built_in_nondefs, user_nondefs) = all_axioms_of ctxt subst
+val defs = all_defs_of thy subst
+val nondefs = all_nondefs_of ctxt subst
 val def_tables = const_def_tables ctxt subst defs
-val nondef_table = const_nondef_table (built_in_nondefs @ user_nondefs)
+val nondef_table = const_nondef_table nondefs
 val simp_table = Unsynchronized.ref (const_simp_table ctxt subst)
 val psimp_table = const_psimp_table ctxt subst
 val choice_spec_table = const_choice_spec_table ctxt subst
-val user_nondefs =
-  user_nondefs |> filter_out (is_choice_spec_axiom thy choice_spec_table)
 val intro_table = inductive_intro_table ctxt subst def_tables
 val ground_thm_table = ground_theorem_table thy
 val ersatz_table = ersatz_table ctxt
@@ -40,13 +39,13 @@ val hol_ctxt as {thy, ...} : hol_context =
    whacks = [], binary_ints = SOME false, destroy_constrs = true,
    specialize = false, star_linear_preds = false, total_consts = NONE,
    needs = NONE, tac_timeout = NONE, evals = [], case_names = case_names,
-   def_tables = def_tables, nondef_table = nondef_table,
-   user_nondefs = user_nondefs, simp_table = simp_table,
-   psimp_table = psimp_table, choice_spec_table = choice_spec_table,
-   intro_table = intro_table, ground_thm_table = ground_thm_table,
-   ersatz_table = ersatz_table, skolems = Unsynchronized.ref [],
-   special_funs = Unsynchronized.ref [], unrolled_preds = Unsynchronized.ref [],
-   wf_cache = Unsynchronized.ref [], constr_cache = Unsynchronized.ref []}
+   def_tables = def_tables, nondef_table = nondef_table, nondefs = nondefs,
+   simp_table = simp_table, psimp_table = psimp_table,
+   choice_spec_table = choice_spec_table, intro_table = intro_table,
+   ground_thm_table = ground_thm_table, ersatz_table = ersatz_table,
+   skolems = Unsynchronized.ref [], special_funs = Unsynchronized.ref [],
+   unrolled_preds = Unsynchronized.ref [], wf_cache = Unsynchronized.ref [],
+   constr_cache = Unsynchronized.ref []}
 val binarize = false
 
 fun is_mono t =

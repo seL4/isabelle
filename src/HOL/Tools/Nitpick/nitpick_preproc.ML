@@ -889,7 +889,7 @@ val axioms_max_depth = 255
 fun axioms_for_term
         (hol_ctxt as {thy, ctxt, max_bisim_depth, stds, user_axioms,
                       evals, def_tables, nondef_table, choice_spec_table,
-                      user_nondefs, ...}) assm_ts neg_t =
+                      nondefs, ...}) assm_ts neg_t =
   let
     val (def_assm_ts, nondef_assm_ts) =
       List.partition (assumption_exclusively_defines_free assm_ts) assm_ts
@@ -1030,8 +1030,8 @@ fun axioms_for_term
                                           \add_axioms_for_sort", [t]))
               class_axioms
       in fold (add_nondef_axiom depth) monomorphic_class_axioms end
-    val (mono_user_nondefs, poly_user_nondefs) =
-      List.partition (null o Term.hidden_polymorphism) user_nondefs
+    val (mono_nondefs, poly_nondefs) =
+      List.partition (null o Term.hidden_polymorphism) nondefs
     val eval_axioms = map2 eval_axiom_for_term (index_seq 0 (length evals))
                            evals
     val (seen, (defs, nondefs)) =
@@ -1039,13 +1039,11 @@ fun axioms_for_term
       |> add_axioms_for_term 1 neg_t
       |> fold_rev (add_nondef_axiom 1) nondef_assm_ts
       |> fold_rev (add_def_axiom 1) eval_axioms
-      |> user_axioms = SOME true ? fold (add_nondef_axiom 1) mono_user_nondefs
+      |> user_axioms = SOME true ? fold (add_nondef_axiom 1) mono_nondefs
     val defs = defs @ special_congruence_axioms hol_ctxt seen
     val got_all_mono_user_axioms =
-      (user_axioms = SOME true orelse null mono_user_nondefs)
-  in
-    (neg_t :: nondefs, defs, got_all_mono_user_axioms, null poly_user_nondefs)
-  end
+      (user_axioms = SOME true orelse null mono_nondefs)
+  in (neg_t :: nondefs, defs, got_all_mono_user_axioms, null poly_nondefs) end
 
 (** Simplification of constructor/selector terms **)
 

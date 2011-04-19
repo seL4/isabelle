@@ -865,7 +865,7 @@ fun reconstruct_hol_model {show_datatypes, show_skolems, show_consts}
         ({hol_ctxt = {thy, ctxt, max_bisim_depth, boxes, stds, wfs, user_axioms,
                       debug, whacks, binary_ints, destroy_constrs, specialize,
                       star_linear_preds, total_consts, needs, tac_timeout,
-                      evals, case_names, def_tables, nondef_table, user_nondefs,
+                      evals, case_names, def_tables, nondef_table, nondefs,
                       simp_table, psimp_table, choice_spec_table, intro_table,
                       ground_thm_table, ersatz_table, skolems, special_funs,
                       unrolled_preds, wf_cache, constr_cache}, binarize,
@@ -884,13 +884,12 @@ fun reconstruct_hol_model {show_datatypes, show_skolems, show_consts}
        star_linear_preds = star_linear_preds, total_consts = total_consts,
        needs = needs, tac_timeout = tac_timeout, evals = evals,
        case_names = case_names, def_tables = def_tables,
-       nondef_table = nondef_table, user_nondefs = user_nondefs,
-       simp_table = simp_table, psimp_table = psimp_table,
-       choice_spec_table = choice_spec_table, intro_table = intro_table,
-       ground_thm_table = ground_thm_table, ersatz_table = ersatz_table,
-       skolems = skolems, special_funs = special_funs,
-       unrolled_preds = unrolled_preds, wf_cache = wf_cache,
-       constr_cache = constr_cache}
+       nondef_table = nondef_table, nondefs = nondefs, simp_table = simp_table,
+       psimp_table = psimp_table, choice_spec_table = choice_spec_table,
+       intro_table = intro_table, ground_thm_table = ground_thm_table,
+       ersatz_table = ersatz_table, skolems = skolems,
+       special_funs = special_funs, unrolled_preds = unrolled_preds,
+       wf_cache = wf_cache, constr_cache = constr_cache}
     val scope =
       {hol_ctxt = hol_ctxt, binarize = binarize, card_assigns = card_assigns,
        bits = bits, bisim_depth = bisim_depth, datatypes = datatypes, ofs = ofs}
