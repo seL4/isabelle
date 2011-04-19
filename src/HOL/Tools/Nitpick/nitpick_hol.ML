@@ -1264,35 +1264,6 @@ fun is_typedef_axiom ctxt boring (@{const "==>"} $ _ $ t2) =
     boring <> is_funky_typedef_name ctxt s andalso is_typedef ctxt s
   | is_typedef_axiom _ _ _ = false
 
-(* Distinguishes between (1) constant definition axioms, (2) type arity and
-   typedef axioms, and (3) other axioms, and returns the pair ((1), (3)).
-   Typedef axioms are uninteresting to Nitpick, because it can retrieve them
-   using "typedef_info". *)
-fun filter_defs def_names =
-  sort (fast_string_ord o pairself fst)
-  #> Ord_List.inter (fast_string_ord o apsnd fst) def_names
-  #> map snd
-
-(* Ideally we would check against "Complex_Main", not "Refute", but any theory
-   will do as long as it contains all the "axioms" and "axiomatization"
-   commands. *)
-fun is_built_in_theory thy = Theory.subthy (thy, @{theory Refute})
-
-val is_trivial_definition =
-  the_default false o try (op aconv o Logic.dest_equals)
-val is_plain_definition =
-  let
-    fun do_lhs t1 =
-      case strip_comb t1 of
-        (Const _, args) =>
-        forall is_Var args andalso not (has_duplicates (op =) args)
-      | _ => false
-    fun do_eq (Const (@{const_name "=="}, _) $ t1 $ _) = do_lhs t1
-      | do_eq (@{const Trueprop} $ (Const (@{const_name HOL.eq}, _) $ t1 $ _)) =
-        do_lhs t1
-      | do_eq _ = false
-  in do_eq end
-
 fun all_defs_of thy subst =
   let
     val def_names =
@@ -1300,18 +1271,19 @@ fun all_defs_of thy subst =
           |> Defs.all_specifications_of
           |> maps snd |> map_filter #def
           |> Ord_List.make fast_string_ord
-    val thys = thy :: Theory.ancestors_of thy
   in
-    (* FIXME: avoid relying on "Thm.definitionK" *)
-    (thy |> Global_Theory.all_thms_of
-         |> filter (curry (op =) Thm.definitionK o Thm.get_kind o snd)
-         |> map (subst_atomic subst o prop_of o snd)
-         |> filter_out is_trivial_definition
-         |> filter is_plain_definition) @
-    (thys |> maps Thm.axioms_of
-          |> map (apsnd (subst_atomic subst o prop_of))
-          |> filter_defs def_names)
+    thy :: Theory.ancestors_of thy
+    |> maps Thm.axioms_of
+    |> map (apsnd (subst_atomic subst o prop_of))
+    |> sort (fast_string_ord o pairself fst)
+    |> Ord_List.inter (fast_string_ord o apsnd fst) def_names
+    |> map snd
   end
+
+(* Ideally we would check against "Complex_Main", not "Refute", but any theory
+   will do as long as it contains all the "axioms" and "axiomatization"
+   commands. *)
+fun is_built_in_theory thy = Theory.subthy (thy, @{theory Refute})
 
 fun all_nondefs_of ctxt subst =
   ctxt |> Spec_Rules.get
