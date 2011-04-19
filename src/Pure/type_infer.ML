@@ -8,6 +8,8 @@ signature TYPE_INFER =
 sig
   val is_param: indexname -> bool
   val is_paramT: typ -> bool
+  val param_maxidx: term -> int -> int
+  val param_maxidx_of: term list -> int
   val param: int -> string * sort -> typ
   val mk_param: int -> sort -> typ
   val anyT: sort -> typ
@@ -33,6 +35,12 @@ fun is_param (x, _: int) = String.isPrefix "?" x;
 
 fun is_paramT (TVar (xi, _)) = is_param xi
   | is_paramT _ = false;
+
+val param_maxidx =
+  (Term.fold_types o Term.fold_atyps)
+    (fn (TVar (xi as (_, i), _)) => if is_param xi then Integer.max i else I | _ => I);
+
+fun param_maxidx_of ts = fold param_maxidx ts ~1;
 
 fun param i (x, S) = TVar (("?" ^ x, i), S);
 
@@ -69,7 +77,7 @@ val paramify_dummies =
 fun prepare_typ typ params_idx =
   let
     val (params', idx) = fold_atyps
-      (fn TVar (xi as (x, _), S) =>
+      (fn TVar (xi, S) =>
           (fn ps_idx as (ps, idx) =>
             if is_param xi andalso not (Vartab.defined ps xi)
             then (Vartab.update (xi, mk_param idx S) ps, idx + 1) else ps_idx)
@@ -160,7 +168,7 @@ fun deref tye (T as TVar (xi, _)) =
       (case Vartab.lookup tye xi of
         NONE => T
       | SOME U => deref tye U)
-  | deref tye T = T;
+  | deref _ T = T;
 
 fun add_parms tye T =
   (case deref tye T of
@@ -247,7 +255,7 @@ fun unify ctxt =
 
     (* occurs check and assignment *)
 
-    fun occurs_check tye xi (TVar (xi', S)) =
+    fun occurs_check tye xi (TVar (xi', _)) =
           if xi = xi' then raise NO_UNIFIER ("Occurs check!", tye)
           else
             (case Vartab.lookup tye xi' of
@@ -343,10 +351,11 @@ fun prepare ctxt const_type var_type raw_ts =
         | t => t);
 
     val ts = burrow_types (Syntax.check_typs ctxt) raw_ts;
-    val (ts', (_, _, idx)) =
+    val idx = param_maxidx_of ts + 1;
+    val (ts', (_, _, idx')) =
       fold_map (prepare_term ctxt const_type o constrain_vars) ts
-        (Vartab.empty, Vartab.empty, 0);
-  in (idx, ts') end;
+        (Vartab.empty, Vartab.empty, idx);
+  in (idx', ts') end;
 
 fun infer_types ctxt const_type var_type raw_ts =
   let
