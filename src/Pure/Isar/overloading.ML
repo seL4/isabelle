@@ -113,8 +113,8 @@ fun set_primary_constraints ctxt =
 
 val activate_improvable_syntax =
   Context.proof_map
-    (Syntax.add_term_check 0 "improvement" improve_term_check
-    #> Syntax.add_term_uncheck 0 "improvement" improve_term_uncheck)
+    (Syntax.context_term_check 0 "improvement" improve_term_check
+    #> Syntax.context_term_uncheck 0 "improvement" improve_term_uncheck)
   #> set_primary_constraints;
 
 

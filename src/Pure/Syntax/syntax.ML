@@ -31,17 +31,25 @@ sig
   val unparse_typ: Proof.context -> typ -> Pretty.T
   val unparse_term: Proof.context -> term -> Pretty.T
   val print_checks: Proof.context -> unit
-  val add_typ_check: int -> string ->
+  val context_typ_check: int -> string ->
     (typ list -> Proof.context -> (typ list * Proof.context) option) ->
     Context.generic -> Context.generic
-  val add_term_check: int -> string ->
+  val context_term_check: int -> string ->
     (term list -> Proof.context -> (term list * Proof.context) option) ->
     Context.generic -> Context.generic
-  val add_typ_uncheck: int -> string ->
+  val context_typ_uncheck: int -> string ->
     (typ list -> Proof.context -> (typ list * Proof.context) option) ->
     Context.generic -> Context.generic
-  val add_term_uncheck: int -> string ->
+  val context_term_uncheck: int -> string ->
     (term list -> Proof.context -> (term list * Proof.context) option) ->
+    Context.generic -> Context.generic
+  val add_typ_check: int -> string -> (Proof.context -> typ list -> typ list) ->
+    Context.generic -> Context.generic
+  val add_term_check: int -> string -> (Proof.context -> term list -> term list) ->
+    Context.generic -> Context.generic
+  val add_typ_uncheck: int -> string -> (Proof.context -> typ list -> typ list) ->
+    Context.generic -> Context.generic
+  val add_term_uncheck: int -> string -> (Proof.context -> term list -> term list) ->
     Context.generic -> Context.generic
   val typ_check: Proof.context -> typ list -> typ list
   val term_check: Proof.context -> term list -> term list
@@ -224,13 +232,11 @@ val unparse_term = operation #unparse_term;
 
 (* context-sensitive (un)checking *)
 
-local
-
 type key = int * bool;
-type 'a check = 'a list -> Proof.context -> ('a list * Proof.context) option;
 
 structure Checks = Generic_Data
 (
+  type 'a check = 'a list -> Proof.context -> ('a list * Proof.context) option;
   type T =
     ((key * ((string * typ check) * stamp) list) list *
      (key * ((string * term check) * stamp) list) list);
@@ -240,27 +246,6 @@ structure Checks = Generic_Data
     (AList.join (op =) (K (Library.merge (eq_snd (op =)))) (typ_checks1, typ_checks2),
      AList.join (op =) (K (Library.merge (eq_snd (op =)))) (term_checks1, term_checks2));
 );
-
-fun gen_add which (key: key) name f =
-  Checks.map (which (AList.map_default op = (key, []) (cons ((name, f), stamp ()))));
-
-fun check_stage fs = perhaps_loop (perhaps_apply (map uncurry fs));
-
-fun gen_check which uncheck ctxt0 xs0 =
-  let
-    val funs = which (Checks.get (Context.Proof ctxt0))
-      |> map_filter (fn ((i, u), fs) => if uncheck = u then SOME (i, map (snd o fst) fs) else NONE)
-      |> Library.sort (int_ord o pairself fst) |> map snd
-      |> not uncheck ? map rev;
-    val check_all = perhaps_apply (map check_stage funs);
-  in #1 (perhaps check_all (xs0, ctxt0)) end;
-
-fun map_sort f S =
-  (case f (TFree ("", S)) of
-    TFree ("", S') => S'
-  | _ => raise TYPE ("map_sort", [TFree ("", S)], []));
-
-in
 
 fun print_checks ctxt =
   let
@@ -283,15 +268,52 @@ fun print_checks ctxt =
     pretty_checks "term_unchecks" term_unchecks
   end |> Pretty.chunks |> Pretty.writeln;
 
-fun add_typ_check stage = gen_add apfst (stage, false);
-fun add_term_check stage = gen_add apsnd (stage, false);
-fun add_typ_uncheck stage = gen_add apfst (stage, true);
-fun add_term_uncheck stage = gen_add apsnd (stage, true);
 
-val typ_check = gen_check fst false;
-val term_check = gen_check snd false;
-val typ_uncheck = gen_check fst true;
-val term_uncheck = gen_check snd true;
+local
+
+fun context_check which (key: key) name f =
+  Checks.map (which (AList.map_default op = (key, []) (cons ((name, f), stamp ()))));
+
+fun simple_check eq f xs ctxt =
+  let val xs' = f ctxt xs in
+    if pointer_eq (xs, xs') orelse eq_list eq (xs, xs') then NONE
+    else SOME (xs', ctxt)
+  end;
+
+in
+
+fun context_typ_check stage = context_check apfst (stage, false);
+fun context_term_check stage = context_check apsnd (stage, false);
+fun context_typ_uncheck stage = context_check apfst (stage, true);
+fun context_term_uncheck stage = context_check apsnd (stage, true);
+
+fun add_typ_check key name f = context_typ_check key name (simple_check (op =) f);
+fun add_term_check key name f = context_term_check key name (simple_check (op aconv) f);
+fun add_typ_uncheck key name f = context_typ_uncheck key name (simple_check (op =) f);
+fun add_term_uncheck key name f = context_term_uncheck key name (simple_check (op aconv) f);
+
+end;
+
+
+local
+
+fun check_stage fs = perhaps_loop (perhaps_apply (map uncurry fs));
+fun check_all fs = perhaps_apply (map check_stage fs);
+
+fun check which uncheck ctxt0 xs0 =
+  let
+    val funs = which (Checks.get (Context.Proof ctxt0))
+      |> map_filter (fn ((i, u), fs) => if uncheck = u then SOME (i, map (snd o fst) fs) else NONE)
+      |> Library.sort (int_ord o pairself fst) |> map snd
+      |> not uncheck ? map rev;
+  in #1 (perhaps (check_all funs) (xs0, ctxt0)) end;
+
+in
+
+val typ_check = check fst false;
+val term_check = check snd false;
+val typ_uncheck = check fst true;
+val term_uncheck = check snd true;
 
 val check_typs = operation #check_typs;
 val check_terms = operation #check_terms;
@@ -300,16 +322,29 @@ val check_props = operation #check_props;
 val check_typ = singleton o check_typs;
 val check_term = singleton o check_terms;
 val check_prop = singleton o check_props;
-val check_sort = map_sort o check_typ;
 
 val uncheck_typs = operation #uncheck_typs;
 val uncheck_terms = operation #uncheck_terms;
-val uncheck_sort = map_sort o singleton o uncheck_typs;
 
 end;
 
 
-(* derived operations for classrel and arity *)
+(* derived operations for algebra of sorts *)
+
+local
+
+fun map_sort f S =
+  (case f (TFree ("", S)) of
+    TFree ("", S') => S'
+  | _ => raise TYPE ("map_sort", [TFree ("", S)], []));
+
+in
+
+val check_sort = map_sort o check_typ;
+val uncheck_sort = map_sort o singleton o uncheck_typs;
+
+end;
+
 
 val uncheck_classrel = map o singleton o uncheck_sort;
 

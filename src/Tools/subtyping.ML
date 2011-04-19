@@ -713,15 +713,12 @@ fun coercion_infer_types ctxt raw_ts =
 
 (* term check *)
 
-val (coercion_enabled, coercion_enabled_setup) = Attrib.config_bool "coercion_enabled" (K false);
+val (coercion_enabled, coercion_enabled_setup) =
+  Attrib.config_bool "coercion_enabled" (K false);
 
 val add_term_check =
   Syntax.add_term_check ~100 "coercions"
-    (fn xs => fn ctxt =>
-      if Config.get ctxt coercion_enabled then
-        let val xs' = coercion_infer_types ctxt xs
-        in if eq_list (op aconv) (xs, xs') then NONE else SOME (xs', ctxt) end
-      else NONE);
+    (fn ctxt => Config.get ctxt coercion_enabled ? coercion_infer_types ctxt);
 
 
 (* declarations *)
