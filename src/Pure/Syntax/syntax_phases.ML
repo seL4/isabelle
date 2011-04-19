@@ -146,7 +146,7 @@ fun parsetree_to_ast ctxt constrain_pos trf parsetree =
             val c = get_type (Lexicon.str_of_token tok);
             val _ = report (Lexicon.pos_of_token tok) (markup_type ctxt) c;
           in [Ast.Constant (Lexicon.mark_type c)] end
-      | asts_of (Parser.Node ("_constrain_position", [pt as Parser.Tip tok])) =
+      | asts_of (Parser.Node ("_position", [pt as Parser.Tip tok])) =
           if constrain_pos then
             [Ast.Appl [Ast.Constant "_constrain", ast_of pt,
               Ast.Variable (Term_Position.encode (Lexicon.pos_of_token tok))]]
