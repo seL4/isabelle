@@ -623,7 +623,7 @@ fun merge_syntaxes (Syntax (tabs1, _)) (Syntax (tabs2, _)) =
 (* basic syntax *)
 
 val token_markers =
-  ["_tfree", "_tvar", "_free", "_bound", "_var", "_numeral", "_inner_string"];
+  ["_tfree", "_tvar", "_free", "_bound", "_loose", "_var", "_numeral", "_inner_string"];
 
 val basic_nonterms =
   (Lexicon.terminals @ ["logic", "type", "types", "sort", "classes",
