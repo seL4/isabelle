@@ -698,9 +698,19 @@ fun choose_rep_for_sels_of_datatype _ ({deep = false, ...} : datatype_spec) = I
 fun choose_reps_for_all_sels (scope as {datatypes, ...}) =
   fold (choose_rep_for_sels_of_datatype scope) datatypes o pair []
 
-fun choose_rep_for_bound_var scope v table =
-  let val R = best_one_rep_for_type scope (type_of v) in
-    NameTable.update (v, R) table
+val min_univ_card = 2
+
+fun choose_rep_for_bound_var scope v =
+  let
+    val R = best_one_rep_for_type scope (type_of v)
+    val arity = arity_of_rep R
+  in
+    if arity > KK.max_arity min_univ_card then
+      raise TOO_LARGE ("Nitpick_Nut.choose_rep_for_bound_var",
+                       "arity " ^ string_of_int arity ^ " of bound variable \
+                       \too large")
+    else
+      NameTable.update (v, R)
   end
 
 (* A nut is said to be constructive if whenever it evaluates to unknown in our
