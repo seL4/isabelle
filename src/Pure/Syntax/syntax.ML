@@ -275,10 +275,8 @@ fun context_check which (key: key) name f =
   Checks.map (which (AList.map_default op = (key, []) (cons ((name, f), stamp ()))));
 
 fun simple_check eq f xs ctxt =
-  let val xs' = f ctxt xs in
-    if pointer_eq (xs, xs') orelse eq_list eq (xs, xs') then NONE
-    else SOME (xs', ctxt)
-  end;
+  let val xs' = f ctxt xs
+  in if eq_list eq (xs, xs') then NONE else SOME (xs', ctxt) end;
 
 in
 

@@ -115,6 +115,9 @@ already available via context of "advanced" translation.
 * Refined PARALLEL_GOALS tactical: degrades gracefully for schematic
 goal states; body tactic needs to address all subgoals uniformly.
 
+* Slightly more special eq_list/eq_set, with shortcut involving
+pointer equality (assumes that eq relation is reflexive).
+
 
 
 New in Isabelle2011 (January 2011)
