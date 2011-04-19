@@ -5207,13 +5207,13 @@ consts_code Cons ("(_ ::/ _)")
 
 setup {*
 let
-  fun list_codegen thy defs dep thyname b t gr =
+  fun list_codegen thy mode defs dep thyname b t gr =
     let
       val ts = HOLogic.dest_list t;
-      val (_, gr') = Codegen.invoke_tycodegen thy defs dep thyname false
+      val (_, gr') = Codegen.invoke_tycodegen thy mode defs dep thyname false
         (fastype_of t) gr;
       val (ps, gr'') = fold_map
-        (Codegen.invoke_codegen thy defs dep thyname false) ts gr'
+        (Codegen.invoke_codegen thy mode defs dep thyname false) ts gr'
     in SOME (Pretty.list "[" "]" ps, gr'') end handle TERM _ => NONE;
 in
   fold (List_Code.add_literal_list) ["SML", "OCaml", "Haskell", "Scala"]

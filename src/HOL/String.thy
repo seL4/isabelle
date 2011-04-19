@@ -227,10 +227,10 @@ fun gen_char i =
 setup {*
 let
 
-fun char_codegen thy defs dep thyname b t gr =
+fun char_codegen thy mode defs dep thyname b t gr =
   let
     val i = HOLogic.dest_char t;
-    val (_, gr') = Codegen.invoke_tycodegen thy defs dep thyname false
+    val (_, gr') = Codegen.invoke_tycodegen thy mode defs dep thyname false
       (fastype_of t) gr;
   in SOME (Codegen.str (ML_Syntax.print_string (chr i)), gr')
   end handle TERM _ => NONE;
