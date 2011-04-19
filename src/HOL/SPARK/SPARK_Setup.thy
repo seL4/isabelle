@@ -69,7 +69,7 @@ lemma upds_singleton [simp]: "f({x} [:=] y) = f(x := y)"
 
 text {* Enumeration types *}
 
-class enum = ord + finite +
+class spark_enum = ord + finite +
   fixes pos :: "'a \<Rightarrow> int"
   assumes range_pos: "range pos = {0..<int (card (UNIV::'a set))}"
   and less_pos: "(x < y) = (pos x < pos y)"

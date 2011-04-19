@@ -176,7 +176,7 @@ fun add_enum_type tyname tyname' thy =
 
     val (((def1, def2), def3), lthy) = thy |>
 
-      Class.instantiation ([tyname'], [], @{sort enum}) |>
+      Class.instantiation ([tyname'], [], @{sort spark_enum}) |>
 
       define_overloaded ("pos_" ^ tyname ^ "_def", Logic.mk_equals
         (p,
@@ -266,7 +266,7 @@ fun add_enum_type tyname tyname' thy =
   in
     lthy' |>
     Local_Theory.note
-      ((Binding.name (tyname ^ "_card_UNIV"), simp_att), [card_UNIV]) ||>>
+      ((Binding.name (tyname ^ "_card"), simp_att), [card_UNIV]) ||>>
     Local_Theory.note
       ((Binding.name (tyname ^ "_pos"), simp_att), pos_eqs) ||>>
     Local_Theory.note
