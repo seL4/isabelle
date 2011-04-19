@@ -19,13 +19,13 @@ end;
 structure Overloading: OVERLOADING =
 struct
 
-(** generic check/uncheck combinators for improvable constants **)
+(* generic check/uncheck combinators for improvable constants *)
 
 type improvable_syntax = ((((string * typ) list * (string * typ) list) *
   ((((string * typ -> (typ * typ) option) * (string * typ -> (typ * term) option)) * bool) *
     (term * term) list)) * bool);
 
-structure ImprovableSyntax = Proof_Data
+structure Improvable_Syntax = Proof_Data
 (
   type T = {
     primary_constraints: (string * typ) list,
@@ -47,16 +47,17 @@ structure ImprovableSyntax = Proof_Data
   };
 );
 
-fun map_improvable_syntax f = ImprovableSyntax.map (fn { primary_constraints,
-    secondary_constraints, improve, subst, consider_abbrevs, unchecks, passed } =>
+fun map_improvable_syntax f = Improvable_Syntax.map (fn {primary_constraints,
+    secondary_constraints, improve, subst, consider_abbrevs, unchecks, passed} =>
   let
     val (((primary_constraints', secondary_constraints'),
       (((improve', subst'), consider_abbrevs'), unchecks')), passed')
         = f (((primary_constraints, secondary_constraints),
             (((improve, subst), consider_abbrevs), unchecks)), passed)
-  in { primary_constraints = primary_constraints', secondary_constraints = secondary_constraints',
+  in
+   {primary_constraints = primary_constraints', secondary_constraints = secondary_constraints',
     improve = improve', subst = subst', consider_abbrevs = consider_abbrevs',
-    unchecks = unchecks', passed = passed' }
+    unchecks = unchecks', passed = passed'}
   end);
 
 val mark_passed = (map_improvable_syntax o apsnd) (K true);
@@ -65,8 +66,8 @@ fun improve_term_check ts ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
 
-    val { secondary_constraints, improve, subst, consider_abbrevs, passed, ... } =
-      ImprovableSyntax.get ctxt;
+    val {secondary_constraints, improve, subst, consider_abbrevs, passed, ...} =
+      Improvable_Syntax.get ctxt;
     val is_abbrev = consider_abbrevs andalso Proof_Context.abbrev_mode ctxt;
     val passed_or_abbrev = passed orelse is_abbrev;
     fun accumulate_improvements (Const (c, ty)) =
@@ -87,28 +88,28 @@ fun improve_term_check ts ctxt =
         | _ => NONE) t;
     val ts'' = if is_abbrev then ts' else map apply_subst ts';
   in
-    if eq_list (op aconv) (ts, ts'') andalso passed_or_abbrev then NONE else
-    if passed_or_abbrev then SOME (ts'', ctxt)
-    else SOME (ts'', ctxt
-      |> fold (Proof_Context.add_const_constraint o apsnd SOME) secondary_constraints
-      |> mark_passed)
+    if eq_list (op aconv) (ts, ts'') andalso passed_or_abbrev then NONE
+    else if passed_or_abbrev then SOME (ts'', ctxt)
+    else
+      SOME (ts'', ctxt
+        |> fold (Proof_Context.add_const_constraint o apsnd SOME) secondary_constraints
+        |> mark_passed)
   end;
 
 fun rewrite_liberal thy unchecks t =
-  case try (Pattern.rewrite_term thy unchecks []) t
-   of NONE => NONE
-    | SOME t' => if t aconv t' then NONE else SOME t';
+  (case try (Pattern.rewrite_term thy unchecks []) t of
+    NONE => NONE
+  | SOME t' => if t aconv t' then NONE else SOME t');
 
 fun improve_term_uncheck ts ctxt =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val unchecks = (#unchecks o ImprovableSyntax.get) ctxt;
+    val {unchecks, ...} = Improvable_Syntax.get ctxt;
     val ts' = map (rewrite_liberal thy unchecks) ts;
   in if exists is_some ts' then SOME (map2 the_default ts ts', ctxt) else NONE end;
 
 fun set_primary_constraints ctxt =
-  let
-    val { primary_constraints, ... } = ImprovableSyntax.get ctxt;
+  let val {primary_constraints, ...} = Improvable_Syntax.get ctxt;
   in fold (Proof_Context.add_const_constraint o apsnd SOME) primary_constraints ctxt end;
 
 val activate_improvable_syntax =
@@ -118,7 +119,7 @@ val activate_improvable_syntax =
   #> set_primary_constraints;
 
 
-(** overloading target **)
+(* overloading target *)
 
 structure Data = Proof_Data
 (
@@ -129,16 +130,18 @@ structure Data = Proof_Data
 val get_overloading = Data.get o Local_Theory.target_of;
 val map_overloading = Local_Theory.target o Data.map;
 
-fun operation lthy b = get_overloading lthy
+fun operation lthy b =
+  get_overloading lthy
   |> get_first (fn ((c, _), (v, checked)) =>
       if Binding.name_of b = v then SOME (c, (v, checked)) else NONE);
 
 fun synchronize_syntax ctxt =
   let
     val overloading = Data.get ctxt;
-    fun subst (c, ty) = case AList.lookup (op =) overloading (c, ty)
-     of SOME (v, _) => SOME (ty, Free (v, ty))
-      | NONE => NONE;
+    fun subst (c, ty) =
+      (case AList.lookup (op =) overloading (c, ty) of
+        SOME (v, _) => SOME (ty, Free (v, ty))
+      | NONE => NONE);
     val unchecks =
       map (fn (c_ty as (_, ty), (v, _)) => (Free (v, ty), Const c_ty)) overloading;
   in 
@@ -155,12 +158,13 @@ fun define_overloaded (c, U) (v, checked) (b_def, rhs) =
   #-> (fn (_, def) => pair (Const (c, U), def))
 
 fun foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params) lthy =
-  case operation lthy b
-   of SOME (c, (v, checked)) => if mx <> NoSyn
-       then error ("Illegal mixfix syntax for overloaded constant " ^ quote c)
-        else lthy |> define_overloaded (c, U) (v, checked) (b_def, rhs)
-    | NONE => lthy |>
-        Generic_Target.theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params);
+  (case operation lthy b of
+    SOME (c, (v, checked)) =>
+      if mx <> NoSyn
+      then error ("Illegal mixfix syntax for overloaded constant " ^ quote c)
+      else lthy |> define_overloaded (c, U) (v, checked) (b_def, rhs)
+  | NONE => lthy
+      |> Generic_Target.theory_foundation (((b, U), mx), (b_def, rhs)) (type_params, term_params));
 
 fun pretty lthy =
   let
@@ -177,8 +181,8 @@ fun conclude lthy =
     val _ =
       if null overloading then ()
       else
-        error ("Missing definition(s) for parameter(s) " ^ commas (map (quote
-          o Syntax.string_of_term lthy o Const o fst) overloading));
+        error ("Missing definition(s) for parameter(s) " ^
+          commas_quote (map (Syntax.string_of_term lthy o Const o fst) overloading));
   in lthy end;
 
 fun gen_overloading prep_const raw_overloading thy =
