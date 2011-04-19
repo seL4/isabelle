@@ -32,16 +32,17 @@ struct
 
 (**** tools ****)
 
-fun add_syntax thy =
-  thy
-  |> Theory.copy
-  |> Sign.root_path
-  |> Sign.add_types_global [(Binding.name "Type", 0, NoSyn), (Binding.name "Null", 0, NoSyn)]
-  |> Sign.add_consts
-      [(Binding.name "typeof", "'b::{} => Type", NoSyn),
-       (Binding.name "Type", "'a::{} itself => Type", NoSyn),
-       (Binding.name "Null", "Null", NoSyn),
-       (Binding.name "realizes", "'a::{} => 'b::{} => 'b", NoSyn)];
+val typ = Simple_Syntax.read_typ;
+
+val add_syntax =
+  Theory.copy
+  #> Sign.root_path
+  #> Sign.add_types_global [(Binding.name "Type", 0, NoSyn), (Binding.name "Null", 0, NoSyn)]
+  #> Sign.add_consts_i
+      [(Binding.name "typeof", typ "'b => Type", NoSyn),
+       (Binding.name "Type", typ "'a itself => Type", NoSyn),
+       (Binding.name "Null", typ "Null", NoSyn),
+       (Binding.name "realizes", typ "'a => 'b => 'b", NoSyn)];
 
 val nullT = Type ("Null", []);
 val nullt = Const ("Null", nullT);
@@ -530,7 +531,7 @@ fun extract thms thy =
       | corr d defs vs ts Ts hs cs (AbsP (s, SOME prop, prf)) (AbsP (_, _, prf')) t =
           let
             val T = etype_of thy' vs Ts prop;
-            val u = if T = nullT then 
+            val u = if T = nullT then
                 (case t of SOME u => SOME (incr_boundvars 1 u) | NONE => NONE)
               else (case t of SOME (Abs (_, _, u)) => SOME u | _ => NONE);
             val (defs', corr_prf) =
