@@ -49,12 +49,10 @@ oops
 
 lemma "\<exists>f. f = (\<lambda>x. x) \<and> f y \<noteq> y"
 nitpick [card = 1, expect = genuine]
-nitpick [card = 5, expect = genuine]
 oops
 
 lemma "P (\<lambda>x. x)"
 nitpick [card = 1, expect = genuine]
-nitpick [card = 5, expect = genuine]
 oops
 
 lemma "{(a\<Colon>'a\<times>'a, b\<Colon>'b)}^-1 = {(b, a)}"
@@ -95,7 +93,6 @@ by auto
 
 lemma "g = Let (A \<or> B)"
 nitpick [card = 1, expect = none]
-nitpick [card = 2, expect = genuine]
 nitpick [card = 12, expect = genuine]
 oops
 
@@ -122,7 +119,6 @@ nitpick [card = 5, dont_box, expect = genuine]
 oops
 
 lemma "f (g\<Colon>'a\<Rightarrow>'a) = x"
-nitpick [card = 3, expect = genuine]
 nitpick [card = 3, dont_box, expect = genuine]
 nitpick [card = 8, expect = genuine]
 oops
@@ -144,7 +140,6 @@ nitpick [card = 2, expect = none]
 by auto
 
 lemma "f = split"
-nitpick [card = 1, expect = none]
 nitpick [card = 2, expect = genuine]
 oops
 
@@ -165,13 +160,11 @@ subsection {* Quantifiers *}
 
 lemma "x = y"
 nitpick [card 'a = 1, expect = none]
-nitpick [card 'a = 2, expect = genuine]
 nitpick [card 'a = 100, expect = genuine]
 oops
 
 lemma "\<forall>x. x = y"
 nitpick [card 'a = 1, expect = none]
-nitpick [card 'a = 2, expect = genuine]
 nitpick [card 'a = 100, expect = genuine]
 oops
 
@@ -251,7 +244,6 @@ sorry
 
 lemma "(\<exists>x\<Colon>'a. \<forall>y. P x y) \<or> (\<exists>x\<Colon>'a \<times> 'a. \<forall>y. P y x)"
 nitpick [card 'a = 1, expect = genuine]
-nitpick [card 'a = 5, expect = genuine]
 oops
 
 lemma "\<exists>x. if x = y then (\<forall>y. y = x \<or> y \<noteq> x)
@@ -303,7 +295,6 @@ subsection {* Known Constants *}
 lemma "x \<equiv> all \<Longrightarrow> False"
 nitpick [card = 1, expect = genuine]
 nitpick [card = 1, box "('a \<Rightarrow> prop) \<Rightarrow> prop", expect = genuine]
-nitpick [card = 2, expect = genuine]
 nitpick [card = 6, expect = genuine]
 oops
 
@@ -329,7 +320,6 @@ by auto
 
 lemma "x \<equiv> (op \<equiv>) \<Longrightarrow> False"
 nitpick [card = 1, expect = genuine]
-nitpick [card = 20, expect = genuine]
 oops
 
 lemma "P x \<equiv> P x"
@@ -406,7 +396,6 @@ by auto
 
 lemma "x = All \<Longrightarrow> False"
 nitpick [card = 1, dont_box, expect = genuine]
-nitpick [card = 5, dont_box, expect = genuine]
 oops
 
 lemma "\<forall>x. f x y = f x y"
@@ -427,7 +416,6 @@ oops
 
 lemma "x = Ex \<Longrightarrow> False"
 nitpick [card = 1, dont_box, expect = genuine]
-nitpick [card = 5, dont_box, expect = genuine]
 oops
 
 lemma "\<exists>x. f x y = f x y"
@@ -725,7 +713,6 @@ oops
 
 lemma "P x \<Longrightarrow> P (The P)"
 nitpick [card = 1\<midarrow>2, expect = none]
-nitpick [card = 3, expect = genuine]
 nitpick [card = 8, expect = genuine]
 oops
 

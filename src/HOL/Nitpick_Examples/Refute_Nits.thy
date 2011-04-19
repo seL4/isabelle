@@ -491,7 +491,6 @@ oops
 
 lemma "(x\<Colon>nat) < x + y"
 nitpick [card = 1, expect = genuine]
-nitpick [card = 2-5, expect = genuine]
 oops
 
 text {* \<times> *}
