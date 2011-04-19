@@ -7,6 +7,7 @@ Skipping proofs -- via oracle (in quick and dirty mode) or by forking
 
 signature SKIP_PROOF =
 sig
+  val make_thm_cterm: cterm -> thm
   val make_thm: theory -> term -> thm
   val cheat_tac: theory -> tactic
   val prove: Proof.context -> string list -> term list -> term ->
@@ -20,13 +21,13 @@ struct
 
 (* oracle setup *)
 
-val (_, skip_proof) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (Binding.name "skip_proof", fn (thy, prop) => Thm.cterm_of thy prop)));
+val (_, make_thm_cterm) =
+  Context.>>> (Context.map_theory_result (Thm.add_oracle (Binding.name "skip_proof", I)));
+
+fun make_thm thy prop = make_thm_cterm (Thm.cterm_of thy prop);
 
 
 (* basic cheating *)
-
-fun make_thm thy prop = skip_proof (thy, prop);
 
 fun cheat_tac thy st =
   ALLGOALS (Tactic.rtac (make_thm thy (Var (("A", 0), propT)))) st;
