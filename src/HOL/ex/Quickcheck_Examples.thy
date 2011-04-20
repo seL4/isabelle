@@ -294,4 +294,28 @@ quickcheck[exhaustive, size = 10, expect = counterexample]
 quickcheck[random, size = 10]
 oops
 
+subsection {* Examples with locales *}
+
+locale Truth
+
+context Truth
+begin
+
+lemma "False"
+quickcheck[expect = no_counterexample]
+oops
+
+end
+
+interpretation Truth .
+
+context Truth
+begin
+
+lemma "False"
+quickcheck[expect = counterexample]
+oops
+
+end
+
 end
