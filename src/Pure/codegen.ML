@@ -74,9 +74,9 @@ sig
   val mk_type: bool -> typ -> Pretty.T
   val mk_term_of: codegr -> string -> bool -> typ -> Pretty.T
   val mk_gen: codegr -> string -> bool -> string list -> string -> typ -> Pretty.T
-  val test_fn: (int -> term list option) Unsynchronized.ref  (* FIXME *)
+  val poke_test_fn: (int -> term list option) -> unit
+  val poke_eval_fn: (unit -> term) -> unit
   val test_term: Proof.context -> term -> int -> term list option
-  val eval_result: (unit -> term) Unsynchronized.ref  (* FIXME *)
   val eval_term: Proof.context -> term -> term
   val evaluation_conv: Proof.context -> conv
   val parse_mixfix: (string -> 'a) -> string -> 'a mixfix list
@@ -850,6 +850,21 @@ fun mk_term_of gr module p (TVar ((s, i), _)) = str
           [mk_term_of gr module true T, mk_type true T]) Ts)));
 
 
+(**** Implicit results ****)
+
+structure Result = Proof_Data
+(
+  type T = (int -> term list option) * (unit -> term);
+  fun init _ = (fn _ => NONE, fn () => Bound 0);
+);
+
+val get_test_fn = #1 o Result.get;
+val get_eval_fn = #2 o Result.get;
+
+fun poke_test_fn f = Context.>> (Context.map_proof (Result.map (fn (_, g) => (f, g))));
+fun poke_eval_fn g = Context.>> (Context.map_proof (Result.map (fn (f, _) => (f, g))));
+
+
 (**** Test data generators ****)
 
 fun mk_gen gr module p xs a (TVar ((s, i), _)) = str
@@ -867,19 +882,16 @@ fun mk_gen gr module p xs a (TVar ((s, i), _)) = str
               [mk_gen gr module true xs a T, mk_type true T]) Ts) @
          (if member (op =) xs s then [str a] else []))));
 
-val test_fn : (int -> term list option) Unsynchronized.ref =
-  Unsynchronized.ref (fn _ => NONE);
-
 fun test_term ctxt t =
   let
     val thy = Proof_Context.theory_of ctxt;
     val (code, gr) = generate_code_i thy ["term_of", "test"] [] "Generated" [("testf", t)];
     val Ts = map snd (fst (strip_abs t));
     val args = map_index (fn (i, T) => ("arg" ^ string_of_int i, T)) Ts;
-    val s = "structure TestTerm =\nstruct\n\n" ^
+    val s = "structure Test_Term =\nstruct\n\n" ^
       cat_lines (map snd code) ^
       "\nopen Generated;\n\n" ^ string_of
-        (Pretty.block [str "val () = Codegen.test_fn :=",
+        (Pretty.block [str "val () = Codegen.poke_test_fn",
           Pretty.brk 1, str ("(fn i =>"), Pretty.brk 1,
           mk_let (map (fn (s, T) =>
               (mk_tuple [str s, str (s ^ "_t")],
@@ -893,42 +905,39 @@ fun test_term ctxt t =
                 Pretty.enum "," "[" "]" (map (fn (s, _) => str (s ^ "_t ()")) args)]]),
           str ");"]) ^
       "\n\nend;\n";
-    val test_fn' = NAMED_CRITICAL "codegen" (fn () =>
-      (ML_Context.eval_text_in (SOME ctxt) false Position.none s; ! test_fn));
-  in test_fn' end;
-
+  in
+    ctxt
+    |> Context.proof_map (ML_Context.exec (fn () => ML_Context.eval_text false Position.none s))
+    |> get_test_fn
+  end;
 
 
 (**** Evaluator for terms ****)
 
-val eval_result = Unsynchronized.ref (fn () => Bound 0);
-
 fun eval_term ctxt t =
   let
-    val e =
-      let
-        val thy = Proof_Context.theory_of ctxt;
-        val _ = (null (Term.add_tvars t []) andalso null (Term.add_tfrees t [])) orelse
-          error "Term to be evaluated contains type variables";
-        val _ = (null (Term.add_vars t []) andalso null (Term.add_frees t [])) orelse
-          error "Term to be evaluated contains variables";
-        val (code, gr) =
-          generate_code_i thy ["term_of"] [] "Generated"
-            [("result", Abs ("x", TFree ("'a", []), t))];
-        val s = "structure EvalTerm =\nstruct\n\n" ^
-          cat_lines (map snd code) ^
-          "\nopen Generated;\n\n" ^ string_of
-            (Pretty.block [str "val () = Codegen.eval_result := (fn () =>",
-              Pretty.brk 1,
-              mk_app false (mk_term_of gr "Generated" false (fastype_of t))
-                [str "(result ())"],
-              str ");"]) ^
-          "\n\nend;\n";
-      in
-        NAMED_CRITICAL "codegen" (fn () =>
-         (ML_Context.eval_text_in (SOME ctxt) false Position.none s; ! eval_result))
-      end
-  in e () end;
+    val thy = Proof_Context.theory_of ctxt;
+    val _ = (null (Term.add_tvars t []) andalso null (Term.add_tfrees t [])) orelse
+      error "Term to be evaluated contains type variables";
+    val _ = (null (Term.add_vars t []) andalso null (Term.add_frees t [])) orelse
+      error "Term to be evaluated contains variables";
+    val (code, gr) =
+      generate_code_i thy ["term_of"] [] "Generated"
+        [("result", Abs ("x", TFree ("'a", []), t))];
+    val s = "structure Eval_Term =\nstruct\n\n" ^
+      cat_lines (map snd code) ^
+      "\nopen Generated;\n\n" ^ string_of
+        (Pretty.block [str "val () = Codegen.poke_eval_fn (fn () =>",
+          Pretty.brk 1,
+          mk_app false (mk_term_of gr "Generated" false (fastype_of t))
+            [str "(result ())"],
+          str ");"]) ^
+      "\n\nend;\n";
+    val eval_fn =
+      ctxt
+      |> Context.proof_map (ML_Context.exec (fn () => ML_Context.eval_text false Position.none s))
+      |> get_eval_fn;
+  in eval_fn () end;
 
 val (_, evaluation_oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (Binding.name "evaluation", fn (ctxt, ct) =>

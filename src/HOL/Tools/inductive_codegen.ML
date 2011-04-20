@@ -6,12 +6,12 @@ Code generator for inductive predicates.
 
 signature INDUCTIVE_CODEGEN =
 sig
-  val add : string option -> int option -> attribute
-  val test_fn : (int * int * int -> term list option) Unsynchronized.ref  (* FIXME *)
-  val test_term:
-    Proof.context -> (term * term list) list -> int list -> term list option * Quickcheck.report option
-  val setup : theory -> theory
-  val quickcheck_setup : theory -> theory
+  val add: string option -> int option -> attribute
+  val poke_test_fn: (int * int * int -> term list option) -> unit
+  val test_term: Proof.context -> (term * term list) list -> int list ->
+    term list option * Quickcheck.report option
+  val setup: theory -> theory
+  val quickcheck_setup: theory -> theory
 end;
 
 structure Inductive_Codegen : INDUCTIVE_CODEGEN =
@@ -792,10 +792,18 @@ val setup =
       Scan.option (Args.$$$ "params" |-- Args.colon |-- Parse.nat) >> uncurry add))
     "introduction rules for executable predicates";
 
+
 (**** Quickcheck involving inductive predicates ****)
 
-val test_fn : (int * int * int -> term list option) Unsynchronized.ref =
-  Unsynchronized.ref (fn _ => NONE);
+structure Result = Proof_Data
+(
+  type T = int * int * int -> term list option;
+  fun init _ = (fn _ => NONE);
+);
+
+val get_test_fn = Result.get;
+fun poke_test_fn f = Context.>> (Context.map_proof (Result.put f));
+
 
 fun strip_imp p =
   let val (q, r) = HOLogic.dest_imp p
@@ -814,56 +822,61 @@ val (random_values, setup_random_values) = Attrib.config_int "ind_quickcheck_ran
 val (size_offset, setup_size_offset) = Attrib.config_int "ind_quickcheck_size_offset" (K 0);
 
 fun test_term ctxt [(t, [])] =
-  let
-    val t' = list_abs_free (Term.add_frees t [], t)
-    val thy = Proof_Context.theory_of ctxt;
-    val (xs, p) = strip_abs t';
-    val args' = map_index (fn (i, (_, T)) => ("arg" ^ string_of_int i, T)) xs;
-    val args = map Free args';
-    val (ps, q) = strip_imp p;
-    val Ts = map snd xs;
-    val T = Ts ---> HOLogic.boolT;
-    val rl = Logic.list_implies
-      (map (HOLogic.mk_Trueprop o curry subst_bounds (rev args)) ps @
-       [HOLogic.mk_Trueprop (HOLogic.mk_not (subst_bounds (rev args, q)))],
-       HOLogic.mk_Trueprop (list_comb (Free ("quickcheckp", T), args)));
-    val (_, thy') = Inductive.add_inductive_global
-      {quiet_mode=true, verbose=false, alt_name=Binding.empty, coind=false,
-       no_elim=true, no_ind=false, skip_mono=false, fork_mono=false}
-      [((Binding.name "quickcheckp", T), NoSyn)] []
-      [(Attrib.empty_binding, rl)] [] (Theory.copy thy);
-    val pred = HOLogic.mk_Trueprop (list_comb
-      (Const (Sign.intern_const thy' "quickcheckp", T),
-       map Term.dummy_pattern Ts));
-    val (code, gr) =
-      Codegen.generate_code_i thy' ["term_of", "test", "random_ind"] [] "Generated"
-        [("testf", pred)];
-    val s = "structure TestTerm =\nstruct\n\n" ^
-      cat_lines (map snd code) ^
-      "\nopen Generated;\n\n" ^ Codegen.string_of
-        (Pretty.block [Codegen.str "val () = Inductive_Codegen.test_fn :=",
-          Pretty.brk 1, Codegen.str "(fn p =>", Pretty.brk 1,
-          Codegen.str "case Seq.pull (testf p) of", Pretty.brk 1,
-          Codegen.str "SOME ", mk_tuple [mk_tuple (map (Codegen.str o fst) args'), Codegen.str "_"],
-          Codegen.str " =>", Pretty.brk 1, Codegen.str "SOME ",
-          Pretty.enum "," "[" "]"
-            (map (fn (s, T) => Pretty.block
-              [Codegen.mk_term_of gr "Generated" false T, Pretty.brk 1, Codegen.str s]) args'),
-          Pretty.brk 1,
-          Codegen.str "| NONE => NONE);"]) ^
-      "\n\nend;\n";
-    val test_fn' = NAMED_CRITICAL "codegen" (fn () =>
-     (ML_Context.eval_text_in (SOME ctxt) false Position.none s; ! test_fn));
-    val values = Config.get ctxt random_values;
-    val bound = Config.get ctxt depth_bound;
-    val start = Config.get ctxt depth_start;
-    val offset = Config.get ctxt size_offset;
-    fun test [k] = (deepen bound (fn i =>
-      (Output.urgent_message ("Search depth: " ^ string_of_int i);
-       test_fn' (i, values, k+offset))) start, NONE);
-  in test end
-  | test_term ctxt [(t, _)] = error "Option eval is not supported by tester SML_inductive"
-  | test_term ctxt _ = error "Compilation of multiple instances is not supported by tester SML_inductive";
+      let
+        val t' = list_abs_free (Term.add_frees t [], t)
+        val thy = Proof_Context.theory_of ctxt;
+        val (xs, p) = strip_abs t';
+        val args' = map_index (fn (i, (_, T)) => ("arg" ^ string_of_int i, T)) xs;
+        val args = map Free args';
+        val (ps, q) = strip_imp p;
+        val Ts = map snd xs;
+        val T = Ts ---> HOLogic.boolT;
+        val rl = Logic.list_implies
+          (map (HOLogic.mk_Trueprop o curry subst_bounds (rev args)) ps @
+           [HOLogic.mk_Trueprop (HOLogic.mk_not (subst_bounds (rev args, q)))],
+           HOLogic.mk_Trueprop (list_comb (Free ("quickcheckp", T), args)));
+        val (_, thy') = Inductive.add_inductive_global
+          {quiet_mode=true, verbose=false, alt_name=Binding.empty, coind=false,
+           no_elim=true, no_ind=false, skip_mono=false, fork_mono=false}
+          [((Binding.name "quickcheckp", T), NoSyn)] []
+          [(Attrib.empty_binding, rl)] [] (Theory.copy thy);
+        val pred = HOLogic.mk_Trueprop (list_comb
+          (Const (Sign.intern_const thy' "quickcheckp", T),
+           map Term.dummy_pattern Ts));
+        val (code, gr) =
+          Codegen.generate_code_i thy' ["term_of", "test", "random_ind"] [] "Generated"
+            [("testf", pred)];
+        val s = "structure Test_Term =\nstruct\n\n" ^
+          cat_lines (map snd code) ^
+          "\nopen Generated;\n\n" ^ Codegen.string_of
+            (Pretty.block [Codegen.str "val () = Inductive_Codegen.poke_test_fn",
+              Pretty.brk 1, Codegen.str "(fn p =>", Pretty.brk 1,
+              Codegen.str "case Seq.pull (testf p) of", Pretty.brk 1,
+              Codegen.str "SOME ",
+              mk_tuple [mk_tuple (map (Codegen.str o fst) args'), Codegen.str "_"],
+              Codegen.str " =>", Pretty.brk 1, Codegen.str "SOME ",
+              Pretty.enum "," "[" "]"
+                (map (fn (s, T) => Pretty.block
+                  [Codegen.mk_term_of gr "Generated" false T, Pretty.brk 1, Codegen.str s]) args'),
+              Pretty.brk 1,
+              Codegen.str "| NONE => NONE);"]) ^
+          "\n\nend;\n";
+        val test_fn =
+          ctxt
+          |> Context.proof_map
+              (ML_Context.exec (fn () => ML_Context.eval_text false Position.none s))
+          |> get_test_fn;
+        val values = Config.get ctxt random_values;
+        val bound = Config.get ctxt depth_bound;
+        val start = Config.get ctxt depth_start;
+        val offset = Config.get ctxt size_offset;
+        fun test [k] = (deepen bound (fn i =>
+          (Output.urgent_message ("Search depth: " ^ string_of_int i);
+           test_fn (i, values, k+offset))) start, NONE);
+      in test end
+  | test_term ctxt [_] = error "Option eval is not supported by tester SML_inductive"
+  | test_term ctxt _ =
+      error "Compilation of multiple instances is not supported by tester SML_inductive";
 
 val quickcheck_setup =
   setup_depth_bound #>
