@@ -1,73 +1,140 @@
-diff -r gitweb/changelogentry.tmpl isabelle/changelogentry.tmpl
-2,8c2,3
-< <a class="title" href="{url}rev/{node|short}{sessionvars%urlparameter}"><span class="age">{date|age} ago</span>{desc|strip|firstline|escape|nonempty}<span class="logtags"> {inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span></a>
-< </div>
-< <div class="title_text">
-< <div class="log_link">
-< <a href="{url}rev/{node|short}{sessionvars%urlparameter}">changeset</a><br/>
-< </div>
-< <i>{author|obfuscate} [{date|rfc822date}] rev {rev}</i><br/>
----
-> <a class="title" href="{url}rev/{node|short}{sessionvars%urlparameter}"><span class="age">{date|age}</span>
-> {author|obfuscate} [{date|rfc822date}] rev {rev}<span class="logtags"> {inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span></a>
-12a8,10
-> <div class="files">
-> {files}
-> </div>
-diff -r gitweb/changeset.tmpl isabelle/changeset.tmpl
-32c32
-< <tr><td></td><td>{date|date} ({date|age} ago)</td></tr>
----
-> <tr><td></td><td>{date|date} ({date|age})</td></tr>
-diff -r gitweb/fileannotate.tmpl isabelle/fileannotate.tmpl
-39c39
-<  <td>{date|date} ({date|age} ago)</td></tr>
----
->  <td>{date|date} ({date|age})</td></tr>
-diff -r gitweb/filerevision.tmpl isabelle/filerevision.tmpl
-39c39
-<  <td>{date|date} ({date|age} ago)</td></tr>
----
->  <td>{date|date} ({date|age})</td></tr>
-diff -r gitweb/graph.tmpl isabelle/graph.tmpl
-66c66
-< revlink += '<span class="info">_DATE ago, by _USER</span></li>';
----
-> revlink += '<span class="info">_DATE, by _USER</span></li>';
-diff -r gitweb/map isabelle/map
-81c81
-<          title="{node|short}: {desc|escape|firstline}">{author|user}@{rev}</a>
----
->          title="{node|short}: {desc|escape}">{author|user}@{rev}</a>
-153c153
-<     <td class="age"><i>{date|age} ago</i></td>
----
->     <td class="age"><i>{date|age}</i></td>
-164c164
-<     <td class="age"><i>{date|age} ago</i></td>
----
->     <td class="age"><i>{date|age}</i></td>
-207c207
-<     <td class="age"><i>{date|age} ago</i></td>
----
->     <td class="age"><i>{date|age}</i></td>
-208a209
->     <td><i>{date|shortdate}</i></td>
-211c212
-<         <b>{desc|strip|firstline|escape|nonempty}</b>
----
->         <b>{desc|strip|escape|nonempty}</b>
-222c223,225
-<     <td class="age"><i>{date|age} ago</i></td>
----
->     <td class="age"><i>{date|age}</i></td>
->     <td><i>{author|person}</i></td>
->     <td><i>{date|shortdate}</i></td>
-225c228
-<         <b>{desc|strip|firstline|escape|nonempty}</b>
----
->         <b>{desc|strip|escape|nonempty}</b>
-241c244
-<     <td class="age">{lastchange|age} ago</td>
----
->     <td class="age">{lastchange|age}</td>
+diff -Naur gitweb/changelogentry.tmpl isabelle/changelogentry.tmpl
+--- gitweb/changelogentry.tmpl	2011-04-20 12:13:37.000000000 +0200
++++ isabelle/changelogentry.tmpl	2011-04-20 12:13:37.000000000 +0200
+@@ -1,14 +1,12 @@
+ <div>
+-<a class="title" href="{url}rev/{node|short}{sessionvars%urlparameter}"><span class="age">{date|age} ago</span>{desc|strip|firstline|escape|nonempty}<span class="logtags"> {inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span></a>
+-</div>
+-<div class="title_text">
+-<div class="log_link">
+-<a href="{url}rev/{node|short}{sessionvars%urlparameter}">changeset</a><br/>
+-</div>
+-<i>{author|obfuscate} [{date|rfc822date}] rev {rev}</i><br/>
++<a class="title" href="{url}rev/{node|short}{sessionvars%urlparameter}"><span class="age">{date|age}</span>
++{author|obfuscate} [{date|rfc822date}] rev {rev}<span class="logtags"> {inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span></a>
+ </div>
+ <div class="log_body">
+ {desc|strip|escape|addbreaks|nonempty}
+ <br/>
++<div class="files">
++{files}
++</div>
+ <br/>
+ </div>
+diff -Naur gitweb/changeset.tmpl isabelle/changeset.tmpl
+--- gitweb/changeset.tmpl	2011-04-20 12:13:37.000000000 +0200
++++ isabelle/changeset.tmpl	2011-04-20 12:13:37.000000000 +0200
+@@ -29,7 +29,7 @@
+ <div class="title_text">
+ <table cellspacing="0">
+ <tr><td>author</td><td>{author|obfuscate}</td></tr>
+-<tr><td></td><td>{date|date} ({date|age} ago)</td></tr>
++<tr><td></td><td>{date|date} ({date|age})</td></tr>
+ {branch%changesetbranch}
+ <tr><td>changeset {rev}</td><td style="font-family:monospace">{node|short}</td></tr>
+ {parent%changesetparent}
+diff -Naur gitweb/fileannotate.tmpl isabelle/fileannotate.tmpl
+--- gitweb/fileannotate.tmpl	2011-04-20 12:13:37.000000000 +0200
++++ isabelle/fileannotate.tmpl	2011-04-20 12:13:37.000000000 +0200
+@@ -36,7 +36,7 @@
+  <td>{author|obfuscate}</td></tr>
+ <tr>
+  <td></td>
+- <td>{date|date} ({date|age} ago)</td></tr>
++ <td>{date|date} ({date|age})</td></tr>
+ {branch%filerevbranch}
+ <tr>
+  <td>changeset {rev}</td>
+diff -Naur gitweb/filerevision.tmpl isabelle/filerevision.tmpl
+--- gitweb/filerevision.tmpl	2011-04-20 12:13:37.000000000 +0200
++++ isabelle/filerevision.tmpl	2011-04-20 12:13:37.000000000 +0200
+@@ -36,7 +36,7 @@
+  <td>{author|obfuscate}</td></tr>
+ <tr>
+  <td></td>
+- <td>{date|date} ({date|age} ago)</td></tr>
++ <td>{date|date} ({date|age})</td></tr>
+ {branch%filerevbranch}
+ <tr>
+  <td>changeset {rev}</td>
+diff -Naur gitweb/graph.tmpl isabelle/graph.tmpl
+--- gitweb/graph.tmpl	2011-04-20 12:13:37.000000000 +0200
++++ isabelle/graph.tmpl	2011-04-20 12:13:37.000000000 +0200
+@@ -63,7 +63,7 @@
+ var revlink = '<li style="_STYLE"><span class="desc">';
+ revlink += '<a class="list" href="{url}rev/_NODEID{sessionvars%urlparameter}" title="_NODEID"><b>_DESC</b></a>';
+ revlink += '</span> _TAGS';
+-revlink += '<span class="info">_DATE ago, by _USER</span></li>';
++revlink += '<span class="info">_DATE, by _USER</span></li>';
+ 
+ graph.vertex = function(x, y, color, parity, cur) {
+ 	
+diff -Naur gitweb/map isabelle/map
+--- gitweb/map	2011-04-20 12:13:37.000000000 +0200
++++ isabelle/map	2011-04-20 12:13:37.000000000 +0200
+@@ -78,7 +78,7 @@
+   <tr style="font-family:monospace" class="parity{parity}">
+     <td class="linenr" style="text-align: right;">
+       <a href="{url}annotate/{node|short}/{file|urlescape}{sessionvars%urlparameter}#l{targetline}"
+-         title="{node|short}: {desc|escape|firstline}">{author|user}@{rev}</a>
++         title="{node|short}: {desc|escape}">{author|user}@{rev}</a>
+     </td>
+     <td><pre><a class="linenr" href="#{lineid}" id="{lineid}">{linenumber}</a></pre></td>
+     <td><pre>{line|escape}</pre></td>
+@@ -150,7 +150,7 @@
+ tags = tags.tmpl
+ tagentry = '
+   <tr class="parity{parity}">
+-    <td class="age"><i>{date|age} ago</i></td>
++    <td class="age"><i>{date|age}</i></td>
+     <td><a class="list" href="{url}rev/{node|short}{sessionvars%urlparameter}"><b>{tag|escape}</b></a></td>
+     <td class="link">
+       <a href="{url}rev/{node|short}{sessionvars%urlparameter}">changeset</a> |
+@@ -161,7 +161,7 @@
+ branches = branches.tmpl
+ branchentry = '
+   <tr class="parity{parity}">
+-    <td class="age"><i>{date|age} ago</i></td>
++    <td class="age"><i>{date|age}</i></td>
+     <td><a class="list" href="{url}shortlog/{node|short}{sessionvars%urlparameter}"><b>{node|short}</b></a></td>
+     <td class="{status}">{branch|escape}</td>
+     <td class="link">
+@@ -204,11 +204,12 @@
+ inbranchtag = '<span class="inbranchtag" title="{name}">{name}</span> '
+ shortlogentry = '
+   <tr class="parity{parity}">
+-    <td class="age"><i>{date|age} ago</i></td>
++    <td class="age"><i>{date|age}</i></td>
+     <td><i>{author|person}</i></td>
++    <td><i>{date|shortdate}</i></td>
+     <td>
+       <a class="list" href="{url}rev/{node|short}{sessionvars%urlparameter}">
+-        <b>{desc|strip|firstline|escape|nonempty}</b>
++        <b>{desc|strip|escape|nonempty}</b>
+         <span class="logtags">{inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span>
+       </a>
+     </td>
+@@ -219,10 +220,12 @@
+   </tr>'
+ filelogentry = '
+   <tr class="parity{parity}">
+-    <td class="age"><i>{date|age} ago</i></td>
++    <td class="age"><i>{date|age}</i></td>
++    <td><i>{author|person}</i></td>
++    <td><i>{date|shortdate}</i></td>
+     <td>
+       <a class="list" href="{url}rev/{node|short}{sessionvars%urlparameter}">
+-        <b>{desc|strip|firstline|escape|nonempty}</b>
++        <b>{desc|strip|escape|nonempty}</b>
+       </a>
+     </td>
+     <td class="link">
+@@ -238,7 +241,7 @@
+     </td>
+     <td>{description}</td>
+     <td>{contact|obfuscate}</td>
+-    <td class="age">{lastchange|age} ago</td>
++    <td class="age">{lastchange|age}</td>
+     <td class="indexlinks">{archives%indexarchiveentry}</td>
+     <td><div class="rss_logo"><a href="{url}rss-log">RSS</a> <a href="{url}atom-log">Atom</a></div></td>
+   </tr>\n'
