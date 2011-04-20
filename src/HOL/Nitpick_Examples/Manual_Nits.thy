@@ -70,7 +70,7 @@ nitpick [expect = genuine]
 oops
 
 lemma "\<forall>n. Suc n \<noteq> n \<Longrightarrow> P"
-nitpick [card nat = 100, check_potential, expect = genuine]
+nitpick [card nat = 100, check_potential, tac_timeout = 5, expect = genuine]
 oops
 
 lemma "P Suc"
