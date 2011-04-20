@@ -111,7 +111,7 @@ $SSH macbroy2 "$MAKEALL $HOME/settings/mac-poly64-M4; $MAKEALL $HOME/settings/ma
 sleep 15
 $SSH macbroy5 "$MAKEALL $HOME/settings/mac-poly"
 sleep 15
-$SSH macbroy6 "sleep 10800; $MAKEALL $HOME/settings/at-mac-poly-5.1-para"
+$SSH macbroy30 "sleep 10800; $MAKEALL $HOME/settings/mac-poly-M2"
 sleep 15
 $SSH atbroy102 "$MAKEALL $HOME/settings/cygwin-poly-e"
 #sleep 15
