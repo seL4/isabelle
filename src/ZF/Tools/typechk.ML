@@ -25,20 +25,17 @@ datatype tcset = TC of
  {rules: thm list,     (*the type-checking rules*)
   net: thm Net.net};   (*discrimination net of the same rules*)
 
-fun add_rule th (tcs as TC {rules, net}) =
+fun add_rule ctxt th (tcs as TC {rules, net}) =
   if member Thm.eq_thm_prop rules th then
-    (warning ("Ignoring duplicate type-checking rule\n" ^
-        Display.string_of_thm_without_context th); tcs)
+    (warning ("Ignoring duplicate type-checking rule\n" ^ Display.string_of_thm ctxt th); tcs)
   else
-    TC {rules = th :: rules,
-        net = Net.insert_term (K false) (Thm.concl_of th, th) net};
+    TC {rules = th :: rules, net = Net.insert_term (K false) (Thm.concl_of th, th) net};
 
-fun del_rule th (tcs as TC {rules, net}) =
+fun del_rule ctxt th (tcs as TC {rules, net}) =
   if member Thm.eq_thm_prop rules th then
     TC {net = Net.delete_term Thm.eq_thm_prop (Thm.concl_of th, th) net,
-        rules = remove Thm.eq_thm_prop th rules}
-  else (warning ("No such type-checking rule\n" ^
-    Display.string_of_thm_without_context th); tcs);
+      rules = remove Thm.eq_thm_prop th rules}
+  else (warning ("No such type-checking rule\n" ^ Display.string_of_thm ctxt th); tcs);
 
 
 (* generic data *)
@@ -52,8 +49,13 @@ structure Data = Generic_Data
     TC {rules = Thm.merge_thms (rules, rules'), net = Net.merge Thm.eq_thm_prop (net, net')};
 );
 
-val TC_add = Thm.declaration_attribute (Data.map o add_rule);
-val TC_del = Thm.declaration_attribute (Data.map o del_rule);
+val TC_add =
+  Thm.declaration_attribute (fn thm => fn context =>
+    Data.map (add_rule (Context.proof_of context) thm) context);
+
+val TC_del =
+  Thm.declaration_attribute (fn thm => fn context =>
+    Data.map (del_rule (Context.proof_of context) thm) context);
 
 val tcset_of = Data.get o Context.Proof;
 

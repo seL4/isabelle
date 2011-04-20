@@ -37,7 +37,7 @@ signature BASIC_CLASSICAL =
 sig
   type claset
   val empty_cs: claset
-  val print_cs: claset -> unit
+  val print_cs: Proof.context -> claset -> unit
   val rep_cs:
     claset -> {safeIs: thm list, safeEs: thm list,
                  hazIs: thm list, hazEs: thm list,
@@ -258,8 +258,8 @@ val empty_cs =
      dup_netpair   = empty_netpair,
      xtra_netpair  = empty_netpair};
 
-fun print_cs (CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, ...}) =
-  let val pretty_thms = map Display.pretty_thm_without_context in
+fun print_cs ctxt (CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, ...}) =
+  let val pretty_thms = map (Display.pretty_thm ctxt) in
     [Pretty.big_list "safe introduction rules (intro!):" (pretty_thms safeIs),
       Pretty.big_list "introduction rules (intro):" (pretty_thms hazIs),
       Pretty.big_list "safe elimination rules (elim!):" (pretty_thms safeEs),
@@ -1018,6 +1018,8 @@ val _ =
   Outer_Syntax.improper_command "print_claset" "print context of Classical Reasoner"
     Keyword.diag
     (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
-      Toplevel.keep (print_cs o claset_of o Toplevel.context_of)));
+      Toplevel.keep (fn state =>
+        let val ctxt = Toplevel.context_of state
+        in print_cs ctxt (claset_of ctxt) end)));
 
 end;

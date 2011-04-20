@@ -174,7 +174,7 @@ fun put_inductives names info = InductiveData.map
 val get_monos = #2 o get_inductives;
 val map_monos = InductiveData.map o apsnd;
 
-fun mk_mono thm =
+fun mk_mono ctxt thm =
   let
     fun eq2mono thm' = thm' RS (thm' RS eq_to_mono);
     fun dest_less_concl thm = dest_less_concl (thm RS @{thm le_funD})
@@ -187,11 +187,15 @@ fun mk_mono thm =
       dest_less_concl (Seq.hd (REPEAT (FIRSTGOAL
         (resolve_tac [@{thm le_funI}, @{thm le_boolI'}])) thm))
     | _ => thm
-  end handle THM _ =>
-    error ("Bad monotonicity theorem:\n" ^ Display.string_of_thm_without_context thm);
+  end handle THM _ => error ("Bad monotonicity theorem:\n" ^ Display.string_of_thm ctxt thm);
 
-val mono_add = Thm.declaration_attribute (map_monos o Thm.add_thm o mk_mono);
-val mono_del = Thm.declaration_attribute (map_monos o Thm.del_thm o mk_mono);
+val mono_add =
+  Thm.declaration_attribute (fn thm => fn context =>
+    map_monos (Thm.add_thm (mk_mono (Context.proof_of context) thm)) context);
+
+val mono_del =
+  Thm.declaration_attribute (fn thm => fn context =>
+    map_monos (Thm.del_thm (mk_mono (Context.proof_of context) thm)) context);
 
 
 
@@ -350,7 +354,7 @@ fun prove_mono quiet_mode skip_mono fork_mono predT fp_fun monos ctxt =
       REPEAT (resolve_tac [@{thm le_funI}, @{thm le_boolI'}] 1),
       REPEAT (FIRST
         [atac 1,
-         resolve_tac (map mk_mono monos @ get_monos ctxt) 1,
+         resolve_tac (map (mk_mono ctxt) monos @ get_monos ctxt) 1,
          etac @{thm le_funE} 1, dtac @{thm le_boolD} 1])]));
 
 

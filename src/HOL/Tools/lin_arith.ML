@@ -271,9 +271,9 @@ fun decomp ctxt : term -> decomp option =
     val {discrete, inj_consts, ...} = get_arith_data ctxt
   in decomp_negation (thy, discrete, inj_consts) end;
 
-fun domain_is_nat (_ $ (Const (_, T) $ _ $ _))                      = nT T
+fun domain_is_nat (_ $ (Const (_, T) $ _ $ _)) = nT T
   | domain_is_nat (_ $ (Const (@{const_name Not}, _) $ (Const (_, T) $ _ $ _))) = nT T
-  | domain_is_nat _                                                 = false;
+  | domain_is_nat _ = false;
 
 
 (*---------------------------------------------------------------------------*)
@@ -284,23 +284,25 @@ fun domain_is_nat (_ $ (Const (_, T) $ _ $ _))                      = nT T
 
 (* checks if splitting with 'thm' is implemented                             *)
 
-fun is_split_thm thm =
-  case concl_of thm of _ $ (_ $ (_ $ lhs) $ _) => (
+fun is_split_thm ctxt thm =
+  (case concl_of thm of _ $ (_ $ (_ $ lhs) $ _) =>
     (* Trueprop $ ((op =) $ (?P $ lhs) $ rhs) *)
-    case head_of lhs of
-      Const (a, _) => member (op =) [@{const_name Orderings.max},
-                                    @{const_name Orderings.min},
-                                    @{const_name Groups.abs},
-                                    @{const_name Groups.minus},
-                                    "Int.nat" (*DYNAMIC BINDING!*),
-                                    "Divides.div_class.mod" (*DYNAMIC BINDING!*),
-                                    "Divides.div_class.div" (*DYNAMIC BINDING!*)] a
-    | _            => (warning ("Lin. Arith.: wrong format for split rule " ^
-                                 Display.string_of_thm_without_context thm);
-                       false))
-  | _ => (warning ("Lin. Arith.: wrong format for split rule " ^
-                   Display.string_of_thm_without_context thm);
-          false);
+    (case head_of lhs of
+      Const (a, _) =>
+        member (op =)
+         [@{const_name Orderings.max},
+          @{const_name Orderings.min},
+          @{const_name Groups.abs},
+          @{const_name Groups.minus},
+          "Int.nat" (*DYNAMIC BINDING!*),
+          "Divides.div_class.mod" (*DYNAMIC BINDING!*),
+          "Divides.div_class.div" (*DYNAMIC BINDING!*)] a
+    | _ =>
+      (warning ("Lin. Arith.: wrong format for split rule " ^ Display.string_of_thm ctxt thm);
+        false))
+  | _ =>
+    (warning ("Lin. Arith.: wrong format for split rule " ^ Display.string_of_thm ctxt thm);
+      false));
 
 (* substitute new for occurrences of old in a term, incrementing bound       *)
 (* variables as needed when substituting inside an abstraction               *)
@@ -343,7 +345,7 @@ let
   fun REPEAT_DETERM_etac_rev_mp tms =
     fold (curry HOLogic.mk_imp) (map HOLogic.dest_Trueprop tms)
       HOLogic.false_const
-  val split_thms  = filter is_split_thm (#splits (get_arith_data ctxt))
+  val split_thms  = filter (is_split_thm ctxt) (#splits (get_arith_data ctxt))
   val cmap        = Splitter.cmap_of_split_thms split_thms
   val goal_tm     = REPEAT_DETERM_etac_rev_mp terms
   val splits      = Splitter.split_posns cmap thy Ts goal_tm
@@ -645,13 +647,13 @@ end;  (* split_once_items *)
 (* terms in the same way as filter_prems_tac does                            *)
 
 fun filter_prems_tac_items (p : term -> bool) (terms : term list) : term list =
-let
-  fun filter_prems t (left, right) =
-    if p t then (left, right @ [t]) else (left @ right, [])
-  val (left, right) = fold filter_prems terms ([], [])
-in
-  right @ left
-end;
+  let
+    fun filter_prems t (left, right) =
+      if p t then (left, right @ [t]) else (left @ right, [])
+    val (left, right) = fold filter_prems terms ([], [])
+  in
+    right @ left
+  end;
 
 (* return true iff TRY (etac notE) THEN eq_assume_tac would succeed on a     *)
 (* subgoal that has 'terms' as premises                                      *)
@@ -664,29 +666,27 @@ fun negated_term_occurs_positively (terms : term list) : bool =
     terms;
 
 fun pre_decomp ctxt (Ts : typ list, terms : term list) : (typ list * term list) list =
-let
-  (* repeatedly split (including newly emerging subgoals) until no further   *)
-  (* splitting is possible                                                   *)
-  fun split_loop ([] : (typ list * term list) list) =
-      ([] : (typ list * term list) list)
-    | split_loop (subgoal::subgoals) =
-      (case split_once_items ctxt subgoal of
-        SOME new_subgoals => split_loop (new_subgoals @ subgoals)
-      | NONE              => subgoal :: split_loop subgoals)
-  fun is_relevant t  = is_some (decomp ctxt t)
-  (* filter_prems_tac is_relevant: *)
-  val relevant_terms = filter_prems_tac_items is_relevant terms
-  (* split_tac, NNF normalization: *)
-  val split_goals    = split_loop [(Ts, relevant_terms)]
-  (* necessary because split_once_tac may normalize terms: *)
-  val beta_eta_norm  = map (apsnd (map (Envir.eta_contract o Envir.beta_norm)))
-    split_goals
-  (* TRY (etac notE) THEN eq_assume_tac: *)
-  val result         = filter_out (negated_term_occurs_positively o snd)
-    beta_eta_norm
-in
-  result
-end;
+  let
+    (* repeatedly split (including newly emerging subgoals) until no further   *)
+    (* splitting is possible                                                   *)
+    fun split_loop ([] : (typ list * term list) list) = ([] : (typ list * term list) list)
+      | split_loop (subgoal::subgoals) =
+          (case split_once_items ctxt subgoal of
+            SOME new_subgoals => split_loop (new_subgoals @ subgoals)
+          | NONE => subgoal :: split_loop subgoals)
+    fun is_relevant t  = is_some (decomp ctxt t)
+    (* filter_prems_tac is_relevant: *)
+    val relevant_terms = filter_prems_tac_items is_relevant terms
+    (* split_tac, NNF normalization: *)
+    val split_goals = split_loop [(Ts, relevant_terms)]
+    (* necessary because split_once_tac may normalize terms: *)
+    val beta_eta_norm = map (apsnd (map (Envir.eta_contract o Envir.beta_norm)))
+      split_goals
+    (* TRY (etac notE) THEN eq_assume_tac: *)
+    val result = filter_out (negated_term_occurs_positively o snd) beta_eta_norm
+  in
+    result
+  end;
 
 (* takes the i-th subgoal  [| A1; ...; An |] ==> B  to                       *)
 (* An --> ... --> A1 --> B,  performs splitting with the given 'split_thms'  *)
@@ -744,22 +744,22 @@ end;  (* local *)
 (* contradiction (i.e., a term and its negation) in their premises.          *)
 
 fun pre_tac ss i =
-let
-  val ctxt = Simplifier.the_context ss;
-  val split_thms = filter is_split_thm (#splits (get_arith_data ctxt))
-  fun is_relevant t = is_some (decomp ctxt t)
-in
-  DETERM (
-    TRY (filter_prems_tac is_relevant i)
-      THEN (
-        (TRY o REPEAT_ALL_NEW (split_once_tac ss split_thms))
-          THEN_ALL_NEW
-            (CONVERSION Drule.beta_eta_conversion
-              THEN'
-            (TRY o (etac notE THEN' eq_assume_tac)))
-      ) i
-  )
-end;
+  let
+    val ctxt = Simplifier.the_context ss;
+    val split_thms = filter (is_split_thm ctxt) (#splits (get_arith_data ctxt))
+    fun is_relevant t = is_some (decomp ctxt t)
+  in
+    DETERM (
+      TRY (filter_prems_tac is_relevant i)
+        THEN (
+          (TRY o REPEAT_ALL_NEW (split_once_tac ss split_thms))
+            THEN_ALL_NEW
+              (CONVERSION Drule.beta_eta_conversion
+                THEN'
+              (TRY o (etac notE THEN' eq_assume_tac)))
+        ) i
+    )
+  end;
 
 end;  (* LA_Data *)
 
@@ -783,7 +783,8 @@ val trace = Fast_Arith.trace;
 
 val init_arith_data =
   Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, number_of, ...} =>
-   {add_mono_thms = @{thms add_mono_thms_linordered_semiring} @ @{thms add_mono_thms_linordered_field} @ add_mono_thms,
+   {add_mono_thms = @{thms add_mono_thms_linordered_semiring} @
+      @{thms add_mono_thms_linordered_field} @ add_mono_thms,
     mult_mono_thms = @{thm mult_strict_left_mono} :: @{thm mult_left_mono} ::
       @{lemma "a = b ==> c*a = c*b" by (rule arg_cong)} :: mult_mono_thms,
     inj_thms = inj_thms,
@@ -840,6 +841,7 @@ local
   fun prem_nnf_tac i st =
     full_simp_tac (Simplifier.global_context (Thm.theory_of_thm st) nnf_simpset) i st;
 in
+
 fun refute_tac test prep_tac ref_tac =
   let val refute_prems_tac =
         REPEAT_DETERM
@@ -852,6 +854,7 @@ fun refute_tac test prep_tac ref_tac =
             REPEAT_DETERM o etac @{thm rev_mp}, prep_tac, rtac @{thm ccontr}, prem_nnf_tac,
             SELECT_GOAL (DEPTH_SOLVE refute_prems_tac)]
   end;
+
 end;
 
 

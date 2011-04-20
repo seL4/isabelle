@@ -39,7 +39,7 @@ signature CLASSICAL =
   val addSDs: claset * thm list -> claset
   val addSEs: claset * thm list -> claset
   val addSIs: claset * thm list -> claset
-  val print_cs: claset -> unit
+  val print_cs: Proof.context -> claset -> unit
   val rep_cs: claset -> 
       {safeIs: thm list, safeEs: thm list, hazIs: thm list, hazEs: thm list, 
        safe0_brls:(bool*thm)list, safep_brls: (bool*thm)list,
@@ -122,12 +122,12 @@ fun make_cs {safeIs,safeEs,hazIs,hazEs} =
 
 val empty_cs = make_cs{safeIs=[], safeEs=[], hazIs=[], hazEs=[]};
 
-fun print_cs (CS{safeIs,safeEs,hazIs,hazEs,...}) =
+fun print_cs ctxt (CS{safeIs,safeEs,hazIs,hazEs,...}) =
   writeln (cat_lines
-   (["Introduction rules"] @ map Display.string_of_thm_without_context hazIs @
-    ["Safe introduction rules"] @ map Display.string_of_thm_without_context safeIs @
-    ["Elimination rules"] @ map Display.string_of_thm_without_context hazEs @
-    ["Safe elimination rules"] @ map Display.string_of_thm_without_context safeEs));
+   (["Introduction rules"] @ map (Display.string_of_thm ctxt) hazIs @
+    ["Safe introduction rules"] @ map (Display.string_of_thm ctxt) safeIs @
+    ["Elimination rules"] @ map (Display.string_of_thm ctxt) hazEs @
+    ["Safe elimination rules"] @ map (Display.string_of_thm ctxt) safeEs));
 
 fun (CS{safeIs,safeEs,hazIs,hazEs,...}) addSIs ths =
   make_cs {safeIs=ths@safeIs, safeEs=safeEs, hazIs=hazIs, hazEs=hazEs};
