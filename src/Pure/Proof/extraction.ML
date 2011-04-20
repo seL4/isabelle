@@ -32,16 +32,17 @@ struct
 
 (**** tools ****)
 
-fun add_syntax thy =
-  thy
-  |> Theory.copy
-  |> Sign.root_path
-  |> Sign.add_types_global [(Binding.name "Type", 0, NoSyn), (Binding.name "Null", 0, NoSyn)]
-  |> Sign.add_consts
-      [(Binding.name "typeof", "'b::{} => Type", NoSyn),
-       (Binding.name "Type", "'a::{} itself => Type", NoSyn),
-       (Binding.name "Null", "Null", NoSyn),
-       (Binding.name "realizes", "'a::{} => 'b::{} => 'b", NoSyn)];
+val typ = Simple_Syntax.read_typ;
+
+val add_syntax =
+  Theory.copy
+  #> Sign.root_path
+  #> Sign.add_types_global [(Binding.name "Type", 0, NoSyn), (Binding.name "Null", 0, NoSyn)]
+  #> Sign.add_consts_i
+      [(Binding.name "typeof", typ "'b => Type", NoSyn),
+       (Binding.name "Type", typ "'a itself => Type", NoSyn),
+       (Binding.name "Null", typ "Null", NoSyn),
+       (Binding.name "realizes", typ "'a => 'b => 'b", NoSyn)];
 
 val nullT = Type ("Null", []);
 val nullt = Const ("Null", nullT);
@@ -150,11 +151,13 @@ fun get_var_type t =
   let
     val vs = Term.add_vars t [];
     val fs = Term.add_frees t [];
-  in fn 
-      Var (ixn, _) => (case AList.lookup (op =) vs ixn of
+  in
+    fn Var (ixn, _) =>
+        (case AList.lookup (op =) vs ixn of
           NONE => error "get_var_type: no such variable in term"
         | SOME T => Var (ixn, T))
-    | Free (s, _) => (case AList.lookup (op =) fs s of
+     | Free (s, _) =>
+        (case AList.lookup (op =) fs s of
           NONE => error "get_var_type: no such variable in term"
         | SOME T => Free (s, T))
     | _ => error "get_var_type: not a variable"
@@ -163,7 +166,7 @@ fun get_var_type t =
 fun read_term thy T s =
   let
     val ctxt = Proof_Context.init_global thy
-      |> Proof_Syntax.strip_sorts_consttypes
+      |> Config.put Type_Infer_Context.const_sorts false
       |> Proof_Context.set_defsort [];
     val parse = if T = propT then Syntax.parse_prop else Syntax.parse_term;
   in parse ctxt s |> Type.constraint T |> Syntax.check_term ctxt end;
@@ -528,7 +531,7 @@ fun extract thms thy =
       | corr d defs vs ts Ts hs cs (AbsP (s, SOME prop, prf)) (AbsP (_, _, prf')) t =
           let
             val T = etype_of thy' vs Ts prop;
-            val u = if T = nullT then 
+            val u = if T = nullT then
                 (case t of SOME u => SOME (incr_boundvars 1 u) | NONE => NONE)
               else (case t of SOME (Abs (_, _, u)) => SOME u | _ => NONE);
             val (defs', corr_prf) =

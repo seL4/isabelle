@@ -150,8 +150,8 @@ and subst_termify (Abs (v, T, t)) = (case subst_termify t
       | NONE => NONE)
   | subst_termify t = subst_termify_app (strip_comb t) 
 
-fun check_termify ts ctxt = map_default subst_termify ts
-  |> Option.map (rpair ctxt)
+fun check_termify ctxt ts =
+  the_default ts (map_default subst_termify ts);
 
 
 (** evaluation **)

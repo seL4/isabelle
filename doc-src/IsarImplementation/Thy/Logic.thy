@@ -127,8 +127,10 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML Sign.subsort: "theory -> sort * sort -> bool"} \\
   @{index_ML Sign.of_sort: "theory -> typ * sort -> bool"} \\
-  @{index_ML Sign.add_types: "(binding * int * mixfix) list -> theory -> theory"} \\
-  @{index_ML Sign.add_type_abbrev: "binding * string list * typ -> theory -> theory"} \\
+  @{index_ML Sign.add_types: "Proof.context ->
+  (binding * int * mixfix) list -> theory -> theory"} \\
+  @{index_ML Sign.add_type_abbrev: "Proof.context ->
+  binding * string list * typ -> theory -> theory"} \\
   @{index_ML Sign.primitive_class: "binding * class list -> theory -> theory"} \\
   @{index_ML Sign.primitive_classrel: "class * class -> theory -> theory"} \\
   @{index_ML Sign.primitive_arity: "arity -> theory -> theory"} \\
@@ -164,13 +166,12 @@ text %mlref {*
   \item @{ML Sign.of_sort}~@{text "thy (\<tau>, s)"} tests whether type
   @{text "\<tau>"} is of sort @{text "s"}.
 
-  \item @{ML Sign.add_types}~@{text "[(\<kappa>, k, mx), \<dots>]"} declares a new
-  type constructors @{text "\<kappa>"} with @{text "k"} arguments and
+  \item @{ML Sign.add_types}~@{text "ctxt [(\<kappa>, k, mx), \<dots>]"} declares a
+  new type constructors @{text "\<kappa>"} with @{text "k"} arguments and
   optional mixfix syntax.
 
-  \item @{ML Sign.add_type_abbrev}~@{text "(\<kappa>, \<^vec>\<alpha>,
-  \<tau>)"} defines a new type abbreviation @{text
-  "(\<^vec>\<alpha>)\<kappa> = \<tau>"}.
+  \item @{ML Sign.add_type_abbrev}~@{text "ctxt (\<kappa>, \<^vec>\<alpha>, \<tau>)"}
+  defines a new type abbreviation @{text "(\<^vec>\<alpha>)\<kappa> = \<tau>"}.
 
   \item @{ML Sign.primitive_class}~@{text "(c, [c\<^isub>1, \<dots>,
   c\<^isub>n])"} declares a new class @{text "c"}, together with class
@@ -364,8 +365,8 @@ text %mlref {*
   @{index_ML fastype_of: "term -> typ"} \\
   @{index_ML lambda: "term -> term -> term"} \\
   @{index_ML betapply: "term * term -> term"} \\
-  @{index_ML Sign.declare_const: "(binding * typ) * mixfix ->
-  theory -> term * theory"} \\
+  @{index_ML Sign.declare_const: "Proof.context ->
+  (binding * typ) * mixfix -> theory -> term * theory"} \\
   @{index_ML Sign.add_abbrev: "string -> binding * term ->
   theory -> (term * term) * theory"} \\
   @{index_ML Sign.const_typargs: "theory -> string * typ -> typ list"} \\
@@ -412,9 +413,8 @@ text %mlref {*
   "t u"}, with topmost @{text "\<beta>"}-conversion if @{text "t"} is an
   abstraction.
 
-  \item @{ML Sign.declare_const}~@{text "((c, \<sigma>), mx)"}
-  declares a new constant @{text "c :: \<sigma>"} with optional mixfix
-  syntax.
+  \item @{ML Sign.declare_const}~@{text "ctxt ((c, \<sigma>), mx)"} declares
+  a new constant @{text "c :: \<sigma>"} with optional mixfix syntax.
 
   \item @{ML Sign.add_abbrev}~@{text "print_mode (c, t)"}
   introduces a new term abbreviation @{text "c \<equiv> t"}.
@@ -640,15 +640,16 @@ text %mlref {*
   @{index_ML Thm.implies_elim: "thm -> thm -> thm"} \\
   @{index_ML Thm.generalize: "string list * string list -> int -> thm -> thm"} \\
   @{index_ML Thm.instantiate: "(ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm"} \\
-  @{index_ML Thm.add_axiom: "binding * term -> theory -> (string * thm) * theory"} \\
+  @{index_ML Thm.add_axiom: "Proof.context ->
+  binding * term -> theory -> (string * thm) * theory"} \\
   @{index_ML Thm.add_oracle: "binding * ('a -> cterm) -> theory ->
   (string * ('a -> thm)) * theory"} \\
-  @{index_ML Thm.add_def: "bool -> bool -> binding * term -> theory ->
-  (string * thm) * theory"} \\
+  @{index_ML Thm.add_def: "Proof.context -> bool -> bool ->
+  binding * term -> theory -> (string * thm) * theory"} \\
   \end{mldecls}
   \begin{mldecls}
-  @{index_ML Theory.add_deps: "string -> string * typ -> (string * typ) list ->
-  theory -> theory"} \\
+  @{index_ML Theory.add_deps: "Proof.context -> string ->
+  string * typ -> (string * typ) list -> theory -> theory"} \\
   \end{mldecls}
 
   \begin{description}
@@ -696,7 +697,7 @@ text %mlref {*
   term variables.  Note that the types in @{text "\<^vec>x\<^isub>\<tau>"}
   refer to the instantiated versions.
 
-  \item @{ML Thm.add_axiom}~@{text "(name, A) thy"} declares an
+  \item @{ML Thm.add_axiom}~@{text "ctxt (name, A)"} declares an
   arbitrary proposition as axiom, and retrieves it as a theorem from
   the resulting theory, cf.\ @{text "axiom"} in
   \figref{fig:prim-rules}.  Note that the low-level representation in
@@ -706,17 +707,17 @@ text %mlref {*
   oracle rule, essentially generating arbitrary axioms on the fly,
   cf.\ @{text "axiom"} in \figref{fig:prim-rules}.
 
-  \item @{ML Thm.add_def}~@{text "unchecked overloaded (name, c
+  \item @{ML Thm.add_def}~@{text "ctxt unchecked overloaded (name, c
   \<^vec>x \<equiv> t)"} states a definitional axiom for an existing constant
   @{text "c"}.  Dependencies are recorded via @{ML Theory.add_deps},
   unless the @{text "unchecked"} option is set.  Note that the
   low-level representation in the axiom table may differ slightly from
   the returned theorem.
 
-  \item @{ML Theory.add_deps}~@{text "name c\<^isub>\<tau>
-  \<^vec>d\<^isub>\<sigma>"} declares dependencies of a named specification
-  for constant @{text "c\<^isub>\<tau>"}, relative to existing
-  specifications for constants @{text "\<^vec>d\<^isub>\<sigma>"}.
+  \item @{ML Theory.add_deps}~@{text "ctxt name c\<^isub>\<tau> \<^vec>d\<^isub>\<sigma>"}
+  declares dependencies of a named specification for constant @{text
+  "c\<^isub>\<tau>"}, relative to existing specifications for constants @{text
+  "\<^vec>d\<^isub>\<sigma>"}.
 
   \end{description}
 *}

@@ -545,9 +545,9 @@ fun eval_term thy program (nbe_program, idx_tab) ((vs0, (vs, ty)), t) deps =
     val ctxt = Syntax.init_pretty_global thy;
     val string_of_term = Syntax.string_of_term (Config.put show_types true ctxt);
     val ty' = typ_of_itype program vs0 ty;
-    fun type_infer t = singleton
-      (Type_Infer.infer_types ctxt (try (Type.strip_sorts o Sign.the_const_type thy)) (K NONE))
-      (Type.constraint ty' t);
+    fun type_infer t =
+      Syntax.check_term (Config.put Type_Infer_Context.const_sorts false ctxt)
+        (Type.constraint ty' t);
     fun check_tvars t =
       if null (Term.add_tvars t []) then t
       else error ("Illegal schematic type variables in normalized term: " ^ string_of_term t);

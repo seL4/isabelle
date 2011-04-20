@@ -76,7 +76,6 @@ sig
   val get_sort: Proof.context -> (indexname * sort) list -> indexname -> sort
   val check_tvar: Proof.context -> indexname * sort -> indexname * sort
   val check_tfree: Proof.context -> string * sort -> string * sort
-  val standard_infer_types: Proof.context -> term list -> term list
   val intern_skolem: Proof.context -> string -> string option
   val read_term_pattern: Proof.context -> string -> term
   val read_term_schematic: Proof.context -> string -> term
@@ -678,14 +677,11 @@ val cert_prop = gen_cert true;
 end;
 
 
-(* type checking/inference *)
+(* check/uncheck *)
 
 fun def_type ctxt =
   let val Mode {pattern, ...} = get_mode ctxt
   in Variable.def_type ctxt pattern end;
-
-fun standard_infer_types ctxt =
-  Type_Infer.infer_types ctxt (try (Consts.the_constraint (consts_of ctxt))) (def_type ctxt);
 
 local
 
@@ -693,23 +689,15 @@ fun standard_typ_check ctxt =
   map (cert_typ_mode (Type.get_mode ctxt) ctxt) #>
   map (prepare_patternT ctxt);
 
-fun standard_term_check ctxt =
-  standard_infer_types ctxt #>
-  map (expand_abbrevs ctxt);
-
 fun standard_term_uncheck ctxt =
   map (contract_abbrevs ctxt);
 
-fun add eq what f = Context.>> (what (fn xs => fn ctxt =>
-  let val xs' = f ctxt xs in if eq_list eq (xs, xs') then NONE else SOME (xs', ctxt) end));
-
 in
 
-val _ = add (op =) (Syntax.add_typ_check 0 "standard") standard_typ_check;
-val _ = add (op aconv) (Syntax.add_term_check 0 "standard") standard_term_check;
-val _ = add (op aconv) (Syntax.add_term_check 100 "fixate") prepare_patterns;
-
-val _ = add (op aconv) (Syntax.add_term_uncheck 0 "standard") standard_term_uncheck;
+val _ = Context.>>
+ (Syntax.add_typ_check 0 "standard" standard_typ_check #>
+  Syntax.add_term_check 100 "fixate" prepare_patterns #>
+  Syntax.add_term_uncheck 0 "standard" standard_term_uncheck);
 
 end;
 

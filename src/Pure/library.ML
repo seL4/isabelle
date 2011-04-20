@@ -93,7 +93,7 @@ sig
   val find_first: ('a -> bool) -> 'a list -> 'a option
   val get_index: ('a -> 'b option) -> 'a list -> (int * 'b) option
   val get_first: ('a -> 'b option) -> 'a list -> 'b option
-  val eq_list: ('a * 'b -> bool) -> 'a list * 'b list -> bool
+  val eq_list: ('a * 'a -> bool) -> 'a list * 'a list -> bool
   val map2: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
   val fold2: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
   val fold_rev2: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
@@ -168,7 +168,7 @@ sig
   val inter: ('a * 'b -> bool) -> 'b list -> 'a list -> 'a list
   val merge: ('a * 'a -> bool) -> 'a list * 'a list -> 'a list
   val subset: ('a * 'b -> bool) -> 'a list * 'b list -> bool
-  val eq_set: ('a * 'b -> bool) -> 'a list * 'b list -> bool
+  val eq_set: ('a * 'a -> bool) -> 'a list * 'a list -> bool
   val distinct: ('a * 'a -> bool) -> 'a list -> 'a list
   val duplicates: ('a * 'a -> bool) -> 'a list -> 'a list
   val has_duplicates: ('a * 'a -> bool) -> 'a list -> bool
@@ -396,10 +396,11 @@ fun foldl_map f =
 (* basic list functions *)
 
 fun eq_list eq (list1, list2) =
-  let
-    fun eq_lst (x :: xs, y :: ys) = eq (x, y) andalso eq_lst (xs, ys)
-      | eq_lst _ = true;
-  in length list1 = length list2 andalso eq_lst (list1, list2) end;
+  pointer_eq (list1, list2) orelse
+    let
+      fun eq_lst (x :: xs, y :: ys) = eq (x, y) andalso eq_lst (xs, ys)
+        | eq_lst _ = true;
+    in length list1 = length list2 andalso eq_lst (list1, list2) end;
 
 fun maps f [] = []
   | maps f (x :: xs) = f x @ maps f xs;

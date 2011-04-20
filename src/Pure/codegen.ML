@@ -8,7 +8,6 @@ signature CODEGEN =
 sig
   val quiet_mode : bool Unsynchronized.ref
   val message : string -> unit
-  val mode : string list Unsynchronized.ref
   val margin : int Unsynchronized.ref
   val string_of : Pretty.T -> string
   val str : string -> Pretty.T
@@ -31,9 +30,9 @@ sig
   val preprocess: theory -> thm list -> thm list
   val preprocess_term: theory -> term -> term
   val print_codegens: theory -> unit
-  val generate_code: theory -> string list -> string -> (string * string) list ->
+  val generate_code: theory -> string list -> string list -> string -> (string * string) list ->
     (string * string) list * codegr
-  val generate_code_i: theory -> string list -> string -> (string * term) list ->
+  val generate_code_i: theory -> string list -> string list -> string -> (string * term) list ->
     (string * string) list * codegr
   val assoc_const: string * (term mixfix list *
     (string * string) list) -> theory -> theory
@@ -46,9 +45,9 @@ sig
   val get_assoc_type: theory -> string ->
     (typ mixfix list * (string * string) list) option
   val codegen_error: codegr -> string -> string -> 'a
-  val invoke_codegen: theory -> deftab -> string -> string -> bool ->
+  val invoke_codegen: theory -> string list -> deftab -> string -> string -> bool ->
     term -> codegr -> Pretty.T * codegr
-  val invoke_tycodegen: theory -> deftab -> string -> string -> bool ->
+  val invoke_tycodegen: theory -> string list -> deftab -> string -> string -> bool ->
     typ -> codegr -> Pretty.T * codegr
   val mk_id: string -> string
   val mk_qual_id: string -> string * string -> string
@@ -62,7 +61,7 @@ sig
   val rename_term: term -> term
   val new_names: term -> string list -> string list
   val new_name: term -> string -> string
-  val if_library: 'a -> 'a -> 'a
+  val if_library: string list -> 'a -> 'a -> 'a
   val get_defn: theory -> deftab -> string -> typ ->
     ((typ * (string * thm)) * int option) option
   val is_instance: typ -> typ -> bool
@@ -104,8 +103,6 @@ struct
 
 val quiet_mode = Unsynchronized.ref true;
 fun message s = if !quiet_mode then () else writeln s;
-
-val mode = Unsynchronized.ref ([] : string list);   (* FIXME proper functional argument *)
 
 val margin = Unsynchronized.ref 80;
 
@@ -171,13 +168,14 @@ val emptygr : codegr = (Graph.empty,
 (* type of code generators *)
 
 type 'a codegen =
-  theory ->    (* theory in which generate_code was called *)
-  deftab ->    (* definition table (for efficiency) *)
-  string ->    (* node name of caller (for recording dependencies) *)
-  string ->    (* module name of caller (for modular code generation) *)
-  bool ->      (* whether to parenthesize generated expression *)
-  'a ->        (* item to generate code from *)
-  codegr ->    (* code dependency graph *)
+  theory ->      (* theory in which generate_code was called *)
+  string list -> (* mode *)
+  deftab ->      (* definition table (for efficiency) *)
+  string ->      (* node name of caller (for recording dependencies) *)
+  string ->      (* module name of caller (for modular code generation) *)
+  bool ->        (* whether to parenthesize generated expression *)
+  'a ->          (* item to generate code from *)
+  codegr ->      (* code dependency graph *)
   (Pretty.T * codegr) option;
 
 
@@ -478,8 +476,8 @@ fun is_instance T1 T2 =
 fun get_assoc_code thy (s, T) = Option.map snd (find_first (fn ((s', T'), _) =>
   s = s' andalso is_instance T T') (#consts (CodegenData.get thy)));
 
-fun get_aux_code xs = map_filter (fn (m, code) =>
-  if m = "" orelse member (op =) (!mode) m then SOME code else NONE) xs;
+fun get_aux_code mode xs = map_filter (fn (m, code) =>
+  if m = "" orelse member (op =) mode m then SOME code else NONE) xs;
 
 fun dest_prim_def t =
   let
@@ -525,14 +523,14 @@ fun get_defn thy defs s T = (case Symtab.lookup defs s of
 fun codegen_error (gr, _) dep s =
   error (s ^ "\nrequired by:\n" ^ commas (Graph.all_succs gr [dep]));
 
-fun invoke_codegen thy defs dep module brack t gr = (case get_first
-   (fn (_, f) => f thy defs dep module brack t gr) (#codegens (CodegenData.get thy)) of
+fun invoke_codegen thy mode defs dep module brack t gr = (case get_first
+   (fn (_, f) => f thy mode defs dep module brack t gr) (#codegens (CodegenData.get thy)) of
       NONE => codegen_error gr dep ("Unable to generate code for term:\n" ^
         Syntax.string_of_term_global thy t)
     | SOME x => x);
 
-fun invoke_tycodegen thy defs dep module brack T gr = (case get_first
-   (fn (_, f) => f thy defs dep module brack T gr ) (#tycodegens (CodegenData.get thy)) of
+fun invoke_tycodegen thy mode defs dep module brack T gr = (case get_first
+   (fn (_, f) => f thy mode defs dep module brack T gr ) (#tycodegens (CodegenData.get thy)) of
       NONE => codegen_error gr dep ("Unable to generate code for type:\n" ^
         Syntax.string_of_typ_global thy T)
     | SOME x => x);
@@ -597,17 +595,17 @@ fun new_names t xs = Name.variant_list
 
 fun new_name t x = hd (new_names t [x]);
 
-fun if_library x y = if member (op =) (!mode) "library" then x else y;
+fun if_library mode x y = if member (op =) mode "library" then x else y;
 
-fun default_codegen thy defs dep module brack t gr =
+fun default_codegen thy mode defs dep module brack t gr =
   let
     val (u, ts) = strip_comb t;
-    fun codegens brack = fold_map (invoke_codegen thy defs dep module brack)
+    fun codegens brack = fold_map (invoke_codegen thy mode defs dep module brack)
   in (case u of
       Var ((s, i), T) =>
         let
           val (ps, gr') = codegens true ts gr;
-          val (_, gr'') = invoke_tycodegen thy defs dep module false T gr'
+          val (_, gr'') = invoke_tycodegen thy mode defs dep module false T gr'
         in SOME (mk_app brack (str (s ^
            (if i=0 then "" else string_of_int i))) ps, gr'')
         end
@@ -615,7 +613,7 @@ fun default_codegen thy defs dep module brack t gr =
     | Free (s, T) =>
         let
           val (ps, gr') = codegens true ts gr;
-          val (_, gr'') = invoke_tycodegen thy defs dep module false T gr'
+          val (_, gr'') = invoke_tycodegen thy mode defs dep module false T gr'
         in SOME (mk_app brack (str s) ps, gr'') end
 
     | Const (s, T) =>
@@ -623,26 +621,26 @@ fun default_codegen thy defs dep module brack t gr =
          SOME (ms, aux) =>
            let val i = num_args_of ms
            in if length ts < i then
-               default_codegen thy defs dep module brack (eta_expand u ts i) gr 
+               default_codegen thy mode defs dep module brack (eta_expand u ts i) gr 
              else
                let
                  val (ts1, ts2) = args_of ms ts;
                  val (ps1, gr1) = codegens false ts1 gr;
                  val (ps2, gr2) = codegens true ts2 gr1;
                  val (ps3, gr3) = codegens false (quotes_of ms) gr2;
-                 val (_, gr4) = invoke_tycodegen thy defs dep module false
+                 val (_, gr4) = invoke_tycodegen thy mode defs dep module false
                    (funpow (length ts) (hd o tl o snd o dest_Type) T) gr3;
                  val (module', suffix) = (case get_defn thy defs s T of
-                     NONE => (if_library (thyname_of_const thy s) module, "")
+                     NONE => (if_library mode (thyname_of_const thy s) module, "")
                    | SOME ((U, (module', _)), NONE) =>
-                       (if_library module' module, "")
+                       (if_library mode module' module, "")
                    | SOME ((U, (module', _)), SOME i) =>
-                       (if_library module' module, " def" ^ string_of_int i));
+                       (if_library mode module' module, " def" ^ string_of_int i));
                  val node_id = s ^ suffix;
                  fun p module' = mk_app brack (Pretty.block
                    (pretty_mixfix module module' ms ps1 ps3)) ps2
                in SOME (case try (get_node gr4) node_id of
-                   NONE => (case get_aux_code aux of
+                   NONE => (case get_aux_code mode aux of
                        [] => (p module, gr4)
                      | xs => (p module', add_edge (node_id, dep) (new_node
                          (node_id, (NONE, module', cat_lines xs ^ "\n")) gr4)))
@@ -654,7 +652,7 @@ fun default_codegen thy defs dep module brack t gr =
            NONE => NONE
          | SOME ((U, (thyname, thm)), k) => (case prep_prim_def thy thm
             of SOME (_, (_, (args, rhs))) => let
-               val module' = if_library thyname module;
+               val module' = if_library mode thyname module;
                val suffix = (case k of NONE => "" | SOME i => " def" ^ string_of_int i);
                val node_id = s ^ suffix;
                val ((ps, def_id), gr') = gr |> codegens true ts
@@ -669,12 +667,12 @@ fun default_codegen thy defs dep module brack t gr =
                        if not (null args) orelse null Ts then (args, rhs) else
                          let val v = Free (new_name rhs "x", hd Ts)
                          in ([v], betapply (rhs, v)) end;
-                     val (p', gr1) = invoke_codegen thy defs node_id module' false
+                     val (p', gr1) = invoke_codegen thy mode defs node_id module' false
                        rhs' (add_edge (node_id, dep)
                           (new_node (node_id, (NONE, "", "")) gr'));
                      val (xs, gr2) = codegens false args' gr1;
-                     val (_, gr3) = invoke_tycodegen thy defs dep module false T gr2;
-                     val (ty, gr4) = invoke_tycodegen thy defs node_id module' false U gr3;
+                     val (_, gr3) = invoke_tycodegen thy mode defs dep module false T gr2;
+                     val (ty, gr4) = invoke_tycodegen thy mode defs node_id module' false U gr3;
                    in (p, map_node node_id (K (NONE, module', string_of
                        (Pretty.block (separate (Pretty.brk 1)
                          (if null args' then
@@ -692,7 +690,7 @@ fun default_codegen thy defs dep module brack t gr =
         val t = strip_abs_body u
         val bs' = new_names t bs;
         val (ps, gr1) = codegens true ts gr;
-        val (p, gr2) = invoke_codegen thy defs dep module false
+        val (p, gr2) = invoke_codegen thy mode defs dep module false
           (subst_bounds (map Free (rev (bs' ~~ Ts)), t)) gr1;
       in
         SOME (mk_app brack (Pretty.block (str "(" :: pretty_fn bs' p @
@@ -702,26 +700,26 @@ fun default_codegen thy defs dep module brack t gr =
     | _ => NONE)
   end;
 
-fun default_tycodegen thy defs dep module brack (TVar ((s, i), _)) gr =
+fun default_tycodegen thy mode defs dep module brack (TVar ((s, i), _)) gr =
       SOME (str (s ^ (if i = 0 then "" else string_of_int i)), gr)
-  | default_tycodegen thy defs dep module brack (TFree (s, _)) gr =
+  | default_tycodegen thy mode defs dep module brack (TFree (s, _)) gr =
       SOME (str s, gr)
-  | default_tycodegen thy defs dep module brack (Type (s, Ts)) gr =
+  | default_tycodegen thy mode defs dep module brack (Type (s, Ts)) gr =
       (case AList.lookup (op =) ((#types o CodegenData.get) thy) s of
          NONE => NONE
        | SOME (ms, aux) =>
            let
              val (ps, gr') = fold_map
-               (invoke_tycodegen thy defs dep module false)
+               (invoke_tycodegen thy mode defs dep module false)
                (fst (args_of ms Ts)) gr;
              val (qs, gr'') = fold_map
-               (invoke_tycodegen thy defs dep module false)
+               (invoke_tycodegen thy mode defs dep module false)
                (quotes_of ms) gr';
-             val module' = if_library (thyname_of_type thy s) module;
+             val module' = if_library mode (thyname_of_type thy s) module;
              val node_id = s ^ " (type)";
              fun p module' = Pretty.block (pretty_mixfix module module' ms ps qs)
            in SOME (case try (get_node gr'') node_id of
-               NONE => (case get_aux_code aux of
+               NONE => (case get_aux_code mode aux of
                    [] => (p module', gr'')
                  | xs => (p module', snd (mk_type_id module' s
                        (add_edge (node_id, dep) (new_node (node_id,
@@ -780,10 +778,10 @@ fun output_code gr module xs =
     else [(module, implode (map (#3 o snd) code))]
   end;
 
-fun gen_generate_code prep_term thy modules module xs =
+fun gen_generate_code prep_term thy mode modules module xs =
   let
     val _ = (module <> "" orelse
-        member (op =) (!mode) "library" andalso forall (fn (s, _) => s = "") xs)
+        member (op =) mode "library" andalso forall (fn (s, _) => s = "") xs)
       orelse error "missing module name";
     val graphs = get_modules thy;
     val defs = mk_deftab thy;
@@ -800,7 +798,7 @@ fun gen_generate_code prep_term thy modules module xs =
       | expand t = (case fastype_of t of
           Type ("fun", [T, U]) => Abs ("x", T, t $ Bound 0) | _ => t);
     val (ps, gr') = fold_map (fn (s, t) => fn gr => apfst (pair s)
-      (invoke_codegen thy defs "<Top>" module false t gr))
+      (invoke_codegen thy mode defs "<Top>" module false t gr))
         (map (apsnd (expand o preprocess_term thy o prep_term thy)) xs) gr;
     val code = map_filter
       (fn ("", _) => NONE
@@ -809,12 +807,12 @@ fun gen_generate_code prep_term thy modules module xs =
     val code' = space_implode "\n\n" code ^ "\n\n";
     val code'' =
       map_filter (fn (name, s) =>
-          if member (op =) (!mode) "library" andalso name = module andalso null code
+          if member (op =) mode "library" andalso name = module andalso null code
           then NONE
           else SOME (name, mk_struct name s))
         ((if null code then I
           else add_to_module module code')
-           (output_code (fst gr') (if_library "" module) ["<Top>"]))
+           (output_code (fst gr') (if_library mode "" module) ["<Top>"]))
   in
     (code'', del_nodes ["<Top>"] gr')
   end;
@@ -873,8 +871,7 @@ val test_fn : (int -> term list option) Unsynchronized.ref =
 fun test_term ctxt t =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val (code, gr) = setmp_CRITICAL mode ["term_of", "test"]
-      (generate_code_i thy [] "Generated") [("testf", t)];
+    val (code, gr) = generate_code_i thy ["term_of", "test"] [] "Generated" [("testf", t)];
     val Ts = map snd (fst (strip_abs t));
     val args = map_index (fn (i, T) => ("arg" ^ string_of_int i, T)) Ts;
     val s = "structure TestTerm =\nstruct\n\n" ^
@@ -913,9 +910,9 @@ fun eval_term thy t =
           error "Term to be evaluated contains type variables";
         val _ = (null (Term.add_vars t []) andalso null (Term.add_frees t [])) orelse
           error "Term to be evaluated contains variables";
-        val (code, gr) = setmp_CRITICAL mode ["term_of"]
-          (generate_code_i thy [] "Generated")
-          [("result", Abs ("x", TFree ("'a", []), t))];
+        val (code, gr) =
+          generate_code_i thy ["term_of"] [] "Generated"
+            [("result", Abs ("x", TFree ("'a", []), t))];
         val s = "structure EvalTerm =\nstruct\n\n" ^
           cat_lines (map snd code) ^
           "\nopen Generated;\n\n" ^ string_of
@@ -988,7 +985,7 @@ val _ =
          (const, (parse_mixfix (Syntax.read_term_global thy) mfx, aux)))) xs thy)));
 
 fun parse_code lib =
-  Scan.optional (Parse.$$$ "(" |-- Parse.enum "," Parse.xname --| Parse.$$$ ")") (!mode) --
+  Scan.optional (Parse.$$$ "(" |-- Parse.enum "," Parse.xname --| Parse.$$$ ")") [] --
   (if lib then Scan.optional Parse.name "" else Parse.name) --
   Scan.option (Parse.$$$ "file" |-- Parse.name) --
   (if lib then Scan.succeed []
@@ -996,10 +993,10 @@ fun parse_code lib =
   Parse.$$$ "contains" --
   (   Scan.repeat1 (Parse.name --| Parse.$$$ "=" -- Parse.term)
    || Scan.repeat1 (Parse.term >> pair "")) >>
-  (fn ((((mode', module), opt_fname), modules), xs) => Toplevel.theory (fn thy =>
+  (fn ((((mode, module), opt_fname), modules), xs) => Toplevel.theory (fn thy =>
     let
-      val mode'' = (if lib then insert (op =) "library" else I) (remove (op =) "library" mode');
-      val (code, gr) = setmp_CRITICAL mode mode'' (generate_code thy modules module) xs;
+      val mode' = (if lib then insert (op =) "library" else I) (remove (op =) "library" mode);
+      val (code, gr) = generate_code thy mode' modules module xs;
       val thy' = thy |> Context.theory_map (ML_Context.exec (fn () =>
         (case opt_fname of
           NONE => ML_Context.eval_text false Position.none (cat_lines (map snd code))

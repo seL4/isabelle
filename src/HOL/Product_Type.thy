@@ -336,7 +336,7 @@ fun strip_abs_split 0 t = ([], t)
   | strip_abs_split i t =
       strip_abs_split i (Abs ("x", hd (binder_types (fastype_of t)), t $ Bound 0));
 
-fun let_codegen thy defs dep thyname brack t gr =
+fun let_codegen thy mode defs dep thyname brack t gr =
   (case strip_comb t of
     (t1 as Const (@{const_name Let}, _), t2 :: t3 :: ts) =>
     let
@@ -347,17 +347,17 @@ fun let_codegen thy defs dep thyname brack t gr =
         | dest_let t = ([], t);
       fun mk_code (l, r) gr =
         let
-          val (pl, gr1) = Codegen.invoke_codegen thy defs dep thyname false l gr;
-          val (pr, gr2) = Codegen.invoke_codegen thy defs dep thyname false r gr1;
+          val (pl, gr1) = Codegen.invoke_codegen thy mode defs dep thyname false l gr;
+          val (pr, gr2) = Codegen.invoke_codegen thy mode defs dep thyname false r gr1;
         in ((pl, pr), gr2) end
     in case dest_let (t1 $ t2 $ t3) of
         ([], _) => NONE
       | (ps, u) =>
           let
             val (qs, gr1) = fold_map mk_code ps gr;
-            val (pu, gr2) = Codegen.invoke_codegen thy defs dep thyname false u gr1;
+            val (pu, gr2) = Codegen.invoke_codegen thy mode defs dep thyname false u gr1;
             val (pargs, gr3) = fold_map
-              (Codegen.invoke_codegen thy defs dep thyname true) ts gr2
+              (Codegen.invoke_codegen thy mode defs dep thyname true) ts gr2
           in
             SOME (Codegen.mk_app brack
               (Pretty.blk (0, [Codegen.str "let ", Pretty.blk (0, flat
@@ -370,14 +370,14 @@ fun let_codegen thy defs dep thyname brack t gr =
     end
   | _ => NONE);
 
-fun split_codegen thy defs dep thyname brack t gr = (case strip_comb t of
+fun split_codegen thy mode defs dep thyname brack t gr = (case strip_comb t of
     (t1 as Const (@{const_name prod_case}, _), t2 :: ts) =>
       let
         val ([p], u) = strip_abs_split 1 (t1 $ t2);
-        val (q, gr1) = Codegen.invoke_codegen thy defs dep thyname false p gr;
-        val (pu, gr2) = Codegen.invoke_codegen thy defs dep thyname false u gr1;
+        val (q, gr1) = Codegen.invoke_codegen thy mode defs dep thyname false p gr;
+        val (pu, gr2) = Codegen.invoke_codegen thy mode defs dep thyname false u gr1;
         val (pargs, gr3) = fold_map
-          (Codegen.invoke_codegen thy defs dep thyname true) ts gr2
+          (Codegen.invoke_codegen thy mode defs dep thyname true) ts gr2
       in
         SOME (Codegen.mk_app brack
           (Pretty.block [Codegen.str "(fn ", q, Codegen.str " =>",

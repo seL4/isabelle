@@ -1746,20 +1746,21 @@ consts_code
 setup {*
 let
 
-fun eq_codegen thy defs dep thyname b t gr =
+fun eq_codegen thy mode defs dep thyname b t gr =
     (case strip_comb t of
        (Const (@{const_name HOL.eq}, Type (_, [Type ("fun", _), _])), _) => NONE
      | (Const (@{const_name HOL.eq}, _), [t, u]) =>
           let
-            val (pt, gr') = Codegen.invoke_codegen thy defs dep thyname false t gr;
-            val (pu, gr'') = Codegen.invoke_codegen thy defs dep thyname false u gr';
-            val (_, gr''') = Codegen.invoke_tycodegen thy defs dep thyname false HOLogic.boolT gr'';
+            val (pt, gr') = Codegen.invoke_codegen thy mode defs dep thyname false t gr;
+            val (pu, gr'') = Codegen.invoke_codegen thy mode defs dep thyname false u gr';
+            val (_, gr''') =
+              Codegen.invoke_tycodegen thy mode defs dep thyname false HOLogic.boolT gr'';
           in
             SOME (Codegen.parens
               (Pretty.block [pt, Codegen.str " =", Pretty.brk 1, pu]), gr''')
           end
      | (t as Const (@{const_name HOL.eq}, _), ts) => SOME (Codegen.invoke_codegen
-         thy defs dep thyname b (Codegen.eta_expand t ts 2) gr)
+         thy mode defs dep thyname b (Codegen.eta_expand t ts 2) gr)
      | _ => NONE);
 
 in

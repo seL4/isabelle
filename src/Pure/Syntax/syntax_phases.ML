@@ -146,7 +146,7 @@ fun parsetree_to_ast ctxt constrain_pos trf parsetree =
             val c = get_type (Lexicon.str_of_token tok);
             val _ = report (Lexicon.pos_of_token tok) (markup_type ctxt) c;
           in [Ast.Constant (Lexicon.mark_type c)] end
-      | asts_of (Parser.Node ("_constrain_position", [pt as Parser.Tip tok])) =
+      | asts_of (Parser.Node ("_position", [pt as Parser.Tip tok])) =
           if constrain_pos then
             [Ast.Appl [Ast.Constant "_constrain", ast_of pt,
               Ast.Variable (Term_Position.encode (Lexicon.pos_of_token tok))]]
@@ -464,7 +464,7 @@ fun simple_ast_of ctxt =
       | ast_of (t as _ $ _) =
           let val (f, args) = strip_comb t
           in Ast.mk_appl (ast_of f) (map ast_of args) end
-      | ast_of (Bound i) = Ast.Variable ("B." ^ string_of_int i)
+      | ast_of (Bound i) = Ast.Appl [Ast.Constant "_loose", Ast.Variable ("B." ^ string_of_int i)]
       | ast_of (Abs _) = raise Fail "simple_ast_of: Abs";
   in ast_of end;
 
@@ -610,6 +610,7 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
       | token_trans "_tvar" x = SOME (Pretty.mark_str (Markup.tvar, x))
       | token_trans "_free" x = SOME (Pretty.marks_str (free_or_skolem ctxt x))
       | token_trans "_bound" x = SOME (Pretty.mark_str (Markup.bound, x))
+      | token_trans "_loose" x = SOME (Pretty.mark_str (Markup.malformed, x))
       | token_trans "_var" x = SOME (Pretty.mark_str (var_or_skolem x))
       | token_trans "_numeral" x = SOME (Pretty.mark_str (Markup.numeral, x))
       | token_trans "_inner_string" x = SOME (Pretty.mark_str (Markup.inner_string, x))

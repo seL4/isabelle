@@ -462,7 +462,7 @@ fun resort_terms ctxt algebra consts constraints ts =
       handle Sorts.CLASS_ERROR e => error (Sorts.class_error ctxt e);
     val inst = map_type_tvar
       (fn (vi, sort) => TVar (vi, the_default sort (Vartab.lookup tvartab vi)));
-  in if Vartab.is_empty tvartab then NONE else SOME ((map o map_types) inst ts) end;
+  in if Vartab.is_empty tvartab then ts else (map o map_types) inst ts end;
 
 
 (* target *)
@@ -535,10 +535,7 @@ fun instantiation (tycos, vs, sort) thy =
     val consts = Sign.consts_of thy;
     val improve_constraints = AList.lookup (op =)
       (map (fn (_, (class, (c, _))) => (c, [[class]])) class_params);
-    fun resort_check ts ctxt =
-      (case resort_terms ctxt algebra consts improve_constraints ts of
-        NONE => NONE
-      | SOME ts' => SOME (ts', ctxt));
+    fun resort_check ctxt ts = resort_terms ctxt algebra consts improve_constraints ts;
     val lookup_inst_param = AxClass.lookup_inst_param consts params;
     fun improve (c, ty) =
       (case lookup_inst_param (c, ty) of

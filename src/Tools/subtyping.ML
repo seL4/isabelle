@@ -6,13 +6,9 @@ Coercive subtyping via subtype constraints.
 
 signature SUBTYPING =
 sig
-  datatype variance = COVARIANT | CONTRAVARIANT | INVARIANT | INVARIANT_TO of typ;
   val coercion_enabled: bool Config.T
-  val infer_types: Proof.context -> (string -> typ option) -> (indexname -> typ option) ->
-    term list -> term list
   val add_type_map: term -> Context.generic -> Context.generic
   val add_coercion: term -> Context.generic -> Context.generic
-  val gen_coercion: Proof.context -> typ Vartab.table -> (typ * typ) -> term
   val setup: theory -> theory
 end;
 
@@ -520,8 +516,8 @@ fun process_constraints ctxt err cs tye_idx =
             | SOME S =>
                 SOME
                   (map nameT
-                    (filter_out Type_Infer.is_paramT (map (Type_Infer.deref tye) (get_bound G T))),
-                      S));
+                    (filter_out Type_Infer.is_paramT
+                      (map (Type_Infer.deref tye) (get_bound G T))), S));
           val styps_and_sorts = distinct (op =) (map_filter to_fulfil raw_bound);
           val assignment =
             if null bound orelse null not_params then NONE
@@ -651,7 +647,8 @@ fun insert_coercions ctxt tye ts =
           end
       | insert bs (t $ u) =
           let
-            val (t', Type ("fun", [U, T])) = apsnd (Type_Infer.deref tye) (insert bs t);
+            val (t', Type ("fun", [U, T])) =
+              apsnd (Type_Infer.deref tye) (insert bs t);
             val (u', U') = insert bs u;
           in
             if can (fn TU => strong_unify ctxt TU (tye, 0)) (U, U')
@@ -666,9 +663,9 @@ fun insert_coercions ctxt tye ts =
 
 (** assembling the pipeline **)
 
-fun infer_types ctxt const_type var_type raw_ts =
+fun coercion_infer_types ctxt raw_ts =
   let
-    val (idx, ts) = Type_Infer.prepare ctxt const_type var_type raw_ts;
+    val (idx, ts) = Type_Infer_Context.prepare ctxt raw_ts;
 
     fun inf _ (t as (Const (_, T))) tye_idx = (t, T, tye_idx)
       | inf _ (t as (Free (_, T))) tye_idx = (t, T, tye_idx)
@@ -714,20 +711,12 @@ fun infer_types ctxt const_type var_type raw_ts =
 
 (* term check *)
 
-fun coercion_infer_types ctxt =
-  infer_types ctxt
-    (try (Consts.the_constraint (Proof_Context.consts_of ctxt)))
-    (Proof_Context.def_type ctxt);
-
-val (coercion_enabled, coercion_enabled_setup) = Attrib.config_bool "coercion_enabled" (K false);
+val (coercion_enabled, coercion_enabled_setup) =
+  Attrib.config_bool "coercion_enabled" (K false);
 
 val add_term_check =
   Syntax.add_term_check ~100 "coercions"
-    (fn xs => fn ctxt =>
-      if Config.get ctxt coercion_enabled then
-        let val xs' = coercion_infer_types ctxt xs
-        in if eq_list (op aconv) (xs, xs') then NONE else SOME (xs', ctxt) end
-      else NONE);
+    (fn ctxt => Config.get ctxt coercion_enabled ? coercion_infer_types ctxt);
 
 
 (* declarations *)

@@ -1109,8 +1109,8 @@ text %mlref {*
   @{index_ML_type Name_Space.T} \\
   @{index_ML Name_Space.empty: "string -> Name_Space.T"} \\
   @{index_ML Name_Space.merge: "Name_Space.T * Name_Space.T -> Name_Space.T"} \\
-  @{index_ML Name_Space.declare: "bool -> Name_Space.naming -> binding -> Name_Space.T ->
-  string * Name_Space.T"} \\
+  @{index_ML Name_Space.declare: "Proof.context -> bool ->
+  Name_Space.naming -> binding -> Name_Space.T -> string * Name_Space.T"} \\
   @{index_ML Name_Space.intern: "Name_Space.T -> string -> string"} \\
   @{index_ML Name_Space.extern: "Proof.context -> Name_Space.T -> string -> string"} \\
   @{index_ML Name_Space.is_concealed: "Name_Space.T -> string -> bool"}
@@ -1173,7 +1173,7 @@ text %mlref {*
   (\secref{sec:context-data}); @{text "kind"} is a formal comment
   to characterize the purpose of a name space.
 
-  \item @{ML Name_Space.declare}~@{text "strict naming bindings
+  \item @{ML Name_Space.declare}~@{text "ctxt strict naming bindings
   space"} enters a name binding as fully qualified internal name into
   the name space, with external accesses determined by the naming
   policy.

@@ -11,7 +11,6 @@ sig
   val proof_of_term: theory -> bool -> term -> Proofterm.proof
   val term_of_proof: Proofterm.proof -> term
   val cterm_of_proof: theory -> Proofterm.proof -> cterm * (cterm -> Proofterm.proof)
-  val strip_sorts_consttypes: Proof.context -> Proof.context
   val read_term: theory -> bool -> typ -> string -> term
   val read_proof: theory -> bool -> bool -> string -> Proofterm.proof
   val proof_syntax: Proofterm.proof -> theory -> theory
@@ -201,13 +200,6 @@ fun cterm_of_proof thy prf =
     (cterm_of thy' (term_of_proof prf), proof_of_term thy true o Thm.term_of)
   end;
 
-fun strip_sorts_consttypes ctxt =
-  let val {constants = (_, tab), ...} = Consts.dest (Proof_Context.consts_of ctxt)
-  in Symtab.fold (fn (s, (T, _)) =>
-      Proof_Context.add_const_constraint (s, SOME (Type.strip_sorts T)))
-    tab ctxt
-  end;
-
 fun read_term thy topsort =
   let
     val thm_names = filter_out (fn s => s = "") (map fst (Global_Theory.all_thms_of thy));
@@ -219,10 +211,7 @@ fun read_term thy topsort =
       |> Proof_Context.init_global
       |> Proof_Context.allow_dummies
       |> Proof_Context.set_mode Proof_Context.mode_schematic
-      |> (if topsort then
-            strip_sorts_consttypes #>
-            Proof_Context.set_defsort []
-          else I);
+      |> topsort ? (Config.put Type_Infer_Context.const_sorts false #> Proof_Context.set_defsort []);
   in
     fn ty => fn s =>
       (if ty = propT then Syntax.parse_prop else Syntax.parse_term) ctxt s

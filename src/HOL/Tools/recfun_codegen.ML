@@ -70,7 +70,7 @@ fun cycle g x xs =
   if member (op =) xs x then xs
   else fold (cycle g) (flat (Graph.all_paths (fst g) (x, x))) (x :: xs);
 
-fun add_rec_funs thy defs dep module eqs gr =
+fun add_rec_funs thy mode defs dep module eqs gr =
   let
     fun dest_eq t = (fst (const_of t) ^ mk_suffix thy defs (const_of t),
       Logic.dest_equals (Codegen.rename_term t));
@@ -81,10 +81,10 @@ fun add_rec_funs thy defs dep module eqs gr =
     fun mk_fundef module fname first [] gr = ([], gr)
       | mk_fundef module fname first ((fname' : string, (lhs, rhs)) :: xs) gr =
       let
-        val (pl, gr1) = Codegen.invoke_codegen thy defs dname module false lhs gr;
-        val (pr, gr2) = Codegen.invoke_codegen thy defs dname module false rhs gr1;
+        val (pl, gr1) = Codegen.invoke_codegen thy mode defs dname module false lhs gr;
+        val (pr, gr2) = Codegen.invoke_codegen thy mode defs dname module false rhs gr1;
         val (rest, gr3) = mk_fundef module fname' false xs gr2 ;
-        val (ty, gr4) = Codegen.invoke_tycodegen thy defs dname module false T gr3;
+        val (ty, gr4) = Codegen.invoke_tycodegen thy mode defs dname module false T gr3;
         val num_args = (length o snd o strip_comb) lhs;
         val prfx = if fname = fname' then "  |"
           else if not first then "and"
@@ -121,7 +121,7 @@ fun add_rec_funs thy defs dep module eqs gr =
              if not (member (op =) xs dep) then
                let
                  val thmss as (_, thyname) :: _ = map (get_equations thy defs) cs;
-                 val module' = Codegen.if_library thyname module;
+                 val module' = Codegen.if_library mode thyname module;
                  val eqs'' = map (dest_eq o prop_of) (maps fst thmss);
                  val (fundef', gr3) = mk_fundef module' "" true eqs''
                    (Codegen.add_edge (dname, dep)
@@ -137,7 +137,7 @@ fun add_rec_funs thy defs dep module eqs gr =
           else if s = dep then gr else Codegen.add_edge (s, dep) gr))
   end;
 
-fun recfun_codegen thy defs dep module brack t gr =
+fun recfun_codegen thy mode defs dep module brack t gr =
   (case strip_comb t of
     (Const (p as (s, T)), ts) =>
      (case (get_equations thy defs p, Codegen.get_assoc_code thy (s, T)) of
@@ -145,12 +145,12 @@ fun recfun_codegen thy defs dep module brack t gr =
      | (_, SOME _) => NONE
      | ((eqns, thyname), NONE) =>
         let
-          val module' = Codegen.if_library thyname module;
+          val module' = Codegen.if_library mode thyname module;
           val (ps, gr') = fold_map
-            (Codegen.invoke_codegen thy defs dep module true) ts gr;
+            (Codegen.invoke_codegen thy mode defs dep module true) ts gr;
           val suffix = mk_suffix thy defs p;
           val (module'', gr'') =
-            add_rec_funs thy defs dep module' (map prop_of eqns) gr';
+            add_rec_funs thy mode defs dep module' (map prop_of eqns) gr';
           val (fname, gr''') = Codegen.mk_const_id module'' (s ^ suffix) gr''
         in
           SOME (Codegen.mk_app brack (Codegen.str (Codegen.mk_qual_id module fname)) ps, gr''')

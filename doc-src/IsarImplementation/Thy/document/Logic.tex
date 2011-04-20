@@ -138,8 +138,10 @@ The language of types is an uninterpreted order-sorted first-order
   \begin{mldecls}
   \indexdef{}{ML}{Sign.subsort}\verb|Sign.subsort: theory -> sort * sort -> bool| \\
   \indexdef{}{ML}{Sign.of\_sort}\verb|Sign.of_sort: theory -> typ * sort -> bool| \\
-  \indexdef{}{ML}{Sign.add\_types}\verb|Sign.add_types: (binding * int * mixfix) list -> theory -> theory| \\
-  \indexdef{}{ML}{Sign.add\_type\_abbrev}\verb|Sign.add_type_abbrev: binding * string list * typ -> theory -> theory| \\
+  \indexdef{}{ML}{Sign.add\_types}\verb|Sign.add_types: Proof.context ->|\isasep\isanewline%
+\verb|  (binding * int * mixfix) list -> theory -> theory| \\
+  \indexdef{}{ML}{Sign.add\_type\_abbrev}\verb|Sign.add_type_abbrev: Proof.context ->|\isasep\isanewline%
+\verb|  binding * string list * typ -> theory -> theory| \\
   \indexdef{}{ML}{Sign.primitive\_class}\verb|Sign.primitive_class: binding * class list -> theory -> theory| \\
   \indexdef{}{ML}{Sign.primitive\_classrel}\verb|Sign.primitive_classrel: class * class -> theory -> theory| \\
   \indexdef{}{ML}{Sign.primitive\_arity}\verb|Sign.primitive_arity: arity -> theory -> theory| \\
@@ -172,11 +174,12 @@ The language of types is an uninterpreted order-sorted first-order
   \item \verb|Sign.of_sort|~\isa{thy\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{2C}{\isacharcomma}}\ s{\isaliteral{29}{\isacharparenright}}} tests whether type
   \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} is of sort \isa{s}.
 
-  \item \verb|Sign.add_types|~\isa{{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6B617070613E}{\isasymkappa}}{\isaliteral{2C}{\isacharcomma}}\ k{\isaliteral{2C}{\isacharcomma}}\ mx{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{5D}{\isacharbrackright}}} declares a new
-  type constructors \isa{{\isaliteral{5C3C6B617070613E}{\isasymkappa}}} with \isa{k} arguments and
+  \item \verb|Sign.add_types|~\isa{ctxt\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6B617070613E}{\isasymkappa}}{\isaliteral{2C}{\isacharcomma}}\ k{\isaliteral{2C}{\isacharcomma}}\ mx{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{5D}{\isacharbrackright}}} declares a
+  new type constructors \isa{{\isaliteral{5C3C6B617070613E}{\isasymkappa}}} with \isa{k} arguments and
   optional mixfix syntax.
 
-  \item \verb|Sign.add_type_abbrev|~\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6B617070613E}{\isasymkappa}}{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C616C7068613E}{\isasymalpha}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{29}{\isacharparenright}}} defines a new type abbreviation \isa{{\isaliteral{28}{\isacharparenleft}}\isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C616C7068613E}{\isasymalpha}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C6B617070613E}{\isasymkappa}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}}.
+  \item \verb|Sign.add_type_abbrev|~\isa{ctxt\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6B617070613E}{\isasymkappa}}{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C616C7068613E}{\isasymalpha}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{29}{\isacharparenright}}}
+  defines a new type abbreviation \isa{{\isaliteral{28}{\isacharparenleft}}\isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C616C7068613E}{\isasymalpha}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C6B617070613E}{\isasymkappa}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}}.
 
   \item \verb|Sign.primitive_class|~\isa{{\isaliteral{28}{\isacharparenleft}}c{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5B}{\isacharbrackleft}}c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ c\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}} declares a new class \isa{c}, together with class
   relations \isa{c\ {\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}\ c\isaliteral{5C3C5E697375623E}{}\isactrlisub i}, for \isa{i\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ n}.
@@ -386,8 +389,8 @@ The language of terms is that of simply-typed \isa{{\isaliteral{5C3C6C616D626461
   \indexdef{}{ML}{fastype\_of}\verb|fastype_of: term -> typ| \\
   \indexdef{}{ML}{lambda}\verb|lambda: term -> term -> term| \\
   \indexdef{}{ML}{betapply}\verb|betapply: term * term -> term| \\
-  \indexdef{}{ML}{Sign.declare\_const}\verb|Sign.declare_const: (binding * typ) * mixfix ->|\isasep\isanewline%
-\verb|  theory -> term * theory| \\
+  \indexdef{}{ML}{Sign.declare\_const}\verb|Sign.declare_const: Proof.context ->|\isasep\isanewline%
+\verb|  (binding * typ) * mixfix -> theory -> term * theory| \\
   \indexdef{}{ML}{Sign.add\_abbrev}\verb|Sign.add_abbrev: string -> binding * term ->|\isasep\isanewline%
 \verb|  theory -> (term * term) * theory| \\
   \indexdef{}{ML}{Sign.const\_typargs}\verb|Sign.const_typargs: theory -> string * typ -> typ list| \\
@@ -426,9 +429,8 @@ The language of terms is that of simply-typed \isa{{\isaliteral{5C3C6C616D626461
   \item \verb|betapply|~\isa{{\isaliteral{28}{\isacharparenleft}}t{\isaliteral{2C}{\isacharcomma}}\ u{\isaliteral{29}{\isacharparenright}}} produces an application \isa{t\ u}, with topmost \isa{{\isaliteral{5C3C626574613E}{\isasymbeta}}}-conversion if \isa{t} is an
   abstraction.
 
-  \item \verb|Sign.declare_const|~\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}c{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ mx{\isaliteral{29}{\isacharparenright}}}
-  declares a new constant \isa{c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}} with optional mixfix
-  syntax.
+  \item \verb|Sign.declare_const|~\isa{ctxt\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}c{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ mx{\isaliteral{29}{\isacharparenright}}} declares
+  a new constant \isa{c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}} with optional mixfix syntax.
 
   \item \verb|Sign.add_abbrev|~\isa{print{\isaliteral{5F}{\isacharunderscore}}mode\ {\isaliteral{28}{\isacharparenleft}}c{\isaliteral{2C}{\isacharcomma}}\ t{\isaliteral{29}{\isacharparenright}}}
   introduces a new term abbreviation \isa{c\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t}.
@@ -673,15 +675,16 @@ The theory \isa{Pure} contains constant declarations for the
   \indexdef{}{ML}{Thm.implies\_elim}\verb|Thm.implies_elim: thm -> thm -> thm| \\
   \indexdef{}{ML}{Thm.generalize}\verb|Thm.generalize: string list * string list -> int -> thm -> thm| \\
   \indexdef{}{ML}{Thm.instantiate}\verb|Thm.instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm| \\
-  \indexdef{}{ML}{Thm.add\_axiom}\verb|Thm.add_axiom: binding * term -> theory -> (string * thm) * theory| \\
+  \indexdef{}{ML}{Thm.add\_axiom}\verb|Thm.add_axiom: Proof.context ->|\isasep\isanewline%
+\verb|  binding * term -> theory -> (string * thm) * theory| \\
   \indexdef{}{ML}{Thm.add\_oracle}\verb|Thm.add_oracle: binding * ('a -> cterm) -> theory ->|\isasep\isanewline%
 \verb|  (string * ('a -> thm)) * theory| \\
-  \indexdef{}{ML}{Thm.add\_def}\verb|Thm.add_def: bool -> bool -> binding * term -> theory ->|\isasep\isanewline%
-\verb|  (string * thm) * theory| \\
+  \indexdef{}{ML}{Thm.add\_def}\verb|Thm.add_def: Proof.context -> bool -> bool ->|\isasep\isanewline%
+\verb|  binding * term -> theory -> (string * thm) * theory| \\
   \end{mldecls}
   \begin{mldecls}
-  \indexdef{}{ML}{Theory.add\_deps}\verb|Theory.add_deps: string -> string * typ -> (string * typ) list ->|\isasep\isanewline%
-\verb|  theory -> theory| \\
+  \indexdef{}{ML}{Theory.add\_deps}\verb|Theory.add_deps: Proof.context -> string ->|\isasep\isanewline%
+\verb|  string * typ -> (string * typ) list -> theory -> theory| \\
   \end{mldecls}
 
   \begin{description}
@@ -726,7 +729,7 @@ The theory \isa{Pure} contains constant declarations for the
   term variables.  Note that the types in \isa{\isaliteral{5C3C5E7665633E}{}\isactrlvec x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7461753E}{\isasymtau}}}
   refer to the instantiated versions.
 
-  \item \verb|Thm.add_axiom|~\isa{{\isaliteral{28}{\isacharparenleft}}name{\isaliteral{2C}{\isacharcomma}}\ A{\isaliteral{29}{\isacharparenright}}\ thy} declares an
+  \item \verb|Thm.add_axiom|~\isa{ctxt\ {\isaliteral{28}{\isacharparenleft}}name{\isaliteral{2C}{\isacharcomma}}\ A{\isaliteral{29}{\isacharparenright}}} declares an
   arbitrary proposition as axiom, and retrieves it as a theorem from
   the resulting theory, cf.\ \isa{axiom} in
   \figref{fig:prim-rules}.  Note that the low-level representation in
@@ -736,15 +739,14 @@ The theory \isa{Pure} contains constant declarations for the
   oracle rule, essentially generating arbitrary axioms on the fly,
   cf.\ \isa{axiom} in \figref{fig:prim-rules}.
 
-  \item \verb|Thm.add_def|~\isa{unchecked\ overloaded\ {\isaliteral{28}{\isacharparenleft}}name{\isaliteral{2C}{\isacharcomma}}\ c\ \isaliteral{5C3C5E7665633E}{}\isactrlvec x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t{\isaliteral{29}{\isacharparenright}}} states a definitional axiom for an existing constant
+  \item \verb|Thm.add_def|~\isa{ctxt\ unchecked\ overloaded\ {\isaliteral{28}{\isacharparenleft}}name{\isaliteral{2C}{\isacharcomma}}\ c\ \isaliteral{5C3C5E7665633E}{}\isactrlvec x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t{\isaliteral{29}{\isacharparenright}}} states a definitional axiom for an existing constant
   \isa{c}.  Dependencies are recorded via \verb|Theory.add_deps|,
   unless the \isa{unchecked} option is set.  Note that the
   low-level representation in the axiom table may differ slightly from
   the returned theorem.
 
-  \item \verb|Theory.add_deps|~\isa{name\ c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7461753E}{\isasymtau}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec d\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7369676D613E}{\isasymsigma}}} declares dependencies of a named specification
-  for constant \isa{c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7461753E}{\isasymtau}}}, relative to existing
-  specifications for constants \isa{\isaliteral{5C3C5E7665633E}{}\isactrlvec d\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7369676D613E}{\isasymsigma}}}.
+  \item \verb|Theory.add_deps|~\isa{ctxt\ name\ c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7461753E}{\isasymtau}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec d\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7369676D613E}{\isasymsigma}}}
+  declares dependencies of a named specification for constant \isa{c\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7461753E}{\isasymtau}}}, relative to existing specifications for constants \isa{\isaliteral{5C3C5E7665633E}{}\isactrlvec d\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7369676D613E}{\isasymsigma}}}.
 
   \end{description}%
 \end{isamarkuptext}%
