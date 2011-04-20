@@ -1,0 +1,60 @@
+diff -Naur gitweb/changelogentry.tmpl isabelle/changelogentry.tmpl
+--- gitweb/changelogentry.tmpl	2011-04-20 12:27:29.000000000 +0200
++++ isabelle/changelogentry.tmpl	2011-04-20 12:32:48.000000000 +0200
+@@ -1,14 +1,12 @@
+ <div>
+-<a class="title" href="{url}rev/{node|short}{sessionvars%urlparameter}"><span class="age">{date|age}</span>{desc|strip|firstline|escape|nonempty}<span class="logtags"> {inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span></a>
+-</div>
+-<div class="title_text">
+-<div class="log_link">
+-<a href="{url}rev/{node|short}{sessionvars%urlparameter}">changeset</a><br/>
+-</div>
+-<i>{author|obfuscate} [{date|rfc822date}] rev {rev}</i><br/>
++<a class="title" href="{url}rev/{node|short}{sessionvars%urlparameter}"><span class="age">{date|age}</span>
++{author|obfuscate} [{date|rfc822date}] rev {rev}<span class="logtags"> {inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span></a>
+ </div>
+ <div class="log_body">
+ {desc|strip|escape|addbreaks|nonempty}
+ <br/>
++<div class="files">
++{files}
++</div>
+ <br/>
+ </div>
+diff -Naur gitweb/map isabelle/map
+--- gitweb/map	2011-04-20 12:27:29.000000000 +0200
++++ isabelle/map	2011-04-20 12:32:48.000000000 +0200
+@@ -78,7 +78,7 @@
+   <tr style="font-family:monospace" class="parity{parity}">
+     <td class="linenr" style="text-align: right;">
+       <a href="{url}annotate/{node|short}/{file|urlescape}{sessionvars%urlparameter}#l{targetline}"
+-         title="{node|short}: {desc|escape|firstline}">{author|user}@{rev}</a>
++         title="{node|short}: {desc|escape}">{author|user}@{rev}</a>
+     </td>
+     <td><pre><a class="linenr" href="#{lineid}" id="{lineid}">{linenumber}</a></pre></td>
+     <td><pre>{line|escape}</pre></td>
+@@ -206,9 +206,10 @@
+   <tr class="parity{parity}">
+     <td class="age"><i>{date|age}</i></td>
+     <td><i>{author|person}</i></td>
++    <td><i>{date|shortdate}</i></td>
+     <td>
+       <a class="list" href="{url}rev/{node|short}{sessionvars%urlparameter}">
+-        <b>{desc|strip|firstline|escape|nonempty}</b>
++        <b>{desc|strip|escape|nonempty}</b>
+         <span class="logtags">{inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span>
+       </a>
+     </td>
+@@ -220,9 +221,11 @@
+ filelogentry = '
+   <tr class="parity{parity}">
+     <td class="age"><i>{date|age}</i></td>
++    <td><i>{author|person}</i></td>
++    <td><i>{date|shortdate}</i></td>
+     <td>
+       <a class="list" href="{url}rev/{node|short}{sessionvars%urlparameter}">
+-        <b>{desc|strip|firstline|escape|nonempty}</b>
++        <b>{desc|strip|escape|nonempty}</b>
+       </a>
+     </td>
+     <td class="link">
