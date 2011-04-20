@@ -312,7 +312,7 @@ fun gen_reflection_tac ctxt conv corr_thms raw_eqs to = SUBGOAL (fn (goal, i) =>
     val th = genreflect ctxt conv corr_thms raw_eqs t RS ssubst
   in rtac th i THEN TRY (rtac TrueI i) end);  (* FIXME THEN_ALL_NEW !? *)
 
-fun reflection_tac ctxt = gen_reflection_tac ctxt Codegen.evaluation_conv;
+fun reflection_tac ctxt = gen_reflection_tac ctxt (Codegen.evaluation_conv ctxt);
   (*FIXME why Codegen.evaluation_conv?  very specific...*)
 
 end

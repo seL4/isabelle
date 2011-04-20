@@ -611,7 +611,7 @@ fun axiom theory name =
                maxidx = maxidx, shyps = shyps, hyps = [], tpairs = [], prop = prop})
            end);
   in
-    (case get_first get_ax (theory :: Theory.ancestors_of theory) of
+    (case get_first get_ax (Theory.nodes_of theory) of
       SOME thm => thm
     | NONE => raise THEORY ("No axiom " ^ quote name, [theory]))
   end;
