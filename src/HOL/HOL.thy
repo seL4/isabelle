@@ -1915,18 +1915,22 @@ code_type bool
   (Haskell "Bool")
   (Scala "Boolean")
 
-code_const True and False and Not and HOL.conj and HOL.disj and If
+code_const True and False and Not and HOL.conj and HOL.disj and HOL.implies and If 
   (SML "true" and "false" and "not"
     and infixl 1 "andalso" and infixl 0 "orelse"
+    and "!(if (_)/ then (_)/ else true)"
     and "!(if (_)/ then (_)/ else (_))")
   (OCaml "true" and "false" and "not"
     and infixl 3 "&&" and infixl 2 "||"
+    and "!(if (_)/ then (_)/ else true)"
     and "!(if (_)/ then (_)/ else (_))")
   (Haskell "True" and "False" and "not"
     and infixr 3 "&&" and infixr 2 "||"
+    and "!(if (_)/ then (_)/ else True)"
     and "!(if (_)/ then (_)/ else (_))")
   (Scala "true" and "false" and "'! _"
     and infixl 3 "&&" and infixl 1 "||"
+    and "!(if ((_))/ (_)/ else true)"
     and "!(if ((_))/ (_)/ else (_))")
 
 code_reserved SML
