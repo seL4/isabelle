@@ -116,7 +116,14 @@ fun kk_tuple debug univ_card js =
     KK.TupleIndex (length js,
                    fold (fn j => fn accum => accum * univ_card + j) js 0)
 
-val tuple_set_from_atom_schema = foldl1 KK.TupleProduct o map KK.TupleAtomSeq
+(* This code is not just a silly optimization: It works around a limitation in
+   Kodkodi, whereby {} (i.e., KK.TupleProduct) is always given the cardinality
+   of the bound in which it appears, resulting in Kodkod arity errors. *)
+fun tuple_product (ts as KK.TupleSet []) _ = ts
+  | tuple_product _ (ts as KK.TupleSet []) = ts
+  | tuple_product ts1 ts2 = KK.TupleProduct (ts1, ts2)
+
+val tuple_set_from_atom_schema = fold1 tuple_product o map KK.TupleAtomSeq
 val upper_bound_for_rep = tuple_set_from_atom_schema o atom_schema_of_rep
 
 val single_atom = KK.TupleSet o single o KK.Tuple o single
@@ -358,17 +365,17 @@ fun bound_for_sel_rel ctxt debug need_vals dtypes
          fun tuple_perhaps_needy_atom upper j =
            single_atom j
            |> not discr
-              ? (fn ts => KK.TupleProduct (ts,
-                              case exact_bound_for_perhaps_needy_atom j of
-                                SOME ts => ts
-                              | NONE => if upper then upper_bound_for_rep R2
-                                        else KK.TupleSet []))
+              ? (fn ts => tuple_product ts
+                              (case exact_bound_for_perhaps_needy_atom j of
+                                 SOME ts => ts
+                               | NONE => if upper then upper_bound_for_rep R2
+                                         else KK.TupleSet []))
          fun bound_tuples upper =
            if null T1_need_vals then
              if upper then
                KK.TupleAtomSeq (epsilon - delta, delta + j0)
                |> not discr
-                  ? (fn ts => KK.TupleProduct (ts, upper_bound_for_rep R2))
+                  ? (fn ts => tuple_product ts (upper_bound_for_rep R2))
              else
                KK.TupleSet []
            else
@@ -393,9 +400,8 @@ fun bound_for_sel_rel ctxt debug need_vals dtypes
               if T1 = T2 andalso epsilon > delta andalso
                  is_datatype_acyclic dtype then
                 index_seq delta (epsilon - delta)
-                |> map (fn j =>
-                           KK.TupleProduct (KK.TupleSet [KK.Tuple [j + j0]],
-                               KK.TupleAtomSeq (atom_seq_for_self_rec j)))
+                |> map (fn j => tuple_product (KK.TupleSet [KK.Tuple [j + j0]])
+                                    (KK.TupleAtomSeq (atom_seq_for_self_rec j)))
                 |> n_fold_tuple_union
               else
                 bound_tuples true]
