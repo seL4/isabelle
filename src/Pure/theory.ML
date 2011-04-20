@@ -11,6 +11,7 @@ sig
   val assert_super: theory -> theory -> theory
   val parents_of: theory -> theory list
   val ancestors_of: theory -> theory list
+  val nodes_of: theory -> theory list
   val check_thy: theory -> theory_ref
   val deref: theory_ref -> theory
   val merge: theory * theory -> theory
@@ -52,6 +53,7 @@ fun assert_super thy1 thy2 =
 
 val parents_of = Context.parents_of;
 val ancestors_of = Context.ancestors_of;
+fun nodes_of thy = thy :: ancestors_of thy;
 
 val check_thy = Context.check_thy;
 val deref = Context.deref;
@@ -66,7 +68,7 @@ val checkpoint = Context.checkpoint_thy;
 val copy = Context.copy_thy;
 
 fun requires thy name what =
-  if exists (fn thy' => Context.theory_name thy' = name) (thy :: ancestors_of thy) then ()
+  if exists (fn thy' => Context.theory_name thy' = name) (nodes_of thy) then ()
   else error ("Require theory " ^ quote name ^ " as an ancestor for " ^ what);
 
 
@@ -123,7 +125,7 @@ val axiom_space = #1 o #axioms o rep_theory;
 val axiom_table = #2 o #axioms o rep_theory;
 
 val axioms_of = Symtab.dest o #2 o #axioms o rep_theory;
-fun all_axioms_of thy = maps axioms_of (thy :: ancestors_of thy);
+fun all_axioms_of thy = maps axioms_of (nodes_of thy);
 
 val defs_of = #defs o rep_theory;
 

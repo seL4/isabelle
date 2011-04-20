@@ -489,9 +489,11 @@ fun dest_prim_def t =
 
 fun mk_deftab thy =
   let
-    val axmss = map (fn thy' => (Context.theory_name thy', Theory.axiom_table thy'))
-      (thy :: Theory.ancestors_of thy);
-    fun add_def thyname (name, t) = (case dest_prim_def t of
+    val axmss =
+      map (fn thy' => (Context.theory_name thy', Theory.axiom_table thy'))
+        (Theory.nodes_of thy);
+    fun add_def thyname (name, t) =
+      (case dest_prim_def t of
         NONE => I
       | SOME (s, (T, _)) => Symtab.map_default (s, [])
           (cons (T, (thyname, Thm.axiom thy name))));

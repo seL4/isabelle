@@ -1272,7 +1272,7 @@ fun all_defs_of thy subst =
           |> maps snd |> map_filter #def
           |> Ord_List.make fast_string_ord
   in
-    thy :: Theory.ancestors_of thy
+    Theory.nodes_of thy
     |> maps Thm.axioms_of
     |> map (apsnd (subst_atomic subst o prop_of))
     |> sort (fast_string_ord o pairself fst)

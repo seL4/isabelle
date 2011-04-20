@@ -387,8 +387,7 @@ val thy_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
     val thy = Toplevel.theory_of state;
     val thy_session = Present.session_name thy;
 
-    val all_thys = rev (thy :: Theory.ancestors_of thy);
-    val gr = all_thys |> map (fn node =>
+    val gr = rev (Theory.nodes_of thy) |> map (fn node =>
       let
         val name = Context.theory_name node;
         val parents = map Context.theory_name (Theory.parents_of node);
