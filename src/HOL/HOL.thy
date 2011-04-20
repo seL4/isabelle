@@ -1969,20 +1969,22 @@ code_const undefined
 subsubsection {* Evaluation and normalization by evaluation *}
 
 setup {*
-  Value.add_evaluator ("SML", Codegen.eval_term o Proof_Context.theory_of)  (* FIXME proper context!? *)
+  Value.add_evaluator ("SML", Codegen.eval_term)
 *}
 
 ML {*
 fun gen_eval_method conv ctxt = SIMPLE_METHOD'
-  (CONVERSION (Conv.params_conv (~1) (K (Conv.concl_conv (~1) (conv (Proof_Context.theory_of ctxt)))) ctxt)
+  (CONVERSION (Conv.params_conv ~1 (K (Conv.concl_conv ~1 (conv ctxt))) ctxt)
     THEN' rtac TrueI)
 *}
 
-method_setup eval = {* Scan.succeed (gen_eval_method Code_Runtime.dynamic_holds_conv) *}
-  "solve goal by evaluation"
+method_setup eval = {*
+  Scan.succeed (gen_eval_method (Code_Runtime.dynamic_holds_conv o Proof_Context.theory_of))
+*} "solve goal by evaluation"
 
-method_setup evaluation = {* Scan.succeed (gen_eval_method (K Codegen.evaluation_conv)) *}
-  "solve goal by evaluation"
+method_setup evaluation = {*
+  Scan.succeed (gen_eval_method Codegen.evaluation_conv)
+*} "solve goal by evaluation"
 
 method_setup normalization = {*
   Scan.succeed (fn ctxt => SIMPLE_METHOD'

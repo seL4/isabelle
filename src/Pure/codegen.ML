@@ -77,8 +77,8 @@ sig
   val test_fn: (int -> term list option) Unsynchronized.ref  (* FIXME *)
   val test_term: Proof.context -> term -> int -> term list option
   val eval_result: (unit -> term) Unsynchronized.ref  (* FIXME *)
-  val eval_term: theory -> term -> term
-  val evaluation_conv: cterm -> thm
+  val eval_term: Proof.context -> term -> term
+  val evaluation_conv: Proof.context -> conv
   val parse_mixfix: (string -> 'a) -> string -> 'a mixfix list
   val quotes_of: 'a mixfix list -> 'a list
   val num_args_of: 'a mixfix list -> int
@@ -903,11 +903,11 @@ fun test_term ctxt t =
 
 val eval_result = Unsynchronized.ref (fn () => Bound 0);
 
-fun eval_term thy t =
+fun eval_term ctxt t =
   let
-    val ctxt = Proof_Context.init_global thy;  (* FIXME *)
     val e =
       let
+        val thy = Proof_Context.theory_of ctxt;
         val _ = (null (Term.add_tvars t []) andalso null (Term.add_tfrees t [])) orelse
           error "Term to be evaluated contains type variables";
         val _ = (null (Term.add_vars t []) andalso null (Term.add_frees t [])) orelse
@@ -930,12 +930,18 @@ fun eval_term thy t =
       end
   in e () end;
 
-val (_, evaluation_conv) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (Binding.name "evaluation", fn ct =>
+val (_, evaluation_oracle) = Context.>>> (Context.map_theory_result
+  (Thm.add_oracle (Binding.name "evaluation", fn (ctxt, ct) =>
     let
-      val thy = Thm.theory_of_cterm ct;
+      val thy = Proof_Context.theory_of ctxt;
       val t = Thm.term_of ct;
-    in Thm.cterm_of thy (Logic.mk_equals (t, eval_term thy t)) end)));
+    in
+      if Theory.subthy (Thm.theory_of_cterm ct, thy) then
+        Thm.cterm_of thy (Logic.mk_equals (t, eval_term ctxt t))
+      else raise CTERM ("evaluation_oracle: bad theory", [ct])
+    end)));
+
+fun evaluation_conv ctxt ct = evaluation_oracle (ctxt, ct);
 
 
 (**** Interface ****)
