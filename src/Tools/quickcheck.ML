@@ -507,10 +507,14 @@ fun pretty_timings timings =
     maps (fn (label, time) =>
       Pretty.str (label ^ ": " ^ string_of_int time ^ " ms") :: Pretty.brk 1 :: []) (rev timings))
 
-fun pretty_counterex_and_reports ctxt auto (result :: _) =
-  Pretty.chunks (pretty_counterex ctxt auto (response_of result) ::
-    (* map (pretty_reports ctxt) (reports_of result) :: *)
-    (if Config.get ctxt timing then cons (pretty_timings (timings_of result)) else I) [])
+fun pretty_counterex_and_reports ctxt auto [] =
+    Pretty.chunks [Pretty.strs (tool_name auto ::
+        space_explode " " "is used in a locale where no interpretation is provided."),
+      Pretty.strs (space_explode " " "Please provide an executable interpretation for the locale.")]
+  | pretty_counterex_and_reports ctxt auto (result :: _) =
+    Pretty.chunks (pretty_counterex ctxt auto (response_of result) ::
+      (* map (pretty_reports ctxt) (reports_of result) :: *)
+      (if Config.get ctxt timing then cons (pretty_timings (timings_of result)) else I) [])
 
 (* automatic testing *)
 
@@ -593,11 +597,11 @@ fun parse_test_param_inst (name, arg) ((insts, eval_terms), ctxt) =
 fun quickcheck_params_cmd args = Context.theory_map (fold parse_test_param args);
 
 fun check_expectation state results =
-  (if found_counterexample (hd results) andalso expect (Proof.context_of state) = No_Counterexample
+  (if exists found_counterexample results andalso expect (Proof.context_of state) = No_Counterexample
   then
     error ("quickcheck expected to find no counterexample but found one")
   else
-    (if not (found_counterexample (hd results)) andalso expect (Proof.context_of state) = Counterexample
+    (if not (exists found_counterexample results) andalso expect (Proof.context_of state) = Counterexample
     then
       error ("quickcheck expected to find a counterexample but did not find one")
     else ()))
