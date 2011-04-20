@@ -412,9 +412,9 @@ fun mutate_theorem create_entry thy mtds thm =
     val mutants = mutants
           |> map Mutabelle.freeze |> map freezeT
 (*          |> filter (not o is_forbidden_mutant) *)
-          |> List.mapPartial (try (Sign.cert_term thy))
-          |> List.filter (is_some o try (Thm.cterm_of thy))
-          |> List.filter (is_some o try (Syntax.check_term (Proof_Context.init_global thy)))
+          |> map_filter (try (Sign.cert_term thy))
+          |> filter (is_some o try (Thm.cterm_of thy))
+          |> filter (is_some o try (Syntax.check_term (Proof_Context.init_global thy)))
           |> take_random max_mutants
     val _ = map (fn t => Output.urgent_message ("MUTANT: " ^ Syntax.string_of_term_global thy t)) mutants
   in

@@ -221,7 +221,7 @@ fun select_mode_prem thy modes vs ps =
   sort (mode_ord o pairself (hd o snd))
     (filter_out (null o snd) (ps ~~ map
       (fn Prem (us, t, is_set) => sort mode_ord
-          (List.mapPartial (fn m as Mode (_, is, _) =>
+          (map_filter (fn m as Mode (_, is, _) =>
             let
               val (in_ts, out_ts) = get_args is 1 us;
               val (out_ts', in_ts') = List.partition (is_constrt thy) out_ts;
@@ -288,7 +288,7 @@ fun check_mode_clause thy codegen_mode arg_vs modes ((iss, is), rnd) (ts, ps) =
 
 fun check_modes_pred thy codegen_mode arg_vs preds modes (p, ms) =
   let val SOME rs = AList.lookup (op =) preds p in
-    (p, List.mapPartial (fn m as (m', _) =>
+    (p, map_filter (fn m as (m', _) =>
       let val xs = map (check_mode_clause thy codegen_mode arg_vs modes m) rs in
         (case find_index is_none xs of
           ~1 => SOME (m', exists (fn SOME b => b) xs)

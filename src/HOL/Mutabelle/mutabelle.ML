@@ -76,7 +76,7 @@ fun consts_of thy =
    val (namespace, const_table) = #constants (Consts.dest (Sign.consts_of thy))
    val consts = Symtab.dest const_table
  in
-   List.mapPartial (fn (s, (T, NONE)) => SOME (s, T) | _ => NONE)
+   map_filter (fn (s, (T, NONE)) => SOME (s, T) | _ => NONE)
      (filter_out (fn (s, _) => Name_Space.is_concealed namespace s) consts)
  end;
 
