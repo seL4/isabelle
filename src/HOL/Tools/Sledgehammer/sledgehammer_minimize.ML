@@ -67,7 +67,7 @@ fun test_facts ({debug, verbose, overlord, provers, monomorphize_limit,
        relevance_thresholds = (1.01, 1.01), max_relevant = NONE,
        monomorphize = false, monomorphize_limit = monomorphize_limit,
        isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
-       timeout = timeout, expect = ""}
+       slicing = false, timeout = timeout, expect = ""}
     val facts =
       facts |> maps (fn (n, ths) => ths |> map (Untranslated_Fact o pair n))
     val problem =
@@ -147,7 +147,7 @@ fun minimize_facts prover_name (params as {timeout, ...}) explicit_apply_opt
                    silent i n state facts =
   let
     val ctxt = Proof.context_of state
-    val prover = get_prover ctxt false prover_name
+    val prover = get_prover ctxt false false prover_name
     val msecs = Time.toMilliseconds timeout
     val _ = print silent (fn () => "Sledgehammer minimize: " ^
                                    quote prover_name ^ ".")

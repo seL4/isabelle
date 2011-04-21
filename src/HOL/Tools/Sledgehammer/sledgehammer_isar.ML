@@ -86,7 +86,8 @@ val default_default_params =
    ("type_sys", "smart"),
    ("explicit_apply", "false"),
    ("isar_proof", "false"),
-   ("isar_shrink_factor", "1")]
+   ("isar_shrink_factor", "1"),
+   ("slicing", "true")]
 
 val alias_params =
   [("prover", "provers"),
@@ -100,7 +101,8 @@ val negated_alias_params =
    ("dont_monomorphize", "monomorphize"),
    ("partial_types", "full_types"),
    ("implicit_apply", "explicit_apply"),
-   ("no_isar_proof", "isar_proof")]
+   ("no_isar_proof", "isar_proof"),
+   ("no_slicing", "slicing")]
 
 val params_for_minimize =
   ["debug", "verbose", "overlord", "type_sys", "full_types", "isar_proof",
@@ -252,6 +254,7 @@ fun extract_params auto default_params override_params =
     val explicit_apply = lookup_bool "explicit_apply"
     val isar_proof = lookup_bool "isar_proof"
     val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
+    val slicing = lookup_bool "slicing"
     val timeout = (if auto then NONE else lookup_time "timeout") |> the_timeout
     val expect = lookup_string "expect"
   in
@@ -260,8 +263,8 @@ fun extract_params auto default_params override_params =
      max_relevant = max_relevant, monomorphize = monomorphize,
      monomorphize_limit = monomorphize_limit, type_sys = type_sys,
      explicit_apply = explicit_apply, isar_proof = isar_proof,
-     isar_shrink_factor = isar_shrink_factor, timeout = timeout,
-     expect = expect}
+     isar_shrink_factor = isar_shrink_factor, slicing = slicing,
+     timeout = timeout, expect = expect}
   end
 
 fun get_params auto ctxt = extract_params auto (default_raw_params ctxt)
@@ -300,7 +303,7 @@ fun hammer_away override_params subcommand opt_i relevance_override state =
   in
     if subcommand = runN then
       let val i = the_default 1 opt_i in
-        run_sledgehammer (get_params false ctxt override_params) false i
+        run_sledgehammer (get_params false ctxt override_params) false true i
                          relevance_override (minimize_command override_params i)
                          state
         |> K ()
@@ -373,8 +376,8 @@ val _ =
 
 fun auto_sledgehammer state =
   let val ctxt = Proof.context_of state in
-    run_sledgehammer (get_params true ctxt []) true 1 no_relevance_override
-                     (minimize_command [] 1) state
+    run_sledgehammer (get_params true ctxt []) true false 1
+                     no_relevance_override (minimize_command [] 1) state
   end
 
 val setup = Auto_Tools.register_tool (auto, auto_sledgehammer)

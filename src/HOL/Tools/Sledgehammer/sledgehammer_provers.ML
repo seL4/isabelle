@@ -29,6 +29,7 @@ sig
      explicit_apply: bool,
      isar_proof: bool,
      isar_shrink_factor: int,
+     slicing: bool,
      timeout: Time.time,
      expect: string}
 
@@ -55,8 +56,6 @@ sig
   type prover = params -> minimize_command -> prover_problem -> prover_result
 
   (* for experimentation purposes -- do not use in production code *)
-  val atp_run_twice_threshold : int Unsynchronized.ref
-  val atp_first_iter_time_frac : real Unsynchronized.ref
   val smt_triggers : bool Unsynchronized.ref
   val smt_weights : bool Unsynchronized.ref
   val smt_weight_min_facts : int Unsynchronized.ref
@@ -64,17 +63,17 @@ sig
   val smt_max_weight : int Unsynchronized.ref
   val smt_max_weight_index : int Unsynchronized.ref
   val smt_weight_curve : (int -> int) Unsynchronized.ref
-  val smt_max_iters : int Unsynchronized.ref
-  val smt_iter_fact_frac : real Unsynchronized.ref
-  val smt_iter_time_frac : real Unsynchronized.ref
-  val smt_iter_min_msecs : int Unsynchronized.ref
+  val smt_max_slices : int Unsynchronized.ref
+  val smt_slice_fact_frac : real Unsynchronized.ref
+  val smt_slice_time_frac : real Unsynchronized.ref
+  val smt_slice_min_secs : int Unsynchronized.ref
 
   val das_Tool : string
   val select_smt_solver : string -> Proof.context -> Proof.context
   val is_smt_prover : Proof.context -> string -> bool
   val is_prover_supported : Proof.context -> string -> bool
   val is_prover_installed : Proof.context -> string -> bool
-  val default_max_relevant_for_prover : Proof.context -> string -> int
+  val default_max_relevant_for_prover : Proof.context -> bool -> string -> int
   val is_built_in_const_for_prover :
     Proof.context -> string -> string * typ -> term list -> bool * term list
   val atp_relevance_fudge : relevance_fudge
@@ -94,7 +93,7 @@ sig
   val kill_provers : unit -> unit
   val running_provers : unit -> unit
   val messages : int option -> unit
-  val get_prover : Proof.context -> bool -> string -> prover
+  val get_prover : Proof.context -> bool -> bool -> string -> prover
   val setup : theory -> theory
 end;
 
@@ -130,12 +129,17 @@ fun is_prover_supported ctxt name =
 fun is_prover_installed ctxt =
   is_smt_prover ctxt orf is_atp_installed (Proof_Context.theory_of ctxt)
 
-fun default_max_relevant_for_prover ctxt name =
+fun get_slices slicing slices =
+  (0 upto length slices - 1) ~~ slices
+  |> not slicing ? (List.last #> single)
+
+fun default_max_relevant_for_prover ctxt slicing name =
   let val thy = Proof_Context.theory_of ctxt in
     if is_smt_prover ctxt name then
       SMT_Solver.default_max_relevant ctxt name
     else
-      #default_max_relevant (get_atp thy name)
+      fold (Integer.max o snd o snd o snd)
+           (get_slices slicing (#slices (get_atp thy name) ())) 0
   end
 
 (* These are either simplified away by "Meson.presimplify" (most of the time) or
@@ -238,6 +242,7 @@ type params =
    explicit_apply: bool,
    isar_proof: bool,
    isar_shrink_factor: int,
+   slicing: bool,
    timeout: Time.time,
    expect: string}
 
@@ -325,25 +330,22 @@ fun overlord_file_location_for_prover prover =
 fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
   | int_opt_add _ _ = NONE
 
-val atp_run_twice_threshold = Unsynchronized.ref 50
-val atp_first_iter_time_frac = Unsynchronized.ref 0.67
-
 (* Important messages are important but not so important that users want to see
    them each time. *)
-val important_message_keep_factor = 0.1
+val atp_important_message_keep_factor = 0.1
 
-fun run_atp auto name
-        ({exec, required_execs, arguments, has_incomplete_mode, proof_delims,
-          known_failures, explicit_forall, use_conjecture_for_hypotheses, ...}
-          : atp_config)
-        ({debug, verbose, overlord, monomorphize, monomorphize_limit, type_sys,
-          explicit_apply, isar_proof, isar_shrink_factor, timeout, ...}
-         : params)
+fun run_atp auto may_slice name
+        ({exec, required_execs, arguments, slices, proof_delims, known_failures,
+          explicit_forall, use_conjecture_for_hypotheses, ...} : atp_config)
+        ({debug, verbose, overlord, max_relevant, monomorphize,
+          monomorphize_limit, type_sys, explicit_apply, isar_proof,
+          isar_shrink_factor, slicing, timeout, ...} : params)
         minimize_command ({state, goal, subgoal, facts, ...} : prover_problem) =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal
+    val slicing = may_slice andalso slicing
     fun monomorphize_facts facts =
       let
         val repair_context =
@@ -400,27 +402,55 @@ fun run_atp auto name
         if File.exists command then
           let
             val readable_names = debug andalso overlord
-            val (atp_problem, pool, conjecture_offset, fact_names) =
-              prepare_atp_problem ctxt readable_names explicit_forall type_sys
-                                  explicit_apply hyp_ts concl_t facts
-            val ss = tptp_strings_for_atp_problem use_conjecture_for_hypotheses
-                                                  atp_problem
-            val _ = File.write_list prob_file ss
-            val conjecture_shape =
-              conjecture_offset + 1 upto conjecture_offset + length hyp_ts + 1
-              |> map single
-            fun run complete timeout =
+            (* If slicing is disabled, we expand the last slice to fill the
+               entire time available. *)
+            val actual_slices = get_slices slicing (slices ())
+            val num_actual_slices = length actual_slices
+            fun run_slice (slice, (time_frac, (complete, default_max_relevant)))
+                          time_left =
               let
+                val num_facts =
+                  length facts |> is_none max_relevant
+                                  ? Integer.min default_max_relevant
+                val real_ms = Real.fromInt o Time.toMilliseconds
+                val slice_timeout =
+                  ((real_ms time_left
+                    |> (if slice < num_actual_slices - 1 then
+                          curry Real.min (time_frac * real_ms timeout)
+                        else
+                          I))
+                   * 0.001) |> seconds
+                val _ =
+                  if verbose then
+                    "ATP slice " ^ string_of_int (slice + 1) ^ " with " ^
+                    string_of_int num_facts ^ " fact" ^ plural_s num_facts ^
+                    " for " ^ string_from_time slice_timeout ^ "..."
+                    |> Output.urgent_message
+                  else
+                    ()
+                val (atp_problem, pool, conjecture_offset, fact_names) =
+                  prepare_atp_problem ctxt readable_names explicit_forall
+                                      type_sys explicit_apply hyp_ts concl_t
+                                      (facts |> take num_facts)
                 fun weights () = atp_problem_weights atp_problem
                 val core =
                   File.shell_path command ^ " " ^
-                  arguments complete timeout weights ^ " " ^
+                  arguments slice slice_timeout weights ^ " " ^
                   File.shell_path prob_file
                 val command =
                   (if measure_run_time then
                      "TIMEFORMAT='%3R'; { time " ^ core ^ " ; }"
                    else
                      "exec " ^ core) ^ " 2>&1"
+                val _ =
+                  atp_problem
+                  |> tptp_strings_for_atp_problem use_conjecture_for_hypotheses
+                  |> cons ("% " ^ command ^ "\n")
+                  |> File.write_list prob_file
+                val conjecture_shape =
+                  conjecture_offset + 1
+                    upto conjecture_offset + length hyp_ts + 1
+                  |> map single
                 val ((output, msecs), res_code) =
                   bash_output command
                   |>> (if overlord then
@@ -431,26 +461,22 @@ fun run_atp auto name
                 val (tstplike_proof, outcome) =
                   extract_tstplike_proof_and_outcome debug verbose complete
                       res_code proof_delims known_failures output
-              in (output, msecs, tstplike_proof, outcome) end
-            val run_twice =
-              has_incomplete_mode andalso not auto andalso
-              length facts >= !atp_run_twice_threshold
+              in
+                ((pool, conjecture_shape, fact_names),
+                 (output, msecs, tstplike_proof, outcome))
+              end
             val timer = Timer.startRealTimer ()
-            val result =
-              run (not run_twice)
-                 (if run_twice then
-                    seconds (0.001 * !atp_first_iter_time_frac
-                             * Real.fromInt (Time.toMilliseconds timeout))
-                  else
-                    timeout)
-              |> run_twice
-                 ? (fn (_, msecs0, _, SOME _) =>
-                       run true (Time.- (timeout, Timer.checkRealTimer timer))
-                       |> (fn (output, msecs, tstplike_proof, outcome) =>
-                              (output, int_opt_add msecs0 msecs, tstplike_proof,
-                               outcome))
-                     | result => result)
-          in ((pool, conjecture_shape, fact_names), result) end
+            fun maybe_run_slice slice (_, (_, msecs0, _, SOME _)) =
+                run_slice slice (Time.- (timeout, Timer.checkRealTimer timer))
+                |> (fn (stuff, (output, msecs, tstplike_proof, outcome)) =>
+                       (stuff, (output, int_opt_add msecs0 msecs,
+                                tstplike_proof, outcome)))
+              | maybe_run_slice _ result = result
+          in
+            ((Symtab.empty, [], Vector.fromList []),
+             ("", SOME 0, "", SOME InternalError))
+            |> fold maybe_run_slice actual_slices
+          end
         else
           error ("Bad executable: " ^ Path.print command ^ ".")
 
@@ -469,7 +495,7 @@ fun run_atp auto name
     val (conjecture_shape, fact_names) =
       repair_conjecture_shape_and_fact_names output conjecture_shape fact_names
     val important_message =
-      if not auto andalso random () <= important_message_keep_factor then
+      if not auto andalso random () <= atp_important_message_keep_factor then
         extract_important_message output
       else
         ""
@@ -535,16 +561,19 @@ fun failure_from_smt_failure (SMT_Failure.Counterexample {is_real_cex, ...}) =
     UnknownError msg
 
 (* FUDGE *)
-val smt_max_iters = Unsynchronized.ref 8
-val smt_iter_fact_frac = Unsynchronized.ref 0.5
-val smt_iter_time_frac = Unsynchronized.ref 0.5
-val smt_iter_min_msecs = Unsynchronized.ref 5000
+val smt_max_slices = Unsynchronized.ref 8
+val smt_slice_fact_frac = Unsynchronized.ref 0.5
+val smt_slice_time_frac = Unsynchronized.ref 0.5
+val smt_slice_min_secs = Unsynchronized.ref 5
 
-fun smt_filter_loop name ({debug, verbose, overlord, monomorphize_limit,
-                           timeout, ...} : params)
+fun smt_filter_loop may_slice name
+                    ({debug, verbose, overlord, monomorphize_limit, timeout,
+                      slicing, ...} : params)
                     state i smt_filter =
   let
     val ctxt = Proof.context_of state
+    val slicing = may_slice andalso slicing
+    val max_slices = if slicing then !smt_max_slices else 1
     val repair_context =
       select_smt_solver name
       #> Config.put SMT_Config.verbose debug
@@ -559,23 +588,24 @@ fun smt_filter_loop name ({debug, verbose, overlord, monomorphize_limit,
       #> Config.put SMT_Config.monomorph_limit monomorphize_limit
     val state = state |> Proof.map_context repair_context
 
-    fun iter timeout iter_num outcome0 time_so_far facts =
+    fun do_slice timeout slice outcome0 time_so_far facts =
       let
         val timer = Timer.startRealTimer ()
         val ms = timeout |> Time.toMilliseconds
-        val iter_timeout =
-          if iter_num < !smt_max_iters then
+        val slice_timeout =
+          if slice < max_slices then
             Int.min (ms,
-                Int.max (!smt_iter_min_msecs,
-                    Real.ceil (!smt_iter_time_frac * Real.fromInt ms)))
+                Int.max (1000 * !smt_slice_min_secs,
+                    Real.ceil (!smt_slice_time_frac * Real.fromInt ms)))
             |> Time.fromMilliseconds
           else
             timeout
         val num_facts = length facts
         val _ =
           if verbose then
-            "SMT iteration with " ^ string_of_int num_facts ^ " fact" ^
-            plural_s num_facts ^ " for " ^ string_from_time iter_timeout ^ "..."
+            "SMT slice with " ^ string_of_int num_facts ^ " fact" ^
+            plural_s num_facts ^ " for " ^ string_from_time slice_timeout ^
+            "..."
             |> Output.urgent_message
           else
             ()
@@ -583,10 +613,10 @@ fun smt_filter_loop name ({debug, verbose, overlord, monomorphize_limit,
         val _ =
           if debug then Output.urgent_message "Invoking SMT solver..." else ()
         val (outcome, used_facts) =
-          (case (iter_num, smt_filter) of
+          (case (slice, smt_filter) of
              (1, SOME head) => head |> apsnd (apsnd repair_context)
            | _ => SMT_Solver.smt_filter_preprocess state facts i)
-          |> SMT_Solver.smt_filter_apply iter_timeout
+          |> SMT_Solver.smt_filter_apply slice_timeout
           |> (fn {outcome, used_facts} => (outcome, used_facts))
           handle exn => if Exn.is_interrupt exn then
                           reraise exn
@@ -608,7 +638,7 @@ fun smt_filter_loop name ({debug, verbose, overlord, monomorphize_limit,
           case outcome of
             NONE => false
           | SOME (SMT_Failure.Counterexample _) => false
-          | SOME SMT_Failure.Time_Out => iter_timeout <> timeout
+          | SOME SMT_Failure.Time_Out => slice_timeout <> timeout
           | SOME (SMT_Failure.Abnormal_Termination code) =>
             (if verbose then
                "The SMT solver invoked with " ^ string_of_int num_facts ^
@@ -622,17 +652,19 @@ fun smt_filter_loop name ({debug, verbose, overlord, monomorphize_limit,
           | SOME (SMT_Failure.Other_Failure _) => true
         val timeout = Time.- (timeout, Timer.checkRealTimer timer)
       in
-        if too_many_facts_perhaps andalso iter_num < !smt_max_iters andalso
+        if too_many_facts_perhaps andalso slice < max_slices andalso
            num_facts > 0 andalso Time.> (timeout, Time.zeroTime) then
           let
-            val n = Real.ceil (!smt_iter_fact_frac * Real.fromInt num_facts)
-          in iter timeout (iter_num + 1) outcome0 time_so_far (take n facts) end
+            val n = Real.ceil (!smt_slice_fact_frac * Real.fromInt num_facts)
+          in
+            do_slice timeout (slice + 1) outcome0 time_so_far (take n facts)
+          end
         else
           {outcome = if is_none outcome then NONE else the outcome0,
            used_facts = used_facts,
            run_time_in_msecs = SOME (Time.toMilliseconds time_so_far)}
       end
-  in iter timeout 1 NONE Time.zeroTime end
+  in do_slice timeout 1 NONE Time.zeroTime end
 
 (* taken from "Mirabelle" and generalized *)
 fun can_apply timeout tac state i =
@@ -652,9 +684,10 @@ fun can_apply_metis debug state i ths =
             (Config.put Metis_Tactics.verbose debug
              #> (fn ctxt => Metis_Tactics.metis_tac ctxt ths)) state i
 
-fun run_smt_solver auto name (params as {debug, verbose, ...}) minimize_command
-        ({state, subgoal, subgoal_count, facts, smt_filter, ...}
-         : prover_problem) =
+fun run_smt_solver auto may_slice name (params as {debug, verbose, ...})
+                   minimize_command
+                   ({state, subgoal, subgoal_count, facts, smt_filter, ...}
+                    : prover_problem) =
   let
     val ctxt = Proof.context_of state
     val thy = Proof.theory_of state
@@ -662,7 +695,7 @@ fun run_smt_solver auto name (params as {debug, verbose, ...}) minimize_command
     val facts = facts ~~ (0 upto num_facts - 1)
                 |> map (smt_weighted_fact thy num_facts)
     val {outcome, used_facts, run_time_in_msecs} =
-      smt_filter_loop name params state subgoal smt_filter facts
+      smt_filter_loop may_slice name params state subgoal smt_filter facts
     val (chained_lemmas, other_lemmas) = split_used_facts (map fst used_facts)
     val outcome = outcome |> Option.map failure_from_smt_failure
     val message =
@@ -694,12 +727,12 @@ fun run_smt_solver auto name (params as {debug, verbose, ...}) minimize_command
      run_time_in_msecs = run_time_in_msecs, message = message}
   end
 
-fun get_prover ctxt auto name =
+fun get_prover ctxt auto may_slice name =
   let val thy = Proof_Context.theory_of ctxt in
     if is_smt_prover ctxt name then
-      run_smt_solver auto name
+      run_smt_solver auto may_slice name
     else if member (op =) (supported_atps thy) name then
-      run_atp auto name (get_atp thy name)
+      run_atp auto may_slice name (get_atp thy name)
     else
       error ("No such prover: " ^ name ^ ".")
   end

@@ -18,14 +18,14 @@ struct
 fun run_atp force_full_types timeout i n ctxt goal name =
   let
     val chained_ths = [] (* a tactic has no chained ths *)
-    val params as {type_sys, relevance_thresholds, max_relevant, ...} =
+    val params as {type_sys, relevance_thresholds, max_relevant, slicing, ...} =
       ((if force_full_types then [("full_types", "true")] else [])
        @ [("timeout", string_of_int (Time.toSeconds timeout))])
        (* @ [("overlord", "true")] *)
       |> Sledgehammer_Isar.default_params ctxt
-    val prover = Sledgehammer_Provers.get_prover ctxt false name
+    val prover = Sledgehammer_Provers.get_prover ctxt false true name
     val default_max_relevant =
-      Sledgehammer_Provers.default_max_relevant_for_prover ctxt name
+      Sledgehammer_Provers.default_max_relevant_for_prover ctxt slicing name
     val is_built_in_const =
       Sledgehammer_Provers.is_built_in_const_for_prover ctxt name
     val relevance_fudge =

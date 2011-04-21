@@ -14,10 +14,10 @@ sig
   type prover = Sledgehammer_Provers.prover
 
   val auto_minimize_min_facts : int Unsynchronized.ref
-  val get_minimizing_prover : Proof.context -> bool -> string -> prover
+  val get_minimizing_prover : Proof.context -> bool -> bool -> string -> prover
   val run_sledgehammer :
-    params -> bool -> int -> relevance_override -> (string -> minimize_command)
-    -> Proof.state -> bool * Proof.state
+    params -> bool -> bool -> int -> relevance_override
+    -> (string -> minimize_command) -> Proof.state -> bool * Proof.state
 end;
 
 structure Sledgehammer_Run : SLEDGEHAMMER_RUN =
@@ -44,10 +44,10 @@ fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
 
 val auto_minimize_min_facts = Unsynchronized.ref (!binary_min_facts)
 
-fun get_minimizing_prover ctxt auto name
+fun get_minimizing_prover ctxt auto may_slice name
         (params as {debug, verbose, explicit_apply, ...}) minimize_command
         (problem as {state, subgoal, subgoal_count, facts, ...}) =
-  get_prover ctxt auto name params minimize_command problem
+  get_prover ctxt auto may_slice name params minimize_command problem
   |> (fn result as {outcome, used_facts, run_time_in_msecs, message} =>
          if is_some outcome then
            result
@@ -83,16 +83,18 @@ fun get_minimizing_prover ctxt auto name
              | NONE => result
            end)
 
-fun launch_prover
-        (params as {debug, blocking, max_relevant, timeout, expect, ...})
-        auto minimize_command only
+fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
+                              expect, ...})
+        auto may_slice minimize_command only
         {state, goal, subgoal, subgoal_count, facts, smt_filter} name =
   let
     val ctxt = Proof.context_of state
+    val slicing = may_slice andalso slicing
     val birth_time = Time.now ()
     val death_time = Time.+ (birth_time, timeout)
     val max_relevant =
-      the_default (default_max_relevant_for_prover ctxt name) max_relevant
+      max_relevant
+      |> the_default (default_max_relevant_for_prover ctxt slicing name)
     val num_facts = length facts |> not only ? Integer.min max_relevant
     val desc =
       prover_description ctxt params name num_facts subgoal subgoal_count goal
@@ -102,7 +104,8 @@ fun launch_prover
        smt_filter = smt_filter}
     fun really_go () =
       problem
-      |> get_minimizing_prover ctxt auto name params (minimize_command name)
+      |> get_minimizing_prover ctxt auto may_slice name params
+                               (minimize_command name)
       |> (fn {outcome, message, ...} =>
              (if is_some outcome then "none" else "some" (* sic *), message))
     fun go () =
@@ -166,9 +169,9 @@ val auto_max_relevant_divisor = 2
 
 fun run_sledgehammer (params as {debug, blocking, provers, monomorphize,
                                  type_sys, relevance_thresholds, max_relevant,
-                                 timeout, ...})
-                     auto i (relevance_override as {only, ...}) minimize_command
-                     state =
+                                 slicing, timeout, ...})
+                     auto may_slice i (relevance_override as {only, ...})
+                     minimize_command state =
   if null provers then
     error "No prover is set."
   else case subgoal_count state of
@@ -181,6 +184,7 @@ fun run_sledgehammer (params as {debug, blocking, provers, monomorphize,
         state |> Proof.map_context (Config.put SMT_Config.verbose debug)
       val ctxt = Proof.context_of state
       val thy = Proof_Context.theory_of ctxt
+      val slicing = may_slice andalso slicing
       val {facts = chained_ths, goal, ...} = Proof.goal state
       val (_, hyp_ts, concl_t) = strip_subgoal goal i
       val no_dangerous_types = types_dangerous_types type_sys
@@ -201,7 +205,7 @@ fun run_sledgehammer (params as {debug, blocking, provers, monomorphize,
              facts = facts,
              smt_filter = maybe_smt_filter
                   (fn () => map_filter (try dest_SMT_Weighted_Fact) facts) i}
-          val launch = launch_prover params auto minimize_command only
+          val launch = launch_prover params auto may_slice minimize_command only
         in
           if auto then
             fold (fn prover => fn (true, state) => (true, state)
@@ -218,7 +222,8 @@ fun run_sledgehammer (params as {debug, blocking, provers, monomorphize,
             case max_relevant of
               SOME n => n
             | NONE =>
-              0 |> fold (Integer.max o default_max_relevant_for_prover ctxt)
+              0 |> fold (Integer.max
+                         o default_max_relevant_for_prover ctxt slicing)
                         provers
                 |> auto ? (fn n => n div auto_max_relevant_divisor)
           val is_built_in_const =

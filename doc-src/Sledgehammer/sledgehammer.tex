@@ -356,7 +356,8 @@ enabling the ``Auto Sledgehammer'' option from the ``Isabelle'' menu in Proof
 General. For automatic runs, only the first prover set using \textit{provers}
 (\S\ref{mode-of-operation}) is considered, \textit{verbose}
 (\S\ref{output-format}) and \textit{debug} (\S\ref{output-format}) are disabled,
-fewer facts are passed to the prover, and \textit{timeout}
+fewer facts are passed to the prover, \textit{slicing}
+(\S\ref{mode-of-operation}) is disabled, and \textit{timeout}
 (\S\ref{mode-of-operation}) is superseded by the ``Auto Tools Time Limit'' in
 Proof General's ``Isabelle'' menu. Sledgehammer's output is also more concise.
 
@@ -507,6 +508,21 @@ Specifies whether the \textbf{sledgehammer} command should operate
 synchronously. The asynchronous (non-blocking) mode lets the user start proving
 the putative theorem manually while Sledgehammer looks for a proof, but it can
 also be more confusing.
+
+\optrue{slicing}{no\_slicing}
+Specifies whether the time allocated to a prover should be sliced into several
+segments, each of which has its own set of possibly prover-dependent options.
+For SPASS and Vampire, the first slice tries the fast-but-incomplete
+set-of-support (SOS) strategy, whereas the second slice runs without it. For E,
+up to three slices are defined, with different weighted search strategies and
+number of facts. For SMT solvers, several slices are tried with the same options
+but fewer and fewer facts. According to benchmarks with a timeout of 30 seconds,
+slicing is a valuable optimization, and you should probably leave it enabled
+unless you are conducting experiments. However, this option is implicitly
+disabled for (short) automatic runs.
+
+\nopagebreak
+{\small See also \textit{verbose} (\S\ref{output-format}).}
 
 \opfalse{overlord}{no\_overlord}
 Specifies whether Sledgehammer should put its temporary files in

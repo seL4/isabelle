@@ -317,13 +317,13 @@ fun done id ({log, ...}: Mirabelle.done_args) =
 fun change_data id f = (Unsynchronized.change data (AList.map_entry (op =) id f); ())
 
 
-fun get_prover ctxt args =
+fun get_prover ctxt slicing args =
   let
     fun default_prover_name () =
       hd (#provers (Sledgehammer_Isar.default_params ctxt []))
       handle Empty => error "No ATP available."
     fun get_prover name =
-      (name, Sledgehammer_Run.get_minimizing_prover ctxt false name)
+      (name, Sledgehammer_Run.get_minimizing_prover ctxt false slicing name)
   in
     (case AList.lookup (op =) args proverK of
       SOME name => get_prover name
@@ -362,14 +362,15 @@ fun run_sh prover_name prover type_sys max_relevant hard_timeout timeout dir st 
       st |> Proof.map_context
                 (change_dir dir
                  #> Config.put Sledgehammer_Provers.measure_run_time true)
-    val params as {type_sys, relevance_thresholds, max_relevant, ...} =
+    val params as {type_sys, relevance_thresholds, max_relevant, slicing, ...} =
       Sledgehammer_Isar.default_params ctxt
           [("verbose", "true"),
            ("type_sys", type_sys),
            ("max_relevant", max_relevant),
            ("timeout", string_of_int timeout)]
     val default_max_relevant =
-      Sledgehammer_Provers.default_max_relevant_for_prover ctxt prover_name
+      Sledgehammer_Provers.default_max_relevant_for_prover ctxt slicing
+        prover_name
     val is_built_in_const =
       Sledgehammer_Provers.is_built_in_const_for_prover ctxt prover_name
     val relevance_fudge =
@@ -428,7 +429,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id ({pre=st, log, ...
     val triv_str = if trivial then "[T] " else ""
     val _ = change_data id inc_sh_calls
     val _ = if trivial then () else change_data id inc_sh_nontriv_calls
-    val (prover_name, prover) = get_prover (Proof.context_of st) args
+    val (prover_name, prover) = get_prover (Proof.context_of st) true args
     val type_sys = AList.lookup (op =) args type_sysK |> the_default "smart"
     val max_relevant = AList.lookup (op =) args max_relevantK |> the_default "smart"
     val dir = AList.lookup (op =) args keepK
@@ -472,7 +473,7 @@ fun run_minimize args reconstructor named_thms id
   let
     val ctxt = Proof.context_of st
     val n0 = length (these (!named_thms))
-    val (prover_name, _) = get_prover ctxt args
+    val (prover_name, _) = get_prover ctxt false args
     val type_sys = AList.lookup (op =) args type_sysK |> the_default "smart"
     val timeout =
       AList.lookup (op =) args minimize_timeoutK
