@@ -130,8 +130,7 @@ fun is_prover_installed ctxt =
   is_smt_prover ctxt orf is_atp_installed (Proof_Context.theory_of ctxt)
 
 fun get_slices slicing slices =
-  (0 upto length slices - 1) ~~ slices
-  |> not slicing ? (List.last #> single)
+  (0 upto length slices - 1) ~~ slices |> not slicing ? (List.last #> single)
 
 fun default_max_relevant_for_prover ctxt slicing name =
   let val thy = Proof_Context.theory_of ctxt in

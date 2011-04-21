@@ -376,8 +376,8 @@ val _ =
 
 fun auto_sledgehammer state =
   let val ctxt = Proof.context_of state in
-    run_sledgehammer (get_params true ctxt []) true 1
-                     no_relevance_override (minimize_command [] 1) state
+    run_sledgehammer (get_params true ctxt []) true 1 no_relevance_override
+                     (minimize_command [] 1) state
   end
 
 val setup = Auto_Tools.register_tool (auto, auto_sledgehammer)
