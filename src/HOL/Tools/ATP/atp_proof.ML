@@ -96,7 +96,7 @@ fun string_for_failure Unprovable =
   | string_for_failure ProofMissing =
     "The prover claims the conjecture is a theorem but did not provide a proof."
   | string_for_failure UnsoundProof =
-    "The prover found a type-incorrect proof. (Or, very unlikely, your axioms \
+    "The prover found a type-unsound proof. (Or, very unlikely, your axioms \
     \are inconsistent.)"
   | string_for_failure CantConnect = "Cannot connect to remote server."
   | string_for_failure TimedOut = "Timed out."

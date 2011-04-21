@@ -401,7 +401,8 @@ fun run_atp auto name
                 |> filter_out (curry (op =) ~1 o fst)
                 |> map (Untranslated_Fact o apfst (fst o nth facts))
               end
-            fun run_slice (slice, (time_frac, (complete, default_max_relevant)))
+            fun run_slice type_sys
+                          (slice, (time_frac, (complete, default_max_relevant)))
                           time_left =
               let
                 val num_facts =
@@ -479,16 +480,22 @@ fun run_atp auto name
                  (output, msecs, atp_proof, outcome))
               end
             val timer = Timer.startRealTimer ()
-            fun maybe_run_slice slice (_, (_, msecs0, _, SOME _)) =
-                run_slice slice (Time.- (timeout, Timer.checkRealTimer timer))
+            fun maybe_run_slice type_sys slice (_, (_, msecs0, _, SOME _)) =
+                run_slice type_sys slice
+                          (Time.- (timeout, Timer.checkRealTimer timer))
                 |> (fn (stuff, (output, msecs, atp_proof, outcome)) =>
                        (stuff, (output, int_opt_add msecs0 msecs, atp_proof,
                                 outcome)))
-              | maybe_run_slice _ result = result
+              | maybe_run_slice _ _ result = result
           in
             ((Symtab.empty, [], Vector.fromList []),
              ("", SOME 0, [], SOME InternalError))
-            |> fold maybe_run_slice actual_slices
+            |> fold (maybe_run_slice type_sys) actual_slices
+               (* The ATP found an unsound proof? Automatically try again with
+                  full types! *)
+            |> (fn result as (_, (_, _, _, SOME UnsoundProof)) =>
+                   result |> fold (maybe_run_slice (Tags true)) actual_slices
+                 | result => result)
           end
         else
           error ("Bad executable: " ^ Path.print command ^ ".")
