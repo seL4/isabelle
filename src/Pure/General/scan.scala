@@ -220,16 +220,14 @@ object Scan
     def comment: Parser[String] = new Parser[String]
     {
       val comment_text =
-        rep(many1(sym => sym != "*" && sym != "(") | """\*(?!\))|\((?!\*)""".r)
-      val comment_open = "(*" ~ comment_text ^^^ ()
-      val comment_close = comment_text ~ "*)" ^^^ ()
+        rep1(many1(sym => sym != "*" && sym != "(") | """\*(?!\))|\((?!\*)""".r)
 
       def apply(in: Input) =
       {
         var rest = in
-        def try_parse(p: Parser[Unit]): Boolean =
+        def try_parse[A](p: Parser[A]): Boolean =
         {
-          parse(p, rest) match {
+          parse(p ^^^ (), rest) match {
             case Success(_, next) => { rest = next; true }
             case _ => false
           }
@@ -237,9 +235,9 @@ object Scan
         var depth = 0
         var finished = false
         while (!finished) {
-          if (try_parse(comment_open)) depth += 1
-          else if (depth > 0 && try_parse(comment_close)) depth -= 1
-          else finished = true
+          if (try_parse("(*")) depth += 1
+          else if (depth > 0 && try_parse("*)")) depth -= 1
+          else if (depth == 0 || !try_parse(comment_text)) finished = true
         }
         if (in.offset < rest.offset && depth == 0)
           Success(in.source.subSequence(in.offset, rest.offset).toString, rest)
