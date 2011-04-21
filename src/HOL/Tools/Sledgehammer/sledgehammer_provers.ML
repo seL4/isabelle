@@ -329,6 +329,7 @@ fun overlord_file_location_for_prover prover =
 fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
   | int_opt_add _ _ = NONE
 
+val atp_blacklist_max_iters = 10
 (* Important messages are important but not so important that users want to see
    them each time. *)
 val atp_important_message_keep_factor = 0.1
@@ -401,7 +402,7 @@ fun run_atp auto name
                 |> filter_out (curry (op =) ~1 o fst)
                 |> map (Untranslated_Fact o apfst (fst o nth facts))
               end
-            fun run_slice blacklisted_facts
+            fun run_slice blacklist
                           (slice, (time_frac, (complete, default_max_relevant)))
                           time_left =
               let
@@ -410,9 +411,9 @@ fun run_atp auto name
                                   ? Integer.min default_max_relevant
                 val facts =
                   facts |> take num_facts
-                        |> not (null blacklisted_facts)
-                           ? filter_out (member (op =) blacklisted_facts
-                                         o fst o untranslated_fact)
+                        |> not (null blacklist)
+                           ? filter_out (member (op =) blacklist o fst
+                                         o untranslated_fact)
                         |> monomorphize ? monomorphize_facts
                         |> map (atp_translated_fact ctxt)
                 val real_ms = Real.fromInt o Time.toMilliseconds
@@ -480,7 +481,7 @@ fun run_atp auto name
                             else
                               NONE
                   | SOME Unprovable =>
-                    if null blacklisted_facts then outcome
+                    if null blacklist then outcome
                     else SOME IncompleteUnprovable
                   | _ => outcome
               in
@@ -488,30 +489,40 @@ fun run_atp auto name
                  (output, msecs, atp_proof, outcome))
               end
             val timer = Timer.startRealTimer ()
-            fun maybe_run_slice blacklisted_facts slice
-                                (_, (_, msecs0, _, SOME _)) =
-                run_slice blacklisted_facts slice
-                          (Time.- (timeout, Timer.checkRealTimer timer))
-                |> (fn (stuff, (output, msecs, atp_proof, outcome)) =>
-                       (stuff, (output, int_opt_add msecs0 msecs, atp_proof,
-                                outcome)))
+            fun maybe_run_slice blacklist slice
+                                (result as (_, (_, msecs0, _, SOME _))) =
+                let
+                  val time_left = Time.- (timeout, Timer.checkRealTimer timer)
+                in
+                  if Time.<= (time_left, Time.zeroTime) then
+                    result
+                  else
+                    (run_slice blacklist slice time_left
+                     |> (fn (stuff, (output, msecs, atp_proof, outcome)) =>
+                            (stuff, (output, int_opt_add msecs0 msecs, atp_proof,
+                                     outcome))))
+                end
               | maybe_run_slice _ _ result = result
+            fun maybe_blacklist_facts_and_retry iter blacklist
+                    (result as ((_, _, fact_names),
+                                (_, _, atp_proof, SOME UnsoundProof))) =
+                (case used_facts_in_atp_proof fact_names atp_proof of
+                   [] => result
+                 | new_baddies =>
+                   let val blacklist = new_baddies @ blacklist in
+                     result
+                     |> maybe_run_slice blacklist (List.last actual_slices)
+                     |> iter < atp_blacklist_max_iters
+                        ? maybe_blacklist_facts_and_retry (iter + 1) blacklist
+                   end)
+              | maybe_blacklist_facts_and_retry _ _ result = result
           in
             ((Symtab.empty, [], Vector.fromList []),
              ("", SOME 0, [], SOME InternalError))
             |> fold (maybe_run_slice []) actual_slices
                (* The ATP found an unsound proof? Automatically try again
                   without the offending facts! *)
-            |> (fn result as ((_, _, fact_names),
-                              (_, _, atp_proof, SOME UnsoundProof)) =>
-                   let
-                     val blacklisted_facts =
-                       used_facts_in_atp_proof fact_names atp_proof
-                   in
-                     result |> fold (maybe_run_slice blacklisted_facts)
-                                    actual_slices
-                   end
-                 | result => result)
+            |> maybe_blacklist_facts_and_retry 0 []
           end
         else
           error ("Bad executable: " ^ Path.print command ^ ".")
