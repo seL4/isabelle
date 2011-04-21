@@ -243,6 +243,7 @@ val vampire_config : atp_config =
    known_failures =
      [(Unprovable, "UNPROVABLE"),
       (IncompleteUnprovable, "CANNOT PROVE"),
+      (IncompleteUnprovable, "SZS status GaveUp"),
       (ProofMissing, "[predicate definition introduction]"),
       (ProofMissing, "predicate_definition_introduction,[]"), (* TSTP *)
       (TimedOut, "SZS status Timeout"),

@@ -378,7 +378,7 @@ fun run_sh prover_name prover type_sys max_relevant hard_timeout timeout dir st 
     val relevance_override = {add = [], del = [], only = false}
     val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal i
     val no_dangerous_types =
-      Sledgehammer_ATP_Translate.types_dangerous_types type_sys
+      Sledgehammer_ATP_Translate.type_system_types_dangerous_types type_sys
     val time_limit =
       (case hard_timeout of
         NONE => I

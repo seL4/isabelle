@@ -457,23 +457,37 @@ fun run_atp auto name
                        else
                          I)
                   |>> (if measure_run_time then split_time else rpair NONE)
-                val (tstplike_proof, outcome) =
+                val (atp_proof, outcome) =
                   extract_tstplike_proof_and_outcome debug verbose complete
                       res_code proof_delims known_failures output
+                  |>> atp_proof_from_tstplike_proof
+                val (conjecture_shape, fact_names) =
+                  if is_none outcome then
+                    repair_conjecture_shape_and_fact_names output
+                        conjecture_shape fact_names
+                  else
+                    (conjecture_shape, fact_names) (* don't bother repairing *)
+                val outcome =
+                  if is_none outcome andalso
+                     not (is_type_system_sound type_sys) andalso
+                     is_unsound_proof conjecture_shape fact_names atp_proof then
+                    SOME UnsoundProof
+                  else
+                    outcome
               in
                 ((pool, conjecture_shape, fact_names),
-                 (output, msecs, tstplike_proof, outcome))
+                 (output, msecs, atp_proof, outcome))
               end
             val timer = Timer.startRealTimer ()
             fun maybe_run_slice slice (_, (_, msecs0, _, SOME _)) =
                 run_slice slice (Time.- (timeout, Timer.checkRealTimer timer))
-                |> (fn (stuff, (output, msecs, tstplike_proof, outcome)) =>
-                       (stuff, (output, int_opt_add msecs0 msecs,
-                                tstplike_proof, outcome)))
+                |> (fn (stuff, (output, msecs, atp_proof, outcome)) =>
+                       (stuff, (output, int_opt_add msecs0 msecs, atp_proof,
+                                outcome)))
               | maybe_run_slice _ result = result
           in
             ((Symtab.empty, [], Vector.fromList []),
-             ("", SOME 0, "", SOME InternalError))
+             ("", SOME 0, [], SOME InternalError))
             |> fold maybe_run_slice actual_slices
           end
         else
@@ -489,10 +503,8 @@ fun run_atp auto name
       else
         File.write (Path.explode (Path.implode prob_file ^ "_proof")) output
     val ((pool, conjecture_shape, fact_names),
-         (output, msecs, tstplike_proof, outcome)) =
+         (output, msecs, atp_proof, outcome)) =
       with_path cleanup export run_on problem_path_name
-    val (conjecture_shape, fact_names) =
-      repair_conjecture_shape_and_fact_names output conjecture_shape fact_names
     val important_message =
       if not auto andalso random () <= atp_important_message_keep_factor then
         extract_important_message output
@@ -511,8 +523,8 @@ fun run_atp auto name
          "")
     val isar_params = (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
     val metis_params =
-      (proof_banner auto, type_sys, minimize_command, tstplike_proof,
-       fact_names, goal, subgoal)
+      (proof_banner auto, type_sys, minimize_command, atp_proof, fact_names,
+       goal, subgoal)
     val (outcome, (message, used_facts)) =
       case outcome of
         NONE =>

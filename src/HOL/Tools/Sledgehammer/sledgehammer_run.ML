@@ -183,7 +183,7 @@ fun run_sledgehammer (params as {debug, blocking, provers, monomorphize,
       val thy = Proof_Context.theory_of ctxt
       val {facts = chained_ths, goal, ...} = Proof.goal state
       val (_, hyp_ts, concl_t) = strip_subgoal goal i
-      val no_dangerous_types = types_dangerous_types type_sys
+      val no_dangerous_types = type_system_types_dangerous_types type_sys
       val _ = () |> not blocking ? kill_provers
       val _ = case find_first (not o is_prover_supported ctxt) provers of
                 SOME name => error ("No such prover: " ^ name ^ ".")

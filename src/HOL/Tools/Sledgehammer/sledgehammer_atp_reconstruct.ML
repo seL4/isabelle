@@ -8,11 +8,12 @@ Proof reconstruction for Sledgehammer.
 
 signature SLEDGEHAMMER_ATP_RECONSTRUCT =
 sig
+  type 'a proof = 'a ATP_Proof.proof
   type locality = Sledgehammer_Filter.locality
   type type_system = Sledgehammer_ATP_Translate.type_system
   type minimize_command = string list -> string
   type metis_params =
-    string * type_system * minimize_command * string
+    string * type_system * minimize_command * string proof
     * (string * locality) list vector * thm * int
   type isar_params =
     string Symtab.table * bool * int * Proof.context * int list list
@@ -21,6 +22,8 @@ sig
   val repair_conjecture_shape_and_fact_names :
     string -> int list list -> (string * locality) list vector
     -> int list list * (string * locality) list vector
+  val is_unsound_proof :
+    int list list -> (string * locality) list vector -> string proof -> bool
   val apply_on_subgoal : string -> int -> int -> string
   val command_call : string -> string list -> string
   val try_command_line : string -> string -> string
@@ -45,7 +48,7 @@ open Sledgehammer_ATP_Translate
 
 type minimize_command = string list -> string
 type metis_params =
-  string * type_system * minimize_command * string
+  string * type_system * minimize_command * string proof
   * (string * locality) list vector * thm * int
 type isar_params =
   string Symtab.table * bool * int * Proof.context * int list list
@@ -115,39 +118,6 @@ fun repair_conjecture_shape_and_fact_names output conjecture_shape fact_names =
   else
     (conjecture_shape, fact_names)
 
-
-(** Soft-core proof reconstruction: Metis one-liner **)
-
-fun string_for_label (s, num) = s ^ string_of_int num
-
-fun set_settings "" = ""
-  | set_settings settings = "using [[" ^ settings ^ "]] "
-fun apply_on_subgoal settings _ 1 = set_settings settings ^ "by "
-  | apply_on_subgoal settings 1 _ = set_settings settings ^ "apply "
-  | apply_on_subgoal settings i n =
-    "prefer " ^ string_of_int i ^ " " ^ apply_on_subgoal settings 1 n
-fun command_call name [] = name
-  | command_call name args = "(" ^ name ^ " " ^ space_implode " " args ^ ")"
-fun try_command_line banner command =
-  banner ^ ": " ^ Markup.markup Markup.sendback command ^ "."
-fun using_labels [] = ""
-  | using_labels ls =
-    "using " ^ space_implode " " (map string_for_label ls) ^ " "
-fun metis_name type_sys =
-  if types_dangerous_types type_sys then "metisFT" else "metis"
-fun metis_call type_sys ss = command_call (metis_name type_sys) ss
-fun metis_command type_sys i n (ls, ss) =
-  using_labels ls ^ apply_on_subgoal "" i n ^ metis_call type_sys ss
-fun metis_line banner type_sys i n ss =
-  try_command_line banner (metis_command type_sys i n ([], ss))
-fun minimize_line _ [] = ""
-  | minimize_line minimize_command ss =
-    case minimize_command ss of
-      "" => ""
-    | command =>
-      "\nTo minimize the number of lemmas, try this: " ^
-      Markup.markup Markup.sendback command ^ "."
-
 val vampire_step_prefix = "f" (* grrr... *)
 
 fun resolve_fact fact_names ((_, SOME s)) =
@@ -168,34 +138,83 @@ fun resolve_fact fact_names ((_, SOME s)) =
         []
     | NONE => []
 
+fun resolve_conjecture conjecture_shape (num, s_opt) =
+  let
+    val k = case try (unprefix conjecture_prefix) (the_default "" s_opt) of
+              SOME s => Int.fromString s |> the_default ~1
+            | NONE => case Int.fromString num of
+                        SOME j => find_index (exists (curry (op =) j))
+                                             conjecture_shape
+                      | NONE => ~1
+  in if k >= 0 then [k] else [] end
+
+fun is_fact conjecture_shape = not o null o resolve_fact conjecture_shape
+fun is_conjecture conjecture_shape =
+  not o null o resolve_conjecture conjecture_shape
+
 fun add_fact fact_names (Inference (name, _, [])) =
     append (resolve_fact fact_names name)
   | add_fact _ _ = I
 
-fun used_facts_in_tstplike_proof fact_names tstplike_proof =
-  if tstplike_proof = "" then
-    Vector.foldl (op @) [] fact_names
-  else
-    tstplike_proof
-    |> atp_proof_from_tstplike_string false
-    |> rpair [] |-> fold (add_fact fact_names)
+fun used_facts_in_atp_proof fact_names atp_proof =
+  if null atp_proof then Vector.foldl (op @) [] fact_names
+  else fold (add_fact fact_names) atp_proof []
+
+fun is_conjecture_referred_to_in_proof conjecture_shape =
+  exists (fn Inference (name, _, []) => is_conjecture conjecture_shape name
+           | _ => false)
+
+fun is_unsound_proof conjecture_shape fact_names =
+  (not o is_conjecture_referred_to_in_proof conjecture_shape) andf
+  forall (is_global_locality o snd) o used_facts_in_atp_proof fact_names
+
+(** Soft-core proof reconstruction: Metis one-liner **)
+
+fun string_for_label (s, num) = s ^ string_of_int num
+
+fun set_settings "" = ""
+  | set_settings settings = "using [[" ^ settings ^ "]] "
+fun apply_on_subgoal settings _ 1 = set_settings settings ^ "by "
+  | apply_on_subgoal settings 1 _ = set_settings settings ^ "apply "
+  | apply_on_subgoal settings i n =
+    "prefer " ^ string_of_int i ^ " " ^ apply_on_subgoal settings 1 n
+fun command_call name [] = name
+  | command_call name args = "(" ^ name ^ " " ^ space_implode " " args ^ ")"
+fun try_command_line banner command =
+  banner ^ ": " ^ Markup.markup Markup.sendback command ^ "."
+fun using_labels [] = ""
+  | using_labels ls =
+    "using " ^ space_implode " " (map string_for_label ls) ^ " "
+fun metis_name type_sys =
+  if type_system_types_dangerous_types type_sys then "metisFT" else "metis"
+fun metis_call type_sys ss = command_call (metis_name type_sys) ss
+fun metis_command type_sys i n (ls, ss) =
+  using_labels ls ^ apply_on_subgoal "" i n ^ metis_call type_sys ss
+fun metis_line banner type_sys i n ss =
+  try_command_line banner (metis_command type_sys i n ([], ss))
+fun minimize_line _ [] = ""
+  | minimize_line minimize_command ss =
+    case minimize_command ss of
+      "" => ""
+    | command =>
+      "\nTo minimize the number of lemmas, try this: " ^
+      Markup.markup Markup.sendback command ^ "."
 
 val split_used_facts =
   List.partition (curry (op =) Chained o snd)
   #> pairself (sort_distinct (string_ord o pairself fst))
 
-fun metis_proof_text (banner, type_sys, minimize_command, tstplike_proof,
-                      fact_names, goal, i) =
+fun metis_proof_text (banner, type_sys, minimize_command, atp_proof, fact_names,
+                      goal, i) =
   let
     val (chained_lemmas, other_lemmas) =
-      split_used_facts (used_facts_in_tstplike_proof fact_names tstplike_proof)
+      split_used_facts (used_facts_in_atp_proof fact_names atp_proof)
     val n = Logic.count_prems (prop_of goal)
   in
     (metis_line banner type_sys i n (map fst other_lemmas) ^
      minimize_line minimize_command (map fst (other_lemmas @ chained_lemmas)),
      other_lemmas @ chained_lemmas)
   end
-
 
 (** Hard-core proof reconstruction: structured Isar proofs **)
 
@@ -240,19 +259,6 @@ val no_label = ("", ~1)
 val raw_prefix = "X"
 val assum_prefix = "A"
 val have_prefix = "F"
-
-fun resolve_conjecture conjecture_shape (num, s_opt) =
-  let
-    val k = case try (unprefix conjecture_prefix) (the_default "" s_opt) of
-              SOME s => Int.fromString s |> the_default ~1
-            | NONE => case Int.fromString num of
-                        SOME j => find_index (exists (curry (op =) j))
-                                             conjecture_shape
-                      | NONE => ~1
-  in if k >= 0 then [k] else [] end
-
-fun is_fact conjecture_shape = not o null o resolve_fact conjecture_shape
-fun is_conjecture conjecture_shape = not o null o resolve_conjecture conjecture_shape
 
 fun raw_label_for_name conjecture_shape name =
   case resolve_conjecture conjecture_shape name of
@@ -621,12 +627,11 @@ fun repair_name "$true" = "c_True"
     else
       s
 
-fun isar_proof_from_tstplike_proof pool ctxt type_sys tfrees isar_shrink_factor
-        tstplike_proof conjecture_shape fact_names params frees =
+fun isar_proof_from_atp_proof pool ctxt type_sys tfrees isar_shrink_factor
+        atp_proof conjecture_shape fact_names params frees =
   let
     val lines =
-      tstplike_proof
-      |> atp_proof_from_tstplike_string true
+      atp_proof
       |> nasty_atp_proof pool
       |> map_term_names_in_atp_proof repair_name
       |> decode_lines ctxt type_sys tfrees
@@ -929,8 +934,7 @@ fun string_for_proof ctxt0 type_sys i n =
   in do_proof end
 
 fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
-                    (metis_params as (_, type_sys, _, tstplike_proof,
-                                      fact_names, goal, i)) =
+        (metis_params as (_, type_sys, _, atp_proof, fact_names, goal, i)) =
   let
     val (params, hyp_ts, concl_t) = strip_subgoal goal i
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []
@@ -938,9 +942,9 @@ fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
     val n = Logic.count_prems (prop_of goal)
     val (one_line_proof, lemma_names) = metis_proof_text metis_params
     fun isar_proof_for () =
-      case isar_proof_from_tstplike_proof pool ctxt type_sys tfrees
-               isar_shrink_factor tstplike_proof conjecture_shape fact_names
-               params frees
+      case isar_proof_from_atp_proof pool ctxt type_sys tfrees
+               isar_shrink_factor atp_proof conjecture_shape fact_names params
+               frees
            |> redirect_proof hyp_ts concl_t
            |> kill_duplicate_assumptions_in_proof
            |> then_chain_proof

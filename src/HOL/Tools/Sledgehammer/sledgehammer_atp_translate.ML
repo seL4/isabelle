@@ -21,7 +21,8 @@ sig
   val precise_overloaded_args : bool Unsynchronized.ref
   val fact_prefix : string
   val conjecture_prefix : string
-  val types_dangerous_types : type_system -> bool
+  val is_type_system_sound : type_system -> bool
+  val type_system_types_dangerous_types : type_system -> bool
   val num_atp_type_args : theory -> type_system -> string -> int
   val translate_atp_fact :
     Proof.context -> bool -> (string * 'a) * thm
@@ -67,8 +68,11 @@ datatype type_system =
   Mangled |
   No_Types
 
-fun types_dangerous_types (Tags _) = true
-  | types_dangerous_types _ = false
+fun is_type_system_sound (Tags true) = true
+  | is_type_system_sound _ = false
+
+fun type_system_types_dangerous_types (Tags _) = true
+  | type_system_types_dangerous_types _ = false
 
 (* This is an approximation. If it returns "true" for a constant that isn't
    overloaded (i.e., that has one uniform definition), needless clutter is
@@ -289,7 +293,7 @@ val init_counters =
 
 fun get_helper_facts ctxt explicit_forall type_sys formulas =
   let
-    val no_dangerous_types = types_dangerous_types type_sys
+    val no_dangerous_types = type_system_types_dangerous_types type_sys
     val ct = init_counters |> fold count_formula formulas
     fun is_used s = the (Symtab.lookup ct s) > 0
     fun dub c needs_full_types (th, j) =

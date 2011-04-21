@@ -126,7 +126,7 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
          val subgoal = 1
          val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal subgoal
          val no_dangerous_types =
-           Sledgehammer_ATP_Translate.types_dangerous_types type_sys
+           Sledgehammer_ATP_Translate.type_system_types_dangerous_types type_sys
          val facts =
            Sledgehammer_Filter.relevant_facts ctxt no_dangerous_types
                relevance_thresholds

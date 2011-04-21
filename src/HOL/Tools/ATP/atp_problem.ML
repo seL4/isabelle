@@ -171,7 +171,6 @@ fun nice_name (full_name, _) NONE = (full_name, NONE)
           end
       in add 0 |> apsnd SOME end
 
-
 fun nice_term (ATerm (name, ts)) =
   nice_name name ##>> pool_map nice_term ts #>> ATerm
 fun nice_formula (AQuant (q, xs, phi)) =

@@ -12,10 +12,10 @@ sig
   type 'a uniform_formula = 'a ATP_Problem.uniform_formula
 
   datatype failure =
-    Unprovable | IncompleteUnprovable | ProofMissing | CantConnect | TimedOut |
-    OutOfResources | SpassTooOld | VampireTooOld | NoPerl | NoLibwwwPerl |
-    NoRealZ3 | MalformedInput | MalformedOutput | Interrupted | Crashed |
-    InternalError | UnknownError of string
+    Unprovable | IncompleteUnprovable | ProofMissing | UnsoundProof |
+    CantConnect | TimedOut | OutOfResources | SpassTooOld | VampireTooOld |
+    NoPerl | NoLibwwwPerl | NoRealZ3 | MalformedInput | MalformedOutput |
+    Interrupted | Crashed | InternalError | UnknownError of string
 
   type step_name = string * string option
 
@@ -35,7 +35,7 @@ sig
     bool -> bool -> bool -> int -> (string * string) list
     -> (failure * string) list -> string -> string * failure option
   val is_same_step : step_name * step_name -> bool
-  val atp_proof_from_tstplike_string : bool -> string -> string proof
+  val atp_proof_from_tstplike_proof : string -> string proof
   val map_term_names_in_atp_proof :
     (string -> string) -> string proof -> string proof
   val nasty_atp_proof : string Symtab.table -> string proof -> string proof
@@ -47,10 +47,10 @@ struct
 open ATP_Problem
 
 datatype failure =
-  Unprovable | IncompleteUnprovable | ProofMissing | CantConnect | TimedOut |
-  OutOfResources | SpassTooOld | VampireTooOld | NoPerl | NoLibwwwPerl |
-  NoRealZ3 | MalformedInput | MalformedOutput | Interrupted | Crashed |
-  InternalError | UnknownError of string
+  Unprovable | IncompleteUnprovable | ProofMissing | UnsoundProof |
+  CantConnect | TimedOut | OutOfResources | SpassTooOld | VampireTooOld |
+  NoPerl | NoLibwwwPerl | NoRealZ3 | MalformedInput | MalformedOutput |
+  Interrupted | Crashed | InternalError | UnknownError of string
 
 fun strip_spaces_in_list _ [] = []
   | strip_spaces_in_list _ [c1] = if Char.isSpace c1 then [] else [str c1]
@@ -95,6 +95,9 @@ fun string_for_failure Unprovable =
     "The prover gave up."
   | string_for_failure ProofMissing =
     "The prover claims the conjecture is a theorem but did not provide a proof."
+  | string_for_failure UnsoundProof =
+    "The prover found a type-incorrect proof. (Or, very unlikely, your axioms \
+    \are inconsistent.)"
   | string_for_failure CantConnect = "Cannot connect to remote server."
   | string_for_failure TimedOut = "Timed out."
   | string_for_failure OutOfResources = "The prover ran out of resources."
@@ -366,11 +369,12 @@ fun clean_up_dependencies _ [] = []
     Inference (name, u, map_filter (clean_up_dependency seen) deps) ::
     clean_up_dependencies (name :: seen) steps
 
-fun atp_proof_from_tstplike_string clean =
-  suffix "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
-  #> parse_proof
-  #> clean ? (sort (step_name_ord o pairself step_name)
-              #> clean_up_dependencies [])
+fun atp_proof_from_tstplike_proof "" = []
+  | atp_proof_from_tstplike_proof s =
+    s ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
+    |> parse_proof
+    |> sort (step_name_ord o pairself step_name)
+    |> clean_up_dependencies []
 
 fun map_term_names_in_term f (ATerm (s, ts)) =
   ATerm (f s, map (map_term_names_in_term f) ts)
