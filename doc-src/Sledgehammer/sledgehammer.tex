@@ -512,13 +512,13 @@ also be more confusing.
 \optrue{slicing}{no\_slicing}
 Specifies whether the time allocated to a prover should be sliced into several
 segments, each of which has its own set of possibly prover-dependent options.
-For SPASS and Vampire, the first slice tries the fast-but-incomplete
+For SPASS and Vampire, the first slice tries the fast but incomplete
 set-of-support (SOS) strategy, whereas the second slice runs without it. For E,
-up to three slices are defined, with different weighted search strategies and
+up to three slices are tried, with different weighted search strategies and
 number of facts. For SMT solvers, several slices are tried with the same options
-but fewer and fewer facts. According to benchmarks with a timeout of 30 seconds,
-slicing is a valuable optimization, and you should probably leave it enabled
-unless you are conducting experiments. However, this option is implicitly
+each time but fewer and fewer facts. According to benchmarks with a timeout of
+30 seconds, slicing is a valuable optimization, and you should probably leave it
+enabled unless you are conducting experiments. This option is implicitly
 disabled for (short) automatic runs.
 
 \nopagebreak
