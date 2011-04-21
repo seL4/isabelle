@@ -254,7 +254,7 @@ fun extract_params auto default_params override_params =
     val explicit_apply = lookup_bool "explicit_apply"
     val isar_proof = lookup_bool "isar_proof"
     val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
-    val slicing = lookup_bool "slicing"
+    val slicing = not auto andalso lookup_bool "slicing"
     val timeout = (if auto then NONE else lookup_time "timeout") |> the_timeout
     val expect = lookup_string "expect"
   in
@@ -303,7 +303,7 @@ fun hammer_away override_params subcommand opt_i relevance_override state =
   in
     if subcommand = runN then
       let val i = the_default 1 opt_i in
-        run_sledgehammer (get_params false ctxt override_params) false true i
+        run_sledgehammer (get_params false ctxt override_params) false i
                          relevance_override (minimize_command override_params i)
                          state
         |> K ()
@@ -376,7 +376,7 @@ val _ =
 
 fun auto_sledgehammer state =
   let val ctxt = Proof.context_of state in
-    run_sledgehammer (get_params true ctxt []) true false 1
+    run_sledgehammer (get_params true ctxt []) true 1
                      no_relevance_override (minimize_command [] 1) state
   end
 

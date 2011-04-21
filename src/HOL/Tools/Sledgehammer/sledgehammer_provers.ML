@@ -93,7 +93,7 @@ sig
   val kill_provers : unit -> unit
   val running_provers : unit -> unit
   val messages : int option -> unit
-  val get_prover : Proof.context -> bool -> bool -> string -> prover
+  val get_prover : Proof.context -> bool -> string -> prover
   val setup : theory -> theory
 end;
 
@@ -334,7 +334,7 @@ fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
    them each time. *)
 val atp_important_message_keep_factor = 0.1
 
-fun run_atp auto may_slice name
+fun run_atp auto name
         ({exec, required_execs, arguments, slices, proof_delims, known_failures,
           explicit_forall, use_conjecture_for_hypotheses, ...} : atp_config)
         ({debug, verbose, overlord, max_relevant, monomorphize,
@@ -345,7 +345,6 @@ fun run_atp auto may_slice name
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal
-    val slicing = may_slice andalso slicing
     fun monomorphize_facts facts =
       let
         val repair_context =
@@ -566,13 +565,11 @@ val smt_slice_fact_frac = Unsynchronized.ref 0.5
 val smt_slice_time_frac = Unsynchronized.ref 0.5
 val smt_slice_min_secs = Unsynchronized.ref 5
 
-fun smt_filter_loop may_slice name
-                    ({debug, verbose, overlord, monomorphize_limit, timeout,
-                      slicing, ...} : params)
+fun smt_filter_loop name ({debug, verbose, overlord, monomorphize_limit,
+                           timeout, slicing, ...} : params)
                     state i smt_filter =
   let
     val ctxt = Proof.context_of state
-    val slicing = may_slice andalso slicing
     val max_slices = if slicing then !smt_max_slices else 1
     val repair_context =
       select_smt_solver name
@@ -684,8 +681,7 @@ fun can_apply_metis debug state i ths =
             (Config.put Metis_Tactics.verbose debug
              #> (fn ctxt => Metis_Tactics.metis_tac ctxt ths)) state i
 
-fun run_smt_solver auto may_slice name (params as {debug, verbose, ...})
-                   minimize_command
+fun run_smt_solver auto name (params as {debug, verbose, ...}) minimize_command
                    ({state, subgoal, subgoal_count, facts, smt_filter, ...}
                     : prover_problem) =
   let
@@ -695,7 +691,7 @@ fun run_smt_solver auto may_slice name (params as {debug, verbose, ...})
     val facts = facts ~~ (0 upto num_facts - 1)
                 |> map (smt_weighted_fact thy num_facts)
     val {outcome, used_facts, run_time_in_msecs} =
-      smt_filter_loop may_slice name params state subgoal smt_filter facts
+      smt_filter_loop name params state subgoal smt_filter facts
     val (chained_lemmas, other_lemmas) = split_used_facts (map fst used_facts)
     val outcome = outcome |> Option.map failure_from_smt_failure
     val message =
@@ -727,12 +723,12 @@ fun run_smt_solver auto may_slice name (params as {debug, verbose, ...})
      run_time_in_msecs = run_time_in_msecs, message = message}
   end
 
-fun get_prover ctxt auto may_slice name =
+fun get_prover ctxt auto name =
   let val thy = Proof_Context.theory_of ctxt in
     if is_smt_prover ctxt name then
-      run_smt_solver auto may_slice name
+      run_smt_solver auto name
     else if member (op =) (supported_atps thy) name then
-      run_atp auto may_slice name (get_atp thy name)
+      run_atp auto name (get_atp thy name)
     else
       error ("No such prover: " ^ name ^ ".")
   end

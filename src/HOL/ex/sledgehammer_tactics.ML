@@ -23,7 +23,7 @@ fun run_atp force_full_types timeout i n ctxt goal name =
        @ [("timeout", string_of_int (Time.toSeconds timeout))])
        (* @ [("overlord", "true")] *)
       |> Sledgehammer_Isar.default_params ctxt
-    val prover = Sledgehammer_Provers.get_prover ctxt false true name
+    val prover = Sledgehammer_Provers.get_prover ctxt false name
     val default_max_relevant =
       Sledgehammer_Provers.default_max_relevant_for_prover ctxt slicing name
     val is_built_in_const =
