@@ -345,28 +345,6 @@ fun run_atp auto name
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal
-    fun monomorphize_facts facts =
-      let
-        val repair_context =
-          Config.put SMT_Config.verbose debug
-          #> Config.put SMT_Config.monomorph_full false
-          #> Config.put SMT_Config.monomorph_limit monomorphize_limit
-        val facts = facts |> map untranslated_fact
-        (* pseudo-theorem involving the same constants as the subgoal *)
-        val subgoal_th =
-          Logic.list_implies (hyp_ts, concl_t) |> Skip_Proof.make_thm thy
-        val indexed_facts =
-          (~1, subgoal_th) :: (0 upto length facts - 1 ~~ map snd facts)
-        val mono_facts =
-          SMT_Monomorph.monomorph indexed_facts (repair_context ctxt) |> fst
-      in
-        mono_facts
-        |> sort (int_ord o pairself fst)
-        |> filter_out (curry (op =) ~1 o fst)
-        |> map (Untranslated_Fact o apfst (fst o nth facts))
-      end
-    val facts = facts |> monomorphize ? monomorphize_facts
-                      |> map (atp_translated_fact ctxt)
     val (dest_dir, problem_prefix) =
       if overlord then overlord_file_location_for_prover name
       else (Config.get ctxt dest_dir, Config.get ctxt problem_prefix)
@@ -405,12 +383,35 @@ fun run_atp auto name
                entire time available. *)
             val actual_slices = get_slices slicing (slices ())
             val num_actual_slices = length actual_slices
+            fun monomorphize_facts facts =
+              let
+                val repair_context =
+                  Config.put SMT_Config.verbose debug
+                  #> Config.put SMT_Config.monomorph_full false
+                  #> Config.put SMT_Config.monomorph_limit monomorphize_limit
+                val facts = facts |> map untranslated_fact
+                (* pseudo-theorem involving the same constants as the subgoal *)
+                val subgoal_th =
+                  Logic.list_implies (hyp_ts, concl_t)
+                  |> Skip_Proof.make_thm thy
+                val indexed_facts =
+                  (~1, subgoal_th) :: (0 upto length facts - 1 ~~ map snd facts)
+              in
+                SMT_Monomorph.monomorph indexed_facts (repair_context ctxt)
+                |> fst |> sort (int_ord o pairself fst)
+                |> filter_out (curry (op =) ~1 o fst)
+                |> map (Untranslated_Fact o apfst (fst o nth facts))
+              end
             fun run_slice (slice, (time_frac, (complete, default_max_relevant)))
                           time_left =
               let
                 val num_facts =
                   length facts |> is_none max_relevant
                                   ? Integer.min default_max_relevant
+                val facts = facts
+                            |> take num_facts
+                            |> monomorphize ? monomorphize_facts
+                            |> map (atp_translated_fact ctxt)
                 val real_ms = Real.fromInt o Time.toMilliseconds
                 val slice_timeout =
                   ((real_ms time_left
@@ -430,7 +431,7 @@ fun run_atp auto name
                 val (atp_problem, pool, conjecture_offset, fact_names) =
                   prepare_atp_problem ctxt readable_names explicit_forall
                                       type_sys explicit_apply hyp_ts concl_t
-                                      (facts |> take num_facts)
+                                      facts
                 fun weights () = atp_problem_weights atp_problem
                 val core =
                   File.shell_path command ^ " " ^
