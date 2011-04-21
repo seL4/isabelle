@@ -361,15 +361,15 @@ fun run_atp auto name
     val command = Path.explode (getenv (fst exec) ^ "/" ^ snd exec)
     fun split_time s =
       let
-        val split = String.tokens (fn c => str c = "\n");
-        val (output, t) = s |> split |> split_last |> apfst cat_lines;
-        fun as_num f = f >> (fst o read_int);
-        val num = as_num (Scan.many1 Symbol.is_ascii_digit);
-        val digit = Scan.one Symbol.is_ascii_digit;
-        val num3 = as_num (digit ::: digit ::: (digit >> single));
-        val time = num --| Scan.$$ "." -- num3 >> (fn (a, b) => a * 1000 + b);
+        val split = String.tokens (fn c => str c = "\n")
+        val (output, t) = s |> split |> split_last |> apfst cat_lines
+        fun as_num f = f >> (fst o read_int)
+        val num = as_num (Scan.many1 Symbol.is_ascii_digit)
+        val digit = Scan.one Symbol.is_ascii_digit
+        val num3 = as_num (digit ::: digit ::: (digit >> single))
+        val time = num --| Scan.$$ "." -- num3 >> (fn (a, b) => a * 1000 + b)
         val as_time = Scan.read Symbol.stopper time o raw_explode
-      in (output, as_time t) end;
+      in (output, as_time t) end
     fun run_on prob_file =
       case filter (curry (op =) "" o getenv o fst) (exec :: required_execs) of
         (home_var, _) :: _ =>
