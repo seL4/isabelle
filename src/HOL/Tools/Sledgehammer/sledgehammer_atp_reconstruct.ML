@@ -22,6 +22,8 @@ sig
   val repair_conjecture_shape_and_fact_names :
     string -> int list list -> (string * locality) list vector
     -> int list list * (string * locality) list vector
+  val used_facts_in_atp_proof :
+    (string * locality) list vector -> string proof -> (string * locality) list
   val is_unsound_proof :
     int list list -> (string * locality) list vector -> string proof -> bool
   val apply_on_subgoal : string -> int -> int -> string

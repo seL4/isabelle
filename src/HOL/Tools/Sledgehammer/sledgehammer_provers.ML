@@ -401,17 +401,20 @@ fun run_atp auto name
                 |> filter_out (curry (op =) ~1 o fst)
                 |> map (Untranslated_Fact o apfst (fst o nth facts))
               end
-            fun run_slice type_sys
+            fun run_slice blacklisted_facts
                           (slice, (time_frac, (complete, default_max_relevant)))
                           time_left =
               let
                 val num_facts =
                   length facts |> is_none max_relevant
                                   ? Integer.min default_max_relevant
-                val facts = facts
-                            |> take num_facts
-                            |> monomorphize ? monomorphize_facts
-                            |> map (atp_translated_fact ctxt)
+                val facts =
+                  facts |> take num_facts
+                        |> not (null blacklisted_facts)
+                           ? filter_out (member (op =) blacklisted_facts
+                                         o fst o untranslated_fact)
+                        |> monomorphize ? monomorphize_facts
+                        |> map (atp_translated_fact ctxt)
                 val real_ms = Real.fromInt o Time.toMilliseconds
                 val slice_timeout =
                   ((real_ms time_left
@@ -469,19 +472,25 @@ fun run_atp auto name
                   else
                     (conjecture_shape, fact_names) (* don't bother repairing *)
                 val outcome =
-                  if is_none outcome andalso
-                     not (is_type_system_sound type_sys) andalso
-                     is_unsound_proof conjecture_shape fact_names atp_proof then
-                    SOME UnsoundProof
-                  else
-                    outcome
+                  case outcome of
+                    NONE => if not (is_type_system_sound type_sys) andalso
+                               is_unsound_proof conjecture_shape fact_names
+                                                atp_proof then
+                              SOME UnsoundProof
+                            else
+                              NONE
+                  | SOME Unprovable =>
+                    if null blacklisted_facts then outcome
+                    else SOME IncompleteUnprovable
+                  | _ => outcome
               in
                 ((pool, conjecture_shape, fact_names),
                  (output, msecs, atp_proof, outcome))
               end
             val timer = Timer.startRealTimer ()
-            fun maybe_run_slice type_sys slice (_, (_, msecs0, _, SOME _)) =
-                run_slice type_sys slice
+            fun maybe_run_slice blacklisted_facts slice
+                                (_, (_, msecs0, _, SOME _)) =
+                run_slice blacklisted_facts slice
                           (Time.- (timeout, Timer.checkRealTimer timer))
                 |> (fn (stuff, (output, msecs, atp_proof, outcome)) =>
                        (stuff, (output, int_opt_add msecs0 msecs, atp_proof,
@@ -490,11 +499,18 @@ fun run_atp auto name
           in
             ((Symtab.empty, [], Vector.fromList []),
              ("", SOME 0, [], SOME InternalError))
-            |> fold (maybe_run_slice type_sys) actual_slices
-               (* The ATP found an unsound proof? Automatically try again with
-                  full types! *)
-            |> (fn result as (_, (_, _, _, SOME UnsoundProof)) =>
-                   result |> fold (maybe_run_slice (Tags true)) actual_slices
+            |> fold (maybe_run_slice []) actual_slices
+               (* The ATP found an unsound proof? Automatically try again
+                  without the offending facts! *)
+            |> (fn result as ((_, _, fact_names),
+                              (_, _, atp_proof, SOME UnsoundProof)) =>
+                   let
+                     val blacklisted_facts =
+                       used_facts_in_atp_proof fact_names atp_proof
+                   in
+                     result |> fold (maybe_run_slice blacklisted_facts)
+                                    actual_slices
+                   end
                  | result => result)
           end
         else
@@ -564,7 +580,6 @@ val unix_failures =
   [(139, Crashed)]
 val smt_failures =
   remote_smt_failures @ z3_wrapper_failures @ z3_failures @ unix_failures
-
 
 fun failure_from_smt_failure (SMT_Failure.Counterexample {is_real_cex, ...}) =
     if is_real_cex then Unprovable else IncompleteUnprovable
