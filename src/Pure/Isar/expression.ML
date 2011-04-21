@@ -725,7 +725,7 @@ fun assumes_to_notes (Assumes asms) axms =
   | assumes_to_notes e axms = (e, axms);
 
 fun defines_to_notes thy (Defines defs) =
-      Notes (Thm.definitionK, map (fn (a, (def, _)) =>
+      Notes ("", map (fn (a, (def, _)) =>
         (a, [([Assumption.assume (cterm_of thy def)],
           [(Attrib.internal o K) Locale.witness_add])])) defs)
   | defines_to_notes _ e = e;

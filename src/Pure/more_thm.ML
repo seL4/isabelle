@@ -87,7 +87,6 @@ sig
   val has_name_hint: thm -> bool
   val get_name_hint: thm -> string
   val put_name_hint: string -> thm -> thm
-  val definitionK: string
   val theoremK: string
   val lemmaK: string
   val corollaryK: string
@@ -450,7 +449,6 @@ fun put_name_hint name = untag_rule Markup.nameN #> tag_rule (Markup.nameN, name
 
 (* theorem kinds *)
 
-val definitionK = "definition";
 val theoremK = "theorem";
 val lemmaK = "lemma";
 val corollaryK = "corollary";

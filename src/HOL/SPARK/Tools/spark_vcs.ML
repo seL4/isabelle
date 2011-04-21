@@ -1018,8 +1018,7 @@ fun set_vcs ({types, vars, consts, funs} : decls)
          ((mk_rulename id, []),
           [(term_of_rule thy' prfx types pfuns ids rl, [])]))
            other_rules),
-       Element.Notes (Thm.definitionK,
-         [((Binding.name "defns", []), map (rpair [] o single o snd) defs')])]
+       Element.Notes ("", [((Binding.name "defns", []), map (rpair [] o single o snd) defs')])]
           
   in
     set_env {ctxt = ctxt, defs = defs', types = types, funs = funs,

@@ -53,7 +53,7 @@ let
    (fn n => fn m => Drule.instantiate' [] [SOME n, SOME m] @{thm nibble_pair_of_char.simps})
       nibbles nibbles;
 in
-  Global_Theory.note_thmss Thm.definitionK
+  Global_Theory.note_thmss ""
     [((@{binding nibble_pair_of_char_simps}, []), [(thms, [])])]
   #-> (fn [(_, thms)] => fold_rev Code.add_eqn thms)
 end
