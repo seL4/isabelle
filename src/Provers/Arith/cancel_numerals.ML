@@ -42,12 +42,12 @@ sig
   val simplify_meta_eq: simpset -> thm -> thm    (*simplifies the final theorem*)
 end;
 
-
-functor CancelNumeralsFun(Data: CANCEL_NUMERALS_DATA):
-  sig
+signature CANCEL_NUMERALS =
+sig
   val proc: simpset -> term -> thm option
-  end
-=
+end;
+
+functor CancelNumeralsFun(Data: CANCEL_NUMERALS_DATA): CANCEL_NUMERALS =
 struct
 
 (*For t = #n*u then put u in the table*)
