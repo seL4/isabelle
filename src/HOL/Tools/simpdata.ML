@@ -7,8 +7,8 @@ Instantiation of the generic simplifier for HOL.
 
 (** tools setup **)
 
-structure Quantifier1 = Quantifier1Fun
-(struct
+structure Quantifier1 = Quantifier1
+(
   (*abstract syntax*)
   fun dest_eq ((c as Const(@{const_name HOL.eq},_)) $ s $ t) = SOME (c, s, t)
     | dest_eq _ = NONE;
@@ -33,7 +33,7 @@ structure Quantifier1 = Quantifier1Fun
   val iff_exI = @{thm iff_exI}
   val all_comm = @{thm all_comm}
   val ex_comm = @{thm ex_comm}
-end);
+);
 
 structure Simpdata =
 struct

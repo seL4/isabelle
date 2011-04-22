@@ -7,7 +7,7 @@ Simplification procedures for turning
             ? x. ... & x = t & ...
      into   ? x. x = t & ... & ...
      where the `? x. x = t &' in the latter formula must be eliminated
-           by ordinary simplification. 
+           by ordinary simplification.
 
      and   ! x. (... & x = t & ...) --> P x
      into  ! x. x = t --> (... & ...) --> P x
@@ -20,7 +20,7 @@ Simplification procedures for turning
         "!x. x=t --> P(x)" is covered by the congruence rule for -->;
         "!x. t=x --> P(x)" must be taken care of by an ordinary rewrite rule.
         As must be "? x. t=x & P(x)".
-        
+
      And similarly for the bounded quantifiers.
 
 Gries etc call this the "1 point rules"
@@ -40,21 +40,21 @@ esp if x=t/t=x sits at the front already.
 signature QUANTIFIER1_DATA =
 sig
   (*abstract syntax*)
-  val dest_eq: term -> (term*term*term)option
-  val dest_conj: term -> (term*term*term)option
-  val dest_imp:  term -> (term*term*term)option
+  val dest_eq: term -> (term * term * term) option
+  val dest_conj: term -> (term * term * term) option
+  val dest_imp: term -> (term * term * term) option
   val conj: term
-  val imp:  term
+  val imp: term
   (*rules*)
   val iff_reflection: thm (* P <-> Q ==> P == Q *)
-  val iffI:  thm
+  val iffI: thm
   val iff_trans: thm
   val conjI: thm
   val conjE: thm
-  val impI:  thm
-  val mp:    thm
-  val exI:   thm
-  val exE:   thm
+  val impI: thm
+  val mp: thm
+  val exI: thm
+  val exE: thm
   val uncurry: thm (* P --> Q --> R ==> P & Q --> R *)
   val iff_allI: thm (* !!x. P x <-> Q x ==> (!x. P x) = (!x. Q x) *)
   val iff_exI: thm (* !!x. P x <-> Q x ==> (? x. P x) = (? x. Q x) *)
@@ -73,41 +73,51 @@ sig
   val rearrange_Collect: tactic -> simpset -> term -> thm option
 end;
 
-functor Quantifier1Fun(Data: QUANTIFIER1_DATA): QUANTIFIER1 =
+functor Quantifier1(Data: QUANTIFIER1_DATA): QUANTIFIER1 =
 struct
 
 (* FIXME: only test! *)
 fun def xs eq =
   (case Data.dest_eq eq of
-     SOME(c,s,t) =>
-       let val n = length xs
-       in s = Bound n andalso not(loose_bvar1(t,n)) orelse
-          t = Bound n andalso not(loose_bvar1(s,n)) end
-   | NONE => false);
+    SOME (c, s, t) =>
+      let val n = length xs in
+        s = Bound n andalso not (loose_bvar1 (t, n)) orelse
+        t = Bound n andalso not (loose_bvar1 (s, n))
+      end
+  | NONE => false);
 
-fun extract_conj fst xs t = case Data.dest_conj t of NONE => NONE
-    | SOME(conj,P,Q) =>
-        (if def xs P then (if fst then NONE else SOME(xs,P,Q)) else
-         if def xs Q then SOME(xs,Q,P) else
-         (case extract_conj false xs P of
-            SOME(xs,eq,P') => SOME(xs,eq, Data.conj $ P' $ Q)
-          | NONE => (case extract_conj false xs Q of
-                       SOME(xs,eq,Q') => SOME(xs,eq,Data.conj $ P $ Q')
-                     | NONE => NONE)));
+fun extract_conj fst xs t =
+  (case Data.dest_conj t of
+    NONE => NONE
+  | SOME (conj, P, Q) =>
+      if def xs P then (if fst then NONE else SOME (xs, P, Q))
+      else if def xs Q then SOME (xs, Q, P)
+      else
+        (case extract_conj false xs P of
+          SOME (xs, eq, P') => SOME (xs, eq, Data.conj $ P' $ Q)
+        | NONE =>
+            (case extract_conj false xs Q of
+              SOME (xs, eq, Q') => SOME (xs, eq, Data.conj $ P $ Q')
+            | NONE => NONE)));
 
-fun extract_imp fst xs t = case Data.dest_imp t of NONE => NONE
-    | SOME(imp,P,Q) => if def xs P then (if fst then NONE else SOME(xs,P,Q))
-                       else (case extract_conj false xs P of
-                               SOME(xs,eq,P') => SOME(xs, eq, Data.imp $ P' $ Q)
-                             | NONE => (case extract_imp false xs Q of
-                                          NONE => NONE
-                                        | SOME(xs,eq,Q') =>
-                                            SOME(xs,eq,Data.imp$P$Q')));
+fun extract_imp fst xs t =
+  (case Data.dest_imp t of
+    NONE => NONE
+  | SOME (imp, P, Q) =>
+      if def xs P then (if fst then NONE else SOME (xs, P, Q))
+      else
+        (case extract_conj false xs P of
+          SOME (xs, eq, P') => SOME (xs, eq, Data.imp $ P' $ Q)
+        | NONE =>
+            (case extract_imp false xs Q of
+              NONE => NONE
+            | SOME (xs, eq, Q') => SOME (xs, eq, Data.imp $ P $ Q'))));
 
 fun extract_quant extract q =
-  let fun exqu xs ((qC as Const(qa,_)) $ Abs(x,T,Q)) =
-            if qa = q then exqu ((qC,x,T)::xs) Q else NONE
-        | exqu xs P = extract (null xs) xs P
+  let
+    fun exqu xs ((qC as Const(qa, _)) $ Abs (x, T, Q)) =
+          if qa = q then exqu ((qC, x, T) :: xs) Q else NONE
+      | exqu xs P = extract (null xs) xs P
   in exqu [] end;
 
 fun prove_conv tac ss tu =
@@ -119,81 +129,89 @@ fun prove_conv tac ss tu =
       Goal.prove ctxt' [] [] goal (K (rtac Data.iff_reflection 1 THEN tac));
   in singleton (Variable.export ctxt' ctxt) thm end;
 
-fun qcomm_tac qcomm qI i = REPEAT_DETERM (rtac qcomm i THEN rtac qI i) 
+fun qcomm_tac qcomm qI i = REPEAT_DETERM (rtac qcomm i THEN rtac qI i);
 
 (* Proves (? x0..xn. ... & x0 = t & ...) = (? x1..xn x0. x0 = t & ... & ...)
    Better: instantiate exI
 *)
 local
-val excomm = Data.ex_comm RS Data.iff_trans
+  val excomm = Data.ex_comm RS Data.iff_trans;
 in
-val prove_one_point_ex_tac = qcomm_tac excomm Data.iff_exI 1 THEN rtac Data.iffI 1 THEN
-    ALLGOALS(EVERY'[etac Data.exE, REPEAT_DETERM o (etac Data.conjE), rtac Data.exI,
-                    DEPTH_SOLVE_1 o (ares_tac [Data.conjI])])
+  val prove_one_point_ex_tac =
+    qcomm_tac excomm Data.iff_exI 1 THEN rtac Data.iffI 1 THEN
+    ALLGOALS
+      (EVERY' [etac Data.exE, REPEAT_DETERM o etac Data.conjE, rtac Data.exI,
+        DEPTH_SOLVE_1 o ares_tac [Data.conjI]])
 end;
 
 (* Proves (! x0..xn. (... & x0 = t & ...) --> P x0) =
           (! x1..xn x0. x0 = t --> (... & ...) --> P x0)
 *)
 local
-val tac = SELECT_GOAL
-          (EVERY1[REPEAT o (dtac Data.uncurry), REPEAT o (rtac Data.impI), etac Data.mp,
-                  REPEAT o (etac Data.conjE), REPEAT o (ares_tac [Data.conjI])])
-val allcomm = Data.all_comm RS Data.iff_trans
+  val tac =
+    SELECT_GOAL
+      (EVERY1 [REPEAT o dtac Data.uncurry, REPEAT o rtac Data.impI, etac Data.mp,
+        REPEAT o etac Data.conjE, REPEAT o ares_tac [Data.conjI]]);
+  val allcomm = Data.all_comm RS Data.iff_trans;
 in
-val prove_one_point_all_tac =
-      EVERY1[qcomm_tac allcomm Data.iff_allI,rtac Data.iff_allI, rtac Data.iffI, tac, tac]
+  val prove_one_point_all_tac =
+    EVERY1 [qcomm_tac allcomm Data.iff_allI, rtac Data.iff_allI, rtac Data.iffI, tac, tac];
 end
 
-fun renumber l u (Bound i) = Bound(if i < l orelse i > u then i else
-                                   if i=u then l else i+1)
-  | renumber l u (s$t) = renumber l u s $ renumber l u t
-  | renumber l u (Abs(x,T,t)) = Abs(x,T,renumber (l+1) (u+1) t)
+fun renumber l u (Bound i) =
+      Bound (if i < l orelse i > u then i else if i = u then l else i + 1)
+  | renumber l u (s $ t) = renumber l u s $ renumber l u t
+  | renumber l u (Abs (x, T, t)) = Abs (x, T, renumber (l + 1) (u + 1) t)
   | renumber _ _ atom = atom;
 
 fun quantify qC x T xs P =
-  let fun quant [] P = P
-        | quant ((qC,x,T)::xs) P = quant xs (qC $ Abs(x,T,P))
-      val n = length xs
-      val Q = if n=0 then P else renumber 0 n P
-  in quant xs (qC $ Abs(x,T,Q)) end;
+  let
+    fun quant [] P = P
+      | quant ((qC, x, T) :: xs) P = quant xs (qC $ Abs (x, T, P));
+    val n = length xs;
+    val Q = if n = 0 then P else renumber 0 n P;
+  in quant xs (qC $ Abs (x, T, Q)) end;
 
-fun rearrange_all ss (F as (all as Const(q,_)) $ Abs(x,T, P)) =
-     (case extract_quant extract_imp q P of
+fun rearrange_all ss (F as (all as Const (q, _)) $ Abs (x, T, P)) =
+      (case extract_quant extract_imp q P of
         NONE => NONE
-      | SOME(xs,eq,Q) =>
+      | SOME (xs, eq, Q) =>
           let val R = quantify all x T xs (Data.imp $ eq $ Q)
-          in SOME (prove_conv prove_one_point_all_tac ss (F,R)) end)
+          in SOME (prove_conv prove_one_point_all_tac ss (F, R)) end)
   | rearrange_all _ _ = NONE;
 
-fun rearrange_ball tac ss (F as Ball $ A $ Abs(x,T,P)) =
-     (case extract_imp true [] P of
+fun rearrange_ball tac ss (F as Ball $ A $ Abs (x, T, P)) =
+      (case extract_imp true [] P of
         NONE => NONE
-      | SOME(xs,eq,Q) => if not(null xs) then NONE else
-          let val R = Data.imp $ eq $ Q
-          in SOME (prove_conv tac ss (F,Ball $ A $ Abs(x,T,R))) end)
+      | SOME (xs, eq, Q) =>
+          if not (null xs) then NONE
+          else
+            let val R = Data.imp $ eq $ Q
+            in SOME (prove_conv tac ss (F, Ball $ A $ Abs (x, T, R))) end)
   | rearrange_ball _ _ _ = NONE;
 
-fun rearrange_ex ss (F as (ex as Const(q,_)) $ Abs(x,T,P)) =
-     (case extract_quant extract_conj q P of
+fun rearrange_ex ss (F as (ex as Const (q, _)) $ Abs (x, T, P)) =
+      (case extract_quant extract_conj q P of
         NONE => NONE
-      | SOME(xs,eq,Q) =>
+      | SOME (xs, eq, Q) =>
           let val R = quantify ex x T xs (Data.conj $ eq $ Q)
-          in SOME(prove_conv prove_one_point_ex_tac ss (F,R)) end)
+          in SOME (prove_conv prove_one_point_ex_tac ss (F, R)) end)
   | rearrange_ex _ _ = NONE;
 
-fun rearrange_bex tac ss (F as Bex $ A $ Abs(x,T,P)) =
-     (case extract_conj true [] P of
+fun rearrange_bex tac ss (F as Bex $ A $ Abs (x, T, P)) =
+      (case extract_conj true [] P of
         NONE => NONE
-      | SOME(xs,eq,Q) => if not(null xs) then NONE else
-          SOME(prove_conv tac ss (F,Bex $ A $ Abs(x,T,Data.conj$eq$Q))))
+      | SOME (xs, eq, Q) =>
+          if not (null xs) then NONE
+          else SOME (prove_conv tac ss (F, Bex $ A $ Abs (x, T, Data.conj $ eq $ Q))))
   | rearrange_bex _ _ _ = NONE;
 
-fun rearrange_Collect tac ss (F as Coll $ Abs(x,T,P)) =
-     (case extract_conj true [] P of
+fun rearrange_Collect tac ss (F as Collect $ Abs (x, T, P)) =
+      (case extract_conj true [] P of
         NONE => NONE
-      | SOME(_,eq,Q) =>
-          let val R = Coll $ Abs(x,T, Data.conj $ eq $ Q)
-          in SOME(prove_conv tac ss (F,R)) end);
+      | SOME (_, eq, Q) =>
+          let val R = Collect $ Abs (x, T, Data.conj $ eq $ Q)
+          in SOME (prove_conv tac ss (F, R)) end)
+  | rearrange_Collect _ _ _ = NONE;
 
 end;

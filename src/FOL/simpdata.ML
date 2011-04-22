@@ -52,8 +52,8 @@ fun mksimps pairs (_: simpset) = map mk_eq o mk_atomize pairs o gen_all;
 
 
 (** make simplification procedures for quantifier elimination **)
-structure Quantifier1 = Quantifier1Fun(
-struct
+structure Quantifier1 = Quantifier1
+(
   (*abstract syntax*)
   fun dest_eq((c as Const(@{const_name eq},_)) $ s $ t) = SOME(c,s,t)
     | dest_eq _ = NONE;
@@ -78,7 +78,7 @@ struct
   val iff_exI = @{thm iff_exI}
   val all_comm = @{thm all_comm}
   val ex_comm = @{thm ex_comm}
-end);
+);
 
 
 (*** Case splitting ***)
