@@ -373,8 +373,7 @@ simproc_setup defined_rex ("EX x[M]. P(x) & Q(x)") = {*
     val unfold_rex_tac = unfold_tac @{thms rex_def};
     fun prove_rex_tac ss = unfold_rex_tac ss THEN Quantifier1.prove_one_point_ex_tac;
   in
-    fn _ => fn ss => fn ct =>
-      Quantifier1.rearrange_bex prove_rex_tac (theory_of_cterm ct) ss (term_of ct)
+    fn _ => fn ss => Quantifier1.rearrange_bex (prove_rex_tac ss) ss o term_of
   end
 *}
 
@@ -383,8 +382,7 @@ simproc_setup defined_rall ("ALL x[M]. P(x) --> Q(x)") = {*
     val unfold_rall_tac = unfold_tac @{thms rall_def};
     fun prove_rall_tac ss = unfold_rall_tac ss THEN Quantifier1.prove_one_point_all_tac;
   in
-    fn _ => fn ss => fn ct =>
-      Quantifier1.rearrange_ball prove_rall_tac (theory_of_cterm ct) ss (term_of ct)
+    fn _ => fn ss => Quantifier1.rearrange_ball (prove_rall_tac ss) ss o term_of
   end
 *}
 

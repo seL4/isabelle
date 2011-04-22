@@ -66,11 +66,11 @@ signature QUANTIFIER1 =
 sig
   val prove_one_point_all_tac: tactic
   val prove_one_point_ex_tac: tactic
-  val rearrange_all: theory -> simpset -> term -> thm option
-  val rearrange_ex:  theory -> simpset -> term -> thm option
-  val rearrange_ball: (simpset -> tactic) -> theory -> simpset -> term -> thm option
-  val rearrange_bex:  (simpset -> tactic) -> theory -> simpset -> term -> thm option
-  val rearrange_Coll: tactic -> theory -> simpset -> term -> thm option
+  val rearrange_all: simpset -> term -> thm option
+  val rearrange_ex: simpset -> term -> thm option
+  val rearrange_ball: tactic -> simpset -> term -> thm option
+  val rearrange_bex: tactic -> simpset -> term -> thm option
+  val rearrange_Collect: tactic -> simpset -> term -> thm option
 end;
 
 functor Quantifier1Fun(Data: QUANTIFIER1_DATA): QUANTIFIER1 =
@@ -112,14 +112,14 @@ fun extract_quant extract q =
         | exqu xs P = extract (null xs) xs P
   in exqu [] end;
 
-fun prove_conv tac thy tu =
-  let val ctxt = Proof_Context.init_global thy;
-      val eq_tu = Logic.mk_equals tu;
-      val ([fixed_goal], ctxt') = Variable.import_terms true [eq_tu] ctxt;
-      val thm = Goal.prove ctxt' [] [] fixed_goal
-            (K (rtac iff_reflection 1 THEN tac));
-      val [gen_thm] = Variable.export ctxt' ctxt [thm];
-  in gen_thm end;
+fun prove_conv tac ss tu =
+  let
+    val ctxt = Simplifier.the_context ss;
+    val (goal, ctxt') =
+      yield_singleton (Variable.import_terms true) (Logic.mk_equals tu) ctxt;
+    val thm =
+      Goal.prove ctxt' [] [] goal (K (rtac iff_reflection 1 THEN tac));
+  in singleton (Variable.export ctxt' ctxt) thm end;
 
 fun qcomm_tac qcomm qI i = REPEAT_DETERM (rtac qcomm i THEN rtac qI i) 
 
@@ -160,42 +160,42 @@ fun quantify qC x T xs P =
       val Q = if n=0 then P else renumber 0 n P
   in quant xs (qC $ Abs(x,T,Q)) end;
 
-fun rearrange_all thy _ (F as (all as Const(q,_)) $ Abs(x,T, P)) =
+fun rearrange_all ss (F as (all as Const(q,_)) $ Abs(x,T, P)) =
      (case extract_quant extract_imp q P of
         NONE => NONE
       | SOME(xs,eq,Q) =>
           let val R = quantify all x T xs (imp $ eq $ Q)
-          in SOME(prove_conv prove_one_point_all_tac thy (F,R)) end)
-  | rearrange_all _ _ _ = NONE;
+          in SOME (prove_conv prove_one_point_all_tac ss (F,R)) end)
+  | rearrange_all _ _ = NONE;
 
-fun rearrange_ball tac thy ss (F as Ball $ A $ Abs(x,T,P)) =
+fun rearrange_ball tac ss (F as Ball $ A $ Abs(x,T,P)) =
      (case extract_imp true [] P of
         NONE => NONE
       | SOME(xs,eq,Q) => if not(null xs) then NONE else
           let val R = imp $ eq $ Q
-          in SOME(prove_conv (tac ss) thy (F,Ball $ A $ Abs(x,T,R))) end)
-  | rearrange_ball _ _ _ _ = NONE;
+          in SOME (prove_conv tac ss (F,Ball $ A $ Abs(x,T,R))) end)
+  | rearrange_ball _ _ _ = NONE;
 
-fun rearrange_ex thy _ (F as (ex as Const(q,_)) $ Abs(x,T,P)) =
+fun rearrange_ex ss (F as (ex as Const(q,_)) $ Abs(x,T,P)) =
      (case extract_quant extract_conj q P of
         NONE => NONE
       | SOME(xs,eq,Q) =>
           let val R = quantify ex x T xs (conj $ eq $ Q)
-          in SOME(prove_conv prove_one_point_ex_tac thy (F,R)) end)
-  | rearrange_ex _ _ _ = NONE;
+          in SOME(prove_conv prove_one_point_ex_tac ss (F,R)) end)
+  | rearrange_ex _ _ = NONE;
 
-fun rearrange_bex tac thy ss (F as Bex $ A $ Abs(x,T,P)) =
+fun rearrange_bex tac ss (F as Bex $ A $ Abs(x,T,P)) =
      (case extract_conj true [] P of
         NONE => NONE
       | SOME(xs,eq,Q) => if not(null xs) then NONE else
-          SOME(prove_conv (tac ss) thy (F,Bex $ A $ Abs(x,T,conj$eq$Q))))
-  | rearrange_bex _ _ _ _ = NONE;
+          SOME(prove_conv tac ss (F,Bex $ A $ Abs(x,T,conj$eq$Q))))
+  | rearrange_bex _ _ _ = NONE;
 
-fun rearrange_Coll tac thy _ (F as Coll $ Abs(x,T,P)) =
+fun rearrange_Collect tac ss (F as Coll $ Abs(x,T,P)) =
      (case extract_conj true [] P of
         NONE => NONE
       | SOME(_,eq,Q) =>
           let val R = Coll $ Abs(x,T, conj $ eq $ Q)
-          in SOME(prove_conv tac thy (F,R)) end);
+          in SOME(prove_conv tac ss (F,R)) end);
 
 end;
