@@ -306,13 +306,8 @@ lemmas cla_simps =
 
 use "simpdata.ML"
 
-simproc_setup defined_Ex ("EX x. P(x)") = {*
-  fn _ => fn ss => Quantifier1.rearrange_ex ss o term_of
-*}
-
-simproc_setup defined_All ("ALL x. P(x)") = {*
-  fn _ => fn ss => Quantifier1.rearrange_all ss o term_of
-*}
+simproc_setup defined_Ex ("EX x. P(x)") = {* fn _ => Quantifier1.rearrange_ex *}
+simproc_setup defined_All ("ALL x. P(x)") = {* fn _ => Quantifier1.rearrange_all *}
 
 ML {*
 (*intuitionistic simprules only*)

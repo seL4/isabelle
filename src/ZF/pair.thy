@@ -14,18 +14,14 @@ simproc_setup defined_Bex ("EX x:A. P(x) & Q(x)") = {*
   let
     val unfold_bex_tac = unfold_tac @{thms Bex_def};
     fun prove_bex_tac ss = unfold_bex_tac ss THEN Quantifier1.prove_one_point_ex_tac;
-  in
-    fn _ => fn ss => Quantifier1.rearrange_bex (prove_bex_tac ss) ss o term_of
-  end
+  in fn _ => fn ss => Quantifier1.rearrange_bex (prove_bex_tac ss) ss end
 *}
 
 simproc_setup defined_Ball ("ALL x:A. P(x) --> Q(x)") = {*
   let
     val unfold_ball_tac = unfold_tac @{thms Ball_def};
     fun prove_ball_tac ss = unfold_ball_tac ss THEN Quantifier1.prove_one_point_all_tac;
-  in
-    fn _ => fn ss => Quantifier1.rearrange_ball (prove_ball_tac ss) ss o term_of
-  end
+  in fn _ => fn ss => Quantifier1.rearrange_ball (prove_ball_tac ss) ss end
 *}
 
 

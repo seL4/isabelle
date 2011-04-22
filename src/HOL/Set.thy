@@ -76,14 +76,12 @@ to the front (and similarly for @{text "t=x"}):
 *}
 
 simproc_setup defined_Collect ("{x. P x & Q x}") = {*
-  let
-    val Collect_perm_tac =
-      rtac @{thm Collect_cong} 1 THEN
+  fn _ =>
+    Quantifier1.rearrange_Collect
+     (rtac @{thm Collect_cong} 1 THEN
       rtac @{thm iffI} 1 THEN
-      ALLGOALS (EVERY' [REPEAT_DETERM o etac @{thm conjE}, DEPTH_SOLVE_1 o ares_tac @{thms conjI}]);
-  in
-    fn _ => fn ss => Quantifier1.rearrange_Collect Collect_perm_tac ss o term_of
-  end
+      ALLGOALS
+        (EVERY' [REPEAT_DETERM o etac @{thm conjE}, DEPTH_SOLVE_1 o ares_tac @{thms conjI}]))
 *}
 
 lemmas CollectE = CollectD [elim_format]
@@ -331,18 +329,14 @@ simproc_setup defined_Bex ("EX x:A. P x & Q x") = {*
   let
     val unfold_bex_tac = unfold_tac @{thms Bex_def};
     fun prove_bex_tac ss = unfold_bex_tac ss THEN Quantifier1.prove_one_point_ex_tac;
-  in
-    fn _ => fn ss => Quantifier1.rearrange_bex (prove_bex_tac ss) ss o term_of
-  end
+  in fn _ => fn ss => Quantifier1.rearrange_bex (prove_bex_tac ss) ss end
 *}
 
 simproc_setup defined_All ("ALL x:A. P x --> Q x") = {*
   let
     val unfold_ball_tac = unfold_tac @{thms Ball_def};
     fun prove_ball_tac ss = unfold_ball_tac ss THEN Quantifier1.prove_one_point_all_tac;
-  in
-    fn _ => fn ss => Quantifier1.rearrange_ball (prove_ball_tac ss) ss o term_of
-  end
+  in fn _ => fn ss => Quantifier1.rearrange_ball (prove_ball_tac ss) ss end
 *}
 
 lemma ballI [intro!]: "(!!x. x:A ==> P x) ==> ALL x:A. P x"
