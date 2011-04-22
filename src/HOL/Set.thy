@@ -75,17 +75,16 @@ Simproc for pulling @{text "x=t"} in @{text "{x. \<dots> & x=t & \<dots>}"}
 to the front (and similarly for @{text "t=x"}):
 *}
 
-setup {*
-let
-  val Coll_perm_tac = rtac @{thm Collect_cong} 1 THEN rtac @{thm iffI} 1 THEN
-    ALLGOALS(EVERY'[REPEAT_DETERM o (etac @{thm conjE}),
-                    DEPTH_SOLVE_1 o (ares_tac [@{thm conjI}])])
-  val defColl_regroup = Simplifier.simproc_global @{theory}
-    "defined Collect" ["{x. P x & Q x}"]
-    (Quantifier1.rearrange_Coll Coll_perm_tac)
-in
-  Simplifier.map_simpset (fn ss => ss addsimprocs [defColl_regroup])
-end
+simproc_setup defined_Collect ("{x. P x & Q x}") = {*
+  let
+    val Coll_perm_tac =
+      rtac @{thm Collect_cong} 1 THEN
+      rtac @{thm iffI} 1 THEN
+      ALLGOALS (EVERY' [REPEAT_DETERM o etac @{thm conjE}, DEPTH_SOLVE_1 o ares_tac @{thms conjI}]);
+  in
+    fn _ => fn ss => fn ct =>
+      Quantifier1.rearrange_Coll Coll_perm_tac (theory_of_cterm ct) ss (term_of ct)
+  end
 *}
 
 lemmas CollectE = CollectD [elim_format]
@@ -329,21 +328,24 @@ let
   in [(@{const_syntax Collect}, setcompr_tr')] end;
 *}
 
-setup {*
-let
-  val unfold_bex_tac = unfold_tac @{thms "Bex_def"};
-  fun prove_bex_tac ss = unfold_bex_tac ss THEN Quantifier1.prove_one_point_ex_tac;
-  val rearrange_bex = Quantifier1.rearrange_bex prove_bex_tac;
-  val unfold_ball_tac = unfold_tac @{thms "Ball_def"};
-  fun prove_ball_tac ss = unfold_ball_tac ss THEN Quantifier1.prove_one_point_all_tac;
-  val rearrange_ball = Quantifier1.rearrange_ball prove_ball_tac;
-  val defBEX_regroup = Simplifier.simproc_global @{theory}
-    "defined BEX" ["EX x:A. P x & Q x"] rearrange_bex;
-  val defBALL_regroup = Simplifier.simproc_global @{theory}
-    "defined BALL" ["ALL x:A. P x --> Q x"] rearrange_ball;
-in
-  Simplifier.map_simpset (fn ss => ss addsimprocs [defBALL_regroup, defBEX_regroup])
-end
+simproc_setup defined_Bex ("EX x:A. P x & Q x") = {*
+  let
+    val unfold_bex_tac = unfold_tac @{thms Bex_def};
+    fun prove_bex_tac ss = unfold_bex_tac ss THEN Quantifier1.prove_one_point_ex_tac;
+  in
+    fn _ => fn ss => fn ct =>
+      Quantifier1.rearrange_bex prove_bex_tac (theory_of_cterm ct) ss (term_of ct)
+  end
+*}
+
+simproc_setup defined_All ("ALL x:A. P x --> Q x") = {*
+  let
+    val unfold_ball_tac = unfold_tac @{thms Ball_def};
+    fun prove_ball_tac ss = unfold_ball_tac ss THEN Quantifier1.prove_one_point_all_tac;
+  in
+    fn _ => fn ss => fn ct =>
+      Quantifier1.rearrange_ball prove_ball_tac (theory_of_cterm ct) ss (term_of ct)
+  end
 *}
 
 lemma ballI [intro!]: "(!!x. x:A ==> P x) ==> ALL x:A. P x"

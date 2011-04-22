@@ -368,27 +368,24 @@ declaration {* fn _ =>
 
 text {* Setting up the one-point-rule simproc *}
 
-ML {*
-local
+simproc_setup defined_rex ("EX x[M]. P(x) & Q(x)") = {*
+  let
+    val unfold_rex_tac = unfold_tac @{thms rex_def};
+    fun prove_rex_tac ss = unfold_rex_tac ss THEN Quantifier1.prove_one_point_ex_tac;
+  in
+    fn _ => fn ss => fn ct =>
+      Quantifier1.rearrange_bex prove_rex_tac (theory_of_cterm ct) ss (term_of ct)
+  end
+*}
 
-val unfold_rex_tac = unfold_tac [@{thm rex_def}];
-fun prove_rex_tac ss = unfold_rex_tac ss THEN Quantifier1.prove_one_point_ex_tac;
-val rearrange_bex = Quantifier1.rearrange_bex prove_rex_tac;
-
-val unfold_rall_tac = unfold_tac [@{thm rall_def}];
-fun prove_rall_tac ss = unfold_rall_tac ss THEN Quantifier1.prove_one_point_all_tac;
-val rearrange_ball = Quantifier1.rearrange_ball prove_rall_tac;
-
-in
-
-val defREX_regroup = Simplifier.simproc_global @{theory}
-  "defined REX" ["EX x[M]. P(x) & Q(x)"] rearrange_bex;
-val defRALL_regroup = Simplifier.simproc_global @{theory}
-  "defined RALL" ["ALL x[M]. P(x) --> Q(x)"] rearrange_ball;
-
-end;
-
-Addsimprocs [defRALL_regroup,defREX_regroup];
+simproc_setup defined_rall ("ALL x[M]. P(x) --> Q(x)") = {*
+  let
+    val unfold_rall_tac = unfold_tac @{thms rall_def};
+    fun prove_rall_tac ss = unfold_rall_tac ss THEN Quantifier1.prove_one_point_all_tac;
+  in
+    fn _ => fn ss => fn ct =>
+      Quantifier1.rearrange_ball prove_rall_tac (theory_of_cterm ct) ss (term_of ct)
+  end
 *}
 
 end

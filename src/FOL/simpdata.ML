@@ -80,14 +80,6 @@ struct
   val ex_comm = @{thm ex_comm}
 end);
 
-val defEX_regroup =
-  Simplifier.simproc_global @{theory}
-    "defined EX" ["EX x. P(x)"] Quantifier1.rearrange_ex;
-
-val defALL_regroup =
-  Simplifier.simproc_global @{theory}
-    "defined ALL" ["ALL x. P(x)"] Quantifier1.rearrange_all;
-
 
 (*** Case splitting ***)
 

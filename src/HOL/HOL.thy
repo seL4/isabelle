@@ -1209,8 +1209,15 @@ lemma ex_comm:
 
 use "Tools/simpdata.ML"
 ML {* open Simpdata *}
-setup {*
-  Simplifier.map_simpset (K (HOL_basic_ss addsimprocs [defALL_regroup, defEX_regroup]))
+
+setup {* Simplifier.map_simpset (K HOL_basic_ss) *}
+
+simproc_setup defined_Ex ("EX x. P x") = {*
+  fn _ => fn ss => fn ct => Quantifier1.rearrange_ex (theory_of_cterm ct) ss (term_of ct)
+*}
+
+simproc_setup defined_All ("ALL x. P x") = {*
+  fn _ => fn ss => fn ct => Quantifier1.rearrange_all (theory_of_cterm ct) ss (term_of ct)
 *}
 
 setup {*

@@ -47,28 +47,5 @@ change_simpset (fn ss =>
   ss setmksimps (K (map mk_eq o ZF_atomize o gen_all))
   addcongs [@{thm if_weak_cong}]);
 
-local
-
-val unfold_bex_tac = unfold_tac [@{thm Bex_def}];
-fun prove_bex_tac ss = unfold_bex_tac ss THEN Quantifier1.prove_one_point_ex_tac;
-val rearrange_bex = Quantifier1.rearrange_bex prove_bex_tac;
-
-val unfold_ball_tac = unfold_tac [@{thm Ball_def}];
-fun prove_ball_tac ss = unfold_ball_tac ss THEN Quantifier1.prove_one_point_all_tac;
-val rearrange_ball = Quantifier1.rearrange_ball prove_ball_tac;
-
-in
-
-val defBEX_regroup = Simplifier.simproc_global @{theory}
-  "defined BEX" ["EX x:A. P(x) & Q(x)"] rearrange_bex;
-
-val defBALL_regroup = Simplifier.simproc_global @{theory}
-  "defined BALL" ["ALL x:A. P(x) --> Q(x)"] rearrange_ball;
-
-end;
-
-Addsimprocs [defBALL_regroup, defBEX_regroup];
-
-
 val ZF_ss = @{simpset};
 

@@ -305,12 +305,21 @@ lemmas cla_simps =
 
 
 use "simpdata.ML"
+
+simproc_setup defined_Ex ("EX x. P(x)") = {*
+  fn _ => fn ss => fn ct => Quantifier1.rearrange_ex (theory_of_cterm ct) ss (term_of ct)
+*}
+
+simproc_setup defined_All ("ALL x. P(x)") = {*
+  fn _ => fn ss => fn ct => Quantifier1.rearrange_all (theory_of_cterm ct) ss (term_of ct)
+*}
+
 ML {*
 (*intuitionistic simprules only*)
 val IFOL_ss =
   FOL_basic_ss
   addsimps (@{thms meta_simps} @ @{thms IFOL_simps} @ @{thms int_ex_simps} @ @{thms int_all_simps})
-  addsimprocs [defALL_regroup, defEX_regroup]
+  addsimprocs [@{simproc defined_All}, @{simproc defined_Ex}]
   addcongs [@{thm imp_cong}];
 
 (*classical simprules too*)
@@ -318,6 +327,7 @@ val FOL_ss = IFOL_ss addsimps (@{thms cla_simps} @ @{thms cla_ex_simps} @ @{thms
 *}
 
 setup {* Simplifier.map_simpset (K FOL_ss) *}
+
 setup "Simplifier.method_setup Splitter.split_modifiers"
 setup Splitter.setup
 setup clasimp_setup

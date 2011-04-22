@@ -567,7 +567,7 @@ val nnf_extra_simps = @{thms split_ifs ex_simps all_simps simp_thms}
 
 val nnf_ss =
   HOL_basic_ss addsimps nnf_extra_simps
-    addsimprocs [defALL_regroup,defEX_regroup, @{simproc neq}, @{simproc let_simp}];
+    addsimprocs [@{simproc defined_All}, @{simproc defined_Ex}, @{simproc neq}, @{simproc let_simp}];
 
 val presimplify =
   rewrite_rule (map safe_mk_meta_eq nnf_simps) #> simplify nnf_ss
