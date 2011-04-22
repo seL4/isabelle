@@ -1209,10 +1209,12 @@ lemma ex_comm:
 
 use "Tools/simpdata.ML"
 ML {* open Simpdata *}
+setup {*
+  Simplifier.map_simpset (K (HOL_basic_ss addsimprocs [defALL_regroup, defEX_regroup]))
+*}
 
 setup {*
   Simplifier.method_setup Splitter.split_modifiers
-  #> Simplifier.map_simpset (K Simpdata.simpset_simprocs)
   #> Splitter.setup
   #> clasimp_setup
   #> EqSubst.setup

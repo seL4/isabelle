@@ -136,19 +136,6 @@ fun unfold_tac ths =
   in fn ss => ALLGOALS (full_simp_tac (Simplifier.inherit_context ss ss0)) end;
 
 
-(*intuitionistic simprules only*)
-val IFOL_ss =
-  FOL_basic_ss
-  addsimps (@{thms meta_simps} @ @{thms IFOL_simps} @ @{thms int_ex_simps} @ @{thms int_all_simps})
-  addsimprocs [defALL_regroup, defEX_regroup]    
-  addcongs [@{thm imp_cong}];
-
-(*classical simprules too*)
-val FOL_ss = IFOL_ss addsimps (@{thms cla_simps} @ @{thms cla_ex_simps} @ @{thms cla_all_simps});
-
-val simpsetup = Simplifier.map_simpset (K FOL_ss);
-
-
 (*** integration of simplifier with classical reasoner ***)
 
 structure Clasimp = ClasimpFun
@@ -160,4 +147,3 @@ open Clasimp;
 ML_Antiquote.value "clasimpset"
   (Scan.succeed "Clasimp.clasimpset_of (ML_Context.the_local_context ())");
 
-val FOL_css = (FOL_cs, FOL_ss);

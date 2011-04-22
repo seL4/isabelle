@@ -191,9 +191,6 @@ val defEX_regroup =
   Simplifier.simproc_global @{theory}
     "defined EX" ["EX x. P x"] Quantifier1.rearrange_ex;
 
-
-val simpset_simprocs = HOL_basic_ss addsimprocs [defALL_regroup, defEX_regroup]
-
 end;
 
 structure Splitter = Simpdata.Splitter;

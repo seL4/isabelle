@@ -122,7 +122,7 @@ lemma contrapos2:  "[| Q; ~ P ==> ~ Q |] ==> P"
 
 (*** Tactics for implication and contradiction ***)
 
-(*Classical <-> elimination.  Proof substitutes P=Q in 
+(*Classical <-> elimination.  Proof substitutes P=Q in
     ~P ==> ~Q    and    P ==> Q  *)
 lemma iffCE:
   assumes major: "P<->Q"
@@ -305,7 +305,19 @@ lemmas cla_simps =
 
 
 use "simpdata.ML"
-setup simpsetup
+ML {*
+(*intuitionistic simprules only*)
+val IFOL_ss =
+  FOL_basic_ss
+  addsimps (@{thms meta_simps} @ @{thms IFOL_simps} @ @{thms int_ex_simps} @ @{thms int_all_simps})
+  addsimprocs [defALL_regroup, defEX_regroup]
+  addcongs [@{thm imp_cong}];
+
+(*classical simprules too*)
+val FOL_ss = IFOL_ss addsimps (@{thms cla_simps} @ @{thms cla_ex_simps} @ @{thms cla_all_simps});
+*}
+
+setup {* Simplifier.map_simpset (K FOL_ss) *}
 setup "Simplifier.method_setup Splitter.split_modifiers"
 setup Splitter.setup
 setup clasimp_setup
