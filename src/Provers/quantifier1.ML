@@ -76,35 +76,33 @@ end;
 functor Quantifier1Fun(Data: QUANTIFIER1_DATA): QUANTIFIER1 =
 struct
 
-open Data;
-
 (* FIXME: only test! *)
 fun def xs eq =
-  (case dest_eq eq of
+  (case Data.dest_eq eq of
      SOME(c,s,t) =>
        let val n = length xs
        in s = Bound n andalso not(loose_bvar1(t,n)) orelse
           t = Bound n andalso not(loose_bvar1(s,n)) end
    | NONE => false);
 
-fun extract_conj fst xs t = case dest_conj t of NONE => NONE
+fun extract_conj fst xs t = case Data.dest_conj t of NONE => NONE
     | SOME(conj,P,Q) =>
         (if def xs P then (if fst then NONE else SOME(xs,P,Q)) else
          if def xs Q then SOME(xs,Q,P) else
          (case extract_conj false xs P of
-            SOME(xs,eq,P') => SOME(xs,eq, conj $ P' $ Q)
+            SOME(xs,eq,P') => SOME(xs,eq, Data.conj $ P' $ Q)
           | NONE => (case extract_conj false xs Q of
-                       SOME(xs,eq,Q') => SOME(xs,eq,conj $ P $ Q')
+                       SOME(xs,eq,Q') => SOME(xs,eq,Data.conj $ P $ Q')
                      | NONE => NONE)));
 
-fun extract_imp fst xs t = case dest_imp t of NONE => NONE
+fun extract_imp fst xs t = case Data.dest_imp t of NONE => NONE
     | SOME(imp,P,Q) => if def xs P then (if fst then NONE else SOME(xs,P,Q))
                        else (case extract_conj false xs P of
-                               SOME(xs,eq,P') => SOME(xs, eq, imp $ P' $ Q)
+                               SOME(xs,eq,P') => SOME(xs, eq, Data.imp $ P' $ Q)
                              | NONE => (case extract_imp false xs Q of
                                           NONE => NONE
                                         | SOME(xs,eq,Q') =>
-                                            SOME(xs,eq,imp$P$Q')));
+                                            SOME(xs,eq,Data.imp$P$Q')));
 
 fun extract_quant extract q =
   let fun exqu xs ((qC as Const(qa,_)) $ Abs(x,T,Q)) =
@@ -118,7 +116,7 @@ fun prove_conv tac ss tu =
     val (goal, ctxt') =
       yield_singleton (Variable.import_terms true) (Logic.mk_equals tu) ctxt;
     val thm =
-      Goal.prove ctxt' [] [] goal (K (rtac iff_reflection 1 THEN tac));
+      Goal.prove ctxt' [] [] goal (K (rtac Data.iff_reflection 1 THEN tac));
   in singleton (Variable.export ctxt' ctxt) thm end;
 
 fun qcomm_tac qcomm qI i = REPEAT_DETERM (rtac qcomm i THEN rtac qI i) 
@@ -127,11 +125,11 @@ fun qcomm_tac qcomm qI i = REPEAT_DETERM (rtac qcomm i THEN rtac qI i)
    Better: instantiate exI
 *)
 local
-val excomm = ex_comm RS iff_trans
+val excomm = Data.ex_comm RS Data.iff_trans
 in
-val prove_one_point_ex_tac = qcomm_tac excomm iff_exI 1 THEN rtac iffI 1 THEN
-    ALLGOALS(EVERY'[etac exE, REPEAT_DETERM o (etac conjE), rtac exI,
-                    DEPTH_SOLVE_1 o (ares_tac [conjI])])
+val prove_one_point_ex_tac = qcomm_tac excomm Data.iff_exI 1 THEN rtac Data.iffI 1 THEN
+    ALLGOALS(EVERY'[etac Data.exE, REPEAT_DETERM o (etac Data.conjE), rtac Data.exI,
+                    DEPTH_SOLVE_1 o (ares_tac [Data.conjI])])
 end;
 
 (* Proves (! x0..xn. (... & x0 = t & ...) --> P x0) =
@@ -139,12 +137,12 @@ end;
 *)
 local
 val tac = SELECT_GOAL
-          (EVERY1[REPEAT o (dtac uncurry), REPEAT o (rtac impI), etac mp,
-                  REPEAT o (etac conjE), REPEAT o (ares_tac [conjI])])
-val allcomm = all_comm RS iff_trans
+          (EVERY1[REPEAT o (dtac Data.uncurry), REPEAT o (rtac Data.impI), etac Data.mp,
+                  REPEAT o (etac Data.conjE), REPEAT o (ares_tac [Data.conjI])])
+val allcomm = Data.all_comm RS Data.iff_trans
 in
 val prove_one_point_all_tac =
-      EVERY1[qcomm_tac allcomm iff_allI,rtac iff_allI, rtac iffI, tac, tac]
+      EVERY1[qcomm_tac allcomm Data.iff_allI,rtac Data.iff_allI, rtac Data.iffI, tac, tac]
 end
 
 fun renumber l u (Bound i) = Bound(if i < l orelse i > u then i else
@@ -164,7 +162,7 @@ fun rearrange_all ss (F as (all as Const(q,_)) $ Abs(x,T, P)) =
      (case extract_quant extract_imp q P of
         NONE => NONE
       | SOME(xs,eq,Q) =>
-          let val R = quantify all x T xs (imp $ eq $ Q)
+          let val R = quantify all x T xs (Data.imp $ eq $ Q)
           in SOME (prove_conv prove_one_point_all_tac ss (F,R)) end)
   | rearrange_all _ _ = NONE;
 
@@ -172,7 +170,7 @@ fun rearrange_ball tac ss (F as Ball $ A $ Abs(x,T,P)) =
      (case extract_imp true [] P of
         NONE => NONE
       | SOME(xs,eq,Q) => if not(null xs) then NONE else
-          let val R = imp $ eq $ Q
+          let val R = Data.imp $ eq $ Q
           in SOME (prove_conv tac ss (F,Ball $ A $ Abs(x,T,R))) end)
   | rearrange_ball _ _ _ = NONE;
 
@@ -180,7 +178,7 @@ fun rearrange_ex ss (F as (ex as Const(q,_)) $ Abs(x,T,P)) =
      (case extract_quant extract_conj q P of
         NONE => NONE
       | SOME(xs,eq,Q) =>
-          let val R = quantify ex x T xs (conj $ eq $ Q)
+          let val R = quantify ex x T xs (Data.conj $ eq $ Q)
           in SOME(prove_conv prove_one_point_ex_tac ss (F,R)) end)
   | rearrange_ex _ _ = NONE;
 
@@ -188,14 +186,14 @@ fun rearrange_bex tac ss (F as Bex $ A $ Abs(x,T,P)) =
      (case extract_conj true [] P of
         NONE => NONE
       | SOME(xs,eq,Q) => if not(null xs) then NONE else
-          SOME(prove_conv tac ss (F,Bex $ A $ Abs(x,T,conj$eq$Q))))
+          SOME(prove_conv tac ss (F,Bex $ A $ Abs(x,T,Data.conj$eq$Q))))
   | rearrange_bex _ _ _ = NONE;
 
 fun rearrange_Collect tac ss (F as Coll $ Abs(x,T,P)) =
      (case extract_conj true [] P of
         NONE => NONE
       | SOME(_,eq,Q) =>
-          let val R = Coll $ Abs(x,T, conj $ eq $ Q)
+          let val R = Coll $ Abs(x,T, Data.conj $ eq $ Q)
           in SOME(prove_conv tac ss (F,R)) end);
 
 end;
