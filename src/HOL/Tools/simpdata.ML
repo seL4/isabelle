@@ -10,11 +10,11 @@ Instantiation of the generic simplifier for HOL.
 structure Quantifier1 = Quantifier1
 (
   (*abstract syntax*)
-  fun dest_eq ((c as Const(@{const_name HOL.eq},_)) $ s $ t) = SOME (c, s, t)
+  fun dest_eq (Const(@{const_name HOL.eq},_) $ s $ t) = SOME (s, t)
     | dest_eq _ = NONE;
-  fun dest_conj ((c as Const(@{const_name HOL.conj},_)) $ s $ t) = SOME (c, s, t)
+  fun dest_conj (Const(@{const_name HOL.conj},_) $ s $ t) = SOME (s, t)
     | dest_conj _ = NONE;
-  fun dest_imp ((c as Const(@{const_name HOL.implies},_)) $ s $ t) = SOME (c, s, t)
+  fun dest_imp (Const(@{const_name HOL.implies},_) $ s $ t) = SOME (s, t)
     | dest_imp _ = NONE;
   val conj = HOLogic.conj
   val imp  = HOLogic.imp

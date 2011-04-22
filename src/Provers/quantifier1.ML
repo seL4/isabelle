@@ -40,9 +40,9 @@ esp if x=t/t=x sits at the front already.
 signature QUANTIFIER1_DATA =
 sig
   (*abstract syntax*)
-  val dest_eq: term -> (term * term * term) option
-  val dest_conj: term -> (term * term * term) option
-  val dest_imp: term -> (term * term * term) option
+  val dest_eq: term -> (term * term) option
+  val dest_conj: term -> (term * term) option
+  val dest_imp: term -> (term * term) option
   val conj: term
   val imp: term
   (*rules*)
@@ -79,7 +79,7 @@ struct
 (* FIXME: only test! *)
 fun def xs eq =
   (case Data.dest_eq eq of
-    SOME (c, s, t) =>
+    SOME (s, t) =>
       let val n = length xs in
         s = Bound n andalso not (loose_bvar1 (t, n)) orelse
         t = Bound n andalso not (loose_bvar1 (s, n))
@@ -89,7 +89,7 @@ fun def xs eq =
 fun extract_conj fst xs t =
   (case Data.dest_conj t of
     NONE => NONE
-  | SOME (conj, P, Q) =>
+  | SOME (P, Q) =>
       if def xs P then (if fst then NONE else SOME (xs, P, Q))
       else if def xs Q then SOME (xs, Q, P)
       else
@@ -103,7 +103,7 @@ fun extract_conj fst xs t =
 fun extract_imp fst xs t =
   (case Data.dest_imp t of
     NONE => NONE
-  | SOME (imp, P, Q) =>
+  | SOME (P, Q) =>
       if def xs P then (if fst then NONE else SOME (xs, P, Q))
       else
         (case extract_conj false xs P of
@@ -115,7 +115,7 @@ fun extract_imp fst xs t =
 
 fun extract_quant extract q =
   let
-    fun exqu xs ((qC as Const(qa, _)) $ Abs (x, T, Q)) =
+    fun exqu xs ((qC as Const (qa, _)) $ Abs (x, T, Q)) =
           if qa = q then exqu ((qC, x, T) :: xs) Q else NONE
       | exqu xs P = extract (null xs) xs P
   in exqu [] end;
@@ -225,3 +225,4 @@ fun rearrange_Collect tac ss ct =
   | _ => NONE);
 
 end;
+

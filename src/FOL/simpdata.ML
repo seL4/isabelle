@@ -55,12 +55,12 @@ fun mksimps pairs (_: simpset) = map mk_eq o mk_atomize pairs o gen_all;
 structure Quantifier1 = Quantifier1
 (
   (*abstract syntax*)
-  fun dest_eq((c as Const(@{const_name eq},_)) $ s $ t) = SOME(c,s,t)
-    | dest_eq _ = NONE;
-  fun dest_conj((c as Const(@{const_name conj},_)) $ s $ t) = SOME(c,s,t)
-    | dest_conj _ = NONE;
-  fun dest_imp((c as Const(@{const_name imp},_)) $ s $ t) = SOME(c,s,t)
-    | dest_imp _ = NONE;
+  fun dest_eq (Const (@{const_name eq}, _) $ s $ t) = SOME (s, t)
+    | dest_eq _ = NONE
+  fun dest_conj (Const (@{const_name conj}, _) $ s $ t) = SOME (s, t)
+    | dest_conj _ = NONE
+  fun dest_imp (Const (@{const_name imp}, _) $ s $ t) = SOME (s, t)
+    | dest_imp _ = NONE
   val conj = FOLogic.conj
   val imp  = FOLogic.imp
   (*rules*)
