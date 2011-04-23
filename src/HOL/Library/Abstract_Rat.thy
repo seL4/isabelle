@@ -8,7 +8,7 @@ theory Abstract_Rat
 imports Complex_Main
 begin
 
-types Num = "int \<times> int"
+type_synonym Num = "int \<times> int"
 
 abbreviation
   Num0_syn :: Num ("0\<^sub>N")

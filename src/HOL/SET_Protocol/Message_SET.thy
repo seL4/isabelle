@@ -32,8 +32,7 @@ by blast
 
 
 
-types
-  key = nat
+type_synonym key = nat
 
 consts
   all_symmetric :: bool        --{*true if all keys are symmetric*}

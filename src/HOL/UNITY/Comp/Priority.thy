@@ -12,8 +12,8 @@ Examples of Program Composition Illustrating the Use of Universal Properties
    In J. Rolim (editor), Parallel and Distributed Processing,
    Spriner LNCS 1586 (1999), pages 1215-1227.*}
 
-types state = "(vertex*vertex)set"
-types command = "vertex=>(state*state)set"
+type_synonym state = "(vertex*vertex)set"
+type_synonym command = "vertex=>(state*state)set"
   
 consts
   init :: "(vertex*vertex)set"  

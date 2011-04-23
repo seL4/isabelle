@@ -13,13 +13,13 @@ section{* General settings and functions for our representation of clauses *}
 subsection{* Types for Literals, Clauses and ProofSteps *}
 text {* We encode Literals as integers and Clauses as sorted Lists. *}
 
-types ClauseId = nat
-types Lit = int
-types Clause = "Lit list"
+type_synonym ClauseId = nat
+type_synonym Lit = int
+type_synonym Clause = "Lit list"
 
 text {* This resembles exactly to Isat's Proof Steps *}
 
-types Resolvants = "ClauseId * (Lit * ClauseId) list"
+type_synonym Resolvants = "ClauseId * (Lit * ClauseId) list"
 datatype ProofStep =
   ProofDone bool
   | Root ClauseId Clause

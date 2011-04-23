@@ -8,9 +8,8 @@ text {*
   In this example, the state is a list of integers and the commands are Skip, Ass, Seq, IF and While.
 *}
 
-types
-  var = nat
-  state = "int list"
+type_synonym var = nat
+type_synonym state = "int list"
 
 datatype com =
   Skip |

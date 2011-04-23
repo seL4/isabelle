@@ -96,7 +96,7 @@ lemma
 
 subsection {* Colinearity is invariant by rotation *}
 
-types point = "int \<times> int"
+type_synonym point = "int \<times> int"
 
 definition collinear ::"point \<Rightarrow> point \<Rightarrow> point \<Rightarrow> bool" where
   "collinear \<equiv> \<lambda>(Ax,Ay) (Bx,By) (Cx,Cy).

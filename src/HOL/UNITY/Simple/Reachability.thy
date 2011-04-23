@@ -10,7 +10,7 @@ and 11.3.
 
 theory Reachability imports "../Detects" Reach begin
 
-types  edge = "(vertex*vertex)"
+type_synonym edge = "vertex * vertex"
 
 record state =
   reach :: "vertex => bool"

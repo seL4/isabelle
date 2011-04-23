@@ -42,8 +42,8 @@ text {*
   but keeping them separate makes some later proofs simpler.
 *}
 
-types addr = nat -- "untyped heap references"
-types heap_rep = nat -- "representable values"
+type_synonym addr = nat -- "untyped heap references"
+type_synonym heap_rep = nat -- "representable values"
 
 record heap =
   arrays :: "typerep \<Rightarrow> addr \<Rightarrow> heap_rep list"

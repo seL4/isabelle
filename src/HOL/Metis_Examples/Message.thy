@@ -14,8 +14,7 @@ declare [[metis_new_skolemizer]]
 lemma strange_Un_eq [simp]: "A \<union> (B \<union> A) = B \<union> A"
 by (metis Un_commute Un_left_absorb)
 
-types 
-  key = nat
+type_synonym key = nat
 
 consts
   all_symmetric :: bool        --{*true if all keys are symmetric*}

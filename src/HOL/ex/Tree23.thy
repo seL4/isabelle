@@ -19,7 +19,7 @@ Note that because of complicated patterns and mutual recursion, these
 function definitions take a few minutes and can also be seen as stress tests
 for the function definition facility.  *}
 
-types key = int -- {*for simplicity, should be a type class*}
+type_synonym key = int -- {*for simplicity, should be a type class*}
 
 datatype ord = LESS | EQUAL | GREATER
 

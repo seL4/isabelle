@@ -10,7 +10,7 @@ theory Reach imports "../UNITY_Main" begin
 
 typedecl vertex
 
-types    state = "vertex=>bool"
+type_synonym state = "vertex=>bool"
 
 consts
   init ::  "vertex"

@@ -30,7 +30,7 @@ primrec sumj :: "[nat, nat, state]=>int" where
   "sumj 0 i s = 0"
 | "sumj (Suc n) i s = (if n=i then sum n s else (c s) n + sumj n i s)"
   
-types command = "(state*state)set"
+type_synonym command = "(state*state)set"
 
 definition a :: "nat=>command" where
  "a i = {(s, s'). (c s') i = (c s) i + 1 & (C s') = (C s) + 1}"

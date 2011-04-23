@@ -15,7 +15,7 @@ From page 260 of
   Proc. Royal Soc. 426 (1989).
 *}
 
-types state = "event list"
+type_synonym state = "event list"
 
   (*The spy MAY say anything he CAN say.  We do not expect him to
     invent new nonces here, but he can also use NS1.  Common to

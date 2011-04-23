@@ -2,7 +2,7 @@ theory RPred
 imports Quickcheck Random Predicate
 begin
 
-types 'a "rpred" = "Random.seed \<Rightarrow> ('a Predicate.pred \<times> Random.seed)"
+type_synonym 'a "rpred" = "Random.seed \<Rightarrow> ('a Predicate.pred \<times> Random.seed)"
 
 section {* The RandomPred Monad *}
 

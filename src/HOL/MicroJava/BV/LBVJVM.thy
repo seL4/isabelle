@@ -9,7 +9,7 @@ theory LBVJVM
 imports Typing_Framework_JVM
 begin
 
-types prog_cert = "cname \<Rightarrow> sig \<Rightarrow> JVMType.state list"
+type_synonym prog_cert = "cname \<Rightarrow> sig \<Rightarrow> JVMType.state list"
 
 definition check_cert :: "jvm_prog \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> JVMType.state list \<Rightarrow> bool" where
   "check_cert G mxs mxr n cert \<equiv> check_types G mxs mxr cert \<and> length cert = n+1 \<and>

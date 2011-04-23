@@ -9,14 +9,13 @@ theory JVMType
 imports JType
 begin
 
-types
-  locvars_type = "ty err list"
-  opstack_type = "ty list"
-  state_type   = "opstack_type \<times> locvars_type"
-  state        = "state_type option err"    -- "for Kildall"
-  method_type  = "state_type option list"   -- "for BVSpec"
-  class_type   = "sig \<Rightarrow> method_type"
-  prog_type    = "cname \<Rightarrow> class_type"
+type_synonym locvars_type = "ty err list"
+type_synonym opstack_type = "ty list"
+type_synonym state_type = "opstack_type \<times> locvars_type"
+type_synonym state = "state_type option err"    -- "for Kildall"
+type_synonym method_type = "state_type option list"   -- "for BVSpec"
+type_synonym class_type = "sig \<Rightarrow> method_type"
+type_synonym prog_type = "cname \<Rightarrow> class_type"
 
 
 definition stk_esl :: "'c prog \<Rightarrow> nat \<Rightarrow> ty list esl" where

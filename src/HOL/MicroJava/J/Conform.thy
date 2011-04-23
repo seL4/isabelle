@@ -7,7 +7,7 @@ header {* \isaheader{Conformity Relations for Type Soundness Proof} *}
 
 theory Conform imports State WellType Exceptions begin
 
-types 'c env' = "'c prog \<times> (vname \<rightharpoonup> ty)"  -- "same as @{text env} of @{text WellType.thy}"
+type_synonym 'c env' = "'c prog \<times> (vname \<rightharpoonup> ty)"  -- "same as @{text env} of @{text WellType.thy}"
 
 definition hext :: "aheap => aheap => bool" ("_ <=| _" [51,51] 50) where
  "h<=|h' == \<forall>a C fs. h a = Some(C,fs) --> (\<exists>fs'. h' a = Some(C,fs'))"

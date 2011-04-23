@@ -176,9 +176,8 @@ oops
 *)
 subsection {* IMP *}
 
-types
-  var = nat
-  state = "int list"
+type_synonym var = nat
+type_synonym state = "int list"
 
 datatype com =
   Skip |

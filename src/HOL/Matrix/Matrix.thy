@@ -6,7 +6,7 @@ theory Matrix
 imports Main "~~/src/HOL/Library/Lattice_Algebras"
 begin
 
-types 'a infmatrix = "nat \<Rightarrow> nat \<Rightarrow> 'a"
+type_synonym 'a infmatrix = "nat \<Rightarrow> nat \<Rightarrow> 'a"
 
 definition nonzero_positions :: "(nat \<Rightarrow> nat \<Rightarrow> 'a::zero) \<Rightarrow> nat \<times> nat \<Rightarrow> bool" where
   "nonzero_positions A = {pos. A (fst pos) (snd pos) ~= 0}"

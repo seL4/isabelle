@@ -6,10 +6,10 @@ header "Axiomatic Semantics"
 
 theory AxSem imports State begin
 
-types assn   = "state => bool"
-     vassn   = "val => assn"
-      triple = "assn \<times> stmt \<times>  assn"
-     etriple = "assn \<times> expr \<times> vassn"
+type_synonym assn = "state => bool"
+type_synonym vassn = "val => assn"
+type_synonym triple = "assn \<times> stmt \<times>  assn"
+type_synonym etriple = "assn \<times> expr \<times> vassn"
 translations
   (type) "assn" \<leftharpoondown> (type) "state => bool"
   (type) "vassn" \<leftharpoondown> (type) "val => assn"

@@ -12,7 +12,7 @@ datatype ty
   | Class cname  --{* class type *}
 
 text{* Field declaration *}
-types   fdecl           
+type_synonym fdecl           
         = "fname \<times> ty"
 
 record  methd           
@@ -22,7 +22,7 @@ record  methd
           bdy :: stmt
 
 text{* Method declaration *}
-types   mdecl
+type_synonym mdecl
         = "mname \<times> methd"
 
 record  "class"
@@ -31,10 +31,10 @@ record  "class"
           methods ::"mdecl list"
 
 text{* Class declaration *}
-types   cdecl
+type_synonym cdecl
         = "cname \<times> class"
 
-types   prog
+type_synonym prog
         = "cdecl list"
 
 translations

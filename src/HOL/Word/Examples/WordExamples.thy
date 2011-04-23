@@ -10,9 +10,9 @@ theory WordExamples
 imports Word
 begin
 
-types word32 = "32 word"
-types word8 = "8 word"
-types byte = word8
+type_synonym word32 = "32 word"
+type_synonym word8 = "8 word"
+type_synonym byte = word8
 
 -- "modulus"
 

@@ -40,17 +40,15 @@ syntax
  "_SeqO"           :: "o => seqobj"                        ("_")
  "_SeqId"          :: "'a => seqobj"                       ("$_")
 
-types
- single_seqe = "[seq,seqobj] => prop"
- single_seqi = "[seq'=>seq',seq'=>seq'] => prop"
- two_seqi    = "[seq'=>seq', seq'=>seq'] => prop"
- two_seqe    = "[seq, seq] => prop"
- three_seqi  = "[seq'=>seq', seq'=>seq', seq'=>seq'] => prop"
- three_seqe  = "[seq, seq, seq] => prop"
- four_seqi   = "[seq'=>seq', seq'=>seq', seq'=>seq', seq'=>seq'] => prop"
- four_seqe   = "[seq, seq, seq, seq] => prop"
-
- sequence_name = "seq'=>seq'"
+type_synonym single_seqe = "[seq,seqobj] => prop"
+type_synonym single_seqi = "[seq'=>seq',seq'=>seq'] => prop"
+type_synonym two_seqi = "[seq'=>seq', seq'=>seq'] => prop"
+type_synonym two_seqe = "[seq, seq] => prop"
+type_synonym three_seqi = "[seq'=>seq', seq'=>seq', seq'=>seq'] => prop"
+type_synonym three_seqe = "[seq, seq, seq] => prop"
+type_synonym four_seqi = "[seq'=>seq', seq'=>seq', seq'=>seq', seq'=>seq'] => prop"
+type_synonym four_seqe = "[seq, seq, seq, seq] => prop"
+type_synonym sequence_name = "seq'=>seq'"
 
 
 syntax

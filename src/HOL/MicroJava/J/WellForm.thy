@@ -25,7 +25,7 @@ that widens to the result type of the other method (instead of identical type)
 \end{itemize}
 \end{description}
 *}
-types 'c wf_mb = "'c prog => cname => 'c mdecl => bool"
+type_synonym 'c wf_mb = "'c prog => cname => 'c mdecl => bool"
 
 definition wf_syscls :: "'c prog => bool" where
 "wf_syscls G == let cs = set G in Object \<in> fst ` cs \<and> (\<forall>x. Xcpt x \<in> fst ` cs)"

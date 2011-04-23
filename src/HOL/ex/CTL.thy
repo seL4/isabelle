@@ -21,7 +21,7 @@ text {*
 
 lemmas [intro!] = Int_greatest Un_upper2 Un_upper1 Int_lower1 Int_lower2
 
-types 'a ctl = "'a set"
+type_synonym 'a ctl = "'a set"
 
 definition
   imp :: "'a ctl \<Rightarrow> 'a ctl \<Rightarrow> 'a ctl"    (infixr "\<rightarrow>" 75) where

@@ -9,9 +9,10 @@ theory State
 imports TypeRel Value
 begin
 
-types 
+type_synonym 
   fields' = "(vname \<times> cname \<rightharpoonup> val)"  -- "field name, defining class, value"
 
+type_synonym
   obj = "cname \<times> fields'"    -- "class instance with class name and fields"
 
 definition obj_ty :: "obj => ty" where
@@ -20,11 +21,11 @@ definition obj_ty :: "obj => ty" where
 definition init_vars :: "('a \<times> ty) list => ('a \<rightharpoonup> val)" where
  "init_vars == map_of o map (\<lambda>(n,T). (n,default_val T))"
 
-types aheap  = "loc \<rightharpoonup> obj"    -- {* "@{text heap}" used in a translation below *}
-      locals = "vname \<rightharpoonup> val"  -- "simple state, i.e. variable contents"
+type_synonym aheap = "loc \<rightharpoonup> obj"    -- {* "@{text heap}" used in a translation below *}
+type_synonym locals = "vname \<rightharpoonup> val"  -- "simple state, i.e. variable contents"
 
-      state  = "aheap \<times> locals"      -- "heap, local parameter including This"
-      xstate = "val option \<times> state" -- "state including exception information"
+type_synonym state = "aheap \<times> locals"      -- "heap, local parameter including This"
+type_synonym xstate = "val option \<times> state" -- "state including exception information"
 
 abbreviation (input)
   heap :: "state => aheap"

@@ -10,7 +10,7 @@ theory HyperDef
 imports HyperNat Real
 begin
 
-types hypreal = "real star"
+type_synonym hypreal = "real star"
 
 abbreviation
   hypreal_of_real :: "real => real star" where

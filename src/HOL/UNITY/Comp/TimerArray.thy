@@ -7,7 +7,7 @@ A trivial example of reasoning about an array of processes
 
 theory TimerArray imports "../UNITY_Main" begin
 
-types 'a state = "nat * 'a"   (*second component allows new variables*)
+type_synonym 'a state = "nat * 'a"   (*second component allows new variables*)
 
 definition count :: "'a state => nat"
   where "count s = fst s"

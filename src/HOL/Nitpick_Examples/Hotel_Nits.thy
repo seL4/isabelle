@@ -19,7 +19,7 @@ typedecl guest
 typedecl key
 typedecl room
 
-types keycard = "key \<times> key"
+type_synonym keycard = "key \<times> key"
 
 record state =
   owns :: "room \<Rightarrow> guest option"

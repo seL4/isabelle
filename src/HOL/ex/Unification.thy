@@ -31,8 +31,7 @@ datatype 'a trm =
   | Const 'a
   | App "'a trm" "'a trm" (infix "\<cdot>" 60)
 
-types
-  'a subst = "('a \<times> 'a trm) list"
+type_synonym 'a subst = "('a \<times> 'a trm) list"
 
 text {* Applying a substitution to a variable: *}
 

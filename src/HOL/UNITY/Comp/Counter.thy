@@ -14,7 +14,7 @@ theory Counter imports "../UNITY_Main" begin
 
 (* Variables are names *)
 datatype name = C | c nat
-types state = "name=>int"
+type_synonym state = "name=>int"
 
 primrec sum  :: "[nat,state]=>int" where
   (* sum I s = sigma_{i<I}. s (c i) *)
@@ -25,7 +25,7 @@ primrec sumj :: "[nat, nat, state]=>int" where
   "sumj 0 i s = 0"
 | "sumj (Suc n) i s = (if n=i then sum n s else s (c n) + sumj n i s)"
   
-types command = "(state*state)set"
+type_synonym command = "(state*state)set"
 
 definition a :: "nat=>command" where
  "a i = {(s, s'). s'=s(c i:= s (c i) + 1, C:= s C + 1)}"

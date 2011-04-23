@@ -28,13 +28,17 @@ datatype
         | Ifcmpeq int               -- "branch if int/ref comparison succeeds"
         | Throw                     -- "throw top of stack as exception"
 
-types
+type_synonym
   bytecode = "instr list"
+type_synonym
   exception_entry = "p_count \<times> p_count \<times> p_count \<times> cname" 
                   -- "start-pc, end-pc, handler-pc, exception type"
+type_synonym
   exception_table = "exception_entry list"
+type_synonym
   jvm_method = "nat \<times> nat \<times> bytecode \<times> exception_table"
    -- "max stacksize, size of register set, instruction sequence, handler table"
+type_synonym
   jvm_prog = "jvm_method prog" 
 
 end

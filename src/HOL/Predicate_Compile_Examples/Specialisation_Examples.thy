@@ -110,7 +110,7 @@ datatype type =
   | TyAll type type  ("(3\<forall><:_./ _)" [0, 10] 10)
 
 datatype binding = VarB type | TVarB type
-types env = "binding list"
+type_synonym env = "binding list"
 
 primrec is_TVarB :: "binding \<Rightarrow> bool"
 where

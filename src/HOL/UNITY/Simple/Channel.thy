@@ -9,7 +9,7 @@ From Misra, "A Logic for Concurrent Programming" (1994), section 13.3
 
 theory Channel imports "../UNITY_Main" begin
 
-types state = "nat set"
+type_synonym state = "nat set"
 
 consts
   F :: "state program"

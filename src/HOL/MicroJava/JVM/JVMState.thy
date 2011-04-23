@@ -12,11 +12,11 @@ imports "../J/Conform"
 begin
 
 section {* Frame Stack *}
-types
- opstack   = "val list"
- locvars   = "val list" 
- p_count   = nat
+type_synonym opstack = "val list"
+type_synonym locvars = "val list"
+type_synonym p_count = nat
 
+type_synonym
  frame = "opstack \<times>     
           locvars \<times>   
           cname \<times>     
@@ -35,7 +35,7 @@ definition raise_system_xcpt :: "bool \<Rightarrow> xcpt \<Rightarrow> val optio
   "raise_system_xcpt b x \<equiv> raise_if b x None"
 
 section {* Runtime State *}
-types
+type_synonym
   jvm_state = "val option \<times> aheap \<times> frame list"  -- "exception flag, heap, frames"
 
 

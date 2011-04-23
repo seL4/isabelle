@@ -9,8 +9,7 @@ theory Effect
 imports JVMType "../JVM/JVMExceptions"
 begin
 
-types
-  succ_type = "(p_count \<times> state_type option) list"
+type_synonym succ_type = "(p_count \<times> state_type option) list"
 
 text {* Program counter of successor instructions: *}
 primrec succs :: "instr \<Rightarrow> p_count \<Rightarrow> p_count list" where

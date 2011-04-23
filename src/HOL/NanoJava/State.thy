@@ -17,9 +17,10 @@ datatype val
   = Null        --{* null reference *}
   | Addr loc    --{* address, i.e. location of object *}
 
-types   fields
+type_synonym fields
         = "(fname \<rightharpoonup> val)"
 
+type_synonym
         obj = "cname \<times> fields"
 
 translations
@@ -30,8 +31,8 @@ definition init_vars :: "('a \<rightharpoonup> 'b) => ('a \<rightharpoonup> val)
  "init_vars m == Option.map (\<lambda>T. Null) o m"
   
 text {* private: *}
-types   heap   = "loc   \<rightharpoonup> obj"
-        locals = "vname \<rightharpoonup> val"  
+type_synonym heap = "loc   \<rightharpoonup> obj"
+type_synonym locals = "vname \<rightharpoonup> val"  
 
 text {* private: *}
 record  state

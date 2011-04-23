@@ -16,7 +16,7 @@ datatype ('nts,'ts) symbol = NTS 'nts
                             
 datatype ('nts,'ts) rule = rule 'nts "('nts,'ts) symbol list"
 
-types ('nts,'ts) grammar = "('nts,'ts) rule set * 'nts"
+type_synonym ('nts,'ts) grammar = "('nts,'ts) rule set * 'nts"
 
 fun rules :: "('nts,'ts) grammar => ('nts,'ts) rule set"
 where
@@ -120,9 +120,8 @@ section {* Semantics of programming languages *}
 
 subsection {* IMP *}
 
-types
-  var = nat
-  state = "int list"
+type_synonym var = nat
+type_synonym state = "int list"
 
 datatype com =
   Skip |
@@ -217,10 +216,9 @@ subsection {* A minimal example of yet another semantics *}
 
 text {* thanks to Elke Salecker *}
 
-types
-  vname = nat
-  vvalue = int
-  var_assign = "vname \<Rightarrow> vvalue"  --"variable assignment"
+type_synonym vname = nat
+type_synonym vvalue = int
+type_synonym var_assign = "vname \<Rightarrow> vvalue"  --"variable assignment"
 
 datatype ir_expr = 
   IrConst vvalue
@@ -248,9 +246,8 @@ values "{val. eval_var (Add (IrConst 1) (IrConst 2)) (| Env = (\<lambda>x. 0)|) 
 
 subsection {* Another semantics *}
 
-types
-  name = nat --"For simplicity in examples"
-  state' = "name \<Rightarrow> nat"
+type_synonym name = nat --"For simplicity in examples"
+type_synonym state' = "name \<Rightarrow> nat"
 
 datatype aexp = N nat | V name | Plus aexp aexp
 

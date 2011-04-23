@@ -15,7 +15,7 @@ datatype pvar = Sent | Rcvd | Idle
 
 datatype pname = Aproc | Bproc
 
-types state = "pname * pvar => nat"
+type_synonym state = "pname * pvar => nat"
 
 locale F_props =
   fixes F 

@@ -11,7 +11,7 @@ theory HyperNat
 imports StarDef
 begin
 
-types hypnat = "nat star"
+type_synonym hypnat = "nat star"
 
 abbreviation
   hypnat_of_nat :: "nat => nat star" where

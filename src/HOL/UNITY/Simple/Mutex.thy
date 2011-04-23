@@ -14,7 +14,7 @@ record state =
   u :: bool
   v :: bool
 
-types command = "(state*state) set"
+type_synonym command = "(state*state) set"
 
 
   (** The program for process U **)

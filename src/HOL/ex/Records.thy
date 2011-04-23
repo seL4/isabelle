@@ -235,7 +235,7 @@ text {* \medskip Polymorphic records. *}
 record 'a point'' = point +
   content :: 'a
 
-types cpoint'' = "colour point''"
+type_synonym cpoint'' = "colour point''"
 
 
 

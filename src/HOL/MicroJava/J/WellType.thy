@@ -22,9 +22,8 @@ methods of class Object to be called upon references of interface type.
 *}
 
 text "local variables, including method parameters and This:"
-types 
-  lenv   = "vname \<rightharpoonup> ty"
-  'c env = "'c prog \<times> lenv"
+type_synonym lenv = "vname \<rightharpoonup> ty"
+type_synonym 'c env = "'c prog \<times> lenv"
 
 abbreviation (input)
   prg :: "'c env => 'c prog"
@@ -99,7 +98,7 @@ apply (case_tac prim_ty)
 apply auto
 done
 
-types
+type_synonym
   java_mb = "vname list \<times> (vname \<times> ty) list \<times> stmt \<times> expr"
 -- "method body with parameter names, local variables, block, result expression."
 -- "local variables might include This, which is hidden anyway"

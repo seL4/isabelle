@@ -6,7 +6,7 @@ datatype guest = Guest0 | Guest1
 datatype key = Key0 | Key1 | Key2 | Key3
 datatype room = Room0
 
-types card = "key * key"
+type_synonym card = "key * key"
 
 datatype event =
    Check_in guest room card | Enter guest room card | Exit guest room

@@ -9,7 +9,7 @@ theory NSComplex
 imports Complex NSA
 begin
 
-types hcomplex = "complex star"
+type_synonym hcomplex = "complex star"
 
 abbreviation
   hcomplex_of_complex :: "complex => complex star" where

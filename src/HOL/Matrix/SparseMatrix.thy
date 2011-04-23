@@ -6,9 +6,8 @@ theory SparseMatrix
 imports Matrix
 begin
 
-types 
-  'a spvec = "(nat * 'a) list"
-  'a spmat = "('a spvec) spvec"
+type_synonym 'a spvec = "(nat * 'a) list"
+type_synonym 'a spmat = "'a spvec spvec"
 
 definition sparse_row_vector :: "('a::ab_group_add) spvec \<Rightarrow> 'a matrix"
   where "sparse_row_vector arr = foldl (% m x. m + (singleton_matrix 0 (fst x) (snd x))) 0 arr"
