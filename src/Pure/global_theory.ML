@@ -84,7 +84,10 @@ fun get_fact context thy xthmref =
     val xname = Facts.name_of_ref xthmref;
     val pos = Facts.pos_of_ref xthmref;
 
-    val name = intern_fact thy xname;
+    val name =
+      (case intern_fact thy xname of
+        "_" => "Pure.asm_rl"
+      | name => name);
     val res = Facts.lookup context facts name;
     val _ = Theory.check_thy thy;
   in
