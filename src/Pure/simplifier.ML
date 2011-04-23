@@ -58,7 +58,8 @@ sig
   val cong_add: attribute
   val cong_del: attribute
   val map_simpset: (simpset -> simpset) -> theory -> theory
-  val get_simproc: Proof.context -> xstring * Position.T -> simproc
+  val check_simproc: Proof.context -> xstring * Position.T -> string
+  val the_simproc: Proof.context -> string -> simproc
   val def_simproc: {name: binding, lhss: term list,
     proc: morphism -> simpset -> cterm -> thm option, identifier: thm list} ->
     local_theory -> local_theory
@@ -76,6 +77,26 @@ structure Simplifier: SIMPLIFIER =
 struct
 
 open Raw_Simplifier;
+
+
+(** data **)
+
+structure Data = Generic_Data
+(
+  type T = simpset * simproc Name_Space.table;
+  val empty : T = (empty_ss, Name_Space.empty_table "simproc");
+  fun extend (ss, tab) = (Raw_Simplifier.inherit_context empty_ss ss, tab);
+  fun merge ((ss1, tab1), (ss2, tab2)) =
+    (merge_ss (ss1, ss2), Name_Space.merge_tables (tab1, tab2));
+);
+
+val get_ss = fst o Data.get;
+
+fun map_ss f context =
+  Data.map (apfst ((Raw_Simplifier.with_context (Context.proof_of context) f))) context;
+
+val get_simprocs = snd o Data.get o Context.Proof;
+
 
 
 (** pretty printing **)
@@ -102,20 +123,6 @@ fun pretty_ss ctxt ss =
 
 
 (** simpset data **)
-
-structure Simpset = Generic_Data
-(
-  type T = simpset;
-  val empty = empty_ss;
-  fun extend ss = Raw_Simplifier.inherit_context empty_ss ss;
-  val merge = merge_ss;
-);
-
-val get_ss = Simpset.get;
-
-fun map_ss f context =
-  Simpset.map (Raw_Simplifier.with_context (Context.proof_of context) f) context;
-
 
 (* attributes *)
 
@@ -149,33 +156,31 @@ val _ = ML_Antiquote.value "simpset"
 
 (** named simprocs **)
 
-(* data *)
-
-structure Simprocs = Generic_Data
-(
-  type T = simproc Name_Space.table;
-  val empty : T = Name_Space.empty_table "simproc";
-  val extend = I;
-  fun merge simprocs = Name_Space.merge_tables simprocs;
-);
-
-
 (* get simprocs *)
 
-fun get_simproc ctxt (xname, pos) =
+fun undef_simproc name = "Undefined simplification procedure: " ^ quote name;
+
+fun check_simproc ctxt (xname, pos) =
   let
-    val (space, tab) = Simprocs.get (Context.Proof ctxt);
+    val (space, tab) = get_simprocs ctxt;
     val name = Name_Space.intern space xname;
   in
-    (case Symtab.lookup tab name of
-      SOME proc => (Context_Position.report ctxt pos (Name_Space.markup space name); proc)
-    | NONE => error ("Undefined simplification procedure: " ^ quote name))
+    if Symtab.defined tab name then
+      (Context_Position.report ctxt pos (Name_Space.markup space name); name)
+    else error (undef_simproc name ^ Position.str_of pos)
   end;
 
+fun the_simproc ctxt name =
+  (case Symtab.lookup (#2 (get_simprocs ctxt)) name of
+    SOME proc => proc
+  | NONE => error (undef_simproc name));
+
 val _ =
-  ML_Antiquote.value "simproc" (Scan.lift (Parse.position Args.name) >> (fn x =>
-    "Simplifier.get_simproc (ML_Context.the_local_context ()) " ^
-      ML_Syntax.print_pair ML_Syntax.print_string  ML_Syntax.print_position x));
+  ML_Antiquote.value "simproc"
+    (Args.context -- Scan.lift (Parse.position Args.name)
+      >> (fn (ctxt, name) =>
+        "Simplifier.the_simproc (ML_Context.the_local_context ()) " ^
+          ML_Syntax.print_string (check_simproc ctxt name)));
 
 
 (* define simprocs *)
@@ -204,9 +209,9 @@ fun gen_simproc prep {name = b, lhss, proc, identifier} lthy =
         val simproc' = morph_simproc phi simproc;
       in
         context
-        |> Simprocs.map
-          (#2 o Name_Space.define (Context.proof_of context) true naming (b', simproc'))
-        |> map_ss (fn ss => ss addsimprocs [simproc'])
+        |> Data.map (fn (ss, tab) =>
+          (ss addsimprocs [simproc'],
+            #2 (Name_Space.define (Context.proof_of context) true naming (b', simproc') tab)))
       end)
   end;
 
@@ -309,10 +314,9 @@ val add_del =
 in
 
 val simproc_att =
-  Scan.peek (fn context =>
-    add_del :|-- (fn decl =>
-      Scan.repeat1 (Args.named_attribute (decl o get_simproc (Context.proof_of context)))
-      >> (Library.apply o map Morphism.form)));
+  (Args.context -- Scan.lift add_del) :|-- (fn (ctxt, decl) =>
+    Scan.repeat1 (Scan.lift (Args.named_attribute (decl o the_simproc ctxt o check_simproc ctxt))))
+  >> (Library.apply o map Morphism.form);
 
 end;
 
