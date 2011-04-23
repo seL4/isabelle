@@ -25,7 +25,7 @@ sig
   val extern: Proof.context -> T -> string -> xstring
   val intern_syntax: T -> xstring -> string
   val extern_syntax: Proof.context -> T -> string -> xstring
-  val read_const: T -> string -> term
+  val read_const: T -> string * Position.T -> term
   val certify: Context.pretty -> Type.tsig -> bool -> T -> term -> term  (*exception TYPE*)
   val typargs: T -> string * typ -> typ list
   val instance: T -> string * typ list -> typ
@@ -144,10 +144,10 @@ fun extern_syntax ctxt consts s =
 
 (* read_const *)
 
-fun read_const consts raw_c =
+fun read_const consts (raw_c, pos) =
   let
     val c = intern consts raw_c;
-    val T = type_scheme consts c handle TYPE (msg, _, _) => error msg;
+    val T = type_scheme consts c handle TYPE (msg, _, _) => error (msg ^ Position.str_of pos);
   in Const (c, T) end;
 
 
