@@ -20,8 +20,8 @@ sig
   val add_defs: (bool * bool) * ((binding * string) * Attrib.src list) list -> theory -> theory
   val declaration: {syntax: bool, pervasive: bool} ->
     Symbol_Pos.text * Position.T -> local_theory -> local_theory
-  val simproc_setup: string -> string list -> Symbol_Pos.text * Position.T -> string list ->
-    local_theory -> local_theory
+  val simproc_setup: string * Position.T -> string list -> Symbol_Pos.text * Position.T ->
+    string list -> local_theory -> local_theory
   val hide_class: bool -> xstring list -> theory -> theory
   val hide_type: bool -> xstring list -> theory -> theory
   val hide_const: bool -> xstring list -> theory -> theory
@@ -214,7 +214,7 @@ fun simproc_setup name lhss (txt, pos) identifier =
   ML_Lex.read pos txt
   |> ML_Context.expression pos
     "val proc: Morphism.morphism -> Simplifier.simpset -> cterm -> thm option"
-    ("Context.map_proof (Simplifier.def_simproc {name = " ^ ML_Syntax.print_string name ^ ", \
+    ("Context.map_proof (Simplifier.def_simproc_cmd {name = " ^ ML_Syntax.make_binding name ^ ", \
       \lhss = " ^ ML_Syntax.print_strings lhss ^ ", proc = proc, \
       \identifier = Library.maps ML_Context.thms " ^ ML_Syntax.print_strings identifier ^ "})")
   |> Context.proof_map;

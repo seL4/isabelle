@@ -58,11 +58,11 @@ sig
   val cong_add: attribute
   val cong_del: attribute
   val map_simpset: (simpset -> simpset) -> theory -> theory
-  val get_simproc: Context.generic -> xstring -> simproc
-  val def_simproc: {name: string, lhss: string list,
+  val get_simproc: Proof.context -> xstring * Position.T -> simproc
+  val def_simproc: {name: binding, lhss: term list,
     proc: morphism -> simpset -> cterm -> thm option, identifier: thm list} ->
     local_theory -> local_theory
-  val def_simproc_i: {name: string, lhss: term list,
+  val def_simproc_cmd: {name: binding, lhss: string list,
     proc: morphism -> simpset -> cterm -> thm option, identifier: thm list} ->
     local_theory -> local_theory
   val cong_modifiers: Method.modifier parser list
@@ -162,27 +162,28 @@ structure Simprocs = Generic_Data
 
 (* get simprocs *)
 
-fun get_simproc context xname =
+fun get_simproc ctxt (xname, pos) =
   let
-    val (space, tab) = Simprocs.get context;
+    val (space, tab) = Simprocs.get (Context.Proof ctxt);
     val name = Name_Space.intern space xname;
   in
     (case Symtab.lookup tab name of
-      SOME proc => proc
+      SOME proc => (Context_Position.report ctxt pos (Name_Space.markup space name); proc)
     | NONE => error ("Undefined simplification procedure: " ^ quote name))
   end;
 
-val _ = ML_Antiquote.value "simproc" (Scan.lift Args.name >> (fn name =>
-  "Simplifier.get_simproc (ML_Context.the_generic_context ()) " ^ ML_Syntax.print_string name));
+val _ =
+  ML_Antiquote.value "simproc" (Scan.lift (Parse.position Args.name) >> (fn x =>
+    "Simplifier.get_simproc (ML_Context.the_local_context ()) " ^
+      ML_Syntax.print_pair ML_Syntax.print_string  ML_Syntax.print_position x));
 
 
 (* define simprocs *)
 
 local
 
-fun gen_simproc prep {name, lhss, proc, identifier} lthy =
+fun gen_simproc prep {name = b, lhss, proc, identifier} lthy =
   let
-    val b = Binding.name name;
     val naming = Local_Theory.naming_of lthy;
     val simproc = make_simproc
       {name = Name_Space.full_name naming b,
@@ -211,8 +212,8 @@ fun gen_simproc prep {name, lhss, proc, identifier} lthy =
 
 in
 
-val def_simproc = gen_simproc Syntax.read_terms;
-val def_simproc_i = gen_simproc Syntax.check_terms;
+val def_simproc = gen_simproc Syntax.check_terms;
+val def_simproc_cmd = gen_simproc Syntax.read_terms;
 
 end;
 
@@ -310,7 +311,7 @@ in
 val simproc_att =
   Scan.peek (fn context =>
     add_del :|-- (fn decl =>
-      Scan.repeat1 (Args.named_attribute (decl o get_simproc context))
+      Scan.repeat1 (Args.named_attribute (decl o get_simproc (Context.proof_of context)))
       >> (Library.apply o map Morphism.form)));
 
 end;

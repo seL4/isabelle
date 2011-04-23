@@ -349,7 +349,7 @@ val _ =
 
 val _ =
   Outer_Syntax.local_theory "simproc_setup" "define simproc in ML" (Keyword.tag_ml Keyword.thy_decl)
-    (Parse.name --
+    (Parse.position Parse.name --
       (Parse.$$$ "(" |-- Parse.enum1 "|" Parse.term --| Parse.$$$ ")" --| Parse.$$$ "=") --
       Parse.ML_source -- Scan.optional (Parse.$$$ "identifier" |-- Scan.repeat1 Parse.xname) []
     >> (fn (((a, b), c), d) => Isar_Cmd.simproc_setup a b c d));
