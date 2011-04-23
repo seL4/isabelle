@@ -125,9 +125,6 @@ fun typ_of_term get_sort tm =
 
 fun parsetree_to_ast ctxt constrain_pos trf parsetree =
   let
-    val get_class = Proof_Context.read_class ctxt;
-    val get_type = #1 o dest_Type o Proof_Context.read_type_name_proper ctxt false;
-
     val reports = Unsynchronized.ref ([]: Position.reports);
     fun report pos = Position.reports reports [pos];
 
@@ -138,13 +135,18 @@ fun parsetree_to_ast ctxt constrain_pos trf parsetree =
 
     fun asts_of (Parser.Node ("_class_name", [Parser.Tip tok])) =
           let
-            val c = get_class (Lexicon.str_of_token tok);
-            val _ = report (Lexicon.pos_of_token tok) (markup_class ctxt) c;
+            val pos = Lexicon.pos_of_token tok;
+            val c = Proof_Context.read_class ctxt (Lexicon.str_of_token tok)
+              handle ERROR msg => error (msg ^ Position.str_of pos);
+            val _ = report pos (markup_class ctxt) c;
           in [Ast.Constant (Lexicon.mark_class c)] end
       | asts_of (Parser.Node ("_type_name", [Parser.Tip tok])) =
           let
-            val c = get_type (Lexicon.str_of_token tok);
-            val _ = report (Lexicon.pos_of_token tok) (markup_type ctxt) c;
+            val pos = Lexicon.pos_of_token tok;
+            val Type (c, _) =
+              Proof_Context.read_type_name_proper ctxt false (Lexicon.str_of_token tok)
+                handle ERROR msg => error (msg ^ Position.str_of pos);
+            val _ = report pos (markup_type ctxt) c;
           in [Ast.Constant (Lexicon.mark_type c)] end
       | asts_of (Parser.Node ("_position", [pt as Parser.Tip tok])) =
           if constrain_pos then
@@ -352,11 +354,11 @@ fun parse_term is_prop ctxt text =
       val level = Config.get ctxt Syntax.ambiguity_level;
       val limit = Config.get ctxt Syntax.ambiguity_limit;
 
-      fun ambig_msg () =
+      val ambig_msg =
         if ambiguity > 1 andalso ambiguity <= level then
-          "Got more than one parse tree.\n\
-          \Retry with smaller syntax_ambiguity_level for more information."
-        else "";
+          ["Got more than one parse tree.\n\
+          \Retry with smaller syntax_ambiguity_level for more information."]
+        else [];
 
       (*brute-force disambiguation via type-inference*)
       fun check t = (Syntax.check_term ctxt (constrain t); Exn.Result t)
@@ -377,7 +379,7 @@ fun parse_term is_prop ctxt text =
     in
       if len = 0 then
         report_result ctxt pos
-          [(reports', Exn.Exn (Exn.EXCEPTIONS (ERROR (ambig_msg ()) :: errs)))]
+          [(reports', Exn.Exn (Exn.EXCEPTIONS (map ERROR ambig_msg @ errs)))]
       else if len = 1 then
         (if ambiguity > level then
           Context_Position.if_visible ctxt warning
@@ -386,7 +388,7 @@ fun parse_term is_prop ctxt text =
         else (); report_result ctxt pos results')
       else
         report_result ctxt pos
-          [(reports', Exn.Exn (ERROR (cat_lines (ambig_msg () ::
+          [(reports', Exn.Exn (ERROR (cat_lines (ambig_msg @
             (("Ambiguous input, " ^ string_of_int len ^ " terms are type correct" ^
               (if len <= limit then "" else " (" ^ string_of_int limit ^ " displayed)") ^ ":") ::
               map show_term (take limit checked))))))]
@@ -685,8 +687,10 @@ fun const_ast_tr intern ctxt [Ast.Variable c] =
         val Const (c', _) = Proof_Context.read_const_proper ctxt false c;
         val d = if intern then Lexicon.mark_const c' else c;
       in Ast.Constant d end
-  | const_ast_tr intern ctxt [Ast.Appl [Ast.Constant "_constrain", x, T]] =
-      Ast.Appl [Ast.Constant "_constrain", const_ast_tr intern ctxt [x], T]
+  | const_ast_tr intern ctxt [Ast.Appl [Ast.Constant "_constrain", x, T as Ast.Variable pos]] =
+      (Ast.Appl [Ast.Constant "_constrain", const_ast_tr intern ctxt [x], T]
+        handle ERROR msg =>
+          error (msg ^ Position.str_of (the_default Position.none (Term_Position.decode pos))))
   | const_ast_tr _ _ asts = raise Ast.AST ("const_ast_tr", asts);
 
 
