@@ -366,6 +366,7 @@ fun read_class ctxt text =
     val c = Type.cert_class tsig (Type.intern_class tsig (Symbol_Pos.content syms))
       handle TYPE (msg, _, _) => error (msg ^ Position.str_of pos);
     val _ = Context_Position.report ctxt pos (Markup.tclass c);
+    val _ = Context_Position.report ctxt pos (Name_Space.markup (Type.class_space tsig) c);
   in c end;
 
 
@@ -466,6 +467,7 @@ fun prep_const_proper ctxt strict (c, pos) =
       if strict then ignore (Consts.the_type consts d) handle TYPE (msg, _, _) => err msg
       else ();
     val _ = Context_Position.report ctxt pos (Markup.const d);
+    val _ = Context_Position.report ctxt pos (Name_Space.markup (Consts.space_of consts) d);
   in t end;
 
 in
@@ -481,14 +483,15 @@ fun read_type_name ctxt strict text =
     else
       let
         val d = intern_type ctxt c;
-        val decl = Type.the_decl tsig d;
-        val _ = Context_Position.report ctxt pos (Markup.tycon d);
-        fun err () = error ("Bad type name: " ^ quote d);
+        val decl = Type.the_decl tsig d handle ERROR msg => error (msg ^ Position.str_of pos);
+        fun err () = error ("Bad type name: " ^ quote d ^ Position.str_of pos);
         val args =
           (case decl of
             Type.LogicalType n => n
           | Type.Abbreviation (vs, _, _) => if strict then err () else length vs
           | Type.Nonterminal => if strict then err () else 0);
+        val _ = Context_Position.report ctxt pos (Markup.tycon d);
+        val _ = Context_Position.report ctxt pos (Name_Space.markup (Type.type_space tsig) d);
       in Type (d, replicate args dummyT) end
   end;
 
