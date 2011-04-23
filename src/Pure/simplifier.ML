@@ -158,22 +158,8 @@ val _ = ML_Antiquote.value "simpset"
 
 (* get simprocs *)
 
-fun undef_simproc name = "Undefined simplification procedure: " ^ quote name;
-
-fun check_simproc ctxt (xname, pos) =
-  let
-    val (space, tab) = get_simprocs ctxt;
-    val name = Name_Space.intern space xname;
-  in
-    if Symtab.defined tab name then
-      (Context_Position.report ctxt pos (Name_Space.markup space name); name)
-    else error (undef_simproc name ^ Position.str_of pos)
-  end;
-
-fun the_simproc ctxt name =
-  (case Symtab.lookup (#2 (get_simprocs ctxt)) name of
-    SOME proc => proc
-  | NONE => error (undef_simproc name));
+fun check_simproc ctxt = Name_Space.check ctxt (get_simprocs ctxt);
+val the_simproc = Name_Space.get o get_simprocs;
 
 val _ =
   ML_Antiquote.value "simproc"

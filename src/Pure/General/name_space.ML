@@ -49,6 +49,8 @@ sig
   val declare: Proof.context -> bool -> naming -> binding -> T -> string * T
   val alias: naming -> binding -> string -> T -> T
   type 'a table = T * 'a Symtab.table
+  val check: Proof.context -> 'a table -> xstring * Position.T -> string
+  val get: 'a table -> string -> 'a
   val define: Proof.context -> bool -> naming -> binding * 'a -> 'a table -> string * 'a table
   val empty_table: string -> 'a table
   val merge_tables: 'a table * 'a table -> 'a table
@@ -92,6 +94,8 @@ fun print_entry def kind (name, entry) =
 fun err_dup kind entry1 entry2 =
   error ("Duplicate " ^ kind ^ " declaration " ^
     print_entry true kind entry1 ^ " vs. " ^ print_entry true kind entry2);
+
+fun undefined kind name = "Undefined " ^ kind ^ ": " ^ quote name;
 
 
 (* datatype T *)
@@ -367,8 +371,7 @@ fun alias naming binding name space =
       |> fold (add_name name) accs
       |> map_name_space (fn (kind, internals, entries) =>
         let
-          val _ = Symtab.defined entries name orelse
-            error ("Undefined " ^ kind ^ " " ^ quote name);
+          val _ = Symtab.defined entries name orelse error (undefined kind name);
           val entries' = entries
             |> Symtab.map_entry name (fn (externals, entry) =>
               (Library.merge (op =) (externals, accs'), entry))
@@ -380,6 +383,18 @@ fun alias naming binding name space =
 (** name spaces coupled with symbol tables **)
 
 type 'a table = T * 'a Symtab.table;
+
+fun check ctxt (space, tab) (xname, pos) =
+  let val name = intern space xname in
+    if Symtab.defined tab name
+    then (Context_Position.report ctxt pos (markup space name); name)
+    else error (undefined (kind_of space) name ^ Position.str_of pos)
+  end;
+
+fun get (space, tab) name =
+  (case Symtab.lookup tab name of
+    SOME x => x
+  | NONE => error (undefined (kind_of space) name));
 
 fun define ctxt strict naming (binding, x) (space, tab) =
   let val (name, space') = declare ctxt strict naming binding space
