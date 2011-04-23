@@ -483,7 +483,7 @@ fun read_type_name ctxt strict text =
     else
       let
         val d = intern_type ctxt c;
-        val decl = Type.the_decl tsig d handle ERROR msg => error (msg ^ Position.str_of pos);
+        val decl = Type.the_decl tsig (d, pos);
         fun err () = error ("Bad type name: " ^ quote d ^ Position.str_of pos);
         val args =
           (case decl of

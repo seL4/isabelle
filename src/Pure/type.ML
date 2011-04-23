@@ -51,7 +51,7 @@ sig
   val intern_type: tsig -> xstring -> string
   val extern_type: Proof.context -> tsig -> string -> xstring
   val is_logtype: tsig -> string -> bool
-  val the_decl: tsig -> string -> decl
+  val the_decl: tsig -> string * Position.T -> decl
   val cert_typ_mode: mode -> tsig -> typ -> typ
   val cert_typ: tsig -> typ -> typ
   val arity_number: tsig -> string -> int
@@ -246,9 +246,9 @@ fun undecl_type c = "Undeclared type constructor: " ^ quote c;
 
 fun lookup_type (TSig {types = (_, types), ...}) = Symtab.lookup types;
 
-fun the_decl tsig c =
+fun the_decl tsig (c, pos) =
   (case lookup_type tsig c of
-    NONE => error (undecl_type c)
+    NONE => error (undecl_type c ^ Position.str_of pos)
   | SOME decl => decl);
 
 
@@ -277,7 +277,7 @@ fun cert_typ_mode (Mode {normalize, logical}) tsig ty =
             val Ts' = map cert Ts;
             fun nargs n = if length Ts <> n then err (bad_nargs c) else ();
           in
-            (case the_decl tsig c of
+            (case the_decl tsig (c, Position.none) of
               LogicalType n => (nargs n; Type (c, Ts'))
             | Abbreviation (vs, U, syn) =>
                (nargs (length vs);
