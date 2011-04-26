@@ -130,10 +130,16 @@ fun unfold_tac ths =
 
 (*** integration of simplifier with classical reasoner ***)
 
-structure Clasimp = ClasimpFun
- (structure Simplifier = Simplifier and Splitter = Splitter
-  and Classical  = Cla and Blast = Blast
-  val iffD1 = @{thm iffD1} val iffD2 = @{thm iffD2} val notE = @{thm notE});
+structure Clasimp = Clasimp
+(
+  structure Simplifier = Simplifier
+    and Splitter = Splitter
+    and Classical = Cla
+    and Blast = Blast
+  val iffD1 = @{thm iffD1}
+  val iffD2 = @{thm iffD2}
+  val notE = @{thm notE}
+);
 open Clasimp;
 
 ML_Antiquote.value "clasimpset"

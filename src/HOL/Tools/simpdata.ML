@@ -151,10 +151,16 @@ val op delsplits = Splitter.delsplits;
 
 (* integration of simplifier with classical reasoner *)
 
-structure Clasimp = ClasimpFun
- (structure Simplifier = Simplifier and Splitter = Splitter
-  and Classical  = Classical and Blast = Blast
-  val iffD1 = @{thm iffD1} val iffD2 = @{thm iffD2} val notE = @{thm notE});
+structure Clasimp = Clasimp
+(
+  structure Simplifier = Simplifier
+    and Splitter = Splitter
+    and Classical  = Classical
+    and Blast = Blast
+  val iffD1 = @{thm iffD1}
+  val iffD2 = @{thm iffD2}
+  val notE = @{thm notE}
+);
 open Clasimp;
 
 val _ = ML_Antiquote.value "clasimpset"

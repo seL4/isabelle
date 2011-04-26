@@ -21,7 +21,6 @@ end
 
 signature CLASIMP =
 sig
-  include CLASIMP_DATA
   type claset
   type clasimpset
   val get_css: Context.generic -> clasimpset
@@ -56,10 +55,12 @@ sig
   val clasimp_setup: theory -> theory
 end;
 
-functor ClasimpFun(Data: CLASIMP_DATA): CLASIMP =
+functor Clasimp(Data: CLASIMP_DATA): CLASIMP =
 struct
 
-open Data;
+structure Splitter = Data.Splitter;
+structure Classical = Data.Classical;
+structure Blast = Data.Blast;
 
 
 (* type clasimpset *)
@@ -104,12 +105,14 @@ val safe_asm_full_simp_tac = Simplifier.generic_simp_tac true (true,true,true);
 
 (*Add a simpset to a classical set!*)
 (*Caution: only one simpset added can be added by each of addSss and addss*)
-fun cs addSss ss = Classical.addSafter (cs, ("safe_asm_full_simp_tac",
-                            CHANGED o safe_asm_full_simp_tac ss));
-fun cs addss  ss = Classical.addbefore  (cs, ("asm_full_simp_tac",
-                            CHANGED o Simplifier.asm_full_simp_tac ss));
-fun cs addss' ss = Classical.addbefore  (cs, ("asm_full_simp_tac",
-                            CHANGED o Simplifier.asm_lr_simp_tac ss));
+fun cs addSss ss =
+  Classical.addSafter (cs, ("safe_asm_full_simp_tac", CHANGED o safe_asm_full_simp_tac ss));
+
+fun cs addss ss =
+  Classical.addbefore (cs, ("asm_full_simp_tac", CHANGED o Simplifier.asm_full_simp_tac ss));
+
+fun cs addss' ss =
+  Classical.addbefore (cs, ("asm_full_simp_tac", CHANGED o Simplifier.asm_lr_simp_tac ss));
 
 (* iffs: addition of rules to simpsets and clasets simultaneously *)
 
@@ -126,18 +129,18 @@ fun addIff decls1 decls2 simp ((cs, ss), th) =
     val (elim, intro) = if n = 0 then decls1 else decls2;
     val zero_rotate = zero_var_indexes o rotate_prems n;
   in
-    (elim (intro (cs, [zero_rotate (th RS iffD2)]),
-           [Tactic.make_elim (zero_rotate (th RS iffD1))])
-      handle THM _ => (elim (cs, [zero_rotate (th RS notE)])
+    (elim (intro (cs, [zero_rotate (th RS Data.iffD2)]),
+           [Tactic.make_elim (zero_rotate (th RS Data.iffD1))])
+      handle THM _ => (elim (cs, [zero_rotate (th RS Data.notE)])
         handle THM _ => intro (cs, [th])),
      simp (ss, [th]))
   end;
 
 fun delIff delcs delss ((cs, ss), th) =
   let val zero_rotate = zero_var_indexes o rotate_prems (nprems_of th) in
-    (delcs (cs, [zero_rotate (th RS iffD2),
-        Tactic.make_elim (zero_rotate (th RS iffD1))])
-      handle THM _ => (delcs (cs, [zero_rotate (th RS notE)])
+    (delcs (cs, [zero_rotate (th RS Data.iffD2),
+        Tactic.make_elim (zero_rotate (th RS Data.iffD1))])
+      handle THM _ => (delcs (cs, [zero_rotate (th RS Data.notE)])
         handle THM _ => delcs (cs, [th])),
      delss (ss, [th]))
   end;
@@ -167,7 +170,7 @@ fun delIffs_generic (x, ths) =
 end;
 
 
-(* tacticals *)
+(* tactics *)
 
 fun clarsimp_tac (cs, ss) =
   safe_asm_full_simp_tac ss THEN_ALL_NEW
@@ -177,36 +180,43 @@ fun clarsimp_tac (cs, ss) =
 (* auto_tac *)
 
 fun blast_depth_tac cs m i thm =
-    Blast.depth_tac cs m i thm
-      handle Blast.TRANS s => (warning ("Blast_tac: " ^ s); Seq.empty);
+  Blast.depth_tac cs m i thm
+    handle Blast.TRANS s => (warning ("Blast_tac: " ^ s); Seq.empty);
 
 (* a variant of depth_tac that avoids interference of the simplifier
    with dup_step_tac when they are combined by auto_tac *)
 local
-fun slow_step_tac' cs = Classical.appWrappers cs
-        (Classical.instp_step_tac cs APPEND' Classical.haz_step_tac cs);
-in fun nodup_depth_tac cs m i state = SELECT_GOAL
-   (Classical.safe_steps_tac cs 1 THEN_ELSE
-        (DEPTH_SOLVE (nodup_depth_tac cs m 1),
-         Classical.inst0_step_tac cs 1 APPEND COND (K (m=0)) no_tac
-             (slow_step_tac' cs 1 THEN DEPTH_SOLVE (nodup_depth_tac cs (m-1) 1))
-        )) i state;
+
+fun slow_step_tac' cs =
+  Classical.appWrappers cs
+    (Classical.instp_step_tac cs APPEND' Classical.haz_step_tac cs);
+
+in
+
+fun nodup_depth_tac cs m i state =
+  SELECT_GOAL
+    (Classical.safe_steps_tac cs 1 THEN_ELSE
+      (DEPTH_SOLVE (nodup_depth_tac cs m 1),
+        Classical.inst0_step_tac cs 1 APPEND COND (K (m = 0)) no_tac
+          (slow_step_tac' cs 1 THEN DEPTH_SOLVE (nodup_depth_tac cs (m - 1) 1)))) i state;
 end;
 
 (*Designed to be idempotent, except if blast_depth_tac instantiates variables
   in some of the subgoals*)
 fun mk_auto_tac (cs, ss) m n =
-    let val cs' = cs addss ss
-        val maintac =
-          blast_depth_tac cs m               (* fast but can't use wrappers *)
-          ORELSE'
-          (CHANGED o nodup_depth_tac cs' n); (* slower but more general *)
-    in  EVERY [PARALLEL_GOALS (ALLGOALS (Simplifier.asm_full_simp_tac ss)),
-               TRY (Classical.safe_tac cs),
-               REPEAT_DETERM (FIRSTGOAL maintac),
-               TRY (Classical.safe_tac (cs addSss ss)),
-               prune_params_tac]
-    end;
+  let
+    val cs' = cs addss ss;
+    val main_tac =
+      blast_depth_tac cs m               (* fast but can't use wrappers *)
+      ORELSE'
+      (CHANGED o nodup_depth_tac cs' n); (* slower but more general *)
+  in
+    EVERY [PARALLEL_GOALS (ALLGOALS (Simplifier.asm_full_simp_tac ss)),
+      TRY (Classical.safe_tac cs),
+      REPEAT_DETERM (FIRSTGOAL main_tac),
+      TRY (Classical.safe_tac (cs addSss ss)),
+      prune_params_tac]
+  end;
 
 fun auto_tac css = mk_auto_tac css 4 2;
 
@@ -214,10 +224,13 @@ fun auto_tac css = mk_auto_tac css 4 2;
 (* force_tac *)
 
 (* aimed to solve the given subgoal totally, using whatever tools possible *)
-fun force_tac (cs,ss) = let val cs' = cs addss ss in SELECT_GOAL (EVERY [
-        Classical.clarify_tac cs' 1,
-        IF_UNSOLVED (Simplifier.asm_full_simp_tac ss 1),
-        ALLGOALS (Classical.first_best_tac cs')]) end;
+fun force_tac (cs, ss) =
+  let val cs' = cs addss ss in
+    SELECT_GOAL (EVERY [
+      Classical.clarify_tac cs' 1,
+      IF_UNSOLVED (Simplifier.asm_full_simp_tac ss 1),
+      ALLGOALS (Classical.first_best_tac cs')])
+  end;
 
 
 (* basic combinations *)
@@ -229,9 +242,8 @@ val slow_simp_tac = ADDSS Classical.slow_tac;
 val best_simp_tac = ADDSS Classical.best_tac;
 
 
-(* access clasimpset *)
 
-
+(** access clasimpset **)
 
 (* attributes *)
 
