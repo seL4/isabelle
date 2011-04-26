@@ -6,6 +6,12 @@ Lexer for the inner Isabelle syntax (terms and types).
 
 signature LEXICON =
 sig
+  structure Syntax:
+  sig
+    val const: string -> term
+    val free: string -> term
+    val var: indexname -> term
+  end
   val is_identifier: string -> bool
   val is_ascii_identifier: string -> bool
   val is_xid: string -> bool
@@ -47,9 +53,6 @@ sig
   val explode_xstr: string -> string list
   val tokenize: Scan.lexicon -> bool -> Symbol_Pos.T list -> token list
   val read_indexname: string -> indexname
-  val const: string -> term
-  val free: string -> term
-  val var: indexname -> term
   val read_var: string -> term
   val read_variable: string -> indexname option
   val read_nat: string -> int option
@@ -73,6 +76,19 @@ end;
 
 structure Lexicon: LEXICON =
 struct
+
+(** syntaxtic terms **)
+
+structure Syntax =
+struct
+
+fun const c = Const (c, dummyT);
+fun free x = Free (x, dummyT);
+fun var xi = Var (xi, dummyT);
+
+end;
+
+
 
 (** is_identifier etc. **)
 
@@ -328,15 +344,13 @@ fun read_indexname s =
 
 (* read_var *)
 
-fun const c = Const (c, dummyT);
-fun free x = Free (x, dummyT);
-fun var xi = Var (xi, dummyT);
-
 fun read_var str =
   let
     val scan =
-      $$$ "?" |-- scan_indexname --| Scan.ahead (Scan.one Symbol_Pos.is_eof) >> var ||
-      Scan.many (Symbol.is_regular o Symbol_Pos.symbol) >> (free o implode o map Symbol_Pos.symbol);
+      $$$ "?" |-- scan_indexname --| Scan.ahead (Scan.one Symbol_Pos.is_eof)
+        >> Syntax.var ||
+      Scan.many (Symbol.is_regular o Symbol_Pos.symbol)
+        >> (Syntax.free o implode o map Symbol_Pos.symbol);
   in the (Scan.read Symbol_Pos.stopper scan (Symbol_Pos.explode (str, Position.none))) end;
 
 
@@ -448,7 +462,7 @@ val is_marked =
   unmark {case_class = K true, case_type = K true, case_const = K true,
     case_fixed = K true, case_default = K false};
 
-val dummy_type = const (mark_type "dummy");
-val fun_type = const (mark_type "fun");
+val dummy_type = Syntax.const (mark_type "dummy");
+val fun_type = Syntax.const (mark_type "fun");
 
 end;

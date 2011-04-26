@@ -180,7 +180,7 @@ fun ast_to_term ctxt trf =
   let
     fun trans a args =
       (case trf a of
-        NONE => Term.list_comb (Lexicon.const a, args)
+        NONE => Term.list_comb (Syntax.const a, args)
       | SOME f => f ctxt args);
 
     fun term_of (Ast.Constant a) = trans a []
@@ -424,15 +424,15 @@ fun parse_ast_pattern ctxt (root, str) =
 
 fun term_of_sort S =
   let
-    val class = Lexicon.const o Lexicon.mark_class;
+    val class = Syntax.const o Lexicon.mark_class;
 
     fun classes [c] = class c
-      | classes (c :: cs) = Lexicon.const "_classes" $ class c $ classes cs;
+      | classes (c :: cs) = Syntax.const "_classes" $ class c $ classes cs;
   in
     (case S of
-      [] => Lexicon.const "_topsort"
+      [] => Syntax.const "_topsort"
     | [c] => class c
-    | cs => Lexicon.const "_sort" $ classes cs)
+    | cs => Syntax.const "_sort" $ classes cs)
   end;
 
 
@@ -443,15 +443,15 @@ fun term_of_typ ctxt ty =
     val show_sorts = Config.get ctxt show_sorts;
 
     fun of_sort t S =
-      if show_sorts then Lexicon.const "_ofsort" $ t $ term_of_sort S
+      if show_sorts then Syntax.const "_ofsort" $ t $ term_of_sort S
       else t;
 
     fun term_of (Type (a, Ts)) =
-          Term.list_comb (Lexicon.const (Lexicon.mark_type a), map term_of Ts)
+          Term.list_comb (Syntax.const (Lexicon.mark_type a), map term_of Ts)
       | term_of (TFree (x, S)) =
           if is_some (Term_Position.decode x) then Syntax.free x
-          else of_sort (Lexicon.const "_tfree" $ Syntax.free x) S
-      | term_of (TVar (xi, S)) = of_sort (Lexicon.const "_tvar" $ Syntax.var xi) S;
+          else of_sort (Syntax.const "_tfree" $ Syntax.free x) S
+      | term_of (TVar (xi, S)) = of_sort (Syntax.const "_tvar" $ Syntax.var xi) S;
   in term_of ty end;
 
 
@@ -518,12 +518,12 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
             if i = 0 andalso member (op =) fixes x then
               Const (Lexicon.mark_fixed x, T)
             else if i = 1 andalso not show_structs then
-              Lexicon.const "_struct" $ Lexicon.const "_indexdefault"
-            else Lexicon.const "_free" $ t
+              Syntax.const "_struct" $ Syntax.const "_indexdefault"
+            else Syntax.const "_free" $ t
           end
       | mark_atoms (t as Var (xi, T)) =
           if xi = Syntax_Ext.dddot_indexname then Const ("_DDDOT", T)
-          else Lexicon.const "_var" $ t
+          else Syntax.const "_var" $ t
       | mark_atoms a = a;
 
     fun prune_typs (t_seen as (Const _, _)) = t_seen
@@ -555,7 +555,7 @@ fun term_to_ast idents is_syntax_const ctxt trf tm =
       | ((c as Const ("_bound", _)), Free (x, T) :: ts) =>
           Ast.mk_appl (constrain (c $ Syntax.free x) T) (map ast_of ts)
       | (Const ("_idtdummy", T), ts) =>
-          Ast.mk_appl (constrain (Lexicon.const "_idtdummy") T) (map ast_of ts)
+          Ast.mk_appl (constrain (Syntax.const "_idtdummy") T) (map ast_of ts)
       | (const as Const (c, T), ts) =>
           if show_all_types
           then Ast.mk_appl (constrain const T) (map ast_of ts)
@@ -660,23 +660,23 @@ end;
 (* type propositions *)
 
 fun type_prop_tr' ctxt T [Const ("\\<^const>Pure.sort_constraint", _)] =
-      Lexicon.const "_sort_constraint" $ term_of_typ (Config.put show_sorts true ctxt) T
+      Syntax.const "_sort_constraint" $ term_of_typ (Config.put show_sorts true ctxt) T
   | type_prop_tr' ctxt T [t] =
-      Lexicon.const "_ofclass" $ term_of_typ ctxt T $ t
+      Syntax.const "_ofclass" $ term_of_typ ctxt T $ t
   | type_prop_tr' _ T ts = raise TYPE ("type_prop_tr'", [T], ts);
 
 
 (* type reflection *)
 
 fun type_tr' ctxt (Type ("itself", [T])) ts =
-      Term.list_comb (Lexicon.const "_TYPE" $ term_of_typ ctxt T, ts)
+      Term.list_comb (Syntax.const "_TYPE" $ term_of_typ ctxt T, ts)
   | type_tr' _ _ _ = raise Match;
 
 
 (* type constraints *)
 
 fun type_constraint_tr' ctxt (Type ("fun", [T, _])) (t :: ts) =
-      Term.list_comb (Lexicon.const "_constrain" $ t $ term_of_typ ctxt T, ts)
+      Term.list_comb (Syntax.const "_constrain" $ t $ term_of_typ ctxt T, ts)
   | type_constraint_tr' _ _ _ = raise Match;
 
 

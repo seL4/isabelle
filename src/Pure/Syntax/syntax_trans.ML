@@ -58,6 +58,9 @@ end;
 structure Syntax_Trans: SYNTAX_TRANS =
 struct
 
+structure Syntax = Lexicon.Syntax;
+
+
 (* print mode *)
 
 val bracketsN = "brackets";
@@ -130,7 +133,7 @@ fun absfree_proper (x, T, t) =
 fun abs_tr [Free (x, T), t] = absfree_proper (x, T, t)
   | abs_tr [Const ("_idtdummy", T), t] = Term.absdummy (T, t)
   | abs_tr [Const ("_constrain", _) $ x $ tT, t] =
-      Lexicon.const "_constrainAbs" $ abs_tr [x, t] $ tT
+      Syntax.const "_constrainAbs" $ abs_tr [x, t] $ tT
   | abs_tr ts = raise TERM ("abs_tr", ts);
 
 
@@ -142,7 +145,7 @@ fun mk_binder_tr (syn, name) =
     fun binder_tr [Const ("_idts", _) $ idt $ idts, t] = binder_tr [idt, binder_tr [idts, t]]
       | binder_tr [x, t] =
           let val abs = abs_tr [x, t] handle TERM _ => err [x, t]
-          in Lexicon.const name $ abs end
+          in Syntax.const name $ abs end
       | binder_tr ts = err ts;
   in (syn, binder_tr) end;
 
@@ -150,19 +153,19 @@ fun mk_binder_tr (syn, name) =
 (* type propositions *)
 
 fun mk_type ty =
-  Lexicon.const "_constrain" $
-    Lexicon.const "\\<^const>TYPE" $ (Lexicon.const "\\<^type>itself" $ ty);
+  Syntax.const "_constrain" $
+    Syntax.const "\\<^const>TYPE" $ (Syntax.const "\\<^type>itself" $ ty);
 
 fun ofclass_tr [ty, cls] = cls $ mk_type ty
   | ofclass_tr ts = raise TERM ("ofclass_tr", ts);
 
-fun sort_constraint_tr [ty] = Lexicon.const "\\<^const>Pure.sort_constraint" $ mk_type ty
+fun sort_constraint_tr [ty] = Syntax.const "\\<^const>Pure.sort_constraint" $ mk_type ty
   | sort_constraint_tr ts = raise TERM ("sort_constraint_tr", ts);
 
 
 (* meta propositions *)
 
-fun aprop_tr [t] = Lexicon.const "_constrain" $ t $ Lexicon.const "\\<^type>prop"
+fun aprop_tr [t] = Syntax.const "_constrain" $ t $ Syntax.const "\\<^type>prop"
   | aprop_tr ts = raise TERM ("aprop_tr", ts);
 
 
@@ -185,7 +188,7 @@ fun type_tr [ty] = mk_type ty
 
 (* dddot *)
 
-fun dddot_tr ts = Term.list_comb (Lexicon.var Syntax_Ext.dddot_indexname, ts);
+fun dddot_tr ts = Term.list_comb (Syntax.var Syntax_Ext.dddot_indexname, ts);
 
 
 (* quote / antiquote *)
@@ -204,7 +207,7 @@ fun quote_tr name t = Abs ("s", dummyT, antiquote_tr name (Term.incr_boundvars 1
 
 fun quote_antiquote_tr quoteN antiquoteN name =
   let
-    fun tr [t] = Lexicon.const name $ quote_tr antiquoteN t
+    fun tr [t] = Syntax.const name $ quote_tr antiquoteN t
       | tr ts = raise TERM ("quote_tr", ts);
   in (quoteN, tr) end;
 
@@ -250,9 +253,9 @@ fun the_struct structs i =
   else error ("Illegal reference to implicit structure #" ^ string_of_int i);
 
 fun struct_tr structs [Const ("_indexdefault", _)] =
-      Lexicon.free (the_struct structs 1)
+      Syntax.free (the_struct structs 1)
   | struct_tr structs [t as (Const ("_indexnum", _) $ Const (s, _))] =
-      Lexicon.free (the_struct structs
+      Syntax.free (the_struct structs
         (case Lexicon.read_nat s of SOME n => n | NONE => raise TERM ("struct_tr", [t])))
   | struct_tr _ ts = raise TERM ("struct_tr", ts);
 
@@ -335,7 +338,7 @@ fun strip_abss vars_of body_of tm =
 
 
 fun abs_tr' ctxt tm =
-  uncurry (fold_rev (fn x => fn t => Lexicon.const "_abs" $ x $ t))
+  uncurry (fold_rev (fn x => fn t => Syntax.const "_abs" $ x $ t))
     (strip_abss strip_abs_vars strip_abs_body (eta_contr ctxt tm));
 
 fun atomic_abs_tr' (x, T, t) =
@@ -361,24 +364,24 @@ fun mk_binder_tr' (name, syn) =
   let
     fun mk_idts [] = raise Match    (*abort translation*)
       | mk_idts [idt] = idt
-      | mk_idts (idt :: idts) = Lexicon.const "_idts" $ idt $ mk_idts idts;
+      | mk_idts (idt :: idts) = Syntax.const "_idts" $ idt $ mk_idts idts;
 
     fun tr' t =
       let
         val (xs, bd) = strip_abss (strip_qnt_vars name) (strip_qnt_body name) t;
-      in Lexicon.const syn $ mk_idts xs $ bd end;
+      in Syntax.const syn $ mk_idts xs $ bd end;
 
-    fun binder_tr' (t :: ts) = Term.list_comb (tr' (Lexicon.const name $ t), ts)
+    fun binder_tr' (t :: ts) = Term.list_comb (tr' (Syntax.const name $ t), ts)
       | binder_tr' [] = raise Match;
   in (name, binder_tr') end;
 
 fun preserve_binder_abs_tr' name syn = (name, fn Abs abs :: ts =>
   let val (x, t) = atomic_abs_tr' abs
-  in list_comb (Lexicon.const syn $ x $ t, ts) end);
+  in list_comb (Syntax.const syn $ x $ t, ts) end);
 
 fun preserve_binder_abs2_tr' name syn = (name, fn A :: Abs abs :: ts =>
   let val (x, t) = atomic_abs_tr' abs
-  in list_comb (Lexicon.const syn $ x $ A $ t, ts) end);
+  in list_comb (Syntax.const syn $ x $ A $ t, ts) end);
 
 
 (* idtyp constraints *)
@@ -392,7 +395,7 @@ fun idtyp_ast_tr' a [Ast.Appl [Ast.Constant "_constrain", x, ty], xs] =
 
 fun prop_tr' tm =
   let
-    fun aprop t = Lexicon.const "_aprop" $ t;
+    fun aprop t = Syntax.const "_aprop" $ t;
 
     fun is_prop Ts t =
       fastype_of1 (Ts, t) = propT handle TERM _ => false;
@@ -404,9 +407,9 @@ fun prop_tr' tm =
       | tr' Ts (t as Const ("_bound", _) $ u) =
           if is_prop Ts u then aprop t else t
       | tr' _ (t as Free (x, T)) =
-          if T = propT then aprop (Lexicon.free x) else t
+          if T = propT then aprop (Syntax.free x) else t
       | tr' _ (t as Var (xi, T)) =
-          if T = propT then aprop (Lexicon.var xi) else t
+          if T = propT then aprop (Syntax.var xi) else t
       | tr' Ts (t as Bound _) =
           if is_prop Ts t then aprop t else t
       | tr' Ts (Abs (x, T, t)) = Abs (x, T, tr' (T :: Ts) t)
@@ -445,8 +448,8 @@ val variant_abs' = var_abs mark_boundT;
 fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
       if Term.is_dependent B then
         let val (x', B') = variant_abs' (x, dummyT, B);
-        in Term.list_comb (Lexicon.const q $ mark_boundT (x', T) $ A $ B', ts) end
-      else Term.list_comb (Lexicon.const r $ A $ incr_boundvars ~1 B, ts)
+        in Term.list_comb (Syntax.const q $ mark_boundT (x', T) $ A $ B', ts) end
+      else Term.list_comb (Syntax.const r $ A $ incr_boundvars ~1 B, ts)
   | dependent_tr' _ _ = raise Match;
 
 
@@ -455,7 +458,7 @@ fun dependent_tr' (q, r) (A :: Abs (x, T, B) :: ts) =
 fun antiquote_tr' name =
   let
     fun tr' i (t $ u) =
-          if u aconv Bound i then Lexicon.const name $ tr' i t
+          if u aconv Bound i then Syntax.const name $ tr' i t
           else tr' i t $ tr' i u
       | tr' i (Abs (x, T, t)) = Abs (x, T, tr' (i + 1) t)
       | tr' i a = if a aconv Bound i then raise Match else a;
@@ -466,7 +469,7 @@ fun quote_tr' name (Abs (_, _, t)) = Term.incr_boundvars ~1 (antiquote_tr' name 
 
 fun quote_antiquote_tr' quoteN antiquoteN name =
   let
-    fun tr' (t :: ts) = Term.list_comb (Lexicon.const quoteN $ quote_tr' antiquoteN t, ts)
+    fun tr' (t :: ts) = Term.list_comb (Syntax.const quoteN $ quote_tr' antiquoteN t, ts)
       | tr' _ = raise Match;
   in (name, tr') end;
 
