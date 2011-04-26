@@ -265,8 +265,12 @@ def invoke_mutabelle(theory, env, case, paths, dep_paths, playground):
     except IOError:
         mutabelle_log = ''
 
+    mutabelle_data = dict(
+        (tool, {'counterexample': c, 'no_counterexample': n, 'timeout': t, 'error': e})
+        for tool, c, n, t, e in re.findall(r'(\S+)\s+: C: (\d+) N: (\d+) T: (\d+) E: (\d+)', log))
+
     return (return_code == 0 and mutabelle_log != '', extract_isabelle_run_summary(log),
-      {'timing': extract_isabelle_run_timing(log)},
+      {'mutabelle_results': {theory: mutabelle_data}},
       {'log': log, 'mutabelle_log': mutabelle_log}, None)
 
 @configuration(repos = [Isabelle], deps = [(HOL, [0])])
