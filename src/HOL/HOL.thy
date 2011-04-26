@@ -927,22 +927,17 @@ apply iprover
 done
 
 ML {*
-structure Blast = Blast
-(
-  val thy = @{theory}
-  type claset = Classical.claset
-  val equality_name = @{const_name HOL.eq}
-  val not_name = @{const_name Not}
-  val notE = @{thm notE}
-  val ccontr = @{thm ccontr}
-  val contr_tac = Classical.contr_tac
-  val dup_intr = Classical.dup_intr
-  val hyp_subst_tac = Hypsubst.blast_hyp_subst_tac
-  val rep_cs = Classical.rep_cs
-  val cla_modifiers = Classical.cla_modifiers
-  val cla_meth' = Classical.cla_meth'
-);
-val blast_tac = Blast.blast_tac;
+  structure Blast = Blast
+  (
+    structure Classical = Classical
+    val thy = @{theory}
+    val equality_name = @{const_name HOL.eq}
+    val not_name = @{const_name Not}
+    val notE = @{thm notE}
+    val ccontr = @{thm ccontr}
+    val hyp_subst_tac = Hypsubst.blast_hyp_subst_tac
+  );
+  val blast_tac = Blast.blast_tac;
 *}
 
 setup Blast.setup

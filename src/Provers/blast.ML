@@ -40,24 +40,13 @@ type netpair = (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net;
 
 signature BLAST_DATA =
 sig
+  structure Classical: CLASSICAL
   val thy: theory
-  type claset
   val equality_name: string
   val not_name: string
-  val notE              : thm           (* [| ~P;  P |] ==> R *)
-  val ccontr            : thm
-  val contr_tac         : int -> tactic
-  val dup_intr          : thm -> thm
-  val hyp_subst_tac     : bool -> int -> tactic
-  val rep_cs    : (* dependent on classical.ML *)
-      claset -> {safeIs: thm list, safeEs: thm list,
-                 hazIs: thm list, hazEs: thm list,
-                 swrappers: (string * wrapper) list,
-                 uwrappers: (string * wrapper) list,
-                 safe0_netpair: netpair, safep_netpair: netpair,
-                 haz_netpair: netpair, dup_netpair: netpair, xtra_netpair: Context_Rules.netpair}
-  val cla_modifiers: Method.modifier parser list
-  val cla_meth': (claset -> int -> tactic) -> Proof.context -> Proof.method
+  val notE: thm           (* [| ~P;  P |] ==> R *)
+  val ccontr: thm
+  val hyp_subst_tac: bool -> int -> tactic
 end;
 
 signature BLAST =
@@ -72,31 +61,31 @@ sig
     | Bound of int
     | Abs   of string*term
     | $  of term*term;
-  type branch
-  val depth_tac         : claset -> int -> int -> tactic
-  val depth_limit       : int Config.T
-  val blast_tac         : claset -> int -> tactic
-  val setup             : theory -> theory
+  val depth_tac: claset -> int -> int -> tactic
+  val depth_limit: int Config.T
+  val blast_tac: claset -> int -> tactic
+  val setup: theory -> theory
   (*debugging tools*)
-  val stats             : bool Unsynchronized.ref
-  val trace             : bool Unsynchronized.ref
-  val fullTrace         : branch list list Unsynchronized.ref
-  val fromType          : (indexname * term) list Unsynchronized.ref -> Term.typ -> term
-  val fromTerm          : theory -> Term.term -> term
-  val fromSubgoal       : theory -> Term.term -> term
-  val instVars          : term -> (unit -> unit)
-  val toTerm            : int -> term -> Term.term
-  val readGoal          : theory -> string -> term
-  val tryInThy          : theory -> claset -> int -> string ->
-                  (int->tactic) list * branch list list * (int*int*exn) list
-  val normBr            : branch -> branch
+  type branch
+  val stats: bool Unsynchronized.ref
+  val trace: bool Unsynchronized.ref
+  val fullTrace: branch list list Unsynchronized.ref
+  val fromType: (indexname * term) list Unsynchronized.ref -> Term.typ -> term
+  val fromTerm: theory -> Term.term -> term
+  val fromSubgoal: theory -> Term.term -> term
+  val instVars: term -> (unit -> unit)
+  val toTerm: int -> term -> Term.term
+  val readGoal: theory -> string -> term
+  val tryInThy: theory -> claset -> int -> string ->
+    (int -> tactic) list * branch list list * (int * int * exn) list
+  val normBr: branch -> branch
 end;
 
-
-functor Blast(Data: BLAST_DATA) : BLAST =
+functor Blast(Data: BLAST_DATA): BLAST =
 struct
 
-type claset = Data.claset;
+structure Classical = Data.Classical;
+type claset = Classical.claset;
 
 val trace = Unsynchronized.ref false
 and stats = Unsynchronized.ref false;   (*for runtime and search statistics*)
@@ -541,7 +530,7 @@ fun convertIntrRule vars t =
 fun fromIntrRule thy vars rl =
   let val trl = rl |> Thm.prop_of |> fromTerm thy |> convertIntrRule vars
       fun tac (upd,dup,rot) i =
-         rmtac upd (if dup then Data.dup_intr rl else rl) i
+         rmtac upd (if dup then Classical.dup_intr rl else rl) i
          THEN
          rot_subgoals_tac (rot, #2 trl) i
   in (trl, tac) end;
@@ -928,7 +917,7 @@ fun printStats (State {ntried, nclosed, ...}) (b, start, tacs) =
 *)
 fun prove (state, start, cs, brs, cont) =
  let val State {thy, ntrail, nclosed, ntried, ...} = state;
-     val {safe0_netpair, safep_netpair, haz_netpair, ...} = Data.rep_cs cs
+     val {safe0_netpair, safep_netpair, haz_netpair, ...} = Classical.rep_cs cs
      val safeList = [safe0_netpair, safep_netpair]
      and hazList  = [haz_netpair]
      fun prv (tacs, trs, choices, []) =
@@ -1314,9 +1303,9 @@ fun tryInThy thy cs lim s =
 val setup =
   setup_depth_limit #>
   Method.setup @{binding blast}
-    (Scan.lift (Scan.option Parse.nat) --| Method.sections Data.cla_modifiers >>
-      (fn NONE => Data.cla_meth' blast_tac
-        | SOME lim => Data.cla_meth' (fn cs => depth_tac cs lim)))
+    (Scan.lift (Scan.option Parse.nat) --| Method.sections Classical.cla_modifiers >>
+      (fn NONE => Classical.cla_meth' blast_tac
+        | SOME lim => Classical.cla_meth' (fn cs => depth_tac cs lim)))
     "classical tableau prover";
 
 end;
