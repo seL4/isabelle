@@ -80,7 +80,8 @@ fun unused_thms (base_thys, thys) =
 
     val (thms', _) = fold (fn (a, (th, concealed, group)) => fn q as (thms, seen_groups) =>
       if not concealed andalso
-        member (op =) [Thm.theoremK, Thm.lemmaK, Thm.corollaryK] (Thm.get_kind th) andalso
+        (* FIXME replace by robust treatment of thm groups *)
+        member (op =) [Thm.theoremK, Thm.lemmaK, Thm.corollaryK] (Thm.legacy_get_kind th) andalso
         is_unused a
       then
         (case group of

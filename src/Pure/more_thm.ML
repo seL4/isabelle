@@ -90,7 +90,7 @@ sig
   val theoremK: string
   val lemmaK: string
   val corollaryK: string
-  val get_kind: thm -> string
+  val legacy_get_kind: thm -> string
   val kind_rule: string -> thm -> thm
   val kind: string -> attribute
 end;
@@ -453,7 +453,7 @@ val theoremK = "theorem";
 val lemmaK = "lemma";
 val corollaryK = "corollary";
 
-fun get_kind thm = the_default "" (Properties.get (Thm.get_tags thm) Markup.kindN);
+fun legacy_get_kind thm = the_default "" (Properties.get (Thm.get_tags thm) Markup.kindN);
 
 fun kind_rule k = tag_rule (Markup.kindN, k) o untag_rule Markup.kindN;
 fun kind k x = if k = "" then x else rule_attribute (K (kind_rule k)) x;
