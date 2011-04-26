@@ -193,12 +193,13 @@ fun slow_step_tac' cs =
 
 in
 
-fun nodup_depth_tac cs m i state =
+fun nodup_depth_tac cs m i st =
   SELECT_GOAL
     (Classical.safe_steps_tac cs 1 THEN_ELSE
       (DEPTH_SOLVE (nodup_depth_tac cs m 1),
         Classical.inst0_step_tac cs 1 APPEND COND (K (m = 0)) no_tac
-          (slow_step_tac' cs 1 THEN DEPTH_SOLVE (nodup_depth_tac cs (m - 1) 1)))) i state;
+          (slow_step_tac' cs 1 THEN DEPTH_SOLVE (nodup_depth_tac cs (m - 1) 1)))) i st;
+
 end;
 
 (*Designed to be idempotent, except if blast_depth_tac instantiates variables
@@ -211,11 +212,11 @@ fun mk_auto_tac (cs, ss) m n =
       ORELSE'
       (CHANGED o nodup_depth_tac cs' n); (* slower but more general *)
   in
-    EVERY [PARALLEL_GOALS (ALLGOALS (Simplifier.asm_full_simp_tac ss)),
-      TRY (Classical.safe_tac cs),
-      REPEAT_DETERM (FIRSTGOAL main_tac),
-      TRY (Classical.safe_tac (cs addSss ss)),
-      prune_params_tac]
+    PARALLEL_GOALS (ALLGOALS (Simplifier.asm_full_simp_tac ss)) THEN
+    TRY (Classical.safe_tac cs) THEN
+    REPEAT_DETERM (FIRSTGOAL main_tac) THEN
+    TRY (Classical.safe_tac (cs addSss ss)) THEN
+    prune_params_tac
   end;
 
 fun auto_tac css = mk_auto_tac css 4 2;
@@ -226,10 +227,10 @@ fun auto_tac css = mk_auto_tac css 4 2;
 (* aimed to solve the given subgoal totally, using whatever tools possible *)
 fun force_tac (cs, ss) =
   let val cs' = cs addss ss in
-    SELECT_GOAL (EVERY [
-      Classical.clarify_tac cs' 1,
-      IF_UNSOLVED (Simplifier.asm_full_simp_tac ss 1),
-      ALLGOALS (Classical.first_best_tac cs')])
+    SELECT_GOAL
+     (Classical.clarify_tac cs' 1 THEN
+      IF_UNSOLVED (Simplifier.asm_full_simp_tac ss 1) THEN
+      ALLGOALS (Classical.first_best_tac cs'))
   end;
 
 
