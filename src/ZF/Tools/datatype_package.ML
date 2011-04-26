@@ -382,7 +382,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   (thy1 |> Sign.add_path big_rec_base_name
         |> Global_Theory.add_thmss
          [((Binding.name "simps", simps), [Simplifier.simp_add]),
-          ((Binding.empty , intrs), [Classical.safe_intro NONE]),
+          ((Binding.empty, intrs), [Cla.safe_intro NONE]),
           ((Binding.name "con_defs", con_defs), []),
           ((Binding.name "case_eqns", case_eqns), []),
           ((Binding.name "recursor_eqns", recursor_eqns), []),
