@@ -417,10 +417,10 @@ lemma ci3_AI: "[| mono(Agen);  a : A |] ==> a : lfp(%x. Agen(x) Un R Un A)"
 
 ML {*
 fun genIs_tac ctxt genXH gen_mono =
-  rtac (genXH RS iffD2) THEN'
+  rtac (genXH RS @{thm iffD2}) THEN'
   simp_tac (simpset_of ctxt) THEN'
   TRY o fast_tac (claset_of ctxt addIs
-        [genXH RS iffD2, gen_mono RS @{thm coinduct3_mono_lemma} RS @{thm lfpI}])
+        [genXH RS @{thm iffD2}, gen_mono RS @{thm coinduct3_mono_lemma} RS @{thm lfpI}])
 *}
 
 method_setup genIs = {*

@@ -245,8 +245,9 @@ local
   val lemma = @{thm lem};
   val eq_lemma = @{thm eq_lemma};
   val distinctness = @{thm distinctness};
-  fun mk_lemma (ra,rb) = [lemma] RL [ra RS (rb RS eq_lemma)] RL
-                           [distinctness RS notE, @{thm sym} RS (distinctness RS notE)]
+  fun mk_lemma (ra,rb) =
+    [lemma] RL [ra RS (rb RS eq_lemma)] RL
+    [distinctness RS @{thm notE}, @{thm sym} RS (distinctness RS @{thm notE})]
 in
   fun mk_lemmas rls = maps mk_lemma (mk_combs pair rls)
   fun mk_dstnct_rls thy xs = mk_combs (mk_thm_str thy) xs
@@ -279,15 +280,15 @@ fun mkall_dstnct_thms thy defs i_rls xss = maps (mk_dstnct_thms thy defs i_rls) 
 
 (*** Rewriting and Proving ***)
 
-fun XH_to_I rl = rl RS iffD2
-fun XH_to_D rl = rl RS iffD1
+fun XH_to_I rl = rl RS @{thm iffD2}
+fun XH_to_D rl = rl RS @{thm iffD1}
 val XH_to_E = make_elim o XH_to_D
 val XH_to_Is = map XH_to_I
 val XH_to_Ds = map XH_to_D
 val XH_to_Es = map XH_to_E;
 
 bind_thms ("ccl_rews", @{thms caseBs} @ @{thms ccl_injs} @ ccl_dstncts);
-bind_thms ("ccl_dstnctsEs", ccl_dstncts RL [notE]);
+bind_thms ("ccl_dstnctsEs", ccl_dstncts RL [@{thm notE}]);
 bind_thms ("ccl_injDs", XH_to_Ds @{thms ccl_injs});
 *}
 
