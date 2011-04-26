@@ -824,13 +824,6 @@ val Fake_analz_insert = @{thm Fake_analz_insert};
 val pushes = @{thms pushes};
 
 
-(*Prove base case (subgoal i) and simplify others.  A typical base case
-  concerns  Crypt K X \<notin> Key`shrK`bad  and cannot be proved by rewriting
-  alone.*)
-fun prove_simple_subgoals_tac (cs, ss) i = 
-    force_tac (cs, ss addsimps [@{thm image_eq_UN}]) i THEN
-    ALLGOALS (asm_simp_tac ss)
-
 (*Analysis of Fake cases.  Also works for messages that forward unknown parts,
   but this application is no longer necessary if analz_insert_eq is used.
   Abstraction over i is ESSENTIAL: it delays the dereferencing of claset
@@ -849,25 +842,29 @@ val Fake_insert_tac =
 fun Fake_insert_simp_tac ss i = 
     REPEAT (Fake_insert_tac i) THEN asm_full_simp_tac ss i;
 
-fun atomic_spy_analz_tac (cs,ss) = SELECT_GOAL
-    (Fake_insert_simp_tac ss 1
-     THEN
-     IF_UNSOLVED (Blast.depth_tac
-                  (cs addIs [analz_insertI,
-                                   impOfSubs analz_subset_parts]) 4 1))
+fun atomic_spy_analz_tac ctxt =
+  let val ss = simpset_of ctxt and cs = claset_of ctxt in
+    SELECT_GOAL
+      (Fake_insert_simp_tac ss 1
+       THEN
+       IF_UNSOLVED (Blast.depth_tac
+                    (cs addIs [analz_insertI,
+                                     impOfSubs analz_subset_parts]) 4 1))
+  end;
 
-fun spy_analz_tac (cs,ss) i =
-  DETERM
-   (SELECT_GOAL
-     (EVERY 
-      [  (*push in occurrences of X...*)
-       (REPEAT o CHANGED)
-           (res_inst_tac (Simplifier.the_context ss)
-            [(("x", 1), "X")] (insert_commute RS ssubst) 1),
-       (*...allowing further simplifications*)
-       simp_tac ss 1,
-       REPEAT (FIRSTGOAL (resolve_tac [allI,impI,notI,conjI,iffI])),
-       DEPTH_SOLVE (atomic_spy_analz_tac (cs,ss) 1)]) i)
+fun spy_analz_tac ctxt i =
+  let val ss = simpset_of ctxt and cs = claset_of ctxt in
+    DETERM
+     (SELECT_GOAL
+       (EVERY 
+        [  (*push in occurrences of X...*)
+         (REPEAT o CHANGED)
+             (res_inst_tac ctxt [(("x", 1), "X")] (insert_commute RS ssubst) 1),
+         (*...allowing further simplifications*)
+         simp_tac ss 1,
+         REPEAT (FIRSTGOAL (resolve_tac [allI,impI,notI,conjI,iffI])),
+         DEPTH_SOLVE (atomic_spy_analz_tac ctxt 1)]) i)
+  end;
 *}
 
 text{*By default only @{text o_apply} is built-in.  But in the presence of
@@ -915,11 +912,11 @@ done
 lemmas Fake_parts_sing_imp_Un = Fake_parts_sing [THEN [2] rev_subsetD]
 
 method_setup spy_analz = {*
-    Scan.succeed (SIMPLE_METHOD' o spy_analz_tac o clasimpset_of) *}
+    Scan.succeed (SIMPLE_METHOD' o spy_analz_tac) *}
     "for proving the Fake case when analz is involved"
 
 method_setup atomic_spy_analz = {*
-    Scan.succeed (SIMPLE_METHOD' o atomic_spy_analz_tac o clasimpset_of) *}
+    Scan.succeed (SIMPLE_METHOD' o atomic_spy_analz_tac) *}
     "for debugging spy_analz"
 
 method_setup Fake_insert_simp = {*
