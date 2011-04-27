@@ -118,7 +118,7 @@ fun gen_obtain prep_att prep_vars prep_propp
 
     (*obtain vars*)
     val (vars, vars_ctxt) = prep_vars raw_vars ctxt;
-    val (_, fix_ctxt) = vars_ctxt |> Proof_Context.add_fixes vars;
+    val (xs', fix_ctxt) = vars_ctxt |> Proof_Context.add_fixes vars;
     val xs = map (Variable.name o #1) vars;
 
     (*obtain asms*)
@@ -126,16 +126,14 @@ fun gen_obtain prep_att prep_vars prep_propp
     val asm_props = maps (map fst) proppss;
     val asms = map fst (Attrib.map_specs (prep_att thy) raw_asms) ~~ proppss;
 
-    val _ = Variable.warn_extra_tfrees fix_ctxt asms_ctxt;
+    (*obtain parms*)
+    val (Ts, parms_ctxt) = fold_map Proof_Context.inferred_param xs' asms_ctxt;
+    val parms = xs' ~~ Ts;
+    val _ = Variable.warn_extra_tfrees fix_ctxt parms_ctxt;
 
     (*obtain statements*)
     val thesisN = Name.variant xs Auto_Bind.thesisN;
     val (thesis_var, thesis) = #1 (bind_judgment fix_ctxt thesisN);
-
-    val asm_frees = fold Term.add_frees asm_props [];
-    val parms = xs |> map (fn x =>
-      let val x' = Variable.intern_fixed fix_ctxt x
-      in (x', the_default propT (AList.lookup (op =) asm_frees x')) end);
 
     val that_name = if name = "" then thatN else name;
     val that_prop =
