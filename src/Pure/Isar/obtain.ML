@@ -119,7 +119,7 @@ fun gen_obtain prep_att prep_vars prep_propp
     (*obtain vars*)
     val (vars, vars_ctxt) = prep_vars raw_vars ctxt;
     val (xs', fix_ctxt) = vars_ctxt |> Proof_Context.add_fixes vars;
-    val xs = map (Variable.name o #1) vars;
+    val xs = map (Variable.check_name o #1) vars;
 
     (*obtain asms*)
     val (asms_ctxt, proppss) = prep_propp (fix_ctxt, map snd raw_asms);
@@ -255,7 +255,7 @@ fun unify_params vars thesis_var raw_rule ctxt =
 
 fun inferred_type (binding, _, mx) ctxt =
   let
-    val x = Variable.name binding;
+    val x = Variable.check_name binding;
     val (T, ctxt') = Proof_Context.inferred_param x ctxt
   in ((x, T, mx), ctxt') end;
 

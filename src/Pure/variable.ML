@@ -15,7 +15,7 @@ sig
   val sorts_of: Proof.context -> sort list
   val constraints_of: Proof.context -> typ Vartab.table * sort Vartab.table
   val is_declared: Proof.context -> string -> bool
-  val name: binding -> string
+  val check_name: binding -> string
   val default_type: Proof.context -> string -> typ option
   val def_type: Proof.context -> bool -> indexname -> typ option
   val def_sort: Proof.context -> indexname -> sort option
@@ -164,8 +164,7 @@ val constraints_of = #constraints o rep_data;
 
 val is_declared = Name.is_declared o names_of;
 
-(*checked name binding*)
-val name = Long_Name.base_name o Name_Space.full_name Name_Space.default_naming;
+val check_name = Long_Name.base_name o Name_Space.full_name Name_Space.default_naming;
 
 
 
@@ -362,7 +361,7 @@ fun add_fixes_binding bs ctxt =
         [] => ()
       | dups => err_dups dups);
 
-    val xs = map name bs;
+    val xs = map check_name bs;
     val names = names_of ctxt;
     val (xs', names') =
       if is_body ctxt then Name.variants xs names |>> map Name.skolem

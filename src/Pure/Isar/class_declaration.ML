@@ -254,7 +254,7 @@ fun add_consts class base_sort sups supparam_names global_syntax thy =
         thy
         |> Sign.declare_const_global ((b, ty0), syn)
         |> snd
-        |> pair ((Variable.name b, ty), (c, ty'))
+        |> pair ((Variable.check_name b, ty), (c, ty'))
       end;
   in
     thy
