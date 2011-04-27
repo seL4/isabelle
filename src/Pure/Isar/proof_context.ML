@@ -1027,15 +1027,16 @@ fun revert_abbrev mode c = (map_consts o apfst) (Consts.revert_abbrev mode c);
 
 fun add_fixes raw_vars ctxt =
   let
-    val (vars, _) = cert_vars raw_vars ctxt;
-    val (xs', ctxt') = Variable.add_fixes (map (Variable.name o #1) vars) ctxt;
-    val ctxt'' =
-      ctxt'
-      |> fold_map declare_var (map2 (fn x' => fn (_, T, mx) => (x', T, mx)) xs' vars)
-      |-> (map_syntax o Local_Syntax.add_syntax (theory_of ctxt) o map (pair Local_Syntax.Fixed));
-    val _ = (vars ~~ xs') |> List.app (fn ((b, _, _), x') =>
-      Context_Position.report ctxt (Binding.pos_of b) (Markup.fixed_decl x'));
-  in (xs', ctxt'') end;
+    val thy = theory_of ctxt;
+    val vars = #1 (cert_vars raw_vars ctxt);
+  in
+    ctxt
+    |> Variable.add_fixes_binding (map #1 vars)
+    |-> (fn xs =>
+      fold_map declare_var (map2 (fn x => fn (_, T, mx) => (x, T, mx)) xs vars)
+      #-> (map_syntax o Local_Syntax.add_syntax thy o map (pair Local_Syntax.Fixed))
+      #> pair xs)
+  end;
 
 
 (* fixes vs. frees *)
