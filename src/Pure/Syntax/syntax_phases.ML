@@ -31,8 +31,9 @@ fun markup_const ctxt c =
 
 fun markup_free ctxt x =
   [if can Name.dest_skolem x then Markup.skolem else Markup.free] @
-  (if not (Variable.is_body ctxt) orelse Variable.is_fixed ctxt x then []
-   else [Markup.hilite]);
+  (if Variable.is_body ctxt orelse Variable.is_fixed ctxt x
+   then [Variable.markup_fixed ctxt x]
+   else []);
 
 fun markup_var xi = [Markup.name (Term.string_of_vname xi) Markup.var];
 
@@ -592,7 +593,7 @@ fun free_or_skolem ctxt x =
       else Markup.hilite;
   in
     if can Name.dest_skolem x
-    then ([m, Markup.skolem], Proof_Context.revert_skolem ctxt x)
+    then ([m, Markup.skolem], Variable.revert_fixed ctxt x)
     else ([m, Markup.free], x)
   end;
 

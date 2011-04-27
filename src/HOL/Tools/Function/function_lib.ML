@@ -9,7 +9,6 @@ signature FUNCTION_LIB =
 sig
   val plural: string -> string -> 'a list -> string
 
-  val focus_term: term -> Proof.context -> ((string * typ) list * term) * Proof.context
   val dest_all_all: term -> term list * term
 
   val map4: ('a -> 'b -> 'c -> 'd -> 'e) -> 'a list -> 'b list -> 'c list -> 'd list -> 'e list
@@ -36,19 +35,6 @@ struct
 (* "The variable" ^ plural " is" "s are" vs *)
 fun plural sg pl [x] = sg
   | plural sg pl _ = pl
-
-
-(*term variant of Variable.focus*)
-fun focus_term t ctxt =
-  let
-    val ps = Term.variant_frees t (Term.strip_all_vars t);   (*as they are printed :-*)
-    val (xs, Ts) = split_list ps;
-    val (xs', ctxt') = Variable.variant_fixes xs ctxt;
-    val ps' = xs' ~~ Ts;
-    val inst = map Free ps'
-    val t' = Term.subst_bounds (rev inst, Term.strip_all_body t);
-    val ctxt'' = ctxt' |> fold Variable.declare_constraints inst;
-  in ((ps', t'), ctxt'') end;
 
 
 (* Removes all quantifiers from a term, replacing bound variables by frees. *)

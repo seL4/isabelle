@@ -99,7 +99,7 @@ fun obtain_export ctxt rule xs _ As =
 
 fun bind_judgment ctxt name =
   let
-    val (bind, ctxt') = Proof_Context.bind_fixes [name] ctxt;
+    val (bind, ctxt') = Proof_Context.bind_fixes [Binding.name name] ctxt;
     val (t as _ $ Free v) = bind (Object_Logic.fixed_judgment (Proof_Context.theory_of ctxt) name);
   in ((v, t), ctxt') end;
 
@@ -118,24 +118,22 @@ fun gen_obtain prep_att prep_vars prep_propp
 
     (*obtain vars*)
     val (vars, vars_ctxt) = prep_vars raw_vars ctxt;
-    val (_, fix_ctxt) = vars_ctxt |> Proof_Context.add_fixes vars;
-    val xs = map (Variable.name o #1) vars;
+    val (xs', fix_ctxt) = vars_ctxt |> Proof_Context.add_fixes vars;
+    val xs = map (Variable.check_name o #1) vars;
 
     (*obtain asms*)
     val (asms_ctxt, proppss) = prep_propp (fix_ctxt, map snd raw_asms);
     val asm_props = maps (map fst) proppss;
     val asms = map fst (Attrib.map_specs (prep_att thy) raw_asms) ~~ proppss;
 
-    val _ = Variable.warn_extra_tfrees fix_ctxt asms_ctxt;
+    (*obtain parms*)
+    val (Ts, parms_ctxt) = fold_map Proof_Context.inferred_param xs' asms_ctxt;
+    val parms = xs' ~~ Ts;
+    val _ = Variable.warn_extra_tfrees fix_ctxt parms_ctxt;
 
     (*obtain statements*)
     val thesisN = Name.variant xs Auto_Bind.thesisN;
     val (thesis_var, thesis) = #1 (bind_judgment fix_ctxt thesisN);
-
-    val asm_frees = fold Term.add_frees asm_props [];
-    val parms = xs |> map (fn x =>
-      let val x' = Proof_Context.get_skolem fix_ctxt x
-      in (x', the_default propT (AList.lookup (op =) asm_frees x')) end);
 
     val that_name = if name = "" then thatN else name;
     val that_prop =
@@ -198,7 +196,7 @@ fun result tac facts ctxt =
     val closed_rule = Thm.forall_intr (cert (Free thesis_var)) rule;
     val ((_, [rule']), ctxt') = Variable.import false [closed_rule] ctxt;
     val obtain_rule = Thm.forall_elim (cert (Logic.varify_global (Free thesis_var))) rule';
-    val ((params, stmt), fix_ctxt) = Variable.focus (Thm.cprem_of obtain_rule 1) ctxt';
+    val ((params, stmt), fix_ctxt) = Variable.focus_cterm (Thm.cprem_of obtain_rule 1) ctxt';
     val (prems, ctxt'') =
       Assumption.add_assms (obtain_export fix_ctxt obtain_rule (map #2 params))
         (Drule.strip_imp_prems stmt) fix_ctxt;
@@ -257,7 +255,7 @@ fun unify_params vars thesis_var raw_rule ctxt =
 
 fun inferred_type (binding, _, mx) ctxt =
   let
-    val x = Variable.name binding;
+    val x = Variable.check_name binding;
     val (T, ctxt') = Proof_Context.inferred_param x ctxt
   in ((x, T, mx), ctxt') end;
 
@@ -280,7 +278,7 @@ fun gen_guess prep_vars raw_vars int state =
       let
         val ((parms, rule), ctxt') =
           unify_params vars thesis_var raw_rule (Proof.context_of state');
-        val (bind, _) = Proof_Context.bind_fixes (map (#1 o #1) parms) ctxt';
+        val (bind, _) = Proof_Context.bind_fixes (map (Binding.name o #1 o #1) parms) ctxt';
         val ts = map (bind o Free o #1) parms;
         val ps = map dest_Free ts;
         val asms =

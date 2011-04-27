@@ -16,6 +16,7 @@ sig
   val kind_of: T -> string
   val the_entry: T -> string ->
     {concealed: bool, group: serial option, theory_name: string, pos: Position.T, id: serial}
+  val entry_ord: T -> string * string -> order
   val markup: T -> string -> Markup.T
   val is_concealed: T -> string -> bool
   val intern: T -> xstring -> string
@@ -125,9 +126,11 @@ fun the_entry (Name_Space {kind, entries, ...}) name =
     NONE => error ("Unknown " ^ kind ^ " " ^ quote name)
   | SOME (_, entry) => entry);
 
+fun entry_ord space = int_ord o pairself (#id o the_entry space);
+
 fun markup (Name_Space {kind, entries, ...}) name =
   (case Symtab.lookup entries name of
-    NONE => Markup.malformed
+    NONE => Markup.hilite
   | SOME (_, entry) => entry_markup false kind (name, entry));
 
 fun is_concealed space name = #concealed (the_entry space name);

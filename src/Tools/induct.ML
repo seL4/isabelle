@@ -599,7 +599,7 @@ end;
 
 fun special_rename_params ctxt [[SOME (Free (z, Type (T, _)))]] [thm] =
       let
-        val x = Name.clean (Proof_Context.revert_skolem ctxt z);
+        val x = Name.clean (Variable.revert_fixed ctxt z);
         fun index i [] = []
           | index i (y :: ys) =
               if x = y then x ^ string_of_int i :: index (i + 1) ys
@@ -646,7 +646,7 @@ fun meta_spec_tac ctxt n (x, T) = SUBGOAL (fn (goal, i) =>
     val v = Free (x, T);
     fun spec_rule prfx (xs, body) =
       @{thm Pure.meta_spec}
-      |> Thm.rename_params_rule ([Name.clean (Proof_Context.revert_skolem ctxt x)], 1)
+      |> Thm.rename_params_rule ([Name.clean (Variable.revert_fixed ctxt x)], 1)
       |> Thm.lift_rule (cert prfx)
       |> `(Thm.prop_of #> Logic.strip_assums_concl)
       |-> (fn pred $ arg =>

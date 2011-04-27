@@ -128,7 +128,7 @@ fun parameters_of thy strict (expr, fixed) =
     val (implicit, expr') = params_expr expr;
 
     val implicit' = map #1 implicit;
-    val fixed' = map (Variable.name o #1) fixed;
+    val fixed' = map (Variable.check_name o #1) fixed;
     val _ = reject_dups "Duplicate fixed parameter(s): " fixed';
     val implicit'' =
       if strict then []
@@ -393,7 +393,7 @@ fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst pr
     val (insts, elems', concl, ctxt6) = prep_concl raw_concl (insts', elems, ctxt5);
 
     (* Retrieve parameter types *)
-    val xs = fold (fn Fixes fixes => (fn ps => ps @ map (Variable.name o #1) fixes)
+    val xs = fold (fn Fixes fixes => (fn ps => ps @ map (Variable.check_name o #1) fixes)
       | _ => fn ps => ps) (Fixes fors :: elems') [];
     val (Ts, ctxt7) = fold_map Proof_Context.inferred_param xs ctxt6;
     val parms = xs ~~ Ts;  (* params from expression and elements *)

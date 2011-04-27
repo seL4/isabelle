@@ -93,7 +93,7 @@ fun abs_conv cv ctxt ct =
   (case Thm.term_of ct of
     Abs (x, _, _) =>
       let
-        val ([u], ctxt') = Variable.variant_fixes ["u"] ctxt;
+        val (u, ctxt') = yield_singleton Variable.variant_fixes Name.uu ctxt;
         val (v, ct') = Thm.dest_abs (SOME u) ct;
         val eq = cv (v, ctxt') ct';
       in if Thm.is_reflexive eq then all_conv ct else Thm.abstract_rule x v eq end

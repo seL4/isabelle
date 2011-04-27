@@ -213,7 +213,7 @@ fun coherent_tac ctxt rules = SUBPROOF (fn {prems, concl, params, context, ...} 
   SUBPROOF (fn {prems = prems', concl, context, ...} =>
     let val xs = map (term_of o #2) params @
       map (fn (_, s) => Free (s, the (Variable.default_type context s)))
-        (Variable.fixes_of context)
+        (rev (Variable.dest_fixes context))  (* FIXME !? *)
     in
       case valid context (map mk_rule (prems' @ prems @ rules)) (term_of concl)
            (mk_dom xs) Net.empty 0 0 of

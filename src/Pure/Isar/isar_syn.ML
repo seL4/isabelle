@@ -632,7 +632,7 @@ val _ =
 
 val case_spec =
   (Parse.$$$ "(" |--
-    Parse.!!! (Parse.xname -- Scan.repeat1 (Parse.maybe Parse.name) --| Parse.$$$ ")") ||
+    Parse.!!! (Parse.xname -- Scan.repeat1 (Parse.maybe Parse.binding) --| Parse.$$$ ")") ||
     Parse.xname >> rpair []) -- Parse_Spec.opt_attribs >> Parse.triple1;
 
 val _ =

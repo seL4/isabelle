@@ -36,7 +36,6 @@ sig
   val hiddenN: string val hidden: T
   val tclassN: string val tclass: string -> T
   val tyconN: string val tycon: string -> T
-  val fixed_declN: string val fixed_decl: string -> T
   val fixedN: string val fixed: string -> T
   val constN: string val const: string -> T
   val dynamic_factN: string val dynamic_fact: string -> T
@@ -209,7 +208,6 @@ val (hiddenN, hidden) = markup_elem "hidden";
 
 val (tclassN, tclass) = markup_string "tclass" nameN;
 val (tyconN, tycon) = markup_string "tycon" nameN;
-val (fixed_declN, fixed_decl) = markup_string "fixed_decl" nameN;
 val (fixedN, fixed) = markup_string "fixed" nameN;
 val (constN, const) = markup_string "constant" nameN;
 val (dynamic_factN, dynamic_fact) = markup_string "dynamic_fact" nameN;

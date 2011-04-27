@@ -63,8 +63,6 @@ sig
   val cert_typ: Proof.context -> typ -> typ
   val cert_typ_syntax: Proof.context -> typ -> typ
   val cert_typ_abbrev: Proof.context -> typ -> typ
-  val get_skolem: Proof.context -> string -> string
-  val revert_skolem: Proof.context -> string -> string
   val infer_type: Proof.context -> string * typ -> typ
   val inferred_param: string -> Proof.context -> typ * Proof.context
   val inferred_fixes: Proof.context -> (string * typ) list * Proof.context
@@ -127,7 +125,7 @@ sig
   val add_fixes: (binding * typ option * mixfix) list -> Proof.context ->
     string list * Proof.context
   val auto_fixes: Proof.context * (term list list * 'a) -> Proof.context * (term list list * 'a)
-  val bind_fixes: string list -> Proof.context -> (term -> term) * Proof.context
+  val bind_fixes: binding list -> Proof.context -> (term -> term) * Proof.context
   val add_assms: Assumption.export ->
     (Thm.binding * (string * string list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
@@ -136,7 +134,7 @@ sig
     Proof.context -> (string * thm list) list * Proof.context
   val add_cases: bool -> (string * Rule_Cases.T option) list -> Proof.context -> Proof.context
   val apply_case: Rule_Cases.T -> Proof.context -> (string * term list) list * Proof.context
-  val get_case: Proof.context -> string -> string option list -> Rule_Cases.T
+  val get_case: Proof.context -> string -> binding option list -> Rule_Cases.T
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> Proof.context -> Proof.context
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> Proof.context -> Proof.context
   val target_type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> morphism ->
@@ -408,10 +406,7 @@ val cert_typ_abbrev = cert_typ_mode Type.mode_abbrev;
 
 (** prepare variables **)
 
-(* internalize Skolem constants *)
-
-val lookup_skolem = AList.lookup (op =) o Variable.fixes_of;
-fun get_skolem ctxt x = the_default x (lookup_skolem ctxt x);
+(* check Skolem constants *)
 
 fun no_skolem internal x =
   if can Name.dest_skolem x then
@@ -419,14 +414,6 @@ fun no_skolem internal x =
   else if not internal andalso can Name.dest_internal x then
     error ("Illegal reference to internal variable: " ^ quote x)
   else x;
-
-
-(* revert Skolem constants -- if possible *)
-
-fun revert_skolem ctxt x =
-  (case find_first (fn (_, y) => y = x) (Variable.fixes_of ctxt) of
-    SOME (x', _) => if lookup_skolem ctxt x' = SOME x then x' else x
-  | NONE => x);
 
 
 
@@ -443,7 +430,7 @@ fun inferred_param x ctxt =
 
 fun inferred_fixes ctxt =
   let
-    val xs = rev (map #2 (Variable.fixes_of ctxt));
+    val xs = map #2 (Variable.dest_fixes ctxt);
     val (Ts, ctxt') = fold_map inferred_param xs ctxt;
   in (xs ~~ Ts, ctxt') end;
 
@@ -508,7 +495,7 @@ fun read_const ctxt strict ty text =
     val (c, pos) = token_content text;
     val _ = no_skolem false c;
   in
-    (case (lookup_skolem ctxt c, Variable.is_const ctxt c) of
+    (case (Variable.lookup_fixed ctxt c, Variable.is_const ctxt c) of
       (SOME x, false) =>
         (Context_Position.report ctxt pos
             (Markup.name x (if can Name.dest_skolem x then Markup.skolem else Markup.free));
@@ -524,7 +511,7 @@ end;
 fun intern_skolem ctxt x =
   let
     val _ = no_skolem false x;
-    val sko = lookup_skolem ctxt x;
+    val sko = Variable.lookup_fixed ctxt x;
     val is_const = can (read_const_proper ctxt false) x orelse Long_Name.is_qualified x;
     val is_declared = is_some (Variable.def_type ctxt false (x, ~1));
   in
@@ -941,7 +928,7 @@ local
 fun prep_vars prep_typ internal =
   fold_map (fn (b, raw_T, mx) => fn ctxt =>
     let
-      val x = Variable.name b;
+      val x = Variable.check_name b;
       val _ = Lexicon.is_identifier (no_skolem internal x) orelse
         error ("Illegal variable name: " ^ Binding.print b);
 
@@ -1040,15 +1027,16 @@ fun revert_abbrev mode c = (map_consts o apfst) (Consts.revert_abbrev mode c);
 
 fun add_fixes raw_vars ctxt =
   let
-    val (vars, _) = cert_vars raw_vars ctxt;
-    val (xs', ctxt') = Variable.add_fixes (map (Variable.name o #1) vars) ctxt;
-    val ctxt'' =
-      ctxt'
-      |> fold_map declare_var (map2 (fn x' => fn (_, T, mx) => (x', T, mx)) xs' vars)
-      |-> (map_syntax o Local_Syntax.add_syntax (theory_of ctxt) o map (pair Local_Syntax.Fixed));
-    val _ = (vars ~~ xs') |> List.app (fn ((b, _, _), x') =>
-      Context_Position.report ctxt (Binding.pos_of b) (Markup.fixed_decl x'));
-  in (xs', ctxt'') end;
+    val thy = theory_of ctxt;
+    val vars = #1 (cert_vars raw_vars ctxt);
+  in
+    ctxt
+    |> Variable.add_fixes_binding (map #1 vars)
+    |-> (fn xs =>
+      fold_map declare_var (map2 (fn x => fn (_, T, mx) => (x, T, mx)) xs vars)
+      #-> (map_syntax o Local_Syntax.add_syntax thy o map (pair Local_Syntax.Fixed))
+      #> pair xs)
+  end;
 
 
 (* fixes vs. frees *)
@@ -1056,12 +1044,13 @@ fun add_fixes raw_vars ctxt =
 fun auto_fixes (ctxt, (propss, x)) =
   ((fold o fold) Variable.auto_fixes propss ctxt, (propss, x));
 
-fun bind_fixes xs ctxt =
+fun bind_fixes bs ctxt =
   let
-    val (_, ctxt') = ctxt |> add_fixes (map (fn x => (Binding.name x, NONE, NoSyn)) xs);
+    val (_, ctxt') = ctxt |> add_fixes (map (fn b => (b, NONE, NoSyn)) bs);
+    val xs = map Binding.name_of bs;
     fun bind (t as Free (x, T)) =
           if member (op =) xs x then
-            (case lookup_skolem ctxt' x of SOME x' => Free (x', T) | NONE => t)
+            (case Variable.lookup_fixed ctxt' x of SOME x' => Free (x', T) | NONE => t)
           else t
       | bind (t $ u) = bind t $ bind u
       | bind (Abs (x, T, t)) = Abs (x, T, bind t)
@@ -1123,7 +1112,7 @@ fun prep_case name fxs c =
 fun fix (x, T) ctxt =
   let
     val (bind, ctxt') = bind_fixes [x] ctxt;
-    val t = bind (Free (x, T));
+    val t = bind (Free (Binding.name_of x, T));
   in (t, ctxt' |> Variable.declare_constraints t) end;
 
 in
@@ -1233,7 +1222,7 @@ fun pretty_case (name, (fixes, ((asms, (lets, cs)), ctxt))) =
   in
     Pretty.block (Pretty.fbreaks
       (Pretty.str (name ^ ":") ::
-        prt_sect "fix" [] (Pretty.str o fst) fixes @
+        prt_sect "fix" [] (Pretty.str o Binding.name_of o fst) fixes @
         prt_sect "let" [Pretty.str "and"] prt_let
           (map_filter (fn (xi, SOME t) => SOME (xi, t) | _ => NONE) lets) @
         (if forall (null o #2) asms then []
@@ -1282,8 +1271,8 @@ fun pretty_ctxt ctxt =
         if x = x' then Pretty.str x
         else Pretty.block [Pretty.str x, Pretty.str " =", Pretty.brk 1, prt_term (Syntax.free x')];
       val fixes =
-        rev (filter_out ((can Name.dest_internal orf member (op =) structs) o #1)
-          (Variable.fixes_of ctxt));
+        filter_out ((can Name.dest_internal orf member (op =) structs) o #1)
+          (Variable.dest_fixes ctxt);
       val prt_fixes =
         if null fixes then []
         else [Pretty.block (Pretty.str "fixed variables:" :: Pretty.brk 1 ::

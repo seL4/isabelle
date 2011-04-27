@@ -99,7 +99,7 @@ fun facts_map f facts = Notes ("", facts) |> f |> (fn Notes (_, facts') => facts
 fun map_ctxt {binding, typ, term, pattern, fact, attrib} =
   fn Fixes fixes => Fixes (fixes |> map (fn (x, T, mx) => (binding x, Option.map typ T, mx)))
    | Constrains xs => Constrains (xs |> map (fn (x, T) =>
-      (Variable.name (binding (Binding.name x)), typ T)))
+      (Variable.check_name (binding (Binding.name x)), typ T)))
    | Assumes asms => Assumes (asms |> map (fn ((a, atts), propps) =>
       ((binding a, map attrib atts), propps |> map (fn (t, ps) => (term t, map pattern ps)))))
    | Defines defs => Defines (defs |> map (fn ((a, atts), (t, ps)) =>
@@ -222,9 +222,9 @@ fun thm_name kind th prts =
 fun obtain prop ctxt =
   let
     val ((ps, prop'), ctxt') = Variable.focus prop ctxt;
-    fun fix (x, T) = (Binding.name (Proof_Context.revert_skolem ctxt' x), SOME T);
-    val xs = map (fix o Term.dest_Free o Thm.term_of o #2) ps;
-    val As = Logic.strip_imp_prems (Thm.term_of prop');
+    fun fix (x, T) = (Binding.name (Variable.revert_fixed ctxt' x), SOME T);
+    val xs = map (fix o #2) ps;
+    val As = Logic.strip_imp_prems prop';
   in ((Binding.empty, (xs, As)), ctxt') end;
 
 in
@@ -232,7 +232,6 @@ in
 fun pretty_statement ctxt kind raw_th =
   let
     val thy = Proof_Context.theory_of ctxt;
-    val cert = Thm.cterm_of thy;
 
     val (th, is_elim) = standard_elim (Raw_Simplifier.norm_hhf raw_th);
     val ((_, [th']), ctxt') = Variable.import true [th] (Variable.set_body true ctxt);
@@ -242,7 +241,7 @@ fun pretty_statement ctxt kind raw_th =
 
     val fixes = fold_aterms (fn v as Free (x, T) =>
         if Variable.newly_fixed ctxt' ctxt x andalso not (v aconv concl_term)
-        then insert (op =) (Proof_Context.revert_skolem ctxt' x, T) else I | _ => I) prop [] |> rev;
+        then insert (op =) (Variable.revert_fixed ctxt' x, T) else I | _ => I) prop [] |> rev;
     val (assumes, cases) = take_suffix (fn prem =>
       is_elim andalso concl aconv Logic.strip_assums_concl prem) prems;
   in
@@ -250,7 +249,7 @@ fun pretty_statement ctxt kind raw_th =
     pretty_ctxt ctxt' (Assumes (map (fn t => (Attrib.empty_binding, [(t, [])])) assumes)) @
      (if null cases then pretty_stmt ctxt' (Shows [(Attrib.empty_binding, [(concl, [])])])
       else
-        let val (clauses, ctxt'') = fold_map (obtain o cert) cases ctxt'
+        let val (clauses, ctxt'') = fold_map obtain cases ctxt'
         in pretty_stmt ctxt'' (Obtains clauses) end)
   end |> thm_name kind raw_th;
 
@@ -526,7 +525,7 @@ fun activate_i elem ctxt =
 
 fun activate raw_elem ctxt =
   let val elem = raw_elem |> map_ctxt
-   {binding = tap Variable.name,
+   {binding = tap Variable.check_name,
     typ = I,
     term = I,
     pattern = I,
