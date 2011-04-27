@@ -67,12 +67,11 @@ fun define foundation ((b, mx), ((proto_b_def, atts), rhs)) lthy =
     val mx' = check_mixfix lthy (b, extra_tfrees) mx;
 
     val type_params = map (Logic.mk_type o TFree) extra_tfrees;
+    val target_ctxt = Local_Theory.target_of lthy;
     val term_params =
-      rev (Variable.fixes_of (Local_Theory.target_of lthy))
-      |> map_filter (fn (_, x) =>
-        (case AList.lookup (op =) xs x of
-          SOME T => SOME (Free (x, T))
-        | NONE => NONE));
+      filter (Variable.is_fixed target_ctxt o #1) xs
+      |> sort (Variable.fixed_ord target_ctxt o pairself #1)
+      |> map Free;
     val params = type_params @ term_params;
 
     val U = map Term.fastype_of params ---> T;

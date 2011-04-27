@@ -592,7 +592,7 @@ fun free_or_skolem ctxt x =
       else Markup.hilite;
   in
     if can Name.dest_skolem x
-    then ([m, Markup.skolem], Proof_Context.revert_skolem ctxt x)
+    then ([m, Markup.skolem], Variable.revert_fixed ctxt x)
     else ([m, Markup.free], x)
   end;
 

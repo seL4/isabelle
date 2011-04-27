@@ -222,7 +222,7 @@ fun thm_name kind th prts =
 fun obtain prop ctxt =
   let
     val ((ps, prop'), ctxt') = Variable.focus prop ctxt;
-    fun fix (x, T) = (Binding.name (Proof_Context.revert_skolem ctxt' x), SOME T);
+    fun fix (x, T) = (Binding.name (Variable.revert_fixed ctxt' x), SOME T);
     val xs = map (fix o Term.dest_Free o Thm.term_of o #2) ps;
     val As = Logic.strip_imp_prems (Thm.term_of prop');
   in ((Binding.empty, (xs, As)), ctxt') end;
@@ -242,7 +242,7 @@ fun pretty_statement ctxt kind raw_th =
 
     val fixes = fold_aterms (fn v as Free (x, T) =>
         if Variable.newly_fixed ctxt' ctxt x andalso not (v aconv concl_term)
-        then insert (op =) (Proof_Context.revert_skolem ctxt' x, T) else I | _ => I) prop [] |> rev;
+        then insert (op =) (Variable.revert_fixed ctxt' x, T) else I | _ => I) prop [] |> rev;
     val (assumes, cases) = take_suffix (fn prem =>
       is_elim andalso concl aconv Logic.strip_assums_concl prem) prems;
   in

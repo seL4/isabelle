@@ -92,7 +92,7 @@ fun nominal_induct_tac ctxt simp def_insts avoiding fixings rules facts =
     val finish_rule =
       split_all_tuples
       #> rename_params_rule true
-        (map (Name.clean o Proof_Context.revert_skolem defs_ctxt o fst) avoiding);
+        (map (Name.clean o Variable.revert_fixed defs_ctxt o fst) avoiding);
 
     fun rule_cases ctxt r =
       let val r' = if simp then Induct.simplified_rule ctxt r else r

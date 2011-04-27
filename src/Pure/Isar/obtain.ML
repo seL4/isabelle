@@ -134,7 +134,7 @@ fun gen_obtain prep_att prep_vars prep_propp
 
     val asm_frees = fold Term.add_frees asm_props [];
     val parms = xs |> map (fn x =>
-      let val x' = Proof_Context.get_skolem fix_ctxt x
+      let val x' = Variable.intern_fixed fix_ctxt x
       in (x', the_default propT (AList.lookup (op =) asm_frees x')) end);
 
     val that_name = if name = "" then thatN else name;

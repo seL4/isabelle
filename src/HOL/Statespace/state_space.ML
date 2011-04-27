@@ -187,16 +187,11 @@ fun get_statespace ctxt name =
       Symtab.lookup (StateSpaceData.get ctxt) name;
 
 
-fun lookupI eq xs n =
-  (case AList.lookup eq xs n of
-     SOME v => v
-   | NONE => n);
-
 fun mk_free ctxt name =
   if Variable.is_fixed ctxt name orelse Variable.is_declared ctxt name
   then
-    let val n' = lookupI (op =) (Variable.fixes_of ctxt) name
-    in SOME (Free (n',Proof_Context.infer_type ctxt (n', dummyT))) end
+    let val n' = Variable.intern_fixed ctxt name
+    in SOME (Free (n', Proof_Context.infer_type ctxt (n', dummyT))) end
   else NONE
 
 
