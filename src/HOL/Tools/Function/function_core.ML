@@ -451,10 +451,10 @@ fun inductive_def (binding as ((R, T), _)) intrs lthy =
     fun requantify orig_intro thm =
       let
         val (qs, t) = dest_all_all orig_intro
-        val frees = frees_in_term lthy t |> remove (op =) (Binding.name_of R, T)
-        val vars = Term.add_vars (prop_of thm) [] |> rev
+        val frees = Variable.add_frees lthy t [] |> remove (op =) (Binding.name_of R, T)
+        val vars = Term.add_vars (prop_of thm) []
         val varmap = AList.lookup (op =) (frees ~~ map fst vars)
-          #> the_default ("",0)
+          #> the_default ("", 0)
       in
         fold_rev (fn Free (n, T) =>
           forall_intr_rename (n, cert (Var (varmap (n, T), T)))) qs thm

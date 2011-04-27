@@ -86,9 +86,12 @@ fun pattern_subtract ctxt eq2 eq1 =
     fun instantiate (vs', sigma) =
       let
         val t = Pattern.rewrite_term thy sigma [] feq1
-      in
-        fold_rev Logic.all (inter (op =) vs' (map Free (frees_in_term ctxt t))) t
-      end
+        val xs = fold_aterms
+          (fn x as Free (a, _) =>
+              if not (Variable.is_fixed ctxt a) andalso member (op =) vs' x
+              then insert (op =) x else I
+            | _ => I) t [];
+      in fold Logic.all xs t end
   in
     map instantiate substs
   end

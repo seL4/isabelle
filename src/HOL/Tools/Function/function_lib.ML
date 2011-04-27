@@ -23,8 +23,6 @@ sig
   val mk_forall_rename: (string * term) -> term -> term
   val forall_intr_rename: (string * cterm) -> thm -> thm
 
-  val frees_in_term: Proof.context -> term -> (string * typ) list
-
   datatype proof_attempt = Solved of thm | Stuck of thm | Fail
   val try_proof: cterm -> tactic -> proof_attempt
 
@@ -99,13 +97,6 @@ fun forall_intr_rename (n, cv) thm =
   in
     Thm.rename_boundvars abs (Abs (n, dummyT, Term.dummy_pattern dummyT)) allthm
   end
-
-
-(* Returns the frees in a term in canonical order, excluding the fixes from the context *)
-fun frees_in_term ctxt t =
-  Term.add_frees t []
-  |> filter_out (Variable.is_fixed ctxt o fst)
-  |> rev
 
 
 datatype proof_attempt = Solved of thm | Stuck of thm | Fail
