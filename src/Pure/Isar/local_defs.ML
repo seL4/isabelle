@@ -238,16 +238,11 @@ fun derived_def ctxt conditional prop =
       |> conditional ? Logic.strip_imp_concl
       |> (abs_def o #2 o cert_def ctxt);
     fun prove ctxt' def =
-      let
-        val frees = Term.fold_aterms (fn Free (x, _) =>
-          if Variable.is_fixed ctxt' x then I else insert (op =) x | _ => I) prop [];
-      in
-        Goal.prove ctxt' frees [] prop (K (ALLGOALS
-          (CONVERSION (meta_rewrite_conv ctxt') THEN'
-            rewrite_goal_tac [def] THEN'
-            resolve_tac [Drule.reflexive_thm])))
-        handle ERROR msg => cat_error msg "Failed to prove definitional specification"
-      end;
+      Goal.prove ctxt' (Variable.add_free_names ctxt' prop []) [] prop (K (ALLGOALS
+        (CONVERSION (meta_rewrite_conv ctxt') THEN'
+          rewrite_goal_tac [def] THEN'
+          resolve_tac [Drule.reflexive_thm])))
+      handle ERROR msg => cat_error msg "Failed to prove definitional specification";
   in (((c, T), rhs), prove) end;
 
 end;

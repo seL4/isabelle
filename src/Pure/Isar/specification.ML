@@ -88,14 +88,11 @@ local
 
 fun close_forms ctxt i xs As =
   let
-    fun add_free (Free (x, _)) = if Variable.is_fixed ctxt x then I else insert (op =) x
-      | add_free _ = I;
-
     val commons = map #1 xs;
     val _ =
       (case duplicates (op =) commons of [] => ()
       | dups => error ("Duplicate local variables " ^ commas_quote dups));
-    val frees = rev ((fold o fold_aterms) add_free As (rev commons));
+    val frees = rev (fold (Variable.add_free_names ctxt) As (rev commons));
     val types = map (Type_Infer.param i o rpair []) (Name.invents Name.context Name.aT (length frees));
     val uniform_typing = the o AList.lookup (op =) (frees ~~ types);
 
@@ -110,7 +107,7 @@ fun close_forms ctxt i xs As =
       in if Term.is_dependent B' then Term.all dummyT $ Abs (y, U, B') else B end;
     fun close_form A =
       let
-        val occ_frees = rev (fold_aterms add_free A []);
+        val occ_frees = rev (Variable.add_free_names ctxt A []);
         val bounds = xs @ map (rpair dummyT) (subtract (op =) commons occ_frees);
       in fold_rev close bounds A end;
   in map close_form As end;

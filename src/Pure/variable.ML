@@ -18,7 +18,6 @@ sig
   val is_declared: Proof.context -> string -> bool
   val is_fixed: Proof.context -> string -> bool
   val newly_fixed: Proof.context -> Proof.context -> string -> bool
-  val add_fixed: Proof.context -> term -> (string * typ) list -> (string * typ) list
   val name: binding -> string
   val default_type: Proof.context -> string -> typ option
   val def_type: Proof.context -> bool -> indexname -> typ option
@@ -36,6 +35,10 @@ sig
   val lookup_const: Proof.context -> string -> string option
   val is_const: Proof.context -> string -> bool
   val declare_const: string * string -> Proof.context -> Proof.context
+  val add_fixed_names: Proof.context -> term -> string list -> string list
+  val add_fixed: Proof.context -> term -> (string * typ) list -> (string * typ) list
+  val add_free_names: Proof.context -> term -> string list -> string list
+  val add_frees: Proof.context -> term -> (string * typ) list -> (string * typ) list
   val add_fixes: string list -> Proof.context -> string list * Proof.context
   val add_fixes_direct: string list -> Proof.context -> Proof.context
   val auto_fixes: term -> Proof.context -> Proof.context
@@ -152,9 +155,6 @@ val constraints_of = #constraints o rep_data;
 val is_declared = Name.is_declared o names_of;
 fun is_fixed ctxt x = exists (fn (_, y) => x = y) (fixes_of ctxt);
 fun newly_fixed inner outer x = is_fixed inner x andalso not (is_fixed outer x);
-
-fun add_fixed ctxt = Term.fold_aterms
-  (fn Free (x, T) => if is_fixed ctxt x then insert (op =) (x, T) else I | _ => I);
 
 (*checked name binding*)
 val name = Long_Name.base_name o Name_Space.full_name Name_Space.default_naming;
@@ -281,6 +281,23 @@ val declare_const = map_consts o Symtab.update;
 
 (** fixes **)
 
+(* collect variables *)
+
+fun add_free_names ctxt =
+  fold_aterms (fn Free (x, _) => not (is_fixed ctxt x) ? insert (op =) x | _ => I);
+
+fun add_frees ctxt =
+  fold_aterms (fn Free (x, T) => not (is_fixed ctxt x) ? insert (op =) (x, T) | _ => I);
+
+fun add_fixed_names ctxt =
+  fold_aterms (fn Free (x, _) => is_fixed ctxt x ? insert (op =) x | _ => I);
+
+fun add_fixed ctxt =
+  fold_aterms (fn Free (x, T) => is_fixed ctxt x ? insert (op =) (x, T) | _ => I);
+
+
+(* declarations *)
+
 local
 
 fun no_dups [] = ()
@@ -324,13 +341,8 @@ fun add_fixes_direct xs ctxt = ctxt
   |> (snd o add_fixes xs)
   |> restore_body ctxt;
 
-fun fix_frees t ctxt = ctxt
-  |> add_fixes_direct
-      (rev (fold_aterms (fn Free (x, _) =>
-        if is_fixed ctxt x then I else insert (op =) x | _ => I) t []));
-
-fun auto_fixes t ctxt =
-  (if is_body ctxt then ctxt else fix_frees t ctxt)
+fun auto_fixes t ctxt = ctxt
+  |> not (is_body ctxt) ? add_fixes_direct (rev (add_free_names ctxt t []))
   |> declare_term t;
 
 fun invent_types Ss ctxt =

@@ -380,12 +380,10 @@ fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst pr
     val ctxt2 = ctxt1 |> Proof_Context.add_fixes fors |> snd;
     val (_, insts', ctxt3) = fold prep_insts_cumulative raw_insts (0, [], ctxt2);
 
-    val add_free = fold_aterms
-      (fn Free (x, T) => not (Variable.is_fixed ctxt3 x) ? insert (op =) (x, T) | _ => I);
     val _ =
       if fixed_frees then ()
       else
-        (case fold (fold add_free o snd o snd) insts' [] of
+        (case fold (fold (Variable.add_frees ctxt3) o snd o snd) insts' [] of
           [] => ()
         | frees => error ("Illegal free variables in expression: " ^
             commas_quote (map (Syntax.string_of_term ctxt3 o Free) (rev frees))));

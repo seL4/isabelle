@@ -245,8 +245,7 @@ fun distill lthy fixes eqs =
     val prefix = space_implode "_" (map (Long_Name.base_name o #1) raw_defs);
     fun prove lthy defs =
       let
-        val frees = (fold o Term.fold_aterms) (fn Free (x, _) =>
-          if Variable.is_fixed lthy x then I else insert (op =) x | _ => I) eqs [];
+        val frees = fold (Variable.add_free_names lthy) eqs [];
         val rewrites = rec_rewrites' @ map (snd o snd) defs;
         fun tac _ = EVERY [rewrite_goals_tac rewrites, rtac refl 1];
       in map (fn eq => Goal.prove lthy frees [] eq tac) eqs end;
