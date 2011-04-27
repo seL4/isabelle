@@ -1902,7 +1902,7 @@ fun values ctxt param_user_modes ((raw_expected, stats), comp_options) k t_compr
     val ((T, ts), statistics) = eval ctxt stats param_user_modes comp_options k t_compr
     val setT = HOLogic.mk_setT T
     val elems = HOLogic.mk_set T ts
-    val cont = Free ("...", setT)
+    val cont = Free ("dots", setT)  (* FIXME proper name!? *)
     (* check expected values *)
     val () =
       case raw_expected of

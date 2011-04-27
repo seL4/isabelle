@@ -956,7 +956,7 @@ fun values ctxt soln t_compr =
     fun mk_insert x S =
       Const (@{const_name "Set.insert"}, fastype_of x --> fastype_of S --> fastype_of S) $ x $ S 
     fun mk_set_compr in_insert [] xs =
-       rev ((Free ("...", fastype_of t_compr)) ::
+       rev ((Free ("dots", fastype_of t_compr)) ::  (* FIXME proper name!? *)
         (if null in_insert then xs else (fold mk_insert in_insert empty) :: xs))
       | mk_set_compr in_insert (t :: ts) xs =
         let
