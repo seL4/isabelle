@@ -149,7 +149,6 @@ object Markup
 
   val TCLASS = "tclass"
   val TYCON = "tycon"
-  val FIXED_DECL = "fixed_decl"
   val FIXED = "fixed"
   val CONST = "constant"
   val DYNAMIC_FACT = "dynamic_fact"

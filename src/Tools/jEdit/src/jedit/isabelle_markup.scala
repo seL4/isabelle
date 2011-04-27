@@ -152,7 +152,6 @@ object Isabelle_Markup
       // logical entities
       Markup.TCLASS -> NULL,
       Markup.TYCON -> NULL,
-      Markup.FIXED_DECL -> FUNCTION,
       Markup.FIXED -> NULL,
       Markup.CONST -> LITERAL2,
       Markup.DYNAMIC_FACT -> LABEL,
