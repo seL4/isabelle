@@ -32,10 +32,11 @@ sig
   val lookup_const: Proof.context -> string -> string option
   val is_const: Proof.context -> string -> bool
   val declare_const: string * string -> Proof.context -> Proof.context
-  val fixed_ord: Proof.context -> string * string -> order
   val is_fixed: Proof.context -> string -> bool
   val newly_fixed: Proof.context -> Proof.context -> string -> bool
+  val fixed_ord: Proof.context -> string * string -> order
   val intern_fixed: Proof.context -> string -> string
+  val markup_fixed: Proof.context -> string -> Markup.T
   val lookup_fixed: Proof.context -> string -> string option
   val revert_fixed: Proof.context -> string -> string
   val add_fixed_names: Proof.context -> term -> string list -> string list
@@ -154,6 +155,7 @@ fun restore_body ctxt = set_body (is_body ctxt);
 
 val names_of = #names o rep_data;
 val fixes_of = #fixes o rep_data;
+val fixes_space = #1 o fixes_of;
 val binds_of = #binds o rep_data;
 val type_occs_of = #type_occs o rep_data;
 val maxidx_of = #maxidx o rep_data;
@@ -289,12 +291,12 @@ val declare_const = map_consts o Symtab.update;
 
 (* specialized name space *)
 
-fun fixed_ord ctxt = Name_Space.entry_ord (#1 (fixes_of ctxt));
-
-fun is_fixed ctxt x = can (Name_Space.the_entry (#1 (fixes_of ctxt))) x;
+fun is_fixed ctxt x = can (Name_Space.the_entry (fixes_space ctxt)) x;
 fun newly_fixed inner outer x = is_fixed inner x andalso not (is_fixed outer x);
 
-fun intern_fixed ctxt = Name_Space.intern (#1 (fixes_of ctxt));
+val fixed_ord = Name_Space.entry_ord o fixes_space;
+val intern_fixed = Name_Space.intern o fixes_space;
+val markup_fixed = Name_Space.markup o fixes_space;
 
 fun lookup_fixed ctxt x =
   let val x' = intern_fixed ctxt x
