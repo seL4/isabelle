@@ -76,10 +76,14 @@ INCOMPATIBILITY. Use partial_function instead.
   - Use extended reals instead of positive extended reals.
     INCOMPATIBILITY.
 
+
 *** Document preparation ***
 
 * New term style "isub" as ad-hoc conversion of variables x1, y23 into
 subscripted form x\<^isub>1, y\<^isub>2\<^isub>3.
+
+* Predefined LaTeX macros for Isabelle symbols \<bind> and \<then>
+(e.g. see ~~/src/HOL/Library/Monad_Syntax.thy).
 
 
 *** ML ***
