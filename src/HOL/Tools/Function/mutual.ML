@@ -114,10 +114,11 @@ fun analyze_eqs ctxt defname fs eqs =
     fun convert_eqs (f, qs, gs, args, rhs) =
       let
         val MutualPart {i, i', ...} = get_part f parts
+        val rhs' = rhs
+          |> map_aterms (fn t as Free (n, _) => the_default t (AList.lookup (op =) rews n) | t => t)
       in
         (qs, gs, SumTree.mk_inj ST num i (foldr1 (mk_prod_abs qs) args),
-         SumTree.mk_inj RST n' i' (replace_frees rews rhs)
-         |> Envir.beta_norm)
+         Envir.beta_norm (SumTree.mk_inj RST n' i' rhs'))
       end
 
     val qglrs = map convert_eqs fqgars

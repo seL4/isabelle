@@ -18,7 +18,6 @@ sig
 
   val unordered_pairs: 'a list -> ('a * 'a) list
 
-  val replace_frees: (string * term) list -> term -> term
   val rename_bound: string -> term -> term
   val mk_forall_rename: (string * term) -> term -> term
   val forall_intr_rename: (string * cterm) -> thm -> thm
@@ -78,11 +77,7 @@ fun unordered_pairs [] = []
   | unordered_pairs (x::xs) = map (pair x) (x::xs) @ unordered_pairs xs
 
 
-(* Replaces Frees by name. Works with loose Bounds. *)
-fun replace_frees assoc =
-  map_aterms (fn c as Free (n, _) => the_default c (AList.lookup (op =) assoc n)
-    | t => t)
-
+(* renaming bound variables *)
 
 fun rename_bound n (Q $ Abs (_, T, b)) = (Q $ Abs (n, T, b))
   | rename_bound n _ = raise Match
