@@ -440,7 +440,9 @@ fun term_of_expr thy prfx types pfuns =
       | tm_of (tab, _) (Ident s) =
           (case Symtab.lookup tab s of
              SOME t_ty => t_ty
-           | NONE => error ("Undeclared identifier " ^ s))
+           | NONE => (case lookup_prfx prfx pfuns s of
+               SOME (SOME ([], resty), t) => (t, resty)
+             | _ => error ("Undeclared identifier " ^ s)))
 
       | tm_of _ (Number i) = (HOLogic.mk_number HOLogic.intT i, integerN)
 
@@ -696,8 +698,9 @@ fun fold_expr f g (Funct (s, es)) = f s #> fold (fold_expr f g) es
           (fold_expr f g) (fold_opt (fold_expr f g)))))
         (fold_expr f g)) assocs;
 
-val add_expr_pfuns = fold_expr
-  (fn s => if is_pfun s then I else insert (op =) s) (K I);
+fun add_expr_pfuns funs = fold_expr
+  (fn s => if is_pfun s then I else insert (op =) s)
+  (fn s => if is_none (lookup funs s) then I else insert (op =) s);
 
 val add_expr_idents = fold_expr (K I) (insert (op =));
 
@@ -765,14 +768,14 @@ fun mk_vc thy prfx types pfuns ids (tr, proved, ps, cs) =
 fun fold_vcs f vcs =
   VCtab.fold (fn (_, (_, _, ps, cs)) => fold f ps #> fold f cs) vcs;
 
-fun pfuns_of_vcs prfx pfuns vcs =
-  fold_vcs (add_expr_pfuns o snd) vcs [] |>
+fun pfuns_of_vcs prfx funs pfuns vcs =
+  fold_vcs (add_expr_pfuns funs o snd) vcs [] |>
   filter (is_none o lookup_prfx prfx pfuns);
 
 fun declare_missing_pfuns thy prfx funs pfuns vcs (tab, ctxt) =
   let
     val (fs, (tys, Ts)) =
-      pfuns_of_vcs prfx pfuns vcs |>
+      pfuns_of_vcs prfx funs pfuns vcs |>
       map_filter (fn s => lookup funs s |>
         Option.map (fn ty => (s, (SOME ty, pfun_type thy prfx ty)))) |>
       split_list ||> split_list;
@@ -963,15 +966,16 @@ fun rulenames rules = commas
   (map (fn ((s, i), _) => s ^ "(" ^ string_of_int i ^ ")") rules);
 
 (* sort definitions according to their dependency *)
-fun sort_defs _ _ _ [] sdefs = rev sdefs
-  | sort_defs prfx pfuns consts defs sdefs =
+fun sort_defs _ _ _ _ [] sdefs = rev sdefs
+  | sort_defs prfx funs pfuns consts defs sdefs =
       (case find_first (fn (_, (_, e)) =>
-         forall (is_some o lookup_prfx prfx pfuns) (add_expr_pfuns e []) andalso
+         forall (is_some o lookup_prfx prfx pfuns)
+           (add_expr_pfuns funs e []) andalso
          forall (fn id =>
            member (fn (s, (_, (s', _))) => s = s') sdefs id orelse
            consts id)
              (add_expr_idents e [])) defs of
-         SOME d => sort_defs prfx pfuns consts
+         SOME d => sort_defs prfx funs pfuns consts
            (remove (op =) d defs) (d :: sdefs)
        | NONE => error ("Bad definitions: " ^ rulenames defs));
 
@@ -993,7 +997,7 @@ fun set_vcs ({types, vars, consts, funs} : decls)
         (filter_out (is_trivial_vc o snd) vcs)) vcs);
 
     val _ = (case filter_out (is_some o lookup funs)
-        (pfuns_of_vcs prfx pfuns vcs') of
+        (pfuns_of_vcs prfx funs pfuns vcs') of
         [] => ()
       | fs => error ("Undeclared proof function(s) " ^ commas fs));
 
@@ -1007,7 +1011,7 @@ fun set_vcs ({types, vars, consts, funs} : decls)
       fold (snd oo add_const prfx) consts' |> (fn ids_thy as ((tab, _), _) =>
         ids_thy |>
         fold_map (add_def prfx types pfuns consts)
-          (sort_defs prfx pfuns (Symtab.defined tab) defs []) ||>>
+          (sort_defs prfx funs pfuns (Symtab.defined tab) defs []) ||>>
         fold_map (add_var prfx) (items vars) ||>>
         add_init_vars prfx vcs');
 
