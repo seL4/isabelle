@@ -125,7 +125,7 @@ sig
   val add_fixes: (binding * typ option * mixfix) list -> Proof.context ->
     string list * Proof.context
   val auto_fixes: Proof.context * (term list list * 'a) -> Proof.context * (term list list * 'a)
-  val bind_fixes: string list -> Proof.context -> (term -> term) * Proof.context
+  val bind_fixes: binding list -> Proof.context -> (term -> term) * Proof.context
   val add_assms: Assumption.export ->
     (Thm.binding * (string * string list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
@@ -134,7 +134,7 @@ sig
     Proof.context -> (string * thm list) list * Proof.context
   val add_cases: bool -> (string * Rule_Cases.T option) list -> Proof.context -> Proof.context
   val apply_case: Rule_Cases.T -> Proof.context -> (string * term list) list * Proof.context
-  val get_case: Proof.context -> string -> string option list -> Rule_Cases.T
+  val get_case: Proof.context -> string -> binding option list -> Rule_Cases.T
   val type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> Proof.context -> Proof.context
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> Proof.context -> Proof.context
   val target_type_notation: bool -> Syntax.mode -> (typ * mixfix) list -> morphism ->
@@ -1044,9 +1044,10 @@ fun add_fixes raw_vars ctxt =
 fun auto_fixes (ctxt, (propss, x)) =
   ((fold o fold) Variable.auto_fixes propss ctxt, (propss, x));
 
-fun bind_fixes xs ctxt =
+fun bind_fixes bs ctxt =
   let
-    val (_, ctxt') = ctxt |> add_fixes (map (fn x => (Binding.name x, NONE, NoSyn)) xs);
+    val (_, ctxt') = ctxt |> add_fixes (map (fn b => (b, NONE, NoSyn)) bs);
+    val xs = map Binding.name_of bs;
     fun bind (t as Free (x, T)) =
           if member (op =) xs x then
             (case Variable.lookup_fixed ctxt' x of SOME x' => Free (x', T) | NONE => t)
@@ -1111,7 +1112,7 @@ fun prep_case name fxs c =
 fun fix (x, T) ctxt =
   let
     val (bind, ctxt') = bind_fixes [x] ctxt;
-    val t = bind (Free (x, T));
+    val t = bind (Free (Binding.name_of x, T));
   in (t, ctxt' |> Variable.declare_constraints t) end;
 
 in
@@ -1221,7 +1222,7 @@ fun pretty_case (name, (fixes, ((asms, (lets, cs)), ctxt))) =
   in
     Pretty.block (Pretty.fbreaks
       (Pretty.str (name ^ ":") ::
-        prt_sect "fix" [] (Pretty.str o fst) fixes @
+        prt_sect "fix" [] (Pretty.str o Binding.name_of o fst) fixes @
         prt_sect "let" [Pretty.str "and"] prt_let
           (map_filter (fn (xi, SOME t) => SOME (xi, t) | _ => NONE) lets) @
         (if forall (null o #2) asms then []

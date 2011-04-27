@@ -71,8 +71,8 @@ sig
   val using_cmd: ((Facts.ref * Attrib.src list) list) list -> state -> state
   val unfolding: ((thm list * attribute list) list) list -> state -> state
   val unfolding_cmd: ((Facts.ref * Attrib.src list) list) list -> state -> state
-  val invoke_case: string * string option list * attribute list -> state -> state
-  val invoke_case_cmd: string * string option list * Attrib.src list -> state -> state
+  val invoke_case: string * binding option list * attribute list -> state -> state
+  val invoke_case_cmd: string * binding option list * Attrib.src list -> state -> state
   val begin_block: state -> state
   val next_block: state -> state
   val end_block: state -> state

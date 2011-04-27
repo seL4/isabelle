@@ -8,7 +8,7 @@ signature LOCAL_DEFS =
 sig
   val cert_def: Proof.context -> term -> (string * typ) * term
   val abs_def: term -> (string * typ) * term
-  val mk_def: Proof.context -> (string * term) list -> term list
+  val mk_def: Proof.context -> (binding * term) list -> term list
   val expand: cterm list -> thm -> thm
   val def_export: Assumption.export
   val add_defs: ((binding * mixfix) * (Thm.binding * term)) list -> Proof.context ->
@@ -59,7 +59,7 @@ fun mk_def ctxt args =
   let
     val (xs, rhss) = split_list args;
     val (bind, _) = Proof_Context.bind_fixes xs ctxt;
-    val lhss = map (fn (x, rhs) => bind (Free (x, Term.fastype_of rhs))) args;
+    val lhss = map (fn (x, rhs) => bind (Free (Binding.name_of x, Term.fastype_of rhs))) args;
   in map Logic.mk_equals (lhss ~~ rhss) end;
 
 
@@ -90,15 +90,14 @@ fun def_export _ defs = (expand defs, expand_term defs);
 
 fun add_defs defs ctxt =
   let
-    val ((bvars, mxs), specs) = defs |> split_list |>> split_list;
+    val ((xs, mxs), specs) = defs |> split_list |>> split_list;
     val ((bfacts, atts), rhss) = specs |> split_list |>> split_list;
-    val xs = map Variable.check_name bvars;
-    val names = map2 Thm.def_binding_optional bvars bfacts;
+    val names = map2 Thm.def_binding_optional xs bfacts;
     val eqs = mk_def ctxt (xs ~~ rhss);
     val lhss = map (fst o Logic.dest_equals) eqs;
   in
     ctxt
-    |> Proof_Context.add_fixes (map2 (fn x => fn mx => (x, NONE, mx)) bvars mxs) |> #2
+    |> Proof_Context.add_fixes (map2 (fn x => fn mx => (x, NONE, mx)) xs mxs) |> #2
     |> fold Variable.declare_term eqs
     |> Proof_Context.add_assms_i def_export
       (map2 (fn a => fn eq => (a, [(eq, [])])) (names ~~ atts) eqs)

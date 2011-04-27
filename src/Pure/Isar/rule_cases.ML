@@ -20,7 +20,7 @@ signature RULE_CASES =
 sig
   include BASIC_RULE_CASES
   datatype T = Case of
-   {fixes: (string * typ) list,
+   {fixes: (binding * typ) list,
     assumes: (string * term list) list,
     binds: (indexname * term option) list,
     cases: (string * T) list}
@@ -56,7 +56,7 @@ struct
 (** cases **)
 
 datatype T = Case of
- {fixes: (string * typ) list,
+ {fixes: (binding * typ) list,
   assumes: (string * term list) list,
   binds: (indexname * term option) list,
   cases: (string * T) list};
@@ -93,6 +93,8 @@ fun extract_assumes _ NONE prop = ([("", Logic.strip_assums_hyp prop)], [])
         chop (length (Logic.strip_assums_hyp outline)) (Logic.strip_assums_hyp prop)
       in ([(qual case_hypsN, hyps)], [(qual case_premsN, prems)]) end;
 
+fun bindings args = map (apfst Binding.name) args;
+
 fun extract_case thy (case_outline, raw_prop) name concls =
   let
     val props = Logic.dest_conjunctions (Drule.norm_hhf thy raw_prop);
@@ -122,11 +124,12 @@ fun extract_case thy (case_outline, raw_prop) name concls =
     val cases = map extract props;
 
     fun common_case ((fixes1, assumes1), ((fixes2, assumes2), binds)) =
-      Case {fixes = fixes1 @ fixes2, assumes = assumes1 @ assumes2, binds = binds, cases = []};
+      Case {fixes = bindings (fixes1 @ fixes2),
+        assumes = assumes1 @ assumes2, binds = binds, cases = []};
     fun inner_case (_, ((fixes2, assumes2), binds)) =
-      Case {fixes = fixes2, assumes = assumes2, binds = binds, cases = []};
+      Case {fixes = bindings fixes2, assumes = assumes2, binds = binds, cases = []};
     fun nested_case ((fixes1, assumes1), _) =
-      Case {fixes = fixes1, assumes = assumes1, binds = [],
+      Case {fixes = bindings fixes1, assumes = assumes1, binds = [],
         cases = map string_of_int (1 upto len) ~~ map inner_case cases};
   in
     if len = 0 then NONE

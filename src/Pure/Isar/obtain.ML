@@ -99,7 +99,7 @@ fun obtain_export ctxt rule xs _ As =
 
 fun bind_judgment ctxt name =
   let
-    val (bind, ctxt') = Proof_Context.bind_fixes [name] ctxt;
+    val (bind, ctxt') = Proof_Context.bind_fixes [Binding.name name] ctxt;
     val (t as _ $ Free v) = bind (Object_Logic.fixed_judgment (Proof_Context.theory_of ctxt) name);
   in ((v, t), ctxt') end;
 
@@ -278,7 +278,7 @@ fun gen_guess prep_vars raw_vars int state =
       let
         val ((parms, rule), ctxt') =
           unify_params vars thesis_var raw_rule (Proof.context_of state');
-        val (bind, _) = Proof_Context.bind_fixes (map (#1 o #1) parms) ctxt';
+        val (bind, _) = Proof_Context.bind_fixes (map (Binding.name o #1 o #1) parms) ctxt';
         val ts = map (bind o Free o #1) parms;
         val ps = map dest_Free ts;
         val asms =
