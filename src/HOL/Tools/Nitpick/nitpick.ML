@@ -1047,15 +1047,14 @@ fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) auto i n
       end
   end
 
-fun is_fixed_equation fixes
+fun is_fixed_equation ctxt
                       (Const (@{const_name "=="}, _) $ Free (s, _) $ Const _) =
-    member (op =) fixes s
+    Variable.is_fixed ctxt s
   | is_fixed_equation _ _ = false
 fun extract_fixed_frees ctxt (assms, t) =
   let
-    val fixes = Variable.fixes_of ctxt |> map snd
     val (subst, other_assms) =
-      List.partition (is_fixed_equation fixes) assms
+      List.partition (is_fixed_equation ctxt) assms
       |>> map Logic.dest_equals
   in (subst, other_assms, subst_atomic subst t) end
 
