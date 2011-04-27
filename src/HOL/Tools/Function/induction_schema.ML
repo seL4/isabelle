@@ -55,9 +55,9 @@ fun mk_relT T = HOLogic.mk_setT (HOLogic.mk_prodT (T, T))
 
 fun dest_hhf ctxt t =
   let
-    val ((vars, imp), ctxt') = Function_Lib.focus_term t ctxt
+    val ((params, imp), ctxt') = Variable.focus t ctxt
   in
-    (ctxt', vars, Logic.strip_imp_prems imp, Logic.strip_imp_concl imp)
+    (ctxt', map #2 params, Logic.strip_imp_prems imp, Logic.strip_imp_concl imp)
   end
 
 fun mk_scheme' ctxt cases concl =

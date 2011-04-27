@@ -33,7 +33,7 @@ fun gen_focus (do_prems, do_concl) ctxt i raw_st =
   let
     val st = Simplifier.norm_hhf_protect raw_st;
     val ((schematic_types, [st']), ctxt1) = Variable.importT [st] ctxt;
-    val ((params, goal), ctxt2) = Variable.focus (Thm.cprem_of st' i) ctxt1;
+    val ((params, goal), ctxt2) = Variable.focus_cterm (Thm.cprem_of st' i) ctxt1;
 
     val (asms, concl) =
       if do_prems then (Drule.strip_imp_prems goal, Drule.strip_imp_concl goal)

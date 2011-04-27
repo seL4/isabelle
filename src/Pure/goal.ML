@@ -326,7 +326,7 @@ fun non_atomic (Const ("==>", _) $ _ $ _) = true
 
 fun assume_rule_tac ctxt = norm_hhf_tac THEN' CSUBGOAL (fn (goal, i) =>
   let
-    val ((_, goal'), ctxt') = Variable.focus goal ctxt;
+    val ((_, goal'), ctxt') = Variable.focus_cterm goal ctxt;
     val goal'' = Drule.cterm_rule (singleton (Variable.export ctxt' ctxt)) goal';
     val Rs = filter (non_atomic o Thm.term_of) (Drule.strip_imp_prems goal'');
     val tacs = Rs |> map (fn R =>

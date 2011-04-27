@@ -103,10 +103,10 @@ val default_congs =
 (* Called on the INSTANTIATED branches of the congruence rule *)
 fun mk_branch ctxt t =
   let
-    val ((fixes, impl), ctxt') = Function_Lib.focus_term t ctxt
+    val ((params, impl), ctxt') = Variable.focus t ctxt
     val (assms, concl) = Logic.strip_horn impl
   in
-    (ctxt', fixes, assms, rhs_of concl)
+    (ctxt', map #2 params, assms, rhs_of concl)
   end
 
 fun find_cong_rule ctxt fvar h ((r,dep)::rs) t =
