@@ -99,8 +99,9 @@ fun obtain_export ctxt rule xs _ As =
 
 fun bind_judgment ctxt name =
   let
-    val (bind, ctxt') = Proof_Context.bind_fixes [Binding.name name] ctxt;
-    val (t as _ $ Free v) = bind (Object_Logic.fixed_judgment (Proof_Context.theory_of ctxt) name);
+    val thy = Proof_Context.theory_of ctxt;
+    val ([x], ctxt') = Proof_Context.add_fixes [(Binding.name name, NONE, NoSyn)] ctxt;
+    val (t as _ $ Free v) = Object_Logic.fixed_judgment thy x;
   in ((v, t), ctxt') end;
 
 val thatN = "that";
@@ -278,9 +279,9 @@ fun gen_guess prep_vars raw_vars int state =
       let
         val ((parms, rule), ctxt') =
           unify_params vars thesis_var raw_rule (Proof.context_of state');
-        val (bind, _) = Proof_Context.bind_fixes (map (Binding.name o #1 o #1) parms) ctxt';
-        val ts = map (bind o Free o #1) parms;
-        val ps = map dest_Free ts;
+        val (xs, _) = Variable.add_fixes (map (#1 o #1) parms) ctxt';
+        val ps = xs ~~ map (#2 o #1) parms;
+        val ts = map Free ps;
         val asms =
           Logic.strip_assums_hyp (Logic.nth_prem (1, Thm.prop_of rule))
           |> map (fn asm => (Term.betapplys (Term.list_abs (ps, asm), ts), []));

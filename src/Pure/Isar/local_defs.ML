@@ -8,7 +8,6 @@ signature LOCAL_DEFS =
 sig
   val cert_def: Proof.context -> term -> (string * typ) * term
   val abs_def: term -> (string * typ) * term
-  val mk_def: Proof.context -> (binding * term) list -> term list
   val expand: cterm list -> thm -> thm
   val def_export: Assumption.export
   val add_defs: ((binding * mixfix) * (Thm.binding * term)) list -> Proof.context ->
@@ -57,9 +56,10 @@ val abs_def = Primitive_Defs.abs_def #>> Term.dest_Free;
 
 fun mk_def ctxt args =
   let
-    val (xs, rhss) = split_list args;
-    val (bind, _) = Proof_Context.bind_fixes xs ctxt;
-    val lhss = map (fn (x, rhs) => bind (Free (Binding.name_of x, Term.fastype_of rhs))) args;
+    val (bs, rhss) = split_list args;
+    val Ts = map Term.fastype_of rhss;
+    val (xs, _) = Proof_Context.add_fixes (map2 (fn b => fn T => (b, SOME T, NoSyn)) bs Ts) ctxt;
+    val lhss = ListPair.map Free (xs, Ts);
   in map Logic.mk_equals (lhss ~~ rhss) end;
 
 

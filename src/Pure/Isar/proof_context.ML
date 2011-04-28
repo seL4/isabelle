@@ -125,7 +125,6 @@ sig
   val add_fixes: (binding * typ option * mixfix) list -> Proof.context ->
     string list * Proof.context
   val auto_fixes: Proof.context * (term list list * 'a) -> Proof.context * (term list list * 'a)
-  val bind_fixes: binding list -> Proof.context -> (term -> term) * Proof.context
   val add_assms: Assumption.export ->
     (Thm.binding * (string * string list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
@@ -1038,24 +1037,8 @@ fun add_fixes raw_vars ctxt =
       #> pair xs)
   end;
 
-
-(* fixes vs. frees *)
-
 fun auto_fixes (ctxt, (propss, x)) =
   ((fold o fold) Variable.auto_fixes propss ctxt, (propss, x));
-
-fun bind_fixes bs ctxt =
-  let
-    val (_, ctxt') = ctxt |> add_fixes (map (fn b => (b, NONE, NoSyn)) bs);
-    val xs = map Binding.name_of bs;
-    fun bind (t as Free (x, T)) =
-          if member (op =) xs x then
-            (case Variable.lookup_fixed ctxt' x of SOME x' => Free (x', T) | NONE => t)
-          else t
-      | bind (t $ u) = bind t $ bind u
-      | bind (Abs (x, T, t)) = Abs (x, T, bind t)
-      | bind a = a;
-  in (bind, ctxt') end;
 
 
 
@@ -1109,11 +1092,9 @@ fun prep_case name fxs c =
     else error ("Illegal schematic variable(s) in case " ^ quote name)
   end;
 
-fun fix (x, T) ctxt =
-  let
-    val (bind, ctxt') = bind_fixes [x] ctxt;
-    val t = bind (Free (Binding.name_of x, T));
-  in (t, ctxt' |> Variable.declare_constraints t) end;
+fun fix (b, T) ctxt =
+  let val ([x], ctxt') = add_fixes [(b, SOME T, NoSyn)] ctxt
+  in (Free (x, T), ctxt') end;
 
 in
 
