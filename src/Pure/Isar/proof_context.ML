@@ -841,16 +841,20 @@ local
 fun retrieve_thms pick ctxt (Facts.Fact s) =
       let
         val (_, pos) = Syntax.read_token s;
-        val prop = Syntax.read_prop (set_mode mode_default ctxt) s
+        val prop =
+          Syntax.read_prop (ctxt |> set_mode mode_default |> allow_dummies) s
           |> singleton (Variable.polymorphic ctxt);
+        fun err msg = error (msg ^ Position.str_of pos ^ ":\n" ^ Syntax.string_of_term ctxt prop);
 
+        val (prop', _) = Term.replace_dummy_patterns prop (Variable.maxidx_of ctxt + 1);
         fun prove_fact th =
-          Goal.prove ctxt [] [] prop (K (ALLGOALS (fact_tac [th])));
+          Goal.prove ctxt [] [] prop' (K (ALLGOALS (fact_tac [th])));
+        val results = map_filter (try prove_fact) (potential_facts ctxt prop');
         val res =
-          (case get_first (try prove_fact) (potential_facts ctxt prop) of
-            SOME res => res
-          | NONE => error ("Failed to retrieve literal fact" ^ Position.str_of pos ^ ":\n" ^
-              Syntax.string_of_term ctxt prop))
+          (case distinct Thm.eq_thm_prop results of
+            [res] => res
+          | [] => err "Failed to retrieve literal fact"
+          | _ => err "Ambiguous specification of literal fact");
       in pick "" [res] end
   | retrieve_thms pick ctxt xthmref =
       let

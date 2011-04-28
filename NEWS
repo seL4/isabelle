@@ -44,6 +44,10 @@ like this:
 
   declare [[unique_names = false]]
 
+* Literal facts `prop` may contain dummy patterns, e.g. `_ = _`.  Note
+that the result needs to be unique, which means fact specifications
+may have to be refined after enriching a proof context.
+
 
 *** HOL ***
 
