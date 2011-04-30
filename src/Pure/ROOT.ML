@@ -255,6 +255,7 @@ use "Thy/thy_syntax.ML";
 use "Isar/outer_syntax.ML";
 use "PIDE/document.ML";
 use "Thy/thy_info.ML";
+use "Thy/rail.ML";
 
 (*theory and proof operations*)
 use "Isar/rule_insts.ML";

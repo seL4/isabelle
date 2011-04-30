@@ -196,6 +196,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES)				\
   Thy/html.ML						\
   Thy/latex.ML						\
   Thy/present.ML					\
+  Thy/rail.ML						\
   Thy/term_style.ML					\
   Thy/thm_deps.ML					\
   Thy/thy_header.ML					\
