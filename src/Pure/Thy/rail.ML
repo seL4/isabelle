@@ -67,15 +67,15 @@ val scan_token =
   Lexicon.scan_id >> token Ident ||
   Symbol_Pos.scan_string_q >> (token String o #1 o #2);
 
+val scan =
+  (Scan.repeat scan_token >> flat) --|
+    Symbol_Pos.!!! "Rail lexical error: bad input"
+      (Scan.ahead (Scan.one Symbol_Pos.is_eof));
+
 in
 
-fun tokenize pos str =
-  Source.of_string str
-  |> Symbol.source
-  |> Symbol_Pos.source pos
-  |> Source.source Symbol_Pos.stopper
-      (Scan.bulk (Symbol_Pos.!!! "Rail lexical error: bad input" scan_token) >> flat) NONE
-  |> Source.exhaust;
+fun tokenize text =
+  #1 (Scan.error (Scan.finite Symbol_Pos.stopper scan) (Symbol_Pos.explode text));
 
 end;
 
@@ -100,7 +100,7 @@ fun $$$ x =
   Scan.one (fn tok => kind_of tok = Keyword andalso content_of tok = x) ||
   Scan.fail_with
     (fn [] => print_keyword x ^ " expected (past end-of-file!)"
-      | tok :: _ => print_keyword x ^ "expected,\nbut " ^ print tok ^ " was found");
+      | tok :: _ => print_keyword x ^ " expected,\nbut " ^ print tok ^ " was found");
 
 fun enum1 sep scan = scan ::: Scan.repeat ($$$ sep |-- !!! scan);
 fun enum sep scan = enum1 sep scan || Scan.succeed [];
@@ -175,8 +175,8 @@ val rules = enum1 ";" (Scan.option rule) >> map_filter I;
 
 in
 
-fun read pos str =
-  (case Scan.error (Scan.finite stopper rules) (tokenize pos str) of
+fun read text =
+  (case Scan.error (Scan.finite stopper rules) (tokenize text) of
     (res, []) => res
   | (_, tok :: _) => error ("Malformed rail input: " ^ print tok));
 
@@ -242,7 +242,7 @@ in
 
 val _ =
   Thy_Output.antiquotation "rail" (Scan.lift (Parse.position Args.name))
-    (fn _ => fn (str, pos) => output_rules (read pos str));
+    (fn _ => output_rules o read);
 
 end;
 
