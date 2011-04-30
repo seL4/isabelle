@@ -74,8 +74,7 @@ val scan =
 
 in
 
-fun tokenize text =
-  #1 (Scan.error (Scan.finite Symbol_Pos.stopper scan) (Symbol_Pos.explode text));
+val tokenize = #1 o Scan.error (Scan.finite Symbol_Pos.stopper scan) o Symbol_Pos.explode;
 
 end;
 
@@ -175,10 +174,8 @@ val rules = enum1 ";" (Scan.option rule) >> map_filter I;
 
 in
 
-fun read text =
-  (case Scan.error (Scan.finite stopper rules) (tokenize text) of
-    (res, []) => res
-  | (_, tok :: _) => error ("Malformed rail input: " ^ print tok));
+val read =
+  #1 o Scan.error (Scan.finite stopper (rules --| !!! (Scan.ahead (Scan.one is_eof)))) o tokenize;
 
 end;
 
