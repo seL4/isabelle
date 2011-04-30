@@ -177,8 +177,8 @@ The Isabelle/Isar proof context manages the details of term
   \indexdef{}{ML}{Variable.polymorphic}\verb|Variable.polymorphic: Proof.context -> term list -> term list| \\
   \indexdef{}{ML}{Variable.import}\verb|Variable.import: bool -> thm list -> Proof.context ->|\isasep\isanewline%
 \verb|  (((ctyp * ctyp) list * (cterm * cterm) list) * thm list) * Proof.context| \\
-  \indexdef{}{ML}{Variable.focus}\verb|Variable.focus: cterm -> Proof.context ->|\isasep\isanewline%
-\verb|  ((string * cterm) list * cterm) * Proof.context| \\
+  \indexdef{}{ML}{Variable.focus}\verb|Variable.focus: term -> Proof.context ->|\isasep\isanewline%
+\verb|  ((string * (string * typ)) list * term) * Proof.context| \\
   \end{mldecls}
 
   \begin{description}

@@ -109,8 +109,8 @@ text %mlref {*
   @{index_ML Variable.polymorphic: "Proof.context -> term list -> term list"} \\
   @{index_ML Variable.import: "bool -> thm list -> Proof.context ->
   (((ctyp * ctyp) list * (cterm * cterm) list) * thm list) * Proof.context"} \\
-  @{index_ML Variable.focus: "cterm -> Proof.context ->
-  ((string * cterm) list * cterm) * Proof.context"} \\
+  @{index_ML Variable.focus: "term -> Proof.context ->
+  ((string * (string * typ)) list * term) * Proof.context"} \\
   \end{mldecls}
 
   \begin{description}
