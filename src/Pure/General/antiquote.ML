@@ -14,6 +14,7 @@ sig
   val is_text: 'a antiquote -> bool
   val report: ('a -> unit) -> 'a antiquote -> unit
   val check_nesting: 'a antiquote list -> unit
+  val scan_antiq: Symbol_Pos.T list -> (Symbol_Pos.T list * Position.range) * Symbol_Pos.T list
   val scan: Symbol_Pos.T list -> 'a antiquote * Symbol_Pos.T list
   val scan_text: Symbol_Pos.T list -> Symbol_Pos.T list antiquote * Symbol_Pos.T list
   val read: Symbol_Pos.T list * Position.T -> Symbol_Pos.T list antiquote list
@@ -75,16 +76,16 @@ val scan_ant =
   Scan.trace (Symbol_Pos.scan_string_qq || Symbol_Pos.scan_string_bq) >> #2 ||
   Scan.one (fn (s, _) => s <> "}" andalso Symbol.is_regular s) >> single;
 
+val scan_open = Symbol_Pos.scan_pos --| $$$ "\\<lbrace>";
+val scan_close = Symbol_Pos.scan_pos --| $$$ "\\<rbrace>";
+
+in
+
 val scan_antiq =
   Symbol_Pos.scan_pos -- ($$$ "@" |-- $$$ "{" |--
     Symbol_Pos.!!! "missing closing brace of antiquotation"
       (Scan.repeat scan_ant -- ($$$ "}" |-- Symbol_Pos.scan_pos)))
   >> (fn (pos1, (body, pos2)) => (flat body, Position.range pos1 pos2));
-
-val scan_open = Symbol_Pos.scan_pos --| $$$ "\\<lbrace>";
-val scan_close = Symbol_Pos.scan_pos --| $$$ "\\<rbrace>";
-
-in
 
 fun scan x = (scan_antiq >> Antiq || scan_open >> Open || scan_close >> Close) x;
 val scan_text = scan || Scan.repeat1 scan_txt >> (Text o flat);

@@ -27,6 +27,7 @@ sig
     ({source: Args.src, state: Toplevel.state, context: Proof.context} -> 'a -> string) -> unit
   datatype markup = Markup | MarkupEnv | Verbatim
   val modes: string list Unsynchronized.ref
+  val eval_antiq: Scan.lexicon -> Toplevel.state -> Symbol_Pos.T list * Position.range -> string
   val eval_antiquote: Scan.lexicon -> Toplevel.state -> Symbol_Pos.text * Position.T -> string
   val present_thy: Scan.lexicon -> (string -> string list) -> (markup -> string -> bool) ->
     (Toplevel.transition * Toplevel.state) list -> (Token.T, 'a) Source.source -> Buffer.T
@@ -173,17 +174,19 @@ end;
 
 val modes = Unsynchronized.ref ([]: string list);
 
+fun eval_antiq lex state (ss, (pos, _)) =
+  let
+    val (opts, src) = Token.read_antiq lex antiq (ss, pos);
+    fun cmd ctxt = wrap ctxt (fn () => command src state ctxt) ();
+    val preview_ctxt = fold option opts (Toplevel.presentation_context_of state);
+    val print_ctxt = Context_Position.set_visible false preview_ctxt;
+    val _ = cmd preview_ctxt;
+  in Print_Mode.with_modes (! modes @ Latex.modes) (fn () => cmd print_ctxt) () end;
+
 fun eval_antiquote lex state (txt, pos) =
   let
     fun expand (Antiquote.Text ss) = Symbol_Pos.content ss
-      | expand (Antiquote.Antiq (ss, (pos, _))) =
-          let
-            val (opts, src) = Token.read_antiq lex antiq (ss, pos);
-            fun cmd ctxt = wrap ctxt (fn () => command src state ctxt) ();
-            val preview_ctxt = fold option opts (Toplevel.presentation_context_of state);
-            val print_ctxt = Context_Position.set_visible false preview_ctxt;
-            val _ = cmd preview_ctxt;
-          in Print_Mode.with_modes (! modes @ Latex.modes) (fn () => cmd print_ctxt) () end
+      | expand (Antiquote.Antiq antiq) = eval_antiq lex state antiq
       | expand (Antiquote.Open _) = ""
       | expand (Antiquote.Close _) = "";
     val ants = Antiquote.read (Symbol_Pos.explode (txt, pos), pos);

@@ -12,7 +12,8 @@ struct
 
 (* datatype token *)
 
-datatype kind = Keyword | Ident | String | EOF;
+datatype kind =
+  Keyword | Ident | String | Antiq of bool * (Symbol_Pos.T list * Position.range) | EOF;
 
 datatype token = Token of Position.range * (kind * string);
 
@@ -29,6 +30,7 @@ val print_kind =
  fn Keyword => "rail keyword"
   | Ident => "identifier"
   | String => "single-quoted string"
+  | Antiq _ => "antiquotation"
   | EOF => "end-of-file";
 
 fun print (Token ((pos, _), (k, x))) =
@@ -65,7 +67,9 @@ val scan_token =
   scan_space >> K [] ||
   scan_keyword >> (token Keyword o single) ||
   Lexicon.scan_id >> token Ident ||
-  Symbol_Pos.scan_string_q >> (token String o #1 o #2);
+  Symbol_Pos.scan_string_q >> (token String o #1 o #2) ||
+  (Symbol_Pos.$$$ "@" |-- Antiquote.scan_antiq >> pair true || Antiquote.scan_antiq >> pair false)
+    >> (fn antiq as (_, (ss, _)) => token (Antiq antiq) ss);
 
 val scan =
   (Scan.repeat scan_token >> flat) --|
@@ -104,11 +108,11 @@ fun $$$ x =
 fun enum1 sep scan = scan ::: Scan.repeat ($$$ sep |-- !!! scan);
 fun enum sep scan = enum1 sep scan || Scan.succeed [];
 
-fun parse_token kind =
-  Scan.some (fn tok => if kind_of tok = kind then SOME (content_of tok) else NONE);
+val ident = Scan.some (fn tok => if kind_of tok = Ident then SOME (content_of tok) else NONE);
+val string = Scan.some (fn tok => if kind_of tok = String then SOME (content_of tok) else NONE);
 
-val ident = parse_token Ident;
-val string = parse_token String;
+val antiq = Scan.some (fn tok => (case kind_of tok of Antiq a => SOME a | _ => NONE));
+val plain_antiq = Scan.some (fn tok => (case kind_of tok of Antiq (false, a) => SOME a | _ => NONE));
 
 
 
@@ -123,7 +127,8 @@ and rail =
   Plus of rails * rails |
   Newline of int |
   Nonterminal of string |
-  Terminal of string;
+  Terminal of string |
+  Antiquote of bool * (Symbol_Pos.T list * Position.range);
 
 fun reverse_cat (Cat (y, rails)) = Cat (y, rev (map reverse rails))
 and reverse (Bar cats) = Bar (map reverse_cat cats)
@@ -166,10 +171,12 @@ and body4 x =
  ($$$ "(" |-- !!! (body0 --| $$$ ")") ||
   $$$ "\\" >> K (Newline 0) ||
   ident >> Nonterminal ||
-  string >> Terminal) x
+  string >> Terminal ||
+  antiq >> Antiquote) x
 and body4e x = (Scan.option body4 >> (cat o the_list)) x;
 
-val rule = ident -- ($$$ ":" |-- !!! body) || body >> pair "";
+val rule_name = ident >> Antiquote.Text || plain_antiq >> Antiquote.Antiq;
+val rule = rule_name -- ($$$ ":" |-- !!! body) || body >> pair (Antiquote.Text "");
 val rules = enum1 ";" (Scan.option rule) >> map_filter I;
 
 in
@@ -202,44 +209,54 @@ and vertical_range (Bar cats) y =
   | vertical_range (Newline _) y = (Newline (y + 2), y + 3)
   | vertical_range atom y = (atom, y + 1);
 
+fun output_rules state rules =
+  let
+    val output_antiq = Thy_Output.eval_antiq (#1 (Keyword.get_lexicons ())) state;
+    fun output_text s = "\\isa{" ^ Output.output s ^ "}";
 
-fun output_text s = "\\isa{" ^ Output.output s ^ "}";
+    fun output_cat c (Cat (_, rails)) = outputs c rails
+    and outputs c [rail] = output c rail
+      | outputs _ rails = implode (map (output "") rails)
+    and output _ (Bar []) = ""
+      | output c (Bar [cat]) = output_cat c cat
+      | output _ (Bar (cat :: cats)) =
+          "\\rail@bar\n" ^ output_cat "" cat ^
+          implode (map (fn Cat (y, rails) =>
+              "\\rail@nextbar{" ^ string_of_int y ^ "}\n" ^ outputs "" rails) cats) ^
+          "\\rail@endbar\n"
+      | output c (Plus (cat, Cat (y, rails))) =
+          "\\rail@plus\n" ^ output_cat c cat ^
+          "\\rail@nextplus{" ^ string_of_int y ^ "}\n" ^ outputs "c" rails ^
+          "\\rail@endplus\n"
+      | output _ (Newline y) = "\\rail@cr{" ^ string_of_int y ^ "}\n"
+      | output c (Nonterminal s) = "\\rail@" ^ c ^ "nont{" ^ output_text s ^ "}[]\n"
+      | output c (Terminal s) = "\\rail@" ^ c ^ "term{" ^ output_text s ^ "}[]\n"
+      | output c (Antiquote (b, a)) =
+          "\\rail@" ^ c ^ (if b then "term{" else "nont{") ^ output_antiq a ^ "}[]\n";
 
-fun output_cat c (Cat (_, rails)) = outputs c rails
-and outputs c [rail] = output c rail
-  | outputs _ rails = implode (map (output "") rails)
-and output _ (Bar []) = ""
-  | output c (Bar [cat]) = output_cat c cat
-  | output _ (Bar (cat :: cats)) =
-      "\\rail@bar\n" ^ output_cat "" cat ^
-      implode (map (fn Cat (y, rails) =>
-          "\\rail@nextbar{" ^ string_of_int y ^ "}\n" ^ outputs "" rails) cats) ^
-      "\\rail@endbar\n"
-  | output c (Plus (cat, Cat (y, rails))) =
-      "\\rail@plus\n" ^ output_cat c cat ^
-      "\\rail@nextplus{" ^ string_of_int y ^ "}\n" ^ outputs "c" rails ^
-      "\\rail@endplus\n"
-  | output _ (Newline y) = "\\rail@cr{" ^ string_of_int y ^ "}\n"
-  | output c (Nonterminal s) = "\\rail@" ^ c ^ "nont{" ^ output_text s ^ "}[]\n"
-  | output c (Terminal s) = "\\rail@" ^ c ^ "term{" ^ output_text s ^ "}[]\n";
-
-fun output_rule (name, rail) =
-  let val (rail', y') = vertical_range rail 0 in
-    "\\rail@begin{" ^ string_of_int y' ^ "}{" ^ output_text name ^ "}\n" ^
-    output "" rail' ^
-    "\\rail@end\n"
+    fun output_rule (name, rail) =
+      let
+        val (rail', y') = vertical_range rail 0;
+        val out_name =
+          (case name of
+            Antiquote.Text s => output_text s
+          | Antiquote.Antiq a => output_antiq a);
+      in
+        "\\rail@begin{" ^ string_of_int y' ^ "}{" ^ out_name ^ "}\n" ^
+        output "" rail' ^
+        "\\rail@end\n"
+      end;
+  in
+    "\\begin{railoutput}\n" ^
+    implode (map output_rule rules) ^
+    "\\end{railoutput}\n"
   end;
-
-fun output_rules rules =
-  "\\begin{railoutput}\n" ^
-  implode (map output_rule rules) ^
-  "\\end{railoutput}\n";
 
 in
 
 val _ =
   Thy_Output.antiquotation "rail" (Scan.lift (Parse.position Args.name))
-    (fn _ => output_rules o read);
+    (fn {state, ...} => output_rules state o read);
 
 end;
 
