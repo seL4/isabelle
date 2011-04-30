@@ -72,7 +72,7 @@ val scan_txt =
     andalso Symbol.is_regular s) >> single;
 
 val scan_ant =
-  Symbol_Pos.scan_quoted ||
+  Scan.trace (Symbol_Pos.scan_string_qq || Symbol_Pos.scan_string_bq) >> #2 ||
   Scan.one (fn (s, _) => s <> "}" andalso Symbol.is_regular s) >> single;
 
 val scan_antiq =

@@ -325,8 +325,8 @@ fun token_range k (pos1, (ss, pos2)) =
   Token (Symbol_Pos.implode_range pos1 pos2 ss, (k, Symbol_Pos.untabify_content ss), Slot);
 
 fun scan (lex1, lex2) = !!! "bad input"
-  (Symbol_Pos.scan_string >> token_range String ||
-    Symbol_Pos.scan_alt_string >> token_range AltString ||
+  (Symbol_Pos.scan_string_qq >> token_range String ||
+    Symbol_Pos.scan_string_bq >> token_range AltString ||
     scan_verbatim >> token_range Verbatim ||
     scan_comment >> token_range Comment ||
     scan_space >> token Space ||

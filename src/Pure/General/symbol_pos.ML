@@ -17,9 +17,9 @@ sig
   val !!! : string -> (T list -> 'a) -> T list -> 'a
   val change_prompt: ('a -> 'b) -> 'a -> 'b
   val scan_pos: T list -> Position.T * T list
-  val scan_string: T list -> (Position.T * (T list * Position.T)) * T list
-  val scan_alt_string: T list -> (Position.T * (T list * Position.T)) * T list
-  val scan_quoted: T list -> T list * T list
+  val scan_string_q: T list -> (Position.T * (T list * Position.T)) * T list
+  val scan_string_qq: T list -> (Position.T * (T list * Position.T)) * T list
+  val scan_string_bq: T list -> (Position.T * (T list * Position.T)) * T list
   val scan_comment: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
     T list -> T list * T list
   val scan_comment_body: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
@@ -112,10 +112,9 @@ fun scan_strs q =
 
 in
 
-val scan_string = scan_strs "\"";
-val scan_alt_string = scan_strs "`";
-
-val scan_quoted = Scan.trace (scan_string || scan_alt_string) >> #2;
+val scan_string_q = scan_strs "'";
+val scan_string_qq = scan_strs "\"";
+val scan_string_bq = scan_strs "`";
 
 end;
 
