@@ -796,11 +796,22 @@ A very important consequence of embedding SML into Isar is the
   concept of \emph{ML antiquotation}.  The standard token language of
   ML is augmented by special syntactic entities of the following form:
 
-  \indexouternonterm{antiquote}
-  \begin{rail}
-  antiquote: atsign lbrace nameref args rbrace | lbracesym | rbracesym
-  ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{3}{\indexdef{}{syntax}{antiquote}\hypertarget{syntax.antiquote}{\hyperlink{syntax.antiquote}{\mbox{\isa{antiquote}}}}}
+\rail@bar
+\rail@term{\isa{{\isaliteral{40}{\isacharat}}}}[]
+\rail@term{\isa{{\isaliteral{7B}{\isacharbraceleft}}}}[]
+\rail@nont{\isa{nameref}}[]
+\rail@nont{\isa{args}}[]
+\rail@term{\isa{{\isaliteral{7D}{\isacharbraceright}}}}[]
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{5C3C6C62726163653E}{\isasymlbrace}}}}[]
+\rail@nextbar{2}
+\rail@term{\isa{{\isaliteral{5C3C7262726163653E}{\isasymrbrace}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
 
   Here \hyperlink{syntax.nameref}{\mbox{\isa{nameref}}} and \hyperlink{syntax.args}{\mbox{\isa{args}}} are regular outer syntax
   categories \cite{isabelle-isar-ref}.  Attributes and proof methods
@@ -837,13 +848,35 @@ A very important consequence of embedding SML into Isar is the
   \indexdef{}{ML antiquotation}{note}\hypertarget{ML antiquotation.note}{\hyperlink{ML antiquotation.note}{\mbox{\isa{note}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
   \end{matharray}
 
-  \begin{rail}
-  'let' ((term + 'and') '=' term + 'and')
-  ;
+  \begin{railoutput}
+\rail@begin{3}{\isa{}}
+\rail@term{\hyperlink{ML antiquotation.let}{\mbox{\isa{let}}}}[]
+\rail@plus
+\rail@plus
+\rail@nont{\isa{term}}[]
+\rail@nextplus{1}
+\rail@cterm{\hyperlink{keyword.and}{\mbox{\isa{\isakeyword{and}}}}}[]
+\rail@endplus
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@nont{\isa{term}}[]
+\rail@nextplus{2}
+\rail@cterm{\hyperlink{keyword.and}{\mbox{\isa{\isakeyword{and}}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{3}{\isa{}}
+\rail@term{\hyperlink{ML antiquotation.note}{\mbox{\isa{note}}}}[]
+\rail@plus
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{thmdef}}[]
+\rail@endbar
+\rail@nont{\isa{thmrefs}}[]
+\rail@nextplus{2}
+\rail@cterm{\hyperlink{keyword.and}{\mbox{\isa{\isakeyword{and}}}}}[]
+\rail@endplus
+\rail@end
+\end{railoutput}
 
-  'note' (thmdef? thmrefs + 'and')
-  ;
-  \end{rail}
 
   \begin{description}
 

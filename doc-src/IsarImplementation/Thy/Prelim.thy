@@ -228,10 +228,9 @@ text %mlantiq {*
   @{ML_antiquotation_def "theory"} & : & @{text ML_antiquotation} \\
   \end{matharray}
 
-  \begin{rail}
-  'theory' nameref?
-  ;
-  \end{rail}
+  @{rail "
+  @@{ML_antiquotation theory} nameref?
+  "}
 
   \begin{description}
 
@@ -1205,10 +1204,9 @@ text %mlantiq {*
   @{ML_antiquotation_def "binding"} & : & @{text ML_antiquotation} \\
   \end{matharray}
 
-  \begin{rail}
-  'binding' name
-  ;
-  \end{rail}
+  @{rail "
+  @@{ML_antiquotation binding} name
+  "}
 
   \begin{description}
 

@@ -197,16 +197,17 @@ text %mlantiq {*
   @{ML_antiquotation_def "typ"} & : & @{text ML_antiquotation} \\
   \end{matharray}
 
-  \begin{rail}
-  'class' nameref
+  @{rail "
+  @@{ML_antiquotation class} nameref
   ;
-  'sort' sort
+  @@{ML_antiquotation sort} sort
   ;
-  ('type_name' | 'type_abbrev' | 'nonterminal') nameref
+  (@@{ML_antiquotation type_name} |
+   @@{ML_antiquotation type_abbrev} |
+   @@{ML_antiquotation nonterminal}) nameref
   ;
-  'typ' type
-  ;
-  \end{rail}
+  @@{ML_antiquotation typ} type
+  "}
 
   \begin{description}
 
@@ -436,16 +437,16 @@ text %mlantiq {*
   @{ML_antiquotation_def "prop"} & : & @{text ML_antiquotation} \\
   \end{matharray}
 
-  \begin{rail}
-  ('const_name' | 'const_abbrev') nameref
+  @{rail "
+  (@@{ML_antiquotation const_name} |
+   @@{ML_antiquotation const_abbrev}) nameref
   ;
-  'const' ('(' (type + ',') ')')?
+  @@{ML_antiquotation const} ('(' (type + ',') ')')?
   ;
-  'term' term
+  @@{ML_antiquotation term} term
   ;
-  'prop' prop
-  ;
-  \end{rail}
+  @@{ML_antiquotation prop} prop
+  "}
 
   \begin{description}
 
@@ -733,19 +734,20 @@ text %mlantiq {*
   @{ML_antiquotation_def "lemma"} & : & @{text ML_antiquotation} \\
   \end{matharray}
 
-  \begin{rail}
-  'ctyp' typ
+  @{rail "
+  @@{ML_antiquotation ctyp} typ
   ;
-  'cterm' term
+  @@{ML_antiquotation cterm} term
   ;
-  'cprop' prop
+  @@{ML_antiquotation cprop} prop
   ;
-  'thm' thmref
+  @@{ML_antiquotation thm} thmref
   ;
-  'thms' thmrefs
+  @@{ML_antiquotation thms} thmrefs
   ;
-  'lemma' ('(open)')? ((prop +) + 'and') \\ 'by' method method?
-  \end{rail}
+  @@{ML_antiquotation lemma} ('(' @@{keyword \"open\"} ')')? ((prop +) + @@{keyword \"and\"}) \\
+    @@{keyword \"by\"} method method?
+  "}
 
   \begin{description}
 

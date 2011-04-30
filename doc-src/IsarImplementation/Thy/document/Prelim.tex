@@ -264,10 +264,16 @@ A \emph{theory} is a data container with explicit name and
   \indexdef{}{ML antiquotation}{theory}\hypertarget{ML antiquotation.theory}{\hyperlink{ML antiquotation.theory}{\mbox{\isa{theory}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
   \end{matharray}
 
-  \begin{rail}
-  'theory' nameref?
-  ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{ML antiquotation.theory}{\mbox{\isa{theory}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{nameref}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -1711,10 +1717,13 @@ A \isa{name\ space} manages a collection of long names,
   \indexdef{}{ML antiquotation}{binding}\hypertarget{ML antiquotation.binding}{\hyperlink{ML antiquotation.binding}{\mbox{\isa{binding}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
   \end{matharray}
 
-  \begin{rail}
-  'binding' name
-  ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{ML antiquotation.binding}{\mbox{\isa{binding}}}}[]
+\rail@nont{\isa{name}}[]
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 

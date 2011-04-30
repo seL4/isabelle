@@ -81,10 +81,12 @@ text %mlantiq {*
   @{ML_antiquotation_def "syntax_const"} & : & @{text ML_antiquotation} \\
   \end{matharray}
 
-  \begin{rail}
-  ('class_syntax' | 'type_syntax' | 'const_syntax' | 'syntax_const') name
-  ;
-  \end{rail}
+  @{rail "
+  (@@{ML_antiquotation class_syntax} |
+   @@{ML_antiquotation type_syntax} |
+   @@{ML_antiquotation const_syntax} |
+   @@{ML_antiquotation syntax_const}) name
+  "}
 
   \begin{description}
 

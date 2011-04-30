@@ -666,11 +666,9 @@ text {* A very important consequence of embedding SML into Isar is the
   concept of \emph{ML antiquotation}.  The standard token language of
   ML is augmented by special syntactic entities of the following form:
 
-  \indexouternonterm{antiquote}
-  \begin{rail}
-  antiquote: atsign lbrace nameref args rbrace | lbracesym | rbracesym
-  ;
-  \end{rail}
+  @{rail "
+  @{syntax_def antiquote}: '@' '{' nameref args '}' | '\<lbrace>' | '\<rbrace>'
+  "}
 
   Here @{syntax nameref} and @{syntax args} are regular outer syntax
   categories \cite{isabelle-isar-ref}.  Attributes and proof methods
@@ -700,13 +698,11 @@ text %mlantiq {*
   @{ML_antiquotation_def "note"} & : & @{text ML_antiquotation} \\
   \end{matharray}
 
-  \begin{rail}
-  'let' ((term + 'and') '=' term + 'and')
+  @{rail "
+  @@{ML_antiquotation let} ((term + @@{keyword \"and\"}) '=' term + @@{keyword \"and\"})
   ;
-
-  'note' (thmdef? thmrefs + 'and')
-  ;
-  \end{rail}
+  @@{ML_antiquotation note} (thmdef? thmrefs + @@{keyword \"and\"})
+  "}
 
   \begin{description}
 

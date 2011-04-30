@@ -216,16 +216,31 @@ The language of types is an uninterpreted order-sorted first-order
   \indexdef{}{ML antiquotation}{typ}\hypertarget{ML antiquotation.typ}{\hyperlink{ML antiquotation.typ}{\mbox{\isa{typ}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
   \end{matharray}
 
-  \begin{rail}
-  'class' nameref
-  ;
-  'sort' sort
-  ;
-  ('type_name' | 'type_abbrev' | 'nonterminal') nameref
-  ;
-  'typ' type
-  ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{ML antiquotation.class}{\mbox{\isa{class}}}}[]
+\rail@nont{\isa{nameref}}[]
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{ML antiquotation.sort}{\mbox{\isa{sort}}}}[]
+\rail@nont{\isa{sort}}[]
+\rail@end
+\rail@begin{3}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{ML antiquotation.type-name}{\mbox{\isa{type{\isaliteral{5F}{\isacharunderscore}}name}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{ML antiquotation.type-abbrev}{\mbox{\isa{type{\isaliteral{5F}{\isacharunderscore}}abbrev}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{ML antiquotation.nonterminal}{\mbox{\isa{nonterminal}}}}[]
+\rail@endbar
+\rail@nont{\isa{nameref}}[]
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{ML antiquotation.typ}{\mbox{\isa{typ}}}}[]
+\rail@nont{\isa{type}}[]
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -465,16 +480,38 @@ The language of terms is that of simply-typed \isa{{\isaliteral{5C3C6C616D626461
   \indexdef{}{ML antiquotation}{prop}\hypertarget{ML antiquotation.prop}{\hyperlink{ML antiquotation.prop}{\mbox{\isa{prop}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
   \end{matharray}
 
-  \begin{rail}
-  ('const_name' | 'const_abbrev') nameref
-  ;
-  'const' ('(' (type + ',') ')')?
-  ;
-  'term' term
-  ;
-  'prop' prop
-  ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{ML antiquotation.const-name}{\mbox{\isa{const{\isaliteral{5F}{\isacharunderscore}}name}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{ML antiquotation.const-abbrev}{\mbox{\isa{const{\isaliteral{5F}{\isacharunderscore}}abbrev}}}}[]
+\rail@endbar
+\rail@nont{\isa{nameref}}[]
+\rail@end
+\rail@begin{3}{\isa{}}
+\rail@term{\hyperlink{ML antiquotation.const}{\mbox{\isa{const}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@plus
+\rail@nont{\isa{type}}[]
+\rail@nextplus{2}
+\rail@cterm{\isa{{\isaliteral{2C}{\isacharcomma}}}}[]
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{ML antiquotation.term}{\mbox{\isa{term}}}}[]
+\rail@nont{\isa{term}}[]
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{ML antiquotation.prop}{\mbox{\isa{prop}}}}[]
+\rail@nont{\isa{prop}}[]
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -775,19 +812,53 @@ The theory \isa{Pure} contains constant declarations for the
   \indexdef{}{ML antiquotation}{lemma}\hypertarget{ML antiquotation.lemma}{\hyperlink{ML antiquotation.lemma}{\mbox{\isa{lemma}}}} & : & \isa{ML{\isaliteral{5F}{\isacharunderscore}}antiquotation} \\
   \end{matharray}
 
-  \begin{rail}
-  'ctyp' typ
-  ;
-  'cterm' term
-  ;
-  'cprop' prop
-  ;
-  'thm' thmref
-  ;
-  'thms' thmrefs
-  ;
-  'lemma' ('(open)')? ((prop +) + 'and') \\ 'by' method method?
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{ML antiquotation.ctyp}{\mbox{\isa{ctyp}}}}[]
+\rail@nont{\isa{typ}}[]
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{ML antiquotation.cterm}{\mbox{\isa{cterm}}}}[]
+\rail@nont{\isa{term}}[]
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{ML antiquotation.cprop}{\mbox{\isa{cprop}}}}[]
+\rail@nont{\isa{prop}}[]
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{ML antiquotation.thm}{\mbox{\isa{thm}}}}[]
+\rail@nont{\isa{thmref}}[]
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{ML antiquotation.thms}{\mbox{\isa{thms}}}}[]
+\rail@nont{\isa{thmrefs}}[]
+\rail@end
+\rail@begin{6}{\isa{}}
+\rail@term{\hyperlink{ML antiquotation.lemma}{\mbox{\isa{lemma}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@term{\hyperlink{keyword.open}{\mbox{\isa{\isakeyword{open}}}}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@plus
+\rail@plus
+\rail@nont{\isa{prop}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@nextplus{2}
+\rail@cterm{\hyperlink{keyword.and}{\mbox{\isa{\isakeyword{and}}}}}[]
+\rail@endplus
+\rail@cr{4}
+\rail@term{\hyperlink{keyword.by}{\mbox{\isa{\isakeyword{by}}}}}[]
+\rail@nont{\isa{method}}[]
+\rail@bar
+\rail@nextbar{5}
+\rail@nont{\isa{method}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
