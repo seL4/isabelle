@@ -573,10 +573,10 @@ following values:
 \begin{enum}
 \item[$\bullet$] \textbf{\textit{many\_typed}:} Use the prover's support for
 many-typed first-order logic if available; otherwise, fall back on
-\textit{mangled}. The problem is monomorphized, meaning that the problem's type
-variables are instantiated with heuristically chosen ground types.
-Monomorphization can simplify reasoning but also leads to larger fact bases,
-which can slow down the ATPs.
+\textit{mangled\_preds}. The problem is monomorphized, meaning that the
+problem's type variables are instantiated with heuristically chosen ground
+types. Monomorphization can simplify reasoning but also leads to larger fact
+bases, which can slow down the ATPs.
 
 \item[$\bullet$] \textbf{\textit{preds}:} Types are encoded using a binary predicate
 $\mathit{has\_type\/}(\tau, t)$ that restricts the range of bound variables.
@@ -628,7 +628,7 @@ unsound variant identified by an exclamation mark (!)\ that types only finite
 \textit{tags}?,
 \textit{mono\_tags}?,
 \textit{mangled\_tags}?:} \\
-If the exclamation mark (!) is replaced by an question mark (?), the type
+If the exclamation mark (!)\ is replaced by an question mark (?),\ the type
 systems type only nonmonotonic (and hence especially dangerous) types. Not
 implemented yet.
 
@@ -650,7 +650,8 @@ For SMT solvers and ToFoF-E, the type system is always \textit{many\_typed}.
 \opdefault{monomorphize\_limit}{int}{\upshape 4}
 Specifies the maximum number of iterations for the monomorphization fixpoint
 construction. The higher this limit is, the more monomorphic instances are
-potentially generated.
+potentially generated. Whether monomorphization takes place depends on the
+type system used.
 \end{enum}
 
 \subsection{Relevance Filter}
