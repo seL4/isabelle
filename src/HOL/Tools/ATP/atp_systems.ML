@@ -318,7 +318,8 @@ fun remote_config system_name system_versions proof_delims known_failures
    proof_delims = insert (op =) tstp_proof_delims proof_delims,
    known_failures =
      known_failures @ known_perl_failures @
-     [(TimedOut, "says Timeout")],
+     [(IncompleteUnprovable, "says Unknown"),
+      (TimedOut, "says Timeout")],
    use_conjecture_for_hypotheses = use_conjecture_for_hypotheses}
 
 fun int_average f xs = fold (Integer.add o f) xs 0 div length xs
@@ -344,8 +345,7 @@ val remote_tofof_e =
   remote_atp tofof_eN "ToFoF" ["0.1"] [] (#known_failures e_config)
              (K 200 (* FUDGE *)) true
 val remote_sine_e =
-  remote_atp sine_eN "SInE" ["0.4"] [] [(IncompleteUnprovable, "says Unknown")]
-             (K 500 (* FUDGE *)) true
+  remote_atp sine_eN "SInE" ["0.4"] [] [] (K 500 (* FUDGE *)) true
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r024"]
              [("refutation.", "end_refutation.")] [] (K 250 (* FUDGE *)) true
