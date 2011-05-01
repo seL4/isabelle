@@ -18,7 +18,7 @@ sig
   datatype logic = Fof | Tff
   datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
   datatype 'a problem_line =
-    Type_Decl of string * 'a * 'a list * 'a |
+    Decl of string * 'a * 'a list * 'a |
     Formula of logic * string * formula_kind * ('a, 'a, 'a fo_term) formula
                * string fo_term option * string fo_term option
   type 'a problem = (string * 'a problem_line list) list
@@ -49,7 +49,7 @@ datatype ('a, 'b, 'c) formula =
 datatype logic = Fof | Tff
 datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
 datatype 'a problem_line =
-  Type_Decl of string * 'a * 'a list * 'a |
+  Decl of string * 'a * 'a list * 'a |
   Formula of logic * string * formula_kind * ('a, 'a, 'a fo_term) formula
              * string fo_term option * string fo_term option
 type 'a problem = (string * 'a problem_line list) list
@@ -99,7 +99,7 @@ fun string_for_symbol_type [] res_ty = res_ty
   | string_for_symbol_type arg_tys res_ty =
     string_for_symbol_type ["(" ^ space_implode " * " arg_tys ^ ")"] res_ty
 
-fun string_for_problem_line _ (Type_Decl (ident, sym, arg_tys, res_ty)) =
+fun string_for_problem_line _ (Decl (ident, sym, arg_tys, res_ty)) =
     "tff(" ^ ident ^ ", type,\n    " ^ sym ^ " : " ^
     string_for_symbol_type arg_tys res_ty ^ ").\n"
   | string_for_problem_line use_conjecture_for_hypotheses
@@ -201,11 +201,11 @@ fun nice_formula (AQuant (q, xs, phi)) =
   | nice_formula (AConn (c, phis)) =
     pool_map nice_formula phis #>> curry AConn c
   | nice_formula (AAtom tm) = nice_term tm #>> AAtom
-fun nice_problem_line (Type_Decl (ident, sym, arg_tys, res_ty)) =
+fun nice_problem_line (Decl (ident, sym, arg_tys, res_ty)) =
     nice_name sym
     ##>> pool_map nice_name arg_tys
     ##>> nice_name res_ty
-    #>> (fn ((sym, arg_tys), res_ty) => Type_Decl (ident, sym, arg_tys, res_ty))
+    #>> (fn ((sym, arg_tys), res_ty) => Decl (ident, sym, arg_tys, res_ty))
   | nice_problem_line (Formula (logic, ident, kind, phi, source, useful_info)) =
     nice_formula phi
     #>> (fn phi => Formula (logic, ident, kind, phi, source, useful_info))

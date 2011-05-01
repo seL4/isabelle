@@ -237,6 +237,7 @@ fun parse_vampire_detritus x =
 
 fun parse_term x =
   (scan_general_id
+     --| Scan.option ($$ ":" -- scan_general_id) (* ignore TFF types for now *)
      -- Scan.optional ($$ "(" |-- (parse_vampire_detritus || parse_terms)
                        --| $$ ")") []
      --| Scan.optional ($$ "(" |-- parse_vampire_detritus --| $$ ")") []

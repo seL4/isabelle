@@ -45,11 +45,12 @@ open ATP_Problem
 open Metis_Translate
 open Sledgehammer_Util
 
+val type_decl_prefix = "type_"
+val sym_decl_prefix = "sym_"
 val fact_prefix = "fact_"
 val conjecture_prefix = "conj_"
 val helper_prefix = "help_"
-val type_decl_prefix = "type_"
-val class_rel_clause_prefix = "clrel_";
+val class_rel_clause_prefix = "crel_";
 val arity_clause_prefix = "arity_"
 val tfree_prefix = "tfree_"
 
@@ -61,6 +62,7 @@ val type_prefix = "ty_"
 fun make_type ty = type_prefix ^ ascii_of ty
 
 (* official TPTP TFF syntax *)
+val tff_type_of_types = "$tType"
 val tff_bool_type = "$o"
 
 (* Freshness almost guaranteed! *)
@@ -778,14 +780,14 @@ fun strip_and_map_combtyp f (ty as CombType ((s, _), tys)) =
      | _ => ([], f ty))
   | strip_and_map_combtyp f ty = ([], f ty)
 
-fun type_decl_line_for_const_entry ctxt type_sys hrepairs s (s', ty_args, ty) =
+fun sym_decl_line_for_const_entry ctxt type_sys hrepairs s (s', ty_args, ty) =
   if type_sys = Many_Typed then
     let
       val (arg_tys, res_ty) = strip_and_map_combtyp mangled_combtyp ty
       val (s, s') = (s, s') |> mangled_const_name ty_args
     in
-      Type_Decl (type_decl_prefix ^ ascii_of s, (s, s'), arg_tys,
-                 if is_pred_sym hrepairs s then `I tff_bool_type else res_ty)
+      Decl (sym_decl_prefix ^ ascii_of s, (s, s'), arg_tys,
+            if is_pred_sym hrepairs s then `I tff_bool_type else res_ty)
     end
   else
     let
@@ -796,7 +798,7 @@ fun type_decl_line_for_const_entry ctxt type_sys hrepairs s (s', ty_args, ty) =
       val bound_tms =
         map (fn (name, ty) => CombConst (name, the ty, [])) bounds
     in
-      Formula (Fof, type_decl_prefix ^ ascii_of s, Axiom,
+      Formula (Fof, sym_decl_prefix ^ ascii_of s, Axiom,
                CombConst ((s, s'), ty, ty_args)
                |> fold (curry (CombApp o swap)) bound_tms
                |> type_pred_combatom type_sys res_ty
@@ -804,13 +806,31 @@ fun type_decl_line_for_const_entry ctxt type_sys hrepairs s (s', ty_args, ty) =
                |> formula_for_combformula ctxt type_sys,
                NONE, NONE)
     end
-fun type_decl_lines_for_const ctxt type_sys hrepairs (s, xs) =
-  map (type_decl_line_for_const_entry ctxt type_sys hrepairs s) xs
+fun sym_decl_lines_for_const ctxt type_sys hrepairs (s, xs) =
+  map (sym_decl_line_for_const_entry ctxt type_sys hrepairs s) xs
 
-val type_declsN = "Type declarations"
+fun add_tff_types_in_formula (AQuant (_, xs, phi)) =
+    union (op =) (map_filter snd xs) #> add_tff_types_in_formula phi
+  | add_tff_types_in_formula (AConn (_, phis)) =
+    fold add_tff_types_in_formula phis
+  | add_tff_types_in_formula (AAtom _) = I
+
+fun add_tff_types_in_problem_line (Decl (_, _, arg_tys, res_ty)) =
+    union (op =) (res_ty :: arg_tys)
+  | add_tff_types_in_problem_line (Formula (_, _, _, phi, _, _)) =
+    add_tff_types_in_formula phi
+
+fun tff_types_in_problem problem =
+  fold (fold add_tff_types_in_problem_line o snd) problem []
+
+fun problem_line_for_tff_type (s, s') =
+  Decl (type_decl_prefix ^ ascii_of s, (s, s'), [], `I tff_type_of_types)
+
+val type_declsN = "Types"
+val sym_declsN = "Symbols"
 val factsN = "Relevant facts"
 val class_relsN = "Class relationships"
-val aritiesN = "Arity declarations"
+val aritiesN = "Arities"
 val helpersN = "Helper facts"
 val conjsN = "Conjectures"
 val free_typesN = "Type variables"
@@ -832,6 +852,7 @@ fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
        Flotter hack. *)
     val problem =
       [(type_declsN, []),
+       (sym_declsN, []),
        (factsN, map (problem_line_for_fact ctxt fact_prefix type_sys)
                     (0 upto length facts - 1 ~~ facts)),
        (class_relsN, map problem_line_for_class_rel_clause class_rel_clauses),
@@ -845,17 +866,24 @@ fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
               |> get_helper_facts ctxt type_sys
               |>> map (hrepair_fact type_sys hrepairs)
     val const_tab = const_table_for_facts type_sys hrepairs (conjs @ facts)
-    val type_decl_lines =
-      Symtab.fold_rev (append o type_decl_lines_for_const ctxt type_sys
-                                                          hrepairs)
+    val sym_decl_lines =
+      Symtab.fold_rev (append o sym_decl_lines_for_const ctxt type_sys hrepairs)
                       const_tab []
     val helper_lines =
       helper_facts
       |>> map (pair 0 #> problem_line_for_fact ctxt helper_prefix type_sys)
       |> op @
-    val (problem, pool) =
+    val problem =
       problem |> fold (AList.update (op =))
-                      [(type_declsN, type_decl_lines), (helpersN, helper_lines)]
+                      [(sym_declsN, sym_decl_lines),
+                       (helpersN, helper_lines)]
+    val type_decl_lines =
+      if type_sys = Many_Typed then
+        problem |> tff_types_in_problem |> map problem_line_for_tff_type
+      else
+        []
+    val (problem, pool) =
+      problem |> AList.update (op =) (type_declsN, type_decl_lines)
               |> nice_atp_problem readable_names
   in
     (problem,
