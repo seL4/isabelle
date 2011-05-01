@@ -16,7 +16,6 @@ sig
      slices: unit -> (real * (bool * int)) list,
      proof_delims: (string * string) list,
      known_failures: (failure * string) list,
-     explicit_forall: bool,
      use_conjecture_for_hypotheses: bool}
 
   datatype e_weight_method =
@@ -63,7 +62,6 @@ type atp_config =
    slices: unit -> (real * (bool * int)) list,
    proof_delims: (string * string) list,
    known_failures: (failure * string) list,
-   explicit_forall: bool,
    use_conjecture_for_hypotheses: bool}
 
 val known_perl_failures =
@@ -188,7 +186,6 @@ val e_config : atp_config =
        "# Cannot determine problem status within resource limit"),
       (OutOfResources, "SZS status: ResourceOut"),
       (OutOfResources, "SZS status ResourceOut")],
-   explicit_forall = false,
    use_conjecture_for_hypotheses = true}
 
 val e = (eN, e_config)
@@ -217,7 +214,6 @@ val spass_config : atp_config =
       (MalformedInput, "Free Variable"),
       (SpassTooOld, "tptp2dfg"),
       (InternalError, "Please report this error")],
-   explicit_forall = true,
    use_conjecture_for_hypotheses = true}
 
 val spass = (spassN, spass_config)
@@ -251,7 +247,6 @@ val vampire_config : atp_config =
       (Unprovable, "Termination reason: Satisfiable"),
       (VampireTooOld, "not a valid option"),
       (Interrupted, "Aborted by signal SIGINT")],
-   explicit_forall = false,
    use_conjecture_for_hypotheses = true}
 
 val vampire = (vampireN, vampire_config)
@@ -272,7 +267,6 @@ val z3_atp_config : atp_config =
       (IncompleteUnprovable, "SZS status Satisfiable"),
       (ProofMissing, "\nunsat"),
       (ProofMissing, "SZS status Unsatisfiable")],
-   explicit_forall = true,
    use_conjecture_for_hypotheses = false}
 
 val z3_atp = (z3_atpN, z3_atp_config)
@@ -322,7 +316,6 @@ fun remote_config system_name system_versions proof_delims known_failures
    known_failures =
      known_failures @ known_perl_failures @
      [(TimedOut, "says Timeout")],
-   explicit_forall = true,
    use_conjecture_for_hypotheses = use_conjecture_for_hypotheses}
 
 fun int_average f xs = fold (Integer.add o f) xs 0 div length xs

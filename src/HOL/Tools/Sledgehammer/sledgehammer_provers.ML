@@ -336,7 +336,7 @@ val atp_important_message_keep_factor = 0.1
 
 fun run_atp auto name
         ({exec, required_execs, arguments, slices, proof_delims, known_failures,
-          explicit_forall, use_conjecture_for_hypotheses, ...} : atp_config)
+          use_conjecture_for_hypotheses, ...} : atp_config)
         ({debug, verbose, overlord, max_relevant, monomorphize,
           monomorphize_limit, type_sys, explicit_apply, isar_proof,
           isar_shrink_factor, slicing, timeout, ...} : params)
@@ -433,9 +433,8 @@ fun run_atp auto name
                   else
                     ()
                 val (atp_problem, pool, conjecture_offset, fact_names) =
-                  prepare_atp_problem ctxt readable_names explicit_forall
-                                      type_sys explicit_apply hyp_ts concl_t
-                                      facts
+                  prepare_atp_problem ctxt readable_names type_sys
+                                      explicit_apply hyp_ts concl_t facts
                 fun weights () = atp_problem_weights atp_problem
                 val core =
                   File.shell_path command ^ " " ^

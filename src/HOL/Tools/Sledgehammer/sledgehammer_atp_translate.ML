@@ -29,7 +29,7 @@ sig
     -> translated_formula option * ((string * 'a) * thm)
   val unmangled_const : string -> string * string fo_term list
   val prepare_atp_problem :
-    Proof.context -> bool -> bool -> type_system -> bool -> term list -> term
+    Proof.context -> bool -> type_system -> bool -> term list -> term
     -> (translated_formula option * ((string * 'a) * thm)) list
     -> string problem * string Symtab.table * int * (string * 'a) list vector
   val atp_problem_weights : string problem -> (string * real) list
@@ -291,7 +291,7 @@ val init_counters =
   metis_helpers |> map fst |> sort_distinct string_ord |> map (rpair 0)
   |> Symtab.make
 
-fun get_helper_facts ctxt explicit_forall type_sys formulas =
+fun get_helper_facts ctxt type_sys formulas =
   let
     val no_dangerous_types = type_system_types_dangerous_types type_sys
     val ct = init_counters |> fold count_formula formulas
@@ -317,7 +317,7 @@ fun get_helper_facts ctxt explicit_forall type_sys formulas =
        in
          [Fof (helper_prefix ^ ascii_of "ti_ti", Axiom,
                AAtom (ATerm (`I "equal", [tag (tag (var "Y")), tag (var "Y")]))
-               |> explicit_forall ? close_universally, NONE)]
+               |> close_universally, NONE)]
        end
      else
        [])
@@ -652,7 +652,7 @@ fun repair_predicates_in_term pred_sym_tab (t as ATerm ((s, _), ts)) =
   else
     t |> not (is_pred_sym pred_sym_tab s) ? boolify
 
-fun repair_formula thy explicit_forall type_sys sym_tab =
+fun repair_formula thy type_sys sym_tab =
   let
     val pred_sym_tab = case type_sys of Tags _ => NONE | _ => sym_tab
     fun aux (AQuant (q, xs, phi)) = AQuant (q, xs, aux phi)
@@ -660,13 +660,11 @@ fun repair_formula thy explicit_forall type_sys sym_tab =
       | aux (AAtom tm) =
         AAtom (tm |> repair_applications_in_term thy type_sys sym_tab
                   |> repair_predicates_in_term pred_sym_tab)
-  in aux #> explicit_forall ? close_universally end
+  in aux #> close_universally end
 
-fun repair_problem_line thy explicit_forall type_sys sym_tab
-                        (Fof (ident, kind, phi, source)) =
-  Fof (ident, kind, repair_formula thy explicit_forall type_sys sym_tab phi,
-       source)
-fun repair_problem thy = map o apsnd o map ooo repair_problem_line thy
+fun repair_problem_line thy type_sys sym_tab (Fof (ident, kind, phi, source)) =
+  Fof (ident, kind, repair_formula thy type_sys sym_tab phi, source)
+fun repair_problem thy = map o apsnd o map oo repair_problem_line thy
 
 fun dest_Fof (Fof z) = z
 
@@ -682,8 +680,8 @@ fun offset_of_heading_in_problem _ [] j = j
     if heading = needle then j
     else offset_of_heading_in_problem needle problem (j + length lines)
 
-fun prepare_atp_problem ctxt readable_names explicit_forall type_sys
-                        explicit_apply hyp_ts concl_t facts =
+fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
+                        concl_t facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
@@ -699,13 +697,14 @@ fun prepare_atp_problem ctxt readable_names explicit_forall type_sys
        (conjsN, map (problem_line_for_conjecture ctxt type_sys) conjs),
        (free_typesN, problem_lines_for_free_types type_sys (facts @ conjs))]
     val sym_tab = sym_table_for_problem explicit_apply problem
-    val problem = problem |> repair_problem thy explicit_forall type_sys sym_tab
+    val problem = problem |> repair_problem thy type_sys sym_tab
+    val helper_facts =
+      get_helper_facts ctxt type_sys (maps (map (#3 o dest_Fof) o snd) problem)
     val helper_lines =
-      get_helper_facts ctxt explicit_forall type_sys
-                       (maps (map (#3 o dest_Fof) o snd) problem)
+      helper_facts
       |>> map (pair 0
                #> problem_line_for_fact ctxt helper_prefix type_sys
-               #> repair_problem_line thy explicit_forall type_sys sym_tab)
+               #> repair_problem_line thy type_sys sym_tab)
       |> op @
     val (problem, pool) =
       problem |> AList.update (op =) (helpersN, helper_lines)
