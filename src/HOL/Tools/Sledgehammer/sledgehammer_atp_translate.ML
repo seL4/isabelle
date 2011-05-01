@@ -753,21 +753,24 @@ fun should_declare_sym type_sys pred_sym s =
 
 fun add_combterm_syms_to_decl_table type_sys repaired_sym_tab =
   let
-    fun aux tm =
+    fun declare_sym (decl as (_, _, T, _, _)) decls =
+      if exists (curry Type.raw_instance T o #3) decls then decls
+      else decl :: filter_out ((fn T' => Type.raw_instance (T', T)) o #3) decls
+    fun do_term tm =
       let val (head, args) = strip_combterm_comb tm in
         (case head of
            CombConst ((s, s'), T, T_args) =>
            let val pred_sym = is_pred_sym repaired_sym_tab s in
              if should_declare_sym type_sys pred_sym s then
-               Symtab.insert_list (op =)
-                   (s, (s', T_args, T, pred_sym, length args))
+               Symtab.map_default (s, [])
+                   (declare_sym (s', T_args, T, pred_sym, length args))
              else
                I
            end
          | _ => I)
-        #> fold aux args
+        #> fold do_term args
       end
-  in aux end
+  in do_term end
 fun add_fact_syms_to_decl_table type_sys repaired_sym_tab =
   fact_lift (formula_fold
       (add_combterm_syms_to_decl_table type_sys repaired_sym_tab))
