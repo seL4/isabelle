@@ -106,15 +106,17 @@ fun is_type_system_sound Many_Typed = true
 fun type_system_types_dangerous_types (Tags _) = true
   | type_system_types_dangerous_types type_sys = is_type_system_sound type_sys
 
-fun dont_need_type_args type_sys s =
+val boring_consts = [explicit_app_base, @{const_name Metis.fequal}]
+
+fun should_omit_type_args type_sys s =
   s <> type_pred_base andalso
-  (member (op =) [@{const_name HOL.eq}] s orelse
+  (s = @{const_name HOL.eq} orelse
    case type_sys of
      Many_Typed => false
    | Mangled _ => false
-   | Args _ => s = explicit_app_base
-   | Tags full_types => full_types orelse s = explicit_app_base
-   | No_Types => true)
+   | No_Types => true
+   | Tags true => true
+   | _ => member (op =) boring_consts s)
 
 datatype type_arg_policy = No_Type_Args | Mangled_Types | Explicit_Type_Args
 
@@ -123,7 +125,7 @@ fun general_type_arg_policy Many_Typed = Mangled_Types
   | general_type_arg_policy _ = Explicit_Type_Args
 
 fun type_arg_policy type_sys s =
-  if dont_need_type_args type_sys s then No_Type_Args
+  if should_omit_type_args type_sys s then No_Type_Args
   else general_type_arg_policy type_sys
 
 fun num_atp_type_args thy type_sys s =

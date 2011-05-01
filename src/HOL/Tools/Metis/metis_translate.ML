@@ -142,7 +142,7 @@ val const_trans_table_inv =
   const_trans_table |> Symtab.dest |> map swap |> Symtab.make
 val const_trans_table_unprox =
   Symtab.empty
-  |> fold (fn (_, (isa, (_, meson))) => Symtab.update (meson, isa))
+  |> fold (fn (_, (isa, (_, metis))) => Symtab.update (metis, isa))
           metis_proxies
 
 val invert_const = perhaps (Symtab.lookup const_trans_table_inv)
