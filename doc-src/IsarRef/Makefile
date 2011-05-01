@@ -17,13 +17,13 @@ FILES = isar-ref.tex style.sty Thy/document/Generic.tex			\
   Thy/document/Introduction.tex Thy/document/Document_Preparation.tex	\
   Thy/document/Misc.tex Thy/document/Outer_Syntax.tex			\
   Thy/document/Symbols.tex ../isar.sty ../rail.sty ../railsetup.sty	\
-  ../proof.sty ../iman.sty ../extra.sty ../ttbox.sty ../isabelle.sty	\
-  ../isabellesym.sty ../pdfsetup.sty ../manual.bib
+  ../proof.sty ../iman.sty ../extra.sty ../ttbox.sty ../../lib/texinputs/isabelle.sty	\
+  ../../lib/texinputs/isabellesym.sty ../pdfsetup.sty ../manual.bib
 
 OUTPUT = syms.tex
 
-syms.tex: showsymbols ../isabellesym.sty
-	@./showsymbols <../isabellesym.sty >syms.tex
+syms.tex: showsymbols ../../lib/texinputs/isabellesym.sty
+	@./showsymbols <../../lib/texinputs/isabellesym.sty >syms.tex
 
 
 dvi: $(NAME).dvi

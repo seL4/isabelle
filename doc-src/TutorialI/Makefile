@@ -24,7 +24,7 @@ FILES = tutorial.tex basics.tex fp.tex appendix.tex			\
 	Rules/rules.tex Sets/sets.tex Types/numerics.tex		\
 	Types/types.tex Types/document/Overloading.tex \
 	Types/document/Axioms.tex Documents/documents.tex Misc/document/appendix.tex ../iman.sty	\
-	../ttbox.sty ../extra.sty ../isabelle.sty ../isabellesym.sty	\
+	../ttbox.sty ../extra.sty ../../lib/texinputs/isabelle.sty ../../lib/texinputs/isabellesym.sty	\
 	../pdfsetup.sty
 
 dvi: $(NAME).dvi

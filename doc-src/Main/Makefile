@@ -10,7 +10,7 @@ include ../Makefile.in
 
 NAME = main
 
-FILES = ../isabelle.sty ../isabellesym.sty ../pdfsetup.sty $(NAME).tex	\
+FILES = ../../lib/texinputs/isabelle.sty ../../lib/texinputs/isabellesym.sty ../pdfsetup.sty $(NAME).tex	\
   Docs/document/Main_Doc.tex
 
 dvi: $(NAME).dvi

@@ -10,7 +10,7 @@ include ../Makefile.in
 
 NAME = implementation
 
-FILES = ../extra.sty ../iman.sty ../isabelle.sty ../isabellesym.sty	\
+FILES = ../extra.sty ../iman.sty ../../lib/texinputs/isabelle.sty ../../lib/texinputs/isabellesym.sty	\
   ../isar.sty ../manual.bib ../pdfsetup.sty ../proof.sty ../rail.sty	\
   ../railsetup.sty Thy/document/Integration.tex Thy/document/Isar.tex	\
   Thy/document/Local_Theory.tex Thy/document/Logic.tex			\

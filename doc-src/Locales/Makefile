@@ -17,7 +17,7 @@ FILES = Locales/document/root.tex Locales/document/root.bib \
   Locales/document/session.tex Locales/document/Examples.tex \
   Locales/document/Examples1.tex Locales/document/Examples2.tex \
   Locales/document/Examples3.tex \
-  ../isabelle.sty ../isabellesym.sty ../pdfsetup.sty 
+  ../../lib/texinputs/isabelle.sty ../../lib/texinputs/isabellesym.sty ../pdfsetup.sty 
 
 dvi: $(NAME).dvi
 
