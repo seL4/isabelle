@@ -19,10 +19,9 @@ text {*
     @{attribute_def (ZF) TC} & : & @{text attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    'TC' (() | 'add' | 'del')
-    ;
-  \end{rail}
+  @{rail "
+    @@{attribute (ZF) TC} (() | 'add' | 'del')
+  "}
 
   \begin{description}
   
@@ -55,42 +54,40 @@ text {*
     @{command_def (ZF) "codatatype"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
-  \begin{rail}
-    ('inductive' | 'coinductive') domains intros hints
+  @{rail "
+    (@@{command (ZF) inductive} | @@{command (ZF) coinductive}) domains intros hints
     ;
 
-    domains: 'domains' (term + '+') ('<=' | subseteq) term
+    domains: @'domains' (@{syntax term} + '+') ('<=' | '\<subseteq>') @{syntax term}
     ;
-    intros: 'intros' (thmdecl? prop +)
+    intros: @'intros' (@{syntax thmdecl}? @{syntax prop} +)
     ;
-    hints: monos? condefs? typeintros? typeelims?
+    hints: @{syntax (ZF) \"monos\"}? condefs? @{syntax (ZF) typeintros}? @{syntax (ZF) typeelims}?
     ;
-    monos: ('monos' thmrefs)?
+    @{syntax_def (ZF) \"monos\"}: @'monos' @{syntax thmrefs}
     ;
-    condefs: ('con_defs' thmrefs)?
+    condefs: @'con_defs' @{syntax thmrefs}
     ;
-    typeintros: ('type_intros' thmrefs)?
+    @{syntax_def (ZF) typeintros}: @'type_intros' @{syntax thmrefs}
     ;
-    typeelims: ('type_elims' thmrefs)?
-    ;
-  \end{rail}
+    @{syntax_def (ZF) typeelims}: @'type_elims' @{syntax thmrefs}
+  "}
 
   In the following syntax specification @{text "monos"}, @{text
   typeintros}, and @{text typeelims} are the same as above.
 
-  \begin{rail}
-    ('datatype' | 'codatatype') domain? (dtspec + 'and') hints
+  @{rail "
+    (@@{command (ZF) datatype} | @@{command (ZF) codatatype}) domain? (dtspec + @'and') hints
     ;
 
-    domain: ('<=' | subseteq) term
+    domain: ('<=' | '\<subseteq>') @{syntax term}
     ;
-    dtspec: term '=' (con + '|')
+    dtspec: @{syntax term} '=' (con + '|')
     ;
-    con: name ('(' (term ',' +) ')')?  
+    con: @{syntax name} ('(' (@{syntax term} ',' +) ')')?
     ;
-    hints: monos? typeintros? typeelims?
-    ;
-  \end{rail}
+    hints: @{syntax (ZF) \"monos\"}? @{syntax (ZF) typeintros}? @{syntax (ZF) typeelims}?
+  "}
 
   See \cite{isabelle-ZF} for further information on inductive
   definitions in ZF, but note that this covers the old-style theory
@@ -105,10 +102,9 @@ text {*
     @{command_def (ZF) "primrec"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
-  \begin{rail}
-    'primrec' (thmdecl? prop +)
-    ;
-  \end{rail}
+  @{rail "
+    @@{command (ZF) primrec} (@{syntax thmdecl}? @{syntax prop} +)
+  "}
 *}
 
 
@@ -125,14 +121,14 @@ text {*
     @{command_def (ZF) "inductive_cases"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
-  \begin{rail}
-    ('case_tac' | 'induct_tac') goalspec? name
+  @{rail "
+    (@@{method (ZF) case_tac} | @@{method (ZF) induct_tac}) @{syntax goalspec}? @{syntax name}
     ;
-    indcases (prop +)
+    @@{method (ZF) ind_cases} (@{syntax prop} +)
     ;
-    inductivecases (thmdecl? (prop +) + 'and')
+    @@{command (ZF) inductive_cases} (@{syntax thmdecl}? (@{syntax prop} +) + @'and')
     ;
-  \end{rail}
+  "}
 *}
 
 end

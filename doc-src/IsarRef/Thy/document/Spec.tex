@@ -68,12 +68,34 @@ The Isabelle/Isar theory format integrates specifications and
   although some user-interfaces might pretend that trailing input is
   admissible.
 
-  \begin{rail}
-    'theory' name 'imports' (name +) uses? 'begin'
-    ;
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.theory}{\mbox{\isa{\isacommand{theory}}}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{\isakeyword{imports}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{uses}}[]
+\rail@endbar
+\rail@term{\isa{\isakeyword{begin}}}[]
+\rail@end
+\rail@begin{3}{\isa{uses}}
+\rail@term{\isa{\isakeyword{uses}}}[]
+\rail@plus
+\rail@bar
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.parname}{\mbox{\isa{parname}}}}[]
+\rail@endbar
+\rail@nextplus{2}
+\rail@endplus
+\rail@end
+\end{railoutput}
 
-    uses: 'uses' ((name | parname) +);
-  \end{rail}
 
   \begin{description}
 
@@ -122,14 +144,20 @@ A local theory target is a context managed separately within the
     \indexdef{local}{command}{end}\hypertarget{command.local.end}{\hyperlink{command.local.end}{\mbox{\isa{\isacommand{end}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \indexouternonterm{target}
-  \begin{rail}
-    'context' name 'begin'
-    ;
+  \begin{railoutput}
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{command.context}{\mbox{\isa{\isacommand{context}}}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{\isakeyword{begin}}}[]
+\rail@end
+\rail@begin{1}{\indexdef{}{syntax}{target}\hypertarget{syntax.target}{\hyperlink{syntax.target}{\mbox{\isa{target}}}}}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@term{\isa{\isakeyword{in}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@end
+\end{railoutput}
 
-    target: '(' 'in' name ')'
-    ;
-  \end{rail}
 
   \begin{description}
   
@@ -191,21 +219,102 @@ A local theory target is a context managed separately within the
   \secref{sec:axms-thms}).  In particular, type-inference is commonly
   available, and result names need not be given.
 
-  \begin{rail}
-    'axiomatization' target? fixes? ('where' specs)?
-    ;
-    'definition' target? (decl 'where')? thmdecl? prop
-    ;
-    'abbreviation' target? mode? (decl 'where')? prop
-    ;
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.axiomatization}{\mbox{\isa{\isacommand{axiomatization}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.fixes}{\mbox{\isa{fixes}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{\isakeyword{where}}}[]
+\rail@nont{\isa{specs}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.definition}{\mbox{\isa{\isacommand{definition}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{decl}}[]
+\rail@term{\isa{\isakeyword{where}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmdecl}{\mbox{\isa{thmdecl}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.abbreviation}{\mbox{\isa{\isacommand{abbreviation}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.mode}{\mbox{\isa{mode}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{decl}}[]
+\rail@term{\isa{\isakeyword{where}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
+\rail@end
+\rail@begin{4}{\indexdef{}{syntax}{fixes}\hypertarget{syntax.fixes}{\hyperlink{syntax.fixes}{\mbox{\isa{fixes}}}}}
+\rail@plus
+\rail@bar
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
+\rail@endbar
+\rail@nextbar{2}
+\rail@nont{\hyperlink{syntax.vars}{\mbox{\isa{vars}}}}[]
+\rail@endbar
+\rail@nextplus{3}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{3}{\isa{specs}}
+\rail@plus
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmdecl}{\mbox{\isa{thmdecl}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.props}{\mbox{\isa{props}}}}[]
+\rail@nextplus{2}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{decl}}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
 
-    fixes: ((name ('::' type)? mixfix? | vars) + 'and')
-    ;
-    specs: (thmdecl? props + 'and')
-    ;
-    decl: name ('::' type)? mixfix?
-    ;
-  \end{rail}
 
   \begin{description}
   
@@ -277,12 +386,39 @@ Arbitrary operations on the background context may be wrapped-up as
     \indexdef{}{command}{declare}\hypertarget{command.declare}{\hyperlink{command.declare}{\mbox{\isa{\isacommand{declare}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-    ('declaration' | 'syntax_declaration') ('(pervasive)')? target? text
-    ;
-    'declare' target? (thmrefs + 'and')
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.declaration}{\mbox{\isa{\isacommand{declaration}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.syntax-declaration}{\mbox{\isa{\isacommand{syntax{\isaliteral{5F}{\isacharunderscore}}declaration}}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@term{\isa{\isakeyword{pervasive}}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.text}{\mbox{\isa{text}}}}[]
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.declare}{\mbox{\isa{\isacommand{declare}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -333,19 +469,69 @@ A \emph{locale expression} denotes a structured context composed of
   elements from equal instances are never repeated, thus avoiding
   duplicate declarations.
 
-  \indexouternonterm{localeexpr}
-  \begin{rail}
-    localeexpr: (instance + '+') ('for' (fixes + 'and'))?
-    ;
-    instance: (qualifier ':')? nameref (posinsts | namedinsts)
-    ;
-    qualifier: name ('?' | '!')?
-    ;
-    posinsts: (term | '_')*
-    ;
-    namedinsts: 'where' (name '=' term + 'and')
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{3}{\indexdef{}{syntax}{localeexpr}\hypertarget{syntax.localeexpr}{\hyperlink{syntax.localeexpr}{\mbox{\isa{localeexpr}}}}}
+\rail@plus
+\rail@nont{\isa{instance}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{{\isaliteral{2B}{\isacharplus}}}}[]
+\rail@endplus
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{\isakeyword{for}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.fixes}{\mbox{\isa{fixes}}}}[]
+\rail@nextplus{2}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{instance}}
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{qualifier}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@bar
+\rail@nont{\isa{posinsts}}[]
+\rail@nextbar{1}
+\rail@nont{\isa{namedinsts}}[]
+\rail@endbar
+\rail@end
+\rail@begin{3}{\isa{qualifier}}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@bar
+\rail@term{\isa{{\isaliteral{3F}{\isacharquery}}}}[]
+\rail@nextbar{2}
+\rail@term{\isa{{\isaliteral{21}{\isacharbang}}}}[]
+\rail@endbar
+\rail@endbar
+\rail@end
+\rail@begin{3}{\isa{posinsts}}
+\rail@plus
+\rail@nextplus{1}
+\rail@bar
+\rail@term{\isa{{\isaliteral{5F}{\isacharunderscore}}}}[]
+\rail@nextbar{2}
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@endbar
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{namedinsts}}
+\rail@term{\isa{\isakeyword{where}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\end{railoutput}
+
 
   A locale instance consists of a reference to a locale and either
   positional or named parameter instantiations.  Identical
@@ -383,24 +569,102 @@ A \emph{locale expression} denotes a structured context composed of
     \indexdef{}{method}{unfold\_locales}\hypertarget{method.unfold-locales}{\hyperlink{method.unfold-locales}{\mbox{\isa{unfold{\isaliteral{5F}{\isacharunderscore}}locales}}}} & : & \isa{method} \\
   \end{matharray}
 
-  \indexouternonterm{contextelem}
   \indexisarelem{fixes}\indexisarelem{constrains}\indexisarelem{assumes}
   \indexisarelem{defines}\indexisarelem{notes}
-  \begin{rail}
-    'locale' name ('=' locale)? 'begin'?
-    ;
-    'print_locale' '!'? nameref
-    ;
-    locale: contextelem+ | localeexpr ('+' (contextelem+))?
-    ;
-    contextelem:
-    'fixes' (fixes + 'and')
-    | 'constrains' (name '::' type + 'and')
-    | 'assumes' (props + 'and')
-    | 'defines' (thmdecl? prop proppat? + 'and')
-    | 'notes' (thmdef? thmrefs + 'and')
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.locale}{\mbox{\isa{\isacommand{locale}}}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@nont{\hyperlink{syntax.locale}{\mbox{\isa{locale}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{\isakeyword{begin}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.print-locale}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}locale}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{21}{\isacharbang}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@end
+\rail@begin{5}{\indexdef{}{syntax}{locale}\hypertarget{syntax.locale}{\hyperlink{syntax.locale}{\mbox{\isa{locale}}}}}
+\rail@bar
+\rail@plus
+\rail@nont{\hyperlink{syntax.contextelem}{\mbox{\isa{contextelem}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@nextbar{2}
+\rail@nont{\hyperlink{syntax.localeexpr}{\mbox{\isa{localeexpr}}}}[]
+\rail@bar
+\rail@nextbar{3}
+\rail@term{\isa{{\isaliteral{2B}{\isacharplus}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.contextelem}{\mbox{\isa{contextelem}}}}[]
+\rail@nextplus{4}
+\rail@endplus
+\rail@endbar
+\rail@endbar
+\rail@end
+\rail@begin{12}{\indexdef{}{syntax}{contextelem}\hypertarget{syntax.contextelem}{\hyperlink{syntax.contextelem}{\mbox{\isa{contextelem}}}}}
+\rail@bar
+\rail@term{\isa{\isakeyword{fixes}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.fixes}{\mbox{\isa{fixes}}}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@nextbar{2}
+\rail@term{\isa{\isakeyword{constrains}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
+\rail@nextplus{3}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@nextbar{4}
+\rail@term{\isa{\isakeyword{assumes}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.props}{\mbox{\isa{props}}}}[]
+\rail@nextplus{5}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@nextbar{6}
+\rail@term{\isa{\isakeyword{defines}}}[]
+\rail@plus
+\rail@bar
+\rail@nextbar{7}
+\rail@nont{\hyperlink{syntax.thmdecl}{\mbox{\isa{thmdecl}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
+\rail@bar
+\rail@nextbar{7}
+\rail@nont{\hyperlink{syntax.proppat}{\mbox{\isa{proppat}}}}[]
+\rail@endbar
+\rail@nextplus{8}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@nextbar{9}
+\rail@term{\isa{\isakeyword{notes}}}[]
+\rail@plus
+\rail@bar
+\rail@nextbar{10}
+\rail@nont{\hyperlink{syntax.thmdef}{\mbox{\isa{thmdef}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@nextplus{11}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@endbar
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
   
@@ -522,21 +786,63 @@ Locale expressions may be instantiated, and the instantiated facts
     \indexdef{}{command}{print\_interps}\hypertarget{command.print-interps}{\hyperlink{command.print-interps}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}interps}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \indexouternonterm{interp}
-  \begin{rail}
-    'interpretation' localeexpr equations?
-    ;
-    'interpret' localeexpr equations?
-    ;
-    'sublocale' nameref ('<' | subseteq) localeexpr equations?
-    ;
-    'print_dependencies' '!'? localeexpr
-    ;
-    'print_interps' nameref
-    ;
-    equations: 'where' (thmdecl? prop + 'and')
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}}}[]
+\rail@nont{\hyperlink{syntax.localeexpr}{\mbox{\isa{localeexpr}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{equations}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}}}[]
+\rail@nont{\hyperlink{syntax.localeexpr}{\mbox{\isa{localeexpr}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{equations}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.sublocale}{\mbox{\isa{\isacommand{sublocale}}}}}[]
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@bar
+\rail@term{\isa{{\isaliteral{3C}{\isacharless}}}}[]
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.localeexpr}{\mbox{\isa{localeexpr}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{equations}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.print-dependencies}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}dependencies}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{21}{\isacharbang}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.localeexpr}{\mbox{\isa{localeexpr}}}}[]
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{command.print-interps}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}interps}}}}}[]
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@end
+\rail@begin{3}{\isa{equations}}
+\rail@term{\isa{\isakeyword{where}}}[]
+\rail@plus
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmdecl}{\mbox{\isa{thmdecl}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
+\rail@nextplus{2}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -662,28 +968,91 @@ A class is a particular locale with \emph{exactly one} type variable
     \indexdef{}{method}{intro\_classes}\hypertarget{method.intro-classes}{\hyperlink{method.intro-classes}{\mbox{\isa{intro{\isaliteral{5F}{\isacharunderscore}}classes}}}} & : & \isa{method} \\
   \end{matharray}
 
-  \begin{rail}
-    'class' name '=' ((superclassexpr '+' (contextelem+)) | superclassexpr | (contextelem+)) \\
-      'begin'?
-    ;
-    'instantiation' (nameref + 'and') '::' arity 'begin'
-    ;
-    'instance'
-    ;
-    'instance' (nameref + 'and') '::' arity
-    ;
-    'subclass' target? nameref
-    ;
-    'instance' nameref ('<' | subseteq) nameref
-    ;
-    'print_classes'
-    ;
-    'class_deps'
-    ;
-
-    superclassexpr: nameref | (nameref '+' superclassexpr)
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{8}{\isa{}}
+\rail@term{\hyperlink{command.class}{\mbox{\isa{\isacommand{class}}}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@bar
+\rail@nont{\isa{superclassexpr}}[]
+\rail@term{\isa{{\isaliteral{2B}{\isacharplus}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.contextelem}{\mbox{\isa{contextelem}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@nextbar{2}
+\rail@nont{\isa{superclassexpr}}[]
+\rail@nextbar{3}
+\rail@plus
+\rail@nont{\hyperlink{syntax.contextelem}{\mbox{\isa{contextelem}}}}[]
+\rail@nextplus{4}
+\rail@endplus
+\rail@endbar
+\rail@cr{6}
+\rail@bar
+\rail@nextbar{7}
+\rail@term{\isa{\isakeyword{begin}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.instantiation}{\mbox{\isa{\isacommand{instantiation}}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.arity}{\mbox{\isa{arity}}}}[]
+\rail@term{\isa{\isakeyword{begin}}}[]
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}}}[]
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.arity}{\mbox{\isa{arity}}}}[]
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.subclass}{\mbox{\isa{\isacommand{subclass}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}}}[]
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@bar
+\rail@term{\isa{{\isaliteral{3C}{\isacharless}}}}[]
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{command.print-classes}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}classes}}}}}[]
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{command.class-deps}{\mbox{\isa{\isacommand{class{\isaliteral{5F}{\isacharunderscore}}deps}}}}}[]
+\rail@end
+\rail@begin{2}{\isa{superclassexpr}}
+\rail@bar
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@term{\isa{{\isaliteral{2B}{\isacharplus}}}}[]
+\rail@nont{\isa{superclassexpr}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+  %% FIXME check superclassexpr
 
   \begin{description}
 
@@ -840,10 +1209,30 @@ Isabelle/Pure's definitional schemes support certain forms of
     \indexdef{}{command}{overloading}\hypertarget{command.overloading}{\hyperlink{command.overloading}{\mbox{\isa{\isacommand{overloading}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-    'overloading' \\
-    ( string ( '==' | equiv ) term ( '(' 'unchecked' ')' )? + ) 'begin'
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{5}{\isa{}}
+\rail@term{\hyperlink{command.overloading}{\mbox{\isa{\isacommand{overloading}}}}}[]
+\rail@cr{2}
+\rail@plus
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@bar
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@nextbar{3}
+\rail@term{\isa{{\isaliteral{5C3C65717569763E}{\isasymequiv}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@bar
+\rail@nextbar{3}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@term{\isa{\isakeyword{unchecked}}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@nextplus{4}
+\rail@endplus
+\rail@term{\isa{\isakeyword{begin}}}[]
+\rail@end
+\end{railoutput}
+  %% FIXME check string vs. name
 
   \begin{description}
 
@@ -882,14 +1271,36 @@ Isabelle/Pure's definitional schemes support certain forms of
     \indexdef{}{command}{attribute\_setup}\hypertarget{command.attribute-setup}{\hyperlink{command.attribute-setup}{\mbox{\isa{\isacommand{attribute{\isaliteral{5F}{\isacharunderscore}}setup}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-    'use' name
-    ;
-    ('ML' | 'ML_prf' | 'ML_val' | 'ML_command' | 'setup' | 'local_setup') text
-    ;
-    'attribute_setup' name '=' text text
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{command.use}{\mbox{\isa{\isacommand{use}}}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@end
+\rail@begin{6}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.ML}{\mbox{\isa{\isacommand{ML}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.ML-prf}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}prf}}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{command.ML-val}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}val}}}}}[]
+\rail@nextbar{3}
+\rail@term{\hyperlink{command.ML-command}{\mbox{\isa{\isacommand{ML{\isaliteral{5F}{\isacharunderscore}}command}}}}}[]
+\rail@nextbar{4}
+\rail@term{\hyperlink{command.setup}{\mbox{\isa{\isacommand{setup}}}}}[]
+\rail@nextbar{5}
+\rail@term{\hyperlink{command.local-setup}{\mbox{\isa{\isacommand{local{\isaliteral{5F}{\isacharunderscore}}setup}}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.text}{\mbox{\isa{text}}}}[]
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{command.attribute-setup}{\mbox{\isa{\isacommand{attribute{\isaliteral{5F}{\isacharunderscore}}setup}}}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@nont{\hyperlink{syntax.text}{\mbox{\isa{text}}}}[]
+\rail@nont{\hyperlink{syntax.text}{\mbox{\isa{text}}}}[]
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -984,14 +1395,34 @@ Isabelle/Pure's definitional schemes support certain forms of
     \indexdef{}{command}{default\_sort}\hypertarget{command.default-sort}{\hyperlink{command.default-sort}{\mbox{\isa{\isacommand{default{\isaliteral{5F}{\isacharunderscore}}sort}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}}
   \end{matharray}
 
-  \begin{rail}
-    'classes' (classdecl +)
-    ;
-    'classrel' (nameref ('<' | subseteq) nameref + 'and')
-    ;
-    'default_sort' sort
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.classes}{\mbox{\isa{\isacommand{classes}}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.classdecl}{\mbox{\isa{classdecl}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\rail@begin{3}{\isa{}}
+\rail@term{\hyperlink{command.classrel}{\mbox{\isa{\isacommand{classrel}}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@bar
+\rail@term{\isa{{\isaliteral{3C}{\isacharless}}}}[]
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nextplus{2}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{command.default-sort}{\mbox{\isa{\isacommand{default{\isaliteral{5F}{\isacharunderscore}}sort}}}}}[]
+\rail@nont{\hyperlink{syntax.sort}{\mbox{\isa{sort}}}}[]
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -1034,14 +1465,36 @@ Isabelle/Pure's definitional schemes support certain forms of
     \indexdef{}{command}{arities}\hypertarget{command.arities}{\hyperlink{command.arities}{\mbox{\isa{\isacommand{arities}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} & (axiomatic!) \\
   \end{matharray}
 
-  \begin{rail}
-    'type_synonym' (typespec '=' type mixfix?)
-    ;
-    'typedecl' typespec mixfix?
-    ;
-    'arities' (nameref '::' arity +)
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.type-synonym}{\mbox{\isa{\isacommand{type{\isaliteral{5F}{\isacharunderscore}}synonym}}}}}[]
+\rail@nont{\hyperlink{syntax.typespec}{\mbox{\isa{typespec}}}}[]
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@nont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.typedecl}{\mbox{\isa{\isacommand{typedecl}}}}}[]
+\rail@nont{\hyperlink{syntax.typespec}{\mbox{\isa{typespec}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.arities}{\mbox{\isa{\isacommand{arities}}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.arity}{\mbox{\isa{arity}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -1112,12 +1565,44 @@ Definitions essentially express abbreviations within the logic.  The
     \indexdef{}{command}{defs}\hypertarget{command.defs}{\hyperlink{command.defs}{\mbox{\isa{\isacommand{defs}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-    'consts' ((name '::' type mixfix?) +)
-    ;
-    'defs' ('(' 'unchecked'? 'overloaded'? ')')? \\ (axmdecl prop +)
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{3}{\isa{}}
+\rail@term{\hyperlink{command.consts}{\mbox{\isa{\isacommand{consts}}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
+\rail@endbar
+\rail@nextplus{2}
+\rail@endplus
+\rail@end
+\rail@begin{6}{\isa{}}
+\rail@term{\hyperlink{command.defs}{\mbox{\isa{\isacommand{defs}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@bar
+\rail@nextbar{2}
+\rail@term{\isa{\isakeyword{unchecked}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{2}
+\rail@term{\isa{\isakeyword{overloaded}}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@cr{4}
+\rail@plus
+\rail@nont{\hyperlink{syntax.axmdecl}{\mbox{\isa{axmdecl}}}}[]
+\rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
+\rail@nextplus{5}
+\rail@endplus
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -1153,12 +1638,37 @@ Definitions essentially express abbreviations within the logic.  The
     \indexdef{}{command}{theorems}\hypertarget{command.theorems}{\hyperlink{command.theorems}{\mbox{\isa{\isacommand{theorems}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-    'axioms' (axmdecl prop +)
-    ;
-    ('lemmas' | 'theorems') target? (thmdef? thmrefs + 'and')
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.axioms}{\mbox{\isa{\isacommand{axioms}}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.axmdecl}{\mbox{\isa{axmdecl}}}}[]
+\rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\rail@begin{3}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.lemmas}{\mbox{\isa{\isacommand{lemmas}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.theorems}{\mbox{\isa{\isacommand{theorems}}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
+\rail@endbar
+\rail@plus
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmdef}{\mbox{\isa{thmdef}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@nextplus{2}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
   
@@ -1206,10 +1716,15 @@ Oracles allow Isabelle to take advantage of external reasoners
     \indexdef{}{command}{oracle}\hypertarget{command.oracle}{\hyperlink{command.oracle}{\mbox{\isa{\isacommand{oracle}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} & (axiomatic!) \\
   \end{matharray}
 
-  \begin{rail}
-    'oracle' name '=' text
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{command.oracle}{\mbox{\isa{\isacommand{oracle}}}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@nont{\hyperlink{syntax.text}{\mbox{\isa{text}}}}[]
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -1240,10 +1755,30 @@ Oracles allow Isabelle to take advantage of external reasoners
     \indexdef{}{command}{hide\_fact}\hypertarget{command.hide-fact}{\hyperlink{command.hide-fact}{\mbox{\isa{\isacommand{hide{\isaliteral{5F}{\isacharunderscore}}fact}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-    ( 'hide_class' | 'hide_type' | 'hide_const' | 'hide_fact' ) ('(open)')? (nameref + )
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{4}{\isa{}}
+\rail@bar
+\rail@nont{\hyperlink{command.hide-class}{\mbox{\isa{\isacommand{hide{\isaliteral{5F}{\isacharunderscore}}class}}}}}[]
+\rail@nextbar{1}
+\rail@nont{\hyperlink{command.hide-type}{\mbox{\isa{\isacommand{hide{\isaliteral{5F}{\isacharunderscore}}type}}}}}[]
+\rail@nextbar{2}
+\rail@nont{\hyperlink{command.hide-const}{\mbox{\isa{\isacommand{hide{\isaliteral{5F}{\isacharunderscore}}const}}}}}[]
+\rail@nextbar{3}
+\rail@nont{\hyperlink{command.hide-fact}{\mbox{\isa{\isacommand{hide{\isaliteral{5F}{\isacharunderscore}}fact}}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@term{\isa{\isakeyword{open}}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\end{railoutput}
+
 
   Isabelle organizes any kind of name declarations (of types,
   constants, theorems etc.) by separate hierarchically structured name

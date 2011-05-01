@@ -53,12 +53,11 @@ text {*
     @{command_def "notepad"} & : & @{text "local_theory \<rightarrow> proof(state)"} \\
   \end{matharray}
 
-  \begin{rail}
-    'notepad' 'begin'
+  @{rail "
+    @@{command notepad} @'begin'
     ;
-    'end'
-    ;
-  \end{rail}
+    @@{command end}
+  "}
 
   \begin{description}
 
@@ -188,16 +187,15 @@ text {*
   exporting some result @{text "x \<equiv> t \<turnstile> \<phi>[x]"} yields @{text "\<turnstile>
   \<phi>[t]"}.
 
-  \begin{rail}
-    'fix' (vars + 'and')
+  @{rail "
+    @@{command fix} (@{syntax vars} + @'and')
     ;
-    ('assume' | 'presume') (props + 'and')
+    (@@{command assume} | @@{command presume}) (@{syntax props} + @'and')
     ;
-    'def' (def + 'and')
+    @@{command def} (def + @'and')
     ;
-    def: thmdecl? \\ name ('==' | equiv) term termpat?
-    ;
-  \end{rail}
+    def: @{syntax thmdecl}? \\ @{syntax name} ('==' | '\<equiv>') @{syntax term} @{syntax termpat}?
+  "}
 
   \begin{description}
   
@@ -267,13 +265,12 @@ text {*
   input process just after type checking.  Also note that @{command
   "def"} does not support polymorphism.
 
-  \begin{rail}
-    'let' ((term + 'and') '=' term + 'and')
-    ;  
-  \end{rail}
+  @{rail "
+    @@{command let} ((@{syntax term} + @'and') '=' @{syntax term} + @'and')
+  "}
 
-  The syntax of @{keyword "is"} patterns follows \railnonterm{termpat}
-  or \railnonterm{proppat} (see \secref{sec:term-decls}).
+  The syntax of @{keyword "is"} patterns follows @{syntax termpat} or
+  @{syntax proppat} (see \secref{sec:term-decls}).
 
   \begin{description}
 
@@ -324,12 +321,12 @@ text {*
   to the most recently established facts, but only \emph{before}
   issuing a follow-up claim.
 
-  \begin{rail}
-    'note' (thmdef? thmrefs + 'and')
+  @{rail "
+    @@{command note} (@{syntax thmdef}? @{syntax thmrefs} + @'and')
     ;
-    ('from' | 'with' | 'using' | 'unfolding') (thmrefs + 'and')
-    ;
-  \end{rail}
+    (@@{command from} | @@{command with} | @@{command using} | @@{command unfolding})
+      (@{syntax thmrefs} + @'and')
+  "}
 
   \begin{description}
 
@@ -435,33 +432,33 @@ text {*
   contexts of (essentially a big disjunction of eliminated parameters
   and assumptions, cf.\ \secref{sec:obtain}).
 
-  \begin{rail}
-    ('lemma' | 'theorem' | 'corollary' |
-     'schematic_lemma' | 'schematic_theorem' | 'schematic_corollary') target? (goal | longgoal)
+  @{rail "
+    (@@{command lemma} | @@{command theorem} | @@{command corollary} |
+     @@{command schematic_lemma} | @@{command schematic_theorem} |
+     @@{command schematic_corollary}) @{syntax target}? (goal | longgoal)
     ;
-    ('have' | 'show' | 'hence' | 'thus') goal
+    (@@{command have} | @@{command show} | @@{command hence} | @@{command thus}) goal
     ;
-    'print_statement' modes? thmrefs
+    @@{command print_statement} @{syntax modes}? @{syntax thmrefs}
     ;
   
-    goal: (props + 'and')
+    goal: (@{syntax props} + @'and')
     ;
-    longgoal: thmdecl? (contextelem *) conclusion
+    longgoal: @{syntax thmdecl}? (@{syntax contextelem} * ) conclusion
     ;
-    conclusion: 'shows' goal | 'obtains' (parname? case + '|')
+    conclusion: @'shows' goal | @'obtains' (@{syntax parname}? case + '|')
     ;
-    case: (vars + 'and') 'where' (props + 'and')
-    ;
-  \end{rail}
+    case: (@{syntax vars} + @'and') @'where' (@{syntax props} + @'and')
+  "}
 
   \begin{description}
   
   \item @{command "lemma"}~@{text "a: \<phi>"} enters proof mode with
   @{text \<phi>} as main goal, eventually resulting in some fact @{text "\<turnstile>
-  \<phi>"} to be put back into the target context.  An additional
-  \railnonterm{context} specification may build up an initial proof
-  context for the subsequent claim; this includes local definitions
-  and syntax as well, see the definition of @{syntax contextelem} in
+  \<phi>"} to be put back into the target context.  An additional @{syntax
+  context} specification may build up an initial proof context for the
+  subsequent claim; this includes local definitions and syntax as
+  well, see the definition of @{syntax contextelem} in
   \secref{sec:locale}.
   
   \item @{command "theorem"}~@{text "a: \<phi>"} and @{command
@@ -537,25 +534,22 @@ section {* Refinement steps *}
 
 subsection {* Proof method expressions \label{sec:proof-meth} *}
 
-text {*
-  Proof methods are either basic ones, or expressions composed of
-  methods via ``@{verbatim ","}'' (sequential composition),
-  ``@{verbatim "|"}'' (alternative choices), ``@{verbatim "?"}'' 
+text {* Proof methods are either basic ones, or expressions composed
+  of methods via ``@{verbatim ","}'' (sequential composition),
+  ``@{verbatim "|"}'' (alternative choices), ``@{verbatim "?"}''
   (try), ``@{verbatim "+"}'' (repeat at least once), ``@{verbatim
   "["}@{text n}@{verbatim "]"}'' (restriction to first @{text n}
   sub-goals, with default @{text "n = 1"}).  In practice, proof
-  methods are usually just a comma separated list of
-  \railqtok{nameref}~\railnonterm{args} specifications.  Note that
-  parentheses may be dropped for single method specifications (with no
-  arguments).
+  methods are usually just a comma separated list of @{syntax
+  nameref}~@{syntax args} specifications.  Note that parentheses may
+  be dropped for single method specifications (with no arguments).
 
-  \indexouternonterm{method}
-  \begin{rail}
-    method: (nameref | '(' methods ')') (() | '?' | '+' | '[' nat? ']')
+  @{rail "
+    @{syntax_def method}:
+      (@{syntax nameref} | '(' methods ')') (() | '?' | '+' | '[' @{syntax nat}? ']')
     ;
-    methods: (nameref args | method) + (',' | '|')
-    ;
-  \end{rail}
+    methods: (@{syntax nameref} @{syntax args} | @{syntax method}) + (',' | '|')
+  "}
 
   Proper Isar proof methods do \emph{not} admit arbitrary goal
   addressing, but refer either to the first sub-goal or all sub-goals
@@ -573,11 +567,10 @@ text {*
   all goals, and ``@{text "[n-]"}'' to all goals starting from @{text
   "n"}.
 
-  \indexouternonterm{goalspec}
-  \begin{rail}
-    goalspec: '[' (nat '-' nat | nat '-' | nat | '!' ) ']'
-    ;
-  \end{rail}
+  @{rail "
+    @{syntax_def goalspec}:
+      '[' (@{syntax nat} '-' @{syntax nat} | @{syntax nat} '-' | @{syntax nat} | '!' ) ']'
+  "}
 *}
 
 
@@ -630,16 +623,15 @@ text {*
   There is no separate default terminal method.  Any remaining goals
   are always solved by assumption in the very last step.
 
-  \begin{rail}
-    'proof' method?
+  @{rail "
+    @@{command proof} method?
     ;
-    'qed' method?
+    @@{command qed} method?
     ;
-    'by' method method?
+    @@{command \"by\"} method method?
     ;
-    ('.' | '..' | 'sorry')
-    ;
-  \end{rail}
+    (@@{command \".\"} | @@{command \"..\"} | @@{command sorry})
+  "}
 
   \begin{description}
   
@@ -715,24 +707,27 @@ text {*
     @{attribute_def "where"} & : & @{text attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    'fact' thmrefs?
+  @{rail "
+    @@{method fact} @{syntax thmrefs}?
     ;
-    'rule' thmrefs?
+    @@{method rule} @{syntax thmrefs}?
     ;
-    rulemod: ('intro' | 'elim' | 'dest') ((('!' | () | '?') nat?) | 'del') ':' thmrefs
+    rulemod: ('intro' | 'elim' | 'dest')
+      ((('!' | () | '?') @{syntax nat}?) | 'del') ':' @{syntax thmrefs}
     ;
-    ('intro' | 'elim' | 'dest') ('!' | () | '?') nat?
+    (@@{attribute intro} | @@{attribute elim} | @@{attribute dest})
+      ('!' | () | '?') @{syntax nat}?
     ;
-    'rule' 'del'
+    @@{attribute rule} 'del'
     ;
-    'OF' thmrefs
+    @@{attribute OF} @{syntax thmrefs}
     ;
-    'of' insts ('concl' ':' insts)?
+    @@{attribute of} @{syntax insts} ('concl' ':' @{syntax insts})?
     ;
-    'where' ((name | var | typefree | typevar) '=' (type | term) * 'and')
-    ;
-  \end{rail}
+    @@{attribute \"where\"}
+      ((@{syntax name} | @{syntax var} | @{syntax typefree} | @{syntax typevar}) '='
+      (@{syntax type} | @{syntax term}) * @'and')
+  "}
 
   \begin{description}
   
@@ -838,14 +833,13 @@ text {*
     @{command_def "back"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow> proof"} \\
   \end{matharray}
 
-  \begin{rail}
-    ( 'apply' | 'apply_end' ) method
+  @{rail "
+    ( @@{command apply} | @@{command apply_end} ) @{syntax method}
     ;
-    'defer' nat?
+    @@{command defer} @{syntax nat}?
     ;
-    'prefer' nat
-    ;
-  \end{rail}
+    @@{command prefer} @{syntax nat}
+  "}
 
   \begin{description}
 
@@ -900,10 +894,10 @@ text {*
     @{command_def "method_setup"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
-  \begin{rail}
-    'method_setup' name '=' text text
+  @{rail "
+    @@{command method_setup} @{syntax name} '=' @{syntax text} @{syntax text}
     ;
-  \end{rail}
+  "}
 
   \begin{description}
 
@@ -956,12 +950,12 @@ text {*
   later, provided that the corresponding parameters do \emph{not}
   occur in the conclusion.
 
-  \begin{rail}
-    'obtain' parname? (vars + 'and') 'where' (props + 'and')
+  @{rail "
+    @@{command obtain} @{syntax parname}? (@{syntax vars} + @'and')
+      @'where' (@{syntax props} + @'and')
     ;
-    'guess' (vars + 'and')
-    ;
-  \end{rail}
+    @@{command guess} (@{syntax vars} + @'and')
+  "}
 
   The derived Isar command @{command "obtain"} is defined as follows
   (where @{text "b\<^sub>1, \<dots>, b\<^sub>k"} shall refer to (optional)
@@ -1071,12 +1065,11 @@ text {*
     @{command "ultimately"} & \equiv & @{command "moreover"}~@{command "from"}~@{text calculation} \\
   \end{matharray}
 
-  \begin{rail}
-    ('also' | 'finally') ('(' thmrefs ')')?
+  @{rail "
+    (@@{command also} | @@{command finally}) ('(' @{syntax thmrefs} ')')?
     ;
-    'trans' (() | 'add' | 'del')
-    ;
-  \end{rail}
+    @@{attribute trans} (() | 'add' | 'del')
+  "}
 
   \begin{description}
 
@@ -1189,21 +1182,20 @@ text {*
   derived manually become ready to use in advanced case analysis
   later.
 
-  \begin{rail}
-    'case' (caseref | '(' caseref ((name | underscore) +) ')')
+  @{rail "
+    @@{command case} (caseref | '(' caseref (('_' | @{syntax name}) +) ')')
     ;
     caseref: nameref attributes?
     ;
 
-    'case_names' (name +)
+    @@{attribute case_names} (@{syntax name} +)
     ;
-    'case_conclusion' name (name *)
+    @@{attribute case_conclusion} @{syntax name} (@{syntax name} * )
     ;
-    'params' ((name *) + 'and')
+    @@{attribute params} ((@{syntax name} * ) + @'and')
     ;
-    'consumes' nat?
-    ;
-  \end{rail}
+    @@{attribute consumes} @{syntax nat}?
+  "}
 
   \begin{description}
   
@@ -1281,25 +1273,24 @@ text {*
   and parameters separately).  This avoids cumbersome encoding of
   ``strengthened'' inductive statements within the object-logic.
 
-  \begin{rail}
-    'cases' '(no_simp)'? (insts * 'and') rule?
+  @{rail "
+    @@{method cases} ('(' 'no_simp' ')')? (@{syntax insts} * @'and') rule?
     ;
-    'induct' '(no_simp)'? (definsts * 'and') \\ arbitrary? taking? rule?
+    @@{method induct} ('(' 'no_simp' ')')? (definsts * @'and') \\ arbitrary? taking? rule?
     ;
-    'coinduct' insts taking rule?
+    @@{method coinduct} insts taking rule?
     ;
 
-    rule: ('type' | 'pred' | 'set') ':' (nameref +) | 'rule' ':' (thmref +)
+    rule: ('type' | 'pred' | 'set') ':' (@{syntax nameref} +) | 'rule' ':' (@{syntax thmref} +)
     ;
-    definst: name ('==' | equiv) term | '(' term ')' | inst
+    definst: @{syntax name} ('==' | '\<equiv>') @{syntax term} | '(' @{syntax term} ')' | @{syntax inst}
     ;
-    definsts: ( definst *)
+    definsts: ( definst * )
     ;
-    arbitrary: 'arbitrary' ':' ((term *) 'and' +)
+    arbitrary: 'arbitrary' ':' ((@{syntax term} * ) @'and' +)
     ;
     taking: 'taking' ':' insts
-    ;
-  \end{rail}
+  "}
 
   \begin{description}
 
@@ -1467,23 +1458,22 @@ text {*
     @{attribute_def coinduct} & : & @{text attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    'cases' spec
+  @{rail "
+    @@{attribute cases} spec
     ;
-    'induct' spec
+    @@{attribute induct} spec
     ;
-    'coinduct' spec
+    @@{attribute coinduct} spec
     ;
 
-    spec: (('type' | 'pred' | 'set') ':' nameref) | 'del'
-    ;
-  \end{rail}
+    spec: (('type' | 'pred' | 'set') ':' @{syntax nameref}) | 'del'
+  "}
 
   \begin{description}
 
   \item @{command "print_induct_rules"} prints cases and induct rules
   for predicates (or sets) and types of the current context.
-  
+
   \item @{attribute cases}, @{attribute induct}, and @{attribute
   coinduct} (as attributes) declare rules for reasoning about
   (co)inductive predicates (or sets) and types, using the

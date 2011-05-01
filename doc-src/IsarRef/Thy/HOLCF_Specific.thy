@@ -34,16 +34,17 @@ text {*
     @{command_def (HOLCF) "domain"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
-  \begin{rail}
-    'domain' parname? (dmspec + 'and')
+  @{rail "
+    @@{command (HOLCF) domain} @{syntax parname}? (dmspec + @'and')
     ;
 
-    dmspec: typespec '=' (cons + '|')
+    dmspec: @{syntax typespec} '=' (cons + '|')
     ;
-    cons: name (type *) mixfix?
+    cons: @{syntax name} (@{syntax type} * ) @{syntax mixfix}?
     ;
-    dtrules: 'distinct' thmrefs 'inject' thmrefs 'induction' thmrefs
-  \end{rail}
+    dtrules: @'distinct' @{syntax thmrefs} @'inject' @{syntax thmrefs}
+      @'induction' @{syntax thmrefs}
+  "}
 
   Recursive domains in HOLCF are analogous to datatypes in classical
   HOL (cf.\ \secref{sec:hol-datatype}).  Mutual recursion is

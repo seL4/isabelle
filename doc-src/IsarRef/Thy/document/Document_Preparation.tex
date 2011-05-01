@@ -102,12 +102,45 @@ Isabelle/Isar provides a simple document preparation system
   markup commands, but have a different status within Isabelle/Isar
   syntax.
 
-  \begin{rail}
-    ('chapter' | 'section' | 'subsection' | 'subsubsection' | 'text') target? text
-    ;
-    ('header' | 'text_raw' | 'sect' | 'subsect' | 'subsubsect' | 'txt' | 'txt_raw') text
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{5}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.chapter}{\mbox{\isa{\isacommand{chapter}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.section}{\mbox{\isa{\isacommand{section}}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{command.subsection}{\mbox{\isa{\isacommand{subsection}}}}}[]
+\rail@nextbar{3}
+\rail@term{\hyperlink{command.subsubsection}{\mbox{\isa{\isacommand{subsubsection}}}}}[]
+\rail@nextbar{4}
+\rail@term{\hyperlink{command.text}{\mbox{\isa{\isacommand{text}}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.text}{\mbox{\isa{text}}}}[]
+\rail@end
+\rail@begin{7}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.header}{\mbox{\isa{\isacommand{header}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.text-raw}{\mbox{\isa{\isacommand{text{\isaliteral{5F}{\isacharunderscore}}raw}}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{command.sect}{\mbox{\isa{\isacommand{sect}}}}}[]
+\rail@nextbar{3}
+\rail@term{\hyperlink{command.subsect}{\mbox{\isa{\isacommand{subsect}}}}}[]
+\rail@nextbar{4}
+\rail@term{\hyperlink{command.subsubsect}{\mbox{\isa{\isacommand{subsubsect}}}}}[]
+\rail@nextbar{5}
+\rail@term{\hyperlink{command.txt}{\mbox{\isa{\isacommand{txt}}}}}[]
+\rail@nextbar{6}
+\rail@term{\hyperlink{command.txt-raw}{\mbox{\isa{\isacommand{txt{\isaliteral{5F}{\isacharunderscore}}raw}}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.text}{\mbox{\isa{text}}}}[]
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -196,42 +229,142 @@ Isabelle/Isar provides a simple document preparation system
   antiquotations are checked within the current theory or proof
   context.
 
-  \begin{rail}
-    atsign lbrace antiquotation rbrace
-    ;
-
-    antiquotation:
-      'theory' options name |
-      'thm' options styles thmrefs |
-      'lemma' options prop 'by' method |
-      'prop' options styles prop |
-      'term' options styles term |
-      'term_type' options styles term |
-      'typeof' options styles term |
-      'const' options term |
-      'abbrev' options term |
-      'typ' options type |
-      'type' options name |
-      'class' options name |
-      'text' options name |
-      'goals' options |
-      'subgoals' options |
-      'prf' options thmrefs |
-      'full_prf' options thmrefs |
-      'ML' options name |
-      'ML_type' options name |
-      'ML_struct' options name |
-      'file' options name
-    ;
-    options: '[' (option * ',') ']'
-    ;
-    option: name | name '=' name
-    ;
-    styles: '(' (style + ',') ')'
-    ;
-    style: (name +)
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{1}{\isa{}}
+\rail@term{\isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}}}[]
+\rail@nont{\isa{antiquotation}}[]
+\rail@term{\isa{{\isaliteral{7D}{\isacharbraceright}}}}[]
+\rail@end
+\rail@begin{21}{\indexdef{}{syntax}{antiquotation}\hypertarget{syntax.antiquotation}{\hyperlink{syntax.antiquotation}{\mbox{\isa{antiquotation}}}}}
+\rail@bar
+\rail@term{\hyperlink{antiquotation.theory}{\mbox{\isa{theory}}}}[]
+\rail@nont{\isa{options}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{antiquotation.thm}{\mbox{\isa{thm}}}}[]
+\rail@nont{\isa{options}}[]
+\rail@nont{\isa{styles}}[]
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{antiquotation.lemma}{\mbox{\isa{lemma}}}}[]
+\rail@nont{\isa{options}}[]
+\rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
+\rail@term{\isa{\isakeyword{by}}}[]
+\rail@nont{\hyperlink{syntax.method}{\mbox{\isa{method}}}}[]
+\rail@nextbar{3}
+\rail@term{\hyperlink{antiquotation.prop}{\mbox{\isa{prop}}}}[]
+\rail@nont{\isa{options}}[]
+\rail@nont{\isa{styles}}[]
+\rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
+\rail@nextbar{4}
+\rail@term{\hyperlink{antiquotation.term}{\mbox{\isa{term}}}}[]
+\rail@nont{\isa{options}}[]
+\rail@nont{\isa{styles}}[]
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@nextbar{5}
+\rail@term{\hyperlink{antiquotation.term-type}{\mbox{\isa{term{\isaliteral{5F}{\isacharunderscore}}type}}}}[]
+\rail@nont{\isa{options}}[]
+\rail@nont{\isa{styles}}[]
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@nextbar{6}
+\rail@term{\hyperlink{antiquotation.typeof}{\mbox{\isa{typeof}}}}[]
+\rail@nont{\isa{options}}[]
+\rail@nont{\isa{styles}}[]
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@nextbar{7}
+\rail@term{\hyperlink{antiquotation.const}{\mbox{\isa{const}}}}[]
+\rail@nont{\isa{options}}[]
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@nextbar{8}
+\rail@term{\hyperlink{antiquotation.abbrev}{\mbox{\isa{abbrev}}}}[]
+\rail@nont{\isa{options}}[]
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@nextbar{9}
+\rail@term{\hyperlink{antiquotation.typ}{\mbox{\isa{typ}}}}[]
+\rail@nont{\isa{options}}[]
+\rail@nont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
+\rail@nextbar{10}
+\rail@term{\hyperlink{antiquotation.type}{\mbox{\isa{type}}}}[]
+\rail@nont{\isa{options}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextbar{11}
+\rail@term{\hyperlink{antiquotation.class}{\mbox{\isa{class}}}}[]
+\rail@nont{\isa{options}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextbar{12}
+\rail@term{\hyperlink{antiquotation.text}{\mbox{\isa{text}}}}[]
+\rail@nont{\isa{options}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextbar{13}
+\rail@term{\hyperlink{antiquotation.goals}{\mbox{\isa{goals}}}}[]
+\rail@nont{\isa{options}}[]
+\rail@nextbar{14}
+\rail@term{\hyperlink{antiquotation.subgoals}{\mbox{\isa{subgoals}}}}[]
+\rail@nont{\isa{options}}[]
+\rail@nextbar{15}
+\rail@term{\hyperlink{antiquotation.prf}{\mbox{\isa{prf}}}}[]
+\rail@nont{\isa{options}}[]
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@nextbar{16}
+\rail@term{\hyperlink{antiquotation.full-prf}{\mbox{\isa{full{\isaliteral{5F}{\isacharunderscore}}prf}}}}[]
+\rail@nont{\isa{options}}[]
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@nextbar{17}
+\rail@term{\hyperlink{antiquotation.ML}{\mbox{\isa{ML}}}}[]
+\rail@nont{\isa{options}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextbar{18}
+\rail@term{\hyperlink{antiquotation.ML-type}{\mbox{\isa{ML{\isaliteral{5F}{\isacharunderscore}}type}}}}[]
+\rail@nont{\isa{options}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextbar{19}
+\rail@term{\hyperlink{antiquotation.ML-struct}{\mbox{\isa{ML{\isaliteral{5F}{\isacharunderscore}}struct}}}}[]
+\rail@nont{\isa{options}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextbar{20}
+\rail@term{\hyperlink{antiquotation.file}{\mbox{\isa{file}}}}[]
+\rail@nont{\isa{options}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{3}{\isa{options}}
+\rail@term{\isa{{\isaliteral{5B}{\isacharbrackleft}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@plus
+\rail@nont{\isa{option}}[]
+\rail@nextplus{2}
+\rail@cterm{\isa{{\isaliteral{2C}{\isacharcomma}}}}[]
+\rail@endplus
+\rail@endbar
+\rail@term{\isa{{\isaliteral{5D}{\isacharbrackright}}}}[]
+\rail@end
+\rail@begin{2}{\isa{option}}
+\rail@bar
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{styles}}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@plus
+\rail@nont{\isa{style}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{{\isaliteral{2C}{\isacharcomma}}}}[]
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@end
+\rail@begin{2}{\isa{style}}
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\end{railoutput}
+ %% FIXME check lemma
 
   Note that the syntax of antiquotations may \emph{not} include source
   comments \verb|(*|~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}~\verb|*)| nor verbatim
@@ -439,12 +572,23 @@ Each Isabelle/Isar command may be decorated by additional
   presentation tags, to indicate some modification in the way it is
   printed in the document.
 
-  \indexouternonterm{tags}
-  \begin{rail}
-    tags: ( tag * )
-    ;
-    tag: '\%' (ident | string)
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\indexdef{}{syntax}{tags}\hypertarget{syntax.tags}{\hyperlink{syntax.tags}{\mbox{\isa{tags}}}}}
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\isa{tag}}[]
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{tag}}
+\rail@term{\isa{{\isaliteral{25}{\isacharpercent}}}}[]
+\rail@bar
+\rail@nont{\hyperlink{syntax.ident}{\mbox{\isa{ident}}}}[]
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
 
   Some tags are pre-declared for certain classes of commands, serving
   as default markup if no tags are given in the text:
@@ -494,10 +638,20 @@ Each Isabelle/Isar command may be decorated by additional
     \indexdef{}{command}{print\_drafts}\hypertarget{command.print-drafts}{\hyperlink{command.print-drafts}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}drafts}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}any\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-    ('display_drafts' | 'print_drafts') (name +)
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.display-drafts}{\mbox{\isa{\isacommand{display{\isaliteral{5F}{\isacharunderscore}}drafts}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.print-drafts}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}drafts}}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 

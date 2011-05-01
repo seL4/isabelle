@@ -25,9 +25,9 @@ text {* Isabelle/Pure maintains a record of named configuration
     @{command_def "print_configs"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
 
-  \begin{rail}
-    name ('=' ('true' | 'false' | int | float | name))?
-  \end{rail}
+  @{rail "
+    @{syntax name} ('=' ('true' | 'false' | @{syntax int} | @{syntax float} | @{syntax name}))?
+  "}
 
   \begin{description}
   
@@ -59,12 +59,12 @@ text {*
     @{method_def fail} & : & @{text method} \\
   \end{matharray}
 
-  \begin{rail}
-    ('fold' | 'unfold' | 'insert') thmrefs
+  @{rail "
+    (@@{method fold} | @@{method unfold} | @@{method insert}) @{syntax thmrefs}
     ;
-    ('erule' | 'drule' | 'frule') ('('nat')')? thmrefs
-    ;
-  \end{rail}
+    (@@{method erule} | @@{method drule} | @@{method frule})
+      ('(' @{syntax nat} ')')? @{syntax thmrefs}
+  "}
 
   \begin{description}
   
@@ -117,17 +117,17 @@ text {*
     @{attribute_def no_vars}@{text "\<^sup>*"} & : & @{text attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    'tagged' name name
+  @{rail "
+    @@{attribute tagged} @{syntax name} @{syntax name}
     ;
-    'untagged' name
+    @@{attribute untagged} @{syntax name}
     ;
-    ('THEN' | 'COMP') ('[' nat ']')? thmref
+    (@@{attribute THEN} | @@{attribute COMP}) ('[' @{syntax nat} ']')? @{syntax thmref}
     ;
-    ('unfolded' | 'folded') thmrefs
+    (@@{attribute unfolded} | @@{attribute folded}) @{syntax thmrefs}
     ;
-    'rotated' ( int )?
-  \end{rail}
+    @@{attribute rotated} @{syntax int}?
+  "}
 
   \begin{description}
 
@@ -179,12 +179,11 @@ text {*
     @{method_def split} & : & @{text method} \\
   \end{matharray}
 
-  \begin{rail}
-    'subst' ('(' 'asm' ')')? ('(' (nat+) ')')? thmref
+  @{rail "
+    @@{method subst} ('(' 'asm' ')')? ('(' (@{syntax nat}+) ')')? @{syntax thmref}
     ;
-    'split' ('(' 'asm' ')')? thmrefs
-    ;
-  \end{rail}
+    @@{method split} ('(' 'asm' ')')? @{syntax thmrefs}
+  "}
 
   These methods provide low-level facilities for equational reasoning
   that are intended for specialized applications only.  Normally,
@@ -282,22 +281,22 @@ text {*
     @{method_def raw_tactic}@{text "\<^sup>*"} & : & @{text method} \\
   \end{matharray}
 
-  \begin{rail}
-    ( 'rule_tac' | 'erule_tac' | 'drule_tac' | 'frule_tac' | 'cut_tac' | 'thin_tac' ) goalspec?
-    ( insts thmref | thmrefs )
+  @{rail "
+    (@@{method rule_tac} | @@{method erule_tac} | @@{method drule_tac} |
+      @@{method frule_tac} | @@{method cut_tac} | @@{method thin_tac}) @{syntax goalspec}?
+    ( insts @{syntax thmref} | @{syntax thmrefs} )
     ;
-    'subgoal_tac' goalspec? (prop +)
+    @@{method subgoal_tac} @{syntax goalspec}? (@{syntax prop} +)
     ;
-    'rename_tac' goalspec? (name +)
+    @@{method rename_tac} @{syntax goalspec}? (@{syntax name} +)
     ;
-    'rotate_tac' goalspec? int?
+    @@{method rotate_tac} @{syntax goalspec}? @{syntax int}?
     ;
-    ('tactic' | 'raw_tactic') text
+    (@@{method tactic} | @@{method raw_tactic}) @{syntax text}
     ;
 
-    insts: ((name '=' term) + 'and') 'in'
-    ;
-  \end{rail}
+    insts: ((@{syntax name} '=' @{syntax term}) + @'and') @'in'
+  "} % FIXME check use of insts
 
 \begin{description}
 
@@ -361,31 +360,29 @@ text {*
     @{method_def simp_all} & : & @{text method} \\
   \end{matharray}
 
-  \indexouternonterm{simpmod}
-  \begin{rail}
-    ('simp' | 'simp_all') opt? (simpmod *)
+  @{rail "
+    (@@{method simp} | @@{method simp_all}) opt? (@{syntax simpmod} * )
     ;
 
     opt: '(' ('no_asm' | 'no_asm_simp' | 'no_asm_use' | 'asm_lr' ) ')'
     ;
-    simpmod: ('add' | 'del' | 'only' | 'cong' (() | 'add' | 'del') |
-      'split' (() | 'add' | 'del')) ':' thmrefs
-    ;
-  \end{rail}
+    @{syntax_def simpmod}: ('add' | 'del' | 'only' | 'cong' (() | 'add' | 'del') |
+      'split' (() | 'add' | 'del')) ':' @{syntax thmrefs}
+  "}
 
   \begin{description}
 
   \item @{method simp} invokes the Simplifier, after declaring
   additional rules according to the arguments given.  Note that the
-  \railtterm{only} modifier first removes all other rewrite rules,
+  @{text only} modifier first removes all other rewrite rules,
   congruences, and looper tactics (including splits), and then behaves
-  like \railtterm{add}.
+  like @{text add}.
 
-  \medskip The \railtterm{cong} modifiers add or delete Simplifier
+  \medskip The @{text cong} modifiers add or delete Simplifier
   congruence rules (see also \cite{isabelle-ref}), the default is to
   add.
 
-  \medskip The \railtterm{split} modifiers add or delete rules for the
+  \medskip The @{text split} modifiers add or delete rules for the
   Splitter (see also \cite{isabelle-ref}), the default is to add.
   This works only if the Simplifier method has been properly setup to
   include the Splitter (all major object logics such HOL, HOLCF, FOL,
@@ -440,10 +437,9 @@ text {*
     @{attribute_def split} & : & @{text attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    ('simp' | 'cong' | 'split') (() | 'add' | 'del')
-    ;
-  \end{rail}
+  @{rail "
+    (@@{attribute simp} | @@{attribute cong} | @@{attribute split}) (() | 'add' | 'del')
+  "}
 
   \begin{description}
 
@@ -469,13 +465,13 @@ text {*
     simproc & : & @{text attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    'simproc_setup' name '(' (term + '|') ')' '=' text \\ ('identifier' (nameref+))?
+  @{rail "
+    @@{command simproc_setup} @{syntax name} '(' (@{syntax term} + '|') ')' '='
+      @{syntax text} \\ (@'identifier' (@{syntax nameref}+))?
     ;
 
-    'simproc' (('add' ':')? | 'del' ':') (name+)
-    ;
-  \end{rail}
+    @@{attribute simproc} (('add' ':')? | 'del' ':') (@{syntax name}+)
+  "}
 
   \begin{description}
 
@@ -514,13 +510,12 @@ text {*
     @{attribute_def simplified} & : & @{text attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    'simplified' opt? thmrefs?
+  @{rail "
+    @@{attribute simplified} opt? @{syntax thmrefs}?
     ;
 
     opt: '(' ('no_asm' | 'no_asm_simp' | 'no_asm_use') ')'
-    ;
-  \end{rail}
+  "}
 
   \begin{description}
   
@@ -553,10 +548,9 @@ text {*
     @{method_def elim} & : & @{text method} \\
   \end{matharray}
 
-  \begin{rail}
-    ('rule' | 'intro' | 'elim') thmrefs?
-    ;
-  \end{rail}
+  @{rail "
+    (@@{method rule} | @@{method intro} | @@{method elim}) @{syntax thmrefs}?
+  "}
 
   \begin{description}
 
@@ -598,16 +592,16 @@ text {*
     @{method_def clarify} & : & @{text method} \\
   \end{matharray}
 
-  \indexouternonterm{clamod}
-  \begin{rail}
-    'blast' nat? (clamod *)
+  @{rail "
+    @@{method blast} @{syntax nat}? (@{syntax clamod} * )
     ;
-    ('fast' | 'slow' | 'best' | 'safe' | 'clarify') (clamod *)
+    (@@{method fast} | @@{method slow} | @@{method best} | @@{method safe} | @@{method clarify})
+      (@{syntax clamod} * )
     ;
 
-    clamod: (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del') ':' thmrefs
-    ;
-  \end{rail}
+    @{syntax_def clamod}:
+      (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del') ':' @{syntax thmrefs}
+  "}
 
   \begin{description}
 
@@ -642,18 +636,18 @@ text {*
     @{method_def bestsimp} & : & @{text method} \\
   \end{matharray}
 
-  \indexouternonterm{clasimpmod}
-  \begin{rail}
-    'auto' (nat nat)? (clasimpmod *)
+  @{rail "
+    @@{method auto} (@{syntax nat} @{syntax nat})? (@{syntax clasimpmod} * )
     ;
-    ('force' | 'clarsimp' | 'fastsimp' | 'slowsimp' | 'bestsimp') (clasimpmod *)
+    (@@{method force} | @@{method clarsimp} | @@{method fastsimp} | @@{method slowsimp} |
+      @@{method bestsimp}) (@{syntax clasimpmod} * )
     ;
 
-    clasimpmod: ('simp' (() | 'add' | 'del' | 'only') |
+    @{syntax_def clasimpmod}: ('simp' (() | 'add' | 'del' | 'only') |
       ('cong' | 'split') (() | 'add' | 'del') |
       'iff' (((() | 'add') '?'?) | 'del') |
-      (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del')) ':' thmrefs
-  \end{rail}
+      (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del')) ':' @{syntax thmrefs}
+  "}
 
   \begin{description}
 
@@ -665,7 +659,7 @@ text {*
   added as wrapper, see \cite{isabelle-ref} for more information.  The
   modifier arguments correspond to those given in
   \secref{sec:simplifier} and \secref{sec:classical}.  Just note that
-  the ones related to the Simplifier are prefixed by \railtterm{simp}
+  the ones related to the Simplifier are prefixed by @{text simp}
   here.
 
   Facts provided by forward chaining are inserted into the goal before
@@ -687,14 +681,13 @@ text {*
     @{attribute_def iff} & : & @{text attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    ('intro' | 'elim' | 'dest') ('!' | () | '?') nat?
+  @{rail "
+    (@@{attribute intro} | @@{attribute elim} | @@{attribute dest}) ('!' | () | '?') @{syntax nat}?
     ;
-    'rule' 'del'
+    @@{attribute rule} 'del'
     ;
-    'iff' (((() | 'add') '?'?) | 'del')
-    ;
-  \end{rail}
+    @@{attribute iff} (((() | 'add') '?'?) | 'del')
+  "}
 
   \begin{description}
 
@@ -779,14 +772,13 @@ text {*
   Generic tools may refer to the information provided by object-logic
   declarations internally.
 
-  \begin{rail}
-    'judgment' constdecl
+  @{rail "
+    @@{command judgment} @{syntax constdecl}
     ;
-    'atomize' ('(' 'full' ')')?
+    @@{attribute atomize} ('(' 'full' ')')?
     ;
-    'rule_format' ('(' 'noasm' ')')?
-    ;
-  \end{rail}
+    @@{attribute rule_format} ('(' 'noasm' ')')?
+  "}
 
   \begin{description}
   

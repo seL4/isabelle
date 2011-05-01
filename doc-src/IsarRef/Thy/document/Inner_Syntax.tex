@@ -44,23 +44,75 @@
   These diagnostic commands assist interactive development by printing
   internal logical entities in a human-readable fashion.
 
-  \begin{rail}
-    'typ' modes? type
-    ;
-    'term' modes? term
-    ;
-    'prop' modes? prop
-    ;
-    'thm' modes? thmrefs
-    ;
-    ( 'prf' | 'full_prf' ) modes? thmrefs?
-    ;
-    'pr' modes? nat?
-    ;
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.typ}{\mbox{\isa{\isacommand{typ}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.modes}{\mbox{\isa{modes}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.term}{\mbox{\isa{\isacommand{term}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.modes}{\mbox{\isa{modes}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.prop}{\mbox{\isa{\isacommand{prop}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.modes}{\mbox{\isa{modes}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.thm}{\mbox{\isa{\isacommand{thm}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.modes}{\mbox{\isa{modes}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.prf}{\mbox{\isa{\isacommand{prf}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.full-prf}{\mbox{\isa{\isacommand{full{\isaliteral{5F}{\isacharunderscore}}prf}}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.modes}{\mbox{\isa{modes}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.pr}{\mbox{\isa{\isacommand{pr}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.modes}{\mbox{\isa{modes}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\indexdef{}{syntax}{modes}\hypertarget{syntax.modes}{\hyperlink{syntax.modes}{\mbox{\isa{modes}}}}}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@end
+\end{railoutput}
 
-    modes: '(' (name + ) ')'
-    ;
-  \end{rail}
 
   \begin{description}
 
@@ -269,20 +321,69 @@ Mixfix annotations specify concrete \emph{inner syntax} of
   theorem statements, locale specifications etc.\ also admit mixfix
   annotations.
 
-  \indexouternonterm{infix}\indexouternonterm{mixfix}\indexouternonterm{structmixfix}
-  \begin{rail}
-    infix: '(' ('infix' | 'infixl' | 'infixr') string nat ')'
-    ;
-    mixfix: infix | '(' string prios? nat? ')' | '(' 'binder' string prios? nat ')'
-    ;
-    structmixfix: mixfix | '(' 'structure' ')'
-    ;
+  \begin{railoutput}
+\rail@begin{3}{\indexdef{}{syntax}{infix}\hypertarget{syntax.infix}{\hyperlink{syntax.infix}{\mbox{\isa{infix}}}}}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@bar
+\rail@term{\isa{\isakeyword{infix}}}[]
+\rail@nextbar{1}
+\rail@term{\isa{\isakeyword{infixl}}}[]
+\rail@nextbar{2}
+\rail@term{\isa{\isakeyword{infixr}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@end
+\rail@begin{5}{\indexdef{}{syntax}{mixfix}\hypertarget{syntax.mixfix}{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}}
+\rail@bar
+\rail@nont{\hyperlink{syntax.infix}{\mbox{\isa{infix}}}}[]
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@bar
+\rail@nextbar{2}
+\rail@nont{\isa{prios}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{2}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@nextbar{3}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@term{\isa{\isakeyword{binder}}}[]
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@bar
+\rail@nextbar{4}
+\rail@nont{\isa{prios}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\indexdef{}{syntax}{structmixfix}\hypertarget{syntax.structmixfix}{\hyperlink{syntax.structmixfix}{\mbox{\isa{structmixfix}}}}}
+\rail@bar
+\rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@term{\isa{\isakeyword{structure}}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{prios}}
+\rail@term{\isa{{\isaliteral{5B}{\isacharbrackleft}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{{\isaliteral{2C}{\isacharcomma}}}}[]
+\rail@endplus
+\rail@term{\isa{{\isaliteral{5D}{\isacharbrackright}}}}[]
+\rail@end
+\end{railoutput}
 
-    prios: '[' (nat + ',') ']'
-    ;
-  \end{rail}
 
-  Here the \railtok{string} specifications refer to the actual mixfix
+  Here the \hyperlink{syntax.string}{\mbox{\isa{string}}} specifications refer to the actual mixfix
   template, which may include literal text, spacing, blocks, and
   arguments (denoted by ``\isa{{\isaliteral{5F}{\isacharunderscore}}}''); the special symbol
   ``\verb|\<index>|'' (printed as ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C696E6465783E}{\isasymindex}}{\isaliteral{22}{\isachardoublequote}}}'') represents an index
@@ -390,14 +491,66 @@ Mixfix annotations specify concrete \emph{inner syntax} of
     \indexdef{}{command}{write}\hypertarget{command.write}{\hyperlink{command.write}{\mbox{\isa{\isacommand{write}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-    ('type_notation' | 'no_type_notation') target? mode? \\ (nameref mixfix + 'and')
-    ;
-    ('notation' | 'no_notation') target? mode? \\ (nameref structmixfix + 'and')
-    ;
-    'write' mode? (nameref structmixfix + 'and')
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{5}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.type-notation}{\mbox{\isa{\isacommand{type{\isaliteral{5F}{\isacharunderscore}}notation}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.no-type-notation}{\mbox{\isa{\isacommand{no{\isaliteral{5F}{\isacharunderscore}}type{\isaliteral{5F}{\isacharunderscore}}notation}}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.mode}{\mbox{\isa{mode}}}}[]
+\rail@endbar
+\rail@cr{3}
+\rail@plus
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
+\rail@nextplus{4}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{5}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.notation}{\mbox{\isa{\isacommand{notation}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.no-notation}{\mbox{\isa{\isacommand{no{\isaliteral{5F}{\isacharunderscore}}notation}}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.mode}{\mbox{\isa{mode}}}}[]
+\rail@endbar
+\rail@cr{3}
+\rail@plus
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nont{\hyperlink{syntax.structmixfix}{\mbox{\isa{structmixfix}}}}[]
+\rail@nextplus{4}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.write}{\mbox{\isa{\isacommand{write}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.mode}{\mbox{\isa{mode}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nont{\hyperlink{syntax.structmixfix}{\mbox{\isa{structmixfix}}}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -749,19 +902,78 @@ The inner lexical syntax vaguely resembles the outer one
     \indexdef{}{command}{no\_translations}\hypertarget{command.no-translations}{\hyperlink{command.no-translations}{\mbox{\isa{\isacommand{no{\isaliteral{5F}{\isacharunderscore}}translations}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-    'nonterminal' (name + 'and')
-    ;
-    ('syntax' | 'no_syntax') mode? (constdecl +)
-    ;
-    ('translations' | 'no_translations') (transpat ('==' | '=>' | '<=' | rightleftharpoons | rightharpoonup | leftharpoondown) transpat +)
-    ;
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.nonterminal}{\mbox{\isa{\isacommand{nonterminal}}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.syntax}{\mbox{\isa{\isacommand{syntax}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.no-syntax}{\mbox{\isa{\isacommand{no{\isaliteral{5F}{\isacharunderscore}}syntax}}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.mode}{\mbox{\isa{mode}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nont{\hyperlink{syntax.constdecl}{\mbox{\isa{constdecl}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\rail@begin{7}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.translations}{\mbox{\isa{\isacommand{translations}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.no-translations}{\mbox{\isa{\isacommand{no{\isaliteral{5F}{\isacharunderscore}}translations}}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nont{\isa{transpat}}[]
+\rail@bar
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}}}[]
+\rail@nextbar{2}
+\rail@term{\isa{{\isaliteral{3C}{\isacharless}}{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@nextbar{3}
+\rail@term{\isa{{\isaliteral{5C3C72696768746C656674686172706F6F6E733E}{\isasymrightleftharpoons}}}}[]
+\rail@nextbar{4}
+\rail@term{\isa{{\isaliteral{5C3C7269676874686172706F6F6E75703E}{\isasymrightharpoonup}}}}[]
+\rail@nextbar{5}
+\rail@term{\isa{{\isaliteral{5C3C6C656674686172706F6F6E646F776E3E}{\isasymleftharpoondown}}}}[]
+\rail@endbar
+\rail@nont{\isa{transpat}}[]
+\rail@nextplus{6}
+\rail@endplus
+\rail@end
+\rail@begin{3}{\isa{mode}}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@bar
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextbar{1}
+\rail@term{\isa{\isakeyword{output}}}[]
+\rail@nextbar{2}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{\isakeyword{output}}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@end
+\rail@begin{2}{\isa{transpat}}
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@end
+\end{railoutput}
 
-    mode: ('(' ( name | 'output' | name 'output' ) ')')
-    ;
-    transpat: ('(' nameref ')')? string
-    ;
-  \end{rail}
 
   \begin{description}
   
@@ -808,15 +1020,33 @@ The inner lexical syntax vaguely resembles the outer one
     \indexdef{}{command}{print\_ast\_translation}\hypertarget{command.print-ast-translation}{\hyperlink{command.print-ast-translation}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}ast{\isaliteral{5F}{\isacharunderscore}}translation}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-  ( 'parse_ast_translation' | 'parse_translation' | 'print_translation' |
-    'typed_print_translation' | 'print_ast_translation' ) ('(advanced)')? text
-  ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{5}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.parse-ast-translation}{\mbox{\isa{\isacommand{parse{\isaliteral{5F}{\isacharunderscore}}ast{\isaliteral{5F}{\isacharunderscore}}translation}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.parse-translation}{\mbox{\isa{\isacommand{parse{\isaliteral{5F}{\isacharunderscore}}translation}}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{command.print-translation}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}translation}}}}}[]
+\rail@nextbar{3}
+\rail@term{\hyperlink{command.typed-print-translation}{\mbox{\isa{\isacommand{typed{\isaliteral{5F}{\isacharunderscore}}print{\isaliteral{5F}{\isacharunderscore}}translation}}}}}[]
+\rail@nextbar{4}
+\rail@term{\hyperlink{command.print-ast-translation}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}ast{\isaliteral{5F}{\isacharunderscore}}translation}}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@term{\isa{\isakeyword{advanced}}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.text}{\mbox{\isa{text}}}}[]
+\rail@end
+\end{railoutput}
+
 
   Syntax translation functions written in ML admit almost arbitrary
   manipulations of Isabelle's inner syntax.  Any of the above commands
-  have a single \railqtok{text} argument that refers to an ML
+  have a single \hyperlink{syntax.text}{\mbox{\isa{text}}} argument that refers to an ML
   expression of appropriate type, which are as follows by default:
 
 %FIXME proper antiquotations

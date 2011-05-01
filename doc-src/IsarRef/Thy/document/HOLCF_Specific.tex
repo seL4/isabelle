@@ -54,16 +54,49 @@
     \indexdef{HOLCF}{command}{domain}\hypertarget{command.HOLCF.domain}{\hyperlink{command.HOLCF.domain}{\mbox{\isa{\isacommand{domain}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-    'domain' parname? (dmspec + 'and')
-    ;
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.HOLCF.domain}{\mbox{\isa{\isacommand{domain}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.parname}{\mbox{\isa{parname}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nont{\isa{dmspec}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{dmspec}}
+\rail@nont{\hyperlink{syntax.typespec}{\mbox{\isa{typespec}}}}[]
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@plus
+\rail@nont{\isa{cons}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{{\isaliteral{7C}{\isacharbar}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{cons}}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
+\rail@endplus
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{1}{\isa{dtrules}}
+\rail@term{\isa{\isakeyword{distinct}}}[]
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@term{\isa{\isakeyword{inject}}}[]
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@term{\isa{\isakeyword{induction}}}[]
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@end
+\end{railoutput}
 
-    dmspec: typespec '=' (cons + '|')
-    ;
-    cons: name (type *) mixfix?
-    ;
-    dtrules: 'distinct' thmrefs 'inject' thmrefs 'induction' thmrefs
-  \end{rail}
 
   Recursive domains in HOLCF are analogous to datatypes in classical
   HOL (cf.\ \secref{sec:hol-datatype}).  Mutual recursion is

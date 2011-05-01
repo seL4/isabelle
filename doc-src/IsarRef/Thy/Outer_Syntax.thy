@@ -187,24 +187,22 @@ text {*
 
 subsection {* Names *}
 
-text {*
-  Entity \railqtok{name} usually refers to any name of types,
+text {* Entity @{syntax name} usually refers to any name of types,
   constants, theorems etc.\ that are to be \emph{declared} or
   \emph{defined} (so qualified identifiers are excluded here).  Quoted
   strings provide an escape for non-identifier names or those ruled
   out by outer syntax keywords (e.g.\ quoted @{verbatim "\"let\""}).
-  Already existing objects are usually referenced by
-  \railqtok{nameref}.
+  Already existing objects are usually referenced by @{syntax
+  nameref}.
 
-  \indexoutertoken{name}\indexoutertoken{parname}\indexoutertoken{nameref}
-  \begin{rail}
-    name: ident | symident | string | nat
+  @{rail "
+    @{syntax_def name}: @{syntax ident} | @{syntax symident} |
+      @{syntax string} | @{syntax nat}
     ;
-    parname: '(' name ')'
+    @{syntax_def parname}: '(' @{syntax name} ')'
     ;
-    nameref: name | longident
-    ;
-  \end{rail}
+    @{syntax_def nameref}: @{syntax name} | @{syntax longident}
+  "}
 *}
 
 
@@ -214,37 +212,32 @@ text {* The outer lexical syntax (\secref{sec:outer-lex}) admits
   natural numbers and floating point numbers.  These are combined as
   @{syntax int} and @{syntax real} as follows.
 
-  \indexoutertoken{int}\indexoutertoken{real}
-  \begin{rail}
-    int: nat | '-' nat
+  @{rail "
+    @{syntax_def int}: @{syntax nat} | '-' @{syntax nat}
     ;
-    real: float | int
-    ;
-  \end{rail}
+    @{syntax_def real}: @{syntax float} | @{syntax int}
+  "}
 
-  Note that there is an overlap with the category \railqtok{name},
+  Note that there is an overlap with the category @{syntax name},
   which also includes @{syntax nat}.
 *}
 
 
 subsection {* Comments \label{sec:comments} *}
 
-text {*
-  Large chunks of plain \railqtok{text} are usually given
-  \railtok{verbatim}, i.e.\ enclosed in @{verbatim "{"}@{verbatim
+text {* Large chunks of plain @{syntax text} are usually given
+  @{syntax verbatim}, i.e.\ enclosed in @{verbatim "{"}@{verbatim
   "*"}~@{text "\<dots>"}~@{verbatim "*"}@{verbatim "}"}.  For convenience,
-  any of the smaller text units conforming to \railqtok{nameref} are
-  admitted as well.  A marginal \railnonterm{comment} is of the form
-  @{verbatim "--"} \railqtok{text}.  Any number of these may occur
+  any of the smaller text units conforming to @{syntax nameref} are
+  admitted as well.  A marginal @{syntax comment} is of the form
+  @{verbatim "--"}~@{syntax text}.  Any number of these may occur
   within Isabelle/Isar commands.
 
-  \indexoutertoken{text}\indexouternonterm{comment}
-  \begin{rail}
-    text: verbatim | nameref
+  @{rail "
+    @{syntax_def text}: @{syntax verbatim} | @{syntax nameref}
     ;
-    comment: '--' text
-    ;
-  \end{rail}
+    @{syntax_def comment}: '--' @{syntax text}
+  "}
 *}
 
 
@@ -257,16 +250,13 @@ text {*
   intersection of these classes.  The syntax of type arities is given
   directly at the outer level.
 
-  \indexouternonterm{sort}\indexouternonterm{arity}
-  \indexouternonterm{classdecl}
-  \begin{rail}
-    classdecl: name (('<' | subseteq) (nameref + ','))?
+  @{rail "
+    @{syntax_def classdecl}: @{syntax name} (('<' | '\<subseteq>') (@{syntax nameref} + ','))?
     ;
-    sort: nameref
+    @{syntax_def sort}: @{syntax nameref}
     ;
-    arity: ('(' (sort + ',') ')')? sort
-    ;
-  \end{rail}
+    @{syntax_def arity}: ('(' (@{syntax sort} + ',') ')')? @{syntax sort}
+  "}
 *}
 
 
@@ -286,84 +276,74 @@ text {*
   by commands or other keywords already (such as @{verbatim "="} or
   @{verbatim "+"}).
 
-  \indexoutertoken{type}\indexoutertoken{term}\indexoutertoken{prop}
-  \begin{rail}
-    type: nameref | typefree | typevar
+  @{rail "
+    @{syntax_def type}: @{syntax nameref} | @{syntax typefree} |
+      @{syntax typevar}
     ;
-    term: nameref | var
+    @{syntax_def term}: @{syntax nameref} | @{syntax var}
     ;
-    prop: term
-    ;
-  \end{rail}
+    @{syntax_def prop}: @{syntax term}
+  "}
 
   Positional instantiations are indicated by giving a sequence of
   terms, or the placeholder ``@{text _}'' (underscore), which means to
   skip a position.
 
-  \indexoutertoken{inst}\indexoutertoken{insts}
-  \begin{rail}
-    inst: underscore | term
+  @{rail "
+    @{syntax_def inst}: '_' | @{syntax term}
     ;
-    insts: (inst *)
-    ;
-  \end{rail}
+    @{syntax_def insts}: (@{syntax inst} *)
+  "}
 
-  Type declarations and definitions usually refer to
-  \railnonterm{typespec} on the left-hand side.  This models basic
-  type constructor application at the outer syntax level.  Note that
-  only plain postfix notation is available here, but no infixes.
+  Type declarations and definitions usually refer to @{syntax
+  typespec} on the left-hand side.  This models basic type constructor
+  application at the outer syntax level.  Note that only plain postfix
+  notation is available here, but no infixes.
 
-  \indexouternonterm{typespec}
-  \indexouternonterm{typespecsorts}
-  \begin{rail}
-    typespec: (() | typefree | '(' ( typefree + ',' ) ')') name
+  @{rail "
+    @{syntax_def typespec}:
+      (() | @{syntax typefree} | '(' ( @{syntax typefree} + ',' ) ')') @{syntax name}
     ;
-
-    typespecsorts: (() | (typefree ('::' sort)?) | '(' ( (typefree ('::' sort)?) + ',' ) ')') name
-    ;
-  \end{rail}
+    @{syntax_def typespecsorts}:
+      (() | (@{syntax typefree} ('::' @{syntax sort})?) |
+        '(' ( (@{syntax typefree} ('::' @{syntax sort})?) + ',' ) ')') @{syntax name}
+  "}
 *}
 
 
 subsection {* Term patterns and declarations \label{sec:term-decls} *}
 
-text {*
-  Wherever explicit propositions (or term fragments) occur in a proof
-  text, casual binding of schematic term variables may be given
-  specified via patterns of the form ``@{text "(\<IS> p\<^sub>1 \<dots>
-  p\<^sub>n)"}''.  This works both for \railqtok{term} and \railqtok{prop}.
+text {* Wherever explicit propositions (or term fragments) occur in a
+  proof text, casual binding of schematic term variables may be given
+  specified via patterns of the form ``@{text "(\<IS> p\<^sub>1 \<dots> p\<^sub>n)"}''.
+  This works both for @{syntax term} and @{syntax prop}.
 
-  \indexouternonterm{termpat}\indexouternonterm{proppat}
-  \begin{rail}
-    termpat: '(' ('is' term +) ')'
+  @{rail "
+    @{syntax_def termpat}: '(' (@'is' @{syntax term} +) ')'
     ;
-    proppat: '(' ('is' prop +) ')'
-    ;
-  \end{rail}
+    @{syntax_def proppat}: '(' (@'is' @{syntax prop} +) ')'
+  "}
 
   \medskip Declarations of local variables @{text "x :: \<tau>"} and
   logical propositions @{text "a : \<phi>"} represent different views on
   the same principle of introducing a local scope.  In practice, one
-  may usually omit the typing of \railnonterm{vars} (due to
+  may usually omit the typing of @{syntax vars} (due to
   type-inference), and the naming of propositions (due to implicit
   references of current facts).  In any case, Isar proof elements
   usually admit to introduce multiple such items simultaneously.
 
-  \indexouternonterm{vars}\indexouternonterm{props}
-  \begin{rail}
-    vars: (name+) ('::' type)?
+  @{rail "
+    @{syntax_def vars}: (@{syntax name} +) ('::' @{syntax type})?
     ;
-    props: thmdecl? (prop proppat? +)
-    ;
-  \end{rail}
+    @{syntax_def props}: @{syntax thmdecl}? (@{syntax prop} @{syntax proppat}? +)
+  "}
 
   The treatment of multiple declarations corresponds to the
-  complementary focus of \railnonterm{vars} versus
-  \railnonterm{props}.  In ``@{text "x\<^sub>1 \<dots> x\<^sub>n :: \<tau>"}''
-  the typing refers to all variables, while in @{text "a: \<phi>\<^sub>1 \<dots>
-  \<phi>\<^sub>n"} the naming refers to all propositions collectively.
-  Isar language elements that refer to \railnonterm{vars} or
-  \railnonterm{props} typically admit separate typings or namings via
+  complementary focus of @{syntax vars} versus @{syntax props}.  In
+  ``@{text "x\<^sub>1 \<dots> x\<^sub>n :: \<tau>"}'' the typing refers to all variables, while
+  in @{text "a: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n"} the naming refers to all propositions
+  collectively.  Isar language elements that refer to @{syntax vars}
+  or @{syntax props} typically admit separate typings or namings via
   another level of iteration, with explicit @{keyword_ref "and"}
   separators; e.g.\ see @{command "fix"} and @{command "assume"} in
   \secref{sec:proof-context}.
@@ -373,31 +353,30 @@ text {*
 subsection {* Attributes and theorems \label{sec:syn-att} *}
 
 text {* Attributes have their own ``semi-inner'' syntax, in the sense
-  that input conforming to \railnonterm{args} below is parsed by the
+  that input conforming to @{syntax args} below is parsed by the
   attribute a second time.  The attribute argument specifications may
   be any sequence of atomic entities (identifiers, strings etc.), or
-  properly bracketed argument lists.  Below \railqtok{atom} refers to
-  any atomic entity, including any \railtok{keyword} conforming to
-  \railtok{symident}.
+  properly bracketed argument lists.  Below @{syntax atom} refers to
+  any atomic entity, including any @{syntax keyword} conforming to
+  @{syntax symident}.
 
-  \indexoutertoken{atom}\indexouternonterm{args}\indexouternonterm{attributes}
-  \begin{rail}
-    atom: nameref | typefree | typevar | var | nat | float | keyword
+  @{rail "
+    @{syntax_def atom}: @{syntax nameref} | @{syntax typefree} |
+      @{syntax typevar} | @{syntax var} | @{syntax nat} | @{syntax float} |
+      @{syntax keyword}
     ;
-    arg: atom | '(' args ')' | '[' args ']'
+    arg: @{syntax atom} | '(' @{syntax args} ')' | '[' @{syntax args} ']'
     ;
-    args: arg *
+    @{syntax_def args}: arg *
     ;
-    attributes: '[' (nameref args * ',') ']'
-    ;
-  \end{rail}
+    @{syntax_def attributes}: '[' (@{syntax nameref} @{syntax args} * ',') ']'
+  "}
 
-  Theorem specifications come in several flavors:
-  \railnonterm{axmdecl} and \railnonterm{thmdecl} usually refer to
-  axioms, assumptions or results of goal statements, while
-  \railnonterm{thmdef} collects lists of existing theorems.  Existing
-  theorems are given by \railnonterm{thmref} and
-  \railnonterm{thmrefs}, the former requires an actual singleton
+  Theorem specifications come in several flavors: @{syntax axmdecl}
+  and @{syntax thmdecl} usually refer to axioms, assumptions or
+  results of goal statements, while @{syntax thmdef} collects lists of
+  existing theorems.  Existing theorems are given by @{syntax thmref}
+  and @{syntax thmrefs}, the former requires an actual singleton
   result.
 
   There are three forms of theorem references:
@@ -426,26 +405,24 @@ text {* Attributes have their own ``semi-inner'' syntax, in the sense
   This form of in-place declarations is particularly useful with
   commands like @{command "declare"} and @{command "using"}.
 
-  \indexouternonterm{axmdecl}\indexouternonterm{thmdecl}
-  \indexouternonterm{thmdef}\indexouternonterm{thmref}
-  \indexouternonterm{thmrefs}\indexouternonterm{selection}
-  \begin{rail}
-    axmdecl: name attributes? ':'
+  @{rail "
+    @{syntax_def axmdecl}: @{syntax name} @{syntax attributes}? ':'
     ;
-    thmdecl: thmbind ':'
+    @{syntax_def thmdecl}: thmbind ':'
     ;
-    thmdef: thmbind '='
+    @{syntax_def thmdef}: thmbind '='
     ;
-    thmref: (nameref selection? | altstring) attributes? | '[' attributes ']'
+    @{syntax_def thmref}:
+      (@{syntax nameref} selection? | @{syntax altstring}) @{syntax attributes}? |
+      '[' @{syntax attributes} ']'
     ;
-    thmrefs: thmref +
+    @{syntax_def thmrefs}: @{syntax thmref} +
     ;
 
-    thmbind: name attributes | name | attributes
+    thmbind: @{syntax name} @{syntax attributes} | @{syntax name} | @{syntax attributes}
     ;
-    selection: '(' ((nat | nat '-' nat?) + ',') ')'
-    ;
-  \end{rail}
+    selection: '(' ((@{syntax nat} | @{syntax nat} '-' @{syntax nat}?) + ',') ')'
+  "}
 *}
 
 end

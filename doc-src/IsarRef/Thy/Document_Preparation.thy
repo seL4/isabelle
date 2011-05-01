@@ -81,12 +81,13 @@ text {*
   markup commands, but have a different status within Isabelle/Isar
   syntax.
 
-  \begin{rail}
-    ('chapter' | 'section' | 'subsection' | 'subsubsection' | 'text') target? text
+  @{rail "
+    (@@{command chapter} | @@{command section} | @@{command subsection} |
+      @@{command subsubsection} | @@{command text}) @{syntax target}? @{syntax text}
     ;
-    ('header' | 'text_raw' | 'sect' | 'subsect' | 'subsubsect' | 'txt' | 'txt_raw') text
-    ;
-  \end{rail}
+    (@@{command header} | @@{command text_raw} | @@{command sect} | @@{command subsect} |
+      @@{command subsubsect} | @@{command txt} | @@{command txt_raw}) @{syntax text}
+  "}
 
   \begin{description}
 
@@ -178,42 +179,40 @@ text {*
   antiquotations are checked within the current theory or proof
   context.
 
-  \begin{rail}
-    atsign lbrace antiquotation rbrace
+  @{rail "
+    '@{' antiquotation '}'
     ;
-
-    antiquotation:
-      'theory' options name |
-      'thm' options styles thmrefs |
-      'lemma' options prop 'by' method |
-      'prop' options styles prop |
-      'term' options styles term |
-      'term_type' options styles term |
-      'typeof' options styles term |
-      'const' options term |
-      'abbrev' options term |
-      'typ' options type |
-      'type' options name |
-      'class' options name |
-      'text' options name |
-      'goals' options |
-      'subgoals' options |
-      'prf' options thmrefs |
-      'full_prf' options thmrefs |
-      'ML' options name |
-      'ML_type' options name |
-      'ML_struct' options name |
-      'file' options name
+    @{syntax_def antiquotation}:
+      @@{antiquotation theory} options @{syntax name} |
+      @@{antiquotation thm} options styles @{syntax thmrefs} |
+      @@{antiquotation lemma} options @{syntax prop} @'by' @{syntax method} |
+      @@{antiquotation prop} options styles @{syntax prop} |
+      @@{antiquotation term} options styles @{syntax term} |
+      @@{antiquotation term_type} options styles @{syntax term} |
+      @@{antiquotation typeof} options styles @{syntax term} |
+      @@{antiquotation const} options @{syntax term} |
+      @@{antiquotation abbrev} options @{syntax term} |
+      @@{antiquotation typ} options @{syntax type} |
+      @@{antiquotation type} options @{syntax name} |
+      @@{antiquotation class} options @{syntax name} |
+      @@{antiquotation text} options @{syntax name} |
+      @@{antiquotation goals} options |
+      @@{antiquotation subgoals} options |
+      @@{antiquotation prf} options @{syntax thmrefs} |
+      @@{antiquotation full_prf} options @{syntax thmrefs} |
+      @@{antiquotation ML} options @{syntax name} |
+      @@{antiquotation ML_type} options @{syntax name} |
+      @@{antiquotation ML_struct} options @{syntax name} |
+      @@{antiquotation \"file\"} options @{syntax name}
     ;
     options: '[' (option * ',') ']'
     ;
-    option: name | name '=' name
+    option: @{syntax name} | @{syntax name} '=' @{syntax name}
     ;
     styles: '(' (style + ',') ')'
     ;
-    style: (name +)
-    ;
-  \end{rail}
+    style: (@{syntax name} +)
+  "} %% FIXME check lemma
 
   Note that the syntax of antiquotations may \emph{not} include source
   comments @{verbatim "(*"}~@{text "\<dots>"}~@{verbatim "*)"} nor verbatim
@@ -420,12 +419,11 @@ text {* Each Isabelle/Isar command may be decorated by additional
   presentation tags, to indicate some modification in the way it is
   printed in the document.
 
-  \indexouternonterm{tags}
-  \begin{rail}
-    tags: ( tag * )
+  @{rail "
+    @{syntax_def tags}: ( tag * )
     ;
-    tag: '\%' (ident | string)
-  \end{rail}
+    tag: '%' (@{syntax ident} | @{syntax string})
+  "}
 
   Some tags are pre-declared for certain classes of commands, serving
   as default markup if no tags are given in the text:
@@ -475,10 +473,10 @@ text {*
     @{command_def "print_drafts"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
   \end{matharray}
 
-  \begin{rail}
-    ('display_drafts' | 'print_drafts') (name +)
-    ;
-  \end{rail}
+  @{rail "
+    (@@{command display_drafts} | @@{command print_drafts}) (@{syntax name} +)
+
+  "}
 
   \begin{description}
 
