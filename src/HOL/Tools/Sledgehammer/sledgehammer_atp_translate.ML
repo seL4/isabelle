@@ -23,6 +23,7 @@ sig
   val conjecture_prefix : string
   val boolify_base : string
   val explicit_app_base : string
+  val type_pred_base : string
   val is_type_system_sound : type_system -> bool
   val type_system_types_dangerous_types : type_system -> bool
   val num_atp_type_args : theory -> type_system -> string -> int
@@ -514,8 +515,8 @@ fun pred_combtyp ty =
   | _ => raise Fail "expected two-argument type constructor"
 
 fun type_pred_combatom type_sys ty tm =
-  CombApp (CombConst ((const_prefix ^ type_pred_base, type_pred_base),
-                      pred_combtyp ty, [ty]), tm)
+  CombApp (CombConst (`make_fixed_const type_pred_base, pred_combtyp ty, [ty]),
+           tm)
   |> repair_combterm_consts type_sys
   |> AAtom
 
