@@ -641,7 +641,7 @@ fun formula_lines_for_free_types type_sys facts =
 
 type repair_info = {pred_sym: bool, min_arity: int, max_arity: int}
 
-fun consider_combterm_for_repair explicit_apply =
+fun add_combterm_to_sym_table explicit_apply =
   let
     fun aux top_level tm =
       let val (head, args) = strip_combterm_comb tm in
@@ -665,8 +665,7 @@ fun consider_combterm_for_repair explicit_apply =
       end
   in aux true end
 
-fun consider_fact_for_repair explicit_apply =
-  fact_lift (formula_fold (consider_combterm_for_repair explicit_apply))
+val add_fact_to_sym_table = fact_lift o formula_fold o add_combterm_to_sym_table
 
 (* The "equal" entry is needed for helper facts if the problem otherwise does
    not involve equality. The "$false" and $"true" entries are needed to ensure
@@ -681,7 +680,7 @@ val default_sym_table_entries =
 
 fun sym_table_for_facts explicit_apply facts =
   Symtab.empty |> fold Symtab.default default_sym_table_entries
-               |> fold (consider_fact_for_repair explicit_apply) facts
+               |> fold (add_fact_to_sym_table explicit_apply) facts
 
 fun min_arity_of sym_tab s =
   case Symtab.lookup sym_tab s of
@@ -873,7 +872,7 @@ fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
                                     | _ => NONE) o snd)
               |> get_helper_facts ctxt type_sys
               |>> map (repair_fact type_sys sym_tab)
-    val sym_tab = sym_table_for_facts explicit_apply (conjs @ facts)
+    val sym_tab = sym_table_for_facts false (conjs @ facts)
     val const_tab = const_table_for_facts type_sys sym_tab (conjs @ facts)
     val sym_decl_lines =
       Symtab.fold_rev (append o problem_lines_for_const ctxt type_sys sym_tab)
