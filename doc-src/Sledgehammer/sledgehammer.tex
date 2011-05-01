@@ -456,6 +456,12 @@ on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 \item[$\bullet$] \textbf{\textit{remote\_vampire}:} The remote version of
 Vampire runs on Geoff Sutcliffe's Miami servers. Version 9 is used.
 
+\item[$\bullet$] \textbf{\textit{remote\_tofof\_e}:} ToFoF-E is a metaprover
+developed by Geoff Sutcliffe \cite{tofof} based on E running on his Miami
+servers. This ATP supports a fragment of the TPTP many-typed first-order format
+(TFF). It is supported primarily for experimenting with the
+\textit{type\_sys} $=$ \textit{many\_typed} option (\S\ref{problem-encoding}).
+
 \item[$\bullet$] \textbf{\textit{remote\_sine\_e}:} SInE-E is a metaprover
 developed by Kry\v stof Hoder \cite{sine} based on E. The remote version of
 SInE runs on Geoff Sutcliffe's Miami servers.
@@ -575,7 +581,7 @@ their type parameters, which are passed as extra arguments.
 This value implicitly enables \textit{monomorphize}.
 
 \item[$\bullet$] \textbf{\textit{many\_typed}:} Use the prover's support for
-many-typed first-order logic logic if available; otherwise, fall back on
+many-typed first-order logic if available; otherwise, fall back on
 \textit{mangled}. This value implicitly enables \textit{monomorphize}.
 
 \item[$\bullet$] \textbf{\textit{none}:} No type information is supplied to the

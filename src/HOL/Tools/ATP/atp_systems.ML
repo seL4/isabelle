@@ -33,6 +33,7 @@ sig
   val eN : string
   val spassN : string
   val vampireN : string
+  val tofof_eN : string
   val sine_eN : string
   val snarkN : string
   val z3_atpN : string
@@ -75,6 +76,7 @@ val eN = "e"
 val spassN = "spass"
 val vampireN = "vampire"
 val z3_atpN = "z3_atp"
+val tofof_eN = "tofof_e"
 val sine_eN = "sine_e"
 val snarkN = "snark"
 val remote_prefix = "remote_"
@@ -337,6 +339,8 @@ fun remotify_atp (name, config) system_name system_versions =
 val remote_e = remotify_atp e "EP" ["1.0", "1.1", "1.2"]
 val remote_vampire = remotify_atp vampire "Vampire" ["0.6", "9.0", "1.0"]
 val remote_z3_atp = remotify_atp z3_atp "Z3---" ["2.18"]
+val remote_tofof_e =
+  remote_atp tofof_eN "ToFoF" [] [] [] (K 200 (* FUDGE *)) true
 val remote_sine_e =
   remote_atp sine_eN "SInE" [] [] [(IncompleteUnprovable, "says Unknown")]
              (K 500 (* FUDGE *)) true
@@ -365,7 +369,7 @@ fun refresh_systems_on_tptp () =
   Synchronized.change systems (fn _ => get_systems ())
 
 val atps = [e, spass, vampire, z3_atp, remote_e, remote_vampire, remote_z3_atp,
-            remote_sine_e, remote_snark]
+            remote_tofof_e, remote_sine_e, remote_snark]
 val setup = fold add_atp atps
 
 end;
