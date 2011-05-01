@@ -210,7 +210,7 @@ fun step_name (Definition (name, _, _)) = name
 
 (**** PARSING OF TSTP FORMAT ****)
 
-(*Strings enclosed in single quotes, e.g. filenames*)
+(* Strings enclosed in single quotes (e.g., file names) *)
 val scan_general_id =
   $$ "'" |-- Scan.repeat (~$$ "'") --| $$ "'" >> implode
   || Scan.repeat ($$ "$") -- Scan.many1 Symbol.is_letdig
@@ -277,6 +277,7 @@ val parse_tstp_extra_arguments =
                  --| Scan.option ($$ "," |-- parse_annotations false)) []
 
 val vampire_unknown_fact = "unknown"
+val tofof_fact_prefix = "fof_"
 
 (* Syntax: (cnf|fof|tff)\(<num>, <formula_role>, <formula> <extra_arguments>\).
    The <num> could be an identifier, but we assume integers. *)
@@ -290,7 +291,10 @@ val parse_tstp_line =
             val (name, deps) =
               case deps of
                 ["file", _, s] =>
-                ((num, if s = vampire_unknown_fact then NONE else SOME s), [])
+                ((num,
+                  if s = vampire_unknown_fact then NONE
+                  else SOME (s |> perhaps (try (unprefix tofof_fact_prefix)))),
+                 [])
               | _ => ((num, NONE), deps)
           in
             case role of
