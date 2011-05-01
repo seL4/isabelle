@@ -19,7 +19,6 @@ sig
     Mangled of bool |
     No_Types
 
-  val risky_overloaded_args : bool Unsynchronized.ref
   val fact_prefix : string
   val conjecture_prefix : string
   val is_type_system_sound : type_system -> bool
@@ -42,10 +41,6 @@ struct
 open ATP_Problem
 open Metis_Translate
 open Sledgehammer_Util
-
-(* FIXME: Remove references once appropriate defaults have been determined
-   empirically. *)
-val risky_overloaded_args = Unsynchronized.ref false
 
 val fact_prefix = "fact_"
 val conjecture_prefix = "conj_"
@@ -79,39 +74,24 @@ fun is_type_system_sound Many_Typed = true
 fun type_system_types_dangerous_types (Tags _) = true
   | type_system_types_dangerous_types type_sys = is_type_system_sound type_sys
 
-(* This is an approximation. If it returns "true" for a constant that isn't
-   overloaded (i.e., that has one uniform definition), needless clutter is
-   generated; if it returns "false" for an overloaded constant, the ATP gets a
-   license to do unsound reasoning if the type system is "overloaded_args". *)
-fun is_overloaded thy s =
-  not (s = @{const_name HOL.eq}) andalso
-  not (s = @{const_name Metis.fequal}) andalso
-  (not (!risky_overloaded_args) orelse s = @{const_name finite} orelse
-   length (Defs.specifications_of (Theory.defs_of thy) s) > 1)
-
-fun needs_type_args thy type_sys s =
+fun dont_need_type_args type_sys s =
+  member (op =) [@{const_name HOL.eq}, @{const_name Metis.fequal}] s orelse
   case type_sys of
-    Many_Typed => false
-  | Tags full_types => not full_types andalso is_overloaded thy s
-  | Args full_types => not full_types andalso is_overloaded thy s
-  | Mangled full_types => not full_types andalso is_overloaded thy s
-  | No_Types => false
+    Many_Typed => true
+  | Tags full_types => full_types
+  | Args full_types => full_types
+  | Mangled full_types => full_types
+  | No_Types => true
 
 datatype type_arg_policy = No_Type_Args | Explicit_Type_Args | Mangled_Types
 
-fun type_arg_policy thy type_sys s =
-  if needs_type_args thy type_sys s then
-    case type_sys of
-      Mangled _ => Mangled_Types
-    | _ => Explicit_Type_Args
-  else
-    No_Type_Args
+fun type_arg_policy type_sys s =
+  if dont_need_type_args type_sys s then No_Type_Args
+  else case type_sys of Mangled _ => Mangled_Types | _ => Explicit_Type_Args
 
 fun num_atp_type_args thy type_sys s =
-  if type_arg_policy thy type_sys s = Explicit_Type_Args then
-    num_type_args thy s
-  else
-    0
+  if type_arg_policy type_sys s = Explicit_Type_Args then num_type_args thy s
+  else 0
 
 fun atp_type_literals_for_types type_sys kind Ts =
   if type_sys = No_Types then
@@ -464,7 +444,6 @@ fun unmangled_const s =
 
 fun fo_term_for_combterm ctxt type_sys =
   let
-    val thy = Proof_Context.theory_of ctxt
     fun aux top_level u =
       let
         val (head, args) = strip_combterm_comb u
@@ -485,7 +464,7 @@ fun fo_term_for_combterm ctxt type_sys =
                  NONE => (name, ty_args)
                | SOME s'' =>
                  let val s'' = invert_const s'' in
-                   case type_arg_policy thy type_sys s'' of
+                   case type_arg_policy type_sys s'' of
                      No_Type_Args => (name, [])
                    | Explicit_Type_Args => (name, ty_args)
                    | Mangled_Types =>
@@ -607,9 +586,8 @@ fun min_arity_of thy type_sys NONE s =
         String.isPrefix class_prefix s then
        16383 (* large number *)
      else case strip_prefix_and_unascii const_prefix s of
-       SOME s' =>
-       s' |> unmangled_const |> fst |> invert_const
-          |> num_atp_type_args thy type_sys
+       SOME s' => s' |> unmangled_const |> fst |> invert_const
+                     |> num_atp_type_args thy type_sys
      | NONE => 0)
   | min_arity_of _ _ (SOME sym_tab) s =
     case Symtab.lookup sym_tab s of
