@@ -43,6 +43,8 @@ sig
   val type_const_prefix: string
   val class_prefix: string
   val new_skolem_const_prefix : string
+  val metis_proxies : (string * (string * string)) list
+  val safe_invert_const: string -> string
   val invert_const: string -> string
   val ascii_of: string -> string
   val unascii_of: string -> string
@@ -101,36 +103,42 @@ val new_skolem_const_prefix = skolem_const_prefix ^ "n"
 
 fun union_all xss = fold (union (op =)) xss []
 
+val metis_proxies =
+  [("c_False", ("fFalse", @{const_name Metis.fFalse})),
+   ("c_True", ("fTrue", @{const_name Metis.fTrue})),
+   ("c_Not", ("fNot", @{const_name Metis.fNot})),
+   ("c_conj", ("fconj", @{const_name Metis.fconj})),
+   ("c_disj", ("fdisj", @{const_name Metis.fdisj})),
+   ("c_implies", ("fimplies", @{const_name Metis.fimplies})),
+   ("equal", ("fequal", @{const_name Metis.fequal}))]
+
 (* Readable names for the more common symbolic functions. Do not mess with the
    table unless you know what you are doing. *)
 val const_trans_table =
-  Symtab.make [(@{type_name Product_Type.prod}, "prod"),
-               (@{type_name Sum_Type.sum}, "sum"),
-               (@{const_name False}, "False"),
-               (@{const_name True}, "True"),
-               (@{const_name Not}, "Not"),
-               (@{const_name conj}, "conj"),
-               (@{const_name disj}, "disj"),
-               (@{const_name implies}, "implies"),
-               (@{const_name HOL.eq}, "equal"),
-               (@{const_name If}, "If"),
-               (@{const_name Set.member}, "member"),
-               (@{const_name Meson.COMBI}, "COMBI"),
-               (@{const_name Meson.COMBK}, "COMBK"),
-               (@{const_name Meson.COMBB}, "COMBB"),
-               (@{const_name Meson.COMBC}, "COMBC"),
-               (@{const_name Meson.COMBS}, "COMBS"),
-               (@{const_name Metis.fFalse}, "fFalse"),
-               (@{const_name Metis.fTrue}, "fTrue"),
-               (@{const_name Metis.fNot}, "fNot"),
-               (@{const_name Metis.fconj}, "fconj"),
-               (@{const_name Metis.fdisj}, "fdisj"),
-               (@{const_name Metis.fimplies}, "fimplies"),
-               (@{const_name Metis.fequal}, "fequal")]
+  [(@{type_name Product_Type.prod}, "prod"),
+   (@{type_name Sum_Type.sum}, "sum"),
+   (@{const_name False}, "False"),
+   (@{const_name True}, "True"),
+   (@{const_name Not}, "Not"),
+   (@{const_name conj}, "conj"),
+   (@{const_name disj}, "disj"),
+   (@{const_name implies}, "implies"),
+   (@{const_name HOL.eq}, "equal"),
+   (@{const_name If}, "If"),
+   (@{const_name Set.member}, "member"),
+   (@{const_name Meson.COMBI}, "COMBI"),
+   (@{const_name Meson.COMBK}, "COMBK"),
+   (@{const_name Meson.COMBB}, "COMBB"),
+   (@{const_name Meson.COMBC}, "COMBC"),
+   (@{const_name Meson.COMBS}, "COMBS")] @
+   (metis_proxies |> map (swap o snd))
+  |> Symtab.make
 
 (* Invert the table of translations between Isabelle and ATPs. *)
-val const_trans_table_inv =
+val const_trans_table_safe_inv =
   const_trans_table |> Symtab.dest |> map swap |> Symtab.make
+val const_trans_table_inv =
+  const_trans_table_safe_inv
   |> fold Symtab.update [("fFalse", @{const_name False}),
                          ("fTrue", @{const_name True}),
                          ("fNot", @{const_name Not}),
@@ -139,6 +147,7 @@ val const_trans_table_inv =
                          ("fimplies", @{const_name implies}),
                          ("fequal", @{const_name HOL.eq})]
 
+val safe_invert_const = perhaps (Symtab.lookup const_trans_table_safe_inv)
 val invert_const = perhaps (Symtab.lookup const_trans_table_inv)
 
 (*Escaping of special characters.

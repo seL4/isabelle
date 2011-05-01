@@ -283,8 +283,8 @@ exception SAME of unit
 
 (* Type variables are given the basic sort "HOL.type". Some will later be
    constrained by information from type literals, or by type inference. *)
-fun type_from_fo_term tfrees (u as ATerm (a, us)) =
-  let val Ts = map (type_from_fo_term tfrees) us in
+fun typ_from_fo_term tfrees (u as ATerm (a, us)) =
+  let val Ts = map (typ_from_fo_term tfrees) us in
     case strip_prefix_and_unascii type_const_prefix a of
       SOME b => Type (invert_const b, Ts)
     | NONE =>
@@ -307,7 +307,7 @@ fun type_from_fo_term tfrees (u as ATerm (a, us)) =
    type. *)
 fun type_constraint_from_term pos tfrees (u as ATerm (a, us)) =
   case (strip_prefix_and_unascii class_prefix a,
-        map (type_from_fo_term tfrees) us) of
+        map (typ_from_fo_term tfrees) us) of
     (SOME b, [T]) => (pos, b, T)
   | _ => raise FO_TERM [u]
 
@@ -344,7 +344,7 @@ fun raw_term_from_pred thy type_sys tfrees =
         if a = type_tag_name then
           case us of
             [typ_u, term_u] =>
-            aux (SOME (type_from_fo_term tfrees typ_u)) extra_us term_u
+            aux (SOME (typ_from_fo_term tfrees typ_u)) extra_us term_u
           | _ => raise FO_TERM us
         else if String.isPrefix tff_type_prefix a then
           @{const True} (* ignore TFF type information *)
@@ -380,7 +380,7 @@ fun raw_term_from_pred thy type_sys tfrees =
                   | NONE =>
                     if num_type_args thy b = length type_us then
                       Sign.const_instance thy
-                          (b, map (type_from_fo_term tfrees) type_us)
+                          (b, map (typ_from_fo_term tfrees) type_us)
                     else
                       HOLogic.typeT
               in list_comb (Const (b, T), term_ts @ extra_ts) end
@@ -428,7 +428,7 @@ fun uncombine_term (t1 $ t2) = betapply (pairself uncombine_term (t1, t2))
   | uncombine_term t = t
 
 (* Update schematic type variables with detected sort constraints. It's not
-   totally clear when this code is necessary. *)
+   totally clear whether this code is necessary. *)
 fun repair_tvar_sorts (t, tvar_tab) =
   let
     fun do_type (Type (a, Ts)) = Type (a, map do_type Ts)
