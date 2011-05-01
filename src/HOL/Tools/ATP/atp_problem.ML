@@ -16,11 +16,10 @@ sig
     AAtom of 'b
   type 'a uniform_formula = ('a, 'a fo_term) formula
 
-  datatype logic = Fof | Tff
   datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
-  type 'a problem_line =
-    logic * string * formula_kind * ('a, 'a fo_term) formula
-    * string fo_term option
+  datatype 'a problem_line =
+    Formula of string * formula_kind * ('a, 'a fo_term) formula
+               * string fo_term option
   type 'a problem = (string * 'a problem_line list) list
 
   val timestamp : unit -> string
@@ -47,11 +46,10 @@ datatype ('a, 'b) formula =
   AAtom of 'b
 type 'a uniform_formula = ('a, 'a fo_term) formula
 
-datatype logic = Fof | Tff
 datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
-type 'a problem_line =
-  logic * string * formula_kind * ('a, 'a fo_term) formula
-  * string fo_term option
+datatype 'a problem_line =
+  Formula of string * formula_kind * ('a, 'a fo_term) formula
+             * string fo_term option
 type 'a problem = (string * 'a problem_line list) list
 
 val timestamp = Date.fmt "%Y-%m-%d %H:%M:%S" o Date.fromTimeLocal o Time.now
@@ -94,8 +92,14 @@ fun string_for_formula (AQuant (q, xs, phi)) =
                         (map string_for_formula phis) ^ ")"
   | string_for_formula (AAtom tm) = string_for_term tm
 
+fun formula_needs_typed_logic (AQuant (_, xs, phi)) =
+    exists (is_some o snd) xs orelse formula_needs_typed_logic phi
+  | formula_needs_typed_logic (AConn (_, phis)) =
+    exists formula_needs_typed_logic phis
+  | formula_needs_typed_logic (AAtom _) = false
+
 fun string_for_problem_line use_conjecture_for_hypotheses
-                            (logic, ident, kind, phi, source) =
+                            (Formula (ident, kind, phi, source)) =
   let
     val (kind, phi) =
       if kind = Hypothesis andalso use_conjecture_for_hypotheses then
@@ -103,7 +107,7 @@ fun string_for_problem_line use_conjecture_for_hypotheses
       else
         (kind, phi)
   in
-    (case logic of Fof => "fof" | Tff => "tff") ^
+    (if formula_needs_typed_logic phi then "tff" else "fof") ^
     "(" ^ ident ^ ", " ^ string_for_kind kind ^ ",\n    (" ^
     string_for_formula phi ^ ")" ^
     (case source of
@@ -190,8 +194,8 @@ fun nice_formula (AQuant (q, xs, phi)) =
   | nice_formula (AConn (c, phis)) =
     pool_map nice_formula phis #>> curry AConn c
   | nice_formula (AAtom tm) = nice_term tm #>> AAtom
-fun nice_problem_line (logic, ident, kind, phi, source) =
-  nice_formula phi #>> (fn phi => (logic, ident, kind, phi, source))
+fun nice_problem_line (Formula (ident, kind, phi, source)) =
+  nice_formula phi #>> (fn phi => Formula (ident, kind, phi, source))
 fun nice_problem problem =
   pool_map (fn (heading, lines) =>
                pool_map nice_problem_line lines #>> pair heading) problem
