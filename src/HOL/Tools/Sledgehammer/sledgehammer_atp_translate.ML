@@ -795,7 +795,8 @@ fun formula_line_for_sym_decl ctxt type_sys n s j (s', T_args, T, _, ary) =
              |> fold (curry (CombApp o swap)) bound_tms
              |> type_pred_combatom type_sys res_T
              |> mk_aquant AForall (bound_names ~~ bound_Ts)
-             |> formula_from_combformula ctxt type_sys,
+             |> formula_from_combformula ctxt type_sys
+             |> close_formula_universally,
              NONE, NONE)
   end
 
