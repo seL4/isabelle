@@ -102,7 +102,7 @@ fun dont_need_type_args type_sys s =
      Many_Typed => false
    | Tags full_types => full_types orelse s = explicit_app_base
    | Args _ => s = explicit_app_base
-   | Mangled _ => s = explicit_app_base
+   | Mangled _ => false
    | No_Types => true)
 
 datatype type_arg_policy = No_Type_Args | Explicit_Type_Args | Mangled_Types
@@ -776,7 +776,7 @@ fun strip_and_map_combtyp 0 f ty = ([], f ty)
      | _ => ([], f ty))
   | strip_and_map_combtyp _ _ _ = raise Fail "unexpected non-function"
 
-fun problem_line_for_const_entry ctxt type_sys sym_tab s (s', ty_args, ty) =
+fun problem_line_for_typed_const ctxt type_sys sym_tab s j (s', ty_args, ty) =
   let
     val thy = Proof_Context.theory_of ctxt
     val arity = min_arity_of thy type_sys sym_tab s
@@ -786,7 +786,8 @@ fun problem_line_for_const_entry ctxt type_sys sym_tab s (s', ty_args, ty) =
         val (arg_tys, res_ty) = strip_and_map_combtyp arity mangled_combtyp ty
         val (s, s') = (s, s') |> mangled_const_name ty_args
       in
-        Decl (sym_decl_prefix ^ ascii_of s, (s, s'), arg_tys,
+        Decl (sym_decl_prefix ^ ascii_of s, (s, s'),
+              arg_tys,
               if is_pred_sym sym_tab s then `I tff_bool_type else res_ty)
       end
     else
@@ -797,8 +798,10 @@ fun problem_line_for_const_entry ctxt type_sys sym_tab s (s', ty_args, ty) =
           ~~ map SOME arg_tys
         val bound_tms =
           map (fn (name, ty) => CombConst (name, the ty, [])) bounds
+        val freshener =
+          case type_sys of Args _ => string_of_int j ^ "_" | _ => ""
       in
-        Formula (Fof, sym_decl_prefix ^ ascii_of s, Axiom,
+        Formula (Fof, sym_decl_prefix ^ freshener ^ "_" ^ ascii_of s, Axiom,
                  CombConst ((s, s'), ty, ty_args)
                  |> fold (curry (CombApp o swap)) bound_tms
                  |> type_pred_combatom type_sys res_ty
@@ -808,7 +811,8 @@ fun problem_line_for_const_entry ctxt type_sys sym_tab s (s', ty_args, ty) =
       end
   end
 fun problem_lines_for_const ctxt type_sys sym_tab (s, xs) =
-  map (problem_line_for_const_entry ctxt type_sys sym_tab s) xs
+  map2 (problem_line_for_typed_const ctxt type_sys sym_tab s)
+       (0 upto length xs - 1) xs
 
 fun add_tff_types_in_formula (AQuant (_, xs, phi)) =
     union (op =) (map_filter snd xs) #> add_tff_types_in_formula phi
