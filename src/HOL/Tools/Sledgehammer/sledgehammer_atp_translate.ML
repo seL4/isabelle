@@ -114,19 +114,22 @@ fun mk_aquant _ [] phi = phi
 fun close_universally atom_vars phi =
   let
     fun formula_vars bounds (AQuant (_, xs, phi)) =
-        formula_vars (xs @ bounds) phi
+        formula_vars (map fst xs @ bounds) phi
       | formula_vars bounds (AConn (_, phis)) = fold (formula_vars bounds) phis
       | formula_vars bounds (AAtom tm) =
-        union (op =) (atom_vars tm [] |> subtract (op =) bounds)
+        union (op =) (atom_vars tm []
+                      |> filter_out (member (op =) bounds o fst))
   in mk_aquant AForall (formula_vars [] phi []) phi end
 
 fun combterm_vars (CombApp (ct, cu)) = fold combterm_vars [ct, cu]
   | combterm_vars (CombConst _) = I
-  | combterm_vars (CombVar (name, _)) = insert (op =) name
+  | combterm_vars (CombVar (name, _)) =
+    insert (op =) (name, NONE) (* FIXME: TFF *)
 val close_combformula_universally = close_universally combterm_vars
 
 fun term_vars (ATerm (name as (s, _), tms)) =
-  is_atp_variable s ? insert (op =) name #> fold term_vars tms
+  is_atp_variable s ? insert (op =) (name, NONE) (* FIXME: TFF *)
+  #> fold term_vars tms
 val close_formula_universally = close_universally term_vars
 
 fun combformula_for_prop thy eq_as_iff =
@@ -137,7 +140,8 @@ fun combformula_for_prop thy eq_as_iff =
     fun do_quant bs q s T t' =
       let val s = Name.variant (map fst bs) s in
         do_formula ((s, T) :: bs) t'
-        #>> (fn phi => AQuant (q, [`make_bound_var s], phi))
+        (* FIXME: TFF *)
+        #>> (fn phi => AQuant (q, [(`make_bound_var s, NONE)], phi))
       end
     and do_conn bs c t1 t2 =
       do_formula bs t1 ##>> do_formula bs t2

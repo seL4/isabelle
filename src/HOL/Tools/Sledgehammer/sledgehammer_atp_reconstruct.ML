@@ -441,12 +441,13 @@ fun prop_from_formula thy type_sys tfrees phi =
     fun do_formula pos phi =
       case phi of
         AQuant (_, [], phi) => do_formula pos phi
-      | AQuant (q, x :: xs, phi') =>
+      | AQuant (q, (s, _) :: xs, phi') =>
         do_formula pos (AQuant (q, xs, phi'))
+        (* FIXME: TFF *)
         #>> quantify_over_var (case q of
                                  AForall => forall_of
                                | AExists => exists_of)
-                              (repair_atp_variable_name Char.toLower x)
+                              (repair_atp_variable_name Char.toLower s)
       | AConn (ANot, [phi']) => do_formula (not pos) phi' #>> s_not
       | AConn (c, [phi1, phi2]) =>
         do_formula (pos |> c = AImplies ? not) phi1

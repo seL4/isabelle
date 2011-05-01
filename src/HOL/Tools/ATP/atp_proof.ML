@@ -258,7 +258,9 @@ fun parse_formula x =
   (($$ "(" |-- parse_formula --| $$ ")"
     || ($$ "!" >> K AForall || $$ "?" >> K AExists)
        --| $$ "[" -- parse_terms --| $$ "]" --| $$ ":" -- parse_formula
-       >> (fn ((q, ts), phi) => AQuant (q, map fo_term_head ts, phi))
+       >> (fn ((q, ts), phi) =>
+              (* FIXME: TFF *)
+              AQuant (q, map (rpair NONE o fo_term_head) ts, phi))
     || $$ "~" |-- parse_formula >> mk_anot
     || parse_atom)
    -- Scan.option ((Scan.this_string "=>" >> K AImplies
