@@ -495,20 +495,21 @@ fun run_atp auto name
                   extract_tstplike_proof_and_outcome debug verbose complete
                       res_code proof_delims known_failures output
                   |>> atp_proof_from_tstplike_proof
-                val (conjecture_shape, fact_names) =
+                val (conjecture_shape, facts_offset, fact_names) =
                   if is_none outcome then
                     repair_conjecture_shape_and_fact_names output
-                        conjecture_shape fact_names
+                        conjecture_shape facts_offset fact_names
                   else
-                    (conjecture_shape, fact_names) (* don't bother repairing *)
+                    (* don't bother repairing *)
+                    (conjecture_shape, facts_offset, fact_names)
                 val outcome =
                   case outcome of
-                    NONE => if level_of_type_sys type_sys <> Sound andalso
-                               is_unsound_proof conjecture_shape facts_offset
-                                                fact_names atp_proof then
-                              SOME UnsoundProof
-                            else
-                              NONE
+                    NONE =>
+                    if is_unsound_proof conjecture_shape facts_offset fact_names
+                                        atp_proof then
+                      SOME (UnsoundProof (level_of_type_sys type_sys = Sound))
+                    else
+                      NONE
                   | SOME Unprovable =>
                     if null blacklist then outcome
                     else SOME IncompleteUnprovable
@@ -534,7 +535,7 @@ fun run_atp auto name
               | maybe_run_slice _ _ result = result
             fun maybe_blacklist_facts_and_retry iter blacklist
                     (result as ((_, _, facts_offset, fact_names),
-                                (_, _, atp_proof, SOME UnsoundProof))) =
+                                (_, _, atp_proof, SOME (UnsoundProof false)))) =
                 (case used_facts_in_atp_proof facts_offset fact_names
                                               atp_proof of
                    [] => result

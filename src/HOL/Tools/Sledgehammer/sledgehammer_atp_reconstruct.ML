@@ -20,8 +20,8 @@ sig
   type text_result = string * (string * locality) list
 
   val repair_conjecture_shape_and_fact_names :
-    string -> int list list -> (string * locality) list vector
-    -> int list list * (string * locality) list vector
+    string -> int list list -> int -> (string * locality) list vector
+    -> int list list * int * (string * locality) list vector
   val used_facts_in_atp_proof :
     int -> (string * locality) list vector -> string proof
     -> (string * locality) list
@@ -78,8 +78,7 @@ val set_ClauseFormulaRelationN = "set_ClauseFormulaRelation"
 fun extract_clause_sequence output =
   let
     val tokens_of = String.tokens (not o Char.isAlphaNum)
-    fun extract_num ("clause" :: (ss as _ :: _)) =
-    Int.fromString (List.last ss)
+    fun extract_num ("clause" :: (ss as _ :: _)) = Int.fromString (List.last ss)
       | extract_num _ = NONE
   in output |> split_lines |> map_filter (extract_num o tokens_of) end
 
@@ -98,7 +97,8 @@ val extract_clause_formula_relation =
 
 val unprefix_fact_number = space_implode "_" o tl o space_explode "_"
 
-fun repair_conjecture_shape_and_fact_names output conjecture_shape fact_names =
+fun repair_conjecture_shape_and_fact_names output conjecture_shape fact_offset
+                                           fact_names =
   if String.isSubstring set_ClauseFormulaRelationN output then
     let
       val j0 = hd (hd conjecture_shape)
@@ -117,11 +117,11 @@ fun repair_conjecture_shape_and_fact_names output conjecture_shape fact_names =
                      handle Option.Option =>
                             error ("No such fact: " ^ quote name ^ "."))
     in
-      (conjecture_shape |> map (maps renumber_conjecture),
+      (conjecture_shape |> map (maps renumber_conjecture), 0,
        seq |> map names_for_number |> Vector.fromList)
     end
   else
-    (conjecture_shape, fact_names)
+    (conjecture_shape, fact_offset, fact_names)
 
 val vampire_step_prefix = "f" (* grrr... *)
 

@@ -12,10 +12,24 @@ sig
   type ('a, 'b, 'c) formula = ('a, 'b, 'c) ATP_Problem.formula
 
   datatype failure =
-    Unprovable | IncompleteUnprovable | ProofMissing | UnsoundProof |
-    CantConnect | TimedOut | OutOfResources | SpassTooOld | VampireTooOld |
-    NoPerl | NoLibwwwPerl | NoRealZ3 | MalformedInput | MalformedOutput |
-    Interrupted | Crashed | InternalError | UnknownError of string
+    Unprovable |
+    IncompleteUnprovable |
+    ProofMissing |
+    UnsoundProof of bool |
+    CantConnect |
+    TimedOut |
+    OutOfResources |
+    SpassTooOld |
+    VampireTooOld |
+    NoPerl |
+    NoLibwwwPerl |
+    NoRealZ3 |
+    MalformedInput |
+    MalformedOutput |
+    Interrupted |
+    Crashed |
+    InternalError |
+    UnknownError of string
 
   type step_name = string * string option
 
@@ -47,10 +61,24 @@ struct
 open ATP_Problem
 
 datatype failure =
-  Unprovable | IncompleteUnprovable | ProofMissing | UnsoundProof |
-  CantConnect | TimedOut | OutOfResources | SpassTooOld | VampireTooOld |
-  NoPerl | NoLibwwwPerl | NoRealZ3 | MalformedInput | MalformedOutput |
-  Interrupted | Crashed | InternalError | UnknownError of string
+  Unprovable |
+  IncompleteUnprovable |
+  ProofMissing |
+  UnsoundProof of bool |
+  CantConnect |
+  TimedOut |
+  OutOfResources |
+  SpassTooOld |
+  VampireTooOld |
+  NoPerl |
+  NoLibwwwPerl |
+  NoRealZ3 |
+  MalformedInput |
+  MalformedOutput |
+  Interrupted |
+  Crashed |
+  InternalError |
+  UnknownError of string
 
 fun strip_spaces_in_list _ [] = []
   | strip_spaces_in_list _ [c1] = if Char.isSpace c1 then [] else [str c1]
@@ -95,9 +123,14 @@ fun string_for_failure Unprovable =
     "The prover gave up."
   | string_for_failure ProofMissing =
     "The prover claims the conjecture is a theorem but did not provide a proof."
-  | string_for_failure UnsoundProof =
-    "The prover found a type-unsound proof. (Or, very unlikely, your axioms \
-    \are inconsistent.)"
+  | string_for_failure (UnsoundProof false) =
+    "The prover found a type-unsound proof (or, very unlikely, your axioms \
+    \are inconsistent). Try passing the \"full_types\" option to Sledgehammer \
+    \to avoid such spurious proofs."
+  | string_for_failure (UnsoundProof true) =
+    "The prover found a type-unsound proof even though a supposedly type-sound \
+    \encoding was used (or, very unlikely, your axioms are inconsistent). You \
+    \might want to report this to the Isabelle developers."
   | string_for_failure CantConnect = "Cannot connect to remote server."
   | string_for_failure TimedOut = "Timed out."
   | string_for_failure OutOfResources = "The prover ran out of resources."
