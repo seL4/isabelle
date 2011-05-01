@@ -781,7 +781,7 @@ fun n_ary_strip_type 0 T = ([], T)
     n_ary_strip_type (n - 1) ran_T |>> cons dom_T
   | n_ary_strip_type _ _ = raise Fail "unexpected non-function"
 
-fun problem_line_for_sym_decl ctxt type_sys s n j
+fun problem_line_for_sym_decl ctxt type_sys need_bound_types s j
                               (s', T_args, T, pred_sym, ary) =
   if type_sys = Many_Typed then
     let val (arg_Ts, res_T) = n_ary_strip_type ary T in
@@ -796,7 +796,7 @@ fun problem_line_for_sym_decl ctxt type_sys s n j
         1 upto length arg_Ts |> map (`I o make_bound_var o string_of_int)
       val bound_tms =
         bound_names ~~ arg_Ts |> map (fn (name, T) => CombConst (name, T, []))
-      val bound_Ts = arg_Ts |> map (if n > 1 then SOME else K NONE)
+      val bound_Ts = arg_Ts |> map (if need_bound_types then SOME else K NONE)
       val freshener =
         case type_sys of Args _ => string_of_int j ^ "_" | _ => ""
     in
@@ -809,8 +809,18 @@ fun problem_line_for_sym_decl ctxt type_sys s n j
                NONE, NONE)
     end
 fun problem_lines_for_sym_decls ctxt type_sys (s, decls) =
-  let val n = length decls in
-    map2 (problem_line_for_sym_decl ctxt type_sys s n) (0 upto n - 1) decls
+  let
+    val n = length decls
+    fun result_type_of_decl (_, _, T, _, ary) = n_ary_strip_type ary T |> snd
+    val need_bound_types =
+      case decls of
+        decl :: (decls as _ :: _) =>
+        exists (curry (op <>) (result_type_of_decl decl)
+                o result_type_of_decl) decls
+      | _ => false
+  in
+    map2 (problem_line_for_sym_decl ctxt type_sys need_bound_types s)
+         (0 upto n - 1) decls
   end
 fun problem_lines_for_sym_decl_table ctxt type_sys sym_decl_tab =
   Symtab.fold_rev (append o problem_lines_for_sym_decls ctxt type_sys)
