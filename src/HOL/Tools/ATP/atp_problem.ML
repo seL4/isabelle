@@ -176,11 +176,17 @@ fun readable_name full_name s =
   else
     s |> no_qualifiers
       |> Name.desymbolize (Char.isUpper (String.sub (full_name, 0)))
-      |> (fn s => if size s > max_readable_name_length then
-                    String.substring (s, 0, max_readable_name_length) ^ "_" ^
-                    Word.toString (hashw_string (full_name, 0w0))
-                  else
-                    s)
+         (* SNARK doesn't like sort (type) names that end with digits. We make
+            an effort to avoid this here. *)
+      |> (fn s => if Char.isDigit (String.sub (s, size s - 1)) then s ^ "_"
+                  else s)
+      |> (fn s =>
+             if size s > max_readable_name_length then
+               String.substring (s, 0, max_readable_name_length div 2 - 4) ^
+               Word.toString (hashw_string (full_name, 0w0)) ^
+               String.extract (s, max_readable_name_length div 2 - 4, NONE)
+             else
+               s)
       |> (fn s => if member (op =) reserved_nice_names s then full_name else s)
 
 fun nice_name (full_name, _) NONE = (full_name, NONE)
