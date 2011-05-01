@@ -332,7 +332,7 @@ fun get_helper_facts ctxt type_sys formulas =
          fun var s = ATerm (`I s, [])
          fun tag tm = ATerm (`I type_tag_name, [var "X", tm])
        in
-         [Formula (helper_prefix ^ ascii_of "ti_ti", Axiom,
+         [Formula (Fof, helper_prefix ^ ascii_of "ti_ti", Axiom,
                    AAtom (ATerm (`I "equal",
                                  [tag (tag (var "Y")), tag (var "Y")]))
                    |> close_formula_universally, NONE, NONE)]
@@ -549,18 +549,22 @@ fun formula_for_fact ctxt type_sys
            (formula_for_combformula ctxt type_sys
                                     (close_combformula_universally combformula))
 
+fun logic_for_type_sys Many_Typed = Tff
+  | logic_for_type_sys _ = Fof
+
 (* Each fact is given a unique fact number to avoid name clashes (e.g., because
    of monomorphization). The TPTP explicitly forbids name clashes, and some of
    the remote provers might care. *)
 fun problem_line_for_fact ctxt prefix type_sys
                           (j, formula as {name, kind, ...}) =
-  Formula (prefix ^ string_of_int j ^ "_" ^ ascii_of name,
-           kind, formula_for_fact ctxt type_sys formula, NONE, NONE)
+  Formula (logic_for_type_sys type_sys,
+           prefix ^ string_of_int j ^ "_" ^ ascii_of name, kind,
+           formula_for_fact ctxt type_sys formula, NONE, NONE)
 
 fun problem_line_for_class_rel_clause (ClassRelClause {name, subclass,
                                                        superclass, ...}) =
   let val ty_arg = ATerm (("T", "T"), []) in
-    Formula (class_rel_clause_prefix ^ ascii_of name, Axiom,
+    Formula (Fof, class_rel_clause_prefix ^ ascii_of name, Axiom,
              AConn (AImplies, [AAtom (ATerm (subclass, [ty_arg])),
                                AAtom (ATerm (superclass, [ty_arg]))]),
              NONE, NONE)
@@ -573,7 +577,7 @@ fun fo_literal_for_arity_literal (TConsLit (c, t, args)) =
 
 fun problem_line_for_arity_clause (ArityClause {name, conclLit, premLits,
                                                 ...}) =
-  Formula (arity_clause_prefix ^ ascii_of name, Axiom,
+  Formula (Fof, arity_clause_prefix ^ ascii_of name, Axiom,
            mk_ahorn (map (formula_for_fo_literal o apfst not
                           o fo_literal_for_arity_literal) premLits)
                     (formula_for_fo_literal
@@ -581,7 +585,7 @@ fun problem_line_for_arity_clause (ArityClause {name, conclLit, premLits,
 
 fun problem_line_for_conjecture ctxt type_sys
         ({name, kind, combformula, ...} : translated_formula) =
-  Formula (conjecture_prefix ^ name, kind,
+  Formula (logic_for_type_sys type_sys, conjecture_prefix ^ name, kind,
            formula_for_combformula ctxt type_sys
                                    (close_combformula_universally combformula),
            NONE, NONE)
@@ -591,7 +595,7 @@ fun free_type_literals type_sys ({ctypes_sorts, ...} : translated_formula) =
                |> map fo_literal_for_type_literal
 
 fun problem_line_for_free_type j lit =
-  Formula (tfree_prefix ^ string_of_int j, Hypothesis,
+  Formula (Fof, tfree_prefix ^ string_of_int j, Hypothesis,
            formula_for_fo_literal lit, NONE, NONE)
 fun problem_lines_for_free_types type_sys facts =
   let
@@ -619,7 +623,7 @@ fun consider_term_syms top_level (ATerm ((s, _), ts)) =
 val consider_formula_syms = fold_formula (consider_term_syms true)
 
 fun consider_problem_line_syms (Type_Decl _) = I
-  | consider_problem_line_syms (Formula (_, _, phi, _, _)) =
+  | consider_problem_line_syms (Formula (_, _, _, phi, _, _)) =
     consider_formula_syms phi
 fun consider_problem_syms problem =
   fold (fold consider_problem_line_syms o snd) problem
@@ -714,9 +718,9 @@ fun repair_formula thy type_sys sym_tab =
   in aux #> close_formula_universally end
 
 fun repair_problem_line thy type_sys sym_tab
-                        (Formula (ident, kind, phi, source, useful_info)) =
-    Formula (ident, kind, repair_formula thy type_sys sym_tab phi, source,
-             useful_info)
+        (Formula (logic, ident, kind, phi, source, useful_info)) =
+    Formula (logic, ident, kind, repair_formula thy type_sys sym_tab phi,
+             source, useful_info)
   | repair_problem_line _ _ _ _ = raise Fail "unexpected non-formula"
 fun repair_problem thy = map o apsnd o map oo repair_problem_line thy
 
@@ -771,7 +775,7 @@ fun type_decl_line_for_const_entry ctxt type_sys sym_tab s (s', ty_args, ty) =
       val bound_tms =
         map (fn (name, ty) => CombConst (name, the ty, [])) bounds
     in
-      Formula (type_decl_prefix ^ ascii_of s, Axiom,
+      Formula (Fof, type_decl_prefix ^ ascii_of s, Axiom,
                mk_aquant AForall bounds
                          (has_type_combatom res_ty
                               (fold (curry (CombApp o swap)) bound_tms
@@ -815,7 +819,7 @@ fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
     val sym_tab = sym_table_for_problem explicit_apply problem
     val problem = problem |> repair_problem thy type_sys sym_tab
     val helper_facts =
-      problem |> maps (map_filter (fn Formula (_, _, phi, _, _) => SOME phi
+      problem |> maps (map_filter (fn Formula (_, _, _, phi, _, _) => SOME phi
                                     | _ => NONE) o snd)
               |> get_helper_facts ctxt type_sys
     val const_tab = const_table_for_facts type_sys sym_tab (conjs @ facts)
@@ -848,7 +852,7 @@ val fact_max_weight = 1.0
 fun add_term_weights weight (ATerm (s, tms)) =
   (not (is_atp_variable s) andalso s <> "equal") ? Symtab.default (s, weight)
   #> fold (add_term_weights weight) tms
-fun add_problem_line_weights weight (Formula (_, _, phi, _, _)) =
+fun add_problem_line_weights weight (Formula (_, _, _, phi, _, _)) =
     fold_formula (add_term_weights weight) phi
   | add_problem_line_weights _ _ = I
 

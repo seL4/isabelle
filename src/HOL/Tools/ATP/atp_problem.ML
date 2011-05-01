@@ -15,10 +15,11 @@ sig
     AConn of connective * ('a, 'b, 'c) formula list |
     AAtom of 'c
 
+  datatype logic = Fof | Tff
   datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
   datatype 'a problem_line =
     Type_Decl of string * 'a * 'a list * 'a |
-    Formula of string * formula_kind * ('a, 'a, 'a fo_term) formula
+    Formula of logic * string * formula_kind * ('a, 'a, 'a fo_term) formula
                * string fo_term option * string fo_term option
   type 'a problem = (string * 'a problem_line list) list
 
@@ -45,10 +46,11 @@ datatype ('a, 'b, 'c) formula =
   AConn of connective * ('a, 'b, 'c) formula list |
   AAtom of 'c
 
+datatype logic = Fof | Tff
 datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
 datatype 'a problem_line =
   Type_Decl of string * 'a * 'a list * 'a |
-  Formula of string * formula_kind * ('a, 'a, 'a fo_term) formula
+  Formula of logic * string * formula_kind * ('a, 'a, 'a fo_term) formula
              * string fo_term option * string fo_term option
 type 'a problem = (string * 'a problem_line list) list
 
@@ -92,12 +94,6 @@ fun string_for_formula (AQuant (q, xs, phi)) =
                         (map string_for_formula phis) ^ ")"
   | string_for_formula (AAtom tm) = string_for_term tm
 
-fun formula_needs_typed_logic (AQuant (_, xs, phi)) =
-    exists (is_some o snd) xs orelse formula_needs_typed_logic phi
-  | formula_needs_typed_logic (AConn (_, phis)) =
-    exists formula_needs_typed_logic phis
-  | formula_needs_typed_logic (AAtom _) = false
-
 fun string_for_symbol_type [] res_ty = res_ty
   | string_for_symbol_type [arg_ty] res_ty = arg_ty ^ " > " ^ res_ty
   | string_for_symbol_type arg_tys res_ty =
@@ -107,7 +103,7 @@ fun string_for_problem_line _ (Type_Decl (ident, sym, arg_tys, res_ty)) =
     "tff(" ^ ident ^ ", type,\n    " ^ sym ^ " : " ^
     string_for_symbol_type arg_tys res_ty ^ ").\n"
   | string_for_problem_line use_conjecture_for_hypotheses
-                            (Formula (ident, kind, phi, source, useful_info)) =
+        (Formula (logic, ident, kind, phi, source, useful_info)) =
     let
       val (kind, phi) =
         if kind = Hypothesis andalso use_conjecture_for_hypotheses then
@@ -115,7 +111,7 @@ fun string_for_problem_line _ (Type_Decl (ident, sym, arg_tys, res_ty)) =
         else
           (kind, phi)
     in
-      (if formula_needs_typed_logic phi then "tff" else "fof") ^
+      (case logic of Fof => "fof" | Tff => "tff") ^
       "(" ^ ident ^ ", " ^ string_for_kind kind ^ ",\n    (" ^
       string_for_formula phi ^ ")" ^
       (case (source, useful_info) of
@@ -210,9 +206,9 @@ fun nice_problem_line (Type_Decl (ident, sym, arg_tys, res_ty)) =
     ##>> pool_map nice_name arg_tys
     ##>> nice_name res_ty
     #>> (fn ((sym, arg_tys), res_ty) => Type_Decl (ident, sym, arg_tys, res_ty))
-  | nice_problem_line (Formula (ident, kind, phi, source, useful_info)) =
+  | nice_problem_line (Formula (logic, ident, kind, phi, source, useful_info)) =
     nice_formula phi
-    #>> (fn phi => Formula (ident, kind, phi, source, useful_info))
+    #>> (fn phi => Formula (logic, ident, kind, phi, source, useful_info))
 fun nice_problem problem =
   pool_map (fn (heading, lines) =>
                pool_map nice_problem_line lines #>> pair heading) problem
