@@ -340,7 +340,7 @@ fun must_monomorphize Many_Typed = true
 
 fun run_atp auto name
         ({exec, required_execs, arguments, slices, proof_delims, known_failures,
-          use_conjecture_for_hypotheses, ...} : atp_config)
+          hypothesis_kind, ...} : atp_config)
         ({debug, verbose, overlord, type_sys, max_relevant, monomorphize,
           monomorphize_limit, explicit_apply, isar_proof, isar_shrink_factor,
           slicing, timeout, ...} : params)
@@ -348,6 +348,7 @@ fun run_atp auto name
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
+    val format = if type_sys = Many_Typed then Tff else Fof
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal
     val (dest_dir, problem_prefix) =
       if overlord then overlord_file_location_for_prover name
@@ -452,7 +453,7 @@ fun run_atp auto name
                      "exec " ^ core) ^ " 2>&1"
                 val _ =
                   atp_problem
-                  |> tptp_strings_for_atp_problem use_conjecture_for_hypotheses
+                  |> tptp_strings_for_atp_problem hypothesis_kind format
                   |> cons ("% " ^ command ^ "\n")
                   |> File.write_list prob_file
                 val conjecture_shape =

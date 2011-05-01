@@ -156,7 +156,6 @@ fun atp_type_literals_for_types type_sys kind Ts =
        |> filter (fn TyLitVar _ => kind <> Conjecture
                    | TyLitFree _ => kind = Conjecture)
 
-fun mk_anot phi = AConn (ANot, [phi])
 fun mk_aconn c phi1 phi2 = AConn (c, [phi1, phi2])
 fun mk_aconns c phis =
   let val (phis', phi') = split_last phis in
@@ -532,7 +531,7 @@ fun ti_ti_helper_fact () =
     fun var s = ATerm (`I s, [])
     fun tag tm = ATerm (`I type_tag_name, [var "X", tm])
   in
-    Formula (Fof, helper_prefix ^ ascii_of "ti_ti", Axiom,
+    Formula (helper_prefix ^ ascii_of "ti_ti", Axiom,
              AAtom (ATerm (`I "equal", [tag (tag (var "Y")), tag (var "Y")]))
              |> close_formula_universally, NONE, NONE)
   end
@@ -690,22 +689,18 @@ fun formula_for_fact ctxt type_sys
                 (close_combformula_universally combformula))
   |> close_formula_universally
 
-fun logic_for_type_sys Many_Typed = Tff
-  | logic_for_type_sys _ = Fof
-
 (* Each fact is given a unique fact number to avoid name clashes (e.g., because
    of monomorphization). The TPTP explicitly forbids name clashes, and some of
    the remote provers might care. *)
 fun formula_line_for_fact ctxt prefix type_sys
                           (j, formula as {name, kind, ...}) =
-  Formula (logic_for_type_sys type_sys,
-           prefix ^ string_of_int j ^ "_" ^ ascii_of name, kind,
+  Formula (prefix ^ string_of_int j ^ "_" ^ ascii_of name, kind,
            formula_for_fact ctxt type_sys formula, NONE, NONE)
 
 fun formula_line_for_class_rel_clause (ClassRelClause {name, subclass,
                                                        superclass, ...}) =
   let val ty_arg = ATerm (`I "T", []) in
-    Formula (Fof, class_rel_clause_prefix ^ ascii_of name, Axiom,
+    Formula (class_rel_clause_prefix ^ ascii_of name, Axiom,
              AConn (AImplies, [AAtom (ATerm (subclass, [ty_arg])),
                                AAtom (ATerm (superclass, [ty_arg]))])
              |> close_formula_universally, NONE, NONE)
@@ -718,7 +713,7 @@ fun fo_literal_from_arity_literal (TConsLit (c, t, args)) =
 
 fun formula_line_for_arity_clause (ArityClause {name, conclLit, premLits,
                                                 ...}) =
-  Formula (Fof, arity_clause_prefix ^ ascii_of name, Axiom,
+  Formula (arity_clause_prefix ^ ascii_of name, Axiom,
            mk_ahorn (map (formula_from_fo_literal o apfst not
                           o fo_literal_from_arity_literal) premLits)
                     (formula_from_fo_literal
@@ -727,7 +722,7 @@ fun formula_line_for_arity_clause (ArityClause {name, conclLit, premLits,
 
 fun formula_line_for_conjecture ctxt type_sys
         ({name, kind, combformula, ...} : translated_formula) =
-  Formula (logic_for_type_sys type_sys, conjecture_prefix ^ name, kind,
+  Formula (conjecture_prefix ^ name, kind,
            formula_from_combformula ctxt type_sys
                                     (close_combformula_universally combformula)
            |> close_formula_universally, NONE, NONE)
@@ -737,7 +732,7 @@ fun free_type_literals type_sys ({atomic_types, ...} : translated_formula) =
                |> map fo_literal_from_type_literal
 
 fun formula_line_for_free_type j lit =
-  Formula (Fof, tfree_prefix ^ string_of_int j, Hypothesis,
+  Formula (tfree_prefix ^ string_of_int j, Hypothesis,
            formula_from_fo_literal lit, NONE, NONE)
 fun formula_lines_for_free_types type_sys facts =
   let
@@ -803,7 +798,7 @@ fun problem_line_for_sym_decl ctxt type_sys need_bound_types s j
       val freshener =
         case type_sys of Args _ => string_of_int j ^ "_" | _ => ""
     in
-      Formula (Fof, sym_decl_prefix ^ freshener ^ "_" ^ ascii_of s, Axiom,
+      Formula (sym_decl_prefix ^ freshener ^ "_" ^ ascii_of s, Axiom,
                CombConst ((s, s'), T, T_args)
                |> fold (curry (CombApp o swap)) bound_tms
                |> type_pred_combatom type_sys res_T
@@ -837,7 +832,7 @@ fun add_tff_types_in_formula (AQuant (_, xs, phi)) =
 
 fun add_tff_types_in_problem_line (Decl (_, _, arg_Ts, res_T)) =
     union (op =) (res_T :: arg_Ts)
-  | add_tff_types_in_problem_line (Formula (_, _, _, phi, _, _)) =
+  | add_tff_types_in_problem_line (Formula (_, _, phi, _, _)) =
     add_tff_types_in_formula phi
 
 fun tff_types_in_problem problem =
@@ -914,7 +909,7 @@ val fact_max_weight = 1.0
 fun add_term_weights weight (ATerm (s, tms)) =
   (not (is_atp_variable s) andalso s <> "equal") ? Symtab.default (s, weight)
   #> fold (add_term_weights weight) tms
-fun add_problem_line_weights weight (Formula (_, _, _, phi, _, _)) =
+fun add_problem_line_weights weight (Formula (_, _, phi, _, _)) =
     formula_fold (add_term_weights weight) phi
   | add_problem_line_weights _ _ = I
 
