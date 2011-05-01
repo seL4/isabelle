@@ -138,7 +138,7 @@ fun default_max_relevant_for_prover ctxt slicing name =
       SMT_Solver.default_max_relevant ctxt name
     else
       fold (Integer.max o snd o snd o snd)
-           (get_slices slicing (#slices (get_atp thy name) ())) 0
+           (get_slices slicing (#best_slices (get_atp thy name) ())) 0
   end
 
 (* These are either simplified away by "Meson.presimplify" (most of the time) or
@@ -339,8 +339,8 @@ fun must_monomorphize Many_Typed = true
   | must_monomorphize _ = false
 
 fun run_atp auto name
-        ({exec, required_execs, arguments, slices, proof_delims, known_failures,
-          hypothesis_kind, ...} : atp_config)
+        ({exec, required_execs, arguments, proof_delims, known_failures,
+          hypothesis_kind, best_slices, ...} : atp_config)
         ({debug, verbose, overlord, type_sys, max_relevant, monomorphize,
           monomorphize_limit, explicit_apply, isar_proof, isar_shrink_factor,
           slicing, timeout, ...} : params)
@@ -385,7 +385,7 @@ fun run_atp auto name
           let
             (* If slicing is disabled, we expand the last slice to fill the
                entire time available. *)
-            val actual_slices = get_slices slicing (slices ())
+            val actual_slices = get_slices slicing (best_slices ())
             val num_actual_slices = length actual_slices
             fun monomorphize_facts facts =
               let

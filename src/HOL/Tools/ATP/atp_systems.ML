@@ -11,15 +11,23 @@ sig
   type formula_kind = ATP_Problem.formula_kind
   type failure = ATP_Proof.failure
 
+  datatype type_level = Level_All | Level_Some | Level_None
+  datatype type_system =
+    Many_Typed |
+    Mangled of type_level |
+    Args of bool * type_level |
+    Tags of bool * type_level
+
   type atp_config =
-    {exec: string * string,
-     required_execs: (string * string) list,
-     arguments: int -> Time.time -> (unit -> (string * real) list) -> string,
-     slices: unit -> (real * (bool * int)) list,
-     proof_delims: (string * string) list,
-     known_failures: (failure * string) list,
-     hypothesis_kind: formula_kind,
-     formats: format list}
+    {exec : string * string,
+     required_execs : (string * string) list,
+     arguments : int -> Time.time -> (unit -> (string * real) list) -> string,
+     proof_delims : (string * string) list,
+     known_failures : (failure * string) list,
+     hypothesis_kind : formula_kind,
+     formats : format list,
+     best_slices : unit -> (real * (bool * int)) list,
+     best_type_systems : type_system list}
 
   datatype e_weight_method =
     E_Slices | E_Auto | E_Fun_Weight | E_Sym_Offset_Weight
@@ -43,8 +51,8 @@ sig
   val remote_prefix : string
   val remote_atp :
     string -> string -> string list -> (string * string) list
-    -> (failure * string) list -> (unit -> int) -> formula_kind -> format list
-    -> string * atp_config
+    -> (failure * string) list -> formula_kind -> format list -> (unit -> int)
+    -> type_system list -> string * atp_config
   val add_atp : string * atp_config -> theory -> theory
   val get_atp : theory -> string -> atp_config
   val supported_atps : theory -> string list
@@ -61,15 +69,23 @@ open ATP_Proof
 
 (* ATP configuration *)
 
+datatype type_level = Level_All | Level_Some | Level_None
+datatype type_system =
+  Many_Typed |
+  Mangled of type_level |
+  Args of bool * type_level |
+  Tags of bool * type_level
+
 type atp_config =
-  {exec: string * string,
-   required_execs: (string * string) list,
-   arguments: int -> Time.time -> (unit -> (string * real) list) -> string,
-   slices: unit -> (real * (bool * int)) list,
-   proof_delims: (string * string) list,
-   known_failures: (failure * string) list,
-   hypothesis_kind: formula_kind,
-   formats: format list}
+  {exec : string * string,
+   required_execs : (string * string) list,
+   arguments : int -> Time.time -> (unit -> (string * real) list) -> string,
+   proof_delims : (string * string) list,
+   known_failures : (failure * string) list,
+   hypothesis_kind : formula_kind,
+   formats : format list,
+   best_slices : unit -> (real * (bool * int)) list,
+   best_type_systems : type_system list}
 
 val known_perl_failures =
   [(CantConnect, "HTTP error"),
@@ -177,13 +193,6 @@ val e_config : atp_config =
      e_weight_arguments (method_for_slice slice) weights ^
      " -tAutoDev --silent --cpu-limit=" ^
      string_of_int (to_secs (e_bonus ()) timeout),
-   slices = fn () =>
-     if effective_e_weight_method () = E_Slices then
-       [(0.33333, (true, 100 (* FUDGE *))) (* E_Sym_Offset_Weight *),
-        (0.33333, (true, 1000 (* FUDGE *))) (* E_Auto *),
-        (0.33334, (true, 200 (* FUDGE *))) (* E_Fun_Weight *)]
-     else
-       [(1.0, (true, 250 (* FUDGE *)))],
    proof_delims = [tstp_proof_delims],
    known_failures =
      [(Unprovable, "SZS status: CounterSatisfiable"),
@@ -195,7 +204,15 @@ val e_config : atp_config =
       (OutOfResources, "SZS status: ResourceOut"),
       (OutOfResources, "SZS status ResourceOut")],
    hypothesis_kind = Conjecture,
-   formats = [Fof]}
+   formats = [Fof],
+   best_slices = fn () =>
+     if effective_e_weight_method () = E_Slices then
+       [(0.33333, (true, 100 (* FUDGE *))) (* E_Sym_Offset_Weight *),
+        (0.33333, (true, 1000 (* FUDGE *))) (* E_Auto *),
+        (0.33334, (true, 200 (* FUDGE *))) (* E_Fun_Weight *)]
+     else
+       [(1.0, (true, 250 (* FUDGE *)))],
+   best_type_systems = []}
 
 val e = (eN, e_config)
 
@@ -211,8 +228,6 @@ val spass_config : atp_config =
      ("-Auto -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
       \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_secs 0 timeout))
      |> slice = 0 ? prefix "-SOS=1 ",
-   slices = K [(0.66667, (false, 150 (* FUDGE *))) (* with SOS *),
-               (0.33333, (true, 150 (* FUDGE *))) (* without SOS *)],
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
      known_perl_failures @
@@ -224,7 +239,11 @@ val spass_config : atp_config =
       (SpassTooOld, "tptp2dfg"),
       (InternalError, "Please report this error")],
    hypothesis_kind = Conjecture,
-   formats = [Fof]}
+   formats = [Fof],
+   best_slices =
+     K [(0.66667, (false, 150 (* FUDGE *))) (* with SOS *),
+        (0.33333, (true, 150 (* FUDGE *))) (* without SOS *)],
+   best_type_systems = []}
 
 val spass = (spassN, spass_config)
 
@@ -239,8 +258,6 @@ val vampire_config : atp_config =
      "--mode casc -t " ^ string_of_int (to_secs 0 timeout) ^
      " --thanks \"Andrei and Krystof\" --input_file"
      |> slice = 0 ? prefix "--sos on ",
-   slices = K [(0.66667, (false, 450 (* FUDGE *))) (* with SOS *),
-               (0.33333, (true, 450 (* FUDGE *))) (* without SOS *)],
    proof_delims =
      [("=========== Refutation ==========",
        "======= End of refutation ======="),
@@ -258,7 +275,11 @@ val vampire_config : atp_config =
       (VampireTooOld, "not a valid option"),
       (Interrupted, "Aborted by signal SIGINT")],
    hypothesis_kind = Conjecture,
-   formats = [Fof]}
+   formats = [Fof],
+   best_slices =
+     K [(0.66667, (false, 450 (* FUDGE *))) (* with SOS *),
+        (0.33333, (true, 450 (* FUDGE *))) (* without SOS *)],
+   best_type_systems = []}
 
 val vampire = (vampireN, vampire_config)
 
@@ -270,7 +291,6 @@ val z3_atp_config : atp_config =
    required_execs = [],
    arguments = fn _ => fn timeout => fn _ =>
      "MBQI=true -p -t:" ^ string_of_int (to_secs 0 timeout),
-   slices = K [(1.0, (false, 250 (* FUDGE *)))],
    proof_delims = [],
    known_failures =
      [(Unprovable, "\nsat"),
@@ -279,7 +299,9 @@ val z3_atp_config : atp_config =
       (ProofMissing, "\nunsat"),
       (ProofMissing, "SZS status Unsatisfiable")],
    hypothesis_kind = Hypothesis,
-   formats = [Fof]}
+   formats = [Fof],
+   best_slices = K [(1.0, (false, 250 (* FUDGE *)))],
+   best_type_systems = []}
 
 val z3_atp = (z3_atpN, z3_atp_config)
 
@@ -317,34 +339,38 @@ fun the_system name versions =
 val max_remote_secs = 240 (* give Geoff Sutcliffe's servers a break *)
 
 fun remote_config system_name system_versions proof_delims known_failures
-                  default_max_relevant hypothesis_kind formats : atp_config =
+                  hypothesis_kind formats best_max_relevant best_type_systems
+                  : atp_config =
   {exec = ("ISABELLE_ATP", "scripts/remote_atp"),
    required_execs = [],
    arguments = fn _ => fn timeout => fn _ =>
      " -t " ^ string_of_int (Int.min (max_remote_secs, (to_secs 0 timeout)))
      ^ " -s " ^ the_system system_name system_versions,
-   slices = fn () => [(1.0, (false, default_max_relevant ()))],
    proof_delims = insert (op =) tstp_proof_delims proof_delims,
    known_failures =
      known_failures @ known_perl_failures @
      [(IncompleteUnprovable, "says Unknown"),
       (TimedOut, "says Timeout")],
    hypothesis_kind = hypothesis_kind,
-   formats = formats}
+   formats = formats,
+   best_slices = fn () => [(1.0, (false, best_max_relevant ()))],
+   best_type_systems = best_type_systems}
 
 fun int_average f xs = fold (Integer.add o f) xs 0 div length xs
 
 fun remotify_config system_name system_versions
-                    ({proof_delims, slices, known_failures, hypothesis_kind,
-                      formats, ...} : atp_config) : atp_config =
+                    ({proof_delims, known_failures, hypothesis_kind, formats,
+                      best_slices, best_type_systems, ...} : atp_config)
+                    : atp_config =
   remote_config system_name system_versions proof_delims known_failures
-                (int_average (snd o snd) o slices) hypothesis_kind formats
+                hypothesis_kind formats
+                (int_average (snd o snd) o best_slices) best_type_systems
 
 fun remote_atp name system_name system_versions proof_delims known_failures
-               default_max_relevant hypothesis_kind formats =
+               hypothesis_kind formats best_max_relevant best_type_systems =
   (remote_prefix ^ name,
    remote_config system_name system_versions proof_delims known_failures
-                 default_max_relevant hypothesis_kind formats)
+                 hypothesis_kind formats best_max_relevant best_type_systems)
 fun remotify_atp (name, config) system_name system_versions =
   (remote_prefix ^ name, remotify_config system_name system_versions config)
 
@@ -353,13 +379,14 @@ val remote_vampire = remotify_atp vampire "Vampire" ["0.6", "9.0", "1.0"]
 val remote_z3_atp = remotify_atp z3_atp "Z3" ["2.18"]
 val remote_tofof_e =
   remote_atp tofof_eN "ToFoF" ["0.1"] [] (#known_failures e_config)
-             (K 200 (* FUDGE *)) Conjecture [Tff]
+             Conjecture [Tff] (K 200 (* FUDGE *)) []
 val remote_sine_e =
-  remote_atp sine_eN "SInE" ["0.4"] [] [] (K 500 (* FUDGE *)) Conjecture [Fof]
+  remote_atp sine_eN "SInE" ["0.4"] [] [] Conjecture [Fof] (K 500 (* FUDGE *))
+                     []
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r024"]
-             [("refutation.", "end_refutation.")] [] (K 250 (* FUDGE *))
-             Conjecture [Tff, Fof]
+             [("refutation.", "end_refutation.")] [] Conjecture [Tff, Fof]
+             (K 250 (* FUDGE *)) []
 
 (* Setup *)
 
