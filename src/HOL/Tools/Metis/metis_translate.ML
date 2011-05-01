@@ -673,34 +673,34 @@ fun hol_thm_to_fol is_conjecture ctxt type_lits mode j old_skolems th =
   end;
 
 val metis_helpers =
-  [("c_COMBI", (false, @{thms Meson.COMBI_def})),
-   ("c_COMBK", (false, @{thms Meson.COMBK_def})),
-   ("c_COMBB", (false, @{thms Meson.COMBB_def})),
-   ("c_COMBC", (false, @{thms Meson.COMBC_def})),
-   ("c_COMBS", (false, @{thms Meson.COMBS_def})),
-   ("c_fequal",
+  [("COMBI", (false, @{thms Meson.COMBI_def})),
+   ("COMBK", (false, @{thms Meson.COMBK_def})),
+   ("COMBB", (false, @{thms Meson.COMBB_def})),
+   ("COMBC", (false, @{thms Meson.COMBC_def})),
+   ("COMBS", (false, @{thms Meson.COMBS_def})),
+   ("fequal",
     (false, @{thms fequal_def [THEN Meson.iff_to_disjD, THEN conjunct1]
                    fequal_def [THEN Meson.iff_to_disjD, THEN conjunct2]})),
-   ("c_fFalse", (true, [@{lemma "x = fTrue | x = fFalse"
+   ("fFalse", (true, [@{lemma "x = fTrue | x = fFalse"
                           by (unfold fFalse_def fTrue_def) fast}])),
-   ("c_fFalse", (false, [@{lemma "~ fFalse" by (unfold fFalse_def) fast}])),
-   ("c_fTrue", (true, [@{lemma "x = fTrue | x = fFalse"
+   ("fFalse", (false, [@{lemma "~ fFalse" by (unfold fFalse_def) fast}])),
+   ("fTrue", (true, [@{lemma "x = fTrue | x = fFalse"
                          by (unfold fFalse_def fTrue_def) fast}])),
-   ("c_fTrue", (false, [@{lemma "fTrue" by (unfold fTrue_def) fast}])),
-   ("c_fNot",
+   ("fTrue", (false, [@{lemma "fTrue" by (unfold fTrue_def) fast}])),
+   ("fNot",
     (false, @{thms fNot_def [THEN Meson.iff_to_disjD, THEN conjunct1]
                    fNot_def [THEN Meson.iff_to_disjD, THEN conjunct2]})),
-   ("c_fconj",
+   ("fconj",
     (false, @{lemma "~ P | ~ Q | fconj P Q" "~ fconj P Q | P" "~ fconj P Q | Q"
               by (unfold fconj_def) fast+})),
-   ("c_fdisj",
+   ("fdisj",
     (false, @{lemma "~ P | fdisj P Q" "~ Q | fdisj P Q" "~ fdisj P Q | P | Q"
               by (unfold fdisj_def) fast+})),
-   ("c_fimplies",
+   ("fimplies",
     (false, @{lemma "P | fimplies P Q" "~ Q | fimplies P Q"
                     "~ fimplies P Q | ~ P | Q"
               by (unfold fimplies_def) fast+})),
-   ("c_If", (true, @{thms if_True if_False True_or_False})) (* FIXME *)]
+   ("If", (true, @{thms if_True if_False True_or_False})) (* FIXME *)]
 
 (* ------------------------------------------------------------------------- *)
 (* Logic maps manage the interface between HOL and first-order logic.        *)
@@ -806,7 +806,7 @@ fun prepare_metis_problem mode0 ctxt type_lits cls thss =
                    #> rewrite_rule (map safe_mk_meta_eq fdefs))
             val helper_ths =
               metis_helpers
-              |> filter (is_used o fst)
+              |> filter (is_used o prefix const_prefix o fst)
               |> maps (fn (_, (needs_full_types, thms)) =>
                           if needs_full_types andalso mode <> FT then []
                           else map prepare_helper thms)
