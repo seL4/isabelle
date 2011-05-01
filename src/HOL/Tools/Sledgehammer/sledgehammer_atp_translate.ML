@@ -447,9 +447,9 @@ fun unmangled_const s =
     (hd ss, map unmangled_type (tl ss))
   end
 
-fun fo_term_for_combterm ctxt type_sys =
+fun formula_for_combformula ctxt type_sys =
   let
-    fun aux top_level u =
+    fun do_term top_level u =
       let
         val (head, args) = strip_combterm_comb u
         val (x, ty_args) =
@@ -478,23 +478,20 @@ fun fo_term_for_combterm ctxt type_sys =
                  end)
           | CombVar (name, _) => (name, [])
           | CombApp _ => raise Fail "impossible \"CombApp\""
-        val t =
-          ATerm (x, map fo_term_for_combtyp ty_args @ map (aux false) args)
+        val t = ATerm (x, map fo_term_for_combtyp ty_args @
+                          map (do_term false) args)
         val ty = combtyp_of u
-    in
-      t |> (if should_tag_with_type ctxt type_sys ty then
-              tag_with_type (fo_term_for_combtyp ty)
-            else
-              I)
-    end
-  in aux true end
-
-fun formula_for_combformula ctxt type_sys =
-  let
-    fun aux (AQuant (q, xs, phi)) = AQuant (q, xs, aux phi)
-      | aux (AConn (c, phis)) = AConn (c, map aux phis)
-      | aux (AAtom tm) = AAtom (fo_term_for_combterm ctxt type_sys tm)
-  in aux end
+      in
+        t |> (if should_tag_with_type ctxt type_sys ty then
+                tag_with_type (fo_term_for_combtyp ty)
+              else
+                I)
+      end
+    fun do_formula (AQuant (q, xs, phi)) =
+        AQuant (q, map (apsnd (Option.map (do_term true))) xs, do_formula phi)
+      | do_formula (AConn (c, phis)) = AConn (c, map do_formula phis)
+      | do_formula (AAtom tm) = AAtom (do_term true tm)
+  in do_formula end
 
 fun formula_for_fact ctxt type_sys
                      ({combformula, ctypes_sorts, ...} : translated_formula) =
