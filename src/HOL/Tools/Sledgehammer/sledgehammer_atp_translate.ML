@@ -118,20 +118,28 @@ fun mk_aconn c phi1 phi2 = AConn (c, [phi1, phi2])
 fun mk_ahorn [] phi = phi
   | mk_ahorn (phi :: phis) psi =
     AConn (AImplies, [fold (mk_aconn AAnd) phis phi, psi])
+fun mk_aquant _ [] phi = phi
+  | mk_aquant q xs (phi as AQuant (q', xs', phi')) =
+    if q = q' then AQuant (q, xs @ xs', phi') else AQuant (q, xs, phi)
+  | mk_aquant q xs phi = AQuant (q, xs, phi)
 
-fun close_universally phi =
+fun close_universally atom_vars phi =
   let
-    fun term_vars bounds (ATerm (name as (s, _), tms)) =
-        (is_atp_variable s andalso not (member (op =) bounds name))
-          ? insert (op =) name
-        #> fold (term_vars bounds) tms
     fun formula_vars bounds (AQuant (_, xs, phi)) =
         formula_vars (xs @ bounds) phi
       | formula_vars bounds (AConn (_, phis)) = fold (formula_vars bounds) phis
-      | formula_vars bounds (AAtom tm) = term_vars bounds tm
-  in
-    case formula_vars [] phi [] of [] => phi | xs => AQuant (AForall, xs, phi)
-  end
+      | formula_vars bounds (AAtom tm) =
+        union (op =) (atom_vars tm [] |> subtract (op =) bounds)
+  in mk_aquant AForall (formula_vars [] phi []) phi end
+
+fun combterm_vars (CombApp (ct, cu)) = fold combterm_vars [ct, cu]
+  | combterm_vars (CombConst _) = I
+  | combterm_vars (CombVar (name, _)) = insert (op =) name
+val close_combformula_universally = close_universally combterm_vars
+
+fun term_vars (ATerm (name as (s, _), tms)) =
+  is_atp_variable s ? insert (op =) name #> fold term_vars tms
+val close_formula_universally = close_universally term_vars
 
 fun combformula_for_prop thy eq_as_iff =
   let
@@ -317,7 +325,7 @@ fun get_helper_facts ctxt type_sys formulas =
        in
          [Fof (helper_prefix ^ ascii_of "ti_ti", Axiom,
                AAtom (ATerm (`I "equal", [tag (tag (var "Y")), tag (var "Y")]))
-               |> close_universally, NONE)]
+               |> close_formula_universally, NONE)]
        end
      else
        [])
@@ -500,7 +508,8 @@ fun formula_for_fact ctxt type_sys
                      ({combformula, ctypes_sorts, ...} : translated_formula) =
   mk_ahorn (map (formula_for_fo_literal o fo_literal_for_type_literal)
                 (atp_type_literals_for_types type_sys Axiom ctypes_sorts))
-           (formula_for_combformula ctxt type_sys combformula)
+           (formula_for_combformula ctxt type_sys
+                                    (close_combformula_universally combformula))
 
 (* Each fact is given a unique fact number to avoid name clashes (e.g., because
    of monomorphization). The TPTP explicitly forbids name clashes, and some of
@@ -534,7 +543,9 @@ fun problem_line_for_arity_clause (ArityClause {name, conclLit, premLits,
 fun problem_line_for_conjecture ctxt type_sys
         ({name, kind, combformula, ...} : translated_formula) =
   Fof (conjecture_prefix ^ name, kind,
-       formula_for_combformula ctxt type_sys combformula, NONE)
+       formula_for_combformula ctxt type_sys
+                               (close_combformula_universally combformula),
+       NONE)
 
 fun free_type_literals type_sys ({ctypes_sorts, ...} : translated_formula) =
   ctypes_sorts |> atp_type_literals_for_types type_sys Conjecture
@@ -660,7 +671,7 @@ fun repair_formula thy type_sys sym_tab =
       | aux (AAtom tm) =
         AAtom (tm |> repair_applications_in_term thy type_sys sym_tab
                   |> repair_predicates_in_term pred_sym_tab)
-  in aux #> close_universally end
+  in aux #> close_formula_universally end
 
 fun repair_problem_line thy type_sys sym_tab (Fof (ident, kind, phi, source)) =
   Fof (ident, kind, repair_formula thy type_sys sym_tab phi, source)
@@ -686,8 +697,8 @@ fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
     val thy = Proof_Context.theory_of ctxt
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
       translate_formulas ctxt type_sys hyp_ts concl_t facts
-    (* Reordering these might or might not confuse the proof reconstruction
-       code or the SPASS Flotter hack. *)
+    (* Reordering these might confuse the proof reconstruction code or the SPASS
+       Flotter hack. *)
     val problem =
       [(factsN, map (problem_line_for_fact ctxt fact_prefix type_sys)
                     (0 upto length facts - 1 ~~ facts)),
