@@ -18,7 +18,7 @@ sig
     Mangled |
     No_Types
 
-  val precise_overloaded_args : bool Unsynchronized.ref
+  val risky_overloaded_args : bool Unsynchronized.ref
   val fact_prefix : string
   val conjecture_prefix : string
   val is_type_system_sound : type_system -> bool
@@ -44,7 +44,7 @@ open Sledgehammer_Util
 
 (* FIXME: Remove references once appropriate defaults have been determined
    empirically. *)
-val precise_overloaded_args = Unsynchronized.ref false
+val risky_overloaded_args = Unsynchronized.ref false
 
 val fact_prefix = "fact_"
 val conjecture_prefix = "conj_"
@@ -81,7 +81,7 @@ fun type_system_types_dangerous_types (Tags _) = true
 fun is_overloaded thy s =
   not (s = @{const_name HOL.eq}) andalso
   not (s = @{const_name Metis.fequal}) andalso
-  (not (!precise_overloaded_args) orelse s = @{const_name finite} orelse
+  (not (!risky_overloaded_args) orelse s = @{const_name finite} orelse
    length (Defs.specifications_of (Theory.defs_of thy) s) > 1)
 
 fun needs_type_args thy type_sys s =
@@ -551,7 +551,7 @@ fun problem_lines_for_free_types type_sys facts =
 
 (** "hBOOL" and "hAPP" **)
 
-type const_info = {min_arity: int, max_arity: int, sub_level: bool}
+type sym_info = {min_arity: int, max_arity: int, fun_sym: bool}
 
 fun consider_term top_level (ATerm ((s, _), ts)) =
   (if is_atp_variable s then
@@ -559,11 +559,11 @@ fun consider_term top_level (ATerm ((s, _), ts)) =
    else
      let val n = length ts in
        Symtab.map_default
-           (s, {min_arity = n, max_arity = 0, sub_level = false})
-           (fn {min_arity, max_arity, sub_level} =>
+           (s, {min_arity = n, max_arity = 0, fun_sym = false})
+           (fn {min_arity, max_arity, fun_sym} =>
                {min_arity = Int.min (n, min_arity),
                 max_arity = Int.max (n, max_arity),
-                sub_level = sub_level orelse not top_level})
+                fun_sym = fun_sym orelse not top_level})
      end)
   #> fold (consider_term (top_level andalso s = type_tag_name)) ts
 fun consider_formula (AQuant (_, _, phi)) = consider_formula phi
@@ -574,9 +574,9 @@ fun consider_problem_line (Fof (_, _, phi, _)) = consider_formula phi
 fun consider_problem problem = fold (fold consider_problem_line o snd) problem
 
 (* needed for helper facts if the problem otherwise does not involve equality *)
-val equal_entry = ("equal", {min_arity = 2, max_arity = 2, sub_level = false})
+val equal_entry = ("equal", {min_arity = 2, max_arity = 2, fun_sym = false})
 
-fun const_table_for_problem explicit_apply problem =
+fun sym_table_for_problem explicit_apply problem =
   if explicit_apply then
     NONE
   else
@@ -592,9 +592,9 @@ fun min_arity_of thy type_sys NONE s =
        s' |> unmangled_const |> fst |> invert_const
           |> num_atp_type_args thy type_sys
      | NONE => 0)
-  | min_arity_of _ _ (SOME the_const_tab) s =
-    case Symtab.lookup the_const_tab s of
-      SOME ({min_arity, ...} : const_info) => min_arity
+  | min_arity_of _ _ (SOME sym_tab) s =
+    case Symtab.lookup sym_tab s of
+      SOME ({min_arity, ...} : sym_info) => min_arity
     | NONE => 0
 
 fun full_type_of (ATerm ((s, _), [ty, _])) =
@@ -614,7 +614,7 @@ fun list_hAPP_rev _ t1 [] = t1
       end
     | NONE => list_hAPP_rev NONE t1 (t2 :: ts2)
 
-fun repair_applications_in_term thy type_sys const_tab =
+fun repair_applications_in_term thy type_sys sym_tab =
   let
     fun aux opt_ty (ATerm (name as (s, _), ts)) =
       if s = type_tag_name then
@@ -624,7 +624,7 @@ fun repair_applications_in_term thy type_sys const_tab =
       else
         let
           val ts = map (aux NONE) ts
-          val (ts1, ts2) = chop (min_arity_of thy type_sys const_tab s) ts
+          val (ts1, ts2) = chop (min_arity_of thy type_sys sym_tab s) ts
         in list_hAPP_rev opt_ty (ATerm (name, ts1)) (rev ts2) end
   in aux NONE end
 
@@ -634,37 +634,37 @@ fun boolify t = ATerm (`I "hBOOL", [t])
    literals, or if it appears with different arities (e.g., because of different
    type instantiations). If false, the constant always receives all of its
    arguments and is used as a predicate. *)
-fun is_predicate NONE s =
+fun is_pred_sym NONE s =
     s = "equal" orelse s = "$false" orelse s = "$true" orelse
     String.isPrefix type_const_prefix s orelse String.isPrefix class_prefix s
-  | is_predicate (SOME the_const_tab) s =
-    case Symtab.lookup the_const_tab s of
-      SOME {min_arity, max_arity, sub_level} =>
-      not sub_level andalso min_arity = max_arity
+  | is_pred_sym (SOME sym_tab) s =
+    case Symtab.lookup sym_tab s of
+      SOME {min_arity, max_arity, fun_sym} =>
+      not fun_sym andalso min_arity = max_arity
     | NONE => false
 
-fun repair_predicates_in_term pred_const_tab (t as ATerm ((s, _), ts)) =
+fun repair_predicates_in_term pred_sym_tab (t as ATerm ((s, _), ts)) =
   if s = type_tag_name then
     case ts of
       [_, t' as ATerm ((s', _), _)] =>
-      if is_predicate pred_const_tab s' then t' else boolify t
+      if is_pred_sym pred_sym_tab s' then t' else boolify t
     | _ => raise Fail "malformed type tag"
   else
-    t |> not (is_predicate pred_const_tab s) ? boolify
+    t |> not (is_pred_sym pred_sym_tab s) ? boolify
 
-fun repair_formula thy explicit_forall type_sys const_tab =
+fun repair_formula thy explicit_forall type_sys sym_tab =
   let
-    val pred_const_tab = case type_sys of Tags _ => NONE | _ => const_tab
+    val pred_sym_tab = case type_sys of Tags _ => NONE | _ => sym_tab
     fun aux (AQuant (q, xs, phi)) = AQuant (q, xs, aux phi)
       | aux (AConn (c, phis)) = AConn (c, map aux phis)
       | aux (AAtom tm) =
-        AAtom (tm |> repair_applications_in_term thy type_sys const_tab
-                  |> repair_predicates_in_term pred_const_tab)
+        AAtom (tm |> repair_applications_in_term thy type_sys sym_tab
+                  |> repair_predicates_in_term pred_sym_tab)
   in aux #> explicit_forall ? close_universally end
 
-fun repair_problem_line thy explicit_forall type_sys const_tab
+fun repair_problem_line thy explicit_forall type_sys sym_tab
                         (Fof (ident, kind, phi, source)) =
-  Fof (ident, kind, repair_formula thy explicit_forall type_sys const_tab phi,
+  Fof (ident, kind, repair_formula thy explicit_forall type_sys sym_tab phi,
        source)
 fun repair_problem thy = map o apsnd o map ooo repair_problem_line thy
 
@@ -698,15 +698,14 @@ fun prepare_atp_problem ctxt readable_names explicit_forall type_sys
        (helpersN, []),
        (conjsN, map (problem_line_for_conjecture ctxt type_sys) conjs),
        (free_typesN, problem_lines_for_free_types type_sys (facts @ conjs))]
-    val const_tab = const_table_for_problem explicit_apply problem
-    val problem =
-      problem |> repair_problem thy explicit_forall type_sys const_tab
+    val sym_tab = sym_table_for_problem explicit_apply problem
+    val problem = problem |> repair_problem thy explicit_forall type_sys sym_tab
     val helper_lines =
       get_helper_facts ctxt explicit_forall type_sys
                        (maps (map (#3 o dest_Fof) o snd) problem)
       |>> map (pair 0
                #> problem_line_for_fact ctxt helper_prefix type_sys
-               #> repair_problem_line thy explicit_forall type_sys const_tab)
+               #> repair_problem_line thy explicit_forall type_sys sym_tab)
       |> op @
     val (problem, pool) =
       problem |> AList.update (op =) (helpersN, helper_lines)
