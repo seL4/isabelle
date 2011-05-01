@@ -535,7 +535,7 @@ fun type_pred_combatom type_sys ty tm =
 
 fun formula_for_combformula ctxt type_sys =
   let
-    fun do_term u =
+    fun do_term top_level u =
       let
         val (head, args) = strip_combterm_comb u
         val (x, ty_args) =
@@ -543,10 +543,12 @@ fun formula_for_combformula ctxt type_sys =
             CombConst (name, _, ty_args) => (name, ty_args)
           | CombVar (name, _) => (name, [])
           | CombApp _ => raise Fail "impossible \"CombApp\""
-        val t = ATerm (x, map fo_term_for_combtyp ty_args @ map do_term args)
+        val t = ATerm (x, map fo_term_for_combtyp ty_args @
+                          map (do_term false) args)
         val ty = combtyp_of u
       in
-        t |> (if should_tag_with_type ctxt type_sys ty then
+        t |> (if not top_level andalso
+                 should_tag_with_type ctxt type_sys ty then
                 tag_with_type (fo_term_for_combtyp ty)
               else
                 I)
@@ -569,7 +571,7 @@ fun formula_for_combformula ctxt type_sys =
                            | (s, SOME ty) => do_out_of_bound_type (s, ty)) xs)
                     (do_formula phi))
       | do_formula (AConn (c, phis)) = AConn (c, map do_formula phis)
-      | do_formula (AAtom tm) = AAtom (do_term tm)
+      | do_formula (AAtom tm) = AAtom (do_term true tm)
   in do_formula end
 
 fun formula_for_fact ctxt type_sys
@@ -746,7 +748,7 @@ fun repair_apps_in_combterm thy type_sys sym_tab =
   in aux end
 
 fun repair_combterm thy type_sys sym_tab =
-  (case type_sys of Tags _ => I | _ => repair_pred_syms_in_combterm sym_tab)
+  repair_pred_syms_in_combterm sym_tab
   #> repair_apps_in_combterm thy type_sys sym_tab
   #> repair_combterm_consts type_sys
 val repair_combformula = formula_map ooo repair_combterm
