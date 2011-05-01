@@ -699,9 +699,9 @@ text %mlantiq {*
   \end{matharray}
 
   @{rail "
-  @@{ML_antiquotation let} ((term + @@{keyword \"and\"}) '=' term + @@{keyword \"and\"})
+  @@{ML_antiquotation let} ((term + @'and') '=' term + @'and')
   ;
-  @@{ML_antiquotation note} (thmdef? thmrefs + @@{keyword \"and\"})
+  @@{ML_antiquotation note} (thmdef? thmrefs + @'and')
   "}
 
   \begin{description}

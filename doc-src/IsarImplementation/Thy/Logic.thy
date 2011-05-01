@@ -745,8 +745,8 @@ text %mlantiq {*
   ;
   @@{ML_antiquotation thms} thmrefs
   ;
-  @@{ML_antiquotation lemma} ('(' @@{keyword \"open\"} ')')? ((prop +) + @@{keyword \"and\"}) \\
-    @@{keyword \"by\"} method method?
+  @@{ML_antiquotation lemma} ('(' @'open' ')')? ((prop +) + @'and') \\
+    @'by' method method?
   "}
 
   \begin{description}
