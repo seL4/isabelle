@@ -346,6 +346,8 @@ fun raw_term_from_pred thy type_sys tfrees =
             [typ_u, term_u] =>
             aux (SOME (type_from_fo_term tfrees typ_u)) extra_us term_u
           | _ => raise FO_TERM us
+        else if String.isPrefix type_prefix a then
+          @{const True} (* ignore TFF type information *)
         else case strip_prefix_and_unascii const_prefix a of
           SOME "equal" =>
           let val ts = map (aux NONE []) us in
@@ -362,7 +364,7 @@ fun raw_term_from_pred thy type_sys tfrees =
             else if b = explicit_app_base then
               aux opt_T (nth us 1 :: extra_us) (hd us)
             else if b = type_pred_base then
-              @{const True}
+              @{const True} (* ignore type predicates *)
             else
               let
                 val num_ty_args = num_atp_type_args thy type_sys b

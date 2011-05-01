@@ -24,6 +24,7 @@ sig
   val boolify_base : string
   val explicit_app_base : string
   val type_pred_base : string
+  val type_prefix : string
   val is_type_system_sound : type_system -> bool
   val type_system_types_dangerous_types : type_system -> bool
   val num_atp_type_args : theory -> type_system -> string -> int
