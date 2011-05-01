@@ -484,19 +484,20 @@ fun should_tag_with_type ctxt (Tags full_types) ty =
     full_types orelse is_combtyp_dangerous ctxt ty
   | should_tag_with_type _ _ _ = false
 
-val fname_table =
-  [("c_False", (0, ("c_fFalse", @{const_name Metis.fFalse}))),
-   ("c_True", (0, ("c_fTrue", @{const_name Metis.fTrue}))),
-   ("c_Not", (1, ("c_fNot", @{const_name Metis.fNot}))),
-   ("c_conj", (2, ("c_fconj", @{const_name Metis.fconj}))),
-   ("c_disj", (2, ("c_fdisj", @{const_name Metis.fdisj}))),
-   ("c_implies", (2, ("c_fimplies", @{const_name Metis.fimplies}))),
-   ("equal", (2, ("c_fequal", @{const_name Metis.fequal})))]
+val proxy_table =
+  [("c_False", ("c_fFalse", @{const_name Metis.fFalse})),
+   ("c_True", ("c_fTrue", @{const_name Metis.fTrue})),
+   ("c_Not", ("c_fNot", @{const_name Metis.fNot})),
+   ("c_conj", ("c_fconj", @{const_name Metis.fconj})),
+   ("c_disj", ("c_fdisj", @{const_name Metis.fdisj})),
+   ("c_implies", ("c_fimplies", @{const_name Metis.fimplies})),
+   ("equal", ("c_fequal", @{const_name Metis.fequal}))]
 
 fun repair_combterm_consts type_sys =
   let
-    fun aux (CombApp tmp) = CombApp (pairself aux tmp)
-      | aux (CombConst (name as (s, _), ty, ty_args)) =
+    fun aux top_level (CombApp (tm1, tm2)) =
+        CombApp (aux top_level tm1, aux false tm2)
+      | aux top_level (CombConst (name as (s, _), ty, ty_args)) =
         (case strip_prefix_and_unascii const_prefix s of
            NONE => (name, ty_args)
          | SOME s'' =>
@@ -506,9 +507,20 @@ fun repair_combterm_consts type_sys =
              | Mangled_Types => (mangled_const_name ty_args name, [])
              | Explicit_Type_Args => (name, ty_args)
            end)
+        |> (fn (name as (s, s'), ty_args) =>
+               case AList.lookup (op =) proxy_table s of
+                 SOME proxy_name =>
+                 if top_level then
+                   (case s of
+                      "c_False" => ("$false", s')
+                    | "c_True" => ("$true", s')
+                    | _ => name, [])
+                  else
+                    (proxy_name, ty_args)
+                | NONE => (name, ty_args))
         |> (fn (name, ty_args) => CombConst (name, ty, ty_args))
-      | aux tm = tm
-  in aux end
+      | aux _ tm = tm
+  in aux true end
 
 fun pred_combtyp ty =
   case combtyp_from_typ @{typ "unit => bool"} of
@@ -523,26 +535,15 @@ fun type_pred_combatom type_sys ty tm =
 
 fun formula_for_combformula ctxt type_sys =
   let
-    fun do_term top_level u =
+    fun do_term u =
       let
         val (head, args) = strip_combterm_comb u
         val (x, ty_args) =
           case head of
-            CombConst (name as (s, s'), _, ty_args) =>
-            (case AList.lookup (op =) fname_table s of
-               SOME (n, fname) =>
-               (if top_level andalso length args = n then
-                  case s of
-                    "c_False" => ("$false", s')
-                  | "c_True" => ("$true", s')
-                  | _ => name
-                else
-                  fname, [])
-             | NONE => (name, ty_args))
+            CombConst (name, _, ty_args) => (name, ty_args)
           | CombVar (name, _) => (name, [])
           | CombApp _ => raise Fail "impossible \"CombApp\""
-        val t = ATerm (x, map fo_term_for_combtyp ty_args @
-                          map (do_term false) args)
+        val t = ATerm (x, map fo_term_for_combtyp ty_args @ map do_term args)
         val ty = combtyp_of u
       in
         t |> (if should_tag_with_type ctxt type_sys ty then
@@ -568,7 +569,7 @@ fun formula_for_combformula ctxt type_sys =
                            | (s, SOME ty) => do_out_of_bound_type (s, ty)) xs)
                     (do_formula phi))
       | do_formula (AConn (c, phis)) = AConn (c, map do_formula phis)
-      | do_formula (AAtom tm) = AAtom (do_term true tm)
+      | do_formula (AAtom tm) = AAtom (do_term tm)
   in do_formula end
 
 fun formula_for_fact ctxt type_sys
