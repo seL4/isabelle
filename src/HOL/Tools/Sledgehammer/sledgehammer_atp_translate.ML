@@ -756,10 +756,7 @@ fun strip_and_map_type 0 f T = ([], f T)
 fun problem_line_for_typed_const ctxt type_sys sym_tab s j (s', ty_args, T) =
   let val ary = min_arity_of sym_tab s in
     if type_sys = Many_Typed then
-      let
-        val (arg_Ts, res_T) = strip_and_map_type ary mangled_type_name T
-        val (s, s') = (s, s') |> mangled_const_name ty_args
-      in
+      let val (arg_Ts, res_T) = strip_and_map_type ary mangled_type_name T in
         Decl (sym_decl_prefix ^ ascii_of s, (s, s'), arg_Ts,
               (* ### FIXME: put that in typed_const_tab *)
               if is_pred_sym sym_tab s then `I tff_bool_type else res_T)
@@ -767,11 +764,12 @@ fun problem_line_for_typed_const ctxt type_sys sym_tab s j (s', ty_args, T) =
     else
       let
         val (arg_Ts, res_T) = strip_and_map_type ary I T
-        val bounds =
-          map (`I o make_bound_var o string_of_int) (1 upto length arg_Ts)
-          ~~ map SOME arg_Ts
+        val bound_names =
+          1 upto length arg_Ts |> map (`I o make_bound_var o string_of_int)
         val bound_tms =
-          map (fn (name, T) => CombConst (name, the T, [])) bounds
+          bound_names ~~ arg_Ts |> map (fn (name, T) => CombConst (name, T, []))
+        val bound_Ts =
+          arg_Ts |> map (case type_sys of Mangled _ => K NONE | _ => SOME)
         val freshener =
           case type_sys of Args _ => string_of_int j ^ "_" | _ => ""
       in
@@ -779,7 +777,7 @@ fun problem_line_for_typed_const ctxt type_sys sym_tab s j (s', ty_args, T) =
                  CombConst ((s, s'), T, ty_args)
                  |> fold (curry (CombApp o swap)) bound_tms
                  |> type_pred_combatom type_sys res_T
-                 |> mk_aquant AForall bounds
+                 |> mk_aquant AForall (bound_names ~~ bound_Ts)
                  |> formula_from_combformula ctxt type_sys,
                  NONE, NONE)
       end
