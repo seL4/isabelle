@@ -382,7 +382,6 @@ fun run_atp auto name
       | [] =>
         if File.exists command then
           let
-            val readable_names = debug andalso overlord
             (* If slicing is disabled, we expand the last slice to fill the
                entire time available. *)
             val actual_slices = get_slices slicing (slices ())
@@ -439,8 +438,8 @@ fun run_atp auto name
                     ()
                 val (atp_problem, pool, conjecture_offset, facts_offset,
                      fact_names) =
-                  prepare_atp_problem ctxt readable_names type_sys
-                                      explicit_apply hyp_ts concl_t facts
+                  prepare_atp_problem ctxt type_sys explicit_apply hyp_ts
+                                      concl_t facts
                 fun weights () = atp_problem_weights atp_problem
                 val core =
                   File.shell_path command ^ " " ^

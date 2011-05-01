@@ -359,7 +359,7 @@ fun raw_term_from_pred thy type_sys tfrees =
           end
         | SOME b =>
           let val (b, mangled_us) = b |> unmangled_const |>> invert_const in
-            if b = boolify_base then
+            if b = predicator_base then
               aux (SOME @{typ bool}) [] (hd us)
             else if b = explicit_app_base then
               aux opt_T (nth us 1 :: extra_us) (hd us)

@@ -19,9 +19,10 @@ sig
     Tags of bool |
     No_Types
 
+  val readable_names : bool Unsynchronized.ref
   val fact_prefix : string
   val conjecture_prefix : string
-  val boolify_base : string
+  val predicator_base : string
   val explicit_app_base : string
   val type_pred_base : string
   val tff_type_prefix : string
@@ -33,7 +34,7 @@ sig
     Proof.context -> bool -> (string * 'a) * thm
     -> translated_formula option * ((string * 'a) * thm)
   val prepare_atp_problem :
-    Proof.context -> bool -> type_system -> bool -> term list -> term
+    Proof.context -> type_system -> bool -> term list -> term
     -> (translated_formula option * ((string * 'a) * thm)) list
     -> string problem * string Symtab.table * int * int
        * (string * 'a) list vector
@@ -47,6 +48,10 @@ open ATP_Problem
 open Metis_Translate
 open Sledgehammer_Util
 
+(* Readable names are often much shorter, especially if types are mangled in
+   names. For that reason, they are on by default. *)
+val readable_names = Unsynchronized.ref true
+
 val type_decl_prefix = "type_"
 val sym_decl_prefix = "sym_"
 val fact_prefix = "fact_"
@@ -56,16 +61,18 @@ val class_rel_clause_prefix = "crel_";
 val arity_clause_prefix = "arity_"
 val tfree_prefix = "tfree_"
 
-val boolify_base = "hBOOL"
+val predicator_base = "hBOOL"
 val explicit_app_base = "hAPP"
 val type_pred_base = "is"
 val tff_type_prefix = "ty_"
 
 fun make_tff_type s = tff_type_prefix ^ ascii_of s
 
-(* official TPTP TFF syntax *)
-val tff_type_of_types = "$tType"
-val tff_bool_type = "$o"
+(* official TPTP syntax *)
+val tptp_tff_type_of_types = "$tType"
+val tptp_tff_bool_type = "$o"
+val tptp_false = "$false"
+val tptp_true = "$true"
 
 (* Freshness almost guaranteed! *)
 val sledgehammer_weak_prefix = "Sledgehammer:"
@@ -214,11 +221,31 @@ fun unmangled_const s =
     (hd ss, map unmangled_type (tl ss))
   end
 
+val introduce_proxies =
+  let
+    fun aux top_level (CombApp (tm1, tm2)) =
+        CombApp (aux top_level tm1, aux false tm2)
+      | aux top_level (CombConst (name as (s, s'), ty, ty_args)) =
+        (case AList.lookup (op =) metis_proxies s of
+           SOME proxy_base =>
+           if top_level then
+             (case s of
+                "c_False" => (tptp_false, s')
+              | "c_True" => (tptp_true, s')
+              | _ => name, [])
+            else
+              (proxy_base |>> prefix const_prefix, ty_args)
+          | NONE => (name, ty_args))
+        |> (fn (name, ty_args) => CombConst (name, ty, ty_args))
+      | aux _ tm = tm
+  in aux true end
+
 fun combformula_from_prop thy eq_as_iff =
   let
-    fun do_term bs t ts =
+    fun do_term bs t atomic_types =
       combterm_from_term thy bs (Envir.eta_contract t)
-      |>> AAtom ||> union (op =) ts
+      |>> (introduce_proxies #> AAtom)
+      ||> union (op =) atomic_types
     fun do_quant bs q s T t' =
       let val s = Name.variant (map fst bs) s in
         do_formula ((s, T) :: bs) t'
@@ -443,25 +470,6 @@ fun translate_formulas ctxt type_sys hyp_ts concl_t rich_facts =
     (fact_names |> map single, (conjs, facts, class_rel_clauses, arity_clauses))
   end
 
-val introduce_proxies =
-  let
-    fun aux top_level (CombApp (tm1, tm2)) =
-        CombApp (aux top_level tm1, aux false tm2)
-      | aux top_level (CombConst (name as (s, s'), ty, ty_args)) =
-        (case AList.lookup (op =) metis_proxies s of
-           SOME proxy_base =>
-           if top_level then
-             (case s of
-                "c_False" => ("$false", s')
-              | "c_True" => ("$true", s')
-              | _ => name, [])
-            else
-              (proxy_base |>> prefix const_prefix, ty_args)
-          | NONE => (name, ty_args))
-        |> (fn (name, ty_args) => CombConst (name, ty, ty_args))
-      | aux _ tm = tm
-  in aux true end
-
 fun impose_type_arg_policy type_sys =
   let
     fun aux (CombApp tmp) = CombApp (pairself aux tmp)
@@ -657,20 +665,16 @@ fun add_combterm_to_sym_table explicit_apply =
 
 val add_fact_to_sym_table = fact_lift o formula_fold o add_combterm_to_sym_table
 
-(* The "equal" entry is needed for helper facts if the problem otherwise does
-   not involve equality (FIXME). The "$false" and $"true" entries are needed to
-   ensure that no "hBOOL" is introduced for them. The "hBOOL" entry is needed to
-   ensure that no "hAPP"s are introduced for passing arguments to it. *)
 val default_sym_table_entries =
   [("equal", {pred_sym = true, min_ary = 2, max_ary = 2, typ = NONE}),
-   (make_fixed_const boolify_base,
+   (make_fixed_const predicator_base,
     {pred_sym = true, min_ary = 1, max_ary = 1, typ = NONE})] @
-  (["$false", "$true"]
+  ([tptp_false, tptp_true]
    |> map (rpair {pred_sym = true, min_ary = 0, max_ary = 0, typ = NONE}))
 
 fun sym_table_for_facts explicit_apply facts =
-  Symtab.empty |> fold (add_fact_to_sym_table explicit_apply) facts
-               |> fold Symtab.default default_sym_table_entries
+  Symtab.empty |> fold Symtab.default default_sym_table_entries
+               |> fold (add_fact_to_sym_table explicit_apply) facts
 
 fun min_arity_of sym_tab s =
   case Symtab.lookup sym_tab s of
@@ -679,7 +683,7 @@ fun min_arity_of sym_tab s =
     case strip_prefix_and_unascii const_prefix s of
       SOME s =>
       let val s = s |> unmangled_const_name |> invert_const in
-        if s = boolify_base then 1
+        if s = predicator_base then 1
         else if s = explicit_app_base then 2
         else if s = type_pred_base then 1
         else 0
@@ -695,15 +699,15 @@ fun is_pred_sym sym_tab s =
     SOME {pred_sym, min_ary, max_ary, ...} => pred_sym andalso min_ary = max_ary
   | NONE => false
 
-val boolify_combconst =
-  CombConst (`make_fixed_const boolify_base, @{typ "bool => bool"}, [])
-fun boolify tm = CombApp (boolify_combconst, tm)
+val predicator_combconst =
+  CombConst (`make_fixed_const predicator_base, @{typ "bool => bool"}, [])
+fun predicator tm = CombApp (predicator_combconst, tm)
 
-fun introduce_boolifies_in_combterm sym_tab tm =
+fun introduce_predicators_in_combterm sym_tab tm =
   case strip_combterm_comb tm of
     (CombConst ((s, _), _, _), _) =>
-    if is_pred_sym sym_tab s then tm else boolify tm
-  | _ => boolify tm
+    if is_pred_sym sym_tab s then tm else predicator tm
+  | _ => predicator tm
 
 fun list_app head args = fold (curry (CombApp o swap)) args head
 
@@ -731,8 +735,7 @@ fun introduce_explicit_apps_in_combterm sym_tab =
 
 fun firstorderize_combterm sym_tab =
   introduce_explicit_apps_in_combterm sym_tab
-  #> introduce_boolifies_in_combterm sym_tab
-  #> introduce_proxies
+  #> introduce_predicators_in_combterm sym_tab
 val firstorderize_fact =
   update_combformula o formula_map o firstorderize_combterm
 
@@ -770,7 +773,7 @@ fun problem_line_for_typed_const ctxt type_sys sym_tab s n j (s', ty_args, T) =
       let val (arg_Ts, res_T) = strip_and_map_type ary mangled_type_name T in
         Decl (sym_decl_prefix ^ ascii_of s, (s, s'), arg_Ts,
               (* ### FIXME: put that in typed_const_tab *)
-              if is_pred_sym sym_tab s then `I tff_bool_type else res_T)
+              if is_pred_sym sym_tab s then `I tptp_tff_bool_type else res_T)
       end
     else
       let
@@ -816,7 +819,7 @@ fun tff_types_in_problem problem =
   fold (fold add_tff_types_in_problem_line o snd) problem []
 
 fun decl_line_for_tff_type (s, s') =
-  Decl (type_decl_prefix ^ ascii_of s, (s, s'), [], `I tff_type_of_types)
+  Decl (type_decl_prefix ^ ascii_of s, (s, s'), [], `I tptp_tff_type_of_types)
 
 val type_declsN = "Types"
 val sym_declsN = "Symbol types"
@@ -832,8 +835,7 @@ fun offset_of_heading_in_problem _ [] j = j
     if heading = needle then j
     else offset_of_heading_in_problem needle problem (j + length lines)
 
-fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
-                        concl_t facts =
+fun prepare_atp_problem ctxt type_sys explicit_apply hyp_ts concl_t facts =
   let
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
       translate_formulas ctxt type_sys hyp_ts concl_t facts
@@ -872,7 +874,7 @@ fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
                   map decl_line_for_tff_type (tff_types_in_problem problem))
           else
             I)
-    val (problem, pool) = problem |> nice_atp_problem readable_names
+    val (problem, pool) = problem |> nice_atp_problem (!readable_names)
   in
     (problem,
      case pool of SOME the_pool => snd the_pool | NONE => Symtab.empty,
