@@ -22,23 +22,22 @@ text {*
   These diagnostic commands assist interactive development by printing
   internal logical entities in a human-readable fashion.
 
-  \begin{rail}
-    'typ' modes? type
+  @{rail "
+    @@{command typ} @{syntax modes}? @{syntax type}
     ;
-    'term' modes? term
+    @@{command term} @{syntax modes}? @{syntax term}
     ;
-    'prop' modes? prop
+    @@{command prop} @{syntax modes}? @{syntax prop}
     ;
-    'thm' modes? thmrefs
+    @@{command thm} @{syntax modes}? @{syntax thmrefs}
     ;
-    ( 'prf' | 'full_prf' ) modes? thmrefs?
+    ( @@{command prf} | @@{command full_prf} ) @{syntax modes}? @{syntax thmrefs}?
     ;
-    'pr' modes? nat?
+    @@{command pr} @{syntax modes}? @{syntax nat}?
     ;
 
-    modes: '(' (name + ) ')'
-    ;
-  \end{rail}
+    @{syntax_def modes}: '(' (@{syntax name} + ) ')'
+  "}
 
   \begin{description}
 
@@ -247,20 +246,20 @@ text {* Mixfix annotations specify concrete \emph{inner syntax} of
   theorem statements, locale specifications etc.\ also admit mixfix
   annotations.
 
-  \indexouternonterm{infix}\indexouternonterm{mixfix}\indexouternonterm{structmixfix}
-  \begin{rail}
-    infix: '(' ('infix' | 'infixl' | 'infixr') string nat ')'
+  @{rail "
+    @{syntax_def \"infix\"}: '(' (@'infix' | @'infixl' | @'infixr')
+      @{syntax string} @{syntax nat} ')'
     ;
-    mixfix: infix | '(' string prios? nat? ')' | '(' 'binder' string prios? nat ')'
+    @{syntax_def mixfix}: @{syntax \"infix\"} | '(' @{syntax string} prios? @{syntax nat}? ')' |
+    '(' @'binder' @{syntax string} prios? @{syntax nat} ')'
     ;
-    structmixfix: mixfix | '(' 'structure' ')'
+    @{syntax_def structmixfix}: @{syntax mixfix} | '(' @'structure' ')'
     ;
 
-    prios: '[' (nat + ',') ']'
-    ;
-  \end{rail}
+    prios: '[' (@{syntax nat} + ',') ']'
+  "}
 
-  Here the \railtok{string} specifications refer to the actual mixfix
+  Here the @{syntax string} specifications refer to the actual mixfix
   template, which may include literal text, spacing, blocks, and
   arguments (denoted by ``@{text _}''); the special symbol
   ``@{verbatim "\<index>"}'' (printed as ``@{text "\<index>"}'') represents an index
@@ -367,14 +366,15 @@ text {*
     @{command_def "write"} & : & @{text "proof(state) \<rightarrow> proof(state)"} \\
   \end{matharray}
 
-  \begin{rail}
-    ('type_notation' | 'no_type_notation') target? mode? \\ (nameref mixfix + 'and')
+  @{rail "
+    (@@{command type_notation} | @@{command no_type_notation}) @{syntax target}?
+      @{syntax mode}? \\ (@{syntax nameref} @{syntax mixfix} + @'and')
     ;
-    ('notation' | 'no_notation') target? mode? \\ (nameref structmixfix + 'and')
+    (@@{command notation} | @@{command no_notation}) @{syntax target}? @{syntax mode}? \\
+      (@{syntax nameref} @{syntax structmixfix} + @'and')
     ;
-    'write' mode? (nameref structmixfix + 'and')
-    ;
-  \end{rail}
+    @@{command write} @{syntax mode}? (@{syntax nameref} @{syntax structmixfix} + @'and')
+  "}
 
   \begin{description}
 
@@ -730,19 +730,19 @@ text {*
     @{command_def "no_translations"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
-  \begin{rail}
-    'nonterminal' (name + 'and')
+  @{rail "
+    @@{command nonterminal} (@{syntax name} + @'and')
     ;
-    ('syntax' | 'no_syntax') mode? (constdecl +)
+    (@@{command syntax} | @@{command no_syntax}) @{syntax mode}? (@{syntax constdecl} +)
     ;
-    ('translations' | 'no_translations') (transpat ('==' | '=>' | '<=' | rightleftharpoons | rightharpoonup | leftharpoondown) transpat +)
+    (@@{command translations} | @@{command no_translations})
+      (transpat ('==' | '=>' | '<=' | '\<rightleftharpoons>' | '\<rightharpoonup>' | '\<leftharpoondown>') transpat +)
     ;
 
-    mode: ('(' ( name | 'output' | name 'output' ) ')')
+    mode: ('(' ( @{syntax name} | @'output' | @{syntax name} @'output' ) ')')
     ;
-    transpat: ('(' nameref ')')? string
-    ;
-  \end{rail}
+    transpat: ('(' @{syntax nameref} ')')? @{syntax string}
+  "}
 
   \begin{description}
   
@@ -788,15 +788,15 @@ text {*
     @{command_def "print_ast_translation"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
-  \begin{rail}
-  ( 'parse_ast_translation' | 'parse_translation' | 'print_translation' |
-    'typed_print_translation' | 'print_ast_translation' ) ('(advanced)')? text
-  ;
-  \end{rail}
+  @{rail "
+  ( @@{command parse_ast_translation} | @@{command parse_translation} |
+    @@{command print_translation} | @@{command typed_print_translation} |
+    @@{command print_ast_translation}) ('(' @'advanced' ')')? @{syntax text}
+  "}
 
   Syntax translation functions written in ML admit almost arbitrary
   manipulations of Isabelle's inner syntax.  Any of the above commands
-  have a single \railqtok{text} argument that refers to an ML
+  have a single @{syntax text} argument that refers to an ML
   expression of appropriate type, which are as follows by default:
 
 %FIXME proper antiquotations

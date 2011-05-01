@@ -11,17 +11,16 @@ text {*
     @{command_def (HOL) "typedef"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
-  \begin{rail}
-    'typedef' altname? abstype '=' repset
+  @{rail "
+    @@{command (HOL) typedef} altname? abstype '=' repset
     ;
 
-    altname: '(' (name | 'open' | 'open' name) ')'
+    altname: '(' (@{syntax name} | @'open' | @'open' @{syntax name}) ')'
     ;
-    abstype: typespecsorts mixfix?
+    abstype: @{syntax typespecsorts} @{syntax mixfix}?
     ;
-    repset: term ('morphisms' name name)?
-    ;
-  \end{rail}
+    repset: @{syntax term} (@'morphisms' @{syntax name} @{syntax name})?
+  "}
 
   \begin{description}
 
@@ -68,13 +67,12 @@ section {* Adhoc tuples *}
 
 text {*
   \begin{matharray}{rcl}
-    @{attribute (HOL) split_format}@{text "\<^sup>*"} & : & @{text attribute} \\
+    @{attribute_def (HOL) split_format}@{text "\<^sup>*"} & : & @{text attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    'split_format' '(' 'complete' ')'
-    ;
-  \end{rail}
+  @{rail "
+    @@{attribute (HOL) split_format} ('(' 'complete' ')')?
+  "}
 
   \begin{description}
 
@@ -173,10 +171,9 @@ text {*
     @{command_def (HOL) "record"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
-  \begin{rail}
-    'record' typespecsorts '=' (type '+')? (constdecl +)
-    ;
-  \end{rail}
+  @{rail "
+    @@{command (HOL) record} @{syntax typespecsorts} '=' (@{syntax type} '+')? (@{syntax constdecl} +)
+  "}
 
   \begin{description}
 
@@ -348,16 +345,16 @@ text {*
     @{command_def (HOL) "rep_datatype"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
-  \begin{rail}
-    'datatype' (dtspec + 'and')
+  @{rail "
+    @@{command (HOL) datatype} (dtspec + @'and')
     ;
-    'rep_datatype' ('(' (name +) ')')? (term +)
+    @@{command (HOL) rep_datatype} ('(' (@{syntax name} +) ')')? (@{syntax term} +)
     ;
 
-    dtspec: parname? typespec mixfix? '=' (cons + '|')
+    dtspec: @{syntax parname}? @{syntax typespec} @{syntax mixfix}? '=' (cons + '|')
     ;
-    cons: name ( type * ) mixfix?
-  \end{rail}
+    cons: @{syntax name} (@{syntax type} * ) @{syntax mixfix}?
+  "}
 
   \begin{description}
 
@@ -391,10 +388,10 @@ text {*
     @{command_def (HOL) "enriched_type"} & : & @{text "local_theory \<rightarrow> proof(prove)"}
   \end{matharray}
 
-  \begin{rail}
-    'enriched_type' (prefix ':')? term
+  @{rail "
+    @@{command (HOL) enriched_type} (prefix ':')? @{syntax term}
     ;
-  \end{rail}
+  "} % FIXME check prefix
 
   \begin{description}
 
@@ -437,17 +434,19 @@ text {*
     @{command_def (HOL) "termination"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
-  \begin{rail}
-    'primrec' target? fixes 'where' equations
+  @{rail "
+    @@{command (HOL) primrec} @{syntax target}? @{syntax \"fixes\"} @'where' equations
     ;
-    ('fun' | 'function') target? functionopts? fixes \\ 'where' equations
+    (@@{command (HOL) fun} | @@{command (HOL) function}) @{syntax target}? functionopts?
+      @{syntax \"fixes\"} \\ @'where' equations
     ;
-    equations: (thmdecl? prop + '|')
+
+    equations: (@{syntax thmdecl}? @{syntax prop} + '|')
     ;
     functionopts: '(' (('sequential' | 'domintros') + ',') ')'
     ;
-    'termination' ( term )?
-  \end{rail}
+    @@{command (HOL) termination} @{syntax term}?
+  "}
 
   \begin{description}
 
@@ -529,15 +528,15 @@ text {*
     @{method_def (HOL) size_change} & : & @{text method} \\
   \end{matharray}
 
-  \begin{rail}
-    'relation' term
+  @{rail "
+    @@{method (HOL) relation} @{syntax term}
     ;
-    'lexicographic_order' ( clasimpmod * )
+    @@{method (HOL) lexicographic_order} (@{syntax clasimpmod} * )
     ;
-    'size_change' ( orders ( clasimpmod * ) )
+    @@{method (HOL) size_change} ( orders (@{syntax clasimpmod} * ) )
     ;
     orders: ( 'max' | 'min' | 'ms' ) *
-  \end{rail}
+  "}
 
   \begin{description}
 
@@ -587,9 +586,10 @@ text {*
     @{attribute_def (HOL) "partial_function_mono"} & : & @{text attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    'partial_function' target? '(' mode ')' fixes \\ 'where' thmdecl? prop
-  \end{rail}
+  @{rail "
+    @@{command (HOL) partial_function} @{syntax target}?
+      '(' mode ')' @{syntax \"fixes\"} \\ @'where' @{syntax thmdecl}? @{syntax prop}
+  "} % FIXME check mode
 
   \begin{description}
 
@@ -657,18 +657,19 @@ text {*
     @{command_def (HOL) "recdef_tc"}@{text "\<^sup>*"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
-  \begin{rail}
-    'recdef' ('(' 'permissive' ')')? \\ name term (prop +) hints?
+  @{rail "
+    @@{command (HOL) recdef} ('(' @'permissive' ')')? \\
+      @{syntax name} @{syntax term} (@{syntax prop} +) hints?
     ;
-    recdeftc thmdecl? tc
+    recdeftc @{syntax thmdecl}? tc
     ;
-    hints: '(' 'hints' ( recdefmod * ) ')'
+    hints: '(' @'hints' ( recdefmod * ) ')'
     ;
-    recdefmod: (('recdef_simp' | 'recdef_cong' | 'recdef_wf') (() | 'add' | 'del') ':' thmrefs) | clasimpmod
+    recdefmod: (('recdef_simp' | 'recdef_cong' | 'recdef_wf')
+      (() | 'add' | 'del') ':' @{syntax thmrefs}) | @{syntax clasimpmod}
     ;
-    tc: nameref ('(' nat ')')?
-    ;
-  \end{rail}
+    tc: @{syntax nameref} ('(' @{syntax nat} ')')?
+  "}
 
   \begin{description}
 
@@ -702,10 +703,10 @@ text {*
     @{attribute_def (HOL) recdef_wf} & : & @{text attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    ('recdef_simp' | 'recdef_cong' | 'recdef_wf') (() | 'add' | 'del')
-    ;
-  \end{rail}
+  @{rail "
+    (@@{attribute (HOL) recdef_simp} | @@{attribute (HOL) recdef_cong} |
+      @@{attribute (HOL) recdef_wf}) (() | 'add' | 'del')
+  "}
 *}
 
 
@@ -742,15 +743,16 @@ text {*
     @{attribute_def (HOL) mono} & : & @{text attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    ('inductive' | 'inductive_set' | 'coinductive' | 'coinductive_set') target? fixes ('for' fixes)? \\
-    ('where' clauses)? ('monos' thmrefs)?
+  @{rail "
+    (@@{command (HOL) inductive} | @@{command (HOL) inductive_set} |
+      @@{command (HOL) coinductive} | @@{command (HOL) coinductive_set})
+    @{syntax target}? @{syntax \"fixes\"} (@'for' @{syntax \"fixes\"})? \\
+    (@'where' clauses)? (@'monos' @{syntax thmrefs})?
     ;
-    clauses: (thmdecl? prop + '|')
+    clauses: (@{syntax thmdecl}? @{syntax prop} + '|')
     ;
-    'mono' (() | 'add' | 'del')
-    ;
-  \end{rail}
+    @@{attribute (HOL) mono} (() | 'add' | 'del')
+  "}
 
   \begin{description}
 
@@ -879,10 +881,9 @@ text {*
     @{method_def (HOL) iprover} & : & @{text method} \\
   \end{matharray}
 
-  \begin{rail}
-    'iprover' ( rulemod * )
-    ;
-  \end{rail}
+  @{rail "
+    @@{method (HOL) iprover} ( @{syntax rulemod} * )
+  "}
 
   The @{method (HOL) iprover} method performs intuitionistic proof
   search, depending on specifically declared rules from the context,
@@ -907,10 +908,9 @@ text {*
     @{method_def (HOL) "coherent"} & : & @{text method} \\
   \end{matharray}
 
-  \begin{rail}
-    'coherent' thmrefs?
-    ;
-  \end{rail}
+  @{rail "
+    @@{method (HOL) coherent} @{syntax thmrefs}?
+  "}
 
   The @{method (HOL) coherent} method solves problems of
   \emph{Coherent Logic} \cite{Bezem-Coquand:2005}, which covers
@@ -934,25 +934,23 @@ text {*
     @{command_def (HOL) "sledgehammer_params"} & : & @{text "theory \<rightarrow> theory"}
   \end{matharray}
 
-  \begin{rail}
-    'solve_direct'
+  @{rail "
+    @@{command (HOL) try} ( ( ( 'simp' | 'intro' | 'elim' | 'dest' ) ':' @{syntax thmrefs} ) + ) ?
+      @{syntax nat}?
+    ;
+    @@{command (HOL) sledgehammer} ( '[' args ']' )? facts? @{syntax nat}?
     ;
 
-    'try' ( ( ( 'simp' | 'intro' | 'elim' | 'dest' ) ':' thmrefs ) + ) ? nat?
+    @@{command (HOL) sledgehammer_params} ( ( '[' args ']' ) ? )
     ;
 
-    'sledgehammer' ( '[' args ']' ) ? facts? nat?
+    args: ( @{syntax name} '=' value + ',' )
     ;
 
-    'sledgehammer_params' ( ( '[' args ']' ) ? )
+    facts: '(' ( ( ( ( 'add' | 'del' ) ':' ) ? @{syntax thmrefs} ) + ) ? ')'
     ;
-
-    args: ( name '=' value + ',' )
-    ;
-
-    facts: '(' ( ( ( ( 'add' | 'del' ) ':' ) ? thmrefs ) + ) ? ')'
-    ;
-  \end{rail}
+  "} % FIXME try: proper clasimpmod!?
+  % FIXME check args "value"
 
   \begin{description}
 
@@ -994,22 +992,24 @@ text {*
     @{command_def (HOL) "nitpick_params"} & : & @{text "theory \<rightarrow> theory"}
   \end{matharray}
 
-  \begin{rail}
-    'value' ( ( '[' name ']' ) ? ) modes? term
+  @{rail "
+    @@{command (HOL) value} ( '[' name ']' )? modes? @{syntax term}
     ;
 
-    ('quickcheck' | 'refute' | 'nitpick')  ( ( '[' args ']' ) ? ) nat?
+    (@@{command (HOL) quickcheck} | @@{command (HOL) refute} | @@{command (HOL) nitpick})
+      ( '[' args ']' )? @{syntax nat}?
     ;
 
-    ('quickcheck_params' | 'refute_params' | 'nitpick_params') ( ( '[' args ']' ) ? )
+    (@@{command (HOL) quickcheck_params} | @@{command (HOL) refute_params} |
+      @@{command (HOL) nitpick_params}) ( '[' args ']' )?
     ;
 
-    modes: '(' (name + ) ')'
+    modes: '(' (@{syntax name} +) ')'
     ;
 
-    args: ( name '=' value + ',' )
+    args: ( @{syntax name} '=' value + ',' )
     ;
-  \end{rail}
+  "} % FIXME check "value"
 
   \begin{description}
 
@@ -1133,19 +1133,18 @@ text {*
     @{command_def (HOL) "inductive_cases"}@{text "\<^sup>*"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   \end{matharray}
 
-  \begin{rail}
-    'case_tac' goalspec? term rule?
+  @{rail "
+    @@{method (HOL) case_tac} @{syntax goalspec}? @{syntax term} rule?
     ;
-    'induct_tac' goalspec? (insts * 'and') rule?
+    @@{method (HOL) induct_tac} @{syntax goalspec}? (@{syntax insts} * @'and') rule?
     ;
-    'ind_cases' (prop +) ('for' (name +)) ?
+    @@{method (HOL) ind_cases} (@{syntax prop}+) (@'for' (@{syntax name}+))?
     ;
-    'inductive_cases' (thmdecl? (prop +) + 'and')
+    @@{command (HOL) inductive_cases} (@{syntax thmdecl}? (@{syntax prop}+) + @'and')
     ;
 
-    rule: ('rule' ':' thmref)
-    ;
-  \end{rail}
+    rule: 'rule' ':' @{syntax thmref}
+  "}
 
   \begin{description}
 
@@ -1220,85 +1219,83 @@ text {*
     @{command_def (HOL) "code_reflect"} & : & @{text "theory \<rightarrow> theory"}
   \end{matharray}
 
-  \begin{rail}
-     'export_code' ( constexpr + ) \\
-       ( ( 'in' target ( 'module_name' string ) ? \\
-        ( 'file' ( string | '-' ) ) ? ( '(' args ')' ) ?) + ) ?
+  @{rail "
+    @@{command (HOL) export_code} ( constexpr + ) \\
+       ( ( @'in' target ( @'module_name' @{syntax string} ) ? \\
+        ( @'file' ( @{syntax string} | '-' ) ) ? ( '(' args ')' ) ?) + ) ?
     ;
 
-    const: term
+    const: @{syntax term}
     ;
 
     constexpr: ( const | 'name._' | '_' )
     ;
 
-    typeconstructor: nameref
+    typeconstructor: @{syntax nameref}
     ;
 
-    class: nameref
+    class: @{syntax nameref}
     ;
 
     target: 'SML' | 'OCaml' | 'Haskell' | 'Scala'
     ;
 
-    'code' ( 'del' | 'abstype' | 'abstract' ) ?
+    @@{attribute (HOL) code} ( 'del' | 'abstype' | 'abstract' )?
     ;
 
-    'code_abort' ( const + )
+    @@{command (HOL) code_abort} ( const + )
     ;
 
-    'code_datatype' ( const + )
+    @@{command (HOL) code_datatype} ( const + )
     ;
 
-    'code_inline' ( 'del' ) ?
+    @@{attribute (HOL) code_inline} ( 'del' ) ?
     ;
 
-    'code_post' ( 'del' ) ?
+    @@{attribute (HOL) code_post} ( 'del' ) ?
     ;
 
-    'code_thms' ( constexpr + ) ?
+    @@{command (HOL) code_thms} ( constexpr + ) ?
     ;
 
-    'code_deps' ( constexpr + ) ?
+    @@{command (HOL) code_deps} ( constexpr + ) ?
     ;
 
-    'code_const' (const + 'and') \\
-      ( ( '(' target ( syntax ? + 'and' ) ')' ) + )
+    @@{command (HOL) code_const} (const + @'and') \\
+      ( ( '(' target ( syntax ? + @'and' ) ')' ) + )
     ;
 
-    'code_type' (typeconstructor + 'and') \\
-      ( ( '(' target ( syntax ? + 'and' ) ')' ) + )
+    @@{command (HOL) code_type} (typeconstructor + @'and') \\
+      ( ( '(' target ( syntax ? + @'and' ) ')' ) + )
     ;
 
-    'code_class' (class + 'and') \\
-      ( ( '(' target \\ ( string ? + 'and' ) ')' ) + )
+    @@{command (HOL) code_class} (class + @'and') \\
+      ( ( '(' target \\ ( @{syntax string} ? + @'and' ) ')' ) + )
     ;
 
-    'code_instance' (( typeconstructor '::' class ) + 'and') \\
-      ( ( '(' target ( '-' ? + 'and' ) ')' ) + )
+    @@{command (HOL) code_instance} (( typeconstructor '::' class ) + @'and') \\
+      ( ( '(' target ( '-' ? + @'and' ) ')' ) + )
     ;
 
-    'code_reserved' target ( string + )
+    @@{command (HOL) code_reserved} target ( @{syntax string} + )
     ;
 
-    'code_monad' const const target
+    @@{command (HOL) code_monad} const const target
     ;
 
-    'code_include' target ( string ( string | '-') )
+    @@{command (HOL) code_include} target ( @{syntax string} ( @{syntax string} | '-') )
     ;
 
-    'code_modulename' target ( ( string string ) + )
+    @@{command (HOL) code_modulename} target ( ( @{syntax string} @{syntax string} ) + )
     ;
 
-    'code_reflect' string \\
-      ( 'datatypes' ( string '=' ( '_' | ( string + '|' ) + 'and' ) ) ) ? \\
-      ( 'functions' ( string + ) ) ? ( 'file' string ) ?
+    @@{command (HOL) code_reflect} @{syntax string} \\
+      ( @'datatypes' ( @{syntax string} '=' ( '_' | ( @{syntax string} + '|' ) + @'and' ) ) ) ? \\
+      ( @'functions' ( @{syntax string} + ) ) ? ( @'file' @{syntax string} ) ?
     ;
 
-    syntax: string | ( 'infix' | 'infixl' | 'infixr' ) nat string
-    ;
-
-  \end{rail}
+    syntax: @{syntax string} | ( @'infix' | @'infixl' | @'infixr' ) @{syntax nat} @{syntax string}
+  "}
 
   \begin{description}
 
@@ -1424,40 +1421,38 @@ text {*
     @{attribute_def (HOL) code} & : & @{text attribute} \\
   \end{matharray}
 
-  \begin{rail}
-  ( 'code_module' | 'code_library' ) modespec ? name ? \\
-    ( 'file' name ) ? ( 'imports' ( name + ) ) ? \\
-    'contains' ( ( name '=' term ) + | term + )
+  @{rail "
+  ( @@{command (HOL) code_module} | @@{command (HOL) code_library} ) modespec? @{syntax name}? \\
+    ( @'file' name ) ? ( @'imports' ( @{syntax name} + ) ) ? \\
+    @'contains' ( ( @{syntax name} '=' @{syntax term} ) + | @{syntax term} + )
   ;
 
-  modespec: '(' ( name * ) ')'
+  modespec: '(' ( @{syntax name} * ) ')'
   ;
 
-  'consts_code' (codespec +)
+  @@{command (HOL) consts_code} (codespec +)
   ;
 
   codespec: const template attachment ?
   ;
 
-  'types_code' (tycodespec +)
+  @@{command (HOL) types_code} (tycodespec +)
   ;
 
-  tycodespec: name template attachment ?
+  tycodespec: @{syntax name} template attachment ?
   ;
 
-  const: term
+  const: @{syntax term}
   ;
 
-  template: '(' string ')'
+  template: '(' @{syntax string} ')'
   ;
 
-  attachment: 'attach' modespec ? verblbrace text verbrbrace
+  attachment: 'attach' modespec? '{' @{syntax text} '}'
   ;
 
-  'code' (name)?
-  ;
-  \end{rail}
-
+  @@{attribute (HOL) code} (name)?
+  "}
 *}
 
 
@@ -1469,11 +1464,12 @@ text {*
     @{command_def (HOL) "ax_specification"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
-  \begin{rail}
-  ('specification' | 'ax_specification') '(' (decl +) ')' \\ (thmdecl? prop +)
+  @{rail "
+  (@@{command (HOL) specification} | @@{command (HOL) ax_specification})
+    '(' (decl +) ')' \\ (@{syntax thmdecl}? @{syntax prop} +)
   ;
-  decl: ((name ':')? term '(' 'overloaded' ')'?)
-  \end{rail}
+  decl: ((@{syntax name} ':')? @{syntax term} '(' @'overloaded' ')'?)
+  "}
 
   \begin{description}
 

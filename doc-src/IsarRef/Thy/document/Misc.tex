@@ -41,24 +41,109 @@
     \indexdef{}{command}{print\_binds}\hypertarget{command.print-binds}{\hyperlink{command.print-binds}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}binds}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-    ('print_theory' | 'print_theorems') ('!'?)
-    ;
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.print-theory}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}theory}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.print-theorems}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}theorems}}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{21}{\isacharbang}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{6}{\isa{}}
+\rail@term{\hyperlink{command.find-theorems}{\mbox{\isa{\isacommand{find{\isaliteral{5F}{\isacharunderscore}}theorems}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@bar
+\rail@nextbar{2}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{2}
+\rail@term{\isa{with{\isaliteral{5F}{\isacharunderscore}}dups}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@cr{4}
+\rail@plus
+\rail@nextplus{5}
+\rail@cnont{\isa{thmcriterion}}[]
+\rail@endplus
+\rail@end
+\rail@begin{7}{\isa{thmcriterion}}
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{2D}{\isacharminus}}}}[]
+\rail@endbar
+\rail@bar
+\rail@term{\isa{name}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nextbar{1}
+\rail@term{\isa{intro}}[]
+\rail@nextbar{2}
+\rail@term{\isa{elim}}[]
+\rail@nextbar{3}
+\rail@term{\isa{dest}}[]
+\rail@nextbar{4}
+\rail@term{\isa{solves}}[]
+\rail@nextbar{5}
+\rail@term{\isa{simp}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@nextbar{6}
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.find-consts}{\mbox{\isa{\isacommand{find{\isaliteral{5F}{\isacharunderscore}}consts}}}}}[]
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\isa{constcriterion}}[]
+\rail@endplus
+\rail@end
+\rail@begin{3}{\isa{constcriterion}}
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{2D}{\isacharminus}}}}[]
+\rail@endbar
+\rail@bar
+\rail@term{\isa{name}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nextbar{1}
+\rail@term{\isa{strict}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
+\rail@nextbar{2}
+\rail@nont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{command.thm-deps}{\mbox{\isa{\isacommand{thm{\isaliteral{5F}{\isacharunderscore}}deps}}}}}[]
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@end
+\rail@begin{3}{\isa{}}
+\rail@term{\hyperlink{command.unused-thms}{\mbox{\isa{\isacommand{unused{\isaliteral{5F}{\isacharunderscore}}thms}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextplus{2}
+\rail@endplus
+\rail@term{\isa{{\isaliteral{2D}{\isacharminus}}}}[]
+\rail@plus
+\rail@nextplus{2}
+\rail@cnont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@endplus
+\rail@endbar
+\rail@end
+\end{railoutput}
 
-    'find_theorems' (('(' (nat)? ('with_dups')? ')')?) (thmcriterion *)
-    ;
-    thmcriterion: ('-'?) ('name' ':' nameref | 'intro' | 'elim' | 'dest' |
-      'solves' | 'simp' ':' term | term)
-    ;
-    'find_consts' (constcriterion *)
-    ;
-    constcriterion: ('-'?) ('name' ':' nameref | 'strict' ':' type | type)
-    ;
-    'thm_deps' thmrefs
-    ;
-    'unused_thms' (('name'+) '-' ('name'*))?
-    ;
-  \end{rail}
 
   These commands print certain parts of the theory and proof context.
   Note that there are some further ones available, such as for the set
@@ -173,10 +258,17 @@
     \indexdef{}{command}{use\_thy}\hypertarget{command.use-thy}{\hyperlink{command.use-thy}{\mbox{\isa{\isacommand{use{\isaliteral{5F}{\isacharunderscore}}thy}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}any\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-    ('cd' | 'use_thy') name
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.cd}{\mbox{\isa{\isacommand{cd}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.use-thy}{\mbox{\isa{\isacommand{use{\isaliteral{5F}{\isacharunderscore}}thy}}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 

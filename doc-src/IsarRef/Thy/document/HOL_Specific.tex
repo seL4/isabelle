@@ -31,17 +31,47 @@
     \indexdef{HOL}{command}{typedef}\hypertarget{command.HOL.typedef}{\hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-    'typedef' altname? abstype '=' repset
-    ;
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{altname}}[]
+\rail@endbar
+\rail@nont{\isa{abstype}}[]
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@nont{\isa{repset}}[]
+\rail@end
+\rail@begin{3}{\isa{altname}}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@bar
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextbar{1}
+\rail@term{\isa{\isakeyword{open}}}[]
+\rail@nextbar{2}
+\rail@term{\isa{\isakeyword{open}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@end
+\rail@begin{2}{\isa{abstype}}
+\rail@nont{\hyperlink{syntax.typespecsorts}{\mbox{\isa{typespecsorts}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{repset}}
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{\isakeyword{morphisms}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
 
-    altname: '(' (name | 'open' | 'open' name) ')'
-    ;
-    abstype: typespecsorts mixfix?
-    ;
-    repset: term ('morphisms' name name)?
-    ;
-  \end{rail}
 
   \begin{description}
 
@@ -89,13 +119,21 @@
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \hyperlink{attribute.HOL.split-format}{\mbox{\isa{split{\isaliteral{5F}{\isacharunderscore}}format}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{attribute} \\
+    \indexdef{HOL}{attribute}{split\_format}\hypertarget{attribute.HOL.split-format}{\hyperlink{attribute.HOL.split-format}{\mbox{\isa{split{\isaliteral{5F}{\isacharunderscore}}format}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    'split_format' '(' 'complete' ')'
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{attribute.HOL.split-format}{\mbox{\isa{split{\isaliteral{5F}{\isacharunderscore}}format}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@term{\isa{complete}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -198,10 +236,23 @@ Isabelle/HOL supports both \emph{fixed} and \emph{schematic} records
     \indexdef{HOL}{command}{record}\hypertarget{command.HOL.record}{\hyperlink{command.HOL.record}{\mbox{\isa{\isacommand{record}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-    'record' typespecsorts '=' (type '+')? (constdecl +)
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.HOL.record}{\mbox{\isa{\isacommand{record}}}}}[]
+\rail@nont{\hyperlink{syntax.typespecsorts}{\mbox{\isa{typespecsorts}}}}[]
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
+\rail@term{\isa{{\isaliteral{2B}{\isacharplus}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nont{\hyperlink{syntax.constdecl}{\mbox{\isa{constdecl}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -358,16 +409,61 @@ The record package proves several results internally, declaring
     \indexdef{HOL}{command}{rep\_datatype}\hypertarget{command.HOL.rep-datatype}{\hyperlink{command.HOL.rep-datatype}{\mbox{\isa{\isacommand{rep{\isaliteral{5F}{\isacharunderscore}}datatype}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-    'datatype' (dtspec + 'and')
-    ;
-    'rep_datatype' ('(' (name +) ')')? (term +)
-    ;
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.HOL.datatype}{\mbox{\isa{\isacommand{datatype}}}}}[]
+\rail@plus
+\rail@nont{\isa{dtspec}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{3}{\isa{}}
+\rail@term{\hyperlink{command.HOL.rep-datatype}{\mbox{\isa{\isacommand{rep{\isaliteral{5F}{\isacharunderscore}}datatype}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextplus{2}
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{dtspec}}
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.parname}{\mbox{\isa{parname}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.typespec}{\mbox{\isa{typespec}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@plus
+\rail@nont{\isa{cons}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{{\isaliteral{7C}{\isacharbar}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{cons}}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
+\rail@endplus
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
 
-    dtspec: parname? typespec mixfix? '=' (cons + '|')
-    ;
-    cons: name ( type * ) mixfix?
-  \end{rail}
 
   \begin{description}
 
@@ -402,10 +498,18 @@ The record package proves several results internally, declaring
     \indexdef{HOL}{command}{enriched\_type}\hypertarget{command.HOL.enriched-type}{\hyperlink{command.HOL.enriched-type}{\mbox{\isa{\isacommand{enriched{\isaliteral{5F}{\isacharunderscore}}type}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}
   \end{matharray}
 
-  \begin{rail}
-    'enriched_type' (prefix ':')? term
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.HOL.enriched-type}{\mbox{\isa{\isacommand{enriched{\isaliteral{5F}{\isacharunderscore}}type}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{prefix}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@end
+\end{railoutput}
+ % FIXME check prefix
 
   \begin{description}
 
@@ -447,17 +551,69 @@ The record package proves several results internally, declaring
     \indexdef{HOL}{command}{termination}\hypertarget{command.HOL.termination}{\hyperlink{command.HOL.termination}{\mbox{\isa{\isacommand{termination}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-    'primrec' target? fixes 'where' equations
-    ;
-    ('fun' | 'function') target? functionopts? fixes \\ 'where' equations
-    ;
-    equations: (thmdecl? prop + '|')
-    ;
-    functionopts: '(' (('sequential' | 'domintros') + ',') ')'
-    ;
-    'termination' ( term )?
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.HOL.primrec}{\mbox{\isa{\isacommand{primrec}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.fixes}{\mbox{\isa{fixes}}}}[]
+\rail@term{\isa{\isakeyword{where}}}[]
+\rail@nont{\isa{equations}}[]
+\rail@end
+\rail@begin{4}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.HOL.fun}{\mbox{\isa{\isacommand{fun}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.HOL.function}{\mbox{\isa{\isacommand{function}}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{functionopts}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.fixes}{\mbox{\isa{fixes}}}}[]
+\rail@cr{3}
+\rail@term{\isa{\isakeyword{where}}}[]
+\rail@nont{\isa{equations}}[]
+\rail@end
+\rail@begin{3}{\isa{equations}}
+\rail@plus
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmdecl}{\mbox{\isa{thmdecl}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
+\rail@nextplus{2}
+\rail@cterm{\isa{{\isaliteral{7C}{\isacharbar}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{3}{\isa{functionopts}}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@plus
+\rail@bar
+\rail@term{\isa{sequential}}[]
+\rail@nextbar{1}
+\rail@term{\isa{domintros}}[]
+\rail@endbar
+\rail@nextplus{2}
+\rail@cterm{\isa{{\isaliteral{2C}{\isacharcomma}}}}[]
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.HOL.termination}{\mbox{\isa{\isacommand{termination}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -539,15 +695,40 @@ The record package proves several results internally, declaring
     \indexdef{HOL}{method}{size\_change}\hypertarget{method.HOL.size-change}{\hyperlink{method.HOL.size-change}{\mbox{\isa{size{\isaliteral{5F}{\isacharunderscore}}change}}}} & : & \isa{method} \\
   \end{matharray}
 
-  \begin{rail}
-    'relation' term
-    ;
-    'lexicographic_order' ( clasimpmod * )
-    ;
-    'size_change' ( orders ( clasimpmod * ) )
-    ;
-    orders: ( 'max' | 'min' | 'ms' ) *
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{method.HOL.relation}{\mbox{\isa{relation}}}}[]
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{method.HOL.lexicographic-order}{\mbox{\isa{lexicographic{\isaliteral{5F}{\isacharunderscore}}order}}}}[]
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.clasimpmod}{\mbox{\isa{clasimpmod}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{method.HOL.size-change}{\mbox{\isa{size{\isaliteral{5F}{\isacharunderscore}}change}}}}[]
+\rail@nont{\isa{orders}}[]
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.clasimpmod}{\mbox{\isa{clasimpmod}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{4}{\isa{orders}}
+\rail@plus
+\rail@nextplus{1}
+\rail@bar
+\rail@term{\isa{max}}[]
+\rail@nextbar{2}
+\rail@term{\isa{min}}[]
+\rail@nextbar{3}
+\rail@term{\isa{ms}}[]
+\rail@endbar
+\rail@endplus
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -599,9 +780,27 @@ The record package proves several results internally, declaring
     \indexdef{HOL}{attribute}{partial\_function\_mono}\hypertarget{attribute.HOL.partial-function-mono}{\hyperlink{attribute.HOL.partial-function-mono}{\mbox{\isa{partial{\isaliteral{5F}{\isacharunderscore}}function{\isaliteral{5F}{\isacharunderscore}}mono}}}} & : & \isa{attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    'partial_function' target? '(' mode ')' fixes \\ 'where' thmdecl? prop
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{5}{\isa{}}
+\rail@term{\hyperlink{command.HOL.partial-function}{\mbox{\isa{\isacommand{partial{\isaliteral{5F}{\isacharunderscore}}function}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@nont{\isa{mode}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@nont{\hyperlink{syntax.fixes}{\mbox{\isa{fixes}}}}[]
+\rail@cr{3}
+\rail@term{\isa{\isakeyword{where}}}[]
+\rail@bar
+\rail@nextbar{4}
+\rail@nont{\hyperlink{syntax.thmdecl}{\mbox{\isa{thmdecl}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
+\rail@end
+\end{railoutput}
+ % FIXME check mode
 
   \begin{description}
 
@@ -666,18 +865,76 @@ The old TFL commands \hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recde
     \indexdef{HOL}{command}{recdef\_tc}\hypertarget{command.HOL.recdef-tc}{\hyperlink{command.HOL.recdef-tc}{\mbox{\isa{\isacommand{recdef{\isaliteral{5F}{\isacharunderscore}}tc}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-    'recdef' ('(' 'permissive' ')')? \\ name term (prop +) hints?
-    ;
-    recdeftc thmdecl? tc
-    ;
-    hints: '(' 'hints' ( recdefmod * ) ')'
-    ;
-    recdefmod: (('recdef_simp' | 'recdef_cong' | 'recdef_wf') (() | 'add' | 'del') ':' thmrefs) | clasimpmod
-    ;
-    tc: nameref ('(' nat ')')?
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{5}{\isa{}}
+\rail@term{\hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recdef}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@term{\isa{\isakeyword{permissive}}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@cr{3}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
+\rail@nextplus{4}
+\rail@endplus
+\rail@bar
+\rail@nextbar{4}
+\rail@nont{\isa{hints}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@nont{\isa{recdeftc}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmdecl}{\mbox{\isa{thmdecl}}}}[]
+\rail@endbar
+\rail@nont{\isa{tc}}[]
+\rail@end
+\rail@begin{2}{\isa{hints}}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@term{\isa{\isakeyword{hints}}}[]
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\isa{recdefmod}}[]
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@end
+\rail@begin{4}{\isa{recdefmod}}
+\rail@bar
+\rail@bar
+\rail@term{\isa{recdef{\isaliteral{5F}{\isacharunderscore}}simp}}[]
+\rail@nextbar{1}
+\rail@term{\isa{recdef{\isaliteral{5F}{\isacharunderscore}}cong}}[]
+\rail@nextbar{2}
+\rail@term{\isa{recdef{\isaliteral{5F}{\isacharunderscore}}wf}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{add}}[]
+\rail@nextbar{2}
+\rail@term{\isa{del}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@nextbar{3}
+\rail@nont{\hyperlink{syntax.clasimpmod}{\mbox{\isa{clasimpmod}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{tc}}
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -710,10 +967,23 @@ The old TFL commands \hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recde
     \indexdef{HOL}{attribute}{recdef\_wf}\hypertarget{attribute.HOL.recdef-wf}{\hyperlink{attribute.HOL.recdef-wf}{\mbox{\isa{recdef{\isaliteral{5F}{\isacharunderscore}}wf}}}} & : & \isa{attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    ('recdef_simp' | 'recdef_cong' | 'recdef_wf') (() | 'add' | 'del')
-    ;
-  \end{rail}%
+  \begin{railoutput}
+\rail@begin{3}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{attribute.HOL.recdef-simp}{\mbox{\isa{recdef{\isaliteral{5F}{\isacharunderscore}}simp}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{attribute.HOL.recdef-cong}{\mbox{\isa{recdef{\isaliteral{5F}{\isacharunderscore}}cong}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{attribute.HOL.recdef-wf}{\mbox{\isa{recdef{\isaliteral{5F}{\isacharunderscore}}wf}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{add}}[]
+\rail@nextbar{2}
+\rail@term{\isa{del}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -752,15 +1022,61 @@ An \textbf{inductive definition} specifies the least predicate (or
     \indexdef{HOL}{attribute}{mono}\hypertarget{attribute.HOL.mono}{\hyperlink{attribute.HOL.mono}{\mbox{\isa{mono}}}} & : & \isa{attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    ('inductive' | 'inductive_set' | 'coinductive' | 'coinductive_set') target? fixes ('for' fixes)? \\
-    ('where' clauses)? ('monos' thmrefs)?
-    ;
-    clauses: (thmdecl? prop + '|')
-    ;
-    'mono' (() | 'add' | 'del')
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{7}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.HOL.inductive}{\mbox{\isa{\isacommand{inductive}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.HOL.inductive-set}{\mbox{\isa{\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}set}}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{command.HOL.coinductive}{\mbox{\isa{\isacommand{coinductive}}}}}[]
+\rail@nextbar{3}
+\rail@term{\hyperlink{command.HOL.coinductive-set}{\mbox{\isa{\isacommand{coinductive{\isaliteral{5F}{\isacharunderscore}}set}}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.fixes}{\mbox{\isa{fixes}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{\isakeyword{for}}}[]
+\rail@nont{\hyperlink{syntax.fixes}{\mbox{\isa{fixes}}}}[]
+\rail@endbar
+\rail@cr{5}
+\rail@bar
+\rail@nextbar{6}
+\rail@term{\isa{\isakeyword{where}}}[]
+\rail@nont{\isa{clauses}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{6}
+\rail@term{\isa{\isakeyword{monos}}}[]
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{3}{\isa{clauses}}
+\rail@plus
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmdecl}{\mbox{\isa{thmdecl}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
+\rail@nextplus{2}
+\rail@cterm{\isa{{\isaliteral{7C}{\isacharbar}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{3}{\isa{}}
+\rail@term{\hyperlink{attribute.HOL.mono}{\mbox{\isa{mono}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{add}}[]
+\rail@nextbar{2}
+\rail@term{\isa{del}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -893,10 +1209,16 @@ Each theory contains a default set of theorems that are used in
     \indexdef{HOL}{method}{iprover}\hypertarget{method.HOL.iprover}{\hyperlink{method.HOL.iprover}{\mbox{\isa{iprover}}}} & : & \isa{method} \\
   \end{matharray}
 
-  \begin{rail}
-    'iprover' ( rulemod * )
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{method.HOL.iprover}{\mbox{\isa{iprover}}}}[]
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.rulemod}{\mbox{\isa{rulemod}}}}[]
+\rail@endplus
+\rail@end
+\end{railoutput}
+
 
   The \hyperlink{method.HOL.iprover}{\mbox{\isa{iprover}}} method performs intuitionistic proof
   search, depending on specifically declared rules from the context,
@@ -923,10 +1245,16 @@ Each theory contains a default set of theorems that are used in
     \indexdef{HOL}{method}{coherent}\hypertarget{method.HOL.coherent}{\hyperlink{method.HOL.coherent}{\mbox{\isa{coherent}}}} & : & \isa{method} \\
   \end{matharray}
 
-  \begin{rail}
-    'coherent' thmrefs?
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{method.HOL.coherent}{\mbox{\isa{coherent}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
 
   The \hyperlink{method.HOL.coherent}{\mbox{\isa{coherent}}} method solves problems of
   \emph{Coherent Logic} \cite{Bezem-Coquand:2005}, which covers
@@ -952,25 +1280,89 @@ In addition to the standard proof methods, a number of diagnosis
     \indexdef{HOL}{command}{sledgehammer\_params}\hypertarget{command.HOL.sledgehammer-params}{\hyperlink{command.HOL.sledgehammer-params}{\mbox{\isa{\isacommand{sledgehammer{\isaliteral{5F}{\isacharunderscore}}params}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}}
   \end{matharray}
 
-  \begin{rail}
-    'solve_direct'
-    ;
-
-    'try' ( ( ( 'simp' | 'intro' | 'elim' | 'dest' ) ':' thmrefs ) + ) ? nat?
-    ;
-
-    'sledgehammer' ( '[' args ']' ) ? facts? nat?
-    ;
-
-    'sledgehammer_params' ( ( '[' args ']' ) ? )
-    ;
-
-    args: ( name '=' value + ',' )
-    ;
-
-    facts: '(' ( ( ( ( 'add' | 'del' ) ':' ) ? thmrefs ) + ) ? ')'
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{6}{\isa{}}
+\rail@term{\hyperlink{command.HOL.try}{\mbox{\isa{\isacommand{try}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@plus
+\rail@bar
+\rail@term{\isa{simp}}[]
+\rail@nextbar{2}
+\rail@term{\isa{intro}}[]
+\rail@nextbar{3}
+\rail@term{\isa{elim}}[]
+\rail@nextbar{4}
+\rail@term{\isa{dest}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@nextplus{5}
+\rail@endplus
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.HOL.sledgehammer}{\mbox{\isa{\isacommand{sledgehammer}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{5B}{\isacharbrackleft}}}}[]
+\rail@nont{\isa{args}}[]
+\rail@term{\isa{{\isaliteral{5D}{\isacharbrackright}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{facts}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.HOL.sledgehammer-params}{\mbox{\isa{\isacommand{sledgehammer{\isaliteral{5F}{\isacharunderscore}}params}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{5B}{\isacharbrackleft}}}}[]
+\rail@nont{\isa{args}}[]
+\rail@term{\isa{{\isaliteral{5D}{\isacharbrackright}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{args}}
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@nont{\isa{value}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{{\isaliteral{2C}{\isacharcomma}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{5}{\isa{facts}}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@plus
+\rail@bar
+\rail@nextbar{2}
+\rail@bar
+\rail@term{\isa{add}}[]
+\rail@nextbar{3}
+\rail@term{\isa{del}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@nextplus{4}
+\rail@endplus
+\rail@endbar
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@end
+\end{railoutput}
+ % FIXME try: proper clasimpmod!?
+  % FIXME check args "value"
 
   \begin{description}
 
@@ -1014,22 +1406,74 @@ Identifying incorrect propositions usually involves evaluation of
     \indexdef{HOL}{command}{nitpick\_params}\hypertarget{command.HOL.nitpick-params}{\hyperlink{command.HOL.nitpick-params}{\mbox{\isa{\isacommand{nitpick{\isaliteral{5F}{\isacharunderscore}}params}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}}
   \end{matharray}
 
-  \begin{rail}
-    'value' ( ( '[' name ']' ) ? ) modes? term
-    ;
-
-    ('quickcheck' | 'refute' | 'nitpick')  ( ( '[' args ']' ) ? ) nat?
-    ;
-
-    ('quickcheck_params' | 'refute_params' | 'nitpick_params') ( ( '[' args ']' ) ? )
-    ;
-
-    modes: '(' (name + ) ')'
-    ;
-
-    args: ( name '=' value + ',' )
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.HOL.value}{\mbox{\isa{\isacommand{value}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{5B}{\isacharbrackleft}}}}[]
+\rail@nont{\isa{name}}[]
+\rail@term{\isa{{\isaliteral{5D}{\isacharbrackright}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{modes}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@end
+\rail@begin{3}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.HOL.quickcheck}{\mbox{\isa{\isacommand{quickcheck}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.HOL.refute}{\mbox{\isa{\isacommand{refute}}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{command.HOL.nitpick}{\mbox{\isa{\isacommand{nitpick}}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{5B}{\isacharbrackleft}}}}[]
+\rail@nont{\isa{args}}[]
+\rail@term{\isa{{\isaliteral{5D}{\isacharbrackright}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{3}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.HOL.quickcheck-params}{\mbox{\isa{\isacommand{quickcheck{\isaliteral{5F}{\isacharunderscore}}params}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.HOL.refute-params}{\mbox{\isa{\isacommand{refute{\isaliteral{5F}{\isacharunderscore}}params}}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{command.HOL.nitpick-params}{\mbox{\isa{\isacommand{nitpick{\isaliteral{5F}{\isacharunderscore}}params}}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{5B}{\isacharbrackleft}}}}[]
+\rail@nont{\isa{args}}[]
+\rail@term{\isa{{\isaliteral{5D}{\isacharbrackright}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{modes}}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@end
+\rail@begin{2}{\isa{args}}
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@nont{\isa{value}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{{\isaliteral{2C}{\isacharcomma}}}}[]
+\rail@endplus
+\rail@end
+\end{railoutput}
+ % FIXME check "value"
 
   \begin{description}
 
@@ -1154,19 +1598,75 @@ The following tools of Isabelle/HOL support cases analysis and
     \indexdef{HOL}{command}{inductive\_cases}\hypertarget{command.HOL.inductive-cases}{\hyperlink{command.HOL.inductive-cases}{\mbox{\isa{\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}cases}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-    'case_tac' goalspec? term rule?
-    ;
-    'induct_tac' goalspec? (insts * 'and') rule?
-    ;
-    'ind_cases' (prop +) ('for' (name +)) ?
-    ;
-    'inductive_cases' (thmdecl? (prop +) + 'and')
-    ;
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{method.HOL.case-tac}{\mbox{\isa{case{\isaliteral{5F}{\isacharunderscore}}tac}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.goalspec}{\mbox{\isa{goalspec}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{rule}}[]
+\rail@endbar
+\rail@end
+\rail@begin{3}{\isa{}}
+\rail@term{\hyperlink{method.HOL.induct-tac}{\mbox{\isa{induct{\isaliteral{5F}{\isacharunderscore}}tac}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.goalspec}{\mbox{\isa{goalspec}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@plus
+\rail@nont{\hyperlink{syntax.insts}{\mbox{\isa{insts}}}}[]
+\rail@nextplus{2}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{rule}}[]
+\rail@endbar
+\rail@end
+\rail@begin{3}{\isa{}}
+\rail@term{\hyperlink{method.HOL.ind-cases}{\mbox{\isa{ind{\isaliteral{5F}{\isacharunderscore}}cases}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{\isakeyword{for}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextplus{2}
+\rail@endplus
+\rail@endbar
+\rail@end
+\rail@begin{3}{\isa{}}
+\rail@term{\hyperlink{command.HOL.inductive-cases}{\mbox{\isa{\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}cases}}}}}[]
+\rail@plus
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmdecl}{\mbox{\isa{thmdecl}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@nextplus{2}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{1}{\isa{rule}}
+\rail@term{\isa{rule}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.thmref}{\mbox{\isa{thmref}}}}[]
+\rail@end
+\end{railoutput}
 
-    rule: ('rule' ':' thmref)
-    ;
-  \end{rail}
 
   \begin{description}
 
@@ -1237,85 +1737,317 @@ Isabelle/Pure provides two generic frameworks to support code
     \indexdef{HOL}{command}{code\_reflect}\hypertarget{command.HOL.code-reflect}{\hyperlink{command.HOL.code-reflect}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}reflect}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}}
   \end{matharray}
 
-  \begin{rail}
-     'export_code' ( constexpr + ) \\
-       ( ( 'in' target ( 'module_name' string ) ? \\
-        ( 'file' ( string | '-' ) ) ? ( '(' args ')' ) ?) + ) ?
-    ;
+  \begin{railoutput}
+\rail@begin{11}{\isa{}}
+\rail@term{\hyperlink{command.HOL.export-code}{\mbox{\isa{\isacommand{export{\isaliteral{5F}{\isacharunderscore}}code}}}}}[]
+\rail@plus
+\rail@nont{\isa{constexpr}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@cr{3}
+\rail@bar
+\rail@nextbar{4}
+\rail@plus
+\rail@term{\isa{\isakeyword{in}}}[]
+\rail@nont{\isa{target}}[]
+\rail@bar
+\rail@nextbar{5}
+\rail@term{\isa{\isakeyword{module{\isaliteral{5F}{\isacharunderscore}}name}}}[]
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@endbar
+\rail@cr{7}
+\rail@bar
+\rail@nextbar{8}
+\rail@term{\isa{\isakeyword{file}}}[]
+\rail@bar
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@nextbar{9}
+\rail@term{\isa{{\isaliteral{2D}{\isacharminus}}}}[]
+\rail@endbar
+\rail@endbar
+\rail@bar
+\rail@nextbar{8}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@nont{\isa{args}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@nextplus{10}
+\rail@endplus
+\rail@endbar
+\rail@end
+\rail@begin{1}{\isa{const}}
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@end
+\rail@begin{3}{\isa{constexpr}}
+\rail@bar
+\rail@nont{\isa{const}}[]
+\rail@nextbar{1}
+\rail@term{\isa{name{\isaliteral{2E}{\isachardot}}{\isaliteral{5F}{\isacharunderscore}}}}[]
+\rail@nextbar{2}
+\rail@term{\isa{{\isaliteral{5F}{\isacharunderscore}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{1}{\isa{typeconstructor}}
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@end
+\rail@begin{1}{\isa{class}}
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@end
+\rail@begin{4}{\isa{target}}
+\rail@bar
+\rail@term{\isa{SML}}[]
+\rail@nextbar{1}
+\rail@term{\isa{OCaml}}[]
+\rail@nextbar{2}
+\rail@term{\isa{Haskell}}[]
+\rail@nextbar{3}
+\rail@term{\isa{Scala}}[]
+\rail@endbar
+\rail@end
+\rail@begin{4}{\isa{}}
+\rail@term{\hyperlink{attribute.HOL.code}{\mbox{\isa{code}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@bar
+\rail@term{\isa{del}}[]
+\rail@nextbar{2}
+\rail@term{\isa{abstype}}[]
+\rail@nextbar{3}
+\rail@term{\isa{abstract}}[]
+\rail@endbar
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.HOL.code-abort}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}abort}}}}}[]
+\rail@plus
+\rail@nont{\isa{const}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.HOL.code-datatype}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}datatype}}}}}[]
+\rail@plus
+\rail@nont{\isa{const}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{attribute.HOL.code-inline}{\mbox{\isa{code{\isaliteral{5F}{\isacharunderscore}}inline}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{del}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{attribute.HOL.code-post}{\mbox{\isa{code{\isaliteral{5F}{\isacharunderscore}}post}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{del}}[]
+\rail@endbar
+\rail@end
+\rail@begin{3}{\isa{}}
+\rail@term{\hyperlink{command.HOL.code-thms}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}thms}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@plus
+\rail@nont{\isa{constexpr}}[]
+\rail@nextplus{2}
+\rail@endplus
+\rail@endbar
+\rail@end
+\rail@begin{3}{\isa{}}
+\rail@term{\hyperlink{command.HOL.code-deps}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}deps}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@plus
+\rail@nont{\isa{constexpr}}[]
+\rail@nextplus{2}
+\rail@endplus
+\rail@endbar
+\rail@end
+\rail@begin{7}{\isa{}}
+\rail@term{\hyperlink{command.HOL.code-const}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}const}}}}}[]
+\rail@plus
+\rail@nont{\isa{const}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@cr{3}
+\rail@plus
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@nont{\isa{target}}[]
+\rail@plus
+\rail@bar
+\rail@nextbar{4}
+\rail@nont{\isa{syntax}}[]
+\rail@endbar
+\rail@nextplus{5}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@nextplus{6}
+\rail@endplus
+\rail@end
+\rail@begin{7}{\isa{}}
+\rail@term{\hyperlink{command.HOL.code-type}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}type}}}}}[]
+\rail@plus
+\rail@nont{\isa{typeconstructor}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@cr{3}
+\rail@plus
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@nont{\isa{target}}[]
+\rail@plus
+\rail@bar
+\rail@nextbar{4}
+\rail@nont{\isa{syntax}}[]
+\rail@endbar
+\rail@nextplus{5}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@nextplus{6}
+\rail@endplus
+\rail@end
+\rail@begin{9}{\isa{}}
+\rail@term{\hyperlink{command.HOL.code-class}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}class}}}}}[]
+\rail@plus
+\rail@nont{\isa{class}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@cr{3}
+\rail@plus
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@nont{\isa{target}}[]
+\rail@cr{5}
+\rail@plus
+\rail@bar
+\rail@nextbar{6}
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@endbar
+\rail@nextplus{7}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@nextplus{8}
+\rail@endplus
+\rail@end
+\rail@begin{7}{\isa{}}
+\rail@term{\hyperlink{command.HOL.code-instance}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}instance}}}}}[]
+\rail@plus
+\rail@nont{\isa{typeconstructor}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\isa{class}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@cr{3}
+\rail@plus
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@nont{\isa{target}}[]
+\rail@plus
+\rail@bar
+\rail@nextbar{4}
+\rail@term{\isa{{\isaliteral{2D}{\isacharminus}}}}[]
+\rail@endbar
+\rail@nextplus{5}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@nextplus{6}
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.HOL.code-reserved}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}reserved}}}}}[]
+\rail@nont{\isa{target}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{command.HOL.code-monad}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}monad}}}}}[]
+\rail@nont{\isa{const}}[]
+\rail@nont{\isa{const}}[]
+\rail@nont{\isa{target}}[]
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.HOL.code-include}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}include}}}}}[]
+\rail@nont{\isa{target}}[]
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@bar
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{2D}{\isacharminus}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.HOL.code-modulename}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}modulename}}}}}[]
+\rail@nont{\isa{target}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\rail@begin{11}{\isa{}}
+\rail@term{\hyperlink{command.HOL.code-reflect}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}reflect}}}}}[]
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@cr{2}
+\rail@bar
+\rail@nextbar{3}
+\rail@term{\isa{\isakeyword{datatypes}}}[]
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@bar
+\rail@term{\isa{{\isaliteral{5F}{\isacharunderscore}}}}[]
+\rail@nextbar{4}
+\rail@plus
+\rail@plus
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@nextplus{5}
+\rail@cterm{\isa{{\isaliteral{7C}{\isacharbar}}}}[]
+\rail@endplus
+\rail@nextplus{6}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@endbar
+\rail@endbar
+\rail@cr{8}
+\rail@bar
+\rail@nextbar{9}
+\rail@term{\isa{\isakeyword{functions}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@nextplus{10}
+\rail@endplus
+\rail@endbar
+\rail@bar
+\rail@nextbar{9}
+\rail@term{\isa{\isakeyword{file}}}[]
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{4}{\isa{syntax}}
+\rail@bar
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@nextbar{1}
+\rail@bar
+\rail@term{\isa{\isakeyword{infix}}}[]
+\rail@nextbar{2}
+\rail@term{\isa{\isakeyword{infixl}}}[]
+\rail@nextbar{3}
+\rail@term{\isa{\isakeyword{infixr}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
 
-    const: term
-    ;
-
-    constexpr: ( const | 'name._' | '_' )
-    ;
-
-    typeconstructor: nameref
-    ;
-
-    class: nameref
-    ;
-
-    target: 'SML' | 'OCaml' | 'Haskell' | 'Scala'
-    ;
-
-    'code' ( 'del' | 'abstype' | 'abstract' ) ?
-    ;
-
-    'code_abort' ( const + )
-    ;
-
-    'code_datatype' ( const + )
-    ;
-
-    'code_inline' ( 'del' ) ?
-    ;
-
-    'code_post' ( 'del' ) ?
-    ;
-
-    'code_thms' ( constexpr + ) ?
-    ;
-
-    'code_deps' ( constexpr + ) ?
-    ;
-
-    'code_const' (const + 'and') \\
-      ( ( '(' target ( syntax ? + 'and' ) ')' ) + )
-    ;
-
-    'code_type' (typeconstructor + 'and') \\
-      ( ( '(' target ( syntax ? + 'and' ) ')' ) + )
-    ;
-
-    'code_class' (class + 'and') \\
-      ( ( '(' target \\ ( string ? + 'and' ) ')' ) + )
-    ;
-
-    'code_instance' (( typeconstructor '::' class ) + 'and') \\
-      ( ( '(' target ( '-' ? + 'and' ) ')' ) + )
-    ;
-
-    'code_reserved' target ( string + )
-    ;
-
-    'code_monad' const const target
-    ;
-
-    'code_include' target ( string ( string | '-') )
-    ;
-
-    'code_modulename' target ( ( string string ) + )
-    ;
-
-    'code_reflect' string \\
-      ( 'datatypes' ( string '=' ( '_' | ( string + '|' ) + 'and' ) ) ) ? \\
-      ( 'functions' ( string + ) ) ? ( 'file' string ) ?
-    ;
-
-    syntax: string | ( 'infix' | 'infixl' | 'infixr' ) nat string
-    ;
-
-  \end{rail}
 
   \begin{description}
 
@@ -1438,39 +2170,115 @@ Isabelle/Pure provides two generic frameworks to support code
     \indexdef{HOL}{attribute}{code}\hypertarget{attribute.HOL.code}{\hyperlink{attribute.HOL.code}{\mbox{\isa{code}}}} & : & \isa{attribute} \\
   \end{matharray}
 
-  \begin{rail}
-  ( 'code_module' | 'code_library' ) modespec ? name ? \\
-    ( 'file' name ) ? ( 'imports' ( name + ) ) ? \\
-    'contains' ( ( name '=' term ) + | term + )
-  ;
-
-  modespec: '(' ( name * ) ')'
-  ;
-
-  'consts_code' (codespec +)
-  ;
-
-  codespec: const template attachment ?
-  ;
-
-  'types_code' (tycodespec +)
-  ;
-
-  tycodespec: name template attachment ?
-  ;
-
-  const: term
-  ;
-
-  template: '(' string ')'
-  ;
-
-  attachment: 'attach' modespec ? verblbrace text verbrbrace
-  ;
-
-  'code' (name)?
-  ;
-  \end{rail}%
+  \begin{railoutput}
+\rail@begin{11}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.HOL.code-module}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}module}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.HOL.code-library}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}library}}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{modespec}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@endbar
+\rail@cr{3}
+\rail@bar
+\rail@nextbar{4}
+\rail@term{\isa{\isakeyword{file}}}[]
+\rail@nont{\isa{name}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{4}
+\rail@term{\isa{\isakeyword{imports}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextplus{5}
+\rail@endplus
+\rail@endbar
+\rail@cr{7}
+\rail@term{\isa{\isakeyword{contains}}}[]
+\rail@bar
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@nextplus{8}
+\rail@endplus
+\rail@nextbar{9}
+\rail@plus
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@nextplus{10}
+\rail@endplus
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{modespec}}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.HOL.consts-code}{\mbox{\isa{\isacommand{consts{\isaliteral{5F}{\isacharunderscore}}code}}}}}[]
+\rail@plus
+\rail@nont{\isa{codespec}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{codespec}}
+\rail@nont{\isa{const}}[]
+\rail@nont{\isa{template}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{attachment}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.HOL.types-code}{\mbox{\isa{\isacommand{types{\isaliteral{5F}{\isacharunderscore}}code}}}}}[]
+\rail@plus
+\rail@nont{\isa{tycodespec}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{tycodespec}}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nont{\isa{template}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{attachment}}[]
+\rail@endbar
+\rail@end
+\rail@begin{1}{\isa{const}}
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@end
+\rail@begin{1}{\isa{template}}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@end
+\rail@begin{2}{\isa{attachment}}
+\rail@term{\isa{attach}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{modespec}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{7B}{\isacharbraceleft}}}}[]
+\rail@nont{\hyperlink{syntax.text}{\mbox{\isa{text}}}}[]
+\rail@term{\isa{{\isaliteral{7D}{\isacharbraceright}}}}[]
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{attribute.HOL.code}{\mbox{\isa{code}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{name}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1484,11 +2292,45 @@ Isabelle/Pure provides two generic frameworks to support code
     \indexdef{HOL}{command}{ax\_specification}\hypertarget{command.HOL.ax-specification}{\hyperlink{command.HOL.ax-specification}{\mbox{\isa{\isacommand{ax{\isaliteral{5F}{\isacharunderscore}}specification}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-  ('specification' | 'ax_specification') '(' (decl +) ')' \\ (thmdecl? prop +)
-  ;
-  decl: ((name ':')? term '(' 'overloaded' ')'?)
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{6}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.HOL.specification}{\mbox{\isa{\isacommand{specification}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.HOL.ax-specification}{\mbox{\isa{\isacommand{ax{\isaliteral{5F}{\isacharunderscore}}specification}}}}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@plus
+\rail@nont{\isa{decl}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@cr{3}
+\rail@plus
+\rail@bar
+\rail@nextbar{4}
+\rail@nont{\hyperlink{syntax.thmdecl}{\mbox{\isa{thmdecl}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
+\rail@nextplus{5}
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{decl}}
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@term{\isa{\isakeyword{overloaded}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 

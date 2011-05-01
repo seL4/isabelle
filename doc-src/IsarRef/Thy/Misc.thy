@@ -21,24 +21,24 @@ text {*
     @{command_def "print_binds"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
   \end{matharray}
 
-  \begin{rail}
-    ('print_theory' | 'print_theorems') ('!'?)
+  @{rail "
+    (@@{command print_theory} | @@{command print_theorems}) ('!'?)
     ;
 
-    'find_theorems' (('(' (nat)? ('with_dups')? ')')?) (thmcriterion *)
+    @@{command find_theorems} ('(' @{syntax nat}? 'with_dups'? ')')? \\ (thmcriterion * )
     ;
-    thmcriterion: ('-'?) ('name' ':' nameref | 'intro' | 'elim' | 'dest' |
-      'solves' | 'simp' ':' term | term)
+    thmcriterion: ('-'?) ('name' ':' @{syntax nameref} | 'intro' | 'elim' | 'dest' |
+      'solves' | 'simp' ':' @{syntax term} | @{syntax term})
     ;
-    'find_consts' (constcriterion *)
+    @@{command find_consts} (constcriterion * )
     ;
-    constcriterion: ('-'?) ('name' ':' nameref | 'strict' ':' type | type)
+    constcriterion: ('-'?)
+      ('name' ':' @{syntax nameref} | 'strict' ':' @{syntax type} | @{syntax type})
     ;
-    'thm_deps' thmrefs
+    @@{command thm_deps} @{syntax thmrefs}
     ;
-    'unused_thms' (('name'+) '-' ('name'*))?
-    ;
-  \end{rail}
+    @@{command unused_thms} ((@{syntax name} +) '-' (@{syntax name} * ))?
+  "}
 
   These commands print certain parts of the theory and proof context.
   Note that there are some further ones available, such as for the set
@@ -152,10 +152,9 @@ text {*
     @{command_def "use_thy"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
   \end{matharray}
 
-  \begin{rail}
-    ('cd' | 'use_thy') name
-    ;
-  \end{rail}
+  @{rail "
+    (@@{command cd} | @@{command use_thy}) @{syntax name}
+  "}
 
   \begin{description}
 

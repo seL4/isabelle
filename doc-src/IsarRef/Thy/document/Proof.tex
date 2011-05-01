@@ -74,12 +74,16 @@ Proof commands perform transitions of Isar/VM machine
     \indexdef{}{command}{notepad}\hypertarget{command.notepad}{\hyperlink{command.notepad}{\mbox{\isa{\isacommand{notepad}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}state{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-    'notepad' 'begin'
-    ;
-    'end'
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{command.notepad}{\mbox{\isa{\isacommand{notepad}}}}}[]
+\rail@term{\isa{\isakeyword{begin}}}[]
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{command.end}{\mbox{\isa{\isacommand{end}}}}}[]
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -215,16 +219,55 @@ Proof commands perform transitions of Isar/VM machine
   \isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t{\isaliteral{22}{\isachardoublequote}}} to be eliminated by the reflexivity rule.  Thus,
   exporting some result \isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{5B}{\isacharbrackleft}}x{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}} yields \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{5B}{\isacharbrackleft}}t{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}}.
 
-  \begin{rail}
-    'fix' (vars + 'and')
-    ;
-    ('assume' | 'presume') (props + 'and')
-    ;
-    'def' (def + 'and')
-    ;
-    def: thmdecl? \\ name ('==' | equiv) term termpat?
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.vars}{\mbox{\isa{vars}}}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.presume}{\mbox{\isa{\isacommand{presume}}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nont{\hyperlink{syntax.props}{\mbox{\isa{props}}}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.def}{\mbox{\isa{\isacommand{def}}}}}[]
+\rail@plus
+\rail@nont{\isa{def}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{5}{\isa{def}}
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmdecl}{\mbox{\isa{thmdecl}}}}[]
+\rail@endbar
+\rail@cr{3}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@bar
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@nextbar{4}
+\rail@term{\isa{{\isaliteral{5C3C65717569763E}{\isasymequiv}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@bar
+\rail@nextbar{4}
+\rail@nont{\hyperlink{syntax.termpat}{\mbox{\isa{termpat}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
   
@@ -287,13 +330,26 @@ Proof commands perform transitions of Isar/VM machine
   logic as actual equations, while abbreviations disappear during the
   input process just after type checking.  Also note that \hyperlink{command.def}{\mbox{\isa{\isacommand{def}}}} does not support polymorphism.
 
-  \begin{rail}
-    'let' ((term + 'and') '=' term + 'and')
-    ;  
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{3}{\isa{}}
+\rail@term{\hyperlink{command.let}{\mbox{\isa{\isacommand{let}}}}}[]
+\rail@plus
+\rail@plus
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@nextplus{2}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\end{railoutput}
 
-  The syntax of \hyperlink{keyword.is}{\mbox{\isa{\isakeyword{is}}}} patterns follows \railnonterm{termpat}
-  or \railnonterm{proppat} (see \secref{sec:term-decls}).
+
+  The syntax of \hyperlink{keyword.is}{\mbox{\isa{\isakeyword{is}}}} patterns follows \hyperlink{syntax.termpat}{\mbox{\isa{termpat}}} or
+  \hyperlink{syntax.proppat}{\mbox{\isa{proppat}}} (see \secref{sec:term-decls}).
 
   \begin{description}
 
@@ -346,12 +402,37 @@ Proof commands perform transitions of Isar/VM machine
   to the most recently established facts, but only \emph{before}
   issuing a follow-up claim.
 
-  \begin{rail}
-    'note' (thmdef? thmrefs + 'and')
-    ;
-    ('from' | 'with' | 'using' | 'unfolding') (thmrefs + 'and')
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{3}{\isa{}}
+\rail@term{\hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}}[]
+\rail@plus
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmdef}{\mbox{\isa{thmdef}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@nextplus{2}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{4}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.with}{\mbox{\isa{\isacommand{with}}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}}[]
+\rail@nextbar{3}
+\rail@term{\hyperlink{command.unfolding}{\mbox{\isa{\isacommand{unfolding}}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -456,32 +537,108 @@ Proof commands perform transitions of Isar/VM machine
   contexts of (essentially a big disjunction of eliminated parameters
   and assumptions, cf.\ \secref{sec:obtain}).
 
-  \begin{rail}
-    ('lemma' | 'theorem' | 'corollary' |
-     'schematic_lemma' | 'schematic_theorem' | 'schematic_corollary') target? (goal | longgoal)
-    ;
-    ('have' | 'show' | 'hence' | 'thus') goal
-    ;
-    'print_statement' modes? thmrefs
-    ;
-  
-    goal: (props + 'and')
-    ;
-    longgoal: thmdecl? (contextelem *) conclusion
-    ;
-    conclusion: 'shows' goal | 'obtains' (parname? case + '|')
-    ;
-    case: (vars + 'and') 'where' (props + 'and')
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{6}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.lemma}{\mbox{\isa{\isacommand{lemma}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.theorem}{\mbox{\isa{\isacommand{theorem}}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{command.corollary}{\mbox{\isa{\isacommand{corollary}}}}}[]
+\rail@nextbar{3}
+\rail@term{\hyperlink{command.schematic-lemma}{\mbox{\isa{\isacommand{schematic{\isaliteral{5F}{\isacharunderscore}}lemma}}}}}[]
+\rail@nextbar{4}
+\rail@term{\hyperlink{command.schematic-theorem}{\mbox{\isa{\isacommand{schematic{\isaliteral{5F}{\isacharunderscore}}theorem}}}}}[]
+\rail@nextbar{5}
+\rail@term{\hyperlink{command.schematic-corollary}{\mbox{\isa{\isacommand{schematic{\isaliteral{5F}{\isacharunderscore}}corollary}}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nont{\isa{goal}}[]
+\rail@nextbar{1}
+\rail@nont{\isa{longgoal}}[]
+\rail@endbar
+\rail@end
+\rail@begin{4}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{command.hence}{\mbox{\isa{\isacommand{hence}}}}}[]
+\rail@nextbar{3}
+\rail@term{\hyperlink{command.thus}{\mbox{\isa{\isacommand{thus}}}}}[]
+\rail@endbar
+\rail@nont{\isa{goal}}[]
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.print-statement}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}statement}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.modes}{\mbox{\isa{modes}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@end
+\rail@begin{2}{\isa{goal}}
+\rail@plus
+\rail@nont{\hyperlink{syntax.props}{\mbox{\isa{props}}}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{longgoal}}
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmdecl}{\mbox{\isa{thmdecl}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.contextelem}{\mbox{\isa{contextelem}}}}[]
+\rail@endplus
+\rail@nont{\isa{conclusion}}[]
+\rail@end
+\rail@begin{4}{\isa{conclusion}}
+\rail@bar
+\rail@term{\isa{\isakeyword{shows}}}[]
+\rail@nont{\isa{goal}}[]
+\rail@nextbar{1}
+\rail@term{\isa{\isakeyword{obtains}}}[]
+\rail@plus
+\rail@bar
+\rail@nextbar{2}
+\rail@nont{\hyperlink{syntax.parname}{\mbox{\isa{parname}}}}[]
+\rail@endbar
+\rail@nont{\isa{case}}[]
+\rail@nextplus{3}
+\rail@cterm{\isa{{\isaliteral{7C}{\isacharbar}}}}[]
+\rail@endplus
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{case}}
+\rail@plus
+\rail@nont{\hyperlink{syntax.vars}{\mbox{\isa{vars}}}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@term{\isa{\isakeyword{where}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.props}{\mbox{\isa{props}}}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
   
   \item \hyperlink{command.lemma}{\mbox{\isa{\isacommand{lemma}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} enters proof mode with
-  \isa{{\isaliteral{5C3C7068693E}{\isasymphi}}} as main goal, eventually resulting in some fact \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} to be put back into the target context.  An additional
-  \railnonterm{context} specification may build up an initial proof
-  context for the subsequent claim; this includes local definitions
-  and syntax as well, see the definition of \hyperlink{syntax.contextelem}{\mbox{\isa{contextelem}}} in
+  \isa{{\isaliteral{5C3C7068693E}{\isasymphi}}} as main goal, eventually resulting in some fact \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} to be put back into the target context.  An additional \hyperlink{syntax.context}{\mbox{\isa{context}}} specification may build up an initial proof context for the
+  subsequent claim; this includes local definitions and syntax as
+  well, see the definition of \hyperlink{syntax.contextelem}{\mbox{\isa{contextelem}}} in
   \secref{sec:locale}.
   
   \item \hyperlink{command.theorem}{\mbox{\isa{\isacommand{theorem}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} and \hyperlink{command.corollary}{\mbox{\isa{\isacommand{corollary}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} are essentially the same as \hyperlink{command.lemma}{\mbox{\isa{\isacommand{lemma}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}}, but the facts are internally marked as
@@ -557,23 +714,55 @@ Proof commands perform transitions of Isar/VM machine
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Proof methods are either basic ones, or expressions composed of
-  methods via ``\verb|,|'' (sequential composition),
-  ``\verb||\verb,|,\verb||'' (alternative choices), ``\verb|?|'' 
+Proof methods are either basic ones, or expressions composed
+  of methods via ``\verb|,|'' (sequential composition),
+  ``\verb||\verb,|,\verb||'' (alternative choices), ``\verb|?|''
   (try), ``\verb|+|'' (repeat at least once), ``\verb|[|\isa{n}\verb|]|'' (restriction to first \isa{n}
   sub-goals, with default \isa{{\isaliteral{22}{\isachardoublequote}}n\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}}).  In practice, proof
-  methods are usually just a comma separated list of
-  \railqtok{nameref}~\railnonterm{args} specifications.  Note that
-  parentheses may be dropped for single method specifications (with no
-  arguments).
+  methods are usually just a comma separated list of \hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}~\hyperlink{syntax.args}{\mbox{\isa{args}}} specifications.  Note that parentheses may
+  be dropped for single method specifications (with no arguments).
 
-  \indexouternonterm{method}
-  \begin{rail}
-    method: (nameref | '(' methods ')') (() | '?' | '+' | '[' nat? ']')
-    ;
-    methods: (nameref args | method) + (',' | '|')
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{5}{\indexdef{}{syntax}{method}\hypertarget{syntax.method}{\hyperlink{syntax.method}{\mbox{\isa{method}}}}}
+\rail@bar
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@nont{\isa{methods}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{3F}{\isacharquery}}}}[]
+\rail@nextbar{2}
+\rail@term{\isa{{\isaliteral{2B}{\isacharplus}}}}[]
+\rail@nextbar{3}
+\rail@term{\isa{{\isaliteral{5B}{\isacharbrackleft}}}}[]
+\rail@bar
+\rail@nextbar{4}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{5D}{\isacharbrackright}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{4}{\isa{methods}}
+\rail@plus
+\rail@bar
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nont{\hyperlink{syntax.args}{\mbox{\isa{args}}}}[]
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.method}{\mbox{\isa{method}}}}[]
+\rail@endbar
+\rail@nextplus{2}
+\rail@bar
+\rail@term{\isa{{\isaliteral{2C}{\isacharcomma}}}}[]
+\rail@nextbar{3}
+\rail@term{\isa{{\isaliteral{7C}{\isacharbar}}}}[]
+\rail@endbar
+\rail@endplus
+\rail@end
+\end{railoutput}
+
 
   Proper Isar proof methods do \emph{not} admit arbitrary goal
   addressing, but refer either to the first sub-goal or all sub-goals
@@ -590,11 +779,24 @@ Proof methods are either basic ones, or expressions composed of
   individual tactic being involved.  Here ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{21}{\isacharbang}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}}'' refers to
   all goals, and ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5B}{\isacharbrackleft}}n{\isaliteral{2D}{\isacharminus}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}}'' to all goals starting from \isa{{\isaliteral{22}{\isachardoublequote}}n{\isaliteral{22}{\isachardoublequote}}}.
 
-  \indexouternonterm{goalspec}
-  \begin{rail}
-    goalspec: '[' (nat '-' nat | nat '-' | nat | '!' ) ']'
-    ;
-  \end{rail}%
+  \begin{railoutput}
+\rail@begin{4}{\indexdef{}{syntax}{goalspec}\hypertarget{syntax.goalspec}{\hyperlink{syntax.goalspec}{\mbox{\isa{goalspec}}}}}
+\rail@term{\isa{{\isaliteral{5B}{\isacharbrackleft}}}}[]
+\rail@bar
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@term{\isa{{\isaliteral{2D}{\isacharminus}}}}[]
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@term{\isa{{\isaliteral{2D}{\isacharminus}}}}[]
+\rail@nextbar{2}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@nextbar{3}
+\rail@term{\isa{{\isaliteral{21}{\isacharbang}}}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{5D}{\isacharbrackright}}}}[]
+\rail@end
+\end{railoutput}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -646,16 +848,40 @@ Proof methods are either basic ones, or expressions composed of
   There is no separate default terminal method.  Any remaining goals
   are always solved by assumption in the very last step.
 
-  \begin{rail}
-    'proof' method?
-    ;
-    'qed' method?
-    ;
-    'by' method method?
-    ;
-    ('.' | '..' | 'sorry')
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{method}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{method}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}}[]
+\rail@nont{\isa{method}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{method}}[]
+\rail@endbar
+\rail@end
+\rail@begin{3}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.dot}{\mbox{\isa{\isacommand{{\isaliteral{2E}{\isachardot}}}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.ddot}{\mbox{\isa{\isacommand{{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}}}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{command.sorry}{\mbox{\isa{\isacommand{sorry}}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
   
@@ -727,24 +953,110 @@ The following proof methods and attributes refer to basic logical
     \indexdef{}{attribute}{where}\hypertarget{attribute.where}{\hyperlink{attribute.where}{\mbox{\isa{where}}}} & : & \isa{attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    'fact' thmrefs?
-    ;
-    'rule' thmrefs?
-    ;
-    rulemod: ('intro' | 'elim' | 'dest') ((('!' | () | '?') nat?) | 'del') ':' thmrefs
-    ;
-    ('intro' | 'elim' | 'dest') ('!' | () | '?') nat?
-    ;
-    'rule' 'del'
-    ;
-    'OF' thmrefs
-    ;
-    'of' insts ('concl' ':' insts)?
-    ;
-    'where' ((name | var | typefree | typevar) '=' (type | term) * 'and')
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{method.fact}{\mbox{\isa{fact}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{method.rule}{\mbox{\isa{rule}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{4}{\isa{rulemod}}
+\rail@bar
+\rail@term{\isa{intro}}[]
+\rail@nextbar{1}
+\rail@term{\isa{elim}}[]
+\rail@nextbar{2}
+\rail@term{\isa{dest}}[]
+\rail@endbar
+\rail@bar
+\rail@bar
+\rail@term{\isa{{\isaliteral{21}{\isacharbang}}}}[]
+\rail@nextbar{1}
+\rail@nextbar{2}
+\rail@term{\isa{{\isaliteral{3F}{\isacharquery}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@endbar
+\rail@nextbar{3}
+\rail@term{\isa{del}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@end
+\rail@begin{3}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{attribute.intro}{\mbox{\isa{intro}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{attribute.elim}{\mbox{\isa{elim}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{attribute.dest}{\mbox{\isa{dest}}}}[]
+\rail@endbar
+\rail@bar
+\rail@term{\isa{{\isaliteral{21}{\isacharbang}}}}[]
+\rail@nextbar{1}
+\rail@nextbar{2}
+\rail@term{\isa{{\isaliteral{3F}{\isacharquery}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{attribute.rule}{\mbox{\isa{rule}}}}[]
+\rail@term{\isa{del}}[]
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{attribute.OF}{\mbox{\isa{OF}}}}[]
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{attribute.of}{\mbox{\isa{of}}}}[]
+\rail@nont{\hyperlink{syntax.insts}{\mbox{\isa{insts}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{concl}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.insts}{\mbox{\isa{insts}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{6}{\isa{}}
+\rail@term{\hyperlink{attribute.where}{\mbox{\isa{where}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@plus
+\rail@bar
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextbar{2}
+\rail@nont{\hyperlink{syntax.var}{\mbox{\isa{var}}}}[]
+\rail@nextbar{3}
+\rail@nont{\hyperlink{syntax.typefree}{\mbox{\isa{typefree}}}}[]
+\rail@nextbar{4}
+\rail@nont{\hyperlink{syntax.typevar}{\mbox{\isa{typevar}}}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@bar
+\rail@nont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
+\rail@nextbar{2}
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@endbar
+\rail@nextplus{5}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@endbar
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
   
@@ -847,14 +1159,28 @@ The Isar provides separate commands to accommodate tactic-style
     \indexdef{}{command}{back}\hypertarget{command.back}{\hyperlink{command.back}{\mbox{\isa{\isacommand{back}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}proof\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-    ( 'apply' | 'apply_end' ) method
-    ;
-    'defer' nat?
-    ;
-    'prefer' nat
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.apply}{\mbox{\isa{\isacommand{apply}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.apply-end}{\mbox{\isa{\isacommand{apply{\isaliteral{5F}{\isacharunderscore}}end}}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.method}{\mbox{\isa{method}}}}[]
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.defer}{\mbox{\isa{\isacommand{defer}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{command.prefer}{\mbox{\isa{\isacommand{prefer}}}}}[]
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -907,10 +1233,16 @@ The Isar provides separate commands to accommodate tactic-style
     \indexdef{}{command}{method\_setup}\hypertarget{command.method-setup}{\hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isaliteral{5F}{\isacharunderscore}}setup}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-    'method_setup' name '=' text text
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isaliteral{5F}{\isacharunderscore}}setup}}}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@nont{\hyperlink{syntax.text}{\mbox{\isa{text}}}}[]
+\rail@nont{\hyperlink{syntax.text}{\mbox{\isa{text}}}}[]
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -976,12 +1308,35 @@ The Isar provides separate commands to accommodate tactic-style
   later, provided that the corresponding parameters do \emph{not}
   occur in the conclusion.
 
-  \begin{rail}
-    'obtain' parname? (vars + 'and') 'where' (props + 'and')
-    ;
-    'guess' (vars + 'and')
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.obtain}{\mbox{\isa{\isacommand{obtain}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.parname}{\mbox{\isa{parname}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nont{\hyperlink{syntax.vars}{\mbox{\isa{vars}}}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@term{\isa{\isakeyword{where}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.props}{\mbox{\isa{props}}}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{command.guess}{\mbox{\isa{\isacommand{guess}}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.vars}{\mbox{\isa{vars}}}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\end{railoutput}
+
 
   The derived Isar command \hyperlink{command.obtain}{\mbox{\isa{\isacommand{obtain}}}} is defined as follows
   (where \isa{{\isaliteral{22}{\isachardoublequote}}b\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub k{\isaliteral{22}{\isachardoublequote}}} shall refer to (optional)
@@ -1085,12 +1440,31 @@ The Isar provides separate commands to accommodate tactic-style
     \hyperlink{command.ultimately}{\mbox{\isa{\isacommand{ultimately}}}} & \equiv & \hyperlink{command.moreover}{\mbox{\isa{\isacommand{moreover}}}}~\hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{calculation} \\
   \end{matharray}
 
-  \begin{rail}
-    ('also' | 'finally') ('(' thmrefs ')')?
-    ;
-    'trans' (() | 'add' | 'del')
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{3}{\isa{}}
+\rail@term{\hyperlink{attribute.trans}{\mbox{\isa{trans}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{add}}[]
+\rail@nextbar{2}
+\rail@term{\isa{del}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -1191,21 +1565,67 @@ The Isar provides separate commands to accommodate tactic-style
   derived manually become ready to use in advanced case analysis
   later.
 
-  \begin{rail}
-    'case' (caseref | '(' caseref ((name | underscore) +) ')')
-    ;
-    caseref: nameref attributes?
-    ;
+  \begin{railoutput}
+\rail@begin{4}{\isa{}}
+\rail@term{\hyperlink{command.case}{\mbox{\isa{\isacommand{case}}}}}[]
+\rail@bar
+\rail@nont{\isa{caseref}}[]
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@nont{\isa{caseref}}[]
+\rail@plus
+\rail@bar
+\rail@term{\isa{{\isaliteral{5F}{\isacharunderscore}}}}[]
+\rail@nextbar{2}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@endbar
+\rail@nextplus{3}
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{caseref}}
+\rail@nont{\isa{nameref}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{attributes}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{attribute.case-names}{\mbox{\isa{case{\isaliteral{5F}{\isacharunderscore}}names}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{attribute.case-conclusion}{\mbox{\isa{case{\isaliteral{5F}{\isacharunderscore}}conclusion}}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{3}{\isa{}}
+\rail@term{\hyperlink{attribute.params}{\mbox{\isa{params}}}}[]
+\rail@plus
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@endplus
+\rail@nextplus{2}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{attribute.consumes}{\mbox{\isa{consumes}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
 
-    'case_names' (name +)
-    ;
-    'case_conclusion' name (name *)
-    ;
-    'params' ((name *) + 'and')
-    ;
-    'consumes' nat?
-    ;
-  \end{rail}
 
   \begin{description}
   
@@ -1279,25 +1699,132 @@ The Isar provides separate commands to accommodate tactic-style
   and parameters separately).  This avoids cumbersome encoding of
   ``strengthened'' inductive statements within the object-logic.
 
-  \begin{rail}
-    'cases' '(no_simp)'? (insts * 'and') rule?
-    ;
-    'induct' '(no_simp)'? (definsts * 'and') \\ arbitrary? taking? rule?
-    ;
-    'coinduct' insts taking rule?
-    ;
+  \begin{railoutput}
+\rail@begin{3}{\isa{}}
+\rail@term{\hyperlink{method.cases}{\mbox{\isa{cases}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@term{\isa{no{\isaliteral{5F}{\isacharunderscore}}simp}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@plus
+\rail@nont{\hyperlink{syntax.insts}{\mbox{\isa{insts}}}}[]
+\rail@nextplus{2}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{rule}}[]
+\rail@endbar
+\rail@end
+\rail@begin{6}{\isa{}}
+\rail@term{\hyperlink{method.induct}{\mbox{\isa{induct}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@term{\isa{no{\isaliteral{5F}{\isacharunderscore}}simp}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@plus
+\rail@nont{\isa{definsts}}[]
+\rail@nextplus{2}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@endbar
+\rail@cr{4}
+\rail@bar
+\rail@nextbar{5}
+\rail@nont{\isa{arbitrary}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{5}
+\rail@nont{\isa{taking}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{5}
+\rail@nont{\isa{rule}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{method.coinduct}{\mbox{\isa{coinduct}}}}[]
+\rail@nont{\isa{insts}}[]
+\rail@nont{\isa{taking}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{rule}}[]
+\rail@endbar
+\rail@end
+\rail@begin{5}{\isa{rule}}
+\rail@bar
+\rail@bar
+\rail@term{\isa{type}}[]
+\rail@nextbar{1}
+\rail@term{\isa{pred}}[]
+\rail@nextbar{2}
+\rail@term{\isa{set}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@nextbar{3}
+\rail@term{\isa{rule}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.thmref}{\mbox{\isa{thmref}}}}[]
+\rail@nextplus{4}
+\rail@endplus
+\rail@endbar
+\rail@end
+\rail@begin{4}{\isa{definst}}
+\rail@bar
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@bar
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{5C3C65717569763E}{\isasymequiv}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@nextbar{2}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@nextbar{3}
+\rail@nont{\hyperlink{syntax.inst}{\mbox{\isa{inst}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{definsts}}
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\isa{definst}}[]
+\rail@endplus
+\rail@end
+\rail@begin{3}{\isa{arbitrary}}
+\rail@term{\isa{arbitrary}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@plus
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@endplus
+\rail@term{\isa{\isakeyword{and}}}[]
+\rail@nextplus{2}
+\rail@endplus
+\rail@end
+\rail@begin{1}{\isa{taking}}
+\rail@term{\isa{taking}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\isa{insts}}[]
+\rail@end
+\end{railoutput}
 
-    rule: ('type' | 'pred' | 'set') ':' (nameref +) | 'rule' ':' (thmref +)
-    ;
-    definst: name ('==' | equiv) term | '(' term ')' | inst
-    ;
-    definsts: ( definst *)
-    ;
-    arbitrary: 'arbitrary' ':' ((term *) 'and' +)
-    ;
-    taking: 'taking' ':' insts
-    ;
-  \end{rail}
 
   \begin{description}
 
@@ -1459,23 +1986,42 @@ The Isar provides separate commands to accommodate tactic-style
     \indexdef{}{attribute}{coinduct}\hypertarget{attribute.coinduct}{\hyperlink{attribute.coinduct}{\mbox{\isa{coinduct}}}} & : & \isa{attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    'cases' spec
-    ;
-    'induct' spec
-    ;
-    'coinduct' spec
-    ;
+  \begin{railoutput}
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{attribute.cases}{\mbox{\isa{cases}}}}[]
+\rail@nont{\isa{spec}}[]
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{attribute.induct}{\mbox{\isa{induct}}}}[]
+\rail@nont{\isa{spec}}[]
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{attribute.coinduct}{\mbox{\isa{coinduct}}}}[]
+\rail@nont{\isa{spec}}[]
+\rail@end
+\rail@begin{4}{\isa{spec}}
+\rail@bar
+\rail@bar
+\rail@term{\isa{type}}[]
+\rail@nextbar{1}
+\rail@term{\isa{pred}}[]
+\rail@nextbar{2}
+\rail@term{\isa{set}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nextbar{3}
+\rail@term{\isa{del}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
 
-    spec: (('type' | 'pred' | 'set') ':' nameref) | 'del'
-    ;
-  \end{rail}
 
   \begin{description}
 
   \item \hyperlink{command.print-induct-rules}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}induct{\isaliteral{5F}{\isacharunderscore}}rules}}}} prints cases and induct rules
   for predicates (or sets) and types of the current context.
-  
+
   \item \hyperlink{attribute.cases}{\mbox{\isa{cases}}}, \hyperlink{attribute.induct}{\mbox{\isa{induct}}}, and \hyperlink{attribute.coinduct}{\mbox{\isa{coinduct}}} (as attributes) declare rules for reasoning about
   (co)inductive predicates (or sets) and types, using the
   corresponding methods of the same name.  Certain definitional

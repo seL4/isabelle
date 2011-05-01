@@ -207,23 +207,38 @@ We now introduce several basic syntactic entities, such as names,
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Entity \railqtok{name} usually refers to any name of types,
+Entity \hyperlink{syntax.name}{\mbox{\isa{name}}} usually refers to any name of types,
   constants, theorems etc.\ that are to be \emph{declared} or
   \emph{defined} (so qualified identifiers are excluded here).  Quoted
   strings provide an escape for non-identifier names or those ruled
   out by outer syntax keywords (e.g.\ quoted \verb|"let"|).
-  Already existing objects are usually referenced by
-  \railqtok{nameref}.
+  Already existing objects are usually referenced by \hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}.
 
-  \indexoutertoken{name}\indexoutertoken{parname}\indexoutertoken{nameref}
-  \begin{rail}
-    name: ident | symident | string | nat
-    ;
-    parname: '(' name ')'
-    ;
-    nameref: name | longident
-    ;
-  \end{rail}%
+  \begin{railoutput}
+\rail@begin{4}{\indexdef{}{syntax}{name}\hypertarget{syntax.name}{\hyperlink{syntax.name}{\mbox{\isa{name}}}}}
+\rail@bar
+\rail@nont{\hyperlink{syntax.ident}{\mbox{\isa{ident}}}}[]
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.symident}{\mbox{\isa{symident}}}}[]
+\rail@nextbar{2}
+\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@nextbar{3}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{1}{\indexdef{}{syntax}{parname}\hypertarget{syntax.parname}{\hyperlink{syntax.parname}{\mbox{\isa{parname}}}}}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@end
+\rail@begin{2}{\indexdef{}{syntax}{nameref}\hypertarget{syntax.nameref}{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}}
+\rail@bar
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.longident}{\mbox{\isa{longident}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -236,15 +251,26 @@ The outer lexical syntax (\secref{sec:outer-lex}) admits
   natural numbers and floating point numbers.  These are combined as
   \hyperlink{syntax.int}{\mbox{\isa{int}}} and \hyperlink{syntax.real}{\mbox{\isa{real}}} as follows.
 
-  \indexoutertoken{int}\indexoutertoken{real}
-  \begin{rail}
-    int: nat | '-' nat
-    ;
-    real: float | int
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\indexdef{}{syntax}{int}\hypertarget{syntax.int}{\hyperlink{syntax.int}{\mbox{\isa{int}}}}}
+\rail@bar
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{2D}{\isacharminus}}}}[]
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\indexdef{}{syntax}{real}\hypertarget{syntax.real}{\hyperlink{syntax.real}{\mbox{\isa{real}}}}}
+\rail@bar
+\rail@nont{\hyperlink{syntax.float}{\mbox{\isa{float}}}}[]
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.int}{\mbox{\isa{int}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
 
-  Note that there is an overlap with the category \railqtok{name},
+
+  Note that there is an overlap with the category \hyperlink{syntax.name}{\mbox{\isa{name}}},
   which also includes \hyperlink{syntax.nat}{\mbox{\isa{nat}}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -254,20 +280,26 @@ The outer lexical syntax (\secref{sec:outer-lex}) admits
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Large chunks of plain \railqtok{text} are usually given
-  \railtok{verbatim}, i.e.\ enclosed in \verb|{|\verb|*|~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}~\verb|*|\verb|}|.  For convenience,
-  any of the smaller text units conforming to \railqtok{nameref} are
-  admitted as well.  A marginal \railnonterm{comment} is of the form
-  \verb|--| \railqtok{text}.  Any number of these may occur
+Large chunks of plain \hyperlink{syntax.text}{\mbox{\isa{text}}} are usually given
+  \hyperlink{syntax.verbatim}{\mbox{\isa{verbatim}}}, i.e.\ enclosed in \verb|{|\verb|*|~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}~\verb|*|\verb|}|.  For convenience,
+  any of the smaller text units conforming to \hyperlink{syntax.nameref}{\mbox{\isa{nameref}}} are
+  admitted as well.  A marginal \hyperlink{syntax.comment}{\mbox{\isa{comment}}} is of the form
+  \verb|--|~\hyperlink{syntax.text}{\mbox{\isa{text}}}.  Any number of these may occur
   within Isabelle/Isar commands.
 
-  \indexoutertoken{text}\indexouternonterm{comment}
-  \begin{rail}
-    text: verbatim | nameref
-    ;
-    comment: '--' text
-    ;
-  \end{rail}%
+  \begin{railoutput}
+\rail@begin{2}{\indexdef{}{syntax}{text}\hypertarget{syntax.text}{\hyperlink{syntax.text}{\mbox{\isa{text}}}}}
+\rail@bar
+\rail@nont{\hyperlink{syntax.verbatim}{\mbox{\isa{verbatim}}}}[]
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{1}{\indexdef{}{syntax}{comment}\hypertarget{syntax.comment}{\hyperlink{syntax.comment}{\mbox{\isa{comment}}}}}
+\rail@term{\isa{{\isaliteral{2D}{\isacharminus}}{\isaliteral{2D}{\isacharminus}}}}[]
+\rail@nont{\hyperlink{syntax.text}{\mbox{\isa{text}}}}[]
+\rail@end
+\end{railoutput}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -282,16 +314,40 @@ Classes are specified by plain names.  Sorts have a very simple
   intersection of these classes.  The syntax of type arities is given
   directly at the outer level.
 
-  \indexouternonterm{sort}\indexouternonterm{arity}
-  \indexouternonterm{classdecl}
-  \begin{rail}
-    classdecl: name (('<' | subseteq) (nameref + ','))?
-    ;
-    sort: nameref
-    ;
-    arity: ('(' (sort + ',') ')')? sort
-    ;
-  \end{rail}%
+  \begin{railoutput}
+\rail@begin{3}{\indexdef{}{syntax}{classdecl}\hypertarget{syntax.classdecl}{\hyperlink{syntax.classdecl}{\mbox{\isa{classdecl}}}}}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@bar
+\rail@term{\isa{{\isaliteral{3C}{\isacharless}}}}[]
+\rail@nextbar{2}
+\rail@term{\isa{{\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nextplus{2}
+\rail@cterm{\isa{{\isaliteral{2C}{\isacharcomma}}}}[]
+\rail@endplus
+\rail@endbar
+\rail@end
+\rail@begin{1}{\indexdef{}{syntax}{sort}\hypertarget{syntax.sort}{\hyperlink{syntax.sort}{\mbox{\isa{sort}}}}}
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@end
+\rail@begin{3}{\indexdef{}{syntax}{arity}\hypertarget{syntax.arity}{\hyperlink{syntax.arity}{\mbox{\isa{arity}}}}}
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.sort}{\mbox{\isa{sort}}}}[]
+\rail@nextplus{2}
+\rail@cterm{\isa{{\isaliteral{2C}{\isacharcomma}}}}[]
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.sort}{\mbox{\isa{sort}}}}[]
+\rail@end
+\end{railoutput}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -312,42 +368,96 @@ The actual inner Isabelle syntax, that of types and terms of the
   by commands or other keywords already (such as \verb|=| or
   \verb|+|).
 
-  \indexoutertoken{type}\indexoutertoken{term}\indexoutertoken{prop}
-  \begin{rail}
-    type: nameref | typefree | typevar
-    ;
-    term: nameref | var
-    ;
-    prop: term
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{3}{\indexdef{}{syntax}{type}\hypertarget{syntax.type}{\hyperlink{syntax.type}{\mbox{\isa{type}}}}}
+\rail@bar
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.typefree}{\mbox{\isa{typefree}}}}[]
+\rail@nextbar{2}
+\rail@nont{\hyperlink{syntax.typevar}{\mbox{\isa{typevar}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\indexdef{}{syntax}{term}\hypertarget{syntax.term}{\hyperlink{syntax.term}{\mbox{\isa{term}}}}}
+\rail@bar
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.var}{\mbox{\isa{var}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{1}{\indexdef{}{syntax}{prop}\hypertarget{syntax.prop}{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}}
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@end
+\end{railoutput}
+
 
   Positional instantiations are indicated by giving a sequence of
   terms, or the placeholder ``\isa{{\isaliteral{5F}{\isacharunderscore}}}'' (underscore), which means to
   skip a position.
 
-  \indexoutertoken{inst}\indexoutertoken{insts}
-  \begin{rail}
-    inst: underscore | term
-    ;
-    insts: (inst *)
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\indexdef{}{syntax}{inst}\hypertarget{syntax.inst}{\hyperlink{syntax.inst}{\mbox{\isa{inst}}}}}
+\rail@bar
+\rail@term{\isa{{\isaliteral{5F}{\isacharunderscore}}}}[]
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\indexdef{}{syntax}{insts}\hypertarget{syntax.insts}{\hyperlink{syntax.insts}{\mbox{\isa{insts}}}}}
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.inst}{\mbox{\isa{inst}}}}[]
+\rail@endplus
+\rail@end
+\end{railoutput}
 
-  Type declarations and definitions usually refer to
-  \railnonterm{typespec} on the left-hand side.  This models basic
-  type constructor application at the outer syntax level.  Note that
-  only plain postfix notation is available here, but no infixes.
 
-  \indexouternonterm{typespec}
-  \indexouternonterm{typespecsorts}
-  \begin{rail}
-    typespec: (() | typefree | '(' ( typefree + ',' ) ')') name
-    ;
+  Type declarations and definitions usually refer to \hyperlink{syntax.typespec}{\mbox{\isa{typespec}}} on the left-hand side.  This models basic type constructor
+  application at the outer syntax level.  Note that only plain postfix
+  notation is available here, but no infixes.
 
-    typespecsorts: (() | (typefree ('::' sort)?) | '(' ( (typefree ('::' sort)?) + ',' ) ')') name
-    ;
-  \end{rail}%
+  \begin{railoutput}
+\rail@begin{4}{\indexdef{}{syntax}{typespec}\hypertarget{syntax.typespec}{\hyperlink{syntax.typespec}{\mbox{\isa{typespec}}}}}
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.typefree}{\mbox{\isa{typefree}}}}[]
+\rail@nextbar{2}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.typefree}{\mbox{\isa{typefree}}}}[]
+\rail@nextplus{3}
+\rail@cterm{\isa{{\isaliteral{2C}{\isacharcomma}}}}[]
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@end
+\rail@begin{6}{\indexdef{}{syntax}{typespecsorts}\hypertarget{syntax.typespecsorts}{\hyperlink{syntax.typespecsorts}{\mbox{\isa{typespecsorts}}}}}
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.typefree}{\mbox{\isa{typefree}}}}[]
+\rail@bar
+\rail@nextbar{2}
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.sort}{\mbox{\isa{sort}}}}[]
+\rail@endbar
+\rail@nextbar{3}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.typefree}{\mbox{\isa{typefree}}}}[]
+\rail@bar
+\rail@nextbar{4}
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.sort}{\mbox{\isa{sort}}}}[]
+\rail@endbar
+\rail@nextplus{5}
+\rail@cterm{\isa{{\isaliteral{2C}{\isacharcomma}}}}[]
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@end
+\end{railoutput}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -356,40 +466,76 @@ The actual inner Isabelle syntax, that of types and terms of the
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Wherever explicit propositions (or term fragments) occur in a proof
-  text, casual binding of schematic term variables may be given
-  specified via patterns of the form ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C49533E}{\isasymIS}}\ p\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ p\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}''.  This works both for \railqtok{term} and \railqtok{prop}.
+Wherever explicit propositions (or term fragments) occur in a
+  proof text, casual binding of schematic term variables may be given
+  specified via patterns of the form ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C49533E}{\isasymIS}}\ p\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ p\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}''.
+  This works both for \hyperlink{syntax.term}{\mbox{\isa{term}}} and \hyperlink{syntax.prop}{\mbox{\isa{prop}}}.
 
-  \indexouternonterm{termpat}\indexouternonterm{proppat}
-  \begin{rail}
-    termpat: '(' ('is' term +) ')'
-    ;
-    proppat: '(' ('is' prop +) ')'
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\indexdef{}{syntax}{termpat}\hypertarget{syntax.termpat}{\hyperlink{syntax.termpat}{\mbox{\isa{termpat}}}}}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@plus
+\rail@term{\isa{\isakeyword{is}}}[]
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@end
+\rail@begin{2}{\indexdef{}{syntax}{proppat}\hypertarget{syntax.proppat}{\hyperlink{syntax.proppat}{\mbox{\isa{proppat}}}}}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@plus
+\rail@term{\isa{\isakeyword{is}}}[]
+\rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@end
+\end{railoutput}
+
 
   \medskip Declarations of local variables \isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{22}{\isachardoublequote}}} and
   logical propositions \isa{{\isaliteral{22}{\isachardoublequote}}a\ {\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}{\isaliteral{22}{\isachardoublequote}}} represent different views on
   the same principle of introducing a local scope.  In practice, one
-  may usually omit the typing of \railnonterm{vars} (due to
+  may usually omit the typing of \hyperlink{syntax.vars}{\mbox{\isa{vars}}} (due to
   type-inference), and the naming of propositions (due to implicit
   references of current facts).  In any case, Isar proof elements
   usually admit to introduce multiple such items simultaneously.
 
-  \indexouternonterm{vars}\indexouternonterm{props}
-  \begin{rail}
-    vars: (name+) ('::' type)?
-    ;
-    props: thmdecl? (prop proppat? +)
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{2}{\indexdef{}{syntax}{vars}\hypertarget{syntax.vars}{\hyperlink{syntax.vars}{\mbox{\isa{vars}}}}}
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{3}{\indexdef{}{syntax}{props}\hypertarget{syntax.props}{\hyperlink{syntax.props}{\mbox{\isa{props}}}}}
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmdecl}{\mbox{\isa{thmdecl}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.proppat}{\mbox{\isa{proppat}}}}[]
+\rail@endbar
+\rail@nextplus{2}
+\rail@endplus
+\rail@end
+\end{railoutput}
+
 
   The treatment of multiple declarations corresponds to the
-  complementary focus of \railnonterm{vars} versus
-  \railnonterm{props}.  In ``\isa{{\isaliteral{22}{\isachardoublequote}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{22}{\isachardoublequote}}}''
-  the typing refers to all variables, while in \isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} the naming refers to all propositions collectively.
-  Isar language elements that refer to \railnonterm{vars} or
-  \railnonterm{props} typically admit separate typings or namings via
+  complementary focus of \hyperlink{syntax.vars}{\mbox{\isa{vars}}} versus \hyperlink{syntax.props}{\mbox{\isa{props}}}.  In
+  ``\isa{{\isaliteral{22}{\isachardoublequote}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{22}{\isachardoublequote}}}'' the typing refers to all variables, while
+  in \isa{{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7068693E}{\isasymphi}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} the naming refers to all propositions
+  collectively.  Isar language elements that refer to \hyperlink{syntax.vars}{\mbox{\isa{vars}}}
+  or \hyperlink{syntax.props}{\mbox{\isa{props}}} typically admit separate typings or namings via
   another level of iteration, with explicit \indexref{}{keyword}{and}\hyperlink{keyword.and}{\mbox{\isa{\isakeyword{and}}}}
   separators; e.g.\ see \hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}} and \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}} in
   \secref{sec:proof-context}.%
@@ -402,31 +548,71 @@ Wherever explicit propositions (or term fragments) occur in a proof
 %
 \begin{isamarkuptext}%
 Attributes have their own ``semi-inner'' syntax, in the sense
-  that input conforming to \railnonterm{args} below is parsed by the
+  that input conforming to \hyperlink{syntax.args}{\mbox{\isa{args}}} below is parsed by the
   attribute a second time.  The attribute argument specifications may
   be any sequence of atomic entities (identifiers, strings etc.), or
-  properly bracketed argument lists.  Below \railqtok{atom} refers to
-  any atomic entity, including any \railtok{keyword} conforming to
-  \railtok{symident}.
+  properly bracketed argument lists.  Below \hyperlink{syntax.atom}{\mbox{\isa{atom}}} refers to
+  any atomic entity, including any \hyperlink{syntax.keyword}{\mbox{\isa{keyword}}} conforming to
+  \hyperlink{syntax.symident}{\mbox{\isa{symident}}}.
 
-  \indexoutertoken{atom}\indexouternonterm{args}\indexouternonterm{attributes}
-  \begin{rail}
-    atom: nameref | typefree | typevar | var | nat | float | keyword
-    ;
-    arg: atom | '(' args ')' | '[' args ']'
-    ;
-    args: arg *
-    ;
-    attributes: '[' (nameref args * ',') ']'
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{7}{\indexdef{}{syntax}{atom}\hypertarget{syntax.atom}{\hyperlink{syntax.atom}{\mbox{\isa{atom}}}}}
+\rail@bar
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.typefree}{\mbox{\isa{typefree}}}}[]
+\rail@nextbar{2}
+\rail@nont{\hyperlink{syntax.typevar}{\mbox{\isa{typevar}}}}[]
+\rail@nextbar{3}
+\rail@nont{\hyperlink{syntax.var}{\mbox{\isa{var}}}}[]
+\rail@nextbar{4}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@nextbar{5}
+\rail@nont{\hyperlink{syntax.float}{\mbox{\isa{float}}}}[]
+\rail@nextbar{6}
+\rail@nont{\hyperlink{syntax.keyword}{\mbox{\isa{keyword}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{3}{\isa{arg}}
+\rail@bar
+\rail@nont{\hyperlink{syntax.atom}{\mbox{\isa{atom}}}}[]
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@nont{\hyperlink{syntax.args}{\mbox{\isa{args}}}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@nextbar{2}
+\rail@term{\isa{{\isaliteral{5B}{\isacharbrackleft}}}}[]
+\rail@nont{\hyperlink{syntax.args}{\mbox{\isa{args}}}}[]
+\rail@term{\isa{{\isaliteral{5D}{\isacharbrackright}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\indexdef{}{syntax}{args}\hypertarget{syntax.args}{\hyperlink{syntax.args}{\mbox{\isa{args}}}}}
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\isa{arg}}[]
+\rail@endplus
+\rail@end
+\rail@begin{3}{\indexdef{}{syntax}{attributes}\hypertarget{syntax.attributes}{\hyperlink{syntax.attributes}{\mbox{\isa{attributes}}}}}
+\rail@term{\isa{{\isaliteral{5B}{\isacharbrackleft}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@plus
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nont{\hyperlink{syntax.args}{\mbox{\isa{args}}}}[]
+\rail@nextplus{2}
+\rail@cterm{\isa{{\isaliteral{2C}{\isacharcomma}}}}[]
+\rail@endplus
+\rail@endbar
+\rail@term{\isa{{\isaliteral{5D}{\isacharbrackright}}}}[]
+\rail@end
+\end{railoutput}
 
-  Theorem specifications come in several flavors:
-  \railnonterm{axmdecl} and \railnonterm{thmdecl} usually refer to
-  axioms, assumptions or results of goal statements, while
-  \railnonterm{thmdef} collects lists of existing theorems.  Existing
-  theorems are given by \railnonterm{thmref} and
-  \railnonterm{thmrefs}, the former requires an actual singleton
+
+  Theorem specifications come in several flavors: \hyperlink{syntax.axmdecl}{\mbox{\isa{axmdecl}}}
+  and \hyperlink{syntax.thmdecl}{\mbox{\isa{thmdecl}}} usually refer to axioms, assumptions or
+  results of goal statements, while \hyperlink{syntax.thmdef}{\mbox{\isa{thmdef}}} collects lists of
+  existing theorems.  Existing theorems are given by \hyperlink{syntax.thmref}{\mbox{\isa{thmref}}}
+  and \hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}, the former requires an actual singleton
   result.
 
   There are three forms of theorem references:
@@ -454,26 +640,79 @@ Attributes have their own ``semi-inner'' syntax, in the sense
   This form of in-place declarations is particularly useful with
   commands like \hyperlink{command.declare}{\mbox{\isa{\isacommand{declare}}}} and \hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}.
 
-  \indexouternonterm{axmdecl}\indexouternonterm{thmdecl}
-  \indexouternonterm{thmdef}\indexouternonterm{thmref}
-  \indexouternonterm{thmrefs}\indexouternonterm{selection}
-  \begin{rail}
-    axmdecl: name attributes? ':'
-    ;
-    thmdecl: thmbind ':'
-    ;
-    thmdef: thmbind '='
-    ;
-    thmref: (nameref selection? | altstring) attributes? | '[' attributes ']'
-    ;
-    thmrefs: thmref +
-    ;
-
-    thmbind: name attributes | name | attributes
-    ;
-    selection: '(' ((nat | nat '-' nat?) + ',') ')'
-    ;
-  \end{rail}%
+  \begin{railoutput}
+\rail@begin{2}{\indexdef{}{syntax}{axmdecl}\hypertarget{syntax.axmdecl}{\hyperlink{syntax.axmdecl}{\mbox{\isa{axmdecl}}}}}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.attributes}{\mbox{\isa{attributes}}}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@end
+\rail@begin{1}{\indexdef{}{syntax}{thmdecl}\hypertarget{syntax.thmdecl}{\hyperlink{syntax.thmdecl}{\mbox{\isa{thmdecl}}}}}
+\rail@nont{\isa{thmbind}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@end
+\rail@begin{1}{\indexdef{}{syntax}{thmdef}\hypertarget{syntax.thmdef}{\hyperlink{syntax.thmdef}{\mbox{\isa{thmdef}}}}}
+\rail@nont{\isa{thmbind}}[]
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@end
+\rail@begin{4}{\indexdef{}{syntax}{thmref}\hypertarget{syntax.thmref}{\hyperlink{syntax.thmref}{\mbox{\isa{thmref}}}}}
+\rail@bar
+\rail@bar
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{selection}}[]
+\rail@endbar
+\rail@nextbar{2}
+\rail@nont{\hyperlink{syntax.altstring}{\mbox{\isa{altstring}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.attributes}{\mbox{\isa{attributes}}}}[]
+\rail@endbar
+\rail@nextbar{3}
+\rail@term{\isa{{\isaliteral{5B}{\isacharbrackleft}}}}[]
+\rail@nont{\hyperlink{syntax.attributes}{\mbox{\isa{attributes}}}}[]
+\rail@term{\isa{{\isaliteral{5D}{\isacharbrackright}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\indexdef{}{syntax}{thmrefs}\hypertarget{syntax.thmrefs}{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}}
+\rail@plus
+\rail@nont{\hyperlink{syntax.thmref}{\mbox{\isa{thmref}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\rail@begin{3}{\isa{thmbind}}
+\rail@bar
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nont{\hyperlink{syntax.attributes}{\mbox{\isa{attributes}}}}[]
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextbar{2}
+\rail@nont{\hyperlink{syntax.attributes}{\mbox{\isa{attributes}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{4}{\isa{selection}}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@plus
+\rail@bar
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@term{\isa{{\isaliteral{2D}{\isacharminus}}}}[]
+\rail@bar
+\rail@nextbar{2}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@endbar
+\rail@endbar
+\rail@nextplus{3}
+\rail@cterm{\isa{{\isaliteral{2C}{\isacharcomma}}}}[]
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@end
+\end{railoutput}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

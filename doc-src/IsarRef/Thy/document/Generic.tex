@@ -45,9 +45,27 @@ Isabelle/Pure maintains a record of named configuration
     \indexdef{}{command}{print\_configs}\hypertarget{command.print-configs}{\hyperlink{command.print-configs}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}configs}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
-  \begin{rail}
-    name ('=' ('true' | 'false' | int | float | name))?
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{6}{\isa{}}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@bar
+\rail@term{\isa{true}}[]
+\rail@nextbar{2}
+\rail@term{\isa{false}}[]
+\rail@nextbar{3}
+\rail@nont{\hyperlink{syntax.int}{\mbox{\isa{int}}}}[]
+\rail@nextbar{4}
+\rail@nont{\hyperlink{syntax.float}{\mbox{\isa{float}}}}[]
+\rail@nextbar{5}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@endbar
+\rail@endbar
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
   
@@ -83,12 +101,35 @@ Isabelle/Pure maintains a record of named configuration
     \indexdef{}{method}{fail}\hypertarget{method.fail}{\hyperlink{method.fail}{\mbox{\isa{fail}}}} & : & \isa{method} \\
   \end{matharray}
 
-  \begin{rail}
-    ('fold' | 'unfold' | 'insert') thmrefs
-    ;
-    ('erule' | 'drule' | 'frule') ('('nat')')? thmrefs
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{3}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{method.fold}{\mbox{\isa{fold}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{method.unfold}{\mbox{\isa{unfold}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{method.insert}{\mbox{\isa{insert}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@end
+\rail@begin{3}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{method.erule}{\mbox{\isa{erule}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{method.drule}{\mbox{\isa{drule}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{method.frule}{\mbox{\isa{frule}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
   
@@ -138,17 +179,47 @@ Isabelle/Pure maintains a record of named configuration
     \indexdef{}{attribute}{no\_vars}\hypertarget{attribute.no-vars}{\hyperlink{attribute.no-vars}{\mbox{\isa{no{\isaliteral{5F}{\isacharunderscore}}vars}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    'tagged' name name
-    ;
-    'untagged' name
-    ;
-    ('THEN' | 'COMP') ('[' nat ']')? thmref
-    ;
-    ('unfolded' | 'folded') thmrefs
-    ;
-    'rotated' ( int )?
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{attribute.tagged}{\mbox{\isa{tagged}}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{attribute.untagged}{\mbox{\isa{untagged}}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{attribute.THEN}{\mbox{\isa{THEN}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{attribute.COMP}{\mbox{\isa{COMP}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{5B}{\isacharbrackleft}}}}[]
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@term{\isa{{\isaliteral{5D}{\isacharbrackright}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.thmref}{\mbox{\isa{thmref}}}}[]
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{attribute.unfolded}{\mbox{\isa{unfolded}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{attribute.folded}{\mbox{\isa{folded}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{attribute.rotated}{\mbox{\isa{rotated}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.int}{\mbox{\isa{int}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -199,12 +270,38 @@ Isabelle/Pure maintains a record of named configuration
     \indexdef{}{method}{split}\hypertarget{method.split}{\hyperlink{method.split}{\mbox{\isa{split}}}} & : & \isa{method} \\
   \end{matharray}
 
-  \begin{rail}
-    'subst' ('(' 'asm' ')')? ('(' (nat+) ')')? thmref
-    ;
-    'split' ('(' 'asm' ')')? thmrefs
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{3}{\isa{}}
+\rail@term{\hyperlink{method.subst}{\mbox{\isa{subst}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@term{\isa{asm}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@nextplus{2}
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.thmref}{\mbox{\isa{thmref}}}}[]
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{method.split}{\mbox{\isa{split}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@term{\isa{asm}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@end
+\end{railoutput}
+
 
   These methods provide low-level facilities for equational reasoning
   that are intended for specialized applications only.  Normally,
@@ -302,22 +399,85 @@ The following improper proof methods emulate traditional tactics.
     \indexdef{}{method}{raw\_tactic}\hypertarget{method.raw-tactic}{\hyperlink{method.raw-tactic}{\mbox{\isa{raw{\isaliteral{5F}{\isacharunderscore}}tactic}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{method} \\
   \end{matharray}
 
-  \begin{rail}
-    ( 'rule_tac' | 'erule_tac' | 'drule_tac' | 'frule_tac' | 'cut_tac' | 'thin_tac' ) goalspec?
-    ( insts thmref | thmrefs )
-    ;
-    'subgoal_tac' goalspec? (prop +)
-    ;
-    'rename_tac' goalspec? (name +)
-    ;
-    'rotate_tac' goalspec? int?
-    ;
-    ('tactic' | 'raw_tactic') text
-    ;
-
-    insts: ((name '=' term) + 'and') 'in'
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{6}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{method.rule-tac}{\mbox{\isa{rule{\isaliteral{5F}{\isacharunderscore}}tac}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{method.erule-tac}{\mbox{\isa{erule{\isaliteral{5F}{\isacharunderscore}}tac}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{method.drule-tac}{\mbox{\isa{drule{\isaliteral{5F}{\isacharunderscore}}tac}}}}[]
+\rail@nextbar{3}
+\rail@term{\hyperlink{method.frule-tac}{\mbox{\isa{frule{\isaliteral{5F}{\isacharunderscore}}tac}}}}[]
+\rail@nextbar{4}
+\rail@term{\hyperlink{method.cut-tac}{\mbox{\isa{cut{\isaliteral{5F}{\isacharunderscore}}tac}}}}[]
+\rail@nextbar{5}
+\rail@term{\hyperlink{method.thin-tac}{\mbox{\isa{thin{\isaliteral{5F}{\isacharunderscore}}tac}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.goalspec}{\mbox{\isa{goalspec}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nont{\isa{insts}}[]
+\rail@nont{\hyperlink{syntax.thmref}{\mbox{\isa{thmref}}}}[]
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{method.subgoal-tac}{\mbox{\isa{subgoal{\isaliteral{5F}{\isacharunderscore}}tac}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.goalspec}{\mbox{\isa{goalspec}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{method.rename-tac}{\mbox{\isa{rename{\isaliteral{5F}{\isacharunderscore}}tac}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.goalspec}{\mbox{\isa{goalspec}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{method.rotate-tac}{\mbox{\isa{rotate{\isaliteral{5F}{\isacharunderscore}}tac}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.goalspec}{\mbox{\isa{goalspec}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.int}{\mbox{\isa{int}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{method.tactic}{\mbox{\isa{tactic}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{method.raw-tactic}{\mbox{\isa{raw{\isaliteral{5F}{\isacharunderscore}}tactic}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.text}{\mbox{\isa{text}}}}[]
+\rail@end
+\rail@begin{2}{\isa{insts}}
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
+\rail@endplus
+\rail@term{\isa{\isakeyword{in}}}[]
+\rail@end
+\end{railoutput}
+ % FIXME check use of insts
 
 \begin{description}
 
@@ -383,31 +543,78 @@ The following improper proof methods emulate traditional tactics.
     \indexdef{}{method}{simp\_all}\hypertarget{method.simp-all}{\hyperlink{method.simp-all}{\mbox{\isa{simp{\isaliteral{5F}{\isacharunderscore}}all}}}} & : & \isa{method} \\
   \end{matharray}
 
-  \indexouternonterm{simpmod}
-  \begin{rail}
-    ('simp' | 'simp_all') opt? (simpmod *)
-    ;
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{method.simp}{\mbox{\isa{simp}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{method.simp-all}{\mbox{\isa{simp{\isaliteral{5F}{\isacharunderscore}}all}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{opt}}[]
+\rail@endbar
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.simpmod}{\mbox{\isa{simpmod}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{4}{\isa{opt}}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@bar
+\rail@term{\isa{no{\isaliteral{5F}{\isacharunderscore}}asm}}[]
+\rail@nextbar{1}
+\rail@term{\isa{no{\isaliteral{5F}{\isacharunderscore}}asm{\isaliteral{5F}{\isacharunderscore}}simp}}[]
+\rail@nextbar{2}
+\rail@term{\isa{no{\isaliteral{5F}{\isacharunderscore}}asm{\isaliteral{5F}{\isacharunderscore}}use}}[]
+\rail@nextbar{3}
+\rail@term{\isa{asm{\isaliteral{5F}{\isacharunderscore}}lr}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@end
+\rail@begin{9}{\indexdef{}{syntax}{simpmod}\hypertarget{syntax.simpmod}{\hyperlink{syntax.simpmod}{\mbox{\isa{simpmod}}}}}
+\rail@bar
+\rail@term{\isa{add}}[]
+\rail@nextbar{1}
+\rail@term{\isa{del}}[]
+\rail@nextbar{2}
+\rail@term{\isa{only}}[]
+\rail@nextbar{3}
+\rail@term{\isa{cong}}[]
+\rail@bar
+\rail@nextbar{4}
+\rail@term{\isa{add}}[]
+\rail@nextbar{5}
+\rail@term{\isa{del}}[]
+\rail@endbar
+\rail@nextbar{6}
+\rail@term{\isa{split}}[]
+\rail@bar
+\rail@nextbar{7}
+\rail@term{\isa{add}}[]
+\rail@nextbar{8}
+\rail@term{\isa{del}}[]
+\rail@endbar
+\rail@endbar
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@end
+\end{railoutput}
 
-    opt: '(' ('no_asm' | 'no_asm_simp' | 'no_asm_use' | 'asm_lr' ) ')'
-    ;
-    simpmod: ('add' | 'del' | 'only' | 'cong' (() | 'add' | 'del') |
-      'split' (() | 'add' | 'del')) ':' thmrefs
-    ;
-  \end{rail}
 
   \begin{description}
 
   \item \hyperlink{method.simp}{\mbox{\isa{simp}}} invokes the Simplifier, after declaring
   additional rules according to the arguments given.  Note that the
-  \railtterm{only} modifier first removes all other rewrite rules,
+  \isa{only} modifier first removes all other rewrite rules,
   congruences, and looper tactics (including splits), and then behaves
-  like \railtterm{add}.
+  like \isa{add}.
 
-  \medskip The \railtterm{cong} modifiers add or delete Simplifier
+  \medskip The \isa{cong} modifiers add or delete Simplifier
   congruence rules (see also \cite{isabelle-ref}), the default is to
   add.
 
-  \medskip The \railtterm{split} modifiers add or delete rules for the
+  \medskip The \isa{split} modifiers add or delete rules for the
   Splitter (see also \cite{isabelle-ref}), the default is to add.
   This works only if the Simplifier method has been properly setup to
   include the Splitter (all major object logics such HOL, HOLCF, FOL,
@@ -459,10 +666,24 @@ The following improper proof methods emulate traditional tactics.
     \indexdef{}{attribute}{split}\hypertarget{attribute.split}{\hyperlink{attribute.split}{\mbox{\isa{split}}}} & : & \isa{attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    ('simp' | 'cong' | 'split') (() | 'add' | 'del')
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{3}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{attribute.simp}{\mbox{\isa{simp}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{attribute.cong}{\mbox{\isa{cong}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{attribute.split}{\mbox{\isa{split}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{add}}[]
+\rail@nextbar{2}
+\rail@term{\isa{del}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -490,13 +711,48 @@ The following improper proof methods emulate traditional tactics.
     simproc & : & \isa{attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    'simproc_setup' name '(' (term + '|') ')' '=' text \\ ('identifier' (nameref+))?
-    ;
+  \begin{railoutput}
+\rail@begin{6}{\isa{}}
+\rail@term{\hyperlink{command.simproc-setup}{\mbox{\isa{\isacommand{simproc{\isaliteral{5F}{\isacharunderscore}}setup}}}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{{\isaliteral{7C}{\isacharbar}}}}[]
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@nont{\hyperlink{syntax.text}{\mbox{\isa{text}}}}[]
+\rail@cr{3}
+\rail@bar
+\rail@nextbar{4}
+\rail@term{\isa{\isakeyword{identifier}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@nextplus{5}
+\rail@endplus
+\rail@endbar
+\rail@end
+\rail@begin{3}{\isa{}}
+\rail@term{\hyperlink{attribute.simproc}{\mbox{\isa{simproc}}}}[]
+\rail@bar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{add}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@endbar
+\rail@nextbar{2}
+\rail@term{\isa{del}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\end{railoutput}
 
-    'simproc' (('add' ':')? | 'del' ':') (name+)
-    ;
-  \end{rail}
 
   \begin{description}
 
@@ -535,13 +791,31 @@ The following improper proof methods emulate traditional tactics.
     \indexdef{}{attribute}{simplified}\hypertarget{attribute.simplified}{\hyperlink{attribute.simplified}{\mbox{\isa{simplified}}}} & : & \isa{attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    'simplified' opt? thmrefs?
-    ;
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{attribute.simplified}{\mbox{\isa{simplified}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{opt}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{3}{\isa{opt}}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@bar
+\rail@term{\isa{no{\isaliteral{5F}{\isacharunderscore}}asm}}[]
+\rail@nextbar{1}
+\rail@term{\isa{no{\isaliteral{5F}{\isacharunderscore}}asm{\isaliteral{5F}{\isacharunderscore}}simp}}[]
+\rail@nextbar{2}
+\rail@term{\isa{no{\isaliteral{5F}{\isacharunderscore}}asm{\isaliteral{5F}{\isacharunderscore}}use}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@end
+\end{railoutput}
 
-    opt: '(' ('no_asm' | 'no_asm_simp' | 'no_asm_use') ')'
-    ;
-  \end{rail}
 
   \begin{description}
   
@@ -576,10 +850,22 @@ The following improper proof methods emulate traditional tactics.
     \indexdef{}{method}{elim}\hypertarget{method.elim}{\hyperlink{method.elim}{\mbox{\isa{elim}}}} & : & \isa{method} \\
   \end{matharray}
 
-  \begin{rail}
-    ('rule' | 'intro' | 'elim') thmrefs?
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{3}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{method.rule}{\mbox{\isa{rule}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{method.intro}{\mbox{\isa{intro}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{method.elim}{\mbox{\isa{elim}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -623,16 +909,58 @@ The following improper proof methods emulate traditional tactics.
     \indexdef{}{method}{clarify}\hypertarget{method.clarify}{\hyperlink{method.clarify}{\mbox{\isa{clarify}}}} & : & \isa{method} \\
   \end{matharray}
 
-  \indexouternonterm{clamod}
-  \begin{rail}
-    'blast' nat? (clamod *)
-    ;
-    ('fast' | 'slow' | 'best' | 'safe' | 'clarify') (clamod *)
-    ;
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{method.blast}{\mbox{\isa{blast}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.clamod}{\mbox{\isa{clamod}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{5}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{method.fast}{\mbox{\isa{fast}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{method.slow}{\mbox{\isa{slow}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{method.best}{\mbox{\isa{best}}}}[]
+\rail@nextbar{3}
+\rail@term{\hyperlink{method.safe}{\mbox{\isa{safe}}}}[]
+\rail@nextbar{4}
+\rail@term{\hyperlink{method.clarify}{\mbox{\isa{clarify}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.clamod}{\mbox{\isa{clamod}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{4}{\indexdef{}{syntax}{clamod}\hypertarget{syntax.clamod}{\hyperlink{syntax.clamod}{\mbox{\isa{clamod}}}}}
+\rail@bar
+\rail@bar
+\rail@term{\isa{intro}}[]
+\rail@nextbar{1}
+\rail@term{\isa{elim}}[]
+\rail@nextbar{2}
+\rail@term{\isa{dest}}[]
+\rail@endbar
+\rail@bar
+\rail@term{\isa{{\isaliteral{21}{\isacharbang}}}}[]
+\rail@nextbar{1}
+\rail@nextbar{2}
+\rail@term{\isa{{\isaliteral{3F}{\isacharquery}}}}[]
+\rail@endbar
+\rail@nextbar{3}
+\rail@term{\isa{del}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@end
+\end{railoutput}
 
-    clamod: (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del') ':' thmrefs
-    ;
-  \end{rail}
 
   \begin{description}
 
@@ -667,18 +995,97 @@ The following improper proof methods emulate traditional tactics.
     \indexdef{}{method}{bestsimp}\hypertarget{method.bestsimp}{\hyperlink{method.bestsimp}{\mbox{\isa{bestsimp}}}} & : & \isa{method} \\
   \end{matharray}
 
-  \indexouternonterm{clasimpmod}
-  \begin{rail}
-    'auto' (nat nat)? (clasimpmod *)
-    ;
-    ('force' | 'clarsimp' | 'fastsimp' | 'slowsimp' | 'bestsimp') (clasimpmod *)
-    ;
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{method.auto}{\mbox{\isa{auto}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.clasimpmod}{\mbox{\isa{clasimpmod}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{5}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{method.force}{\mbox{\isa{force}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{method.clarsimp}{\mbox{\isa{clarsimp}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{method.fastsimp}{\mbox{\isa{fastsimp}}}}[]
+\rail@nextbar{3}
+\rail@term{\hyperlink{method.slowsimp}{\mbox{\isa{slowsimp}}}}[]
+\rail@nextbar{4}
+\rail@term{\hyperlink{method.bestsimp}{\mbox{\isa{bestsimp}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.clasimpmod}{\mbox{\isa{clasimpmod}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{14}{\indexdef{}{syntax}{clasimpmod}\hypertarget{syntax.clasimpmod}{\hyperlink{syntax.clasimpmod}{\mbox{\isa{clasimpmod}}}}}
+\rail@bar
+\rail@term{\isa{simp}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{add}}[]
+\rail@nextbar{2}
+\rail@term{\isa{del}}[]
+\rail@nextbar{3}
+\rail@term{\isa{only}}[]
+\rail@endbar
+\rail@nextbar{4}
+\rail@bar
+\rail@term{\isa{cong}}[]
+\rail@nextbar{5}
+\rail@term{\isa{split}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{5}
+\rail@term{\isa{add}}[]
+\rail@nextbar{6}
+\rail@term{\isa{del}}[]
+\rail@endbar
+\rail@nextbar{7}
+\rail@term{\isa{iff}}[]
+\rail@bar
+\rail@bar
+\rail@nextbar{8}
+\rail@term{\isa{add}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{8}
+\rail@term{\isa{{\isaliteral{3F}{\isacharquery}}}}[]
+\rail@endbar
+\rail@nextbar{9}
+\rail@term{\isa{del}}[]
+\rail@endbar
+\rail@nextbar{10}
+\rail@bar
+\rail@bar
+\rail@term{\isa{intro}}[]
+\rail@nextbar{11}
+\rail@term{\isa{elim}}[]
+\rail@nextbar{12}
+\rail@term{\isa{dest}}[]
+\rail@endbar
+\rail@bar
+\rail@term{\isa{{\isaliteral{21}{\isacharbang}}}}[]
+\rail@nextbar{11}
+\rail@nextbar{12}
+\rail@term{\isa{{\isaliteral{3F}{\isacharquery}}}}[]
+\rail@endbar
+\rail@nextbar{13}
+\rail@term{\isa{del}}[]
+\rail@endbar
+\rail@endbar
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@end
+\end{railoutput}
 
-    clasimpmod: ('simp' (() | 'add' | 'del' | 'only') |
-      ('cong' | 'split') (() | 'add' | 'del') |
-      'iff' (((() | 'add') '?'?) | 'del') |
-      (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del')) ':' thmrefs
-  \end{rail}
 
   \begin{description}
 
@@ -688,7 +1095,7 @@ The following improper proof methods emulate traditional tactics.
   added as wrapper, see \cite{isabelle-ref} for more information.  The
   modifier arguments correspond to those given in
   \secref{sec:simplifier} and \secref{sec:classical}.  Just note that
-  the ones related to the Simplifier are prefixed by \railtterm{simp}
+  the ones related to the Simplifier are prefixed by \isa{simp}
   here.
 
   Facts provided by forward chaining are inserted into the goal before
@@ -712,14 +1119,47 @@ The following improper proof methods emulate traditional tactics.
     \indexdef{}{attribute}{iff}\hypertarget{attribute.iff}{\hyperlink{attribute.iff}{\mbox{\isa{iff}}}} & : & \isa{attribute} \\
   \end{matharray}
 
-  \begin{rail}
-    ('intro' | 'elim' | 'dest') ('!' | () | '?') nat?
-    ;
-    'rule' 'del'
-    ;
-    'iff' (((() | 'add') '?'?) | 'del')
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{3}{\isa{}}
+\rail@bar
+\rail@term{\hyperlink{attribute.intro}{\mbox{\isa{intro}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{attribute.elim}{\mbox{\isa{elim}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{attribute.dest}{\mbox{\isa{dest}}}}[]
+\rail@endbar
+\rail@bar
+\rail@term{\isa{{\isaliteral{21}{\isacharbang}}}}[]
+\rail@nextbar{1}
+\rail@nextbar{2}
+\rail@term{\isa{{\isaliteral{3F}{\isacharquery}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{attribute.rule}{\mbox{\isa{rule}}}}[]
+\rail@term{\isa{del}}[]
+\rail@end
+\rail@begin{3}{\isa{}}
+\rail@term{\hyperlink{attribute.iff}{\mbox{\isa{iff}}}}[]
+\rail@bar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{add}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{3F}{\isacharquery}}}}[]
+\rail@endbar
+\rail@nextbar{2}
+\rail@term{\isa{del}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
 
@@ -805,14 +1245,31 @@ The following improper proof methods emulate traditional tactics.
   Generic tools may refer to the information provided by object-logic
   declarations internally.
 
-  \begin{rail}
-    'judgment' constdecl
-    ;
-    'atomize' ('(' 'full' ')')?
-    ;
-    'rule_format' ('(' 'noasm' ')')?
-    ;
-  \end{rail}
+  \begin{railoutput}
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{command.judgment}{\mbox{\isa{\isacommand{judgment}}}}}[]
+\rail@nont{\hyperlink{syntax.constdecl}{\mbox{\isa{constdecl}}}}[]
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{attribute.atomize}{\mbox{\isa{atomize}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@term{\isa{full}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{}}
+\rail@term{\hyperlink{attribute.rule-format}{\mbox{\isa{rule{\isaliteral{5F}{\isacharunderscore}}format}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@term{\isa{noasm}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
 
   \begin{description}
   
