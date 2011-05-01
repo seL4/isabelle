@@ -779,6 +779,8 @@ fun decl_line_for_sym_decl s (s', _, T, pred_sym, ary) =
           if pred_sym then `I tptp_tff_bool_type else mangled_type_name res_T)
   end
 
+fun is_polymorphic_type T = fold_atyps (fn TVar _ => K true | _ => I) T false
+
 fun formula_line_for_sym_decl ctxt type_sys n s j (s', T_args, T, _, ary) =
   let
     val (arg_Ts, res_T) = n_ary_strip_type ary T
@@ -787,7 +789,8 @@ fun formula_line_for_sym_decl ctxt type_sys n s j (s', T_args, T, _, ary) =
     val bound_tms =
       bound_names ~~ arg_Ts |> map (fn (name, T) => CombConst (name, T, []))
     val bound_Ts =
-      arg_Ts |> map (if n > 1 then SOME else K NONE)
+      arg_Ts |> map (fn T => if n > 1 orelse is_polymorphic_type T then SOME T
+                             else NONE)
   in
     Formula (sym_decl_prefix ^ ascii_of s ^ "_" ^ string_of_int j, Axiom,
              CombConst ((s, s'), T, T_args)
@@ -807,11 +810,13 @@ fun problem_lines_for_sym_decls ctxt type_sys (s, decls) =
       val decls =
         case decls of
           decl :: (decls' as _ :: _) =>
-          if forall (curry (op =) (result_type_of_decl decl)
-                     o result_type_of_decl) decls' then
-            [decl]
-          else
-            decls
+          let val T = result_type_of_decl decl in
+            if forall ((fn T' => Type.raw_instance (T', T))
+                       o result_type_of_decl) decls' then
+              [decl]
+            else
+              decls
+          end
         | _ => decls
       val n = length decls
       val decls =
