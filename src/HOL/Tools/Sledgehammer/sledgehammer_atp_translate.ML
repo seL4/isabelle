@@ -21,6 +21,8 @@ sig
 
   val fact_prefix : string
   val conjecture_prefix : string
+  val boolify_name : string
+  val explicit_app_name : string
   val is_type_system_sound : type_system -> bool
   val type_system_types_dangerous_types : type_system -> bool
   val num_atp_type_args : theory -> type_system -> string -> int
@@ -50,6 +52,8 @@ val class_rel_clause_prefix = "clrel_";
 val arity_clause_prefix = "arity_"
 val tfree_prefix = "tfree_"
 
+val boolify_name = "hBOOL"
+val explicit_app_name = "hAPP"
 val is_base = "is"
 val type_prefix = "ty_"
 
@@ -628,14 +632,16 @@ fun consider_problem_line_syms (Type_Decl _) = I
 fun consider_problem_syms problem =
   fold (fold consider_problem_line_syms o snd) problem
 
-(* needed for helper facts if the problem otherwise does not involve equality *)
-val equal_entry = ("equal", {min_arity = 2, max_arity = 2, fun_sym = false})
+(* The "equal" entry is needed for helper facts if the problem otherwise does
+   not involve equality. *)
+val default_entries =
+  [("equal", {min_arity = 2, max_arity = 2, fun_sym = false})]
 
 fun sym_table_for_problem explicit_apply problem =
   if explicit_apply then
     NONE
   else
-    SOME (Symtab.empty |> Symtab.default equal_entry
+    SOME (Symtab.empty |> fold Symtab.default default_entries
                        |> consider_problem_syms problem)
 
 fun min_arity_of thy type_sys NONE s =
@@ -658,13 +664,13 @@ fun full_type_of (ATerm ((s, _), [ty, _])) =
 
 fun list_hAPP_rev _ t1 [] = t1
   | list_hAPP_rev NONE t1 (t2 :: ts2) =
-    ATerm (`I "hAPP", [list_hAPP_rev NONE t1 ts2, t2])
+    ATerm (`I explicit_app_name, [list_hAPP_rev NONE t1 ts2, t2])
   | list_hAPP_rev (SOME ty) t1 (t2 :: ts2) =
     case full_type_of t2 of
       SOME ty2 =>
       let val ty' = ATerm (`make_fixed_type_const @{type_name fun},
                            [ty2, ty]) in
-        ATerm (`I "hAPP",
+        ATerm (`I explicit_app_name,
                [tag_with_type ty' (list_hAPP_rev (SOME ty') t1 ts2), t2])
       end
     | NONE => list_hAPP_rev NONE t1 (t2 :: ts2)
@@ -683,7 +689,7 @@ fun repair_applications_in_term thy type_sys sym_tab =
         in list_hAPP_rev opt_ty (ATerm (name, ts1)) (rev ts2) end
   in aux NONE end
 
-fun boolify t = ATerm (`I "hBOOL", [t])
+fun boolify t = ATerm (`I boolify_name, [t])
 
 (* True if the constant ever appears outside of the top-level position in
    literals, or if it appears with different arities (e.g., because of different
@@ -786,6 +792,12 @@ fun type_decl_line_for_const_entry ctxt type_sys sym_tab s (s', ty_args, ty) =
 fun type_decl_lines_for_const ctxt type_sys sym_tab (s, xs) =
   map (type_decl_line_for_const_entry ctxt type_sys sym_tab s) xs
 
+fun add_extra_type_decl_lines Many_Typed =
+    cons (Type_Decl (type_decl_prefix ^ boolify_name, `I boolify_name,
+                     [mangled_combtyp (combtyp_from_typ @{typ bool})],
+                     `I tff_bool_type))
+  | add_extra_type_decl_lines _ = I
+
 val factsN = "Relevant facts"
 val class_relsN = "Class relationships"
 val aritiesN = "Arity declarations"
@@ -826,6 +838,7 @@ fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
     val type_decl_lines =
       Symtab.fold_rev (append o type_decl_lines_for_const ctxt type_sys sym_tab)
                       const_tab []
+      |> add_extra_type_decl_lines type_sys
     val helper_lines =
       helper_facts
       |>> map (pair 0
