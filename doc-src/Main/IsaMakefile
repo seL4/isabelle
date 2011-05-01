@@ -23,6 +23,10 @@ HOL-Docs: $(LOG)/HOL-Docs.gz
 
 $(LOG)/HOL-Docs.gz: Docs/Main_Doc.thy Docs/ROOT.ML
 	@$(USEDIR) HOL Docs
+	@rm -f Docs/document/isabelle.sty
+	@rm -f Docs/document/isabellesym.sty
+	@rm -f Docs/document/pdfsetup.sty
+	@rm -f Docs/document/session.tex
 
 
 ## clean
