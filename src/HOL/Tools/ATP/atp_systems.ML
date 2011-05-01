@@ -341,7 +341,8 @@ val remote_e = remotify_atp e "EP" ["1.0", "1.1", "1.2"]
 val remote_vampire = remotify_atp vampire "Vampire" ["0.6", "9.0", "1.0"]
 val remote_z3_atp = remotify_atp z3_atp "Z3" ["2.18"]
 val remote_tofof_e =
-  remote_atp tofof_eN "ToFoF" ["0.1"] [] [] (K 200 (* FUDGE *)) true
+  remote_atp tofof_eN "ToFoF" ["0.1"] [] (#known_failures e_config)
+             (K 200 (* FUDGE *)) true
 val remote_sine_e =
   remote_atp sine_eN "SInE" ["0.4"] [] [(IncompleteUnprovable, "says Unknown")]
              (K 500 (* FUDGE *)) true
