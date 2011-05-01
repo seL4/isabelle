@@ -83,6 +83,12 @@ INCOMPATIBILITY. Use partial_function instead.
 
 *** Document preparation ***
 
+* Localized \isabellestyle switch can be used within blocks or groups
+like this:
+
+  \isabellestyle{it}  %preferred default
+  {\isabellestylett @{text "typewriter stuff"}}
+
 * New term style "isub" as ad-hoc conversion of variables x1, y23 into
 subscripted form x\<^isub>1, y\<^isub>2\<^isub>3.
 
