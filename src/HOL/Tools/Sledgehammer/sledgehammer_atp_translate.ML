@@ -440,7 +440,7 @@ fun mangled_combtyp_component f (CombTFree name) = f name
     f name (* FIXME: shouldn't happen *)
     (* raise Fail "impossible schematic type variable" *)
   | mangled_combtyp_component f (CombType (name, tys)) =
-    "(" ^ commas (map (mangled_combtyp_component f) tys) ^ ")" ^ f name
+    f name ^ "(" ^ commas (map (mangled_combtyp_component f) tys) ^ ")"
 
 fun mangled_combtyp ty =
   (make_type (mangled_combtyp_component fst ty),
@@ -459,9 +459,9 @@ val parse_mangled_ident =
   Scan.many1 (not o member (op =) ["(", ")", ","]) >> implode
 
 fun parse_mangled_type x =
-  ($$ "(" |-- Scan.optional parse_mangled_types [] --| $$ ")"
-      -- parse_mangled_ident >> (ATerm o swap)
-   || parse_mangled_ident >> (ATerm o rpair [])) x
+  (parse_mangled_ident
+   -- Scan.optional ($$ "(" |-- Scan.optional parse_mangled_types [] --| $$ ")")
+                    [] >> ATerm) x
 and parse_mangled_types x =
   (parse_mangled_type ::: Scan.repeat ($$ "," |-- parse_mangled_type)) x
 
