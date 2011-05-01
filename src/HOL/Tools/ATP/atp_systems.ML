@@ -11,13 +11,14 @@ sig
   type formula_kind = ATP_Problem.formula_kind
   type failure = ATP_Proof.failure
 
-  datatype type_level = Sound | Half_Sound | Unsound
+  datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
+  datatype type_level =
+    All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
+
   datatype type_system =
     Many_Typed |
-    Mangled of type_level |
-    Args of bool * type_level |
-    Tags of bool * type_level |
-    No_Types
+    Preds of polymorphism * type_level |
+    Tags of polymorphism * type_level
 
   type atp_config =
     {exec : string * string,
@@ -33,7 +34,10 @@ sig
   datatype e_weight_method =
     E_Slices | E_Auto | E_Fun_Weight | E_Sym_Offset_Weight
 
+  val polymorphism_of_type_sys : type_system -> polymorphism
   val level_of_type_sys : type_system -> type_level
+  val is_type_sys_virtually_sound : type_system -> bool
+  val is_type_sys_fairly_sound : type_system -> bool
   (* for experimentation purposes -- do not use in production code *)
   val e_weight_method : e_weight_method Unsynchronized.ref
   val e_default_fun_weight : real Unsynchronized.ref
@@ -71,19 +75,31 @@ open ATP_Proof
 
 (* ATP configuration *)
 
-datatype type_level = Sound | Half_Sound | Unsound
+datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
+datatype type_level =
+  All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
+
 datatype type_system =
   Many_Typed |
-  Mangled of type_level |
-  Args of bool * type_level |
-  Tags of bool * type_level |
-  No_Types
+  Preds of polymorphism * type_level |
+  Tags of polymorphism * type_level
 
-fun level_of_type_sys Many_Typed = Sound
-  | level_of_type_sys (Mangled level) = level
-  | level_of_type_sys (Args (_, level)) = level
+fun polymorphism_of_type_sys Many_Typed = Mangled_Monomorphic
+  | polymorphism_of_type_sys (Preds (poly, _)) = poly
+  | polymorphism_of_type_sys (Tags (poly, _)) = poly
+
+fun level_of_type_sys Many_Typed = All_Types
+  | level_of_type_sys (Preds (_, level)) = level
   | level_of_type_sys (Tags (_, level)) = level
-  | level_of_type_sys No_Types = Unsound
+
+val is_type_level_virtually_sound =
+  member (op =) [All_Types, Nonmonotonic_Types]
+val is_type_sys_virtually_sound =
+  is_type_level_virtually_sound o level_of_type_sys
+
+fun is_type_level_fairly_sound level =
+  is_type_level_virtually_sound level orelse level = Finite_Types
+val is_type_sys_fairly_sound = is_type_level_fairly_sound o level_of_type_sys
 
 type atp_config =
   {exec : string * string,

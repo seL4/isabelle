@@ -194,7 +194,7 @@ fun using_labels [] = ""
   | using_labels ls =
     "using " ^ space_implode " " (map string_for_label ls) ^ " "
 fun metis_name type_sys =
-  if level_of_type_sys type_sys = Unsound then "metis" else "metisFT"
+  if is_type_sys_fairly_sound type_sys then "metisFT" else "metis"
 fun metis_call type_sys ss = command_call (metis_name type_sys) ss
 fun metis_command type_sys i n (ls, ss) =
   using_labels ls ^ apply_on_subgoal "" i n ^ metis_call type_sys ss
@@ -342,12 +342,7 @@ fun raw_term_from_pred thy type_sys tfrees =
     fun aux opt_T extra_us u =
       case u of
         ATerm (a, us) =>
-        if a = type_tag_name then
-          case us of
-            [typ_u, term_u] =>
-            aux (SOME (typ_from_fo_term tfrees typ_u)) extra_us term_u
-          | _ => raise FO_TERM us
-        else if String.isPrefix tff_type_prefix a then
+        if String.isPrefix tff_type_prefix a then
           @{const True} (* ignore TFF type information *)
         else case strip_prefix_and_unascii const_prefix a of
           SOME "equal" =>
@@ -360,7 +355,12 @@ fun raw_term_from_pred thy type_sys tfrees =
           end
         | SOME b =>
           let val (b, mangled_us) = b |> unmangled_const |>> invert_const in
-            if b = predicator_base then
+            if b = type_tag_name then
+              case mangled_us @ us of
+                [typ_u, term_u] =>
+                aux (SOME (typ_from_fo_term tfrees typ_u)) extra_us term_u
+              | _ => raise FO_TERM us
+            else if b = predicator_base then
               aux (SOME @{typ bool}) [] (hd us)
             else if b = explicit_app_base then
               aux opt_T (nth us 1 :: extra_us) (hd us)

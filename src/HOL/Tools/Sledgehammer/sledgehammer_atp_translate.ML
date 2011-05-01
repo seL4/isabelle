@@ -42,7 +42,9 @@ open Metis_Translate
 open Sledgehammer_Util
 
 (* Readable names are often much shorter, especially if types are mangled in
-   names. For that reason, they are on by default. *)
+   names. Also, the logic for generating legal SNARK sort names is only
+   implemented for readable names. Finally, readable names are, well, more
+   readable. For these reason, they are enabled by default. *)
 val readable_names = Unsynchronized.ref true
 
 val type_decl_prefix = "type_"
@@ -91,29 +93,25 @@ fun update_combformula f
 
 fun fact_lift f ({combformula, ...} : translated_formula) = f combformula
 
-fun type_sys_declares_sym_types Many_Typed = true
-  | type_sys_declares_sym_types (Mangled level) = level <> Unsound
-  | type_sys_declares_sym_types (Args (_, level)) = level <> Unsound
-  | type_sys_declares_sym_types _ = false
-
 val boring_consts = [explicit_app_base, @{const_name Metis.fequal}]
 
 fun should_omit_type_args type_sys s =
-  s <> type_pred_base andalso
-  (s = @{const_name HOL.eq} orelse
-   case type_sys of
-     Many_Typed => false
-   | Mangled _ => false
-   | Tags (_, Sound) => true
-   | No_Types => true
-   | _ => member (op =) boring_consts s)
+  s <> type_pred_base andalso s <> type_tag_name andalso
+  (s = @{const_name HOL.eq} orelse level_of_type_sys type_sys = No_Types orelse
+   (case type_sys of
+      Tags (_, All_Types) => true
+    | _ => polymorphism_of_type_sys type_sys <> Mangled_Monomorphic andalso
+           member (op =) boring_consts s))
+  
+datatype type_arg_policy = No_Type_Args | Explicit_Type_Args | Mangled_Type_Args
 
-datatype type_arg_policy = No_Type_Args | Mangled_Types | Explicit_Type_Args
-
-fun general_type_arg_policy Many_Typed = Mangled_Types
-  | general_type_arg_policy (Mangled _) = Mangled_Types
-  | general_type_arg_policy No_Types = No_Type_Args
-  | general_type_arg_policy _ = Explicit_Type_Args
+fun general_type_arg_policy type_sys =
+  if level_of_type_sys type_sys = No_Types then
+    No_Type_Args
+  else if polymorphism_of_type_sys type_sys = Mangled_Monomorphic then
+    Mangled_Type_Args
+  else
+    Explicit_Type_Args
 
 fun type_arg_policy type_sys s =
   if should_omit_type_args type_sys s then No_Type_Args
@@ -124,7 +122,7 @@ fun num_atp_type_args thy type_sys s =
   else 0
 
 fun atp_type_literals_for_types type_sys kind Ts =
-  if type_sys = No_Types then
+  if level_of_type_sys type_sys = No_Types then
     []
   else
     Ts |> type_literals_for_types
@@ -486,8 +484,8 @@ fun impose_type_arg_policy_in_combterm type_sys =
            let val s'' = invert_const s'' in
              case type_arg_policy type_sys s'' of
                No_Type_Args => (name, [])
-             | Mangled_Types => (mangled_const_name T_args name, [])
              | Explicit_Type_Args => (name, T_args)
+             | Mangled_Type_Args => (mangled_const_name T_args name, [])
            end)
         |> (fn (name, T_args) => CombConst (name, T, T_args))
       | aux tm = tm
@@ -504,7 +502,7 @@ val repair_fact = update_combformula o formula_map oo repair_combterm
 fun ti_ti_helper_fact () =
   let
     fun var s = ATerm (`I s, [])
-    fun tag tm = ATerm (`I type_tag_name, [var "X", tm])
+    fun tag tm = ATerm (`make_fixed_const type_tag_name, [var "X", tm])
   in
     Formula (helper_prefix ^ ascii_of "ti_ti", Axiom,
              AAtom (ATerm (`I "equal", [tag (tag (var "Y")), tag (var "Y")]))
@@ -521,7 +519,7 @@ fun helper_facts_for_sym ctxt type_sys (s, {typ, ...} : sym_info) =
         ((c ^ "_" ^ string_of_int j ^ (if needs_some_types then "T" else ""),
           false),
          let val t = th |> prop_of in
-           t |> (general_type_arg_policy type_sys = Mangled_Types andalso
+           t |> (general_type_arg_policy type_sys = Mangled_Type_Args andalso
                  not (null (Term.hidden_polymorphism t)))
                 ? (case typ of
                      SOME T => specialize_type thy (invert_const unmangled_s, T)
@@ -529,12 +527,12 @@ fun helper_facts_for_sym ctxt type_sys (s, {typ, ...} : sym_info) =
          end)
       fun make_facts eq_as_iff =
         map_filter (make_fact ctxt false eq_as_iff false)
+      val has_some_types = is_type_sys_fairly_sound type_sys
     in
       metis_helpers
       |> maps (fn (metis_s, (needs_some_types, ths)) =>
                   if metis_s <> unmangled_s orelse
-                     (needs_some_types andalso
-                      level_of_type_sys type_sys = Unsound) then
+                     (needs_some_types andalso not has_some_types) then
                     []
                   else
                     ths ~~ (1 upto length ths)
@@ -567,14 +565,12 @@ fun translate_formulas ctxt type_sys hyp_ts concl_t rich_facts =
     val tycons = type_consts_of_terms thy all_ts
     val conjs = make_conjecture ctxt (hyp_ts @ [concl_t])
     val (supers', arity_clauses) =
-      if type_sys = No_Types then ([], [])
+      if level_of_type_sys type_sys = No_Types then ([], [])
       else make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers'
   in
     (fact_names |> map single, (conjs, facts, class_rel_clauses, arity_clauses))
   end
-
-fun tag_with_type ty tm = ATerm (`I type_tag_name, [ty, tm])
 
 fun fo_literal_from_type_literal (TyLitVar (class, name)) =
     (true, ATerm (class, [ATerm (name, [])]))
@@ -588,38 +584,38 @@ fun formula_from_fo_literal (pos, t) = AAtom t |> not pos ? mk_anot
    unsound ATP proofs. The checks below are an (unsound) approximation of
    finiteness. *)
 
-fun is_dtyp_dangerous _ (Datatype_Aux.DtTFree _) = true
-  | is_dtyp_dangerous ctxt (Datatype_Aux.DtType (s, Us)) =
-    is_type_constr_dangerous ctxt s andalso forall (is_dtyp_dangerous ctxt) Us
-  | is_dtyp_dangerous _ (Datatype_Aux.DtRec _) = false
-and is_type_dangerous ctxt (Type (s, Ts)) =
-    is_type_constr_dangerous ctxt s andalso forall (is_type_dangerous ctxt) Ts
-  | is_type_dangerous _ _ = false
-and is_type_constr_dangerous ctxt s =
+fun is_dtyp_finite _ (Datatype_Aux.DtTFree _) = true
+  | is_dtyp_finite ctxt (Datatype_Aux.DtType (s, Us)) =
+    is_type_constr_finite ctxt s andalso forall (is_dtyp_finite ctxt) Us
+  | is_dtyp_finite _ (Datatype_Aux.DtRec _) = false
+and is_type_finite ctxt (Type (s, Ts)) =
+    is_type_constr_finite ctxt s andalso forall (is_type_finite ctxt) Ts
+  | is_type_finite _ _ = false
+and is_type_constr_finite ctxt s =
   let val thy = Proof_Context.theory_of ctxt in
     case Datatype_Data.get_info thy s of
       SOME {descr, ...} =>
       forall (fn (_, (_, _, constrs)) =>
-                 forall (forall (is_dtyp_dangerous ctxt) o snd) constrs) descr
+                 forall (forall (is_dtyp_finite ctxt) o snd) constrs) descr
     | NONE =>
       case Typedef.get_info ctxt s of
-        ({rep_type, ...}, _) :: _ => is_type_dangerous ctxt rep_type
+        ({rep_type, ...}, _) :: _ => is_type_finite ctxt rep_type
       | [] => true
   end
 
-fun should_encode_type _ Sound _ = true
-  | should_encode_type ctxt Half_Sound T = is_type_dangerous ctxt T
-  | should_encode_type _ Unsound _ = false
+fun should_encode_type _ All_Types _ = true
+  | should_encode_type ctxt Finite_Types T = is_type_finite ctxt T
+  | should_encode_type _ Nonmonotonic_Types _ =
+    error "Monotonicity inference not implemented yet."
+  | should_encode_type _ _ _ = false
+
+fun should_predicate_on_type ctxt (Preds (_, level)) T =
+    should_encode_type ctxt level T
+  | should_predicate_on_type _ _ _ = false
 
 fun should_tag_with_type ctxt (Tags (_, level)) T =
     should_encode_type ctxt level T
   | should_tag_with_type _ _ _ = false
-
-fun should_predicate_on_type ctxt (Mangled level) T =
-    should_encode_type ctxt level T
-  | should_predicate_on_type ctxt (Args (_, level)) T =
-    should_encode_type ctxt level T
-  | should_predicate_on_type _ _ _ = false
 
 fun type_pred_combatom type_sys T tm =
   CombApp (CombConst (`make_fixed_const type_pred_base, T --> @{typ bool}, [T]),
@@ -629,7 +625,12 @@ fun type_pred_combatom type_sys T tm =
 
 fun formula_from_combformula ctxt type_sys =
   let
-    fun do_term top_level u =
+    fun tag_with_type type_sys T tm =
+      CombConst (`make_fixed_const type_tag_name, T --> T, [T])
+      |> impose_type_arg_policy_in_combterm type_sys
+      |> do_term true
+      |> (fn ATerm (s, tms) => ATerm (s, tms @ [tm]))
+    and do_term top_level u =
       let
         val (head, args) = strip_combterm_comb u
         val (x, T_args) =
@@ -642,7 +643,7 @@ fun formula_from_combformula ctxt type_sys =
         val T = combtyp_of u
       in
         t |> (if not top_level andalso should_tag_with_type ctxt type_sys T then
-                tag_with_type (fo_term_from_typ T)
+                tag_with_type type_sys T
               else
                 I)
       end
@@ -735,7 +736,7 @@ fun add_combterm_syms_to_decl_table type_sys repaired_sym_tab =
   let
     fun declare_sym (decl as (_, _, T, _, _)) decls =
       case type_sys of
-        Tags (false, Sound) =>
+        Preds (Polymorphic, All_Types) =>
         if exists (curry Type.raw_instance T o #3) decls then
           decls
         else
@@ -760,7 +761,7 @@ fun add_fact_syms_to_decl_table type_sys repaired_sym_tab =
   fact_lift (formula_fold
       (add_combterm_syms_to_decl_table type_sys repaired_sym_tab))
 fun sym_decl_table_for_facts type_sys repaired_sym_tab facts =
-  Symtab.empty |> type_sys_declares_sym_types type_sys
+  Symtab.empty |> is_type_sys_fairly_sound type_sys
                   ? fold (add_fact_syms_to_decl_table type_sys repaired_sym_tab)
                          facts
 
@@ -787,10 +788,8 @@ fun formula_line_for_sym_decl ctxt type_sys n s j (s', T_args, T, _, ary) =
       bound_names ~~ arg_Ts |> map (fn (name, T) => CombConst (name, T, []))
     val bound_Ts =
       arg_Ts |> map (if n > 1 then SOME else K NONE)
-    val freshener =
-      case type_sys of Args _ => string_of_int j ^ "_" | _ => ""
   in
-    Formula (sym_decl_prefix ^ freshener ^ "_" ^ ascii_of s, Axiom,
+    Formula (sym_decl_prefix ^ ascii_of s ^ "_" ^ string_of_int j, Axiom,
              CombConst ((s, s'), T, T_args)
              |> fold (curry (CombApp o swap)) bound_tms
              |> type_pred_combatom type_sys res_T
@@ -884,7 +883,9 @@ fun prepare_atp_problem ctxt type_sys explicit_apply hyp_ts concl_t facts =
        (helpersN, map (formula_line_for_fact ctxt helper_prefix type_sys)
                       (0 upto length helpers - 1 ~~ helpers)
                   |> (case type_sys of
-                        Tags (_, Half_Sound) => cons (ti_ti_helper_fact ())
+                        Tags (Polymorphic, level) =>
+                        member (op =) [Finite_Types, Nonmonotonic_Types] level
+                        ? cons (ti_ti_helper_fact ())
                       | _ => I)),
        (conjsN, map (formula_line_for_conjecture ctxt type_sys) conjs),
        (free_typesN, formula_lines_for_free_types type_sys (facts @ conjs))]

@@ -183,7 +183,7 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
       val thy = Proof_Context.theory_of ctxt
       val {facts = chained_ths, goal, ...} = Proof.goal state
       val (_, hyp_ts, concl_t) = strip_subgoal goal i
-      val half_sound = is_rich_type_sys_half_sound type_sys
+      val fairly_sound = is_rich_type_sys_fairly_sound type_sys
       val _ = () |> not blocking ? kill_provers
       val _ = case find_first (not o is_prover_supported ctxt) provers of
                 SOME name => error ("No such prover: " ^ name ^ ".")
@@ -212,7 +212,7 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
             |> (if blocking then smart_par_list_map else map) (launch problem)
             |> exists fst |> rpair state
         end
-      fun get_facts label half_sound relevance_fudge provers =
+      fun get_facts label fairly_sound relevance_fudge provers =
         let
           val max_max_relevant =
             case max_relevant of
@@ -225,7 +225,7 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
           val is_built_in_const =
             is_built_in_const_for_prover ctxt (hd provers)
         in
-          relevant_facts ctxt half_sound relevance_thresholds max_max_relevant
+          relevant_facts ctxt fairly_sound relevance_thresholds max_max_relevant
                          is_built_in_const relevance_fudge relevance_override
                          chained_ths hyp_ts concl_t
           |> tap (fn facts =>
@@ -246,7 +246,7 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
           accum
         else
           launch_provers state
-              (get_facts "ATP" half_sound atp_relevance_fudge o K atps)
+              (get_facts "ATP" fairly_sound atp_relevance_fudge o K atps)
               (K (Untranslated_Fact o fst)) (K (K NONE)) atps
       fun launch_smts accum =
         if null smts then

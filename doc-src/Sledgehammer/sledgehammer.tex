@@ -578,57 +578,71 @@ variables are instantiated with heuristically chosen ground types.
 Monomorphization can simplify reasoning but also leads to larger fact bases,
 which can slow down the ATPs.
 
-\item[$\bullet$] \textbf{\textit{mangled}:} Types are mangled in constant names,
-and predicates restrict the range of bound variables. The problem is
-monomorphized. This corresponds to the traditional encoding of types in an
-untyped logic without overloading (e.g., such as performed by the ToFoF-E
-wrapper).
+\item[$\bullet$] \textbf{\textit{preds}:} Types are encoded using a binary predicate
+$\mathit{has\_type\/}(\tau, t)$ that restricts the range of bound variables.
+Constants are annotated with their types, supplied as extra arguments, to
+resolve overloading.
 
-\item[$\bullet$] \textbf{\textit{args}:} Constants are annotated with their
-types, which are supplied as extra arguments.
+\item[$\bullet$] \textbf{\textit{mono\_preds}:} Similar to \textit{preds}, but
+the problem is additionally monomorphized. This corresponds to the traditional
+encoding of types in an untyped logic without overloading (e.g., such as
+performed by the ToFoF-E wrapper).
 
-\item[$\bullet$] \textbf{\textit{mono\_args}:} Similar to \textit{args}, but
-the problem is additionally monomorphized.
+\item[$\bullet$] \textbf{\textit{mangled\_preds}:} Similar to
+\textit{mono\_preds}, but types are mangled in constant names instead of being
+supplied as ground term arguments. The binary predicate
+$\mathit{has\_type\/}(\tau, t)$ becomes a unary predicate
+$\mathit{has\_type\_}\tau(t)$.
 
-\item[$\bullet$] \textbf{\textit{tags}:} Each term (and subterm) is tagged with
-its type using a special uninterpreted function symbol.
+\item[$\bullet$] \textbf{\textit{tags}:} Each term and subterm is tagged with
+its type using a function $\mathit{type\_info\/}(\tau, t)$.
 
 \item[$\bullet$] \textbf{\textit{mono\_tags}:} Similar to \textit{tags}, but
 the problem is additionally monomorphized.
 
-\item[$\bullet$] \textbf{\textit{none}:} No type information is supplied to the
-ATP.
+\item[$\bullet$] \textbf{\textit{mangled\_tags}:} Similar to
+\textit{mono\_tags}, but types are mangled in constant names instead of being
+supplied as ground term arguments. The binary function
+$\mathit{type\_info\/}(\tau, t)$ becomes a unary function
+$\mathit{type\_info\_}\tau(t)$.
 
 \item[$\bullet$]
 \textbf{%
-\textit{many\_typed}!,
-\textit{mangled}!,
-\textit{args}!,
-\textit{mono\_args}!,
-\textit{tags}!, \\ %% TYPESETTING
-\textit{mono\_tags}!:}
-The type systems \textit{many\_typed}, \textit{mangled},
-(\textit{mono\_})\allowbreak\textit{args}, and
-(\textit{mono\_})\allowbreak\textit{tags} are fully typed and (virtually) sound.
-For each of these, Sledgehammer also provides a mildly unsound variant
-identified by one exclamation mark suffix (!).
+\textit{preds}!,
+\textit{mono\_preds}!,
+\textit{mangled\_preds}!, \\
+\textit{tags}!,
+\textit{mono\_tags}!,
+\textit{mangled\_tags}!:} \\
+The type systems \textit{preds}, \textit{mono\_preds}, \textit{mangled\_preds},
+\textit{tags}, \textit{mono\_tags}, and \textit{mangled\_tags} are fully typed
+and virtually sound. For each of these, Sledgehammer also provides a mildly
+unsound variant identified by an exclamation mark (!)\ that types only finite
+(and hence especially dangerous) types.
 
 \item[$\bullet$]
 \textbf{%
-\textit{many\_typed}!!,
-\textit{mangled}!!,
-\textit{args}!!,
-\textit{mono\_args}!!,
-\textit{tags}!!, \\ %% TYPESETTING
-\textit{mono\_tags}!!:}
-More strongly unsound variants of \textit{many\_typed}, \textit{mangled},
-(\textit{mono\_})\allowbreak\textit{args}, and
-(\textit{mono\_})\allowbreak\textit{tags}, identified by two exclamation marks
-(!!).
+\textit{preds}?,
+\textit{mono\_preds}?,
+\textit{mangled\_preds}?, \\
+\textit{tags}?,
+\textit{mono\_tags}?,
+\textit{mangled\_tags}?:} \\
+If the exclamation mark (!) is replaced by an question mark (?), the type
+systems type only nonmonotonic (and hence especially dangerous) types. Not
+implemented yet.
+
+\item[$\bullet$] \textbf{\textit{const\_args}:}
+Constants are annotated with their types, supplied as extra arguments, to
+resolve overloading. Variables are unbounded.
+
+\item[$\bullet$] \textbf{\textit{erased}:} No type information is supplied to
+the ATP. Types are simply erased.
 
 \item[$\bullet$] \textbf{\textit{smart}:} If \textit{full\_types} is enabled,
-uses a fully typed encoding; otherwise, uses a partially typed encoding. The
-actual encoding used depends on the ATP.
+uses a fully typed, virtually sound encoding; otherwise, uses any encoding. The
+actual encoding used depends on the ATP and should be the most efficient for
+that ATP.
 \end{enum}
 
 For SMT solvers and ToFoF-E, the type system is always \textit{many\_typed}.

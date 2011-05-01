@@ -86,7 +86,7 @@ sig
   val weight_smt_fact :
     theory -> int -> ((string * locality) * thm) * int
     -> (string * locality) * (int option * thm)
-  val is_rich_type_sys_half_sound : rich_type_system -> bool
+  val is_rich_type_sys_fairly_sound : rich_type_system -> bool
   val untranslated_fact : prover_fact -> (string * locality) * thm
   val smt_weighted_fact :
     theory -> int -> prover_fact * int
@@ -313,9 +313,9 @@ fun smt_fact_weight j num_facts =
 fun weight_smt_fact thy num_facts ((info, th), j) =
   (info, (smt_fact_weight j num_facts, th |> Thm.transfer thy))
 
-fun is_rich_type_sys_half_sound (Dumb_Type_Sys type_sys) =
-    level_of_type_sys type_sys <> Unsound
-  | is_rich_type_sys_half_sound (Smart_Type_Sys full_types) = full_types
+fun is_rich_type_sys_fairly_sound (Dumb_Type_Sys type_sys) =
+    is_type_sys_fairly_sound type_sys
+  | is_rich_type_sys_fairly_sound (Smart_Type_Sys full_types) = full_types
 
 fun untranslated_fact (Untranslated_Fact p) = p
   | untranslated_fact (SMT_Weighted_Fact (info, (_, th))) = (info, th)
@@ -339,17 +339,12 @@ val atp_blacklist_max_iters = 10
    them each time. *)
 val atp_important_message_keep_factor = 0.1
 
-fun type_sys_monomorphizes Many_Typed = true
-  | type_sys_monomorphizes (Mangled _) = true
-  | type_sys_monomorphizes (Args (mono, _)) = mono
-  | type_sys_monomorphizes (Tags (mono, _)) = mono
-  | type_sys_monomorphizes No_Types = false
-
-val fallback_best_type_systems = [Args (false, Unsound), Many_Typed]
+val fallback_best_type_systems =
+  [Preds (Polymorphic, Const_Arg_Types), Many_Typed]
 
 fun adjust_dumb_type_sys formats Many_Typed =
     if member (op =) formats Tff then (Tff, Many_Typed)
-    else (Fof, Mangled Sound)
+    else (Fof, Preds (Mangled_Monomorphic, All_Types))
   | adjust_dumb_type_sys formats type_sys =
     if member (op =) formats Fof then (Fof, type_sys)
     else (Tff, Many_Typed)
@@ -358,8 +353,8 @@ fun determine_format_and_type_sys _ formats (Dumb_Type_Sys type_sys) =
   | determine_format_and_type_sys best_type_systems formats
                                   (Smart_Type_Sys full_types) =
     best_type_systems @ fallback_best_type_systems
-    |> full_types ? filter (curry (op =) Sound o level_of_type_sys)
-    |> hd |> adjust_dumb_type_sys formats
+    |> find_first (if full_types then is_type_sys_virtually_sound else K true)
+    |> the |> adjust_dumb_type_sys formats
 
 fun run_atp auto name
         ({exec, required_execs, arguments, proof_delims, known_failures,
@@ -443,7 +438,8 @@ fun run_atp auto name
                         |> not (null blacklist)
                            ? filter_out (member (op =) blacklist o fst
                                          o untranslated_fact)
-                        |> type_sys_monomorphizes type_sys ? monomorphize_facts
+                        |> polymorphism_of_type_sys type_sys <> Polymorphic
+                           ? monomorphize_facts
                         |> map (atp_translated_fact ctxt)
                 val real_ms = Real.fromInt o Time.toMilliseconds
                 val slice_timeout =
@@ -507,7 +503,7 @@ fun run_atp auto name
                     NONE =>
                     if is_unsound_proof conjecture_shape facts_offset fact_names
                                         atp_proof then
-                      SOME (UnsoundProof (level_of_type_sys type_sys = Sound))
+                      SOME (UnsoundProof (is_type_sys_virtually_sound type_sys))
                     else
                       NONE
                   | SOME Unprovable =>

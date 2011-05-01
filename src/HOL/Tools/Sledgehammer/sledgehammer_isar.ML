@@ -235,22 +235,29 @@ fun extract_params auto default_params override_params =
                   |> auto ? single o hd
     val type_sys = lookup_string "type_sys"
     val type_sys =
-      (case try (unprefix "mono_") type_sys of
-         SOME s => (true, s)
-       | NONE => (false, type_sys))
-      ||> (fn s => case try (unsuffix " !!") s of
-                     SOME s => (Unsound, s)
-                   | NONE => case try (unsuffix " !") s of
-                               SOME s => (Half_Sound, s)
-                             | NONE => (Sound, s))
-      |> (fn (mono, (level, core)) =>
-             case (core, (mono, level)) of
-               ("many_typed", (false, Sound)) => Dumb_Type_Sys Many_Typed
-             | ("mangled", (false, level)) => Dumb_Type_Sys (Mangled level)
-             | ("args", extra) => Dumb_Type_Sys (Args extra)
+      (case try (unprefix "mangled_") type_sys of
+         SOME s => (Mangled_Monomorphic, s)
+       | NONE =>
+         case try (unprefix "mono_") type_sys of
+           SOME s => (Monomorphic, s)
+         | NONE => (Polymorphic, type_sys))
+      ||> (fn s => case try (unsuffix " ?") s of
+                     SOME s => (Nonmonotonic_Types, s)
+                   | NONE =>
+                     case try (unsuffix " !") s of
+                       SOME s => (Finite_Types, s)
+                     | NONE => (All_Types, s))
+      |> (fn (polymorphism, (level, core)) =>
+             case (core, (polymorphism, level)) of
+               ("many_typed", (Polymorphic (* naja *), All_Types)) =>
+               Dumb_Type_Sys Many_Typed
+             | ("preds", extra) => Dumb_Type_Sys (Preds extra)
              | ("tags", extra) => Dumb_Type_Sys (Tags extra)
-             | ("none", (false, Sound)) => Dumb_Type_Sys No_Types
-             | ("smart", (false, Sound)) =>
+             | ("const_args", (_, All_Types (* naja *))) =>
+               Dumb_Type_Sys (Preds (polymorphism, Const_Arg_Types))
+             | ("erased", (Polymorphic, All_Types (* naja *))) =>
+               Dumb_Type_Sys (Preds (polymorphism, No_Types))
+             | ("smart", (Polymorphic, All_Types) (* naja *)) =>
                Smart_Type_Sys (lookup_bool "full_types")
              | _ => error ("Unknown type system: " ^ quote type_sys ^ "."))
     val relevance_thresholds = lookup_real_pair "relevance_thresholds"
@@ -351,7 +358,7 @@ fun sledgehammer_params_trans params =
 
 val parse_key = Scan.repeat1 Parse.typ_group >> space_implode " "
 val parse_value =
-  Scan.repeat1 (Parse.xname || Parse.float_number || Parse.$$$ "!!"
+  Scan.repeat1 (Parse.xname || Parse.float_number || Parse.$$$ "?"
                 || Parse.$$$ "!")
 val parse_param = parse_key -- Scan.optional (Parse.$$$ "=" |-- parse_value) []
 val parse_params = Scan.optional (Args.bracks (Parse.list parse_param)) []
