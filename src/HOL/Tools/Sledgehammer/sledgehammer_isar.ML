@@ -79,11 +79,11 @@ val default_default_params =
    ("verbose", "false"),
    ("overlord", "false"),
    ("blocking", "false"),
+   ("type_sys", "smart"),
    ("relevance_thresholds", "0.45 0.85"),
    ("max_relevant", "smart"),
    ("monomorphize", "false"),
    ("monomorphize_limit", "4"),
-   ("type_sys", "smart"),
    ("explicit_apply", "false"),
    ("isar_proof", "false"),
    ("isar_shrink_factor", "1"),
@@ -235,22 +235,22 @@ fun extract_params auto default_params override_params =
     val blocking = auto orelse debug orelse lookup_bool "blocking"
     val provers = lookup_string "provers" |> space_explode " "
                   |> auto ? single o hd
-    val relevance_thresholds = lookup_real_pair "relevance_thresholds"
-    val max_relevant = lookup_int_option "max_relevant"
-    val monomorphize = lookup_bool "monomorphize"
-    val monomorphize_limit = lookup_int "monomorphize_limit"
-    val type_sys =
+    val (type_sys, must_monomorphize) =
       case (lookup_string "type_sys", lookup_bool "full_types") of
-        ("tags", full_types) => Tags full_types
-      | ("args", false) => Args
-      | ("mangled", false) => if monomorphize then Mangled else Args
-      | ("none", false) => No_Types
+        ("many_typed", _) => (Many_Typed, true)
+      | ("tags", full_types) => (Tags full_types, false)
+      | ("args", full_types) => (Args full_types, false)
+      | ("mangled", full_types) => (Mangled full_types, true)
+      | ("none", false) => (No_Types, false)
       | (type_sys, full_types) =>
-        if member (op =) ["args", "mangled", "none", "smart"]
-                  type_sys then
-          if full_types then Tags true else Args
+        if member (op =) ["none", "smart"] type_sys then
+          (if full_types then Tags true else Args false, false)
         else
           error ("Unknown type system: " ^ quote type_sys ^ ".")
+    val relevance_thresholds = lookup_real_pair "relevance_thresholds"
+    val max_relevant = lookup_int_option "max_relevant"
+    val monomorphize = must_monomorphize orelse lookup_bool "monomorphize"
+    val monomorphize_limit = lookup_int "monomorphize_limit"
     val explicit_apply = lookup_bool "explicit_apply"
     val isar_proof = lookup_bool "isar_proof"
     val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")

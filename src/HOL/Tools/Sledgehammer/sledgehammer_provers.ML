@@ -21,11 +21,11 @@ sig
      overlord: bool,
      blocking: bool,
      provers: string list,
+     type_sys: type_system,
      relevance_thresholds: real * real,
      max_relevant: int option,
      monomorphize: bool,
      monomorphize_limit: int,
-     type_sys: type_system,
      explicit_apply: bool,
      isar_proof: bool,
      isar_shrink_factor: int,
@@ -233,11 +233,11 @@ type params =
    overlord: bool,
    blocking: bool,
    provers: string list,
+   type_sys: type_system,
    relevance_thresholds: real * real,
    max_relevant: int option,
    monomorphize: bool,
    monomorphize_limit: int,
-   type_sys: type_system,
    explicit_apply: bool,
    isar_proof: bool,
    isar_shrink_factor: int,
@@ -337,9 +337,9 @@ val atp_important_message_keep_factor = 0.1
 fun run_atp auto name
         ({exec, required_execs, arguments, slices, proof_delims, known_failures,
           use_conjecture_for_hypotheses, ...} : atp_config)
-        ({debug, verbose, overlord, max_relevant, monomorphize,
-          monomorphize_limit, type_sys, explicit_apply, isar_proof,
-          isar_shrink_factor, slicing, timeout, ...} : params)
+        ({debug, verbose, overlord, type_sys, max_relevant, monomorphize,
+          monomorphize_limit, explicit_apply, isar_proof, isar_shrink_factor,
+          slicing, timeout, ...} : params)
         minimize_command ({state, goal, subgoal, facts, ...} : prover_problem) =
   let
     val thy = Proof.theory_of state

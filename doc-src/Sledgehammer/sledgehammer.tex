@@ -560,18 +560,6 @@ tends to slow down the ATPs significantly. For historical reasons, the default
 value of this option can be overridden using the option ``Sledgehammer: Full
 Types'' from the ``Isabelle'' menu in Proof General.
 
-\opfalse{monomorphize}{dont\_monomorphize}
-Specifies whether the relevant facts should be monomorphized---i.e., whether
-their type variables should be instantiated with relevant ground types.
-Monomorphization is always performed for SMT solvers, irrespective of this
-option. Monomorphization can simplify reasoning but also leads to larger fact
-bases, which can slow down the ATPs.
-
-\opdefault{monomorphize\_limit}{int}{\upshape 4}
-Specifies the maximum number of iterations for the monomorphization fixpoint
-construction. The higher this limit is, the more monomorphic instances are
-potentially generated.
-
 \opdefault{type\_sys}{string}{smart}
 Specifies the type system to use in ATP problems. The option can take the
 following values:
@@ -581,22 +569,38 @@ following values:
 its type.
 
 \item[$\bullet$] \textbf{\textit{args}:} Constants are annotated with
-their type parameters, which are passed as extra arguments. This value is
-ignored if \textit{full\_types} is enabled.
+their type parameters, which are passed as extra arguments.
 
 \item[$\bullet$] \textbf{\textit{mangled}:} Types are mangled in constant names.
-This value is available only if \textit{monomorphize} is enabled and
-\textit{full\_types} is disabled.
+This value implicitly enables \textit{monomorphize}.
+
+\item[$\bullet$] \textbf{\textit{many\_typed}:} Use the prover's support for
+many-typed first-order logic logic if available; otherwise, fall back on
+\textit{mangled}. This value implicitly enables \textit{monomorphize}.
 
 \item[$\bullet$] \textbf{\textit{none}:} No type information is supplied to the
 ATP. This value is ignored if \textit{full\_types} is enabled.
 
 \item[$\bullet$] \textbf{\textit{smart}:} If \textit{full\_types} is enabled,
 this is the same as \textit{tags}; otherwise, this is the
-same as \textit{args} otherwise.
+same as \textit{args}.
 \end{enum}
 
-For SMT solvers, the type system is always \textit{mangled}.
+For SMT solvers, the type system is always \textit{many\_typed}.
+
+\opfalse{monomorphize}{dont\_monomorphize}
+Specifies whether the relevant facts should be monomorphized---i.e., whether
+their type variables should be instantiated with relevant ground types.
+Monomorphization is always performed for SMT solvers, irrespective of this
+option. Monomorphization can simplify reasoning but also leads to larger fact
+bases, which can slow down the ATPs. If the type system is \textit{mangled} or
+\textit{many\_typed}, monomorphization is implicitly enabled irrespective of
+this option.
+
+\opdefault{monomorphize\_limit}{int}{\upshape 4}
+Specifies the maximum number of iterations for the monomorphization fixpoint
+construction. The higher this limit is, the more monomorphic instances are
+potentially generated.
 \end{enum}
 
 \subsection{Relevance Filter}

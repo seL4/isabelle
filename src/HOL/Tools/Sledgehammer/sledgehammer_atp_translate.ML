@@ -13,9 +13,10 @@ sig
   type translated_formula
 
   datatype type_system =
+    Many_Typed |
     Tags of bool |
-    Args |
-    Mangled |
+    Args of bool |
+    Mangled of bool |
     No_Types
 
   val risky_overloaded_args : bool Unsynchronized.ref
@@ -63,16 +64,20 @@ type translated_formula =
    ctypes_sorts: typ list}
 
 datatype type_system =
+  Many_Typed |
   Tags of bool |
-  Args |
-  Mangled |
+  Args of bool |
+  Mangled of bool |
   No_Types
 
-fun is_type_system_sound (Tags true) = true
-  | is_type_system_sound _ = false
+fun is_type_system_sound Many_Typed = true
+  | is_type_system_sound (Tags full_types) = full_types
+  | is_type_system_sound (Args full_types) = full_types
+  | is_type_system_sound (Mangled full_types) = full_types
+  | is_type_system_sound No_Types = false
 
 fun type_system_types_dangerous_types (Tags _) = true
-  | type_system_types_dangerous_types _ = false
+  | type_system_types_dangerous_types type_sys = is_type_system_sound type_sys
 
 (* This is an approximation. If it returns "true" for a constant that isn't
    overloaded (i.e., that has one uniform definition), needless clutter is
@@ -86,16 +91,19 @@ fun is_overloaded thy s =
 
 fun needs_type_args thy type_sys s =
   case type_sys of
-    Tags full_types => not full_types andalso is_overloaded thy s
-  | Args => is_overloaded thy s
-  | Mangled => true
+    Many_Typed => false
+  | Tags full_types => not full_types andalso is_overloaded thy s
+  | Args full_types => not full_types andalso is_overloaded thy s
+  | Mangled full_types => not full_types andalso is_overloaded thy s
   | No_Types => false
 
 datatype type_arg_policy = No_Type_Args | Explicit_Type_Args | Mangled_Types
 
 fun type_arg_policy thy type_sys s =
   if needs_type_args thy type_sys s then
-    if type_sys = Mangled then Mangled_Types else Explicit_Type_Args
+    case type_sys of
+      Mangled _ => Mangled_Types
+    | _ => Explicit_Type_Args
   else
     No_Type_Args
 
