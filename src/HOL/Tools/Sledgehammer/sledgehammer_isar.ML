@@ -238,9 +238,9 @@ fun extract_params auto default_params override_params =
       (case try (unprefix "mono_") type_sys of
          SOME s => (true, s)
        | NONE => (false, type_sys))
-      ||> (fn s => case try (unsuffix " **") s of
+      ||> (fn s => case try (unsuffix " !!") s of
                      SOME s => (Unsound, s)
-                   | NONE => case try (unsuffix " *") s of
+                   | NONE => case try (unsuffix " !") s of
                                SOME s => (Half_Sound, s)
                              | NONE => (Sound, s))
       |> (fn (mono, (level, core)) =>
@@ -350,7 +350,9 @@ fun sledgehammer_params_trans params =
                   end))
 
 val parse_key = Scan.repeat1 Parse.typ_group >> space_implode " "
-val parse_value = Scan.repeat1 (Parse.xname || Parse.float_number)
+val parse_value =
+  Scan.repeat1 (Parse.xname || Parse.float_number || Parse.$$$ "!!"
+                || Parse.$$$ "!")
 val parse_param = parse_key -- Scan.optional (Parse.$$$ "=" |-- parse_value) []
 val parse_params = Scan.optional (Args.bracks (Parse.list parse_param)) []
 val parse_fact_refs =
