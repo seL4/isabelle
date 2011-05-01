@@ -49,13 +49,18 @@ val class_rel_clause_prefix = "clrel_";
 val arity_clause_prefix = "arity_"
 val tfree_prefix = "tfree_"
 
+val is_base = "is"
+val type_prefix = "ty_"
+
+fun make_type ty = type_prefix ^ ascii_of ty
+
 (* Freshness almost guaranteed! *)
 val sledgehammer_weak_prefix = "Sledgehammer:"
 
 type translated_formula =
   {name: string,
    kind: formula_kind,
-   combformula: (name, combterm) formula,
+   combformula: (name, combtyp, combterm) formula,
    ctypes_sorts: typ list}
 
 datatype type_system =
@@ -75,13 +80,14 @@ fun type_system_types_dangerous_types (Tags _) = true
   | type_system_types_dangerous_types type_sys = is_type_system_sound type_sys
 
 fun dont_need_type_args type_sys s =
-  member (op =) [@{const_name HOL.eq}, @{const_name Metis.fequal}] s orelse
-  case type_sys of
-    Many_Typed => true
-  | Tags full_types => full_types
-  | Args full_types => full_types
-  | Mangled full_types => full_types
-  | No_Types => true
+  s <> is_base andalso
+  (member (op =) [@{const_name HOL.eq}, @{const_name Metis.fequal}] s orelse
+   case type_sys of
+     Many_Typed => true
+   | Tags full_types => full_types
+   | Args full_types => full_types
+   | Mangled full_types => full_types
+   | No_Types => true)
 
 datatype type_arg_policy = No_Type_Args | Explicit_Type_Args | Mangled_Types
 
@@ -90,8 +96,10 @@ fun type_arg_policy type_sys s =
   else case type_sys of Mangled _ => Mangled_Types | _ => Explicit_Type_Args
 
 fun num_atp_type_args thy type_sys s =
-  if type_arg_policy type_sys s = Explicit_Type_Args then num_type_args thy s
-  else 0
+  if type_arg_policy type_sys s = Explicit_Type_Args then
+    if s = is_base then 1 else num_type_args thy s
+  else
+    0
 
 fun atp_type_literals_for_types type_sys kind Ts =
   if type_sys = No_Types then
@@ -121,14 +129,13 @@ fun close_universally atom_vars phi =
                       |> filter_out (member (op =) bounds o fst))
   in mk_aquant AForall (formula_vars [] phi []) phi end
 
-fun combterm_vars (CombApp (ct, cu)) = fold combterm_vars [ct, cu]
+fun combterm_vars (CombApp (tm1, tm2)) = fold combterm_vars [tm1, tm2]
   | combterm_vars (CombConst _) = I
-  | combterm_vars (CombVar (name, _)) =
-    insert (op =) (name, NONE) (* FIXME: TFF *)
+  | combterm_vars (CombVar (name, ty)) = insert (op =) (name, SOME ty)
 val close_combformula_universally = close_universally combterm_vars
 
 fun term_vars (ATerm (name as (s, _), tms)) =
-  is_atp_variable s ? insert (op =) (name, NONE) (* FIXME: TFF *)
+  is_atp_variable s ? insert (op =) (name, NONE)
   #> fold term_vars tms
 val close_formula_universally = close_universally term_vars
 
@@ -140,16 +147,14 @@ fun combformula_for_prop thy eq_as_iff =
     fun do_quant bs q s T t' =
       let val s = Name.variant (map fst bs) s in
         do_formula ((s, T) :: bs) t'
-        (* FIXME: TFF *)
-        #>> (fn phi => AQuant (q, [(`make_bound_var s, NONE)], phi))
+        #>> mk_aquant q [(`make_bound_var s, SOME (combtyp_from_typ T))]
       end
     and do_conn bs c t1 t2 =
       do_formula bs t1 ##>> do_formula bs t2
-      #>> (fn (phi1, phi2) => AConn (c, [phi1, phi2]))
+      #>> uncurry (mk_aconn c)
     and do_formula bs t =
       case t of
-        @{const Not} $ t1 =>
-        do_formula bs t1 #>> (fn phi => AConn (ANot, [phi]))
+        @{const Not} $ t1 => do_formula bs t1 #>> mk_anot
       | Const (@{const_name All}, _) $ Abs (s, T, t') =>
         do_quant bs AForall s T t'
       | Const (@{const_name Ex}, _) $ Abs (s, T, t') =>
@@ -414,16 +419,20 @@ val fname_table =
 (* We are crossing our fingers that it doesn't clash with anything else. *)
 val mangled_type_sep = "\000"
 
-fun mangled_combtyp f (CombTFree name) = f name
-  | mangled_combtyp f (CombTVar name) =
+fun mangled_combtyp_component f (CombTFree name) = f name
+  | mangled_combtyp_component f (CombTVar name) =
     f name (* FIXME: shouldn't happen *)
     (* raise Fail "impossible schematic type variable" *)
-  | mangled_combtyp f (CombType (name, tys)) =
-    "(" ^ commas (map (mangled_combtyp f) tys) ^ ")" ^ f name
+  | mangled_combtyp_component f (CombType (name, tys)) =
+    "(" ^ commas (map (mangled_combtyp_component f) tys) ^ ")" ^ f name
+
+fun mangled_combtyp ty =
+  (make_type (mangled_combtyp_component fst ty),
+   mangled_combtyp_component snd ty)
 
 fun mangled_type_suffix f g tys =
-  fold_rev (curry (op ^) o g o prefix mangled_type_sep o mangled_combtyp f)
-           tys ""
+  fold_rev (curry (op ^) o g o prefix mangled_type_sep
+            o mangled_combtyp_component f) tys ""
 
 val parse_mangled_ident =
   Scan.many1 (not o member (op =) ["(", ")", ","]) >> implode
@@ -446,6 +455,11 @@ fun unmangled_const s =
   let val ss = space_explode mangled_type_sep s in
     (hd ss, map unmangled_type (tl ss))
   end
+
+fun pred_combtyp ty =
+  case combtyp_from_typ @{typ "unit => bool"} of
+    CombType (name, [_, bool_ty]) => CombType (name, [ty, bool_ty])
+  | _ => raise Fail "expected two-argument type constructor"
 
 fun formula_for_combformula ctxt type_sys =
   let
@@ -487,8 +501,25 @@ fun formula_for_combformula ctxt type_sys =
               else
                 I)
       end
+    val do_bound_type =
+      if type_sys = Many_Typed then SOME o mangled_combtyp else K NONE
+    val do_out_of_bound_type =
+      if member (op =) [Args true, Mangled true] type_sys then
+        (fn (s, ty) =>
+            CombApp (CombConst ((const_prefix ^ is_base, is_base),
+                                pred_combtyp ty, [ty]),
+                     CombVar (s, ty))
+            |> AAtom |> formula_for_combformula ctxt type_sys |> SOME)
+      else
+        K NONE
     fun do_formula (AQuant (q, xs, phi)) =
-        AQuant (q, map (apsnd (Option.map (do_term true))) xs, do_formula phi)
+        AQuant (q, xs |> map (apsnd (fn NONE => NONE
+                                      | SOME ty => do_bound_type ty)),
+                (if q = AForall then mk_ahorn else fold (mk_aconn AAnd))
+                    (map_filter
+                         (fn (_, NONE) => NONE
+                           | (s, SOME ty) => do_out_of_bound_type (s, ty)) xs)
+                    (do_formula phi))
       | do_formula (AConn (c, phis)) = AConn (c, map do_formula phis)
       | do_formula (AAtom tm) = AAtom (do_term true tm)
   in do_formula end

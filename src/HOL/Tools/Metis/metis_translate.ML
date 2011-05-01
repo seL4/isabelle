@@ -68,6 +68,7 @@ sig
     theory -> string list -> class list -> class list * arity_clause list
   val combtyp_of : combterm -> combtyp
   val strip_combterm_comb : combterm -> combterm * combterm list
+  val combtyp_from_typ : typ -> combtyp
   val combterm_from_term :
     theory -> (string * typ) list -> term -> combterm * typ list
   val reveal_old_skolem_terms : (string * term) list -> term -> term
@@ -393,23 +394,24 @@ fun strip_combterm_comb u =
         |   stripc  x =  x
     in stripc(u,[]) end
 
-fun combtype_of (Type (a, Ts)) =
-    let val (folTypes, ts) = combtypes_of Ts in
-      (CombType (`make_fixed_type_const a, folTypes), ts)
+fun combtyp_and_sorts_from_type (Type (a, Ts)) =
+    let val (tys, ts) = combtyps_and_sorts_from_types Ts in
+      (CombType (`make_fixed_type_const a, tys), ts)
     end
-  | combtype_of (tp as TFree (a, _)) = (CombTFree (`make_fixed_type_var a), [tp])
-  | combtype_of (tp as TVar (x, _)) =
+  | combtyp_and_sorts_from_type (tp as TFree (a, _)) =
+    (CombTFree (`make_fixed_type_var a), [tp])
+  | combtyp_and_sorts_from_type (tp as TVar (x, _)) =
     (CombTVar (make_schematic_type_var x, string_of_indexname x), [tp])
-and combtypes_of Ts =
-  let val (folTyps, ts) = ListPair.unzip (map combtype_of Ts) in
-    (folTyps, union_all ts)
+and combtyps_and_sorts_from_types Ts =
+  let val (tys, ts) = ListPair.unzip (map combtyp_and_sorts_from_type Ts) in
+    (tys, union_all ts)
   end
 
 (* same as above, but no gathering of sort information *)
-fun simple_combtype_of (Type (a, Ts)) =
-    CombType (`make_fixed_type_const a, map simple_combtype_of Ts)
-  | simple_combtype_of (TFree (a, _)) = CombTFree (`make_fixed_type_var a)
-  | simple_combtype_of (TVar (x, _)) =
+fun combtyp_from_typ (Type (a, Ts)) =
+    CombType (`make_fixed_type_const a, map combtyp_from_typ Ts)
+  | combtyp_from_typ (TFree (a, _)) = CombTFree (`make_fixed_type_var a)
+  | combtyp_from_typ (TVar (x, _)) =
     CombTVar (make_schematic_type_var x, string_of_indexname x)
 
 fun new_skolem_const_name s num_T_args =
@@ -425,37 +427,35 @@ fun combterm_from_term thy bs (P $ Q) =
       in (CombApp (P', Q'), union (op =) tsP tsQ) end
   | combterm_from_term thy _ (Const (c, T)) =
       let
-        val (tp, ts) = combtype_of T
+        val (tp, ts) = combtyp_and_sorts_from_type T
         val tvar_list =
           (if String.isPrefix old_skolem_const_prefix c then
              [] |> Term.add_tvarsT T |> map TVar
            else
              (c, T) |> Sign.const_typargs thy)
-          |> map simple_combtype_of
+          |> map combtyp_from_typ
         val c' = CombConst (`make_fixed_const c, tp, tvar_list)
       in  (c',ts)  end
   | combterm_from_term _ _ (Free (v, T)) =
-      let val (tp, ts) = combtype_of T
+      let val (tp, ts) = combtyp_and_sorts_from_type T
           val v' = CombConst (`make_fixed_var v, tp, [])
       in  (v',ts)  end
   | combterm_from_term _ _ (Var (v as (s, _), T)) =
     let
-      val (tp, ts) = combtype_of T
+      val (tp, ts) = combtyp_and_sorts_from_type T
       val v' =
         if String.isPrefix Meson_Clausify.new_skolem_var_prefix s then
           let
             val tys = T |> strip_type |> swap |> op ::
             val s' = new_skolem_const_name s (length tys)
-          in
-            CombConst (`make_fixed_const s', tp, map simple_combtype_of tys)
-          end
+          in CombConst (`make_fixed_const s', tp, map combtyp_from_typ tys) end
         else
           CombVar ((make_schematic_var v, string_of_indexname v), tp)
     in (v', ts) end
   | combterm_from_term _ bs (Bound j) =
       let
         val (s, T) = nth bs j
-        val (tp, ts) = combtype_of T
+        val (tp, ts) = combtyp_and_sorts_from_type T
         val v' = CombConst (`make_bound_var s, tp, [])
       in (v', ts) end
   | combterm_from_term _ _ (Abs _) = raise Fail "HOL clause: Abs"

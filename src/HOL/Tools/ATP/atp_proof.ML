@@ -9,7 +9,7 @@ Abstract representation of ATP proofs and TSTP/Vampire/SPASS syntax.
 signature ATP_PROOF =
 sig
   type 'a fo_term = 'a ATP_Problem.fo_term
-  type 'a uniform_formula = 'a ATP_Problem.uniform_formula
+  type ('a, 'b, 'c) formula = ('a, 'b, 'c) ATP_Problem.formula
 
   datatype failure =
     Unprovable | IncompleteUnprovable | ProofMissing | UnsoundProof |
@@ -23,7 +23,7 @@ sig
     Definition of step_name * 'a * 'a |
     Inference of step_name * 'a * step_name list
 
-  type 'a proof = 'a uniform_formula step list
+  type 'a proof = ('a, 'a, 'a fo_term) formula step list
 
   val strip_spaces : (char -> bool) -> string -> string
   val short_output : bool -> string -> string
@@ -203,7 +203,7 @@ datatype 'a step =
   Definition of step_name * 'a * 'a |
   Inference of step_name * 'a * step_name list
 
-type 'a proof = 'a uniform_formula step list
+type 'a proof = ('a, 'a, 'a fo_term) formula step list
 
 fun step_name (Definition (name, _, _)) = name
   | step_name (Inference (name, _, _)) = name

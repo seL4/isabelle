@@ -10,16 +10,15 @@ sig
   datatype 'a fo_term = ATerm of 'a * 'a fo_term list
   datatype quantifier = AForall | AExists
   datatype connective = ANot | AAnd | AOr | AImplies | AIf | AIff | ANotIff
-  datatype ('a, 'b) formula =
-    AQuant of quantifier * ('a * 'b option) list * ('a, 'b) formula |
-    AConn of connective * ('a, 'b) formula list |
-    AAtom of 'b
-  type 'a uniform_formula = ('a, 'a fo_term) formula
+  datatype ('a, 'b, 'c) formula =
+    AQuant of quantifier * ('a * 'b option) list * ('a, 'b, 'c) formula |
+    AConn of connective * ('a, 'b, 'c) formula list |
+    AAtom of 'c
 
   datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
   datatype 'a problem_line =
     Type_Decl of string * 'a * 'a list * 'a |
-    Formula of string * formula_kind * ('a, 'a fo_term) formula
+    Formula of string * formula_kind * ('a, 'a, 'a fo_term) formula
                * string fo_term option * string fo_term option
   type 'a problem = (string * 'a problem_line list) list
 
@@ -41,16 +40,15 @@ struct
 datatype 'a fo_term = ATerm of 'a * 'a fo_term list
 datatype quantifier = AForall | AExists
 datatype connective = ANot | AAnd | AOr | AImplies | AIf | AIff | ANotIff
-datatype ('a, 'b) formula =
-  AQuant of quantifier * ('a * 'b option) list * ('a, 'b) formula |
-  AConn of connective * ('a, 'b) formula list |
-  AAtom of 'b
-type 'a uniform_formula = ('a, 'a fo_term) formula
+datatype ('a, 'b, 'c) formula =
+  AQuant of quantifier * ('a * 'b option) list * ('a, 'b, 'c) formula |
+  AConn of connective * ('a, 'b, 'c) formula list |
+  AAtom of 'c
 
 datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
 datatype 'a problem_line =
   Type_Decl of string * 'a * 'a list * 'a |
-  Formula of string * formula_kind * ('a, 'a fo_term) formula
+  Formula of string * formula_kind * ('a, 'a, 'a fo_term) formula
              * string fo_term option * string fo_term option
 type 'a problem = (string * 'a problem_line list) list
 
@@ -80,7 +78,7 @@ fun string_for_connective ANot = "~"
   | string_for_connective AIff = "<=>"
   | string_for_connective ANotIff = "<~>"
 fun string_for_bound_var (s, NONE) = s
-  | string_for_bound_var (s, SOME ty) = s ^ " : " ^ string_for_term ty
+  | string_for_bound_var (s, SOME ty) = s ^ " : " ^ ty
 fun string_for_formula (AQuant (q, xs, phi)) =
     "(" ^ string_for_quantifier q ^
     "[" ^ commas (map string_for_bound_var xs) ^ "] : " ^
@@ -201,7 +199,7 @@ fun nice_term (ATerm (name, ts)) =
 fun nice_formula (AQuant (q, xs, phi)) =
     pool_map nice_name (map fst xs)
     ##>> pool_map (fn NONE => pair NONE
-                    | SOME ty => nice_term ty #>> SOME) (map snd xs)
+                    | SOME ty => nice_name ty #>> SOME) (map snd xs)
     ##>> nice_formula phi
     #>> (fn ((ss, ts), phi) => AQuant (q, ss ~~ ts, phi))
   | nice_formula (AConn (c, phis)) =
