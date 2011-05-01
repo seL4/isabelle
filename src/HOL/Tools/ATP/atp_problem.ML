@@ -24,6 +24,8 @@ sig
   type 'a problem = (string * 'a problem_line list) list
 
   val timestamp : unit -> string
+  val hashw : word * word -> word
+  val hashw_string : string * word -> word
   val is_atp_variable : string -> bool
   val tptp_strings_for_atp_problem :
     bool -> (string * string problem_line list) list -> string list
@@ -55,6 +57,13 @@ datatype 'a problem_line =
 type 'a problem = (string * 'a problem_line list) list
 
 val timestamp = Date.fmt "%Y-%m-%d %H:%M:%S" o Date.fromTimeLocal o Time.now
+
+(* This hash function is recommended in Compilers: Principles, Techniques, and
+   Tools, by Aho, Sethi, and Ullman. The "hashpjw" function, which they
+   particularly recommend, triggers a bug in versions of Poly/ML up to 4.2.0. *)
+fun hashw (u, w) = Word.+ (u, Word.* (0w65599, w))
+fun hashw_char (c, w) = hashw (Word.fromInt (Char.ord c), w)
+fun hashw_string (s : string, w) = CharVector.foldl hashw_char w s
 
 fun string_for_kind Axiom = "axiom"
   | string_for_kind Definition = "definition"
@@ -152,6 +161,8 @@ val no_qualifiers =
       | keep (c :: cs) = c :: keep cs
   in String.explode #> rev #> keep #> rev #> String.implode end
 
+val max_readable_name_length = 32
+
 (* "op" is also reserved, to avoid the unreadable "op_1", "op_2", etc., in the
    problem files. "equal" is reserved by some ATPs. "eq" is reserved to ensure
    that "HOL.eq" is correctly mapped to equality. *)
@@ -160,10 +171,14 @@ fun readable_name full_name s =
   if s = full_name then
     s
   else
-    let
-      val s = s |> no_qualifiers
-                |> Name.desymbolize (Char.isUpper (String.sub (full_name, 0)))
-    in if member (op =) reserved_nice_names s then full_name else s end
+    s |> no_qualifiers
+      |> Name.desymbolize (Char.isUpper (String.sub (full_name, 0)))
+      |> (fn s => if size s > max_readable_name_length then
+                    String.substring (s, 0, max_readable_name_length) ^ "_" ^
+                    Word.toString (hashw_string (full_name, 0w0))
+                  else
+                    s)
+      |> (fn s => if member (op =) reserved_nice_names s then full_name else s)
 
 fun nice_name (full_name, _) NONE = (full_name, NONE)
   | nice_name (full_name, desired_name) (SOME the_pool) =

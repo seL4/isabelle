@@ -298,11 +298,7 @@ fun pretty_maybe_quote pretty =
     if maybe_quote s = s then pretty else Pretty.enum "" "\"" "\"" [pretty]
   end
 
-(* This hash function is recommended in Compilers: Principles, Techniques, and
-   Tools, by Aho, Sethi, and Ullman. The "hashpjw" function, which they
-   particularly recommend, triggers a bug in versions of Poly/ML up to 4.2.0. *)
-fun hashw (u, w) = Word.+ (u, Word.* (0w65599, w))
-fun hashw_char (c, w) = hashw (Word.fromInt (Char.ord c), w)
-fun hashw_string (s:string, w) = CharVector.foldl hashw_char w s
+val hashw = ATP_Problem.hashw
+val hashw_string = ATP_Problem.hashw_string
 
 end;
