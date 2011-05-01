@@ -573,7 +573,8 @@ fun consider_formula (AQuant (_, _, phi)) = consider_formula phi
   | consider_formula (AConn (_, phis)) = fold consider_formula phis
   | consider_formula (AAtom tm) = consider_term true tm
 
-fun consider_problem_line (Formula (_, _, phi, _)) = consider_formula phi
+fun consider_problem_line (Type_Decl _) = I
+  | consider_problem_line (Formula (_, _, phi, _)) = consider_formula phi
 fun consider_problem problem = fold (fold consider_problem_line o snd) problem
 
 (* needed for helper facts if the problem otherwise does not involve equality *)
@@ -667,7 +668,8 @@ fun repair_formula thy type_sys sym_tab =
 
 fun repair_problem_line thy type_sys sym_tab
                         (Formula (ident, kind, phi, source)) =
-  Formula (ident, kind, repair_formula thy type_sys sym_tab phi, source)
+    Formula (ident, kind, repair_formula thy type_sys sym_tab phi, source)
+  | repair_problem_line _ _ _ _ = raise Fail "unexpected non-formula"
 fun repair_problem thy = map o apsnd o map oo repair_problem_line thy
 
 val factsN = "Relevant facts"
@@ -701,7 +703,8 @@ fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
     val sym_tab = sym_table_for_problem explicit_apply problem
     val problem = problem |> repair_problem thy type_sys sym_tab
     val helper_facts =
-      problem |> maps (map (fn Formula (_, _, phi, _) => phi) o snd)
+      problem |> maps (map_filter (fn Formula (_, _, phi, _) => SOME phi
+                                    | _ => NONE) o snd)
               |> get_helper_facts ctxt type_sys
     val helper_lines =
       helper_facts
@@ -729,7 +732,8 @@ fun add_term_weights weight (ATerm (s, tms)) =
   (not (is_atp_variable s) andalso s <> "equal") ? Symtab.default (s, weight)
   #> fold (add_term_weights weight) tms
 fun add_problem_line_weights weight (Formula (_, _, phi, _)) =
-  fold_formula (add_term_weights weight) phi
+    fold_formula (add_term_weights weight) phi
+  | add_problem_line_weights _ _ = I
 
 fun add_conjectures_weights [] = I
   | add_conjectures_weights conjs =
