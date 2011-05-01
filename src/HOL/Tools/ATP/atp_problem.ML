@@ -104,7 +104,7 @@ fun string_for_symbol_type [] res_ty = res_ty
     string_for_symbol_type ["(" ^ space_implode " * " arg_tys ^ ")"] res_ty
 
 fun string_for_problem_line _ (Type_Decl (ident, sym, arg_tys, res_ty)) =
-    "tff(" ^ ident ^ ", type, " ^ sym ^ " : " ^
+    "tff(" ^ ident ^ ", type,\n    " ^ sym ^ " : " ^
     string_for_symbol_type arg_tys res_ty ^ ").\n"
   | string_for_problem_line use_conjecture_for_hypotheses
                             (Formula (ident, kind, phi, source, useful_info)) =

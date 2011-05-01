@@ -45,6 +45,7 @@ open Sledgehammer_Util
 val fact_prefix = "fact_"
 val conjecture_prefix = "conj_"
 val helper_prefix = "help_"
+val type_decl_prefix = "type_"
 val class_rel_clause_prefix = "clrel_";
 val arity_clause_prefix = "arity_"
 val tfree_prefix = "tfree_"
@@ -83,17 +84,22 @@ fun dont_need_type_args type_sys s =
   s <> is_base andalso
   (member (op =) [@{const_name HOL.eq}, @{const_name Metis.fequal}] s orelse
    case type_sys of
-     Many_Typed => true
+     Many_Typed => false
    | Tags full_types => full_types
-   | Args full_types => full_types
-   | Mangled full_types => full_types
+   | Args _ => false
+   | Mangled _ => false
    | No_Types => true)
 
 datatype type_arg_policy = No_Type_Args | Explicit_Type_Args | Mangled_Types
 
 fun type_arg_policy type_sys s =
-  if dont_need_type_args type_sys s then No_Type_Args
-  else case type_sys of Mangled _ => Mangled_Types | _ => Explicit_Type_Args
+  if dont_need_type_args type_sys s then
+    No_Type_Args
+  else
+    case type_sys of
+      Many_Typed => Mangled_Types
+    | Mangled _ => Mangled_Types
+    | _ => Explicit_Type_Args
 
 fun num_atp_type_args thy type_sys s =
   if type_arg_policy type_sys s = Explicit_Type_Args then
@@ -434,6 +440,10 @@ fun mangled_type_suffix f g tys =
   fold_rev (curry (op ^) o g o prefix mangled_type_sep
             o mangled_combtyp_component f) tys ""
 
+fun mangled_const (s, s') ty_args =
+  (s ^ mangled_type_suffix fst ascii_of ty_args,
+   s' ^ mangled_type_suffix snd I ty_args)
+
 val parse_mangled_ident =
   Scan.many1 (not o member (op =) ["(", ")", ","]) >> implode
 
@@ -486,9 +496,7 @@ fun formula_for_combformula ctxt type_sys =
                    case type_arg_policy type_sys s'' of
                      No_Type_Args => (name, [])
                    | Explicit_Type_Args => (name, ty_args)
-                   | Mangled_Types =>
-                     ((s ^ mangled_type_suffix fst ascii_of ty_args,
-                       s' ^ mangled_type_suffix snd I ty_args), [])
+                   | Mangled_Types => (mangled_const name ty_args, [])
                  end)
           | CombVar (name, _) => (name, [])
           | CombApp _ => raise Fail "impossible \"CombApp\""
@@ -585,7 +593,7 @@ fun problem_lines_for_free_types type_sys facts =
 
 type sym_info = {min_arity: int, max_arity: int, fun_sym: bool}
 
-fun consider_term top_level (ATerm ((s, _), ts)) =
+fun consider_term_syms top_level (ATerm ((s, _), ts)) =
   (if is_atp_variable s then
      I
    else
@@ -597,14 +605,14 @@ fun consider_term top_level (ATerm ((s, _), ts)) =
                 max_arity = Int.max (n, max_arity),
                 fun_sym = fun_sym orelse not top_level})
      end)
-  #> fold (consider_term (top_level andalso s = type_tag_name)) ts
-fun consider_formula (AQuant (_, _, phi)) = consider_formula phi
-  | consider_formula (AConn (_, phis)) = fold consider_formula phis
-  | consider_formula (AAtom tm) = consider_term true tm
+  #> fold (consider_term_syms (top_level andalso s = type_tag_name)) ts
+val consider_formula_syms = fold_formula (consider_term_syms true)
 
-fun consider_problem_line (Type_Decl _) = I
-  | consider_problem_line (Formula (_, _, phi, _, _)) = consider_formula phi
-fun consider_problem problem = fold (fold consider_problem_line o snd) problem
+fun consider_problem_line_syms (Type_Decl _) = I
+  | consider_problem_line_syms (Formula (_, _, phi, _, _)) =
+    consider_formula_syms phi
+fun consider_problem_syms problem =
+  fold (fold consider_problem_line_syms o snd) problem
 
 (* needed for helper facts if the problem otherwise does not involve equality *)
 val equal_entry = ("equal", {min_arity = 2, max_arity = 2, fun_sym = false})
@@ -614,7 +622,7 @@ fun sym_table_for_problem explicit_apply problem =
     NONE
   else
     SOME (Symtab.empty |> Symtab.default equal_entry
-                       |> consider_problem problem)
+                       |> consider_problem_syms problem)
 
 fun min_arity_of thy type_sys NONE s =
     (if s = "equal" orelse s = type_tag_name orelse
@@ -702,10 +710,49 @@ fun repair_problem_line thy type_sys sym_tab
   | repair_problem_line _ _ _ _ = raise Fail "unexpected non-formula"
 fun repair_problem thy = map o apsnd o map oo repair_problem_line thy
 
+fun is_const_relevant s =
+  case strip_prefix_and_unascii const_prefix s of
+    SOME @{const_name HOL.eq} => false
+  | opt => is_some opt
+
+fun consider_combterm_consts sym_tab (*FIXME: use*) tm =
+  let val (head, args) = strip_combterm_comb tm in
+    (case head of
+       CombConst ((s, s'), ty, ty_args) =>
+       (* FIXME: exploit type subsumption *)
+       is_const_relevant s ? Symtab.insert_list (op =) (s, (s', ty_args, ty))
+     | _ => I) (* FIXME: hAPP on var *)
+    #> fold (consider_combterm_consts sym_tab) args
+  end
+
+fun consider_fact_consts sym_tab ({combformula, ...} : translated_formula) =
+  fold_formula (consider_combterm_consts sym_tab) combformula
+
+fun const_table_for_facts type_sys sym_tab facts =
+  Symtab.empty |> member (op =) [Many_Typed, Args true, Mangled true] type_sys
+                  ? fold (consider_fact_consts sym_tab) facts
+
+fun fo_type_from_combtyp (ty as CombType ((s, _), tys)) =
+    (case (strip_prefix_and_unascii type_const_prefix s, tys) of
+       (SOME @{type_name fun}, [dom_ty, ran_ty]) =>
+       fo_type_from_combtyp ran_ty |>> cons (mangled_combtyp dom_ty)
+     | _ => ([], mangled_combtyp ty))
+  | fo_type_from_combtyp ty = ([], mangled_combtyp ty)
+
+fun type_decl_line_for_const_entry Many_Typed s (s', ty_args, ty) =
+    let
+      val (s, s') = mangled_const (s, s') ty_args
+      val (arg_tys, res_ty) = fo_type_from_combtyp ty
+    in Type_Decl (type_decl_prefix ^ ascii_of s, (s, s'), arg_tys, res_ty) end
+  | type_decl_line_for_const_entry _ _ _ = raise Fail "not implemented yet"
+fun type_decl_lines_for_const type_sys (s, xs) =
+  map (type_decl_line_for_const_entry type_sys s) xs
+
 val factsN = "Relevant facts"
 val class_relsN = "Class relationships"
 val aritiesN = "Arity declarations"
 val helpersN = "Helper facts"
+val type_declsN = "Type declarations"
 val conjsN = "Conjectures"
 val free_typesN = "Type variables"
 
@@ -728,6 +775,7 @@ fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
        (class_relsN, map problem_line_for_class_rel_clause class_rel_clauses),
        (aritiesN, map problem_line_for_arity_clause arity_clauses),
        (helpersN, []),
+       (type_declsN, []),
        (conjsN, map (problem_line_for_conjecture ctxt type_sys) conjs),
        (free_typesN, problem_lines_for_free_types type_sys (facts @ conjs))]
     val sym_tab = sym_table_for_problem explicit_apply problem
@@ -736,6 +784,9 @@ fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
       problem |> maps (map_filter (fn Formula (_, _, phi, _, _) => SOME phi
                                     | _ => NONE) o snd)
               |> get_helper_facts ctxt type_sys
+    val const_tab = const_table_for_facts type_sys sym_tab (conjs @ facts)
+    val type_decl_lines =
+      Symtab.fold_rev (append o type_decl_lines_for_const type_sys) const_tab []
     val helper_lines =
       helper_facts
       |>> map (pair 0
@@ -743,7 +794,8 @@ fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
                #> repair_problem_line thy type_sys sym_tab)
       |> op @
     val (problem, pool) =
-      problem |> AList.update (op =) (helpersN, helper_lines)
+      problem |> fold (AList.update (op =))
+                      [(helpersN, helper_lines), (type_declsN, type_decl_lines)]
               |> nice_atp_problem readable_names
   in
     (problem,
