@@ -13,10 +13,11 @@ sig
   type type_system = Sledgehammer_ATP_Translate.type_system
   type minimize_command = string list -> string
   type metis_params =
-    string * type_system * minimize_command * string proof * int
+    string * minimize_command * string proof * int
     * (string * locality) list vector * thm * int
   type isar_params =
-    string Symtab.table * bool * int * Proof.context * int list list
+     Proof.context * bool * type_system * int * string Symtab.table
+     * int list list
   type text_result = string * (string * locality) list
 
   val repair_conjecture_shape_and_fact_names :
@@ -53,10 +54,11 @@ open Sledgehammer_ATP_Translate
 
 type minimize_command = string list -> string
 type metis_params =
-  string * type_system * minimize_command * string proof * int
+  string * minimize_command * string proof * int
   * (string * locality) list vector * thm * int
 type isar_params =
-  string Symtab.table * bool * int * Proof.context * int list list
+   Proof.context * bool * type_system * int * string Symtab.table
+   * int list list
 type text_result = string * (string * locality) list
 
 fun is_head_digit s = Char.isDigit (String.sub (s, 0))
@@ -193,13 +195,10 @@ fun try_command_line banner command =
 fun using_labels [] = ""
   | using_labels ls =
     "using " ^ space_implode " " (map string_for_label ls) ^ " "
-fun metis_name type_sys =
-  if is_type_sys_fairly_sound type_sys then "metisFT" else "metis"
-fun metis_call type_sys ss = command_call (metis_name type_sys) ss
-fun metis_command type_sys i n (ls, ss) =
-  using_labels ls ^ apply_on_subgoal "" i n ^ metis_call type_sys ss
-fun metis_line banner type_sys i n ss =
-  try_command_line banner (metis_command type_sys i n ([], ss))
+fun metis_name full_types = if full_types then "metisFT" else "metis"
+fun metis_call full_types ss = command_call "metis" ss
+fun metis_command full_types i n (ls, ss) =
+  using_labels ls ^ apply_on_subgoal "" i n ^ metis_call full_types ss
 fun minimize_line _ [] = ""
   | minimize_line minimize_command ss =
     case minimize_command ss of
@@ -212,17 +211,17 @@ val split_used_facts =
   List.partition (curry (op =) Chained o snd)
   #> pairself (sort_distinct (string_ord o pairself fst))
 
-fun metis_proof_text (banner, type_sys, minimize_command, atp_proof,
-                      facts_offset, fact_names, goal, i) =
+fun metis_proof_text (banner, minimize_command, atp_proof, facts_offset,
+                      fact_names, goal, i) =
   let
-    val (chained_lemmas, other_lemmas) =
+    val (chained, extra) =
       atp_proof |> used_facts_in_atp_proof facts_offset fact_names
                 |> split_used_facts
     val n = Logic.count_prems (prop_of goal)
   in
-    (metis_line banner type_sys i n (map fst other_lemmas) ^
-     minimize_line minimize_command (map fst (other_lemmas @ chained_lemmas)),
-     other_lemmas @ chained_lemmas)
+    (try_command_line banner (metis_command false i n ([], map fst extra)) ^
+     minimize_line minimize_command (map fst (extra @ chained)),
+     extra @ chained)
   end
 
 (** Hard-core proof reconstruction: structured Isar proofs **)
@@ -955,9 +954,9 @@ fun string_for_proof ctxt0 type_sys i n =
         (if n <> 1 then "next" else "qed")
   in do_proof end
 
-fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
-        (metis_params as (_, type_sys, _, atp_proof, facts_offset, fact_names,
-                          goal, i)) =
+fun isar_proof_text (ctxt, debug, type_sys, isar_shrink_factor, pool,
+                     conjecture_shape)
+        (metis_params as (_, _, atp_proof, facts_offset, fact_names, goal, i)) =
   let
     val (params, hyp_ts, concl_t) = strip_subgoal goal i
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []

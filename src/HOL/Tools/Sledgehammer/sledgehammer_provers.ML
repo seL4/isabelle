@@ -582,10 +582,11 @@ fun run_atp auto name
          "\n\nImportant message from Dr. Geoff Sutcliffe:\n" ^ important_message
        else
          "")
-    val isar_params = (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
+    val isar_params =
+      (ctxt, debug, type_sys, isar_shrink_factor, pool, conjecture_shape)
     val metis_params =
-      (proof_banner auto, type_sys, minimize_command, atp_proof, facts_offset,
-       fact_names, goal, subgoal)
+      (proof_banner auto, minimize_command, atp_proof, facts_offset, fact_names,
+       goal, subgoal)
     val (outcome, (message, used_facts)) =
       case outcome of
         NONE =>
