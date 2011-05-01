@@ -114,7 +114,7 @@ type 'a context_parser = Context.generic * Token.T list -> 'a * (Context.generic
 
 fun fail_with s = Scan.fail_with
   (fn [] => s ^ " expected (past end-of-file!)"
-    | (tok :: _) =>
+    | tok :: _ =>
         (case Token.text_of tok of
           (txt, "") =>
             s ^ " expected,\nbut " ^ txt ^ Token.pos_of tok ^ " was found"
