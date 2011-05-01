@@ -972,7 +972,7 @@ fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
            |> kill_useless_labels_in_proof
            |> relabel_proof
            |> string_for_proof ctxt type_sys i n of
-        "" => "\nNo structured proof available."
+        "" => "\nNo structured proof available (proof too short)."
       | proof => "\n\nStructured proof:\n" ^ Markup.markup Markup.sendback proof
     val isar_proof =
       if debug then
