@@ -346,7 +346,7 @@ fun raw_term_from_pred thy type_sys tfrees =
             [typ_u, term_u] =>
             aux (SOME (type_from_fo_term tfrees typ_u)) extra_us term_u
           | _ => raise FO_TERM us
-        else if String.isPrefix type_prefix a then
+        else if String.isPrefix tff_type_prefix a then
           @{const True} (* ignore TFF type information *)
         else case strip_prefix_and_unascii const_prefix a of
           SOME "equal" =>

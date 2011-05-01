@@ -20,13 +20,9 @@ sig
     ArityClause of {name: string, conclLit: arLit, premLits: arLit list}
   datatype class_rel_clause =
     ClassRelClause of {name: string, subclass: name, superclass: name}
-  datatype combtyp =
-    CombTVar of name |
-    CombTFree of name |
-    CombType of name * combtyp list
   datatype combterm =
-    CombConst of name * combtyp * combtyp list (* Const and Free *) |
-    CombVar of name * combtyp |
+    CombConst of name * typ * typ list (* Const and Free *) |
+    CombVar of name * typ |
     CombApp of combterm * combterm
   datatype fol_literal = FOLLiteral of bool * combterm
 
@@ -66,10 +62,8 @@ sig
     theory -> class list -> class list -> class_rel_clause list
   val make_arity_clauses :
     theory -> string list -> class list -> class list * arity_clause list
-  val dest_combfun : combtyp -> combtyp * combtyp
-  val combtyp_of : combterm -> combtyp
+  val combtyp_of : combterm -> typ
   val strip_combterm_comb : combterm -> combterm * combterm list
-  val combtyp_from_typ : typ -> combtyp
   val combterm_from_term :
     theory -> (string * typ) list -> term -> combterm * typ list
   val reveal_old_skolem_terms : (string * term) list -> term -> term
@@ -365,14 +359,9 @@ fun make_arity_clauses thy tycons classes =
   let val (classes', cpairs) = iter_type_class_pairs thy tycons classes
   in  (classes', multi_arity_clause cpairs)  end;
 
-datatype combtyp =
-  CombTVar of name |
-  CombTFree of name |
-  CombType of name * combtyp list
-
 datatype combterm =
-  CombConst of name * combtyp * combtyp list (* Const and Free *) |
-  CombVar of name * combtyp |
+  CombConst of name * typ * typ list (* Const and Free *) |
+  CombVar of name * typ |
   CombApp of combterm * combterm
 
 datatype fol_literal = FOLLiteral of bool * combterm
@@ -381,13 +370,9 @@ datatype fol_literal = FOLLiteral of bool * combterm
 (* convert a clause with type Term.term to a clause with type clause *)
 (*********************************************************************)
 
-(*Result of a function type; no need to check that the argument type matches.*)
-fun dest_combfun (CombType (_, [ty1, ty2])) = (ty1, ty2)
-  | dest_combfun _ = raise Fail "non-function type"
-
-fun combtyp_of (CombConst (_, tp, _)) = tp
-  | combtyp_of (CombVar (_, tp)) = tp
-  | combtyp_of (CombApp (t1, _)) = snd (dest_combfun (combtyp_of t1))
+fun combtyp_of (CombConst (_, T, _)) = T
+  | combtyp_of (CombVar (_, T)) = T
+  | combtyp_of (CombApp (t1, _)) = snd (dest_funT (combtyp_of t1))
 
 (*gets the head of a combinator application, along with the list of arguments*)
 fun strip_combterm_comb u =
@@ -395,25 +380,7 @@ fun strip_combterm_comb u =
         |   stripc  x =  x
     in stripc(u,[]) end
 
-fun combtyp_and_sorts_from_type (Type (a, Ts)) =
-    let val (tys, ts) = combtyps_and_sorts_from_types Ts in
-      (CombType (`make_fixed_type_const a, tys), ts)
-    end
-  | combtyp_and_sorts_from_type (tp as TFree (a, _)) =
-    (CombTFree (`make_fixed_type_var a), [tp])
-  | combtyp_and_sorts_from_type (tp as TVar (x as (s, _), _)) =
-    (CombTVar (make_schematic_type_var x, s), [tp])
-and combtyps_and_sorts_from_types Ts =
-  let val (tys, ts) = ListPair.unzip (map combtyp_and_sorts_from_type Ts) in
-    (tys, union_all ts)
-  end
-
-(* same as above, but no gathering of sort information *)
-fun combtyp_from_typ (Type (a, Ts)) =
-    CombType (`make_fixed_type_const a, map combtyp_from_typ Ts)
-  | combtyp_from_typ (TFree (a, _)) = CombTFree (`make_fixed_type_var a)
-  | combtyp_from_typ (TVar (x as (s, _), _)) =
-    CombTVar (make_schematic_type_var x, s)
+fun atyps_of T = fold_atyps (insert (op =)) T []
 
 fun new_skolem_const_name s num_T_args =
   [new_skolem_const_prefix, s, string_of_int num_T_args]
@@ -423,42 +390,40 @@ fun new_skolem_const_name s num_T_args =
    infomation. *)
 fun combterm_from_term thy bs (P $ Q) =
       let
-        val (P', tsP) = combterm_from_term thy bs P
-        val (Q', tsQ) = combterm_from_term thy bs Q
-      in (CombApp (P', Q'), union (op =) tsP tsQ) end
+        val (P', P_atomics_Ts) = combterm_from_term thy bs P
+        val (Q', Q_atomics_Ts) = combterm_from_term thy bs Q
+      in (CombApp (P', Q'), union (op =) P_atomics_Ts Q_atomics_Ts) end
   | combterm_from_term thy _ (Const (c, T)) =
       let
-        val (tp, ts) = combtyp_and_sorts_from_type T
         val tvar_list =
           (if String.isPrefix old_skolem_const_prefix c then
              [] |> Term.add_tvarsT T |> map TVar
            else
              (c, T) |> Sign.const_typargs thy)
-          |> map combtyp_from_typ
-        val c' = CombConst (`make_fixed_const c, tp, tvar_list)
-      in  (c',ts)  end
+        val c' = CombConst (`make_fixed_const c, T, tvar_list)
+      in (c', atyps_of T) end
   | combterm_from_term _ _ (Free (v, T)) =
-      let val (tp, ts) = combtyp_and_sorts_from_type T
-          val v' = CombConst (`make_fixed_var v, tp, [])
-      in  (v',ts)  end
+      let
+        val at = atyps_of T
+        val v' = CombConst (`make_fixed_var v, T, [])
+      in (v', atyps_of T) end
   | combterm_from_term _ _ (Var (v as (s, _), T)) =
     let
-      val (tp, ts) = combtyp_and_sorts_from_type T
       val v' =
         if String.isPrefix Meson_Clausify.new_skolem_var_prefix s then
           let
-            val tys = T |> strip_type |> swap |> op ::
-            val s' = new_skolem_const_name s (length tys)
-          in CombConst (`make_fixed_const s', tp, map combtyp_from_typ tys) end
+            val Ts = T |> strip_type |> swap |> op ::
+            val s' = new_skolem_const_name s (length Ts)
+          in CombConst (`make_fixed_const s', T, Ts) end
         else
-          CombVar ((make_schematic_var v, s), tp)
-    in (v', ts) end
+          CombVar ((make_schematic_var v, s), T)
+    in (v', atyps_of T) end
   | combterm_from_term _ bs (Bound j) =
       let
         val (s, T) = nth bs j
-        val (tp, ts) = combtyp_and_sorts_from_type T
-        val v' = CombConst (`make_bound_var s, tp, [])
-      in (v', ts) end
+        val ts = atyps_of T
+        val v' = CombConst (`make_bound_var s, T, [])
+      in (v', atyps_of T) end
   | combterm_from_term _ _ (Abs _) = raise Fail "HOL clause: Abs"
 
 fun predicate_of thy ((@{const Not} $ P), pos) = predicate_of thy (P, not pos)
@@ -580,32 +545,34 @@ fun fn_isa_to_met_toplevel "equal" = "="
 
 fun metis_lit b c args = (b, (c, args));
 
-fun metis_term_from_combtyp (CombTVar (s, _)) = Metis_Term.Var s
-  | metis_term_from_combtyp (CombTFree (s, _)) = Metis_Term.Fn (s, [])
-  | metis_term_from_combtyp (CombType ((s, _), tps)) =
-    Metis_Term.Fn (s, map metis_term_from_combtyp tps);
+fun metis_term_from_typ (Type (s, Ts)) =
+    Metis_Term.Fn (make_fixed_type_const s, map metis_term_from_typ Ts)
+  | metis_term_from_typ (TFree (s, _)) =
+    Metis_Term.Fn (make_fixed_type_var s, [])
+  | metis_term_from_typ (TVar (x, _)) =
+    Metis_Term.Var (make_schematic_type_var x)
 
 (*These two functions insert type literals before the real literals. That is the
   opposite order from TPTP linkup, but maybe OK.*)
 
 fun hol_term_to_fol_FO tm =
   case strip_combterm_comb tm of
-      (CombConst ((c, _), _, tys), tms) =>
-        let val tyargs = map metis_term_from_combtyp tys
-            val args   = map hol_term_to_fol_FO tms
+      (CombConst ((c, _), _, Ts), tms) =>
+        let val tyargs = map metis_term_from_typ Ts
+            val args = map hol_term_to_fol_FO tms
         in Metis_Term.Fn (c, tyargs @ args) end
     | (CombVar ((v, _), _), []) => Metis_Term.Var v
     | _ => raise Fail "non-first-order combterm"
 
-fun hol_term_to_fol_HO (CombConst ((a, _), _, tylist)) =
-      Metis_Term.Fn (fn_isa_to_met_sublevel a, map metis_term_from_combtyp tylist)
+fun hol_term_to_fol_HO (CombConst ((a, _), _, Ts)) =
+      Metis_Term.Fn (fn_isa_to_met_sublevel a, map metis_term_from_typ Ts)
   | hol_term_to_fol_HO (CombVar ((s, _), _)) = Metis_Term.Var s
   | hol_term_to_fol_HO (CombApp (tm1, tm2)) =
        Metis_Term.Fn (".", map hol_term_to_fol_HO [tm1, tm2]);
 
 (*The fully-typed translation, to avoid type errors*)
-fun tag_with_type tm ty =
-  Metis_Term.Fn (type_tag_name, [tm, metis_term_from_combtyp ty])
+fun tag_with_type tm T =
+  Metis_Term.Fn (type_tag_name, [tm, metis_term_from_typ T])
 
 fun hol_term_to_fol_FT (CombVar ((s, _), ty)) =
     tag_with_type (Metis_Term.Var s) ty
@@ -616,9 +583,10 @@ fun hol_term_to_fol_FT (CombVar ((s, _), ty)) =
                   (combtyp_of tm)
 
 fun hol_literal_to_fol FO (FOLLiteral (pos, tm)) =
-      let val (CombConst((p, _), _, tys), tms) = strip_combterm_comb tm
-          val tylits = if p = "equal" then [] else map metis_term_from_combtyp tys
-          val lits = map hol_term_to_fol_FO tms
+      let
+        val (CombConst((p, _), _, Ts), tms) = strip_combterm_comb tm
+        val tylits = if p = "equal" then [] else map metis_term_from_typ Ts
+        val lits = map hol_term_to_fol_FO tms
       in metis_lit pos (fn_isa_to_met_toplevel p) (tylits @ lits) end
   | hol_literal_to_fol HO (FOLLiteral (pos, tm)) =
      (case strip_combterm_comb tm of
