@@ -388,12 +388,14 @@ fun helper_facts_for_sym ctxt type_sys (s, {typ, ...} : sym_table_info) =
       fun dub_and_inst c needs_full_types (th, j) =
         ((c ^ "_" ^ string_of_int j ^ (if needs_full_types then "ft" else ""),
           false),
-         th |> prop_of
-            |> general_type_arg_policy type_sys = Mangled_Types
-               ? (case typ of
-                    SOME T =>
-                    specialize_type thy (safe_invert_const unmangled_s, T)
-                  | NONE => I))
+         let val t = th |> prop_of in
+           t |> (general_type_arg_policy type_sys = Mangled_Types andalso
+                 not (null (Term.hidden_polymorphism t)))
+                ? (case typ of
+                     SOME T =>
+                     specialize_type thy (safe_invert_const unmangled_s, T)
+                   | NONE => I)
+         end)
       fun make_facts eq_as_iff =
         map_filter (make_fact ctxt false eq_as_iff false)
     in
