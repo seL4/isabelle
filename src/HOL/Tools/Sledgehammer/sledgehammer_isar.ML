@@ -235,21 +235,21 @@ fun extract_params auto default_params override_params =
     val blocking = auto orelse debug orelse lookup_bool "blocking"
     val provers = lookup_string "provers" |> space_explode " "
                   |> auto ? single o hd
-    val (type_sys, must_monomorphize) =
+    val type_sys =
       case (lookup_string "type_sys", lookup_bool "full_types") of
-        ("many_typed", _) => (Many_Typed, true)
-      | ("tags", full_types) => (Tags full_types, false)
-      | ("args", full_types) => (Args full_types, false)
-      | ("mangled", full_types) => (Mangled full_types, true)
-      | ("none", false) => (No_Types, false)
+        ("many_typed", _) => Many_Typed
+      | ("mangled", full_types) => Mangled full_types
+      | ("args", full_types) => Args full_types
+      | ("tags", full_types) => Tags full_types
+      | ("none", false) => No_Types
       | (type_sys, full_types) =>
         if member (op =) ["none", "smart"] type_sys then
-          (if full_types then Tags true else Args false, false)
+          if full_types then Tags true else Args false
         else
           error ("Unknown type system: " ^ quote type_sys ^ ".")
     val relevance_thresholds = lookup_real_pair "relevance_thresholds"
     val max_relevant = lookup_int_option "max_relevant"
-    val monomorphize = must_monomorphize orelse lookup_bool "monomorphize"
+    val monomorphize = lookup_bool "monomorphize"
     val monomorphize_limit = lookup_int "monomorphize_limit"
     val explicit_apply = lookup_bool "explicit_apply"
     val isar_proof = lookup_bool "isar_proof"

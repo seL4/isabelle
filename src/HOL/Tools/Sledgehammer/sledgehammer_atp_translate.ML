@@ -14,9 +14,9 @@ sig
 
   datatype type_system =
     Many_Typed |
-    Tags of bool |
-    Args of bool |
     Mangled of bool |
+    Args of bool |
+    Tags of bool |
     No_Types
 
   val fact_prefix : string
@@ -81,15 +81,15 @@ fun map_combformula f
 
 datatype type_system =
   Many_Typed |
-  Tags of bool |
-  Args of bool |
   Mangled of bool |
+  Args of bool |
+  Tags of bool |
   No_Types
 
 fun is_type_system_sound Many_Typed = true
-  | is_type_system_sound (Tags full_types) = full_types
-  | is_type_system_sound (Args full_types) = full_types
   | is_type_system_sound (Mangled full_types) = full_types
+  | is_type_system_sound (Args full_types) = full_types
+  | is_type_system_sound (Tags full_types) = full_types
   | is_type_system_sound No_Types = false
 
 fun type_system_types_dangerous_types (Tags _) = true
@@ -100,12 +100,12 @@ fun dont_need_type_args type_sys s =
   (member (op =) [@{const_name HOL.eq}] s orelse
    case type_sys of
      Many_Typed => false
-   | Tags full_types => full_types orelse s = explicit_app_base
-   | Args _ => s = explicit_app_base
    | Mangled _ => false
+   | Args _ => s = explicit_app_base
+   | Tags full_types => full_types orelse s = explicit_app_base
    | No_Types => true)
 
-datatype type_arg_policy = No_Type_Args | Explicit_Type_Args | Mangled_Types
+datatype type_arg_policy = No_Type_Args | Mangled_Types | Explicit_Type_Args
 
 fun type_arg_policy type_sys s =
   if dont_need_type_args type_sys s then
@@ -501,8 +501,8 @@ fun repair_combterm_consts type_sys =
            let val s'' = invert_const s'' in
              case type_arg_policy type_sys s'' of
                No_Type_Args => (name, [])
-             | Explicit_Type_Args => (name, ty_args)
              | Mangled_Types => (mangled_const_name ty_args name, [])
+             | Explicit_Type_Args => (name, ty_args)
            end)
         |> (fn (name, ty_args) => CombConst (name, ty, ty_args))
       | aux tm = tm
@@ -551,7 +551,7 @@ fun formula_for_combformula ctxt type_sys =
     val do_bound_type =
       if type_sys = Many_Typed then SOME o mangled_combtyp else K NONE
     val do_out_of_bound_type =
-      if member (op =) [Args true, Mangled true] type_sys then
+      if member (op =) [Mangled true, Args true] type_sys then
         (fn (s, ty) =>
             type_pred_combatom type_sys ty (CombVar (s, ty))
             |> formula_for_combformula ctxt type_sys |> SOME)
@@ -770,7 +770,7 @@ fun consider_fact_consts type_sys sym_tab
 
 (* FIXME: needed? *)
 fun const_table_for_facts type_sys sym_tab facts =
-  Symtab.empty |> member (op =) [Many_Typed, Args true, Mangled true] type_sys
+  Symtab.empty |> member (op =) [Many_Typed, Mangled true, Args true] type_sys
                   ? fold (consider_fact_consts type_sys sym_tab) facts
 
 fun strip_and_map_combtyp 0 f ty = ([], f ty)

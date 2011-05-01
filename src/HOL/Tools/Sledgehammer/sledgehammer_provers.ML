@@ -334,6 +334,10 @@ val atp_blacklist_max_iters = 10
    them each time. *)
 val atp_important_message_keep_factor = 0.1
 
+fun must_monomorphize Many_Typed = true
+  | must_monomorphize (Mangled _) = true
+  | must_monomorphize _ = false
+
 fun run_atp auto name
         ({exec, required_execs, arguments, slices, proof_delims, known_failures,
           use_conjecture_for_hypotheses, ...} : atp_config)
@@ -414,7 +418,8 @@ fun run_atp auto name
                         |> not (null blacklist)
                            ? filter_out (member (op =) blacklist o fst
                                          o untranslated_fact)
-                        |> monomorphize ? monomorphize_facts
+                        |> (monomorphize orelse must_monomorphize type_sys)
+                           ? monomorphize_facts
                         |> map (atp_translated_fact ctxt)
                 val real_ms = Real.fromInt o Time.toMilliseconds
                 val slice_timeout =
