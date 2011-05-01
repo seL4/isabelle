@@ -529,7 +529,6 @@ fun formula_for_combformula ctxt type_sys =
             CombConst (name as (s, s'), _, ty_args) =>
             (case AList.lookup (op =) fname_table s of
                SOME (n, fname) =>
-(*### FIXME: do earlier? *)
                (if top_level andalso length args = n then
                   case s of
                     "c_False" => ("$false", s')
@@ -584,13 +583,13 @@ fun logic_for_type_sys Many_Typed = Tff
 (* Each fact is given a unique fact number to avoid name clashes (e.g., because
    of monomorphization). The TPTP explicitly forbids name clashes, and some of
    the remote provers might care. *)
-fun problem_line_for_fact ctxt prefix type_sys
+fun formula_line_for_fact ctxt prefix type_sys
                           (j, formula as {name, kind, ...}) =
   Formula (logic_for_type_sys type_sys,
            prefix ^ string_of_int j ^ "_" ^ ascii_of name, kind,
            formula_for_fact ctxt type_sys formula, NONE, NONE)
 
-fun problem_line_for_class_rel_clause (ClassRelClause {name, subclass,
+fun formula_line_for_class_rel_clause (ClassRelClause {name, subclass,
                                                        superclass, ...}) =
   let val ty_arg = ATerm (`I "T", []) in
     Formula (Fof, class_rel_clause_prefix ^ ascii_of name, Axiom,
@@ -604,7 +603,7 @@ fun fo_literal_for_arity_literal (TConsLit (c, t, args)) =
   | fo_literal_for_arity_literal (TVarLit (c, sort)) =
     (false, ATerm (c, [ATerm (sort, [])]))
 
-fun problem_line_for_arity_clause (ArityClause {name, conclLit, premLits,
+fun formula_line_for_arity_clause (ArityClause {name, conclLit, premLits,
                                                 ...}) =
   Formula (Fof, arity_clause_prefix ^ ascii_of name, Axiom,
            mk_ahorn (map (formula_for_fo_literal o apfst not
@@ -613,7 +612,7 @@ fun problem_line_for_arity_clause (ArityClause {name, conclLit, premLits,
                          (fo_literal_for_arity_literal conclLit))
            |> close_formula_universally, NONE, NONE)
 
-fun problem_line_for_conjecture ctxt type_sys
+fun formula_line_for_conjecture ctxt type_sys
         ({name, kind, combformula, ...} : translated_formula) =
   Formula (logic_for_type_sys type_sys, conjecture_prefix ^ name, kind,
            formula_for_combformula ctxt type_sys
@@ -624,14 +623,14 @@ fun free_type_literals type_sys ({ctypes_sorts, ...} : translated_formula) =
   ctypes_sorts |> atp_type_literals_for_types type_sys Conjecture
                |> map fo_literal_for_type_literal
 
-fun problem_line_for_free_type j lit =
+fun formula_line_for_free_type j lit =
   Formula (Fof, tfree_prefix ^ string_of_int j, Hypothesis,
            formula_for_fo_literal lit, NONE, NONE)
-fun problem_lines_for_free_types type_sys facts =
+fun formula_lines_for_free_types type_sys facts =
   let
     val litss = map (free_type_literals type_sys) facts
     val lits = fold (union (op =)) litss []
-  in map2 problem_line_for_free_type (0 upto length lits - 1) lits end
+  in map2 formula_line_for_free_type (0 upto length lits - 1) lits end
 
 (** "hBOOL" and "hAPP" **)
 
@@ -660,15 +659,12 @@ fun consider_fact_for_repair ({combformula, ...} : translated_formula) =
   formula_fold (consider_combterm_for_repair true) combformula
 
 (* The "equal" entry is needed for helper facts if the problem otherwise does
-   not involve equality. The "hBOOL" and "hAPP" entries are needed for symbol
-   declarations. *)
+   not involve equality. The "hBOOL" entry is needed to ensure that no "hAPP"s
+   are introduced for passing arguments to it. *)
 val default_entries =
   [("equal", {pred_sym = true, min_arity = 2, max_arity = 2}),
    (make_fixed_const boolify_base,
-    {pred_sym = true, min_arity = 1, max_arity = 1}),
-   (make_fixed_const explicit_app_base,
-    {pred_sym = false, min_arity = 2, max_arity = 2})]
-(* FIXME: last two entries needed? ### *)
+    {pred_sym = true, min_arity = 1, max_arity = 1})]
 
 fun sym_table_for_facts explicit_apply facts =
   if explicit_apply then
@@ -767,6 +763,7 @@ fun consider_fact_consts type_sys sym_tab
                          ({combformula, ...} : translated_formula) =
   formula_fold (consider_combterm_consts type_sys sym_tab) combformula
 
+(* FIXME: needed? *)
 fun const_table_for_facts type_sys sym_tab facts =
   Symtab.empty |> member (op =) [Many_Typed, Args true, Mangled true] type_sys
                   ? fold (consider_fact_consts type_sys sym_tab) facts
@@ -779,7 +776,7 @@ fun strip_and_map_combtyp 0 f ty = ([], f ty)
      | _ => ([], f ty))
   | strip_and_map_combtyp _ _ _ = raise Fail "unexpected non-function"
 
-fun sym_decl_line_for_const_entry ctxt type_sys sym_tab s (s', ty_args, ty) =
+fun problem_line_for_const_entry ctxt type_sys sym_tab s (s', ty_args, ty) =
   let
     val thy = Proof_Context.theory_of ctxt
     val arity = min_arity_of thy type_sys sym_tab s
@@ -810,8 +807,8 @@ fun sym_decl_line_for_const_entry ctxt type_sys sym_tab s (s', ty_args, ty) =
                  NONE, NONE)
       end
   end
-fun sym_decl_lines_for_const ctxt type_sys sym_tab (s, xs) =
-  map (sym_decl_line_for_const_entry ctxt type_sys sym_tab s) xs
+fun problem_lines_for_const ctxt type_sys sym_tab (s, xs) =
+  map (problem_line_for_const_entry ctxt type_sys sym_tab s) xs
 
 fun add_tff_types_in_formula (AQuant (_, xs, phi)) =
     union (op =) (map_filter snd xs) #> add_tff_types_in_formula phi
@@ -827,7 +824,7 @@ fun add_tff_types_in_problem_line (Decl (_, _, arg_tys, res_ty)) =
 fun tff_types_in_problem problem =
   fold (fold add_tff_types_in_problem_line o snd) problem []
 
-fun problem_line_for_tff_type (s, s') =
+fun decl_line_for_tff_type (s, s') =
   Decl (type_decl_prefix ^ ascii_of s, (s, s'), [], `I tff_type_of_types)
 
 val type_declsN = "Types"
@@ -859,13 +856,13 @@ fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
     val problem =
       [(type_declsN, []),
        (sym_declsN, []),
-       (factsN, map (problem_line_for_fact ctxt fact_prefix type_sys)
+       (factsN, map (formula_line_for_fact ctxt fact_prefix type_sys)
                     (0 upto length facts - 1 ~~ facts)),
-       (class_relsN, map problem_line_for_class_rel_clause class_rel_clauses),
-       (aritiesN, map problem_line_for_arity_clause arity_clauses),
+       (class_relsN, map formula_line_for_class_rel_clause class_rel_clauses),
+       (aritiesN, map formula_line_for_arity_clause arity_clauses),
        (helpersN, []),
-       (conjsN, map (problem_line_for_conjecture ctxt type_sys) conjs),
-       (free_typesN, problem_lines_for_free_types type_sys (facts @ conjs))]
+       (conjsN, map (formula_line_for_conjecture ctxt type_sys) conjs),
+       (free_typesN, formula_lines_for_free_types type_sys (facts @ conjs))]
     val helper_facts =
       problem |> maps (map_filter (fn Formula (_, _, _, phi, _, _) => SOME phi
                                     | _ => NONE) o snd)
@@ -873,11 +870,11 @@ fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
               |>> map (repair_fact thy type_sys sym_tab)
     val const_tab = const_table_for_facts type_sys sym_tab (conjs @ facts)
     val sym_decl_lines =
-      Symtab.fold_rev (append o sym_decl_lines_for_const ctxt type_sys sym_tab)
+      Symtab.fold_rev (append o problem_lines_for_const ctxt type_sys sym_tab)
                       const_tab []
     val helper_lines =
       helper_facts
-      |>> map (pair 0 #> problem_line_for_fact ctxt helper_prefix type_sys)
+      |>> map (pair 0 #> formula_line_for_fact ctxt helper_prefix type_sys)
       |> op @
     val problem =
       problem |> fold (AList.update (op =))
@@ -885,7 +882,7 @@ fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
                        (helpersN, helper_lines)]
     val type_decl_lines =
       if type_sys = Many_Typed then
-        problem |> tff_types_in_problem |> map problem_line_for_tff_type
+        problem |> tff_types_in_problem |> map decl_line_for_tff_type
       else
         []
     val (problem, pool) =
