@@ -123,7 +123,7 @@ fun hol_term_from_metis_PT ctxt fol_tm =
             case strip_prefix_and_unascii const_prefix a of
                 SOME b =>
                   let
-                    val c = invert_const b
+                    val c = b |> invert_const |> unproxify_const
                     val ntypes = num_type_args thy c
                     val nterms = length ts - ntypes
                     val tts = map tm_to_tt ts
@@ -168,7 +168,7 @@ fun hol_term_from_metis_FT ctxt fol_tm =
   let val _ = trace_msg ctxt (fn () => "hol_term_from_metis_FT: " ^
                                        Metis_Term.toString fol_tm)
       fun do_const c =
-        let val c = c |> invert_const in
+        let val c = c |> invert_const |> unproxify_const in
           if String.isPrefix new_skolem_const_prefix c then
             Var ((new_skolem_var_name_from_const c, 1), dummyT)
           else

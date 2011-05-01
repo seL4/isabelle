@@ -226,7 +226,7 @@ val introduce_proxies =
     fun aux top_level (CombApp (tm1, tm2)) =
         CombApp (aux top_level tm1, aux false tm2)
       | aux top_level (CombConst (name as (s, s'), ty, ty_args)) =
-        (case AList.lookup (op =) metis_proxies s of
+        (case proxify_const s of
            SOME proxy_base =>
            if top_level then
              (case s of
@@ -419,8 +419,7 @@ fun helper_facts_for_sym ctxt type_sys (s, {typ, ...} : sym_table_info) =
            t |> (general_type_arg_policy type_sys = Mangled_Types andalso
                  not (null (Term.hidden_polymorphism t)))
                 ? (case typ of
-                     SOME T =>
-                     specialize_type thy (safe_invert_const unmangled_s, T)
+                     SOME T => specialize_type thy (invert_const unmangled_s, T)
                    | NONE => I)
          end)
       fun make_facts eq_as_iff =
@@ -477,7 +476,7 @@ fun impose_type_arg_policy type_sys =
         (case strip_prefix_and_unascii const_prefix s of
            NONE => (name, ty_args)
          | SOME s'' =>
-           let val s'' = safe_invert_const s'' in
+           let val s'' = invert_const s'' in
              case type_arg_policy type_sys s'' of
                No_Type_Args => (name, [])
              | Mangled_Types => (mangled_const_name ty_args name, [])
@@ -682,7 +681,7 @@ fun min_arity_of sym_tab s =
   | NONE =>
     case strip_prefix_and_unascii const_prefix s of
       SOME s =>
-      let val s = s |> unmangled_const_name |> safe_invert_const in
+      let val s = s |> unmangled_const_name |> invert_const in
         if s = predicator_base then 1
         else if s = explicit_app_base then 2
         else if s = type_pred_base then 1

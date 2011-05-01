@@ -383,6 +383,7 @@ fun raw_term_from_pred thy type_sys tfrees =
                           (b, map (typ_from_fo_term tfrees) type_us)
                     else
                       HOLogic.typeT
+                val b = unproxify_const b
               in list_comb (Const (b, T), term_ts @ extra_ts) end
           end
         | NONE => (* a free or schematic variable *)

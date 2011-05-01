@@ -43,9 +43,9 @@ sig
   val type_const_prefix: string
   val class_prefix: string
   val new_skolem_const_prefix : string
-  val metis_proxies : (string * (string * string)) list
-  val safe_invert_const: string -> string
+  val proxify_const : string -> (string * string) option
   val invert_const: string -> string
+  val unproxify_const: string -> string
   val ascii_of: string -> string
   val unascii_of: string -> string
   val strip_prefix_and_unascii: string -> string -> string option
@@ -104,13 +104,16 @@ val new_skolem_const_prefix = skolem_const_prefix ^ "n"
 fun union_all xss = fold (union (op =)) xss []
 
 val metis_proxies =
-  [("c_False", ("fFalse", @{const_name Metis.fFalse})),
-   ("c_True", ("fTrue", @{const_name Metis.fTrue})),
-   ("c_Not", ("fNot", @{const_name Metis.fNot})),
-   ("c_conj", ("fconj", @{const_name Metis.fconj})),
-   ("c_disj", ("fdisj", @{const_name Metis.fdisj})),
-   ("c_implies", ("fimplies", @{const_name Metis.fimplies})),
-   ("equal", ("fequal", @{const_name Metis.fequal}))]
+  [("c_False", (@{const_name False}, ("fFalse", @{const_name Metis.fFalse}))),
+   ("c_True", (@{const_name True}, ("fTrue", @{const_name Metis.fTrue}))),
+   ("c_Not", (@{const_name Not}, ("fNot", @{const_name Metis.fNot}))),
+   ("c_conj", (@{const_name conj}, ("fconj", @{const_name Metis.fconj}))),
+   ("c_disj", (@{const_name disj}, ("fdisj", @{const_name Metis.fdisj}))),
+   ("c_implies", (@{const_name implies},
+                  ("fimplies", @{const_name Metis.fimplies}))),
+   ("equal", (@{const_name HOL.eq}, ("fequal", @{const_name Metis.fequal})))]
+
+val proxify_const = AList.lookup (op =) metis_proxies #> Option.map snd
 
 (* Readable names for the more common symbolic functions. Do not mess with the
    table unless you know what you are doing. *)
@@ -130,25 +133,20 @@ val const_trans_table =
    (@{const_name Meson.COMBK}, "COMBK"),
    (@{const_name Meson.COMBB}, "COMBB"),
    (@{const_name Meson.COMBC}, "COMBC"),
-   (@{const_name Meson.COMBS}, "COMBS")] @
-   (metis_proxies |> map (swap o snd))
+   (@{const_name Meson.COMBS}, "COMBS")]
   |> Symtab.make
+  |> fold (Symtab.update o swap o snd o snd) metis_proxies
 
-(* Invert the table of translations between Isabelle and ATPs. *)
-val const_trans_table_safe_inv =
-  const_trans_table |> Symtab.dest |> map swap |> Symtab.make
+(* Invert the table of translations between Isabelle and Metis. *)
 val const_trans_table_inv =
-  const_trans_table_safe_inv
-  |> fold Symtab.update [("fFalse", @{const_name False}),
-                         ("fTrue", @{const_name True}),
-                         ("fNot", @{const_name Not}),
-                         ("fconj", @{const_name conj}),
-                         ("fdisj", @{const_name disj}),
-                         ("fimplies", @{const_name implies}),
-                         ("fequal", @{const_name HOL.eq})]
+  const_trans_table |> Symtab.dest |> map swap |> Symtab.make
+val const_trans_table_unprox =
+  Symtab.empty
+  |> fold (fn (_, (isa, (_, meson))) => Symtab.update (meson, isa))
+          metis_proxies
 
-val safe_invert_const = perhaps (Symtab.lookup const_trans_table_safe_inv)
 val invert_const = perhaps (Symtab.lookup const_trans_table_inv)
+val unproxify_const = perhaps (Symtab.lookup const_trans_table_unprox)
 
 (*Escaping of special characters.
   Alphanumeric characters are left unchanged.
@@ -398,41 +396,32 @@ fun new_skolem_const_name s num_T_args =
 (* Converts a term (with combinators) into a combterm. Also accumulates sort
    infomation. *)
 fun combterm_from_term thy bs (P $ Q) =
-      let
-        val (P', P_atomics_Ts) = combterm_from_term thy bs P
-        val (Q', Q_atomics_Ts) = combterm_from_term thy bs Q
-      in (CombApp (P', Q'), union (op =) P_atomics_Ts Q_atomics_Ts) end
-  | combterm_from_term thy _ (Const (c, T)) =
-      let
-        val tvar_list =
-          (if String.isPrefix old_skolem_const_prefix c then
-             [] |> Term.add_tvarsT T |> map TVar
-           else
-             (c, T) |> Sign.const_typargs thy)
-        val c' = CombConst (`make_fixed_const c, T, tvar_list)
-      in (c', atyps_of T) end
-  | combterm_from_term _ _ (Free (v, T)) =
-      let
-        val at = atyps_of T
-        val v' = CombConst (`make_fixed_var v, T, [])
-      in (v', atyps_of T) end
-  | combterm_from_term _ _ (Var (v as (s, _), T)) =
     let
-      val v' =
-        if String.isPrefix Meson_Clausify.new_skolem_var_prefix s then
-          let
-            val Ts = T |> strip_type |> swap |> op ::
-            val s' = new_skolem_const_name s (length Ts)
-          in CombConst (`make_fixed_const s', T, Ts) end
-        else
-          CombVar ((make_schematic_var v, s), T)
-    in (v', atyps_of T) end
+      val (P', P_atomics_Ts) = combterm_from_term thy bs P
+      val (Q', Q_atomics_Ts) = combterm_from_term thy bs Q
+    in (CombApp (P', Q'), union (op =) P_atomics_Ts Q_atomics_Ts) end
+  | combterm_from_term thy _ (Const (c, T)) =
+    let
+      val tvar_list =
+        (if String.isPrefix old_skolem_const_prefix c then
+           [] |> Term.add_tvarsT T |> map TVar
+         else
+           (c, T) |> Sign.const_typargs thy)
+      val c' = CombConst (`make_fixed_const c, T, tvar_list)
+    in (c', atyps_of T) end
+  | combterm_from_term _ _ (Free (v, T)) =
+    (CombConst (`make_fixed_var v, T, []), atyps_of T)
+  | combterm_from_term _ _ (Var (v as (s, _), T)) =
+    (if String.isPrefix Meson_Clausify.new_skolem_var_prefix s then
+       let
+         val Ts = T |> strip_type |> swap |> op ::
+         val s' = new_skolem_const_name s (length Ts)
+       in CombConst (`make_fixed_const s', T, Ts) end
+     else
+       CombVar ((make_schematic_var v, s), T), atyps_of T)
   | combterm_from_term _ bs (Bound j) =
-      let
-        val (s, T) = nth bs j
-        val ts = atyps_of T
-        val v' = CombConst (`make_bound_var s, T, [])
-      in (v', atyps_of T) end
+    nth bs j
+    |> (fn (s, T) => (CombConst (`make_bound_var s, T, []), atyps_of T))
   | combterm_from_term _ _ (Abs _) = raise Fail "HOL clause: Abs"
 
 fun predicate_of thy ((@{const Not} $ P), pos) = predicate_of thy (P, not pos)
