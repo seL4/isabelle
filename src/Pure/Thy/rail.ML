@@ -13,7 +13,7 @@ struct
 (* datatype token *)
 
 datatype kind =
-  Keyword | Ident | String | Antiq of bool * (Symbol_Pos.T list * Position.range) | EOF;
+  Keyword | Ident | String | Antiq of Symbol_Pos.T list * Position.range | EOF;
 
 datatype token = Token of Position.range * (kind * string);
 
@@ -61,15 +61,14 @@ fun token k ss = [Token (Symbol_Pos.range ss, (k, Symbol_Pos.content ss))];
 val scan_space = Scan.many1 (Symbol.is_blank o Symbol_Pos.symbol);
 
 val scan_keyword =
-  Scan.one (member (op =) ["|", "*", "+", "?", "(", ")", "\\", ";", ":"] o Symbol_Pos.symbol);
+  Scan.one (member (op =) ["|", "*", "+", "?", "(", ")", "\\", ";", ":", "@"] o Symbol_Pos.symbol);
 
 val scan_token =
   scan_space >> K [] ||
+  Antiquote.scan_antiq >> (fn antiq as (ss, _) => token (Antiq antiq) ss) ||
   scan_keyword >> (token Keyword o single) ||
   Lexicon.scan_id >> token Ident ||
-  Symbol_Pos.scan_string_q >> (token String o #1 o #2) ||
-  (Symbol_Pos.$$$ "@" |-- Antiquote.scan_antiq >> pair true || Antiquote.scan_antiq >> pair false)
-    >> (fn antiq as (_, (ss, _)) => token (Antiq antiq) ss);
+  Symbol_Pos.scan_string_q >> (token String o #1 o #2);
 
 val scan =
   (Scan.repeat scan_token >> flat) --|
@@ -112,7 +111,6 @@ val ident = Scan.some (fn tok => if kind_of tok = Ident then SOME (content_of to
 val string = Scan.some (fn tok => if kind_of tok = String then SOME (content_of tok) else NONE);
 
 val antiq = Scan.some (fn tok => (case kind_of tok of Antiq a => SOME a | _ => NONE));
-val plain_antiq = Scan.some (fn tok => (case kind_of tok of Antiq (false, a) => SOME a | _ => NONE));
 
 
 
@@ -127,7 +125,7 @@ and rail =
   Plus of rails * rails |
   Newline of int |
   Nonterminal of string |
-  Terminal of string |
+  Terminal of bool * string |
   Antiquote of bool * (Symbol_Pos.T list * Position.range);
 
 fun reverse_cat (Cat (y, rails)) = Cat (y, rev (map reverse rails))
@@ -158,6 +156,8 @@ fun maybe rail = bar [empty, cat [rail]];
 
 local
 
+val at_mode = Scan.option ($$$ "@") >> (fn NONE => false | _ => true);
+
 fun body x = (enum1 "|" body1 >> bar) x
 and body0 x = (enum "|" body1 >> bar) x
 and body1 x =
@@ -171,11 +171,11 @@ and body4 x =
  ($$$ "(" |-- !!! (body0 --| $$$ ")") ||
   $$$ "\\" >> K (Newline 0) ||
   ident >> Nonterminal ||
-  string >> Terminal ||
-  antiq >> Antiquote) x
+  at_mode -- string >> Terminal ||
+  at_mode -- antiq >> Antiquote) x
 and body4e x = (Scan.option body4 >> (cat o the_list)) x;
 
-val rule_name = ident >> Antiquote.Text || plain_antiq >> Antiquote.Antiq;
+val rule_name = ident >> Antiquote.Text || antiq >> Antiquote.Antiq;
 val rule = rule_name -- ($$$ ":" |-- !!! body) || body >> pair (Antiquote.Text "");
 val rules = enum1 ";" (Scan.option rule) >> map_filter I;
 
@@ -212,7 +212,10 @@ and vertical_range (Bar cats) y =
 fun output_rules state rules =
   let
     val output_antiq = Thy_Output.eval_antiq (#1 (Keyword.get_lexicons ())) state;
-    fun output_text s = "\\isa{" ^ Output.output s ^ "}";
+    fun output_text b s =
+      Output.output s
+      |> b ? enclose "\\isakeyword{" "}"
+      |> enclose "\\isa{" "}";
 
     fun output_cat c (Cat (_, rails)) = outputs c rails
     and outputs c [rail] = output c rail
@@ -229,8 +232,8 @@ fun output_rules state rules =
           "\\rail@nextplus{" ^ string_of_int y ^ "}\n" ^ outputs "c" rails ^
           "\\rail@endplus\n"
       | output _ (Newline y) = "\\rail@cr{" ^ string_of_int y ^ "}\n"
-      | output c (Nonterminal s) = "\\rail@" ^ c ^ "nont{" ^ output_text s ^ "}[]\n"
-      | output c (Terminal s) = "\\rail@" ^ c ^ "term{" ^ output_text s ^ "}[]\n"
+      | output c (Nonterminal s) = "\\rail@" ^ c ^ "nont{" ^ output_text false s ^ "}[]\n"
+      | output c (Terminal (b, s)) = "\\rail@" ^ c ^ "term{" ^ output_text b s ^ "}[]\n"
       | output c (Antiquote (b, a)) =
           "\\rail@" ^ c ^ (if b then "term{" else "nont{") ^ output_antiq a ^ "}[]\n";
 
@@ -239,7 +242,7 @@ fun output_rules state rules =
         val (rail', y') = vertical_range rail 0;
         val out_name =
           (case name of
-            Antiquote.Text s => output_text s
+            Antiquote.Text s => output_text false s
           | Antiquote.Antiq a => output_antiq a);
       in
         "\\rail@begin{" ^ string_of_int y' ^ "}{" ^ out_name ^ "}\n" ^
