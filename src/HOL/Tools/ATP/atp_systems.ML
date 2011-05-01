@@ -286,7 +286,8 @@ fun get_systems () =
              SOME failure => string_for_failure failure
            | NONE => perhaps (try (unsuffix "\n")) output ^ ".")
 
-fun find_system name [] systems = find_first (String.isPrefix name) systems
+fun find_system name [] systems =
+    find_first (String.isPrefix (name ^ "---")) systems
   | find_system name (version :: versions) systems =
     case find_first (String.isPrefix (name ^ "---" ^ version)) systems of
       NONE => find_system name versions systems
@@ -338,15 +339,15 @@ fun remotify_atp (name, config) system_name system_versions =
 
 val remote_e = remotify_atp e "EP" ["1.0", "1.1", "1.2"]
 val remote_vampire = remotify_atp vampire "Vampire" ["0.6", "9.0", "1.0"]
-val remote_z3_atp = remotify_atp z3_atp "Z3---" ["2.18"]
+val remote_z3_atp = remotify_atp z3_atp "Z3" ["2.18"]
 val remote_tofof_e =
-  remote_atp tofof_eN "ToFoF" [] [] [] (K 200 (* FUDGE *)) true
+  remote_atp tofof_eN "ToFoF" ["0.1"] [] [] (K 200 (* FUDGE *)) true
 val remote_sine_e =
-  remote_atp sine_eN "SInE" [] [] [(IncompleteUnprovable, "says Unknown")]
+  remote_atp sine_eN "SInE" ["0.4"] [] [(IncompleteUnprovable, "says Unknown")]
              (K 500 (* FUDGE *)) true
 val remote_snark =
-  remote_atp snarkN "SNARK---" [] [("refutation.", "end_refutation.")] []
-             (K 250 (* FUDGE *)) true
+  remote_atp snarkN "SNARK" ["20080805r024"]
+             [("refutation.", "end_refutation.")] [] (K 250 (* FUDGE *)) true
 
 (* Setup *)
 
