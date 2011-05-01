@@ -400,8 +400,8 @@ fun combtyp_and_sorts_from_type (Type (a, Ts)) =
     end
   | combtyp_and_sorts_from_type (tp as TFree (a, _)) =
     (CombTFree (`make_fixed_type_var a), [tp])
-  | combtyp_and_sorts_from_type (tp as TVar (x, _)) =
-    (CombTVar (make_schematic_type_var x, string_of_indexname x), [tp])
+  | combtyp_and_sorts_from_type (tp as TVar (x as (s, _), _)) =
+    (CombTVar (make_schematic_type_var x, s), [tp])
 and combtyps_and_sorts_from_types Ts =
   let val (tys, ts) = ListPair.unzip (map combtyp_and_sorts_from_type Ts) in
     (tys, union_all ts)
@@ -411,8 +411,8 @@ and combtyps_and_sorts_from_types Ts =
 fun combtyp_from_typ (Type (a, Ts)) =
     CombType (`make_fixed_type_const a, map combtyp_from_typ Ts)
   | combtyp_from_typ (TFree (a, _)) = CombTFree (`make_fixed_type_var a)
-  | combtyp_from_typ (TVar (x, _)) =
-    CombTVar (make_schematic_type_var x, string_of_indexname x)
+  | combtyp_from_typ (TVar (x as (s, _), _)) =
+    CombTVar (make_schematic_type_var x, s)
 
 fun new_skolem_const_name s num_T_args =
   [new_skolem_const_prefix, s, string_of_int num_T_args]
@@ -450,7 +450,7 @@ fun combterm_from_term thy bs (P $ Q) =
             val s' = new_skolem_const_name s (length tys)
           in CombConst (`make_fixed_const s', tp, map combtyp_from_typ tys) end
         else
-          CombVar ((make_schematic_var v, string_of_indexname v), tp)
+          CombVar ((make_schematic_var v, s), tp)
     in (v', ts) end
   | combterm_from_term _ bs (Bound j) =
       let
