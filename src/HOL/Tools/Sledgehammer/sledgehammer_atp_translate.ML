@@ -119,10 +119,8 @@ fun type_arg_policy type_sys s =
     | _ => Explicit_Type_Args
 
 fun num_atp_type_args thy type_sys s =
-  if type_arg_policy type_sys s = Explicit_Type_Args then
-    if s = type_pred_base then 1 else num_type_args thy s
-  else
-    0
+  if type_arg_policy type_sys s = Explicit_Type_Args then num_type_args thy s
+  else 0
 
 fun atp_type_literals_for_types type_sys kind Ts =
   if type_sys = No_Types then
@@ -664,10 +662,13 @@ fun consider_fact_for_repair ({combformula, ...} : translated_formula) =
   formula_fold (consider_combterm_for_repair true) combformula
 
 (* The "equal" entry is needed for helper facts if the problem otherwise does
-   not involve equality. The "hBOOL" entry is needed to ensure that no "hAPP"s
-   are introduced for passing arguments to it. *)
-val default_entries =
+   not involve equality. The "$false" and $"true" entries are needed to ensure
+   that no "hBOOL" is introduced for them. The "hBOOL" entry is needed to ensure
+   that no "hAPP"s are introduced for passing arguments to it. *)
+val default_sym_table_entries =
   [("equal", {pred_sym = true, min_arity = 2, max_arity = 2}),
+   ("$false", {pred_sym = true, min_arity = 0, max_arity = 0}),
+   ("$true", {pred_sym = true, min_arity = 0, max_arity = 0}),
    (make_fixed_const boolify_base,
     {pred_sym = true, min_arity = 1, max_arity = 1})]
 
@@ -675,25 +676,23 @@ fun sym_table_for_facts explicit_apply facts =
   if explicit_apply then
     NONE
   else
-    SOME (Symtab.empty |> fold Symtab.default default_entries
+    SOME (Symtab.empty |> fold Symtab.default default_sym_table_entries
                        |> fold consider_fact_for_repair facts)
 
-fun min_arity_of _ _ (SOME sym_tab) s =
+fun min_arity_of (SOME sym_tab) s =
     (case Symtab.lookup sym_tab s of
        SOME ({min_arity, ...} : repair_info) => min_arity
      | NONE => 0)
-  | min_arity_of thy type_sys NONE s =
-    if s = "equal" orelse s = type_tag_name orelse
-       String.isPrefix type_const_prefix s orelse
-       String.isPrefix class_prefix s then
-      16383 (* large number *)
+  | min_arity_of NONE s =
+    if s = "equal" then
+      2
     else case strip_prefix_and_unascii const_prefix s of
       SOME s =>
       let val s = s |> unmangled_const |> fst |> invert_const in
         if s = boolify_base then 1
         else if s = explicit_app_base then 2
         else if s = type_pred_base then 1
-        else num_atp_type_args thy type_sys s
+        else 0
       end
     | NONE => 0
 
@@ -701,14 +700,15 @@ fun min_arity_of _ _ (SOME sym_tab) s =
    literals, or if it appears with different arities (e.g., because of different
    type instantiations). If false, the constant always receives all of its
    arguments and is used as a predicate. *)
-fun is_pred_sym NONE s =
-    s = "equal" orelse s = "$false" orelse s = "$true" orelse
-    String.isPrefix type_const_prefix s orelse String.isPrefix class_prefix s
-  | is_pred_sym (SOME sym_tab) s =
-    case Symtab.lookup sym_tab s of
-      SOME {pred_sym, min_arity, max_arity} =>
-      pred_sym andalso min_arity = max_arity
-    | NONE => false
+fun is_pred_sym (SOME sym_tab) s =
+    (case Symtab.lookup sym_tab s of
+       SOME {pred_sym, min_arity, max_arity} =>
+       pred_sym andalso min_arity = max_arity
+     | NONE => false)
+  | is_pred_sym NONE s =
+    (case AList.lookup (op =) default_sym_table_entries s of
+       SOME {pred_sym, ...} => pred_sym
+     | NONE => false)
 
 val boolify_combconst =
   CombConst (`make_fixed_const boolify_base,
@@ -735,24 +735,24 @@ fun explicit_app arg head =
   in list_app explicit_app [head, arg] end
 fun list_explicit_app head args = fold explicit_app args head
 
-fun repair_apps_in_combterm thy type_sys sym_tab =
+fun repair_apps_in_combterm sym_tab =
   let
     fun aux tm =
       case strip_combterm_comb tm of
         (head as CombConst ((s, _), _, _), args) =>
         args |> map aux
-             |> chop (min_arity_of thy type_sys sym_tab s)
+             |> chop (min_arity_of sym_tab s)
              |>> list_app head
              |-> list_explicit_app
       | (head, args) => list_explicit_app head (map aux args)
   in aux end
 
-fun repair_combterm thy type_sys sym_tab =
+fun repair_combterm type_sys sym_tab =
   repair_pred_syms_in_combterm sym_tab
-  #> repair_apps_in_combterm thy type_sys sym_tab
+  #> repair_apps_in_combterm sym_tab
   #> repair_combterm_consts type_sys
-val repair_combformula = formula_map ooo repair_combterm
-val repair_fact = map_combformula ooo repair_combformula
+val repair_combformula = formula_map oo repair_combterm
+val repair_fact = map_combformula oo repair_combformula
 
 fun is_const_relevant type_sys sym_tab s =
   not (String.isPrefix bound_var_prefix s) andalso s <> "equal" andalso
@@ -787,10 +787,7 @@ fun strip_and_map_combtyp 0 f ty = ([], f ty)
   | strip_and_map_combtyp _ _ _ = raise Fail "unexpected non-function"
 
 fun problem_line_for_typed_const ctxt type_sys sym_tab s j (s', ty_args, ty) =
-  let
-    val thy = Proof_Context.theory_of ctxt
-    val arity = min_arity_of thy type_sys sym_tab s
-  in
+  let val arity = min_arity_of sym_tab s in
     if type_sys = Many_Typed then
       let
         val (arg_tys, res_ty) = strip_and_map_combtyp arity mangled_combtyp ty
@@ -858,13 +855,11 @@ fun offset_of_heading_in_problem _ [] j = j
 fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
                         concl_t facts =
   let
-    val thy = Proof_Context.theory_of ctxt
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
       translate_formulas ctxt type_sys hyp_ts concl_t facts
     val sym_tab = sym_table_for_facts explicit_apply (conjs @ facts)
-    val conjs = map (repair_fact thy type_sys sym_tab) conjs
-    val facts = map (repair_fact thy type_sys sym_tab) facts
-    val sym_tab = sym_table_for_facts explicit_apply (conjs @ facts)
+    val conjs = map (repair_fact type_sys sym_tab) conjs
+    val facts = map (repair_fact type_sys sym_tab) facts
     (* Reordering these might confuse the proof reconstruction code or the SPASS
        Flotter hack. *)
     val problem =
@@ -881,7 +876,8 @@ fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
       problem |> maps (map_filter (fn Formula (_, _, _, phi, _, _) => SOME phi
                                     | _ => NONE) o snd)
               |> get_helper_facts ctxt type_sys
-              |>> map (repair_fact thy type_sys sym_tab)
+              |>> map (repair_fact type_sys sym_tab)
+    val sym_tab = sym_table_for_facts explicit_apply (conjs @ facts)
     val const_tab = const_table_for_facts type_sys sym_tab (conjs @ facts)
     val sym_decl_lines =
       Symtab.fold_rev (append o problem_lines_for_const ctxt type_sys sym_tab)
