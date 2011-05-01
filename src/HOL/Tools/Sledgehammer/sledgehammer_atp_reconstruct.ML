@@ -196,7 +196,7 @@ fun using_labels [] = ""
   | using_labels ls =
     "using " ^ space_implode " " (map string_for_label ls) ^ " "
 fun metis_name full_types = if full_types then "metisFT" else "metis"
-fun metis_call full_types ss = command_call "metis" ss
+fun metis_call full_types ss = command_call (metis_name full_types) ss
 fun metis_command full_types i n (ls, ss) =
   using_labels ls ^ apply_on_subgoal "" i n ^ metis_call full_types ss
 fun minimize_line _ [] = ""
@@ -972,7 +972,7 @@ fun isar_proof_text (ctxt, debug, type_sys, isar_shrink_factor, pool,
            |> then_chain_proof
            |> kill_useless_labels_in_proof
            |> relabel_proof
-           |> string_for_proof ctxt type_sys i n of
+           |> string_for_proof ctxt (is_type_sys_fairly_sound type_sys) i n of
         "" => "\nNo structured proof available (proof too short)."
       | proof => "\n\nStructured proof:\n" ^ Markup.markup Markup.sendback proof
     val isar_proof =
