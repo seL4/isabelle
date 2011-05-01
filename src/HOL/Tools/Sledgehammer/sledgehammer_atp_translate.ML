@@ -233,8 +233,8 @@ val introduce_proxies =
                 "c_False" => (tptp_false, s')
               | "c_True" => (tptp_true, s')
               | _ => name, [])
-            else
-              (proxy_base |>> prefix const_prefix, ty_args)
+           else
+             (proxy_base |>> prefix const_prefix, ty_args)
           | NONE => (name, ty_args))
         |> (fn (name, ty_args) => CombConst (name, ty, ty_args))
       | aux _ tm = tm
@@ -477,7 +477,7 @@ fun impose_type_arg_policy type_sys =
         (case strip_prefix_and_unascii const_prefix s of
            NONE => (name, ty_args)
          | SOME s'' =>
-           let val s'' = invert_const s'' in
+           let val s'' = safe_invert_const s'' in
              case type_arg_policy type_sys s'' of
                No_Type_Args => (name, [])
              | Mangled_Types => (mangled_const_name ty_args name, [])
@@ -682,7 +682,7 @@ fun min_arity_of sym_tab s =
   | NONE =>
     case strip_prefix_and_unascii const_prefix s of
       SOME s =>
-      let val s = s |> unmangled_const_name |> invert_const in
+      let val s = s |> unmangled_const_name |> safe_invert_const in
         if s = predicator_base then 1
         else if s = explicit_app_base then 2
         else if s = type_pred_base then 1
