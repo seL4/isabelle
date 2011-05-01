@@ -683,8 +683,13 @@ fun min_arity_of _ _ (SOME sym_tab) s =
        String.isPrefix class_prefix s then
       16383 (* large number *)
     else case strip_prefix_and_unascii const_prefix s of
-      SOME s' => s' |> unmangled_const |> fst |> invert_const
-                    |> num_atp_type_args thy type_sys
+      SOME s =>
+      let val s = s |> unmangled_const |> fst |> invert_const in
+        if s = boolify_base then 1
+        else if s = explicit_app_base then 2
+        else if s = type_pred_base then 1
+        else num_atp_type_args thy type_sys s
+      end
     | NONE => 0
 
 (* True if the constant ever appears outside of the top-level position in
