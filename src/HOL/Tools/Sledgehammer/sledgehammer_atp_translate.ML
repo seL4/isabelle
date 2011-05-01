@@ -33,7 +33,8 @@ sig
   val prepare_atp_problem :
     Proof.context -> bool -> type_system -> bool -> term list -> term
     -> (translated_formula option * ((string * 'a) * thm)) list
-    -> string problem * string Symtab.table * int * (string * 'a) list vector
+    -> string problem * string Symtab.table * int * int
+       * (string * 'a) list vector
   val atp_problem_weights : string problem -> (string * real) list
 end;
 
@@ -798,11 +799,11 @@ fun add_extra_type_decl_lines Many_Typed =
                      `I tff_bool_type))
   | add_extra_type_decl_lines _ = I
 
+val type_declsN = "Type declarations"
 val factsN = "Relevant facts"
 val class_relsN = "Class relationships"
 val aritiesN = "Arity declarations"
 val helpersN = "Helper facts"
-val type_declsN = "Type declarations"
 val conjsN = "Conjectures"
 val free_typesN = "Type variables"
 
@@ -820,12 +821,12 @@ fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
     (* Reordering these might confuse the proof reconstruction code or the SPASS
        Flotter hack. *)
     val problem =
-      [(factsN, map (problem_line_for_fact ctxt fact_prefix type_sys)
+      [(type_declsN, []),
+       (factsN, map (problem_line_for_fact ctxt fact_prefix type_sys)
                     (0 upto length facts - 1 ~~ facts)),
        (class_relsN, map problem_line_for_class_rel_clause class_rel_clauses),
        (aritiesN, map problem_line_for_arity_clause arity_clauses),
        (helpersN, []),
-       (type_declsN, []),
        (conjsN, map (problem_line_for_conjecture ctxt type_sys) conjs),
        (free_typesN, problem_lines_for_free_types type_sys (facts @ conjs))]
     val sym_tab = sym_table_for_problem explicit_apply problem
@@ -847,11 +848,12 @@ fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
       |> op @
     val (problem, pool) =
       problem |> fold (AList.update (op =))
-                      [(helpersN, helper_lines), (type_declsN, type_decl_lines)]
+                      [(type_declsN, type_decl_lines), (helpersN, helper_lines)]
               |> nice_atp_problem readable_names
   in
     (problem,
      case pool of SOME the_pool => snd the_pool | NONE => Symtab.empty,
+     offset_of_heading_in_problem factsN problem 0,
      offset_of_heading_in_problem conjsN problem 0,
      fact_names |> Vector.fromList)
   end

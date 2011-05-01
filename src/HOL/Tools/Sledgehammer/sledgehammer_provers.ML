@@ -432,7 +432,8 @@ fun run_atp auto name
                     |> Output.urgent_message
                   else
                     ()
-                val (atp_problem, pool, conjecture_offset, fact_names) =
+                val (atp_problem, pool, conjecture_offset, facts_offset,
+                     fact_names) =
                   prepare_atp_problem ctxt readable_names type_sys
                                       explicit_apply hyp_ts concl_t facts
                 fun weights () = atp_problem_weights atp_problem
@@ -474,8 +475,8 @@ fun run_atp auto name
                 val outcome =
                   case outcome of
                     NONE => if not (is_type_system_sound type_sys) andalso
-                               is_unsound_proof conjecture_shape fact_names
-                                                atp_proof then
+                               is_unsound_proof conjecture_shape facts_offset
+                                                fact_names atp_proof then
                               SOME UnsoundProof
                             else
                               NONE
@@ -484,7 +485,7 @@ fun run_atp auto name
                     else SOME IncompleteUnprovable
                   | _ => outcome
               in
-                ((pool, conjecture_shape, fact_names),
+                ((pool, conjecture_shape, facts_offset, fact_names),
                  (output, msecs, atp_proof, outcome))
               end
             val timer = Timer.startRealTimer ()
@@ -503,9 +504,10 @@ fun run_atp auto name
                 end
               | maybe_run_slice _ _ result = result
             fun maybe_blacklist_facts_and_retry iter blacklist
-                    (result as ((_, _, fact_names),
+                    (result as ((_, _, facts_offset, fact_names),
                                 (_, _, atp_proof, SOME UnsoundProof))) =
-                (case used_facts_in_atp_proof fact_names atp_proof of
+                (case used_facts_in_atp_proof facts_offset fact_names
+                                              atp_proof of
                    [] => result
                  | new_baddies =>
                    let val blacklist = new_baddies @ blacklist in
@@ -516,7 +518,7 @@ fun run_atp auto name
                    end)
               | maybe_blacklist_facts_and_retry _ _ result = result
           in
-            ((Symtab.empty, [], Vector.fromList []),
+            ((Symtab.empty, [], 0, Vector.fromList []),
              ("", SOME 0, [], SOME InternalError))
             |> fold (maybe_run_slice []) actual_slices
                (* The ATP found an unsound proof? Automatically try again
@@ -535,7 +537,7 @@ fun run_atp auto name
         ()
       else
         File.write (Path.explode (Path.implode prob_file ^ "_proof")) output
-    val ((pool, conjecture_shape, fact_names),
+    val ((pool, conjecture_shape, facts_offset, fact_names),
          (output, msecs, atp_proof, outcome)) =
       with_path cleanup export run_on problem_path_name
     val important_message =
@@ -556,8 +558,8 @@ fun run_atp auto name
          "")
     val isar_params = (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
     val metis_params =
-      (proof_banner auto, type_sys, minimize_command, atp_proof, fact_names,
-       goal, subgoal)
+      (proof_banner auto, type_sys, minimize_command, atp_proof, facts_offset,
+       fact_names, goal, subgoal)
     val (outcome, (message, used_facts)) =
       case outcome of
         NONE =>

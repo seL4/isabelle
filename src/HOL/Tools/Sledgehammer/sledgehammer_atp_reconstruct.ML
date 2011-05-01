@@ -13,7 +13,7 @@ sig
   type type_system = Sledgehammer_ATP_Translate.type_system
   type minimize_command = string list -> string
   type metis_params =
-    string * type_system * minimize_command * string proof
+    string * type_system * minimize_command * string proof * int
     * (string * locality) list vector * thm * int
   type isar_params =
     string Symtab.table * bool * int * Proof.context * int list list
@@ -23,9 +23,11 @@ sig
     string -> int list list -> (string * locality) list vector
     -> int list list * (string * locality) list vector
   val used_facts_in_atp_proof :
-    (string * locality) list vector -> string proof -> (string * locality) list
+    int -> (string * locality) list vector -> string proof
+    -> (string * locality) list
   val is_unsound_proof :
-    int list list -> (string * locality) list vector -> string proof -> bool
+    int list list -> int -> (string * locality) list vector -> string proof
+    -> bool
   val apply_on_subgoal : string -> int -> int -> string
   val command_call : string -> string list -> string
   val try_command_line : string -> string -> string
@@ -50,7 +52,7 @@ open Sledgehammer_ATP_Translate
 
 type minimize_command = string list -> string
 type metis_params =
-  string * type_system * minimize_command * string proof
+  string * type_system * minimize_command * string proof * int
   * (string * locality) list vector * thm * int
 type isar_params =
   string Symtab.table * bool * int * Proof.context * int list list
@@ -122,7 +124,7 @@ fun repair_conjecture_shape_and_fact_names output conjecture_shape fact_names =
 
 val vampire_step_prefix = "f" (* grrr... *)
 
-fun resolve_fact fact_names ((_, SOME s)) =
+fun resolve_fact _ fact_names ((_, SOME s)) =
     (case try (unprefix fact_prefix) s of
        SOME s' =>
        let val s' = s' |> unprefix_fact_number |> unascii_of in
@@ -131,13 +133,15 @@ fun resolve_fact fact_names ((_, SOME s)) =
          | NONE => []
        end
      | NONE => [])
-  | resolve_fact fact_names (num, NONE) =
+  | resolve_fact facts_offset fact_names (num, NONE) =
     case Int.fromString (perhaps (try (unprefix vampire_step_prefix)) num) of
       SOME j =>
-      if j > 0 andalso j <= Vector.length fact_names then
-        Vector.sub (fact_names, j - 1)
-      else
-        []
+      let val j = j - facts_offset in
+        if j > 0 andalso j <= Vector.length fact_names then
+          Vector.sub (fact_names, j - 1)
+        else
+          []
+      end
     | NONE => []
 
 fun resolve_conjecture conjecture_shape (num, s_opt) =
@@ -150,25 +154,26 @@ fun resolve_conjecture conjecture_shape (num, s_opt) =
                       | NONE => ~1
   in if k >= 0 then [k] else [] end
 
-fun is_fact conjecture_shape = not o null o resolve_fact conjecture_shape
+fun is_fact conjecture_shape = not o null o resolve_fact 0 conjecture_shape
 fun is_conjecture conjecture_shape =
   not o null o resolve_conjecture conjecture_shape
 
-fun add_fact fact_names (Inference (name, _, [])) =
-    append (resolve_fact fact_names name)
-  | add_fact _ _ = I
+fun add_fact facts_offset fact_names (Inference (name, _, [])) =
+    append (resolve_fact facts_offset fact_names name)
+  | add_fact _ _ _ = I
 
-fun used_facts_in_atp_proof fact_names atp_proof =
+fun used_facts_in_atp_proof facts_offset fact_names atp_proof =
   if null atp_proof then Vector.foldl (op @) [] fact_names
-  else fold (add_fact fact_names) atp_proof []
+  else fold (add_fact facts_offset fact_names) atp_proof []
 
 fun is_conjecture_referred_to_in_proof conjecture_shape =
   exists (fn Inference (name, _, []) => is_conjecture conjecture_shape name
            | _ => false)
 
-fun is_unsound_proof conjecture_shape fact_names =
-  (not o is_conjecture_referred_to_in_proof conjecture_shape) andf
-  forall (is_global_locality o snd) o used_facts_in_atp_proof fact_names
+fun is_unsound_proof conjecture_shape facts_offset fact_names =
+  not o is_conjecture_referred_to_in_proof conjecture_shape andf
+  forall (is_global_locality o snd)
+  o used_facts_in_atp_proof facts_offset fact_names
 
 (** Soft-core proof reconstruction: Metis one-liner **)
 
@@ -206,11 +211,12 @@ val split_used_facts =
   List.partition (curry (op =) Chained o snd)
   #> pairself (sort_distinct (string_ord o pairself fst))
 
-fun metis_proof_text (banner, type_sys, minimize_command, atp_proof, fact_names,
-                      goal, i) =
+fun metis_proof_text (banner, type_sys, minimize_command, atp_proof,
+                      facts_offset, fact_names, goal, i) =
   let
     val (chained_lemmas, other_lemmas) =
-      split_used_facts (used_facts_in_atp_proof fact_names atp_proof)
+      atp_proof |> used_facts_in_atp_proof facts_offset fact_names
+                |> split_used_facts
     val n = Logic.count_prems (prop_of goal)
   in
     (metis_line banner type_sys i n (map fst other_lemmas) ^
@@ -606,20 +612,22 @@ and byline =
 fun smart_case_split [] facts = ByMetis facts
   | smart_case_split proofs facts = CaseSplit (proofs, facts)
 
-fun add_fact_from_dependency conjecture_shape fact_names name =
+fun add_fact_from_dependency conjecture_shape facts_offset fact_names name =
   if is_fact fact_names name then
-    apsnd (union (op =) (map fst (resolve_fact fact_names name)))
+    apsnd (union (op =) (map fst (resolve_fact facts_offset fact_names name)))
   else
     apfst (insert (op =) (raw_label_for_name conjecture_shape name))
 
-fun step_for_line _ _ _ (Definition (_, t1, t2)) = Let (t1, t2)
-  | step_for_line conjecture_shape _ _ (Inference (name, t, [])) =
+fun step_for_line _ _ _ _ (Definition (_, t1, t2)) = Let (t1, t2)
+  | step_for_line conjecture_shape _ _ _ (Inference (name, t, [])) =
     Assume (raw_label_for_name conjecture_shape name, t)
-  | step_for_line conjecture_shape fact_names j (Inference (name, t, deps)) =
+  | step_for_line conjecture_shape facts_offset fact_names j
+                  (Inference (name, t, deps)) =
     Have (if j = 1 then [Show] else [],
           raw_label_for_name conjecture_shape name,
           fold_rev forall_of (map Var (Term.add_vars t [])) t,
-          ByMetis (fold (add_fact_from_dependency conjecture_shape fact_names)
+          ByMetis (fold (add_fact_from_dependency conjecture_shape facts_offset
+                                                  fact_names)
                         deps ([], [])))
 
 fun repair_name "$true" = "c_True"
@@ -633,7 +641,7 @@ fun repair_name "$true" = "c_True"
       s
 
 fun isar_proof_from_atp_proof pool ctxt type_sys tfrees isar_shrink_factor
-        atp_proof conjecture_shape fact_names params frees =
+        atp_proof conjecture_shape facts_offset fact_names params frees =
   let
     val lines =
       atp_proof
@@ -647,8 +655,8 @@ fun isar_proof_from_atp_proof pool ctxt type_sys tfrees isar_shrink_factor
       |> snd
   in
     (if null params then [] else [Fix params]) @
-    map2 (step_for_line conjecture_shape fact_names) (length lines downto 1)
-         lines
+    map2 (step_for_line conjecture_shape facts_offset fact_names)
+         (length lines downto 1) lines
   end
 
 (* When redirecting proofs, we keep information about the labels seen so far in
@@ -939,7 +947,8 @@ fun string_for_proof ctxt0 type_sys i n =
   in do_proof end
 
 fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
-        (metis_params as (_, type_sys, _, atp_proof, fact_names, goal, i)) =
+        (metis_params as (_, type_sys, _, atp_proof, facts_offset, fact_names,
+                          goal, i)) =
   let
     val (params, hyp_ts, concl_t) = strip_subgoal goal i
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []
@@ -948,8 +957,8 @@ fun isar_proof_text (pool, debug, isar_shrink_factor, ctxt, conjecture_shape)
     val (one_line_proof, lemma_names) = metis_proof_text metis_params
     fun isar_proof_for () =
       case isar_proof_from_atp_proof pool ctxt type_sys tfrees
-               isar_shrink_factor atp_proof conjecture_shape fact_names params
-               frees
+               isar_shrink_factor atp_proof conjecture_shape facts_offset
+               fact_names params frees
            |> redirect_proof hyp_ts concl_t
            |> kill_duplicate_assumptions_in_proof
            |> then_chain_proof
