@@ -82,7 +82,6 @@ val default_default_params =
    ("type_sys", "smart"),
    ("relevance_thresholds", "0.45 0.85"),
    ("max_relevant", "smart"),
-   ("monomorphize", "false"),
    ("monomorphize_limit", "4"),
    ("explicit_apply", "false"),
    ("isar_proof", "false"),
@@ -98,7 +97,6 @@ val negated_alias_params =
    ("quiet", "verbose"),
    ("no_overlord", "overlord"),
    ("non_blocking", "blocking"),
-   ("dont_monomorphize", "monomorphize"),
    ("partial_types", "full_types"),
    ("implicit_apply", "explicit_apply"),
    ("no_isar_proof", "isar_proof"),
@@ -235,21 +233,28 @@ fun extract_params auto default_params override_params =
     val blocking = auto orelse debug orelse lookup_bool "blocking"
     val provers = lookup_string "provers" |> space_explode " "
                   |> auto ? single o hd
+    val type_sys = lookup_string "type_sys"
     val type_sys =
-      case (lookup_string "type_sys", lookup_bool "full_types") of
-        ("many_typed", _) => Many_Typed
-      | ("mangled", full_types) => Mangled full_types
-      | ("args", full_types) => Args full_types
-      | ("tags", full_types) => Tags full_types
-      | ("none", false) => No_Types
-      | (type_sys, full_types) =>
-        if member (op =) ["none", "smart"] type_sys then
-          if full_types then Tags true else Args false
-        else
-          error ("Unknown type system: " ^ quote type_sys ^ ".")
+      (case try (unprefix "mono_") type_sys of
+         SOME s => (true, s)
+       | NONE => (false, type_sys))
+      ||> (fn s => case try (unsuffix " **") s of
+                     SOME s => (Unsound, s)
+                   | NONE => case try (unsuffix " *") s of
+                               SOME s => (Half_Sound, s)
+                             | NONE => (Sound, s))
+      |> (fn (mono, (level, core)) =>
+             case (core, (mono, level)) of
+               ("many_typed", (false, Sound)) => Dumb_Type_Sys Many_Typed
+             | ("mangled", (false, level)) => Dumb_Type_Sys (Mangled level)
+             | ("args", extra) => Dumb_Type_Sys (Args extra)
+             | ("tags", extra) => Dumb_Type_Sys (Tags extra)
+             | ("none", (false, Sound)) => Dumb_Type_Sys No_Types
+             | ("smart", (false, Sound)) =>
+               Smart_Type_Sys (lookup_bool "full_types")
+             | _ => error ("Unknown type system: " ^ quote type_sys ^ "."))
     val relevance_thresholds = lookup_real_pair "relevance_thresholds"
     val max_relevant = lookup_int_option "max_relevant"
-    val monomorphize = lookup_bool "monomorphize"
     val monomorphize_limit = lookup_int "monomorphize_limit"
     val explicit_apply = lookup_bool "explicit_apply"
     val isar_proof = lookup_bool "isar_proof"
@@ -260,11 +265,10 @@ fun extract_params auto default_params override_params =
   in
     {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
      provers = provers, relevance_thresholds = relevance_thresholds,
-     max_relevant = max_relevant, monomorphize = monomorphize,
-     monomorphize_limit = monomorphize_limit, type_sys = type_sys,
-     explicit_apply = explicit_apply, isar_proof = isar_proof,
-     isar_shrink_factor = isar_shrink_factor, slicing = slicing,
-     timeout = timeout, expect = expect}
+     max_relevant = max_relevant, monomorphize_limit = monomorphize_limit,
+     type_sys = type_sys, explicit_apply = explicit_apply,
+     isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
+     slicing = slicing, timeout = timeout, expect = expect}
   end
 
 fun get_params auto ctxt = extract_params auto (default_raw_params ctxt)

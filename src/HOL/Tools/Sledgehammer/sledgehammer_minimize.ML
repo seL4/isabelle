@@ -65,9 +65,9 @@ fun test_facts ({debug, verbose, overlord, provers, monomorphize_limit,
       {debug = debug, verbose = verbose, overlord = overlord, blocking = true,
        provers = provers, type_sys = type_sys, explicit_apply = explicit_apply,
        relevance_thresholds = (1.01, 1.01), max_relevant = NONE,
-       monomorphize = false, monomorphize_limit = monomorphize_limit,
-       isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
-       slicing = false, timeout = timeout, expect = ""}
+       monomorphize_limit = monomorphize_limit, isar_proof = isar_proof,
+       isar_shrink_factor = isar_shrink_factor, slicing = false,
+       timeout = timeout, expect = ""}
     val facts =
       facts |> maps (fn (n, ths) => ths |> map (Untranslated_Fact o pair n))
     val problem =

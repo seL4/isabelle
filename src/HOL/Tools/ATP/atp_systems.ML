@@ -11,12 +11,13 @@ sig
   type formula_kind = ATP_Problem.formula_kind
   type failure = ATP_Proof.failure
 
-  datatype type_level = Level_All | Level_Some | Level_None
+  datatype type_level = Sound | Half_Sound | Unsound
   datatype type_system =
     Many_Typed |
     Mangled of type_level |
     Args of bool * type_level |
-    Tags of bool * type_level
+    Tags of bool * type_level |
+    No_Types
 
   type atp_config =
     {exec : string * string,
@@ -32,6 +33,7 @@ sig
   datatype e_weight_method =
     E_Slices | E_Auto | E_Fun_Weight | E_Sym_Offset_Weight
 
+  val level_of_type_sys : type_system -> type_level
   (* for experimentation purposes -- do not use in production code *)
   val e_weight_method : e_weight_method Unsynchronized.ref
   val e_default_fun_weight : real Unsynchronized.ref
@@ -40,7 +42,7 @@ sig
   val e_default_sym_offs_weight : real Unsynchronized.ref
   val e_sym_offs_weight_base : real Unsynchronized.ref
   val e_sym_offs_weight_span : real Unsynchronized.ref
-
+  (* end *)
   val eN : string
   val spassN : string
   val vampireN : string
@@ -69,12 +71,19 @@ open ATP_Proof
 
 (* ATP configuration *)
 
-datatype type_level = Level_All | Level_Some | Level_None
+datatype type_level = Sound | Half_Sound | Unsound
 datatype type_system =
   Many_Typed |
   Mangled of type_level |
   Args of bool * type_level |
-  Tags of bool * type_level
+  Tags of bool * type_level |
+  No_Types
+
+fun level_of_type_sys Many_Typed = Sound
+  | level_of_type_sys (Mangled level) = level
+  | level_of_type_sys (Args (_, level)) = level
+  | level_of_type_sys (Tags (_, level)) = level
+  | level_of_type_sys No_Types = Unsound
 
 type atp_config =
   {exec : string * string,

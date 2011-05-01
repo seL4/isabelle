@@ -15,16 +15,19 @@ sig
   type type_system = Sledgehammer_ATP_Translate.type_system
   type minimize_command = Sledgehammer_ATP_Reconstruct.minimize_command
 
+  datatype rich_type_system =
+    Dumb_Type_Sys of type_system |
+    Smart_Type_Sys of bool
+
   type params =
     {debug: bool,
      verbose: bool,
      overlord: bool,
      blocking: bool,
      provers: string list,
-     type_sys: type_system,
+     type_sys: rich_type_system,
      relevance_thresholds: real * real,
      max_relevant: int option,
-     monomorphize: bool,
      monomorphize_limit: int,
      explicit_apply: bool,
      isar_proof: bool,
@@ -35,8 +38,6 @@ sig
 
   datatype prover_fact =
     Untranslated_Fact of (string * locality) * thm |
-    ATP_Translated_Fact of
-      translated_formula option * ((string * locality) * thm) |
     SMT_Weighted_Fact of (string * locality) * (int option * thm)
 
   type prover_problem =
@@ -85,6 +86,7 @@ sig
   val weight_smt_fact :
     theory -> int -> ((string * locality) * thm) * int
     -> (string * locality) * (int option * thm)
+  val is_rich_type_sys_half_sound : rich_type_system -> bool
   val untranslated_fact : prover_fact -> (string * locality) * thm
   val smt_weighted_fact :
     theory -> int -> prover_fact * int
@@ -227,16 +229,19 @@ val messages = Async_Manager.thread_messages das_Tool "prover"
 
 (** problems, results, ATPs, etc. **)
 
+datatype rich_type_system =
+  Dumb_Type_Sys of type_system |
+  Smart_Type_Sys of bool
+
 type params =
   {debug: bool,
    verbose: bool,
    overlord: bool,
    blocking: bool,
    provers: string list,
-   type_sys: type_system,
+   type_sys: rich_type_system,
    relevance_thresholds: real * real,
    max_relevant: int option,
-   monomorphize: bool,
    monomorphize_limit: int,
    explicit_apply: bool,
    isar_proof: bool,
@@ -247,8 +252,6 @@ type params =
 
 datatype prover_fact =
   Untranslated_Fact of (string * locality) * thm |
-  ATP_Translated_Fact of
-    translated_formula option * ((string * locality) * thm) |
   SMT_Weighted_Fact of (string * locality) * (int option * thm)
 
 type prover_problem =
@@ -310,11 +313,13 @@ fun smt_fact_weight j num_facts =
 fun weight_smt_fact thy num_facts ((info, th), j) =
   (info, (smt_fact_weight j num_facts, th |> Thm.transfer thy))
 
+fun is_rich_type_sys_half_sound (Dumb_Type_Sys type_sys) =
+    level_of_type_sys type_sys <> Unsound
+  | is_rich_type_sys_half_sound (Smart_Type_Sys full_types) = full_types
+
 fun untranslated_fact (Untranslated_Fact p) = p
-  | untranslated_fact (ATP_Translated_Fact (_, p)) = p
   | untranslated_fact (SMT_Weighted_Fact (info, (_, th))) = (info, th)
-fun atp_translated_fact _ (ATP_Translated_Fact p) = p
-  | atp_translated_fact ctxt fact =
+fun atp_translated_fact ctxt fact =
     translate_atp_fact ctxt false (untranslated_fact fact)
 fun smt_weighted_fact _ _ (SMT_Weighted_Fact p, _) = p
   | smt_weighted_fact thy num_facts (fact, j) =
@@ -334,21 +339,41 @@ val atp_blacklist_max_iters = 10
    them each time. *)
 val atp_important_message_keep_factor = 0.1
 
-fun must_monomorphize Many_Typed = true
-  | must_monomorphize (Mangled _) = true
-  | must_monomorphize _ = false
+fun type_sys_monomorphizes Many_Typed = true
+  | type_sys_monomorphizes (Mangled _) = true
+  | type_sys_monomorphizes (Args (mono, _)) = mono
+  | type_sys_monomorphizes (Tags (mono, _)) = mono
+  | type_sys_monomorphizes No_Types = false
+
+val fallback_best_type_systems = [Many_Typed, Args (false, Unsound)]
+
+fun adjust_dumb_type_sys formats Many_Typed =
+    if member (op =) formats Tff then (Tff, Many_Typed)
+    else (Fof, Mangled Sound)
+  | adjust_dumb_type_sys formats type_sys =
+    if member (op =) formats Fof then (Fof, type_sys)
+    else (Tff, Many_Typed)
+fun determine_format_and_type_sys _ formats (Dumb_Type_Sys type_sys) =
+    adjust_dumb_type_sys formats type_sys
+  | determine_format_and_type_sys best_type_systems formats
+                                  (Smart_Type_Sys full_types) =
+    best_type_systems @ fallback_best_type_systems
+    |> filter (fn type_sys => (level_of_type_sys type_sys = Sound) = full_types)
+    |> hd |> adjust_dumb_type_sys formats
 
 fun run_atp auto name
         ({exec, required_execs, arguments, proof_delims, known_failures,
-          hypothesis_kind, best_slices, ...} : atp_config)
-        ({debug, verbose, overlord, type_sys, max_relevant, monomorphize,
-          monomorphize_limit, explicit_apply, isar_proof, isar_shrink_factor,
-          slicing, timeout, ...} : params)
+          hypothesis_kind, formats, best_slices, best_type_systems, ...}
+         : atp_config)
+        ({debug, verbose, overlord, type_sys, max_relevant, monomorphize_limit,
+          explicit_apply, isar_proof, isar_shrink_factor, slicing, timeout, ...}
+         : params)
         minimize_command ({state, goal, subgoal, facts, ...} : prover_problem) =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
-    val format = if type_sys = Many_Typed then Tff else Fof
+    val (format, type_sys) =
+      determine_format_and_type_sys best_type_systems formats type_sys
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal
     val (dest_dir, problem_prefix) =
       if overlord then overlord_file_location_for_prover name
@@ -418,8 +443,7 @@ fun run_atp auto name
                         |> not (null blacklist)
                            ? filter_out (member (op =) blacklist o fst
                                          o untranslated_fact)
-                        |> (monomorphize orelse must_monomorphize type_sys)
-                           ? monomorphize_facts
+                        |> type_sys_monomorphizes type_sys ? monomorphize_facts
                         |> map (atp_translated_fact ctxt)
                 val real_ms = Real.fromInt o Time.toMilliseconds
                 val slice_timeout =
@@ -479,7 +503,7 @@ fun run_atp auto name
                     (conjecture_shape, fact_names) (* don't bother repairing *)
                 val outcome =
                   case outcome of
-                    NONE => if not (is_type_system_sound type_sys) andalso
+                    NONE => if level_of_type_sys type_sys <> Sound andalso
                                is_unsound_proof conjecture_shape facts_offset
                                                 fact_names atp_proof then
                               SOME UnsoundProof

@@ -23,6 +23,7 @@ end;
 structure Sledgehammer_Run : SLEDGEHAMMER_RUN =
 struct
 
+open ATP_Systems
 open Sledgehammer_Util
 open Sledgehammer_Filter
 open Sledgehammer_ATP_Translate
@@ -162,12 +163,11 @@ fun smart_par_list_map _ [] = []
 fun dest_SMT_Weighted_Fact (SMT_Weighted_Fact p) = p
   | dest_SMT_Weighted_Fact _ = raise Fail "dest_SMT_Weighted_Fact"
 
-(* FUDGE *)
-val auto_max_relevant_divisor = 2
+val auto_max_relevant_divisor = 2 (* FUDGE *)
 
-fun run_sledgehammer (params as {debug, blocking, provers, monomorphize,
-                                 type_sys, relevance_thresholds, max_relevant,
-                                 slicing, timeout, ...})
+fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
+                                 relevance_thresholds, max_relevant, slicing,
+                                 timeout, ...})
         auto i (relevance_override as {only, ...}) minimize_command state =
   if null provers then
     error "No prover is set."
@@ -183,7 +183,7 @@ fun run_sledgehammer (params as {debug, blocking, provers, monomorphize,
       val thy = Proof_Context.theory_of ctxt
       val {facts = chained_ths, goal, ...} = Proof.goal state
       val (_, hyp_ts, concl_t) = strip_subgoal goal i
-      val no_dangerous_types = type_system_types_dangerous_types type_sys
+      val half_sound = is_rich_type_sys_half_sound type_sys
       val _ = () |> not blocking ? kill_provers
       val _ = case find_first (not o is_prover_supported ctxt) provers of
                 SOME name => error ("No such prover: " ^ name ^ ".")
@@ -212,7 +212,7 @@ fun run_sledgehammer (params as {debug, blocking, provers, monomorphize,
             |> (if blocking then smart_par_list_map else map) (launch problem)
             |> exists fst |> rpair state
         end
-      fun get_facts label no_dangerous_types relevance_fudge provers =
+      fun get_facts label half_sound relevance_fudge provers =
         let
           val max_max_relevant =
             case max_relevant of
@@ -225,9 +225,9 @@ fun run_sledgehammer (params as {debug, blocking, provers, monomorphize,
           val is_built_in_const =
             is_built_in_const_for_prover ctxt (hd provers)
         in
-          relevant_facts ctxt no_dangerous_types relevance_thresholds
-                         max_max_relevant is_built_in_const relevance_fudge
-                         relevance_override chained_ths hyp_ts concl_t
+          relevant_facts ctxt half_sound relevance_thresholds max_max_relevant
+                         is_built_in_const relevance_fudge relevance_override
+                         chained_ths hyp_ts concl_t
           |> tap (fn facts =>
                      if debug then
                        label ^ plural_s (length provers) ^ ": " ^
@@ -246,12 +246,8 @@ fun run_sledgehammer (params as {debug, blocking, provers, monomorphize,
           accum
         else
           launch_provers state
-              (get_facts "ATP" no_dangerous_types atp_relevance_fudge o K atps)
-              (if monomorphize then
-                 K (Untranslated_Fact o fst)
-               else
-                 ATP_Translated_Fact oo K (translate_atp_fact ctxt false o fst))
-              (K (K NONE)) atps
+              (get_facts "ATP" half_sound atp_relevance_fudge o K atps)
+              (K (Untranslated_Fact o fst)) (K (K NONE)) atps
       fun launch_smts accum =
         if null smts then
           accum

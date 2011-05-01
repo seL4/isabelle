@@ -377,8 +377,7 @@ fun run_sh prover_name prover type_sys max_relevant hard_timeout timeout dir st 
       Sledgehammer_Provers.relevance_fudge_for_prover ctxt prover_name
     val relevance_override = {add = [], del = [], only = false}
     val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal i
-    val no_dangerous_types =
-      Sledgehammer_ATP_Translate.type_system_types_dangerous_types type_sys
+    val half_sound = Sledgehammer_Provers.is_rich_type_sys_half_sound type_sys
     val time_limit =
       (case hard_timeout of
         NONE => I
@@ -388,7 +387,7 @@ fun run_sh prover_name prover type_sys max_relevant hard_timeout timeout dir st 
         time_isa) = time_limit (Mirabelle.cpu_time (fn () =>
       let
         val facts =
-          Sledgehammer_Filter.relevant_facts ctxt no_dangerous_types
+          Sledgehammer_Filter.relevant_facts ctxt half_sound
               relevance_thresholds
               (the_default default_max_relevant max_relevant) is_built_in_const
               relevance_fudge relevance_override chained_ths hyp_ts concl_t

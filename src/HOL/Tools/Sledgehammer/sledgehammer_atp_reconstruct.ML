@@ -45,6 +45,7 @@ struct
 
 open ATP_Problem
 open ATP_Proof
+open ATP_Systems
 open Metis_Translate
 open Sledgehammer_Util
 open Sledgehammer_Filter
@@ -193,7 +194,7 @@ fun using_labels [] = ""
   | using_labels ls =
     "using " ^ space_implode " " (map string_for_label ls) ^ " "
 fun metis_name type_sys =
-  if type_system_types_dangerous_types type_sys then "metisFT" else "metis"
+  if level_of_type_sys type_sys = Unsound then "metis" else "metisFT"
 fun metis_call type_sys ss = command_call (metis_name type_sys) ss
 fun metis_command type_sys i n (ls, ss) =
   using_labels ls ^ apply_on_subgoal "" i n ^ metis_call type_sys ss

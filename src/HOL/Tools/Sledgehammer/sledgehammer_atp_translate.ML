@@ -10,14 +10,8 @@ signature SLEDGEHAMMER_ATP_TRANSLATE =
 sig
   type 'a fo_term = 'a ATP_Problem.fo_term
   type 'a problem = 'a ATP_Problem.problem
+  type type_system = ATP_Systems.type_system
   type translated_formula
-
-  datatype type_system =
-    Many_Typed |
-    Mangled of bool |
-    Args of bool |
-    Tags of bool |
-    No_Types
 
   val readable_names : bool Unsynchronized.ref
   val fact_prefix : string
@@ -26,8 +20,6 @@ sig
   val explicit_app_base : string
   val type_pred_base : string
   val tff_type_prefix : string
-  val is_type_system_sound : type_system -> bool
-  val type_system_types_dangerous_types : type_system -> bool
   val num_atp_type_args : theory -> type_system -> string -> int
   val unmangled_const : string -> string * string fo_term list
   val translate_atp_fact :
@@ -45,6 +37,7 @@ structure Sledgehammer_ATP_Translate : SLEDGEHAMMER_ATP_TRANSLATE =
 struct
 
 open ATP_Problem
+open ATP_Systems
 open Metis_Translate
 open Sledgehammer_Util
 
@@ -98,29 +91,10 @@ fun update_combformula f
 
 fun fact_lift f ({combformula, ...} : translated_formula) = f combformula
 
-datatype type_system =
-  Many_Typed |
-  Mangled of bool |
-  Args of bool |
-  Tags of bool |
-  No_Types
-
-fun is_type_system_sound Many_Typed = true
-  | is_type_system_sound (Mangled full_types) = full_types
-  | is_type_system_sound (Args full_types) = full_types
-  | is_type_system_sound (Tags full_types) = full_types
-  | is_type_system_sound No_Types = false
-
-fun type_system_types_dangerous_types (Tags _) = true
-  | type_system_types_dangerous_types type_sys = is_type_system_sound type_sys
-
-fun type_system_introduces_type_preds (Mangled true) = true
-  | type_system_introduces_type_preds (Args true) = true
-  | type_system_introduces_type_preds _ = false
-
-fun type_system_declares_sym_types Many_Typed = true
-  | type_system_declares_sym_types type_sys =
-    type_system_introduces_type_preds type_sys
+fun type_sys_declares_sym_types Many_Typed = true
+  | type_sys_declares_sym_types (Mangled level) = level <> Unsound
+  | type_sys_declares_sym_types (Args (_, level)) = level <> Unsound
+  | type_sys_declares_sym_types _ = false
 
 val boring_consts = [explicit_app_base, @{const_name Metis.fequal}]
 
@@ -130,14 +104,15 @@ fun should_omit_type_args type_sys s =
    case type_sys of
      Many_Typed => false
    | Mangled _ => false
+   | Tags (_, Sound) => true
    | No_Types => true
-   | Tags true => true
    | _ => member (op =) boring_consts s)
 
 datatype type_arg_policy = No_Type_Args | Mangled_Types | Explicit_Type_Args
 
 fun general_type_arg_policy Many_Typed = Mangled_Types
   | general_type_arg_policy (Mangled _) = Mangled_Types
+  | general_type_arg_policy No_Types = No_Type_Args
   | general_type_arg_policy _ = Explicit_Type_Args
 
 fun type_arg_policy type_sys s =
@@ -542,8 +517,8 @@ fun helper_facts_for_sym ctxt type_sys (s, {typ, ...} : sym_info) =
     let
       val thy = Proof_Context.theory_of ctxt
       val unmangled_s = mangled_s |> unmangled_const_name
-      fun dub_and_inst c needs_full_types (th, j) =
-        ((c ^ "_" ^ string_of_int j ^ (if needs_full_types then "ft" else ""),
+      fun dub_and_inst c needs_some_types (th, j) =
+        ((c ^ "_" ^ string_of_int j ^ (if needs_some_types then "T" else ""),
           false),
          let val t = th |> prop_of in
            t |> (general_type_arg_policy type_sys = Mangled_Types andalso
@@ -556,15 +531,15 @@ fun helper_facts_for_sym ctxt type_sys (s, {typ, ...} : sym_info) =
         map_filter (make_fact ctxt false eq_as_iff false)
     in
       metis_helpers
-      |> maps (fn (metis_s, (needs_full_types, ths)) =>
+      |> maps (fn (metis_s, (needs_some_types, ths)) =>
                   if metis_s <> unmangled_s orelse
-                     (needs_full_types andalso
-                      not (type_system_types_dangerous_types type_sys)) then
+                     (needs_some_types andalso
+                      level_of_type_sys type_sys = Unsound) then
                     []
                   else
                     ths ~~ (1 upto length ths)
-                    |> map (dub_and_inst mangled_s needs_full_types)
-                    |> make_facts (not needs_full_types))
+                    |> map (dub_and_inst mangled_s needs_some_types)
+                    |> make_facts (not needs_some_types))
     end
   | NONE => []
 fun helper_facts_for_sym_table ctxt type_sys sym_tab =
@@ -632,9 +607,19 @@ and is_type_constr_dangerous ctxt s =
       | [] => true
   end
 
-fun should_tag_with_type ctxt (Tags full_types) T =
-    full_types orelse is_type_dangerous ctxt T
+fun should_encode_type _ Sound _ = true
+  | should_encode_type ctxt Half_Sound T = is_type_dangerous ctxt T
+  | should_encode_type _ Unsound _ = false
+
+fun should_tag_with_type ctxt (Tags (_, level)) T =
+    should_encode_type ctxt level T
   | should_tag_with_type _ _ _ = false
+
+fun should_predicate_on_type ctxt (Mangled level) T =
+    should_encode_type ctxt level T
+  | should_predicate_on_type ctxt (Args (_, level)) T =
+    should_encode_type ctxt level T
+  | should_predicate_on_type _ _ _ = false
 
 fun type_pred_combatom type_sys T tm =
   CombApp (CombConst (`make_fixed_const type_pred_base, T --> @{typ bool}, [T]),
@@ -664,7 +649,7 @@ fun formula_from_combformula ctxt type_sys =
     val do_bound_type =
       if type_sys = Many_Typed then SOME o mangled_type_name else K NONE
     fun do_out_of_bound_type (s, T) =
-      if type_system_introduces_type_preds type_sys then
+      if should_predicate_on_type ctxt type_sys T then
         type_pred_combatom type_sys T (CombVar (s, T))
         |> do_formula |> SOME
       else
@@ -749,8 +734,13 @@ fun should_declare_sym type_sys pred_sym s =
 fun add_combterm_syms_to_decl_table type_sys repaired_sym_tab =
   let
     fun declare_sym (decl as (_, _, T, _, _)) decls =
-      if exists (curry Type.raw_instance T o #3) decls then decls
-      else decl :: filter_out ((fn T' => Type.raw_instance (T', T)) o #3) decls
+      case type_sys of
+        Tags (false, Sound) =>
+        if exists (curry Type.raw_instance T o #3) decls then
+          decls
+        else
+          decl :: filter_out ((fn T' => Type.raw_instance (T', T)) o #3) decls
+      | _ => insert (op =) decl decls
     fun do_term tm =
       let val (head, args) = strip_combterm_comb tm in
         (case head of
@@ -770,7 +760,7 @@ fun add_fact_syms_to_decl_table type_sys repaired_sym_tab =
   fact_lift (formula_fold
       (add_combterm_syms_to_decl_table type_sys repaired_sym_tab))
 fun sym_decl_table_for_facts type_sys repaired_sym_tab facts =
-  Symtab.empty |> type_system_declares_sym_types type_sys
+  Symtab.empty |> type_sys_declares_sym_types type_sys
                   ? fold (add_fact_syms_to_decl_table type_sys repaired_sym_tab)
                          facts
 
@@ -779,47 +769,59 @@ fun n_ary_strip_type 0 T = ([], T)
     n_ary_strip_type (n - 1) ran_T |>> cons dom_T
   | n_ary_strip_type _ _ = raise Fail "unexpected non-function"
 
-fun problem_line_for_sym_decl ctxt type_sys need_bound_types s j
-                              (s', T_args, T, pred_sym, ary) =
+fun result_type_of_decl (_, _, T, _, ary) = n_ary_strip_type ary T |> snd
+
+fun decl_line_for_sym_decl s (s', _, T, pred_sym, ary) =
+  let val (arg_Ts, res_T) = n_ary_strip_type ary T in
+    Decl (sym_decl_prefix ^ ascii_of s, (s, s'),
+          map mangled_type_name arg_Ts,
+          if pred_sym then `I tptp_tff_bool_type else mangled_type_name res_T)
+  end
+
+fun formula_line_for_sym_decl ctxt type_sys n s j (s', T_args, T, _, ary) =
+  let
+    val (arg_Ts, res_T) = n_ary_strip_type ary T
+    val bound_names =
+      1 upto length arg_Ts |> map (`I o make_bound_var o string_of_int)
+    val bound_tms =
+      bound_names ~~ arg_Ts |> map (fn (name, T) => CombConst (name, T, []))
+    val bound_Ts =
+      arg_Ts |> map (if n > 1 then SOME else K NONE)
+    val freshener =
+      case type_sys of Args _ => string_of_int j ^ "_" | _ => ""
+  in
+    Formula (sym_decl_prefix ^ freshener ^ "_" ^ ascii_of s, Axiom,
+             CombConst ((s, s'), T, T_args)
+             |> fold (curry (CombApp o swap)) bound_tms
+             |> type_pred_combatom type_sys res_T
+             |> mk_aquant AForall (bound_names ~~ bound_Ts)
+             |> formula_from_combformula ctxt type_sys,
+             NONE, NONE)
+  end
+
+fun problem_lines_for_sym_decls ctxt type_sys (s, decls) =
   if type_sys = Many_Typed then
-    let val (arg_Ts, res_T) = n_ary_strip_type ary T in
-      Decl (sym_decl_prefix ^ ascii_of s, (s, s'),
-            map mangled_type_name arg_Ts,
-            if pred_sym then `I tptp_tff_bool_type else mangled_type_name res_T)
-    end
+    map (decl_line_for_sym_decl s) decls
   else
     let
-      val (arg_Ts, res_T) = n_ary_strip_type ary T
-      val bound_names =
-        1 upto length arg_Ts |> map (`I o make_bound_var o string_of_int)
-      val bound_tms =
-        bound_names ~~ arg_Ts |> map (fn (name, T) => CombConst (name, T, []))
-      val bound_Ts = arg_Ts |> map (if need_bound_types then SOME else K NONE)
-      val freshener =
-        case type_sys of Args _ => string_of_int j ^ "_" | _ => ""
+      val decls =
+        case decls of
+          decl :: (decls' as _ :: _) =>
+          if forall (curry (op =) (result_type_of_decl decl)
+                     o result_type_of_decl) decls' then
+            [decl]
+          else
+            decls
+        | _ => decls
+      val n = length decls
+      val decls =
+        decls |> filter (should_predicate_on_type ctxt type_sys
+                         o result_type_of_decl)
     in
-      Formula (sym_decl_prefix ^ freshener ^ "_" ^ ascii_of s, Axiom,
-               CombConst ((s, s'), T, T_args)
-               |> fold (curry (CombApp o swap)) bound_tms
-               |> type_pred_combatom type_sys res_T
-               |> mk_aquant AForall (bound_names ~~ bound_Ts)
-               |> formula_from_combformula ctxt type_sys,
-               NONE, NONE)
+      map2 (formula_line_for_sym_decl ctxt type_sys n s)
+           (0 upto length decls - 1) decls
     end
-fun problem_lines_for_sym_decls ctxt type_sys (s, decls) =
-  let
-    val n = length decls
-    fun result_type_of_decl (_, _, T, _, ary) = n_ary_strip_type ary T |> snd
-    val need_bound_types =
-      case decls of
-        decl :: (decls as _ :: _) =>
-        exists (curry (op <>) (result_type_of_decl decl)
-                o result_type_of_decl) decls
-      | _ => false
-  in
-    map2 (problem_line_for_sym_decl ctxt type_sys need_bound_types s)
-         (0 upto n - 1) decls
-  end
+
 fun problem_lines_for_sym_decl_table ctxt type_sys sym_decl_tab =
   Symtab.fold_rev (append o problem_lines_for_sym_decls ctxt type_sys)
                   sym_decl_tab []
@@ -880,8 +882,9 @@ fun prepare_atp_problem ctxt type_sys explicit_apply hyp_ts concl_t facts =
        (aritiesN, map formula_line_for_arity_clause arity_clauses),
        (helpersN, map (formula_line_for_fact ctxt helper_prefix type_sys)
                       (0 upto length helpers - 1 ~~ helpers)
-                  |> (if type_sys = Tags false then cons (ti_ti_helper_fact ())
-                      else I)),
+                  |> (case type_sys of
+                        Tags (_, Half_Sound) => cons (ti_ti_helper_fact ())
+                      | _ => I)),
        (conjsN, map (formula_line_for_conjecture ctxt type_sys) conjs),
        (free_typesN, formula_lines_for_free_types type_sys (facts @ conjs))]
     val problem =
