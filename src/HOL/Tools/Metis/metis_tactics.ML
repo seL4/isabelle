@@ -160,6 +160,10 @@ fun generic_metis_tac mode ctxt ths i st0 =
       Meson.MESON (preskolem_tac ctxt) (maps neg_clausify)
                   (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1)
                   ctxt i st0
+      handle ERROR message =>
+             error (message |> mode <> FT
+                               ? suffix "\nHint: You might want to try out \
+                                        \\"metisFT\".")
   end
 
 val metis_tac = generic_metis_tac HO
