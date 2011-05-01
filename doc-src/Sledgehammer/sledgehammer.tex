@@ -571,37 +571,67 @@ Specifies the type system to use in ATP problems. The option can take the
 following values:
 
 \begin{enum}
-\item[$\bullet$] \textbf{\textit{tags}:} Each term (and subterm) is tagged with
-its type.
-
-\item[$\bullet$] \textbf{\textit{args}:} Constants are annotated with
-their type parameters, which are passed as extra arguments.
-
-\item[$\bullet$] \textbf{\textit{mangled}:} Types are mangled in constant names.
-This value implicitly enables \textit{monomorphize}.
-
 \item[$\bullet$] \textbf{\textit{many\_typed}:} Use the prover's support for
 many-typed first-order logic if available; otherwise, fall back on
-\textit{mangled}. This value implicitly enables \textit{monomorphize}.
+\textit{mangled}. The problem is monomorphized, meaning that the problem's type
+variables are instantiated with heuristically chosen ground types.
+Monomorphization can simplify reasoning but also leads to larger fact bases,
+which can slow down the ATPs.
+
+\item[$\bullet$] \textbf{\textit{mangled}:} Types are mangled in constant names,
+and predicates restrict the range of bound variables. The problem is
+monomorphized. This corresponds to the traditional encoding of types in an
+untyped logic without overloading (e.g., such as performed by the ToFoF-E
+wrapper).
+
+\item[$\bullet$] \textbf{\textit{args}:} Constants are annotated with their
+types, which are supplied as extra arguments.
+
+\item[$\bullet$] \textbf{\textit{mono\_args}:} Similar to \textit{args}, but
+the problem is additionally monomorphized.
+
+\item[$\bullet$] \textbf{\textit{tags}:} Each term (and subterm) is tagged with
+its type using a special uninterpreted function symbol.
+
+\item[$\bullet$] \textbf{\textit{mono\_tags}:} Similar to \textit{tags}, but
+the problem is additionally monomorphized.
 
 \item[$\bullet$] \textbf{\textit{none}:} No type information is supplied to the
-ATP. This value is ignored if \textit{full\_types} is enabled.
+ATP.
+
+\item[$\bullet$]
+\textbf{%
+\textit{many\_typed}!,
+\textit{mangled}!,
+\textit{args}!,
+\textit{mono\_args}!,
+\textit{tags}!, \\ %% TYPESETTING
+\textit{mono\_tags}!:}
+The type systems \textit{many\_typed}, \textit{mangled},
+(\textit{mono\_})\allowbreak\textit{args}, and
+(\textit{mono\_})\allowbreak\textit{tags} are fully typed and (virtually) sound.
+For each of these, Sledgehammer also provides a mildly unsound variant
+identified by one exclamation mark suffix (!).
+
+\item[$\bullet$]
+\textbf{%
+\textit{many\_typed}!!,
+\textit{mangled}!!,
+\textit{args}!!,
+\textit{mono\_args}!!,
+\textit{tags}!!, \\ %% TYPESETTING
+\textit{mono\_tags}!!:}
+More strongly unsound variants of \textit{many\_typed}, \textit{mangled},
+(\textit{mono\_})\allowbreak\textit{args}, and
+(\textit{mono\_})\allowbreak\textit{tags}, identified by two exclamation marks
+(!!).
 
 \item[$\bullet$] \textbf{\textit{smart}:} If \textit{full\_types} is enabled,
-this is the same as \textit{tags}; otherwise, this is the
-same as \textit{args}.
+uses a fully typed encoding; otherwise, uses a partially typed encoding. The
+actual encoding used depends on the ATP.
 \end{enum}
 
-For SMT solvers, the type system is always \textit{many\_typed}.
-
-\opfalse{monomorphize}{dont\_monomorphize}
-Specifies whether the relevant facts should be monomorphized---i.e., whether
-their type variables should be instantiated with relevant ground types.
-Monomorphization is always performed for SMT solvers, irrespective of this
-option. Monomorphization can simplify reasoning but also leads to larger fact
-bases, which can slow down the ATPs. If the type system is \textit{mangled} or
-\textit{many\_typed}, monomorphization is implicitly enabled irrespective of
-this option.
+For SMT solvers and ToFoF-E, the type system is always \textit{many\_typed}.
 
 \opdefault{monomorphize\_limit}{int}{\upshape 4}
 Specifies the maximum number of iterations for the monomorphization fixpoint

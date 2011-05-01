@@ -60,7 +60,9 @@ may have to be refined after enriching a proof context.
 * Sledgehammer:
   - sledgehammer available_provers ~> sledgehammer supported_provers
     INCOMPATIBILITY.
-  - Added "monomorphize", "monomorphize_limit", and "type_sys" options.
+  - Added support for SNARK and ToFoF-E on SystemOnTPTP and for simply typed
+    TPTP problems (TFF).
+  - Added "type_sys" and "monomorphize_limit" options.
 
 * "try":
   - Added "simp:", "intro:", and "elim:" options.
