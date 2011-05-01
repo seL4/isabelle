@@ -55,6 +55,9 @@ val type_prefix = "ty_"
 
 fun make_type ty = type_prefix ^ ascii_of ty
 
+(* official TPTP TFF syntax *)
+val tff_bool_type = "$o"
+
 (* Freshness almost guaranteed! *)
 val sledgehammer_weak_prefix = "Sledgehammer:"
 
@@ -117,9 +120,12 @@ fun atp_type_literals_for_types type_sys kind Ts =
 
 fun mk_anot phi = AConn (ANot, [phi])
 fun mk_aconn c phi1 phi2 = AConn (c, [phi1, phi2])
+fun mk_aconns c phis =
+  let val (phis', phi') = split_last phis in
+    fold_rev (mk_aconn c) phis' phi'
+  end
 fun mk_ahorn [] phi = phi
-  | mk_ahorn (phi :: phis) psi =
-    AConn (AImplies, [fold (mk_aconn AAnd) phis phi, psi])
+  | mk_ahorn phis psi = AConn (AImplies, [mk_aconns AAnd phis, psi])
 fun mk_aquant _ [] phi = phi
   | mk_aquant q xs (phi as AQuant (q', xs', phi')) =
     if q = q' then AQuant (q, xs @ xs', phi') else AQuant (q, xs, phi)
@@ -440,9 +446,10 @@ fun mangled_type_suffix f g tys =
   fold_rev (curry (op ^) o g o prefix mangled_type_sep
             o mangled_combtyp_component f) tys ""
 
-fun mangled_const (s, s') ty_args =
-  (s ^ mangled_type_suffix fst ascii_of ty_args,
-   s' ^ mangled_type_suffix snd I ty_args)
+fun mangled_const_fst ty_args s = s ^ mangled_type_suffix fst ascii_of ty_args
+fun mangled_const_snd ty_args s' = s' ^ mangled_type_suffix snd I ty_args
+fun mangled_const ty_args (s, s') =
+  (mangled_const_fst ty_args s, mangled_const_snd ty_args s')
 
 val parse_mangled_ident =
   Scan.many1 (not o member (op =) ["(", ")", ","]) >> implode
@@ -471,6 +478,11 @@ fun pred_combtyp ty =
     CombType (name, [_, bool_ty]) => CombType (name, [ty, bool_ty])
   | _ => raise Fail "expected two-argument type constructor"
 
+fun has_type_combatom ty tm =
+  CombApp (CombConst ((const_prefix ^ is_base, is_base), pred_combtyp ty, [ty]),
+           tm)
+  |> AAtom
+
 fun formula_for_combformula ctxt type_sys =
   let
     fun do_term top_level u =
@@ -496,7 +508,7 @@ fun formula_for_combformula ctxt type_sys =
                    case type_arg_policy type_sys s'' of
                      No_Type_Args => (name, [])
                    | Explicit_Type_Args => (name, ty_args)
-                   | Mangled_Types => (mangled_const name ty_args, [])
+                   | Mangled_Types => (mangled_const ty_args name, [])
                  end)
           | CombVar (name, _) => (name, [])
           | CombApp _ => raise Fail "impossible \"CombApp\""
@@ -514,16 +526,14 @@ fun formula_for_combformula ctxt type_sys =
     val do_out_of_bound_type =
       if member (op =) [Args true, Mangled true] type_sys then
         (fn (s, ty) =>
-            CombApp (CombConst ((const_prefix ^ is_base, is_base),
-                                pred_combtyp ty, [ty]),
-                     CombVar (s, ty))
-            |> AAtom |> formula_for_combformula ctxt type_sys |> SOME)
+            has_type_combatom ty (CombVar (s, ty))
+            |> formula_for_combformula ctxt type_sys |> SOME)
       else
         K NONE
     fun do_formula (AQuant (q, xs, phi)) =
         AQuant (q, xs |> map (apsnd (fn NONE => NONE
                                       | SOME ty => do_bound_type ty)),
-                (if q = AForall then mk_ahorn else fold (mk_aconn AAnd))
+                (if q = AForall then mk_ahorn else fold_rev (mk_aconn AAnd))
                     (map_filter
                          (fn (_, NONE) => NONE
                            | (s, SOME ty) => do_out_of_bound_type (s, ty)) xs)
@@ -710,43 +720,67 @@ fun repair_problem_line thy type_sys sym_tab
   | repair_problem_line _ _ _ _ = raise Fail "unexpected non-formula"
 fun repair_problem thy = map o apsnd o map oo repair_problem_line thy
 
-fun is_const_relevant s =
-  case strip_prefix_and_unascii const_prefix s of
-    SOME @{const_name HOL.eq} => false
-  | opt => is_some opt
+fun is_const_relevant type_sys sym_tab unmangled_s s =
+  not (String.isPrefix bound_var_prefix unmangled_s) andalso
+  unmangled_s <> "equal" andalso
+  (type_sys = Many_Typed orelse not (is_pred_sym sym_tab s))
 
-fun consider_combterm_consts sym_tab (*FIXME: use*) tm =
+fun consider_combterm_consts type_sys sym_tab tm =
   let val (head, args) = strip_combterm_comb tm in
     (case head of
        CombConst ((s, s'), ty, ty_args) =>
        (* FIXME: exploit type subsumption *)
-       is_const_relevant s ? Symtab.insert_list (op =) (s, (s', ty_args, ty))
+       is_const_relevant type_sys sym_tab s
+                         (s |> member (op =) [Many_Typed, Mangled true] type_sys
+                               ? mangled_const_fst ty_args)
+       ? Symtab.insert_list (op =) (s, (s', ty_args, ty))
      | _ => I) (* FIXME: hAPP on var *)
-    #> fold (consider_combterm_consts sym_tab) args
+    #> fold (consider_combterm_consts type_sys sym_tab) args
   end
 
-fun consider_fact_consts sym_tab ({combformula, ...} : translated_formula) =
-  fold_formula (consider_combterm_consts sym_tab) combformula
+fun consider_fact_consts type_sys sym_tab
+                         ({combformula, ...} : translated_formula) =
+  fold_formula (consider_combterm_consts type_sys sym_tab) combformula
 
 fun const_table_for_facts type_sys sym_tab facts =
   Symtab.empty |> member (op =) [Many_Typed, Args true, Mangled true] type_sys
-                  ? fold (consider_fact_consts sym_tab) facts
+                  ? fold (consider_fact_consts type_sys sym_tab) facts
 
-fun fo_type_from_combtyp (ty as CombType ((s, _), tys)) =
+fun strip_and_map_combtyp f (ty as CombType ((s, _), tys)) =
     (case (strip_prefix_and_unascii type_const_prefix s, tys) of
        (SOME @{type_name fun}, [dom_ty, ran_ty]) =>
-       fo_type_from_combtyp ran_ty |>> cons (mangled_combtyp dom_ty)
-     | _ => ([], mangled_combtyp ty))
-  | fo_type_from_combtyp ty = ([], mangled_combtyp ty)
+       strip_and_map_combtyp f ran_ty |>> cons (f dom_ty)
+     | _ => ([], f ty))
+  | strip_and_map_combtyp f ty = ([], f ty)
 
-fun type_decl_line_for_const_entry Many_Typed s (s', ty_args, ty) =
+fun type_decl_line_for_const_entry ctxt type_sys sym_tab s (s', ty_args, ty) =
+  if type_sys = Many_Typed then
     let
-      val (s, s') = mangled_const (s, s') ty_args
-      val (arg_tys, res_ty) = fo_type_from_combtyp ty
-    in Type_Decl (type_decl_prefix ^ ascii_of s, (s, s'), arg_tys, res_ty) end
-  | type_decl_line_for_const_entry _ _ _ = raise Fail "not implemented yet"
-fun type_decl_lines_for_const type_sys (s, xs) =
-  map (type_decl_line_for_const_entry type_sys s) xs
+      val (arg_tys, res_ty) = strip_and_map_combtyp mangled_combtyp ty
+      val (s, s') = (s, s') |> mangled_const ty_args
+    in
+      Type_Decl (type_decl_prefix ^ ascii_of s, (s, s'), arg_tys,
+                 if is_pred_sym sym_tab s then `I tff_bool_type else res_ty)
+    end
+  else
+    let
+      val (arg_tys, res_ty) = strip_and_map_combtyp I ty
+      val bounds =
+        map (`I o make_bound_var o string_of_int) (1 upto length arg_tys)
+        ~~ map SOME arg_tys
+      val bound_tms =
+        map (fn (name, ty) => CombConst (name, the ty, [])) bounds
+    in
+      Formula (type_decl_prefix ^ ascii_of s, Axiom,
+               mk_aquant AForall bounds
+                         (has_type_combatom res_ty
+                              (fold (curry (CombApp o swap)) bound_tms
+                                    (CombConst ((s, s'), ty, ty_args))))
+               |> formula_for_combformula ctxt type_sys,
+               NONE, NONE)
+    end
+fun type_decl_lines_for_const ctxt type_sys sym_tab (s, xs) =
+  map (type_decl_line_for_const_entry ctxt type_sys sym_tab s) xs
 
 val factsN = "Relevant facts"
 val class_relsN = "Class relationships"
@@ -786,7 +820,8 @@ fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
               |> get_helper_facts ctxt type_sys
     val const_tab = const_table_for_facts type_sys sym_tab (conjs @ facts)
     val type_decl_lines =
-      Symtab.fold_rev (append o type_decl_lines_for_const type_sys) const_tab []
+      Symtab.fold_rev (append o type_decl_lines_for_const ctxt type_sys sym_tab)
+                      const_tab []
     val helper_lines =
       helper_facts
       |>> map (pair 0
