@@ -898,8 +898,8 @@ fun prepare_atp_problem ctxt type_sys explicit_apply hyp_ts concl_t facts =
   in
     (problem,
      case pool of SOME the_pool => snd the_pool | NONE => Symtab.empty,
-     offset_of_heading_in_problem factsN problem 0,
      offset_of_heading_in_problem conjsN problem 0,
+     offset_of_heading_in_problem factsN problem 0,
      fact_names |> Vector.fromList)
   end
 
