@@ -345,7 +345,7 @@ fun type_sys_monomorphizes Many_Typed = true
   | type_sys_monomorphizes (Tags (mono, _)) = mono
   | type_sys_monomorphizes No_Types = false
 
-val fallback_best_type_systems = [Many_Typed, Args (false, Unsound)]
+val fallback_best_type_systems = [Args (false, Unsound), Many_Typed]
 
 fun adjust_dumb_type_sys formats Many_Typed =
     if member (op =) formats Tff then (Tff, Many_Typed)
@@ -358,7 +358,7 @@ fun determine_format_and_type_sys _ formats (Dumb_Type_Sys type_sys) =
   | determine_format_and_type_sys best_type_systems formats
                                   (Smart_Type_Sys full_types) =
     best_type_systems @ fallback_best_type_systems
-    |> filter (fn type_sys => (level_of_type_sys type_sys = Sound) = full_types)
+    |> full_types ? filter (curry (op =) Sound o level_of_type_sys)
     |> hd |> adjust_dumb_type_sys formats
 
 fun run_atp auto name
