@@ -76,10 +76,12 @@ type translated_formula =
    combformula: (name, combtyp, combterm) formula,
    ctypes_sorts: typ list}
 
-fun map_combformula f
+fun update_combformula f
         ({name, kind, combformula, ctypes_sorts} : translated_formula) =
   {name = name, kind = kind, combformula = f combformula,
    ctypes_sorts = ctypes_sorts} : translated_formula
+
+fun fact_lift f ({combformula, ...} : translated_formula) = f combformula
 
 datatype type_system =
   Many_Typed |
@@ -639,27 +641,32 @@ fun formula_lines_for_free_types type_sys facts =
 
 type repair_info = {pred_sym: bool, min_arity: int, max_arity: int}
 
-fun consider_combterm_for_repair top_level tm =
-  let val (head, args) = strip_combterm_comb tm in
-    (case head of
-       CombConst ((s, _), _, _) =>
-       if String.isPrefix bound_var_prefix s then
-         I
-       else
-         let val n = length args in
-           Symtab.map_default
-               (s, {pred_sym = true, min_arity = n, max_arity = 0})
-               (fn {pred_sym, min_arity, max_arity} =>
-                   {pred_sym = pred_sym andalso top_level,
-                    min_arity = Int.min (n, min_arity),
-                    max_arity = Int.max (n, max_arity)})
-        end
-     | _ => I)
-    #> fold (consider_combterm_for_repair false) args
-  end
+fun consider_combterm_for_repair explicit_apply =
+  let
+    fun aux top_level tm =
+      let val (head, args) = strip_combterm_comb tm in
+        (case head of
+           CombConst ((s, _), _, _) =>
+           if String.isPrefix bound_var_prefix s then
+             I
+           else
+             let val arity = length args in
+               Symtab.map_default
+                   (s, {pred_sym = true,
+                        min_arity = if explicit_apply then 0 else arity,
+                        max_arity = 0})
+                   (fn {pred_sym, min_arity, max_arity} =>
+                       {pred_sym = pred_sym andalso top_level,
+                        min_arity = Int.min (arity, min_arity),
+                        max_arity = Int.max (arity, max_arity)})
+            end
+         | _ => I)
+        #> fold (aux false) args
+      end
+  in aux true end
 
-fun consider_fact_for_repair ({combformula, ...} : translated_formula) =
-  formula_fold (consider_combterm_for_repair true) combformula
+fun consider_fact_for_repair explicit_apply =
+  fact_lift (formula_fold (consider_combterm_for_repair explicit_apply))
 
 (* The "equal" entry is needed for helper facts if the problem otherwise does
    not involve equality. The "$false" and $"true" entries are needed to ensure
@@ -673,20 +680,14 @@ val default_sym_table_entries =
     {pred_sym = true, min_arity = 1, max_arity = 1})]
 
 fun sym_table_for_facts explicit_apply facts =
-  if explicit_apply then
-    NONE
-  else
-    SOME (Symtab.empty |> fold Symtab.default default_sym_table_entries
-                       |> fold consider_fact_for_repair facts)
+  Symtab.empty |> fold Symtab.default default_sym_table_entries
+               |> fold (consider_fact_for_repair explicit_apply) facts
 
-fun min_arity_of (SOME sym_tab) s =
-    (case Symtab.lookup sym_tab s of
-       SOME ({min_arity, ...} : repair_info) => min_arity
-     | NONE => 0)
-  | min_arity_of NONE s =
-    if s = "equal" then
-      2
-    else case strip_prefix_and_unascii const_prefix s of
+fun min_arity_of sym_tab s =
+  case Symtab.lookup sym_tab s of
+    SOME ({min_arity, ...} : repair_info) => min_arity
+  | NONE =>
+    case strip_prefix_and_unascii const_prefix s of
       SOME s =>
       let val s = s |> unmangled_const |> fst |> invert_const in
         if s = boolify_base then 1
@@ -700,15 +701,11 @@ fun min_arity_of (SOME sym_tab) s =
    literals, or if it appears with different arities (e.g., because of different
    type instantiations). If false, the constant always receives all of its
    arguments and is used as a predicate. *)
-fun is_pred_sym (SOME sym_tab) s =
-    (case Symtab.lookup sym_tab s of
-       SOME {pred_sym, min_arity, max_arity} =>
-       pred_sym andalso min_arity = max_arity
-     | NONE => false)
-  | is_pred_sym NONE s =
-    (case AList.lookup (op =) default_sym_table_entries s of
-       SOME {pred_sym, ...} => pred_sym
-     | NONE => false)
+fun is_pred_sym sym_tab s =
+  case Symtab.lookup sym_tab s of
+    SOME {pred_sym, min_arity, max_arity} =>
+    pred_sym andalso min_arity = max_arity
+  | NONE => false
 
 val boolify_combconst =
   CombConst (`make_fixed_const boolify_base,
@@ -752,7 +749,7 @@ fun repair_combterm type_sys sym_tab =
   #> repair_apps_in_combterm sym_tab
   #> repair_combterm_consts type_sys
 val repair_combformula = formula_map oo repair_combterm
-val repair_fact = map_combformula oo repair_combformula
+val repair_fact = update_combformula oo repair_combformula
 
 fun is_const_relevant type_sys sym_tab s =
   not (String.isPrefix bound_var_prefix s) andalso s <> "equal" andalso
@@ -769,9 +766,8 @@ fun consider_combterm_consts type_sys sym_tab tm =
     #> fold (consider_combterm_consts type_sys sym_tab) args
   end
 
-fun consider_fact_consts type_sys sym_tab
-                         ({combformula, ...} : translated_formula) =
-  formula_fold (consider_combterm_consts type_sys sym_tab) combformula
+fun consider_fact_consts type_sys sym_tab =
+  fact_lift (formula_fold (consider_combterm_consts type_sys sym_tab))
 
 (* FIXME: needed? *)
 fun const_table_for_facts type_sys sym_tab facts =
