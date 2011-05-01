@@ -250,15 +250,15 @@ val scan_general_id =
      >> (fn (ss1, ss2) => implode ss1 ^ implode ss2)
 
 (* Generalized first-order terms, which include file names, numbers, etc. *)
-fun parse_annotation strict x =
+fun parse_annotation x =
   ((scan_general_id ::: Scan.repeat ($$ " " |-- scan_general_id)
-      >> (strict ? filter (is_some o Int.fromString)))
-   -- Scan.optional (parse_annotation strict) [] >> op @
-   || $$ "(" |-- parse_annotations strict --| $$ ")"
-   || $$ "[" |-- parse_annotations strict --| $$ "]") x
-and parse_annotations strict x =
-  (Scan.optional (parse_annotation strict
-                  ::: Scan.repeat ($$ "," |-- parse_annotation strict)) []
+      >> filter (is_some o Int.fromString))
+   -- Scan.optional parse_annotation [] >> op @
+   || $$ "(" |-- parse_annotations --| $$ ")"
+   || $$ "[" |-- parse_annotations --| $$ "]") x
+and parse_annotations x =
+  (Scan.optional (parse_annotation
+                  ::: Scan.repeat ($$ "," |-- parse_annotation)) []
    >> flat) x
 
 (* Vampire proof lines sometimes contain needless information such as "(0:3)",
@@ -295,7 +295,9 @@ fun parse_formula x =
        >> (fn ((q, ts), phi) =>
               (* FIXME: TFF *)
               AQuant (q, map (rpair NONE o fo_term_head) ts, phi))
-    || $$ "~" |-- ($$ "(" |-- parse_formula --| $$ ")" || parse_atom) >> mk_anot
+    || (Scan.repeat ($$ "~") >> length)
+       -- ($$ "(" |-- parse_formula --| $$ ")" || parse_atom)
+       >> (fn (n, phi) => phi |> n div 2 = 1 ? mk_anot)
     || parse_atom)
    -- Scan.option ((Scan.this_string "=>" >> K AImplies
                     || Scan.this_string "<=>" >> K AIff
@@ -307,8 +309,8 @@ fun parse_formula x =
         | (phi1, SOME (c, phi2)) => mk_aconn c (phi1, phi2))) x
 
 val parse_tstp_extra_arguments =
-  Scan.optional ($$ "," |-- parse_annotation false
-                 --| Scan.option ($$ "," |-- parse_annotations false)) []
+  Scan.optional ($$ "," |-- parse_annotation
+                 --| Scan.option ($$ "," |-- parse_annotations)) []
 
 val vampire_unknown_fact = "unknown"
 val tofof_fact_prefix = "fof_"
@@ -355,7 +357,7 @@ val parse_vampire_line =
   scan_general_id --| $$ "." -- parse_formula
     --| Scan.option parse_vampire_braced_stuff
     --| Scan.option parse_vampire_parenthesized_detritus
-    -- parse_annotation true
+    -- parse_annotation
   >> (fn ((num, phi), deps) =>
          Inference ((num, NONE), phi, map (rpair NONE) deps))
 
