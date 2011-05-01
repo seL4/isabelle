@@ -250,8 +250,7 @@ fun run_sledgehammer (params as {debug, blocking, provers, monomorphize,
               (if monomorphize then
                  K (Untranslated_Fact o fst)
                else
-                 ATP_Translated_Fact
-                 oo K (translate_atp_fact ctxt type_sys false o fst))
+                 ATP_Translated_Fact oo K (translate_atp_fact ctxt false o fst))
               (K (K NONE)) atps
       fun launch_smts accum =
         if null smts then

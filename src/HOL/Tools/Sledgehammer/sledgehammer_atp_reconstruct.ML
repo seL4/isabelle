@@ -341,11 +341,7 @@ fun raw_term_from_pred thy type_sys tfrees =
     fun aux opt_T extra_us u =
       case u of
         ATerm (a, us) =>
-        if a = boolify_name then
-          aux (SOME @{typ bool}) [] (hd us)
-        else if a = explicit_app_name then
-          aux opt_T (nth us 1 :: extra_us) (hd us)
-        else if a = type_tag_name then
+        if a = type_tag_name then
           case us of
             [typ_u, term_u] =>
             aux (SOME (type_from_fo_term tfrees typ_u)) extra_us term_u
@@ -360,24 +356,29 @@ fun raw_term_from_pred thy type_sys tfrees =
               list_comb (Const (@{const_name HOL.eq}, HOLogic.typeT), ts)
           end
         | SOME b =>
-          let
-            val (c, mangled_us) = b |> unmangled_const |>> invert_const
-            val num_ty_args = num_atp_type_args thy type_sys c
-            val (type_us, term_us) = chop num_ty_args us |>> append mangled_us
-            (* Extra args from "hAPP" come after any arguments given directly to
-               the constant. *)
-            val term_ts = map (aux NONE []) term_us
-            val extra_ts = map (aux NONE []) extra_us
-            val T =
-              case opt_T of
-                SOME T => map fastype_of term_ts ---> T
-              | NONE =>
-                if num_type_args thy c = length type_us then
-                  Sign.const_instance thy (c,
-                      map (type_from_fo_term tfrees) type_us)
-                else
-                  HOLogic.typeT
-          in list_comb (Const (c, T), term_ts @ extra_ts) end
+          if b = boolify_base then
+            aux (SOME @{typ bool}) [] (hd us)
+          else if b = explicit_app_base then
+            aux opt_T (nth us 1 :: extra_us) (hd us)
+          else
+            let
+              val (c, mangled_us) = b |> unmangled_const |>> invert_const
+              val num_ty_args = num_atp_type_args thy type_sys c
+              val (type_us, term_us) = chop num_ty_args us |>> append mangled_us
+              (* Extra args from "hAPP" come after any arguments given directly
+                 to the constant. *)
+              val term_ts = map (aux NONE []) term_us
+              val extra_ts = map (aux NONE []) extra_us
+              val T =
+                case opt_T of
+                  SOME T => map fastype_of term_ts ---> T
+                | NONE =>
+                  if num_type_args thy c = length type_us then
+                    Sign.const_instance thy (c,
+                        map (type_from_fo_term tfrees) type_us)
+                  else
+                    HOLogic.typeT
+            in list_comb (Const (c, T), term_ts @ extra_ts) end
         | NONE => (* a free or schematic variable *)
           let
             val ts = map (aux NONE []) (us @ extra_us)

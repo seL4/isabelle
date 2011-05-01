@@ -21,14 +21,14 @@ sig
 
   val fact_prefix : string
   val conjecture_prefix : string
-  val boolify_name : string
-  val explicit_app_name : string
+  val boolify_base : string
+  val explicit_app_base : string
   val is_type_system_sound : type_system -> bool
   val type_system_types_dangerous_types : type_system -> bool
   val num_atp_type_args : theory -> type_system -> string -> int
   val unmangled_const : string -> string * string fo_term list
   val translate_atp_fact :
-    Proof.context -> type_system -> bool -> (string * 'a) * thm
+    Proof.context -> bool -> (string * 'a) * thm
     -> translated_formula option * ((string * 'a) * thm)
   val prepare_atp_problem :
     Proof.context -> bool -> type_system -> bool -> term list -> term
@@ -54,8 +54,8 @@ val class_rel_clause_prefix = "crel_";
 val arity_clause_prefix = "arity_"
 val tfree_prefix = "tfree_"
 
-val boolify_name = "hBOOL"
-val explicit_app_name = "hAPP"
+val boolify_base = "hBOOL"
+val explicit_app_base = "hAPP"
 val type_pred_base = "is"
 val type_prefix = "ty_"
 
@@ -100,9 +100,9 @@ fun dont_need_type_args type_sys s =
   (member (op =) [@{const_name HOL.eq}] s orelse
    case type_sys of
      Many_Typed => false
-   | Tags full_types => full_types
-   | Args _ => false
-   | Mangled _ => false
+   | Tags full_types => full_types orelse s = explicit_app_base
+   | Args _ => s = explicit_app_base
+   | Mangled _ => s = explicit_app_base
    | No_Types => true)
 
 datatype type_arg_policy = No_Type_Args | Explicit_Type_Args | Mangled_Types
@@ -209,28 +209,10 @@ fun unmangled_const s =
     (hd ss, map unmangled_type (tl ss))
   end
 
-fun repair_combterm_consts type_sys =
-  let
-    fun aux (CombApp tmp) = CombApp (pairself aux tmp)
-      | aux (CombConst (name as (s, _), ty, ty_args)) =
-        (case strip_prefix_and_unascii const_prefix s of
-           NONE => (name, ty_args)
-         | SOME s'' =>
-           let val s'' = invert_const s'' in
-             case type_arg_policy type_sys s'' of
-               No_Type_Args => (name, [])
-             | Explicit_Type_Args => (name, ty_args)
-             | Mangled_Types => (mangled_const_name ty_args name, [])
-           end)
-        |> (fn (name, ty_args) => CombConst (name, ty, ty_args))
-      | aux tm = tm
-  in aux end
-
-fun combformula_for_prop thy type_sys eq_as_iff =
+fun combformula_for_prop thy eq_as_iff =
   let
     fun do_term bs t ts =
       combterm_from_term thy bs (Envir.eta_contract t)
-      |>> repair_combterm_consts type_sys
       |>> AAtom ||> union (op =) ts
     fun do_quant bs q s T t' =
       let val s = Name.variant (map fst bs) s in
@@ -336,7 +318,7 @@ fun freeze_term t =
   in t |> exists_subterm is_Var t ? aux end
 
 (* making fact and conjecture formulas *)
-fun make_formula ctxt type_sys eq_as_iff presimp name kind t =
+fun make_formula ctxt eq_as_iff presimp name kind t =
   let
     val thy = Proof_Context.theory_of ctxt
     val t = t |> Envir.beta_eta_contract
@@ -350,21 +332,21 @@ fun make_formula ctxt type_sys eq_as_iff presimp name kind t =
               |> introduce_combinators_in_term ctxt kind
               |> kind <> Axiom ? freeze_term
     val (combformula, ctypes_sorts) =
-      combformula_for_prop thy type_sys eq_as_iff t []
+      combformula_for_prop thy eq_as_iff t []
   in
     {name = name, combformula = combformula, kind = kind,
      ctypes_sorts = ctypes_sorts}
   end
 
-fun make_fact ctxt type_sys keep_trivial eq_as_iff presimp ((name, _), th) =
+fun make_fact ctxt keep_trivial eq_as_iff presimp ((name, _), th) =
   case (keep_trivial,
-        make_formula ctxt type_sys eq_as_iff presimp name Axiom (prop_of th)) of
+        make_formula ctxt eq_as_iff presimp name Axiom (prop_of th)) of
     (false, {combformula = AAtom (CombConst (("c_True", _), _, _)), ...}) =>
     NONE
   | (_, formula) => SOME formula
-fun make_conjecture ctxt type_sys ts =
+fun make_conjecture ctxt ts =
   let val last = length ts - 1 in
-    map2 (fn j => make_formula ctxt type_sys true true (string_of_int j)
+    map2 (fn j => make_formula ctxt true true (string_of_int j)
                                (if j = last then Conjecture else Hypothesis))
          (0 upto last) ts
   end
@@ -397,8 +379,7 @@ fun get_helper_facts ctxt type_sys formulas =
     fun dub c needs_full_types (th, j) =
       ((c ^ "_" ^ string_of_int j ^ (if needs_full_types then "ft" else ""),
         false), th)
-    fun make_facts eq_as_iff =
-      map_filter (make_fact ctxt type_sys false eq_as_iff false)
+    fun make_facts eq_as_iff = map_filter (make_fact ctxt false eq_as_iff false)
   in
     (metis_helpers
      |> filter (is_used o fst)
@@ -423,8 +404,8 @@ fun get_helper_facts ctxt type_sys formulas =
        [])
   end
 
-fun translate_atp_fact ctxt type_sys keep_trivial =
-  `(make_fact ctxt type_sys keep_trivial true true)
+fun translate_atp_fact ctxt keep_trivial =
+  `(make_fact ctxt keep_trivial true true)
 
 fun translate_formulas ctxt type_sys hyp_ts concl_t rich_facts =
   let
@@ -443,7 +424,7 @@ fun translate_formulas ctxt type_sys hyp_ts concl_t rich_facts =
     val subs = tfree_classes_of_terms all_ts
     val supers = tvar_classes_of_terms all_ts
     val tycons = type_consts_of_terms thy all_ts
-    val conjs = make_conjecture ctxt type_sys (hyp_ts @ [concl_t])
+    val conjs = make_conjecture ctxt (hyp_ts @ [concl_t])
     val (supers', arity_clauses) =
       if type_sys = No_Types then ([], [])
       else make_arity_clauses thy tycons supers
@@ -509,6 +490,23 @@ val fname_table =
    ("c_disj", (2, ("c_fdisj", @{const_name Metis.fdisj}))),
    ("c_implies", (2, ("c_fimplies", @{const_name Metis.fimplies}))),
    ("equal", (2, ("c_fequal", @{const_name Metis.fequal})))]
+
+fun repair_combterm_consts type_sys =
+  let
+    fun aux (CombApp tmp) = CombApp (pairself aux tmp)
+      | aux (CombConst (name as (s, _), ty, ty_args)) =
+        (case strip_prefix_and_unascii const_prefix s of
+           NONE => (name, ty_args)
+         | SOME s'' =>
+           let val s'' = invert_const s'' in
+             case type_arg_policy type_sys s'' of
+               No_Type_Args => (name, [])
+             | Explicit_Type_Args => (name, ty_args)
+             | Mangled_Types => (mangled_const_name ty_args name, [])
+           end)
+        |> (fn (name, ty_args) => CombConst (name, ty, ty_args))
+      | aux tm = tm
+  in aux end
 
 fun pred_combtyp ty =
   case combtyp_from_typ @{typ "unit => bool"} of
@@ -637,9 +635,9 @@ fun problem_lines_for_free_types type_sys facts =
 
 (** "hBOOL" and "hAPP" **)
 
-type hrepair_info = {min_arity: int, max_arity: int, pred_sym: bool}
+type repair_info = {pred_sym: bool, min_arity: int, max_arity: int}
 
-fun consider_combterm_for_hrepair top_level tm =
+fun consider_combterm_for_repair top_level tm =
   let val (head, args) = strip_combterm_comb tm in
     (case head of
        CombConst ((s, _), _, _) =>
@@ -648,76 +646,50 @@ fun consider_combterm_for_hrepair top_level tm =
        else
          let val n = length args in
            Symtab.map_default
-               (s, {min_arity = n, max_arity = 0, pred_sym = true})
-               (fn {min_arity, max_arity, pred_sym} =>
-                   {min_arity = Int.min (n, min_arity),
-                    max_arity = Int.max (n, max_arity),
-                    pred_sym = pred_sym andalso top_level})
+               (s, {pred_sym = true, min_arity = n, max_arity = 0})
+               (fn {pred_sym, min_arity, max_arity} =>
+                   {pred_sym = pred_sym andalso top_level,
+                    min_arity = Int.min (n, min_arity),
+                    max_arity = Int.max (n, max_arity)})
         end
      | _ => I)
-    #> fold (consider_combterm_for_hrepair false) args
+    #> fold (consider_combterm_for_repair false) args
   end
 
-fun consider_fact_for_hrepair ({combformula, ...} : translated_formula) =
-  formula_fold (consider_combterm_for_hrepair true) combformula
+fun consider_fact_for_repair ({combformula, ...} : translated_formula) =
+  formula_fold (consider_combterm_for_repair true) combformula
 
 (* The "equal" entry is needed for helper facts if the problem otherwise does
-   not involve equality. *)
+   not involve equality. The "hBOOL" and "hAPP" entries are needed for symbol
+   declarations. *)
 val default_entries =
-  [("equal", {min_arity = 2, max_arity = 2, pred_sym = true}),
-   (boolify_name, {min_arity = 1, max_arity = 1, pred_sym = true})]
+  [("equal", {pred_sym = true, min_arity = 2, max_arity = 2}),
+   (make_fixed_const boolify_base,
+    {pred_sym = true, min_arity = 1, max_arity = 1}),
+   (make_fixed_const explicit_app_base,
+    {pred_sym = false, min_arity = 2, max_arity = 2})]
+(* FIXME: last two entries needed? ### *)
 
-fun hrepair_table_for_facts explicit_apply facts =
+fun sym_table_for_facts explicit_apply facts =
   if explicit_apply then
     NONE
   else
     SOME (Symtab.empty |> fold Symtab.default default_entries
-                       |> fold consider_fact_for_hrepair facts)
+                       |> fold consider_fact_for_repair facts)
 
-fun min_arity_of thy type_sys NONE s =
-    (if s = "equal" orelse s = type_tag_name orelse
-        String.isPrefix type_const_prefix s orelse
-        String.isPrefix class_prefix s then
-       16383 (* large number *)
-     else case strip_prefix_and_unascii const_prefix s of
-       SOME s' => s' |> unmangled_const |> fst |> invert_const
-                     |> num_atp_type_args thy type_sys
+fun min_arity_of _ _ (SOME sym_tab) s =
+    (case Symtab.lookup sym_tab s of
+       SOME ({min_arity, ...} : repair_info) => min_arity
      | NONE => 0)
-  | min_arity_of _ _ (SOME hrepairs) s =
-    case Symtab.lookup hrepairs s of
-      SOME ({min_arity, ...} : hrepair_info) => min_arity
+  | min_arity_of thy type_sys NONE s =
+    if s = "equal" orelse s = type_tag_name orelse
+       String.isPrefix type_const_prefix s orelse
+       String.isPrefix class_prefix s then
+      16383 (* large number *)
+    else case strip_prefix_and_unascii const_prefix s of
+      SOME s' => s' |> unmangled_const |> fst |> invert_const
+                    |> num_atp_type_args thy type_sys
     | NONE => 0
-
-fun full_type_of (ATerm ((s, _), [ty, _])) =
-    if s = type_tag_name then SOME ty else NONE
-  | full_type_of _ = NONE
-
-fun list_hAPP_rev _ t1 [] = t1
-  | list_hAPP_rev NONE t1 (t2 :: ts2) =
-    ATerm (`I explicit_app_name, [list_hAPP_rev NONE t1 ts2, t2])
-  | list_hAPP_rev (SOME ty) t1 (t2 :: ts2) =
-    case full_type_of t2 of
-      SOME ty2 =>
-      let val ty' = ATerm (`make_fixed_type_const @{type_name fun},
-                           [ty2, ty]) in
-        ATerm (`I explicit_app_name,
-               [tag_with_type ty' (list_hAPP_rev (SOME ty') t1 ts2), t2])
-      end
-    | NONE => list_hAPP_rev NONE t1 (t2 :: ts2)
-
-fun hrepair_applications_in_term thy type_sys hrepairs =
-  let
-    fun aux opt_ty (ATerm (name as (s, _), ts)) =
-      if s = type_tag_name then
-        case ts of
-          [t1, t2] => ATerm (name, [aux NONE t1, aux (SOME t1) t2])
-        | _ => raise Fail "malformed type tag"
-      else
-        let
-          val ts = map (aux NONE) ts
-          val (ts1, ts2) = chop (min_arity_of thy type_sys hrepairs s) ts
-        in list_hAPP_rev opt_ty (ATerm (name, ts1)) (rev ts2) end
-  in aux NONE end
 
 (* True if the constant ever appears outside of the top-level position in
    literals, or if it appears with different arities (e.g., because of different
@@ -726,88 +698,120 @@ fun hrepair_applications_in_term thy type_sys hrepairs =
 fun is_pred_sym NONE s =
     s = "equal" orelse s = "$false" orelse s = "$true" orelse
     String.isPrefix type_const_prefix s orelse String.isPrefix class_prefix s
-  | is_pred_sym (SOME hrepairs) s =
-    case Symtab.lookup hrepairs s of
-      SOME {min_arity, max_arity, pred_sym} =>
+  | is_pred_sym (SOME sym_tab) s =
+    case Symtab.lookup sym_tab s of
+      SOME {pred_sym, min_arity, max_arity} =>
       pred_sym andalso min_arity = max_arity
     | NONE => false
 
 val boolify_combconst =
-  CombConst (`I boolify_name, combtyp_from_typ @{typ "bool => bool"}, [])
+  CombConst (`make_fixed_const boolify_base,
+             combtyp_from_typ @{typ "bool => bool"}, [])
 fun boolify tm = CombApp (boolify_combconst, tm)
 
-fun hrepair_pred_syms_in_combterm hrepairs tm =
+fun repair_pred_syms_in_combterm sym_tab tm =
   case strip_combterm_comb tm of
     (CombConst ((s, _), _, _), _) =>
-    if is_pred_sym hrepairs s then tm else boolify tm
+    if is_pred_sym sym_tab s then tm else boolify tm
   | _ => boolify tm
 
-fun hrepair_apps_in_combterm hrepairs tm = tm
+fun list_app head args = fold (curry (CombApp o swap)) args head
 
-fun hrepair_combterm type_sys hrepairs =
-  (case type_sys of Tags _ => I | _ => hrepair_pred_syms_in_combterm hrepairs)
-  #> hrepair_apps_in_combterm hrepairs
-val hrepair_combformula = formula_map oo hrepair_combterm
-val hrepair_fact = map_combformula oo hrepair_combformula
+val fun_name = `make_fixed_type_const @{type_name fun}
 
-fun is_const_relevant type_sys hrepairs s =
+fun explicit_app arg head =
+  let
+    val head_ty = combtyp_of head
+    val (arg_ty, res_ty) = dest_combfun head_ty
+    val explicit_app =
+      CombConst (`make_fixed_const explicit_app_base,
+                 CombType (fun_name, [head_ty, head_ty]), [arg_ty, res_ty])
+  in list_app explicit_app [head, arg] end
+fun list_explicit_app head args = fold explicit_app args head
+
+fun repair_apps_in_combterm thy type_sys sym_tab =
+  let
+    fun aux tm =
+      case strip_combterm_comb tm of
+        (head as CombConst ((s, _), _, _), args) =>
+        args |> map aux
+             |> chop (min_arity_of thy type_sys sym_tab s)
+             |>> list_app head
+             |-> list_explicit_app
+      | (head, args) => list_explicit_app head (map aux args)
+  in aux end
+
+fun repair_combterm thy type_sys sym_tab =
+  (case type_sys of Tags _ => I | _ => repair_pred_syms_in_combterm sym_tab)
+  #> repair_apps_in_combterm thy type_sys sym_tab
+  #> repair_combterm_consts type_sys
+val repair_combformula = formula_map ooo repair_combterm
+val repair_fact = map_combformula ooo repair_combformula
+
+fun is_const_relevant type_sys sym_tab s =
   not (String.isPrefix bound_var_prefix s) andalso s <> "equal" andalso
-  (type_sys = Many_Typed orelse not (is_pred_sym hrepairs s))
+  (type_sys = Many_Typed orelse not (is_pred_sym sym_tab s))
 
-fun consider_combterm_consts type_sys hrepairs tm =
+fun consider_combterm_consts type_sys sym_tab tm =
   let val (head, args) = strip_combterm_comb tm in
     (case head of
        CombConst ((s, s'), ty, ty_args) =>
        (* FIXME: exploit type subsumption *)
-       is_const_relevant type_sys hrepairs s
+       is_const_relevant type_sys sym_tab s
        ? Symtab.insert_list (op =) (s, (s', ty_args, ty))
-     | _ => I) (* FIXME: hAPP on var *)
-    #> fold (consider_combterm_consts type_sys hrepairs) args
+     | _ => I)
+    #> fold (consider_combterm_consts type_sys sym_tab) args
   end
 
-fun consider_fact_consts type_sys hrepairs
+fun consider_fact_consts type_sys sym_tab
                          ({combformula, ...} : translated_formula) =
-  formula_fold (consider_combterm_consts type_sys hrepairs) combformula
+  formula_fold (consider_combterm_consts type_sys sym_tab) combformula
 
-fun const_table_for_facts type_sys hrepairs facts =
+fun const_table_for_facts type_sys sym_tab facts =
   Symtab.empty |> member (op =) [Many_Typed, Args true, Mangled true] type_sys
-                  ? fold (consider_fact_consts type_sys hrepairs) facts
+                  ? fold (consider_fact_consts type_sys sym_tab) facts
 
-fun strip_and_map_combtyp f (ty as CombType ((s, _), tys)) =
+fun strip_and_map_combtyp 0 f ty = ([], f ty)
+  | strip_and_map_combtyp n f (ty as CombType ((s, _), tys)) =
     (case (strip_prefix_and_unascii type_const_prefix s, tys) of
        (SOME @{type_name fun}, [dom_ty, ran_ty]) =>
-       strip_and_map_combtyp f ran_ty |>> cons (f dom_ty)
+       strip_and_map_combtyp (n - 1) f ran_ty |>> cons (f dom_ty)
      | _ => ([], f ty))
-  | strip_and_map_combtyp f ty = ([], f ty)
+  | strip_and_map_combtyp _ _ _ = raise Fail "unexpected non-function"
 
-fun sym_decl_line_for_const_entry ctxt type_sys hrepairs s (s', ty_args, ty) =
-  if type_sys = Many_Typed then
-    let
-      val (arg_tys, res_ty) = strip_and_map_combtyp mangled_combtyp ty
-      val (s, s') = (s, s') |> mangled_const_name ty_args
-    in
-      Decl (sym_decl_prefix ^ ascii_of s, (s, s'), arg_tys,
-            if is_pred_sym hrepairs s then `I tff_bool_type else res_ty)
-    end
-  else
-    let
-      val (arg_tys, res_ty) = strip_and_map_combtyp I ty
-      val bounds =
-        map (`I o make_bound_var o string_of_int) (1 upto length arg_tys)
-        ~~ map SOME arg_tys
-      val bound_tms =
-        map (fn (name, ty) => CombConst (name, the ty, [])) bounds
-    in
-      Formula (Fof, sym_decl_prefix ^ ascii_of s, Axiom,
-               CombConst ((s, s'), ty, ty_args)
-               |> fold (curry (CombApp o swap)) bound_tms
-               |> type_pred_combatom type_sys res_ty
-               |> mk_aquant AForall bounds
-               |> formula_for_combformula ctxt type_sys,
-               NONE, NONE)
-    end
-fun sym_decl_lines_for_const ctxt type_sys hrepairs (s, xs) =
-  map (sym_decl_line_for_const_entry ctxt type_sys hrepairs s) xs
+fun sym_decl_line_for_const_entry ctxt type_sys sym_tab s (s', ty_args, ty) =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val arity = min_arity_of thy type_sys sym_tab s
+  in
+    if type_sys = Many_Typed then
+      let
+        val (arg_tys, res_ty) = strip_and_map_combtyp arity mangled_combtyp ty
+        val (s, s') = (s, s') |> mangled_const_name ty_args
+      in
+        Decl (sym_decl_prefix ^ ascii_of s, (s, s'), arg_tys,
+              if is_pred_sym sym_tab s then `I tff_bool_type else res_ty)
+      end
+    else
+      let
+        val (arg_tys, res_ty) = strip_and_map_combtyp arity I ty
+        val bounds =
+          map (`I o make_bound_var o string_of_int) (1 upto length arg_tys)
+          ~~ map SOME arg_tys
+        val bound_tms =
+          map (fn (name, ty) => CombConst (name, the ty, [])) bounds
+      in
+        Formula (Fof, sym_decl_prefix ^ ascii_of s, Axiom,
+                 CombConst ((s, s'), ty, ty_args)
+                 |> fold (curry (CombApp o swap)) bound_tms
+                 |> type_pred_combatom type_sys res_ty
+                 |> mk_aquant AForall bounds
+                 |> formula_for_combformula ctxt type_sys,
+                 NONE, NONE)
+      end
+  end
+fun sym_decl_lines_for_const ctxt type_sys sym_tab (s, xs) =
+  map (sym_decl_line_for_const_entry ctxt type_sys sym_tab s) xs
 
 fun add_tff_types_in_formula (AQuant (_, xs, phi)) =
     union (op =) (map_filter snd xs) #> add_tff_types_in_formula phi
@@ -827,7 +831,7 @@ fun problem_line_for_tff_type (s, s') =
   Decl (type_decl_prefix ^ ascii_of s, (s, s'), [], `I tff_type_of_types)
 
 val type_declsN = "Types"
-val sym_declsN = "Symbols"
+val sym_declsN = "Symbol types"
 val factsN = "Relevant facts"
 val class_relsN = "Class relationships"
 val aritiesN = "Arities"
@@ -843,11 +847,13 @@ fun offset_of_heading_in_problem _ [] j = j
 fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
                         concl_t facts =
   let
+    val thy = Proof_Context.theory_of ctxt
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
       translate_formulas ctxt type_sys hyp_ts concl_t facts
-    val hrepairs = hrepair_table_for_facts explicit_apply (conjs @ facts)
-    val conjs = map (hrepair_fact type_sys hrepairs) conjs
-    val facts = map (hrepair_fact type_sys hrepairs) facts
+    val sym_tab = sym_table_for_facts explicit_apply (conjs @ facts)
+    val conjs = map (repair_fact thy type_sys sym_tab) conjs
+    val facts = map (repair_fact thy type_sys sym_tab) facts
+    val sym_tab = sym_table_for_facts explicit_apply (conjs @ facts)
     (* Reordering these might confuse the proof reconstruction code or the SPASS
        Flotter hack. *)
     val problem =
@@ -864,10 +870,10 @@ fun prepare_atp_problem ctxt readable_names type_sys explicit_apply hyp_ts
       problem |> maps (map_filter (fn Formula (_, _, _, phi, _, _) => SOME phi
                                     | _ => NONE) o snd)
               |> get_helper_facts ctxt type_sys
-              |>> map (hrepair_fact type_sys hrepairs)
-    val const_tab = const_table_for_facts type_sys hrepairs (conjs @ facts)
+              |>> map (repair_fact thy type_sys sym_tab)
+    val const_tab = const_table_for_facts type_sys sym_tab (conjs @ facts)
     val sym_decl_lines =
-      Symtab.fold_rev (append o sym_decl_lines_for_const ctxt type_sys hrepairs)
+      Symtab.fold_rev (append o sym_decl_lines_for_const ctxt type_sys sym_tab)
                       const_tab []
     val helper_lines =
       helper_facts

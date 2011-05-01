@@ -66,6 +66,7 @@ sig
     theory -> class list -> class list -> class_rel_clause list
   val make_arity_clauses :
     theory -> string list -> class list -> class list * arity_clause list
+  val dest_combfun : combtyp -> combtyp * combtyp
   val combtyp_of : combterm -> combtyp
   val strip_combterm_comb : combterm -> combterm * combterm list
   val combtyp_from_typ : typ -> combtyp
@@ -381,12 +382,12 @@ datatype fol_literal = FOLLiteral of bool * combterm
 (*********************************************************************)
 
 (*Result of a function type; no need to check that the argument type matches.*)
-fun result_type (CombType (_, [_, tp2])) = tp2
-  | result_type _ = raise Fail "non-function type"
+fun dest_combfun (CombType (_, [ty1, ty2])) = (ty1, ty2)
+  | dest_combfun _ = raise Fail "non-function type"
 
 fun combtyp_of (CombConst (_, tp, _)) = tp
   | combtyp_of (CombVar (_, tp)) = tp
-  | combtyp_of (CombApp (t1, _)) = result_type (combtyp_of t1)
+  | combtyp_of (CombApp (t1, _)) = snd (dest_combfun (combtyp_of t1))
 
 (*gets the head of a combinator application, along with the list of arguments*)
 fun strip_combterm_comb u =
