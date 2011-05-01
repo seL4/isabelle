@@ -276,10 +276,11 @@ val parse_tstp_extra_arguments =
 
 val vampire_unknown_fact = "unknown"
 
-(* Syntax: (fof|cnf)\(<num>, <formula_role>, <formula> <extra_arguments>\).
+(* Syntax: (cnf|fof|tff)\(<num>, <formula_role>, <formula> <extra_arguments>\).
    The <num> could be an identifier, but we assume integers. *)
 val parse_tstp_line =
-  ((Scan.this_string "fof" || Scan.this_string "cnf") -- $$ "(")
+  ((Scan.this_string "cnf" || Scan.this_string "fof" || Scan.this_string "tff")
+      -- $$ "(")
     |-- scan_general_id --| $$ "," -- Symbol.scan_id --| $$ ","
     -- parse_formula -- parse_tstp_extra_arguments --| $$ ")" --| $$ "."
    >> (fn (((num, role), phi), deps) =>

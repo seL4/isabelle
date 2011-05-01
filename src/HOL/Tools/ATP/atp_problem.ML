@@ -16,9 +16,11 @@ sig
     AAtom of 'b
   type 'a uniform_formula = ('a, 'a fo_term) formula
 
-  datatype kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
-  datatype 'a problem_line =
-    Fof of string * kind * ('a, 'a fo_term) formula * string fo_term option
+  datatype logic = Fof | Tff
+  datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
+  type 'a problem_line =
+    logic * string * formula_kind * ('a, 'a fo_term) formula
+    * string fo_term option
   type 'a problem = (string * 'a problem_line list) list
 
   val timestamp : unit -> string
@@ -45,9 +47,11 @@ datatype ('a, 'b) formula =
   AAtom of 'b
 type 'a uniform_formula = ('a, 'a fo_term) formula
 
-datatype kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
-datatype 'a problem_line =
-  Fof of string * kind * ('a, 'a fo_term) formula * string fo_term option
+datatype logic = Fof | Tff
+datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
+type 'a problem_line =
+  logic * string * formula_kind * ('a, 'a fo_term) formula
+  * string fo_term option
 type 'a problem = (string * 'a problem_line list) list
 
 val timestamp = Date.fmt "%Y-%m-%d %H:%M:%S" o Date.fromTimeLocal o Time.now
@@ -88,7 +92,7 @@ fun string_for_formula (AQuant (q, xs, phi)) =
   | string_for_formula (AAtom tm) = string_for_term tm
 
 fun string_for_problem_line use_conjecture_for_hypotheses
-                            (Fof (ident, kind, phi, source)) =
+                            (logic, ident, kind, phi, source) =
   let
     val (kind, phi) =
       if kind = Hypothesis andalso use_conjecture_for_hypotheses then
@@ -96,7 +100,8 @@ fun string_for_problem_line use_conjecture_for_hypotheses
       else
         (kind, phi)
   in
-    "fof(" ^ ident ^ ", " ^ string_for_kind kind ^ ",\n    (" ^
+    (case logic of Fof => "fof" | Tff => "tff") ^
+    "(" ^ ident ^ ", " ^ string_for_kind kind ^ ",\n    (" ^
     string_for_formula phi ^ ")" ^
     (case source of
        SOME tm => ", " ^ string_for_term tm
@@ -179,8 +184,8 @@ fun nice_formula (AQuant (q, xs, phi)) =
   | nice_formula (AConn (c, phis)) =
     pool_map nice_formula phis #>> curry AConn c
   | nice_formula (AAtom tm) = nice_term tm #>> AAtom
-fun nice_problem_line (Fof (ident, kind, phi, source)) =
-  nice_formula phi #>> (fn phi => Fof (ident, kind, phi, source))
+fun nice_problem_line (logic, ident, kind, phi, source) =
+  nice_formula phi #>> (fn phi => (logic, ident, kind, phi, source))
 fun nice_problem problem =
   pool_map (fn (heading, lines) =>
                pool_map nice_problem_line lines #>> pair heading) problem
