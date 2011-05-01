@@ -1,0 +1,15 @@
+\rail@i{1}{ typedef : 'typedef' ( () | '(' name ')') type '=' set witness; \par
+type : typevarlist name ( () | '(' infix ')' ); set : string; witness : () | '(' id ')'; }
+\rail@i{2}{ datatype : 'datatype' typedecls; \par
+typedecls: ( newtype '=' (cons + '|') ) + 'and' ; newtype : typevarlist id ( () | '(' infix ')' ) ; cons : name (argtype *) ( () | ( '(' mixfix ')' ) ) ; argtype : id | tid | ('(' typevarlist id ')') ; }
+\rail@t{verblbrace}
+\rail@t{verbrbrace}
+\rail@i{3}{ codegen : ( 'code_module' | 'code_library' ) modespec ? name ? \\ ( 'file' name ) ? ( 'imports' ( name + ) ) ? \\ 'contains' ( ( name '=' term ) + | term + ); \par
+modespec : '(' ( name * ) ')'; }
+\rail@i{4}{ constscode : 'consts_code' (codespec +); \par
+codespec : const template attachment ?; \par
+typescode : 'types_code' (tycodespec +); \par
+tycodespec : name template attachment ?; \par
+const : term; \par
+template: '(' string ')'; \par
+attachment: 'attach' modespec ? verblbrace text verbrbrace; }

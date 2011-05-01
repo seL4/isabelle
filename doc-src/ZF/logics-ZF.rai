@@ -1,0 +1,2 @@
+\rail@i{1}{ datatype : ( 'datatype' | 'codatatype' ) datadecls; \par
+datadecls: ( '"' id arglist '"' '=' (constructor + '|') ) + 'and' ; constructor : name ( () | consargs ) ( () | ( '(' mixfix ')' ) ) ; consargs : '(' ('"' var ' : ' term '"' + ',') ')' ; }
