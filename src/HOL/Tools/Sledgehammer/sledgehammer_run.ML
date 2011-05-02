@@ -99,7 +99,7 @@ fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
       prover_description ctxt params name num_facts subgoal subgoal_count goal
     val problem =
       {state = state, goal = goal, subgoal = subgoal,
-       subgoal_count = subgoal_count, facts = take num_facts facts,
+       subgoal_count = subgoal_count, facts = facts |> take num_facts,
        smt_filter = smt_filter}
     fun really_go () =
       problem
@@ -182,7 +182,6 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
       val thy = Proof_Context.theory_of ctxt
       val {facts = chained_ths, goal, ...} = Proof.goal state
       val (_, hyp_ts, concl_t) = strip_subgoal goal i
-      val fairly_sound = is_rich_type_sys_fairly_sound type_sys
       val _ = () |> not blocking ? kill_provers
       val _ = case find_first (not o is_prover_supported ctxt) provers of
                 SOME name => error ("No such prover: " ^ name ^ ".")
@@ -211,7 +210,7 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
             |> (if blocking then smart_par_list_map else map) (launch problem)
             |> exists fst |> rpair state
         end
-      fun get_facts label fairly_sound relevance_fudge provers =
+      fun get_facts label relevance_fudge provers =
         let
           val max_max_relevant =
             case max_relevant of
@@ -224,7 +223,7 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
           val is_built_in_const =
             is_built_in_const_for_prover ctxt (hd provers)
         in
-          relevant_facts ctxt fairly_sound relevance_thresholds max_max_relevant
+          relevant_facts ctxt relevance_thresholds max_max_relevant
                          is_built_in_const relevance_fudge relevance_override
                          chained_ths hyp_ts concl_t
           |> tap (fn facts =>
@@ -244,15 +243,14 @@ fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
         if null atps then
           accum
         else
-          launch_provers state
-              (get_facts "ATP" fairly_sound atp_relevance_fudge o K atps)
-              (K (Untranslated_Fact o fst)) (K (K NONE)) atps
+          launch_provers state (get_facts "ATP" atp_relevance_fudge o K atps)
+                         (K (Untranslated_Fact o fst)) (K (K NONE)) atps
       fun launch_smts accum =
         if null smts then
           accum
         else
           let
-            val facts = get_facts "SMT solver" true smt_relevance_fudge smts
+            val facts = get_facts "SMT solver" smt_relevance_fudge smts
             val weight = SMT_Weighted_Fact oo weight_smt_fact thy
             fun smt_filter facts =
               (if debug then curry (op o) SOME

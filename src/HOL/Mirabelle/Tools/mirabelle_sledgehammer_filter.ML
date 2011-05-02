@@ -125,11 +125,8 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
          val relevance_override = {add = [], del = [], only = false}
          val subgoal = 1
          val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal subgoal
-         val fairly_sound =
-           Sledgehammer_Provers.is_rich_type_sys_fairly_sound type_sys
          val facts =
-           Sledgehammer_Filter.relevant_facts ctxt fairly_sound
-               relevance_thresholds
+           Sledgehammer_Filter.relevant_facts ctxt relevance_thresholds
                (the_default default_max_relevant max_relevant) is_built_in_const
                relevance_fudge relevance_override facts hyp_ts concl_t
            |> map (fst o fst)

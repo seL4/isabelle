@@ -68,7 +68,7 @@ sig
   val smt_slice_fact_frac : real Unsynchronized.ref
   val smt_slice_time_frac : real Unsynchronized.ref
   val smt_slice_min_secs : int Unsynchronized.ref
-
+  (* end *)
   val das_Tool : string
   val select_smt_solver : string -> Proof.context -> Proof.context
   val is_smt_prover : Proof.context -> string -> bool
@@ -86,7 +86,6 @@ sig
   val weight_smt_fact :
     theory -> int -> ((string * locality) * thm) * int
     -> (string * locality) * (int option * thm)
-  val is_rich_type_sys_fairly_sound : rich_type_system -> bool
   val untranslated_fact : prover_fact -> (string * locality) * thm
   val smt_weighted_fact :
     theory -> int -> prover_fact * int
@@ -312,10 +311,6 @@ fun smt_fact_weight j num_facts =
 fun weight_smt_fact thy num_facts ((info, th), j) =
   (info, (smt_fact_weight j num_facts, th |> Thm.transfer thy))
 
-fun is_rich_type_sys_fairly_sound (Dumb_Type_Sys type_sys) =
-    is_type_sys_fairly_sound type_sys
-  | is_rich_type_sys_fairly_sound (Smart_Type_Sys full_types) = full_types
-
 fun untranslated_fact (Untranslated_Fact p) = p
   | untranslated_fact (SMT_Weighted_Fact (info, (_, th))) = (info, th)
 fun atp_translated_fact ctxt fact =
@@ -432,8 +427,12 @@ fun run_atp auto name
                 val num_facts =
                   length facts |> is_none max_relevant
                                   ? Integer.min default_max_relevant
+                val fairly_sound = is_type_sys_fairly_sound type_sys
                 val facts =
-                  facts |> take num_facts
+                  facts |> fairly_sound
+                           ? filter_out (is_dangerous_term o prop_of o snd
+                                         o untranslated_fact)
+                        |> take num_facts
                         |> not (null blacklist)
                            ? filter_out (member (op =) blacklist o fst
                                          o untranslated_fact)
@@ -718,7 +717,7 @@ fun smt_filter_loop name ({debug, verbose, overlord, monomorphize_limit,
                 " fact" ^ plural_s num_facts ^ ": " ^
                 string_for_failure (failure_from_smt_failure (the outcome)) ^
                 " Retrying with " ^ string_of_int new_num_facts ^ " fact" ^
-                plural_s new_num_facts
+                plural_s new_num_facts ^ "..."
                 |> Output.urgent_message
               else
                 ()
