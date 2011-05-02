@@ -711,8 +711,7 @@ fun coercion_infer_types ctxt raw_ts =
 
 (* term check *)
 
-val (coercion_enabled, coercion_enabled_setup) =
-  Attrib.config_bool "coercion_enabled" (K false);
+val coercion_enabled = Attrib.setup_config_bool @{binding coercion_enabled} (K false);
 
 val add_term_check =
   Syntax.add_term_check ~100 "coercions"
@@ -820,7 +819,6 @@ fun add_coercion raw_t context =
 (* theory setup *)
 
 val setup =
-  coercion_enabled_setup #>
   Context.theory_map add_term_check #>
   Attrib.setup @{binding coercion}
     (Args.term >> (fn t => Thm.declaration_attribute (K (add_coercion t))))

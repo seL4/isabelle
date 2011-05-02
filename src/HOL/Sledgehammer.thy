@@ -19,9 +19,6 @@ uses "Tools/Sledgehammer/async_manager.ML"
      "Tools/Sledgehammer/sledgehammer_isar.ML"
 begin
 
-setup {*
-  Sledgehammer_Provers.setup
-  #> Sledgehammer_Isar.setup
-*}
+setup {* Sledgehammer_Isar.setup *}
 
 end

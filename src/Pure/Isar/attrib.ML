@@ -36,15 +36,26 @@ sig
   val multi_thm: thm list context_parser
   val print_configs: Proof.context -> unit
   val internal: (morphism -> attribute) -> src
-  val config_bool: bstring -> (Context.generic -> bool) -> bool Config.T * (theory -> theory)
-  val config_int: bstring -> (Context.generic -> int) -> int Config.T * (theory -> theory)
-  val config_real: bstring -> (Context.generic -> real) -> real Config.T * (theory -> theory)
-  val config_string: bstring -> (Context.generic -> string) -> string Config.T * (theory -> theory)
-  val config_bool_global: bstring -> (Context.generic -> bool) -> bool Config.T * (theory -> theory)
-  val config_int_global: bstring -> (Context.generic -> int) -> int Config.T * (theory -> theory)
-  val config_real_global: bstring -> (Context.generic -> real) -> real Config.T * (theory -> theory)
-  val config_string_global:
-    bstring -> (Context.generic -> string) -> string Config.T * (theory -> theory)
+  val config_bool: Binding.binding ->
+    (Context.generic -> bool) -> bool Config.T * (theory -> theory)
+  val config_int: Binding.binding ->
+    (Context.generic -> int) -> int Config.T * (theory -> theory)
+  val config_real: Binding.binding ->
+    (Context.generic -> real) -> real Config.T * (theory -> theory)
+  val config_string: Binding.binding ->
+    (Context.generic -> string) -> string Config.T * (theory -> theory)
+  val config_bool_global: Binding.binding ->
+    (Context.generic -> bool) -> bool Config.T * (theory -> theory)
+  val config_int_global: Binding.binding ->
+    (Context.generic -> int) -> int Config.T * (theory -> theory)
+  val config_real_global: Binding.binding ->
+    (Context.generic -> real) -> real Config.T * (theory -> theory)
+  val config_string_global: Binding.binding ->
+    (Context.generic -> string) -> string Config.T * (theory -> theory)
+  val setup_config_bool: Binding.binding -> (Context.generic -> bool) -> bool Config.T
+  val setup_config_int: Binding.binding -> (Context.generic -> int) -> int Config.T
+  val setup_config_string: Binding.binding -> (Context.generic -> string) -> string Config.T
+  val setup_config_real: Binding.binding -> (Context.generic -> real) -> real Config.T
 end;
 
 structure Attrib: ATTRIB =
@@ -366,34 +377,53 @@ fun scan_config thy config =
   let val config_type = Config.get_global thy config
   in scan_value config_type >> (K o Thm.declaration_attribute o K o Config.put_generic config) end;
 
-in
-
-fun register_config config thy =
-  let
-    val bname = Config.name_of config;
-    val name = Sign.full_bname thy bname;
-  in
+fun register binding config thy =
+  let val name = Sign.full_name thy binding in
     thy
-    |> setup (Binding.name bname) (Scan.lift (scan_config thy config) >> Morphism.form)
-      "configuration option"
+    |> setup binding (Scan.lift (scan_config thy config) >> Morphism.form) "configuration option"
     |> Configs.map (Symtab.update (name, config))
   end;
 
-fun declare_config make coerce global name default =
+fun declare make coerce global binding default =
   let
+    val name = Binding.name_of binding;
     val config_value = Config.declare_generic {global = global} name (make o default);
     val config = coerce config_value;
-  in (config, register_config config_value) end;
+  in (config, register binding config_value) end;
 
-val config_bool = declare_config Config.Bool Config.bool false;
-val config_int = declare_config Config.Int Config.int false;
-val config_real = declare_config Config.Real Config.real false;
-val config_string = declare_config Config.String Config.string false;
+in
 
-val config_bool_global = declare_config Config.Bool Config.bool true;
-val config_int_global = declare_config Config.Int Config.int true;
-val config_real_global = declare_config Config.Real Config.real true;
-val config_string_global = declare_config Config.String Config.string true;
+val config_bool = declare Config.Bool Config.bool false;
+val config_int = declare Config.Int Config.int false;
+val config_real = declare Config.Real Config.real false;
+val config_string = declare Config.String Config.string false;
+
+val config_bool_global = declare Config.Bool Config.bool true;
+val config_int_global = declare Config.Int Config.int true;
+val config_real_global = declare Config.Real Config.real true;
+val config_string_global = declare Config.String Config.string true;
+
+fun register_config config = register (Binding.name (Config.name_of config)) config;
+
+end;
+
+
+(* implicit setup *)
+
+local
+
+fun setup_config declare_config binding default =
+  let
+    val (config, setup) = declare_config binding default;
+    val _ = Context.>> (Context.map_theory setup);
+  in config end;
+
+in
+
+val setup_config_bool = setup_config config_bool;
+val setup_config_int = setup_config config_int;
+val setup_config_string = setup_config config_string;
+val setup_config_real = setup_config config_real;
 
 end;
 

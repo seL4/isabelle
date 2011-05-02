@@ -42,8 +42,7 @@ structure Data = Generic_Data
 (* equality-lemma can be derived. *)
 exception EQVT_FORM of string
 
-val (nominal_eqvt_debug, setup_nominal_eqvt_debug) =
-  Attrib.config_bool "nominal_eqvt_debug" (K false);
+val nominal_eqvt_debug = Attrib.setup_config_bool @{binding nominal_eqvt_debug} (K false);
 
 fun tactic ctxt (msg, tac) =
   if Config.get ctxt nominal_eqvt_debug
@@ -170,7 +169,6 @@ val eqvt_force_del  = Thm.declaration_attribute (Data.map o Thm.del_thm);
 val get_eqvt_thms = Context.Proof #> Data.get;
 
 val setup =
-  setup_nominal_eqvt_debug #>
   Attrib.setup @{binding eqvt} (Attrib.add_del eqvt_add eqvt_del) 
    "equivariance theorem declaration" #>
   Attrib.setup @{binding eqvt_force} (Attrib.add_del eqvt_force_add eqvt_force_del)

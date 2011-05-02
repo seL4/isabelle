@@ -132,21 +132,16 @@ fun merge_expectation (expect1, expect2) =
   if expect1 = expect2 then expect1 else No_Expectation
 
 (* quickcheck configuration -- default parameters, test generators *)
-val (tester, setup_tester) = Attrib.config_string "quickcheck_tester" (K "")
-val (size, setup_size) = Attrib.config_int "quickcheck_size" (K 10)
-val (iterations, setup_iterations) = Attrib.config_int "quickcheck_iterations" (K 100)
-val (no_assms, setup_no_assms) = Attrib.config_bool "quickcheck_no_assms" (K false)
-val (report, setup_report) = Attrib.config_bool "quickcheck_report" (K true)
-val (timing, setup_timing) = Attrib.config_bool "quickcheck_timing" (K false)
-val (quiet, setup_quiet) = Attrib.config_bool "quickcheck_quiet" (K false)
-val (timeout, setup_timeout) = Attrib.config_real "quickcheck_timeout" (K 30.0)
-val (finite_types, setup_finite_types) = Attrib.config_bool "quickcheck_finite_types" (K true)
-val (finite_type_size, setup_finite_type_size) =
-  Attrib.config_int "quickcheck_finite_type_size" (K 3)
-
-val setup_config =
-  setup_tester #> setup_size #> setup_iterations #> setup_no_assms #> setup_report #> setup_timing
-    #> setup_quiet #> setup_timeout #> setup_finite_types #> setup_finite_type_size
+val tester = Attrib.setup_config_string @{binding quickcheck_tester} (K "")
+val size = Attrib.setup_config_int @{binding quickcheck_size} (K 10)
+val iterations = Attrib.setup_config_int @{binding quickcheck_iterations} (K 100)
+val no_assms = Attrib.setup_config_bool @{binding quickcheck_no_assms} (K false)
+val report = Attrib.setup_config_bool @{binding quickcheck_report} (K true)
+val timing = Attrib.setup_config_bool @{binding quickcheck_timing} (K false)
+val quiet = Attrib.setup_config_bool @{binding quickcheck_quiet} (K false)
+val timeout = Attrib.setup_config_real @{binding quickcheck_timeout} (K 30.0)
+val finite_types = Attrib.setup_config_bool @{binding quickcheck_finite_types} (K true)
+val finite_type_size = Attrib.setup_config_int @{binding quickcheck_finite_type_size} (K 3)
 
 datatype test_params = Test_Params of
   {default_type: typ list, expect : expectation};
@@ -536,7 +531,6 @@ fun auto_quickcheck state =
   end
 
 val setup = Auto_Tools.register_tool (auto, auto_quickcheck)
-  #> setup_config
 
 (* Isar commands *)
 

@@ -350,7 +350,7 @@ local
     | SMT_Failure.SMT (fail as SMT_Failure.Time_Out) =>
         error ("SMT: Solver " ^ quote (SMT_Config.solver_of ctxt) ^ ": " ^
           SMT_Failure.string_of_failure ctxt fail ^ " (setting the " ^
-          "configuration option " ^ SMT_Config.timeoutN ^ " might help)")
+          "configuration option " ^ quote (Config.name_of SMT_Config.timeout) ^ " might help)")
     | SMT_Failure.SMT fail => error (str_of ctxt fail)
 
   fun tag_rules thms = map_index (apsnd (pair NONE)) thms

@@ -1269,7 +1269,8 @@ fun timing_depth_tac start cs lim i st0 =
 (*Public version with fixed depth*)
 fun depth_tac cs lim i st = timing_depth_tac (Timing.start ()) cs lim i st;
 
-val (depth_limit, setup_depth_limit) = Attrib.config_int_global "blast_depth_limit" (K 20);
+val (depth_limit, setup_depth_limit) =
+  Attrib.config_int_global @{binding blast_depth_limit} (K 20);
 
 fun blast_tac cs i st =
     ((DEEPEN (1, Config.get_global (Thm.theory_of_thm st) depth_limit)

@@ -1570,12 +1570,11 @@ val code_pred_intro_attrib = attrib' add_intro NONE;
 
 (* values_timeout configuration *)
 
-val (values_timeout, setup_values_timeout) = Attrib.config_real "values_timeout" (K 20.0)
+val values_timeout = Attrib.setup_config_real @{binding values_timeout} (K 20.0)
 
 val setup = PredData.put (Graph.empty) #>
   Attrib.setup @{binding code_pred_intro} (Scan.lift (Scan.option Args.name) >> attrib' add_intro)
     "adding alternative introduction rules for code generation of inductive predicates"
-  #> setup_values_timeout
 
 (* TODO: make Theory_Data to Generic_Data & remove duplication of local theory and theory *)
 (* FIXME ... this is important to avoid changing the background theory below *)

@@ -38,7 +38,6 @@ text {*
   the proof without calling an external prover.
 *}
 
-setup Sum_of_Squares.setup
 setup SOS_Wrapper.setup
 
 text {* Tests *}

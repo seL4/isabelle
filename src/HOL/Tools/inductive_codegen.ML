@@ -862,10 +862,10 @@ fun deepen bound f i =
       NONE => deepen bound f (i + 1)
     | SOME x => SOME x);
 
-val (depth_bound, setup_depth_bound) = Attrib.config_int "ind_quickcheck_depth" (K 10);
-val (depth_start, setup_depth_start) = Attrib.config_int "ind_quickcheck_depth_start" (K 1);
-val (random_values, setup_random_values) = Attrib.config_int "ind_quickcheck_random" (K 5);
-val (size_offset, setup_size_offset) = Attrib.config_int "ind_quickcheck_size_offset" (K 0);
+val depth_bound = Attrib.setup_config_int @{binding ind_quickcheck_depth} (K 10);
+val depth_start = Attrib.setup_config_int @{binding ind_quickcheck_depth_start} (K 1);
+val random_values = Attrib.setup_config_int @{binding ind_quickcheck_random} (K 5);
+val size_offset = Attrib.setup_config_int @{binding ind_quickcheck_size_offset} (K 0);
 
 fun test_term ctxt [(t, [])] =
       let
@@ -925,10 +925,6 @@ fun test_term ctxt [(t, [])] =
       error "Compilation of multiple instances is not supported by tester SML_inductive";
 
 val quickcheck_setup =
-  setup_depth_bound #>
-  setup_depth_start #>
-  setup_random_values #>
-  setup_size_offset #>
   Context.theory_map (Quickcheck.add_generator ("SML_inductive", test_term));
 
 end;

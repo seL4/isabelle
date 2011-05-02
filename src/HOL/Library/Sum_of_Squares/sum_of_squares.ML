@@ -10,7 +10,6 @@ sig
   datatype proof_method = Certificate of RealArith.pss_tree | Prover of string -> string
   val sos_tac: (RealArith.pss_tree -> unit) -> proof_method -> Proof.context -> int -> tactic
   val trace: bool Config.T
-  val setup: theory -> theory
   exception Failure of string;
 end
 
@@ -50,8 +49,7 @@ val abs_rat = Rat.abs;
 val pow2 = rat_pow rat_2;
 val pow10 = rat_pow rat_10;
 
-val (trace, setup_trace) = Attrib.config_bool "sos_trace" (K false);
-val setup = setup_trace;
+val trace = Attrib.setup_config_bool @{binding sos_trace} (K false);
 
 exception Sanity;
 

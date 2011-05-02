@@ -99,8 +99,8 @@ fun add_inj_const c = Lin_Arith_Data.map (fn {splits, inj_consts, discrete} =>
   {splits = splits, inj_consts = update (op =) c inj_consts,
    discrete = discrete});
 
-val (split_limit, setup_split_limit) = Attrib.config_int "linarith_split_limit" (K 9);
-val (neq_limit, setup_neq_limit) = Attrib.config_int "linarith_neq_limit" (K 9);
+val split_limit = Attrib.setup_config_int @{binding linarith_split_limit} (K 9);
+val neq_limit = Attrib.setup_config_int @{binding linarith_neq_limit} (K 9);
 
 
 structure LA_Data =
@@ -905,7 +905,6 @@ val setup =
       (add_arith_facts #> Fast_Arith.cut_lin_arith_tac)))
 
 val global_setup =
-  setup_split_limit #> setup_neq_limit #>
   Attrib.setup @{binding arith_split} (Scan.succeed (Thm.declaration_attribute add_split))
     "declaration of split rules for arithmetic procedure" #>
   Method.setup @{binding linarith}

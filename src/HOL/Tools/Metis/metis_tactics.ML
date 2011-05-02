@@ -25,9 +25,8 @@ struct
 open Metis_Translate
 open Metis_Reconstruct
 
-val (type_lits, type_lits_setup) = Attrib.config_bool "metis_type_lits" (K true)
-val (new_skolemizer, new_skolemizer_setup) =
-  Attrib.config_bool "metis_new_skolemizer" (K false)
+val type_lits = Attrib.setup_config_bool @{binding metis_type_lits} (K true)
+val new_skolemizer = Attrib.setup_config_bool @{binding metis_new_skolemizer} (K false)
 
 fun is_false t = t aconv (HOLogic.mk_Trueprop HOLogic.false_const);
 
@@ -190,9 +189,7 @@ fun method name mode =
                end)))
 
 val setup =
-  type_lits_setup
-  #> new_skolemizer_setup
-  #> method @{binding metis} HO "Metis for FOL/HOL problems"
+  method @{binding metis} HO "Metis for FOL/HOL problems"
   #> method @{binding metisF} FO "Metis for FOL problems"
   #> method @{binding metisFT} FT
             "Metis for FOL/HOL problems with fully-typed translation"
