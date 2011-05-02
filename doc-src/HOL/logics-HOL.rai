@@ -1,4 +1,0 @@
-\rail@i{1}{ typedef : 'typedef' ( () | '(' name ')') type '=' set witness; \par
-type : typevarlist name ( () | '(' infix ')' ); set : string; witness : () | '(' id ')'; }
-\rail@i{2}{ datatype : 'datatype' typedecls; \par
-typedecls: ( newtype '=' (cons + '|') ) + 'and' ; newtype : typevarlist id ( () | '(' infix ')' ) ; cons : name (argtype *) ( () | ( '(' mixfix ')' ) ) ; argtype : id | tid | ('(' typevarlist id ')') ; }

@@ -1620,34 +1620,9 @@ type~$\tau$ involves type variables $\alpha@1$, \ldots, $\alpha@n$,
 then the type definition creates a type constructor
 $(\alpha@1,\ldots,\alpha@n)ty$ rather than a particular type.
 
-\begin{figure}[htbp]
-\begin{rail}
-typedef  : 'typedef' ( () | '(' name ')') type '=' set witness;
+The syntax for type definitions is given in the Isabelle/Isar
+reference manual.
 
-type    : typevarlist name ( () | '(' infix ')' );
-set     : string;
-witness : () | '(' id ')';
-\end{rail}
-\caption{Syntax of type definitions}
-\label{fig:HOL:typedef}
-\end{figure}
-
-The syntax for type definitions is shown in Fig.~\ref{fig:HOL:typedef}.  For
-the definition of `typevarlist' and `infix' see
-\iflabelundefined{chap:classical}
-{the appendix of the {\em Reference Manual\/}}%
-{Appendix~\ref{app:TheorySyntax}}.  The remaining nonterminals have the
-following meaning:
-\begin{description}
-\item[\it type:] the new type constructor $(\alpha@1,\dots,\alpha@n)ty$ with
-  optional infix annotation.
-\item[\it name:] an alphanumeric name $T$ for the type constructor
-  $ty$, in case $ty$ is a symbolic name.  Defaults to $ty$.
-\item[\it set:] the representing subset $A$.
-\item[\it witness:] name of a theorem of the form $a:A$ proving
-  non-emptiness.  It can be omitted in case Isabelle manages to prove
-  non-emptiness automatically.
-\end{description}
 If all context conditions are met (no duplicate type variables in
 `typevarlist', no extra type variables in `set', and no free term variables
 in `set'), the following components are added to the theory:
@@ -1986,28 +1961,11 @@ subtrees ${}+1$.
 
 \subsection{Defining datatypes}
 
-The theory syntax for datatype definitions is shown in
-Fig.~\ref{datatype-grammar}.  In order to be well-formed, a datatype
-definition has to obey the rules stated in the previous section.  As a result
-the theory is extended with the new types, the constructors, and the theorems
-listed in the previous section.
-
-\begin{figure}
-\begin{rail}
-datatype : 'datatype' typedecls;
-
-typedecls: ( newtype '=' (cons + '|') ) + 'and'
-         ;
-newtype  : typevarlist id ( () | '(' infix ')' )
-         ;
-cons     : name (argtype *) ( () | ( '(' mixfix ')' ) )
-         ;
-argtype  : id | tid | ('(' typevarlist id ')')
-         ;
-\end{rail}
-\caption{Syntax of datatype declarations}
-\label{datatype-grammar}
-\end{figure}
+The theory syntax for datatype definitions is given in the
+Isabelle/Isar reference manual.  In order to be well-formed, a
+datatype definition has to obey the rules stated in the previous
+section.  As a result the theory is extended with the new types, the
+constructors, and the theorems listed in the previous section.
 
 Most of the theorems about datatypes become part of the default simpset and
 you never need to see them again because the simplifier applies them
