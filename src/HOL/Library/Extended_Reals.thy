@@ -14,7 +14,7 @@ begin
 text {*
 
 For more lemmas about the extended real numbers go to
-  @{text "src/HOL/Multivaraite_Analysis/Extended_Real_Limits.thy"}
+  @{text "src/HOL/Multivariate_Analysis/Extended_Real_Limits.thy"}
 
 *}
 
