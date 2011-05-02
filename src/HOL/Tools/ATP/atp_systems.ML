@@ -84,6 +84,9 @@ datatype type_system =
   Preds of polymorphism * type_level |
   Tags of polymorphism * type_level
 
+val mangled_preds = Preds (Mangled_Monomorphic, All_Types)
+val const_args = Preds (Polymorphic, Const_Arg_Types)
+
 fun polymorphism_of_type_sys Many_Typed = Mangled_Monomorphic
   | polymorphism_of_type_sys (Preds (poly, _)) = poly
   | polymorphism_of_type_sys (Tags (poly, _)) = poly
@@ -237,7 +240,7 @@ val e_config : atp_config =
         (0.33334, (true, 200 (* FUDGE *))) (* E_Fun_Weight *)]
      else
        [(1.0, (true, 250 (* FUDGE *)))],
-   best_type_systems = []}
+   best_type_systems = [const_args, mangled_preds]}
 
 val e = (eN, e_config)
 
@@ -268,7 +271,7 @@ val spass_config : atp_config =
    best_slices =
      K [(0.66667, (false, 150 (* FUDGE *))) (* with SOS *),
         (0.33333, (true, 150 (* FUDGE *))) (* without SOS *)],
-   best_type_systems = []}
+   best_type_systems = [mangled_preds]}
 
 val spass = (spassN, spass_config)
 
@@ -304,7 +307,7 @@ val vampire_config : atp_config =
    best_slices =
      K [(0.66667, (false, 450 (* FUDGE *))) (* with SOS *),
         (0.33333, (true, 450 (* FUDGE *))) (* without SOS *)],
-   best_type_systems = []}
+   best_type_systems = [mangled_preds]}
 
 val vampire = (vampireN, vampire_config)
 
@@ -408,7 +411,7 @@ val remote_tofof_e =
              Conjecture [Tff] (K 200 (* FUDGE *)) []
 val remote_sine_e =
   remote_atp sine_eN "SInE" ["0.4"] [] [] Conjecture [Fof] (K 500 (* FUDGE *))
-                     []
+                     (#best_type_systems e_config)
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r024"]
              [("refutation.", "end_refutation.")] [] Conjecture [Tff, Fof]
