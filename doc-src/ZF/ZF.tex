@@ -1761,27 +1761,11 @@ of the constructors of the two datatypes.
 
 \subsection{Defining datatypes}
 
-The theory syntax for datatype definitions is shown in
-Fig.~\ref{datatype-grammar}.  In order to be well-formed, a datatype
-definition has to obey the rules stated in the previous section.  As a result
-the theory is extended with the new types, the constructors, and the theorems
-listed in the previous section.  The quotation marks are necessary because
-they enclose general Isabelle formul\ae.
-
-\begin{figure}
-\begin{rail}
-datatype : ( 'datatype' | 'codatatype' ) datadecls;
-
-datadecls: ( '"' id arglist '"' '=' (constructor + '|') ) + 'and'
-         ;
-constructor : name ( () | consargs )  ( () | ( '(' mixfix ')' ) )
-         ;
-consargs : '(' ('"' var ' : ' term '"' + ',') ')'
-         ;
-\end{rail}
-\caption{Syntax of datatype declarations}
-\label{datatype-grammar}
-\end{figure}
+The theory syntax for datatype definitions is shown in the
+Isabelle/Isar reference manual.  In order to be well-formed, a
+datatype definition has to obey the rules stated in the previous
+section.  As a result the theory is extended with the new types, the
+constructors, and the theorems listed in the previous section.
 
 Codatatypes are declared like datatypes and are identical to them in every
 respect except that they have a coinduction rule instead of an induction rule.
