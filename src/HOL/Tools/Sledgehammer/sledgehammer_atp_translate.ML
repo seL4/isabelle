@@ -811,6 +811,7 @@ fun formula_lines_for_free_types type_sys facts =
 
 fun should_declare_sym type_sys pred_sym s =
   not (String.isPrefix bound_var_prefix s) andalso s <> "equal" andalso
+  not (String.isPrefix "$" s) andalso
   (type_sys = Many_Typed orelse not pred_sym)
 
 fun add_combterm_syms_to_decl_table type_sys repaired_sym_tab =
