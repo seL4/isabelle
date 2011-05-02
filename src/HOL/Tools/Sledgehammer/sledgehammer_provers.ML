@@ -450,8 +450,9 @@ fun run_atp auto name
                           I))
                    * 0.001) |> seconds
                 val _ =
-                  if verbose then
-                    "ATP slice " ^ string_of_int (slice + 1) ^ " with " ^
+                  if debug then
+                    quote name ^ " slice " ^ string_of_int (slice + 1) ^
+                    " of " ^ string_of_int num_actual_slices ^ " with " ^
                     string_of_int num_facts ^ " fact" ^ plural_s num_facts ^
                     " for " ^ string_from_time slice_timeout ^ "..."
                     |> Output.urgent_message
@@ -673,10 +674,10 @@ fun smt_filter_loop name ({debug, verbose, overlord, monomorphize_limit,
             timeout
         val num_facts = length facts
         val _ =
-          if verbose then
-            "SMT slice with " ^ string_of_int num_facts ^ " fact" ^
-            plural_s num_facts ^ " for " ^ string_from_time slice_timeout ^
-            "..."
+          if debug then
+            quote name ^ " slice " ^ string_of_int slice ^ " with " ^
+            string_of_int num_facts ^ " fact" ^ plural_s num_facts ^ " for " ^
+            string_from_time slice_timeout ^ "..."
             |> Output.urgent_message
           else
             ()
@@ -695,14 +696,6 @@ fun smt_filter_loop name ({debug, verbose, overlord, monomorphize_limit,
                           (ML_Compiler.exn_message exn
                            |> SMT_Failure.Other_Failure |> SOME, [])
         val death = Timer.checkRealTimer timer
-        val _ =
-          if verbose andalso is_some outcome then
-            "SMT outcome: " ^ SMT_Failure.string_of_failure ctxt (the outcome)
-            |> Output.urgent_message
-          else if debug then
-            Output.urgent_message "SMT solver returned."
-          else
-            ()
         val outcome0 = if is_none outcome0 then SOME outcome else outcome0
         val time_so_far = Time.+ (time_so_far, Time.- (death, birth))
         val too_many_facts_perhaps =
@@ -710,15 +703,7 @@ fun smt_filter_loop name ({debug, verbose, overlord, monomorphize_limit,
             NONE => false
           | SOME (SMT_Failure.Counterexample _) => false
           | SOME SMT_Failure.Time_Out => slice_timeout <> timeout
-          | SOME (SMT_Failure.Abnormal_Termination code) =>
-            (if verbose then
-               "The SMT solver invoked with " ^ string_of_int num_facts ^
-               " fact" ^ plural_s num_facts ^ " terminated abnormally with \
-               \exit code " ^ string_of_int code ^ "."
-               |> warning
-             else
-               ();
-             true (* kind of *))
+          | SOME (SMT_Failure.Abnormal_Termination _) => true (* kind of *)
           | SOME SMT_Failure.Out_Of_Memory => true
           | SOME (SMT_Failure.Other_Failure _) => true
         val timeout = Time.- (timeout, Timer.checkRealTimer timer)
@@ -726,9 +711,21 @@ fun smt_filter_loop name ({debug, verbose, overlord, monomorphize_limit,
         if too_many_facts_perhaps andalso slice < max_slices andalso
            num_facts > 0 andalso Time.> (timeout, Time.zeroTime) then
           let
-            val n = Real.ceil (!smt_slice_fact_frac * Real.fromInt num_facts)
+            val new_num_facts =
+              Real.ceil (!smt_slice_fact_frac * Real.fromInt num_facts)
+            val _ =
+              if verbose andalso is_some outcome then
+                quote name ^ " invoked with " ^ string_of_int num_facts ^
+                " fact" ^ plural_s num_facts ^ ": " ^
+                string_for_failure (failure_from_smt_failure (the outcome)) ^
+                " Retrying with " ^ string_of_int new_num_facts ^ " fact" ^
+                plural_s new_num_facts
+                |> Output.urgent_message
+              else
+                ()
           in
-            do_slice timeout (slice + 1) outcome0 time_so_far (take n facts)
+            facts |> take new_num_facts
+                  |> do_slice timeout (slice + 1) outcome0 time_so_far
           end
         else
           {outcome = if is_none outcome then NONE else the outcome0,
