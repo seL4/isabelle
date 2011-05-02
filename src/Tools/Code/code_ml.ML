@@ -483,6 +483,8 @@ fun print_ocaml_stmt labelled_name tyco_syntax const_syntax reserved is_cons der
               let
                 val consts = fold Code_Thingol.add_constnames (t :: ts) [];
                 val vars = reserved
+                  |> intro_base_names
+                      (is_none o const_syntax) deresolve consts
                   |> intro_vars ((fold o Code_Thingol.fold_varnames)
                       (insert (op =)) ts []);
               in concat [
