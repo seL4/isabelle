@@ -228,8 +228,17 @@ fun metis_proof_text (banner, minimize_command, atp_proof, facts_offset,
 
 (* Simple simplifications to ensure that sort annotations don't leave a trail of
    spurious "True"s. *)
-fun s_not @{const False} = @{const True}
-  | s_not @{const True} = @{const False}
+fun s_not (Const (@{const_name All}, T) $ Abs (s, T', t')) =
+    Const (@{const_name Ex}, T) $ Abs (s, T', s_not t')
+  | s_not (Const (@{const_name Ex}, T) $ Abs (s, T', t')) =
+    Const (@{const_name All}, T) $ Abs (s, T', s_not t')
+  | s_not (@{const HOL.implies} $ t1 $ t2) = @{const HOL.conj} $ t1 $ s_not t2
+  | s_not (@{const HOL.conj} $ t1 $ t2) =
+    @{const HOL.disj} $ s_not t1 $ s_not t2
+  | s_not (@{const HOL.disj} $ t1 $ t2) =
+    @{const HOL.conj} $ s_not t1 $ s_not t2
+  | s_not (@{const False}) = @{const True}
+  | s_not (@{const True}) = @{const False}
   | s_not (@{const Not} $ t) = t
   | s_not t = @{const Not} $ t
 fun s_conj (@{const True}, t2) = t2
@@ -247,19 +256,6 @@ fun s_iff (@{const True}, t2) = t2
 
 fun forall_of v t = HOLogic.all_const (fastype_of v) $ lambda v t
 fun exists_of v t = HOLogic.exists_const (fastype_of v) $ lambda v t
-
-fun negate_term (Const (@{const_name All}, T) $ Abs (s, T', t')) =
-    Const (@{const_name Ex}, T) $ Abs (s, T', negate_term t')
-  | negate_term (Const (@{const_name Ex}, T) $ Abs (s, T', t')) =
-    Const (@{const_name All}, T) $ Abs (s, T', negate_term t')
-  | negate_term (@{const HOL.implies} $ t1 $ t2) =
-    @{const HOL.conj} $ t1 $ negate_term t2
-  | negate_term (@{const HOL.conj} $ t1 $ t2) =
-    @{const HOL.disj} $ negate_term t1 $ negate_term t2
-  | negate_term (@{const HOL.disj} $ t1 $ t2) =
-    @{const HOL.conj} $ negate_term t1 $ negate_term t2
-  | negate_term (@{const Not} $ t) = t
-  | negate_term t = @{const Not} $ t
 
 val indent_size = 2
 val no_label = ("", ~1)
@@ -305,17 +301,17 @@ fun typ_from_fo_term tfrees (u as ATerm (a, us)) =
 
 (* Type class literal applied to a type. Returns triple of polarity, class,
    type. *)
-fun type_constraint_from_term pos tfrees (u as ATerm (a, us)) =
+fun type_constraint_from_term tfrees (u as ATerm (a, us)) =
   case (strip_prefix_and_unascii class_prefix a,
         map (typ_from_fo_term tfrees) us) of
-    (SOME b, [T]) => (pos, b, T)
+    (SOME b, [T]) => (b, T)
   | _ => raise FO_TERM [u]
 
 (** Accumulate type constraints in a formula: negative type literals **)
 fun add_var (key, z)  = Vartab.map_default (key, []) (cons z)
-fun add_type_constraint (false, cl, TFree (a ,_)) = add_var ((a, ~1), cl)
-  | add_type_constraint (false, cl, TVar (ix, _)) = add_var (ix, cl)
-  | add_type_constraint _ = I
+fun add_type_constraint false (cl, TFree (a ,_)) = add_var ((a, ~1), cl)
+  | add_type_constraint false (cl, TVar (ix, _)) = add_var (ix, cl)
+  | add_type_constraint _ _ = I
 
 fun repair_atp_variable_name f s =
   let
@@ -407,7 +403,7 @@ fun raw_term_from_pred thy type_sys tfrees =
 
 fun term_from_pred thy type_sys tfrees pos (u as ATerm (s, _)) =
   if String.isPrefix class_prefix s then
-    add_type_constraint (type_constraint_from_term pos tfrees u)
+    add_type_constraint pos (type_constraint_from_term tfrees u)
     #> pair @{const True}
   else
     pair (raw_term_from_pred thy type_sys tfrees u)
@@ -548,7 +544,7 @@ fun add_line _ _ (line as Definition _) lines = line :: lines
         pre @ map (replace_dependencies_in_line (name', [name])) post
       | _ => raise Fail "unexpected inference"
     else if is_conjecture conjecture_shape name then
-      Inference (name, negate_term t, []) :: lines
+      Inference (name, s_not t, []) :: lines
     else
       map (replace_dependencies_in_line (name, [])) lines
   | add_line _ _ (Inference (name, t, deps)) lines =
@@ -764,9 +760,9 @@ fun redirect_proof hyp_ts concl_t proof =
                          (proof, assums,
                           patches |>> cons (contra_l, (l :: co_ls, ss)))
              |>> cons (if member (op =) (fst (snd patches)) l then
-                         Assume (l, negate_term t)
+                         Assume (l, s_not t)
                        else
-                         Have (qs, l, negate_term t,
+                         Have (qs, l, s_not t,
                                ByMetis (backpatch_label patches l)))
          | (contra_ls as _ :: _, co_ls) =>
            let
@@ -787,7 +783,7 @@ fun redirect_proof hyp_ts concl_t proof =
                          end) contra_ls
              val (assumes, facts) =
                if member (op =) (fst (snd patches)) l then
-                 ([Assume (l, negate_term t)], (l :: co_ls, ss))
+                 ([Assume (l, s_not t)], (l :: co_ls, ss))
                else
                  ([], (co_ls, ss))
            in
@@ -903,6 +899,7 @@ fun string_for_proof ctxt0 type_sys i n =
     val ctxt = ctxt0
       |> Config.put show_free_types false
       |> Config.put show_types true
+      |> Config.put show_sorts true
     fun fix_print_mode f x =
       Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)
                                (print_mode_value ())) f x
