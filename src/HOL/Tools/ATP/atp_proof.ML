@@ -317,33 +317,33 @@ val tofof_fact_prefix = "fof_"
 
 (* Syntax: (cnf|fof|tff)\(<num>, <formula_role>, <formula> <extra_arguments>\).
    The <num> could be an identifier, but we assume integers. *)
-val parse_tstp_line =
-  ((Scan.this_string "cnf" || Scan.this_string "fof" || Scan.this_string "tff")
-      -- $$ "(")
-    |-- scan_general_id --| $$ "," -- Symbol.scan_id --| $$ ","
-    -- parse_formula -- parse_tstp_extra_arguments --| $$ ")" --| $$ "."
-   >> (fn (((num, role), phi), deps) =>
-          let
-            val (name, deps) =
-              case deps of
-                ["file", _, s] =>
-                ((num,
-                  if s = vampire_unknown_fact then NONE
-                  else SOME (s |> perhaps (try (unprefix tofof_fact_prefix)))),
-                 [])
-              | _ => ((num, NONE), deps)
-          in
-            case role of
-              "definition" =>
-              (case phi of
-                 AConn (AIff, [phi1 as AAtom _, phi2]) =>
-                 Definition (name, phi1, phi2)
-               | AAtom (ATerm ("c_equal", _)) =>
-                 (* Vampire's equality proxy axiom *)
-                 Inference (name, phi, map (rpair NONE) deps)
-               | _ => raise Fail "malformed definition")
-            | _ => Inference (name, phi, map (rpair NONE) deps)
-          end)
+fun parse_tstp_line x =
+  (((Scan.this_string "cnf" || Scan.this_string "fof" || Scan.this_string "tff")
+       -- $$ "(")
+     |-- scan_general_id --| $$ "," -- Symbol.scan_id --| $$ ","
+     -- parse_formula -- parse_tstp_extra_arguments --| $$ ")" --| $$ "."
+    >> (fn (((num, role), phi), deps) =>
+           let
+             val (name, deps) =
+               case deps of
+                 ["file", _, s] =>
+                 ((num,
+                   if s = vampire_unknown_fact then NONE
+                   else SOME (s |> perhaps (try (unprefix tofof_fact_prefix)))),
+                  [])
+               | _ => ((num, NONE), deps)
+           in
+             case role of
+               "definition" =>
+               (case phi of
+                  AConn (AIff, [phi1 as AAtom _, phi2]) =>
+                  Definition (name, phi1, phi2)
+                | AAtom (ATerm ("c_equal", _)) =>
+                  (* Vampire's equality proxy axiom *)
+                  Inference (name, phi, map (rpair NONE) deps)
+                | _ => raise Fail "malformed definition")
+             | _ => Inference (name, phi, map (rpair NONE) deps)
+           end)) x
 
 (**** PARSING OF VAMPIRE OUTPUT ****)
 
@@ -353,13 +353,13 @@ val parse_vampire_parenthesized_detritus =
   $$ "(" |-- parse_vampire_detritus --| $$ ")"
 
 (* Syntax: <num>. <formula> <annotation> *)
-val parse_vampire_line =
-  scan_general_id --| $$ "." -- parse_formula
-    --| Scan.option parse_vampire_braced_stuff
-    --| Scan.option parse_vampire_parenthesized_detritus
-    -- parse_annotation
-  >> (fn ((num, phi), deps) =>
-         Inference ((num, NONE), phi, map (rpair NONE) deps))
+fun parse_vampire_line x =
+  (scan_general_id --| $$ "." -- parse_formula
+     --| Scan.option parse_vampire_braced_stuff
+     --| Scan.option parse_vampire_parenthesized_detritus
+     -- parse_annotation
+   >> (fn ((num, phi), deps) =>
+          Inference ((num, NONE), phi, map (rpair NONE) deps))) x
 
 (**** PARSING OF SPASS OUTPUT ****)
 
