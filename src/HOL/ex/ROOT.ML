@@ -11,7 +11,8 @@ no_document use_thys [
   "Normalization_by_Evaluation",
   "Hebrew",
   "Chinese",
-  "Serbian"
+  "Serbian",
+  "TPTP_Export"
 ];
 
 use_thys [
@@ -78,7 +79,7 @@ use_thys [
 ];
 
 Unsynchronized.setmp Proofterm.proofs (! Proofterm.proofs)
-  use_thy "CASC_THF0";
+  use_thy "CASC_Setup";
 
 if getenv "ISABELLE_GHC" = "" then ()
 else use_thy "Quickcheck_Narrowing_Examples";

@@ -17,8 +17,6 @@ end;
 structure TPTP_Export : TPTP_EXPORT =
 struct
 
-val _ = Sledgehammer_ATP_Translate.readable_names := false
-
 val ascii_of = Metis_Translate.ascii_of
 
 val fact_name_of = prefix Sledgehammer_ATP_Translate.fact_prefix o ascii_of
