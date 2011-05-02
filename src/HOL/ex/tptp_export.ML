@@ -40,7 +40,6 @@ fun fold_body_thms f =
 
 fun theorems_mentioned_in_proof_term thm =
   let
-    val PBody {thms, ...} = Thm.proof_body_of thm
     fun collect (s, _, _) = if s <> "" then insert (op =) s else I
     val names =
       [] |> fold_body_thms collect [Thm.proof_body_of thm] |> map fact_name_of
@@ -100,8 +99,6 @@ fun generate_tptp_inference_file_for_theory ctxt thy full_types file_name =
       |> map_filter (try (fn ((_, loc), (_, th)) =>
              Sledgehammer_ATP_Translate.translate_atp_fact ctxt true
              ((Thm.get_name_hint th, loc), th)))
-    val readable_names = false
-    val explicit_forall = true
     val type_sys =
       ATP_Systems.Preds (ATP_Systems.Polymorphic,
                          if full_types then ATP_Systems.All_Types
