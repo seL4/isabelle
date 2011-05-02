@@ -470,7 +470,7 @@ A \emph{locale expression} denotes a structured context composed of
   duplicate declarations.
 
   \begin{railoutput}
-\rail@begin{3}{\indexdef{}{syntax}{localeexpr}\hypertarget{syntax.localeexpr}{\hyperlink{syntax.localeexpr}{\mbox{\isa{localeexpr}}}}}
+\rail@begin{3}{\indexdef{}{syntax}{locale\_expr}\hypertarget{syntax.locale-expr}{\hyperlink{syntax.locale-expr}{\mbox{\isa{locale{\isaliteral{5F}{\isacharunderscore}}expr}}}}}
 \rail@plus
 \rail@nont{\isa{instance}}[]
 \rail@nextplus{1}
@@ -494,9 +494,9 @@ A \emph{locale expression} denotes a structured context composed of
 \rail@endbar
 \rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
 \rail@bar
-\rail@nont{\isa{posinsts}}[]
+\rail@nont{\isa{pos{\isaliteral{5F}{\isacharunderscore}}insts}}[]
 \rail@nextbar{1}
-\rail@nont{\isa{namedinsts}}[]
+\rail@nont{\isa{named{\isaliteral{5F}{\isacharunderscore}}insts}}[]
 \rail@endbar
 \rail@end
 \rail@begin{3}{\isa{qualifier}}
@@ -510,7 +510,7 @@ A \emph{locale expression} denotes a structured context composed of
 \rail@endbar
 \rail@endbar
 \rail@end
-\rail@begin{3}{\isa{posinsts}}
+\rail@begin{3}{\isa{pos{\isaliteral{5F}{\isacharunderscore}}insts}}
 \rail@plus
 \rail@nextplus{1}
 \rail@bar
@@ -520,7 +520,7 @@ A \emph{locale expression} denotes a structured context composed of
 \rail@endbar
 \rail@endplus
 \rail@end
-\rail@begin{2}{\isa{namedinsts}}
+\rail@begin{2}{\isa{named{\isaliteral{5F}{\isacharunderscore}}insts}}
 \rail@term{\isa{\isakeyword{where}}}[]
 \rail@plus
 \rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
@@ -596,22 +596,22 @@ A \emph{locale expression} denotes a structured context composed of
 \rail@begin{5}{\indexdef{}{syntax}{locale}\hypertarget{syntax.locale}{\hyperlink{syntax.locale}{\mbox{\isa{locale}}}}}
 \rail@bar
 \rail@plus
-\rail@nont{\hyperlink{syntax.contextelem}{\mbox{\isa{contextelem}}}}[]
+\rail@nont{\hyperlink{syntax.context-elem}{\mbox{\isa{context{\isaliteral{5F}{\isacharunderscore}}elem}}}}[]
 \rail@nextplus{1}
 \rail@endplus
 \rail@nextbar{2}
-\rail@nont{\hyperlink{syntax.localeexpr}{\mbox{\isa{localeexpr}}}}[]
+\rail@nont{\hyperlink{syntax.locale-expr}{\mbox{\isa{locale{\isaliteral{5F}{\isacharunderscore}}expr}}}}[]
 \rail@bar
 \rail@nextbar{3}
 \rail@term{\isa{{\isaliteral{2B}{\isacharplus}}}}[]
 \rail@plus
-\rail@nont{\hyperlink{syntax.contextelem}{\mbox{\isa{contextelem}}}}[]
+\rail@nont{\hyperlink{syntax.context-elem}{\mbox{\isa{context{\isaliteral{5F}{\isacharunderscore}}elem}}}}[]
 \rail@nextplus{4}
 \rail@endplus
 \rail@endbar
 \rail@endbar
 \rail@end
-\rail@begin{12}{\indexdef{}{syntax}{contextelem}\hypertarget{syntax.contextelem}{\hyperlink{syntax.contextelem}{\mbox{\isa{contextelem}}}}}
+\rail@begin{12}{\indexdef{}{syntax}{context\_elem}\hypertarget{syntax.context-elem}{\hyperlink{syntax.context-elem}{\mbox{\isa{context{\isaliteral{5F}{\isacharunderscore}}elem}}}}}
 \rail@bar
 \rail@term{\isa{\isakeyword{fixes}}}[]
 \rail@plus
@@ -789,7 +789,7 @@ Locale expressions may be instantiated, and the instantiated facts
   \begin{railoutput}
 \rail@begin{2}{\isa{}}
 \rail@term{\hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}}}[]
-\rail@nont{\hyperlink{syntax.localeexpr}{\mbox{\isa{localeexpr}}}}[]
+\rail@nont{\hyperlink{syntax.locale-expr}{\mbox{\isa{locale{\isaliteral{5F}{\isacharunderscore}}expr}}}}[]
 \rail@bar
 \rail@nextbar{1}
 \rail@nont{\isa{equations}}[]
@@ -797,7 +797,7 @@ Locale expressions may be instantiated, and the instantiated facts
 \rail@end
 \rail@begin{2}{\isa{}}
 \rail@term{\hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}}}[]
-\rail@nont{\hyperlink{syntax.localeexpr}{\mbox{\isa{localeexpr}}}}[]
+\rail@nont{\hyperlink{syntax.locale-expr}{\mbox{\isa{locale{\isaliteral{5F}{\isacharunderscore}}expr}}}}[]
 \rail@bar
 \rail@nextbar{1}
 \rail@nont{\isa{equations}}[]
@@ -811,7 +811,7 @@ Locale expressions may be instantiated, and the instantiated facts
 \rail@nextbar{1}
 \rail@term{\isa{{\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}}}[]
 \rail@endbar
-\rail@nont{\hyperlink{syntax.localeexpr}{\mbox{\isa{localeexpr}}}}[]
+\rail@nont{\hyperlink{syntax.locale-expr}{\mbox{\isa{locale{\isaliteral{5F}{\isacharunderscore}}expr}}}}[]
 \rail@bar
 \rail@nextbar{1}
 \rail@nont{\isa{equations}}[]
@@ -823,7 +823,7 @@ Locale expressions may be instantiated, and the instantiated facts
 \rail@nextbar{1}
 \rail@term{\isa{{\isaliteral{21}{\isacharbang}}}}[]
 \rail@endbar
-\rail@nont{\hyperlink{syntax.localeexpr}{\mbox{\isa{localeexpr}}}}[]
+\rail@nont{\hyperlink{syntax.locale-expr}{\mbox{\isa{locale{\isaliteral{5F}{\isacharunderscore}}expr}}}}[]
 \rail@end
 \rail@begin{1}{\isa{}}
 \rail@term{\hyperlink{command.print-interps}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}interps}}}}}[]
@@ -974,17 +974,17 @@ A class is a particular locale with \emph{exactly one} type variable
 \rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
 \rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
 \rail@bar
-\rail@nont{\isa{superclassexpr}}[]
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
 \rail@term{\isa{{\isaliteral{2B}{\isacharplus}}}}[]
 \rail@plus
-\rail@nont{\hyperlink{syntax.contextelem}{\mbox{\isa{contextelem}}}}[]
+\rail@nont{\hyperlink{syntax.context-elem}{\mbox{\isa{context{\isaliteral{5F}{\isacharunderscore}}elem}}}}[]
 \rail@nextplus{1}
 \rail@endplus
 \rail@nextbar{2}
-\rail@nont{\isa{superclassexpr}}[]
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
 \rail@nextbar{3}
 \rail@plus
-\rail@nont{\hyperlink{syntax.contextelem}{\mbox{\isa{contextelem}}}}[]
+\rail@nont{\hyperlink{syntax.context-elem}{\mbox{\isa{context{\isaliteral{5F}{\isacharunderscore}}elem}}}}[]
 \rail@nextplus{4}
 \rail@endplus
 \rail@endbar
@@ -1042,17 +1042,8 @@ A class is a particular locale with \emph{exactly one} type variable
 \rail@begin{1}{\isa{}}
 \rail@term{\hyperlink{command.class-deps}{\mbox{\isa{\isacommand{class{\isaliteral{5F}{\isacharunderscore}}deps}}}}}[]
 \rail@end
-\rail@begin{2}{\isa{superclassexpr}}
-\rail@bar
-\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
-\rail@nextbar{1}
-\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
-\rail@term{\isa{{\isaliteral{2B}{\isacharplus}}}}[]
-\rail@nont{\isa{superclassexpr}}[]
-\rail@endbar
-\rail@end
 \end{railoutput}
-  %% FIXME check superclassexpr
+
 
   \begin{description}
 
@@ -1214,7 +1205,7 @@ Isabelle/Pure's definitional schemes support certain forms of
 \rail@term{\hyperlink{command.overloading}{\mbox{\isa{\isacommand{overloading}}}}}[]
 \rail@cr{2}
 \rail@plus
-\rail@nont{\hyperlink{syntax.string}{\mbox{\isa{string}}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
 \rail@bar
 \rail@term{\isa{{\isaliteral{3D}{\isacharequal}}{\isaliteral{3D}{\isacharequal}}}}[]
 \rail@nextbar{3}
@@ -1232,7 +1223,7 @@ Isabelle/Pure's definitional schemes support certain forms of
 \rail@term{\isa{\isakeyword{begin}}}[]
 \rail@end
 \end{railoutput}
-  %% FIXME check string vs. name
+
 
   \begin{description}
 

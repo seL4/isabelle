@@ -503,23 +503,23 @@ The record package proves several results internally, declaring
 \rail@term{\hyperlink{command.HOL.enriched-type}{\mbox{\isa{\isacommand{enriched{\isaliteral{5F}{\isacharunderscore}}type}}}}}[]
 \rail@bar
 \rail@nextbar{1}
-\rail@nont{\isa{prefix}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
 \rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
 \rail@endbar
 \rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
 \rail@end
 \end{railoutput}
- % FIXME check prefix
+
 
   \begin{description}
 
-  \item \hyperlink{command.HOL.enriched-type}{\mbox{\isa{\isacommand{enriched{\isaliteral{5F}{\isacharunderscore}}type}}}} allows to prove and register
-  properties about the functorial structure of type constructors;
-  these properties then can be used by other packages to
-  deal with those type constructors in certain type constructions.
-  Characteristic theorems are noted in the current local theory; by
-  default, they are prefixed with the base name of the type constructor,
-  an explicit prefix can be given alternatively.
+  \item \hyperlink{command.HOL.enriched-type}{\mbox{\isa{\isacommand{enriched{\isaliteral{5F}{\isacharunderscore}}type}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}prefix{\isaliteral{3A}{\isacharcolon}}\ m{\isaliteral{22}{\isachardoublequote}}} allows to
+  prove and register properties about the functorial structure of type
+  constructors.  These properties then can be used by other packages
+  to deal with those type constructors in certain type constructions.
+  Characteristic theorems are noted in the current local theory.  By
+  default, they are prefixed with the base name of the type
+  constructor, an explicit prefix can be given alternatively.
 
   The given term \isa{{\isaliteral{22}{\isachardoublequote}}m{\isaliteral{22}{\isachardoublequote}}} is considered as \emph{mapper} for the
   corresponding type constructor and must conform to the following
@@ -788,7 +788,7 @@ The record package proves several results internally, declaring
 \rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
 \rail@endbar
 \rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
-\rail@nont{\isa{mode}}[]
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
 \rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
 \rail@nont{\hyperlink{syntax.fixes}{\mbox{\isa{fixes}}}}[]
 \rail@cr{3}
@@ -800,16 +800,16 @@ The record package proves several results internally, declaring
 \rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
 \rail@end
 \end{railoutput}
- % FIXME check mode
+
 
   \begin{description}
 
-  \item \hyperlink{command.HOL.partial-function}{\mbox{\isa{\isacommand{partial{\isaliteral{5F}{\isacharunderscore}}function}}}} defines recursive
-  functions based on fixpoints in complete partial orders. No
-  termination proof is required from the user or constructed
-  internally. Instead, the possibility of non-termination is modelled
-  explicitly in the result type, which contains an explicit bottom
-  element.
+  \item \hyperlink{command.HOL.partial-function}{\mbox{\isa{\isacommand{partial{\isaliteral{5F}{\isacharunderscore}}function}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}mode{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} defines
+  recursive functions based on fixpoints in complete partial
+  orders. No termination proof is required from the user or
+  constructed internally. Instead, the possibility of non-termination
+  is modelled explicitly in the result type, which contains an
+  explicit bottom element.
 
   Pattern matching and mutual recursion are currently not supported.
   Thus, the specification consists of a single function described by a

@@ -389,19 +389,19 @@ text {*
   \end{matharray}
 
   @{rail "
-    @@{command (HOL) enriched_type} (prefix ':')? @{syntax term}
+    @@{command (HOL) enriched_type} (@{syntax name} ':')? @{syntax term}
     ;
-  "} % FIXME check prefix
+  "}
 
   \begin{description}
 
-  \item @{command (HOL) "enriched_type"} allows to prove and register
-  properties about the functorial structure of type constructors;
-  these properties then can be used by other packages to
-  deal with those type constructors in certain type constructions.
-  Characteristic theorems are noted in the current local theory; by
-  default, they are prefixed with the base name of the type constructor,
-  an explicit prefix can be given alternatively.
+  \item @{command (HOL) "enriched_type"}~@{text "prefix: m"} allows to
+  prove and register properties about the functorial structure of type
+  constructors.  These properties then can be used by other packages
+  to deal with those type constructors in certain type constructions.
+  Characteristic theorems are noted in the current local theory.  By
+  default, they are prefixed with the base name of the type
+  constructor, an explicit prefix can be given alternatively.
 
   The given term @{text "m"} is considered as \emph{mapper} for the
   corresponding type constructor and must conform to the following
@@ -588,17 +588,18 @@ text {*
 
   @{rail "
     @@{command (HOL) partial_function} @{syntax target}?
-      '(' mode ')' @{syntax \"fixes\"} \\ @'where' @{syntax thmdecl}? @{syntax prop}
-  "} % FIXME check mode
+      '(' @{syntax nameref} ')' @{syntax \"fixes\"} \\
+      @'where' @{syntax thmdecl}? @{syntax prop}
+  "}
 
   \begin{description}
 
-  \item @{command (HOL) "partial_function"} defines recursive
-  functions based on fixpoints in complete partial orders. No
-  termination proof is required from the user or constructed
-  internally. Instead, the possibility of non-termination is modelled
-  explicitly in the result type, which contains an explicit bottom
-  element.
+  \item @{command (HOL) "partial_function"}~@{text "(mode)"} defines
+  recursive functions based on fixpoints in complete partial
+  orders. No termination proof is required from the user or
+  constructed internally. Instead, the possibility of non-termination
+  is modelled explicitly in the result type, which contains an
+  explicit bottom element.
 
   Pattern matching and mutual recursion are currently not supported.
   Thus, the specification consists of a single function described by a

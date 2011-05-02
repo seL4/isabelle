@@ -311,15 +311,15 @@ text {*
   duplicate declarations.
 
   @{rail "
-    @{syntax_def localeexpr}: (instance + '+') (@'for' (@{syntax \"fixes\"} + @'and'))?
+    @{syntax_def locale_expr}: (instance + '+') (@'for' (@{syntax \"fixes\"} + @'and'))?
     ;
-    instance: (qualifier ':')? @{syntax nameref} (posinsts | namedinsts)
+    instance: (qualifier ':')? @{syntax nameref} (pos_insts | named_insts)
     ;
     qualifier: @{syntax name} ('?' | '!')?
     ;
-    posinsts: ('_' | @{syntax term})*
+    pos_insts: ('_' | @{syntax term})*
     ;
-    namedinsts: @'where' (@{syntax name} '=' @{syntax term} + @'and')
+    named_insts: @'where' (@{syntax name} '=' @{syntax term} + @'and')
   "}
 
   A locale instance consists of a reference to a locale and either
@@ -364,10 +364,10 @@ text {*
     ;
     @@{command print_locale} '!'? @{syntax nameref}
     ;
-    @{syntax_def locale}: @{syntax contextelem}+ |
-      @{syntax localeexpr} ('+' (@{syntax contextelem}+))?
+    @{syntax_def locale}: @{syntax context_elem}+ |
+      @{syntax locale_expr} ('+' (@{syntax context_elem}+))?
     ;
-    @{syntax_def contextelem}:
+    @{syntax_def context_elem}:
       @'fixes' (@{syntax \"fixes\"} + @'and') |
       @'constrains' (@{syntax name} '::' @{syntax type} + @'and') |
       @'assumes' (@{syntax props} + @'and') |
@@ -499,13 +499,13 @@ text {*
   \end{matharray}
 
   @{rail "
-    @@{command interpretation} @{syntax localeexpr} equations?
+    @@{command interpretation} @{syntax locale_expr} equations?
     ;
-    @@{command interpret} @{syntax localeexpr} equations?
+    @@{command interpret} @{syntax locale_expr} equations?
     ;
-    @@{command sublocale} @{syntax nameref} ('<' | '\<subseteq>') @{syntax localeexpr} equations?
+    @@{command sublocale} @{syntax nameref} ('<' | '\<subseteq>') @{syntax locale_expr} equations?
     ;
-    @@{command print_dependencies} '!'? @{syntax localeexpr}
+    @@{command print_dependencies} '!'? @{syntax locale_expr}
     ;
     @@{command print_interps} @{syntax nameref}
     ;
@@ -640,8 +640,8 @@ text {*
 
   @{rail "
     @@{command class} @{syntax name} '='
-      ((superclassexpr '+' (@{syntax contextelem}+)) |
-        superclassexpr | (@{syntax contextelem}+)) \\
+      ((@{syntax nameref} '+' (@{syntax context_elem}+)) |
+        @{syntax nameref} | (@{syntax context_elem}+)) \\
       @'begin'?
     ;
     @@{command instantiation} (@{syntax nameref} + @'and') '::' @{syntax arity} @'begin'
@@ -658,9 +658,7 @@ text {*
     ;
     @@{command class_deps}
     ;
-
-    superclassexpr: @{syntax nameref} | (@{syntax nameref} '+' superclassexpr)
-  "}  %% FIXME check superclassexpr
+  "}
 
   \begin{description}
 
@@ -821,9 +819,9 @@ text {*
 
   @{rail "
     @@{command overloading} \\
-    ( @{syntax string} ( '==' | '\<equiv>' ) @{syntax term}
+    ( @{syntax name} ( '==' | '\<equiv>' ) @{syntax term}
     ( '(' @'unchecked' ')' )? +) @'begin'
-  "}  %% FIXME check string vs. name
+  "}
 
   \begin{description}
 
