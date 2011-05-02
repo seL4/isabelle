@@ -915,6 +915,7 @@ val conj_weight = 0.0
 val hyp_weight = 0.1
 val fact_min_weight = 0.2
 val fact_max_weight = 1.0
+val type_info_default_weight = 0.8
 
 fun add_term_weights weight (ATerm (s, tms)) =
   (not (is_atp_variable s) andalso s <> "equal") ? Symtab.default (s, weight)
@@ -943,10 +944,14 @@ fun add_facts_weights facts =
 
 (* Weights are from 0.0 (most important) to 1.0 (least important). *)
 fun atp_problem_weights problem =
-  Symtab.empty
-  |> add_conjectures_weights (these (AList.lookup (op =) problem conjsN))
-  |> add_facts_weights (these (AList.lookup (op =) problem factsN))
-  |> Symtab.dest
-  |> sort (prod_ord Real.compare string_ord o pairself swap)
+  let val get = these o AList.lookup (op =) problem in
+    Symtab.empty
+    |> add_conjectures_weights (get free_typesN @ get conjsN)
+    |> add_facts_weights (get factsN)
+    |> fold (fold (add_problem_line_weights type_info_default_weight) o get)
+            [sym_declsN, class_relsN, aritiesN]
+    |> Symtab.dest
+    |> sort (prod_ord Real.compare string_ord o pairself swap)
+  end
 
 end;
