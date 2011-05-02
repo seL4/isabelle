@@ -504,7 +504,7 @@ fun run_atp auto name
                   |>> atp_proof_from_tstplike_proof
                 val (conjecture_shape, facts_offset, fact_names) =
                   if is_none outcome then
-                    repair_conjecture_shape_and_fact_names output
+                    repair_conjecture_shape_and_fact_names type_sys output
                         conjecture_shape facts_offset fact_names
                   else
                     (* don't bother repairing *)
@@ -512,8 +512,8 @@ fun run_atp auto name
                 val outcome =
                   case outcome of
                     NONE =>
-                    if is_unsound_proof conjecture_shape facts_offset fact_names
-                                        atp_proof then
+                    if is_unsound_proof type_sys conjecture_shape facts_offset
+                                        fact_names atp_proof then
                       SOME (UnsoundProof (is_type_sys_virtually_sound type_sys))
                     else
                       NONE
@@ -543,7 +543,7 @@ fun run_atp auto name
             fun maybe_blacklist_facts_and_retry iter blacklist
                     (result as ((_, _, facts_offset, fact_names),
                                 (_, _, atp_proof, SOME (UnsoundProof false)))) =
-                (case used_facts_in_atp_proof facts_offset fact_names
+                (case used_facts_in_atp_proof type_sys facts_offset fact_names
                                               atp_proof of
                    [] => result
                  | new_baddies =>
@@ -594,11 +594,10 @@ fun run_atp auto name
          "\n\nImportant message from Dr. Geoff Sutcliffe:\n" ^ important_message
        else
          "")
-    val isar_params =
-      (ctxt, debug, type_sys, isar_shrink_factor, pool, conjecture_shape)
+    val isar_params = (ctxt, debug, isar_shrink_factor, pool, conjecture_shape)
     val metis_params =
-      (proof_banner auto, minimize_command, atp_proof, facts_offset, fact_names,
-       goal, subgoal)
+      (proof_banner auto, minimize_command, type_sys, atp_proof, facts_offset,
+       fact_names, goal, subgoal)
     val (outcome, (message, used_facts)) =
       case outcome of
         NONE =>

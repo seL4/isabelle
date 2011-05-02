@@ -754,8 +754,11 @@ fun useful_isabelle_info s = SOME (ATerm ("[]", [ATerm ("isabelle_" ^ s, [])]))
    the remote provers might care. *)
 fun formula_line_for_fact ctxt prefix type_sys
                           (j, formula as {name, locality, kind, ...}) =
-  Formula (prefix ^ string_of_int j ^ "_" ^ ascii_of name, kind,
-           formula_for_fact ctxt type_sys formula, NONE,
+  Formula (prefix ^
+           (if polymorphism_of_type_sys type_sys = Polymorphic then ""
+            else string_of_int j ^ "_") ^
+           ascii_of name,
+           kind, formula_for_fact ctxt type_sys formula, NONE,
            if generate_useful_info then
              case locality of
                Intro => useful_isabelle_info "intro"
