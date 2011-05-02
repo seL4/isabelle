@@ -352,8 +352,8 @@ fun parse_tstp_line x =
 
 val parse_vampire_braced_stuff =
   $$ "{" -- Scan.repeat (scan_general_id --| Scan.option ($$ ",")) -- $$ "}"
-val parse_vampire_parenthesized_detritus =
-  $$ "(" |-- parse_vampire_detritus --| $$ ")"
+fun parse_vampire_parenthesized_detritus x =
+  ($$ "(" |-- parse_vampire_detritus --| $$ ")") x
 
 (* Syntax: <num>. <formula> <annotation> *)
 fun parse_vampire_line x =
