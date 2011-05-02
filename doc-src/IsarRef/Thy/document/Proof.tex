@@ -445,7 +445,7 @@ Proof commands perform transitions of Isar/VM machine
   facts in order to establish the goal to be claimed next.  The
   initial proof method invoked to refine that will be offered the
   facts to do ``anything appropriate'' (see also
-  \secref{sec:proof-steps}).  For example, method \indexref{}{method}{rule}\hyperlink{method.rule}{\mbox{\isa{rule}}}
+  \secref{sec:proof-steps}).  For example, method \hyperlink{method.Pure.rule}{\mbox{\isa{rule}}}
   (see \secref{sec:pure-meth-att}) would typically do an elimination
   rather than an introduction.  Automatic methods usually insert the
   facts into the goal state before operation.  This provides a simple
@@ -472,7 +472,7 @@ Proof commands perform transitions of Isar/VM machine
   effect apart from entering \isa{{\isaliteral{22}{\isachardoublequote}}prove{\isaliteral{28}{\isacharparenleft}}chain{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} mode, since
   \indexref{}{fact}{nothing}\hyperlink{fact.nothing}{\mbox{\isa{nothing}}} is bound to the empty list of theorems.
 
-  Basic proof methods (such as \indexref{}{method}{rule}\hyperlink{method.rule}{\mbox{\isa{rule}}}) expect multiple
+  Basic proof methods (such as \indexref{Pure}{method}{rule}\hyperlink{method.Pure.rule}{\mbox{\isa{rule}}}) expect multiple
   facts to be given in their proper order, corresponding to a prefix
   of the premises of the rule involved.  Note that positions may be
   easily skipped using something like \hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5F}{\isacharunderscore}}\ {\isaliteral{5C3C414E443E}{\isasymAND}}\ a\ {\isaliteral{5C3C414E443E}{\isasymAND}}\ b{\isaliteral{22}{\isachardoublequote}}}, for example.  This involves the trivial rule
@@ -843,10 +843,10 @@ Proof methods are either basic ones, or expressions composed
   an intelligible manner.
 
   Unless given explicitly by the user, the default initial method is
-  ``\indexref{}{method}{rule}\hyperlink{method.rule}{\mbox{\isa{rule}}}'', which applies a single standard elimination
-  or introduction rule according to the topmost symbol involved.
-  There is no separate default terminal method.  Any remaining goals
-  are always solved by assumption in the very last step.
+  \indexref{Pure}{method}{rule}\hyperlink{method.Pure.rule}{\mbox{\isa{rule}}} (or its classical variant \indexref{}{method}{rule}\hyperlink{method.rule}{\mbox{\isa{rule}}}), which applies a single standard elimination or introduction
+  rule according to the topmost symbol involved.  There is no separate
+  default terminal method.  Any remaining goals are always solved by
+  assumption in the very last step.
 
   \begin{railoutput}
 \rail@begin{2}{\isa{}}
@@ -943,11 +943,11 @@ The following proof methods and attributes refer to basic logical
     \indexdef{}{method}{fact}\hypertarget{method.fact}{\hyperlink{method.fact}{\mbox{\isa{fact}}}} & : & \isa{method} \\
     \indexdef{}{method}{assumption}\hypertarget{method.assumption}{\hyperlink{method.assumption}{\mbox{\isa{assumption}}}} & : & \isa{method} \\
     \indexdef{}{method}{this}\hypertarget{method.this}{\hyperlink{method.this}{\mbox{\isa{this}}}} & : & \isa{method} \\
-    \indexdef{}{method}{rule}\hypertarget{method.rule}{\hyperlink{method.rule}{\mbox{\isa{rule}}}} & : & \isa{method} \\
+    \indexdef{Pure}{method}{rule}\hypertarget{method.Pure.rule}{\hyperlink{method.Pure.rule}{\mbox{\isa{rule}}}} & : & \isa{method} \\
     \indexdef{Pure}{attribute}{intro}\hypertarget{attribute.Pure.intro}{\hyperlink{attribute.Pure.intro}{\mbox{\isa{intro}}}} & : & \isa{attribute} \\
     \indexdef{Pure}{attribute}{elim}\hypertarget{attribute.Pure.elim}{\hyperlink{attribute.Pure.elim}{\mbox{\isa{elim}}}} & : & \isa{attribute} \\
     \indexdef{Pure}{attribute}{dest}\hypertarget{attribute.Pure.dest}{\hyperlink{attribute.Pure.dest}{\mbox{\isa{dest}}}} & : & \isa{attribute} \\
-    \indexdef{}{attribute}{rule}\hypertarget{attribute.rule}{\hyperlink{attribute.rule}{\mbox{\isa{rule}}}} & : & \isa{attribute} \\[0.5ex]
+    \indexdef{Pure}{attribute}{rule}\hypertarget{attribute.Pure.rule}{\hyperlink{attribute.Pure.rule}{\mbox{\isa{rule}}}} & : & \isa{attribute} \\[0.5ex]
     \indexdef{}{attribute}{OF}\hypertarget{attribute.OF}{\hyperlink{attribute.OF}{\mbox{\isa{OF}}}} & : & \isa{attribute} \\
     \indexdef{}{attribute}{of}\hypertarget{attribute.of}{\hyperlink{attribute.of}{\mbox{\isa{of}}}} & : & \isa{attribute} \\
     \indexdef{}{attribute}{where}\hypertarget{attribute.where}{\hyperlink{attribute.where}{\mbox{\isa{where}}}} & : & \isa{attribute} \\
@@ -962,7 +962,7 @@ The following proof methods and attributes refer to basic logical
 \rail@endbar
 \rail@end
 \rail@begin{2}{\isa{}}
-\rail@term{\hyperlink{method.rule}{\mbox{\isa{rule}}}}[]
+\rail@term{\hyperlink{method.Pure.rule}{\mbox{\isa{rule}}}}[]
 \rail@bar
 \rail@nextbar{1}
 \rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
@@ -1013,7 +1013,7 @@ The following proof methods and attributes refer to basic logical
 \rail@endbar
 \rail@end
 \rail@begin{1}{\isa{}}
-\rail@term{\hyperlink{attribute.rule}{\mbox{\isa{rule}}}}[]
+\rail@term{\hyperlink{attribute.Pure.rule}{\mbox{\isa{rule}}}}[]
 \rail@term{\isa{del}}[]
 \rail@end
 \rail@begin{1}{\isa{}}
@@ -1063,7 +1063,7 @@ The following proof methods and attributes refer to basic logical
   \item ``\hyperlink{method.-}{\mbox{\isa{{\isaliteral{2D}{\isacharminus}}}}}'' (minus) does nothing but insert the forward
   chaining facts as premises into the goal.  Note that command
   \indexref{}{command}{proof}\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}} without any method actually performs a single
-  reduction step using the \indexref{}{method}{rule}\hyperlink{method.rule}{\mbox{\isa{rule}}} method; thus a plain
+  reduction step using the \indexref{Pure}{method}{rule}\hyperlink{method.Pure.rule}{\mbox{\isa{rule}}} method; thus a plain
   \emph{do-nothing} proof step would be ``\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2D}{\isacharminus}}{\isaliteral{22}{\isachardoublequote}}}'' rather than \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}} alone.
   
   \item \hyperlink{method.fact}{\mbox{\isa{fact}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} composes some fact from
@@ -1086,12 +1086,12 @@ The following proof methods and attributes refer to basic logical
   \item \hyperlink{method.this}{\mbox{\isa{this}}} applies all of the current facts directly as
   rules.  Recall that ``\hyperlink{command.dot}{\mbox{\isa{\isacommand{{\isaliteral{2E}{\isachardot}}}}}}'' (dot) abbreviates ``\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{this}''.
   
-  \item \hyperlink{method.rule}{\mbox{\isa{rule}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} applies some rule given as
+  \item \hyperlink{method.Pure.rule}{\mbox{\isa{rule}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} applies some rule given as
   argument in backward manner; facts are used to reduce the rule
-  before applying it to the goal.  Thus \hyperlink{method.rule}{\mbox{\isa{rule}}} without facts
+  before applying it to the goal.  Thus \hyperlink{method.Pure.rule}{\mbox{\isa{rule}}} without facts
   is plain introduction, while with facts it becomes elimination.
   
-  When no arguments are given, the \hyperlink{method.rule}{\mbox{\isa{rule}}} method tries to pick
+  When no arguments are given, the \hyperlink{method.Pure.rule}{\mbox{\isa{rule}}} method tries to pick
   appropriate rules automatically, as declared in the current context
   using the \hyperlink{attribute.Pure.intro}{\mbox{\isa{intro}}}, \hyperlink{attribute.Pure.elim}{\mbox{\isa{elim}}},
   \hyperlink{attribute.Pure.dest}{\mbox{\isa{dest}}} attributes (see below).  This is the
@@ -1100,7 +1100,7 @@ The following proof methods and attributes refer to basic logical
   
   \item \hyperlink{attribute.Pure.intro}{\mbox{\isa{intro}}}, \hyperlink{attribute.Pure.elim}{\mbox{\isa{elim}}}, and
   \hyperlink{attribute.Pure.dest}{\mbox{\isa{dest}}} declare introduction, elimination, and
-  destruct rules, to be used with method \hyperlink{method.rule}{\mbox{\isa{rule}}}, and similar
+  destruct rules, to be used with method \hyperlink{method.Pure.rule}{\mbox{\isa{rule}}}, and similar
   tools.  Note that the latter will ignore rules declared with
   ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}{\isaliteral{22}{\isachardoublequote}}}'', while ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{21}{\isacharbang}}{\isaliteral{22}{\isachardoublequote}}}''  are used most aggressively.
   
@@ -1108,7 +1108,7 @@ The following proof methods and attributes refer to basic logical
   own variants of these attributes; use qualified names to access the
   present versions of Isabelle/Pure, i.e.\ \hyperlink{attribute.Pure.Pure.intro}{\mbox{\isa{Pure{\isaliteral{2E}{\isachardot}}intro}}}.
   
-  \item \hyperlink{attribute.rule}{\mbox{\isa{rule}}}~\isa{del} undeclares introduction,
+  \item \hyperlink{attribute.Pure.rule}{\mbox{\isa{rule}}}~\isa{del} undeclares introduction,
   elimination, or destruct rules.
   
   \item \hyperlink{attribute.OF}{\mbox{\isa{OF}}}~\isa{{\isaliteral{22}{\isachardoublequote}}a\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ a\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} applies some

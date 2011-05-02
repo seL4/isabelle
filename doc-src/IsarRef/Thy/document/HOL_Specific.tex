@@ -1230,7 +1230,7 @@ Each theory contains a default set of theorems that are used in
   ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{21}{\isacharbang}}{\isaliteral{22}{\isachardoublequote}}}'' indicator refers to ``safe'' rules, which may be
   applied aggressively (without considering back-tracking later).
   Rules declared with ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}{\isaliteral{22}{\isachardoublequote}}}'' are ignored in proof search (the
-  single-step \hyperlink{method.rule}{\mbox{\isa{rule}}} method still observes these).  An
+  single-step \hyperlink{method.Pure.rule}{\mbox{\isa{rule}}} method still observes these).  An
   explicit weight annotation may be given as well; otherwise the
   number of rule premises will be taken into account here.%
 \end{isamarkuptext}%
@@ -2167,7 +2167,7 @@ Isabelle/Pure provides two generic frameworks to support code
     \indexdef{HOL}{command}{code\_library}\hypertarget{command.HOL.code-library}{\hyperlink{command.HOL.code-library}{\mbox{\isa{\isacommand{code{\isaliteral{5F}{\isacharunderscore}}library}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{HOL}{command}{consts\_code}\hypertarget{command.HOL.consts-code}{\hyperlink{command.HOL.consts-code}{\mbox{\isa{\isacommand{consts{\isaliteral{5F}{\isacharunderscore}}code}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
     \indexdef{HOL}{command}{types\_code}\hypertarget{command.HOL.types-code}{\hyperlink{command.HOL.types-code}{\mbox{\isa{\isacommand{types{\isaliteral{5F}{\isacharunderscore}}code}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
-    \indexdef{HOL}{attribute}{code}\hypertarget{attribute.HOL.code}{\hyperlink{attribute.HOL.code}{\mbox{\isa{code}}}} & : & \isa{attribute} \\
+    \indexdef{}{attribute}{code}\hypertarget{attribute.code}{\hyperlink{attribute.code}{\mbox{\isa{code}}}} & : & \isa{attribute} \\
   \end{matharray}
 
   \begin{railoutput}
@@ -2272,7 +2272,7 @@ Isabelle/Pure provides two generic frameworks to support code
 \rail@term{\isa{{\isaliteral{7D}{\isacharbraceright}}}}[]
 \rail@end
 \rail@begin{2}{\isa{}}
-\rail@term{\hyperlink{attribute.HOL.code}{\mbox{\isa{code}}}}[]
+\rail@term{\hyperlink{attribute.code}{\mbox{\isa{code}}}}[]
 \rail@bar
 \rail@nextbar{1}
 \rail@nont{\isa{name}}[]

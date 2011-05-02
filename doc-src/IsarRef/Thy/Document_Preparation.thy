@@ -399,7 +399,7 @@ text {* The following options are available to tune the printed output
   not under direct control of the author, it may even fluctuate a bit
   as the underlying theory is changed later on.
 
-  In contrast, @{antiquotation_option_def source}~@{text "= true"}
+  In contrast, @{antiquotation_option source}~@{text "= true"}
   admits direct printing of the given source text, with the desirable
   well-formedness check in the background, but without modification of
   the printed text.

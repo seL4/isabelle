@@ -795,7 +795,7 @@ text {*
   premises of a sub-goal, using the meta-level equations declared via
   @{attribute atomize} (as an attribute) beforehand.  As a result,
   heavily nested goals become amenable to fundamental operations such
-  as resolution (cf.\ the @{method rule} method).  Giving the ``@{text
+  as resolution (cf.\ the @{method (Pure) rule} method).  Giving the ``@{text
   "(full)"}'' option here means to turn the whole subgoal into an
   object-statement (if possible), including the outermost parameters
   and assumptions as well.

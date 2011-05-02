@@ -339,7 +339,7 @@ text {*
   facts in order to establish the goal to be claimed next.  The
   initial proof method invoked to refine that will be offered the
   facts to do ``anything appropriate'' (see also
-  \secref{sec:proof-steps}).  For example, method @{method_ref rule}
+  \secref{sec:proof-steps}).  For example, method @{method (Pure) rule}
   (see \secref{sec:pure-meth-att}) would typically do an elimination
   rather than an introduction.  Automatic methods usually insert the
   facts into the goal state before operation.  This provides a simple
@@ -368,7 +368,7 @@ text {*
   effect apart from entering @{text "prove(chain)"} mode, since
   @{fact_ref nothing} is bound to the empty list of theorems.
 
-  Basic proof methods (such as @{method_ref rule}) expect multiple
+  Basic proof methods (such as @{method_ref (Pure) rule}) expect multiple
   facts to be given in their proper order, corresponding to a prefix
   of the premises of the rule involved.  Note that positions may be
   easily skipped using something like @{command "from"}~@{text "_
@@ -618,10 +618,11 @@ text {*
   an intelligible manner.
 
   Unless given explicitly by the user, the default initial method is
-  ``@{method_ref rule}'', which applies a single standard elimination
-  or introduction rule according to the topmost symbol involved.
-  There is no separate default terminal method.  Any remaining goals
-  are always solved by assumption in the very last step.
+  @{method_ref (Pure) rule} (or its classical variant @{method_ref
+  rule}), which applies a single standard elimination or introduction
+  rule according to the topmost symbol involved.  There is no separate
+  default terminal method.  Any remaining goals are always solved by
+  assumption in the very last step.
 
   @{rail "
     @@{command proof} method?
@@ -697,11 +698,11 @@ text {*
     @{method_def "fact"} & : & @{text method} \\
     @{method_def "assumption"} & : & @{text method} \\
     @{method_def "this"} & : & @{text method} \\
-    @{method_def "rule"} & : & @{text method} \\
+    @{method_def (Pure) "rule"} & : & @{text method} \\
     @{attribute_def (Pure) "intro"} & : & @{text attribute} \\
     @{attribute_def (Pure) "elim"} & : & @{text attribute} \\
     @{attribute_def (Pure) "dest"} & : & @{text attribute} \\
-    @{attribute_def "rule"} & : & @{text attribute} \\[0.5ex]
+    @{attribute_def (Pure) "rule"} & : & @{text attribute} \\[0.5ex]
     @{attribute_def "OF"} & : & @{text attribute} \\
     @{attribute_def "of"} & : & @{text attribute} \\
     @{attribute_def "where"} & : & @{text attribute} \\
@@ -710,7 +711,7 @@ text {*
   @{rail "
     @@{method fact} @{syntax thmrefs}?
     ;
-    @@{method rule} @{syntax thmrefs}?
+    @@{method (Pure) rule} @{syntax thmrefs}?
     ;
     rulemod: ('intro' | 'elim' | 'dest')
       ((('!' | () | '?') @{syntax nat}?) | 'del') ':' @{syntax thmrefs}
@@ -718,7 +719,7 @@ text {*
     (@@{attribute intro} | @@{attribute elim} | @@{attribute dest})
       ('!' | () | '?') @{syntax nat}?
     ;
-    @@{attribute rule} 'del'
+    @@{attribute (Pure) rule} 'del'
     ;
     @@{attribute OF} @{syntax thmrefs}
     ;
@@ -734,7 +735,7 @@ text {*
   \item ``@{method "-"}'' (minus) does nothing but insert the forward
   chaining facts as premises into the goal.  Note that command
   @{command_ref "proof"} without any method actually performs a single
-  reduction step using the @{method_ref rule} method; thus a plain
+  reduction step using the @{method_ref (Pure) rule} method; thus a plain
   \emph{do-nothing} proof step would be ``@{command "proof"}~@{text
   "-"}'' rather than @{command "proof"} alone.
   
@@ -761,12 +762,12 @@ text {*
   rules.  Recall that ``@{command "."}'' (dot) abbreviates ``@{command
   "by"}~@{text this}''.
   
-  \item @{method rule}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} applies some rule given as
+  \item @{method (Pure) rule}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} applies some rule given as
   argument in backward manner; facts are used to reduce the rule
-  before applying it to the goal.  Thus @{method rule} without facts
+  before applying it to the goal.  Thus @{method (Pure) rule} without facts
   is plain introduction, while with facts it becomes elimination.
   
-  When no arguments are given, the @{method rule} method tries to pick
+  When no arguments are given, the @{method (Pure) rule} method tries to pick
   appropriate rules automatically, as declared in the current context
   using the @{attribute (Pure) intro}, @{attribute (Pure) elim},
   @{attribute (Pure) dest} attributes (see below).  This is the
@@ -775,7 +776,7 @@ text {*
   
   \item @{attribute (Pure) intro}, @{attribute (Pure) elim}, and
   @{attribute (Pure) dest} declare introduction, elimination, and
-  destruct rules, to be used with method @{method rule}, and similar
+  destruct rules, to be used with method @{method (Pure) rule}, and similar
   tools.  Note that the latter will ignore rules declared with
   ``@{text "?"}'', while ``@{text "!"}''  are used most aggressively.
   
@@ -784,7 +785,7 @@ text {*
   present versions of Isabelle/Pure, i.e.\ @{attribute (Pure)
   "Pure.intro"}.
   
-  \item @{attribute rule}~@{text del} undeclares introduction,
+  \item @{attribute (Pure) rule}~@{text del} undeclares introduction,
   elimination, or destruct rules.
   
   \item @{attribute OF}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} applies some

@@ -896,7 +896,7 @@ text {*
   ``@{text "!"}'' indicator refers to ``safe'' rules, which may be
   applied aggressively (without considering back-tracking later).
   Rules declared with ``@{text "?"}'' are ignored in proof search (the
-  single-step @{method rule} method still observes these).  An
+  single-step @{method (Pure) rule} method still observes these).  An
   explicit weight annotation may be given as well; otherwise the
   number of rule premises will be taken into account here.
 *}
@@ -1419,7 +1419,7 @@ text {*
     @{command_def (HOL) "code_library"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "consts_code"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "types_code"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{attribute_def (HOL) code} & : & @{text attribute} \\
+    @{attribute_def code} & : & @{text attribute} \\
   \end{matharray}
 
   @{rail "
@@ -1452,7 +1452,7 @@ text {*
   attachment: 'attach' modespec? '{' @{syntax text} '}'
   ;
 
-  @@{attribute (HOL) code} (name)?
+  @@{attribute code} name?
   "}
 *}
 

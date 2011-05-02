@@ -51,11 +51,10 @@ text {*
   \secref{sec:tactics}) would be sufficient to cover the four modes,
   either with or without instantiation, and either with single or
   multiple arguments.  Although it is more convenient in most cases to
-  use the plain @{method rule} method (see
-  \secref{sec:pure-meth-att}), or any of its ``improper'' variants
-  @{method erule}, @{method drule}, @{method frule} (see
-  \secref{sec:misc-meth-att}).  Note that explicit goal addressing is
-  only supported by the actual @{method rule_tac} version.
+  use the plain @{method_ref (Pure) rule} method, or any of its
+  ``improper'' variants @{method erule}, @{method drule}, @{method
+  frule}.  Note that explicit goal addressing is only supported by the
+  actual @{method rule_tac} version.
 
   With this in mind, plain resolution tactics correspond to Isar
   methods as follows.

@@ -631,7 +631,7 @@ text {*
     @{command_def "class"} & : & @{text "theory \<rightarrow> local_theory"} \\
     @{command_def "instantiation"} & : & @{text "theory \<rightarrow> local_theory"} \\
     @{command_def "instance"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def "instance"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
+    @{command "instance"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
     @{command_def "subclass"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "print_classes"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "class_deps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\

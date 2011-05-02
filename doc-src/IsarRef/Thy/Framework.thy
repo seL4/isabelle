@@ -521,23 +521,23 @@ text {*
   "then"} or @{command using}, and then operate on the goal state.
   Some basic methods are predefined: ``@{method "-"}'' leaves the goal
   unchanged, ``@{method this}'' applies the facts as rules to the
-  goal, ``@{method "rule"}'' applies the facts to another rule and the
-  result to the goal (both ``@{method this}'' and ``@{method rule}''
+  goal, ``@{method (Pure) "rule"}'' applies the facts to another rule and the
+  result to the goal (both ``@{method this}'' and ``@{method (Pure) rule}''
   refer to @{inference resolution} of
   \secref{sec:framework-resolution}).  The secondary arguments to
-  ``@{method rule}'' may be specified explicitly as in ``@{text "(rule
+  ``@{method (Pure) rule}'' may be specified explicitly as in ``@{text "(rule
   a)"}'', or picked from the context.  In the latter case, the system
   first tries rules declared as @{attribute (Pure) elim} or
   @{attribute (Pure) dest}, followed by those declared as @{attribute
   (Pure) intro}.
 
-  The default method for @{command proof} is ``@{method rule}''
+  The default method for @{command proof} is ``@{method (Pure) rule}''
   (arguments picked from the context), for @{command qed} it is
   ``@{method "-"}''.  Further abbreviations for terminal proof steps
   are ``@{command "by"}~@{text "method\<^sub>1 method\<^sub>2"}'' for
   ``@{command proof}~@{text "method\<^sub>1"}~@{command qed}~@{text
   "method\<^sub>2"}'', and ``@{command ".."}'' for ``@{command
-  "by"}~@{method rule}, and ``@{command "."}'' for ``@{command
+  "by"}~@{method (Pure) rule}, and ``@{command "."}'' for ``@{command
   "by"}~@{method this}''.  The @{command unfolding} element operates
   directly on the current facts and goal by applying equalities.
 
