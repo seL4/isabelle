@@ -78,7 +78,7 @@ use_thys [
 ];
 
 Unsynchronized.setmp Proofterm.proofs (! Proofterm.proofs)
-  use_thy "TPTP";
+  use_thy "CASC_THF0";
 
 if getenv "ISABELLE_GHC" = "" then ()
 else use_thy "Quickcheck_Narrowing_Examples";
