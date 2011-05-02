@@ -48,13 +48,13 @@ code_reserved SML String
 
 code_const implode
   (SML "String.implode")
-  (OCaml "failwith/ \"implode\"")
+  (OCaml "!(let l = _ in let res = String.create (List.length l) in let rec imp i = function | [] -> res | c :: l -> String.set res i c; imp (i + 1) l in imp 0 l)")
   (Haskell "_")
   (Scala "!(\"\" ++/ _)")
 
 code_const explode
   (SML "String.explode")
-  (OCaml "failwith/ \"explode\"")
+  (OCaml "!(let s = _ in let rec exp i l = if i < 0 then l else exp (i - 1) (String.get s i :: l) in exp (String.length s - 1) [])")
   (Haskell "_")
   (Scala "!(_.toList)")
 
