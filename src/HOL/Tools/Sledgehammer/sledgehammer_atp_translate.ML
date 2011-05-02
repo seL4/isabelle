@@ -504,7 +504,7 @@ fun ti_ti_helper_fact () =
     fun var s = ATerm (`I s, [])
     fun tag tm = ATerm (`make_fixed_const type_tag_name, [var "X", tm])
   in
-    Formula (helper_prefix ^ ascii_of "ti_ti", Axiom,
+    Formula (helper_prefix ^ "ti_ti", Axiom,
              AAtom (ATerm (`I "equal", [tag (tag (var "Y")), tag (var "Y")]))
              |> close_formula_universally, NONE, NONE)
   end
@@ -774,8 +774,7 @@ fun result_type_of_decl (_, _, T, _, ary) = n_ary_strip_type ary T |> snd
 
 fun decl_line_for_sym_decl s (s', _, T, pred_sym, ary) =
   let val (arg_Ts, res_T) = n_ary_strip_type ary T in
-    Decl (sym_decl_prefix ^ ascii_of s, (s, s'),
-          map mangled_type_name arg_Ts,
+    Decl (sym_decl_prefix ^ s, (s, s'), map mangled_type_name arg_Ts,
           if pred_sym then `I tptp_tff_bool_type else mangled_type_name res_T)
   end
 
@@ -792,7 +791,8 @@ fun formula_line_for_sym_decl ctxt type_sys n s j (s', T_args, T, _, ary) =
       arg_Ts |> map (fn T => if n > 1 orelse is_polymorphic_type T then SOME T
                              else NONE)
   in
-    Formula (sym_decl_prefix ^ ascii_of s ^ "_" ^ string_of_int j, Axiom,
+    Formula (sym_decl_prefix ^ s ^
+             (if n > 1 then "_" ^ string_of_int j else ""), Axiom,
              CombConst ((s, s'), T, T_args)
              |> fold (curry (CombApp o swap)) bound_tms
              |> type_pred_combatom type_sys res_T
