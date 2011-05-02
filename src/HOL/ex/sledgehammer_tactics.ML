@@ -18,7 +18,7 @@ struct
 fun run_atp force_full_types timeout i n ctxt goal name =
   let
     val chained_ths = [] (* a tactic has no chained ths *)
-    val params as {type_sys, relevance_thresholds, max_relevant, slicing, ...} =
+    val params as {relevance_thresholds, max_relevant, slicing, ...} =
       ((if force_full_types then [("full_types", "true")] else [])
        @ [("timeout", string_of_int (Time.toSeconds timeout))])
        (* @ [("overlord", "true")] *)

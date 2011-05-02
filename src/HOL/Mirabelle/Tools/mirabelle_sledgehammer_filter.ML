@@ -112,7 +112,7 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
          val {context = ctxt, facts, goal} = Proof.goal pre
          val prover = AList.lookup (op =) args "prover"
                       |> the_default default_prover
-         val {relevance_thresholds, type_sys, max_relevant, slicing, ...} =
+         val {relevance_thresholds, max_relevant, slicing, ...} =
            Sledgehammer_Isar.default_params ctxt args
          val default_max_relevant =
            Sledgehammer_Provers.default_max_relevant_for_prover ctxt slicing

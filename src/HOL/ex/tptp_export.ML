@@ -23,7 +23,7 @@ val fact_name_of = prefix Sledgehammer_ATP_Translate.fact_prefix o ascii_of
 
 fun facts_of thy =
   Sledgehammer_Filter.all_facts (ProofContext.init_global thy) Symtab.empty
-      true Sledgehammer_Provers.atp_relevance_fudge [] []
+                                true [] []
 
 fun fold_body_thms f =
   let

@@ -362,7 +362,7 @@ fun run_sh prover_name prover type_sys max_relevant hard_timeout timeout dir st 
       st |> Proof.map_context
                 (change_dir dir
                  #> Config.put Sledgehammer_Provers.measure_run_time true)
-    val params as {type_sys, relevance_thresholds, max_relevant, slicing, ...} =
+    val params as {relevance_thresholds, max_relevant, slicing, ...} =
       Sledgehammer_Isar.default_params ctxt
           [("verbose", "true"),
            ("type_sys", type_sys),

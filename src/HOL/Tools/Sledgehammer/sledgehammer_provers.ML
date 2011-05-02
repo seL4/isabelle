@@ -642,7 +642,6 @@ fun smt_filter_loop name ({debug, verbose, overlord, monomorphize_limit,
                            timeout, slicing, ...} : params)
                     state i smt_filter =
   let
-    val ctxt = Proof.context_of state
     val max_slices = if slicing then !smt_max_slices else 1
     val repair_context =
       select_smt_solver name

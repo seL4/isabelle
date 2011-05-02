@@ -164,9 +164,8 @@ fun dest_SMT_Weighted_Fact (SMT_Weighted_Fact p) = p
 
 val auto_max_relevant_divisor = 2 (* FUDGE *)
 
-fun run_sledgehammer (params as {debug, blocking, provers, type_sys,
-                                 relevance_thresholds, max_relevant, slicing,
-                                 timeout, ...})
+fun run_sledgehammer (params as {debug, blocking, provers, relevance_thresholds,
+                                 max_relevant, slicing, timeout, ...})
         auto i (relevance_override as {only, ...}) minimize_command state =
   if null provers then
     error "No prover is set."
