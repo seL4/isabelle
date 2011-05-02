@@ -10,13 +10,14 @@ include ../Makefile.in
 
 NAME = implementation
 
-FILES = ../extra.sty ../iman.sty ../../lib/texinputs/isabelle.sty ../../lib/texinputs/isabellesym.sty	\
-  ../isar.sty ../manual.bib ../pdfsetup.sty ../proof.sty ../rail.sty	\
-  ../railsetup.sty Thy/document/Integration.tex Thy/document/Isar.tex	\
-  Thy/document/Local_Theory.tex Thy/document/Logic.tex			\
-  Thy/document/Prelim.tex Thy/document/Proof.tex			\
-  Thy/document/Syntax.tex Thy/document/Tactic.tex implementation.tex	\
-  style.sty
+FILES = ../extra.sty ../iman.sty ../../lib/texinputs/isabelle.sty	\
+  ../../lib/texinputs/isabellesym.sty					\
+  ../../lib/texinputs/railsetup.sty ../isar.sty ../manual.bib		\
+  ../pdfsetup.sty ../proof.sty Thy/document/Integration.tex		\
+  Thy/document/Isar.tex Thy/document/Local_Theory.tex			\
+  Thy/document/Logic.tex Thy/document/Prelim.tex			\
+  Thy/document/Proof.tex Thy/document/Syntax.tex			\
+  Thy/document/Tactic.tex implementation.tex style.sty
 
 dvi: $(NAME).dvi
 

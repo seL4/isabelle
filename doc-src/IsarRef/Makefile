@@ -16,9 +16,10 @@ FILES = isar-ref.tex style.sty Thy/document/Generic.tex			\
   Thy/document/ZF_Specific.tex Thy/document/Inner_Syntax.tex		\
   Thy/document/Introduction.tex Thy/document/Document_Preparation.tex	\
   Thy/document/Misc.tex Thy/document/Outer_Syntax.tex			\
-  Thy/document/Symbols.tex ../isar.sty ../rail.sty ../railsetup.sty	\
-  ../proof.sty ../iman.sty ../extra.sty ../ttbox.sty ../../lib/texinputs/isabelle.sty	\
-  ../../lib/texinputs/isabellesym.sty ../pdfsetup.sty ../manual.bib
+  Thy/document/Symbols.tex ../isar.sty ../proof.sty ../iman.sty		\
+  ../extra.sty ../ttbox.sty ../../lib/texinputs/isabelle.sty		\
+  ../../lib/texinputs/isabellesym.sty					\
+  ../../lib/texinputs/railsetup.sty ../pdfsetup.sty ../manual.bib
 
 OUTPUT = syms.tex
 

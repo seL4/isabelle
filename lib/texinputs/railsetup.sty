@@ -11,6 +11,7 @@
 % 18-Apr-98 K. Barthelmann	fixed \par handling
 % 19-May-98 J. Olsson		Added new macros to support arrow heads.
 % 26-Jul-98 K. Barthelmann	changed \par to output newlines
+% 02-May-11 M. Wenzel           default setup for Isabelle
 %
 % This style file needs to be used in conjunction with the 'rail'
 % program. Running LaTeX as 'latex file' produces file.rai, which should be
@@ -1191,3 +1192,11 @@
 \rail@x=\rail@jx
 \rail@ex=\rail@x
 }
+
+% default setup for Isabelle
+\newenvironment{railoutput}%
+{\begin{list}{}{\rail@param}\def\rail@expand{\relax}\makeatletter}{\end{list}}
+
+\def\rail@termfont{\isabellestyle{tt}}
+\def\rail@nontfont{\isabellestyle{it}}
+\def\rail@namefont{\isabellestyle{it}}
