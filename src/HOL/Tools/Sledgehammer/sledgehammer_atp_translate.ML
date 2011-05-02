@@ -10,6 +10,7 @@ signature SLEDGEHAMMER_ATP_TRANSLATE =
 sig
   type 'a fo_term = 'a ATP_Problem.fo_term
   type 'a problem = 'a ATP_Problem.problem
+  type locality = Sledgehammer_Filter.locality
 
   datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
   datatype type_level =
@@ -37,8 +38,8 @@ sig
   val num_atp_type_args : theory -> type_system -> string -> int
   val unmangled_const : string -> string * string fo_term list
   val translate_atp_fact :
-    Proof.context -> bool -> (string * 'a) * thm
-    -> translated_formula option * ((string * 'a) * thm)
+    Proof.context -> bool -> (string * locality) * thm
+    -> translated_formula option * ((string * locality) * thm)
   val prepare_atp_problem :
     Proof.context -> type_system -> bool -> term list -> term
     -> (translated_formula option * ((string * 'a) * thm)) list
@@ -53,6 +54,10 @@ struct
 open ATP_Problem
 open Metis_Translate
 open Sledgehammer_Util
+open Sledgehammer_Filter
+
+(* experimental *)
+val generate_useful_info = false
 
 (* Readable names are often much shorter, especially if types are mangled in
    names. Also, the logic for generating legal SNARK sort names is only
@@ -147,13 +152,14 @@ fun formula_fold f (AQuant (_, _, phi)) = formula_fold f phi
 
 type translated_formula =
   {name: string,
+   locality: locality,
    kind: formula_kind,
    combformula: (name, typ, combterm) formula,
    atomic_types: typ list}
 
-fun update_combformula f
-        ({name, kind, combformula, atomic_types} : translated_formula) =
-  {name = name, kind = kind, combformula = f combformula,
+fun update_combformula f ({name, locality, kind, combformula, atomic_types}
+                          : translated_formula) =
+  {name = name, locality = locality, kind = kind, combformula = f combformula,
    atomic_types = atomic_types} : translated_formula
 
 fun fact_lift f ({combformula, ...} : translated_formula) = f combformula
@@ -405,7 +411,7 @@ fun freeze_term t =
   in t |> exists_subterm is_Var t ? aux end
 
 (* making fact and conjecture formulas *)
-fun make_formula ctxt eq_as_iff presimp name kind t =
+fun make_formula ctxt eq_as_iff presimp name loc kind t =
   let
     val thy = Proof_Context.theory_of ctxt
     val t = t |> Envir.beta_eta_contract
@@ -421,19 +427,19 @@ fun make_formula ctxt eq_as_iff presimp name kind t =
     val (combformula, atomic_types) =
       combformula_from_prop thy eq_as_iff t []
   in
-    {name = name, combformula = combformula, kind = kind,
+    {name = name, locality = loc, kind = kind, combformula = combformula,
      atomic_types = atomic_types}
   end
 
-fun make_fact ctxt keep_trivial eq_as_iff presimp ((name, _), t) =
-  case (keep_trivial, make_formula ctxt eq_as_iff presimp name Axiom t) of
+fun make_fact ctxt keep_trivial eq_as_iff presimp ((name, loc), t) =
+  case (keep_trivial, make_formula ctxt eq_as_iff presimp name loc Axiom t) of
     (false, {combformula = AAtom (CombConst (("c_True", _), _, _)), ...}) =>
     NONE
   | (_, formula) => SOME formula
 
 fun make_conjecture ctxt ts =
   let val last = length ts - 1 in
-    map2 (fn j => make_formula ctxt true true (string_of_int j)
+    map2 (fn j => make_formula ctxt true true (string_of_int j) Chained
                                (if j = last then Conjecture else Hypothesis))
          (0 upto last) ts
   end
@@ -582,7 +588,7 @@ fun helper_facts_for_sym ctxt type_sys (s, {typ, ...} : sym_info) =
       val unmangled_s = mangled_s |> unmangled_const_name
       fun dub_and_inst c needs_some_types (th, j) =
         ((c ^ "_" ^ string_of_int j ^ (if needs_some_types then "T" else ""),
-          false),
+          Chained),
          let val t = th |> prop_of in
            t |> (general_type_arg_policy type_sys = Mangled_Type_Args andalso
                  not (null (Term.hidden_polymorphism t)))
@@ -740,13 +746,23 @@ fun formula_for_fact ctxt type_sys
                 (close_combformula_universally combformula))
   |> close_formula_universally
 
+fun useful_isabelle_info s = SOME (ATerm ("[]", [ATerm ("isabelle_" ^ s, [])]))
+
 (* Each fact is given a unique fact number to avoid name clashes (e.g., because
    of monomorphization). The TPTP explicitly forbids name clashes, and some of
    the remote provers might care. *)
 fun formula_line_for_fact ctxt prefix type_sys
-                          (j, formula as {name, kind, ...}) =
+                          (j, formula as {name, locality, kind, ...}) =
   Formula (prefix ^ string_of_int j ^ "_" ^ ascii_of name, kind,
-           formula_for_fact ctxt type_sys formula, NONE, NONE)
+           formula_for_fact ctxt type_sys formula, NONE,
+           if generate_useful_info then
+             case locality of
+               Intro => useful_isabelle_info "intro"
+             | Elim => useful_isabelle_info "elim"
+             | Simp => useful_isabelle_info "simp"
+             | _ => NONE
+           else
+             NONE)
 
 fun formula_line_for_class_rel_clause (ClassRelClause {name, subclass,
                                                        superclass, ...}) =
