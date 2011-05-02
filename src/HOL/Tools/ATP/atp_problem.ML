@@ -203,8 +203,9 @@ fun nice_name (full_name, _) NONE = (full_name, NONE)
         val nice_prefix = readable_name full_name desired_name
         fun add j =
           let
-            val nice_name = nice_prefix ^
-                            (if j = 0 then "" else "_" ^ string_of_int j)
+            (* The trailing "_" is for SNARK (cf. comment above). *)
+            val nice_name =
+              nice_prefix ^ (if j = 0 then "" else "_" ^ string_of_int j ^ "_")
           in
             case Symtab.lookup (snd the_pool) nice_name of
               SOME full_name' =>
