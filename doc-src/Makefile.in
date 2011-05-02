@@ -10,7 +10,7 @@ BIBTEX = bibtex
 SEDINDEX = ../sedindex
 FIXBOOKMARKS = perl -pi ../fixbookmarks.pl
 
-DEFAULT_GARBAGE = *.aux *.log *.toc *.idx *.rai *.rao *.bbl *.ind *.ilg *.blg *.out *.lof
+DEFAULT_GARBAGE = *.aux *.log *.toc *.idx *.bbl *.ind *.ilg *.blg *.out *.lof
 DEFAULT_OUTPUT = *.dvi *.pdf *.ps
 GARBAGE =
 OUTPUT =
