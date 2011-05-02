@@ -13,7 +13,7 @@ sig
   type params = Sledgehammer_Provers.params
   type prover = Sledgehammer_Provers.prover
 
-  val auto_minimize_min_facts : int Unsynchronized.ref
+  val auto_minimize_min_facts : int Config.T
   val get_minimizing_prover : Proof.context -> bool -> string -> prover
   val run_sledgehammer :
     params -> bool -> int -> relevance_override -> (string -> minimize_command)
@@ -42,7 +42,9 @@ fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
    else
      ":\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i)))
 
-val auto_minimize_min_facts = Unsynchronized.ref (!binary_min_facts)
+val auto_minimize_min_facts =
+  Attrib.setup_config_int @{binding sledgehammer_auto_minimize_min_facts}
+      (fn generic => Config.get_generic generic binary_min_facts)
 
 fun get_minimizing_prover ctxt auto name
         (params as {debug, verbose, explicit_apply, ...}) minimize_command
@@ -54,7 +56,8 @@ fun get_minimizing_prover ctxt auto name
          else
            let
              val (used_facts, message) =
-               if length used_facts >= !auto_minimize_min_facts then
+               if length used_facts
+                  >= Config.get ctxt auto_minimize_min_facts then
                  minimize_facts name params (SOME explicit_apply) (not verbose)
                      subgoal subgoal_count state
                      (filter_used_facts used_facts
@@ -178,7 +181,6 @@ fun run_sledgehammer (params as {debug, blocking, provers, relevance_thresholds,
       val state =
         state |> Proof.map_context (Config.put SMT_Config.verbose debug)
       val ctxt = Proof.context_of state
-      val thy = Proof_Context.theory_of ctxt
       val {facts = chained_ths, goal, ...} = Proof.goal state
       val (_, hyp_ts, concl_t) = strip_subgoal goal i
       val _ = () |> not blocking ? kill_provers
@@ -250,7 +252,7 @@ fun run_sledgehammer (params as {debug, blocking, provers, relevance_thresholds,
         else
           let
             val facts = get_facts "SMT solver" smt_relevance_fudge smts
-            val weight = SMT_Weighted_Fact oo weight_smt_fact thy
+            val weight = SMT_Weighted_Fact oo weight_smt_fact ctxt
             fun smt_filter facts =
               (if debug then curry (op o) SOME
                else TimeLimit.timeLimit timeout o try)

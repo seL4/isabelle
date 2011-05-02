@@ -23,7 +23,7 @@ sig
 
   type translated_formula
 
-  val readable_names : bool Unsynchronized.ref
+  val readable_names : bool Config.T
   val fact_prefix : string
   val conjecture_prefix : string
   val predicator_base : string
@@ -63,7 +63,8 @@ val generate_useful_info = false
    names. Also, the logic for generating legal SNARK sort names is only
    implemented for readable names. Finally, readable names are, well, more
    readable. For these reason, they are enabled by default. *)
-val readable_names = Unsynchronized.ref true
+val readable_names =
+  Attrib.setup_config_bool @{binding sledgehammer_atp_readable_names} (K true)
 
 val type_decl_prefix = "type_"
 val sym_decl_prefix = "sym_"
@@ -983,7 +984,8 @@ fun prepare_atp_problem ctxt type_sys explicit_apply hyp_ts concl_t facts =
                   map decl_line_for_tff_type (tff_types_in_problem problem))
           else
             I)
-    val (problem, pool) = problem |> nice_atp_problem (!readable_names)
+    val (problem, pool) =
+      problem |> nice_atp_problem (Config.get ctxt readable_names)
   in
     (problem,
      case pool of SOME the_pool => snd the_pool | NONE => Symtab.empty,

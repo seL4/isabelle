@@ -35,7 +35,7 @@ sig
      del : (Facts.ref * Attrib.src list) list,
      only : bool}
 
-  val trace : bool Unsynchronized.ref
+  val trace : bool Config.T
   val is_global_locality : locality -> bool
   val fact_from_ref :
     Proof.context -> unit Symtab.table -> thm list
@@ -59,8 +59,9 @@ struct
 
 open Sledgehammer_Util
 
-val trace = Unsynchronized.ref false
-fun trace_msg msg = if !trace then tracing (msg ()) else ()
+val trace =
+  Attrib.setup_config_bool @{binding sledgehammer_filter_trace} (K false)
+fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 
 (* experimental features *)
 val respect_no_atp = true
@@ -496,7 +497,7 @@ val const_names_in_fact = map fst ooo pconsts_in_fact
 type annotated_thm =
   (((unit -> string) * locality) * thm) * (string * ptype) list
 
-fun take_most_relevant max_relevant remaining_max
+fun take_most_relevant ctxt max_relevant remaining_max
         ({max_imperfect, max_imperfect_exp, ...} : relevance_fudge) 
         (candidates : (annotated_thm * real) list) =
   let
@@ -510,7 +511,7 @@ fun take_most_relevant max_relevant remaining_max
     val ((accepts, more_rejects), rejects) =
       chop max_imperfect imperfect |>> append perfect |>> chop remaining_max
   in
-    trace_msg (fn () =>
+    trace_msg ctxt (fn () =>
         "Actually passed (" ^ string_of_int (length accepts) ^ " of " ^
         string_of_int (length candidates) ^ "): " ^
         (accepts |> map (fn ((((name, _), _), _), weight) =>
@@ -572,7 +573,8 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
           | relevant candidates rejects [] =
             let
               val (accepts, more_rejects) =
-                take_most_relevant max_relevant remaining_max fudge candidates
+                take_most_relevant ctxt max_relevant remaining_max fudge
+                                   candidates
               val rel_const_tab' =
                 rel_const_tab
                 |> fold (add_pconst_to_table false) (maps (snd o fst) accepts)
@@ -594,7 +596,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
                       * Math.pow (decay, Real.fromInt (length accepts))
               val remaining_max = remaining_max - length accepts
             in
-              trace_msg (fn () => "New or updated constants: " ^
+              trace_msg ctxt (fn () => "New or updated constants: " ^
                   commas (rel_const_tab' |> Symtab.dest
                           |> subtract (op =) (rel_const_tab |> Symtab.dest)
                           |> map string_for_hyper_pconst));
@@ -621,7 +623,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
                 relevant candidates ((ax, weight) :: rejects) hopeful
             end
         in
-          trace_msg (fn () =>
+          trace_msg ctxt (fn () =>
               "ITERATION " ^ string_of_int j ^ ": current threshold: " ^
               Real.toString threshold ^ ", constants: " ^
               commas (rel_const_tab |> Symtab.dest
@@ -640,7 +642,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
           |> (fn accepts =>
                  accepts |> needs_ext is_built_in_const accepts
                             ? add_facts @{thms ext})
-          |> tap (fn accepts => trace_msg (fn () =>
+          |> tap (fn accepts => trace_msg ctxt (fn () =>
                       "Total relevant: " ^ string_of_int (length accepts)))
   end
 
@@ -920,8 +922,8 @@ fun relevant_facts ctxt (threshold0, threshold1) max_relevant is_built_in_const
       |> rearrange_facts ctxt (respect_no_atp andalso not only)
       |> uniquify
   in
-    trace_msg (fn () => "Considering " ^ string_of_int (length facts) ^
-                        " facts");
+    trace_msg ctxt (fn () => "Considering " ^ string_of_int (length facts) ^
+                             " facts");
     (if only orelse threshold1 < 0.0 then
        facts
      else if threshold0 > 1.0 orelse threshold0 > threshold1 orelse

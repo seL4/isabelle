@@ -10,7 +10,7 @@ sig
   type locality = Sledgehammer_Filter.locality
   type params = Sledgehammer_Provers.params
 
-  val binary_min_facts : int Unsynchronized.ref
+  val binary_min_facts : int Config.T
   val filter_used_facts : ''a list -> (''a * 'b) list -> (''a * 'b) list
   val minimize_facts :
     string -> params -> bool option -> bool -> int -> int -> Proof.state
@@ -90,7 +90,9 @@ fun test_facts ({debug, verbose, overlord, provers, monomorphize_limit,
    facts as used. In that case, the binary algorithm is much more appropriate.
    We can usually detect the situation by looking at the number of used facts
    reported by the prover. *)
-val binary_min_facts = Unsynchronized.ref 20
+val binary_min_facts =
+  Attrib.setup_config_int @{binding sledgehammer_minimize_binary_min_facts}
+                          (K 20)
 
 fun filter_used_facts used = filter (member (op =) used o fst)
 
@@ -164,7 +166,7 @@ fun minimize_facts prover_name (params as {timeout, ...}) explicit_apply_opt
            |> Time.fromMilliseconds
          val facts = filter_used_facts used_facts facts
          val (min_thms, {message, ...}) =
-           if length facts >= !binary_min_facts then
+           if length facts >= Config.get ctxt binary_min_facts then
              binary_minimize (do_test new_timeout) facts
            else
              sublinear_minimize (do_test new_timeout) facts ([], result)

@@ -14,26 +14,23 @@ sig
   type atp_config =
     {exec : string * string,
      required_execs : (string * string) list,
-     arguments : int -> Time.time -> (unit -> (string * real) list) -> string,
+     arguments :
+       Proof.context -> int -> Time.time -> (unit -> (string * real) list)
+       -> string,
      proof_delims : (string * string) list,
      known_failures : (failure * string) list,
      hypothesis_kind : formula_kind,
      formats : format list,
-     best_slices : unit -> (real * (bool * int)) list,
+     best_slices : Proof.context -> (real * (bool * int)) list,
      best_type_systems : string list}
 
-  datatype e_weight_method =
-    E_Slices | E_Auto | E_Fun_Weight | E_Sym_Offset_Weight
-
-  (* for experimentation purposes -- do not use in production code *)
-  val e_weight_method : e_weight_method Unsynchronized.ref
-  val e_default_fun_weight : real Unsynchronized.ref
-  val e_fun_weight_base : real Unsynchronized.ref
-  val e_fun_weight_span : real Unsynchronized.ref
-  val e_default_sym_offs_weight : real Unsynchronized.ref
-  val e_sym_offs_weight_base : real Unsynchronized.ref
-  val e_sym_offs_weight_span : real Unsynchronized.ref
-  (* end *)
+  val e_weight_method : string Config.T
+  val e_default_fun_weight : real Config.T
+  val e_fun_weight_base : real Config.T
+  val e_fun_weight_span : real Config.T
+  val e_default_sym_offs_weight : real Config.T
+  val e_sym_offs_weight_base : real Config.T
+  val e_sym_offs_weight_span : real Config.T
   val eN : string
   val spassN : string
   val vampireN : string
@@ -44,8 +41,8 @@ sig
   val remote_prefix : string
   val remote_atp :
     string -> string -> string list -> (string * string) list
-    -> (failure * string) list -> formula_kind -> format list -> (unit -> int)
-    -> string list -> string * atp_config
+    -> (failure * string) list -> formula_kind -> format list
+    -> (Proof.context -> int) -> string list -> string * atp_config
   val add_atp : string * atp_config -> theory -> theory
   val get_atp : theory -> string -> atp_config
   val supported_atps : theory -> string list
@@ -65,12 +62,14 @@ open ATP_Proof
 type atp_config =
   {exec : string * string,
    required_execs : (string * string) list,
-   arguments : int -> Time.time -> (unit -> (string * real) list) -> string,
+   arguments :
+     Proof.context -> int -> Time.time -> (unit -> (string * real) list)
+     -> string,
    proof_delims : (string * string) list,
    known_failures : (failure * string) list,
    hypothesis_kind : formula_kind,
    formats : format list,
-   best_slices : unit -> (real * (bool * int)) list,
+   best_slices : Proof.context -> (real * (bool * int)) list,
    best_type_systems : string list}
 
 val known_perl_failures =
@@ -113,31 +112,41 @@ fun e_bonus () =
 val tstp_proof_delims =
   ("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation")
 
-datatype e_weight_method =
-  E_Slices | E_Auto | E_Fun_Weight | E_Sym_Offset_Weight
+val e_slicesN = "slices"
+val e_autoN = "auto"
+val e_fun_weightN = "fun_weight"
+val e_sym_offset_weightN = "sym_offset_weight"
 
-val e_weight_method = Unsynchronized.ref E_Slices
+val e_weight_method =
+  Attrib.setup_config_string @{binding atp_e_weight_method} (K e_slicesN)
 (* FUDGE *)
-val e_default_fun_weight = Unsynchronized.ref 20.0
-val e_fun_weight_base = Unsynchronized.ref 0.0
-val e_fun_weight_span = Unsynchronized.ref 40.0
-val e_default_sym_offs_weight = Unsynchronized.ref 1.0
-val e_sym_offs_weight_base = Unsynchronized.ref ~20.0
-val e_sym_offs_weight_span = Unsynchronized.ref 60.0
+val e_default_fun_weight =
+  Attrib.setup_config_real @{binding atp_e_default_fun_weight} (K 20.0)
+val e_fun_weight_base =
+  Attrib.setup_config_real @{binding atp_e_fun_weight_base} (K 0.0)
+val e_fun_weight_span =
+  Attrib.setup_config_real @{binding atp_e_fun_weight_span} (K 40.0)
+val e_default_sym_offs_weight =
+  Attrib.setup_config_real @{binding atp_e_default_sym_offs_weight} (K 1.0)
+val e_sym_offs_weight_base =
+  Attrib.setup_config_real @{binding atp_e_sym_offs_weight_base} (K ~20.0)
+val e_sym_offs_weight_span =
+  Attrib.setup_config_real @{binding atp_e_sym_offs_weight_span} (K 60.0)
 
 fun e_weight_method_case method fw sow =
-  case method of
-    E_Auto => raise Fail "Unexpected \"E_Auto\""
-  | E_Fun_Weight => fw
-  | E_Sym_Offset_Weight => sow
+  if method = e_fun_weightN then fw
+  else if method = e_sym_offset_weightN then sow
+  else raise Fail ("unexpected" ^ quote method)
 
-fun scaled_e_weight method w =
-  w * e_weight_method_case method (!e_fun_weight_span) (!e_sym_offs_weight_span)
-  + e_weight_method_case method (!e_fun_weight_base) (!e_sym_offs_weight_base)
+fun scaled_e_weight ctxt method w =
+  w * Config.get ctxt
+          (e_weight_method_case method e_fun_weight_span e_sym_offs_weight_span)
+  + Config.get ctxt
+        (e_weight_method_case method e_fun_weight_base e_sym_offs_weight_base)
   |> Real.ceil |> signed_string_of_int
 
-fun e_weight_arguments method weights =
-  if method = E_Auto then
+fun e_weight_arguments ctxt method weights =
+  if method = e_autoN then
     "-xAutoDev"
   else
     "--split-clauses=4 --split-reuse-defs --simul-paramod --forward-context-sr \
@@ -146,37 +155,40 @@ fun e_weight_arguments method weights =
     \--delete-bad-limit=150000000 -WSelectMaxLComplexAvoidPosPred \
     \-H'(4*" ^ e_weight_method_case method "FunWeight" "SymOffsetWeight" ^
     "(SimulateSOS, " ^
-    (e_weight_method_case method (!e_default_fun_weight)
-                                 (!e_default_sym_offs_weight)
-     |> Real.ceil |> signed_string_of_int) ^
+    (e_weight_method_case method e_default_fun_weight e_default_sym_offs_weight
+     |> Config.get ctxt |> Real.ceil |> signed_string_of_int) ^
     ",20,1.5,1.5,1" ^
-    (weights () |> map (fn (s, w) => "," ^ s ^ ":" ^ scaled_e_weight method w)
-                |> implode) ^
+    (weights ()
+     |> map (fn (s, w) => "," ^ s ^ ":" ^ scaled_e_weight ctxt method w)
+     |> implode) ^
     "),3*ConjectureGeneralSymbolWeight(PreferNonGoals,200,100,200,50,50,1,100,\
     \1.5,1.5,1),1*Clauseweight(PreferProcessed,1,1,1),1*\
     \FIFOWeight(PreferProcessed))'"
 
 fun is_old_e_version () = (string_ord (getenv "E_VERSION", "1.2w") = LESS)
 
-fun effective_e_weight_method () =
-  if is_old_e_version () then E_Auto else !e_weight_method
+fun effective_e_weight_method ctxt =
+  if is_old_e_version () then e_autoN else Config.get ctxt e_weight_method
 
 (* The order here must correspond to the order in "e_config" below. *)
-fun method_for_slice slice =
-  case effective_e_weight_method () of
-    E_Slices => (case slice of
-                   0 => E_Sym_Offset_Weight
-                 | 1 => E_Auto
-                 | 2 => E_Fun_Weight
-                 | _ => raise Fail "no such slice")
-  | method => method
+fun method_for_slice ctxt slice =
+  let val method = effective_e_weight_method ctxt in
+    if method = e_slicesN then
+      case slice of
+        0 => e_sym_offset_weightN
+      | 1 => e_autoN
+      | 2 => e_fun_weightN
+      | _ => raise Fail "no such slice"
+    else
+      method
+  end
 
 val e_config : atp_config =
   {exec = ("E_HOME", "eproof"),
    required_execs = [],
-   arguments = fn slice => fn timeout => fn weights =>
+   arguments = fn ctxt => fn slice => fn timeout => fn weights =>
      "--tstp-in --tstp-out -l5 " ^
-     e_weight_arguments (method_for_slice slice) weights ^
+     e_weight_arguments ctxt (method_for_slice ctxt slice) weights ^
      " -tAutoDev --silent --cpu-limit=" ^
      string_of_int (to_secs (e_bonus ()) timeout),
    proof_delims = [tstp_proof_delims],
@@ -191,11 +203,11 @@ val e_config : atp_config =
       (OutOfResources, "SZS status ResourceOut")],
    hypothesis_kind = Conjecture,
    formats = [Fof],
-   best_slices = fn () =>
-     if effective_e_weight_method () = E_Slices then
-       [(0.33333, (true, 100 (* FUDGE *))) (* E_Sym_Offset_Weight *),
-        (0.33333, (true, 1000 (* FUDGE *))) (* E_Auto *),
-        (0.33334, (true, 200 (* FUDGE *))) (* E_Fun_Weight *)]
+   best_slices = fn ctxt =>
+     if effective_e_weight_method ctxt = e_slicesN then
+       [(0.33333, (true, 100 (* FUDGE *))) (* sym_offset_weight *),
+        (0.33333, (true, 1000 (* FUDGE *))) (* auto *),
+        (0.33334, (true, 200 (* FUDGE *))) (* fun_weight *)]
      else
        [(1.0, (true, 250 (* FUDGE *)))],
    best_type_systems = ["const_args", "mangled_preds"]}
@@ -210,7 +222,7 @@ val e = (eN, e_config)
 val spass_config : atp_config =
   {exec = ("ISABELLE_ATP", "scripts/spass"),
    required_execs = [("SPASS_HOME", "SPASS"), ("SPASS_HOME", "tptp2dfg")],
-   arguments = fn slice => fn timeout => fn _ =>
+   arguments = fn _ => fn slice => fn timeout => fn _ =>
      ("-Auto -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
       \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_secs 0 timeout))
      |> slice = 0 ? prefix "-SOS=1 ",
@@ -239,7 +251,7 @@ val spass = (spassN, spass_config)
 val vampire_config : atp_config =
   {exec = ("VAMPIRE_HOME", "vampire"),
    required_execs = [],
-   arguments = fn slice => fn timeout => fn _ =>
+   arguments = fn _ => fn slice => fn timeout => fn _ =>
      (* This would work too but it's less tested: "--proof tptp " ^ *)
      "--mode casc -t " ^ string_of_int (to_secs 0 timeout) ^
      " --thanks \"Andrei and Krystof\" --input_file"
@@ -275,7 +287,7 @@ val vampire = (vampireN, vampire_config)
 val z3_atp_config : atp_config =
   {exec = ("Z3_HOME", "z3"),
    required_execs = [],
-   arguments = fn _ => fn timeout => fn _ =>
+   arguments = fn _ => fn _ => fn timeout => fn _ =>
      "MBQI=true -p -t:" ^ string_of_int (to_secs 0 timeout),
    proof_delims = [],
    known_failures =
@@ -329,7 +341,7 @@ fun remote_config system_name system_versions proof_delims known_failures
                   : atp_config =
   {exec = ("ISABELLE_ATP", "scripts/remote_atp"),
    required_execs = [],
-   arguments = fn _ => fn timeout => fn _ =>
+   arguments = fn _ => fn _ => fn timeout => fn _ =>
      " -t " ^ string_of_int (Int.min (max_remote_secs, (to_secs 0 timeout)))
      ^ " -s " ^ the_system system_name system_versions,
    proof_delims = insert (op =) tstp_proof_delims proof_delims,
@@ -340,7 +352,7 @@ fun remote_config system_name system_versions proof_delims known_failures
       (TimedOut, "says Timeout")],
    hypothesis_kind = hypothesis_kind,
    formats = formats,
-   best_slices = fn () => [(1.0, (false, best_max_relevant ()))],
+   best_slices = fn ctxt => [(1.0, (false, best_max_relevant ctxt))],
    best_type_systems = best_type_systems}
 
 fun int_average f xs = fold (Integer.add o f) xs 0 div length xs

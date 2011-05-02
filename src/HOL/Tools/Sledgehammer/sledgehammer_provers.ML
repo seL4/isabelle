@@ -56,19 +56,17 @@ sig
 
   type prover = params -> minimize_command -> prover_problem -> prover_result
 
-  (* for experimentation purposes -- do not use in production code *)
-  val smt_triggers : bool Unsynchronized.ref
-  val smt_weights : bool Unsynchronized.ref
-  val smt_weight_min_facts : int Unsynchronized.ref
-  val smt_min_weight : int Unsynchronized.ref
-  val smt_max_weight : int Unsynchronized.ref
-  val smt_max_weight_index : int Unsynchronized.ref
+  val smt_triggers : bool Config.T
+  val smt_weights : bool Config.T
+  val smt_weight_min_facts : int Config.T
+  val smt_min_weight : int Config.T
+  val smt_max_weight : int Config.T
+  val smt_max_weight_index : int Config.T
   val smt_weight_curve : (int -> int) Unsynchronized.ref
-  val smt_max_slices : int Unsynchronized.ref
-  val smt_slice_fact_frac : real Unsynchronized.ref
-  val smt_slice_time_frac : real Unsynchronized.ref
-  val smt_slice_min_secs : int Unsynchronized.ref
-  (* end *)
+  val smt_max_slices : int Config.T
+  val smt_slice_fact_frac : real Config.T
+  val smt_slice_time_frac : real Config.T
+  val smt_slice_min_secs : int Config.T
   val das_Tool : string
   val select_smt_solver : string -> Proof.context -> Proof.context
   val is_smt_prover : Proof.context -> string -> bool
@@ -84,11 +82,11 @@ sig
   val problem_prefix : string Config.T
   val measure_run_time : bool Config.T
   val weight_smt_fact :
-    theory -> int -> ((string * locality) * thm) * int
+    Proof.context -> int -> ((string * locality) * thm) * int
     -> (string * locality) * (int option * thm)
   val untranslated_fact : prover_fact -> (string * locality) * thm
   val smt_weighted_fact :
-    theory -> int -> prover_fact * int
+    Proof.context -> int -> prover_fact * int
     -> (string * locality) * (int option * thm)
   val supported_provers : Proof.context -> unit
   val kill_provers : unit -> unit
@@ -138,7 +136,7 @@ fun default_max_relevant_for_prover ctxt slicing name =
       SMT_Solver.default_max_relevant ctxt name
     else
       fold (Integer.max o snd o snd o snd)
-           (get_slices slicing (#best_slices (get_atp thy name) ())) 0
+           (get_slices slicing (#best_slices (get_atp thy name) ctxt)) 0
   end
 
 (* These are either simplified away by "Meson.presimplify" (most of the time) or
@@ -289,35 +287,49 @@ fun with_path cleanup after f path =
 fun proof_banner auto =
   if auto then "Auto Sledgehammer found a proof" else "Try this command"
 
-val smt_triggers = Unsynchronized.ref true
-val smt_weights = Unsynchronized.ref true
-val smt_weight_min_facts = Unsynchronized.ref 20
+val smt_triggers =
+  Attrib.setup_config_bool @{binding sledgehammer_smt_triggers} (K true)
+val smt_weights =
+  Attrib.setup_config_bool @{binding sledgehammer_smt_weights} (K true)
+val smt_weight_min_facts =
+  Attrib.setup_config_int @{binding sledgehammer_smt_weight_min_facts} (K 20)
 
 (* FUDGE *)
-val smt_min_weight = Unsynchronized.ref 0
-val smt_max_weight = Unsynchronized.ref 10
-val smt_max_weight_index = Unsynchronized.ref 200
+val smt_min_weight =
+  Attrib.setup_config_int @{binding sledgehammer_smt_min_weight} (K 0)
+val smt_max_weight =
+  Attrib.setup_config_int @{binding sledgehammer_smt_max_weight} (K 10)
+val smt_max_weight_index =
+  Attrib.setup_config_int @{binding sledgehammer_smt_max_weight_index} (K 200)
 val smt_weight_curve = Unsynchronized.ref (fn x : int => x * x)
 
-fun smt_fact_weight j num_facts =
-  if !smt_weights andalso num_facts >= !smt_weight_min_facts then
-    SOME (!smt_max_weight
-          - (!smt_max_weight - !smt_min_weight + 1)
-            * !smt_weight_curve (Int.max (0, !smt_max_weight_index - j - 1))
-            div !smt_weight_curve (!smt_max_weight_index))
+fun smt_fact_weight ctxt j num_facts =
+  if Config.get ctxt smt_weights andalso
+     num_facts >= Config.get ctxt smt_weight_min_facts then
+    let
+      val min = Config.get ctxt smt_min_weight
+      val max = Config.get ctxt smt_max_weight
+      val max_index = Config.get ctxt smt_max_weight_index
+      val curve = !smt_weight_curve
+    in
+      SOME (max - (max - min + 1) * curve (Int.max (0, max_index - j - 1))
+            div curve max_index)
+    end
   else
     NONE
 
-fun weight_smt_fact thy num_facts ((info, th), j) =
-  (info, (smt_fact_weight j num_facts, th |> Thm.transfer thy))
+fun weight_smt_fact ctxt num_facts ((info, th), j) =
+  let val thy = Proof_Context.theory_of ctxt in
+    (info, (smt_fact_weight ctxt j num_facts, th |> Thm.transfer thy))
+  end
 
 fun untranslated_fact (Untranslated_Fact p) = p
   | untranslated_fact (SMT_Weighted_Fact (info, (_, th))) = (info, th)
 fun atp_translated_fact ctxt fact =
     translate_atp_fact ctxt false (untranslated_fact fact)
 fun smt_weighted_fact _ _ (SMT_Weighted_Fact p, _) = p
-  | smt_weighted_fact thy num_facts (fact, j) =
-    (untranslated_fact fact, j) |> weight_smt_fact thy num_facts
+  | smt_weighted_fact ctxt num_facts (fact, j) =
+    (untranslated_fact fact, j) |> weight_smt_fact ctxt num_facts
 
 fun overlord_file_location_for_prover prover =
   (getenv "ISABELLE_HOME_USER", "prob_" ^ prover)
@@ -399,7 +411,7 @@ fun run_atp auto name
           let
             (* If slicing is disabled, we expand the last slice to fill the
                entire time available. *)
-            val actual_slices = get_slices slicing (best_slices ())
+            val actual_slices = get_slices slicing (best_slices ctxt)
             val num_actual_slices = length actual_slices
             fun monomorphize_facts facts =
               let
@@ -463,7 +475,7 @@ fun run_atp auto name
                 fun weights () = atp_problem_weights atp_problem
                 val core =
                   File.shell_path command ^ " " ^
-                  arguments slice slice_timeout weights ^ " " ^
+                  arguments ctxt slice slice_timeout weights ^ " " ^
                   File.shell_path prob_file
                 val command =
                   (if measure_run_time then
@@ -633,16 +645,21 @@ fun failure_from_smt_failure (SMT_Failure.Counterexample {is_real_cex, ...}) =
     UnknownError msg
 
 (* FUDGE *)
-val smt_max_slices = Unsynchronized.ref 8
-val smt_slice_fact_frac = Unsynchronized.ref 0.5
-val smt_slice_time_frac = Unsynchronized.ref 0.5
-val smt_slice_min_secs = Unsynchronized.ref 5
+val smt_max_slices =
+  Attrib.setup_config_int @{binding sledgehammer_smt_max_slices} (K 8)
+val smt_slice_fact_frac =
+  Attrib.setup_config_real @{binding sledgehammer_smt_slice_fact_frac} (K 0.5)
+val smt_slice_time_frac =
+  Attrib.setup_config_real @{binding sledgehammer_smt_slice_time_frac} (K 0.5)
+val smt_slice_min_secs =
+  Attrib.setup_config_int @{binding sledgehammer_smt_slice_min_secs} (K 5)
 
-fun smt_filter_loop name ({debug, verbose, overlord, monomorphize_limit,
-                           timeout, slicing, ...} : params)
+fun smt_filter_loop ctxt name
+                    ({debug, verbose, overlord, monomorphize_limit, timeout,
+                      slicing, ...} : params)
                     state i smt_filter =
   let
-    val max_slices = if slicing then !smt_max_slices else 1
+    val max_slices = if slicing then Config.get ctxt smt_max_slices else 1
     val repair_context =
       select_smt_solver name
       #> Config.put SMT_Config.verbose debug
@@ -652,7 +669,7 @@ fun smt_filter_loop name ({debug, verbose, overlord, monomorphize_limit,
                         |> (fn (path, name) => path ^ "/" ^ name))
           else
             I)
-      #> Config.put SMT_Config.infer_triggers (!smt_triggers)
+      #> Config.put SMT_Config.infer_triggers (Config.get ctxt smt_triggers)
       #> Config.put SMT_Config.monomorph_full false
       #> Config.put SMT_Config.monomorph_limit monomorphize_limit
     val state = state |> Proof.map_context repair_context
@@ -664,8 +681,9 @@ fun smt_filter_loop name ({debug, verbose, overlord, monomorphize_limit,
         val slice_timeout =
           if slice < max_slices then
             Int.min (ms,
-                Int.max (1000 * !smt_slice_min_secs,
-                    Real.ceil (!smt_slice_time_frac * Real.fromInt ms)))
+                Int.max (1000 * Config.get ctxt smt_slice_min_secs,
+                    Real.ceil (Config.get ctxt smt_slice_time_frac
+                               * Real.fromInt ms)))
             |> Time.fromMilliseconds
           else
             timeout
@@ -709,7 +727,8 @@ fun smt_filter_loop name ({debug, verbose, overlord, monomorphize_limit,
            num_facts > 0 andalso Time.> (timeout, Time.zeroTime) then
           let
             val new_num_facts =
-              Real.ceil (!smt_slice_fact_frac * Real.fromInt num_facts)
+              Real.ceil (Config.get ctxt smt_slice_fact_frac
+                         * Real.fromInt num_facts)
             val _ =
               if verbose andalso is_some outcome then
                 quote name ^ " invoked with " ^ string_of_int num_facts ^
@@ -754,12 +773,11 @@ fun run_smt_solver auto name (params as {debug, verbose, ...}) minimize_command
                     : prover_problem) =
   let
     val ctxt = Proof.context_of state
-    val thy = Proof.theory_of state
     val num_facts = length facts
     val facts = facts ~~ (0 upto num_facts - 1)
-                |> map (smt_weighted_fact thy num_facts)
+                |> map (smt_weighted_fact ctxt num_facts)
     val {outcome, used_facts, run_time_in_msecs} =
-      smt_filter_loop name params state subgoal smt_filter facts
+      smt_filter_loop ctxt name params state subgoal smt_filter facts
     val (chained_lemmas, other_lemmas) = split_used_facts (map fst used_facts)
     val outcome = outcome |> Option.map failure_from_smt_failure
     val message =
