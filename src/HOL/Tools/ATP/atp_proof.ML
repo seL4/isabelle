@@ -288,25 +288,29 @@ fun fo_term_head (ATerm (s, _)) = s
 
 (* TPTP formulas are fully parenthesized, so we don't need to worry about
    operator precedence. *)
-fun parse_formula x =
-  (($$ "(" |-- parse_formula --| $$ ")"
-    || ($$ "!" >> K AForall || $$ "?" >> K AExists)
-       --| $$ "[" -- parse_terms --| $$ "]" --| $$ ":" -- parse_formula
-       >> (fn ((q, ts), phi) =>
-              (* FIXME: TFF *)
-              AQuant (q, map (rpair NONE o fo_term_head) ts, phi))
-    || (Scan.repeat ($$ "~") >> length)
-       -- ($$ "(" |-- parse_formula --| $$ ")" || parse_atom)
-       >> (fn (n, phi) => phi |> n div 2 = 1 ? mk_anot)
-    || parse_atom)
+fun parse_literal x =
+  ((Scan.repeat ($$ "~") >> length)
+      -- ($$ "(" |-- parse_formula --| $$ ")"
+          || parse_quantified_formula
+          || parse_atom)
+      >> (fn (n, phi) => phi |> n mod 2 = 1 ? mk_anot)) x
+and parse_formula x =
+  (parse_literal
    -- Scan.option ((Scan.this_string "=>" >> K AImplies
                     || Scan.this_string "<=>" >> K AIff
                     || Scan.this_string "<~>" >> K ANotIff
                     || Scan.this_string "<=" >> K AIf
-                    || $$ "|" >> K AOr || $$ "&" >> K AAnd)
+                    || $$ "|" >> K AOr
+                    || $$ "&" >> K AAnd)
                    -- parse_formula)
    >> (fn (phi1, NONE) => phi1
         | (phi1, SOME (c, phi2)) => mk_aconn c (phi1, phi2))) x
+and parse_quantified_formula x =
+  (($$ "!" >> K AForall || $$ "?" >> K AExists)
+   --| $$ "[" -- parse_terms --| $$ "]" --| $$ ":" -- parse_literal
+   >> (fn ((q, ts), phi) =>
+          (* FIXME: TFF *)
+          AQuant (q, map (rpair NONE o fo_term_head) ts, phi))) x
 
 val parse_tstp_extra_arguments =
   Scan.optional ($$ "," |-- parse_annotation
