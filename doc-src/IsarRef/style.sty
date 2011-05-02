@@ -32,7 +32,14 @@
 \sloppy
 
 \isabellestyle{it}
-\underscoreon
-\renewcommand{\isacharunderscore}{\_}
-\renewcommand{\isacharunderscorekeyword}{\_}
 \newcommand{\isasymdash}{\mbox{-}}
+
+\underscoreon
+\newcommand{\setupunderscore}{\def\isacharunderscore{\_}\def\isacharunderscorekeyword{\_}}
+\setupunderscore
+
+\makeatletter
+\def\rail@termfont{\isabellestyle{tt}\setupunderscore}
+\def\rail@nontfont{\isabellestyle{it}\setupunderscore}
+\def\rail@namefont{\isabellestyle{it}\setupunderscore}
+\makeatother
