@@ -171,7 +171,7 @@ text {*
   available, and result names need not be given.
 
   @{rail "
-    @@{command axiomatization} @{syntax target}? @{syntax \"fixes\"}? (@'where' specs)?
+    @@{command axiomatization} @{syntax \"fixes\"}? (@'where' specs)?
     ;
     @@{command definition} @{syntax target}? (decl @'where')?
       @{syntax thmdecl}? @{syntax prop}
