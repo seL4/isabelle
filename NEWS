@@ -48,6 +48,9 @@ like this:
 that the result needs to be unique, which means fact specifications
 may have to be refined after enriching a proof context.
 
+* Isabelle/Isar reference manual provides more formal references in
+syntax diagrams.
+
 
 *** HOL ***
 
@@ -84,6 +87,9 @@ INCOMPATIBILITY. Use partial_function instead.
 
 
 *** Document preparation ***
+
+* Antiquotation @{rail} layouts railroad syntax diagrams; requires
+railsetup.sty included in the Isabelle distribution.
 
 * Localized \isabellestyle switch can be used within blocks or groups
 like this:
