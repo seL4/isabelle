@@ -337,7 +337,7 @@ fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
 val atp_blacklist_max_iters = 10
 (* Important messages are important but not so important that users want to see
    them each time. *)
-val atp_important_message_keep_factor = 0.1
+val atp_important_message_keep_quotient = 10
 
 val fallback_best_type_systems =
   [Preds (Polymorphic, Const_Arg_Types), Many_Typed]
@@ -567,7 +567,8 @@ fun run_atp auto name
          (output, msecs, atp_proof, outcome)) =
       with_path cleanup export run_on problem_path_name
     val important_message =
-      if not auto andalso random () <= atp_important_message_keep_factor then
+      if not auto andalso
+         random_range 0 (atp_important_message_keep_quotient - 1) = 0 then
         extract_important_message output
       else
         ""
