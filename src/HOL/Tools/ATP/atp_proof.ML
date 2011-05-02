@@ -251,9 +251,8 @@ val scan_general_id =
 
 (* Generalized first-order terms, which include file names, numbers, etc. *)
 fun parse_annotation x =
-  ((scan_general_id ::: Scan.repeat ($$ " " |-- scan_general_id)
-      >> filter (is_some o Int.fromString))
-   -- Scan.optional parse_annotation [] >> op @
+  ((scan_general_id ::: Scan.repeat ($$ " " |-- scan_general_id))
+     -- Scan.optional parse_annotation [] >> op @
    || $$ "(" |-- parse_annotations --| $$ ")"
    || $$ "[" |-- parse_annotations --| $$ "]") x
 and parse_annotations x =
