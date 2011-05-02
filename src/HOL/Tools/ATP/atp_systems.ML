@@ -11,15 +11,6 @@ sig
   type formula_kind = ATP_Problem.formula_kind
   type failure = ATP_Proof.failure
 
-  datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
-  datatype type_level =
-    All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
-
-  datatype type_system =
-    Many_Typed |
-    Preds of polymorphism * type_level |
-    Tags of polymorphism * type_level
-
   type atp_config =
     {exec : string * string,
      required_execs : (string * string) list,
@@ -29,15 +20,11 @@ sig
      hypothesis_kind : formula_kind,
      formats : format list,
      best_slices : unit -> (real * (bool * int)) list,
-     best_type_systems : type_system list}
+     best_type_systems : string list}
 
   datatype e_weight_method =
     E_Slices | E_Auto | E_Fun_Weight | E_Sym_Offset_Weight
 
-  val polymorphism_of_type_sys : type_system -> polymorphism
-  val level_of_type_sys : type_system -> type_level
-  val is_type_sys_virtually_sound : type_system -> bool
-  val is_type_sys_fairly_sound : type_system -> bool
   (* for experimentation purposes -- do not use in production code *)
   val e_weight_method : e_weight_method Unsynchronized.ref
   val e_default_fun_weight : real Unsynchronized.ref
@@ -58,7 +45,7 @@ sig
   val remote_atp :
     string -> string -> string list -> (string * string) list
     -> (failure * string) list -> formula_kind -> format list -> (unit -> int)
-    -> type_system list -> string * atp_config
+    -> string list -> string * atp_config
   val add_atp : string * atp_config -> theory -> theory
   val get_atp : theory -> string -> atp_config
   val supported_atps : theory -> string list
@@ -75,35 +62,6 @@ open ATP_Proof
 
 (* ATP configuration *)
 
-datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
-datatype type_level =
-  All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
-
-datatype type_system =
-  Many_Typed |
-  Preds of polymorphism * type_level |
-  Tags of polymorphism * type_level
-
-val mangled_preds = Preds (Mangled_Monomorphic, All_Types)
-val const_args = Preds (Polymorphic, Const_Arg_Types)
-
-fun polymorphism_of_type_sys Many_Typed = Mangled_Monomorphic
-  | polymorphism_of_type_sys (Preds (poly, _)) = poly
-  | polymorphism_of_type_sys (Tags (poly, _)) = poly
-
-fun level_of_type_sys Many_Typed = All_Types
-  | level_of_type_sys (Preds (_, level)) = level
-  | level_of_type_sys (Tags (_, level)) = level
-
-val is_type_level_virtually_sound =
-  member (op =) [All_Types, Nonmonotonic_Types]
-val is_type_sys_virtually_sound =
-  is_type_level_virtually_sound o level_of_type_sys
-
-fun is_type_level_fairly_sound level =
-  is_type_level_virtually_sound level orelse level = Finite_Types
-val is_type_sys_fairly_sound = is_type_level_fairly_sound o level_of_type_sys
-
 type atp_config =
   {exec : string * string,
    required_execs : (string * string) list,
@@ -113,7 +71,7 @@ type atp_config =
    hypothesis_kind : formula_kind,
    formats : format list,
    best_slices : unit -> (real * (bool * int)) list,
-   best_type_systems : type_system list}
+   best_type_systems : string list}
 
 val known_perl_failures =
   [(CantConnect, "HTTP error"),
@@ -240,7 +198,7 @@ val e_config : atp_config =
         (0.33334, (true, 200 (* FUDGE *))) (* E_Fun_Weight *)]
      else
        [(1.0, (true, 250 (* FUDGE *)))],
-   best_type_systems = [const_args, mangled_preds]}
+   best_type_systems = ["const_args", "mangled_preds"]}
 
 val e = (eN, e_config)
 
@@ -271,7 +229,7 @@ val spass_config : atp_config =
    best_slices =
      K [(0.66667, (false, 150 (* FUDGE *))) (* with SOS *),
         (0.33333, (true, 150 (* FUDGE *))) (* without SOS *)],
-   best_type_systems = [mangled_preds]}
+   best_type_systems = ["mangled_preds"]}
 
 val spass = (spassN, spass_config)
 
@@ -307,7 +265,7 @@ val vampire_config : atp_config =
    best_slices =
      K [(0.66667, (false, 450 (* FUDGE *))) (* with SOS *),
         (0.33333, (true, 450 (* FUDGE *))) (* without SOS *)],
-   best_type_systems = [mangled_preds]}
+   best_type_systems = ["mangled_preds"]}
 
 val vampire = (vampireN, vampire_config)
 

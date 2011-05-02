@@ -10,7 +10,16 @@ signature SLEDGEHAMMER_ATP_TRANSLATE =
 sig
   type 'a fo_term = 'a ATP_Problem.fo_term
   type 'a problem = 'a ATP_Problem.problem
-  type type_system = ATP_Systems.type_system
+
+  datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
+  datatype type_level =
+    All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
+
+  datatype type_system =
+    Many_Typed |
+    Preds of polymorphism * type_level |
+    Tags of polymorphism * type_level
+
   type translated_formula
 
   val readable_names : bool Unsynchronized.ref
@@ -20,6 +29,11 @@ sig
   val explicit_app_base : string
   val type_pred_base : string
   val tff_type_prefix : string
+  val type_sys_from_string : string -> type_system
+  val polymorphism_of_type_sys : type_system -> polymorphism
+  val level_of_type_sys : type_system -> type_level
+  val is_type_sys_virtually_sound : type_system -> bool
+  val is_type_sys_fairly_sound : type_system -> bool
   val num_atp_type_args : theory -> type_system -> string -> int
   val unmangled_const : string -> string * string fo_term list
   val translate_atp_fact :
@@ -37,7 +51,6 @@ structure Sledgehammer_ATP_Translate : SLEDGEHAMMER_ATP_TRANSLATE =
 struct
 
 open ATP_Problem
-open ATP_Systems
 open Metis_Translate
 open Sledgehammer_Util
 
@@ -71,6 +84,58 @@ val tptp_true = "$true"
 
 (* Freshness almost guaranteed! *)
 val sledgehammer_weak_prefix = "Sledgehammer:"
+
+datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
+datatype type_level =
+  All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
+
+datatype type_system =
+  Many_Typed |
+  Preds of polymorphism * type_level |
+  Tags of polymorphism * type_level
+
+fun type_sys_from_string s =
+  (case try (unprefix "mangled_") s of
+     SOME s => (Mangled_Monomorphic, s)
+   | NONE =>
+     case try (unprefix "mono_") s of
+       SOME s => (Monomorphic, s)
+     | NONE => (Polymorphic, s))
+  ||> (fn s =>
+          case try (unsuffix " ?") s of
+            SOME s => (Nonmonotonic_Types, s)
+          | NONE =>
+            case try (unsuffix " !") s of
+              SOME s => (Finite_Types, s)
+            | NONE => (All_Types, s))
+  |> (fn (polymorphism, (level, core)) =>
+         case (core, (polymorphism, level)) of
+           ("many_typed", (Polymorphic (* naja *), All_Types)) =>
+           Many_Typed
+         | ("preds", extra) => Preds extra
+         | ("tags", extra) => Tags extra
+         | ("const_args", (_, All_Types (* naja *))) =>
+           Preds (polymorphism, Const_Arg_Types)
+         | ("erased", (Polymorphic, All_Types (* naja *))) =>
+           Preds (polymorphism, No_Types)
+         | _ => error ("Unknown type system: " ^ quote s ^ "."))
+
+fun polymorphism_of_type_sys Many_Typed = Mangled_Monomorphic
+  | polymorphism_of_type_sys (Preds (poly, _)) = poly
+  | polymorphism_of_type_sys (Tags (poly, _)) = poly
+
+fun level_of_type_sys Many_Typed = All_Types
+  | level_of_type_sys (Preds (_, level)) = level
+  | level_of_type_sys (Tags (_, level)) = level
+
+val is_type_level_virtually_sound =
+  member (op =) [All_Types, Nonmonotonic_Types]
+val is_type_sys_virtually_sound =
+  is_type_level_virtually_sound o level_of_type_sys
+
+fun is_type_level_fairly_sound level =
+  is_type_level_virtually_sound level orelse level = Finite_Types
+val is_type_sys_fairly_sound = is_type_level_fairly_sound o level_of_type_sys
 
 fun formula_map f (AQuant (q, xs, phi)) = AQuant (q, xs, formula_map f phi)
   | formula_map f (AConn (c, phis)) = AConn (c, map (formula_map f) phis)

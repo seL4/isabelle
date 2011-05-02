@@ -352,7 +352,7 @@ fun determine_format_and_type_sys _ formats (Dumb_Type_Sys type_sys) =
     adjust_dumb_type_sys formats type_sys
   | determine_format_and_type_sys best_type_systems formats
                                   (Smart_Type_Sys full_types) =
-    best_type_systems @ fallback_best_type_systems
+    map type_sys_from_string best_type_systems @ fallback_best_type_systems
     |> find_first (if full_types then is_type_sys_virtually_sound else K true)
     |> the |> adjust_dumb_type_sys formats
 

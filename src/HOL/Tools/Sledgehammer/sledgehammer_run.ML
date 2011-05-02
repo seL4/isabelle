@@ -23,7 +23,6 @@ end;
 structure Sledgehammer_Run : SLEDGEHAMMER_RUN =
 struct
 
-open ATP_Systems
 open Sledgehammer_Util
 open Sledgehammer_Filter
 open Sledgehammer_ATP_Translate

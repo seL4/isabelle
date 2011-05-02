@@ -233,33 +233,10 @@ fun extract_params auto default_params override_params =
     val blocking = auto orelse debug orelse lookup_bool "blocking"
     val provers = lookup_string "provers" |> space_explode " "
                   |> auto ? single o hd
-    val type_sys = lookup_string "type_sys"
     val type_sys =
-      (case try (unprefix "mangled_") type_sys of
-         SOME s => (Mangled_Monomorphic, s)
-       | NONE =>
-         case try (unprefix "mono_") type_sys of
-           SOME s => (Monomorphic, s)
-         | NONE => (Polymorphic, type_sys))
-      ||> (fn s => case try (unsuffix " ?") s of
-                     SOME s => (Nonmonotonic_Types, s)
-                   | NONE =>
-                     case try (unsuffix " !") s of
-                       SOME s => (Finite_Types, s)
-                     | NONE => (All_Types, s))
-      |> (fn (polymorphism, (level, core)) =>
-             case (core, (polymorphism, level)) of
-               ("many_typed", (Polymorphic (* naja *), All_Types)) =>
-               Dumb_Type_Sys Many_Typed
-             | ("preds", extra) => Dumb_Type_Sys (Preds extra)
-             | ("tags", extra) => Dumb_Type_Sys (Tags extra)
-             | ("const_args", (_, All_Types (* naja *))) =>
-               Dumb_Type_Sys (Preds (polymorphism, Const_Arg_Types))
-             | ("erased", (Polymorphic, All_Types (* naja *))) =>
-               Dumb_Type_Sys (Preds (polymorphism, No_Types))
-             | ("smart", (Polymorphic, All_Types) (* naja *)) =>
-               Smart_Type_Sys (lookup_bool "full_types")
-             | _ => error ("Unknown type system: " ^ quote type_sys ^ "."))
+      case lookup_string "type_sys" of
+        "smart" => Smart_Type_Sys (lookup_bool "full_types")
+      | s => Dumb_Type_Sys (type_sys_from_string s)
     val relevance_thresholds = lookup_real_pair "relevance_thresholds"
     val max_relevant = lookup_int_option "max_relevant"
     val monomorphize_limit = lookup_int "monomorphize_limit"
