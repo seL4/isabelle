@@ -1,29 +1,8 @@
-%% dimensions
-
-\setlength\railextra{3.6ex}
-\setlength\railboxleft{0.9ex}
-\setlength\railboxright{0.9ex}
-\setlength\railovalspace{1.8ex}
-\setlength\railframespace{1.8ex}
-\setlength\railtextleft{0.9ex}
-\setlength\railtextright{0.9ex}
-\setlength\railnamesep{0.9ex}
-
-\setlength\railboxheight{16pt}
-\setlength\railboxskip{24pt}
-\setlength\railtextup{5pt}
-\setlength\railjoinsize{16pt}
-
-
 %% rail antiquotation environment
-
 \newenvironment{railoutput}%
 {\begin{list}{}{\rail@param}\def\rail@expand{\relax}\makeatletter}{\end{list}}
 
-
 %% content markup
-
-\def\rail@termfont{\small\ttfamily\upshape\isabellestyle{tt}}
-\def\rail@nontfont{\small\rmfamily\itshape\isabellestyle{it}}
-\def\rail@namefont{\small\rmfamily\itshape\isabellestyle{it}}
-
+\def\rail@termfont{\isabellestyle{tt}}
+\def\rail@nontfont{\isabellestyle{it}}
+\def\rail@namefont{\isabellestyle{it}}
