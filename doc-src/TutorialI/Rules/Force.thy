@@ -1,4 +1,3 @@
-(* ID:         $Id$ *)
 theory Force imports Main begin 
   (*Use Divides rather than Main to experiment with the first proof.
     Otherwise, it is done by the nat_divide_cancel_factor simprocs.*)

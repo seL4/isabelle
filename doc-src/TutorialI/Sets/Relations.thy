@@ -1,4 +1,3 @@
-(* ID:         $Id$ *)
 theory Relations imports Main begin
 
 ML "Pretty.margin_default := 64"

@@ -1,5 +1,4 @@
 (*  Title:      HOL/Auth/NS_Public
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 

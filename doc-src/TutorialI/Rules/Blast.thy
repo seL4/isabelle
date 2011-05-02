@@ -1,4 +1,3 @@
-(* ID:         $Id$ *)
 theory Blast imports Main begin
 
 lemma "((\<exists>x. \<forall>y. p(x)=p(y)) = ((\<exists>x. q(x))=(\<forall>y. p(y))))   =    

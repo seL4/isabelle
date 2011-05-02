@@ -25,14 +25,12 @@
 % ON AN "AS IS" BASIS, AND THE AUTHOR HAS NO OBLIGATION TO
 % PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 %
-% CVSId : $Id$
 %==============================================================================
 
 \def\Prosper@Version{1.1}
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
 \ProvidesClass{prosper}[2001/01/23, v. \Prosper@Version]
 \typeout{(c) 2000 Frederic Goualard, CWI, The Netherlands}
-\typeout{CVSId: $Id$}
 \typeout{ }
 
 \newif\ifDVItoPS

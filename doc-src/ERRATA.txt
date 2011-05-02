@@ -1,4 +1,3 @@
-$Id$
 ERRATA in the book "Isabelle: A Generic Theorem Prover"
 by Lawrence C. Paulson (contributions by Tobias Nipkow)
 

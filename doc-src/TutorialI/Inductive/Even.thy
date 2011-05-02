@@ -1,4 +1,3 @@
-(* ID:         $Id$ *)
 (*<*)theory Even imports Main uses "../../antiquote_setup.ML" begin(*>*)
 
 section{* The Set of Even Numbers *}
