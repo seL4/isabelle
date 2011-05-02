@@ -24,7 +24,7 @@ fun str_of_result Success = "Success"
 
 (*** calling provers ***)
 
-val (dest_dir, setup_dest_dir) = Attrib.config_string "sos_dest_dir" (K "")
+val dest_dir = Attrib.setup_config_string @{binding sos_dest_dir} (K "")
 
 fun filename dir name =
   let
@@ -117,7 +117,7 @@ fun prover "remote_csdp" = neos_csdp
   | prover "csdp" = csdp
   | prover name = error ("Unknown prover: " ^ name)
 
-val (prover_name, setup_prover_name) = Attrib.config_string "sos_prover_name" (K "remote_csdp")
+val prover_name = Attrib.setup_config_string @{binding sos_prover_name} (K "remote_csdp")
 
 fun call_solver ctxt opt_name =
   let
@@ -140,8 +140,6 @@ val print_cert = warning o output_line o PositivstellensatzTools.pss_tree_to_cer
 fun sos_solver print method = SIMPLE_METHOD' o Sum_of_Squares.sos_tac print method
 
 val setup =
-  setup_dest_dir #>
-  setup_prover_name #>
   Method.setup @{binding sos}
     (Scan.lift (Scan.option Parse.xname)
       >> (fn opt_name => fn ctxt =>

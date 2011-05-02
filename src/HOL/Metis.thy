@@ -63,10 +63,7 @@ use "Tools/Metis/metis_translate.ML"
 use "Tools/Metis/metis_reconstruct.ML"
 use "Tools/Metis/metis_tactics.ML"
 
-setup {*
-  Metis_Reconstruct.setup
-  #> Metis_Tactics.setup
-*}
+setup {* Metis_Tactics.setup *}
 
 hide_const (open) fFalse fTrue fNot fconj fdisj fimplies fequal select
 hide_fact (open) fFalse_def fTrue_def fNot_def fconj_def fdisj_def fimplies_def

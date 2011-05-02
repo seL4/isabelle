@@ -96,7 +96,6 @@ sig
   val running_provers : unit -> unit
   val messages : int option -> unit
   val get_prover : Proof.context -> bool -> string -> prover
-  val setup : theory -> theory
 end;
 
 structure Sledgehammer_Provers : SLEDGEHAMMER_PROVERS =
@@ -272,15 +271,15 @@ type prover = params -> minimize_command -> prover_problem -> prover_result
 
 (* configuration attributes *)
 
-val (dest_dir, dest_dir_setup) =
-  Attrib.config_string "sledgehammer_dest_dir" (K "")
+val dest_dir =
+  Attrib.setup_config_string @{binding sledgehammer_dest_dir} (K "")
   (* Empty string means create files in Isabelle's temporary files directory. *)
 
-val (problem_prefix, problem_prefix_setup) =
-  Attrib.config_string "sledgehammer_problem_prefix" (K "prob")
+val problem_prefix =
+  Attrib.setup_config_string @{binding sledgehammer_problem_prefix} (K "prob")
 
-val (measure_run_time, measure_run_time_setup) =
-  Attrib.config_bool "sledgehammer_measure_run_time" (K false)
+val measure_run_time =
+  Attrib.setup_config_bool @{binding sledgehammer_measure_run_time} (K false)
 
 fun with_path cleanup after f path =
   Exn.capture f path
@@ -803,10 +802,5 @@ fun get_prover ctxt auto name =
     else
       error ("No such prover: " ^ name ^ ".")
   end
-
-val setup =
-  dest_dir_setup
-  #> problem_prefix_setup
-  #> measure_run_time_setup
 
 end;

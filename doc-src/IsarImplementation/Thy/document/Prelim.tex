@@ -797,14 +797,14 @@ Configuration options that are not set explicitly hold a
 \begin{mldecls}
   \indexdef{}{ML}{Config.get}\verb|Config.get: Proof.context -> 'a Config.T -> 'a| \\
   \indexdef{}{ML}{Config.map}\verb|Config.map: 'a Config.T -> ('a -> 'a) -> Proof.context -> Proof.context| \\
-  \indexdef{}{ML}{Attrib.config\_bool}\verb|Attrib.config_bool: string -> (Context.generic -> bool) ->|\isasep\isanewline%
-\verb|  bool Config.T * (theory -> theory)| \\
-  \indexdef{}{ML}{Attrib.config\_int}\verb|Attrib.config_int: string -> (Context.generic -> int) ->|\isasep\isanewline%
-\verb|  int Config.T * (theory -> theory)| \\
-  \indexdef{}{ML}{Attrib.config\_real}\verb|Attrib.config_real: string -> (Context.generic -> real) ->|\isasep\isanewline%
-\verb|  real Config.T * (theory -> theory)| \\
-  \indexdef{}{ML}{Attrib.config\_string}\verb|Attrib.config_string: string -> (Context.generic -> string) ->|\isasep\isanewline%
-\verb|  string Config.T * (theory -> theory)| \\
+  \indexdef{}{ML}{Attrib.setup\_config\_bool}\verb|Attrib.setup_config_bool: binding -> (Context.generic -> bool) ->|\isasep\isanewline%
+\verb|  bool Config.T| \\
+  \indexdef{}{ML}{Attrib.setup\_config\_int}\verb|Attrib.setup_config_int: binding -> (Context.generic -> int) ->|\isasep\isanewline%
+\verb|  int Config.T| \\
+  \indexdef{}{ML}{Attrib.setup\_config\_real}\verb|Attrib.setup_config_real: binding -> (Context.generic -> real) ->|\isasep\isanewline%
+\verb|  real Config.T| \\
+  \indexdef{}{ML}{Attrib.setup\_config\_string}\verb|Attrib.setup_config_string: binding -> (Context.generic -> string) ->|\isasep\isanewline%
+\verb|  string Config.T| \\
   \end{mldecls}
 
   \begin{description}
@@ -815,12 +815,11 @@ Configuration options that are not set explicitly hold a
   \item \verb|Config.map|~\isa{config\ f\ ctxt} updates the context
   by updating the value of \isa{config}.
 
-  \item \isa{{\isaliteral{28}{\isacharparenleft}}config{\isaliteral{2C}{\isacharcomma}}\ setup{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}}~\verb|Attrib.config_bool|~\isa{name\ default} creates a named configuration option of type
-  \verb|bool|, with the given \isa{default} depending on the
-  application context.  The resulting \isa{config} can be used to
-  get/map its value in a given context.  The \isa{setup} function
-  needs to be applied to the theory initially, in order to make
-  concrete declaration syntax available to the user.
+  \item \isa{config\ {\isaliteral{3D}{\isacharequal}}}~\verb|Attrib.setup_config_bool|~\isa{name\ default} creates a named configuration option of type \verb|bool|, with the given \isa{default} depending on the application
+  context.  The resulting \isa{config} can be used to get/map its
+  value in a given context.  There is an implicit update of the
+  background theory that registers the option as attribute with some
+  concrete syntax.
 
   \item \verb|Attrib.config_int|, \verb|Attrib.config_real|, and \verb|Attrib.config_string| work like \verb|Attrib.config_bool|, but for
   types \verb|int| and \verb|string|, respectively.
@@ -863,11 +862,13 @@ The following example shows how to declare and use a
 \isatagML
 \isacommand{ML}\isamarkupfalse%
 \ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
-\ \ val\ {\isaliteral{28}{\isacharparenleft}}my{\isaliteral{5F}{\isacharunderscore}}flag{\isaliteral{2C}{\isacharcomma}}\ my{\isaliteral{5F}{\isacharunderscore}}flag{\isaliteral{5F}{\isacharunderscore}}setup{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
-\ \ \ \ Attrib{\isaliteral{2E}{\isachardot}}config{\isaliteral{5F}{\isacharunderscore}}bool\ {\isaliteral{22}{\isachardoublequote}}my{\isaliteral{5F}{\isacharunderscore}}flag{\isaliteral{22}{\isachardoublequote}}\ {\isaliteral{28}{\isacharparenleft}}K\ false{\isaliteral{29}{\isacharparenright}}\isanewline
-{\isaliteral{2A7D}{\isacharverbatimclose}}\isanewline
-\isacommand{setup}\isamarkupfalse%
-\ my{\isaliteral{5F}{\isacharunderscore}}flag{\isaliteral{5F}{\isacharunderscore}}setup%
+\ \ val\ my{\isaliteral{5F}{\isacharunderscore}}flag\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ Attrib{\isaliteral{2E}{\isachardot}}setup{\isaliteral{5F}{\isacharunderscore}}config{\isaliteral{5F}{\isacharunderscore}}bool\ %
+\isaantiq
+binding\ my{\isaliteral{5F}{\isacharunderscore}}flag{}%
+\endisaantiq
+\ {\isaliteral{28}{\isacharparenleft}}K\ false{\isaliteral{29}{\isacharparenright}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %
@@ -1028,11 +1029,13 @@ Here is another example involving ML type \verb|real|
 \isatagML
 \isacommand{ML}\isamarkupfalse%
 \ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
-\ \ val\ {\isaliteral{28}{\isacharparenleft}}airspeed{\isaliteral{5F}{\isacharunderscore}}velocity{\isaliteral{2C}{\isacharcomma}}\ airspeed{\isaliteral{5F}{\isacharunderscore}}velocity{\isaliteral{5F}{\isacharunderscore}}setup{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
-\ \ \ \ Attrib{\isaliteral{2E}{\isachardot}}config{\isaliteral{5F}{\isacharunderscore}}real\ {\isaliteral{22}{\isachardoublequote}}airspeed{\isaliteral{5F}{\isacharunderscore}}velocity{\isaliteral{22}{\isachardoublequote}}\ {\isaliteral{28}{\isacharparenleft}}K\ {\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
-{\isaliteral{2A7D}{\isacharverbatimclose}}\isanewline
-\isacommand{setup}\isamarkupfalse%
-\ airspeed{\isaliteral{5F}{\isacharunderscore}}velocity{\isaliteral{5F}{\isacharunderscore}}setup%
+\ \ val\ airspeed{\isaliteral{5F}{\isacharunderscore}}velocity\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ Attrib{\isaliteral{2E}{\isachardot}}setup{\isaliteral{5F}{\isacharunderscore}}config{\isaliteral{5F}{\isacharunderscore}}real\ %
+\isaantiq
+binding\ airspeed{\isaliteral{5F}{\isacharunderscore}}velocity{}%
+\endisaantiq
+\ {\isaliteral{28}{\isacharparenleft}}K\ {\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}%
 \endisatagML
 {\isafoldML}%
 %

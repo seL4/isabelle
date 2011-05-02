@@ -51,14 +51,11 @@ val indent_default = Unsynchronized.ref 0;
 val source_default = Unsynchronized.ref false;
 val break_default = Unsynchronized.ref false;
 
-val (display, setup_display) = Attrib.config_bool "thy_output_display" (fn _ => ! display_default);
-val (quotes, setup_quotes) = Attrib.config_bool "thy_output_quotes" (fn _ => ! quotes_default);
-val (indent, setup_indent) = Attrib.config_int "thy_output_indent" (fn _ => ! indent_default);
-val (source, setup_source) = Attrib.config_bool "thy_output_source" (fn _ => ! source_default);
-val (break, setup_break) = Attrib.config_bool "thy_output_break" (fn _ => ! break_default);
-
-val _ = Context.>> (Context.map_theory
- (setup_display #> setup_quotes #> setup_indent #> setup_source #> setup_break));
+val display = Attrib.setup_config_bool (Binding.name "thy_output_display") (fn _ => ! display_default);
+val quotes = Attrib.setup_config_bool (Binding.name "thy_output_quotes") (fn _ => ! quotes_default);
+val indent = Attrib.setup_config_int (Binding.name "thy_output_indent") (fn _ => ! indent_default);
+val source = Attrib.setup_config_bool (Binding.name "thy_output_source") (fn _ => ! source_default);
+val break = Attrib.setup_config_bool (Binding.name "thy_output_break") (fn _ => ! break_default);
 
 
 structure Wrappers = Proof_Data

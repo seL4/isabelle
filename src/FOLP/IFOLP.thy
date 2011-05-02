@@ -69,8 +69,7 @@ parse_translation {*
 *}
 
 (*show_proofs = true displays the proof terms -- they are ENORMOUS*)
-ML {* val (show_proofs, setup_show_proofs) = Attrib.config_bool "show_proofs" (K false) *}
-setup setup_show_proofs
+ML {* val show_proofs = Attrib.setup_config_bool @{binding show_proofs} (K false) *}
 
 print_translation (advanced) {*
   let

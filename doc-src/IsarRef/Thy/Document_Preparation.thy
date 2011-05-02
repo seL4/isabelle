@@ -185,7 +185,7 @@ text {*
     @{syntax_def antiquotation}:
       @@{antiquotation theory} options @{syntax name} |
       @@{antiquotation thm} options styles @{syntax thmrefs} |
-      @@{antiquotation lemma} options @{syntax prop} @'by' @{syntax method} |
+      @@{antiquotation lemma} options @{syntax prop} @'by' @{syntax method} @{syntax method}? |
       @@{antiquotation prop} options styles @{syntax prop} |
       @@{antiquotation term} options styles @{syntax term} |
       @@{antiquotation term_type} options styles @{syntax term} |
@@ -212,7 +212,7 @@ text {*
     styles: '(' (style + ',') ')'
     ;
     style: (@{syntax name} +)
-  "} %% FIXME check lemma
+  "}
 
   Note that the syntax of antiquotations may \emph{not} include source
   comments @{verbatim "(*"}~@{text "\<dots>"}~@{verbatim "*)"} nor verbatim

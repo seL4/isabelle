@@ -23,7 +23,6 @@ sig
     -> (Metis_Thm.thm * thm) list
   val discharge_skolem_premises :
     Proof.context -> (thm * term) option list -> thm -> thm
-  val setup : theory -> theory
 end;
 
 structure Metis_Reconstruct : METIS_RECONSTRUCT =
@@ -31,8 +30,8 @@ struct
 
 open Metis_Translate
 
-val (trace, trace_setup) = Attrib.config_bool "metis_trace" (K false)
-val (verbose, verbose_setup) = Attrib.config_bool "metis_verbose" (K true)
+val trace = Attrib.setup_config_bool @{binding metis_trace} (K false)
+val verbose = Attrib.setup_config_bool @{binding metis_verbose} (K true)
 
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 fun verbose_warning ctxt msg =
@@ -896,7 +895,5 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
              error ("Cannot replay Metis proof in Isabelle:\n\
                     \Error when discharging Skolem assumptions.")
     end
-
-val setup = trace_setup #> verbose_setup
 
 end;

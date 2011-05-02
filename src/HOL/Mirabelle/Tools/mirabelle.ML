@@ -9,7 +9,6 @@ sig
   val timeout : int Config.T
   val start_line : int Config.T
   val end_line : int Config.T
-  val setup : theory -> theory
 
   (*core*)
   type init_action = int -> theory -> theory
@@ -43,12 +42,10 @@ struct
 
 (* Mirabelle configuration *)
 
-val (logfile, setup1) = Attrib.config_string "mirabelle_logfile" (K "")
-val (timeout, setup2) = Attrib.config_int "mirabelle_timeout" (K 30)
-val (start_line, setup3) = Attrib.config_int "mirabelle_start_line" (K 0)
-val (end_line, setup4) = Attrib.config_int "mirabelle_end_line" (K ~1)
-
-val setup = setup1 #> setup2 #> setup3 #> setup4
+val logfile = Attrib.setup_config_string @{binding mirabelle_logfile} (K "")
+val timeout = Attrib.setup_config_int @{binding mirabelle_timeout} (K 30)
+val start_line = Attrib.setup_config_int @{binding mirabelle_start_line} (K 0)
+val end_line = Attrib.setup_config_int @{binding mirabelle_end_line} (K ~1)
 
 
 (* Mirabelle core *)

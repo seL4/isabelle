@@ -419,7 +419,8 @@ The following improper proof methods emulate traditional tactics.
 \rail@nont{\hyperlink{syntax.goalspec}{\mbox{\isa{goalspec}}}}[]
 \rail@endbar
 \rail@bar
-\rail@nont{\isa{insts}}[]
+\rail@nont{\isa{dynamic{\isaliteral{5F}{\isacharunderscore}}insts}}[]
+\rail@term{\isa{\isakeyword{in}}}[]
 \rail@nont{\hyperlink{syntax.thmref}{\mbox{\isa{thmref}}}}[]
 \rail@nextbar{1}
 \rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
@@ -466,7 +467,7 @@ The following improper proof methods emulate traditional tactics.
 \rail@endbar
 \rail@nont{\hyperlink{syntax.text}{\mbox{\isa{text}}}}[]
 \rail@end
-\rail@begin{2}{\isa{insts}}
+\rail@begin{2}{\isa{dynamic{\isaliteral{5F}{\isacharunderscore}}insts}}
 \rail@plus
 \rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
 \rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
@@ -474,10 +475,9 @@ The following improper proof methods emulate traditional tactics.
 \rail@nextplus{1}
 \rail@cterm{\isa{\isakeyword{and}}}[]
 \rail@endplus
-\rail@term{\isa{\isakeyword{in}}}[]
 \rail@end
 \end{railoutput}
- % FIXME check use of insts
+
 
 \begin{description}
 

@@ -284,7 +284,7 @@ text {*
   @{rail "
     (@@{method rule_tac} | @@{method erule_tac} | @@{method drule_tac} |
       @@{method frule_tac} | @@{method cut_tac} | @@{method thin_tac}) @{syntax goalspec}?
-    ( insts @{syntax thmref} | @{syntax thmrefs} )
+    ( dynamic_insts @'in' @{syntax thmref} | @{syntax thmrefs} )
     ;
     @@{method subgoal_tac} @{syntax goalspec}? (@{syntax prop} +)
     ;
@@ -295,8 +295,8 @@ text {*
     (@@{method tactic} | @@{method raw_tactic}) @{syntax text}
     ;
 
-    insts: ((@{syntax name} '=' @{syntax term}) + @'and') @'in'
-  "} % FIXME check use of insts
+    dynamic_insts: ((@{syntax name} '=' @{syntax term}) + @'and')
+  "}
 
 \begin{description}
 

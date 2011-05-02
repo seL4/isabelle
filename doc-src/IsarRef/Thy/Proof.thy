@@ -444,7 +444,7 @@ text {*
   
     goal: (@{syntax props} + @'and')
     ;
-    longgoal: @{syntax thmdecl}? (@{syntax contextelem} * ) conclusion
+    longgoal: @{syntax thmdecl}? (@{syntax context_elem} * ) conclusion
     ;
     conclusion: @'shows' goal | @'obtains' (@{syntax parname}? case + '|')
     ;
@@ -458,7 +458,7 @@ text {*
   \<phi>"} to be put back into the target context.  An additional @{syntax
   context} specification may build up an initial proof context for the
   subsequent claim; this includes local definitions and syntax as
-  well, see the definition of @{syntax contextelem} in
+  well, see the definition of @{syntax context_elem} in
   \secref{sec:locale}.
   
   \item @{command "theorem"}~@{text "a: \<phi>"} and @{command
@@ -1278,7 +1278,7 @@ text {*
     ;
     @@{method induct} ('(' 'no_simp' ')')? (definsts * @'and') \\ arbitrary? taking? rule?
     ;
-    @@{method coinduct} insts taking rule?
+    @@{method coinduct} @{syntax insts} taking rule?
     ;
 
     rule: ('type' | 'pred' | 'set') ':' (@{syntax nameref} +) | 'rule' ':' (@{syntax thmref} +)
@@ -1289,7 +1289,7 @@ text {*
     ;
     arbitrary: 'arbitrary' ':' ((@{syntax term} * ) @'and' +)
     ;
-    taking: 'taking' ':' insts
+    taking: 'taking' ':' @{syntax insts}
   "}
 
   \begin{description}

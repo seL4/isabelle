@@ -28,20 +28,11 @@ struct
 
 (** dynamic options **)
 
-val (smart_quantifier, setup_smart_quantifier) =
-  Attrib.config_bool "quickcheck_smart_quantifier" (K true)
-
-val (fast, setup_fast) =
-  Attrib.config_bool "quickcheck_fast" (K false)
-
-val (bounded_forall, setup_bounded_forall) =
-  Attrib.config_bool "quickcheck_bounded_forall" (K false)
-  
-val (full_support, setup_full_support) =
-  Attrib.config_bool "quickcheck_full_support" (K true)
-
-val (quickcheck_pretty, setup_quickcheck_pretty) =
-  Attrib.config_bool "quickcheck_pretty" (K true)
+val smart_quantifier = Attrib.setup_config_bool @{binding quickcheck_smart_quantifier} (K true)
+val fast = Attrib.setup_config_bool @{binding quickcheck_fast} (K false)
+val bounded_forall = Attrib.setup_config_bool @{binding quickcheck_bounded_forall} (K false)
+val full_support = Attrib.setup_config_bool @{binding quickcheck_full_support} (K true)
+val quickcheck_pretty = Attrib.setup_config_bool @{binding quickcheck_pretty} (K true)
  
 (** general term functions **)
 
@@ -508,11 +499,6 @@ val setup =
       (((@{sort typerep}, @{sort term_of}), @{sort fast_exhaustive}), instantiate_fast_exhaustive_datatype))
   #> Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
       (((@{sort type}, @{sort type}), @{sort bounded_forall}), instantiate_bounded_forall_datatype))*)
-  #> setup_smart_quantifier
-  #> setup_full_support
-  #> setup_fast
-  #> setup_bounded_forall
-  #> setup_quickcheck_pretty
   #> Context.theory_map (Quickcheck.add_generator ("exhaustive", compile_generator_expr))
   #> Context.theory_map (Quickcheck.add_batch_generator ("exhaustive", compile_generator_exprs))
   #> Context.theory_map (Quickcheck.add_batch_validator ("exhaustive", compile_validator_exprs));

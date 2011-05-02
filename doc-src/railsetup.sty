@@ -21,22 +21,9 @@
 {\begin{list}{}{\rail@param}\def\rail@expand{\relax}\makeatletter}{\end{list}}
 
 
-%% old-style content markup
-
-\railalias{percent}{\%}
-\railalias{ppercent}{\%\%}
-\railalias{underscore}{\_}
-\railalias{lbrace}{\texttt{\ttlbrace}}
-\railalias{rbrace}{\texttt{\ttrbrace}}
-\railalias{atsign}{{\at}}
+%% content markup
 
 \def\rail@termfont{\small\ttfamily\upshape\isabellestyle{tt}}
-\def\rail@tokenfont{\small\ttfamily\upshape}
-\def\rail@nontfont{\small\rmfamily\upshape\isabellestyle{it}}
-\def\rail@annofont{\small\rmfamily\itshape}
+\def\rail@nontfont{\small\rmfamily\itshape\isabellestyle{it}}
 \def\rail@namefont{\small\rmfamily\itshape\isabellestyle{it}}
-\def\rail@indexfont{\small\rmfamily\itshape}
-\newcommand{\railtterm}[1]{{\texttt{#1}}}
-\newcommand{\railtok}[1]{{\textrm{#1}}}
-\newcommand{\railqtok}[1]{{\rmfamily\textsl{#1}}}
-\newcommand{\railnonterm}[1]{{\emph{#1}}}
+

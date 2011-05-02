@@ -14,8 +14,6 @@ ML {* Goal.parallel_proofs := 0 *}
 
 ML {* Toplevel.add_hook Mirabelle.step_hook *}
 
-setup Mirabelle.setup
-
 ML {*
 signature MIRABELLE_ACTION =
 sig

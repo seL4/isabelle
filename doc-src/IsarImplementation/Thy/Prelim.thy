@@ -593,14 +593,14 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML Config.get: "Proof.context -> 'a Config.T -> 'a"} \\
   @{index_ML Config.map: "'a Config.T -> ('a -> 'a) -> Proof.context -> Proof.context"} \\
-  @{index_ML Attrib.config_bool: "string -> (Context.generic -> bool) ->
-  bool Config.T * (theory -> theory)"} \\
-  @{index_ML Attrib.config_int: "string -> (Context.generic -> int) ->
-  int Config.T * (theory -> theory)"} \\
-  @{index_ML Attrib.config_real: "string -> (Context.generic -> real) ->
-  real Config.T * (theory -> theory)"} \\
-  @{index_ML Attrib.config_string: "string -> (Context.generic -> string) ->
-  string Config.T * (theory -> theory)"} \\
+  @{index_ML Attrib.setup_config_bool: "binding -> (Context.generic -> bool) ->
+  bool Config.T"} \\
+  @{index_ML Attrib.setup_config_int: "binding -> (Context.generic -> int) ->
+  int Config.T"} \\
+  @{index_ML Attrib.setup_config_real: "binding -> (Context.generic -> real) ->
+  real Config.T"} \\
+  @{index_ML Attrib.setup_config_string: "binding -> (Context.generic -> string) ->
+  string Config.T"} \\
   \end{mldecls}
 
   \begin{description}
@@ -611,13 +611,13 @@ text %mlref {*
   \item @{ML Config.map}~@{text "config f ctxt"} updates the context
   by updating the value of @{text "config"}.
 
-  \item @{text "(config, setup) ="}~@{ML Attrib.config_bool}~@{text
-  "name default"} creates a named configuration option of type
-  @{ML_type bool}, with the given @{text "default"} depending on the
-  application context.  The resulting @{text "config"} can be used to
-  get/map its value in a given context.  The @{text "setup"} function
-  needs to be applied to the theory initially, in order to make
-  concrete declaration syntax available to the user.
+  \item @{text "config ="}~@{ML Attrib.setup_config_bool}~@{text "name
+  default"} creates a named configuration option of type @{ML_type
+  bool}, with the given @{text "default"} depending on the application
+  context.  The resulting @{text "config"} can be used to get/map its
+  value in a given context.  There is an implicit update of the
+  background theory that registers the option as attribute with some
+  concrete syntax.
 
   \item @{ML Attrib.config_int}, @{ML Attrib.config_real}, and @{ML
   Attrib.config_string} work like @{ML Attrib.config_bool}, but for
@@ -631,10 +631,9 @@ text %mlex {* The following example shows how to declare and use a
   default value @{ML false}.  *}
 
 ML {*
-  val (my_flag, my_flag_setup) =
-    Attrib.config_bool "my_flag" (K false)
+  val my_flag =
+    Attrib.setup_config_bool @{binding my_flag} (K false)
 *}
-setup my_flag_setup
 
 text {* Now the user can refer to @{attribute my_flag} in
   declarations, while ML tools can retrieve the current value from the
@@ -659,10 +658,9 @@ text {* Here is another example involving ML type @{ML_type real}
   (floating-point numbers). *}
 
 ML {*
-  val (airspeed_velocity, airspeed_velocity_setup) =
-    Attrib.config_real "airspeed_velocity" (K 0.0)
+  val airspeed_velocity =
+    Attrib.setup_config_real @{binding airspeed_velocity} (K 0.0)
 *}
-setup airspeed_velocity_setup
 
 declare [[airspeed_velocity = 10]]
 declare [[airspeed_velocity = 9.9]]

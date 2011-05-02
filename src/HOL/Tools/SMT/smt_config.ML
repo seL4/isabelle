@@ -23,12 +23,10 @@ sig
   (*options*)
   val oracle: bool Config.T
   val datatypes: bool Config.T
-  val timeoutN: string
   val timeout: real Config.T
   val random_seed: int Config.T
   val fixed: bool Config.T
   val verbose: bool Config.T
-  val traceN: string
   val trace: bool Config.T
   val trace_used_facts: bool Config.T
   val monomorph_limit: int Config.T
@@ -149,75 +147,21 @@ val setup_solver =
 
 (* options *)
 
-val oracleN = "smt_oracle"
-val (oracle, setup_oracle) = Attrib.config_bool oracleN (K true)
-
-val datatypesN = "smt_datatypes"
-val (datatypes, setup_datatypes) = Attrib.config_bool datatypesN (K false)
-
-val timeoutN = "smt_timeout"
-val (timeout, setup_timeout) = Attrib.config_real timeoutN (K 30.0)
-
-val random_seedN = "smt_random_seed"
-val (random_seed, setup_random_seed) = Attrib.config_int random_seedN (K 1)
-
-val fixedN = "smt_fixed"
-val (fixed, setup_fixed) = Attrib.config_bool fixedN (K false)
-
-val verboseN = "smt_verbose"
-val (verbose, setup_verbose) = Attrib.config_bool verboseN (K true)
-
-val traceN = "smt_trace"
-val (trace, setup_trace) = Attrib.config_bool traceN (K false)
-
-val trace_used_factsN = "smt_trace_used_facts"
-val (trace_used_facts, setup_trace_used_facts) =
-  Attrib.config_bool trace_used_factsN (K false)
-
-val monomorph_limitN = "smt_monomorph_limit"
-val (monomorph_limit, setup_monomorph_limit) =
-  Attrib.config_int monomorph_limitN (K 10)
-
-val monomorph_instancesN = "smt_monomorph_instances"
-val (monomorph_instances, setup_monomorph_instances) =
-  Attrib.config_int monomorph_instancesN (K 500)
-
-val monomorph_fullN = "smt_monomorph_full"
-val (monomorph_full, setup_monomorph_full) =
-  Attrib.config_bool monomorph_fullN (K true)
-
-val infer_triggersN = "smt_infer_triggers"
-val (infer_triggers, setup_infer_triggers) =
-  Attrib.config_bool infer_triggersN (K false)
-
-val drop_bad_factsN = "smt_drop_bad_facts"
-val (drop_bad_facts, setup_drop_bad_facts) =
-  Attrib.config_bool drop_bad_factsN (K false)
-
-val filter_only_factsN = "smt_filter_only_facts"
-val (filter_only_facts, setup_filter_only_facts) =
-  Attrib.config_bool filter_only_factsN (K false)
-
-val debug_filesN = "smt_debug_files"
-val (debug_files, setup_debug_files) =
-  Attrib.config_string debug_filesN (K "")
-
-val setup_options =
-  setup_oracle #>
-  setup_datatypes #>
-  setup_timeout #>
-  setup_random_seed #>
-  setup_fixed #>
-  setup_trace #>
-  setup_verbose #>
-  setup_monomorph_limit #>
-  setup_monomorph_instances #>
-  setup_monomorph_full #>
-  setup_infer_triggers #>
-  setup_drop_bad_facts #>
-  setup_filter_only_facts #>
-  setup_trace_used_facts #>
-  setup_debug_files
+val oracle = Attrib.setup_config_bool @{binding smt_oracle} (K true)
+val datatypes = Attrib.setup_config_bool @{binding smt_datatypes} (K false)
+val timeout = Attrib.setup_config_real @{binding smt_timeout} (K 30.0)
+val random_seed = Attrib.setup_config_int @{binding smt_random_seed} (K 1)
+val fixed = Attrib.setup_config_bool @{binding smt_fixed} (K false)
+val verbose = Attrib.setup_config_bool @{binding smt_verbose} (K true)
+val trace = Attrib.setup_config_bool @{binding smt_trace} (K false)
+val trace_used_facts = Attrib.setup_config_bool @{binding smt_trace_used_facts} (K false)
+val monomorph_limit = Attrib.setup_config_int @{binding smt_monomorph_limit} (K 10)
+val monomorph_instances = Attrib.setup_config_int @{binding smt_monomorph_instances} (K 500)
+val monomorph_full = Attrib.setup_config_bool @{binding smt_monomorph_full} (K true)
+val infer_triggers = Attrib.setup_config_bool @{binding smt_infer_triggers} (K false)
+val drop_bad_facts = Attrib.setup_config_bool @{binding smt_drop_bad_facts} (K false)
+val filter_only_facts = Attrib.setup_config_bool @{binding smt_filter_only_facts} (K false)
+val debug_files = Attrib.setup_config_string @{binding smt_debug_files} (K "")
 
 
 (* diagnostics *)
@@ -269,7 +213,6 @@ val setup_certificates =
 
 val setup =
   setup_solver #>
-  setup_options #>
   setup_certificates
 
 fun print_setup ctxt =

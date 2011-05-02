@@ -40,19 +40,17 @@ sig
   val make_meta_clause: thm -> thm
   val make_meta_clauses: thm list -> thm list
   val meson_tac: Proof.context -> thm list -> int -> tactic
-  val setup : theory -> theory
 end
 
 structure Meson : MESON =
 struct
 
-val (trace, trace_setup) = Attrib.config_bool "meson_trace" (K false)
+val trace = Attrib.setup_config_bool @{binding meson_trace} (K false)
 
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 
 val max_clauses_default = 60
-val (max_clauses, max_clauses_setup) =
-  Attrib.config_int "meson_max_clauses" (K max_clauses_default)
+val max_clauses = Attrib.setup_config_int @{binding meson_max_clauses} (K max_clauses_default)
 
 (*No known example (on 1-5-2007) needs even thirty*)
 val iter_deepen_limit = 50;
@@ -737,9 +735,5 @@ fun make_meta_clause th =
 fun make_meta_clauses ths =
     name_thms "MClause#"
       (distinct Thm.eq_thm_prop (map make_meta_clause ths));
-
-val setup =
-  trace_setup
-  #> max_clauses_setup
 
 end;

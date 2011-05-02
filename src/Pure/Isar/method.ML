@@ -218,7 +218,7 @@ end;
 
 (* rule etc. -- single-step refinements *)
 
-val (rule_trace, rule_trace_setup) = Attrib.config_bool "rule_trace" (fn _ => false);
+val rule_trace = Attrib.setup_config_bool (Binding.name "rule_trace") (fn _ => false);
 
 fun trace ctxt rules =
   if Config.get ctxt rule_trace andalso not (null rules) then
@@ -441,8 +441,7 @@ in val parse = meth3 end;
 (* theory setup *)
 
 val _ = Context.>> (Context.map_theory
- (rule_trace_setup #>
-  setup (Binding.name "fail") (Scan.succeed (K fail)) "force failure" #>
+ (setup (Binding.name "fail") (Scan.succeed (K fail)) "force failure" #>
   setup (Binding.name "succeed") (Scan.succeed (K succeed)) "succeed" #>
   setup (Binding.name "-") (Scan.succeed (K insert_facts))
     "do nothing (insert current facts only)" #>
