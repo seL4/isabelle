@@ -111,6 +111,9 @@ fun string_for_symbol_type [] res_ty = res_ty
   | string_for_symbol_type arg_tys res_ty =
     string_for_symbol_type ["(" ^ space_implode " * " arg_tys ^ ")"] res_ty
 
+val default_source =
+  ATerm ("inference", ATerm ("isabelle", []) :: replicate 2 (ATerm ("[]", [])))
+
 fun string_for_problem_line _ _ (Decl (ident, sym, arg_tys, res_ty)) =
     "tff(" ^ ident ^ ", type,\n    " ^ sym ^ " : " ^
     string_for_symbol_type arg_tys res_ty ^ ").\n"
@@ -130,7 +133,7 @@ fun string_for_problem_line _ _ (Decl (ident, sym, arg_tys, res_ty)) =
          (NONE, NONE) => ""
        | (SOME tm, NONE) => ", " ^ string_for_term tm
        | (_, SOME tm) =>
-         ", " ^ string_for_term (source |> the_default (ATerm ("[]", []))) ^
+         ", " ^ string_for_term (source |> the_default default_source) ^
          ", " ^ string_for_term tm) ^ ").\n"
     end
 fun tptp_strings_for_atp_problem hypothesis_kind format problem =
