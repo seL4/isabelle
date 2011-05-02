@@ -1,6 +1,4 @@
 #
-# $Id$
-#
 # Common part for Doc Makefiles
 #
 
@@ -9,7 +7,6 @@
 LATEX = latex
 PDFLATEX = pdflatex
 BIBTEX = bibtex
-RAIL = rail -a
 SEDINDEX = ../sedindex
 FIXBOOKMARKS = perl -pi ../fixbookmarks.pl
 
