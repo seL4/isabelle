@@ -401,11 +401,13 @@ fun parse_spass_line x =
           Inference ((num, NONE), u, map (rpair NONE) deps))) x
 
 fun parse_line x = (parse_tstp_line || parse_vampire_line || parse_spass_line) x
-val parse_proof =
-  fst o Scan.finite Symbol.stopper
-            (Scan.error (!! (fn _ => raise Fail "unrecognized ATP output")
-                            (Scan.repeat1 parse_line)))
-  o raw_explode o strip_spaces_except_between_ident_chars
+fun parse_proof s =
+  s |> strip_spaces_except_between_ident_chars
+    |> raw_explode
+    |> Scan.finite Symbol.stopper
+           (Scan.error (!! (fn _ => raise Fail "unrecognized ATP output")
+                           (Scan.repeat1 parse_line)))
+    |> fst
 
 fun clean_up_dependency seen dep = find_first (curry is_same_step dep) seen
 fun clean_up_dependencies _ [] = []
