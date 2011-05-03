@@ -362,8 +362,8 @@ fun remotify_config system_name system_versions
                       best_slices, best_type_systems, ...} : atp_config)
                     : atp_config =
   remote_config system_name system_versions proof_delims known_failures
-                hypothesis_kind formats
-                (int_average (snd o snd) o best_slices) best_type_systems
+                hypothesis_kind formats (int_average (snd o snd) o best_slices)
+                best_type_systems
 
 fun remote_atp name system_name system_versions proof_delims known_failures
                hypothesis_kind formats best_max_relevant best_type_systems =
