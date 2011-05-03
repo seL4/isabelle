@@ -253,14 +253,14 @@ text {*
   \medskip The most basic export rule discharges assumptions directly
   by means of the @{text "\<Longrightarrow>"} introduction rule:
   \[
-  \infer[(@{text "\<Longrightarrow>\<dash>intro"})]{@{text "\<Gamma> - A \<turnstile> A \<Longrightarrow> B"}}{@{text "\<Gamma> \<turnstile> B"}}
+  \infer[(@{text "\<Longrightarrow>\<hyphen>intro"})]{@{text "\<Gamma> - A \<turnstile> A \<Longrightarrow> B"}}{@{text "\<Gamma> \<turnstile> B"}}
   \]
 
   The variant for goal refinements marks the newly introduced
   premises, which causes the canonical Isar goal refinement scheme to
   enforce unification with local premises within the goal:
   \[
-  \infer[(@{text "#\<Longrightarrow>\<dash>intro"})]{@{text "\<Gamma> - A \<turnstile> #A \<Longrightarrow> B"}}{@{text "\<Gamma> \<turnstile> B"}}
+  \infer[(@{text "#\<Longrightarrow>\<hyphen>intro"})]{@{text "\<Gamma> - A \<turnstile> #A \<Longrightarrow> B"}}{@{text "\<Gamma> \<turnstile> B"}}
   \]
 
   \medskip Alternative versions of assumptions may perform arbitrary
@@ -269,7 +269,7 @@ text {*
   definition works by fixing @{text "x"} and assuming @{text "x \<equiv> t"},
   with the following export rule to reverse the effect:
   \[
-  \infer[(@{text "\<equiv>\<dash>expand"})]{@{text "\<Gamma> - (x \<equiv> t) \<turnstile> B t"}}{@{text "\<Gamma> \<turnstile> B x"}}
+  \infer[(@{text "\<equiv>\<hyphen>expand"})]{@{text "\<Gamma> - (x \<equiv> t) \<turnstile> B t"}}{@{text "\<Gamma> \<turnstile> B x"}}
   \]
   This works, because the assumption @{text "x \<equiv> t"} was introduced in
   a context with @{text "x"} being fresh, so @{text "x"} does not
@@ -307,7 +307,7 @@ text %mlref {*
 
   \item @{ML Assumption.add_assumes}~@{text "As"} is a special case of
   @{ML Assumption.add_assms} where the export rule performs @{text
-  "\<Longrightarrow>\<dash>intro"} or @{text "#\<Longrightarrow>\<dash>intro"}, depending on goal
+  "\<Longrightarrow>\<hyphen>intro"} or @{text "#\<Longrightarrow>\<hyphen>intro"}, depending on goal
   mode.
 
   \item @{ML Assumption.export}~@{text "is_goal inner outer thm"}

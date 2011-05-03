@@ -517,14 +517,14 @@ text {*
   \infer[@{text "(assume)"}]{@{text "A \<turnstile> A"}}{}
   \]
   \[
-  \infer[@{text "(\<And>\<dash>intro)"}]{@{text "\<Gamma> \<turnstile> \<And>x. b[x]"}}{@{text "\<Gamma> \<turnstile> b[x]"} & @{text "x \<notin> \<Gamma>"}}
+  \infer[@{text "(\<And>\<hyphen>intro)"}]{@{text "\<Gamma> \<turnstile> \<And>x. b[x]"}}{@{text "\<Gamma> \<turnstile> b[x]"} & @{text "x \<notin> \<Gamma>"}}
   \qquad
-  \infer[@{text "(\<And>\<dash>elim)"}]{@{text "\<Gamma> \<turnstile> b[a]"}}{@{text "\<Gamma> \<turnstile> \<And>x. b[x]"}}
+  \infer[@{text "(\<And>\<hyphen>elim)"}]{@{text "\<Gamma> \<turnstile> b[a]"}}{@{text "\<Gamma> \<turnstile> \<And>x. b[x]"}}
   \]
   \[
-  \infer[@{text "(\<Longrightarrow>\<dash>intro)"}]{@{text "\<Gamma> - A \<turnstile> A \<Longrightarrow> B"}}{@{text "\<Gamma> \<turnstile> B"}}
+  \infer[@{text "(\<Longrightarrow>\<hyphen>intro)"}]{@{text "\<Gamma> - A \<turnstile> A \<Longrightarrow> B"}}{@{text "\<Gamma> \<turnstile> B"}}
   \qquad
-  \infer[@{text "(\<Longrightarrow>\<dash>elim)"}]{@{text "\<Gamma>\<^sub>1 \<union> \<Gamma>\<^sub>2 \<turnstile> B"}}{@{text "\<Gamma>\<^sub>1 \<turnstile> A \<Longrightarrow> B"} & @{text "\<Gamma>\<^sub>2 \<turnstile> A"}}
+  \infer[@{text "(\<Longrightarrow>\<hyphen>elim)"}]{@{text "\<Gamma>\<^sub>1 \<union> \<Gamma>\<^sub>2 \<turnstile> B"}}{@{text "\<Gamma>\<^sub>1 \<turnstile> A \<Longrightarrow> B"} & @{text "\<Gamma>\<^sub>2 \<turnstile> A"}}
   \]
   \caption{Primitive inferences of Pure}\label{fig:prim-rules}
   \end{center}
@@ -554,7 +554,7 @@ text {*
   \cite{Berghofer-Nipkow:2000:TPHOL}).
 
   Observe that locally fixed parameters (as in @{text
-  "\<And>\<dash>intro"}) need not be recorded in the hypotheses, because
+  "\<And>\<hyphen>intro"}) need not be recorded in the hypotheses, because
   the simple syntactic types of Pure are always inhabitable.
   ``Assumptions'' @{text "x :: \<tau>"} for type-membership are only
   present as long as some @{text "x\<^isub>\<tau>"} occurs in the statement

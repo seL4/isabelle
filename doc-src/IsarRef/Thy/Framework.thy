@@ -424,7 +424,7 @@ text {*
   \infer[(@{inference refinement})]
   {@{text "(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> \<^vec>G' (\<^vec>a \<^vec>x))\<vartheta> \<Longrightarrow> C\<vartheta>"}}
   {\begin{tabular}{rl}
-    @{text "sub\<dash>proof:"} &
+    @{text "sub\<hyphen>proof:"} &
     @{text "\<^vec>G \<^vec>a \<Longrightarrow> B \<^vec>a"} \\
     @{text "goal:"} &
     @{text "(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> B' \<^vec>x) \<Longrightarrow> C"} \\
@@ -436,7 +436,7 @@ text {*
    \end{tabular}}
   \]
 
-  \noindent Here the @{text "sub\<dash>proof"} rule stems from the
+  \noindent Here the @{text "sub\<hyphen>proof"} rule stems from the
   main @{command fix}-@{command assume}-@{command show} outline of
   Isar (cf.\ \secref{sec:framework-subproof}): each assumption
   indicated in the text results in a marked premise @{text "G"} above.
@@ -466,7 +466,7 @@ text {*
 
   \medskip
   \begin{tabular}{rcl}
-    @{text "theory\<dash>stmt"} & = & @{command "theorem"}~@{text "statement proof  |"}~~@{command "definition"}~@{text "\<dots>  |  \<dots>"} \\[1ex]
+    @{text "theory\<hyphen>stmt"} & = & @{command "theorem"}~@{text "statement proof  |"}~~@{command "definition"}~@{text "\<dots>  |  \<dots>"} \\[1ex]
 
     @{text "proof"} & = & @{text "prfx\<^sup>*"}~@{command "proof"}~@{text "method\<^sup>? stmt\<^sup>*"}~@{command "qed"}~@{text "method\<^sup>?"} \\[1ex]
 
@@ -582,7 +582,7 @@ text {*
 
   \medskip
   \begin{tabular}{rcl}
-    @{command presume}~@{text A} & @{text "\<equiv>"} & @{command assume}~@{text "\<guillemotleft>weak\<dash>discharge\<guillemotright> A"} \\
+    @{command presume}~@{text A} & @{text "\<equiv>"} & @{command assume}~@{text "\<guillemotleft>weak\<hyphen>discharge\<guillemotright> A"} \\
     @{command def}~@{text "x \<equiv> a"} & @{text "\<equiv>"} & @{command fix}~@{text x}~@{command assume}~@{text "\<guillemotleft>expansion\<guillemotright> x \<equiv> a"} \\
   \end{tabular}
   \medskip
@@ -591,14 +591,14 @@ text {*
   \infer[(@{inference_def discharge})]{@{text "\<strut>\<Gamma> - A \<turnstile> #A \<Longrightarrow> B"}}{@{text "\<strut>\<Gamma> \<turnstile> B"}}
   \]
   \[
-  \infer[(@{inference_def "weak\<dash>discharge"})]{@{text "\<strut>\<Gamma> - A \<turnstile> A \<Longrightarrow> B"}}{@{text "\<strut>\<Gamma> \<turnstile> B"}}
+  \infer[(@{inference_def "weak\<hyphen>discharge"})]{@{text "\<strut>\<Gamma> - A \<turnstile> A \<Longrightarrow> B"}}{@{text "\<strut>\<Gamma> \<turnstile> B"}}
   \]
   \[
   \infer[(@{inference_def expansion})]{@{text "\<strut>\<Gamma> - (x \<equiv> a) \<turnstile> B a"}}{@{text "\<strut>\<Gamma> \<turnstile> B x"}}
   \]
 
   \medskip Note that @{inference discharge} and @{inference
-  "weak\<dash>discharge"} differ in the marker for @{prop A}, which is
+  "weak\<hyphen>discharge"} differ in the marker for @{prop A}, which is
   relevant when the result of a @{command fix}-@{command
   assume}-@{command show} outline is composed with a pending goal,
   cf.\ \secref{sec:framework-subproof}.
