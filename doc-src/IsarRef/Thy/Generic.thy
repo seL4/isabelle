@@ -4,7 +4,7 @@ begin
 
 chapter {* Generic tools and packages \label{ch:gen-tools} *}
 
-section {* Configuration options *}
+section {* Configuration options \label{sec:config} *}
 
 text {* Isabelle/Pure maintains a record of named configuration
   options within the theory or proof context, with values of type
@@ -14,9 +14,18 @@ text {* Isabelle/Pure maintains a record of named configuration
   are easily avoided.  The user may change the value of a
   configuration option by means of an associated attribute of the same
   name.  This form of context declaration works particularly well with
-  commands such as @{command "declare"} or @{command "using"}.
+  commands such as @{command "declare"} or @{command "using"} like
+  this:
+*}
 
-  For historical reasons, some tools cannot take the full proof
+declare [[show_main_goal = false]]
+
+notepad
+begin
+  note [[show_main_goal = true]]
+end
+
+text {* For historical reasons, some tools cannot take the full proof
   context into account and merely refer to the background theory.
   This is accommodated by configuration options being declared as
   ``global'', which may not be changed within a local context.

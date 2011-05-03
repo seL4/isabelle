@@ -94,70 +94,64 @@ text {*
 subsection {* Details of printed content *}
 
 text {*
-  \begin{mldecls} 
-    @{index_ML show_types: "bool Config.T"} & default @{ML false} \\
-    @{index_ML show_sorts: "bool Config.T"} & default @{ML false} \\
-    @{index_ML show_consts: "bool Config.T"} & default @{ML false} \\
-    @{index_ML show_abbrevs: "bool Config.T"} & default @{ML true} \\
-    @{index_ML show_brackets: "bool Config.T"} & default @{ML false} \\
-    @{index_ML Name_Space.long_names: "bool Config.T"} & default @{ML false} \\
-    @{index_ML Name_Space.short_names: "bool Config.T"} & default @{ML false} \\
-    @{index_ML Name_Space.unique_names: "bool Config.T"} & default @{ML true} \\
-    @{index_ML eta_contract: "bool Config.T"} & default @{ML true} \\
-    @{index_ML Goal_Display.goals_limit: "int Config.T"} & default @{ML 10} \\
-    @{index_ML Goal_Display.show_main_goal: "bool Config.T"} & default @{ML false} \\
-    @{index_ML show_hyps: "bool Config.T"} & default @{ML false} \\
-    @{index_ML show_tags: "bool Config.T"} & default @{ML false} \\
-    @{index_ML show_question_marks: "bool Config.T"} & default @{ML true} \\
-  \end{mldecls}
+  \begin{tabular}{rcll}
+    @{attribute_def show_types} & : & @{text attribute} & default @{text false} \\
+    @{attribute_def show_sorts} & : & @{text attribute} & default @{text false} \\
+    @{attribute_def show_consts} & : & @{text attribute} & default @{text false} \\
+    @{attribute_def show_abbrevs} & : & @{text attribute} & default @{text true} \\
+    @{attribute_def show_brackets} & : & @{text attribute} & default @{text false} \\
+    @{attribute_def long_names} & : & @{text attribute} & default @{text false} \\
+    @{attribute_def short_names} & : & @{text attribute} & default @{text false} \\
+    @{attribute_def unique_names} & : & @{text attribute} & default @{text true} \\
+    @{attribute_def eta_contract} & : & @{text attribute} & default @{text true} \\
+    @{attribute_def goals_limit} & : & @{text attribute} & default @{text 10} \\
+    @{attribute_def show_main_goal} & : & @{text attribute} & default @{text false} \\
+    @{attribute_def show_hyps} & : & @{text attribute} & default @{text false} \\
+    @{attribute_def show_tags} & : & @{text attribute} & default @{text false} \\
+    @{attribute_def show_question_marks} & : & @{text attribute} & default @{text true} \\
+  \end{tabular}
+  \medskip
 
-  These global ML variables control the detail of information that is
-  displayed for types, terms, theorems, goals etc.
-
-  In interactive sessions, the user interface usually manages these
-  global parameters of the Isabelle process, even with some concept of
-  persistence.  Nonetheless it is occasionally useful to manipulate ML
-  variables directly, e.g.\ using @{command "ML_val"} or @{command
-  "ML_command"}.
-
-  Batch-mode logic sessions may be configured by putting appropriate
-  ML text directly into the @{verbatim ROOT.ML} file.
+  These configuration options control the detail of information that
+  is displayed for types, terms, theorems, goals etc.  See also
+  \secref{sec:config}.
 
   \begin{description}
 
-  \item @{ML show_types} and @{ML show_sorts} control printing of type
-  constraints for term variables, and sort constraints for type
-  variables.  By default, neither of these are shown in output.  If
-  @{ML show_sorts} is set to @{ML true}, types are always shown as
-  well.
+  \item @{attribute show_types} and @{attribute show_sorts} control
+  printing of type constraints for term variables, and sort
+  constraints for type variables.  By default, neither of these are
+  shown in output.  If @{attribute show_sorts} is enabled, types are
+  always shown as well.
 
   Note that displaying types and sorts may explain why a polymorphic
   inference rule fails to resolve with some goal, or why a rewrite
   rule does not apply as expected.
 
-  \item @{ML show_consts} controls printing of types of constants when
-  displaying a goal state.
+  \item @{attribute show_consts} controls printing of types of
+  constants when displaying a goal state.
 
   Note that the output can be enormous, because polymorphic constants
   often occur at several different type instances.
 
-  \item @{ML show_abbrevs} controls folding of constant abbreviations.
+  \item @{attribute show_abbrevs} controls folding of constant
+  abbreviations.
 
-  \item @{ML show_brackets} controls bracketing in pretty printed
-  output.  If set to @{ML true}, all sub-expressions of the pretty
+  \item @{attribute show_brackets} controls bracketing in pretty
+  printed output.  If enabled, all sub-expressions of the pretty
   printing tree will be parenthesized, even if this produces malformed
   term syntax!  This crude way of showing the internal structure of
   pretty printed entities may occasionally help to diagnose problems
   with operator priorities, for example.
 
-  \item @{ML Name_Space.long_names}, @{ML Name_Space.short_names}, and
-  @{ML Name_Space.unique_names} control the way of printing fully
+  \item @{attribute long_names}, @{attribute short_names}, and
+  @{attribute unique_names} control the way of printing fully
   qualified internal names in external form.  See also
   \secref{sec:antiq} for the document antiquotation options of the
   same names.
 
-  \item @{ML eta_contract} controls @{text "\<eta>"}-contracted printing of
-  terms.
+  \item @{attribute eta_contract} controls @{text "\<eta>"}-contracted
+  printing of terms.
 
   The @{text \<eta>}-contraction law asserts @{prop "(\<lambda>x. f x) \<equiv> f"},
   provided @{text x} is not free in @{text f}.  It asserts
@@ -167,7 +161,7 @@ text {*
   F} has type @{text "(\<tau> \<Rightarrow> \<tau>) \<Rightarrow> \<tau>"} then its expanded form is @{term
   "\<lambda>h. F (\<lambda>x. h x)"}.
 
-  Setting @{ML eta_contract} makes Isabelle perform @{text
+  Enabling @{attribute eta_contract} makes Isabelle perform @{text
   \<eta>}-contractions before printing, so that @{term "\<lambda>h. F (\<lambda>x. h x)"}
   appears simply as @{text F}.
 
@@ -176,33 +170,34 @@ text {*
   rewriting operate modulo @{text "\<alpha>\<beta>\<eta>"}-conversion, some other tools
   might look at terms more discretely.
 
-  \item @{ML Goal_Display.goals_limit} controls the maximum number of
+  \item @{attribute goals_limit} controls the maximum number of
   subgoals to be shown in goal output.
 
-  \item @{ML Goal_Display.show_main_goal} controls whether the main
-  result to be proven should be displayed.  This information might be
+  \item @{attribute show_main_goal} controls whether the main result
+  to be proven should be displayed.  This information might be
   relevant for schematic goals, to inspect the current claim that has
   been synthesized so far.
 
-  \item @{ML show_hyps} controls printing of implicit hypotheses of
-  local facts.  Normally, only those hypotheses are displayed that are
-  \emph{not} covered by the assumptions of the current context: this
-  situation indicates a fault in some tool being used.
+  \item @{attribute show_hyps} controls printing of implicit
+  hypotheses of local facts.  Normally, only those hypotheses are
+  displayed that are \emph{not} covered by the assumptions of the
+  current context: this situation indicates a fault in some tool being
+  used.
 
-  By setting @{ML show_hyps} to @{ML true}, output of \emph{all}
-  hypotheses can be enforced, which is occasionally useful for
-  diagnostic purposes.
+  By enabling @{attribute show_hyps}, output of \emph{all} hypotheses
+  can be enforced, which is occasionally useful for diagnostic
+  purposes.
 
-  \item @{ML show_tags} controls printing of extra annotations within
-  theorems, such as internal position information, or the case names
-  being attached by the attribute @{attribute case_names}.
+  \item @{attribute show_tags} controls printing of extra annotations
+  within theorems, such as internal position information, or the case
+  names being attached by the attribute @{attribute case_names}.
 
   Note that the @{attribute tagged} and @{attribute untagged}
   attributes provide low-level access to the collection of tags
   associated with a theorem.
 
-  \item @{ML show_question_marks} controls printing of question marks
-  for schematic variables, such as @{text ?x}.  Only the leading
+  \item @{attribute show_question_marks} controls printing of question
+  marks for schematic variables, such as @{text ?x}.  Only the leading
   question mark is affected, the remaining text is unchanged
   (including proper markup for schematic variables that might be
   relevant for user interfaces).
