@@ -167,7 +167,7 @@ val no_qualifiers =
       | keep (c :: cs) = c :: keep cs
   in String.explode #> rev #> keep #> rev #> String.implode end
 
-val max_readable_name_length = 24
+val max_readable_name_size = 24
 
 (* "op" is also reserved, to avoid the unreadable "op_1", "op_2", etc., in the
    problem files. "equal" is reserved by some ATPs. "eq" is reserved to ensure
@@ -184,10 +184,11 @@ fun readable_name full_name s =
       |> (fn s => if Char.isDigit (String.sub (s, size s - 1)) then s ^ "_"
                   else s)
       |> (fn s =>
-             if size s > max_readable_name_length then
-               String.substring (s, 0, max_readable_name_length div 2 - 4) ^
+             if size s > max_readable_name_size then
+               String.substring (s, 0, max_readable_name_size div 2 - 4) ^
                Word.toString (hashw_string (full_name, 0w0)) ^
-               String.extract (s, max_readable_name_length div 2 + 4, NONE)
+               String.extract (s, size s - max_readable_name_size div 2 + 4,
+                               NONE)
              else
                s)
       |> (fn s => if member (op =) reserved_nice_names s then full_name else s)
