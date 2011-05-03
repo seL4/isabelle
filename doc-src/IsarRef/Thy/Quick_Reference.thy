@@ -29,7 +29,7 @@ text {*
 
   \begin{tabular}{rcl}
     @{text "proof"} & = & @{text "prfx\<^sup>*"}~@{command "proof"}~@{text "method\<^sup>? stmt\<^sup>*"}~@{command "qed"}~@{text "method\<^sup>?"} \\
-    & @{text "|"} & @{text "prfx\<^sup>*"}~@{command "done"} \\[0.5ex]
+    & @{text "|"} & @{text "prfx\<^sup>*"}~@{command "done"} \\
     @{text prfx} & = & @{command "apply"}~@{text method} \\
     & @{text "|"} & @{command "using"}~@{text "facts"} \\
     & @{text "|"} & @{command "unfolding"}~@{text "facts"} \\
@@ -58,7 +58,7 @@ text {*
     @{command "hence"} & @{text "\<equiv>"} & @{command "then"}~@{command "have"} \\
     @{command "thus"} & @{text "\<equiv>"} & @{command "then"}~@{command "show"} \\
     @{command "from"}~@{text a} & @{text "\<equiv>"} & @{command "note"}~@{text a}~@{command "then"} \\
-    @{command "with"}~@{text a} & @{text "\<equiv>"} & @{command "from"}~@{text "a \<AND> this"} \\[0.5ex]
+    @{command "with"}~@{text a} & @{text "\<equiv>"} & @{command "from"}~@{text "a \<AND> this"} \\
     @{command "from"}~@{text this} & @{text "\<equiv>"} & @{command "then"} \\
     @{command "from"}~@{text this}~@{command "have"} & @{text "\<equiv>"} & @{command "hence"} \\
     @{command "from"}~@{text this}~@{command "show"} & @{text "\<equiv>"} & @{command "thus"} \\
@@ -141,7 +141,7 @@ section {* Attributes *}
 
 text {*
   \begin{tabular}{ll}
-    \multicolumn{2}{l}{\textbf{Operations}} \\[0.5ex]
+    \multicolumn{2}{l}{\textbf{Rules}} \\[0.5ex]
     @{attribute OF}~@{text a} & rule resolved with facts (skipping ``@{text _}'') \\
     @{attribute of}~@{text t} & rule instantiated with terms (skipping ``@{text _}'') \\
     @{attribute "where"}~@{text "x = t"} & rule instantiated with terms, by variable name \\
