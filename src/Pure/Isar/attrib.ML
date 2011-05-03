@@ -441,9 +441,9 @@ val _ = Context.>> (Context.map_theory
   register_config Printer.show_question_marks_raw #>
   register_config Syntax.ambiguity_level_raw #>
   register_config Syntax_Trans.eta_contract_raw #>
-  register_config Name_Space.long_names_raw #>
-  register_config Name_Space.short_names_raw #>
-  register_config Name_Space.unique_names_raw #>
+  register_config Name_Space.names_long_raw #>
+  register_config Name_Space.names_short_raw #>
+  register_config Name_Space.names_unique_raw #>
   register_config ML_Context.trace_raw #>
   register_config Proof_Context.show_abbrevs_raw #>
   register_config Goal_Display.goals_limit_raw #>

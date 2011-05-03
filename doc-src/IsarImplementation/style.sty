@@ -64,15 +64,8 @@
 \newcommand{\isasymTHEOREM}{\isakeyword{theorem}}
 \newcommand{\isasymDEFINITION}{\isakeyword{definition}}
 
-\isabellestyle{it}
-\newcommand{\isasymdash}{\mbox{-}}
+\isabellestyle{itunderscore}
 
-\underscoreon
-\newcommand{\setupunderscore}{\def\isacharunderscore{\_}\def\isacharunderscorekeyword{\_}}
-\setupunderscore
-
-\makeatletter
-\def\rail@termfont{\isabellestyle{tt}\setupunderscore}
-\def\rail@nontfont{\isabellestyle{it}\setupunderscore}
-\def\rail@namefont{\isabellestyle{it}\setupunderscore}
-\makeatother
+\railtermfont{\isabellestyle{tt}}
+\railnontermfont{\isabellestyle{itunderscore}}
+\railnamefont{\isabellestyle{itunderscore}}

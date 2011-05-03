@@ -22,6 +22,6 @@ end
 
 setup {* Code_Target.set_default_code_width 74 *}
 
-declare [[unique_names = false]]
+declare [[names_unique = false]]
 
 end

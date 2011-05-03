@@ -103,7 +103,7 @@ Isabelle/Isar provides a simple document preparation system
   syntax.
 
   \begin{railoutput}
-\rail@begin{5}{\isa{}}
+\rail@begin{5}{}
 \rail@bar
 \rail@term{\hyperlink{command.chapter}{\mbox{\isa{\isacommand{chapter}}}}}[]
 \rail@nextbar{1}
@@ -121,7 +121,7 @@ Isabelle/Isar provides a simple document preparation system
 \rail@endbar
 \rail@nont{\hyperlink{syntax.text}{\mbox{\isa{text}}}}[]
 \rail@end
-\rail@begin{7}{\isa{}}
+\rail@begin{7}{}
 \rail@bar
 \rail@term{\hyperlink{command.header}{\mbox{\isa{\isacommand{header}}}}}[]
 \rail@nextbar{1}
@@ -230,7 +230,7 @@ Isabelle/Isar provides a simple document preparation system
   context.
 
   \begin{railoutput}
-\rail@begin{1}{\isa{}}
+\rail@begin{1}{}
 \rail@term{\isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}}}[]
 \rail@nont{\isa{antiquotation}}[]
 \rail@term{\isa{{\isaliteral{7D}{\isacharbraceright}}}}[]
@@ -497,16 +497,16 @@ The following options are available to tune the printed output
   \item \indexdef{}{antiquotation option}{show\_abbrevs}\hypertarget{antiquotation option.show-abbrevs}{\hyperlink{antiquotation option.show-abbrevs}{\mbox{\isa{show{\isaliteral{5F}{\isacharunderscore}}abbrevs}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3D}{\isacharequal}}\ bool{\isaliteral{22}{\isachardoublequote}}}
   controls folding of abbreviations.
 
-  \item \indexdef{}{antiquotation option}{long\_names}\hypertarget{antiquotation option.long-names}{\hyperlink{antiquotation option.long-names}{\mbox{\isa{long{\isaliteral{5F}{\isacharunderscore}}names}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3D}{\isacharequal}}\ bool{\isaliteral{22}{\isachardoublequote}}} forces
+  \item \indexdef{}{antiquotation option}{names\_long}\hypertarget{antiquotation option.names-long}{\hyperlink{antiquotation option.names-long}{\mbox{\isa{names{\isaliteral{5F}{\isacharunderscore}}long}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3D}{\isacharequal}}\ bool{\isaliteral{22}{\isachardoublequote}}} forces
   names of types and constants etc.\ to be printed in their fully
   qualified internal form.
 
-  \item \indexdef{}{antiquotation option}{short\_names}\hypertarget{antiquotation option.short-names}{\hyperlink{antiquotation option.short-names}{\mbox{\isa{short{\isaliteral{5F}{\isacharunderscore}}names}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3D}{\isacharequal}}\ bool{\isaliteral{22}{\isachardoublequote}}}
+  \item \indexdef{}{antiquotation option}{names\_short}\hypertarget{antiquotation option.names-short}{\hyperlink{antiquotation option.names-short}{\mbox{\isa{names{\isaliteral{5F}{\isacharunderscore}}short}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3D}{\isacharequal}}\ bool{\isaliteral{22}{\isachardoublequote}}}
   forces names of types and constants etc.\ to be printed unqualified.
   Note that internalizing the output again in the current context may
   well yield a different result.
 
-  \item \indexdef{}{antiquotation option}{unique\_names}\hypertarget{antiquotation option.unique-names}{\hyperlink{antiquotation option.unique-names}{\mbox{\isa{unique{\isaliteral{5F}{\isacharunderscore}}names}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3D}{\isacharequal}}\ bool{\isaliteral{22}{\isachardoublequote}}}
+  \item \indexdef{}{antiquotation option}{names\_unique}\hypertarget{antiquotation option.names-unique}{\hyperlink{antiquotation option.names-unique}{\mbox{\isa{names{\isaliteral{5F}{\isacharunderscore}}unique}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3D}{\isacharequal}}\ bool{\isaliteral{22}{\isachardoublequote}}}
   determines whether the printed version of qualified names should be
   made sufficiently long to avoid overlap with names declared further
   back.  Set to \isa{false} for more concise output.
@@ -642,7 +642,7 @@ Each Isabelle/Isar command may be decorated by additional
   \end{matharray}
 
   \begin{railoutput}
-\rail@begin{1}{\isa{}}
+\rail@begin{1}{}
 \rail@term{\isa{rail}}[]
 \rail@nont{\isa{string}}[]
 \rail@end
@@ -658,7 +658,7 @@ Each Isabelle/Isar command may be decorated by additional
   The rail specification language is quoted here as Isabelle \hyperlink{syntax.string}{\mbox{\isa{string}}}; it has its own grammar given below.
 
   \begin{railoutput}
-\rail@begin{3}{\isa{}}
+\rail@begin{3}{}
 \rail@plus
 \rail@bar
 \rail@nextbar{1}
@@ -750,7 +750,7 @@ Each Isabelle/Isar command may be decorated by additional
   \item Empty \verb|()|
 
   \begin{railoutput}
-\rail@begin{1}{\isa{}}
+\rail@begin{1}{}
 \rail@end
 \end{railoutput}
 
@@ -758,7 +758,7 @@ Each Isabelle/Isar command may be decorated by additional
   \item Nonterminal \verb|A|
 
   \begin{railoutput}
-\rail@begin{1}{\isa{}}
+\rail@begin{1}{}
 \rail@nont{\isa{A}}[]
 \rail@end
 \end{railoutput}
@@ -768,7 +768,7 @@ Each Isabelle/Isar command may be decorated by additional
   \verb|@{syntax method}|
 
   \begin{railoutput}
-\rail@begin{1}{\isa{}}
+\rail@begin{1}{}
 \rail@nont{\hyperlink{syntax.method}{\mbox{\isa{method}}}}[]
 \rail@end
 \end{railoutput}
@@ -777,7 +777,7 @@ Each Isabelle/Isar command may be decorated by additional
   \item Terminal \verb|'xyz'|
 
   \begin{railoutput}
-\rail@begin{1}{\isa{}}
+\rail@begin{1}{}
 \rail@term{\isa{xyz}}[]
 \rail@end
 \end{railoutput}
@@ -786,7 +786,7 @@ Each Isabelle/Isar command may be decorated by additional
   \item Terminal in keyword style \verb|@'xyz'|
 
   \begin{railoutput}
-\rail@begin{1}{\isa{}}
+\rail@begin{1}{}
 \rail@term{\isa{\isakeyword{xyz}}}[]
 \rail@end
 \end{railoutput}
@@ -796,7 +796,7 @@ Each Isabelle/Isar command may be decorated by additional
   \verb|@@{method rule}|
 
   \begin{railoutput}
-\rail@begin{1}{\isa{}}
+\rail@begin{1}{}
 \rail@term{\hyperlink{method.rule}{\mbox{\isa{rule}}}}[]
 \rail@end
 \end{railoutput}
@@ -805,7 +805,7 @@ Each Isabelle/Isar command may be decorated by additional
   \item Concatenation \verb|A B C|
 
   \begin{railoutput}
-\rail@begin{1}{\isa{}}
+\rail@begin{1}{}
 \rail@nont{\isa{A}}[]
 \rail@nont{\isa{B}}[]
 \rail@nont{\isa{C}}[]
@@ -819,7 +819,7 @@ Each Isabelle/Isar command may be decorated by additional
   second one for escaping.} \verb|A B C \\ D E F|
 
   \begin{railoutput}
-\rail@begin{3}{\isa{}}
+\rail@begin{3}{}
 \rail@nont{\isa{A}}[]
 \rail@nont{\isa{B}}[]
 \rail@nont{\isa{C}}[]
@@ -834,7 +834,7 @@ Each Isabelle/Isar command may be decorated by additional
   \item Variants \verb|A |\verb,|,\verb| B |\verb,|,\verb| C|
 
   \begin{railoutput}
-\rail@begin{3}{\isa{}}
+\rail@begin{3}{}
 \rail@bar
 \rail@nont{\isa{A}}[]
 \rail@nextbar{1}
@@ -849,7 +849,7 @@ Each Isabelle/Isar command may be decorated by additional
   \item Option \verb|A ?|
 
   \begin{railoutput}
-\rail@begin{2}{\isa{}}
+\rail@begin{2}{}
 \rail@bar
 \rail@nextbar{1}
 \rail@nont{\isa{A}}[]
@@ -861,7 +861,7 @@ Each Isabelle/Isar command may be decorated by additional
   \item Repetition \verb|A *|
 
   \begin{railoutput}
-\rail@begin{2}{\isa{}}
+\rail@begin{2}{}
 \rail@plus
 \rail@nextplus{1}
 \rail@cnont{\isa{A}}[]
@@ -873,7 +873,7 @@ Each Isabelle/Isar command may be decorated by additional
   \item Repetition with separator \verb|A * sep|
 
   \begin{railoutput}
-\rail@begin{3}{\isa{}}
+\rail@begin{3}{}
 \rail@bar
 \rail@nextbar{1}
 \rail@plus
@@ -889,7 +889,7 @@ Each Isabelle/Isar command may be decorated by additional
   \item Strict repetition \verb|A +|
 
   \begin{railoutput}
-\rail@begin{2}{\isa{}}
+\rail@begin{2}{}
 \rail@plus
 \rail@nont{\isa{A}}[]
 \rail@nextplus{1}
@@ -901,7 +901,7 @@ Each Isabelle/Isar command may be decorated by additional
   \item Strict repetition with separator \verb|A + sep|
 
   \begin{railoutput}
-\rail@begin{2}{\isa{}}
+\rail@begin{2}{}
 \rail@plus
 \rail@nont{\isa{A}}[]
 \rail@nextplus{1}
@@ -926,7 +926,7 @@ Each Isabelle/Isar command may be decorated by additional
   \end{matharray}
 
   \begin{railoutput}
-\rail@begin{2}{\isa{}}
+\rail@begin{2}{}
 \rail@bar
 \rail@term{\hyperlink{command.display-drafts}{\mbox{\isa{\isacommand{display{\isaliteral{5F}{\isacharunderscore}}drafts}}}}}[]
 \rail@nextbar{1}

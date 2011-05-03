@@ -100,9 +100,9 @@ text {*
     @{attribute_def show_consts} & : & @{text attribute} & default @{text false} \\
     @{attribute_def show_abbrevs} & : & @{text attribute} & default @{text true} \\
     @{attribute_def show_brackets} & : & @{text attribute} & default @{text false} \\
-    @{attribute_def long_names} & : & @{text attribute} & default @{text false} \\
-    @{attribute_def short_names} & : & @{text attribute} & default @{text false} \\
-    @{attribute_def unique_names} & : & @{text attribute} & default @{text true} \\
+    @{attribute_def names_long} & : & @{text attribute} & default @{text false} \\
+    @{attribute_def names_short} & : & @{text attribute} & default @{text false} \\
+    @{attribute_def names_unique} & : & @{text attribute} & default @{text true} \\
     @{attribute_def eta_contract} & : & @{text attribute} & default @{text true} \\
     @{attribute_def goals_limit} & : & @{text attribute} & default @{text 10} \\
     @{attribute_def show_main_goal} & : & @{text attribute} & default @{text false} \\
@@ -144,8 +144,8 @@ text {*
   pretty printed entities may occasionally help to diagnose problems
   with operator priorities, for example.
 
-  \item @{attribute long_names}, @{attribute short_names}, and
-  @{attribute unique_names} control the way of printing fully
+  \item @{attribute names_long}, @{attribute names_short}, and
+  @{attribute names_unique} control the way of printing fully
   qualified internal names in external form.  See also
   \secref{sec:antiq} for the document antiquotation options of the
   same names.

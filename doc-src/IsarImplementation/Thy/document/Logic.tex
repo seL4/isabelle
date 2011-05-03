@@ -217,15 +217,15 @@ The language of types is an uninterpreted order-sorted first-order
   \end{matharray}
 
   \begin{railoutput}
-\rail@begin{1}{\isa{}}
+\rail@begin{1}{}
 \rail@term{\hyperlink{ML antiquotation.class}{\mbox{\isa{class}}}}[]
 \rail@nont{\isa{nameref}}[]
 \rail@end
-\rail@begin{1}{\isa{}}
+\rail@begin{1}{}
 \rail@term{\hyperlink{ML antiquotation.sort}{\mbox{\isa{sort}}}}[]
 \rail@nont{\isa{sort}}[]
 \rail@end
-\rail@begin{3}{\isa{}}
+\rail@begin{3}{}
 \rail@bar
 \rail@term{\hyperlink{ML antiquotation.type-name}{\mbox{\isa{type{\isaliteral{5F}{\isacharunderscore}}name}}}}[]
 \rail@nextbar{1}
@@ -235,7 +235,7 @@ The language of types is an uninterpreted order-sorted first-order
 \rail@endbar
 \rail@nont{\isa{nameref}}[]
 \rail@end
-\rail@begin{1}{\isa{}}
+\rail@begin{1}{}
 \rail@term{\hyperlink{ML antiquotation.typ}{\mbox{\isa{typ}}}}[]
 \rail@nont{\isa{type}}[]
 \rail@end
@@ -481,7 +481,7 @@ The language of terms is that of simply-typed \isa{{\isaliteral{5C3C6C616D626461
   \end{matharray}
 
   \begin{railoutput}
-\rail@begin{2}{\isa{}}
+\rail@begin{2}{}
 \rail@bar
 \rail@term{\hyperlink{ML antiquotation.const-name}{\mbox{\isa{const{\isaliteral{5F}{\isacharunderscore}}name}}}}[]
 \rail@nextbar{1}
@@ -489,7 +489,7 @@ The language of terms is that of simply-typed \isa{{\isaliteral{5C3C6C616D626461
 \rail@endbar
 \rail@nont{\isa{nameref}}[]
 \rail@end
-\rail@begin{3}{\isa{}}
+\rail@begin{3}{}
 \rail@term{\hyperlink{ML antiquotation.const}{\mbox{\isa{const}}}}[]
 \rail@bar
 \rail@nextbar{1}
@@ -502,11 +502,11 @@ The language of terms is that of simply-typed \isa{{\isaliteral{5C3C6C616D626461
 \rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
 \rail@endbar
 \rail@end
-\rail@begin{1}{\isa{}}
+\rail@begin{1}{}
 \rail@term{\hyperlink{ML antiquotation.term}{\mbox{\isa{term}}}}[]
 \rail@nont{\isa{term}}[]
 \rail@end
-\rail@begin{1}{\isa{}}
+\rail@begin{1}{}
 \rail@term{\hyperlink{ML antiquotation.prop}{\mbox{\isa{prop}}}}[]
 \rail@nont{\isa{prop}}[]
 \rail@end
@@ -592,14 +592,14 @@ The theory \isa{Pure} contains constant declarations for the
   \infer[\isa{{\isaliteral{28}{\isacharparenleft}}assume{\isaliteral{29}{\isacharparenright}}}]{\isa{A\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ A}}{}
   \]
   \[
-  \infer[\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}{\isaliteral{5C3C646173683E}{\isasymdash}}intro{\isaliteral{29}{\isacharparenright}}}]{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ b{\isaliteral{5B}{\isacharbrackleft}}x{\isaliteral{5D}{\isacharbrackright}}}}{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ b{\isaliteral{5B}{\isacharbrackleft}}x{\isaliteral{5D}{\isacharbrackright}}} & \isa{x\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ {\isaliteral{5C3C47616D6D613E}{\isasymGamma}}}}
+  \infer[\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}{\isaliteral{5C3C68797068656E3E}{\isasymhyphen}}intro{\isaliteral{29}{\isacharparenright}}}]{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ b{\isaliteral{5B}{\isacharbrackleft}}x{\isaliteral{5D}{\isacharbrackright}}}}{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ b{\isaliteral{5B}{\isacharbrackleft}}x{\isaliteral{5D}{\isacharbrackright}}} & \isa{x\ {\isaliteral{5C3C6E6F74696E3E}{\isasymnotin}}\ {\isaliteral{5C3C47616D6D613E}{\isasymGamma}}}}
   \qquad
-  \infer[\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}{\isaliteral{5C3C646173683E}{\isasymdash}}elim{\isaliteral{29}{\isacharparenright}}}]{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ b{\isaliteral{5B}{\isacharbrackleft}}a{\isaliteral{5D}{\isacharbrackright}}}}{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ b{\isaliteral{5B}{\isacharbrackleft}}x{\isaliteral{5D}{\isacharbrackright}}}}
+  \infer[\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}{\isaliteral{5C3C68797068656E3E}{\isasymhyphen}}elim{\isaliteral{29}{\isacharparenright}}}]{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ b{\isaliteral{5B}{\isacharbrackleft}}a{\isaliteral{5D}{\isacharbrackright}}}}{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ b{\isaliteral{5B}{\isacharbrackleft}}x{\isaliteral{5D}{\isacharbrackright}}}}
   \]
   \[
-  \infer[\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}{\isaliteral{5C3C646173683E}{\isasymdash}}intro{\isaliteral{29}{\isacharparenright}}}]{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{2D}{\isacharminus}}\ A\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B}}{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B}}
+  \infer[\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}{\isaliteral{5C3C68797068656E3E}{\isasymhyphen}}intro{\isaliteral{29}{\isacharparenright}}}]{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{2D}{\isacharminus}}\ A\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B}}{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B}}
   \qquad
-  \infer[\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}{\isaliteral{5C3C646173683E}{\isasymdash}}elim{\isaliteral{29}{\isacharparenright}}}]{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C756E696F6E3E}{\isasymunion}}\ {\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B}}{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B} & \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ A}}
+  \infer[\isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}{\isaliteral{5C3C68797068656E3E}{\isasymhyphen}}elim{\isaliteral{29}{\isacharparenright}}}]{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C756E696F6E3E}{\isasymunion}}\ {\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B}}{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B} & \isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ A}}
   \]
   \caption{Primitive inferences of Pure}\label{fig:prim-rules}
   \end{center}
@@ -626,7 +626,7 @@ The theory \isa{Pure} contains constant declarations for the
   terms, and \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}{\isaliteral{2F}{\isacharslash}}{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}} for proofs (cf.\
   \cite{Berghofer-Nipkow:2000:TPHOL}).
 
-  Observe that locally fixed parameters (as in \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}{\isaliteral{5C3C646173683E}{\isasymdash}}intro}) need not be recorded in the hypotheses, because
+  Observe that locally fixed parameters (as in \isa{{\isaliteral{5C3C416E643E}{\isasymAnd}}{\isaliteral{5C3C68797068656E3E}{\isasymhyphen}}intro}) need not be recorded in the hypotheses, because
   the simple syntactic types of Pure are always inhabitable.
   ``Assumptions'' \isa{x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}} for type-membership are only
   present as long as some \isa{x\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isaliteral{5C3C7461753E}{\isasymtau}}} occurs in the statement
@@ -813,27 +813,27 @@ The theory \isa{Pure} contains constant declarations for the
   \end{matharray}
 
   \begin{railoutput}
-\rail@begin{1}{\isa{}}
+\rail@begin{1}{}
 \rail@term{\hyperlink{ML antiquotation.ctyp}{\mbox{\isa{ctyp}}}}[]
 \rail@nont{\isa{typ}}[]
 \rail@end
-\rail@begin{1}{\isa{}}
+\rail@begin{1}{}
 \rail@term{\hyperlink{ML antiquotation.cterm}{\mbox{\isa{cterm}}}}[]
 \rail@nont{\isa{term}}[]
 \rail@end
-\rail@begin{1}{\isa{}}
+\rail@begin{1}{}
 \rail@term{\hyperlink{ML antiquotation.cprop}{\mbox{\isa{cprop}}}}[]
 \rail@nont{\isa{prop}}[]
 \rail@end
-\rail@begin{1}{\isa{}}
+\rail@begin{1}{}
 \rail@term{\hyperlink{ML antiquotation.thm}{\mbox{\isa{thm}}}}[]
 \rail@nont{\isa{thmref}}[]
 \rail@end
-\rail@begin{1}{\isa{}}
+\rail@begin{1}{}
 \rail@term{\hyperlink{ML antiquotation.thms}{\mbox{\isa{thms}}}}[]
 \rail@nont{\isa{thmrefs}}[]
 \rail@end
-\rail@begin{6}{\isa{}}
+\rail@begin{6}{}
 \rail@term{\hyperlink{ML antiquotation.lemma}{\mbox{\isa{lemma}}}}[]
 \rail@bar
 \rail@nextbar{1}

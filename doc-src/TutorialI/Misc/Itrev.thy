@@ -2,7 +2,7 @@
 theory Itrev
 imports Main
 begin
-declare [[unique_names = false]]
+declare [[names_unique = false]]
 (*>*)
 
 section{*Induction Heuristics*}
@@ -141,6 +141,6 @@ to learn about some advanced techniques for inductive proofs.%
 \index{induction heuristics|)}
 *}
 (*<*)
-declare [[unique_names = true]]
+declare [[names_unique = true]]
 end
 (*>*)

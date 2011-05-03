@@ -397,14 +397,14 @@ An \emph{assumption} is a proposition that it is postulated in the
   \medskip The most basic export rule discharges assumptions directly
   by means of the \isa{{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}} introduction rule:
   \[
-  \infer[(\isa{{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}{\isaliteral{5C3C646173683E}{\isasymdash}}intro})]{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{2D}{\isacharminus}}\ A\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B}}{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B}}
+  \infer[(\isa{{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}{\isaliteral{5C3C68797068656E3E}{\isasymhyphen}}intro})]{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{2D}{\isacharminus}}\ A\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B}}{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B}}
   \]
 
   The variant for goal refinements marks the newly introduced
   premises, which causes the canonical Isar goal refinement scheme to
   enforce unification with local premises within the goal:
   \[
-  \infer[(\isa{{\isaliteral{23}{\isacharhash}}{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}{\isaliteral{5C3C646173683E}{\isasymdash}}intro})]{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{2D}{\isacharminus}}\ A\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{23}{\isacharhash}}A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B}}{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B}}
+  \infer[(\isa{{\isaliteral{23}{\isacharhash}}{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}{\isaliteral{5C3C68797068656E3E}{\isasymhyphen}}intro})]{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{2D}{\isacharminus}}\ A\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{23}{\isacharhash}}A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B}}{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B}}
   \]
 
   \medskip Alternative versions of assumptions may perform arbitrary
@@ -413,7 +413,7 @@ An \emph{assumption} is a proposition that it is postulated in the
   definition works by fixing \isa{x} and assuming \isa{x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t},
   with the following export rule to reverse the effect:
   \[
-  \infer[(\isa{{\isaliteral{5C3C65717569763E}{\isasymequiv}}{\isaliteral{5C3C646173683E}{\isasymdash}}expand})]{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{2D}{\isacharminus}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B\ t}}{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B\ x}}
+  \infer[(\isa{{\isaliteral{5C3C65717569763E}{\isasymequiv}}{\isaliteral{5C3C68797068656E3E}{\isasymhyphen}}expand})]{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{2D}{\isacharminus}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B\ t}}{\isa{{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ B\ x}}
   \]
   This works, because the assumption \isa{x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ t} was introduced in
   a context with \isa{x} being fresh, so \isa{x} does not
@@ -455,7 +455,7 @@ An \emph{assumption} is a proposition that it is postulated in the
   \verb|Assumption.assume|.
 
   \item \verb|Assumption.add_assumes|~\isa{As} is a special case of
-  \verb|Assumption.add_assms| where the export rule performs \isa{{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}{\isaliteral{5C3C646173683E}{\isasymdash}}intro} or \isa{{\isaliteral{23}{\isacharhash}}{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}{\isaliteral{5C3C646173683E}{\isasymdash}}intro}, depending on goal
+  \verb|Assumption.add_assms| where the export rule performs \isa{{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}{\isaliteral{5C3C68797068656E3E}{\isasymhyphen}}intro} or \isa{{\isaliteral{23}{\isacharhash}}{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}{\isaliteral{5C3C68797068656E3E}{\isasymhyphen}}intro}, depending on goal
   mode.
 
   \item \verb|Assumption.export|~\isa{is{\isaliteral{5F}{\isacharunderscore}}goal\ inner\ outer\ thm}

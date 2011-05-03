@@ -383,9 +383,9 @@ fun nicer_shortest ctxt =
     val shorten =
       Name_Space.extern
         (ctxt
-          |> Config.put Name_Space.long_names false
-          |> Config.put Name_Space.short_names false
-          |> Config.put Name_Space.unique_names false) space;
+          |> Config.put Name_Space.names_long false
+          |> Config.put Name_Space.names_short false
+          |> Config.put Name_Space.names_unique false) space;
 
     fun nicer (Facts.Named ((x, _), i)) (Facts.Named ((y, _), j)) =
           nicer_name (shorten x, i) (shorten y, j)

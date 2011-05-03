@@ -124,7 +124,7 @@ val display_preferences =
   bool_pref Goal_Display.show_consts_default
     "show-consts"
     "Show types of consts in Isabelle goal display",
-  bool_pref Name_Space.long_names_default
+  bool_pref Name_Space.names_long_default
     "long-names"
     "Show fully qualified names in Isabelle terms",
   bool_pref Printer.show_brackets_default

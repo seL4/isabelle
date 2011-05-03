@@ -20,15 +20,15 @@ sig
   val markup: T -> string -> Markup.T
   val is_concealed: T -> string -> bool
   val intern: T -> xstring -> string
-  val long_names_default: bool Unsynchronized.ref
-  val long_names_raw: Config.raw
-  val long_names: bool Config.T
-  val short_names_default: bool Unsynchronized.ref
-  val short_names_raw: Config.raw
-  val short_names: bool Config.T
-  val unique_names_default: bool Unsynchronized.ref
-  val unique_names_raw: Config.raw
-  val unique_names: bool Config.T
+  val names_long_default: bool Unsynchronized.ref
+  val names_long_raw: Config.raw
+  val names_long: bool Config.T
+  val names_short_default: bool Unsynchronized.ref
+  val names_short_raw: Config.raw
+  val names_short: bool Config.T
+  val names_unique_default: bool Unsynchronized.ref
+  val names_unique_raw: Config.raw
+  val names_unique: bool Config.T
   val extern: Proof.context -> T -> string -> xstring
   val hide: bool -> string -> T -> T
   val merge: T * T -> T
@@ -161,33 +161,33 @@ fun valid_accesses (Name_Space {internals, ...}) name =
 fun intern space xname = #1 (lookup space xname);
 
 
-val long_names_default = Unsynchronized.ref false;
-val long_names_raw = Config.declare "long_names" (fn _ => Config.Bool (! long_names_default));
-val long_names = Config.bool long_names_raw;
+val names_long_default = Unsynchronized.ref false;
+val names_long_raw = Config.declare "names_long" (fn _ => Config.Bool (! names_long_default));
+val names_long = Config.bool names_long_raw;
 
-val short_names_default = Unsynchronized.ref false;
-val short_names_raw = Config.declare "short_names" (fn _ => Config.Bool (! short_names_default));
-val short_names = Config.bool short_names_raw;
+val names_short_default = Unsynchronized.ref false;
+val names_short_raw = Config.declare "names_short" (fn _ => Config.Bool (! names_short_default));
+val names_short = Config.bool names_short_raw;
 
-val unique_names_default = Unsynchronized.ref true;
-val unique_names_raw = Config.declare "unique_names" (fn _ => Config.Bool (! unique_names_default));
-val unique_names = Config.bool unique_names_raw;
+val names_unique_default = Unsynchronized.ref true;
+val names_unique_raw = Config.declare "names_unique" (fn _ => Config.Bool (! names_unique_default));
+val names_unique = Config.bool names_unique_raw;
 
 fun extern ctxt space name =
   let
-    val long_names = Config.get ctxt long_names;
-    val short_names = Config.get ctxt short_names;
-    val unique_names = Config.get ctxt unique_names;
+    val names_long = Config.get ctxt names_long;
+    val names_short = Config.get ctxt names_short;
+    val names_unique = Config.get ctxt names_unique;
 
     fun valid require_unique xname =
       let val (name', is_unique) = lookup space xname
       in name = name' andalso (not require_unique orelse is_unique) end;
 
     fun ext [] = if valid false name then name else hidden name
-      | ext (nm :: nms) = if valid unique_names nm then nm else ext nms;
+      | ext (nm :: nms) = if valid names_unique nm then nm else ext nms;
   in
-    if long_names then name
-    else if short_names then Long_Name.base_name name
+    if names_long then name
+    else if names_short then Long_Name.base_name name
     else ext (get_accesses space name)
   end;
 

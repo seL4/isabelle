@@ -341,16 +341,16 @@ text {* The following options are available to tune the printed output
   \item @{antiquotation_option_def show_abbrevs}~@{text "= bool"}
   controls folding of abbreviations.
 
-  \item @{antiquotation_option_def long_names}~@{text "= bool"} forces
+  \item @{antiquotation_option_def names_long}~@{text "= bool"} forces
   names of types and constants etc.\ to be printed in their fully
   qualified internal form.
 
-  \item @{antiquotation_option_def short_names}~@{text "= bool"}
+  \item @{antiquotation_option_def names_short}~@{text "= bool"}
   forces names of types and constants etc.\ to be printed unqualified.
   Note that internalizing the output again in the current context may
   well yield a different result.
 
-  \item @{antiquotation_option_def unique_names}~@{text "= bool"}
+  \item @{antiquotation_option_def names_unique}~@{text "= bool"}
   determines whether the printed version of qualified names should be
   made sufficiently long to avoid overlap with names declared further
   back.  Set to @{text false} for more concise output.

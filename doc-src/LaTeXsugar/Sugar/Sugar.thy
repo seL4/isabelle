@@ -152,7 +152,7 @@ text{* If there are multiple declarations of the same name, Isabelle prints
 the qualified name, for example @{text "T.length"}, where @{text T} is the
 theory it is defined in, to distinguish it from the predefined @{const[source]
 "List.length"}. In case there is no danger of confusion, you can insist on
-short names (no qualifiers) by setting the \verb!short_names!
+short names (no qualifiers) by setting the \verb!names_short!
 configuration option in the context.
 *}
 
