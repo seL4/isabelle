@@ -186,6 +186,14 @@
 \def\isacharverbatimclose{\isamath{\rangle\!\rangle}}%
 }
 
+\newcommand{\isabellestyleitunderscore}{%
+%requires underscore.sty
+\underscoreon%
+\isabellestyleit%
+\def\isacharunderscore{\_}%
+\def\isacharunderscorekeyword{\_}%
+}
+
 \newcommand{\isabellestylesl}{%
 \isabellestyleit%
 \def\isastyle{\small\sl}%
