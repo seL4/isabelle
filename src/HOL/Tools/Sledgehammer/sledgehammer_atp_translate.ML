@@ -134,8 +134,8 @@ fun level_of_type_sys Many_Typed = All_Types
   | level_of_type_sys (Preds (_, level)) = level
   | level_of_type_sys (Tags (_, level)) = level
 
-val is_type_level_virtually_sound =
-  member (op =) [All_Types, Nonmonotonic_Types]
+fun is_type_level_virtually_sound s =
+  s = All_Types orelse s = Nonmonotonic_Types
 val is_type_sys_virtually_sound =
   is_type_level_virtually_sound o level_of_type_sys
 
