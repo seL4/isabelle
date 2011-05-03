@@ -1513,7 +1513,7 @@ text {* The code generator is invoked via the @{command code_module}
 *}
 
 code_module Test
-  contains test = "foldl op + (0 :: int) [1, 2, 3, 4, 5]"
+contains test = "foldl op + (0 :: int) [1, 2, 3, 4, 5]"
 
 text {* \noindent This binds the result of compiling the given term to
   the ML identifier @{ML Test.test}.  *}
@@ -1559,7 +1559,7 @@ text {* Sometimes, the code associated with a constant or type may
 *}
 
 consts_code wfrec  ("\<module>wfrec?")  (* FIXME !? *)
-  attach {* fun wfrec f x = f (wfrec f) x *}
+attach {* fun wfrec f x = f (wfrec f) x *}
 
 text {* If the code containing a call to @{const wfrec} resides in an
   ML structure different from the one containing the function
@@ -1603,23 +1603,51 @@ text {* The basic code generator framework offered by Isabelle/Pure
   all of the @{text "t\<^sub>i"} are proper terms, the expression evaluates
   to a boolean value.
 
-  %FIXME
-  %\begin{ttbox}
-  %  theory Test = Lambda:
-  %
-  %  code_module Test
-  %  contains
-  %    test1 = "Abs (Var 0) \(\circ\) Var 0 -> Var 0"
-  %    test2 = "Abs (Abs (Var 0 \(\circ\) Var 0) \(\circ\) (Abs (Var 0) \(\circ\) Var 0)) -> _"
-  %\end{ttbox}
-  %In the above example, \texttt{Test.test1} evaluates to the boolean
-  %value \texttt{true}, whereas \texttt{Test.test2} is a sequence whose
-  %elements can be inspected using \texttt{Seq.pull} or similar functions.
-  %\begin{ttbox}
-  %ML \{* Seq.pull Test.test2 *\}  -- \{* This is the first answer *\}
-  %ML \{* Seq.pull (snd (the it)) *\}  -- \{* This is the second answer *\}
-  %\end{ttbox}
+  The following example demonstrates this for beta-reduction on lambda
+  terms (see also @{"file" "~~/src/HOL/Proofs/Lambda/Lambda.thy"}).
+*}
 
+datatype dB =
+    Var nat
+  | App dB dB  (infixl "\<degree>" 200)
+  | Abs dB
+
+primrec lift :: "dB \<Rightarrow> nat \<Rightarrow> dB"
+where
+    "lift (Var i) k = (if i < k then Var i else Var (i + 1))"
+  | "lift (s \<degree> t) k = lift s k \<degree> lift t k"
+  | "lift (Abs s) k = Abs (lift s (k + 1))"
+
+primrec subst :: "dB \<Rightarrow> dB \<Rightarrow> nat \<Rightarrow> dB"  ("_[_'/_]" [300, 0, 0] 300)
+where
+    "(Var i)[s/k] =
+      (if k < i then Var (i - 1) else if i = k then s else Var i)"
+  | "(t \<degree> u)[s/k] = t[s/k] \<degree> u[s/k]"
+  | "(Abs t)[s/k] = Abs (t[lift s 0 / k+1])"
+
+inductive beta :: "dB \<Rightarrow> dB \<Rightarrow> bool"  (infixl "\<rightarrow>\<^sub>\<beta>" 50)
+where
+    beta: "Abs s \<degree> t \<rightarrow>\<^sub>\<beta> s[t/0]"
+  | appL: "s \<rightarrow>\<^sub>\<beta> t \<Longrightarrow> s \<degree> u \<rightarrow>\<^sub>\<beta> t \<degree> u"
+  | appR: "s \<rightarrow>\<^sub>\<beta> t \<Longrightarrow> u \<degree> s \<rightarrow>\<^sub>\<beta> u \<degree> t"
+  | abs: "s \<rightarrow>\<^sub>\<beta> t \<Longrightarrow> Abs s \<rightarrow>\<^sub>\<beta> Abs t"
+
+code_module Test
+contains
+  test1 = "Abs (Var 0) \<degree> Var 0 \<rightarrow>\<^sub>\<beta> Var 0"
+  test2 = "Abs (Abs (Var 0 \<degree> Var 0) \<degree> (Abs (Var 0) \<degree> Var 0)) \<rightarrow>\<^sub>\<beta> _"
+
+text {*
+  In the above example, @{ML Test.test1} evaluates to a boolean,
+  whereas @{ML Test.test2} is a lazy sequence whose elements can be
+  inspected separately.
+*}
+
+ML {* @{assert} Test.test1 *}
+ML {* val results = DSeq.list_of Test.test2 *}
+ML {* @{assert} (length results = 2) *}
+
+text {*
   \medskip The theory underlying the HOL code generator is described
   more detailed in \cite{Berghofer-Nipkow:2002}. More examples that
   illustrate the usage of the code generator can be found e.g.\ in

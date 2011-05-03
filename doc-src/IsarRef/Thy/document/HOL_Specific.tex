@@ -2349,7 +2349,7 @@ The code generator is invoked via the \hyperlink{command.code-module}{\mbox{\isa
 \isamarkuptrue%
 \isacommand{code{\isaliteral{5F}{\isacharunderscore}}module}\isamarkupfalse%
 \ Test\isanewline
-\ \ \isakeyword{contains}\ test\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequoteopen}}foldl\ op\ {\isaliteral{2B}{\isacharplus}}\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ int{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{2}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{3}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{4}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{5}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}%
+\isakeyword{contains}\ test\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequoteopen}}foldl\ op\ {\isaliteral{2B}{\isacharplus}}\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ int{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{2}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{3}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{4}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{5}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}%
 \begin{isamarkuptext}%
 \noindent This binds the result of compiling the given term to
   the ML identifier \verb|Test.test|.%
@@ -2417,7 +2417,7 @@ Sometimes, the code associated with a constant or type may
 \isamarkuptrue%
 \isacommand{consts{\isaliteral{5F}{\isacharunderscore}}code}\isamarkupfalse%
 \ wfrec\ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6D6F64756C653E}{\isasymmodule}}wfrec{\isaliteral{3F}{\isacharquery}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\ \ \isanewline
-\ \ \isakeyword{attach}\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ fun\ wfrec\ f\ x\ {\isaliteral{3D}{\isacharequal}}\ f\ {\isaliteral{28}{\isacharparenleft}}wfrec\ f{\isaliteral{29}{\isacharparenright}}\ x\ {\isaliteral{2A7D}{\isacharverbatimclose}}%
+\isakeyword{attach}\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ fun\ wfrec\ f\ x\ {\isaliteral{3D}{\isacharequal}}\ f\ {\isaliteral{28}{\isacharparenleft}}wfrec\ f{\isaliteral{29}{\isacharparenright}}\ x\ {\isaliteral{2A7D}{\isacharverbatimclose}}%
 \begin{isamarkuptext}%
 If the code containing a call to \isa{wfrec} resides in an
   ML structure different from the one containing the function
@@ -2475,24 +2475,79 @@ The basic code generator framework offered by Isabelle/Pure
   all of the \isa{{\isaliteral{22}{\isachardoublequote}}t\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{22}{\isachardoublequote}}} are proper terms, the expression evaluates
   to a boolean value.
 
-  %FIXME
-  %\begin{ttbox}
-  %  theory Test = Lambda:
-  %
-  %  code_module Test
-  %  contains
-  %    test1 = "Abs (Var 0) \(\circ\) Var 0 -> Var 0"
-  %    test2 = "Abs (Abs (Var 0 \(\circ\) Var 0) \(\circ\) (Abs (Var 0) \(\circ\) Var 0)) -> _"
-  %\end{ttbox}
-  %In the above example, \texttt{Test.test1} evaluates to the boolean
-  %value \texttt{true}, whereas \texttt{Test.test2} is a sequence whose
-  %elements can be inspected using \texttt{Seq.pull} or similar functions.
-  %\begin{ttbox}
-  %ML \{* Seq.pull Test.test2 *\}  -- \{* This is the first answer *\}
-  %ML \{* Seq.pull (snd (the it)) *\}  -- \{* This is the second answer *\}
-  %\end{ttbox}
-
-  \medskip The theory underlying the HOL code generator is described
+  The following example demonstrates this for beta-reduction on lambda
+  terms (see also \verb|~~/src/HOL/Proofs/Lambda/Lambda.thy|).%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{datatype}\isamarkupfalse%
+\ dB\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ Var\ nat\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ App\ dB\ dB\ \ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infixl}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6465677265653E}{\isasymdegree}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{2}}{\isadigit{0}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ Abs\ dB\isanewline
+\isanewline
+\isacommand{primrec}\isamarkupfalse%
+\ lift\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}dB\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ dB{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isakeyword{where}\isanewline
+\ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}lift\ {\isaliteral{28}{\isacharparenleft}}Var\ i{\isaliteral{29}{\isacharparenright}}\ k\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}if\ i\ {\isaliteral{3C}{\isacharless}}\ k\ then\ Var\ i\ else\ Var\ {\isaliteral{28}{\isacharparenleft}}i\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}lift\ {\isaliteral{28}{\isacharparenleft}}s\ {\isaliteral{5C3C6465677265653E}{\isasymdegree}}\ t{\isaliteral{29}{\isacharparenright}}\ k\ {\isaliteral{3D}{\isacharequal}}\ lift\ s\ k\ {\isaliteral{5C3C6465677265653E}{\isasymdegree}}\ lift\ t\ k{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}lift\ {\isaliteral{28}{\isacharparenleft}}Abs\ s{\isaliteral{29}{\isacharparenright}}\ k\ {\isaliteral{3D}{\isacharequal}}\ Abs\ {\isaliteral{28}{\isacharparenleft}}lift\ s\ {\isaliteral{28}{\isacharparenleft}}k\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isanewline
+\isacommand{primrec}\isamarkupfalse%
+\ subst\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}dB\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ dB\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ dB{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5F}{\isacharunderscore}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5F}{\isacharunderscore}}{\isaliteral{27}{\isacharprime}}{\isaliteral{2F}{\isacharslash}}{\isaliteral{5F}{\isacharunderscore}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isadigit{3}}{\isadigit{0}}{\isadigit{0}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{0}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{0}}{\isaliteral{5D}{\isacharbrackright}}\ {\isadigit{3}}{\isadigit{0}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\isakeyword{where}\isanewline
+\ \ \ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}Var\ i{\isaliteral{29}{\isacharparenright}}{\isaliteral{5B}{\isacharbrackleft}}s{\isaliteral{2F}{\isacharslash}}k{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}if\ k\ {\isaliteral{3C}{\isacharless}}\ i\ then\ Var\ {\isaliteral{28}{\isacharparenleft}}i\ {\isaliteral{2D}{\isacharminus}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ else\ if\ i\ {\isaliteral{3D}{\isacharequal}}\ k\ then\ s\ else\ Var\ i{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}t\ {\isaliteral{5C3C6465677265653E}{\isasymdegree}}\ u{\isaliteral{29}{\isacharparenright}}{\isaliteral{5B}{\isacharbrackleft}}s{\isaliteral{2F}{\isacharslash}}k{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ t{\isaliteral{5B}{\isacharbrackleft}}s{\isaliteral{2F}{\isacharslash}}k{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5C3C6465677265653E}{\isasymdegree}}\ u{\isaliteral{5B}{\isacharbrackleft}}s{\isaliteral{2F}{\isacharslash}}k{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}Abs\ t{\isaliteral{29}{\isacharparenright}}{\isaliteral{5B}{\isacharbrackleft}}s{\isaliteral{2F}{\isacharslash}}k{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ Abs\ {\isaliteral{28}{\isacharparenleft}}t{\isaliteral{5B}{\isacharbrackleft}}lift\ s\ {\isadigit{0}}\ {\isaliteral{2F}{\isacharslash}}\ k{\isaliteral{2B}{\isacharplus}}{\isadigit{1}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isanewline
+\isacommand{inductive}\isamarkupfalse%
+\ beta\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}dB\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ dB\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infixl}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isaliteral{5C3C626574613E}{\isasymbeta}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{5}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\isakeyword{where}\isanewline
+\ \ \ \ beta{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}Abs\ s\ {\isaliteral{5C3C6465677265653E}{\isasymdegree}}\ t\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isaliteral{5C3C626574613E}{\isasymbeta}}\ s{\isaliteral{5B}{\isacharbrackleft}}t{\isaliteral{2F}{\isacharslash}}{\isadigit{0}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ appL{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}s\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isaliteral{5C3C626574613E}{\isasymbeta}}\ t\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ s\ {\isaliteral{5C3C6465677265653E}{\isasymdegree}}\ u\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isaliteral{5C3C626574613E}{\isasymbeta}}\ t\ {\isaliteral{5C3C6465677265653E}{\isasymdegree}}\ u{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ appR{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}s\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isaliteral{5C3C626574613E}{\isasymbeta}}\ t\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ u\ {\isaliteral{5C3C6465677265653E}{\isasymdegree}}\ s\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isaliteral{5C3C626574613E}{\isasymbeta}}\ u\ {\isaliteral{5C3C6465677265653E}{\isasymdegree}}\ t{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ abs{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}s\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isaliteral{5C3C626574613E}{\isasymbeta}}\ t\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Abs\ s\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isaliteral{5C3C626574613E}{\isasymbeta}}\ Abs\ t{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isanewline
+\isacommand{code{\isaliteral{5F}{\isacharunderscore}}module}\isamarkupfalse%
+\ Test\isanewline
+\isakeyword{contains}\isanewline
+\ \ test{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequoteopen}}Abs\ {\isaliteral{28}{\isacharparenleft}}Var\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6465677265653E}{\isasymdegree}}\ Var\ {\isadigit{0}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isaliteral{5C3C626574613E}{\isasymbeta}}\ Var\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ test{\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequoteopen}}Abs\ {\isaliteral{28}{\isacharparenleft}}Abs\ {\isaliteral{28}{\isacharparenleft}}Var\ {\isadigit{0}}\ {\isaliteral{5C3C6465677265653E}{\isasymdegree}}\ Var\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6465677265653E}{\isasymdegree}}\ {\isaliteral{28}{\isacharparenleft}}Abs\ {\isaliteral{28}{\isacharparenleft}}Var\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6465677265653E}{\isasymdegree}}\ Var\ {\isadigit{0}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isaliteral{5C3C626574613E}{\isasymbeta}}\ {\isaliteral{5F}{\isacharunderscore}}{\isaliteral{22}{\isachardoublequoteclose}}%
+\begin{isamarkuptext}%
+In the above example, \verb|Test.test1| evaluates to a boolean,
+  whereas \verb|Test.test2| is a lazy sequence whose elements can be
+  inspected separately.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+\isacommand{ML}\isamarkupfalse%
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ %
+\isaantiq
+assert{}%
+\endisaantiq
+\ Test{\isaliteral{2E}{\isachardot}}test{\isadigit{1}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}\isanewline
+\isacommand{ML}\isamarkupfalse%
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ val\ results\ {\isaliteral{3D}{\isacharequal}}\ DSeq{\isaliteral{2E}{\isachardot}}list{\isaliteral{5F}{\isacharunderscore}}of\ Test{\isaliteral{2E}{\isachardot}}test{\isadigit{2}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}\isanewline
+\isacommand{ML}\isamarkupfalse%
+\ {\isaliteral{7B2A}{\isacharverbatimopen}}\ %
+\isaantiq
+assert{}%
+\endisaantiq
+\ {\isaliteral{28}{\isacharparenleft}}length\ results\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\begin{isamarkuptext}%
+\medskip The theory underlying the HOL code generator is described
   more detailed in \cite{Berghofer-Nipkow:2002}. More examples that
   illustrate the usage of the code generator can be found e.g.\ in
   \verb|~~/src/HOL/MicroJava/J/JListExample.thy| and \verb|~~/src/HOL/MicroJava/JVM/JVMListExample.thy|.%
