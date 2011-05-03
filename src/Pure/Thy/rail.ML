@@ -242,7 +242,8 @@ fun output_rules state rules =
         val (rail', y') = vertical_range rail 0;
         val out_name =
           (case name of
-            Antiquote.Text s => output_text false s
+            Antiquote.Text "" => ""
+          | Antiquote.Text s => output_text false s
           | Antiquote.Antiq a => output_antiq a);
       in
         "\\rail@begin{" ^ string_of_int y' ^ "}{" ^ out_name ^ "}\n" ^
