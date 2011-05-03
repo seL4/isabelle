@@ -441,7 +441,7 @@ fun run_atp auto name
                                   ? Integer.min default_max_relevant
                 val fairly_sound = is_type_sys_fairly_sound type_sys
                 val facts =
-                  facts |> fairly_sound
+                  facts |> not fairly_sound
                            ? filter_out (is_dangerous_term o prop_of o snd
                                          o untranslated_fact)
                         |> take num_facts

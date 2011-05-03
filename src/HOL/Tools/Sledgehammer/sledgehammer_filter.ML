@@ -782,7 +782,7 @@ val dangerous_types = [@{type_name unit}, @{type_name bool}, @{type_name prop}]
    are omitted. *)
 val is_dangerous_term =
   transform_elim_term
-  #> has_bound_or_var_of_type dangerous_types orf is_exhaustive_finite
+  #> (has_bound_or_var_of_type dangerous_types orf is_exhaustive_finite)
 
 fun is_theorem_bad_for_atps thm =
   let val t = prop_of thm in
