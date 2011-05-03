@@ -632,6 +632,289 @@ Each Isabelle/Isar command may be decorated by additional
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsection{Railroad diagrams%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{}{antiquotation}{rail}\hypertarget{antiquotation.rail}{\hyperlink{antiquotation.rail}{\mbox{\isa{rail}}}} & : & \isa{antiquotation} \\
+  \end{matharray}
+
+  \begin{railoutput}
+\rail@begin{1}{\isa{}}
+\rail@term{\isa{rail}}[]
+\rail@nont{\isa{string}}[]
+\rail@end
+\end{railoutput}
+
+
+  The \hyperlink{antiquotation.rail}{\mbox{\isa{rail}}} antiquotation allows to include syntax
+  diagrams into Isabelle documents.  {\LaTeX} requires the style file
+  \verb|~~/lib/texinputs/pdfsetup.sty|, which can be used via
+  \verb|\usepackage{pdfsetup}| in \verb|root.tex|, for
+  example.
+
+  The rail specification language is quoted here as Isabelle \hyperlink{syntax.string}{\mbox{\isa{string}}}; it has its own grammar given below.
+
+  \begin{railoutput}
+\rail@begin{3}{\isa{}}
+\rail@plus
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{rule}}[]
+\rail@endbar
+\rail@nextplus{2}
+\rail@cterm{\isa{{\isaliteral{3B}{\isacharsemicolon}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{3}{\isa{rule}}
+\rail@bar
+\rail@nextbar{1}
+\rail@bar
+\rail@nont{\isa{identifier}}[]
+\rail@nextbar{2}
+\rail@nont{\hyperlink{syntax.antiquotation}{\mbox{\isa{antiquotation}}}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@endbar
+\rail@nont{\isa{body}}[]
+\rail@end
+\rail@begin{2}{\isa{body}}
+\rail@plus
+\rail@nont{\isa{concatenation}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{{\isaliteral{7C}{\isacharbar}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{3}{\isa{concatenation}}
+\rail@plus
+\rail@nont{\isa{atom}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{3F}{\isacharquery}}}}[]
+\rail@endbar
+\rail@nextplus{2}
+\rail@endplus
+\rail@bar
+\rail@nextbar{1}
+\rail@bar
+\rail@term{\isa{{\isaliteral{2A}{\isacharasterisk}}}}[]
+\rail@nextbar{2}
+\rail@term{\isa{{\isaliteral{2B}{\isacharplus}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{2}
+\rail@nont{\isa{atom}}[]
+\rail@endbar
+\rail@endbar
+\rail@end
+\rail@begin{6}{\isa{atom}}
+\rail@bar
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{body}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@nextbar{2}
+\rail@nont{\isa{identifier}}[]
+\rail@nextbar{3}
+\rail@bar
+\rail@nextbar{4}
+\rail@term{\isa{{\isaliteral{40}{\isacharat}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nont{\isa{string}}[]
+\rail@nextbar{4}
+\rail@nont{\hyperlink{syntax.antiquotation}{\mbox{\isa{antiquotation}}}}[]
+\rail@endbar
+\rail@nextbar{5}
+\rail@term{\isa{{\isaliteral{5C}{\isacharbackslash}}{\isaliteral{5C}{\isacharbackslash}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
+
+  The lexical syntax of \isa{{\isaliteral{22}{\isachardoublequote}}identifier{\isaliteral{22}{\isachardoublequote}}} coincides with that of
+  \hyperlink{syntax.ident}{\mbox{\isa{ident}}} in regular Isabelle syntax, but \isa{string} uses
+  single quotes instead of double quotes of the standard \hyperlink{syntax.string}{\mbox{\isa{string}}} category, to avoid extra escapes.
+
+  Each \isa{rule} defines a formal language (with optional name),
+  using a notation that is similar to EBNF or regular expressions with
+  recursion.  The meaning and visual appearance of these rail language
+  elements is illustrated by the following representative examples.
+
+  \begin{itemize}
+
+  \item Empty \verb|()|
+
+  \begin{railoutput}
+\rail@begin{1}{\isa{}}
+\rail@end
+\end{railoutput}
+
+
+  \item Nonterminal \verb|A|
+
+  \begin{railoutput}
+\rail@begin{1}{\isa{}}
+\rail@nont{\isa{A}}[]
+\rail@end
+\end{railoutput}
+
+
+  \item Nonterminal via Isabelle antiquotation
+  \verb|@{syntax method}|
+
+  \begin{railoutput}
+\rail@begin{1}{\isa{}}
+\rail@nont{\hyperlink{syntax.method}{\mbox{\isa{method}}}}[]
+\rail@end
+\end{railoutput}
+
+
+  \item Terminal \verb|'xyz'|
+
+  \begin{railoutput}
+\rail@begin{1}{\isa{}}
+\rail@term{\isa{xyz}}[]
+\rail@end
+\end{railoutput}
+
+
+  \item Terminal in keyword style \verb|@'xyz'|
+
+  \begin{railoutput}
+\rail@begin{1}{\isa{}}
+\rail@term{\isa{\isakeyword{xyz}}}[]
+\rail@end
+\end{railoutput}
+
+
+  \item Terminal via Isabelle antiquotation
+  \verb|@@{method rule}|
+
+  \begin{railoutput}
+\rail@begin{1}{\isa{}}
+\rail@term{\hyperlink{method.rule}{\mbox{\isa{rule}}}}[]
+\rail@end
+\end{railoutput}
+
+
+  \item Concatenation \verb|A B C|
+
+  \begin{railoutput}
+\rail@begin{1}{\isa{}}
+\rail@nont{\isa{A}}[]
+\rail@nont{\isa{B}}[]
+\rail@nont{\isa{C}}[]
+\rail@end
+\end{railoutput}
+
+
+  \item Linebreak \verb|\\| inside
+  concatenation\footnote{Strictly speaking, this is only a single
+  backslash, but the enclosing \hyperlink{syntax.string}{\mbox{\isa{string}}} syntax requires a
+  second one for escaping.} \verb|A B C \\ D E F|
+
+  \begin{railoutput}
+\rail@begin{3}{\isa{}}
+\rail@nont{\isa{A}}[]
+\rail@nont{\isa{B}}[]
+\rail@nont{\isa{C}}[]
+\rail@cr{2}
+\rail@nont{\isa{D}}[]
+\rail@nont{\isa{E}}[]
+\rail@nont{\isa{F}}[]
+\rail@end
+\end{railoutput}
+
+
+  \item Variants \verb|A |\verb,|,\verb| B |\verb,|,\verb| C|
+
+  \begin{railoutput}
+\rail@begin{3}{\isa{}}
+\rail@bar
+\rail@nont{\isa{A}}[]
+\rail@nextbar{1}
+\rail@nont{\isa{B}}[]
+\rail@nextbar{2}
+\rail@nont{\isa{C}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
+
+  \item Option \verb|A ?|
+
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{A}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
+
+  \item Repetition \verb|A *|
+
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\isa{A}}[]
+\rail@endplus
+\rail@end
+\end{railoutput}
+
+
+  \item Repetition with separator \verb|A * sep|
+
+  \begin{railoutput}
+\rail@begin{3}{\isa{}}
+\rail@bar
+\rail@nextbar{1}
+\rail@plus
+\rail@nont{\isa{A}}[]
+\rail@nextplus{2}
+\rail@cnont{\isa{sep}}[]
+\rail@endplus
+\rail@endbar
+\rail@end
+\end{railoutput}
+
+
+  \item Strict repetition \verb|A +|
+
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@plus
+\rail@nont{\isa{A}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\end{railoutput}
+
+
+  \item Strict repetition with separator \verb|A + sep|
+
+  \begin{railoutput}
+\rail@begin{2}{\isa{}}
+\rail@plus
+\rail@nont{\isa{A}}[]
+\rail@nextplus{1}
+\rail@cnont{\isa{sep}}[]
+\rail@endplus
+\rail@end
+\end{railoutput}
+
+
+  \end{itemize}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsection{Draft presentation%
 }
 \isamarkuptrue%

@@ -465,6 +465,115 @@ text {* Each Isabelle/Isar command may be decorated by additional
 *}
 
 
+section {* Railroad diagrams *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{antiquotation_def "rail"} & : & @{text antiquotation} \\
+  \end{matharray}
+
+  @{rail "'rail' string"}
+
+  The @{antiquotation rail} antiquotation allows to include syntax
+  diagrams into Isabelle documents.  {\LaTeX} requires the style file
+  @{"file" "~~/lib/texinputs/pdfsetup.sty"}, which can be used via
+  @{verbatim "\\usepackage{pdfsetup}"} in @{verbatim "root.tex"}, for
+  example.
+
+  The rail specification language is quoted here as Isabelle @{syntax
+  string}; it has its own grammar given below.
+
+  @{rail "
+  rule? + ';'
+  ;
+  rule: ((identifier | @{syntax antiquotation}) ':')? body
+  ;
+  body: concatenation + '|'
+  ;
+  concatenation: ((atom '?'?) +) (('*' | '+') atom?)?
+  ;
+  atom: '(' body? ')' | identifier |
+    '@'? (string | @{syntax antiquotation}) |
+    '\\\\\\\\'
+  "}
+
+  The lexical syntax of @{text "identifier"} coincides with that of
+  @{syntax ident} in regular Isabelle syntax, but @{text string} uses
+  single quotes instead of double quotes of the standard @{syntax
+  string} category, to avoid extra escapes.
+
+  Each @{text rule} defines a formal language (with optional name),
+  using a notation that is similar to EBNF or regular expressions with
+  recursion.  The meaning and visual appearance of these rail language
+  elements is illustrated by the following representative examples.
+
+  \begin{itemize}
+
+  \item Empty @{verbatim "()"}
+
+  @{rail "()"}
+
+  \item Nonterminal @{verbatim "A"}
+
+  @{rail "A"}
+
+  \item Nonterminal via Isabelle antiquotation
+  @{verbatim "@{syntax method}"}
+
+  @{rail "@{syntax method}"}
+
+  \item Terminal @{verbatim "'xyz'"}
+
+  @{rail "'xyz'"}
+
+  \item Terminal in keyword style @{verbatim "@'xyz'"}
+
+  @{rail "@'xyz'"}
+
+  \item Terminal via Isabelle antiquotation
+  @{verbatim "@@{method rule}"}
+
+  @{rail "@@{method rule}"}
+
+  \item Concatenation @{verbatim "A B C"}
+
+  @{rail "A B C"}
+
+  \item Linebreak @{verbatim "\\\\"} inside
+  concatenation\footnote{Strictly speaking, this is only a single
+  backslash, but the enclosing @{syntax string} syntax requires a
+  second one for escaping.} @{verbatim "A B C \\\\ D E F"}
+
+  @{rail "A B C \\ D E F"}
+
+  \item Variants @{verbatim "A | B | C"}
+
+  @{rail "A | B | C"}
+
+  \item Option @{verbatim "A ?"}
+
+  @{rail "A ?"}
+
+  \item Repetition @{verbatim "A *"}
+
+  @{rail "A *"}
+
+  \item Repetition with separator @{verbatim "A * sep"}
+
+  @{rail "A * sep"}
+
+  \item Strict repetition @{verbatim "A +"}
+
+  @{rail "A +"}
+
+  \item Strict repetition with separator @{verbatim "A + sep"}
+
+  @{rail "A + sep"}
+
+  \end{itemize}
+*}
+
+
 section {* Draft presentation *}
 
 text {*
