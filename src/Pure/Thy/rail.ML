@@ -258,7 +258,7 @@ fun output_rules state rules =
 in
 
 val _ =
-  Thy_Output.antiquotation "rail" (Scan.lift (Parse.position Args.name))
+  Thy_Output.antiquotation "rail" (Scan.lift (Parse.source_position Parse.string))
     (fn {state, ...} => output_rules state o read);
 
 end;

@@ -16,6 +16,7 @@ sig
   val triple_swap: ('a * 'b) * 'c -> ('a * 'c) * 'b
   val not_eof: Token.T parser
   val position: 'a parser -> ('a * Position.T) parser
+  val source_position: 'a parser -> (Symbol_Pos.text * Position.T) parser
   val inner_syntax: 'a parser -> string parser
   val command: string parser
   val keyword: string parser
