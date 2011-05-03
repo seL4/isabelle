@@ -10,6 +10,7 @@ Translation of HOL to FOL for Metis.
 signature METIS_TRANSLATE =
 sig
   type name = string * string
+
   datatype type_literal =
     TyLitVar of name * name |
     TyLitFree of name * name
@@ -199,7 +200,7 @@ fun strip_prefix_and_unascii s1 s =
 (*Remove the initial ' character from a type variable, if it is present*)
 fun trim_type_var s =
   if s <> "" andalso String.sub(s,0) = #"'" then String.extract(s,1,NONE)
-  else error ("trim_type: Malformed type variable encountered: " ^ s);
+  else raise Fail ("trim_type: Malformed type variable encountered: " ^ s)
 
 fun ascii_of_indexname (v,0) = ascii_of v
   | ascii_of_indexname (v,i) = ascii_of v ^ "_" ^ string_of_int i;

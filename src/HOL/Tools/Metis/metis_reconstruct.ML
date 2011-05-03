@@ -11,6 +11,8 @@ signature METIS_RECONSTRUCT =
 sig
   type mode = Metis_Translate.mode
 
+  exception METIS of string * string
+
   val trace : bool Config.T
   val trace_msg : Proof.context -> (unit -> string) -> unit
   val verbose : bool Config.T
@@ -30,12 +32,14 @@ struct
 
 open Metis_Translate
 
+exception METIS of string * string
+
 val trace = Attrib.setup_config_bool @{binding metis_trace} (K false)
 val verbose = Attrib.setup_config_bool @{binding metis_verbose} (K true)
 
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 fun verbose_warning ctxt msg =
-  if Config.get ctxt verbose then warning msg else ()
+  if Config.get ctxt verbose then warning ("Metis: " ^ msg) else ()
 
 datatype term_or_type = SomeTerm of term | SomeType of typ
 
@@ -305,8 +309,8 @@ fun inst_inf ctxt mode old_skolems thpairs fsubst th =
             Syntax.string_of_term ctxt (term_of x) ^ " |-> " ^
             Syntax.string_of_term ctxt (term_of y)))));
   in cterm_instantiate substs' i_th end
-  handle THM (msg, _, _) =>
-         error ("Cannot replay Metis proof in Isabelle:\n" ^ msg)
+  handle THM (msg, _, _) => raise METIS ("inst_inf", msg)
+       | ERROR msg => raise METIS ("inst_inf", msg)
 
 (* INFERENCE RULE: RESOLVE *)
 
@@ -423,8 +427,7 @@ fun resolve_inf ctxt mode skolem_params thpairs atm th1 th2 =
         val _ = trace_msg ctxt (fn () => "  index_th2: " ^ string_of_int index_th2)
     in
       resolve_inc_tyvars thy (select_literal index_th1 i_th1) index_th2 i_th2
-      handle TERM (s, _) => error ("Cannot replay Metis proof in Isabelle:\n" ^
-                                   "resolve_inf: " ^ s)
+      handle TERM (s, _) => raise METIS ("resolve_inf", s)
     end
   end;
 
@@ -467,10 +470,10 @@ fun equality_inf ctxt mode skolem_params (pos, atm) fp fr =
                 val p' = if adjustment > p then p else p-adjustment
                 val tm_p = nth args p'
                   handle Subscript =>
-                         error ("Cannot replay Metis proof in Isabelle:\n" ^
-                                "equality_inf: " ^ string_of_int p ^ " adj " ^
-                                string_of_int adjustment ^ " term " ^
-                                Syntax.string_of_term ctxt tm)
+                         raise METIS ("equality_inf",
+                                      string_of_int p ^ " adj " ^
+                                      string_of_int adjustment ^ " term " ^
+                                      Syntax.string_of_term ctxt tm)
                 val _ = trace_msg ctxt (fn () => "path_finder: " ^ string_of_int p ^
                                       "  " ^ Syntax.string_of_term ctxt tm_p)
                 val (r,t) = path_finder_FO tm_p ps
@@ -585,7 +588,7 @@ fun resynchronize ctxt fol_th th =
         val goal = Logic.list_implies (prems, concl)
       in
         if length prems = length prems0 then
-          error "Cannot replay Metis proof in Isabelle: Out of sync."
+          raise METIS ("resynchronize", "Out of sync")
         else
           Goal.prove ctxt [] [] goal (K (cut_rules_tac [th] 1
                                          THEN ALLGOALS assume_tac))

@@ -101,12 +101,11 @@ fun FOL_SOLVE mode ctxt cls ths0 =
                   if have_common_thm used cls then NONE else SOME name)
             in
                 if not (null cls) andalso not (have_common_thm used cls) then
-                  verbose_warning ctxt "Metis: The assumptions are inconsistent"
+                  verbose_warning ctxt "The assumptions are inconsistent"
                 else
                   ();
                 if not (null unused) then
-                  verbose_warning ctxt ("Metis: Unused theorems: " ^
-                                        commas_quote unused)
+                  verbose_warning ctxt ("Unused theorems: " ^ commas_quote unused)
                 else
                   ();
                 case result of
@@ -117,6 +116,11 @@ fun FOL_SOLVE mode ctxt cls ths0 =
             end
         | Metis_Resolution.Satisfiable _ =>
             (trace_msg ctxt (fn () => "Metis: No first-order proof with the lemmas supplied");
+             if mode <> FT then
+               raise METIS ("FOL_SOLVE",
+                            "No first-order proof with the lemmas supplied")
+             else
+               ();
              [])
   end;
 
@@ -153,16 +157,21 @@ fun generic_metis_tac mode ctxt ths i st0 =
         "Metis called with theorems " ^ cat_lines (map (Display.string_of_thm ctxt) ths))
   in
     if exists_type type_has_top_sort (prop_of st0) then
-      (verbose_warning ctxt "Metis: Proof state contains the universal sort {}";
+      (verbose_warning ctxt "Proof state contains the universal sort {}";
        Seq.empty)
     else
       Meson.MESON (preskolem_tac ctxt) (maps neg_clausify)
                   (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1)
                   ctxt i st0
-      handle ERROR message =>
-             error (message |> mode <> FT
-                               ? suffix "\nHint: You might want to try out \
-                                        \\"metisFT\".")
+      handle METIS (loc, msg) =>
+             if mode <> FT then
+               (verbose_warning ctxt ("Falling back on \"metisFT\".");
+                generic_metis_tac FT ctxt ths i st0)
+             else
+               error ("Failed to replay Metis proof in Isabelle." ^
+                      (if Config.get ctxt verbose then "\n" ^ loc ^ ": " ^ msg
+                       else ""))
+
   end
 
 val metis_tac = generic_metis_tac HO
