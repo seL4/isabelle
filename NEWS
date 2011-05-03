@@ -37,12 +37,16 @@ uniformly by explicit Isabelle settings as follows:
 Note that automated detection from the file-system or search path has
 been discontinued.  INCOMPATIBILITY.
 
-* Name space: proper configuration options "long_names",
-"short_names", "unique_names" instead of former unsynchronized
-references.  Minor INCOMPATIBILITY, need to declare options in context
-like this:
+* Name space: former unsynchronized references are now proper
+configuration options, with more conventional names:
 
-  declare [[unique_names = false]]
+  long_names   ~> names_long
+  short_names  ~> names_short
+  unique_names ~> names_unique
+
+Minor INCOMPATIBILITY, need to declare options in context like this:
+
+  declare [[names_unique = false]]
 
 * Literal facts `prop` may contain dummy patterns, e.g. `_ = _`.  Note
 that the result needs to be unique, which means fact specifications
