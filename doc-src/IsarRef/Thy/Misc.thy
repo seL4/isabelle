@@ -1,5 +1,5 @@
 theory Misc
-imports Main
+imports Base Main
 begin
 
 chapter {* Other commands *}

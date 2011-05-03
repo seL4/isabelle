@@ -1,5 +1,5 @@
 theory HOLCF_Specific
-imports HOLCF
+imports Base HOLCF
 begin
 
 chapter {* Isabelle/HOLCF \label{ch:holcf} *}

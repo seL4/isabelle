@@ -1,5 +1,5 @@
 theory Framework
-imports Main
+imports Base Main
 begin
 
 chapter {* The Isabelle/Isar Framework \label{ch:isar-framework} *}

@@ -1,5 +1,5 @@
 theory Introduction
-imports Main
+imports Base Main
 begin
 
 chapter {* Introduction *}

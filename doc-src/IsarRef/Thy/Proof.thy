@@ -1,5 +1,5 @@
 theory Proof
-imports Main
+imports Base Main
 begin
 
 chapter {* Proofs \label{ch:proofs} *}

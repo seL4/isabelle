@@ -1,4 +1,3 @@
-Thy_Output.source_default := true;
-use "../../antiquote_setup.ML";
+quick_and_dirty := true;
 
 use_thy "HOLCF_Specific";

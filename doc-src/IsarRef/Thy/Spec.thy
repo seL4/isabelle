@@ -1,5 +1,5 @@
 theory Spec
-imports Main
+imports Base Main
 begin
 
 chapter {* Theory specifications *}

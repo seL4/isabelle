@@ -1,5 +1,5 @@
 theory ML_Tactic
-imports Main
+imports Base Main
 begin
 
 chapter {* ML tactic expressions *}

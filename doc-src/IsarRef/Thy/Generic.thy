@@ -1,5 +1,5 @@
 theory Generic
-imports Main
+imports Base Main
 begin
 
 chapter {* Generic tools and packages \label{ch:gen-tools} *}

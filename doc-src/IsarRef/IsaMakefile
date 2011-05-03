@@ -21,7 +21,7 @@ USEDIR = $(ISABELLE_TOOL) usedir -v true -i false -d false -C false -D document
 
 HOL-IsarRef: $(LOG)/HOL-IsarRef.gz
 
-$(LOG)/HOL-IsarRef.gz: Thy/ROOT.ML ../antiquote_setup.ML		\
+$(LOG)/HOL-IsarRef.gz: Thy/ROOT.ML ../antiquote_setup.ML Thy/Base.thy	\
   Thy/First_Order_Logic.thy Thy/Framework.thy Thy/Inner_Syntax.thy	\
   Thy/Introduction.thy Thy/Outer_Syntax.thy Thy/Spec.thy Thy/Proof.thy	\
   Thy/Misc.thy Thy/Document_Preparation.thy Thy/Generic.thy		\
@@ -35,7 +35,7 @@ $(LOG)/HOL-IsarRef.gz: Thy/ROOT.ML ../antiquote_setup.ML		\
 HOLCF-IsarRef: $(LOG)/HOLCF-IsarRef.gz
 
 $(LOG)/HOLCF-IsarRef.gz: Thy/ROOT-HOLCF.ML ../antiquote_setup.ML	\
-  Thy/HOLCF_Specific.thy
+  Thy/Base.thy Thy/HOLCF_Specific.thy
 	@$(USEDIR) -s IsarRef -f ROOT-HOLCF.ML HOLCF Thy
 	@rm -f Thy/document/isabelle.sty Thy/document/isabellesym.sty \
 	 Thy/document/pdfsetup.sty Thy/document/session.tex
@@ -43,8 +43,8 @@ $(LOG)/HOLCF-IsarRef.gz: Thy/ROOT-HOLCF.ML ../antiquote_setup.ML	\
 
 ZF-IsarRef: $(LOG)/ZF-IsarRef.gz
 
-$(LOG)/ZF-IsarRef.gz: Thy/ROOT-ZF.ML ../antiquote_setup.ML 		\
-  Thy/ZF_Specific.thy
+$(LOG)/ZF-IsarRef.gz: Thy/ROOT-ZF.ML ../antiquote_setup.ML	\
+  Thy/Base.thy Thy/ZF_Specific.thy
 	@$(USEDIR) -s IsarRef -f ROOT-ZF.ML ZF Thy
 	@rm -f Thy/document/isabelle.sty Thy/document/isabellesym.sty \
 	 Thy/document/pdfsetup.sty Thy/document/session.tex

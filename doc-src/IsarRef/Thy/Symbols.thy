@@ -1,5 +1,5 @@
 theory Symbols
-imports Pure
+imports Base Main
 begin
 
 chapter {* Predefined Isabelle symbols \label{app:symbols} *}

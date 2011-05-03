@@ -1,5 +1,5 @@
 theory Document_Preparation
-imports Main
+imports Base Main
 begin
 
 chapter {* Document preparation \label{ch:document-prep} *}

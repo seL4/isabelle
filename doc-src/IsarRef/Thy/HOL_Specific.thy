@@ -1,5 +1,5 @@
 theory HOL_Specific
-imports Main
+imports Base Main
 begin
 
 chapter {* Isabelle/HOL \label{ch:hol} *}

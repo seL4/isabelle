@@ -2,7 +2,7 @@
 header {* Example: First-Order Logic *}
 
 theory %visible First_Order_Logic
-imports Pure
+imports Base  (* FIXME Pure!? *)
 begin
 
 text {*

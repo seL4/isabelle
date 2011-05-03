@@ -1,5 +1,5 @@
 theory ZF_Specific
-imports Main
+imports Base Main
 begin
 
 chapter {* Isabelle/ZF \label{ch:zf} *}

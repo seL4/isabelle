@@ -1,5 +1,5 @@
 theory Inner_Syntax
-imports Main
+imports Base Main
 begin
 
 chapter {* Inner syntax --- the term language \label{ch:inner-syntax} *}

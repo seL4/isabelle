@@ -1,5 +1,5 @@
 theory Quick_Reference
-imports Main
+imports Base Main
 begin
 
 chapter {* Isabelle/Isar quick reference \label{ap:refcard} *}

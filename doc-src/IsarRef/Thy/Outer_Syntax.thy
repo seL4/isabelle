@@ -1,5 +1,5 @@
 theory Outer_Syntax
-imports Main
+imports Base Main
 begin
 
 chapter {* Outer syntax *}
