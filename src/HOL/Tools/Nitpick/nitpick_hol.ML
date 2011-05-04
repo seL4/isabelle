@@ -980,6 +980,7 @@ fun bounded_card_of_type max default_card assigns
                     handle TYPE ("Nitpick_HOL.card_of_type", _, _) =>
                            default_card)
 
+(* Similar to similarly named function in "Sledgehammer_ATP_Translate". *)
 fun bounded_exact_card_of_type hol_ctxt finitizable_dataTs max default_card
                                assigns T =
   let
@@ -990,24 +991,20 @@ fun bounded_exact_card_of_type hol_ctxt finitizable_dataTs max default_card
          raise SAME ()
        else case T of
          Type (@{type_name fun}, [T1, T2]) =>
-         let
-           val k1 = aux avoid T1
-           val k2 = aux avoid T2
-         in
-           if k2 = 1 then 1
-           else if k1 = 0 orelse k2 = 0 then 0
-           else if k1 >= max orelse k2 >= max then max
-           else Int.min (max, reasonable_power k2 k1)
-         end
+         (case (aux avoid T1, aux avoid T2) of
+            (_, 1) => 1
+          | (0, _) => 0
+          | (_, 0) => 0
+          | (k1, k2) =>
+            if k1 >= max orelse k2 >= max then max
+            else Int.min (max, reasonable_power k2 k1))
        | Type (@{type_name prod}, [T1, T2]) =>
-         let
-           val k1 = aux avoid T1
-           val k2 = aux avoid T2
-         in
-           if k1 = 0 orelse k2 = 0 then 0
-           else if k1 >= max orelse k2 >= max then max
-           else Int.min (max, k1 * k2)
-         end
+         (case (aux avoid T1, aux avoid T2) of
+            (0, _) => 0
+          | (_, 0) => 0
+          | (k1, k2) =>
+            if k1 >= max orelse k2 >= max then max
+            else Int.min (max, k1 * k2))
        | Type (@{type_name itself}, _) => 1
        | @{typ prop} => 2
        | @{typ bool} => 2
@@ -1022,7 +1019,7 @@ fun bounded_exact_card_of_type hol_ctxt finitizable_dataTs max default_card
                     constrs
             in
               if exists (curry (op =) 0) constr_cards then 0
-              else Integer.sum constr_cards
+              else Int.min (max, Integer.sum constr_cards)
             end)
        | _ => raise SAME ())
       handle SAME () =>
