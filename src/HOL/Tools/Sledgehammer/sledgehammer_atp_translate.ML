@@ -100,6 +100,9 @@ datatype type_system =
   Preds of polymorphism * type_level |
   Tags of polymorphism * type_level
 
+fun try_unsuffixes ss s =
+  fold (fn s' => fn NONE => try (unsuffix s') s | some => some) ss NONE
+
 fun type_sys_from_string s =
   (case try (unprefix "mangled_") s of
      SOME s => (Mangled_Monomorphic, s)
@@ -108,10 +111,11 @@ fun type_sys_from_string s =
        SOME s => (Monomorphic, s)
      | NONE => (Polymorphic, s))
   ||> (fn s =>
-          case try (unsuffix "?") s of
+          (* "_query" and "_bang" are for the ASCII-challenged Mirabelle. *)
+          case try_unsuffixes ["?", "_query"] s of
             SOME s => (Nonmonotonic_Types, s)
           | NONE =>
-            case try (unsuffix "!") s of
+            case try_unsuffixes ["!", "_bang"] s of
               SOME s => (Finite_Types, s)
             | NONE => (All_Types, s))
   |> (fn (polymorphism, (level, core)) =>
