@@ -17,7 +17,7 @@ sig
     All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
 
   datatype type_system =
-    Many_Typed of type_level |
+    Simple of type_level |
     Preds of polymorphism * type_level |
     Tags of polymorphism * type_level
 
@@ -96,7 +96,7 @@ datatype type_level =
   All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
 
 datatype type_system =
-  Many_Typed of type_level |
+  Simple of type_level |
   Preds of polymorphism * type_level |
   Tags of polymorphism * type_level
 
@@ -116,7 +116,7 @@ fun type_sys_from_string s =
             | NONE => (All_Types, s))
   |> (fn (polymorphism, (level, core)) =>
          case (core, (polymorphism, level)) of
-           ("many_typed", (Polymorphic (* naja *), level)) => Many_Typed level
+           ("simple", (Polymorphic (* naja *), level)) => Simple level
          | ("preds", extra) => Preds extra
          | ("tags", extra) => Tags extra
          | ("args", (_, All_Types (* naja *))) =>
@@ -125,11 +125,11 @@ fun type_sys_from_string s =
            Preds (polymorphism, No_Types)
          | _ => error ("Unknown type system: " ^ quote s ^ "."))
 
-fun polymorphism_of_type_sys (Many_Typed _) = Mangled_Monomorphic
+fun polymorphism_of_type_sys (Simple _) = Mangled_Monomorphic
   | polymorphism_of_type_sys (Preds (poly, _)) = poly
   | polymorphism_of_type_sys (Tags (poly, _)) = poly
 
-fun level_of_type_sys (Many_Typed level) = level
+fun level_of_type_sys (Simple level) = level
   | level_of_type_sys (Preds (_, level)) = level
   | level_of_type_sys (Tags (_, level)) = level
 
@@ -783,7 +783,7 @@ fun formula_from_combformula ctxt nonmono_Ts type_sys =
       end
     val do_bound_type =
       case type_sys of
-        Many_Typed level =>
+        Simple level =>
         SOME o mangled_type_name o homogenized_type ctxt nonmono_Ts level
       | _ => K NONE
     fun do_out_of_bound_type (s, T) =
@@ -886,7 +886,7 @@ fun insert_type get_T x xs =
 fun should_declare_sym type_sys pred_sym s =
   not (String.isPrefix bound_var_prefix s) andalso s <> "equal" andalso
   not (String.isPrefix "$" s) andalso
-  ((case type_sys of Many_Typed _ => true | _ => false) orelse not pred_sym)
+  ((case type_sys of Simple _ => true | _ => false) orelse not pred_sym)
 
 fun add_combterm_syms_to_decl_table type_sys repaired_sym_tab =
   let
@@ -980,7 +980,7 @@ fun formula_line_for_sym_decl ctxt nonmono_Ts type_sys n s j
 
 fun problem_lines_for_sym_decls ctxt nonmono_Ts type_sys (s, decls) =
   case type_sys of
-    Many_Typed _ => map (decl_line_for_sym s) decls
+    Simple _ => map (decl_line_for_sym s) decls
   | _ =>
     let
       val decls =
@@ -1077,7 +1077,7 @@ fun prepare_atp_problem ctxt type_sys explicit_apply hyp_ts concl_t facts =
     val problem =
       problem
       |> (case type_sys of
-            Many_Typed _ =>
+            Simple _ =>
             cons (type_declsN,
                   map decl_line_for_tff_type (tff_types_in_problem problem))
           | _ => I)

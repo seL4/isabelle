@@ -378,14 +378,14 @@ val remote_vampire = remotify_atp vampire "Vampire" ["0.6", "9.0", "1.0"]
 val remote_z3_atp = remotify_atp z3_atp "Z3" ["2.18"]
 val remote_tofof_e =
   remote_atp tofof_eN "ToFoF" ["0.1"] [] (#known_failures e_config)
-             Conjecture [Tff] (K 200 (* FUDGE *)) ["many_typed"]
+             Conjecture [Tff] (K 200 (* FUDGE *)) ["simple"]
 val remote_sine_e =
   remote_atp sine_eN "SInE" ["0.4"] [] [] Conjecture [Fof] (K 500 (* FUDGE *))
                      (#best_type_systems e_config)
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r024"]
              [("refutation.", "end_refutation.")] [] Conjecture [Tff, Fof]
-             (K 250 (* FUDGE *)) ["many_typed"]
+             (K 250 (* FUDGE *)) ["simple"]
 
 (* Setup *)
 
