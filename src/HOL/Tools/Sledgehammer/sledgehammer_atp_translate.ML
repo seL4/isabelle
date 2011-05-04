@@ -17,7 +17,7 @@ sig
     All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
 
   datatype type_system =
-    Many_Typed |
+    Many_Typed of type_level |
     Preds of polymorphism * type_level |
     Tags of polymorphism * type_level
 
@@ -96,7 +96,7 @@ datatype type_level =
   All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
 
 datatype type_system =
-  Many_Typed |
+  Many_Typed of type_level |
   Preds of polymorphism * type_level |
   Tags of polymorphism * type_level
 
@@ -116,21 +116,20 @@ fun type_sys_from_string s =
             | NONE => (All_Types, s))
   |> (fn (polymorphism, (level, core)) =>
          case (core, (polymorphism, level)) of
-           ("many_typed", (Polymorphic (* naja *), All_Types)) =>
-           Many_Typed
+           ("many_typed", (Polymorphic (* naja *), level)) => Many_Typed level
          | ("preds", extra) => Preds extra
          | ("tags", extra) => Tags extra
-         | ("const_args", (_, All_Types (* naja *))) =>
+         | ("args", (_, All_Types (* naja *))) =>
            Preds (polymorphism, Const_Arg_Types)
          | ("erased", (Polymorphic, All_Types (* naja *))) =>
            Preds (polymorphism, No_Types)
          | _ => error ("Unknown type system: " ^ quote s ^ "."))
 
-fun polymorphism_of_type_sys Many_Typed = Mangled_Monomorphic
+fun polymorphism_of_type_sys (Many_Typed _) = Mangled_Monomorphic
   | polymorphism_of_type_sys (Preds (poly, _)) = poly
   | polymorphism_of_type_sys (Tags (poly, _)) = poly
 
-fun level_of_type_sys Many_Typed = All_Types
+fun level_of_type_sys (Many_Typed level) = level
   | level_of_type_sys (Preds (_, level)) = level
   | level_of_type_sys (Tags (_, level)) = level
 
@@ -453,6 +452,83 @@ fun make_conjecture ctxt ts =
          (0 upto last) ts
   end
 
+(** Finite and infinite type inference **)
+
+(* Finite types such as "unit", "bool", "bool * bool", and "bool => bool" are
+   dangerous because their "exhaust" properties can easily lead to unsound ATP
+   proofs. On the other hand, all HOL infinite types can be given the same
+   models in first-order logic (via Löwenheim-Skolem). *)
+
+fun datatype_constrs thy (T as Type (s, Ts)) =
+    (case Datatype.get_info thy s of
+       SOME {index, descr, ...} =>
+       let val (_, dtyps, constrs) = AList.lookup (op =) descr index |> the in
+         map (apsnd (fn Us => map (typ_of_dtyp descr (dtyps ~~ Ts)) Us ---> T))
+             constrs
+       end
+     | NONE => [])
+  | datatype_constrs _ _ = []
+
+(* Similar to "Nitpick_HOL.bounded_exact_card_of_type".
+   0 means infinite type, 1 means singleton type (e.g., "unit"), and 2 means
+   cardinality 2 or more. The specified default cardinality is returned if the
+   cardinality of the type can't be determined. *)
+fun tiny_card_of_type ctxt default_card T =
+  let
+    val max = 2 (* 1 would be too small for the "fun" case *)
+    fun aux avoid T =
+      (if member (op =) avoid T then
+         0
+       else case T of
+         Type (@{type_name fun}, [T1, T2]) =>
+         (case (aux avoid T1, aux avoid T2) of
+            (_, 1) => 1
+          | (0, _) => 0
+          | (_, 0) => 0
+          | (k1, k2) =>
+            if k1 >= max orelse k2 >= max then max
+            else Int.min (max, Integer.pow k2 k1))
+       | @{typ int} => 0
+       | @{typ bool} => 2 (* optimization *)
+       | Type _ =>
+         let val thy = Proof_Context.theory_of ctxt in
+           case datatype_constrs thy T of
+             [] => default_card
+           | constrs =>
+             let
+               val constr_cards =
+                 map (Integer.prod o map (aux (T :: avoid)) o binder_types
+                      o snd) constrs
+             in
+               if exists (curry (op =) 0) constr_cards then 0
+               else Int.min (max, Integer.sum constr_cards)
+             end
+         end
+       | _ => default_card)
+  in Int.min (max, aux [] T) end
+
+fun is_type_surely_finite ctxt T = tiny_card_of_type ctxt 0 T <> 0
+fun is_type_surely_infinite ctxt T = tiny_card_of_type ctxt 1 T = 0
+
+fun should_encode_type _ _ All_Types _ = true
+  | should_encode_type ctxt _ Finite_Types T = is_type_surely_finite ctxt T
+  | should_encode_type _ nonmono_Ts Nonmonotonic_Types T =
+    exists (curry Type.raw_instance T) nonmono_Ts
+  | should_encode_type _ _ _ _ = false
+
+fun should_predicate_on_type ctxt nonmono_Ts (Preds (_, level)) T =
+    should_encode_type ctxt nonmono_Ts level T
+  | should_predicate_on_type _ _ _ _ = false
+
+fun should_tag_with_type ctxt nonmono_Ts (Tags (_, level)) T =
+    should_encode_type ctxt nonmono_Ts level T
+  | should_tag_with_type _ _ _ _ = false
+
+val homo_infinite_T = @{typ ind} (* any infinite type *)
+
+fun homogenized_type ctxt nonmono_Ts level T =
+  if should_encode_type ctxt nonmono_Ts level T then T else homo_infinite_T
+
 (** "hBOOL" and "hAPP" **)
 
 type sym_info =
@@ -554,29 +630,43 @@ fun introduce_explicit_apps_in_combterm sym_tab =
       | (head, args) => list_explicit_app head (map aux args)
   in aux end
 
-fun impose_type_arg_policy_in_combterm type_sys =
+fun impose_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys =
   let
     fun aux (CombApp tmp) = CombApp (pairself aux tmp)
       | aux (CombConst (name as (s, _), T, T_args)) =
-        (case strip_prefix_and_unascii const_prefix s of
-           NONE => (name, T_args)
-         | SOME s'' =>
-           let val s'' = invert_const s'' in
-             case type_arg_policy type_sys s'' of
-               No_Type_Args => (name, [])
-             | Explicit_Type_Args => (name, T_args)
-             | Mangled_Type_Args => (mangled_const_name T_args name, [])
-           end)
-        |> (fn (name, T_args) => CombConst (name, T, T_args))
+        let
+          val level = level_of_type_sys type_sys
+          val (T, T_args) =
+            (* avoid needless identical homogenized versions of "hAPP" *)
+            if s = const_prefix ^ explicit_app_base then
+              T_args |> map (homogenized_type ctxt nonmono_Ts level)
+                     |> (fn Ts => let val T = hd Ts --> nth Ts 1 in
+                                    (T --> T, Ts)
+                                  end)
+            else
+              (T, T_args)
+        in
+          (case strip_prefix_and_unascii const_prefix s of
+             NONE => (name, T_args)
+           | SOME s'' =>
+             let val s'' = invert_const s'' in
+               case type_arg_policy type_sys s'' of
+                 No_Type_Args => (name, [])
+               | Explicit_Type_Args => (name, T_args)
+               | Mangled_Type_Args => (mangled_const_name T_args name, [])
+             end)
+          |> (fn (name, T_args) => CombConst (name, T, T_args))
+        end
       | aux tm = tm
   in aux end
 
-fun repair_combterm type_sys sym_tab =
+fun repair_combterm ctxt nonmono_Ts type_sys sym_tab =
   introduce_explicit_apps_in_combterm sym_tab
   #> introduce_predicators_in_combterm sym_tab
-  #> impose_type_arg_policy_in_combterm type_sys
-fun repair_fact type_sys sym_tab =
-  update_combformula (formula_map (repair_combterm type_sys sym_tab))
+  #> impose_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys
+fun repair_fact ctxt nonmono_Ts type_sys sym_tab =
+  update_combformula (formula_map
+      (repair_combterm ctxt nonmono_Ts type_sys sym_tab))
 
 (** Helper facts **)
 
@@ -660,83 +750,17 @@ fun fo_literal_from_type_literal (TyLitVar (class, name)) =
 
 fun formula_from_fo_literal (pos, t) = AAtom t |> not pos ? mk_anot
 
-(* Finite types such as "unit", "bool", "bool * bool", and "bool => bool" are
-   considered dangerous because their "exhaust" properties can easily lead to
-   unsound ATP proofs. The checks below are an (unsound) approximation of
-   finiteness. *)
-
-fun datatype_constrs thy (T as Type (s, Ts)) =
-    (case Datatype.get_info thy s of
-       SOME {index, descr, ...} =>
-       let val (_, dtyps, constrs) = AList.lookup (op =) descr index |> the in
-         map (apsnd (fn Us => map (typ_of_dtyp descr (dtyps ~~ Ts)) Us ---> T))
-             constrs
-       end
-     | NONE => [])
-  | datatype_constrs _ _ = []
-
-(* Similar to "Nitpick_HOL.bounded_exact_card_of_type".
-   0 means infinite type, 1 means singleton type (e.g., "unit"), and 2 means
-   cardinality 2 or more. The specified default cardinality is returned if the
-   cardinality of the type can't be determined. *)
-fun tiny_card_of_type ctxt default_card T =
-  let
-    val max = 2 (* 1 would be too small for the "fun" case *)
-    fun aux avoid T =
-      (if member (op =) avoid T then
-         0
-       else case T of
-         Type (@{type_name fun}, [T1, T2]) =>
-         (case (aux avoid T1, aux avoid T2) of
-            (_, 1) => 1
-          | (0, _) => 0
-          | (_, 0) => 0
-          | (k1, k2) =>
-            if k1 >= max orelse k2 >= max then max
-            else Int.min (max, Integer.pow k2 k1))
-       | Type _ =>
-         (case datatype_constrs (Proof_Context.theory_of ctxt) T of
-            [] => default_card
-          | constrs =>
-            let
-              val constr_cards =
-                map (Integer.prod o map (aux (T :: avoid)) o binder_types o snd)
-                    constrs
-            in
-              if exists (curry (op =) 0) constr_cards then 0
-              else Int.min (max, Integer.sum constr_cards)
-            end)
-       | _ => default_card)
-  in Int.min (max, aux [] T) end
-
-fun is_type_surely_finite ctxt T = tiny_card_of_type ctxt 0 T <> 0
-fun is_type_surely_infinite ctxt T = tiny_card_of_type ctxt 1 T = 0
-
-fun should_encode_type _ _ All_Types _ = true
-  | should_encode_type ctxt _ Finite_Types T = is_type_surely_finite ctxt T
-  | should_encode_type _ nonmono_Ts Nonmonotonic_Types T =
-    exists (curry Type.raw_instance T) nonmono_Ts
-  | should_encode_type _ _ _ _ = false
-
-fun should_predicate_on_type ctxt nonmono_Ts (Preds (_, level)) T =
-    should_encode_type ctxt nonmono_Ts level T
-  | should_predicate_on_type _ _ _ _ = false
-
-fun should_tag_with_type ctxt nonmono_Ts (Tags (_, level)) T =
-    should_encode_type ctxt nonmono_Ts level T
-  | should_tag_with_type _ _ _ _ = false
-
-fun type_pred_combatom type_sys T tm =
+fun type_pred_combatom ctxt nonmono_Ts type_sys T tm =
   CombApp (CombConst (`make_fixed_const type_pred_base, T --> @{typ bool}, [T]),
            tm)
-  |> impose_type_arg_policy_in_combterm type_sys
+  |> impose_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys
   |> AAtom
 
 fun formula_from_combformula ctxt nonmono_Ts type_sys =
   let
     fun tag_with_type type_sys T tm =
       CombConst (`make_fixed_const type_tag_name, T --> T, [T])
-      |> impose_type_arg_policy_in_combterm type_sys
+      |> impose_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys
       |> do_term true
       |> (fn ATerm (s, tms) => ATerm (s, tms @ [tm]))
     and do_term top_level u =
@@ -758,10 +782,13 @@ fun formula_from_combformula ctxt nonmono_Ts type_sys =
                 I)
       end
     val do_bound_type =
-      if type_sys = Many_Typed then SOME o mangled_type_name else K NONE
+      case type_sys of
+        Many_Typed level =>
+        SOME o mangled_type_name o homogenized_type ctxt nonmono_Ts level
+      | _ => K NONE
     fun do_out_of_bound_type (s, T) =
       if should_predicate_on_type ctxt nonmono_Ts type_sys T then
-        type_pred_combatom type_sys T (CombVar (s, T))
+        type_pred_combatom ctxt nonmono_Ts type_sys T (CombVar (s, T))
         |> do_formula |> SOME
       else
         NONE
@@ -859,7 +886,7 @@ fun insert_type get_T x xs =
 fun should_declare_sym type_sys pred_sym s =
   not (String.isPrefix bound_var_prefix s) andalso s <> "equal" andalso
   not (String.isPrefix "$" s) andalso
-  (type_sys = Many_Typed orelse not pred_sym)
+  ((case type_sys of Many_Typed _ => true | _ => false) orelse not pred_sym)
 
 fun add_combterm_syms_to_decl_table type_sys repaired_sym_tab =
   let
@@ -891,7 +918,6 @@ fun sym_decl_table_for_facts type_sys repaired_sym_tab facts =
                   ? fold (add_fact_syms_to_decl_table type_sys repaired_sym_tab)
                          facts
 
-
 (* FIXME: use CombVar not CombConst for bound variables? *)
 fun is_var_or_bound_var (CombConst ((s, _), _, _)) =
     String.isPrefix bound_var_prefix s
@@ -911,7 +937,8 @@ fun add_fact_nonmonotonic_types ctxt ({kind, combformula, ...}
                combformula
 fun add_nonmonotonic_types_for_facts ctxt type_sys facts =
   level_of_type_sys type_sys = Nonmonotonic_Types
-  ? fold (add_fact_nonmonotonic_types ctxt) facts
+  ? (insert_type I @{typ bool} (* in case helper "True_or_False" is included *)
+     #> fold (add_fact_nonmonotonic_types ctxt) facts)
 
 fun n_ary_strip_type 0 T = ([], T)
   | n_ary_strip_type n (Type (@{type_name fun}, [dom_T, ran_T])) =
@@ -920,7 +947,7 @@ fun n_ary_strip_type 0 T = ([], T)
 
 fun result_type_of_decl (_, _, T, _, ary) = n_ary_strip_type ary T |> snd
 
-fun decl_line_for_sym_decl s (s', _, T, pred_sym, ary) =
+fun decl_line_for_sym s (s', _, T, pred_sym, ary) =
   let val (arg_Ts, res_T) = n_ary_strip_type ary T in
     Decl (sym_decl_prefix ^ s, (s, s'), map mangled_type_name arg_Ts,
           if pred_sym then `I tptp_tff_bool_type else mangled_type_name res_T)
@@ -944,7 +971,7 @@ fun formula_line_for_sym_decl ctxt nonmono_Ts type_sys n s j
              (if n > 1 then "_" ^ string_of_int j else ""), Axiom,
              CombConst ((s, s'), T, T_args)
              |> fold (curry (CombApp o swap)) bound_tms
-             |> type_pred_combatom type_sys res_T
+             |> type_pred_combatom ctxt nonmono_Ts type_sys res_T
              |> mk_aquant AForall (bound_names ~~ bound_Ts)
              |> formula_from_combformula ctxt nonmono_Ts type_sys
              |> close_formula_universally,
@@ -952,9 +979,9 @@ fun formula_line_for_sym_decl ctxt nonmono_Ts type_sys n s j
   end
 
 fun problem_lines_for_sym_decls ctxt nonmono_Ts type_sys (s, decls) =
-  if type_sys = Many_Typed then
-    map (decl_line_for_sym_decl s) decls
-  else
+  case type_sys of
+    Many_Typed _ => map (decl_line_for_sym s) decls
+  | _ =>
     let
       val decls =
         case decls of
@@ -1017,15 +1044,13 @@ fun prepare_atp_problem ctxt type_sys explicit_apply hyp_ts concl_t facts =
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
       translate_formulas ctxt type_sys hyp_ts concl_t facts
     val sym_tab = conjs @ facts |> sym_table_for_facts explicit_apply
-    val (conjs, facts) =
-      (conjs, facts) |> pairself (map (repair_fact type_sys sym_tab))
+    val nonmono_Ts =
+      [] |> fold (add_nonmonotonic_types_for_facts ctxt type_sys) [facts, conjs]
+    val repair = repair_fact ctxt nonmono_Ts type_sys sym_tab
+    val (conjs, facts) = (conjs, facts) |> pairself (map repair)
     val repaired_sym_tab = conjs @ facts |> sym_table_for_facts false
     val helpers =
-      helper_facts_for_sym_table ctxt type_sys repaired_sym_tab
-      |> map (repair_fact type_sys sym_tab)
-    val nonmono_Ts =
-      [] |> fold (add_nonmonotonic_types_for_facts ctxt type_sys)
-                 [facts, conjs, helpers]
+      repaired_sym_tab |> helper_facts_for_sym_table ctxt type_sys |> map repair
     val sym_decl_lines =
       conjs @ facts
       |> sym_decl_table_for_facts type_sys repaired_sym_tab
@@ -1051,11 +1076,11 @@ fun prepare_atp_problem ctxt type_sys explicit_apply hyp_ts concl_t facts =
        (free_typesN, formula_lines_for_free_types type_sys (facts @ conjs))]
     val problem =
       problem
-      |> (if type_sys = Many_Typed then
+      |> (case type_sys of
+            Many_Typed _ =>
             cons (type_declsN,
                   map decl_line_for_tff_type (tff_types_in_problem problem))
-          else
-            I)
+          | _ => I)
     val (problem, pool) =
       problem |> nice_atp_problem (Config.get ctxt readable_names)
   in

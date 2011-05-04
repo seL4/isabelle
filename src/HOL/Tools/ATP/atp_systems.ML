@@ -210,7 +210,7 @@ val e_config : atp_config =
         (0.33334, (true, 200 (* FUDGE *))) (* fun_weight *)]
      else
        [(1.0, (true, 250 (* FUDGE *)))],
-   best_type_systems = ["const_args", "mangled_preds"]}
+   best_type_systems = ["args", "mangled_preds"]}
 
 val e = (eN, e_config)
 
