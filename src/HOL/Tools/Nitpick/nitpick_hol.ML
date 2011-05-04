@@ -980,7 +980,7 @@ fun bounded_card_of_type max default_card assigns
                     handle TYPE ("Nitpick_HOL.card_of_type", _, _) =>
                            default_card)
 
-(* Similar to similarly named function in "Sledgehammer_ATP_Translate". *)
+(* Similar to "Sledgehammer_ATP_Translate.tiny_card_of_type". *)
 fun bounded_exact_card_of_type hol_ctxt finitizable_dataTs max default_card
                                assigns T =
   let

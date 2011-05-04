@@ -147,17 +147,17 @@ fun formula_map f (AQuant (q, xs, phi)) = AQuant (q, xs, formula_map f phi)
   | formula_map f (AConn (c, phis)) = AConn (c, map (formula_map f) phis)
   | formula_map f (AAtom tm) = AAtom (f tm)
 
-fun formula_fold f =
+fun formula_fold pos f =
   let
     fun aux pos (AQuant (_, _, phi)) = aux pos phi
-      | aux pos (AConn (ANot, [phi])) = aux (not pos) phi
+      | aux pos (AConn (ANot, [phi])) = aux (Option.map not pos) phi
       | aux pos (AConn (AImplies, [phi1, phi2])) =
-        aux (not pos) phi1 #> aux pos phi2
-      | aux pos (AConn (c, phis)) =
-        if member (op =) [AAnd, AOr] c then fold (aux pos) phis
-        else raise Fail "unexpected connective with unknown polarities"
+        aux (Option.map not pos) phi1 #> aux pos phi2
+      | aux pos (AConn (AAnd, phis)) = fold (aux pos) phis
+      | aux pos (AConn (AOr, phis)) = fold (aux pos) phis
+      | aux _ (AConn (_, phis)) = fold (aux NONE) phis
       | aux pos (AAtom tm) = f pos tm
-  in aux true end
+  in aux (SOME pos) end
 
 type translated_formula =
   {name: string,
@@ -483,7 +483,7 @@ fun add_combterm_syms_to_table explicit_apply =
       end
   in aux true end
 fun add_fact_syms_to_table explicit_apply =
-  fact_lift (formula_fold (K (add_combterm_syms_to_table explicit_apply)))
+  fact_lift (formula_fold true (K (add_combterm_syms_to_table explicit_apply)))
 
 val default_sym_table_entries : (string * sym_info) list =
   [("equal", {pred_sym = true, min_ary = 2, max_ary = 2, typ = NONE}),
@@ -665,38 +665,66 @@ fun formula_from_fo_literal (pos, t) = AAtom t |> not pos ? mk_anot
    unsound ATP proofs. The checks below are an (unsound) approximation of
    finiteness. *)
 
-fun is_dtyp_finite _ (Datatype_Aux.DtTFree _) = true
-  | is_dtyp_finite ctxt (Datatype_Aux.DtType (s, Us)) =
-    is_type_constr_finite ctxt s andalso forall (is_dtyp_finite ctxt) Us
-  | is_dtyp_finite _ (Datatype_Aux.DtRec _) = false
-and is_type_finite ctxt (Type (s, Ts)) =
-    is_type_constr_finite ctxt s andalso forall (is_type_finite ctxt) Ts
-  | is_type_finite _ _ = false
-and is_type_constr_finite ctxt s =
-  let val thy = Proof_Context.theory_of ctxt in
-    case Datatype_Data.get_info thy s of
-      SOME {descr, ...} =>
-      forall (fn (_, (_, _, constrs)) =>
-                 forall (forall (is_dtyp_finite ctxt) o snd) constrs) descr
-    | NONE =>
-      case Typedef.get_info ctxt s of
-        ({rep_type, ...}, _) :: _ => is_type_finite ctxt rep_type
-      | [] => true
-  end
+fun datatype_constrs thy (T as Type (s, Ts)) =
+    (case Datatype.get_info thy s of
+       SOME {index, descr, ...} =>
+       let val (_, dtyps, constrs) = AList.lookup (op =) descr index |> the in
+         map (apsnd (fn Us => map (typ_of_dtyp descr (dtyps ~~ Ts)) Us ---> T))
+             constrs
+       end
+     | NONE => [])
+  | datatype_constrs _ _ = []
 
-fun should_encode_type _ All_Types _ = true
-  | should_encode_type ctxt Finite_Types T = is_type_finite ctxt T
-  | should_encode_type _ Nonmonotonic_Types _ =
-    error "Monotonicity inference not implemented yet."
-  | should_encode_type _ _ _ = false
+(* Similar to "Nitpick_HOL.bounded_exact_card_of_type".
+   0 means infinite type, 1 means singleton type (e.g., "unit"), and 2 means
+   cardinality 2 or more. The specified default cardinality is returned if the
+   cardinality of the type can't be determined. *)
+fun tiny_card_of_type ctxt default_card T =
+  let
+    val max = 2 (* 1 would be too small for the "fun" case *)
+    fun aux avoid T =
+      (if member (op =) avoid T then
+         0
+       else case T of
+         Type (@{type_name fun}, [T1, T2]) =>
+         (case (aux avoid T1, aux avoid T2) of
+            (_, 1) => 1
+          | (0, _) => 0
+          | (_, 0) => 0
+          | (k1, k2) =>
+            if k1 >= max orelse k2 >= max then max
+            else Int.min (max, Integer.pow k2 k1))
+       | Type _ =>
+         (case datatype_constrs (Proof_Context.theory_of ctxt) T of
+            [] => default_card
+          | constrs =>
+            let
+              val constr_cards =
+                map (Integer.prod o map (aux (T :: avoid)) o binder_types o snd)
+                    constrs
+            in
+              if exists (curry (op =) 0) constr_cards then 0
+              else Int.min (max, Integer.sum constr_cards)
+            end)
+       | _ => default_card)
+  in Int.min (max, aux [] T) end
 
-fun should_predicate_on_type ctxt (Preds (_, level)) T =
-    should_encode_type ctxt level T
-  | should_predicate_on_type _ _ _ = false
+fun is_type_surely_finite ctxt T = tiny_card_of_type ctxt 0 T <> 0
+fun is_type_surely_infinite ctxt T = tiny_card_of_type ctxt 1 T = 0
 
-fun should_tag_with_type ctxt (Tags (_, level)) T =
-    should_encode_type ctxt level T
-  | should_tag_with_type _ _ _ = false
+fun should_encode_type _ _ All_Types _ = true
+  | should_encode_type ctxt _ Finite_Types T = is_type_surely_finite ctxt T
+  | should_encode_type _ nonmono_Ts Nonmonotonic_Types T =
+    exists (curry Type.raw_instance T) nonmono_Ts
+  | should_encode_type _ _ _ _ = false
+
+fun should_predicate_on_type ctxt nonmono_Ts (Preds (_, level)) T =
+    should_encode_type ctxt nonmono_Ts level T
+  | should_predicate_on_type _ _ _ _ = false
+
+fun should_tag_with_type ctxt nonmono_Ts (Tags (_, level)) T =
+    should_encode_type ctxt nonmono_Ts level T
+  | should_tag_with_type _ _ _ _ = false
 
 fun type_pred_combatom type_sys T tm =
   CombApp (CombConst (`make_fixed_const type_pred_base, T --> @{typ bool}, [T]),
@@ -704,7 +732,7 @@ fun type_pred_combatom type_sys T tm =
   |> impose_type_arg_policy_in_combterm type_sys
   |> AAtom
 
-fun formula_from_combformula ctxt type_sys =
+fun formula_from_combformula ctxt nonmono_Ts type_sys =
   let
     fun tag_with_type type_sys T tm =
       CombConst (`make_fixed_const type_tag_name, T --> T, [T])
@@ -723,7 +751,8 @@ fun formula_from_combformula ctxt type_sys =
                           map (do_term false) args)
         val T = combtyp_of u
       in
-        t |> (if not top_level andalso should_tag_with_type ctxt type_sys T then
+        t |> (if not top_level andalso
+                should_tag_with_type ctxt nonmono_Ts type_sys T then
                 tag_with_type type_sys T
               else
                 I)
@@ -731,7 +760,7 @@ fun formula_from_combformula ctxt type_sys =
     val do_bound_type =
       if type_sys = Many_Typed then SOME o mangled_type_name else K NONE
     fun do_out_of_bound_type (s, T) =
-      if should_predicate_on_type ctxt type_sys T then
+      if should_predicate_on_type ctxt nonmono_Ts type_sys T then
         type_pred_combatom type_sys T (CombVar (s, T))
         |> do_formula |> SOME
       else
@@ -748,11 +777,11 @@ fun formula_from_combformula ctxt type_sys =
       | do_formula (AAtom tm) = AAtom (do_term true tm)
   in do_formula end
 
-fun formula_for_fact ctxt type_sys
+fun formula_for_fact ctxt nonmono_Ts type_sys
                      ({combformula, atomic_types, ...} : translated_formula) =
   mk_ahorn (map (formula_from_fo_literal o fo_literal_from_type_literal)
                 (atp_type_literals_for_types type_sys Axiom atomic_types))
-           (formula_from_combformula ctxt type_sys
+           (formula_from_combformula ctxt nonmono_Ts type_sys
                 (close_combformula_universally combformula))
   |> close_formula_universally
 
@@ -761,13 +790,12 @@ fun useful_isabelle_info s = SOME (ATerm ("[]", [ATerm ("isabelle_" ^ s, [])]))
 (* Each fact is given a unique fact number to avoid name clashes (e.g., because
    of monomorphization). The TPTP explicitly forbids name clashes, and some of
    the remote provers might care. *)
-fun formula_line_for_fact ctxt prefix type_sys
+fun formula_line_for_fact ctxt prefix nonmono_Ts type_sys
                           (j, formula as {name, locality, kind, ...}) =
-  Formula (prefix ^
-           (if polymorphism_of_type_sys type_sys = Polymorphic then ""
-            else string_of_int j ^ "_") ^
+  Formula (prefix ^ (if polymorphism_of_type_sys type_sys = Polymorphic then ""
+                     else string_of_int j ^ "_") ^
            ascii_of name,
-           kind, formula_for_fact ctxt type_sys formula, NONE,
+           kind, formula_for_fact ctxt nonmono_Ts type_sys formula, NONE,
            if generate_useful_info then
              case locality of
                Intro => useful_isabelle_info "intro"
@@ -800,10 +828,10 @@ fun formula_line_for_arity_clause (ArityClause {name, conclLit, premLits,
                          (fo_literal_from_arity_literal conclLit))
            |> close_formula_universally, NONE, NONE)
 
-fun formula_line_for_conjecture ctxt type_sys
+fun formula_line_for_conjecture ctxt nonmono_Ts type_sys
         ({name, kind, combformula, ...} : translated_formula) =
   Formula (conjecture_prefix ^ name, kind,
-           formula_from_combformula ctxt type_sys
+           formula_from_combformula ctxt nonmono_Ts type_sys
                                     (close_combformula_universally combformula)
            |> close_formula_universally, NONE, NONE)
 
@@ -856,12 +884,13 @@ fun add_combterm_syms_to_decl_table type_sys repaired_sym_tab =
       end
   in do_term end
 fun add_fact_syms_to_decl_table type_sys repaired_sym_tab =
-  fact_lift (formula_fold
+  fact_lift (formula_fold true
       (K (add_combterm_syms_to_decl_table type_sys repaired_sym_tab)))
 fun sym_decl_table_for_facts type_sys repaired_sym_tab facts =
   Symtab.empty |> is_type_sys_fairly_sound type_sys
                   ? fold (add_fact_syms_to_decl_table type_sys repaired_sym_tab)
                          facts
+
 
 (* FIXME: use CombVar not CombConst for bound variables? *)
 fun is_var_or_bound_var (CombConst ((s, _), _, _)) =
@@ -869,17 +898,20 @@ fun is_var_or_bound_var (CombConst ((s, _), _, _)) =
   | is_var_or_bound_var (CombVar _) = true
   | is_var_or_bound_var _ = false
 
-fun add_combterm_nonmonotonic_types true
-        (CombApp (CombConst (("equal", _), Type (_, [T, _]), _),
-                  CombApp (tm1, tm2))) =
-    exists is_var_or_bound_var [tm1, tm2] ? insert_type I T
-  | add_combterm_nonmonotonic_types _ _ = I
-
-val add_fact_nonmonotonic_types =
-  fact_lift (formula_fold add_combterm_nonmonotonic_types)
-fun nonmonotonic_types_for_facts type_sys facts =
-  [] |> level_of_type_sys type_sys = Nonmonotonic_Types
-        ? fold add_fact_nonmonotonic_types facts
+fun add_combterm_nonmonotonic_types _ (SOME false) _ = I
+  | add_combterm_nonmonotonic_types ctxt _
+        (CombApp (CombApp (CombConst (("equal", _), Type (_, [T, _]), _), tm1),
+                  tm2)) =
+    (exists is_var_or_bound_var [tm1, tm2] andalso
+     not (is_type_surely_infinite ctxt T)) ? insert_type I T
+  | add_combterm_nonmonotonic_types _ _ _ = I
+fun add_fact_nonmonotonic_types ctxt ({kind, combformula, ...}
+                                      : translated_formula) =
+  formula_fold (kind <> Conjecture) (add_combterm_nonmonotonic_types ctxt)
+               combformula
+fun add_nonmonotonic_types_for_facts ctxt type_sys facts =
+  level_of_type_sys type_sys = Nonmonotonic_Types
+  ? fold (add_fact_nonmonotonic_types ctxt) facts
 
 fun n_ary_strip_type 0 T = ([], T)
   | n_ary_strip_type n (Type (@{type_name fun}, [dom_T, ran_T])) =
@@ -896,7 +928,8 @@ fun decl_line_for_sym_decl s (s', _, T, pred_sym, ary) =
 
 fun is_polymorphic_type T = fold_atyps (fn TVar _ => K true | _ => I) T false
 
-fun formula_line_for_sym_decl ctxt type_sys n s j (s', T_args, T, _, ary) =
+fun formula_line_for_sym_decl ctxt nonmono_Ts type_sys n s j
+                              (s', T_args, T, _, ary) =
   let
     val (arg_Ts, res_T) = n_ary_strip_type ary T
     val bound_names =
@@ -913,12 +946,12 @@ fun formula_line_for_sym_decl ctxt type_sys n s j (s', T_args, T, _, ary) =
              |> fold (curry (CombApp o swap)) bound_tms
              |> type_pred_combatom type_sys res_T
              |> mk_aquant AForall (bound_names ~~ bound_Ts)
-             |> formula_from_combformula ctxt type_sys
+             |> formula_from_combformula ctxt nonmono_Ts type_sys
              |> close_formula_universally,
              NONE, NONE)
   end
 
-fun problem_lines_for_sym_decls ctxt type_sys (s, decls) =
+fun problem_lines_for_sym_decls ctxt nonmono_Ts type_sys (s, decls) =
   if type_sys = Many_Typed then
     map (decl_line_for_sym_decl s) decls
   else
@@ -936,15 +969,16 @@ fun problem_lines_for_sym_decls ctxt type_sys (s, decls) =
         | _ => decls
       val n = length decls
       val decls =
-        decls |> filter (should_predicate_on_type ctxt type_sys
+        decls |> filter (should_predicate_on_type ctxt nonmono_Ts type_sys
                          o result_type_of_decl)
     in
-      map2 (formula_line_for_sym_decl ctxt type_sys n s)
+      map2 (formula_line_for_sym_decl ctxt nonmono_Ts type_sys n s)
            (0 upto length decls - 1) decls
     end
 
-fun problem_lines_for_sym_decl_table ctxt type_sys sym_decl_tab =
-  Symtab.fold_rev (append o problem_lines_for_sym_decls ctxt type_sys)
+fun problem_lines_for_sym_decl_table ctxt nonmono_Ts type_sys sym_decl_tab =
+  Symtab.fold_rev (append o problem_lines_for_sym_decls ctxt nonmono_Ts
+                                                        type_sys)
                   sym_decl_tab []
 
 fun add_tff_types_in_formula (AQuant (_, xs, phi)) =
@@ -985,33 +1019,35 @@ fun prepare_atp_problem ctxt type_sys explicit_apply hyp_ts concl_t facts =
     val sym_tab = conjs @ facts |> sym_table_for_facts explicit_apply
     val (conjs, facts) =
       (conjs, facts) |> pairself (map (repair_fact type_sys sym_tab))
-    val conjs_and_facts = conjs @ facts
-    val repaired_sym_tab = conjs_and_facts |> sym_table_for_facts false
-    val sym_decl_lines =
-      conjs_and_facts
-      |> sym_decl_table_for_facts type_sys repaired_sym_tab
-      |> problem_lines_for_sym_decl_table ctxt type_sys
+    val repaired_sym_tab = conjs @ facts |> sym_table_for_facts false
     val helpers =
       helper_facts_for_sym_table ctxt type_sys repaired_sym_tab
       |> map (repair_fact type_sys sym_tab)
-    val nonmonotonic_Ts =
-      nonmonotonic_types_for_facts type_sys (helpers @ conjs_and_facts)
+    val nonmono_Ts =
+      [] |> fold (add_nonmonotonic_types_for_facts ctxt type_sys)
+                 [facts, conjs, helpers]
+    val sym_decl_lines =
+      conjs @ facts
+      |> sym_decl_table_for_facts type_sys repaired_sym_tab
+      |> problem_lines_for_sym_decl_table ctxt nonmono_Ts type_sys
     (* Reordering these might confuse the proof reconstruction code or the SPASS
        Flotter hack. *)
     val problem =
       [(sym_declsN, sym_decl_lines),
-       (factsN, map (formula_line_for_fact ctxt fact_prefix type_sys)
+       (factsN, map (formula_line_for_fact ctxt fact_prefix nonmono_Ts type_sys)
                     (0 upto length facts - 1 ~~ facts)),
        (class_relsN, map formula_line_for_class_rel_clause class_rel_clauses),
        (aritiesN, map formula_line_for_arity_clause arity_clauses),
-       (helpersN, map (formula_line_for_fact ctxt helper_prefix type_sys)
+       (helpersN, map (formula_line_for_fact ctxt helper_prefix nonmono_Ts
+                                             type_sys)
                       (0 upto length helpers - 1 ~~ helpers)
                   |> (case type_sys of
                         Tags (Polymorphic, level) =>
                         member (op =) [Finite_Types, Nonmonotonic_Types] level
                         ? cons (ti_ti_helper_fact ())
                       | _ => I)),
-       (conjsN, map (formula_line_for_conjecture ctxt type_sys) conjs),
+       (conjsN, map (formula_line_for_conjecture ctxt nonmono_Ts type_sys)
+                    conjs),
        (free_typesN, formula_lines_for_free_types type_sys (facts @ conjs))]
     val problem =
       problem
@@ -1041,7 +1077,7 @@ fun add_term_weights weight (ATerm (s, tms)) =
   (not (is_atp_variable s) andalso s <> "equal") ? Symtab.default (s, weight)
   #> fold (add_term_weights weight) tms
 fun add_problem_line_weights weight (Formula (_, _, phi, _, _)) =
-    formula_fold (K (add_term_weights weight)) phi
+    formula_fold true (K (add_term_weights weight)) phi
   | add_problem_line_weights _ _ = I
 
 fun add_conjectures_weights [] = I

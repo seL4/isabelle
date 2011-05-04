@@ -36,7 +36,7 @@ sig
      only : bool}
 
   val trace : bool Config.T
-  val is_global_locality : locality -> bool
+  val is_locality_global : locality -> bool
   val fact_from_ref :
     Proof.context -> unit Symtab.table -> thm list
     -> Facts.ref * Attrib.src list -> ((string * locality) * thm) list
@@ -70,10 +70,10 @@ val instantiate_inducts = false
 datatype locality = General | Intro | Elim | Simp | Local | Assum | Chained
 
 (* (quasi-)underapproximation of the truth *)
-fun is_global_locality Local = false
-  | is_global_locality Assum = false
-  | is_global_locality Chained = false
-  | is_global_locality _ = true
+fun is_locality_global Local = false
+  | is_locality_global Assum = false
+  | is_locality_global Chained = false
+  | is_locality_global _ = true
 
 type relevance_fudge =
   {allow_ext : bool,

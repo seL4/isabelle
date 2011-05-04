@@ -15,6 +15,9 @@ sig
   val nat_subscript : int -> string
   val unyxml : string -> string
   val maybe_quote : string -> string
+  val typ_of_dtyp :
+    Datatype_Aux.descr -> (Datatype_Aux.dtyp * typ) list -> Datatype_Aux.dtyp
+    -> typ
   val monomorphic_term : Type.tyenv -> term -> term
   val eta_expand : typ list -> term -> int -> term
   val transform_elim_term : term -> term
@@ -79,6 +82,15 @@ fun maybe_quote y =
            not (is_long_identifier (perhaps (try (unprefix "?")) s))) orelse
            Keyword.is_keyword s) ? quote
   end
+
+fun typ_of_dtyp _ typ_assoc (Datatype_Aux.DtTFree a) =
+    the (AList.lookup (op =) typ_assoc (Datatype_Aux.DtTFree a))
+  | typ_of_dtyp descr typ_assoc (Datatype_Aux.DtType (s, Us)) =
+    Type (s, map (typ_of_dtyp descr typ_assoc) Us)
+  | typ_of_dtyp descr typ_assoc (Datatype_Aux.DtRec i) =
+    let val (s, ds, _) = the (AList.lookup (op =) descr i) in
+      Type (s, map (typ_of_dtyp descr typ_assoc) ds)
+    end
 
 fun monomorphic_term subst t =
   map_types (map_type_tvar (fn v =>

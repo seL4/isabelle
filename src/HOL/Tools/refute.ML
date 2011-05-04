@@ -71,7 +71,6 @@ sig
   val is_IDT_recursor : theory -> string * typ -> bool
   val is_const_of_class: theory -> string * typ -> bool
   val string_of_typ : typ -> string
-  val typ_of_dtyp : Datatype.descr -> (Datatype.dtyp * typ) list -> Datatype.dtyp -> typ
 end;
 
 structure Refute : REFUTE =
@@ -394,17 +393,7 @@ fun actual_params ctxt override =
 (* TRANSLATION HOL -> PROPOSITIONAL LOGIC, BOOLEAN ASSIGNMENT -> MODEL       *)
 (* ------------------------------------------------------------------------- *)
 
-fun typ_of_dtyp descr typ_assoc (Datatype_Aux.DtTFree a) =
-      (* replace a 'DtTFree' variable by the associated type *)
-      the (AList.lookup (op =) typ_assoc (Datatype_Aux.DtTFree a))
-  | typ_of_dtyp descr typ_assoc (Datatype_Aux.DtType (s, ds)) =
-      Type (s, map (typ_of_dtyp descr typ_assoc) ds)
-  | typ_of_dtyp descr typ_assoc (Datatype_Aux.DtRec i) =
-      let
-        val (s, ds, _) = the (AList.lookup (op =) descr i)
-      in
-        Type (s, map (typ_of_dtyp descr typ_assoc) ds)
-      end;
+val typ_of_dtyp = Sledgehammer_Util.typ_of_dtyp
 
 (* ------------------------------------------------------------------------- *)
 (* close_form: universal closure over schematic variables in 't'             *)

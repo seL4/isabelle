@@ -263,7 +263,7 @@ val int_T = @{typ int}
 
 val simple_string_of_typ = Refute.string_of_typ
 val is_real_constr = Refute.is_IDT_constructor
-val typ_of_dtyp = Refute.typ_of_dtyp
+val typ_of_dtyp = Sledgehammer_Util.typ_of_dtyp
 val is_of_class_const = Refute.is_const_of_class
 val get_class_def = Refute.get_classdef
 val monomorphic_term = Sledgehammer_Util.monomorphic_term

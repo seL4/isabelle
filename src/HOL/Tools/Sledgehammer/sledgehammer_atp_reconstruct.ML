@@ -176,8 +176,8 @@ fun is_conjecture_referred_to_in_proof conjecture_shape =
 
 fun is_unsound_proof type_sys conjecture_shape facts_offset fact_names =
   not o is_conjecture_referred_to_in_proof conjecture_shape andf
-  forall (is_global_locality o snd)
-  o used_facts_in_atp_proof type_sys facts_offset fact_names
+  forall (is_locality_global o snd)
+    o used_facts_in_atp_proof type_sys facts_offset fact_names
 
 (** Soft-core proof reconstruction: Metis one-liner **)
 
