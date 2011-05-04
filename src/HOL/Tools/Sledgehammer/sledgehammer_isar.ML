@@ -167,13 +167,19 @@ fun avoid_too_many_local_threads _ _ [] = []
       prover :: avoid_too_many_local_threads ctxt n provers
     end
 
+(* Ensure that type systems such as "simple!" and "mangled_preds?" are handled
+   correctly. *)
+fun implode_param_value [s, "?"] = s ^ "?"
+  | implode_param_value [s, "!"] = s ^ "!"
+  | implode_param_value ss = space_implode " " ss
+
 (* The first ATP of the list is used by Auto Sledgehammer. Because of the low
    timeout, it makes sense to put SPASS first. *)
 fun default_provers_param_value ctxt =
   [spassN, eN, vampireN, sine_eN, SMT_Solver.solver_name_of ctxt]
   |> map_filter (remotify_prover_if_not_installed ctxt)
   |> avoid_too_many_local_threads ctxt (Multithreading.max_threads_value ())
-  |> space_implode " "
+  |> implode_param_value
 
 val set_default_raw_param = Data.map o AList.update (op =) o unalias_raw_param
 fun default_raw_params ctxt =
@@ -197,7 +203,7 @@ fun extract_params auto default_params override_params =
   let
     val override_params = map unalias_raw_param override_params
     val raw_params = rev override_params @ rev default_params
-    val lookup = Option.map (space_implode " ") o AList.lookup (op =) raw_params
+    val lookup = Option.map implode_param_value o AList.lookup (op =) raw_params
     val lookup_string = the_default "" o lookup
     fun general_lookup_bool option default_value name =
       case lookup name of
@@ -274,7 +280,7 @@ val refresh_tptpN = "refresh_tptp"
 val is_raw_param_relevant_for_minimize =
   member (op =) params_for_minimize o fst o unalias_raw_param
 fun string_for_raw_param (key, values) =
-  key ^ (case space_implode " " values of "" => "" | value => " = " ^ value)
+  key ^ (case implode_param_value values of "" => "" | value => " = " ^ value)
 
 fun minimize_command override_params i prover_name fact_names =
   sledgehammerN ^ " " ^ minimizeN ^ " [prover = " ^ prover_name ^
@@ -317,7 +323,7 @@ fun sledgehammer_trans (((subcommand, params), relevance_override), opt_i) =
   Toplevel.keep (hammer_away params subcommand opt_i relevance_override
                  o Toplevel.proof_of)
 
-fun string_for_raw_param (name, value) = name ^ " = " ^ space_implode " " value
+fun string_for_raw_param (name, value) = name ^ " = " ^ implode_param_value value
 
 fun sledgehammer_params_trans params =
   Toplevel.theory

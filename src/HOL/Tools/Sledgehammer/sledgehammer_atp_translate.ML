@@ -108,10 +108,10 @@ fun type_sys_from_string s =
        SOME s => (Monomorphic, s)
      | NONE => (Polymorphic, s))
   ||> (fn s =>
-          case try (unsuffix " ?") s of
+          case try (unsuffix "?") s of
             SOME s => (Nonmonotonic_Types, s)
           | NONE =>
-            case try (unsuffix " !") s of
+            case try (unsuffix "!") s of
               SOME s => (Finite_Types, s)
             | NONE => (All_Types, s))
   |> (fn (polymorphism, (level, core)) =>
