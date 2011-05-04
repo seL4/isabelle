@@ -891,7 +891,6 @@ fun should_declare_sym type_sys pred_sym s =
 fun add_combterm_syms_to_decl_table type_sys repaired_sym_tab =
   let
     fun declare_sym decl decls =
-      (* FIXME: use "insert_type" in all cases? *)
       case type_sys of
         Preds (Polymorphic, All_Types) => insert_type #3 decl decls
       | _ => insert (op =) decl decls
@@ -918,12 +917,13 @@ fun sym_decl_table_for_facts type_sys repaired_sym_tab facts =
                   ? fold (add_fact_syms_to_decl_table type_sys repaired_sym_tab)
                          facts
 
-(* FIXME: use CombVar not CombConst for bound variables? *)
 fun is_var_or_bound_var (CombConst ((s, _), _, _)) =
     String.isPrefix bound_var_prefix s
   | is_var_or_bound_var (CombVar _) = true
   | is_var_or_bound_var _ = false
 
+(* This inference is described in section 2.3 of Claessen et al.'s "Sorting it
+   out with monotonicity" paper presented at CADE 2011. *)
 fun add_combterm_nonmonotonic_types _ (SOME false) _ = I
   | add_combterm_nonmonotonic_types ctxt _
         (CombApp (CombApp (CombConst (("equal", _), Type (_, [T, _]), _), tm1),

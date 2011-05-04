@@ -583,22 +583,20 @@ $\mathit{has\_type\/}(\tau, t)$ that restricts the range of bound variables.
 Constants are annotated with their types, supplied as extra arguments, to
 resolve overloading.
 
+\item[$\bullet$] \textbf{\textit{tags}:} Each term and subterm is tagged with
+its type using a function $\mathit{type\_info\/}(\tau, t)$.
+
 \item[$\bullet$] \textbf{\textit{mono\_preds}:} Similar to \textit{preds}, but
-the problem is additionally monomorphized. This corresponds to the traditional
-encoding of types in an untyped logic without overloading (e.g., such as
-performed by the ToFoF-E wrapper).
+the problem is additionally monomorphized.
+
+\item[$\bullet$] \textbf{\textit{mono\_tags}:} Similar to \textit{tags}, but
+the problem is additionally monomorphized.
 
 \item[$\bullet$] \textbf{\textit{mangled\_preds}:} Similar to
 \textit{mono\_preds}, but types are mangled in constant names instead of being
 supplied as ground term arguments. The binary predicate
 $\mathit{has\_type\/}(\tau, t)$ becomes a unary predicate
 $\mathit{has\_type\_}\tau(t)$.
-
-\item[$\bullet$] \textbf{\textit{tags}:} Each term and subterm is tagged with
-its type using a function $\mathit{type\_info\/}(\tau, t)$.
-
-\item[$\bullet$] \textbf{\textit{mono\_tags}:} Similar to \textit{tags}, but
-the problem is additionally monomorphized.
 
 \item[$\bullet$] \textbf{\textit{mangled\_tags}:} Similar to
 \textit{mono\_tags}, but types are mangled in constant names instead of being
