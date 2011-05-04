@@ -147,9 +147,17 @@ fun formula_map f (AQuant (q, xs, phi)) = AQuant (q, xs, formula_map f phi)
   | formula_map f (AConn (c, phis)) = AConn (c, map (formula_map f) phis)
   | formula_map f (AAtom tm) = AAtom (f tm)
 
-fun formula_fold f (AQuant (_, _, phi)) = formula_fold f phi
-  | formula_fold f (AConn (_, phis)) = fold (formula_fold f) phis
-  | formula_fold f (AAtom tm) = f tm
+fun formula_fold f =
+  let
+    fun aux pos (AQuant (_, _, phi)) = aux pos phi
+      | aux pos (AConn (ANot, [phi])) = aux (not pos) phi
+      | aux pos (AConn (AImplies, [phi1, phi2])) =
+        aux (not pos) phi1 #> aux pos phi2
+      | aux pos (AConn (c, phis)) =
+        if member (op =) [AAnd, AOr] c then fold (aux pos) phis
+        else raise Fail "unexpected connective with unknown polarities"
+      | aux pos (AAtom tm) = f pos tm
+  in aux true end
 
 type translated_formula =
   {name: string,
@@ -174,7 +182,7 @@ fun should_omit_type_args type_sys s =
       Tags (_, All_Types) => true
     | _ => polymorphism_of_type_sys type_sys <> Mangled_Monomorphic andalso
            member (op =) boring_consts s))
-  
+
 datatype type_arg_policy = No_Type_Args | Explicit_Type_Args | Mangled_Type_Args
 
 fun general_type_arg_policy type_sys =
@@ -475,7 +483,7 @@ fun add_combterm_syms_to_table explicit_apply =
       end
   in aux true end
 fun add_fact_syms_to_table explicit_apply =
-  fact_lift (formula_fold (add_combterm_syms_to_table explicit_apply))
+  fact_lift (formula_fold (K (add_combterm_syms_to_table explicit_apply)))
 
 val default_sym_table_entries : (string * sym_info) list =
   [("equal", {pred_sym = true, min_ary = 2, max_ary = 2, typ = NONE}),
@@ -814,6 +822,12 @@ fun formula_lines_for_free_types type_sys facts =
 
 (** Symbol declarations **)
 
+fun insert_type get_T x xs =
+  let val T = get_T x in
+    if exists (curry Type.raw_instance T o get_T) xs then xs
+    else x :: filter_out ((fn T' => Type.raw_instance (T', T)) o get_T) xs
+  end
+
 fun should_declare_sym type_sys pred_sym s =
   not (String.isPrefix bound_var_prefix s) andalso s <> "equal" andalso
   not (String.isPrefix "$" s) andalso
@@ -821,13 +835,10 @@ fun should_declare_sym type_sys pred_sym s =
 
 fun add_combterm_syms_to_decl_table type_sys repaired_sym_tab =
   let
-    fun declare_sym (decl as (_, _, T, _, _)) decls =
+    fun declare_sym decl decls =
+      (* FIXME: use "insert_type" in all cases? *)
       case type_sys of
-        Preds (Polymorphic, All_Types) =>
-        if exists (curry Type.raw_instance T o #3) decls then
-          decls
-        else
-          decl :: filter_out ((fn T' => Type.raw_instance (T', T)) o #3) decls
+        Preds (Polymorphic, All_Types) => insert_type #3 decl decls
       | _ => insert (op =) decl decls
     fun do_term tm =
       let val (head, args) = strip_combterm_comb tm in
@@ -846,11 +857,29 @@ fun add_combterm_syms_to_decl_table type_sys repaired_sym_tab =
   in do_term end
 fun add_fact_syms_to_decl_table type_sys repaired_sym_tab =
   fact_lift (formula_fold
-      (add_combterm_syms_to_decl_table type_sys repaired_sym_tab))
+      (K (add_combterm_syms_to_decl_table type_sys repaired_sym_tab)))
 fun sym_decl_table_for_facts type_sys repaired_sym_tab facts =
   Symtab.empty |> is_type_sys_fairly_sound type_sys
                   ? fold (add_fact_syms_to_decl_table type_sys repaired_sym_tab)
                          facts
+
+(* FIXME: use CombVar not CombConst for bound variables? *)
+fun is_var_or_bound_var (CombConst ((s, _), _, _)) =
+    String.isPrefix bound_var_prefix s
+  | is_var_or_bound_var (CombVar _) = true
+  | is_var_or_bound_var _ = false
+
+fun add_combterm_nonmonotonic_types true
+        (CombApp (CombConst (("equal", _), Type (_, [T, _]), _),
+                  CombApp (tm1, tm2))) =
+    exists is_var_or_bound_var [tm1, tm2] ? insert_type I T
+  | add_combterm_nonmonotonic_types _ _ = I
+
+val add_fact_nonmonotonic_types =
+  fact_lift (formula_fold add_combterm_nonmonotonic_types)
+fun nonmonotonic_types_for_facts type_sys facts =
+  [] |> level_of_type_sys type_sys = Nonmonotonic_Types
+        ? fold add_fact_nonmonotonic_types facts
 
 fun n_ary_strip_type 0 T = ([], T)
   | n_ary_strip_type n (Type (@{type_name fun}, [dom_T, ran_T])) =
@@ -956,14 +985,17 @@ fun prepare_atp_problem ctxt type_sys explicit_apply hyp_ts concl_t facts =
     val sym_tab = conjs @ facts |> sym_table_for_facts explicit_apply
     val (conjs, facts) =
       (conjs, facts) |> pairself (map (repair_fact type_sys sym_tab))
-    val repaired_sym_tab = conjs @ facts |> sym_table_for_facts false
+    val conjs_and_facts = conjs @ facts
+    val repaired_sym_tab = conjs_and_facts |> sym_table_for_facts false
     val sym_decl_lines =
-      conjs @ facts
+      conjs_and_facts
       |> sym_decl_table_for_facts type_sys repaired_sym_tab
       |> problem_lines_for_sym_decl_table ctxt type_sys
     val helpers =
       helper_facts_for_sym_table ctxt type_sys repaired_sym_tab
       |> map (repair_fact type_sys sym_tab)
+    val nonmonotonic_Ts =
+      nonmonotonic_types_for_facts type_sys (helpers @ conjs_and_facts)
     (* Reordering these might confuse the proof reconstruction code or the SPASS
        Flotter hack. *)
     val problem =
@@ -1009,7 +1041,7 @@ fun add_term_weights weight (ATerm (s, tms)) =
   (not (is_atp_variable s) andalso s <> "equal") ? Symtab.default (s, weight)
   #> fold (add_term_weights weight) tms
 fun add_problem_line_weights weight (Formula (_, _, phi, _, _)) =
-    formula_fold (add_term_weights weight) phi
+    formula_fold (K (add_term_weights weight)) phi
   | add_problem_line_weights _ _ = I
 
 fun add_conjectures_weights [] = I
