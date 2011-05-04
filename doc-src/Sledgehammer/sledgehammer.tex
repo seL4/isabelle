@@ -553,11 +553,11 @@ this option can sometimes help discover higher-order proofs that otherwise would
 not be found.
 
 \opfalse{full\_types}{partial\_types}
-Specifies whether full-type information is encoded in ATP problems. Enabling
-this option can prevent the discovery of type-incorrect proofs, but it also
-tends to slow down the ATPs significantly. For historical reasons, the default
-value of this option can be overridden using the option ``Sledgehammer: Full
-Types'' from the ``Isabelle'' menu in Proof General.
+Specifies whether full type information is encoded in ATP problems. Enabling
+this option prevents the discovery of type-incorrect proofs, but it also tends
+to slow down the ATPs significantly. For historical reasons, the default value
+of this option can be overridden using the option ``Sledgehammer: Full Types''
+from the ``Isabelle'' menu in Proof General.
 
 \opfalse{full\_types}{partial\_types}
 Specifies whether full-type information is encoded in ATP problems. Enabling
@@ -608,33 +608,35 @@ $\mathit{type\_info\_}\tau(t)$.
 
 \item[$\bullet$]
 \textbf{%
-\textit{preds}!,
-\textit{mono\_preds}!,
-\textit{mangled\_preds}!, \\
-\textit{tags}!,
-\textit{mono\_tags}!,
-\textit{mangled\_tags}!:} \\
-The type systems \textit{preds}, \textit{mono\_preds}, \textit{mangled\_preds},
-\textit{tags}, \textit{mono\_tags}, and \textit{mangled\_tags} are fully typed
-and virtually sound. For each of these, Sledgehammer also provides a mildly
-unsound variant identified by an exclamation mark (!)\ that types only finite
-(and hence especially dangerous) types.
-
-\item[$\bullet$]
-\textbf{%
 \textit{preds}?,
 \textit{mono\_preds}?,
 \textit{mangled\_preds}?, \\
 \textit{tags}?,
 \textit{mono\_tags}?,
 \textit{mangled\_tags}?:} \\
-If the exclamation mark (!)\ is replaced by an question mark (?),\ the type
-systems type only nonmonotonic (and hence especially dangerous) types. Not
-implemented yet.
+The type systems \textit{preds}, \textit{mono\_preds}, \textit{mangled\_preds},
+\textit{tags}, \textit{mono\_tags}, and \textit{mangled\_tags} are fully typed
+and virtually sound---i.e., except for pathological cases, all found proofs are
+type-correct. For each of these, Sledgehammer also provides a just-as-sound
+partially typed variant identified by a question mark (?)\ that detects and
+erases monotonic types (notably infinite types).
+
+\item[$\bullet$]
+\textbf{%
+\textit{preds}!,
+\textit{mono\_preds}!,
+\textit{mangled\_preds}!, \\
+\textit{tags}!,
+\textit{mono\_tags}!,
+\textit{mangled\_tags}!:} \\
+If the question mark (?)\ is replaced by an exclamation mark (!),\ the
+translation erases all types except those that are clearly finite (e.g.,
+\textit{bool}). This encoding is unsound.
 
 \item[$\bullet$] \textbf{\textit{const\_args}:}
-Constants are annotated with their types, supplied as extra arguments, to
-resolve overloading. Variables are unbounded.
+Like for the other sound encodings, constants are annotated with their types to
+resolve overloading, but otherwise no type information is encoded. This encoding
+is hence less sound than the exclamation mark (!)\ variants described above.
 
 \item[$\bullet$] \textbf{\textit{erased}:} No type information is supplied to
 the ATP. Types are simply erased.
