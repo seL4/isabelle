@@ -133,14 +133,17 @@ fun level_of_type_sys (Simple level) = level
   | level_of_type_sys (Preds (_, level)) = level
   | level_of_type_sys (Tags (_, level)) = level
 
-fun is_type_level_virtually_sound s =
-  s = All_Types orelse s = Nonmonotonic_Types
+fun is_type_level_virtually_sound level =
+  level = All_Types orelse level = Nonmonotonic_Types
 val is_type_sys_virtually_sound =
   is_type_level_virtually_sound o level_of_type_sys
 
 fun is_type_level_fairly_sound level =
   is_type_level_virtually_sound level orelse level = Finite_Types
 val is_type_sys_fairly_sound = is_type_level_fairly_sound o level_of_type_sys
+
+fun is_type_level_partial level =
+  level = Nonmonotonic_Types orelse level = Finite_Types
 
 fun formula_map f (AQuant (q, xs, phi)) = AQuant (q, xs, formula_map f phi)
   | formula_map f (AConn (c, phis)) = AConn (c, map (formula_map f) phis)
@@ -1068,7 +1071,7 @@ fun prepare_atp_problem ctxt type_sys explicit_apply hyp_ts concl_t facts =
                       (0 upto length helpers - 1 ~~ helpers)
                   |> (case type_sys of
                         Tags (Polymorphic, level) =>
-                        member (op =) [Finite_Types, Nonmonotonic_Types] level
+                        is_type_level_partial level
                         ? cons (ti_ti_helper_fact ())
                       | _ => I)),
        (conjsN, map (formula_line_for_conjecture ctxt nonmono_Ts type_sys)
