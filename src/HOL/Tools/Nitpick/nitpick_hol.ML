@@ -994,7 +994,8 @@ fun bounded_exact_card_of_type hol_ctxt finitizable_dataTs max default_card
            val k1 = aux avoid T1
            val k2 = aux avoid T2
          in
-           if k1 = 0 orelse k2 = 0 then 0
+           if k2 = 1 then 1
+           else if k1 = 0 orelse k2 = 0 then 0
            else if k1 >= max orelse k2 >= max then max
            else Int.min (max, reasonable_power k2 k1)
          end
