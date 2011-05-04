@@ -477,7 +477,7 @@ fun add_combterm_syms_to_table explicit_apply =
 fun add_fact_syms_to_table explicit_apply =
   fact_lift (formula_fold (add_combterm_syms_to_table explicit_apply))
 
-val default_sym_table_entries =
+val default_sym_table_entries : (string * sym_info) list =
   [("equal", {pred_sym = true, min_ary = 2, max_ary = 2, typ = NONE}),
    (make_fixed_const predicator_base,
     {pred_sym = true, min_ary = 1, max_ary = 1, typ = NONE})] @
