@@ -460,7 +460,7 @@ Vampire runs on Geoff Sutcliffe's Miami servers. Version 9 is used.
 developed by Geoff Sutcliffe \cite{tofof} based on E running on his Miami
 servers. This ATP supports a fragment of the TPTP many-typed first-order format
 (TFF). It is supported primarily for experimenting with the
-\textit{type\_sys} $=$ \textit{many\_typed} option (\S\ref{problem-encoding}).
+\textit{type\_sys} $=$ \textit{simple} option (\S\ref{problem-encoding}).
 
 \item[$\bullet$] \textbf{\textit{remote\_sine\_e}:} SInE-E is a metaprover
 developed by Kry\v stof Hoder \cite{sine} based on E. The remote version of
@@ -571,7 +571,7 @@ Specifies the type system to use in ATP problems. The option can take the
 following values:
 
 \begin{enum}
-\item[$\bullet$] \textbf{\textit{many\_typed}:} Use the prover's support for
+\item[$\bullet$] \textbf{\textit{simple}:} Use the prover's support for
 many-typed first-order logic if available; otherwise, fall back on
 \textit{mangled\_preds}. The problem is monomorphized, meaning that the
 problem's type variables are instantiated with heuristically chosen ground
@@ -608,35 +608,39 @@ $\mathit{type\_info\_}\tau(t)$.
 
 \item[$\bullet$]
 \textbf{%
+\textit{simple}?,
 \textit{preds}?,
 \textit{mono\_preds}?,
 \textit{mangled\_preds}?, \\
 \textit{tags}?,
 \textit{mono\_tags}?,
 \textit{mangled\_tags}?:} \\
-The type systems \textit{preds}, \textit{mono\_preds}, \textit{mangled\_preds},
-\textit{tags}, \textit{mono\_tags}, and \textit{mangled\_tags} are fully typed
-and virtually sound---i.e., except for pathological cases, all found proofs are
-type-correct. For each of these, Sledgehammer also provides a just-as-sound
-partially typed variant identified by a question mark (?)\ that detects and
-erases monotonic types (notably infinite types).
+The type systems \textit{simple}, \textit{preds}, \textit{mono\_preds},
+\textit{mangled\_preds}, \textit{tags}, \textit{mono\_tags}, and
+\textit{mangled\_tags} are fully typed and virtually sound---i.e., except for
+pathological cases, all found proofs are type-correct. For each of these,
+Sledgehammer also provides a just-as-sound partially typed variant identified by
+a question mark (`{?}')\ that detects and erases monotonic types, notably infinite
+types. (For \textit{simple}, the types are not actually erased but rather
+replaced by a shared uniform ``top'' type.)
 
 \item[$\bullet$]
 \textbf{%
+\textit{simple}!,
 \textit{preds}!,
 \textit{mono\_preds}!,
 \textit{mangled\_preds}!, \\
 \textit{tags}!,
 \textit{mono\_tags}!,
 \textit{mangled\_tags}!:} \\
-If the question mark (?)\ is replaced by an exclamation mark (!),\ the
+If the question mark (`{?}')\ is replaced by an exclamation mark (`{!}'),\ the
 translation erases all types except those that are clearly finite (e.g.,
 \textit{bool}). This encoding is unsound.
 
-\item[$\bullet$] \textbf{\textit{const\_args}:}
+\item[$\bullet$] \textbf{\textit{args}:}
 Like for the other sound encodings, constants are annotated with their types to
 resolve overloading, but otherwise no type information is encoded. This encoding
-is hence less sound than the exclamation mark (!)\ variants described above.
+is hence less sound than the exclamation mark (`{!}')\ variants described above.
 
 \item[$\bullet$] \textbf{\textit{erased}:} No type information is supplied to
 the ATP. Types are simply erased.
@@ -647,7 +651,7 @@ actual encoding used depends on the ATP and should be the most efficient for
 that ATP.
 \end{enum}
 
-For SMT solvers and ToFoF-E, the type system is always \textit{many\_typed}.
+For SMT solvers and ToFoF-E, the type system is always \textit{simple}.
 
 \opdefault{monomorphize\_limit}{int}{\upshape 4}
 Specifies the maximum number of iterations for the monomorphization fixpoint
