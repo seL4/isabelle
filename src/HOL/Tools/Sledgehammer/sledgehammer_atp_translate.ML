@@ -226,12 +226,12 @@ fun close_universally atom_vars phi =
 fun combterm_vars (CombApp (tm1, tm2)) = fold combterm_vars [tm1, tm2]
   | combterm_vars (CombConst _) = I
   | combterm_vars (CombVar (name, T)) = insert (op =) (name, SOME T)
-val close_combformula_universally = close_universally combterm_vars
+fun close_combformula_universally phi = close_universally combterm_vars phi
 
 fun term_vars (ATerm (name as (s, _), tms)) =
   is_atp_variable s ? insert (op =) (name, NONE)
   #> fold term_vars tms
-val close_formula_universally = close_universally term_vars
+fun close_formula_universally phi = close_universally term_vars phi
 
 fun fo_term_from_typ (Type (s, Ts)) =
     ATerm (`make_fixed_type_const s, map fo_term_from_typ Ts)
@@ -283,7 +283,7 @@ fun unmangled_const s =
     (hd ss, map unmangled_type (tl ss))
   end
 
-val introduce_proxies =
+fun introduce_proxies tm =
   let
     fun aux top_level (CombApp (tm1, tm2)) =
         CombApp (aux top_level tm1, aux false tm2)
@@ -300,7 +300,7 @@ val introduce_proxies =
           | NONE => (name, T_args))
         |> (fn (name, T_args) => CombConst (name, T, T_args))
       | aux _ tm = tm
-  in aux true end
+  in aux true tm end
 
 fun combformula_from_prop thy eq_as_iff =
   let
@@ -474,8 +474,8 @@ fun add_combterm_syms_to_table explicit_apply =
         #> fold (aux false) args
       end
   in aux true end
-val add_fact_syms_to_table =
-  fact_lift o formula_fold o add_combterm_syms_to_table
+fun add_fact_syms_to_table explicit_apply =
+  fact_lift (formula_fold (add_combterm_syms_to_table explicit_apply))
 
 val default_sym_table_entries =
   [("equal", {pred_sym = true, min_ary = 2, max_ary = 2, typ = NONE}),
@@ -567,7 +567,8 @@ fun repair_combterm type_sys sym_tab =
   introduce_explicit_apps_in_combterm sym_tab
   #> introduce_predicators_in_combterm sym_tab
   #> impose_type_arg_policy_in_combterm type_sys
-val repair_fact = update_combformula o formula_map oo repair_combterm
+fun repair_fact type_sys sym_tab =
+  update_combformula (formula_map (repair_combterm type_sys sym_tab))
 
 (** Helper facts **)
 
