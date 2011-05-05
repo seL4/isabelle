@@ -637,43 +637,29 @@ fun introduce_explicit_apps_in_combterm sym_tab =
       | (head, args) => list_explicit_app head (map aux args)
   in aux end
 
-fun impose_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys =
+fun impose_type_arg_policy_in_combterm type_sys =
   let
     fun aux (CombApp tmp) = CombApp (pairself aux tmp)
       | aux (CombConst (name as (s, _), T, T_args)) =
-        let
-          val level = level_of_type_sys type_sys
-          val (T, T_args) =
-            (* avoid needless identical homogenized versions of "hAPP" *)
-            if s = const_prefix ^ explicit_app_base then
-              T_args |> map (homogenized_type ctxt nonmono_Ts level)
-                     |> (fn Ts => let val T = hd Ts --> nth Ts 1 in
-                                    (T --> T, Ts)
-                                  end)
-            else
-              (T, T_args)
-        in
-          (case strip_prefix_and_unascii const_prefix s of
-             NONE => (name, T_args)
-           | SOME s'' =>
-             let val s'' = invert_const s'' in
-               case type_arg_policy type_sys s'' of
-                 No_Type_Args => (name, [])
-               | Explicit_Type_Args => (name, T_args)
-               | Mangled_Type_Args => (mangled_const_name T_args name, [])
-             end)
-          |> (fn (name, T_args) => CombConst (name, T, T_args))
-        end
+        (case strip_prefix_and_unascii const_prefix s of
+           NONE => (name, T_args)
+         | SOME s'' =>
+           let val s'' = invert_const s'' in
+             case type_arg_policy type_sys s'' of
+               No_Type_Args => (name, [])
+             | Explicit_Type_Args => (name, T_args)
+             | Mangled_Type_Args => (mangled_const_name T_args name, [])
+           end)
+        |> (fn (name, T_args) => CombConst (name, T, T_args))
       | aux tm = tm
   in aux end
 
-fun repair_combterm ctxt nonmono_Ts type_sys sym_tab =
+fun repair_combterm type_sys sym_tab =
   introduce_explicit_apps_in_combterm sym_tab
   #> introduce_predicators_in_combterm sym_tab
-  #> impose_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys
-fun repair_fact ctxt nonmono_Ts type_sys sym_tab =
-  update_combformula (formula_map
-      (repair_combterm ctxt nonmono_Ts type_sys sym_tab))
+  #> impose_type_arg_policy_in_combterm type_sys
+fun repair_fact type_sys sym_tab =
+  update_combformula (formula_map (repair_combterm type_sys sym_tab))
 
 (** Helper facts **)
 
@@ -757,17 +743,17 @@ fun fo_literal_from_type_literal (TyLitVar (class, name)) =
 
 fun formula_from_fo_literal (pos, t) = AAtom t |> not pos ? mk_anot
 
-fun type_pred_combatom ctxt nonmono_Ts type_sys T tm =
+fun type_pred_combatom type_sys T tm =
   CombApp (CombConst (`make_fixed_const type_pred_base, T --> @{typ bool}, [T]),
            tm)
-  |> impose_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys
+  |> impose_type_arg_policy_in_combterm type_sys
   |> AAtom
 
 fun formula_from_combformula ctxt nonmono_Ts type_sys =
   let
     fun tag_with_type type_sys T tm =
       CombConst (`make_fixed_const type_tag_name, T --> T, [T])
-      |> impose_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys
+      |> impose_type_arg_policy_in_combterm type_sys
       |> do_term true
       |> (fn ATerm (s, tms) => ATerm (s, tms @ [tm]))
     and do_term top_level u =
@@ -795,7 +781,7 @@ fun formula_from_combformula ctxt nonmono_Ts type_sys =
       | _ => K NONE
     fun do_out_of_bound_type (s, T) =
       if should_predicate_on_type ctxt nonmono_Ts type_sys T then
-        type_pred_combatom ctxt nonmono_Ts type_sys T (CombVar (s, T))
+        type_pred_combatom type_sys T (CombVar (s, T))
         |> do_formula |> SOME
       else
         NONE
@@ -978,7 +964,7 @@ fun formula_line_for_sym_decl ctxt nonmono_Ts type_sys n s j
              (if n > 1 then "_" ^ string_of_int j else ""), Axiom,
              CombConst ((s, s'), T, T_args)
              |> fold (curry (CombApp o swap)) bound_tms
-             |> type_pred_combatom ctxt nonmono_Ts type_sys res_T
+             |> type_pred_combatom type_sys res_T
              |> mk_aquant AForall (bound_names ~~ bound_Ts)
              |> formula_from_combformula ctxt nonmono_Ts type_sys
              |> close_formula_universally,
@@ -1053,7 +1039,7 @@ fun prepare_atp_problem ctxt type_sys explicit_apply hyp_ts concl_t facts =
     val sym_tab = conjs @ facts |> sym_table_for_facts explicit_apply
     val nonmono_Ts =
       [] |> fold (add_nonmonotonic_types_for_facts ctxt type_sys) [facts, conjs]
-    val repair = repair_fact ctxt nonmono_Ts type_sys sym_tab
+    val repair = repair_fact type_sys sym_tab
     val (conjs, facts) = (conjs, facts) |> pairself (map repair)
     val repaired_sym_tab = conjs @ facts |> sym_table_for_facts false
     val helpers =
