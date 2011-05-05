@@ -495,13 +495,13 @@ fun tiny_card_of_type ctxt default_card T =
           | (k1, k2) =>
             if k1 >= max orelse k2 >= max then max
             else Int.min (max, Integer.pow k2 k1))
-       | @{typ int} => 0
        | @{typ bool} => 2 (* optimization *)
-       | Type _ =>
+       | @{typ nat} => 0 (* optimization *)
+       | @{typ int} => 0 (* optimization *)
+       | Type (s, _) =>
          let val thy = Proof_Context.theory_of ctxt in
            case datatype_constrs thy T of
-             [] => default_card
-           | constrs =>
+             constrs as _ :: _ =>
              let
                val constr_cards =
                  map (Integer.prod o map (aux (T :: avoid)) o binder_types
@@ -510,6 +510,21 @@ fun tiny_card_of_type ctxt default_card T =
                if exists (curry (op =) 0) constr_cards then 0
                else Int.min (max, Integer.sum constr_cards)
              end
+           | [] =>
+             case Typedef.get_info ctxt s of
+               ({abs_type, rep_type, ...}, _) :: _ =>
+               (* We cheat here by assuming that typedef types are infinite if
+                  their underlying type is infinite. This is unsound in general
+                  but it's hard to think of a realistic example where this would
+                  not be the case. *)
+               (case varify_and_instantiate_type ctxt
+                         (Logic.varifyT_global abs_type) T
+                         (Logic.varifyT_global rep_type)
+                     |> aux avoid of
+                  0 => 0
+                | 1 => 1
+                | _ => default_card)
+             | [] => default_card
          end
        | _ => default_card)
   in Int.min (max, aux [] T) end

@@ -18,6 +18,9 @@ sig
   val typ_of_dtyp :
     Datatype_Aux.descr -> (Datatype_Aux.dtyp * typ) list -> Datatype_Aux.dtyp
     -> typ
+  val varify_type : Proof.context -> typ -> typ
+  val instantiate_type : theory -> typ -> typ -> typ -> typ
+  val varify_and_instantiate_type : Proof.context -> typ -> typ -> typ -> typ
   val monomorphic_term : Type.tyenv -> term -> term
   val eta_expand : typ list -> term -> int -> term
   val transform_elim_term : term -> term
@@ -91,6 +94,21 @@ fun typ_of_dtyp _ typ_assoc (Datatype_Aux.DtTFree a) =
     let val (s, ds, _) = the (AList.lookup (op =) descr i) in
       Type (s, map (typ_of_dtyp descr typ_assoc) ds)
     end
+
+fun varify_type ctxt T =
+  Variable.polymorphic_types ctxt [Const (@{const_name undefined}, T)]
+  |> snd |> the_single |> dest_Const |> snd
+
+(* TODO: use "Term_Subst.instantiateT" instead? *)
+fun instantiate_type thy T1 T1' T2 =
+  Same.commit (Envir.subst_type_same
+                   (Sign.typ_match thy (T1, T1') Vartab.empty)) T2
+  handle Type.TYPE_MATCH => raise TYPE ("instantiate_type", [T1, T1'], [])
+
+fun varify_and_instantiate_type ctxt T1 T1' T2 =
+  let val thy = Proof_Context.theory_of ctxt in
+    instantiate_type thy (varify_type ctxt T1) T1' (varify_type ctxt T2)
+  end
 
 fun monomorphic_term subst t =
   map_types (map_type_tvar (fn v =>

@@ -570,17 +570,6 @@ fun is_basic_datatype thy stds s =
                  "Code_Numeral.code_numeral"] s orelse
   (s = @{type_name nat} andalso is_standard_datatype thy stds nat_T)
 
-(* TODO: use "Term_Subst.instantiateT" instead? *)
-fun instantiate_type thy T1 T1' T2 =
-  Same.commit (Envir.subst_type_same
-                   (Sign.typ_match thy (T1, T1') Vartab.empty)) T2
-  handle Type.TYPE_MATCH =>
-         raise TYPE ("Nitpick_HOL.instantiate_type", [T1, T1'], [])
-fun varify_and_instantiate_type ctxt T1 T1' T2 =
-  let val thy = Proof_Context.theory_of ctxt in
-    instantiate_type thy (varify_type ctxt T1) T1' (varify_type ctxt T2)
-  end
-
 fun repair_constr_type ctxt body_T' T =
   varify_and_instantiate_type ctxt (body_type T) body_T' T
 

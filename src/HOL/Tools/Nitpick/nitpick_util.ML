@@ -64,11 +64,13 @@ sig
   val typ_of_dtyp :
     Datatype_Aux.descr -> (Datatype_Aux.dtyp * typ) list -> Datatype_Aux.dtyp
     -> typ
+  val varify_type : Proof.context -> typ -> typ
+  val instantiate_type : theory -> typ -> typ -> typ -> typ
+  val varify_and_instantiate_type : Proof.context -> typ -> typ -> typ -> typ
   val is_of_class_const : theory -> string * typ -> bool
   val get_class_def : theory -> string -> (string * term) option
   val monomorphic_term : Type.tyenv -> term -> term
   val specialize_type : theory -> string * typ -> term -> term
-  val varify_type : Proof.context -> typ -> typ
   val eta_expand : typ list -> term -> int -> term
   val time_limit : Time.time option -> ('a -> 'b) -> 'a -> 'b
   val DETERM_TIMEOUT : Time.time option -> tactic -> tactic
@@ -264,15 +266,13 @@ val int_T = @{typ int}
 val simple_string_of_typ = Refute.string_of_typ
 val is_real_constr = Refute.is_IDT_constructor
 val typ_of_dtyp = Sledgehammer_Util.typ_of_dtyp
+val varify_type = Sledgehammer_Util.varify_type
+val instantiate_type = Sledgehammer_Util.instantiate_type
+val varify_and_instantiate_type = Sledgehammer_Util.varify_and_instantiate_type
 val is_of_class_const = Refute.is_const_of_class
 val get_class_def = Refute.get_classdef
 val monomorphic_term = Sledgehammer_Util.monomorphic_term
 val specialize_type = Sledgehammer_Util.specialize_type
-
-fun varify_type ctxt T =
-  Variable.polymorphic_types ctxt [Const (@{const_name undefined}, T)]
-  |> snd |> the_single |> dest_Const |> snd
-
 val eta_expand = Sledgehammer_Util.eta_expand
 
 fun time_limit NONE = I
