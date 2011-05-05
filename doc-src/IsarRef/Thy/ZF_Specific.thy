@@ -123,7 +123,7 @@ text {*
   \end{matharray}
 
   @{rail "
-    (@@{method (ZF) case_tac} | @@{method (ZF) induct_tac}) @{syntax goalspec}? @{syntax name}
+    (@@{method (ZF) case_tac} | @@{method (ZF) induct_tac}) @{syntax goal_spec}? @{syntax name}
     ;
     @@{method (ZF) ind_cases} (@{syntax prop} +)
     ;

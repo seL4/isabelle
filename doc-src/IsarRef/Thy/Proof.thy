@@ -194,7 +194,7 @@ text {*
     ;
     @@{command def} (def + @'and')
     ;
-    def: @{syntax thmdecl}? \\ @{syntax name} ('==' | '\<equiv>') @{syntax term} @{syntax termpat}?
+    def: @{syntax thmdecl}? \\ @{syntax name} ('==' | '\<equiv>') @{syntax term} @{syntax term_pat}?
   "}
 
   \begin{description}
@@ -269,8 +269,8 @@ text {*
     @@{command let} ((@{syntax term} + @'and') '=' @{syntax term} + @'and')
   "}
 
-  The syntax of @{keyword "is"} patterns follows @{syntax termpat} or
-  @{syntax proppat} (see \secref{sec:term-decls}).
+  The syntax of @{keyword "is"} patterns follows @{syntax term_pat} or
+  @{syntax prop_pat} (see \secref{sec:term-decls}).
 
   \begin{description}
 
@@ -568,7 +568,7 @@ text {* Proof methods are either basic ones, or expressions composed
   "n"}.
 
   @{rail "
-    @{syntax_def goalspec}:
+    @{syntax_def goal_spec}:
       '[' (@{syntax nat} '-' @{syntax nat} | @{syntax nat} '-' | @{syntax nat} | '!' ) ']'
   "}
 *}

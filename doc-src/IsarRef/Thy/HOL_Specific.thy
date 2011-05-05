@@ -17,7 +17,7 @@ text {*
 
     altname: '(' (@{syntax name} | @'open' | @'open' @{syntax name}) ')'
     ;
-    abstype: @{syntax typespecsorts} @{syntax mixfix}?
+    abstype: @{syntax typespec_sorts} @{syntax mixfix}?
     ;
     repset: @{syntax term} (@'morphisms' @{syntax name} @{syntax name})?
   "}
@@ -172,7 +172,7 @@ text {*
   \end{matharray}
 
   @{rail "
-    @@{command (HOL) record} @{syntax typespecsorts} '=' \\
+    @@{command (HOL) record} @{syntax typespec_sorts} '=' \\
       (@{syntax type} '+')? (@{syntax constdecl} +)
   "}
 
@@ -1136,9 +1136,9 @@ text {*
   \end{matharray}
 
   @{rail "
-    @@{method (HOL) case_tac} @{syntax goalspec}? @{syntax term} rule?
+    @@{method (HOL) case_tac} @{syntax goal_spec}? @{syntax term} rule?
     ;
-    @@{method (HOL) induct_tac} @{syntax goalspec}? (@{syntax insts} * @'and') rule?
+    @@{method (HOL) induct_tac} @{syntax goal_spec}? (@{syntax insts} * @'and') rule?
     ;
     @@{method (HOL) ind_cases} (@{syntax prop}+) (@'for' (@{syntax name}+))?
     ;

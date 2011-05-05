@@ -304,7 +304,7 @@ text {*
     @{syntax_def typespec}:
       (() | @{syntax typefree} | '(' ( @{syntax typefree} + ',' ) ')') @{syntax name}
     ;
-    @{syntax_def typespecsorts}:
+    @{syntax_def typespec_sorts}:
       (() | (@{syntax typefree} ('::' @{syntax sort})?) |
         '(' ( (@{syntax typefree} ('::' @{syntax sort})?) + ',' ) ')') @{syntax name}
   "}
@@ -319,9 +319,9 @@ text {* Wherever explicit propositions (or term fragments) occur in a
   This works both for @{syntax term} and @{syntax prop}.
 
   @{rail "
-    @{syntax_def termpat}: '(' (@'is' @{syntax term} +) ')'
+    @{syntax_def term_pat}: '(' (@'is' @{syntax term} +) ')'
     ;
-    @{syntax_def proppat}: '(' (@'is' @{syntax prop} +) ')'
+    @{syntax_def prop_pat}: '(' (@'is' @{syntax prop} +) ')'
   "}
 
   \medskip Declarations of local variables @{text "x :: \<tau>"} and
@@ -335,7 +335,7 @@ text {* Wherever explicit propositions (or term fragments) occur in a
   @{rail "
     @{syntax_def vars}: (@{syntax name} +) ('::' @{syntax type})?
     ;
-    @{syntax_def props}: @{syntax thmdecl}? (@{syntax prop} @{syntax proppat}? +)
+    @{syntax_def props}: @{syntax thmdecl}? (@{syntax prop} @{syntax prop_pat}? +)
   "}
 
   The treatment of multiple declarations corresponds to the

@@ -371,7 +371,7 @@ text {*
       @'fixes' (@{syntax \"fixes\"} + @'and') |
       @'constrains' (@{syntax name} '::' @{syntax type} + @'and') |
       @'assumes' (@{syntax props} + @'and') |
-      @'defines' (@{syntax thmdecl}? @{syntax prop} @{syntax proppat}? + @'and') |
+      @'defines' (@{syntax thmdecl}? @{syntax prop} @{syntax prop_pat}? + @'and') |
       @'notes' (@{syntax thmdef}? @{syntax thmrefs} + @'and')
   "}
 

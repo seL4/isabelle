@@ -263,7 +263,7 @@ Proof commands perform transitions of Isar/VM machine
 \rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
 \rail@bar
 \rail@nextbar{4}
-\rail@nont{\hyperlink{syntax.termpat}{\mbox{\isa{termpat}}}}[]
+\rail@nont{\hyperlink{syntax.term-pat}{\mbox{\isa{term{\isaliteral{5F}{\isacharunderscore}}pat}}}}[]
 \rail@endbar
 \rail@end
 \end{railoutput}
@@ -348,8 +348,8 @@ Proof commands perform transitions of Isar/VM machine
 \end{railoutput}
 
 
-  The syntax of \hyperlink{keyword.is}{\mbox{\isa{\isakeyword{is}}}} patterns follows \hyperlink{syntax.termpat}{\mbox{\isa{termpat}}} or
-  \hyperlink{syntax.proppat}{\mbox{\isa{proppat}}} (see \secref{sec:term-decls}).
+  The syntax of \hyperlink{keyword.is}{\mbox{\isa{\isakeyword{is}}}} patterns follows \hyperlink{syntax.term-pat}{\mbox{\isa{term{\isaliteral{5F}{\isacharunderscore}}pat}}} or
+  \hyperlink{syntax.prop-pat}{\mbox{\isa{prop{\isaliteral{5F}{\isacharunderscore}}pat}}} (see \secref{sec:term-decls}).
 
   \begin{description}
 
@@ -780,7 +780,7 @@ Proof methods are either basic ones, or expressions composed
   all goals, and ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5B}{\isacharbrackleft}}n{\isaliteral{2D}{\isacharminus}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequote}}}'' to all goals starting from \isa{{\isaliteral{22}{\isachardoublequote}}n{\isaliteral{22}{\isachardoublequote}}}.
 
   \begin{railoutput}
-\rail@begin{4}{\indexdef{}{syntax}{goalspec}\hypertarget{syntax.goalspec}{\hyperlink{syntax.goalspec}{\mbox{\isa{goalspec}}}}}
+\rail@begin{4}{\indexdef{}{syntax}{goal\_spec}\hypertarget{syntax.goal-spec}{\hyperlink{syntax.goal-spec}{\mbox{\isa{goal{\isaliteral{5F}{\isacharunderscore}}spec}}}}}
 \rail@term{\isa{{\isaliteral{5B}{\isacharbrackleft}}}}[]
 \rail@bar
 \rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]

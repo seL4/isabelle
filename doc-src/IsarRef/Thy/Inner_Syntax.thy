@@ -248,7 +248,7 @@ text {* Mixfix annotations specify concrete \emph{inner syntax} of
     @{syntax_def mixfix}: @{syntax \"infix\"} | '(' @{syntax string} prios? @{syntax nat}? ')' |
     '(' @'binder' @{syntax string} prios? @{syntax nat} ')'
     ;
-    @{syntax_def structmixfix}: @{syntax mixfix} | '(' @'structure' ')'
+    @{syntax_def struct_mixfix}: @{syntax mixfix} | '(' @'structure' ')'
     ;
 
     prios: '[' (@{syntax nat} + ',') ']'
@@ -366,9 +366,9 @@ text {*
       @{syntax mode}? \\ (@{syntax nameref} @{syntax mixfix} + @'and')
     ;
     (@@{command notation} | @@{command no_notation}) @{syntax target}? @{syntax mode}? \\
-      (@{syntax nameref} @{syntax structmixfix} + @'and')
+      (@{syntax nameref} @{syntax struct_mixfix} + @'and')
     ;
-    @@{command write} @{syntax mode}? (@{syntax nameref} @{syntax structmixfix} + @'and')
+    @@{command write} @{syntax mode}? (@{syntax nameref} @{syntax struct_mixfix} + @'and')
   "}
 
   \begin{description}

@@ -292,14 +292,14 @@ text {*
 
   @{rail "
     (@@{method rule_tac} | @@{method erule_tac} | @@{method drule_tac} |
-      @@{method frule_tac} | @@{method cut_tac} | @@{method thin_tac}) @{syntax goalspec}? \\
+      @@{method frule_tac} | @@{method cut_tac} | @@{method thin_tac}) @{syntax goal_spec}? \\
     ( dynamic_insts @'in' @{syntax thmref} | @{syntax thmrefs} )
     ;
-    @@{method subgoal_tac} @{syntax goalspec}? (@{syntax prop} +)
+    @@{method subgoal_tac} @{syntax goal_spec}? (@{syntax prop} +)
     ;
-    @@{method rename_tac} @{syntax goalspec}? (@{syntax name} +)
+    @@{method rename_tac} @{syntax goal_spec}? (@{syntax name} +)
     ;
-    @@{method rotate_tac} @{syntax goalspec}? @{syntax int}?
+    @@{method rotate_tac} @{syntax goal_spec}? @{syntax int}?
     ;
     (@@{method tactic} | @@{method raw_tactic}) @{syntax text}
     ;
