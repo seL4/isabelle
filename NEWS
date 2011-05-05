@@ -92,9 +92,8 @@ INCOMPATIBILITY. Use partial_function instead.
 
 *** Document preparation ***
 
-* Antiquotation @{rail} layouts railroad syntax diagrams; requires
-railsetup.sty included in the Isabelle distribution; see also isar-ref
-manual.
+* Antiquotation @{rail} layouts railroad syntax diagrams, see also
+isar-ref manual.
 
 * Localized \isabellestyle switch can be used within blocks or groups
 like this:
