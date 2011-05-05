@@ -461,10 +461,10 @@ fun run_atp auto name
                    * 0.001) |> seconds
                 val _ =
                   if debug then
-                    quote name ^ " slice " ^ string_of_int (slice + 1) ^
-                    " of " ^ string_of_int num_actual_slices ^ " with " ^
-                    string_of_int num_facts ^ " fact" ^ plural_s num_facts ^
-                    " for " ^ string_from_time slice_timeout ^ "..."
+                    quote name ^ " slice #" ^ string_of_int (slice + 1) ^
+                    " with " ^ string_of_int num_facts ^ " fact" ^
+                    plural_s num_facts ^ " for " ^
+                    string_from_time slice_timeout ^ "..."
                     |> Output.urgent_message
                   else
                     ()
