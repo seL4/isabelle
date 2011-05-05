@@ -618,10 +618,10 @@ fun list_app head args = fold (curry (CombApp o swap)) args head
 fun explicit_app arg head =
   let
     val head_T = combtyp_of head
-    val (_, res_T) = dest_funT head_T
+    val (arg_T, res_T) = dest_funT head_T
     val explicit_app =
       CombConst (`make_fixed_const explicit_app_base, head_T --> head_T,
-                 [res_T])
+                 [arg_T, res_T])
   in list_app explicit_app [head, arg] end
 fun list_explicit_app head args = fold explicit_app args head
 
