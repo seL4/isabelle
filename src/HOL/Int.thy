@@ -163,7 +163,7 @@ proof
 qed
 
 lemma int_def: "of_nat m = Abs_Integ (intrel `` {(m, 0)})"
-by (induct m, simp_all add: Zero_int_def One_int_def add)
+by (induct m) (simp_all add: Zero_int_def One_int_def add)
 
 
 subsection {* The @{text "\<le>"} Ordering *}
@@ -219,7 +219,8 @@ text{*Strict Monotonicity of Multiplication*}
 text{*strict, in 1st argument; proof is by induction on k>0*}
 lemma zmult_zless_mono2_lemma:
      "(i::int)<j ==> 0<k ==> of_nat k * i < of_nat k * j"
-apply (induct "k", simp)
+apply (induct k)
+apply simp
 apply (simp add: left_distrib)
 apply (case_tac "k=0")
 apply (simp_all add: add_strict_mono)
@@ -299,10 +300,10 @@ lemma of_int_1 [simp]: "of_int 1 = 1"
 by (simp add: of_int One_int_def)
 
 lemma of_int_add [simp]: "of_int (w+z) = of_int w + of_int z"
-by (cases w, cases z, simp add: algebra_simps of_int add)
+by (cases w, cases z) (simp add: algebra_simps of_int add)
 
 lemma of_int_minus [simp]: "of_int (-z) = - (of_int z)"
-by (cases z, simp add: algebra_simps of_int minus)
+by (cases z) (simp add: algebra_simps of_int minus)
 
 lemma of_int_diff [simp]: "of_int (w - z) = of_int w - of_int z"
 by (simp add: diff_minus Groups.diff_minus)
@@ -329,7 +330,8 @@ begin
 
 lemma of_int_eq_iff [simp]:
    "of_int w = of_int z \<longleftrightarrow> w = z"
-apply (cases w, cases z, simp add: of_int)
+apply (cases w, cases z)
+apply (simp add: of_int)
 apply (simp only: diff_eq_eq diff_add_eq eq_diff_eq)
 apply (simp only: of_nat_add [symmetric] of_nat_eq_iff)
 done
@@ -353,7 +355,8 @@ subclass ring_char_0 ..
 
 lemma of_int_le_iff [simp]:
   "of_int w \<le> of_int z \<longleftrightarrow> w \<le> z"
-  by (cases w, cases z, simp add: of_int le minus algebra_simps of_nat_add [symmetric] del: of_nat_add)
+  by (cases w, cases z)
+    (simp add: of_int le minus algebra_simps of_nat_add [symmetric] del: of_nat_add)
 
 lemma of_int_less_iff [simp]:
   "of_int w < of_int z \<longleftrightarrow> w < z"
@@ -405,13 +408,13 @@ lemma nat_zero [simp]: "nat 0 = 0"
 by (simp add: Zero_int_def nat)
 
 lemma int_nat_eq [simp]: "of_nat (nat z) = (if 0 \<le> z then z else 0)"
-by (cases z, simp add: nat le int_def Zero_int_def)
+by (cases z) (simp add: nat le int_def Zero_int_def)
 
 corollary nat_0_le: "0 \<le> z ==> of_nat (nat z) = z"
 by simp
 
 lemma nat_le_0 [simp]: "z \<le> 0 ==> nat z = 0"
-by (cases z, simp add: nat le Zero_int_def)
+by (cases z) (simp add: nat le Zero_int_def)
 
 lemma nat_le_eq_zle: "0 < w | 0 \<le> z ==> (nat w \<le> nat z) = (w\<le>z)"
 apply (cases w, cases z) 
@@ -437,7 +440,7 @@ lemma nonneg_eq_int:
   using assms by (blast dest: nat_0_le sym)
 
 lemma nat_eq_iff: "(nat w = m) = (if 0 \<le> w then w = of_nat m else m=0)"
-by (cases w, simp add: nat le int_def Zero_int_def, arith)
+by (cases w) (simp add: nat le int_def Zero_int_def, arith)
 
 corollary nat_eq_iff2: "(m = nat w) = (if 0 \<le> w then w = of_nat m else m=0)"
 by (simp only: eq_commute [of m] nat_eq_iff)
@@ -458,18 +461,18 @@ by (insert zless_nat_conj [of 0], auto)
 
 lemma nat_add_distrib:
      "[| (0::int) \<le> z;  0 \<le> z' |] ==> nat (z+z') = nat z + nat z'"
-by (cases z, cases z', simp add: nat add le Zero_int_def)
+by (cases z, cases z') (simp add: nat add le Zero_int_def)
 
 lemma nat_diff_distrib:
      "[| (0::int) \<le> z';  z' \<le> z |] ==> nat (z-z') = nat z - nat z'"
-by (cases z, cases z', 
-    simp add: nat add minus diff_minus le Zero_int_def)
+by (cases z, cases z')
+  (simp add: nat add minus diff_minus le Zero_int_def)
 
 lemma nat_zminus_int [simp]: "nat (- (of_nat n)) = 0"
 by (simp add: int_def minus nat Zero_int_def) 
 
 lemma zless_nat_eq_int_zless: "(m < nat z) = (of_nat m < z)"
-by (cases z, simp add: nat less int_def, arith)
+by (cases z) (simp add: nat less int_def, arith)
 
 context ring_1
 begin
@@ -547,17 +550,18 @@ subsection {* Cases and induction *}
 text{*Now we replace the case analysis rule by a more conventional one:
 whether an integer is negative or not.*}
 
-theorem int_cases [cases type: int, case_names nonneg neg]:
+theorem int_cases [case_names nonneg neg, cases type: int]:
   "[|!! n. (z \<Colon> int) = of_nat n ==> P;  !! n. z =  - (of_nat (Suc n)) ==> P |] ==> P"
-apply (cases "z < 0", blast dest!: negD)
+apply (cases "z < 0")
+apply (blast dest!: negD)
 apply (simp add: linorder_not_less del: of_nat_Suc)
 apply auto
 apply (blast dest: nat_0_le [THEN sym])
 done
 
-theorem int_of_nat_induct [induct type: int, case_names nonneg neg]:
+theorem int_of_nat_induct [case_names nonneg neg, induct type: int]:
      "[|!! n. P (of_nat n \<Colon> int);  !!n. P (- (of_nat (Suc n))) |] ==> P z"
-  by (cases z rule: int_cases) auto
+  by (cases z) auto
 
 text{*Contributed by Brian Huffman*}
 theorem int_diff_cases:
@@ -822,7 +826,7 @@ qed
 
 lemma odd_less_0_iff:
   "(1 + z + z < 0) = (z < (0::int))"
-proof (cases z rule: int_cases)
+proof (cases z)
   case (nonneg n)
   thus ?thesis by (simp add: linorder_not_less add_assoc add_increasing
                              le_imp_0_less [THEN order_less_imp_le])  
@@ -1089,7 +1093,7 @@ lemmas double_eq_0_iff = double_zero
 
 lemma odd_nonzero:
   "1 + z + z \<noteq> (0::int)"
-proof (cases z rule: int_cases)
+proof (cases z)
   case (nonneg n)
   have le: "0 \<le> z+z" by (simp add: nonneg add_increasing) 
   thus ?thesis using  le_imp_0_less [OF le]
@@ -1159,14 +1163,16 @@ qed
 
 lemma odd_less_0:
   "(1 + z + z < 0) = (z < (0::int))"
-proof (cases z rule: int_cases)
+proof (cases z)
   case (nonneg n)
-  thus ?thesis by (simp add: linorder_not_less add_assoc add_increasing
-                             le_imp_0_less [THEN order_less_imp_le])  
+  then show ?thesis
+    by (simp add: linorder_not_less add_assoc add_increasing
+      le_imp_0_less [THEN order_less_imp_le])
 next
   case (neg n)
-  thus ?thesis by (simp del: of_nat_Suc of_nat_add of_nat_1
-    add: algebra_simps of_nat_1 [where 'a=int, symmetric] of_nat_add [symmetric])
+  then show ?thesis
+    by (simp del: of_nat_Suc of_nat_add of_nat_1
+      add: algebra_simps of_nat_1 [where 'a=int, symmetric] of_nat_add [symmetric])
 qed
 
 text {* Less-Than or Equals *}
@@ -1709,7 +1715,8 @@ theorem int_ge_induct [case_names base step, induct set: int]:
     step: "\<And>i. k \<le> i \<Longrightarrow> P i \<Longrightarrow> P (i + 1)"
   shows "P i"
 proof -
-  { fix n have "\<And>i::int. n = nat(i-k) \<Longrightarrow> k \<le> i \<Longrightarrow> P i"
+  { fix n
+    have "\<And>i::int. n = nat (i - k) \<Longrightarrow> k \<le> i \<Longrightarrow> P i"
     proof (induct n)
       case 0
       hence "i = k" by arith
@@ -1720,8 +1727,8 @@ proof -
       moreover
       have ki1: "k \<le> i - 1" using Suc.prems by arith
       ultimately
-      have "P(i - 1)" by(rule Suc.hyps)
-      from step[OF ki1 this] show ?case by simp
+      have "P (i - 1)" by (rule Suc.hyps)
+      from step [OF ki1 this] show ?case by simp
     qed
   }
   with ge show ?thesis by fast
@@ -1739,31 +1746,32 @@ apply(rule int_ge_induct[of "k + 1"])
 apply (rule step, simp+)
 done
 
-theorem int_le_induct[consumes 1,case_names base step]:
+theorem int_le_induct [consumes 1, case_names base step]:
   assumes le: "i \<le> (k::int)" and
         base: "P(k)" and
         step: "\<And>i. \<lbrakk>i \<le> k; P i\<rbrakk> \<Longrightarrow> P(i - 1)"
   shows "P i"
 proof -
-  { fix n have "\<And>i::int. n = nat(k-i) \<Longrightarrow> i \<le> k \<Longrightarrow> P i"
+  { fix n
+    have "\<And>i::int. n = nat(k-i) \<Longrightarrow> i \<le> k \<Longrightarrow> P i"
     proof (induct n)
       case 0
       hence "i = k" by arith
       thus "P i" using base by simp
     next
       case (Suc n)
-      hence "n = nat(k - (i+1))" by arith
+      hence "n = nat (k - (i + 1))" by arith
       moreover
       have ki1: "i + 1 \<le> k" using Suc.prems by arith
       ultimately
-      have "P(i+1)" by(rule Suc.hyps)
+      have "P (i + 1)" by(rule Suc.hyps)
       from step[OF ki1 this] show ?case by simp
     qed
   }
   with le show ?thesis by fast
 qed
 
-theorem int_less_induct [consumes 1,case_names base step]:
+theorem int_less_induct [consumes 1, case_names base step]:
   assumes less: "(i::int) < k" and
         base: "P(k - 1)" and
         step: "\<And>i. \<lbrakk>i < k; P i\<rbrakk> \<Longrightarrow> P(i - 1)"
@@ -1782,11 +1790,14 @@ theorem int_induct [case_names base step1 step2]:
   shows "P i"
 proof -
   have "i \<le> k \<or> i \<ge> k" by arith
-  then show ?thesis proof
-    assume "i \<ge> k" then show ?thesis using base
+  then show ?thesis
+  proof
+    assume "i \<ge> k"
+    then show ?thesis using base
       by (rule int_ge_induct) (fact step1)
   next
-    assume "i \<le> k" then show ?thesis using base
+    assume "i \<le> k"
+    then show ?thesis using base
       by (rule int_le_induct) (fact step2)
   qed
 qed
@@ -1797,7 +1808,8 @@ lemma int_val_lemma:
      "(\<forall>i<n::nat. abs(f(i+1) - f i) \<le> 1) -->  
       f 0 \<le> k --> k \<le> f n --> (\<exists>i \<le> n. f i = (k::int))"
 unfolding One_nat_def
-apply (induct n, simp)
+apply (induct n)
+apply simp
 apply (intro strip)
 apply (erule impE, simp)
 apply (erule_tac x = n in allE, simp)
@@ -2120,11 +2132,14 @@ proof -
   proof -
     fix k
     assume A: "int y = int x * k"
-    then show "x dvd y" proof (cases k)
-      case (1 n) with A have "y = x * n" by (simp add: of_nat_mult [symmetric])
+    then show "x dvd y"
+    proof (cases k)
+      case (nonneg n)
+      with A have "y = x * n" by (simp add: of_nat_mult [symmetric])
       then show ?thesis ..
     next
-      case (2 n) with A have "int y = int x * (- int (Suc n))" by simp
+      case (neg n)
+      with A have "int y = int x * (- int (Suc n))" by simp
       also have "\<dots> = - (int x * int (Suc n))" by (simp only: mult_minus_right)
       also have "\<dots> = - int (x * Suc n)" by (simp only: of_nat_mult [symmetric])
       finally have "- int (x * Suc n) = int y" ..
@@ -2134,12 +2149,12 @@ proof -
   then show ?thesis by (auto elim!: dvdE simp only: dvd_triv_left of_nat_mult)
 qed
 
-lemma zdvd1_eq[simp]: "(x::int) dvd 1 = ( \<bar>x\<bar> = 1)"
+lemma zdvd1_eq[simp]: "(x::int) dvd 1 = (\<bar>x\<bar> = 1)"
 proof
   assume d: "x dvd 1" hence "int (nat \<bar>x\<bar>) dvd int (nat 1)" by simp
   hence "nat \<bar>x\<bar> dvd 1" by (simp add: zdvd_int)
   hence "nat \<bar>x\<bar> = 1"  by simp
-  thus "\<bar>x\<bar> = 1" by (cases "x < 0", auto)
+  thus "\<bar>x\<bar> = 1" by (cases "x < 0") auto
 next
   assume "\<bar>x\<bar>=1"
   then have "x = 1 \<or> x = -1" by auto
@@ -2150,7 +2165,7 @@ lemma zdvd_mult_cancel1:
   assumes mp:"m \<noteq>(0::int)" shows "(m * n dvd m) = (\<bar>n\<bar> = 1)"
 proof
   assume n1: "\<bar>n\<bar> = 1" thus "m * n dvd m" 
-    by (cases "n >0", auto simp add: minus_equation_iff)
+    by (cases "n >0") (auto simp add: minus_equation_iff)
 next
   assume H: "m * n dvd m" hence H2: "m * n dvd m * 1" by simp
   from zdvd_mult_cancel[OF H2 mp] show "\<bar>n\<bar> = 1" by (simp only: zdvd1_eq)
@@ -2174,9 +2189,9 @@ lemma nat_power_eq:
   by (induct n) (simp_all add: nat_mult_distrib)
 
 lemma zdvd_imp_le: "[| z dvd n; 0 < n |] ==> z \<le> (n::int)"
-  apply (rule_tac z=n in int_cases)
+  apply (cases n)
   apply (auto simp add: dvd_int_iff)
-  apply (rule_tac z=z in int_cases)
+  apply (cases z)
   apply (auto simp add: dvd_imp_le)
   done
 
@@ -2186,7 +2201,8 @@ lemma zdvd_period:
   shows "a dvd (x + t) \<longleftrightarrow> a dvd ((x + c * d) + t)"
 proof -
   from assms obtain k where "d = a * k" by (rule dvdE)
-  show ?thesis proof
+  show ?thesis
+  proof
     assume "a dvd (x + t)"
     then obtain l where "x + t = a * l" by (rule dvdE)
     then have "x = a * l - t" by simp

@@ -35,10 +35,10 @@ proof -
     by (auto simp add: h)
   show ?thesis
   proof (induct a)
-    case (1 n)
+    case (nonneg n)
     from pos show ?case by (simp add: algebra_simps)
   next
-    case (2 n)
+    case (neg n)
     show ?case
       apply (auto)
       apply (subst pow2_neg[of "- int n"])
@@ -50,17 +50,17 @@ qed
 
 lemma pow2_add: "pow2 (a+b) = (pow2 a) * (pow2 b)"
 proof (induct b)
-  case (1 n)
+  case (nonneg n)
   show ?case
   proof (induct n)
     case 0
     show ?case by simp
   next
     case (Suc m)
-    show ?case by (auto simp add: algebra_simps pow2_add1 1 Suc)
+    show ?case by (auto simp add: algebra_simps pow2_add1 nonneg Suc)
   qed
 next
-  case (2 n)
+  case (neg n)
   show ?case
   proof (induct n)
     case 0
