@@ -949,7 +949,8 @@ fun add_fact_nonmonotonic_types ctxt ({kind, combformula, ...}
                combformula
 fun add_nonmonotonic_types_for_facts ctxt type_sys facts =
   level_of_type_sys type_sys = Nonmonotonic_Types
-  ? (insert_type I @{typ bool} (* in case helper "True_or_False" is included *)
+  (* in case helper "True_or_False" is included (FIXME) *)
+  ? (insert_type I @{typ bool}
      #> fold (add_fact_nonmonotonic_types ctxt) facts)
 
 fun n_ary_strip_type 0 T = ([], T)
