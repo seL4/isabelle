@@ -483,13 +483,13 @@ fun datatype_constrs thy (T as Type (s, Ts)) =
 fun tiny_card_of_type ctxt default_card T =
   let
     val max = 2 (* 1 would be too small for the "fun" case *)
-    fun aux avoid T =
+    fun aux slack avoid T =
       (if member (op =) avoid T then
          0
        else case T of
          Type (@{type_name fun}, [T1, T2]) =>
-         (case (aux avoid T1, aux avoid T2) of
-            (_, 1) => 1
+         (case (aux slack avoid T1, aux slack avoid T2) of
+            (k, 1) => if slack andalso k = 0 then 0 else 1
           | (0, _) => 0
           | (_, 0) => 0
           | (k1, k2) =>
@@ -504,7 +504,7 @@ fun tiny_card_of_type ctxt default_card T =
              constrs as _ :: _ =>
              let
                val constr_cards =
-                 map (Integer.prod o map (aux (T :: avoid)) o binder_types
+                 map (Integer.prod o map (aux slack (T :: avoid)) o binder_types
                       o snd) constrs
              in
                if exists (curry (op =) 0) constr_cards then 0
@@ -516,18 +516,26 @@ fun tiny_card_of_type ctxt default_card T =
                (* We cheat here by assuming that typedef types are infinite if
                   their underlying type is infinite. This is unsound in general
                   but it's hard to think of a realistic example where this would
-                  not be the case. *)
+                  not be the case. We are also slack with representation types:
+                  If it has the form "sigma => tau", we consider it enough to
+                  check "sigma" for infiniteness. (Look for "slack" in this
+                  function.) *)
                (case varify_and_instantiate_type ctxt
                          (Logic.varifyT_global abs_type) T
                          (Logic.varifyT_global rep_type)
-                     |> aux avoid of
+                     |> aux true avoid of
                   0 => 0
                 | 1 => 1
                 | _ => default_card)
              | [] => default_card
          end
+       | TFree _ =>
+         (* Very slightly unsound: Type variables are assumed not to be
+            constrained to have cardinality 1. (In practice, the user would most
+            likely have used "unit" directly in that case.) *)
+         if default_card = 1 then 2 else default_card
        | _ => default_card)
-  in Int.min (max, aux [] T) end
+  in Int.min (max, aux false [] T) end
 
 fun is_type_surely_finite ctxt T = tiny_card_of_type ctxt 0 T <> 0
 fun is_type_surely_infinite ctxt T = tiny_card_of_type ctxt 1 T = 0
@@ -896,34 +904,30 @@ fun should_declare_sym type_sys pred_sym s =
   not (String.isPrefix "$" s) andalso
   ((case type_sys of Simple _ => true | _ => false) orelse not pred_sym)
 
-fun add_combterm_syms_to_decl_table type_sys repaired_sym_tab =
+fun sym_decl_table_for_facts type_sys repaired_sym_tab (conjs, facts) =
   let
-    fun declare_sym decl decls =
-      case type_sys of
-        Preds (Polymorphic, All_Types) => insert_type #3 decl decls
-      | _ => insert (op =) decl decls
-    and do_term tm =
+    fun add_combterm in_conj tm =
       let val (head, args) = strip_combterm_comb tm in
         (case head of
            CombConst ((s, s'), T, T_args) =>
            let val pred_sym = is_pred_sym repaired_sym_tab s in
              if should_declare_sym type_sys pred_sym s then
                Symtab.map_default (s, [])
-                   (declare_sym (s', T_args, T, pred_sym, length args))
+                   (insert_type #3 (s', T_args, T, pred_sym, length args,
+                                    in_conj))
              else
                I
            end
          | _ => I)
-        #> fold do_term args
+        #> fold (add_combterm in_conj) args
       end
-  in do_term end
-fun add_fact_syms_to_decl_table type_sys repaired_sym_tab =
-  fact_lift (formula_fold true
-      (K (add_combterm_syms_to_decl_table type_sys repaired_sym_tab)))
-fun sym_decl_table_for_facts type_sys repaired_sym_tab facts =
-  Symtab.empty |> is_type_sys_fairly_sound type_sys
-                  ? fold (add_fact_syms_to_decl_table type_sys repaired_sym_tab)
-                         facts
+    fun add_fact in_conj =
+      fact_lift (formula_fold true (K (add_combterm in_conj)))
+  in
+    Symtab.empty
+    |> is_type_sys_fairly_sound type_sys
+       ? (fold (add_fact true) conjs #> fold (add_fact false) facts)
+  end
 
 fun is_var_or_bound_var (CombConst ((s, _), _, _)) =
     String.isPrefix bound_var_prefix s
@@ -953,9 +957,9 @@ fun n_ary_strip_type 0 T = ([], T)
     n_ary_strip_type (n - 1) ran_T |>> cons dom_T
   | n_ary_strip_type _ _ = raise Fail "unexpected non-function"
 
-fun result_type_of_decl (_, _, T, _, ary) = n_ary_strip_type ary T |> snd
+fun result_type_of_decl (_, _, T, _, ary, _) = n_ary_strip_type ary T |> snd
 
-fun decl_line_for_sym s (s', _, T, pred_sym, ary) =
+fun decl_line_for_sym s (s', _, T, pred_sym, ary, _) =
   let val (arg_Ts, res_T) = n_ary_strip_type ary T in
     Decl (sym_decl_prefix ^ s, (s, s'), map mangled_type_name arg_Ts,
           if pred_sym then `I tptp_tff_bool_type else mangled_type_name res_T)
@@ -964,7 +968,7 @@ fun decl_line_for_sym s (s', _, T, pred_sym, ary) =
 fun is_polymorphic_type T = fold_atyps (fn TVar _ => K true | _ => I) T false
 
 fun formula_line_for_sym_decl ctxt nonmono_Ts type_sys n s j
-                              (s', T_args, T, _, ary) =
+                              (s', T_args, T, _, ary, in_conj) =
   let
     val (arg_Ts, res_T) = n_ary_strip_type ary T
     val bound_names =
@@ -976,7 +980,8 @@ fun formula_line_for_sym_decl ctxt nonmono_Ts type_sys n s j
                              else NONE)
   in
     Formula (sym_decl_prefix ^ s ^
-             (if n > 1 then "_" ^ string_of_int j else ""), Axiom,
+             (if n > 1 then "_" ^ string_of_int j else ""),
+             if in_conj then Hypothesis else Axiom,
              CombConst ((s, s'), T, T_args)
              |> fold (curry (CombApp o swap)) bound_tms
              |> type_pred_combatom type_sys res_T
@@ -1060,7 +1065,7 @@ fun prepare_atp_problem ctxt type_sys explicit_apply hyp_ts concl_t facts =
     val helpers =
       repaired_sym_tab |> helper_facts_for_sym_table ctxt type_sys |> map repair
     val sym_decl_lines =
-      conjs @ facts
+      (conjs, facts) (* FIXME: what if "True_or_False" is among helpers? *)
       |> sym_decl_table_for_facts type_sys repaired_sym_tab
       |> problem_lines_for_sym_decl_table ctxt nonmono_Ts type_sys
     (* Reordering these might confuse the proof reconstruction code or the SPASS
