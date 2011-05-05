@@ -51,7 +51,7 @@ text {*
   admissible.
 
   @{rail "
-    @@{command theory} @{syntax name} @'imports' (@{syntax name} +) uses? @'begin'
+    @@{command theory} @{syntax name} \\ @'imports' (@{syntax name} +) uses? @'begin'
     ;
 
     uses: @'uses' ((@{syntax name} | @{syntax parname}) +)
@@ -173,10 +173,10 @@ text {*
   @{rail "
     @@{command axiomatization} @{syntax \"fixes\"}? (@'where' specs)?
     ;
-    @@{command definition} @{syntax target}? (decl @'where')?
-      @{syntax thmdecl}? @{syntax prop}
+    @@{command definition} @{syntax target}? \\
+      (decl @'where')? @{syntax thmdecl}? @{syntax prop}
     ;
-    @@{command abbreviation} @{syntax target}? @{syntax mode}?
+    @@{command abbreviation} @{syntax target}? @{syntax mode}? \\
       (decl @'where')? @{syntax prop}
     ;
 
@@ -259,7 +259,7 @@ text {*
 
   @{rail "
     (@@{command declaration} | @@{command syntax_declaration})
-      ('(' @'pervasive' ')')? @{syntax target}? @{syntax text}
+      ('(' @'pervasive' ')')? \\ @{syntax target}? @{syntax text}
     ;
     @@{command declare} @{syntax target}? (@{syntax thmrefs} + @'and')
   "}
@@ -503,7 +503,8 @@ text {*
     ;
     @@{command interpret} @{syntax locale_expr} equations?
     ;
-    @@{command sublocale} @{syntax nameref} ('<' | '\<subseteq>') @{syntax locale_expr} equations?
+    @@{command sublocale} @{syntax nameref} ('<' | '\<subseteq>') @{syntax locale_expr} \\
+      equations?
     ;
     @@{command print_dependencies} '!'? @{syntax locale_expr}
     ;
@@ -639,25 +640,18 @@ text {*
   \end{matharray}
 
   @{rail "
-    @@{command class} @{syntax name} '='
+    @@{command class} class_spec @'begin'?
+    ;
+    class_spec: @{syntax name} '='
       ((@{syntax nameref} '+' (@{syntax context_elem}+)) |
-        @{syntax nameref} | (@{syntax context_elem}+)) \\
-      @'begin'?
+        @{syntax nameref} | (@{syntax context_elem}+))      
     ;
     @@{command instantiation} (@{syntax nameref} + @'and') '::' @{syntax arity} @'begin'
     ;
-    @@{command instance}
-    ;
-    @@{command instance} (@{syntax nameref} + @'and') '::' @{syntax arity}
+    @@{command instance} (() | (@{syntax nameref} + @'and') '::' @{syntax arity} |
+      @{syntax nameref} ('<' | '\<subseteq>') @{syntax nameref} )
     ;
     @@{command subclass} @{syntax target}? @{syntax nameref}
-    ;
-    @@{command instance} @{syntax nameref} ('<' | '\<subseteq>') @{syntax nameref}
-    ;
-    @@{command print_classes}
-    ;
-    @@{command class_deps}
-    ;
   "}
 
   \begin{description}
@@ -818,9 +812,9 @@ text {*
   \end{matharray}
 
   @{rail "
-    @@{command overloading} \\
-    ( @{syntax name} ( '==' | '\<equiv>' ) @{syntax term}
-    ( '(' @'unchecked' ')' )? +) @'begin'
+    @@{command overloading} ( spec + ) @'begin'
+    ;
+    spec: @{syntax name} ( '==' | '\<equiv>' ) @{syntax term} ( '(' @'unchecked' ')' )?
   "}
 
   \begin{description}
@@ -923,15 +917,17 @@ text {*
   \end{description}
 *}
 
-    attribute_setup my_rule = {*
-      Attrib.thms >> (fn ths =>
-        Thm.rule_attribute (fn context: Context.generic => fn th: thm =>
+  attribute_setup my_rule = {*
+    Attrib.thms >> (fn ths =>
+      Thm.rule_attribute
+        (fn context: Context.generic => fn th: thm =>
           let val th' = th OF ths
           in th' end)) *}  "my rule"
 
-    attribute_setup my_declaration = {*
-      Attrib.thms >> (fn ths =>
-        Thm.declaration_attribute (fn th: thm => fn context: Context.generic =>
+  attribute_setup my_declaration = {*
+    Attrib.thms >> (fn ths =>
+      Thm.declaration_attribute
+        (fn th: thm => fn context: Context.generic =>
           let val context' = context
           in context' end)) *}  "my declaration"
 
@@ -1075,8 +1071,9 @@ text {*
   @{rail "
     @@{command consts} ((@{syntax name} '::' @{syntax type} @{syntax mixfix}?) +)
     ;
-    @@{command defs} ('(' @'unchecked'? @'overloaded'? ')')? \\
-      (@{syntax axmdecl} @{syntax prop} +)
+    @@{command defs} opt? (@{syntax axmdecl} @{syntax prop} +)
+    ;
+    opt: '(' @'unchecked'? @'overloaded'? ')'
   "}
 
   \begin{description}

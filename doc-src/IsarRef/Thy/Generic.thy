@@ -189,7 +189,7 @@ text {*
   \end{matharray}
 
   @{rail "
-    @@{method subst} ('(' 'asm' ')')? ('(' (@{syntax nat}+) ')')? @{syntax thmref}
+    @@{method subst} ('(' 'asm' ')')? \\ ('(' (@{syntax nat}+) ')')? @{syntax thmref}
     ;
     @@{method split} ('(' 'asm' ')')? @{syntax thmrefs}
   "}
@@ -292,7 +292,7 @@ text {*
 
   @{rail "
     (@@{method rule_tac} | @@{method erule_tac} | @@{method drule_tac} |
-      @@{method frule_tac} | @@{method cut_tac} | @@{method thin_tac}) @{syntax goalspec}?
+      @@{method frule_tac} | @@{method cut_tac} | @@{method thin_tac}) @{syntax goalspec}? \\
     ( dynamic_insts @'in' @{syntax thmref} | @{syntax thmrefs} )
     ;
     @@{method subgoal_tac} @{syntax goalspec}? (@{syntax prop} +)

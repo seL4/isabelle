@@ -172,7 +172,8 @@ text {*
   \end{matharray}
 
   @{rail "
-    @@{command (HOL) record} @{syntax typespecsorts} '=' (@{syntax type} '+')? (@{syntax constdecl} +)
+    @@{command (HOL) record} @{syntax typespecsorts} '=' \\
+      (@{syntax type} '+')? (@{syntax constdecl} +)
   "}
 
   \begin{description}
@@ -346,12 +347,12 @@ text {*
   \end{matharray}
 
   @{rail "
-    @@{command (HOL) datatype} (dtspec + @'and')
+    @@{command (HOL) datatype} (spec + @'and')
     ;
     @@{command (HOL) rep_datatype} ('(' (@{syntax name} +) ')')? (@{syntax term} +)
     ;
 
-    dtspec: @{syntax parname}? @{syntax typespec} @{syntax mixfix}? '=' (cons + '|')
+    spec: @{syntax parname}? @{syntax typespec} @{syntax mixfix}? '=' (cons + '|')
     ;
     cons: @{syntax name} (@{syntax type} * ) @{syntax mixfix}?
   "}

@@ -69,16 +69,17 @@ The Isabelle/Isar theory format integrates specifications and
   admissible.
 
   \begin{railoutput}
-\rail@begin{2}{}
+\rail@begin{4}{}
 \rail@term{\hyperlink{command.theory}{\mbox{\isa{\isacommand{theory}}}}}[]
 \rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@cr{2}
 \rail@term{\isa{\isakeyword{imports}}}[]
 \rail@plus
 \rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
-\rail@nextplus{1}
+\rail@nextplus{3}
 \rail@endplus
 \rail@bar
-\rail@nextbar{1}
+\rail@nextbar{3}
 \rail@nont{\isa{uses}}[]
 \rail@endbar
 \rail@term{\isa{\isakeyword{begin}}}[]
@@ -232,24 +233,25 @@ A local theory target is a context managed separately within the
 \rail@nont{\isa{specs}}[]
 \rail@endbar
 \rail@end
-\rail@begin{2}{}
+\rail@begin{5}{}
 \rail@term{\hyperlink{command.definition}{\mbox{\isa{\isacommand{definition}}}}}[]
 \rail@bar
 \rail@nextbar{1}
 \rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
 \rail@endbar
+\rail@cr{3}
 \rail@bar
-\rail@nextbar{1}
+\rail@nextbar{4}
 \rail@nont{\isa{decl}}[]
 \rail@term{\isa{\isakeyword{where}}}[]
 \rail@endbar
 \rail@bar
-\rail@nextbar{1}
+\rail@nextbar{4}
 \rail@nont{\hyperlink{syntax.thmdecl}{\mbox{\isa{thmdecl}}}}[]
 \rail@endbar
 \rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
 \rail@end
-\rail@begin{2}{}
+\rail@begin{5}{}
 \rail@term{\hyperlink{command.abbreviation}{\mbox{\isa{\isacommand{abbreviation}}}}}[]
 \rail@bar
 \rail@nextbar{1}
@@ -259,8 +261,9 @@ A local theory target is a context managed separately within the
 \rail@nextbar{1}
 \rail@nont{\hyperlink{syntax.mode}{\mbox{\isa{mode}}}}[]
 \rail@endbar
+\rail@cr{3}
 \rail@bar
-\rail@nextbar{1}
+\rail@nextbar{4}
 \rail@nont{\isa{decl}}[]
 \rail@term{\isa{\isakeyword{where}}}[]
 \rail@endbar
@@ -383,7 +386,7 @@ Arbitrary operations on the background context may be wrapped-up as
   \end{matharray}
 
   \begin{railoutput}
-\rail@begin{2}{}
+\rail@begin{5}{}
 \rail@bar
 \rail@term{\hyperlink{command.declaration}{\mbox{\isa{\isacommand{declaration}}}}}[]
 \rail@nextbar{1}
@@ -395,8 +398,9 @@ Arbitrary operations on the background context may be wrapped-up as
 \rail@term{\isa{\isakeyword{pervasive}}}[]
 \rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
 \rail@endbar
+\rail@cr{3}
 \rail@bar
-\rail@nextbar{1}
+\rail@nextbar{4}
 \rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
 \rail@endbar
 \rail@nont{\hyperlink{syntax.text}{\mbox{\isa{text}}}}[]
@@ -799,7 +803,7 @@ Locale expressions may be instantiated, and the instantiated facts
 \rail@nont{\isa{equations}}[]
 \rail@endbar
 \rail@end
-\rail@begin{2}{}
+\rail@begin{5}{}
 \rail@term{\hyperlink{command.sublocale}{\mbox{\isa{\isacommand{sublocale}}}}}[]
 \rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
 \rail@bar
@@ -808,8 +812,9 @@ Locale expressions may be instantiated, and the instantiated facts
 \rail@term{\isa{{\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}}}[]
 \rail@endbar
 \rail@nont{\hyperlink{syntax.locale-expr}{\mbox{\isa{locale{\isaliteral{5F}{\isacharunderscore}}expr}}}}[]
+\rail@cr{3}
 \rail@bar
-\rail@nextbar{1}
+\rail@nextbar{4}
 \rail@nont{\isa{equations}}[]
 \rail@endbar
 \rail@end
@@ -965,8 +970,15 @@ A class is a particular locale with \emph{exactly one} type variable
   \end{matharray}
 
   \begin{railoutput}
-\rail@begin{8}{}
+\rail@begin{2}{}
 \rail@term{\hyperlink{command.class}{\mbox{\isa{\isacommand{class}}}}}[]
+\rail@nont{\isa{class{\isaliteral{5F}{\isacharunderscore}}spec}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{\isakeyword{begin}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{5}{\isa{class{\isaliteral{5F}{\isacharunderscore}}spec}}
 \rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
 \rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
 \rail@bar
@@ -984,11 +996,6 @@ A class is a particular locale with \emph{exactly one} type variable
 \rail@nextplus{4}
 \rail@endplus
 \rail@endbar
-\rail@cr{6}
-\rail@bar
-\rail@nextbar{7}
-\rail@term{\isa{\isakeyword{begin}}}[]
-\rail@endbar
 \rail@end
 \rail@begin{2}{}
 \rail@term{\hyperlink{command.instantiation}{\mbox{\isa{\isacommand{instantiation}}}}}[]
@@ -1001,18 +1008,26 @@ A class is a particular locale with \emph{exactly one} type variable
 \rail@nont{\hyperlink{syntax.arity}{\mbox{\isa{arity}}}}[]
 \rail@term{\isa{\isakeyword{begin}}}[]
 \rail@end
-\rail@begin{1}{}
+\rail@begin{5}{}
 \rail@term{\hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}}}[]
-\rail@end
-\rail@begin{2}{}
-\rail@term{\hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}}}[]
+\rail@bar
+\rail@nextbar{1}
 \rail@plus
 \rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
-\rail@nextplus{1}
+\rail@nextplus{2}
 \rail@cterm{\isa{\isakeyword{and}}}[]
 \rail@endplus
 \rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}}}[]
 \rail@nont{\hyperlink{syntax.arity}{\mbox{\isa{arity}}}}[]
+\rail@nextbar{3}
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@bar
+\rail@term{\isa{{\isaliteral{3C}{\isacharless}}}}[]
+\rail@nextbar{4}
+\rail@term{\isa{{\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
+\rail@endbar
 \rail@end
 \rail@begin{2}{}
 \rail@term{\hyperlink{command.subclass}{\mbox{\isa{\isacommand{subclass}}}}}[]
@@ -1021,22 +1036,6 @@ A class is a particular locale with \emph{exactly one} type variable
 \rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
 \rail@endbar
 \rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
-\rail@end
-\rail@begin{2}{}
-\rail@term{\hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}}}[]
-\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
-\rail@bar
-\rail@term{\isa{{\isaliteral{3C}{\isacharless}}}}[]
-\rail@nextbar{1}
-\rail@term{\isa{{\isaliteral{5C3C73756273657465713E}{\isasymsubseteq}}}}[]
-\rail@endbar
-\rail@nont{\hyperlink{syntax.nameref}{\mbox{\isa{nameref}}}}[]
-\rail@end
-\rail@begin{1}{}
-\rail@term{\hyperlink{command.print-classes}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}classes}}}}}[]
-\rail@end
-\rail@begin{1}{}
-\rail@term{\hyperlink{command.class-deps}{\mbox{\isa{\isacommand{class{\isaliteral{5F}{\isacharunderscore}}deps}}}}}[]
 \rail@end
 \end{railoutput}
 
@@ -1197,26 +1196,28 @@ Isabelle/Pure's definitional schemes support certain forms of
   \end{matharray}
 
   \begin{railoutput}
-\rail@begin{5}{}
+\rail@begin{2}{}
 \rail@term{\hyperlink{command.overloading}{\mbox{\isa{\isacommand{overloading}}}}}[]
-\rail@cr{2}
 \rail@plus
+\rail@nont{\isa{spec}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@term{\isa{\isakeyword{begin}}}[]
+\rail@end
+\rail@begin{2}{\isa{spec}}
 \rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
 \rail@bar
 \rail@term{\isa{{\isaliteral{3D}{\isacharequal}}{\isaliteral{3D}{\isacharequal}}}}[]
-\rail@nextbar{3}
+\rail@nextbar{1}
 \rail@term{\isa{{\isaliteral{5C3C65717569763E}{\isasymequiv}}}}[]
 \rail@endbar
 \rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
 \rail@bar
-\rail@nextbar{3}
+\rail@nextbar{1}
 \rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
 \rail@term{\isa{\isakeyword{unchecked}}}[]
 \rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
 \rail@endbar
-\rail@nextplus{4}
-\rail@endplus
-\rail@term{\isa{\isakeyword{begin}}}[]
 \rail@end
 \end{railoutput}
 
@@ -1343,21 +1344,23 @@ Isabelle/Pure's definitional schemes support certain forms of
 \isamarkuptrue%
 %
 \isadelimML
-\ \ \ \ %
+\ \ %
 \endisadelimML
 %
 \isatagML
 \isacommand{attribute{\isaliteral{5F}{\isacharunderscore}}setup}\isamarkupfalse%
 \ my{\isaliteral{5F}{\isacharunderscore}}rule\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
-\ \ \ \ \ \ Attrib{\isaliteral{2E}{\isachardot}}thms\ {\isaliteral{3E}{\isachargreater}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{28}{\isacharparenleft}}fn\ ths\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\isanewline
-\ \ \ \ \ \ \ \ Thm{\isaliteral{2E}{\isachardot}}rule{\isaliteral{5F}{\isacharunderscore}}attribute\ {\isaliteral{28}{\isacharparenleft}}fn\ context{\isaliteral{3A}{\isacharcolon}}\ Context{\isaliteral{2E}{\isachardot}}generic\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ fn\ th{\isaliteral{3A}{\isacharcolon}}\ thm\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\isanewline
+\ \ \ \ Attrib{\isaliteral{2E}{\isachardot}}thms\ {\isaliteral{3E}{\isachargreater}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{28}{\isacharparenleft}}fn\ ths\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\isanewline
+\ \ \ \ \ \ Thm{\isaliteral{2E}{\isachardot}}rule{\isaliteral{5F}{\isacharunderscore}}attribute\isanewline
+\ \ \ \ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}fn\ context{\isaliteral{3A}{\isacharcolon}}\ Context{\isaliteral{2E}{\isachardot}}generic\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ fn\ th{\isaliteral{3A}{\isacharcolon}}\ thm\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\isanewline
 \ \ \ \ \ \ \ \ \ \ let\ val\ th{\isaliteral{27}{\isacharprime}}\ {\isaliteral{3D}{\isacharequal}}\ th\ OF\ ths\isanewline
 \ \ \ \ \ \ \ \ \ \ in\ th{\isaliteral{27}{\isacharprime}}\ end{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}my\ rule{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \isanewline
-\ \ \ \ \isacommand{attribute{\isaliteral{5F}{\isacharunderscore}}setup}\isamarkupfalse%
+\ \ \isacommand{attribute{\isaliteral{5F}{\isacharunderscore}}setup}\isamarkupfalse%
 \ my{\isaliteral{5F}{\isacharunderscore}}declaration\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
-\ \ \ \ \ \ Attrib{\isaliteral{2E}{\isachardot}}thms\ {\isaliteral{3E}{\isachargreater}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{28}{\isacharparenleft}}fn\ ths\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\isanewline
-\ \ \ \ \ \ \ \ Thm{\isaliteral{2E}{\isachardot}}declaration{\isaliteral{5F}{\isacharunderscore}}attribute\ {\isaliteral{28}{\isacharparenleft}}fn\ th{\isaliteral{3A}{\isacharcolon}}\ thm\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ fn\ context{\isaliteral{3A}{\isacharcolon}}\ Context{\isaliteral{2E}{\isachardot}}generic\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\isanewline
+\ \ \ \ Attrib{\isaliteral{2E}{\isachardot}}thms\ {\isaliteral{3E}{\isachargreater}}{\isaliteral{3E}{\isachargreater}}\ {\isaliteral{28}{\isacharparenleft}}fn\ ths\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\isanewline
+\ \ \ \ \ \ Thm{\isaliteral{2E}{\isachardot}}declaration{\isaliteral{5F}{\isacharunderscore}}attribute\isanewline
+\ \ \ \ \ \ \ \ {\isaliteral{28}{\isacharparenleft}}fn\ th{\isaliteral{3A}{\isacharcolon}}\ thm\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ fn\ context{\isaliteral{3A}{\isacharcolon}}\ Context{\isaliteral{2E}{\isachardot}}generic\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\isanewline
 \ \ \ \ \ \ \ \ \ \ let\ val\ context{\isaliteral{27}{\isacharprime}}\ {\isaliteral{3D}{\isacharequal}}\ context\isanewline
 \ \ \ \ \ \ \ \ \ \ in\ context{\isaliteral{27}{\isacharprime}}\ end{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2A7D}{\isacharverbatimclose}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}my\ declaration{\isaliteral{22}{\isachardoublequoteclose}}%
 \endisatagML
@@ -1566,27 +1569,29 @@ Definitions essentially express abbreviations within the logic.  The
 \rail@nextplus{2}
 \rail@endplus
 \rail@end
-\rail@begin{6}{}
+\rail@begin{2}{}
 \rail@term{\hyperlink{command.defs}{\mbox{\isa{\isacommand{defs}}}}}[]
 \rail@bar
 \rail@nextbar{1}
-\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
-\rail@bar
-\rail@nextbar{2}
-\rail@term{\isa{\isakeyword{unchecked}}}[]
+\rail@nont{\isa{opt}}[]
 \rail@endbar
-\rail@bar
-\rail@nextbar{2}
-\rail@term{\isa{\isakeyword{overloaded}}}[]
-\rail@endbar
-\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
-\rail@endbar
-\rail@cr{4}
 \rail@plus
 \rail@nont{\hyperlink{syntax.axmdecl}{\mbox{\isa{axmdecl}}}}[]
 \rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
-\rail@nextplus{5}
+\rail@nextplus{1}
 \rail@endplus
+\rail@end
+\rail@begin{2}{\isa{opt}}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{\isakeyword{unchecked}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{\isakeyword{overloaded}}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
 \rail@end
 \end{railoutput}
 

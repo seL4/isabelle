@@ -917,19 +917,19 @@ text {*
   \end{description}
 *}
 
-    method_setup my_method1 = {*
-      Scan.succeed (K (SIMPLE_METHOD' (fn i: int => no_tac)))
-    *}  "my first method (without any arguments)"
+  method_setup my_method1 = {*
+    Scan.succeed (K (SIMPLE_METHOD' (fn i: int => no_tac)))
+  *}  "my first method (without any arguments)"
 
-    method_setup my_method2 = {*
-      Scan.succeed (fn ctxt: Proof.context =>
-        SIMPLE_METHOD' (fn i: int => no_tac))
-    *}  "my second method (with context)"
+  method_setup my_method2 = {*
+    Scan.succeed (fn ctxt: Proof.context =>
+      SIMPLE_METHOD' (fn i: int => no_tac))
+  *}  "my second method (with context)"
 
-    method_setup my_method3 = {*
-      Attrib.thms >> (fn thms: thm list => fn ctxt: Proof.context =>
-        SIMPLE_METHOD' (fn i: int => no_tac))
-    *}  "my third method (with theorem arguments and context)"
+  method_setup my_method3 = {*
+    Attrib.thms >> (fn thms: thm list => fn ctxt: Proof.context =>
+      SIMPLE_METHOD' (fn i: int => no_tac))
+  *}  "my third method (with theorem arguments and context)"
 
 
 section {* Generalized elimination \label{sec:obtain} *}
@@ -1275,7 +1275,8 @@ text {*
   ``strengthened'' inductive statements within the object-logic.
 
   @{rail "
-    @@{method cases} ('(' 'no_simp' ')')? (@{syntax insts} * @'and') rule?
+    @@{method cases} ('(' 'no_simp' ')')? \\
+      (@{syntax insts} * @'and') rule?
     ;
     @@{method induct} ('(' 'no_simp' ')')? (definsts * @'and') \\ arbitrary? taking? rule?
     ;

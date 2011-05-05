@@ -35,10 +35,10 @@ text {*
   \end{matharray}
 
   @{rail "
-    @@{command (HOLCF) domain} @{syntax parname}? (dmspec + @'and')
+    @@{command (HOLCF) domain} @{syntax parname}? (spec + @'and')
     ;
 
-    dmspec: @{syntax typespec} '=' (cons + '|')
+    spec: @{syntax typespec} '=' (cons + '|')
     ;
     cons: @{syntax name} (@{syntax type} * ) @{syntax mixfix}?
     ;

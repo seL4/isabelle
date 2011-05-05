@@ -62,7 +62,8 @@ text {*
     ;
     intros: @'intros' (@{syntax thmdecl}? @{syntax prop} +)
     ;
-    hints: @{syntax (ZF) \"monos\"}? condefs? @{syntax (ZF) typeintros}? @{syntax (ZF) typeelims}?
+    hints: @{syntax (ZF) \"monos\"}? condefs? \\
+      @{syntax (ZF) typeintros}? @{syntax (ZF) typeelims}?
     ;
     @{syntax_def (ZF) \"monos\"}: @'monos' @{syntax thmrefs}
     ;
