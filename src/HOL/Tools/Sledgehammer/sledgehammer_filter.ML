@@ -528,7 +528,7 @@ fun if_empty_replace_with_locality thy is_built_in_const facts loc tab =
   else
     tab
 
-fun add_arities is_built_in_const th =
+fun consider_arities is_built_in_const th =
   let
     fun aux _ _ NONE = NONE
       | aux t args (SOME tab) =
@@ -543,8 +543,9 @@ fun add_arities is_built_in_const th =
         | _ => SOME tab
   in aux (prop_of th) [] end
 
-fun needs_ext is_built_in_const facts =
-  fold (add_arities is_built_in_const o snd) facts (SOME Symtab.empty)
+(* FIXME: This is currently only useful for polymorphic type systems. *)
+fun could_benefit_from_ext is_built_in_const facts =
+  fold (consider_arities is_built_in_const o snd) facts (SOME Symtab.empty)
   |> is_none
 
 fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
@@ -640,7 +641,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
           |> iter 0 max_relevant threshold0 goal_const_tab []
           |> not (null add_ths) ? add_facts add_ths
           |> (fn accepts =>
-                 accepts |> needs_ext is_built_in_const accepts
+                 accepts |> could_benefit_from_ext is_built_in_const accepts
                             ? add_facts @{thms ext})
           |> tap (fn accepts => trace_msg ctxt (fn () =>
                       "Total relevant: " ^ string_of_int (length accepts)))
