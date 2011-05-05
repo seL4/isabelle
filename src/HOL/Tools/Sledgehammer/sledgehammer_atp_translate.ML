@@ -887,7 +887,7 @@ fun add_combterm_syms_to_decl_table type_sys repaired_sym_tab =
       case type_sys of
         Preds (Polymorphic, All_Types) => insert_type #3 decl decls
       | _ => insert (op =) decl decls
-    fun do_term tm =
+    and do_term tm =
       let val (head, args) = strip_combterm_comb tm in
         (case head of
            CombConst ((s, s'), T, T_args) =>
