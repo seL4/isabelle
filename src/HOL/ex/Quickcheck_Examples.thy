@@ -294,6 +294,29 @@ quickcheck[exhaustive, size = 10, expect = counterexample]
 quickcheck[random, size = 10]
 oops
 
+subsection {* Examples with Records *}
+
+record point =
+  xpos :: nat
+  ypos :: nat
+
+lemma
+  "xpos r = xpos r' ==> r = r'"
+quickcheck[exhaustive, expect = counterexample]
+quickcheck[random, expect = counterexample]
+oops
+
+datatype colour = Red | Green | Blue
+
+record cpoint = point +
+  colour :: colour
+
+lemma
+  "xpos r = xpos r' ==> ypos r = ypos r' ==> (r :: cpoint) = r'"
+quickcheck[exhaustive, expect = counterexample]
+quickcheck[random, expect = counterexample]
+oops
+
 subsection {* Examples with locales *}
 
 locale Truth
