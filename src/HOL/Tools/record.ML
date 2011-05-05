@@ -1795,7 +1795,7 @@ fun meta_to_obj_all thm =
 
 (* code generation *)
 
-fun instantiate_random_record tyco vs extN Ts thy =
+fun mk_random_eq tyco vs extN Ts =
   let
     val size = @{term "i::code_numeral"};
     fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit => term"});
@@ -1810,26 +1810,52 @@ fun instantiate_random_record tyco vs extN Ts thy =
         (map (fn (v, T') =>
           ((HOLogic.mk_random T' size, @{typ Random.seed}), SOME (v, termifyT T'))) params)
         tc @{typ Random.seed} (SOME Tm, @{typ Random.seed});
-    val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
+  in
+    (lhs, rhs)
+  end
+
+fun mk_full_exhaustive_eq tyco vs extN Ts =
+  let
+    val size = @{term "i::code_numeral"};
+    fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit => term"});
+    val T = Type (tyco, map TFree vs);
+    val test_function = Free ("f", termifyT T --> @{typ "term list option"});
+    val params = Name.names Name.context "x" Ts;
+    fun full_exhaustiveT T = (termifyT T --> @{typ "Code_Evaluation.term list option"})
+      --> @{typ code_numeral} --> @{typ "Code_Evaluation.term list option"}
+    fun mk_full_exhaustive T =
+      Const (@{const_name "Quickcheck_Exhaustive.full_exhaustive_class.full_exhaustive"},
+        full_exhaustiveT T)
+    val lhs = mk_full_exhaustive T $ test_function $ size;
+    val tc = test_function $ (HOLogic.mk_valtermify_app extN params T);
+    val rhs = fold_rev (fn (v, T) => fn cont =>
+        mk_full_exhaustive T $ (lambda (Free (v, termifyT T)) cont) $ size) params tc
+  in
+    (lhs, rhs)
+  end
+
+fun instantiate_sort_record (sort, mk_eq) tyco vs extN Ts thy =
+  let
+    val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (mk_eq tyco vs extN Ts));
   in
     thy
-    |> Class.instantiation ([tyco], vs, @{sort random})
+    |> Class.instantiation ([tyco], vs, sort)
     |> `(fn lthy => Syntax.check_term lthy eq)
     |-> (fn eq => Specification.definition (NONE, (apfst Binding.conceal Attrib.empty_binding, eq)))
     |> snd
     |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
-  end;
+  end
 
-fun ensure_random_record ext_tyco vs extN Ts thy =
+fun ensure_sort_record (sort, mk_eq) ext_tyco vs extN Ts thy =
   let
     val algebra = Sign.classes_of thy;
-    val has_inst = can (Sorts.mg_domain algebra ext_tyco) @{sort random};
+    val has_inst = can (Sorts.mg_domain algebra ext_tyco) sort;
   in
     if has_inst then thy
     else
-      (case Quickcheck_Common.perhaps_constrain thy (map (rpair @{sort random}) Ts) vs of
+      (case Quickcheck_Common.perhaps_constrain thy (map (rpair sort) Ts) vs of
         SOME constrain =>
-          instantiate_random_record ext_tyco (map constrain vs) extN
+          instantiate_sort_record (sort, mk_eq) ext_tyco (map constrain vs) extN
             ((map o map_atyps) (fn TFree v => TFree (constrain v)) Ts) thy
       | NONE => thy)
   end;
@@ -1851,6 +1877,8 @@ fun add_code ext_tyco vs extT ext simps inject thy =
       |> Thm.instantiate
         ([pairself (ctyp_of thy) (TVar (("'a", 0), @{sort equal}), Logic.varifyT_global extT)], [])
       |> AxClass.unoverload thy;
+    val ensure_random_record = ensure_sort_record (@{sort random}, mk_random_eq)
+    val ensure_exhaustive_record = ensure_sort_record (@{sort full_exhaustive}, mk_full_exhaustive_eq)
   in
     thy
     |> Code.add_datatype [ext]
@@ -1866,6 +1894,7 @@ fun add_code ext_tyco vs extT ext simps inject thy =
           thy |> Code.del_eqn eq_def |> Code.add_default_eqn (mk_eq thy eq_def))
     |> (fn thy => Code.add_nbe_default_eqn (mk_eq_refl thy) thy)
     |> ensure_random_record ext_tyco vs (fst ext) (binder_types (snd ext))
+    |> ensure_exhaustive_record ext_tyco vs (fst ext) (binder_types (snd ext))
   end;
 
 
