@@ -364,8 +364,8 @@ fun determine_format_and_type_sys _ formats (Dumb_Type_Sys type_sys) =
 
 fun run_atp auto name
         ({exec, required_execs, arguments, proof_delims, known_failures,
-          hypothesis_kind, formats, best_slices, best_type_systems, ...}
-         : atp_config)
+          conj_sym_kind, prem_kind, formats, best_slices, best_type_systems,
+          ...} : atp_config)
         ({debug, verbose, overlord, type_sys, max_relevant, monomorphize_limit,
           explicit_apply, isar_proof, isar_shrink_factor, slicing, timeout, ...}
          : params)
@@ -470,8 +470,8 @@ fun run_atp auto name
                     ()
                 val (atp_problem, pool, conjecture_offset, facts_offset,
                      fact_names) =
-                  prepare_atp_problem ctxt type_sys explicit_apply hyp_ts
-                                      concl_t facts
+                  prepare_atp_problem ctxt conj_sym_kind prem_kind type_sys
+                                      explicit_apply hyp_ts concl_t facts
                 fun weights () = atp_problem_weights atp_problem
                 val core =
                   File.shell_path command ^ " " ^
@@ -484,7 +484,7 @@ fun run_atp auto name
                      "exec " ^ core) ^ " 2>&1"
                 val _ =
                   atp_problem
-                  |> tptp_strings_for_atp_problem hypothesis_kind format
+                  |> tptp_strings_for_atp_problem format
                   |> cons ("% " ^ command ^ "\n")
                   |> File.write_list prob_file
                 val conjecture_shape =

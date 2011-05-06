@@ -19,7 +19,8 @@ sig
        -> string,
      proof_delims : (string * string) list,
      known_failures : (failure * string) list,
-     hypothesis_kind : formula_kind,
+     conj_sym_kind : formula_kind,
+     prem_kind : formula_kind,
      formats : format list,
      best_slices : Proof.context -> (real * (bool * int)) list,
      best_type_systems : string list}
@@ -41,7 +42,7 @@ sig
   val remote_prefix : string
   val remote_atp :
     string -> string -> string list -> (string * string) list
-    -> (failure * string) list -> formula_kind -> format list
+    -> (failure * string) list -> formula_kind -> formula_kind -> format list
     -> (Proof.context -> int) -> string list -> string * atp_config
   val add_atp : string * atp_config -> theory -> theory
   val get_atp : theory -> string -> atp_config
@@ -67,7 +68,8 @@ type atp_config =
      -> string,
    proof_delims : (string * string) list,
    known_failures : (failure * string) list,
-   hypothesis_kind : formula_kind,
+   conj_sym_kind : formula_kind,
+   prem_kind : formula_kind,
    formats : format list,
    best_slices : Proof.context -> (real * (bool * int)) list,
    best_type_systems : string list}
@@ -201,7 +203,8 @@ val e_config : atp_config =
        "# Cannot determine problem status within resource limit"),
       (OutOfResources, "SZS status: ResourceOut"),
       (OutOfResources, "SZS status ResourceOut")],
-   hypothesis_kind = Conjecture,
+   conj_sym_kind = Conjecture, (* FIXME: try out Hypothesis *)
+   prem_kind = Conjecture,
    formats = [Fof],
    best_slices = fn ctxt =>
      if effective_e_weight_method ctxt = e_slicesN then
@@ -239,7 +242,8 @@ val spass_config : atp_config =
       (MalformedInput, "Free Variable"),
       (SpassTooOld, "tptp2dfg"),
       (InternalError, "Please report this error")],
-   hypothesis_kind = Conjecture,
+   conj_sym_kind = Axiom, (* FIXME: try out Hypothesis *)
+   prem_kind = Conjecture,
    formats = [Fof],
    best_slices =
      K [(0.66667, (false, 150 (* FUDGE *))) (* with SOS *),
@@ -276,7 +280,8 @@ val vampire_config : atp_config =
       (Unprovable, "Termination reason: Satisfiable"),
       (VampireTooOld, "not a valid option"),
       (Interrupted, "Aborted by signal SIGINT")],
-   hypothesis_kind = Conjecture,
+   conj_sym_kind = Conjecture, (* FIXME: try out Hypothesis *)
+   prem_kind = Conjecture,
    formats = [Fof],
    best_slices =
      K [(0.66667, (false, 450 (* FUDGE *))) (* with SOS *),
@@ -301,7 +306,8 @@ val z3_atp_config : atp_config =
       (IncompleteUnprovable, "SZS status Satisfiable"),
       (ProofMissing, "\nunsat"),
       (ProofMissing, "SZS status Unsatisfiable")],
-   hypothesis_kind = Hypothesis,
+   conj_sym_kind = Hypothesis,
+   prem_kind = Hypothesis,
    formats = [Fof],
    best_slices = K [(1.0, (false, 250 (* FUDGE *)))],
    best_type_systems = [] (* FIXME *)}
@@ -342,8 +348,8 @@ fun the_system name versions =
 val max_remote_secs = 240 (* give Geoff Sutcliffe's servers a break *)
 
 fun remote_config system_name system_versions proof_delims known_failures
-                  hypothesis_kind formats best_max_relevant best_type_systems
-                  : atp_config =
+                  conj_sym_kind prem_kind formats best_max_relevant
+                  best_type_systems : atp_config =
   {exec = ("ISABELLE_ATP", "scripts/remote_atp"),
    required_execs = [],
    arguments = fn _ => fn _ => fn timeout => fn _ =>
@@ -355,7 +361,8 @@ fun remote_config system_name system_versions proof_delims known_failures
      [(IncompleteUnprovable, "says Unknown"),
       (IncompleteUnprovable, "says GaveUp"),
       (TimedOut, "says Timeout")],
-   hypothesis_kind = hypothesis_kind,
+   conj_sym_kind = conj_sym_kind,
+   prem_kind = prem_kind,
    formats = formats,
    best_slices = fn ctxt => [(1.0, (false, best_max_relevant ctxt))],
    best_type_systems = best_type_systems}
@@ -363,18 +370,18 @@ fun remote_config system_name system_versions proof_delims known_failures
 fun int_average f xs = fold (Integer.add o f) xs 0 div length xs
 
 fun remotify_config system_name system_versions
-                    ({proof_delims, known_failures, hypothesis_kind, formats,
-                      best_slices, best_type_systems, ...} : atp_config)
-                    : atp_config =
+        ({proof_delims, known_failures, conj_sym_kind, prem_kind, formats,
+          best_slices, best_type_systems, ...} : atp_config) : atp_config =
   remote_config system_name system_versions proof_delims known_failures
-                hypothesis_kind formats (int_average (snd o snd) o best_slices)
-                best_type_systems
+                conj_sym_kind prem_kind formats
+                (int_average (snd o snd) o best_slices) best_type_systems
 
 fun remote_atp name system_name system_versions proof_delims known_failures
-               hypothesis_kind formats best_max_relevant best_type_systems =
+        conj_sym_kind prem_kind formats best_max_relevant best_type_systems =
   (remote_prefix ^ name,
    remote_config system_name system_versions proof_delims known_failures
-                 hypothesis_kind formats best_max_relevant best_type_systems)
+                 conj_sym_kind prem_kind formats best_max_relevant
+                 best_type_systems)
 fun remotify_atp (name, config) system_name system_versions =
   (remote_prefix ^ name, remotify_config system_name system_versions config)
 
@@ -383,14 +390,14 @@ val remote_vampire = remotify_atp vampire "Vampire" ["0.6", "9.0", "1.0"]
 val remote_z3_atp = remotify_atp z3_atp "Z3" ["2.18"]
 val remote_tofof_e =
   remote_atp tofof_eN "ToFoF" ["0.1"] [] (#known_failures e_config)
-             Conjecture [Tff] (K 200 (* FUDGE *)) ["simple"]
+             Axiom Conjecture [Tff] (K 200 (* FUDGE *)) ["simple"]
 val remote_sine_e =
-  remote_atp sine_eN "SInE" ["0.4"] [] [] Conjecture [Fof] (K 500 (* FUDGE *))
-                     ["args", "preds", "tags"]
+  remote_atp sine_eN "SInE" ["0.4"] [] [] Axiom Conjecture [Fof]
+             (K 500 (* FUDGE *)) ["args", "preds", "tags"]
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r024"]
-             [("refutation.", "end_refutation.")] [] Conjecture [Tff, Fof]
-             (K 250 (* FUDGE *)) ["simple"]
+             [("refutation.", "end_refutation.")] [] Hypothesis Conjecture
+             [Tff, Fof] (K 250 (* FUDGE *)) ["simple"]
 
 (* Setup *)
 

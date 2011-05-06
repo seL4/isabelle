@@ -9,6 +9,7 @@ Translation of HOL to FOL for Sledgehammer.
 signature SLEDGEHAMMER_ATP_TRANSLATE =
 sig
   type 'a fo_term = 'a ATP_Problem.fo_term
+  type formula_kind = ATP_Problem.formula_kind
   type 'a problem = 'a ATP_Problem.problem
   type locality = Sledgehammer_Filter.locality
 
@@ -41,7 +42,8 @@ sig
     Proof.context -> bool -> (string * locality) * thm
     -> translated_formula option * ((string * locality) * thm)
   val prepare_atp_problem :
-    Proof.context -> type_system -> bool -> term list -> term
+    Proof.context -> formula_kind -> formula_kind -> type_system -> bool
+    -> term list -> term
     -> (translated_formula option * ((string * 'a) * thm)) list
     -> string problem * string Symtab.table * int * int
        * (string * 'a) list vector
@@ -215,6 +217,7 @@ fun atp_type_literals_for_types type_sys kind Ts =
        |> filter (fn TyLitVar _ => kind <> Conjecture
                    | TyLitFree _ => kind = Conjecture)
 
+fun mk_anot phi = AConn (ANot, [phi])
 fun mk_aconn c phi1 phi2 = AConn (c, [phi1, phi2])
 fun mk_aconns c phis =
   let val (phis', phi') = split_last phis in
@@ -452,10 +455,21 @@ fun make_fact ctxt keep_trivial eq_as_iff presimp ((name, loc), t) =
     NONE
   | (_, formula) => SOME formula
 
-fun make_conjecture ctxt ts =
+fun make_conjecture ctxt prem_kind ts =
   let val last = length ts - 1 in
-    map2 (fn j => make_formula ctxt true true (string_of_int j) Chained
-                               (if j = last then Conjecture else Hypothesis))
+    map2 (fn j => fn t =>
+             let
+               val (kind, maybe_negate) =
+                 if j = last then
+                   (Conjecture, I)
+                 else
+                   (prem_kind,
+                    if prem_kind = Conjecture then update_combformula mk_anot
+                    else I)
+              in
+                make_formula ctxt true true (string_of_int j) Chained kind t
+                |> maybe_negate
+              end)
          (0 upto last) ts
   end
 
@@ -750,7 +764,7 @@ fun helper_facts_for_sym_table ctxt type_sys sym_tab =
 fun translate_atp_fact ctxt keep_trivial =
   `(make_fact ctxt keep_trivial true true o apsnd prop_of)
 
-fun translate_formulas ctxt type_sys hyp_ts concl_t rich_facts =
+fun translate_formulas ctxt prem_kind type_sys hyp_ts concl_t rich_facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val fact_ts = map (prop_of o snd o snd) rich_facts
@@ -767,7 +781,7 @@ fun translate_formulas ctxt type_sys hyp_ts concl_t rich_facts =
     val subs = tfree_classes_of_terms all_ts
     val supers = tvar_classes_of_terms all_ts
     val tycons = type_consts_of_terms thy all_ts
-    val conjs = make_conjecture ctxt (hyp_ts @ [concl_t])
+    val conjs = make_conjecture ctxt prem_kind (hyp_ts @ [concl_t])
     val (supers', arity_clauses) =
       if level_of_type_sys type_sys = No_Types then ([], [])
       else make_arity_clauses thy tycons supers
@@ -985,9 +999,12 @@ fun decl_line_for_sym s (s', _, T, pred_sym, ary, _) =
 
 fun is_polymorphic_type T = fold_atyps (fn TVar _ => K true | _ => I) T false
 
-fun formula_line_for_sym_decl ctxt nonmono_Ts type_sys n s j
+fun formula_line_for_sym_decl ctxt conj_sym_kind nonmono_Ts type_sys n s j
                               (s', T_args, T, _, ary, in_conj) =
   let
+    val (kind, maybe_negate) =
+      if in_conj then (conj_sym_kind, conj_sym_kind = Conjecture ? mk_anot)
+      else (Axiom, I)
     val (arg_Ts, res_T) = n_ary_strip_type ary T
     val bound_names =
       1 upto length arg_Ts |> map (`I o make_bound_var o string_of_int)
@@ -998,18 +1015,19 @@ fun formula_line_for_sym_decl ctxt nonmono_Ts type_sys n s j
                              else NONE)
   in
     Formula (sym_decl_prefix ^ s ^
-             (if n > 1 then "_" ^ string_of_int j else ""),
-             if in_conj then Hypothesis else Axiom,
+             (if n > 1 then "_" ^ string_of_int j else ""), kind,
              CombConst ((s, s'), T, T_args)
              |> fold (curry (CombApp o swap)) bound_tms
              |> type_pred_combatom ctxt nonmono_Ts type_sys res_T
              |> mk_aquant AForall (bound_names ~~ bound_Ts)
              |> formula_from_combformula ctxt nonmono_Ts type_sys
-             |> close_formula_universally,
+             |> close_formula_universally
+             |> maybe_negate,
              NONE, NONE)
   end
 
-fun problem_lines_for_sym_decls ctxt nonmono_Ts type_sys (s, decls) =
+fun problem_lines_for_sym_decls ctxt conj_sym_kind nonmono_Ts type_sys
+                                (s, decls) =
   case type_sys of
     Simple _ => map (decl_line_for_sym s) decls
   | _ =>
@@ -1030,13 +1048,15 @@ fun problem_lines_for_sym_decls ctxt nonmono_Ts type_sys (s, decls) =
         decls |> filter (should_predicate_on_type ctxt nonmono_Ts type_sys
                          o result_type_of_decl)
     in
-      map2 (formula_line_for_sym_decl ctxt nonmono_Ts type_sys n s)
-           (0 upto length decls - 1) decls
+      (0 upto length decls - 1, decls)
+      |-> map2 (formula_line_for_sym_decl ctxt conj_sym_kind nonmono_Ts type_sys
+                                          n s)
     end
 
-fun problem_lines_for_sym_decl_table ctxt nonmono_Ts type_sys sym_decl_tab =
-  Symtab.fold_rev (append o problem_lines_for_sym_decls ctxt nonmono_Ts
-                                                        type_sys)
+fun problem_lines_for_sym_decl_table ctxt conj_sym_kind nonmono_Ts type_sys
+                                     sym_decl_tab =
+  Symtab.fold_rev (append o problem_lines_for_sym_decls ctxt conj_sym_kind
+                                                        nonmono_Ts type_sys)
                   sym_decl_tab []
 
 fun add_tff_types_in_formula (AQuant (_, xs, phi)) =
@@ -1070,10 +1090,11 @@ fun offset_of_heading_in_problem _ [] j = j
     if heading = needle then j
     else offset_of_heading_in_problem needle problem (j + length lines)
 
-fun prepare_atp_problem ctxt type_sys explicit_apply hyp_ts concl_t facts =
+fun prepare_atp_problem ctxt conj_sym_kind prem_kind type_sys explicit_apply
+                        hyp_ts concl_t facts =
   let
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
-      translate_formulas ctxt type_sys hyp_ts concl_t facts
+      translate_formulas ctxt prem_kind type_sys hyp_ts concl_t facts
     val sym_tab = conjs @ facts |> sym_table_for_facts explicit_apply
     val nonmono_Ts =
       [] |> fold (add_nonmonotonic_types_for_facts ctxt type_sys) [facts, conjs]
@@ -1085,7 +1106,7 @@ fun prepare_atp_problem ctxt type_sys explicit_apply hyp_ts concl_t facts =
     val sym_decl_lines =
       (conjs, facts) (* FIXME: what if "True_or_False" is among helpers? *)
       |> sym_decl_table_for_facts type_sys repaired_sym_tab
-      |> problem_lines_for_sym_decl_table ctxt nonmono_Ts type_sys
+      |> problem_lines_for_sym_decl_table ctxt conj_sym_kind nonmono_Ts type_sys
     (* Reordering these might confuse the proof reconstruction code or the SPASS
        Flotter hack. *)
     val problem =
