@@ -210,8 +210,10 @@ val e_config : atp_config =
         (0.33334, (true, 200 (* FUDGE *))) (* fun_weight *)]
      else
        [(1.0, (true, 250 (* FUDGE *)))],
-   best_type_systems =
-     [ "args", "mangled_preds!", "mangled_preds?", "mangled_preds"]}
+   (* Actual order, according to Judgment Day: "mangled_preds!",
+      "mangled_tags!", "mangled_tags?", "mangled_preds?". But E "mangled_preds?"
+      works well in combination with Vampire "mangled_tags!". *)
+   best_type_systems = ["mangled_preds?"]}
 
 val e = (eN, e_config)
 
@@ -243,7 +245,7 @@ val spass_config : atp_config =
      K [(0.66667, (false, 150 (* FUDGE *))) (* with SOS *),
         (0.33333, (true, 150 (* FUDGE *))) (* without SOS *)],
    best_type_systems =
-     ["mangled_preds!", "mangled_preds?", "args", "mangled_preds"]}
+     ["args", "mangled_preds!", "mangled_tags!", "mangled_tags?"]}
 
 val spass = (spassN, spass_config)
 
@@ -280,7 +282,7 @@ val vampire_config : atp_config =
      K [(0.66667, (false, 450 (* FUDGE *))) (* with SOS *),
         (0.33333, (true, 450 (* FUDGE *))) (* without SOS *)],
    best_type_systems =
-     ["mangled_preds?", "mangled_preds!", "args", "mangled_preds"]}
+     ["mangled_tags!", "mangled_preds!", "mangled_preds?"]}
 
 val vampire = (vampireN, vampire_config)
 
