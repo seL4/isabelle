@@ -74,6 +74,11 @@ type atp_config =
    best_slices : Proof.context -> (real * (bool * int)) list,
    best_type_systems : string list}
 
+(* "best_slices" and "best_type_systems" must be found empirically, taking a
+    wholistic approach since the ATPs are run in parallel. "best_type_systems"
+    should be of the form [sound] or [unsound, sound], where "sound" is a sound
+    type system and "unsound" is an unsound one. *)
+
 val known_perl_failures =
   [(CantConnect, "HTTP error"),
    (NoPerl, "env: perl"),
@@ -213,9 +218,6 @@ val e_config : atp_config =
         (0.33334, (true, 200 (* FUDGE *))) (* fun_weight *)]
      else
        [(1.0, (true, 250 (* FUDGE *)))],
-   (* Actual order, according to Judgment Day: "mangled_preds!",
-      "mangled_tags!", "mangled_tags?", "mangled_preds?". But E "mangled_preds?"
-      works well in combination with Vampire "mangled_tags!". *)
    best_type_systems = ["mangled_preds?"]}
 
 val e = (eN, e_config)
@@ -248,8 +250,7 @@ val spass_config : atp_config =
    best_slices =
      K [(0.66667, (false, 150 (* FUDGE *))) (* with SOS *),
         (0.33333, (true, 150 (* FUDGE *))) (* without SOS *)],
-   best_type_systems =
-     ["args", "mangled_preds!", "mangled_tags!", "mangled_tags?"]}
+   best_type_systems = ["mangled_preds"]}
 
 val spass = (spassN, spass_config)
 
@@ -286,8 +287,7 @@ val vampire_config : atp_config =
    best_slices =
      K [(0.66667, (false, 450 (* FUDGE *))) (* with SOS *),
         (0.33333, (true, 450 (* FUDGE *))) (* without SOS *)],
-   best_type_systems =
-     ["mangled_tags!", "mangled_preds!", "mangled_preds?"]}
+   best_type_systems = ["mangled_tags!", "mangled_preds?"]}
 
 val vampire = (vampireN, vampire_config)
 
