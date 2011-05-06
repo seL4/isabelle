@@ -201,6 +201,7 @@ fun merge_spec (Spec { history_concluded = _, signatures = (tycos1, sigs1), func
   let
     val signatures = (Symtab.merge (op =) (tycos1, tycos2),
       Symtab.merge typ_equiv (sigs1, sigs2));
+    val types = Symtab.join (K (AList.merge (op =) (K true))) (types1, types2);
     fun merge_functions ((_, history1), (_, history2)) =
       let
         val raw_history = AList.merge (op = : serial * serial -> bool)
@@ -209,8 +210,10 @@ fun merge_spec (Spec { history_concluded = _, signatures = (tycos1, sigs1), func
         val history = if null filtered_history
           then raw_history else filtered_history;
       in ((false, (snd o hd) history), history) end;
-    val functions = Symtab.join (K merge_functions) (functions1, functions2);
-    val types = Symtab.join (K (AList.merge (op =) (K true))) (types1, types2);
+    val all_constructors =
+      maps (map fst o fst o constructors_of o snd o snd o hd o snd) (Symtab.dest types);
+    val functions = Symtab.join (K merge_functions) (functions1, functions2)
+      |> fold (fn c => Symtab.map_entry c (apfst (K (true, empty_fun_spec)))) all_constructors;
     val cases = (Symtab.merge (K true) (cases1, cases2),
       Symtab.merge (K true) (undefs1, undefs2));
   in make_spec (false, ((signatures, functions), (types, cases))) end;
