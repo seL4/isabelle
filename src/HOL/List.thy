@@ -3326,6 +3326,71 @@ lemma replicate_length_filter:
   "replicate (length (filter (\<lambda>y. x = y) xs)) x = filter (\<lambda>y. x = y) xs"
   by (induct xs) auto
 
+lemma comm_append_are_replicate:
+  fixes xs ys :: "'a list"
+  assumes "xs \<noteq> []" "ys \<noteq> []"
+  assumes "xs @ ys = ys @ xs"
+  shows "\<exists>m n zs. concat (replicate m zs) = xs \<and> concat (replicate n zs) = ys"
+  using assms
+proof (induct "length (xs @ ys)" arbitrary: xs ys rule: less_induct)
+  case less
+
+  def xs' \<equiv> "if (length xs \<le> length ys) then xs else ys"
+    and ys' \<equiv> "if (length xs \<le> length ys) then ys else xs"
+  then have
+    prems': "length xs' \<le> length ys'"
+            "xs' @ ys' = ys' @ xs'"
+      and "xs' \<noteq> []"
+      and len: "length (xs @ ys) = length (xs' @ ys')"
+    using less by (auto intro: less.hyps)
+
+  from prems'
+  obtain ws where "ys' = xs' @ ws"
+    by (auto simp: append_eq_append_conv2)
+
+  have "\<exists>m n zs. concat (replicate m zs) = xs' \<and> concat (replicate n zs) = ys'"
+  proof (cases "ws = []")
+    case True
+    then have "concat (replicate 1 xs') = xs'"
+      and "concat (replicate 1 xs') = ys'"
+      using `ys' = xs' @ ws` by auto
+    then show ?thesis by blast
+  next
+    case False
+    from `ys' = xs' @ ws` and `xs' @ ys' = ys' @ xs'`
+    have "xs' @ ws = ws @ xs'" by simp
+    then have "\<exists>m n zs. concat (replicate m zs) = xs' \<and> concat (replicate n zs) = ws"
+      using False and `xs' \<noteq> []` and `ys' = xs' @ ws` and len
+      by (intro less.hyps) auto
+    then obtain m n zs where "concat (replicate m zs) = xs'"
+      and "concat (replicate n zs) = ws" by blast
+    moreover
+    then have "concat (replicate (m + n) zs) = ys'"
+      using `ys' = xs' @ ws`
+      by (simp add: replicate_add)
+    ultimately
+    show ?thesis by blast
+  qed
+  then show ?case
+    using xs'_def ys'_def by metis
+qed
+
+lemma comm_append_is_replicate:
+  fixes xs ys :: "'a list"
+  assumes "xs \<noteq> []" "ys \<noteq> []"
+  assumes "xs @ ys = ys @ xs"
+  shows "\<exists>n zs. n > 1 \<and> concat (replicate n zs) = xs @ ys"
+
+proof -
+  obtain m n zs where "concat (replicate m zs) = xs"
+    and "concat (replicate n zs) = ys"
+    using assms by (metis comm_append_are_replicate)
+  then have "m + n > 1" and "concat (replicate (m+n) zs) = xs @ ys"
+    using `xs \<noteq> []` and `ys \<noteq> []`
+    by (auto simp: replicate_add)
+  then show ?thesis by blast
+qed
+
 
 subsubsection{*@{text rotate1} and @{text rotate}*}
 
