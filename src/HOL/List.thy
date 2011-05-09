@@ -1814,7 +1814,7 @@ apply (case_tac zs, auto)
 done
 
 lemma take_add: 
-  "i+j \<le> length(xs) \<Longrightarrow> take (i+j) xs = take i xs @ take j (drop i xs)"
+  "take (i+j) xs = take i xs @ take j (drop i xs)"
 apply (induct xs arbitrary: i, auto) 
 apply (case_tac i, simp_all)
 done
