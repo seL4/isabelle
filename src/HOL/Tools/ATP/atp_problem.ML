@@ -23,6 +23,12 @@ sig
                * string fo_term option * string fo_term option
   type 'a problem = (string * 'a problem_line list) list
 
+(* official TPTP syntax *)
+  val tptp_tff_type_of_types : string
+  val tptp_tff_bool_type : string
+  val tptp_tff_individual_type : string
+  val tptp_false : string
+  val tptp_true : string
   val timestamp : unit -> string
   val hashw : word * word -> word
   val hashw_string : string * word -> word
@@ -54,6 +60,13 @@ datatype 'a problem_line =
   Formula of string * formula_kind * ('a, 'a, 'a fo_term) formula
              * string fo_term option * string fo_term option
 type 'a problem = (string * 'a problem_line list) list
+
+(* official TPTP syntax *)
+val tptp_tff_type_of_types = "$tType"
+val tptp_tff_bool_type = "$o"
+val tptp_tff_individual_type = "$i"
+val tptp_false = "$false"
+val tptp_true = "$true"
 
 val timestamp = Date.fmt "%Y-%m-%d %H:%M:%S" o Date.fromTimeLocal o Time.now
 
@@ -87,20 +100,21 @@ fun string_for_connective ANot = "~"
   | string_for_connective AIf = "<="
   | string_for_connective AIff = "<=>"
   | string_for_connective ANotIff = "<~>"
-fun string_for_bound_var (s, NONE) = s
-  | string_for_bound_var (s, SOME ty) = s ^ " : " ^ ty
-fun string_for_formula (AQuant (q, xs, phi)) =
+fun string_for_bound_var Fof (s, _) = s
+  | string_for_bound_var Tff (s, ty) =
+    s ^ " : " ^ (ty |> the_default tptp_tff_individual_type)
+fun string_for_formula format (AQuant (q, xs, phi)) =
     "(" ^ string_for_quantifier q ^
-    "[" ^ commas (map string_for_bound_var xs) ^ "] : " ^
-    string_for_formula phi ^ ")"
-  | string_for_formula (AConn (ANot, [AAtom (ATerm ("equal", ts))])) =
+    "[" ^ commas (map (string_for_bound_var format) xs) ^ "] : " ^
+    string_for_formula format phi ^ ")"
+  | string_for_formula _ (AConn (ANot, [AAtom (ATerm ("equal", ts))])) =
     space_implode " != " (map string_for_term ts)
-  | string_for_formula (AConn (c, [phi])) =
-    "(" ^ string_for_connective c ^ " " ^ string_for_formula phi ^ ")"
-  | string_for_formula (AConn (c, phis)) =
+  | string_for_formula format (AConn (c, [phi])) =
+    "(" ^ string_for_connective c ^ " " ^ string_for_formula format phi ^ ")"
+  | string_for_formula format (AConn (c, phis)) =
     "(" ^ space_implode (" " ^ string_for_connective c ^ " ")
-                        (map string_for_formula phis) ^ ")"
-  | string_for_formula (AAtom tm) = string_for_term tm
+                        (map (string_for_formula format) phis) ^ ")"
+  | string_for_formula _ (AAtom tm) = string_for_term tm
 
 fun string_for_symbol_type [] res_ty = res_ty
   | string_for_symbol_type [arg_ty] res_ty = arg_ty ^ " > " ^ res_ty
@@ -117,7 +131,7 @@ fun string_for_problem_line _ (Decl (ident, sym, arg_tys, res_ty)) =
                             (Formula (ident, kind, phi, source, useful_info)) =
     (case format of Fof => "fof" | Tff => "tff") ^
     "(" ^ ident ^ ", " ^ string_for_kind kind ^ ",\n    (" ^
-    string_for_formula phi ^ ")" ^
+    string_for_formula format phi ^ ")" ^
     (case (source, useful_info) of
        (NONE, NONE) => ""
      | (SOME tm, NONE) => ", " ^ string_for_term tm

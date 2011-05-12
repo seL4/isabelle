@@ -18,7 +18,7 @@ sig
     All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
 
   datatype type_system =
-    Simple of type_level |
+    Simple_Types of type_level |
     Preds of polymorphism * type_level |
     Tags of polymorphism * type_level
 
@@ -84,12 +84,6 @@ val tff_type_prefix = "ty_"
 
 fun make_tff_type s = tff_type_prefix ^ ascii_of s
 
-(* official TPTP syntax *)
-val tptp_tff_type_of_types = "$tType"
-val tptp_tff_bool_type = "$o"
-val tptp_false = "$false"
-val tptp_true = "$true"
-
 (* Freshness almost guaranteed! *)
 val sledgehammer_weak_prefix = "Sledgehammer:"
 
@@ -98,7 +92,7 @@ datatype type_level =
   All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
 
 datatype type_system =
-  Simple of type_level |
+  Simple_Types of type_level |
   Preds of polymorphism * type_level |
   Tags of polymorphism * type_level
 
@@ -106,12 +100,15 @@ fun try_unsuffixes ss s =
   fold (fn s' => fn NONE => try (unsuffix s') s | some => some) ss NONE
 
 fun type_sys_from_string s =
-  (case try (unprefix "mangled_") s of
-     SOME s => (Mangled_Monomorphic, s)
+  (case try (unprefix "poly_") s of
+     SOME s => (SOME Polymorphic, s)
    | NONE =>
      case try (unprefix "mono_") s of
-       SOME s => (Monomorphic, s)
-     | NONE => (Polymorphic, s))
+       SOME s => (SOME Monomorphic, s)
+     | NONE =>
+       case try (unprefix "mangled_") s of
+         SOME s => (SOME Mangled_Monomorphic, s)
+       | NONE => (NONE, s))
   ||> (fn s =>
           (* "_query" and "_bang" are for the ASCII-challenged Mirabelle. *)
           case try_unsuffixes ["?", "_query"] s of
@@ -120,22 +117,22 @@ fun type_sys_from_string s =
             case try_unsuffixes ["!", "_bang"] s of
               SOME s => (Finite_Types, s)
             | NONE => (All_Types, s))
-  |> (fn (polymorphism, (level, core)) =>
-         case (core, (polymorphism, level)) of
-           ("simple", (Polymorphic (* naja *), level)) => Simple level
-         | ("preds", extra) => Preds extra
-         | ("tags", extra) => Tags extra
-         | ("args", (_, All_Types (* naja *))) =>
-           Preds (polymorphism, Const_Arg_Types)
-         | ("erased", (Polymorphic, All_Types (* naja *))) =>
-           Preds (polymorphism, No_Types)
+  |> (fn (poly, (level, core)) =>
+         case (core, (poly, level)) of
+           ("simple_types", (NONE, level)) => Simple_Types level
+         | ("preds", (SOME poly, level)) => Preds (poly, level)
+         | ("tags", (SOME poly, level)) => Tags (poly, level)
+         | ("args", (SOME poly, All_Types (* naja *))) =>
+           Preds (poly, Const_Arg_Types)
+         | ("erased", (NONE, All_Types (* naja *))) =>
+           Preds (Polymorphic, No_Types)
          | _ => error ("Unknown type system: " ^ quote s ^ "."))
 
-fun polymorphism_of_type_sys (Simple _) = Mangled_Monomorphic
+fun polymorphism_of_type_sys (Simple_Types _) = Mangled_Monomorphic
   | polymorphism_of_type_sys (Preds (poly, _)) = poly
   | polymorphism_of_type_sys (Tags (poly, _)) = poly
 
-fun level_of_type_sys (Simple level) = level
+fun level_of_type_sys (Simple_Types level) = level
   | level_of_type_sys (Preds (_, level)) = level
   | level_of_type_sys (Tags (_, level)) = level
 
@@ -830,7 +827,7 @@ fun formula_from_combformula ctxt nonmono_Ts type_sys =
       end
     val do_bound_type =
       case type_sys of
-        Simple level =>
+        Simple_Types level =>
         SOME o mangled_type_name o homogenized_type ctxt nonmono_Ts level
       | _ => K NONE
     fun do_out_of_bound_type (s, T) =
@@ -933,7 +930,7 @@ fun insert_type get_T x xs =
 fun should_declare_sym type_sys pred_sym s =
   not (String.isPrefix bound_var_prefix s) andalso s <> "equal" andalso
   not (String.isPrefix "$" s) andalso
-  ((case type_sys of Simple _ => true | _ => false) orelse not pred_sym)
+  ((case type_sys of Simple_Types _ => true | _ => false) orelse not pred_sym)
 
 fun sym_decl_table_for_facts type_sys repaired_sym_tab (conjs, facts) =
   let
@@ -1029,7 +1026,7 @@ fun formula_line_for_sym_decl ctxt conj_sym_kind nonmono_Ts type_sys n s j
 fun problem_lines_for_sym_decls ctxt conj_sym_kind nonmono_Ts type_sys
                                 (s, decls) =
   case type_sys of
-    Simple _ => map (decl_line_for_sym s) decls
+    Simple_Types _ => map (decl_line_for_sym s) decls
   | _ =>
     let
       val decls =
@@ -1129,7 +1126,7 @@ fun prepare_atp_problem ctxt conj_sym_kind prem_kind type_sys explicit_apply
     val problem =
       problem
       |> (case type_sys of
-            Simple _ =>
+            Simple_Types _ =>
             cons (type_declsN,
                   map decl_line_for_tff_type (tff_types_in_problem problem))
           | _ => I)

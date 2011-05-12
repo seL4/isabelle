@@ -460,7 +460,7 @@ Vampire runs on Geoff Sutcliffe's Miami servers. Version 9 is used.
 developed by Geoff Sutcliffe \cite{tofof} based on E running on his Miami
 servers. This ATP supports a fragment of the TPTP many-typed first-order format
 (TFF). It is supported primarily for experimenting with the
-\textit{type\_sys} $=$ \textit{simple} option (\S\ref{problem-encoding}).
+\textit{type\_sys} $=$ \textit{simple\_types} option (\S\ref{problem-encoding}).
 
 \item[$\bullet$] \textbf{\textit{remote\_sine\_e}:} SInE-E is a metaprover
 developed by Kry\v stof Hoder \cite{sine} based on E. The remote version of
@@ -571,77 +571,73 @@ Specifies the type system to use in ATP problems. The option can take the
 following values:
 
 \begin{enum}
-\item[$\bullet$] \textbf{\textit{simple}:} Use the prover's support for
-many-typed first-order logic if available; otherwise, fall back on
-\textit{mangled\_preds}. The problem is monomorphized, meaning that the
-problem's type variables are instantiated with heuristically chosen ground
-types. Monomorphization can simplify reasoning but also leads to larger fact
-bases, which can slow down the ATPs.
+%\item[$\bullet$] \textbf{\textit{poly\_types}:} Use the prover's support for
+%polymorphic first-order logic if available; otherwise, fall back on
+%\textit{poly\_preds}.
 
-\item[$\bullet$] \textbf{\textit{preds}:} Types are encoded using a binary predicate
+\item[$\bullet$] \textbf{\textit{poly\_preds}:} Types are encoded using a predicate
 $\mathit{has\_type\/}(\tau, t)$ that restricts the range of bound variables.
 Constants are annotated with their types, supplied as extra arguments, to
 resolve overloading.
 
-\item[$\bullet$] \textbf{\textit{tags}:} Each term and subterm is tagged with
+\item[$\bullet$] \textbf{\textit{poly\_tags}:} Each term and subterm is tagged with
 its type using a function $\mathit{type\_info\/}(\tau, t)$.
 
-\item[$\bullet$] \textbf{\textit{mono\_preds}:} Similar to \textit{preds}, but
-the problem is additionally monomorphized.
+\item[$\bullet$] \textbf{\textit{poly\_args}:}
+Like for the other sound encodings, constants are annotated with their types to
+resolve overloading, but otherwise no type information is encoded.
 
-\item[$\bullet$] \textbf{\textit{mono\_tags}:} Similar to \textit{tags}, but
-the problem is additionally monomorphized.
+\item[$\bullet$] \textbf{\textit{erased}:} No type information is supplied to
+the ATP. Types are simply erased.
 
-\item[$\bullet$] \textbf{\textit{mangled\_preds}:} Similar to
-\textit{mono\_preds}, but types are mangled in constant names instead of being
-supplied as ground term arguments. The binary predicate
-$\mathit{has\_type\/}(\tau, t)$ becomes a unary predicate
-$\mathit{has\_type\_}\tau(t)$.
+\item[$\bullet$]
+\textbf{%
+\textit{mono\_preds},
+\textit{mono\_tags},
+\textit{mono\_args}:} \\
+Similar to \textit{poly\_preds}, \textit{poly\_tags}, and \textit{poly\_args},
+respectively, but the problem is additionally monomorphized, meaning that type
+variables are instantiated with heuristically chosen ground types.
+Monomorphization can simplify reasoning but also leads to larger fact bases,
+which can slow down the ATPs.
 
-\item[$\bullet$] \textbf{\textit{mangled\_tags}:} Similar to
-\textit{mono\_tags}, but types are mangled in constant names instead of being
-supplied as ground term arguments. The binary function
+\item[$\bullet$] \textbf{\textit{simple\_types}:} Use the prover's support for
+simply typed first-order logic if available; otherwise, fall back on
+\textit{mangled\_preds}. The problem is monomorphized.
+
+\item[$\bullet$]
+\textbf{%
+\textit{mangled\_preds},
+\textit{mangled\_tags},
+\textit{mangled\_args}:} \\
+Similar to
+\textit{mono\_preds}, \textit{mono\_tags}, and \textit{mono\_args},
+respectively but types are mangled in constant names instead of being supplied
+as ground term arguments. The binary predicate $\mathit{has\_type\/}(\tau, t)$
+becomes a unary predicate $\mathit{has\_type\_}\tau(t)$, and the binary function
 $\mathit{type\_info\/}(\tau, t)$ becomes a unary function
 $\mathit{type\_info\_}\tau(t)$.
 
 \item[$\bullet$]
 \textbf{%
-\textit{simple}?,
-\textit{preds}?,
-\textit{mono\_preds}?,
-\textit{mangled\_preds}?, \\
-\textit{tags}?,
-\textit{mono\_tags}?,
-\textit{mangled\_tags}?:} \\
-The type systems \textit{simple}, \textit{preds}, \textit{mono\_preds},
-\textit{mangled\_preds}, \textit{tags}, \textit{mono\_tags}, and
-\textit{mangled\_tags} are fully typed and virtually sound---i.e., except for
-pathological cases, all found proofs are type-correct. For each of these,
-Sledgehammer also provides a just-as-sound partially typed variant identified by
-a question mark (`{?}')\ that detects and erases monotonic types, notably infinite
-types. (For \textit{simple}, the types are not actually erased but rather
-replaced by a shared uniform ``top'' type.)
+\textit{simple\_types}?,
+\{\textit{poly},\textit{mono},\textit{mangled}\}\textit{\_}\{\textit{preds},\textit{tags}\}?:} \\
+The type systems \textit{poly\_preds}, \textit{poly\_tags},
+\textit{mono\_preds}, \textit{mono\_tags}, \textit{simple\_types},
+\textit{mangled\_preds}, and \textit{mangled\_tags} are fully typed and
+virtually sound---except for pathological cases, all found proofs are
+type-correct. For each of these, Sledgehammer also provides a just-as-sound
+partially typed variant identified by a question mark (`{?}')\ that detects and
+erases monotonic types, notably infinite types. (For \textit{simple\_types}, the
+types are not actually erased but rather replaced by a shared uniform type.)
 
 \item[$\bullet$]
 \textbf{%
-\textit{simple}!,
-\textit{preds}!,
-\textit{mono\_preds}!,
-\textit{mangled\_preds}!, \\
-\textit{tags}!,
-\textit{mono\_tags}!,
-\textit{mangled\_tags}!:} \\
+\textit{simple\_types}!,
+\{\textit{poly},\textit{mono},\textit{mangled}\}\textit{\_}\{\textit{preds},\textit{tags}\}!:} \\
 If the question mark (`{?}')\ is replaced by an exclamation mark (`{!}'),\ the
 translation erases all types except those that are clearly finite (e.g.,
 \textit{bool}). This encoding is unsound.
-
-\item[$\bullet$] \textbf{\textit{args}:}
-Like for the other sound encodings, constants are annotated with their types to
-resolve overloading, but otherwise no type information is encoded. This encoding
-is hence less sound than the exclamation mark (`{!}')\ variants described above.
-
-\item[$\bullet$] \textbf{\textit{erased}:} No type information is supplied to
-the ATP. Types are simply erased.
 
 \item[$\bullet$] \textbf{\textit{smart}:} If \textit{full\_types} is enabled,
 uses a fully typed, virtually sound encoding; otherwise, uses any encoding. The
@@ -649,7 +645,7 @@ actual encoding used depends on the ATP and should be the most efficient for
 that ATP.
 \end{enum}
 
-For SMT solvers and ToFoF-E, the type system is always \textit{simple}.
+For SMT solvers and ToFoF-E, the type system is always \textit{simple\_types}.
 
 \opdefault{monomorphize\_limit}{int}{\upshape 4}
 Specifies the maximum number of iterations for the monomorphization fixpoint
