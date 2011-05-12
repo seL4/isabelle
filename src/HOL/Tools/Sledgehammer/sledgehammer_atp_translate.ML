@@ -434,6 +434,8 @@ fun make_formula ctxt eq_as_iff presimp name loc kind t =
               |> Object_Logic.atomize_term thy
     val need_trueprop = (fastype_of t = @{typ bool})
     val t = t |> need_trueprop ? HOLogic.mk_Trueprop
+              |> Raw_Simplifier.rewrite_term thy
+                     (Meson.unfold_set_const_simps ctxt) []
               |> extensionalize_term
               |> presimp ? presimplify_term thy
               |> perhaps (try (HOLogic.dest_Trueprop))
