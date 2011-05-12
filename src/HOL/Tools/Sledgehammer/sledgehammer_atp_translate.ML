@@ -849,12 +849,16 @@ fun formula_from_combformula ctxt nonmono_Ts type_sys =
       | do_formula (AAtom tm) = AAtom (do_term true tm)
   in do_formula end
 
+fun bound_atomic_types type_sys Ts =
+  mk_ahorn (map (formula_from_fo_literal o fo_literal_from_type_literal)
+                (atp_type_literals_for_types type_sys Axiom Ts))
+
 fun formula_for_fact ctxt nonmono_Ts type_sys
                      ({combformula, atomic_types, ...} : translated_formula) =
-  mk_ahorn (map (formula_from_fo_literal o fo_literal_from_type_literal)
-                (atp_type_literals_for_types type_sys Axiom atomic_types))
-           (formula_from_combformula ctxt nonmono_Ts type_sys
-                (close_combformula_universally combformula))
+  combformula
+  |> close_combformula_universally
+  |> formula_from_combformula ctxt nonmono_Ts type_sys
+  |> bound_atomic_types type_sys atomic_types
   |> close_formula_universally
 
 fun useful_isabelle_info s = SOME (ATerm ("[]", [ATerm ("isabelle_" ^ s, [])]))
@@ -1019,6 +1023,7 @@ fun formula_line_for_sym_decl ctxt conj_sym_kind nonmono_Ts type_sys n s j
              |> type_pred_combatom ctxt nonmono_Ts type_sys res_T
              |> mk_aquant AForall (bound_names ~~ bound_Ts)
              |> formula_from_combformula ctxt nonmono_Ts type_sys
+             |> n > 1 ? bound_atomic_types type_sys (atyps_of T)
              |> close_formula_universally
              |> maybe_negate,
              NONE, NONE)

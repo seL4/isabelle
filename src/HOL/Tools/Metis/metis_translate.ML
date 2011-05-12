@@ -67,6 +67,7 @@ sig
     theory -> string list -> class list -> class list * arity_clause list
   val combtyp_of : combterm -> typ
   val strip_combterm_comb : combterm -> combterm * combterm list
+  val atyps_of : typ -> typ list
   val combterm_from_term :
     theory -> (string * typ) list -> term -> combterm * typ list
   val reveal_old_skolem_terms : (string * term) list -> term -> term
