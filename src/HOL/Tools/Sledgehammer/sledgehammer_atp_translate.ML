@@ -345,7 +345,10 @@ fun combformula_from_prop thy eq_as_iff =
       | _ => do_term bs t
   in do_formula [] end
 
-val presimplify_term = prop_of o Meson.presimplify oo Skip_Proof.make_thm
+fun presimplify_term ctxt =
+  Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
+  #> Meson.presimplify ctxt
+  #> prop_of
 
 fun concealed_bound_name j = sledgehammer_weak_prefix ^ string_of_int j
 fun conceal_bounds Ts t =
@@ -424,7 +427,7 @@ fun make_formula ctxt eq_as_iff presimp name loc kind t =
               |> Raw_Simplifier.rewrite_term thy
                      (Meson.unfold_set_const_simps ctxt) []
               |> extensionalize_term ctxt
-              |> presimp ? presimplify_term thy
+              |> presimp ? presimplify_term ctxt
               |> perhaps (try (HOLogic.dest_Trueprop))
               |> introduce_combinators_in_term ctxt kind
               |> kind <> Axiom ? freeze_term

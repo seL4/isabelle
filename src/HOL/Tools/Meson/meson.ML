@@ -17,7 +17,7 @@ sig
   val make_cnf: thm list -> thm -> Proof.context -> thm list * Proof.context
   val finish_cnf: thm list -> thm list
   val unfold_set_const_simps : Proof.context -> thm list
-  val presimplify: thm -> thm
+  val presimplify: Proof.context -> thm -> thm
   val make_nnf: Proof.context -> thm -> thm
   val choice_theorems : theory -> thm list
   val skolemize_with_choice_theorems : Proof.context -> thm list -> thm -> thm
@@ -577,11 +577,15 @@ val nnf_ss =
   HOL_basic_ss addsimps nnf_extra_simps
     addsimprocs [@{simproc defined_All}, @{simproc defined_Ex}, @{simproc neq}, @{simproc let_simp}];
 
-val presimplify =
-  rewrite_rule (map safe_mk_meta_eq nnf_simps) #> simplify nnf_ss
+fun presimplify ctxt =
+  rewrite_rule (map safe_mk_meta_eq nnf_simps)
+  #> simplify nnf_ss
+  (* TODO: avoid introducing "Set.member" in "Ball_def" "Bex_def" above if and
+     when "metis_unfold_set_consts" becomes the only mode of operation. *)
+  #> Raw_Simplifier.rewrite_rule (unfold_set_const_simps ctxt)
 
 fun make_nnf ctxt th = case prems_of th of
-    [] => th |> presimplify |> make_nnf1 ctxt
+    [] => th |> presimplify ctxt |> make_nnf1 ctxt
   | _ => raise THM ("make_nnf: premises in argument", 0, [th]);
 
 fun choice_theorems thy =
