@@ -266,30 +266,21 @@ proof
   show "0 + x = x" by (rule l_zero)
 qed
 
-ML {*
-  local
-    val lhss =
-        ["t + u::'a::ring",
-         "t - u::'a::ring",
-         "t * u::'a::ring",
-         "- t::'a::ring"];
-    fun proc ss t =
-      let val rew = Goal.prove (Simplifier.the_context ss) [] []
-            (HOLogic.mk_Trueprop
-              (HOLogic.mk_eq (t, Var (("x", Term.maxidx_of_term t + 1), fastype_of t))))
-                (fn _ => simp_tac (Simplifier.inherit_context ss ring_ss) 1)
-            |> mk_meta_eq;
-          val (t', u) = Logic.dest_equals (Thm.prop_of rew);
-      in if t' aconv u
-        then NONE
-        else SOME rew
-    end;
-  in
-    val ring_simproc = Simplifier.simproc_global @{theory} "ring" lhss (K proc);
-  end;
+simproc_setup
+  ring ("t + u::'a::ring" | "t - u::'a::ring" | "t * u::'a::ring" | "- t::'a::ring") =
+{*
+  fn _ => fn ss => fn ct =>
+    let
+      val ctxt = Simplifier.the_context ss;
+      val {t, T, maxidx, ...} = Thm.rep_cterm ct;
+      val rew =
+        Goal.prove ctxt [] []
+          (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, Var (("x", maxidx + 1), T))))
+          (fn _ => simp_tac (Simplifier.inherit_context ss ring_ss) 1)
+        |> mk_meta_eq;
+      val (t', u) = Logic.dest_equals (Thm.prop_of rew);
+    in if t' aconv u then NONE else SOME rew end
 *}
-
-ML {* Addsimprocs [ring_simproc] *}
 
 lemma natsum_ldistr:
   "!!a::'a::ring. setsum f {..n::nat} * a = setsum (%i. f i * a) {..n}"
@@ -444,7 +435,8 @@ lemma inverse_unique: "!! a::'a::ring. [| a * x = 1; a * y = 1 |] ==> x = y"
 
 lemma r_inverse_ring: "!! a::'a::ring. a dvd 1 ==> a * inverse a = 1"
   apply (unfold inverse_def dvd_def)
-  apply (tactic {* asm_full_simp_tac (@{simpset} delsimprocs [ring_simproc]) 1 *})
+  using [[simproc del: ring]]
+  apply simp
   apply clarify
   apply (rule theI)
    apply assumption
