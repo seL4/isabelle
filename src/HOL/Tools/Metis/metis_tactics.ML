@@ -122,7 +122,15 @@ fun FOL_SOLVE mode ctxt cls ths0 =
              else
                ();
              [])
-  end;
+  end
+  handle METIS (loc, msg) =>
+         if mode <> FT then
+           (verbose_warning ctxt ("Falling back on \"metisFT\".");
+            FOL_SOLVE FT ctxt cls ths0)
+         else
+           error ("Failed to replay Metis proof in Isabelle." ^
+                  (if Config.get ctxt verbose then "\n" ^ loc ^ ": " ^ msg
+                   else ""))
 
 (* Extensionalize "th", because that makes sense and that's what Sledgehammer
    does, but also keep an unextensionalized version of "th" for backward
@@ -163,15 +171,6 @@ fun generic_metis_tac mode ctxt ths i st0 =
       Meson.MESON (preskolem_tac ctxt) (maps neg_clausify)
                   (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1)
                   ctxt i st0
-      handle METIS (loc, msg) =>
-             if mode <> FT then
-               (verbose_warning ctxt ("Falling back on \"metisFT\".");
-                generic_metis_tac FT ctxt ths i st0)
-             else
-               error ("Failed to replay Metis proof in Isabelle." ^
-                      (if Config.get ctxt verbose then "\n" ^ loc ^ ": " ^ msg
-                       else ""))
-
   end
 
 val metis_tac = generic_metis_tac HO
