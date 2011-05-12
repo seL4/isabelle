@@ -390,6 +390,7 @@ The descriptions below refer to the following syntactic quantities:
 \item[$\bullet$] \qtybf{bool\_or\_smart\/}: \textit{true}, \textit{false}, or
 \textit{smart}.
 \item[$\bullet$] \qtybf{int\/}: An integer.
+%\item[$\bullet$] \qtybf{float\/}: A floating-point number (e.g., 2.5).
 \item[$\bullet$] \qtybf{float\_pair\/}: A pair of floating-point numbers
 (e.g., 0.6 0.95).
 \item[$\bullet$] \qtybf{int\_or\_smart\/}: An integer or \textit{smart}.
@@ -647,11 +648,16 @@ that ATP.
 
 For SMT solvers and ToFoF-E, the type system is always \textit{simple\_types}.
 
-\opdefault{monomorphize\_limit}{int}{\upshape 4}
+\opdefault{max\_mono\_iters}{int}{\upshape 4}
 Specifies the maximum number of iterations for the monomorphization fixpoint
 construction. The higher this limit is, the more monomorphic instances are
 potentially generated. Whether monomorphization takes place depends on the
 type system used.
+
+\opdefault{max\_mono\_instances}{int}{\upshape 500}
+Specifies the maximum number of monomorphic instances to generate as a soft
+limit. The higher this limit is, the more monomorphic instances are potentially
+generated. Whether monomorphization takes place depends on the type system used.
 \end{enum}
 
 \subsection{Relevance Filter}

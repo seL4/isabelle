@@ -82,7 +82,8 @@ val default_default_params =
    ("type_sys", "smart"),
    ("relevance_thresholds", "0.45 0.85"),
    ("max_relevant", "smart"),
-   ("monomorphize_limit", "4"),
+   ("max_mono_iters", "4"),
+   ("max_mono_instances", "500"),
    ("explicit_apply", "false"),
    ("isar_proof", "false"),
    ("isar_shrink_factor", "1"),
@@ -103,8 +104,8 @@ val negated_alias_params =
    ("no_slicing", "slicing")]
 
 val params_for_minimize =
-  ["debug", "verbose", "overlord", "type_sys", "full_types", "isar_proof",
-   "isar_shrink_factor", "timeout"]
+  ["debug", "verbose", "overlord", "type_sys", "full_types", "max_mono_iters",
+   "max_mono_instances", "isar_proof", "isar_shrink_factor", "timeout"]
 
 val property_dependent_params = ["provers", "full_types", "timeout"]
 
@@ -245,7 +246,8 @@ fun extract_params auto default_params override_params =
       | s => Dumb_Type_Sys (type_sys_from_string s)
     val relevance_thresholds = lookup_real_pair "relevance_thresholds"
     val max_relevant = lookup_int_option "max_relevant"
-    val monomorphize_limit = lookup_int "monomorphize_limit"
+    val max_mono_iters = lookup_int "max_mono_iters"
+    val max_mono_instances = lookup_int "max_mono_instances"
     val explicit_apply = lookup_bool "explicit_apply"
     val isar_proof = lookup_bool "isar_proof"
     val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
@@ -255,10 +257,11 @@ fun extract_params auto default_params override_params =
   in
     {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
      provers = provers, relevance_thresholds = relevance_thresholds,
-     max_relevant = max_relevant, monomorphize_limit = monomorphize_limit,
-     type_sys = type_sys, explicit_apply = explicit_apply,
-     isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
-     slicing = slicing, timeout = timeout, expect = expect}
+     max_relevant = max_relevant, max_mono_iters = max_mono_iters,
+     max_mono_instances = max_mono_instances, type_sys = type_sys,
+     explicit_apply = explicit_apply, isar_proof = isar_proof,
+     isar_shrink_factor = isar_shrink_factor, slicing = slicing,
+     timeout = timeout, expect = expect}
   end
 
 fun get_params auto ctxt = extract_params auto (default_raw_params ctxt)

@@ -28,7 +28,8 @@ sig
      type_sys: rich_type_system,
      relevance_thresholds: real * real,
      max_relevant: int option,
-     monomorphize_limit: int,
+     max_mono_iters: int,
+     max_mono_instances: int,
      explicit_apply: bool,
      isar_proof: bool,
      isar_shrink_factor: int,
@@ -238,7 +239,8 @@ type params =
    type_sys: rich_type_system,
    relevance_thresholds: real * real,
    max_relevant: int option,
-   monomorphize_limit: int,
+   max_mono_iters: int,
+   max_mono_instances: int,
    explicit_apply: bool,
    isar_proof: bool,
    isar_shrink_factor: int,
@@ -361,12 +363,20 @@ fun determine_format_and_type_sys _ formats (Dumb_Type_Sys type_sys) =
     |> find_first (if full_types then is_type_sys_virtually_sound else K true)
     |> the |> adjust_dumb_type_sys formats
 
+fun repair_smt_monomorph_context debug max_mono_iters max_mono_instances
+                                 num_facts =
+  Config.put SMT_Config.verbose debug
+  #> Config.put SMT_Config.monomorph_full false
+  #> Config.put SMT_Config.monomorph_limit max_mono_iters
+  #> Config.put SMT_Config.monomorph_instances
+                (Int.max (max_mono_instances, num_facts))
+
 fun run_atp auto name
         ({exec, required_execs, arguments, proof_delims, known_failures,
           conj_sym_kind, prem_kind, formats, best_slices, ...} : atp_config)
-        ({debug, verbose, overlord, type_sys, max_relevant, monomorphize_limit,
-          explicit_apply, isar_proof, isar_shrink_factor, slicing, timeout, ...}
-         : params)
+        ({debug, verbose, overlord, type_sys, max_relevant, max_mono_iters,
+          max_mono_instances, explicit_apply, isar_proof, isar_shrink_factor,
+          slicing, timeout, ...} : params)
         minimize_command ({state, goal, subgoal, facts, ...} : prover_problem) =
   let
     val thy = Proof.theory_of state
@@ -411,10 +421,6 @@ fun run_atp auto name
             val num_actual_slices = length actual_slices
             fun monomorphize_facts facts =
               let
-                val repair_context =
-                  Config.put SMT_Config.verbose debug
-                  #> Config.put SMT_Config.monomorph_full false
-                  #> Config.put SMT_Config.monomorph_limit monomorphize_limit
                 val facts = facts |> map untranslated_fact
                 (* pseudo-theorem involving the same constants as the subgoal *)
                 val subgoal_th =
@@ -423,10 +429,12 @@ fun run_atp auto name
                 val indexed_facts =
                   (~1, subgoal_th) :: (0 upto length facts - 1 ~~ map snd facts)
               in
-                SMT_Monomorph.monomorph indexed_facts (repair_context ctxt)
-                |> fst |> sort (int_ord o pairself fst)
-                |> filter_out (curry (op =) ~1 o fst)
-                |> map (Untranslated_Fact o apfst (fst o nth facts))
+                ctxt |> repair_smt_monomorph_context debug max_mono_iters
+                            max_mono_instances (length facts)
+                     |> SMT_Monomorph.monomorph indexed_facts
+                     |> fst |> sort (int_ord o pairself fst)
+                     |> filter_out (curry (op =) ~1 o fst)
+                     |> map (Untranslated_Fact o apfst (fst o nth facts))
               end
             fun run_slice blacklist (slice, (time_frac, (complete,
                                        (best_max_relevant, best_type_systems))))
@@ -655,28 +663,28 @@ val smt_slice_min_secs =
   Attrib.setup_config_int @{binding sledgehammer_smt_slice_min_secs} (K 5)
 
 fun smt_filter_loop ctxt name
-                    ({debug, verbose, overlord, monomorphize_limit, timeout,
-                      slicing, ...} : params)
+                    ({debug, verbose, overlord, max_mono_iters,
+                      max_mono_instances, timeout, slicing, ...} : params)
                     state i smt_filter =
   let
     val max_slices = if slicing then Config.get ctxt smt_max_slices else 1
     val repair_context =
-      select_smt_solver name
-      #> Config.put SMT_Config.verbose debug
-      #> (if overlord then
-            Config.put SMT_Config.debug_files
-                       (overlord_file_location_for_prover name
-                        |> (fn (path, name) => path ^ "/" ^ name))
-          else
-            I)
-      #> Config.put SMT_Config.infer_triggers (Config.get ctxt smt_triggers)
-      #> Config.put SMT_Config.monomorph_full false
-      #> Config.put SMT_Config.monomorph_limit monomorphize_limit
+          select_smt_solver name
+          #> (if overlord then
+                Config.put SMT_Config.debug_files
+                           (overlord_file_location_for_prover name
+                            |> (fn (path, name) => path ^ "/" ^ name))
+              else
+                I)
+          #> Config.put SMT_Config.infer_triggers (Config.get ctxt smt_triggers)
     val state = state |> Proof.map_context repair_context
-
     fun do_slice timeout slice outcome0 time_so_far facts =
       let
         val timer = Timer.startRealTimer ()
+        val state =
+          state |> Proof.map_context
+                       (repair_smt_monomorph_context debug max_mono_iters
+                            max_mono_instances (length facts))
         val ms = timeout |> Time.toMilliseconds
         val slice_timeout =
           if slice < max_slices then

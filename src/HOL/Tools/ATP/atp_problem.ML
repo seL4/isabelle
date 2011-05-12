@@ -169,7 +169,7 @@ val no_qualifiers =
       | keep (c :: cs) = c :: keep cs
   in String.explode #> rev #> keep #> rev #> String.implode end
 
-val max_readable_name_size = 24
+val max_readable_name_size = 20
 
 (* "op" is also reserved, to avoid the unreadable "op_1", "op_2", etc., in the
    problem files. "equal" is reserved by some ATPs. "eq" is reserved to ensure
