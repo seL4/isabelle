@@ -12,36 +12,6 @@ begin
 declare [[unify_search_bound = 100]]
 declare [[unify_trace_bound = 100]]
 
-sledgehammer_params [prover = e, blocking, timeout = 10]
-
-
-text {* Extensionality *}
-
-lemma plus_1_not_0: "n + (1\<Colon>nat) \<noteq> 0"
-by simp
-
-definition inc :: "nat \<Rightarrow> nat" where
-"inc x = x + 1"
-
-lemma "inc \<noteq> (\<lambda>y. 0)"
-sledgehammer [expect = some] (inc_def plus_1_not_0)
-by (metis inc_def plus_1_not_0)
-
-lemma "inc = (\<lambda>y. y + 1)"
-sledgehammer [expect = some] (inc_def)
-by (metis inc_def)
-
-lemma "(\<lambda>y. y + 1) = inc"
-sledgehammer [expect = some] (inc_def)
-by (metis inc_def)
-
-definition add_swap :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
-"add_swap = (\<lambda>x y. y + x)"
-
-lemma "add_swap m n = n + m"
-sledgehammer [expect = some] (add_swap_def)
-by (metis add_swap_def)
-
 
 text {* Definitional CNF for facts *}
 
