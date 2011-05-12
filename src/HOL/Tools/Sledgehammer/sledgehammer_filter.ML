@@ -36,6 +36,9 @@ sig
      only : bool}
 
   val trace : bool Config.T
+  val new_monomorphizer : bool Config.T
+  val ignore_no_atp : bool Config.T
+  val instantiate_inducts : bool Config.T
   val is_locality_global : locality -> bool
   val fact_from_ref :
     Proof.context -> unit Symtab.table -> thm list
@@ -64,8 +67,12 @@ val trace =
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 
 (* experimental features *)
-val respect_no_atp = true
-val instantiate_inducts = false
+val new_monomorphizer =
+  Attrib.setup_config_bool @{binding sledgehammer_new_monomorphizer} (K false)
+val ignore_no_atp =
+  Attrib.setup_config_bool @{binding sledgehammer_ignore_no_atp} (K false)
+val instantiate_inducts =
+  Attrib.setup_config_bool @{binding sledgehammer_instantiate_inducts} (K false)
 
 datatype locality = General | Intro | Elim | Simp | Local | Assum | Chained
 
@@ -498,7 +505,7 @@ type annotated_thm =
   (((unit -> string) * locality) * thm) * (string * ptype) list
 
 fun take_most_relevant ctxt max_relevant remaining_max
-        ({max_imperfect, max_imperfect_exp, ...} : relevance_fudge) 
+        ({max_imperfect, max_imperfect_exp, ...} : relevance_fudge)
         (candidates : (annotated_thm * real) list) =
   let
     val max_imperfect =
@@ -667,11 +674,11 @@ fun mk_fact_table g f xs =
 fun uniquify xs = Termtab.fold (cons o snd) (mk_fact_table I snd xs) []
 
 (* FIXME: put other record thms here, or declare as "no_atp" *)
-val multi_base_blacklist =
+fun multi_base_blacklist ctxt =
   ["defs", "select_defs", "update_defs", "split", "splits", "split_asm",
    "cases", "ext_cases", "eq.simps", "eq.refl", "nchotomy", "case_cong",
    "weak_case_cong"]
-  |> not instantiate_inducts ? append ["induct", "inducts"]
+  |> not (Config.get ctxt instantiate_inducts) ? append ["induct", "inducts"]
   |> map (prefix ".")
 
 val max_lambda_nesting = 3
@@ -849,8 +856,10 @@ fun all_facts ctxt reserved really_all add_ths chained_ths =
         if not really_all andalso name0 <> "" andalso
            forall (not o member Thm.eq_thm add_ths) ths andalso
            (Facts.is_concealed facts name0 orelse
-            (respect_no_atp andalso is_package_def name0) orelse
-            exists (fn s => String.isSuffix s name0) multi_base_blacklist orelse
+            (not (Config.get ctxt ignore_no_atp) andalso
+             is_package_def name0) orelse
+            exists (fn s => String.isSuffix s name0)
+                   (multi_base_blacklist ctxt) orelse
             String.isSuffix "_def_raw" (* FIXME: crude hack *) name0) then
           I
         else
@@ -892,9 +901,10 @@ fun all_facts ctxt reserved really_all add_ths chained_ths =
 
 (* The single-name theorems go after the multiple-name ones, so that single
    names are preferred when both are available. *)
-fun rearrange_facts ctxt respect_no_atp =
+fun rearrange_facts ctxt only =
   List.partition (fst o snd) #> op @ #> map (apsnd snd)
-  #> respect_no_atp ? filter_out (No_ATPs.member ctxt o snd)
+  #> (not (Config.get ctxt ignore_no_atp) andalso not only)
+     ? filter_out (No_ATPs.member ctxt o snd)
 
 fun external_frees t =
   [] |> Term.add_frees t |> filter_out (can Name.dest_internal o fst)
@@ -918,9 +928,9 @@ fun relevant_facts ctxt (threshold0, threshold1) max_relevant is_built_in_const
                o fact_from_ref ctxt reserved chained_ths) add
        else
          all_facts ctxt reserved false add_ths chained_ths)
-      |> instantiate_inducts
+      |> Config.get ctxt instantiate_inducts
          ? maps (instantiate_if_induct_rule ctxt ind_stmt ind_stmt_xs)
-      |> rearrange_facts ctxt (respect_no_atp andalso not only)
+      |> rearrange_facts ctxt only
       |> uniquify
   in
     trace_msg ctxt (fn () => "Considering " ^ string_of_int (length facts) ^
