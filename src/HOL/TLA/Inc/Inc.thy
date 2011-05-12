@@ -112,7 +112,7 @@ lemma PsiInv_stutter: "|- unchanged (x,y,sem,pc1,pc2) & $PsiInv --> PsiInv$"
   by (auto simp: PsiInv_defs)
 
 lemma PsiInv: "|- Psi --> []PsiInv"
-  apply (tactic {* inv_tac (@{clasimpset} addsimps2 [@{thm Psi_def}]) 1 *})
+  apply (invariant simp: Psi_def)
    apply (force simp: PsiInv_Init [try_rewrite] Init_def)
   apply (auto intro: PsiInv_alpha1 [try_rewrite] PsiInv_alpha2 [try_rewrite]
     PsiInv_beta1 [try_rewrite] PsiInv_beta2 [try_rewrite] PsiInv_gamma1 [try_rewrite]
@@ -125,7 +125,7 @@ lemma PsiInv: "|- Psi --> []PsiInv"
 *)
 
 lemma "|- Psi --> []PsiInv"
-  by (tactic {* auto_inv_tac (@{simpset} addsimps (@{thms PsiInv_defs} @ @{thms Psi_defs})) 1 *})
+  by (auto_invariant simp: PsiInv_defs Psi_defs)
 
 
 (**** Step simulation ****)

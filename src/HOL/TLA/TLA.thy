@@ -607,6 +607,16 @@ fun auto_inv_tac ss = SELECT_GOAL
        (ss addsimps [@{thm Init_stp}, @{thm Init_act}]) [] [@{thm squareE}])));
 *}
 
+method_setup invariant = {*
+  Method.sections Clasimp.clasimp_modifiers
+    >> (K (SIMPLE_METHOD' o inv_tac o clasimpset_of))
+*} ""
+
+method_setup auto_invariant = {*
+  Method.sections Clasimp.clasimp_modifiers
+    >> (K (SIMPLE_METHOD' o auto_inv_tac o simpset_of))
+*} ""
+
 lemma unless: "|- []($P --> P` | Q`) --> (stable P) | <>Q"
   apply (unfold dmd_def)
   apply (clarsimp dest!: BoxPrime [temp_use])

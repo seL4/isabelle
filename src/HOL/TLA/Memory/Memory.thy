@@ -147,8 +147,7 @@ lemma ReliableImplementsUnReliable: "|- IRSpec ch mm rs --> IUSpec ch mm rs"
 
 (* The memory spec implies the memory invariant *)
 lemma MemoryInvariant: "|- MSpec ch mm rs l --> [](MemInv mm l)"
-  by (tactic {* auto_inv_tac
-    (@{simpset} addsimps (@{thms RM_temp_defs} @ @{thms RM_action_defs})) 1 *})
+  by (auto_invariant simp: RM_temp_defs RM_action_defs)
 
 (* The invariant is trivial for non-locations *)
 lemma NonMemLocInvariant: "|- #l ~: #MemLoc --> [](MemInv mm l)"
