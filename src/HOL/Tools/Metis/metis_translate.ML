@@ -540,6 +540,7 @@ fun fn_isa_to_met_sublevel "equal" = "c_fequal"
   | fn_isa_to_met_sublevel "c_disj" = "c_fdisj"
   | fn_isa_to_met_sublevel "c_implies" = "c_fimplies"
   | fn_isa_to_met_sublevel x = x
+
 fun fn_isa_to_met_toplevel "equal" = "="
   | fn_isa_to_met_toplevel x = x
 
@@ -640,6 +641,7 @@ fun hol_thm_to_fol is_conjecture ctxt type_lits mode j old_skolems th =
       end
   end;
 
+(* "true" indicates that a sound type encoding is needed *)
 val metis_helpers =
   [("COMBI", (false, @{thms Meson.COMBI_def})),
    ("COMBK", (false, @{thms Meson.COMBK_def})),
@@ -647,8 +649,11 @@ val metis_helpers =
    ("COMBC", (false, @{thms Meson.COMBC_def})),
    ("COMBS", (false, @{thms Meson.COMBS_def})),
    ("fequal",
-    (false, @{thms fequal_def [THEN Meson.iff_to_disjD, THEN conjunct1]
-                   fequal_def [THEN Meson.iff_to_disjD, THEN conjunct2]})),
+    (* This is a lie: Higher-order equality doesn't need a sound type encoding.
+       However, this is done so for backward compatibility: Including the
+       equality helpers by default in Metis breaks a few existing proofs. *)
+    (true, @{thms fequal_def [THEN Meson.iff_to_disjD, THEN conjunct1]
+                  fequal_def [THEN Meson.iff_to_disjD, THEN conjunct2]})),
    ("fFalse", (true, [@{lemma "x = fTrue | x = fFalse"
                           by (unfold fFalse_def fTrue_def) fast}])),
    ("fFalse", (false, [@{lemma "~ fFalse" by (unfold fFalse_def) fast}])),

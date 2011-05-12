@@ -58,6 +58,16 @@ by (metis B_def C_def int_le_0_imp_le_1 predicate1I)
 
 text {* Proxies for logical constants *}
 
+lemma "id (op =) x x"
+sledgehammer [type_sys = erased, expect = none] (id_apply)
+sledgehammer [type_sys = poly_tags!, expect = some] (id_apply)
+sledgehammer [type_sys = poly_tags, expect = some] (id_apply)
+sledgehammer [type_sys = poly_preds, expect = some] (id_apply)
+sledgehammer [type_sys = mangled_preds!, expect = some] (id_apply)
+sledgehammer [type_sys = mangled_preds?, expect = some] (id_apply)
+sledgehammer [type_sys = mangled_preds, expect = some] (id_apply)
+by (metis id_apply)
+
 lemma "id True"
 sledgehammer [type_sys = erased, expect = some] (id_apply)
 sledgehammer [type_sys = poly_tags!, expect = some] (id_apply)
