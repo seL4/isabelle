@@ -288,7 +288,8 @@ lemma Says_Server_message_form:
 apply (unfold before_def)
 apply (erule rev_mp)
 apply (erule bankerberos.induct, simp_all add: takeWhile_tail)
-apply (metis length_rev set_rev takeWhile_void used_evs_rev)
+apply auto
+ apply (metis length_rev set_rev takeWhile_void used_evs_rev)+
 done
 
 
