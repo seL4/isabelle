@@ -218,8 +218,6 @@ axiomatization where
 
 declare if_weak_cong [cong del]
 
-ML {* val MI_css = (@{claset}, @{simpset}) *}
-
 (* A more aggressive variant that tries to solve subgoals by assumption
    or contradiction during the simplification.
    THIS IS UNSAFE, BECAUSE IT DOESN'T RECORD THE CHOICES!!
@@ -229,7 +227,7 @@ ML {* val MI_css = (@{claset}, @{simpset}) *}
 ML {*
 val MI_fast_css =
   let
-    val (cs,ss) = MI_css
+    val (cs,ss) = @{clasimpset}
   in
     (cs addSEs [temp_use @{thm squareE}],
       ss addSSolver (mk_solver "" (fn thms => assume_tac ORELSE' (etac notE))))
@@ -1203,7 +1201,7 @@ lemma Step1_5_1a: "|- IPImp p --> (ALL l. []$MemInv mm l)"
 lemma Step1_5_1b: "|- Init(ImpInit p & HInit rmhist p) & [](ImpNext p)
          & [][HNext rmhist p]_(c p, r p, m p, rmhist!p) & [](ALL l. $MemInv mm l)
          --> []ImpInv rmhist p"
-  apply (tactic "inv_tac MI_css 1")
+  apply invariant
    apply (auto simp: Init_def ImpInv_def box_stp_act [temp_use]
      dest!: Step1_1 [temp_use] dest: S1_successors [temp_use] S2_successors [temp_use]
      S3_successors [temp_use] S4_successors [temp_use] S5_successors [temp_use]
