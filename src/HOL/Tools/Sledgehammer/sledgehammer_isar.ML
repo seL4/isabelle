@@ -82,8 +82,8 @@ val default_default_params =
    ("type_sys", "smart"),
    ("relevance_thresholds", "0.45 0.85"),
    ("max_relevant", "smart"),
-   ("max_mono_iters", "4"),
-   ("max_mono_instances", "500"),
+   ("max_mono_iters", "5"),
+   ("max_new_mono_instances", "250"),
    ("explicit_apply", "false"),
    ("isar_proof", "false"),
    ("isar_shrink_factor", "1"),
@@ -105,7 +105,7 @@ val negated_alias_params =
 
 val params_for_minimize =
   ["debug", "verbose", "overlord", "type_sys", "full_types", "max_mono_iters",
-   "max_mono_instances", "isar_proof", "isar_shrink_factor", "timeout"]
+   "max_new_mono_instances", "isar_proof", "isar_shrink_factor", "timeout"]
 
 val property_dependent_params = ["provers", "full_types", "timeout"]
 
@@ -249,7 +249,7 @@ fun extract_params auto default_params override_params =
     val relevance_thresholds = lookup_real_pair "relevance_thresholds"
     val max_relevant = lookup_int_option "max_relevant"
     val max_mono_iters = lookup_int "max_mono_iters"
-    val max_mono_instances = lookup_int "max_mono_instances"
+    val max_new_mono_instances = lookup_int "max_new_mono_instances"
     val explicit_apply = lookup_bool "explicit_apply"
     val isar_proof = lookup_bool "isar_proof"
     val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
@@ -260,7 +260,7 @@ fun extract_params auto default_params override_params =
     {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
      provers = provers, relevance_thresholds = relevance_thresholds,
      max_relevant = max_relevant, max_mono_iters = max_mono_iters,
-     max_mono_instances = max_mono_instances, type_sys = type_sys,
+     max_new_mono_instances = max_new_mono_instances, type_sys = type_sys,
      explicit_apply = explicit_apply, isar_proof = isar_proof,
      isar_shrink_factor = isar_shrink_factor, slicing = slicing,
      timeout = timeout, expect = expect}

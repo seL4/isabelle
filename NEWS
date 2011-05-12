@@ -69,7 +69,7 @@ syntax diagrams.
     INCOMPATIBILITY.
   - Added support for SNARK and ToFoF-E on SystemOnTPTP and for simply typed
     TPTP problems (TFF).
-  - Added "type_sys", "max_mono_iters", and "max_mono_instances" options.
+  - Added "type_sys", "max_mono_iters", and "max_new_mono_instances" options.
 
 * "try":
   - Added "simp:", "intro:", and "elim:" options.

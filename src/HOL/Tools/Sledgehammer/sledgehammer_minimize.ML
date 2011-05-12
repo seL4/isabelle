@@ -43,8 +43,8 @@ fun n_facts names =
 fun print silent f = if silent then () else Output.urgent_message (f ())
 
 fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
-                 max_mono_instances, type_sys, isar_proof, isar_shrink_factor,
-                 ...} : params)
+                 max_new_mono_instances, type_sys, isar_proof,
+                 isar_shrink_factor, ...} : params)
         explicit_apply_opt silent (prover : prover) timeout i n state facts =
   let
     val thy = Proof.theory_of state
@@ -66,9 +66,10 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
       {debug = debug, verbose = verbose, overlord = overlord, blocking = true,
        provers = provers, type_sys = type_sys, explicit_apply = explicit_apply,
        relevance_thresholds = (1.01, 1.01), max_relevant = NONE,
-       max_mono_iters = max_mono_iters, max_mono_instances = max_mono_instances,
-       isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
-       slicing = false, timeout = timeout, expect = ""}
+       max_mono_iters = max_mono_iters,
+       max_new_mono_instances = max_new_mono_instances, isar_proof = isar_proof,
+       isar_shrink_factor = isar_shrink_factor, slicing = false,
+       timeout = timeout, expect = ""}
     val facts =
       facts |> maps (fn (n, ths) => ths |> map (Untranslated_Fact o pair n))
     val problem =
