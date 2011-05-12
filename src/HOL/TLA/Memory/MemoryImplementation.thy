@@ -294,11 +294,9 @@ lemma MVOKBARFnotNR: "MVOKBARF x ==> x ~= NotAResult"
 *)
 
 (* --- not used ---
-Goal "|- S1 rmhist p --> S1 rmhist p & ~S2 rmhist p & ~S3 rmhist p &
-                         ~S4 rmhist p & ~S5 rmhist p & ~S6 rmhist p"
-by (auto_tac (MI_css addsimps2 [S_def, S1_def, S2_def,
-                                S3_def, S4_def, S5_def, S6_def]));
-qed "S1_excl";
+lemma S1_excl: "|- S1 rmhist p --> S1 rmhist p & ~S2 rmhist p & ~S3 rmhist p &
+    ~S4 rmhist p & ~S5 rmhist p & ~S6 rmhist p"
+  by (auto simp: S_def S1_def S2_def S3_def S4_def S5_def S6_def)
 *)
 
 lemma S2_excl: "|- S2 rmhist p --> S2 rmhist p & ~S1 rmhist p"
