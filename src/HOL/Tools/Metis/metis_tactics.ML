@@ -132,20 +132,9 @@ fun FOL_SOLVE mode ctxt cls ths0 =
                   (if Config.get ctxt verbose then "\n" ^ loc ^ ": " ^ msg
                    else ""))
 
-(* Extensionalize "th", because that makes sense and that's what Sledgehammer
-   does, but also keep an unextensionalized version of "th" for backward
-   compatibility. *)
-fun also_extensionalize_theorem th =
-  let val th' = Meson_Clausify.extensionalize_theorem th in
-    if Thm.eq_thm (th, th') then [th]
-    else th :: Meson.make_clauses_unsorted [th']
-  end
-
 fun neg_clausify ctxt =
   single
   #> Meson.make_clauses_unsorted
-  #> maps (Raw_Simplifier.rewrite_rule (Meson.unfold_set_const_simps ctxt)
-           #> also_extensionalize_theorem)
   #> map Meson_Clausify.introduce_combinators_in_theorem
   #> Meson.finish_cnf
 

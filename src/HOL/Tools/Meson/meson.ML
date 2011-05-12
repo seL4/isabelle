@@ -22,6 +22,8 @@ sig
   val choice_theorems : theory -> thm list
   val skolemize_with_choice_theorems : Proof.context -> thm list -> thm -> thm
   val skolemize : Proof.context -> thm -> thm
+  val extensionalize_conv : Proof.context -> conv
+  val extensionalize_theorem : Proof.context -> thm -> thm
   val is_fol_term: theory -> term -> bool
   val make_clauses_unsorted: thm list -> thm list
   val make_clauses: thm list -> thm list
@@ -610,12 +612,37 @@ fun skolemize ctxt =
     skolemize_with_choice_theorems ctxt (choice_theorems thy)
   end
 
+fun is_Abs (Abs _) = true
+  | is_Abs _ = false
+
+(* Removes the lambdas from an equation of the form "t = (%x. u)".  *)
+fun extensionalize_conv ctxt ct =
+  case term_of ct of
+    Const (@{const_name HOL.eq}, _) $ t1 $ t2 =>
+    ct |> (if is_Abs t1 orelse is_Abs t2 then
+             Conv.rewr_conv @{thm fun_eq_iff [THEN eq_reflection]}
+             then_conv extensionalize_conv ctxt
+           else
+             Conv.comb_conv (extensionalize_conv ctxt))
+  | _ $ _ => Conv.comb_conv (extensionalize_conv ctxt) ct
+  | Abs _ => Conv.abs_conv (extensionalize_conv o snd) ctxt ct
+  | _ => Conv.all_conv ct
+
+val extensionalize_theorem = Conv.fconv_rule o extensionalize_conv
+
 (* "RS" can fail if "unify_search_bound" is too small. *)
-fun try_skolemize ctxt th =
-  try (skolemize ctxt) th
-  |> tap (fn NONE => trace_msg ctxt (fn () => "Failed to skolemize " ^
-                                              Display.string_of_thm ctxt th)
-           | _ => ())
+fun try_skolemize_etc ctxt =
+  Raw_Simplifier.rewrite_rule (unfold_set_const_simps ctxt)
+  (* Extensionalize "th", because that makes sense and that's what Sledgehammer
+     does, but also keep an unextensionalized version of "th" for backward
+     compatibility. *)
+  #> (fn th => insert Thm.eq_thm_prop (extensionalize_theorem ctxt th) [th])
+  #> map_filter (fn th => try (skolemize ctxt) th
+                          |> tap (fn NONE =>
+                                     trace_msg ctxt (fn () =>
+                                         "Failed to skolemize " ^
+                                          Display.string_of_thm ctxt th)
+                                   | _ => ()))
 
 fun add_clauses th cls =
   let val ctxt0 = Variable.global_thm_context th
@@ -645,7 +672,7 @@ fun depth_prolog_tac horns =
 fun gocls cls = name_thms "Goal#" (map make_goal (neg_clauses cls));
 
 fun skolemize_prems_tac ctxt prems =
-  cut_facts_tac (map_filter (try_skolemize ctxt) prems) THEN' REPEAT o etac exE
+  cut_facts_tac (maps (try_skolemize_etc ctxt) prems) THEN' REPEAT o etac exE
 
 (*Basis of all meson-tactics.  Supplies cltac with clauses: HOL disjunctions.
   Function mkcl converts theorems to clauses.*)

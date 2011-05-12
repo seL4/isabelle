@@ -10,7 +10,6 @@ sig
   val new_skolem_var_prefix : string
   val new_nonskolem_var_prefix : string
   val is_zapped_var_name : string -> bool
-  val extensionalize_theorem : thm -> thm
   val introduce_combinators_in_cterm : cterm -> thm
   val introduce_combinators_in_theorem : thm -> thm
   val cluster_of_zapped_var_name : string -> (int * (int * int)) * bool
@@ -86,16 +85,6 @@ fun old_skolem_defs th =
 
 
 (**** REPLACING ABSTRACTIONS BY COMBINATORS ****)
-
-val fun_cong_all = @{thm fun_eq_iff [THEN iffD1]}
-
-(* Removes the lambdas from an equation of the form "t = (%x. u)".
-   (Cf. "extensionalize_term" in "Sledgehammer_Translate".) *)
-fun extensionalize_theorem th =
-  case prop_of th of
-    _ $ (Const (@{const_name HOL.eq}, Type (_, [Type (@{type_name fun}, _), _]))
-         $ _ $ Abs _) => extensionalize_theorem (th RS fun_cong_all)
-  | _ => th
 
 fun is_quasi_lambda_free (Const (@{const_name Meson.skolem}, _) $ _) = true
   | is_quasi_lambda_free (t1 $ t2) =
@@ -321,7 +310,7 @@ fun nnf_axiom choice_ths new_skolemizer ax_no th ctxt =
     val (th, ctxt) = Variable.import true [th] ctxt |>> snd |>> the_single
     val th = th |> Conv.fconv_rule Object_Logic.atomize
                 |> Raw_Simplifier.rewrite_rule (unfold_set_const_simps ctxt)
-                |> extensionalize_theorem
+                |> extensionalize_theorem ctxt
                 |> make_nnf ctxt
   in
     if new_skolemizer then
