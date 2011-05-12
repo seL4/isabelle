@@ -148,7 +148,7 @@ subsection{*Case Study: Compiling Expressions*}
 
 subsubsection{*Expressions*}
 
-types 'v binop = "'v \<Rightarrow> 'v \<Rightarrow> 'v"
+type_synonym 'v binop = "'v \<Rightarrow> 'v \<Rightarrow> 'v"
 
 datatype ('a,'v)expr = Cex 'v
                      | Vex 'a

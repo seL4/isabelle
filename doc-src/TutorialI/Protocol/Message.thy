@@ -32,7 +32,7 @@ Keys are just natural numbers.  Function @{text invKey} maps a public key to
 the matching private key, and vice versa:
 *}
 
-types key = nat
+type_synonym key = nat
 consts invKey :: "key \<Rightarrow> key"
 (*<*)
 consts all_symmetric :: bool        --{*true if all keys are symmetric*}

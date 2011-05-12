@@ -1,7 +1,7 @@
 (*<*)theory "types" imports Main begin(*>*)
-types number       = nat
-      gate         = "bool \<Rightarrow> bool \<Rightarrow> bool"
-      ('a,'b)alist = "('a \<times> 'b)list"
+type_synonym number = nat
+type_synonym gate = "bool \<Rightarrow> bool \<Rightarrow> bool"
+type_synonym ('a, 'b) alist = "('a \<times> 'b) list"
 
 text{*\noindent
 Internally all synonyms are fully expanded.  As a consequence Isabelle's

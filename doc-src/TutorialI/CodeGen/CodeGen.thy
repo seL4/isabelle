@@ -15,7 +15,7 @@ a fixed set of binary operations: instead the expression contains the
 appropriate function itself.
 *}
 
-types 'v binop = "'v \<Rightarrow> 'v \<Rightarrow> 'v";
+type_synonym 'v binop = "'v \<Rightarrow> 'v \<Rightarrow> 'v";
 datatype ('a,'v)expr = Cex 'v
                      | Vex 'a
                      | Bex "'v binop"  "('a,'v)expr"  "('a,'v)expr";
