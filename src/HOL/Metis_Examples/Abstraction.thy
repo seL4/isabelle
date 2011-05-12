@@ -68,18 +68,6 @@ by (metis mem_Sigma_iff singleton_conv2 vimage_Collect_eq vimage_singleton_eq)
 lemma "(a, b) \<in> (SIGMA x:A. {y. x = f y}) \<Longrightarrow> a \<in> A \<and> a = f b"
 proof -
   assume A1: "(a, b) \<in> (SIGMA x:A. {y. x = f y})"
-  have F1: "\<forall>u. {u} = op = u" by (metis singleton_conv2 Collect_def)
-  have F2: "\<forall>y w v. v \<in> w -` op = y \<longrightarrow> w v = y"
-    by (metis F1 vimage_singleton_eq)
-  have F3: "\<forall>x w. (\<lambda>R. w (x R)) = x -` w"
-    by (metis vimage_Collect_eq Collect_def)
-  show "a \<in> A \<and> a = f b" by (metis A1 F2 F3 mem_Sigma_iff Collect_def)
-qed
-
-(* Alternative structured proof *)
-lemma "(a, b) \<in> (SIGMA x:A. {y. x = f y}) \<Longrightarrow> a \<in> A \<and> a = f b"
-proof -
-  assume A1: "(a, b) \<in> (SIGMA x:A. {y. x = f y})"
   hence F1: "a \<in> A" by (metis mem_Sigma_iff)
   have "b \<in> {R. a = f R}" by (metis A1 mem_Sigma_iff)
   hence F2: "b \<in> (\<lambda>R. a = f R)" by (metis Collect_def)
