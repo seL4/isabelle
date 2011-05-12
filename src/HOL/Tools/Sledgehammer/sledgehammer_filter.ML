@@ -10,8 +10,7 @@ sig
   datatype locality = General | Intro | Elim | Simp | Local | Assum | Chained
 
   type relevance_fudge =
-    {allow_ext : bool,
-     local_const_multiplier : real,
+    {local_const_multiplier : real,
      worse_irrel_freq : real,
      higher_order_irrel_weight : real,
      abs_rel_weight : real,
@@ -83,8 +82,7 @@ fun is_locality_global Local = false
   | is_locality_global _ = true
 
 type relevance_fudge =
-  {allow_ext : bool,
-   local_const_multiplier : real,
+  {local_const_multiplier : real,
    worse_irrel_freq : real,
    higher_order_irrel_weight : real,
    abs_rel_weight : real,
