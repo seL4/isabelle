@@ -49,7 +49,6 @@ sig
   val const_names_in_fact :
     theory -> (string * typ -> term list -> bool * term list) -> term
     -> string list
-  val is_dangerous_term : term -> bool
   val relevant_facts :
     Proof.context -> real * real -> int
     -> (string * typ -> term list -> bool * term list) -> relevance_fudge
@@ -736,62 +735,6 @@ val type_has_top_sort =
 
 (**** Predicates to detect unwanted facts (prolific or likely to cause
       unsoundness) ****)
-
-(* Too general means, positive equality literal with a variable X as one
-   operand, when X does not occur properly in the other operand. This rules out
-   clearly inconsistent facts such as X = a | X = b, though it by no means
-   guarantees soundness. *)
-
-(* Unwanted equalities are those between a (bound or schematic) variable that
-   does not properly occur in the second operand. *)
-val is_exhaustive_finite =
-  let
-    fun is_bad_equal (Var z) t =
-        not (exists_subterm (fn Var z' => z = z' | _ => false) t)
-      | is_bad_equal (Bound j) t = not (loose_bvar1 (t, j))
-      | is_bad_equal _ _ = false
-    fun do_equals t1 t2 = is_bad_equal t1 t2 orelse is_bad_equal t2 t1
-    fun do_formula pos t =
-      case (pos, t) of
-        (_, @{const Trueprop} $ t1) => do_formula pos t1
-      | (true, Const (@{const_name all}, _) $ Abs (_, _, t')) =>
-        do_formula pos t'
-      | (true, Const (@{const_name All}, _) $ Abs (_, _, t')) =>
-        do_formula pos t'
-      | (false, Const (@{const_name Ex}, _) $ Abs (_, _, t')) =>
-        do_formula pos t'
-      | (_, @{const "==>"} $ t1 $ t2) =>
-        do_formula (not pos) t1 andalso
-        (t2 = @{prop False} orelse do_formula pos t2)
-      | (_, @{const HOL.implies} $ t1 $ t2) =>
-        do_formula (not pos) t1 andalso
-        (t2 = @{const False} orelse do_formula pos t2)
-      | (_, @{const Not} $ t1) => do_formula (not pos) t1
-      | (true, @{const HOL.disj} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
-      | (false, @{const HOL.conj} $ t1 $ t2) => forall (do_formula pos) [t1, t2]
-      | (true, Const (@{const_name HOL.eq}, _) $ t1 $ t2) => do_equals t1 t2
-      | (true, Const (@{const_name "=="}, _) $ t1 $ t2) => do_equals t1 t2
-      | _ => false
-  in do_formula true end
-
-fun has_bound_or_var_of_type tycons =
-  exists_subterm (fn Var (_, Type (s, _)) => member (op =) tycons s
-                   | Abs (_, Type (s, _), _) => member (op =) tycons s
-                   | _ => false)
-
-(* Facts are forbidden to contain variables of these types. The typical reason
-   is that they lead to unsoundness. Note that "unit" satisfies numerous
-   equations like "?x = ()". The resulting clauses will have no type constraint,
-   yielding false proofs. Even "bool" leads to many unsound proofs, though only
-   for higher-order problems. *)
-val dangerous_types = [@{type_name unit}, @{type_name bool}, @{type_name prop}]
-
-(* Facts containing variables of type "unit" or "bool" or of the form
-   "ALL x. x = A | x = B | x = C" are likely to lead to unsound proofs if types
-   are omitted. *)
-val is_dangerous_term =
-  transform_elim_term
-  #> (has_bound_or_var_of_type dangerous_types orf is_exhaustive_finite)
 
 fun is_theorem_bad_for_atps thm =
   let val t = prop_of thm in
