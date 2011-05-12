@@ -330,15 +330,15 @@ end
 
 (*** bijectivity of sysOfAlloc [MUST BE AUTOMATED] ***)
 ML {*
-fun record_auto_tac (cs, ss) =
-  auto_tac (cs addIs [ext] addSWrapper Record.split_wrapper,
-    ss addsimps [@{thm sysOfAlloc_def}, @{thm sysOfClient_def},
+fun record_auto_tac ctxt =
+  auto_tac (claset_of ctxt addIs [ext] addSWrapper Record.split_wrapper,
+    simpset_of ctxt addsimps [@{thm sysOfAlloc_def}, @{thm sysOfClient_def},
       @{thm client_map_def}, @{thm non_dummy_def}, @{thm funPair_def},
       @{thm o_apply}, @{thm Let_def}])
 *}
 
 method_setup record_auto = {*
-  Scan.succeed (fn ctxt => SIMPLE_METHOD (record_auto_tac (clasimpset_of ctxt)))
+  Scan.succeed (SIMPLE_METHOD o record_auto_tac)
 *} ""
 
 lemma inj_sysOfAlloc [iff]: "inj sysOfAlloc"
