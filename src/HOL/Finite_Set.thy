@@ -539,7 +539,7 @@ begin
 
 text{* On a functional level it looks much nicer: *}
 
-lemma fun_comp_comm:  "f x \<circ> f y = f y \<circ> f x"
+lemma commute_comp: "f y \<circ> f x = f x \<circ> f y"
 by (simp add: fun_left_comm fun_eq_iff)
 
 end
