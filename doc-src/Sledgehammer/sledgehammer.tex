@@ -616,23 +616,27 @@ $\mathit{type\_info\_}\tau(t)$.
 \item[$\bullet$]
 \textbf{%
 \textit{simple\_types}?,
-\{\textit{poly},\textit{mono},\textit{mangled}\}\textit{\_}\{\textit{preds},\textit{tags}\}?:} \\
-The type systems \textit{poly\_preds}, \textit{poly\_tags},
-\textit{mono\_preds}, \textit{mono\_tags}, \textit{simple\_types},
+\{\textit{mono},\textit{mangled}\}\textit{\_}\{\textit{preds},\textit{tags}\}?:} \\
+The type systems \textit{mono\_preds}, \textit{mono\_tags}, \textit{simple\_types},
 \textit{mangled\_preds}, and \textit{mangled\_tags} are fully typed and
 virtually sound---except for pathological cases, all found proofs are
-type-correct. For each of these, Sledgehammer also provides a just-as-sound
-partially typed variant identified by a question mark (`{?}')\ that detects and
+type-correct. For each of these, Sledgehammer also provides a lighter (but
+virtually sound) variant identified by a question mark (`{?}')\ that detects and
 erases monotonic types, notably infinite types. (For \textit{simple\_types}, the
-types are not actually erased but rather replaced by a shared uniform type.)
+types are not actually erased but rather replaced by a shared uniform type of
+individuals.)
 
 \item[$\bullet$]
 \textbf{%
 \textit{simple\_types}!,
 \{\textit{poly},\textit{mono},\textit{mangled}\}\textit{\_}\{\textit{preds},\textit{tags}\}!:} \\
-If the question mark (`{?}')\ is replaced by an exclamation mark (`{!}'),\ the
-translation erases all types except those that are clearly finite (e.g.,
-\textit{bool}). This encoding is unsound.
+The type systems \textit{poly\_preds}, \textit{poly\_tags},
+\textit{mono\_preds}, \textit{mono\_tags}, \textit{simple\_types},
+\textit{mangled\_preds}, and \textit{mangled\_tags} also admit a somewhat
+unsound (but very efficient) variant identified by an exclamation mark (`{!}')
+that detects and erases erases all types except those that are clearly finite
+(e.g., \textit{bool}). (For \textit{simple\_types}, the types are not actually
+erased but rather replaced by a shared uniform type of individuals.)
 
 \item[$\bullet$] \textbf{\textit{smart}:} If \textit{full\_types} is enabled,
 uses a fully typed, virtually sound encoding; otherwise, uses any encoding. The
@@ -642,16 +646,17 @@ that ATP.
 
 For SMT solvers and ToFoF-E, the type system is always \textit{simple\_types}.
 
-\opdefault{max\_mono\_iters}{int}{\upshape 4}
+\opdefault{max\_mono\_iters}{int}{\upshape 5}
 Specifies the maximum number of iterations for the monomorphization fixpoint
 construction. The higher this limit is, the more monomorphic instances are
 potentially generated. Whether monomorphization takes place depends on the
 type system used.
 
-\opdefault{max\_mono\_instances}{int}{\upshape 500}
-Specifies the maximum number of monomorphic instances to generate as a soft
-limit. The higher this limit is, the more monomorphic instances are potentially
-generated. Whether monomorphization takes place depends on the type system used.
+\opdefault{max\_new\_mono\_instances}{int}{\upshape 250}
+Specifies the maximum number of monomorphic instances to generate beyond
+\textit{max\_relevant}. The higher this limit is, the more monomorphic instances
+are potentially generated. Whether monomorphization takes place depends on the
+type system used.
 \end{enum}
 
 \subsection{Relevance Filter}
