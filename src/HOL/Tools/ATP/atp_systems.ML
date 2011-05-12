@@ -22,8 +22,7 @@ sig
      conj_sym_kind : formula_kind,
      prem_kind : formula_kind,
      formats : format list,
-     best_slices : Proof.context -> (real * (bool * int)) list,
-     best_type_systems : string list}
+     best_slices : Proof.context -> (real * (bool * (int * string list))) list}
 
   val e_weight_method : string Config.T
   val e_default_fun_weight : real Config.T
@@ -43,7 +42,7 @@ sig
   val remote_atp :
     string -> string -> string list -> (string * string) list
     -> (failure * string) list -> formula_kind -> formula_kind -> format list
-    -> (Proof.context -> int) -> string list -> string * atp_config
+    -> (Proof.context -> int * string list) -> string * atp_config
   val add_atp : string * atp_config -> theory -> theory
   val get_atp : theory -> string -> atp_config
   val supported_atps : theory -> string list
@@ -71,13 +70,19 @@ type atp_config =
    conj_sym_kind : formula_kind,
    prem_kind : formula_kind,
    formats : format list,
-   best_slices : Proof.context -> (real * (bool * int)) list,
-   best_type_systems : string list}
+   best_slices : Proof.context -> (real * (bool * (int * string list))) list}
 
-(* "best_slices" and "best_type_systems" must be found empirically, taking a
-    wholistic approach since the ATPs are run in parallel. "best_type_systems"
-    should be of the form [sound] or [unsound, sound], where "sound" is a sound
-    type system and "unsound" is an unsound one. *)
+(* "best_slices" must be found empirically, taking a wholistic approach since
+   the ATPs are run in parallel. The "real" components give the faction of the
+   time available given to the slice; these should add up to 1.0. The "bool"
+   component indicates whether the slice's strategy is complete; the "int", the
+   preferred number of facts to pass; the "string list", the preferred type
+   systems, which should be of the form [sound] or [unsound, sound], where
+   "sound" is a sound type system and "unsound" is an unsound one.
+
+   The last slice should be the most "normal" one, because it will get all the
+   time available if the other slices fail early and also because it is used for
+   remote provers and if slicing is disabled. *)
 
 val known_perl_failures =
   [(CantConnect, "HTTP error"),
@@ -212,13 +217,13 @@ val e_config : atp_config =
    prem_kind = Conjecture,
    formats = [Fof],
    best_slices = fn ctxt =>
+     (* FUDGE *)
      if effective_e_weight_method ctxt = e_slicesN then
-       [(0.33333, (true, 100 (* FUDGE *))) (* sym_offset_weight *),
-        (0.33333, (true, 1000 (* FUDGE *))) (* auto *),
-        (0.33334, (true, 200 (* FUDGE *))) (* fun_weight *)]
+       [(0.333, (true, (100, ["mangled_preds?"]))) (* sym_offset_weight *),
+        (0.333, (true, (1000, ["mangled_preds?"]))) (* auto *),
+        (0.334, (true, (200, ["mangled_preds?"]))) (* fun_weight *)]
      else
-       [(1.0, (true, 250 (* FUDGE *)))],
-   best_type_systems = ["mangled_preds?"]}
+       [(1.0, (true, (250, ["mangled_preds?"])))]}
 
 val e = (eN, e_config)
 
@@ -248,9 +253,9 @@ val spass_config : atp_config =
    prem_kind = Conjecture,
    formats = [Fof],
    best_slices =
-     K [(0.66667, (false, 150 (* FUDGE *))) (* with SOS *),
-        (0.33333, (true, 150 (* FUDGE *))) (* without SOS *)],
-   best_type_systems = ["mangled_preds"]}
+     (* FUDGE *)
+     K [(0.667, (false, (150, ["mangled_preds"]))) (* SOS *),
+        (0.333, (true, (150, ["mangled_preds"]))) (* ~SOS *)]}
 
 val spass = (spassN, spass_config)
 
@@ -285,9 +290,9 @@ val vampire_config : atp_config =
    prem_kind = Conjecture,
    formats = [Fof],
    best_slices =
-     K [(0.66667, (false, 450 (* FUDGE *))) (* with SOS *),
-        (0.33333, (true, 450 (* FUDGE *))) (* without SOS *)],
-   best_type_systems = ["mangled_tags!", "mangled_preds?"]}
+     (* FUDGE *)
+     K [(0.667, (false, (450, ["mangled_tags!", "mangled_preds?"]))) (* SOS *),
+        (0.333, (true, (450, ["mangled_tags!", "mangled_preds?"]))) (* ~SOS *)]}
 
 val vampire = (vampireN, vampire_config)
 
@@ -309,8 +314,9 @@ val z3_atp_config : atp_config =
    conj_sym_kind = Hypothesis,
    prem_kind = Hypothesis,
    formats = [Fof],
-   best_slices = K [(1.0, (false, 250 (* FUDGE *)))],
-   best_type_systems = [] (* FIXME *)}
+   best_slices =
+     (* FUDGE (FIXME) *)
+     K [(1.0, (false, (250, [])))]}
 
 val z3_atp = (z3_atpN, z3_atp_config)
 
@@ -348,8 +354,7 @@ fun the_system name versions =
 val max_remote_secs = 240 (* give Geoff Sutcliffe's servers a break *)
 
 fun remote_config system_name system_versions proof_delims known_failures
-                  conj_sym_kind prem_kind formats best_max_relevant
-                  best_type_systems : atp_config =
+                  conj_sym_kind prem_kind formats best_slice : atp_config =
   {exec = ("ISABELLE_ATP", "scripts/remote_atp"),
    required_execs = [],
    arguments = fn _ => fn _ => fn timeout => fn _ =>
@@ -364,24 +369,20 @@ fun remote_config system_name system_versions proof_delims known_failures
    conj_sym_kind = conj_sym_kind,
    prem_kind = prem_kind,
    formats = formats,
-   best_slices = fn ctxt => [(1.0, (false, best_max_relevant ctxt))],
-   best_type_systems = best_type_systems}
-
-fun int_average f xs = fold (Integer.add o f) xs 0 div length xs
+   best_slices = fn ctxt => [(1.0, (false, best_slice ctxt))]}
 
 fun remotify_config system_name system_versions
         ({proof_delims, known_failures, conj_sym_kind, prem_kind, formats,
-          best_slices, best_type_systems, ...} : atp_config) : atp_config =
+          best_slices, ...} : atp_config) : atp_config =
   remote_config system_name system_versions proof_delims known_failures
                 conj_sym_kind prem_kind formats
-                (int_average (snd o snd) o best_slices) best_type_systems
+                (best_slices #> List.last #> snd #> snd)
 
 fun remote_atp name system_name system_versions proof_delims known_failures
-        conj_sym_kind prem_kind formats best_max_relevant best_type_systems =
+        conj_sym_kind prem_kind formats best_slice =
   (remote_prefix ^ name,
    remote_config system_name system_versions proof_delims known_failures
-                 conj_sym_kind prem_kind formats best_max_relevant
-                 best_type_systems)
+                 conj_sym_kind prem_kind formats best_slice)
 fun remotify_atp (name, config) system_name system_versions =
   (remote_prefix ^ name, remotify_config system_name system_versions config)
 
@@ -390,14 +391,14 @@ val remote_vampire = remotify_atp vampire "Vampire" ["0.6", "9.0", "1.0"]
 val remote_z3_atp = remotify_atp z3_atp "Z3" ["2.18"]
 val remote_tofof_e =
   remote_atp tofof_eN "ToFoF" ["0.1"] [] (#known_failures e_config)
-             Axiom Conjecture [Tff] (K 200 (* FUDGE *)) ["simple"]
+             Axiom Conjecture [Tff] (K (200, ["simple_types"]) (* FUDGE *))
 val remote_sine_e =
   remote_atp sine_eN "SInE" ["0.4"] [] [] Axiom Conjecture [Fof]
-             (K 500 (* FUDGE *)) ["args", "preds", "tags"]
+             (K (500, ["poly_args"]) (* FUDGE *))
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r024"]
              [("refutation.", "end_refutation.")] [] Hypothesis Conjecture
-             [Tff, Fof] (K 250 (* FUDGE *)) ["simple"]
+             [Tff, Fof] (K (250, ["simple_types"]) (* FUDGE *))
 
 (* Setup *)
 

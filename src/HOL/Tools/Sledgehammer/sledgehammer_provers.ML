@@ -135,7 +135,7 @@ fun default_max_relevant_for_prover ctxt slicing name =
     if is_smt_prover ctxt name then
       SMT_Solver.default_max_relevant ctxt name
     else
-      fold (Integer.max o snd o snd o snd)
+      fold (Integer.max o fst o snd o snd o snd)
            (get_slices slicing (#best_slices (get_atp thy name) ctxt)) 0
   end
 
@@ -346,7 +346,8 @@ val atp_blacklist_max_iters = 10
 val atp_important_message_keep_quotient = 10
 
 val fallback_best_type_systems =
-  [Preds (Polymorphic, Const_Arg_Types), Simple_Types All_Types]
+  [Preds (Polymorphic, Const_Arg_Types),
+   Preds (Mangled_Monomorphic, Nonmonotonic_Types)]
 
 fun adjust_dumb_type_sys formats (Simple_Types level) =
     if member (op =) formats Tff then (Tff, Simple_Types level)
@@ -362,8 +363,7 @@ fun determine_format_and_type_sys _ formats (Dumb_Type_Sys type_sys) =
 
 fun run_atp auto name
         ({exec, required_execs, arguments, proof_delims, known_failures,
-          conj_sym_kind, prem_kind, formats, best_slices, best_type_systems,
-          ...} : atp_config)
+          conj_sym_kind, prem_kind, formats, best_slices, ...} : atp_config)
         ({debug, verbose, overlord, type_sys, max_relevant, monomorphize_limit,
           explicit_apply, isar_proof, isar_shrink_factor, slicing, timeout, ...}
          : params)
@@ -371,8 +371,6 @@ fun run_atp auto name
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
-    val (format, type_sys) =
-      determine_format_and_type_sys best_type_systems formats type_sys
     val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal
     val (dest_dir, problem_prefix) =
       if overlord then overlord_file_location_for_prover name
@@ -430,13 +428,15 @@ fun run_atp auto name
                 |> filter_out (curry (op =) ~1 o fst)
                 |> map (Untranslated_Fact o apfst (fst o nth facts))
               end
-            fun run_slice blacklist
-                          (slice, (time_frac, (complete, default_max_relevant)))
+            fun run_slice blacklist (slice, (time_frac, (complete,
+                                       (best_max_relevant, best_type_systems))))
                           time_left =
               let
                 val num_facts =
                   length facts |> is_none max_relevant
-                                  ? Integer.min default_max_relevant
+                                  ? Integer.min best_max_relevant
+                val (format, type_sys) =
+                  determine_format_and_type_sys best_type_systems formats type_sys
                 val fairly_sound = is_type_sys_fairly_sound type_sys
                 val facts =
                   facts |> not fairly_sound
@@ -521,11 +521,11 @@ fun run_atp auto name
                   | _ => outcome
               in
                 ((pool, conjecture_shape, facts_offset, fact_names),
-                 (output, msecs, atp_proof, outcome))
+                 (output, msecs, type_sys, atp_proof, outcome))
               end
             val timer = Timer.startRealTimer ()
             fun maybe_run_slice blacklist slice
-                                (result as (_, (_, msecs0, _, SOME _))) =
+                                (result as (_, (_, msecs0, _, _, SOME _))) =
                 let
                   val time_left = Time.- (timeout, Timer.checkRealTimer timer)
                 in
@@ -533,14 +533,16 @@ fun run_atp auto name
                     result
                   else
                     (run_slice blacklist slice time_left
-                     |> (fn (stuff, (output, msecs, atp_proof, outcome)) =>
-                            (stuff, (output, int_opt_add msecs0 msecs, atp_proof,
-                                     outcome))))
+                     |> (fn (stuff, (output, msecs, type_sys, atp_proof,
+                                     outcome)) =>
+                            (stuff, (output, int_opt_add msecs0 msecs, type_sys,
+                                     atp_proof, outcome))))
                 end
               | maybe_run_slice _ _ result = result
             fun maybe_blacklist_facts_and_retry iter blacklist
                     (result as ((_, _, facts_offset, fact_names),
-                                (_, _, atp_proof, SOME (UnsoundProof false)))) =
+                                (_, _, type_sys, atp_proof,
+                                 SOME (UnsoundProof false)))) =
                 (case used_facts_in_atp_proof type_sys facts_offset fact_names
                                               atp_proof of
                    [] => result
@@ -554,7 +556,8 @@ fun run_atp auto name
               | maybe_blacklist_facts_and_retry _ _ result = result
           in
             ((Symtab.empty, [], 0, Vector.fromList []),
-             ("", SOME 0, [], SOME InternalError))
+             ("", SOME 0, hd fallback_best_type_systems, [],
+              SOME InternalError))
             |> fold (maybe_run_slice []) actual_slices
                (* The ATP found an unsound proof? Automatically try again
                   without the offending facts! *)
@@ -567,13 +570,13 @@ fun run_atp auto name
        the proof file too. *)
     fun cleanup prob_file =
       if dest_dir = "" then try File.rm prob_file else NONE
-    fun export prob_file (_, (output, _, _, _)) =
+    fun export prob_file (_, (output, _, _, _, _)) =
       if dest_dir = "" then
         ()
       else
         File.write (Path.explode (Path.implode prob_file ^ "_proof")) output
     val ((pool, conjecture_shape, facts_offset, fact_names),
-         (output, msecs, atp_proof, outcome)) =
+         (output, msecs, type_sys, atp_proof, outcome)) =
       with_path cleanup export run_on problem_path_name
     val important_message =
       if not auto andalso
