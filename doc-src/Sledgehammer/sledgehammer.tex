@@ -354,12 +354,13 @@ highly-relevant and \textit{facts}$_2$ fully irrelevant.
 You can instruct Sledgehammer to run automatically on newly entered theorems by
 enabling the ``Auto Sledgehammer'' option from the ``Isabelle'' menu in Proof
 General. For automatic runs, only the first prover set using \textit{provers}
-(\S\ref{mode-of-operation}) is considered, \textit{verbose}
-(\S\ref{output-format}) and \textit{debug} (\S\ref{output-format}) are disabled,
-fewer facts are passed to the prover, \textit{slicing}
-(\S\ref{mode-of-operation}) is disabled, and \textit{timeout}
+(\S\ref{mode-of-operation}) is considered, fewer facts are passed to the prover,
+\textit{slicing} (\S\ref{mode-of-operation}) is disabled, \textit{timeout}
 (\S\ref{mode-of-operation}) is superseded by the ``Auto Tools Time Limit'' in
-Proof General's ``Isabelle'' menu. Sledgehammer's output is also more concise.
+Proof General's ``Isabelle'' menu, \textit{full\_types}
+(\S\ref{problem-encoding}) is enabled, and \textit{verbose}
+(\S\ref{output-format}) and \textit{debug} (\S\ref{output-format}) are disabled.
+Sledgehammer's output is also more concise.
 
 \section{Option Reference}
 \label{option-reference}
@@ -555,17 +556,10 @@ not be found.
 
 \opfalse{full\_types}{partial\_types}
 Specifies whether full type information is encoded in ATP problems. Enabling
-this option prevents the discovery of type-incorrect proofs, but it also tends
-to slow down the ATPs significantly. For historical reasons, the default value
-of this option can be overridden using the option ``Sledgehammer: Full Types''
-from the ``Isabelle'' menu in Proof General.
-
-\opfalse{full\_types}{partial\_types}
-Specifies whether full-type information is encoded in ATP problems. Enabling
-this option can prevent the discovery of type-incorrect proofs, but it also
-tends to slow down the ATPs significantly. For historical reasons, the default
-value of this option can be overridden using the option ``Sledgehammer: Full
-Types'' from the ``Isabelle'' menu in Proof General.
+this option prevents the discovery of type-incorrect proofs, but it can slow
+down the ATP slightly. This option is implicitly enabled for automatic runs. For
+historical reasons, the default value of this option can be overridden using the
+option ``Sledgehammer: Full Types'' from the ``Isabelle'' menu in Proof General.
 
 \opdefault{type\_sys}{string}{smart}
 Specifies the type system to use in ATP problems. The option can take the

@@ -241,7 +241,9 @@ fun extract_params auto default_params override_params =
     val provers = lookup_string "provers" |> space_explode " "
                   |> auto ? single o hd
     val type_sys =
-      case lookup_string "type_sys" of
+      if auto then
+        Smart_Type_Sys true
+      else case lookup_string "type_sys" of
         "smart" => Smart_Type_Sys (lookup_bool "full_types")
       | s => Dumb_Type_Sys (type_sys_from_string s)
     val relevance_thresholds = lookup_real_pair "relevance_thresholds"
