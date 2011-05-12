@@ -269,7 +269,8 @@ val mangled_type_sep = "\000"
 
 fun generic_mangled_type_name f (ATerm (name, [])) = f name
   | generic_mangled_type_name f (ATerm (name, tys)) =
-    f name ^ "(" ^ commas (map (generic_mangled_type_name f) tys) ^ ")"
+    f name ^ "(" ^ space_implode "," (map (generic_mangled_type_name f) tys)
+    ^ ")"
 val mangled_type_name =
   fo_term_from_typ
   #> (fn ty => (make_tff_type (generic_mangled_type_name fst ty),

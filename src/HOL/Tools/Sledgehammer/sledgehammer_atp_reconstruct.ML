@@ -357,7 +357,9 @@ fun raw_term_from_pred thy sym_tab tfrees =
               list_comb (Const (@{const_name HOL.eq}, HOLogic.typeT), ts)
           end
         | SOME s =>
-          let val (s', mangled_us) = s |> unmangled_const |>> invert_const in
+          let
+            val ((s', s), mangled_us) = s |> unmangled_const |>> `invert_const
+          in
             if s' = type_tag_name then
               case mangled_us @ us of
                 [typ_u, term_u] =>
@@ -380,14 +382,12 @@ fun raw_term_from_pred thy sym_tab tfrees =
                 val term_ts = map (aux NONE []) term_us
                 val extra_ts = map (aux NONE []) extra_us
                 val T =
-                  case opt_T of
-                    SOME T => map fastype_of term_ts ---> T
-                  | NONE =>
-                    if num_type_args thy s' = length type_us then
-                      Sign.const_instance thy
-                          (s', map (typ_from_fo_term tfrees) type_us)
-                    else
-                      HOLogic.typeT
+                  if num_type_args thy s' = length type_us then
+                    Sign.const_instance thy
+                        (s', map (typ_from_fo_term tfrees) type_us)
+                  else case opt_T of
+                    SOME T => map fastype_of (term_ts @ extra_ts) ---> T
+                  | NONE => HOLogic.typeT
                 val s' = s' |> unproxify_const
               in list_comb (Const (s', T), term_ts @ extra_ts) end
           end
@@ -424,14 +424,17 @@ val combinator_table =
    (@{const_name Meson.COMBC}, @{thm Meson.COMBC_def_raw}),
    (@{const_name Meson.COMBS}, @{thm Meson.COMBS_def_raw})]
 
-fun uncombine_term (t1 $ t2) = betapply (pairself uncombine_term (t1, t2))
-  | uncombine_term (Abs (s, T, t')) = Abs (s, T, uncombine_term t')
-  | uncombine_term (t as Const (x as (s, _))) =
-    (case AList.lookup (op =) combinator_table s of
-       SOME thm => thm |> prop_of |> specialize_type @{theory} x
-                       |> Logic.dest_equals |> snd
-     | NONE => t)
-  | uncombine_term t = t
+fun uncombine_term thy =
+  let
+    fun aux (t1 $ t2) = betapply (pairself aux (t1, t2))
+      | aux (Abs (s, T, t')) = Abs (s, T, aux t')
+      | aux (t as Const (x as (s, _))) =
+        (case AList.lookup (op =) combinator_table s of
+           SOME thm => thm |> prop_of |> specialize_type thy x
+                           |> Logic.dest_equals |> snd
+         | NONE => t)
+      | aux t = t
+  in aux end
 
 (* Update schematic type variables with detected sort constraints. It's not
    totally clear whether this code is necessary. *)
@@ -487,8 +490,8 @@ fun prop_from_formula thy sym_tab tfrees phi =
 
 fun check_formula ctxt =
   Type.constraint HOLogic.boolT
-  #> Syntax.check_term (Proof_Context.set_mode Proof_Context.mode_schematic ctxt)
-
+  #> Syntax.check_term
+         (Proof_Context.set_mode Proof_Context.mode_schematic ctxt)
 
 (**** Translation of TSTP files to Isar Proofs ****)
 
@@ -505,7 +508,7 @@ fun decode_line sym_tab tfrees (Definition (name, phi1, phi2)) ctxt =
       val t2 = prop_from_formula thy sym_tab tfrees phi2
       val (t1, t2) =
         HOLogic.eq_const HOLogic.typeT $ t1 $ t2
-        |> unvarify_args |> uncombine_term |> check_formula ctxt
+        |> unvarify_args |> uncombine_term thy |> check_formula ctxt
         |> HOLogic.dest_eq
     in
       (Definition (name, t1, t2),
@@ -515,7 +518,7 @@ fun decode_line sym_tab tfrees (Definition (name, phi1, phi2)) ctxt =
     let
       val thy = Proof_Context.theory_of ctxt
       val t = u |> prop_from_formula thy sym_tab tfrees
-                |> uncombine_term |> check_formula ctxt
+                |> uncombine_term thy |> check_formula ctxt
     in
       (Inference (name, t, deps),
        fold Variable.declare_term (OldTerm.term_frees t) ctxt)
@@ -910,10 +913,10 @@ val relabel_proof =
 
 fun string_for_proof ctxt0 i n =
   let
-    val ctxt = ctxt0
-      |> Config.put show_free_types false
-      |> Config.put show_types true
-      |> Config.put show_sorts true
+    val ctxt =
+      ctxt0 |> Config.put show_free_types false
+            |> Config.put show_types true
+            |> Config.put show_sorts true
     fun fix_print_mode f x =
       Print_Mode.setmp (filter (curry (op =) Symbol.xsymbolsN)
                                (print_mode_value ())) f x

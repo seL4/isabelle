@@ -171,6 +171,7 @@ val no_qualifiers =
       | keep (c :: cs) = c :: keep cs
   in String.explode #> rev #> keep #> rev #> String.implode end
 
+(* Long names can slow down the ATPs. *)
 val max_readable_name_size = 20
 
 (* "op" is also reserved, to avoid the unreadable "op_1", "op_2", etc., in the
