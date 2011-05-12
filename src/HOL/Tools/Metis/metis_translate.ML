@@ -532,7 +532,7 @@ fun string_of_mode FO = "FO"
   | string_of_mode HO = "HO"
   | string_of_mode FT = "FT"
 
-fun fn_isa_to_met_sublevel "equal" = "=" (* FIXME: "c_fequal" *)
+fun fn_isa_to_met_sublevel "equal" = "c_fequal"
   | fn_isa_to_met_sublevel "c_False" = "c_fFalse"
   | fn_isa_to_met_sublevel "c_True" = "c_fTrue"
   | fn_isa_to_met_sublevel "c_Not" = "c_fNot"
