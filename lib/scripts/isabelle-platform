@@ -57,10 +57,10 @@ case $(uname -s) in
         ;;
     esac
     ;;
-  FreeBSD|NetBSD)
+  *BSD)
     case $(uname -m) in
       i?86 | x86_64)
-        ISABELLE_PLATFORM=x86-bsd
+        ISABELLE_PLATFORM=x86-linux
         ;;
     esac
     ;;
