@@ -121,7 +121,7 @@ object YXML
         }
       }
     }
-    stack match {
+    (stack: @unchecked) match {
       case List((Markup.Empty, body)) => body.toList
       case (Markup(name, _), _) :: _ => err_unbalanced(name)
     }
