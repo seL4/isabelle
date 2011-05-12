@@ -282,6 +282,15 @@ fun add_pconst_to_table also_skolem (s, p) =
   if (not also_skolem andalso String.isPrefix skolem_prefix s) then I
   else Symtab.map_default (s, [p]) (insert (op =) p)
 
+(* Set constants tend to pull in too many irrelevant facts. We limit the damage
+   by treating them more or less as if they were built-in but add their
+   definition at the end. *)
+val set_consts =
+  [(@{const_name Collect}, @{thms Collect_def}),
+   (@{const_name Set.member}, @{thms mem_def})]
+
+val is_set_const = AList.defined (op =) set_consts
+
 fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
   let
     val flip = Option.map not
@@ -289,20 +298,24 @@ fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
        each quantifiers that must necessarily be skolemized by the automatic
        prover, we introduce a fresh constant to simulate the effect of
        Skolemization. *)
-    fun do_const const x ts =
+    fun do_const const ext_arg (x as (s, _)) ts =
       let val (built_in, ts) = is_built_in_const x ts in
-        (not built_in
-         ? add_pconst_to_table also_skolems (rich_pconst thy const x))
-        #> fold (do_term false) ts
+        if is_set_const s then
+          fold (do_term ext_arg) ts
+        else
+          (not built_in
+           ? add_pconst_to_table also_skolems (rich_pconst thy const x))
+          #> fold (do_term false) ts
       end
-    and do_term eq_arg t =
+    and do_term ext_arg t =
       case strip_comb t of
-        (Const x, ts) => do_const true x ts
-      | (Free x, ts) => do_const false x ts
+        (Const x, ts) => do_const true ext_arg x ts
+      | (Free x, ts) => do_const false ext_arg x ts
       | (Abs (_, T, t'), ts) =>
-        ((null ts andalso not eq_arg)
-         (* Since lambdas in equalities are usually extensionalized later by
-            "extensionalize_term", we don't penalize them here. *)
+        ((null ts andalso not ext_arg)
+         (* Since lambdas on the right-hand side of equalities are usually
+            extensionalized later by "extensionalize_term", we don't penalize
+            them here. *)
          ? add_pconst_to_table true (abs_name, PType (order_of_type T + 1, [])))
         #> fold (do_term false) (t' :: ts)
       | (_, ts) => fold (do_term false) ts
@@ -313,8 +326,8 @@ fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
                 (gensym skolem_prefix, PType (order_of_type abs_T, []))
           else
             I)
-    and do_term_or_formula eq_arg T =
-      if T = HOLogic.boolT then do_formula NONE else do_term eq_arg
+    and do_term_or_formula ext_arg T =
+      if T = HOLogic.boolT then do_formula NONE else do_term ext_arg
     and do_formula pos t =
       case t of
         Const (@{const_name all}, _) $ Abs (_, T, t') =>
@@ -322,7 +335,7 @@ fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
       | @{const "==>"} $ t1 $ t2 =>
         do_formula (flip pos) t1 #> do_formula pos t2
       | Const (@{const_name "=="}, Type (_, [T, _])) $ t1 $ t2 =>
-        fold (do_term_or_formula true T) [t1, t2]
+        do_term_or_formula false T t1 #> do_term_or_formula true T t2
       | @{const Trueprop} $ t1 => do_formula pos t1
       | @{const False} => I
       | @{const True} => I
@@ -336,7 +349,7 @@ fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
       | @{const HOL.implies} $ t1 $ t2 =>
         do_formula (flip pos) t1 #> do_formula pos t2
       | Const (@{const_name HOL.eq}, Type (_, [T, _])) $ t1 $ t2 =>
-        fold (do_term_or_formula true T) [t1, t2]
+        do_term_or_formula false T t1 #> do_term_or_formula true T t2
       | Const (@{const_name If}, Type (_, [_, Type (_, [T, _])]))
         $ t1 $ t2 $ t3 =>
         do_formula NONE t1 #> fold (do_term_or_formula false T) [t2, t3]
@@ -663,13 +676,23 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
       (facts |> filter (member Thm.eq_thm ths o snd)) @
       (accepts |> filter_out (member Thm.eq_thm ths o snd))
       |> take max_relevant
+    fun uses_const s t =
+      fold_aterms (curry (fn (Const (s', _), false) => s' = s | (_, b) => b)) t
+                  false
+    fun maybe_add_set_const (s, ths) accepts =
+      accepts |> (if exists (uses_const s o prop_of o snd) accepts orelse
+                     exists (uses_const s) (concl_t :: hyp_ts) then
+                    add_facts ths
+                  else
+                    I)
   in
     facts |> map_filter (pair_consts_fact thy is_built_in_const fudge)
           |> iter 0 max_relevant threshold0 goal_const_tab []
           |> not (null add_ths) ? add_facts add_ths
           |> (fn accepts =>
                  accepts |> could_benefit_from_ext is_built_in_const accepts
-                            ? add_facts @{thms ext})
+                            ? add_facts @{thms ext}
+                         |> fold maybe_add_set_const set_consts)
           |> tap (fn accepts => trace_msg ctxt (fn () =>
                       "Total relevant: " ^ string_of_int (length accepts)))
   end
