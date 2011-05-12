@@ -952,10 +952,15 @@ fun add_nonmonotonic_types_for_facts ctxt type_sys facts =
 
 fun result_type_of_decl (_, _, T, _, ary, _) = chop_fun ary T |> snd
 
-fun decl_line_for_sym s (s', _, T, pred_sym, ary, _) =
-  let val (arg_Ts, res_T) = chop_fun ary T in
-    Decl (sym_decl_prefix ^ s, (s, s'), map mangled_type_name arg_Ts,
-          if pred_sym then `I tptp_tff_bool_type else mangled_type_name res_T)
+fun decl_line_for_sym ctxt nonmono_Ts level s (s', _, T, pred_sym, ary, _) =
+  let
+    val translate_type =
+      mangled_type_name o homogenized_type ctxt nonmono_Ts level
+    val (arg_tys, res_ty) =
+      T |> chop_fun ary |>> map translate_type ||> translate_type
+  in
+    Decl (sym_decl_prefix ^ s, (s, s'), arg_tys,
+          if pred_sym then `I tptp_tff_bool_type else res_ty)
   end
 
 fun is_polymorphic_type T = fold_atyps (fn TVar _ => K true | _ => I) T false
@@ -991,7 +996,7 @@ fun formula_line_for_sym_decl ctxt conj_sym_kind nonmono_Ts type_sys n s j
 fun problem_lines_for_sym_decls ctxt conj_sym_kind nonmono_Ts type_sys
                                 (s, decls) =
   case type_sys of
-    Simple_Types _ => map (decl_line_for_sym s) decls
+    Simple_Types level => map (decl_line_for_sym ctxt nonmono_Ts level s) decls
   | _ =>
     let
       val decls =
