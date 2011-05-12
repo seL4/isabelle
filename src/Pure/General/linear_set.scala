@@ -14,7 +14,7 @@ import scala.collection.generic.{ImmutableSetFactory, CanBuildFrom,
 
 object Linear_Set extends ImmutableSetFactory[Linear_Set]
 {
-  private case class Rep[A](
+  protected case class Rep[A](
     val start: Option[A], val end: Option[A], val nexts: Map[A, A], prevs: Map[A, A])
 
   private def empty_rep[A] = Rep[A](None, None, Map(), Map())

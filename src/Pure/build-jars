@@ -63,6 +63,7 @@ declare -a SOURCES=(
   Thy/thy_header.scala
   Thy/thy_syntax.scala
   library.scala
+  package.scala
 )
 
 TARGET_DIR="$ISABELLE_HOME/lib/classes"

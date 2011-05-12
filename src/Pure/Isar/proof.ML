@@ -31,7 +31,6 @@ sig
   val assert_no_chain: state -> state
   val enter_forward: state -> state
   val goal_message: (unit -> Pretty.T) -> state -> state
-  val verbose: bool Unsynchronized.ref
   val pretty_state: int -> state -> Pretty.T list
   val pretty_goals: bool -> state -> Pretty.T list
   val refine: Method.text -> state -> state Seq.seq
@@ -324,8 +323,6 @@ fun get_goal state =
 
 (** pretty_state **)
 
-val verbose = Proof_Context.verbose;
-
 fun pretty_facts _ _ NONE = []
   | pretty_facts s ctxt (SOME ths) =
       [Pretty.big_list (s ^ "this:") (map (Display.pretty_thm ctxt) ths), Pretty.str ""];
@@ -333,6 +330,7 @@ fun pretty_facts _ _ NONE = []
 fun pretty_state nr state =
   let
     val {context = ctxt, facts, mode, goal = _} = current state;
+    val verbose = Config.get ctxt Proof_Context.verbose;
 
     fun levels_up 0 = ""
       | levels_up 1 = "1 level up"
@@ -357,15 +355,15 @@ fun pretty_state nr state =
       | prt_goal NONE = [];
 
     val prt_ctxt =
-      if ! verbose orelse mode = Forward then Proof_Context.pretty_context ctxt
+      if verbose orelse mode = Forward then Proof_Context.pretty_context ctxt
       else if mode = Backward then Proof_Context.pretty_ctxt ctxt
       else [];
   in
     [Pretty.str ("proof (" ^ mode_name mode ^ "): step " ^ string_of_int nr ^
-      (if ! verbose then ", depth " ^ string_of_int (level state div 2 - 1) else "")),
+      (if verbose then ", depth " ^ string_of_int (level state div 2 - 1) else "")),
       Pretty.str ""] @
     (if null prt_ctxt then [] else prt_ctxt @ [Pretty.str ""]) @
-    (if ! verbose orelse mode = Forward then
+    (if verbose orelse mode = Forward then
        pretty_facts "" ctxt facts @ prt_goal (try find_goal state)
      else if mode = Chain then pretty_facts "picking " ctxt facts
      else prt_goal (try find_goal state))

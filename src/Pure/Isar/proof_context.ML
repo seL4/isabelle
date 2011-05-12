@@ -151,8 +151,8 @@ sig
   val print_binds: Proof.context -> unit
   val print_lthms: Proof.context -> unit
   val print_cases: Proof.context -> unit
-  val debug: bool Unsynchronized.ref
-  val verbose: bool Unsynchronized.ref
+  val debug: bool Config.T
+  val verbose: bool Config.T
   val pretty_ctxt: Proof.context -> Pretty.T list
   val pretty_context: Proof.context -> Pretty.T list
 end;
@@ -1235,11 +1235,11 @@ end;
 
 (* core context *)
 
-val debug = Unsynchronized.ref false;
-val verbose = Unsynchronized.ref false;
+val debug = Config.bool (Config.declare "Proof_Context.debug" (K (Config.Bool false)));
+val verbose = Config.bool (Config.declare "Proof_Context.verbose" (K (Config.Bool false)));
 
 fun pretty_ctxt ctxt =
-  if not (! debug) then []
+  if not (Config.get ctxt debug) then []
   else
     let
       val prt_term = Syntax.pretty_term ctxt;
@@ -1275,8 +1275,8 @@ fun pretty_ctxt ctxt =
 
 fun pretty_context ctxt =
   let
-    val is_verbose = ! verbose;
-    fun verb f x = if is_verbose then f (x ()) else [];
+    val verbose = Config.get ctxt verbose;
+    fun verb f x = if verbose then f (x ()) else [];
 
     val prt_term = Syntax.pretty_term ctxt;
     val prt_typ = Syntax.pretty_typ ctxt;
