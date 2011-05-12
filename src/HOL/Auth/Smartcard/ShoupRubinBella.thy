@@ -1026,7 +1026,7 @@ apply clarify
 apply (drule Outpts_parts_used)
 apply simp
 (*faster than
-  by (fast_tac (claset() addDs [Outpts_parts_used] addss (simpset())) 1)
+  apply (fastsimp dest: Outpts_parts_used)
 *)
 (*SR_U10*)
 apply (fastsimp dest: Outpts_B_Card_form_7)
