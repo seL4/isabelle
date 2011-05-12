@@ -106,7 +106,6 @@ locale CLF = CL +
   assumes f_cl:  "(cl,f) : CLF_set" (*was the equivalent "f : CLF``{cl}"*)
   defines P_def: "P == fix f A"
 
-
 locale Tarski = CLF +
   fixes Y     :: "'a set"
     and intY1 :: "'a set"
@@ -409,18 +408,20 @@ text {*
 
 declare (in CLF) f_cl [simp]
 
-(*never proved, 2007-01-22: Tarski__CLF_unnamed_lemma
-  NOT PROVABLE because of the conjunction used in the definition: we don't
-  allow reasoning with rules like conjE, which is essential here.*)
 declare [[ sledgehammer_problem_prefix = "Tarski__CLF_unnamed_lemma" ]]
 lemma (in CLF) [simp]:
-    "f: pset cl -> pset cl & monotone f (pset cl) (order cl)" 
-apply (insert f_cl)
-apply (unfold CLF_set_def)
-apply (erule SigmaE2) 
-apply (erule CollectE) 
-apply assumption
-done
+    "f: pset cl -> pset cl & monotone f (pset cl) (order cl)"
+proof -
+  have "\<forall>u v. (v, u) \<in> CLF_set \<longrightarrow> u \<in> {R \<in> pset v \<rightarrow> pset v. monotone R (pset v) (order v)}"
+    unfolding CLF_set_def using SigmaE2 by blast
+  hence F1: "\<forall>u v. (v, u) \<in> CLF_set \<longrightarrow> u \<in> pset v \<rightarrow> pset v \<and> monotone u (pset v) (order v)"
+    using CollectE by blast
+  hence "Tarski.monotone f (pset cl) (order cl)" by (metis f_cl)
+  hence "(cl, f) \<in> CLF_set \<and> Tarski.monotone f (pset cl) (order cl)"
+    by (metis f_cl)
+  thus "f \<in> pset cl \<rightarrow> pset cl \<and> Tarski.monotone f (pset cl) (order cl)"
+    using F1 by metis
+qed
 
 lemma (in CLF) f_in_funcset: "f \<in> A -> A"
 by (simp add: A_def)
@@ -432,10 +433,10 @@ by (simp add: A_def r_def)
 declare [[ sledgehammer_problem_prefix = "Tarski__CLF_CLF_dual" ]]
 declare (in CLF) CLF_set_def [simp] CL_dualCL [simp] monotone_dual [simp] dualA_iff [simp]
 
-lemma (in CLF) CLF_dual: "(dual cl, f) \<in> CLF_set" 
+lemma (in CLF) CLF_dual: "(dual cl, f) \<in> CLF_set"
 apply (simp del: dualA_iff)
 apply (simp)
-done
+done 
 
 declare (in CLF) CLF_set_def[simp del] CL_dualCL[simp del] monotone_dual[simp del]
           dualA_iff[simp del]
@@ -518,24 +519,12 @@ apply (simp add: fix_def)
 apply (rule conjI)
 proof -
   assume A1: "H = {x. (x, f x) \<in> r \<and> x \<in> A}"
-  have F1: "\<forall>x\<^isub>2. (\<lambda>R. R \<in> x\<^isub>2) = x\<^isub>2" by (metis Collect_def Collect_mem_eq)
-  have F2: "\<forall>x\<^isub>1 x\<^isub>2. (\<lambda>R. x\<^isub>2 (x\<^isub>1 R)) = x\<^isub>1 -` x\<^isub>2"
-    by (metis Collect_def vimage_Collect_eq)
-  have F3: "\<forall>x\<^isub>2 x\<^isub>1. (\<lambda>R. x\<^isub>1 R \<in> x\<^isub>2) = x\<^isub>1 -` x\<^isub>2"
-    by (metis Collect_def vimage_def)
-  have F4: "\<forall>x\<^isub>3 x\<^isub>1. (\<lambda>R. x\<^isub>1 R \<and> x\<^isub>3 R) = x\<^isub>1 \<inter> x\<^isub>3"
-    by (metis Collect_def Collect_conj_eq)
-  have F5: "(\<lambda>R. (R, f R) \<in> r \<and> R \<in> A) = H" using A1 by (metis Collect_def)
-  have F6: "\<forall>x\<^isub>1\<subseteq>A. glb x\<^isub>1 (dual cl) \<in> A" by (metis lub_dual_glb lub_in_lattice)
-  have F7: "\<forall>x\<^isub>2 x\<^isub>1. (\<lambda>R. x\<^isub>1 R \<in> x\<^isub>2) = (\<lambda>R. x\<^isub>2 (x\<^isub>1 R))" by (metis F2 F3)
-  have "(\<lambda>R. (R, f R) \<in> r \<and> A R) = H" by (metis F1 F5)
-  hence "A \<inter> (\<lambda>R. r (R, f R)) = H" by (metis F4 F7 Int_commute)
-  hence "H \<subseteq> A" by (metis Int_lower1)
-  hence "H \<subseteq> A" by metis
-  hence "glb H (dual cl) \<in> A" using F6 by metis
-  hence "glb (\<lambda>R. (R, f R) \<in> r \<and> R \<in> A) (dual cl) \<in> A" using F5 by metis
-  hence "lub (\<lambda>R. (R, f R) \<in> r \<and> R \<in> A) cl \<in> A" by (metis lub_dual_glb)
-  thus "lub {x. (x, f x) \<in> r \<and> x \<in> A} cl \<in> A" by (metis Collect_def)
+  have F1: "\<forall>u v. v \<inter> u \<subseteq> u" by (metis Int_commute Int_lower1)
+  have "{R. (R, f R) \<in> r} \<inter> {R. R \<in> A} = H" using A1 by (metis Collect_conj_eq)
+  hence "H \<subseteq> {R. R \<in> A}" using F1 by metis
+  hence "H \<subseteq> A" by (metis Collect_mem_eq)
+  hence "lub H cl \<in> A" by (metis lub_in_lattice)
+  thus "lub {x. (x, f x) \<in> r \<and> x \<in> A} cl \<in> A" using A1 by metis
 next
   assume A1: "H = {x. (x, f x) \<in> r \<and> x \<in> A}"
   have F1: "\<forall>v. (\<lambda>R. R \<in> v) = v" by (metis Collect_mem_eq Collect_def)
