@@ -493,6 +493,7 @@ fun fact_weight fudge loc const_tab relevant_consts fact_consts =
 fun pconsts_in_fact thy is_built_in_const t =
   Symtab.fold (fn (s, pss) => fold (cons o pair s) pss)
               (pconsts_in_terms thy is_built_in_const true (SOME true) [t]) []
+
 fun pair_consts_fact thy is_built_in_const fudge fact =
   case fact |> snd |> theory_const_prop_of fudge
             |> pconsts_in_fact thy is_built_in_const of
