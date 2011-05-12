@@ -127,7 +127,7 @@ fun repair_conjecture_shape_and_fact_names type_sys output conjecture_shape
 
 val vampire_step_prefix = "f" (* grrr... *)
 
-fun resolve_fact type_sys _ fact_names ((_, SOME s)) =
+fun resolve_fact type_sys _ fact_names (_, SOME s) =
     (case try (unprefix fact_prefix) s of
        SOME s' =>
        let val s' = s' |> maybe_unprefix_fact_number type_sys |> unascii_of in
@@ -147,15 +147,20 @@ fun resolve_fact type_sys _ fact_names ((_, SOME s)) =
       end
     | NONE => []
 
-fun resolve_conjecture conjecture_shape (num, s_opt) =
-  let
-    val k = case try (unprefix conjecture_prefix) (the_default "" s_opt) of
-              SOME s => Int.fromString s |> the_default ~1
-            | NONE => case Int.fromString num of
-                        SOME j => find_index (exists (curry (op =) j))
-                                             conjecture_shape
-                      | NONE => ~1
-  in if k >= 0 then [k] else [] end
+fun resolve_conjecture _ (_, SOME s) =
+    (case try (unprefix conjecture_prefix) s of
+       SOME s' =>
+       (case Int.fromString s' of
+          SOME j => [j]
+        | NONE => [])
+     | NONE => [])
+  | resolve_conjecture conjecture_shape (num, NONE) =
+    case Int.fromString (perhaps (try (unprefix vampire_step_prefix)) num) of
+      SOME i =>
+      (case find_index (exists (curry (op =) i)) conjecture_shape of
+         ~1 => []
+       | j => [j])
+    | NONE => []
 
 fun is_fact type_sys conjecture_shape =
   not o null o resolve_fact type_sys 0 conjecture_shape
