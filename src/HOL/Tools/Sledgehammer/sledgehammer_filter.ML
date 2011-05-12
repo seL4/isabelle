@@ -19,6 +19,7 @@ sig
      skolem_irrel_weight : real,
      theory_const_rel_weight : real,
      theory_const_irrel_weight : real,
+     chained_const_irrel_weight : real,
      intro_bonus : real,
      elim_bonus : real,
      simp_bonus : real,
@@ -91,6 +92,7 @@ type relevance_fudge =
    skolem_irrel_weight : real,
    theory_const_rel_weight : real,
    theory_const_irrel_weight : real,
+   chained_const_irrel_weight : real,
    intro_bonus : real,
    elim_bonus : real,
    simp_bonus : real,
@@ -293,17 +295,19 @@ fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
       let val (built_in, ts) = is_built_in_const x ts in
         (not built_in
          ? add_pconst_to_table also_skolems (rich_pconst thy const x))
-        #> fold do_term ts
+        #> fold (do_term false) ts
       end
-    and do_term t =
+    and do_term eq_arg t =
       case strip_comb t of
         (Const x, ts) => do_const true x ts
       | (Free x, ts) => do_const false x ts
       | (Abs (_, T, t'), ts) =>
-        (null ts
+        ((null ts andalso not eq_arg)
+         (* Since lambdas in equalities are usually extensionalized later by
+            "extensionalize_term", we don't penalize them here. *)
          ? add_pconst_to_table true (abs_name, PType (order_of_type T + 1, [])))
-        #> fold do_term (t' :: ts)
-      | (_, ts) => fold do_term ts
+        #> fold (do_term false) (t' :: ts)
+      | (_, ts) => fold (do_term false) ts
     fun do_quantifier will_surely_be_skolemized abs_T body_t =
       do_formula pos body_t
       #> (if also_skolems andalso will_surely_be_skolemized then
@@ -311,8 +315,8 @@ fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
                 (gensym skolem_prefix, PType (order_of_type abs_T, []))
           else
             I)
-    and do_term_or_formula T =
-      if T = HOLogic.boolT then do_formula NONE else do_term
+    and do_term_or_formula eq_arg T =
+      if T = HOLogic.boolT then do_formula NONE else do_term eq_arg
     and do_formula pos t =
       case t of
         Const (@{const_name all}, _) $ Abs (_, T, t') =>
@@ -320,7 +324,7 @@ fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
       | @{const "==>"} $ t1 $ t2 =>
         do_formula (flip pos) t1 #> do_formula pos t2
       | Const (@{const_name "=="}, Type (_, [T, _])) $ t1 $ t2 =>
-        fold (do_term_or_formula T) [t1, t2]
+        fold (do_term_or_formula true T) [t1, t2]
       | @{const Trueprop} $ t1 => do_formula pos t1
       | @{const False} => I
       | @{const True} => I
@@ -334,10 +338,10 @@ fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
       | @{const HOL.implies} $ t1 $ t2 =>
         do_formula (flip pos) t1 #> do_formula pos t2
       | Const (@{const_name HOL.eq}, Type (_, [T, _])) $ t1 $ t2 =>
-        fold (do_term_or_formula T) [t1, t2]
+        fold (do_term_or_formula true T) [t1, t2]
       | Const (@{const_name If}, Type (_, [_, Type (_, [T, _])]))
         $ t1 $ t2 $ t3 =>
-        do_formula NONE t1 #> fold (do_term_or_formula T) [t2, t3]
+        do_formula NONE t1 #> fold (do_term_or_formula false T) [t2, t3]
       | Const (@{const_name Ex1}, _) $ Abs (_, T, t') =>
         do_quantifier (is_some pos) T t'
       | Const (@{const_name Ball}, _) $ t1 $ Abs (_, T, t') =>
@@ -347,8 +351,8 @@ fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
         do_quantifier (pos = SOME true) T
                       (HOLogic.mk_conj (incr_boundvars 1 t1 $ Bound 0, t'))
       | (t0 as Const (_, @{typ bool})) $ t1 =>
-        do_term t0 #> do_formula pos t1  (* theory constant *)
-      | _ => do_term t
+        do_term false t0 #> do_formula pos t1  (* theory constant *)
+      | _ => do_term false t
   in do_formula pos end
 
 (*Inserts a dummy "constant" referring to the theory name, so that relevance
@@ -435,8 +439,8 @@ fun multiplier_for_const_name local_const_multiplier s =
 
 (* Computes a constant's weight, as determined by its frequency. *)
 fun generic_pconst_weight local_const_multiplier abs_weight skolem_weight
-                          theory_const_weight weight_for f const_tab
-                          (c as (s, PType (m, _))) =
+                          theory_const_weight chained_const_weight weight_for f
+                          const_tab chained_const_tab (c as (s, PType (m, _))) =
   if s = abs_name then
     abs_weight
   else if String.isPrefix skolem_prefix s then
@@ -446,18 +450,28 @@ fun generic_pconst_weight local_const_multiplier abs_weight skolem_weight
   else
     multiplier_for_const_name local_const_multiplier s
     * weight_for m (pconst_freq (match_ptype o f) const_tab c)
+    |> (if chained_const_weight < 1.0 andalso
+           pconst_hyper_mem I chained_const_tab c then
+          curry (op *) chained_const_weight
+        else
+          I)
 
 fun rel_pconst_weight ({local_const_multiplier, abs_rel_weight,
                         theory_const_rel_weight, ...} : relevance_fudge)
                       const_tab =
   generic_pconst_weight local_const_multiplier abs_rel_weight 0.0
-                        theory_const_rel_weight rel_weight_for I const_tab
+                        theory_const_rel_weight 0.0 rel_weight_for I const_tab
+                        Symtab.empty
+
 fun irrel_pconst_weight (fudge as {local_const_multiplier, abs_irrel_weight,
                                    skolem_irrel_weight,
-                                   theory_const_irrel_weight, ...}) const_tab =
+                                   theory_const_irrel_weight,
+                                   chained_const_irrel_weight, ...})
+                        const_tab chained_const_tab =
   generic_pconst_weight local_const_multiplier abs_irrel_weight
                         skolem_irrel_weight theory_const_irrel_weight
-                        (irrel_weight_for fudge) swap const_tab
+                        chained_const_irrel_weight (irrel_weight_for fudge) swap
+                        const_tab chained_const_tab
 
 fun locality_bonus (_ : relevance_fudge) General = 0.0
   | locality_bonus {intro_bonus, ...} Intro = intro_bonus
@@ -480,14 +494,13 @@ fun fact_weight fudge loc const_tab relevant_consts chained_consts fact_consts =
       0.0
     else
       let
-        val irrel =
-          irrel |> filter_out (pconst_mem swap rel orf
-                               pconst_hyper_mem I chained_consts)
+        val irrel = irrel |> filter_out (pconst_mem swap rel)
         val rel_weight =
           0.0 |> fold (curry (op +) o rel_pconst_weight fudge const_tab) rel
         val irrel_weight =
           ~ (locality_bonus fudge loc)
-          |> fold (curry (op +) o irrel_pconst_weight fudge const_tab) irrel
+          |> fold (curry (op +)
+                   o irrel_pconst_weight fudge const_tab chained_consts) irrel
         val res = rel_weight / (rel_weight + irrel_weight)
       in if Real.isFinite res then res else 0.0 end
 
