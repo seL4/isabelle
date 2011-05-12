@@ -908,9 +908,9 @@ fun add_fact_nonmonotonic_types ctxt ({kind, combformula, ...}
                combformula
 fun add_nonmonotonic_types_for_facts ctxt type_sys facts =
   level_of_type_sys type_sys = Nonmonotonic_Types
-  (* in case helper "True_or_False" is included (FIXME) *)
-  ? (insert_type I @{typ bool}
-     #> fold (add_fact_nonmonotonic_types ctxt) facts)
+  ? (fold (add_fact_nonmonotonic_types ctxt) facts
+     (* in case helper "True_or_False" is included *)
+     #> insert_type I @{typ bool})
 
 fun n_ary_strip_type 0 T = ([], T)
   | n_ary_strip_type n (Type (@{type_name fun}, [dom_T, ran_T])) =
@@ -1033,7 +1033,7 @@ fun prepare_atp_problem ctxt conj_sym_kind prem_kind type_sys explicit_apply
     val helpers =
       repaired_sym_tab |> helper_facts_for_sym_table ctxt type_sys |> map repair
     val sym_decl_lines =
-      (conjs, facts) (* FIXME: what if "True_or_False" is among helpers? *)
+      (conjs, helpers @ facts)
       |> sym_decl_table_for_facts type_sys repaired_sym_tab
       |> problem_lines_for_sym_decl_table ctxt conj_sym_kind nonmono_Ts type_sys
     (* Reordering these might confuse the proof reconstruction code or the SPASS
