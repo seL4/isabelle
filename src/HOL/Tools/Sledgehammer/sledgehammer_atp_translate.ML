@@ -1080,7 +1080,8 @@ val fact_max_weight = 1.0
 val type_info_default_weight = 0.8
 
 fun add_term_weights weight (ATerm (s, tms)) =
-  (not (is_atp_variable s) andalso s <> "equal") ? Symtab.default (s, weight)
+  (not (is_atp_variable s) andalso s <> "equal" andalso
+   not (String.isPrefix "$" s)) ? Symtab.default (s, weight)
   #> fold (add_term_weights weight) tms
 fun add_problem_line_weights weight (Formula (_, _, phi, _, _)) =
     formula_fold true (K (add_term_weights weight)) phi
