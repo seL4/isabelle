@@ -120,13 +120,22 @@ fun type_sys_from_string s =
   |> (fn (poly, (level, core)) =>
          case (core, (poly, level)) of
            ("simple_types", (NONE, level)) => Simple_Types level
+         | ("preds", (SOME Polymorphic, level)) =>
+           if level = All_Types then Preds (Polymorphic, level)
+           else raise Same.SAME
          | ("preds", (SOME poly, level)) => Preds (poly, level)
+         | ("tags", (SOME Polymorphic, level)) =>
+           if level = All_Types orelse level = Finite_Types then
+             Tags (Polymorphic, level)
+           else
+             raise Same.SAME
          | ("tags", (SOME poly, level)) => Tags (poly, level)
          | ("args", (SOME poly, All_Types (* naja *))) =>
            Preds (poly, Const_Arg_Types)
          | ("erased", (NONE, All_Types (* naja *))) =>
            Preds (Polymorphic, No_Types)
-         | _ => error ("Unknown type system: " ^ quote s ^ "."))
+         | _ => raise Same.SAME)
+  handle Same.SAME => error ("Unknown type system: " ^ quote s ^ ".")
 
 fun polymorphism_of_type_sys (Simple_Types _) = Mangled_Monomorphic
   | polymorphism_of_type_sys (Preds (poly, _)) = poly
@@ -188,23 +197,32 @@ fun should_omit_type_args type_sys s =
     | _ => polymorphism_of_type_sys type_sys <> Mangled_Monomorphic andalso
            member (op =) boring_consts s))
 
-datatype type_arg_policy = No_Type_Args | Explicit_Type_Args | Mangled_Type_Args
+(* The Booleans indicate whether all type arguments should be kept. *)
+datatype type_arg_policy =
+  Explicit_Type_Args of bool |
+  Mangled_Type_Args of bool |
+  No_Type_Args
 
+(* FIXME: Find out whether and when erasing the non-result type arguments is
+   sound. *)
 fun general_type_arg_policy type_sys =
   if level_of_type_sys type_sys = No_Types then
     No_Type_Args
   else if polymorphism_of_type_sys type_sys = Mangled_Monomorphic then
-    Mangled_Type_Args
+    Mangled_Type_Args (is_type_sys_virtually_sound type_sys)
   else
-    Explicit_Type_Args
+    Explicit_Type_Args (is_type_sys_virtually_sound type_sys)
 
 fun type_arg_policy type_sys s =
   if should_omit_type_args type_sys s then No_Type_Args
   else general_type_arg_policy type_sys
 
 fun num_atp_type_args thy type_sys s =
-  if type_arg_policy type_sys s = Explicit_Type_Args then num_type_args thy s
-  else 0
+  case type_arg_policy type_sys s of
+    Explicit_Type_Args keep_all =>
+    if keep_all then num_type_args thy s
+    else error "not implemented yet" (* FIXME *)
+  | _ => 0
 
 fun atp_type_literals_for_types type_sys kind Ts =
   if level_of_type_sys type_sys = No_Types then
@@ -589,10 +607,31 @@ fun introduce_explicit_apps_in_combterm sym_tab =
       | (head, args) => list_explicit_app head (map aux args)
   in aux end
 
-fun impose_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys =
+fun chop_fun 0 T = ([], T)
+  | chop_fun n (Type (@{type_name fun}, [dom_T, ran_T])) =
+    chop_fun (n - 1) ran_T |>> cons dom_T
+  | chop_fun _ _ = raise Fail "unexpected non-function"
+
+fun filter_type_args thy s arity T_args =
   let
-    fun aux (CombApp tmp) = CombApp (pairself aux tmp)
-      | aux (CombConst (name as (s, _), T, T_args)) =
+    val U = s |> Sign.the_const_type thy (* may throw "TYPE" *)
+    val res_U = U |> chop_fun arity |> snd
+    val res_U_vars = Term.add_tvarsT res_U []
+    val U_args = (s, U) |> Sign.const_typargs thy
+  in
+    U_args ~~ T_args
+    |> map_filter (fn (U, T) =>
+                      if member (op =) res_U_vars (dest_TVar U) then SOME T
+                      else NONE)
+  end
+  handle TYPE _ => T_args
+
+fun enforce_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    fun aux arity (CombApp (tm1, tm2)) =
+        CombApp (aux (arity + 1) tm1, aux 0 tm2)
+      | aux arity (CombConst (name as (s, _), T, T_args)) =
         let
           val level = level_of_type_sys type_sys
           val (T, T_args) =
@@ -604,7 +643,7 @@ fun impose_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys =
                not (is_type_sys_virtually_sound type_sys) then
               T_args |> map (homogenized_type ctxt nonmono_Ts level)
                      |> (fn Ts => let val T = hd Ts --> nth Ts 1 in
-                                    (T --> T, tl Ts)
+                                    (T --> T, tl Ts) (* ### FIXME: need tl? *)
                                   end)
             else
               (T, T_args)
@@ -612,21 +651,26 @@ fun impose_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys =
           (case strip_prefix_and_unascii const_prefix s of
              NONE => (name, T_args)
            | SOME s'' =>
-             let val s'' = invert_const s'' in
+             let
+               val s'' = invert_const s''
+               fun filtered_T_args true = T_args
+                 | filtered_T_args false = filter_type_args thy s'' arity T_args
+             in
                case type_arg_policy type_sys s'' of
-                 No_Type_Args => (name, [])
-               | Explicit_Type_Args => (name, T_args)
-               | Mangled_Type_Args => (mangled_const_name T_args name, [])
+                 Explicit_Type_Args keep_all => (name, filtered_T_args keep_all)
+               | Mangled_Type_Args keep_all =>
+                 (mangled_const_name (filtered_T_args keep_all) name, [])
+               | No_Type_Args => (name, [])
              end)
           |> (fn (name, T_args) => CombConst (name, T, T_args))
         end
-      | aux tm = tm
-  in aux end
+      | aux _ tm = tm
+  in aux 0 end
 
 fun repair_combterm ctxt nonmono_Ts type_sys sym_tab =
   introduce_explicit_apps_in_combterm sym_tab
   #> introduce_predicators_in_combterm sym_tab
-  #> impose_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys
+  #> enforce_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys
 fun repair_fact ctxt nonmono_Ts type_sys sym_tab =
   update_combformula (formula_map
       (repair_combterm ctxt nonmono_Ts type_sys sym_tab))
@@ -653,7 +697,9 @@ fun helper_facts_for_sym ctxt type_sys (s, {typ, ...} : sym_info) =
         ((c ^ "_" ^ string_of_int j ^ (if needs_some_types then "T" else ""),
           Chained),
          let val t = th |> prop_of in
-           t |> (general_type_arg_policy type_sys = Mangled_Type_Args andalso
+           t |> ((case general_type_arg_policy type_sys of
+                    Mangled_Type_Args _ => true
+                  | _ => false) andalso
                  not (null (Term.hidden_polymorphism t)))
                 ? (case typ of
                      SOME T => specialize_type thy (invert_const unmangled_s, T)
@@ -716,14 +762,14 @@ fun formula_from_fo_literal (pos, t) = AAtom t |> not pos ? mk_anot
 fun type_pred_combatom ctxt nonmono_Ts type_sys T tm =
   CombApp (CombConst (`make_fixed_const type_pred_base, T --> @{typ bool}, [T]),
            tm)
-  |> impose_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys
+  |> enforce_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys
   |> AAtom
 
 fun formula_from_combformula ctxt nonmono_Ts type_sys =
   let
     fun tag_with_type type_sys T tm =
       CombConst (`make_fixed_const type_tag_name, T --> T, [T])
-      |> impose_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys
+      |> enforce_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys
       |> do_term true
       |> (fn ATerm (s, tms) => ATerm (s, tms @ [tm]))
     and do_term top_level u =
@@ -852,7 +898,7 @@ fun insert_type get_T x xs =
 
 fun should_declare_sym type_sys pred_sym s =
   not (String.isPrefix bound_var_prefix s) andalso s <> "equal" andalso
-  not (String.isPrefix "$" s) andalso
+  not (String.isPrefix tptp_special_prefix s) andalso
   ((case type_sys of Simple_Types _ => true | _ => false) orelse not pred_sym)
 
 fun sym_decl_table_for_facts type_sys repaired_sym_tab (conjs, facts) =
@@ -904,15 +950,10 @@ fun add_nonmonotonic_types_for_facts ctxt type_sys facts =
      (* in case helper "True_or_False" is included *)
      #> insert_type I @{typ bool})
 
-fun n_ary_strip_type 0 T = ([], T)
-  | n_ary_strip_type n (Type (@{type_name fun}, [dom_T, ran_T])) =
-    n_ary_strip_type (n - 1) ran_T |>> cons dom_T
-  | n_ary_strip_type _ _ = raise Fail "unexpected non-function"
-
-fun result_type_of_decl (_, _, T, _, ary, _) = n_ary_strip_type ary T |> snd
+fun result_type_of_decl (_, _, T, _, ary, _) = chop_fun ary T |> snd
 
 fun decl_line_for_sym s (s', _, T, pred_sym, ary, _) =
-  let val (arg_Ts, res_T) = n_ary_strip_type ary T in
+  let val (arg_Ts, res_T) = chop_fun ary T in
     Decl (sym_decl_prefix ^ s, (s, s'), map mangled_type_name arg_Ts,
           if pred_sym then `I tptp_tff_bool_type else mangled_type_name res_T)
   end
@@ -925,7 +966,7 @@ fun formula_line_for_sym_decl ctxt conj_sym_kind nonmono_Ts type_sys n s j
     val (kind, maybe_negate) =
       if in_conj then (conj_sym_kind, conj_sym_kind = Conjecture ? mk_anot)
       else (Axiom, I)
-    val (arg_Ts, res_T) = n_ary_strip_type ary T
+    val (arg_Ts, res_T) = chop_fun ary T
     val bound_names =
       1 upto length arg_Ts |> map (`I o make_bound_var o string_of_int)
     val bound_tms =
@@ -1073,7 +1114,7 @@ val type_info_default_weight = 0.8
 
 fun add_term_weights weight (ATerm (s, tms)) =
   (not (is_atp_variable s) andalso s <> "equal" andalso
-   not (String.isPrefix "$" s)) ? Symtab.default (s, weight)
+   not (String.isPrefix tptp_special_prefix s)) ? Symtab.default (s, weight)
   #> fold (add_term_weights weight) tms
 fun add_problem_line_weights weight (Formula (_, _, phi, _, _)) =
     formula_fold true (K (add_term_weights weight)) phi

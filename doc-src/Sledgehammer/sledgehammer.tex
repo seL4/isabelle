@@ -566,10 +566,6 @@ Specifies the type system to use in ATP problems. The option can take the
 following values:
 
 \begin{enum}
-%\item[$\bullet$] \textbf{\textit{poly\_types}:} Use the prover's support for
-%polymorphic first-order logic if available; otherwise, fall back on
-%\textit{poly\_preds}.
-
 \item[$\bullet$] \textbf{\textit{poly\_preds}:} Types are encoded using a predicate
 $\mathit{has\_type\/}(\tau, t)$ that restricts the range of bound variables.
 Constants are annotated with their types, supplied as extra arguments, to
@@ -615,8 +611,8 @@ $\mathit{type\_info\_}\tau(t)$.
 
 \item[$\bullet$]
 \textbf{%
-\textit{simple\_types}?,
-\{\textit{mono},\textit{mangled}\}\textit{\_}\{\textit{preds},\textit{tags}\}?:} \\
+\textit{mono\_preds}?, \textit{mono\_tags}?, \textit{simple\_types}?, \\
+\textit{mangled\_preds}?, \textit{mangled\_tags}?:} \\
 The type systems \textit{mono\_preds}, \textit{mono\_tags}, \textit{simple\_types},
 \textit{mangled\_preds}, and \textit{mangled\_tags} are fully typed and
 virtually sound---except for pathological cases, all found proofs are
@@ -628,8 +624,8 @@ individuals.)
 
 \item[$\bullet$]
 \textbf{%
-\textit{simple\_types}!,
-\{\textit{poly},\textit{mono},\textit{mangled}\}\textit{\_}\{\textit{preds},\textit{tags}\}!:} \\
+\textit{poly\_tags}!, \textit{mono\_preds}!, \textit{mono\_tags}!, \\
+\textit{simple\_types}!, \textit{mangled\_preds}!, \textit{mangled\_tags}!:} \\
 The type systems \textit{poly\_preds}, \textit{poly\_tags},
 \textit{mono\_preds}, \textit{mono\_tags}, \textit{simple\_types},
 \textit{mangled\_preds}, and \textit{mangled\_tags} also admit a somewhat
