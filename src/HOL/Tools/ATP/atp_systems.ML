@@ -31,6 +31,8 @@ sig
   val e_default_sym_offs_weight : real Config.T
   val e_sym_offs_weight_base : real Config.T
   val e_sym_offs_weight_span : real Config.T
+  val spass_force_sos : bool Config.T
+  val vampire_force_sos : bool Config.T
   val eN : string
   val spassN : string
   val vampireN : string
@@ -230,15 +232,18 @@ val e = (eN, e_config)
 
 (* SPASS *)
 
+val spass_force_sos =
+  Attrib.setup_config_bool @{binding atp_spass_force_sos} (K false)
+
 (* The "-VarWeight=3" option helps the higher-order problems, probably by
    counteracting the presence of "hAPP". *)
 val spass_config : atp_config =
   {exec = ("ISABELLE_ATP", "scripts/spass"),
    required_execs = [("SPASS_HOME", "SPASS"), ("SPASS_HOME", "tptp2dfg")],
-   arguments = fn _ => fn slice => fn timeout => fn _ =>
+   arguments = fn ctxt => fn slice => fn timeout => fn _ =>
      ("-Auto -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
       \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_secs 0 timeout))
-     |> slice = 0 ? prefix "-SOS=1 ",
+     |> (slice = 0 orelse Config.get ctxt spass_force_sos) ? prefix "-SOS=1 ",
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
      known_perl_failures @
@@ -252,24 +257,30 @@ val spass_config : atp_config =
    conj_sym_kind = Axiom, (* FIXME: try out Hypothesis *)
    prem_kind = Conjecture,
    formats = [Fof],
-   best_slices =
+   best_slices = fn ctxt =>
      (* FUDGE *)
-     K [(0.667, (false, (150, ["mangled_preds"]))) (* SOS *),
-        (0.333, (true, (150, ["mangled_preds"]))) (* ~SOS *)]}
+     [(0.667, (false, (150, ["mangled_preds"]))) (* SOS *),
+      (0.333, (true, (150, ["mangled_preds"]))) (* ~SOS *)]
+     |> (if Config.get ctxt spass_force_sos then hd #> apfst (K 1.0) #> single
+         else I)}
 
 val spass = (spassN, spass_config)
 
 
 (* Vampire *)
 
+val vampire_force_sos =
+  Attrib.setup_config_bool @{binding atp_vampire_force_sos} (K false)
+
 val vampire_config : atp_config =
   {exec = ("VAMPIRE_HOME", "vampire"),
    required_execs = [],
-   arguments = fn _ => fn slice => fn timeout => fn _ =>
+   arguments = fn ctxt => fn slice => fn timeout => fn _ =>
      (* This would work too but it's less tested: "--proof tptp " ^ *)
      "--mode casc -t " ^ string_of_int (to_secs 0 timeout) ^
      " --thanks \"Andrei and Krystof\" --input_file"
-     |> slice = 0 ? prefix "--sos on ",
+     |> (slice = 0 orelse Config.get ctxt vampire_force_sos)
+        ? prefix "--sos on ",
    proof_delims =
      [("=========== Refutation ==========",
        "======= End of refutation ======="),
@@ -289,10 +300,12 @@ val vampire_config : atp_config =
    conj_sym_kind = Conjecture, (* FIXME: try out Hypothesis *)
    prem_kind = Conjecture,
    formats = [Fof],
-   best_slices =
+   best_slices = fn ctxt =>
      (* FUDGE *)
-     K [(0.667, (false, (450, ["mangled_tags!", "mangled_preds?"]))) (* SOS *),
-        (0.333, (true, (450, ["mangled_tags!", "mangled_preds?"]))) (* ~SOS *)]}
+     [(0.667, (false, (450, ["mangled_tags!", "mangled_preds?"]))) (* SOS *),
+      (0.333, (true, (450, ["mangled_tags!", "mangled_preds?"]))) (* ~SOS *)]
+     |> (if Config.get ctxt vampire_force_sos then hd #> apfst (K 1.0) #> single
+         else I)}
 
 val vampire = (vampireN, vampire_config)
 
