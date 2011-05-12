@@ -51,7 +51,7 @@ fun is_const pred (n, T) = not (ignored n) andalso pred T
 
 fun collect_consts_if pred f =
   let
-    fun collect (@{const trigger} $ p $ t) = collect_trigger p #> collect t
+    fun collect (@{const SMT.trigger} $ p $ t) = collect_trigger p #> collect t
       | collect (t $ u) = collect t #> collect u
       | collect (Abs (_, _, t)) = collect t
       | collect (Const c) = if is_const pred c then f c else I
