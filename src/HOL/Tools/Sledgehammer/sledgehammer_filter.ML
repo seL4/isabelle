@@ -282,7 +282,7 @@ fun add_pconst_to_table also_skolem (s, p) =
   if (not also_skolem andalso String.isPrefix skolem_prefix s) then I
   else Symtab.map_default (s, [p]) (insert (op =) p)
 
-fun pconsts_in_terms thy is_built_in_const also_skolems pos ts =
+fun add_pconsts_in_term thy is_built_in_const also_skolems pos =
   let
     val flip = Option.map not
     (* We include free variables, as well as constants, to handle locales. For
@@ -349,7 +349,7 @@ fun pconsts_in_terms thy is_built_in_const also_skolems pos ts =
       | (t0 as Const (_, @{typ bool})) $ t1 =>
         do_term t0 #> do_formula pos t1  (* theory constant *)
       | _ => do_term t
-  in Symtab.empty |> fold (do_formula pos) ts end
+  in do_formula pos end
 
 (*Inserts a dummy "constant" referring to the theory name, so that relevance
   takes the given theory into account.*)
@@ -471,7 +471,7 @@ fun is_odd_const_name s =
   s = abs_name orelse String.isPrefix skolem_prefix s orelse
   String.isSuffix theory_const_suffix s
 
-fun fact_weight fudge loc const_tab relevant_consts fact_consts =
+fun fact_weight fudge loc const_tab relevant_consts chained_consts fact_consts =
   case fact_consts |> List.partition (pconst_hyper_mem I relevant_consts)
                    ||> filter_out (pconst_hyper_mem swap relevant_consts) of
     ([], _) => 0.0
@@ -480,7 +480,9 @@ fun fact_weight fudge loc const_tab relevant_consts fact_consts =
       0.0
     else
       let
-        val irrel = irrel |> filter_out (pconst_mem swap rel)
+        val irrel =
+          irrel |> filter_out (pconst_mem swap rel orf
+                               pconst_hyper_mem I chained_consts)
         val rel_weight =
           0.0 |> fold (curry (op +) o rel_pconst_weight fudge const_tab) rel
         val irrel_weight =
@@ -491,7 +493,8 @@ fun fact_weight fudge loc const_tab relevant_consts fact_consts =
 
 fun pconsts_in_fact thy is_built_in_const t =
   Symtab.fold (fn (s, pss) => fold (cons o pair s) pss)
-              (pconsts_in_terms thy is_built_in_const true (SOME true) [t]) []
+              (Symtab.empty |> add_pconsts_in_term thy is_built_in_const true
+                                                   (SOME true) t) []
 
 fun pair_consts_fact thy is_built_in_const fudge fact =
   case fact |> snd |> theory_const_prop_of fudge
@@ -529,9 +532,11 @@ fun take_most_relevant ctxt max_relevant remaining_max
 
 fun if_empty_replace_with_locality thy is_built_in_const facts loc tab =
   if Symtab.is_empty tab then
-    pconsts_in_terms thy is_built_in_const false (SOME false)
-        (map_filter (fn ((_, loc'), th) =>
-                        if loc' = loc then SOME (prop_of th) else NONE) facts)
+    Symtab.empty
+    |> fold (add_pconsts_in_term thy is_built_in_const false (SOME false))
+            (map_filter (fn ((_, loc'), th) =>
+                            if loc' = loc then SOME (prop_of th) else NONE)
+                        facts)
   else
     tab
 
@@ -557,12 +562,16 @@ fun could_benefit_from_ext is_built_in_const facts =
 
 fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
         (fudge as {threshold_divisor, ridiculous_threshold, ...})
-        ({add, del, ...} : relevance_override) facts goal_ts =
+        ({add, del, ...} : relevance_override) facts chained_ts hyp_ts concl_t =
   let
     val thy = Proof_Context.theory_of ctxt
     val const_tab = fold (count_fact_consts thy fudge) facts Symtab.empty
+    val add_pconsts = add_pconsts_in_term thy is_built_in_const false o SOME
+    val chained_const_tab = Symtab.empty |> fold (add_pconsts true) chained_ts
     val goal_const_tab =
-      pconsts_in_terms thy is_built_in_const false (SOME false) goal_ts
+      Symtab.empty |> fold (add_pconsts true) hyp_ts
+                   |> add_pconsts false concl_t
+      |> (fn tab => if Symtab.is_empty tab then chained_const_tab else tab)
       |> fold (if_empty_replace_with_locality thy is_built_in_const facts)
               [Chained, Assum, Local]
     val add_ths = Attrib.eval_thms ctxt add
@@ -623,7 +632,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
                 case cached_weight of
                   SOME w => w
                 | NONE => fact_weight fudge loc const_tab rel_const_tab
-                                      fact_consts
+                                      chained_const_tab fact_consts
             in
               if weight >= threshold then
                 relevant ((ax, weight) :: candidates) rejects hopeful
@@ -885,9 +894,9 @@ fun relevant_facts ctxt (threshold0, threshold1) max_relevant is_built_in_const
              max_relevant = 0 then
        []
      else
-       ((concl_t |> theory_constify fudge (Context.theory_name thy)) :: hyp_ts)
-       |> relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
-                           fudge override facts)
+       relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
+           fudge override facts (chained_ths |> map prop_of) hyp_ts
+           (concl_t |> theory_constify fudge (Context.theory_name thy)))
     |> map (apfst (apfst (fn f => f ())))
   end
 
