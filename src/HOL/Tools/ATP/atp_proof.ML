@@ -260,19 +260,10 @@ and parse_annotations x =
                   ::: Scan.repeat ($$ "," |-- parse_annotation)) []
    >> flat) x
 
-(* Vampire proof lines sometimes contain needless information such as "(0:3)",
-   which can be hard to disambiguate from function application in an LL(1)
-   parser. As a workaround, we extend the TPTP term syntax with such detritus
-   and ignore it. *)
-fun parse_vampire_detritus x =
-  (scan_general_id |-- $$ ":" --| scan_general_id >> K []) x
-
 fun parse_term x =
   (scan_general_id
      --| Scan.option ($$ ":" -- scan_general_id) (* ignore TFF types for now *)
-     -- Scan.optional ($$ "(" |-- (parse_vampire_detritus || parse_terms)
-                       --| $$ ")") []
-     --| Scan.optional ($$ "(" |-- parse_vampire_detritus --| $$ ")") []
+     -- Scan.optional ($$ "(" |-- parse_terms --| $$ ")") []
    >> ATerm) x
 and parse_terms x = (parse_term ::: Scan.repeat ($$ "," |-- parse_term)) x
 
@@ -348,22 +339,6 @@ fun parse_tstp_line x =
              | _ => Inference (name, phi, map (rpair NONE) deps)
            end)) x
 
-(**** PARSING OF VAMPIRE OUTPUT ****)
-
-val parse_vampire_braced_stuff =
-  $$ "{" -- Scan.repeat (scan_general_id --| Scan.option ($$ ",")) -- $$ "}"
-fun parse_vampire_parenthesized_detritus x =
-  ($$ "(" |-- parse_vampire_detritus --| $$ ")") x
-
-(* Syntax: <num>. <formula> <annotation> *)
-fun parse_vampire_line x =
-  (scan_general_id --| $$ "." -- parse_formula
-     --| Scan.option parse_vampire_braced_stuff
-     --| Scan.option parse_vampire_parenthesized_detritus
-     -- parse_annotation
-   >> (fn ((num, phi), deps) =>
-          Inference ((num, NONE), phi, map (rpair NONE) deps))) x
-
 (**** PARSING OF SPASS OUTPUT ****)
 
 (* SPASS returns clause references of the form "x.y". We ignore "y", whose role
@@ -400,7 +375,7 @@ fun parse_spass_line x =
    >> (fn ((num, deps), u) =>
           Inference ((num, NONE), u, map (rpair NONE) deps))) x
 
-fun parse_line x = (parse_tstp_line || parse_vampire_line || parse_spass_line) x
+fun parse_line x = (parse_tstp_line || parse_spass_line) x
 fun parse_proof s =
   s |> strip_spaces_except_between_ident_chars
     |> raw_explode

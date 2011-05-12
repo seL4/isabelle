@@ -276,8 +276,7 @@ val vampire_config : atp_config =
   {exec = ("VAMPIRE_HOME", "vampire"),
    required_execs = [],
    arguments = fn ctxt => fn slice => fn timeout => fn _ =>
-     (* This would work too but it's less tested: "--proof tptp " ^ *)
-     "--mode casc -t " ^ string_of_int (to_secs 0 timeout) ^
+     "--proof tptp --mode casc -t " ^ string_of_int (to_secs 0 timeout) ^
      " --thanks \"Andrei and Krystof\" --input_file"
      |> (slice = 0 orelse Config.get ctxt vampire_force_sos)
         ? prefix "--sos on ",
