@@ -616,18 +616,14 @@ fun skolemize ctxt =
     skolemize_with_choice_theorems ctxt (choice_theorems thy)
   end
 
-fun is_Abs (Abs _) = true
-  | is_Abs _ = false
-
-(* Removes the lambdas from an equation of the form "t = (%x. u)".  *)
+(* Removes the lambdas from an equation of the form "t = (%x1 ... xn. u)". It
+   would be desirable to do this symmetrically but there's at least one existing
+   proof in "Tarski" that relies on the current behavior. *)
 fun extensionalize_conv ctxt ct =
   case term_of ct of
-    Const (@{const_name HOL.eq}, _) $ t1 $ t2 =>
-    ct |> (if is_Abs t1 orelse is_Abs t2 then
-             Conv.rewr_conv @{thm fun_eq_iff [THEN eq_reflection]}
-             then_conv extensionalize_conv ctxt
-           else
-             Conv.comb_conv (extensionalize_conv ctxt))
+    Const (@{const_name HOL.eq}, _) $ _ $ Abs _ =>
+    ct |> (Conv.rewr_conv @{thm fun_eq_iff [THEN eq_reflection]}
+           then_conv extensionalize_conv ctxt)
   | _ $ _ => Conv.comb_conv (extensionalize_conv ctxt) ct
   | Abs _ => Conv.abs_conv (extensionalize_conv o snd) ctxt ct
   | _ => Conv.all_conv ct

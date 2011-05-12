@@ -28,10 +28,6 @@ lemma "inc = (\<lambda>y. y + 1)"
 sledgehammer [expect = some] (inc_def)
 by (metis inc_def)
 
-lemma "(\<lambda>y. y + 1) = inc"
-sledgehammer [expect = some] (inc_def)
-by (metis inc_def)
-
 definition add_swap :: "nat \<Rightarrow> nat \<Rightarrow> nat" where
 "add_swap = (\<lambda>x y. y + x)"
 
