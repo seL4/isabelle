@@ -221,20 +221,19 @@ declare if_weak_cong [cong del]
 (* A more aggressive variant that tries to solve subgoals by assumption
    or contradiction during the simplification.
    THIS IS UNSAFE, BECAUSE IT DOESN'T RECORD THE CHOICES!!
-   (but it can be a lot faster than MI_css)
+   (but it can be a lot faster than the default setup)
 *)
-
 ML {*
-val MI_fast_css =
-  let
-    val (cs,ss) = @{clasimpset}
-  in
-    (cs addSEs [temp_use @{thm squareE}],
-      ss addSSolver (mk_solver "" (fn thms => assume_tac ORELSE' (etac notE))))
-  end;
-
-val temp_elim = make_elim o temp_use;
+  val config_fast_solver = Attrib.setup_config_bool @{binding fast_solver} (K false);
+  val fast_solver = mk_solver' "fast_solver" (fn ss =>
+    if Config.get (Simplifier.the_context ss) config_fast_solver
+    then assume_tac ORELSE' (etac notE)
+    else K no_tac);
 *}
+
+declaration {* K (Simplifier.map_ss (fn ss => ss addSSolver fast_solver)) *}
+
+ML {* val temp_elim = make_elim o temp_use *}
 
 
 
@@ -340,16 +339,16 @@ lemma S1Env: "|- ENext p & $(S1 rmhist p) & unchanged (c p, r p, m p, rmhist!p)
     caller_def rtrner_def MVNROKBA_def S_def S1_def S2_def Calling_def)
 
 lemma S1ClerkUnch: "|- [MClkNext memCh crCh cst p]_(c p) & $(S1 rmhist p) --> unchanged (c p)"
-  by (tactic {* auto_tac (MI_fast_css addSDs2 [temp_use @{thm MClkidle}]
-    addsimps2 [@{thm S_def}, @{thm S1_def}]) *})
+  using [[fast_solver]]
+  by (auto elim!: squareE [temp_use] dest!: MClkidle [temp_use] simp: S_def S1_def)
 
 lemma S1RPCUnch: "|- [RPCNext crCh rmCh rst p]_(r p) & $(S1 rmhist p) --> unchanged (r p)"
-  by (tactic {* auto_tac (MI_fast_css addSDs2 [temp_use @{thm RPCidle}]
-    addsimps2 [@{thm S_def}, @{thm S1_def}]) *})
+  using [[fast_solver]]
+  by (auto elim!: squareE [temp_use] dest!: RPCidle [temp_use] simp: S_def S1_def)
 
 lemma S1MemUnch: "|- [RNext rmCh mm ires p]_(m p) & $(S1 rmhist p) --> unchanged (m p)"
-  by (tactic {* auto_tac (MI_fast_css addSDs2 [temp_use @{thm Memoryidle}]
-    addsimps2 [@{thm S_def}, @{thm S1_def}]) *})
+  using [[fast_solver]]
+  by (auto elim!: squareE [temp_use] dest!: Memoryidle [temp_use] simp: S_def S1_def)
 
 lemma S1Hist: "|- [HNext rmhist p]_(c p,r p,m p,rmhist!p) & $(S1 rmhist p)
          --> unchanged (rmhist!p)"
@@ -381,8 +380,9 @@ lemma S2MemUnch: "|- [RNext rmCh mm ires p]_(m p) & $(S2 rmhist p) --> unchanged
 
 lemma S2Hist: "|- [HNext rmhist p]_(c p,r p,m p,rmhist!p) & $(S2 rmhist p)
          --> unchanged (rmhist!p)"
-  by (tactic {* auto_tac (MI_fast_css addsimps2 [@{thm HNext_def}, @{thm MemReturn_def},
-    @{thm RPCFail_def}, @{thm MClkReply_def}, @{thm Return_def}, @{thm S_def}, @{thm S2_def}]) *})
+  using [[fast_solver]]
+  by (auto elim!: squareE [temp_use] simp: HNext_def MemReturn_def RPCFail_def
+    MClkReply_def Return_def S_def S2_def)
 
 (* ------------------------------ State S3 ---------------------------------------- *)
 
@@ -435,8 +435,8 @@ lemma S4ClerkUnch: "|- [MClkNext memCh crCh cst p]_(c p) & $(S4 rmhist p) --> un
   by (auto simp: S_def S4_def dest!: MClkbusy [temp_use])
 
 lemma S4RPCUnch: "|- [RPCNext crCh rmCh rst p]_(r p) & $(S4 rmhist p) --> unchanged (r p)"
-  by (tactic {* auto_tac (MI_fast_css addsimps2 [@{thm S_def}, @{thm S4_def}]
-    addSDs2 [temp_use @{thm RPCbusy}]) *})
+  using [[fast_solver]]
+  by (auto elim!: squareE [temp_use] dest!: RPCbusy [temp_use] simp: S_def S4_def)
 
 lemma S4ReadInner: "|- ReadInner rmCh mm ires p l & $(S4 rmhist p) & unchanged (e p, c p, r p)
          & HNext rmhist p & $(MemInv mm l)
@@ -511,9 +511,9 @@ lemma S5MemUnch: "|- [RNext rmCh mm ires p]_(m p) & $(S5 rmhist p) --> unchanged
 
 lemma S5Hist: "|- [HNext rmhist p]_(c p, r p, m p, rmhist!p) & $(S5 rmhist p)
          --> (rmhist!p)$ = $(rmhist!p)"
-  by (tactic {* auto_tac (MI_fast_css addsimps2 [@{thm HNext_def},
-    @{thm MemReturn_def}, @{thm RPCFail_def}, @{thm MClkReply_def}, @{thm Return_def},
-    @{thm S_def}, @{thm S5_def}]) *})
+  using [[fast_solver]]
+  by (auto elim!: squareE [temp_use] simp: HNext_def MemReturn_def RPCFail_def
+    MClkReply_def Return_def S_def S5_def)
 
 (* ------------------------------ State S6 ---------------------------------------- *)
 
@@ -557,9 +557,9 @@ section "Correctness of predicate-action diagram"
 (* The implementation's initial condition implies the state predicate S1 *)
 
 lemma Step1_1: "|- ImpInit p & HInit rmhist p --> S1 rmhist p"
-  by (tactic {* auto_tac (MI_fast_css addsimps2 [@{thm MVNROKBA_def},
-    @{thm MClkInit_def}, @{thm RPCInit_def}, @{thm PInit_def}, @{thm HInit_def},
-    @{thm ImpInit_def}, @{thm S_def}, @{thm S1_def}]) *})
+  using [[fast_solver]]
+  by (auto elim!: squareE [temp_use] simp: MVNROKBA_def
+    MClkInit_def RPCInit_def PInit_def HInit_def ImpInit_def S_def S1_def)
 
 (* ========== Step 1.2 ================================================== *)
 (* Figure 16 is a predicate-action diagram for the implementation. *)
@@ -569,7 +569,8 @@ lemma Step1_2_1: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
          --> (S2 rmhist p)$ & ENext p & unchanged (c p, r p, m p)"
   apply (tactic {* action_simp_tac (@{simpset} addsimps [@{thm ImpNext_def}]) []
       (map temp_elim [@{thm S1ClerkUnch}, @{thm S1RPCUnch}, @{thm S1MemUnch}, @{thm S1Hist}]) 1 *})
-   apply (tactic {* auto_tac (MI_fast_css addSIs2 [temp_use @{thm S1Env}]) *})
+   using [[fast_solver]]
+   apply (auto elim!: squareE [temp_use] intro!: S1Env [temp_use])
   done
 
 lemma Step1_2_2: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
@@ -578,8 +579,8 @@ lemma Step1_2_2: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
              & unchanged (e p, r p, m p, rmhist!p)"
   apply (tactic {* action_simp_tac (@{simpset} addsimps [@{thm ImpNext_def}]) []
     (map temp_elim [@{thm S2EnvUnch}, @{thm S2RPCUnch}, @{thm S2MemUnch}, @{thm S2Hist}]) 1 *})
-   apply (tactic {* auto_tac (MI_fast_css addSIs2 [temp_use @{thm S2Clerk},
-     temp_use @{thm S2Forward}]) *})
+   using [[fast_solver]]
+   apply (auto elim!: squareE [temp_use] intro!: S2Clerk [temp_use] S2Forward [temp_use])
   done
 
 lemma Step1_2_3: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
@@ -613,8 +614,8 @@ lemma Step1_2_5: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
   apply (tactic {* action_simp_tac (@{simpset} addsimps [@{thm ImpNext_def}]) []
     (map temp_elim [@{thm S5EnvUnch}, @{thm S5ClerkUnch}, @{thm S5MemUnch}, @{thm S5Hist}]) 1 *})
   apply (tactic {* action_simp_tac @{simpset} [] [@{thm squareE}, temp_elim @{thm S5RPC}] 1 *})
-   apply (tactic {* auto_tac (MI_fast_css addSDs2
-     [temp_use @{thm S5Reply}, temp_use @{thm S5Fail}]) *})
+   using [[fast_solver]]
+   apply (auto elim!: squareE [temp_use] dest!: S5Reply [temp_use] S5Fail [temp_use])
   done
 
 lemma Step1_2_6: "|- [HNext rmhist p]_(c p,r p,m p, rmhist!p) & ImpNext p
@@ -647,8 +648,8 @@ section "Step simulation (Step 1.4)"
 
 lemma Step1_4_1: "|- ENext p & $S1 rmhist p & (S2 rmhist p)$ & unchanged (c p, r p, m p)
          --> unchanged (rtrner memCh!p, resbar rmhist!p)"
-  by (tactic {* auto_tac (MI_fast_css addsimps2 [@{thm c_def}, @{thm r_def},
-    @{thm m_def}, @{thm resbar_def}]) *})
+  using [[fast_solver]]
+  by (auto elim!: squareE [temp_use] simp: c_def r_def m_def resbar_def)
 
 lemma Step1_4_2: "|- MClkFwd memCh crCh cst p & $S2 rmhist p & (S3 rmhist p)$
          & unchanged (e p, r p, m p, rmhist!p)
@@ -720,7 +721,8 @@ lemma Step1_4_4c: "|- MemReturn rmCh ires p & $S4 rmhist p & (S5 rmhist p)$
   apply (tactic {* action_simp_tac (@{simpset} addsimps [@{thm e_def},
     @{thm c_def}, @{thm r_def}, @{thm resbar_def}]) [] [] 1 *})
   apply (drule S4_excl [temp_use] S5_excl [temp_use])+
-  apply (tactic {* auto_tac (MI_fast_css addsimps2 [@{thm MemReturn_def}, @{thm Return_def}]) *})
+  using [[fast_solver]]
+  apply (auto elim!: squareE [temp_use] simp: MemReturn_def Return_def)
   done
 
 lemma Step1_4_5a: "|- RPCReply crCh rmCh rst p & $S5 rmhist p & (S6 rmhist p)$
