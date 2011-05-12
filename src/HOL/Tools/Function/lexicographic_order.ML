@@ -216,7 +216,7 @@ fun lex_order_tac quiet ctxt solve_tac (st: thm) =
 fun lexicographic_order_tac quiet ctxt =
   TRY (Function_Common.apply_termination_rule ctxt 1)
   THEN lex_order_tac quiet ctxt
-    (auto_tac (clasimpset_of ctxt addsimps2 Function_Common.Termination_Simps.get ctxt))
+    (auto_tac (claset_of ctxt, simpset_of ctxt addsimps Function_Common.Termination_Simps.get ctxt))
 
 val lexicographic_order = SIMPLE_METHOD o lexicographic_order_tac false
 
