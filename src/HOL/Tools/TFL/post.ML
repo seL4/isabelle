@@ -7,12 +7,12 @@ Second part of main module (postprocessing of TFL definitions).
 
 signature TFL =
 sig
-  val define_i: bool -> theory -> claset -> simpset -> thm list -> thm list -> xstring ->
-    term -> term list -> theory * {lhs: term, rules: (thm * int) list, induct: thm, tcs: term list}
-  val define: bool -> theory -> claset -> simpset -> thm list -> thm list -> xstring ->
-    string -> string list -> theory * {lhs: term, rules: (thm * int) list, induct: thm, tcs: term list}
-  val defer_i: theory -> thm list -> xstring -> term list -> theory * thm
-  val defer: theory -> thm list -> xstring -> string list -> theory * thm
+  val define_i: bool -> Proof.context -> thm list -> thm list -> xstring -> term -> term list ->
+    theory -> {lhs: term, rules: (thm * int) list, induct: thm, tcs: term list} * theory
+  val define: bool -> Proof.context -> thm list -> thm list -> xstring -> string -> string list ->
+    theory -> {lhs: term, rules: (thm * int) list, induct: thm, tcs: term list} * theory
+  val defer_i: thm list -> xstring -> term list -> theory -> thm * theory
+  val defer: thm list -> xstring -> string list -> theory -> thm * theory
 end;
 
 structure Tfl: TFL =
@@ -34,13 +34,14 @@ fun termination_goals rules =
  * non-proved termination conditions, and finally attempts to prove the
  * simplified termination conditions.
  *--------------------------------------------------------------------------*)
-fun std_postprocessor strict cs ss wfs =
+fun std_postprocessor strict ctxt wfs =
   Prim.postprocess strict
-   {wf_tac     = REPEAT (ares_tac wfs 1),
-    terminator = asm_simp_tac ss 1
-                 THEN TRY (Arith_Data.arith_tac (Simplifier.the_context ss) 1 ORELSE
-                           fast_tac (cs addSDs [@{thm not0_implies_Suc}] addss ss) 1),
-    simplifier = Rules.simpl_conv ss []};
+   {wf_tac = REPEAT (ares_tac wfs 1),
+    terminator =
+      asm_simp_tac (simpset_of ctxt) 1
+      THEN TRY (Arith_Data.arith_tac ctxt 1 ORELSE
+        fast_tac (claset_of ctxt addSDs [@{thm not0_implies_Suc}] addss (simpset_of ctxt)) 1),
+    simplifier = Rules.simpl_conv (simpset_of ctxt) []};
 
 
 
@@ -83,13 +84,13 @@ fun join_assums th =
   end
   val gen_all = USyntax.gen_all
 in
-fun proof_stage strict cs ss wfs theory {f, R, rules, full_pats_TCs, TCs} =
+fun proof_stage strict ctxt wfs theory {f, R, rules, full_pats_TCs, TCs} =
   let
     val _ = writeln "Proving induction theorem ..."
     val ind = Prim.mk_induction theory {fconst=f, R=R, SV=[], pat_TCs_list=full_pats_TCs}
     val _ = writeln "Postprocessing ...";
     val {rules, induction, nested_tcs} =
-      std_postprocessor strict cs ss wfs theory {rules=rules, induction=ind, TCs=TCs}
+      std_postprocessor strict ctxt wfs theory {rules=rules, induction=ind, TCs=TCs}
   in
   case nested_tcs
   of [] => {induction=induction, rules=rules,tcs=[]}
@@ -102,7 +103,7 @@ fun proof_stage strict cs ss wfs theory {f, R, rules, full_pats_TCs, TCs} =
               val simplified' = map join_assums simplified
               val dummy = (Prim.trace_thms "solved =" solved;
                            Prim.trace_thms "simplified' =" simplified')
-              val rewr = full_simplify (ss addsimps (solved @ simplified'));
+              val rewr = full_simplify (simpset_of ctxt addsimps (solved @ simplified'));
               val dummy = Prim.trace_thms "Simplifying the induction rule..."
                                           [induction]
               val induction' = rewr induction
@@ -134,18 +135,17 @@ val spec'= read_instantiate @{context} [(("x", 0), "P::?'b=>bool")] spec;
 fun tracing true _ = ()
   | tracing false msg = writeln msg;
 
-fun simplify_defn strict thy cs ss congs wfs id pats def0 =
+fun simplify_defn strict thy ctxt congs wfs id pats def0 =
    let
-       val ctxt = Proof_Context.init_global thy
        val def = Thm.unvarify_global def0 RS meta_eq_to_obj_eq
        val {rules,rows,TCs,full_pats_TCs} =
-           Prim.post_definition congs (thy, (def,pats))
+           Prim.post_definition congs (thy, (def, pats))
        val {lhs=f,rhs} = USyntax.dest_eq (concl def)
        val (_,[R,_]) = USyntax.strip_comb rhs
        val dummy = Prim.trace_thms "congs =" congs
        (*the next step has caused simplifier looping in some cases*)
        val {induction, rules, tcs} =
-             proof_stage strict cs ss wfs thy
+             proof_stage strict ctxt wfs thy
                {f = f, R = R, rules = rules,
                 full_pats_TCs = full_pats_TCs,
                 TCs = TCs}
@@ -185,20 +185,20 @@ end;
 (*---------------------------------------------------------------------------
  * Defining a function with an associated termination relation.
  *---------------------------------------------------------------------------*)
-fun define_i strict thy cs ss congs wfs fid R eqs =
+fun define_i strict ctxt congs wfs fid R eqs thy =
   let val {functional,pats} = Prim.mk_functional thy eqs
       val (thy, def) = Prim.wfrec_definition0 thy fid R functional
+      val ctxt' = Proof_Context.transfer thy ctxt
       val (lhs, _) = Logic.dest_equals (prop_of def)
-      val {induct, rules, tcs} = 
-          simplify_defn strict thy cs ss congs wfs fid pats def
+      val {induct, rules, tcs} = simplify_defn strict thy ctxt' congs wfs fid pats def
       val rules' = 
           if strict then derive_init_eqs thy rules eqs
           else rules
-  in (thy, {lhs = lhs, rules = rules', induct = induct, tcs = tcs}) end;
+  in ({lhs = lhs, rules = rules', induct = induct, tcs = tcs}, thy) end;
 
-fun define strict thy cs ss congs wfs fid R seqs =
-  define_i strict thy cs ss congs wfs fid
-      (Syntax.read_term_global thy R) (map (Syntax.read_term_global thy) seqs)
+fun define strict ctxt congs wfs fid R seqs thy =
+  define_i strict ctxt congs wfs fid
+      (Syntax.read_term ctxt R) (map (Syntax.read_term ctxt) seqs) thy
     handle Utils.ERR {mesg,...} => error mesg;
 
 
@@ -211,20 +211,20 @@ fun define strict thy cs ss congs wfs fid R seqs =
 fun func_of_cond_eqn tm =
   #1 (USyntax.strip_comb (#lhs (USyntax.dest_eq (#2 (USyntax.strip_forall (#2 (USyntax.strip_imp tm)))))));
 
-fun defer_i thy congs fid eqs =
+fun defer_i congs fid eqs thy =
  let val {rules,R,theory,full_pats_TCs,SV,...} = Prim.lazyR_def thy fid congs eqs
      val f = func_of_cond_eqn (concl (Rules.CONJUNCT1 rules handle Utils.ERR _ => rules));
      val dummy = writeln "Proving induction theorem ...";
      val induction = Prim.mk_induction theory
                         {fconst=f, R=R, SV=SV, pat_TCs_list=full_pats_TCs}
- in (theory,
-     (*return the conjoined induction rule and recursion equations,
-       with assumptions remaining to discharge*)
-     Drule.export_without_context (induction RS (rules RS conjI)))
+ in
+   (*return the conjoined induction rule and recursion equations,
+     with assumptions remaining to discharge*)
+   (Drule.export_without_context (induction RS (rules RS conjI)), theory)
  end
 
-fun defer thy congs fid seqs =
-  defer_i thy congs fid (map (Syntax.read_term_global thy) seqs)
+fun defer congs fid seqs thy =
+  defer_i congs fid (map (Syntax.read_term_global thy) seqs) thy
     handle Utils.ERR {mesg,...} => error mesg;
 end;
 

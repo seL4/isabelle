@@ -166,15 +166,17 @@ fun prepare_hints thy opt_src =
         NONE => ctxt0
       | SOME src => #2 (Method.syntax (Method.sections recdef_modifiers) src ctxt0));
     val {simps, congs, wfs} = get_hints ctxt;
-    val cs = claset_of ctxt;
-    val ss = simpset_of ctxt addsimps simps;
-  in (cs, ss, rev (map snd congs), wfs) end;
+    val ctxt' = ctxt
+      |> Context.proof_map (Simplifier.map_ss (fn ss => ss addsimps simps delcongs [imp_cong]));
+  in (ctxt', rev (map snd congs), wfs) end;
 
 fun prepare_hints_i thy () =
   let
-    val ctxt0 = Proof_Context.init_global thy;
+    val ctxt = Proof_Context.init_global thy;
     val {simps, congs, wfs} = get_global_hints thy;
-  in (claset_of ctxt0, simpset_of ctxt0 addsimps simps, rev (map snd congs), wfs) end;
+    val ctxt' = ctxt
+      |> Context.proof_map (Simplifier.map_ss (fn ss => ss addsimps simps delcongs [imp_cong]));
+  in (ctxt', rev (map snd congs), wfs) end;
 
 
 
@@ -194,13 +196,12 @@ fun gen_add_recdef tfl_fn prep_att prep_hints not_permissive raw_name R eq_srcs 
     val ((eq_names, eqs), raw_eq_atts) = apfst split_list (split_list eq_srcs);
     val eq_atts = map (map (prep_att thy)) raw_eq_atts;
 
-    val (cs, ss, congs, wfs) = prep_hints thy hints;
+    val (ctxt, congs, wfs) = prep_hints thy hints;
     (*We must remove imp_cong to prevent looping when the induction rule
       is simplified. Many induction rules have nested implications that would
       give rise to looping conditional rewriting.*)
-    val (thy, {lhs, rules = rules_idx, induct, tcs}) =
-        tfl_fn not_permissive thy cs (ss delcongs [imp_cong])
-               congs wfs name R eqs;
+    val ({lhs, rules = rules_idx, induct, tcs}, thy) =
+      tfl_fn not_permissive ctxt congs wfs name R eqs thy;
     val rules = (map o map) fst (partition_eq (eq_snd (op = : int * int -> bool)) rules_idx);
     val simp_att =
       if null tcs then [Simplifier.simp_add, Nitpick_Simps.add, Code.add_default_eqn_attribute]
@@ -235,7 +236,7 @@ fun gen_defer_recdef tfl_fn eval_thms raw_name eqs raw_congs thy =
     val _ = writeln ("Deferred recursive function " ^ quote name ^ " ...");
 
     val congs = eval_thms (Proof_Context.init_global thy) raw_congs;
-    val (thy2, induct_rules) = tfl_fn thy congs name eqs;
+    val (induct_rules, thy2) = tfl_fn congs name eqs thy;
     val ([induct_rules'], thy3) =
       thy2
       |> Sign.add_path bname
