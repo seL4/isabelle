@@ -138,10 +138,6 @@ attribute_setup try_rewrite = {* Scan.succeed (Thm.rule_attribute (K try_rewrite
 
 declare tempI [intro!]
 declare tempD [dest]
-ML {*
-val temp_css = (@{claset}, @{simpset})
-val temp_cs = op addss temp_css
-*}
 
 (* Modify the functions that add rules to simpsets, classical sets,
    and clasimpsets in order to accept "lifted" theorems
@@ -426,12 +422,6 @@ lemma DmdConst: "|- (<>#P) = #P"
   done
 
 lemmas temp_simps [temp_rewrite, simp] = BoxConst DmdConst
-
-(* Make these rewrites active by default *)
-ML {*
-val temp_css = temp_css addsimps2 @{thms temp_simps}
-val temp_cs = op addss temp_css
-*}
 
 
 (* ------------------------ Further rewrites ----------------------------------------- *)
