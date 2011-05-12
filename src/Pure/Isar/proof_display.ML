@@ -27,7 +27,7 @@ struct
 (* toplevel pretty printing *)
 
 fun pp_context ctxt =
- (if ! Proof_Context.debug then
+ (if Config.get ctxt Proof_Context.debug then
     Pretty.quote (Pretty.big_list "proof context:" (Proof_Context.pretty_context ctxt))
   else Pretty.str "<context>");
 
