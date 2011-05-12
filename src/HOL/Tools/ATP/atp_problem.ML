@@ -24,11 +24,12 @@ sig
   type 'a problem = (string * 'a problem_line list) list
 
 (* official TPTP syntax *)
+  val tptp_special_prefix : string
+  val tptp_false : string
+  val tptp_true : string
   val tptp_tff_type_of_types : string
   val tptp_tff_bool_type : string
   val tptp_tff_individual_type : string
-  val tptp_false : string
-  val tptp_true : string
   val timestamp : unit -> string
   val hashw : word * word -> word
   val hashw_string : string * word -> word
@@ -62,11 +63,12 @@ datatype 'a problem_line =
 type 'a problem = (string * 'a problem_line list) list
 
 (* official TPTP syntax *)
+val tptp_special_prefix = "$"
+val tptp_false = "$false"
+val tptp_true = "$true"
 val tptp_tff_type_of_types = "$tType"
 val tptp_tff_bool_type = "$o"
 val tptp_tff_individual_type = "$i"
-val tptp_false = "$false"
-val tptp_true = "$true"
 
 val timestamp = Date.fmt "%Y-%m-%d %H:%M:%S" o Date.fromTimeLocal o Time.now
 
