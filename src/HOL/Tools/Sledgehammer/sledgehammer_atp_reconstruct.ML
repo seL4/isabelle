@@ -908,7 +908,7 @@ val relabel_proof =
         step :: aux subst depth nextp proof
   in aux [] 0 (1, 1) end
 
-fun string_for_proof ctxt0 type_sys i n =
+fun string_for_proof ctxt0 i n =
   let
     val ctxt = ctxt0
       |> Config.put show_free_types false
@@ -931,7 +931,7 @@ fun string_for_proof ctxt0 type_sys i n =
          if member (op =) qs Show then "show" else "have")
     val do_term = maybe_quote o fix_print_mode (Syntax.string_of_term ctxt)
     fun do_facts (ls, ss) =
-      metis_command type_sys 1 1
+      metis_command false 1 1
                     (ls |> sort_distinct (prod_ord string_ord int_ord),
                      ss |> sort_distinct string_ord)
     and do_step ind (Fix xs) =
@@ -984,7 +984,7 @@ fun isar_proof_text (ctxt, debug, isar_shrink_factor, pool, conjecture_shape,
            |> then_chain_proof
            |> kill_useless_labels_in_proof
            |> relabel_proof
-           |> string_for_proof ctxt (is_type_sys_fairly_sound type_sys) i n of
+           |> string_for_proof ctxt i n of
         "" => "\nNo structured proof available (proof too short)."
       | proof => "\n\nStructured proof:\n" ^ Markup.markup Markup.sendback proof
     val isar_proof =
