@@ -80,11 +80,12 @@ Jasmin Christian Blanchette \\
 Sledgehammer is a tool that applies first-order automatic theorem provers (ATPs)
 and satisfiability-modulo-theories (SMT) solvers on the current goal. The
 supported ATPs are E \cite{schulz-2002}, SPASS \cite{weidenbach-et-al-2009},
-Vampire \cite{riazanov-voronkov-2002}, SInE-E \cite{sine}, and SNARK
-\cite{snark}. The ATPs are run either locally or remotely via the
-System\-On\-TPTP web service \cite{sutcliffe-2000}. In addition to the ATPs, the
-SMT solvers Z3 \cite{z3} is used, and you can tell Sledgehammer to try Yices
-\cite{yices} and CVC3 \cite{cvc3} as well.
+Vampire \cite{riazanov-voronkov-2002}, SInE-E \cite{sine}, SNARK
+\cite{snark}, and ToFoF-E \cite{tofof}. The ATPs are run either locally or
+remotely via the System\-On\-TPTP web service \cite{sutcliffe-2000}. In addition
+to the ATPs, the SMT solvers Z3 \cite{z3} is used by default, and you can tell
+Sledgehammer to try Yices \cite{yices} and CVC3 \cite{cvc3} as well; these
+are run either locally or on a server in Munich.
 
 The problem passed to the automatic provers consists of your current goal
 together with a heuristic selection of hundreds of facts (theorems) from the
@@ -109,14 +110,15 @@ Tools Time Limit'' option.
 \newbox\boxA
 \setbox\boxA=\hbox{\texttt{nospam}}
 
+\newcommand\authoremail{\texttt{blan{\color{white}nospam}\kern-\wd\boxA{}chette@\allowbreak
+in.\allowbreak tum.\allowbreak de}}
+
 To run Sledgehammer, you must make sure that the theory \textit{Sledgehammer} is
 imported---this is rarely a problem in practice since it is part of
 \textit{Main}. Examples of Sledgehammer use can be found in Isabelle's
 \texttt{src/HOL/Metis\_Examples} directory.
 Comments and bug reports concerning Sledgehammer or this manual should be
-directed to
-\texttt{blan{\color{white}nospam}\kern-\wd\boxA{}chette@\allowbreak
-in.\allowbreak tum.\allowbreak de}.
+directed to \authoremail.
 
 \vskip2.5\smallskipamount
 
@@ -127,10 +129,14 @@ in.\allowbreak tum.\allowbreak de}.
 \label{installation}
 
 Sledgehammer is part of Isabelle, so you don't need to install it. However, it
-relies on third-party automatic theorem provers (ATPs) and SAT solvers.
+relies on third-party automatic theorem provers (ATPs) and SMT solvers.
+
+\subsection{Installing ATPs}
+
 Currently, E, SPASS, and Vampire can be run locally; in addition, E, Vampire,
-SInE-E, and SNARK are available remotely via SystemOnTPTP \cite{sutcliffe-2000}.
-If you want better performance, you should install E and SPASS locally.
+SInE-E, SNARK, and ToFoF-E are available remotely via System\-On\-TPTP
+\cite{sutcliffe-2000}. If you want better performance, you should at least
+install E and SPASS locally.
 
 There are three main ways to install ATPs on your machine:
 
@@ -167,11 +173,16 @@ with E 1.0 and 1.2, SPASS 3.5 and 3.7, and Vampire 1.0%
 \footnote{Following the rewrite of Vampire, the counter for version numbers was
 reset to 0; hence the new Vampire 1.0 is more recent than Vampire 11.5.}%
 . Since the ATPs' output formats are neither documented nor stable, other
-versions of the ATPs might or might not work well with Sledgehammer.
+versions of the ATPs might or might not work well with Sledgehammer. Ideally,
+also set \texttt{E\_VERSION}, \texttt{SPASS\_VERSION}, or
+\texttt{VAMPIRE\_VERSION} to the ATP's version number (e.g., ``1.2'').
 \end{enum}
 
-To check whether E and SPASS are installed, follow the example in
-\S\ref{first-steps}.
+To check whether E and SPASS are successfully installed, follow the example in
+\S\ref{first-steps}. If the remote versions of E and SPASS are used (identified
+by the prefix ``\emph{remote\_}''), or if the local versions fail to solve the
+easy goal presented there, this is a sign that something is wrong with your
+installation.
 
 Remote ATP invocation via the SystemOnTPTP web service requires Perl with the
 World Wide Web Library (\texttt{libwww-perl}) installed. If you must use a proxy
@@ -184,6 +195,28 @@ to the proxy, either in the environment in which Isabelle is launched or in your
 \texttt{http\_proxy=http://proxy.example.org:8080} \\
 \texttt{http\_proxy=http://joeblow:pAsSwRd@proxy.example.org}
 \postw
+
+\subsection{Installing SMT Solvers}
+
+CVC3, Yices, and Z3 can be run locally or remotely on a Munich server. If you
+want better performance and get the ability to replay proofs that rely on the
+\emph{smt} proof method, you should at least install Z3 locally.
+
+There are two main ways of installing SMT solvers locally.
+
+\begin{enum}
+\item[$\bullet$] If you installed an official Isabelle package with everything
+inside, it should already include properly setup executables for CVC3 and Z3,
+ready to use.%
+\footnote{Yices's license prevents us from doing the same for this otherwise
+wonderful tool.}
+For Z3, you additionally need to set the environment variable
+\texttt{Z3\_NON\_COMMERCIAL} to ``yes'' to confirm that you are a noncommercial
+user.
+
+\item[$\bullet$] Otherwise, follow the instructions documented in the \emph{SMT}
+theory (\texttt{\$ISABELLE\_HOME/src/HOL/SMT.thy}).
+\end{enum}
 
 \section{First Steps}
 \label{first-steps}
@@ -262,6 +295,10 @@ experimental and is only available for ATPs.
 \section{Hints}
 \label{hints}
 
+\newcommand\point[1]{{\sl\bfseries#1}\par\nopagebreak}
+
+\point{Presimplify the goal}
+
 For best results, first simplify your problem by calling \textit{auto} or at
 least \textit{safe} followed by \textit{simp\_all}. None of the ATPs contain
 arithmetic decision procedures. They are not especially good at heavy rewriting,
@@ -271,8 +308,141 @@ can be tackled, but the success rate is better for first-order problems. Hence,
 you may get better results if you first simplify the problem to remove
 higher-order features.
 
-Note that problems can be easy for \textit{auto} and difficult for ATPs, but the
-reverse is also true, so don't be discouraged if your first attempts fail.
+\point{Make sure at least E, SPASS, Vampire, and Z3 are installed}
+
+Locally installed provers are faster and more reliable than those running on
+servers. See \S\ref{installation} for details on how to install them.
+
+\point{Familiarize yourself with the most important options}
+
+Sledgehammer's options are fully documented in \S\ref{command-syntax}. Many of
+the options are very specialized, but serious users of the tool should at least
+familiarize themselves with the following options:
+
+\begin{enum}
+\item[$\bullet$] \textbf{\textit{provers}} specifies the ATP and SMT solvers to
+use (e.g., ``\textit{provers} = \textit{e spass remote\_vampire}'').
+
+\item[$\bullet$] \textbf{\textit{timeout}} controls the time limit. It is set to
+30 seconds, but since Sledgehammer runs asynchronously you should not hesitate
+to crank up this limit to 60 or 120 seconds if you are the kind of user who can
+think clearly while ATPs are active.
+
+\item[$\bullet$] \textbf{\textit{full\_types}} specifies whether type-sound
+encodings should be used. By default, Sledgehammer employs a mixture of
+type-sound and type-unsound encodings, occasionally yielding unsound ATP proofs.
+(SMT solver proofs should always be sound, although we occasionally find
+soundness bugs in the solvers.)
+
+\item[$\bullet$] \textbf{\textit{max\_relevant}} specifies the maximum number of
+facts that should be passed to the provers. By default, the value is
+prover-dependent but varies between about 150 and 1000. If the provers time out,
+you can try lowering this value to, say, 100 or 50 and see if that helps.
+
+\item[$\bullet$] \textbf{\textit{isar\_proof}} specifies that Isar proofs should
+be generated, instead of one-liner Metis proofs. The length of the Isar proofs
+can be controlled by setting \textit{isar\_shrink\_factor}.
+\end{enum}
+
+Options can be set globally using \textbf{sledgehammer\_params}. Fact selection
+can be influenced by specifying ``$(\textit{add}{:}~\textit{some\_facts})$'' after
+the \textbf{sledgehammer} call to ensure that certain facts are included, or
+simply ``$(\textit{some\_facts})$'' to force Sledgehammer to run only with
+$\textit{some\_facts}$.
+
+\section{Frequently Asked Questions}
+\label{frequently-asked-questions}
+
+\point{Why does Metis fail to reconstruct the proof?}
+
+There can be many reasons. If Metis runs seemingly forever, that's a sign that
+the proof is too difficult for it. Metis is complete, so it should eventually
+find it, but that's little consolation. There are several possible solutions:
+
+\begin{enum}
+\item[$\bullet$] Try the \textit{isar\_proof} option to obtain a step-by-step
+Isar proof where each step is justified by Metis. Since the steps are fairly
+small, Metis is more likely to be able to replay them.
+
+\item[$\bullet$] Try the \textit{smt} proof method instead of \textit{metis}. It
+is usually stronger, but you need to have Z3 available to replay the proofs,
+trust the SMT solver, or use certificates. See the documentation in the
+\emph{SMT} theory (\texttt{\$ISABELLE\_HOME/src/HOL/SMT.thy}) for details.
+
+\item[$\bullet$] Try the \textit{blast} or \textit{auto} proof methods, passing
+facts via \textbf{unfolding}, \textbf{using}, \textit{intro}{:},
+\textit{elim}{:}, \textit{dest}{:}, or \textit{simp}{:}, as appropriate.
+\end{enum}
+
+%    * sometimes Metis runs into some error, e.g. a type error. then it tries
+%      again with metisFT, where FT stands for ``full type information'
+%    * metisFT is much slower, but its proof search is fully typed, and it also
+%      includes more powerful rules such as the axiom ``$x = \mathit{True}
+%      \mathrel{\lor} x = \mathit{False}$'' for reasoning in higher-order places
+%      (e.g., in set comprehensions)
+%
+%    * finally, in some cases the ATP proof is simply type-incorrect.
+%      Sledgehammer drops some type information to speed up the search. Try
+%      Sledgehammer again with full type information: \textit{full\_types}
+%      (\S\ref{problem-encoding}), or choose a specific type encoding with
+%      \textit{type\_sys} (\S\ref{problem-encoding}). Older versions of
+%      Sledgehammer were frequent victims of this problem. Now this should very
+%      seldom be an issue, but if you notice too many unsound proofs, contact
+%
+%\point{How can I easily tell whether a Sledgehammer proof is sound?}
+%
+%Easiest way: Once it's found: ... by (metis facts)
+%try
+%sledgehammer [full\_types] (facts)
+%
+%should usually give unprovable or refind the proof fairly quickly
+%
+%Same trick if you believe that there exists a proof with certain facts.
+%
+%\point{Which facts does Sledgehammer select?}
+%
+%    * heuristic
+%    * and several hundreds
+%    * show them: debug
+%    * influence it with sledgehammer (add: xxx)
+%
+%    * S/h good at finding short proofs combining a handful of existing lemmas
+%    * for deeper proofs, you must restrict the number of facts, e.g.
+%      max\_relevant = 50
+%    * but then proof reconstruction is an issue
+%
+%\point{Why are the Isar proofs generated by Sledgehammer so ugly?}
+%
+%    * experimental
+%    * working on this
+%    * there is a large body of research into transforming resolution proofs into
+%      natural deduction proofs (e.g., Isar proofs)
+%    * meantime: isar\_shrink\_factor
+%
+%
+%\point{Should I let Sledgehammer minimize the number of lemmas?}
+%
+%    * in general, yes
+%    * proofs involving fewer lemmas tend to be shorter as well, and hence easier
+%      to re-find by Metis
+%    * but the opposite is sometimes the case
+
+\point{I got a strange error from Sledgehammer---what should I do?}
+
+Sledgehammer tries to give informative error messages. Please report any strange
+error to \authoremail. This applies double if you get the message
+
+\begin{quote}
+\slshape
+The prover found a type-unsound proof even though a supposedly type-sound
+encoding was used (or, very unlikely, your axioms are inconsistent). You
+might want to report this to the Isabelle developers.
+\end{quote}
+
+\point{Auto can solve it---why not Sledgehammer?}
+
+Problems can be easy for \textit{auto} and difficult for automatic provers, but
+the reverse is also true, so don't be discouraged if your first attempts fail.
 Because the system refers to all theorems known to Isabelle, it is particularly
 suitable when your goal has a short proof from lemmas that you don't know about.
 
