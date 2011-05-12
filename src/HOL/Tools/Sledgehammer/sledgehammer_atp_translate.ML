@@ -682,6 +682,7 @@ fun impose_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys =
                anyway, by distinguishing overloads only on the homogenized
                result type. *)
             if s = const_prefix ^ explicit_app_base andalso
+               length T_args = 2 andalso
                not (is_type_sys_virtually_sound type_sys) then
               T_args |> map (homogenized_type ctxt nonmono_Ts level)
                      |> (fn Ts => let val T = hd Ts --> nth Ts 1 in
