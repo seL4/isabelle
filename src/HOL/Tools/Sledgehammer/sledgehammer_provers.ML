@@ -531,7 +531,7 @@ fun run_atp auto name
                   else
                     ()
                 val (atp_problem, pool, conjecture_offset, facts_offset,
-                     fact_names) =
+                     fact_names, sym_tab) =
                   prepare_atp_problem ctxt conj_sym_kind prem_kind type_sys
                                       explicit_apply hyp_ts concl_t facts
                 fun weights () = atp_problem_weights atp_problem
@@ -584,7 +584,7 @@ fun run_atp auto name
                     else SOME IncompleteUnprovable
                   | _ => outcome
               in
-                ((pool, conjecture_shape, facts_offset, fact_names),
+                ((pool, conjecture_shape, facts_offset, fact_names, sym_tab),
                  (output, msecs, type_sys, atp_proof, outcome))
               end
             val timer = Timer.startRealTimer ()
@@ -604,7 +604,7 @@ fun run_atp auto name
                 end
               | maybe_run_slice _ _ result = result
             fun maybe_blacklist_facts_and_retry iter blacklist
-                    (result as ((_, _, facts_offset, fact_names),
+                    (result as ((_, _, facts_offset, fact_names, _),
                                 (_, _, type_sys, atp_proof,
                                  SOME (UnsoundProof false)))) =
                 (case used_facts_in_atp_proof type_sys facts_offset fact_names
@@ -619,7 +619,7 @@ fun run_atp auto name
                    end)
               | maybe_blacklist_facts_and_retry _ _ result = result
           in
-            ((Symtab.empty, [], 0, Vector.fromList []),
+            ((Symtab.empty, [], 0, Vector.fromList [], Symtab.empty),
              ("", SOME 0, hd fallback_best_type_systems, [],
               SOME InternalError))
             |> fold (maybe_run_slice []) actual_slices
@@ -639,7 +639,7 @@ fun run_atp auto name
         ()
       else
         File.write (Path.explode (Path.implode prob_file ^ "_proof")) output
-    val ((pool, conjecture_shape, facts_offset, fact_names),
+    val ((pool, conjecture_shape, facts_offset, fact_names, sym_tab),
          (output, msecs, type_sys, atp_proof, outcome)) =
       with_path cleanup export run_on problem_path_name
     val important_message =
@@ -659,7 +659,8 @@ fun run_atp auto name
          "\n\nImportant message from Dr. Geoff Sutcliffe:\n" ^ important_message
        else
          "")
-    val isar_params = (ctxt, debug, isar_shrink_factor, pool, conjecture_shape)
+    val isar_params =
+      (ctxt, debug, isar_shrink_factor, pool, conjecture_shape, sym_tab)
     val metis_params =
       (proof_banner auto, minimize_command, type_sys, atp_proof, facts_offset,
        fact_names, goal, subgoal)

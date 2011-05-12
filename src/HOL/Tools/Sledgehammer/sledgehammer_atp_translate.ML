@@ -36,7 +36,6 @@ sig
   val level_of_type_sys : type_system -> type_level
   val is_type_sys_virtually_sound : type_system -> bool
   val is_type_sys_fairly_sound : type_system -> bool
-  val num_atp_type_args : theory -> type_system -> string -> int
   val unmangled_const : string -> string * string fo_term list
   val translate_atp_fact :
     Proof.context -> bool -> (string * locality) * thm
@@ -46,7 +45,7 @@ sig
     -> term list -> term
     -> (translated_formula option * ((string * 'a) * thm)) list
     -> string problem * string Symtab.table * int * int
-       * (string * 'a) list vector
+       * (string * 'a) list vector * int Symtab.table
   val atp_problem_weights : string problem -> (string * real) list
 end;
 
@@ -216,13 +215,6 @@ fun general_type_arg_policy type_sys =
 fun type_arg_policy type_sys s =
   if should_omit_type_args type_sys s then No_Type_Args
   else general_type_arg_policy type_sys
-
-fun num_atp_type_args thy type_sys s =
-  case type_arg_policy type_sys s of
-    Explicit_Type_Args keep_all =>
-    if keep_all then num_type_args thy s
-    else error "not implemented yet" (* FIXME *)
-  | _ => 0
 
 fun atp_type_literals_for_types type_sys kind Ts =
   if level_of_type_sys type_sys = No_Types then
@@ -1102,12 +1094,20 @@ fun prepare_atp_problem ctxt conj_sym_kind prem_kind type_sys explicit_apply
           | _ => I)
     val (problem, pool) =
       problem |> nice_atp_problem (Config.get ctxt readable_names)
+    fun add_sym_arity (s, {min_ary, ...}) =
+      if min_ary > 0 then
+        case strip_prefix_and_unascii const_prefix s of
+          SOME s => Symtab.insert (op =) (s, min_ary)
+        | NONE => I
+      else
+        I
   in
     (problem,
      case pool of SOME the_pool => snd the_pool | NONE => Symtab.empty,
      offset_of_heading_in_problem conjsN problem 0,
      offset_of_heading_in_problem factsN problem 0,
-     fact_names |> Vector.fromList)
+     fact_names |> Vector.fromList,
+     Symtab.empty |> Symtab.fold add_sym_arity sym_tab)
   end
 
 (* FUDGE *)

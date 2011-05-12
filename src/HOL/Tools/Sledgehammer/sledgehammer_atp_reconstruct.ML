@@ -16,7 +16,8 @@ sig
     string * minimize_command * type_system * string proof * int
     * (string * locality) list vector * thm * int
   type isar_params =
-     Proof.context * bool * int * string Symtab.table * int list list
+    Proof.context * bool * int * string Symtab.table * int list list
+    * int Symtab.table
   type text_result = string * (string * locality) list
 
   val repair_conjecture_shape_and_fact_names :
@@ -57,6 +58,7 @@ type metis_params =
   * (string * locality) list vector * thm * int
 type isar_params =
   Proof.context * bool * int * string Symtab.table * int list list
+  * int Symtab.table
 type text_result = string * (string * locality) list
 
 fun is_head_digit s = Char.isDigit (String.sub (s, 0))
@@ -338,7 +340,7 @@ fun repair_atp_variable_name f s =
 
 (* First-order translation. No types are known for variables. "HOLogic.typeT"
    should allow them to be inferred. *)
-fun raw_term_from_pred thy type_sys tfrees =
+fun raw_term_from_pred thy sym_tab tfrees =
   let
     fun aux opt_T extra_us u =
       case u of
@@ -354,22 +356,23 @@ fun raw_term_from_pred thy type_sys tfrees =
             else
               list_comb (Const (@{const_name HOL.eq}, HOLogic.typeT), ts)
           end
-        | SOME b =>
-          let val (b, mangled_us) = b |> unmangled_const |>> invert_const in
-            if b = type_tag_name then
+        | SOME s =>
+          let val (s', mangled_us) = s |> unmangled_const |>> invert_const in
+            if s' = type_tag_name then
               case mangled_us @ us of
                 [typ_u, term_u] =>
                 aux (SOME (typ_from_fo_term tfrees typ_u)) extra_us term_u
               | _ => raise FO_TERM us
-            else if b = predicator_base then
+            else if s' = predicator_base then
               aux (SOME @{typ bool}) [] (hd us)
-            else if b = explicit_app_base then
+            else if s' = explicit_app_base then
               aux opt_T (nth us 1 :: extra_us) (hd us)
-            else if b = type_pred_base then
+            else if s' = type_pred_base then
               @{const True} (* ignore type predicates *)
             else
               let
-                val num_ty_args = num_atp_type_args thy type_sys b
+                val num_ty_args =
+                  length us - the_default 0 (Symtab.lookup sym_tab s)
                 val (type_us, term_us) =
                   chop num_ty_args us |>> append mangled_us
                 (* Extra args from "hAPP" come after any arguments given
@@ -380,13 +383,13 @@ fun raw_term_from_pred thy type_sys tfrees =
                   case opt_T of
                     SOME T => map fastype_of term_ts ---> T
                   | NONE =>
-                    if num_type_args thy b = length type_us then
+                    if num_type_args thy s' = length type_us then
                       Sign.const_instance thy
-                          (b, map (typ_from_fo_term tfrees) type_us)
+                          (s', map (typ_from_fo_term tfrees) type_us)
                     else
                       HOLogic.typeT
-                val b = unproxify_const b
-              in list_comb (Const (b, T), term_ts @ extra_ts) end
+                val s' = s' |> unproxify_const
+              in list_comb (Const (s', T), term_ts @ extra_ts) end
           end
         | NONE => (* a free or schematic variable *)
           let
@@ -407,12 +410,12 @@ fun raw_term_from_pred thy type_sys tfrees =
           in list_comb (t, ts) end
   in aux (SOME HOLogic.boolT) [] end
 
-fun term_from_pred thy type_sys tfrees pos (u as ATerm (s, _)) =
+fun term_from_pred thy sym_tab tfrees pos (u as ATerm (s, _)) =
   if String.isPrefix class_prefix s then
     add_type_constraint pos (type_constraint_from_term tfrees u)
     #> pair @{const True}
   else
-    pair (raw_term_from_pred thy type_sys tfrees u)
+    pair (raw_term_from_pred thy sym_tab tfrees u)
 
 val combinator_table =
   [(@{const_name Meson.COMBI}, @{thm Meson.COMBI_def_raw}),
@@ -454,7 +457,7 @@ fun quantify_over_var quant_of var_s t =
 
 (* Interpret an ATP formula as a HOL term, extracting sort constraints as they
    appear in the formula. *)
-fun prop_from_formula thy type_sys tfrees phi =
+fun prop_from_formula thy sym_tab tfrees phi =
   let
     fun do_formula pos phi =
       case phi of
@@ -478,7 +481,7 @@ fun prop_from_formula thy type_sys tfrees phi =
              | AIff => s_iff
              | ANotIff => s_not o s_iff
              | _ => raise Fail "unexpected connective")
-      | AAtom tm => term_from_pred thy type_sys tfrees pos tm
+      | AAtom tm => term_from_pred thy sym_tab tfrees pos tm
       | _ => raise FORMULA [phi]
   in repair_tvar_sorts (do_formula true phi Vartab.empty) end
 
@@ -492,14 +495,14 @@ fun check_formula ctxt =
 fun unvarify_term (Var ((s, 0), T)) = Free (s, T)
   | unvarify_term t = raise TERM ("unvarify_term: non-Var", [t])
 
-fun decode_line type_sys tfrees (Definition (name, phi1, phi2)) ctxt =
+fun decode_line sym_tab tfrees (Definition (name, phi1, phi2)) ctxt =
     let
       val thy = Proof_Context.theory_of ctxt
-      val t1 = prop_from_formula thy type_sys tfrees phi1
+      val t1 = prop_from_formula thy sym_tab tfrees phi1
       val vars = snd (strip_comb t1)
       val frees = map unvarify_term vars
       val unvarify_args = subst_atomic (vars ~~ frees)
-      val t2 = prop_from_formula thy type_sys tfrees phi2
+      val t2 = prop_from_formula thy sym_tab tfrees phi2
       val (t1, t2) =
         HOLogic.eq_const HOLogic.typeT $ t1 $ t2
         |> unvarify_args |> uncombine_term |> check_formula ctxt
@@ -508,17 +511,17 @@ fun decode_line type_sys tfrees (Definition (name, phi1, phi2)) ctxt =
       (Definition (name, t1, t2),
        fold Variable.declare_term (maps OldTerm.term_frees [t1, t2]) ctxt)
     end
-  | decode_line type_sys tfrees (Inference (name, u, deps)) ctxt =
+  | decode_line sym_tab tfrees (Inference (name, u, deps)) ctxt =
     let
       val thy = Proof_Context.theory_of ctxt
-      val t = u |> prop_from_formula thy type_sys tfrees
+      val t = u |> prop_from_formula thy sym_tab tfrees
                 |> uncombine_term |> check_formula ctxt
     in
       (Inference (name, t, deps),
        fold Variable.declare_term (OldTerm.term_frees t) ctxt)
     end
-fun decode_lines ctxt type_sys tfrees lines =
-  fst (fold_map (decode_line type_sys tfrees) lines ctxt)
+fun decode_lines ctxt sym_tab tfrees lines =
+  fst (fold_map (decode_line sym_tab tfrees) lines ctxt)
 
 fun is_same_inference _ (Definition _) = false
   | is_same_inference t (Inference (_, t', _)) = t aconv t'
@@ -654,13 +657,14 @@ fun repair_name "$true" = "c_True"
       s
 
 fun isar_proof_from_atp_proof pool ctxt type_sys tfrees isar_shrink_factor
-        atp_proof conjecture_shape facts_offset fact_names params frees =
+        atp_proof conjecture_shape facts_offset fact_names sym_tab params
+        frees =
   let
     val lines =
       atp_proof
       |> nasty_atp_proof pool
       |> map_term_names_in_atp_proof repair_name
-      |> decode_lines ctxt type_sys tfrees
+      |> decode_lines ctxt sym_tab tfrees
       |> rpair [] |-> fold_rev (add_line type_sys conjecture_shape fact_names)
       |> rpair [] |-> fold_rev add_nontrivial_line
       |> rpair (0, [])
@@ -961,7 +965,8 @@ fun string_for_proof ctxt0 type_sys i n =
         (if n <> 1 then "next" else "qed")
   in do_proof end
 
-fun isar_proof_text (ctxt, debug, isar_shrink_factor, pool, conjecture_shape)
+fun isar_proof_text (ctxt, debug, isar_shrink_factor, pool, conjecture_shape,
+                     sym_tab)
                     (metis_params as (_, _, type_sys, atp_proof, facts_offset,
                                       fact_names, goal, i)) =
   let
@@ -973,7 +978,7 @@ fun isar_proof_text (ctxt, debug, isar_shrink_factor, pool, conjecture_shape)
     fun isar_proof_for () =
       case isar_proof_from_atp_proof pool ctxt type_sys tfrees
                isar_shrink_factor atp_proof conjecture_shape facts_offset
-               fact_names params frees
+               fact_names sym_tab params frees
            |> redirect_proof hyp_ts concl_t
            |> kill_duplicate_assumptions_in_proof
            |> then_chain_proof
