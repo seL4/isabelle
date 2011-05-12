@@ -22,7 +22,7 @@ object Scan
 
   object Lexicon
   {
-    private case class Tree(val branches: Map[Char, (String, Tree)])
+    protected case class Tree(val branches: Map[Char, (String, Tree)])
     private val empty_tree = Tree(Map())
 
     val empty: Lexicon = new Lexicon
