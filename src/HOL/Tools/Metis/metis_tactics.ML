@@ -141,10 +141,11 @@ fun also_extensionalize_theorem th =
     else th :: Meson.make_clauses_unsorted [th']
   end
 
-val neg_clausify =
+fun neg_clausify ctxt =
   single
   #> Meson.make_clauses_unsorted
-  #> maps also_extensionalize_theorem
+  #> maps (Raw_Simplifier.rewrite_rule (Meson.unfold_set_const_simps ctxt)
+           #> also_extensionalize_theorem)
   #> map Meson_Clausify.introduce_combinators_in_theorem
   #> Meson.finish_cnf
 
@@ -168,7 +169,7 @@ fun generic_metis_tac mode ctxt ths i st0 =
       (verbose_warning ctxt "Proof state contains the universal sort {}";
        Seq.empty)
     else
-      Meson.MESON (preskolem_tac ctxt) (maps neg_clausify)
+      Meson.MESON (preskolem_tac ctxt) (maps (neg_clausify ctxt))
                   (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1)
                   ctxt i st0
   end

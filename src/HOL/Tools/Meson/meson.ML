@@ -9,12 +9,14 @@ When making clauses, avoids using the rewriter -- instead uses RS recursively.
 signature MESON =
 sig
   val trace : bool Config.T
+  val unfold_set_consts : bool Config.T
   val max_clauses : int Config.T
   val term_pair_of: indexname * (typ * 'a) -> term * 'a
   val size_of_subgoals: thm -> int
   val has_too_many_clauses: Proof.context -> term -> bool
   val make_cnf: thm list -> thm -> Proof.context -> thm list * Proof.context
   val finish_cnf: thm list -> thm list
+  val unfold_set_const_simps : Proof.context -> thm list
   val presimplify: thm -> thm
   val make_nnf: Proof.context -> thm -> thm
   val choice_theorems : theory -> thm list
@@ -49,8 +51,10 @@ val trace = Attrib.setup_config_bool @{binding meson_trace} (K false)
 
 fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
 
-val max_clauses_default = 60
-val max_clauses = Attrib.setup_config_int @{binding meson_max_clauses} (K max_clauses_default)
+val unfold_set_consts =
+  Attrib.setup_config_bool @{binding meson_unfold_set_consts} (K false)
+
+val max_clauses = Attrib.setup_config_int @{binding meson_max_clauses} (K 60)
 
 (*No known example (on 1-5-2007) needs even thirty*)
 val iter_deepen_limit = 50;
@@ -554,6 +558,10 @@ fun make_nnf1 ctxt th =
            (tryres(th, [conj_forward,disj_forward,all_forward,ex_forward]))
     handle THM ("tryres", _, _) => th
   else th
+
+fun unfold_set_const_simps ctxt =
+  if Config.get ctxt unfold_set_consts then @{thms Collect_def_raw mem_def_raw}
+  else []
 
 (*The simplification removes defined quantifiers and occurrences of True and False.
   nnf_ss also includes the one-point simprocs,
