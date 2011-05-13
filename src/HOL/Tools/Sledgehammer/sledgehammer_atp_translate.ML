@@ -607,16 +607,18 @@ fun chop_fun 0 T = ([], T)
 
 fun filter_type_args _ _ _ [] = []
   | filter_type_args thy s arity T_args =
-    let
-      val U = s |> Sign.the_const_type thy (* may throw "TYPE" *)
-      val res_U = U |> chop_fun arity |> snd
-      val res_U_vars = Term.add_tvarsT res_U []
-      val U_args = (s, U) |> Sign.const_typargs thy
-    in
-      U_args ~~ T_args
-      |> map_filter (fn (U, T) =>
-                        if member (op =) res_U_vars (dest_TVar U) then SOME T
-                        else NONE)
+    let val U = s |> Sign.the_const_type thy (* may throw "TYPE" *) in
+      case Term.add_tvarsT (U |> chop_fun arity |> snd) [] of
+        [] => []
+      | res_U_vars =>
+        let val U_args = (s, U) |> Sign.const_typargs thy in
+          U_args ~~ T_args
+          |> map_filter (fn (U, T) =>
+                            if member (op =) res_U_vars (dest_TVar U) then
+                              SOME T
+                            else
+                              NONE)
+        end
     end
     handle TYPE _ => T_args
 
