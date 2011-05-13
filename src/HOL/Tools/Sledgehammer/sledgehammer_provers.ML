@@ -611,12 +611,14 @@ fun run_atp auto name
                                               atp_proof of
                    [] => result
                  | new_baddies =>
-                   let val blacklist = new_baddies @ blacklist in
-                     result
-                     |> maybe_run_slice blacklist (List.last actual_slices)
-                     |> iter < atp_blacklist_max_iters
-                        ? maybe_blacklist_facts_and_retry (iter + 1) blacklist
-                   end)
+                   if iter < atp_blacklist_max_iters - 1 then
+                     let val blacklist = new_baddies @ blacklist in
+                       result
+                       |> maybe_run_slice blacklist (List.last actual_slices)
+                       |> maybe_blacklist_facts_and_retry (iter + 1) blacklist
+                     end
+                   else
+                     result)
               | maybe_blacklist_facts_and_retry _ _ result = result
           in
             ((Symtab.empty, [], 0, Vector.fromList [], Symtab.empty),
