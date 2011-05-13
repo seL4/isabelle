@@ -222,7 +222,7 @@ val e_config : atp_config =
      (* FUDGE *)
      if effective_e_weight_method ctxt = e_slicesN then
        [(0.333, (true, (100, ["mangled_preds?"]))) (* sym_offset_weight *),
-        (0.333, (true, (1000, ["mangled_preds?"]))) (* auto *),
+        (0.333, (true, (800, ["poly_tags!"]))) (* auto *),
         (0.334, (true, (200, ["mangled_preds?"]))) (* fun_weight *)]
      else
        [(1.0, (true, (250, ["mangled_preds?"])))]}
