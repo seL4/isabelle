@@ -1,7 +1,6 @@
 (*  Title:      ZF/pair.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
-
 *)
 
 header{*Ordered Pairs*}
@@ -9,6 +8,14 @@ header{*Ordered Pairs*}
 theory pair imports upair
 uses "simpdata.ML"
 begin
+
+declaration {*
+  fn _ => Simplifier.map_ss (fn ss =>
+    ss setmksimps (K (map mk_eq o ZF_atomize o gen_all))
+    addcongs [@{thm if_weak_cong}])
+*}
+
+ML {* val ZF_ss = @{simpset} *}
 
 simproc_setup defined_Bex ("EX x:A. P(x) & Q(x)") = {*
   let
