@@ -139,8 +139,6 @@ end;
 functor ClassicalFun(Data: CLASSICAL_DATA): CLASSICAL =
 struct
 
-local open Data in
-
 (** classical elimination rules **)
 
 (*
@@ -158,7 +156,7 @@ FAILED"; classical_rule will strenthen this to
 fun classical_rule rule =
   if is_some (Object_Logic.elim_concl rule) then
     let
-      val rule' = rule RS classical;
+      val rule' = rule RS Data.classical;
       val concl' = Thm.concl_of rule';
       fun redundant_hyp goal =
         concl' aconv Logic.strip_assums_concl goal orelse
@@ -184,15 +182,15 @@ val flat_rule = Conv.fconv_rule (Conv.prems_conv ~1 Object_Logic.atomize_prems);
 (*Prove goal that assumes both P and ~P.
   No backtracking if it finds an equal assumption.  Perhaps should call
   ematch_tac instead of eresolve_tac, but then cannot prove ZF/cantor.*)
-val contr_tac = eresolve_tac [not_elim]  THEN'
-                (eq_assume_tac ORELSE' assume_tac);
+val contr_tac =
+  eresolve_tac [Data.not_elim] THEN' (eq_assume_tac ORELSE' assume_tac);
 
 (*Finds P-->Q and P in the assumptions, replaces implication by Q.
   Could do the same thing for P<->Q and P... *)
-fun mp_tac i = eresolve_tac [not_elim, Data.imp_elim] i  THEN  assume_tac i;
+fun mp_tac i = eresolve_tac [Data.not_elim, Data.imp_elim] i THEN assume_tac i;
 
 (*Like mp_tac but instantiates no variables*)
-fun eq_mp_tac i = ematch_tac [not_elim, Data.imp_elim] i  THEN  eq_assume_tac i;
+fun eq_mp_tac i = ematch_tac [Data.not_elim, Data.imp_elim] i THEN eq_assume_tac i;
 
 (*Creates rules to eliminate ~A, from rules to introduce A*)
 fun swapify intrs = intrs RLN (2, [Data.swap]);
@@ -201,14 +199,14 @@ val swapped = Thm.rule_attribute (fn _ => fn th => th RSN (2, Data.swap));
 (*Uses introduction rules in the normal way, or on negated assumptions,
   trying rules in order. *)
 fun swap_res_tac rls =
-    let fun addrl rl brls = (false, rl) :: (true, rl RSN (2, Data.swap)) :: brls
-    in  assume_tac      ORELSE'
-        contr_tac       ORELSE'
-        biresolve_tac (fold_rev addrl rls [])
-    end;
+  let fun addrl rl brls = (false, rl) :: (true, rl RSN (2, Data.swap)) :: brls in
+    assume_tac ORELSE'
+    contr_tac ORELSE'
+    biresolve_tac (fold_rev addrl rls [])
+  end;
 
 (*Duplication of hazardous rules, for complete provers*)
-fun dup_intr th = zero_var_indexes (th RS classical);
+fun dup_intr th = zero_var_indexes (th RS Data.classical);
 
 fun dup_elim th =
   let
@@ -642,7 +640,7 @@ fun safe_step_tac (cs as CS {safe0_netpair, safep_netpair, ...}) =
         eq_assume_tac,
         eq_mp_tac,
         bimatch_from_nets_tac safe0_netpair,
-        FIRST' hyp_subst_tacs,
+        FIRST' Data.hyp_subst_tacs,
         bimatch_from_nets_tac safep_netpair]);
 
 (*Repeatedly attack a subgoal using safe inferences -- it's deterministic!*)
@@ -662,7 +660,7 @@ fun nsubgoalsP n (k, brl) = (subgoals_of_brl brl = n);
 fun n_bimatch_from_nets_tac n =
   biresolution_from_nets_tac (order_list o filter (nsubgoalsP n)) true;
 
-fun eq_contr_tac i = ematch_tac [not_elim] i  THEN  eq_assume_tac i;
+fun eq_contr_tac i = ematch_tac [Data.not_elim] i THEN eq_assume_tac i;
 val eq_assume_contr_tac = eq_assume_tac ORELSE' eq_contr_tac;
 
 (*Two-way branching is allowed only if one of the branches immediately closes*)
@@ -675,7 +673,7 @@ fun clarify_step_tac (cs as CS{safe0_netpair,safep_netpair,...}) =
   appSWrappers cs (FIRST' [
         eq_assume_contr_tac,
         bimatch_from_nets_tac safe0_netpair,
-        FIRST' hyp_subst_tacs,
+        FIRST' Data.hyp_subst_tacs,
         n_bimatch_from_nets_tac 1 safep_netpair,
         bimatch2_tac safep_netpair]);
 
@@ -720,12 +718,12 @@ fun fast_tac cs =
 (*Slower but smarter than fast_tac*)
 fun best_tac cs =
   Object_Logic.atomize_prems_tac THEN'
-  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, sizef) (step_tac cs 1));
+  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, Data.sizef) (step_tac cs 1));
 
 (*even a bit smarter than best_tac*)
 fun first_best_tac cs =
   Object_Logic.atomize_prems_tac THEN'
-  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, sizef) (FIRSTGOAL (step_tac cs)));
+  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, Data.sizef) (FIRSTGOAL (step_tac cs)));
 
 fun slow_tac cs =
   Object_Logic.atomize_prems_tac THEN'
@@ -733,7 +731,7 @@ fun slow_tac cs =
 
 fun slow_best_tac cs =
   Object_Logic.atomize_prems_tac THEN'
-  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, sizef) (slow_step_tac cs 1));
+  SELECT_GOAL (BEST_FIRST (has_fewer_prems 1, Data.sizef) (slow_step_tac cs 1));
 
 
 (***ASTAR with weight weight_ASTAR, by Norbert Voelker*)
@@ -888,9 +886,6 @@ fun haz_dest w = attrib (addE w o make_elim);
 val haz_elim = attrib o addE;
 val haz_intro = attrib o addI;
 val rule_del = attrib delrule o Context_Rules.rule_del;
-
-
-end;
 
 
 
