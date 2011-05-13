@@ -113,8 +113,7 @@ apply (rule ballI)
 apply (erule llist.cases)
 apply (simp_all add: QInl_def QInr_def llist.con_defs)
 (*LCons case: I simply can't get rid of the deepen_tac*)
-apply (tactic "deepen_tac (@{context} addIs [@{thm Ord_trans}]
-  addIs [@{thm Int_lower1} RS @{thm subset_trans}]) 2 1")
+apply (deepen 2 intro: Ord_trans Int_lower1 [THEN subset_trans])
 done
 
 lemma llist_quniv: "llist(quniv(A)) \<subseteq> quniv(A)"
@@ -216,8 +215,7 @@ apply (rule ballI)
 apply (erule llist.cases, simp_all)
 apply (simp_all add: QInl_def QInr_def llist.con_defs)
 (*LCons case: I simply can't get rid of the deepen_tac*)
-apply (tactic "deepen_tac (@{context} addIs [@{thm Ord_trans}]
-  addIs [@{thm Int_lower1} RS @{thm subset_trans}]) 2 1")
+apply (deepen 2 intro: Ord_trans Int_lower1 [THEN subset_trans])
 done
 
 lemma flip_in_quniv: "l \<in> llist(bool) ==> flip(l) \<in> quniv(bool)"

@@ -942,7 +942,9 @@ val setup_methods =
   Method.setup @{binding fast} (cla_method' fast_tac) "classical prover (depth-first)" #>
   Method.setup @{binding slow} (cla_method' slow_tac) "classical prover (slow depth-first)" #>
   Method.setup @{binding best} (cla_method' best_tac) "classical prover (best-first)" #>
-  Method.setup @{binding deepen} (cla_method' (fn ctxt => deepen_tac ctxt 4))
+  Method.setup @{binding deepen}
+    (Scan.lift (Scan.optional Parse.nat 4) --| Method.sections cla_modifiers
+      >> (fn n => fn ctxt => SIMPLE_METHOD' (deepen_tac ctxt n)))
     "classical prover (iterative deepening)" #>
   Method.setup @{binding safe} (cla_method (CHANGED_PROP o safe_tac))
     "classical prover (apply safe rules)";
