@@ -1059,7 +1059,6 @@ lemma wf_not_box_decrease: "!!r. wf r ==> |- [][ (v`, $v) : #r ]_v --> <>[][#Fal
   apply (clarsimp simp: leadsto_exists [try_rewrite] not_square [try_rewrite] more_temp_simps)
   apply (erule wf_leadsto)
   apply (rule ensures_simple [temp_use])
-     apply (tactic "TRYALL atac")
    apply (auto simp: square_def angle_def)
   done
 
