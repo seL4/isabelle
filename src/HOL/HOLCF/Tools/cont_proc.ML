@@ -128,6 +128,6 @@ in
     Simplifier.simproc_global thy "cont_proc" ["cont f"] solve_cont
 end
 
-fun setup thy = Simplifier.map_simpset (fn ss => ss addsimprocs [cont_proc thy]) thy
+fun setup thy = Simplifier.map_simpset_global (fn ss => ss addsimprocs [cont_proc thy]) thy
 
 end

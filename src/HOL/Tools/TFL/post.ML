@@ -40,7 +40,7 @@ fun std_postprocessor strict ctxt wfs =
     terminator =
       asm_simp_tac (simpset_of ctxt) 1
       THEN TRY (Arith_Data.arith_tac ctxt 1 ORELSE
-        fast_tac (claset_of ctxt addSDs [@{thm not0_implies_Suc}] addss (simpset_of ctxt)) 1),
+        fast_simp_tac (ctxt addSDs [@{thm not0_implies_Suc}]) 1),
     simplifier = Rules.simpl_conv (simpset_of ctxt) []};
 
 

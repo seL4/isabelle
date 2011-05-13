@@ -170,10 +170,10 @@ apply oghoare
 --{* 35 vc *}
 apply simp_all
 --{* 21 vc *}
-apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
+apply(tactic {* ALLGOALS (clarify_tac @{context}) *})
 --{* 11 vc *}
 apply simp_all
-apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
+apply(tactic {* ALLGOALS (clarify_tac @{context}) *})
 --{* 10 subgoals left *}
 apply(erule less_SucE)
  apply simp
@@ -430,13 +430,13 @@ lemma Producer_consumer:
  .{ \<forall>k<length a. (a ! k)=(\<acute>b ! k)}."
 apply oghoare
 --{* 138 vc  *}
-apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
+apply(tactic {* ALLGOALS (clarify_tac @{context}) *})
 --{* 112 subgoals left *}
 apply(simp_all (no_asm))
 --{* 97 subgoals left *}
 apply(tactic {*ALLGOALS (conjI_Tac (K all_tac)) *})
 --{* 930 subgoals left *}
-apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
+apply(tactic {* ALLGOALS (clarify_tac @{context}) *})
 --{* 99 subgoals left *}
 apply(simp_all (*asm_lr*) only:length_0_conv [THEN sym])
 --{* 20 subgoals left *}
@@ -535,7 +535,7 @@ lemma Example_2: "0<n \<Longrightarrow>
  .{\<acute>x=n}."
 apply oghoare
 apply (simp_all cong del: strong_setsum_cong)
-apply (tactic {* ALLGOALS (clarify_tac @{claset}) *})
+apply (tactic {* ALLGOALS (clarify_tac @{context}) *})
 apply (simp_all cong del: strong_setsum_cong)
    apply(erule (1) Example2_lemma2)
   apply(erule (1) Example2_lemma2)

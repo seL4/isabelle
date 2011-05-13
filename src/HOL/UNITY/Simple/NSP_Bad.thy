@@ -102,35 +102,25 @@ done
 text{*This ML code does the inductions directly.*}
 ML{*
 fun ns_constrains_tac ctxt i =
-  let
-    val cs = claset_of ctxt;
-    val ss = simpset_of ctxt;
-  in
-   SELECT_GOAL
-      (EVERY [REPEAT (etac @{thm Always_ConstrainsI} 1),
-              REPEAT (resolve_tac [@{thm StableI}, @{thm stableI},
-                                   @{thm constrains_imp_Constrains}] 1),
-              rtac @{thm ns_constrainsI} 1,
-              full_simp_tac ss 1,
-              REPEAT (FIRSTGOAL (etac disjE)),
-              ALLGOALS (clarify_tac (cs delrules [impI, @{thm impCE}])),
-              REPEAT (FIRSTGOAL analz_mono_contra_tac),
-              ALLGOALS (asm_simp_tac ss)]) i
-  end;
+  SELECT_GOAL
+    (EVERY
+     [REPEAT (etac @{thm Always_ConstrainsI} 1),
+      REPEAT (resolve_tac [@{thm StableI}, @{thm stableI}, @{thm constrains_imp_Constrains}] 1),
+      rtac @{thm ns_constrainsI} 1,
+      full_simp_tac (simpset_of ctxt) 1,
+      REPEAT (FIRSTGOAL (etac disjE)),
+      ALLGOALS (clarify_tac (ctxt delrules [impI, @{thm impCE}])),
+      REPEAT (FIRSTGOAL analz_mono_contra_tac),
+      ALLGOALS (asm_simp_tac (simpset_of ctxt))]) i;
 
 (*Tactic for proving secrecy theorems*)
 fun ns_induct_tac ctxt =
-  let
-    val cs = claset_of ctxt;
-    val ss = simpset_of ctxt;
-  in
-    (SELECT_GOAL o EVERY)
-       [rtac @{thm AlwaysI} 1,
-        force_tac (cs,ss) 1,
-        (*"reachable" gets in here*)
-        rtac (@{thm Always_reachable} RS @{thm Always_ConstrainsI} RS @{thm StableI}) 1,
-        ns_constrains_tac ctxt 1]
-  end;
+  (SELECT_GOAL o EVERY)
+     [rtac @{thm AlwaysI} 1,
+      force_tac ctxt 1,
+      (*"reachable" gets in here*)
+      rtac (@{thm Always_reachable} RS @{thm Always_ConstrainsI} RS @{thm StableI}) 1,
+      ns_constrains_tac ctxt 1];
 *}
 
 method_setup ns_induct = {*

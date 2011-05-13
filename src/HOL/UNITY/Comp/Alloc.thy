@@ -331,10 +331,15 @@ end
 (*** bijectivity of sysOfAlloc [MUST BE AUTOMATED] ***)
 ML {*
 fun record_auto_tac ctxt =
-  auto_tac (claset_of ctxt addIs [ext] addSWrapper Record.split_wrapper,
-    simpset_of ctxt addsimps [@{thm sysOfAlloc_def}, @{thm sysOfClient_def},
-      @{thm client_map_def}, @{thm non_dummy_def}, @{thm funPair_def},
-      @{thm o_apply}, @{thm Let_def}])
+  let val ctxt' =
+    (ctxt addIs [ext])
+    |> map_claset (fn cs => cs addSWrapper Record.split_wrapper)
+    |> map_simpset (fn ss => ss addsimps
+       [@{thm sysOfAlloc_def}, @{thm sysOfClient_def},
+        @{thm client_map_def}, @{thm non_dummy_def}, @{thm funPair_def},
+        @{thm o_apply}, @{thm Let_def}])
+  in auto_tac ctxt' end;
+
 *}
 
 method_setup record_auto = {*

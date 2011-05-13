@@ -869,7 +869,7 @@ lemma hasty_env1: "[| ve hastyenv te; v hasty t |] ==>
          ve + {ev |-> v} hastyenv te + {ev |=> t}"
 apply (unfold hasty_env_def)
 apply (simp del: mem_simps add: ve_dom_owr te_dom_owr)
-apply (tactic {* safe_tac HOL_cs *})
+apply (tactic {* safe_tac (put_claset HOL_cs @{context}) *})
 apply (case_tac "ev=x")
 apply (simp (no_asm_simp) add: ve_app_owr1 te_app_owr1)
 apply (simp add: ve_app_owr2 te_app_owr2)
@@ -906,7 +906,7 @@ lemma consistency_fix:
     v_clos(cl) hasty t"
 apply (unfold hasty_env_def hasty_def)
 apply (drule elab_fix_elim)
-apply (tactic {* safe_tac HOL_cs *})
+apply (tactic {* safe_tac (put_claset HOL_cs @{context}) *})
 (*Do a single unfolding of cl*)
 apply (frule ssubst) prefer 2 apply assumption
 apply (rule hasty_rel_clos_coind)
@@ -914,7 +914,7 @@ apply (erule elab_fn)
 apply (simp (no_asm_simp) add: ve_dom_owr te_dom_owr)
 
 apply (simp (no_asm_simp) del: mem_simps add: ve_dom_owr)
-apply (tactic {* safe_tac HOL_cs *})
+apply (tactic {* safe_tac (put_claset HOL_cs @{context}) *})
 apply (case_tac "ev2=ev1a")
 apply (simp (no_asm_simp) del: mem_simps add: ve_app_owr1 te_app_owr1)
 apply blast

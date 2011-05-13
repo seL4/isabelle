@@ -43,9 +43,3 @@ val ZF_mem_pairs =
 
 val ZF_atomize = atomize (ZF_conn_pairs, ZF_mem_pairs);
 
-change_simpset (fn ss =>
-  ss setmksimps (K (map mk_eq o ZF_atomize o gen_all))
-  addcongs [@{thm if_weak_cong}]);
-
-val ZF_ss = @{simpset};
-

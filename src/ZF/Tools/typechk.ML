@@ -130,6 +130,6 @@ val _ =
 val setup =
   Attrib.setup @{binding TC} (Attrib.add_del TC_add TC_del) "declaration of type-checking rule" #>
   typecheck_setup #>
-  Simplifier.map_simpset (fn ss => ss setSolver type_solver);
+  Simplifier.map_simpset_global (fn ss => ss setSolver type_solver);
 
 end;

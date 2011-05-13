@@ -12,7 +12,6 @@ uses
   "~~/src/Provers/clasimp.ML"
   "~~/src/Tools/induct.ML"
   "~~/src/Tools/case_product.ML"
-  ("cladata.ML")
   ("simpdata.ML")
 begin
 
@@ -167,9 +166,36 @@ lemma swap: "~ P ==> (~ R ==> P) ==> R"
 
 section {* Classical Reasoner *}
 
-use "cladata.ML"
+ML {*
+structure Cla = ClassicalFun
+(
+  val imp_elim = @{thm imp_elim}
+  val not_elim = @{thm notE}
+  val swap = @{thm swap}
+  val classical = @{thm classical}
+  val sizef = size_of_thm
+  val hyp_subst_tacs = [hyp_subst_tac]
+);
+
+ML_Antiquote.value "claset" (Scan.succeed "Cla.claset_of (ML_Context.the_local_context ())");
+
+structure Basic_Classical: BASIC_CLASSICAL = Cla;
+open Basic_Classical;
+*}
+
 setup Cla.setup
-ML {* Context.>> (Cla.map_cs (K FOL_cs)) *}
+
+(*Propositional rules*)
+lemmas [intro!] = refl TrueI conjI disjCI impI notI iffI
+  and [elim!] = conjE disjE impCE FalseE iffCE
+ML {* val prop_cs = @{claset} *}
+
+(*Quantifier rules*)
+lemmas [intro!] = allI ex_ex1I
+  and [intro] = exI
+  and [elim!] = exE alt_ex1E
+  and [elim] = allE
+ML {* val FOL_cs = @{claset} *}
 
 ML {*
   structure Blast = Blast
@@ -316,7 +342,7 @@ val IFOL_ss =
 val FOL_ss = IFOL_ss addsimps (@{thms cla_simps} @ @{thms cla_ex_simps} @ @{thms cla_all_simps});
 *}
 
-setup {* Simplifier.map_simpset (K FOL_ss) *}
+setup {* Simplifier.map_simpset_global (K FOL_ss) *}
 
 setup "Simplifier.method_setup Splitter.split_modifiers"
 setup Splitter.setup

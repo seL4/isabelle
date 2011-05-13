@@ -1475,11 +1475,9 @@ fun uint_arith_tacs ctxt =
     fun arith_tac' n t =
       Arith_Data.verbose_arith_tac ctxt n t
         handle Cooper.COOPER _ => Seq.empty;
-    val cs = claset_of ctxt;
-    val ss = simpset_of ctxt;
   in 
-    [ clarify_tac cs 1,
-      full_simp_tac (uint_arith_ss_of ss) 1,
+    [ clarify_tac ctxt 1,
+      full_simp_tac (uint_arith_ss_of (simpset_of ctxt)) 1,
       ALLGOALS (full_simp_tac (HOL_ss addsplits @{thms uint_splits} 
                                       addcongs @{thms power_False_cong})),
       rewrite_goals_tac @{thms word_size}, 
@@ -2034,11 +2032,9 @@ fun unat_arith_tacs ctxt =
     fun arith_tac' n t =
       Arith_Data.verbose_arith_tac ctxt n t
         handle Cooper.COOPER _ => Seq.empty;
-    val cs = claset_of ctxt;
-    val ss = simpset_of ctxt;
   in 
-    [ clarify_tac cs 1,
-      full_simp_tac (unat_arith_ss_of ss) 1,
+    [ clarify_tac ctxt 1,
+      full_simp_tac (unat_arith_ss_of (simpset_of ctxt)) 1,
       ALLGOALS (full_simp_tac (HOL_ss addsplits @{thms unat_splits} 
                                        addcongs @{thms power_False_cong})),
       rewrite_goals_tac @{thms word_size}, 

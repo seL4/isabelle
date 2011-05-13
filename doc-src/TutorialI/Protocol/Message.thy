@@ -840,31 +840,24 @@ val Fake_insert_tac =
     eresolve_tac [asm_rl, @{thm synth.Inj}];
 
 fun Fake_insert_simp_tac ss i = 
-    REPEAT (Fake_insert_tac i) THEN asm_full_simp_tac ss i;
+  REPEAT (Fake_insert_tac i) THEN asm_full_simp_tac ss i;
 
 fun atomic_spy_analz_tac ctxt =
-  let val ss = simpset_of ctxt and cs = claset_of ctxt in
-    SELECT_GOAL
-      (Fake_insert_simp_tac ss 1
-       THEN
-       IF_UNSOLVED (Blast.depth_tac
-                    (cs addIs [analz_insertI,
-                                     impOfSubs analz_subset_parts]) 4 1))
-  end;
+  SELECT_GOAL
+   (Fake_insert_simp_tac (simpset_of ctxt) 1 THEN
+    IF_UNSOLVED (Blast.depth_tac (ctxt addIs [analz_insertI, impOfSubs analz_subset_parts]) 4 1));
 
 fun spy_analz_tac ctxt i =
-  let val ss = simpset_of ctxt and cs = claset_of ctxt in
-    DETERM
-     (SELECT_GOAL
-       (EVERY 
-        [  (*push in occurrences of X...*)
-         (REPEAT o CHANGED)
-             (res_inst_tac ctxt [(("x", 1), "X")] (insert_commute RS ssubst) 1),
-         (*...allowing further simplifications*)
-         simp_tac ss 1,
-         REPEAT (FIRSTGOAL (resolve_tac [allI,impI,notI,conjI,iffI])),
-         DEPTH_SOLVE (atomic_spy_analz_tac ctxt 1)]) i)
-  end;
+  DETERM
+   (SELECT_GOAL
+     (EVERY 
+      [  (*push in occurrences of X...*)
+       (REPEAT o CHANGED)
+           (res_inst_tac ctxt [(("x", 1), "X")] (insert_commute RS ssubst) 1),
+       (*...allowing further simplifications*)
+       simp_tac (simpset_of ctxt) 1,
+       REPEAT (FIRSTGOAL (resolve_tac [allI,impI,notI,conjI,iffI])),
+       DEPTH_SOLVE (atomic_spy_analz_tac ctxt 1)]) i);
 *}
 
 text{*By default only @{text o_apply} is built-in.  But in the presence of

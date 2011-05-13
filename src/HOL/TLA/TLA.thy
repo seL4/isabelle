@@ -310,6 +310,11 @@ fun merge_act_box_tac ctxt i =
                          eres_inst_tac ctxt [(("'a", 0), "state * state")] @{thm box_thin} i])
 *}
 
+method_setup merge_box = {* Scan.succeed (K (SIMPLE_METHOD' merge_box_tac)) *} ""
+method_setup merge_temp_box = {* Scan.succeed (SIMPLE_METHOD' o merge_temp_box_tac) *} ""
+method_setup merge_stp_box = {* Scan.succeed (SIMPLE_METHOD' o merge_stp_box_tac) *} ""
+method_setup merge_act_box = {* Scan.succeed (SIMPLE_METHOD' o merge_act_box_tac) *} ""
+
 (* rewrite rule to push universal quantification through box:
       (sigma |= [](! x. F x)) = (! x. (sigma |= []F x))
 *)
@@ -317,8 +322,7 @@ lemmas all_box = allT [temp_unlift, symmetric, standard]
 
 lemma DmdOr: "|- (<>(F | G)) = (<>F | <>G)"
   apply (auto simp add: dmd_def split_box_conj [try_rewrite])
-  apply (erule contrapos_np, tactic "merge_box_tac 1",
-    fastsimp elim!: STL4E [temp_use])+
+  apply (erule contrapos_np, merge_box, fastsimp elim!: STL4E [temp_use])+
   done
 
 lemma exT: "|- (EX x. <>(F x)) = (<>(EX x. F x))"
@@ -328,7 +332,7 @@ lemmas ex_dmd = exT [temp_unlift, symmetric, standard]
 
 lemma STL4Edup: "!!sigma. [| sigma |= []A; sigma |= []F; |- F & []A --> G |] ==> sigma |= []G"
   apply (erule dup_boxE)
-  apply (tactic "merge_box_tac 1")
+  apply merge_box
   apply (erule STL4E)
   apply assumption
   done
@@ -338,7 +342,7 @@ lemma DmdImpl2:
   apply (unfold dmd_def)
   apply auto
   apply (erule notE)
-  apply (tactic "merge_box_tac 1")
+  apply merge_box
   apply (fastsimp elim!: STL4E [temp_use])
   done
 
@@ -349,7 +353,7 @@ lemma InfImpl:
   shows "sigma |= []<>H"
   apply (insert 1 2)
   apply (erule_tac F = G in dup_boxE)
-  apply (tactic "merge_box_tac 1")
+  apply merge_box
   apply (fastsimp elim!: STL4E [temp_use] DmdImpl2 [temp_use] intro!: 3 [temp_use])
   done
 
@@ -359,7 +363,7 @@ lemma BoxDmd: "|- []F & <>G --> <>([]F & G)"
   apply (unfold dmd_def)
   apply clarsimp
   apply (erule dup_boxE)
-  apply (tactic "merge_box_tac 1")
+  apply merge_box
   apply (erule contrapos_np)
   apply (fastsimp elim!: STL4E [temp_use])
   done
@@ -368,14 +372,14 @@ lemma BoxDmd: "|- []F & <>G --> <>([]F & G)"
 lemma BoxDmd_simple: "|- []F & <>G --> <>(F & G)"
   apply (unfold dmd_def)
   apply clarsimp
-  apply (tactic "merge_box_tac 1")
+  apply merge_box
   apply (fastsimp elim!: notE STL4E [temp_use])
   done
 
 lemma BoxDmd2_simple: "|- []F & <>G --> <>(G & F)"
   apply (unfold dmd_def)
   apply clarsimp
-  apply (tactic "merge_box_tac 1")
+  apply merge_box
   apply (fastsimp elim!: notE STL4E [temp_use])
   done
 
@@ -579,11 +583,13 @@ lemma DmdStable: "|- (stable P) & <>P --> <>[]P"
 
 ML {*
 (* inv_tac reduces goals of the form ... ==> sigma |= []P *)
-fun inv_tac css = SELECT_GOAL
-     (EVERY [auto_tac css,
-             TRY (merge_box_tac 1),
-             rtac (temp_use @{thm INV1}) 1, (* fail if the goal is not a box *)
-             TRYALL (etac @{thm Stable})]);
+fun inv_tac ctxt =
+  SELECT_GOAL
+    (EVERY
+     [auto_tac ctxt,
+      TRY (merge_box_tac 1),
+      rtac (temp_use @{thm INV1}) 1, (* fail if the goal is not a box *)
+      TRYALL (etac @{thm Stable})]);
 
 (* auto_inv_tac applies inv_tac and then tries to attack the subgoals
    in simple cases it may be able to handle goals like |- MyProg --> []Inv.
@@ -591,15 +597,15 @@ fun inv_tac css = SELECT_GOAL
    auto-tactic, which applies too much propositional logic and simplifies
    too late.
 *)
-fun auto_inv_tac ss = SELECT_GOAL
-    ((inv_tac (@{claset}, ss) 1) THEN
-     (TRYALL (action_simp_tac
-       (ss addsimps [@{thm Init_stp}, @{thm Init_act}]) [] [@{thm squareE}])));
+fun auto_inv_tac ss =
+  SELECT_GOAL
+    (inv_tac (map_simpset (K ss) @{context}) 1 THEN
+      (TRYALL (action_simp_tac
+        (ss addsimps [@{thm Init_stp}, @{thm Init_act}]) [] [@{thm squareE}])));
 *}
 
 method_setup invariant = {*
-  Method.sections Clasimp.clasimp_modifiers
-    >> (K (SIMPLE_METHOD' o inv_tac o clasimpset_of))
+  Method.sections Clasimp.clasimp_modifiers >> (K (SIMPLE_METHOD' o inv_tac))
 *} ""
 
 method_setup auto_invariant = {*
@@ -610,7 +616,7 @@ method_setup auto_invariant = {*
 lemma unless: "|- []($P --> P` | Q`) --> (stable P) | <>Q"
   apply (unfold dmd_def)
   apply (clarsimp dest!: BoxPrime [temp_use])
-  apply (tactic "merge_box_tac 1")
+  apply merge_box
   apply (erule contrapos_np)
   apply (fastsimp elim!: Stable [temp_use])
   done
@@ -840,7 +846,7 @@ lemma LatticeTransitivity: "|- (G ~> H) & (F ~> G) --> (F ~> H)"
   apply (unfold leadsto_def)
   apply clarsimp
   apply (erule dup_boxE) (* [][] (Init G --> H) *)
-  apply (tactic "merge_box_tac 1")
+  apply merge_box
   apply (clarsimp elim!: STL4E [temp_use])
   apply (rule dup_dmdD)
   apply (subgoal_tac "sigmaa |= <>Init G")
@@ -862,7 +868,7 @@ lemma LatticeDisjunctionElim2: "|- (F | G ~> H) --> (G ~> H)"
 lemma LatticeDisjunctionIntro: "|- (F ~> H) & (G ~> H) --> (F | G ~> H)"
   apply (unfold leadsto_def)
   apply clarsimp
-  apply (tactic "merge_box_tac 1")
+  apply merge_box
   apply (auto simp: Init_simps elim!: STL4E [temp_use])
   done
 
@@ -943,7 +949,7 @@ lemma SF1:
   apply (clarsimp dest!: BoxSFI [temp_use])
   apply (erule (2) ensures [temp_use])
   apply (erule_tac F = F in dup_boxE)
-  apply (tactic "merge_temp_box_tac @{context} 1")
+  apply merge_temp_box
   apply (erule STL4Edup)
   apply assumption
   apply (clarsimp simp: SF_def)
@@ -962,7 +968,7 @@ lemma WF2:
   apply (clarsimp dest!: BoxWFI [temp_use] BoxDmdBox [temp_use, THEN iffD2]
     simp: WF_def [where A = M])
   apply (erule_tac F = F in dup_boxE)
-  apply (tactic "merge_temp_box_tac @{context} 1")
+  apply merge_temp_box
   apply (erule STL4Edup)
    apply assumption
   apply (clarsimp intro!: BoxDmd_simple [temp_use, THEN 1 [THEN DmdImpl, temp_use]])
@@ -971,7 +977,7 @@ lemma WF2:
    apply (force simp: angle_def intro!: 2 [temp_use] elim!: DmdImplE [temp_use])
   apply (rule BoxDmd_simple [THEN DmdImpl, unfolded DmdDmd [temp_rewrite], temp_use])
   apply (simp add: NotDmd [temp_use] not_angle [try_rewrite])
-  apply (tactic "merge_act_box_tac @{context} 1")
+  apply merge_act_box
   apply (frule 4 [temp_use])
      apply assumption+
   apply (drule STL6 [temp_use])
@@ -980,7 +986,7 @@ lemma WF2:
   apply (erule_tac V = "sigmaa |= []F" in thin_rl)
   apply (drule BoxWFI [temp_use])
   apply (erule_tac F = "ACT N & [~B]_f" in dup_boxE)
-  apply (tactic "merge_temp_box_tac @{context} 1")
+  apply merge_temp_box
   apply (erule DmdImpldup)
    apply assumption
   apply (auto simp: split_box_conj [try_rewrite] STL3 [try_rewrite]
@@ -1000,7 +1006,7 @@ lemma SF2:
   apply (clarsimp dest!: BoxSFI [temp_use] simp: 2 [try_rewrite] SF_def [where A = M])
   apply (erule_tac F = F in dup_boxE)
   apply (erule_tac F = "TEMP <>Enabled (<M>_g) " in dup_boxE)
-  apply (tactic "merge_temp_box_tac @{context} 1")
+  apply merge_temp_box
   apply (erule STL4Edup)
    apply assumption
   apply (clarsimp intro!: BoxDmd_simple [temp_use, THEN 1 [THEN DmdImpl, temp_use]])
@@ -1009,14 +1015,14 @@ lemma SF2:
    apply (force simp: angle_def intro!: 2 [temp_use] elim!: DmdImplE [temp_use])
   apply (rule BoxDmd_simple [THEN DmdImpl, unfolded DmdDmd [temp_rewrite], temp_use])
   apply (simp add: NotDmd [temp_use] not_angle [try_rewrite])
-  apply (tactic "merge_act_box_tac @{context} 1")
+  apply merge_act_box
   apply (frule 4 [temp_use])
      apply assumption+
   apply (erule_tac V = "sigmaa |= []F" in thin_rl)
   apply (drule BoxSFI [temp_use])
   apply (erule_tac F = "TEMP <>Enabled (<M>_g)" in dup_boxE)
   apply (erule_tac F = "ACT N & [~B]_f" in dup_boxE)
-  apply (tactic "merge_temp_box_tac @{context} 1")
+  apply merge_temp_box
   apply (erule DmdImpldup)
    apply assumption
   apply (auto simp: split_box_conj [try_rewrite] STL3 [try_rewrite]
@@ -1055,7 +1061,6 @@ lemma wf_not_box_decrease: "!!r. wf r ==> |- [][ (v`, $v) : #r ]_v --> <>[][#Fal
   apply (clarsimp simp: leadsto_exists [try_rewrite] not_square [try_rewrite] more_temp_simps)
   apply (erule wf_leadsto)
   apply (rule ensures_simple [temp_use])
-     apply (tactic "TRYALL atac")
    apply (auto simp: square_def angle_def)
   done
 
@@ -1149,7 +1154,7 @@ lemma historyI:
   apply (rule conjI)
    prefer 2
    apply (insert 2)
-   apply (tactic "merge_box_tac 1")
+   apply merge_box
    apply (force elim!: STL4E [temp_use] 5 [temp_use])
   apply (insert 1)
   apply (force simp: Init_defs elim!: 4 [temp_use])

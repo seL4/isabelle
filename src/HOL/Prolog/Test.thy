@@ -234,9 +234,9 @@ lemma "? Q. (!p q. R(q :- p) => R(Q p q)) & Q (t | s) (s | t)"
 
 (* disjunction in atom: *)
 lemma "(!P. g P :- (P => b | a)) => g(a | b)"
-  apply (tactic "step_tac HOL_cs 1")
-  apply (tactic "step_tac HOL_cs 1")
-  apply (tactic "step_tac HOL_cs 1")
+  apply (tactic "step_tac (put_claset HOL_cs @{context}) 1")
+  apply (tactic "step_tac (put_claset HOL_cs @{context}) 1")
+  apply (tactic "step_tac (put_claset HOL_cs @{context}) 1")
    prefer 2
    apply fast
   apply fast

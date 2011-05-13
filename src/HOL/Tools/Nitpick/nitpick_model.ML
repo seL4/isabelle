@@ -1050,8 +1050,7 @@ fun prove_hol_model (scope as {hol_ctxt = {thy, ctxt, debug, ...},
                  ()
         val goal = prop |> cterm_of thy |> Goal.init
       in
-        (goal |> SINGLE (DETERM_TIMEOUT auto_timeout
-                                        (auto_tac (clasimpset_of ctxt)))
+        (goal |> SINGLE (DETERM_TIMEOUT auto_timeout (auto_tac ctxt))
               |> the |> Goal.finish ctxt; true)
         handle THM _ => false
              | TimeLimit.TimeOut => false

@@ -8,11 +8,11 @@ raw_simplifier.ML for the actual meta-level rewriting engine).
 signature BASIC_SIMPLIFIER =
 sig
   include BASIC_RAW_SIMPLIFIER
-  val change_simpset: (simpset -> simpset) -> unit
+  val map_simpset: (simpset -> simpset) -> Proof.context -> Proof.context
+  val simpset_of: Proof.context -> simpset
   val global_simpset_of: theory -> simpset
   val Addsimprocs: simproc list -> unit
   val Delsimprocs: simproc list -> unit
-  val simpset_of: Proof.context -> simpset
   val generic_simp_tac: bool -> bool * bool * bool -> simpset -> int -> tactic
   val safe_asm_full_simp_tac: simpset -> int -> tactic
   val simp_tac: simpset -> int -> tactic
@@ -30,6 +30,7 @@ end;
 signature SIMPLIFIER =
 sig
   include BASIC_SIMPLIFIER
+  val map_simpset_global: (simpset -> simpset) -> theory -> theory
   val pretty_ss: Proof.context -> simpset -> Pretty.T
   val clear_ss: simpset -> simpset
   val debug_bounds: bool Unsynchronized.ref
@@ -41,10 +42,10 @@ sig
   val context: Proof.context -> simpset -> simpset
   val global_context: theory -> simpset -> simpset
   val with_context: Proof.context -> (simpset -> simpset) -> simpset -> simpset
-  val simproc_global_i: theory -> string -> term list
-    -> (theory -> simpset -> term -> thm option) -> simproc
-  val simproc_global: theory -> string -> string list
-    -> (theory -> simpset -> term -> thm option) -> simproc
+  val simproc_global_i: theory -> string -> term list ->
+    (theory -> simpset -> term -> thm option) -> simproc
+  val simproc_global: theory -> string -> string list ->
+    (theory -> simpset -> term -> thm option) -> simproc
   val rewrite: simpset -> conv
   val asm_rewrite: simpset -> conv
   val full_rewrite: simpset -> conv
@@ -57,7 +58,6 @@ sig
   val simp_del: attribute
   val cong_add: attribute
   val cong_del: attribute
-  val map_simpset: (simpset -> simpset) -> theory -> theory
   val check_simproc: Proof.context -> xstring * Position.T -> string
   val the_simproc: Proof.context -> string -> simproc
   val def_simproc: {name: binding, lhss: term list,
@@ -134,23 +134,23 @@ val cong_add = attrib (op addcongs);
 val cong_del = attrib (op delcongs);
 
 
-(* global simpset *)
-
-fun map_simpset f = Context.theory_map (map_ss f);
-fun change_simpset f = Context.>> (Context.map_theory (map_simpset f));
-fun global_simpset_of thy =
-  Raw_Simplifier.context (Proof_Context.init_global thy) (get_ss (Context.Theory thy));
-
-fun Addsimprocs args = change_simpset (fn ss => ss addsimprocs args);
-fun Delsimprocs args = change_simpset (fn ss => ss delsimprocs args);
-
-
 (* local simpset *)
 
+fun map_simpset f = Context.proof_map (map_ss f);
 fun simpset_of ctxt = Raw_Simplifier.context ctxt (get_ss (Context.Proof ctxt));
 
 val _ = ML_Antiquote.value "simpset"
   (Scan.succeed "Simplifier.simpset_of (ML_Context.the_local_context ())");
+
+
+(* global simpset *)
+
+fun map_simpset_global f = Context.theory_map (map_ss f);
+fun global_simpset_of thy =
+  Raw_Simplifier.context (Proof_Context.init_global thy) (get_ss (Context.Theory thy));
+
+fun Addsimprocs args = Context.>> (map_ss (fn ss => ss addsimprocs args));
+fun Delsimprocs args = Context.>> (map_ss (fn ss => ss delsimprocs args));
 
 
 

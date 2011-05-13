@@ -216,6 +216,7 @@ lemma eq_sym_conv: "|- (x=y) <-> (y=x)"
   done
 
 use "simpdata.ML"
+setup {* Simplifier.map_simpset_global (K LK_ss) *}
 
 
 text {* To create substition rules *}

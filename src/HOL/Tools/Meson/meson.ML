@@ -699,8 +699,7 @@ fun best_meson_tac sizef =
 
 (*First, breaks the goal into independent units*)
 fun safe_best_meson_tac ctxt =
-     SELECT_GOAL (TRY (safe_tac (claset_of ctxt)) THEN
-                  TRYALL (best_meson_tac size_of_subgoals ctxt));
+  SELECT_GOAL (TRY (safe_tac ctxt) THEN TRYALL (best_meson_tac size_of_subgoals ctxt));
 
 (** Depth-first search version **)
 
@@ -742,7 +741,7 @@ fun iter_deepen_meson_tac ctxt ths = ctxt |> MESON all_tac make_clauses
         end));
 
 fun meson_tac ctxt ths =
-  SELECT_GOAL (TRY (safe_tac (claset_of ctxt)) THEN TRYALL (iter_deepen_meson_tac ctxt ths));
+  SELECT_GOAL (TRY (safe_tac ctxt) THEN TRYALL (iter_deepen_meson_tac ctxt ths));
 
 
 (**** Code to support ordinary resolution, rather than Model Elimination ****)

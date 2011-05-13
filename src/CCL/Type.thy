@@ -132,7 +132,7 @@ fun mk_ncanT_tac top_crls crls =
     REPEAT_SOME (eresolve_tac (crls @ [@{thm exE}, @{thm bexE}, @{thm conjE}, @{thm disjE}])) THEN
     ALLGOALS (asm_simp_tac (simpset_of ctxt)) THEN
     ALLGOALS (ares_tac (prems RL [@{thm lem}]) ORELSE' etac @{thm bspec}) THEN
-    safe_tac (claset_of ctxt addSIs prems))
+    safe_tac (ctxt addSIs prems))
 *}
 
 method_setup ncanT = {*
@@ -397,8 +397,7 @@ lemma ssubst_pair: "[| a=a';  b=b';  <a',b'> : A |] ==> <a,b> : A"
 
 ML {*
   val coinduct3_tac = SUBPROOF (fn {context = ctxt, prems = mono :: prems, ...} =>
-    (fast_tac (claset_of ctxt addIs
-        (mono RS @{thm coinduct3_mono_lemma} RS @{thm lfpI}) :: prems) 1));
+    fast_tac (ctxt addIs (mono RS @{thm coinduct3_mono_lemma} RS @{thm lfpI}) :: prems) 1);
 *}
 
 method_setup coinduct3 = {*
@@ -419,8 +418,8 @@ ML {*
 fun genIs_tac ctxt genXH gen_mono =
   rtac (genXH RS @{thm iffD2}) THEN'
   simp_tac (simpset_of ctxt) THEN'
-  TRY o fast_tac (claset_of ctxt addIs
-        [genXH RS @{thm iffD2}, gen_mono RS @{thm coinduct3_mono_lemma} RS @{thm lfpI}])
+  TRY o fast_tac
+    (ctxt addIs [genXH RS @{thm iffD2}, gen_mono RS @{thm coinduct3_mono_lemma} RS @{thm lfpI}])
 *}
 
 method_setup genIs = {*
@@ -454,7 +453,7 @@ lemma POgenIs:
 
 ML {*
 fun POgen_tac ctxt (rla, rlb) i =
-  SELECT_GOAL (safe_tac (claset_of ctxt)) i THEN
+  SELECT_GOAL (safe_tac ctxt) i THEN
   rtac (rlb RS (rla RS @{thm ssubst_pair})) i THEN
   (REPEAT (resolve_tac
       (@{thms POgenIs} @ [@{thm PO_refl} RS (@{thm POgen_mono} RS @{thm ci3_AI})] @
@@ -499,7 +498,7 @@ fun EQgen_raw_tac i =
 
 fun EQgen_tac ctxt rews i =
  SELECT_GOAL
-   (TRY (safe_tac (claset_of ctxt)) THEN
+   (TRY (safe_tac ctxt) THEN
     resolve_tac ((rews @ [@{thm refl}]) RL ((rews @ [@{thm refl}]) RL [@{thm ssubst_pair}])) i THEN
     ALLGOALS (simp_tac (simpset_of ctxt)) THEN
     ALLGOALS EQgen_raw_tac) i

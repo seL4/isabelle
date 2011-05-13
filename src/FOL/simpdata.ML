@@ -142,6 +142,3 @@ structure Clasimp = Clasimp
 );
 open Clasimp;
 
-ML_Antiquote.value "clasimpset"
-  (Scan.succeed "Clasimp.clasimpset_of (ML_Context.the_local_context ())");
-

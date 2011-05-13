@@ -19,4 +19,10 @@ method_setup ensures_tac = {*
   (fn (quant, s) => fn ctxt => SIMPLE_METHOD'' quant (ensures_tac ctxt s))
 *} "for proving progress properties"
 
+setup {*
+  Simplifier.map_simpset_global (fn ss => ss
+    addsimps (make_o_equivs @{thm fst_o_funPair} @ make_o_equivs @{thm snd_o_funPair})
+    addsimps (make_o_equivs @{thm fst_o_lift_map} @ make_o_equivs @{thm snd_o_lift_map}))
+*}
+
 end

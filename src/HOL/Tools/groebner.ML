@@ -1012,10 +1012,10 @@ fun ideal_tac add_ths del_ths ctxt =
         THEN ring_tac add_ths del_ths ctxt 1
    end
   in
-     clarify_tac @{claset} i
+     clarify_tac @{context} i
      THEN Object_Logic.full_atomize_tac i
      THEN asm_full_simp_tac (Simplifier.context ctxt (#poly_eq_ss thy)) i
-     THEN clarify_tac @{claset} i
+     THEN clarify_tac @{context} i
      THEN (REPEAT (CONVERSION (#unwind_conv thy) i))
      THEN SUBPROOF poly_exists_tac ctxt i
   end

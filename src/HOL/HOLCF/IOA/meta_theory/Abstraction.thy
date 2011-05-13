@@ -604,10 +604,10 @@ lemmas weak_strength_lemmas =
 
 ML {*
 fun abstraction_tac ctxt =
-  let val (cs, ss) = clasimpset_of ctxt in
-    SELECT_GOAL (auto_tac (cs addSIs @{thms weak_strength_lemmas},
-        ss addsimps [@{thm state_strengthening_def}, @{thm state_weakening_def}]))
-  end
+  SELECT_GOAL (auto_tac
+    (ctxt addSIs @{thms weak_strength_lemmas}
+      |> map_simpset (fn ss =>
+        ss addsimps [@{thm state_strengthening_def}, @{thm state_weakening_def}])))
 *}
 
 method_setup abstraction = {* Scan.succeed (SIMPLE_METHOD' o abstraction_tac) *} ""

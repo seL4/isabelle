@@ -277,16 +277,20 @@ ML {*
    The following tactic combines these steps except the final one.
 *)
 
-fun enabled_tac (cs, ss) base_vars =
-  clarsimp_tac (cs addSIs [base_vars RS @{thm base_enabled}], ss);
+fun enabled_tac ctxt base_vars =
+  clarsimp_tac (ctxt addSIs [base_vars RS @{thm base_enabled}]);
 *}
+
+method_setup enabled = {*
+  Attrib.thm >> (fn th => fn ctxt => SIMPLE_METHOD' (enabled_tac ctxt th))
+*} ""
 
 (* Example *)
 
 lemma
   assumes "basevars (x,y,z)"
   shows "|- x --> Enabled ($x & (y$ = #False))"
-  apply (tactic {* enabled_tac @{clasimpset} @{thm assms} 1 *})
+  apply (enabled assms)
   apply auto
   done
 

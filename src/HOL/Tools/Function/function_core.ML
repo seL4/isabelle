@@ -702,7 +702,7 @@ fun mk_domain_intro ctxt (Globals {domT, ...}) R R_cases clause =
     Goal.init goal
     |> (SINGLE (resolve_tac [accI] 1)) |> the
     |> (SINGLE (eresolve_tac [Thm.forall_elim_vars 0 R_cases] 1))  |> the
-    |> (SINGLE (auto_tac (clasimpset_of ctxt))) |> the
+    |> (SINGLE (auto_tac ctxt)) |> the
     |> Goal.conclude
     |> fold_rev forall_intr_rename (map fst oqs ~~ cqs)
   end

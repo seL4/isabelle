@@ -132,7 +132,7 @@ apply(interfree_aux)
 apply(simp_all add:mul_mutator_interfree)
 apply(simp_all add: mul_mutator_defs)
 apply(tactic {* TRYALL (interfree_aux_tac) *})
-apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
+apply(tactic {* ALLGOALS (clarify_tac @{context}) *})
 apply (simp_all add:nth_list_update)
 done
 
@@ -1123,7 +1123,7 @@ lemma Mul_interfree_Append_Redirect_Edge: "\<lbrakk>0\<le>j; j<n\<rbrakk>\<Longr
   interfree_aux (Some(Mul_Append n),{}, Some(Mul_Redirect_Edge j n))"
 apply (unfold mul_modules)
 apply interfree_aux
-apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
+apply(tactic {* ALLGOALS (clarify_tac @{context}) *})
 apply(simp_all add:Graph6 Append_to_free0 Append_to_free1 mul_collector_defs mul_mutator_defs Mul_AppendInv_def)
 apply(erule_tac x=j in allE, force dest:Graph3)+
 done
@@ -1132,7 +1132,7 @@ lemma Mul_interfree_Redirect_Edge_Append: "\<lbrakk>0\<le>j; j<n\<rbrakk>\<Longr
   interfree_aux (Some(Mul_Redirect_Edge j n),{},Some(Mul_Append n))"
 apply (unfold mul_modules)
 apply interfree_aux
-apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
+apply(tactic {* ALLGOALS (clarify_tac @{context}) *})
 apply(simp_all add:mul_collector_defs Append_to_free0 Mul_AppendInv_def  mul_mutator_defs nth_list_update)
 done
 
@@ -1140,7 +1140,7 @@ lemma Mul_interfree_Append_Color_Target: "\<lbrakk>0\<le>j; j<n\<rbrakk>\<Longri
   interfree_aux (Some(Mul_Append n),{}, Some(Mul_Color_Target j n))"
 apply (unfold mul_modules)
 apply interfree_aux
-apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
+apply(tactic {* ALLGOALS (clarify_tac @{context}) *})
 apply(simp_all add:mul_mutator_defs mul_collector_defs Mul_AppendInv_def Graph7 Graph8 Append_to_free0 Append_to_free1 
               Graph12 nth_list_update)
 done
@@ -1149,7 +1149,7 @@ lemma Mul_interfree_Color_Target_Append: "\<lbrakk>0\<le>j; j<n\<rbrakk>\<Longri
   interfree_aux (Some(Mul_Color_Target j n),{}, Some(Mul_Append n))"
 apply (unfold mul_modules)
 apply interfree_aux
-apply(tactic {* ALLGOALS (clarify_tac @{claset}) *})
+apply(tactic {* ALLGOALS (clarify_tac @{context}) *})
 apply(simp_all add: mul_mutator_defs nth_list_update)
 apply(simp add:Mul_AppendInv_def Append_to_free0)
 done
@@ -1178,7 +1178,7 @@ apply (clarify,simp add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Gra
 --{* 24 subgoals left *}
 apply(simp_all add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)
 --{* 14 subgoals left *}
-apply(tactic {* TRYALL (clarify_tac @{claset}) *})
+apply(tactic {* TRYALL (clarify_tac @{context}) *})
 apply(simp_all add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)
 apply(tactic {* TRYALL (rtac conjI) *})
 apply(tactic {* TRYALL (rtac impI) *})
@@ -1189,7 +1189,7 @@ apply(tactic {* TRYALL (etac disjE) *})
 --{* 72 subgoals left *}
 apply(simp_all add:Graph6 Graph7 Graph8 Append_to_free0 Append_to_free1 Graph12)
 --{* 35 subgoals left *}
-apply(tactic {* TRYALL(EVERY'[rtac disjI1,rtac subset_trans,etac @{thm Graph3},force_tac @{clasimpset}, assume_tac]) *})
+apply(tactic {* TRYALL(EVERY'[rtac disjI1,rtac subset_trans,etac @{thm Graph3},force_tac @{context}, assume_tac]) *})
 --{* 28 subgoals left *}
 apply(tactic {* TRYALL (etac conjE) *})
 apply(tactic {* TRYALL (etac disjE) *})
@@ -1199,17 +1199,21 @@ apply(rule disjI2,rule disjI1,erule le_trans,force simp add:Queue_def less_Suc_e
 apply(case_tac [!] "M x!(T (Muts x ! j))=Black")
 apply(simp_all add:Graph10)
 --{* 47 subgoals left *}
-apply(tactic {* TRYALL(EVERY'[REPEAT o (rtac disjI2),etac @{thm subset_psubset_trans}, etac @{thm Graph11},force_tac @{clasimpset}]) *})
+apply(tactic {* TRYALL(EVERY'[REPEAT o (rtac disjI2),etac @{thm subset_psubset_trans}, etac @{thm Graph11},force_tac @{context}]) *})
 --{* 41 subgoals left *}
-apply(tactic {* TRYALL(EVERY'[rtac disjI2, rtac disjI1, etac @{thm le_trans}, force_tac (@{claset},@{simpset} addsimps [@{thm Queue_def}, @{thm less_Suc_eq_le}, @{thm le_length_filter_update}])]) *})
+apply(tactic {* TRYALL(EVERY'[rtac disjI2, rtac disjI1, etac @{thm le_trans},
+    force_tac (map_simpset (fn ss => ss addsimps
+      [@{thm Queue_def}, @{thm less_Suc_eq_le}, @{thm le_length_filter_update}]) @{context})]) *})
 --{* 35 subgoals left *}
-apply(tactic {* TRYALL(EVERY'[rtac disjI2,rtac disjI1,etac @{thm psubset_subset_trans},rtac @{thm Graph9},force_tac @{clasimpset}]) *})
+apply(tactic {* TRYALL(EVERY'[rtac disjI2,rtac disjI1,etac @{thm psubset_subset_trans},rtac @{thm Graph9},force_tac @{context}]) *})
 --{* 31 subgoals left *}
-apply(tactic {* TRYALL(EVERY'[rtac disjI2,rtac disjI1,etac @{thm subset_psubset_trans},etac @{thm Graph11},force_tac @{clasimpset}]) *})
+apply(tactic {* TRYALL(EVERY'[rtac disjI2,rtac disjI1,etac @{thm subset_psubset_trans},etac @{thm Graph11},force_tac @{context}]) *})
 --{* 29 subgoals left *}
-apply(tactic {* TRYALL(EVERY'[REPEAT o (rtac disjI2),etac @{thm subset_psubset_trans},etac @{thm subset_psubset_trans},etac @{thm Graph11},force_tac @{clasimpset}]) *})
+apply(tactic {* TRYALL(EVERY'[REPEAT o (rtac disjI2),etac @{thm subset_psubset_trans},etac @{thm subset_psubset_trans},etac @{thm Graph11},force_tac @{context}]) *})
 --{* 25 subgoals left *}
-apply(tactic {* TRYALL(EVERY'[rtac disjI2, rtac disjI2, rtac disjI1, etac @{thm le_trans}, force_tac (@{claset},@{simpset} addsimps [@{thm Queue_def}, @{thm less_Suc_eq_le}, @{thm le_length_filter_update}])]) *})
+apply(tactic {* TRYALL(EVERY'[rtac disjI2, rtac disjI2, rtac disjI1, etac @{thm le_trans},
+    force_tac (map_simpset (fn ss => ss addsimps
+      [@{thm Queue_def}, @{thm less_Suc_eq_le}, @{thm le_length_filter_update}]) @{context})]) *})
 --{* 10 subgoals left *}
 apply(rule disjI2,rule disjI2,rule conjI,erule less_le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update, rule disjI1, rule less_imp_le, erule less_le_trans, force simp add:Queue_def less_Suc_eq_le le_length_filter_update)+
 done

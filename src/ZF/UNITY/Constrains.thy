@@ -471,7 +471,7 @@ structure Program_Defs = Named_Thms
 (*proves "co" properties when the program is specified*)
 
 fun constrains_tac ctxt =
-  let val css as (cs, ss) = clasimpset_of ctxt in
+  let val ss = simpset_of ctxt in
    SELECT_GOAL
       (EVERY [REPEAT (Always_Int_tac 1),
               REPEAT (etac @{thm Always_ConstrainsI} 1
@@ -481,20 +481,20 @@ fun constrains_tac ctxt =
               rtac @{thm constrainsI} 1,
               (* Three subgoals *)
               rewrite_goal_tac [@{thm st_set_def}] 3,
-              REPEAT (force_tac css 2),
+              REPEAT (force_tac ctxt 2),
               full_simp_tac (ss addsimps (Program_Defs.get ctxt)) 1,
-              ALLGOALS (clarify_tac cs),
+              ALLGOALS (clarify_tac ctxt),
               REPEAT (FIRSTGOAL (etac @{thm disjE})),
-              ALLGOALS (clarify_tac cs),
+              ALLGOALS (clarify_tac ctxt),
               REPEAT (FIRSTGOAL (etac @{thm disjE})),
-              ALLGOALS (clarify_tac cs),
+              ALLGOALS (clarify_tac ctxt),
               ALLGOALS (asm_full_simp_tac ss),
-              ALLGOALS (clarify_tac cs)])
+              ALLGOALS (clarify_tac ctxt)])
   end;
 
 (*For proving invariants*)
-fun always_tac ctxt i = 
-    rtac @{thm AlwaysI} i THEN force_tac (clasimpset_of ctxt) i THEN constrains_tac ctxt i;
+fun always_tac ctxt i =
+    rtac @{thm AlwaysI} i THEN force_tac ctxt i THEN constrains_tac ctxt i;
 *}
 
 setup Program_Defs.setup
