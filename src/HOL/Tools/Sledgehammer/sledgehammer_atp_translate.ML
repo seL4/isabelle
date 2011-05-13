@@ -605,19 +605,20 @@ fun chop_fun 0 T = ([], T)
     chop_fun (n - 1) ran_T |>> cons dom_T
   | chop_fun _ _ = raise Fail "unexpected non-function"
 
-fun filter_type_args thy s arity T_args =
-  let
-    val U = s |> Sign.the_const_type thy (* may throw "TYPE" *)
-    val res_U = U |> chop_fun arity |> snd
-    val res_U_vars = Term.add_tvarsT res_U []
-    val U_args = (s, U) |> Sign.const_typargs thy
-  in
-    U_args ~~ T_args
-    |> map_filter (fn (U, T) =>
-                      if member (op =) res_U_vars (dest_TVar U) then SOME T
-                      else NONE)
-  end
-  handle TYPE _ => T_args
+fun filter_type_args _ _ _ [] = []
+  | filter_type_args thy s arity T_args =
+    let
+      val U = s |> Sign.the_const_type thy (* may throw "TYPE" *)
+      val res_U = U |> chop_fun arity |> snd
+      val res_U_vars = Term.add_tvarsT res_U []
+      val U_args = (s, U) |> Sign.const_typargs thy
+    in
+      U_args ~~ T_args
+      |> map_filter (fn (U, T) =>
+                        if member (op =) res_U_vars (dest_TVar U) then SOME T
+                        else NONE)
+    end
+    handle TYPE _ => T_args
 
 fun enforce_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys =
   let
