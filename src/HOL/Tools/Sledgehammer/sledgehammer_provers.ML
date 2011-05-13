@@ -489,7 +489,6 @@ fun run_atp auto name
                      |> SMT_Monomorph.monomorph indexed_facts
                      |> fst |> sort (int_ord o pairself fst)
                      |> filter_out (curry (op =) ~1 o fst)
-(* FIXME:            |> take max_mono_instances (* just in case *) *)
                      |> map (Untranslated_Fact o apfst (fst o nth facts))
               end
             fun run_slice blacklist (slice, (time_frac, (complete,
