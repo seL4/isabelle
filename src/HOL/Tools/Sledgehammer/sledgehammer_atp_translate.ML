@@ -1095,7 +1095,7 @@ fun prepare_atp_problem ctxt conj_sym_kind prem_kind type_sys explicit_apply
           | _ => I)
     val (problem, pool) =
       problem |> nice_atp_problem (Config.get ctxt readable_names)
-    fun add_sym_arity (s, {min_ary, ...}) =
+    fun add_sym_arity (s, {min_ary, ...} : sym_info) =
       if min_ary > 0 then
         case strip_prefix_and_unascii const_prefix s of
           SOME s => Symtab.insert (op =) (s, min_ary)
