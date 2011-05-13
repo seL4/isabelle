@@ -51,7 +51,6 @@ end;
 
 signature BLAST =
 sig
-  type claset
   exception TRANS of string    (*reports translation errors*)
   datatype term =
       Const of string * term list
@@ -61,9 +60,9 @@ sig
     | Bound of int
     | Abs   of string*term
     | $  of term*term;
-  val depth_tac: claset -> int -> int -> tactic
+  val depth_tac: Proof.context -> int -> int -> tactic
   val depth_limit: int Config.T
-  val blast_tac: claset -> int -> tactic
+  val blast_tac: Proof.context -> int -> tactic
   val setup: theory -> theory
   (*debugging tools*)
   type branch
@@ -75,8 +74,8 @@ sig
   val fromSubgoal: theory -> Term.term -> term
   val instVars: term -> (unit -> unit)
   val toTerm: int -> term -> Term.term
-  val readGoal: theory -> string -> term
-  val tryInThy: theory -> claset -> int -> string ->
+  val readGoal: Proof.context -> string -> term
+  val tryIt: Proof.context -> int -> string ->
     (int -> tactic) list * branch list list * (int * int * exn) list
   val normBr: branch -> branch
 end;
@@ -85,7 +84,6 @@ functor Blast(Data: BLAST_DATA): BLAST =
 struct
 
 structure Classical = Data.Classical;
-type claset = Classical.claset;
 
 val trace = Unsynchronized.ref false
 and stats = Unsynchronized.ref false;   (*for runtime and search statistics*)
@@ -915,9 +913,10 @@ fun printStats (State {ntried, nclosed, ...}) (b, start, tacs) =
   bound on unsafe expansions.
  "start" is CPU time at start, for printing search time
 *)
-fun prove (state, start, cs, brs, cont) =
+fun prove (state, start, ctxt, brs, cont) =
  let val State {thy, ntrail, nclosed, ntried, ...} = state;
-     val {safe0_netpair, safep_netpair, haz_netpair, ...} = Classical.rep_cs cs
+     val {safe0_netpair, safep_netpair, haz_netpair, ...} =
+       Classical.rep_cs (Classical.claset_of ctxt);
      val safeList = [safe0_netpair, safep_netpair]
      and hazList  = [haz_netpair]
      fun prv (tacs, trs, choices, []) =
@@ -1237,7 +1236,7 @@ fun fromSubgoal thy t =
  "start" is CPU time at start, for printing SEARCH time
         (also prints reconstruction time)
  "lim" is depth limit.*)
-fun timing_depth_tac start cs lim i st0 =
+fun timing_depth_tac start ctxt lim i st0 =
   let val thy = Thm.theory_of_thm st0
       val state = initialize thy
       val st = st0
@@ -1261,20 +1260,20 @@ fun timing_depth_tac start cs lim i st0 =
                        Seq.make(fn()=> cell))
           end
   in
-    prove (state, start, cs, [initBranch (mkGoal concl :: hyps, lim)], cont)
+    prove (state, start, ctxt, [initBranch (mkGoal concl :: hyps, lim)], cont)
     |> Seq.map (rotate_prems (1 - i))
   end
   handle PROVE => Seq.empty;
 
 (*Public version with fixed depth*)
-fun depth_tac cs lim i st = timing_depth_tac (Timing.start ()) cs lim i st;
+fun depth_tac ctxt lim i st = timing_depth_tac (Timing.start ()) ctxt lim i st;
 
 val (depth_limit, setup_depth_limit) =
   Attrib.config_int_global @{binding blast_depth_limit} (K 20);
 
-fun blast_tac cs i st =
+fun blast_tac ctxt i st =
     ((DEEPEN (1, Config.get_global (Thm.theory_of_thm st) depth_limit)
-        (timing_depth_tac (Timing.start ()) cs) 0) i
+        (timing_depth_tac (Timing.start ()) ctxt) 0) i
      THEN flexflex_tac) st
     handle TRANS s =>
       ((if !trace then warning ("blast: " ^ s) else ());
@@ -1288,13 +1287,15 @@ fun blast_tac cs i st =
 val fullTrace = Unsynchronized.ref ([]: branch list list);
 
 (*Read a string to make an initial, singleton branch*)
-fun readGoal thy s = Syntax.read_prop_global thy s |> fromTerm thy |> rand |> mkGoal;
+fun readGoal ctxt s =
+  Syntax.read_prop ctxt s |> fromTerm (Proof_Context.theory_of ctxt) |> rand |> mkGoal;
 
-fun tryInThy thy cs lim s =
+fun tryIt ctxt lim s =
   let
+    val thy = Proof_Context.theory_of ctxt;
     val state as State {fullTrace = ft, ...} = initialize thy;
     val res = timeap prove
-      (state, Timing.start (), cs, [initBranch ([readGoal thy s], lim)], I);
+      (state, Timing.start (), ctxt, [initBranch ([readGoal ctxt s], lim)], I);
     val _ = fullTrace := !ft;
   in res end;
 
@@ -1305,8 +1306,8 @@ val setup =
   setup_depth_limit #>
   Method.setup @{binding blast}
     (Scan.lift (Scan.option Parse.nat) --| Method.sections Classical.cla_modifiers >>
-      (fn NONE => Classical.cla_meth' blast_tac
-        | SOME lim => Classical.cla_meth' (fn cs => depth_tac cs lim)))
+      (fn NONE => SIMPLE_METHOD' o blast_tac
+        | SOME lim => (fn ctxt => SIMPLE_METHOD' (depth_tac ctxt lim))))
     "classical tableau prover";
 
 end;

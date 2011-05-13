@@ -338,7 +338,7 @@ fun sizechange_tac ctxt autom_tac =
 fun decomp_scnp_tac orders ctxt =
   let
     val extra_simps = Function_Common.Termination_Simps.get ctxt
-    val autom_tac = auto_tac (claset_of ctxt, simpset_of ctxt addsimps extra_simps)
+    val autom_tac = auto_tac (map_simpset_local (fn ss => ss addsimps extra_simps) ctxt)
   in
      gen_sizechange_tac orders autom_tac ctxt
   end

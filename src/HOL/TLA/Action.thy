@@ -278,7 +278,7 @@ ML {*
 *)
 
 fun enabled_tac ctxt base_vars =
-  clarsimp_tac (claset_of ctxt addSIs [base_vars RS @{thm base_enabled}], simpset_of ctxt);
+  clarsimp_tac (ctxt addSIs [base_vars RS @{thm base_enabled}]);
 *}
 
 method_setup enabled = {*

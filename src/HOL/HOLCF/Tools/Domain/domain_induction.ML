@@ -150,7 +150,7 @@ let
               (Ps ~~ take_consts ~~ xs)
       val goal = mk_trp (foldr1 mk_conj concls)
 
-      fun tacf {prems, context} =
+      fun tacf {prems, context = ctxt} =
         let
           (* Prove stronger prems, without definedness side conditions *)
           fun con_thm p (con, args) =
@@ -165,23 +165,23 @@ let
                   map arg_tac args @
                   [REPEAT (rtac impI 1), ALLGOALS simplify]
             in
-              Goal.prove context [] [] subgoal (K (EVERY tacs))
+              Goal.prove ctxt [] [] subgoal (K (EVERY tacs))
             end
           fun eq_thms (p, cons) = map (con_thm p) cons
           val conss = map #con_specs constr_infos
           val prems' = maps eq_thms (Ps ~~ conss)
 
           val tacs1 = [
-            quant_tac context 1,
+            quant_tac ctxt 1,
             simp_tac HOL_ss 1,
-            InductTacs.induct_tac context [[SOME "n"]] 1,
+            InductTacs.induct_tac ctxt [[SOME "n"]] 1,
             simp_tac (take_ss addsimps prems) 1,
-            TRY (safe_tac HOL_cs)]
+            TRY (safe_tac (put_claset HOL_cs ctxt))]
           fun con_tac _ = 
             asm_simp_tac take_ss 1 THEN
             (resolve_tac prems' THEN_ALL_NEW etac spec) 1
           fun cases_tacs (cons, exhaust) =
-            res_inst_tac context [(("y", 0), "x")] exhaust 1 ::
+            res_inst_tac ctxt [(("y", 0), "x")] exhaust 1 ::
             asm_simp_tac (take_ss addsimps prems) 1 ::
             map con_tac cons
           val tacs = tacs1 @ maps cases_tacs (conss ~~ exhausts)
@@ -196,15 +196,15 @@ let
       val concls = map (op $) (Ps ~~ xs)
       val goal = mk_trp (foldr1 mk_conj concls)
       val adms = if is_finite then [] else map (mk_trp o mk_adm) Ps
-      fun tacf {prems, context} =
+      fun tacf {prems, context = ctxt} =
         let
           fun finite_tac (take_induct, fin_ind) =
               rtac take_induct 1 THEN
               (if is_finite then all_tac else resolve_tac prems 1) THEN
               (rtac fin_ind THEN_ALL_NEW solve_tac prems) 1
-          val fin_inds = Project_Rule.projections context finite_ind
+          val fin_inds = Project_Rule.projections ctxt finite_ind
         in
-          TRY (safe_tac HOL_cs) THEN
+          TRY (safe_tac (put_claset HOL_cs ctxt)) THEN
           EVERY (map finite_tac (take_induct_thms ~~ fin_inds))
         end
     in Goal.prove_global thy [] (adms @ assms) goal tacf end
@@ -318,18 +318,18 @@ let
       val goal =
           mk_trp (foldr1 mk_conj (map one (newTs ~~ Rs ~~ take_consts)))
       val rules = @{thm Rep_cfun_strict1} :: take_0_thms
-      fun tacf {prems, context} =
+      fun tacf {prems, context = ctxt} =
         let
           val prem' = rewrite_rule [bisim_def_thm] (hd prems)
-          val prems' = Project_Rule.projections context prem'
+          val prems' = Project_Rule.projections ctxt prem'
           val dests = map (fn th => th RS spec RS spec RS mp) prems'
           fun one_tac (dest, rews) =
-              dtac dest 1 THEN safe_tac HOL_cs THEN
+              dtac dest 1 THEN safe_tac (put_claset HOL_cs ctxt) THEN
               ALLGOALS (asm_simp_tac (HOL_basic_ss addsimps rews))
         in
           rtac @{thm nat.induct} 1 THEN
           simp_tac (HOL_ss addsimps rules) 1 THEN
-          safe_tac HOL_cs THEN
+          safe_tac (put_claset HOL_cs ctxt) THEN
           EVERY (map one_tac (dests ~~ take_rews))
         end
     in

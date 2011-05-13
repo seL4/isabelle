@@ -38,8 +38,7 @@ fun mk_undefined T = Const(@{const_name undefined}, T)
 (* defining functions *)
 
 fun pat_completeness_auto ctxt =
-  Pat_Completeness.pat_completeness_tac ctxt 1
-  THEN auto_tac (clasimpset_of ctxt)    
+  Pat_Completeness.pat_completeness_tac ctxt 1 THEN auto_tac ctxt
 
 fun define_functions (mk_equations, termination_tac) prfx argnames names Ts =
   if define_foundationally andalso is_some termination_tac then

@@ -706,7 +706,7 @@ local
   val all_maxscope_ss = 
      HOL_basic_ss addsimps map (fn th => th RS sym) @{thms "all_simps"}
 in
-fun thin_prems_tac P = simp_tac all_maxscope_ss THEN'
+fun thin_prems_tac ctxt P = simp_tac all_maxscope_ss THEN'
   CSUBGOAL (fn (p', i) =>
     let
      val (qvs, p) = strip_objall (Thm.dest_arg p')
@@ -720,7 +720,7 @@ fun thin_prems_tac P = simp_tac all_maxscope_ss THEN'
                          | _ => false)
     in 
     if ntac then no_tac
-      else rtac (Goal.prove_internal [] g (K (blast_tac HOL_cs 1))) i
+      else rtac (Goal.prove_internal [] g (K (blast_tac (put_claset HOL_cs ctxt) 1))) i
     end)
 end;
 
@@ -843,7 +843,7 @@ in
   THEN_ALL_NEW simp_tac ss
   THEN_ALL_NEW (TRY o generalize_tac (int_nat_terms ctxt))
   THEN_ALL_NEW Object_Logic.full_atomize_tac
-  THEN_ALL_NEW (thin_prems_tac (is_relevant ctxt))
+  THEN_ALL_NEW (thin_prems_tac ctxt (is_relevant ctxt))
   THEN_ALL_NEW Object_Logic.full_atomize_tac
   THEN_ALL_NEW div_mod_tac ctxt
   THEN_ALL_NEW splits_tac ctxt

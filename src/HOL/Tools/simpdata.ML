@@ -163,9 +163,6 @@ structure Clasimp = Clasimp
 );
 open Clasimp;
 
-val _ = ML_Antiquote.value "clasimpset"
-  (Scan.succeed "Clasimp.clasimpset_of (ML_Context.the_local_context ())");
-
 val mksimps_pairs =
  [(@{const_name HOL.implies}, [@{thm mp}]),
   (@{const_name HOL.conj}, [@{thm conjunct1}, @{thm conjunct2}]),

@@ -78,7 +78,7 @@ fun Mset ctxt prop =
     val MsetT = fastype_of big_Collect;
     fun Mset_incl t = HOLogic.mk_Trueprop (inclt MsetT $ Free (Mset, MsetT) $ t);
     val impl = Logic.mk_implies (Mset_incl big_Collect, Mset_incl small_Collect);
-    val th = Goal.prove ctxt [Mset, P] [] impl (fn _ => blast_tac (claset_of ctxt) 1);
+    val th = Goal.prove ctxt [Mset, P] [] impl (fn _ => blast_tac ctxt 1);
  in (vars, th) end;
 
 end;

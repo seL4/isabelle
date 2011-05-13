@@ -298,7 +298,7 @@ fun mkex_induct_tac ctxt sch exA exB =
   let val ss = simpset_of ctxt in
     EVERY1[Seq_induct_tac ctxt sch defs,
            asm_full_simp_tac ss,
-           SELECT_GOAL (safe_tac (global_claset_of @{theory Fun})),
+           SELECT_GOAL (safe_tac (Proof_Context.init_global @{theory Fun})),
            Seq_case_simp_tac ctxt exA,
            Seq_case_simp_tac ctxt exB,
            asm_full_simp_tac ss,

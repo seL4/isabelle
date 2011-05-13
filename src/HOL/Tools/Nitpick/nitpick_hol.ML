@@ -2004,9 +2004,8 @@ fun wf_constraint_for_triple rel (side, main, concl) =
   map (wf_constraint_for rel side concl) main |> foldr1 s_conj
 
 fun terminates_by ctxt timeout goal tac =
-  can (SINGLE (Classical.safe_tac (claset_of ctxt)) #> the
-       #> SINGLE (DETERM_TIMEOUT timeout
-                                 (tac ctxt (auto_tac (clasimpset_of ctxt))))
+  can (SINGLE (Classical.safe_tac ctxt) #> the
+       #> SINGLE (DETERM_TIMEOUT timeout (tac ctxt (auto_tac ctxt)))
        #> the #> Goal.finish ctxt) goal
 
 val max_cached_wfs = 50

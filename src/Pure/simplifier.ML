@@ -8,6 +8,7 @@ raw_simplifier.ML for the actual meta-level rewriting engine).
 signature BASIC_SIMPLIFIER =
 sig
   include BASIC_RAW_SIMPLIFIER
+  val map_simpset_local: (simpset -> simpset) -> Proof.context -> Proof.context
   val change_simpset: (simpset -> simpset) -> unit
   val global_simpset_of: theory -> simpset
   val Addsimprocs: simproc list -> unit
@@ -136,7 +137,7 @@ val cong_del = attrib (op delcongs);
 
 (* global simpset *)
 
-fun map_simpset f = Context.theory_map (map_ss f);
+fun map_simpset f = Context.theory_map (map_ss f);  (* FIXME global *)
 fun change_simpset f = Context.>> (Context.map_theory (map_simpset f));
 fun global_simpset_of thy =
   Raw_Simplifier.context (Proof_Context.init_global thy) (get_ss (Context.Theory thy));
@@ -147,6 +148,7 @@ fun Delsimprocs args = change_simpset (fn ss => ss delsimprocs args);
 
 (* local simpset *)
 
+fun map_simpset_local f = Context.proof_map (map_ss f);
 fun simpset_of ctxt = Raw_Simplifier.context ctxt (get_ss (Context.Proof ctxt));
 
 val _ = ML_Antiquote.value "simpset"

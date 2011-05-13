@@ -970,17 +970,14 @@ lemmas subset_SIs = subset_refl cons_subsetI subset_consI
                     Un_upper1 Un_upper2 Int_lower1 Int_lower2
 
 ML {*
-val subset_cs = @{claset} 
+val subset_cs =
+  claset_of (@{context}
     delrules [@{thm subsetI}, @{thm subsetCE}]
     addSIs @{thms subset_SIs}
     addIs  [@{thm Union_upper}, @{thm Inter_lower}]
-    addSEs [@{thm cons_subsetE}];
-*}
-(*subset_cs is a claset for subset reasoning*)
+    addSEs [@{thm cons_subsetE}]);
 
-ML
-{*
-val ZF_cs = @{claset} delrules [@{thm equalityI}];
+val ZF_cs = claset_of (@{context} delrules [@{thm equalityI}]);
 *}
  
 end

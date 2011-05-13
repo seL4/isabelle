@@ -76,11 +76,11 @@ lemma counit2_Int_Vset_subset [rule_format]:
   "Ord(i) ==> \<forall>x y. x \<in> counit2 --> y \<in> counit2 --> x Int Vset(i) \<subseteq> y"
   -- {* Lemma for proving finality. *}
   apply (erule trans_induct)
-  apply (tactic "safe_tac subset_cs")
+  apply (tactic "safe_tac (put_claset subset_cs @{context})")
   apply (erule counit2.cases)
   apply (erule counit2.cases)
   apply (unfold counit2.con_defs)
-  apply (tactic {* fast_tac (subset_cs
+  apply (tactic {* fast_tac (put_claset subset_cs @{context}
     addSIs [@{thm QPair_Int_Vset_subset_UN} RS @{thm subset_trans}, @{thm QPair_mono}]
     addSEs [@{thm Ord_in_Ord}, @{thm Pair_inject}]) 1 *})
   done

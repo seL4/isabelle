@@ -583,11 +583,13 @@ lemma DmdStable: "|- (stable P) & <>P --> <>[]P"
 
 ML {*
 (* inv_tac reduces goals of the form ... ==> sigma |= []P *)
-fun inv_tac css = SELECT_GOAL
-     (EVERY [auto_tac css,
-             TRY (merge_box_tac 1),
-             rtac (temp_use @{thm INV1}) 1, (* fail if the goal is not a box *)
-             TRYALL (etac @{thm Stable})]);
+fun inv_tac ctxt =
+  SELECT_GOAL
+    (EVERY
+     [auto_tac ctxt,
+      TRY (merge_box_tac 1),
+      rtac (temp_use @{thm INV1}) 1, (* fail if the goal is not a box *)
+      TRYALL (etac @{thm Stable})]);
 
 (* auto_inv_tac applies inv_tac and then tries to attack the subgoals
    in simple cases it may be able to handle goals like |- MyProg --> []Inv.
@@ -595,15 +597,15 @@ fun inv_tac css = SELECT_GOAL
    auto-tactic, which applies too much propositional logic and simplifies
    too late.
 *)
-fun auto_inv_tac ss = SELECT_GOAL
-    ((inv_tac (@{claset}, ss) 1) THEN
-     (TRYALL (action_simp_tac
-       (ss addsimps [@{thm Init_stp}, @{thm Init_act}]) [] [@{thm squareE}])));
+fun auto_inv_tac ss =
+  SELECT_GOAL
+    (inv_tac (map_simpset_local (K ss) @{context}) 1 THEN
+      (TRYALL (action_simp_tac
+        (ss addsimps [@{thm Init_stp}, @{thm Init_act}]) [] [@{thm squareE}])));
 *}
 
 method_setup invariant = {*
-  Method.sections Clasimp.clasimp_modifiers
-    >> (K (SIMPLE_METHOD' o inv_tac o clasimpset_of))
+  Method.sections Clasimp.clasimp_modifiers >> (K (SIMPLE_METHOD' o inv_tac))
 *} ""
 
 method_setup auto_invariant = {*

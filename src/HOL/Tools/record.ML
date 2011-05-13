@@ -44,7 +44,7 @@ sig
   val ex_sel_eq_simproc: simproc
   val split_tac: int -> tactic
   val split_simp_tac: thm list -> (term -> int) -> int -> tactic
-  val split_wrapper: string * wrapper
+  val split_wrapper: string * (Proof.context -> wrapper)
 
   val updateN: string
   val ext_typeN: string
@@ -1508,7 +1508,7 @@ val split_tac = CSUBGOAL (fn (cgoal, i) =>
 (* wrapper *)
 
 val split_name = "record_split_tac";
-val split_wrapper = (split_name, fn tac => split_tac ORELSE' tac);
+val split_wrapper = (split_name, fn _ => fn tac => split_tac ORELSE' tac);
 
 
 

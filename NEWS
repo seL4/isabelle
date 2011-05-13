@@ -144,6 +144,14 @@ goal states; body tactic needs to address all subgoals uniformly.
 * Slightly more special eq_list/eq_set, with shortcut involving
 pointer equality (assumes that eq relation is reflexive).
 
+* Classical tactics use proper Proof.context instead of historic types
+claset/clasimpset.  Old-style declarations like addIs, addEs, addDs
+operate directly on Proof.context.  Raw type claset retains its use as
+snapshot of the classical context, which can be recovered via
+(put_claset HOL_cs) etc.  Type clasimpset has been discontinued.
+INCOMPATIBILITY, classical tactics and derived proof methods require
+proper Proof.context.
+
 
 
 New in Isabelle2011 (January 2011)

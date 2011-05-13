@@ -97,9 +97,14 @@ local
   val rewr_if =
     @{lemma "(if P then Q1 else Q2) = ((P --> Q1) & (~P --> Q2))" by simp}
 in
-val simp_fast_tac =
+
+fun HOL_fast_tac ctxt =
+  Classical.fast_tac (put_claset HOL_cs ctxt)
+
+fun simp_fast_tac ctxt =
   Simplifier.simp_tac (HOL_ss addsimps [rewr_if])
-  THEN_ALL_NEW Classical.fast_tac HOL_cs
+  THEN_ALL_NEW HOL_fast_tac ctxt
+
 end
 
 
@@ -300,7 +305,7 @@ end
 
 (* distributivity of | over & *)
 fun distributivity ctxt = Thm o try_apply ctxt [] [
-  named ctxt "fast" (Z3_Proof_Tools.by_tac (Classical.fast_tac HOL_cs))]
+  named ctxt "fast" (Z3_Proof_Tools.by_tac (HOL_fast_tac ctxt))]
     (* FIXME: not very well tested *)
 
 
@@ -356,7 +361,7 @@ in
 fun def_axiom ctxt = Thm o try_apply ctxt [] [
   named ctxt "conj/disj/distinct" prove_def_axiom,
   Z3_Proof_Tools.by_abstraction (true, false) ctxt [] (fn ctxt' =>
-    named ctxt' "simp+fast" (Z3_Proof_Tools.by_tac simp_fast_tac))]
+    named ctxt' "simp+fast" (Z3_Proof_Tools.by_tac (simp_fast_tac ctxt')))]
 end
 
 
@@ -417,7 +422,7 @@ local
   fun prove_nnf ctxt = try_apply ctxt [] [
     named ctxt "conj/disj" Z3_Proof_Literals.prove_conj_disj_eq,
     Z3_Proof_Tools.by_abstraction (true, false) ctxt [] (fn ctxt' =>
-      named ctxt' "simp+fast" (Z3_Proof_Tools.by_tac simp_fast_tac))]
+      named ctxt' "simp+fast" (Z3_Proof_Tools.by_tac (simp_fast_tac ctxt')))]
 in
 fun nnf ctxt vars ps ct =
   (case SMT_Utils.term_of ct of
@@ -552,13 +557,13 @@ end
 
 (* |- ((ALL x. P x) | Q) = (ALL x. P x | Q) *)
 fun pull_quant ctxt = Thm o try_apply ctxt [] [
-  named ctxt "fast" (Z3_Proof_Tools.by_tac (Classical.fast_tac HOL_cs))]
+  named ctxt "fast" (Z3_Proof_Tools.by_tac (HOL_fast_tac ctxt))]
     (* FIXME: not very well tested *)
 
 
 (* |- (ALL x. P x & Q x) = ((ALL x. P x) & (ALL x. Q x)) *)
 fun push_quant ctxt = Thm o try_apply ctxt [] [
-  named ctxt "fast" (Z3_Proof_Tools.by_tac (Classical.fast_tac HOL_cs))]
+  named ctxt "fast" (Z3_Proof_Tools.by_tac (HOL_fast_tac ctxt))]
     (* FIXME: not very well tested *)
 
 
@@ -582,7 +587,7 @@ end
 
 (* |- (ALL x1 ... xn. ~(x1 = t1 & ... xn = tn) | P x1 ... xn) = P t1 ... tn *)
 fun dest_eq_res ctxt = Thm o try_apply ctxt [] [
-  named ctxt "fast" (Z3_Proof_Tools.by_tac (Classical.fast_tac HOL_cs))]
+  named ctxt "fast" (Z3_Proof_Tools.by_tac (HOL_fast_tac ctxt))]
     (* FIXME: not very well tested *)
 
 
@@ -694,18 +699,18 @@ fun rewrite simpset ths ct ctxt =
     Z3_Proof_Tools.by_abstraction (true, false) ctxt [] (fn ctxt' =>
       Z3_Proof_Tools.by_tac (
         NAMED ctxt' "simp (logic)" (Simplifier.simp_tac simpset)
-        THEN_ALL_NEW NAMED ctxt' "fast (logic)" (Classical.fast_tac HOL_cs))),
+        THEN_ALL_NEW NAMED ctxt' "fast (logic)" (fast_tac ctxt'))),
     Z3_Proof_Tools.by_abstraction (false, true) ctxt [] (fn ctxt' =>
       Z3_Proof_Tools.by_tac (
         NAMED ctxt' "simp (theory)" (Simplifier.simp_tac simpset)
         THEN_ALL_NEW (
-          NAMED ctxt' "fast (theory)" (Classical.fast_tac HOL_cs)
+          NAMED ctxt' "fast (theory)" (HOL_fast_tac ctxt')
           ORELSE' NAMED ctxt' "arith (theory)" (Arith_Data.arith_tac ctxt')))),
     Z3_Proof_Tools.by_abstraction (true, true) ctxt [] (fn ctxt' =>
       Z3_Proof_Tools.by_tac (
         NAMED ctxt' "simp (full)" (Simplifier.simp_tac simpset)
         THEN_ALL_NEW (
-          NAMED ctxt' "fast (full)" (Classical.fast_tac HOL_cs)
+          NAMED ctxt' "fast (full)" (HOL_fast_tac ctxt')
           ORELSE' NAMED ctxt' "arith (full)" (Arith_Data.arith_tac ctxt')))),
     named ctxt "injectivity" (Z3_Proof_Methods.prove_injectivity ctxt)]) ct))
 

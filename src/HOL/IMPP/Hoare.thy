@@ -209,7 +209,7 @@ qed "thin";
 *)
 lemma thin [rule_format]: "G'||-ts ==> !G. G' <= G --> G||-ts"
 apply (erule hoare_derivs.induct)
-apply                (tactic {* ALLGOALS (EVERY'[clarify_tac @{claset}, REPEAT o smp_tac 1]) *})
+apply                (tactic {* ALLGOALS (EVERY'[clarify_tac @{context}, REPEAT o smp_tac 1]) *})
 apply (rule hoare_derivs.empty)
 apply               (erule (1) hoare_derivs.insert)
 apply              (fast intro: hoare_derivs.asm)
@@ -218,7 +218,7 @@ apply            (fast intro: hoare_derivs.weaken)
 apply           (rule hoare_derivs.conseq, intro strip, tactic "smp_tac 2 1", clarify, tactic "smp_tac 1 1",rule exI, rule exI, erule (1) conjI)
 prefer 7
 apply          (rule_tac hoare_derivs.Body, drule_tac spec, erule_tac mp, fast)
-apply         (tactic {* ALLGOALS (resolve_tac ((funpow 5 tl) @{thms hoare_derivs.intros}) THEN_ALL_NEW (fast_tac @{claset})) *})
+apply         (tactic {* ALLGOALS (resolve_tac ((funpow 5 tl) @{thms hoare_derivs.intros}) THEN_ALL_NEW (fast_tac @{context})) *})
 done
 
 lemma weak_Body: "G|-{P}. the (body pn) .{Q} ==> G|-{P}. BODY pn .{Q}"
@@ -287,10 +287,10 @@ apply         (blast) (* cut *)
 apply        (blast) (* weaken *)
 apply       (tactic {* ALLGOALS (EVERY'
   [REPEAT o thin_tac @{context} "hoare_derivs ?x ?y",
-   simp_tac @{simpset}, clarify_tac @{claset}, REPEAT o smp_tac 1]) *})
+   simp_tac @{simpset}, clarify_tac @{context}, REPEAT o smp_tac 1]) *})
 apply       (simp_all (no_asm_use) add: triple_valid_def2)
 apply       (intro strip, tactic "smp_tac 2 1", blast) (* conseq *)
-apply      (tactic {* ALLGOALS (clarsimp_tac @{clasimpset}) *}) (* Skip, Ass, Local *)
+apply      (tactic {* ALLGOALS (clarsimp_tac @{context}) *}) (* Skip, Ass, Local *)
 prefer 3 apply   (force) (* Call *)
 apply  (erule_tac [2] evaln_elim_cases) (* If *)
 apply   blast+
@@ -335,17 +335,17 @@ declare not_None_eq [iff]
 lemma MGF_lemma1 [rule_format (no_asm)]: "state_not_singleton ==>  
   !pn:dom body. G|-{=}.BODY pn.{->} ==> WT c --> G|-{=}.c.{->}"
 apply (induct_tac c)
-apply        (tactic {* ALLGOALS (clarsimp_tac @{clasimpset}) *})
+apply        (tactic {* ALLGOALS (clarsimp_tac @{context}) *})
 prefer 7 apply        (fast intro: domI)
 apply (erule_tac [6] MGT_alternD)
 apply       (unfold MGT_def)
 apply       (drule_tac [7] bspec, erule_tac [7] domI)
-apply       (rule_tac [7] escape, tactic {* clarsimp_tac @{clasimpset} 7 *},
+apply       (rule_tac [7] escape, tactic {* clarsimp_tac @{context} 7 *},
   rule_tac [7] P1 = "%Z' s. s= (setlocs Z newlocs) [Loc Arg ::= fun Z]" in hoare_derivs.Call [THEN conseq1], erule_tac [7] conseq12)
 apply        (erule_tac [!] thin_rl)
 apply (rule hoare_derivs.Skip [THEN conseq2])
 apply (rule_tac [2] hoare_derivs.Ass [THEN conseq1])
-apply        (rule_tac [3] escape, tactic {* clarsimp_tac @{clasimpset} 3 *},
+apply        (rule_tac [3] escape, tactic {* clarsimp_tac @{context} 3 *},
   rule_tac [3] P1 = "%Z' s. s= (Z[Loc loc::=fun Z])" in hoare_derivs.Local [THEN conseq1],
   erule_tac [3] conseq12)
 apply         (erule_tac [5] hoare_derivs.Comp, erule_tac [5] conseq12)
@@ -364,7 +364,7 @@ lemma nesting_lemma [rule_format]:
   shows "finite U ==> uG = mgt_call`U ==>  
   !G. G <= uG --> n <= card uG --> card G = card uG - n --> (!c. wt c --> P G {mgt c})"
 apply (induct_tac n)
-apply  (tactic {* ALLGOALS (clarsimp_tac @{clasimpset}) *})
+apply  (tactic {* ALLGOALS (clarsimp_tac @{context}) *})
 apply  (subgoal_tac "G = mgt_call ` U")
 prefer 2
 apply   (simp add: card_seteq)

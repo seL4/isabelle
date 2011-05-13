@@ -348,11 +348,14 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   (*Typical theorems have the form ~con1=con2, con1=con2==>False,
     con1(x)=con1(y) ==> x=y, con1(x)=con1(y) <-> x=y, etc.  *)
   fun mk_free s =
-    let val thy = theory_of_thm elim in (*Don't use thy1: it will be stale*)
-      Goal.prove_global thy [] [] (Syntax.read_prop_global thy s)
+    let
+      val thy = theory_of_thm elim;
+      val ctxt = Proof_Context.init_global thy;
+    in
+      Goal.prove_global thy [] [] (Syntax.read_prop ctxt s)
         (fn _ => EVERY
          [rewrite_goals_tac con_defs,
-          fast_tac (ZF_cs addSEs free_SEs @ Su.free_SEs) 1])
+          fast_tac (put_claset ZF_cs ctxt addSEs free_SEs @ Su.free_SEs) 1])
     end;
 
   val simps = case_eqns @ recursor_eqns;
