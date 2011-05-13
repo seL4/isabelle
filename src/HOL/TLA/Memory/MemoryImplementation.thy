@@ -791,15 +791,20 @@ lemma Step1_4_7: "|- unchanged (e p, c p, r p, m p, rmhist!p)
    steps of the implementation, and try to solve the idling case by simplification
 *)
 ML {*
-fun split_idle_tac ctxt simps i =
-  let val ss = simpset_of ctxt in
-    TRY (rtac @{thm actionI} i) THEN
-    InductTacs.case_tac ctxt "(s,t) |= unchanged (e p, c p, r p, m p, rmhist!p)" i THEN
+fun split_idle_tac ctxt =
+  SELECT_GOAL
+   (TRY (rtac @{thm actionI} 1) THEN
+    InductTacs.case_tac ctxt "(s,t) |= unchanged (e p, c p, r p, m p, rmhist!p)" 1 THEN
     rewrite_goals_tac @{thms action_rews} THEN
-    forward_tac [temp_use @{thm Step1_4_7}] i THEN
-    asm_full_simp_tac (ss addsimps simps) i
-  end
+    forward_tac [temp_use @{thm Step1_4_7}] 1 THEN
+    asm_full_simp_tac (simpset_of ctxt) 1);
 *}
+
+method_setup split_idle = {*
+  Method.sections (Simplifier.simp_modifiers @ Splitter.split_modifiers)
+    >> (K (SIMPLE_METHOD' o split_idle_tac))
+*} ""
+
 (* ----------------------------------------------------------------------
    Combine steps 1.2 and 1.4 to prove that the implementation satisfies
    the specification's next-state relation.
@@ -810,7 +815,7 @@ fun split_idle_tac ctxt simps i =
 lemma unchanged_safe: "|- (~unchanged (e p, c p, r p, m p, rmhist!p)
              --> [UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p))
          --> [UNext memCh mm (resbar rmhist) p]_(rtrner memCh!p, resbar rmhist!p)"
-  apply (tactic {* split_idle_tac @{context} [@{thm square_def}] 1 *})
+  apply (split_idle simp: square_def)
   apply force
   done
 (* turn into (unsafe, looping!) introduction rule *)
@@ -882,7 +887,7 @@ section "The liveness part"
 
 lemma S1_successors: "|- $S1 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
          --> (S1 rmhist p)$ | (S2 rmhist p)$"
-  apply (tactic "split_idle_tac @{context} [] 1")
+  apply split_idle
   apply (auto dest!: Step1_2_1 [temp_use])
   done
 
@@ -916,7 +921,7 @@ lemma Return_fair: "|- []<>S1 rmhist p
 
 lemma S2_successors: "|- $S2 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
          --> (S2 rmhist p)$ | (S3 rmhist p)$"
-  apply (tactic "split_idle_tac @{context} [] 1")
+  apply split_idle
   apply (auto dest!: Step1_2_2 [temp_use])
   done
 
@@ -942,7 +947,7 @@ lemma S2_live: "|- [](ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
 
 lemma S3_successors: "|- $S3 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
          --> (S3 rmhist p)$ | (S4 rmhist p | S6 rmhist p)$"
-  apply (tactic "split_idle_tac @{context} [] 1")
+  apply split_idle
   apply (auto dest!: Step1_2_3 [temp_use])
   done
 
@@ -970,7 +975,7 @@ lemma S3_live: "|- [](ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
 lemma S4_successors: "|- $S4 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
         & (ALL l. $MemInv mm l)
         --> (S4 rmhist p)$ | (S5 rmhist p)$"
-  apply (tactic "split_idle_tac @{context} [] 1")
+  apply split_idle
   apply (auto dest!: Step1_2_4 [temp_use])
   done
 
@@ -980,7 +985,7 @@ lemma S4a_successors: "|- $(S4 rmhist p & ires!p = #NotAResult)
          & ImpNext p & [HNext rmhist p]_(c p,r p,m p,rmhist!p) & (ALL l. $MemInv mm l)
          --> (S4 rmhist p & ires!p = #NotAResult)$
              | ((S4 rmhist p & ires!p ~= #NotAResult) | S5 rmhist p)$"
-  apply (tactic {* split_idle_tac @{context} [@{thm m_def}] 1 *})
+  apply split_idle
   apply (auto dest!: Step1_2_4 [temp_use])
   done
 
@@ -1011,7 +1016,7 @@ lemma S4a_live: "|- [](ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
 lemma S4b_successors: "|- $(S4 rmhist p & ires!p ~= #NotAResult)
          & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p) & (ALL l. $MemInv mm l)
          --> (S4 rmhist p & ires!p ~= #NotAResult)$ | (S5 rmhist p)$"
-  apply (tactic {* split_idle_tac @{context} [@{thm m_def}] 1 *})
+  apply (split_idle simp: m_def)
   apply (auto dest!: WriteResult [temp_use] Step1_2_4 [temp_use] ReadResult [temp_use])
   done
 
@@ -1040,7 +1045,7 @@ lemma S4b_live: "|- [](ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p) & (!
 
 lemma S5_successors: "|- $S5 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
          --> (S5 rmhist p)$ | (S6 rmhist p)$"
-  apply (tactic "split_idle_tac @{context} [] 1")
+  apply split_idle
   apply (auto dest!: Step1_2_5 [temp_use])
   done
 
@@ -1066,7 +1071,7 @@ lemma S5_live: "|- [](ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p))
 
 lemma S6_successors: "|- $S6 rmhist p & ImpNext p & [HNext rmhist p]_(c p,r p,m p, rmhist!p)
          --> (S1 rmhist p)$ | (S3 rmhist p)$ | (S6 rmhist p)$"
-  apply (tactic "split_idle_tac @{context} [] 1")
+  apply split_idle
   apply (auto dest!: Step1_2_6 [temp_use])
   done
 
@@ -1281,7 +1286,7 @@ lemma Step2_2a: "|- Write rmCh mm ires p l & ImpNext p
   apply clarsimp
   apply (drule WriteS4 [action_use])
    apply assumption
-  apply (tactic "split_idle_tac @{context} [] 1")
+  apply split_idle
   apply (auto simp: ImpNext_def dest!: S4EnvUnch [temp_use] S4ClerkUnch [temp_use]
     S4RPCUnch [temp_use])
      apply (auto simp: square_def dest: S4Write [temp_use])
