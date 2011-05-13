@@ -120,10 +120,16 @@ fun is_prover_list ctxt s =
     ss as _ :: _ => forall (is_prover_supported ctxt) ss
   | _ => false
 
+(* Secret feature: "provers =" and "type_sys =" can be left out. *)
 fun check_and_repair_raw_param ctxt (name, value) =
-  if is_known_raw_param name then (name, value)
-  else if is_prover_list ctxt name andalso null value then ("provers", [name])
-  else error ("Unknown parameter: " ^ quote name ^ ".")
+  if is_known_raw_param name then
+    (name, value)
+  else if is_prover_list ctxt name andalso null value then
+    ("provers", [name])
+  else if can type_sys_from_string name andalso null value then
+    ("type_sys", [name])
+  else
+    error ("Unknown parameter: " ^ quote name ^ ".")
 
 fun unalias_raw_param (name, value) =
   case AList.lookup (op =) alias_params name of
@@ -170,9 +176,9 @@ fun avoid_too_many_local_threads _ _ [] = []
 
 (* Ensure that type systems such as "simple!" and "mangled_preds?" are handled
    correctly. *)
-fun implode_param_value [s, "?"] = s ^ "?"
-  | implode_param_value [s, "!"] = s ^ "!"
-  | implode_param_value ss = space_implode " " ss
+fun implode_param [s, "?"] = s ^ "?"
+  | implode_param [s, "!"] = s ^ "!"
+  | implode_param ss = space_implode " " ss
 
 (* The first ATP of the list is used by Auto Sledgehammer. Because of the low
    timeout, it makes sense to put SPASS first. *)
@@ -180,7 +186,7 @@ fun default_provers_param_value ctxt =
   [spassN, eN, vampireN, sine_eN, SMT_Solver.solver_name_of ctxt]
   |> map_filter (remotify_prover_if_not_installed ctxt)
   |> avoid_too_many_local_threads ctxt (Multithreading.max_threads_value ())
-  |> implode_param_value
+  |> implode_param
 
 val set_default_raw_param = Data.map o AList.update (op =) o unalias_raw_param
 fun default_raw_params ctxt =
@@ -204,7 +210,7 @@ fun extract_params auto default_params override_params =
   let
     val override_params = map unalias_raw_param override_params
     val raw_params = rev override_params @ rev default_params
-    val lookup = Option.map implode_param_value o AList.lookup (op =) raw_params
+    val lookup = Option.map implode_param o AList.lookup (op =) raw_params
     val lookup_string = the_default "" o lookup
     fun general_lookup_bool option default_value name =
       case lookup name of
@@ -285,7 +291,7 @@ val refresh_tptpN = "refresh_tptp"
 val is_raw_param_relevant_for_minimize =
   member (op =) params_for_minimize o fst o unalias_raw_param
 fun string_for_raw_param (key, values) =
-  key ^ (case implode_param_value values of "" => "" | value => " = " ^ value)
+  key ^ (case implode_param values of "" => "" | value => " = " ^ value)
 
 fun minimize_command override_params i prover_name fact_names =
   sledgehammerN ^ " " ^ minimizeN ^ " [prover = " ^ prover_name ^
@@ -328,7 +334,7 @@ fun sledgehammer_trans (((subcommand, params), relevance_override), opt_i) =
   Toplevel.keep (hammer_away params subcommand opt_i relevance_override
                  o Toplevel.proof_of)
 
-fun string_for_raw_param (name, value) = name ^ " = " ^ implode_param_value value
+fun string_for_raw_param (name, value) = name ^ " = " ^ implode_param value
 
 fun sledgehammer_params_trans params =
   Toplevel.theory
@@ -344,7 +350,9 @@ fun sledgehammer_params_trans params =
                                        |> sort_strings |> cat_lines))
                   end))
 
-val parse_key = Scan.repeat1 Parse.typ_group >> space_implode " "
+val parse_key =
+  Scan.repeat1 (Parse.typ_group || Parse.$$$ "?" || Parse.$$$ "!")
+               >> implode_param
 val parse_value =
   Scan.repeat1 (Parse.xname || Parse.float_number || Parse.$$$ "?"
                 || Parse.$$$ "!")
