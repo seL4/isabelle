@@ -84,8 +84,8 @@ val fast_int_arith_simproc =
       "(m::'a::{linordered_idom,number_ring}) <= n",
       "(m::'a::{linordered_idom,number_ring}) = n"] (K Lin_Arith.simproc);
 
-val global_setup = Simplifier.map_simpset
-  (fn simpset => simpset addsimprocs [fast_int_arith_simproc]);
+val global_setup =
+  Simplifier.map_simpset_global (fn ss => ss addsimprocs [fast_int_arith_simproc]);
 
 
 fun number_of thy T n =

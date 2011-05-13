@@ -342,7 +342,7 @@ val IFOL_ss =
 val FOL_ss = IFOL_ss addsimps (@{thms cla_simps} @ @{thms cla_ex_simps} @ @{thms cla_all_simps});
 *}
 
-setup {* Simplifier.map_simpset (K FOL_ss) *}
+setup {* Simplifier.map_simpset_global (K FOL_ss) *}
 
 setup "Simplifier.method_setup Splitter.split_modifiers"
 setup Splitter.setup

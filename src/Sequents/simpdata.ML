@@ -88,4 +88,3 @@ val LK_ss =
   addeqcongs [@{thm left_cong}]
   addcongs [@{thm imp_cong}];
 
-change_simpset (fn _ => LK_ss);

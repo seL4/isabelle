@@ -334,10 +334,10 @@ fun record_auto_tac ctxt =
   let val ctxt' =
     (ctxt addIs [ext])
     |> map_claset (fn cs => cs addSWrapper Record.split_wrapper)
-    |> map_simpset_local (fn ss => ss 
-        addsimps [@{thm sysOfAlloc_def}, @{thm sysOfClient_def},
-          @{thm client_map_def}, @{thm non_dummy_def}, @{thm funPair_def},
-          @{thm o_apply}, @{thm Let_def}])
+    |> map_simpset (fn ss => ss addsimps
+       [@{thm sysOfAlloc_def}, @{thm sysOfClient_def},
+        @{thm client_map_def}, @{thm non_dummy_def}, @{thm funPair_def},
+        @{thm o_apply}, @{thm Let_def}])
   in auto_tac ctxt' end;
 
 *}

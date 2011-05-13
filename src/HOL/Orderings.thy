@@ -564,11 +564,12 @@ fun prove_antisym_less sg ss (NotC $ ((less as Const(_,T)) $ r $ s)) =
   handle THM _ => NONE;
 
 fun add_simprocs procs thy =
-  Simplifier.map_simpset (fn ss => ss
+  Simplifier.map_simpset_global (fn ss => ss
     addsimprocs (map (fn (name, raw_ts, proc) =>
       Simplifier.simproc_global thy name raw_ts proc) procs)) thy;
+
 fun add_solver name tac =
-  Simplifier.map_simpset (fn ss => ss addSolver
+  Simplifier.map_simpset_global (fn ss => ss addSolver
     mk_solver' name (fn ss => tac (Simplifier.the_context ss) (Simplifier.prems_of_ss ss)));
 
 in

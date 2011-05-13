@@ -1202,7 +1202,7 @@ apply(simp_all add:Graph10)
 apply(tactic {* TRYALL(EVERY'[REPEAT o (rtac disjI2),etac @{thm subset_psubset_trans}, etac @{thm Graph11},force_tac @{context}]) *})
 --{* 41 subgoals left *}
 apply(tactic {* TRYALL(EVERY'[rtac disjI2, rtac disjI1, etac @{thm le_trans},
-    force_tac (map_simpset_local (fn ss => ss addsimps
+    force_tac (map_simpset (fn ss => ss addsimps
       [@{thm Queue_def}, @{thm less_Suc_eq_le}, @{thm le_length_filter_update}]) @{context})]) *})
 --{* 35 subgoals left *}
 apply(tactic {* TRYALL(EVERY'[rtac disjI2,rtac disjI1,etac @{thm psubset_subset_trans},rtac @{thm Graph9},force_tac @{context}]) *})
@@ -1212,7 +1212,7 @@ apply(tactic {* TRYALL(EVERY'[rtac disjI2,rtac disjI1,etac @{thm subset_psubset_
 apply(tactic {* TRYALL(EVERY'[REPEAT o (rtac disjI2),etac @{thm subset_psubset_trans},etac @{thm subset_psubset_trans},etac @{thm Graph11},force_tac @{context}]) *})
 --{* 25 subgoals left *}
 apply(tactic {* TRYALL(EVERY'[rtac disjI2, rtac disjI2, rtac disjI1, etac @{thm le_trans},
-    force_tac (map_simpset_local (fn ss => ss addsimps
+    force_tac (map_simpset (fn ss => ss addsimps
       [@{thm Queue_def}, @{thm less_Suc_eq_le}, @{thm le_length_filter_update}]) @{context})]) *})
 --{* 10 subgoals left *}
 apply(rule disjI2,rule disjI2,rule conjI,erule less_le_trans,force simp add:Queue_def less_Suc_eq_le le_length_filter_update, rule disjI1, rule less_imp_le, erule less_le_trans, force simp add:Queue_def less_Suc_eq_le le_length_filter_update)+

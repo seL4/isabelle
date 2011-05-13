@@ -330,7 +330,7 @@ apply(rule hconfI)
 apply(drule conforms_heapD)
 apply(tactic {*
   auto_tac (put_claset HOL_cs @{context} addEs [@{thm oconf_hext}] addDs [@{thm hconfD}]
-  |> map_simpset_local (fn ss => ss delsimps [@{thm split_paired_All}])) *})
+    |> map_simpset (fn ss => ss delsimps [@{thm split_paired_All}])) *})
 done
 
 lemma conforms_upd_local: 

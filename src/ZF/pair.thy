@@ -9,8 +9,8 @@ theory pair imports upair
 uses "simpdata.ML"
 begin
 
-declaration {*
-  fn _ => Simplifier.map_ss (fn ss =>
+setup {*
+  Simplifier.map_simpset_global (fn ss =>
     ss setmksimps (K (map mk_eq o ZF_atomize o gen_all))
     addcongs [@{thm if_weak_cong}])
 *}

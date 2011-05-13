@@ -599,7 +599,7 @@ fun inv_tac ctxt =
 *)
 fun auto_inv_tac ss =
   SELECT_GOAL
-    (inv_tac (map_simpset_local (K ss) @{context}) 1 THEN
+    (inv_tac (map_simpset (K ss) @{context}) 1 THEN
       (TRYALL (action_simp_tac
         (ss addsimps [@{thm Init_stp}, @{thm Init_act}]) [] [@{thm squareE}])));
 *}

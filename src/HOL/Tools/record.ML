@@ -2508,8 +2508,7 @@ end;
 val setup =
   Sign.add_trfuns ([], parse_translation, [], []) #>
   Sign.add_advanced_trfuns ([], advanced_parse_translation, [], []) #>
-  Simplifier.map_simpset (fn ss =>
-    ss addsimprocs [simproc, upd_simproc, eq_simproc]);
+  Simplifier.map_simpset_global (fn ss => ss addsimprocs [simproc, upd_simproc, eq_simproc]);
 
 
 (* outer syntax *)

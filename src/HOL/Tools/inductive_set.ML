@@ -557,7 +557,7 @@ val setup =
   Codegen.add_preprocessor codegen_preproc #>
   Attrib.setup @{binding mono_set} (Attrib.add_del mono_add_att mono_del_att)
     "declaration of monotonicity rule for set operators" #>
-  Context.theory_map (Simplifier.map_ss (fn ss => ss addsimprocs [collect_mem_simproc]));
+  Simplifier.map_simpset_global (fn ss => ss addsimprocs [collect_mem_simproc]);
 
 
 (* outer syntax *)
