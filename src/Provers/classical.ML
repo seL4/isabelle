@@ -78,7 +78,6 @@ sig
 
   val fast_tac: claset -> int -> tactic
   val slow_tac: claset -> int -> tactic
-  val weight_ASTAR: int Unsynchronized.ref
   val astar_tac: claset -> int -> tactic
   val slow_astar_tac: claset -> int -> tactic
   val best_tac: claset -> int -> tactic
@@ -711,6 +710,7 @@ fun step_tac cs i =
 fun slow_step_tac cs i =
   safe_tac cs ORELSE appWrappers cs (inst_step_tac cs APPEND' haz_step_tac cs) i;
 
+
 (**** The following tactics all fail unless they solve one goal ****)
 
 (*Dumb but fast*)
@@ -737,18 +737,19 @@ fun slow_best_tac cs =
 
 
 (***ASTAR with weight weight_ASTAR, by Norbert Voelker*)
-val weight_ASTAR = Unsynchronized.ref 5;  (* FIXME argument / config option !? *)
+
+val weight_ASTAR = 5;
 
 fun astar_tac cs =
   Object_Logic.atomize_prems_tac THEN'
   SELECT_GOAL
-    (ASTAR (has_fewer_prems 1, fn lev => fn thm => size_of_thm thm + ! weight_ASTAR * lev)
+    (ASTAR (has_fewer_prems 1, fn lev => fn thm => size_of_thm thm + weight_ASTAR * lev)
       (step_tac cs 1));
 
 fun slow_astar_tac cs =
   Object_Logic.atomize_prems_tac THEN'
   SELECT_GOAL
-    (ASTAR (has_fewer_prems 1, fn lev => fn thm => size_of_thm thm + ! weight_ASTAR * lev)
+    (ASTAR (has_fewer_prems 1, fn lev => fn thm => size_of_thm thm + weight_ASTAR * lev)
       (slow_step_tac cs 1));
 
 
