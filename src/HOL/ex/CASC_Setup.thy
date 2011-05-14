@@ -38,28 +38,28 @@ fun SOLVE_TIMEOUT seconds name tac st =
 *}
 
 ML {*
-fun isabellep_tac ctxt cs ss css max_secs =
+fun isabellep_tac ctxt max_secs =
    SOLVE_TIMEOUT (max_secs div 10) "smt" (ALLGOALS (SMT_Solver.smt_tac ctxt []))
    ORELSE
    SOLVE_TIMEOUT (max_secs div 5) "sledgehammer"
        (ALLGOALS (Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt))
    ORELSE
-   SOLVE_TIMEOUT (max_secs div 10) "simp" (ALLGOALS (asm_full_simp_tac ss))
+   SOLVE_TIMEOUT (max_secs div 10) "simp" (ALLGOALS (asm_full_simp_tac (simpset_of ctxt)))
    ORELSE
-   SOLVE_TIMEOUT (max_secs div 20) "blast" (ALLGOALS (blast_tac cs))
+   SOLVE_TIMEOUT (max_secs div 20) "blast" (ALLGOALS (blast_tac ctxt))
    ORELSE
-   SOLVE_TIMEOUT (max_secs div 10) "auto" (auto_tac css
+   SOLVE_TIMEOUT (max_secs div 10) "auto" (auto_tac ctxt
        THEN ALLGOALS (Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt))
    ORELSE
    SOLVE_TIMEOUT (max_secs div 10) "metis" (ALLGOALS (Metis_Tactics.metis_tac ctxt []))
    ORELSE
-   SOLVE_TIMEOUT (max_secs div 10) "fast" (ALLGOALS (fast_tac cs))
+   SOLVE_TIMEOUT (max_secs div 10) "fast" (ALLGOALS (fast_tac ctxt))
    ORELSE
-   SOLVE_TIMEOUT (max_secs div 10) "best" (ALLGOALS (best_tac cs))
+   SOLVE_TIMEOUT (max_secs div 10) "best" (ALLGOALS (best_tac ctxt))
    ORELSE
-   SOLVE_TIMEOUT (max_secs div 10) "force" (ALLGOALS (force_tac css))
+   SOLVE_TIMEOUT (max_secs div 10) "force" (ALLGOALS (force_tac ctxt))
    ORELSE
-   SOLVE_TIMEOUT max_secs "fastsimp" (ALLGOALS (fast_simp_tac css))
+   SOLVE_TIMEOUT max_secs "fastsimp" (ALLGOALS (fast_simp_tac ctxt))
 *}
 
 end
