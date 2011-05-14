@@ -41,7 +41,7 @@ type netpair = (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net;
 signature BLAST_DATA =
 sig
   structure Classical: CLASSICAL
-  val thy: theory
+  val Trueprop_const: string * typ
   val equality_name: string
   val not_name: string
   val notE: thm           (* [| ~P;  P |] ==> R *)
@@ -172,8 +172,7 @@ fun mkGoal P = Const ("*Goal*", []) $ P;
 fun isGoal (Const ("*Goal*", _) $ _) = true
   | isGoal _ = false;
 
-val TruepropC = Object_Logic.judgment_name Data.thy;  (* FIXME *)
-val TruepropT = Sign.the_const_type Data.thy TruepropC;
+val (TruepropC, TruepropT) = Data.Trueprop_const;
 
 fun mk_Trueprop t = Term.$ (Term.Const (TruepropC, TruepropT), t);
 

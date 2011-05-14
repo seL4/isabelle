@@ -929,7 +929,7 @@ ML {*
   structure Blast = Blast
   (
     structure Classical = Classical
-    val thy = @{theory}
+    val Trueprop_const = dest_Const @{const Trueprop}
     val equality_name = @{const_name HOL.eq}
     val not_name = @{const_name Not}
     val notE = @{thm notE}
