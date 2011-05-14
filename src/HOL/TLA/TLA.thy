@@ -597,11 +597,11 @@ fun inv_tac ctxt =
    auto-tactic, which applies too much propositional logic and simplifies
    too late.
 *)
-fun auto_inv_tac ss =
+fun auto_inv_tac ctxt =
   SELECT_GOAL
-    (inv_tac (map_simpset (K ss) @{context}) 1 THEN
+    (inv_tac ctxt 1 THEN
       (TRYALL (action_simp_tac
-        (ss addsimps [@{thm Init_stp}, @{thm Init_act}]) [] [@{thm squareE}])));
+        (simpset_of ctxt addsimps [@{thm Init_stp}, @{thm Init_act}]) [] [@{thm squareE}])));
 *}
 
 method_setup invariant = {*
@@ -609,8 +609,7 @@ method_setup invariant = {*
 *} ""
 
 method_setup auto_invariant = {*
-  Method.sections Clasimp.clasimp_modifiers
-    >> (K (SIMPLE_METHOD' o auto_inv_tac o simpset_of))
+  Method.sections Clasimp.clasimp_modifiers >> (K (SIMPLE_METHOD' o auto_inv_tac))
 *} ""
 
 lemma unless: "|- []($P --> P` | Q`) --> (stable P) | <>Q"
