@@ -1599,7 +1599,7 @@ definition image_mset :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a multiset \<Righ
   "image_mset f = fold_mset (op + o single o f) {#}"
 
 interpretation image_left_comm: fun_left_comm "op + o single o f"
-proof qed (simp add: add_ac)
+proof qed (simp add: add_ac fun_eq_iff)
 
 lemma image_mset_empty [simp]: "image_mset f {#} = {#}"
 by (simp add: image_mset_def)

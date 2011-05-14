@@ -3765,7 +3765,7 @@ lemma insort_left_comm:
 lemma fun_left_comm_insort:
   "fun_left_comm insort"
 proof
-qed (fact insort_left_comm)
+qed (simp add: insort_left_comm fun_eq_iff)
 
 lemma sort_key_simps [simp]:
   "sort_key f [] = []"

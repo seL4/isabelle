@@ -534,13 +534,11 @@ if @{text f} is ``left-commutative'':
 
 locale fun_left_comm =
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b"
-  assumes fun_left_comm: "f x (f y z) = f y (f x z)"
+  assumes commute_comp: "f y \<circ> f x = f x \<circ> f y"
 begin
 
-text{* On a functional level it looks much nicer: *}
-
-lemma commute_comp: "f y \<circ> f x = f x \<circ> f y"
-by (simp add: fun_left_comm fun_eq_iff)
+lemma fun_left_comm: "f x (f y z) = f y (f x z)"
+  using commute_comp by (simp add: fun_eq_iff)
 
 end
 
@@ -706,7 +704,7 @@ subsubsection {* Expressing set operations via @{const fold} *}
 lemma (in fun_left_comm) fun_left_comm_apply:
   "fun_left_comm (\<lambda>x. f (g x))"
 proof
-qed (simp_all add: fun_left_comm)
+qed (simp_all add: commute_comp)
 
 lemma (in fun_left_comm_idem) fun_left_comm_idem_apply:
   "fun_left_comm_idem (\<lambda>x. f (g x))"
@@ -830,9 +828,9 @@ lemma fold_image_insert[simp]:
 assumes "finite A" and "a \<notin> A"
 shows "fold_image times g z (insert a A) = g a * (fold_image times g z A)"
 proof -
-  interpret I: fun_left_comm "%x y. (g x) * y"
-    by unfold_locales (simp add: mult_ac)
-  show ?thesis using assms by(simp add:fold_image_def)
+  interpret I: fun_left_comm "%x y. (g x) * y" proof
+  qed (simp add: fun_eq_iff mult_ac)
+  show ?thesis using assms by (simp add: fold_image_def)
 qed
 
 (*
@@ -1053,8 +1051,8 @@ text{*First, some lemmas about @{const fold_graph}.*}
 context ab_semigroup_mult
 begin
 
-lemma fun_left_comm: "fun_left_comm(op *)"
-by unfold_locales (simp add: mult_ac)
+lemma fun_left_comm: "fun_left_comm (op *)" proof
+qed (simp add: fun_eq_iff mult_ac)
 
 lemma fold_graph_insert_swap:
 assumes fold: "fold_graph times (b::'a) A y" and "b \<notin> A"
@@ -1139,11 +1137,8 @@ end
 context ab_semigroup_idem_mult
 begin
 
-lemma fun_left_comm_idem: "fun_left_comm_idem(op *)"
-apply unfold_locales
- apply (rule mult_left_commute)
-apply (rule mult_left_idem)
-done
+lemma fun_left_comm_idem: "fun_left_comm_idem (op *)" proof
+qed (simp add: fun_eq_iff mult_left_commute, rule mult_left_idem)
 
 lemma fold1_insert_idem [simp]:
   assumes nonempty: "A \<noteq> {}" and A: "finite A" 
@@ -1465,7 +1460,7 @@ lemma insert [simp]:
   shows "F (insert x A) = g x * F A"
 proof -
   interpret fun_left_comm "%x y. (g x) * y" proof
-  qed (simp add: ac_simps)
+  qed (simp add: ac_simps fun_eq_iff)
   with assms have "fold_image (op *) g 1 (insert x A) = g x * fold_image (op *) g 1 A"
     by (simp add: fold_image_def)
   with `finite A` show ?thesis by (simp add: eq_fold_g)

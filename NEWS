@@ -58,6 +58,9 @@ syntax diagrams.
 
 *** HOL ***
 
+* Finite_Set.thy: locale fun_left_comm uses point-free characterisation;
+interpretation proofs may need adjustment.  INCOMPATIBILITY.
+
 * Nitpick:
   - Added "need" and "total_consts" options.
   - Reintroduced "show_skolems" option by popular demand.
