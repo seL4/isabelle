@@ -44,14 +44,6 @@ sig
     (Context.generic -> real) -> real Config.T * (theory -> theory)
   val config_string: Binding.binding ->
     (Context.generic -> string) -> string Config.T * (theory -> theory)
-  val config_bool_global: Binding.binding ->
-    (Context.generic -> bool) -> bool Config.T * (theory -> theory)
-  val config_int_global: Binding.binding ->
-    (Context.generic -> int) -> int Config.T * (theory -> theory)
-  val config_real_global: Binding.binding ->
-    (Context.generic -> real) -> real Config.T * (theory -> theory)
-  val config_string_global: Binding.binding ->
-    (Context.generic -> string) -> string Config.T * (theory -> theory)
   val setup_config_bool: Binding.binding -> (Context.generic -> bool) -> bool Config.T
   val setup_config_int: Binding.binding -> (Context.generic -> int) -> int Config.T
   val setup_config_string: Binding.binding -> (Context.generic -> string) -> string Config.T
@@ -384,24 +376,19 @@ fun register binding config thy =
     |> Configs.map (Symtab.update (name, config))
   end;
 
-fun declare make coerce global binding default =
+fun declare make coerce binding default =
   let
     val name = Binding.name_of binding;
-    val config_value = Config.declare_generic {global = global} name (make o default);
+    val config_value = Config.declare_generic {global = false} name (make o default);
     val config = coerce config_value;
   in (config, register binding config_value) end;
 
 in
 
-val config_bool = declare Config.Bool Config.bool false;
-val config_int = declare Config.Int Config.int false;
-val config_real = declare Config.Real Config.real false;
-val config_string = declare Config.String Config.string false;
-
-val config_bool_global = declare Config.Bool Config.bool true;
-val config_int_global = declare Config.Int Config.int true;
-val config_real_global = declare Config.Real Config.real true;
-val config_string_global = declare Config.String Config.string true;
+val config_bool = declare Config.Bool Config.bool;
+val config_int = declare Config.Int Config.int;
+val config_real = declare Config.Real Config.real;
+val config_string = declare Config.String Config.string;
 
 fun register_config config = register (Binding.name (Config.name_of config)) config;
 
