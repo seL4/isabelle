@@ -109,7 +109,7 @@ type branch =
 (* global state information *)
 
 datatype state = State of
- {thy: theory,
+ {ctxt: Proof.context,
   fullTrace: branch list list Unsynchronized.ref,
   trail: term option Unsynchronized.ref list Unsynchronized.ref,
   ntrail: int Unsynchronized.ref,
@@ -120,16 +120,20 @@ fun reject_const thy c =
   is_some (Sign.const_type thy c) andalso
     error ("blast: theory contains illegal constant " ^ quote c);
 
-fun initialize thy =
- (reject_const thy "*Goal*";
-  reject_const thy "*False*";
-  State
-   {thy = thy,
-    fullTrace = Unsynchronized.ref [],
-    trail = Unsynchronized.ref [],
-    ntrail = Unsynchronized.ref 0,
-    nclosed = Unsynchronized.ref 0, (*branches closed: number of branches closed during the search*)
-    ntried = Unsynchronized.ref 1}); (*branches tried: number of branches created by splitting (counting from 1)*)
+fun initialize ctxt =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val _ = reject_const thy "*Goal*";
+    val _ = reject_const thy "*False*";
+  in
+    State
+     {ctxt = ctxt,
+      fullTrace = Unsynchronized.ref [],
+      trail = Unsynchronized.ref [],
+      ntrail = Unsynchronized.ref 0,
+      nclosed = Unsynchronized.ref 0, (*number of branches closed during the search*)
+      ntried = Unsynchronized.ref 1} (*number of branches created by splitting (counting from 1)*)
+  end;
 
 
 
@@ -168,7 +172,7 @@ fun mkGoal P = Const ("*Goal*", []) $ P;
 fun isGoal (Const ("*Goal*", _) $ _) = true
   | isGoal _ = false;
 
-val TruepropC = Object_Logic.judgment_name Data.thy;
+val TruepropC = Object_Logic.judgment_name Data.thy;  (* FIXME *)
 val TruepropT = Sign.the_const_type Data.thy TruepropC;
 
 fun mk_Trueprop t = Term.$ (Term.Const (TruepropC, TruepropT), t);
@@ -491,8 +495,9 @@ fun rmtac upd rl = TRACE rl (if upd then rtac rl else match_tac [rl]);
 (*Tableau rule from elimination rule.
   Flag "upd" says that the inference updated the branch.
   Flag "dup" requests duplication of the affected formula.*)
-fun fromRule thy vars rl =
-  let val trl = rl |> Thm.prop_of |> fromTerm thy |> convertRule vars
+fun fromRule ctxt vars rl =
+  let val thy = Proof_Context.theory_of ctxt
+      val trl = rl |> Thm.prop_of |> fromTerm thy |> convertRule vars
       fun tac (upd, dup,rot) i =
         emtac upd (if dup then rev_dup_elim rl else rl) i
         THEN
@@ -500,12 +505,12 @@ fun fromRule thy vars rl =
   in Option.SOME (trl, tac) end
   handle
     ElimBadPrem => (*reject: prems don't preserve conclusion*)
-      (warning ("Ignoring weak elimination rule\n" ^ Display.string_of_thm_global thy rl);
+      (warning ("Ignoring weak elimination rule\n" ^ Display.string_of_thm ctxt rl);
         Option.NONE)
   | ElimBadConcl => (*ignore: conclusion is not just a variable*)
       (if !trace then
         (warning ("Ignoring ill-formed elimination rule:\n" ^
-          "conclusion should be a variable\n" ^ Display.string_of_thm_global thy rl))
+          "conclusion should be a variable\n" ^ Display.string_of_thm ctxt rl))
        else ();
        Option.NONE);
 
@@ -525,8 +530,9 @@ fun convertIntrRule vars t =
   Flag "dup" requests duplication of the affected formula.
   Since haz rules are now delayed, "dup" is always FALSE for
   introduction rules.*)
-fun fromIntrRule thy vars rl =
-  let val trl = rl |> Thm.prop_of |> fromTerm thy |> convertIntrRule vars
+fun fromIntrRule ctxt vars rl =
+  let val thy = Proof_Context.theory_of ctxt
+      val trl = rl |> Thm.prop_of |> fromTerm thy |> convertIntrRule vars
       fun tac (upd,dup,rot) i =
          rmtac upd (if dup then Classical.dup_intr rl else rl) i
          THEN
@@ -548,16 +554,16 @@ fun toTerm 0 _             = dummyVar
   | toTerm d (f $ u)       = Term.$ (toTerm d f, toTerm (d-1) u);
 
 
-fun netMkRules thy P vars (nps: netpair list) =
+fun netMkRules ctxt P vars (nps: netpair list) =
   case P of
       (Const ("*Goal*", _) $ G) =>
         let val pG = mk_Trueprop (toTerm 2 G)
             val intrs = maps (fn (inet,_) => Net.unify_term inet pG) nps
-        in  map (fromIntrRule thy vars o #2) (order_list intrs)  end
+        in  map (fromIntrRule ctxt vars o #2) (order_list intrs)  end
     | _ =>
         let val pP = mk_Trueprop (toTerm 3 P)
             val elims = maps (fn (_,enet) => Net.unify_term enet pP) nps
-        in  map_filter (fromRule thy vars o #2) (order_list elims)  end;
+        in  map_filter (fromRule ctxt vars o #2) (order_list elims)  end;
 
 
 (*Normalize a branch--for tracing*)
@@ -602,7 +608,7 @@ fun showTerm d (Const (a,_)) = Term.Const (a,dummyT)
   | showTerm d (f $ u)       = if d=0 then dummyVar
                                else Term.$ (showTerm d f, showTerm (d-1) u);
 
-fun string_of thy d t = Syntax.string_of_term_global thy (showTerm d t);
+fun string_of ctxt d t = Syntax.string_of_term ctxt (showTerm d t);
 
 (*Convert a Goal to an ordinary Not.  Used also in dup_intr, where a goal like
   Ex(P) is duplicated as the assumption ~Ex(P). *)
@@ -620,20 +626,21 @@ fun negOfGoals pairs = map (fn (Gs,haz) => (map negOfGoal2 Gs, haz)) pairs;
 fun negOfGoal_tac i = TRACE Data.ccontr (rtac Data.ccontr) i THEN
                       rotate_tac ~1 i;
 
-fun traceTerm thy t =
-  let val t' = norm (negOfGoal t)
-      val stm = string_of thy 8 t'
+fun traceTerm ctxt t =
+  let val thy = Proof_Context.theory_of ctxt
+      val t' = norm (negOfGoal t)
+      val stm = string_of ctxt 8 t'
   in
       case topType thy t' of
           NONE   => stm   (*no type to attach*)
-        | SOME T => stm ^ "\t:: " ^ Syntax.string_of_typ_global thy T
+        | SOME T => stm ^ "\t:: " ^ Syntax.string_of_typ ctxt T
   end;
 
 
 (*Print tracing information at each iteration of prover*)
-fun tracing (State {thy, fullTrace, ...}) brs =
-  let fun printPairs (((G,_)::_,_)::_)  = Output.tracing (traceTerm thy G)
-        | printPairs (([],(H,_)::_)::_) = Output.tracing (traceTerm thy H ^ "\t (Unsafe)")
+fun tracing (State {ctxt, fullTrace, ...}) brs =
+  let fun printPairs (((G,_)::_,_)::_)  = Output.tracing (traceTerm ctxt G)
+        | printPairs (([],(H,_)::_)::_) = Output.tracing (traceTerm ctxt H ^ "\t (Unsafe)")
         | printPairs _                 = ()
       fun printBrs (brs0 as {pairs, lits, lim, ...} :: brs) =
             (fullTrace := brs0 :: !fullTrace;
@@ -647,16 +654,16 @@ fun tracing (State {thy, fullTrace, ...}) brs =
 fun traceMsg s = if !trace then writeln s else ();
 
 (*Tracing: variables updated in the last branch operation?*)
-fun traceVars (State {thy, ntrail, trail, ...}) ntrl =
+fun traceVars (State {ctxt, ntrail, trail, ...}) ntrl =
   if !trace then
       (case !ntrail-ntrl of
             0 => ()
           | 1 => Output.tracing "\t1 variable UPDATED:"
           | n => Output.tracing ("\t" ^ string_of_int n ^ " variables UPDATED:");
        (*display the instantiations themselves, though no variable names*)
-       List.app (fn v => Output.tracing ("   " ^ string_of thy 4 (the (!v))))
+       List.app (fn v => Output.tracing ("   " ^ string_of ctxt 4 (the (!v))))
            (List.take(!trail, !ntrail-ntrl));
-       writeln"")
+       writeln "")
     else ();
 
 (*Tracing: how many new branches are created?*)
@@ -740,7 +747,7 @@ fun orientGoal (t,u) = case (t,u) of
 (*Substitute through the branch if an equality goal (else raise DEST_EQ).
   Moves affected literals back into the branch, but it is not clear where
   they should go: this could make proofs fail.*)
-fun equalSubst thy (G, {pairs, lits, vars, lim}) =
+fun equalSubst ctxt (G, {pairs, lits, vars, lim}) =
   let val (t,u) = orientGoal(dest_eq G)
       val subst = subst_atomic (t,u)
       fun subst2(G,md) = (subst G, md)
@@ -763,8 +770,8 @@ fun equalSubst thy (G, {pairs, lits, vars, lim}) =
             end
       val (changed, lits') = List.foldr subLit ([], []) lits
       val (changed', pairs') = List.foldr subFrame (changed, []) pairs
-  in  if !trace then writeln ("Substituting " ^ traceTerm thy u ^
-                              " for " ^ traceTerm thy t ^ " in branch" )
+  in  if !trace then writeln ("Substituting " ^ traceTerm ctxt u ^
+                              " for " ^ traceTerm ctxt t ^ " in branch" )
       else ();
       {pairs = (changed',[])::pairs',   (*affected formulas, and others*)
        lits  = lits',                   (*unaffected literals*)
@@ -800,7 +807,7 @@ fun tryClose state (G, L) =
 (*Were there Skolem terms in the premise?  Must NOT chase Vars*)
 fun hasSkolem (Skolem _)     = true
   | hasSkolem (Abs (_,body)) = hasSkolem body
-  | hasSkolem (f$t)          =  hasSkolem f orelse hasSkolem t
+  | hasSkolem (f$t)          = hasSkolem f orelse hasSkolem t
   | hasSkolem _              = false;
 
 (*Attach the right "may duplicate" flag to new formulae: if they contain
@@ -913,8 +920,8 @@ fun printStats (State {ntried, nclosed, ...}) (b, start, tacs) =
   bound on unsafe expansions.
  "start" is CPU time at start, for printing search time
 *)
-fun prove (state, start, ctxt, brs, cont) =
- let val State {thy, ntrail, nclosed, ntried, ...} = state;
+fun prove (state, start, brs, cont) =
+ let val State {ctxt, ntrail, nclosed, ntried, ...} = state;
      val {safe0_netpair, safep_netpair, haz_netpair, ...} =
        Classical.rep_cs (Classical.claset_of ctxt);
      val safeList = [safe0_netpair, safep_netpair]
@@ -932,7 +939,7 @@ fun prove (state, start, ctxt, brs, cont) =
               val nbrs = length brs0
               val nxtVars = nextVars brs
               val G = norm G
-              val rules = netMkRules thy G vars safeList
+              val rules = netMkRules ctxt G vars safeList
               (*Make a new branch, decrementing "lim" if instantiations occur*)
               fun newBr (vars',lim') prems =
                   map (fn prem =>
@@ -1018,7 +1025,7 @@ fun prove (state, start, ctxt, brs, cont) =
              else
              prv (Data.hyp_subst_tac (!trace) :: tacs,
                   brs0::trs,  choices,
-                  equalSubst thy
+                  equalSubst ctxt
                     (G, {pairs = (br,haz)::pairs,
                          lits  = lits, vars  = vars, lim   = lim})
                     :: brs)
@@ -1026,7 +1033,7 @@ fun prove (state, start, ctxt, brs, cont) =
               handle CLOSEF =>   closeFl ((br,haz)::pairs)
                 handle CLOSEF => deeper rules
                   handle NEWBRANCHES =>
-                   (case netMkRules thy G vars hazList of
+                   (case netMkRules ctxt G vars hazList of
                        [] => (*there are no plausible haz rules*)
                              (traceMsg "moving formula to literals";
                               prv (tacs, brs0::trs, choices,
@@ -1060,7 +1067,7 @@ fun prove (state, start, ctxt, brs, cont) =
           let exception PRV (*backtrack to precisely this recursion!*)
               val H = norm H
               val ntrl = !ntrail
-              val rules = netMkRules thy H vars hazList
+              val rules = netMkRules ctxt H vars hazList
               (*new premises of haz rules may NOT be duplicated*)
               fun newPrem (vars,P,dup,lim') prem =
                   let val Gs' = map (fn Q => (Q,false)) prem
@@ -1237,8 +1244,8 @@ fun fromSubgoal thy t =
         (also prints reconstruction time)
  "lim" is depth limit.*)
 fun timing_depth_tac start ctxt lim i st0 =
-  let val thy = Thm.theory_of_thm st0
-      val state = initialize thy
+  let val thy = Proof_Context.theory_of ctxt
+      val state = initialize ctxt
       val st = st0
         |> rotate_prems (i - 1)
         |> Conv.gconv_rule Object_Logic.atomize_prems 1
@@ -1260,7 +1267,7 @@ fun timing_depth_tac start ctxt lim i st0 =
                        Seq.make(fn()=> cell))
           end
   in
-    prove (state, start, ctxt, [initBranch (mkGoal concl :: hyps, lim)], cont)
+    prove (state, start, [initBranch (mkGoal concl :: hyps, lim)], cont)
     |> Seq.map (rotate_prems (1 - i))
   end
   handle PROVE => Seq.empty;
@@ -1269,15 +1276,12 @@ fun timing_depth_tac start ctxt lim i st0 =
 fun depth_tac ctxt lim i st = timing_depth_tac (Timing.start ()) ctxt lim i st;
 
 val (depth_limit, setup_depth_limit) =
-  Attrib.config_int_global @{binding blast_depth_limit} (K 20);
+  Attrib.config_int @{binding blast_depth_limit} (K 20);
 
 fun blast_tac ctxt i st =
-    ((DEEPEN (1, Config.get_global (Thm.theory_of_thm st) depth_limit)
-        (timing_depth_tac (Timing.start ()) ctxt) 0) i
-     THEN flexflex_tac) st
-    handle TRANS s =>
-      ((if !trace then warning ("blast: " ^ s) else ());
-       Seq.empty);
+  ((DEEPEN (1, Config.get ctxt depth_limit) (timing_depth_tac (Timing.start ()) ctxt) 0) i
+    THEN flexflex_tac) st
+  handle TRANS s => (if !trace then warning ("blast: " ^ s) else (); Seq.empty);
 
 
 
@@ -1292,10 +1296,8 @@ fun readGoal ctxt s =
 
 fun tryIt ctxt lim s =
   let
-    val thy = Proof_Context.theory_of ctxt;
-    val state as State {fullTrace = ft, ...} = initialize thy;
-    val res = timeap prove
-      (state, Timing.start (), ctxt, [initBranch ([readGoal ctxt s], lim)], I);
+    val state as State {fullTrace = ft, ...} = initialize ctxt;
+    val res = timeap prove (state, Timing.start (), [initBranch ([readGoal ctxt s], lim)], I);
     val _ = fullTrace := !ft;
   in res end;
 
