@@ -53,7 +53,7 @@ sig
   val hypsubst_setup         : theory -> theory
 end;
 
-functor HypsubstFun(Data: HYPSUBST_DATA): HYPSUBST =
+functor Hypsubst(Data: HYPSUBST_DATA): HYPSUBST =
 struct
 
 exception EQ_VAR;

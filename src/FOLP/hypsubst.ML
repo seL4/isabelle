@@ -26,7 +26,7 @@ signature HYPSUBST =
   val inspect_pair        : bool -> term * term -> thm
   end;
 
-functor HypsubstFun(Data: HYPSUBST_DATA): HYPSUBST =
+functor Hypsubst(Data: HYPSUBST_DATA): HYPSUBST =
 struct
 
 local open Data in

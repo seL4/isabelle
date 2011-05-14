@@ -131,7 +131,7 @@ sig
 end;
 
 
-functor ClassicalFun(Data: CLASSICAL_DATA): CLASSICAL =
+functor Classical(Data: CLASSICAL_DATA): CLASSICAL =
 struct
 
 (** classical elimination rules **)

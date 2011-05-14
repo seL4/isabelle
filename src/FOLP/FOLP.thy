@@ -103,17 +103,14 @@ use "classical.ML"      (* Patched 'cos matching won't instantiate proof *)
 use "simp.ML"           (* Patched 'cos matching won't instantiate proof *)
 
 ML {*
-(*** Applying ClassicalFun to create a classical prover ***)
-structure Classical_Data =
-struct
+structure Cla = Classical
+(
   val sizef = size_of_thm
   val mp = @{thm mp}
   val not_elim = @{thm notE}
   val swap = @{thm swap}
   val hyp_subst_tacs = [hyp_subst_tac]
-end;
-
-structure Cla = ClassicalFun(Classical_Data);
+);
 open Cla;
 
 (*Propositional rules

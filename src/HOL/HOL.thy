@@ -826,9 +826,8 @@ lemma thin_refl:
   "\<And>X. \<lbrakk> x=x; PROP W \<rbrakk> \<Longrightarrow> PROP W" .
 
 ML {*
-structure Hypsubst = HypsubstFun(
-struct
-  structure Simplifier = Simplifier
+structure Hypsubst = Hypsubst
+(
   val dest_eq = HOLogic.dest_eq
   val dest_Trueprop = HOLogic.dest_Trueprop
   val dest_imp = HOLogic.dest_imp
@@ -839,18 +838,18 @@ struct
   val subst = @{thm subst}
   val sym = @{thm sym}
   val thin_refl = @{thm thin_refl};
-end);
+);
 open Hypsubst;
 
-structure Classical = ClassicalFun(
-struct
+structure Classical = Classical
+(
   val imp_elim = @{thm imp_elim}
   val not_elim = @{thm notE}
   val swap = @{thm swap}
   val classical = @{thm classical}
   val sizef = Drule.size_of_thm
   val hyp_subst_tacs = [Hypsubst.hyp_subst_tac]
-end);
+);
 
 structure Basic_Classical: BASIC_CLASSICAL = Classical; 
 open Basic_Classical;
