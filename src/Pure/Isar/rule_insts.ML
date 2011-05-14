@@ -26,7 +26,7 @@ sig
   val make_elim_preserve: thm -> thm
 end;
 
-structure RuleInsts: RULE_INSTS =
+structure Rule_Insts: RULE_INSTS =
 struct
 
 (** reading instantiations **)
@@ -422,5 +422,5 @@ val _ = Context.>> (Context.map_theory
 
 end;
 
-structure Basic_Rule_Insts: BASIC_RULE_INSTS = RuleInsts;
+structure Basic_Rule_Insts: BASIC_RULE_INSTS = Rule_Insts;
 open Basic_Rule_Insts;
