@@ -19,7 +19,6 @@ signature CLASIMP =
 sig
   val addSss: Proof.context -> Proof.context
   val addss: Proof.context -> Proof.context
-  val addss': Proof.context -> Proof.context
   val clarsimp_tac: Proof.context -> int -> tactic
   val mk_auto_tac: Proof.context -> int -> int -> tactic
   val auto_tac: Proof.context -> tactic
@@ -55,8 +54,6 @@ fun clasimp f name tac ctxt =
 (*Caution: only one simpset added can be added by each of addSss and addss*)
 val addSss = clasimp Classical.addSafter "safe_asm_full_simp_tac" safe_asm_full_simp_tac;
 val addss = clasimp Classical.addbefore "asm_full_simp_tac" Simplifier.asm_full_simp_tac;
-(* FIXME "asm_lr_simp_tac" !? *)
-val addss' = clasimp Classical.addbefore "asm_full_simp_tac" Simplifier.asm_lr_simp_tac;
 
 
 (* iffs: addition of rules to simpsets and clasets simultaneously *)
