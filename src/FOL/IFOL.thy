@@ -19,7 +19,6 @@ uses
   "~~/src/Tools/project_rule.ML"
   "~~/src/Tools/atomize_elim.ML"
   ("fologic.ML")
-  ("hypsubstdata.ML")
   ("intprover.ML")
 begin
 
@@ -592,7 +591,23 @@ use "fologic.ML"
 
 lemma thin_refl: "[|x=x; PROP W|] ==> PROP W" .
 
-use "hypsubstdata.ML"
+ML {*
+structure Hypsubst = Hypsubst
+(
+  val dest_eq = FOLogic.dest_eq
+  val dest_Trueprop = FOLogic.dest_Trueprop
+  val dest_imp = FOLogic.dest_imp
+  val eq_reflection = @{thm eq_reflection}
+  val rev_eq_reflection = @{thm meta_eq_to_obj_eq}
+  val imp_intr = @{thm impI}
+  val rev_mp = @{thm rev_mp}
+  val subst = @{thm subst}
+  val sym = @{thm sym}
+  val thin_refl = @{thm thin_refl}
+);
+open Hypsubst;
+*}
+
 setup hypsubst_setup
 use "intprover.ML"
 

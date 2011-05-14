@@ -167,7 +167,7 @@ lemma swap: "~ P ==> (~ R ==> P) ==> R"
 section {* Classical Reasoner *}
 
 ML {*
-structure Cla = ClassicalFun
+structure Cla = Classical
 (
   val imp_elim = @{thm imp_elim}
   val not_elim = @{thm notE}
@@ -201,7 +201,7 @@ ML {*
   structure Blast = Blast
   (
     structure Classical = Cla
-    val thy = @{theory}
+    val Trueprop_const = dest_Const @{const Trueprop}
     val equality_name = @{const_name eq}
     val not_name = @{const_name Not}
     val notE = @{thm notE}

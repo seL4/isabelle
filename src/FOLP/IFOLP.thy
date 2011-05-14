@@ -587,11 +587,8 @@ lemma thin_refl: "!!X. [|p:x=x; PROP W|] ==> PROP W" .
 use "hypsubst.ML"
 
 ML {*
-
-(*** Applying HypsubstFun to generate hyp_subst_tac ***)
-
-structure Hypsubst_Data =
-struct
+structure Hypsubst = Hypsubst
+(
   (*Take apart an equality judgement; otherwise raise Match!*)
   fun dest_eq (Const (@{const_name Proof}, _) $
     (Const (@{const_name eq}, _)  $ t $ u) $ _) = (t, u);
@@ -605,9 +602,7 @@ struct
   val subst = @{thm subst}
   val sym = @{thm sym}
   val thin_refl = @{thm thin_refl}
-end;
-
-structure Hypsubst = HypsubstFun(Hypsubst_Data);
+);
 open Hypsubst;
 *}
 

@@ -10,6 +10,7 @@ sig
   type 'a T
   val init: ('a * 'a -> bool) -> ('a -> term list) -> 'a T
   val content: 'a T -> 'a list
+  val length: 'a T -> int
   val retrieve: 'a T -> term -> 'a list
   val member: 'a T -> 'a -> bool
   val merge: 'a T * 'a T -> 'a T
@@ -36,6 +37,7 @@ fun mk_items eq index content next net =
 fun init eq index = mk_items eq index [] ~1 Net.empty;
 
 fun content (Items {content, ...}) = content;
+fun length items = List.length (content items);
 fun retrieve (Items {net, ...}) = order_list o Net.unify_term net;
 
 

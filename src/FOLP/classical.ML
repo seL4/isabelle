@@ -60,7 +60,7 @@ signature CLASSICAL =
   end;
 
 
-functor ClassicalFun(Data: CLASSICAL_DATA): CLASSICAL = 
+functor Classical(Data: CLASSICAL_DATA): CLASSICAL = 
 struct
 
 local open Data in

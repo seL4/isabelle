@@ -37,11 +37,12 @@ signature BASIC_CLASSICAL =
 sig
   type claset
   val empty_cs: claset
+  val merge_cs: claset * claset -> claset
   val rep_cs: claset ->
-   {safeIs: thm list,
-    safeEs: thm list,
-    hazIs: thm list,
-    hazEs: thm list,
+   {safeIs: thm Item_Net.T,
+    safeEs: thm Item_Net.T,
+    hazIs: thm Item_Net.T,
+    hazEs: thm Item_Net.T,
     swrappers: (string * (Proof.context -> wrapper)) list,
     uwrappers: (string * (Proof.context -> wrapper)) list,
     safe0_netpair: netpair,
@@ -131,7 +132,7 @@ sig
 end;
 
 
-functor ClassicalFun(Data: CLASSICAL_DATA): CLASSICAL =
+functor Classical(Data: CLASSICAL_DATA): CLASSICAL =
 struct
 
 (** classical elimination rules **)
@@ -214,10 +215,10 @@ fun dup_elim th =  (* FIXME proper context!? *)
 
 datatype claset =
   CS of
-   {safeIs         : thm list,                (*safe introduction rules*)
-    safeEs         : thm list,                (*safe elimination rules*)
-    hazIs          : thm list,                (*unsafe introduction rules*)
-    hazEs          : thm list,                (*unsafe elimination rules*)
+   {safeIs         : thm Item_Net.T,          (*safe introduction rules*)
+    safeEs         : thm Item_Net.T,          (*safe elimination rules*)
+    hazIs          : thm Item_Net.T,          (*unsafe introduction rules*)
+    hazEs          : thm Item_Net.T,          (*unsafe elimination rules*)
     swrappers      : (string * (Proof.context -> wrapper)) list, (*for transforming safe_step_tac*)
     uwrappers      : (string * (Proof.context -> wrapper)) list, (*for transforming step_tac*)
     safe0_netpair  : netpair,                 (*nets for trivial cases*)
@@ -244,10 +245,10 @@ val empty_netpair = (Net.empty, Net.empty);
 
 val empty_cs =
   CS
-   {safeIs = [],
-    safeEs = [],
-    hazIs = [],
-    hazEs = [],
+   {safeIs = Thm.full_rules,
+    safeEs = Thm.full_rules,
+    hazIs = Thm.full_rules,
+    hazEs = Thm.full_rules,
     swrappers = [],
     uwrappers = [],
     safe0_netpair = empty_netpair,
@@ -294,9 +295,6 @@ fun delete_tagged_list rls = fold_rev Tactic.delete_tagged_brl rls;
 fun delete x = delete_tagged_list (joinrules x);
 fun delete' x = delete_tagged_list (joinrules' x);
 
-val mem_thm = member Thm.eq_thm_prop
-and rem_thm = remove Thm.eq_thm_prop;
-
 fun string_of_thm NONE = Display.string_of_thm_without_context
   | string_of_thm (SOME context) =
       Display.string_of_thm (Context.cases Syntax.init_pretty_global I context);
@@ -306,14 +304,19 @@ fun make_elim context th =
     error ("Ill-formed destruction rule\n" ^ string_of_thm context th)
   else Tactic.make_elim th;
 
-fun warn context msg rules th =
-  mem_thm rules th andalso (warning (msg ^ string_of_thm context th); true);
+fun warn_thm context msg th =
+  if (case context of SOME (Context.Proof ctxt) => Context_Position.is_visible ctxt | _ => false)
+  then warning (msg ^ string_of_thm context th)
+  else ();
 
-fun warn_other context th (CS{safeIs, safeEs, hazIs, hazEs, ...}) =
-  warn context "Rule already declared as safe introduction (intro!)\n" safeIs th orelse
-  warn context "Rule already declared as safe elimination (elim!)\n" safeEs th orelse
-  warn context "Rule already declared as introduction (intro)\n" hazIs th orelse
-  warn context "Rule already declared as elimination (elim)\n" hazEs th;
+fun warn_rules context msg rules th =
+  Item_Net.member rules th andalso (warn_thm context msg th; true);
+
+fun warn_claset context th (CS {safeIs, safeEs, hazIs, hazEs, ...}) =
+  warn_rules context "Rule already declared as safe introduction (intro!)\n" safeIs th orelse
+  warn_rules context "Rule already declared as safe elimination (elim!)\n" safeEs th orelse
+  warn_rules context "Rule already declared as introduction (intro)\n" hazIs th orelse
+  warn_rules context "Rule already declared as elimination (elim)\n" hazEs th;
 
 
 (*** Safe rules ***)
@@ -321,18 +324,18 @@ fun warn_other context th (CS{safeIs, safeEs, hazIs, hazEs, ...}) =
 fun addSI w context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
-  if warn context "Ignoring duplicate safe introduction (intro!)\n" safeIs th then cs
+  if warn_rules context "Ignoring duplicate safe introduction (intro!)\n" safeIs th then cs
   else
     let
       val th' = flat_rule th;
       val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
         List.partition Thm.no_prems [th'];
-      val nI = length safeIs + 1;
-      val nE = length safeEs;
-      val _ = warn_other context th cs;
+      val nI = Item_Net.length safeIs + 1;
+      val nE = Item_Net.length safeEs;
+      val _ = warn_claset context th cs;
     in
       CS
-       {safeIs  = th::safeIs,
+       {safeIs = Item_Net.update th safeIs,
         safe0_netpair = insert (nI,nE) (safe0_rls, []) safe0_netpair,
         safep_netpair = insert (nI,nE) (safep_rls, []) safep_netpair,
         safeEs = safeEs,
@@ -348,7 +351,7 @@ fun addSI w context th
 fun addSE w context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
-  if warn context "Ignoring duplicate safe elimination (elim!)\n" safeEs th then cs
+  if warn_rules context "Ignoring duplicate safe elimination (elim!)\n" safeEs th then cs
   else if has_fewer_prems 1 th then
     error ("Ill-formed elimination rule\n" ^ string_of_thm context th)
   else
@@ -356,12 +359,12 @@ fun addSE w context th
       val th' = classical_rule (flat_rule th);
       val (safe0_rls, safep_rls) = (*0 subgoals vs 1 or more*)
         List.partition (fn rl => nprems_of rl=1) [th'];
-      val nI = length safeIs;
-      val nE = length safeEs + 1;
-      val _ = warn_other context th cs;
+      val nI = Item_Net.length safeIs;
+      val nE = Item_Net.length safeEs + 1;
+      val _ = warn_claset context th cs;
     in
       CS
-       {safeEs  = th::safeEs,
+       {safeEs = Item_Net.update th safeEs,
         safe0_netpair = insert (nI,nE) ([], safe0_rls) safe0_netpair,
         safep_netpair = insert (nI,nE) ([], safep_rls) safep_netpair,
         safeIs = safeIs,
@@ -382,16 +385,16 @@ fun addSD w context th = addSE w context (make_elim context th);
 fun addI w context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
-  if warn context "Ignoring duplicate introduction (intro)\n" hazIs th then cs
+  if warn_rules context "Ignoring duplicate introduction (intro)\n" hazIs th then cs
   else
     let
       val th' = flat_rule th;
-      val nI = length hazIs + 1;
-      val nE = length hazEs;
-      val _ = warn_other context th cs;
+      val nI = Item_Net.length hazIs + 1;
+      val nE = Item_Net.length hazEs;
+      val _ = warn_claset context th cs;
     in
       CS
-       {hazIs = th :: hazIs,
+       {hazIs = Item_Net.update th hazIs,
         haz_netpair = insert (nI, nE) ([th'], []) haz_netpair,
         dup_netpair = insert (nI, nE) ([dup_intr th'], []) dup_netpair,
         safeIs = safeIs,
@@ -409,18 +412,18 @@ fun addI w context th
 fun addE w context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
-  if warn context "Ignoring duplicate elimination (elim)\n" hazEs th then cs
+  if warn_rules context "Ignoring duplicate elimination (elim)\n" hazEs th then cs
   else if has_fewer_prems 1 th then
     error ("Ill-formed elimination rule\n" ^ string_of_thm context th)
   else
     let
       val th' = classical_rule (flat_rule th);
-      val nI = length hazIs;
-      val nE = length hazEs + 1;
-      val _ = warn_other context th cs;
+      val nI = Item_Net.length hazIs;
+      val nE = Item_Net.length hazEs + 1;
+      val _ = warn_claset context th cs;
     in
       CS
-       {hazEs = th :: hazEs,
+       {hazEs = Item_Net.update th hazEs,
         haz_netpair = insert (nI, nE) ([], [th']) haz_netpair,
         dup_netpair = insert (nI, nE) ([], [dup_elim th']) dup_netpair,
         safeIs = safeIs,
@@ -445,7 +448,7 @@ fun addD w context th = addE w context (make_elim context th);
 fun delSI th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
-  if mem_thm safeIs th then
+  if Item_Net.member safeIs th then
     let
       val th' = flat_rule th;
       val (safe0_rls, safep_rls) = List.partition Thm.no_prems [th'];
@@ -453,7 +456,7 @@ fun delSI th
       CS
        {safe0_netpair = delete (safe0_rls, []) safe0_netpair,
         safep_netpair = delete (safep_rls, []) safep_netpair,
-        safeIs = rem_thm th safeIs,
+        safeIs = Item_Net.remove th safeIs,
         safeEs = safeEs,
         hazIs = hazIs,
         hazEs = hazEs,
@@ -468,7 +471,7 @@ fun delSI th
 fun delSE th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
-  if mem_thm safeEs th then
+  if Item_Net.member safeEs th then
     let
       val th' = classical_rule (flat_rule th);
       val (safe0_rls, safep_rls) = List.partition (fn rl => nprems_of rl = 1) [th'];
@@ -477,7 +480,7 @@ fun delSE th
        {safe0_netpair = delete ([], safe0_rls) safe0_netpair,
         safep_netpair = delete ([], safep_rls) safep_netpair,
         safeIs = safeIs,
-        safeEs = rem_thm th safeEs,
+        safeEs = Item_Net.remove th safeEs,
         hazIs = hazIs,
         hazEs = hazEs,
         swrappers = swrappers,
@@ -491,14 +494,14 @@ fun delSE th
 fun delI context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
-  if mem_thm hazIs th then
+  if Item_Net.member hazIs th then
     let val th' = flat_rule th in
       CS
        {haz_netpair = delete ([th'], []) haz_netpair,
         dup_netpair = delete ([dup_intr th'], []) dup_netpair,
         safeIs = safeIs,
         safeEs = safeEs,
-        hazIs = rem_thm th hazIs,
+        hazIs = Item_Net.remove th hazIs,
         hazEs = hazEs,
         swrappers = swrappers,
         uwrappers = uwrappers,
@@ -513,7 +516,7 @@ fun delI context th
 fun delE th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
-  if mem_thm hazEs th then
+  if Item_Net.member hazEs th then
     let val th' = classical_rule (flat_rule th) in
       CS
        {haz_netpair = delete ([], [th']) haz_netpair,
@@ -521,7 +524,7 @@ fun delE th
         safeIs = safeIs,
         safeEs = safeEs,
         hazIs = hazIs,
-        hazEs = rem_thm th hazEs,
+        hazEs = Item_Net.remove th hazEs,
         swrappers = swrappers,
         uwrappers = uwrappers,
         safe0_netpair = safe0_netpair,
@@ -533,11 +536,11 @@ fun delE th
 (*Delete ALL occurrences of "th" in the claset (perhaps from several lists)*)
 fun delrule context th (cs as CS {safeIs, safeEs, hazIs, hazEs, ...}) =
   let val th' = Tactic.make_elim th in
-    if mem_thm safeIs th orelse mem_thm safeEs th orelse
-      mem_thm hazIs th orelse mem_thm hazEs th orelse
-      mem_thm safeEs th' orelse mem_thm hazEs th'
+    if Item_Net.member safeIs th orelse Item_Net.member safeEs th orelse
+      Item_Net.member hazIs th orelse Item_Net.member hazEs th orelse
+      Item_Net.member safeEs th' orelse Item_Net.member hazEs th'
     then delSI th (delSE th (delI context th (delE th (delSE th' (delE th' cs)))))
-    else (warning ("Undeclared classical rule\n" ^ string_of_thm context th); cs)
+    else (warn_thm context "Undeclared classical rule\n" th; cs)
   end;
 
 
@@ -565,28 +568,24 @@ fun map_uwrappers f
 
 (* merge_cs *)
 
-(*Merge works by adding all new rules of the 2nd claset into the 1st claset.
-  Merging the term nets may look more efficient, but the rather delicate
-  treatment of priority might get muddled up.*)
+(*Merge works by adding all new rules of the 2nd claset into the 1st claset,
+  in order to preserve priorities reliably.*)
+
+fun merge_thms add thms1 thms2 =
+  fold_rev (fn thm => if Item_Net.member thms1 thm then I else add thm) (Item_Net.content thms2);
+
 fun merge_cs (cs as CS {safeIs, safeEs, hazIs, hazEs, ...},
     cs' as CS {safeIs = safeIs2, safeEs = safeEs2, hazIs = hazIs2, hazEs = hazEs2,
       swrappers, uwrappers, ...}) =
   if pointer_eq (cs, cs') then cs
   else
-    let
-      val safeIs' = fold rem_thm safeIs safeIs2;
-      val safeEs' = fold rem_thm safeEs safeEs2;
-      val hazIs' = fold rem_thm hazIs hazIs2;
-      val hazEs' = fold rem_thm hazEs hazEs2;
-    in
-      cs
-      |> fold_rev (addSI NONE NONE) safeIs'
-      |> fold_rev (addSE NONE NONE) safeEs'
-      |> fold_rev (addI NONE NONE) hazIs'
-      |> fold_rev (addE NONE NONE) hazEs'
-      |> map_swrappers (fn ws => AList.merge (op =) (K true) (ws, swrappers))
-      |> map_uwrappers (fn ws => AList.merge (op =) (K true) (ws, uwrappers))
-    end;
+    cs
+    |> merge_thms (addSI NONE NONE) safeIs safeIs2
+    |> merge_thms (addSE NONE NONE) safeEs safeEs2
+    |> merge_thms (addI NONE NONE) hazIs hazIs2
+    |> merge_thms (addE NONE NONE) hazEs hazEs2
+    |> map_swrappers (fn ws => AList.merge (op =) (K true) (ws, swrappers))
+    |> map_uwrappers (fn ws => AList.merge (op =) (K true) (ws, uwrappers));
 
 
 (* data *)
@@ -612,7 +611,7 @@ fun put_claset cs = map_claset (K cs);
 fun print_claset ctxt =
   let
     val {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers, ...} = rep_claset_of ctxt;
-    val pretty_thms = map (Display.pretty_thm ctxt);
+    val pretty_thms = map (Display.pretty_thm ctxt) o Item_Net.content;
   in
     [Pretty.big_list "safe introduction rules (intro!):" (pretty_thms safeIs),
       Pretty.big_list "introduction rules (intro):" (pretty_thms hazIs),

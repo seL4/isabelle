@@ -799,8 +799,8 @@ val normalize_simp_prop =
 fun clasimpset_rules_of ctxt =
   let
     val {safeIs, safeEs, hazIs, hazEs, ...} = ctxt |> claset_of |> rep_cs
-    val intros = safeIs @ hazIs
-    val elims = map Classical.classical_rule (safeEs @ hazEs)
+    val intros = Item_Net.content safeIs @ Item_Net.content hazIs
+    val elims = map Classical.classical_rule (Item_Net.content safeEs @ Item_Net.content hazEs)
     val simps = ctxt |> simpset_of |> dest_ss |> #simps
   in
     (mk_fact_table I I intros,
