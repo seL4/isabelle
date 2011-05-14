@@ -66,9 +66,8 @@ sig
   val setup: theory -> theory
   (*debugging tools*)
   type branch
-  val stats: bool Unsynchronized.ref
-  val trace: bool Unsynchronized.ref
-  val fullTrace: branch list list Unsynchronized.ref
+  val stats: bool Config.T
+  val trace: bool Config.T
   val fromType: (indexname * term) list Unsynchronized.ref -> Term.typ -> term
   val fromTerm: theory -> Term.term -> term
   val fromSubgoal: theory -> Term.term -> term
@@ -76,7 +75,8 @@ sig
   val toTerm: int -> term -> Term.term
   val readGoal: Proof.context -> string -> term
   val tryIt: Proof.context -> int -> string ->
-    (int -> tactic) list * branch list list * (int * int * exn) list
+    {fullTrace: branch list list,
+      result: ((int -> tactic) list * branch list list * (int * int * exn) list)}
   val normBr: branch -> branch
 end;
 
@@ -85,8 +85,9 @@ struct
 
 structure Classical = Data.Classical;
 
-val trace = Unsynchronized.ref false
-and stats = Unsynchronized.ref false;   (*for runtime and search statistics*)
+val trace = Config.bool (Config.declare "Blast.trace" (K (Config.Bool false)));
+val stats = Config.bool (Config.declare "Blast.stats" (K (Config.Bool false)));
+(*for runtime and search statistics*)
 
 datatype term =
     Const  of string * term list  (*typargs constant--as a terms!*)
@@ -482,14 +483,14 @@ fun rot_subgoals_tac (rot, rl) =
 end;
 
 
-fun TRACE rl tac st i =
-  if !trace then (writeln (Display.string_of_thm_without_context rl); tac st i)
-  else tac st i;
+fun TRACE ctxt rl tac i st =
+  if Config.get ctxt trace then (writeln (Display.string_of_thm ctxt rl); tac i st)
+  else tac i st;
 
 (*Resolution/matching tactics: if upd then the proof state may be updated.
   Matching makes the tactics more deterministic in the presence of Vars.*)
-fun emtac upd rl = TRACE rl (if upd then etac rl else ematch_tac [rl]);
-fun rmtac upd rl = TRACE rl (if upd then rtac rl else match_tac [rl]);
+fun emtac ctxt upd rl = TRACE ctxt rl (if upd then etac rl else ematch_tac [rl]);
+fun rmtac ctxt upd rl = TRACE ctxt rl (if upd then rtac rl else match_tac [rl]);
 
 (*Tableau rule from elimination rule.
   Flag "upd" says that the inference updated the branch.
@@ -498,7 +499,7 @@ fun fromRule ctxt vars rl =
   let val thy = Proof_Context.theory_of ctxt
       val trl = rl |> Thm.prop_of |> fromTerm thy |> convertRule vars
       fun tac (upd, dup,rot) i =
-        emtac upd (if dup then rev_dup_elim rl else rl) i
+        emtac ctxt upd (if dup then rev_dup_elim rl else rl) i
         THEN
         rot_subgoals_tac (rot, #2 trl) i
   in Option.SOME (trl, tac) end
@@ -507,7 +508,7 @@ fun fromRule ctxt vars rl =
       (warning ("Ignoring weak elimination rule\n" ^ Display.string_of_thm ctxt rl);
         Option.NONE)
   | ElimBadConcl => (*ignore: conclusion is not just a variable*)
-      (if !trace then
+      (if Config.get ctxt trace then
         (warning ("Ignoring ill-formed elimination rule:\n" ^
           "conclusion should be a variable\n" ^ Display.string_of_thm ctxt rl))
        else ();
@@ -533,7 +534,7 @@ fun fromIntrRule ctxt vars rl =
   let val thy = Proof_Context.theory_of ctxt
       val trl = rl |> Thm.prop_of |> fromTerm thy |> convertIntrRule vars
       fun tac (upd,dup,rot) i =
-         rmtac upd (if dup then Classical.dup_intr rl else rl) i
+         rmtac ctxt upd (if dup then Classical.dup_intr rl else rl) i
          THEN
          rot_subgoals_tac (rot, #2 trl) i
   in (trl, tac) end;
@@ -622,8 +623,8 @@ fun negOfGoal2 (G,md) = (negOfGoal G, md);
 fun negOfGoals pairs = map (fn (Gs,haz) => (map negOfGoal2 Gs, haz)) pairs;
 
 (*Tactic.  Convert *Goal* to negated assumption in FIRST position*)
-fun negOfGoal_tac i = TRACE Data.ccontr (rtac Data.ccontr) i THEN
-                      rotate_tac ~1 i;
+fun negOfGoal_tac ctxt i =
+  TRACE ctxt Data.ccontr (rtac Data.ccontr) i THEN rotate_tac ~1 i;
 
 fun traceTerm ctxt t =
   let val thy = Proof_Context.theory_of ctxt
@@ -647,14 +648,14 @@ fun tracing (State {ctxt, fullTrace, ...}) brs =
              Output.tracing (" [" ^ string_of_int lim ^ "] ");
              printPairs pairs;
              writeln"")
-  in if !trace then printBrs (map normBr brs) else ()
-  end;
+  in if Config.get ctxt trace then printBrs (map normBr brs) else () end;
 
-fun traceMsg s = if !trace then writeln s else ();
+fun traceMsg true s = writeln s
+  | traceMsg false _ = ();
 
 (*Tracing: variables updated in the last branch operation?*)
 fun traceVars (State {ctxt, ntrail, trail, ...}) ntrl =
-  if !trace then
+  if Config.get ctxt trace then
       (case !ntrail-ntrl of
             0 => ()
           | 1 => Output.tracing "\t1 variable UPDATED:"
@@ -666,13 +667,12 @@ fun traceVars (State {ctxt, ntrail, trail, ...}) ntrl =
     else ();
 
 (*Tracing: how many new branches are created?*)
-fun traceNew prems =
-    if !trace then
-        case length prems of
-            0 => Output.tracing "branch closed by rule"
-          | 1 => Output.tracing "branch extended (1 new subgoal)"
-          | n => Output.tracing ("branch split: "^ string_of_int n ^ " new subgoals")
-    else ();
+fun traceNew true prems =
+      (case length prems of
+        0 => Output.tracing "branch closed by rule"
+      | 1 => Output.tracing "branch extended (1 new subgoal)"
+      | n => Output.tracing ("branch split: "^ string_of_int n ^ " new subgoals"))
+  | traceNew _ _ = ();
 
 
 
@@ -769,7 +769,7 @@ fun equalSubst ctxt (G, {pairs, lits, vars, lim}) =
             end
       val (changed, lits') = List.foldr subLit ([], []) lits
       val (changed', pairs') = List.foldr subFrame (changed, []) pairs
-  in  if !trace then writeln ("Substituting " ^ traceTerm ctxt u ^
+  in  if Config.get ctxt trace then writeln ("Substituting " ^ traceTerm ctxt u ^
                               " for " ^ traceTerm ctxt t ^ " in branch" )
       else ();
       {pairs = (changed',[])::pairs',   (*affected formulas, and others*)
@@ -787,12 +787,12 @@ exception PROVE;
 val contr_tac = ematch_tac [Data.notE] THEN'
                 (eq_assume_tac ORELSE' assume_tac);
 
-val eContr_tac  = TRACE Data.notE contr_tac;
-val eAssume_tac = TRACE asm_rl   (eq_assume_tac ORELSE' assume_tac);
-
 (*Try to unify complementary literals and return the corresponding tactic. *)
 fun tryClose state (G, L) =
   let
+    val State {ctxt, ...} = state;
+    val eContr_tac = TRACE ctxt Data.notE contr_tac;
+    val eAssume_tac = TRACE ctxt asm_rl (eq_assume_tac ORELSE' assume_tac);
     fun close t u tac = if unify state ([], t, u) then SOME tac else NONE;
     fun arg (_ $ t) = t;
   in
@@ -832,11 +832,11 @@ fun clashVar [] = (fn _ => false)
   next branch have been updated.*)
 fun prune _ (1, nxtVars, choices) = choices  (*DON'T prune at very end: allow
                                              backtracking over bad proofs*)
-  | prune (State {ntrail, trail, ...}) (nbrs: int, nxtVars, choices) =
+  | prune (State {ctxt, ntrail, trail, ...}) (nbrs: int, nxtVars, choices) =
       let fun traceIt last =
                 let val ll = length last
                     and lc = length choices
-                in if !trace andalso ll<lc then
+                in if Config.get ctxt trace andalso ll<lc then
                     (writeln("Pruning " ^ string_of_int(lc-ll) ^ " levels");
                      last)
                    else last
@@ -856,12 +856,11 @@ fun prune _ (1, nxtVars, choices) = choices  (*DON'T prune at very end: allow
 fun nextVars ({pairs, lits, vars, lim} :: _) = map Var vars
   | nextVars []                              = [];
 
-fun backtrack (choices as (ntrl, nbrs, exn)::_) =
-      (if !trace then (writeln ("Backtracking; now there are " ^
-                                string_of_int nbrs ^ " branches"))
-                 else ();
+fun backtrack trace (choices as (ntrl, nbrs, exn)::_) =
+      (if trace then (writeln ("Backtracking; now there are " ^ string_of_int nbrs ^ " branches"))
+       else ();
        raise exn)
-  | backtrack _ = raise PROVE;
+  | backtrack _ _ = raise PROVE;
 
 (*Add the literal G, handling *Goal* and detecting duplicates.*)
 fun addLit (Const ("*Goal*", _) $ G, lits) =
@@ -921,12 +920,14 @@ fun printStats (State {ntried, nclosed, ...}) (b, start, tacs) =
 *)
 fun prove (state, start, brs, cont) =
  let val State {ctxt, ntrail, nclosed, ntried, ...} = state;
+     val trace = Config.get ctxt trace;
+     val stats = Config.get ctxt stats;
      val {safe0_netpair, safep_netpair, haz_netpair, ...} =
        Classical.rep_cs (Classical.claset_of ctxt);
      val safeList = [safe0_netpair, safep_netpair]
      and hazList  = [haz_netpair]
      fun prv (tacs, trs, choices, []) =
-                (printStats state (!trace orelse !stats, start, tacs);
+                (printStats state (trace orelse stats, start, tacs);
                  cont (tacs, trs, choices))   (*all branches closed!*)
        | prv (tacs, trs, choices,
               brs0 as {pairs = ((G,md)::br, haz)::pairs,
@@ -971,7 +972,7 @@ fun prove (state, start, brs, cont) =
                          val tacs' = (tac(updated,false,true))
                                      :: tacs  (*no duplication; rotate*)
                      in
-                         traceNew prems;  traceVars state ntrl;
+                         traceNew trace prems;  traceVars state ntrl;
                          (if null prems then (*closed the branch: prune!*)
                             (nclosed := !nclosed + 1;
                              prv(tacs',  brs0::trs,
@@ -979,7 +980,7 @@ fun prove (state, start, brs, cont) =
                                  brs))
                           else (*prems non-null*)
                           if lim'<0 (*faster to kill ALL the alternatives*)
-                          then (traceMsg"Excessive branching: KILLED";
+                          then (traceMsg trace "Excessive branching: KILLED";
                                 clearTo state ntrl;  raise NEWBRANCHES)
                           else
                             (ntried := !ntried + length prems - 1;
@@ -991,7 +992,7 @@ fun prove (state, start, brs, cont) =
                                   Reset Vars and try another rule*)
                                 (clearTo state ntrl;  deeper grls)
                            else (*backtrack to previous level*)
-                                backtrack choices
+                                backtrack trace choices
                      end
                     else deeper grls
               (*Try to close branch by unifying with head goal*)
@@ -1001,7 +1002,7 @@ fun prove (state, start, brs, cont) =
                         NONE     => closeF Ls
                       | SOME tac =>
                             let val choices' =
-                                    (if !trace then (Output.tracing "branch closed";
+                                    (if trace then (Output.tracing "branch closed";
                                                      traceVars state ntrl)
                                                else ();
                                      prune state (nbrs, nxtVars,
@@ -1020,9 +1021,9 @@ fun prove (state, start, brs, cont) =
                       handle CLOSEF => closeF (map fst haz)
                         handle CLOSEF => closeFl pairs
           in tracing state brs0;
-             if lim<0 then (traceMsg "Limit reached.  "; backtrack choices)
+             if lim<0 then (traceMsg trace "Limit reached.  "; backtrack trace choices)
              else
-             prv (Data.hyp_subst_tac (!trace) :: tacs,
+             prv (Data.hyp_subst_tac trace :: tacs,
                   brs0::trs,  choices,
                   equalSubst ctxt
                     (G, {pairs = (br,haz)::pairs,
@@ -1034,15 +1035,15 @@ fun prove (state, start, brs, cont) =
                   handle NEWBRANCHES =>
                    (case netMkRules ctxt G vars hazList of
                        [] => (*there are no plausible haz rules*)
-                             (traceMsg "moving formula to literals";
+                             (traceMsg trace "moving formula to literals";
                               prv (tacs, brs0::trs, choices,
                                    {pairs = (br,haz)::pairs,
                                     lits  = addLit(G,lits),
                                     vars  = vars,
                                     lim   = lim}  :: brs))
                     | _ => (*G admits some haz rules: try later*)
-                           (traceMsg "moving formula to haz list";
-                            prv (if isGoal G then negOfGoal_tac :: tacs
+                           (traceMsg trace "moving formula to haz list";
+                            prv (if isGoal G then negOfGoal_tac ctxt :: tacs
                                              else tacs,
                                  brs0::trs,
                                  choices,
@@ -1128,14 +1129,12 @@ fun prove (state, start, brs, cont) =
                      in
                        if lim'<0 andalso not (null prems)
                        then (*it's faster to kill ALL the alternatives*)
-                           (traceMsg"Excessive branching: KILLED";
+                           (traceMsg trace "Excessive branching: KILLED";
                             clearTo state ntrl;  raise NEWBRANCHES)
                        else
-                         traceNew prems;
-                         if !trace andalso dup then Output.tracing " (duplicating)"
-                                                 else ();
-                         if !trace andalso recur then Output.tracing " (recursive)"
-                                                 else ();
+                         traceNew trace prems;
+                         if trace andalso dup then Output.tracing " (duplicating)" else ();
+                         if trace andalso recur then Output.tracing " (recursive)" else ();
                          traceVars state ntrl;
                          if null prems then nclosed := !nclosed + 1
                          else ntried := !ntried + length prems - 1;
@@ -1148,11 +1147,11 @@ fun prove (state, start, brs, cont) =
                               then (*reset Vars and try another rule*)
                                    (clearTo state ntrl;  deeper grls)
                               else (*backtrack to previous level*)
-                                   backtrack choices
+                                   backtrack trace choices
                      end
                     else deeper grls
           in tracing state brs0;
-             if lim<1 then (traceMsg "Limit reached.  "; backtrack choices)
+             if lim<1 then (traceMsg trace "Limit reached.  "; backtrack trace choices)
              else deeper rules
              handle NEWBRANCHES =>
                  (*cannot close branch: move H to literals*)
@@ -1162,7 +1161,7 @@ fun prove (state, start, brs, cont) =
                        vars  = vars,
                        lim   = lim}  :: brs)
           end
-       | prv (tacs, trs, choices, _ :: brs) = backtrack choices
+       | prv (tacs, trs, choices, _ :: brs) = backtrack trace choices
  in prv ([], [], [(!ntrail, length brs, PROVE)], brs) end;
 
 
@@ -1245,6 +1244,8 @@ fun fromSubgoal thy t =
 fun timing_depth_tac start ctxt lim i st0 =
   let val thy = Proof_Context.theory_of ctxt
       val state = initialize ctxt
+      val trace = Config.get ctxt trace;
+      val stats = Config.get ctxt stats;
       val st = st0
         |> rotate_prems (i - 1)
         |> Conv.gconv_rule Object_Logic.atomize_prems 1
@@ -1257,10 +1258,10 @@ fun timing_depth_tac start ctxt lim i st0 =
           case Seq.pull(EVERY' (rev tacs) 1 st) of
               NONE => (writeln ("PROOF FAILED for depth " ^
                                 string_of_int lim);
-                       if !trace then error "************************\n"
+                       if trace then error "************************\n"
                        else ();
-                       backtrack choices)
-            | cell => (if (!trace orelse !stats)
+                       backtrack trace choices)
+            | cell => (if (trace orelse stats)
                        then writeln (Timing.message (Timing.result start) ^ " for reconstruction")
                        else ();
                        Seq.make(fn()=> cell))
@@ -1280,14 +1281,12 @@ val (depth_limit, setup_depth_limit) =
 fun blast_tac ctxt i st =
   ((DEEPEN (1, Config.get ctxt depth_limit) (timing_depth_tac (Timing.start ()) ctxt) 0) i
     THEN flexflex_tac) st
-  handle TRANS s => (if !trace then warning ("blast: " ^ s) else (); Seq.empty);
+  handle TRANS s => (if Config.get ctxt trace then warning ("blast: " ^ s) else (); Seq.empty);
 
 
 
 (*** For debugging: these apply the prover to a subgoal and return
      the resulting tactics, trace, etc.                            ***)
-
-val fullTrace = Unsynchronized.ref ([]: branch list list);
 
 (*Read a string to make an initial, singleton branch*)
 fun readGoal ctxt s =
@@ -1295,10 +1294,9 @@ fun readGoal ctxt s =
 
 fun tryIt ctxt lim s =
   let
-    val state as State {fullTrace = ft, ...} = initialize ctxt;
+    val state as State {fullTrace, ...} = initialize ctxt;
     val res = timeap prove (state, Timing.start (), [initBranch ([readGoal ctxt s], lim)], I);
-    val _ = fullTrace := !ft;
-  in res end;
+  in {fullTrace = !fullTrace, result = res} end;
 
 
 (** method setup **)
