@@ -306,14 +306,19 @@ fun make_elim context th =
     error ("Ill-formed destruction rule\n" ^ string_of_thm context th)
   else Tactic.make_elim th;
 
-fun warn context msg rules th =
-  mem_thm rules th andalso (warning (msg ^ string_of_thm context th); true);
+fun warn_thm context msg th =
+  if (case context of SOME (Context.Proof ctxt) => Context_Position.is_visible ctxt | _ => false)
+  then warning (msg ^ string_of_thm context th)
+  else ();
 
-fun warn_other context th (CS{safeIs, safeEs, hazIs, hazEs, ...}) =
-  warn context "Rule already declared as safe introduction (intro!)\n" safeIs th orelse
-  warn context "Rule already declared as safe elimination (elim!)\n" safeEs th orelse
-  warn context "Rule already declared as introduction (intro)\n" hazIs th orelse
-  warn context "Rule already declared as elimination (elim)\n" hazEs th;
+fun warn_rules context msg rules th =
+  mem_thm rules th andalso (warn_thm context msg th; true);
+
+fun warn_claset context th (CS {safeIs, safeEs, hazIs, hazEs, ...}) =
+  warn_rules context "Rule already declared as safe introduction (intro!)\n" safeIs th orelse
+  warn_rules context "Rule already declared as safe elimination (elim!)\n" safeEs th orelse
+  warn_rules context "Rule already declared as introduction (intro)\n" hazIs th orelse
+  warn_rules context "Rule already declared as elimination (elim)\n" hazEs th;
 
 
 (*** Safe rules ***)
@@ -321,7 +326,7 @@ fun warn_other context th (CS{safeIs, safeEs, hazIs, hazEs, ...}) =
 fun addSI w context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
-  if warn context "Ignoring duplicate safe introduction (intro!)\n" safeIs th then cs
+  if warn_rules context "Ignoring duplicate safe introduction (intro!)\n" safeIs th then cs
   else
     let
       val th' = flat_rule th;
@@ -329,7 +334,7 @@ fun addSI w context th
         List.partition Thm.no_prems [th'];
       val nI = length safeIs + 1;
       val nE = length safeEs;
-      val _ = warn_other context th cs;
+      val _ = warn_claset context th cs;
     in
       CS
        {safeIs  = th::safeIs,
@@ -348,7 +353,7 @@ fun addSI w context th
 fun addSE w context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
-  if warn context "Ignoring duplicate safe elimination (elim!)\n" safeEs th then cs
+  if warn_rules context "Ignoring duplicate safe elimination (elim!)\n" safeEs th then cs
   else if has_fewer_prems 1 th then
     error ("Ill-formed elimination rule\n" ^ string_of_thm context th)
   else
@@ -358,7 +363,7 @@ fun addSE w context th
         List.partition (fn rl => nprems_of rl=1) [th'];
       val nI = length safeIs;
       val nE = length safeEs + 1;
-      val _ = warn_other context th cs;
+      val _ = warn_claset context th cs;
     in
       CS
        {safeEs  = th::safeEs,
@@ -382,13 +387,13 @@ fun addSD w context th = addSE w context (make_elim context th);
 fun addI w context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
-  if warn context "Ignoring duplicate introduction (intro)\n" hazIs th then cs
+  if warn_rules context "Ignoring duplicate introduction (intro)\n" hazIs th then cs
   else
     let
       val th' = flat_rule th;
       val nI = length hazIs + 1;
       val nE = length hazEs;
-      val _ = warn_other context th cs;
+      val _ = warn_claset context th cs;
     in
       CS
        {hazIs = th :: hazIs,
@@ -409,7 +414,7 @@ fun addI w context th
 fun addE w context th
     (cs as CS {safeIs, safeEs, hazIs, hazEs, swrappers, uwrappers,
       safe0_netpair, safep_netpair, haz_netpair, dup_netpair, xtra_netpair}) =
-  if warn context "Ignoring duplicate elimination (elim)\n" hazEs th then cs
+  if warn_rules context "Ignoring duplicate elimination (elim)\n" hazEs th then cs
   else if has_fewer_prems 1 th then
     error ("Ill-formed elimination rule\n" ^ string_of_thm context th)
   else
@@ -417,7 +422,7 @@ fun addE w context th
       val th' = classical_rule (flat_rule th);
       val nI = length hazIs;
       val nE = length hazEs + 1;
-      val _ = warn_other context th cs;
+      val _ = warn_claset context th cs;
     in
       CS
        {hazEs = th :: hazEs,
@@ -537,7 +542,7 @@ fun delrule context th (cs as CS {safeIs, safeEs, hazIs, hazEs, ...}) =
       mem_thm hazIs th orelse mem_thm hazEs th orelse
       mem_thm safeEs th' orelse mem_thm hazEs th'
     then delSI th (delSE th (delI context th (delE th (delSE th' (delE th' cs)))))
-    else (warning ("Undeclared classical rule\n" ^ string_of_thm context th); cs)
+    else (warn_thm context "Undeclared classical rule\n" th; cs)
   end;
 
 
