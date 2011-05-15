@@ -294,8 +294,7 @@ fun delete x = delete_tagged_list (joinrules x);
 fun delete' x = delete_tagged_list (joinrules' x);
 
 fun string_of_thm NONE = Display.string_of_thm_without_context
-  | string_of_thm (SOME context) =
-      Display.string_of_thm (Context.cases Syntax.init_pretty_global I context);
+  | string_of_thm (SOME context) = Display.string_of_thm (Context.proof_of context);
 
 fun make_elim context th =
   if has_fewer_prems 1 th then
