@@ -72,12 +72,22 @@ fun message {elapsed, cpu, gc} =
   Time.toString cpu ^ "s cpu time, " ^
   Time.toString gc ^ "s GC time" handle Time.Time => "";
 
+val min_time = Time.fromMilliseconds 1;
+
+fun is_relevant {elapsed, cpu, gc} =
+  Time.>= (elapsed, min_time) orelse
+  Time.>= (cpu, min_time) orelse
+  Time.>= (gc, min_time);
+
 fun cond_timeit enabled msg e =
   if enabled then
     let
       val (timing, result) = timing (Exn.interruptible_capture e) ();
-      val end_msg = message timing;
-      val _ = warning (if msg = "" then end_msg else msg ^ "\n" ^ end_msg);
+      val _ =
+        if is_relevant timing then
+          let val end_msg = message timing
+          in warning (if msg = "" then end_msg else msg ^ "\n" ^ end_msg) end
+        else ();
     in Exn.release result end
   else e ();
 
