@@ -3044,7 +3044,7 @@ in
  (keyword typN |-- typ) -- (keyword parsN |-- terms) >>
   (fn (T,ps) => fn ctxt => SIMPLE_METHOD' (FRParTac.frpar_tac T ps ctxt))
 end
-*} "Parametric QE for linear Arithmetic over fields, Version 1"
+*} "parametric QE for linear Arithmetic over fields, Version 1"
 
 method_setup frpar2 = {*
 let
@@ -3061,7 +3061,7 @@ in
  (keyword typN |-- typ) -- (keyword parsN |-- terms) >>
   (fn (T,ps) => fn ctxt => SIMPLE_METHOD' (FRParTac.frpar2_tac T ps ctxt))
 end
-*} "Parametric QE for linear Arithmetic over fields, Version 2"
+*} "parametric QE for linear Arithmetic over fields, Version 2"
 
 
 lemma "\<exists>(x::'a::{linordered_field_inverse_zero, number_ring}). y \<noteq> -1 \<longrightarrow> (y + 1)*x < 0"

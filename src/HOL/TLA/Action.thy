@@ -120,9 +120,9 @@ fun action_use th =
     | _ => th;
 *}
 
-attribute_setup action_unlift = {* Scan.succeed (Thm.rule_attribute (K action_unlift)) *} ""
-attribute_setup action_rewrite = {* Scan.succeed (Thm.rule_attribute (K action_rewrite)) *} ""
-attribute_setup action_use = {* Scan.succeed (Thm.rule_attribute (K action_use)) *} ""
+attribute_setup action_unlift = {* Scan.succeed (Thm.rule_attribute (K action_unlift)) *}
+attribute_setup action_rewrite = {* Scan.succeed (Thm.rule_attribute (K action_rewrite)) *}
+attribute_setup action_use = {* Scan.succeed (Thm.rule_attribute (K action_use)) *}
 
 
 (* =========================== square / angle brackets =========================== *)
@@ -283,7 +283,7 @@ fun enabled_tac ctxt base_vars =
 
 method_setup enabled = {*
   Attrib.thm >> (fn th => fn ctxt => SIMPLE_METHOD' (enabled_tac ctxt th))
-*} ""
+*}
 
 (* Example *)
 

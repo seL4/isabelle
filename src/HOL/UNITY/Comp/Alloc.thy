@@ -326,7 +326,7 @@ let
 in
   Scan.succeed (Thm.rule_attribute (K normalized))
 end
-*} ""
+*}
 
 (*** bijectivity of sysOfAlloc [MUST BE AUTOMATED] ***)
 ML {*
@@ -342,9 +342,7 @@ fun record_auto_tac ctxt =
 
 *}
 
-method_setup record_auto = {*
-  Scan.succeed (SIMPLE_METHOD o record_auto_tac)
-*} ""
+method_setup record_auto = {* Scan.succeed (SIMPLE_METHOD o record_auto_tac) *}
 
 lemma inj_sysOfAlloc [iff]: "inj sysOfAlloc"
   apply (unfold sysOfAlloc_def Let_def)
@@ -737,7 +735,7 @@ fun rename_client_map_tac ss =
 method_setup rename_client_map = {*
   Scan.succeed (fn ctxt =>
     SIMPLE_METHOD (rename_client_map_tac (simpset_of ctxt)))
-*} ""
+*}
 
 text{*Lifting @{text Client_Increasing} to @{term systemState}*}
 lemma rename_Client_Increasing: "i : I

@@ -128,10 +128,10 @@ fun temp_use th =
 fun try_rewrite th = temp_rewrite th handle THM _ => temp_use th;
 *}
 
-attribute_setup temp_unlift = {* Scan.succeed (Thm.rule_attribute (K temp_unlift)) *} ""
-attribute_setup temp_rewrite = {* Scan.succeed (Thm.rule_attribute (K temp_rewrite)) *} ""
-attribute_setup temp_use = {* Scan.succeed (Thm.rule_attribute (K temp_use)) *} ""
-attribute_setup try_rewrite = {* Scan.succeed (Thm.rule_attribute (K try_rewrite)) *} ""
+attribute_setup temp_unlift = {* Scan.succeed (Thm.rule_attribute (K temp_unlift)) *}
+attribute_setup temp_rewrite = {* Scan.succeed (Thm.rule_attribute (K temp_rewrite)) *}
+attribute_setup temp_use = {* Scan.succeed (Thm.rule_attribute (K temp_use)) *}
+attribute_setup try_rewrite = {* Scan.succeed (Thm.rule_attribute (K try_rewrite)) *}
 
 
 (* Update classical reasoner---will be updated once more below! *)
@@ -310,10 +310,10 @@ fun merge_act_box_tac ctxt i =
                          eres_inst_tac ctxt [(("'a", 0), "state * state")] @{thm box_thin} i])
 *}
 
-method_setup merge_box = {* Scan.succeed (K (SIMPLE_METHOD' merge_box_tac)) *} ""
-method_setup merge_temp_box = {* Scan.succeed (SIMPLE_METHOD' o merge_temp_box_tac) *} ""
-method_setup merge_stp_box = {* Scan.succeed (SIMPLE_METHOD' o merge_stp_box_tac) *} ""
-method_setup merge_act_box = {* Scan.succeed (SIMPLE_METHOD' o merge_act_box_tac) *} ""
+method_setup merge_box = {* Scan.succeed (K (SIMPLE_METHOD' merge_box_tac)) *}
+method_setup merge_temp_box = {* Scan.succeed (SIMPLE_METHOD' o merge_temp_box_tac) *}
+method_setup merge_stp_box = {* Scan.succeed (SIMPLE_METHOD' o merge_stp_box_tac) *}
+method_setup merge_act_box = {* Scan.succeed (SIMPLE_METHOD' o merge_act_box_tac) *}
 
 (* rewrite rule to push universal quantification through box:
       (sigma |= [](! x. F x)) = (! x. (sigma |= []F x))
@@ -606,11 +606,11 @@ fun auto_inv_tac ctxt =
 
 method_setup invariant = {*
   Method.sections Clasimp.clasimp_modifiers >> (K (SIMPLE_METHOD' o inv_tac))
-*} ""
+*}
 
 method_setup auto_invariant = {*
   Method.sections Clasimp.clasimp_modifiers >> (K (SIMPLE_METHOD' o auto_inv_tac))
-*} ""
+*}
 
 lemma unless: "|- []($P --> P` | Q`) --> (stable P) | <>Q"
   apply (unfold dmd_def)

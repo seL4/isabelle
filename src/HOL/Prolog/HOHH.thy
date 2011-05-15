@@ -11,7 +11,7 @@ begin
 
 method_setup ptac =
   {* Attrib.thms >> (fn thms => fn ctxt => SIMPLE_METHOD' (Prolog.ptac ctxt thms)) *}
-  "Basic Lambda Prolog interpreter"
+  "basic Lambda Prolog interpreter"
 
 method_setup prolog =
   {* Attrib.thms >> (fn thms => fn ctxt => SIMPLE_METHOD (Prolog.prolog_tac ctxt thms)) *}

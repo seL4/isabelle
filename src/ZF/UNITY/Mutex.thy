@@ -207,18 +207,18 @@ by (unfold op_Unless_def Mutex_def, safety)
 
 lemma U_F1:
      "Mutex \<in> {s \<in> state. s`m=#1} LeadsTo {s \<in> state. s`p = s`v & s`m = #2}"
-by (unfold Mutex_def, ensures_tac U1)
+by (unfold Mutex_def, ensures U1)
 
 lemma U_F2: "Mutex \<in> {s \<in> state. s`p =0 & s`m = #2} LeadsTo {s \<in> state. s`m = #3}"
 apply (cut_tac IU)
-apply (unfold Mutex_def, ensures_tac U2)
+apply (unfold Mutex_def, ensures U2)
 done
 
 lemma U_F3: "Mutex \<in> {s \<in> state. s`m = #3} LeadsTo {s \<in> state. s`p=1}"
 apply (rule_tac B = "{s \<in> state. s`m = #4}" in LeadsTo_Trans)
  apply (unfold Mutex_def)
- apply (ensures_tac U3)
-apply (ensures_tac U4)
+ apply (ensures U3)
+apply (ensures U4)
 done
 
 
@@ -258,18 +258,18 @@ lemma V_F0: "Mutex \<in> {s \<in> state. s`n=#2} Unless {s \<in> state. s`n=#3}"
 by (unfold op_Unless_def Mutex_def, safety)
 
 lemma V_F1: "Mutex \<in> {s \<in> state. s`n=#1} LeadsTo {s \<in> state. s`p = not(s`u) & s`n = #2}"
-by (unfold Mutex_def, ensures_tac "V1")
+by (unfold Mutex_def, ensures "V1")
 
 lemma V_F2: "Mutex \<in> {s \<in> state. s`p=1 & s`n = #2} LeadsTo {s \<in> state. s`n = #3}"
 apply (cut_tac IV)
-apply (unfold Mutex_def, ensures_tac "V2")
+apply (unfold Mutex_def, ensures "V2")
 done
 
 lemma V_F3: "Mutex \<in> {s \<in> state. s`n = #3} LeadsTo {s \<in> state. s`p=0}"
 apply (rule_tac B = "{s \<in> state. s`n = #4}" in LeadsTo_Trans)
  apply (unfold Mutex_def)
- apply (ensures_tac V3)
-apply (ensures_tac V4)
+ apply (ensures V3)
+apply (ensures V4)
 done
 
 lemma V_lemma2: "Mutex \<in> {s \<in> state. s`n = #2} LeadsTo {s \<in> state. s`p=0}"

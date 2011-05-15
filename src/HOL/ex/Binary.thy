@@ -180,7 +180,7 @@ method_setup binary_simp = {*
           @{simproc binary_nat_diff},
           @{simproc binary_nat_div},
           @{simproc binary_nat_mod}]))))
-*} "binary simplification"
+*}
 
 
 subsection {* Concrete syntax *}

@@ -803,7 +803,7 @@ fun split_idle_tac ctxt =
 method_setup split_idle = {*
   Method.sections (Simplifier.simp_modifiers @ Splitter.split_modifiers)
     >> (K (SIMPLE_METHOD' o split_idle_tac))
-*} ""
+*}
 
 (* ----------------------------------------------------------------------
    Combine steps 1.2 and 1.4 to prove that the implementation satisfies

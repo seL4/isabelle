@@ -137,7 +137,7 @@ fun mk_ncanT_tac top_crls crls =
 
 method_setup ncanT = {*
   Scan.succeed (SIMPLE_METHOD' o mk_ncanT_tac @{thms case_rls} @{thms case_rls})
-*} ""
+*}
 
 lemma ifT:
   "[| b:Bool; b=true ==> t:A(true); b=false ==> u:A(false) |] ==>
@@ -278,7 +278,7 @@ lemmas icanTs = zeroT succT nilT consT
 
 method_setup incanT = {*
   Scan.succeed (SIMPLE_METHOD' o mk_ncanT_tac @{thms icase_rls} @{thms case_rls})
-*} ""
+*}
 
 lemma ncaseT:
   "[| n:Nat; n=zero ==> b:C(zero); !!x.[| x:Nat;  n=succ(x) |] ==> c(x):C(succ(x)) |]
@@ -400,9 +400,7 @@ ML {*
     fast_tac (ctxt addIs (mono RS @{thm coinduct3_mono_lemma} RS @{thm lfpI}) :: prems) 1);
 *}
 
-method_setup coinduct3 = {*
-  Scan.succeed (SIMPLE_METHOD' o coinduct3_tac)
-*} ""
+method_setup coinduct3 = {* Scan.succeed (SIMPLE_METHOD' o coinduct3_tac) *}
 
 lemma ci3_RI: "[| mono(Agen);  a : R |] ==> a : lfp(%x. Agen(x) Un R Un A)"
   by coinduct3
@@ -423,9 +421,9 @@ fun genIs_tac ctxt genXH gen_mono =
 *}
 
 method_setup genIs = {*
-  Attrib.thm -- Attrib.thm >> (fn (genXH, gen_mono) => fn ctxt =>
-    SIMPLE_METHOD' (genIs_tac ctxt genXH gen_mono))
-*} ""
+  Attrib.thm -- Attrib.thm >>
+    (fn (genXH, gen_mono) => fn ctxt => SIMPLE_METHOD' (genIs_tac ctxt genXH gen_mono))
+*}
 
 
 subsection {* POgen *}

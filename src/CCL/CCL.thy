@@ -205,7 +205,7 @@ ML {*
 
 method_setup inj_rl = {*
   Attrib.thms >> (fn rews => fn ctxt => SIMPLE_METHOD' (inj_rl_tac ctxt rews))
-*} ""
+*}
 
 lemma ccl_injs:
   "<a,b> = <a',b'> <-> (a=a' & b=b')"

@@ -205,7 +205,7 @@ method_setup beta_rl = {*
   Scan.succeed (fn ctxt =>
     SIMPLE_METHOD' (CHANGED o
       simp_tac (simpset_of ctxt addsimps @{thms rawBs} setloop (stac @{thm letrecB}))))
-*} ""
+*}
 
 lemma ifBtrue: "if true then t else u = t"
   and ifBfalse: "if false then t else u = u"

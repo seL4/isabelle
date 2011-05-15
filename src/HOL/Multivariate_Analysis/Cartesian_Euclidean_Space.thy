@@ -108,7 +108,7 @@ let
  in
   Attrib.thms >> (fn ths => K (SIMPLE_METHOD' (vector_arith_tac ths)))
  end
-*} "Lifts trivial vector statements to real arith statements"
+*} "lift trivial vector statements to real arith statements"
 
 lemma vec_0[simp]: "vec 0 = 0" by (vector vector_zero_def)
 lemma vec_1[simp]: "vec 1 = 1" by (vector vector_one_def)

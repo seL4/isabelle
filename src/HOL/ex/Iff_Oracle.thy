@@ -56,7 +56,7 @@ method_setup iff = {*
     SIMPLE_METHOD
       (HEADGOAL (rtac (iff_oracle (Proof_Context.theory_of ctxt, n)))
         handle Fail _ => no_tac))
-*} "iff oracle"
+*}
 
 
 lemma "A <-> A"

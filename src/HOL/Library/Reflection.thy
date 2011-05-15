@@ -41,6 +41,6 @@ in
       val raw_eqs = eqs@ceqs
     in SIMPLE_METHOD' (Reflection.reflection_tac ctxt corr_thms raw_eqs to) end)
 end
-*} "reflection"
+*}
 
 end

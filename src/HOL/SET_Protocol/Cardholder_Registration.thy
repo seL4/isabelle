@@ -541,7 +541,7 @@ method_setup valid_certificate_tac = {*
       EVERY [ftac @{thm Gets_certificate_valid} i,
              assume_tac i,
              etac conjE i, REPEAT (hyp_subst_tac i)])))
-*} ""
+*}
 
 text{*The @{text "(no_asm)"} attribute is essential, since it retains
   the quantifier and allows the simprule's condition to itself be simplified.*}

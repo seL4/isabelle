@@ -73,7 +73,7 @@ ML {*
 
 method_setup case_tac = {*
   Args.goal_spec -- Scan.lift Args.name_source >>
-  (fn (quant, s) => fn ctxt => SIMPLE_METHOD'' quant (case_tac ctxt s))
+    (fn (quant, s) => fn ctxt => SIMPLE_METHOD'' quant (case_tac ctxt s))
 *} "case_tac emulation (dynamic instantiation!)"
 
 

@@ -484,7 +484,7 @@ method_setup valid_certificate_tac = {*
     K (SIMPLE_METHOD'' quant (fn i =>
       EVERY [ftac @{thm Gets_certificate_valid} i,
              assume_tac i, REPEAT (hyp_subst_tac i)])))
-*} ""
+*}
 
 
 subsection{*Proofs on Symmetric Keys*}

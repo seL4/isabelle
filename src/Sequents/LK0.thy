@@ -225,25 +225,11 @@ fun lemma_tac th i =
     rtac (@{thm thinR} RS @{thm cut}) i THEN REPEAT (rtac @{thm thinL} i) THEN rtac th i;
 *}
 
-method_setup fast_prop =
-  {* Scan.succeed (K (SIMPLE_METHOD' (fast_tac prop_pack))) *}
-  "propositional reasoning"
-
-method_setup fast =
-  {* Scan.succeed (K (SIMPLE_METHOD' (fast_tac LK_pack))) *}
-  "classical reasoning"
-
-method_setup fast_dup =
-  {* Scan.succeed (K (SIMPLE_METHOD' (fast_tac LK_dup_pack))) *}
-  "classical reasoning"
-
-method_setup best =
-  {* Scan.succeed (K (SIMPLE_METHOD' (best_tac LK_pack))) *}
-  "classical reasoning"
-
-method_setup best_dup =
-  {* Scan.succeed (K (SIMPLE_METHOD' (best_tac LK_dup_pack))) *}
-  "classical reasoning"
+method_setup fast_prop = {* Scan.succeed (K (SIMPLE_METHOD' (fast_tac prop_pack))) *}
+method_setup fast = {* Scan.succeed (K (SIMPLE_METHOD' (fast_tac LK_pack))) *}
+method_setup fast_dup = {* Scan.succeed (K (SIMPLE_METHOD' (fast_tac LK_dup_pack))) *}
+method_setup best = {* Scan.succeed (K (SIMPLE_METHOD' (best_tac LK_pack))) *}
+method_setup best_dup = {* Scan.succeed (K (SIMPLE_METHOD' (best_tac LK_dup_pack))) *}
 
 
 lemma mp_R:

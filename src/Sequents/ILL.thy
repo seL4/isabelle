@@ -274,10 +274,10 @@ val power_cs = safe_cs add_unsafes [@{thm impr_contr_der}];
 
 
 method_setup best_safe =
-  {* Scan.succeed (K (SIMPLE_METHOD' (best_tac safe_cs))) *} ""
+  {* Scan.succeed (K (SIMPLE_METHOD' (best_tac safe_cs))) *}
 
 method_setup best_power =
-  {* Scan.succeed (K (SIMPLE_METHOD' (best_tac power_cs))) *} ""
+  {* Scan.succeed (K (SIMPLE_METHOD' (best_tac power_cs))) *}
 
 
 (* Some examples from Troelstra and van Dalen *)

@@ -610,6 +610,6 @@ fun abstraction_tac ctxt =
         ss addsimps [@{thm state_strengthening_def}, @{thm state_weakening_def}])))
 *}
 
-method_setup abstraction = {* Scan.succeed (SIMPLE_METHOD' o abstraction_tac) *} ""
+method_setup abstraction = {* Scan.succeed (SIMPLE_METHOD' o abstraction_tac) *}
 
 end

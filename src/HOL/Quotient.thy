@@ -728,36 +728,36 @@ subsection {* Methods / Interface *}
 method_setup lifting =
   {* Attrib.thms >> (fn thms => fn ctxt => 
        SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.lift_tac ctxt [] thms))) *}
-  {* lifts theorems to quotient types *}
+  {* lift theorems to quotient types *}
 
 method_setup lifting_setup =
   {* Attrib.thm >> (fn thm => fn ctxt => 
        SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.lift_procedure_tac ctxt [] thm))) *}
-  {* sets up the three goals for the quotient lifting procedure *}
+  {* set up the three goals for the quotient lifting procedure *}
 
 method_setup descending =
   {* Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.descend_tac ctxt []))) *}
-  {* decends theorems to the raw level *}
+  {* decend theorems to the raw level *}
 
 method_setup descending_setup =
   {* Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.descend_procedure_tac ctxt []))) *}
-  {* sets up the three goals for the decending theorems *}
+  {* set up the three goals for the decending theorems *}
 
 method_setup regularize =
   {* Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.regularize_tac ctxt))) *}
-  {* proves the regularization goals from the quotient lifting procedure *}
+  {* prove the regularization goals from the quotient lifting procedure *}
 
 method_setup injection =
   {* Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.all_injection_tac ctxt))) *}
-  {* proves the rep/abs injection goals from the quotient lifting procedure *}
+  {* prove the rep/abs injection goals from the quotient lifting procedure *}
 
 method_setup cleaning =
   {* Scan.succeed (fn ctxt => SIMPLE_METHOD (HEADGOAL (Quotient_Tacs.clean_tac ctxt))) *}
-  {* proves the cleaning goals from the quotient lifting procedure *}
+  {* prove the cleaning goals from the quotient lifting procedure *}
 
 attribute_setup quot_lifted =
   {* Scan.succeed Quotient_Tacs.lifted_attrib *}
-  {* lifts theorems to quotient types *}
+  {* lift theorems to quotient types *}
 
 no_notation
   rel_conj (infixr "OOO" 75) and

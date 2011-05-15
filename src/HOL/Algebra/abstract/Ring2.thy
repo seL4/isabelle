@@ -218,9 +218,9 @@ val ring_ss = HOL_basic_ss settermless termless_ring addsimps
    @{thm r_distr}, @{thm l_null}, @{thm r_null}, @{thm l_minus}, @{thm r_minus}];
 *}   (* Note: r_one is not necessary in ring_ss *)
 
-method_setup ring =
-  {* Scan.succeed (K (SIMPLE_METHOD' (full_simp_tac ring_ss))) *}
-  {* computes distributive normal form in rings *}
+method_setup ring = {*
+  Scan.succeed (K (SIMPLE_METHOD' (full_simp_tac ring_ss)))
+*} "compute distributive normal form in rings"
 
 
 subsection {* Rings and the summation operator *}

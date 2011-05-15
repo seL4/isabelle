@@ -13,19 +13,19 @@ text {*
 
 method_setup depth_solve = {*
   Attrib.thms >> (fn thms => K (METHOD (fn facts =>
-  (DEPTH_SOLVE (HEADGOAL (ares_tac (facts @ thms)))))))
-*} ""
+    (DEPTH_SOLVE (HEADGOAL (ares_tac (facts @ thms)))))))
+*}
 
 method_setup depth_solve1 = {*
   Attrib.thms >> (fn thms => K (METHOD (fn facts =>
-  (DEPTH_SOLVE_1 (HEADGOAL (ares_tac (facts @ thms)))))))
-*} ""
+    (DEPTH_SOLVE_1 (HEADGOAL (ares_tac (facts @ thms)))))))
+*}
 
 method_setup strip_asms =  {*
   Attrib.thms >> (fn thms => K (METHOD (fn facts =>
     REPEAT (resolve_tac [@{thm strip_b}, @{thm strip_s}] 1 THEN
     DEPTH_SOLVE_1 (ares_tac (facts @ thms) 1)))))
-*} ""
+*}
 
 
 subsection {* Simple types *}

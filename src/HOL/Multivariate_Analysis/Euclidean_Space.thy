@@ -321,7 +321,7 @@ lemma norm_pths:
 use "normarith.ML"
 
 method_setup norm = {* Scan.succeed (SIMPLE_METHOD' o NormArith.norm_arith_tac)
-*} "Proves simple linear statements about vector norms"
+*} "prove simple linear statements about vector norms"
 
 
 text{* Hence more metric properties. *}
