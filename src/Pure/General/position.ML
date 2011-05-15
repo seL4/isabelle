@@ -177,6 +177,7 @@ fun str_of pos =
       (case (line_of pos, file_of pos) of
         (SOME i, NONE) => "(line " ^ string_of_int i ^ ")"
       | (SOME i, SOME name) => "(line " ^ string_of_int i ^ " of " ^ quote name ^ ")"
+      | (NONE, SOME name) => "(" ^ quote name ^ ")"
       | _ => "");
   in
     if null props then ""

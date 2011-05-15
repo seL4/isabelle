@@ -61,7 +61,12 @@ end;
 (*override previous toplevel bindings!*)
 val use_text = Secure.use_text;
 val use_file = Secure.use_file;
-fun use s = Secure.use_file ML_Parse.global_context true s
-  handle ERROR msg => (writeln msg; error "ML error");
+
+fun use s =
+  Position.setmp_thread_data (Position.of_properties (Position.file_name s))
+    (fn () =>
+      Secure.use_file ML_Parse.global_context true s
+        handle ERROR msg => (writeln msg; error "ML error")) ();
+
 val toplevel_pp = Secure.toplevel_pp;
 

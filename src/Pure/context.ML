@@ -28,6 +28,7 @@ signature CONTEXT =
 sig
   include BASIC_CONTEXT
   (*theory context*)
+  val timing: bool Unsynchronized.ref
   type pretty
   val parents_of: theory -> theory list
   val ancestors_of: theory -> theory list
@@ -90,7 +91,7 @@ sig
   include CONTEXT
   structure Theory_Data:
   sig
-    val declare: Object.T -> (Object.T -> Object.T) ->
+    val declare: Position.T -> Object.T -> (Object.T -> Object.T) ->
       (pretty -> Object.T * Object.T -> Object.T) -> serial
     val get: serial -> (Object.T -> 'a) -> theory -> 'a
     val put: serial -> ('a -> Object.T) -> 'a -> theory -> theory
@@ -112,6 +113,8 @@ struct
 
 (* data kinds and access methods *)
 
+val timing = Unsynchronized.ref false;
+
 (*private copy avoids potential conflict of table exceptions*)
 structure Datatab = Table(type key = int val ord = int_ord);
 
@@ -120,27 +123,32 @@ datatype pretty = Pretty of Object.T;
 local
 
 type kind =
- {empty: Object.T,
+ {pos: Position.T,
+  empty: Object.T,
   extend: Object.T -> Object.T,
   merge: pretty -> Object.T * Object.T -> Object.T};
 
 val kinds = Unsynchronized.ref (Datatab.empty: kind Datatab.table);
 
-fun invoke f k =
+fun invoke name f k x =
   (case Datatab.lookup (! kinds) k of
-    SOME kind => f kind
+    SOME kind =>
+      if ! timing andalso name <> "" then
+        Timing.cond_timeit true ("Theory_Data." ^ name ^ Position.str_of (#pos kind))
+          (fn () => f kind x)
+      else f kind x
   | NONE => raise Fail "Invalid theory data identifier");
 
 in
 
-fun invoke_empty k = invoke (K o #empty) k ();
-val invoke_extend = invoke #extend;
-fun invoke_merge pp = invoke (fn kind => #merge kind pp);
+fun invoke_empty k = invoke "" (K o #empty) k ();
+val invoke_extend = invoke "extend" #extend;
+fun invoke_merge pp = invoke "merge" (fn kind => #merge kind pp);
 
-fun declare_theory_data empty extend merge =
+fun declare_theory_data pos empty extend merge =
   let
     val k = serial ();
-    val kind = {empty = empty, extend = extend, merge = merge};
+    val kind = {pos = pos, empty = empty, extend = extend, merge = merge};
     val _ = CRITICAL (fn () => Unsynchronized.change kinds (Datatab.update (k, kind)));
   in k end;
 
@@ -635,10 +643,12 @@ struct
 type T = Data.T;
 exception Data of T;
 
-val kind = Context.Theory_Data.declare
-  (Data Data.empty)
-  (fn Data x => Data (Data.extend x))
-  (fn pp => fn (Data x1, Data x2) => Data (Data.merge pp (x1, x2)));
+val kind =
+  Context.Theory_Data.declare
+    (Position.thread_data ())
+    (Data Data.empty)
+    (fn Data x => Data (Data.extend x))
+    (fn pp => fn (Data x1, Data x2) => Data (Data.merge pp (x1, x2)));
 
 val get = Context.Theory_Data.get kind (fn Data x => x);
 val put = Context.Theory_Data.put kind Data;
