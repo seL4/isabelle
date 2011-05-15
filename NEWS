@@ -58,6 +58,8 @@ syntax diagrams.
 
 *** HOL ***
 
+* Declare ext [intro] by default.  Rare INCOMPATIBILITY.
+
 * Finite_Set.thy: locale fun_left_comm uses point-free characterisation;
 interpretation proofs may need adjustment.  INCOMPATIBILITY.
 
