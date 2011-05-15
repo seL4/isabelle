@@ -336,8 +336,9 @@ fun print_methods thy =
   let
     val ctxt = Proof_Context.init_global thy;
     val meths = Methods.get thy;
-    fun prt_meth (name, (_, comment)) = Pretty.block
-      [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
+    fun prt_meth (name, (_, "")) = Pretty.str name
+      | prt_meth (name, (_, comment)) =
+          Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
   in
     [Pretty.big_list "methods:" (map prt_meth (Name_Space.extern_table ctxt meths))]
     |> Pretty.chunks |> Pretty.writeln

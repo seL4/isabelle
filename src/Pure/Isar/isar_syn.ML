@@ -327,12 +327,14 @@ val _ =
 
 val _ =
   Outer_Syntax.command "attribute_setup" "define attribute in ML" (Keyword.tag_ml Keyword.thy_decl)
-    (Parse.position Parse.name -- Parse.!!! (Parse.$$$ "=" |-- Parse.ML_source -- Parse.text)
+    (Parse.position Parse.name --
+        Parse.!!! (Parse.$$$ "=" |-- Parse.ML_source -- Scan.optional Parse.text "")
       >> (fn (name, (txt, cmt)) => Toplevel.theory (Attrib.attribute_setup name txt cmt)));
 
 val _ =
   Outer_Syntax.command "method_setup" "define proof method in ML" (Keyword.tag_ml Keyword.thy_decl)
-    (Parse.position Parse.name -- Parse.!!! (Parse.$$$ "=" |-- Parse.ML_source -- Parse.text)
+    (Parse.position Parse.name --
+        Parse.!!! (Parse.$$$ "=" |-- Parse.ML_source -- Scan.optional Parse.text "")
       >> (fn (name, (txt, cmt)) => Toplevel.theory (Method.method_setup name txt cmt)));
 
 val _ =

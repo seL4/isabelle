@@ -78,8 +78,9 @@ fun print_attributes thy =
   let
     val ctxt = Proof_Context.init_global thy;
     val attribs = Attributes.get thy;
-    fun prt_attr (name, (_, comment)) = Pretty.block
-      [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
+    fun prt_attr (name, (_, "")) = Pretty.str name
+      | prt_attr (name, (_, comment)) =
+          Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
   in
     [Pretty.big_list "attributes:" (map prt_attr (Name_Space.extern_table ctxt attribs))]
     |> Pretty.chunks |> Pretty.writeln

@@ -896,7 +896,7 @@ text {*
   \end{matharray}
 
   @{rail "
-    @@{command method_setup} @{syntax name} '=' @{syntax text} @{syntax text}
+    @@{command method_setup} @{syntax name} '=' @{syntax text} @{syntax text}?
     ;
   "}
 
