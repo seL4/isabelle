@@ -11,7 +11,6 @@ sig
   val apsnd3 : ('b -> 'd) -> 'a * 'b * 'c -> 'a * 'd * 'c
   val aptrd3 : ('c -> 'd) -> 'a * 'b * 'c -> 'a * 'b * 'd
   val find_indices : ('a -> bool) -> 'a list -> int list
-  val assert : bool -> unit
   (* mode *)
   datatype mode = Bool | Input | Output | Pair of mode * mode | Fun of mode * mode
   val eq_mode : mode * mode -> bool
@@ -188,8 +187,6 @@ fun map2_optional f (x :: xs) (y :: ys) = f x (SOME y) :: (map2_optional f xs ys
 
 fun find_indices f xs =
   map_filter (fn (i, true) => SOME i | (i, false) => NONE) (map_index (apsnd f) xs)
-
-fun assert check = if check then () else raise Fail "Assertion failed!"
 
 (* mode *)
 

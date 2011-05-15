@@ -114,7 +114,7 @@ fun flatten thy lookup_pred t (names, prems) =
       | NONE =>
         let
           val (vars, body) = strip_abs t
-          val _ = assert (fastype_of body = body_type (fastype_of body))
+          val _ = @{assert} (fastype_of body = body_type (fastype_of body))
           val absnames = Name.variant_list names (map fst vars)
           val frees = map2 (curry Free) absnames (map snd vars)
           val body' = subst_bounds (rev frees, body)
@@ -212,7 +212,7 @@ fun flatten thy lookup_pred t (names, prems) =
           let
             val (f, args) = strip_comb t
             val args = map (Pattern.eta_long []) args
-            val _ = assert (fastype_of t = body_type (fastype_of t))
+            val _ = @{assert} (fastype_of t = body_type (fastype_of t))
             val f' = lookup_pred f
             val Ts = case f' of
               SOME pred => (fst (split_last (binder_types (fastype_of pred))))
@@ -229,7 +229,7 @@ fun flatten thy lookup_pred t (names, prems) =
                       if (fastype_of t) = T then t
                       else
                         let
-                          val _ = assert (T =
+                          val _ = @{assert} (T =
                             (binder_types (fastype_of t) @ [@{typ bool}] ---> @{typ bool}))
                           fun mk_if T (b, t, e) =
                             Const (@{const_name If}, @{typ bool} --> T --> T --> T) $ b $ t $ e

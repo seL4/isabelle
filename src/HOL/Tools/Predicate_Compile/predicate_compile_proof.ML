@@ -29,8 +29,6 @@ fun print_tac options s =
 
 (** auxiliary **)
 
-fun assert b = if not b then raise Fail "Assertion failed" else warning "Assertion holds"
-
 datatype assertion = Max_number_of_subgoals of int
 fun assert_tac (Max_number_of_subgoals i) st =
   if (nprems_of st <= i) then Seq.single st
