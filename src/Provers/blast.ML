@@ -35,9 +35,6 @@ Known problems:
         "no DETERM" flag would prevent proofs failing here.
 *)
 
-(*Should be a type abbreviation?*)
-type netpair = (int*(bool*thm)) Net.net * (int*(bool*thm)) Net.net;
-
 signature BLAST_DATA =
 sig
   structure Classical: CLASSICAL
@@ -554,7 +551,7 @@ fun toTerm 0 _             = dummyVar
   | toTerm d (f $ u)       = Term.$ (toTerm d f, toTerm (d-1) u);
 
 
-fun netMkRules ctxt P vars (nps: netpair list) =
+fun netMkRules ctxt P vars (nps: Classical.netpair list) =
   case P of
       (Const ("*Goal*", _) $ G) =>
         let val pG = mk_Trueprop (toTerm 2 G)

@@ -18,11 +18,6 @@ infix 4 addSIs addSEs addSDs addIs addEs addDs delrules
   addSbefore addSafter addbefore addafter
   addD2 addE2 addSD2 addSE2;
 
-
-(*should be a type abbreviation in signature CLASSICAL*)
-type netpair = (int * (bool * thm)) Net.net * (int * (bool * thm)) Net.net;
-type wrapper = (int -> tactic) -> (int -> tactic);
-
 signature CLASSICAL_DATA =
 sig
   val imp_elim: thm  (* P --> Q ==> (~ R ==> P) ==> (Q ==> R) ==> R *)
@@ -35,21 +30,8 @@ end;
 
 signature BASIC_CLASSICAL =
 sig
+  type wrapper = (int -> tactic) -> int -> tactic
   type claset
-  val empty_cs: claset
-  val merge_cs: claset * claset -> claset
-  val rep_cs: claset ->
-   {safeIs: thm Item_Net.T,
-    safeEs: thm Item_Net.T,
-    hazIs: thm Item_Net.T,
-    hazEs: thm Item_Net.T,
-    swrappers: (string * (Proof.context -> wrapper)) list,
-    uwrappers: (string * (Proof.context -> wrapper)) list,
-    safe0_netpair: netpair,
-    safep_netpair: netpair,
-    haz_netpair: netpair,
-    dup_netpair: netpair,
-    xtra_netpair: Context_Rules.netpair}
   val print_claset: Proof.context -> unit
   val addDs: Proof.context * thm list -> Proof.context
   val addEs: Proof.context * thm list -> Proof.context
@@ -114,6 +96,19 @@ signature CLASSICAL =
 sig
   include BASIC_CLASSICAL
   val classical_rule: thm -> thm
+  type netpair = (int * (bool * thm)) Net.net * (int * (bool * thm)) Net.net
+  val rep_cs: claset ->
+   {safeIs: thm Item_Net.T,
+    safeEs: thm Item_Net.T,
+    hazIs: thm Item_Net.T,
+    hazEs: thm Item_Net.T,
+    swrappers: (string * (Proof.context -> wrapper)) list,
+    uwrappers: (string * (Proof.context -> wrapper)) list,
+    safe0_netpair: netpair,
+    safep_netpair: netpair,
+    haz_netpair: netpair,
+    dup_netpair: netpair,
+    xtra_netpair: Context_Rules.netpair}
   val get_cs: Context.generic -> claset
   val map_cs: (claset -> claset) -> Context.generic -> Context.generic
   val safe_dest: int option -> attribute
@@ -212,6 +207,9 @@ fun dup_elim th =  (* FIXME proper context!? *)
 
 
 (**** Classical rule sets ****)
+
+type netpair = (int * (bool * thm)) Net.net * (int * (bool * thm)) Net.net;
+type wrapper = (int -> tactic) -> int -> tactic;
 
 datatype claset =
   CS of
