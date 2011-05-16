@@ -205,9 +205,9 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
   }
 
 
-  /* text_area_extension */
+  /* TextArea painters */
 
-  private val text_area_extension = new TextAreaExtension
+  private val background_painter = new TextAreaExtension
   {
     override def paintScreenLineRange(gfx: Graphics2D,
       first_line: Int, last_line: Int, physical_lines: Array[Int],
@@ -215,7 +215,6 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
     {
       Isabelle.swing_buffer_lock(model.buffer) {
         val snapshot = model.snapshot()
-        val saved_color = gfx.getColor
         val ascent = text_area.getPainter.getFontMetrics.getAscent
 
         for (i <- 0 until physical_lines.length) {
@@ -309,10 +308,7 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
     }
   }
 
-
-  /* gutter_extension */
-
-  private val gutter_extension = new TextAreaExtension
+  private val gutter_painter = new TextAreaExtension
   {
     override def paintScreenLineRange(gfx: Graphics2D,
       first_line: Int, last_line: Int, physical_lines: Array[Int],
@@ -479,12 +475,12 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
 
   private def activate()
   {
-    text_area.getPainter.
-      addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, text_area_extension)
-    text_area.getGutter.addExtension(gutter_extension)
+    val painter = text_area.getPainter
+    painter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, background_painter)
+    text_area.getGutter.addExtension(gutter_painter)
     text_area.addFocusListener(focus_listener)
     text_area.getView.addWindowListener(window_listener)
-    text_area.getPainter.addMouseMotionListener(mouse_motion_listener)
+    painter.addMouseMotionListener(mouse_motion_listener)
     text_area.addCaretListener(caret_listener)
     text_area.addLeftOfScrollBar(overview)
     session.commands_changed += main_actor
@@ -493,15 +489,16 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
 
   private def deactivate()
   {
+    val painter = text_area.getPainter
     session.commands_changed -= main_actor
     session.global_settings -= main_actor
     text_area.removeFocusListener(focus_listener)
     text_area.getView.removeWindowListener(window_listener)
-    text_area.getPainter.removeMouseMotionListener(mouse_motion_listener)
+    painter.removeMouseMotionListener(mouse_motion_listener)
     text_area.removeCaretListener(caret_listener)
     text_area.removeLeftOfScrollBar(overview)
-    text_area.getGutter.removeExtension(gutter_extension)
-    text_area.getPainter.removeExtension(text_area_extension)
+    text_area.getGutter.removeExtension(gutter_painter)
+    painter.removeExtension(background_painter)
     exit_popup()
   }
 }
