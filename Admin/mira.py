@@ -245,9 +245,7 @@ def AFP_images(*args):
     """Isabelle images needed for the AFP"""
     return isabelle_dependency_only(*args)
 
-@configuration(repos = [Isabelle], deps = [
-    (AFP_images, [0])
-  ])
+@configuration(repos = [Isabelle], deps = [])
 def Isabelle_makeall(*args):
     """Isabelle makeall"""
     return isabelle_makeall(*args)
