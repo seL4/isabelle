@@ -289,37 +289,37 @@ def invoke_mutabelle(theory, env, case, paths, dep_paths, playground):
       {'mutabelle_results': {theory: mutabelle_data}},
       {'log': log, 'mutabelle_log': mutabelle_log}, None)
 
-@configuration(repos = [Isabelle], deps = [(HOL, [0])])
+@configuration(repos = [Isabelle], deps = [(Isabelle_makeall, [0])])
 def Mutabelle_Relation(*args):
     """Mutabelle regression suite on Relation theory"""
     return invoke_mutabelle('Relation', *args)
 
-@configuration(repos = [Isabelle], deps = [(HOL, [0])])
+@configuration(repos = [Isabelle], deps = [(Isabelle_makeall, [0])])
 def Mutabelle_List(*args):
     """Mutabelle regression suite on List theory"""
     return invoke_mutabelle('List', *args)
 
-@configuration(repos = [Isabelle], deps = [(HOL, [0])])
+@configuration(repos = [Isabelle], deps = [(Isabelle_makeall, [0])])
 def Mutabelle_Set(*args):
     """Mutabelle regression suite on Set theory"""
     return invoke_mutabelle('Set', *args)
 
-@configuration(repos = [Isabelle], deps = [(HOL, [0])])
+@configuration(repos = [Isabelle], deps = [(Isabelle_makeall, [0])])
 def Mutabelle_Map(*args):
     """Mutabelle regression suite on Map theory"""
     return invoke_mutabelle('Map', *args)
 
-@configuration(repos = [Isabelle], deps = [(HOL, [0])])
+@configuration(repos = [Isabelle], deps = [(Isabelle_makeall, [0])])
 def Mutabelle_Divides(*args):
     """Mutabelle regression suite on Divides theory"""
     return invoke_mutabelle('Divides', *args)
 
-@configuration(repos = [Isabelle], deps = [(HOL, [0])])
+@configuration(repos = [Isabelle], deps = [(Isabelle_makeall, [0])])
 def Mutabelle_MacLaurin(*args):
     """Mutabelle regression suite on MacLaurin theory"""
     return invoke_mutabelle('MacLaurin', *args)
 
-@configuration(repos = [Isabelle], deps = [(HOL, [0])])
+@configuration(repos = [Isabelle], deps = [(Isabelle_makeall, [0])])
 def Mutabelle_Fun(*args):
     """Mutabelle regression suite on Fun theory"""
     return invoke_mutabelle('Fun', *args)
@@ -376,22 +376,22 @@ def judgement_day(base_path, theory, opts, env, case, paths, dep_paths, playgrou
     return (some_success, '', data, raw_attachments, None)
 
 
-@configuration(repos = [Isabelle], deps = [(HOL, [0])])
+@configuration(repos = [Isabelle], deps = [(Isabelle_makeall, [0])])
 def JD_NS(*args):
     """Judgement Day regression suite NS"""
     return judgement_day('Isabelle/src/HOL/Auth', 'NS_Shared', 'prover_timeout=10', *args)
 
-@configuration(repos = [Isabelle], deps = [(HOL, [0])])
+@configuration(repos = [Isabelle], deps = [(Isabelle_makeall, [0])])
 def JD_FTA(*args):
     """Judgement Day regression suite FTA"""
     return judgement_day('Isabelle/src/HOL/Library', 'Fundamental_Theorem_Algebra', 'prover_timeout=10', *args)
 
-@configuration(repos = [Isabelle], deps = [(HOL, [0])])
+@configuration(repos = [Isabelle], deps = [(Isabelle_makeall, [0])])
 def JD_Hoare(*args):
     """Judgement Day regression suite Hoare"""
     return judgement_day('Isabelle/src/HOL/IMPP', 'Hoare', 'prover_timeout=10', *args)
 
-@configuration(repos = [Isabelle], deps = [(HOL, [0])])
+@configuration(repos = [Isabelle], deps = [(Isabelle_makeall, [0])])
 def JD_SN(*args):
     """Judgement Day regression suite SN"""
     return judgement_day('Isabelle/src/HOL/Proofs/Lambda', 'StrongNorm', 'prover_timeout=10', *args)
