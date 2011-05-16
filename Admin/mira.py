@@ -15,7 +15,7 @@ from util import Lazy
 from mira.report import Report, Report_Content
 from mira.case import Case
 from mira.tools import tool
-from mira import schedule
+from mira import schedule, misc
 from mira.environment import scheduler
 
 
@@ -181,6 +181,17 @@ def isabelle_make(subdir, env, case, paths, dep_paths, playground, usedir_option
 
 def isabelle_makeall(env, case, paths, dep_paths, playground, usedir_options=default_usedir_options,
   more_settings='', target='all', make_options=()):
+
+    # FIXME!?
+    if 'lxbroy10' in misc.hostnames():
+        make_options += ('-j', '8')
+        usedir_options += " -M 6 -q 2 -i false -d false"
+        more_settings += '''
+ML_PLATFORM="x86_64-linux"
+ML_HOME="/home/polyml/polyml-svn/x86_64-linux"
+ML_SYSTEM="polyml-5.4.1"
+ML_OPTIONS="-H 8000 --gcthreads 6"
+'''
 
     isabelle_home = paths[0]
     dep_path = dep_paths[0] if dep_paths else None
