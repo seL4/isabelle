@@ -21,8 +21,12 @@ from mira.environment import scheduler
 
 # build and evaluation tools
 
-def prepare_isabelle_repository(loc_isabelle, loc_contrib, loc_dependency_heaps, parallelism = True, more_settings=''):
+default_usedir_options = "$ISABELLE_USEDIR_OPTIONS -d pdf -g true -i true -t true"
 
+def prepare_isabelle_repository(loc_isabelle, loc_contrib, loc_dependency_heaps,
+  usedir_options=default_usedir_options, more_settings=''):
+
+    # prepare components
     loc_contrib = path.expanduser(loc_contrib)
     if not path.exists(loc_contrib):
         raise IOError('Bad file: %s' % loc_contrib)
@@ -40,26 +44,23 @@ def prepare_isabelle_repository(loc_isabelle, loc_contrib, loc_dependency_heaps,
             writer.write(component + '\n')
         writer.close()
 
+    # provide existing dependencies
     if loc_dependency_heaps:
         isabelle_path = loc_dependency_heaps + '/$ISABELLE_IDENTIFIER:$ISABELLE_OUTPUT'
     else:
         isabelle_path = '$ISABELLE_OUTPUT'
 
-    if parallelism:
-        parallelism_options = '-M max'
-    else:
-        parallelism_options = '-M 1 -q 0'
-
+    # patch settings
     extra_settings = '''
 ISABELLE_HOME_USER="$ISABELLE_HOME/home_user"
 ISABELLE_OUTPUT="$ISABELLE_HOME/heaps"
 ISABELLE_BROWSER_INFO="$ISABELLE_HOME/browser_info"
 ISABELLE_PATH="%s"
 
-ISABELLE_USEDIR_OPTIONS="$ISABELLE_USEDIR_OPTIONS %s -t true -v true -d pdf -g true -i true"
+ISABELLE_USEDIR_OPTIONS="%s"
 Z3_NON_COMMERCIAL="yes"
 %s
-''' % (isabelle_path, parallelism_options, more_settings)
+''' % (isabelle_path, usedir_options, more_settings)
 
     writer = open(path.join(loc_isabelle, 'etc', 'settings'), 'a')
     writer.write(extra_settings)
@@ -146,11 +147,13 @@ def isabelle_dependency_only(env, case, paths, dep_paths, playground):
     return (True, 'ok', {}, {}, result)
 
 
-def build_isabelle_image(subdir, base, img, env, case, paths, dep_paths, playground, more_settings=''):
+def build_isabelle_image(subdir, base, img, env, case, paths, dep_paths, playground,
+  usedir_options=default_usedir_options, more_settings=''):
 
     isabelle_home = paths[0]
     dep_path = dep_paths[0]
-    prepare_isabelle_repository(isabelle_home, env.settings.contrib, dep_path, more_settings=more_settings)
+    prepare_isabelle_repository(isabelle_home, env.settings.contrib, dep_path,
+      usedir_options=usedir_options, more_settings=more_settings)
     os.chdir(path.join(isabelle_home, 'src', subdir))
 
     (return_code, log) = isabelle_usedir(env, isabelle_home, '-b', base, img)
@@ -160,11 +163,13 @@ def build_isabelle_image(subdir, base, img, env, case, paths, dep_paths, playgro
       {'timing': extract_isabelle_run_timing(log)}, {'log': log}, result)
 
 
-def isabelle_make(subdir, env, case, paths, dep_paths, playground, more_settings='', target='all', keep_results=False):
+def isabelle_make(subdir, env, case, paths, dep_paths, playground, usedir_options=default_usedir_options,
+  more_settings='', target='all', keep_results=False):
 
     isabelle_home = paths[0]
     dep_path = dep_paths[0] if dep_paths else None
-    prepare_isabelle_repository(isabelle_home, env.settings.contrib, dep_path, more_settings=more_settings)
+    prepare_isabelle_repository(isabelle_home, env.settings.contrib, dep_path,
+      usedir_options=usedir_options, more_settings=more_settings)
     os.chdir(path.join(isabelle_home, subdir))
 
     (return_code, log) = env.run_process('%s/bin/isabelle' % isabelle_home, 'make', '-k', target)
@@ -174,11 +179,13 @@ def isabelle_make(subdir, env, case, paths, dep_paths, playground, more_settings
       {'timing': extract_isabelle_run_timing(log)}, {'log': log}, result)
 
 
-def isabelle_makeall(env, case, paths, dep_paths, playground, more_settings='', target='all', make_options=()):
+def isabelle_makeall(env, case, paths, dep_paths, playground, usedir_options=default_usedir_options,
+  more_settings='', target='all', make_options=()):
 
     isabelle_home = paths[0]
     dep_path = dep_paths[0] if dep_paths else None
-    prepare_isabelle_repository(isabelle_home, env.settings.contrib, dep_path, more_settings=more_settings)
+    prepare_isabelle_repository(isabelle_home, env.settings.contrib, dep_path,
+      usedir_options=usedir_options, more_settings=more_settings)
     os.chdir(isabelle_home)
 
     (return_code, log) = env.run_process('%s/bin/isabelle' % isabelle_home, 'makeall', '-k', *(make_options + (target,)))
