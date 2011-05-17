@@ -62,4 +62,9 @@ fun isabellep_tac ctxt max_secs =
    SOLVE_TIMEOUT max_secs "fastsimp" (ALLGOALS (fast_simp_tac ctxt))
 *}
 
+method_setup isabellep = {*
+  Scan.lift Parse.nat >>
+    (fn m => fn ctxt => SIMPLE_METHOD (isabellep_tac ctxt m))
+*} ""
+
 end
