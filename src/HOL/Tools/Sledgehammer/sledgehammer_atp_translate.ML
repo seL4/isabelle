@@ -16,11 +16,12 @@ sig
   datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
   datatype type_level =
     All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
+  datatype type_depth = Deep | Shallow
 
   datatype type_system =
     Simple_Types of type_level |
-    Preds of polymorphism * type_level |
-    Tags of polymorphism * type_level
+    Preds of polymorphism * type_level * type_depth |
+    Tags of polymorphism * type_level * type_depth
 
   type translated_formula
 
@@ -89,11 +90,12 @@ val sledgehammer_weak_prefix = "Sledgehammer:"
 datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
 datatype type_level =
   All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
+datatype type_depth = Deep | Shallow
 
 datatype type_system =
   Simple_Types of type_level |
-  Preds of polymorphism * type_level |
-  Tags of polymorphism * type_level
+  Preds of polymorphism * type_level * type_depth |
+  Tags of polymorphism * type_level * type_depth
 
 fun try_unsuffixes ss s =
   fold (fn s' => fn NONE => try (unsuffix s') s | some => some) ss NONE
@@ -116,33 +118,42 @@ fun type_sys_from_string s =
             case try_unsuffixes ["!", "_bang"] s of
               SOME s => (Finite_Types, s)
             | NONE => (All_Types, s))
-  |> (fn (poly, (level, core)) =>
-         case (core, (poly, level)) of
-           ("simple_types", (NONE, level)) => Simple_Types level
-         | ("preds", (SOME Polymorphic, level)) =>
-           if level = All_Types then Preds (Polymorphic, level)
+  ||> apsnd (fn s =>
+                case try (unsuffix "_shallow") s of
+                  SOME s => (Shallow, s)
+                | NONE => (Deep, s))
+  |> (fn (poly, (level, (depth, core))) =>
+         case (core, (poly, level, depth)) of
+           ("simple_types", (NONE, level, Deep (* naja *))) =>
+           Simple_Types level
+         | ("preds", (SOME Polymorphic, level, depth)) =>
+           if level = All_Types then Preds (Polymorphic, level, depth)
            else raise Same.SAME
-         | ("preds", (SOME poly, level)) => Preds (poly, level)
-         | ("tags", (SOME Polymorphic, level)) =>
+         | ("preds", (SOME poly, level, depth)) => Preds (poly, level, depth)
+         | ("tags", (SOME Polymorphic, level, depth)) =>
            if level = All_Types orelse level = Finite_Types then
-             Tags (Polymorphic, level)
+             Tags (Polymorphic, level, depth)
            else
              raise Same.SAME
-         | ("tags", (SOME poly, level)) => Tags (poly, level)
-         | ("args", (SOME poly, All_Types (* naja *))) =>
-           Preds (poly, Const_Arg_Types)
-         | ("erased", (NONE, All_Types (* naja *))) =>
-           Preds (Polymorphic, No_Types)
+         | ("tags", (SOME poly, level, depth)) => Tags (poly, level, depth)
+         | ("args", (SOME poly, All_Types (* naja *), Deep (* naja *))) =>
+           Preds (poly, Const_Arg_Types, Shallow)
+         | ("erased", (NONE, All_Types (* naja *), Deep (* naja *))) =>
+           Preds (Polymorphic, No_Types, Shallow)
          | _ => raise Same.SAME)
   handle Same.SAME => error ("Unknown type system: " ^ quote s ^ ".")
 
 fun polymorphism_of_type_sys (Simple_Types _) = Mangled_Monomorphic
-  | polymorphism_of_type_sys (Preds (poly, _)) = poly
-  | polymorphism_of_type_sys (Tags (poly, _)) = poly
+  | polymorphism_of_type_sys (Preds (poly, _, _)) = poly
+  | polymorphism_of_type_sys (Tags (poly, _, _)) = poly
 
 fun level_of_type_sys (Simple_Types level) = level
-  | level_of_type_sys (Preds (_, level)) = level
-  | level_of_type_sys (Tags (_, level)) = level
+  | level_of_type_sys (Preds (_, level, _)) = level
+  | level_of_type_sys (Tags (_, level, _)) = level
+
+fun depth_of_type_sys (Simple_Types _) = Shallow
+  | depth_of_type_sys (Preds (_, _, depth)) = depth
+  | depth_of_type_sys (Tags (_, _, depth)) = depth
 
 fun is_type_level_virtually_sound level =
   level = All_Types orelse level = Nonmonotonic_Types
@@ -192,7 +203,7 @@ fun should_omit_type_args type_sys s =
   s <> type_pred_base andalso s <> type_tag_name andalso
   (s = @{const_name HOL.eq} orelse level_of_type_sys type_sys = No_Types orelse
    (case type_sys of
-      Tags (_, All_Types) => true
+      Tags (_, All_Types, _) => true
     | _ => polymorphism_of_type_sys type_sys <> Mangled_Monomorphic andalso
            member (op =) boring_consts s))
 
@@ -486,11 +497,11 @@ fun should_encode_type _ _ All_Types _ = true
     exists (curry Type.raw_instance T) nonmono_Ts
   | should_encode_type _ _ _ _ = false
 
-fun should_predicate_on_type ctxt nonmono_Ts (Preds (_, level)) T =
+fun should_predicate_on_type ctxt nonmono_Ts (Preds (_, level, _)) T =
     should_encode_type ctxt nonmono_Ts level T
   | should_predicate_on_type _ _ _ _ = false
 
-fun should_tag_with_type ctxt nonmono_Ts (Tags (_, level)) T =
+fun should_tag_with_type ctxt nonmono_Ts (Tags (_, level, _)) T =
     should_encode_type ctxt nonmono_Ts level T
   | should_tag_with_type _ _ _ _ = false
 
@@ -1082,7 +1093,7 @@ fun prepare_atp_problem ctxt conj_sym_kind prem_kind type_sys explicit_apply
                                              type_sys)
                       (0 upto length helpers - 1 ~~ helpers)
                   |> (case type_sys of
-                        Tags (Polymorphic, level) =>
+                        Tags (Polymorphic, level, _) =>
                         is_type_level_partial level
                         ? cons (ti_ti_helper_fact ())
                       | _ => I)),
