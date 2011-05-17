@@ -975,7 +975,7 @@ proof -
       finally have "Q0 \<inter> {x\<in>space M. f x \<noteq> \<infinity>} \<in> null_sets" by simp }
     from this[OF borel(1) refl] this[OF borel(2) f]
     have "Q0 \<inter> {x\<in>space M. f x \<noteq> \<infinity>} \<in> null_sets" "Q0 \<inter> {x\<in>space M. f' x \<noteq> \<infinity>} \<in> null_sets" by simp_all
-    then show "(Q0 \<inter> {x\<in>space M. f x \<noteq> \<infinity>}) \<union> (Q0 \<inter> {x\<in>space M. f' x \<noteq> \<infinity>}) \<in> null_sets" by (rule null_sets_Un)
+    then show "(Q0 \<inter> {x\<in>space M. f x \<noteq> \<infinity>}) \<union> (Q0 \<inter> {x\<in>space M. f' x \<noteq> \<infinity>}) \<in> null_sets" by (rule nullsets.Un)
     show "{x \<in> space M. ?f Q0 x \<noteq> ?f' Q0 x} \<subseteq>
       (Q0 \<inter> {x\<in>space M. f x \<noteq> \<infinity>}) \<union> (Q0 \<inter> {x\<in>space M. f' x \<noteq> \<infinity>})" by (auto simp: indicator_def)
   qed

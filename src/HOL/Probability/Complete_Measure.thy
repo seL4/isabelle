@@ -144,7 +144,7 @@ proof -
   have "(\<Union>i. S i) \<in> sets completion" using S by auto
   from null_part[OF this] guess N' .. note N' = this
   let ?N = "(\<Union>i. N i) \<union> N'"
-  have null_set: "?N \<in> null_sets" using N' UN_N by (intro null_sets_Un) auto
+  have null_set: "?N \<in> null_sets" using N' UN_N by (intro nullsets.Un) auto
   have "main_part (\<Union>i. S i) \<union> ?N = (main_part (\<Union>i. S i) \<union> null_part (\<Union>i. S i)) \<union> ?N"
     using N' by auto
   also have "\<dots> = (\<Union>i. main_part (S i) \<union> null_part (S i)) \<union> ?N"
@@ -212,7 +212,7 @@ proof -
   from choice[OF this] obtain N where
     N: "\<And>x. null_part (?F x) \<subseteq> N x" "\<And>x. N x \<in> null_sets" by auto
   let ?N = "\<Union>x\<in>f`space M. N x" let "?f' x" = "if x \<in> ?N then undefined else f x"
-  have sets: "?N \<in> null_sets" using N fin by (intro null_sets_finite_UN) auto
+  have sets: "?N \<in> null_sets" using N fin by (intro nullsets.finite_UN) auto
   show ?thesis unfolding simple_function_def
   proof (safe intro!: exI[of _ ?f'])
     have "?f' ` space M \<subseteq> f`space M \<union> {undefined}" by auto

@@ -917,8 +917,9 @@ proof (rule measure_space.equality)
     with i show "A \<in> sigma_sets ?O ?G"
       by (intro sigma_sets.Basic UN_I[where a="{i}"]) auto
   qed
-  finally show "sets (Pi\<^isub>P I M) = sets ?S"
+  also have "\<dots> = sets ?S"
     by (simp add: sets_sigma)
+  finally show "sets (Pi\<^isub>P I M) = sets ?S" .
 qed simp_all
 
 lemma (in product_prob_space) measurable_into_infprod_algebra:

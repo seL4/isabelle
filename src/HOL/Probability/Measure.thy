@@ -552,16 +552,20 @@ section "@{text \<mu>}-null sets"
 
 abbreviation (in measure_space) "null_sets \<equiv> {N\<in>sets M. \<mu> N = 0}"
 
-lemma (in measure_space) null_sets_Un[intro]:
-  assumes "N \<in> null_sets" "N' \<in> null_sets"
-  shows "N \<union> N' \<in> null_sets"
-proof (intro conjI CollectI)
-  show "N \<union> N' \<in> sets M" using assms by auto
-  then have "0 \<le> \<mu> (N \<union> N')" by simp
-  moreover have "\<mu> (N \<union> N') \<le> \<mu> N + \<mu> N'"
-    using assms by (intro measure_subadditive) auto
-  ultimately show "\<mu> (N \<union> N') = 0" using assms by auto
-qed
+sublocale measure_space \<subseteq> nullsets!: ring_of_sets "\<lparr> space = space M, sets = null_sets \<rparr>"
+  where "space \<lparr> space = space M, sets = null_sets \<rparr> = space M"
+  and "sets \<lparr> space = space M, sets = null_sets \<rparr> = null_sets"
+proof -
+  { fix A B assume sets: "A \<in> sets M" "B \<in> sets M"
+    moreover then have "\<mu> (A \<union> B) \<le> \<mu> A + \<mu> B" "\<mu> (A - B) \<le> \<mu> A"
+      by (auto intro!: measure_subadditive measure_mono)
+    moreover assume "\<mu> B = 0" "\<mu> A = 0"
+    ultimately have "\<mu> (A - B) = 0" "\<mu> (A \<union> B) = 0"
+      by (auto intro!: antisym) }
+  note null = this
+  show "ring_of_sets \<lparr> space = space M, sets = null_sets \<rparr>"
+    by default (insert sets_into_space null, auto)
+qed simp_all
 
 lemma UN_from_nat: "(\<Union>i. N i) = (\<Union>i. N (Countable.from_nat i))"
 proof -
@@ -581,17 +585,6 @@ proof (intro conjI CollectI)
     unfolding UN_from_nat[of N]
     using assms by (intro measure_countably_subadditive) auto
   ultimately show "\<mu> (\<Union>i. N i) = 0" using assms by auto
-qed
-
-lemma (in measure_space) null_sets_finite_UN:
-  assumes "finite S" "\<And>i. i \<in> S \<Longrightarrow> A i \<in> null_sets"
-  shows "(\<Union>i\<in>S. A i) \<in> null_sets"
-proof (intro CollectI conjI)
-  show "(\<Union>i\<in>S. A i) \<in> sets M" using assms by (intro finite_UN) auto
-  then have "0 \<le> \<mu> (\<Union>i\<in>S. A i)" by simp
-  moreover have "\<mu> (\<Union>i\<in>S. A i) \<le> (\<Sum>i\<in>S. \<mu> (A i))"
-    using assms by (intro measure_finitely_subadditive) auto
-  ultimately show "\<mu> (\<Union>i\<in>S. A i) = 0" using assms by auto
 qed
 
 lemma (in measure_space) null_set_Int1:
