@@ -180,7 +180,7 @@ fun formula_fold pos f =
       | aux pos (AConn (AOr, phis)) = fold (aux pos) phis
       | aux _ (AConn (_, phis)) = fold (aux NONE) phis
       | aux pos (AAtom tm) = f pos tm
-  in aux (SOME pos) end
+  in aux pos end
 
 type translated_formula =
   {name: string,
@@ -196,16 +196,6 @@ fun update_combformula f ({name, locality, kind, combformula, atomic_types}
 
 fun fact_lift f ({combformula, ...} : translated_formula) = f combformula
 
-val boring_consts = [explicit_app_base, @{const_name Metis.fequal}]
-
-fun should_omit_type_args type_sys s =
-  s <> type_pred_base andalso s <> type_tag_name andalso
-  (s = @{const_name HOL.eq} orelse level_of_type_sys type_sys = No_Types orelse
-   (case type_sys of
-      Tags (_, _, Thin) => false
-    | Tags (_, All_Types, Fat) => true
-    | _ => polymorphism_of_type_sys type_sys <> Mangled_Monomorphic andalso
-           member (op =) boring_consts s))
 
 (* The Booleans indicate whether all type arguments should be kept. *)
 datatype type_arg_policy =
@@ -225,9 +215,8 @@ fun general_type_arg_policy type_sys =
   else
     Explicit_Type_Args (should_drop_arg_type_args type_sys)
 
-fun type_arg_policy type_sys s =
-  if should_omit_type_args type_sys s then No_Type_Args
-  else general_type_arg_policy type_sys
+fun type_arg_policy _ @{const_name HOL.eq} = No_Type_Args
+  | type_arg_policy type_sys _ = general_type_arg_policy type_sys
 
 fun atp_type_literals_for_types type_sys kind Ts =
   if level_of_type_sys type_sys = No_Types then
@@ -499,11 +488,11 @@ fun should_encode_type _ _ All_Types _ = true
     exists (curry Type.raw_instance T) nonmono_Ts
   | should_encode_type _ _ _ _ = false
 
-fun should_predicate_on_type ctxt nonmono_Ts (Preds (_, level, thinness)) T =
-    (case thinness of
-       Thin => should_encode_type ctxt nonmono_Ts level T (* FIXME *)
-     | Fat => should_encode_type ctxt nonmono_Ts level T)
-  | should_predicate_on_type _ _ _ _ = false
+fun should_predicate_on_type ctxt nonmono_Ts (Preds (_, level, thinness))
+                             should_predicate_on_var T =
+     (thinness = Fat orelse should_predicate_on_var ()) andalso
+     should_encode_type ctxt nonmono_Ts level T
+  | should_predicate_on_type _ _ _ _ _ = false
 
 datatype tag_site = Top_Level | Eq_Arg | Elsewhere
 
@@ -557,7 +546,7 @@ fun add_combterm_syms_to_table explicit_apply =
       end
   in aux true end
 fun add_fact_syms_to_table explicit_apply =
-  fact_lift (formula_fold true (K (add_combterm_syms_to_table explicit_apply)))
+  fact_lift (formula_fold NONE (K (add_combterm_syms_to_table explicit_apply)))
 
 val default_sym_table_entries : (string * sym_info) list =
   [("equal", {pred_sym = true, min_ary = 2, max_ary = 2, typ = NONE}),
@@ -635,7 +624,13 @@ fun chop_fun 0 T = ([], T)
 
 fun filter_type_args _ _ _ [] = []
   | filter_type_args thy s arity T_args =
-    let val U = s |> Sign.the_const_type thy (* may throw "TYPE" *) in
+    let
+      (* will throw "TYPE" for pseudo-constants *)
+      val U = if s = explicit_app_base then
+                @{typ "('a => 'b) => 'a => 'b"} |> Logic.varifyT_global
+              else
+                s |> Sign.the_const_type thy
+    in
       case Term.add_tvarsT (U |> chop_fun arity |> snd) [] of
         [] => []
       | res_U_vars =>
@@ -785,10 +780,16 @@ fun fo_literal_from_type_literal (TyLitVar (class, name)) =
 fun formula_from_fo_literal (pos, t) = AAtom t |> not pos ? mk_anot
 
 fun type_pred_combatom ctxt nonmono_Ts type_sys T tm =
-  CombApp (CombConst (`make_fixed_const type_pred_base, T --> @{typ bool}, [T]),
+  CombApp (CombConst (`make_fixed_const type_pred_base, T --> @{typ bool}, [T])
+           |> enforce_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys,
            tm)
-  |> enforce_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys
   |> AAtom
+
+fun var_occurs_naked_in_term name (ATerm ((s, _), tms)) accum =
+  accum orelse
+  (s = "equal" andalso member (op =) tms (ATerm (name, [])))
+fun var_occurs_naked_in_formula phi name =
+  formula_fold NONE (K (var_occurs_naked_in_term name)) phi false
 
 fun tag_with_type ctxt nonmono_Ts type_sys T tm =
   CombConst (`make_fixed_const type_tag_name, T --> T, [T])
@@ -815,27 +816,32 @@ and term_from_combterm ctxt nonmono_Ts type_sys site u =
           else
             I)
   end
-and formula_from_combformula ctxt nonmono_Ts type_sys =
+and formula_from_combformula ctxt nonmono_Ts type_sys should_predicate_on_var =
   let
     val do_bound_type =
       case type_sys of
         Simple_Types level =>
         SOME o mangled_type_name o homogenized_type ctxt nonmono_Ts level
       | _ => K NONE
-    fun do_out_of_bound_type (s, T) =
-      if should_predicate_on_type ctxt nonmono_Ts type_sys T then
-        type_pred_combatom ctxt nonmono_Ts type_sys T (CombVar (s, T))
+    fun do_out_of_bound_type phi (name, T) =
+      if should_predicate_on_type ctxt nonmono_Ts type_sys
+             (fn () => should_predicate_on_var phi name) T then
+        CombVar (name, T)
+        |> type_pred_combatom ctxt nonmono_Ts type_sys T
         |> do_formula |> SOME
       else
         NONE
     and do_formula (AQuant (q, xs, phi)) =
-        AQuant (q, xs |> map (apsnd (fn NONE => NONE
-                                      | SOME T => do_bound_type T)),
-                (if q = AForall then mk_ahorn else fold_rev (mk_aconn AAnd))
-                    (map_filter
-                         (fn (_, NONE) => NONE
-                           | (s, SOME T) => do_out_of_bound_type (s, T)) xs)
-                    (do_formula phi))
+        let val phi = phi |> do_formula in
+          AQuant (q, xs |> map (apsnd (fn NONE => NONE
+                                        | SOME T => do_bound_type T)),
+                  (if q = AForall then mk_ahorn else fold_rev (mk_aconn AAnd))
+                      (map_filter
+                           (fn (_, NONE) => NONE
+                             | (s, SOME T) =>
+                               do_out_of_bound_type phi (s, T)) xs)
+                      phi)
+        end
       | do_formula (AConn (c, phis)) = AConn (c, map do_formula phis)
       | do_formula (AAtom tm) =
         AAtom (term_from_combterm ctxt nonmono_Ts type_sys Top_Level tm)
@@ -850,6 +856,7 @@ fun formula_for_fact ctxt nonmono_Ts type_sys
   combformula
   |> close_combformula_universally
   |> formula_from_combformula ctxt nonmono_Ts type_sys
+                              var_occurs_naked_in_formula
   |> bound_atomic_types type_sys atomic_types
   |> close_formula_universally
 
@@ -900,6 +907,7 @@ fun formula_line_for_conjecture ctxt nonmono_Ts type_sys
         ({name, kind, combformula, ...} : translated_formula) =
   Formula (conjecture_prefix ^ name, kind,
            formula_from_combformula ctxt nonmono_Ts type_sys
+                                    var_occurs_naked_in_formula
                                     (close_combformula_universally combformula)
            |> close_formula_universally, NONE, NONE)
 
@@ -927,7 +935,10 @@ fun insert_type get_T x xs =
 fun should_declare_sym type_sys pred_sym s =
   not (String.isPrefix bound_var_prefix s) andalso s <> "equal" andalso
   not (String.isPrefix tptp_special_prefix s) andalso
-  ((case type_sys of Simple_Types _ => true | _ => false) orelse not pred_sym)
+  ((case type_sys of
+      Simple_Types _ => true
+    | Tags (_, _, Thin) => true
+    | _ => false) orelse not pred_sym)
 
 fun sym_decl_table_for_facts type_sys repaired_sym_tab (conjs, facts) =
   let
@@ -947,7 +958,7 @@ fun sym_decl_table_for_facts type_sys repaired_sym_tab (conjs, facts) =
         #> fold (add_combterm in_conj) args
       end
     fun add_fact in_conj =
-      fact_lift (formula_fold true (K (add_combterm in_conj)))
+      fact_lift (formula_fold NONE (K (add_combterm in_conj)))
   in
     Symtab.empty
     |> is_type_sys_fairly_sound type_sys
@@ -973,7 +984,7 @@ fun add_combterm_nonmonotonic_types _ _  (SOME false) _ = I
   | add_combterm_nonmonotonic_types _ _ _ _ = I
 fun add_fact_nonmonotonic_types ctxt level ({kind, combformula, ...}
                                             : translated_formula) =
-  formula_fold (kind <> Conjecture)
+  formula_fold (SOME (kind <> Conjecture))
                (add_combterm_nonmonotonic_types ctxt level) combformula
 fun add_nonmonotonic_types_for_facts ctxt type_sys facts =
   let val level = level_of_type_sys type_sys in
@@ -1022,7 +1033,7 @@ fun formula_line_for_pred_sym_decl ctxt conj_sym_kind nonmono_Ts type_sys n s j
              |> fold (curry (CombApp o swap)) bounds
              |> type_pred_combatom ctxt nonmono_Ts type_sys res_T
              |> mk_aquant AForall (bound_names ~~ bound_Ts)
-             |> formula_from_combformula ctxt nonmono_Ts type_sys
+             |> formula_from_combformula ctxt nonmono_Ts type_sys (K (K true))
              |> n > 1 ? bound_atomic_types type_sys (atyps_of T)
              |> close_formula_universally
              |> maybe_negate,
@@ -1030,7 +1041,7 @@ fun formula_line_for_pred_sym_decl ctxt conj_sym_kind nonmono_Ts type_sys n s j
   end
 
 fun formula_lines_for_tag_sym_decl ctxt nonmono_Ts type_sys n s
-                                   (j, (s', T_args, T, _, ary, _)) =
+                                   (j, (s', T_args, T, pred_sym, ary, _)) =
   let
     val ident_base =
       sym_decl_prefix ^ s ^ (if n > 1 then "_" ^ string_of_int j else "")
@@ -1040,9 +1051,9 @@ fun formula_lines_for_tag_sym_decl ctxt nonmono_Ts type_sys n s
     val bounds = bound_names |> map (fn name => ATerm (name, []))
     fun const args = ATerm ((s, s'), map fo_term_from_typ T_args @ args)
     val atomic_Ts = atyps_of T
-    fun eq tm1 tm2 =
-      ATerm (`I "equal", [tm1, tm2])
-      |> AAtom
+    fun eq tms =
+      (if pred_sym then AConn (AIff, map AAtom tms)
+       else AAtom (ATerm (`I "equal", tms)))
       |> bound_atomic_types type_sys atomic_Ts
       |> close_formula_universally
     val should_encode =
@@ -1053,7 +1064,7 @@ fun formula_lines_for_tag_sym_decl ctxt nonmono_Ts type_sys n s
     val add_formula_for_res =
       if should_encode res_T then
         cons (Formula (ident_base ^ "_res", Axiom,
-                       eq (tag_with res_T (const bounds)) (const bounds),
+                       eq [tag_with res_T (const bounds), const bounds],
                        NONE, NONE))
       else
         I
@@ -1063,16 +1074,16 @@ fun formula_lines_for_tag_sym_decl ctxt nonmono_Ts type_sys n s
           case chop k bounds of
             (bounds1, bound :: bounds2) =>
             cons (Formula (ident_base ^ "_arg" ^ string_of_int (k + 1), Axiom,
-                           eq (const (bounds1 @ tag_with arg_T bound ::
-                                      bounds2))
-                              (const bounds),
+                           eq [const (bounds1 @ tag_with arg_T bound ::
+                                      bounds2),
+                               const bounds],
                            NONE, NONE))
           | _ => raise Fail "expected nonempty tail"
         else
           I
       end
   in
-    [] |> add_formula_for_res
+    [] |> not pred_sym ? add_formula_for_res
        |> fold add_formula_for_arg (ary - 1 downto 0)
   end
 
@@ -1095,8 +1106,9 @@ fun problem_lines_for_sym_decls ctxt conj_sym_kind nonmono_Ts type_sys
         | _ => decls
       val n = length decls
       val decls =
-        decls |> filter (should_predicate_on_type ctxt nonmono_Ts type_sys
-                         o result_type_of_decl)
+        decls
+        |> filter (should_predicate_on_type ctxt nonmono_Ts type_sys (K true)
+                   o result_type_of_decl)
     in
       (0 upto length decls - 1, decls)
       |-> map2 (formula_line_for_pred_sym_decl ctxt conj_sym_kind nonmono_Ts
@@ -1222,7 +1234,7 @@ fun add_term_weights weight (ATerm (s, tms)) =
    not (String.isPrefix tptp_special_prefix s)) ? Symtab.default (s, weight)
   #> fold (add_term_weights weight) tms
 fun add_problem_line_weights weight (Formula (_, _, phi, _, _)) =
-    formula_fold true (K (add_term_weights weight)) phi
+    formula_fold NONE (K (add_term_weights weight)) phi
   | add_problem_line_weights _ _ = I
 
 fun add_conjectures_weights [] = I
