@@ -151,6 +151,10 @@ fun level_of_type_sys (Simple_Types level) = level
   | level_of_type_sys (Preds (_, level, _)) = level
   | level_of_type_sys (Tags (_, level, _)) = level
 
+fun depth_of_type_sys (Simple_Types _) = Deep
+  | depth_of_type_sys (Preds (_, _, depth)) = depth
+  | depth_of_type_sys (Tags (_, _, depth)) = depth
+
 fun is_type_level_virtually_sound level =
   level = All_Types orelse level = Nonmonotonic_Types
 val is_type_sys_virtually_sound =
@@ -159,9 +163,6 @@ val is_type_sys_virtually_sound =
 fun is_type_level_fairly_sound level =
   is_type_level_virtually_sound level orelse level = Finite_Types
 val is_type_sys_fairly_sound = is_type_level_fairly_sound o level_of_type_sys
-
-fun is_type_level_partial level =
-  level = Nonmonotonic_Types orelse level = Finite_Types
 
 fun formula_map f (AQuant (q, xs, phi)) = AQuant (q, xs, formula_map f phi)
   | formula_map f (AConn (c, phis)) = AConn (c, map (formula_map f) phis)
@@ -199,7 +200,8 @@ fun should_omit_type_args type_sys s =
   s <> type_pred_base andalso s <> type_tag_name andalso
   (s = @{const_name HOL.eq} orelse level_of_type_sys type_sys = No_Types orelse
    (case type_sys of
-      Tags (_, All_Types, Deep) => true
+      Tags (_, _, Shallow) => false
+    | Tags (_, All_Types, Deep) => true
     | _ => polymorphism_of_type_sys type_sys <> Mangled_Monomorphic andalso
            member (op =) boring_consts s))
 
@@ -209,13 +211,17 @@ datatype type_arg_policy =
   Mangled_Type_Args of bool |
   No_Type_Args
 
+fun should_drop_arg_type_args type_sys =
+  level_of_type_sys type_sys = All_Types andalso
+  depth_of_type_sys type_sys = Deep
+
 fun general_type_arg_policy type_sys =
   if level_of_type_sys type_sys = No_Types then
     No_Type_Args
   else if polymorphism_of_type_sys type_sys = Mangled_Monomorphic then
-    Mangled_Type_Args (is_type_sys_virtually_sound type_sys)
+    Mangled_Type_Args (should_drop_arg_type_args type_sys)
   else
-    Explicit_Type_Args (is_type_sys_virtually_sound type_sys)
+    Explicit_Type_Args (should_drop_arg_type_args type_sys)
 
 fun type_arg_policy type_sys s =
   if should_omit_type_args type_sys s then No_Type_Args
@@ -505,7 +511,12 @@ fun should_tag_with_type _ _ _ Top_Level _ _ = false
        Deep => should_encode_type ctxt nonmono_Ts level T
      | Shallow =>
        case (site, u) of
-         (Eq_Arg, CombVar _) => should_encode_type ctxt nonmono_Ts level T
+         (Eq_Arg, CombVar _) =>
+         let
+           (* This trick ensures that "If" helpers are not unduely tagged, while
+              "True_or_False" is correctly tagged. *)
+           val level' = if null nonmono_Ts then level else Nonmonotonic_Types
+         in should_encode_type ctxt nonmono_Ts level' T end
        | _ => false)
   | should_tag_with_type _ _ _ _ _ _ = false
 
@@ -654,7 +665,7 @@ fun enforce_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys =
                not (is_type_sys_virtually_sound type_sys) then
               T_args |> map (homogenized_type ctxt nonmono_Ts level)
                      |> (fn Ts => let val T = hd Ts --> nth Ts 1 in
-                                    (T --> T, tl Ts) (* ### FIXME: need tl? *)
+                                    (T --> T, tl Ts)
                                   end)
             else
               (T, T_args)
@@ -664,13 +675,14 @@ fun enforce_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys =
            | SOME s'' =>
              let
                val s'' = invert_const s''
-               fun filtered_T_args true = T_args
-                 | filtered_T_args false = filter_type_args thy s'' arity T_args
+               fun filtered_T_args false = T_args
+                 | filtered_T_args true = filter_type_args thy s'' arity T_args
              in
                case type_arg_policy type_sys s'' of
-                 Explicit_Type_Args keep_all => (name, filtered_T_args keep_all)
-               | Mangled_Type_Args keep_all =>
-                 (mangled_const_name (filtered_T_args keep_all) name, [])
+                 Explicit_Type_Args drop_args =>
+                 (name, filtered_T_args drop_args)
+               | Mangled_Type_Args drop_args =>
+                 (mangled_const_name (filtered_T_args drop_args) name, [])
                | No_Type_Args => (name, [])
              end)
           |> (fn (name, T_args) => CombConst (name, T, T_args))
@@ -1120,6 +1132,10 @@ fun tff_types_in_problem problem =
 fun decl_line_for_tff_type (s, s') =
   Decl (type_decl_prefix ^ ascii_of s, (s, s'), [], `I tptp_tff_type_of_types)
 
+fun should_add_ti_ti_helper (Tags (Polymorphic, level, Deep)) =
+    level = Nonmonotonic_Types orelse level = Finite_Types
+  | should_add_ti_ti_helper _ = false
+
 val type_declsN = "Types"
 val sym_declsN = "Symbol types"
 val factsN = "Relevant facts"
@@ -1162,11 +1178,8 @@ fun prepare_atp_problem ctxt conj_sym_kind prem_kind type_sys explicit_apply
        (helpersN, map (formula_line_for_fact ctxt helper_prefix nonmono_Ts
                                              type_sys)
                       (0 upto length helpers - 1 ~~ helpers)
-                  |> (case type_sys of
-                        Tags (Polymorphic, level, _) =>
-                        is_type_level_partial level (* ### FIXME *)
-                        ? cons (ti_ti_helper_fact ())
-                      | _ => I)),
+                  |> should_add_ti_ti_helper type_sys
+                     ? cons (ti_ti_helper_fact ())),
        (conjsN, map (formula_line_for_conjecture ctxt nonmono_Ts type_sys)
                     conjs),
        (free_typesN, formula_lines_for_free_types type_sys (facts @ conjs))]
