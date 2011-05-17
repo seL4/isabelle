@@ -456,12 +456,13 @@ fun higher_inst_const thy (c,T) =
       [] => false (*not a function type, OK*)
     | Ts => length (binder_types (Sign.the_const_type thy c)) <> length Ts;
 
-(*Returns false if any Vars in the theorem mention type bool.
-  Also rejects functions whose arguments are Booleans or other functions.*)
+(* Returns false if any Vars in the theorem mention type bool.
+   Also rejects functions whose arguments are Booleans or other functions. *)
 fun is_fol_term thy t =
-    Term.is_first_order ["all", @{const_name All}, @{const_name Ex}] t andalso
+    Term.is_first_order [@{const_name all}, @{const_name All},
+                         @{const_name Ex}] t andalso
     not (exists_subterm (fn Var (_, T) => has_bool T orelse has_fun T
-                           | _ => false) t orelse
+                          | _ => false) t orelse
          has_bool_arg_const t orelse
          exists_Const (higher_inst_const thy) t orelse
          has_meta_conn t);
