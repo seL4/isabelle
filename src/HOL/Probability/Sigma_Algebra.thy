@@ -1429,4 +1429,37 @@ lemma measurable_sigma_sigma:
   using sigma_algebra.measurable_subset[OF sigma_algebra_sigma[OF M], of N]
   using measurable_up_sigma[of M N] N by auto
 
+lemma (in sigma_algebra) measurable_Least:
+  assumes meas: "\<And>i::nat. {x\<in>space M. P i x} \<in> sets M"
+  shows "(\<lambda>x. LEAST j. P j x) -` A \<inter> space M \<in> sets M"
+proof -
+  { fix i have "(\<lambda>x. LEAST j. P j x) -` {i} \<inter> space M \<in> sets M"
+    proof cases
+      assume i: "(LEAST j. False) = i"
+      have "(\<lambda>x. LEAST j. P j x) -` {i} \<inter> space M =
+        {x\<in>space M. P i x} \<inter> (space M - (\<Union>j<i. {x\<in>space M. P j x})) \<union> (space M - (\<Union>i. {x\<in>space M. P i x}))"
+        by (simp add: set_eq_iff, safe)
+           (insert i, auto dest: Least_le intro: LeastI intro!: Least_equality)
+      with meas show ?thesis
+        by (auto intro!: Int)
+    next
+      assume i: "(LEAST j. False) \<noteq> i"
+      then have "(\<lambda>x. LEAST j. P j x) -` {i} \<inter> space M =
+        {x\<in>space M. P i x} \<inter> (space M - (\<Union>j<i. {x\<in>space M. P j x}))"
+      proof (simp add: set_eq_iff, safe)
+        fix x assume neq: "(LEAST j. False) \<noteq> (LEAST j. P j x)"
+        have "\<exists>j. P j x"
+          by (rule ccontr) (insert neq, auto)
+        then show "P (LEAST j. P j x) x" by (rule LeastI_ex)
+      qed (auto dest: Least_le intro!: Least_equality)
+      with meas show ?thesis
+        by (auto intro!: Int)
+    qed }
+  then have "(\<Union>i\<in>A. (\<lambda>x. LEAST j. P j x) -` {i} \<inter> space M) \<in> sets M"
+    by (intro countable_UN) auto
+  moreover have "(\<Union>i\<in>A. (\<lambda>x. LEAST j. P j x) -` {i} \<inter> space M) =
+    (\<lambda>x. LEAST j. P j x) -` A \<inter> space M" by auto
+  ultimately show ?thesis by auto
+qed
+
 end
