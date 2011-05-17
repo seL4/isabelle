@@ -610,7 +610,7 @@ fun run_atp auto name
                                               atp_proof of
                    [] => result
                  | new_baddies =>
-                   if iter < atp_blacklist_max_iters - 1 then
+                   if slicing andalso iter < atp_blacklist_max_iters - 1 then
                      let val blacklist = new_baddies @ blacklist in
                        result
                        |> maybe_run_slice blacklist (List.last actual_slices)
