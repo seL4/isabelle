@@ -1193,6 +1193,7 @@ $(OUT)/HOL-Probability: $(OUT)/HOL-Multivariate_Analysis		\
   Probability/ex/Dining_Cryptographers.thy				\
   Probability/ex/Koepf_Duermuth_Countermeasure.thy			\
   Probability/Finite_Product_Measure.thy				\
+  Probability/Independent_Family.thy                                    \
   Probability/Infinite_Product_Measure.thy Probability/Information.thy	\
   Probability/Lebesgue_Integration.thy Probability/Lebesgue_Measure.thy \
   Probability/Measure.thy Probability/Probability_Measure.thy		\
