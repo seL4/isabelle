@@ -17,12 +17,13 @@ import java.awt.event.{MouseAdapter, MouseMotionAdapter, MouseEvent,
   FocusAdapter, FocusEvent, WindowEvent, WindowAdapter}
 import javax.swing.{JPanel, ToolTipManager, Popup, PopupFactory, SwingUtilities, BorderFactory}
 import javax.swing.event.{CaretListener, CaretEvent}
+import java.util.ArrayList
 
 import org.gjt.sp.jedit.{jEdit, OperatingSystem}
 import org.gjt.sp.jedit.gui.RolloverButton
 import org.gjt.sp.jedit.options.GutterOptionPane
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaExtension, TextAreaPainter}
-import org.gjt.sp.jedit.syntax.SyntaxStyle
+import org.gjt.sp.jedit.syntax.{SyntaxStyle, DisplayTokenHandler, Chunk, Token}
 
 
 object Document_View
@@ -67,6 +68,8 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
   private val session = model.session
 
 
+  /** token handling **/
+
   /* extended token styles */
 
   private var styles: Array[SyntaxStyle] = null  // owned by Swing thread
@@ -82,6 +85,40 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
   {
     Swing_Thread.require()
     text_area.getPainter.setStyles(styles)
+  }
+
+
+  /* wrap_margin -- cf. org.gjt.sp.jedit.textarea.TextArea.propertiesChanged */
+
+  def wrap_margin(): Int =
+  {
+    val buffer = text_area.getBuffer
+    val painter = text_area.getPainter
+    val font = painter.getFont
+    val font_context = painter.getFontRenderContext
+
+    val soft_wrap = buffer.getStringProperty("wrap") == "soft"
+    val max = buffer.getIntegerProperty("maxLineLen", 0)
+
+    if (max > 0) font.getStringBounds(" " * max, font_context).getWidth.toInt
+    else if (soft_wrap)
+      painter.getWidth - (font.getStringBounds(" ", font_context).getWidth.round.toInt) * 3
+    else 0
+  }
+
+
+  /* chunks */
+
+  def line_chunks(physical: Int): java.util.List[Chunk] =
+  {
+    val buffer = text_area.getBuffer
+    val painter = text_area.getPainter
+
+    val handler = new DisplayTokenHandler
+    handler.init(painter.getStyles, painter.getFontRenderContext, painter,
+      new ArrayList[Chunk], wrap_margin().toFloat)
+    buffer.markTokens(physical, handler)
+    handler.getChunkList
   }
 
 
