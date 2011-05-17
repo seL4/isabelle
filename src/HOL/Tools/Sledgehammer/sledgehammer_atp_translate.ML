@@ -203,9 +203,11 @@ datatype type_arg_policy =
   Mangled_Type_Args of bool |
   No_Type_Args
 
-fun should_drop_arg_type_args type_sys =
-  level_of_type_sys type_sys = All_Types andalso
-  thinness_of_type_sys type_sys = Fat
+fun should_drop_arg_type_args (Simple_Types _) =
+    false (* since TFF doesn't support overloading *)
+  | should_drop_arg_type_args type_sys =
+    level_of_type_sys type_sys = All_Types andalso
+    thinness_of_type_sys type_sys = Fat
 
 fun general_type_arg_policy type_sys =
   if level_of_type_sys type_sys = No_Types then
@@ -444,8 +446,7 @@ fun make_formula ctxt eq_as_iff presimp name loc kind t =
               |> perhaps (try (HOLogic.dest_Trueprop))
               |> introduce_combinators_in_term ctxt kind
               |> kind <> Axiom ? freeze_term
-    val (combformula, atomic_types) =
-      combformula_from_prop thy eq_as_iff t []
+    val (combformula, atomic_types) = combformula_from_prop thy eq_as_iff t []
   in
     {name = name, locality = loc, kind = kind, combformula = combformula,
      atomic_types = atomic_types}
@@ -482,10 +483,10 @@ fun make_conjecture ctxt prem_kind ts =
    proofs. On the other hand, all HOL infinite types can be given the same
    models in first-order logic (via Löwenheim-Skolem). *)
 
-fun should_encode_type _ _ All_Types _ = true
-  | should_encode_type ctxt _ Finite_Types T = is_type_surely_finite ctxt T
-  | should_encode_type _ nonmono_Ts Nonmonotonic_Types T =
+fun should_encode_type _ (nonmono_Ts as _ :: _) _ T =
     exists (curry Type.raw_instance T) nonmono_Ts
+  | should_encode_type _ _ All_Types _ = true
+  | should_encode_type ctxt _ Finite_Types T = is_type_surely_finite ctxt T
   | should_encode_type _ _ _ _ = false
 
 fun should_predicate_on_type ctxt nonmono_Ts (Preds (_, level, thinness))
@@ -494,6 +495,11 @@ fun should_predicate_on_type ctxt nonmono_Ts (Preds (_, level, thinness))
      should_encode_type ctxt nonmono_Ts level T
   | should_predicate_on_type _ _ _ _ _ = false
 
+fun is_var_or_bound_var (CombConst ((s, _), _, _)) =
+    String.isPrefix bound_var_prefix s
+  | is_var_or_bound_var (CombVar _) = true
+  | is_var_or_bound_var _ = false
+
 datatype tag_site = Top_Level | Eq_Arg | Elsewhere
 
 fun should_tag_with_type _ _ _ Top_Level _ _ = false
@@ -501,13 +507,8 @@ fun should_tag_with_type _ _ _ Top_Level _ _ = false
     (case thinness of
        Fat => should_encode_type ctxt nonmono_Ts level T
      | Thin =>
-       case (site, u) of
-         (Eq_Arg, CombVar _) =>
-         let
-           (* This trick ensures that "If" helpers are not unduely tagged, while
-              "True_or_False" is correctly tagged. *)
-           val level' = if null nonmono_Ts then level else Nonmonotonic_Types
-         in should_encode_type ctxt nonmono_Ts level' T end
+       case (site, is_var_or_bound_var u) of
+         (Eq_Arg, true) => should_encode_type ctxt nonmono_Ts level T
        | _ => false)
   | should_tag_with_type _ _ _ _ _ _ = false
 
@@ -656,10 +657,12 @@ fun enforce_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys =
           val (T, T_args) =
             (* Aggressively merge most "hAPPs" if the type system is unsound
                anyway, by distinguishing overloads only on the homogenized
-               result type. *)
+               result type. Don't do it for thin type systems, though, since it
+               leads to too many unsound proofs. *)
             if s = const_prefix ^ explicit_app_base andalso
                length T_args = 2 andalso
-               not (is_type_sys_virtually_sound type_sys) then
+               not (is_type_sys_virtually_sound type_sys) andalso
+               thinness_of_type_sys type_sys = Fat then
               T_args |> map (homogenized_type ctxt nonmono_Ts level)
                      |> (fn Ts => let val T = hd Ts --> nth Ts 1 in
                                     (T --> T, tl Ts)
@@ -965,11 +968,6 @@ fun sym_decl_table_for_facts type_sys repaired_sym_tab (conjs, facts) =
        ? (fold (add_fact true) conjs #> fold (add_fact false) facts)
   end
 
-fun is_var_or_bound_var (CombConst ((s, _), _, _)) =
-    String.isPrefix bound_var_prefix s
-  | is_var_or_bound_var (CombVar _) = true
-  | is_var_or_bound_var _ = false
-
 (* This inference is described in section 2.3 of Claessen et al.'s "Sorting it
    out with monotonicity" paper presented at CADE 2011. *)
 fun add_combterm_nonmonotonic_types _ _  (SOME false) _ = I
@@ -988,16 +986,18 @@ fun add_fact_nonmonotonic_types ctxt level ({kind, combformula, ...}
                (add_combterm_nonmonotonic_types ctxt level) combformula
 fun add_nonmonotonic_types_for_facts ctxt type_sys facts =
   let val level = level_of_type_sys type_sys in
-    (level = Nonmonotonic_Types orelse
-     (case type_sys of
-        Tags (poly, _, Thin) => poly <> Polymorphic
-      | _ => false))
+    (case level of
+       Nonmonotonic_Types => true
+     | Finite_Types =>
+       thinness_of_type_sys type_sys = Thin andalso
+       polymorphism_of_type_sys type_sys <> Polymorphic
+     | _ => false)
     ? (fold (add_fact_nonmonotonic_types ctxt level) facts
-       (* in case helper "True_or_False" is included *)
+       (* We must add bool in case the helper "True_or_False" is added later.
+          In addition, several places in the code rely on the list of
+          nonmonotonic types not being empty. *)
        #> insert_type I @{typ bool})
   end
-
-fun result_type_of_decl (_, _, T, _, ary, _) = chop_fun ary T |> snd
 
 fun decl_line_for_sym ctxt nonmono_Ts level s (s', _, T, pred_sym, ary, _) =
   let
@@ -1056,10 +1056,7 @@ fun formula_lines_for_tag_sym_decl ctxt nonmono_Ts type_sys n s
        else AAtom (ATerm (`I "equal", tms)))
       |> bound_atomic_types type_sys atomic_Ts
       |> close_formula_universally
-    val should_encode =
-      should_encode_type ctxt nonmono_Ts
-          (if polymorphism_of_type_sys type_sys = Polymorphic then All_Types
-           else Nonmonotonic_Types)
+    val should_encode = should_encode_type ctxt nonmono_Ts All_Types
     val tag_with = tag_with_type ctxt nonmono_Ts type_sys
     val add_formula_for_res =
       if should_encode res_T then
@@ -1086,6 +1083,8 @@ fun formula_lines_for_tag_sym_decl ctxt nonmono_Ts type_sys n s
     [] |> not pred_sym ? add_formula_for_res
        |> fold add_formula_for_arg (ary - 1 downto 0)
   end
+
+fun result_type_of_decl (_, _, T, _, ary, _) = chop_fun ary T |> snd
 
 fun problem_lines_for_sym_decls ctxt conj_sym_kind nonmono_Ts type_sys
                                 (s, decls) =
