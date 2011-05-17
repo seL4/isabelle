@@ -441,6 +441,18 @@ lemma in_sigma[intro, simp]: "A \<in> sets M \<Longrightarrow> A \<in> sets (sig
 lemma (in sigma_algebra) sigma_eq[simp]: "sigma M = M"
   unfolding sigma_def sigma_sets_eq by simp
 
+lemma restricted_sigma:
+  assumes S: "S \<in> sets (sigma M)" and M: "sets M \<subseteq> Pow (space M)"
+  shows "algebra.restricted_space (sigma M) S = sigma (algebra.restricted_space M S)"
+proof -
+  from S sigma_sets_into_sp[OF M]
+  have "S \<in> sigma_sets (space M) (sets M)" "S \<subseteq> space M"
+    by (auto simp: sigma_def)
+  from sigma_sets_Int[OF this]
+  show ?thesis
+    by (simp add: sigma_def)
+qed
+
 section {* Measurable functions *}
 
 definition
