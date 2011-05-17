@@ -658,6 +658,26 @@ proof (intro algebra.equality antisym)
   qed
 qed auto
 
+lemma borel_eq_atLeastLessThan:
+  "borel = sigma \<lparr>space=UNIV, sets=range (\<lambda>(a, b). {a ..< b :: real})\<rparr>" (is "_ = ?S")
+proof (intro algebra.equality antisym)
+  interpret sigma_algebra ?S
+    by (rule sigma_algebra_sigma) auto
+  show "sets borel \<subseteq> sets ?S"
+    unfolding borel_eq_lessThan
+  proof (intro sets_sigma_subset subsetI)
+    have move_uminus: "\<And>x y::real. -x \<le> y \<longleftrightarrow> -y \<le> x" by auto
+    fix A :: "real set" assume "A \<in> sets \<lparr>space = UNIV, sets = range lessThan\<rparr>"
+    then obtain x where "A = {..< x}" by auto
+    then have "A = (\<Union>i::nat. {-real i ..< x})"
+      by (auto simp: move_uminus real_arch_simple)
+    then show "A \<in> sets ?S"
+      by (auto simp: sets_sigma intro!: sigma_sets.intros)
+  qed simp
+  show "sets ?S \<subseteq> sets borel"
+    by (intro borel.sets_sigma_subset) auto
+qed simp_all
+
 lemma borel_eq_halfspace_le:
   "borel = (sigma \<lparr>space=UNIV, sets=range (\<lambda> (a, i). {x::'a::ordered_euclidean_space. x$$i \<le> a})\<rparr>)"
    (is "_ = ?SIGMA")
