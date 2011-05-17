@@ -16,12 +16,12 @@ sig
   datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
   datatype type_level =
     All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
-  datatype type_depth = Deep | Shallow
+  datatype type_thinness = Thin | Fat
 
   datatype type_system =
     Simple_Types of type_level |
-    Preds of polymorphism * type_level * type_depth |
-    Tags of polymorphism * type_level * type_depth
+    Preds of polymorphism * type_level * type_thinness |
+    Tags of polymorphism * type_level * type_thinness
 
   type translated_formula
 
@@ -90,12 +90,12 @@ val sledgehammer_weak_prefix = "Sledgehammer:"
 datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
 datatype type_level =
   All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
-datatype type_depth = Deep | Shallow
+datatype type_thinness = Thin | Fat
 
 datatype type_system =
   Simple_Types of type_level |
-  Preds of polymorphism * type_level * type_depth |
-  Tags of polymorphism * type_level * type_depth
+  Preds of polymorphism * type_level * type_thinness |
+  Tags of polymorphism * type_level * type_thinness
 
 fun try_unsuffixes ss s =
   fold (fn s' => fn NONE => try (unsuffix s') s | some => some) ss NONE
@@ -119,27 +119,29 @@ fun type_sys_from_string s =
               SOME s => (Finite_Types, s)
             | NONE => (All_Types, s))
   ||> apsnd (fn s =>
-                case try (unsuffix "_shallow") s of
-                  SOME s => (Shallow, s)
-                | NONE => (Deep, s))
-  |> (fn (poly, (level, (depth, core))) =>
-         case (core, (poly, level, depth)) of
-           ("simple_types", (NONE, level, Deep (* naja *))) =>
+                case try (unsuffix "_fat") s of
+                  SOME s => (Fat, s)
+                | NONE => (Thin, s))
+  |> (fn (poly, (level, (thinness, core))) =>
+         case (core, (poly, level, thinness)) of
+           ("simple_types", (NONE, level, Thin (* naja *))) =>
            Simple_Types level
-         | ("preds", (SOME Polymorphic, level, depth)) =>
-           if level = All_Types then Preds (Polymorphic, level, depth)
+         | ("preds", (SOME Polymorphic, level, thinness)) =>
+           if level = All_Types then Preds (Polymorphic, level, thinness)
            else raise Same.SAME
-         | ("preds", (SOME poly, level, depth)) => Preds (poly, level, depth)
-         | ("tags", (SOME Polymorphic, level, depth)) =>
+         | ("preds", (SOME poly, level, thinness)) =>
+           Preds (poly, level, thinness)
+         | ("tags", (SOME Polymorphic, level, thinness)) =>
            if level = All_Types orelse level = Finite_Types then
-             Tags (Polymorphic, level, depth)
+             Tags (Polymorphic, level, thinness)
            else
              raise Same.SAME
-         | ("tags", (SOME poly, level, depth)) => Tags (poly, level, depth)
-         | ("args", (SOME poly, All_Types (* naja *), Deep (* naja *))) =>
-           Preds (poly, Const_Arg_Types, Shallow)
-         | ("erased", (NONE, All_Types (* naja *), Deep (* naja *))) =>
-           Preds (Polymorphic, No_Types, Shallow)
+         | ("tags", (SOME poly, level, thinness)) =>
+           Tags (poly, level, thinness)
+         | ("args", (SOME poly, All_Types (* naja *), Thin)) =>
+           Preds (poly, Const_Arg_Types, Thin)
+         | ("erased", (NONE, All_Types (* naja *), Thin)) =>
+           Preds (Polymorphic, No_Types, Thin)
          | _ => raise Same.SAME)
   handle Same.SAME => error ("Unknown type system: " ^ quote s ^ ".")
 
@@ -151,9 +153,9 @@ fun level_of_type_sys (Simple_Types level) = level
   | level_of_type_sys (Preds (_, level, _)) = level
   | level_of_type_sys (Tags (_, level, _)) = level
 
-fun depth_of_type_sys (Simple_Types _) = Deep
-  | depth_of_type_sys (Preds (_, _, depth)) = depth
-  | depth_of_type_sys (Tags (_, _, depth)) = depth
+fun thinness_of_type_sys (Simple_Types _) = Fat
+  | thinness_of_type_sys (Preds (_, _, thinness)) = thinness
+  | thinness_of_type_sys (Tags (_, _, thinness)) = thinness
 
 fun is_type_level_virtually_sound level =
   level = All_Types orelse level = Nonmonotonic_Types
@@ -200,8 +202,8 @@ fun should_omit_type_args type_sys s =
   s <> type_pred_base andalso s <> type_tag_name andalso
   (s = @{const_name HOL.eq} orelse level_of_type_sys type_sys = No_Types orelse
    (case type_sys of
-      Tags (_, _, Shallow) => false
-    | Tags (_, All_Types, Deep) => true
+      Tags (_, _, Thin) => false
+    | Tags (_, All_Types, Fat) => true
     | _ => polymorphism_of_type_sys type_sys <> Mangled_Monomorphic andalso
            member (op =) boring_consts s))
 
@@ -213,7 +215,7 @@ datatype type_arg_policy =
 
 fun should_drop_arg_type_args type_sys =
   level_of_type_sys type_sys = All_Types andalso
-  depth_of_type_sys type_sys = Deep
+  thinness_of_type_sys type_sys = Fat
 
 fun general_type_arg_policy type_sys =
   if level_of_type_sys type_sys = No_Types then
@@ -497,19 +499,19 @@ fun should_encode_type _ _ All_Types _ = true
     exists (curry Type.raw_instance T) nonmono_Ts
   | should_encode_type _ _ _ _ = false
 
-fun should_predicate_on_type ctxt nonmono_Ts (Preds (_, level, depth)) T =
-    (case depth of
-       Deep => should_encode_type ctxt nonmono_Ts level T
-     | Shallow => error "Not implemented yet.")
+fun should_predicate_on_type ctxt nonmono_Ts (Preds (_, level, thinness)) T =
+    (case thinness of
+       Thin => should_encode_type ctxt nonmono_Ts level T (* FIXME *)
+     | Fat => should_encode_type ctxt nonmono_Ts level T)
   | should_predicate_on_type _ _ _ _ = false
 
 datatype tag_site = Top_Level | Eq_Arg | Elsewhere
 
 fun should_tag_with_type _ _ _ Top_Level _ _ = false
-  | should_tag_with_type ctxt nonmono_Ts (Tags (_, level, depth)) site u T =
-    (case depth of
-       Deep => should_encode_type ctxt nonmono_Ts level T
-     | Shallow =>
+  | should_tag_with_type ctxt nonmono_Ts (Tags (_, level, thinness)) site u T =
+    (case thinness of
+       Fat => should_encode_type ctxt nonmono_Ts level T
+     | Thin =>
        case (site, u) of
          (Eq_Arg, CombVar _) =>
          let
@@ -977,7 +979,7 @@ fun add_nonmonotonic_types_for_facts ctxt type_sys facts =
   let val level = level_of_type_sys type_sys in
     (level = Nonmonotonic_Types orelse
      (case type_sys of
-        Tags (poly, _, Shallow) => poly <> Polymorphic
+        Tags (poly, _, Thin) => poly <> Polymorphic
       | _ => false))
     ? (fold (add_fact_nonmonotonic_types ctxt level) facts
        (* in case helper "True_or_False" is included *)
@@ -1100,10 +1102,10 @@ fun problem_lines_for_sym_decls ctxt conj_sym_kind nonmono_Ts type_sys
       |-> map2 (formula_line_for_pred_sym_decl ctxt conj_sym_kind nonmono_Ts
                                                type_sys n s)
     end
-  | Tags (_, _, depth) =>
-    (case depth of
-       Deep => []
-     | Shallow =>
+  | Tags (_, _, thinness) =>
+    (case thinness of
+       Fat => []
+     | Thin =>
        let val n = length decls in
          (0 upto n - 1 ~~ decls)
          |> maps (formula_lines_for_tag_sym_decl ctxt nonmono_Ts type_sys n s)
@@ -1132,7 +1134,7 @@ fun tff_types_in_problem problem =
 fun decl_line_for_tff_type (s, s') =
   Decl (type_decl_prefix ^ ascii_of s, (s, s'), [], `I tptp_tff_type_of_types)
 
-fun should_add_ti_ti_helper (Tags (Polymorphic, level, Deep)) =
+fun should_add_ti_ti_helper (Tags (Polymorphic, level, Fat)) =
     level = Nonmonotonic_Types orelse level = Finite_Types
   | should_add_ti_ti_helper _ = false
 
