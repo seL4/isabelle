@@ -1025,7 +1025,12 @@ fun formula_lines_for_tag_sym_decl ctxt nonmono_Ts type_sys n s
       1 upto length arg_Ts |> map (`I o make_bound_var o string_of_int)
     val bounds = bound_names |> map (fn name => ATerm (name, []))
     fun const args = ATerm ((s, s'), map fo_term_from_typ T_args @ args)
-    fun eq tm1 tm2 = ATerm (`I "equal", [tm1, tm2])
+    val atomic_Ts = atyps_of T
+    fun eq tm1 tm2 =
+      ATerm (`I "equal", [tm1, tm2])
+      |> AAtom
+      |> bound_atomic_types type_sys atomic_Ts
+      |> close_formula_universally
     val should_encode =
       should_encode_type ctxt nonmono_Ts
           (if polymorphism_of_type_sys type_sys = Polymorphic then All_Types
@@ -1034,9 +1039,7 @@ fun formula_lines_for_tag_sym_decl ctxt nonmono_Ts type_sys n s
     val add_formula_for_res =
       if should_encode res_T then
         cons (Formula (ident_base ^ "_res", Axiom,
-                       AAtom (eq (tag_with res_T (const bounds))
-                                 (const bounds))
-                       |> close_formula_universally,
+                       eq (tag_with res_T (const bounds)) (const bounds),
                        NONE, NONE))
       else
         I
@@ -1046,10 +1049,9 @@ fun formula_lines_for_tag_sym_decl ctxt nonmono_Ts type_sys n s
           case chop k bounds of
             (bounds1, bound :: bounds2) =>
             cons (Formula (ident_base ^ "_arg" ^ string_of_int (k + 1), Axiom,
-                           AAtom (eq (const (bounds1 @
-                                  tag_with arg_T bound :: bounds2))
-                                     (const bounds))
-                           |> close_formula_universally,
+                           eq (const (bounds1 @ tag_with arg_T bound ::
+                                      bounds2))
+                              (const bounds),
                            NONE, NONE))
           | _ => raise Fail "expected nonempty tail"
         else
