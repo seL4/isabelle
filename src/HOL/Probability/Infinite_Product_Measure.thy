@@ -941,6 +941,57 @@ proof -
        (auto intro!: N.measurable_sigma simp: Pi_iff infprod_algebra_def generator_def)
 qed
 
+lemma (in product_prob_space) measurable_singleton_infprod:
+  assumes "i \<in> I"
+  shows "(\<lambda>x. x i) \<in> measurable (Pi\<^isub>P I M) (M i)"
+proof (unfold measurable_def, intro CollectI conjI ballI)
+  show "(\<lambda>x. x i) \<in> space (Pi\<^isub>P I M) \<rightarrow> space (M i)"
+    using M.sets_into_space `i \<in> I`
+    by (auto simp: infprod_algebra_def generator_def)
+  fix A assume "A \<in> sets (M i)"
+  have "(\<lambda>x. x i) -` A \<inter> space (Pi\<^isub>P I M) = emb I {i} (\<Pi>\<^isub>E _\<in>{i}. A)"
+    by (auto simp: infprod_algebra_def generator_def emb_def)
+  also have "\<dots> \<in> sets (Pi\<^isub>P I M)"
+    using `i \<in> I` `A \<in> sets (M i)`
+    by (intro emb_in_infprod_algebra product_algebraI) auto
+  finally show "(\<lambda>x. x i) -` A \<inter> space (Pi\<^isub>P I M) \<in> sets (Pi\<^isub>P I M)" .
+qed
+
+lemma (in product_prob_space) sigma_product_algebra_sigma_eq:
+  assumes M: "\<And>i. i \<in> I \<Longrightarrow> M i = sigma (E i)"
+  shows "sets (Pi\<^isub>P I M) = sigma_sets (space (Pi\<^isub>P I M)) (\<Union>i\<in>I. (\<lambda>A. (\<lambda>x. x i) -` A \<inter> space (Pi\<^isub>P I M)) ` sets (E i))"
+proof -
+  let ?E = "(\<Union>i\<in>I. (\<lambda>A. (\<lambda>x. x i) -` A \<inter> space (Pi\<^isub>P I M)) ` sets (E i))"
+  let ?M = "(\<Union>i\<in>I. (\<lambda>A. (\<lambda>x. x i) -` A \<inter> space (Pi\<^isub>P I M)) ` sets (M i))"
+  { fix i A assume "i\<in>I" "A \<in> sets (E i)"
+    then have "A \<in> sets (M i)" using M by auto
+    then have "A \<in> Pow (space (M i))" using M.sets_into_space by auto
+    then have "A \<in> Pow (space (E i))" using M[OF `i \<in> I`] by auto }
+  moreover
+  have "\<And>i. i \<in> I \<Longrightarrow> (\<lambda>x. x i) \<in> space infprod_algebra \<rightarrow> space (E i)"
+    by (auto simp: M infprod_algebra_def generator_def Pi_iff)
+  ultimately have "sigma_sets (space (Pi\<^isub>P I M)) ?M \<subseteq> sigma_sets (space (Pi\<^isub>P I M)) ?E"
+    apply (intro sigma_sets_mono UN_least)
+    apply (simp add: sets_sigma M)
+    apply (subst sigma_sets_vimage[symmetric])
+    apply (auto intro!: sigma_sets_mono')
+    done
+  moreover have "sigma_sets (space (Pi\<^isub>P I M)) ?E \<subseteq> sigma_sets (space (Pi\<^isub>P I M)) ?M"
+    by (intro sigma_sets_mono') (auto simp: M)
+  ultimately show ?thesis
+    by (subst infprod_algebra_alt2) (auto simp: sets_sigma)
+qed
+
+lemma (in product_prob_space) Int_proj_eq_emb:
+  assumes "J \<noteq> {}" "J \<subseteq> I"
+  shows "(\<Inter>i\<in>J. (\<lambda>x. x i) -` A i \<inter> space (Pi\<^isub>P I M)) = emb I J (Pi\<^isub>E J A)"
+  using assms by (auto simp: infprod_algebra_def generator_def emb_def Pi_iff)
+
+lemma (in product_prob_space) emb_insert:
+  "i \<notin> J \<Longrightarrow> emb I J (Pi\<^isub>E J f) \<inter> ((\<lambda>x. x i) -` A \<inter> space (Pi\<^isub>P I M)) =
+    emb I (insert i J) (Pi\<^isub>E (insert i J) (f(i := A)))"
+  by (auto simp: emb_def Pi_iff infprod_algebra_def generator_def split: split_if_asm)
+
 subsection {* Sequence space *}
 
 locale sequence_space = product_prob_space M "UNIV :: nat set" for M
