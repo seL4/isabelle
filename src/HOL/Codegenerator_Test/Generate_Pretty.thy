@@ -9,8 +9,6 @@ begin
 
 lemma [code, code del]: "nat_of_char = nat_of_char" ..
 lemma [code, code del]: "char_of_nat = char_of_nat" ..
-lemma [code, code del]: "(less_eq :: char \<Rightarrow> _) = less_eq" ..
-lemma [code, code del]: "(less :: char \<Rightarrow> _) = less" ..
 
 subsection {* Check whether generated code compiles *}
 
