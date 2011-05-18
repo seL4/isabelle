@@ -58,6 +58,10 @@ syntax diagrams.
 
 *** HOL ***
 
+* Code generation:
+  - theory Library/Code_Char_ord provides native ordering of characters
+    in the target language.
+    
 * Declare ext [intro] by default.  Rare INCOMPATIBILITY.
 
 * Finite_Set.thy: locale fun_left_comm uses point-free characterisation;
