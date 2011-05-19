@@ -132,7 +132,7 @@ fun FOL_SOLVE mode ctxt cls ths0 =
                   (if Config.get ctxt verbose then "\n" ^ loc ^ ": " ^ msg
                    else ""))
 
-fun neg_clausify ctxt =
+val neg_clausify =
   single
   #> Meson.make_clauses_unsorted
   #> map Meson_Clausify.introduce_combinators_in_theorem
@@ -158,7 +158,7 @@ fun generic_metis_tac mode ctxt ths i st0 =
       (verbose_warning ctxt "Proof state contains the universal sort {}";
        Seq.empty)
     else
-      Meson.MESON (preskolem_tac ctxt) (maps (neg_clausify ctxt))
+      Meson.MESON (preskolem_tac ctxt) (maps neg_clausify)
                   (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1)
                   ctxt i st0
   end
