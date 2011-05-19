@@ -404,8 +404,7 @@ val atp_blacklist_max_iters = 10
 val atp_important_message_keep_quotient = 10
 
 val fallback_best_type_systems =
-  [Preds (Polymorphic, Const_Arg_Types, Light),
-   Preds (Mangled_Monomorphic, Nonmonotonic_Types, Light)]
+  [Preds (Mangled_Monomorphic, Nonmonotonic_Types, Light)]
 
 fun adjust_dumb_type_sys formats (Simple_Types level) =
     if member (op =) formats Tff then (Tff, Simple_Types level)
