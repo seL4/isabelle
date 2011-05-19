@@ -324,10 +324,10 @@ familiarize themselves with the following options:
 \item[$\bullet$] \textbf{\textit{provers}} specifies the ATP and SMT solvers to
 use (e.g., ``\textit{provers} = \textit{e spass remote\_vampire}'').
 
-\item[$\bullet$] \textbf{\textit{timeout}} controls the time limit. It is set to
-30 seconds, but since Sledgehammer runs asynchronously you should not hesitate
-to crank up this limit to 60 or 120 seconds if you are the kind of user who can
-think clearly while ATPs are active.
+\item[$\bullet$] \textbf{\textit{timeout}} controls the provers' time limit. It
+is set to 30 seconds, but since Sledgehammer runs asynchronously you should not
+hesitate to raise this limit to 60 or 120 seconds if you are the kind of user
+who can think clearly while ATPs are active.
 
 \item[$\bullet$] \textbf{\textit{full\_types}} specifies whether type-sound
 encodings should be used. By default, Sledgehammer employs a mixture of
@@ -427,6 +427,10 @@ facts via \textbf{unfolding}, \textbf{using}, \textit{intro}{:},
 %    * proofs involving fewer lemmas tend to be shorter as well, and hence easier
 %      to re-find by Metis
 %    * but the opposite is sometimes the case
+
+% Why is Sledgehammer automatically minimizing sometimes?
+%       * some provers (e.g. CVC3 and Yices)
+%       * also, sometimes E finds a proof but doesn't give a proof object
 
 \point{I got a strange error from Sledgehammer---what should I do?}
 
@@ -678,9 +682,10 @@ Legacy alias for \textit{provers}.
 
 \opdefault{timeout}{float\_or\_none}{\upshape 30}
 Specifies the maximum number of seconds that the automatic provers should spend
-searching for a proof. For historical reasons, the default value of this option
-can be overridden using the option ``Sledgehammer: Time Limit'' from the
-``Isabelle'' menu in Proof General.
+searching for a proof. This excludes problem preparation and is a soft limit.
+For historical reasons, the default value of this option can be overridden using
+the option ``Sledgehammer: Time Limit'' from the ``Isabelle'' menu in Proof
+General.
 
 \opfalse{blocking}{non\_blocking}
 Specifies whether the \textbf{sledgehammer} command should operate

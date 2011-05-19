@@ -92,8 +92,9 @@ fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
         {state, goal, subgoal, subgoal_count, facts, smt_filter} name =
   let
     val ctxt = Proof.context_of state
+    val hard_timeout = Time.+ (timeout, timeout)
     val birth_time = Time.now ()
-    val death_time = Time.+ (birth_time, timeout)
+    val death_time = Time.+ (birth_time, hard_timeout)
     val max_relevant =
       max_relevant
       |> the_default (default_max_relevant_for_prover ctxt slicing name)
@@ -143,7 +144,7 @@ fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
                             Pretty.mark Markup.hilite (Pretty.str message)]))
       end
     else if blocking then
-      let val (success, message) = TimeLimit.timeLimit timeout go () in
+      let val (success, message) = TimeLimit.timeLimit hard_timeout go () in
         List.app Output.urgent_message
                  (Async_Manager.break_into_chunks [desc ^ "\n" ^ message]);
         (success, state)
