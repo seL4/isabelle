@@ -637,7 +637,7 @@ Vampire runs on Geoff Sutcliffe's Miami servers. Version 9 is used.
 developed by Geoff Sutcliffe \cite{tofof} based on E running on his Miami
 servers. This ATP supports a fragment of the TPTP many-typed first-order format
 (TFF). It is supported primarily for experimenting with the
-\textit{type\_sys} $=$ \textit{simple\_types} option (\S\ref{problem-encoding}).
+\textit{type\_sys} $=$ \textit{simple} option (\S\ref{problem-encoding}).
 
 \item[$\bullet$] \textbf{\textit{remote\_sine\_e}:} SInE-E is a metaprover
 developed by Kry\v stof Hoder \cite{sine} based on E. The remote version of
@@ -768,8 +768,8 @@ variables are instantiated with heuristically chosen ground types.
 Monomorphization can simplify reasoning but also leads to larger fact bases,
 which can slow down the ATPs.
 
-\item[$\bullet$] \textbf{\textit{simple\_types}:} Use the prover's support for
-simply typed first-order logic if available; otherwise, fall back on
+\item[$\bullet$] \textbf{\textit{simple}:} Use the prover's support for simply
+typed first-order logic if available; otherwise, fall back on
 \textit{mangled\_preds}. The problem is monomorphized.
 
 \item[$\bullet$]
@@ -787,28 +787,28 @@ $\mathit{type\_info\_}\tau(t)$.
 
 \item[$\bullet$]
 \textbf{%
-\textit{mono\_preds}?, \textit{mono\_tags}?, \textit{simple\_types}?, \\
+\textit{mono\_preds}?, \textit{mono\_tags}?, \textit{simple}?, \\
 \textit{mangled\_preds}?, \textit{mangled\_tags}?:} \\
-The type systems \textit{mono\_preds}, \textit{mono\_tags}, \textit{simple\_types},
+The type systems \textit{mono\_preds}, \textit{mono\_tags}, \textit{simple},
 \textit{mangled\_preds}, and \textit{mangled\_tags} are fully typed and
 virtually sound---except for pathological cases, all found proofs are
 type-correct. For each of these, Sledgehammer also provides a lighter (but
 virtually sound) variant identified by a question mark (`{?}')\ that detects and
-erases monotonic types, notably infinite types. (For \textit{simple\_types}, the
-types are not actually erased but rather replaced by a shared uniform type of
+erases monotonic types, notably infinite types. (For \textit{simple}, the types
+are not actually erased but rather replaced by a shared uniform type of
 individuals.)
 
 \item[$\bullet$]
 \textbf{%
 \textit{poly\_tags}!, \textit{mono\_preds}!, \textit{mono\_tags}!, \\
-\textit{simple\_types}!, \textit{mangled\_preds}!, \textit{mangled\_tags}!:} \\
+\textit{simple}!, \textit{mangled\_preds}!, \textit{mangled\_tags}!:} \\
 The type systems \textit{poly\_preds}, \textit{poly\_tags},
-\textit{mono\_preds}, \textit{mono\_tags}, \textit{simple\_types},
+\textit{mono\_preds}, \textit{mono\_tags}, \textit{simple},
 \textit{mangled\_preds}, and \textit{mangled\_tags} also admit a somewhat
 unsound (but very efficient) variant identified by an exclamation mark (`{!}')
 that detects and erases erases all types except those that are clearly finite
-(e.g., \textit{bool}). (For \textit{simple\_types}, the types are not actually
-erased but rather replaced by a shared uniform type of individuals.)
+(e.g., \textit{bool}). (For \textit{simple}, the types are not actually erased
+but rather replaced by a shared uniform type of individuals.)
 
 \item[$\bullet$] \textbf{\textit{smart}:} If \textit{full\_types} is enabled,
 uses a fully typed, virtually sound encoding; otherwise, uses any encoding. The
@@ -816,15 +816,22 @@ actual encoding used depends on the ATP and should be the most efficient for
 that ATP.
 \end{enum}
 
-For SMT solvers and ToFoF-E, the type system is always \textit{simple\_types}.
+In addition, all the \textit{preds} and \textit{tags} type systems are available
+in two variants, a lightweight and a heavyweight variant. The lightweight
+variants are generally more efficient and are the default; the heavyweight
+variants are identified by a \textit{\_heavy} suffix (e.g.,
+\textit{mangled\_preds\_heavy}{?}).
 
-\opdefault{max\_mono\_iters}{int}{\upshape 5}
+For SMT solvers and ToFoF-E, the type system is always \textit{simple},
+irrespective of the value of this option.
+
+\opdefault{max\_mono\_iters}{int}{\upshape 3}
 Specifies the maximum number of iterations for the monomorphization fixpoint
 construction. The higher this limit is, the more monomorphic instances are
 potentially generated. Whether monomorphization takes place depends on the
 type system used.
 
-\opdefault{max\_new\_mono\_instances}{int}{\upshape 250}
+\opdefault{max\_new\_mono\_instances}{int}{\upshape 400}
 Specifies the maximum number of monomorphic instances to generate beyond
 \textit{max\_relevant}. The higher this limit is, the more monomorphic instances
 are potentially generated. Whether monomorphization takes place depends on the
