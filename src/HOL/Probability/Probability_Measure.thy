@@ -611,12 +611,6 @@ lemma (in finite_prob_space) sum_over_space_distrib:
      (auto simp add: disjoint_family_on_def sets_eq_Pow
            intro!: arg_cong[where f=\<mu>'])
 
-lemma (in finite_prob_space) sum_over_space_real_distribution:
-  "(\<Sum>x\<in>X`space M. distribution X {x}) = 1"
-  unfolding distribution_def prob_space[symmetric] using finite_space
-  by (subst finite_measure_finite_Union[symmetric])
-     (auto simp add: disjoint_family_on_def sets_eq_Pow intro!: arg_cong[where f=prob])
-
 lemma (in finite_prob_space) finite_sum_over_space_eq_1:
   "(\<Sum>x\<in>space M. prob {x}) = 1"
   using prob_space finite_space
