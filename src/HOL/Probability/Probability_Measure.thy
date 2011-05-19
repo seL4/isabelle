@@ -1045,4 +1045,21 @@ proof safe
   qed
 qed
 
+subsection "Bernoulli space"
+
+definition "bernoulli_space p = \<lparr> space = UNIV, sets = UNIV,
+  measure = extreal \<circ> setsum (\<lambda>b. if b then min 1 (max 0 p) else 1 - min 1 (max 0 p)) \<rparr>"
+
+interpretation bernoulli: finite_prob_space "bernoulli_space p" for p
+  by (rule finite_prob_spaceI)
+     (auto simp: bernoulli_space_def UNIV_bool one_extreal_def setsum_Un_disjoint intro!: setsum_nonneg)
+
+lemma bernoulli_measure:
+  "0 \<le> p \<Longrightarrow> p \<le> 1 \<Longrightarrow> bernoulli.prob p B = (\<Sum>b\<in>B. if b then p else 1 - p)"
+  unfolding bernoulli.\<mu>'_def unfolding bernoulli_space_def by (auto intro!: setsum_cong)
+
+lemma bernoulli_measure_True: "0 \<le> p \<Longrightarrow> p \<le> 1 \<Longrightarrow> bernoulli.prob p {True} = p"
+  and bernoulli_measure_False: "0 \<le> p \<Longrightarrow> p \<le> 1 \<Longrightarrow> bernoulli.prob p {False} = 1 - p"
+  unfolding bernoulli_measure by simp_all
+
 end
