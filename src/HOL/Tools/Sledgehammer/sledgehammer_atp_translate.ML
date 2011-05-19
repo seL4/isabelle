@@ -120,32 +120,25 @@ fun type_sys_from_string s =
             | NONE => (All_Types, s))
   ||> apsnd (fn s =>
                 case try (unsuffix "_heavy") s of
-                  SOME s => (SOME Heavy, s)
-                | NONE =>
-                  case try (unsuffix "_light") s of
-                    SOME s => (SOME Light, s)
-                  | NONE => (NONE, s))
+                  SOME s => (Heavy, s)
+                | NONE => (Light, s))
   |> (fn (poly, (level, (heaviness, core))) =>
          case (core, (poly, level, heaviness)) of
-           ("simple_types", (NONE, _, NONE)) => Simple_Types level
+           ("simple_types", (NONE, _, Light)) => Simple_Types level
          | ("preds", (SOME Polymorphic, _, _)) =>
-           if level = All_Types then
-             Preds (Polymorphic, level, heaviness |> the_default Light)
-           else
-             raise Same.SAME
-         | ("preds", (SOME poly, _, _)) =>
-           Preds (poly, level, heaviness |> the_default Light)
+           if level = All_Types then Preds (Polymorphic, level, heaviness)
+           else raise Same.SAME
+         | ("preds", (SOME poly, _, _)) => Preds (poly, level, heaviness)
          | ("tags", (SOME Polymorphic, All_Types, _)) =>
-           Tags (Polymorphic, All_Types, heaviness |> the_default Light)
+           Tags (Polymorphic, All_Types, heaviness)
          | ("tags", (SOME Polymorphic, Finite_Types, _)) =>
-           if heaviness = SOME Light then raise Same.SAME
-           else Tags (Polymorphic, Finite_Types, Heavy)
+           (* The light encoding yields too many unsound proofs. *)
+           Tags (Polymorphic, Finite_Types, Heavy)
          | ("tags", (SOME Polymorphic, _, _)) => raise Same.SAME
-         | ("tags", (SOME poly, _, _)) =>
-           Tags (poly, level, heaviness |> the_default Light)
-         | ("args", (SOME poly, All_Types (* naja *), NONE)) =>
+         | ("tags", (SOME poly, _, _)) => Tags (poly, level, heaviness)
+         | ("args", (SOME poly, All_Types (* naja *), Light)) =>
            Preds (poly, Const_Arg_Types, Light)
-         | ("erased", (NONE, All_Types (* naja *), NONE)) =>
+         | ("erased", (NONE, All_Types (* naja *), Light)) =>
            Preds (Polymorphic, No_Types, Light)
          | _ => raise Same.SAME)
   handle Same.SAME => error ("Unknown type system: " ^ quote s ^ ".")
