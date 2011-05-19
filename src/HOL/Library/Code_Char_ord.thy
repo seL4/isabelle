@@ -10,14 +10,14 @@ begin
   
 code_const "Orderings.less_eq \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
   (SML "!((_ : char) <= _)")
-  (OCaml "<=")
+  (OCaml "!((_ : char) <= _)")
   (Haskell infix 4 "<=")
   (Scala infixl 4 "<=")
   (Eval infixl 6 "<=")
 
 code_const "Orderings.less \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
   (SML "!((_ : char) < _)")
-  (OCaml "<")
+  (OCaml "!((_ : char) < _)")
   (Haskell infix 4 "<")
   (Scala infixl 4 "<")
   (Eval infixl 6 "<")
