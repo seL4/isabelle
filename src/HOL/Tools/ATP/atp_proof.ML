@@ -195,22 +195,18 @@ fun extract_known_failure known_failures output =
 
 fun extract_tstplike_proof_and_outcome debug verbose complete res_code
                                        proof_delims known_failures output =
-  case extract_known_failure known_failures output of
-    NONE =>
-    (case extract_tstplike_proof proof_delims output of
-       "" =>
-       ("", SOME (if res_code = 0 andalso (not debug orelse output = "") then
-                    ProofMissing
+   case extract_tstplike_proof proof_delims output of
+     "" =>
+     ("", SOME (if res_code = 0 andalso (not debug orelse output = "") then
+                  ProofMissing
+                else case extract_known_failure known_failures output of
+                  SOME failure =>
+                  if failure = IncompleteUnprovable andalso complete then
+                    Unprovable
                   else
-                    UnknownError (short_output verbose output)))
-     | tstplike_proof =>
-       if res_code = 0 then (tstplike_proof, NONE)
-       else ("", SOME (UnknownError (short_output verbose output))))
-  | SOME failure =>
-    ("", SOME (if failure = IncompleteUnprovable andalso complete then
-                 Unprovable
-               else
-                 failure))
+                    failure
+                | NONE => UnknownError (short_output verbose output)))
+   | tstplike_proof => (tstplike_proof, NONE)
 
 fun mk_anot (AConn (ANot, [phi])) = phi
   | mk_anot phi = AConn (ANot, [phi])

@@ -209,6 +209,7 @@ val e_config : atp_config =
    known_failures =
      [(Unprovable, "SZS status: CounterSatisfiable"),
       (Unprovable, "SZS status CounterSatisfiable"),
+      (ProofMissing, "SZS status Theorem"),
       (TimedOut, "Failure: Resource limit exceeded (time)"),
       (TimedOut, "time limit exceeded"),
       (OutOfResources,
@@ -289,8 +290,7 @@ val vampire_config : atp_config =
      [(Unprovable, "UNPROVABLE"),
       (IncompleteUnprovable, "CANNOT PROVE"),
       (IncompleteUnprovable, "SZS status GaveUp"),
-      (ProofMissing, "[predicate definition introduction]"),
-      (ProofMissing, "predicate_definition_introduction,[]"), (* TSTP *)
+      (ProofMissing, "predicate_definition_introduction,[]"),
       (TimedOut, "SZS status Timeout"),
       (Unprovable, "Satisfiability detected"),
       (Unprovable, "Termination reason: Satisfiable"),
