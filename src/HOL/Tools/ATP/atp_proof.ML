@@ -46,8 +46,8 @@ sig
   val extract_known_failure :
     (failure * string) list -> string -> failure option
   val extract_tstplike_proof_and_outcome :
-    bool -> bool -> bool -> int -> (string * string) list
-    -> (failure * string) list -> string -> string * failure option
+    bool -> bool -> int -> (string * string) list -> (failure * string) list
+    -> string -> string * failure option
   val is_same_step : step_name * step_name -> bool
   val atp_proof_from_tstplike_proof : string -> string proof
   val map_term_names_in_atp_proof :
@@ -193,11 +193,11 @@ fun extract_known_failure known_failures output =
   |> find_first (fn (_, pattern) => String.isSubstring pattern output)
   |> Option.map fst
 
-fun extract_tstplike_proof_and_outcome debug verbose complete res_code
-                                       proof_delims known_failures output =
+fun extract_tstplike_proof_and_outcome verbose complete res_code proof_delims
+                                       known_failures output =
    case extract_tstplike_proof proof_delims output of
      "" =>
-     ("", SOME (if res_code = 0 andalso (not debug orelse output = "") then
+     ("", SOME (if res_code = 0 andalso output = "" then
                   ProofMissing
                 else case extract_known_failure known_failures output of
                   SOME failure =>
