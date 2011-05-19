@@ -543,6 +543,115 @@ sublocale pair_finite_prob_space \<subseteq> pair_prob_space M1 M2 by default
 sublocale pair_finite_prob_space \<subseteq> pair_finite_space M1 M2  by default
 sublocale pair_finite_prob_space \<subseteq> finite_prob_space P by default
 
+locale product_finite_prob_space =
+  fixes M :: "'i \<Rightarrow> ('a,'b) measure_space_scheme"
+    and I :: "'i set"
+  assumes finite_space: "\<And>i. finite_prob_space (M i)" and finite_index: "finite I"
+
+sublocale product_finite_prob_space \<subseteq> M!: finite_prob_space "M i" using finite_space .
+sublocale product_finite_prob_space \<subseteq> finite_product_sigma_finite M I by default (rule finite_index)
+sublocale product_finite_prob_space \<subseteq> prob_space "Pi\<^isub>M I M"
+proof
+  show "\<mu> (space P) = 1"
+    using measure_times[OF M.top] M.measure_space_1
+    by (simp add: setprod_1 space_product_algebra)
+qed
+
+lemma funset_eq_UN_fun_upd_I:
+  assumes *: "\<And>f. f \<in> F (insert a A) \<Longrightarrow> f(a := d) \<in> F A"
+  and **: "\<And>f. f \<in> F (insert a A) \<Longrightarrow> f a \<in> G (f(a:=d))"
+  and ***: "\<And>f x. \<lbrakk> f \<in> F A ; x \<in> G f \<rbrakk> \<Longrightarrow> f(a:=x) \<in> F (insert a A)"
+  shows "F (insert a A) = (\<Union>f\<in>F A. fun_upd f a ` (G f))"
+proof safe
+  fix f assume f: "f \<in> F (insert a A)"
+  show "f \<in> (\<Union>f\<in>F A. fun_upd f a ` G f)"
+  proof (rule UN_I[of "f(a := d)"])
+    show "f(a := d) \<in> F A" using *[OF f] .
+    show "f \<in> fun_upd (f(a:=d)) a ` G (f(a:=d))"
+    proof (rule image_eqI[of _ _ "f a"])
+      show "f a \<in> G (f(a := d))" using **[OF f] .
+    qed simp
+  qed
+next
+  fix f x assume "f \<in> F A" "x \<in> G f"
+  from ***[OF this] show "f(a := x) \<in> F (insert a A)" .
+qed
+
+lemma extensional_funcset_insert_eq[simp]:
+  assumes "a \<notin> A"
+  shows "extensional (insert a A) \<inter> (insert a A \<rightarrow> B) = (\<Union>f \<in> extensional A \<inter> (A \<rightarrow> B). (\<lambda>b. f(a := b)) ` B)"
+  apply (rule funset_eq_UN_fun_upd_I)
+  using assms
+  by (auto intro!: inj_onI dest: inj_onD split: split_if_asm simp: extensional_def)
+
+lemma finite_extensional_funcset[simp, intro]:
+  assumes "finite A" "finite B"
+  shows "finite (extensional A \<inter> (A \<rightarrow> B))"
+  using assms by induct (auto simp: extensional_funcset_insert_eq)
+
+lemma finite_PiE[simp, intro]:
+  assumes fin: "finite A" "\<And>i. i \<in> A \<Longrightarrow> finite (B i)"
+  shows "finite (Pi\<^isub>E A B)"
+proof -
+  have *: "(Pi\<^isub>E A B) \<subseteq> extensional A \<inter> (A \<rightarrow> (\<Union>i\<in>A. B i))" by auto
+  show ?thesis
+    using fin by (intro finite_subset[OF *] finite_extensional_funcset) auto
+qed
+
+sublocale product_finite_prob_space \<subseteq> finite_prob_space "Pi\<^isub>M I M"
+proof
+  show "finite (space P)"
+    using finite_index M.finite_space by auto
+
+  { fix x assume "x \<in> space P"
+    then have x: "{x} = (\<Pi>\<^isub>E i\<in>I. {x i})"
+    proof safe
+      fix y assume *: "y \<in> (\<Pi> i\<in>I. {x i})" "y \<in> extensional I"
+      show "y = x"
+      proof
+        fix i show "y i = x i"
+          using * `x \<in> space P` by (cases "i \<in> I") (auto simp: extensional_def)
+      qed
+    qed auto
+    with `x \<in> space P` have "{x} \<in> sets P"
+      by (auto intro!: in_P) }
+  note x_in_P = this
+
+  have "Pow (space P) \<subseteq> sets P"
+  proof
+    fix X assume "X \<in> Pow (space P)"
+    moreover then have "finite X"
+      using `finite (space P)` by (blast intro: finite_subset)
+    ultimately have "(\<Union>x\<in>X. {x}) \<in> sets P"
+      by (intro finite_UN x_in_P) auto
+    then show "X \<in> sets P" by simp
+  qed
+  with space_closed show [simp]: "sets P = Pow (space P)" ..
+
+
+  { fix x assume "x \<in> space P"
+    from this top have "\<mu> {x} \<le> \<mu> (space P)" by (intro measure_mono) auto
+    then show "\<mu> {x} \<noteq> \<infinity>"
+      using measure_space_1 by auto }
+qed
+
+lemma (in product_finite_prob_space) measure_finite_times:
+  "(\<And>i. i \<in> I \<Longrightarrow> X i \<subseteq> space (M i)) \<Longrightarrow> \<mu> (\<Pi>\<^isub>E i\<in>I. X i) = (\<Prod>i\<in>I. M.\<mu> i (X i))"
+  by (rule measure_times) simp
+
+lemma (in product_finite_prob_space) prob_times:
+  assumes X: "\<And>i. i \<in> I \<Longrightarrow> X i \<subseteq> space (M i)"
+  shows "prob (\<Pi>\<^isub>E i\<in>I. X i) = (\<Prod>i\<in>I. M.prob i (X i))"
+proof -
+  have "extreal (\<mu>' (\<Pi>\<^isub>E i\<in>I. X i)) = \<mu> (\<Pi>\<^isub>E i\<in>I. X i)"
+    using X by (intro finite_measure_eq[symmetric] in_P) auto
+  also have "\<dots> = (\<Prod>i\<in>I. M.\<mu> i (X i))"
+    using measure_finite_times X by simp
+  also have "\<dots> = extreal (\<Prod>i\<in>I. M.\<mu>' i (X i))"
+    using X by (simp add: M.finite_measure_eq setprod_extreal)
+  finally show ?thesis by simp
+qed
+
 lemma (in prob_space) joint_distribution_finite_prob_space:
   assumes X: "finite_random_variable MX X"
   assumes Y: "finite_random_variable MY Y"
