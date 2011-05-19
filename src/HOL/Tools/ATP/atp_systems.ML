@@ -406,14 +406,14 @@ val remote_vampire = remotify_atp vampire "Vampire" ["0.6", "9.0", "1.0"]
 val remote_z3_atp = remotify_atp z3_atp "Z3" ["2.18"]
 val remote_tofof_e =
   remote_atp tofof_eN "ToFoF" ["0.1"] [] (#known_failures e_config)
-             Axiom Conjecture [Tff] (K (200, ["simple_types"]) (* FUDGE *))
+             Axiom Conjecture [Tff] (K (200, ["simple"]) (* FUDGE *))
 val remote_sine_e =
   remote_atp sine_eN "SInE" ["0.4"] [] [] Axiom Conjecture [Fof]
              (K (500, ["poly_tags_heavy!", "poly_tags_heavy"]) (* FUDGE *))
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r024"]
              [("refutation.", "end_refutation.")] [] Hypothesis Conjecture
-             [Tff, Fof] (K (250, ["simple_types"]) (* FUDGE *))
+             [Tff, Fof] (K (250, ["simple"]) (* FUDGE *))
 
 (* Setup *)
 

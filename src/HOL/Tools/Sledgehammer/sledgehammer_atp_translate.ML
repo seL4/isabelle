@@ -124,7 +124,7 @@ fun type_sys_from_string s =
                 | NONE => (Light, s))
   |> (fn (poly, (level, (heaviness, core))) =>
          case (core, (poly, level, heaviness)) of
-           ("simple_types", (NONE, _, Light)) => Simple_Types level
+           ("simple", (NONE, _, Light)) => Simple_Types level
          | ("preds", (SOME Polymorphic, _, _)) =>
            if level = All_Types then Preds (Polymorphic, level, heaviness)
            else raise Same.SAME
