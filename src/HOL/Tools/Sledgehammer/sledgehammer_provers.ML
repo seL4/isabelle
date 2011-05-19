@@ -410,7 +410,12 @@ val fallback_best_type_systems =
 fun adjust_dumb_type_sys formats (Simple_Types level) =
     if member (op =) formats Tff then (Tff, Simple_Types level)
     else (Fof, Preds (Mangled_Monomorphic, level, Heavy))
-  | adjust_dumb_type_sys formats type_sys = (hd formats, type_sys)
+  | adjust_dumb_type_sys formats type_sys =
+    (* We could return (Tff, type_sys) in all cases but this would require the
+       TFF provers to accept problems in which constants are implicitly
+       declared. Today neither SNARK nor ToFoF-E satisfy this criterion. *)
+    if member (op =) formats Fof then (Fof, type_sys)
+    else (Tff, Simple_Types All_Types)
 fun determine_format_and_type_sys _ formats (Dumb_Type_Sys type_sys) =
     adjust_dumb_type_sys formats type_sys
   | determine_format_and_type_sys best_type_systems formats
@@ -560,8 +565,8 @@ fun run_atp auto name
                          I)
                   |>> (if measure_run_time then split_time else rpair NONE)
                 val (atp_proof, outcome) =
-                  extract_tstplike_proof_and_outcome debug verbose complete
-                      res_code proof_delims known_failures output
+                  extract_tstplike_proof_and_outcome verbose complete res_code
+                      proof_delims known_failures output
                   |>> atp_proof_from_tstplike_proof
                 val (conjecture_shape, facts_offset, fact_names) =
                   if is_none outcome then
