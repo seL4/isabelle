@@ -1045,11 +1045,14 @@ fun formula_line_for_pred_sym_decl ctxt conj_sym_kind nonmono_Ts type_sys n s j
              NONE, NONE)
   end
 
-fun formula_lines_for_tag_sym_decl ctxt nonmono_Ts type_sys n s
-                                   (j, (s', T_args, T, pred_sym, ary, _)) =
+fun formula_lines_for_tag_sym_decl ctxt conj_sym_kind nonmono_Ts type_sys n s
+                                  (j, (s', T_args, T, pred_sym, ary, in_conj)) =
   let
     val ident_base =
       sym_decl_prefix ^ s ^ (if n > 1 then "_" ^ string_of_int j else "")
+    val (kind, maybe_negate) =
+      if in_conj then (conj_sym_kind, conj_sym_kind = Conjecture ? mk_anot)
+      else (Axiom, I)
     val (arg_Ts, res_T) = chop_fun ary T
     val bound_names =
       1 upto length arg_Ts |> map (`I o make_bound_var o string_of_int)
@@ -1061,11 +1064,12 @@ fun formula_lines_for_tag_sym_decl ctxt nonmono_Ts type_sys n s
        else AAtom (ATerm (`I "equal", tms)))
       |> bound_atomic_types type_sys atomic_Ts
       |> close_formula_universally
+      |> maybe_negate
     val should_encode = should_encode_type ctxt nonmono_Ts All_Types
     val tag_with = tag_with_type ctxt nonmono_Ts type_sys
     val add_formula_for_res =
       if should_encode res_T then
-        cons (Formula (ident_base ^ "_res", Axiom,
+        cons (Formula (ident_base ^ "_res", kind,
                        eq [tag_with res_T (const bounds), const bounds],
                        NONE, NONE))
       else
@@ -1075,7 +1079,7 @@ fun formula_lines_for_tag_sym_decl ctxt nonmono_Ts type_sys n s
         if should_encode arg_T then
           case chop k bounds of
             (bounds1, bound :: bounds2) =>
-            cons (Formula (ident_base ^ "_arg" ^ string_of_int (k + 1), Axiom,
+            cons (Formula (ident_base ^ "_arg" ^ string_of_int (k + 1), kind,
                            eq [const (bounds1 @ tag_with arg_T bound ::
                                       bounds2),
                                const bounds],
@@ -1124,7 +1128,8 @@ fun problem_lines_for_sym_decls ctxt conj_sym_kind nonmono_Ts type_sys
      | Light =>
        let val n = length decls in
          (0 upto n - 1 ~~ decls)
-         |> maps (formula_lines_for_tag_sym_decl ctxt nonmono_Ts type_sys n s)
+         |> maps (formula_lines_for_tag_sym_decl ctxt conj_sym_kind nonmono_Ts
+                                                 type_sys n s)
        end)
 
 fun problem_lines_for_sym_decl_table ctxt conj_sym_kind nonmono_Ts type_sys
