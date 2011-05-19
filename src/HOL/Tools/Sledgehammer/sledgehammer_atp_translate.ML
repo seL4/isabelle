@@ -127,20 +127,21 @@ fun type_sys_from_string s =
                   | NONE => (NONE, s))
   |> (fn (poly, (level, (heaviness, core))) =>
          case (core, (poly, level, heaviness)) of
-           ("simple_types", (NONE, level, NONE)) => Simple_Types level
-         | ("preds", (SOME Polymorphic, level, _)) =>
+           ("simple_types", (NONE, _, NONE)) => Simple_Types level
+         | ("preds", (SOME Polymorphic, _, _)) =>
            if level = All_Types then
              Preds (Polymorphic, level, heaviness |> the_default Light)
            else
              raise Same.SAME
-         | ("preds", (SOME poly, level, _)) =>
+         | ("preds", (SOME poly, _, _)) =>
            Preds (poly, level, heaviness |> the_default Light)
-         | ("tags", (SOME Polymorphic, level, _)) =>
-           if level = All_Types orelse level = Finite_Types then
-             Tags (Polymorphic, level, heaviness |> the_default Light)
-           else
-             raise Same.SAME
-         | ("tags", (SOME poly, level, _)) =>
+         | ("tags", (SOME Polymorphic, All_Types, _)) =>
+           Tags (Polymorphic, All_Types, heaviness |> the_default Light)
+         | ("tags", (SOME Polymorphic, Finite_Types, _)) =>
+           if heaviness = SOME Light then raise Same.SAME
+           else Tags (Polymorphic, Finite_Types, Heavy)
+         | ("tags", (SOME Polymorphic, _, _)) => raise Same.SAME
+         | ("tags", (SOME poly, _, _)) =>
            Tags (poly, level, heaviness |> the_default Light)
          | ("args", (SOME poly, All_Types (* naja *), NONE)) =>
            Preds (poly, Const_Arg_Types, Light)
