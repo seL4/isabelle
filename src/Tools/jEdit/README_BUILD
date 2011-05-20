@@ -2,7 +2,7 @@
 Requirements to build from sources
 ==================================
 
-* Proper Java JRE/JDK from Sun, e.g. 1.6.0_24
+* Proper Java JRE/JDK from Sun, e.g. 1.6.0_24 or 1.6.0_25
   http://java.sun.com/javase/downloads/index.jsp
 
 * Netbeans 6.9
