@@ -672,12 +672,11 @@ end
 text{* A simplified version for idempotent functions: *}
 
 locale fun_left_comm_idem = fun_left_comm +
-  assumes fun_left_idem: "f x (f x z) = f x z"
+  assumes fun_comp_idem: "f x o f x = f x"
 begin
 
-text{* The nice version: *}
-lemma fun_comp_idem : "f x o f x = f x"
-by (simp add: fun_left_idem fun_eq_iff)
+lemma fun_left_idem: "f x (f x z) = f x z"
+  using fun_comp_idem by (simp add: fun_eq_iff)
 
 lemma fold_insert_idem:
   assumes fin: "finite A"
@@ -701,15 +700,15 @@ end
 
 subsubsection {* Expressing set operations via @{const fold} *}
 
-lemma (in fun_left_comm) fun_left_comm_apply:
-  "fun_left_comm (\<lambda>x. f (g x))"
+lemma (in fun_left_comm) comp_comp_fun_commute:
+  "fun_left_comm (f \<circ> g)"
 proof
 qed (simp_all add: commute_comp)
 
-lemma (in fun_left_comm_idem) fun_left_comm_idem_apply:
-  "fun_left_comm_idem (\<lambda>x. f (g x))"
-  by (rule fun_left_comm_idem.intro, rule fun_left_comm_apply, unfold_locales)
-    (simp_all add: fun_left_idem)
+lemma (in fun_left_comm_idem) comp_comp_fun_idem:
+  "fun_left_comm_idem (f \<circ> g)"
+  by (rule fun_left_comm_idem.intro, rule comp_comp_fun_commute, unfold_locales)
+    (simp_all add: fun_comp_idem)
 
 lemma fun_left_comm_idem_insert:
   "fun_left_comm_idem insert"
@@ -783,10 +782,11 @@ lemma inf_INFI_fold_inf:
   shows "inf B (INFI A f) = fold (\<lambda>A. inf (f A)) B A" (is "?inf = ?fold") 
 proof (rule sym)
   interpret fun_left_comm_idem inf by (fact fun_left_comm_idem_inf)
-  interpret fun_left_comm_idem "\<lambda>A. inf (f A)" by (fact fun_left_comm_idem_apply)
-  from `finite A` show "?fold = ?inf"
-  by (induct A arbitrary: B)
-    (simp_all add: INFI_def Inf_insert inf_left_commute)
+  interpret fun_left_comm_idem "inf \<circ> f" by (fact comp_comp_fun_idem)
+  from `finite A` have "fold (inf \<circ> f) B A = ?inf"
+    by (induct A arbitrary: B)
+      (simp_all add: INFI_def Inf_insert inf_left_commute)
+  then show "?fold = ?inf" by (simp add: comp_def)
 qed
 
 lemma sup_SUPR_fold_sup:
@@ -794,10 +794,11 @@ lemma sup_SUPR_fold_sup:
   shows "sup B (SUPR A f) = fold (\<lambda>A. sup (f A)) B A" (is "?sup = ?fold") 
 proof (rule sym)
   interpret fun_left_comm_idem sup by (fact fun_left_comm_idem_sup)
-  interpret fun_left_comm_idem "\<lambda>A. sup (f A)" by (fact fun_left_comm_idem_apply)
-  from `finite A` show "?fold = ?sup"
-  by (induct A arbitrary: B)
-    (simp_all add: SUPR_def Sup_insert sup_left_commute)
+  interpret fun_left_comm_idem "sup \<circ> f" by (fact comp_comp_fun_idem)
+  from `finite A` have "fold (sup \<circ> f) B A = ?sup"
+    by (induct A arbitrary: B)
+      (simp_all add: SUPR_def Sup_insert sup_left_commute)
+  then show "?fold = ?sup" by (simp add: comp_def)
 qed
 
 lemma INFI_fold_inf:
@@ -1138,7 +1139,7 @@ context ab_semigroup_idem_mult
 begin
 
 lemma fun_left_comm_idem: "fun_left_comm_idem (op *)" proof
-qed (simp add: fun_eq_iff mult_left_commute, rule mult_left_idem)
+qed (simp_all add: fun_eq_iff mult_left_commute)
 
 lemma fold1_insert_idem [simp]:
   assumes nonempty: "A \<noteq> {}" and A: "finite A" 

@@ -1850,12 +1850,12 @@ lemma iterate_insert[simp]: assumes "monoidal opp" "finite s"
 proof(cases "x\<in>s") case True hence *:"insert x s = s" by auto
   show ?thesis unfolding iterate_def if_P[OF True] * by auto
 next case False note x=this
-  note * = fun_left_comm.fun_left_comm_apply[OF fun_left_comm_monoidal[OF assms(1)]]
+  note * = fun_left_comm.comp_comp_fun_commute [OF fun_left_comm_monoidal[OF assms(1)]]
   show ?thesis proof(cases "f x = neutral opp")
     case True show ?thesis unfolding iterate_def if_not_P[OF x] support_clauses if_P[OF True]
       unfolding True monoidal_simps[OF assms(1)] by auto
   next case False show ?thesis unfolding iterate_def fold'_def  if_not_P[OF x] support_clauses if_not_P[OF False]
-      apply(subst fun_left_comm.fold_insert[OF * finite_support])
+      apply(subst fun_left_comm.fold_insert[OF * finite_support, simplified comp_def])
       using `finite s` unfolding support_def using False x by auto qed qed 
 
 lemma iterate_some:
