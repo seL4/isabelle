@@ -141,13 +141,12 @@ fun type_sys_from_string s =
          case (core, (poly, level, heaviness)) of
            ("simple", (NONE, _, Light)) => Simple_Types level
          | ("preds", (SOME Polymorphic, _, _)) =>
-           if level = All_Types then Preds (Polymorphic, level, heaviness)
-           else raise Same.SAME
+           Preds (Polymorphic, level, heaviness)
          | ("preds", (SOME poly, _, _)) => Preds (poly, level, heaviness)
          | ("tags", (SOME Polymorphic, All_Types, _)) =>
            Tags (Polymorphic, All_Types, heaviness)
          | ("tags", (SOME Polymorphic, Finite_Types, _)) =>
-           (* The light encoding yields too many unsound proofs. *)
+           (* The actual light encoding yields too many unsound proofs. *)
            Tags (Polymorphic, Finite_Types, Heavy)
          | ("tags", (SOME Polymorphic, _, _)) => raise Same.SAME
          | ("tags", (SOME poly, _, _)) => Tags (poly, level, heaviness)
