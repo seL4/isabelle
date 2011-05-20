@@ -14,11 +14,14 @@ sig
   datatype type_literal =
     TyLitVar of name * name |
     TyLitFree of name * name
-  datatype arLit =
+  datatype arity_literal =
     TConsLit of name * name * name list |
     TVarLit of name * name
   datatype arity_clause =
-    ArityClause of {name: string, conclLit: arLit, premLits: arLit list}
+    ArityClause of
+      {name: string,
+       prem_lits: arity_literal list,
+       concl_lits: arity_literal}
   datatype class_rel_clause =
     ClassRelClause of {name: string, subclass: name, superclass: name}
   datatype combterm =
@@ -274,13 +277,15 @@ fun type_literals_for_types Ts =
 
 (**** Isabelle arities ****)
 
-datatype arLit =
+datatype arity_literal =
   TConsLit of name * name * name list |
   TVarLit of name * name
 
 datatype arity_clause =
-  ArityClause of {name: string, conclLit: arLit, premLits: arLit list}
-
+  ArityClause of
+    {name: string,
+     prem_lits: arity_literal list,
+     concl_lits: arity_literal}
 
 fun gen_TVars 0 = []
   | gen_TVars n = ("T_" ^ string_of_int n) :: gen_TVars (n-1);
@@ -288,7 +293,7 @@ fun gen_TVars 0 = []
 fun pack_sort(_,[])  = []
   | pack_sort(tvar, "HOL.type"::srt) = pack_sort (tvar, srt)   (*IGNORE sort "type"*)
   | pack_sort(tvar, cls::srt) =
-    (`make_type_class cls, (tvar, tvar)) :: pack_sort (tvar, srt)
+    (`make_type_class cls, `I tvar) :: pack_sort (tvar, srt)
 
 (*Arity of type constructor tcon :: (arg1,...,argN)res*)
 fun make_axiom_arity_clause (tcons, name, (cls,args)) =
@@ -297,10 +302,10 @@ fun make_axiom_arity_clause (tcons, name, (cls,args)) =
     val tvars_srts = ListPair.zip (tvars, args)
   in
     ArityClause {name = name,
-                 conclLit = TConsLit (`make_type_class cls,
-                                      `make_fixed_type_const tcons,
-                                      tvars ~~ tvars),
-                 premLits = map TVarLit (union_all (map pack_sort tvars_srts))}
+                 prem_lits = map TVarLit (union_all (map pack_sort tvars_srts)),
+                 concl_lits = TConsLit (`make_type_class cls,
+                                        `make_fixed_type_const tcons,
+                                        tvars ~~ tvars)}
   end
 
 
@@ -719,9 +724,10 @@ fun m_arity_cls (TConsLit ((c, _), (t, _), args)) =
   | m_arity_cls (TVarLit ((c, _), (s, _))) =
     metis_lit false c [Metis_Term.Var s]
 (*TrueI is returned as the Isabelle counterpart because there isn't any.*)
-fun arity_cls (ArityClause {conclLit, premLits, ...}) =
+fun arity_cls (ArityClause {prem_lits, concl_lits, ...}) =
   (TrueI,
-   Metis_Thm.axiom (Metis_LiteralSet.fromList (map m_arity_cls (conclLit :: premLits))));
+   Metis_Thm.axiom (Metis_LiteralSet.fromList
+                        (map m_arity_cls (concl_lits :: prem_lits))));
 
 (* CLASSREL CLAUSE *)
 fun m_class_rel_cls (subclass, _) (superclass, _) =

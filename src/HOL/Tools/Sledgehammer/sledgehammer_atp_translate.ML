@@ -922,13 +922,13 @@ fun fo_literal_from_arity_literal (TConsLit (c, t, args)) =
   | fo_literal_from_arity_literal (TVarLit (c, sort)) =
     (false, ATerm (c, [ATerm (sort, [])]))
 
-fun formula_line_for_arity_clause (ArityClause {name, conclLit, premLits,
+fun formula_line_for_arity_clause (ArityClause {name, prem_lits, concl_lits,
                                                 ...}) =
   Formula (arity_clause_prefix ^ ascii_of name, Axiom,
            mk_ahorn (map (formula_from_fo_literal o apfst not
-                          o fo_literal_from_arity_literal) premLits)
+                          o fo_literal_from_arity_literal) prem_lits)
                     (formula_from_fo_literal
-                         (fo_literal_from_arity_literal conclLit))
+                         (fo_literal_from_arity_literal concl_lits))
            |> close_formula_universally, intro_info, NONE)
 
 fun formula_line_for_conjecture ctxt nonmono_Ts type_sys
