@@ -4,9 +4,9 @@
 
 ## self references
 
-PRG=$(basename "$0")
-THIS=$(cd "$(dirname "$0")"; pwd)
-SUPER=$(cd "$THIS/.."; pwd)
+PRG="$(basename "$0")"
+THIS="$(cd "$(dirname "$0")"; pwd)"
+SUPER="$(cd "$THIS/.."; pwd)"
 
 
 ## diagnostics
@@ -38,7 +38,7 @@ fail()
 
 # options
 
-while getopts "j:s:" OPT
+while getopts "j:" OPT
 do
   case "$OPT" in
     j)

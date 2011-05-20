@@ -2,7 +2,7 @@
 #
 # Author: Makarius
 #
-# mk-jars - build Isabelle/Scala
+# build-jars - build Isabelle/Scala
 #
 # Requires proper Isabelle settings environment.
 
@@ -15,7 +15,7 @@ function fail()
   exit 2
 }
 
-[ -n "$ISABELLE_HOME" ] || fail "Missing Isabelle settings environment"
+[ -z "$ISABELLE_HOME" ] && fail "Missing Isabelle settings environment"
 [ -z "$SCALA_HOME" ] && fail "Unknown SCALA_HOME -- Scala unavailable"
 
 
