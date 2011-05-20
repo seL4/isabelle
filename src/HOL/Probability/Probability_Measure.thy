@@ -6,7 +6,7 @@
 header {*Probability measure*}
 
 theory Probability_Measure
-imports Lebesgue_Integration Radon_Nikodym Finite_Product_Measure
+imports Lebesgue_Integration Radon_Nikodym Finite_Product_Measure Lebesgue_Measure
 begin
 
 lemma real_of_extreal_inverse[simp]:
@@ -1059,6 +1059,66 @@ proof safe
     then show "Z x = ?g (Y x)"
       by (auto split: split_max)
   qed
+qed
+
+subsection "Borel Measure on {0 .. 1}"
+
+definition pborel :: "real measure_space" where
+  "pborel = lborel.restricted_space {0 .. 1}"
+
+lemma space_pborel[simp]:
+  "space pborel = {0 .. 1}"
+  unfolding pborel_def by auto
+
+lemma sets_pborel:
+  "A \<in> sets pborel \<longleftrightarrow> A \<in> sets borel \<and> A \<subseteq> { 0 .. 1}"
+  unfolding pborel_def by auto
+
+lemma in_pborel[intro, simp]:
+  "A \<subseteq> {0 .. 1} \<Longrightarrow> A \<in> sets borel \<Longrightarrow> A \<in> sets pborel"
+  unfolding pborel_def by auto
+
+interpretation pborel: measure_space pborel
+  using lborel.restricted_measure_space[of "{0 .. 1}"]
+  by (simp add: pborel_def)
+
+interpretation pborel: prob_space pborel
+  by default (simp add: one_extreal_def pborel_def)
+
+lemma pborel_prob: "pborel.prob A = (if A \<in> sets borel \<and> A \<subseteq> {0 .. 1} then real (lborel.\<mu> A) else 0)"
+  unfolding pborel.\<mu>'_def by (auto simp: pborel_def)
+
+lemma pborel_singelton[simp]: "pborel.prob {a} = 0"
+  by (auto simp: pborel_prob)
+
+lemma
+  shows pborel_atLeastAtMost[simp]: "pborel.\<mu>' {a .. b} = (if 0 \<le> a \<and> a \<le> b \<and> b \<le> 1 then b - a else 0)"
+    and pborel_atLeastLessThan[simp]: "pborel.\<mu>' {a ..< b} = (if 0 \<le> a \<and> a \<le> b \<and> b \<le> 1 then b - a else 0)"
+    and pborel_greaterThanAtMost[simp]: "pborel.\<mu>' {a <.. b} = (if 0 \<le> a \<and> a \<le> b \<and> b \<le> 1 then b - a else 0)"
+    and pborel_greaterThanLessThan[simp]: "pborel.\<mu>' {a <..< b} = (if 0 \<le> a \<and> a \<le> b \<and> b \<le> 1 then b - a else 0)"
+  unfolding pborel_prob by (auto simp: atLeastLessThan_subseteq_atLeastAtMost_iff
+    greaterThanAtMost_subseteq_atLeastAtMost_iff greaterThanLessThan_subseteq_atLeastAtMost_iff)
+
+lemma pborel_lebesgue_measure:
+  "A \<in> sets pborel \<Longrightarrow> pborel.prob A = real (measure lebesgue A)"
+  by (simp add: sets_pborel pborel_prob)
+
+lemma pborel_alt:
+  "pborel = sigma \<lparr>
+    space = {0..1},
+    sets = range (\<lambda>(x,y). {x..y} \<inter> {0..1}),
+    measure = measure lborel \<rparr>" (is "_ = ?R")
+proof -
+  have *: "{0..1::real} \<in> sets borel" by auto
+  have **: "op \<inter> {0..1::real} ` range (\<lambda>(x, y). {x..y}) = range (\<lambda>(x,y). {x..y} \<inter> {0..1})"
+    unfolding image_image by (intro arg_cong[where f=range]) auto
+  have "pborel = algebra.restricted_space (sigma \<lparr>space=UNIV, sets=range (\<lambda>(a, b). {a .. b :: real}),
+    measure = measure pborel\<rparr>) {0 .. 1}"
+    by (simp add: sigma_def lebesgue_def pborel_def borel_eq_atLeastAtMost lborel_def)
+  also have "\<dots> = ?R"
+    by (subst restricted_sigma)
+       (simp_all add: sets_sigma sigma_sets.Basic ** pborel_def image_eqI[of _ _ "(0,1)"])
+  finally show ?thesis .
 qed
 
 subsection "Bernoulli space"
