@@ -269,59 +269,6 @@ merge_ss : simpset * simpset -> simpset
 \end{ttdescription}
 
 
-\subsection{Accessing the current simpset}
-\label{sec:access-current-simpset}
-
-\begin{ttbox}
-simpset        : unit   -> simpset
-simpset_ref    : unit   -> simpset ref
-simpset_of     : theory -> simpset
-simpset_ref_of : theory -> simpset ref
-print_simpset  : theory -> unit
-SIMPSET        :(simpset ->       tactic) ->       tactic
-SIMPSET'       :(simpset -> 'a -> tactic) -> 'a -> tactic
-\end{ttbox}
-
-Each theory contains a current simpset\index{simpset!current} stored
-within a private ML reference variable.  This can be retrieved and
-modified as follows.
-
-\begin{ttdescription}
-  
-\item[\ttindexbold{simpset}();] retrieves the simpset value from the
-  current theory context.
-  
-\item[\ttindexbold{simpset_ref}();] retrieves the simpset reference
-  variable from the current theory context.  This can be assigned to
-  by using \texttt{:=} in ML.
-  
-\item[\ttindexbold{simpset_of} $thy$;] retrieves the simpset value
-  from theory $thy$.
-  
-\item[\ttindexbold{simpset_ref_of} $thy$;] retrieves the simpset
-  reference variable from theory $thy$.
-
-\item[\ttindexbold{print_simpset} $thy$;] prints the current simpset
-  of theory $thy$ in the same way as \texttt{print_ss}.
-
-\item[\ttindexbold{SIMPSET} $tacf$, \ttindexbold{SIMPSET'} $tacf'$]
-  are tacticals that make a tactic depend on the implicit current
-  simpset of the theory associated with the proof state they are
-  applied on.
-
-\end{ttdescription}
-
-\begin{warn}
-  There is a small difference between \texttt{(SIMPSET'~$tacf$)} and
-  \texttt{($tacf\,$(simpset()))}.  For example \texttt{(SIMPSET'
-    simp_tac)} would depend on the theory of the proof state it is
-  applied to, while \texttt{(simp_tac (simpset()))} implicitly refers
-  to the current theory context.  Both are usually the same in proof
-  scripts, provided that goals are only stated within the current
-  theory.  Robust programs would not count on that, of course.
-\end{warn}
-
-
 \subsection{Rewrite rules}
 \begin{ttbox}
 addsimps : simpset * thm list -> simpset \hfill{\bf infix 4}
@@ -1260,36 +1207,6 @@ contextual information to simplify the conclusions of implications:
 \]
 By adding the congruence rule \texttt{conj_cong}, we could obtain a similar
 effect for conjunctions.
-
-
-\subsection{Splitter setup}\index{simplification!setting up the splitter}
-
-To set up case splitting, we have to call the \ML{} functor \ttindex{
-SplitterFun}, which takes the argument signature \texttt{SPLITTER_DATA}. 
-So we prove the theorem \texttt{meta_eq_to_iff} below and store it, together
-with the \texttt{mk_eq} function described above and several standard
-theorems, in the structure \texttt{SplitterData}. Calling the functor with
-this data yields a new instantiation of the splitter for our logic.
-\begin{ttbox}
-val meta_eq_to_iff = prove_goal IFOL.thy "x==y ==> x<->y"
-  (fn [prem] => [rewtac prem, rtac iffI 1, atac 1, atac 1]);
-\ttbreak
-structure SplitterData =
-  struct
-  structure Simplifier = Simplifier
-  val mk_eq          = mk_eq
-  val meta_eq_to_iff = meta_eq_to_iff
-  val iffD           = iffD2
-  val disjE          = disjE
-  val conjE          = conjE
-  val exE            = exE
-  val contrapos      = contrapos
-  val contrapos2     = contrapos2
-  val notnotD        = notnotD
-  end;
-\ttbreak
-structure Splitter = SplitterFun(SplitterData);
-\end{ttbox}
 
 
 \index{simplification|)}

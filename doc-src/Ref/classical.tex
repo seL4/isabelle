@@ -409,8 +409,7 @@ When a simpset combined with a claset is to be augmented, this should done
 
 \section{The classical tactics}
 \index{classical reasoner!tactics} If installed, the classical module provides
-powerful theorem-proving tactics.  Most of them have capitalized analogues
-that use the default claset; see {\S}\ref{sec:current-claset}.
+powerful theorem-proving tactics.
 
 
 \subsection{The tableau prover}
@@ -421,8 +420,6 @@ reasoning tactics, but has major limitations too.
 \begin{itemize}
 \item It does not use the wrapper tacticals described above, such as
   \ttindex{addss}.
-\item It ignores types, which can cause problems in HOL.  If it applies a rule
-  whose types are inappropriate, then proof reconstruction will fail.
 \item It does not perform higher-order unification, as needed by the rule {\tt
     rangeI} in HOL and \texttt{RepFunI} in ZF.  There are often alternatives
   to such rules, for example {\tt range_eqI} and \texttt{RepFun_eqI}.
@@ -479,12 +476,6 @@ leaving the ones it cannot prove.
 completely. It tries to apply all fancy tactics it knows about, 
 performing a rather exhaustive search.
 \end{ttdescription}
-They must be supplied both a simpset and a claset; therefore 
-they are most easily called as \texttt{Auto_tac} and \texttt{Force_tac}, which 
-use the default claset and simpset (see {\S}\ref{sec:current-claset} below). 
-For interactive use, 
-the shorthand \texttt{auto();} abbreviates \texttt{by Auto_tac;} 
-while \texttt{force 1;} abbreviates \texttt{by (Force_tac 1);}
 
 
 \subsection{Semi-automatic tactics}
@@ -601,73 +592,6 @@ but allows unknowns to be instantiated.
 \end{ttdescription}
 
 
-\subsection{The current claset}\label{sec:current-claset}
-
-Each theory is equipped with an implicit \emph{current claset}
-\index{claset!current}.  This is a default set of classical
-rules.  The underlying idea is quite similar to that of a current
-simpset described in {\S}\ref{sec:simp-for-dummies}; please read that
-section, including its warnings.  
-
-The tactics
-\begin{ttbox}
-Blast_tac        : int -> tactic
-Auto_tac         :        tactic
-Force_tac        : int -> tactic
-Fast_tac         : int -> tactic
-Best_tac         : int -> tactic
-Deepen_tac       : int -> int -> tactic
-Clarify_tac      : int -> tactic
-Clarify_step_tac : int -> tactic
-Clarsimp_tac     : int -> tactic
-Safe_tac         :        tactic
-Safe_step_tac    : int -> tactic
-Step_tac         : int -> tactic
-\end{ttbox}
-\indexbold{*Blast_tac}\indexbold{*Auto_tac}\indexbold{*Force_tac}
-\indexbold{*Best_tac}\indexbold{*Fast_tac}%
-\indexbold{*Deepen_tac}
-\indexbold{*Clarify_tac}\indexbold{*Clarify_step_tac}\indexbold{*Clarsimp_tac}
-\indexbold{*Safe_tac}\indexbold{*Safe_step_tac}
-\indexbold{*Step_tac}
-make use of the current claset.  For example, \texttt{Blast_tac} is defined as 
-\begin{ttbox}
-fun Blast_tac i st = blast_tac (claset()) i st;
-\end{ttbox}
-and gets the current claset, only after it is applied to a proof state.  
-The functions
-\begin{ttbox}
-AddSIs, AddSEs, AddSDs, AddIs, AddEs, AddDs: thm list -> unit
-\end{ttbox}
-\indexbold{*AddSIs} \indexbold{*AddSEs} \indexbold{*AddSDs}
-\indexbold{*AddIs} \indexbold{*AddEs} \indexbold{*AddDs}
-are used to add rules to the current claset.  They work exactly like their
-lower case counterparts, such as \texttt{addSIs}.  Calling
-\begin{ttbox}
-Delrules : thm list -> unit
-\end{ttbox}
-deletes rules from the current claset. 
-
-
-\subsection{Accessing the current claset}
-\label{sec:access-current-claset}
-
-the functions to access the current claset are analogous to the functions 
-for the current simpset, so please see \ref{sec:access-current-simpset}
-for a description.
-\begin{ttbox}
-claset        : unit   -> claset
-claset_ref    : unit   -> claset ref
-claset_of     : theory -> claset
-claset_ref_of : theory -> claset ref
-print_claset  : theory -> unit
-CLASET        :(claset     ->       tactic) ->       tactic
-CLASET'       :(claset     -> 'a -> tactic) -> 'a -> tactic
-CLASIMPSET    :(clasimpset ->       tactic) ->       tactic
-CLASIMPSET'   :(clasimpset -> 'a -> tactic) -> 'a -> tactic
-\end{ttbox}
-
-
 \subsection{Other useful tactics}
 \index{tactics!for contradiction}
 \index{tactics!for Modus Ponens}
@@ -766,20 +690,6 @@ them according to its fixed strategy.  The functor resides in {\tt
 
 \index{classical reasoner|)}
 
-\section{Setting up the combination with the simplifier}
-\label{sec:clasimp-setup}
-
-To combine the classical reasoner and the simplifier, we simply call the 
-\ML{} functor \ttindex{ClasimpFun} that assembles the parts as required. 
-It takes a structure (of signature \texttt{CLASIMP_DATA}) as
-argment, which can be contructed on the fly:
-\begin{ttbox}
-structure Clasimp = ClasimpFun
- (structure Simplifier = Simplifier 
-        and Classical  = Classical 
-        and Blast      = Blast);
-\end{ttbox}
-%
 %%% Local Variables: 
 %%% mode: latex
 %%% TeX-master: "ref"
