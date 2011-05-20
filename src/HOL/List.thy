@@ -2478,11 +2478,11 @@ lemma concat_conv_foldl: "concat xss = foldl (op @) [] xss"
 
 text {* @{const Finite_Set.fold} and @{const foldl} *}
 
-lemma (in fun_left_comm) fold_set_remdups:
+lemma (in comp_fun_commute) fold_set_remdups:
   "fold f y (set xs) = foldl (\<lambda>y x. f x y) y (remdups xs)"
   by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_comm insert_absorb)
 
-lemma (in fun_left_comm_idem) fold_set:
+lemma (in comp_fun_idem) fold_set:
   "fold f y (set xs) = foldl (\<lambda>y x. f x y) y xs"
   by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_comm)
 
@@ -2490,7 +2490,7 @@ lemma (in ab_semigroup_idem_mult) fold1_set:
   assumes "xs \<noteq> []"
   shows "fold1 times (set xs) = foldl times (hd xs) (tl xs)"
 proof -
-  interpret fun_left_comm_idem times by (fact fun_left_comm_idem)
+  interpret comp_fun_idem times by (fact comp_fun_idem)
   from assms obtain y ys where xs: "xs = y # ys"
     by (cases xs) auto
   show ?thesis
@@ -2543,16 +2543,16 @@ qed
 lemma (in complete_lattice) Inf_set_fold [code_unfold]:
   "Inf (set xs) = foldl inf top xs"
 proof -
-  interpret fun_left_comm_idem "inf :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
-    by (fact fun_left_comm_idem_inf)
+  interpret comp_fun_idem "inf :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
+    by (fact comp_fun_idem_inf)
   show ?thesis by (simp add: Inf_fold_inf fold_set inf_commute)
 qed
 
 lemma (in complete_lattice) Sup_set_fold [code_unfold]:
   "Sup (set xs) = foldl sup bot xs"
 proof -
-  interpret fun_left_comm_idem "sup :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
-    by (fact fun_left_comm_idem_sup)
+  interpret comp_fun_idem "sup :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
+    by (fact comp_fun_idem_sup)
   show ?thesis by (simp add: Sup_fold_sup fold_set sup_commute)
 qed
 
@@ -3762,8 +3762,8 @@ lemma insort_left_comm:
   "insort x (insort y xs) = insort y (insort x xs)"
   by (cases "x = y") (auto intro: insort_key_left_comm)
 
-lemma fun_left_comm_insort:
-  "fun_left_comm insort"
+lemma comp_fun_commute_insort:
+  "comp_fun_commute insort"
 proof
 qed (simp add: insort_left_comm fun_eq_iff)
 
@@ -4249,7 +4249,7 @@ lemma sorted_list_of_set_insert [simp]:
   assumes "finite A"
   shows "sorted_list_of_set (insert x A) = insort x (sorted_list_of_set (A - {x}))"
 proof -
-  interpret fun_left_comm insort by (fact fun_left_comm_insort)
+  interpret comp_fun_commute insort by (fact comp_fun_commute_insort)
   with assms show ?thesis by (simp add: sorted_list_of_set_def fold_insert_remove)
 qed
 
@@ -4261,7 +4261,7 @@ lemma sorted_list_of_set [simp]:
 lemma sorted_list_of_set_sort_remdups:
   "sorted_list_of_set (set xs) = sort (remdups xs)"
 proof -
-  interpret fun_left_comm insort by (fact fun_left_comm_insort)
+  interpret comp_fun_commute insort by (fact comp_fun_commute_insort)
   show ?thesis by (simp add: sort_foldl_insort sorted_list_of_set_def fold_set_remdups)
 qed
 

@@ -15,11 +15,11 @@ definition is_empty :: "'a set \<Rightarrow> bool" where
 definition remove :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set" where
   "remove x A = A - {x}"
 
-lemma fun_left_comm_idem_remove:
-  "fun_left_comm_idem remove"
+lemma comp_fun_idem_remove:
+  "comp_fun_idem remove"
 proof -
   have rem: "remove = (\<lambda>x A. A - {x})" by (simp add: fun_eq_iff remove_def)
-  show ?thesis by (simp only: fun_left_comm_idem_remove rem)
+  show ?thesis by (simp only: comp_fun_idem_remove rem)
 qed
 
 lemma minus_fold_remove:
@@ -66,8 +66,8 @@ subsection {* Functorial set operations *}
 lemma union_set:
   "set xs \<union> A = fold Set.insert xs A"
 proof -
-  interpret fun_left_comm_idem Set.insert
-    by (fact fun_left_comm_idem_insert)
+  interpret comp_fun_idem Set.insert
+    by (fact comp_fun_idem_insert)
   show ?thesis by (simp add: union_fold_insert fold_set)
 qed
 
@@ -82,8 +82,8 @@ qed
 lemma minus_set:
   "A - set xs = fold remove xs A"
 proof -
-  interpret fun_left_comm_idem remove
-    by (fact fun_left_comm_idem_remove)
+  interpret comp_fun_idem remove
+    by (fact comp_fun_idem_remove)
   show ?thesis
     by (simp add: minus_fold_remove [of _ A] fold_set)
 qed

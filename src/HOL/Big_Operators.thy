@@ -1205,7 +1205,7 @@ lemma ab_semigroup_idem_mult_inf:
 proof qed (rule inf_assoc inf_commute inf_idem)+
 
 lemma fold_inf_insert[simp]: "finite A \<Longrightarrow> fold inf b (insert a A) = inf a (fold inf b A)"
-by(rule fun_left_comm_idem.fold_insert_idem[OF ab_semigroup_idem_mult.fun_left_comm_idem[OF ab_semigroup_idem_mult_inf]])
+by(rule comp_fun_idem.fold_insert_idem[OF ab_semigroup_idem_mult.comp_fun_idem[OF ab_semigroup_idem_mult_inf]])
 
 lemma inf_le_fold_inf: "finite A \<Longrightarrow> ALL a:A. b \<le> a \<Longrightarrow> inf b c \<le> fold inf c A"
 by (induct pred: finite) (auto intro: le_infI1)

@@ -1457,7 +1457,7 @@ done
 lemma fold_mset_empty[simp]: "fold_mset f z {#} = z"
 unfolding fold_mset_def by blast
 
-context fun_left_comm
+context comp_fun_commute
 begin
 
 lemma fold_msetG_determ:
@@ -1563,10 +1563,10 @@ next
 qed
 
 lemma fold_mset_fusion:
-  assumes "fun_left_comm g"
+  assumes "comp_fun_commute g"
   shows "(\<And>x y. h (g x y) = f x (h y)) \<Longrightarrow> h (fold_mset g w A) = fold_mset f (h w) A" (is "PROP ?P")
 proof -
-  interpret fun_left_comm g by (fact assms)
+  interpret comp_fun_commute g by (fact assms)
   show "PROP ?P" by (induct A) auto
 qed
 
@@ -1598,7 +1598,7 @@ subsection {* Image *}
 definition image_mset :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a multiset \<Rightarrow> 'b multiset" where
   "image_mset f = fold_mset (op + o single o f) {#}"
 
-interpretation image_left_comm: fun_left_comm "op + o single o f"
+interpretation image_fun_commute: comp_fun_commute "op + o single o f"
 proof qed (simp add: add_ac fun_eq_iff)
 
 lemma image_mset_empty [simp]: "image_mset f {#} = {#}"

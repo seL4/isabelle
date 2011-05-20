@@ -158,11 +158,11 @@ lemma (in linorder) sort_conv_fold:
 
 text {* @{const Finite_Set.fold} and @{const fold} *}
 
-lemma (in fun_left_comm) fold_set_remdups:
+lemma (in comp_fun_commute) fold_set_remdups:
   "Finite_Set.fold f y (set xs) = fold f (remdups xs) y"
   by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_comm insert_absorb)
 
-lemma (in fun_left_comm_idem) fold_set:
+lemma (in comp_fun_idem) fold_set:
   "Finite_Set.fold f y (set xs) = fold f xs y"
   by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_comm)
 
@@ -170,7 +170,7 @@ lemma (in ab_semigroup_idem_mult) fold1_set:
   assumes "xs \<noteq> []"
   shows "Finite_Set.fold1 times (set xs) = fold times (tl xs) (hd xs)"
 proof -
-  interpret fun_left_comm_idem times by (fact fun_left_comm_idem)
+  interpret comp_fun_idem times by (fact comp_fun_idem)
   from assms obtain y ys where xs: "xs = y # ys"
     by (cases xs) auto
   show ?thesis
@@ -239,8 +239,8 @@ lemma (in linorder) Max_fin_set_foldr [code_unfold]:
 lemma (in complete_lattice) Inf_set_fold:
   "Inf (set xs) = fold inf xs top"
 proof -
-  interpret fun_left_comm_idem "inf :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
-    by (fact fun_left_comm_idem_inf)
+  interpret comp_fun_idem "inf :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
+    by (fact comp_fun_idem_inf)
   show ?thesis by (simp add: Inf_fold_inf fold_set inf_commute)
 qed
 
@@ -251,8 +251,8 @@ lemma (in complete_lattice) Inf_set_foldr [code_unfold]:
 lemma (in complete_lattice) Sup_set_fold:
   "Sup (set xs) = fold sup xs bot"
 proof -
-  interpret fun_left_comm_idem "sup :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
-    by (fact fun_left_comm_idem_sup)
+  interpret comp_fun_idem "sup :: 'a \<Rightarrow> 'a \<Rightarrow> 'a"
+    by (fact comp_fun_idem_sup)
   show ?thesis by (simp add: Sup_fold_sup fold_set sup_commute)
 qed
 
