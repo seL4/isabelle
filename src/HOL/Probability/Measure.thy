@@ -1379,6 +1379,11 @@ next
     by (auto intro!: finite_measure_spaceI)
 qed
 
+lemma (in finite_measure_space) finite_measure_singleton:
+  assumes A: "A \<subseteq> space M" shows "\<mu>' A = (\<Sum>x\<in>A. \<mu>' {x})"
+  using A finite_subset[OF A finite_space]
+  by (intro finite_measure_finite_singleton) auto
+
 lemma suminf_cmult_indicator:
   fixes f :: "nat \<Rightarrow> extreal"
   assumes "disjoint_family A" "x \<in> A i" "\<And>i. 0 \<le> f i"

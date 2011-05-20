@@ -598,22 +598,22 @@ proof -
     using fin by (intro finite_subset[OF *] finite_extensional_funcset) auto
 qed
 
+lemma (in product_finite_prob_space) singleton_eq_product:
+  assumes x: "x \<in> space P" shows "{x} = (\<Pi>\<^isub>E i\<in>I. {x i})"
+proof (safe intro!: ext[of _ x])
+  fix y i assume *: "y \<in> (\<Pi> i\<in>I. {x i})" "y \<in> extensional I"
+  with x show "y i = x i"
+    by (cases "i \<in> I") (auto simp: extensional_def)
+qed (insert x, auto)
+
 sublocale product_finite_prob_space \<subseteq> finite_prob_space "Pi\<^isub>M I M"
 proof
   show "finite (space P)"
     using finite_index M.finite_space by auto
 
   { fix x assume "x \<in> space P"
-    then have x: "{x} = (\<Pi>\<^isub>E i\<in>I. {x i})"
-    proof safe
-      fix y assume *: "y \<in> (\<Pi> i\<in>I. {x i})" "y \<in> extensional I"
-      show "y = x"
-      proof
-        fix i show "y i = x i"
-          using * `x \<in> space P` by (cases "i \<in> I") (auto simp: extensional_def)
-      qed
-    qed auto
-    with `x \<in> space P` have "{x} \<in> sets P"
+    with this[THEN singleton_eq_product]
+    have "{x} \<in> sets P"
       by (auto intro!: in_P) }
   note x_in_P = this
 
@@ -628,7 +628,6 @@ proof
   qed
   with space_closed show [simp]: "sets P = Pow (space P)" ..
 
-
   { fix x assume "x \<in> space P"
     from this top have "\<mu> {x} \<le> \<mu> (space P)" by (intro measure_mono) auto
     then show "\<mu> {x} \<noteq> \<infinity>"
@@ -639,7 +638,12 @@ lemma (in product_finite_prob_space) measure_finite_times:
   "(\<And>i. i \<in> I \<Longrightarrow> X i \<subseteq> space (M i)) \<Longrightarrow> \<mu> (\<Pi>\<^isub>E i\<in>I. X i) = (\<Prod>i\<in>I. M.\<mu> i (X i))"
   by (rule measure_times) simp
 
-lemma (in product_finite_prob_space) prob_times:
+lemma (in product_finite_prob_space) measure_singleton_times:
+  assumes x: "x \<in> space P" shows "\<mu> {x} = (\<Prod>i\<in>I. M.\<mu> i {x i})"
+  unfolding singleton_eq_product[OF x] using x
+  by (intro measure_finite_times) auto
+
+lemma (in product_finite_prob_space) prob_finite_times:
   assumes X: "\<And>i. i \<in> I \<Longrightarrow> X i \<subseteq> space (M i)"
   shows "prob (\<Pi>\<^isub>E i\<in>I. X i) = (\<Prod>i\<in>I. M.prob i (X i))"
 proof -
@@ -651,6 +655,18 @@ proof -
     using X by (simp add: M.finite_measure_eq setprod_extreal)
   finally show ?thesis by simp
 qed
+
+lemma (in product_finite_prob_space) prob_singleton_times:
+  assumes x: "x \<in> space P"
+  shows "prob {x} = (\<Prod>i\<in>I. M.prob i {x i})"
+  unfolding singleton_eq_product[OF x] using x
+  by (intro prob_finite_times) auto
+
+lemma (in product_finite_prob_space) prob_finite_product:
+  "A \<subseteq> space P \<Longrightarrow> prob A = (\<Sum>x\<in>A. \<Prod>i\<in>I. M.prob i {x i})"
+  by (auto simp add: finite_measure_singleton prob_singleton_times
+           simp del: space_product_algebra
+           intro!: setsum_cong prob_singleton_times)
 
 lemma (in prob_space) joint_distribution_finite_prob_space:
   assumes X: "finite_random_variable MX X"
