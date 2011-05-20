@@ -654,11 +654,9 @@ val metis_helpers =
        equality helpers by default in Metis breaks a few existing proofs. *)
     (true, @{thms fequal_def [THEN Meson.iff_to_disjD, THEN conjunct1]
                   fequal_def [THEN Meson.iff_to_disjD, THEN conjunct2]})),
-   ("fFalse", (true, [@{lemma "x = fTrue | x = fFalse"
-                          by (unfold fFalse_def fTrue_def) fast}])),
+   ("fFalse", (true, @{thms True_or_False})),
    ("fFalse", (false, [@{lemma "~ fFalse" by (unfold fFalse_def) fast}])),
-   ("fTrue", (true, [@{lemma "x = fTrue | x = fFalse"
-                         by (unfold fFalse_def fTrue_def) fast}])),
+   ("fTrue", (true, @{thms True_or_False})),
    ("fTrue", (false, [@{lemma "fTrue" by (unfold fTrue_def) fast}])),
    ("fNot",
     (false, @{thms fNot_def [THEN Meson.iff_to_disjD, THEN conjunct1]
@@ -673,7 +671,7 @@ val metis_helpers =
     (false, @{lemma "P | fimplies P Q" "~ Q | fimplies P Q"
                     "~ fimplies P Q | ~ P | Q"
               by (unfold fimplies_def) fast+})),
-   ("If", (true, @{thms if_True if_False True_or_False})) (* FIXME *)]
+   ("If", (true, @{thms if_True if_False True_or_False}))]
 
 (* ------------------------------------------------------------------------- *)
 (* Logic maps manage the interface between HOL and first-order logic.        *)
