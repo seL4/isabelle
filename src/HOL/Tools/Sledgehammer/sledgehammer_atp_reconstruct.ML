@@ -27,9 +27,9 @@ sig
   val used_facts_in_atp_proof :
     type_system -> int -> (string * locality) list vector -> string proof
     -> (string * locality) list
-  val is_unsound_proof :
+  val used_facts_in_unsound_atp_proof :
     type_system -> int list list -> int -> (string * locality) list vector
-    -> string proof -> bool
+    -> string proof -> string list option
   val apply_on_subgoal : string -> int -> int -> string
   val command_call : string -> string list -> string
   val try_command_line : string -> string -> string
@@ -181,10 +181,18 @@ fun is_conjecture_referred_to_in_proof conjecture_shape =
   exists (fn Inference (name, _, []) => is_conjecture conjecture_shape name
            | _ => false)
 
-fun is_unsound_proof type_sys conjecture_shape facts_offset fact_names =
-  not o is_conjecture_referred_to_in_proof conjecture_shape andf
-  forall (is_locality_global o snd)
-    o used_facts_in_atp_proof type_sys facts_offset fact_names
+fun used_facts_in_unsound_atp_proof type_sys conjecture_shape facts_offset
+                                    fact_names atp_proof =
+  let
+    val used_facts = used_facts_in_atp_proof type_sys facts_offset fact_names
+                                             atp_proof
+  in
+    if forall (is_locality_global o snd) used_facts andalso
+       not (is_conjecture_referred_to_in_proof conjecture_shape atp_proof) then
+      SOME (map fst used_facts)
+    else
+      NONE
+  end
 
 (** Soft-core proof reconstruction: Metis one-liner **)
 

@@ -577,11 +577,11 @@ fun run_atp auto name
                 val outcome =
                   case outcome of
                     NONE =>
-                    if is_unsound_proof type_sys conjecture_shape facts_offset
-                                        fact_names atp_proof then
-                      SOME (UnsoundProof (is_type_sys_virtually_sound type_sys))
-                    else
-                      NONE
+                    used_facts_in_unsound_atp_proof type_sys
+                        conjecture_shape facts_offset fact_names atp_proof
+                    |> Option.map (fn facts =>
+                           UnsoundProof (is_type_sys_virtually_sound type_sys,
+                                         facts))
                   | SOME Unprovable =>
                     if null blacklist then outcome
                     else SOME IncompleteUnprovable
@@ -609,7 +609,7 @@ fun run_atp auto name
             fun maybe_blacklist_facts_and_retry iter blacklist
                     (result as ((_, _, facts_offset, fact_names, _),
                                 (_, _, type_sys, atp_proof,
-                                 SOME (UnsoundProof false)))) =
+                                 SOME (UnsoundProof (false, _))))) =
                 (case used_facts_in_atp_proof type_sys facts_offset fact_names
                                               atp_proof of
                    [] => result

@@ -3,7 +3,7 @@
     Author:     Claire Quigley, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
 
-Abstract representation of ATP proofs and TSTP/Vampire/SPASS syntax.
+Abstract representation of ATP proofs and TSTP/SPASS syntax.
 *)
 
 signature ATP_PROOF =
@@ -15,7 +15,7 @@ sig
     Unprovable |
     IncompleteUnprovable |
     ProofMissing |
-    UnsoundProof of bool |
+    UnsoundProof of bool * string list |
     CantConnect |
     TimedOut |
     OutOfResources |
@@ -64,7 +64,7 @@ datatype failure =
   Unprovable |
   IncompleteUnprovable |
   ProofMissing |
-  UnsoundProof of bool |
+  UnsoundProof of bool * string list |
   CantConnect |
   TimedOut |
   OutOfResources |
@@ -117,20 +117,24 @@ val missing_message_tail =
   " appears to be missing. You will need to install it if you want to invoke \
   \remote provers."
 
+fun involving [] = ""
+  | involving ss = "involving " ^ commas_quote ss ^ " "
+
 fun string_for_failure Unprovable =
     "The problem is unprovable."
   | string_for_failure IncompleteUnprovable =
     "The prover gave up."
   | string_for_failure ProofMissing =
     "The prover claims the conjecture is a theorem but did not provide a proof."
-  | string_for_failure (UnsoundProof false) =
-    "The prover found a type-unsound proof (or, very unlikely, your axioms \
-    \are inconsistent). Try passing the \"full_types\" option to Sledgehammer \
-    \to avoid such spurious proofs."
-  | string_for_failure (UnsoundProof true) =
-    "The prover found a type-unsound proof even though a supposedly type-sound \
-    \encoding was used (or, very unlikely, your axioms are inconsistent). You \
-    \might want to report this to the Isabelle developers."
+  | string_for_failure (UnsoundProof (false, ss)) =
+    "The prover found a type-unsound proof " ^ involving ss ^
+    "(or, less likely, your axioms are inconsistent). Try passing the \
+    \\"full_types\" option to Sledgehammer to avoid such spurious proofs."
+  | string_for_failure (UnsoundProof (true, ss)) =
+    "The prover found a type-unsound proof " ^ involving ss ^
+    "even though a supposedly type-sound encoding was used (or, less likely, \
+    \your axioms are inconsistent). You might want to report this to the \
+    \Isabelle developers."
   | string_for_failure CantConnect = "Cannot connect to remote server."
   | string_for_failure TimedOut = "Timed out."
   | string_for_failure OutOfResources = "The prover ran out of resources."
