@@ -799,45 +799,42 @@ historical reasons, the default value of this option can be overridden using the
 option ``Sledgehammer: Full Types'' from the ``Isabelle'' menu in Proof General.
 
 \opdefault{type\_sys}{string}{smart}
-Specifies the type system to use in ATP problems. The option can take the
-following values:
+Specifies the type system to use in ATP problems. Some of the type systems are
+unsound, meaning that they can give rise to spurious proofs (unreconstructible
+using Metis). The supported type systems are listed below, with an indication of
+their soundness in parentheses:
 
 \begin{enum}
-\item[$\bullet$] \textbf{\textit{poly\_preds}:} Types are encoded using a predicate
-$\mathit{has\_type\/}(\tau, t)$ that restricts the range of bound variables.
-Constants are annotated with their types, supplied as extra arguments, to
-resolve overloading.
+\item[$\bullet$] \textbf{\textit{erased} (very unsound):} No type information is
+supplied to the ATP. Types are simply erased.
 
-\item[$\bullet$] \textbf{\textit{poly\_tags}:} Each term and subterm is tagged with
-its type using a function $\mathit{type\_info\/}(\tau, t)$.
+\item[$\bullet$] \textbf{\textit{poly\_preds} (sound):} Types are encoded using
+a predicate \textit{has\_\allowbreak type\/}$(\tau, t)$ that restricts the range
+of bound variables. Constants are annotated with their types, supplied as extra
+arguments, to resolve overloading.
 
-\item[$\bullet$] \textbf{\textit{poly\_args}:}
-Like for the other sound encodings, constants are annotated with their types to
+\item[$\bullet$] \textbf{\textit{poly\_tags} (sound):} Each term and subterm is
+tagged with its type using a function $\mathit{type\_info\/}(\tau, t)$.
+
+\item[$\bullet$] \textbf{\textit{poly\_args} (unsound):}
+Like for \textit{poly\_preds} constants are annotated with their types to
 resolve overloading, but otherwise no type information is encoded.
-
-\item[$\bullet$] \textbf{\textit{erased}:} No type information is supplied to
-the ATP. Types are simply erased.
 
 \item[$\bullet$]
 \textbf{%
-\textit{mono\_preds},
-\textit{mono\_tags},
-\textit{mono\_args}:} \\
+\textit{mono\_preds}, \textit{mono\_tags} (sound);
+\textit{mono\_args} (unsound):} \\
 Similar to \textit{poly\_preds}, \textit{poly\_tags}, and \textit{poly\_args},
 respectively, but the problem is additionally monomorphized, meaning that type
 variables are instantiated with heuristically chosen ground types.
 Monomorphization can simplify reasoning but also leads to larger fact bases,
 which can slow down the ATPs.
 
-\item[$\bullet$] \textbf{\textit{simple}:} Use the prover's support for simply
-typed first-order logic if available; otherwise, fall back on
-\textit{mangled\_preds}. The problem is monomorphized.
-
 \item[$\bullet$]
 \textbf{%
 \textit{mangled\_preds},
-\textit{mangled\_tags},
-\textit{mangled\_args}:} \\
+\textit{mangled\_tags} (sound); \\
+\textit{mangled\_args} (unsound):} \\
 Similar to
 \textit{mono\_preds}, \textit{mono\_tags}, and \textit{mono\_args},
 respectively but types are mangled in constant names instead of being supplied
@@ -846,35 +843,38 @@ becomes a unary predicate $\mathit{has\_type\_}\tau(t)$, and the binary function
 $\mathit{type\_info\/}(\tau, t)$ becomes a unary function
 $\mathit{type\_info\_}\tau(t)$.
 
-\item[$\bullet$]
-\textbf{%
-\textit{mono\_preds}?, \textit{mono\_tags}?, \textit{simple}?, \\
-\textit{mangled\_preds}?, \textit{mangled\_tags}?:} \\
-The type systems \textit{mono\_preds}, \textit{mono\_tags}, \textit{simple},
-\textit{mangled\_preds}, and \textit{mangled\_tags} are fully typed and
-virtually sound---except for pathological cases, all found proofs are
-type-correct. For each of these, Sledgehammer also provides a lighter (but
-virtually sound) variant identified by a question mark (`{?}')\ that detects and
-erases monotonic types, notably infinite types. (For \textit{simple}, the types
-are not actually erased but rather replaced by a shared uniform type of
-individuals.)
+\item[$\bullet$] \textbf{\textit{simple} (sound):} Use the prover's support for
+simply typed first-order logic if available; otherwise, fall back on
+\textit{mangled\_preds}. The problem is monomorphized.
 
 \item[$\bullet$]
 \textbf{%
-\textit{poly\_tags}!, \textit{mono\_preds}!, \textit{mono\_tags}!, \\
-\textit{simple}!, \textit{mangled\_preds}!, \textit{mangled\_tags}!:} \\
+\textit{poly\_preds}?, \textit{poly\_tags}?, \textit{mono\_preds}?, \textit{mono\_tags}?, \\
+\textit{mangled\_preds}?, \textit{mangled\_tags}?, \textit{simple}? (quasi-sound):} \\
 The type systems \textit{poly\_preds}, \textit{poly\_tags},
-\textit{mono\_preds}, \textit{mono\_tags}, \textit{simple},
-\textit{mangled\_preds}, and \textit{mangled\_tags} also admit a somewhat
-unsound (but very efficient) variant identified by an exclamation mark (`{!}')
-that detects and erases erases all types except those that are clearly finite
-(e.g., \textit{bool}). (For \textit{simple}, the types are not actually erased
+\textit{mono\_preds}, \textit{mono\_tags}, \textit{mangled\_preds},
+\textit{mangled\_tags}, and \textit{simple} are fully typed and sound. For each
+of these, Sledgehammer also provides a lighter, virtually sound variant
+identified by a question mark (`{?}')\ that detects and erases monotonic types,
+notably infinite types. (For \textit{simple}, the types are not actually erased
 but rather replaced by a shared uniform type of individuals.)
 
+\item[$\bullet$]
+\textbf{%
+\textit{poly\_preds}!, \textit{poly\_tags}!, \textit{mono\_preds}!, \textit{mono\_tags}!, \\
+\textit{mangled\_preds}!, \textit{mangled\_tags}!, \textit{simple}! \\
+(mildly unsound):} \\
+The type systems \textit{poly\_preds}, \textit{poly\_tags},
+\textit{mono\_preds}, \textit{mono\_tags}, \textit{mangled\_preds},
+\textit{mangled\_tags}, and \textit{simple} also admit a mildly unsound (but
+very efficient) variant identified by an exclamation mark (`{!}') that detects
+and erases erases all types except those that are clearly finite (e.g.,
+\textit{bool}). (For \textit{simple}, the types are not actually erased but
+rather replaced by a shared uniform type of individuals.)
+
 \item[$\bullet$] \textbf{\textit{smart}:} If \textit{full\_types} is enabled,
-uses a fully typed, virtually sound encoding; otherwise, uses any encoding. The
-actual encoding used depends on the ATP and should be the most efficient for
-that ATP.
+uses a sound or virtually sound encoding; otherwise, uses any encoding. The actual
+encoding used depends on the ATP and should be the most efficient for that ATP.
 \end{enum}
 
 In addition, all the \textit{preds} and \textit{tags} type systems are available
