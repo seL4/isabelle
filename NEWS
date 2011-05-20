@@ -124,6 +124,10 @@ subscripted form x\<^isub>1, y\<^isub>2\<^isub>3.
 
 *** ML ***
 
+* Isabelle_Process.is_active allows tools to check if the official
+process wrapper is running (Isabelle/Scala/jEdit) or the old TTY loop
+(better known as Proof General).
+
 * Structure Proof_Context follows standard naming scheme.  Old
 ProofContext is still available for some time as legacy alias.
 

@@ -17,7 +17,7 @@ Startup phases:
 
 signature ISABELLE_PROCESS =
 sig
-  val isabelle_processN: string
+  val is_active: unit -> bool
   val add_command: string -> (string list -> unit) -> unit
   val command: string -> string list -> unit
   val crashes: exn list Unsynchronized.ref
@@ -27,9 +27,11 @@ end;
 structure Isabelle_Process: ISABELLE_PROCESS =
 struct
 
-(* print modes *)
+(* print mode *)
 
 val isabelle_processN = "isabelle_process";
+
+fun is_active () = Print_Mode.print_mode_active isabelle_processN;
 
 val _ = Output.add_mode isabelle_processN Output.default_output Output.default_escape;
 val _ = Markup.add_mode isabelle_processN YXML.output_markup;
