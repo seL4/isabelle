@@ -14,7 +14,7 @@ sig
   type minimize_command = string list -> string
   type metis_params =
     string * minimize_command * type_system * string proof * int
-    * (string * locality) list vector * thm * int
+    * (string * locality) list vector * int list * thm * int
   type isar_params =
     Proof.context * bool * int * string Symtab.table * int list list
     * int Symtab.table
@@ -22,8 +22,8 @@ sig
 
   val repair_conjecture_shape_and_fact_names :
     type_system -> string -> int list list -> int
-    -> (string * locality) list vector
-    -> int list list * int * (string * locality) list vector
+    -> (string * locality) list vector -> int list
+    -> int list list * int * (string * locality) list vector * int list
   val used_facts_in_atp_proof :
     type_system -> int -> (string * locality) list vector -> string proof
     -> (string * locality) list
@@ -55,7 +55,7 @@ open Sledgehammer_ATP_Translate
 type minimize_command = string list -> string
 type metis_params =
   string * minimize_command * type_system * string proof * int
-  * (string * locality) list vector * thm * int
+  * (string * locality) list vector * int list * thm * int
 type isar_params =
   Proof.context * bool * int * string Symtab.table * int list list
   * int Symtab.table
@@ -63,6 +63,9 @@ type text_result = string * (string * locality) list
 
 fun is_head_digit s = Char.isDigit (String.sub (s, 0))
 val scan_integer = Scan.many1 is_head_digit >> (the o Int.fromString o implode)
+
+val is_typed_helper_name =
+  String.isPrefix helper_prefix andf String.isSuffix typed_helper_suffix
 
 fun find_first_in_list_vector vec key =
   Vector.foldl (fn (ps, NONE) => AList.lookup (op =) ps key
@@ -102,7 +105,7 @@ fun maybe_unprefix_fact_number type_sys =
   ? (space_implode "_" o tl o space_explode "_")
 
 fun repair_conjecture_shape_and_fact_names type_sys output conjecture_shape
-                                           fact_offset fact_names =
+        fact_offset fact_names typed_helpers =
   if String.isSubstring set_ClauseFormulaRelationN output then
     let
       val j0 = hd (hd conjecture_shape)
@@ -122,12 +125,16 @@ fun repair_conjecture_shape_and_fact_names type_sys output conjecture_shape
                             error ("No such fact: " ^ quote name ^ "."))
     in
       (conjecture_shape |> map (maps renumber_conjecture), 0,
-       seq |> map names_for_number |> Vector.fromList)
+       seq |> map names_for_number |> Vector.fromList,
+       name_map |> filter (forall is_typed_helper_name o snd) |> map fst)
     end
   else
-    (conjecture_shape, fact_offset, fact_names)
+    (conjecture_shape, fact_offset, fact_names, typed_helpers)
 
 val vampire_step_prefix = "f" (* grrr... *)
+
+val extract_step_number =
+  Int.fromString o perhaps (try (unprefix vampire_step_prefix))
 
 fun resolve_fact type_sys _ fact_names (_, SOME s) =
     (case try (unprefix fact_prefix) s of
@@ -139,15 +146,18 @@ fun resolve_fact type_sys _ fact_names (_, SOME s) =
        end
      | NONE => [])
   | resolve_fact _ facts_offset fact_names (num, NONE) =
-    case Int.fromString (perhaps (try (unprefix vampire_step_prefix)) num) of
-      SOME j =>
-      let val j = j - facts_offset in
-        if j > 0 andalso j <= Vector.length fact_names then
-          Vector.sub (fact_names, j - 1)
-        else
-          []
-      end
-    | NONE => []
+    (case extract_step_number num of
+       SOME j =>
+       let val j = j - facts_offset in
+         if j > 0 andalso j <= Vector.length fact_names then
+           Vector.sub (fact_names, j - 1)
+         else
+           []
+       end
+     | NONE => [])
+
+fun is_fact type_sys conjecture_shape =
+  not o null o resolve_fact type_sys 0 conjecture_shape
 
 fun resolve_conjecture _ (_, SOME s) =
     (case try (unprefix conjecture_prefix) s of
@@ -157,17 +167,20 @@ fun resolve_conjecture _ (_, SOME s) =
         | NONE => [])
      | NONE => [])
   | resolve_conjecture conjecture_shape (num, NONE) =
-    case Int.fromString (perhaps (try (unprefix vampire_step_prefix)) num) of
-      SOME i =>
-      (case find_index (exists (curry (op =) i)) conjecture_shape of
-         ~1 => []
-       | j => [j])
+    case extract_step_number num of
+      SOME i => (case find_index (exists (curry (op =) i)) conjecture_shape of
+                   ~1 => []
+                 | j => [j])
     | NONE => []
 
-fun is_fact type_sys conjecture_shape =
-  not o null o resolve_fact type_sys 0 conjecture_shape
 fun is_conjecture conjecture_shape =
   not o null o resolve_conjecture conjecture_shape
+
+fun is_typed_helper _ (_, SOME s) = is_typed_helper_name s
+  | is_typed_helper typed_helpers (num, NONE) =
+    (case extract_step_number num of
+       SOME i => member (op =) typed_helpers i
+     | NONE => false)
 
 fun add_fact type_sys facts_offset fact_names (Inference (name, _, [])) =
     append (resolve_fact type_sys facts_offset fact_names name)
@@ -227,15 +240,21 @@ val split_used_facts =
   List.partition (curry (op =) Chained o snd)
   #> pairself (sort_distinct (string_ord o pairself fst))
 
+fun uses_typed_helpers typed_helpers =
+  exists (fn Inference (name, _, []) => is_typed_helper typed_helpers name
+           | _ => false)
+
 fun metis_proof_text (banner, minimize_command, type_sys, atp_proof,
-                      facts_offset, fact_names, goal, i) =
+                      facts_offset, fact_names, typed_helpers, goal, i) =
   let
     val (chained, extra) =
       atp_proof |> used_facts_in_atp_proof type_sys facts_offset fact_names
                 |> split_used_facts
+    val full_types = uses_typed_helpers typed_helpers atp_proof
     val n = Logic.count_prems (prop_of goal)
+    val metis = metis_command full_types i n ([], map fst extra)
   in
-    (try_command_line banner (metis_command false i n ([], map fst extra)) ^
+    (try_command_line banner metis ^
      minimize_line minimize_command (map fst (extra @ chained)),
      extra @ chained)
   end
@@ -919,7 +938,7 @@ val relabel_proof =
         step :: aux subst depth nextp proof
   in aux [] 0 (1, 1) end
 
-fun string_for_proof ctxt0 i n =
+fun string_for_proof ctxt0 full_types i n =
   let
     val ctxt =
       ctxt0 |> Config.put show_free_types false
@@ -942,7 +961,7 @@ fun string_for_proof ctxt0 i n =
          if member (op =) qs Show then "show" else "have")
     val do_term = maybe_quote o fix_print_mode (Syntax.string_of_term ctxt)
     fun do_facts (ls, ss) =
-      metis_command false 1 1
+      metis_command full_types 1 1
                     (ls |> sort_distinct (prod_ord string_ord int_ord),
                      ss |> sort_distinct string_ord)
     and do_step ind (Fix xs) =
@@ -979,11 +998,12 @@ fun string_for_proof ctxt0 i n =
 fun isar_proof_text (ctxt, debug, isar_shrink_factor, pool, conjecture_shape,
                      sym_tab)
                     (metis_params as (_, _, type_sys, atp_proof, facts_offset,
-                                      fact_names, goal, i)) =
+                                      fact_names, typed_helpers, goal, i)) =
   let
     val (params, hyp_ts, concl_t) = strip_subgoal goal i
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []
     val tfrees = fold Term.add_tfrees (concl_t :: hyp_ts) []
+    val full_types = uses_typed_helpers typed_helpers atp_proof
     val n = Logic.count_prems (prop_of goal)
     val (one_line_proof, lemma_names) = metis_proof_text metis_params
     fun isar_proof_for () =
@@ -995,7 +1015,7 @@ fun isar_proof_text (ctxt, debug, isar_shrink_factor, pool, conjecture_shape,
            |> then_chain_proof
            |> kill_useless_labels_in_proof
            |> relabel_proof
-           |> string_for_proof ctxt i n of
+           |> string_for_proof ctxt full_types i n of
         "" => "\nNo structured proof available (proof too short)."
       | proof => "\n\nStructured proof:\n" ^ Markup.markup Markup.sendback proof
     val isar_proof =

@@ -28,6 +28,8 @@ sig
   val readable_names : bool Config.T
   val fact_prefix : string
   val conjecture_prefix : string
+  val helper_prefix : string
+  val typed_helper_suffix : string
   val predicator_base : string
   val explicit_app_base : string
   val type_pred_base : string
@@ -46,7 +48,7 @@ sig
     -> term list -> term
     -> (translated_formula option * ((string * 'a) * thm)) list
     -> string problem * string Symtab.table * int * int
-       * (string * 'a) list vector * int Symtab.table
+       * (string * 'a) list vector * int list * int Symtab.table
   val atp_problem_weights : string problem -> (string * real) list
 end;
 
@@ -86,6 +88,9 @@ val helper_prefix = "help_"
 val class_rel_clause_prefix = "crel_";
 val arity_clause_prefix = "arity_"
 val tfree_prefix = "tfree_"
+
+val typed_helper_suffix = "_T"
+val untyped_helper_suffix = "_U"
 
 val predicator_base = "hBOOL"
 val explicit_app_base = "hAPP"
@@ -487,7 +492,7 @@ fun make_conjecture ctxt prem_kind ts =
                     if prem_kind = Conjecture then update_combformula mk_anot
                     else I)
               in
-                make_formula ctxt true true (string_of_int j) Chained kind t
+                make_formula ctxt true true (string_of_int j) General kind t
                 |> maybe_negate
               end)
          (0 upto last) ts
@@ -734,8 +739,10 @@ fun helper_facts_for_sym ctxt type_sys (s, {typ, ...} : sym_info) =
       val thy = Proof_Context.theory_of ctxt
       val unmangled_s = mangled_s |> unmangled_const_name
       fun dub_and_inst c needs_some_types (th, j) =
-        ((c ^ "_" ^ string_of_int j ^ (if needs_some_types then "T" else ""),
-          Chained),
+        ((c ^ "_" ^ string_of_int j ^
+          (if needs_some_types then typed_helper_suffix
+           else untyped_helper_suffix),
+          General),
          let val t = th |> prop_of in
            t |> ((case general_type_arg_policy type_sys of
                     Mangled_Type_Args _ => true
@@ -1203,6 +1210,10 @@ fun prepare_atp_problem ctxt conj_sym_kind prem_kind type_sys explicit_apply
       (conjs, helpers @ facts)
       |> sym_decl_table_for_facts type_sys repaired_sym_tab
       |> problem_lines_for_sym_decl_table ctxt conj_sym_kind nonmono_Ts type_sys
+    val helper_lines =
+      map (formula_line_for_fact ctxt helper_prefix nonmono_Ts type_sys)
+          (0 upto length helpers - 1 ~~ helpers)
+      |> should_add_ti_ti_helper type_sys ? cons (ti_ti_helper_fact ())
     (* Reordering these might confuse the proof reconstruction code or the SPASS
        Flotter hack. *)
     val problem =
@@ -1211,11 +1222,7 @@ fun prepare_atp_problem ctxt conj_sym_kind prem_kind type_sys explicit_apply
                     (0 upto length facts - 1 ~~ facts)),
        (class_relsN, map formula_line_for_class_rel_clause class_rel_clauses),
        (aritiesN, map formula_line_for_arity_clause arity_clauses),
-       (helpersN, map (formula_line_for_fact ctxt helper_prefix nonmono_Ts
-                                             type_sys)
-                      (0 upto length helpers - 1 ~~ helpers)
-                  |> should_add_ti_ti_helper type_sys
-                     ? cons (ti_ti_helper_fact ())),
+       (helpersN, helper_lines),
        (conjsN, map (formula_line_for_conjecture ctxt nonmono_Ts type_sys)
                     conjs),
        (free_typesN, formula_lines_for_free_types type_sys (facts @ conjs))]
@@ -1228,6 +1235,13 @@ fun prepare_atp_problem ctxt conj_sym_kind prem_kind type_sys explicit_apply
           | _ => I)
     val (problem, pool) =
       problem |> nice_atp_problem (Config.get ctxt readable_names)
+    val helpers_offset = offset_of_heading_in_problem helpersN problem 0
+    val typed_helpers =
+      map_filter (fn (j, {name, ...}) =>
+                     if String.isSuffix typed_helper_suffix name then SOME j
+                     else NONE)
+                 ((helpers_offset + 1 upto helpers_offset + length helpers)
+                  ~~ helpers)
     fun add_sym_arity (s, {min_ary, ...} : sym_info) =
       if min_ary > 0 then
         case strip_prefix_and_unascii const_prefix s of
@@ -1241,6 +1255,7 @@ fun prepare_atp_problem ctxt conj_sym_kind prem_kind type_sys explicit_apply
      offset_of_heading_in_problem conjsN problem 0,
      offset_of_heading_in_problem factsN problem 0,
      fact_names |> Vector.fromList,
+     typed_helpers,
      Symtab.empty |> Symtab.fold add_sym_arity sym_tab)
   end
 

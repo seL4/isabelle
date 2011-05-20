@@ -534,7 +534,7 @@ fun run_atp auto name
                   else
                     ()
                 val (atp_problem, pool, conjecture_offset, facts_offset,
-                     fact_names, sym_tab) =
+                     fact_names, typed_helpers, sym_tab) =
                   prepare_atp_problem ctxt conj_sym_kind prem_kind type_sys
                                       explicit_apply hyp_ts concl_t facts
                 fun weights () = atp_problem_weights atp_problem
@@ -567,13 +567,14 @@ fun run_atp auto name
                   extract_tstplike_proof_and_outcome verbose complete res_code
                       proof_delims known_failures output
                   |>> atp_proof_from_tstplike_proof
-                val (conjecture_shape, facts_offset, fact_names) =
+                val (conjecture_shape, facts_offset, fact_names,
+                     typed_helpers) =
                   if is_none outcome then
                     repair_conjecture_shape_and_fact_names type_sys output
-                        conjecture_shape facts_offset fact_names
+                        conjecture_shape facts_offset fact_names typed_helpers
                   else
                     (* don't bother repairing *)
-                    (conjecture_shape, facts_offset, fact_names)
+                    (conjecture_shape, facts_offset, fact_names, typed_helpers)
                 val outcome =
                   case outcome of
                     NONE =>
@@ -587,7 +588,8 @@ fun run_atp auto name
                     else SOME IncompleteUnprovable
                   | _ => outcome
               in
-                ((pool, conjecture_shape, facts_offset, fact_names, sym_tab),
+                ((pool, conjecture_shape, facts_offset, fact_names,
+                  typed_helpers, sym_tab),
                  (output, msecs, type_sys, atp_proof, outcome))
               end
             val timer = Timer.startRealTimer ()
@@ -607,7 +609,7 @@ fun run_atp auto name
                 end
               | maybe_run_slice _ _ result = result
             fun maybe_blacklist_facts_and_retry iter blacklist
-                    (result as ((_, _, facts_offset, fact_names, _),
+                    (result as ((_, _, facts_offset, fact_names, _, _),
                                 (_, _, type_sys, atp_proof,
                                  SOME (UnsoundProof (false, _))))) =
                 (case used_facts_in_atp_proof type_sys facts_offset fact_names
@@ -624,7 +626,7 @@ fun run_atp auto name
                      result)
               | maybe_blacklist_facts_and_retry _ _ result = result
           in
-            ((Symtab.empty, [], 0, Vector.fromList [], Symtab.empty),
+            ((Symtab.empty, [], 0, Vector.fromList [], [], Symtab.empty),
              ("", SOME 0, hd fallback_best_type_systems, [],
               SOME InternalError))
             |> fold (maybe_run_slice []) actual_slices
@@ -644,7 +646,8 @@ fun run_atp auto name
         ()
       else
         File.write (Path.explode (Path.implode prob_file ^ "_proof")) output
-    val ((pool, conjecture_shape, facts_offset, fact_names, sym_tab),
+    val ((pool, conjecture_shape, facts_offset, fact_names, typed_helpers,
+          sym_tab),
          (output, msecs, type_sys, atp_proof, outcome)) =
       with_path cleanup export run_on problem_path_name
     val important_message =
@@ -668,7 +671,7 @@ fun run_atp auto name
       (ctxt, debug, isar_shrink_factor, pool, conjecture_shape, sym_tab)
     val metis_params =
       (proof_banner auto, minimize_command, type_sys, atp_proof, facts_offset,
-       fact_names, goal, subgoal)
+       fact_names, typed_helpers, goal, subgoal)
     val (outcome, (message, used_facts)) =
       case outcome of
         NONE =>
