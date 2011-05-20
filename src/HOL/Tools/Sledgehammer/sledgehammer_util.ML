@@ -22,7 +22,7 @@ sig
   val instantiate_type : theory -> typ -> typ -> typ -> typ
   val varify_and_instantiate_type : Proof.context -> typ -> typ -> typ -> typ
   val is_type_surely_finite : Proof.context -> typ -> bool
-  val is_type_surely_infinite : Proof.context -> typ -> bool
+  val is_type_surely_infinite : Proof.context -> typ list -> typ -> bool
   val monomorphic_term : Type.tyenv -> term -> term
   val eta_expand : typ list -> term -> int -> term
   val transform_elim_term : term -> term
@@ -122,79 +122,74 @@ fun datatype_constrs thy (T as Type (s, Ts)) =
      | NONE => [])
   | datatype_constrs _ _ = []
 
-(* Feel free to extend this list with any sorts that don't have finiteness
-   axioms. *)
-val safe_sorts =
-  @{sort type} @ @{sort "{default,zero,one,plus,minus,uminus,times,inverse}"} @
-  @{sort "{abs,sgn,ord,equal,number}"}
-
 (* Similar to "Nitpick_HOL.bounded_exact_card_of_type".
    0 means infinite type, 1 means singleton type (e.g., "unit"), and 2 means
    cardinality 2 or more. The specified default cardinality is returned if the
    cardinality of the type can't be determined. *)
-fun tiny_card_of_type ctxt default_card T =
+fun tiny_card_of_type ctxt default_card assigns T =
   let
+    val thy = Proof_Context.theory_of ctxt
     val max = 2 (* 1 would be too small for the "fun" case *)
     fun aux slack avoid T =
       if member (op =) avoid T then
         0
-      else case T of
-        Type (@{type_name fun}, [T1, T2]) =>
-        (case (aux slack avoid T1, aux slack avoid T2) of
-           (k, 1) => if slack andalso k = 0 then 0 else 1
-         | (0, _) => 0
-         | (_, 0) => 0
-         | (k1, k2) =>
-           if k1 >= max orelse k2 >= max then max
-           else Int.min (max, Integer.pow k2 k1))
-      | @{typ prop} => 2
-      | @{typ bool} => 2 (* optimization *)
-      | @{typ nat} => 0 (* optimization *)
-      | @{typ int} => 0 (* optimization *)
-      | Type (s, _) =>
-        let val thy = Proof_Context.theory_of ctxt in
-          case datatype_constrs thy T of
-            constrs as _ :: _ =>
-            let
-              val constr_cards =
-                map (Integer.prod o map (aux slack (T :: avoid)) o binder_types
-                     o snd) constrs
-            in
-              if exists (curry (op =) 0) constr_cards then 0
-              else Int.min (max, Integer.sum constr_cards)
-            end
-          | [] =>
-            case Typedef.get_info ctxt s of
-              ({abs_type, rep_type, ...}, _) :: _ =>
-              (* We cheat here by assuming that typedef types are infinite if
-                 their underlying type is infinite. This is unsound in general
-                 but it's hard to think of a realistic example where this would
-                 not be the case. We are also slack with representation types:
-                 If a representation type has the form "sigma => tau", we
-                 consider it enough to check "sigma" for infiniteness. (Look for
-                 "slack" in this function.) *)
-              (case varify_and_instantiate_type ctxt
-                        (Logic.varifyT_global abs_type) T
-                        (Logic.varifyT_global rep_type)
-                    |> aux true avoid of
-                 0 => 0
-               | 1 => 1
-               | _ => default_card)
-            | [] => default_card
-        end
-        (* Very slightly unsound: Type variables are assumed not to be
-           constrained to cardinality 1. (In practice, the user would most
-           likely have used "unit" directly anyway.) *)
-      | TFree _ => if default_card = 1 then 2 else default_card
-        (* Schematic type variables that contain only unproblematic sorts
-           (with no finiteness axiom) can safely be considered infinite. *)
-      | TVar (_, S) =>
-        if default_card = 0 orelse subset (op =) (S, safe_sorts) then 0
-        else default_card
+      else case AList.lookup (Sign.typ_instance thy o swap) assigns T of
+        SOME k => k
+      | NONE =>
+        case T of
+          Type (@{type_name fun}, [T1, T2]) =>
+          (case (aux slack avoid T1, aux slack avoid T2) of
+             (k, 1) => if slack andalso k = 0 then 0 else 1
+           | (0, _) => 0
+           | (_, 0) => 0
+           | (k1, k2) =>
+             if k1 >= max orelse k2 >= max then max
+             else Int.min (max, Integer.pow k2 k1))
+        | @{typ prop} => 2
+        | @{typ bool} => 2 (* optimization *)
+        | @{typ nat} => 0 (* optimization *)
+        | @{typ int} => 0 (* optimization *)
+        | Type (s, _) =>
+          (case datatype_constrs thy T of
+             constrs as _ :: _ =>
+             let
+               val constr_cards =
+                 map (Integer.prod o map (aux slack (T :: avoid)) o binder_types
+                      o snd) constrs
+             in
+               if exists (curry (op =) 0) constr_cards then 0
+               else Int.min (max, Integer.sum constr_cards)
+             end
+           | [] =>
+             case Typedef.get_info ctxt s of
+               ({abs_type, rep_type, ...}, _) :: _ =>
+               (* We cheat here by assuming that typedef types are infinite if
+                  their underlying type is infinite. This is unsound in general
+                  but it's hard to think of a realistic example where this would
+                  not be the case. We are also slack with representation types:
+                  If a representation type has the form "sigma => tau", we
+                  consider it enough to check "sigma" for infiniteness. (Look
+                  for "slack" in this function.) *)
+               (case varify_and_instantiate_type ctxt
+                         (Logic.varifyT_global abs_type) T
+                         (Logic.varifyT_global rep_type)
+                     |> aux true avoid of
+                  0 => 0
+                | 1 => 1
+                | _ => default_card)
+             | [] => default_card)
+          (* Very slightly unsound: Type variables are assumed not to be
+             constrained to cardinality 1. (In practice, the user would most
+             likely have used "unit" directly anyway.) *)
+        | TFree _ => if default_card = 1 then 2 else default_card
+          (* Schematic type variables that contain only unproblematic sorts
+             (with no finiteness axiom) can safely be considered infinite. *)
+        | TVar _ => default_card
   in Int.min (max, aux false [] T) end
 
-fun is_type_surely_finite ctxt T = tiny_card_of_type ctxt 0 T <> 0
-fun is_type_surely_infinite ctxt T = tiny_card_of_type ctxt 1 T = 0
+fun is_type_surely_finite ctxt T = tiny_card_of_type ctxt 0 [] T <> 0
+fun is_type_surely_infinite ctxt infinite_Ts T =
+  tiny_card_of_type ctxt 1 (map (rpair 0) infinite_Ts) T = 0
 
 fun monomorphic_term subst t =
   map_types (map_type_tvar (fn v =>

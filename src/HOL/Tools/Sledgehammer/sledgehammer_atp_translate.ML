@@ -140,15 +140,12 @@ fun type_sys_from_string s =
   |> (fn (poly, (level, (heaviness, core))) =>
          case (core, (poly, level, heaviness)) of
            ("simple", (NONE, _, Light)) => Simple_Types level
-         | ("preds", (SOME Polymorphic, _, _)) =>
-           Preds (Polymorphic, level, heaviness)
          | ("preds", (SOME poly, _, _)) => Preds (poly, level, heaviness)
          | ("tags", (SOME Polymorphic, All_Types, _)) =>
            Tags (Polymorphic, All_Types, heaviness)
-         | ("tags", (SOME Polymorphic, Finite_Types, _)) =>
-           (* The actual light encoding yields too many unsound proofs. *)
-           Tags (Polymorphic, Finite_Types, Heavy)
-         | ("tags", (SOME Polymorphic, _, _)) => raise Same.SAME
+         | ("tags", (SOME Polymorphic, _, _)) =>
+           (* The actual light encoding is very unsound. *)
+           Tags (Polymorphic, level, Heavy)
          | ("tags", (SOME poly, _, _)) => Tags (poly, level, heaviness)
          | ("args", (SOME poly, All_Types (* naja *), Light)) =>
            Preds (poly, Const_Arg_Types, Light)
@@ -499,13 +496,19 @@ fun make_conjecture ctxt prem_kind ts =
 
 (** Finite and infinite type inference **)
 
+fun deep_freeze_atyp (TVar (_, S)) = TFree ("v", S)
+  | deep_freeze_atyp T = T
+val deep_freeze_type = map_atyps deep_freeze_atyp
+
+val type_instance = Sign.typ_instance o Proof_Context.theory_of
+
 (* Finite types such as "unit", "bool", "bool * bool", and "bool => bool" are
    dangerous because their "exhaust" properties can easily lead to unsound ATP
    proofs. On the other hand, all HOL infinite types can be given the same
    models in first-order logic (via Löwenheim-Skolem). *)
 
-fun should_encode_type _ (nonmono_Ts as _ :: _) _ T =
-    exists (curry Type.raw_instance T) nonmono_Ts
+fun should_encode_type ctxt (nonmono_Ts as _ :: _) _ T =
+    exists (curry (type_instance ctxt) (deep_freeze_type T)) nonmono_Ts
   | should_encode_type _ _ All_Types _ = true
   | should_encode_type ctxt _ Finite_Types T = is_type_surely_finite ctxt T
   | should_encode_type _ _ _ _ = false
@@ -951,10 +954,10 @@ fun formula_lines_for_free_types type_sys facts =
 
 (** Symbol declarations **)
 
-fun insert_type get_T x xs =
+fun insert_type ctxt get_T x xs =
   let val T = get_T x in
-    if exists (curry Type.raw_instance T o get_T) xs then xs
-    else x :: filter_out ((fn T' => Type.raw_instance (T', T)) o get_T) xs
+    if exists (curry (type_instance ctxt) T o get_T) xs then xs
+    else x :: filter_out (curry (type_instance ctxt o swap) T o get_T) xs
   end
 
 fun should_declare_sym type_sys pred_sym s =
@@ -965,7 +968,7 @@ fun should_declare_sym type_sys pred_sym s =
     | Tags (_, _, Light) => true
     | _ => false) orelse not pred_sym)
 
-fun sym_decl_table_for_facts type_sys repaired_sym_tab (conjs, facts) =
+fun sym_decl_table_for_facts ctxt type_sys repaired_sym_tab (conjs, facts) =
   let
     fun add_combterm in_conj tm =
       let val (head, args) = strip_combterm_comb tm in
@@ -974,8 +977,8 @@ fun sym_decl_table_for_facts type_sys repaired_sym_tab (conjs, facts) =
            let val pred_sym = is_pred_sym repaired_sym_tab s in
              if should_declare_sym type_sys pred_sym s then
                Symtab.map_default (s, [])
-                   (insert_type #3 (s', T_args, T, pred_sym, length args,
-                                    in_conj))
+                   (insert_type ctxt #3 (s', T_args, T, pred_sym, length args,
+                                         in_conj))
              else
                I
            end
@@ -990,35 +993,37 @@ fun sym_decl_table_for_facts type_sys repaired_sym_tab (conjs, facts) =
        ? (fold (add_fact true) conjs #> fold (add_fact false) facts)
   end
 
+(* These types witness that the type classes they belong to allow infinite
+   models and hence that any types with these type classes is monotonic. *)
+val known_infinite_types = [@{typ nat}, @{typ int}, @{typ "nat => bool"}]
+
 (* This inference is described in section 2.3 of Claessen et al.'s "Sorting it
    out with monotonicity" paper presented at CADE 2011. *)
-fun add_combterm_nonmonotonic_types _ _  (SOME false) _ = I
+fun add_combterm_nonmonotonic_types _ _ (SOME false) _ = I
   | add_combterm_nonmonotonic_types ctxt level _
         (CombApp (CombApp (CombConst (("equal", _), Type (_, [T, _]), _), tm1),
                   tm2)) =
     (exists is_var_or_bound_var [tm1, tm2] andalso
      (case level of
-        Nonmonotonic_Types => not (is_type_surely_infinite ctxt T)
+        Nonmonotonic_Types =>
+        not (is_type_surely_infinite ctxt known_infinite_types T)
       | Finite_Types => is_type_surely_finite ctxt T
-      | _ => true)) ? insert_type I T
+      | _ => true)) ? insert_type ctxt I (deep_freeze_type T)
   | add_combterm_nonmonotonic_types _ _ _ _ = I
 fun add_fact_nonmonotonic_types ctxt level ({kind, combformula, ...}
                                             : translated_formula) =
   formula_fold (SOME (kind <> Conjecture))
                (add_combterm_nonmonotonic_types ctxt level) combformula
-fun add_nonmonotonic_types_for_facts ctxt type_sys facts =
+fun nonmonotonic_types_for_facts ctxt type_sys facts =
   let val level = level_of_type_sys type_sys in
-    (case level of
-       Nonmonotonic_Types => true
-     | Finite_Types =>
-       heaviness_of_type_sys type_sys = Light andalso
-       polymorphism_of_type_sys type_sys <> Polymorphic
-     | _ => false)
-    ? (fold (add_fact_nonmonotonic_types ctxt level) facts
-       (* We must add bool in case the helper "True_or_False" is added later.
-          In addition, several places in the code rely on the list of
-          nonmonotonic types not being empty. *)
-       #> insert_type I @{typ bool})
+    if level = Nonmonotonic_Types orelse level = Finite_Types then
+      [] |> fold (add_fact_nonmonotonic_types ctxt level) facts
+         (* We must add "bool" in case the helper "True_or_False" is added
+            later. In addition, several places in the code rely on the list of
+            nonmonotonic types not being empty. *)
+         |> insert_type ctxt I @{typ bool}
+    else
+      []
   end
 
 fun decl_line_for_sym ctxt nonmono_Ts level s (s', _, T, pred_sym, ary, _) =
@@ -1124,7 +1129,7 @@ fun problem_lines_for_sym_decls ctxt conj_sym_kind nonmono_Ts type_sys
         case decls of
           decl :: (decls' as _ :: _) =>
           let val T = result_type_of_decl decl in
-            if forall ((fn T' => Type.raw_instance (T', T))
+            if forall (curry (type_instance ctxt o swap) T
                        o result_type_of_decl) decls' then
               [decl]
             else
@@ -1198,8 +1203,7 @@ fun prepare_atp_problem ctxt conj_sym_kind prem_kind type_sys explicit_apply
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
       translate_formulas ctxt prem_kind type_sys hyp_ts concl_t facts
     val sym_tab = conjs @ facts |> sym_table_for_facts explicit_apply
-    val nonmono_Ts =
-      [] |> fold (add_nonmonotonic_types_for_facts ctxt type_sys) [facts, conjs]
+    val nonmono_Ts = conjs @ facts |> nonmonotonic_types_for_facts ctxt type_sys
     val repair = repair_fact ctxt nonmono_Ts type_sys sym_tab
     val (conjs, facts) = (conjs, facts) |> pairself (map repair)
     val repaired_sym_tab = conjs @ facts |> sym_table_for_facts false
@@ -1207,7 +1211,7 @@ fun prepare_atp_problem ctxt conj_sym_kind prem_kind type_sys explicit_apply
       repaired_sym_tab |> helper_facts_for_sym_table ctxt type_sys |> map repair
     val sym_decl_lines =
       (conjs, helpers @ facts)
-      |> sym_decl_table_for_facts type_sys repaired_sym_tab
+      |> sym_decl_table_for_facts ctxt type_sys repaired_sym_tab
       |> problem_lines_for_sym_decl_table ctxt conj_sym_kind nonmono_Ts type_sys
     val helper_lines =
       map (formula_line_for_fact ctxt helper_prefix nonmono_Ts type_sys)
