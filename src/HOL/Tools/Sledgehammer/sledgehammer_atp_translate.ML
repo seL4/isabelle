@@ -168,15 +168,24 @@ fun formula_map f (AQuant (q, xs, phi)) = AQuant (q, xs, formula_map f phi)
   | formula_map f (AConn (c, phis)) = AConn (c, map (formula_map f) phis)
   | formula_map f (AAtom tm) = AAtom (f tm)
 
+fun aconn_fold pos f (ANot, [phi]) = f (Option.map not pos) phi
+  | aconn_fold pos f (AImplies, [phi1, phi2]) =
+    f (Option.map not pos) phi1 #> f pos phi2
+  | aconn_fold pos f (AAnd, phis) = fold (f pos) phis
+  | aconn_fold pos f (AOr, phis) = fold (f pos) phis
+  | aconn_fold _ f (_, phis) = fold (f NONE) phis
+
+fun aconn_map pos f (ANot, [phi]) = AConn (ANot, [f (Option.map not pos) phi])
+  | aconn_map pos f (AImplies, [phi1, phi2]) =
+    AConn (AImplies, [f (Option.map not pos) phi1, f pos phi2])
+  | aconn_map pos f (AAnd, phis) = AConn (AAnd, map (f pos) phis)
+  | aconn_map pos f (AOr, phis) = AConn (AOr, map (f pos) phis)
+  | aconn_map _ f (c, phis) = AConn (c, map (f NONE) phis)
+
 fun formula_fold pos f =
   let
     fun aux pos (AQuant (_, _, phi)) = aux pos phi
-      | aux pos (AConn (ANot, [phi])) = aux (Option.map not pos) phi
-      | aux pos (AConn (AImplies, [phi1, phi2])) =
-        aux (Option.map not pos) phi1 #> aux pos phi2
-      | aux pos (AConn (AAnd, phis)) = fold (aux pos) phis
-      | aux pos (AConn (AOr, phis)) = fold (aux pos) phis
-      | aux _ (AConn (_, phis)) = fold (aux NONE) phis
+      | aux pos (AConn conn) = aconn_fold pos aux conn
       | aux pos (AAtom tm) = f pos tm
   in aux pos end
 
@@ -489,8 +498,8 @@ fun should_encode_type _ (nonmono_Ts as _ :: _) _ T =
 
 fun should_predicate_on_type ctxt nonmono_Ts (Preds (_, level, heaviness))
                              should_predicate_on_var T =
-     (heaviness = Heavy orelse should_predicate_on_var ()) andalso
-     should_encode_type ctxt nonmono_Ts level T
+    (heaviness = Heavy orelse should_predicate_on_var ()) andalso
+    should_encode_type ctxt nonmono_Ts level T
   | should_predicate_on_type _ _ _ _ _ = false
 
 fun is_var_or_bound_var (CombConst ((s, _), _, _)) =
@@ -780,17 +789,17 @@ fun fo_literal_from_type_literal (TyLitVar (class, name)) =
 
 fun formula_from_fo_literal (pos, t) = AAtom t |> not pos ? mk_anot
 
-fun type_pred_combatom ctxt nonmono_Ts type_sys T tm =
+fun type_pred_combterm ctxt nonmono_Ts type_sys T tm =
   CombApp (CombConst (`make_fixed_const type_pred_base, T --> @{typ bool}, [T])
            |> enforce_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys,
            tm)
-  |> AAtom
 
-fun var_occurs_naked_in_term name (ATerm ((s, _), tms)) accum =
-  accum orelse
-  (s = "equal" andalso member (op =) tms (ATerm (name, [])))
-fun var_occurs_naked_in_formula phi name =
-  formula_fold NONE (K (var_occurs_naked_in_term name)) phi false
+fun var_occurs_positively_naked_in_term _ (SOME false) _ accum = accum
+  | var_occurs_positively_naked_in_term name _ (ATerm ((s, _), tms)) accum =
+    accum orelse (s = "equal" andalso member (op =) tms (ATerm (name, [])))
+fun is_var_nonmonotonic_in_formula _ _ (SOME false) _ = false
+  | is_var_nonmonotonic_in_formula pos phi _ name =
+    formula_fold pos (var_occurs_positively_naked_in_term name) phi false
 
 fun tag_with_type ctxt nonmono_Ts type_sys T tm =
   CombConst (`make_fixed_const type_tag_name, T --> T, [T])
@@ -819,34 +828,38 @@ and term_from_combterm ctxt nonmono_Ts type_sys site u =
   end
 and formula_from_combformula ctxt nonmono_Ts type_sys should_predicate_on_var =
   let
+    val do_term = term_from_combterm ctxt nonmono_Ts type_sys Top_Level
     val do_bound_type =
       case type_sys of
         Simple_Types level =>
         SOME o mangled_type_name o homogenized_type ctxt nonmono_Ts level
       | _ => K NONE
-    fun do_out_of_bound_type phi (name, T) =
+    fun do_out_of_bound_type pos phi universal (name, T) =
       if should_predicate_on_type ctxt nonmono_Ts type_sys
-             (fn () => should_predicate_on_var phi name) T then
+             (fn () => should_predicate_on_var pos phi universal name) T then
         CombVar (name, T)
-        |> type_pred_combatom ctxt nonmono_Ts type_sys T
-        |> do_formula |> SOME
+        |> type_pred_combterm ctxt nonmono_Ts type_sys T
+        |> do_term |> AAtom |> SOME
       else
         NONE
-    and do_formula (AQuant (q, xs, phi)) =
-        let val phi = phi |> do_formula in
+    fun do_formula pos (AQuant (q, xs, phi)) =
+        let
+          val phi = phi |> do_formula pos
+          val universal = Option.map (q = AExists ? not) pos
+        in
           AQuant (q, xs |> map (apsnd (fn NONE => NONE
                                         | SOME T => do_bound_type T)),
                   (if q = AForall then mk_ahorn else fold_rev (mk_aconn AAnd))
                       (map_filter
                            (fn (_, NONE) => NONE
                              | (s, SOME T) =>
-                               do_out_of_bound_type phi (s, T)) xs)
+                               do_out_of_bound_type pos phi universal (s, T))
+                           xs)
                       phi)
         end
-      | do_formula (AConn (c, phis)) = AConn (c, map do_formula phis)
-      | do_formula (AAtom tm) =
-        AAtom (term_from_combterm ctxt nonmono_Ts type_sys Top_Level tm)
-  in do_formula end
+      | do_formula pos (AConn conn) = aconn_map pos do_formula conn
+      | do_formula _ (AAtom tm) = AAtom (do_term tm)
+  in do_formula o SOME end
 
 fun bound_atomic_types type_sys Ts =
   mk_ahorn (map (formula_from_fo_literal o fo_literal_from_type_literal)
@@ -857,7 +870,7 @@ fun formula_for_fact ctxt nonmono_Ts type_sys
   combformula
   |> close_combformula_universally
   |> formula_from_combformula ctxt nonmono_Ts type_sys
-                              var_occurs_naked_in_formula
+                              is_var_nonmonotonic_in_formula true
   |> bound_atomic_types type_sys atomic_types
   |> close_formula_universally
 
@@ -908,7 +921,7 @@ fun formula_line_for_conjecture ctxt nonmono_Ts type_sys
         ({name, kind, combformula, ...} : translated_formula) =
   Formula (conjecture_prefix ^ name, kind,
            formula_from_combformula ctxt nonmono_Ts type_sys
-                                    var_occurs_naked_in_formula
+                                    is_var_nonmonotonic_in_formula false
                                     (close_combformula_universally combformula)
            |> close_formula_universally, NONE, NONE)
 
@@ -1029,9 +1042,11 @@ fun formula_line_for_pred_sym_decl ctxt conj_sym_kind nonmono_Ts type_sys n s j
              (if n > 1 then "_" ^ string_of_int j else ""), kind,
              CombConst ((s, s'), T, T_args)
              |> fold (curry (CombApp o swap)) bounds
-             |> type_pred_combatom ctxt nonmono_Ts type_sys res_T
+             |> type_pred_combterm ctxt nonmono_Ts type_sys res_T
+             |> AAtom
              |> mk_aquant AForall (bound_names ~~ bound_Ts)
-             |> formula_from_combformula ctxt nonmono_Ts type_sys (K (K true))
+             |> formula_from_combformula ctxt nonmono_Ts type_sys
+                                         (K (K (K (K true)))) true
              |> n > 1 ? bound_atomic_types type_sys (atyps_of T)
              |> close_formula_universally
              |> maybe_negate,
