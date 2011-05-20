@@ -2,52 +2,6 @@
 \chapter{Theories, Terms and Types} \label{theories}
 \index{theories|(}
 
-\section{The theory loader}\label{sec:more-theories}
-\index{theories!reading}\index{files!reading}
-
-Isabelle's theory loader manages dependencies of the internal graph of theory
-nodes (the \emph{theory database}) and the external view of the file system.
-
-\medskip Theory and {\ML} files are located by skimming through the
-directories listed in Isabelle's internal load path, which merely contains the
-current directory ``\texttt{.}'' by default.  The load path may be accessed by
-the following operations.
-
-\begin{ttbox}
-show_path: unit -> string list
-add_path: string -> unit
-del_path: string -> unit
-reset_path: unit -> unit
-with_path: string -> ('a -> 'b) -> 'a -> 'b
-no_document: ('a -> 'b) -> 'a -> 'b
-\end{ttbox}
-
-\begin{ttdescription}
-\item[\ttindexbold{show_path}();] displays the load path components in
-  canonical string representation (which is always according to Unix rules).
-  
-\item[\ttindexbold{add_path} "$dir$";] adds component $dir$ to the beginning
-  of the load path.
-  
-\item[\ttindexbold{del_path} "$dir$";] removes any occurrences of component
-  $dir$ from the load path.
-  
-\item[\ttindexbold{reset_path}();] resets the load path to ``\texttt{.}''
-  (current directory) only.
-  
-\item[\ttindexbold{with_path} "$dir$" $f$ $x$;] temporarily adds component
-  $dir$ to the beginning of the load path while executing $(f~x)$.
-  
-\item[\ttindexbold{no_document} $f$ $x$;] temporarily disables {\LaTeX}
-  document generation while executing $(f~x)$.
-
-\end{ttdescription}
-
-Furthermore, in operations referring indirectly to some file (e.g.\ 
-\texttt{use_dir}) the argument may be prefixed by a directory that will be
-temporarily appended to the load path, too.
-
-
 \section{Basic operations on theories}\label{BasicOperationsOnTheories}
 
 \subsection{*Theory inclusion}

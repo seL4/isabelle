@@ -43,7 +43,7 @@ $\downarrow$    & print translation \\
 \AST{}             & \\
 $\downarrow$    & \AST{} rewriting (macros) \\
 \AST{}             & \\
-$\downarrow$    & print \AST{} translation, token translation \\
+$\downarrow$    & print \AST{} translation \\
 string          &
 \end{tabular}
 
@@ -564,9 +564,6 @@ form finally reached ({\tt post}) and some statistics ({\tt normalize}).
 
 This example demonstrates the use of recursive macros to implement a
 convenient notation for finite sets.
-\index{*empty constant}\index{*insert constant}\index{{}@\verb'{}' symbol}
-\index{"@Enum@{\tt\at Enum} constant}
-\index{"@Finset@{\tt\at Finset} constant}
 \begin{ttbox}
 FinSyntax = SetSyntax +
 types
@@ -602,7 +599,6 @@ re-used for other enumerations of type~{\tt i} like lists or tuples.  If we
 had needed polymorphic enumerations, we could have used the predefined
 nonterminal symbol \ndx{args} and skipped this part altogether.
 
-\index{"@Finset@{\tt\at Finset} constant}
 Next follows {\tt empty}, which is already equipped with its syntax
 \verb|{}|, and {\tt insert} without concrete syntax.  The syntactic
 constant {\tt\at Finset} provides concrete syntax for enumerations of~{\tt
@@ -848,53 +844,6 @@ actually represent bound variables.  This is achieved by
 \ttindex{Syntax.variant_abs'} and \ttindex{Syntax.mark_boundT} above.
 Failing to do so may cause these names to be printed in the wrong
 style.  \index{translations|)} \index{syntax!transformations|)}
-
-
-\section{Token translations} \label{sec:tok_tr}
-\index{token translations|(}
-%
-Isabelle's meta-logic features quite a lot of different kinds of
-identifiers, namely {\em class}, {\em tfree}, {\em tvar}, {\em free},
-{\em bound}, {\em var}.  One might want to have these printed in
-different styles, e.g.\ in bold or italic, or even transcribed into
-something more readable like $\alpha, \alpha', \beta$ instead of {\tt
-  'a}, {\tt 'aa}, {\tt 'b} for type variables.  Token translations
-provide a means to such ends, enabling the user to install certain
-\ML{} functions associated with any logical \rmindex{token class} and
-depending on some \rmindex{print mode}.
-
-The logical class of identifiers can not necessarily be determined by
-its syntactic category, though.  For example, consider free vs.\ bound
-variables.  So Isabelle's pretty printing mechanism, starting from
-fully typed terms, has to be careful to preserve this additional
-information\footnote{This is done by marking atoms in abstract syntax
-  trees appropriately.  The marks are actually visible by print
-  translation functions -- they are just special constants applied to
-  atomic asts, for example \texttt{("_bound" x)}.}.  In particular,
-user-supplied print translation functions operating on terms have to
-be well-behaved in this respect.  Free identifiers introduced to
-represent bound variables have to be marked appropriately (cf.\ the
-example at the end of \S\ref{sec:tr_funs}).
-
-\medskip Token translations may be installed by declaring the
-\ttindex{token_translation} value within the \texttt{ML} section of a theory
-definition file:
-\begin{ttbox}
-val token_translation: 
-      (string * string * (string -> string * real)) list
-\end{ttbox}
-The elements of this list are of the form $(m, c, f)$, where $m$ is a print
-mode identifier, $c$ a token class, and $f\colon string \to string \times
-real$ the actual translation function.  Assuming that $x$ is of identifier
-class $c$, and print mode $m$ is the first (active) mode providing some
-translation for $c$, then $x$ is output according to $f(x) = (x', len)$.
-Thereby $x'$ is the modified identifier name and $len$ its visual length in
-terms of characters (e.g.\ length 1.0 would correspond to $1/2$\,em in
-\LaTeX).  Thus $x'$ may include non-printing parts like control sequences or
-markup information for typesetting systems.
-
-
-\index{token translations|)}
 
 
 %%% Local Variables: 
