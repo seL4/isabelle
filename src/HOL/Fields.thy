@@ -831,6 +831,39 @@ lemma divide_left_mono_neg: "a <= b
   apply (auto simp add: mult_commute)
 done
 
+lemma inverse_le_iff:
+  "inverse a \<le> inverse b \<longleftrightarrow> (0 < a * b \<longrightarrow> b \<le> a) \<and> (a * b \<le> 0 \<longrightarrow> a \<le> b)"
+proof -
+  { assume "a < 0"
+    then have "inverse a < 0" by simp
+    moreover assume "0 < b"
+    then have "0 < inverse b" by simp
+    ultimately have "inverse a < inverse b" by (rule less_trans)
+    then have "inverse a \<le> inverse b" by simp }
+  moreover
+  { assume "b < 0"
+    then have "inverse b < 0" by simp
+    moreover assume "0 < a"
+    then have "0 < inverse a" by simp
+    ultimately have "inverse b < inverse a" by (rule less_trans)
+    then have "\<not> inverse a \<le> inverse b" by simp }
+  ultimately show ?thesis
+    by (cases a 0 b 0 rule: linorder_cases[case_product linorder_cases])
+       (auto simp: not_less zero_less_mult_iff mult_le_0_iff)
+qed
+
+lemma inverse_less_iff:
+  "inverse a < inverse b \<longleftrightarrow> (0 < a * b \<longrightarrow> b < a) \<and> (a * b \<le> 0 \<longrightarrow> a < b)"
+  by (subst less_le) (auto simp: inverse_le_iff)
+
+lemma divide_le_cancel:
+  "a / c \<le> b / c \<longleftrightarrow> (0 < c \<longrightarrow> a \<le> b) \<and> (c < 0 \<longrightarrow> b \<le> a)"
+  by (simp add: divide_inverse mult_le_cancel_right)
+
+lemma divide_less_cancel:
+  "a / c < b / c \<longleftrightarrow> (0 < c \<longrightarrow> a < b) \<and> (c < 0 \<longrightarrow> b < a) \<and> c \<noteq> 0"
+  by (auto simp add: divide_inverse mult_less_cancel_right)
+
 text{*Simplify quotients that are compared with the value 1.*}
 
 lemma le_divide_eq_1 [no_atp]:
