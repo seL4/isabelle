@@ -15,6 +15,7 @@ sig
     Unprovable |
     IncompleteUnprovable |
     ProofMissing |
+    ProofIncomplete |
     UnsoundProof of bool * string list |
     CantConnect |
     TimedOut |
@@ -64,6 +65,7 @@ datatype failure =
   Unprovable |
   IncompleteUnprovable |
   ProofMissing |
+  ProofIncomplete |
   UnsoundProof of bool * string list |
   CantConnect |
   TimedOut |
@@ -126,6 +128,9 @@ fun string_for_failure Unprovable =
     "The prover gave up."
   | string_for_failure ProofMissing =
     "The prover claims the conjecture is a theorem but did not provide a proof."
+  | string_for_failure ProofIncomplete =
+    "The prover claims the conjecture is a theorem but provided an incomplete \
+    \proof."
   | string_for_failure (UnsoundProof (false, ss)) =
     "The prover found a type-unsound proof " ^ involving ss ^
     "(or, less likely, your axioms are inconsistent). Try passing the \
@@ -199,18 +204,16 @@ fun extract_known_failure known_failures output =
 
 fun extract_tstplike_proof_and_outcome verbose complete res_code proof_delims
                                        known_failures output =
-   case extract_tstplike_proof proof_delims output of
-     "" =>
-     ("", SOME (if res_code = 0 andalso output = "" then
-                  ProofMissing
-                else case extract_known_failure known_failures output of
-                  SOME failure =>
-                  if failure = IncompleteUnprovable andalso complete then
-                    Unprovable
-                  else
-                    failure
-                | NONE => UnknownError (short_output verbose output)))
-   | tstplike_proof => (tstplike_proof, NONE)
+  case (extract_tstplike_proof proof_delims output,
+        extract_known_failure known_failures output) of
+    (_, SOME ProofIncomplete) => ("", SOME ProofIncomplete)
+  | ("", SOME failure) =>
+    ("", SOME (if failure = IncompleteUnprovable andalso complete then Unprovable
+               else failure))
+  | ("", NONE) =>
+    ("", SOME (if res_code = 0 andalso output = "" then ProofMissing
+               else UnknownError (short_output verbose output)))
+  | (tstplike_proof, _) => (tstplike_proof, NONE)
 
 fun mk_anot (AConn (ANot, [phi])) = phi
   | mk_anot phi = AConn (ANot, [phi])

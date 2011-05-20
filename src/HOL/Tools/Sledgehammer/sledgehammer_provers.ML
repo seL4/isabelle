@@ -677,9 +677,11 @@ fun run_atp auto name
         NONE =>
         (NONE, proof_text isar_proof isar_params metis_params
                |>> append_to_message)
-      | SOME ProofMissing =>
-        (NONE, metis_proof_text metis_params |>> append_to_message)
-      | SOME failure => (outcome, (string_for_failure failure, []))
+      | SOME failure =>
+        if failure = ProofMissing orelse failure = ProofIncomplete then
+          (NONE, metis_proof_text metis_params |>> append_to_message)
+        else
+          (outcome, (string_for_failure failure, []))
   in
     {outcome = outcome, message = message, used_facts = used_facts,
      run_time_in_msecs = msecs}
