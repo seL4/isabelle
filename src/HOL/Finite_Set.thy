@@ -779,36 +779,34 @@ lemma Sup_fold_sup:
 
 lemma inf_INFI_fold_inf:
   assumes "finite A"
-  shows "inf B (INFI A f) = fold (\<lambda>A. inf (f A)) B A" (is "?inf = ?fold") 
+  shows "inf B (INFI A f) = fold (inf \<circ> f) B A" (is "?inf = ?fold") 
 proof (rule sym)
   interpret comp_fun_idem inf by (fact comp_fun_idem_inf)
   interpret comp_fun_idem "inf \<circ> f" by (fact comp_comp_fun_idem)
-  from `finite A` have "fold (inf \<circ> f) B A = ?inf"
+  from `finite A` show "?fold = ?inf"
     by (induct A arbitrary: B)
       (simp_all add: INFI_def Inf_insert inf_left_commute)
-  then show "?fold = ?inf" by (simp add: comp_def)
 qed
 
 lemma sup_SUPR_fold_sup:
   assumes "finite A"
-  shows "sup B (SUPR A f) = fold (\<lambda>A. sup (f A)) B A" (is "?sup = ?fold") 
+  shows "sup B (SUPR A f) = fold (sup \<circ> f) B A" (is "?sup = ?fold") 
 proof (rule sym)
   interpret comp_fun_idem sup by (fact comp_fun_idem_sup)
   interpret comp_fun_idem "sup \<circ> f" by (fact comp_comp_fun_idem)
-  from `finite A` have "fold (sup \<circ> f) B A = ?sup"
+  from `finite A` show "?fold = ?sup"
     by (induct A arbitrary: B)
       (simp_all add: SUPR_def Sup_insert sup_left_commute)
-  then show "?fold = ?sup" by (simp add: comp_def)
 qed
 
 lemma INFI_fold_inf:
   assumes "finite A"
-  shows "INFI A f = fold (\<lambda>A. inf (f A)) top A"
+  shows "INFI A f = fold (inf \<circ> f) top A"
   using assms inf_INFI_fold_inf [of A top] by simp
 
 lemma SUPR_fold_sup:
   assumes "finite A"
-  shows "SUPR A f = fold (\<lambda>A. sup (f A)) bot A"
+  shows "SUPR A f = fold (sup \<circ> f) bot A"
   using assms sup_SUPR_fold_sup [of A bot] by simp
 
 end
