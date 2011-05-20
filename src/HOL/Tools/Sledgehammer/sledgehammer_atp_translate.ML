@@ -61,6 +61,16 @@ open Sledgehammer_Filter
 (* experimental *)
 val generate_useful_info = false
 
+fun useful_isabelle_info s =
+  if generate_useful_info then
+    SOME (ATerm ("[]", [ATerm ("isabelle_" ^ s, [])]))
+  else
+    NONE
+
+val intro_info = useful_isabelle_info "intro"
+val elim_info = useful_isabelle_info "elim"
+val simp_info = useful_isabelle_info "simp"
+
 (* Readable names are often much shorter, especially if types are mangled in
    names. Also, the logic for generating legal SNARK sort names is only
    implemented for readable names. Finally, readable names are, well, more
@@ -714,7 +724,7 @@ fun ti_ti_helper_fact () =
   in
     Formula (helper_prefix ^ "ti_ti", Axiom,
              AAtom (ATerm (`I "equal", [tag (tag (var "Y")), tag (var "Y")]))
-             |> close_formula_universally, NONE, NONE)
+             |> close_formula_universally, simp_info, NONE)
   end
 
 fun helper_facts_for_sym ctxt type_sys (s, {typ, ...} : sym_info) =
@@ -874,8 +884,6 @@ fun formula_for_fact ctxt nonmono_Ts type_sys
   |> bound_atomic_types type_sys atomic_types
   |> close_formula_universally
 
-fun useful_isabelle_info s = SOME (ATerm ("[]", [ATerm ("isabelle_" ^ s, [])]))
-
 (* Each fact is given a unique fact number to avoid name clashes (e.g., because
    of monomorphization). The TPTP explicitly forbids name clashes, and some of
    the remote provers might care. *)
@@ -885,14 +893,11 @@ fun formula_line_for_fact ctxt prefix nonmono_Ts type_sys
                      else string_of_int j ^ "_") ^
            ascii_of name,
            kind, formula_for_fact ctxt nonmono_Ts type_sys formula, NONE,
-           if generate_useful_info then
-             case locality of
-               Intro => useful_isabelle_info "intro"
-             | Elim => useful_isabelle_info "elim"
-             | Simp => useful_isabelle_info "simp"
-             | _ => NONE
-           else
-             NONE)
+           case locality of
+             Intro => intro_info
+           | Elim => elim_info
+           | Simp => simp_info
+           | _ => NONE)
 
 fun formula_line_for_class_rel_clause (ClassRelClause {name, subclass,
                                                        superclass, ...}) =
@@ -900,7 +905,7 @@ fun formula_line_for_class_rel_clause (ClassRelClause {name, subclass,
     Formula (class_rel_clause_prefix ^ ascii_of name, Axiom,
              AConn (AImplies, [AAtom (ATerm (subclass, [ty_arg])),
                                AAtom (ATerm (superclass, [ty_arg]))])
-             |> close_formula_universally, NONE, NONE)
+             |> close_formula_universally, intro_info, NONE)
   end
 
 fun fo_literal_from_arity_literal (TConsLit (c, t, args)) =
@@ -915,7 +920,7 @@ fun formula_line_for_arity_clause (ArityClause {name, conclLit, premLits,
                           o fo_literal_from_arity_literal) premLits)
                     (formula_from_fo_literal
                          (fo_literal_from_arity_literal conclLit))
-           |> close_formula_universally, NONE, NONE)
+           |> close_formula_universally, intro_info, NONE)
 
 fun formula_line_for_conjecture ctxt nonmono_Ts type_sys
         ({name, kind, combformula, ...} : translated_formula) =
@@ -1050,7 +1055,7 @@ fun formula_line_for_pred_sym_decl ctxt conj_sym_kind nonmono_Ts type_sys n s j
              |> n > 1 ? bound_atomic_types type_sys (atyps_of T)
              |> close_formula_universally
              |> maybe_negate,
-             NONE, NONE)
+             intro_info, NONE)
   end
 
 fun formula_lines_for_tag_sym_decl ctxt conj_sym_kind nonmono_Ts type_sys n s
@@ -1079,7 +1084,7 @@ fun formula_lines_for_tag_sym_decl ctxt conj_sym_kind nonmono_Ts type_sys n s
       if should_encode res_T then
         cons (Formula (ident_base ^ "_res", kind,
                        eq [tag_with res_T (const bounds), const bounds],
-                       NONE, NONE))
+                       simp_info, NONE))
       else
         I
     fun add_formula_for_arg k =
@@ -1091,7 +1096,7 @@ fun formula_lines_for_tag_sym_decl ctxt conj_sym_kind nonmono_Ts type_sys n s
                            eq [const (bounds1 @ tag_with arg_T bound ::
                                       bounds2),
                                const bounds],
-                           NONE, NONE))
+                           simp_info, NONE))
           | _ => raise Fail "expected nonempty tail"
         else
           I
