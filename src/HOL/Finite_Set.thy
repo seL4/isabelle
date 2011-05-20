@@ -578,12 +578,12 @@ proof (induct set: fold_graph)
     assume "x \<noteq> a"
     then obtain y' where y: "y = f a y'" and y': "fold_graph f z (A - {a}) y'"
       using insertI by auto
-    have 1: "f x y = f a (f x y')"
+    have "f x y = f a (f x y')"
       unfolding y by (rule fun_left_comm)
-    have 2: "fold_graph f z (insert x A - {a}) (f x y')"
+    moreover have "fold_graph f z (insert x A - {a}) (f x y')"
       using y' and `x \<noteq> a` and `x \<notin> A`
       by (simp add: insert_Diff_if fold_graph.insertI)
-    from 1 2 show ?case by fast
+    ultimately show ?case by fast
   qed
 qed simp
 
@@ -626,11 +626,12 @@ by (unfold fold_def) blast
 text{* The various recursion equations for @{const fold}: *}
 
 lemma fold_insert [simp]:
-  "finite A ==> x \<notin> A ==> fold f z (insert x A) = f x (fold f z A)"
-apply (rule fold_equality)
-apply (erule fold_graph.insertI)
-apply (erule fold_graph_fold)
-done
+  assumes "finite A" and "x \<notin> A"
+  shows "fold f z (insert x A) = f x (fold f z A)"
+proof (rule fold_equality)
+  from `finite A` have "fold_graph f z A (fold f z A)" by (rule fold_graph_fold)
+  with `x \<notin> A`show "fold_graph f z (insert x A) (f x (fold f z A))" by (rule fold_graph.insertI)
+qed
 
 lemma fold_fun_comm:
   "finite A \<Longrightarrow> f x (fold f z A) = fold f (f x z) A"
@@ -646,8 +647,8 @@ lemma fold_insert2:
 by (simp add: fold_fun_comm)
 
 lemma fold_rec:
-assumes "finite A" and "x \<in> A"
-shows "fold f z A = f x (fold f z (A - {x}))"
+  assumes "finite A" and "x \<in> A"
+  shows "fold f z A = f x (fold f z (A - {x}))"
 proof -
   have A: "A = insert x (A - {x})" using `x \<in> A` by blast
   then have "fold f z A = fold f z (insert x (A - {x}))" by simp
@@ -815,84 +816,49 @@ end
 subsection {* The derived combinator @{text fold_image} *}
 
 definition fold_image :: "('b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b"
-where "fold_image f g = fold (%x y. f (g x) y)"
+  where "fold_image f g = fold (\<lambda>x y. f (g x) y)"
 
 lemma fold_image_empty[simp]: "fold_image f g z {} = z"
-by(simp add:fold_image_def)
+  by (simp add:fold_image_def)
 
 context ab_semigroup_mult
 begin
 
 lemma fold_image_insert[simp]:
-assumes "finite A" and "a \<notin> A"
-shows "fold_image times g z (insert a A) = g a * (fold_image times g z A)"
+  assumes "finite A" and "a \<notin> A"
+  shows "fold_image times g z (insert a A) = g a * (fold_image times g z A)"
 proof -
-  interpret I: comp_fun_commute "%x y. (g x) * y" proof
+  interpret comp_fun_commute "%x y. (g x) * y" proof
   qed (simp add: fun_eq_iff mult_ac)
   show ?thesis using assms by (simp add: fold_image_def)
 qed
 
-(*
-lemma fold_commute:
-  "finite A ==> (!!z. x * (fold times g z A) = fold times g (x * z) A)"
-  apply (induct set: finite)
-   apply simp
-  apply (simp add: mult_left_commute [of x])
-  done
-
-lemma fold_nest_Un_Int:
-  "finite A ==> finite B
-    ==> fold times g (fold times g z B) A = fold times g (fold times g z (A Int B)) (A Un B)"
-  apply (induct set: finite)
-   apply simp
-  apply (simp add: fold_commute Int_insert_left insert_absorb)
-  done
-
-lemma fold_nest_Un_disjoint:
-  "finite A ==> finite B ==> A Int B = {}
-    ==> fold times g z (A Un B) = fold times g (fold times g z B) A"
-  by (simp add: fold_nest_Un_Int)
-*)
-
 lemma fold_image_reindex:
-assumes fin: "finite A"
-shows "inj_on h A \<Longrightarrow> fold_image times g z (h`A) = fold_image times (g\<circ>h) z A"
-using fin by induct auto
-
-(*
-text{*
-  Fusion theorem, as described in Graham Hutton's paper,
-  A Tutorial on the Universality and Expressiveness of Fold,
-  JFP 9:4 (355-372), 1999.
-*}
-
-lemma fold_fusion:
-  assumes "ab_semigroup_mult g"
-  assumes fin: "finite A"
-    and hyp: "\<And>x y. h (g x y) = times x (h y)"
-  shows "h (fold g j w A) = fold times j (h w) A"
-proof -
-  class_interpret ab_semigroup_mult [g] by fact
-  show ?thesis using fin hyp by (induct set: finite) simp_all
-qed
-*)
+  assumes "finite A"
+  shows "inj_on h A \<Longrightarrow> fold_image times g z (h ` A) = fold_image times (g \<circ> h) z A"
+  using assms by induct auto
 
 lemma fold_image_cong:
-  "finite A \<Longrightarrow>
-  (!!x. x:A ==> g x = h x) ==> fold_image times g z A = fold_image times h z A"
-apply (subgoal_tac "ALL C. C <= A --> (ALL x:C. g x = h x) --> fold_image times g z C = fold_image times h z C")
- apply simp
-apply (erule finite_induct, simp)
-apply (simp add: subset_insert_iff, clarify)
-apply (subgoal_tac "finite C")
- prefer 2 apply (blast dest: finite_subset [COMP swap_prems_rl])
-apply (subgoal_tac "C = insert x (C - {x})")
- prefer 2 apply blast
-apply (erule ssubst)
-apply (drule spec)
-apply (erule (1) notE impE)
-apply (simp add: Ball_def del: insert_Diff_single)
-done
+  assumes "finite A" and g_h: "\<And>x. x\<in>A \<Longrightarrow> g x = h x"
+  shows "fold_image times g z A = fold_image times h z A"
+proof -
+  from `finite A`
+  have "\<And>C. C <= A --> (ALL x:C. g x = h x) --> fold_image times g z C = fold_image times h z C"
+  proof (induct arbitrary: C)
+    case empty then show ?case by simp
+  next
+    case (insert x F) then show ?case apply -
+    apply (simp add: subset_insert_iff, clarify)
+    apply (subgoal_tac "finite C")
+      prefer 2 apply (blast dest: finite_subset [COMP swap_prems_rl])
+    apply (subgoal_tac "C = insert x (C - {x})")
+      prefer 2 apply blast
+    apply (erule ssubst)
+    apply (simp add: Ball_def del: insert_Diff_single)
+    done
+  qed
+  with g_h show ?thesis by simp
+qed
 
 end
 
