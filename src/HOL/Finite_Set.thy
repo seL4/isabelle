@@ -532,13 +532,13 @@ text {* The intended behaviour is
 if @{text f} is ``left-commutative'':
 *}
 
-locale fun_left_comm =
+locale comp_fun_commute =
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b"
-  assumes commute_comp: "f y \<circ> f x = f x \<circ> f y"
+  assumes comp_fun_commute: "f y \<circ> f x = f x \<circ> f y"
 begin
 
 lemma fun_left_comm: "f x (f y z) = f y (f x z)"
-  using commute_comp by (simp add: fun_eq_iff)
+  using comp_fun_commute by (simp add: fun_eq_iff)
 
 end
 
@@ -565,7 +565,7 @@ by (induct rule: finite_induct) auto
 
 subsubsection{*From @{const fold_graph} to @{term fold}*}
 
-context fun_left_comm
+context comp_fun_commute
 begin
 
 lemma fold_graph_insertE_aux:
@@ -671,12 +671,12 @@ end
 
 text{* A simplified version for idempotent functions: *}
 
-locale fun_left_comm_idem = fun_left_comm +
-  assumes fun_comp_idem: "f x o f x = f x"
+locale comp_fun_idem = comp_fun_commute +
+  assumes comp_fun_idem: "f x o f x = f x"
 begin
 
 lemma fun_left_idem: "f x (f x z) = f x z"
-  using fun_comp_idem by (simp add: fun_eq_iff)
+  using comp_fun_idem by (simp add: fun_eq_iff)
 
 lemma fold_insert_idem:
   assumes fin: "finite A"
@@ -700,33 +700,33 @@ end
 
 subsubsection {* Expressing set operations via @{const fold} *}
 
-lemma (in fun_left_comm) comp_comp_fun_commute:
-  "fun_left_comm (f \<circ> g)"
+lemma (in comp_fun_commute) comp_comp_fun_commute:
+  "comp_fun_commute (f \<circ> g)"
 proof
-qed (simp_all add: commute_comp)
+qed (simp_all add: comp_fun_commute)
 
-lemma (in fun_left_comm_idem) comp_comp_fun_idem:
-  "fun_left_comm_idem (f \<circ> g)"
-  by (rule fun_left_comm_idem.intro, rule comp_comp_fun_commute, unfold_locales)
-    (simp_all add: fun_comp_idem)
+lemma (in comp_fun_idem) comp_comp_fun_idem:
+  "comp_fun_idem (f \<circ> g)"
+  by (rule comp_fun_idem.intro, rule comp_comp_fun_commute, unfold_locales)
+    (simp_all add: comp_fun_idem)
 
-lemma fun_left_comm_idem_insert:
-  "fun_left_comm_idem insert"
-proof
-qed auto
-
-lemma fun_left_comm_idem_remove:
-  "fun_left_comm_idem (\<lambda>x A. A - {x})"
+lemma comp_fun_idem_insert:
+  "comp_fun_idem insert"
 proof
 qed auto
 
-lemma (in semilattice_inf) fun_left_comm_idem_inf:
-  "fun_left_comm_idem inf"
+lemma comp_fun_idem_remove:
+  "comp_fun_idem (\<lambda>x A. A - {x})"
+proof
+qed auto
+
+lemma (in semilattice_inf) comp_fun_idem_inf:
+  "comp_fun_idem inf"
 proof
 qed (auto simp add: inf_left_commute)
 
-lemma (in semilattice_sup) fun_left_comm_idem_sup:
-  "fun_left_comm_idem sup"
+lemma (in semilattice_sup) comp_fun_idem_sup:
+  "comp_fun_idem sup"
 proof
 qed (auto simp add: sup_left_commute)
 
@@ -734,7 +734,7 @@ lemma union_fold_insert:
   assumes "finite A"
   shows "A \<union> B = fold insert B A"
 proof -
-  interpret fun_left_comm_idem insert by (fact fun_left_comm_idem_insert)
+  interpret comp_fun_idem insert by (fact comp_fun_idem_insert)
   from `finite A` show ?thesis by (induct A arbitrary: B) simp_all
 qed
 
@@ -742,7 +742,7 @@ lemma minus_fold_remove:
   assumes "finite A"
   shows "B - A = fold (\<lambda>x A. A - {x}) B A"
 proof -
-  interpret fun_left_comm_idem "\<lambda>x A. A - {x}" by (fact fun_left_comm_idem_remove)
+  interpret comp_fun_idem "\<lambda>x A. A - {x}" by (fact comp_fun_idem_remove)
   from `finite A` show ?thesis by (induct A arbitrary: B) auto
 qed
 
@@ -753,7 +753,7 @@ lemma inf_Inf_fold_inf:
   assumes "finite A"
   shows "inf B (Inf A) = fold inf B A"
 proof -
-  interpret fun_left_comm_idem inf by (fact fun_left_comm_idem_inf)
+  interpret comp_fun_idem inf by (fact comp_fun_idem_inf)
   from `finite A` show ?thesis by (induct A arbitrary: B)
     (simp_all add: Inf_insert inf_commute fold_fun_comm)
 qed
@@ -762,7 +762,7 @@ lemma sup_Sup_fold_sup:
   assumes "finite A"
   shows "sup B (Sup A) = fold sup B A"
 proof -
-  interpret fun_left_comm_idem sup by (fact fun_left_comm_idem_sup)
+  interpret comp_fun_idem sup by (fact comp_fun_idem_sup)
   from `finite A` show ?thesis by (induct A arbitrary: B)
     (simp_all add: Sup_insert sup_commute fold_fun_comm)
 qed
@@ -781,8 +781,8 @@ lemma inf_INFI_fold_inf:
   assumes "finite A"
   shows "inf B (INFI A f) = fold (\<lambda>A. inf (f A)) B A" (is "?inf = ?fold") 
 proof (rule sym)
-  interpret fun_left_comm_idem inf by (fact fun_left_comm_idem_inf)
-  interpret fun_left_comm_idem "inf \<circ> f" by (fact comp_comp_fun_idem)
+  interpret comp_fun_idem inf by (fact comp_fun_idem_inf)
+  interpret comp_fun_idem "inf \<circ> f" by (fact comp_comp_fun_idem)
   from `finite A` have "fold (inf \<circ> f) B A = ?inf"
     by (induct A arbitrary: B)
       (simp_all add: INFI_def Inf_insert inf_left_commute)
@@ -793,8 +793,8 @@ lemma sup_SUPR_fold_sup:
   assumes "finite A"
   shows "sup B (SUPR A f) = fold (\<lambda>A. sup (f A)) B A" (is "?sup = ?fold") 
 proof (rule sym)
-  interpret fun_left_comm_idem sup by (fact fun_left_comm_idem_sup)
-  interpret fun_left_comm_idem "sup \<circ> f" by (fact comp_comp_fun_idem)
+  interpret comp_fun_idem sup by (fact comp_fun_idem_sup)
+  interpret comp_fun_idem "sup \<circ> f" by (fact comp_comp_fun_idem)
   from `finite A` have "fold (sup \<circ> f) B A = ?sup"
     by (induct A arbitrary: B)
       (simp_all add: SUPR_def Sup_insert sup_left_commute)
@@ -829,7 +829,7 @@ lemma fold_image_insert[simp]:
 assumes "finite A" and "a \<notin> A"
 shows "fold_image times g z (insert a A) = g a * (fold_image times g z A)"
 proof -
-  interpret I: fun_left_comm "%x y. (g x) * y" proof
+  interpret I: comp_fun_commute "%x y. (g x) * y" proof
   qed (simp add: fun_eq_iff mult_ac)
   show ?thesis using assms by (simp add: fold_image_def)
 qed
@@ -1052,14 +1052,14 @@ text{*First, some lemmas about @{const fold_graph}.*}
 context ab_semigroup_mult
 begin
 
-lemma fun_left_comm: "fun_left_comm (op *)" proof
+lemma comp_fun_commute: "comp_fun_commute (op *)" proof
 qed (simp add: fun_eq_iff mult_ac)
 
 lemma fold_graph_insert_swap:
 assumes fold: "fold_graph times (b::'a) A y" and "b \<notin> A"
 shows "fold_graph times z (insert b A) (z * y)"
 proof -
-  interpret fun_left_comm "op *::'a \<Rightarrow> 'a \<Rightarrow> 'a" by (rule fun_left_comm)
+  interpret comp_fun_commute "op *::'a \<Rightarrow> 'a \<Rightarrow> 'a" by (rule comp_fun_commute)
 from assms show ?thesis
 proof (induct rule: fold_graph.induct)
   case emptyI show ?case by (subst mult_commute [of z b], fast)
@@ -1099,7 +1099,7 @@ qed
 lemma fold1_eq_fold:
 assumes "finite A" "a \<notin> A" shows "fold1 times (insert a A) = fold times a A"
 proof -
-  interpret fun_left_comm "op *::'a \<Rightarrow> 'a \<Rightarrow> 'a" by (rule fun_left_comm)
+  interpret comp_fun_commute "op *::'a \<Rightarrow> 'a \<Rightarrow> 'a" by (rule comp_fun_commute)
   from assms show ?thesis
 apply (simp add: fold1_def fold_def)
 apply (rule the_equality)
@@ -1126,7 +1126,7 @@ lemma fold1_insert:
   assumes nonempty: "A \<noteq> {}" and A: "finite A" "x \<notin> A"
   shows "fold1 times (insert x A) = x * fold1 times A"
 proof -
-  interpret fun_left_comm "op *::'a \<Rightarrow> 'a \<Rightarrow> 'a" by (rule fun_left_comm)
+  interpret comp_fun_commute "op *::'a \<Rightarrow> 'a \<Rightarrow> 'a" by (rule comp_fun_commute)
   from nonempty obtain a A' where "A = insert a A' & a ~: A'"
     by (auto simp add: nonempty_iff)
   with A show ?thesis
@@ -1138,15 +1138,15 @@ end
 context ab_semigroup_idem_mult
 begin
 
-lemma fun_left_comm_idem: "fun_left_comm_idem (op *)" proof
+lemma comp_fun_idem: "comp_fun_idem (op *)" proof
 qed (simp_all add: fun_eq_iff mult_left_commute)
 
 lemma fold1_insert_idem [simp]:
   assumes nonempty: "A \<noteq> {}" and A: "finite A" 
   shows "fold1 times (insert x A) = x * fold1 times A"
 proof -
-  interpret fun_left_comm_idem "op *::'a \<Rightarrow> 'a \<Rightarrow> 'a"
-    by (rule fun_left_comm_idem)
+  interpret comp_fun_idem "op *::'a \<Rightarrow> 'a \<Rightarrow> 'a"
+    by (rule comp_fun_idem)
   from nonempty obtain a A' where A': "A = insert a A' & a ~: A'"
     by (auto simp add: nonempty_iff)
   show ?thesis
@@ -1191,7 +1191,7 @@ proof (cases "a \<in> A")
   case False
   with assms show ?thesis by (simp add: fold1_eq_fold)
 next
-  interpret fun_left_comm_idem times by (fact fun_left_comm_idem)
+  interpret comp_fun_idem times by (fact comp_fun_idem)
   case True then obtain b B
     where A: "A = insert a B" and "a \<notin> B" by (rule set_insert)
   with assms have "finite B" by auto
@@ -1315,7 +1315,7 @@ subsubsection {* The natural case *}
 locale folding =
   fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b"
   fixes F :: "'a set \<Rightarrow> 'b \<Rightarrow> 'b"
-  assumes commute_comp: "f y \<circ> f x = f x \<circ> f y"
+  assumes comp_fun_commute: "f y \<circ> f x = f x \<circ> f y"
   assumes eq_fold: "finite A \<Longrightarrow> F A s = fold f s A"
 begin
 
@@ -1327,8 +1327,8 @@ lemma insert [simp]:
   assumes "finite A" and "x \<notin> A"
   shows "F (insert x A) = F A \<circ> f x"
 proof -
-  interpret fun_left_comm f proof
-  qed (insert commute_comp, simp add: fun_eq_iff)
+  interpret comp_fun_commute f proof
+  qed (insert comp_fun_commute, simp add: fun_eq_iff)
   from fold_insert2 assms
   have "\<And>s. fold f s (insert x A) = fold f (f x s) A" .
   with `finite A` show ?thesis by (simp add: eq_fold fun_eq_iff)
@@ -1351,38 +1351,38 @@ lemma insert_remove:
 
 lemma commute_left_comp:
   "f y \<circ> (f x \<circ> g) = f x \<circ> (f y \<circ> g)"
-  by (simp add: o_assoc commute_comp)
+  by (simp add: o_assoc comp_fun_commute)
 
-lemma commute_comp':
+lemma comp_fun_commute':
   assumes "finite A"
   shows "f x \<circ> F A = F A \<circ> f x"
   using assms by (induct A)
-    (simp, simp del: o_apply add: o_assoc, simp del: o_apply add: o_assoc [symmetric] commute_comp)
+    (simp, simp del: o_apply add: o_assoc, simp del: o_apply add: o_assoc [symmetric] comp_fun_commute)
 
 lemma commute_left_comp':
   assumes "finite A"
   shows "f x \<circ> (F A \<circ> g) = F A \<circ> (f x \<circ> g)"
-  using assms by (simp add: o_assoc commute_comp')
+  using assms by (simp add: o_assoc comp_fun_commute')
 
-lemma commute_comp'':
+lemma comp_fun_commute'':
   assumes "finite A" and "finite B"
   shows "F B \<circ> F A = F A \<circ> F B"
   using assms by (induct A)
-    (simp_all add: o_assoc, simp add: o_assoc [symmetric] commute_comp')
+    (simp_all add: o_assoc, simp add: o_assoc [symmetric] comp_fun_commute')
 
 lemma commute_left_comp'':
   assumes "finite A" and "finite B"
   shows "F B \<circ> (F A \<circ> g) = F A \<circ> (F B \<circ> g)"
-  using assms by (simp add: o_assoc commute_comp'')
+  using assms by (simp add: o_assoc comp_fun_commute'')
 
-lemmas commute_comps = o_assoc [symmetric] commute_comp commute_left_comp
-  commute_comp' commute_left_comp' commute_comp'' commute_left_comp''
+lemmas comp_fun_commutes = o_assoc [symmetric] comp_fun_commute commute_left_comp
+  comp_fun_commute' commute_left_comp' comp_fun_commute'' commute_left_comp''
 
 lemma union_inter:
   assumes "finite A" and "finite B"
   shows "F (A \<union> B) \<circ> F (A \<inter> B) = F A \<circ> F B"
   using assms by (induct A)
-    (simp_all del: o_apply add: insert_absorb Int_insert_left commute_comps,
+    (simp_all del: o_apply add: insert_absorb Int_insert_left comp_fun_commutes,
       simp add: o_assoc)
 
 lemma union:
@@ -1411,7 +1411,7 @@ lemma in_comp_idem:
   assumes "finite A" and "x \<in> A"
   shows "F A \<circ> f x = F A"
 using assms by (induct A)
-  (auto simp add: commute_comps idem_comp, simp add: commute_left_comp' [symmetric] commute_comp')
+  (auto simp add: comp_fun_commutes idem_comp, simp add: commute_left_comp' [symmetric] comp_fun_commute')
 
 lemma subset_comp_idem:
   assumes "finite A" and "B \<subseteq> A"
@@ -1460,7 +1460,7 @@ lemma insert [simp]:
   assumes "finite A" and "x \<notin> A"
   shows "F (insert x A) = g x * F A"
 proof -
-  interpret fun_left_comm "%x y. (g x) * y" proof
+  interpret comp_fun_commute "%x y. (g x) * y" proof
   qed (simp add: ac_simps fun_eq_iff)
   with assms have "fold_image (op *) g 1 (insert x A) = g x * fold_image (op *) g 1 A"
     by (simp add: fold_image_def)
@@ -1697,8 +1697,8 @@ proof -
   with `finite A` have "finite B" by simp
   interpret fold: folding "op *" "\<lambda>a b. fold (op *) b a" proof
   qed (simp_all add: fun_eq_iff ac_simps)
-  thm fold.commute_comp' [of B b, simplified fun_eq_iff, simplified]
-  from `finite B` fold.commute_comp' [of B x]
+  thm fold.comp_fun_commute' [of B b, simplified fun_eq_iff, simplified]
+  from `finite B` fold.comp_fun_commute' [of B x]
     have "op * x \<circ> (\<lambda>b. fold op * b B) = (\<lambda>b. fold op * b B) \<circ> op * x" by simp
   then have A: "x * fold op * b B = fold op * (b * x) B" by (simp add: fun_eq_iff commute)
   from `finite B` * fold.insert [of B b]

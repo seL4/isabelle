@@ -1436,16 +1436,16 @@ by (metis dvd_abs_iff lcm_proj1_if_dvd_int lcm_unique_int)
 lemma lcm_proj2_iff_int[simp]: "lcm m n = abs(n::int) \<longleftrightarrow> m dvd n"
 by (metis dvd_abs_iff lcm_proj2_if_dvd_int lcm_unique_int)
 
-lemma fun_left_comm_idem_gcd_nat: "fun_left_comm_idem (gcd :: nat\<Rightarrow>nat\<Rightarrow>nat)"
+lemma comp_fun_idem_gcd_nat: "comp_fun_idem (gcd :: nat\<Rightarrow>nat\<Rightarrow>nat)"
 proof qed (auto simp add: gcd_ac_nat)
 
-lemma fun_left_comm_idem_gcd_int: "fun_left_comm_idem (gcd :: int\<Rightarrow>int\<Rightarrow>int)"
+lemma comp_fun_idem_gcd_int: "comp_fun_idem (gcd :: int\<Rightarrow>int\<Rightarrow>int)"
 proof qed (auto simp add: gcd_ac_int)
 
-lemma fun_left_comm_idem_lcm_nat: "fun_left_comm_idem (lcm :: nat\<Rightarrow>nat\<Rightarrow>nat)"
+lemma comp_fun_idem_lcm_nat: "comp_fun_idem (lcm :: nat\<Rightarrow>nat\<Rightarrow>nat)"
 proof qed (auto simp add: lcm_ac_nat)
 
-lemma fun_left_comm_idem_lcm_int: "fun_left_comm_idem (lcm :: int\<Rightarrow>int\<Rightarrow>int)"
+lemma comp_fun_idem_lcm_int: "comp_fun_idem (lcm :: int\<Rightarrow>int\<Rightarrow>int)"
 proof qed (auto simp add: lcm_ac_int)
 
 
@@ -1516,8 +1516,8 @@ lemma Lcm_insert_nat [simp]:
   assumes "finite N"
   shows "Lcm (insert (n::nat) N) = lcm n (Lcm N)"
 proof -
-  interpret fun_left_comm_idem "lcm::nat\<Rightarrow>nat\<Rightarrow>nat"
-    by (rule fun_left_comm_idem_lcm_nat)
+  interpret comp_fun_idem "lcm::nat\<Rightarrow>nat\<Rightarrow>nat"
+    by (rule comp_fun_idem_lcm_nat)
   from assms show ?thesis by(simp add: Lcm_def)
 qed
 
@@ -1525,8 +1525,8 @@ lemma Lcm_insert_int [simp]:
   assumes "finite N"
   shows "Lcm (insert (n::int) N) = lcm n (Lcm N)"
 proof -
-  interpret fun_left_comm_idem "lcm::int\<Rightarrow>int\<Rightarrow>int"
-    by (rule fun_left_comm_idem_lcm_int)
+  interpret comp_fun_idem "lcm::int\<Rightarrow>int\<Rightarrow>int"
+    by (rule comp_fun_idem_lcm_int)
   from assms show ?thesis by(simp add: Lcm_def)
 qed
 
@@ -1534,8 +1534,8 @@ lemma Gcd_insert_nat [simp]:
   assumes "finite N"
   shows "Gcd (insert (n::nat) N) = gcd n (Gcd N)"
 proof -
-  interpret fun_left_comm_idem "gcd::nat\<Rightarrow>nat\<Rightarrow>nat"
-    by (rule fun_left_comm_idem_gcd_nat)
+  interpret comp_fun_idem "gcd::nat\<Rightarrow>nat\<Rightarrow>nat"
+    by (rule comp_fun_idem_gcd_nat)
   from assms show ?thesis by(simp add: Gcd_def)
 qed
 
@@ -1543,8 +1543,8 @@ lemma Gcd_insert_int [simp]:
   assumes "finite N"
   shows "Gcd (insert (n::int) N) = gcd n (Gcd N)"
 proof -
-  interpret fun_left_comm_idem "gcd::int\<Rightarrow>int\<Rightarrow>int"
-    by (rule fun_left_comm_idem_gcd_int)
+  interpret comp_fun_idem "gcd::int\<Rightarrow>int\<Rightarrow>int"
+    by (rule comp_fun_idem_gcd_int)
   from assms show ?thesis by(simp add: Gcd_def)
 qed
 
@@ -1685,28 +1685,28 @@ qed
 lemma Lcm_set_nat [code_unfold]:
   "Lcm (set ns) = foldl lcm (1::nat) ns"
 proof -
-  interpret fun_left_comm_idem "lcm::nat\<Rightarrow>nat\<Rightarrow>nat" by (rule fun_left_comm_idem_lcm_nat)
+  interpret comp_fun_idem "lcm::nat\<Rightarrow>nat\<Rightarrow>nat" by (rule comp_fun_idem_lcm_nat)
   show ?thesis by(simp add: Lcm_def fold_set lcm_commute_nat)
 qed
 
 lemma Lcm_set_int [code_unfold]:
   "Lcm (set is) = foldl lcm (1::int) is"
 proof -
-  interpret fun_left_comm_idem "lcm::int\<Rightarrow>int\<Rightarrow>int" by (rule fun_left_comm_idem_lcm_int)
+  interpret comp_fun_idem "lcm::int\<Rightarrow>int\<Rightarrow>int" by (rule comp_fun_idem_lcm_int)
   show ?thesis by(simp add: Lcm_def fold_set lcm_commute_int)
 qed
 
 lemma Gcd_set_nat [code_unfold]:
   "Gcd (set ns) = foldl gcd (0::nat) ns"
 proof -
-  interpret fun_left_comm_idem "gcd::nat\<Rightarrow>nat\<Rightarrow>nat" by (rule fun_left_comm_idem_gcd_nat)
+  interpret comp_fun_idem "gcd::nat\<Rightarrow>nat\<Rightarrow>nat" by (rule comp_fun_idem_gcd_nat)
   show ?thesis by(simp add: Gcd_def fold_set gcd_commute_nat)
 qed
 
 lemma Gcd_set_int [code_unfold]:
   "Gcd (set ns) = foldl gcd (0::int) ns"
 proof -
-  interpret fun_left_comm_idem "gcd::int\<Rightarrow>int\<Rightarrow>int" by (rule fun_left_comm_idem_gcd_int)
+  interpret comp_fun_idem "gcd::int\<Rightarrow>int\<Rightarrow>int" by (rule comp_fun_idem_gcd_int)
   show ?thesis by(simp add: Gcd_def fold_set gcd_commute_int)
 qed
 
