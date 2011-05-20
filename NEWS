@@ -58,14 +58,19 @@ syntax diagrams.
 
 *** HOL ***
 
+* Finite_Set.thy: more coherent development of fold_set locales:
+
+    locale fun_left_comm ~> locale comp_fun_commute
+    locale fun_left_comm_idem ~> locale comp_fun_idem
+    
+Both use point-free characterisation; interpretation proofs may need adjustment.
+INCOMPATIBILITY.
+
 * Code generation:
   - theory Library/Code_Char_ord provides native ordering of characters
     in the target language.
     
 * Declare ext [intro] by default.  Rare INCOMPATIBILITY.
-
-* Finite_Set.thy: locale fun_left_comm uses point-free characterisation;
-interpretation proofs may need adjustment.  INCOMPATIBILITY.
 
 * Nitpick:
   - Added "need" and "total_consts" options.
