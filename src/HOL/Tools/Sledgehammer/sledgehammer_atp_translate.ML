@@ -740,9 +740,9 @@ fun helper_facts_for_sym ctxt type_sys (s, {typ, ...} : sym_info) =
     let
       val thy = Proof_Context.theory_of ctxt
       val unmangled_s = mangled_s |> unmangled_const_name
-      fun dub_and_inst c needs_some_types (th, j) =
+      fun dub_and_inst c needs_fairly_sound (th, j) =
         ((c ^ "_" ^ string_of_int j ^
-          (if needs_some_types then typed_helper_suffix
+          (if needs_fairly_sound then typed_helper_suffix
            else untyped_helper_suffix),
           General),
          let val t = th |> prop_of in
@@ -756,17 +756,20 @@ fun helper_facts_for_sym ctxt type_sys (s, {typ, ...} : sym_info) =
          end)
       fun make_facts eq_as_iff =
         map_filter (make_fact ctxt false eq_as_iff false)
-      val has_some_types = is_type_sys_fairly_sound type_sys
+      val fairly_sound = is_type_sys_fairly_sound type_sys
     in
       metis_helpers
-      |> maps (fn (metis_s, (needs_some_types, ths)) =>
+      |> maps (fn (metis_s, (needs_fairly_sound, mono, ths)) =>
                   if metis_s <> unmangled_s orelse
-                     (needs_some_types andalso not has_some_types) then
+                     (needs_fairly_sound andalso not fairly_sound) orelse
+                     (not mono andalso
+                      polymorphism_of_type_sys type_sys = Polymorphic andalso
+                      level_of_type_sys type_sys <> All_Types) then
                     []
                   else
                     ths ~~ (1 upto length ths)
-                    |> map (dub_and_inst mangled_s needs_some_types)
-                    |> make_facts (not needs_some_types))
+                    |> map (dub_and_inst mangled_s needs_fairly_sound)
+                    |> make_facts (not needs_fairly_sound))
     end
   | NONE => []
 fun helper_facts_for_sym_table ctxt type_sys sym_tab =
