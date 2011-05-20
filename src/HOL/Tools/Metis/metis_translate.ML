@@ -75,7 +75,7 @@ sig
   val tvar_classes_of_terms : term list -> string list
   val type_consts_of_terms : theory -> term list -> string list
   val string_of_mode : mode -> string
-  val metis_helpers : (string * (bool * bool * thm list)) list
+  val metis_helpers : (string * (bool * thm list)) list
   val prepare_metis_problem :
     mode -> Proof.context -> bool -> thm list -> thm list list
     -> mode * metis_problem
@@ -641,42 +641,39 @@ fun hol_thm_to_fol is_conjecture ctxt type_lits mode j old_skolems th =
       end
   end;
 
-(* The first Boolean indicates that a fairly sound type encoding is needed.
-   The second Boolean indicates whether the helper should be kept in
-   polymorphic encodings that erase most of the types. (The K combinator is
-   then omitted to prevent finding a contradiction with "Suc n ~= n".) *)
+(* The Boolean indicates that a fairly sound type encoding is needed. *)
 val metis_helpers =
-  [("COMBI", (false, true, @{thms Meson.COMBI_def})),
-   ("COMBK", (false, false, @{thms Meson.COMBK_def})),
-   ("COMBB", (false, true, @{thms Meson.COMBB_def})),
-   ("COMBC", (false, true, @{thms Meson.COMBC_def})),
-   ("COMBS", (false, true, @{thms Meson.COMBS_def})),
+  [("COMBI", (false, @{thms Meson.COMBI_def})),
+   ("COMBK", (false, @{thms Meson.COMBK_def})),
+   ("COMBB", (false, @{thms Meson.COMBB_def})),
+   ("COMBC", (false, @{thms Meson.COMBC_def})),
+   ("COMBS", (false, @{thms Meson.COMBS_def})),
    ("fequal",
     (* This is a lie: Higher-order equality doesn't need a sound type encoding.
        However, this is done so for backward compatibility: Including the
        equality helpers by default in Metis breaks a few existing proofs. *)
-    (true, true, @{thms fequal_def [THEN Meson.iff_to_disjD, THEN conjunct1]
-                        fequal_def [THEN Meson.iff_to_disjD, THEN conjunct2]})),
-   ("fFalse", (true, true, @{thms True_or_False})),
-   ("fFalse", (false, true, [@{lemma "~ fFalse" by (unfold fFalse_def) fast}])),
-   ("fTrue", (true, true, @{thms True_or_False})),
-   ("fTrue", (false, true, [@{lemma "fTrue" by (unfold fTrue_def) fast}])),
+    (true, @{thms fequal_def [THEN Meson.iff_to_disjD, THEN conjunct1]
+                  fequal_def [THEN Meson.iff_to_disjD, THEN conjunct2]})),
+   ("fFalse", (true, @{thms True_or_False})),
+   ("fFalse", (false, [@{lemma "~ fFalse" by (unfold fFalse_def) fast}])),
+   ("fTrue", (true, @{thms True_or_False})),
+   ("fTrue", (false, [@{lemma "fTrue" by (unfold fTrue_def) fast}])),
    ("fNot",
-    (false, true, @{thms fNot_def [THEN Meson.iff_to_disjD, THEN conjunct1]
-                         fNot_def [THEN Meson.iff_to_disjD, THEN conjunct2]})),
+    (false, @{thms fNot_def [THEN Meson.iff_to_disjD, THEN conjunct1]
+                   fNot_def [THEN Meson.iff_to_disjD, THEN conjunct2]})),
    ("fconj",
-    (false, true,
+    (false,
      @{lemma "~ P | ~ Q | fconj P Q" "~ fconj P Q | P" "~ fconj P Q | Q"
          by (unfold fconj_def) fast+})),
    ("fdisj",
-    (false, true,
+    (false,
      @{lemma "~ P | fdisj P Q" "~ Q | fdisj P Q" "~ fdisj P Q | P | Q"
          by (unfold fdisj_def) fast+})),
    ("fimplies",
-    (false, true, @{lemma "P | fimplies P Q" "~ Q | fimplies P Q"
-                          "~ fimplies P Q | ~ P | Q"
-                      by (unfold fimplies_def) fast+})),
-   ("If", (true, true, @{thms if_True if_False True_or_False}))]
+    (false, @{lemma "P | fimplies P Q" "~ Q | fimplies P Q"
+                    "~ fimplies P Q | ~ P | Q"
+                by (unfold fimplies_def) fast+})),
+   ("If", (true, @{thms if_True if_False True_or_False}))]
 
 (* ------------------------------------------------------------------------- *)
 (* Logic maps manage the interface between HOL and first-order logic.        *)
@@ -783,7 +780,7 @@ fun prepare_metis_problem mode0 ctxt type_lits cls thss =
             val helper_ths =
               metis_helpers
               |> filter (is_used o prefix const_prefix o fst)
-              |> maps (fn (_, (needs_full_types, _, thms)) =>
+              |> maps (fn (_, (needs_full_types, thms)) =>
                           if needs_full_types andalso mode <> FT then []
                           else map prepare_helper thms)
           in lmap |> fold (add_thm false) helper_ths end

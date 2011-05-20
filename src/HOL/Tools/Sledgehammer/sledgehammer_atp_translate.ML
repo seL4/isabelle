@@ -759,12 +759,9 @@ fun helper_facts_for_sym ctxt type_sys (s, {typ, ...} : sym_info) =
       val fairly_sound = is_type_sys_fairly_sound type_sys
     in
       metis_helpers
-      |> maps (fn (metis_s, (needs_fairly_sound, mono, ths)) =>
+      |> maps (fn (metis_s, (needs_fairly_sound, ths)) =>
                   if metis_s <> unmangled_s orelse
-                     (needs_fairly_sound andalso not fairly_sound) orelse
-                     (not mono andalso
-                      polymorphism_of_type_sys type_sys = Polymorphic andalso
-                      level_of_type_sys type_sys <> All_Types) then
+                     (needs_fairly_sound andalso not fairly_sound) then
                     []
                   else
                     ths ~~ (1 upto length ths)
@@ -966,10 +963,10 @@ fun insert_type ctxt get_T x xs =
 fun should_declare_sym type_sys pred_sym s =
   not (String.isPrefix bound_var_prefix s) andalso s <> "equal" andalso
   not (String.isPrefix tptp_special_prefix s) andalso
-  ((case type_sys of
-      Simple_Types _ => true
-    | Tags (_, _, Light) => true
-    | _ => false) orelse not pred_sym)
+  (case type_sys of
+     Simple_Types _ => true
+   | Tags (_, _, Light) => true
+   | _ => not pred_sym)
 
 fun sym_decl_table_for_facts ctxt type_sys repaired_sym_tab (conjs, facts) =
   let
@@ -1212,12 +1209,19 @@ fun prepare_atp_problem ctxt conj_sym_kind prem_kind type_sys explicit_apply
     val repaired_sym_tab = conjs @ facts |> sym_table_for_facts false
     val helpers =
       repaired_sym_tab |> helper_facts_for_sym_table ctxt type_sys |> map repair
+    val lavish_nonmono_Ts =
+      if null nonmono_Ts orelse
+         polymorphism_of_type_sys type_sys <> Polymorphic then
+        nonmono_Ts
+      else
+        [TVar (("'a", 0), HOLogic.typeS)]
     val sym_decl_lines =
       (conjs, helpers @ facts)
       |> sym_decl_table_for_facts ctxt type_sys repaired_sym_tab
-      |> problem_lines_for_sym_decl_table ctxt conj_sym_kind nonmono_Ts type_sys
+      |> problem_lines_for_sym_decl_table ctxt conj_sym_kind lavish_nonmono_Ts
+                                          type_sys
     val helper_lines =
-      map (formula_line_for_fact ctxt helper_prefix nonmono_Ts type_sys)
+      map (formula_line_for_fact ctxt helper_prefix lavish_nonmono_Ts type_sys)
           (0 upto length helpers - 1 ~~ helpers)
       |> should_add_ti_ti_helper type_sys ? cons (ti_ti_helper_fact ())
     (* Reordering these might confuse the proof reconstruction code or the SPASS
