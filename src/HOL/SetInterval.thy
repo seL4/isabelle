@@ -258,6 +258,19 @@ qed simp
 
 end
 
+context dense_linorder
+begin
+
+lemma greaterThanLessThan_empty_iff[simp]:
+  "{ a <..< b } = {} \<longleftrightarrow> b \<le> a"
+  using dense[of a b] by (cases "a < b") auto
+
+lemma greaterThanLessThan_empty_iff2[simp]:
+  "{} = { a <..< b } \<longleftrightarrow> b \<le> a"
+  using dense[of a b] by (cases "a < b") auto
+
+end
+
 lemma (in linorder) atLeastLessThan_subset_iff:
   "{a..<b} <= {c..<d} \<Longrightarrow> b <= a | c<=a & b<=d"
 apply (auto simp:subset_eq Ball_def)
