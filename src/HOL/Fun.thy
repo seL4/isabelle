@@ -478,6 +478,11 @@ by(unfold bij_betw_def inj_on_def, auto simp add: inj_on_def)
 lemma surj_image_vimage_eq: "surj f ==> f ` (f -` A) = A"
 by simp
 
+lemma surj_vimage_empty:
+  assumes "surj f" shows "f -` A = {} \<longleftrightarrow> A = {}"
+  using surj_image_vimage_eq[OF `surj f`, of A]
+  by (intro iffI) fastsimp+
+
 lemma inj_vimage_image_eq: "inj f ==> f -` (f ` A) = A"
 by (simp add: inj_on_def, blast)
 
