@@ -124,6 +124,6 @@ subsection {* Various lemmas *}
 
 lemma not_set_compl:
   "Not \<circ> set xs = - set xs"
-  by (simp add: fun_Compl_def bool_Compl_def comp_def fun_eq_iff)
+  by (simp add: fun_Compl_def comp_def fun_eq_iff)
 
 end
