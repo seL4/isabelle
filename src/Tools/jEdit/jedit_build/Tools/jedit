@@ -134,6 +134,8 @@ fi
 
 set -o allexport
 init_component "$TARGET_DIR"
+[ -f "$ISABELLE_JEDIT_BUILD_HOME/etc/user-settings" ] && \
+  source "$ISABELLE_JEDIT_BUILD_HOME/etc/user-settings"
 set +o allexport
 
 exec "$TARGET_DIR/lib/Tools/jedit" "$@"
