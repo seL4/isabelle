@@ -10,6 +10,7 @@ signature ATP_PROOF =
 sig
   type 'a fo_term = 'a ATP_Problem.fo_term
   type ('a, 'b, 'c) formula = ('a, 'b, 'c) ATP_Problem.formula
+  type 'a problem = 'a ATP_Problem.problem
 
   datatype failure =
     Unprovable |
@@ -50,7 +51,7 @@ sig
     bool -> bool -> int -> (string * string) list -> (failure * string) list
     -> string -> string * failure option
   val is_same_step : step_name * step_name -> bool
-  val atp_proof_from_tstplike_proof : string -> string proof
+  val atp_proof_from_tstplike_proof : string problem -> string -> string proof
   val map_term_names_in_atp_proof :
     (string -> string) -> string proof -> string proof
   val nasty_atp_proof : string Symtab.table -> string proof -> string proof
@@ -215,10 +216,6 @@ fun extract_tstplike_proof_and_outcome verbose complete res_code proof_delims
                else UnknownError (short_output verbose output)))
   | (tstplike_proof, _) => (tstplike_proof, NONE)
 
-fun mk_anot (AConn (ANot, [phi])) = phi
-  | mk_anot phi = AConn (ANot, [phi])
-fun mk_aconn c (phi1, phi2) = AConn (c, [phi1, phi2])
-
 type step_name = string * string option
 
 fun is_same_step p = p |> pairself fst |> op =
@@ -273,9 +270,9 @@ and parse_terms x = (parse_term ::: Scan.repeat ($$ "," |-- parse_term)) x
 fun parse_atom x =
   (parse_term -- Scan.option (Scan.option ($$ "!") --| $$ "=" -- parse_term)
    >> (fn (u1, NONE) => AAtom u1
-        | (u1, SOME (NONE, u2)) => AAtom (ATerm ("c_equal", [u1, u2]))
+        | (u1, SOME (NONE, u2)) => AAtom (ATerm ("equal", [u1, u2]))
         | (u1, SOME (SOME _, u2)) =>
-          mk_anot (AAtom (ATerm ("c_equal", [u1, u2]))))) x
+          mk_anot (AAtom (ATerm ("equal", [u1, u2]))))) x
 
 fun fo_term_head (ATerm (s, _)) = s
 
@@ -297,7 +294,7 @@ and parse_formula x =
                     || $$ "&" >> K AAnd)
                    -- parse_formula)
    >> (fn (phi1, NONE) => phi1
-        | (phi1, SOME (c, phi2)) => mk_aconn c (phi1, phi2))) x
+        | (phi1, SOME (c, phi2)) => mk_aconn c phi1 phi2)) x
 and parse_quantified_formula x =
   (($$ "!" >> K AForall || $$ "?" >> K AExists)
    --| $$ "[" -- parse_terms --| $$ "]" --| $$ ":" -- parse_literal
@@ -310,37 +307,84 @@ val parse_tstp_extra_arguments =
                  --| Scan.option ($$ "," |-- parse_annotations)) []
 
 val vampire_unknown_fact = "unknown"
+val waldmeister_conjecture = "conjecture_1"
+
 val tofof_fact_prefix = "fof_"
+
+fun is_same_term subst tm1 tm2 =
+  let
+    fun do_term_pair _ NONE = NONE
+      | do_term_pair (ATerm (s1, tm1), ATerm (s2, tm2)) (SOME subst) =
+        case pairself is_atp_variable (s1, s2) of
+          (true, true) =>
+          (case AList.lookup (op =) subst s1 of
+             SOME s2' => if s2' = s2 then SOME subst else NONE
+           | NONE =>
+             if null (AList.find (op =) subst s2) then SOME ((s1, s2) :: subst)
+             else NONE)
+        | (false, false) =>
+          if s1 = s2 andalso length tm1 = length tm2 then
+            SOME subst |> fold do_term_pair (tm1 ~~ tm2)
+          else
+            NONE
+        | _ => NONE
+  in SOME subst |> do_term_pair (tm1, tm2) |> is_some end
+
+fun is_same_formula subst (AQuant (q1, xs1, phi1)) (AQuant (q2, xs2, phi2)) =
+    q1 = q2 andalso length xs1 = length xs2 andalso
+    is_same_formula ((map fst xs1 ~~ map fst xs2) @ subst) phi1 phi2
+  | is_same_formula subst (AConn (c1, phis1)) (AConn (c2, phis2)) =
+    c1 = c2 andalso length phis1 = length phis2 andalso
+    forall (uncurry (is_same_formula subst)) (phis1 ~~ phis2)
+  | is_same_formula subst (AAtom (ATerm ("equal", [tm11, tm12]))) (AAtom tm2) =
+    is_same_term subst (ATerm ("equal", [tm11, tm12])) tm2 orelse
+    is_same_term subst (ATerm ("equal", [tm12, tm11])) tm2
+  | is_same_formula subst (AAtom tm1) (AAtom tm2) = is_same_term subst tm1 tm2
+  | is_same_formula _ _ _ = false
+
+fun matching_formula_line_identifier phi (Formula (ident, _, phi', _, _)) =
+    if is_same_formula [] phi phi' then SOME ident else NONE
+  | matching_formula_line_identifier _ _ = NONE
+
+fun find_formula_in_problem problem phi =
+  problem |> maps snd |> map_filter (matching_formula_line_identifier phi)
+          |> try hd
 
 (* Syntax: (cnf|fof|tff)\(<num>, <formula_role>, <formula> <extra_arguments>\).
    The <num> could be an identifier, but we assume integers. *)
-fun parse_tstp_line x =
-  (((Scan.this_string "cnf" || Scan.this_string "fof" || Scan.this_string "tff")
-       -- $$ "(")
-     |-- scan_general_id --| $$ "," -- Symbol.scan_id --| $$ ","
-     -- parse_formula -- parse_tstp_extra_arguments --| $$ ")" --| $$ "."
-    >> (fn (((num, role), phi), deps) =>
-           let
-             val (name, deps) =
-               case deps of
-                 ["file", _, s] =>
-                 ((num,
-                   if s = vampire_unknown_fact then NONE
-                   else SOME (s |> perhaps (try (unprefix tofof_fact_prefix)))),
-                  [])
-               | _ => ((num, NONE), deps)
-           in
-             case role of
-               "definition" =>
-               (case phi of
-                  AConn (AIff, [phi1 as AAtom _, phi2]) =>
-                  Definition (name, phi1, phi2)
-                | AAtom (ATerm ("c_equal", _)) =>
-                  (* Vampire's equality proxy axiom *)
-                  Inference (name, phi, map (rpair NONE) deps)
-                | _ => raise Fail "malformed definition")
-             | _ => Inference (name, phi, map (rpair NONE) deps)
-           end)) x
+fun parse_tstp_line problem =
+  ((Scan.this_string "cnf" || Scan.this_string "fof" || Scan.this_string "tff")
+      -- $$ "(")
+    |-- scan_general_id --| $$ "," -- Symbol.scan_id --| $$ ","
+    -- parse_formula -- parse_tstp_extra_arguments --| $$ ")" --| $$ "."
+   >> (fn (((num, role), phi), deps) =>
+          let
+            val (name, deps) =
+              (* Waldmeister isn't exactly helping. *)
+              case deps of
+                ["file", _, s] =>
+                ((num,
+                  if s = vampire_unknown_fact then
+                    NONE
+                  else if s = waldmeister_conjecture then
+                    find_formula_in_problem problem (mk_anot phi)
+                  else
+                    SOME (s |> perhaps (try (unprefix tofof_fact_prefix)))),
+                 [])
+              | ["file", _] => ((num, find_formula_in_problem problem phi), [])
+              | _ => ((num, NONE), deps)
+          in
+            case role of
+              "definition" =>
+              (case phi of
+                 AConn (AIff, [phi1 as AAtom _, phi2]) =>
+                 Definition (name, phi1, phi2)
+               | AAtom (ATerm ("equal", _)) =>
+                 (* Vampire's equality proxy axiom *)
+                 Inference (name, phi, map (rpair NONE) deps)
+               | _ => raise Fail "malformed definition")
+            | _ => Inference (name, phi, map (rpair NONE) deps)
+          end)
 
 (**** PARSING OF SPASS OUTPUT ****)
 
@@ -358,11 +402,11 @@ fun parse_decorated_atom x =
   (parse_atom --| Scan.repeat ($$ "*" || $$ "+" || $$ " ")) x
 
 fun mk_horn ([], []) = AAtom (ATerm ("c_False", []))
-  | mk_horn ([], pos_lits) = foldr1 (mk_aconn AOr) pos_lits
-  | mk_horn (neg_lits, []) = mk_anot (foldr1 (mk_aconn AAnd) neg_lits)
+  | mk_horn ([], pos_lits) = foldr1 (uncurry (mk_aconn AOr)) pos_lits
+  | mk_horn (neg_lits, []) = mk_anot (foldr1 (uncurry (mk_aconn AAnd)) neg_lits)
   | mk_horn (neg_lits, pos_lits) =
-    mk_aconn AImplies (foldr1 (mk_aconn AAnd) neg_lits,
-                       foldr1 (mk_aconn AOr) pos_lits)
+    mk_aconn AImplies (foldr1 (uncurry (mk_aconn AAnd)) neg_lits)
+                      (foldr1 (uncurry (mk_aconn AOr)) pos_lits)
 
 fun parse_horn_clause x =
   (Scan.repeat parse_decorated_atom --| $$ "|" --| $$ "|"
@@ -378,13 +422,13 @@ fun parse_spass_line x =
    >> (fn ((num, deps), u) =>
           Inference ((num, NONE), u, map (rpair NONE) deps))) x
 
-fun parse_line x = (parse_tstp_line || parse_spass_line) x
-fun parse_proof s =
+fun parse_line problem = parse_tstp_line problem || parse_spass_line
+fun parse_proof problem s =
   s |> strip_spaces_except_between_ident_chars
     |> raw_explode
     |> Scan.finite Symbol.stopper
            (Scan.error (!! (fn _ => raise Fail "unrecognized ATP output")
-                           (Scan.repeat1 parse_line)))
+                           (Scan.repeat1 (parse_line problem))))
     |> fst
 
 fun clean_up_dependency seen dep = find_first (curry is_same_step dep) seen
@@ -395,10 +439,10 @@ fun clean_up_dependencies _ [] = []
     Inference (name, u, map_filter (clean_up_dependency seen) deps) ::
     clean_up_dependencies (name :: seen) steps
 
-fun atp_proof_from_tstplike_proof "" = []
-  | atp_proof_from_tstplike_proof s =
+fun atp_proof_from_tstplike_proof _ "" = []
+  | atp_proof_from_tstplike_proof problem s =
     s ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
-    |> parse_proof
+    |> parse_proof problem
     |> sort (step_name_ord o pairself step_name)
     |> clean_up_dependencies []
 

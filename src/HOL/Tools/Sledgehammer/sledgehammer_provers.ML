@@ -573,7 +573,7 @@ fun run_atp auto name
                 val (atp_proof, outcome) =
                   extract_tstplike_proof_and_outcome verbose complete res_code
                       proof_delims known_failures output
-                  |>> atp_proof_from_tstplike_proof
+                  |>> atp_proof_from_tstplike_proof atp_problem
                 val (conjecture_shape, facts_offset, fact_names,
                      typed_helpers) =
                   if is_none outcome then
@@ -589,7 +589,7 @@ fun run_atp auto name
                         conjecture_shape facts_offset fact_names atp_proof
                     |> Option.map (fn facts =>
                            UnsoundProof (is_type_sys_virtually_sound type_sys,
-                                         facts))
+                                         facts |> sort string_ord))
                   | SOME Unprovable =>
                     if null blacklist then outcome
                     else SOME IncompleteUnprovable

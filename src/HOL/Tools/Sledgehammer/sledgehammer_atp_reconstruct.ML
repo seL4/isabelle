@@ -183,7 +183,7 @@ fun is_typed_helper _ (_, SOME s) = is_typed_helper_name s
      | NONE => false)
 
 fun add_fact type_sys facts_offset fact_names (Inference (name, _, [])) =
-    append (resolve_fact type_sys facts_offset fact_names name)
+    union (op =) (resolve_fact type_sys facts_offset fact_names name)
   | add_fact _ _ _ _ = I
 
 fun used_facts_in_atp_proof type_sys facts_offset fact_names atp_proof =

@@ -247,8 +247,6 @@ fun atp_type_literals_for_types type_sys kind Ts =
        |> filter (fn TyLitVar _ => kind <> Conjecture
                    | TyLitFree _ => kind = Conjecture)
 
-fun mk_anot phi = AConn (ANot, [phi])
-fun mk_aconn c phi1 phi2 = AConn (c, [phi1, phi2])
 fun mk_aconns c phis =
   let val (phis', phi') = split_last phis in
     fold_rev (mk_aconn c) phis' phi'
