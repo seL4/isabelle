@@ -83,15 +83,25 @@ fun add_catchall ctxt fixes spec =
     spec @ mk_catchall fixes arity_of
   end
 
-fun warn_if_redundant ctxt origs tss =
+fun warnings ctxt origs tss =
   let
-    fun msg t = "Ignoring redundant equation: " ^ quote (Syntax.string_of_term ctxt t)
+    fun warn_redundant t =
+      Output.warning ("Ignoring redundant equation: " ^ quote (Syntax.string_of_term ctxt t))
+    fun warn_missing strs =
+      Output.warning (cat_lines ("Missing patterns in function definition:" :: strs))
 
-    val (tss', _) = chop (length origs) tss
-    fun check (t, []) = (warning (msg t); [])
-      | check (t, s) = s
+    val (tss', added) = chop (length origs) tss
+
+    val _ = case chop 3 (flat added) of
+       ([], []) => ()
+     | (eqs, []) => warn_missing (map (Syntax.string_of_term ctxt) eqs)
+     | (eqs, rest) => warn_missing (map (Syntax.string_of_term ctxt) eqs
+         @ ["(" ^ string_of_int (length rest) ^ " more)"])
+
+    val _ = (origs ~~ tss')
+      |> map (fn (t, ts) => if null ts then warn_redundant t else ())
   in
-    (map check (origs ~~ tss'); tss)
+    ()
   end
 
 fun sequential_preproc (config as FunctionConfig {sequential, ...}) ctxt fixes spec =
@@ -107,8 +117,8 @@ fun sequential_preproc (config as FunctionConfig {sequential, ...}) ctxt fixes s
 
       val compleqs = add_catchall ctxt fixes feqs (* Completion *)
 
-      val spliteqs = warn_if_redundant ctxt feqs
-        (Function_Split.split_all_equations ctxt compleqs)
+      val spliteqs = Function_Split.split_all_equations ctxt compleqs
+        |> tap (warnings ctxt feqs)
 
       fun restore_spec thms =
         bnds ~~ take (length bnds) (unflat spliteqs thms)
