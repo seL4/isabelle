@@ -104,8 +104,9 @@ fun generate_tptp_inference_file_for_theory ctxt thy full_types file_name =
            Sledgehammer_ATP_Translate.Heavy)
     val explicit_apply = false
     val (atp_problem, _, _, _, _, _, _) =
-      Sledgehammer_ATP_Translate.prepare_atp_problem ctxt ATP_Problem.Axiom
-          ATP_Problem.Axiom type_sys explicit_apply [] @{prop False} facts
+      Sledgehammer_ATP_Translate.prepare_atp_problem ctxt ATP_Problem.FOF
+          ATP_Problem.Axiom ATP_Problem.Axiom type_sys explicit_apply []
+          @{prop False} facts
     val infers =
       facts0 |> map (fn (_, (_, th)) =>
                         (fact_name_of (Thm.get_name_hint th),

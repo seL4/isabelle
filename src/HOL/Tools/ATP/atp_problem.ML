@@ -15,7 +15,7 @@ sig
     AConn of connective * ('a, 'b, 'c) formula list |
     AAtom of 'c
 
-  datatype format = UEQ | FOF | TFF
+  datatype format = CNF_UEQ | FOF | TFF
   datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
   datatype 'a problem_line =
     Decl of string * 'a * 'a list * 'a |
@@ -23,18 +23,20 @@ sig
                * string fo_term option * string fo_term option
   type 'a problem = (string * 'a problem_line list) list
 
-(* official TPTP syntax *)
+  (* official TPTP syntax *)
   val tptp_special_prefix : string
   val tptp_false : string
   val tptp_true : string
   val tptp_tff_type_of_types : string
   val tptp_tff_bool_type : string
   val tptp_tff_individual_type : string
+  val is_atp_variable : string -> bool
   val timestamp : unit -> string
   val hashw : word * word -> word
   val hashw_string : string * word -> word
-  val is_atp_variable : string -> bool
   val tptp_strings_for_atp_problem : format -> string problem -> string list
+  val filter_cnf_ueq_problem :
+    (string * string) problem -> (string * string) problem
   val nice_atp_problem :
     bool -> ('a * (string * string) problem_line list) list
     -> ('a * string problem_line list) list
@@ -54,7 +56,7 @@ datatype ('a, 'b, 'c) formula =
   AConn of connective * ('a, 'b, 'c) formula list |
   AAtom of 'c
 
-datatype format = UEQ | FOF | TFF
+datatype format = CNF_UEQ | FOF | TFF
 datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
 datatype 'a problem_line =
   Decl of string * 'a * 'a list * 'a |
@@ -69,6 +71,8 @@ val tptp_true = "$true"
 val tptp_tff_type_of_types = "$tType"
 val tptp_tff_bool_type = "$o"
 val tptp_tff_individual_type = "$i"
+
+fun is_atp_variable s = Char.isUpper (String.sub (s, 0))
 
 val timestamp = Date.fmt "%Y-%m-%d %H:%M:%S" o Date.fromTimeLocal o Time.now
 
@@ -129,12 +133,11 @@ val default_source =
 fun string_for_problem_line _ (Decl (ident, sym, arg_tys, res_ty)) =
     "tff(" ^ ident ^ ", type,\n    " ^ sym ^ " : " ^
     string_for_symbol_type arg_tys res_ty ^ ").\n"
-  | string_for_problem_line format
-                            (Formula (ident, kind, phi, source, useful_info)) =
-    (case format of UEQ => "cnf" | FOF => "fof" | TFF => "tff") ^
+  | string_for_problem_line format (Formula (ident, kind, phi, source, info)) =
+    (case format of CNF_UEQ => "cnf" | FOF => "fof" | TFF => "tff") ^
     "(" ^ ident ^ ", " ^ string_for_kind kind ^ ",\n    (" ^
     string_for_formula format phi ^ ")" ^
-    (case (source, useful_info) of
+    (case (source, info) of
        (NONE, NONE) => ""
      | (SOME tm, NONE) => ", " ^ string_for_term tm
      | (_, SOME tm) =>
@@ -149,7 +152,37 @@ fun tptp_strings_for_atp_problem format problem =
            map (string_for_problem_line format) lines)
        problem
 
-fun is_atp_variable s = Char.isUpper (String.sub (s, 0))
+
+(** CNF UEQ (Waldmeister) **)
+
+exception LOST_CONJECTURE of unit
+
+fun is_problem_line_negated (Formula (_, _, AConn (ANot, _), _, _)) = true
+  | is_problem_line_negated _ = false
+
+fun is_problem_line_cnf_ueq
+        (Formula (_, _, AAtom (ATerm (("equal", _), _)), _, _)) = true
+  | is_problem_line_cnf_ueq _ = false
+
+fun open_formula (AQuant (AForall, _, phi)) = open_formula phi
+  | open_formula phi = phi
+fun open_non_conjecture_line (line as Formula (_, Conjecture, _, _, _)) = line
+  | open_non_conjecture_line (Formula (ident, kind, phi, source, info)) =
+    Formula (ident, kind, open_formula phi, source, info)
+  | open_non_conjecture_line line = line
+
+fun negate_conjecture_line (Formula (ident, Conjecture, phi, source, info)) =
+    Formula (ident, Hypothesis, AConn (ANot, [phi]), source, info)
+  | negate_conjecture_line line = line
+
+val filter_cnf_ueq_problem =
+  map (apsnd (map open_non_conjecture_line
+              #> filter is_problem_line_cnf_ueq
+              #> map negate_conjecture_line))
+  #> (fn problem =>
+         let
+           val conjs = problem |> maps snd |> filter is_problem_line_negated
+         in if length conjs = 1 then problem else [] end)
 
 
 (** Nice names **)
@@ -178,14 +211,15 @@ val max_readable_name_size = 20
    problem files. "equal" is reserved by some ATPs. "eq" is reserved to ensure
    that "HOL.eq" is correctly mapped to equality. *)
 val reserved_nice_names = ["op", "equal", "eq"]
+
 fun readable_name full_name s =
   if s = full_name then
     s
   else
     s |> no_qualifiers
       |> Name.desymbolize (Char.isUpper (String.sub (full_name, 0)))
-         (* SNARK doesn't like sort (type) names that end with digits. We make
-            an effort to avoid this here. *)
+         (* SNARK 20080805r024 doesn't like sort (type) names that end with
+            digits. We make an effort to avoid this here. *)
       |> (fn s => if Char.isDigit (String.sub (s, size s - 1)) then s ^ "_"
                   else s)
       |> (fn s =>
@@ -209,7 +243,8 @@ fun nice_name (full_name, _) NONE = (full_name, NONE)
         val nice_prefix = readable_name full_name desired_name
         fun add j =
           let
-            (* The trailing "_" is for SNARK (cf. comment above). *)
+            (* The trailing "_" is for SNARK 20080805r024 (see comment
+               above). *)
             val nice_name =
               nice_prefix ^ (if j = 0 then "" else "_" ^ string_of_int j ^ "_")
           in
@@ -240,9 +275,8 @@ fun nice_problem_line (Decl (ident, sym, arg_tys, res_ty)) =
     ##>> pool_map nice_name arg_tys
     ##>> nice_name res_ty
     #>> (fn ((sym, arg_tys), res_ty) => Decl (ident, sym, arg_tys, res_ty))
-  | nice_problem_line (Formula (ident, kind, phi, source, useful_info)) =
-    nice_formula phi
-    #>> (fn phi => Formula (ident, kind, phi, source, useful_info))
+  | nice_problem_line (Formula (ident, kind, phi, source, info)) =
+    nice_formula phi #>> (fn phi => Formula (ident, kind, phi, source, info))
 fun nice_problem problem =
   pool_map (fn (heading, lines) =>
                pool_map nice_problem_line lines #>> pair heading) problem

@@ -413,7 +413,7 @@ val remote_sine_e =
   remote_atp sine_eN "SInE" ["0.4"] [] [] Axiom Conjecture [FOF]
              (K (500, ["poly_tags_heavy!", "poly_tags_heavy"]) (* FUDGE *))
 val remote_snark =
-  remote_atp snarkN "SNARK" ["20080805r024"]
+  remote_atp snarkN "SNARK" ["20080805r029", "20080805r024"]
              [("refutation.", "end_refutation.")] [] Hypothesis Conjecture
              [TFF, FOF] (K (250, ["simple"]) (* FUDGE *))
 val remote_waldmeister =

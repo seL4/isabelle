@@ -9,6 +9,7 @@ Translation of HOL to FOL for Sledgehammer.
 signature SLEDGEHAMMER_ATP_TRANSLATE =
 sig
   type 'a fo_term = 'a ATP_Problem.fo_term
+  type format = ATP_Problem.format
   type formula_kind = ATP_Problem.formula_kind
   type 'a problem = 'a ATP_Problem.problem
   type locality = Sledgehammer_Filter.locality
@@ -44,8 +45,8 @@ sig
     Proof.context -> bool -> (string * locality) * thm
     -> translated_formula option * ((string * locality) * thm)
   val prepare_atp_problem :
-    Proof.context -> formula_kind -> formula_kind -> type_system -> bool
-    -> term list -> term
+    Proof.context -> format -> formula_kind -> formula_kind -> type_system
+    -> bool -> term list -> term
     -> (translated_formula option * ((string * 'a) * thm)) list
     -> string problem * string Symtab.table * int * int
        * (string * 'a) list vector * int list * int Symtab.table
@@ -908,8 +909,8 @@ fun formula_line_for_fact ctxt prefix nonmono_Ts type_sys
            | Simp => simp_info
            | _ => NONE)
 
-fun formula_line_for_class_rel_clause (ClassRelClause {name, subclass,
-                                                       superclass, ...}) =
+fun formula_line_for_class_rel_clause
+        (ClassRelClause {name, subclass, superclass, ...}) =
   let val ty_arg = ATerm (`I "T", []) in
     Formula (class_rel_clause_prefix ^ ascii_of name, Axiom,
              AConn (AImplies, [AAtom (ATerm (subclass, [ty_arg])),
@@ -922,8 +923,8 @@ fun fo_literal_from_arity_literal (TConsLit (c, t, args)) =
   | fo_literal_from_arity_literal (TVarLit (c, sort)) =
     (false, ATerm (c, [ATerm (sort, [])]))
 
-fun formula_line_for_arity_clause (ArityClause {name, prem_lits, concl_lits,
-                                                ...}) =
+fun formula_line_for_arity_clause
+        (ArityClause {name, prem_lits, concl_lits, ...}) =
   Formula (arity_clause_prefix ^ ascii_of name, Axiom,
            mk_ahorn (map (formula_from_fo_literal o apfst not
                           o fo_literal_from_arity_literal) prem_lits)
@@ -935,8 +936,8 @@ fun formula_line_for_conjecture ctxt nonmono_Ts type_sys
         ({name, kind, combformula, ...} : translated_formula) =
   Formula (conjecture_prefix ^ name, kind,
            formula_from_combformula ctxt nonmono_Ts type_sys
-                                    is_var_nonmonotonic_in_formula false
-                                    (close_combformula_universally combformula)
+               is_var_nonmonotonic_in_formula false
+               (close_combformula_universally combformula)
            |> close_formula_universally, NONE, NONE)
 
 fun free_type_literals type_sys ({atomic_types, ...} : translated_formula) =
@@ -1183,6 +1184,11 @@ fun should_add_ti_ti_helper (Tags (Polymorphic, level, Heavy)) =
     level = Nonmonotonic_Types orelse level = Finite_Types
   | should_add_ti_ti_helper _ = false
 
+fun offset_of_heading_in_problem _ [] j = j
+  | offset_of_heading_in_problem needle ((heading, lines) :: problem) j =
+    if heading = needle then j
+    else offset_of_heading_in_problem needle problem (j + length lines)
+
 val type_declsN = "Types"
 val sym_declsN = "Symbol types"
 val factsN = "Relevant facts"
@@ -1192,13 +1198,8 @@ val helpersN = "Helper facts"
 val conjsN = "Conjectures"
 val free_typesN = "Type variables"
 
-fun offset_of_heading_in_problem _ [] j = j
-  | offset_of_heading_in_problem needle ((heading, lines) :: problem) j =
-    if heading = needle then j
-    else offset_of_heading_in_problem needle problem (j + length lines)
-
-fun prepare_atp_problem ctxt conj_sym_kind prem_kind type_sys explicit_apply
-                        hyp_ts concl_t facts =
+fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
+                        explicit_apply hyp_ts concl_t facts =
   let
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
       translate_formulas ctxt prem_kind type_sys hyp_ts concl_t facts
@@ -1223,7 +1224,10 @@ fun prepare_atp_problem ctxt conj_sym_kind prem_kind type_sys explicit_apply
     val helper_lines =
       map (formula_line_for_fact ctxt helper_prefix lavish_nonmono_Ts type_sys)
           (0 upto length helpers - 1 ~~ helpers)
-      |> should_add_ti_ti_helper type_sys ? cons (ti_ti_helper_fact ())
+      |> (if should_add_ti_ti_helper type_sys then
+            cons (ti_ti_helper_fact ())
+          else
+            I)
     (* Reordering these might confuse the proof reconstruction code or the SPASS
        Flotter hack. *)
     val problem =
@@ -1243,6 +1247,8 @@ fun prepare_atp_problem ctxt conj_sym_kind prem_kind type_sys explicit_apply
             cons (type_declsN,
                   map decl_line_for_tff_type (tff_types_in_problem problem))
           | _ => I)
+    val problem =
+      problem |> (if format = CNF_UEQ then filter_cnf_ueq_problem else I)
     val (problem, pool) =
       problem |> nice_atp_problem (Config.get ctxt readable_names)
     val helpers_offset = offset_of_heading_in_problem helpersN problem 0

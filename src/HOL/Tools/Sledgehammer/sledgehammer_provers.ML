@@ -413,8 +413,15 @@ fun adjust_dumb_type_sys formats (Simple_Types level) =
     (* We could return (TFF, type_sys) in all cases but this would require the
        TFF provers to accept problems in which constants are implicitly
        declared. Today neither SNARK nor ToFoF-E satisfy this criterion. *)
-    if member (op =) formats FOF then (FOF, type_sys)
-    else (TFF, Simple_Types All_Types)
+    if member (op =) formats FOF then
+      (FOF, type_sys)
+    else if member (op =) formats CNF_UEQ then
+      (CNF_UEQ, case type_sys of
+                  Tags _ => type_sys
+                | _ => Preds (polymorphism_of_type_sys type_sys,
+                              Const_Arg_Types, Light))
+    else
+      (TFF, Simple_Types All_Types)
 fun determine_format_and_type_sys _ formats (Dumb_Type_Sys type_sys) =
     adjust_dumb_type_sys formats type_sys
   | determine_format_and_type_sys best_type_systems formats
@@ -535,8 +542,8 @@ fun run_atp auto name
                     ()
                 val (atp_problem, pool, conjecture_offset, facts_offset,
                      fact_names, typed_helpers, sym_tab) =
-                  prepare_atp_problem ctxt conj_sym_kind prem_kind type_sys
-                                      explicit_apply hyp_ts concl_t facts
+                  prepare_atp_problem ctxt format conj_sym_kind prem_kind
+                      type_sys explicit_apply hyp_ts concl_t facts
                 fun weights () = atp_problem_weights atp_problem
                 val core =
                   File.shell_path command ^ " " ^
