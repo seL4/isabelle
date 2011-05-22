@@ -80,12 +80,12 @@ Jasmin Christian Blanchette \\
 Sledgehammer is a tool that applies first-order automatic theorem provers (ATPs)
 and satisfiability-modulo-theories (SMT) solvers on the current goal. The
 supported ATPs are E \cite{schulz-2002}, SPASS \cite{weidenbach-et-al-2009},
-Vampire \cite{riazanov-voronkov-2002}, SInE-E \cite{sine}, SNARK
-\cite{snark}, and ToFoF-E \cite{tofof}. The ATPs are run either locally or
-remotely via the System\-On\-TPTP web service \cite{sutcliffe-2000}. In addition
-to the ATPs, the SMT solvers Z3 \cite{z3} is used by default, and you can tell
-Sledgehammer to try Yices \cite{yices} and CVC3 \cite{cvc3} as well; these
-are run either locally or on a server in Munich.
+Vampire \cite{riazanov-voronkov-2002}, SInE-E \cite{sine}, SNARK \cite{snark},
+ToFoF-E \cite{tofof}, and Waldmeister \cite{waldmeister}. The ATPs are run
+either locally or remotely via the System\-On\-TPTP web service
+\cite{sutcliffe-2000}. In addition to the ATPs, the SMT solvers Z3 \cite{z3} is
+used by default, and you can tell Sledgehammer to try Yices \cite{yices} and
+CVC3 \cite{cvc3} as well; these are run either locally or on a server in Munich.
 
 The problem passed to the automatic provers consists of your current goal
 together with a heuristic selection of hundreds of facts (theorems) from the
@@ -134,9 +134,9 @@ relies on third-party automatic theorem provers (ATPs) and SMT solvers.
 \subsection{Installing ATPs}
 
 Currently, E, SPASS, and Vampire can be run locally; in addition, E, Vampire,
-SInE-E, SNARK, and ToFoF-E are available remotely via System\-On\-TPTP
-\cite{sutcliffe-2000}. If you want better performance, you should at least
-install E and SPASS locally.
+SInE-E, SNARK, ToFoF-E, and Waldmeister are available remotely via
+System\-On\-TPTP \cite{sutcliffe-2000}. If you want better performance, you
+should at least install E and SPASS locally.
 
 There are three main ways to install ATPs on your machine:
 
@@ -707,6 +707,10 @@ SInE runs on Geoff Sutcliffe's Miami servers.
 \item[$\bullet$] \textbf{\textit{remote\_snark}:} SNARK is a prover
 developed by Stickel et al.\ \cite{snark}. The remote version of
 SNARK runs on Geoff Sutcliffe's Miami servers.
+
+\item[$\bullet$] \textbf{\textit{remote\_waldmeister}:} Waldmeister is a unit
+equality prover developed by Hillenbrand et al.\ \cite{waldmeister}. The remote
+version of Waldmeister runs on Geoff Sutcliffe's Miami servers.
 
 \item[$\bullet$] \textbf{\textit{remote\_cvc3}:} The remote version of CVC3 runs
 on servers at the TU M\"unchen (or wherever \texttt{REMOTE\_SMT\_URL} is set to
