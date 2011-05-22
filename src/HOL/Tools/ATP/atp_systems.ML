@@ -380,7 +380,8 @@ fun remote_config system_name system_versions proof_delims known_failures
    proof_delims = insert (op =) tstp_proof_delims proof_delims,
    known_failures =
      known_failures @ known_perl_failures @
-     [(IncompleteUnprovable, "says Unknown"),
+     [(Unprovable, "says Satisfiable"),
+      (IncompleteUnprovable, "says Unknown"),
       (IncompleteUnprovable, "says GaveUp"),
       (TimedOut, "says Timeout")],
    conj_sym_kind = conj_sym_kind,
