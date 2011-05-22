@@ -31,6 +31,10 @@ sig
   val tptp_tff_bool_type : string
   val tptp_tff_individual_type : string
   val is_atp_variable : string -> bool
+  val mk_anot : ('a, 'b, 'c) formula -> ('a, 'b, 'c) formula
+  val mk_aconn :
+    connective -> ('a, 'b, 'c) formula -> ('a, 'b, 'c) formula
+    -> ('a, 'b, 'c) formula
   val timestamp : unit -> string
   val hashw : word * word -> word
   val hashw_string : string * word -> word
@@ -73,6 +77,10 @@ val tptp_tff_bool_type = "$o"
 val tptp_tff_individual_type = "$i"
 
 fun is_atp_variable s = Char.isUpper (String.sub (s, 0))
+
+fun mk_anot (AConn (ANot, [phi])) = phi
+  | mk_anot phi = AConn (ANot, [phi])
+fun mk_aconn c phi1 phi2 = AConn (c, [phi1, phi2])
 
 val timestamp = Date.fmt "%Y-%m-%d %H:%M:%S" o Date.fromTimeLocal o Time.now
 
@@ -172,7 +180,7 @@ fun open_non_conjecture_line (line as Formula (_, Conjecture, _, _, _)) = line
   | open_non_conjecture_line line = line
 
 fun negate_conjecture_line (Formula (ident, Conjecture, phi, source, info)) =
-    Formula (ident, Hypothesis, AConn (ANot, [phi]), source, info)
+    Formula (ident, Hypothesis, mk_anot phi, source, info)
   | negate_conjecture_line line = line
 
 val filter_cnf_ueq_problem =
@@ -218,10 +226,6 @@ fun readable_name full_name s =
   else
     s |> no_qualifiers
       |> Name.desymbolize (Char.isUpper (String.sub (full_name, 0)))
-         (* SNARK 20080805r024 doesn't like sort (type) names that end with
-            digits. We make an effort to avoid this here. *)
-      |> (fn s => if Char.isDigit (String.sub (s, size s - 1)) then s ^ "_"
-                  else s)
       |> (fn s =>
              if size s > max_readable_name_size then
                String.substring (s, 0, max_readable_name_size div 2 - 4) ^
@@ -243,10 +247,8 @@ fun nice_name (full_name, _) NONE = (full_name, NONE)
         val nice_prefix = readable_name full_name desired_name
         fun add j =
           let
-            (* The trailing "_" is for SNARK 20080805r024 (see comment
-               above). *)
             val nice_name =
-              nice_prefix ^ (if j = 0 then "" else "_" ^ string_of_int j ^ "_")
+              nice_prefix ^ (if j = 0 then "" else "_" ^ string_of_int j)
           in
             case Symtab.lookup (snd the_pool) nice_name of
               SOME full_name' =>
