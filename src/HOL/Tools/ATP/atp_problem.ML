@@ -15,7 +15,7 @@ sig
     AConn of connective * ('a, 'b, 'c) formula list |
     AAtom of 'c
 
-  datatype format = Fof | Tff
+  datatype format = UEQ | FOF | TFF
   datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
   datatype 'a problem_line =
     Decl of string * 'a * 'a list * 'a |
@@ -54,7 +54,7 @@ datatype ('a, 'b, 'c) formula =
   AConn of connective * ('a, 'b, 'c) formula list |
   AAtom of 'c
 
-datatype format = Fof | Tff
+datatype format = UEQ | FOF | TFF
 datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
 datatype 'a problem_line =
   Decl of string * 'a * 'a list * 'a |
@@ -102,9 +102,9 @@ fun string_for_connective ANot = "~"
   | string_for_connective AIf = "<="
   | string_for_connective AIff = "<=>"
   | string_for_connective ANotIff = "<~>"
-fun string_for_bound_var Fof (s, _) = s
-  | string_for_bound_var Tff (s, ty) =
+fun string_for_bound_var TFF (s, ty) =
     s ^ " : " ^ (ty |> the_default tptp_tff_individual_type)
+  | string_for_bound_var _ (s, _) = s
 fun string_for_formula format (AQuant (q, xs, phi)) =
     "(" ^ string_for_quantifier q ^
     "[" ^ commas (map (string_for_bound_var format) xs) ^ "] : " ^
@@ -131,7 +131,7 @@ fun string_for_problem_line _ (Decl (ident, sym, arg_tys, res_ty)) =
     string_for_symbol_type arg_tys res_ty ^ ").\n"
   | string_for_problem_line format
                             (Formula (ident, kind, phi, source, useful_info)) =
-    (case format of Fof => "fof" | Tff => "tff") ^
+    (case format of UEQ => "cnf" | FOF => "fof" | TFF => "tff") ^
     "(" ^ ident ^ ", " ^ string_for_kind kind ^ ",\n    (" ^
     string_for_formula format phi ^ ")" ^
     (case (source, useful_info) of

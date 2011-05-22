@@ -218,7 +218,7 @@ val e_config : atp_config =
       (OutOfResources, "SZS status ResourceOut")],
    conj_sym_kind = Conjecture, (* FIXME: try out Hypothesis *)
    prem_kind = Conjecture,
-   formats = [Fof],
+   formats = [FOF],
    best_slices = fn ctxt =>
      (* FUDGE *)
      if effective_e_weight_method ctxt = e_slicesN then
@@ -258,7 +258,7 @@ val spass_config : atp_config =
       (InternalError, "Please report this error")],
    conj_sym_kind = Axiom, (* FIXME: try out Hypothesis *)
    prem_kind = Conjecture,
-   formats = [Fof],
+   formats = [FOF],
    best_slices = fn ctxt =>
      (* FUDGE *)
      [(0.333, (false, (150, ["mangled_preds_heavy"]))) (* SOS *),
@@ -300,7 +300,7 @@ val vampire_config : atp_config =
       (Interrupted, "Aborted by signal SIGINT")],
    conj_sym_kind = Conjecture, (* FIXME: try out Hypothesis *)
    prem_kind = Conjecture,
-   formats = [Fof],
+   formats = [FOF],
    best_slices = fn ctxt =>
      (* FUDGE *)
      [(0.333, (false, (400, ["mangled_preds_heavy"]))) (* SOS *),
@@ -328,7 +328,7 @@ val z3_atp_config : atp_config =
       (ProofMissing, "SZS status Unsatisfiable")],
    conj_sym_kind = Hypothesis,
    prem_kind = Hypothesis,
-   formats = [Fof],
+   formats = [FOF],
    best_slices =
      (* FUDGE (FIXME) *)
      K [(1.0, (false, (250, [])))]}
@@ -406,14 +406,14 @@ val remote_vampire = remotify_atp vampire "Vampire" ["0.6", "9.0", "1.0"]
 val remote_z3_atp = remotify_atp z3_atp "Z3" ["2.18"]
 val remote_tofof_e =
   remote_atp tofof_eN "ToFoF" ["0.1"] [] (#known_failures e_config)
-             Axiom Conjecture [Tff] (K (200, ["simple"]) (* FUDGE *))
+             Axiom Conjecture [TFF] (K (200, ["simple"]) (* FUDGE *))
 val remote_sine_e =
-  remote_atp sine_eN "SInE" ["0.4"] [] [] Axiom Conjecture [Fof]
+  remote_atp sine_eN "SInE" ["0.4"] [] [] Axiom Conjecture [FOF]
              (K (500, ["poly_tags_heavy!", "poly_tags_heavy"]) (* FUDGE *))
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r024"]
              [("refutation.", "end_refutation.")] [] Hypothesis Conjecture
-             [Tff, Fof] (K (250, ["simple"]) (* FUDGE *))
+             [TFF, FOF] (K (250, ["simple"]) (* FUDGE *))
 
 (* Setup *)
 

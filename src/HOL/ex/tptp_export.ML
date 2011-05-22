@@ -114,7 +114,7 @@ fun generate_tptp_inference_file_for_theory ctxt thy full_types file_name =
       infers |> map (apsnd (filter (member (op = o apsnd fst) infers)))
     val atp_problem = atp_problem |> add_inferences_to_problem infers
     val ss =
-      ATP_Problem.tptp_strings_for_atp_problem ATP_Problem.Fof atp_problem
+      ATP_Problem.tptp_strings_for_atp_problem ATP_Problem.FOF atp_problem
     val _ = app (File.append path) ss
   in () end
 

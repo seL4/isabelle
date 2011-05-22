@@ -407,14 +407,14 @@ val fallback_best_type_systems =
   [Preds (Mangled_Monomorphic, Nonmonotonic_Types, Light)]
 
 fun adjust_dumb_type_sys formats (Simple_Types level) =
-    if member (op =) formats Tff then (Tff, Simple_Types level)
-    else (Fof, Preds (Mangled_Monomorphic, level, Heavy))
+    if member (op =) formats TFF then (TFF, Simple_Types level)
+    else (FOF, Preds (Mangled_Monomorphic, level, Heavy))
   | adjust_dumb_type_sys formats type_sys =
-    (* We could return (Tff, type_sys) in all cases but this would require the
+    (* We could return (TFF, type_sys) in all cases but this would require the
        TFF provers to accept problems in which constants are implicitly
        declared. Today neither SNARK nor ToFoF-E satisfy this criterion. *)
-    if member (op =) formats Fof then (Fof, type_sys)
-    else (Tff, Simple_Types All_Types)
+    if member (op =) formats FOF then (FOF, type_sys)
+    else (TFF, Simple_Types All_Types)
 fun determine_format_and_type_sys _ formats (Dumb_Type_Sys type_sys) =
     adjust_dumb_type_sys formats type_sys
   | determine_format_and_type_sys best_type_systems formats
