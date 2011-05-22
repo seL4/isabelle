@@ -419,8 +419,9 @@ val remote_snark =
              [TFF, FOF] (K (250, ["simple"]) (* FUDGE *))
 val remote_waldmeister =
   remote_atp waldmeisterN "Waldmeister" ["710"]
-             [("#START OF PROOF", "Proved Goals:")] [] Hypothesis Hypothesis
-             [CNF_UEQ] (K (500, ["poly_args"]) (* FUDGE *))
+             [("#START OF PROOF", "Proved Goals:")]
+             [(OutOfResources, "Too many function symbols")] Hypothesis
+             Hypothesis [CNF_UEQ] (K (100, ["poly_args"]) (* FUDGE *))
 
 (* Setup *)
 

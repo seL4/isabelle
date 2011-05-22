@@ -35,6 +35,7 @@ sig
   val mk_aconn :
     connective -> ('a, 'b, 'c) formula -> ('a, 'b, 'c) formula
     -> ('a, 'b, 'c) formula
+  val formula_map : ('c -> 'd) -> ('a, 'b, 'c) formula -> ('a, 'b, 'd) formula
   val timestamp : unit -> string
   val hashw : word * word -> word
   val hashw_string : string * word -> word
@@ -81,6 +82,10 @@ fun is_atp_variable s = Char.isUpper (String.sub (s, 0))
 fun mk_anot (AConn (ANot, [phi])) = phi
   | mk_anot phi = AConn (ANot, [phi])
 fun mk_aconn c phi1 phi2 = AConn (c, [phi1, phi2])
+
+fun formula_map f (AQuant (q, xs, phi)) = AQuant (q, xs, formula_map f phi)
+  | formula_map f (AConn (c, phis)) = AConn (c, map (formula_map f) phis)
+  | formula_map f (AAtom tm) = AAtom (f tm)
 
 val timestamp = Date.fmt "%Y-%m-%d %H:%M:%S" o Date.fromTimeLocal o Time.now
 
@@ -172,19 +177,22 @@ fun is_problem_line_cnf_ueq
         (Formula (_, _, AAtom (ATerm (("equal", _), _)), _, _)) = true
   | is_problem_line_cnf_ueq _ = false
 
-fun open_formula (AQuant (AForall, _, phi)) = open_formula phi
-  | open_formula phi = phi
-fun open_non_conjecture_line (line as Formula (_, Conjecture, _, _, _)) = line
-  | open_non_conjecture_line (Formula (ident, kind, phi, source, info)) =
-    Formula (ident, kind, open_formula phi, source, info)
-  | open_non_conjecture_line line = line
+fun open_conjecture_term (ATerm ((s, s'), tms)) =
+  ATerm (s |> is_atp_variable s ? Name.desymbolize false |> `I,
+         tms |> map open_conjecture_term)
+fun open_formula conj (AQuant (AForall, _, phi)) = open_formula conj phi
+  | open_formula true (AAtom t) = AAtom (open_conjecture_term t)
+  | open_formula _ phi = phi
+fun open_formula_line (Formula (ident, kind, phi, source, info)) =
+    Formula (ident, kind, open_formula (kind = Conjecture) phi, source, info)
+  | open_formula_line line = line
 
 fun negate_conjecture_line (Formula (ident, Conjecture, phi, source, info)) =
     Formula (ident, Hypothesis, mk_anot phi, source, info)
   | negate_conjecture_line line = line
 
 val filter_cnf_ueq_problem =
-  map (apsnd (map open_non_conjecture_line
+  map (apsnd (map open_formula_line
               #> filter is_problem_line_cnf_ueq
               #> map negate_conjecture_line))
   #> (fn problem =>

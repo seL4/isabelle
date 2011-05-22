@@ -25,7 +25,7 @@ sig
   val is_type_surely_infinite : Proof.context -> typ list -> typ -> bool
   val monomorphic_term : Type.tyenv -> term -> term
   val eta_expand : typ list -> term -> int -> term
-  val transform_elim_term : term -> term
+  val transform_elim_prop : term -> term
   val specialize_type : theory -> (string * typ) -> term -> term
   val subgoal_count : Proof.state -> int
   val strip_subgoal : thm -> int -> (string * typ) list * term list * term
@@ -210,7 +210,7 @@ fun eta_expand _ t 0 = t
    predicate variable. Leaves other theorems unchanged. We simply instantiate
    the conclusion variable to False. (Cf. "transform_elim_theorem" in
    "Meson_Clausify".) *)
-fun transform_elim_term t =
+fun transform_elim_prop t =
   case Logic.strip_imp_concl t of
     @{const Trueprop} $ Var (z, @{typ bool}) =>
     subst_Vars [(z, @{const False})] t

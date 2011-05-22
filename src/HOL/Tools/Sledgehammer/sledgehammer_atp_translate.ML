@@ -176,10 +176,6 @@ fun is_type_level_fairly_sound level =
   is_type_level_virtually_sound level orelse level = Finite_Types
 val is_type_sys_fairly_sound = is_type_level_fairly_sound o level_of_type_sys
 
-fun formula_map f (AQuant (q, xs, phi)) = AQuant (q, xs, formula_map f phi)
-  | formula_map f (AConn (c, phis)) = AConn (c, map (formula_map f) phis)
-  | formula_map f (AAtom tm) = AAtom (f tm)
-
 fun aconn_fold pos f (ANot, [phi]) = f (Option.map not pos) phi
   | aconn_fold pos f (AImplies, [phi1, phi2]) =
     f (Option.map not pos) phi1 #> f pos phi2
@@ -452,7 +448,7 @@ fun make_formula ctxt eq_as_iff presimp name loc kind t =
   let
     val thy = Proof_Context.theory_of ctxt
     val t = t |> Envir.beta_eta_contract
-              |> transform_elim_term
+              |> transform_elim_prop
               |> Object_Logic.atomize_term thy
     val need_trueprop = (fastype_of t = @{typ bool})
     val t = t |> need_trueprop ? HOLogic.mk_Trueprop

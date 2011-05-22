@@ -183,7 +183,7 @@ fun implode_param [s, "?"] = s ^ "?"
 (* The first ATP of the list is used by Auto Sledgehammer. Because of the low
    timeout, it makes sense to put SPASS first. *)
 fun default_provers_param_value ctxt =
-  [spassN, eN, vampireN, sine_eN, SMT_Solver.solver_name_of ctxt]
+  [spassN, eN, vampireN, sine_eN, waldmeisterN, SMT_Solver.solver_name_of ctxt]
   |> map_filter (remotify_prover_if_not_installed ctxt)
   |> avoid_too_many_local_threads ctxt (Multithreading.max_threads_value ())
   |> implode_param

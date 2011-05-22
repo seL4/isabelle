@@ -383,6 +383,8 @@ fun run_sh prover_name prover type_sys max_relevant slicing e_weight_method spas
     val default_max_relevant =
       Sledgehammer_Provers.default_max_relevant_for_prover ctxt slicing
         prover_name
+    val is_good_prop =
+      Sledgehammer_Provers.is_good_prop_for_prover ctxt prover_name
     val is_built_in_const =
       Sledgehammer_Provers.is_built_in_const_for_prover ctxt prover_name
     val relevance_fudge =
@@ -399,8 +401,9 @@ fun run_sh prover_name prover type_sys max_relevant slicing e_weight_method spas
       let
         val facts =
           Sledgehammer_Filter.relevant_facts ctxt relevance_thresholds
-              (the_default default_max_relevant max_relevant) is_built_in_const
-              relevance_fudge relevance_override chained_ths hyp_ts concl_t
+              (the_default default_max_relevant max_relevant) is_good_prop
+              is_built_in_const relevance_fudge relevance_override chained_ths
+              hyp_ts concl_t
         val problem =
           {state = st', goal = goal, subgoal = i,
            subgoal_count = Sledgehammer_Util.subgoal_count st,

@@ -71,9 +71,12 @@ sig
   val das_Tool : string
   val select_smt_solver : string -> Proof.context -> Proof.context
   val is_smt_prover : Proof.context -> string -> bool
+  val is_unit_equational_atp : Proof.context -> string -> bool
   val is_prover_supported : Proof.context -> string -> bool
   val is_prover_installed : Proof.context -> string -> bool
   val default_max_relevant_for_prover : Proof.context -> bool -> string -> int
+  val is_unit_equality : term -> bool
+  val is_good_prop_for_prover : Proof.context -> string -> term -> bool
   val is_built_in_const_for_prover :
     Proof.context -> string -> string * typ -> term list -> bool * term list
   val atp_relevance_fudge : relevance_fudge
@@ -120,6 +123,13 @@ val select_smt_solver =
 fun is_smt_prover ctxt name =
   member (op =) (SMT_Solver.available_solvers_of ctxt) name
 
+fun is_unit_equational_atp ctxt name =
+  let val thy = Proof_Context.theory_of ctxt in
+    case try (get_atp thy) name of
+      SOME {formats, ...} => member (op =) formats CNF_UEQ
+    | NONE => false
+  end
+
 fun is_prover_supported ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
     is_smt_prover ctxt name orelse member (op =) (supported_atps thy) name
@@ -146,6 +156,20 @@ val atp_irrelevant_consts =
   [@{const_name False}, @{const_name True}, @{const_name Not},
    @{const_name conj}, @{const_name disj}, @{const_name implies},
    @{const_name HOL.eq}, @{const_name If}, @{const_name Let}]
+
+fun is_unit_equality (@{const Trueprop} $ t) = is_unit_equality t
+  | is_unit_equality (Const (@{const_name all}, _) $ Abs (_, _, t)) =
+    is_unit_equality t
+  | is_unit_equality (Const (@{const_name All}, _) $ Abs (_, _, t)) =
+    is_unit_equality t
+  | is_unit_equality (Const (@{const_name "=="}, Type (_, [T, _])) $ _ $ _) =
+    T <> @{typ bool}
+  | is_unit_equality (Const (@{const_name HOL.eq}, Type (_ , [T, _])) $ _ $ _) =
+    T <> @{typ bool}
+  | is_unit_equality _ = false
+
+fun is_good_prop_for_prover ctxt name =
+  if is_unit_equational_atp ctxt name then is_unit_equality else K true
 
 fun is_built_in_const_for_prover ctxt name =
   if is_smt_prover ctxt name then
@@ -390,8 +414,8 @@ fun has_bound_or_var_of_type pred =
 (* Facts containing variables of type "unit" or "bool" or of the form
    "ALL x. x = A | x = B | x = C" are likely to lead to unsound proofs if types
    are omitted. *)
-fun is_dangerous_term ctxt =
-  transform_elim_term
+fun is_dangerous_prop ctxt =
+  transform_elim_prop
   #> (has_bound_or_var_of_type (is_type_surely_finite ctxt) orf
       is_exhaustive_finite)
 
@@ -413,13 +437,13 @@ fun adjust_dumb_type_sys formats (Simple_Types level) =
     (* We could return (TFF, type_sys) in all cases but this would require the
        TFF provers to accept problems in which constants are implicitly
        declared. Today neither SNARK nor ToFoF-E satisfy this criterion. *)
-    if member (op =) formats FOF then
-      (FOF, type_sys)
-    else if member (op =) formats CNF_UEQ then
+    if member (op =) formats CNF_UEQ then
       (CNF_UEQ, case type_sys of
                   Tags _ => type_sys
                 | _ => Preds (polymorphism_of_type_sys type_sys,
                               Const_Arg_Types, Light))
+    else if member (op =) formats FOF then
+      (FOF, type_sys)
     else
       (TFF, Simple_Types All_Types)
 fun determine_format_and_type_sys _ formats (Dumb_Type_Sys type_sys) =
@@ -514,7 +538,7 @@ fun run_atp auto name
                 val fairly_sound = is_type_sys_fairly_sound type_sys
                 val facts =
                   facts |> not fairly_sound
-                           ? filter_out (is_dangerous_term ctxt o prop_of o snd
+                           ? filter_out (is_dangerous_prop ctxt o prop_of o snd
                                          o untranslated_fact)
                         |> take num_facts
                         |> not (null blacklist)

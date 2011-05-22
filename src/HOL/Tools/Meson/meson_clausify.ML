@@ -38,7 +38,7 @@ val ctp_false = cterm_of @{theory HOL} (HOLogic.mk_Trueprop HOLogic.false_const)
 
 (* Converts an elim-rule into an equivalent theorem that does not have the
    predicate variable. Leaves other theorems unchanged. We simply instantiate
-   the conclusion variable to False. (Cf. "transform_elim_term" in
+   the conclusion variable to False. (Cf. "transform_elim_prop" in
    "Sledgehammer_Util".) *)
 fun transform_elim_theorem th =
   case concl_of th of    (*conclusion variable*)
