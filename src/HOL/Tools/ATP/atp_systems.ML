@@ -39,6 +39,7 @@ sig
   val tofof_eN : string
   val sine_eN : string
   val snarkN : string
+  val waldmeisterN : string
   val z3_atpN : string
   val remote_prefix : string
   val remote_atp :
@@ -100,6 +101,7 @@ val z3_atpN = "z3_atp"
 val tofof_eN = "tofof_e"
 val sine_eN = "sine_e"
 val snarkN = "snark"
+val waldmeisterN = "waldmeister"
 val remote_prefix = "remote_"
 
 structure Data = Theory_Data
@@ -414,6 +416,10 @@ val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r024"]
              [("refutation.", "end_refutation.")] [] Hypothesis Conjecture
              [TFF, FOF] (K (250, ["simple"]) (* FUDGE *))
+val remote_waldmeister =
+  remote_atp waldmeisterN "Waldmeister" ["710"]
+             [("#START OF PROOF", "Proved Goals:")] [] Hypothesis Conjecture
+             [FOF] (K (250, ["poly_args"]) (* FUDGE *))
 
 (* Setup *)
 
@@ -436,7 +442,7 @@ fun refresh_systems_on_tptp () =
   Synchronized.change systems (fn _ => get_systems ())
 
 val atps = [e, spass, vampire, z3_atp, remote_e, remote_vampire, remote_z3_atp,
-            remote_tofof_e, remote_sine_e, remote_snark]
+            remote_tofof_e, remote_sine_e, remote_snark, remote_waldmeister]
 val setup = fold add_atp atps
 
 end;
