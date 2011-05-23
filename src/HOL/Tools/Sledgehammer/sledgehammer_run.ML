@@ -215,7 +215,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
             |> (if blocking then smart_par_list_map else map) (launch problem)
             |> exists fst |> rpair state
         end
-      fun get_facts label is_good_prop relevance_fudge provers =
+      fun get_facts label is_appropriate_prop relevance_fudge provers =
         let
           val max_max_relevant =
             case max_relevant of
@@ -228,9 +228,9 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
           val is_built_in_const =
             is_built_in_const_for_prover ctxt (hd provers)
         in
-          relevant_facts ctxt relevance_thresholds max_max_relevant is_good_prop
-                         is_built_in_const relevance_fudge relevance_override
-                         chained_ths hyp_ts concl_t
+          relevant_facts ctxt relevance_thresholds max_max_relevant
+                         is_appropriate_prop is_built_in_const relevance_fudge
+                         relevance_override chained_ths hyp_ts concl_t
           |> tap (fn facts =>
                      if debug then
                        label ^ plural_s (length provers) ^ ": " ^
@@ -244,10 +244,10 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
                      else
                        ())
         end
-      fun launch_atps label is_good_prop atps accum =
+      fun launch_atps label is_appropriate_prop atps accum =
         if null atps then
           accum
-        else if not (is_good_prop concl_t) then
+        else if not (is_appropriate_prop concl_t) then
           (if verbose orelse length atps = length provers then
              "Goal outside the scope of " ^
              space_implode " " (serial_commas "and" (map quote atps)) ^ "."
@@ -257,7 +257,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
            accum)
         else
           launch_provers state
-              (get_facts label is_good_prop atp_relevance_fudge o K atps)
+              (get_facts label is_appropriate_prop atp_relevance_fudge o K atps)
               (K (Untranslated_Fact o fst)) (K (K NONE)) atps
       fun launch_smts accum =
         if null smts then

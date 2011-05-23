@@ -76,7 +76,7 @@ sig
   val is_prover_installed : Proof.context -> string -> bool
   val default_max_relevant_for_prover : Proof.context -> bool -> string -> int
   val is_unit_equality : term -> bool
-  val is_good_prop_for_prover : Proof.context -> string -> term -> bool
+  val is_appropriate_prop_for_prover : Proof.context -> string -> term -> bool
   val is_built_in_const_for_prover :
     Proof.context -> string -> string * typ -> term list -> bool * term list
   val atp_relevance_fudge : relevance_fudge
@@ -168,7 +168,7 @@ fun is_unit_equality (@{const Trueprop} $ t) = is_unit_equality t
     T <> @{typ bool}
   | is_unit_equality _ = false
 
-fun is_good_prop_for_prover ctxt name =
+fun is_appropriate_prop_for_prover ctxt name =
   if is_unit_equational_atp ctxt name then is_unit_equality else K true
 
 fun is_built_in_const_for_prover ctxt name =
