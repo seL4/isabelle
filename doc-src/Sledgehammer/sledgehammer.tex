@@ -77,10 +77,11 @@ Jasmin Christian Blanchette \\
 \section{Introduction}
 \label{introduction}
 
-Sledgehammer is a tool that applies first-order automatic theorem provers (ATPs)
+Sledgehammer is a tool that applies automatic theorem provers (ATPs)
 and satisfiability-modulo-theories (SMT) solvers on the current goal. The
-supported ATPs are E \cite{schulz-2002}, SInE-E \cite{sine}, SNARK \cite{snark},
-SPASS \cite{weidenbach-et-al-2009}, ToFoF-E \cite{tofof}, Vampire
+supported ATPs are E \cite{schulz-2002}, LEO-II \cite{leo2}, Satallax
+\cite{satallax}, SInE-E \cite{sine}, SNARK \cite{snark}, SPASS
+\cite{weidenbach-et-al-2009}, ToFoF-E \cite{tofof}, Vampire
 \cite{riazanov-voronkov-2002}, and Waldmeister \cite{waldmeister}. The ATPs are
 run either locally or remotely via the System\-On\-TPTP web service
 \cite{sutcliffe-2000}. In addition to the ATPs, the SMT solvers Z3 \cite{z3} is
@@ -135,8 +136,8 @@ relies on third-party automatic theorem provers (ATPs) and SMT solvers.
 \subsection{Installing ATPs}
 
 Currently, E, SPASS, and Vampire can be run locally; in addition, E, Vampire,
-SInE-E, SNARK, ToFoF-E, and Waldmeister are available remotely via
-System\-On\-TPTP \cite{sutcliffe-2000}. If you want better performance, you
+LEO-II, Satallax, SInE-E, SNARK, ToFoF-E, and Waldmeister are available remotely
+via System\-On\-TPTP \cite{sutcliffe-2000}. If you want better performance, you
 should at least install E and SPASS locally.
 
 There are three main ways to install ATPs on your machine:
@@ -261,12 +262,12 @@ Try this command: \textbf{by} (\textit{metis list.inject}). \\
 To minimize the number of lemmas, try this: \\
 \textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{spass}]~(\textit{list.inject}). \\[3\smallskipamount]
 %
-Sledgehammer: ``\textit{remote\_waldmeister}'' for subgoal 1: \\
-$[a] = [b] \,\Longrightarrow\, a = b$ \\
-Try this command: \textbf{by} (\textit{metis hd.simps insert\_Nil}). \\
-To minimize the number of lemmas, try this: \\
-\textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{remote\_waldmeister}] \\
-\phantom{\textbf{sledgehammer}~}(\textit{hd.simps insert\_Nil}). \\[3\smallskipamount]
+%Sledgehammer: ``\textit{remote\_waldmeister}'' for subgoal 1: \\
+%$[a] = [b] \,\Longrightarrow\, a = b$ \\
+%Try this command: \textbf{by} (\textit{metis hd.simps insert\_Nil}). \\
+%To minimize the number of lemmas, try this: \\
+%\textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{remote\_waldmeister}] \\
+%\phantom{\textbf{sledgehammer}~}(\textit{hd.simps insert\_Nil}). \\[3\smallskipamount]
 %
 Sledgehammer: ``\textit{remote\_sine\_e}'' for subgoal 1: \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
@@ -281,11 +282,13 @@ To minimize the number of lemmas, try this: \\
 \textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{remote\_z3}]~(\textit{hd.simps}).
 \postw
 
-Sledgehammer ran E, SInE-E, SPASS, Vampire, Waldmeister, and Z3 in parallel.
+Sledgehammer ran E, SInE-E, SPASS, Vampire, %Waldmeister,
+and Z3 in parallel.
 Depending on which provers are installed and how many processor cores are
 available, some of the provers might be missing or present with a
-\textit{remote\_} prefix. Waldmeister is run only for unit equational problems,
-where the goal's conclusion is a (universally quantified) equation.
+\textit{remote\_} prefix.
+%Waldmeister is run only for unit equational problems,
+%where the goal's conclusion is a (universally quantified) equation.
 
 For each successful prover, Sledgehammer gives a one-liner proof that uses the
 \textit{metis} or \textit{smt} method. You can click the proof to insert it into
@@ -672,29 +675,29 @@ set the environment variable \texttt{CVC3\_SOLVER} to the complete path of the
 executable, including the file name. Sledgehammer has been tested with version
 2.2.
 
-\item[$\bullet$] \textbf{\textit{e}:} E is an ATP developed by Stephan Schulz
-\cite{schulz-2002}. To use E, set the environment variable
-\texttt{E\_HOME} to the directory that contains the \texttt{eproof} executable,
-or install the prebuilt E package from Isabelle's download page. See
+\item[$\bullet$] \textbf{\textit{e}:} E is a first-order resolution prover
+developed by Stephan Schulz \cite{schulz-2002}. To use E, set the environment
+variable \texttt{E\_HOME} to the directory that contains the \texttt{eproof}
+executable, or install the prebuilt E package from Isabelle's download page. See
 \S\ref{installation} for details.
 
-\item[$\bullet$] \textbf{\textit{spass}:} SPASS is an ATP developed by Christoph
-Weidenbach et al.\ \cite{weidenbach-et-al-2009}. To use SPASS, set the
-environment variable \texttt{SPASS\_HOME} to the directory that contains the
-\texttt{SPASS} executable, or install the prebuilt SPASS package from Isabelle's
-download page. Sledgehammer requires version 3.5 or above. See
-\S\ref{installation} for details.
+\item[$\bullet$] \textbf{\textit{spass}:} SPASS is a first-order resolution
+prover developed by Christoph Weidenbach et al.\ \cite{weidenbach-et-al-2009}.
+To use SPASS, set the environment variable \texttt{SPASS\_HOME} to the directory
+that contains the \texttt{SPASS} executable, or install the prebuilt SPASS
+package from Isabelle's download page. Sledgehammer requires version 3.5 or
+above. See \S\ref{installation} for details.
 
 \item[$\bullet$] \textbf{\textit{yices}:} Yices is an SMT solver developed at
 SRI \cite{yices}. To use Yices, set the environment variable
 \texttt{YICES\_SOLVER} to the complete path of the executable, including the
 file name. Sledgehammer has been tested with version 1.0.
 
-\item[$\bullet$] \textbf{\textit{vampire}:} Vampire is an ATP developed by
-Andrei Voronkov and his colleagues \cite{riazanov-voronkov-2002}. To use
-Vampire, set the environment variable \texttt{VAMPIRE\_HOME} to the directory
-that contains the \texttt{vampire} executable. Sledgehammer has been tested with
-versions 11, 0.6, and 1.0.
+\item[$\bullet$] \textbf{\textit{vampire}:} Vampire is a first-order resolution
+prover developed by Andrei Voronkov and his colleagues
+\cite{riazanov-voronkov-2002}. To use Vampire, set the environment variable
+\texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{vampire}
+executable. Sledgehammer has been tested with versions 11, 0.6, and 1.0.
 
 \item[$\bullet$] \textbf{\textit{z3}:} Z3 is an SMT solver developed at
 Microsoft Research \cite{z3}. To use Z3, set the environment variable
@@ -717,13 +720,23 @@ point).
 \item[$\bullet$] \textbf{\textit{remote\_e}:} The remote version of E runs
 on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 
+\item[$\bullet$] \textbf{\textit{remote\_leo2}:} LEO-II is an automatic
+higher-order prover developed by Christoph Benzm\"uller et al. \cite{leo2}. The
+remote version of LEO-II runs on Geoff Sutcliffe's Miami servers. In the current
+setup, the problems given to LEO-II are only mildly higher-order.
+
+\item[$\bullet$] \textbf{\textit{remote\_satallax}:} Satallax is an automatic
+higher-order prover developed by Chad Brown et al. \cite{satallax}. The remote
+version of Satallax runs on Geoff Sutcliffe's Miami servers. In the current
+setup, the problems given to Satallax are only mildly higher-order.
+
 \item[$\bullet$] \textbf{\textit{remote\_sine\_e}:} SInE-E is a metaprover
 developed by Kry\v stof Hoder \cite{sine} based on E. The remote version of
 SInE runs on Geoff Sutcliffe's Miami servers.
 
-\item[$\bullet$] \textbf{\textit{remote\_snark}:} SNARK is a prover
-developed by Stickel et al.\ \cite{snark}. The remote version of
-SNARK runs on Geoff Sutcliffe's Miami servers.
+\item[$\bullet$] \textbf{\textit{remote\_snark}:} SNARK is a first-order
+resolution prover developed by Stickel et al.\ \cite{snark}. The remote version
+of SNARK runs on Geoff Sutcliffe's Miami servers.
 
 \item[$\bullet$] \textbf{\textit{remote\_tofof\_e}:} ToFoF-E is a metaprover
 developed by Geoff Sutcliffe \cite{tofof} based on E running on his Miami
@@ -755,9 +768,9 @@ overridden using the option ``Sledgehammer: Provers'' from the ``Isabelle'' menu
 in Proof General.
 
 It is a good idea to run several provers in parallel, although it could slow
-down your machine. Running E, SPASS, Vampire, and SInE-E together for 5 seconds
-yields a better success rate than running the most effective of these (Vampire)
-for 120 seconds \cite{boehme-nipkow-2010}.
+down your machine. Running E, SPASS, and Vampire for 5~seconds yields a similar
+success rate to running the most effective of these for 120~seconds
+\cite{boehme-nipkow-2010}.
 
 \opnodefault{prover}{string}
 Alias for \textit{provers}.
@@ -871,8 +884,8 @@ $\mathit{type\_info\/}(\tau, t)$ becomes a unary function
 $\mathit{type\_info\_}\tau(t)$.
 
 \item[$\bullet$] \textbf{\textit{simple} (sound):} Use the prover's support for
-simply typed first-order logic if available; otherwise, fall back on
-\textit{mangled\_preds}. The problem is monomorphized.
+simple types if available; otherwise, fall back on \textit{mangled\_preds}. The
+problem is monomorphized.
 
 \item[$\bullet$]
 \textbf{%
