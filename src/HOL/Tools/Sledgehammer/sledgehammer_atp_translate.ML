@@ -232,8 +232,13 @@ fun general_type_arg_policy type_sys =
   else
     Explicit_Type_Args (should_drop_arg_type_args type_sys)
 
-fun type_arg_policy _ @{const_name HOL.eq} = No_Type_Args
-  | type_arg_policy type_sys _ = general_type_arg_policy type_sys
+fun type_arg_policy type_sys s =
+  if s = @{const_name HOL.eq} orelse
+     (s = explicit_app_base andalso
+      level_of_type_sys type_sys = Const_Arg_Types) then
+    No_Type_Args
+  else
+    general_type_arg_policy type_sys
 
 fun atp_type_literals_for_types type_sys kind Ts =
   if level_of_type_sys type_sys = No_Types then
