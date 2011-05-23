@@ -395,10 +395,15 @@ fun run_sh prover_name prover type_sys max_relevant slicing e_weight_method spas
       (case hard_timeout of
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
+    fun failed failure =
+      ({outcome = SOME failure, message = "", used_facts = [],
+        run_time_in_msecs = NONE}, ~1)
     val ({outcome, message, used_facts, run_time_in_msecs}
          : Sledgehammer_Provers.prover_result,
         time_isa) = time_limit (Mirabelle.cpu_time (fn () =>
       let
+        val _ = if is_appropriate_prop concl_t then ()
+                else raise Fail "inappropriate"
         val facts =
           Sledgehammer_Filter.relevant_facts ctxt relevance_thresholds
               (the_default default_max_relevant max_relevant)
@@ -410,9 +415,8 @@ fun run_sh prover_name prover type_sys max_relevant slicing e_weight_method spas
            facts = facts |> map Sledgehammer_Provers.Untranslated_Fact,
            smt_filter = NONE}
       in prover params (K "") problem end)) ()
-      handle TimeLimit.TimeOut =>
-             ({outcome = SOME ATP_Proof.TimedOut, message = "", used_facts = [],
-               run_time_in_msecs = NONE}, ~1)
+      handle TimeLimit.TimeOut => failed ATP_Proof.TimedOut
+           | Fail "inappropriate" => failed ATP_Proof.Inappropriate
     val time_prover = run_time_in_msecs |> the_default ~1
   in
     case outcome of

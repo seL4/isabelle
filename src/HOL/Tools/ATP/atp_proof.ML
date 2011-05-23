@@ -20,6 +20,7 @@ sig
     UnsoundProof of bool * string list |
     CantConnect |
     TimedOut |
+    Inappropriate |
     OutOfResources |
     SpassTooOld |
     VampireTooOld |
@@ -70,6 +71,7 @@ datatype failure =
   UnsoundProof of bool * string list |
   CantConnect |
   TimedOut |
+  Inappropriate |
   OutOfResources |
   SpassTooOld |
   VampireTooOld |
@@ -143,6 +145,8 @@ fun string_for_failure Unprovable =
     \Isabelle developers."
   | string_for_failure CantConnect = "Cannot connect to remote server."
   | string_for_failure TimedOut = "Timed out."
+  | string_for_failure Inappropriate =
+    "The problem lies outside the prover's scope."
   | string_for_failure OutOfResources = "The prover ran out of resources."
   | string_for_failure SpassTooOld =
     "Isabelle requires a more recent version of SPASS with support for the \

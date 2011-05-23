@@ -383,7 +383,8 @@ fun remote_config system_name system_versions proof_delims known_failures
      [(Unprovable, "says Satisfiable"),
       (IncompleteUnprovable, "says Unknown"),
       (IncompleteUnprovable, "says GaveUp"),
-      (TimedOut, "says Timeout")],
+      (TimedOut, "says Timeout"),
+      (Inappropriate, "says Inappropriate")],
    conj_sym_kind = conj_sym_kind,
    prem_kind = prem_kind,
    formats = formats,
@@ -420,8 +421,10 @@ val remote_snark =
 val remote_waldmeister =
   remote_atp waldmeisterN "Waldmeister" ["710"]
              [("#START OF PROOF", "Proved Goals:")]
-             [(OutOfResources, "Too many function symbols")] Hypothesis
-             Hypothesis [CNF_UEQ] (K (100, ["poly_args"]) (* FUDGE *))
+             [(OutOfResources, "Too many function symbols"),
+              (Crashed, "Unrecoverable Segmentation Fault")]
+             Hypothesis Hypothesis [CNF_UEQ]
+             (K (100, ["poly_args"]) (* FUDGE *))
 
 (* Setup *)
 
