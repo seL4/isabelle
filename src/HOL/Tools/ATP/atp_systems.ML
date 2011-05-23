@@ -424,7 +424,7 @@ val remote_waldmeister =
              [(OutOfResources, "Too many function symbols"),
               (Crashed, "Unrecoverable Segmentation Fault")]
              Hypothesis Hypothesis [CNF_UEQ]
-             (K (100, ["poly_args"]) (* FUDGE *))
+             (K (50, ["poly_args"]) (* FUDGE *))
 
 (* Setup *)
 
