@@ -2,7 +2,7 @@
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2010, 2011
 
-Finite model generation for TPTP first-order formulas via Nitpick.
+Finite model generation for TPTP first-order formulas (FOF and CNF) via Nitpick.
 *)
 
 signature NITROX =
@@ -182,8 +182,7 @@ fun pick_nits_in_fof_file file_name =
 *)
       val state = Proof.init @{context}
       val params =
-        [("card iota", "1\<midarrow>100"),
-         ("card", "1\<midarrow>8"),
+        [("card", "1\<emdash>8"),
          ("box", "false"),
          ("sat_solver", "smart"),
          ("max_threads", "1"),

@@ -352,11 +352,12 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
           pstrs ("The type" ^ plural_s_for_list pretties ^ " ") @
           pretty_serial_commas "and" pretties @
           pstrs (" " ^
-          (if none_true monos then
-             "passed the monotonicity test"
-           else
-             (if length pretties = 1 then "is" else "are") ^ " considered monotonic") ^
-          ". " ^ extra))
+                 (if none_true monos then
+                    "passed the monotonicity test"
+                  else
+                    (if length pretties = 1 then "is" else "are") ^
+                    " considered monotonic") ^
+                 ". " ^ extra))
       end
     fun is_type_fundamentally_monotonic T =
       (is_datatype ctxt stds T andalso not (is_quot_type ctxt T) andalso
