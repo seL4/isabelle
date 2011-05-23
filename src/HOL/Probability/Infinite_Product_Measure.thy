@@ -223,11 +223,6 @@ proof -
     done
 qed
 
-lemma (in prob_space) measure_le_1: "X \<in> sets M \<Longrightarrow> \<mu> X \<le> 1"
-  unfolding measure_space_1[symmetric]
-  using sets_into_space
-  by (intro measure_mono) auto
-
 definition (in product_prob_space)
   "\<mu>G A =
     (THE x. \<forall>J. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow> J \<subseteq> I \<longrightarrow> (\<forall>X\<in>sets (Pi\<^isub>M J M). A = emb I J X \<longrightarrow> x = measure (Pi\<^isub>M J M) X))"

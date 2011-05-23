@@ -9,6 +9,12 @@ theory Caratheodory
   imports Sigma_Algebra Extended_Real_Limits
 begin
 
+lemma sums_def2:
+  "f sums x \<longleftrightarrow> (\<lambda>n. (\<Sum>i\<le>n. f i)) ----> x"
+  unfolding sums_def
+  apply (subst LIMSEQ_Suc_iff[symmetric])
+  unfolding atLeastLessThanSuc_atLeastAtMost atLeast0AtMost ..
+
 text {*
   Originally from the Hurd/Coble measure theory development, translated by Lawrence Paulson.
 *}
@@ -853,12 +859,6 @@ qed
 
 subsubsection {*Alternative instances of caratheodory*}
 
-lemma sums_def2:
-  "f sums x \<longleftrightarrow> (\<lambda>n. (\<Sum>i\<le>n. f i)) ----> x"
-  unfolding sums_def
-  apply (subst LIMSEQ_Suc_iff[symmetric])
-  unfolding atLeastLessThanSuc_atLeastAtMost atLeast0AtMost ..
-
 lemma (in ring_of_sets) countably_additive_iff_continuous_from_below:
   assumes f: "positive M f" "additive M f"
   shows "countably_additive M f \<longleftrightarrow>
@@ -898,28 +898,6 @@ next
     unfolding sums_def2 by simp
   from sums_unique[OF this]
   show "(\<Sum>i. f (A i)) = f (\<Union>i. A i)" by simp
-qed
-
-lemma uminus_extreal_add_uminus_uminus:
-  fixes a b :: extreal shows "a \<noteq> \<infinity> \<Longrightarrow> b \<noteq> \<infinity> \<Longrightarrow> - (- a + - b) = a + b"
-  by (cases rule: extreal2_cases[of a b]) auto
-
-lemma INFI_extreal_add:
-  assumes "decseq f" "decseq g" and fin: "\<And>i. f i \<noteq> \<infinity>" "\<And>i. g i \<noteq> \<infinity>"
-  shows "(INF i. f i + g i) = INFI UNIV f + INFI UNIV g"
-proof -
-  have INF_less: "(INF i. f i) < \<infinity>" "(INF i. g i) < \<infinity>"
-    using assms unfolding INF_less_iff by auto
-  { fix i from fin[of i] have "- ((- f i) + (- g i)) = f i + g i"
-      by (rule uminus_extreal_add_uminus_uminus) }
-  then have "(INF i. f i + g i) = (INF i. - ((- f i) + (- g i)))"
-    by simp
-  also have "\<dots> = INFI UNIV f + INFI UNIV g"
-    unfolding extreal_INFI_uminus
-    using assms INF_less
-    by (subst SUPR_extreal_add)
-       (auto simp: extreal_SUPR_uminus intro!: uminus_extreal_add_uminus_uminus)
-  finally show ?thesis .
 qed
 
 lemma (in ring_of_sets) continuous_from_above_iff_empty_continuous:

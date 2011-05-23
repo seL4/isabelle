@@ -8,6 +8,9 @@ theory Binary_Product_Measure
 imports Lebesgue_Integration
 begin
 
+lemma times_eq_iff: "A \<times> B = C \<times> D \<longleftrightarrow> A = C \<and> B = D \<or> ((A = {} \<or> B = {}) \<and> (C = {} \<or> D = {}))"
+  by auto
+
 lemma times_Int_times: "A \<times> B \<inter> C \<times> D = (A \<inter> C) \<times> (B \<inter> D)"
   by auto
 
@@ -317,9 +320,6 @@ locale pair_sigma_finite = M1: sigma_finite_measure M1 + M2: sigma_finite_measur
 
 sublocale pair_sigma_finite \<subseteq> pair_sigma_algebra M1 M2
   by default
-
-lemma times_eq_iff: "A \<times> B = C \<times> D \<longleftrightarrow> A = C \<and> B = D \<or> ((A = {} \<or> B = {}) \<and> (C = {} \<or> D = {}))"
-  by auto
 
 lemma sigma_sets_subseteq: assumes "A \<subseteq> B" shows "sigma_sets X A \<subseteq> sigma_sets X B"
 proof

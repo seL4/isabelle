@@ -495,44 +495,6 @@ sublocale product_sigma_finite \<subseteq> product_sigma_algebra
 sublocale finite_product_sigma_finite \<subseteq> finite_product_sigma_algebra
   by default (fact finite_index')
 
-lemma setprod_extreal_0:
-  fixes f :: "'a \<Rightarrow> extreal"
-  shows "(\<Prod>i\<in>A. f i) = 0 \<longleftrightarrow> (finite A \<and> (\<exists>i\<in>A. f i = 0))"
-proof cases
-  assume "finite A"
-  then show ?thesis by (induct A) auto
-qed auto
-
-lemma setprod_extreal_pos:
-  fixes f :: "'a \<Rightarrow> extreal" assumes pos: "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i" shows "0 \<le> (\<Prod>i\<in>I. f i)"
-proof cases
-  assume "finite I" from this pos show ?thesis by induct auto
-qed simp
-
-lemma setprod_PInf:
-  assumes "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i"
-  shows "(\<Prod>i\<in>I. f i) = \<infinity> \<longleftrightarrow> finite I \<and> (\<exists>i\<in>I. f i = \<infinity>) \<and> (\<forall>i\<in>I. f i \<noteq> 0)"
-proof cases
-  assume "finite I" from this assms show ?thesis
-  proof (induct I)
-    case (insert i I)
-    then have pos: "0 \<le> f i" "0 \<le> setprod f I" by (auto intro!: setprod_extreal_pos)
-    from insert have "(\<Prod>j\<in>insert i I. f j) = \<infinity> \<longleftrightarrow> setprod f I * f i = \<infinity>" by auto
-    also have "\<dots> \<longleftrightarrow> (setprod f I = \<infinity> \<or> f i = \<infinity>) \<and> f i \<noteq> 0 \<and> setprod f I \<noteq> 0"
-      using setprod_extreal_pos[of I f] pos
-      by (cases rule: extreal2_cases[of "f i" "setprod f I"]) auto
-    also have "\<dots> \<longleftrightarrow> finite (insert i I) \<and> (\<exists>j\<in>insert i I. f j = \<infinity>) \<and> (\<forall>j\<in>insert i I. f j \<noteq> 0)"
-      using insert by (auto simp: setprod_extreal_0)
-    finally show ?case .
-  qed simp
-qed simp
-
-lemma setprod_extreal: "(\<Prod>i\<in>A. extreal (f i)) = extreal (setprod f A)"
-proof cases
-  assume "finite A" then show ?thesis
-    by induct (auto simp: one_extreal_def)
-qed (simp add: one_extreal_def)
-
 lemma (in finite_product_sigma_finite) product_algebra_generator_measure:
   assumes "Pi\<^isub>E I F \<in> sets G"
   shows "measure G (Pi\<^isub>E I F) = (\<Prod>i\<in>I. M.\<mu> i (F i))"

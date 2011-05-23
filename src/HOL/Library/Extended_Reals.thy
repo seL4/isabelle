@@ -189,6 +189,9 @@ proof
 qed
 end
 
+lemma real_of_extreal_0[simp]: "real (0::extreal) = 0"
+  unfolding real_of_extreal_def zero_extreal_def by simp
+
 lemma abs_extreal_zero[simp]: "\<bar>0\<bar> = (0::extreal)"
   unfolding zero_extreal_def abs_extreal.simps by simp
 
@@ -300,6 +303,10 @@ proof
     by (cases rule: extreal3_cases[of a b c]) auto
 qed
 
+lemma real_of_extreal_positive_mono:
+  "\<lbrakk>0 \<le> x; x \<le> y; y \<noteq> \<infinity>\<rbrakk> \<Longrightarrow> real x \<le> real y"
+  by (cases rule: extreal2_cases[of x y]) auto
+
 lemma extreal_MInfty_lessI[intro, simp]:
   "a \<noteq> -\<infinity> \<Longrightarrow> -\<infinity> < a"
   by (cases a) auto
@@ -351,16 +358,37 @@ lemma real_less_extreal_iff:
   "real y < x \<longleftrightarrow> ((\<bar>y\<bar> \<noteq> \<infinity> \<longrightarrow> y < extreal x) \<and> (\<bar>y\<bar> = \<infinity> \<longrightarrow> 0 < x))"
   by (cases y) auto
 
-lemma real_of_extreal_positive_mono:
-  assumes "x \<noteq> \<infinity>" "y \<noteq> \<infinity>" "0 \<le> x" "x \<le> y"
-  shows "real x \<le> real y"
-  using assms by (cases rule: extreal2_cases[of x y]) auto
-
 lemma real_of_extreal_pos:
   fixes x :: extreal shows "0 \<le> x \<Longrightarrow> 0 \<le> real x" by (cases x) auto
 
 lemmas real_of_extreal_ord_simps =
   extreal_le_real_iff real_le_extreal_iff extreal_less_real_iff real_less_extreal_iff
+
+lemma abs_extreal_ge0[simp]: "0 \<le> x \<Longrightarrow> \<bar>x :: extreal\<bar> = x"
+  by (cases x) auto
+
+lemma abs_extreal_less0[simp]: "x < 0 \<Longrightarrow> \<bar>x :: extreal\<bar> = -x"
+  by (cases x) auto
+
+lemma abs_extreal_pos[simp]: "0 \<le> \<bar>x :: extreal\<bar>"
+  by (cases x) auto
+
+lemma real_of_extreal_le_0[simp]: "real (X :: extreal) \<le> 0 \<longleftrightarrow> (X \<le> 0 \<or> X = \<infinity>)"
+  by (cases X) auto
+
+lemma abs_real_of_extreal[simp]: "\<bar>real (X :: extreal)\<bar> = real \<bar>X\<bar>"
+  by (cases X) auto
+
+lemma zero_less_real_of_extreal: "0 < real X \<longleftrightarrow> (0 < X \<and> X \<noteq> \<infinity>)"
+  by (cases X) auto
+
+lemma extreal_0_le_uminus_iff[simp]:
+  fixes a :: extreal shows "0 \<le> -a \<longleftrightarrow> a \<le> 0"
+  by (cases rule: extreal2_cases[of a]) auto
+
+lemma extreal_uminus_le_0_iff[simp]:
+  fixes a :: extreal shows "-a \<le> 0 \<longleftrightarrow> 0 \<le> a"
+  by (cases rule: extreal2_cases[of a]) auto
 
 lemma extreal_dense:
   fixes x y :: extreal assumes "x < y"
@@ -444,6 +472,9 @@ lemma
   and decseq_uminus[simp]: "decseq (\<lambda>x. - f x) \<longleftrightarrow> incseq f"
   unfolding decseq_def incseq_def by auto
 
+lemma incseq_extreal: "incseq f \<Longrightarrow> incseq (\<lambda>x. extreal (f x))"
+  unfolding incseq_def by auto
+
 lemma extreal_add_nonneg_nonneg:
   fixes a b :: extreal shows "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> a + b"
   using add_mono[of 0 a 0 b] by simp
@@ -510,6 +541,10 @@ proof
        (simp_all add: zero_extreal_def zero_less_mult_iff)
 qed
 end
+
+lemma real_of_extreal_le_1:
+  fixes a :: extreal shows "a \<le> 1 \<Longrightarrow> real a \<le> 1"
+  by (cases a) (auto simp: one_extreal_def)
 
 lemma abs_extreal_one[simp]: "\<bar>1\<bar> = (1::extreal)"
   unfolding one_extreal_def by simp
@@ -702,6 +737,44 @@ lemma extreal_ge_extreal:
   shows "x >= y"
 by (metis assms extreal_dense leD linorder_le_less_linear)
 
+lemma setprod_extreal_0:
+  fixes f :: "'a \<Rightarrow> extreal"
+  shows "(\<Prod>i\<in>A. f i) = 0 \<longleftrightarrow> (finite A \<and> (\<exists>i\<in>A. f i = 0))"
+proof cases
+  assume "finite A"
+  then show ?thesis by (induct A) auto
+qed auto
+
+lemma setprod_extreal_pos:
+  fixes f :: "'a \<Rightarrow> extreal" assumes pos: "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i" shows "0 \<le> (\<Prod>i\<in>I. f i)"
+proof cases
+  assume "finite I" from this pos show ?thesis by induct auto
+qed simp
+
+lemma setprod_PInf:
+  assumes "\<And>i. i \<in> I \<Longrightarrow> 0 \<le> f i"
+  shows "(\<Prod>i\<in>I. f i) = \<infinity> \<longleftrightarrow> finite I \<and> (\<exists>i\<in>I. f i = \<infinity>) \<and> (\<forall>i\<in>I. f i \<noteq> 0)"
+proof cases
+  assume "finite I" from this assms show ?thesis
+  proof (induct I)
+    case (insert i I)
+    then have pos: "0 \<le> f i" "0 \<le> setprod f I" by (auto intro!: setprod_extreal_pos)
+    from insert have "(\<Prod>j\<in>insert i I. f j) = \<infinity> \<longleftrightarrow> setprod f I * f i = \<infinity>" by auto
+    also have "\<dots> \<longleftrightarrow> (setprod f I = \<infinity> \<or> f i = \<infinity>) \<and> f i \<noteq> 0 \<and> setprod f I \<noteq> 0"
+      using setprod_extreal_pos[of I f] pos
+      by (cases rule: extreal2_cases[of "f i" "setprod f I"]) auto
+    also have "\<dots> \<longleftrightarrow> finite (insert i I) \<and> (\<exists>j\<in>insert i I. f j = \<infinity>) \<and> (\<forall>j\<in>insert i I. f j \<noteq> 0)"
+      using insert by (auto simp: setprod_extreal_0)
+    finally show ?case .
+  qed simp
+qed simp
+
+lemma setprod_extreal: "(\<Prod>i\<in>A. extreal (f i)) = extreal (setprod f A)"
+proof cases
+  assume "finite A" then show ?thesis
+    by induct (auto simp: one_extreal_def)
+qed (simp add: one_extreal_def)
+
 subsubsection {* Power *}
 
 instantiation extreal :: power
@@ -889,6 +962,11 @@ definition "x / y = x * inverse (y :: extreal)"
 
 instance proof qed
 end
+
+lemma real_of_extreal_inverse[simp]:
+  fixes a :: extreal
+  shows "real (inverse a) = 1 / real a"
+  by (cases a) (auto simp: inverse_eq_divide)
 
 lemma extreal_inverse[simp]:
   "inverse 0 = \<infinity>"
@@ -1620,6 +1698,28 @@ lemma INFI_extreal_cminus:
   unfolding SUPR_def INFI_def image_image
   by auto
 
+lemma uminus_extreal_add_uminus_uminus:
+  fixes a b :: extreal shows "a \<noteq> \<infinity> \<Longrightarrow> b \<noteq> \<infinity> \<Longrightarrow> - (- a + - b) = a + b"
+  by (cases rule: extreal2_cases[of a b]) auto
+
+lemma INFI_extreal_add:
+  assumes "decseq f" "decseq g" and fin: "\<And>i. f i \<noteq> \<infinity>" "\<And>i. g i \<noteq> \<infinity>"
+  shows "(INF i. f i + g i) = INFI UNIV f + INFI UNIV g"
+proof -
+  have INF_less: "(INF i. f i) < \<infinity>" "(INF i. g i) < \<infinity>"
+    using assms unfolding INF_less_iff by auto
+  { fix i from fin[of i] have "- ((- f i) + (- g i)) = f i + g i"
+      by (rule uminus_extreal_add_uminus_uminus) }
+  then have "(INF i. f i + g i) = (INF i. - ((- f i) + (- g i)))"
+    by simp
+  also have "\<dots> = INFI UNIV f + INFI UNIV g"
+    unfolding extreal_INFI_uminus
+    using assms INF_less
+    by (subst SUPR_extreal_add)
+       (auto simp: extreal_SUPR_uminus intro!: uminus_extreal_add_uminus_uminus)
+  finally show ?thesis .
+qed
+
 subsection "Limits on @{typ extreal}"
 
 subsubsection "Topological space"
@@ -1935,9 +2035,6 @@ moreover
   } ultimately have ?thesis by (cases C) auto
 } ultimately show ?thesis by blast
 qed
-
-lemma real_of_extreal_0[simp]: "real (0::extreal) = 0"
-  unfolding real_of_extreal_def zero_extreal_def by simp
 
 lemma real_of_extreal_mult[simp]:
   fixes a b :: extreal shows "real (a * b) = real a * real b"
@@ -2405,7 +2502,6 @@ proof-
 { fix x have "(real o extreal) x = id x" by auto }
 from this show ?thesis using ext by blast
 qed
-
 
 lemma open_image_extreal: "open(UNIV-{\<infinity>,(-\<infinity>)})"
 by (metis range_extreal open_extreal open_UNIV)

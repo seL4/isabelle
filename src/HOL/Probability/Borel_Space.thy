@@ -1346,15 +1346,6 @@ proof cases
     by induct auto
 qed (simp add: borel_measurable_const)
 
-lemma abs_extreal_ge0[simp]: "0 \<le> x \<Longrightarrow> \<bar>x :: extreal\<bar> = x"
-  by (cases x) auto
-
-lemma abs_extreal_less0[simp]: "x < 0 \<Longrightarrow> \<bar>x :: extreal\<bar> = -x"
-  by (cases x) auto
-
-lemma abs_extreal_pos[simp]: "0 \<le> \<bar>x :: extreal\<bar>"
-  by (cases x) auto
-
 lemma (in sigma_algebra) borel_measurable_extreal_abs[intro, simp]:
   fixes f :: "'a \<Rightarrow> extreal" assumes "f \<in> borel_measurable M"
   shows "(\<lambda>x. \<bar>f x\<bar>) \<in> borel_measurable M"

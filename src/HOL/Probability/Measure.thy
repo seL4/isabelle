@@ -1162,16 +1162,11 @@ proof -
     using finite_measure_of_space by auto
 qed
 
-lemma (in finite_measure) measure_not_inf:
-  assumes A: "A \<in> sets M"
-  shows "\<bar>\<mu> A\<bar> \<noteq> \<infinity>"
-  using finite_measure[OF A] positive_measure[OF A] by auto
-
 definition (in finite_measure)
   "\<mu>' A = (if A \<in> sets M then real (\<mu> A) else 0)"
 
 lemma (in finite_measure) finite_measure_eq: "A \<in> sets M \<Longrightarrow> \<mu> A = extreal (\<mu>' A)"
-  using measure_not_inf[of A] by (auto simp: \<mu>'_def)
+  by (auto simp: \<mu>'_def extreal_real)
 
 lemma (in finite_measure) positive_measure': "0 \<le> \<mu>' A"
   unfolding \<mu>'_def by (auto simp: real_of_extreal_pos)
@@ -1182,8 +1177,7 @@ proof cases
   moreover then have "\<mu> A \<le> \<mu> (space M)"
     using sets_into_space by (auto intro!: measure_mono)
   ultimately show ?thesis
-    using measure_not_inf[of A] measure_not_inf[of "space M"]
-    by (auto simp: \<mu>'_def)
+    by (auto simp: \<mu>'_def intro!: real_of_extreal_positive_mono)
 qed (simp add: \<mu>'_def real_of_extreal_pos)
 
 lemma (in finite_measure) restricted_finite_measure:

@@ -116,22 +116,6 @@ next
   qed (auto intro: LIMSEQ_indicator_UN simp: cube_def)
 qed simp
 
-lemma suminf_SUP_eq:
-  fixes f :: "nat \<Rightarrow> nat \<Rightarrow> extreal"
-  assumes "\<And>i. incseq (\<lambda>n. f n i)" "\<And>n i. 0 \<le> f n i"
-  shows "(\<Sum>i. SUP n. f n i) = (SUP n. \<Sum>i. f n i)"
-proof -
-  { fix n :: nat
-    have "(\<Sum>i<n. SUP k. f k i) = (SUP k. \<Sum>i<n. f k i)"
-      using assms by (auto intro!: SUPR_extreal_setsum[symmetric]) }
-  note * = this
-  show ?thesis using assms
-    apply (subst (1 2) suminf_extreal_eq_SUPR)
-    unfolding *
-    apply (auto intro!: le_SUPI2)
-    apply (subst SUP_commute) ..
-qed
-
 interpretation lebesgue: measure_space lebesgue
 proof
   have *: "indicator {} = (\<lambda>x. 0 :: real)" by (simp add: fun_eq_iff)
@@ -558,10 +542,6 @@ qed
 
 subsection {* Lebesgue integrable implies Gauge integrable *}
 
-lemma positive_not_Inf:
-  "0 \<le> x \<Longrightarrow> x \<noteq> \<infinity> \<Longrightarrow> \<bar>x\<bar> \<noteq> \<infinity>"
-  by (cases x) auto
-
 lemma has_integral_cmult_real:
   fixes c :: real
   assumes "c \<noteq> 0 \<Longrightarrow> (f has_integral x) A"
@@ -647,10 +627,6 @@ proof -
     finally show "x = 0" unfolding inf using i subsetD[OF rng x] by (auto split: split_if_asm)
   qed
 qed
-
-lemma real_of_extreal_positive_mono:
-  "\<lbrakk>0 \<le> x; x \<le> y; y \<noteq> \<infinity>\<rbrakk> \<Longrightarrow> real x \<le> real y"
-  by (cases rule: extreal2_cases[of x y]) auto
 
 lemma positive_integral_has_integral:
   fixes f :: "'a::ordered_euclidean_space \<Rightarrow> extreal"

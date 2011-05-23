@@ -9,23 +9,6 @@ theory Probability_Measure
 imports Lebesgue_Integration Radon_Nikodym Finite_Product_Measure Lebesgue_Measure
 begin
 
-lemma real_of_extreal_inverse[simp]:
-  fixes X :: extreal
-  shows "real (inverse X) = 1 / real X"
-  by (cases X) (auto simp: inverse_eq_divide)
-
-lemma real_of_extreal_le_0[simp]: "real (X :: extreal) \<le> 0 \<longleftrightarrow> (X \<le> 0 \<or> X = \<infinity>)"
-  by (cases X) auto
-
-lemma abs_real_of_extreal[simp]: "\<bar>real (X :: extreal)\<bar> = real \<bar>X\<bar>"
-  by (cases X) auto
-
-lemma zero_less_real_of_extreal: "0 < real X \<longleftrightarrow> (0 < X \<and> X \<noteq> \<infinity>)"
-  by (cases X) auto
-
-lemma real_of_extreal_le_1: fixes X :: extreal shows "X \<le> 1 \<Longrightarrow> real X \<le> 1"
-  by (cases X) (auto simp: one_extreal_def)
-
 locale prob_space = measure_space +
   assumes measure_space_1: "measure M (space M) = 1"
 
@@ -82,6 +65,11 @@ lemma (in prob_space) distribution_positive[simp, intro]:
 lemma (in prob_space) joint_distribution_remove[simp]:
     "joint_distribution X X {(x, x)} = distribution X {x}"
   unfolding distribution_def by (auto intro!: arg_cong[where f=\<mu>'])
+
+lemma (in prob_space) measure_le_1: "X \<in> sets M \<Longrightarrow> \<mu> X \<le> 1"
+  unfolding measure_space_1[symmetric]
+  using sets_into_space
+  by (intro measure_mono) auto
 
 lemma (in prob_space) distribution_1:
   "distribution X A \<le> 1"
@@ -1016,10 +1004,6 @@ proof -
     finally show "max 0 (Z x) = (SUP i. g i (Y x))" .
   qed
 qed
-
-lemma extreal_0_le_iff_le_0[simp]:
-  fixes a :: extreal shows "0 \<le> -a \<longleftrightarrow> a \<le> 0"
-  by (cases rule: extreal2_cases[of a]) auto
 
 lemma (in sigma_algebra) factorize_measurable_function:
   fixes Z :: "'a \<Rightarrow> extreal" and Y :: "'a \<Rightarrow> 'c"

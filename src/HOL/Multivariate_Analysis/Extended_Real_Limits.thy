@@ -805,6 +805,21 @@ moreover
 } ultimately show ?thesis by auto
 qed
 
+lemma liminf_extreal_cminus:
+  fixes f :: "nat \<Rightarrow> extreal" assumes "c \<noteq> -\<infinity>"
+  shows "liminf (\<lambda>x. c - f x) = c - limsup f"
+proof (cases c)
+  case PInf then show ?thesis by (simp add: Liminf_const)
+next
+  case (real r) then show ?thesis
+    unfolding liminf_SUPR_INFI limsup_INFI_SUPR
+    apply (subst INFI_extreal_cminus)
+    apply auto
+    apply (subst SUPR_extreal_cminus)
+    apply auto
+    done
+qed (insert `c \<noteq> -\<infinity>`, simp)
+
 subsubsection {* Continuity *}
 
 lemma continuous_imp_tendsto:
@@ -1257,6 +1272,22 @@ proof (rule summable_def[THEN iffD2])
     using f by (auto intro!: summable_extreal_pos summable_sums simp: extreal_le_real_iff zero_extreal_def)
   also have "\<dots> = extreal r" using fin r by (auto simp: extreal_real)
   finally show "\<exists>r. (\<lambda>i. real (f i)) sums r" by (auto simp: sums_extreal)
+qed
+
+lemma suminf_SUP_eq:
+  fixes f :: "nat \<Rightarrow> nat \<Rightarrow> extreal"
+  assumes "\<And>i. incseq (\<lambda>n. f n i)" "\<And>n i. 0 \<le> f n i"
+  shows "(\<Sum>i. SUP n. f n i) = (SUP n. \<Sum>i. f n i)"
+proof -
+  { fix n :: nat
+    have "(\<Sum>i<n. SUP k. f k i) = (SUP k. \<Sum>i<n. f k i)"
+      using assms by (auto intro!: SUPR_extreal_setsum[symmetric]) }
+  note * = this
+  show ?thesis using assms
+    apply (subst (1 2) suminf_extreal_eq_SUPR)
+    unfolding *
+    apply (auto intro!: le_SUPI2)
+    apply (subst SUP_commute) ..
 qed
 
 end

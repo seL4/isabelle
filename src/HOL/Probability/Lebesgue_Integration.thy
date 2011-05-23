@@ -45,9 +45,6 @@ proof -
   then show ?thesis using assms by (auto intro: measurable_sets)
 qed
 
-lemma incseq_extreal: "incseq f \<Longrightarrow> incseq (\<lambda>x. extreal (f x))"
-  unfolding incseq_def by auto
-
 lemma incseq_Suc_iff: "incseq f \<longleftrightarrow> (\<forall>n. f n \<le> f (Suc n))"
 proof
   assume "\<forall>n. f n \<le> f (Suc n)" then show "incseq f" by (auto intro!: incseq_SucI)
@@ -2183,21 +2180,6 @@ lemma (in measure_space) integral_real:
   "AE x. \<bar>f x\<bar> \<noteq> \<infinity> \<Longrightarrow> (\<integral>x. real (f x) \<partial>M) = real (integral\<^isup>P M f) - real (integral\<^isup>P M (\<lambda>x. - f x))"
   using assms unfolding lebesgue_integral_def
   by (subst (1 2) positive_integral_cong_AE) (auto simp add: extreal_real)
-
-lemma liminf_extreal_cminus:
-  fixes f :: "nat \<Rightarrow> extreal" assumes "c \<noteq> -\<infinity>"
-  shows "liminf (\<lambda>x. c - f x) = c - limsup f"
-proof (cases c)
-  case PInf then show ?thesis by (simp add: Liminf_const)
-next
-  case (real r) then show ?thesis
-    unfolding liminf_SUPR_INFI limsup_INFI_SUPR
-    apply (subst INFI_extreal_cminus)
-    apply auto
-    apply (subst SUPR_extreal_cminus)
-    apply auto
-    done
-qed (insert `c \<noteq> -\<infinity>`, simp)
 
 lemma (in measure_space) integral_dominated_convergence:
   assumes u: "\<And>i. integrable M (u i)" and bound: "\<And>x j. x\<in>space M \<Longrightarrow> \<bar>u j x\<bar> \<le> w x"
