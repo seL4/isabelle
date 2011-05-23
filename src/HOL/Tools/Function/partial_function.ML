@@ -7,7 +7,7 @@ Partial function definitions based on least fixed points in ccpos.
 signature PARTIAL_FUNCTION =
 sig
   val setup: theory -> theory
-  val init: term -> term -> thm -> declaration
+  val init: string -> term -> term -> thm -> declaration
 
   val add_partial_function: string -> (binding * typ option * mixfix) list ->
     Attrib.binding * term -> local_theory -> local_theory
@@ -30,16 +30,12 @@ structure Modes = Generic_Data
   fun merge data = Symtab.merge (K true) data;
 )
 
-fun init fixp mono fixp_eq phi =
+fun init mode fixp mono fixp_eq phi =
   let
     val term = Morphism.term phi;
     val data' = ((term fixp, term mono), Morphism.thm phi fixp_eq);
-    val mode = (* extract mode identifier from morphism prefix! *)
-      Binding.prefix_of (Morphism.binding phi (Binding.empty))
-      |> map fst |> space_implode ".";
   in
-    if mode = "" then I
-    else Modes.map (Symtab.update (mode, data'))
+    Modes.map (Symtab.update (mode, data'))
   end
 
 val known_modes = Symtab.keys o Modes.get o Context.Proof;

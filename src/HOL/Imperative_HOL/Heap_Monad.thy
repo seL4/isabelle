@@ -425,6 +425,10 @@ proof -
     by (simp only: Heap_ord_def Heap_lub_def)
 qed
 
+declaration {* Partial_Function.init "heap" @{term heap.fixp_fun}
+  @{term heap.mono_body} @{thm heap.fixp_rule_uc} *}
+
+
 abbreviation "mono_Heap \<equiv> monotone (fun_ord Heap_ord) Heap_ord"
 
 lemma Heap_ordI:

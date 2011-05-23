@@ -16,7 +16,7 @@ setup Partial_Function.setup
 subsection {* Axiomatic setup *}
 
 text {* This techical locale constains the requirements for function
-  definitions with ccpo fixed points.  *}
+  definitions with ccpo fixed points. *}
 
 definition "fun_ord ord f g \<longleftrightarrow> (\<forall>x. ord (f x) (g x))"
 definition "fun_lub L A = (\<lambda>x. L {y. \<exists>f\<in>A. y = f x})"
@@ -169,9 +169,6 @@ text {* Rules for @{term mono_body}: *}
 lemma const_mono[partial_function_mono]: "monotone ord leq (\<lambda>f. c)"
 by (rule monotoneI) (rule leq_refl)
 
-declaration {* Partial_Function.init @{term fixp_fun}
-  @{term mono_body} @{thm fixp_rule_uc} *}
-
 end
 
 
@@ -225,6 +222,13 @@ by (rule flat_interpretation)
 interpretation option!:
   partial_function_definitions "flat_ord None" "flat_lub None"
 by (rule flat_interpretation)
+
+declaration {* Partial_Function.init "tailrec" @{term tailrec.fixp_fun}
+  @{term tailrec.mono_body} @{thm tailrec.fixp_rule_uc} *}
+
+declaration {* Partial_Function.init "option" @{term option.fixp_fun}
+  @{term option.mono_body} @{thm option.fixp_rule_uc} *}
+
 
 abbreviation "option_ord \<equiv> flat_ord None"
 abbreviation "mono_option \<equiv> monotone (fun_ord option_ord) option_ord"
