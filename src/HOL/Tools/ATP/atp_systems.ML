@@ -360,13 +360,15 @@ fun find_system name [] systems =
 fun get_system name versions =
   Synchronized.change_result systems
       (fn systems => (if null systems then get_systems () else systems)
-                     |> `(find_system name versions))
+                     |> `(`(find_system name versions)))
 
 fun the_system name versions =
   case get_system name versions of
-    SOME sys => sys
-  | NONE => error ("System " ^ quote name ^
-                   " is not available at SystemOnTPTP.")
+    (SOME sys, _) => sys
+  | (NONE, []) => error ("SystemOnTPTP is currently not available.")
+  | (NONE, syss) =>
+    error ("System " ^ quote name ^ " is not available at SystemOnTPTP.\n" ^
+           "(Available systems: " ^ commas_quote syss ^ ".)")
 
 val max_remote_secs = 240 (* give Geoff Sutcliffe's servers a break *)
 
