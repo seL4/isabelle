@@ -146,7 +146,7 @@ fun fact_from_ref ctxt reserved chained_ths (xthm as (xref, args)) =
     (ths, (0, []))
     |-> fold (fn th => fn (j, rest) =>
                  (j + 1, ((nth_name j,
-                          if member Thm.eq_thm chained_ths th then Chained
+                          if member Thm.eq_thm_prop chained_ths th then Chained
                           else General), th) :: rest))
     |> snd
   end
@@ -600,7 +600,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
               [Chained, Assum, Local]
     val add_ths = Attrib.eval_thms ctxt add
     val del_ths = Attrib.eval_thms ctxt del
-    val facts = facts |> filter_out (member Thm.eq_thm del_ths o snd)
+    val facts = facts |> filter_out (member Thm.eq_thm_prop del_ths o snd)
     fun iter j remaining_max threshold rel_const_tab hopeless hopeful =
       let
         fun relevant [] _ [] =
@@ -673,12 +673,12 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
           relevant [] [] hopeful
         end
     fun prepend_facts ths accepts =
-      ((facts |> filter (member Thm.eq_thm ths o snd)) @
-       (accepts |> filter_out (member Thm.eq_thm ths o snd)))
+      ((facts |> filter (member Thm.eq_thm_prop ths o snd)) @
+       (accepts |> filter_out (member Thm.eq_thm_prop ths o snd)))
       |> take max_relevant
     fun append_facts ths accepts =
-      let val add = facts |> filter (member Thm.eq_thm ths o snd) in
-        (accepts |> filter_out (member Thm.eq_thm ths o snd)
+      let val add = facts |> filter (member Thm.eq_thm_prop ths o snd) in
+        (accepts |> filter_out (member Thm.eq_thm_prop ths o snd)
                  |> take (max_relevant - length add)) @
         add
       end
@@ -823,7 +823,7 @@ fun all_facts ctxt reserved really_all is_appropriate_prop add_ths chained_ths =
     val named_locals = local_facts |> Facts.dest_static []
     val assms = Assumption.all_assms_of ctxt
     fun is_assum th = exists (fn ct => prop_of th aconv term_of ct) assms
-    val is_chained = member Thm.eq_thm chained_ths
+    val is_chained = member Thm.eq_thm_prop chained_ths
     val (intros, elims, simps) = clasimpset_rules_of ctxt
     fun locality_of_theorem global th =
       if is_chained th then
@@ -839,16 +839,16 @@ fun all_facts ctxt reserved really_all is_appropriate_prop add_ths chained_ths =
         if is_assum th then Assum else Local
     fun is_good_unnamed_local th =
       not (Thm.has_name_hint th) andalso
-      forall (fn (_, ths) => not (member Thm.eq_thm ths th)) named_locals
+      forall (fn (_, ths) => not (member Thm.eq_thm_prop ths th)) named_locals
     val unnamed_locals =
-      union Thm.eq_thm (Facts.props local_facts) chained_ths
+      union Thm.eq_thm_prop (Facts.props local_facts) chained_ths
       |> filter is_good_unnamed_local |> map (pair "" o single)
     val full_space =
       Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)
     fun add_facts global foldx facts =
       foldx (fn (name0, ths) =>
         if not really_all andalso name0 <> "" andalso
-           forall (not o member Thm.eq_thm add_ths) ths andalso
+           forall (not o member Thm.eq_thm_prop add_ths) ths andalso
            (Facts.is_concealed facts name0 orelse
             (not (Config.get ctxt ignore_no_atp) andalso
              is_package_def name0) orelse
@@ -864,12 +864,12 @@ fun all_facts ctxt reserved really_all is_appropriate_prop add_ths chained_ths =
             fun check_thms a =
               case try (Proof_Context.get_thms ctxt) a of
                 NONE => false
-              | SOME ths' => Thm.eq_thms (ths, ths')
+              | SOME ths' => eq_list Thm.eq_thm_prop (ths, ths')
           in
             pair 1
             #> fold (fn th => fn (j, rest) =>
                         (j + 1,
-                         if not (member Thm.eq_thm add_ths th) andalso
+                         if not (member Thm.eq_thm_prop add_ths th) andalso
                             is_theorem_bad_for_atps is_appropriate_prop th then
                            rest
                          else
