@@ -240,8 +240,8 @@ fun type_arg_policy type_sys s =
   else
     general_type_arg_policy type_sys
 
-fun atp_type_literals_for_types type_sys kind Ts =
-  if level_of_type_sys type_sys = No_Types then
+fun atp_type_literals_for_types format type_sys kind Ts =
+  if level_of_type_sys type_sys = No_Types orelse format = CNF_UEQ then
     []
   else
     Ts |> type_literals_for_types
@@ -880,28 +880,28 @@ and formula_from_combformula ctxt nonmono_Ts type_sys should_predicate_on_var =
       | do_formula _ (AAtom tm) = AAtom (do_term tm)
   in do_formula o SOME end
 
-fun bound_atomic_types type_sys Ts =
+fun bound_atomic_types format type_sys Ts =
   mk_ahorn (map (formula_from_fo_literal o fo_literal_from_type_literal)
-                (atp_type_literals_for_types type_sys Axiom Ts))
+                (atp_type_literals_for_types format type_sys Axiom Ts))
 
-fun formula_for_fact ctxt nonmono_Ts type_sys
+fun formula_for_fact ctxt format nonmono_Ts type_sys
                      ({combformula, atomic_types, ...} : translated_formula) =
   combformula
   |> close_combformula_universally
   |> formula_from_combformula ctxt nonmono_Ts type_sys
                               is_var_nonmonotonic_in_formula true
-  |> bound_atomic_types type_sys atomic_types
+  |> bound_atomic_types format type_sys atomic_types
   |> close_formula_universally
 
 (* Each fact is given a unique fact number to avoid name clashes (e.g., because
    of monomorphization). The TPTP explicitly forbids name clashes, and some of
    the remote provers might care. *)
-fun formula_line_for_fact ctxt prefix nonmono_Ts type_sys
+fun formula_line_for_fact ctxt format prefix nonmono_Ts type_sys
                           (j, formula as {name, locality, kind, ...}) =
   Formula (prefix ^ (if polymorphism_of_type_sys type_sys = Polymorphic then ""
                      else string_of_int j ^ "_") ^
            ascii_of name,
-           kind, formula_for_fact ctxt nonmono_Ts type_sys formula, NONE,
+           kind, formula_for_fact ctxt format nonmono_Ts type_sys formula, NONE,
            case locality of
              Intro => intro_info
            | Elim => elim_info
@@ -939,16 +939,17 @@ fun formula_line_for_conjecture ctxt nonmono_Ts type_sys
                (close_combformula_universally combformula)
            |> close_formula_universally, NONE, NONE)
 
-fun free_type_literals type_sys ({atomic_types, ...} : translated_formula) =
-  atomic_types |> atp_type_literals_for_types type_sys Conjecture
+fun free_type_literals format type_sys
+                       ({atomic_types, ...} : translated_formula) =
+  atomic_types |> atp_type_literals_for_types format type_sys Conjecture
                |> map fo_literal_from_type_literal
 
 fun formula_line_for_free_type j lit =
   Formula (tfree_prefix ^ string_of_int j, Hypothesis,
            formula_from_fo_literal lit, NONE, NONE)
-fun formula_lines_for_free_types type_sys facts =
+fun formula_lines_for_free_types format type_sys facts =
   let
-    val litss = map (free_type_literals type_sys) facts
+    val litss = map (free_type_literals format type_sys) facts
     val lits = fold (union (op =)) litss []
   in map2 formula_line_for_free_type (0 upto length lits - 1) lits end
 
@@ -1039,8 +1040,8 @@ fun decl_line_for_sym ctxt nonmono_Ts level s (s', _, T, pred_sym, ary, _) =
 
 fun is_polymorphic_type T = fold_atyps (fn TVar _ => K true | _ => I) T false
 
-fun formula_line_for_pred_sym_decl ctxt conj_sym_kind nonmono_Ts type_sys n s j
-                                   (s', T_args, T, _, ary, in_conj) =
+fun formula_line_for_pred_sym_decl ctxt format conj_sym_kind nonmono_Ts type_sys
+                                   n s j (s', T_args, T, _, ary, in_conj) =
   let
     val (kind, maybe_negate) =
       if in_conj then (conj_sym_kind, conj_sym_kind = Conjecture ? mk_anot)
@@ -1063,14 +1064,14 @@ fun formula_line_for_pred_sym_decl ctxt conj_sym_kind nonmono_Ts type_sys n s j
              |> mk_aquant AForall (bound_names ~~ bound_Ts)
              |> formula_from_combformula ctxt nonmono_Ts type_sys
                                          (K (K (K (K true)))) true
-             |> n > 1 ? bound_atomic_types type_sys (atyps_of T)
+             |> n > 1 ? bound_atomic_types format type_sys (atyps_of T)
              |> close_formula_universally
              |> maybe_negate,
              intro_info, NONE)
   end
 
-fun formula_lines_for_tag_sym_decl ctxt conj_sym_kind nonmono_Ts type_sys n s
-                                  (j, (s', T_args, T, pred_sym, ary, in_conj)) =
+fun formula_lines_for_tag_sym_decl ctxt format conj_sym_kind nonmono_Ts type_sys
+        n s (j, (s', T_args, T, pred_sym, ary, in_conj)) =
   let
     val ident_base =
       sym_decl_prefix ^ s ^ (if n > 1 then "_" ^ string_of_int j else "")
@@ -1086,7 +1087,7 @@ fun formula_lines_for_tag_sym_decl ctxt conj_sym_kind nonmono_Ts type_sys n s
     fun eq tms =
       (if pred_sym then AConn (AIff, map AAtom tms)
        else AAtom (ATerm (`I "equal", tms)))
-      |> bound_atomic_types type_sys atomic_Ts
+      |> bound_atomic_types format type_sys atomic_Ts
       |> close_formula_universally
       |> maybe_negate
     val should_encode = should_encode_type ctxt nonmono_Ts All_Types
@@ -1119,7 +1120,7 @@ fun formula_lines_for_tag_sym_decl ctxt conj_sym_kind nonmono_Ts type_sys n s
 
 fun result_type_of_decl (_, _, T, _, ary, _) = chop_fun ary T |> snd
 
-fun problem_lines_for_sym_decls ctxt conj_sym_kind nonmono_Ts type_sys
+fun problem_lines_for_sym_decls ctxt format conj_sym_kind nonmono_Ts type_sys
                                 (s, decls) =
   case type_sys of
     Simple_Types level => map (decl_line_for_sym ctxt nonmono_Ts level s) decls
@@ -1143,8 +1144,8 @@ fun problem_lines_for_sym_decls ctxt conj_sym_kind nonmono_Ts type_sys
                    o result_type_of_decl)
     in
       (0 upto length decls - 1, decls)
-      |-> map2 (formula_line_for_pred_sym_decl ctxt conj_sym_kind nonmono_Ts
-                                               type_sys n s)
+      |-> map2 (formula_line_for_pred_sym_decl ctxt format conj_sym_kind
+                                               nonmono_Ts type_sys n s)
     end
   | Tags (_, _, heaviness) =>
     (case heaviness of
@@ -1152,15 +1153,16 @@ fun problem_lines_for_sym_decls ctxt conj_sym_kind nonmono_Ts type_sys
      | Light =>
        let val n = length decls in
          (0 upto n - 1 ~~ decls)
-         |> maps (formula_lines_for_tag_sym_decl ctxt conj_sym_kind nonmono_Ts
-                                                 type_sys n s)
+         |> maps (formula_lines_for_tag_sym_decl ctxt format conj_sym_kind
+                                                 nonmono_Ts type_sys n s)
        end)
 
-fun problem_lines_for_sym_decl_table ctxt conj_sym_kind nonmono_Ts type_sys
-                                     sym_decl_tab =
-  Symtab.fold_rev (append o problem_lines_for_sym_decls ctxt conj_sym_kind
-                                                        nonmono_Ts type_sys)
-                  sym_decl_tab []
+fun problem_lines_for_sym_decl_table ctxt format conj_sym_kind nonmono_Ts
+                                     type_sys sym_decl_tab =
+  Symtab.fold_rev
+      (append o problem_lines_for_sym_decls ctxt format conj_sym_kind nonmono_Ts
+                                            type_sys)
+      sym_decl_tab []
 
 fun add_tff_types_in_formula (AQuant (_, xs, phi)) =
     union (op =) (map_filter snd xs) #> add_tff_types_in_formula phi
@@ -1218,27 +1220,28 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
     val sym_decl_lines =
       (conjs, helpers @ facts)
       |> sym_decl_table_for_facts ctxt type_sys repaired_sym_tab
-      |> problem_lines_for_sym_decl_table ctxt conj_sym_kind lavish_nonmono_Ts
-                                          type_sys
+      |> problem_lines_for_sym_decl_table ctxt format conj_sym_kind
+                                          lavish_nonmono_Ts type_sys
     val helper_lines =
-      map (formula_line_for_fact ctxt helper_prefix lavish_nonmono_Ts type_sys)
-          (0 upto length helpers - 1 ~~ helpers)
-      |> (if should_add_ti_ti_helper type_sys then
-            cons (ti_ti_helper_fact ())
-          else
-            I)
+      0 upto length helpers - 1 ~~ helpers
+      |> map (formula_line_for_fact ctxt format helper_prefix lavish_nonmono_Ts
+                                    type_sys)
+      |> (if should_add_ti_ti_helper type_sys then cons (ti_ti_helper_fact ())
+          else I)
     (* Reordering these might confuse the proof reconstruction code or the SPASS
        Flotter hack. *)
     val problem =
       [(sym_declsN, sym_decl_lines),
-       (factsN, map (formula_line_for_fact ctxt fact_prefix nonmono_Ts type_sys)
-                    (0 upto length facts - 1 ~~ facts)),
+       (factsN,
+        map (formula_line_for_fact ctxt format fact_prefix nonmono_Ts type_sys)
+            (0 upto length facts - 1 ~~ facts)),
        (class_relsN, map formula_line_for_class_rel_clause class_rel_clauses),
        (aritiesN, map formula_line_for_arity_clause arity_clauses),
        (helpersN, helper_lines),
        (conjsN, map (formula_line_for_conjecture ctxt nonmono_Ts type_sys)
                     conjs),
-       (free_typesN, formula_lines_for_free_types type_sys (facts @ conjs))]
+       (free_typesN,
+        formula_lines_for_free_types format type_sys (facts @ conjs))]
     val problem =
       problem
       |> (case type_sys of

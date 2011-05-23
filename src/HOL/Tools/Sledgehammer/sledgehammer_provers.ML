@@ -157,15 +157,23 @@ val atp_irrelevant_consts =
    @{const_name conj}, @{const_name disj}, @{const_name implies},
    @{const_name HOL.eq}, @{const_name If}, @{const_name Let}]
 
+fun is_if (@{const_name If}, _) = true
+  | is_if _ = false
+
+(* Beware of "if and only if" (which is translated as such) and "If" (which is
+   translated to conditional equations). *)
+fun is_good_unit_equality T t u =
+  T <> @{typ bool} andalso not (exists (exists_Const is_if) [t, u])
+
 fun is_unit_equality (@{const Trueprop} $ t) = is_unit_equality t
   | is_unit_equality (Const (@{const_name all}, _) $ Abs (_, _, t)) =
     is_unit_equality t
   | is_unit_equality (Const (@{const_name All}, _) $ Abs (_, _, t)) =
     is_unit_equality t
-  | is_unit_equality (Const (@{const_name "=="}, Type (_, [T, _])) $ _ $ _) =
-    T <> @{typ bool}
-  | is_unit_equality (Const (@{const_name HOL.eq}, Type (_ , [T, _])) $ _ $ _) =
-    T <> @{typ bool}
+  | is_unit_equality (Const (@{const_name "=="}, Type (_, [T, _])) $ t $ u) =
+    is_good_unit_equality T t u
+  | is_unit_equality (Const (@{const_name HOL.eq}, Type (_ , [T, _])) $ t $ u) =
+    is_good_unit_equality T t u
   | is_unit_equality _ = false
 
 fun is_appropriate_prop_for_prover ctxt name =
