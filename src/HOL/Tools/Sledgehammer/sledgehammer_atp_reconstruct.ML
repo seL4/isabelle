@@ -372,8 +372,8 @@ fun raw_term_from_pred thy sym_tab tfrees =
     fun aux opt_T extra_us u =
       case u of
         ATerm (a, us) =>
-        if String.isPrefix tff_type_prefix a then
-          @{const True} (* ignore TFF type information *)
+        if String.isPrefix simple_type_prefix a then
+          @{const True} (* ignore TPTP type information *)
         else case strip_prefix_and_unascii const_prefix a of
           SOME "equal" =>
           let val ts = map (aux NONE []) us in

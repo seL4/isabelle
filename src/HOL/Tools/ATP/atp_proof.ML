@@ -367,11 +367,12 @@ fun find_formula_in_problem problem phi =
   problem |> maps snd |> map_filter (matching_formula_line_identifier phi)
           |> try hd
 
-(* Syntax: (cnf|fof|tff)\(<num>, <formula_role>, <formula> <extra_arguments>\).
+(* Syntax: (cnf|fof|tff|thf)\(<num>, <formula_role>,
+            <formula> <extra_arguments>\).
    The <num> could be an identifier, but we assume integers. *)
 fun parse_tstp_line problem =
-  ((Scan.this_string "cnf" || Scan.this_string "fof" || Scan.this_string "tff")
-      -- $$ "(")
+  ((Scan.this_string "cnf" || Scan.this_string "fof" || Scan.this_string "tff"
+    || Scan.this_string "thf") -- $$ "(")
     |-- scan_general_id --| $$ "," -- Symbol.scan_id --| $$ ","
     -- parse_formula -- parse_tstp_extra_arguments --| $$ ")" --| $$ "."
    >> (fn (((num, role), phi), deps) =>

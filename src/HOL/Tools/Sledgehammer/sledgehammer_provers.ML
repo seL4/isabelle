@@ -359,8 +359,8 @@ fun weight_smt_fact ctxt num_facts ((info, th), j) =
 
 fun untranslated_fact (Untranslated_Fact p) = p
   | untranslated_fact (SMT_Weighted_Fact (info, (_, th))) = (info, th)
-fun atp_translated_fact ctxt fact =
-  translate_atp_fact ctxt false (untranslated_fact fact)
+fun atp_translated_fact ctxt format fact =
+  translate_atp_fact ctxt format false (untranslated_fact fact)
 fun smt_weighted_fact _ _ (SMT_Weighted_Fact p, _) = p
   | smt_weighted_fact ctxt num_facts (fact, j) =
     (untranslated_fact fact, j) |> weight_smt_fact ctxt num_facts
@@ -439,12 +439,11 @@ val fallback_best_type_systems =
   [Preds (Mangled_Monomorphic, Nonmonotonic_Types, Light)]
 
 fun adjust_dumb_type_sys formats (Simple_Types level) =
-    if member (op =) formats TFF then (TFF, Simple_Types level)
-    else (FOF, Preds (Mangled_Monomorphic, level, Heavy))
+    (case inter (op =) formats [TFF, THF] of
+       format :: _ => (format, Simple_Types level)
+     | [] => adjust_dumb_type_sys formats
+                                  (Preds (Mangled_Monomorphic, level, Heavy)))
   | adjust_dumb_type_sys formats type_sys =
-    (* We could return (TFF, type_sys) in all cases but this would require the
-       TFF provers to accept problems in which constants are implicitly
-       declared. Today neither SNARK nor ToFoF-E satisfy this criterion. *)
     if member (op =) formats CNF_UEQ then
       (CNF_UEQ, case type_sys of
                   Tags _ => type_sys
@@ -453,7 +452,11 @@ fun adjust_dumb_type_sys formats (Simple_Types level) =
     else if member (op =) formats FOF then
       (FOF, type_sys)
     else
-      (TFF, Simple_Types All_Types)
+      (* We could return "type_sys" in all cases but this would require the
+         TFF and THF provers to accept problems in which constants are
+         implicitly declared. Today neither SNARK nor ToFoF-E satisfy this
+         criterion. (FIXME: what about LEO-II?) *)
+      (hd formats, Simple_Types All_Types)
 fun determine_format_and_type_sys _ formats (Dumb_Type_Sys type_sys) =
     adjust_dumb_type_sys formats type_sys
   | determine_format_and_type_sys best_type_systems formats
@@ -554,7 +557,7 @@ fun run_atp auto name
                                          o untranslated_fact)
                         |> polymorphism_of_type_sys type_sys <> Polymorphic
                            ? monomorphize_facts
-                        |> map (atp_translated_fact ctxt)
+                        |> map (atp_translated_fact ctxt format)
                 val real_ms = Real.fromInt o Time.toMilliseconds
                 val slice_timeout =
                   ((real_ms time_left

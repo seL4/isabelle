@@ -15,7 +15,7 @@ sig
     AConn of connective * ('a, 'b, 'c) formula list |
     AAtom of 'c
 
-  datatype format = CNF_UEQ | FOF | TFF
+  datatype format = CNF_UEQ | FOF | TFF | THF
   datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
   datatype 'a problem_line =
     Decl of string * 'a * 'a list * 'a |
@@ -27,9 +27,9 @@ sig
   val tptp_special_prefix : string
   val tptp_false : string
   val tptp_true : string
-  val tptp_tff_type_of_types : string
-  val tptp_tff_bool_type : string
-  val tptp_tff_individual_type : string
+  val tptp_type_of_types : string
+  val tptp_bool_type : string
+  val tptp_individual_type : string
   val is_atp_variable : string -> bool
   val mk_anot : ('a, 'b, 'c) formula -> ('a, 'b, 'c) formula
   val mk_aconn :
@@ -61,7 +61,7 @@ datatype ('a, 'b, 'c) formula =
   AConn of connective * ('a, 'b, 'c) formula list |
   AAtom of 'c
 
-datatype format = CNF_UEQ | FOF | TFF
+datatype format = CNF_UEQ | FOF | TFF | THF
 datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
 datatype 'a problem_line =
   Decl of string * 'a * 'a list * 'a |
@@ -73,9 +73,9 @@ type 'a problem = (string * 'a problem_line list) list
 val tptp_special_prefix = "$"
 val tptp_false = "$false"
 val tptp_true = "$true"
-val tptp_tff_type_of_types = "$tType"
-val tptp_tff_bool_type = "$o"
-val tptp_tff_individual_type = "$i"
+val tptp_type_of_types = "$tType"
+val tptp_bool_type = "$o"
+val tptp_individual_type = "$i"
 
 fun is_atp_variable s = Char.isUpper (String.sub (s, 0))
 
@@ -89,8 +89,8 @@ fun formula_map f (AQuant (q, xs, phi)) = AQuant (q, xs, formula_map f phi)
 
 val timestamp = Date.fmt "%Y-%m-%d %H:%M:%S" o Date.fromTimeLocal o Time.now
 
-(* This hash function is recommended in Compilers: Principles, Techniques, and
-   Tools, by Aho, Sethi, and Ullman. The "hashpjw" function, which they
+(* This hash function is recommended in "Compilers: Principles, Techniques, and
+   Tools" by Aho, Sethi, and Ullman. The "hashpjw" function, which they
    particularly recommend, triggers a bug in versions of Poly/ML up to 4.2.0. *)
 fun hashw (u, w) = Word.+ (u, Word.* (0w65599, w))
 fun hashw_char (c, w) = hashw (Word.fromInt (Char.ord c), w)
@@ -102,14 +102,18 @@ fun string_for_kind Axiom = "axiom"
   | string_for_kind Hypothesis = "hypothesis"
   | string_for_kind Conjecture = "conjecture"
 
-fun string_for_term (ATerm (s, [])) = s
-  | string_for_term (ATerm ("equal", ts)) =
-    space_implode " = " (map string_for_term ts)
-  | string_for_term (ATerm ("[]", ts)) =
+fun string_for_term _ (ATerm (s, [])) = s
+  | string_for_term format (ATerm ("equal", ts)) =
+    space_implode " = " (map (string_for_term format) ts)
+    |> format = THF ? enclose "(" ")"
+  | string_for_term format (ATerm ("[]", ts)) =
     (* used for lists in the optional "source" field of a derivation *)
-    "[" ^ commas (map string_for_term ts) ^ "]"
-  | string_for_term (ATerm (s, ts)) =
-    s ^ "(" ^ commas (map string_for_term ts) ^ ")"
+    "[" ^ commas (map (string_for_term format) ts) ^ "]"
+  | string_for_term format (ATerm (s, ts)) =
+    let val ss = map (string_for_term format) ts in
+      if format = THF then "(" ^ space_implode " @ " (s :: ss) ^ ")"
+      else s ^ "(" ^ commas ss ^ ")"
+    end
 fun string_for_quantifier AForall = "!"
   | string_for_quantifier AExists = "?"
 fun string_for_connective ANot = "~"
@@ -119,43 +123,52 @@ fun string_for_connective ANot = "~"
   | string_for_connective AIf = "<="
   | string_for_connective AIff = "<=>"
   | string_for_connective ANotIff = "<~>"
-fun string_for_bound_var TFF (s, ty) =
-    s ^ " : " ^ (ty |> the_default tptp_tff_individual_type)
-  | string_for_bound_var _ (s, _) = s
+fun string_for_bound_var format (s, ty) =
+    s ^ (if format = TFF orelse format = THF then
+           " : " ^ (ty |> the_default tptp_individual_type)
+         else
+           "")
 fun string_for_formula format (AQuant (q, xs, phi)) =
     "(" ^ string_for_quantifier q ^
     "[" ^ commas (map (string_for_bound_var format) xs) ^ "] : " ^
     string_for_formula format phi ^ ")"
-  | string_for_formula _ (AConn (ANot, [AAtom (ATerm ("equal", ts))])) =
-    space_implode " != " (map string_for_term ts)
+  | string_for_formula format (AConn (ANot, [AAtom (ATerm ("equal", ts))])) =
+    space_implode " != " (map (string_for_term format) ts)
   | string_for_formula format (AConn (c, [phi])) =
     "(" ^ string_for_connective c ^ " " ^ string_for_formula format phi ^ ")"
   | string_for_formula format (AConn (c, phis)) =
     "(" ^ space_implode (" " ^ string_for_connective c ^ " ")
                         (map (string_for_formula format) phis) ^ ")"
-  | string_for_formula _ (AAtom tm) = string_for_term tm
+  | string_for_formula format (AAtom tm) = string_for_term format tm
 
-fun string_for_symbol_type [] res_ty = res_ty
-  | string_for_symbol_type [arg_ty] res_ty = arg_ty ^ " > " ^ res_ty
-  | string_for_symbol_type arg_tys res_ty =
-    string_for_symbol_type ["(" ^ space_implode " * " arg_tys ^ ")"] res_ty
+fun string_for_symbol_type THF arg_tys res_ty =
+    space_implode " > " (arg_tys @ [res_ty])
+  | string_for_symbol_type _ [] res_ty = res_ty
+  | string_for_symbol_type _ [arg_ty] res_ty = arg_ty ^ " > " ^ res_ty
+  | string_for_symbol_type format arg_tys res_ty =
+    string_for_symbol_type format ["(" ^ space_implode " * " arg_tys ^ ")"]
+                           res_ty
 
 val default_source =
   ATerm ("inference", ATerm ("isabelle", []) :: replicate 2 (ATerm ("[]", [])))
 
-fun string_for_problem_line _ (Decl (ident, sym, arg_tys, res_ty)) =
-    "tff(" ^ ident ^ ", type,\n    " ^ sym ^ " : " ^
-    string_for_symbol_type arg_tys res_ty ^ ").\n"
+fun string_for_format CNF_UEQ = "cnf"
+  | string_for_format FOF = "fof"
+  | string_for_format TFF = "tff"
+  | string_for_format THF = "thf"
+
+fun string_for_problem_line format (Decl (ident, sym, arg_tys, res_ty)) =
+    string_for_format format ^ "(" ^ ident ^ ", type,\n    " ^ sym ^ " : " ^
+    string_for_symbol_type format arg_tys res_ty ^ ").\n"
   | string_for_problem_line format (Formula (ident, kind, phi, source, info)) =
-    (case format of CNF_UEQ => "cnf" | FOF => "fof" | TFF => "tff") ^
-    "(" ^ ident ^ ", " ^ string_for_kind kind ^ ",\n    (" ^
-    string_for_formula format phi ^ ")" ^
+    string_for_format format ^ "(" ^ ident ^ ", " ^ string_for_kind kind ^
+    ",\n    (" ^ string_for_formula format phi ^ ")" ^
     (case (source, info) of
        (NONE, NONE) => ""
-     | (SOME tm, NONE) => ", " ^ string_for_term tm
+     | (SOME tm, NONE) => ", " ^ string_for_term format tm
      | (_, SOME tm) =>
-       ", " ^ string_for_term (source |> the_default default_source) ^
-       ", " ^ string_for_term tm) ^ ").\n"
+       ", " ^ string_for_term format (source |> the_default default_source) ^
+       ", " ^ string_for_term format tm) ^ ").\n"
 fun tptp_strings_for_atp_problem format problem =
   "% This file was generated by Isabelle (most likely Sledgehammer)\n\
   \% " ^ timestamp () ^ "\n" ::
@@ -191,11 +204,12 @@ fun negate_conjecture_line (Formula (ident, Conjecture, phi, source, info)) =
     Formula (ident, Hypothesis, mk_anot phi, source, info)
   | negate_conjecture_line line = line
 
-val filter_cnf_ueq_problem =
-  map (apsnd (map open_formula_line
-              #> filter is_problem_line_cnf_ueq
-              #> map negate_conjecture_line))
-  #> (fn problem =>
+fun filter_cnf_ueq_problem problem =
+  problem
+  |> map (apsnd (map open_formula_line
+                 #> filter is_problem_line_cnf_ueq
+                 #> map negate_conjecture_line))
+  |> (fn problem =>
          let
            val conjs = problem |> maps snd |> filter is_problem_line_negated
          in if length conjs = 1 then problem else [] end)
@@ -246,7 +260,7 @@ fun readable_name full_name s =
 
 fun nice_name (full_name, _) NONE = (full_name, NONE)
   | nice_name (full_name, desired_name) (SOME the_pool) =
-    if String.isPrefix "$" full_name then
+    if String.isPrefix tptp_special_prefix full_name then
       (full_name, SOME the_pool)
     else case Symtab.lookup (fst the_pool) full_name of
       SOME nice_name => (nice_name, SOME the_pool)

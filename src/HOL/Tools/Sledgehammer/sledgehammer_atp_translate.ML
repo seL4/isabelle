@@ -34,7 +34,7 @@ sig
   val predicator_base : string
   val explicit_app_base : string
   val type_pred_base : string
-  val tff_type_prefix : string
+  val simple_type_prefix : string
   val type_sys_from_string : string -> type_system
   val polymorphism_of_type_sys : type_system -> polymorphism
   val level_of_type_sys : type_system -> type_level
@@ -42,7 +42,7 @@ sig
   val is_type_sys_fairly_sound : type_system -> bool
   val unmangled_const : string -> string * string fo_term list
   val translate_atp_fact :
-    Proof.context -> bool -> (string * locality) * thm
+    Proof.context -> format -> bool -> (string * locality) * thm
     -> translated_formula option * ((string * locality) * thm)
   val prepare_atp_problem :
     Proof.context -> format -> formula_kind -> formula_kind -> type_system
@@ -96,9 +96,10 @@ val untyped_helper_suffix = "_U"
 val predicator_base = "hBOOL"
 val explicit_app_base = "hAPP"
 val type_pred_base = "is"
-val tff_type_prefix = "ty_"
+val simple_type_prefix = "ty_"
 
-fun make_tff_type s = tff_type_prefix ^ ascii_of s
+fun make_simple_type s =
+  if s = tptp_bool_type then s else simple_type_prefix ^ ascii_of s
 
 (* Freshness almost guaranteed! *)
 val sledgehammer_weak_prefix = "Sledgehammer:"
@@ -279,11 +280,12 @@ fun term_vars (ATerm (name as (s, _), tms)) =
   #> fold term_vars tms
 fun close_formula_universally phi = close_universally term_vars phi
 
-fun fo_term_from_typ (Type (s, Ts)) =
-    ATerm (`make_fixed_type_const s, map fo_term_from_typ Ts)
-  | fo_term_from_typ (TFree (s, _)) =
-    ATerm (`make_fixed_type_var s, [])
-  | fo_term_from_typ (TVar ((x as (s, _)), _)) =
+fun fo_term_from_typ format (Type (s, Ts)) =
+    ATerm (if format = THF andalso s = @{type_name bool} then `I tptp_bool_type
+           else `make_fixed_type_const s,
+          map (fo_term_from_typ format) Ts)
+  | fo_term_from_typ _ (TFree (s, _)) = ATerm (`make_fixed_type_var s, [])
+  | fo_term_from_typ _ (TVar ((x as (s, _)), _)) =
     ATerm ((make_schematic_type_var x, s), [])
 
 (* This shouldn't clash with anything else. *)
@@ -293,16 +295,16 @@ fun generic_mangled_type_name f (ATerm (name, [])) = f name
   | generic_mangled_type_name f (ATerm (name, tys)) =
     f name ^ "(" ^ space_implode "," (map (generic_mangled_type_name f) tys)
     ^ ")"
-val mangled_type_name =
-  fo_term_from_typ
-  #> (fn ty => (make_tff_type (generic_mangled_type_name fst ty),
+fun mangled_type_name format =
+  fo_term_from_typ format
+  #> (fn ty => (make_simple_type (generic_mangled_type_name fst ty),
                 generic_mangled_type_name snd ty))
 
 fun generic_mangled_type_suffix f g Ts =
   fold_rev (curry (op ^) o g o prefix mangled_type_sep
             o generic_mangled_type_name f) Ts ""
-fun mangled_const_name T_args (s, s') =
-  let val ty_args = map fo_term_from_typ T_args in
+fun mangled_const_name format T_args (s, s') =
+  let val ty_args = map (fo_term_from_typ format) T_args in
     (s ^ generic_mangled_type_suffix fst ascii_of ty_args,
      s' ^ generic_mangled_type_suffix snd I ty_args)
   end
@@ -330,14 +332,14 @@ fun unmangled_const s =
     (hd ss, map unmangled_type (tl ss))
   end
 
-fun introduce_proxies tm =
+fun introduce_proxies format tm =
   let
     fun aux top_level (CombApp (tm1, tm2)) =
         CombApp (aux top_level tm1, aux false tm2)
       | aux top_level (CombConst (name as (s, s'), T, T_args)) =
         (case proxify_const s of
            SOME proxy_base =>
-           if top_level then
+           if top_level orelse format = THF then
              (case s of
                 "c_False" => (tptp_false, s')
               | "c_True" => (tptp_true, s')
@@ -349,11 +351,11 @@ fun introduce_proxies tm =
       | aux _ tm = tm
   in aux true tm end
 
-fun combformula_from_prop thy eq_as_iff =
+fun combformula_from_prop thy format eq_as_iff =
   let
     fun do_term bs t atomic_types =
       combterm_from_term thy bs (Envir.eta_contract t)
-      |>> (introduce_proxies #> AAtom)
+      |>> (introduce_proxies format #> AAtom)
       ||> union (op =) atomic_types
     fun do_quant bs q s T t' =
       let val s = Name.variant (map fst bs) s in
@@ -449,7 +451,7 @@ fun freeze_term t =
   in t |> exists_subterm is_Var t ? aux end
 
 (* making fact and conjecture formulas *)
-fun make_formula ctxt eq_as_iff presimp name loc kind t =
+fun make_formula ctxt format eq_as_iff presimp name loc kind t =
   let
     val thy = Proof_Context.theory_of ctxt
     val t = t |> Envir.beta_eta_contract
@@ -464,19 +466,21 @@ fun make_formula ctxt eq_as_iff presimp name loc kind t =
               |> perhaps (try (HOLogic.dest_Trueprop))
               |> introduce_combinators_in_term ctxt kind
               |> kind <> Axiom ? freeze_term
-    val (combformula, atomic_types) = combformula_from_prop thy eq_as_iff t []
+    val (combformula, atomic_types) =
+      combformula_from_prop thy format eq_as_iff t []
   in
     {name = name, locality = loc, kind = kind, combformula = combformula,
      atomic_types = atomic_types}
   end
 
-fun make_fact ctxt keep_trivial eq_as_iff presimp ((name, loc), t) =
-  case (keep_trivial, make_formula ctxt eq_as_iff presimp name loc Axiom t) of
+fun make_fact ctxt format keep_trivial eq_as_iff presimp ((name, loc), t) =
+  case (keep_trivial,
+        make_formula ctxt format eq_as_iff presimp name loc Axiom t) of
     (false, {combformula = AAtom (CombConst (("c_True", _), _, _)), ...}) =>
     NONE
   | (_, formula) => SOME formula
 
-fun make_conjecture ctxt prem_kind ts =
+fun make_conjecture ctxt format prem_kind ts =
   let val last = length ts - 1 in
     map2 (fn j => fn t =>
              let
@@ -488,8 +492,9 @@ fun make_conjecture ctxt prem_kind ts =
                     if prem_kind = Conjecture then update_combformula mk_anot
                     else I)
               in
-                make_formula ctxt true true (string_of_int j) General kind t
-                |> maybe_negate
+                t |> make_formula ctxt format true true (string_of_int j)
+                                  General kind
+                  |> maybe_negate
               end)
          (0 upto last) ts
   end
@@ -670,7 +675,7 @@ fun filter_type_args _ _ _ [] = []
     end
     handle TYPE _ => T_args
 
-fun enforce_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys =
+fun enforce_type_arg_policy_in_combterm ctxt format nonmono_Ts type_sys =
   let
     val thy = Proof_Context.theory_of ctxt
     fun aux arity (CombApp (tm1, tm2)) =
@@ -706,7 +711,8 @@ fun enforce_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys =
                  Explicit_Type_Args drop_args =>
                  (name, filtered_T_args drop_args)
                | Mangled_Type_Args drop_args =>
-                 (mangled_const_name (filtered_T_args drop_args) name, [])
+                 (mangled_const_name format (filtered_T_args drop_args) name,
+                  [])
                | No_Type_Args => (name, [])
              end)
           |> (fn (name, T_args) => CombConst (name, T, T_args))
@@ -714,13 +720,13 @@ fun enforce_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys =
       | aux _ tm = tm
   in aux 0 end
 
-fun repair_combterm ctxt nonmono_Ts type_sys sym_tab =
-  introduce_explicit_apps_in_combterm sym_tab
-  #> introduce_predicators_in_combterm sym_tab
-  #> enforce_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys
-fun repair_fact ctxt nonmono_Ts type_sys sym_tab =
+fun repair_combterm ctxt format nonmono_Ts type_sys sym_tab =
+  format <> THF ? (introduce_explicit_apps_in_combterm sym_tab
+                   #> introduce_predicators_in_combterm sym_tab)
+  #> enforce_type_arg_policy_in_combterm ctxt format nonmono_Ts type_sys
+fun repair_fact ctxt format nonmono_Ts type_sys sym_tab =
   update_combformula (formula_map
-      (repair_combterm ctxt nonmono_Ts type_sys sym_tab))
+      (repair_combterm ctxt format nonmono_Ts type_sys sym_tab))
 
 (** Helper facts **)
 
@@ -734,7 +740,7 @@ fun ti_ti_helper_fact () =
              |> close_formula_universally, simp_info, NONE)
   end
 
-fun helper_facts_for_sym ctxt type_sys (s, {typ, ...} : sym_info) =
+fun helper_facts_for_sym ctxt format type_sys (s, {typ, ...} : sym_info) =
   case strip_prefix_and_unascii const_prefix s of
     SOME mangled_s =>
     let
@@ -755,7 +761,7 @@ fun helper_facts_for_sym ctxt type_sys (s, {typ, ...} : sym_info) =
                    | NONE => I)
          end)
       fun make_facts eq_as_iff =
-        map_filter (make_fact ctxt false eq_as_iff false)
+        map_filter (make_fact ctxt format false eq_as_iff false)
       val fairly_sound = is_type_sys_fairly_sound type_sys
     in
       metis_helpers
@@ -769,13 +775,15 @@ fun helper_facts_for_sym ctxt type_sys (s, {typ, ...} : sym_info) =
                     |> make_facts (not needs_fairly_sound))
     end
   | NONE => []
-fun helper_facts_for_sym_table ctxt type_sys sym_tab =
-  Symtab.fold_rev (append o helper_facts_for_sym ctxt type_sys) sym_tab []
+fun helper_facts_for_sym_table ctxt format type_sys sym_tab =
+  Symtab.fold_rev (append o helper_facts_for_sym ctxt format type_sys) sym_tab
+                  []
 
-fun translate_atp_fact ctxt keep_trivial =
-  `(make_fact ctxt keep_trivial true true o apsnd prop_of)
+fun translate_atp_fact ctxt format keep_trivial =
+  `(make_fact ctxt format keep_trivial true true o apsnd prop_of)
 
-fun translate_formulas ctxt prem_kind type_sys hyp_ts concl_t rich_facts =
+fun translate_formulas ctxt format prem_kind type_sys hyp_ts concl_t
+                       rich_facts =
   let
     val thy = Proof_Context.theory_of ctxt
     val fact_ts = map (prop_of o snd o snd) rich_facts
@@ -792,7 +800,7 @@ fun translate_formulas ctxt prem_kind type_sys hyp_ts concl_t rich_facts =
     val subs = tfree_classes_of_terms all_ts
     val supers = tvar_classes_of_terms all_ts
     val tycons = type_consts_of_terms thy all_ts
-    val conjs = make_conjecture ctxt prem_kind (hyp_ts @ [concl_t])
+    val conjs = make_conjecture ctxt format prem_kind (hyp_ts @ [concl_t])
     val (supers', arity_clauses) =
       if level_of_type_sys type_sys = No_Types then ([], [])
       else make_arity_clauses thy tycons supers
@@ -808,9 +816,10 @@ fun fo_literal_from_type_literal (TyLitVar (class, name)) =
 
 fun formula_from_fo_literal (pos, t) = AAtom t |> not pos ? mk_anot
 
-fun type_pred_combterm ctxt nonmono_Ts type_sys T tm =
+fun type_pred_combterm ctxt format nonmono_Ts type_sys T tm =
   CombApp (CombConst (`make_fixed_const type_pred_base, T --> @{typ bool}, [T])
-           |> enforce_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys,
+           |> enforce_type_arg_policy_in_combterm ctxt format nonmono_Ts
+                                                  type_sys,
            tm)
 
 fun var_occurs_positively_naked_in_term _ (SOME false) _ accum = accum
@@ -820,44 +829,47 @@ fun is_var_nonmonotonic_in_formula _ _ (SOME false) _ = false
   | is_var_nonmonotonic_in_formula pos phi _ name =
     formula_fold pos (var_occurs_positively_naked_in_term name) phi false
 
-fun tag_with_type ctxt nonmono_Ts type_sys T tm =
+fun tag_with_type ctxt format nonmono_Ts type_sys T tm =
   CombConst (`make_fixed_const type_tag_name, T --> T, [T])
-  |> enforce_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys
-  |> term_from_combterm ctxt nonmono_Ts type_sys Top_Level
+  |> enforce_type_arg_policy_in_combterm ctxt format nonmono_Ts type_sys
+  |> term_from_combterm ctxt format nonmono_Ts type_sys Top_Level
   |> (fn ATerm (s, tms) => ATerm (s, tms @ [tm]))
-and term_from_combterm ctxt nonmono_Ts type_sys site u =
+and term_from_combterm ctxt format nonmono_Ts type_sys =
   let
-    val (head, args) = strip_combterm_comb u
-    val (x as (s, _), T_args) =
-      case head of
-        CombConst (name, _, T_args) => (name, T_args)
-      | CombVar (name, _) => (name, [])
-      | CombApp _ => raise Fail "impossible \"CombApp\""
-    val arg_site = if site = Top_Level andalso s = "equal" then Eq_Arg
-                   else Elsewhere
-    val t = ATerm (x, map fo_term_from_typ T_args @
-                      map (term_from_combterm ctxt nonmono_Ts type_sys arg_site)
-                          args)
-    val T = combtyp_of u
-  in
-    t |> (if should_tag_with_type ctxt nonmono_Ts type_sys site u T then
-            tag_with_type ctxt nonmono_Ts type_sys T
-          else
-            I)
-  end
-and formula_from_combformula ctxt nonmono_Ts type_sys should_predicate_on_var =
+    fun aux site u =
+      let
+        val (head, args) = strip_combterm_comb u
+        val (x as (s, _), T_args) =
+          case head of
+            CombConst (name, _, T_args) => (name, T_args)
+          | CombVar (name, _) => (name, [])
+          | CombApp _ => raise Fail "impossible \"CombApp\""
+        val arg_site = if site = Top_Level andalso s = "equal" then Eq_Arg
+                       else Elsewhere
+        val t = ATerm (x, map (fo_term_from_typ format) T_args @
+                          map (aux arg_site) args)
+        val T = combtyp_of u
+      in
+        t |> (if should_tag_with_type ctxt nonmono_Ts type_sys site u T then
+                tag_with_type ctxt format nonmono_Ts type_sys T
+              else
+                I)
+      end
+  in aux end
+and formula_from_combformula ctxt format nonmono_Ts type_sys
+                             should_predicate_on_var =
   let
-    val do_term = term_from_combterm ctxt nonmono_Ts type_sys Top_Level
+    val do_term = term_from_combterm ctxt format nonmono_Ts type_sys Top_Level
     val do_bound_type =
       case type_sys of
         Simple_Types level =>
-        SOME o mangled_type_name o homogenized_type ctxt nonmono_Ts level
+        SOME o mangled_type_name format o homogenized_type ctxt nonmono_Ts level
       | _ => K NONE
     fun do_out_of_bound_type pos phi universal (name, T) =
       if should_predicate_on_type ctxt nonmono_Ts type_sys
              (fn () => should_predicate_on_var pos phi universal name) T then
         CombVar (name, T)
-        |> type_pred_combterm ctxt nonmono_Ts type_sys T
+        |> type_pred_combterm ctxt format nonmono_Ts type_sys T
         |> do_term |> AAtom |> SOME
       else
         NONE
@@ -888,7 +900,7 @@ fun formula_for_fact ctxt format nonmono_Ts type_sys
                      ({combformula, atomic_types, ...} : translated_formula) =
   combformula
   |> close_combformula_universally
-  |> formula_from_combformula ctxt nonmono_Ts type_sys
+  |> formula_from_combformula ctxt format nonmono_Ts type_sys
                               is_var_nonmonotonic_in_formula true
   |> bound_atomic_types format type_sys atomic_types
   |> close_formula_universally
@@ -931,10 +943,10 @@ fun formula_line_for_arity_clause
                          (fo_literal_from_arity_literal concl_lits))
            |> close_formula_universally, intro_info, NONE)
 
-fun formula_line_for_conjecture ctxt nonmono_Ts type_sys
+fun formula_line_for_conjecture ctxt format nonmono_Ts type_sys
         ({name, kind, combformula, ...} : translated_formula) =
   Formula (conjecture_prefix ^ name, kind,
-           formula_from_combformula ctxt nonmono_Ts type_sys
+           formula_from_combformula ctxt format nonmono_Ts type_sys
                is_var_nonmonotonic_in_formula false
                (close_combformula_universally combformula)
            |> close_formula_universally, NONE, NONE)
@@ -1027,15 +1039,16 @@ fun nonmonotonic_types_for_facts ctxt type_sys facts =
       []
   end
 
-fun decl_line_for_sym ctxt nonmono_Ts level s (s', _, T, pred_sym, ary, _) =
+fun decl_line_for_sym ctxt format nonmono_Ts level s
+                      (s', _, T, pred_sym, ary, _) =
   let
     val translate_type =
-      mangled_type_name o homogenized_type ctxt nonmono_Ts level
+      mangled_type_name format o homogenized_type ctxt nonmono_Ts level
     val (arg_tys, res_ty) =
       T |> chop_fun ary |>> map translate_type ||> translate_type
   in
     Decl (sym_decl_prefix ^ s, (s, s'), arg_tys,
-          if pred_sym then `I tptp_tff_bool_type else res_ty)
+          if pred_sym then `I tptp_bool_type else res_ty)
   end
 
 fun is_polymorphic_type T = fold_atyps (fn TVar _ => K true | _ => I) T false
@@ -1059,10 +1072,10 @@ fun formula_line_for_pred_sym_decl ctxt format conj_sym_kind nonmono_Ts type_sys
              (if n > 1 then "_" ^ string_of_int j else ""), kind,
              CombConst ((s, s'), T, T_args)
              |> fold (curry (CombApp o swap)) bounds
-             |> type_pred_combterm ctxt nonmono_Ts type_sys res_T
+             |> type_pred_combterm ctxt format nonmono_Ts type_sys res_T
              |> AAtom
              |> mk_aquant AForall (bound_names ~~ bound_Ts)
-             |> formula_from_combformula ctxt nonmono_Ts type_sys
+             |> formula_from_combformula ctxt format nonmono_Ts type_sys
                                          (K (K (K (K true)))) true
              |> n > 1 ? bound_atomic_types format type_sys (atyps_of T)
              |> close_formula_universally
@@ -1082,7 +1095,8 @@ fun formula_lines_for_tag_sym_decl ctxt format conj_sym_kind nonmono_Ts type_sys
     val bound_names =
       1 upto length arg_Ts |> map (`I o make_bound_var o string_of_int)
     val bounds = bound_names |> map (fn name => ATerm (name, []))
-    fun const args = ATerm ((s, s'), map fo_term_from_typ T_args @ args)
+    fun const args =
+      ATerm ((s, s'), map (fo_term_from_typ format) T_args @ args)
     val atomic_Ts = atyps_of T
     fun eq tms =
       (if pred_sym then AConn (AIff, map AAtom tms)
@@ -1091,7 +1105,7 @@ fun formula_lines_for_tag_sym_decl ctxt format conj_sym_kind nonmono_Ts type_sys
       |> close_formula_universally
       |> maybe_negate
     val should_encode = should_encode_type ctxt nonmono_Ts All_Types
-    val tag_with = tag_with_type ctxt nonmono_Ts type_sys
+    val tag_with = tag_with_type ctxt format nonmono_Ts type_sys
     val add_formula_for_res =
       if should_encode res_T then
         cons (Formula (ident_base ^ "_res", kind,
@@ -1123,7 +1137,8 @@ fun result_type_of_decl (_, _, T, _, ary, _) = chop_fun ary T |> snd
 fun problem_lines_for_sym_decls ctxt format conj_sym_kind nonmono_Ts type_sys
                                 (s, decls) =
   case type_sys of
-    Simple_Types level => map (decl_line_for_sym ctxt nonmono_Ts level s) decls
+    Simple_Types level =>
+    map (decl_line_for_sym ctxt format nonmono_Ts level s) decls
   | Preds _ =>
     let
       val decls =
@@ -1164,22 +1179,23 @@ fun problem_lines_for_sym_decl_table ctxt format conj_sym_kind nonmono_Ts
                                             type_sys)
       sym_decl_tab []
 
-fun add_tff_types_in_formula (AQuant (_, xs, phi)) =
-    union (op =) (map_filter snd xs) #> add_tff_types_in_formula phi
-  | add_tff_types_in_formula (AConn (_, phis)) =
-    fold add_tff_types_in_formula phis
-  | add_tff_types_in_formula (AAtom _) = I
+fun add_simple_types_in_formula (AQuant (_, xs, phi)) =
+    union (op =) (map_filter snd xs) #> add_simple_types_in_formula phi
+  | add_simple_types_in_formula (AConn (_, phis)) =
+    fold add_simple_types_in_formula phis
+  | add_simple_types_in_formula (AAtom _) = I
 
-fun add_tff_types_in_problem_line (Decl (_, _, arg_Ts, res_T)) =
+fun add_simple_types_in_problem_line (Decl (_, _, arg_Ts, res_T)) =
     union (op =) (res_T :: arg_Ts)
-  | add_tff_types_in_problem_line (Formula (_, _, phi, _, _)) =
-    add_tff_types_in_formula phi
+  | add_simple_types_in_problem_line (Formula (_, _, phi, _, _)) =
+    add_simple_types_in_formula phi
 
-fun tff_types_in_problem problem =
-  fold (fold add_tff_types_in_problem_line o snd) problem []
+fun simple_types_in_problem problem =
+  fold (fold add_simple_types_in_problem_line o snd) problem []
+  |> filter_out (String.isPrefix tptp_special_prefix o fst)
 
-fun decl_line_for_tff_type (s, s') =
-  Decl (type_decl_prefix ^ ascii_of s, (s, s'), [], `I tptp_tff_type_of_types)
+fun decl_line_for_simple_type (s, s') =
+  Decl (type_decl_prefix ^ ascii_of s, (s, s'), [], `I tptp_type_of_types)
 
 fun should_add_ti_ti_helper (Tags (Polymorphic, level, Heavy)) =
     level = Nonmonotonic_Types orelse level = Finite_Types
@@ -1203,14 +1219,15 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
                         explicit_apply hyp_ts concl_t facts =
   let
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
-      translate_formulas ctxt prem_kind type_sys hyp_ts concl_t facts
+      translate_formulas ctxt format prem_kind type_sys hyp_ts concl_t facts
     val sym_tab = conjs @ facts |> sym_table_for_facts explicit_apply
     val nonmono_Ts = conjs @ facts |> nonmonotonic_types_for_facts ctxt type_sys
-    val repair = repair_fact ctxt nonmono_Ts type_sys sym_tab
+    val repair = repair_fact ctxt format nonmono_Ts type_sys sym_tab
     val (conjs, facts) = (conjs, facts) |> pairself (map repair)
     val repaired_sym_tab = conjs @ facts |> sym_table_for_facts false
     val helpers =
-      repaired_sym_tab |> helper_facts_for_sym_table ctxt type_sys |> map repair
+      repaired_sym_tab |> helper_facts_for_sym_table ctxt format type_sys
+                       |> map repair
     val lavish_nonmono_Ts =
       if null nonmono_Ts orelse
          polymorphism_of_type_sys type_sys <> Polymorphic then
@@ -1238,16 +1255,17 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
        (class_relsN, map formula_line_for_class_rel_clause class_rel_clauses),
        (aritiesN, map formula_line_for_arity_clause arity_clauses),
        (helpersN, helper_lines),
-       (conjsN, map (formula_line_for_conjecture ctxt nonmono_Ts type_sys)
-                    conjs),
+       (conjsN,
+        map (formula_line_for_conjecture ctxt format nonmono_Ts type_sys)
+            conjs),
        (free_typesN,
         formula_lines_for_free_types format type_sys (facts @ conjs))]
     val problem =
       problem
       |> (case type_sys of
             Simple_Types _ =>
-            cons (type_declsN,
-                  map decl_line_for_tff_type (tff_types_in_problem problem))
+            cons (type_declsN, problem |> simple_types_in_problem
+                                       |> map decl_line_for_simple_type)
           | _ => I)
     val problem =
       problem |> (if format = CNF_UEQ then filter_cnf_ueq_problem else I)

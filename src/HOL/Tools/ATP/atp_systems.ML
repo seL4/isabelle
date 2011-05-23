@@ -36,9 +36,11 @@ sig
   val eN : string
   val spassN : string
   val vampireN : string
-  val tofof_eN : string
+  val leo2N : string
+  val satallaxN : string
   val sine_eN : string
   val snarkN : string
+  val tofof_eN : string
   val waldmeisterN : string
   val z3_atpN : string
   val remote_prefix : string
@@ -98,9 +100,11 @@ val eN = "e"
 val spassN = "spass"
 val vampireN = "vampire"
 val z3_atpN = "z3_atp"
-val tofof_eN = "tofof_e"
+val leo2N = "leo2"
+val satallaxN = "satallax"
 val sine_eN = "sine_e"
 val snarkN = "snark"
+val tofof_eN = "tofof_e"
 val waldmeisterN = "waldmeister"
 val remote_prefix = "remote_"
 
@@ -126,7 +130,8 @@ fun e_bonus () =
   if string_ord (getenv "E_VERSION", "1.1") = LESS then 2000 else 1000
 
 val tstp_proof_delims =
-  ("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation")
+  [("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation"),
+   ("% SZS output start CNFRefutation", "% SZS output end CNFRefutation")]
 
 val e_slicesN = "slices"
 val e_autoN = "auto"
@@ -207,7 +212,7 @@ val e_config : atp_config =
      e_weight_arguments ctxt (method_for_slice ctxt slice) weights ^
      " -tAutoDev --silent --cpu-limit=" ^
      string_of_int (to_secs (e_bonus ()) timeout),
-   proof_delims = [tstp_proof_delims],
+   proof_delims = tstp_proof_delims,
    known_failures =
      [(Unprovable, "SZS status: CounterSatisfiable"),
       (Unprovable, "SZS status CounterSatisfiable"),
@@ -379,7 +384,7 @@ fun remote_config system_name system_versions proof_delims known_failures
    arguments = fn _ => fn _ => fn timeout => fn _ =>
      " -t " ^ string_of_int (Int.min (max_remote_secs, (to_secs 0 timeout)))
      ^ " -s " ^ the_system system_name system_versions,
-   proof_delims = insert (op =) tstp_proof_delims proof_delims,
+   proof_delims = union (op =) tstp_proof_delims proof_delims,
    known_failures =
      known_failures @ known_perl_failures @
      [(Unprovable, "says Satisfiable"),
@@ -410,16 +415,23 @@ fun remotify_atp (name, config) system_name system_versions =
 val remote_e = remotify_atp e "EP" ["1.0", "1.1", "1.2"]
 val remote_vampire = remotify_atp vampire "Vampire" ["0.6", "9.0", "1.0"]
 val remote_z3_atp = remotify_atp z3_atp "Z3" ["2.18"]
-val remote_tofof_e =
-  remote_atp tofof_eN "ToFoF" ["0.1"] [] (#known_failures e_config)
-             Axiom Conjecture [TFF] (K (200, ["simple"]) (* FUDGE *))
+val remote_leo2 =
+  remote_atp leo2N "LEO-II" ["1.2.6"] [] [] Axiom Hypothesis [THF]
+             (K (200, ["simple"]) (* FUDGE *))
+val remote_satallax =
+  remote_atp satallaxN "Satallax" ["2.0"] [] [] Axiom Hypothesis [THF]
+             (K (200, ["simple"]) (* FUDGE *))
 val remote_sine_e =
-  remote_atp sine_eN "SInE" ["0.4"] [] [] Axiom Conjecture [FOF]
+  remote_atp sine_eN "SInE" ["0.4"] [] (#known_failures e_config)
+             Axiom Conjecture [FOF]
              (K (500, ["poly_tags_heavy!", "poly_tags_heavy"]) (* FUDGE *))
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r029", "20080805r024"]
-             [("refutation.", "end_refutation.")] [] Hypothesis Conjecture
+             [("refutation.", "end_refutation.")] [] Hypothesis Hypothesis
              [TFF, FOF] (K (250, ["simple"]) (* FUDGE *))
+val remote_tofof_e =
+  remote_atp tofof_eN "ToFoF" ["0.1"] [] (#known_failures e_config)
+             Axiom Hypothesis [TFF] (K (200, ["simple"]) (* FUDGE *))
 val remote_waldmeister =
   remote_atp waldmeisterN "Waldmeister" ["710"]
              [("#START OF PROOF", "Proved Goals:")]
@@ -448,8 +460,9 @@ fun is_atp_installed thy name =
 fun refresh_systems_on_tptp () =
   Synchronized.change systems (fn _ => get_systems ())
 
-val atps = [e, spass, vampire, z3_atp, remote_e, remote_vampire, remote_z3_atp,
-            remote_tofof_e, remote_sine_e, remote_snark, remote_waldmeister]
+val atps =
+  [e, spass, vampire, z3_atp, remote_e, remote_vampire, remote_z3_atp,
+   remote_leo2, remote_sine_e, remote_snark, remote_tofof_e, remote_waldmeister]
 val setup = fold add_atp atps
 
 end;
