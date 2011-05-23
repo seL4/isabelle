@@ -7,7 +7,7 @@ Partial function definitions based on least fixed points in ccpos.
 signature PARTIAL_FUNCTION =
 sig
   val setup: theory -> theory
-  val init: string -> term -> term -> thm -> declaration
+  val init: string -> term -> term -> thm -> thm option -> declaration
 
   val add_partial_function: string -> (binding * typ option * mixfix) list ->
     Attrib.binding * term -> local_theory -> local_theory
@@ -22,18 +22,27 @@ struct
 
 (*** Context Data ***)
 
+datatype setup_data = Setup_Data of 
+ {fixp: term,
+  mono: term,
+  fixp_eq: thm,
+  fixp_induct: thm option};
+
 structure Modes = Generic_Data
 (
-  type T = ((term * term) * thm) Symtab.table;
+  type T = setup_data Symtab.table;
   val empty = Symtab.empty;
   val extend = I;
   fun merge data = Symtab.merge (K true) data;
 )
 
-fun init mode fixp mono fixp_eq phi =
+fun init mode fixp mono fixp_eq fixp_induct phi =
   let
     val term = Morphism.term phi;
-    val data' = ((term fixp, term mono), Morphism.thm phi fixp_eq);
+    val thm = Morphism.thm phi;
+    val data' = Setup_Data 
+      {fixp=term fixp, mono=term mono, fixp_eq=thm fixp_eq,
+       fixp_induct=Option.map thm fixp_induct};
   in
     Modes.map (Symtab.update (mode, data'))
   end
@@ -156,9 +165,10 @@ val curry_uncurry_ss = HOL_basic_ss addsimps
 
 fun gen_add_partial_function prep mode fixes_raw eqn_raw lthy =
   let
-    val ((fixp, mono), fixp_eq) = the (lookup_mode lthy mode)
+    val setup_data = the (lookup_mode lthy mode)
       handle Option.Option => error (cat_lines ["Unknown mode " ^ quote mode ^ ".",
         "Known modes are " ^ commas_quote (known_modes lthy) ^ "."]);
+    val Setup_Data {fixp, mono, fixp_eq, fixp_induct} = setup_data;
 
     val ((fixes, [(eq_abinding, eqn)]), _) = prep fixes_raw [eqn_raw] lthy;
     val ((_, plain_eqn), _) = Variable.focus eqn lthy;

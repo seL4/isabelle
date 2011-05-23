@@ -426,7 +426,7 @@ proof -
 qed
 
 declaration {* Partial_Function.init "heap" @{term heap.fixp_fun}
-  @{term heap.mono_body} @{thm heap.fixp_rule_uc} *}
+  @{term heap.mono_body} @{thm heap.fixp_rule_uc} NONE *}
 
 
 abbreviation "mono_Heap \<equiv> monotone (fun_ord Heap_ord) Heap_ord"
