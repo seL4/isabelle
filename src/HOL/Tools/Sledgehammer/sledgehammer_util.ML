@@ -43,7 +43,7 @@ fun serial_commas _ [] = ["??"]
   | serial_commas conj [s1, s2, s3] = [s1 ^ ",", s2 ^ ",", conj, s3]
   | serial_commas conj (s :: ss) = s ^ "," :: serial_commas conj ss
 
-val simplify_spaces = ATP_Proof.strip_spaces (K true)
+val simplify_spaces = ATP_Proof.strip_spaces false (K true)
 
 fun parse_bool_option option name s =
   (case s of

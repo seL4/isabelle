@@ -178,8 +178,8 @@ fun is_problem_line_cnf_ueq
   | is_problem_line_cnf_ueq _ = false
 
 fun open_conjecture_term (ATerm ((s, s'), tms)) =
-  ATerm (s |> is_atp_variable s ? Name.desymbolize false |> `I,
-         tms |> map open_conjecture_term)
+  ATerm (if is_atp_variable s then (s |> Name.desymbolize false, s')
+         else (s, s'), tms |> map open_conjecture_term)
 fun open_formula conj (AQuant (AForall, _, phi)) = open_formula conj phi
   | open_formula true (AAtom t) = AAtom (open_conjecture_term t)
   | open_formula _ phi = phi

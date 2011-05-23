@@ -42,7 +42,7 @@ sig
 
   type 'a proof = ('a, 'a, 'a fo_term) formula step list
 
-  val strip_spaces : (char -> bool) -> string -> string
+  val strip_spaces : bool -> (char -> bool) -> string -> string
   val short_output : bool -> string -> string
   val string_for_failure : failure -> string
   val extract_important_message : string -> string
@@ -52,6 +52,9 @@ sig
     bool -> bool -> int -> (string * string) list -> (failure * string) list
     -> string -> string * failure option
   val is_same_step : step_name * step_name -> bool
+  val scan_general_id : string list -> string * string list
+  val parse_formula :
+    string list -> (string, 'a, string fo_term) formula * string list
   val atp_proof_from_tstplike_proof : string problem -> string -> string proof
   val map_term_names_in_atp_proof :
     (string -> string) -> string proof -> string proof
@@ -85,26 +88,36 @@ datatype failure =
   InternalError |
   UnknownError of string
 
-fun strip_spaces_in_list _ [] = []
-  | strip_spaces_in_list _ [c1] = if Char.isSpace c1 then [] else [str c1]
-  | strip_spaces_in_list is_evil [c1, c2] =
-    strip_spaces_in_list is_evil [c1] @ strip_spaces_in_list is_evil [c2]
-  | strip_spaces_in_list is_evil (c1 :: c2 :: c3 :: cs) =
+fun strip_c_style_comment _ [] = []
+  | strip_c_style_comment is_evil (#"*" :: #"/" :: cs) =
+    strip_spaces_in_list true is_evil cs
+  | strip_c_style_comment is_evil (_ :: cs) = strip_c_style_comment is_evil cs
+and strip_spaces_in_list _ _ [] = []
+  | strip_spaces_in_list true is_evil (#"%" :: cs) =
+    strip_spaces_in_list true is_evil
+                         (cs |> chop_while (not_equal #"\n") |> snd)
+  | strip_spaces_in_list true is_evil (#"/" :: #"*" :: cs) =
+    strip_c_style_comment is_evil cs
+  | strip_spaces_in_list _ _ [c1] = if Char.isSpace c1 then [] else [str c1]
+  | strip_spaces_in_list skip_comments is_evil [c1, c2] =
+    strip_spaces_in_list skip_comments is_evil [c1] @
+    strip_spaces_in_list skip_comments is_evil [c2]
+  | strip_spaces_in_list skip_comments is_evil (c1 :: c2 :: c3 :: cs) =
     if Char.isSpace c1 then
-      strip_spaces_in_list is_evil (c2 :: c3 :: cs)
+      strip_spaces_in_list skip_comments is_evil (c2 :: c3 :: cs)
     else if Char.isSpace c2 then
       if Char.isSpace c3 then
-        strip_spaces_in_list is_evil (c1 :: c3 :: cs)
+        strip_spaces_in_list skip_comments is_evil (c1 :: c3 :: cs)
       else
         str c1 :: (if forall is_evil [c1, c3] then [" "] else []) @
-        strip_spaces_in_list is_evil (c3 :: cs)
+        strip_spaces_in_list skip_comments is_evil (c3 :: cs)
     else
-      str c1 :: strip_spaces_in_list is_evil (c2 :: c3 :: cs)
-fun strip_spaces is_evil =
-  implode o strip_spaces_in_list is_evil o String.explode
+      str c1 :: strip_spaces_in_list skip_comments is_evil (c2 :: c3 :: cs)
+fun strip_spaces skip_comments is_evil =
+  implode o strip_spaces_in_list skip_comments is_evil o String.explode
 
 fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
-val strip_spaces_except_between_ident_chars = strip_spaces is_ident_char
+val strip_spaces_except_between_ident_chars = strip_spaces true is_ident_char
 
 fun elide_string threshold s =
   if size s > threshold then
