@@ -385,9 +385,9 @@ fun remote_config system_name system_versions proof_delims known_failures
      " -t " ^ string_of_int (Int.min (max_remote_secs, (to_secs 0 timeout)))
      ^ " -s " ^ the_system system_name system_versions,
    proof_delims = union (op =) tstp_proof_delims proof_delims,
-   known_failures =
-     known_failures @ known_perl_failures @
+   known_failures = known_failures @ known_perl_failures @
      [(Unprovable, "says Satisfiable"),
+      (ProofMissing, "says Theorem"),
       (IncompleteUnprovable, "says Unknown"),
       (IncompleteUnprovable, "says GaveUp"),
       (TimedOut, "says Timeout"),

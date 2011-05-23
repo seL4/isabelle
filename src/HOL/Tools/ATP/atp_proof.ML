@@ -12,6 +12,8 @@ sig
   type ('a, 'b, 'c) formula = ('a, 'b, 'c) ATP_Problem.formula
   type 'a problem = 'a ATP_Problem.problem
 
+  exception UNRECOGNIZED_ATP_PROOF of unit
+
   datatype failure =
     Unprovable |
     IncompleteUnprovable |
@@ -65,6 +67,8 @@ structure ATP_Proof : ATP_PROOF =
 struct
 
 open ATP_Problem
+
+exception UNRECOGNIZED_ATP_PROOF of unit
 
 datatype failure =
   Unprovable |
@@ -445,7 +449,7 @@ fun parse_proof problem s =
   s |> strip_spaces_except_between_ident_chars
     |> raw_explode
     |> Scan.finite Symbol.stopper
-           (Scan.error (!! (fn _ => raise Fail "unrecognized ATP output")
+           (Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
                            (Scan.repeat1 (parse_line problem))))
     |> fst
 

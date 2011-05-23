@@ -610,6 +610,7 @@ fun run_atp auto name
                   extract_tstplike_proof_and_outcome verbose complete res_code
                       proof_delims known_failures output
                   |>> atp_proof_from_tstplike_proof atp_problem
+                  handle UNRECOGNIZED_ATP_PROOF () => ([], SOME ProofIncomplete)
                 val (conjecture_shape, facts_offset, fact_names,
                      typed_helpers) =
                   if is_none outcome then
