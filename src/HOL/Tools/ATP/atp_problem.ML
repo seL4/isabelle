@@ -15,11 +15,13 @@ sig
     AConn of connective * ('a, 'b, 'c) formula list |
     AAtom of 'c
 
+  datatype 'a ho_type = AType of 'a | AFun of 'a ho_type * 'a ho_type
+
   datatype format = CNF_UEQ | FOF | TFF | THF
   datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
   datatype 'a problem_line =
-    Decl of string * 'a * 'a list * 'a |
-    Formula of string * formula_kind * ('a, 'a, 'a fo_term) formula
+    Decl of string * 'a * 'a ho_type |
+    Formula of string * formula_kind * ('a, 'a ho_type, 'a fo_term) formula
                * string fo_term option * string fo_term option
   type 'a problem = (string * 'a problem_line list) list
 
@@ -30,6 +32,7 @@ sig
   val tptp_type_of_types : string
   val tptp_bool_type : string
   val tptp_individual_type : string
+  val tptp_fun_type : string
   val is_atp_variable : string -> bool
   val mk_anot : ('a, 'b, 'c) formula -> ('a, 'b, 'c) formula
   val mk_aconn :
@@ -61,11 +64,13 @@ datatype ('a, 'b, 'c) formula =
   AConn of connective * ('a, 'b, 'c) formula list |
   AAtom of 'c
 
+datatype 'a ho_type = AType of 'a | AFun of 'a ho_type * 'a ho_type
+
 datatype format = CNF_UEQ | FOF | TFF | THF
 datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
 datatype 'a problem_line =
-  Decl of string * 'a * 'a list * 'a |
-  Formula of string * formula_kind * ('a, 'a, 'a fo_term) formula
+  Decl of string * 'a * 'a ho_type |
+  Formula of string * formula_kind * ('a, 'a ho_type, 'a fo_term) formula
              * string fo_term option * string fo_term option
 type 'a problem = (string * 'a problem_line list) list
 
@@ -76,6 +81,7 @@ val tptp_true = "$true"
 val tptp_type_of_types = "$tType"
 val tptp_bool_type = "$o"
 val tptp_individual_type = "$i"
+val tptp_fun_type = ">"
 
 fun is_atp_variable s = Char.isUpper (String.sub (s, 0))
 
@@ -102,6 +108,25 @@ fun string_for_kind Axiom = "axiom"
   | string_for_kind Hypothesis = "hypothesis"
   | string_for_kind Conjecture = "conjecture"
 
+fun strip_tff_type (AFun (AType s, ty)) = strip_tff_type ty |>> cons s
+  | strip_tff_type (AFun (AFun _, _)) =
+    raise Fail "unexpected higher-order type in first-order format"
+  | strip_tff_type (AType s) = ([], s)
+
+fun string_for_type THF ty =
+    let
+      fun aux _ (AType s) = s
+        | aux rhs (AFun (ty1, ty2)) =
+          aux false ty1 ^ " " ^ tptp_fun_type ^ " " ^ aux true ty2
+          |> not rhs ? enclose "(" ")"
+    in aux true ty end
+  | string_for_type TFF ty =
+    (case strip_tff_type ty of
+       ([], s) => s
+     | ([s'], s) => s' ^ " " ^ tptp_fun_type ^ " " ^ s
+     | (ss, s) => "(" ^ space_implode " * " ss ^ ") " ^ tptp_fun_type ^ " " ^ s)
+  | string_for_type _ _ = raise Fail "unexpected type in untyped format"
+
 fun string_for_term _ (ATerm (s, [])) = s
   | string_for_term format (ATerm ("equal", ts)) =
     space_implode " = " (map (string_for_term format) ts)
@@ -114,8 +139,10 @@ fun string_for_term _ (ATerm (s, [])) = s
       if format = THF then "(" ^ space_implode " @ " (s :: ss) ^ ")"
       else s ^ "(" ^ commas ss ^ ")"
     end
+
 fun string_for_quantifier AForall = "!"
   | string_for_quantifier AExists = "?"
+
 fun string_for_connective ANot = "~"
   | string_for_connective AAnd = "&"
   | string_for_connective AOr = "|"
@@ -123,31 +150,27 @@ fun string_for_connective ANot = "~"
   | string_for_connective AIf = "<="
   | string_for_connective AIff = "<=>"
   | string_for_connective ANotIff = "<~>"
+
 fun string_for_bound_var format (s, ty) =
-    s ^ (if format = TFF orelse format = THF then
-           " : " ^ (ty |> the_default tptp_individual_type)
-         else
-           "")
+  s ^ (if format = TFF orelse format = THF then
+         " : " ^
+         string_for_type format (ty |> the_default (AType tptp_individual_type))
+       else
+         "")
+
 fun string_for_formula format (AQuant (q, xs, phi)) =
     "(" ^ string_for_quantifier q ^
     "[" ^ commas (map (string_for_bound_var format) xs) ^ "] : " ^
     string_for_formula format phi ^ ")"
   | string_for_formula format (AConn (ANot, [AAtom (ATerm ("equal", ts))])) =
     space_implode " != " (map (string_for_term format) ts)
+    |> format = THF ? enclose "(" ")"
   | string_for_formula format (AConn (c, [phi])) =
     "(" ^ string_for_connective c ^ " " ^ string_for_formula format phi ^ ")"
   | string_for_formula format (AConn (c, phis)) =
     "(" ^ space_implode (" " ^ string_for_connective c ^ " ")
                         (map (string_for_formula format) phis) ^ ")"
   | string_for_formula format (AAtom tm) = string_for_term format tm
-
-fun string_for_symbol_type THF arg_tys res_ty =
-    space_implode " > " (arg_tys @ [res_ty])
-  | string_for_symbol_type _ [] res_ty = res_ty
-  | string_for_symbol_type _ [arg_ty] res_ty = arg_ty ^ " > " ^ res_ty
-  | string_for_symbol_type format arg_tys res_ty =
-    string_for_symbol_type format ["(" ^ space_implode " * " arg_tys ^ ")"]
-                           res_ty
 
 val default_source =
   ATerm ("inference", ATerm ("isabelle", []) :: replicate 2 (ATerm ("[]", [])))
@@ -157,9 +180,9 @@ fun string_for_format CNF_UEQ = "cnf"
   | string_for_format TFF = "tff"
   | string_for_format THF = "thf"
 
-fun string_for_problem_line format (Decl (ident, sym, arg_tys, res_ty)) =
+fun string_for_problem_line format (Decl (ident, sym, ty)) =
     string_for_format format ^ "(" ^ ident ^ ", type,\n    " ^ sym ^ " : " ^
-    string_for_symbol_type format arg_tys res_ty ^ ").\n"
+    string_for_type format ty ^ ").\n"
   | string_for_problem_line format (Formula (ident, kind, phi, source, info)) =
     string_for_format format ^ "(" ^ ident ^ ", " ^ string_for_kind kind ^
     ",\n    (" ^ string_for_formula format phi ^ ")" ^
@@ -285,20 +308,20 @@ fun nice_name (full_name, _) NONE = (full_name, NONE)
 
 fun nice_term (ATerm (name, ts)) =
   nice_name name ##>> pool_map nice_term ts #>> ATerm
+fun nice_type (AType name) = nice_name name #>> AType
+  | nice_type (AFun (ty1, ty2)) = nice_type ty1 ##>> nice_type ty2 #>> AFun
 fun nice_formula (AQuant (q, xs, phi)) =
     pool_map nice_name (map fst xs)
     ##>> pool_map (fn NONE => pair NONE
-                    | SOME ty => nice_name ty #>> SOME) (map snd xs)
+                    | SOME ty => nice_type ty #>> SOME) (map snd xs)
     ##>> nice_formula phi
     #>> (fn ((ss, ts), phi) => AQuant (q, ss ~~ ts, phi))
   | nice_formula (AConn (c, phis)) =
     pool_map nice_formula phis #>> curry AConn c
   | nice_formula (AAtom tm) = nice_term tm #>> AAtom
-fun nice_problem_line (Decl (ident, sym, arg_tys, res_ty)) =
-    nice_name sym
-    ##>> pool_map nice_name arg_tys
-    ##>> nice_name res_ty
-    #>> (fn ((sym, arg_tys), res_ty) => Decl (ident, sym, arg_tys, res_ty))
+fun nice_problem_line (Decl (ident, sym, ty)) =
+    nice_name sym ##>> nice_type ty
+    #>> (fn (sym, ty) => Decl (ident, sym, ty))
   | nice_problem_line (Formula (ident, kind, phi, source, info)) =
     nice_formula phi #>> (fn phi => Formula (ident, kind, phi, source, info))
 fun nice_problem problem =
