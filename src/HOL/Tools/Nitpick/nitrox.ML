@@ -13,13 +13,7 @@ end;
 structure Nitrox : NITROX =
 struct
 
-datatype 'a fo_term = ATerm of 'a * 'a fo_term list
-datatype quantifier = AForall | AExists
-datatype connective = ANot | AAnd | AOr | AImplies | AIf | AIff | ANotIff
-datatype 'a formula =
-  AQuant of quantifier * 'a list * 'a formula |
-  AConn of connective * 'a formula list |
-  APred of 'a fo_term
+open ATP_Problem
 
 exception SYNTAX of string
 
@@ -73,9 +67,6 @@ fun parse_include x =
     ((), raw_explode (strip_spaces (File.read (Path.explode file_name))) @ rest)
   end
 
-fun mk_anot phi = AConn (ANot, [phi])
-fun mk_aconn c (phi1, phi2) = AConn (c, [phi1, phi2])
-
 val parse_dollar_name =
   Scan.repeat ($$ "$") -- Symbol.scan_id >> (fn (ss, s) => implode ss ^ s)
 
@@ -87,9 +78,9 @@ and parse_terms x = (parse_term ::: Scan.repeat ($$ "," |-- parse_term)) x
 (* Apply equal or not-equal to a term. *)
 val parse_predicate_term =
   parse_term -- Scan.option (Scan.option ($$ "!") --| $$ "=" -- parse_term)
-  >> (fn (u, NONE) => APred u
-       | (u1, SOME (NONE, u2)) => APred (ATerm ("=", [u1, u2]))
-       | (u1, SOME (SOME _, u2)) => mk_anot (APred (ATerm ("=", [u1, u2]))))
+  >> (fn (u, NONE) => AAtom u
+       | (u1, SOME (NONE, u2)) => AAtom (ATerm ("=", [u1, u2]))
+       | (u1, SOME (SOME _, u2)) => mk_anot (AAtom (ATerm ("=", [u1, u2]))))
 
 fun fo_term_head (ATerm (s, _)) = s
 
@@ -97,7 +88,8 @@ fun parse_formula x =
   (($$ "(" |-- parse_formula --| $$ ")"
     || ($$ "!" >> K AForall || $$ "?" >> K AExists)
        --| $$ "[" -- parse_terms --| $$ "]" --| $$ ":" -- parse_formula
-       >> (fn ((q, ts), phi) => AQuant (q, map fo_term_head ts, phi))
+       >> (fn ((q, ts), phi) =>
+              AQuant (q, map (rpair NONE o fo_term_head) ts, phi))
     || $$ "~" |-- parse_formula >> mk_anot
     || parse_predicate_term)
    -- Scan.option ((Scan.this_string "=>" >> K AImplies
@@ -106,7 +98,7 @@ fun parse_formula x =
                     || Scan.this_string "<=" >> K AIf
                     || $$ "|" >> K AOr || $$ "&" >> K AAnd) -- parse_formula)
    >> (fn (phi1, NONE) => phi1
-        | (phi1, SOME (c, phi2)) => mk_aconn c (phi1, phi2))) x
+        | (phi1, SOME (c, phi2)) => mk_aconn c phi1 phi2)) x
 
 val parse_fof_or_cnf =
   (parse_keyword "fof" || parse_keyword "cnf") |-- $$ "(" |--
@@ -147,7 +139,7 @@ fun hol_term_from_fo_term res_T (ATerm (x, us)) =
 fun hol_prop_from_formula phi =
   case phi of
     AQuant (_, [], phi') => hol_prop_from_formula phi'
-  | AQuant (q, x :: xs, phi') =>
+  | AQuant (q, (x, _) :: xs, phi') =>
     Const (case q of AForall => @{const_name All} | AExists => @{const_name Ex},
            quantT)
     $ lambda (Free (x, iotaT)) (hol_prop_from_formula (AQuant (q, xs, phi')))
@@ -163,7 +155,7 @@ fun hol_prop_from_formula phi =
         | ANotIff => HOLogic.mk_not o HOLogic.mk_eq
         | ANot => raise Fail "binary \"ANot\"")
   | AConn _ => raise Fail "malformed AConn"
-  | APred u => hol_term_from_fo_term boolT u
+  | AAtom u => hol_term_from_fo_term boolT u
 
 fun mk_all x t = Const (@{const_name All}, quantT) $ lambda x t
 
