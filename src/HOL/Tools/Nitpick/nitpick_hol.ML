@@ -1068,8 +1068,10 @@ fun s_betapply _ (t1 as Const (@{const_name "=="}, _) $ t1', t2) =
     end
   | s_betapply Ts (t1 as Abs (s1, T1, t1'), t2) =
     (s_let Ts s1 (loose_bvar1_count (t1', 0)) T1 (fastype_of1 (T1 :: Ts, t1'))
-              (curry betapply t1) t2
-     handle TERM _ => betapply (t1, t2)) (* FIXME: fix all uses *)
+           (curry betapply t1) t2
+     (* FIXME: fix all "s_betapply []" calls *)
+     handle TERM _ => betapply (t1, t2)
+          | General.Subscript => betapply (t1, t2))
   | s_betapply _ (t1, t2) = t1 $ t2
 fun s_betapplys Ts = Library.foldl (s_betapply Ts)
 
@@ -1504,9 +1506,9 @@ fun is_equational_fun_but_no_plain_def hol_ctxt =
 
 (** Constant unfolding **)
 
-fun constr_case_body ctxt stds (func_t, (x as (_, T))) =
+fun constr_case_body ctxt stds Ts (func_t, (x as (_, T))) =
   let val arg_Ts = binder_types T in
-    s_betapplys [] (func_t, map2 (select_nth_constr_arg ctxt stds x (Bound 0))
+    s_betapplys Ts (func_t, map2 (select_nth_constr_arg ctxt stds x (Bound 0))
                                  (index_seq 0 (length arg_Ts)) arg_Ts)
   end
 fun add_constr_case res_T (body_t, guard_t) res_t =
@@ -1515,13 +1517,14 @@ fun add_constr_case res_T (body_t, guard_t) res_t =
   else
     Const (@{const_name If}, bool_T --> res_T --> res_T --> res_T)
     $ guard_t $ body_t $ res_t
-fun optimized_case_def (hol_ctxt as {ctxt, stds, ...}) dataT res_T func_ts =
+fun optimized_case_def (hol_ctxt as {ctxt, stds, ...}) Ts dataT res_T func_ts =
   let
     val xs = datatype_constrs hol_ctxt dataT
     val cases =
       func_ts ~~ xs
       |> map (fn (func_t, x) =>
-                 (constr_case_body ctxt stds (incr_boundvars 1 func_t, x),
+                 (constr_case_body ctxt stds (dataT :: Ts)
+                                   (incr_boundvars 1 func_t, x),
                   discriminate_value hol_ctxt x (Bound 0)))
       |> AList.group (op aconv)
       |> map (apsnd (List.foldl s_disj @{const False}))
@@ -1685,7 +1688,7 @@ fun unfold_defs_in_term
                   val (dataT, res_T) = nth_range_type n T
                                        |> pairf domain_type range_type
                 in
-                  (optimized_case_def hol_ctxt dataT res_T
+                  (optimized_case_def hol_ctxt Ts dataT res_T
                                       (map (do_term depth Ts) (take n ts)),
                    drop n ts)
                 end
@@ -1966,7 +1969,7 @@ fun codatatype_bisim_axioms (hol_ctxt as {ctxt, stds, ...}) T =
   in
     [HOLogic.mk_imp
        (HOLogic.mk_disj (HOLogic.eq_const iter_T $ n_var $ zero_const iter_T,
-            s_betapply [] (optimized_case_def hol_ctxt T bool_T
+            s_betapply [] (optimized_case_def hol_ctxt [] T bool_T
                                               (map case_func xs), x_var)),
         bisim_const T $ n_var $ x_var $ y_var),
      HOLogic.eq_const set_T $ (bisim_const T $ bisim_max $ x_var)
