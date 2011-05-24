@@ -281,12 +281,21 @@ and parse_annotations x =
                   ::: Scan.repeat ($$ "," |-- parse_annotation)) []
    >> flat) x
 
-fun parse_term x =
+fun list_app (f, args) =
+  fold (fn arg => fn f => ATerm (tptp_app_op, [f, arg])) args f
+
+fun parse_arg x =
   (scan_general_id
-     --| Scan.option ($$ ":" -- scan_general_id) (* ignore TFF types for now *)
+     (* We ignore TFF and THF types for now. *)
+     --| Scan.repeat (($$ ":" || $$ ">") |-- parse_arg)
      -- Scan.optional ($$ "(" |-- parse_terms --| $$ ")") []
    >> ATerm) x
-and parse_terms x = (parse_term ::: Scan.repeat ($$ "," |-- parse_term)) x
+and parse_app x =
+  (parse_arg -- Scan.repeat ($$ tptp_app_op |-- parse_arg) >> list_app) x
+and parse_term x =
+  (parse_app -- Scan.optional)
+and parse_terms x =
+  (parse_term ::: Scan.repeat ($$ "," |-- parse_term)) x
 
 fun parse_atom x =
   (parse_term -- Scan.option (Scan.option ($$ "!") --| $$ "=" -- parse_term)
@@ -320,7 +329,7 @@ and parse_quantified_formula x =
   (($$ "!" >> K AForall || $$ "?" >> K AExists)
    --| $$ "[" -- parse_terms --| $$ "]" --| $$ ":" -- parse_literal
    >> (fn ((q, ts), phi) =>
-          (* FIXME: TFF *)
+          (* We ignore TFF and THF types for now. *)
           AQuant (q, map (rpair NONE o fo_term_head) ts, phi))) x
 
 val parse_tstp_extra_arguments =

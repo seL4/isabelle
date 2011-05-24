@@ -392,11 +392,11 @@ fun raw_term_from_pred thy sym_tab tfrees =
                 [typ_u, term_u] =>
                 aux (SOME (typ_from_fo_term tfrees typ_u)) extra_us term_u
               | _ => raise FO_TERM us
-            else if s' = predicator_base then
+            else if s' = predicator_name then
               aux (SOME @{typ bool}) [] (hd us)
-            else if s' = explicit_app_base then
+            else if s' = app_op_name then
               aux opt_T (nth us 1 :: extra_us) (hd us)
-            else if s' = type_pred_base then
+            else if s' = type_pred_name then
               @{const True} (* ignore type predicates *)
             else
               let

@@ -31,9 +31,9 @@ sig
   val conjecture_prefix : string
   val helper_prefix : string
   val typed_helper_suffix : string
-  val predicator_base : string
-  val explicit_app_base : string
-  val type_pred_base : string
+  val predicator_name : string
+  val app_op_name : string
+  val type_pred_name : string
   val simple_type_prefix : string
   val type_sys_from_string : string -> type_system
   val polymorphism_of_type_sys : type_system -> polymorphism
@@ -93,9 +93,9 @@ val tfree_prefix = "tfree_"
 val typed_helper_suffix = "_T"
 val untyped_helper_suffix = "_U"
 
-val predicator_base = "hBOOL"
-val explicit_app_base = "hAPP"
-val type_pred_base = "is"
+val predicator_name = "hBOOL"
+val app_op_name = "hAPP"
+val type_pred_name = "is"
 val simple_type_prefix = "ty_"
 
 fun make_simple_type s =
@@ -236,8 +236,7 @@ fun general_type_arg_policy type_sys =
 
 fun type_arg_policy type_sys s =
   if s = @{const_name HOL.eq} orelse
-     (s = explicit_app_base andalso
-      level_of_type_sys type_sys = Const_Arg_Types) then
+     (s = app_op_name andalso level_of_type_sys type_sys = Const_Arg_Types) then
     No_Type_Args
   else
     general_type_arg_policy type_sys
@@ -597,7 +596,7 @@ fun add_fact_syms_to_table explicit_apply =
 
 val default_sym_table_entries : (string * sym_info) list =
   [("equal", {pred_sym = true, min_ary = 2, max_ary = 2, typ = NONE}),
-   (make_fixed_const predicator_base,
+   (make_fixed_const predicator_name,
     {pred_sym = true, min_ary = 1, max_ary = 1, typ = NONE})] @
   ([tptp_false, tptp_true]
    |> map (rpair {pred_sym = true, min_ary = 0, max_ary = 0, typ = NONE}))
@@ -613,9 +612,9 @@ fun min_arity_of sym_tab s =
     case strip_prefix_and_unascii const_prefix s of
       SOME s =>
       let val s = s |> unmangled_const_name |> invert_const in
-        if s = predicator_base then 1
-        else if s = explicit_app_base then 2
-        else if s = type_pred_base then 1
+        if s = predicator_name then 1
+        else if s = app_op_name then 2
+        else if s = type_pred_name then 1
         else 0
       end
     | NONE => 0
@@ -631,7 +630,7 @@ fun is_pred_sym sym_tab s =
   | NONE => false
 
 val predicator_combconst =
-  CombConst (`make_fixed_const predicator_base, @{typ "bool => bool"}, [])
+  CombConst (`make_fixed_const predicator_name, @{typ "bool => bool"}, [])
 fun predicator tm = CombApp (predicator_combconst, tm)
 
 fun introduce_predicators_in_combterm sym_tab tm =
@@ -647,7 +646,7 @@ fun explicit_app arg head =
     val head_T = combtyp_of head
     val (arg_T, res_T) = dest_funT head_T
     val explicit_app =
-      CombConst (`make_fixed_const explicit_app_base, head_T --> head_T,
+      CombConst (`make_fixed_const app_op_name, head_T --> head_T,
                  [arg_T, res_T])
   in list_app explicit_app [head, arg] end
 fun list_explicit_app head args = fold explicit_app args head
@@ -673,7 +672,7 @@ fun filter_type_args _ _ _ [] = []
   | filter_type_args thy s arity T_args =
     let
       (* will throw "TYPE" for pseudo-constants *)
-      val U = if s = explicit_app_base then
+      val U = if s = app_op_name then
                 @{typ "('a => 'b) => 'a => 'b"} |> Logic.varifyT_global
               else
                 s |> Sign.the_const_type thy
@@ -705,7 +704,7 @@ fun enforce_type_arg_policy_in_combterm ctxt format nonmono_Ts type_sys =
                anyway, by distinguishing overloads only on the homogenized
                result type. Don't do it for lightweight type systems, though,
                since it leads to too many unsound proofs. *)
-            if s = const_prefix ^ explicit_app_base andalso
+            if s = const_prefix ^ app_op_name andalso
                length T_args = 2 andalso
                not (is_type_sys_virtually_sound type_sys) andalso
                heaviness_of_type_sys type_sys = Heavy then
@@ -834,7 +833,7 @@ fun fo_literal_from_type_literal (TyLitVar (class, name)) =
 fun formula_from_fo_literal (pos, t) = AAtom t |> not pos ? mk_anot
 
 fun type_pred_combterm ctxt format nonmono_Ts type_sys T tm =
-  CombApp (CombConst (`make_fixed_const type_pred_base, T --> @{typ bool}, [T])
+  CombApp (CombConst (`make_fixed_const type_pred_name, T --> @{typ bool}, [T])
            |> enforce_type_arg_policy_in_combterm ctxt format nonmono_Ts
                                                   type_sys,
            tm)

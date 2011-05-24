@@ -27,12 +27,13 @@ sig
 
   (* official TPTP syntax *)
   val tptp_special_prefix : string
-  val tptp_false : string
-  val tptp_true : string
   val tptp_type_of_types : string
   val tptp_bool_type : string
   val tptp_individual_type : string
   val tptp_fun_type : string
+  val tptp_false : string
+  val tptp_true : string
+  val tptp_app_op : string
   val is_atp_variable : string -> bool
   val mk_anot : ('a, 'b, 'c) formula -> ('a, 'b, 'c) formula
   val mk_aconn :
@@ -76,12 +77,13 @@ type 'a problem = (string * 'a problem_line list) list
 
 (* official TPTP syntax *)
 val tptp_special_prefix = "$"
-val tptp_false = "$false"
-val tptp_true = "$true"
 val tptp_type_of_types = "$tType"
 val tptp_bool_type = "$o"
 val tptp_individual_type = "$i"
 val tptp_fun_type = ">"
+val tptp_false = "$false"
+val tptp_true = "$true"
+val tptp_app_op = "@"
 
 fun is_atp_variable s = Char.isUpper (String.sub (s, 0))
 
