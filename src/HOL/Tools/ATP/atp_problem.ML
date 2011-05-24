@@ -197,18 +197,22 @@ fun string_for_bound_var format (s, ty) =
          "")
 
 fun string_for_formula format (AQuant (q, xs, phi)) =
-    "(" ^ string_for_quantifier q ^
+    string_for_quantifier q ^
     "[" ^ commas (map (string_for_bound_var format) xs) ^ "] : " ^
-    string_for_formula format phi ^ ")"
+    string_for_formula format phi
+    |> enclose "(" ")"
   | string_for_formula format (AConn (ANot, [AAtom (ATerm ("equal", ts))])) =
     space_implode (" " ^ tptp_not_infix ^ tptp_equal ^ " ")
                   (map (string_for_term format) ts)
     |> format = THF ? enclose "(" ")"
   | string_for_formula format (AConn (c, [phi])) =
-    "(" ^ string_for_connective c ^ " " ^ string_for_formula format phi ^ ")"
+    string_for_connective c ^ " " ^
+    (string_for_formula format phi |> format = THF ? enclose "(" ")")
+    |> enclose "(" ")"
   | string_for_formula format (AConn (c, phis)) =
-    "(" ^ space_implode (" " ^ string_for_connective c ^ " ")
-                        (map (string_for_formula format) phis) ^ ")"
+    space_implode (" " ^ string_for_connective c ^ " ")
+                  (map (string_for_formula format) phis)
+    |> enclose "(" ")"
   | string_for_formula format (AAtom tm) = string_for_term format tm
 
 val default_source =

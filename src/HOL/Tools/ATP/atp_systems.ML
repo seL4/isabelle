@@ -382,7 +382,7 @@ fun remote_config system_name system_versions proof_delims known_failures
   {exec = ("ISABELLE_ATP", "scripts/remote_atp"),
    required_execs = [],
    arguments = fn _ => fn _ => fn timeout => fn _ =>
-     " -t " ^ string_of_int (Int.min (max_remote_secs, (to_secs 0 timeout)))
+     "-t " ^ string_of_int (Int.min (max_remote_secs, (to_secs 0 timeout)))
      ^ " -s " ^ the_system system_name system_versions,
    proof_delims = union (op =) tstp_proof_delims proof_delims,
    known_failures = known_failures @ known_perl_failures @
