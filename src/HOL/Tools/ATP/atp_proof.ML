@@ -266,9 +266,18 @@ fun step_name (Definition (name, _, _)) = name
 
 (**** PARSING OF TSTP FORMAT ****)
 
+(* FIXME: temporary hack *)
+fun repair_waldmeister_step_name s =
+  case space_explode "." s of
+    [a, b, c, d] =>
+    (case a of "0" => "X" | "1" => "Y" | _ => "Z" ^ a) ^
+    (if size b = 1 then "0" else "") ^ b ^ c ^ d
+  | _ => s
+
 (* Strings enclosed in single quotes (e.g., file names) *)
 val scan_general_id =
-  $$ "'" |-- Scan.repeat (~$$ "'") --| $$ "'" >> implode
+  $$ "'" |-- Scan.repeat (~$$ "'") --| $$ "'"
+     >> implode >> repair_waldmeister_step_name
   || Scan.repeat ($$ "$") -- Scan.many1 Symbol.is_letdig
      >> (fn (ss1, ss2) => implode ss1 ^ implode ss2)
 
