@@ -450,9 +450,10 @@ fun adjust_dumb_type_sys formats (Simple_Types level) =
       (FOF, type_sys)
     else if member (op =) formats CNF_UEQ then
       (CNF_UEQ, case type_sys of
-                  Tags _ => type_sys
-                | _ => Preds (polymorphism_of_type_sys type_sys,
-                              Const_Arg_Types, Light))
+                  Preds stuff =>
+                  (if is_type_sys_fairly_sound type_sys then Preds else Tags)
+                      stuff
+                | _ => type_sys)
     else
       (* We could return "type_sys" unchanged for TFF but this would require the
          TFF provers to accept problems in which constants are implicitly
