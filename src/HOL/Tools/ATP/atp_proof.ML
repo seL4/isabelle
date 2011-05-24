@@ -53,11 +53,12 @@ sig
   val extract_tstplike_proof_and_outcome :
     bool -> bool -> int -> (string * string) list -> (failure * string) list
     -> string -> string * failure option
-  val is_same_step : step_name * step_name -> bool
+  val is_same_atp_step : step_name -> step_name -> bool
   val scan_general_id : string list -> string * string list
   val parse_formula :
     string list -> (string, 'a, string fo_term) formula * string list
   val atp_proof_from_tstplike_proof : string problem -> string -> string proof
+  val clean_up_atp_proof_dependencies : string proof -> string proof
   val map_term_names_in_atp_proof :
     (string -> string) -> string proof -> string proof
   val nasty_atp_proof : string Symtab.table -> string proof -> string proof
@@ -142,10 +143,8 @@ val missing_message_tail =
 fun involving [] = ""
   | involving ss = "involving " ^ commas_quote ss ^ " "
 
-fun string_for_failure Unprovable =
-    "The problem is unprovable."
-  | string_for_failure IncompleteUnprovable =
-    "The prover gave up."
+fun string_for_failure Unprovable = "The problem is unprovable."
+  | string_for_failure IncompleteUnprovable = "The prover gave up."
   | string_for_failure ProofMissing =
     "The prover claims the conjecture is a theorem but did not provide a proof."
   | string_for_failure ProofIncomplete =
@@ -239,14 +238,17 @@ fun extract_tstplike_proof_and_outcome verbose complete res_code proof_delims
 
 type step_name = string * string option
 
-fun is_same_step p = p |> pairself fst |> op =
+fun is_same_atp_step (s1, _) (s2, _) = s1 = s2
+
+val vampire_fact_prefix = "f"
 
 fun step_name_ord p =
   let val q = pairself fst p in
     (* The "unprefix" part is to cope with remote Vampire's output. The proper
        solution would be to perform a topological sort, e.g. using the nice
        "Graph" functor. *)
-    case pairself (Int.fromString o perhaps (try (unprefix "f"))) q of
+    case pairself (Int.fromString
+                   o perhaps (try (unprefix vampire_fact_prefix))) q of
       (NONE, NONE) => string_ord q
     | (NONE, SOME _) => LESS
     | (SOME _, NONE) => GREATER
@@ -282,23 +284,32 @@ and parse_annotations x =
    >> flat) x
 
 fun list_app (f, args) =
-  fold (fn arg => fn f => ATerm (tptp_app_op, [f, arg])) args f
+  fold (fn arg => fn f => ATerm (tptp_app, [f, arg])) args f
 
-fun parse_arg x =
-  (scan_general_id
-     (* We ignore TFF and THF types for now. *)
-     --| Scan.repeat (($$ ":" || $$ ">") |-- parse_arg)
-     -- Scan.optional ($$ "(" |-- parse_terms --| $$ ")") []
-   >> ATerm) x
+(* We ignore TFF and THF types for now. *)
+fun parse_type_stuff x =
+  Scan.repeat (($$ tptp_has_type || $$ tptp_fun_type) |-- parse_arg) x
+and parse_arg x =
+  ($$ "(" |-- parse_term --| $$ ")" --| parse_type_stuff
+   || scan_general_id --| parse_type_stuff
+        -- Scan.optional ($$ "(" |-- parse_terms --| $$ ")") []
+      >> ATerm) x
 and parse_app x =
-  (parse_arg -- Scan.repeat ($$ tptp_app_op |-- parse_arg) >> list_app) x
+  (parse_arg -- Scan.repeat ($$ tptp_app |-- parse_arg) >> list_app) x
 and parse_term x =
-  (parse_app -- Scan.optional)
+  (parse_app -- Scan.option (Scan.option ($$ tptp_not_infix) --| $$ tptp_equal
+                             -- parse_app)
+   >> (fn (u1, NONE) => u1
+        | (u1, SOME (NONE, u2)) => ATerm ("equal", [u1, u2])
+        | (u1, SOME (SOME _, u2)) =>
+          ATerm (tptp_not, [ATerm ("equal", [u1, u2])]))) x
 and parse_terms x =
   (parse_term ::: Scan.repeat ($$ "," |-- parse_term)) x
 
+(* TODO: Avoid duplication with "parse_term" above. *)
 fun parse_atom x =
-  (parse_term -- Scan.option (Scan.option ($$ "!") --| $$ "=" -- parse_term)
+  (parse_term -- Scan.option (Scan.option ($$ tptp_not_infix) --| $$ tptp_equal
+                              -- parse_term)
    >> (fn (u1, NONE) => AAtom u1
         | (u1, SOME (NONE, u2)) => AAtom (ATerm ("equal", [u1, u2]))
         | (u1, SOME (SOME _, u2)) =>
@@ -309,28 +320,41 @@ fun fo_term_head (ATerm (s, _)) = s
 (* TPTP formulas are fully parenthesized, so we don't need to worry about
    operator precedence. *)
 fun parse_literal x =
-  ((Scan.repeat ($$ "~") >> length)
+  ((Scan.repeat ($$ tptp_not) >> length)
       -- ($$ "(" |-- parse_formula --| $$ ")"
           || parse_quantified_formula
           || parse_atom)
       >> (fn (n, phi) => phi |> n mod 2 = 1 ? mk_anot)) x
 and parse_formula x =
   (parse_literal
-   -- Scan.option ((Scan.this_string "=>" >> K AImplies
-                    || Scan.this_string "<=>" >> K AIff
-                    || Scan.this_string "<~>" >> K ANotIff
-                    || Scan.this_string "<=" >> K AIf
-                    || $$ "|" >> K AOr
-                    || $$ "&" >> K AAnd)
+   -- Scan.option ((Scan.this_string tptp_implies >> K AImplies
+                    || Scan.this_string tptp_iff >> K AIff
+                    || Scan.this_string tptp_not_iff >> K ANotIff
+                    || Scan.this_string tptp_if >> K AIf
+                    || $$ tptp_or >> K AOr
+                    || $$ tptp_and >> K AAnd)
                    -- parse_formula)
    >> (fn (phi1, NONE) => phi1
         | (phi1, SOME (c, phi2)) => mk_aconn c phi1 phi2)) x
 and parse_quantified_formula x =
-  (($$ "!" >> K AForall || $$ "?" >> K AExists)
+  (($$ tptp_forall >> K AForall || $$ tptp_exists >> K AExists)
    --| $$ "[" -- parse_terms --| $$ "]" --| $$ ":" -- parse_literal
    >> (fn ((q, ts), phi) =>
           (* We ignore TFF and THF types for now. *)
           AQuant (q, map (rpair NONE o fo_term_head) ts, phi))) x
+
+fun skip_formula ss =
+  let
+    fun skip _ [] = []
+      | skip 0 (ss as "," :: _) = ss
+      | skip 0 (ss as ")" :: _) = ss
+      | skip 0 (ss as "]" :: _) = ss
+      | skip n ("(" :: ss) = skip (n + 1) ss
+      | skip n ("[" :: ss) = skip (n + 1) ss
+      | skip n ("]" :: ss) = skip (n - 1) ss
+      | skip n (")" :: ss) = skip (n - 1) ss
+      | skip n (_ :: ss) = skip n ss
+  in (AAtom (ATerm ("", [])), skip 0 ss) end
 
 val parse_tstp_extra_arguments =
   Scan.optional ($$ "," |-- parse_annotation
@@ -384,10 +408,11 @@ fun find_formula_in_problem problem phi =
             <formula> <extra_arguments>\).
    The <num> could be an identifier, but we assume integers. *)
 fun parse_tstp_line problem =
-  ((Scan.this_string "cnf" || Scan.this_string "fof" || Scan.this_string "tff"
-    || Scan.this_string "thf") -- $$ "(")
+  ((Scan.this_string tptp_cnf || Scan.this_string tptp_fof
+    || Scan.this_string tptp_tff || Scan.this_string tptp_thf) -- $$ "(")
     |-- scan_general_id --| $$ "," -- Symbol.scan_id --| $$ ","
-    -- parse_formula -- parse_tstp_extra_arguments --| $$ ")" --| $$ "."
+    -- (parse_formula || skip_formula) -- parse_tstp_extra_arguments --| $$ ")"
+    --| $$ "."
    >> (fn (((num, role), phi), deps) =>
           let
             val (name, deps) =
@@ -413,7 +438,7 @@ fun parse_tstp_line problem =
                | AAtom (ATerm ("equal", _)) =>
                  (* Vampire's equality proxy axiom *)
                  Inference (name, phi, map (rpair NONE) deps)
-               | _ => raise Fail "malformed definition")
+               | _ => raise UNRECOGNIZED_ATP_PROOF ())
             | _ => Inference (name, phi, map (rpair NONE) deps)
           end)
 
@@ -462,20 +487,22 @@ fun parse_proof problem s =
                            (Scan.repeat1 (parse_line problem))))
     |> fst
 
-fun clean_up_dependency seen dep = find_first (curry is_same_step dep) seen
-fun clean_up_dependencies _ [] = []
-  | clean_up_dependencies seen ((step as Definition (name, _, _)) :: steps) =
-    step :: clean_up_dependencies (name :: seen) steps
-  | clean_up_dependencies seen (Inference (name, u, deps) :: steps) =
-    Inference (name, u, map_filter (clean_up_dependency seen) deps) ::
-    clean_up_dependencies (name :: seen) steps
-
 fun atp_proof_from_tstplike_proof _ "" = []
   | atp_proof_from_tstplike_proof problem s =
     s ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
     |> parse_proof problem
     |> sort (step_name_ord o pairself step_name)
-    |> clean_up_dependencies []
+
+fun clean_up_dependencies _ [] = []
+  | clean_up_dependencies seen ((step as Definition (name, _, _)) :: steps) =
+    step :: clean_up_dependencies (name :: seen) steps
+  | clean_up_dependencies seen (Inference (name, u, deps) :: steps) =
+    Inference (name, u,
+               map_filter (fn dep => find_first (is_same_atp_step dep) seen)
+                          deps) ::
+    clean_up_dependencies (name :: seen) steps
+
+val clean_up_atp_proof_dependencies = clean_up_dependencies []
 
 fun map_term_names_in_term f (ATerm (s, ts)) =
   ATerm (f s, map (map_term_names_in_term f) ts)

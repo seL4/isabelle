@@ -16,8 +16,7 @@ sig
     string * minimize_command * type_system * string proof * int
     * (string * locality) list vector * int list * thm * int
   type isar_params =
-    Proof.context * bool * int * string Symtab.table * int list list
-    * int Symtab.table
+    bool * int * string Symtab.table * int list list * int Symtab.table
   type text_result = string * (string * locality) list
 
   val repair_conjecture_shape_and_fact_names :
@@ -25,11 +24,11 @@ sig
     -> (string * locality) list vector -> int list
     -> int list list * int * (string * locality) list vector * int list
   val used_facts_in_atp_proof :
-    type_system -> int -> (string * locality) list vector -> string proof
-    -> (string * locality) list
+    Proof.context -> type_system -> int -> (string * locality) list vector
+    -> string proof -> (string * locality) list
   val used_facts_in_unsound_atp_proof :
-    type_system -> int list list -> int -> (string * locality) list vector
-    -> string proof -> string list option
+    Proof.context -> type_system -> int list list -> int
+    -> (string * locality) list vector -> string proof -> string list option
   val apply_on_subgoal : string -> int -> int -> string
   val command_call : string -> string list -> string
   val try_command_line : string -> string -> string
@@ -37,9 +36,11 @@ sig
   val split_used_facts :
     (string * locality) list
     -> (string * locality) list * (string * locality) list
-  val metis_proof_text : metis_params -> text_result
-  val isar_proof_text : isar_params -> metis_params -> text_result
-  val proof_text : bool -> isar_params -> metis_params -> text_result
+  val metis_proof_text : Proof.context -> metis_params -> text_result
+  val isar_proof_text :
+    Proof.context -> isar_params -> metis_params -> text_result
+  val proof_text :
+    Proof.context -> bool -> isar_params -> metis_params -> text_result
 end;
 
 structure Sledgehammer_ATP_Reconstruct : SLEDGEHAMMER_ATP_RECONSTRUCT =
@@ -57,8 +58,7 @@ type metis_params =
   string * minimize_command * type_system * string proof * int
   * (string * locality) list vector * int list * thm * int
 type isar_params =
-  Proof.context * bool * int * string Symtab.table * int list list
-  * int Symtab.table
+  bool * int * string Symtab.table * int list list * int Symtab.table
 type text_result = string * (string * locality) list
 
 fun is_head_digit s = Char.isDigit (String.sub (s, 0))
@@ -182,23 +182,39 @@ fun is_typed_helper _ (_, SOME s) = is_typed_helper_name s
        SOME i => member (op =) typed_helpers i
      | NONE => false)
 
-fun add_fact type_sys facts_offset fact_names (Inference (name, _, [])) =
-    union (op =) (resolve_fact type_sys facts_offset fact_names name)
-  | add_fact _ _ _ _ = I
+val leo2_ext = "extcnf_equal_neg"
+val isa_ext = Thm.get_name_hint @{thm ext}
+val isa_short_ext = Long_Name.base_name isa_ext
 
-fun used_facts_in_atp_proof type_sys facts_offset fact_names atp_proof =
+fun ext_name ctxt =
+  if Thm.eq_thm_prop (@{thm ext},
+         singleton (Attrib.eval_thms ctxt) (Facts.named isa_short_ext, [])) then
+    isa_short_ext
+  else
+    isa_ext
+
+fun add_fact _ type_sys facts_offset fact_names (Inference (name, _, [])) =
+    union (op =) (resolve_fact type_sys facts_offset fact_names name)
+  | add_fact ctxt _ _ _ (Inference (_, _, deps)) =
+    if AList.defined (op =) deps leo2_ext then
+      insert (op =) (ext_name ctxt, General (* or Chained... *))
+    else
+      I
+  | add_fact _ _ _ _ _ = I
+
+fun used_facts_in_atp_proof ctxt type_sys facts_offset fact_names atp_proof =
   if null atp_proof then Vector.foldl (op @) [] fact_names
-  else fold (add_fact type_sys facts_offset fact_names) atp_proof []
+  else fold (add_fact ctxt type_sys facts_offset fact_names) atp_proof []
 
 fun is_conjecture_referred_to_in_proof conjecture_shape =
   exists (fn Inference (name, _, []) => is_conjecture conjecture_shape name
            | _ => false)
 
-fun used_facts_in_unsound_atp_proof type_sys conjecture_shape facts_offset
+fun used_facts_in_unsound_atp_proof ctxt type_sys conjecture_shape facts_offset
                                     fact_names atp_proof =
   let
-    val used_facts = used_facts_in_atp_proof type_sys facts_offset fact_names
-                                             atp_proof
+    val used_facts =
+      used_facts_in_atp_proof ctxt type_sys facts_offset fact_names atp_proof
   in
     if forall (is_locality_global o snd) used_facts andalso
        not (is_conjecture_referred_to_in_proof conjecture_shape atp_proof) then
@@ -244,11 +260,11 @@ fun uses_typed_helpers typed_helpers =
   exists (fn Inference (name, _, []) => is_typed_helper typed_helpers name
            | _ => false)
 
-fun metis_proof_text (banner, minimize_command, type_sys, atp_proof,
-                      facts_offset, fact_names, typed_helpers, goal, i) =
+fun metis_proof_text ctxt (banner, minimize_command, type_sys, atp_proof,
+                           facts_offset, fact_names, typed_helpers, goal, i) =
   let
     val (chained, extra) =
-      atp_proof |> used_facts_in_atp_proof type_sys facts_offset fact_names
+      atp_proof |> used_facts_in_atp_proof ctxt type_sys facts_offset fact_names
                 |> split_used_facts
     val full_types = uses_typed_helpers typed_helpers atp_proof
     val n = Logic.count_prems (prop_of goal)
@@ -561,7 +577,7 @@ fun is_same_inference _ (Definition _) = false
 val is_only_type_information = curry (op aconv) HOLogic.true_const
 
 fun replace_one_dependency (old, new) dep =
-  if is_same_step (dep, old) then new else [dep]
+  if is_same_atp_step dep old then new else [dep]
 fun replace_dependencies_in_line _ (line as Definition _) = line
   | replace_dependencies_in_line p (Inference (name, t, deps)) =
     Inference (name, t, fold (union (op =) o replace_one_dependency p) deps [])
@@ -692,6 +708,7 @@ fun isar_proof_from_atp_proof pool ctxt type_sys tfrees isar_shrink_factor
   let
     val lines =
       atp_proof
+      |> clean_up_atp_proof_dependencies
       |> nasty_atp_proof pool
       |> map_term_names_in_atp_proof repair_name
       |> decode_lines ctxt sym_tab tfrees
@@ -995,17 +1012,17 @@ fun string_for_proof ctxt0 full_types i n =
         (if n <> 1 then "next" else "qed")
   in do_proof end
 
-fun isar_proof_text (ctxt, debug, isar_shrink_factor, pool, conjecture_shape,
-                     sym_tab)
-                    (metis_params as (_, _, type_sys, atp_proof, facts_offset,
-                                      fact_names, typed_helpers, goal, i)) =
+fun isar_proof_text ctxt
+        (debug, isar_shrink_factor, pool, conjecture_shape, sym_tab)
+        (metis_params as (_, _, type_sys, atp_proof, facts_offset, fact_names,
+                          typed_helpers, goal, i)) =
   let
     val (params, hyp_ts, concl_t) = strip_subgoal goal i
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []
     val tfrees = fold Term.add_tfrees (concl_t :: hyp_ts) []
     val full_types = uses_typed_helpers typed_helpers atp_proof
     val n = Logic.count_prems (prop_of goal)
-    val (one_line_proof, lemma_names) = metis_proof_text metis_params
+    val (one_line_proof, lemma_names) = metis_proof_text ctxt metis_params
     fun isar_proof_for () =
       case isar_proof_from_atp_proof pool ctxt type_sys tfrees
                isar_shrink_factor atp_proof conjecture_shape facts_offset
@@ -1026,8 +1043,7 @@ fun isar_proof_text (ctxt, debug, isar_shrink_factor, pool, conjecture_shape,
         |> the_default "\nWarning: The Isar proof construction failed."
   in (one_line_proof ^ isar_proof, lemma_names) end
 
-fun proof_text isar_proof isar_params metis_params =
-  (if isar_proof then isar_proof_text isar_params else metis_proof_text)
-      metis_params
+fun proof_text ctxt isar_proof isar_params =
+  if isar_proof then isar_proof_text ctxt isar_params else metis_proof_text ctxt
 
 end;

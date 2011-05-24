@@ -622,7 +622,7 @@ fun run_atp auto name
                 val outcome =
                   case outcome of
                     NONE =>
-                    used_facts_in_unsound_atp_proof type_sys
+                    used_facts_in_unsound_atp_proof ctxt type_sys
                         conjecture_shape facts_offset fact_names atp_proof
                     |> Option.map (fn facts =>
                            UnsoundProof (is_type_sys_virtually_sound type_sys,
@@ -656,8 +656,8 @@ fun run_atp auto name
                     (result as ((_, _, facts_offset, fact_names, _, _),
                                 (_, _, type_sys, atp_proof,
                                  SOME (UnsoundProof (false, _))))) =
-                (case used_facts_in_atp_proof type_sys facts_offset fact_names
-                                              atp_proof of
+                (case used_facts_in_atp_proof ctxt type_sys facts_offset
+                                              fact_names atp_proof of
                    [] => result
                  | new_baddies =>
                    if slicing andalso iter < atp_blacklist_max_iters - 1 then
@@ -712,18 +712,18 @@ fun run_atp auto name
        else
          "")
     val isar_params =
-      (ctxt, debug, isar_shrink_factor, pool, conjecture_shape, sym_tab)
+      (debug, isar_shrink_factor, pool, conjecture_shape, sym_tab)
     val metis_params =
       (proof_banner auto, minimize_command, type_sys, atp_proof, facts_offset,
        fact_names, typed_helpers, goal, subgoal)
     val (outcome, (message, used_facts)) =
       case outcome of
         NONE =>
-        (NONE, proof_text isar_proof isar_params metis_params
+        (NONE, proof_text ctxt isar_proof isar_params metis_params
                |>> append_to_message)
       | SOME failure =>
         if failure = ProofMissing orelse failure = ProofIncomplete then
-          (NONE, metis_proof_text metis_params |>> append_to_message)
+          (NONE, metis_proof_text ctxt metis_params |>> append_to_message)
         else
           (outcome, (string_for_failure failure, []))
   in

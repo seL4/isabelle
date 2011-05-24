@@ -44,7 +44,7 @@ fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
 
 val auto_minimize_min_facts =
   Attrib.setup_config_int @{binding sledgehammer_auto_minimize_min_facts}
-      (fn generic => (* ### Config.get_generic generic binary_min_facts *) 10000 (*###*))
+      (fn generic => Config.get_generic generic binary_min_facts)
 
 fun get_minimizing_prover ctxt auto name
         (params as {debug, verbose, explicit_apply, ...}) minimize_command

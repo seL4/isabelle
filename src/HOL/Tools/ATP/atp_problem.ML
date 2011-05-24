@@ -25,17 +25,31 @@ sig
                * string fo_term option * string fo_term option
   type 'a problem = (string * 'a problem_line list) list
 
-  (* official TPTP syntax *)
+  val tptp_cnf : string
+  val tptp_fof : string
+  val tptp_tff : string
+  val tptp_thf : string
   val tptp_special_prefix : string
   val tptp_has_type : string
   val tptp_type_of_types : string
   val tptp_bool_type : string
   val tptp_individual_type : string
   val tptp_fun_type : string
+  val tptp_prod_type : string
+  val tptp_forall : string
+  val tptp_exists : string
+  val tptp_not : string
+  val tptp_and : string
+  val tptp_or : string
+  val tptp_implies : string
+  val tptp_if : string
+  val tptp_iff : string
+  val tptp_not_iff : string
+  val tptp_app : string
+  val tptp_not_infix : string
+  val tptp_equal : string
   val tptp_false : string
   val tptp_true : string
-  val tptp_not : string
-  val tptp_app : string
   val is_atp_variable : string -> bool
   val mk_anot : ('a, 'b, 'c) formula -> ('a, 'b, 'c) formula
   val mk_aconn :
@@ -78,16 +92,31 @@ datatype 'a problem_line =
 type 'a problem = (string * 'a problem_line list) list
 
 (* official TPTP syntax *)
+val tptp_cnf = "cnf"
+val tptp_fof = "fof"
+val tptp_tff = "tff"
+val tptp_thf = "thf"
 val tptp_special_prefix = "$"
 val tptp_has_type = ":"
 val tptp_type_of_types = "$tType"
 val tptp_bool_type = "$o"
 val tptp_individual_type = "$i"
 val tptp_fun_type = ">"
+val tptp_prod_type = "*"
+val tptp_forall = "!"
+val tptp_exists = "?"
+val tptp_not = "~"
+val tptp_and = "&"
+val tptp_or = "|"
+val tptp_implies = "=>"
+val tptp_if = "<="
+val tptp_iff = "<=>"
+val tptp_not_iff = "<~>"
+val tptp_app = "@"
+val tptp_not_infix = "!"
+val tptp_equal = "="
 val tptp_false = "$false"
 val tptp_true = "$true"
-val tptp_not = "~"
-val tptp_app = "@"
 
 fun is_atp_variable s = Char.isUpper (String.sub (s, 0))
 
@@ -130,36 +159,39 @@ fun string_for_type THF ty =
     (case strip_tff_type ty of
        ([], s) => s
      | ([s'], s) => s' ^ " " ^ tptp_fun_type ^ " " ^ s
-     | (ss, s) => "(" ^ space_implode " * " ss ^ ") " ^ tptp_fun_type ^ " " ^ s)
+     | (ss, s) =>
+       "(" ^ space_implode tptp_prod_type ss ^ ") " ^ tptp_fun_type ^ " " ^ s)
   | string_for_type _ _ = raise Fail "unexpected type in untyped format"
 
 fun string_for_term _ (ATerm (s, [])) = s
   | string_for_term format (ATerm ("equal", ts)) =
-    space_implode " = " (map (string_for_term format) ts)
+    space_implode (" " ^ tptp_equal ^ " ") (map (string_for_term format) ts)
     |> format = THF ? enclose "(" ")"
   | string_for_term format (ATerm ("[]", ts)) =
     (* used for lists in the optional "source" field of a derivation *)
     "[" ^ commas (map (string_for_term format) ts) ^ "]"
   | string_for_term format (ATerm (s, ts)) =
     let val ss = map (string_for_term format) ts in
-      if format = THF then "(" ^ space_implode " @ " (s :: ss) ^ ")"
-      else s ^ "(" ^ commas ss ^ ")"
+      if format = THF then
+        "(" ^ space_implode (" " ^ tptp_app ^ " ") (s :: ss) ^ ")"
+      else
+        s ^ "(" ^ commas ss ^ ")"
     end
 
-fun string_for_quantifier AForall = "!"
-  | string_for_quantifier AExists = "?"
+fun string_for_quantifier AForall = tptp_forall
+  | string_for_quantifier AExists = tptp_exists
 
 fun string_for_connective ANot = tptp_not
-  | string_for_connective AAnd = "&"
-  | string_for_connective AOr = "|"
-  | string_for_connective AImplies = "=>"
-  | string_for_connective AIf = "<="
-  | string_for_connective AIff = "<=>"
-  | string_for_connective ANotIff = "<~>"
+  | string_for_connective AAnd = tptp_and
+  | string_for_connective AOr = tptp_or
+  | string_for_connective AImplies = tptp_implies
+  | string_for_connective AIf = tptp_if
+  | string_for_connective AIff = tptp_iff
+  | string_for_connective ANotIff = tptp_not_iff
 
 fun string_for_bound_var format (s, ty) =
   s ^ (if format = TFF orelse format = THF then
-         " : " ^
+         " " ^ tptp_has_type ^ " " ^
          string_for_type format (ty |> the_default (AType tptp_individual_type))
        else
          "")
@@ -169,7 +201,8 @@ fun string_for_formula format (AQuant (q, xs, phi)) =
     "[" ^ commas (map (string_for_bound_var format) xs) ^ "] : " ^
     string_for_formula format phi ^ ")"
   | string_for_formula format (AConn (ANot, [AAtom (ATerm ("equal", ts))])) =
-    space_implode " != " (map (string_for_term format) ts)
+    space_implode (" " ^ tptp_not_infix ^ tptp_equal ^ " ")
+                  (map (string_for_term format) ts)
     |> format = THF ? enclose "(" ")"
   | string_for_formula format (AConn (c, [phi])) =
     "(" ^ string_for_connective c ^ " " ^ string_for_formula format phi ^ ")"
@@ -181,10 +214,10 @@ fun string_for_formula format (AQuant (q, xs, phi)) =
 val default_source =
   ATerm ("inference", ATerm ("isabelle", []) :: replicate 2 (ATerm ("[]", [])))
 
-fun string_for_format CNF_UEQ = "cnf"
-  | string_for_format FOF = "fof"
-  | string_for_format TFF = "tff"
-  | string_for_format THF = "thf"
+fun string_for_format CNF_UEQ = tptp_cnf
+  | string_for_format FOF = tptp_fof
+  | string_for_format TFF = tptp_tff
+  | string_for_format THF = tptp_thf
 
 fun string_for_problem_line format (Decl (ident, sym, ty)) =
     string_for_format format ^ "(" ^ ident ^ ", type,\n    " ^ sym ^ " : " ^
