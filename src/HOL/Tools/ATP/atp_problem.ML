@@ -27,13 +27,15 @@ sig
 
   (* official TPTP syntax *)
   val tptp_special_prefix : string
+  val tptp_has_type : string
   val tptp_type_of_types : string
   val tptp_bool_type : string
   val tptp_individual_type : string
   val tptp_fun_type : string
   val tptp_false : string
   val tptp_true : string
-  val tptp_app_op : string
+  val tptp_not : string
+  val tptp_app : string
   val is_atp_variable : string -> bool
   val mk_anot : ('a, 'b, 'c) formula -> ('a, 'b, 'c) formula
   val mk_aconn :
@@ -77,13 +79,15 @@ type 'a problem = (string * 'a problem_line list) list
 
 (* official TPTP syntax *)
 val tptp_special_prefix = "$"
+val tptp_has_type = ":"
 val tptp_type_of_types = "$tType"
 val tptp_bool_type = "$o"
 val tptp_individual_type = "$i"
 val tptp_fun_type = ">"
 val tptp_false = "$false"
 val tptp_true = "$true"
-val tptp_app_op = "@"
+val tptp_not = "~"
+val tptp_app = "@"
 
 fun is_atp_variable s = Char.isUpper (String.sub (s, 0))
 
@@ -145,7 +149,7 @@ fun string_for_term _ (ATerm (s, [])) = s
 fun string_for_quantifier AForall = "!"
   | string_for_quantifier AExists = "?"
 
-fun string_for_connective ANot = "~"
+fun string_for_connective ANot = tptp_not
   | string_for_connective AAnd = "&"
   | string_for_connective AOr = "|"
   | string_for_connective AImplies = "=>"
@@ -205,8 +209,6 @@ fun tptp_strings_for_atp_problem format problem =
 
 
 (** CNF UEQ (Waldmeister) **)
-
-exception LOST_CONJECTURE of unit
 
 fun is_problem_line_negated (Formula (_, _, AConn (ANot, _), _, _)) = true
   | is_problem_line_negated _ = false
