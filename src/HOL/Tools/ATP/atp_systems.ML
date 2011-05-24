@@ -417,10 +417,10 @@ val remote_vampire = remotify_atp vampire "Vampire" ["0.6", "9.0", "1.0"]
 val remote_z3_atp = remotify_atp z3_atp "Z3" ["2.18"]
 val remote_leo2 =
   remote_atp leo2N "LEO-II" ["1.2.6"] [] [] Axiom Hypothesis [THF]
-             (K (150, ["simple"]) (* FUDGE *))
+             (K (100, ["simple"]) (* FUDGE *))
 val remote_satallax =
   remote_atp satallaxN "Satallax" ["2.0"] [] [] Axiom Hypothesis [THF]
-             (K (150, ["simple"]) (* FUDGE *))
+             (K (64, ["simple"]) (* FUDGE *))
 val remote_sine_e =
   remote_atp sine_eN "SInE" ["0.4"] [] (#known_failures e_config)
              Axiom Conjecture [FOF]
@@ -428,7 +428,7 @@ val remote_sine_e =
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r029", "20080805r024"]
              [("refutation.", "end_refutation.")] [] Hypothesis Hypothesis
-             [TFF, FOF] (K (250, ["simple"]) (* FUDGE *))
+             [TFF, FOF] (K (100, ["simple"]) (* FUDGE *))
 val remote_tofof_e =
   remote_atp tofof_eN "ToFoF" ["0.1"] [] (#known_failures e_config)
              Axiom Hypothesis [TFF] (K (150, ["simple"]) (* FUDGE *))
