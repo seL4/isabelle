@@ -25,7 +25,7 @@ my %URLParameters = (
 
 #----Get format and transform options if specified
 my %Options;
-getopts("hws:t:c:",\%Options);
+getopts("hws:t:c:q:",\%Options);
 
 #----Usage
 sub usage() {
@@ -36,6 +36,7 @@ sub usage() {
   print("    -s<system>      ATP to use\n");
   print("    -t<time_limit>  CPU time limit for ATP\n");
   print("    -c<command>     custom ATP invocation command\n");
+  print("    -q<num>         quietness level (0 = most verbose, 3 = least verbose)\n");
   print("    <file_name>     TPTP problem file\n");
   exit(0);
 }
@@ -71,6 +72,10 @@ if (exists($Options{'t'})) {
 #----Custom command
 if (exists($Options{'c'})) {
     $URLParameters{"Command___$System"} = $Options{'c'};
+}
+#----Quietness
+if (exists($Options{'q'})) {
+    $URLParameters{"QuietFlag"} = "-q" . $Options{'q'};
 }
 
 #----Get single file name
