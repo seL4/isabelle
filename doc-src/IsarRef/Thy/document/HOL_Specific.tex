@@ -22,585 +22,92 @@
 }
 \isamarkuptrue%
 %
-\isamarkupsection{Typedef axiomatization \label{sec:hol-typedef}%
+\isamarkupsection{Inductive and coinductive definitions \label{sec:hol-inductive}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-A Gordon/HOL-style type definition is a certain axiom scheme
-  that identifies a new type with a subset of an existing type.  More
-  precisely, the new type is defined by exhibiting an existing type
-  \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}}, a set \isa{{\isaliteral{22}{\isachardoublequote}}A\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\ set{\isaliteral{22}{\isachardoublequote}}}, and a theorem that proves
-  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ A{\isaliteral{22}{\isachardoublequote}}}.  Thus \isa{A} is a non-empty subset of \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}}, and the new type denotes this subset.  New functions are
-  postulated that establish an isomorphism between the new type and
-  the subset.  In general, the type \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} may involve type
-  variables \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} which means that the type definition
-  produces a type constructor \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{29}{\isacharparenright}}\ t{\isaliteral{22}{\isachardoublequote}}} depending on
-  those type arguments.
+An \textbf{inductive definition} specifies the least predicate (or
+  set) \isa{R} closed under given rules: applying a rule to elements
+  of \isa{R} yields a result within \isa{R}.  For example, a
+  structural operational semantics is an inductive definition of an
+  evaluation relation.
 
-  The axiomatization can be considered a ``definition'' in the sense
-  of the particular set-theoretic interpretation of HOL
-  \cite{pitts93}, where the universe of types is required to be
-  downwards-closed wrt.\ arbitrary non-empty subsets.  Thus genuinely
-  new types introduced by \hyperlink{command.typedef}{\mbox{\isa{\isacommand{typedef}}}} stay within the range
-  of HOL models by construction.  Note that \indexref{}{command}{type\_synonym}\hyperlink{command.type-synonym}{\mbox{\isa{\isacommand{type{\isaliteral{5F}{\isacharunderscore}}synonym}}}} from Isabelle/Pure merely introduces syntactic
-  abbreviations, without any logical significance.
-  
+  Dually, a \textbf{coinductive definition} specifies the greatest
+  predicate~/ set \isa{R} that is consistent with given rules: every
+  element of \isa{R} can be seen as arising by applying a rule to
+  elements of \isa{R}.  An important example is using bisimulation
+  relations to formalise equivalence of processes and infinite data
+  structures.
+
+  \medskip The HOL package is related to the ZF one, which is
+  described in a separate paper,\footnote{It appeared in CADE
+  \cite{paulson-CADE}; a longer version is distributed with Isabelle.}
+  which you should refer to in case of difficulties.  The package is
+  simpler than that of ZF thanks to implicit type-checking in HOL.
+  The types of the (co)inductive predicates (or sets) determine the
+  domain of the fixedpoint definition, and the package does not have
+  to use inference rules for type-checking.
+
   \begin{matharray}{rcl}
-    \indexdef{HOL}{command}{typedef}\hypertarget{command.HOL.typedef}{\hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{HOL}{command}{inductive}\hypertarget{command.HOL.inductive}{\hyperlink{command.HOL.inductive}{\mbox{\isa{\isacommand{inductive}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{HOL}{command}{inductive\_set}\hypertarget{command.HOL.inductive-set}{\hyperlink{command.HOL.inductive-set}{\mbox{\isa{\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}set}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{HOL}{command}{coinductive}\hypertarget{command.HOL.coinductive}{\hyperlink{command.HOL.coinductive}{\mbox{\isa{\isacommand{coinductive}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{HOL}{command}{coinductive\_set}\hypertarget{command.HOL.coinductive-set}{\hyperlink{command.HOL.coinductive-set}{\mbox{\isa{\isacommand{coinductive{\isaliteral{5F}{\isacharunderscore}}set}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{HOL}{attribute}{mono}\hypertarget{attribute.HOL.mono}{\hyperlink{attribute.HOL.mono}{\mbox{\isa{mono}}}} & : & \isa{attribute} \\
   \end{matharray}
 
   \begin{railoutput}
-\rail@begin{2}{}
-\rail@term{\hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}}}[]
+\rail@begin{7}{}
 \rail@bar
+\rail@term{\hyperlink{command.HOL.inductive}{\mbox{\isa{\isacommand{inductive}}}}}[]
 \rail@nextbar{1}
-\rail@nont{\isa{alt{\isaliteral{5F}{\isacharunderscore}}name}}[]
-\rail@endbar
-\rail@nont{\isa{abs{\isaliteral{5F}{\isacharunderscore}}type}}[]
-\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
-\rail@nont{\isa{rep{\isaliteral{5F}{\isacharunderscore}}set}}[]
-\rail@end
-\rail@begin{3}{\isa{alt{\isaliteral{5F}{\isacharunderscore}}name}}
-\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
-\rail@bar
-\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
-\rail@nextbar{1}
-\rail@term{\isa{\isakeyword{open}}}[]
+\rail@term{\hyperlink{command.HOL.inductive-set}{\mbox{\isa{\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}set}}}}}[]
 \rail@nextbar{2}
-\rail@term{\isa{\isakeyword{open}}}[]
-\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
-\rail@endbar
-\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
-\rail@end
-\rail@begin{2}{\isa{abs{\isaliteral{5F}{\isacharunderscore}}type}}
-\rail@nont{\hyperlink{syntax.typespec-sorts}{\mbox{\isa{typespec{\isaliteral{5F}{\isacharunderscore}}sorts}}}}[]
-\rail@bar
-\rail@nextbar{1}
-\rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
-\rail@endbar
-\rail@end
-\rail@begin{2}{\isa{rep{\isaliteral{5F}{\isacharunderscore}}set}}
-\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
-\rail@bar
-\rail@nextbar{1}
-\rail@term{\isa{\isakeyword{morphisms}}}[]
-\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
-\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
-\rail@endbar
-\rail@end
-\end{railoutput}
-
-
-  \begin{description}
-
-  \item \hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{29}{\isacharparenright}}\ t\ {\isaliteral{3D}{\isacharequal}}\ A{\isaliteral{22}{\isachardoublequote}}}
-  axiomatizes a type definition in the background theory of the
-  current context, depending on a non-emptiness result of the set
-  \isa{A} that needs to be proven here.  The set \isa{A} may
-  contain type variables \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} as specified on the LHS,
-  but no term variables.
-
-  Even though a local theory specification, the newly introduced type
-  constructor cannot depend on parameters or assumptions of the
-  context: this is structurally impossible in HOL.  In contrast, the
-  non-emptiness proof may use local assumptions in unusual situations,
-  which could result in different interpretations in target contexts:
-  the meaning of the bijection between the representing set \isa{A}
-  and the new type \isa{t} may then change in different application
-  contexts.
-
-  By default, \hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}} defines both a type
-  constructor \isa{t} for the new type, and a term constant \isa{t} for the representing set within the old type.  Use the ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}open{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}'' option to suppress a separate constant definition
-  altogether.  The injection from type to set is called \isa{Rep{\isaliteral{5F}{\isacharunderscore}}t},
-  its inverse \isa{Abs{\isaliteral{5F}{\isacharunderscore}}t}, unless explicit \hyperlink{keyword.HOL.morphisms}{\mbox{\isa{\isakeyword{morphisms}}}} specification provides alternative names.
-
-  The core axiomatization uses the locale predicate \isa{type{\isaliteral{5F}{\isacharunderscore}}definition} as defined in Isabelle/HOL.  Various basic
-  consequences of that are instantiated accordingly, re-using the
-  locale facts with names derived from the new type constructor.  Thus
-  the generic \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Rep} is turned into the specific
-  \isa{{\isaliteral{22}{\isachardoublequote}}Rep{\isaliteral{5F}{\isacharunderscore}}t{\isaliteral{22}{\isachardoublequote}}}, for example.
-
-  Theorems \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Rep}, \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Rep{\isaliteral{5F}{\isacharunderscore}}inverse}, and \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Abs{\isaliteral{5F}{\isacharunderscore}}inverse}
-  provide the most basic characterization as a corresponding
-  injection/surjection pair (in both directions).  The derived rules
-  \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Rep{\isaliteral{5F}{\isacharunderscore}}inject} and \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Abs{\isaliteral{5F}{\isacharunderscore}}inject} provide a more convenient version of
-  injectivity, suitable for automated proof tools (e.g.\ in
-  declarations involving \hyperlink{attribute.simp}{\mbox{\isa{simp}}} or \hyperlink{attribute.iff}{\mbox{\isa{iff}}}).
-  Furthermore, the rules \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Rep{\isaliteral{5F}{\isacharunderscore}}cases}~/ \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Rep{\isaliteral{5F}{\isacharunderscore}}induct}, and \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Abs{\isaliteral{5F}{\isacharunderscore}}cases}~/
-  \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Abs{\isaliteral{5F}{\isacharunderscore}}induct} provide alternative views on
-  surjectivity.  These rules are already declared as set or type rules
-  for the generic \hyperlink{method.cases}{\mbox{\isa{cases}}} and \hyperlink{method.induct}{\mbox{\isa{induct}}} methods,
-  respectively.
-
-  An alternative name for the set definition (and other derived
-  entities) may be specified in parentheses; the default is to use
-  \isa{t} directly.
-
-  \end{description}
-
-  \begin{warn}
-  If you introduce a new type axiomatically, i.e.\ via \indexref{}{command}{typedecl}\hyperlink{command.typedecl}{\mbox{\isa{\isacommand{typedecl}}}} and \indexref{}{command}{axiomatization}\hyperlink{command.axiomatization}{\mbox{\isa{\isacommand{axiomatization}}}}, the minimum requirement
-  is that it has a non-empty model, to avoid immediate collapse of the
-  HOL logic.  Moreover, one needs to demonstrate that the
-  interpretation of such free-form axiomatizations can coexist with
-  that of the regular \indexdef{}{command}{typedef}\hypertarget{command.typedef}{\hyperlink{command.typedef}{\mbox{\isa{\isacommand{typedef}}}}} scheme, and any extension
-  that other people might have introduced elsewhere (e.g.\ in HOLCF
-  \cite{MuellerNvOS99}).
-  \end{warn}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsubsection{Examples%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-Type definitions permit the introduction of abstract data
-  types in a safe way, namely by providing models based on already
-  existing types.  Given some abstract axiomatic description \isa{P}
-  of a type, this involves two steps:
-
-  \begin{enumerate}
-
-  \item Find an appropriate type \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} and subset \isa{A} which
-  has the desired properties \isa{P}, and make a type definition
-  based on this representation.
-
-  \item Prove that \isa{P} holds for \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} by lifting \isa{P}
-  from the representation.
-
-  \end{enumerate}
-
-  You can later forget about the representation and work solely in
-  terms of the abstract properties \isa{P}.
-
-  \medskip The following trivial example pulls a three-element type
-  into existence within the formal logical environment of HOL.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{typedef}\isamarkupfalse%
-\ three\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{7B}{\isacharbraceleft}}{\isaliteral{28}{\isacharparenleft}}True{\isaliteral{2C}{\isacharcomma}}\ True{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{28}{\isacharparenleft}}True{\isaliteral{2C}{\isacharcomma}}\ False{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{28}{\isacharparenleft}}False{\isaliteral{2C}{\isacharcomma}}\ True{\isaliteral{29}{\isacharparenright}}{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
-%
-\isadelimproof
-\ \ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
-\ blast%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-\isanewline
-%
-\endisadelimproof
-\isanewline
-\isacommand{definition}\isamarkupfalse%
-\ {\isaliteral{22}{\isachardoublequoteopen}}One\ {\isaliteral{3D}{\isacharequal}}\ Abs{\isaliteral{5F}{\isacharunderscore}}three\ {\isaliteral{28}{\isacharparenleft}}True{\isaliteral{2C}{\isacharcomma}}\ True{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
-\isacommand{definition}\isamarkupfalse%
-\ {\isaliteral{22}{\isachardoublequoteopen}}Two\ {\isaliteral{3D}{\isacharequal}}\ Abs{\isaliteral{5F}{\isacharunderscore}}three\ {\isaliteral{28}{\isacharparenleft}}True{\isaliteral{2C}{\isacharcomma}}\ False{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
-\isacommand{definition}\isamarkupfalse%
-\ {\isaliteral{22}{\isachardoublequoteopen}}Three\ {\isaliteral{3D}{\isacharequal}}\ Abs{\isaliteral{5F}{\isacharunderscore}}three\ {\isaliteral{28}{\isacharparenleft}}False{\isaliteral{2C}{\isacharcomma}}\ True{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ three{\isaliteral{5F}{\isacharunderscore}}distinct{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}One\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ Two{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}One\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ Three{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}Two\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ Three{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
-%
-\isadelimproof
-\ \ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
-\ {\isaliteral{28}{\isacharparenleft}}simp{\isaliteral{5F}{\isacharunderscore}}all\ add{\isaliteral{3A}{\isacharcolon}}\ One{\isaliteral{5F}{\isacharunderscore}}def\ Two{\isaliteral{5F}{\isacharunderscore}}def\ Three{\isaliteral{5F}{\isacharunderscore}}def\ Abs{\isaliteral{5F}{\isacharunderscore}}three{\isaliteral{5F}{\isacharunderscore}}inject\ three{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-\isanewline
-%
-\endisadelimproof
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ three{\isaliteral{5F}{\isacharunderscore}}cases{\isaliteral{3A}{\isacharcolon}}\isanewline
-\ \ \isakeyword{fixes}\ x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ three\ \isakeyword{obtains}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ One{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ Two{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ Three{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
-%
-\isadelimproof
-\ \ %
-\endisadelimproof
-%
-\isatagproof
-\isacommand{by}\isamarkupfalse%
-\ {\isaliteral{28}{\isacharparenleft}}cases\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}auto\ simp{\isaliteral{3A}{\isacharcolon}}\ One{\isaliteral{5F}{\isacharunderscore}}def\ Two{\isaliteral{5F}{\isacharunderscore}}def\ Three{\isaliteral{5F}{\isacharunderscore}}def\ Abs{\isaliteral{5F}{\isacharunderscore}}three{\isaliteral{5F}{\isacharunderscore}}inject\ three{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-%
-\begin{isamarkuptext}%
-Note that such trivial constructions are better done with
-  derived specification mechanisms such as \hyperlink{command.datatype}{\mbox{\isa{\isacommand{datatype}}}}:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-\isacommand{datatype}\isamarkupfalse%
-\ three{\isaliteral{27}{\isacharprime}}\ {\isaliteral{3D}{\isacharequal}}\ One{\isaliteral{27}{\isacharprime}}\ {\isaliteral{7C}{\isacharbar}}\ Two{\isaliteral{27}{\isacharprime}}\ {\isaliteral{7C}{\isacharbar}}\ Three{\isaliteral{27}{\isacharprime}}%
-\begin{isamarkuptext}%
-This avoids re-doing basic definitions and proofs from the
-  primitive \hyperlink{command.typedef}{\mbox{\isa{\isacommand{typedef}}}} above.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsection{Adhoc tuples%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-\begin{matharray}{rcl}
-    \indexdef{HOL}{attribute}{split\_format}\hypertarget{attribute.HOL.split-format}{\hyperlink{attribute.HOL.split-format}{\mbox{\isa{split{\isaliteral{5F}{\isacharunderscore}}format}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{attribute} \\
-  \end{matharray}
-
-  \begin{railoutput}
-\rail@begin{2}{}
-\rail@term{\hyperlink{attribute.HOL.split-format}{\mbox{\isa{split{\isaliteral{5F}{\isacharunderscore}}format}}}}[]
-\rail@bar
-\rail@nextbar{1}
-\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
-\rail@term{\isa{complete}}[]
-\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
-\rail@endbar
-\rail@end
-\end{railoutput}
-
-
-  \begin{description}
-
-  \item \hyperlink{attribute.HOL.split-format}{\mbox{\isa{split{\isaliteral{5F}{\isacharunderscore}}format}}}\ \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}complete{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} causes
-  arguments in function applications to be represented canonically
-  according to their tuple type structure.
-
-  Note that this operation tends to invent funny names for new local
-  parameters introduced.
-
-  \end{description}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsection{Records \label{sec:hol-record}%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-In principle, records merely generalize the concept of tuples, where
-  components may be addressed by labels instead of just position.  The
-  logical infrastructure of records in Isabelle/HOL is slightly more
-  advanced, though, supporting truly extensible record schemes.  This
-  admits operations that are polymorphic with respect to record
-  extension, yielding ``object-oriented'' effects like (single)
-  inheritance.  See also \cite{NaraschewskiW-TPHOLs98} for more
-  details on object-oriented verification and record subtyping in HOL.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{Basic concepts%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-Isabelle/HOL supports both \emph{fixed} and \emph{schematic} records
-  at the level of terms and types.  The notation is as follows:
-
-  \begin{center}
-  \begin{tabular}{l|l|l}
-    & record terms & record types \\ \hline
-    fixed & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ A{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ B{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} \\
-    schematic & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ m{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} &
-      \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ A{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ B{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ M{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} \\
-  \end{tabular}
-  \end{center}
-
-  \noindent The ASCII representation of \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} is \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{7C}{\isacharbar}}\ x\ {\isaliteral{3D}{\isacharequal}}\ a\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}.
-
-  A fixed record \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} has field \isa{x} of value
-  \isa{a} and field \isa{y} of value \isa{b}.  The corresponding
-  type is \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ A{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ B{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}}, assuming that \isa{{\isaliteral{22}{\isachardoublequote}}a\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ A{\isaliteral{22}{\isachardoublequote}}}
-  and \isa{{\isaliteral{22}{\isachardoublequote}}b\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ B{\isaliteral{22}{\isachardoublequote}}}.
-
-  A record scheme like \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ m{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} contains fields
-  \isa{x} and \isa{y} as before, but also possibly further fields
-  as indicated by the ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}'' notation (which is actually part
-  of the syntax).  The improper field ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}'' of a record
-  scheme is called the \emph{more part}.  Logically it is just a free
-  variable, which is occasionally referred to as ``row variable'' in
-  the literature.  The more part of a record scheme may be
-  instantiated by zero or more further components.  For example, the
-  previous scheme may get instantiated to \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{2C}{\isacharcomma}}\ z\ {\isaliteral{3D}{\isacharequal}}\ c{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ m{\isaliteral{27}{\isacharprime}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}}, where \isa{m{\isaliteral{27}{\isacharprime}}} refers to a different more part.
-  Fixed records are special instances of record schemes, where
-  ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}'' is properly terminated by the \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ unit{\isaliteral{22}{\isachardoublequote}}}
-  element.  In fact, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} is just an abbreviation
-  for \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}}.
-
-  \medskip Two key observations make extensible records in a simply
-  typed language like HOL work out:
-
-  \begin{enumerate}
-
-  \item the more part is internalized, as a free term or type
-  variable,
-
-  \item field names are externalized, they cannot be accessed within
-  the logic as first-class values.
-
-  \end{enumerate}
-
-  \medskip In Isabelle/HOL record types have to be defined explicitly,
-  fixing their field names and types, and their (optional) parent
-  record.  Afterwards, records may be formed using above syntax, while
-  obeying the canonical order of fields as given by their declaration.
-  The record package provides several standard operations like
-  selectors and updates.  The common setup for various generic proof
-  tools enable succinct reasoning patterns.  See also the Isabelle/HOL
-  tutorial \cite{isabelle-hol-book} for further instructions on using
-  records in practice.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{Record specifications%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-\begin{matharray}{rcl}
-    \indexdef{HOL}{command}{record}\hypertarget{command.HOL.record}{\hyperlink{command.HOL.record}{\mbox{\isa{\isacommand{record}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
-  \end{matharray}
-
-  \begin{railoutput}
-\rail@begin{4}{}
-\rail@term{\hyperlink{command.HOL.record}{\mbox{\isa{\isacommand{record}}}}}[]
-\rail@nont{\hyperlink{syntax.typespec-sorts}{\mbox{\isa{typespec{\isaliteral{5F}{\isacharunderscore}}sorts}}}}[]
-\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
-\rail@cr{2}
-\rail@bar
+\rail@term{\hyperlink{command.HOL.coinductive}{\mbox{\isa{\isacommand{coinductive}}}}}[]
 \rail@nextbar{3}
-\rail@nont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
-\rail@term{\isa{{\isaliteral{2B}{\isacharplus}}}}[]
+\rail@term{\hyperlink{command.HOL.coinductive-set}{\mbox{\isa{\isacommand{coinductive{\isaliteral{5F}{\isacharunderscore}}set}}}}}[]
 \rail@endbar
-\rail@plus
-\rail@nont{\hyperlink{syntax.constdecl}{\mbox{\isa{constdecl}}}}[]
-\rail@nextplus{3}
-\rail@endplus
-\rail@end
-\end{railoutput}
-
-
-  \begin{description}
-
-  \item \hyperlink{command.HOL.record}{\mbox{\isa{\isacommand{record}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{29}{\isacharparenright}}\ t\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\ {\isaliteral{2B}{\isacharplus}}\ c\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ c\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} defines extensible record type \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{29}{\isacharparenright}}\ t{\isaliteral{22}{\isachardoublequote}}},
-  derived from the optional parent record \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{22}{\isachardoublequote}}} by adding new
-  field components \isa{{\isaliteral{22}{\isachardoublequote}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub i\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{22}{\isachardoublequote}}} etc.
-
-  The type variables of \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{22}{\isachardoublequote}}} need to be
-  covered by the (distinct) parameters \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{22}{\isachardoublequote}}}.  Type constructor \isa{t} has to be new, while \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} needs to specify an instance of an existing record type.  At
-  least one new field \isa{{\isaliteral{22}{\isachardoublequote}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{22}{\isachardoublequote}}} has to be specified.
-  Basically, field names need to belong to a unique record.  This is
-  not a real restriction in practice, since fields are qualified by
-  the record name internally.
-
-  The parent record specification \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} is optional; if omitted
-  \isa{t} becomes a root record.  The hierarchy of all records
-  declared within a theory context forms a forest structure, i.e.\ a
-  set of trees starting with a root record each.  There is no way to
-  merge multiple parent records!
-
-  For convenience, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{29}{\isacharparenright}}\ t{\isaliteral{22}{\isachardoublequote}}} is made a
-  type abbreviation for the fixed record type \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ c\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}}, likewise is \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7A6574613E}{\isasymzeta}}{\isaliteral{29}{\isacharparenright}}\ t{\isaliteral{5F}{\isacharunderscore}}scheme{\isaliteral{22}{\isachardoublequote}}} made an abbreviation for
-  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ c\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7A6574613E}{\isasymzeta}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}}.
-
-  \end{description}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{Record operations%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-Any record definition of the form presented above produces certain
-  standard operations.  Selectors and updates are provided for any
-  field, including the improper one ``\isa{more}''.  There are also
-  cumulative record constructor functions.  To simplify the
-  presentation below, we assume for now that \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{29}{\isacharparenright}}\ t{\isaliteral{22}{\isachardoublequote}}} is a root record with fields \isa{{\isaliteral{22}{\isachardoublequote}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ c\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}.
-
-  \medskip \textbf{Selectors} and \textbf{updates} are available for
-  any field (including ``\isa{more}''):
-
-  \begin{matharray}{lll}
-    \isa{{\isaliteral{22}{\isachardoublequote}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7A6574613E}{\isasymzeta}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{22}{\isachardoublequote}}} \\
-    \isa{{\isaliteral{22}{\isachardoublequote}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{5F}{\isacharunderscore}}update{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub i\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7A6574613E}{\isasymzeta}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7A6574613E}{\isasymzeta}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} \\
-  \end{matharray}
-
-  There is special syntax for application of updates: \isa{{\isaliteral{22}{\isachardoublequote}}r{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} abbreviates term \isa{{\isaliteral{22}{\isachardoublequote}}x{\isaliteral{5F}{\isacharunderscore}}update\ a\ r{\isaliteral{22}{\isachardoublequote}}}.  Further notation for
-  repeated updates is also available: \isa{{\isaliteral{22}{\isachardoublequote}}r{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}y\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}z\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ c{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} may be written \isa{{\isaliteral{22}{\isachardoublequote}}r{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{2C}{\isacharcomma}}\ z\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ c{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}}.  Note that
-  because of postfix notation the order of fields shown here is
-  reverse than in the actual term.  Since repeated updates are just
-  function applications, fields may be freely permuted in \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{2C}{\isacharcomma}}\ z\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ c{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}}, as far as logical equality is concerned.
-  Thus commutativity of independent updates can be proven within the
-  logic for any two fields, but not as a general theorem.
-
-  \medskip The \textbf{make} operation provides a cumulative record
-  constructor function:
-
-  \begin{matharray}{lll}
-    \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}make{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} \\
-  \end{matharray}
-
-  \medskip We now reconsider the case of non-root records, which are
-  derived of some parent.  In general, the latter may depend on
-  another parent as well, resulting in a list of \emph{ancestor
-  records}.  Appending the lists of fields of all ancestors results in
-  a certain field prefix.  The record package automatically takes care
-  of this by lifting operations over this context of ancestor fields.
-  Assuming that \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{29}{\isacharparenright}}\ t{\isaliteral{22}{\isachardoublequote}}} has ancestor
-  fields \isa{{\isaliteral{22}{\isachardoublequote}}b\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C72686F3E}{\isasymrho}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub k\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C72686F3E}{\isasymrho}}\isaliteral{5C3C5E7375623E}{}\isactrlsub k{\isaliteral{22}{\isachardoublequote}}},
-  the above record operations will get the following types:
-
-  \medskip
-  \begin{tabular}{lll}
-    \isa{{\isaliteral{22}{\isachardoublequote}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec b\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C72686F3E}{\isasymrho}}{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7A6574613E}{\isasymzeta}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{22}{\isachardoublequote}}} \\
-    \isa{{\isaliteral{22}{\isachardoublequote}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{5F}{\isacharunderscore}}update{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub i\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec b\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C72686F3E}{\isasymrho}}{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7A6574613E}{\isasymzeta}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec b\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C72686F3E}{\isasymrho}}{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7A6574613E}{\isasymzeta}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} \\
-    \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}make{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C72686F3E}{\isasymrho}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C72686F3E}{\isasymrho}}\isaliteral{5C3C5E7375623E}{}\isactrlsub k\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec b\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C72686F3E}{\isasymrho}}{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} \\
-  \end{tabular}
-  \medskip
-
-  \noindent Some further operations address the extension aspect of a
-  derived record scheme specifically: \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}fields{\isaliteral{22}{\isachardoublequote}}} produces a
-  record fragment consisting of exactly the new fields introduced here
-  (the result may serve as a more part elsewhere); \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}extend{\isaliteral{22}{\isachardoublequote}}}
-  takes a fixed record and adds a given more part; \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}truncate{\isaliteral{22}{\isachardoublequote}}} restricts a record scheme to a fixed record.
-
-  \medskip
-  \begin{tabular}{lll}
-    \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}fields{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} \\
-    \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}extend{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec b\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C72686F3E}{\isasymrho}}{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C7A6574613E}{\isasymzeta}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec b\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C72686F3E}{\isasymrho}}{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7A6574613E}{\isasymzeta}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} \\
-    \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}truncate{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec b\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C72686F3E}{\isasymrho}}{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7A6574613E}{\isasymzeta}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec b\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C72686F3E}{\isasymrho}}{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} \\
-  \end{tabular}
-  \medskip
-
-  \noindent Note that \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}make{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}fields{\isaliteral{22}{\isachardoublequote}}} coincide
-  for root records.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{Derived rules and proof tools%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-The record package proves several results internally, declaring
-  these facts to appropriate proof tools.  This enables users to
-  reason about record structures quite conveniently.  Assume that
-  \isa{t} is a record type as specified above.
-
-  \begin{enumerate}
-
-  \item Standard conversions for selectors or updates applied to
-  record constructor terms are made part of the default Simplifier
-  context; thus proofs by reduction of basic operations merely require
-  the \hyperlink{method.simp}{\mbox{\isa{simp}}} method without further arguments.  These rules
-  are available as \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}simps{\isaliteral{22}{\isachardoublequote}}}, too.
-
-  \item Selectors applied to updated records are automatically reduced
-  by an internal simplification procedure, which is also part of the
-  standard Simplifier setup.
-
-  \item Inject equations of a form analogous to \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{27}{\isacharprime}}{\isaliteral{2C}{\isacharcomma}}\ y{\isaliteral{27}{\isacharprime}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ x\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ y\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{27}{\isacharprime}}{\isaliteral{22}{\isachardoublequote}}} are declared to the Simplifier and Classical
-  Reasoner as \hyperlink{attribute.iff}{\mbox{\isa{iff}}} rules.  These rules are available as
-  \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}iffs{\isaliteral{22}{\isachardoublequote}}}.
-
-  \item The introduction rule for record equality analogous to \isa{{\isaliteral{22}{\isachardoublequote}}x\ r\ {\isaliteral{3D}{\isacharequal}}\ x\ r{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ y\ r\ {\isaliteral{3D}{\isacharequal}}\ y\ r{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ r\ {\isaliteral{3D}{\isacharequal}}\ r{\isaliteral{27}{\isacharprime}}{\isaliteral{22}{\isachardoublequote}}} is declared to the Simplifier,
-  and as the basic rule context as ``\hyperlink{attribute.intro}{\mbox{\isa{intro}}}\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}{\isaliteral{22}{\isachardoublequote}}}''.
-  The rule is called \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}equality{\isaliteral{22}{\isachardoublequote}}}.
-
-  \item Representations of arbitrary record expressions as canonical
-  constructor terms are provided both in \hyperlink{method.cases}{\mbox{\isa{cases}}} and \hyperlink{method.induct}{\mbox{\isa{induct}}} format (cf.\ the generic proof methods of the same name,
-  \secref{sec:cases-induct}).  Several variations are available, for
-  fixed records, record schemes, more parts etc.
-
-  The generic proof methods are sufficiently smart to pick the most
-  sensible rule according to the type of the indicated record
-  expression: users just need to apply something like ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}cases\ r{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}'' to a certain proof problem.
-
-  \item The derived record operations \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}make{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}fields{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}extend{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}truncate{\isaliteral{22}{\isachardoublequote}}} are \emph{not}
-  treated automatically, but usually need to be expanded by hand,
-  using the collective fact \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}defs{\isaliteral{22}{\isachardoublequote}}}.
-
-  \end{enumerate}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsection{Datatypes \label{sec:hol-datatype}%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-\begin{matharray}{rcl}
-    \indexdef{HOL}{command}{datatype}\hypertarget{command.HOL.datatype}{\hyperlink{command.HOL.datatype}{\mbox{\isa{\isacommand{datatype}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
-    \indexdef{HOL}{command}{rep\_datatype}\hypertarget{command.HOL.rep-datatype}{\hyperlink{command.HOL.rep-datatype}{\mbox{\isa{\isacommand{rep{\isaliteral{5F}{\isacharunderscore}}datatype}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
-  \end{matharray}
-
-  \begin{railoutput}
-\rail@begin{2}{}
-\rail@term{\hyperlink{command.HOL.datatype}{\mbox{\isa{\isacommand{datatype}}}}}[]
-\rail@plus
-\rail@nont{\isa{spec}}[]
-\rail@nextplus{1}
-\rail@cterm{\isa{\isakeyword{and}}}[]
-\rail@endplus
-\rail@end
-\rail@begin{3}{}
-\rail@term{\hyperlink{command.HOL.rep-datatype}{\mbox{\isa{\isacommand{rep{\isaliteral{5F}{\isacharunderscore}}datatype}}}}}[]
 \rail@bar
 \rail@nextbar{1}
-\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.fixes}{\mbox{\isa{fixes}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{\isakeyword{for}}}[]
+\rail@nont{\hyperlink{syntax.fixes}{\mbox{\isa{fixes}}}}[]
+\rail@endbar
+\rail@cr{5}
+\rail@bar
+\rail@nextbar{6}
+\rail@term{\isa{\isakeyword{where}}}[]
+\rail@nont{\isa{clauses}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{6}
+\rail@term{\isa{\isakeyword{monos}}}[]
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{3}{\isa{clauses}}
 \rail@plus
-\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmdecl}{\mbox{\isa{thmdecl}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
 \rail@nextplus{2}
-\rail@endplus
-\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
-\rail@endbar
-\rail@plus
-\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
-\rail@nextplus{1}
-\rail@endplus
-\rail@end
-\rail@begin{2}{\isa{spec}}
-\rail@bar
-\rail@nextbar{1}
-\rail@nont{\hyperlink{syntax.parname}{\mbox{\isa{parname}}}}[]
-\rail@endbar
-\rail@nont{\hyperlink{syntax.typespec}{\mbox{\isa{typespec}}}}[]
-\rail@bar
-\rail@nextbar{1}
-\rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
-\rail@endbar
-\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
-\rail@plus
-\rail@nont{\isa{cons}}[]
-\rail@nextplus{1}
 \rail@cterm{\isa{{\isaliteral{7C}{\isacharbar}}}}[]
 \rail@endplus
 \rail@end
-\rail@begin{2}{\isa{cons}}
-\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
-\rail@plus
-\rail@nextplus{1}
-\rail@cnont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
-\rail@endplus
+\rail@begin{3}{}
+\rail@term{\hyperlink{attribute.HOL.mono}{\mbox{\isa{mono}}}}[]
 \rail@bar
 \rail@nextbar{1}
-\rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
+\rail@term{\isa{add}}[]
+\rail@nextbar{2}
+\rail@term{\isa{del}}[]
 \rail@endbar
 \rail@end
 \end{railoutput}
@@ -608,75 +115,97 @@ The record package proves several results internally, declaring
 
   \begin{description}
 
-  \item \hyperlink{command.HOL.datatype}{\mbox{\isa{\isacommand{datatype}}}} defines inductive datatypes in
-  HOL.
+  \item \hyperlink{command.HOL.inductive}{\mbox{\isa{\isacommand{inductive}}}} and \hyperlink{command.HOL.coinductive}{\mbox{\isa{\isacommand{coinductive}}}} define (co)inductive predicates from the
+  introduction rules given in the \hyperlink{keyword.where}{\mbox{\isa{\isakeyword{where}}}} part.  The
+  optional \hyperlink{keyword.for}{\mbox{\isa{\isakeyword{for}}}} part contains a list of parameters of the
+  (co)inductive predicates that remain fixed throughout the
+  definition.  The optional \hyperlink{keyword.monos}{\mbox{\isa{\isakeyword{monos}}}} section contains
+  \emph{monotonicity theorems}, which are required for each operator
+  applied to a recursive set in the introduction rules.  There
+  \emph{must} be a theorem of the form \isa{{\isaliteral{22}{\isachardoublequote}}A\ {\isaliteral{5C3C6C653E}{\isasymle}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ M\ A\ {\isaliteral{5C3C6C653E}{\isasymle}}\ M\ B{\isaliteral{22}{\isachardoublequote}}},
+  for each premise \isa{{\isaliteral{22}{\isachardoublequote}}M\ R\isaliteral{5C3C5E7375623E}{}\isactrlsub i\ t{\isaliteral{22}{\isachardoublequote}}} in an introduction rule!
 
-  \item \hyperlink{command.HOL.rep-datatype}{\mbox{\isa{\isacommand{rep{\isaliteral{5F}{\isacharunderscore}}datatype}}}} represents existing types as
-  inductive ones, generating the standard infrastructure of derived
-  concepts (primitive recursion etc.).
+  \item \hyperlink{command.HOL.inductive-set}{\mbox{\isa{\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}set}}}} and \hyperlink{command.HOL.coinductive-set}{\mbox{\isa{\isacommand{coinductive{\isaliteral{5F}{\isacharunderscore}}set}}}} are wrappers for to the previous commands,
+  allowing the definition of (co)inductive sets.
 
-  \end{description}
+  \item \hyperlink{attribute.HOL.mono}{\mbox{\isa{mono}}} declares monotonicity rules.  These
+  rule are involved in the automated monotonicity proof of \hyperlink{command.HOL.inductive}{\mbox{\isa{\isacommand{inductive}}}}.
 
-  The induction and exhaustion theorems generated provide case names
-  according to the constructors involved, while parameters are named
-  after the types (see also \secref{sec:cases-induct}).
-
-  See \cite{isabelle-HOL} for more details on datatypes, but beware of
-  the old-style theory syntax being used there!  Apart from proper
-  proof methods for case-analysis and induction, there are also
-  emulations of ML tactics \hyperlink{method.HOL.case-tac}{\mbox{\isa{case{\isaliteral{5F}{\isacharunderscore}}tac}}} and \hyperlink{method.HOL.induct-tac}{\mbox{\isa{induct{\isaliteral{5F}{\isacharunderscore}}tac}}} available, see \secref{sec:hol-induct-tac}; these admit
-  to refer directly to the internal structure of subgoals (including
-  internally bound parameters).%
+  \end{description}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{Functorial structure of types%
+\isamarkupsubsection{Derived rules%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-\begin{matharray}{rcl}
-    \indexdef{HOL}{command}{enriched\_type}\hypertarget{command.HOL.enriched-type}{\hyperlink{command.HOL.enriched-type}{\mbox{\isa{\isacommand{enriched{\isaliteral{5F}{\isacharunderscore}}type}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}
-  \end{matharray}
-
-  \begin{railoutput}
-\rail@begin{2}{}
-\rail@term{\hyperlink{command.HOL.enriched-type}{\mbox{\isa{\isacommand{enriched{\isaliteral{5F}{\isacharunderscore}}type}}}}}[]
-\rail@bar
-\rail@nextbar{1}
-\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
-\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
-\rail@endbar
-\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
-\rail@end
-\end{railoutput}
-
+Each (co)inductive definition \isa{R} adds definitions to the
+  theory and also proves some theorems:
 
   \begin{description}
 
-  \item \hyperlink{command.HOL.enriched-type}{\mbox{\isa{\isacommand{enriched{\isaliteral{5F}{\isacharunderscore}}type}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}prefix{\isaliteral{3A}{\isacharcolon}}\ m{\isaliteral{22}{\isachardoublequote}}} allows to
-  prove and register properties about the functorial structure of type
-  constructors.  These properties then can be used by other packages
-  to deal with those type constructors in certain type constructions.
-  Characteristic theorems are noted in the current local theory.  By
-  default, they are prefixed with the base name of the type
-  constructor, an explicit prefix can be given alternatively.
+  \item \isa{R{\isaliteral{2E}{\isachardot}}intros} is the list of introduction rules as proven
+  theorems, for the recursive predicates (or sets).  The rules are
+  also available individually, using the names given them in the
+  theory file;
 
-  The given term \isa{{\isaliteral{22}{\isachardoublequote}}m{\isaliteral{22}{\isachardoublequote}}} is considered as \emph{mapper} for the
-  corresponding type constructor and must conform to the following
-  type pattern:
+  \item \isa{R{\isaliteral{2E}{\isachardot}}cases} is the case analysis (or elimination) rule;
 
-  \begin{matharray}{lll}
-    \isa{{\isaliteral{22}{\isachardoublequote}}m{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} &
-      \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E697375623E}{}\isactrlisub k\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}\isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{29}{\isacharparenright}}\ t\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}\isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C626574613E}{\isasymbeta}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{29}{\isacharparenright}}\ t{\isaliteral{22}{\isachardoublequote}}} \\
-  \end{matharray}
+  \item \isa{R{\isaliteral{2E}{\isachardot}}induct} or \isa{R{\isaliteral{2E}{\isachardot}}coinduct} is the (co)induction
+  rule.
 
-  \noindent where \isa{t} is the type constructor, \isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C626574613E}{\isasymbeta}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{22}{\isachardoublequote}}} are distinct
-  type variables free in the local theory and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}},
-  \ldots, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E697375623E}{}\isactrlisub k{\isaliteral{22}{\isachardoublequote}}} is a subsequence of \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C626574613E}{\isasymbeta}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}}, \ldots,
-  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C626574613E}{\isasymbeta}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{22}{\isachardoublequote}}}.
+  \end{description}
 
-  \end{description}%
+  When several predicates \isa{{\isaliteral{22}{\isachardoublequote}}R\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ R\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} are
+  defined simultaneously, the list of introduction rules is called
+  \isa{{\isaliteral{22}{\isachardoublequote}}R\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{5F}{\isacharunderscore}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{5F}{\isacharunderscore}}R\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{2E}{\isachardot}}intros{\isaliteral{22}{\isachardoublequote}}}, the case analysis rules are
+  called \isa{{\isaliteral{22}{\isachardoublequote}}R\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2E}{\isachardot}}cases{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ R\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{2E}{\isachardot}}cases{\isaliteral{22}{\isachardoublequote}}}, and the list
+  of mutual induction rules is called \isa{{\isaliteral{22}{\isachardoublequote}}R\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{5F}{\isacharunderscore}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{5F}{\isacharunderscore}}R\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{2E}{\isachardot}}inducts{\isaliteral{22}{\isachardoublequote}}}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Monotonicity theorems%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Each theory contains a default set of theorems that are used in
+  monotonicity proofs.  New rules can be added to this set via the
+  \hyperlink{attribute.HOL.mono}{\mbox{\isa{mono}}} attribute.  The HOL theory \isa{Inductive}
+  shows how this is done.  In general, the following monotonicity
+  theorems may be added:
+
+  \begin{itemize}
+
+  \item Theorems of the form \isa{{\isaliteral{22}{\isachardoublequote}}A\ {\isaliteral{5C3C6C653E}{\isasymle}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ M\ A\ {\isaliteral{5C3C6C653E}{\isasymle}}\ M\ B{\isaliteral{22}{\isachardoublequote}}}, for proving
+  monotonicity of inductive definitions whose introduction rules have
+  premises involving terms such as \isa{{\isaliteral{22}{\isachardoublequote}}M\ R\isaliteral{5C3C5E7375623E}{}\isactrlsub i\ t{\isaliteral{22}{\isachardoublequote}}}.
+
+  \item Monotonicity theorems for logical operators, which are of the
+  general form \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}.  For example, in
+  the case of the operator \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6F723E}{\isasymor}}{\isaliteral{22}{\isachardoublequote}}}, the corresponding theorem is
+  \[
+  \infer{\isa{{\isaliteral{22}{\isachardoublequote}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{22}{\isachardoublequote}}}}{\isa{{\isaliteral{22}{\isachardoublequote}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{22}{\isachardoublequote}}}}
+  \]
+
+  \item De Morgan style equations for reasoning about the ``polarity''
+  of expressions, e.g.
+  \[
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ P{\isaliteral{22}{\isachardoublequote}}} \qquad\qquad
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{28}{\isacharparenleft}}P\ {\isaliteral{5C3C616E643E}{\isasymand}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ Q{\isaliteral{22}{\isachardoublequote}}}
+  \]
+
+  \item Equations for reducing complex operators to more primitive
+  ones whose monotonicity can easily be proved, e.g.
+  \[
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}P\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q{\isaliteral{22}{\isachardoublequote}}} \qquad\qquad
+  \isa{{\isaliteral{22}{\isachardoublequote}}Ball\ A\ P\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ A\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P\ x{\isaliteral{22}{\isachardoublequote}}}
+  \]
+
+  \end{itemize}
+
+  %FIXME: Example of an inductive definition%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1128,92 +657,67 @@ The old TFL commands \hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recde
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{Inductive and coinductive definitions \label{sec:hol-inductive}%
+\isamarkupsection{Datatypes \label{sec:hol-datatype}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-An \textbf{inductive definition} specifies the least predicate (or
-  set) \isa{R} closed under given rules: applying a rule to elements
-  of \isa{R} yields a result within \isa{R}.  For example, a
-  structural operational semantics is an inductive definition of an
-  evaluation relation.
-
-  Dually, a \textbf{coinductive definition} specifies the greatest
-  predicate~/ set \isa{R} that is consistent with given rules: every
-  element of \isa{R} can be seen as arising by applying a rule to
-  elements of \isa{R}.  An important example is using bisimulation
-  relations to formalise equivalence of processes and infinite data
-  structures.
-
-  \medskip The HOL package is related to the ZF one, which is
-  described in a separate paper,\footnote{It appeared in CADE
-  \cite{paulson-CADE}; a longer version is distributed with Isabelle.}
-  which you should refer to in case of difficulties.  The package is
-  simpler than that of ZF thanks to implicit type-checking in HOL.
-  The types of the (co)inductive predicates (or sets) determine the
-  domain of the fixedpoint definition, and the package does not have
-  to use inference rules for type-checking.
-
-  \begin{matharray}{rcl}
-    \indexdef{HOL}{command}{inductive}\hypertarget{command.HOL.inductive}{\hyperlink{command.HOL.inductive}{\mbox{\isa{\isacommand{inductive}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
-    \indexdef{HOL}{command}{inductive\_set}\hypertarget{command.HOL.inductive-set}{\hyperlink{command.HOL.inductive-set}{\mbox{\isa{\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}set}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
-    \indexdef{HOL}{command}{coinductive}\hypertarget{command.HOL.coinductive}{\hyperlink{command.HOL.coinductive}{\mbox{\isa{\isacommand{coinductive}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
-    \indexdef{HOL}{command}{coinductive\_set}\hypertarget{command.HOL.coinductive-set}{\hyperlink{command.HOL.coinductive-set}{\mbox{\isa{\isacommand{coinductive{\isaliteral{5F}{\isacharunderscore}}set}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
-    \indexdef{HOL}{attribute}{mono}\hypertarget{attribute.HOL.mono}{\hyperlink{attribute.HOL.mono}{\mbox{\isa{mono}}}} & : & \isa{attribute} \\
+\begin{matharray}{rcl}
+    \indexdef{HOL}{command}{datatype}\hypertarget{command.HOL.datatype}{\hyperlink{command.HOL.datatype}{\mbox{\isa{\isacommand{datatype}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{HOL}{command}{rep\_datatype}\hypertarget{command.HOL.rep-datatype}{\hyperlink{command.HOL.rep-datatype}{\mbox{\isa{\isacommand{rep{\isaliteral{5F}{\isacharunderscore}}datatype}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
   \begin{railoutput}
-\rail@begin{7}{}
-\rail@bar
-\rail@term{\hyperlink{command.HOL.inductive}{\mbox{\isa{\isacommand{inductive}}}}}[]
-\rail@nextbar{1}
-\rail@term{\hyperlink{command.HOL.inductive-set}{\mbox{\isa{\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}set}}}}}[]
-\rail@nextbar{2}
-\rail@term{\hyperlink{command.HOL.coinductive}{\mbox{\isa{\isacommand{coinductive}}}}}[]
-\rail@nextbar{3}
-\rail@term{\hyperlink{command.HOL.coinductive-set}{\mbox{\isa{\isacommand{coinductive{\isaliteral{5F}{\isacharunderscore}}set}}}}}[]
-\rail@endbar
-\rail@bar
-\rail@nextbar{1}
-\rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
-\rail@endbar
-\rail@nont{\hyperlink{syntax.fixes}{\mbox{\isa{fixes}}}}[]
-\rail@bar
-\rail@nextbar{1}
-\rail@term{\isa{\isakeyword{for}}}[]
-\rail@nont{\hyperlink{syntax.fixes}{\mbox{\isa{fixes}}}}[]
-\rail@endbar
-\rail@cr{5}
-\rail@bar
-\rail@nextbar{6}
-\rail@term{\isa{\isakeyword{where}}}[]
-\rail@nont{\isa{clauses}}[]
-\rail@endbar
-\rail@bar
-\rail@nextbar{6}
-\rail@term{\isa{\isakeyword{monos}}}[]
-\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
-\rail@endbar
-\rail@end
-\rail@begin{3}{\isa{clauses}}
+\rail@begin{2}{}
+\rail@term{\hyperlink{command.HOL.datatype}{\mbox{\isa{\isacommand{datatype}}}}}[]
 \rail@plus
-\rail@bar
-\rail@nextbar{1}
-\rail@nont{\hyperlink{syntax.thmdecl}{\mbox{\isa{thmdecl}}}}[]
-\rail@endbar
-\rail@nont{\hyperlink{syntax.prop}{\mbox{\isa{prop}}}}[]
-\rail@nextplus{2}
-\rail@cterm{\isa{{\isaliteral{7C}{\isacharbar}}}}[]
+\rail@nont{\isa{spec}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{\isakeyword{and}}}[]
 \rail@endplus
 \rail@end
 \rail@begin{3}{}
-\rail@term{\hyperlink{attribute.HOL.mono}{\mbox{\isa{mono}}}}[]
+\rail@term{\hyperlink{command.HOL.rep-datatype}{\mbox{\isa{\isacommand{rep{\isaliteral{5F}{\isacharunderscore}}datatype}}}}}[]
 \rail@bar
 \rail@nextbar{1}
-\rail@term{\isa{add}}[]
-\rail@nextbar{2}
-\rail@term{\isa{del}}[]
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@plus
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextplus{2}
+\rail@endplus
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@nextplus{1}
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{spec}}
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.parname}{\mbox{\isa{parname}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.typespec}{\mbox{\isa{typespec}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@plus
+\rail@nont{\isa{cons}}[]
+\rail@nextplus{1}
+\rail@cterm{\isa{{\isaliteral{7C}{\isacharbar}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{2}{\isa{cons}}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
+\rail@endplus
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
 \rail@endbar
 \rail@end
 \end{railoutput}
@@ -1221,97 +725,593 @@ An \textbf{inductive definition} specifies the least predicate (or
 
   \begin{description}
 
-  \item \hyperlink{command.HOL.inductive}{\mbox{\isa{\isacommand{inductive}}}} and \hyperlink{command.HOL.coinductive}{\mbox{\isa{\isacommand{coinductive}}}} define (co)inductive predicates from the
-  introduction rules given in the \hyperlink{keyword.where}{\mbox{\isa{\isakeyword{where}}}} part.  The
-  optional \hyperlink{keyword.for}{\mbox{\isa{\isakeyword{for}}}} part contains a list of parameters of the
-  (co)inductive predicates that remain fixed throughout the
-  definition.  The optional \hyperlink{keyword.monos}{\mbox{\isa{\isakeyword{monos}}}} section contains
-  \emph{monotonicity theorems}, which are required for each operator
-  applied to a recursive set in the introduction rules.  There
-  \emph{must} be a theorem of the form \isa{{\isaliteral{22}{\isachardoublequote}}A\ {\isaliteral{5C3C6C653E}{\isasymle}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ M\ A\ {\isaliteral{5C3C6C653E}{\isasymle}}\ M\ B{\isaliteral{22}{\isachardoublequote}}},
-  for each premise \isa{{\isaliteral{22}{\isachardoublequote}}M\ R\isaliteral{5C3C5E7375623E}{}\isactrlsub i\ t{\isaliteral{22}{\isachardoublequote}}} in an introduction rule!
+  \item \hyperlink{command.HOL.datatype}{\mbox{\isa{\isacommand{datatype}}}} defines inductive datatypes in
+  HOL.
 
-  \item \hyperlink{command.HOL.inductive-set}{\mbox{\isa{\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}set}}}} and \hyperlink{command.HOL.coinductive-set}{\mbox{\isa{\isacommand{coinductive{\isaliteral{5F}{\isacharunderscore}}set}}}} are wrappers for to the previous commands,
-  allowing the definition of (co)inductive sets.
+  \item \hyperlink{command.HOL.rep-datatype}{\mbox{\isa{\isacommand{rep{\isaliteral{5F}{\isacharunderscore}}datatype}}}} represents existing types as
+  inductive ones, generating the standard infrastructure of derived
+  concepts (primitive recursion etc.).
 
-  \item \hyperlink{attribute.HOL.mono}{\mbox{\isa{mono}}} declares monotonicity rules.  These
-  rule are involved in the automated monotonicity proof of \hyperlink{command.HOL.inductive}{\mbox{\isa{\isacommand{inductive}}}}.
+  \end{description}
+
+  The induction and exhaustion theorems generated provide case names
+  according to the constructors involved, while parameters are named
+  after the types (see also \secref{sec:cases-induct}).
+
+  See \cite{isabelle-HOL} for more details on datatypes, but beware of
+  the old-style theory syntax being used there!  Apart from proper
+  proof methods for case-analysis and induction, there are also
+  emulations of ML tactics \hyperlink{method.HOL.case-tac}{\mbox{\isa{case{\isaliteral{5F}{\isacharunderscore}}tac}}} and \hyperlink{method.HOL.induct-tac}{\mbox{\isa{induct{\isaliteral{5F}{\isacharunderscore}}tac}}} available, see \secref{sec:hol-induct-tac}; these admit
+  to refer directly to the internal structure of subgoals (including
+  internally bound parameters).%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Records \label{sec:hol-record}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+In principle, records merely generalize the concept of tuples, where
+  components may be addressed by labels instead of just position.  The
+  logical infrastructure of records in Isabelle/HOL is slightly more
+  advanced, though, supporting truly extensible record schemes.  This
+  admits operations that are polymorphic with respect to record
+  extension, yielding ``object-oriented'' effects like (single)
+  inheritance.  See also \cite{NaraschewskiW-TPHOLs98} for more
+  details on object-oriented verification and record subtyping in HOL.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Basic concepts%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Isabelle/HOL supports both \emph{fixed} and \emph{schematic} records
+  at the level of terms and types.  The notation is as follows:
+
+  \begin{center}
+  \begin{tabular}{l|l|l}
+    & record terms & record types \\ \hline
+    fixed & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ A{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ B{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} \\
+    schematic & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ m{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} &
+      \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ A{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ B{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ M{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} \\
+  \end{tabular}
+  \end{center}
+
+  \noindent The ASCII representation of \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} is \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{7C}{\isacharbar}}\ x\ {\isaliteral{3D}{\isacharequal}}\ a\ {\isaliteral{7C}{\isacharbar}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}.
+
+  A fixed record \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} has field \isa{x} of value
+  \isa{a} and field \isa{y} of value \isa{b}.  The corresponding
+  type is \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ A{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ B{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}}, assuming that \isa{{\isaliteral{22}{\isachardoublequote}}a\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ A{\isaliteral{22}{\isachardoublequote}}}
+  and \isa{{\isaliteral{22}{\isachardoublequote}}b\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ B{\isaliteral{22}{\isachardoublequote}}}.
+
+  A record scheme like \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ m{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} contains fields
+  \isa{x} and \isa{y} as before, but also possibly further fields
+  as indicated by the ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}'' notation (which is actually part
+  of the syntax).  The improper field ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}'' of a record
+  scheme is called the \emph{more part}.  Logically it is just a free
+  variable, which is occasionally referred to as ``row variable'' in
+  the literature.  The more part of a record scheme may be
+  instantiated by zero or more further components.  For example, the
+  previous scheme may get instantiated to \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{2C}{\isacharcomma}}\ z\ {\isaliteral{3D}{\isacharequal}}\ c{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ m{\isaliteral{27}{\isacharprime}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}}, where \isa{m{\isaliteral{27}{\isacharprime}}} refers to a different more part.
+  Fixed records are special instances of record schemes, where
+  ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}'' is properly terminated by the \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ unit{\isaliteral{22}{\isachardoublequote}}}
+  element.  In fact, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} is just an abbreviation
+  for \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}}.
+
+  \medskip Two key observations make extensible records in a simply
+  typed language like HOL work out:
+
+  \begin{enumerate}
+
+  \item the more part is internalized, as a free term or type
+  variable,
+
+  \item field names are externalized, they cannot be accessed within
+  the logic as first-class values.
+
+  \end{enumerate}
+
+  \medskip In Isabelle/HOL record types have to be defined explicitly,
+  fixing their field names and types, and their (optional) parent
+  record.  Afterwards, records may be formed using above syntax, while
+  obeying the canonical order of fields as given by their declaration.
+  The record package provides several standard operations like
+  selectors and updates.  The common setup for various generic proof
+  tools enable succinct reasoning patterns.  See also the Isabelle/HOL
+  tutorial \cite{isabelle-hol-book} for further instructions on using
+  records in practice.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Record specifications%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{HOL}{command}{record}\hypertarget{command.HOL.record}{\hyperlink{command.HOL.record}{\mbox{\isa{\isacommand{record}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ theory{\isaliteral{22}{\isachardoublequote}}} \\
+  \end{matharray}
+
+  \begin{railoutput}
+\rail@begin{4}{}
+\rail@term{\hyperlink{command.HOL.record}{\mbox{\isa{\isacommand{record}}}}}[]
+\rail@nont{\hyperlink{syntax.typespec-sorts}{\mbox{\isa{typespec{\isaliteral{5F}{\isacharunderscore}}sorts}}}}[]
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@cr{2}
+\rail@bar
+\rail@nextbar{3}
+\rail@nont{\hyperlink{syntax.type}{\mbox{\isa{type}}}}[]
+\rail@term{\isa{{\isaliteral{2B}{\isacharplus}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nont{\hyperlink{syntax.constdecl}{\mbox{\isa{constdecl}}}}[]
+\rail@nextplus{3}
+\rail@endplus
+\rail@end
+\end{railoutput}
+
+
+  \begin{description}
+
+  \item \hyperlink{command.HOL.record}{\mbox{\isa{\isacommand{record}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{29}{\isacharparenright}}\ t\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\ {\isaliteral{2B}{\isacharplus}}\ c\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ c\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} defines extensible record type \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{29}{\isacharparenright}}\ t{\isaliteral{22}{\isachardoublequote}}},
+  derived from the optional parent record \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{22}{\isachardoublequote}}} by adding new
+  field components \isa{{\isaliteral{22}{\isachardoublequote}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub i\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{22}{\isachardoublequote}}} etc.
+
+  The type variables of \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7461753E}{\isasymtau}}{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{22}{\isachardoublequote}}} need to be
+  covered by the (distinct) parameters \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{22}{\isachardoublequote}}}.  Type constructor \isa{t} has to be new, while \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} needs to specify an instance of an existing record type.  At
+  least one new field \isa{{\isaliteral{22}{\isachardoublequote}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{22}{\isachardoublequote}}} has to be specified.
+  Basically, field names need to belong to a unique record.  This is
+  not a real restriction in practice, since fields are qualified by
+  the record name internally.
+
+  The parent record specification \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} is optional; if omitted
+  \isa{t} becomes a root record.  The hierarchy of all records
+  declared within a theory context forms a forest structure, i.e.\ a
+  set of trees starting with a root record each.  There is no way to
+  merge multiple parent records!
+
+  For convenience, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{29}{\isacharparenright}}\ t{\isaliteral{22}{\isachardoublequote}}} is made a
+  type abbreviation for the fixed record type \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ c\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}}, likewise is \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7A6574613E}{\isasymzeta}}{\isaliteral{29}{\isacharparenright}}\ t{\isaliteral{5F}{\isacharunderscore}}scheme{\isaliteral{22}{\isachardoublequote}}} made an abbreviation for
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ c\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7A6574613E}{\isasymzeta}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}}.
 
   \end{description}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Derived rules%
+\isamarkupsubsection{Record operations%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Each (co)inductive definition \isa{R} adds definitions to the
-  theory and also proves some theorems:
+Any record definition of the form presented above produces certain
+  standard operations.  Selectors and updates are provided for any
+  field, including the improper one ``\isa{more}''.  There are also
+  cumulative record constructor functions.  To simplify the
+  presentation below, we assume for now that \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{29}{\isacharparenright}}\ t{\isaliteral{22}{\isachardoublequote}}} is a root record with fields \isa{{\isaliteral{22}{\isachardoublequote}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ c\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}.
 
-  \begin{description}
+  \medskip \textbf{Selectors} and \textbf{updates} are available for
+  any field (including ``\isa{more}''):
 
-  \item \isa{R{\isaliteral{2E}{\isachardot}}intros} is the list of introduction rules as proven
-  theorems, for the recursive predicates (or sets).  The rules are
-  also available individually, using the names given them in the
-  theory file;
+  \begin{matharray}{lll}
+    \isa{{\isaliteral{22}{\isachardoublequote}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7A6574613E}{\isasymzeta}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{22}{\isachardoublequote}}} \\
+    \isa{{\isaliteral{22}{\isachardoublequote}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{5F}{\isacharunderscore}}update{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub i\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7A6574613E}{\isasymzeta}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7A6574613E}{\isasymzeta}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} \\
+  \end{matharray}
 
-  \item \isa{R{\isaliteral{2E}{\isachardot}}cases} is the case analysis (or elimination) rule;
+  There is special syntax for application of updates: \isa{{\isaliteral{22}{\isachardoublequote}}r{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} abbreviates term \isa{{\isaliteral{22}{\isachardoublequote}}x{\isaliteral{5F}{\isacharunderscore}}update\ a\ r{\isaliteral{22}{\isachardoublequote}}}.  Further notation for
+  repeated updates is also available: \isa{{\isaliteral{22}{\isachardoublequote}}r{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}y\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}z\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ c{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} may be written \isa{{\isaliteral{22}{\isachardoublequote}}r{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{2C}{\isacharcomma}}\ z\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ c{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}}.  Note that
+  because of postfix notation the order of fields shown here is
+  reverse than in the actual term.  Since repeated updates are just
+  function applications, fields may be freely permuted in \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{2C}{\isacharcomma}}\ y\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{2C}{\isacharcomma}}\ z\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ c{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}}, as far as logical equality is concerned.
+  Thus commutativity of independent updates can be proven within the
+  logic for any two fields, but not as a general theorem.
 
-  \item \isa{R{\isaliteral{2E}{\isachardot}}induct} or \isa{R{\isaliteral{2E}{\isachardot}}coinduct} is the (co)induction
-  rule.
+  \medskip The \textbf{make} operation provides a cumulative record
+  constructor function:
 
-  \end{description}
+  \begin{matharray}{lll}
+    \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}make{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} \\
+  \end{matharray}
 
-  When several predicates \isa{{\isaliteral{22}{\isachardoublequote}}R\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ R\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} are
-  defined simultaneously, the list of introduction rules is called
-  \isa{{\isaliteral{22}{\isachardoublequote}}R\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{5F}{\isacharunderscore}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{5F}{\isacharunderscore}}R\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{2E}{\isachardot}}intros{\isaliteral{22}{\isachardoublequote}}}, the case analysis rules are
-  called \isa{{\isaliteral{22}{\isachardoublequote}}R\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2E}{\isachardot}}cases{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ R\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{2E}{\isachardot}}cases{\isaliteral{22}{\isachardoublequote}}}, and the list
-  of mutual induction rules is called \isa{{\isaliteral{22}{\isachardoublequote}}R\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{5F}{\isacharunderscore}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{5F}{\isacharunderscore}}R\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{2E}{\isachardot}}inducts{\isaliteral{22}{\isachardoublequote}}}.%
+  \medskip We now reconsider the case of non-root records, which are
+  derived of some parent.  In general, the latter may depend on
+  another parent as well, resulting in a list of \emph{ancestor
+  records}.  Appending the lists of fields of all ancestors results in
+  a certain field prefix.  The record package automatically takes care
+  of this by lifting operations over this context of ancestor fields.
+  Assuming that \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{29}{\isacharparenright}}\ t{\isaliteral{22}{\isachardoublequote}}} has ancestor
+  fields \isa{{\isaliteral{22}{\isachardoublequote}}b\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C72686F3E}{\isasymrho}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ b\isaliteral{5C3C5E7375623E}{}\isactrlsub k\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C72686F3E}{\isasymrho}}\isaliteral{5C3C5E7375623E}{}\isactrlsub k{\isaliteral{22}{\isachardoublequote}}},
+  the above record operations will get the following types:
+
+  \medskip
+  \begin{tabular}{lll}
+    \isa{{\isaliteral{22}{\isachardoublequote}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec b\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C72686F3E}{\isasymrho}}{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7A6574613E}{\isasymzeta}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{22}{\isachardoublequote}}} \\
+    \isa{{\isaliteral{22}{\isachardoublequote}}c\isaliteral{5C3C5E7375623E}{}\isactrlsub i{\isaliteral{5F}{\isacharunderscore}}update{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub i\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec b\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C72686F3E}{\isasymrho}}{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7A6574613E}{\isasymzeta}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec b\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C72686F3E}{\isasymrho}}{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7A6574613E}{\isasymzeta}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}make{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C72686F3E}{\isasymrho}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C72686F3E}{\isasymrho}}\isaliteral{5C3C5E7375623E}{}\isactrlsub k\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec b\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C72686F3E}{\isasymrho}}{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} \\
+  \end{tabular}
+  \medskip
+
+  \noindent Some further operations address the extension aspect of a
+  derived record scheme specifically: \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}fields{\isaliteral{22}{\isachardoublequote}}} produces a
+  record fragment consisting of exactly the new fields introduced here
+  (the result may serve as a more part elsewhere); \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}extend{\isaliteral{22}{\isachardoublequote}}}
+  takes a fixed record and adds a given more part; \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}truncate{\isaliteral{22}{\isachardoublequote}}} restricts a record scheme to a fixed record.
+
+  \medskip
+  \begin{tabular}{lll}
+    \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}fields{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}extend{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec b\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C72686F3E}{\isasymrho}}{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C7A6574613E}{\isasymzeta}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec b\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C72686F3E}{\isasymrho}}{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7A6574613E}{\isasymzeta}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}truncate{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec b\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C72686F3E}{\isasymrho}}{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7A6574613E}{\isasymzeta}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C6C706172723E}{\isasymlparr}}\isaliteral{5C3C5E7665633E}{}\isactrlvec b\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C72686F3E}{\isasymrho}}{\isaliteral{2C}{\isacharcomma}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ \isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{5C3C72706172723E}{\isasymrparr}}{\isaliteral{22}{\isachardoublequote}}} \\
+  \end{tabular}
+  \medskip
+
+  \noindent Note that \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}make{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}fields{\isaliteral{22}{\isachardoublequote}}} coincide
+  for root records.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Monotonicity theorems%
+\isamarkupsubsection{Derived rules and proof tools%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Each theory contains a default set of theorems that are used in
-  monotonicity proofs.  New rules can be added to this set via the
-  \hyperlink{attribute.HOL.mono}{\mbox{\isa{mono}}} attribute.  The HOL theory \isa{Inductive}
-  shows how this is done.  In general, the following monotonicity
-  theorems may be added:
+The record package proves several results internally, declaring
+  these facts to appropriate proof tools.  This enables users to
+  reason about record structures quite conveniently.  Assume that
+  \isa{t} is a record type as specified above.
 
-  \begin{itemize}
+  \begin{enumerate}
 
-  \item Theorems of the form \isa{{\isaliteral{22}{\isachardoublequote}}A\ {\isaliteral{5C3C6C653E}{\isasymle}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ M\ A\ {\isaliteral{5C3C6C653E}{\isasymle}}\ M\ B{\isaliteral{22}{\isachardoublequote}}}, for proving
-  monotonicity of inductive definitions whose introduction rules have
-  premises involving terms such as \isa{{\isaliteral{22}{\isachardoublequote}}M\ R\isaliteral{5C3C5E7375623E}{}\isactrlsub i\ t{\isaliteral{22}{\isachardoublequote}}}.
+  \item Standard conversions for selectors or updates applied to
+  record constructor terms are made part of the default Simplifier
+  context; thus proofs by reduction of basic operations merely require
+  the \hyperlink{method.simp}{\mbox{\isa{simp}}} method without further arguments.  These rules
+  are available as \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}simps{\isaliteral{22}{\isachardoublequote}}}, too.
 
-  \item Monotonicity theorems for logical operators, which are of the
-  general form \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}.  For example, in
-  the case of the operator \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6F723E}{\isasymor}}{\isaliteral{22}{\isachardoublequote}}}, the corresponding theorem is
-  \[
-  \infer{\isa{{\isaliteral{22}{\isachardoublequote}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{22}{\isachardoublequote}}}}{\isa{{\isaliteral{22}{\isachardoublequote}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{22}{\isachardoublequote}}}}
-  \]
+  \item Selectors applied to updated records are automatically reduced
+  by an internal simplification procedure, which is also part of the
+  standard Simplifier setup.
 
-  \item De Morgan style equations for reasoning about the ``polarity''
-  of expressions, e.g.
-  \[
-  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ P{\isaliteral{22}{\isachardoublequote}}} \qquad\qquad
-  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{28}{\isacharparenleft}}P\ {\isaliteral{5C3C616E643E}{\isasymand}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ Q{\isaliteral{22}{\isachardoublequote}}}
-  \]
+  \item Inject equations of a form analogous to \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}x{\isaliteral{2C}{\isacharcomma}}\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{27}{\isacharprime}}{\isaliteral{2C}{\isacharcomma}}\ y{\isaliteral{27}{\isacharprime}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ x\ {\isaliteral{3D}{\isacharequal}}\ x{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ y\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{27}{\isacharprime}}{\isaliteral{22}{\isachardoublequote}}} are declared to the Simplifier and Classical
+  Reasoner as \hyperlink{attribute.iff}{\mbox{\isa{iff}}} rules.  These rules are available as
+  \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}iffs{\isaliteral{22}{\isachardoublequote}}}.
 
-  \item Equations for reducing complex operators to more primitive
-  ones whose monotonicity can easily be proved, e.g.
-  \[
-  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}P\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q{\isaliteral{22}{\isachardoublequote}}} \qquad\qquad
-  \isa{{\isaliteral{22}{\isachardoublequote}}Ball\ A\ P\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ A\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P\ x{\isaliteral{22}{\isachardoublequote}}}
-  \]
+  \item The introduction rule for record equality analogous to \isa{{\isaliteral{22}{\isachardoublequote}}x\ r\ {\isaliteral{3D}{\isacharequal}}\ x\ r{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ y\ r\ {\isaliteral{3D}{\isacharequal}}\ y\ r{\isaliteral{27}{\isacharprime}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ r\ {\isaliteral{3D}{\isacharequal}}\ r{\isaliteral{27}{\isacharprime}}{\isaliteral{22}{\isachardoublequote}}} is declared to the Simplifier,
+  and as the basic rule context as ``\hyperlink{attribute.intro}{\mbox{\isa{intro}}}\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}{\isaliteral{22}{\isachardoublequote}}}''.
+  The rule is called \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}equality{\isaliteral{22}{\isachardoublequote}}}.
 
-  \end{itemize}
+  \item Representations of arbitrary record expressions as canonical
+  constructor terms are provided both in \hyperlink{method.cases}{\mbox{\isa{cases}}} and \hyperlink{method.induct}{\mbox{\isa{induct}}} format (cf.\ the generic proof methods of the same name,
+  \secref{sec:cases-induct}).  Several variations are available, for
+  fixed records, record schemes, more parts etc.
 
-  %FIXME: Example of an inductive definition%
+  The generic proof methods are sufficiently smart to pick the most
+  sensible rule according to the type of the indicated record
+  expression: users just need to apply something like ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}cases\ r{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}'' to a certain proof problem.
+
+  \item The derived record operations \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}make{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}fields{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}extend{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}truncate{\isaliteral{22}{\isachardoublequote}}} are \emph{not}
+  treated automatically, but usually need to be expanded by hand,
+  using the collective fact \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{2E}{\isachardot}}defs{\isaliteral{22}{\isachardoublequote}}}.
+
+  \end{enumerate}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Adhoc tuples%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{HOL}{attribute}{split\_format}\hypertarget{attribute.HOL.split-format}{\hyperlink{attribute.HOL.split-format}{\mbox{\isa{split{\isaliteral{5F}{\isacharunderscore}}format}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{attribute} \\
+  \end{matharray}
+
+  \begin{railoutput}
+\rail@begin{2}{}
+\rail@term{\hyperlink{attribute.HOL.split-format}{\mbox{\isa{split{\isaliteral{5F}{\isacharunderscore}}format}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@term{\isa{complete}}[]
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
+
+  \begin{description}
+
+  \item \hyperlink{attribute.HOL.split-format}{\mbox{\isa{split{\isaliteral{5F}{\isacharunderscore}}format}}}\ \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}complete{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} causes
+  arguments in function applications to be represented canonically
+  according to their tuple type structure.
+
+  Note that this operation tends to invent funny names for new local
+  parameters introduced.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Typedef axiomatization \label{sec:hol-typedef}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+A Gordon/HOL-style type definition is a certain axiom scheme
+  that identifies a new type with a subset of an existing type.  More
+  precisely, the new type is defined by exhibiting an existing type
+  \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}}, a set \isa{{\isaliteral{22}{\isachardoublequote}}A\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\ set{\isaliteral{22}{\isachardoublequote}}}, and a theorem that proves
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ A{\isaliteral{22}{\isachardoublequote}}}.  Thus \isa{A} is a non-empty subset of \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}}, and the new type denotes this subset.  New functions are
+  postulated that establish an isomorphism between the new type and
+  the subset.  In general, the type \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} may involve type
+  variables \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} which means that the type definition
+  produces a type constructor \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{29}{\isacharparenright}}\ t{\isaliteral{22}{\isachardoublequote}}} depending on
+  those type arguments.
+
+  The axiomatization can be considered a ``definition'' in the sense
+  of the particular set-theoretic interpretation of HOL
+  \cite{pitts93}, where the universe of types is required to be
+  downwards-closed wrt.\ arbitrary non-empty subsets.  Thus genuinely
+  new types introduced by \hyperlink{command.typedef}{\mbox{\isa{\isacommand{typedef}}}} stay within the range
+  of HOL models by construction.  Note that \indexref{}{command}{type\_synonym}\hyperlink{command.type-synonym}{\mbox{\isa{\isacommand{type{\isaliteral{5F}{\isacharunderscore}}synonym}}}} from Isabelle/Pure merely introduces syntactic
+  abbreviations, without any logical significance.
+  
+  \begin{matharray}{rcl}
+    \indexdef{HOL}{command}{typedef}\hypertarget{command.HOL.typedef}{\hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
+  \end{matharray}
+
+  \begin{railoutput}
+\rail@begin{2}{}
+\rail@term{\hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\isa{alt{\isaliteral{5F}{\isacharunderscore}}name}}[]
+\rail@endbar
+\rail@nont{\isa{abs{\isaliteral{5F}{\isacharunderscore}}type}}[]
+\rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
+\rail@nont{\isa{rep{\isaliteral{5F}{\isacharunderscore}}set}}[]
+\rail@end
+\rail@begin{3}{\isa{alt{\isaliteral{5F}{\isacharunderscore}}name}}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@bar
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nextbar{1}
+\rail@term{\isa{\isakeyword{open}}}[]
+\rail@nextbar{2}
+\rail@term{\isa{\isakeyword{open}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@end
+\rail@begin{2}{\isa{abs{\isaliteral{5F}{\isacharunderscore}}type}}
+\rail@nont{\hyperlink{syntax.typespec-sorts}{\mbox{\isa{typespec{\isaliteral{5F}{\isacharunderscore}}sorts}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{2}{\isa{rep{\isaliteral{5F}{\isacharunderscore}}set}}
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{\isakeyword{morphisms}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
+
+  \begin{description}
+
+  \item \hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{29}{\isacharparenright}}\ t\ {\isaliteral{3D}{\isacharequal}}\ A{\isaliteral{22}{\isachardoublequote}}}
+  axiomatizes a type definition in the background theory of the
+  current context, depending on a non-emptiness result of the set
+  \isa{A} that needs to be proven here.  The set \isa{A} may
+  contain type variables \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} as specified on the LHS,
+  but no term variables.
+
+  Even though a local theory specification, the newly introduced type
+  constructor cannot depend on parameters or assumptions of the
+  context: this is structurally impossible in HOL.  In contrast, the
+  non-emptiness proof may use local assumptions in unusual situations,
+  which could result in different interpretations in target contexts:
+  the meaning of the bijection between the representing set \isa{A}
+  and the new type \isa{t} may then change in different application
+  contexts.
+
+  By default, \hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}} defines both a type
+  constructor \isa{t} for the new type, and a term constant \isa{t} for the representing set within the old type.  Use the ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}open{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}'' option to suppress a separate constant definition
+  altogether.  The injection from type to set is called \isa{Rep{\isaliteral{5F}{\isacharunderscore}}t},
+  its inverse \isa{Abs{\isaliteral{5F}{\isacharunderscore}}t}, unless explicit \hyperlink{keyword.HOL.morphisms}{\mbox{\isa{\isakeyword{morphisms}}}} specification provides alternative names.
+
+  The core axiomatization uses the locale predicate \isa{type{\isaliteral{5F}{\isacharunderscore}}definition} as defined in Isabelle/HOL.  Various basic
+  consequences of that are instantiated accordingly, re-using the
+  locale facts with names derived from the new type constructor.  Thus
+  the generic \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Rep} is turned into the specific
+  \isa{{\isaliteral{22}{\isachardoublequote}}Rep{\isaliteral{5F}{\isacharunderscore}}t{\isaliteral{22}{\isachardoublequote}}}, for example.
+
+  Theorems \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Rep}, \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Rep{\isaliteral{5F}{\isacharunderscore}}inverse}, and \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Abs{\isaliteral{5F}{\isacharunderscore}}inverse}
+  provide the most basic characterization as a corresponding
+  injection/surjection pair (in both directions).  The derived rules
+  \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Rep{\isaliteral{5F}{\isacharunderscore}}inject} and \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Abs{\isaliteral{5F}{\isacharunderscore}}inject} provide a more convenient version of
+  injectivity, suitable for automated proof tools (e.g.\ in
+  declarations involving \hyperlink{attribute.simp}{\mbox{\isa{simp}}} or \hyperlink{attribute.iff}{\mbox{\isa{iff}}}).
+  Furthermore, the rules \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Rep{\isaliteral{5F}{\isacharunderscore}}cases}~/ \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Rep{\isaliteral{5F}{\isacharunderscore}}induct}, and \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Abs{\isaliteral{5F}{\isacharunderscore}}cases}~/
+  \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Abs{\isaliteral{5F}{\isacharunderscore}}induct} provide alternative views on
+  surjectivity.  These rules are already declared as set or type rules
+  for the generic \hyperlink{method.cases}{\mbox{\isa{cases}}} and \hyperlink{method.induct}{\mbox{\isa{induct}}} methods,
+  respectively.
+
+  An alternative name for the set definition (and other derived
+  entities) may be specified in parentheses; the default is to use
+  \isa{t} directly.
+
+  \end{description}
+
+  \begin{warn}
+  If you introduce a new type axiomatically, i.e.\ via \indexref{}{command}{typedecl}\hyperlink{command.typedecl}{\mbox{\isa{\isacommand{typedecl}}}} and \indexref{}{command}{axiomatization}\hyperlink{command.axiomatization}{\mbox{\isa{\isacommand{axiomatization}}}}, the minimum requirement
+  is that it has a non-empty model, to avoid immediate collapse of the
+  HOL logic.  Moreover, one needs to demonstrate that the
+  interpretation of such free-form axiomatizations can coexist with
+  that of the regular \indexdef{}{command}{typedef}\hypertarget{command.typedef}{\hyperlink{command.typedef}{\mbox{\isa{\isacommand{typedef}}}}} scheme, and any extension
+  that other people might have introduced elsewhere (e.g.\ in HOLCF
+  \cite{MuellerNvOS99}).
+  \end{warn}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Examples%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Type definitions permit the introduction of abstract data
+  types in a safe way, namely by providing models based on already
+  existing types.  Given some abstract axiomatic description \isa{P}
+  of a type, this involves two steps:
+
+  \begin{enumerate}
+
+  \item Find an appropriate type \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} and subset \isa{A} which
+  has the desired properties \isa{P}, and make a type definition
+  based on this representation.
+
+  \item Prove that \isa{P} holds for \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} by lifting \isa{P}
+  from the representation.
+
+  \end{enumerate}
+
+  You can later forget about the representation and work solely in
+  terms of the abstract properties \isa{P}.
+
+  \medskip The following trivial example pulls a three-element type
+  into existence within the formal logical environment of HOL.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{typedef}\isamarkupfalse%
+\ three\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{7B}{\isacharbraceleft}}{\isaliteral{28}{\isacharparenleft}}True{\isaliteral{2C}{\isacharcomma}}\ True{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{28}{\isacharparenleft}}True{\isaliteral{2C}{\isacharcomma}}\ False{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{28}{\isacharparenleft}}False{\isaliteral{2C}{\isacharcomma}}\ True{\isaliteral{29}{\isacharparenright}}{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ blast%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}One\ {\isaliteral{3D}{\isacharequal}}\ Abs{\isaliteral{5F}{\isacharunderscore}}three\ {\isaliteral{28}{\isacharparenleft}}True{\isaliteral{2C}{\isacharcomma}}\ True{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}Two\ {\isaliteral{3D}{\isacharequal}}\ Abs{\isaliteral{5F}{\isacharunderscore}}three\ {\isaliteral{28}{\isacharparenleft}}True{\isaliteral{2C}{\isacharcomma}}\ False{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}Three\ {\isaliteral{3D}{\isacharequal}}\ Abs{\isaliteral{5F}{\isacharunderscore}}three\ {\isaliteral{28}{\isacharparenleft}}False{\isaliteral{2C}{\isacharcomma}}\ True{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ three{\isaliteral{5F}{\isacharunderscore}}distinct{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}One\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ Two{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}One\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ Three{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}Two\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ Three{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}simp{\isaliteral{5F}{\isacharunderscore}}all\ add{\isaliteral{3A}{\isacharcolon}}\ One{\isaliteral{5F}{\isacharunderscore}}def\ Two{\isaliteral{5F}{\isacharunderscore}}def\ Three{\isaliteral{5F}{\isacharunderscore}}def\ Abs{\isaliteral{5F}{\isacharunderscore}}three{\isaliteral{5F}{\isacharunderscore}}inject\ three{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ three{\isaliteral{5F}{\isacharunderscore}}cases{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \isakeyword{fixes}\ x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ three\ \isakeyword{obtains}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ One{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ Two{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ Three{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}cases\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}auto\ simp{\isaliteral{3A}{\isacharcolon}}\ One{\isaliteral{5F}{\isacharunderscore}}def\ Two{\isaliteral{5F}{\isacharunderscore}}def\ Three{\isaliteral{5F}{\isacharunderscore}}def\ Abs{\isaliteral{5F}{\isacharunderscore}}three{\isaliteral{5F}{\isacharunderscore}}inject\ three{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+Note that such trivial constructions are better done with
+  derived specification mechanisms such as \hyperlink{command.datatype}{\mbox{\isa{\isacommand{datatype}}}}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{datatype}\isamarkupfalse%
+\ three{\isaliteral{27}{\isacharprime}}\ {\isaliteral{3D}{\isacharequal}}\ One{\isaliteral{27}{\isacharprime}}\ {\isaliteral{7C}{\isacharbar}}\ Two{\isaliteral{27}{\isacharprime}}\ {\isaliteral{7C}{\isacharbar}}\ Three{\isaliteral{27}{\isacharprime}}%
+\begin{isamarkuptext}%
+This avoids re-doing basic definitions and proofs from the
+  primitive \hyperlink{command.typedef}{\mbox{\isa{\isacommand{typedef}}}} above.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Functorial structure of types%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{HOL}{command}{enriched\_type}\hypertarget{command.HOL.enriched-type}{\hyperlink{command.HOL.enriched-type}{\mbox{\isa{\isacommand{enriched{\isaliteral{5F}{\isacharunderscore}}type}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}
+  \end{matharray}
+
+  \begin{railoutput}
+\rail@begin{2}{}
+\rail@term{\hyperlink{command.HOL.enriched-type}{\mbox{\isa{\isacommand{enriched{\isaliteral{5F}{\isacharunderscore}}type}}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
+\rail@endbar
+\rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
+\rail@end
+\end{railoutput}
+
+
+  \begin{description}
+
+  \item \hyperlink{command.HOL.enriched-type}{\mbox{\isa{\isacommand{enriched{\isaliteral{5F}{\isacharunderscore}}type}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}prefix{\isaliteral{3A}{\isacharcolon}}\ m{\isaliteral{22}{\isachardoublequote}}} allows to
+  prove and register properties about the functorial structure of type
+  constructors.  These properties then can be used by other packages
+  to deal with those type constructors in certain type constructions.
+  Characteristic theorems are noted in the current local theory.  By
+  default, they are prefixed with the base name of the type
+  constructor, an explicit prefix can be given alternatively.
+
+  The given term \isa{{\isaliteral{22}{\isachardoublequote}}m{\isaliteral{22}{\isachardoublequote}}} is considered as \emph{mapper} for the
+  corresponding type constructor and must conform to the following
+  type pattern:
+
+  \begin{matharray}{lll}
+    \isa{{\isaliteral{22}{\isachardoublequote}}m{\isaliteral{22}{\isachardoublequote}}} & \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{22}{\isachardoublequote}}} &
+      \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E697375623E}{}\isactrlisub k\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}\isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{29}{\isacharparenright}}\ t\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}\isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C626574613E}{\isasymbeta}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{29}{\isacharparenright}}\ t{\isaliteral{22}{\isachardoublequote}}} \\
+  \end{matharray}
+
+  \noindent where \isa{t} is the type constructor, \isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7665633E}{}\isactrlvec {\isaliteral{5C3C626574613E}{\isasymbeta}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{22}{\isachardoublequote}}} are distinct
+  type variables free in the local theory and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}},
+  \ldots, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7369676D613E}{\isasymsigma}}\isaliteral{5C3C5E697375623E}{}\isactrlisub k{\isaliteral{22}{\isachardoublequote}}} is a subsequence of \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C626574613E}{\isasymbeta}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}}, \ldots,
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C626574613E}{\isasymbeta}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C626574613E}{\isasymbeta}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E697375623E}{}\isactrlisub n{\isaliteral{22}{\isachardoublequote}}}.
+
+  \end{description}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

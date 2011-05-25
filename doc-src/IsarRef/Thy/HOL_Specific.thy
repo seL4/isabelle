@@ -4,178 +4,476 @@ begin
 
 chapter {* Isabelle/HOL \label{ch:hol} *}
 
-section {* Typedef axiomatization \label{sec:hol-typedef} *}
+section {* Inductive and coinductive definitions \label{sec:hol-inductive} *}
 
-text {* A Gordon/HOL-style type definition is a certain axiom scheme
-  that identifies a new type with a subset of an existing type.  More
-  precisely, the new type is defined by exhibiting an existing type
-  @{text \<tau>}, a set @{text "A :: \<tau> set"}, and a theorem that proves
-  @{prop "\<exists>x. x \<in> A"}.  Thus @{text A} is a non-empty subset of @{text
-  \<tau>}, and the new type denotes this subset.  New functions are
-  postulated that establish an isomorphism between the new type and
-  the subset.  In general, the type @{text \<tau>} may involve type
-  variables @{text "\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n"} which means that the type definition
-  produces a type constructor @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} depending on
-  those type arguments.
+text {*
+  An \textbf{inductive definition} specifies the least predicate (or
+  set) @{text R} closed under given rules: applying a rule to elements
+  of @{text R} yields a result within @{text R}.  For example, a
+  structural operational semantics is an inductive definition of an
+  evaluation relation.
 
-  The axiomatization can be considered a ``definition'' in the sense
-  of the particular set-theoretic interpretation of HOL
-  \cite{pitts93}, where the universe of types is required to be
-  downwards-closed wrt.\ arbitrary non-empty subsets.  Thus genuinely
-  new types introduced by @{command "typedef"} stay within the range
-  of HOL models by construction.  Note that @{command_ref
-  type_synonym} from Isabelle/Pure merely introduces syntactic
-  abbreviations, without any logical significance.
-  
+  Dually, a \textbf{coinductive definition} specifies the greatest
+  predicate~/ set @{text R} that is consistent with given rules: every
+  element of @{text R} can be seen as arising by applying a rule to
+  elements of @{text R}.  An important example is using bisimulation
+  relations to formalise equivalence of processes and infinite data
+  structures.
+
+  \medskip The HOL package is related to the ZF one, which is
+  described in a separate paper,\footnote{It appeared in CADE
+  \cite{paulson-CADE}; a longer version is distributed with Isabelle.}
+  which you should refer to in case of difficulties.  The package is
+  simpler than that of ZF thanks to implicit type-checking in HOL.
+  The types of the (co)inductive predicates (or sets) determine the
+  domain of the fixedpoint definition, and the package does not have
+  to use inference rules for type-checking.
+
   \begin{matharray}{rcl}
-    @{command_def (HOL) "typedef"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
+    @{command_def (HOL) "inductive"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def (HOL) "inductive_set"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def (HOL) "coinductive"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def (HOL) "coinductive_set"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{attribute_def (HOL) mono} & : & @{text attribute} \\
   \end{matharray}
 
   @{rail "
-    @@{command (HOL) typedef} alt_name? abs_type '=' rep_set
+    (@@{command (HOL) inductive} | @@{command (HOL) inductive_set} |
+      @@{command (HOL) coinductive} | @@{command (HOL) coinductive_set})
+    @{syntax target}? @{syntax \"fixes\"} (@'for' @{syntax \"fixes\"})? \\
+    (@'where' clauses)? (@'monos' @{syntax thmrefs})?
     ;
-
-    alt_name: '(' (@{syntax name} | @'open' | @'open' @{syntax name}) ')'
+    clauses: (@{syntax thmdecl}? @{syntax prop} + '|')
     ;
-    abs_type: @{syntax typespec_sorts} @{syntax mixfix}?
-    ;
-    rep_set: @{syntax term} (@'morphisms' @{syntax name} @{syntax name})?
+    @@{attribute (HOL) mono} (() | 'add' | 'del')
   "}
 
   \begin{description}
 
-  \item @{command (HOL) "typedef"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = A"}
-  axiomatizes a type definition in the background theory of the
-  current context, depending on a non-emptiness result of the set
-  @{text A} that needs to be proven here.  The set @{text A} may
-  contain type variables @{text "\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n"} as specified on the LHS,
-  but no term variables.
+  \item @{command (HOL) "inductive"} and @{command (HOL)
+  "coinductive"} define (co)inductive predicates from the
+  introduction rules given in the @{keyword "where"} part.  The
+  optional @{keyword "for"} part contains a list of parameters of the
+  (co)inductive predicates that remain fixed throughout the
+  definition.  The optional @{keyword "monos"} section contains
+  \emph{monotonicity theorems}, which are required for each operator
+  applied to a recursive set in the introduction rules.  There
+  \emph{must} be a theorem of the form @{text "A \<le> B \<Longrightarrow> M A \<le> M B"},
+  for each premise @{text "M R\<^sub>i t"} in an introduction rule!
 
-  Even though a local theory specification, the newly introduced type
-  constructor cannot depend on parameters or assumptions of the
-  context: this is structurally impossible in HOL.  In contrast, the
-  non-emptiness proof may use local assumptions in unusual situations,
-  which could result in different interpretations in target contexts:
-  the meaning of the bijection between the representing set @{text A}
-  and the new type @{text t} may then change in different application
-  contexts.
+  \item @{command (HOL) "inductive_set"} and @{command (HOL)
+  "coinductive_set"} are wrappers for to the previous commands,
+  allowing the definition of (co)inductive sets.
 
-  By default, @{command (HOL) "typedef"} defines both a type
-  constructor @{text t} for the new type, and a term constant @{text
-  t} for the representing set within the old type.  Use the ``@{text
-  "(open)"}'' option to suppress a separate constant definition
-  altogether.  The injection from type to set is called @{text Rep_t},
-  its inverse @{text Abs_t}, unless explicit @{keyword (HOL)
-  "morphisms"} specification provides alternative names.
+  \item @{attribute (HOL) mono} declares monotonicity rules.  These
+  rule are involved in the automated monotonicity proof of @{command
+  (HOL) "inductive"}.
 
-  The core axiomatization uses the locale predicate @{const
-  type_definition} as defined in Isabelle/HOL.  Various basic
-  consequences of that are instantiated accordingly, re-using the
-  locale facts with names derived from the new type constructor.  Thus
-  the generic @{thm type_definition.Rep} is turned into the specific
-  @{text "Rep_t"}, for example.
+  \end{description}
+*}
 
-  Theorems @{thm type_definition.Rep}, @{thm
-  type_definition.Rep_inverse}, and @{thm type_definition.Abs_inverse}
-  provide the most basic characterization as a corresponding
-  injection/surjection pair (in both directions).  The derived rules
-  @{thm type_definition.Rep_inject} and @{thm
-  type_definition.Abs_inject} provide a more convenient version of
-  injectivity, suitable for automated proof tools (e.g.\ in
-  declarations involving @{attribute simp} or @{attribute iff}).
-  Furthermore, the rules @{thm type_definition.Rep_cases}~/ @{thm
-  type_definition.Rep_induct}, and @{thm type_definition.Abs_cases}~/
-  @{thm type_definition.Abs_induct} provide alternative views on
-  surjectivity.  These rules are already declared as set or type rules
-  for the generic @{method cases} and @{method induct} methods,
-  respectively.
 
-  An alternative name for the set definition (and other derived
-  entities) may be specified in parentheses; the default is to use
-  @{text t} directly.
+subsection {* Derived rules *}
+
+text {*
+  Each (co)inductive definition @{text R} adds definitions to the
+  theory and also proves some theorems:
+
+  \begin{description}
+
+  \item @{text R.intros} is the list of introduction rules as proven
+  theorems, for the recursive predicates (or sets).  The rules are
+  also available individually, using the names given them in the
+  theory file;
+
+  \item @{text R.cases} is the case analysis (or elimination) rule;
+
+  \item @{text R.induct} or @{text R.coinduct} is the (co)induction
+  rule.
 
   \end{description}
 
-  \begin{warn}
-  If you introduce a new type axiomatically, i.e.\ via @{command_ref
-  typedecl} and @{command_ref axiomatization}, the minimum requirement
-  is that it has a non-empty model, to avoid immediate collapse of the
-  HOL logic.  Moreover, one needs to demonstrate that the
-  interpretation of such free-form axiomatizations can coexist with
-  that of the regular @{command_def typedef} scheme, and any extension
-  that other people might have introduced elsewhere (e.g.\ in HOLCF
-  \cite{MuellerNvOS99}).
-  \end{warn}
+  When several predicates @{text "R\<^sub>1, \<dots>, R\<^sub>n"} are
+  defined simultaneously, the list of introduction rules is called
+  @{text "R\<^sub>1_\<dots>_R\<^sub>n.intros"}, the case analysis rules are
+  called @{text "R\<^sub>1.cases, \<dots>, R\<^sub>n.cases"}, and the list
+  of mutual induction rules is called @{text
+  "R\<^sub>1_\<dots>_R\<^sub>n.inducts"}.
 *}
 
-subsubsection {* Examples *}
 
-text {* Type definitions permit the introduction of abstract data
-  types in a safe way, namely by providing models based on already
-  existing types.  Given some abstract axiomatic description @{text P}
-  of a type, this involves two steps:
+subsection {* Monotonicity theorems *}
 
-  \begin{enumerate}
+text {*
+  Each theory contains a default set of theorems that are used in
+  monotonicity proofs.  New rules can be added to this set via the
+  @{attribute (HOL) mono} attribute.  The HOL theory @{text Inductive}
+  shows how this is done.  In general, the following monotonicity
+  theorems may be added:
 
-  \item Find an appropriate type @{text \<tau>} and subset @{text A} which
-  has the desired properties @{text P}, and make a type definition
-  based on this representation.
+  \begin{itemize}
 
-  \item Prove that @{text P} holds for @{text \<tau>} by lifting @{text P}
-  from the representation.
+  \item Theorems of the form @{text "A \<le> B \<Longrightarrow> M A \<le> M B"}, for proving
+  monotonicity of inductive definitions whose introduction rules have
+  premises involving terms such as @{text "M R\<^sub>i t"}.
 
-  \end{enumerate}
+  \item Monotonicity theorems for logical operators, which are of the
+  general form @{text "(\<dots> \<longrightarrow> \<dots>) \<Longrightarrow> \<dots> (\<dots> \<longrightarrow> \<dots>) \<Longrightarrow> \<dots> \<longrightarrow> \<dots>"}.  For example, in
+  the case of the operator @{text "\<or>"}, the corresponding theorem is
+  \[
+  \infer{@{text "P\<^sub>1 \<or> P\<^sub>2 \<longrightarrow> Q\<^sub>1 \<or> Q\<^sub>2"}}{@{text "P\<^sub>1 \<longrightarrow> Q\<^sub>1"} & @{text "P\<^sub>2 \<longrightarrow> Q\<^sub>2"}}
+  \]
 
-  You can later forget about the representation and work solely in
-  terms of the abstract properties @{text P}.
+  \item De Morgan style equations for reasoning about the ``polarity''
+  of expressions, e.g.
+  \[
+  @{prop "\<not> \<not> P \<longleftrightarrow> P"} \qquad\qquad
+  @{prop "\<not> (P \<and> Q) \<longleftrightarrow> \<not> P \<or> \<not> Q"}
+  \]
 
-  \medskip The following trivial example pulls a three-element type
-  into existence within the formal logical environment of HOL. *}
+  \item Equations for reducing complex operators to more primitive
+  ones whose monotonicity can easily be proved, e.g.
+  \[
+  @{prop "(P \<longrightarrow> Q) \<longleftrightarrow> \<not> P \<or> Q"} \qquad\qquad
+  @{prop "Ball A P \<equiv> \<forall>x. x \<in> A \<longrightarrow> P x"}
+  \]
 
-typedef three = "{(True, True), (True, False), (False, True)}"
-  by blast
+  \end{itemize}
 
-definition "One = Abs_three (True, True)"
-definition "Two = Abs_three (True, False)"
-definition "Three = Abs_three (False, True)"
-
-lemma three_distinct: "One \<noteq> Two"  "One \<noteq> Three"  "Two \<noteq> Three"
-  by (simp_all add: One_def Two_def Three_def Abs_three_inject three_def)
-
-lemma three_cases:
-  fixes x :: three obtains "x = One" | "x = Two" | "x = Three"
-  by (cases x) (auto simp: One_def Two_def Three_def Abs_three_inject three_def)
-
-text {* Note that such trivial constructions are better done with
-  derived specification mechanisms such as @{command datatype}: *}
-
-datatype three' = One' | Two' | Three'
-
-text {* This avoids re-doing basic definitions and proofs from the
-  primitive @{command typedef} above. *}
+  %FIXME: Example of an inductive definition
+*}
 
 
-section {* Adhoc tuples *}
+section {* Recursive functions \label{sec:recursion} *}
 
 text {*
   \begin{matharray}{rcl}
-    @{attribute_def (HOL) split_format}@{text "\<^sup>*"} & : & @{text attribute} \\
+    @{command_def (HOL) "primrec"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def (HOL) "fun"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def (HOL) "function"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
+    @{command_def (HOL) "termination"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
   @{rail "
-    @@{attribute (HOL) split_format} ('(' 'complete' ')')?
+    @@{command (HOL) primrec} @{syntax target}? @{syntax \"fixes\"} @'where' equations
+    ;
+    (@@{command (HOL) fun} | @@{command (HOL) function}) @{syntax target}? functionopts?
+      @{syntax \"fixes\"} \\ @'where' equations
+    ;
+
+    equations: (@{syntax thmdecl}? @{syntax prop} + '|')
+    ;
+    functionopts: '(' (('sequential' | 'domintros') + ',') ')'
+    ;
+    @@{command (HOL) termination} @{syntax term}?
   "}
 
   \begin{description}
 
-  \item @{attribute (HOL) split_format}\ @{text "(complete)"} causes
-  arguments in function applications to be represented canonically
-  according to their tuple type structure.
+  \item @{command (HOL) "primrec"} defines primitive recursive
+  functions over datatypes, see also \cite{isabelle-HOL}.
 
-  Note that this operation tends to invent funny names for new local
-  parameters introduced.
+  \item @{command (HOL) "function"} defines functions by general
+  wellfounded recursion. A detailed description with examples can be
+  found in \cite{isabelle-function}. The function is specified by a
+  set of (possibly conditional) recursive equations with arbitrary
+  pattern matching. The command generates proof obligations for the
+  completeness and the compatibility of patterns.
+
+  The defined function is considered partial, and the resulting
+  simplification rules (named @{text "f.psimps"}) and induction rule
+  (named @{text "f.pinduct"}) are guarded by a generated domain
+  predicate @{text "f_dom"}. The @{command (HOL) "termination"}
+  command can then be used to establish that the function is total.
+
+  \item @{command (HOL) "fun"} is a shorthand notation for ``@{command
+  (HOL) "function"}~@{text "(sequential)"}, followed by automated
+  proof attempts regarding pattern matching and termination.  See
+  \cite{isabelle-function} for further details.
+
+  \item @{command (HOL) "termination"}~@{text f} commences a
+  termination proof for the previously defined function @{text f}.  If
+  this is omitted, the command refers to the most recent function
+  definition.  After the proof is closed, the recursive equations and
+  the induction principle is established.
 
   \end{description}
+
+  Recursive definitions introduced by the @{command (HOL) "function"}
+  command accommodate
+  reasoning by induction (cf.\ \secref{sec:cases-induct}): rule @{text
+  "c.induct"} (where @{text c} is the name of the function definition)
+  refers to a specific induction rule, with parameters named according
+  to the user-specified equations. Cases are numbered (starting from 1).
+
+  For @{command (HOL) "primrec"}, the induction principle coincides
+  with structural recursion on the datatype the recursion is carried
+  out.
+
+  The equations provided by these packages may be referred later as
+  theorem list @{text "f.simps"}, where @{text f} is the (collective)
+  name of the functions defined.  Individual equations may be named
+  explicitly as well.
+
+  The @{command (HOL) "function"} command accepts the following
+  options.
+
+  \begin{description}
+
+  \item @{text sequential} enables a preprocessor which disambiguates
+  overlapping patterns by making them mutually disjoint.  Earlier
+  equations take precedence over later ones.  This allows to give the
+  specification in a format very similar to functional programming.
+  Note that the resulting simplification and induction rules
+  correspond to the transformed specification, not the one given
+  originally. This usually means that each equation given by the user
+  may result in several theorems.  Also note that this automatic
+  transformation only works for ML-style datatype patterns.
+
+  \item @{text domintros} enables the automated generation of
+  introduction rules for the domain predicate. While mostly not
+  needed, they can be helpful in some proofs about partial functions.
+
+  \end{description}
+*}
+
+
+subsection {* Proof methods related to recursive definitions *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{method_def (HOL) pat_completeness} & : & @{text method} \\
+    @{method_def (HOL) relation} & : & @{text method} \\
+    @{method_def (HOL) lexicographic_order} & : & @{text method} \\
+    @{method_def (HOL) size_change} & : & @{text method} \\
+  \end{matharray}
+
+  @{rail "
+    @@{method (HOL) relation} @{syntax term}
+    ;
+    @@{method (HOL) lexicographic_order} (@{syntax clasimpmod} * )
+    ;
+    @@{method (HOL) size_change} ( orders (@{syntax clasimpmod} * ) )
+    ;
+    orders: ( 'max' | 'min' | 'ms' ) *
+  "}
+
+  \begin{description}
+
+  \item @{method (HOL) pat_completeness} is a specialized method to
+  solve goals regarding the completeness of pattern matching, as
+  required by the @{command (HOL) "function"} package (cf.\
+  \cite{isabelle-function}).
+
+  \item @{method (HOL) relation}~@{text R} introduces a termination
+  proof using the relation @{text R}.  The resulting proof state will
+  contain goals expressing that @{text R} is wellfounded, and that the
+  arguments of recursive calls decrease with respect to @{text R}.
+  Usually, this method is used as the initial proof step of manual
+  termination proofs.
+
+  \item @{method (HOL) "lexicographic_order"} attempts a fully
+  automated termination proof by searching for a lexicographic
+  combination of size measures on the arguments of the function. The
+  method accepts the same arguments as the @{method auto} method,
+  which it uses internally to prove local descents.  The same context
+  modifiers as for @{method auto} are accepted, see
+  \secref{sec:clasimp}.
+
+  In case of failure, extensive information is printed, which can help
+  to analyse the situation (cf.\ \cite{isabelle-function}).
+
+  \item @{method (HOL) "size_change"} also works on termination goals,
+  using a variation of the size-change principle, together with a
+  graph decomposition technique (see \cite{krauss_phd} for details).
+  Three kinds of orders are used internally: @{text max}, @{text min},
+  and @{text ms} (multiset), which is only available when the theory
+  @{text Multiset} is loaded. When no order kinds are given, they are
+  tried in order. The search for a termination proof uses SAT solving
+  internally.
+
+ For local descent proofs, the same context modifiers as for @{method
+  auto} are accepted, see \secref{sec:clasimp}.
+
+  \end{description}
+*}
+
+
+subsection {* Functions with explicit partiality *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def (HOL) "partial_function"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{attribute_def (HOL) "partial_function_mono"} & : & @{text attribute} \\
+  \end{matharray}
+
+  @{rail "
+    @@{command (HOL) partial_function} @{syntax target}?
+      '(' @{syntax nameref} ')' @{syntax \"fixes\"} \\
+      @'where' @{syntax thmdecl}? @{syntax prop}
+  "}
+
+  \begin{description}
+
+  \item @{command (HOL) "partial_function"}~@{text "(mode)"} defines
+  recursive functions based on fixpoints in complete partial
+  orders. No termination proof is required from the user or
+  constructed internally. Instead, the possibility of non-termination
+  is modelled explicitly in the result type, which contains an
+  explicit bottom element.
+
+  Pattern matching and mutual recursion are currently not supported.
+  Thus, the specification consists of a single function described by a
+  single recursive equation.
+
+  There are no fixed syntactic restrictions on the body of the
+  function, but the induced functional must be provably monotonic
+  wrt.\ the underlying order.  The monotonicitity proof is performed
+  internally, and the definition is rejected when it fails. The proof
+  can be influenced by declaring hints using the
+  @{attribute (HOL) partial_function_mono} attribute.
+
+  The mandatory @{text mode} argument specifies the mode of operation
+  of the command, which directly corresponds to a complete partial
+  order on the result type. By default, the following modes are
+  defined:
+
+  \begin{description}
+  \item @{text option} defines functions that map into the @{type
+  option} type. Here, the value @{term None} is used to model a
+  non-terminating computation. Monotonicity requires that if @{term
+  None} is returned by a recursive call, then the overall result
+  must also be @{term None}. This is best achieved through the use of
+  the monadic operator @{const "Option.bind"}.
+
+  \item @{text tailrec} defines functions with an arbitrary result
+  type and uses the slightly degenerated partial order where @{term
+  "undefined"} is the bottom element.  Now, monotonicity requires that
+  if @{term undefined} is returned by a recursive call, then the
+  overall result must also be @{term undefined}. In practice, this is
+  only satisfied when each recursive call is a tail call, whose result
+  is directly returned. Thus, this mode of operation allows the
+  definition of arbitrary tail-recursive functions.
+  \end{description}
+
+  Experienced users may define new modes by instantiating the locale
+  @{const "partial_function_definitions"} appropriately.
+
+  \item @{attribute (HOL) partial_function_mono} declares rules for
+  use in the internal monononicity proofs of partial function
+  definitions.
+
+  \end{description}
+
+*}
+
+
+subsection {* Old-style recursive function definitions (TFL) *}
+
+text {*
+  The old TFL commands @{command (HOL) "recdef"} and @{command (HOL)
+  "recdef_tc"} for defining recursive are mostly obsolete; @{command
+  (HOL) "function"} or @{command (HOL) "fun"} should be used instead.
+
+  \begin{matharray}{rcl}
+    @{command_def (HOL) "recdef"} & : & @{text "theory \<rightarrow> theory)"} \\
+    @{command_def (HOL) "recdef_tc"}@{text "\<^sup>*"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
+  \end{matharray}
+
+  @{rail "
+    @@{command (HOL) recdef} ('(' @'permissive' ')')? \\
+      @{syntax name} @{syntax term} (@{syntax prop} +) hints?
+    ;
+    recdeftc @{syntax thmdecl}? tc
+    ;
+    hints: '(' @'hints' ( recdefmod * ) ')'
+    ;
+    recdefmod: (('recdef_simp' | 'recdef_cong' | 'recdef_wf')
+      (() | 'add' | 'del') ':' @{syntax thmrefs}) | @{syntax clasimpmod}
+    ;
+    tc: @{syntax nameref} ('(' @{syntax nat} ')')?
+  "}
+
+  \begin{description}
+
+  \item @{command (HOL) "recdef"} defines general well-founded
+  recursive functions (using the TFL package), see also
+  \cite{isabelle-HOL}.  The ``@{text "(permissive)"}'' option tells
+  TFL to recover from failed proof attempts, returning unfinished
+  results.  The @{text recdef_simp}, @{text recdef_cong}, and @{text
+  recdef_wf} hints refer to auxiliary rules to be used in the internal
+  automated proof process of TFL.  Additional @{syntax clasimpmod}
+  declarations (cf.\ \secref{sec:clasimp}) may be given to tune the
+  context of the Simplifier (cf.\ \secref{sec:simplifier}) and
+  Classical reasoner (cf.\ \secref{sec:classical}).
+
+  \item @{command (HOL) "recdef_tc"}~@{text "c (i)"} recommences the
+  proof for leftover termination condition number @{text i} (default
+  1) as generated by a @{command (HOL) "recdef"} definition of
+  constant @{text c}.
+
+  Note that in most cases, @{command (HOL) "recdef"} is able to finish
+  its internal proofs without manual intervention.
+
+  \end{description}
+
+  \medskip Hints for @{command (HOL) "recdef"} may be also declared
+  globally, using the following attributes.
+
+  \begin{matharray}{rcl}
+    @{attribute_def (HOL) recdef_simp} & : & @{text attribute} \\
+    @{attribute_def (HOL) recdef_cong} & : & @{text attribute} \\
+    @{attribute_def (HOL) recdef_wf} & : & @{text attribute} \\
+  \end{matharray}
+
+  @{rail "
+    (@@{attribute (HOL) recdef_simp} | @@{attribute (HOL) recdef_cong} |
+      @@{attribute (HOL) recdef_wf}) (() | 'add' | 'del')
+  "}
+*}
+
+
+section {* Datatypes \label{sec:hol-datatype} *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{command_def (HOL) "datatype"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def (HOL) "rep_datatype"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
+  \end{matharray}
+
+  @{rail "
+    @@{command (HOL) datatype} (spec + @'and')
+    ;
+    @@{command (HOL) rep_datatype} ('(' (@{syntax name} +) ')')? (@{syntax term} +)
+    ;
+
+    spec: @{syntax parname}? @{syntax typespec} @{syntax mixfix}? '=' (cons + '|')
+    ;
+    cons: @{syntax name} (@{syntax type} * ) @{syntax mixfix}?
+  "}
+
+  \begin{description}
+
+  \item @{command (HOL) "datatype"} defines inductive datatypes in
+  HOL.
+
+  \item @{command (HOL) "rep_datatype"} represents existing types as
+  inductive ones, generating the standard infrastructure of derived
+  concepts (primitive recursion etc.).
+
+  \end{description}
+
+  The induction and exhaustion theorems generated provide case names
+  according to the constructors involved, while parameters are named
+  after the types (see also \secref{sec:cases-induct}).
+
+  See \cite{isabelle-HOL} for more details on datatypes, but beware of
+  the old-style theory syntax being used there!  Apart from proper
+  proof methods for case-analysis and induction, there are also
+  emulations of ML tactics @{method (HOL) case_tac} and @{method (HOL)
+  induct_tac} available, see \secref{sec:hol-induct-tac}; these admit
+  to refer directly to the internal structure of subgoals (including
+  internally bound parameters).
 *}
 
 
@@ -430,48 +728,179 @@ text {*
 *}
 
 
-section {* Datatypes \label{sec:hol-datatype} *}
+section {* Adhoc tuples *}
 
 text {*
   \begin{matharray}{rcl}
-    @{command_def (HOL) "datatype"} & : & @{text "theory \<rightarrow> theory"} \\
-    @{command_def (HOL) "rep_datatype"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
+    @{attribute_def (HOL) split_format}@{text "\<^sup>*"} & : & @{text attribute} \\
   \end{matharray}
 
   @{rail "
-    @@{command (HOL) datatype} (spec + @'and')
-    ;
-    @@{command (HOL) rep_datatype} ('(' (@{syntax name} +) ')')? (@{syntax term} +)
-    ;
-
-    spec: @{syntax parname}? @{syntax typespec} @{syntax mixfix}? '=' (cons + '|')
-    ;
-    cons: @{syntax name} (@{syntax type} * ) @{syntax mixfix}?
+    @@{attribute (HOL) split_format} ('(' 'complete' ')')?
   "}
 
   \begin{description}
 
-  \item @{command (HOL) "datatype"} defines inductive datatypes in
-  HOL.
+  \item @{attribute (HOL) split_format}\ @{text "(complete)"} causes
+  arguments in function applications to be represented canonically
+  according to their tuple type structure.
 
-  \item @{command (HOL) "rep_datatype"} represents existing types as
-  inductive ones, generating the standard infrastructure of derived
-  concepts (primitive recursion etc.).
+  Note that this operation tends to invent funny names for new local
+  parameters introduced.
+
+  \end{description}
+*}
+
+
+section {* Typedef axiomatization \label{sec:hol-typedef} *}
+
+text {* A Gordon/HOL-style type definition is a certain axiom scheme
+  that identifies a new type with a subset of an existing type.  More
+  precisely, the new type is defined by exhibiting an existing type
+  @{text \<tau>}, a set @{text "A :: \<tau> set"}, and a theorem that proves
+  @{prop "\<exists>x. x \<in> A"}.  Thus @{text A} is a non-empty subset of @{text
+  \<tau>}, and the new type denotes this subset.  New functions are
+  postulated that establish an isomorphism between the new type and
+  the subset.  In general, the type @{text \<tau>} may involve type
+  variables @{text "\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n"} which means that the type definition
+  produces a type constructor @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} depending on
+  those type arguments.
+
+  The axiomatization can be considered a ``definition'' in the sense
+  of the particular set-theoretic interpretation of HOL
+  \cite{pitts93}, where the universe of types is required to be
+  downwards-closed wrt.\ arbitrary non-empty subsets.  Thus genuinely
+  new types introduced by @{command "typedef"} stay within the range
+  of HOL models by construction.  Note that @{command_ref
+  type_synonym} from Isabelle/Pure merely introduces syntactic
+  abbreviations, without any logical significance.
+  
+  \begin{matharray}{rcl}
+    @{command_def (HOL) "typedef"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
+  \end{matharray}
+
+  @{rail "
+    @@{command (HOL) typedef} alt_name? abs_type '=' rep_set
+    ;
+
+    alt_name: '(' (@{syntax name} | @'open' | @'open' @{syntax name}) ')'
+    ;
+    abs_type: @{syntax typespec_sorts} @{syntax mixfix}?
+    ;
+    rep_set: @{syntax term} (@'morphisms' @{syntax name} @{syntax name})?
+  "}
+
+  \begin{description}
+
+  \item @{command (HOL) "typedef"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = A"}
+  axiomatizes a type definition in the background theory of the
+  current context, depending on a non-emptiness result of the set
+  @{text A} that needs to be proven here.  The set @{text A} may
+  contain type variables @{text "\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n"} as specified on the LHS,
+  but no term variables.
+
+  Even though a local theory specification, the newly introduced type
+  constructor cannot depend on parameters or assumptions of the
+  context: this is structurally impossible in HOL.  In contrast, the
+  non-emptiness proof may use local assumptions in unusual situations,
+  which could result in different interpretations in target contexts:
+  the meaning of the bijection between the representing set @{text A}
+  and the new type @{text t} may then change in different application
+  contexts.
+
+  By default, @{command (HOL) "typedef"} defines both a type
+  constructor @{text t} for the new type, and a term constant @{text
+  t} for the representing set within the old type.  Use the ``@{text
+  "(open)"}'' option to suppress a separate constant definition
+  altogether.  The injection from type to set is called @{text Rep_t},
+  its inverse @{text Abs_t}, unless explicit @{keyword (HOL)
+  "morphisms"} specification provides alternative names.
+
+  The core axiomatization uses the locale predicate @{const
+  type_definition} as defined in Isabelle/HOL.  Various basic
+  consequences of that are instantiated accordingly, re-using the
+  locale facts with names derived from the new type constructor.  Thus
+  the generic @{thm type_definition.Rep} is turned into the specific
+  @{text "Rep_t"}, for example.
+
+  Theorems @{thm type_definition.Rep}, @{thm
+  type_definition.Rep_inverse}, and @{thm type_definition.Abs_inverse}
+  provide the most basic characterization as a corresponding
+  injection/surjection pair (in both directions).  The derived rules
+  @{thm type_definition.Rep_inject} and @{thm
+  type_definition.Abs_inject} provide a more convenient version of
+  injectivity, suitable for automated proof tools (e.g.\ in
+  declarations involving @{attribute simp} or @{attribute iff}).
+  Furthermore, the rules @{thm type_definition.Rep_cases}~/ @{thm
+  type_definition.Rep_induct}, and @{thm type_definition.Abs_cases}~/
+  @{thm type_definition.Abs_induct} provide alternative views on
+  surjectivity.  These rules are already declared as set or type rules
+  for the generic @{method cases} and @{method induct} methods,
+  respectively.
+
+  An alternative name for the set definition (and other derived
+  entities) may be specified in parentheses; the default is to use
+  @{text t} directly.
 
   \end{description}
 
-  The induction and exhaustion theorems generated provide case names
-  according to the constructors involved, while parameters are named
-  after the types (see also \secref{sec:cases-induct}).
-
-  See \cite{isabelle-HOL} for more details on datatypes, but beware of
-  the old-style theory syntax being used there!  Apart from proper
-  proof methods for case-analysis and induction, there are also
-  emulations of ML tactics @{method (HOL) case_tac} and @{method (HOL)
-  induct_tac} available, see \secref{sec:hol-induct-tac}; these admit
-  to refer directly to the internal structure of subgoals (including
-  internally bound parameters).
+  \begin{warn}
+  If you introduce a new type axiomatically, i.e.\ via @{command_ref
+  typedecl} and @{command_ref axiomatization}, the minimum requirement
+  is that it has a non-empty model, to avoid immediate collapse of the
+  HOL logic.  Moreover, one needs to demonstrate that the
+  interpretation of such free-form axiomatizations can coexist with
+  that of the regular @{command_def typedef} scheme, and any extension
+  that other people might have introduced elsewhere (e.g.\ in HOLCF
+  \cite{MuellerNvOS99}).
+  \end{warn}
 *}
+
+subsubsection {* Examples *}
+
+text {* Type definitions permit the introduction of abstract data
+  types in a safe way, namely by providing models based on already
+  existing types.  Given some abstract axiomatic description @{text P}
+  of a type, this involves two steps:
+
+  \begin{enumerate}
+
+  \item Find an appropriate type @{text \<tau>} and subset @{text A} which
+  has the desired properties @{text P}, and make a type definition
+  based on this representation.
+
+  \item Prove that @{text P} holds for @{text \<tau>} by lifting @{text P}
+  from the representation.
+
+  \end{enumerate}
+
+  You can later forget about the representation and work solely in
+  terms of the abstract properties @{text P}.
+
+  \medskip The following trivial example pulls a three-element type
+  into existence within the formal logical environment of HOL. *}
+
+typedef three = "{(True, True), (True, False), (False, True)}"
+  by blast
+
+definition "One = Abs_three (True, True)"
+definition "Two = Abs_three (True, False)"
+definition "Three = Abs_three (False, True)"
+
+lemma three_distinct: "One \<noteq> Two"  "One \<noteq> Three"  "Two \<noteq> Three"
+  by (simp_all add: One_def Two_def Three_def Abs_three_inject three_def)
+
+lemma three_cases:
+  fixes x :: three obtains "x = One" | "x = Two" | "x = Three"
+  by (cases x) (auto simp: One_def Two_def Three_def Abs_three_inject three_def)
+
+text {* Note that such trivial constructions are better done with
+  derived specification mechanisms such as @{command datatype}: *}
+
+datatype three' = One' | Two' | Three'
+
+text {* This avoids re-doing basic definitions and proofs from the
+  primitive @{command typedef} above. *}
 
 
 section {* Functorial structure of types *}
@@ -514,433 +943,6 @@ text {*
   \<alpha>\<^isub>n"}.
 
   \end{description}
-*}
-
-
-section {* Recursive functions \label{sec:recursion} *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{command_def (HOL) "primrec"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def (HOL) "fun"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def (HOL) "function"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
-    @{command_def (HOL) "termination"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
-  \end{matharray}
-
-  @{rail "
-    @@{command (HOL) primrec} @{syntax target}? @{syntax \"fixes\"} @'where' equations
-    ;
-    (@@{command (HOL) fun} | @@{command (HOL) function}) @{syntax target}? functionopts?
-      @{syntax \"fixes\"} \\ @'where' equations
-    ;
-
-    equations: (@{syntax thmdecl}? @{syntax prop} + '|')
-    ;
-    functionopts: '(' (('sequential' | 'domintros') + ',') ')'
-    ;
-    @@{command (HOL) termination} @{syntax term}?
-  "}
-
-  \begin{description}
-
-  \item @{command (HOL) "primrec"} defines primitive recursive
-  functions over datatypes, see also \cite{isabelle-HOL}.
-
-  \item @{command (HOL) "function"} defines functions by general
-  wellfounded recursion. A detailed description with examples can be
-  found in \cite{isabelle-function}. The function is specified by a
-  set of (possibly conditional) recursive equations with arbitrary
-  pattern matching. The command generates proof obligations for the
-  completeness and the compatibility of patterns.
-
-  The defined function is considered partial, and the resulting
-  simplification rules (named @{text "f.psimps"}) and induction rule
-  (named @{text "f.pinduct"}) are guarded by a generated domain
-  predicate @{text "f_dom"}. The @{command (HOL) "termination"}
-  command can then be used to establish that the function is total.
-
-  \item @{command (HOL) "fun"} is a shorthand notation for ``@{command
-  (HOL) "function"}~@{text "(sequential)"}, followed by automated
-  proof attempts regarding pattern matching and termination.  See
-  \cite{isabelle-function} for further details.
-
-  \item @{command (HOL) "termination"}~@{text f} commences a
-  termination proof for the previously defined function @{text f}.  If
-  this is omitted, the command refers to the most recent function
-  definition.  After the proof is closed, the recursive equations and
-  the induction principle is established.
-
-  \end{description}
-
-  Recursive definitions introduced by the @{command (HOL) "function"}
-  command accommodate
-  reasoning by induction (cf.\ \secref{sec:cases-induct}): rule @{text
-  "c.induct"} (where @{text c} is the name of the function definition)
-  refers to a specific induction rule, with parameters named according
-  to the user-specified equations. Cases are numbered (starting from 1).
-
-  For @{command (HOL) "primrec"}, the induction principle coincides
-  with structural recursion on the datatype the recursion is carried
-  out.
-
-  The equations provided by these packages may be referred later as
-  theorem list @{text "f.simps"}, where @{text f} is the (collective)
-  name of the functions defined.  Individual equations may be named
-  explicitly as well.
-
-  The @{command (HOL) "function"} command accepts the following
-  options.
-
-  \begin{description}
-
-  \item @{text sequential} enables a preprocessor which disambiguates
-  overlapping patterns by making them mutually disjoint.  Earlier
-  equations take precedence over later ones.  This allows to give the
-  specification in a format very similar to functional programming.
-  Note that the resulting simplification and induction rules
-  correspond to the transformed specification, not the one given
-  originally. This usually means that each equation given by the user
-  may result in several theorems.  Also note that this automatic
-  transformation only works for ML-style datatype patterns.
-
-  \item @{text domintros} enables the automated generation of
-  introduction rules for the domain predicate. While mostly not
-  needed, they can be helpful in some proofs about partial functions.
-
-  \end{description}
-*}
-
-
-subsection {* Proof methods related to recursive definitions *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{method_def (HOL) pat_completeness} & : & @{text method} \\
-    @{method_def (HOL) relation} & : & @{text method} \\
-    @{method_def (HOL) lexicographic_order} & : & @{text method} \\
-    @{method_def (HOL) size_change} & : & @{text method} \\
-  \end{matharray}
-
-  @{rail "
-    @@{method (HOL) relation} @{syntax term}
-    ;
-    @@{method (HOL) lexicographic_order} (@{syntax clasimpmod} * )
-    ;
-    @@{method (HOL) size_change} ( orders (@{syntax clasimpmod} * ) )
-    ;
-    orders: ( 'max' | 'min' | 'ms' ) *
-  "}
-
-  \begin{description}
-
-  \item @{method (HOL) pat_completeness} is a specialized method to
-  solve goals regarding the completeness of pattern matching, as
-  required by the @{command (HOL) "function"} package (cf.\
-  \cite{isabelle-function}).
-
-  \item @{method (HOL) relation}~@{text R} introduces a termination
-  proof using the relation @{text R}.  The resulting proof state will
-  contain goals expressing that @{text R} is wellfounded, and that the
-  arguments of recursive calls decrease with respect to @{text R}.
-  Usually, this method is used as the initial proof step of manual
-  termination proofs.
-
-  \item @{method (HOL) "lexicographic_order"} attempts a fully
-  automated termination proof by searching for a lexicographic
-  combination of size measures on the arguments of the function. The
-  method accepts the same arguments as the @{method auto} method,
-  which it uses internally to prove local descents.  The same context
-  modifiers as for @{method auto} are accepted, see
-  \secref{sec:clasimp}.
-
-  In case of failure, extensive information is printed, which can help
-  to analyse the situation (cf.\ \cite{isabelle-function}).
-
-  \item @{method (HOL) "size_change"} also works on termination goals,
-  using a variation of the size-change principle, together with a
-  graph decomposition technique (see \cite{krauss_phd} for details).
-  Three kinds of orders are used internally: @{text max}, @{text min},
-  and @{text ms} (multiset), which is only available when the theory
-  @{text Multiset} is loaded. When no order kinds are given, they are
-  tried in order. The search for a termination proof uses SAT solving
-  internally.
-
- For local descent proofs, the same context modifiers as for @{method
-  auto} are accepted, see \secref{sec:clasimp}.
-
-  \end{description}
-*}
-
-subsection {* Functions with explicit partiality *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{command_def (HOL) "partial_function"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{attribute_def (HOL) "partial_function_mono"} & : & @{text attribute} \\
-  \end{matharray}
-
-  @{rail "
-    @@{command (HOL) partial_function} @{syntax target}?
-      '(' @{syntax nameref} ')' @{syntax \"fixes\"} \\
-      @'where' @{syntax thmdecl}? @{syntax prop}
-  "}
-
-  \begin{description}
-
-  \item @{command (HOL) "partial_function"}~@{text "(mode)"} defines
-  recursive functions based on fixpoints in complete partial
-  orders. No termination proof is required from the user or
-  constructed internally. Instead, the possibility of non-termination
-  is modelled explicitly in the result type, which contains an
-  explicit bottom element.
-
-  Pattern matching and mutual recursion are currently not supported.
-  Thus, the specification consists of a single function described by a
-  single recursive equation.
-
-  There are no fixed syntactic restrictions on the body of the
-  function, but the induced functional must be provably monotonic
-  wrt.\ the underlying order.  The monotonicitity proof is performed
-  internally, and the definition is rejected when it fails. The proof
-  can be influenced by declaring hints using the
-  @{attribute (HOL) partial_function_mono} attribute.
-
-  The mandatory @{text mode} argument specifies the mode of operation
-  of the command, which directly corresponds to a complete partial
-  order on the result type. By default, the following modes are
-  defined:
-
-  \begin{description}
-  \item @{text option} defines functions that map into the @{type
-  option} type. Here, the value @{term None} is used to model a
-  non-terminating computation. Monotonicity requires that if @{term
-  None} is returned by a recursive call, then the overall result
-  must also be @{term None}. This is best achieved through the use of
-  the monadic operator @{const "Option.bind"}.
-
-  \item @{text tailrec} defines functions with an arbitrary result
-  type and uses the slightly degenerated partial order where @{term
-  "undefined"} is the bottom element.  Now, monotonicity requires that
-  if @{term undefined} is returned by a recursive call, then the
-  overall result must also be @{term undefined}. In practice, this is
-  only satisfied when each recursive call is a tail call, whose result
-  is directly returned. Thus, this mode of operation allows the
-  definition of arbitrary tail-recursive functions.
-  \end{description}
-
-  Experienced users may define new modes by instantiating the locale
-  @{const "partial_function_definitions"} appropriately.
-
-  \item @{attribute (HOL) partial_function_mono} declares rules for
-  use in the internal monononicity proofs of partial function
-  definitions.
-
-  \end{description}
-
-*}
-
-subsection {* Old-style recursive function definitions (TFL) *}
-
-text {*
-  The old TFL commands @{command (HOL) "recdef"} and @{command (HOL)
-  "recdef_tc"} for defining recursive are mostly obsolete; @{command
-  (HOL) "function"} or @{command (HOL) "fun"} should be used instead.
-
-  \begin{matharray}{rcl}
-    @{command_def (HOL) "recdef"} & : & @{text "theory \<rightarrow> theory)"} \\
-    @{command_def (HOL) "recdef_tc"}@{text "\<^sup>*"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
-  \end{matharray}
-
-  @{rail "
-    @@{command (HOL) recdef} ('(' @'permissive' ')')? \\
-      @{syntax name} @{syntax term} (@{syntax prop} +) hints?
-    ;
-    recdeftc @{syntax thmdecl}? tc
-    ;
-    hints: '(' @'hints' ( recdefmod * ) ')'
-    ;
-    recdefmod: (('recdef_simp' | 'recdef_cong' | 'recdef_wf')
-      (() | 'add' | 'del') ':' @{syntax thmrefs}) | @{syntax clasimpmod}
-    ;
-    tc: @{syntax nameref} ('(' @{syntax nat} ')')?
-  "}
-
-  \begin{description}
-
-  \item @{command (HOL) "recdef"} defines general well-founded
-  recursive functions (using the TFL package), see also
-  \cite{isabelle-HOL}.  The ``@{text "(permissive)"}'' option tells
-  TFL to recover from failed proof attempts, returning unfinished
-  results.  The @{text recdef_simp}, @{text recdef_cong}, and @{text
-  recdef_wf} hints refer to auxiliary rules to be used in the internal
-  automated proof process of TFL.  Additional @{syntax clasimpmod}
-  declarations (cf.\ \secref{sec:clasimp}) may be given to tune the
-  context of the Simplifier (cf.\ \secref{sec:simplifier}) and
-  Classical reasoner (cf.\ \secref{sec:classical}).
-
-  \item @{command (HOL) "recdef_tc"}~@{text "c (i)"} recommences the
-  proof for leftover termination condition number @{text i} (default
-  1) as generated by a @{command (HOL) "recdef"} definition of
-  constant @{text c}.
-
-  Note that in most cases, @{command (HOL) "recdef"} is able to finish
-  its internal proofs without manual intervention.
-
-  \end{description}
-
-  \medskip Hints for @{command (HOL) "recdef"} may be also declared
-  globally, using the following attributes.
-
-  \begin{matharray}{rcl}
-    @{attribute_def (HOL) recdef_simp} & : & @{text attribute} \\
-    @{attribute_def (HOL) recdef_cong} & : & @{text attribute} \\
-    @{attribute_def (HOL) recdef_wf} & : & @{text attribute} \\
-  \end{matharray}
-
-  @{rail "
-    (@@{attribute (HOL) recdef_simp} | @@{attribute (HOL) recdef_cong} |
-      @@{attribute (HOL) recdef_wf}) (() | 'add' | 'del')
-  "}
-*}
-
-
-section {* Inductive and coinductive definitions \label{sec:hol-inductive} *}
-
-text {*
-  An \textbf{inductive definition} specifies the least predicate (or
-  set) @{text R} closed under given rules: applying a rule to elements
-  of @{text R} yields a result within @{text R}.  For example, a
-  structural operational semantics is an inductive definition of an
-  evaluation relation.
-
-  Dually, a \textbf{coinductive definition} specifies the greatest
-  predicate~/ set @{text R} that is consistent with given rules: every
-  element of @{text R} can be seen as arising by applying a rule to
-  elements of @{text R}.  An important example is using bisimulation
-  relations to formalise equivalence of processes and infinite data
-  structures.
-
-  \medskip The HOL package is related to the ZF one, which is
-  described in a separate paper,\footnote{It appeared in CADE
-  \cite{paulson-CADE}; a longer version is distributed with Isabelle.}
-  which you should refer to in case of difficulties.  The package is
-  simpler than that of ZF thanks to implicit type-checking in HOL.
-  The types of the (co)inductive predicates (or sets) determine the
-  domain of the fixedpoint definition, and the package does not have
-  to use inference rules for type-checking.
-
-  \begin{matharray}{rcl}
-    @{command_def (HOL) "inductive"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def (HOL) "inductive_set"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def (HOL) "coinductive"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{command_def (HOL) "coinductive_set"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
-    @{attribute_def (HOL) mono} & : & @{text attribute} \\
-  \end{matharray}
-
-  @{rail "
-    (@@{command (HOL) inductive} | @@{command (HOL) inductive_set} |
-      @@{command (HOL) coinductive} | @@{command (HOL) coinductive_set})
-    @{syntax target}? @{syntax \"fixes\"} (@'for' @{syntax \"fixes\"})? \\
-    (@'where' clauses)? (@'monos' @{syntax thmrefs})?
-    ;
-    clauses: (@{syntax thmdecl}? @{syntax prop} + '|')
-    ;
-    @@{attribute (HOL) mono} (() | 'add' | 'del')
-  "}
-
-  \begin{description}
-
-  \item @{command (HOL) "inductive"} and @{command (HOL)
-  "coinductive"} define (co)inductive predicates from the
-  introduction rules given in the @{keyword "where"} part.  The
-  optional @{keyword "for"} part contains a list of parameters of the
-  (co)inductive predicates that remain fixed throughout the
-  definition.  The optional @{keyword "monos"} section contains
-  \emph{monotonicity theorems}, which are required for each operator
-  applied to a recursive set in the introduction rules.  There
-  \emph{must} be a theorem of the form @{text "A \<le> B \<Longrightarrow> M A \<le> M B"},
-  for each premise @{text "M R\<^sub>i t"} in an introduction rule!
-
-  \item @{command (HOL) "inductive_set"} and @{command (HOL)
-  "coinductive_set"} are wrappers for to the previous commands,
-  allowing the definition of (co)inductive sets.
-
-  \item @{attribute (HOL) mono} declares monotonicity rules.  These
-  rule are involved in the automated monotonicity proof of @{command
-  (HOL) "inductive"}.
-
-  \end{description}
-*}
-
-
-subsection {* Derived rules *}
-
-text {*
-  Each (co)inductive definition @{text R} adds definitions to the
-  theory and also proves some theorems:
-
-  \begin{description}
-
-  \item @{text R.intros} is the list of introduction rules as proven
-  theorems, for the recursive predicates (or sets).  The rules are
-  also available individually, using the names given them in the
-  theory file;
-
-  \item @{text R.cases} is the case analysis (or elimination) rule;
-
-  \item @{text R.induct} or @{text R.coinduct} is the (co)induction
-  rule.
-
-  \end{description}
-
-  When several predicates @{text "R\<^sub>1, \<dots>, R\<^sub>n"} are
-  defined simultaneously, the list of introduction rules is called
-  @{text "R\<^sub>1_\<dots>_R\<^sub>n.intros"}, the case analysis rules are
-  called @{text "R\<^sub>1.cases, \<dots>, R\<^sub>n.cases"}, and the list
-  of mutual induction rules is called @{text
-  "R\<^sub>1_\<dots>_R\<^sub>n.inducts"}.
-*}
-
-
-subsection {* Monotonicity theorems *}
-
-text {*
-  Each theory contains a default set of theorems that are used in
-  monotonicity proofs.  New rules can be added to this set via the
-  @{attribute (HOL) mono} attribute.  The HOL theory @{text Inductive}
-  shows how this is done.  In general, the following monotonicity
-  theorems may be added:
-
-  \begin{itemize}
-
-  \item Theorems of the form @{text "A \<le> B \<Longrightarrow> M A \<le> M B"}, for proving
-  monotonicity of inductive definitions whose introduction rules have
-  premises involving terms such as @{text "M R\<^sub>i t"}.
-
-  \item Monotonicity theorems for logical operators, which are of the
-  general form @{text "(\<dots> \<longrightarrow> \<dots>) \<Longrightarrow> \<dots> (\<dots> \<longrightarrow> \<dots>) \<Longrightarrow> \<dots> \<longrightarrow> \<dots>"}.  For example, in
-  the case of the operator @{text "\<or>"}, the corresponding theorem is
-  \[
-  \infer{@{text "P\<^sub>1 \<or> P\<^sub>2 \<longrightarrow> Q\<^sub>1 \<or> Q\<^sub>2"}}{@{text "P\<^sub>1 \<longrightarrow> Q\<^sub>1"} & @{text "P\<^sub>2 \<longrightarrow> Q\<^sub>2"}}
-  \]
-
-  \item De Morgan style equations for reasoning about the ``polarity''
-  of expressions, e.g.
-  \[
-  @{prop "\<not> \<not> P \<longleftrightarrow> P"} \qquad\qquad
-  @{prop "\<not> (P \<and> Q) \<longleftrightarrow> \<not> P \<or> \<not> Q"}
-  \]
-
-  \item Equations for reducing complex operators to more primitive
-  ones whose monotonicity can easily be proved, e.g.
-  \[
-  @{prop "(P \<longrightarrow> Q) \<longleftrightarrow> \<not> P \<or> Q"} \qquad\qquad
-  @{prop "Ball A P \<equiv> \<forall>x. x \<in> A \<longrightarrow> P x"}
-  \]
-
-  \end{itemize}
-
-  %FIXME: Example of an inductive definition
 *}
 
 
