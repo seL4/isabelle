@@ -67,8 +67,8 @@ class HTML_Panel(
   private val rcontext = new SimpleHtmlRendererContext(this, ucontext)
   {
     private def handle(event: HTML_Panel.Event): Boolean =
-      if (handler.isDefinedAt(event)) { handler(event); true }
-      else false
+      if (handler.isDefinedAt(event)) { handler(event); false }
+      else true
 
     override def onContextMenu(elem: HTMLElement, event: MouseEvent): Boolean =
       handle(HTML_Panel.Context_Menu(elem, event))
