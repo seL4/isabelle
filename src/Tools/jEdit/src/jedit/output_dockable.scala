@@ -26,6 +26,25 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
 
   private val html_panel =
     new HTML_Panel(Isabelle.system, Isabelle.font_family(), scala.math.round(Isabelle.font_size()))
+  {
+    override val handler: PartialFunction[HTML_Panel.Event, Unit] = {
+      case HTML_Panel.Mouse_Click(elem, event) if elem.getClassName() == "sendback" =>
+        val text = elem.getFirstChild().getNodeValue()
+
+        Document_View(view.getTextArea) match {
+          case Some(doc_view) =>
+            val cmd = current_command.get
+            val start_ofs = doc_view.model.snapshot().node.command_start(cmd).get
+            val buffer = view.getBuffer
+            buffer.beginCompoundEdit()
+            buffer.remove(start_ofs, cmd.length)
+            buffer.insert(start_ofs, text)
+            buffer.endCompoundEdit()
+          case None =>
+        }
+    }       
+  }
+
   set_content(html_panel)
 
 
