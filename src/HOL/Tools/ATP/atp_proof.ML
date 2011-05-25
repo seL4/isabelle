@@ -511,7 +511,7 @@ fun clean_up_dependencies _ [] = []
                           deps) ::
     clean_up_dependencies (name :: seen) steps
 
-val clean_up_atp_proof_dependencies = clean_up_dependencies []
+fun clean_up_atp_proof_dependencies proof = clean_up_dependencies [] proof
 
 fun map_term_names_in_term f (ATerm (s, ts)) =
   ATerm (f s, map (map_term_names_in_term f) ts)
