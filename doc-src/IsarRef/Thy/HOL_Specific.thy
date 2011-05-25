@@ -6,61 +6,153 @@ chapter {* Isabelle/HOL \label{ch:hol} *}
 
 section {* Typedef axiomatization \label{sec:hol-typedef} *}
 
-text {*
+text {* A Gordon/HOL-style type definition is a certain axiom scheme
+  that identifies a new type with a subset of an existing type.  More
+  precisely, the new type is defined by exhibiting an existing type
+  @{text \<tau>}, a set @{text "A :: \<tau> set"}, and a theorem that proves
+  @{prop "\<exists>x. x \<in> A"}.  Thus @{text A} is a non-empty subset of @{text
+  \<tau>}, and the new type denotes this subset.  New functions are
+  postulated that establish an isomorphism between the new type and
+  the subset.  In general, the type @{text \<tau>} may involve type
+  variables @{text "\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n"} which means that the type definition
+  produces a type constructor @{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t"} depending on
+  those type arguments.
+
+  The axiomatization can be considered a ``definition'' in the sense
+  of the particular set-theoretic interpretation of HOL
+  \cite{pitts93}, where the universe of types is required to be
+  downwards-closed wrt.\ arbitrary non-empty subsets.  Thus genuinely
+  new types introduced by @{command "typedef"} stay within the range
+  of HOL models by construction.  Note that @{command_ref
+  type_synonym} from Isabelle/Pure merely introduces syntactic
+  abbreviations, without any logical significance.
+  
   \begin{matharray}{rcl}
     @{command_def (HOL) "typedef"} & : & @{text "local_theory \<rightarrow> proof(prove)"} \\
   \end{matharray}
 
   @{rail "
-    @@{command (HOL) typedef} altname? abstype '=' repset
+    @@{command (HOL) typedef} alt_name? abs_type '=' rep_set
     ;
 
-    altname: '(' (@{syntax name} | @'open' | @'open' @{syntax name}) ')'
+    alt_name: '(' (@{syntax name} | @'open' | @'open' @{syntax name}) ')'
     ;
-    abstype: @{syntax typespec_sorts} @{syntax mixfix}?
+    abs_type: @{syntax typespec_sorts} @{syntax mixfix}?
     ;
-    repset: @{syntax term} (@'morphisms' @{syntax name} @{syntax name})?
+    rep_set: @{syntax term} (@'morphisms' @{syntax name} @{syntax name})?
   "}
 
   \begin{description}
 
   \item @{command (HOL) "typedef"}~@{text "(\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n) t = A"}
-  axiomatizes a Gordon/HOL-style type definition in the background
-  theory of the current context, depending on a non-emptiness result
-  of the set @{text A} (which needs to be proven interactively).
+  axiomatizes a type definition in the background theory of the
+  current context, depending on a non-emptiness result of the set
+  @{text A} that needs to be proven here.  The set @{text A} may
+  contain type variables @{text "\<alpha>\<^sub>1, \<dots>, \<alpha>\<^sub>n"} as specified on the LHS,
+  but no term variables.
 
-  The raw type may not depend on parameters or assumptions of the
-  context --- this is logically impossible in Isabelle/HOL --- but the
-  non-emptiness property can be local, potentially resulting in
-  multiple interpretations in target contexts.  Thus the established
-  bijection between the representing set @{text A} and the new type
-  @{text t} may semantically depend on local assumptions.
+  Even though a local theory specification, the newly introduced type
+  constructor cannot depend on parameters or assumptions of the
+  context: this is structurally impossible in HOL.  In contrast, the
+  non-emptiness proof may use local assumptions in unusual situations,
+  which could result in different interpretations in target contexts:
+  the meaning of the bijection between the representing set @{text A}
+  and the new type @{text t} may then change in different application
+  contexts.
 
-  By default, @{command (HOL) "typedef"} defines both a type @{text t}
-  and a set (term constant) of the same name, unless an alternative
-  base name is given in parentheses, or the ``@{text "(open)"}''
-  declaration is used to suppress a separate constant definition
+  By default, @{command (HOL) "typedef"} defines both a type
+  constructor @{text t} for the new type, and a term constant @{text
+  t} for the representing set within the old type.  Use the ``@{text
+  "(open)"}'' option to suppress a separate constant definition
   altogether.  The injection from type to set is called @{text Rep_t},
-  its inverse @{text Abs_t} --- this may be changed via an explicit
-  @{keyword (HOL) "morphisms"} declaration.
+  its inverse @{text Abs_t}, unless explicit @{keyword (HOL)
+  "morphisms"} specification provides alternative names.
 
-  Theorems @{text Rep_t}, @{text Rep_t_inverse}, and @{text
-  Abs_t_inverse} provide the most basic characterization as a
-  corresponding injection/surjection pair (in both directions).  Rules
-  @{text Rep_t_inject} and @{text Abs_t_inject} provide a slightly
-  more convenient view on the injectivity part, suitable for automated
-  proof tools (e.g.\ in @{attribute simp} or @{attribute iff}
-  declarations).  Rules @{text Rep_t_cases}/@{text Rep_t_induct}, and
-  @{text Abs_t_cases}/@{text Abs_t_induct} provide alternative views
-  on surjectivity; these are already declared as set or type rules for
-  the generic @{method cases} and @{method induct} methods.
+  The core axiomatization uses the locale predicate @{const
+  type_definition} as defined in Isabelle/HOL.  Various basic
+  consequences of that are instantiated accordingly, re-using the
+  locale facts with names derived from the new type constructor.  Thus
+  the generic @{thm type_definition.Rep} is turned into the specific
+  @{text "Rep_t"}, for example.
+
+  Theorems @{thm type_definition.Rep}, @{thm
+  type_definition.Rep_inverse}, and @{thm type_definition.Abs_inverse}
+  provide the most basic characterization as a corresponding
+  injection/surjection pair (in both directions).  The derived rules
+  @{thm type_definition.Rep_inject} and @{thm
+  type_definition.Abs_inject} provide a more convenient version of
+  injectivity, suitable for automated proof tools (e.g.\ in
+  declarations involving @{attribute simp} or @{attribute iff}).
+  Furthermore, the rules @{thm type_definition.Rep_cases}~/ @{thm
+  type_definition.Rep_induct}, and @{thm type_definition.Abs_cases}~/
+  @{thm type_definition.Abs_induct} provide alternative views on
+  surjectivity.  These rules are already declared as set or type rules
+  for the generic @{method cases} and @{method induct} methods,
+  respectively.
 
   An alternative name for the set definition (and other derived
   entities) may be specified in parentheses; the default is to use
-  @{text t} as indicated before.
+  @{text t} directly.
 
   \end{description}
+
+  \begin{warn}
+  If you introduce a new type axiomatically, i.e.\ via @{command_ref
+  typedecl} and @{command_ref axiomatization}, the minimum requirement
+  is that it has a non-empty model, to avoid immediate collapse of the
+  HOL logic.  Moreover, one needs to demonstrate that the
+  interpretation of such free-form axiomatizations can coexist with
+  that of the regular @{command_def typedef} scheme, and any extension
+  that other people might have introduced elsewhere (e.g.\ in HOLCF
+  \cite{MuellerNvOS99}).
+  \end{warn}
 *}
+
+subsubsection {* Examples *}
+
+text {* Type definitions permit the introduction of abstract data
+  types in a safe way, namely by providing models based on already
+  existing types.  Given some abstract axiomatic description @{text P}
+  of a type, this involves two steps:
+
+  \begin{enumerate}
+
+  \item Find an appropriate type @{text \<tau>} and subset @{text A} which
+  has the desired properties @{text P}, and make a type definition
+  based on this representation.
+
+  \item Prove that @{text P} holds for @{text \<tau>} by lifting @{text P}
+  from the representation.
+
+  \end{enumerate}
+
+  You can later forget about the representation and work solely in
+  terms of the abstract properties @{text P}.
+
+  \medskip The following trivial example pulls a three-element type
+  into existence within the formal logical environment of HOL. *}
+
+typedef three = "{(True, True), (True, False), (False, True)}"
+  by blast
+
+definition "One = Abs_three (True, True)"
+definition "Two = Abs_three (True, False)"
+definition "Three = Abs_three (False, True)"
+
+lemma three_distinct: "One \<noteq> Two"  "One \<noteq> Three"  "Two \<noteq> Three"
+  by (simp_all add: One_def Two_def Three_def Abs_three_inject three_def)
+
+lemma three_cases:
+  fixes x :: three obtains "x = One" | "x = Two" | "x = Three"
+  by (cases x) (auto simp: One_def Two_def Three_def Abs_three_inject three_def)
+
+text {* Note that such trivial constructions are better done with
+  derived specification mechanisms such as @{command datatype}: *}
+
+datatype three' = One' | Two' | Three'
+
+text {* This avoids re-doing basic definitions and proofs from the
+  primitive @{command typedef} above. *}
 
 
 section {* Adhoc tuples *}

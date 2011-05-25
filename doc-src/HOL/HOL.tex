@@ -147,9 +147,9 @@ function types, is overloaded with arity {\tt(term,\thinspace
   term} if $\sigma$ and~$\tau$ do, allowing quantification over
 functions.
 
-HOL allows new types to be declared as subsets of existing types;
-see~{\S}\ref{sec:HOL:Types}.  ML-like datatypes can also be declared; see
-~{\S}\ref{sec:HOL:datatype}.
+HOL allows new types to be declared as subsets of existing types,
+either using the primitive \texttt{typedef} or the more convenient
+\texttt{datatype} (see~{\S}\ref{sec:HOL:datatype}).
 
 Several syntactic type classes --- \cldx{plus}, \cldx{minus},
 \cldx{times} and
@@ -1597,95 +1597,13 @@ are shown in Figs.\ts\ref{fig:HOL:list-simps} and~\ref{fig:HOL:list-simps2}.
 \index{list@{\textit{list}} type|)}
 
 
-\subsection{Introducing new types} \label{sec:typedef}
-
-The HOL-methodology dictates that all extensions to a theory should be
-\textbf{definitional}.  The type definition mechanism that meets this
-criterion is \ttindex{typedef}.  Note that \emph{type synonyms}, which are
-inherited from Pure and described elsewhere, are just syntactic abbreviations
-that have no logical meaning.
-
-\begin{warn}
-  Types in HOL must be non-empty; otherwise the quantifier rules would be
-  unsound, because $\exists x. x=x$ is a theorem \cite[{\S}7]{paulson-COLOG}.
-\end{warn}
-A \bfindex{type definition} identifies the new type with a subset of
-an existing type.  More precisely, the new type is defined by
-exhibiting an existing type~$\tau$, a set~$A::\tau\,set$, and a
-theorem of the form $x:A$.  Thus~$A$ is a non-empty subset of~$\tau$,
-and the new type denotes this subset.  New functions are defined that
-establish an isomorphism between the new type and the subset.  If
-type~$\tau$ involves type variables $\alpha@1$, \ldots, $\alpha@n$,
-then the type definition creates a type constructor
-$(\alpha@1,\ldots,\alpha@n)ty$ rather than a particular type.
-
-The syntax for type definitions is given in the Isabelle/Isar
-reference manual.
-
-If all context conditions are met (no duplicate type variables in
-`typevarlist', no extra type variables in `set', and no free term variables
-in `set'), the following components are added to the theory:
-\begin{itemize}
-\item a type $ty :: (term,\dots,term)term$
-\item constants
-\begin{eqnarray*}
-T &::& \tau\;set \\
-Rep_T &::& (\alpha@1,\dots,\alpha@n)ty \To \tau \\
-Abs_T &::& \tau \To (\alpha@1,\dots,\alpha@n)ty
-\end{eqnarray*}
-\item a definition and three axioms
-\[
-\begin{array}{ll}
-T{\tt_def} & T \equiv A \\
-{\tt Rep_}T & Rep_T\,x \in T \\
-{\tt Rep_}T{\tt_inverse} & Abs_T\,(Rep_T\,x) = x \\
-{\tt Abs_}T{\tt_inverse} & y \in T \Imp Rep_T\,(Abs_T\,y) = y
-\end{array}
-\]
-stating that $(\alpha@1,\dots,\alpha@n)ty$ is isomorphic to $A$ by $Rep_T$
-and its inverse $Abs_T$.
-\end{itemize}
-Below are two simple examples of HOL type definitions.  Non-emptiness is
-proved automatically here.
-\begin{ttbox}
-typedef unit = "{\ttlbrace}True{\ttrbrace}"
-
-typedef (prod)
-  ('a, 'b) "*"    (infixr 20)
-      = "{\ttlbrace}f . EX (a::'a) (b::'b). f = (\%x y. x = a & y = b){\ttrbrace}"
-\end{ttbox}
-
-Type definitions permit the introduction of abstract data types in a safe
-way, namely by providing models based on already existing types.  Given some
-abstract axiomatic description $P$ of a type, this involves two steps:
-\begin{enumerate}
-\item Find an appropriate type $\tau$ and subset $A$ which has the desired
-  properties $P$, and make a type definition based on this representation.
-\item Prove that $P$ holds for $ty$ by lifting $P$ from the representation.
-\end{enumerate}
-You can now forget about the representation and work solely in terms of the
-abstract properties $P$.
-
-\begin{warn}
-If you introduce a new type (constructor) $ty$ axiomatically, i.e.\ by
-declaring the type and its operations and by stating the desired axioms, you
-should make sure the type has a non-empty model.  You must also have a clause
-\par
-\begin{ttbox}
-arities \(ty\) :: (term,\thinspace\(\dots\),{\thinspace}term){\thinspace}term
-\end{ttbox}
-in your theory file to tell Isabelle that $ty$ is in class \texttt{term}, the
-class of all HOL types.
-\end{warn}
-
-
 \section{Datatype definitions}
 \label{sec:HOL:datatype}
 \index{*datatype|(}
 
 Inductive datatypes, similar to those of \ML, frequently appear in
 applications of Isabelle/HOL.  In principle, such types could be defined by
-hand via \texttt{typedef} (see {\S}\ref{sec:typedef}), but this would be far too
+hand via \texttt{typedef}, but this would be far too
 tedious.  The \ttindex{datatype} definition package of Isabelle/HOL (cf.\ 
 \cite{Berghofer-Wenzel:1999:TPHOL}) automates such chores.  It generates an
 appropriate \texttt{typedef} based on a least fixed-point construction, and

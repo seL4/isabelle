@@ -27,7 +27,26 @@
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-\begin{matharray}{rcl}
+A Gordon/HOL-style type definition is a certain axiom scheme
+  that identifies a new type with a subset of an existing type.  More
+  precisely, the new type is defined by exhibiting an existing type
+  \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}}, a set \isa{{\isaliteral{22}{\isachardoublequote}}A\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7461753E}{\isasymtau}}\ set{\isaliteral{22}{\isachardoublequote}}}, and a theorem that proves
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ A{\isaliteral{22}{\isachardoublequote}}}.  Thus \isa{A} is a non-empty subset of \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}}, and the new type denotes this subset.  New functions are
+  postulated that establish an isomorphism between the new type and
+  the subset.  In general, the type \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} may involve type
+  variables \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} which means that the type definition
+  produces a type constructor \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{29}{\isacharparenright}}\ t{\isaliteral{22}{\isachardoublequote}}} depending on
+  those type arguments.
+
+  The axiomatization can be considered a ``definition'' in the sense
+  of the particular set-theoretic interpretation of HOL
+  \cite{pitts93}, where the universe of types is required to be
+  downwards-closed wrt.\ arbitrary non-empty subsets.  Thus genuinely
+  new types introduced by \hyperlink{command.typedef}{\mbox{\isa{\isacommand{typedef}}}} stay within the range
+  of HOL models by construction.  Note that \indexref{}{command}{type\_synonym}\hyperlink{command.type-synonym}{\mbox{\isa{\isacommand{type{\isaliteral{5F}{\isacharunderscore}}synonym}}}} from Isabelle/Pure merely introduces syntactic
+  abbreviations, without any logical significance.
+  
+  \begin{matharray}{rcl}
     \indexdef{HOL}{command}{typedef}\hypertarget{command.HOL.typedef}{\hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ proof{\isaliteral{28}{\isacharparenleft}}prove{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} \\
   \end{matharray}
 
@@ -36,13 +55,13 @@
 \rail@term{\hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}}}[]
 \rail@bar
 \rail@nextbar{1}
-\rail@nont{\isa{altname}}[]
+\rail@nont{\isa{alt{\isaliteral{5F}{\isacharunderscore}}name}}[]
 \rail@endbar
-\rail@nont{\isa{abstype}}[]
+\rail@nont{\isa{abs{\isaliteral{5F}{\isacharunderscore}}type}}[]
 \rail@term{\isa{{\isaliteral{3D}{\isacharequal}}}}[]
-\rail@nont{\isa{repset}}[]
+\rail@nont{\isa{rep{\isaliteral{5F}{\isacharunderscore}}set}}[]
 \rail@end
-\rail@begin{3}{\isa{altname}}
+\rail@begin{3}{\isa{alt{\isaliteral{5F}{\isacharunderscore}}name}}
 \rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
 \rail@bar
 \rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
@@ -54,14 +73,14 @@
 \rail@endbar
 \rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
 \rail@end
-\rail@begin{2}{\isa{abstype}}
+\rail@begin{2}{\isa{abs{\isaliteral{5F}{\isacharunderscore}}type}}
 \rail@nont{\hyperlink{syntax.typespec-sorts}{\mbox{\isa{typespec{\isaliteral{5F}{\isacharunderscore}}sorts}}}}[]
 \rail@bar
 \rail@nextbar{1}
 \rail@nont{\hyperlink{syntax.mixfix}{\mbox{\isa{mixfix}}}}[]
 \rail@endbar
 \rail@end
-\rail@begin{2}{\isa{repset}}
+\rail@begin{2}{\isa{rep{\isaliteral{5F}{\isacharunderscore}}set}}
 \rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
 \rail@bar
 \rail@nextbar{1}
@@ -76,40 +95,161 @@
   \begin{description}
 
   \item \hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{29}{\isacharparenright}}\ t\ {\isaliteral{3D}{\isacharequal}}\ A{\isaliteral{22}{\isachardoublequote}}}
-  axiomatizes a Gordon/HOL-style type definition in the background
-  theory of the current context, depending on a non-emptiness result
-  of the set \isa{A} (which needs to be proven interactively).
+  axiomatizes a type definition in the background theory of the
+  current context, depending on a non-emptiness result of the set
+  \isa{A} that needs to be proven here.  The set \isa{A} may
+  contain type variables \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C616C7068613E}{\isasymalpha}}\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} as specified on the LHS,
+  but no term variables.
 
-  The raw type may not depend on parameters or assumptions of the
-  context --- this is logically impossible in Isabelle/HOL --- but the
-  non-emptiness property can be local, potentially resulting in
-  multiple interpretations in target contexts.  Thus the established
-  bijection between the representing set \isa{A} and the new type
-  \isa{t} may semantically depend on local assumptions.
+  Even though a local theory specification, the newly introduced type
+  constructor cannot depend on parameters or assumptions of the
+  context: this is structurally impossible in HOL.  In contrast, the
+  non-emptiness proof may use local assumptions in unusual situations,
+  which could result in different interpretations in target contexts:
+  the meaning of the bijection between the representing set \isa{A}
+  and the new type \isa{t} may then change in different application
+  contexts.
 
-  By default, \hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}} defines both a type \isa{t}
-  and a set (term constant) of the same name, unless an alternative
-  base name is given in parentheses, or the ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}open{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}''
-  declaration is used to suppress a separate constant definition
+  By default, \hyperlink{command.HOL.typedef}{\mbox{\isa{\isacommand{typedef}}}} defines both a type
+  constructor \isa{t} for the new type, and a term constant \isa{t} for the representing set within the old type.  Use the ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}open{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}'' option to suppress a separate constant definition
   altogether.  The injection from type to set is called \isa{Rep{\isaliteral{5F}{\isacharunderscore}}t},
-  its inverse \isa{Abs{\isaliteral{5F}{\isacharunderscore}}t} --- this may be changed via an explicit
-  \hyperlink{keyword.HOL.morphisms}{\mbox{\isa{\isakeyword{morphisms}}}} declaration.
+  its inverse \isa{Abs{\isaliteral{5F}{\isacharunderscore}}t}, unless explicit \hyperlink{keyword.HOL.morphisms}{\mbox{\isa{\isakeyword{morphisms}}}} specification provides alternative names.
 
-  Theorems \isa{Rep{\isaliteral{5F}{\isacharunderscore}}t}, \isa{Rep{\isaliteral{5F}{\isacharunderscore}}t{\isaliteral{5F}{\isacharunderscore}}inverse}, and \isa{Abs{\isaliteral{5F}{\isacharunderscore}}t{\isaliteral{5F}{\isacharunderscore}}inverse} provide the most basic characterization as a
-  corresponding injection/surjection pair (in both directions).  Rules
-  \isa{Rep{\isaliteral{5F}{\isacharunderscore}}t{\isaliteral{5F}{\isacharunderscore}}inject} and \isa{Abs{\isaliteral{5F}{\isacharunderscore}}t{\isaliteral{5F}{\isacharunderscore}}inject} provide a slightly
-  more convenient view on the injectivity part, suitable for automated
-  proof tools (e.g.\ in \hyperlink{attribute.simp}{\mbox{\isa{simp}}} or \hyperlink{attribute.iff}{\mbox{\isa{iff}}}
-  declarations).  Rules \isa{Rep{\isaliteral{5F}{\isacharunderscore}}t{\isaliteral{5F}{\isacharunderscore}}cases}/\isa{Rep{\isaliteral{5F}{\isacharunderscore}}t{\isaliteral{5F}{\isacharunderscore}}induct}, and
-  \isa{Abs{\isaliteral{5F}{\isacharunderscore}}t{\isaliteral{5F}{\isacharunderscore}}cases}/\isa{Abs{\isaliteral{5F}{\isacharunderscore}}t{\isaliteral{5F}{\isacharunderscore}}induct} provide alternative views
-  on surjectivity; these are already declared as set or type rules for
-  the generic \hyperlink{method.cases}{\mbox{\isa{cases}}} and \hyperlink{method.induct}{\mbox{\isa{induct}}} methods.
+  The core axiomatization uses the locale predicate \isa{type{\isaliteral{5F}{\isacharunderscore}}definition} as defined in Isabelle/HOL.  Various basic
+  consequences of that are instantiated accordingly, re-using the
+  locale facts with names derived from the new type constructor.  Thus
+  the generic \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Rep} is turned into the specific
+  \isa{{\isaliteral{22}{\isachardoublequote}}Rep{\isaliteral{5F}{\isacharunderscore}}t{\isaliteral{22}{\isachardoublequote}}}, for example.
+
+  Theorems \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Rep}, \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Rep{\isaliteral{5F}{\isacharunderscore}}inverse}, and \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Abs{\isaliteral{5F}{\isacharunderscore}}inverse}
+  provide the most basic characterization as a corresponding
+  injection/surjection pair (in both directions).  The derived rules
+  \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Rep{\isaliteral{5F}{\isacharunderscore}}inject} and \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Abs{\isaliteral{5F}{\isacharunderscore}}inject} provide a more convenient version of
+  injectivity, suitable for automated proof tools (e.g.\ in
+  declarations involving \hyperlink{attribute.simp}{\mbox{\isa{simp}}} or \hyperlink{attribute.iff}{\mbox{\isa{iff}}}).
+  Furthermore, the rules \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Rep{\isaliteral{5F}{\isacharunderscore}}cases}~/ \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Rep{\isaliteral{5F}{\isacharunderscore}}induct}, and \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Abs{\isaliteral{5F}{\isacharunderscore}}cases}~/
+  \isa{type{\isaliteral{5F}{\isacharunderscore}}definition{\isaliteral{2E}{\isachardot}}Abs{\isaliteral{5F}{\isacharunderscore}}induct} provide alternative views on
+  surjectivity.  These rules are already declared as set or type rules
+  for the generic \hyperlink{method.cases}{\mbox{\isa{cases}}} and \hyperlink{method.induct}{\mbox{\isa{induct}}} methods,
+  respectively.
 
   An alternative name for the set definition (and other derived
   entities) may be specified in parentheses; the default is to use
-  \isa{t} as indicated before.
+  \isa{t} directly.
 
-  \end{description}%
+  \end{description}
+
+  \begin{warn}
+  If you introduce a new type axiomatically, i.e.\ via \indexref{}{command}{typedecl}\hyperlink{command.typedecl}{\mbox{\isa{\isacommand{typedecl}}}} and \indexref{}{command}{axiomatization}\hyperlink{command.axiomatization}{\mbox{\isa{\isacommand{axiomatization}}}}, the minimum requirement
+  is that it has a non-empty model, to avoid immediate collapse of the
+  HOL logic.  Moreover, one needs to demonstrate that the
+  interpretation of such free-form axiomatizations can coexist with
+  that of the regular \indexdef{}{command}{typedef}\hypertarget{command.typedef}{\hyperlink{command.typedef}{\mbox{\isa{\isacommand{typedef}}}}} scheme, and any extension
+  that other people might have introduced elsewhere (e.g.\ in HOLCF
+  \cite{MuellerNvOS99}).
+  \end{warn}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Examples%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Type definitions permit the introduction of abstract data
+  types in a safe way, namely by providing models based on already
+  existing types.  Given some abstract axiomatic description \isa{P}
+  of a type, this involves two steps:
+
+  \begin{enumerate}
+
+  \item Find an appropriate type \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} and subset \isa{A} which
+  has the desired properties \isa{P}, and make a type definition
+  based on this representation.
+
+  \item Prove that \isa{P} holds for \isa{{\isaliteral{5C3C7461753E}{\isasymtau}}} by lifting \isa{P}
+  from the representation.
+
+  \end{enumerate}
+
+  You can later forget about the representation and work solely in
+  terms of the abstract properties \isa{P}.
+
+  \medskip The following trivial example pulls a three-element type
+  into existence within the formal logical environment of HOL.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{typedef}\isamarkupfalse%
+\ three\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{7B}{\isacharbraceleft}}{\isaliteral{28}{\isacharparenleft}}True{\isaliteral{2C}{\isacharcomma}}\ True{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{28}{\isacharparenleft}}True{\isaliteral{2C}{\isacharcomma}}\ False{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{28}{\isacharparenleft}}False{\isaliteral{2C}{\isacharcomma}}\ True{\isaliteral{29}{\isacharparenright}}{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ blast%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}One\ {\isaliteral{3D}{\isacharequal}}\ Abs{\isaliteral{5F}{\isacharunderscore}}three\ {\isaliteral{28}{\isacharparenleft}}True{\isaliteral{2C}{\isacharcomma}}\ True{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}Two\ {\isaliteral{3D}{\isacharequal}}\ Abs{\isaliteral{5F}{\isacharunderscore}}three\ {\isaliteral{28}{\isacharparenleft}}True{\isaliteral{2C}{\isacharcomma}}\ False{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}Three\ {\isaliteral{3D}{\isacharequal}}\ Abs{\isaliteral{5F}{\isacharunderscore}}three\ {\isaliteral{28}{\isacharparenleft}}False{\isaliteral{2C}{\isacharcomma}}\ True{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ three{\isaliteral{5F}{\isacharunderscore}}distinct{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}One\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ Two{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}One\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ Three{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}Two\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ Three{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}simp{\isaliteral{5F}{\isacharunderscore}}all\ add{\isaliteral{3A}{\isacharcolon}}\ One{\isaliteral{5F}{\isacharunderscore}}def\ Two{\isaliteral{5F}{\isacharunderscore}}def\ Three{\isaliteral{5F}{\isacharunderscore}}def\ Abs{\isaliteral{5F}{\isacharunderscore}}three{\isaliteral{5F}{\isacharunderscore}}inject\ three{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ three{\isaliteral{5F}{\isacharunderscore}}cases{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ \isakeyword{fixes}\ x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ three\ \isakeyword{obtains}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ One{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ Two{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ Three{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}cases\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}auto\ simp{\isaliteral{3A}{\isacharcolon}}\ One{\isaliteral{5F}{\isacharunderscore}}def\ Two{\isaliteral{5F}{\isacharunderscore}}def\ Three{\isaliteral{5F}{\isacharunderscore}}def\ Abs{\isaliteral{5F}{\isacharunderscore}}three{\isaliteral{5F}{\isacharunderscore}}inject\ three{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+Note that such trivial constructions are better done with
+  derived specification mechanisms such as \hyperlink{command.datatype}{\mbox{\isa{\isacommand{datatype}}}}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{datatype}\isamarkupfalse%
+\ three{\isaliteral{27}{\isacharprime}}\ {\isaliteral{3D}{\isacharequal}}\ One{\isaliteral{27}{\isacharprime}}\ {\isaliteral{7C}{\isacharbar}}\ Two{\isaliteral{27}{\isacharprime}}\ {\isaliteral{7C}{\isacharbar}}\ Three{\isaliteral{27}{\isacharprime}}%
+\begin{isamarkuptext}%
+This avoids re-doing basic definitions and proofs from the
+  primitive \hyperlink{command.typedef}{\mbox{\isa{\isacommand{typedef}}}} above.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
