@@ -28,6 +28,34 @@ lemma infinite [simp]:
   "\<not> finite A \<Longrightarrow> F g A = 1"
   by (simp add: F_eq)
 
+lemma F_cong:
+  assumes "A = B" "\<And>x. x \<in> B \<Longrightarrow> h x = g x"
+  shows "F h A = F g B"
+proof cases
+  assume "finite A"
+  with assms show ?thesis unfolding `A = B` by (simp cong: cong)
+next
+  assume "\<not> finite A"
+  then show ?thesis unfolding `A = B` by simp
+qed
+
+lemma If_cases:
+  fixes P :: "'b \<Rightarrow> bool" and g h :: "'b \<Rightarrow> 'a"
+  assumes fA: "finite A"
+  shows "F (\<lambda>x. if P x then h x else g x) A =
+         F h (A \<inter> {x. P x}) * F g (A \<inter> - {x. P x})"
+proof-
+  have a: "A = A \<inter> {x. P x} \<union> A \<inter> -{x. P x}" 
+          "(A \<inter> {x. P x}) \<inter> (A \<inter> -{x. P x}) = {}" 
+    by blast+
+  from fA 
+  have f: "finite (A \<inter> {x. P x})" "finite (A \<inter> -{x. P x})" by auto
+  let ?g = "\<lambda>x. if P x then h x else g x"
+  from union_disjoint[OF f a(2), of ?g] a(1)
+  show ?thesis
+    by (subst (1 2) F_cong) simp_all
+qed
+
 end
 
 text {* for ad-hoc proofs for @{const fold_image} *}
@@ -268,17 +296,7 @@ lemma setsum_cases:
   assumes fA: "finite A"
   shows "setsum (\<lambda>x. if P x then f x else g x) A =
          setsum f (A \<inter> {x. P x}) + setsum g (A \<inter> - {x. P x})"
-proof-
-  have a: "A = A \<inter> {x. P x} \<union> A \<inter> -{x. P x}" 
-          "(A \<inter> {x. P x}) \<inter> (A \<inter> -{x. P x}) = {}" 
-    by blast+
-  from fA 
-  have f: "finite (A \<inter> {x. P x})" "finite (A \<inter> -{x. P x})" by auto
-  let ?g = "\<lambda>x. if P x then f x else g x"
-  from setsum_Un_disjoint[OF f a(2), of ?g] a(1)
-  show ?thesis by simp
-qed
-
+  using setsum.If_cases[OF fA] .
 
 (*But we can't get rid of finite I. If infinite, although the rhs is 0, 
   the lhs need not be, since UNION I A could still be finite.*)
