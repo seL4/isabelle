@@ -27,27 +27,31 @@
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-An \textbf{inductive definition} specifies the least predicate (or
-  set) \isa{R} closed under given rules: applying a rule to elements
-  of \isa{R} yields a result within \isa{R}.  For example, a
-  structural operational semantics is an inductive definition of an
-  evaluation relation.
+An \emph{inductive definition} specifies the least predicate
+  or set \isa{R} closed under given rules: applying a rule to
+  elements of \isa{R} yields a result within \isa{R}.  For
+  example, a structural operational semantics is an inductive
+  definition of an evaluation relation.
 
-  Dually, a \textbf{coinductive definition} specifies the greatest
-  predicate~/ set \isa{R} that is consistent with given rules: every
-  element of \isa{R} can be seen as arising by applying a rule to
-  elements of \isa{R}.  An important example is using bisimulation
-  relations to formalise equivalence of processes and infinite data
-  structures.
-
-  \medskip The HOL package is related to the ZF one, which is
-  described in a separate paper,\footnote{It appeared in CADE
-  \cite{paulson-CADE}; a longer version is distributed with Isabelle.}
-  which you should refer to in case of difficulties.  The package is
-  simpler than that of ZF thanks to implicit type-checking in HOL.
-  The types of the (co)inductive predicates (or sets) determine the
-  domain of the fixedpoint definition, and the package does not have
-  to use inference rules for type-checking.
+  Dually, a \emph{coinductive definition} specifies the greatest
+  predicate or set \isa{R} that is consistent with given rules:
+  every element of \isa{R} can be seen as arising by applying a rule
+  to elements of \isa{R}.  An important example is using
+  bisimulation relations to formalise equivalence of processes and
+  infinite data structures.
+  
+  Both inductive and coinductive definitions are based on the
+  Knaster-Tarski fixed-point theorem for complete lattices.  The
+  collection of introduction rules given by the user determines a
+  functor on subsets of set-theoretic relations.  The required
+  monotonicity of the recursion scheme is proven as a prerequisite to
+  the fixed-point definition and the resulting consequences.  This
+  works by pushing inclusion through logical connectives and any other
+  operator that might be wrapped around recursive occurrences of the
+  defined relation: there must be a monotonicity theorem of the form
+  \isa{{\isaliteral{22}{\isachardoublequote}}A\ {\isaliteral{5C3C6C653E}{\isasymle}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C4D3E}{\isasymM}}\ A\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{5C3C4D3E}{\isasymM}}\ B{\isaliteral{22}{\isachardoublequote}}}, for each premise \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C4D3E}{\isasymM}}\ R\ t{\isaliteral{22}{\isachardoublequote}}} in an
+  introduction rule.  The default rule declarations of Isabelle/HOL
+  already take care of most common situations.
 
   \begin{matharray}{rcl}
     \indexdef{HOL}{command}{inductive}\hypertarget{command.HOL.inductive}{\hyperlink{command.HOL.inductive}{\mbox{\isa{\isacommand{inductive}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
@@ -58,7 +62,7 @@ An \textbf{inductive definition} specifies the least predicate (or
   \end{matharray}
 
   \begin{railoutput}
-\rail@begin{7}{}
+\rail@begin{10}{}
 \rail@bar
 \rail@term{\hyperlink{command.HOL.inductive}{\mbox{\isa{\isacommand{inductive}}}}}[]
 \rail@nextbar{1}
@@ -72,20 +76,21 @@ An \textbf{inductive definition} specifies the least predicate (or
 \rail@nextbar{1}
 \rail@nont{\hyperlink{syntax.target}{\mbox{\isa{target}}}}[]
 \rail@endbar
+\rail@cr{5}
 \rail@nont{\hyperlink{syntax.fixes}{\mbox{\isa{fixes}}}}[]
 \rail@bar
-\rail@nextbar{1}
+\rail@nextbar{6}
 \rail@term{\isa{\isakeyword{for}}}[]
 \rail@nont{\hyperlink{syntax.fixes}{\mbox{\isa{fixes}}}}[]
 \rail@endbar
-\rail@cr{5}
 \rail@bar
 \rail@nextbar{6}
 \rail@term{\isa{\isakeyword{where}}}[]
 \rail@nont{\isa{clauses}}[]
 \rail@endbar
+\rail@cr{8}
 \rail@bar
-\rail@nextbar{6}
+\rail@nextbar{9}
 \rail@term{\isa{\isakeyword{monos}}}[]
 \rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
 \rail@endbar
@@ -115,21 +120,32 @@ An \textbf{inductive definition} specifies the least predicate (or
 
   \begin{description}
 
-  \item \hyperlink{command.HOL.inductive}{\mbox{\isa{\isacommand{inductive}}}} and \hyperlink{command.HOL.coinductive}{\mbox{\isa{\isacommand{coinductive}}}} define (co)inductive predicates from the
-  introduction rules given in the \hyperlink{keyword.where}{\mbox{\isa{\isakeyword{where}}}} part.  The
-  optional \hyperlink{keyword.for}{\mbox{\isa{\isakeyword{for}}}} part contains a list of parameters of the
-  (co)inductive predicates that remain fixed throughout the
-  definition.  The optional \hyperlink{keyword.monos}{\mbox{\isa{\isakeyword{monos}}}} section contains
+  \item \hyperlink{command.HOL.inductive}{\mbox{\isa{\isacommand{inductive}}}} and \hyperlink{command.HOL.coinductive}{\mbox{\isa{\isacommand{coinductive}}}} define (co)inductive predicates from the introduction
+  rules.
+
+  The propositions given as \isa{{\isaliteral{22}{\isachardoublequote}}clauses{\isaliteral{22}{\isachardoublequote}}} in the \hyperlink{keyword.where}{\mbox{\isa{\isakeyword{where}}}} part are either rules of the usual \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C416E643E}{\isasymAnd}}{\isaliteral{2F}{\isacharslash}}{\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}{\isaliteral{22}{\isachardoublequote}}} format
+  (with arbitrary nesting), or equalities using \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C65717569763E}{\isasymequiv}}{\isaliteral{22}{\isachardoublequote}}}.  The
+  latter specifies extra-logical abbreviations in the sense of
+  \indexref{}{command}{abbreviation}\hyperlink{command.abbreviation}{\mbox{\isa{\isacommand{abbreviation}}}}.  Introducing abstract syntax
+  simultaneously with the actual introduction rules is occasionally
+  useful for complex specifications.
+
+  The optional \hyperlink{keyword.for}{\mbox{\isa{\isakeyword{for}}}} part contains a list of parameters of
+  the (co)inductive predicates that remain fixed throughout the
+  definition, in contrast to arguments of the relation that may vary
+  in each occurrence within the given \isa{{\isaliteral{22}{\isachardoublequote}}clauses{\isaliteral{22}{\isachardoublequote}}}.
+
+  The optional \hyperlink{keyword.monos}{\mbox{\isa{\isakeyword{monos}}}} declaration contains additional
   \emph{monotonicity theorems}, which are required for each operator
-  applied to a recursive set in the introduction rules.  There
-  \emph{must} be a theorem of the form \isa{{\isaliteral{22}{\isachardoublequote}}A\ {\isaliteral{5C3C6C653E}{\isasymle}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ M\ A\ {\isaliteral{5C3C6C653E}{\isasymle}}\ M\ B{\isaliteral{22}{\isachardoublequote}}},
-  for each premise \isa{{\isaliteral{22}{\isachardoublequote}}M\ R\isaliteral{5C3C5E7375623E}{}\isactrlsub i\ t{\isaliteral{22}{\isachardoublequote}}} in an introduction rule!
+  applied to a recursive set in the introduction rules.
 
-  \item \hyperlink{command.HOL.inductive-set}{\mbox{\isa{\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}set}}}} and \hyperlink{command.HOL.coinductive-set}{\mbox{\isa{\isacommand{coinductive{\isaliteral{5F}{\isacharunderscore}}set}}}} are wrappers for to the previous commands,
-  allowing the definition of (co)inductive sets.
+  \item \hyperlink{command.HOL.inductive-set}{\mbox{\isa{\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}set}}}} and \hyperlink{command.HOL.coinductive-set}{\mbox{\isa{\isacommand{coinductive{\isaliteral{5F}{\isacharunderscore}}set}}}} are wrappers for to the previous commands for
+  native HOL predicates.  This allows to define (co)inductive sets,
+  where multiple arguments are simulated via tuples.
 
-  \item \hyperlink{attribute.HOL.mono}{\mbox{\isa{mono}}} declares monotonicity rules.  These
-  rule are involved in the automated monotonicity proof of \hyperlink{command.HOL.inductive}{\mbox{\isa{\isacommand{inductive}}}}.
+  \item \hyperlink{attribute.HOL.mono}{\mbox{\isa{mono}}} declares monotonicity rules in the
+  context.  These rule are involved in the automated monotonicity
+  proof of the above inductive and coinductive definitions.
 
   \end{description}%
 \end{isamarkuptext}%
@@ -140,8 +156,8 @@ An \textbf{inductive definition} specifies the least predicate (or
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Each (co)inductive definition \isa{R} adds definitions to the
-  theory and also proves some theorems:
+A (co)inductive definition of \isa{R} provides the following
+  main theorems:
 
   \begin{description}
 
@@ -170,17 +186,17 @@ Each (co)inductive definition \isa{R} adds definitions to the
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Each theory contains a default set of theorems that are used in
-  monotonicity proofs.  New rules can be added to this set via the
-  \hyperlink{attribute.HOL.mono}{\mbox{\isa{mono}}} attribute.  The HOL theory \isa{Inductive}
-  shows how this is done.  In general, the following monotonicity
-  theorems may be added:
+The context maintains a default set of theorems that are used
+  in monotonicity proofs.  New rules can be declared via the
+  \hyperlink{attribute.HOL.mono}{\mbox{\isa{mono}}} attribute.  See the main Isabelle/HOL
+  sources for some examples.  The general format of such monotonicity
+  theorems is as follows:
 
   \begin{itemize}
 
-  \item Theorems of the form \isa{{\isaliteral{22}{\isachardoublequote}}A\ {\isaliteral{5C3C6C653E}{\isasymle}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ M\ A\ {\isaliteral{5C3C6C653E}{\isasymle}}\ M\ B{\isaliteral{22}{\isachardoublequote}}}, for proving
+  \item Theorems of the form \isa{{\isaliteral{22}{\isachardoublequote}}A\ {\isaliteral{5C3C6C653E}{\isasymle}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C4D3E}{\isasymM}}\ A\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{5C3C4D3E}{\isasymM}}\ B{\isaliteral{22}{\isachardoublequote}}}, for proving
   monotonicity of inductive definitions whose introduction rules have
-  premises involving terms such as \isa{{\isaliteral{22}{\isachardoublequote}}M\ R\isaliteral{5C3C5E7375623E}{}\isactrlsub i\ t{\isaliteral{22}{\isachardoublequote}}}.
+  premises involving terms such as \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C4D3E}{\isasymM}}\ R\ t{\isaliteral{22}{\isachardoublequote}}}.
 
   \item Monotonicity theorems for logical operators, which are of the
   general form \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}}.  For example, in
@@ -203,9 +219,56 @@ Each theory contains a default set of theorems that are used in
   \isa{{\isaliteral{22}{\isachardoublequote}}Ball\ A\ P\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ A\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P\ x{\isaliteral{22}{\isachardoublequote}}}
   \]
 
-  \end{itemize}
-
-  %FIXME: Example of an inductive definition%
+  \end{itemize}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Examples%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The finite powerset operator can be defined inductively like this:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{inductive{\isaliteral{5F}{\isacharunderscore}}set}\isamarkupfalse%
+\ Fin\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ set\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ set\ set{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{for}\ A\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ set{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isakeyword{where}\isanewline
+\ \ empty{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{7B}{\isacharbraceleft}}{\isaliteral{7D}{\isacharbraceright}}\ {\isaliteral{5C3C696E3E}{\isasymin}}\ Fin\ A{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ insert{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{5C3C696E3E}{\isasymin}}\ A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B\ {\isaliteral{5C3C696E3E}{\isasymin}}\ Fin\ A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ insert\ a\ B\ {\isaliteral{5C3C696E3E}{\isasymin}}\ Fin\ A{\isaliteral{22}{\isachardoublequoteclose}}%
+\begin{isamarkuptext}%
+The accessible part of a relation is defined as follows:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{inductive}\isamarkupfalse%
+\ acc\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{for}\ r\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{28}{\isacharparenleft}}\isakeyword{infix}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C707265633E}{\isasymprec}}{\isaliteral{22}{\isachardoublequoteclose}}\ {\isadigit{5}}{\isadigit{0}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\isakeyword{where}\ acc{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C416E643E}{\isasymAnd}}y{\isaliteral{2E}{\isachardot}}\ y\ {\isaliteral{5C3C707265633E}{\isasymprec}}\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ acc\ r\ y{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ acc\ r\ x{\isaliteral{22}{\isachardoublequoteclose}}%
+\begin{isamarkuptext}%
+Common logical connectives can be easily characterized as
+non-recursive inductive definitions with parameters, but without
+arguments.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{inductive}\isamarkupfalse%
+\ AND\ \isakeyword{for}\ A\ B\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ bool\isanewline
+\isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ AND\ A\ B{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isanewline
+\isacommand{inductive}\isamarkupfalse%
+\ OR\ \isakeyword{for}\ A\ B\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ bool\isanewline
+\isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ OR\ A\ B{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ OR\ A\ B{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isanewline
+\isacommand{inductive}\isamarkupfalse%
+\ EXISTS\ \isakeyword{for}\ B\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}B\ a\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ EXISTS\ B{\isaliteral{22}{\isachardoublequoteclose}}%
+\begin{isamarkuptext}%
+Here the \isa{{\isaliteral{22}{\isachardoublequote}}cases{\isaliteral{22}{\isachardoublequote}}} or \isa{{\isaliteral{22}{\isachardoublequote}}induct{\isaliteral{22}{\isachardoublequote}}} rules produced by
+  the \hyperlink{command.inductive}{\mbox{\isa{\isacommand{inductive}}}} package coincide with the expected
+  elimination rules for Natural Deduction.  Already in the original
+  article by Gerhard Gentzen \cite{Gentzen:1935} there is a hint that
+  each connective can be characterized by its introductions, and the
+  elimination can be constructed systematically.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

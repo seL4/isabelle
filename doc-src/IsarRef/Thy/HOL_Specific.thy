@@ -6,28 +6,31 @@ chapter {* Isabelle/HOL \label{ch:hol} *}
 
 section {* Inductive and coinductive definitions \label{sec:hol-inductive} *}
 
-text {*
-  An \textbf{inductive definition} specifies the least predicate (or
-  set) @{text R} closed under given rules: applying a rule to elements
-  of @{text R} yields a result within @{text R}.  For example, a
-  structural operational semantics is an inductive definition of an
-  evaluation relation.
+text {* An \emph{inductive definition} specifies the least predicate
+  or set @{text R} closed under given rules: applying a rule to
+  elements of @{text R} yields a result within @{text R}.  For
+  example, a structural operational semantics is an inductive
+  definition of an evaluation relation.
 
-  Dually, a \textbf{coinductive definition} specifies the greatest
-  predicate~/ set @{text R} that is consistent with given rules: every
-  element of @{text R} can be seen as arising by applying a rule to
-  elements of @{text R}.  An important example is using bisimulation
-  relations to formalise equivalence of processes and infinite data
-  structures.
-
-  \medskip The HOL package is related to the ZF one, which is
-  described in a separate paper,\footnote{It appeared in CADE
-  \cite{paulson-CADE}; a longer version is distributed with Isabelle.}
-  which you should refer to in case of difficulties.  The package is
-  simpler than that of ZF thanks to implicit type-checking in HOL.
-  The types of the (co)inductive predicates (or sets) determine the
-  domain of the fixedpoint definition, and the package does not have
-  to use inference rules for type-checking.
+  Dually, a \emph{coinductive definition} specifies the greatest
+  predicate or set @{text R} that is consistent with given rules:
+  every element of @{text R} can be seen as arising by applying a rule
+  to elements of @{text R}.  An important example is using
+  bisimulation relations to formalise equivalence of processes and
+  infinite data structures.
+  
+  Both inductive and coinductive definitions are based on the
+  Knaster-Tarski fixed-point theorem for complete lattices.  The
+  collection of introduction rules given by the user determines a
+  functor on subsets of set-theoretic relations.  The required
+  monotonicity of the recursion scheme is proven as a prerequisite to
+  the fixed-point definition and the resulting consequences.  This
+  works by pushing inclusion through logical connectives and any other
+  operator that might be wrapped around recursive occurrences of the
+  defined relation: there must be a monotonicity theorem of the form
+  @{text "A \<le> B \<Longrightarrow> \<M> A \<le> \<M> B"}, for each premise @{text "\<M> R t"} in an
+  introduction rule.  The default rule declarations of Isabelle/HOL
+  already take care of most common situations.
 
   \begin{matharray}{rcl}
     @{command_def (HOL) "inductive"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
@@ -40,8 +43,9 @@ text {*
   @{rail "
     (@@{command (HOL) inductive} | @@{command (HOL) inductive_set} |
       @@{command (HOL) coinductive} | @@{command (HOL) coinductive_set})
-    @{syntax target}? @{syntax \"fixes\"} (@'for' @{syntax \"fixes\"})? \\
-    (@'where' clauses)? (@'monos' @{syntax thmrefs})?
+    @{syntax target}? \\
+    @{syntax \"fixes\"} (@'for' @{syntax \"fixes\"})? (@'where' clauses)? \\
+    (@'monos' @{syntax thmrefs})?
     ;
     clauses: (@{syntax thmdecl}? @{syntax prop} + '|')
     ;
@@ -51,23 +55,34 @@ text {*
   \begin{description}
 
   \item @{command (HOL) "inductive"} and @{command (HOL)
-  "coinductive"} define (co)inductive predicates from the
-  introduction rules given in the @{keyword "where"} part.  The
-  optional @{keyword "for"} part contains a list of parameters of the
-  (co)inductive predicates that remain fixed throughout the
-  definition.  The optional @{keyword "monos"} section contains
+  "coinductive"} define (co)inductive predicates from the introduction
+  rules.
+
+  The propositions given as @{text "clauses"} in the @{keyword
+  "where"} part are either rules of the usual @{text "\<And>/\<Longrightarrow>"} format
+  (with arbitrary nesting), or equalities using @{text "\<equiv>"}.  The
+  latter specifies extra-logical abbreviations in the sense of
+  @{command_ref abbreviation}.  Introducing abstract syntax
+  simultaneously with the actual introduction rules is occasionally
+  useful for complex specifications.
+
+  The optional @{keyword "for"} part contains a list of parameters of
+  the (co)inductive predicates that remain fixed throughout the
+  definition, in contrast to arguments of the relation that may vary
+  in each occurrence within the given @{text "clauses"}.
+
+  The optional @{keyword "monos"} declaration contains additional
   \emph{monotonicity theorems}, which are required for each operator
-  applied to a recursive set in the introduction rules.  There
-  \emph{must} be a theorem of the form @{text "A \<le> B \<Longrightarrow> M A \<le> M B"},
-  for each premise @{text "M R\<^sub>i t"} in an introduction rule!
+  applied to a recursive set in the introduction rules.
 
   \item @{command (HOL) "inductive_set"} and @{command (HOL)
-  "coinductive_set"} are wrappers for to the previous commands,
-  allowing the definition of (co)inductive sets.
+  "coinductive_set"} are wrappers for to the previous commands for
+  native HOL predicates.  This allows to define (co)inductive sets,
+  where multiple arguments are simulated via tuples.
 
-  \item @{attribute (HOL) mono} declares monotonicity rules.  These
-  rule are involved in the automated monotonicity proof of @{command
-  (HOL) "inductive"}.
+  \item @{attribute (HOL) mono} declares monotonicity rules in the
+  context.  These rule are involved in the automated monotonicity
+  proof of the above inductive and coinductive definitions.
 
   \end{description}
 *}
@@ -75,9 +90,8 @@ text {*
 
 subsection {* Derived rules *}
 
-text {*
-  Each (co)inductive definition @{text R} adds definitions to the
-  theory and also proves some theorems:
+text {* A (co)inductive definition of @{text R} provides the following
+  main theorems:
 
   \begin{description}
 
@@ -104,18 +118,17 @@ text {*
 
 subsection {* Monotonicity theorems *}
 
-text {*
-  Each theory contains a default set of theorems that are used in
-  monotonicity proofs.  New rules can be added to this set via the
-  @{attribute (HOL) mono} attribute.  The HOL theory @{text Inductive}
-  shows how this is done.  In general, the following monotonicity
-  theorems may be added:
+text {* The context maintains a default set of theorems that are used
+  in monotonicity proofs.  New rules can be declared via the
+  @{attribute (HOL) mono} attribute.  See the main Isabelle/HOL
+  sources for some examples.  The general format of such monotonicity
+  theorems is as follows:
 
   \begin{itemize}
 
-  \item Theorems of the form @{text "A \<le> B \<Longrightarrow> M A \<le> M B"}, for proving
+  \item Theorems of the form @{text "A \<le> B \<Longrightarrow> \<M> A \<le> \<M> B"}, for proving
   monotonicity of inductive definitions whose introduction rules have
-  premises involving terms such as @{text "M R\<^sub>i t"}.
+  premises involving terms such as @{text "\<M> R t"}.
 
   \item Monotonicity theorems for logical operators, which are of the
   general form @{text "(\<dots> \<longrightarrow> \<dots>) \<Longrightarrow> \<dots> (\<dots> \<longrightarrow> \<dots>) \<Longrightarrow> \<dots> \<longrightarrow> \<dots>"}.  For example, in
@@ -139,9 +152,43 @@ text {*
   \]
 
   \end{itemize}
-
-  %FIXME: Example of an inductive definition
 *}
+
+subsubsection {* Examples *}
+
+text {* The finite powerset operator can be defined inductively like this: *}
+
+inductive_set Fin :: "'a set \<Rightarrow> 'a set set" for A :: "'a set"
+where
+  empty: "{} \<in> Fin A"
+| insert: "a \<in> A \<Longrightarrow> B \<in> Fin A \<Longrightarrow> insert a B \<in> Fin A"
+
+text {* The accessible part of a relation is defined as follows: *}
+
+inductive acc :: "('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> 'a \<Rightarrow> bool"
+  for r :: "'a \<Rightarrow> 'a \<Rightarrow> bool"  (infix "\<prec>" 50)
+where acc: "(\<And>y. y \<prec> x \<Longrightarrow> acc r y) \<Longrightarrow> acc r x"
+
+text {* Common logical connectives can be easily characterized as
+non-recursive inductive definitions with parameters, but without
+arguments. *}
+
+inductive AND for A B :: bool
+where "A \<Longrightarrow> B \<Longrightarrow> AND A B"
+
+inductive OR for A B :: bool
+where "A \<Longrightarrow> OR A B"
+  | "B \<Longrightarrow> OR A B"
+
+inductive EXISTS for B :: "'a \<Rightarrow> bool"
+where "B a \<Longrightarrow> EXISTS B"
+
+text {* Here the @{text "cases"} or @{text "induct"} rules produced by
+  the @{command inductive} package coincide with the expected
+  elimination rules for Natural Deduction.  Already in the original
+  article by Gerhard Gentzen \cite{Gentzen:1935} there is a hint that
+  each connective can be characterized by its introductions, and the
+  elimination can be constructed systematically. *}
 
 
 section {* Recursive functions \label{sec:recursion} *}
