@@ -1034,25 +1034,38 @@ lemma borel_measurable_continuous_on1:
 
 lemma borel_measurable_continuous_on:
   fixes f :: "'a::topological_space \<Rightarrow> 'b::t1_space"
-  assumes cont: "continuous_on A f" "open A" and f: "f -` {c} \<inter> A \<in> sets borel"
+  assumes cont: "continuous_on A f" "open A"
   shows "(\<lambda>x. if x \<in> A then f x else c) \<in> borel_measurable borel" (is "?f \<in> _")
 proof (rule borel.borel_measurableI)
   fix S :: "'b set" assume "open S"
-  then have "open {x\<in>A. f x \<in> S - {c}}"
+  then have "open {x\<in>A. f x \<in> S}"
     by (intro continuous_open_preimage[OF cont]) auto
-  then have *: "{x\<in>A. f x \<in> S - {c}} \<in> sets borel" by auto
-  show "?f -` S \<inter> space borel \<in> sets borel"
-  proof cases
-    assume "c \<in> S"
-    then have "?f -` S = {x\<in>A. f x \<in> S - {c}} \<union> (f -` {c} \<inter> A) \<union> -A"
-      by auto
-    with * show "?f -` S \<inter> space borel \<in> sets borel"
-      using `open A` f by (auto intro!: borel.Un)
-  next
-    assume "c \<notin> S"
-    then have "?f -` S = {x\<in>A. f x \<in> S - {c}}" by (auto split: split_if_asm)
-    with * show "?f -` S \<inter> space borel \<in> sets borel" by auto
+  then have *: "{x\<in>A. f x \<in> S} \<in> sets borel" by auto
+  have "?f -` S \<inter> space borel = 
+    {x\<in>A. f x \<in> S} \<union> (if c \<in> S then space borel - A else {})"
+    by (auto split: split_if_asm)
+  also have "\<dots> \<in> sets borel"
+    using * `open A` by (auto simp del: space_borel intro!: borel.Un)
+  finally show "?f -` S \<inter> space borel \<in> sets borel" .
+qed
+
+lemma (in sigma_algebra) convex_measurable:
+  fixes a b :: real
+  assumes X: "X \<in> borel_measurable M" "X ` space M \<subseteq> { a <..< b}"
+  assumes q: "convex_on { a <..< b} q"
+  shows "q \<circ> X \<in> borel_measurable M"
+proof -
+  have "(\<lambda>x. if x \<in> {a <..< b} then q x else 0) \<in> borel_measurable borel"
+  proof (rule borel_measurable_continuous_on)
+    show "open {a<..<b}" by auto
+    from this q show "continuous_on {a<..<b} q"
+      by (rule convex_on_continuous)
   qed
+  then have "(\<lambda>x. if x \<in> {a <..< b} then q x else 0) \<circ> X \<in> borel_measurable M" (is ?qX)
+    using X by (intro measurable_comp) auto
+  moreover have "?qX \<longleftrightarrow> q \<circ> X \<in> borel_measurable M"
+    using X by (intro measurable_cong) auto
+  ultimately show ?thesis by simp
 qed
 
 lemma borel_measurable_borel_log: assumes "1 < b" shows "log b \<in> borel_measurable borel"
@@ -1068,17 +1081,6 @@ proof -
       by (auto intro!: continuous_at_imp_continuous_on DERIV_log DERIV_isCont
                simp: continuous_isCont[symmetric])
     show "open ({0<..}::real set)" by auto
-    show "log b -` {log b 0} \<inter> {0<..} \<in> sets borel"
-    proof cases
-      assume "log b -` {log b 0} \<inter> {0<..} = {}"
-      then show ?thesis by simp
-    next
-      assume "log b -` {log b 0} \<inter> {0<..} \<noteq> {}"
-      then obtain x where "0 < x" "log b x = log b 0" by auto
-      with log_inj[OF `1 < b`] have "log b -` {log b 0} \<inter> {0<..} = {x}"
-        by (auto simp: inj_on_def)
-      then show ?thesis by simp
-    qed
   qed
   also have "(\<lambda>x. if x \<in> {0<..} then log b x else log b 0) = log b"
     by (simp add: fun_eq_iff not_less log_imp)
