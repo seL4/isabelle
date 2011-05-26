@@ -325,6 +325,10 @@ lemma (in finite_product_sigma_algebra) in_P[simp, intro]:
   "\<lbrakk> \<And>i. i \<in> I \<Longrightarrow> A i \<in> sets (M i) \<rbrakk> \<Longrightarrow> Pi\<^isub>E I A \<in> sets P"
   by (auto simp: sets_product_algebra)
 
+lemma Int_stable_product_algebra_generator:
+  "(\<And>i. i \<in> I \<Longrightarrow> Int_stable (M i)) \<Longrightarrow> Int_stable (product_algebra_generator I M)"
+  by (auto simp add: product_algebra_generator_def Int_stable_def PiE_Int Pi_iff)
+
 section "Generating set generates also product algebra"
 
 lemma sigma_product_algebra_sigma_eq:
@@ -477,6 +481,32 @@ proof (unfold measurable_def, intro CollectI conjI ballI)
   then show "(\<lambda>x. x i) -` A \<inter> space (Pi\<^isub>M I M) \<in> sets (Pi\<^isub>M I M)"
     using `A \<in> sets (M i)` by (auto intro!: product_algebraI)
 qed (insert `i \<in> I`, auto)
+
+lemma (in sigma_algebra) measurable_restrict:
+  assumes I: "finite I"
+  assumes "\<And>i. i \<in> I \<Longrightarrow> sets (N i) \<subseteq> Pow (space (N i))"
+  assumes X: "\<And>i. i \<in> I \<Longrightarrow> X i \<in> measurable M (N i)"
+  shows "(\<lambda>x. \<lambda>i\<in>I. X i x) \<in> measurable M (Pi\<^isub>M I N)"
+  unfolding product_algebra_def
+proof (simp, rule measurable_sigma)
+  show "sets (product_algebra_generator I N) \<subseteq> Pow (space (product_algebra_generator I N))"
+    by (rule product_algebra_generator_sets_into_space) fact
+  show "(\<lambda>x. \<lambda>i\<in>I. X i x) \<in> space M \<rightarrow> space (product_algebra_generator I N)"
+    using X by (auto simp: measurable_def)
+  fix E assume "E \<in> sets (product_algebra_generator I N)"
+  then obtain F where "E = Pi\<^isub>E I F" and F: "\<And>i. i \<in> I \<Longrightarrow> F i \<in> sets (N i)"
+    by (auto simp: product_algebra_generator_def)
+  then have "(\<lambda>x. \<lambda>i\<in>I. X i x) -` E \<inter> space M = (\<Inter>i\<in>I. X i -` F i \<inter> space M) \<inter> space M"
+    by (auto simp: Pi_iff)
+  also have "\<dots> \<in> sets M"
+  proof cases
+    assume "I = {}" then show ?thesis by simp
+  next
+    assume "I \<noteq> {}" with X F I show ?thesis
+      by (intro finite_INT measurable_sets Int) auto
+  qed
+  finally show "(\<lambda>x. \<lambda>i\<in>I. X i x) -` E \<inter> space M \<in> sets M" .
+qed
 
 locale product_sigma_finite =
   fixes M :: "'i \<Rightarrow> ('a,'b) measure_space_scheme"
@@ -719,9 +749,8 @@ proof -
       using A unfolding product_algebra_def by auto
   next
     show "Int_stable IJ.G"
-      by (simp add: PiE_Int Int_stable_def product_algebra_def
-                    product_algebra_generator_def)
-          auto
+      by (rule Int_stable_product_algebra_generator)
+         (auto simp: Int_stable_def)
     show "range ?F \<subseteq> sets IJ.G" using F
       by (simp add: image_subset_iff product_algebra_def
                     product_algebra_generator_def)

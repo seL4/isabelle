@@ -1406,6 +1406,19 @@ lemma dynkin_systemI:
   shows "dynkin_system M"
   using assms by (auto simp: dynkin_system_def dynkin_system_axioms_def subset_class_def)
 
+lemma dynkin_systemI':
+  assumes 1: "\<And> A. A \<in> sets M \<Longrightarrow> A \<subseteq> space M"
+  assumes empty: "{} \<in> sets M"
+  assumes Diff: "\<And> A. A \<in> sets M \<Longrightarrow> space M - A \<in> sets M"
+  assumes 2: "\<And> A. disjoint_family A \<Longrightarrow> range A \<subseteq> sets M
+          \<Longrightarrow> (\<Union>i::nat. A i) \<in> sets M"
+  shows "dynkin_system M"
+proof -
+  from Diff[OF empty] have "space M \<in> sets M" by auto
+  from 1 this Diff 2 show ?thesis
+    by (intro dynkin_systemI) auto
+qed
+
 lemma dynkin_system_trivial:
   shows "dynkin_system \<lparr> space = A, sets = Pow A \<rparr>"
   by (rule dynkin_systemI) auto

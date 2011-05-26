@@ -188,6 +188,37 @@ proof -
   qed
 qed
 
+lemma prob_space_unique_Int_stable:
+  fixes E :: "('a, 'b) algebra_scheme" and A :: "nat \<Rightarrow> 'a set"
+  assumes E: "Int_stable E" "space E \<in> sets E"
+  and M: "prob_space M" "space M = space E" "sets M = sets (sigma E)"
+  and N: "prob_space N" "space N = space E" "sets N = sets (sigma E)"
+  and eq: "\<And>X. X \<in> sets E \<Longrightarrow> finite_measure.\<mu>' M X = finite_measure.\<mu>' N X"
+  assumes "X \<in> sets (sigma E)"
+  shows "finite_measure.\<mu>' M X = finite_measure.\<mu>' N X"
+proof -
+  interpret M!: prob_space M by fact
+  interpret N!: prob_space N by fact
+  have "measure M X = measure N X"
+  proof (rule measure_unique_Int_stable[OF `Int_stable E`])
+    show "range (\<lambda>i. space M) \<subseteq> sets E" "incseq (\<lambda>i. space M)" "(\<Union>i. space M) = space E"
+      using E M N by auto
+    show "\<And>i. M.\<mu> (space M) \<noteq> \<infinity>"
+      using M.measure_space_1 by simp
+    show "measure_space \<lparr>space = space E, sets = sets (sigma E), measure_space.measure = M.\<mu>\<rparr>"
+      using E M N by (auto intro!: M.measure_space_cong)
+    show "measure_space \<lparr>space = space E, sets = sets (sigma E), measure_space.measure = N.\<mu>\<rparr>"
+      using E M N by (auto intro!: N.measure_space_cong)
+    { fix X assume "X \<in> sets E"
+      then have "X \<in> sets (sigma E)"
+        by (auto simp: sets_sigma sigma_sets.Basic)
+      with eq[OF `X \<in> sets E`] M N show "M.\<mu> X = N.\<mu> X"
+        by (simp add: M.finite_measure_eq N.finite_measure_eq) }
+  qed fact
+  with `X \<in> sets (sigma E)` M N show ?thesis
+    by (simp add: M.finite_measure_eq N.finite_measure_eq)
+qed
+
 lemma (in prob_space) distribution_prob_space:
   assumes X: "random_variable S X"
   shows "prob_space (S\<lparr>measure := extreal \<circ> distribution X\<rparr>)" (is "prob_space ?S")
@@ -358,6 +389,50 @@ lemma (in prob_space) joint_distribution_prob_space:
   assumes "random_variable MX X" "random_variable MY Y"
   shows "prob_space ((MX \<Otimes>\<^isub>M MY) \<lparr> measure := extreal \<circ> joint_distribution X Y\<rparr>)"
   using random_variable_pairI[OF assms] by (rule distribution_prob_space)
+
+
+locale finite_product_prob_space =
+  fixes M :: "'i \<Rightarrow> ('a,'b) measure_space_scheme"
+    and I :: "'i set"
+  assumes prob_space: "\<And>i. prob_space (M i)" and finite_index: "finite I"
+
+sublocale finite_product_prob_space \<subseteq> M: prob_space "M i" for i
+  by (rule prob_space)
+
+sublocale finite_product_prob_space \<subseteq> finite_product_sigma_finite M I
+  by default (rule finite_index)
+
+sublocale finite_product_prob_space \<subseteq> prob_space "\<Pi>\<^isub>M i\<in>I. M i"
+  proof qed (simp add: measure_times M.measure_space_1 setprod_1)
+
+lemma (in finite_product_prob_space) prob_times:
+  assumes X: "\<And>i. i \<in> I \<Longrightarrow> X i \<in> sets (M i)"
+  shows "prob (\<Pi>\<^isub>E i\<in>I. X i) = (\<Prod>i\<in>I. M.prob i (X i))"
+proof -
+  have "extreal (\<mu>' (\<Pi>\<^isub>E i\<in>I. X i)) = \<mu> (\<Pi>\<^isub>E i\<in>I. X i)"
+    using X by (intro finite_measure_eq[symmetric] in_P) auto
+  also have "\<dots> = (\<Prod>i\<in>I. M.\<mu> i (X i))"
+    using measure_times X by simp
+  also have "\<dots> = extreal (\<Prod>i\<in>I. M.\<mu>' i (X i))"
+    using X by (simp add: M.finite_measure_eq setprod_extreal)
+  finally show ?thesis by simp
+qed
+
+lemma (in prob_space) random_variable_restrict:
+  assumes I: "finite I"
+  assumes X: "\<And>i. i \<in> I \<Longrightarrow> random_variable (N i) (X i)"
+  shows "random_variable (Pi\<^isub>M I N) (\<lambda>x. \<lambda>i\<in>I. X i x)"
+proof
+  { fix i assume "i \<in> I"
+    with X interpret N: sigma_algebra "N i" by simp
+    have "sets (N i) \<subseteq> Pow (space (N i))" by (rule N.space_closed) }
+  note N_closed = this
+  then show "sigma_algebra (Pi\<^isub>M I N)"
+    by (simp add: product_algebra_def)
+       (intro sigma_algebra_sigma product_algebra_generator_sets_into_space)
+  show "(\<lambda>x. \<lambda>i\<in>I. X i x) \<in> measurable M (Pi\<^isub>M I N)"
+    using X by (intro measurable_restrict[OF I N_closed]) auto
+qed
 
 section "Probability spaces on finite sets"
 
