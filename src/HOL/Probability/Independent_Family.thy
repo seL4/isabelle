@@ -8,6 +8,20 @@ theory Independent_Family
   imports Probability_Measure
 begin
 
+lemma INT_decseq_offset:
+  assumes "decseq F"
+  shows "(\<Inter>i. F i) = (\<Inter>i\<in>{n..}. F i)"
+proof safe
+  fix x i assume x: "x \<in> (\<Inter>i\<in>{n..}. F i)"
+  show "x \<in> F i"
+  proof cases
+    from x have "x \<in> F n" by auto
+    also assume "i \<le> n" with `decseq F` have "F n \<subseteq> F i"
+      unfolding decseq_def by simp
+    finally show ?thesis .
+  qed (insert x, simp)
+qed auto
+
 definition (in prob_space)
   "indep_events A I \<longleftrightarrow> (A`I \<subseteq> events) \<and>
     (\<forall>J\<subseteq>I. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow> prob (\<Inter>j\<in>J. A j) = (\<Prod>j\<in>J. prob (A j)))"
@@ -30,6 +44,11 @@ definition (in prob_space)
 lemma (in prob_space) indep_sets_cong:
   "I = J \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> F i = G i) \<Longrightarrow> indep_sets F I \<longleftrightarrow> indep_sets G J"
   by (simp add: indep_sets_def, intro conj_cong all_cong imp_cong ball_cong) blast+
+
+lemma (in prob_space) indep_sets_singleton_iff_indep_events:
+  "indep_sets (\<lambda>i. {F i}) I \<longleftrightarrow> indep_events F I"
+  unfolding indep_sets_def indep_events_def
+  by (simp, intro conj_cong ball_cong all_cong imp_cong) (auto simp: Pi_iff)
 
 lemma (in prob_space) indep_events_finite_index_events:
   "indep_events F I \<longleftrightarrow> (\<forall>J\<subseteq>I. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow> indep_events F J)"
@@ -608,6 +627,43 @@ proof -
   moreover note `X \<in> terminal_events A`
   ultimately have "X \<in> sets ?D" by auto
   then show ?thesis by auto
+qed
+
+lemma (in prob_space) borel_0_1_law:
+  fixes F :: "nat \<Rightarrow> 'a set"
+  assumes F: "range F \<subseteq> events" "indep_events F UNIV"
+  shows "prob (\<Inter>n. \<Union>m\<in>{n..}. F m) = 0 \<or> prob (\<Inter>n. \<Union>m\<in>{n..}. F m) = 1"
+proof (rule kolmogorov_0_1_law[of "\<lambda>i. sigma_sets (space M) { F i }"])
+  show "\<And>i. sigma_sets (space M) {F i} \<subseteq> events"
+    using F(1) sets_into_space
+    by (subst sigma_sets_singleton) auto
+  { fix i show "sigma_algebra \<lparr>space = space M, sets = sigma_sets (space M) {F i}\<rparr>"
+      using sigma_algebra_sigma[of "\<lparr>space = space M, sets = {F i}\<rparr>"] F sets_into_space
+      by (auto simp add: sigma_def) }
+  show "indep_sets (\<lambda>i. sigma_sets (space M) {F i}) UNIV"
+  proof (rule indep_sets_sigma_sets)
+    show "indep_sets (\<lambda>i. {F i}) UNIV"
+      unfolding indep_sets_singleton_iff_indep_events by fact
+    fix i show "Int_stable \<lparr>space = space M, sets = {F i}\<rparr>"
+      unfolding Int_stable_def by simp
+  qed
+  let "?Q n" = "\<Union>i\<in>{n..}. F i"
+  show "(\<Inter>n. \<Union>m\<in>{n..}. F m) \<in> terminal_events (\<lambda>i. sigma_sets (space M) {F i})"
+    unfolding terminal_events_def
+  proof
+    fix j
+    interpret S: sigma_algebra "sigma \<lparr> space = space M, sets = (\<Union>i\<in>{j..}. sigma_sets (space M) {F i})\<rparr>"
+      using order_trans[OF F(1) space_closed]
+      by (intro sigma_algebra_sigma) (simp add: sigma_sets_singleton subset_eq)
+    have "(\<Inter>n. ?Q n) = (\<Inter>n\<in>{j..}. ?Q n)"
+      by (intro decseq_SucI INT_decseq_offset UN_mono) auto
+    also have "\<dots> \<in> sets (sigma \<lparr> space = space M, sets = (\<Union>i\<in>{j..}. sigma_sets (space M) {F i})\<rparr>)"
+      using order_trans[OF F(1) space_closed]
+      by (safe intro!: S.countable_INT S.countable_UN)
+         (auto simp: sets_sigma sigma_sets_singleton intro!: sigma_sets.Basic bexI)
+    finally show "(\<Inter>n. ?Q n) \<in> sigma_sets (space M) (\<Union>i\<in>{j..}. sigma_sets (space M) {F i})"
+      by (simp add: sets_sigma)
+  qed
 qed
 
 end
