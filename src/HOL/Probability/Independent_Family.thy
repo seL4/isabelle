@@ -9,19 +9,31 @@ theory Independent_Family
 begin
 
 definition (in prob_space)
-  "indep_events A I \<longleftrightarrow> (\<forall>J\<subseteq>I. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow> prob (\<Inter>j\<in>J. A j) = (\<Prod>j\<in>J. prob (A j)))"
+  "indep_events A I \<longleftrightarrow> (A`I \<subseteq> sets M) \<and>
+    (\<forall>J\<subseteq>I. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow> prob (\<Inter>j\<in>J. A j) = (\<Prod>j\<in>J. prob (A j)))"
 
 definition (in prob_space)
-  "indep_sets F I \<longleftrightarrow> (\<forall>i\<in>I. F i \<subseteq> events) \<and> (\<forall>J\<subseteq>I. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow>
-    (\<forall>A\<in>(\<Pi> j\<in>J. F j). prob (\<Inter>j\<in>J. A j) = (\<Prod>j\<in>J. prob (A j))))"
+  "indep_event A B \<longleftrightarrow> indep_events (bool_case A B) UNIV"
 
 definition (in prob_space)
-  "indep_sets2 A B \<longleftrightarrow> indep_sets (bool_case A B) UNIV"
+  "indep_sets F I \<longleftrightarrow> (\<forall>i\<in>I. F i \<subseteq> sets M) \<and>
+    (\<forall>J\<subseteq>I. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow> (\<forall>A\<in>Pi J F. prob (\<Inter>j\<in>J. A j) = (\<Prod>j\<in>J. prob (A j))))"
+
+definition (in prob_space)
+  "indep_set A B \<longleftrightarrow> indep_sets (bool_case A B) UNIV"
 
 definition (in prob_space)
   "indep_rv M' X I \<longleftrightarrow>
     (\<forall>i\<in>I. random_variable (M' i) (X i)) \<and>
     indep_sets (\<lambda>i. sigma_sets (space M) { X i -` A \<inter> space M | A. A \<in> sets (M' i)}) I"
+
+lemma (in prob_space) indep_sets_cong:
+  "I = J \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> F i = G i) \<Longrightarrow> indep_sets F I \<longleftrightarrow> indep_sets G J"
+  by (simp add: indep_sets_def, intro conj_cong all_cong imp_cong ball_cong) blast+
+
+lemma (in prob_space) indep_events_finite_index_events:
+  "indep_events F I \<longleftrightarrow> (\<forall>J\<subseteq>I. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow> indep_events F J)"
+  by (auto simp: indep_events_def)
 
 lemma (in prob_space) indep_sets_finite_index_sets:
   "indep_sets F I \<longleftrightarrow> (\<forall>J\<subseteq>I. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow> indep_sets F J)"
@@ -266,8 +278,8 @@ lemma (in prob_space) indep_sets_sigma_sets:
   using indep_sets_sigma[OF assms] by (simp add: sets_sigma)
 
 lemma (in prob_space) indep_sets2_eq:
-  "indep_sets2 A B \<longleftrightarrow> A \<subseteq> events \<and> B \<subseteq> events \<and> (\<forall>a\<in>A. \<forall>b\<in>B. prob (a \<inter> b) = prob a * prob b)"
-  unfolding indep_sets2_def
+  "indep_set A B \<longleftrightarrow> A \<subseteq> events \<and> B \<subseteq> events \<and> (\<forall>a\<in>A. \<forall>b\<in>B. prob (a \<inter> b) = prob a * prob b)"
+  unfolding indep_set_def
 proof (intro iffI ballI conjI)
   assume indep: "indep_sets (bool_case A B) UNIV"
   { fix a b assume "a \<in> A" "b \<in> B"
@@ -291,22 +303,122 @@ next
   qed
 qed
 
-lemma (in prob_space) indep_sets2_sigma_sets:
-  assumes "indep_sets2 A B"
+lemma (in prob_space) indep_set_sigma_sets:
+  assumes "indep_set A B"
   assumes A: "Int_stable \<lparr> space = space M, sets = A \<rparr>"
   assumes B: "Int_stable \<lparr> space = space M, sets = B \<rparr>"
-  shows "indep_sets2 (sigma_sets (space M) A) (sigma_sets (space M) B)"
+  shows "indep_set (sigma_sets (space M) A) (sigma_sets (space M) B)"
 proof -
   have "indep_sets (\<lambda>i. sigma_sets (space M) (case i of True \<Rightarrow> A | False \<Rightarrow> B)) UNIV"
   proof (rule indep_sets_sigma_sets)
     show "indep_sets (bool_case A B) UNIV"
-      by (rule `indep_sets2 A B`[unfolded indep_sets2_def])
+      by (rule `indep_set A B`[unfolded indep_set_def])
     fix i show "Int_stable \<lparr>space = space M, sets = case i of True \<Rightarrow> A | False \<Rightarrow> B\<rparr>"
       using A B by (cases i) auto
   qed
   then show ?thesis
-    unfolding indep_sets2_def
+    unfolding indep_set_def
     by (rule indep_sets_mono_sets) (auto split: bool.split)
+qed
+
+lemma (in prob_space) indep_sets_collect_sigma:
+  fixes I :: "'j \<Rightarrow> 'i set" and J :: "'j set" and E :: "'i \<Rightarrow> 'a set set"
+  assumes indep: "indep_sets E (\<Union>j\<in>J. I j)"
+  assumes Int_stable: "\<And>i j. j \<in> J \<Longrightarrow> i \<in> I j \<Longrightarrow> Int_stable \<lparr>space = space M, sets = E i\<rparr>"
+  assumes disjoint: "disjoint_family_on I J"
+  shows "indep_sets (\<lambda>j. sigma_sets (space M) (\<Union>i\<in>I j. E i)) J"
+proof -
+  let "?E j" = "{\<Inter>k\<in>K. E' k| E' K. finite K \<and> K \<noteq> {} \<and> K \<subseteq> I j \<and> (\<forall>k\<in>K. E' k \<in> E k) }"
+
+  from indep have E: "\<And>j i. j \<in> J \<Longrightarrow> i \<in> I j \<Longrightarrow> E i \<subseteq> sets M"
+    unfolding indep_sets_def by auto
+  { fix j
+    let ?S = "sigma \<lparr> space = space M, sets = (\<Union>i\<in>I j. E i) \<rparr>"
+    assume "j \<in> J"
+    from E[OF this] interpret S: sigma_algebra ?S
+      using sets_into_space by (intro sigma_algebra_sigma) auto
+
+    have "sigma_sets (space M) (\<Union>i\<in>I j. E i) = sigma_sets (space M) (?E j)"
+    proof (rule sigma_sets_eqI)
+      fix A assume "A \<in> (\<Union>i\<in>I j. E i)"
+      then guess i ..
+      then show "A \<in> sigma_sets (space M) (?E j)"
+        by (auto intro!: sigma_sets.intros exI[of _ "{i}"] exI[of _ "\<lambda>i. A"])
+    next
+      fix A assume "A \<in> ?E j"
+      then obtain E' K where "finite K" "K \<noteq> {}" "K \<subseteq> I j" "\<And>k. k \<in> K \<Longrightarrow> E' k \<in> E k"
+        and A: "A = (\<Inter>k\<in>K. E' k)"
+        by auto
+      then have "A \<in> sets ?S" unfolding A
+        by (safe intro!: S.finite_INT)
+           (auto simp: sets_sigma intro!: sigma_sets.Basic)
+      then show "A \<in> sigma_sets (space M) (\<Union>i\<in>I j. E i)"
+        by (simp add: sets_sigma)
+    qed }
+  moreover have "indep_sets (\<lambda>j. sigma_sets (space M) (?E j)) J"
+  proof (rule indep_sets_sigma_sets)
+    show "indep_sets ?E J"
+    proof (intro indep_setsI)
+      fix j assume "j \<in> J" with E show "?E j \<subseteq> events" by (force  intro!: finite_INT)
+    next
+      fix K A assume K: "K \<noteq> {}" "K \<subseteq> J" "finite K"
+        and "\<forall>j\<in>K. A j \<in> ?E j"
+      then have "\<forall>j\<in>K. \<exists>E' L. A j = (\<Inter>l\<in>L. E' l) \<and> finite L \<and> L \<noteq> {} \<and> L \<subseteq> I j \<and> (\<forall>l\<in>L. E' l \<in> E l)"
+        by simp
+      from bchoice[OF this] guess E' ..
+      from bchoice[OF this] obtain L
+        where A: "\<And>j. j\<in>K \<Longrightarrow> A j = (\<Inter>l\<in>L j. E' j l)"
+        and L: "\<And>j. j\<in>K \<Longrightarrow> finite (L j)" "\<And>j. j\<in>K \<Longrightarrow> L j \<noteq> {}" "\<And>j. j\<in>K \<Longrightarrow> L j \<subseteq> I j"
+        and E': "\<And>j l. j\<in>K \<Longrightarrow> l \<in> L j \<Longrightarrow> E' j l \<in> E l"
+        by auto
+
+      { fix k l j assume "k \<in> K" "j \<in> K" "l \<in> L j" "l \<in> L k"
+        have "k = j"
+        proof (rule ccontr)
+          assume "k \<noteq> j"
+          with disjoint `K \<subseteq> J` `k \<in> K` `j \<in> K` have "I k \<inter> I j = {}"
+            unfolding disjoint_family_on_def by auto
+          with L(2,3)[OF `j \<in> K`] L(2,3)[OF `k \<in> K`]
+          show False using `l \<in> L k` `l \<in> L j` by auto
+        qed }
+      note L_inj = this
+
+      def k \<equiv> "\<lambda>l. (SOME k. k \<in> K \<and> l \<in> L k)"
+      { fix x j l assume *: "j \<in> K" "l \<in> L j"
+        have "k l = j" unfolding k_def
+        proof (rule some_equality)
+          fix k assume "k \<in> K \<and> l \<in> L k"
+          with * L_inj show "k = j" by auto
+        qed (insert *, simp) }
+      note k_simp[simp] = this
+      let "?E' l" = "E' (k l) l"
+      have "prob (\<Inter>j\<in>K. A j) = prob (\<Inter>l\<in>(\<Union>k\<in>K. L k). ?E' l)"
+        by (auto simp: A intro!: arg_cong[where f=prob])
+      also have "\<dots> = (\<Prod>l\<in>(\<Union>k\<in>K. L k). prob (?E' l))"
+        using L K E' by (intro indep_setsD[OF indep]) (simp_all add: UN_mono)
+      also have "\<dots> = (\<Prod>j\<in>K. \<Prod>l\<in>L j. prob (E' j l))"
+        using K L L_inj by (subst setprod_UN_disjoint) auto
+      also have "\<dots> = (\<Prod>j\<in>K. prob (A j))"
+        using K L E' by (auto simp add: A intro!: setprod_cong indep_setsD[OF indep, symmetric]) blast
+      finally show "prob (\<Inter>j\<in>K. A j) = (\<Prod>j\<in>K. prob (A j))" .
+    qed
+  next
+    fix j assume "j \<in> J"
+    show "Int_stable \<lparr> space = space M, sets = ?E j \<rparr>"
+    proof (rule Int_stableI)
+      fix a assume "a \<in> ?E j" then obtain Ka Ea
+        where a: "a = (\<Inter>k\<in>Ka. Ea k)" "finite Ka" "Ka \<noteq> {}" "Ka \<subseteq> I j" "\<And>k. k\<in>Ka \<Longrightarrow> Ea k \<in> E k" by auto
+      fix b assume "b \<in> ?E j" then obtain Kb Eb
+        where b: "b = (\<Inter>k\<in>Kb. Eb k)" "finite Kb" "Kb \<noteq> {}" "Kb \<subseteq> I j" "\<And>k. k\<in>Kb \<Longrightarrow> Eb k \<in> E k" by auto
+      let ?A = "\<lambda>k. (if k \<in> Ka \<inter> Kb then Ea k \<inter> Eb k else if k \<in> Kb then Eb k else if k \<in> Ka then Ea k else {})"
+      have "a \<inter> b = INTER (Ka \<union> Kb) ?A"
+        by (simp add: a b set_eq_iff) auto
+      with a b `j \<in> J` Int_stableD[OF Int_stable] show "a \<inter> b \<in> ?E j"
+        by (intro CollectI exI[of _ "Ka \<union> Kb"] exI[of _ ?A]) auto
+    qed
+  qed
+  ultimately show ?thesis
+    by (simp cong: indep_sets_cong)
 qed
 
 end

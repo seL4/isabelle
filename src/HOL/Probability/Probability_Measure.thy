@@ -23,12 +23,6 @@ abbreviation (in prob_space) "random_variable M' X \<equiv> sigma_algebra M' \<a
 abbreviation (in prob_space) "expectation \<equiv> integral\<^isup>L M"
 
 definition (in prob_space)
-  "indep A B \<longleftrightarrow> A \<in> events \<and> B \<in> events \<and> prob (A \<inter> B) = prob A * prob B"
-
-definition (in prob_space)
-  "indep_families F G \<longleftrightarrow> (\<forall> A \<in> F. \<forall> B \<in> G. indep A B)"
-
-definition (in prob_space)
   "distribution X A = \<mu>' (X -` A \<inter> space M)"
 
 abbreviation (in prob_space)
@@ -79,9 +73,6 @@ lemma (in prob_space) prob_compl:
   assumes A: "A \<in> events"
   shows "prob (space M - A) = 1 - prob A"
   using finite_measure_compl[OF A] by (simp add: prob_space)
-
-lemma (in prob_space) indep_space: "s \<in> events \<Longrightarrow> indep (space M) s"
-  by (simp add: indep_def prob_space)
 
 lemma (in prob_space) prob_space_increasing: "increasing M prob"
   by (auto intro!: finite_measure_mono simp: increasing_def)
@@ -140,15 +131,6 @@ proof (rule antisym)
     using finite_measure_countably_subadditive[OF assms(1)]
     by (simp add: assms(2) suminf_zero summable_zero)
 qed simp
-
-lemma (in prob_space) indep_sym:
-   "indep a b \<Longrightarrow> indep b a"
-unfolding indep_def using Int_commute[of a b] by auto
-
-lemma (in prob_space) indep_refl:
-  assumes "a \<in> events"
-  shows "indep a a = (prob a = 0) \<or> (prob a = 1)"
-using assms unfolding indep_def by auto
 
 lemma (in prob_space) prob_equiprobable_finite_unions:
   assumes "s \<in> events"

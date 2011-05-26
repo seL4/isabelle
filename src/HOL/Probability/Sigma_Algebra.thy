@@ -417,6 +417,20 @@ proof
     by (metis sigma_sets_subset subset_refl)
 qed
 
+lemma sigma_sets_eqI:
+  assumes A: "\<And>a. a \<in> A \<Longrightarrow> a \<in> sigma_sets M B"
+  assumes B: "\<And>b. b \<in> B \<Longrightarrow> b \<in> sigma_sets M A"
+  shows "sigma_sets M A = sigma_sets M B"
+proof (intro set_eqI iffI)
+  fix a assume "a \<in> sigma_sets M A"
+  from this A show "a \<in> sigma_sets M B"
+    by induct (auto intro!: sigma_sets.intros del: sigma_sets.Basic)
+next
+  fix b assume "b \<in> sigma_sets M B"
+  from this B show "b \<in> sigma_sets M A"
+    by induct (auto intro!: sigma_sets.intros del: sigma_sets.Basic)
+qed
+
 lemma sigma_algebra_sigma:
     "sets M \<subseteq> Pow (space M) \<Longrightarrow> sigma_algebra (sigma M)"
   apply (rule sigma_algebra_sigma_sets)
@@ -1295,6 +1309,14 @@ subsection "Intersection stable algebras"
 definition "Int_stable M \<longleftrightarrow> (\<forall> a \<in> sets M. \<forall> b \<in> sets M. a \<inter> b \<in> sets M)"
 
 lemma (in algebra) Int_stable: "Int_stable M"
+  unfolding Int_stable_def by auto
+
+lemma Int_stableI:
+  "(\<And>a b. a \<in> A \<Longrightarrow> b \<in> A \<Longrightarrow> a \<inter> b \<in> A) \<Longrightarrow> Int_stable \<lparr> space = \<Omega>, sets = A \<rparr>"
+  unfolding Int_stable_def by auto
+
+lemma Int_stableD:
+  "Int_stable M \<Longrightarrow> a \<in> sets M \<Longrightarrow> b \<in> sets M \<Longrightarrow> a \<inter> b \<in> sets M"
   unfolding Int_stable_def by auto
 
 lemma (in dynkin_system) sigma_algebra_eq_Int_stable:
