@@ -85,6 +85,10 @@ definition nat_of :: "code_int => nat"
 where
   "nat_of i = nat (int_of i)"
 
+
+code_datatype "number_of \<Colon> int \<Rightarrow> code_numeral"
+  
+  
 instantiation code_int :: "{minus, linordered_semidom, semiring_div, linorder}"
 begin
 
@@ -120,19 +124,19 @@ instance proof
 qed (auto simp add: code_int left_distrib zmult_zless_mono2)
 
 end
-(*
+
 lemma zero_code_int_code [code, code_unfold]:
   "(0\<Colon>code_int) = Numeral0"
-  by (simp add: number_of_code_numeral_def Pls_def)
-lemma [code_post]: "Numeral0 = (0\<Colon>code_numeral)"
-  using zero_code_numeral_code ..
+  by (simp add: number_of_code_int_def Pls_def)
+lemma [code_post]: "Numeral0 = (0\<Colon>code_int)"
+  using zero_code_int_code ..
 
-lemma one_code_numeral_code [code, code_unfold]:
+lemma one_code_int_code [code, code_unfold]:
   "(1\<Colon>code_int) = Numeral1"
-  by (simp add: number_of_code_numeral_def Pls_def Bit1_def)
+  by (simp add: number_of_code_int_def Pls_def Bit1_def)
 lemma [code_post]: "Numeral1 = (1\<Colon>code_int)"
-  using one_code_numeral_code ..
-*)
+  using one_code_int_code ..
+
 
 definition div_mod_code_int :: "code_int \<Rightarrow> code_int \<Rightarrow> code_int \<times> code_int" where
   [code del]: "div_mod_code_int n m = (n div m, n mod m)"
@@ -201,6 +205,11 @@ datatype type = SumOfProd "type list list"
 datatype "term" = Var "code_int list" type | Ctr code_int "term list"
 
 datatype 'a cons = C type "(term list => 'a) list"
+
+subsubsection {* From narrowing's deep representation of terms to Code_Evaluation's terms *}
+
+class partial_term_of = typerep +
+  fixes partial_term_of :: "'a itself => term => Code_Evaluation.term"
 
 subsubsection {* Auxilary functions for Narrowing *}
 
