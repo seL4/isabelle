@@ -9,14 +9,14 @@ theory Independent_Family
 begin
 
 definition (in prob_space)
-  "indep_events A I \<longleftrightarrow> (A`I \<subseteq> sets M) \<and>
+  "indep_events A I \<longleftrightarrow> (A`I \<subseteq> events) \<and>
     (\<forall>J\<subseteq>I. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow> prob (\<Inter>j\<in>J. A j) = (\<Prod>j\<in>J. prob (A j)))"
 
 definition (in prob_space)
   "indep_event A B \<longleftrightarrow> indep_events (bool_case A B) UNIV"
 
 definition (in prob_space)
-  "indep_sets F I \<longleftrightarrow> (\<forall>i\<in>I. F i \<subseteq> sets M) \<and>
+  "indep_sets F I \<longleftrightarrow> (\<forall>i\<in>I. F i \<subseteq> events) \<and>
     (\<forall>J\<subseteq>I. J \<noteq> {} \<longrightarrow> finite J \<longrightarrow> (\<forall>A\<in>Pi J F. prob (\<Inter>j\<in>J. A j) = (\<Prod>j\<in>J. prob (A j))))"
 
 definition (in prob_space)
@@ -97,8 +97,8 @@ lemma (in prob_space) indep_setD:
 
 lemma (in prob_space)
   assumes indep: "indep_set A B"
-  shows indep_setD_ev1: "A \<subseteq> sets M"
-    and indep_setD_ev2: "B \<subseteq> sets M"
+  shows indep_setD_ev1: "A \<subseteq> events"
+    and indep_setD_ev2: "B \<subseteq> events"
   using indep unfolding indep_set_def indep_sets_def UNIV_bool by auto
 
 lemma dynkin_systemI':
@@ -356,7 +356,7 @@ lemma (in prob_space) indep_sets_collect_sigma:
 proof -
   let "?E j" = "{\<Inter>k\<in>K. E' k| E' K. finite K \<and> K \<noteq> {} \<and> K \<subseteq> I j \<and> (\<forall>k\<in>K. E' k \<in> E k) }"
 
-  from indep have E: "\<And>j i. j \<in> J \<Longrightarrow> i \<in> I j \<Longrightarrow> E i \<subseteq> sets M"
+  from indep have E: "\<And>j i. j \<in> J \<Longrightarrow> i \<in> I j \<Longrightarrow> E i \<subseteq> events"
     unfolding indep_sets_def by auto
   { fix j
     let ?S = "sigma \<lparr> space = space M, sets = (\<Union>i\<in>I j. E i) \<rparr>"
@@ -451,16 +451,16 @@ definition (in prob_space) terminal_events where
   "terminal_events A = (\<Inter>n. sigma_sets (space M) (UNION {n..} A))"
 
 lemma (in prob_space) terminal_events_sets:
-  assumes A: "\<And>i. A i \<subseteq> sets M"
+  assumes A: "\<And>i. A i \<subseteq> events"
   assumes "\<And>i::nat. sigma_algebra \<lparr>space = space M, sets = A i\<rparr>"
   assumes X: "X \<in> terminal_events A"
-  shows "X \<in> sets M"
+  shows "X \<in> events"
 proof -
   let ?A = "(\<Inter>n. sigma_sets (space M) (UNION {n..} A))"
   interpret A: sigma_algebra "\<lparr>space = space M, sets = A i\<rparr>" for i by fact
   from X have "\<And>n. X \<in> sigma_sets (space M) (UNION {n..} A)" by (auto simp: terminal_events_def)
   from this[of 0] have "X \<in> sigma_sets (space M) (UNION UNIV A)" by simp
-  then show "X \<in> sets M"
+  then show "X \<in> events"
     by induct (insert A, auto)
 qed
 
@@ -484,19 +484,19 @@ qed (auto intro!: sigma_sets.Compl sigma_sets.Empty)
 
 lemma (in prob_space) kolmogorov_0_1_law:
   fixes A :: "nat \<Rightarrow> 'a set set"
-  assumes A: "\<And>i. A i \<subseteq> sets M"
+  assumes A: "\<And>i. A i \<subseteq> events"
   assumes "\<And>i::nat. sigma_algebra \<lparr>space = space M, sets = A i\<rparr>"
   assumes indep: "indep_sets A UNIV"
   and X: "X \<in> terminal_events A"
   shows "prob X = 0 \<or> prob X = 1"
 proof -
-  let ?D = "\<lparr> space = space M, sets = {D \<in> sets M. prob (X \<inter> D) = prob X * prob D} \<rparr>"
+  let ?D = "\<lparr> space = space M, sets = {D \<in> events. prob (X \<inter> D) = prob X * prob D} \<rparr>"
   interpret A: sigma_algebra "\<lparr>space = space M, sets = A i\<rparr>" for i by fact
   interpret T: sigma_algebra "\<lparr> space = space M, sets = terminal_events A \<rparr>"
     by (rule sigma_algebra_terminal_events) fact
   have "X \<subseteq> space M" using T.space_closed X by auto
 
-  have X_in: "X \<in> sets M"
+  have X_in: "X \<in> events"
     by (rule terminal_events_sets) fact+
 
   interpret D: dynkin_system ?D
