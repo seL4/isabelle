@@ -186,6 +186,11 @@ lemma (in algebra) sets_Collect_const:
   "{x\<in>space M. P} \<in> sets M"
   by (cases P) auto
 
+lemma algebra_single_set:
+  assumes "X \<subseteq> S"
+  shows "algebra \<lparr> space = S, sets = { {}, X, S - X, S }\<rparr>"
+  by default (insert `X \<subseteq> S`, auto)
+
 section {* Restricted algebras *}
 
 abbreviation (in algebra)
@@ -200,6 +205,18 @@ subsection {* Sigma Algebras *}
 locale sigma_algebra = algebra +
   assumes countable_nat_UN [intro]:
          "!!A. range A \<subseteq> sets M \<Longrightarrow> (\<Union>i::nat. A i) \<in> sets M"
+
+lemma (in algebra) is_sigma_algebra:
+  assumes "finite (sets M)"
+  shows "sigma_algebra M"
+proof
+  fix A :: "nat \<Rightarrow> 'a set" assume "range A \<subseteq> sets M"
+  then have "(\<Union>i. A i) = (\<Union>s\<in>sets M \<inter> range A. s)"
+    by auto
+  also have "(\<Union>s\<in>sets M \<inter> range A. s) \<in> sets M"
+    using `finite (sets M)` by (auto intro: finite_UN)
+  finally show "(\<Union>i. A i) \<in> sets M" .
+qed
 
 lemma countable_UN_eq:
   fixes A :: "'i::countable \<Rightarrow> 'a set"
@@ -283,6 +300,11 @@ qed
 lemmas (in sigma_algebra) sets_Collect =
   sets_Collect_imp sets_Collect_disj sets_Collect_conj sets_Collect_neg sets_Collect_const
   sets_Collect_countable_All sets_Collect_countable_Ex sets_Collect_countable_All
+
+lemma sigma_algebra_single_set:
+  assumes "X \<subseteq> S"
+  shows "sigma_algebra \<lparr> space = S, sets = { {}, X, S - X, S }\<rparr>"
+  using algebra.is_sigma_algebra[OF algebra_single_set[OF `X \<subseteq> S`]] by simp
 
 subsection {* Binary Unions *}
 
@@ -441,6 +463,12 @@ lemma (in sigma_algebra) sigma_subset:
     "sets N \<subseteq> sets M \<Longrightarrow> space N = space M \<Longrightarrow> sets (sigma N) \<subseteq> (sets M)"
   by (simp add: sigma_def sigma_sets_subset)
 
+lemma sigma_sets_subseteq: assumes "A \<subseteq> B" shows "sigma_sets X A \<subseteq> sigma_sets X B"
+proof
+  fix x assume "x \<in> sigma_sets X A" then show "x \<in> sigma_sets X B"
+    by induct (insert `A \<subseteq> B`, auto intro: sigma_sets.intros)
+qed
+
 lemma (in sigma_algebra) restriction_in_sets:
   fixes A :: "nat \<Rightarrow> 'a set"
   assumes "S \<in> sets M"
@@ -526,6 +554,26 @@ lemma in_sigma[intro, simp]: "A \<in> sets M \<Longrightarrow> A \<in> sets (sig
 
 lemma (in sigma_algebra) sigma_eq[simp]: "sigma M = M"
   unfolding sigma_def sigma_sets_eq by simp
+
+lemma sigma_sets_singleton:
+  assumes "X \<subseteq> S"
+  shows "sigma_sets S { X } = { {}, X, S - X, S }"
+proof -
+  interpret sigma_algebra "\<lparr> space = S, sets = { {}, X, S - X, S }\<rparr>"
+    by (rule sigma_algebra_single_set) fact
+  have "sigma_sets S { X } \<subseteq> sigma_sets S { {}, X, S - X, S }"
+    by (rule sigma_sets_subseteq) simp
+  moreover have "\<dots> = { {}, X, S - X, S }"
+    using sigma_eq unfolding sigma_def by simp
+  moreover
+  { fix A assume "A \<in> { {}, X, S - X, S }"
+    then have "A \<in> sigma_sets S { X }"
+      by (auto intro: sigma_sets.intros sigma_sets_top) }
+  ultimately have "sigma_sets S { X } = sigma_sets S { {}, X, S - X, S }"
+    by (intro antisym) auto
+  with sigma_eq show ?thesis
+    unfolding sigma_def by simp
+qed
 
 lemma restricted_sigma:
   assumes S: "S \<in> sets (sigma M)" and M: "sets M \<subseteq> Pow (space M)"

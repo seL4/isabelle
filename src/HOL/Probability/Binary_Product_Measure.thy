@@ -321,12 +321,6 @@ locale pair_sigma_finite = M1: sigma_finite_measure M1 + M2: sigma_finite_measur
 sublocale pair_sigma_finite \<subseteq> pair_sigma_algebra M1 M2
   by default
 
-lemma sigma_sets_subseteq: assumes "A \<subseteq> B" shows "sigma_sets X A \<subseteq> sigma_sets X B"
-proof
-  fix x assume "x \<in> sigma_sets X A" then show "x \<in> sigma_sets X B"
-    by induct (insert `A \<subseteq> B`, auto intro: sigma_sets.intros)
-qed
-
 lemma (in pair_sigma_finite) measure_cut_measurable_fst:
   assumes "Q \<in> sets P" shows "(\<lambda>x. measure M2 (Pair x -` Q)) \<in> borel_measurable M1" (is "?s Q \<in> _")
 proof -
