@@ -453,6 +453,18 @@ qed (simp_all add: bot_inat_def top_inat_def)
 
 end
 
+lemma finite_Fin_bounded:
+  assumes le_fin: "\<And>y. y \<in> A \<Longrightarrow> y \<le> Fin n"
+  shows "finite A"
+proof (rule finite_subset)
+  show "finite (Fin ` {..n})" by blast
+
+  have "A \<subseteq> {..Fin n}" using le_fin by fastsimp
+  also have "\<dots> \<subseteq> Fin ` {..n}"
+    by (rule subsetI) (case_tac x, auto)
+  finally show "A \<subseteq> Fin ` {..n}" .
+qed
+
 
 subsection {* Well-ordering *}
 
@@ -491,6 +503,38 @@ proof
   assume hyp: "(\<And>n\<Colon>inat. (\<And>m\<Colon>inat. m < n \<Longrightarrow> P m) \<Longrightarrow> P n)"
   show "P n" by (blast intro: inat_less_induct hyp)
 qed
+
+subsection {* Complete Lattice *}
+
+instantiation inat :: complete_lattice
+begin
+
+definition inf_inat :: "inat \<Rightarrow> inat \<Rightarrow> inat" where
+  "inf_inat \<equiv> min"
+
+definition sup_inat :: "inat \<Rightarrow> inat \<Rightarrow> inat" where
+  "sup_inat \<equiv> max"
+
+definition Inf_inat :: "inat set \<Rightarrow> inat" where
+  "Inf_inat A \<equiv> if A = {} then \<infinity> else (LEAST x. x \<in> A)"
+
+definition Sup_inat :: "inat set \<Rightarrow> inat" where
+  "Sup_inat A \<equiv> if A = {} then 0
+    else if finite A then Max A
+                     else \<infinity>"
+instance proof
+  fix x :: "inat" and A :: "inat set"
+  { assume "x \<in> A" then show "Inf A \<le> x"
+      unfolding Inf_inat_def by (auto intro: Least_le) }
+  { assume "\<And>y. y \<in> A \<Longrightarrow> x \<le> y" then show "x \<le> Inf A"
+      unfolding Inf_inat_def
+      by (cases "A = {}") (auto intro: LeastI2_ex) }
+  { assume "x \<in> A" then show "x \<le> Sup A"
+      unfolding Sup_inat_def by (cases "finite A") auto }
+  { assume "\<And>y. y \<in> A \<Longrightarrow> y \<le> x" then show "Sup A \<le> x"
+      unfolding Sup_inat_def using finite_Fin_bounded by auto }
+qed (simp_all add: inf_inat_def sup_inat_def)
+end
 
 
 subsection {* Traditional theorem names *}
