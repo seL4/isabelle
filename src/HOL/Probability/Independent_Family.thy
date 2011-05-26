@@ -75,6 +75,32 @@ lemma (in prob_space) indep_setsD:
   shows "prob (\<Inter>j\<in>J. A j) = (\<Prod>j\<in>J. prob (A j))"
   using assms unfolding indep_sets_def by auto
 
+lemma (in prob_space) indep_setI:
+  assumes ev: "A \<subseteq> events" "B \<subseteq> events"
+    and indep: "\<And>a b. a \<in> A \<Longrightarrow> b \<in> B \<Longrightarrow> prob (a \<inter> b) = prob a * prob b"
+  shows "indep_set A B"
+  unfolding indep_set_def
+proof (rule indep_setsI)
+  fix F J assume "J \<noteq> {}" "J \<subseteq> UNIV"
+    and F: "\<forall>j\<in>J. F j \<in> (case j of True \<Rightarrow> A | False \<Rightarrow> B)"
+  have "J \<in> Pow UNIV" by auto
+  with F `J \<noteq> {}` indep[of "F True" "F False"]
+  show "prob (\<Inter>j\<in>J. F j) = (\<Prod>j\<in>J. prob (F j))"
+    unfolding UNIV_bool Pow_insert by (auto simp: ac_simps)
+qed (auto split: bool.split simp: ev)
+
+lemma (in prob_space) indep_setD:
+  assumes indep: "indep_set A B" and ev: "a \<in> A" "b \<in> B"
+  shows "prob (a \<inter> b) = prob a * prob b"
+  using indep[unfolded indep_set_def, THEN indep_setsD, of UNIV "bool_case a b"] ev
+  by (simp add: ac_simps UNIV_bool)
+
+lemma (in prob_space)
+  assumes indep: "indep_set A B"
+  shows indep_setD_ev1: "A \<subseteq> sets M"
+    and indep_setD_ev2: "B \<subseteq> sets M"
+  using indep unfolding indep_set_def indep_sets_def UNIV_bool by auto
+
 lemma dynkin_systemI':
   assumes 1: "\<And> A. A \<in> sets M \<Longrightarrow> A \<subseteq> space M"
   assumes empty: "{} \<in> sets M"
@@ -419,6 +445,169 @@ proof -
   qed
   ultimately show ?thesis
     by (simp cong: indep_sets_cong)
+qed
+
+definition (in prob_space) terminal_events where
+  "terminal_events A = (\<Inter>n. sigma_sets (space M) (UNION {n..} A))"
+
+lemma (in prob_space) terminal_events_sets:
+  assumes A: "\<And>i. A i \<subseteq> sets M"
+  assumes "\<And>i::nat. sigma_algebra \<lparr>space = space M, sets = A i\<rparr>"
+  assumes X: "X \<in> terminal_events A"
+  shows "X \<in> sets M"
+proof -
+  let ?A = "(\<Inter>n. sigma_sets (space M) (UNION {n..} A))"
+  interpret A: sigma_algebra "\<lparr>space = space M, sets = A i\<rparr>" for i by fact
+  from X have "\<And>n. X \<in> sigma_sets (space M) (UNION {n..} A)" by (auto simp: terminal_events_def)
+  from this[of 0] have "X \<in> sigma_sets (space M) (UNION UNIV A)" by simp
+  then show "X \<in> sets M"
+    by induct (insert A, auto)
+qed
+
+lemma (in prob_space) sigma_algebra_terminal_events:
+  assumes "\<And>i::nat. sigma_algebra \<lparr>space = space M, sets = A i\<rparr>"
+  shows "sigma_algebra \<lparr> space = space M, sets = terminal_events A \<rparr>"
+  unfolding terminal_events_def
+proof (simp add: sigma_algebra_iff2, safe)
+  let ?A = "(\<Inter>n. sigma_sets (space M) (UNION {n..} A))"
+  interpret A: sigma_algebra "\<lparr>space = space M, sets = A i\<rparr>" for i by fact
+  { fix X x assume "X \<in> ?A" "x \<in> X" 
+    then have "\<And>n. X \<in> sigma_sets (space M) (UNION {n..} A)" by auto
+    from this[of 0] have "X \<in> sigma_sets (space M) (UNION UNIV A)" by simp
+    then have "X \<subseteq> space M"
+      by induct (insert A.sets_into_space, auto)
+    with `x \<in> X` show "x \<in> space M" by auto }
+  { fix F :: "nat \<Rightarrow> 'a set" and n assume "range F \<subseteq> ?A"
+    then show "(UNION UNIV F) \<in> sigma_sets (space M) (UNION {n..} A)"
+      by (intro sigma_sets.Union) auto }
+qed (auto intro!: sigma_sets.Compl sigma_sets.Empty)
+
+lemma (in prob_space) kolmogorov_0_1_law:
+  fixes A :: "nat \<Rightarrow> 'a set set"
+  assumes A: "\<And>i. A i \<subseteq> sets M"
+  assumes "\<And>i::nat. sigma_algebra \<lparr>space = space M, sets = A i\<rparr>"
+  assumes indep: "indep_sets A UNIV"
+  and X: "X \<in> terminal_events A"
+  shows "prob X = 0 \<or> prob X = 1"
+proof -
+  let ?D = "\<lparr> space = space M, sets = {D \<in> sets M. prob (X \<inter> D) = prob X * prob D} \<rparr>"
+  interpret A: sigma_algebra "\<lparr>space = space M, sets = A i\<rparr>" for i by fact
+  interpret T: sigma_algebra "\<lparr> space = space M, sets = terminal_events A \<rparr>"
+    by (rule sigma_algebra_terminal_events) fact
+  have "X \<subseteq> space M" using T.space_closed X by auto
+
+  have X_in: "X \<in> sets M"
+    by (rule terminal_events_sets) fact+
+
+  interpret D: dynkin_system ?D
+  proof (rule dynkin_systemI)
+    fix D assume "D \<in> sets ?D" then show "D \<subseteq> space ?D"
+      using sets_into_space by auto
+  next
+    show "space ?D \<in> sets ?D"
+      using prob_space `X \<subseteq> space M` by (simp add: Int_absorb2)
+  next
+    fix A assume A: "A \<in> sets ?D"
+    have "prob (X \<inter> (space M - A)) = prob (X - (X \<inter> A))"
+      using `X \<subseteq> space M` by (auto intro!: arg_cong[where f=prob])
+    also have "\<dots> = prob X - prob (X \<inter> A)"
+      using X_in A by (intro finite_measure_Diff) auto
+    also have "\<dots> = prob X * prob (space M) - prob X * prob A"
+      using A prob_space by auto
+    also have "\<dots> = prob X * prob (space M - A)"
+      using X_in A sets_into_space
+      by (subst finite_measure_Diff) (auto simp: field_simps)
+    finally show "space ?D - A \<in> sets ?D"
+      using A `X \<subseteq> space M` by auto
+  next
+    fix F :: "nat \<Rightarrow> 'a set" assume dis: "disjoint_family F" and "range F \<subseteq> sets ?D"
+    then have F: "range F \<subseteq> events" "\<And>i. prob (X \<inter> F i) = prob X * prob (F i)"
+      by auto
+    have "(\<lambda>i. prob (X \<inter> F i)) sums prob (\<Union>i. X \<inter> F i)"
+    proof (rule finite_measure_UNION)
+      show "range (\<lambda>i. X \<inter> F i) \<subseteq> events"
+        using F X_in by auto
+      show "disjoint_family (\<lambda>i. X \<inter> F i)"
+        using dis by (rule disjoint_family_on_bisimulation) auto
+    qed
+    with F have "(\<lambda>i. prob X * prob (F i)) sums prob (X \<inter> (\<Union>i. F i))"
+      by simp
+    moreover have "(\<lambda>i. prob X * prob (F i)) sums (prob X * prob (\<Union>i. F i))"
+      by (intro mult_right.sums finite_measure_UNION F dis)
+    ultimately have "prob (X \<inter> (\<Union>i. F i)) = prob X * prob (\<Union>i. F i)"
+      by (auto dest!: sums_unique)
+    with F show "(\<Union>i. F i) \<in> sets ?D"
+      by auto
+  qed
+
+  { fix n
+    have "indep_sets (\<lambda>b. sigma_sets (space M) (\<Union>m\<in>bool_case {..n} {Suc n..} b. A m)) UNIV"
+    proof (rule indep_sets_collect_sigma)
+      have *: "(\<Union>b. case b of True \<Rightarrow> {..n} | False \<Rightarrow> {Suc n..}) = UNIV" (is "?U = _")
+        by (simp split: bool.split add: set_eq_iff) (metis not_less_eq_eq)
+      with indep show "indep_sets A ?U" by simp
+      show "disjoint_family (bool_case {..n} {Suc n..})"
+        unfolding disjoint_family_on_def by (auto split: bool.split)
+      fix m
+      show "Int_stable \<lparr>space = space M, sets = A m\<rparr>"
+        unfolding Int_stable_def using A.Int by auto
+    qed
+    also have "(\<lambda>b. sigma_sets (space M) (\<Union>m\<in>bool_case {..n} {Suc n..} b. A m)) = 
+      bool_case (sigma_sets (space M) (\<Union>m\<in>{..n}. A m)) (sigma_sets (space M) (\<Union>m\<in>{Suc n..}. A m))"
+      by (auto intro!: ext split: bool.split)
+    finally have indep: "indep_set (sigma_sets (space M) (\<Union>m\<in>{..n}. A m)) (sigma_sets (space M) (\<Union>m\<in>{Suc n..}. A m))"
+      unfolding indep_set_def by simp
+
+    have "sigma_sets (space M) (\<Union>m\<in>{..n}. A m) \<subseteq> sets ?D"
+    proof (simp add: subset_eq, rule)
+      fix D assume D: "D \<in> sigma_sets (space M) (\<Union>m\<in>{..n}. A m)"
+      have "X \<in> sigma_sets (space M) (\<Union>m\<in>{Suc n..}. A m)"
+        using X unfolding terminal_events_def by simp
+      from indep_setD[OF indep D this] indep_setD_ev1[OF indep] D
+      show "D \<in> events \<and> prob (X \<inter> D) = prob X * prob D"
+        by (auto simp add: ac_simps)
+    qed }
+  then have "(\<Union>n. sigma_sets (space M) (\<Union>m\<in>{..n}. A m)) \<subseteq> sets ?D" (is "?A \<subseteq> _")
+    by auto
+
+  have "sigma \<lparr> space = space M, sets = ?A \<rparr> =
+    dynkin \<lparr> space = space M, sets = ?A \<rparr>" (is "sigma ?UA = dynkin ?UA")
+  proof (rule sigma_eq_dynkin)
+    { fix B n assume "B \<in> sigma_sets (space M) (\<Union>m\<in>{..n}. A m)"
+      then have "B \<subseteq> space M"
+        by induct (insert A sets_into_space, auto) }
+    then show "sets ?UA \<subseteq> Pow (space ?UA)" by auto
+    show "Int_stable ?UA"
+    proof (rule Int_stableI)
+      fix a assume "a \<in> ?A" then guess n .. note a = this
+      fix b assume "b \<in> ?A" then guess m .. note b = this
+      interpret Amn: sigma_algebra "sigma \<lparr>space = space M, sets = (\<Union>i\<in>{..max m n}. A i)\<rparr>"
+        using A sets_into_space by (intro sigma_algebra_sigma) auto
+      have "sigma_sets (space M) (\<Union>i\<in>{..n}. A i) \<subseteq> sigma_sets (space M) (\<Union>i\<in>{..max m n}. A i)"
+        by (intro sigma_sets_subseteq UN_mono) auto
+      with a have "a \<in> sigma_sets (space M) (\<Union>i\<in>{..max m n}. A i)" by auto
+      moreover
+      have "sigma_sets (space M) (\<Union>i\<in>{..m}. A i) \<subseteq> sigma_sets (space M) (\<Union>i\<in>{..max m n}. A i)"
+        by (intro sigma_sets_subseteq UN_mono) auto
+      with b have "b \<in> sigma_sets (space M) (\<Union>i\<in>{..max m n}. A i)" by auto
+      ultimately have "a \<inter> b \<in> sigma_sets (space M) (\<Union>i\<in>{..max m n}. A i)"
+        using Amn.Int[of a b] by (simp add: sets_sigma)
+      then show "a \<inter> b \<in> (\<Union>n. sigma_sets (space M) (\<Union>i\<in>{..n}. A i))" by auto
+    qed
+  qed
+  moreover have "sets (dynkin ?UA) \<subseteq> sets ?D"
+  proof (rule D.dynkin_subset)
+    show "sets ?UA \<subseteq> sets ?D" using `?A \<subseteq> sets ?D` by auto
+  qed simp
+  ultimately have "sets (sigma ?UA) \<subseteq> sets ?D" by simp
+  moreover
+  have "\<And>n. sigma_sets (space M) (\<Union>i\<in>{n..}. A i) \<subseteq> sigma_sets (space M) ?A"
+    by (intro sigma_sets_subseteq UN_mono) (auto intro: sigma_sets.Basic)
+  then have "terminal_events A \<subseteq> sets (sigma ?UA)"
+    unfolding sets_sigma terminal_events_def by auto
+  moreover note `X \<in> terminal_events A`
+  ultimately have "X \<in> sets ?D" by auto
+  then show ?thesis by auto
 qed
 
 end
