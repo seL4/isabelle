@@ -4,6 +4,60 @@ begin
 
 chapter {* Isabelle/HOL \label{ch:hol} *}
 
+section {* Higher-Order Logic *}
+
+text {* Isabelle/HOL is based on Higher-Order Logic, a polymorphic
+  version of Church's Simple Theory of Types.  HOL can be best
+  understood as a simply-typed version of classical set theory.  The
+  logic was first implemented in Gordon's HOL system
+  \cite{mgordon-hol}.  It extends Church's original logic
+  \cite{church40} by explicit type variables (naive polymorphism) and
+  a sound axiomatization scheme for new types based on subsets of
+  existing types.
+
+  Andrews's book \cite{andrews86} is a full description of the
+  original Church-style higher-order logic, with proofs of correctness
+  and completeness wrt.\ certain set-theoretic interpretations.  The
+  particular extensions of Gordon-style HOL are explained semantically
+  in two chapters of the 1993 HOL book \cite{pitts93}.
+
+  Experience with HOL over decades has demonstrated that higher-order
+  logic is widely applicable in many areas of mathematics and computer
+  science.  In a sense, Higher-Order Logic is simpler than First-Order
+  Logic, because there are fewer restrictions and special cases.  Note
+  that HOL is \emph{weaker} than FOL with axioms for ZF set theory,
+  which is traditionally considered the standard foundation of regular
+  mathematics, but for most applications this does not matter.  If you
+  prefer ML to Lisp, you will probably prefer HOL to ZF.
+
+  \medskip The syntax of HOL follows @{text "\<lambda>"}-calculus and
+  functional programming.  Function application is curried.  To apply
+  the function @{text f} of type @{text "\<tau>\<^sub>1 \<Rightarrow> \<tau>\<^sub>2 \<Rightarrow> \<tau>\<^sub>3"} to the
+  arguments @{text a} and @{text b} in HOL, you simply write @{text "f
+  a b"} (as in ML or Haskell).  There is no ``apply'' operator; the
+  existing application of the Pure @{text "\<lambda>"}-calculus is re-used.
+  Note that in HOL @{text "f (a, b)"} means ``@{text "f"} applied to
+  the pair @{text "(a, b)"} (which is notation for @{text "Pair a
+  b"}).  The latter typically introduces extra formal efforts that can
+  be avoided by currying functions by default.  Explicit tuples are as
+  infrequent in HOL formalizations as in good ML or Haskell programs.
+
+  \medskip Isabelle/HOL has a distinct feel, compared to other
+  object-logics like Isabelle/ZF.  It identifies object-level types
+  with meta-level types, taking advantage of the default
+  type-inference mechanism of Isabelle/Pure.  HOL fully identifies
+  object-level functions with meta-level functions, with native
+  abstraction and application.
+
+  These identifications allow Isabelle to support HOL particularly
+  nicely, but they also mean that HOL requires some sophistication
+  from the user.  In particular, an understanding of Hindley-Milner
+  type-inference with type-classes, which are both used extensively in
+  the standard libraries and applications.  Beginners can set
+  @{attribute show_types} or even @{attribute show_sorts} to get more
+  explicit information about the result of type-inference.  *}
+
+
 section {* Inductive and coinductive definitions \label{sec:hol-inductive} *}
 
 text {* An \emph{inductive definition} specifies the least predicate

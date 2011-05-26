@@ -2,38 +2,6 @@
 \index{higher-order logic|(}
 \index{HOL system@{\sc hol} system}
 
-The theory~\thydx{HOL} implements higher-order logic.  It is based on
-Gordon's~{\sc hol} system~\cite{mgordon-hol}, which itself is based on
-Church's original paper~\cite{church40}.  Andrews's book~\cite{andrews86} is a
-full description of the original Church-style higher-order logic.  Experience
-with the {\sc hol} system has demonstrated that higher-order logic is widely
-applicable in many areas of mathematics and computer science, not just
-hardware verification, {\sc hol}'s original \textit{raison d'{\^e}tre\/}.  It
-is weaker than ZF set theory but for most applications this does not matter.
-If you prefer {\ML} to Lisp, you will probably prefer HOL to~ZF.
-
-The syntax of HOL\footnote{Earlier versions of Isabelle's HOL used a different
-  syntax.  Ancient releases of Isabelle included still another version of~HOL,
-  with explicit type inference rules~\cite{paulson-COLOG}.  This version no
-  longer exists, but \thydx{ZF} supports a similar style of reasoning.}
-follows $\lambda$-calculus and functional programming.  Function application
-is curried.  To apply the function~$f$ of type $\tau@1\To\tau@2\To\tau@3$ to
-the arguments~$a$ and~$b$ in HOL, you simply write $f\,a\,b$.  There is no
-`apply' operator as in \thydx{ZF}.  Note that $f(a,b)$ means ``$f$ applied to
-the pair $(a,b)$'' in HOL.  We write ordered pairs as $(a,b)$, not $\langle
-a,b\rangle$ as in ZF.
-
-HOL has a distinct feel, compared with ZF and CTT.  It identifies object-level
-types with meta-level types, taking advantage of Isabelle's built-in
-type-checker.  It identifies object-level functions with meta-level functions,
-so it uses Isabelle's operations for abstraction and application.
-
-These identifications allow Isabelle to support HOL particularly nicely, but
-they also mean that HOL requires more sophistication from the user --- in
-particular, an understanding of Isabelle's type system.  Beginners should work
-with \texttt{show_types} (or even \texttt{show_sorts}) set to \texttt{true}.
-
-
 \begin{figure}
 \begin{constants}
   \it name      &\it meta-type  & \it description \\
