@@ -555,6 +555,16 @@ lemma in_sigma[intro, simp]: "A \<in> sets M \<Longrightarrow> A \<in> sets (sig
 lemma (in sigma_algebra) sigma_eq[simp]: "sigma M = M"
   unfolding sigma_def sigma_sets_eq by simp
 
+lemma sigma_sigma_eq:
+  assumes "sets M \<subseteq> Pow (space M)"
+  shows "sigma (sigma M) = sigma M"
+  using sigma_algebra.sigma_eq[OF sigma_algebra_sigma, OF assms] .
+
+lemma sigma_sets_sigma_sets_eq:
+  "M \<subseteq> Pow S \<Longrightarrow> sigma_sets S (sigma_sets S M) = sigma_sets S M"
+  using sigma_sigma_eq[of "\<lparr> space = S, sets = M \<rparr>"]
+  by (simp add: sigma_def)
+
 lemma sigma_sets_singleton:
   assumes "X \<subseteq> S"
   shows "sigma_sets S { X } = { {}, X, S - X, S }"
@@ -585,6 +595,61 @@ proof -
   from sigma_sets_Int[OF this]
   show ?thesis
     by (simp add: sigma_def)
+qed
+
+lemma sigma_sets_vimage_commute:
+  assumes X: "X \<in> space M \<rightarrow> space M'"
+  shows "{X -` A \<inter> space M |A. A \<in> sets (sigma M')}
+       = sigma_sets (space M) {X -` A \<inter> space M |A. A \<in> sets M'}" (is "?L = ?R")
+proof
+  show "?L \<subseteq> ?R"
+  proof clarify
+    fix A assume "A \<in> sets (sigma M')"
+    then have "A \<in> sigma_sets (space M') (sets M')" by (simp add: sets_sigma)
+    then show "X -` A \<inter> space M \<in> ?R"
+    proof induct
+      case (Basic B) then show ?case
+        by (auto intro!: sigma_sets.Basic)
+    next
+      case Empty then show ?case
+        by (auto intro!: sigma_sets.Empty)
+    next
+      case (Compl B)
+      have [simp]: "X -` (space M' - B) \<inter> space M = space M - (X -` B \<inter> space M)"
+        by (auto simp add: funcset_mem [OF X])
+      with Compl show ?case
+        by (auto intro!: sigma_sets.Compl)
+    next
+      case (Union F)
+      then show ?case
+        by (auto simp add: vimage_UN UN_extend_simps(4) simp del: UN_simps
+                 intro!: sigma_sets.Union)
+    qed
+  qed
+  show "?R \<subseteq> ?L"
+  proof clarify
+    fix A assume "A \<in> ?R"
+    then show "\<exists>B. A = X -` B \<inter> space M \<and> B \<in> sets (sigma M')"
+    proof induct
+      case (Basic B) then show ?case by auto
+    next
+      case Empty then show ?case
+        by (auto simp: sets_sigma intro!: sigma_sets.Empty exI[of _ "{}"])
+    next
+      case (Compl B)
+      then obtain A where A: "B = X -` A \<inter> space M" "A \<in> sets (sigma M')" by auto
+      then have [simp]: "space M - B = X -` (space M' - A) \<inter> space M"
+        by (auto simp add: funcset_mem [OF X])
+      with A(2) show ?case
+        by (auto simp: sets_sigma intro: sigma_sets.Compl)
+    next
+      case (Union F)
+      then have "\<forall>i. \<exists>B. F i = X -` B \<inter> space M \<and> B \<in> sets (sigma M')" by auto
+      from choice[OF this] guess A .. note A = this
+      with A show ?case
+        by (auto simp: sets_sigma vimage_UN[symmetric] intro: sigma_sets.Union)
+    qed
+  qed
 qed
 
 section {* Measurable functions *}
