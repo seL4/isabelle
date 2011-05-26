@@ -489,6 +489,37 @@ text {*
 *}
 
 
+subsubsection {* Examples *}
+
+text {* We define a type of finite sequences, with slightly different
+  names than the existing @{typ "'a list"} that is already in @{theory
+  Main}: *}
+
+datatype 'a seq = Empty | Seq 'a "'a seq"
+
+text {* We can now prove some simple lemma by structural induction: *}
+
+lemma "Seq x xs \<noteq> xs"
+proof (induct xs arbitrary: x)
+  case Empty
+  txt {* This case can be proved using the simplifier: the freeness
+    properties of the datatype are already declared as @{attribute
+    simp} rules. *}
+  show "Seq x Empty \<noteq> Empty"
+    by simp
+next
+  case (Seq y ys)
+  txt {* The step case is proved similarly. *}
+  show "Seq x (Seq y ys) \<noteq> Seq y ys"
+    using `Seq y ys \<noteq> ys` by simp
+qed
+
+text {* Here is a more succinct version of the same proof: *}
+
+lemma "Seq x xs \<noteq> xs"
+  by (induct xs arbitrary: x) simp_all
+
+
 section {* Records \label{sec:hol-record} *}
 
 text {*

@@ -758,6 +758,85 @@ The old TFL commands \hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recde
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsubsubsection{Examples%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+We define a type of finite sequences, with slightly different
+  names than the existing \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a\ list{\isaliteral{22}{\isachardoublequote}}} that is already in \hyperlink{theory.Main}{\mbox{\isa{Main}}}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{datatype}\isamarkupfalse%
+\ {\isaliteral{27}{\isacharprime}}a\ seq\ {\isaliteral{3D}{\isacharequal}}\ Empty\ {\isaliteral{7C}{\isacharbar}}\ Seq\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ seq{\isaliteral{22}{\isachardoublequoteclose}}%
+\begin{isamarkuptext}%
+We can now prove some simple lemma by structural induction:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}Seq\ x\ xs\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ xs{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}induct\ xs\ arbitrary{\isaliteral{3A}{\isacharcolon}}\ x{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ Empty%
+\begin{isamarkuptxt}%
+This case can be proved using the simplifier: the freeness
+    properties of the datatype are already declared as \hyperlink{attribute.simp}{\mbox{\isa{simp}}} rules.%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}Seq\ x\ Empty\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ Empty{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}Seq\ y\ ys{\isaliteral{29}{\isacharparenright}}%
+\begin{isamarkuptxt}%
+The step case is proved similarly.%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}Seq\ x\ {\isaliteral{28}{\isacharparenleft}}Seq\ y\ ys{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ Seq\ y\ ys{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \isacommand{using}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}Seq\ y\ ys\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ ys{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+Here is a more succinct version of the same proof:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}Seq\ x\ xs\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ xs{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}induct\ xs\ arbitrary{\isaliteral{3A}{\isacharcolon}}\ x{\isaliteral{29}{\isacharparenright}}\ simp{\isaliteral{5F}{\isacharunderscore}}all%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
 \isamarkupsection{Records \label{sec:hol-record}%
 }
 \isamarkuptrue%
