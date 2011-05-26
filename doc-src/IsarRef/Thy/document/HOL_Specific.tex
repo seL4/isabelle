@@ -729,14 +729,25 @@ The old TFL commands \hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recde
   HOL.
 
   \item \hyperlink{command.HOL.rep-datatype}{\mbox{\isa{\isacommand{rep{\isaliteral{5F}{\isacharunderscore}}datatype}}}} represents existing types as
-  inductive ones, generating the standard infrastructure of derived
-  concepts (primitive recursion etc.).
+  datatypes.
+
+  For foundational reasons, some basic types such as \isa{nat}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C74696D65733E}{\isasymtimes}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{2B}{\isacharplus}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{22}{\isachardoublequote}}}, \isa{bool} and \isa{unit} are
+  introduced by more primitive means using \indexref{}{command}{typedef}\hyperlink{command.typedef}{\mbox{\isa{\isacommand{typedef}}}}.  To
+  recover the rich infrastructure of \hyperlink{command.datatype}{\mbox{\isa{\isacommand{datatype}}}} (e.g.\ rules
+  for \hyperlink{method.cases}{\mbox{\isa{cases}}} and \hyperlink{method.induct}{\mbox{\isa{induct}}} and the primitive recursion
+  combinators), such types may be represented as actual datatypes
+  later.  This is done by specifying the constructors of the desired
+  type, and giving a proof of the induction rule, distinctness and
+  injectivity of constructors.
+
+  For example, see \verb|~~/src/HOL/Sum_Type.thy| for the
+  representation of the primitive sum type as fully-featured datatype.
 
   \end{description}
 
-  The induction and exhaustion theorems generated provide case names
-  according to the constructors involved, while parameters are named
-  after the types (see also \secref{sec:cases-induct}).
+  The generated rules for \hyperlink{method.induct}{\mbox{\isa{induct}}} and \hyperlink{method.cases}{\mbox{\isa{cases}}} provide
+  case names according to the given constructors, while parameters are
+  named after the types (see also \secref{sec:cases-induct}).
 
   See \cite{isabelle-HOL} for more details on datatypes, but beware of
   the old-style theory syntax being used there!  Apart from proper

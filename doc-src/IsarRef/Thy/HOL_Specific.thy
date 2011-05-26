@@ -458,14 +458,26 @@ text {*
   HOL.
 
   \item @{command (HOL) "rep_datatype"} represents existing types as
-  inductive ones, generating the standard infrastructure of derived
-  concepts (primitive recursion etc.).
+  datatypes.
+
+  For foundational reasons, some basic types such as @{typ nat}, @{typ
+  "'a \<times> 'b"}, @{typ "'a + 'b"}, @{typ bool} and @{typ unit} are
+  introduced by more primitive means using @{command_ref typedef}.  To
+  recover the rich infrastructure of @{command datatype} (e.g.\ rules
+  for @{method cases} and @{method induct} and the primitive recursion
+  combinators), such types may be represented as actual datatypes
+  later.  This is done by specifying the constructors of the desired
+  type, and giving a proof of the induction rule, distinctness and
+  injectivity of constructors.
+
+  For example, see @{file "~~/src/HOL/Sum_Type.thy"} for the
+  representation of the primitive sum type as fully-featured datatype.
 
   \end{description}
 
-  The induction and exhaustion theorems generated provide case names
-  according to the constructors involved, while parameters are named
-  after the types (see also \secref{sec:cases-induct}).
+  The generated rules for @{method induct} and @{method cases} provide
+  case names according to the given constructors, while parameters are
+  named after the types (see also \secref{sec:cases-induct}).
 
   See \cite{isabelle-HOL} for more details on datatypes, but beware of
   the old-style theory syntax being used there!  Apart from proper
