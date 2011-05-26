@@ -37,9 +37,12 @@ definition (in prob_space)
   "indep_set A B \<longleftrightarrow> indep_sets (bool_case A B) UNIV"
 
 definition (in prob_space)
-  "indep_rv M' X I \<longleftrightarrow>
+  "indep_vars M' X I \<longleftrightarrow>
     (\<forall>i\<in>I. random_variable (M' i) (X i)) \<and>
     indep_sets (\<lambda>i. sigma_sets (space M) { X i -` A \<inter> space M | A. A \<in> sets (M' i)}) I"
+
+definition (in prob_space)
+  "indep_var Ma A Mb B \<longleftrightarrow> indep_vars (bool_case Ma Mb) (bool_case A B) UNIV"
 
 lemma (in prob_space) indep_sets_cong[cong]:
   "I = J \<Longrightarrow> (\<And>i. i \<in> I \<Longrightarrow> F i = G i) \<Longrightarrow> indep_sets F I \<longleftrightarrow> indep_sets G J"
@@ -694,13 +697,13 @@ next
   qed
 qed
 
-lemma (in prob_space) indep_rv_finite:
+lemma (in prob_space) indep_vars_finite:
   fixes I :: "'i set"
   assumes I: "I \<noteq> {}" "finite I"
     and rv: "\<And>i. i \<in> I \<Longrightarrow> random_variable (sigma (M' i)) (X i)"
     and Int_stable: "\<And>i. i \<in> I \<Longrightarrow> Int_stable (M' i)"
     and space: "\<And>i. i \<in> I \<Longrightarrow> space (M' i) \<in> sets (M' i)"
-  shows "indep_rv (\<lambda>i. sigma (M' i)) X I \<longleftrightarrow>
+  shows "indep_vars (\<lambda>i. sigma (M' i)) X I \<longleftrightarrow>
     (\<forall>A\<in>(\<Pi> i\<in>I. sets (M' i)). prob (\<Inter>j\<in>I. X j -` A j \<inter> space M) = (\<Prod>j\<in>I. prob (X j -` A j \<inter> space M)))"
 proof -
   from rv have X: "\<And>i. i \<in> I \<Longrightarrow> X i \<in> space M \<rightarrow> space (M' i)"
@@ -761,28 +764,28 @@ proof -
       by simp
   qed
   then show ?thesis using `I \<noteq> {}`
-    by (simp add: rv indep_rv_def)
+    by (simp add: rv indep_vars_def)
 qed
 
-lemma (in prob_space) indep_rv_compose:
-  assumes "indep_rv M' X I"
+lemma (in prob_space) indep_vars_compose:
+  assumes "indep_vars M' X I"
   assumes rv:
     "\<And>i. i \<in> I \<Longrightarrow> sigma_algebra (N i)"
     "\<And>i. i \<in> I \<Longrightarrow> Y i \<in> measurable (M' i) (N i)"
-  shows "indep_rv N (\<lambda>i. Y i \<circ> X i) I"
-  unfolding indep_rv_def
+  shows "indep_vars N (\<lambda>i. Y i \<circ> X i) I"
+  unfolding indep_vars_def
 proof
-  from rv `indep_rv M' X I`
+  from rv `indep_vars M' X I`
   show "\<forall>i\<in>I. random_variable (N i) (Y i \<circ> X i)"
-    by (auto intro!: measurable_comp simp: indep_rv_def)
+    by (auto intro!: measurable_comp simp: indep_vars_def)
 
   have "indep_sets (\<lambda>i. sigma_sets (space M) {X i -` A \<inter> space M |A. A \<in> sets (M' i)}) I"
-    using `indep_rv M' X I` by (simp add: indep_rv_def)
+    using `indep_vars M' X I` by (simp add: indep_vars_def)
   then show "indep_sets (\<lambda>i. sigma_sets (space M) {(Y i \<circ> X i) -` A \<inter> space M |A. A \<in> sets (N i)}) I"
   proof (rule indep_sets_mono_sets)
     fix i assume "i \<in> I"
-    with `indep_rv M' X I` have X: "X i \<in> space M \<rightarrow> space (M' i)"
-      unfolding indep_rv_def measurable_def by auto
+    with `indep_vars M' X I` have X: "X i \<in> space M \<rightarrow> space (M' i)"
+      unfolding indep_vars_def measurable_def by auto
     { fix A assume "A \<in> sets (N i)"
       then have "\<exists>B. (Y i \<circ> X i) -` A \<inter> space M = X i -` B \<inter> space M \<and> B \<in> sets (M' i)"
         by (intro exI[of _ "Y i -` A \<inter> space (M' i)"])
@@ -793,13 +796,13 @@ proof
   qed
 qed
 
-lemma (in prob_space) indep_rvD:
-  assumes X: "indep_rv M' X I"
+lemma (in prob_space) indep_varsD:
+  assumes X: "indep_vars M' X I"
   assumes I: "I \<noteq> {}" "finite I" "\<And>i. i \<in> I \<Longrightarrow> A i \<in> sets (M' i)"
   shows "prob (\<Inter>i\<in>I. X i -` A i \<inter> space M) = (\<Prod>i\<in>I. prob (X i -` A i \<inter> space M))"
 proof (rule indep_setsD)
   show "indep_sets (\<lambda>i. sigma_sets (space M) {X i -` A \<inter> space M |A. A \<in> sets (M' i)}) I"
-    using X by (auto simp: indep_rv_def)
+    using X by (auto simp: indep_vars_def)
   show "I \<subseteq> I" "I \<noteq> {}" "finite I" using I by auto
   show "\<forall>i\<in>I. X i -` A i \<inter> space M \<in> sigma_sets (space M) {X i -` A \<inter> space M |A. A \<in> sets (M' i)}"
     using I by (auto intro: sigma_sets.Basic)
@@ -808,7 +811,7 @@ qed
 lemma (in prob_space) indep_distribution_eq_measure:
   assumes I: "I \<noteq> {}" "finite I"
   assumes rv: "\<And>i. random_variable (M' i) (X i)"
-  shows "indep_rv M' X I \<longleftrightarrow>
+  shows "indep_vars M' X I \<longleftrightarrow>
     (\<forall>A\<in>sets (\<Pi>\<^isub>M i\<in>I. (M' i \<lparr> measure := extreal\<circ>distribution (X i) \<rparr>)).
       distribution (\<lambda>x. \<lambda>i\<in>I. X i x) A =
       finite_measure.\<mu>' (\<Pi>\<^isub>M i\<in>I. (M' i \<lparr> measure := extreal\<circ>distribution (X i) \<rparr>)) A)"
@@ -827,7 +830,7 @@ proof -
 
   show ?thesis
   proof (intro iffI ballI)
-    assume "indep_rv M' X I"
+    assume "indep_vars M' X I"
     fix A assume "A \<in> sets P.P"
     moreover
     have "D.prob A = P.prob A"
@@ -856,7 +859,7 @@ proof -
       with `I \<noteq> {}` have "distribution ?D E = prob (\<Inter>i\<in>I. X i -` F i \<inter> space M)"
         using `I \<noteq> {}` by (auto intro!: arg_cong[where f=prob] simp: Pi_iff distribution_def)
       also have "\<dots> = (\<Prod>i\<in>I. prob (X i -` F i \<inter> space M))"
-        using `indep_rv M' X I` I F by (rule indep_rvD)
+        using `indep_vars M' X I` I F by (rule indep_varsD)
       also have "\<dots> = P.prob E"
         using F by (simp add: `E = Pi\<^isub>E I F` P.prob_times M'.\<mu>'_def distribution_def)
       finally show "D.prob E = P.prob E" .
@@ -867,8 +870,8 @@ proof -
     assume eq: "\<forall>A\<in>sets P.P. distribution ?D A = P.prob A"
     have [simp]: "\<And>i. sigma (M' i) = M' i"
       using rv by (intro sigma_algebra.sigma_eq) simp
-    have "indep_rv (\<lambda>i. sigma (M' i)) X I"
-    proof (subst indep_rv_finite[OF I])
+    have "indep_vars (\<lambda>i. sigma (M' i)) X I"
+    proof (subst indep_vars_finite[OF I])
       fix i assume [simp]: "i \<in> I"
       show "random_variable (sigma (M' i)) (X i)"
         using rv[of i] by simp
@@ -890,9 +893,32 @@ proof -
         finally show "prob (\<Inter>j\<in>I. X j -` A j \<inter> space M) = (\<Prod>j\<in>I. prob (X j -` A j \<inter> space M))" .
       qed
     qed
-    then show "indep_rv M' X I"
+    then show "indep_vars M' X I"
       by simp
   qed
 qed
+
+lemma (in prob_space) indep_varD:
+  assumes indep: "indep_var Ma A Mb B"
+  assumes sets: "Xa \<in> sets Ma" "Xb \<in> sets Mb"
+  shows "prob ((\<lambda>x. (A x, B x)) -` (Xa \<times> Xb) \<inter> space M) =
+    prob (A -` Xa \<inter> space M) * prob (B -` Xb \<inter> space M)"
+proof -
+  have "prob ((\<lambda>x. (A x, B x)) -` (Xa \<times> Xb) \<inter> space M) =
+    prob (\<Inter>i\<in>UNIV. (bool_case A B i -` bool_case Xa Xb i \<inter> space M))"
+    by (auto intro!: arg_cong[where f=prob] simp: UNIV_bool)
+  also have "\<dots> = (\<Prod>i\<in>UNIV. prob (bool_case A B i -` bool_case Xa Xb i \<inter> space M))"
+    using indep unfolding indep_var_def
+    by (rule indep_varsD) (auto split: bool.split intro: sets)
+  also have "\<dots> = prob (A -` Xa \<inter> space M) * prob (B -` Xb \<inter> space M)"
+    unfolding UNIV_bool by simp
+  finally show ?thesis .
+qed
+
+lemma (in prob_space) indep_var_distributionD:
+  assumes "indep_var Ma A Mb B"
+  assumes "Xa \<in> sets Ma" "Xb \<in> sets Mb"
+  shows "joint_distribution A B (Xa \<times> Xb) = distribution A Xa * distribution B Xb"
+  unfolding distribution_def using assms by (rule indep_varD)
 
 end
