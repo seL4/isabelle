@@ -771,6 +771,11 @@ text {*
 *}
 
 
+subsubsection {* Examples *}
+
+text {* See @{file "~~/src/HOL/ex/Records.thy"}, for example. *}
+
+
 section {* Adhoc tuples *}
 
 text {*
