@@ -171,7 +171,30 @@ text {*
   \begin{description}
 
   \item @{command (HOL) "primrec"} defines primitive recursive
-  functions over datatypes, see also \cite{isabelle-HOL}.
+  functions over datatypes (see also @{command_ref (HOL) datatype} and
+  @{command_ref (HOL) rep_datatype}).  The given @{text equations}
+  specify reduction rules that are produced by instantiating the
+  generic combinator for primitive recursion that is available for
+  each datatype.
+
+  Each equation needs to be of the form:
+
+  @{text [display] "f x\<^sub>1 \<dots> x\<^sub>m (C y\<^sub>1 \<dots> y\<^sub>k) z\<^sub>1 \<dots> z\<^sub>n = rhs"}
+
+  such that @{text C} is a datatype constructor, @{text rhs} contains
+  only the free variables on the left-hand side (or from the context),
+  and all recursive occurrences of @{text "f"} in @{text "rhs"} are of
+  the form @{text "f \<dots> y\<^sub>i \<dots>"} for some @{text i}.  At most one
+  reduction rule for each constructor can be given.  The order does
+  not matter.  For missing constructors, the function is defined to
+  return a default value, but this equation is made difficult to
+  access for users.
+
+  The reduction rules are declared as @{attribute simp} by default,
+  which enables standard proof methods like @{method simp} and
+  @{method auto} to normalize expressions of @{text "f"} applied to
+  datatype constructions, by simulating symbolic computation via
+  rewriting.
 
   \item @{command (HOL) "function"} defines functions by general
   wellfounded recursion. A detailed description with examples can be
@@ -200,15 +223,12 @@ text {*
   \end{description}
 
   Recursive definitions introduced by the @{command (HOL) "function"}
-  command accommodate
-  reasoning by induction (cf.\ \secref{sec:cases-induct}): rule @{text
-  "c.induct"} (where @{text c} is the name of the function definition)
-  refers to a specific induction rule, with parameters named according
-  to the user-specified equations. Cases are numbered (starting from 1).
-
-  For @{command (HOL) "primrec"}, the induction principle coincides
-  with structural recursion on the datatype the recursion is carried
-  out.
+  command accommodate reasoning by induction (cf.\ @{method induct}):
+  rule @{text "f.induct"} refers to a specific induction rule, with
+  parameters named according to the user-specified equations. Cases
+  are numbered starting from 1.  For @{command (HOL) "primrec"}, the
+  induction principle coincides with structural recursion on the
+  datatype where the recursion is carried out.
 
   The equations provided by these packages may be referred later as
   theorem list @{text "f.simps"}, where @{text f} is the (collective)
@@ -236,6 +256,129 @@ text {*
 
   \end{description}
 *}
+
+subsubsection {* Example: evaluation of expressions *}
+
+text {* Subsequently, we define mutual datatypes for arithmetic and
+  boolean expressions, and use @{command primrec} for evaluation
+  functions that follow the same recursive structure. *}
+
+datatype 'a aexp =
+    IF "'a bexp"  "'a aexp"  "'a aexp"
+  | Sum "'a aexp"  "'a aexp"
+  | Diff "'a aexp"  "'a aexp"
+  | Var 'a
+  | Num nat
+and 'a bexp =
+    Less "'a aexp"  "'a aexp"
+  | And "'a bexp"  "'a bexp"
+  | Neg "'a bexp"
+
+
+text {* \medskip Evaluation of arithmetic and boolean expressions *}
+
+primrec evala :: "('a \<Rightarrow> nat) \<Rightarrow> 'a aexp \<Rightarrow> nat"
+  and evalb :: "('a \<Rightarrow> nat) \<Rightarrow> 'a bexp \<Rightarrow> bool"
+where
+  "evala env (IF b a1 a2) = (if evalb env b then evala env a1 else evala env a2)"
+| "evala env (Sum a1 a2) = evala env a1 + evala env a2"
+| "evala env (Diff a1 a2) = evala env a1 - evala env a2"
+| "evala env (Var v) = env v"
+| "evala env (Num n) = n"
+| "evalb env (Less a1 a2) = (evala env a1 < evala env a2)"
+| "evalb env (And b1 b2) = (evalb env b1 \<and> evalb env b2)"
+| "evalb env (Neg b) = (\<not> evalb env b)"
+
+text {* Since the value of an expression depends on the value of its
+  variables, the functions @{const evala} and @{const evalb} take an
+  additional parameter, an \emph{environment} that maps variables to
+  their values.
+
+  \medskip Substitution on expressions can be defined similarly.  The
+  mapping @{text f} of type @{typ "'a \<Rightarrow> 'a aexp"} given as a
+  parameter is lifted canonically on the types @{typ "'a aexp"} and
+  @{typ "'a bexp"}, respectively.
+*}
+
+primrec substa :: "('a \<Rightarrow> 'b aexp) \<Rightarrow> 'a aexp \<Rightarrow> 'b aexp"
+  and substb :: "('a \<Rightarrow> 'b aexp) \<Rightarrow> 'a bexp \<Rightarrow> 'b bexp"
+where
+  "substa f (IF b a1 a2) = IF (substb f b) (substa f a1) (substa f a2)"
+| "substa f (Sum a1 a2) = Sum (substa f a1) (substa f a2)"
+| "substa f (Diff a1 a2) = Diff (substa f a1) (substa f a2)"
+| "substa f (Var v) = f v"
+| "substa f (Num n) = Num n"
+| "substb f (Less a1 a2) = Less (substa f a1) (substa f a2)"
+| "substb f (And b1 b2) = And (substb f b1) (substb f b2)"
+| "substb f (Neg b) = Neg (substb f b)"
+
+text {* In textbooks about semantics one often finds substitution
+  theorems, which express the relationship between substitution and
+  evaluation.  For @{typ "'a aexp"} and @{typ "'a bexp"}, we can prove
+  such a theorem by mutual induction, followed by simplification.
+*}
+
+lemma subst_one:
+  "evala env (substa (Var (v := a')) a) = evala (env (v := evala env a')) a"
+  "evalb env (substb (Var (v := a')) b) = evalb (env (v := evala env a')) b"
+  by (induct a and b) simp_all
+
+lemma subst_all:
+  "evala env (substa s a) = evala (\<lambda>x. evala env (s x)) a"
+  "evalb env (substb s b) = evalb (\<lambda>x. evala env (s x)) b"
+  by (induct a and b) simp_all
+
+
+subsubsection {* Example: a substitution function for terms *}
+
+text {* Functions on datatypes with nested recursion are also defined
+  by mutual primitive recursion. *}
+
+datatype ('a, 'b) "term" = Var 'a | App 'b "('a, 'b) term list"
+
+text {* A substitution function on type @{typ "('a, 'b) term"} can be
+  defined as follows, by working simultaneously on @{typ "('a, 'b)
+  term list"}: *}
+
+primrec subst_term :: "('a \<Rightarrow> ('a, 'b) term) \<Rightarrow> ('a, 'b) term \<Rightarrow> ('a, 'b) term" and
+  subst_term_list :: "('a \<Rightarrow> ('a, 'b) term) \<Rightarrow> ('a, 'b) term list \<Rightarrow> ('a, 'b) term list"
+where
+  "subst_term f (Var a) = f a"
+| "subst_term f (App b ts) = App b (subst_term_list f ts)"
+| "subst_term_list f [] = []"
+| "subst_term_list f (t # ts) = subst_term f t # subst_term_list f ts"
+
+text {* The recursion scheme follows the structure of the unfolded
+  definition of type @{typ "('a, 'b) term"}.  To prove properties of this
+  substitution function, mutual induction is needed:
+*}
+
+lemma "subst_term (subst_term f1 \<circ> f2) t = subst_term f1 (subst_term f2 t)" and
+  "subst_term_list (subst_term f1 \<circ> f2) ts = subst_term_list f1 (subst_term_list f2 ts)"
+  by (induct t and ts) simp_all
+
+
+subsubsection {* Example: a map function for infinitely branching trees *}
+
+text {* Defining functions on infinitely branching datatypes by
+  primitive recursion is just as easy.
+*}
+
+datatype 'a tree = Atom 'a | Branch "nat \<Rightarrow> 'a tree"
+
+primrec map_tree :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a tree \<Rightarrow> 'b tree"
+where
+  "map_tree f (Atom a) = Atom (f a)"
+| "map_tree f (Branch ts) = Branch (\<lambda>x. map_tree f (ts x))"
+
+text {* Note that all occurrences of functions such as @{text ts}
+  above must be applied to an argument.  In particular, @{term
+  "map_tree f \<circ> ts"} is not allowed here. *}
+
+text {* Here is a simple composition lemma for @{term map_tree}: *}
+
+lemma "map_tree g (map_tree f t) = map_tree (g \<circ> f) t"
+  by (induct t) simp_all
 
 
 subsection {* Proof methods related to recursive definitions *}

@@ -1589,7 +1589,7 @@ which can be fed to \ttindex{addsplits} just like
 \texttt{split_if} (see~{\S}\ref{subsec:HOL:case:splitting}).
 
 \texttt{List} provides a basic library of list processing functions defined by
-primitive recursion (see~{\S}\ref{sec:HOL:primrec}).  The recursion equations
+primitive recursion.  The recursion equations
 are shown in Figs.\ts\ref{fig:HOL:list-simps} and~\ref{fig:HOL:list-simps2}.
 
 \index{list@{\textit{list}} type|)}
@@ -1938,228 +1938,20 @@ In case of mutually recursive datatypes, \texttt{recs}, \texttt{size}, \texttt{i
 and \texttt{simps} are contained in a separate structure named $t@1_\ldots_t@n$.
 
 
-\section{Recursive function definitions}\label{sec:HOL:recursive}
-\index{recursive functions|see{recursion}}
-
-Isabelle/HOL provides two main mechanisms of defining recursive functions.
-\begin{enumerate}
-\item \textbf{Primitive recursion} is available only for datatypes, and it is
-  somewhat restrictive.  Recursive calls are only allowed on the argument's
-  immediate constituents.  On the other hand, it is the form of recursion most
-  often wanted, and it is easy to use.
-  
-\item \textbf{Well-founded recursion} requires that you supply a well-founded
-  relation that governs the recursion.  Recursive calls are only allowed if
-  they make the argument decrease under the relation.  Complicated recursion
-  forms, such as nested recursion, can be dealt with.  Termination can even be
-  proved at a later time, though having unsolved termination conditions around
-  can make work difficult.%
-  \footnote{This facility is based on Konrad Slind's TFL
-    package~\cite{slind-tfl}.  Thanks are due to Konrad for implementing TFL
-    and assisting with its installation.}
-\end{enumerate}
-
-Following good HOL tradition, these declarations do not assert arbitrary
-axioms.  Instead, they define the function using a recursion operator.  Both
-HOL and ZF derive the theory of well-founded recursion from first
-principles~\cite{paulson-set-II}.  Primitive recursion over some datatype
-relies on the recursion operator provided by the datatype package.  With
-either form of function definition, Isabelle proves the desired recursion
-equations as theorems.
-
-
-\subsection{Primitive recursive functions}
-\label{sec:HOL:primrec}
-\index{recursion!primitive|(}
-\index{*primrec|(}
-
-Datatypes come with a uniform way of defining functions, {\bf primitive
-  recursion}.  In principle, one could introduce primitive recursive functions
-by asserting their reduction rules as new axioms, but this is not recommended:
-\begin{ttbox}\slshape
-Append = Main +
-consts app :: ['a list, 'a list] => 'a list
-rules 
-   app_Nil   "app [] ys = ys"
-   app_Cons  "app (x#xs) ys = x#app xs ys"
-end
-\end{ttbox}
-Asserting axioms brings the danger of accidentally asserting nonsense, as
-in \verb$app [] ys = us$.
-
-The \ttindex{primrec} declaration is a safe means of defining primitive
-recursive functions on datatypes:
-\begin{ttbox}
-Append = Main +
-consts app :: ['a list, 'a list] => 'a list
-primrec
-   "app [] ys = ys"
-   "app (x#xs) ys = x#app xs ys"
-end
-\end{ttbox}
-Isabelle will now check that the two rules do indeed form a primitive
-recursive definition.  For example
-\begin{ttbox}
-primrec
-    "app [] ys = us"
-\end{ttbox}
-is rejected with an error message ``\texttt{Extra variables on rhs}''.
-
-\bigskip
-
-The general form of a primitive recursive definition is
-\begin{ttbox}
-primrec
-    {\it reduction rules}
-\end{ttbox}
-where \textit{reduction rules} specify one or more equations of the form
-\[ f \, x@1 \, \dots \, x@m \, (C \, y@1 \, \dots \, y@k) \, z@1 \,
-\dots \, z@n = r \] such that $C$ is a constructor of the datatype, $r$
-contains only the free variables on the left-hand side, and all recursive
-calls in $r$ are of the form $f \, \dots \, y@i \, \dots$ for some $i$.  There
-must be at most one reduction rule for each constructor.  The order is
-immaterial.  For missing constructors, the function is defined to return a
-default value.  
-
-If you would like to refer to some rule by name, then you must prefix
-the rule with an identifier.  These identifiers, like those in the
-\texttt{rules} section of a theory, will be visible at the \ML\ level.
-
-The primitive recursive function can have infix or mixfix syntax:
-\begin{ttbox}\underscoreon
-consts "@"  :: ['a list, 'a list] => 'a list  (infixr 60)
-primrec
-   "[] @ ys = ys"
-   "(x#xs) @ ys = x#(xs @ ys)"
-\end{ttbox}
-
-The reduction rules become part of the default simpset, which
-leads to short proof scripts:
-\begin{ttbox}\underscoreon
-Goal "(xs @ ys) @ zs = xs @ (ys @ zs)";
-by (induct\_tac "xs" 1);
-by (ALLGOALS Asm\_simp\_tac);
-\end{ttbox}
-
-\subsubsection{Example: Evaluation of expressions}
-Using mutual primitive recursion, we can define evaluation functions \texttt{evala}
-and \texttt{eval_bexp} for the datatypes of arithmetic and boolean expressions mentioned in
-{\S}\ref{subsec:datatype:basics}:
-\begin{ttbox}
-consts
-  evala :: "['a => nat, 'a aexp] => nat"
-  evalb :: "['a => nat, 'a bexp] => bool"
-
-primrec
-  "evala env (If_then_else b a1 a2) =
-     (if evalb env b then evala env a1 else evala env a2)"
-  "evala env (Sum a1 a2) = evala env a1 + evala env a2"
-  "evala env (Diff a1 a2) = evala env a1 - evala env a2"
-  "evala env (Var v) = env v"
-  "evala env (Num n) = n"
-
-  "evalb env (Less a1 a2) = (evala env a1 < evala env a2)"
-  "evalb env (And b1 b2) = (evalb env b1 & evalb env b2)"
-  "evalb env (Or b1 b2) = (evalb env b1 & evalb env b2)"
-\end{ttbox}
-Since the value of an expression depends on the value of its variables,
-the functions \texttt{evala} and \texttt{evalb} take an additional
-parameter, an {\em environment} of type \texttt{'a => nat}, which maps
-variables to their values.
-
-Similarly, we may define substitution functions \texttt{substa}
-and \texttt{substb} for expressions: The mapping \texttt{f} of type
-\texttt{'a => 'a aexp} given as a parameter is lifted canonically
-on the types \texttt{'a aexp} and \texttt{'a bexp}:
-\begin{ttbox}
-consts
-  substa :: "['a => 'b aexp, 'a aexp] => 'b aexp"
-  substb :: "['a => 'b aexp, 'a bexp] => 'b bexp"
-
-primrec
-  "substa f (If_then_else b a1 a2) =
-     If_then_else (substb f b) (substa f a1) (substa f a2)"
-  "substa f (Sum a1 a2) = Sum (substa f a1) (substa f a2)"
-  "substa f (Diff a1 a2) = Diff (substa f a1) (substa f a2)"
-  "substa f (Var v) = f v"
-  "substa f (Num n) = Num n"
-
-  "substb f (Less a1 a2) = Less (substa f a1) (substa f a2)"
-  "substb f (And b1 b2) = And (substb f b1) (substb f b2)"
-  "substb f (Or b1 b2) = Or (substb f b1) (substb f b2)"
-\end{ttbox}
-In textbooks about semantics one often finds {\em substitution theorems},
-which express the relationship between substitution and evaluation. For
-\texttt{'a aexp} and \texttt{'a bexp}, we can prove such a theorem by mutual
-induction, followed by simplification:
-\begin{ttbox}
-Goal
-  "evala env (substa (Var(v := a')) a) =
-     evala (env(v := evala env a')) a &
-   evalb env (substb (Var(v := a')) b) =
-     evalb (env(v := evala env a')) b";
-by (induct_tac "a b" 1);
-by (ALLGOALS Asm_full_simp_tac);
-\end{ttbox}
-
-\subsubsection{Example: A substitution function for terms}
-Functions on datatypes with nested recursion, such as the type
-\texttt{term} mentioned in {\S}\ref{subsec:datatype:basics}, are
-also defined by mutual primitive recursion. A substitution
-function \texttt{subst_term} on type \texttt{term}, similar to the functions
-\texttt{substa} and \texttt{substb} described above, can
-be defined as follows:
-\begin{ttbox}
-consts
-  subst_term :: "['a => ('a,'b) term, ('a,'b) term] => ('a,'b) term"
-  subst_term_list ::
-    "['a => ('a,'b) term, ('a,'b) term list] => ('a,'b) term list"
-
-primrec
-  "subst_term f (Var a) = f a"
-  "subst_term f (App b ts) = App b (subst_term_list f ts)"
-
-  "subst_term_list f [] = []"
-  "subst_term_list f (t # ts) =
-     subst_term f t # subst_term_list f ts"
-\end{ttbox}
-The recursion scheme follows the structure of the unfolded definition of type
-\texttt{term} shown in {\S}\ref{subsec:datatype:basics}. To prove properties of
-this substitution function, mutual induction is needed:
-\begin{ttbox}
-Goal
-  "(subst_term ((subst_term f1) o f2) t) =
-     (subst_term f1 (subst_term f2 t)) &
-   (subst_term_list ((subst_term f1) o f2) ts) =
-     (subst_term_list f1 (subst_term_list f2 ts))";
-by (induct_tac "t ts" 1);
-by (ALLGOALS Asm_full_simp_tac);
-\end{ttbox}
-
-\subsubsection{Example: A map function for infinitely branching trees}
-Defining functions on infinitely branching datatypes by primitive
-recursion is just as easy. For example, we can define a function
-\texttt{map_tree} on \texttt{'a tree} as follows:
-\begin{ttbox}
-consts
-  map_tree :: "('a => 'b) => 'a tree => 'b tree"
-
-primrec
-  "map_tree f (Atom a) = Atom (f a)"
-  "map_tree f (Branch ts) = Branch (\%x. map_tree f (ts x))"
-\end{ttbox}
-Note that all occurrences of functions such as \texttt{ts} in the
-\texttt{primrec} clauses must be applied to an argument. In particular,
-\texttt{map_tree f o ts} is not allowed.
-
-\index{recursion!primitive|)}
-\index{*primrec|)}
-
-
-\subsection{General recursive functions}
-\label{sec:HOL:recdef}
+\section{Old-style recursive function definitions}\label{sec:HOL:recursive}
 \index{recursion!general|(}
 \index{*recdef|(}
+
+Old-style recursive definitions via \texttt{recdef} requires that you
+supply a well-founded relation that governs the recursion.  Recursive
+calls are only allowed if they make the argument decrease under the
+relation.  Complicated recursion forms, such as nested recursion, can
+be dealt with.  Termination can even be proved at a later time, though
+having unsolved termination conditions around can make work
+difficult.%
+\footnote{This facility is based on Konrad Slind's TFL
+  package~\cite{slind-tfl}.  Thanks are due to Konrad for implementing
+  TFL and assisting with its installation.}
 
 Using \texttt{recdef}, you can declare functions involving nested recursion
 and pattern-matching.  Recursion need not involve datatypes and there are few

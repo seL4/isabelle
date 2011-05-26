@@ -288,7 +288,32 @@ Each theory contains a default set of theorems that are used in
   \begin{description}
 
   \item \hyperlink{command.HOL.primrec}{\mbox{\isa{\isacommand{primrec}}}} defines primitive recursive
-  functions over datatypes, see also \cite{isabelle-HOL}.
+  functions over datatypes (see also \indexref{HOL}{command}{datatype}\hyperlink{command.HOL.datatype}{\mbox{\isa{\isacommand{datatype}}}} and
+  \indexref{HOL}{command}{rep\_datatype}\hyperlink{command.HOL.rep-datatype}{\mbox{\isa{\isacommand{rep{\isaliteral{5F}{\isacharunderscore}}datatype}}}}).  The given \isa{equations}
+  specify reduction rules that are produced by instantiating the
+  generic combinator for primitive recursion that is available for
+  each datatype.
+
+  Each equation needs to be of the form:
+
+  \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}f\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m\ {\isaliteral{28}{\isacharparenleft}}C\ y\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ y\isaliteral{5C3C5E7375623E}{}\isactrlsub k{\isaliteral{29}{\isacharparenright}}\ z\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ z\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{3D}{\isacharequal}}\ rhs{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle}
+
+  such that \isa{C} is a datatype constructor, \isa{rhs} contains
+  only the free variables on the left-hand side (or from the context),
+  and all recursive occurrences of \isa{{\isaliteral{22}{\isachardoublequote}}f{\isaliteral{22}{\isachardoublequote}}} in \isa{{\isaliteral{22}{\isachardoublequote}}rhs{\isaliteral{22}{\isachardoublequote}}} are of
+  the form \isa{{\isaliteral{22}{\isachardoublequote}}f\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ y\isaliteral{5C3C5E7375623E}{}\isactrlsub i\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}} for some \isa{i}.  At most one
+  reduction rule for each constructor can be given.  The order does
+  not matter.  For missing constructors, the function is defined to
+  return a default value, but this equation is made difficult to
+  access for users.
+
+  The reduction rules are declared as \hyperlink{attribute.simp}{\mbox{\isa{simp}}} by default,
+  which enables standard proof methods like \hyperlink{method.simp}{\mbox{\isa{simp}}} and
+  \hyperlink{method.auto}{\mbox{\isa{auto}}} to normalize expressions of \isa{{\isaliteral{22}{\isachardoublequote}}f{\isaliteral{22}{\isachardoublequote}}} applied to
+  datatype constructions, by simulating symbolic computation via
+  rewriting.
 
   \item \hyperlink{command.HOL.function}{\mbox{\isa{\isacommand{function}}}} defines functions by general
   wellfounded recursion. A detailed description with examples can be
@@ -316,14 +341,12 @@ Each theory contains a default set of theorems that are used in
   \end{description}
 
   Recursive definitions introduced by the \hyperlink{command.HOL.function}{\mbox{\isa{\isacommand{function}}}}
-  command accommodate
-  reasoning by induction (cf.\ \secref{sec:cases-induct}): rule \isa{{\isaliteral{22}{\isachardoublequote}}c{\isaliteral{2E}{\isachardot}}induct{\isaliteral{22}{\isachardoublequote}}} (where \isa{c} is the name of the function definition)
-  refers to a specific induction rule, with parameters named according
-  to the user-specified equations. Cases are numbered (starting from 1).
-
-  For \hyperlink{command.HOL.primrec}{\mbox{\isa{\isacommand{primrec}}}}, the induction principle coincides
-  with structural recursion on the datatype the recursion is carried
-  out.
+  command accommodate reasoning by induction (cf.\ \hyperlink{method.induct}{\mbox{\isa{induct}}}):
+  rule \isa{{\isaliteral{22}{\isachardoublequote}}f{\isaliteral{2E}{\isachardot}}induct{\isaliteral{22}{\isachardoublequote}}} refers to a specific induction rule, with
+  parameters named according to the user-specified equations. Cases
+  are numbered starting from 1.  For \hyperlink{command.HOL.primrec}{\mbox{\isa{\isacommand{primrec}}}}, the
+  induction principle coincides with structural recursion on the
+  datatype where the recursion is carried out.
 
   The equations provided by these packages may be referred later as
   theorem list \isa{{\isaliteral{22}{\isachardoublequote}}f{\isaliteral{2E}{\isachardot}}simps{\isaliteral{22}{\isachardoublequote}}}, where \isa{f} is the (collective)
@@ -352,6 +375,205 @@ Each theory contains a default set of theorems that are used in
   \end{description}%
 \end{isamarkuptext}%
 \isamarkuptrue%
+%
+\isamarkupsubsubsection{Example: evaluation of expressions%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Subsequently, we define mutual datatypes for arithmetic and
+  boolean expressions, and use \hyperlink{command.primrec}{\mbox{\isa{\isacommand{primrec}}}} for evaluation
+  functions that follow the same recursive structure.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{datatype}\isamarkupfalse%
+\ {\isaliteral{27}{\isacharprime}}a\ aexp\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ IF\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ bexp{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ aexp{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ aexp{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ Sum\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ aexp{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ aexp{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ Diff\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ aexp{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ aexp{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ Var\ {\isaliteral{27}{\isacharprime}}a\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ Num\ nat\isanewline
+\isakeyword{and}\ {\isaliteral{27}{\isacharprime}}a\ bexp\ {\isaliteral{3D}{\isacharequal}}\isanewline
+\ \ \ \ Less\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ aexp{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ aexp{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ And\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ bexp{\isaliteral{22}{\isachardoublequoteclose}}\ \ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ bexp{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{7C}{\isacharbar}}\ Neg\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ bexp{\isaliteral{22}{\isachardoublequoteclose}}%
+\begin{isamarkuptext}%
+\medskip Evaluation of arithmetic and boolean expressions%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{primrec}\isamarkupfalse%
+\ evala\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ aexp\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{and}\ evalb\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ bexp\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isakeyword{where}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}evala\ env\ {\isaliteral{28}{\isacharparenleft}}IF\ b\ a{\isadigit{1}}\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}if\ evalb\ env\ b\ then\ evala\ env\ a{\isadigit{1}}\ else\ evala\ env\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}evala\ env\ {\isaliteral{28}{\isacharparenleft}}Sum\ a{\isadigit{1}}\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ evala\ env\ a{\isadigit{1}}\ {\isaliteral{2B}{\isacharplus}}\ evala\ env\ a{\isadigit{2}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}evala\ env\ {\isaliteral{28}{\isacharparenleft}}Diff\ a{\isadigit{1}}\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ evala\ env\ a{\isadigit{1}}\ {\isaliteral{2D}{\isacharminus}}\ evala\ env\ a{\isadigit{2}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}evala\ env\ {\isaliteral{28}{\isacharparenleft}}Var\ v{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ env\ v{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}evala\ env\ {\isaliteral{28}{\isacharparenleft}}Num\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}evalb\ env\ {\isaliteral{28}{\isacharparenleft}}Less\ a{\isadigit{1}}\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}evala\ env\ a{\isadigit{1}}\ {\isaliteral{3C}{\isacharless}}\ evala\ env\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}evalb\ env\ {\isaliteral{28}{\isacharparenleft}}And\ b{\isadigit{1}}\ b{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}evalb\ env\ b{\isadigit{1}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ evalb\ env\ b{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}evalb\ env\ {\isaliteral{28}{\isacharparenleft}}Neg\ b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ evalb\ env\ b{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
+\begin{isamarkuptext}%
+Since the value of an expression depends on the value of its
+  variables, the functions \isa{evala} and \isa{evalb} take an
+  additional parameter, an \emph{environment} that maps variables to
+  their values.
+
+  \medskip Substitution on expressions can be defined similarly.  The
+  mapping \isa{f} of type \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ aexp{\isaliteral{22}{\isachardoublequote}}} given as a
+  parameter is lifted canonically on the types \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a\ aexp{\isaliteral{22}{\isachardoublequote}}} and
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a\ bexp{\isaliteral{22}{\isachardoublequote}}}, respectively.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{primrec}\isamarkupfalse%
+\ substa\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ aexp{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ aexp\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ aexp{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isakeyword{and}\ substb\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ aexp{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ bexp\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ bexp{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isakeyword{where}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}substa\ f\ {\isaliteral{28}{\isacharparenleft}}IF\ b\ a{\isadigit{1}}\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ IF\ {\isaliteral{28}{\isacharparenleft}}substb\ f\ b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}substa\ f\ a{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}substa\ f\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}substa\ f\ {\isaliteral{28}{\isacharparenleft}}Sum\ a{\isadigit{1}}\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Sum\ {\isaliteral{28}{\isacharparenleft}}substa\ f\ a{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}substa\ f\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}substa\ f\ {\isaliteral{28}{\isacharparenleft}}Diff\ a{\isadigit{1}}\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Diff\ {\isaliteral{28}{\isacharparenleft}}substa\ f\ a{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}substa\ f\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}substa\ f\ {\isaliteral{28}{\isacharparenleft}}Var\ v{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ f\ v{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}substa\ f\ {\isaliteral{28}{\isacharparenleft}}Num\ n{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Num\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}substb\ f\ {\isaliteral{28}{\isacharparenleft}}Less\ a{\isadigit{1}}\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Less\ {\isaliteral{28}{\isacharparenleft}}substa\ f\ a{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}substa\ f\ a{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}substb\ f\ {\isaliteral{28}{\isacharparenleft}}And\ b{\isadigit{1}}\ b{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ And\ {\isaliteral{28}{\isacharparenleft}}substb\ f\ b{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{28}{\isacharparenleft}}substb\ f\ b{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}substb\ f\ {\isaliteral{28}{\isacharparenleft}}Neg\ b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Neg\ {\isaliteral{28}{\isacharparenleft}}substb\ f\ b{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
+\begin{isamarkuptext}%
+In textbooks about semantics one often finds substitution
+  theorems, which express the relationship between substitution and
+  evaluation.  For \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a\ aexp{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a\ bexp{\isaliteral{22}{\isachardoublequote}}}, we can prove
+  such a theorem by mutual induction, followed by simplification.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ subst{\isaliteral{5F}{\isacharunderscore}}one{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}evala\ env\ {\isaliteral{28}{\isacharparenleft}}substa\ {\isaliteral{28}{\isacharparenleft}}Var\ {\isaliteral{28}{\isacharparenleft}}v\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{27}{\isacharprime}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ a{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ evala\ {\isaliteral{28}{\isacharparenleft}}env\ {\isaliteral{28}{\isacharparenleft}}v\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ evala\ env\ a{\isaliteral{27}{\isacharprime}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ a{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}evalb\ env\ {\isaliteral{28}{\isacharparenleft}}substb\ {\isaliteral{28}{\isacharparenleft}}Var\ {\isaliteral{28}{\isacharparenleft}}v\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ a{\isaliteral{27}{\isacharprime}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ evalb\ {\isaliteral{28}{\isacharparenleft}}env\ {\isaliteral{28}{\isacharparenleft}}v\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3D}{\isacharequal}}\ evala\ env\ a{\isaliteral{27}{\isacharprime}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ b{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}induct\ a\ \isakeyword{and}\ b{\isaliteral{29}{\isacharparenright}}\ simp{\isaliteral{5F}{\isacharunderscore}}all%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ subst{\isaliteral{5F}{\isacharunderscore}}all{\isaliteral{3A}{\isacharcolon}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}evala\ env\ {\isaliteral{28}{\isacharparenleft}}substa\ s\ a{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ evala\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ evala\ env\ {\isaliteral{28}{\isacharparenleft}}s\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ a{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}evalb\ env\ {\isaliteral{28}{\isacharparenleft}}substb\ s\ b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ evalb\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ evala\ env\ {\isaliteral{28}{\isacharparenleft}}s\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ b{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}induct\ a\ \isakeyword{and}\ b{\isaliteral{29}{\isacharparenright}}\ simp{\isaliteral{5F}{\isacharunderscore}}all%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isamarkupsubsubsection{Example: a substitution function for terms%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Functions on datatypes with nested recursion are also defined
+  by mutual primitive recursion.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{datatype}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{22}{\isachardoublequoteopen}}term{\isaliteral{22}{\isachardoublequoteclose}}\ {\isaliteral{3D}{\isacharequal}}\ Var\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{7C}{\isacharbar}}\ App\ {\isaliteral{27}{\isacharprime}}b\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ term\ list{\isaliteral{22}{\isachardoublequoteclose}}%
+\begin{isamarkuptext}%
+A substitution function on type \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ term{\isaliteral{22}{\isachardoublequote}}} can be
+  defined as follows, by working simultaneously on \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ term\ list{\isaliteral{22}{\isachardoublequote}}}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{primrec}\isamarkupfalse%
+\ subst{\isaliteral{5F}{\isacharunderscore}}term\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ term{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ term\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ term{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\isanewline
+\ \ subst{\isaliteral{5F}{\isacharunderscore}}term{\isaliteral{5F}{\isacharunderscore}}list\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ term{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ term\ list\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ term\ list{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isakeyword{where}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}subst{\isaliteral{5F}{\isacharunderscore}}term\ f\ {\isaliteral{28}{\isacharparenleft}}Var\ a{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ f\ a{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}subst{\isaliteral{5F}{\isacharunderscore}}term\ f\ {\isaliteral{28}{\isacharparenleft}}App\ b\ ts{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ App\ b\ {\isaliteral{28}{\isacharparenleft}}subst{\isaliteral{5F}{\isacharunderscore}}term{\isaliteral{5F}{\isacharunderscore}}list\ f\ ts{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}subst{\isaliteral{5F}{\isacharunderscore}}term{\isaliteral{5F}{\isacharunderscore}}list\ f\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}subst{\isaliteral{5F}{\isacharunderscore}}term{\isaliteral{5F}{\isacharunderscore}}list\ f\ {\isaliteral{28}{\isacharparenleft}}t\ {\isaliteral{23}{\isacharhash}}\ ts{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ subst{\isaliteral{5F}{\isacharunderscore}}term\ f\ t\ {\isaliteral{23}{\isacharhash}}\ subst{\isaliteral{5F}{\isacharunderscore}}term{\isaliteral{5F}{\isacharunderscore}}list\ f\ ts{\isaliteral{22}{\isachardoublequoteclose}}%
+\begin{isamarkuptext}%
+The recursion scheme follows the structure of the unfolded
+  definition of type \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ term{\isaliteral{22}{\isachardoublequote}}}.  To prove properties of this
+  substitution function, mutual induction is needed:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}subst{\isaliteral{5F}{\isacharunderscore}}term\ {\isaliteral{28}{\isacharparenleft}}subst{\isaliteral{5F}{\isacharunderscore}}term\ f{\isadigit{1}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ f{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ t\ {\isaliteral{3D}{\isacharequal}}\ subst{\isaliteral{5F}{\isacharunderscore}}term\ f{\isadigit{1}}\ {\isaliteral{28}{\isacharparenleft}}subst{\isaliteral{5F}{\isacharunderscore}}term\ f{\isadigit{2}}\ t{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isakeyword{and}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}subst{\isaliteral{5F}{\isacharunderscore}}term{\isaliteral{5F}{\isacharunderscore}}list\ {\isaliteral{28}{\isacharparenleft}}subst{\isaliteral{5F}{\isacharunderscore}}term\ f{\isadigit{1}}\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ f{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}\ ts\ {\isaliteral{3D}{\isacharequal}}\ subst{\isaliteral{5F}{\isacharunderscore}}term{\isaliteral{5F}{\isacharunderscore}}list\ f{\isadigit{1}}\ {\isaliteral{28}{\isacharparenleft}}subst{\isaliteral{5F}{\isacharunderscore}}term{\isaliteral{5F}{\isacharunderscore}}list\ f{\isadigit{2}}\ ts{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}induct\ t\ \isakeyword{and}\ ts{\isaliteral{29}{\isacharparenright}}\ simp{\isaliteral{5F}{\isacharunderscore}}all%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isamarkupsubsubsection{Example: a map function for infinitely branching trees%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Defining functions on infinitely branching datatypes by
+  primitive recursion is just as easy.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{datatype}\isamarkupfalse%
+\ {\isaliteral{27}{\isacharprime}}a\ tree\ {\isaliteral{3D}{\isacharequal}}\ Atom\ {\isaliteral{27}{\isacharprime}}a\ {\isaliteral{7C}{\isacharbar}}\ Branch\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ tree{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isanewline
+\isacommand{primrec}\isamarkupfalse%
+\ map{\isaliteral{5F}{\isacharunderscore}}tree\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}a\ tree\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ {\isaliteral{27}{\isacharprime}}b\ tree{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isakeyword{where}\isanewline
+\ \ {\isaliteral{22}{\isachardoublequoteopen}}map{\isaliteral{5F}{\isacharunderscore}}tree\ f\ {\isaliteral{28}{\isacharparenleft}}Atom\ a{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Atom\ {\isaliteral{28}{\isacharparenleft}}f\ a{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+{\isaliteral{7C}{\isacharbar}}\ {\isaliteral{22}{\isachardoublequoteopen}}map{\isaliteral{5F}{\isacharunderscore}}tree\ f\ {\isaliteral{28}{\isacharparenleft}}Branch\ ts{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ Branch\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ map{\isaliteral{5F}{\isacharunderscore}}tree\ f\ {\isaliteral{28}{\isacharparenleft}}ts\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}%
+\begin{isamarkuptext}%
+Note that all occurrences of functions such as \isa{ts}
+  above must be applied to an argument.  In particular, \isa{{\isaliteral{22}{\isachardoublequote}}map{\isaliteral{5F}{\isacharunderscore}}tree\ f\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ ts{\isaliteral{22}{\isachardoublequote}}} is not allowed here.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Here is a simple composition lemma for \isa{map{\isaliteral{5F}{\isacharunderscore}}tree}:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}map{\isaliteral{5F}{\isacharunderscore}}tree\ g\ {\isaliteral{28}{\isacharparenleft}}map{\isaliteral{5F}{\isacharunderscore}}tree\ f\ t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ map{\isaliteral{5F}{\isacharunderscore}}tree\ {\isaliteral{28}{\isacharparenleft}}g\ {\isaliteral{5C3C636972633E}{\isasymcirc}}\ f{\isaliteral{29}{\isacharparenright}}\ t{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}induct\ t{\isaliteral{29}{\isacharparenright}}\ simp{\isaliteral{5F}{\isacharunderscore}}all%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
 %
 \isamarkupsubsection{Proof methods related to recursive definitions%
 }
