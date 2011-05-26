@@ -360,7 +360,7 @@ local
 in
 fun def_axiom ctxt = Thm o try_apply ctxt [] [
   named ctxt "conj/disj/distinct" prove_def_axiom,
-  Z3_Proof_Tools.by_abstraction (true, false) ctxt [] (fn ctxt' =>
+  Z3_Proof_Tools.by_abstraction 0 (true, false) ctxt [] (fn ctxt' =>
     named ctxt' "simp+fast" (Z3_Proof_Tools.by_tac (simp_fast_tac ctxt')))]
 end
 
@@ -421,7 +421,7 @@ local
 
   fun prove_nnf ctxt = try_apply ctxt [] [
     named ctxt "conj/disj" Z3_Proof_Literals.prove_conj_disj_eq,
-    Z3_Proof_Tools.by_abstraction (true, false) ctxt [] (fn ctxt' =>
+    Z3_Proof_Tools.by_abstraction 0 (true, false) ctxt [] (fn ctxt' =>
       named ctxt' "simp+fast" (Z3_Proof_Tools.by_tac (simp_fast_tac ctxt')))]
 in
 fun nnf ctxt vars ps ct =
@@ -643,7 +643,7 @@ end
 
 (* theory lemmas: linear arithmetic, arrays *)
 fun th_lemma ctxt simpset thms = Thm o try_apply ctxt thms [
-  Z3_Proof_Tools.by_abstraction (false, true) ctxt thms (fn ctxt' =>
+  Z3_Proof_Tools.by_abstraction 0 (false, true) ctxt thms (fn ctxt' =>
     Z3_Proof_Tools.by_tac (
       NAMED ctxt' "arith" (Arith_Data.arith_tac ctxt')
       ORELSE' NAMED ctxt' "simp+arith" (
@@ -693,26 +693,42 @@ local
     (thm, snd (Assumption.add_assumes (#hyps (Thm.crep_thm thm)) ctxt))
 in
 
+val abstraction_depth = 3
+  (*
+    This value was chosen large enough to potentially catch exceptions,
+    yet small enough to not cause too much harm.  The value might be
+    increased in the future, if reconstructing 'rewrite' fails on problems
+    that get too much abstracted to be reconstructable.
+  *)
+
 fun rewrite simpset ths ct ctxt =
   apfst Thm (declare_hyps ctxt (with_conv ctxt ths (try_apply ctxt [] [
     named ctxt "conj/disj/distinct" prove_conj_disj_eq,
-    Z3_Proof_Tools.by_abstraction (true, false) ctxt [] (fn ctxt' =>
+    Z3_Proof_Tools.by_abstraction 0 (true, false) ctxt [] (fn ctxt' =>
       Z3_Proof_Tools.by_tac (
         NAMED ctxt' "simp (logic)" (Simplifier.simp_tac simpset)
         THEN_ALL_NEW NAMED ctxt' "fast (logic)" (fast_tac ctxt'))),
-    Z3_Proof_Tools.by_abstraction (false, true) ctxt [] (fn ctxt' =>
+    Z3_Proof_Tools.by_abstraction 0 (false, true) ctxt [] (fn ctxt' =>
       Z3_Proof_Tools.by_tac (
         NAMED ctxt' "simp (theory)" (Simplifier.simp_tac simpset)
         THEN_ALL_NEW (
           NAMED ctxt' "fast (theory)" (HOL_fast_tac ctxt')
           ORELSE' NAMED ctxt' "arith (theory)" (Arith_Data.arith_tac ctxt')))),
-    Z3_Proof_Tools.by_abstraction (true, true) ctxt [] (fn ctxt' =>
+    Z3_Proof_Tools.by_abstraction 0 (true, true) ctxt [] (fn ctxt' =>
       Z3_Proof_Tools.by_tac (
         NAMED ctxt' "simp (full)" (Simplifier.simp_tac simpset)
         THEN_ALL_NEW (
           NAMED ctxt' "fast (full)" (HOL_fast_tac ctxt')
           ORELSE' NAMED ctxt' "arith (full)" (Arith_Data.arith_tac ctxt')))),
-    named ctxt "injectivity" (Z3_Proof_Methods.prove_injectivity ctxt)]) ct))
+    named ctxt "injectivity" (Z3_Proof_Methods.prove_injectivity ctxt),
+    Z3_Proof_Tools.by_abstraction abstraction_depth (true, true) ctxt []
+      (fn ctxt' =>
+        Z3_Proof_Tools.by_tac (
+          NAMED ctxt' "simp (deepen)" (Simplifier.simp_tac simpset)
+          THEN_ALL_NEW (
+            NAMED ctxt' "fast (deepen)" (HOL_fast_tac ctxt')
+            ORELSE' NAMED ctxt' "arith (deepen)" (Arith_Data.arith_tac
+              ctxt'))))]) ct))
 
 end
 

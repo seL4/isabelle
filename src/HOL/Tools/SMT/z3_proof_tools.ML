@@ -24,7 +24,7 @@ sig
   val match_instantiate: (cterm -> cterm) -> cterm -> thm -> thm
   val by_tac: (int -> tactic) -> cterm -> thm
   val make_hyp_def: thm -> Proof.context -> thm * Proof.context
-  val by_abstraction: bool * bool -> Proof.context -> thm list ->
+  val by_abstraction: int -> bool * bool -> Proof.context -> thm list ->
     (Proof.context -> cterm -> thm) -> cterm -> thm
 
   (*a faster COMP*)
@@ -147,7 +147,7 @@ fun lambda_abstract cvs t =
     val vs = map (Term.dest_Free o Thm.term_of) cvs'
   in (Term.list_abs_free (vs, t), cvs') end
 
-fun fresh_abstraction cvs ct (cx as (ctxt, tab, idx, beta_norm)) =
+fun fresh_abstraction (_, cvs) ct (cx as (ctxt, tab, idx, beta_norm)) =
   let val (t, cvs') = lambda_abstract cvs (Thm.term_of ct)
   in
     (case Termtab.lookup tab t of
@@ -163,78 +163,88 @@ fun fresh_abstraction cvs ct (cx as (ctxt, tab, idx, beta_norm)) =
         in (cu, (ctxt', Termtab.update e tab, idx + 1, beta_norm')) end)
   end
 
-fun abs_comb f g cvs ct =
+fun abs_comb f g dcvs ct =
   let val (cf, cu) = Thm.dest_comb ct
-  in f cvs cf ##>> g cvs cu #>> uncurry Thm.capply end
+  in f dcvs cf ##>> g dcvs cu #>> uncurry Thm.capply end
 
 fun abs_arg f = abs_comb (K pair) f
 
-fun abs_args f cvs ct =
+fun abs_args f dcvs ct =
   (case Thm.term_of ct of
-    _ $ _ => abs_comb (abs_args f) f cvs ct
+    _ $ _ => abs_comb (abs_args f) f dcvs ct
   | _ => pair ct)
 
-fun abs_list f g cvs ct =
+fun abs_list f g dcvs ct =
   (case Thm.term_of ct of
     Const (@{const_name Nil}, _) => pair ct
   | Const (@{const_name Cons}, _) $ _ $ _ =>
-      abs_comb (abs_arg f) (abs_list f g) cvs ct
-  | _ => g cvs ct)
+      abs_comb (abs_arg f) (abs_list f g) dcvs ct
+  | _ => g dcvs ct)
 
-fun abs_abs f cvs ct =
+fun abs_abs f (depth, cvs) ct =
   let val (cv, cu) = Thm.dest_abs NONE ct
-  in f (cv :: cvs) cu #>> Thm.cabs cv end
+  in f (depth, cv :: cvs) cu #>> Thm.cabs cv end
 
 val is_atomic =
   (fn Free _ => true | Var _ => true | Bound _ => true | _ => false)
 
-fun abstract (ext_logic, with_theories) =
+fun abstract depth (ext_logic, with_theories) =
   let
     fun abstr1 cvs ct = abs_arg abstr cvs ct
     and abstr2 cvs ct = abs_comb abstr1 abstr cvs ct
     and abstr3 cvs ct = abs_comb abstr2 abstr cvs ct
     and abstr_abs cvs ct = abs_arg (abs_abs abstr) cvs ct
 
-    and abstr cvs ct =
+    and abstr (dcvs as (d, cvs)) ct =
       (case Thm.term_of ct of
-        @{const Trueprop} $ _ => abstr1 cvs ct
-      | @{const "==>"} $ _ $ _ => abstr2 cvs ct
+        @{const Trueprop} $ _ => abstr1 dcvs ct
+      | @{const "==>"} $ _ $ _ => abstr2 dcvs ct
       | @{const True} => pair ct
       | @{const False} => pair ct
-      | @{const Not} $ _ => abstr1 cvs ct
-      | @{const HOL.conj} $ _ $ _ => abstr2 cvs ct
-      | @{const HOL.disj} $ _ $ _ => abstr2 cvs ct
-      | @{const HOL.implies} $ _ $ _ => abstr2 cvs ct
-      | Const (@{const_name HOL.eq}, _) $ _ $ _ => abstr2 cvs ct
+      | @{const Not} $ _ => abstr1 dcvs ct
+      | @{const HOL.conj} $ _ $ _ => abstr2 dcvs ct
+      | @{const HOL.disj} $ _ $ _ => abstr2 dcvs ct
+      | @{const HOL.implies} $ _ $ _ => abstr2 dcvs ct
+      | Const (@{const_name HOL.eq}, _) $ _ $ _ => abstr2 dcvs ct
       | Const (@{const_name distinct}, _) $ _ =>
-          if ext_logic then abs_arg (abs_list abstr fresh_abstraction) cvs ct
-          else fresh_abstraction cvs ct
+          if ext_logic then abs_arg (abs_list abstr fresh_abstraction) dcvs ct
+          else fresh_abstraction dcvs ct
       | Const (@{const_name If}, _) $ _ $ _ $ _ =>
-          if ext_logic then abstr3 cvs ct else fresh_abstraction cvs ct
+          if ext_logic then abstr3 dcvs ct else fresh_abstraction dcvs ct
       | Const (@{const_name All}, _) $ _ =>
-          if ext_logic then abstr_abs cvs ct else fresh_abstraction cvs ct
+          if ext_logic then abstr_abs dcvs ct else fresh_abstraction dcvs ct
       | Const (@{const_name Ex}, _) $ _ =>
-          if ext_logic then abstr_abs cvs ct else fresh_abstraction cvs ct
+          if ext_logic then abstr_abs dcvs ct else fresh_abstraction dcvs ct
       | t => (fn cx =>
           if is_atomic t orelse can HOLogic.dest_number t then (ct, cx)
           else if with_theories andalso
             Z3_Interface.is_builtin_theory_term (context_of cx) t
-          then abs_args abstr cvs ct cx
-          else fresh_abstraction cvs ct cx))
-  in abstr [] end
+          then abs_args abstr dcvs ct cx
+          else if d = 0 then fresh_abstraction dcvs ct cx
+          else
+            (case Term.strip_comb t of
+              (Const _, _) => abs_args abstr (d-1, cvs) ct cx
+            | (Free _, _) => abs_args abstr (d-1, cvs) ct cx
+            | _ => fresh_abstraction dcvs ct cx)))
+  in abstr (depth, []) end
 
 val cimp = Thm.cterm_of @{theory} @{const "==>"}
 
-fun with_prems thms f ct =
+fun deepen depth f x =
+  if depth = 0 then f depth x
+  else (case try (f depth) x of SOME y => y | NONE => deepen (depth - 1) f x)
+
+fun with_prems depth thms f ct =
   fold_rev (Thm.mk_binop cimp o Thm.cprop_of) thms ct
-  |> f
+  |> deepen depth f
   |> fold (fn prem => fn th => Thm.implies_elim th prem) thms
 
 in
 
-fun by_abstraction mode ctxt thms prove = with_prems thms (fn ct =>
-  let val (cu, cx) = abstract mode ct (abs_context ctxt)
-  in abs_instantiate cx (prove (context_of cx) cu) end)
+fun by_abstraction depth mode ctxt thms prove =
+  with_prems depth thms (fn d => fn ct =>
+    let val (cu, cx) = abstract d mode ct (abs_context ctxt)
+    in abs_instantiate cx (prove (context_of cx) cu) end)
 
 end
 
