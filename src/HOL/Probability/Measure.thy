@@ -132,6 +132,10 @@ proof -
   ultimately show "\<mu> a \<le> \<mu> b" by auto
 qed
 
+lemma (in measure_space) measure_top:
+  "A \<in> sets M \<Longrightarrow> \<mu> A \<le> \<mu> (space M)"
+  using sets_into_space[of A] by (auto intro!: measure_mono)
+
 lemma (in measure_space) measure_compl:
   assumes s: "s \<in> sets M" and fin: "\<mu> s \<noteq> \<infinity>"
   shows "\<mu> (space M - s) = \<mu> (space M) - \<mu> s"
@@ -408,6 +412,22 @@ proof -
     using assms by (auto intro!: add_left_mono measure_mono)
   finally show ?thesis .
 qed
+
+lemma (in measure_space) measure_subadditive_finite:
+  assumes "finite I" "\<And>i. i\<in>I \<Longrightarrow> A i \<in> sets M"
+  shows "\<mu> (\<Union>i\<in>I. A i) \<le> (\<Sum>i\<in>I. \<mu> (A i))"
+using assms proof induct
+  case (insert i I)
+  then have "\<mu> (\<Union>i\<in>insert i I. A i) = \<mu> (A i \<union> (\<Union>i\<in>I. A i))"
+    by simp
+  also have "\<dots> \<le> \<mu> (A i) + \<mu> (\<Union>i\<in>I. A i)"
+    using insert by (intro measure_subadditive finite_UN) auto
+  also have "\<dots> \<le> \<mu> (A i) + (\<Sum>i\<in>I. \<mu> (A i))"
+    using insert by (intro add_mono) auto
+  also have "\<dots> = (\<Sum>i\<in>insert i I. \<mu> (A i))"
+    using insert by auto
+  finally show ?case .
+qed simp
 
 lemma (in measure_space) measure_eq_0:
   assumes "N \<in> sets M" and "\<mu> N = 0" and "K \<subseteq> N" and "K \<in> sets M"
@@ -723,6 +743,20 @@ lemma (in measure_space)
     and AE_conjI: "AE x. P x \<Longrightarrow> AE x. Q x \<Longrightarrow> AE x. P x \<and> Q x"
     and AE_conj_iff[simp]: "(AE x. P x \<and> Q x) \<longleftrightarrow> (AE x. P x) \<and> (AE x. Q x)"
   by auto
+
+lemma (in measure_space) AE_measure:
+  assumes AE: "AE x. P x" and sets: "{x\<in>space M. P x} \<in> sets M"
+  shows "\<mu> {x\<in>space M. P x} = \<mu> (space M)"
+proof -
+  from AE_E[OF AE] guess N . note N = this
+  with sets have "\<mu> (space M) \<le> \<mu> ({x\<in>space M. P x} \<union> N)"
+    by (intro measure_mono) auto
+  also have "\<dots> \<le> \<mu> {x\<in>space M. P x} + \<mu> N"
+    using sets N by (intro measure_subadditive) auto
+  also have "\<dots> = \<mu> {x\<in>space M. P x}" using N by simp
+  finally show "\<mu> {x\<in>space M. P x} = \<mu> (space M)"
+    using measure_top[OF sets] by auto
+qed
 
 lemma (in measure_space) AE_space: "AE x. x \<in> space M"
   by (rule AE_I[where N="{}"]) auto
@@ -1168,7 +1202,7 @@ definition (in finite_measure)
 lemma (in finite_measure) finite_measure_eq: "A \<in> sets M \<Longrightarrow> \<mu> A = extreal (\<mu>' A)"
   by (auto simp: \<mu>'_def extreal_real)
 
-lemma (in finite_measure) positive_measure': "0 \<le> \<mu>' A"
+lemma (in finite_measure) positive_measure'[simp, intro]: "0 \<le> \<mu>' A"
   unfolding \<mu>'_def by (auto simp: real_of_extreal_pos)
 
 lemma (in finite_measure) bounded_measure: "\<mu>' A \<le> \<mu>' (space M)"
@@ -1250,6 +1284,12 @@ lemma (in finite_measure) finite_measure_subadditive:
   shows "\<mu>' (A \<union> B) \<le> \<mu>' A + \<mu>' B"
   using measure_subadditive[OF m]
   using m[THEN finite_measure_eq] Un[OF m, THEN finite_measure_eq] by simp
+
+lemma (in finite_measure) finite_measure_subadditive_finite:
+  assumes "finite I" "\<And>i. i\<in>I \<Longrightarrow> A i \<in> sets M"
+  shows "\<mu>' (\<Union>i\<in>I. A i) \<le> (\<Sum>i\<in>I. \<mu>' (A i))"
+  using measure_subadditive_finite[OF assms] assms
+  by (simp add: finite_measure_eq finite_UN)
 
 lemma (in finite_measure) finite_measure_countably_subadditive:
   assumes A: "range A \<subseteq> sets M" and sum: "summable (\<lambda>i. \<mu>' (A i))"
@@ -1377,6 +1417,23 @@ lemma (in finite_measure_space) finite_measure_singleton:
   assumes A: "A \<subseteq> space M" shows "\<mu>' A = (\<Sum>x\<in>A. \<mu>' {x})"
   using A finite_subset[OF A finite_space]
   by (intro finite_measure_finite_singleton) auto
+
+lemma (in finite_measure_space) finite_measure_subadditive_setsum:
+  assumes "finite I"
+  shows "\<mu>' (\<Union>i\<in>I. A i) \<le> (\<Sum>i\<in>I. \<mu>' (A i))"
+proof cases
+  assume "(\<Union>i\<in>I. A i) \<subseteq> space M"
+  then have "\<And>i. i\<in>I \<Longrightarrow> A i \<in> sets M" by auto
+  from finite_measure_subadditive_finite[OF `finite I` this]
+  show ?thesis by auto
+next
+  assume "\<not> (\<Union>i\<in>I. A i) \<subseteq> space M"
+  then have "\<mu>' (\<Union>i\<in>I. A i) = 0"
+    by (simp add: \<mu>'_def)
+  also have "0 \<le> (\<Sum>i\<in>I. \<mu>' (A i))"
+    by (auto intro!: setsum_nonneg)
+  finally show ?thesis .
+qed
 
 lemma suminf_cmult_indicator:
   fixes f :: "nat \<Rightarrow> extreal"

@@ -28,8 +28,6 @@ definition (in prob_space)
 abbreviation (in prob_space)
   "joint_distribution X Y \<equiv> distribution (\<lambda>x. (X x, Y x))"
 
-declare (in finite_measure) positive_measure'[intro, simp]
-
 lemma (in prob_space) distribution_cong:
   assumes "\<And>x. x \<in> space M \<Longrightarrow> X x = Y x"
   shows "distribution X = distribution Y"

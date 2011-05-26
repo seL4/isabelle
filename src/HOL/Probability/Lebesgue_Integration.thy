@@ -9,6 +9,9 @@ theory Lebesgue_Integration
 imports Measure Borel_Space
 begin
 
+lemma real_extreal_1[simp]: "real (1::extreal) = 1"
+  unfolding one_extreal_def by simp
+
 lemma extreal_indicator_pos[simp,intro]: "0 \<le> (indicator A x ::extreal)"
   unfolding indicator_def by auto
 
@@ -1604,6 +1607,10 @@ proof -
   finally show ?thesis .
 qed
 
+lemma (in measure_space) positive_integral_const_If:
+  "(\<integral>\<^isup>+x. a \<partial>M) = (if 0 \<le> a then a * \<mu> (space M) else 0)"
+  by (auto intro!: positive_integral_0_iff_AE[THEN iffD2])
+
 lemma (in measure_space) positive_integral_restricted:
   assumes A: "A \<in> sets M"
   shows "integral\<^isup>P (restricted_space A) f = (\<integral>\<^isup>+ x. f x * indicator A x \<partial>M)"
@@ -1764,6 +1771,15 @@ lemma (in measure_space) integral_minus[intro, simp]:
   assumes "integrable M f"
   shows "integrable M (\<lambda>x. - f x)" "(\<integral>x. - f x \<partial>M) = - integral\<^isup>L M f"
   using assms by (auto simp: integrable_def lebesgue_integral_def)
+
+lemma (in measure_space) integral_minus_iff[simp]:
+  "integrable M (\<lambda>x. - f x) \<longleftrightarrow> integrable M f"
+proof
+  assume "integrable M (\<lambda>x. - f x)"
+  then have "integrable M (\<lambda>x. - (- f x))"
+    by (rule integral_minus)
+  then show "integrable M f" by simp
+qed (rule integral_minus)
 
 lemma (in measure_space) integral_of_positive_diff:
   assumes integrable: "integrable M u" "integrable M v"
@@ -2180,6 +2196,58 @@ lemma (in measure_space) integral_real:
   "AE x. \<bar>f x\<bar> \<noteq> \<infinity> \<Longrightarrow> (\<integral>x. real (f x) \<partial>M) = real (integral\<^isup>P M f) - real (integral\<^isup>P M (\<lambda>x. - f x))"
   using assms unfolding lebesgue_integral_def
   by (subst (1 2) positive_integral_cong_AE) (auto simp add: extreal_real)
+
+lemma (in finite_measure) lebesgue_integral_const[simp]:
+  shows "integrable M (\<lambda>x. a)"
+  and  "(\<integral>x. a \<partial>M) = a * \<mu>' (space M)"
+proof -
+  { fix a :: real assume "0 \<le> a"
+    then have "(\<integral>\<^isup>+ x. extreal a \<partial>M) = extreal a * \<mu> (space M)"
+      by (subst positive_integral_const) auto
+    moreover
+    from `0 \<le> a` have "(\<integral>\<^isup>+ x. extreal (-a) \<partial>M) = 0"
+      by (subst positive_integral_0_iff_AE) auto
+    ultimately have "integrable M (\<lambda>x. a)" by (auto simp: integrable_def) }
+  note * = this
+  show "integrable M (\<lambda>x. a)"
+  proof cases
+    assume "0 \<le> a" with * show ?thesis .
+  next
+    assume "\<not> 0 \<le> a"
+    then have "0 \<le> -a" by auto
+    from *[OF this] show ?thesis by simp
+  qed
+  show "(\<integral>x. a \<partial>M) = a * \<mu>' (space M)"
+    by (simp add: \<mu>'_def lebesgue_integral_def positive_integral_const_If)
+qed
+
+lemma (in finite_measure) integral_less_AE:
+  assumes int: "integrable M X" "integrable M Y"
+  assumes gt: "AE x. X x < Y x" and neq0: "\<mu> (space M) \<noteq> 0"
+  shows "integral\<^isup>L M X < integral\<^isup>L M Y"
+proof -
+  have "integral\<^isup>L M X \<le> integral\<^isup>L M Y"
+    using gt int by (intro integral_mono_AE) auto
+  moreover
+  have "integral\<^isup>L M X \<noteq> integral\<^isup>L M Y"
+  proof
+    from gt have "AE x. Y x - X x \<noteq> 0"
+      by auto
+    then have \<mu>: "\<mu> {x\<in>space M. Y x - X x \<noteq> 0} = \<mu> (space M)"
+      using int
+      by (intro AE_measure borel_measurable_neq) (auto simp add: integrable_def)
+
+    assume eq: "integral\<^isup>L M X = integral\<^isup>L M Y"
+    have "integral\<^isup>L M (\<lambda>x. \<bar>Y x - X x\<bar>) = integral\<^isup>L M (\<lambda>x. Y x - X x)"
+      using gt by (intro integral_cong_AE) auto
+    also have "\<dots> = 0"
+      using eq int by simp
+    finally show False
+      using \<mu> int neq0
+      by (subst (asm) integral_0_iff) auto
+  qed
+  ultimately show ?thesis by auto
+qed
 
 lemma (in measure_space) integral_dominated_convergence:
   assumes u: "\<And>i. integrable M (u i)" and bound: "\<And>x j. x\<in>space M \<Longrightarrow> \<bar>u j x\<bar> \<le> w x"
