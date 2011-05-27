@@ -44,7 +44,6 @@ sig
 
   type 'a proof = ('a, 'a, 'a fo_term) formula step list
 
-  val serial_commas : string -> string list -> string list
   val strip_spaces : bool -> (char -> bool) -> string -> string
   val short_output : bool -> string -> string
   val string_for_failure : failure -> string
@@ -93,12 +92,6 @@ datatype failure =
   Crashed |
   InternalError |
   UnknownError of string
-
-fun serial_commas _ [] = ["??"]
-  | serial_commas _ [s] = [s]
-  | serial_commas conj [s1, s2] = [s1, conj, s2]
-  | serial_commas conj [s1, s2, s3] = [s1 ^ ",", s2 ^ ",", conj, s3]
-  | serial_commas conj (s :: ss) = s ^ "," :: serial_commas conj ss
 
 fun strip_c_style_comment _ [] = []
   | strip_c_style_comment is_evil (#"*" :: #"/" :: cs) =
@@ -149,7 +142,8 @@ val missing_message_tail =
 
 fun involving [] = ""
   | involving ss =
-    "involving " ^ space_implode " " (serial_commas "and" (map quote ss)) ^ " "
+    "involving " ^ space_implode " " (Try.serial_commas "and" (map quote ss)) ^
+    " "
 
 fun string_for_failure Unprovable = "The problem is unprovable."
   | string_for_failure IncompleteUnprovable = "The prover gave up."

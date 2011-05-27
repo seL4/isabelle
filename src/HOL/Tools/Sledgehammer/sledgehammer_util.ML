@@ -38,7 +38,7 @@ struct
 
 fun plural_s n = if n = 1 then "" else "s"
 
-val serial_commas = ATP_Proof.serial_commas
+val serial_commas = Try.serial_commas
 val simplify_spaces = ATP_Proof.strip_spaces false (K true)
 
 fun parse_bool_option option name s =
@@ -231,7 +231,7 @@ fun specialize_type thy (s, T) t =
     | NONE => raise Type.TYPE_MATCH
   end
 
-val subgoal_count = Logic.count_prems o prop_of o #goal o Proof.goal
+val subgoal_count = Try.subgoal_count
 
 fun strip_subgoal ctxt goal i =
   let

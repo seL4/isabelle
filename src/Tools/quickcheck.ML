@@ -638,22 +638,22 @@ fun try_quickcheck auto state =
     | SOME results =>
         let
           val msg = pretty_counterex_and_reports ctxt auto results
-                    |> not auto ? tap (Output.urgent_message o Pretty.string_of)
         in
           if exists found_counterexample results then
             (genuineN,
-             state |> (if auto then
-                         Proof.goal_message (K (Pretty.chunks [Pretty.str "",
-                             Pretty.mark Markup.hilite msg]))
-                       else
-                         I))
+             state
+             |> (if auto then
+                   Proof.goal_message (K (Pretty.chunks [Pretty.str "",
+                       Pretty.mark Markup.hilite msg]))
+                 else
+                   tap (fn _ => Output.urgent_message (Pretty.string_of msg))))
           else
             (noneN, state)
         end
   end
   |> `(fn (outcome_code, _) => outcome_code = genuineN)
 
-val setup = Try.register_tool (quickcheckN, (30, auto, try_quickcheck))
+val setup = Try.register_tool (quickcheckN, (20, auto, try_quickcheck))
 
 end;
 

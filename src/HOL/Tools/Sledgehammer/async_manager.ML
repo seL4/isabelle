@@ -32,7 +32,7 @@ val message_display_limit = 5;
 val implode_desc = op ^ o apfst quote
 
 fun implode_message (workers, work) =
-  space_implode " " (ATP_Proof.serial_commas "and" (map quote workers)) ^ work
+  space_implode " " (Try.serial_commas "and" (map quote workers)) ^ work
 
 
 (* data structures over threads *)

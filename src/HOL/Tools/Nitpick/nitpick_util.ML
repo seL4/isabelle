@@ -226,7 +226,7 @@ fun is_substring_of needle stack =
 val plural_s = Sledgehammer_Util.plural_s
 fun plural_s_for_list xs = plural_s (length xs)
 
-val serial_commas = Sledgehammer_Util.serial_commas
+val serial_commas = Try.serial_commas
 
 fun pretty_serial_commas _ [] = []
   | pretty_serial_commas _ [p] = [p]
