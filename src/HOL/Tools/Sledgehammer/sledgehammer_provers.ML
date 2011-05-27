@@ -68,7 +68,7 @@ sig
   val smt_slice_fact_frac : real Config.T
   val smt_slice_time_frac : real Config.T
   val smt_slice_min_secs : int Config.T
-  val das_Tool : string
+  val das_tool : string
   val select_smt_solver : string -> Proof.context -> Proof.context
   val is_smt_prover : Proof.context -> string -> bool
   val is_unit_equational_atp : Proof.context -> string -> bool
@@ -115,7 +115,7 @@ open Sledgehammer_ATP_Reconstruct
 
 (* Identifier to distinguish Sledgehammer from other tools using
    "Async_Manager". *)
-val das_Tool = "Sledgehammer"
+val das_tool = "Sledgehammer"
 
 val select_smt_solver =
   Context.proof_map o SMT_Config.select_solver
@@ -252,9 +252,9 @@ fun supported_provers ctxt =
                            commas (local_provers @ remote_provers) ^ ".")
   end
 
-fun kill_provers () = Async_Manager.kill_threads das_Tool "provers"
-fun running_provers () = Async_Manager.running_threads das_Tool "provers"
-val messages = Async_Manager.thread_messages das_Tool "prover"
+fun kill_provers () = Async_Manager.kill_threads das_tool "prover"
+fun running_provers () = Async_Manager.running_threads das_tool "prover"
+val messages = Async_Manager.thread_messages das_tool "prover"
 
 (** problems, results, ATPs, etc. **)
 

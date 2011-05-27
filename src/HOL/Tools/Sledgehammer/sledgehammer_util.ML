@@ -38,12 +38,7 @@ struct
 
 fun plural_s n = if n = 1 then "" else "s"
 
-fun serial_commas _ [] = ["??"]
-  | serial_commas _ [s] = [s]
-  | serial_commas conj [s1, s2] = [s1, conj, s2]
-  | serial_commas conj [s1, s2, s3] = [s1 ^ ",", s2 ^ ",", conj, s3]
-  | serial_commas conj (s :: ss) = s ^ "," :: serial_commas conj ss
-
+val serial_commas = ATP_Proof.serial_commas
 val simplify_spaces = ATP_Proof.strip_spaces false (K true)
 
 fun parse_bool_option option name s =

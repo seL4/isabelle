@@ -8,9 +8,11 @@ Central manager for asynchronous diagnosis tool threads.
 
 signature ASYNC_MANAGER =
 sig
-  val break_into_chunks : string list -> string list
+  val implode_desc : string * string -> string
+  val break_into_chunks : string -> string list
   val launch :
-    string -> Time.time -> Time.time -> string -> (unit -> string) -> unit
+    string -> Time.time -> Time.time -> string * string
+    -> (unit -> bool * string) -> unit
   val kill_threads : string -> string -> unit
   val running_threads : string -> string -> unit
   val thread_messages : string -> string -> int option -> unit
@@ -26,6 +28,12 @@ val message_display_limit = 5;
 
 
 (** thread management **)
+
+val implode_desc = op ^ o apfst quote
+
+fun implode_message (workers, work) =
+  space_implode " " (ATP_Proof.serial_commas "and" (map quote workers)) ^ work
+
 
 (* data structures over threads *)
 
@@ -45,10 +53,12 @@ fun update_thread xs = AList.update Thread.equal xs;
 type state =
   {manager: Thread.thread option,
    timeout_heap: Thread_Heap.T,
-   active: (Thread.thread * (string * Time.time * Time.time * string)) list,
-   canceling: (Thread.thread * (string * Time.time * string)) list,
-   messages: (string * string) list,
-   store: (string * string) list}
+   active:
+     (Thread.thread
+      * (string * Time.time * Time.time * (string * string))) list,
+   canceling:  (Thread.thread * (string * Time.time * (string * string))) list,
+   messages: (bool * (string * (string * string))) list,
+   store: (string * (string * string)) list}
 
 fun make_state manager timeout_heap active canceling messages store : state =
   {manager = manager, timeout_heap = timeout_heap, active = active,
@@ -60,17 +70,17 @@ val global_state = Synchronized.var "async_manager"
 
 (* unregister thread *)
 
-fun unregister message thread =
+fun unregister (urgent, message) thread =
   Synchronized.change global_state
   (fn state as {manager, timeout_heap, active, canceling, messages, store} =>
     (case lookup_thread active thread of
-      SOME (tool, _, _, desc) =>
+      SOME (tool, _, _, desc as (worker, its_desc)) =>
         let
           val active' = delete_thread thread active;
           val now = Time.now ()
           val canceling' = (thread, (tool, now, desc)) :: canceling
-          val message' = desc ^ "\n" ^ message
-          val messages' = (tool, message') :: messages;
+          val message' = (worker, its_desc ^ "\n" ^ message)
+          val messages' = (urgent, (tool, message')) :: messages
           val store' = (tool, message') ::
             (if length store <= message_store_limit then store
              else #1 (chop message_store_limit store));
@@ -95,18 +105,23 @@ fun replace_all bef aft =
 
 (* This is a workaround for Proof General's off-by-a-few sendback display bug,
    whereby "pr" in "proof" is not highlighted. *)
-val break_into_chunks = maps (space_explode "\000" o replace_all "\n\n" "\000")
+val break_into_chunks = space_explode "\000" o replace_all "\n\n" "\000"
 
 fun print_new_messages () =
-  case Synchronized.change_result global_state
-         (fn {manager, timeout_heap, active, canceling, messages, store} =>
-             (messages, make_state manager timeout_heap active canceling []
-                                   store)) of
-    [] => ()
-  | msgs as (tool, _) :: _ =>
-    let val ss = break_into_chunks (map snd msgs) in
-      List.app Output.urgent_message (tool ^ ": " ^ hd ss :: tl ss)
-    end
+  Synchronized.change_result global_state
+      (fn {manager, timeout_heap, active, canceling, messages, store} =>
+          messages
+          |> List.partition (fn (urgent, _) => null active orelse urgent)
+          ||> (fn postponed_messages =>
+                  make_state manager timeout_heap active canceling
+                                     postponed_messages store))
+  |> map (fn (_, (tool, (worker, work))) => ((tool, work), worker))
+  |> AList.group (op =)
+  |> List.app (fn ((tool, work), workers) =>
+                  tool ^ ": " ^
+                  implode_message (workers |> sort string_ord, work)
+                  |> break_into_chunks
+                  |> List.app Output.urgent_message)
 
 fun check_thread_manager () = Synchronized.change global_state
   (fn state as {manager, timeout_heap, active, canceling, messages, store} =>
@@ -141,7 +156,7 @@ fun check_thread_manager () = Synchronized.change global_state
         do
           (Synchronized.timed_access global_state (SOME o time_limit o #timeout_heap) action
             |> these
-            |> List.app (unregister "Timed out.\n");
+            |> List.app (unregister (false, "Timed out.\n"));
             print_new_messages ();
             (*give threads some time to respond to interrupt*)
             OS.Process.sleep min_wait_time)
@@ -168,8 +183,7 @@ fun launch tool birth_time death_time desc f =
            let
              val self = Thread.self ()
              val _ = register tool birth_time death_time desc self
-             val message = f ()
-           in unregister message self end);
+           in unregister (f ()) self end);
    ())
 
 
@@ -177,7 +191,7 @@ fun launch tool birth_time death_time desc f =
 
 (* kill threads *)
 
-fun kill_threads tool workers = Synchronized.change global_state
+fun kill_threads tool das_wort_worker = Synchronized.change global_state
   (fn {manager, timeout_heap, active, canceling, messages, store} =>
     let
       val killing =
@@ -185,7 +199,9 @@ fun kill_threads tool workers = Synchronized.change global_state
                        if tool' = tool then SOME (th, (tool', Time.now (), desc))
                        else NONE) active
       val state' = make_state manager timeout_heap [] (killing @ canceling) messages store;
-      val _ = if null killing then () else Output.urgent_message ("Killed active " ^ workers ^ ".")
+      val _ =
+        if null killing then ()
+        else Output.urgent_message ("Killed active " ^ das_wort_worker ^ "s.")
     in state' end);
 
 
@@ -193,7 +209,7 @@ fun kill_threads tool workers = Synchronized.change global_state
 
 fun seconds time = string_of_int (Time.toSeconds time) ^ " s"
 
-fun running_threads tool workers =
+fun running_threads tool das_wort_worker =
   let
     val {active, canceling, ...} = Synchronized.value global_state;
 
@@ -201,37 +217,36 @@ fun running_threads tool workers =
     fun running_info (_, (tool', birth_time, death_time, desc)) =
       if tool' = tool then
         SOME ("Running: " ^ seconds (Time.- (now, birth_time)) ^ " -- " ^
-              seconds (Time.- (death_time, now)) ^ " to live:\n" ^ desc)
+              seconds (Time.- (death_time, now)) ^ " to live:\n" ^
+              implode_desc desc)
       else
         NONE
     fun canceling_info (_, (tool', death_time, desc)) =
       if tool' = tool then
-        SOME ("Trying to interrupt thread since " ^
-              seconds (Time.- (now, death_time)) ^ ":\n" ^ desc)
+        SOME ("Trying to interrupt " ^ das_wort_worker ^ " since " ^
+              seconds (Time.- (now, death_time)) ^ ":\n" ^ implode_desc desc)
       else
         NONE
     val running =
       case map_filter running_info active of
-        [] => ["No " ^ workers ^ " running."]
-      | ss => "Running " ^ workers ^ ":" :: ss
+        [] => ["No " ^ das_wort_worker ^ "s running."]
+      | ss => "Running " ^ das_wort_worker ^ "s " :: ss
     val interrupting =
       case map_filter canceling_info canceling of
         [] => []
-      | ss => "Trying to interrupt the following " ^ workers ^ ":" :: ss
+      | ss => "Interrupting " ^ das_wort_worker ^ "s " :: ss
   in Output.urgent_message (space_implode "\n\n" (running @ interrupting)) end
 
-fun thread_messages tool worker opt_limit =
+fun thread_messages tool das_wort_worker opt_limit =
   let
     val limit = the_default message_display_limit opt_limit;
     val tool_store = Synchronized.value global_state
                      |> #store |> filter (curry (op =) tool o fst)
     val header =
-      "Recent " ^ worker ^ " messages" ^
+      "Recent " ^ das_wort_worker ^ " messages" ^
         (if length tool_store <= limit then ":"
          else " (" ^ string_of_int limit ^ " displayed):");
-  in
-    List.app Output.urgent_message (header :: break_into_chunks
-                                     (map snd (#1 (chop limit tool_store))))
-  end
+    val ss = tool_store |> chop limit |> #1 |> map (implode_desc o snd)
+  in List.app Output.urgent_message (header :: maps break_into_chunks ss) end
 
 end;

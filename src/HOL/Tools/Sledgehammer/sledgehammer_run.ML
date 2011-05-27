@@ -31,16 +31,16 @@ open Sledgehammer_Minimize
 
 fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
                        n goal =
-  quote name ^
-  (if verbose then
-     " with " ^ string_of_int num_facts ^ " fact" ^ plural_s num_facts
-   else
-     "") ^
-  " on " ^ (if n = 1 then "goal" else "subgoal " ^ string_of_int i) ^
-  (if blocking then
-     "."
-   else
-     ":\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i)))
+  (name,
+   (if verbose then
+      " with " ^ string_of_int num_facts ^ " fact" ^ plural_s num_facts
+    else
+      "") ^
+   " on " ^ (if n = 1 then "goal" else "subgoal " ^ string_of_int i) ^
+   (if blocking then
+      "."
+    else
+      ":\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i))))
 
 val auto_minimize_min_facts =
   Attrib.setup_config_int @{binding sledgehammer_auto_minimize_min_facts}
@@ -86,6 +86,11 @@ fun get_minimizing_prover ctxt auto name
              | NONE => result
            end)
 
+val someN = "some"
+val noneN = "none"
+val timeoutN = "timeout"
+val unknownN = "unknown"
+
 fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
                               expect, ...})
         auto minimize_command only
@@ -109,7 +114,9 @@ fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
       problem
       |> get_minimizing_prover ctxt auto name params (minimize_command name)
       |> (fn {outcome, message, ...} =>
-             (if is_some outcome then "none" else "some" (* sic *), message))
+             (if outcome = SOME ATP_Proof.TimedOut then timeoutN
+              else if is_some outcome then noneN
+              else someN, message))
     fun go () =
       let
         val (outcome_code, message) =
@@ -117,13 +124,13 @@ fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
             really_go ()
           else
             (really_go ()
-             handle ERROR message => ("unknown", "Error: " ^ message ^ "\n")
+             handle ERROR message => (unknownN, "Error: " ^ message ^ "\n")
                   | exn =>
                     if Exn.is_interrupt exn then
                       reraise exn
                     else
-                      ("unknown", "Internal error:\n" ^
-                                  ML_Compiler.exn_message exn ^ "\n"))
+                      (unknownN, "Internal error:\n" ^
+                                ML_Compiler.exn_message exn ^ "\n"))
         val _ =
           (* The "expect" argument is deliberately ignored if the prover is
              missing so that the "Metis_Examples" can be processed on any
@@ -135,22 +142,27 @@ fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
             error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
           else
             warning ("Unexpected outcome: " ^ quote outcome_code ^ ".");
-      in (outcome_code = "some", message) end
+      in (outcome_code, message) end
   in
     if auto then
-      let val (success, message) = TimeLimit.timeLimit timeout go () in
+      let
+        val (outcome_code, message) = TimeLimit.timeLimit timeout go ()
+        val success = (outcome_code = someN)
+      in
         (success, state |> success ? Proof.goal_message (fn () =>
              Pretty.chunks [Pretty.str "",
                             Pretty.mark Markup.hilite (Pretty.str message)]))
       end
     else if blocking then
-      let val (success, message) = TimeLimit.timeLimit hard_timeout go () in
-        List.app Output.urgent_message
-                 (Async_Manager.break_into_chunks [desc ^ "\n" ^ message]);
-        (success, state)
+      let val (outcome_code, message) = TimeLimit.timeLimit hard_timeout go () in
+        Async_Manager.implode_desc desc ^ "\n" ^ message
+        |> Async_Manager.break_into_chunks
+        |> List.app Output.urgent_message;
+        (outcome_code = someN, state)
       end
     else
-      (Async_Manager.launch das_Tool birth_time death_time desc (snd o go);
+      (Async_Manager.launch das_tool birth_time death_time desc
+                            (apfst (curry (op <>) timeoutN) o go);
        (false, state))
   end
 
