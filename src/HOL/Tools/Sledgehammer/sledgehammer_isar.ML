@@ -283,7 +283,7 @@ val sledgehammerN = "sledgehammer"
 val sledgehammer_paramsN = "sledgehammer_params"
 
 val runN = "run"
-val minimizeN = "minimize"
+val minN = "min"
 val messagesN = "messages"
 val supported_proversN = "supported_provers"
 val running_proversN = "running_provers"
@@ -296,7 +296,7 @@ fun string_for_raw_param (key, values) =
   key ^ (case implode_param values of "" => "" | value => " = " ^ value)
 
 fun minimize_command override_params i prover_name fact_names =
-  sledgehammerN ^ " " ^ minimizeN ^ " [prover = " ^ prover_name ^
+  sledgehammerN ^ " " ^ minN ^ " [prover = " ^ prover_name ^
   (override_params |> filter is_raw_param_relevant_for_minimize
                    |> implode o map (prefix ", " o string_for_raw_param)) ^
   "] (" ^ space_implode " " fact_names ^ ")" ^
@@ -315,7 +315,7 @@ fun hammer_away override_params subcommand opt_i relevance_override state =
                          state
         |> K ()
       end
-    else if subcommand = minimizeN then
+    else if subcommand = minN then
       run_minimize (get_params false ctxt override_params) (the_default 1 opt_i)
                    (#add relevance_override) state
     else if subcommand = messagesN then

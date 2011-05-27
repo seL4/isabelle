@@ -250,34 +250,33 @@ Either way, Sledgehammer produces the following output after a few seconds:
 Sledgehammer: ``\textit{e}'' for subgoal 1: \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this command: \textbf{by} (\textit{metis last\_ConsL}). \\
-To minimize: \textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{e}] (\textit{last\_ConsL}). \\[3\smallskipamount]
+To minimize: \textbf{sledgehammer} \textit{min} [\textit{prover} = \textit{e}] (\textit{last\_ConsL}). \\[3\smallskipamount]
 %
 Sledgehammer: ``\textit{vampire}'' for subgoal 1: \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this command: \textbf{by} (\textit{metis hd.simps}). \\
-To minimize: \textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{vampire}] (\textit{hd.simps}). \\[3\smallskipamount]
+To minimize: \textbf{sledgehammer} \textit{min} [\textit{prover} = \textit{vampire}] (\textit{hd.simps}). \\[3\smallskipamount]
 %
 Sledgehammer: ``\textit{spass}'' for subgoal 1: \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this command: \textbf{by} (\textit{metis list.inject}). \\
-To minimize: \textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{spass}]~(\textit{list.inject}). \\[3\smallskipamount]
+To minimize: \textbf{sledgehammer} \textit{min} [\textit{prover} = \textit{spass}]~(\textit{list.inject}). \\[3\smallskipamount]
 %
 %Sledgehammer: ``\textit{remote\_waldmeister}'' for subgoal 1: \\
 %$[a] = [b] \,\Longrightarrow\, a = b$ \\
 %Try this command: \textbf{by} (\textit{metis hd.simps insert\_Nil}). \\
-%To minimize: \textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{remote\_waldmeister}] \\
+%To minimize: \textbf{sledgehammer} \textit{min} [\textit{prover} = \textit{remote\_waldmeister}] \\
 %\phantom{\textbf{sledgehammer}~}(\textit{hd.simps insert\_Nil}). \\[3\smallskipamount]
 %
 Sledgehammer: ``\textit{remote\_sine\_e}'' for subgoal 1: \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this command: \textbf{by} (\textit{metis hd.simps}). \\
-To minimize: \textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{remote\_sine\_e}] \\
-\phantom{To minimize: }(\textit{hd.simps}). \\[3\smallskipamount]
+To minimize: \textbf{sledgehammer} \textit{min} [\textit{prover} = \textit{remote\_sine\_e}]~(\textit{hd.simps}). \\[3\smallskipamount]
 %
 Sledgehammer: ``\textit{remote\_z3}'' for subgoal 1: \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this command: \textbf{by} (\textit{metis hd.simps}). \\
-To minimize: \textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{remote\_z3}]~(\textit{hd.simps}).
+To minimize: \textbf{sledgehammer} \textit{min} [\textit{prover} = \textit{remote\_z3}]~(\textit{hd.simps}).
 \postw
 
 Sledgehammer ran E, SInE-E, SPASS, Vampire, %Waldmeister,
@@ -411,7 +410,7 @@ versions of Sledgehammer were frequent victims of this problem. Now this should
 very seldom be an issue, but if you notice many unsound proofs, contact the
 author at \authoremail.
 
-\point{How can I tell whether a Sledgehammer proof is sound?}
+\point{How can I tell whether a generated proof is sound?}
 
 First, if \emph{metis} (or \emph{metisFT}) can reconstruct it, the proof is
 sound (modulo soundness of Isabelle's inference kernel). If it fails or runs
@@ -423,7 +422,7 @@ seemingly forever, you can try
 \postw
 
 where \textit{metis\_facts} is the list of facts appearing in the suggested
-Metis call. The automatic provers should be able to refind the proof very
+Metis call. The automatic provers should be able to re-find the proof very
 quickly if it is sound, and the \textit{type\_sys} $=$ \textit{poly\_tags}
 option (\S\ref{problem-encoding}) ensures that no unsound proofs are found.
 
@@ -436,13 +435,12 @@ following:
 \textbf{sledgehammer} [\textit{full\_types}] (\textit{nat.distinct\/}(1))
 \postw
 
-\point{How does Sledgehammer select the facts that should be passed to the
-automatic provers?}
+\point{Which facts are passed to the automatic provers?}
 
-Briefly, the relevance filter assigns a score to every available fact (lemma,
-theorem, definition, or axiom)\ based upon how many constants that fact shares
-with the conjecture. This process iterates to include facts relevant to those
-just accepted, but with a decay factor to ensure termination. The constants are
+The relevance filter assigns a score to every available fact (lemma, theorem,
+definition, or axiom)\ based upon how many constants that fact shares with the
+conjecture. This process iterates to include facts relevant to those just
+accepted, but with a decay factor to ensure termination. The constants are
 weighted to give unusual ones greater significance. The relevance filter copes
 best when the conjecture contains some unusual constants; if all the constants
 are common, it is unable to discriminate among the hundreds of facts that are
@@ -450,7 +448,7 @@ picked up. The relevance filter is also memoryless: It has no information about
 how many times a particular fact has been used in a proof, and it cannot learn.
 
 The number of facts included in a problem varies from prover to prover, since
-some provers get overwhelmed quicker than others. You can show the number of
+some provers get overwhelmed more easily than others. You can show the number of
 facts given using the \textit{verbose} option (\S\ref{output-format}) and the
 actual facts using \textit{debug} (\S\ref{output-format}).
 
@@ -487,7 +485,7 @@ iterations $j + 1$, $j + 2$, etc. To give them even more weight, try
 \textbf{sledgehammer}
 \postw
 
-\point{Why are the Isar proofs generated by Sledgehammer so ugly?}
+\point{Why are the generated Isar proofs so ugly/detailed/broken?}
 
 The current implementation is experimental and explodes exponentially in the
 worst case. Work on a new implementation has begun. There is a large body of
@@ -496,20 +494,20 @@ as Isar proofs), which we hope to leverage. In the meantime, a workaround is to
 set the \textit{isar\_shrink\_factor} option (\S\ref{output-format}) to a larger
 value or to try several provers and keep the nicest-looking proof.
 
-\point{Should I let Sledgehammer minimize the number of lemmas?}
+\point{Should I minimize the number of lemmas?}
 
 In general, minimization is a good idea, because proofs involving fewer lemmas
 tend to be shorter as well, and hence easier to re-find by Metis. But the
 opposite is sometimes the case.
 
-\point{Why does the minimizer sometimes starts of its own?}
+\point{Why does the minimizer sometimes starts on its own?}
 
 There are two scenarios in which this can happen. First, some provers (notably
 CVC3, Satallax, and Yices) do not provide proofs or sometimes provide incomplete
 proofs. The minimizer is then invoked to find out which facts are actually
 needed from the (large) set of facts that was initinally given to the prover.
 Second, if a prover returns a proof with lots of facts, the minimizer is invoked
-automatically since Metis is unlikely to refind the proof.
+automatically since Metis would be unlikely to re-find the proof.
 
 \point{What is metisFT?}
 
@@ -531,7 +529,7 @@ Metis: Falling back on ``\textit{metisFT\/}''.
 in a successful Metis proof, you can advantageously replace the \textit{metis}
 call with \textit{metisFT}.
 
-\point{I got a strange error from Sledgehammer---what should I do?}
+\point{A strange error occurred---what should I do?}
 
 Sledgehammer tries to give informative error messages. Please report any strange
 error to the author at \authoremail. This applies double if you get the message
@@ -580,7 +578,7 @@ In the general syntax, the \textit{subcommand} may be any of the following:
 \item[$\bullet$] \textbf{\textit{run} (the default):} Runs Sledgehammer on
 subgoal number \textit{num} (1 by default), with the given options and facts.
 
-\item[$\bullet$] \textbf{\textit{minimize}:} Attempts to minimize the provided facts
+\item[$\bullet$] \textbf{\textit{min}:} Attempts to minimize the provided facts
 (specified in the \textit{facts\_override} argument) to obtain a simpler proof
 involving fewer facts. The options and goal number are as for \textit{run}.
 
