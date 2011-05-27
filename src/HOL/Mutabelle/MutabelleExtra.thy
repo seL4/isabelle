@@ -26,7 +26,7 @@ quickcheck_params [quiet, finite_types = false, report = false, size = 5, iterat
 nitpick_params [timeout = 5, sat_solver = MiniSat, no_overlord, verbose, card = 1-5, iter = 1,2,4,8,12]
 refute_params [maxtime = 10, minsize = 1, maxsize = 5, satsolver = jerusat]
 *)
-ML {* Auto_Tools.time_limit := 10.0 *}
+ML {* Try.auto_time_limit := 10.0 *}
 
 ML {* val mtds = [
   MutabelleExtra.quickcheck_mtd (Config.put Quickcheck.finite_types false) "random",

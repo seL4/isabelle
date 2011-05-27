@@ -408,6 +408,6 @@ fun auto_sledgehammer state =
                      (minimize_command [] 1) state
   end
 
-val setup = Auto_Tools.register_tool (auto, auto_sledgehammer)
+val setup = Try.register_tool (auto, auto_sledgehammer)
 
 end;

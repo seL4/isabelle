@@ -97,8 +97,8 @@ val _ =
 
 (* hook *)
 
-val auto_solve_direct = solve_direct true
+val auto_solve_direct = solve_direct true;
 
-val setup = Auto_Tools.register_tool (auto, auto_solve_direct);
+val setup = Try.register_tool (auto, auto_solve_direct);
 
 end;

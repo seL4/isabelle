@@ -177,6 +177,6 @@ val _ =
 
 val auto_try_methods = do_try_methods true NONE ([], [], [], [])
 
-val setup = Auto_Tools.register_tool (auto, auto_try_methods)
+val setup = Try.register_tool (auto, auto_try_methods)
 
 end;

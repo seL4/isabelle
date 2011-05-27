@@ -530,7 +530,7 @@ fun auto_quickcheck state =
         (false, state)
   end
 
-val setup = Auto_Tools.register_tool (auto, auto_quickcheck)
+val setup = Try.register_tool (auto, auto_quickcheck)
 
 (* Isar commands *)
 

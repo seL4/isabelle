@@ -397,6 +397,6 @@ val _ = Outer_Syntax.command "nitpick_params"
 
 val auto_nitpick = pick_nits [] true 1 0
 
-val setup = Auto_Tools.register_tool (auto, auto_nitpick)
+val setup = Try.register_tool (auto, auto_nitpick)
 
 end;

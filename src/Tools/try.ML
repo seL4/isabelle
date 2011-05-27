@@ -1,30 +1,30 @@
-(*  Title:      Tools/auto_tools.ML
+(*  Title:      Tools/try.ML
     Author:     Jasmin Blanchette, TU Muenchen
 
-Manager for tools that should be run automatically on newly entered conjectures.
+Manager for tools that should be tried on conjectures.
 *)
 
-signature AUTO_TOOLS =
+signature TRY =
 sig
-  val time_limit: real Unsynchronized.ref
+  val auto_time_limit: real Unsynchronized.ref
 
   val register_tool :
     bool Unsynchronized.ref * (Proof.state -> bool * Proof.state) -> theory
     -> theory
 end;
 
-structure Auto_Tools : AUTO_TOOLS =
+structure Try : TRY =
 struct
 
 (* preferences *)
 
-val time_limit = Unsynchronized.ref 4.0
+val auto_time_limit = Unsynchronized.ref 4.0
 
-val auto_tools_time_limitN = "auto-tools-time-limit"
+val auto_try_time_limitN = "auto-try-time-limit"
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
-    (Preferences.real_pref time_limit
-      auto_tools_time_limitN "Time limit for automatic tools (in seconds).")
+    (Preferences.real_pref auto_time_limit
+      auto_try_time_limitN "Time limit for automatically tried tools (in seconds).")
 
 
 (* configuration *)
@@ -55,14 +55,14 @@ fun run_tools tools state =
    interface to block for more than 100 seconds. *)
 fun smart_seconds r =
   seconds (if r >= 100.0 then
-             (legacy_feature (quote auto_tools_time_limitN ^
+             (legacy_feature (quote auto_try_time_limitN ^
                 " expressed in milliseconds -- use seconds instead"); 0.001 * r)
            else
              r)
 
 val _ = Context.>> (Specification.add_theorem_hook (fn interact => fn state =>
-  if interact andalso not (!Toplevel.quiet) andalso !time_limit > 0.0 then
-    TimeLimit.timeLimit (smart_seconds (!time_limit))
+  if interact andalso not (!Toplevel.quiet) andalso !auto_time_limit > 0.0 then
+    TimeLimit.timeLimit (smart_seconds (!auto_time_limit))
         (run_tools (Data.get (Proof.theory_of state))) state
     handle TimeLimit.TimeOut => state
   else

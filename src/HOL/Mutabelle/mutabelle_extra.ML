@@ -119,7 +119,7 @@ type report = entry list
 (** quickcheck **)
 
 fun invoke_quickcheck change_options quickcheck_generator thy t =
-  TimeLimit.timeLimit (seconds (!Auto_Tools.time_limit))
+  TimeLimit.timeLimit (seconds (!Try.auto_time_limit))
       (fn _ =>
           let
             val [result] = Quickcheck.test_goal_terms (change_options (Proof_Context.init_global thy))
@@ -130,7 +130,7 @@ fun invoke_quickcheck change_options quickcheck_generator thy t =
             | SOME _ => (GenuineCex, Quickcheck.timings_of result)
           end) ()
   handle TimeLimit.TimeOut =>
-         (Timeout, [("timelimit", Real.floor (!Auto_Tools.time_limit))])
+         (Timeout, [("timelimit", Real.floor (!Try.auto_time_limit))])
 
 fun quickcheck_mtd change_options quickcheck_generator =
   ("quickcheck_" ^ quickcheck_generator, invoke_quickcheck change_options quickcheck_generator)

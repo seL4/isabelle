@@ -138,7 +138,6 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/IsaPlanner/rw_tools.ML \
   $(SRC)/Tools/IsaPlanner/zipper.ML \
   $(SRC)/Tools/atomize_elim.ML \
-  $(SRC)/Tools/auto_tools.ML \
   $(SRC)/Tools/case_product.ML \
   $(SRC)/Tools/coherent.ML \
   $(SRC)/Tools/cong_tac.ML \
@@ -151,6 +150,7 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/project_rule.ML \
   $(SRC)/Tools/quickcheck.ML \
   $(SRC)/Tools/solve_direct.ML \
+  $(SRC)/Tools/try.ML \
   $(SRC)/Tools/value.ML \
   HOL.thy \
   Tools/hologic.ML \
