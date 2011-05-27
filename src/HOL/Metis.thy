@@ -12,7 +12,7 @@ uses "~~/src/Tools/Metis/metis.ML"
      ("Tools/Metis/metis_translate.ML")
      ("Tools/Metis/metis_reconstruct.ML")
      ("Tools/Metis/metis_tactics.ML")
-     ("Tools/try.ML")
+     ("Tools/try_methods.ML")
 begin
 
 
@@ -70,10 +70,10 @@ hide_fact (open) fFalse_def fTrue_def fNot_def fconj_def fdisj_def fimplies_def
     fequal_def select_def not_atomize atomize_not_select not_atomize_select
     select_FalseI
 
-subsection {* Try *}
+subsection {* Try Methods *}
 
-use "Tools/try.ML"
+use "Tools/try_methods.ML"
 
-setup {* Try.setup *}
+setup {* Try_Methods.setup *}
 
 end

@@ -1,26 +1,27 @@
-(*  Title:      HOL/Tools/try.ML
+(*  Title:      HOL/Tools/try_methods.ML
     Author:     Jasmin Blanchette, TU Muenchen
 
 Try a combination of proof methods.
 *)
 
-signature TRY =
+signature TRY_METHODS =
 sig
   val auto : bool Unsynchronized.ref
-  val invoke_try :
+  val try_methods :
     Time.time option -> string list * string list * string list * string list
     -> Proof.state -> bool
   val setup : theory -> theory
 end;
 
-structure Try : TRY =
+structure Try_Methods : TRY_METHODS =
 struct
 
 val auto = Unsynchronized.ref false
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
-      (Preferences.bool_pref auto "auto-try" "Try standard proof methods.")
+      (Preferences.bool_pref auto "auto-try-methods"
+                             "Try standard proof methods.")
 
 val default_timeout = seconds 5.0
 
@@ -102,7 +103,7 @@ val do_methods = map do_named_method named_methods
 
 fun time_string (s, ms) = s ^ ": " ^ string_of_int ms ^ " ms"
 
-fun do_try auto timeout_opt quad st =
+fun do_try_methods auto timeout_opt quad st =
   let
     val st = st |> Proof.map_context (Config.put Metis_Tactics.verbose false)
   in
@@ -116,8 +117,8 @@ fun do_try auto timeout_opt quad st =
                     |> map (swap o apsnd commas)
         val need_parens = exists_string (curry (op =) " ") s
         val message =
-          (if auto then "Auto Try found a proof" else "Try this command") ^
-          ": " ^
+          (if auto then "Auto Try Methods found a proof"
+           else "Try this command") ^ ": " ^
           Markup.markup Markup.sendback
               ((if nprems_of (#goal (Proof.goal st)) = 1 then "by"
                 else "apply") ^ " " ^ (s |> need_parens ? enclose "(" ")")) ^
@@ -133,12 +134,12 @@ fun do_try auto timeout_opt quad st =
       end
   end
 
-fun invoke_try timeout_opt = fst oo do_try false timeout_opt
+fun try_methods timeout_opt = fst oo do_try_methods false timeout_opt
 
-val tryN = "try"
+val try_methodsN = "try_methods"
 
-fun try_trans quad =
-  Toplevel.keep (K () o do_try false (SOME default_timeout) quad
+fun try_methods_trans quad =
+  Toplevel.keep (K () o do_try_methods false (SOME default_timeout) quad
                  o Toplevel.proof_of)
 
 fun merge_attrs (s1, i1, e1, d1) (s2, i2, e2, d2) =
@@ -166,14 +167,16 @@ fun parse_attrs x =
   || Scan.repeat parse_attr
      >> (fn quad => fold merge_attrs quad ([], [], [], []))) x
 
-val parse_try_command = Scan.optional parse_attrs ([], [], [], []) #>> try_trans
+val parse_try_methods_command =
+  Scan.optional parse_attrs ([], [], [], []) #>> try_methods_trans
 
 val _ =
-  Outer_Syntax.improper_command tryN
-      "try a combination of proof methods" Keyword.diag parse_try_command
+  Outer_Syntax.improper_command try_methodsN
+      "try a combination of proof methods" Keyword.diag
+      parse_try_methods_command
 
-val auto_try = do_try true NONE ([], [], [], [])
+val auto_try_methods = do_try_methods true NONE ([], [], [], [])
 
-val setup = Auto_Tools.register_tool (auto, auto_try)
+val setup = Auto_Tools.register_tool (auto, auto_try_methods)
 
 end;
