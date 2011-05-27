@@ -318,8 +318,10 @@ fun with_path cleanup after f path =
   |> Exn.release
   |> tap (after path)
 
-fun proof_banner auto =
-  if auto then "Auto Sledgehammer found a proof" else "Try this command"
+fun proof_banner auto blocking name =
+  if auto then "Auto Sledgehammer (" ^ quote name ^ ") found a proof"
+  else if blocking then quote name ^ " found a proof"
+  else "Try this command"
 
 val smt_triggers =
   Attrib.setup_config_bool @{binding sledgehammer_smt_triggers} (K true)
@@ -472,8 +474,8 @@ fun repair_smt_monomorph_context debug max_mono_iters max_mono_instances =
 fun run_atp auto name
         ({exec, required_execs, arguments, proof_delims, known_failures,
           conj_sym_kind, prem_kind, formats, best_slices, ...} : atp_config)
-        ({debug, verbose, overlord, type_sys, max_relevant, max_mono_iters,
-          max_new_mono_instances, explicit_apply, isar_proof,
+        ({debug, verbose, overlord, blocking, type_sys, max_relevant,
+          max_mono_iters, max_new_mono_instances, explicit_apply, isar_proof,
           isar_shrink_factor, slicing, timeout, ...} : params)
         minimize_command ({state, goal, subgoal, facts, ...} : prover_problem) =
   let
@@ -711,8 +713,8 @@ fun run_atp auto name
     val isar_params =
       (debug, isar_shrink_factor, pool, conjecture_shape, sym_tab)
     val metis_params =
-      (proof_banner auto, minimize_command, type_sys, atp_proof, facts_offset,
-       fact_names, typed_helpers, goal, subgoal)
+      (proof_banner auto blocking name, minimize_command, type_sys, atp_proof,
+       facts_offset, fact_names, typed_helpers, goal, subgoal)
     val (outcome, (message, used_facts)) =
       case outcome of
         NONE =>
@@ -884,7 +886,8 @@ fun can_apply_metis debug state i ths =
             (Config.put Metis_Tactics.verbose debug
              #> (fn ctxt => Metis_Tactics.metis_tac ctxt ths)) state i
 
-fun run_smt_solver auto name (params as {debug, verbose, ...}) minimize_command
+fun run_smt_solver auto name (params as {debug, verbose, blocking, ...})
+                   minimize_command
                    ({state, subgoal, subgoal_count, facts, smt_filter, ...}
                     : prover_problem) =
   let
@@ -907,7 +910,7 @@ fun run_smt_solver auto name (params as {debug, verbose, ...}) minimize_command
               ("smt", if name = SMT_Solver.solver_name_of ctxt then ""
                       else "smt_solver = " ^ maybe_quote name)
         in
-          try_command_line (proof_banner auto)
+          try_command_line (proof_banner auto blocking name)
               (apply_on_subgoal settings subgoal subgoal_count ^
                command_call method (map fst other_lemmas)) ^
           minimize_line minimize_command

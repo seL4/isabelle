@@ -104,7 +104,7 @@ fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
       max_relevant
       |> the_default (default_max_relevant_for_prover ctxt slicing name)
     val num_facts = length facts |> not only ? Integer.min max_relevant
-    val desc =
+    fun desc () =
       prover_description ctxt params name num_facts subgoal subgoal_count goal
     val problem =
       {state = state, goal = goal, subgoal = subgoal,
@@ -145,25 +145,28 @@ fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
       in (outcome_code, message) end
   in
     if auto then
-      let
-        val (outcome_code, message) = TimeLimit.timeLimit timeout go ()
-        val success = (outcome_code = someN)
-      in
-        (success, state |> success ? Proof.goal_message (fn () =>
-             Pretty.chunks [Pretty.str "",
-                            Pretty.mark Markup.hilite (Pretty.str message)]))
+      let val (outcome_code, message) = TimeLimit.timeLimit timeout go () in
+        (outcome_code,
+         state
+         |> outcome_code = someN
+            ? Proof.goal_message (fn () =>
+                  [Pretty.str "",
+                   Pretty.mark Markup.hilite (Pretty.str message)]
+                  |> Pretty.chunks))
       end
     else if blocking then
-      let val (outcome_code, message) = TimeLimit.timeLimit hard_timeout go () in
-        Async_Manager.implode_desc desc ^ "\n" ^ message
+      let
+        val (outcome_code, message) = TimeLimit.timeLimit hard_timeout go ()
+      in
+        (if outcome_code = someN then message else quote name ^ ": " ^ message)
         |> Async_Manager.break_into_chunks
         |> List.app Output.urgent_message;
-        (outcome_code = someN, state)
+        (outcome_code, state)
       end
     else
-      (Async_Manager.launch das_tool birth_time death_time desc
+      (Async_Manager.launch das_tool birth_time death_time (desc ())
                             (apfst (curry (op <>) timeoutN) o go);
-       (false, state))
+       (unknownN, state))
   end
 
 fun class_of_smt_solver ctxt name =
@@ -216,7 +219,9 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
              facts = facts,
              smt_filter = maybe_smt_filter
                   (fn () => map_filter (try dest_SMT_Weighted_Fact) facts) i}
-          val launch = launch_prover params auto minimize_command only
+          fun launch problem =
+            launch_prover params auto minimize_command only problem
+            #>> curry (op =) someN
         in
           if auto then
             fold (fn prover => fn (true, state) => (true, state)

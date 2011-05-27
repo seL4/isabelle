@@ -248,9 +248,7 @@ fun minimize_line _ [] = ""
   | minimize_line minimize_command ss =
     case minimize_command ss of
       "" => ""
-    | command =>
-      "\nTo minimize the number of lemmas, try this: " ^
-      Markup.markup Markup.sendback command ^ "."
+    | command => "\nTo minimize: " ^ Markup.markup Markup.sendback command ^ "."
 
 val split_used_facts =
   List.partition (curry (op =) Chained o snd)
