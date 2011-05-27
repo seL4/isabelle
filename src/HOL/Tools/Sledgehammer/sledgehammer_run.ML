@@ -10,6 +10,7 @@ signature SLEDGEHAMMER_RUN =
 sig
   type relevance_override = Sledgehammer_Filter.relevance_override
   type minimize_command = Sledgehammer_ATP_Reconstruct.minimize_command
+  type mode = Sledgehammer_Provers.mode
   type params = Sledgehammer_Provers.params
   type prover = Sledgehammer_Provers.prover
 
@@ -18,9 +19,9 @@ sig
   val timeoutN : string
   val unknownN : string
   val auto_minimize_min_facts : int Config.T
-  val get_minimizing_prover : Proof.context -> bool -> string -> prover
+  val get_minimizing_prover : Proof.context -> mode -> string -> prover
   val run_sledgehammer :
-    params -> bool -> int -> relevance_override -> (string -> minimize_command)
+    params -> mode -> int -> relevance_override -> (string -> minimize_command)
     -> Proof.state -> bool * (string * Proof.state)
 end;
 
@@ -66,10 +67,10 @@ val auto_minimize_min_facts =
   Attrib.setup_config_int @{binding sledgehammer_auto_minimize_min_facts}
       (fn generic => Config.get_generic generic binary_min_facts)
 
-fun get_minimizing_prover ctxt auto name
+fun get_minimizing_prover ctxt mode name
         (params as {debug, verbose, explicit_apply, ...}) minimize_command
         (problem as {state, subgoal, subgoal_count, facts, ...}) =
-  get_prover ctxt auto name params minimize_command problem
+  get_prover ctxt mode name params minimize_command problem
   |> (fn result as {outcome, used_facts, run_time_in_msecs, message} =>
          if is_some outcome then
            result
@@ -108,7 +109,7 @@ fun get_minimizing_prover ctxt auto name
 
 fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
                               expect, ...})
-        auto minimize_command only
+        mode minimize_command only
         {state, goal, subgoal, subgoal_count, facts, smt_filter} name =
   let
     val ctxt = Proof.context_of state
@@ -127,7 +128,7 @@ fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
        smt_filter = smt_filter}
     fun really_go () =
       problem
-      |> get_minimizing_prover ctxt auto name params (minimize_command name)
+      |> get_minimizing_prover ctxt mode name params (minimize_command name)
       |> (fn {outcome, message, ...} =>
              (if outcome = SOME ATP_Proof.TimedOut then timeoutN
               else if is_some outcome then noneN
@@ -159,7 +160,7 @@ fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
             warning ("Unexpected outcome: " ^ quote outcome_code ^ ".");
       in (outcome_code, message) end
   in
-    if auto then
+    if mode = Auto_Try then
       let val (outcome_code, message) = TimeLimit.timeLimit timeout go () in
         (outcome_code,
          state
@@ -196,12 +197,12 @@ fun smart_par_list_map _ [] = []
 fun dest_SMT_Weighted_Fact (SMT_Weighted_Fact p) = p
   | dest_SMT_Weighted_Fact _ = raise Fail "dest_SMT_Weighted_Fact"
 
-val auto_max_relevant_divisor = 2 (* FUDGE *)
+val auto_try_max_relevant_divisor = 2 (* FUDGE *)
 
 fun run_sledgehammer (params as {debug, verbose, blocking, provers,
                                  relevance_thresholds, max_relevant, slicing,
                                  timeout, ...})
-        auto i (relevance_override as {only, ...}) minimize_command state =
+        mode i (relevance_override as {only, ...}) minimize_command state =
   if null provers then
     error "No prover is set."
   else case subgoal_count state of
@@ -209,7 +210,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
   | n =>
     let
       val _ = Proof.assert_backward state
-      val print = if auto then K () else Output.urgent_message
+      val print = if mode = Normal then Output.urgent_message else K ()
       val state =
         state |> Proof.map_context (Config.put SMT_Config.verbose debug)
       val ctxt = Proof.context_of state
@@ -234,11 +235,11 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
              facts = facts,
              smt_filter = maybe_smt_filter
                   (fn () => map_filter (try dest_SMT_Weighted_Fact) facts) i}
-          val launch = launch_prover params auto minimize_command only
+          val launch = launch_prover params mode minimize_command only
         in
-          if auto then
+          if mode = Auto_Try orelse mode = Try then
             (unknownN, state)
-            |> fold (fn prover => fn accum as (outcome_code, state) =>
+            |> fold (fn prover => fn accum as (outcome_code, _) =>
                         if outcome_code = someN then accum
                         else launch problem prover)
                     provers
@@ -257,7 +258,8 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
               0 |> fold (Integer.max
                          o default_max_relevant_for_prover ctxt slicing)
                         provers
-                |> auto ? (fn n => n div auto_max_relevant_divisor)
+                |> mode = Auto_Try
+                   ? (fn n => n div auto_try_max_relevant_divisor)
           val is_built_in_const =
             is_built_in_const_for_prover ctxt (hd provers)
         in
@@ -315,12 +317,15 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
         launch_atps "Unit equational provers" is_unit_equality ueq_atps
       fun launch_atps_and_smt_solvers () =
         [launch_full_atps, launch_ueq_atps, launch_smts]
-        |> smart_par_list_map (fn f => f (unknownN, state) |> K ())
+        |> smart_par_list_map (fn f => ignore (f (unknownN, state)))
         handle ERROR msg => (print ("Error: " ^ msg); error msg)
+      fun maybe f (accum as (outcome_code, _)) =
+        accum |> (mode = Normal orelse outcome_code <> someN) ? f
     in
       (unknownN, state)
       |> (if blocking then
-            launch_full_atps #> not auto ? (launch_ueq_atps #> launch_smts)
+            launch_full_atps
+            #> mode <> Auto_Try ? (maybe launch_ueq_atps #> maybe launch_smts)
           else
             (fn p => Future.fork (tap launch_atps_and_smt_solvers) |> K p))
       handle TimeLimit.TimeOut =>

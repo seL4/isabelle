@@ -15,6 +15,8 @@ sig
   type type_system = Sledgehammer_ATP_Translate.type_system
   type minimize_command = Sledgehammer_ATP_Reconstruct.minimize_command
 
+  datatype mode = Auto_Try | Try | Normal | Minimize
+
   datatype rich_type_system =
     Dumb_Type_Sys of type_system |
     Smart_Type_Sys of bool
@@ -97,7 +99,7 @@ sig
   val kill_provers : unit -> unit
   val running_provers : unit -> unit
   val messages : int option -> unit
-  val get_prover : Proof.context -> bool -> string -> prover
+  val get_prover : Proof.context -> mode -> string -> prover
 end;
 
 structure Sledgehammer_Provers : SLEDGEHAMMER_PROVERS =
@@ -113,6 +115,8 @@ open Sledgehammer_ATP_Translate
 open Sledgehammer_ATP_Reconstruct
 
 (** The Sledgehammer **)
+
+datatype mode = Auto_Try | Try | Normal | Minimize
 
 (* Identifier to distinguish Sledgehammer from other tools using
    "Async_Manager". *)
@@ -320,10 +324,13 @@ fun with_path cleanup after f path =
   |> Exn.release
   |> tap (after path)
 
-fun proof_banner auto blocking name =
-  if auto then "Auto Sledgehammer (" ^ quote name ^ ") found a proof"
-  else if blocking then quote name ^ " found a proof"
-  else "Try this command"
+fun proof_banner mode blocking name =
+  case mode of
+    Auto_Try => "Auto Sledgehammer (" ^ quote name ^ ") found a proof"
+  | Try => "Sledgehammer (" ^ quote name ^ ") found a proof"
+  | Normal => if blocking then quote name ^ " found a proof"
+              else "Try this command"
+  | Minimize => "Try this command"
 
 val smt_triggers =
   Attrib.setup_config_bool @{binding sledgehammer_smt_triggers} (K true)
@@ -473,7 +480,7 @@ fun repair_smt_monomorph_context debug max_mono_iters max_mono_instances =
   #> Config.put SMT_Config.monomorph_limit max_mono_iters
   #> Config.put SMT_Config.monomorph_instances max_mono_instances
 
-fun run_atp auto name
+fun run_atp mode name
         ({exec, required_execs, arguments, proof_delims, known_failures,
           conj_sym_kind, prem_kind, formats, best_slices, ...} : atp_config)
         ({debug, verbose, overlord, blocking, type_sys, max_relevant,
@@ -696,7 +703,7 @@ fun run_atp auto name
          (output, msecs, type_sys, atp_proof, outcome)) =
       with_path cleanup export run_on problem_path_name
     val important_message =
-      if not auto andalso
+      if mode = Normal andalso
          random_range 0 (atp_important_message_keep_quotient - 1) = 0 then
         extract_important_message output
       else
@@ -715,7 +722,7 @@ fun run_atp auto name
     val isar_params =
       (debug, isar_shrink_factor, pool, conjecture_shape, sym_tab)
     val metis_params =
-      (proof_banner auto blocking name, minimize_command, type_sys, atp_proof,
+      (proof_banner mode blocking name, minimize_command, type_sys, atp_proof,
        facts_offset, fact_names, typed_helpers, goal, subgoal)
     val (outcome, (message, used_facts)) =
       case outcome of
@@ -894,7 +901,7 @@ fun preplay debug timeout ths state i =
     | NONE => Preplay_Timed_Out
   end
 
-fun run_smt_solver auto name
+fun run_smt_solver mode name
         (params as {debug, verbose, blocking, preplay_timeout, ...})
         minimize_command
         ({state, subgoal, subgoal_count, facts, smt_filter, ...}
@@ -920,7 +927,7 @@ fun run_smt_solver auto name
                     else "smt_solver = " ^ maybe_quote name,
                     "smt", NONE)
         in
-          try_command_line (proof_banner auto blocking name)
+          try_command_line (proof_banner mode blocking name)
               (apply_on_subgoal settings subgoal subgoal_count ^
                command_call method (map fst other_lemmas)) ^
           minimize_line minimize_command
@@ -938,12 +945,12 @@ fun run_smt_solver auto name
      run_time_in_msecs = run_time_in_msecs, message = message}
   end
 
-fun get_prover ctxt auto name =
+fun get_prover ctxt mode name =
   let val thy = Proof_Context.theory_of ctxt in
     if is_smt_prover ctxt name then
-      run_smt_solver auto name
+      run_smt_solver mode name
     else if member (op =) (supported_atps thy) name then
-      run_atp auto name (get_atp thy name)
+      run_atp mode name (get_atp thy name)
     else
       error ("No such prover: " ^ name ^ ".")
   end

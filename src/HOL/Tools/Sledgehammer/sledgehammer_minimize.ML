@@ -152,7 +152,7 @@ fun minimize_facts prover_name (params as {timeout, ...}) explicit_apply_opt
                    silent i n state facts =
   let
     val ctxt = Proof.context_of state
-    val prover = get_prover ctxt false prover_name
+    val prover = get_prover ctxt Minimize prover_name
     val msecs = Time.toMilliseconds timeout
     val _ = print silent (fn () => "Sledgehammer minimize: " ^
                                    quote prover_name ^ ".")

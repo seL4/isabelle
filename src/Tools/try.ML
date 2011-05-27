@@ -57,6 +57,7 @@ val register_tool = Data.map o AList.update (op =)
 
 fun try_tools state =
   get_tools (Proof.theory_of state)
+  |> tap (fn _ => Output.urgent_message "Trying...")
   |> Par_List.get_some
          (fn (name, (_, tool)) =>
              case try (tool false) state of

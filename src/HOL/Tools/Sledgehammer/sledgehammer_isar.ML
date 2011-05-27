@@ -232,7 +232,7 @@ fun default_raw_params ctxt =
 val infinity_time_in_secs = 60 * 60 * 24 * 365
 val the_timeout = the_default (Time.fromSeconds infinity_time_in_secs)
 
-fun extract_params auto default_params override_params =
+fun extract_params mode default_params override_params =
   let
     val override_params = map unalias_raw_param override_params
     val raw_params = rev override_params @ rev default_params
@@ -266,19 +266,19 @@ fun extract_params auto default_params override_params =
       case lookup name of
         SOME "smart" => NONE
       | _ => SOME (lookup_int name)
-    val debug = not auto andalso lookup_bool "debug"
-    val verbose = debug orelse (not auto andalso lookup_bool "verbose")
+    val debug = mode <> Auto_Try andalso lookup_bool "debug"
+    val verbose = debug orelse (mode <> Auto_Try andalso lookup_bool "verbose")
     val overlord = lookup_bool "overlord"
     val blocking =
-      Isabelle_Process.is_active () orelse auto orelse debug orelse
+      Isabelle_Process.is_active () orelse mode <> Normal orelse debug orelse
       lookup_bool "blocking"
     val provers = lookup_string "provers" |> space_explode " "
-                  |> auto ? single o hd
+                  |> mode = Auto_Try ? single o hd
     val type_sys =
-      if auto then
+      if mode = Auto_Try then
         Smart_Type_Sys true
       else case lookup_string "type_sys" of
-        "smart" => Smart_Type_Sys (lookup_bool "full_types")
+        "smart" => Smart_Type_Sys (mode = Try orelse lookup_bool "full_types")
       | s => Dumb_Type_Sys (type_sys_from_string s)
     val relevance_thresholds = lookup_real_pair "relevance_thresholds"
     val max_relevant = lookup_int_option "max_relevant"
@@ -287,10 +287,11 @@ fun extract_params auto default_params override_params =
     val explicit_apply = lookup_bool "explicit_apply"
     val isar_proof = lookup_bool "isar_proof"
     val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
-    val slicing = not auto andalso lookup_bool "slicing"
-    val timeout = (if auto then NONE else lookup_time "timeout") |> the_timeout
+    val slicing = mode <> Auto_Try andalso lookup_bool "slicing"
+    val timeout =
+      (if mode = Auto_Try then NONE else lookup_time "timeout") |> the_timeout
     val preplay_timeout =
-      if auto then Time.zeroTime
+      if mode = Auto_Try then Time.zeroTime
       else lookup_time "preplay_timeout" |> the_timeout
     val expect = lookup_string "expect"
   in
@@ -303,8 +304,8 @@ fun extract_params auto default_params override_params =
      timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
   end
 
-fun get_params auto ctxt = extract_params auto (default_raw_params ctxt)
-fun default_params thy = get_params false thy o map (apsnd single)
+fun get_params mode ctxt = extract_params mode (default_raw_params ctxt)
+fun default_params thy = get_params Normal thy o map (apsnd single)
 
 (* Sledgehammer the given subgoal *)
 
@@ -328,14 +329,14 @@ fun hammer_away override_params subcommand opt_i relevance_override state =
   in
     if subcommand = runN then
       let val i = the_default 1 opt_i in
-        run_sledgehammer (get_params false ctxt override_params) false i
+        run_sledgehammer (get_params Normal ctxt override_params) Normal i
                          relevance_override (minimize_command override_params i)
                          state
         |> K ()
       end
     else if subcommand = minN then
-      run_minimize (get_params false ctxt override_params) (the_default 1 opt_i)
-                   (#add relevance_override) state
+      run_minimize (get_params Minimize ctxt override_params)
+                   (the_default 1 opt_i) (#add relevance_override) state
     else if subcommand = messagesN then
       messages opt_i
     else if subcommand = supported_proversN then
@@ -406,9 +407,10 @@ val _ =
 fun try_sledgehammer auto state =
   let
     val ctxt = Proof.context_of state
+    val mode = if auto then Auto_Try else Try
     val i = 1
   in
-    run_sledgehammer (get_params auto ctxt []) auto i no_relevance_override
+    run_sledgehammer (get_params mode ctxt []) mode i no_relevance_override
                      (minimize_command [] i) state
   end
 
