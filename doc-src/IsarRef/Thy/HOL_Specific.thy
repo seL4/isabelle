@@ -931,15 +931,20 @@ text {*
 
   \begin{matharray}{rcl}
     @{command_def (HOL) "solve_direct"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
+    @{command_def (HOL) "try"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
     @{command_def (HOL) "try_methods"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
     @{command_def (HOL) "sledgehammer"}@{text "\<^sup>*"} & : & @{text "proof \<rightarrow>"} \\
     @{command_def (HOL) "sledgehammer_params"} & : & @{text "theory \<rightarrow> theory"}
   \end{matharray}
 
   @{rail "
+    @@{command (HOL) try}
+    ;
+
     @@{command (HOL) try_methods} ( ( ( 'simp' | 'intro' | 'elim' | 'dest' ) ':' @{syntax thmrefs} ) + ) ?
       @{syntax nat}?
     ;
+
     @@{command (HOL) sledgehammer} ( '[' args ']' )? facts? @{syntax nat}?
     ;
 
