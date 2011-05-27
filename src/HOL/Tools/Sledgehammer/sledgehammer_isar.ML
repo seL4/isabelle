@@ -143,6 +143,12 @@ fun unalias_raw_param (name, value) =
                             | _ => value)
     | NONE => (name, value)
 
+(* Ensure that type systems such as "simple!" and "mangled_preds?" are handled
+   correctly. *)
+fun implode_param [s, "?"] = s ^ "?"
+  | implode_param [s, "!"] = s ^ "!"
+  | implode_param ss = space_implode " " ss
+
 structure Data = Theory_Data
 (
   type T = raw_param list
@@ -165,27 +171,33 @@ fun remotify_prover_if_not_installed ctxt name =
   else
     remotify_prover_if_supported_and_not_already_remote ctxt name
 
-fun avoid_too_many_local_threads _ _ [] = []
-  | avoid_too_many_local_threads ctxt 0 provers =
-    map_filter (remotify_prover_if_supported_and_not_already_remote ctxt)
-               provers
-  | avoid_too_many_local_threads ctxt n (prover :: provers) =
-    let val n = if String.isPrefix remote_prefix prover then n else n - 1 in
-      prover :: avoid_too_many_local_threads ctxt n provers
-    end
+fun avoid_too_many_threads _ _ [] = []
+  | avoid_too_many_threads _ (0, 0) _ = []
+  | avoid_too_many_threads ctxt (0, max_remote) provers =
+    provers
+    |> map_filter (remotify_prover_if_supported_and_not_already_remote ctxt)
+    |> take max_remote
+  | avoid_too_many_threads _ (max_local, 0) provers =
+    provers
+    |> filter_out (String.isPrefix remote_prefix)
+    |> take max_local
+  | avoid_too_many_threads ctxt max_local_and_remote (prover :: provers) =
+    let
+      val max_local_and_remote =
+        max_local_and_remote
+        |> (if String.isPrefix remote_prefix prover then apsnd else apfst)
+              (Integer.add ~1)
+    in prover :: avoid_too_many_threads ctxt max_local_and_remote provers end
 
-(* Ensure that type systems such as "simple!" and "mangled_preds?" are handled
-   correctly. *)
-fun implode_param [s, "?"] = s ^ "?"
-  | implode_param [s, "!"] = s ^ "!"
-  | implode_param ss = space_implode " " ss
+val max_default_remote_threads = 4
 
 (* The first ATP of the list is used by Auto Sledgehammer. Because of the low
    timeout, it makes sense to put SPASS first. *)
 fun default_provers_param_value ctxt =
-  [spassN, eN, vampireN, sine_eN, SMT_Solver.solver_name_of ctxt]
+  [spassN, eN, vampireN, SMT_Solver.solver_name_of ctxt, sine_eN, waldmeisterN]
   |> map_filter (remotify_prover_if_not_installed ctxt)
-  |> avoid_too_many_local_threads ctxt (Multithreading.max_threads_value ())
+  |> avoid_too_many_threads ctxt (Multithreading.max_threads_value (),
+                                  max_default_remote_threads)
   |> implode_param
 
 val set_default_raw_param = Data.map o AList.update (op =) o unalias_raw_param
