@@ -11,6 +11,7 @@ sig
   val simplify_spaces : string -> string
   val parse_bool_option : bool -> string -> string -> bool option
   val parse_time_option : string -> string -> Time.time option
+  val string_from_ext_time : bool * Time.time -> string
   val string_from_time : Time.time -> string
   val nat_subscript : int -> string
   val unyxml : string -> string
@@ -67,8 +68,14 @@ fun parse_time_option _ "none" = NONE
         SOME (seconds (the secs))
     end
 
-fun string_from_time t =
-  string_of_real (0.01 * Real.fromInt (Time.toMilliseconds t div 10)) ^ " s"
+fun string_from_ext_time (plus, time) =
+  let val ms = Time.toMilliseconds time in
+    if plus then signed_string_of_int ((ms + 999) div 1000) ^ "+ s"
+    else if ms < 1000 then signed_string_of_int ms ^ " ms"
+    else string_of_real (0.01 * Real.fromInt (ms div 10)) ^ " s"
+  end
+
+val string_from_time = string_from_ext_time o pair false
 
 val subscript = implode o map (prefix "\<^isub>") o raw_explode  (* FIXME Symbol.explode (?) *)
 fun nat_subscript n =

@@ -11,14 +11,23 @@ sig
   type 'a proof = 'a ATP_Proof.proof
   type locality = Sledgehammer_Filter.locality
   type type_system = Sledgehammer_ATP_Translate.type_system
-  type minimize_command = string list -> string
-  type metis_params =
-    string * minimize_command * type_system * string proof * int
-    * (string * locality) list vector * int list * thm * int
-  type isar_params =
-    bool * int * string Symtab.table * int list list * int Symtab.table
-  type text_result = string * (string * locality) list
 
+  datatype reconstructor =
+    Metis |
+    MetisFT |
+    SMT of string
+
+  datatype preplay =
+    Preplayed of reconstructor * Time.time |
+    Trust_Playable of reconstructor * Time.time option|
+    Preplay_Failed
+
+  type minimize_command = string list -> string
+  type one_line_params =
+    preplay * string * (string * locality) list * minimize_command * thm * int
+  type isar_params =
+    bool * bool * int * type_system * string Symtab.table * int list list
+    * int * (string * locality) list vector * int Symtab.table * string proof
   val repair_conjecture_shape_and_fact_names :
     type_system -> string -> int list list -> int
     -> (string * locality) list vector -> int list
@@ -28,19 +37,22 @@ sig
     -> string proof -> (string * locality) list
   val used_facts_in_unsound_atp_proof :
     Proof.context -> type_system -> int list list -> int
-    -> (string * locality) list vector -> string proof -> string list option
+    -> (string * locality) list vector -> 'a proof -> string list option
+  val uses_typed_helpers : int list -> 'a proof -> bool
+  val reconstructor_name : reconstructor -> string
+  val reconstructor_settings : reconstructor -> string
   val apply_on_subgoal : string -> int -> int -> string
   val command_call : string -> string list -> string
-  val try_command_line : string -> string -> string
+  val try_command_line : string -> (bool * Time.time) option -> string -> string
   val minimize_line : ('a list -> string) -> 'a list -> string
   val split_used_facts :
     (string * locality) list
     -> (string * locality) list * (string * locality) list
-  val metis_proof_text : Proof.context -> metis_params -> text_result
+  val one_line_proof_text : one_line_params -> string
   val isar_proof_text :
-    Proof.context -> isar_params -> metis_params -> text_result
+    Proof.context -> isar_params -> one_line_params -> string
   val proof_text :
-    Proof.context -> bool -> isar_params -> metis_params -> text_result
+    Proof.context -> bool -> isar_params -> one_line_params -> string
 end;
 
 structure Sledgehammer_ATP_Reconstruct : SLEDGEHAMMER_ATP_RECONSTRUCT =
@@ -53,13 +65,22 @@ open Sledgehammer_Util
 open Sledgehammer_Filter
 open Sledgehammer_ATP_Translate
 
+datatype reconstructor =
+  Metis |
+  MetisFT |
+  SMT of string
+
+datatype preplay =
+  Preplayed of reconstructor * Time.time |
+  Trust_Playable of reconstructor * Time.time option |
+  Preplay_Failed
+
 type minimize_command = string list -> string
-type metis_params =
-  string * minimize_command * type_system * string proof * int
-  * (string * locality) list vector * int list * thm * int
+type one_line_params =
+  preplay * string * (string * locality) list * minimize_command * thm * int
 type isar_params =
-  bool * int * string Symtab.table * int list list * int Symtab.table
-type text_result = string * (string * locality) list
+  bool * bool * int * type_system * string Symtab.table * int list list * int
+  * (string * locality) list vector * int Symtab.table * string proof
 
 fun is_head_digit s = Char.isDigit (String.sub (s, 0))
 val scan_integer = Scan.many1 is_head_digit >> (the o Int.fromString o implode)
@@ -223,9 +244,24 @@ fun used_facts_in_unsound_atp_proof ctxt type_sys conjecture_shape facts_offset
       NONE
   end
 
+fun uses_typed_helpers typed_helpers =
+  exists (fn Inference (name, _, []) => is_typed_helper typed_helpers name
+           | _ => false)
+
+
 (** Soft-core proof reconstruction: Metis one-liner **)
 
+fun reconstructor_name Metis = "metis"
+  | reconstructor_name MetisFT = "metisFT"
+  | reconstructor_name (SMT _) = "smt"
+
+fun reconstructor_settings (SMT settings) = settings
+  | reconstructor_settings _ = ""
+
 fun string_for_label (s, num) = s ^ string_of_int num
+
+fun show_time NONE = ""
+  | show_time (SOME ext_time) = " ~ " ^ string_from_ext_time ext_time
 
 fun set_settings "" = ""
   | set_settings settings = "using [[" ^ settings ^ "]] "
@@ -235,15 +271,15 @@ fun apply_on_subgoal settings _ 1 = set_settings settings ^ "by "
     "prefer " ^ string_of_int i ^ " " ^ apply_on_subgoal settings 1 n
 fun command_call name [] = name
   | command_call name args = "(" ^ name ^ " " ^ space_implode " " args ^ ")"
-fun try_command_line banner command =
-  banner ^ ": " ^ Markup.markup Markup.sendback command ^ "."
+fun try_command_line banner time command =
+  banner ^ ": " ^ Markup.markup Markup.sendback command ^ show_time time ^ "."
 fun using_labels [] = ""
   | using_labels ls =
     "using " ^ space_implode " " (map string_for_label ls) ^ " "
-fun metis_name full_types = if full_types then "metisFT" else "metis"
-fun metis_call full_types ss = command_call (metis_name full_types) ss
-fun metis_command full_types i n (ls, ss) =
-  using_labels ls ^ apply_on_subgoal "" i n ^ metis_call full_types ss
+fun reconstructor_command reconstructor i n (ls, ss) =
+  using_labels ls ^
+  apply_on_subgoal (reconstructor_settings reconstructor) i n ^
+  command_call (reconstructor_name reconstructor) ss
 fun minimize_line _ [] = ""
   | minimize_line minimize_command ss =
     case minimize_command ss of
@@ -254,24 +290,28 @@ val split_used_facts =
   List.partition (curry (op =) Chained o snd)
   #> pairself (sort_distinct (string_ord o pairself fst))
 
-fun uses_typed_helpers typed_helpers =
-  exists (fn Inference (name, _, []) => is_typed_helper typed_helpers name
-           | _ => false)
-
-fun metis_proof_text ctxt (banner, minimize_command, type_sys, atp_proof,
-                           facts_offset, fact_names, typed_helpers, goal, i) =
+fun one_line_proof_text (preplay, banner, used_facts, minimize_command,
+                         goal, i) =
   let
-    val (chained, extra) =
-      atp_proof |> used_facts_in_atp_proof ctxt type_sys facts_offset fact_names
-                |> split_used_facts
-    val full_types = uses_typed_helpers typed_helpers atp_proof
+    val (chained, extra) = split_used_facts used_facts
+    val (reconstructor, ext_time) =
+      case preplay of
+        Preplayed (reconstructor, time) =>
+        (SOME reconstructor, (SOME (false, time)))
+      | Trust_Playable (reconstructor, time) =>
+        (SOME reconstructor,
+         case time of
+           NONE => NONE
+         | SOME time =>
+           if time = Time.zeroTime then NONE else SOME (true, time))
+      | Preplay_Failed => (NONE, NONE)
     val n = Logic.count_prems (prop_of goal)
-    val metis = metis_command full_types i n ([], map fst extra)
-  in
-    (try_command_line banner metis ^
-     minimize_line minimize_command (map fst (extra @ chained)),
-     extra @ chained)
-  end
+    val try_line =
+      case reconstructor of
+        SOME r => reconstructor_command r i n ([], map fst extra)
+                  |> try_command_line banner ext_time
+      | NONE => "Proof reconstruction failed."
+  in try_line ^ minimize_line minimize_command (map fst (extra @ chained)) end
 
 (** Hard-core proof reconstruction: structured Isar proofs **)
 
@@ -702,8 +742,8 @@ fun repair_name "$true" = "c_True"
       s
 
 fun isar_proof_from_atp_proof pool ctxt type_sys tfrees isar_shrink_factor
-        atp_proof conjecture_shape facts_offset fact_names sym_tab params
-        frees =
+        conjecture_shape facts_offset fact_names sym_tab params frees
+        atp_proof =
   let
     val lines =
       atp_proof
@@ -976,10 +1016,11 @@ fun string_for_proof ctxt0 full_types i n =
        else
          if member (op =) qs Show then "show" else "have")
     val do_term = maybe_quote o fix_print_mode (Syntax.string_of_term ctxt)
+    val reconstructor = if full_types then MetisFT else Metis
     fun do_facts (ls, ss) =
-      metis_command full_types 1 1
-                    (ls |> sort_distinct (prod_ord string_ord int_ord),
-                     ss |> sort_distinct string_ord)
+      reconstructor_command reconstructor 1 1
+          (ls |> sort_distinct (prod_ord string_ord int_ord),
+           ss |> sort_distinct string_ord)
     and do_step ind (Fix xs) =
         do_indent ind ^ "fix " ^ space_implode " and " (map do_free xs) ^ "\n"
       | do_step ind (Let (t1, t2)) =
@@ -1012,20 +1053,20 @@ fun string_for_proof ctxt0 full_types i n =
   in do_proof end
 
 fun isar_proof_text ctxt
-        (debug, isar_shrink_factor, pool, conjecture_shape, sym_tab)
-        (metis_params as (_, _, type_sys, atp_proof, facts_offset, fact_names,
-                          typed_helpers, goal, i)) =
+        (debug, full_types, isar_shrink_factor, type_sys, pool,
+         conjecture_shape, facts_offset, fact_names, sym_tab, atp_proof)
+        (one_line_params as (_, _, _, _, goal, i)) =
   let
     val (params, hyp_ts, concl_t) = strip_subgoal ctxt goal i
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []
     val tfrees = fold Term.add_tfrees (concl_t :: hyp_ts) []
-    val full_types = uses_typed_helpers typed_helpers atp_proof
     val n = Logic.count_prems (prop_of goal)
-    val (one_line_proof, lemma_names) = metis_proof_text ctxt metis_params
+    val one_line_proof = one_line_proof_text one_line_params
     fun isar_proof_for () =
-      case isar_proof_from_atp_proof pool ctxt type_sys tfrees
-               isar_shrink_factor atp_proof conjecture_shape facts_offset
-               fact_names sym_tab params frees
+      case atp_proof
+           |> isar_proof_from_atp_proof pool ctxt type_sys tfrees
+                  isar_shrink_factor conjecture_shape facts_offset
+                  fact_names sym_tab params frees
            |> redirect_proof hyp_ts concl_t
            |> kill_duplicate_assumptions_in_proof
            |> then_chain_proof
@@ -1040,9 +1081,13 @@ fun isar_proof_text ctxt
       else
         try isar_proof_for ()
         |> the_default "\nWarning: The Isar proof construction failed."
-  in (one_line_proof ^ isar_proof, lemma_names) end
+  in one_line_proof ^ isar_proof end
 
-fun proof_text ctxt isar_proof isar_params =
-  if isar_proof then isar_proof_text ctxt isar_params else metis_proof_text ctxt
+fun proof_text ctxt isar_proof isar_params
+               (one_line_params as (preplay, _, _, _, _, _)) =
+  (if isar_proof orelse preplay = Preplay_Failed then
+     isar_proof_text ctxt isar_params
+   else
+     one_line_proof_text) one_line_params
 
 end;

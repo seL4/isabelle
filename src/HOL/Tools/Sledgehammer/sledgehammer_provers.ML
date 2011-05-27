@@ -99,6 +99,7 @@ sig
   val kill_provers : unit -> unit
   val running_provers : unit -> unit
   val messages : int option -> unit
+  val filter_used_facts : ''a list -> (''a * 'b) list -> (''a * 'b) list
   val get_prover : Proof.context -> mode -> string -> prover
 end;
 
@@ -306,6 +307,7 @@ type prover_result =
 
 type prover = params -> minimize_command -> prover_problem -> prover_result
 
+
 (* configuration attributes *)
 
 val dest_dir =
@@ -317,20 +319,6 @@ val problem_prefix =
 
 val measure_run_time =
   Attrib.setup_config_bool @{binding sledgehammer_measure_run_time} (K false)
-
-fun with_path cleanup after f path =
-  Exn.capture f path
-  |> tap (fn _ => cleanup path)
-  |> Exn.release
-  |> tap (after path)
-
-fun proof_banner mode blocking name =
-  case mode of
-    Auto_Try => "Auto Sledgehammer (" ^ quote name ^ ") found a proof"
-  | Try => "Sledgehammer (" ^ quote name ^ ") found a proof"
-  | Normal => if blocking then quote name ^ " found a proof"
-              else "Try this"
-  | Minimize => "Try this"
 
 val smt_triggers =
   Attrib.setup_config_bool @{binding sledgehammer_smt_triggers} (K true)
@@ -378,6 +366,41 @@ fun smt_weighted_fact _ _ (SMT_Weighted_Fact p, _) = p
 
 fun overlord_file_location_for_prover prover =
   (getenv "ISABELLE_HOME_USER", "prob_" ^ prover)
+
+fun with_path cleanup after f path =
+  Exn.capture f path
+  |> tap (fn _ => cleanup path)
+  |> Exn.release
+  |> tap (after path)
+
+fun proof_banner mode blocking name =
+  case mode of
+    Auto_Try => "Auto Sledgehammer (" ^ quote name ^ ") found a proof"
+  | Try => "Sledgehammer (" ^ quote name ^ ") found a proof"
+  | Normal => if blocking then quote name ^ " found a proof"
+              else "Try this"
+  | Minimize => "Try this"
+
+(* based on "Mirabelle.can_apply" and generalized *)
+fun try_apply timeout tac state i =
+  let
+    val {context = ctxt, facts, goal} = Proof.goal state
+    val full_tac = Method.insert_tac facts i THEN tac ctxt i
+  in try (TimeLimit.timeLimit timeout (Seq.pull o full_tac)) goal end
+
+fun try_metis debug timeout ths =
+  try_apply timeout (Config.put Metis_Tactics.verbose debug
+                     #> (fn ctxt => Metis_Tactics.metis_tac ctxt ths))
+
+fun filter_used_facts used = filter (member (op =) used o fst)
+
+fun preplay_one_line_proof debug reconstructor_guess timeout ths state i =
+  let val timer = Timer.startRealTimer () in
+    case try_metis debug timeout ths state i of
+      SOME (SOME _) => Preplayed (Metis, Timer.checkRealTimer timer)
+    | SOME NONE => Preplay_Failed
+    | NONE => Trust_Playable (reconstructor_guess, SOME timeout)
+  end
 
 
 (* generic TPTP-based ATPs *)
@@ -485,7 +508,7 @@ fun run_atp mode name
           conj_sym_kind, prem_kind, formats, best_slices, ...} : atp_config)
         ({debug, verbose, overlord, blocking, type_sys, max_relevant,
           max_mono_iters, max_new_mono_instances, explicit_apply, isar_proof,
-          isar_shrink_factor, slicing, timeout, ...} : params)
+          isar_shrink_factor, slicing, timeout, preplay_timeout, ...} : params)
         minimize_command ({state, goal, subgoal, facts, ...} : prover_problem) =
   let
     val thy = Proof.theory_of state
@@ -708,7 +731,7 @@ fun run_atp mode name
         extract_important_message output
       else
         ""
-    fun append_to_message message =
+    fun complete_message message =
       message ^
       (if verbose then
          "\nATP real CPU time: " ^
@@ -719,21 +742,34 @@ fun run_atp mode name
          "\n\nImportant message from Dr. Geoff Sutcliffe:\n" ^ important_message
        else
          "")
-    val isar_params =
-      (debug, isar_shrink_factor, pool, conjecture_shape, sym_tab)
-    val metis_params =
-      (proof_banner mode blocking name, minimize_command, type_sys, atp_proof,
-       facts_offset, fact_names, typed_helpers, goal, subgoal)
     val (outcome, (message, used_facts)) =
       case outcome of
         NONE =>
-        (NONE, proof_text ctxt isar_proof isar_params metis_params
-               |>> append_to_message)
-      | SOME failure =>
-        if failure = ProofMissing orelse failure = ProofIncomplete then
-          (NONE, metis_proof_text ctxt metis_params |>> append_to_message)
-        else
-          (outcome, (string_for_failure failure, []))
+        let
+          val used_facts =
+            used_facts_in_atp_proof ctxt type_sys facts_offset fact_names
+                                    atp_proof
+          val reconstructor_guess =
+            if uses_typed_helpers typed_helpers atp_proof then MetisFT
+            else Metis
+          val ths = facts |> map untranslated_fact
+                          |> filter_used_facts used_facts
+                          |> map snd
+          val preplay =
+            preplay_one_line_proof debug reconstructor_guess preplay_timeout ths
+                                   state subgoal
+          val full_types = uses_typed_helpers typed_helpers atp_proof
+          val isar_params =
+            (debug, full_types, isar_shrink_factor, type_sys, pool,
+             conjecture_shape, facts_offset, fact_names, sym_tab, atp_proof)
+          val one_line_params =
+            (preplay, proof_banner mode blocking name, used_facts,
+             minimize_command, goal, subgoal)
+        in
+          (NONE, (proof_text ctxt isar_proof isar_params one_line_params
+                  |> complete_message, used_facts))
+        end
+      | SOME failure => (outcome, (string_for_failure failure, []))
   in
     {outcome = outcome, message = message, used_facts = used_facts,
      run_time_in_msecs = msecs}
@@ -877,30 +913,6 @@ fun smt_filter_loop ctxt name
       end
   in do_slice timeout 1 NONE Time.zeroTime end
 
-(* based on "Mirabelle.can_apply" and generalized *)
-fun try_apply timeout tac state i =
-  let
-    val {context = ctxt, facts, goal} = Proof.goal state
-    val full_tac = Method.insert_tac facts i THEN tac ctxt i
-  in try (TimeLimit.timeLimit timeout (Seq.pull o full_tac)) goal end
-
-fun try_metis debug timeout ths =
-  try_apply timeout (Config.put Metis_Tactics.verbose debug
-                     #> (fn ctxt => Metis_Tactics.metis_tac ctxt ths))
-
-datatype metis_try =
-  Preplayed of string * Time.time |
-  Preplay_Timed_Out |
-  Preplay_Failed
-
-fun preplay debug timeout ths state i =
-  let val timer = Timer.startRealTimer () in
-    case try_metis debug timeout ths state i of
-      SOME (SOME _) => Preplayed ("metis", Timer.checkRealTimer timer)
-    | SOME NONE => Preplay_Failed
-    | NONE => Preplay_Timed_Out
-  end
-
 fun run_smt_solver mode name
         (params as {debug, verbose, blocking, preplay_timeout, ...})
         minimize_command
@@ -920,14 +932,15 @@ fun run_smt_solver mode name
         NONE =>
         let
           val (settings, method, time) =
-            case preplay debug preplay_timeout (map snd used_facts) state
-                         subgoal of
-              Preplayed (method, time) => (method, "", SOME time)
+            case preplay_one_line_proof debug Metis preplay_timeout
+                    (map snd used_facts) state subgoal of
+              Preplayed (method, time) =>
+              ("", reconstructor_name method, SOME (false, time))
             | _ => (if name = SMT_Solver.solver_name_of ctxt then ""
                     else "smt_solver = " ^ maybe_quote name,
                     "smt", NONE)
         in
-          try_command_line (proof_banner mode blocking name)
+          try_command_line (proof_banner mode blocking name) time
               (apply_on_subgoal settings subgoal subgoal_count ^
                command_call method (map fst other_lemmas)) ^
           minimize_line minimize_command

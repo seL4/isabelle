@@ -11,7 +11,6 @@ sig
   type params = Sledgehammer_Provers.params
 
   val binary_min_facts : int Config.T
-  val filter_used_facts : ''a list -> (''a * 'b) list -> (''a * 'b) list
   val minimize_facts :
     string -> params -> bool option -> bool -> int -> int -> Proof.state
     -> ((string * locality) * thm list) list
@@ -96,8 +95,6 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
 val binary_min_facts =
   Attrib.setup_config_int @{binding sledgehammer_minimize_binary_min_facts}
                           (K 20)
-
-fun filter_used_facts used = filter (member (op =) used o fst)
 
 fun sublinear_minimize _ [] p = p
   | sublinear_minimize test (x :: xs) (seen, result) =
@@ -204,7 +201,7 @@ fun run_minimize (params as {provers, ...}) i refs state =
            | prover :: _ =>
              (kill_provers ();
               minimize_facts prover params NONE false i n state facts
-              |> #2 |> Output.urgent_message)
+              |> snd |> Output.urgent_message)
   end
 
 end;
