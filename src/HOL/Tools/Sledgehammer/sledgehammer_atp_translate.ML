@@ -1249,7 +1249,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
       |> (if should_add_ti_ti_helper type_sys then cons (ti_ti_helper_fact ())
           else I)
     (* Reordering these might confuse the proof reconstruction code or the SPASS
-       Flotter hack. *)
+       FLOTTER hack. *)
     val problem =
       [(explicit_declsN, sym_decl_lines),
        (factsN,

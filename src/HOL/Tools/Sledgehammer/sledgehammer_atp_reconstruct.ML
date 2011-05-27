@@ -85,11 +85,11 @@ fun find_first_in_list_vector vec key =
                  | (_, value) => value) NONE vec
 
 
-(** SPASS's Flotter hack **)
+(** SPASS's FLOTTER hack **)
 
 (* This is a hack required for keeping track of facts after they have been
-   clausified by SPASS's Flotter tool. The "ATP/scripts/spass" script is also
-   part of this hack. *)
+   clausified by SPASS's FLOTTER preprocessor. The "ATP/scripts/spass" script is
+   also part of this hack. *)
 
 val set_ClauseFormulaRelationN = "set_ClauseFormulaRelation"
 
