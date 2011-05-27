@@ -582,7 +582,8 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
         Unsynchronized.ref (NONE : ((string * locality) * thm list) list option)
       val minimize = AList.defined (op =) args minimizeK
       val metis_ft = AList.defined (op =) args metis_ftK
-      val trivial = Try.invoke_try (SOME try_timeout) ([], [], [], []) pre
+      val trivial =
+        Try_Methods.try_methods (SOME try_timeout) ([], [], [], []) pre
         handle TimeLimit.TimeOut => false
       fun apply_reconstructor m1 m2 =
         if metis_ft

@@ -124,7 +124,7 @@ fun pick_nits_in_fof_file file_name =
          ("format", "1000"),
          ("max_potential", "0"),
          (* ("timeout", "240 s"), *)
-         ("expect", "genuine")]
+         ("expect", Nitpick.genuineN)]
         |> Nitpick_Isar.default_params @{theory}
       val auto = false
       val i = 1

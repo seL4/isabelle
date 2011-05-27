@@ -55,6 +55,11 @@ sig
      batch_size: int,
      expect: string}
 
+  val genuineN : string
+  val quasi_genuineN : string
+  val potentialN : string
+  val noneN : string
+  val unknownN : string
   val register_frac_type : string -> (string * string) list -> theory -> theory
   val unregister_frac_type : string -> theory -> theory
   val register_codatatype : typ -> string -> styp list -> theory -> theory
@@ -130,6 +135,12 @@ type params =
    check_genuine: bool,
    batch_size: int,
    expect: string}
+
+val genuineN = "genuine"
+val quasi_genuineN = "quasi_genuine"
+val potentialN = "potential"
+val noneN = "none"
+val unknownN = "unknown"
 
 (* TODO: eliminate these historical aliases *)
 val register_frac_type = Nitpick_HOL.register_frac_type_global
@@ -973,7 +984,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     fun run_batches _ _ []
                     (found_really_genuine, max_potential, max_genuine, donno) =
         if donno > 0 andalso max_genuine > 0 then
-          (print_m (fn () => excipit "checked"); "unknown")
+          (print_m (fn () => excipit "checked"); unknownN)
         else if max_genuine = original_max_genuine then
           if max_potential = original_max_potential then
             (print_m (fn () =>
@@ -982,7 +993,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                     " This suggests that the induction hypothesis might be \
                     \general enough to prove this subgoal."
                   else
-                    "")); if skipped > 0 then "unknown" else "none")
+                    "")); if skipped > 0 then unknownN else noneN)
           else
             (print_m (fn () =>
                  excipit ("could not find a" ^
@@ -991,11 +1002,11 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                            else
                              "ny better " ^ das_wort_model ^ "s.") ^
                           " It checked"));
-             "potential")
+             potentialN)
         else if found_really_genuine then
-          "genuine"
+          genuineN
         else
-          "quasi_genuine"
+          quasi_genuineN
       | run_batches j n (batch :: batches) z =
         let val (z as (_, _, max_genuine, _)) = run_batch j n batch z in
           run_batches (j + 1) n (if max_genuine > 0 then batches else []) z
@@ -1007,7 +1018,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                   (false, max_potential, max_genuine, 0)
       handle TimeLimit.TimeOut =>
              (print_m (fn () => excipit "ran out of time after checking");
-              if !met_potential > 0 then "potential" else "unknown")
+              if !met_potential > 0 then potentialN else unknownN)
     val _ = print_v (fn () =>
                 "Total time: " ^ string_from_time (Timer.checkRealTimer timer) ^
                 ".")
@@ -1026,7 +1037,7 @@ fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) auto i n
        ("no_kodkodi", state))
     else
       let
-        val unknown_outcome = ("unknown", state)
+        val unknown_outcome = (unknownN, state)
         val deadline = Option.map (curry Time.+ (Time.now ())) timeout
         val outcome as (outcome_code, _) =
           time_limit (if debug orelse is_none timeout then NONE
@@ -1065,7 +1076,7 @@ fun pick_nits_in_subgoal state params auto i step =
     val t = state |> Proof.raw_goal |> #goal |> prop_of
   in
     case Logic.count_prems t of
-      0 => (Output.urgent_message "No subgoal!"; ("none", state))
+      0 => (Output.urgent_message "No subgoal!"; (noneN, state))
     | n =>
       let
         val t = Logic.goal_params t i |> fst

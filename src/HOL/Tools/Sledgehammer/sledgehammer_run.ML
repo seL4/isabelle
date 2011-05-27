@@ -13,11 +13,15 @@ sig
   type params = Sledgehammer_Provers.params
   type prover = Sledgehammer_Provers.prover
 
+  val someN : string
+  val noneN : string
+  val timeoutN : string
+  val unknownN : string
   val auto_minimize_min_facts : int Config.T
   val get_minimizing_prover : Proof.context -> bool -> string -> prover
   val run_sledgehammer :
     params -> bool -> int -> relevance_override -> (string -> minimize_command)
-    -> Proof.state -> bool * Proof.state
+    -> Proof.state -> bool * (string * Proof.state)
 end;
 
 structure Sledgehammer_Run : SLEDGEHAMMER_RUN =
@@ -28,6 +32,22 @@ open Sledgehammer_Filter
 open Sledgehammer_ATP_Translate
 open Sledgehammer_Provers
 open Sledgehammer_Minimize
+
+val someN = "some"
+val noneN = "none"
+val timeoutN = "timeout"
+val unknownN = "unknown"
+
+val ordered_outcome_codes = [someN, unknownN, timeoutN, noneN]
+
+fun max_outcome_code codes =
+  NONE
+  |> fold (fn candidate =>
+              fn accum as SOME _ => accum
+               | NONE => if member (op =) codes candidate then SOME candidate
+                         else NONE)
+          ordered_outcome_codes
+  |> the_default unknownN
 
 fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
                        n goal =
@@ -85,11 +105,6 @@ fun get_minimizing_prover ctxt auto name
                  run_time_in_msecs = run_time_in_msecs, message = message})
              | NONE => result
            end)
-
-val someN = "some"
-val noneN = "none"
-val timeoutN = "timeout"
-val unknownN = "unknown"
 
 fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
                               expect, ...})
@@ -190,7 +205,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
   if null provers then
     error "No prover is set."
   else case subgoal_count state of
-    0 => (Output.urgent_message "No subgoal!"; (false, state))
+    0 => (Output.urgent_message "No subgoal!"; (false, (noneN, state)))
   | n =>
     let
       val _ = Proof.assert_backward state
@@ -219,18 +234,19 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
              facts = facts,
              smt_filter = maybe_smt_filter
                   (fn () => map_filter (try dest_SMT_Weighted_Fact) facts) i}
-          fun launch problem =
-            launch_prover params auto minimize_command only problem
-            #>> curry (op =) someN
+          val launch = launch_prover params auto minimize_command only
         in
           if auto then
-            fold (fn prover => fn (true, state) => (true, state)
-                                | (false, _) => launch problem prover)
-                 provers (false, state)
+            (unknownN, state)
+            |> fold (fn prover => fn accum as (outcome_code, state) =>
+                        if outcome_code = someN then accum
+                        else launch problem prover)
+                    provers
           else
             provers
-            |> (if blocking then smart_par_list_map else map) (launch problem)
-            |> exists fst |> rpair state
+            |> (if blocking then smart_par_list_map else map)
+                   (launch problem #> fst)
+            |> max_outcome_code |> rpair state
         end
       fun get_facts label is_appropriate_prop relevance_fudge provers =
         let
@@ -290,24 +306,26 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
           in
             smts |> map (`(class_of_smt_solver ctxt))
                  |> AList.group (op =)
-                 |> map (launch_provers state (K facts) weight smt_filter o snd)
-                 |> exists fst |> rpair state
+                 |> map (snd #> launch_provers state (K facts) weight smt_filter
+                             #> fst)
+                 |> max_outcome_code |> rpair state
           end
       val launch_full_atps = launch_atps "ATP" (K true) full_atps
       val launch_ueq_atps =
         launch_atps "Unit equational provers" is_unit_equality ueq_atps
       fun launch_atps_and_smt_solvers () =
         [launch_full_atps, launch_ueq_atps, launch_smts]
-        |> smart_par_list_map (fn f => f (false, state) |> K ())
+        |> smart_par_list_map (fn f => f (unknownN, state) |> K ())
         handle ERROR msg => (print ("Error: " ^ msg); error msg)
     in
-      (false, state)
+      (unknownN, state)
       |> (if blocking then
             launch_full_atps #> not auto ? (launch_ueq_atps #> launch_smts)
           else
             (fn p => Future.fork (tap launch_atps_and_smt_solvers) |> K p))
       handle TimeLimit.TimeOut =>
-             (print "Sledgehammer ran out of time."; (false, state))
+             (print "Sledgehammer ran out of time."; (unknownN, state))
     end
+    |> `(fn (outcome_code, _) => outcome_code = someN)
 
 end;

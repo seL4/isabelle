@@ -6,6 +6,8 @@ Try a combination of proof methods.
 
 signature TRY_METHODS =
 sig
+  val try_methodsN : string
+  val noneN : string
   val auto : bool Unsynchronized.ref
   val try_methods :
     Time.time option -> string list * string list * string list * string list
@@ -15,6 +17,10 @@ end;
 
 structure Try_Methods : TRY_METHODS =
 struct
+
+val try_methodsN = "try_methods"
+
+val noneN = "none"
 
 val auto = Unsynchronized.ref false
 
@@ -109,7 +115,8 @@ fun do_try_methods auto timeout_opt quad st =
   in
     case do_methods |> Par_List.map (fn f => f auto timeout_opt quad st)
                     |> map_filter I |> sort (int_ord o pairself snd) of
-      [] => (if auto then () else writeln "No proof found."; (false, st))
+      [] => (if auto then () else writeln "No proof found.";
+             (false, (noneN, st)))
     | xs as (s, _) :: _ =>
       let
         val xs = xs |> map (fn (s, n) => (n, hd (space_explode " " s)))
@@ -124,19 +131,17 @@ fun do_try_methods auto timeout_opt quad st =
                 else "apply") ^ " " ^ (s |> need_parens ? enclose "(" ")")) ^
           "\n(" ^ space_implode "; " (map time_string xs) ^ ").\n"
       in
-        (true, st |> (if auto then
-                        Proof.goal_message
-                            (fn () => Pretty.chunks [Pretty.str "",
-                                      Pretty.markup Markup.hilite
-                                                    [Pretty.str message]])
-                      else
-                        tap (fn _ => Output.urgent_message message)))
+        (true, (s, st |> (if auto then
+                            Proof.goal_message
+                                (fn () => Pretty.chunks [Pretty.str "",
+                                          Pretty.markup Markup.hilite
+                                                        [Pretty.str message]])
+                          else
+                            tap (fn _ => Output.urgent_message message))))
       end
   end
 
 fun try_methods timeout_opt = fst oo do_try_methods false timeout_opt
-
-val try_methodsN = "try_methods"
 
 fun try_methods_trans quad =
   Toplevel.keep (K () o do_try_methods false (SOME default_timeout) quad
@@ -175,8 +180,8 @@ val _ =
       "try a combination of proof methods" Keyword.diag
       parse_try_methods_command
 
-val auto_try_methods = do_try_methods true NONE ([], [], [], [])
+fun try_try_methods auto = do_try_methods auto NONE ([], [], [], [])
 
-val setup = Try.register_tool (auto, auto_try_methods)
+val setup = Try.register_tool (try_methodsN, (auto, try_try_methods))
 
 end;

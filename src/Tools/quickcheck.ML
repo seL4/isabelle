@@ -6,6 +6,10 @@ Generic counterexample search engine.
 
 signature QUICKCHECK =
 sig
+  val quickcheckN: string
+  val genuineN: string
+  val noneN: string
+  val unknownN: string
   val setup: theory -> theory
   (* configuration *)
   val auto: bool Unsynchronized.ref
@@ -60,6 +64,13 @@ end;
 
 structure Quickcheck : QUICKCHECK =
 struct
+
+val quickcheckN = "quickcheck"
+val quickcheck_paramsN = "quickcheck_params"
+
+val genuineN = "genuine"
+val noneN = "none"
+val unknownN = "unknown"
 
 (* preferences *)
 
@@ -472,10 +483,11 @@ fun pretty_counterex ctxt auto NONE = Pretty.str (tool_name auto ^ " found no co
       Pretty.chunks ((Pretty.str (tool_name auto ^ " found a counterexample:\n") ::
         map (fn (s, t) =>
           Pretty.block [Pretty.str (s ^ " ="), Pretty.brk 1, Syntax.pretty_term ctxt t]) (rev cex))
-        @ (Pretty.str ("Evaluated terms:\n") ::
-        map (fn (t, u) =>
-          Pretty.block [Syntax.pretty_term ctxt t, Pretty.str " =", Pretty.brk 1, Syntax.pretty_term ctxt u])
-          (rev eval_terms)));
+        @ (if null eval_terms then []
+           else (Pretty.str ("Evaluated terms:\n") ::
+             map (fn (t, u) =>
+               Pretty.block [Syntax.pretty_term ctxt t, Pretty.str " =", Pretty.brk 1, Syntax.pretty_term ctxt u])
+               (rev eval_terms))));
 
 fun pretty_report (Report {iterations = iterations, raised_match_errors = raised_match_errors,
     satisfied_assms = satisfied_assms, positive_concl_tests = positive_concl_tests}) =
@@ -510,27 +522,6 @@ fun pretty_counterex_and_reports ctxt auto [] =
     Pretty.chunks (pretty_counterex ctxt auto (response_of result) ::
       (* map (pretty_reports ctxt) (reports_of result) :: *)
       (if Config.get ctxt timing then cons (pretty_timings (timings_of result)) else I) [])
-
-(* automatic testing *)
-
-fun auto_quickcheck state =
-  let
-    val ctxt = Proof.context_of state;
-    val res =
-      state
-      |> Proof.map_context (Config.put report false #> Config.put quiet true)
-      |> try (test_goal (false, false) ([], []) 1);
-  in
-    case res of
-      NONE => (false, state)
-    | SOME (result :: _) => if found_counterexample result then
-        (true, Proof.goal_message (K (Pretty.chunks [Pretty.str "",
-          Pretty.mark Markup.hilite (pretty_counterex ctxt true (response_of result))])) state)
-      else
-        (false, state)
-  end
-
-val setup = Try.register_tool (auto, auto_quickcheck)
 
 (* Isar commands *)
 
@@ -610,7 +601,8 @@ fun quickcheck args i state = counterexample_of (hd (gen_quickcheck args i state
 
 fun quickcheck_cmd args i state =
   gen_quickcheck args i (Toplevel.proof_of state)
-  |> Pretty.writeln o pretty_counterex_and_reports (Toplevel.context_of state) false;
+  |> Output.urgent_message o Pretty.string_of
+     o pretty_counterex_and_reports (Toplevel.context_of state) false;
 
 val parse_arg =
   Parse.name --
@@ -622,15 +614,47 @@ val parse_args =
   Parse.$$$ "[" |-- Parse.list1 parse_arg --| Parse.$$$ "]" || Scan.succeed [];
 
 val _ =
-  Outer_Syntax.command "quickcheck_params" "set parameters for random testing" Keyword.thy_decl
+  Outer_Syntax.command quickcheck_paramsN "set parameters for random testing" Keyword.thy_decl
     (parse_args >> (fn args => Toplevel.theory (quickcheck_params_cmd args)));
 
 val _ =
-  Outer_Syntax.improper_command "quickcheck" "try to find counterexample for subgoal" Keyword.diag
+  Outer_Syntax.improper_command quickcheckN "try to find counterexample for subgoal" Keyword.diag
     (parse_args -- Scan.optional Parse.nat 1
       >> (fn (args, i) => Toplevel.no_timing o Toplevel.keep (quickcheck_cmd args i)));
 
-end;
+(* automatic testing *)
 
+fun try_quickcheck auto state =
+  let
+    val ctxt = Proof.context_of state;
+    val i = 1;
+    val res =
+      state
+      |> Proof.map_context (Config.put report false #> Config.put quiet true)
+      |> try (test_goal (false, false) ([], []) i);
+  in
+    case res of
+      NONE => (unknownN, state)
+    | SOME results =>
+        let
+          val msg = pretty_counterex_and_reports ctxt auto results
+                    |> not auto ? tap (Output.urgent_message o Pretty.string_of)
+        in
+          if exists found_counterexample results then
+            (genuineN,
+             state |> (if auto then
+                         Proof.goal_message (K (Pretty.chunks [Pretty.str "",
+                             Pretty.mark Markup.hilite msg]))
+                       else
+                         I))
+          else
+            (noneN, state)
+        end
+  end
+  |> `(fn (outcome_code, _) => outcome_code = genuineN)
+
+val setup = Try.register_tool (quickcheckN, (auto, try_quickcheck))
+
+end;
 
 val auto_quickcheck = Quickcheck.auto;

@@ -10,9 +10,13 @@ feature.
 
 signature SOLVE_DIRECT =
 sig
+  val solve_directN: string
+  val someN: string
+  val noneN: string
+  val unknownN: string
   val auto: bool Unsynchronized.ref
   val max_solutions: int Unsynchronized.ref
-  val solve_direct: bool -> Proof.state -> bool * Proof.state
+  val solve_direct: bool -> Proof.state -> bool * (string * Proof.state)
   val setup: theory -> theory
 end;
 
@@ -21,6 +25,9 @@ struct
 
 val solve_directN = "solve_direct";
 
+val someN = "some";
+val noneN = "none";
+val unknownN = "none";
 
 (* preferences *)
 
@@ -74,7 +81,7 @@ fun solve_direct auto state =
   in
     (case try seek_against_goal () of
       SOME (SOME results) =>
-        (true,
+        (someN,
           state |>
            (if auto then
              Proof.goal_message
@@ -85,8 +92,10 @@ fun solve_direct auto state =
             else
               tap (fn _ =>
                 Output.urgent_message (Pretty.string_of (Pretty.chunks (message results))))))
-    | _ => (false, state))
-  end;
+    | SOME NONE => (noneN, state)
+    | NONE => (unknownN, state))
+  end
+  |> `(fn (outcome_code, _) => outcome_code = someN);
 
 val _ =
   Outer_Syntax.improper_command solve_directN
@@ -97,8 +106,6 @@ val _ =
 
 (* hook *)
 
-val auto_solve_direct = solve_direct true;
-
-val setup = Try.register_tool (auto, auto_solve_direct);
+val setup = Try.register_tool (solve_directN, (auto, solve_direct));
 
 end;

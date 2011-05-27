@@ -6,15 +6,27 @@ Manager for tools that should be tried on conjectures.
 
 signature TRY =
 sig
+  type tool =
+    string * (bool Unsynchronized.ref
+              * (bool -> Proof.state -> bool * (string * Proof.state)))
+
+  val tryN : string
   val auto_time_limit: real Unsynchronized.ref
 
-  val register_tool :
-    bool Unsynchronized.ref * (Proof.state -> bool * Proof.state) -> theory
-    -> theory
+  val register_tool : tool -> theory -> theory
+  val get_tools : theory -> tool list
+  val try_tools : Proof.state -> (string * string) option
 end;
 
 structure Try : TRY =
 struct
+
+type tool =
+  string * (bool Unsynchronized.ref
+            * (bool -> Proof.state -> bool * (string * Proof.state)))
+
+val tryN = "try"
+
 
 (* preferences *)
 
@@ -31,24 +43,42 @@ val _ =
 
 structure Data = Theory_Data
 (
-  type T = (bool Unsynchronized.ref * (Proof.state -> bool * Proof.state)) list
+  type T = tool list
   val empty = []
   val extend = I
   fun merge data : T = AList.merge (op =) (K true) data
 )
 
+val get_tools = Data.get
+
 val register_tool = Data.map o AList.update (op =)
 
+(* try command *)
 
-(* automatic testing *)
+fun try_tools state =
+  get_tools (Proof.theory_of state)
+  |> Par_List.get_some
+         (fn (name, (_, tool)) =>
+             case try (tool false) state of
+               SOME (true, (outcome_code, _)) => SOME (name, outcome_code)
+             | _ => NONE)
 
-fun run_tools tools state =
-  tools |> map_filter (fn (auto, tool) => if !auto then SOME tool else NONE)
-        |> Par_List.get_some (fn tool =>
-                                 case try tool state of
-                                   SOME (true, state) => SOME state
-                                 | _ => NONE)
-        |> the_default state
+val _ =
+  Outer_Syntax.improper_command tryN
+      "try a combination of automatic proving and disproving tools" Keyword.diag
+      (Scan.succeed (Toplevel.keep (ignore o try_tools o Toplevel.proof_of)))
+
+
+(* automatic try *)
+
+fun auto_try state =
+  get_tools (Proof.theory_of state)
+  |> map_filter (fn (_, (auto, tool)) => if !auto then SOME tool else NONE)
+  |> Par_List.get_some (fn tool =>
+                           case try (tool true) state of
+                             SOME (true, (_, state)) => SOME state
+                           | _ => NONE)
+  |> the_default state
 
 (* Too large values are understood as milliseconds, ensuring compatibility with
    old setting files. No users can possibly in their right mind want the user
@@ -62,8 +92,7 @@ fun smart_seconds r =
 
 val _ = Context.>> (Specification.add_theorem_hook (fn interact => fn state =>
   if interact andalso not (!Toplevel.quiet) andalso !auto_time_limit > 0.0 then
-    TimeLimit.timeLimit (smart_seconds (!auto_time_limit))
-        (run_tools (Data.get (Proof.theory_of state))) state
+    TimeLimit.timeLimit (smart_seconds (!auto_time_limit)) auto_try state
     handle TimeLimit.TimeOut => state
   else
     state))

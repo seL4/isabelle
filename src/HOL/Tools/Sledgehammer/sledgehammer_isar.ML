@@ -8,6 +8,7 @@ signature SLEDGEHAMMER_ISAR =
 sig
   type params = Sledgehammer_Provers.params
 
+  val sledgehammerN : string
   val auto : bool Unsynchronized.ref
   val provers : string Unsynchronized.ref
   val timeout : int Unsynchronized.ref
@@ -25,6 +26,17 @@ open Sledgehammer_ATP_Translate
 open Sledgehammer_Provers
 open Sledgehammer_Minimize
 open Sledgehammer_Run
+
+val sledgehammerN = "sledgehammer"
+val sledgehammer_paramsN = "sledgehammer_params"
+
+val runN = "run"
+val minN = "min"
+val messagesN = "messages"
+val supported_proversN = "supported_provers"
+val running_proversN = "running_provers"
+val kill_proversN = "kill_provers"
+val refresh_tptpN = "refresh_tptp"
 
 val auto = Unsynchronized.ref false
 
@@ -296,17 +308,6 @@ fun default_params thy = get_params false thy o map (apsnd single)
 
 (* Sledgehammer the given subgoal *)
 
-val sledgehammerN = "sledgehammer"
-val sledgehammer_paramsN = "sledgehammer_params"
-
-val runN = "run"
-val minN = "min"
-val messagesN = "messages"
-val supported_proversN = "supported_provers"
-val running_proversN = "running_provers"
-val kill_proversN = "kill_provers"
-val refresh_tptpN = "refresh_tptp"
-
 val is_raw_param_relevant_for_minimize =
   member (op =) params_for_minimize o fst o unalias_raw_param
 fun string_for_raw_param (key, values) =
@@ -402,12 +403,15 @@ val _ =
       "set and display the default parameters for Sledgehammer" Keyword.thy_decl
       parse_sledgehammer_params_command
 
-fun auto_sledgehammer state =
-  let val ctxt = Proof.context_of state in
-    run_sledgehammer (get_params true ctxt []) true 1 no_relevance_override
-                     (minimize_command [] 1) state
+fun try_sledgehammer auto state =
+  let
+    val ctxt = Proof.context_of state
+    val i = 1
+  in
+    run_sledgehammer (get_params auto ctxt []) auto i no_relevance_override
+                     (minimize_command [] i) state
   end
 
-val setup = Try.register_tool (auto, auto_sledgehammer)
+val setup = Try.register_tool (sledgehammerN, (auto, try_sledgehammer))
 
 end;

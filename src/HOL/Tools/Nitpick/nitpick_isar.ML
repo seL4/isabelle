@@ -10,6 +10,8 @@ signature NITPICK_ISAR =
 sig
   type params = Nitpick.params
 
+  val nitpickN : string
+  val nitpick_paramsN : string
   val auto : bool Unsynchronized.ref
   val default_params : theory -> (string * string) list -> params
   val setup : theory -> theory
@@ -23,6 +25,9 @@ open Nitpick_HOL
 open Nitpick_Rep
 open Nitpick_Nut
 open Nitpick
+
+val nitpickN = "nitpick"
+val nitpick_paramsN = "nitpick_params"
 
 val auto = Unsynchronized.ref false
 
@@ -356,18 +361,18 @@ fun pick_nits override_params auto i step state =
     val params as {blocking, debug, ...} =
       extract_params ctxt auto (default_raw_params thy) override_params
     fun go () =
-      (false, state)
+      (unknownN, state)
       |> (if auto then perhaps o try
           else if debug then fn f => fn x => f x
           else handle_exceptions ctxt)
-         (fn (_, state) => pick_nits_in_subgoal state params auto i step
-                           |>> curry (op =) "genuine")
-  in if blocking then go () else Future.fork (tap go) |> K (false, state) end
+         (fn (_, state) => pick_nits_in_subgoal state params auto i step)
+  in if blocking then go () else Future.fork (tap go) |> K (unknownN, state) end
+  |> `(fn (outcome_code, _) => outcome_code = genuineN)
 
 fun nitpick_trans (params, i) =
-  Toplevel.keep (fn st =>
-      (pick_nits params false i (Toplevel.proof_position_of st)
-                 (Toplevel.proof_of st); ()))
+  Toplevel.keep (fn state =>
+      pick_nits params false i (Toplevel.proof_position_of state)
+                (Toplevel.proof_of state) |> K ())
 
 fun string_for_raw_param (name, value) =
   name ^ " = " ^ stringify_raw_param_value value
@@ -388,15 +393,15 @@ val parse_nitpick_command =
   (parse_params -- Scan.optional Parse.nat 1) #>> nitpick_trans
 val parse_nitpick_params_command = parse_params #>> nitpick_params_trans
 
-val _ = Outer_Syntax.improper_command "nitpick"
+val _ = Outer_Syntax.improper_command nitpickN
             "try to find a counterexample for a given subgoal using Nitpick"
             Keyword.diag parse_nitpick_command
-val _ = Outer_Syntax.command "nitpick_params"
+val _ = Outer_Syntax.command nitpick_paramsN
             "set and display the default parameters for Nitpick"
             Keyword.thy_decl parse_nitpick_params_command
 
-val auto_nitpick = pick_nits [] true 1 0
+fun try_nitpick auto = pick_nits [] auto 1 0
 
-val setup = Try.register_tool (auto, auto_nitpick)
+val setup = Try.register_tool (nitpickN, (auto, try_nitpick))
 
 end;
