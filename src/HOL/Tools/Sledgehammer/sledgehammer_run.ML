@@ -61,7 +61,7 @@ fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
    (if blocking then
       "."
     else
-      ":\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i))))
+      "\n" ^ Syntax.string_of_term ctxt (Thm.term_of (Thm.cprem_of goal i))))
 
 val auto_minimize_min_facts =
   Attrib.setup_config_int @{binding sledgehammer_auto_minimize_min_facts}

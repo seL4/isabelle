@@ -521,7 +521,8 @@ fun run_atp mode name
         ({debug, verbose, overlord, blocking, type_sys, max_relevant,
           max_mono_iters, max_new_mono_instances, explicit_apply, isar_proof,
           isar_shrink_factor, slicing, timeout, preplay_timeout, ...} : params)
-        minimize_command ({state, goal, subgoal, facts, ...} : prover_problem) =
+        minimize_command
+        ({state, goal, subgoal, subgoal_count, facts, ...} : prover_problem) =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
@@ -743,18 +744,7 @@ fun run_atp mode name
         extract_important_message output
       else
         ""
-    fun complete_message message =
-      message ^
-      (if verbose then
-         "\nATP real CPU time: " ^
-         string_from_time (Time.fromMilliseconds (the msecs)) ^ "."
-       else
-         "") ^
-      (if important_message <> "" then
-         "\n\nImportant message from Dr. Geoff Sutcliffe:\n" ^ important_message
-       else
-         "")
-    val (outcome, (message, used_facts)) =
+    val (message, used_facts) =
       case outcome of
         NONE =>
         let
@@ -764,24 +754,36 @@ fun run_atp mode name
           val reconstructor =
             if uses_typed_helpers typed_helpers atp_proof then MetisFT
             else Metis
-          val ths = facts |> map untranslated_fact
-                          |> filter_used_facts used_facts
-                          |> map snd
+          val used_ths =
+            facts |> map untranslated_fact
+                  |> filter_used_facts used_facts
+                  |> map snd
           val preplay =
-            preplay_one_line_proof debug preplay_timeout ths state subgoal
+            preplay_one_line_proof debug preplay_timeout used_ths state subgoal
                                    reconstructor
           val full_types = uses_typed_helpers typed_helpers atp_proof
           val isar_params =
             (debug, full_types, isar_shrink_factor, type_sys, pool,
-             conjecture_shape, facts_offset, fact_names, sym_tab, atp_proof)
+             conjecture_shape, facts_offset, fact_names, sym_tab, atp_proof,
+             goal)
           val one_line_params =
             (preplay, proof_banner mode blocking name, used_facts,
-             minimize_command, goal, subgoal)
+             minimize_command, subgoal, subgoal_count)
         in
-          (NONE, (proof_text ctxt isar_proof isar_params one_line_params
-                  |> complete_message, used_facts))
+          (proof_text ctxt isar_proof isar_params one_line_params ^
+           (if verbose then
+              "\nATP real CPU time: " ^
+              string_from_time (Time.fromMilliseconds (the msecs)) ^ "."
+            else
+              "") ^
+           (if important_message <> "" then
+              "\n\nImportant message from Dr. Geoff Sutcliffe:\n" ^
+              important_message
+            else
+              ""),
+           used_facts)
         end
-      | SOME failure => (outcome, (string_for_failure failure, []))
+      | SOME failure => (string_for_failure failure, [])
   in
     {outcome = outcome, message = message, used_facts = used_facts,
      run_time_in_msecs = msecs}
@@ -937,26 +939,25 @@ fun run_smt_solver mode name
                 |> map (smt_weighted_fact ctxt num_facts)
     val {outcome, used_facts, run_time_in_msecs} =
       smt_filter_loop ctxt name params state subgoal smt_filter facts
-    val (chained_lemmas, other_lemmas) = split_used_facts (map fst used_facts)
+    val (used_facts, used_ths) = used_facts |> ListPair.unzip
     val outcome = outcome |> Option.map failure_from_smt_failure
     val message =
       case outcome of
         NONE =>
         let
-          val (settings, method, time) =
-            case preplay_one_line_proof debug preplay_timeout
-                    (map snd used_facts) state subgoal Metis of
-              Preplayed (method, time) =>
-              ("", reconstructor_name method, SOME (false, time))
-            | _ => (if name = SMT_Solver.solver_name_of ctxt then ""
-                    else "smt_solver = " ^ maybe_quote name,
-                    "smt", NONE)
+          fun smt_settings () =
+            if name = SMT_Solver.solver_name_of ctxt then ""
+            else "smt_solver = " ^ maybe_quote name
+          val preplay =
+            case preplay_one_line_proof debug preplay_timeout used_ths state
+                                        subgoal Metis of
+              p as Preplayed _ => p
+            | _ => Trust_Playable (SMT (smt_settings ()), NONE)
+          val one_line_params =
+            (preplay, proof_banner mode blocking name, used_facts,
+             minimize_command, subgoal, subgoal_count)
         in
-          try_command_line (proof_banner mode blocking name) time
-              (apply_on_subgoal settings subgoal subgoal_count ^
-               command_call method (map fst other_lemmas)) ^
-          minimize_line minimize_command
-                        (map fst (other_lemmas @ chained_lemmas)) ^
+          one_line_proof_text one_line_params ^
           (if verbose then
              "\nSMT solver real CPU time: " ^
              string_from_time (Time.fromMilliseconds (the run_time_in_msecs)) ^
@@ -966,7 +967,7 @@ fun run_smt_solver mode name
         end
       | SOME failure => string_for_failure failure
   in
-    {outcome = outcome, used_facts = map fst used_facts,
+    {outcome = outcome, used_facts = used_facts,
      run_time_in_msecs = run_time_in_msecs, message = message}
   end
 

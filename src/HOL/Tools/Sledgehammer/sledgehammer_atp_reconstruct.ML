@@ -24,10 +24,11 @@ sig
 
   type minimize_command = string list -> string
   type one_line_params =
-    preplay * string * (string * locality) list * minimize_command * thm * int
+    preplay * string * (string * locality) list * minimize_command * int * int
   type isar_params =
     bool * bool * int * type_system * string Symtab.table * int list list
     * int * (string * locality) list vector * int Symtab.table * string proof
+    * thm
   val repair_conjecture_shape_and_fact_names :
     type_system -> string -> int list list -> int
     -> (string * locality) list vector -> int list
@@ -39,15 +40,6 @@ sig
     Proof.context -> type_system -> int list list -> int
     -> (string * locality) list vector -> 'a proof -> string list option
   val uses_typed_helpers : int list -> 'a proof -> bool
-  val reconstructor_name : reconstructor -> string
-  val reconstructor_settings : reconstructor -> string
-  val apply_on_subgoal : string -> int -> int -> string
-  val command_call : string -> string list -> string
-  val try_command_line : string -> (bool * Time.time) option -> string -> string
-  val minimize_line : ('a list -> string) -> 'a list -> string
-  val split_used_facts :
-    (string * locality) list
-    -> (string * locality) list * (string * locality) list
   val one_line_proof_text : one_line_params -> string
   val isar_proof_text :
     Proof.context -> isar_params -> one_line_params -> string
@@ -77,10 +69,10 @@ datatype preplay =
 
 type minimize_command = string list -> string
 type one_line_params =
-  preplay * string * (string * locality) list * minimize_command * thm * int
+  preplay * string * (string * locality) list * minimize_command * int * int
 type isar_params =
   bool * bool * int * type_system * string Symtab.table * int list list * int
-  * (string * locality) list vector * int Symtab.table * string proof
+  * (string * locality) list vector * int Symtab.table * string proof * thm
 
 fun is_head_digit s = Char.isDigit (String.sub (s, 0))
 val scan_integer = Scan.many1 is_head_digit >> (the o Int.fromString o implode)
@@ -291,7 +283,7 @@ val split_used_facts =
   #> pairself (sort_distinct (string_ord o pairself fst))
 
 fun one_line_proof_text (preplay, banner, used_facts, minimize_command,
-                         goal, i) =
+                         subgoal, subgoal_count) =
   let
     val (chained, extra) = split_used_facts used_facts
     val (reconstructor, ext_time) =
@@ -305,10 +297,10 @@ fun one_line_proof_text (preplay, banner, used_facts, minimize_command,
          | SOME time =>
            if time = Time.zeroTime then NONE else SOME (true, time))
       | Failed_to_Preplay => (NONE, NONE)
-    val n = Logic.count_prems (prop_of goal)
     val try_line =
       case reconstructor of
-        SOME r => reconstructor_command r i n ([], map fst extra)
+        SOME r => ([], map fst extra)
+                  |> reconstructor_command r subgoal subgoal_count
                   |> try_command_line banner ext_time
       | NONE => "Proof reconstruction failed."
   in try_line ^ minimize_line minimize_command (map fst (extra @ chained)) end
@@ -1054,13 +1046,12 @@ fun string_for_proof ctxt0 full_types i n =
 
 fun isar_proof_text ctxt
         (debug, full_types, isar_shrink_factor, type_sys, pool,
-         conjecture_shape, facts_offset, fact_names, sym_tab, atp_proof)
-        (one_line_params as (_, _, _, _, goal, i)) =
+         conjecture_shape, facts_offset, fact_names, sym_tab, atp_proof, goal)
+        (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
-    val (params, hyp_ts, concl_t) = strip_subgoal ctxt goal i
+    val (params, hyp_ts, concl_t) = strip_subgoal ctxt goal subgoal
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []
     val tfrees = fold Term.add_tfrees (concl_t :: hyp_ts) []
-    val n = Logic.count_prems (prop_of goal)
     val one_line_proof = one_line_proof_text one_line_params
     fun isar_proof_for () =
       case atp_proof
@@ -1072,7 +1063,7 @@ fun isar_proof_text ctxt
            |> then_chain_proof
            |> kill_useless_labels_in_proof
            |> relabel_proof
-           |> string_for_proof ctxt full_types i n of
+           |> string_for_proof ctxt full_types subgoal subgoal_count of
         "" => "\nNo structured proof available (proof too short)."
       | proof => "\n\nStructured proof:\n" ^ Markup.markup Markup.sendback proof
     val isar_proof =
