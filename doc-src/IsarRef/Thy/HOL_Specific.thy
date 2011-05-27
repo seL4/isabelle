@@ -951,8 +951,7 @@ text {*
 
     facts: '(' ( ( ( ( 'add' | 'del' ) ':' ) ? @{syntax thmrefs} ) + ) ? ')'
     ;
-  "} % FIXME try_methods: proper clasimpmod!?
-  % FIXME check args "value"
+  "} % FIXME check args "value"
 
   \begin{description}
 
