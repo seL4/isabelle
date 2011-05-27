@@ -101,9 +101,9 @@ in the Proof General response buffer.
 
 The result of a successful proof search is some source text that usually (but
 not always) reconstructs the proof within Isabelle. For ATPs, the reconstructed
-proof relies on the general-purpose Metis prover \cite{metis}, which is fully
-integrated into Isabelle/HOL, with explicit inferences going through the kernel.
-Thus its results are correct by construction.
+proof relies on the general-purpose Metis prover, which is fully integrated into
+Isabelle/HOL, with explicit inferences going through the kernel. Thus its
+results are correct by construction.
 
 In this manual, we will explicitly invoke the \textbf{sledgehammer} command.
 Sledgehammer also provides an automatic mode that can be enabled via the
@@ -249,33 +249,33 @@ Either way, Sledgehammer produces the following output after a few seconds:
 \slshape
 Sledgehammer: ``\textit{e}'' on goal \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
-Try this: \textbf{by} (\textit{metis last\_ConsL}). \\
+Try this: \textbf{by} (\textit{metis last\_ConsL}) (46 ms). \\
 To minimize: \textbf{sledgehammer} \textit{min} [\textit{e}] (\textit{last\_ConsL}). \\[3\smallskipamount]
 %
 Sledgehammer: ``\textit{vampire}'' on goal \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
-Try this: \textbf{by} (\textit{metis hd.simps}). \\
+Try this: \textbf{by} (\textit{metis hd.simps}) (17 ms). \\
 To minimize: \textbf{sledgehammer} \textit{min} [\textit{vampire}] (\textit{hd.simps}). \\[3\smallskipamount]
 %
 Sledgehammer: ``\textit{spass}'' on goal \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
-Try this: \textbf{by} (\textit{metis list.inject}). \\
+Try this: \textbf{by} (\textit{metis list.inject}) (20 ms). \\
 To minimize: \textbf{sledgehammer} \textit{min} [\textit{spass}]~(\textit{list.inject}). \\[3\smallskipamount]
 %
 Sledgehammer: ``\textit{remote\_waldmeister}'' on goal \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
-Try this: \textbf{by} (\textit{metis hd.simps insert\_Nil}). \\
+Try this: \textbf{by} (\textit{metis hd.simps insert\_Nil}) (25 ms). \\
 To minimize: \textbf{sledgehammer} \textit{min} [\textit{remote\_waldmeister}] \\
 \phantom{To minimize: \textbf{sledgehammer}~}(\textit{hd.simps insert\_Nil}). \\[3\smallskipamount]
 %
 Sledgehammer: ``\textit{remote\_sine\_e}'' on goal \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
-Try this: \textbf{by} (\textit{metis hd.simps}). \\
+Try this: \textbf{by} (\textit{metis hd.simps}) (17 ms). \\
 To minimize: \textbf{sledgehammer} \textit{min} [\textit{remote\_sine\_e}]~(\textit{hd.simps}). \\[3\smallskipamount]
 %
 Sledgehammer: ``\textit{remote\_z3}'' on goal \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
-Try this: \textbf{by} (\textit{metis hd.simps}). \\
+Try this: \textbf{by} (\textit{metis hd.simps}) (17 ms). \\
 To minimize: \textbf{sledgehammer} \textit{min} [\textit{remote\_z3}]~(\textit{hd.simps}).
 \postw
 
@@ -285,11 +285,12 @@ available, some of the provers might be missing or present with a
 \textit{remote\_} prefix. Waldmeister is run only for unit equational problems,
 where the goal's conclusion is a (universally quantified) equation.
 
-For each successful prover, Sledgehammer gives a one-liner proof that uses the
-\textit{metis} or \textit{smt} method. You can click the proof to insert it into
-the theory text. You can click the ``\textbf{sledgehammer} \textit{minimize}''
+For each successful prover, Sledgehammer gives a one-liner proof that uses Metis
+or the \textit{smt} proof method. For Metis, timings are shown in parentheses,
+indicating how fast the call is. You can click the proof to insert it into the
+theory text. You can click the ``\textbf{sledgehammer} \textit{minimize}''
 command if you want to look for a shorter (and probably faster) proof. But here
-the proof found by E looks perfect, so click it to finish the proof.
+the proof found by Vampire is both short and fast already.
 
 You can ask Sledgehammer for an Isar text proof by passing the
 \textit{isar\_proof} option (\S\ref{output-format}):
@@ -299,8 +300,8 @@ You can ask Sledgehammer for an Isar text proof by passing the
 \postw
 
 When Isar proof construction is successful, it can yield proofs that are more
-readable and also faster than the \textit{metis} one-liners. This feature is
-experimental and is only available for ATPs.
+readable and also faster than the Metis one-liners. This feature is experimental
+and is only available for ATPs.
 
 \section{Hints}
 \label{hints}
@@ -383,38 +384,44 @@ send them to the author at \authoremail.
 \point{Why does Metis fail to reconstruct the proof?}
 
 There are many reasons. If Metis runs seemingly forever, that is a sign that the
-proof is too difficult for it. Metis is complete, so it should eventually find
-it, but that's little consolation. There are several possible solutions:
+proof is too difficult for it. Metis's search is complete, so it should
+eventually find it, but that's little consolation. There are several possible
+solutions:
 
 \begin{enum}
 \item[$\bullet$] Try the \textit{isar\_proof} option (\S\ref{output-format}) to
 obtain a step-by-step Isar proof where each step is justified by Metis. Since
 the steps are fairly small, Metis is more likely to be able to replay them.
 
-\item[$\bullet$] Try the \textit{smt} proof method instead of \textit{metis}. It
-is usually stronger, but you need to have Z3 available to replay the proofs,
-trust the SMT solver, or use certificates. See the documentation in the
-\emph{SMT} theory (\texttt{\$ISABELLE\_HOME/src/HOL/SMT.thy}) for details.
+\item[$\bullet$] Try the \textit{smt} proof method instead of Metis. It is
+usually stronger, but you need to have Z3 available to replay the proofs, trust
+the SMT solver, or use certificates. See the documentation in the \emph{SMT}
+theory (\texttt{\$ISABELLE\_HOME/src/HOL/SMT.thy}) for details.
 
 \item[$\bullet$] Try the \textit{blast} or \textit{auto} proof methods, passing
 the necessary facts via \textbf{unfolding}, \textbf{using}, \textit{intro}{:},
 \textit{elim}{:}, \textit{dest}{:}, or \textit{simp}{:}, as appropriate.
 \end{enum}
 
-In some rare cases, Metis fails fairly quickly. This usually indicates that
-Sledgehammer found a type-incorrect proof. Sledgehammer erases some type
-information to speed up the search. Try Sledgehammer again with full type
-information: \textit{full\_types} (\S\ref{problem-encoding}), or choose a
-specific type encoding with \textit{type\_sys} (\S\ref{problem-encoding}). Older
-versions of Sledgehammer were frequent victims of this problem. Now this should
-very seldom be an issue, but if you notice many unsound proofs, contact the
-author at \authoremail.
+In some rare cases, Metis fails fairly quickly, and you get the error message
+
+\prew
+\slshape
+Proof reconstruction failed.
+\postw
+
+This usually indicates that Sledgehammer found a type-incorrect proof.
+Sledgehammer erases some type information to speed up the search. Try
+Sledgehammer again with full type information: \textit{full\_types}
+(\S\ref{problem-encoding}), or choose a specific type encoding with
+\textit{type\_sys} (\S\ref{problem-encoding}). Older versions of Sledgehammer
+were frequent victims of this problem. Now this should very seldom be an issue,
+but if you notice many unsound proofs, contact the author at \authoremail.
 
 \point{How can I tell whether a generated proof is sound?}
 
-First, if \emph{metis} (or \emph{metisFT}) can reconstruct it, the proof is
-sound (modulo soundness of Isabelle's inference kernel). If it fails or runs
-seemingly forever, you can try
+First, if Metis can reconstruct it, the proof is sound (modulo soundness of
+Isabelle's inference kernel). If it fails or runs seemingly forever, you can try
 
 \prew
 \textbf{apply}~\textbf{--} \\
@@ -494,21 +501,6 @@ as Isar proofs), which we hope to leverage. In the meantime, a workaround is to
 set the \textit{isar\_shrink\_factor} option (\S\ref{output-format}) to a larger
 value or to try several provers and keep the nicest-looking proof.
 
-\point{Should I minimize the number of lemmas?}
-
-In general, minimization is a good idea, because proofs involving fewer lemmas
-tend to be shorter as well, and hence easier to re-find by Metis. But the
-opposite is sometimes the case.
-
-\point{Why does the minimizer sometimes starts on its own?}
-
-There are two scenarios in which this can happen. First, some provers (notably
-CVC3, Satallax, and Yices) do not provide proofs or sometimes provide incomplete
-proofs. The minimizer is then invoked to find out which facts are actually
-needed from the (large) set of facts that was initinally given to the prover.
-Second, if a prover returns a proof with lots of facts, the minimizer is invoked
-automatically since Metis would be unlikely to re-find the proof.
-
 \point{What is metisFT?}
 
 The \textit{metisFT} proof method is the fully-typed version of Metis. It is
@@ -517,7 +509,12 @@ also includes more powerful rules such as the axiom ``$x = \mathit{True}
 \mathrel{\lor} x = \mathit{False}$'' for reasoning in higher-order places (e.g.,
 in set comprehensions). The method kicks in automatically as a fallback when
 \textit{metis} fails, and it is sometimes generated by Sledgehammer instead of
-\textit{metis} if the proof obviously requires type information.
+\textit{metis} if the proof obviously requires type information or if
+\textit{metis} failed when Sledgehammer preplayed the proof. (By default,
+Sledgehammer tries to run \textit{metis} and/or \textit{metisFT} for 4 seconds
+to ensure that the generated one-line proofs actually work and to display timing
+information. This can be configured using the \textit{preplay\_timeout} option
+(\S\ref{mode-of-operation}).)
 
 If you see the warning
 
@@ -528,6 +525,22 @@ Metis: Falling back on ``\textit{metisFT\/}''.
 
 in a successful Metis proof, you can advantageously replace the \textit{metis}
 call with \textit{metisFT}.
+
+\point{Should I minimize the number of lemmas?}
+
+In general, minimization is a good idea, because proofs involving fewer lemmas
+tend to be shorter as well, and hence easier to re-find by Metis. But the
+opposite is sometimes the case. Keep an eye on the timing information displayed
+next to the suggested Metis calls.
+
+\point{Why does the minimizer sometimes starts on its own?}
+
+There are two scenarios in which this can happen. First, some provers (notably
+CVC3, Satallax, and Yices) do not provide proofs or sometimes provide incomplete
+proofs. The minimizer is then invoked to find out which facts are actually
+needed from the (large) set of facts that was initinally given to the prover.
+Second, if a prover returns a proof with lots of facts, the minimizer is invoked
+automatically since Metis would be unlikely to re-find the proof.
 
 \point{A strange error occurred---what should I do?}
 
@@ -679,9 +692,9 @@ The descriptions below refer to the following syntactic quantities:
 \item[$\bullet$] \qtybf{float\_pair\/}: A pair of floating-point numbers
 (e.g., 0.6 0.95).
 \item[$\bullet$] \qtybf{smart\_int\/}: An integer or \textit{smart}.
-\item[$\bullet$] \qtybf{float\_or\_none\/}: An integer (e.g., 60) or
-floating-point number (e.g., 0.5) expressing a number of seconds, or the keyword
-\textit{none} ($\infty$ seconds).
+\item[$\bullet$] \qtybf{float\_or\_none\/}: A floating-point number (e.g., 60 or
+0.5) expressing a number of seconds, or the keyword \textit{none} ($\infty$
+seconds).
 \end{enum}
 
 Default values are indicated in braces. Boolean options have a negated
@@ -816,6 +829,11 @@ searching for a proof. This excludes problem preparation and is a soft limit.
 For historical reasons, the default value of this option can be overridden using
 the option ``Sledgehammer: Time Limit'' from the ``Isabelle'' menu in Proof
 General.
+
+\opdefault{preplay\_timeout}{float\_or\_none}{\upshape 4}
+Specifies the maximum number of seconds that Metis should be spent trying to
+``preplay'' the found proof. If this option is set to 0, no preplaying takes
+place, and no timing information is displayed next to the suggested Metis calls.
 
 \opfalse{blocking}{non\_blocking}
 Specifies whether the \textbf{sledgehammer} command should operate
