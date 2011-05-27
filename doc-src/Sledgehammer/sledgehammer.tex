@@ -343,11 +343,6 @@ remote\_vampire}''). For convenience, you can omit ``\textit{provers}~=''
 and simply write the prover names as a space-separated list (e.g., ``\textit{e
 spass remote\_vampire}'').
 
-\item[$\bullet$] \textbf{\textit{timeout}} (\S\ref{mode-of-operation}) controls
-the provers' time limit. It is set to 30 seconds, but since Sledgehammer runs
-asynchronously you should not hesitate to raise this limit to 60 or 120 seconds
-if you are the kind of user who can think clearly while ATPs are active.
-
 \item[$\bullet$] \textbf{\textit{full\_types}} (\S\ref{problem-encoding})
 specifies whether type-sound encodings should be used. By default, Sledgehammer
 employs a mixture of type-sound and type-unsound encodings, occasionally
@@ -364,6 +359,11 @@ if that helps.
 that Isar proofs should be generated, instead of one-liner Metis proofs. The
 length of the Isar proofs can be controlled by setting
 \textit{isar\_shrink\_factor} (\S\ref{output-format}).
+
+\item[$\bullet$] \textbf{\textit{timeout}} (\S\ref{timeouts}) controls the
+provers' time limit. It is set to 30 seconds, but since Sledgehammer runs
+asynchronously you should not hesitate to raise this limit to 60 or 120 seconds
+if you are the kind of user who can think clearly while ATPs are active.
 \end{enum}
 
 Options can be set globally using \textbf{sledgehammer\_params}
@@ -514,7 +514,7 @@ in set comprehensions). The method kicks in automatically as a fallback when
 Sledgehammer tries to run \textit{metis} and/or \textit{metisFT} for 4 seconds
 to ensure that the generated one-line proofs actually work and to display timing
 information. This can be configured using the \textit{preplay\_timeout} option
-(\S\ref{mode-of-operation}).)
+(\S\ref{timeouts}).)
 
 If you see the warning
 
@@ -648,12 +648,11 @@ You can instruct Sledgehammer to run automatically on newly entered theorems by
 enabling the ``Auto Sledgehammer'' option from the ``Isabelle'' menu in Proof
 General. For automatic runs, only the first prover set using \textit{provers}
 (\S\ref{mode-of-operation}) is considered, fewer facts are passed to the prover,
-\textit{slicing} (\S\ref{mode-of-operation}) is disabled, \textit{timeout}
-(\S\ref{mode-of-operation}) is superseded by the ``Auto Tools Time Limit'' in
-Proof General's ``Isabelle'' menu, \textit{full\_types}
-(\S\ref{problem-encoding}) is enabled, and \textit{verbose}
-(\S\ref{output-format}) and \textit{debug} (\S\ref{output-format}) are disabled.
-Sledgehammer's output is also more concise.
+\textit{slicing} (\S\ref{mode-of-operation}) is disabled, \textit{full\_types}
+(\S\ref{problem-encoding}) is enabled, \textit{verbose} (\S\ref{output-format})
+and \textit{debug} (\S\ref{output-format}) are disabled, and \textit{timeout}
+(\S\ref{timeouts}) is superseded by the ``Auto Tools Time Limit'' in Proof
+General's ``Isabelle'' menu. Sledgehammer's output is also more concise.
 
 \section{Option Reference}
 \label{option-reference}
@@ -678,7 +677,8 @@ Sledgehammer's output is also more concise.
 Sledgehammer's options are categorized as follows:\ mode of operation
 (\S\ref{mode-of-operation}), problem encoding (\S\ref{problem-encoding}),
 relevance filter (\S\ref{relevance-filter}), output format
-(\S\ref{output-format}), and authentication (\S\ref{authentication}).
+(\S\ref{output-format}), authentication (\S\ref{authentication}), and timeouts
+(\S\ref{timeouts}).
 
 The descriptions below refer to the following syntactic quantities:
 
@@ -822,18 +822,6 @@ Alias for \textit{provers}.
 
 %\opnodefault{atp}{string}
 %Legacy alias for \textit{provers}.
-
-\opdefault{timeout}{float\_or\_none}{\upshape 30}
-Specifies the maximum number of seconds that the automatic provers should spend
-searching for a proof. This excludes problem preparation and is a soft limit.
-For historical reasons, the default value of this option can be overridden using
-the option ``Sledgehammer: Time Limit'' from the ``Isabelle'' menu in Proof
-General.
-
-\opdefault{preplay\_timeout}{float\_or\_none}{\upshape 4}
-Specifies the maximum number of seconds that Metis should be spent trying to
-``preplay'' the found proof. If this option is set to 0, no preplaying takes
-place, and no timing information is displayed next to the suggested Metis calls.
 
 \opfalse{blocking}{non\_blocking}
 Specifies whether the \textbf{sledgehammer} command should operate
@@ -1049,7 +1037,6 @@ fails; however, they are usually faster and sometimes more robust than
 Specifies the granularity of the Isar proof. A value of $n$ indicates that each
 Isar proof step should correspond to a group of up to $n$ consecutive proof
 steps in the ATP proof.
-
 \end{enum}
 
 \subsection{Authentication}
@@ -1073,7 +1060,25 @@ Sledgehammer emits an error (if \textit{blocking} is enabled) or a warning
 is useful for regression testing.
 
 \nopagebreak
-{\small See also \textit{blocking} (\S\ref{mode-of-operation}).}
+{\small See also \textit{blocking} (\S\ref{mode-of-operation}) and
+\textit{timeout} (\S\ref{timeouts}).}
+\end{enum}
+
+\subsection{Timeouts}
+\label{timeouts}
+
+\begin{enum}
+\opdefault{timeout}{float\_or\_none}{\upshape 30}
+Specifies the maximum number of seconds that the automatic provers should spend
+searching for a proof. This excludes problem preparation and is a soft limit.
+For historical reasons, the default value of this option can be overridden using
+the option ``Sledgehammer: Time Limit'' from the ``Isabelle'' menu in Proof
+General.
+
+\opdefault{preplay\_timeout}{float\_or\_none}{\upshape 4}
+Specifies the maximum number of seconds that Metis should be spent trying to
+``preplay'' the found proof. If this option is set to 0, no preplaying takes
+place, and no timing information is displayed next to the suggested Metis calls.
 \end{enum}
 
 \let\em=\sl
