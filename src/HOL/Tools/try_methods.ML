@@ -18,6 +18,8 @@ end;
 structure Try_Methods : TRY_METHODS =
 struct
 
+datatype mode = Auto_Try | Try | Normal
+
 val try_methodsN = "try_methods"
 
 val noneN = "none"
@@ -71,9 +73,9 @@ fun add_attr_text (NONE, _) s = s
 fun attrs_text (sx, ix, ex, dx) (ss, is, es, ds) =
   "" |> fold add_attr_text [(sx, ss), (ix, is), (ex, es), (dx, ds)]
 
-fun do_named_method (name, ((all_goals, run_if_auto), attrs)) auto timeout_opt
-                    quad st =
-  if not auto orelse run_if_auto then
+fun do_named_method (name, ((all_goals, run_if_auto_try), attrs)) mode
+                    timeout_opt quad st =
+  if mode <> Auto_Try orelse run_if_auto_try then
     let val attrs = attrs_text attrs quad in
       do_generic timeout_opt
                  (name ^ (if all_goals andalso
@@ -94,7 +96,7 @@ val simp_attrs = (SOME "add", NONE, NONE, NONE)
 val metis_attrs = (SOME "", SOME "", SOME "", SOME "")
 val no_attrs = (NONE, NONE, NONE, NONE)
 
-(* name * ((all_goals, run_if_auto), (simp, intro, elim, dest) *)
+(* name * ((all_goals, run_if_auto_try), (simp, intro, elim, dest) *)
 val named_methods =
   [("simp", ((false, true), simp_attrs)),
    ("auto", ((true, true), full_attrs)),
@@ -109,14 +111,21 @@ val do_methods = map do_named_method named_methods
 
 fun time_string (s, ms) = s ^ ": " ^ string_of_int ms ^ " ms"
 
-fun do_try_methods auto timeout_opt quad st =
+fun do_try_methods mode timeout_opt quad st =
   let
     val st = st |> Proof.map_context (Config.put Metis_Tactics.verbose false)
   in
-    case do_methods |> Par_List.map (fn f => f auto timeout_opt quad st)
+    if mode = Normal then
+      "Trying " ^ space_implode " " (Try.serial_commas "and"
+                                      (map (quote o fst) named_methods)) ^ "..."
+      |> Output.urgent_message
+    else
+      ();
+    case do_methods |> Par_List.map (fn f => f mode timeout_opt quad st)
                     |> map_filter I |> sort (int_ord o pairself snd) of
-      [] => (if auto then () else writeln "No proof found.";
-             (false, (noneN, st)))
+      [] =>
+      (if mode = Normal then Output.urgent_message "No proof found." else ();
+       (false, (noneN, st)))
     | xs as (s, _) :: _ =>
       let
         val xs = xs |> map (fn (s, n) => (n, hd (space_explode " " s)))
@@ -124,14 +133,16 @@ fun do_try_methods auto timeout_opt quad st =
                     |> map (swap o apsnd commas)
         val need_parens = exists_string (curry (op =) " ") s
         val message =
-          (if auto then "Auto Try Methods found a proof"
-           else "Try this command") ^ ": " ^
+          (case mode of
+             Auto_Try => "Auto Try Methods found a proof"
+           | Try => "Try Methods found a proof"
+           | Normal => "Try this command") ^ ": " ^
           Markup.markup Markup.sendback
               ((if nprems_of (#goal (Proof.goal st)) = 1 then "by"
                 else "apply") ^ " " ^ (s |> need_parens ? enclose "(" ")")) ^
           "\n(" ^ space_implode "; " (map time_string xs) ^ ").\n"
       in
-        (true, (s, st |> (if auto then
+        (true, (s, st |> (if mode = Auto_Try then
                             Proof.goal_message
                                 (fn () => Pretty.chunks [Pretty.str "",
                                           Pretty.markup Markup.hilite
@@ -141,10 +152,10 @@ fun do_try_methods auto timeout_opt quad st =
       end
   end
 
-fun try_methods timeout_opt = fst oo do_try_methods false timeout_opt
+fun try_methods timeout_opt = fst oo do_try_methods Normal timeout_opt
 
 fun try_methods_trans quad =
-  Toplevel.keep (K () o do_try_methods false (SOME default_timeout) quad
+  Toplevel.keep (K () o do_try_methods Normal (SOME default_timeout) quad
                  o Toplevel.proof_of)
 
 fun merge_attrs (s1, i1, e1, d1) (s2, i2, e2, d2) =
@@ -180,8 +191,9 @@ val _ =
       "try a combination of proof methods" Keyword.diag
       parse_try_methods_command
 
-fun try_try_methods auto = do_try_methods auto NONE ([], [], [], [])
+fun try_try_methods auto =
+  do_try_methods (if auto then Auto_Try else Try) NONE ([], [], [], [])
 
-val setup = Try.register_tool (try_methodsN, (20, auto, try_try_methods))
+val setup = Try.register_tool (try_methodsN, (30, auto, try_try_methods))
 
 end;
