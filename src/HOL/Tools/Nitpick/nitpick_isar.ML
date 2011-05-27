@@ -403,6 +403,6 @@ val _ = Outer_Syntax.command nitpick_paramsN
 
 fun try_nitpick auto = pick_nits [] (if auto then Auto_Try else Try) 1 0
 
-val setup = Try.register_tool (nitpickN, (auto, try_nitpick))
+val setup = Try.register_tool (nitpickN, (50, auto, try_nitpick))
 
 end;

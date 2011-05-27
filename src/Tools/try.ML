@@ -7,7 +7,7 @@ Manager for tools that should be tried on conjectures.
 signature TRY =
 sig
   type tool =
-    string * (bool Unsynchronized.ref
+    string * (int * bool Unsynchronized.ref
               * (bool -> Proof.state -> bool * (string * Proof.state)))
 
   val tryN : string
@@ -22,7 +22,7 @@ structure Try : TRY =
 struct
 
 type tool =
-  string * (bool Unsynchronized.ref
+  string * (int * bool Unsynchronized.ref
             * (bool -> Proof.state -> bool * (string * Proof.state)))
 
 val tryN = "try"
@@ -51,15 +51,16 @@ structure Data = Theory_Data
 
 val get_tools = Data.get
 
-val register_tool = Data.map o AList.update (op =)
+val register_tool = Data.map o Ord_List.insert (int_ord o pairself (#1 o snd))
 
 (* try command *)
 
 fun try_tools state =
   get_tools (Proof.theory_of state)
-  |> tap (fn _ => Output.urgent_message "Trying...")
+  |> tap (fn tools => "Trying " ^ commas_quote (map fst tools) ^ "..."
+                      |> Output.urgent_message)
   |> Par_List.get_some
-         (fn (name, (_, tool)) =>
+         (fn (name, (_, _, tool)) =>
              case try (tool false) state of
                SOME (true, (outcome_code, _)) => SOME (name, outcome_code)
              | _ => NONE)
@@ -74,7 +75,7 @@ val _ =
 
 fun auto_try state =
   get_tools (Proof.theory_of state)
-  |> map_filter (fn (_, (auto, tool)) => if !auto then SOME tool else NONE)
+  |> map_filter (fn (_, (_, auto, tool)) => if !auto then SOME tool else NONE)
   |> Par_List.get_some (fn tool =>
                            case try (tool true) state of
                              SOME (true, (_, state)) => SOME state

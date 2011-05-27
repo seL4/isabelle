@@ -106,6 +106,6 @@ val _ =
 
 (* hook *)
 
-val setup = Try.register_tool (solve_directN, (auto, solve_direct));
+val setup = Try.register_tool (solve_directN, (10, auto, solve_direct));
 
 end;

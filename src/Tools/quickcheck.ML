@@ -653,7 +653,7 @@ fun try_quickcheck auto state =
   end
   |> `(fn (outcome_code, _) => outcome_code = genuineN)
 
-val setup = Try.register_tool (quickcheckN, (auto, try_quickcheck))
+val setup = Try.register_tool (quickcheckN, (30, auto, try_quickcheck))
 
 end;
 

@@ -182,6 +182,6 @@ val _ =
 
 fun try_try_methods auto = do_try_methods auto NONE ([], [], [], [])
 
-val setup = Try.register_tool (try_methodsN, (auto, try_try_methods))
+val setup = Try.register_tool (try_methodsN, (20, auto, try_try_methods))
 
 end;
