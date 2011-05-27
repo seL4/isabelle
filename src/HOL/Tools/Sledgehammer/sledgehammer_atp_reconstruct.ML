@@ -390,8 +390,7 @@ fun raw_term_from_pred thy sym_tab tfrees =
         ATerm (a, us) =>
         if String.isPrefix simple_type_prefix a then
           @{const True} (* ignore TPTP type information *)
-        else case strip_prefix_and_unascii const_prefix a of
-          SOME "equal" =>
+        else if a = tptp_equal then
           let val ts = map (aux NONE []) us in
             if length ts = 2 andalso hd ts aconv List.last ts then
               (* Vampire is keen on producing these. *)
@@ -399,7 +398,8 @@ fun raw_term_from_pred thy sym_tab tfrees =
             else
               list_comb (Const (@{const_name HOL.eq}, HOLogic.typeT), ts)
           end
-        | SOME s =>
+        else case strip_prefix_and_unascii const_prefix a of
+          SOME s =>
           let
             val ((s', s), mangled_us) = s |> unmangled_const |>> `invert_const
           in
@@ -694,11 +694,12 @@ fun step_for_line _ _ _ _ _ (Definition (_, t1, t2)) = Let (t1, t2)
 
 fun repair_name "$true" = "c_True"
   | repair_name "$false" = "c_False"
-  | repair_name "$$e" = "c_equal" (* seen in Vampire proofs *)
-  | repair_name "equal" = "c_equal" (* needed by SPASS? *)
+  | repair_name "$$e" = tptp_equal (* seen in Vampire proofs *)
   | repair_name s =
-    if String.isPrefix "sQ" s andalso String.isSuffix "_eqProxy" s then
-      "c_equal" (* seen in Vampire proofs *)
+    if is_tptp_equal s orelse
+       (* seen in Vampire proofs *)
+       (String.isPrefix "sQ" s andalso String.isSuffix "_eqProxy" s) then
+      tptp_equal
     else
       s
 

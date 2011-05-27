@@ -47,8 +47,11 @@ sig
   val tptp_app : string
   val tptp_not_infix : string
   val tptp_equal : string
+  val tptp_old_equal : string
   val tptp_false : string
   val tptp_true : string
+  val tptp_empty_list : string
+  val is_tptp_equal : string -> bool
   val is_built_in_tptp_symbol : string -> bool
   val is_tptp_variable : string -> bool
   val is_tptp_user_symbol : string -> bool
@@ -127,11 +130,14 @@ val tptp_not_iff = "<~>"
 val tptp_app = "@"
 val tptp_not_infix = "!"
 val tptp_equal = "="
+val tptp_old_equal = "equal"
 val tptp_false = "$false"
 val tptp_true = "$true"
+val tptp_empty_list = "[]"
 
-fun is_built_in_tptp_symbol "equal" = true (* deprecated *)
-  | is_built_in_tptp_symbol s = not (Char.isAlpha (String.sub (s, 0)))
+fun is_tptp_equal s = (s = tptp_equal orelse s = tptp_old_equal)
+fun is_built_in_tptp_symbol s =
+  s = tptp_old_equal orelse not (Char.isAlpha (String.sub (s, 0)))
 fun is_tptp_variable s = Char.isUpper (String.sub (s, 0))
 val is_tptp_user_symbol = not o (is_tptp_variable orf is_built_in_tptp_symbol)
 
@@ -203,19 +209,20 @@ fun string_for_type THF ty =
   | string_for_type _ _ = raise Fail "unexpected type in untyped format"
 
 fun string_for_term _ (ATerm (s, [])) = s
-  | string_for_term format (ATerm ("equal", ts)) =
-    space_implode (" " ^ tptp_equal ^ " ") (map (string_for_term format) ts)
-    |> format = THF ? enclose "(" ")"
-  | string_for_term format (ATerm ("[]", ts)) =
-    (* used for lists in the optional "source" field of a derivation *)
-    "[" ^ commas (map (string_for_term format) ts) ^ "]"
   | string_for_term format (ATerm (s, ts)) =
-    let val ss = map (string_for_term format) ts in
-      if format = THF then
-        "(" ^ space_implode (" " ^ tptp_app ^ " ") (s :: ss) ^ ")"
-      else
-        s ^ "(" ^ commas ss ^ ")"
-    end
+    if s = tptp_empty_list then
+      (* used for lists in the optional "source" field of a derivation *)
+      "[" ^ commas (map (string_for_term format) ts) ^ "]"
+    else if is_tptp_equal s then
+      space_implode (" " ^ tptp_equal ^ " ") (map (string_for_term format) ts)
+      |> format = THF ? enclose "(" ")"
+    else
+      let val ss = map (string_for_term format) ts in
+        if format = THF then
+          "(" ^ space_implode (" " ^ tptp_app ^ " ") (s :: ss) ^ ")"
+        else
+          s ^ "(" ^ commas ss ^ ")"
+      end
 
 fun string_for_quantifier AForall = tptp_forall
   | string_for_quantifier AExists = tptp_exists
@@ -240,7 +247,8 @@ fun string_for_formula format (AQuant (q, xs, phi)) =
     "[" ^ commas (map (string_for_bound_var format) xs) ^ "] : " ^
     string_for_formula format phi
     |> enclose "(" ")"
-  | string_for_formula format (AConn (ANot, [AAtom (ATerm ("equal", ts))])) =
+  | string_for_formula format
+        (AConn (ANot, [AAtom (ATerm ("=" (* tptp_equal *), ts))])) =
     space_implode (" " ^ tptp_not_infix ^ tptp_equal ^ " ")
                   (map (string_for_term format) ts)
     |> format = THF ? enclose "(" ")"
@@ -290,7 +298,7 @@ fun is_problem_line_negated (Formula (_, _, AConn (ANot, _), _, _)) = true
   | is_problem_line_negated _ = false
 
 fun is_problem_line_cnf_ueq
-        (Formula (_, _, AAtom (ATerm (("equal", _), _)), _, _)) = true
+        (Formula (_, _, AAtom (ATerm ((s, _), _)), _, _)) = is_tptp_equal s
   | is_problem_line_cnf_ueq _ = false
 
 fun open_conjecture_term (ATerm ((s, s'), tms)) =
@@ -392,10 +400,11 @@ val no_qualifiers =
 (* Long names can slow down the ATPs. *)
 val max_readable_name_size = 20
 
-(* "op" is also reserved, to avoid the unreadable "op_1", "op_2", etc., in the
-   problem files. "equal" is reserved by some ATPs. "eq" is reserved to ensure
-   that "HOL.eq" is correctly mapped to equality. *)
-val reserved_nice_names = ["op", "equal", "eq"]
+(* "equal" is reserved by some ATPs. "op" is also reserved, to avoid the
+   unreadable "op_1", "op_2", etc., in the problem files. "eq" is reserved to
+   ensure that "HOL.eq" is correctly mapped to equality (not clear whether this
+   is still necessary). *)
+val reserved_nice_names = [tptp_old_equal, "op", "eq"]
 
 fun readable_name full_name s =
   if s = full_name then

@@ -47,7 +47,7 @@ sig
   val type_const_prefix: string
   val class_prefix: string
   val new_skolem_const_prefix : string
-  val proxify_const : string -> (string * string) option
+  val proxify_const : string -> (int * (string * string)) option
   val invert_const: string -> string
   val unproxify_const: string -> string
   val ascii_of: string -> string
@@ -109,14 +109,16 @@ val new_skolem_const_prefix = skolem_const_prefix ^ "n"
 fun union_all xss = fold (union (op =)) xss []
 
 val metis_proxies =
-  [("c_False", (@{const_name False}, ("fFalse", @{const_name Metis.fFalse}))),
-   ("c_True", (@{const_name True}, ("fTrue", @{const_name Metis.fTrue}))),
-   ("c_Not", (@{const_name Not}, ("fNot", @{const_name Metis.fNot}))),
-   ("c_conj", (@{const_name conj}, ("fconj", @{const_name Metis.fconj}))),
-   ("c_disj", (@{const_name disj}, ("fdisj", @{const_name Metis.fdisj}))),
-   ("c_implies", (@{const_name implies},
-                  ("fimplies", @{const_name Metis.fimplies}))),
-   ("equal", (@{const_name HOL.eq}, ("fequal", @{const_name Metis.fequal})))]
+  [("c_False",
+    (@{const_name False}, (0, ("fFalse", @{const_name Metis.fFalse})))),
+   ("c_True", (@{const_name True}, (0, ("fTrue", @{const_name Metis.fTrue})))),
+   ("c_Not", (@{const_name Not}, (1, ("fNot", @{const_name Metis.fNot})))),
+   ("c_conj", (@{const_name conj}, (2, ("fconj", @{const_name Metis.fconj})))),
+   ("c_disj", (@{const_name disj}, (2, ("fdisj", @{const_name Metis.fdisj})))),
+   ("c_implies",
+    (@{const_name implies}, (2, ("fimplies", @{const_name Metis.fimplies})))),
+   ("equal",
+    (@{const_name HOL.eq}, (2, ("fequal", @{const_name Metis.fequal}))))]
 
 val proxify_const = AList.lookup (op =) metis_proxies #> Option.map snd
 
@@ -140,14 +142,14 @@ val const_trans_table =
    (@{const_name Meson.COMBC}, "COMBC"),
    (@{const_name Meson.COMBS}, "COMBS")]
   |> Symtab.make
-  |> fold (Symtab.update o swap o snd o snd) metis_proxies
+  |> fold (Symtab.update o swap o snd o snd o snd) metis_proxies
 
 (* Invert the table of translations between Isabelle and Metis. *)
 val const_trans_table_inv =
   const_trans_table |> Symtab.dest |> map swap |> Symtab.make
 val const_trans_table_unprox =
   Symtab.empty
-  |> fold (fn (_, (isa, (_, metis))) => Symtab.update (metis, isa))
+  |> fold (fn (_, (isa, (_, (_, metis)))) => Symtab.update (metis, isa))
           metis_proxies
 
 val invert_const = perhaps (Symtab.lookup const_trans_table_inv)

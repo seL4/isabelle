@@ -342,18 +342,26 @@ fun introduce_proxies format type_sys tm =
   let
     fun aux ary top_level (CombApp (tm1, tm2)) =
         CombApp (aux (ary + 1) top_level tm1, aux 0 false tm2)
-      | aux ary top_level (CombConst (name as (s, s'), T, T_args)) =
+      | aux ary top_level (CombConst (name as (s, _), T, T_args)) =
         (case proxify_const s of
-           SOME proxy_base =>
-           (* Proxies are not needed in THF, except for partially applied
-              equality since THF does not provide any syntax for it. *)
-           if top_level orelse
-              (is_setting_higher_order format type_sys andalso
-               (s <> "equal" orelse ary = 2)) then
-             (case s of
-                "c_False" => (tptp_false, s')
-              | "c_True" => (tptp_true, s')
-              | _ => name, [])
+           SOME (proxy_ary, proxy_base) =>
+           if top_level orelse is_setting_higher_order format type_sys then
+             case (top_level, s) of
+               (_, "c_False") => (`I tptp_false, [])
+             | (_, "c_True") => (`I tptp_true, [])
+             | (false, "c_Not") => (`I tptp_not, [])
+             | (false, "c_conj") => (`I tptp_and, [])
+             | (false, "c_disj") => (`I tptp_or, [])
+             | (false, "c_implies") => (`I tptp_implies, [])
+             | (false, s) =>
+               (* Proxies are not needed in THF, but we generate them for "="
+                  when it is not fully applied to work around parsing bugs in
+                  the provers ("= @ x @ x" is challenging to some). *)
+               if is_tptp_equal s andalso ary = proxy_ary then
+                 (`I tptp_equal, [])
+               else
+                 (proxy_base |>> prefix const_prefix, T_args)
+             | _ => (name, [])
            else
              (proxy_base |>> prefix const_prefix, T_args)
           | NONE => (name, T_args))
@@ -594,7 +602,8 @@ fun add_fact_syms_to_table explicit_apply =
   fact_lift (formula_fold NONE (K (add_combterm_syms_to_table explicit_apply)))
 
 val default_sym_table_entries : (string * sym_info) list =
-  [("equal", {pred_sym = true, min_ary = 2, max_ary = 2, typ = NONE}),
+  [(tptp_equal, {pred_sym = true, min_ary = 2, max_ary = 2, typ = NONE}),
+   (tptp_old_equal, {pred_sym = true, min_ary = 2, max_ary = 2, typ = NONE}),
    (make_fixed_const predicator_name,
     {pred_sym = true, min_ary = 1, max_ary = 1, typ = NONE})] @
   ([tptp_false, tptp_true]
@@ -751,7 +760,7 @@ fun ti_ti_helper_fact () =
     fun tag tm = ATerm (`make_fixed_const type_tag_name, [var "X", tm])
   in
     Formula (helper_prefix ^ "ti_ti", Axiom,
-             AAtom (ATerm (`I "equal", [tag (tag (var "Y")), tag (var "Y")]))
+             AAtom (ATerm (`I tptp_equal, [tag (tag (var "Y")), tag (var "Y")]))
              |> close_formula_universally, simp_info, NONE)
   end
 
@@ -839,7 +848,7 @@ fun type_pred_combterm ctxt nonmono_Ts type_sys T tm =
 
 fun var_occurs_positively_naked_in_term _ (SOME false) _ accum = accum
   | var_occurs_positively_naked_in_term name _ (ATerm ((s, _), tms)) accum =
-    accum orelse (s = "equal" andalso member (op =) tms (ATerm (name, [])))
+    accum orelse (is_tptp_equal s andalso member (op =) tms (ATerm (name, [])))
 fun is_var_nonmonotonic_in_formula _ _ (SOME false) _ = false
   | is_var_nonmonotonic_in_formula pos phi _ name =
     formula_fold pos (var_occurs_positively_naked_in_term name) phi false
@@ -862,7 +871,7 @@ and term_from_combterm ctxt format nonmono_Ts type_sys =
             CombConst (name, _, T_args) => (name, T_args)
           | CombVar (name, _) => (name, [])
           | CombApp _ => raise Fail "impossible \"CombApp\""
-        val arg_site = if site = Top_Level andalso s = "equal" then Eq_Arg
+        val arg_site = if site = Top_Level andalso is_tptp_equal s then Eq_Arg
                        else Elsewhere
         val t = mk_const_aterm x T_args (map (aux arg_site) args)
         val T = combtyp_of u
@@ -1032,9 +1041,8 @@ val known_infinite_types = [@{typ nat}, @{typ int}, @{typ "nat => bool"}]
    out with monotonicity" paper presented at CADE 2011. *)
 fun add_combterm_nonmonotonic_types _ _ (SOME false) _ = I
   | add_combterm_nonmonotonic_types ctxt level _
-        (CombApp (CombApp (CombConst (("equal", _), Type (_, [T, _]), _), tm1),
-                  tm2)) =
-    (exists is_var_or_bound_var [tm1, tm2] andalso
+        (CombApp (CombApp (CombConst ((s, _), Type (_, [T, _]), _), tm1), tm2)) =
+    (is_tptp_equal s andalso exists is_var_or_bound_var [tm1, tm2] andalso
      (case level of
         Nonmonotonic_Types =>
         not (is_type_surely_infinite ctxt known_infinite_types T)
@@ -1117,7 +1125,7 @@ fun formula_lines_for_tag_sym_decl ctxt format conj_sym_kind nonmono_Ts type_sys
     val atomic_Ts = atyps_of T
     fun eq tms =
       (if pred_sym then AConn (AIff, map AAtom tms)
-       else AAtom (ATerm (`I "equal", tms)))
+       else AAtom (ATerm (`I tptp_equal, tms)))
       |> bound_atomic_types format type_sys atomic_Ts
       |> close_formula_universally
       |> maybe_negate
