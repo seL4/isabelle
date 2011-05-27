@@ -44,7 +44,10 @@ Hammering Away \\[\smallskipamount]
 \Large A User's Guide to Sledgehammer for Isabelle/HOL}
 \author{\hbox{} \\
 Jasmin Christian Blanchette \\
-{\normalsize Institut f\"ur Informatik, Technische Universit\"at M\"unchen} \\
+{\normalsize Institut f\"ur Informatik, Technische Universit\"at M\"unchen} \\[4\smallskipamount]
+{\normalsize with contributions from} \\[4\smallskipamount]
+Lawrence C. Paulson \\
+{\normalsize Computer Laboratory, University of Cambridge} \\
 \hbox{}}
 
 \maketitle
@@ -884,11 +887,14 @@ of bound variables. Constants are annotated with their types, supplied as extra
 arguments, to resolve overloading.
 
 \item[$\bullet$] \textbf{\textit{poly\_tags} (sound):} Each term and subterm is
-tagged with its type using a function $\mathit{type\_info\/}(\tau, t)$.
+tagged with its type using a function $\mathit{type\_info\/}(\tau, t)$. This
+coincides with the encoding used by the \textit{metisFT} command.
 
 \item[$\bullet$] \textbf{\textit{poly\_args} (unsound):}
 Like for \textit{poly\_preds} constants are annotated with their types to
-resolve overloading, but otherwise no type information is encoded.
+resolve overloading, but otherwise no type information is encoded. This
+coincides with the encoding used by the \textit{metis} command (before it falls
+back on \textit{metisFT}).
 
 \item[$\bullet$]
 \textbf{%
