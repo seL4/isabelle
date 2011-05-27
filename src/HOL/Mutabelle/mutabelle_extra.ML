@@ -24,7 +24,7 @@ type report = entry list
 val quickcheck_mtd : (Proof.context -> Proof.context) -> string -> mtd
 
 val solve_direct_mtd : mtd
-val try_mtd : mtd
+val try_methods_mtd : mtd
 (*
 val sledgehammer_mtd : mtd
 *)
@@ -141,7 +141,7 @@ fun invoke_solve_direct thy t =
   let
     val state = Proof.theorem NONE (K I) (map (single o rpair []) [t]) (Proof_Context.init_global thy) 
   in
-    case Solve_Direct.solve_direct false state of
+    case Solve_Direct.solve_direct state of
       (true, _) => (Solved, [])
     | (false, _) => (Unsolved, [])
   end
@@ -150,16 +150,16 @@ val solve_direct_mtd = ("solve_direct", invoke_solve_direct)
 
 (** try **)
 
-fun invoke_try thy t =
+fun invoke_try_methods thy t =
   let
     val state = Proof.theorem NONE (K I) (map (single o rpair []) [t]) (Proof_Context.init_global thy)
   in
-    case Try.invoke_try (SOME (seconds 5.0)) ([], [], [], []) state of
+    case Try_Methods.try_methods (SOME (seconds 5.0)) ([], [], [], []) state of
       true => (Solved, [])
     | false => (Unsolved, [])
   end
 
-val try_mtd = ("try", invoke_try)
+val try_methods_mtd = ("try_methods", invoke_try_methods)
 
 (** sledgehammer **)
 (*
@@ -199,7 +199,7 @@ fun invoke_nitpick thy t =
     val ctxt = Proof_Context.init_global thy
     val state = Proof.init ctxt
     val (res, _) = Nitpick.pick_nits_in_term state
-      (Nitpick_Isar.default_params thy []) false 1 1 1 [] [] t
+      (Nitpick_Isar.default_params thy []) Nitpick.Normal 1 1 1 [] [] t
     val _ = Output.urgent_message ("Nitpick: " ^ res)
   in
     (rpair []) (case res of
