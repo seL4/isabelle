@@ -364,7 +364,7 @@ fun add_type_constraint false (cl, TFree (a ,_)) = add_var ((a, ~1), cl)
   | add_type_constraint false (cl, TVar (ix, _)) = add_var (ix, cl)
   | add_type_constraint _ _ = I
 
-fun repair_atp_variable_name f s =
+fun repair_tptp_variable_name f s =
   let
     fun subscript_name s n = s ^ nat_subscript n
     val s = String.map f s
@@ -445,11 +445,11 @@ fun raw_term_from_pred thy sym_tab tfrees =
                 case strip_prefix_and_unascii schematic_var_prefix a of
                   SOME b => Var ((b, 0), T)
                 | NONE =>
-                  if is_atp_variable a then
-                    Var ((repair_atp_variable_name Char.toLower a, 0), T)
+                  if is_tptp_variable a then
+                    Var ((repair_tptp_variable_name Char.toLower a, 0), T)
                   else
                     (* Skolem constants? *)
-                    Var ((repair_atp_variable_name Char.toUpper a, 0), T)
+                    Var ((repair_tptp_variable_name Char.toUpper a, 0), T)
           in list_comb (t, ts) end
   in aux (SOME HOLogic.boolT) [] end
 
@@ -514,7 +514,7 @@ fun prop_from_formula thy sym_tab tfrees phi =
         #>> quantify_over_var (case q of
                                  AForall => forall_of
                                | AExists => exists_of)
-                              (repair_atp_variable_name Char.toLower s)
+                              (repair_tptp_variable_name Char.toLower s)
       | AConn (ANot, [phi']) => do_formula (not pos) phi' #>> s_not
       | AConn (c, [phi1, phi2]) =>
         do_formula (pos |> c = AImplies ? not) phi1

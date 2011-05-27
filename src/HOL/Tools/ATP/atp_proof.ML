@@ -378,7 +378,7 @@ fun is_same_term subst tm1 tm2 =
   let
     fun do_term_pair _ NONE = NONE
       | do_term_pair (ATerm (s1, tm1), ATerm (s2, tm2)) (SOME subst) =
-        case pairself is_atp_variable (s1, s2) of
+        case pairself is_tptp_variable (s1, s2) of
           (true, true) =>
           (case AList.lookup (op =) subst s1 of
              SOME s2' => if s2' = s2 then SOME subst else NONE

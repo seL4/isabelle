@@ -29,13 +29,12 @@ sig
   val tptp_fof : string
   val tptp_tff : string
   val tptp_thf : string
-  val tptp_special_prefix : string
   val tptp_has_type : string
   val tptp_type_of_types : string
   val tptp_bool_type : string
   val tptp_individual_type : string
   val tptp_fun_type : string
-  val tptp_prod_type : string
+  val tptp_product_type : string
   val tptp_forall : string
   val tptp_exists : string
   val tptp_not : string
@@ -50,18 +49,32 @@ sig
   val tptp_equal : string
   val tptp_false : string
   val tptp_true : string
-  val is_atp_variable : string -> bool
+  val is_built_in_tptp_symbol : string -> bool
+  val is_tptp_variable : string -> bool
+  val is_tptp_user_symbol : string -> bool
   val mk_anot : ('a, 'b, 'c) formula -> ('a, 'b, 'c) formula
   val mk_aconn :
     connective -> ('a, 'b, 'c) formula -> ('a, 'b, 'c) formula
     -> ('a, 'b, 'c) formula
+  val aconn_fold :
+    bool option -> (bool option -> 'a -> 'b -> 'b) -> connective * 'a list
+    -> 'b -> 'b
+  val aconn_map :
+    bool option -> (bool option -> 'a -> ('b, 'c, 'd) formula)
+    -> connective * 'a list -> ('b, 'c, 'd) formula
+  val formula_fold :
+    bool option -> (bool option -> 'c -> 'd -> 'd) -> ('a, 'b, 'c) formula
+    -> 'd -> 'd
   val formula_map : ('c -> 'd) -> ('a, 'b, 'c) formula -> ('a, 'b, 'd) formula
+  val is_format_typed : format -> bool
   val timestamp : unit -> string
   val hashw : word * word -> word
   val hashw_string : string * word -> word
   val tptp_strings_for_atp_problem : format -> string problem -> string list
   val filter_cnf_ueq_problem :
     (string * string) problem -> (string * string) problem
+  val declare_undeclared_syms_in_atp_problem :
+    string -> string -> (string * string) problem -> (string * string) problem
   val nice_atp_problem :
     bool -> ('a * (string * string) problem_line list) list
     -> ('a * string problem_line list) list
@@ -96,13 +109,12 @@ val tptp_cnf = "cnf"
 val tptp_fof = "fof"
 val tptp_tff = "tff"
 val tptp_thf = "thf"
-val tptp_special_prefix = "$"
 val tptp_has_type = ":"
 val tptp_type_of_types = "$tType"
 val tptp_bool_type = "$o"
 val tptp_individual_type = "$i"
 val tptp_fun_type = ">"
-val tptp_prod_type = "*"
+val tptp_product_type = "*"
 val tptp_forall = "!"
 val tptp_exists = "?"
 val tptp_not = "~"
@@ -118,15 +130,41 @@ val tptp_equal = "="
 val tptp_false = "$false"
 val tptp_true = "$true"
 
-fun is_atp_variable s = Char.isUpper (String.sub (s, 0))
+fun is_built_in_tptp_symbol "equal" = true (* deprecated *)
+  | is_built_in_tptp_symbol s = not (Char.isAlpha (String.sub (s, 0)))
+fun is_tptp_variable s = Char.isUpper (String.sub (s, 0))
+val is_tptp_user_symbol = not o (is_tptp_variable orf is_built_in_tptp_symbol)
 
 fun mk_anot (AConn (ANot, [phi])) = phi
   | mk_anot phi = AConn (ANot, [phi])
 fun mk_aconn c phi1 phi2 = AConn (c, [phi1, phi2])
 
+fun aconn_fold pos f (ANot, [phi]) = f (Option.map not pos) phi
+  | aconn_fold pos f (AImplies, [phi1, phi2]) =
+    f (Option.map not pos) phi1 #> f pos phi2
+  | aconn_fold pos f (AAnd, phis) = fold (f pos) phis
+  | aconn_fold pos f (AOr, phis) = fold (f pos) phis
+  | aconn_fold _ f (_, phis) = fold (f NONE) phis
+
+fun aconn_map pos f (ANot, [phi]) = AConn (ANot, [f (Option.map not pos) phi])
+  | aconn_map pos f (AImplies, [phi1, phi2]) =
+    AConn (AImplies, [f (Option.map not pos) phi1, f pos phi2])
+  | aconn_map pos f (AAnd, phis) = AConn (AAnd, map (f pos) phis)
+  | aconn_map pos f (AOr, phis) = AConn (AOr, map (f pos) phis)
+  | aconn_map _ f (c, phis) = AConn (c, map (f NONE) phis)
+
+fun formula_fold pos f =
+  let
+    fun aux pos (AQuant (_, _, phi)) = aux pos phi
+      | aux pos (AConn conn) = aconn_fold pos aux conn
+      | aux pos (AAtom tm) = f pos tm
+  in aux pos end
+
 fun formula_map f (AQuant (q, xs, phi)) = AQuant (q, xs, formula_map f phi)
   | formula_map f (AConn (c, phis)) = AConn (c, map (formula_map f) phis)
   | formula_map f (AAtom tm) = AAtom (f tm)
+
+val is_format_typed = member (op =) [TFF, THF]
 
 val timestamp = Date.fmt "%Y-%m-%d %H:%M:%S" o Date.fromTimeLocal o Time.now
 
@@ -160,7 +198,7 @@ fun string_for_type THF ty =
        ([], s) => s
      | ([s'], s) => s' ^ " " ^ tptp_fun_type ^ " " ^ s
      | (ss, s) =>
-       "(" ^ space_implode (" " ^ tptp_prod_type ^ " ") ss ^ ") " ^
+       "(" ^ space_implode (" " ^ tptp_product_type ^ " ") ss ^ ") " ^
        tptp_fun_type ^ " " ^ s)
   | string_for_type _ _ = raise Fail "unexpected type in untyped format"
 
@@ -256,7 +294,7 @@ fun is_problem_line_cnf_ueq
   | is_problem_line_cnf_ueq _ = false
 
 fun open_conjecture_term (ATerm ((s, s'), tms)) =
-  ATerm (if is_atp_variable s then (s |> Name.desymbolize false, s')
+  ATerm (if is_tptp_variable s then (s |> Name.desymbolize false, s')
          else (s, s'), tms |> map open_conjecture_term)
 fun open_formula conj (AQuant (AForall, _, phi)) = open_formula conj phi
   | open_formula true (AAtom t) = AAtom (open_conjecture_term t)
@@ -279,6 +317,58 @@ fun filter_cnf_ueq_problem problem =
            val conjs = problem |> maps snd |> filter is_problem_line_negated
          in if length conjs = 1 then problem else [] end)
 
+
+(** Symbol declarations **)
+
+(* TFF allows implicit declarations of types, function symbols, and predicate
+   symbols (with "$i" as the type of individuals), but some provers (e.g.,
+   SNARK) require explicit declarations. The situation is similar for THF. *)
+
+val atype_of_types = AType (`I tptp_type_of_types)
+val bool_atype = AType (`I tptp_bool_type)
+val individual_atype = AType (`I tptp_individual_type)
+
+fun default_type pred_sym =
+  let
+    fun typ 0 = if pred_sym then bool_atype else individual_atype
+      | typ ary = AFun (individual_atype, typ (ary - 1))
+  in typ end
+
+fun add_declared_syms_in_problem_line (Decl (_, sym, _)) = insert (op =) sym
+  | add_declared_syms_in_problem_line _ = I
+fun declared_syms_in_problem problem =
+  fold (fold add_declared_syms_in_problem_line o snd) problem []
+
+fun undeclared_syms_in_problem declared problem =
+  let
+    fun do_sym name ty =
+      if member (op =) declared name then I else AList.default (op =) (name, ty)
+    fun do_type (AFun (ty1, ty2)) = fold do_type [ty1, ty2]
+      | do_type (AType name) = do_sym name (K atype_of_types)
+    fun do_term pred_sym (ATerm (name as (s, _), tms)) =
+      is_tptp_user_symbol s
+      ? do_sym name (fn _ => default_type pred_sym (length tms))
+      #> fold (do_term false) tms
+    fun do_formula (AQuant (_, xs, phi)) =
+        fold do_type (map_filter snd xs) #> do_formula phi
+      | do_formula (AConn (_, phis)) = fold do_formula phis
+      | do_formula (AAtom tm) = do_term true tm
+    fun do_problem_line (Decl (_, _, ty)) = do_type ty
+      | do_problem_line (Formula (_, _, phi, _, _)) = do_formula phi
+  in
+    fold (fold do_problem_line o snd) problem []
+    |> filter_out (is_built_in_tptp_symbol o fst o fst)
+  end
+
+fun declare_undeclared_syms_in_atp_problem prefix heading problem =
+  let
+    fun decl_line (x as (s, _), ty) = Decl (prefix ^ s, x, ty ())
+    val declared = problem |> declared_syms_in_problem
+    val decls =
+      problem |> undeclared_syms_in_problem declared
+              |> sort_wrt (fst o fst)
+              |> map decl_line
+  in (heading, decls) :: problem end
 
 (** Nice names **)
 
@@ -325,7 +415,7 @@ fun readable_name full_name s =
 
 fun nice_name (full_name, _) NONE = (full_name, NONE)
   | nice_name (full_name, desired_name) (SOME the_pool) =
-    if String.isPrefix tptp_special_prefix full_name then
+    if is_built_in_tptp_symbol full_name then
       (full_name, SOME the_pool)
     else case Symtab.lookup (fst the_pool) full_name of
       SOME nice_name => (nice_name, SOME the_pool)
@@ -362,8 +452,7 @@ fun nice_formula (AQuant (q, xs, phi)) =
     pool_map nice_formula phis #>> curry AConn c
   | nice_formula (AAtom tm) = nice_term tm #>> AAtom
 fun nice_problem_line (Decl (ident, sym, ty)) =
-    nice_name sym ##>> nice_type ty
-    #>> (fn (sym, ty) => Decl (ident, sym, ty))
+    nice_name sym ##>> nice_type ty #>> (fn (sym, ty) => Decl (ident, sym, ty))
   | nice_problem_line (Formula (ident, kind, phi, source, info)) =
     nice_formula phi #>> (fn phi => Formula (ident, kind, phi, source, info))
 fun nice_problem problem =

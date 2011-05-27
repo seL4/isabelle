@@ -446,20 +446,14 @@ fun adjust_dumb_type_sys formats (Simple_Types level) =
     else
       adjust_dumb_type_sys formats (Preds (Mangled_Monomorphic, level, Heavy))
   | adjust_dumb_type_sys formats type_sys =
-    if member (op =) formats FOF then
-      (FOF, type_sys)
-    else if member (op =) formats CNF_UEQ then
-      (CNF_UEQ, case type_sys of
-                  Preds stuff =>
-                  (if is_type_sys_fairly_sound type_sys then Preds else Tags)
-                      stuff
-                | _ => type_sys)
-    else
-      (* We could return "type_sys" unchanged for TFF but this would require the
-         TFF and THF provers to accept problems in which some constants are
-         implicitly declared. Today only ToFoF-E seems to meet this
-         criterion. *)
-      (hd formats, Simple_Types All_Types)
+    (case hd formats of
+       CNF_UEQ =>
+       (CNF_UEQ, case type_sys of
+                   Preds stuff =>
+                   (if is_type_sys_fairly_sound type_sys then Preds else Tags)
+                       stuff
+                 | _ => type_sys)
+     | format => (format, type_sys))
 
 fun determine_format_and_type_sys _ formats (Dumb_Type_Sys type_sys) =
     adjust_dumb_type_sys formats type_sys
