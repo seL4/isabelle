@@ -250,39 +250,34 @@ Either way, Sledgehammer produces the following output after a few seconds:
 Sledgehammer: ``\textit{e}'' for subgoal 1: \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this command: \textbf{by} (\textit{metis last\_ConsL}). \\
-To minimize the number of lemmas, try this: \\
-\textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{e}] (\textit{last\_ConsL}). \\[3\smallskipamount]
+To minimize: \textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{e}] (\textit{last\_ConsL}). \\[3\smallskipamount]
 %
 Sledgehammer: ``\textit{vampire}'' for subgoal 1: \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this command: \textbf{by} (\textit{metis hd.simps}). \\
-To minimize the number of lemmas, try this: \\
-\textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{vampire}] (\textit{hd.simps}). \\[3\smallskipamount]
+To minimize: \textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{vampire}] (\textit{hd.simps}). \\[3\smallskipamount]
 %
 Sledgehammer: ``\textit{spass}'' for subgoal 1: \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this command: \textbf{by} (\textit{metis list.inject}). \\
-To minimize the number of lemmas, try this: \\
-\textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{spass}]~(\textit{list.inject}). \\[3\smallskipamount]
+To minimize: \textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{spass}]~(\textit{list.inject}). \\[3\smallskipamount]
 %
 %Sledgehammer: ``\textit{remote\_waldmeister}'' for subgoal 1: \\
 %$[a] = [b] \,\Longrightarrow\, a = b$ \\
 %Try this command: \textbf{by} (\textit{metis hd.simps insert\_Nil}). \\
-%To minimize the number of lemmas, try this: \\
-%\textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{remote\_waldmeister}] \\
+%To minimize: \textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{remote\_waldmeister}] \\
 %\phantom{\textbf{sledgehammer}~}(\textit{hd.simps insert\_Nil}). \\[3\smallskipamount]
 %
 Sledgehammer: ``\textit{remote\_sine\_e}'' for subgoal 1: \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this command: \textbf{by} (\textit{metis hd.simps}). \\
-To minimize the number of lemmas, try this: \\
-\textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{remote\_sine\_e}]~(\textit{hd.simps}). \\[3\smallskipamount]
+To minimize: \textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{remote\_sine\_e}] \\
+\phantom{To minimize: }(\textit{hd.simps}). \\[3\smallskipamount]
 %
 Sledgehammer: ``\textit{remote\_z3}'' for subgoal 1: \\
 $[a] = [b] \,\Longrightarrow\, a = b$ \\
 Try this command: \textbf{by} (\textit{metis hd.simps}). \\
-To minimize the number of lemmas, try this: \\
-\textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{remote\_z3}]~(\textit{hd.simps}).
+To minimize: \textbf{sledgehammer} \textit{minimize} [\textit{prover} = \textit{remote\_z3}]~(\textit{hd.simps}).
 \postw
 
 Sledgehammer ran E, SInE-E, SPASS, Vampire, %Waldmeister,
@@ -356,8 +351,8 @@ if you are the kind of user who can think clearly while ATPs are active.
 \item[$\bullet$] \textbf{\textit{full\_types}} (\S\ref{problem-encoding})
 specifies whether type-sound encodings should be used. By default, Sledgehammer
 employs a mixture of type-sound and type-unsound encodings, occasionally
-yielding unsound ATP proofs. (SMT solver proofs should always be sound, although
-we occasionally find soundness bugs in the solvers.)
+yielding unsound ATP proofs. In contrast, SMT solver proofs should always be
+sound.
 
 \item[$\bullet$] \textbf{\textit{max\_relevant}} (\S\ref{relevance-filter})
 specifies the maximum number of facts that should be passed to the provers. By
@@ -529,8 +524,8 @@ in set comprehensions). The method kicks in automatically as a fallback when
 If you see the warning
 
 \prew
-\textsl
-Metis: Falling back on ``\textit{metisFT}''.
+\slshape
+Metis: Falling back on ``\textit{metisFT\/}''.
 \postw
 
 in a successful Metis proof, you can advantageously replace the \textit{metis}
