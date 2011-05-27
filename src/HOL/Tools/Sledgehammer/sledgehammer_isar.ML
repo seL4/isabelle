@@ -243,7 +243,9 @@ fun extract_params auto default_params override_params =
     val debug = not auto andalso lookup_bool "debug"
     val verbose = debug orelse (not auto andalso lookup_bool "verbose")
     val overlord = lookup_bool "overlord"
-    val blocking = auto orelse debug orelse lookup_bool "blocking"
+    val blocking =
+      Isabelle_Process.is_active () orelse auto orelse debug orelse
+      lookup_bool "blocking"
     val provers = lookup_string "provers" |> space_explode " "
                   |> auto ? single o hd
     val type_sys =

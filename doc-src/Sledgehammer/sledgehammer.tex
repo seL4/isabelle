@@ -792,7 +792,9 @@ General.
 Specifies whether the \textbf{sledgehammer} command should operate
 synchronously. The asynchronous (non-blocking) mode lets the user start proving
 the putative theorem manually while Sledgehammer looks for a proof, but it can
-also be more confusing.
+also be more confusing. Irrespective of the value of this option, Sledgehammer
+is always run synchronously for the new jEdit-based user interface or if
+\textit{debug} (\S\ref{output-format}) is enabled.
 
 \optrue{slicing}{no\_slicing}
 Specifies whether the time allocated to a prover should be sliced into several
