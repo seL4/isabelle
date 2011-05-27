@@ -90,19 +90,19 @@ val add_inferences_to_problem =
 fun generate_tptp_inference_file_for_theory ctxt thy full_types file_name =
   let
     val format = ATP_Problem.FOF
-    val path = file_name |> Path.explode
-    val _ = File.write path ""
-    val facts0 = facts_of thy
-    val facts =
-      facts0 |> map_filter (try (fn ((_, loc), (_, th)) =>
-                    Sledgehammer_ATP_Translate.translate_atp_fact ctxt format
-                    true ((Thm.get_name_hint th, loc), th)))
     val type_sys =
       Sledgehammer_ATP_Translate.Preds
           (Sledgehammer_ATP_Translate.Polymorphic,
            if full_types then Sledgehammer_ATP_Translate.All_Types
            else Sledgehammer_ATP_Translate.Const_Arg_Types,
            Sledgehammer_ATP_Translate.Heavy)
+    val path = file_name |> Path.explode
+    val _ = File.write path ""
+    val facts0 = facts_of thy
+    val facts =
+      facts0 |> map_filter (try (fn ((_, loc), (_, th)) =>
+                    Sledgehammer_ATP_Translate.translate_atp_fact ctxt format
+                    type_sys true ((Thm.get_name_hint th, loc), th)))
     val explicit_apply = false
     val (atp_problem, _, _, _, _, _, _) =
       Sledgehammer_ATP_Translate.prepare_atp_problem ctxt format

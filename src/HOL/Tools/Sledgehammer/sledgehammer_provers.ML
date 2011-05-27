@@ -359,8 +359,8 @@ fun weight_smt_fact ctxt num_facts ((info, th), j) =
 
 fun untranslated_fact (Untranslated_Fact p) = p
   | untranslated_fact (SMT_Weighted_Fact (info, (_, th))) = (info, th)
-fun atp_translated_fact ctxt format fact =
-  translate_atp_fact ctxt format false (untranslated_fact fact)
+fun atp_translated_fact ctxt format type_sys fact =
+  translate_atp_fact ctxt format type_sys false (untranslated_fact fact)
 fun smt_weighted_fact _ _ (SMT_Weighted_Fact p, _) = p
   | smt_weighted_fact ctxt num_facts (fact, j) =
     (untranslated_fact fact, j) |> weight_smt_fact ctxt num_facts
@@ -456,9 +456,11 @@ fun adjust_dumb_type_sys formats (Simple_Types level) =
                 | _ => type_sys)
     else
       (* We could return "type_sys" unchanged for TFF but this would require the
-         TFF provers to accept problems in which constants are implicitly
-         declared. Today neither SNARK nor ToFoF-E meet this criterion. *)
+         TFF and THF provers to accept problems in which some constants are
+         implicitly declared. Today only ToFoF-E seems to meet this
+         criterion. *)
       (hd formats, Simple_Types All_Types)
+
 fun determine_format_and_type_sys _ formats (Dumb_Type_Sys type_sys) =
     adjust_dumb_type_sys formats type_sys
   | determine_format_and_type_sys best_type_systems formats
@@ -559,7 +561,7 @@ fun run_atp auto name
                                          o untranslated_fact)
                         |> polymorphism_of_type_sys type_sys <> Polymorphic
                            ? monomorphize_facts
-                        |> map (atp_translated_fact ctxt format)
+                        |> map (atp_translated_fact ctxt format type_sys)
                 val real_ms = Real.fromInt o Time.toMilliseconds
                 val slice_timeout =
                   ((real_ms time_left

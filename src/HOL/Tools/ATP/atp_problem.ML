@@ -160,7 +160,8 @@ fun string_for_type THF ty =
        ([], s) => s
      | ([s'], s) => s' ^ " " ^ tptp_fun_type ^ " " ^ s
      | (ss, s) =>
-       "(" ^ space_implode tptp_prod_type ss ^ ") " ^ tptp_fun_type ^ " " ^ s)
+       "(" ^ space_implode (" " ^ tptp_prod_type ^ " ") ss ^ ") " ^
+       tptp_fun_type ^ " " ^ s)
   | string_for_type _ _ = raise Fail "unexpected type in untyped format"
 
 fun string_for_term _ (ATerm (s, [])) = s
