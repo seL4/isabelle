@@ -495,8 +495,8 @@ fun make_fact ctxt format type_sys keep_trivial eq_as_iff presimp
               ((name, loc), t) =
   case (keep_trivial,
         make_formula ctxt format type_sys eq_as_iff presimp name loc Axiom t) of
-    (false, {combformula = AAtom (CombConst (("c_True", _), _, _)), ...}) =>
-    NONE
+    (false, formula as {combformula = AAtom (CombConst ((s, _), _, _)), ...}) =>
+    if s = tptp_true then NONE else SOME formula
   | (_, formula) => SOME formula
 
 fun make_conjecture ctxt format prem_kind type_sys ts =
