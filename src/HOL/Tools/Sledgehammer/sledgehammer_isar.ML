@@ -312,7 +312,7 @@ fun string_for_raw_param (key, values) =
   key ^ (case implode_param values of "" => "" | value => " = " ^ value)
 
 fun minimize_command override_params i prover_name fact_names =
-  sledgehammerN ^ " " ^ minN ^ " [prover = " ^ prover_name ^
+  sledgehammerN ^ " " ^ minN ^ " [" ^ prover_name ^
   (override_params |> filter is_raw_param_relevant_for_minimize
                    |> implode o map (prefix ", " o string_for_raw_param)) ^
   "] (" ^ space_implode " " fact_names ^ ")" ^
