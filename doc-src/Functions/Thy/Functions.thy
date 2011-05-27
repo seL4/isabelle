@@ -558,6 +558,7 @@ txt {*
 *}
 
 by auto
+termination by (relation "{}") simp
 
 
 subsection {* Non-constructor patterns *}
@@ -685,6 +686,7 @@ where
   "check (''good'') = True"
 | "s \<noteq> ''good'' \<Longrightarrow> check s = False"
 by auto
+termination by (relation "{}") simp
 
 
 section {* Partiality *}
