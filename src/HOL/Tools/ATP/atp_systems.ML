@@ -387,7 +387,9 @@ fun remote_config system_name system_versions proof_delims known_failures
    proof_delims = union (op =) tstp_proof_delims proof_delims,
    known_failures = known_failures @ known_perl_failures @
      [(Unprovable, "says Satisfiable"),
+      (Unprovable, "says CounterSatisfiable"),
       (ProofMissing, "says Theorem"),
+      (ProofMissing, "says Unsatisfiable"),
       (IncompleteUnprovable, "says Unknown"),
       (IncompleteUnprovable, "says GaveUp"),
       (TimedOut, "says Timeout"),
