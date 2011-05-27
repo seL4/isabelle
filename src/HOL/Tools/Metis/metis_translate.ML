@@ -25,7 +25,7 @@ sig
   datatype class_rel_clause =
     ClassRelClause of {name: string, subclass: name, superclass: name}
   datatype combterm =
-    CombConst of name * typ * typ list (* Const and Free *) |
+    CombConst of name * typ * typ list |
     CombVar of name * typ |
     CombApp of combterm * combterm
   datatype fol_literal = FOLLiteral of bool * combterm
@@ -371,9 +371,8 @@ fun iter_type_class_pairs _ _ [] = ([], [])
           val (classes', cpairs') = iter_type_class_pairs thy tycons newclasses
       in (union (op =) classes' classes, union (op =) cpairs' cpairs) end;
 
-fun make_arity_clauses thy tycons classes =
-  let val (classes', cpairs) = iter_type_class_pairs thy tycons classes
-  in  (classes', multi_arity_clause cpairs)  end;
+fun make_arity_clauses thy tycons =
+  iter_type_class_pairs thy tycons ##> multi_arity_clause
 
 datatype combterm =
   CombConst of name * typ * typ list (* Const and Free *) |
@@ -518,11 +517,11 @@ fun fold_type_consts f (Type (a, Ts)) x = fold (fold_type_consts f) Ts (f (a,x))
 (*Type constructors used to instantiate overloaded constants are the only ones needed.*)
 fun add_type_consts_in_term thy =
   let
-    fun aux (Const x) =
+    fun aux (Const (@{const_name Meson.skolem}, _) $ _) = I
+      | aux (t $ u) = aux t #> aux u
+      | aux (Const x) =
         fold (fold_type_consts set_insert) (Sign.const_typargs thy x)
       | aux (Abs (_, _, u)) = aux u
-      | aux (Const (@{const_name Meson.skolem}, _) $ _) = I
-      | aux (t $ u) = aux t #> aux u
       | aux _ = I
   in aux end
 
@@ -740,7 +739,7 @@ fun class_rel_cls (ClassRelClause {subclass, superclass, ...}) =
 fun type_ext thy tms =
   let val subs = tfree_classes_of_terms tms
       val supers = tvar_classes_of_terms tms
-      and tycons = type_consts_of_terms thy tms
+      val tycons = type_consts_of_terms thy tms
       val (supers', arity_clauses) = make_arity_clauses thy tycons supers
       val class_rel_clauses = make_class_rel_clauses thy subs supers'
   in  map class_rel_cls class_rel_clauses @ map arity_cls arity_clauses
