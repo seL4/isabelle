@@ -35,6 +35,7 @@ sig
      isar_shrink_factor: int,
      slicing: bool,
      timeout: Time.time,
+     metis_timeout: Time.time,
      expect: string}
 
   datatype prover_fact =
@@ -278,6 +279,7 @@ type params =
    isar_shrink_factor: int,
    slicing: bool,
    timeout: Time.time,
+   metis_timeout: Time.time,
    expect: string}
 
 datatype prover_fact =
@@ -879,17 +881,15 @@ fun can_apply timeout tac state i =
     | _ => false
   end
 
-val smt_metis_timeout = seconds 1.0
+fun can_apply_metis debug timeout ths =
+  can_apply timeout (Config.put Metis_Tactics.verbose debug
+                     #> (fn ctxt => Metis_Tactics.metis_tac ctxt ths))
 
-fun can_apply_metis debug state i ths =
-  can_apply smt_metis_timeout
-            (Config.put Metis_Tactics.verbose debug
-             #> (fn ctxt => Metis_Tactics.metis_tac ctxt ths)) state i
-
-fun run_smt_solver auto name (params as {debug, verbose, blocking, ...})
-                   minimize_command
-                   ({state, subgoal, subgoal_count, facts, smt_filter, ...}
-                    : prover_problem) =
+fun run_smt_solver auto name
+        (params as {debug, verbose, blocking, metis_timeout, ...})
+        minimize_command
+        ({state, subgoal, subgoal_count, facts, smt_filter, ...}
+         : prover_problem) =
   let
     val ctxt = Proof.context_of state
     val num_facts = length facts
@@ -904,7 +904,8 @@ fun run_smt_solver auto name (params as {debug, verbose, blocking, ...})
         NONE =>
         let
           val (method, settings) =
-            if can_apply_metis debug state subgoal (map snd used_facts) then
+            if can_apply_metis debug metis_timeout (map snd used_facts) state
+                               subgoal then
               ("metis", "")
             else
               ("smt", if name = SMT_Solver.solver_name_of ctxt then ""
