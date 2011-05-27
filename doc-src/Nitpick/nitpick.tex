@@ -1836,17 +1836,20 @@ earlier in the process.
 \section{Option Reference}
 \label{option-reference}
 
+\def\defl{\{}
+\def\defr{\}}
+
 \def\flushitem#1{\item[]\noindent\kern-\leftmargin \textbf{#1}}
 \def\qty#1{$\left<\textit{#1}\right>$}
 \def\qtybf#1{$\mathbf{\left<\textbf{\textit{#1}}\right>}$}
-\def\optrue#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool}$\bigr]$\quad [\textit{true}]\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
-\def\opfalse#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool}$\bigr]$\quad [\textit{false}]\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
-\def\opsmart#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool\_or\_smart}$\bigr]$\quad [\textit{smart}]\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
+\def\optrue#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool}$\bigr]$\enskip \defl\textit{true}\defr\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
+\def\opfalse#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool}$\bigr]$\enskip \defl\textit{false}\defr\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
+\def\opsmart#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{smart\_bool}$\bigr]$\enskip \defl\textit{smart}\defr\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
 \def\opnodefault#1#2{\flushitem{\textit{#1} = \qtybf{#2}} \nopagebreak\\[\parskip]}
-\def\opdefault#1#2#3{\flushitem{\textit{#1} = \qtybf{#2}\quad [\textit{#3}]} \nopagebreak\\[\parskip]}
+\def\opdefault#1#2#3{\flushitem{\textit{#1} = \qtybf{#2}\enskip \defl\textit{#3}\defr} \nopagebreak\\[\parskip]}
 \def\oparg#1#2#3{\flushitem{\textit{#1} \qtybf{#2} = \qtybf{#3}} \nopagebreak\\[\parskip]}
 \def\opargbool#1#2#3{\flushitem{\textit{#1} \qtybf{#2} $\bigl[$= \qtybf{bool}$\bigr]$\hfill (neg.: \textit{#3})}\nopagebreak\\[\parskip]}
-\def\opargboolorsmart#1#2#3{\flushitem{\textit{#1} \qtybf{#2} $\bigl[$= \qtybf{bool\_or\_smart}$\bigr]$\hfill (neg.: \textit{#3})}\nopagebreak\\[\parskip]}
+\def\opargboolorsmart#1#2#3{\flushitem{\textit{#1} \qtybf{#2} $\bigl[$= \qtybf{smart\_bool}$\bigr]$\hfill (neg.: \textit{#3})}\nopagebreak\\[\parskip]}
 
 Nitpick's behavior can be influenced by various options, which can be specified
 in brackets after the \textbf{nitpick} command. Default values can be set
@@ -1886,9 +1889,9 @@ The descriptions below refer to the following syntactic quantities:
 \item[$\bullet$] \qtybf{string\_list\/}: A space-separated list of strings
 (e.g., ``\textit{ichi ni san}'').
 \item[$\bullet$] \qtybf{bool\/}: \textit{true} or \textit{false}.
-\item[$\bullet$] \qtybf{bool\_or\_smart\/}: \textit{true}, \textit{false}, or \textit{smart}.
+\item[$\bullet$] \qtybf{smart\_bool\/}: \textit{true}, \textit{false}, or \textit{smart}.
 \item[$\bullet$] \qtybf{int\/}: An integer. Negative integers are prefixed with a hyphen.
-\item[$\bullet$] \qtybf{int\_or\_smart\/}: An integer or \textit{smart}.
+\item[$\bullet$] \qtybf{smart\_int\/}: An integer or \textit{smart}.
 \item[$\bullet$] \qtybf{int\_range}: An integer (e.g., 3) or a range
 of nonnegative integers (e.g., $1$--$4$). The range symbol `--' can be entered as \texttt{-} (hyphen) or \texttt{\char`\\\char`\<emdash\char`\>}.
 \item[$\bullet$] \qtybf{int\_seq}: A comma-separated sequence of ranges of integers (e.g.,~1{,}3{,}\allowbreak6--8).
@@ -2188,7 +2191,7 @@ option is implicitly disabled for automatic runs.
 \textit{batch\_size} (\S\ref{optimizations}).}
 
 \opfalse{show\_datatypes}{hide\_datatypes}
-Specifies whether the subsets used to approximate (co)in\-duc\-tive datatypes should
+Specifies whether the subsets used to approximate (co)in\-duc\-tive data\-types should
 be displayed as part of counterexamples. Such subsets are sometimes helpful when
 investigating whether a potentially spurious counterexample is genuine, but
 their potential for clutter is real.
@@ -2428,7 +2431,7 @@ Nitpick displays which SAT solver was chosen.
 \end{enum}
 \fussy
 
-\opdefault{batch\_size}{int\_or\_smart}{smart}
+\opdefault{batch\_size}{smart\_int}{smart}
 Specifies the maximum number of Kodkod problems that should be lumped together
 when invoking Kodkodi. Each problem corresponds to one scope. Lumping problems
 together ensures that Kodkodi is launched less often, but it makes the verbose
@@ -2464,8 +2467,6 @@ domain, but it is usually more efficient.
 
 {\small See also \textit{wf} (\S\ref{scope-of-search}), \textit{debug}
 (\S\ref{output-format}), and \textit{iter} (\S\ref{scope-of-search}).}
-
-{\small See also \textit{debug} (\S\ref{output-format}).}
 
 \opnodefault{whack}{term\_list}
 Specifies a list of atomic terms (usually constants, but also free and schematic
