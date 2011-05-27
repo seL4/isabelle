@@ -136,7 +136,7 @@ fun do_try_methods mode timeout_opt quad st =
           (case mode of
              Auto_Try => "Auto Try Methods found a proof"
            | Try => "Try Methods found a proof"
-           | Normal => "Try this command") ^ ": " ^
+           | Normal => "Try this") ^ ": " ^
           Markup.markup Markup.sendback
               ((if nprems_of (#goal (Proof.goal st)) = 1 then "by"
                 else "apply") ^ " " ^ (s |> need_parens ? enclose "(" ")")) ^

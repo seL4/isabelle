@@ -329,8 +329,8 @@ fun proof_banner mode blocking name =
     Auto_Try => "Auto Sledgehammer (" ^ quote name ^ ") found a proof"
   | Try => "Sledgehammer (" ^ quote name ^ ") found a proof"
   | Normal => if blocking then quote name ^ " found a proof"
-              else "Try this command"
-  | Minimize => "Try this command"
+              else "Try this"
+  | Minimize => "Try this"
 
 val smt_triggers =
   Attrib.setup_config_bool @{binding sledgehammer_smt_triggers} (K true)
