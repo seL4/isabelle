@@ -33,12 +33,11 @@ val auto = Unsynchronized.ref false
 
 (* Maximum number of scopes for Auto Nitpick. Be frugal since it has to share
    its time slot with several other automatic tools. *)
-val max_auto_scopes = 6
+val auto_try_max_scopes = 6
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_tracing
-      (Preferences.bool_pref auto "auto-nitpick"
-           "Run Nitpick automatically.")
+      (Preferences.bool_pref auto "auto-nitpick" "Run Nitpick automatically.")
 
 type raw_param = string * string list
 
@@ -163,7 +162,7 @@ fun stringify_raw_param_value [] = ""
 
 fun maxed_int_from_string min_int s = Int.max (min_int, the (Int.fromString s))
 
-fun extract_params ctxt auto default_params override_params =
+fun extract_params ctxt mode default_params override_params =
   let
     val override_params = maps normalize_raw_param override_params
     val raw_params = rev override_params @ rev default_params
@@ -236,23 +235,24 @@ fun extract_params ctxt auto default_params override_params =
     val lookup_term_list_option_polymorphic =
       AList.lookup (op =) raw_params #> Option.map (map read_term_polymorphic)
     val read_const_polymorphic = read_term_polymorphic #> dest_Const
-    val cards_assigns = lookup_ints_assigns read_type_polymorphic "card" 1
-                        |> auto ? map (apsnd (take max_auto_scopes))
+    val cards_assigns =
+      lookup_ints_assigns read_type_polymorphic "card" 1
+      |> mode = Auto_Try ? map (apsnd (take auto_try_max_scopes))
     val maxes_assigns = lookup_ints_assigns read_const_polymorphic "max" ~1
     val iters_assigns = lookup_ints_assigns read_const_polymorphic "iter" 0
     val bitss = lookup_int_seq "bits" 1
     val bisim_depths = lookup_int_seq "bisim_depth" ~1
     val boxes = lookup_bool_option_assigns read_type_polymorphic "box"
     val finitizes = lookup_bool_option_assigns read_type_polymorphic "finitize"
-    val monos = if auto then [(NONE, SOME true)]
+    val monos = if mode = Auto_Try then [(NONE, SOME true)]
                 else lookup_bool_option_assigns read_type_polymorphic "mono"
     val stds = lookup_bool_assigns read_type_polymorphic "std"
     val wfs = lookup_bool_option_assigns read_const_polymorphic "wf"
     val sat_solver = lookup_string "sat_solver"
-    val blocking = auto orelse lookup_bool "blocking"
+    val blocking = mode <> Normal orelse lookup_bool "blocking"
     val falsify = lookup_bool "falsify"
-    val debug = not auto andalso lookup_bool "debug"
-    val verbose = debug orelse (not auto andalso lookup_bool "verbose")
+    val debug = (mode <> Auto_Try andalso lookup_bool "debug")
+    val verbose = debug orelse (mode <> Auto_Try andalso lookup_bool "verbose")
     val overlord = lookup_bool "overlord"
     val user_axioms = lookup_bool_option "user_axioms"
     val assms = lookup_bool "assms"
@@ -267,9 +267,10 @@ fun extract_params ctxt auto default_params override_params =
     val peephole_optim = lookup_bool "peephole_optim"
     val datatype_sym_break = lookup_int "datatype_sym_break"
     val kodkod_sym_break = lookup_int "kodkod_sym_break"
-    val timeout = if auto then NONE else lookup_time "timeout"
+    val timeout = if mode = Auto_Try then NONE else lookup_time "timeout"
     val tac_timeout = lookup_time "tac_timeout"
-    val max_threads = if auto then 1 else Int.max (0, lookup_int "max_threads")
+    val max_threads =
+      if mode = Normal then Int.max (0, lookup_int "max_threads") else 1
     val show_datatypes = debug orelse lookup_bool "show_datatypes"
     val show_skolems = debug orelse lookup_bool "show_skolems"
     val show_consts = debug orelse lookup_bool "show_consts"
@@ -277,7 +278,7 @@ fun extract_params ctxt auto default_params override_params =
     val formats = lookup_ints_assigns read_term_polymorphic "format" 0
     val atomss = lookup_strings_assigns read_type_polymorphic "atoms"
     val max_potential =
-      if auto then 0 else Int.max (0, lookup_int "max_potential")
+      if mode = Auto_Try then Int.max (0, lookup_int "max_potential") else 0
     val max_genuine = Int.max (0, lookup_int "max_genuine")
     val check_potential = lookup_bool "check_potential"
     val check_genuine = lookup_bool "check_genuine"
@@ -308,7 +309,7 @@ fun extract_params ctxt auto default_params override_params =
   end
 
 fun default_params thy =
-  extract_params (Proof_Context.init_global thy) false (default_raw_params thy)
+  extract_params (Proof_Context.init_global thy) Normal (default_raw_params thy)
   o map (apsnd single)
 
 val parse_key = Scan.repeat1 Parse.typ_group >> space_implode " "
@@ -353,25 +354,25 @@ fun handle_exceptions ctxt f x =
        | Refute.REFUTE (loc, details) =>
          error ("Unhandled Refute error (" ^ quote loc ^ "): " ^ details ^ ".")
 
-fun pick_nits override_params auto i step state =
+fun pick_nits override_params mode i step state =
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
     val _ = List.app check_raw_param override_params
     val params as {blocking, debug, ...} =
-      extract_params ctxt auto (default_raw_params thy) override_params
+      extract_params ctxt mode (default_raw_params thy) override_params
     fun go () =
       (unknownN, state)
-      |> (if auto then perhaps o try
+      |> (if mode = Auto_Try then perhaps o try
           else if debug then fn f => fn x => f x
           else handle_exceptions ctxt)
-         (fn (_, state) => pick_nits_in_subgoal state params auto i step)
+         (fn (_, state) => pick_nits_in_subgoal state params mode i step)
   in if blocking then go () else Future.fork (tap go) |> K (unknownN, state) end
   |> `(fn (outcome_code, _) => outcome_code = genuineN)
 
 fun nitpick_trans (params, i) =
   Toplevel.keep (fn state =>
-      pick_nits params false i (Toplevel.proof_position_of state)
+      pick_nits params Normal i (Toplevel.proof_position_of state)
                 (Toplevel.proof_of state) |> K ())
 
 fun string_for_raw_param (name, value) =
@@ -400,7 +401,7 @@ val _ = Outer_Syntax.command nitpick_paramsN
             "set and display the default parameters for Nitpick"
             Keyword.thy_decl parse_nitpick_params_command
 
-fun try_nitpick auto = pick_nits [] auto 1 0
+fun try_nitpick auto = pick_nits [] (if auto then Auto_Try else Try) 1 0
 
 val setup = Try.register_tool (nitpickN, (auto, try_nitpick))
 

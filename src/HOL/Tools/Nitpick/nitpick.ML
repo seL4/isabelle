@@ -9,6 +9,9 @@ signature NITPICK =
 sig
   type styp = Nitpick_Util.styp
   type term_postprocessor = Nitpick_Model.term_postprocessor
+
+  datatype mode = Auto_Try | Try | Normal
+
   type params =
     {cards_assigns: (typ option * int list) list,
      maxes_assigns: (styp option * int list) list,
@@ -68,10 +71,10 @@ sig
     typ -> term_postprocessor -> theory -> theory
   val unregister_term_postprocessor : typ -> theory -> theory
   val pick_nits_in_term :
-    Proof.state -> params -> bool -> int -> int -> int -> (term * term) list
+    Proof.state -> params -> mode -> int -> int -> int -> (term * term) list
     -> term list -> term -> string * Proof.state
   val pick_nits_in_subgoal :
-    Proof.state -> params -> bool -> int -> int -> string * Proof.state
+    Proof.state -> params -> mode -> int -> int -> string * Proof.state
 end;
 
 structure Nitpick : NITPICK =
@@ -89,6 +92,8 @@ open Nitpick_Kodkod
 open Nitpick_Model
 
 structure KK = Kodkod
+
+datatype mode = Auto_Try | Try | Normal
 
 type params =
   {cards_assigns: (typ option * int list) list,
@@ -210,7 +215,7 @@ val has_syntactic_sorts = exists_type (exists_subtype has_tfree_syntactic_sort)
 
 fun plazy f = Pretty.blk (0, pstrs (f ()))
 
-fun pick_them_nits_in_term deadline state (params : params) auto i n step
+fun pick_them_nits_in_term deadline state (params : params) mode i n step
                            subst assm_ts orig_t =
   let
     val timer = Timer.startRealTimer ()
@@ -232,32 +237,32 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
          max_genuine, check_potential, check_genuine, batch_size, ...} = params
     val state_ref = Unsynchronized.ref state
     val pprint =
-      if auto then
+      if mode = Auto_Try then
         Unsynchronized.change state_ref o Proof.goal_message o K
         o Pretty.chunks o cons (Pretty.str "") o single
         o Pretty.mark Markup.hilite
       else
         (fn s => (Output.urgent_message s; if debug then tracing s else ()))
         o Pretty.string_of
-    fun pprint_m f = () |> not auto ? pprint o f
+    fun pprint_n f = () |> mode = Normal ? pprint o f
     fun pprint_v f = () |> verbose ? pprint o f
     fun pprint_d f = () |> debug ? pprint o f
     val print = pprint o curry Pretty.blk 0 o pstrs
 (*
     val print_g = pprint o Pretty.str
 *)
-    val print_m = pprint_m o K o plazy
+    val print_n = pprint_n o K o plazy
     val print_v = pprint_v o K o plazy
 
     fun check_deadline () =
       if passed_deadline deadline then raise TimeLimit.TimeOut else ()
 
-    val assm_ts = if assms orelse auto then assm_ts else []
+    val assm_ts = if assms orelse mode <> Normal then assm_ts else []
     val _ =
       if step = 0 then
-        print_m (fn () => "Nitpicking formula...")
+        print_n (fn () => "Nitpicking formula...")
       else
-        pprint_m (fn () => Pretty.chunks (
+        pprint_n (fn () => Pretty.chunks (
             pretties_for_formulas ctxt ("Nitpicking " ^
                 (if i <> 1 orelse n <> 1 then
                    "subgoal " ^ string_of_int i ^ " of " ^ string_of_int n
@@ -408,10 +413,10 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       else
         ()
     val _ =
-      if not auto andalso
+      if mode = Normal andalso
          exists (fn Type (@{type_name Datatype.node}, _) => true | _ => false)
                 all_Ts then
-        print_m (K ("Warning: The problem involves directly or indirectly the \
+        print_n (K ("Warning: The problem involves directly or indirectly the \
                     \internal type " ^ quote @{type_name Datatype.node} ^
                     ". This type is very Nitpick-unfriendly, and its presence \
                     \usually indicates either a failure of abstraction or a \
@@ -452,7 +457,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     val likely_in_struct_induct_step =
       exists is_struct_induct_step (Proof_Context.cases_of ctxt)
     val _ = if standard andalso likely_in_struct_induct_step then
-              pprint_m (fn () => Pretty.blk (0,
+              pprint_n (fn () => Pretty.blk (0,
                   pstrs "Hint: To check that the induction hypothesis is \
                         \general enough, try this command: " @
                   [Pretty.mark Markup.sendback (Pretty.blk (0,
@@ -472,7 +477,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
         if incremental andalso
            not (member (op =) (Kodkod_SAT.configured_sat_solvers true)
                        sat_solver) then
-          (print_m (K ("An incremental SAT solver is required: \"SAT4J\" will \
+          (print_n (K ("An incremental SAT solver is required: \"SAT4J\" will \
                        \be used instead of " ^ quote sat_solver ^ "."));
            "SAT4J")
         else
@@ -650,7 +655,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       List.app (Unsynchronized.change checked_problems o Option.map o cons
                 o nth problems)
     fun show_kodkod_warning "" = ()
-      | show_kodkod_warning s = print_m (fn () => "Kodkod warning: " ^ s ^ ".")
+      | show_kodkod_warning s = print_n (fn () => "Kodkod warning: " ^ s ^ ".")
 
     fun print_and_check_model genuine bounds
             ({free_names, sel_names, nonsel_names, rel_table, scope, ...}
@@ -670,7 +675,8 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       in
         (pprint (Pretty.chunks
              [Pretty.blk (0,
-                  (pstrs ((if auto then "Auto " else "") ^ "Nitpick found a" ^
+                  (pstrs ((if mode = Auto_Try then "Auto " else "") ^
+                          "Nitpick found a" ^
                           (if not genuine then " potentially spurious "
                            else if genuine_means_genuine then " "
                            else " quasi genuine ") ^ das_wort_model) @
@@ -781,13 +787,13 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
           case KK.solve_any_problem debug overlord deadline max_threads
                                     max_solutions (map fst problems) of
             KK.JavaNotInstalled =>
-            (print_m install_java_message;
+            (print_n install_java_message;
              (found_really_genuine, max_potential, max_genuine, donno + 1))
           | KK.JavaTooOld =>
-            (print_m install_java_message;
+            (print_n install_java_message;
              (found_really_genuine, max_potential, max_genuine, donno + 1))
           | KK.KodkodiNotInstalled =>
-            (print_m install_kodkodi_message;
+            (print_n install_kodkodi_message;
              (found_really_genuine, max_potential, max_genuine, donno + 1))
           | KK.Normal ([], unsat_js, s) =>
             (update_checked_problems problems unsat_js; show_kodkod_warning s;
@@ -874,7 +880,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       let
         val _ =
           if null scopes then
-            print_m (K "The scope specification is inconsistent.")
+            print_n (K "The scope specification is inconsistent.")
           else if verbose then
             pprint (Pretty.chunks
                 [Pretty.blk (0,
@@ -922,7 +928,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
               if not (null sound_problems) andalso
                  forall (KK.is_problem_trivially_false o fst)
                         sound_problems then
-                print_m (fn () =>
+                print_n (fn () =>
                     "Warning: The conjecture either trivially holds for the \
                     \given scopes or lies outside Nitpick's supported \
                     \fragment." ^
@@ -972,7 +978,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                  bitss bisim_depths mono_Ts nonmono_Ts deep_dataTs
                  finitizable_dataTs
     val _ = if skipped > 0 then
-              print_m (fn () => "Too many scopes. Skipping " ^
+              print_n (fn () => "Too many scopes. Skipping " ^
                                 string_of_int skipped ^ " scope" ^
                                 plural_s skipped ^
                                 ". (Consider using \"mono\" or \
@@ -984,10 +990,10 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
     fun run_batches _ _ []
                     (found_really_genuine, max_potential, max_genuine, donno) =
         if donno > 0 andalso max_genuine > 0 then
-          (print_m (fn () => excipit "checked"); unknownN)
+          (print_n (fn () => excipit "checked"); unknownN)
         else if max_genuine = original_max_genuine then
           if max_potential = original_max_potential then
-            (print_m (fn () =>
+            (print_n (fn () =>
                  "Nitpick found no " ^ das_wort_model ^ "." ^
                  (if not standard andalso likely_in_struct_induct_step then
                     " This suggests that the induction hypothesis might be \
@@ -995,7 +1001,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
                   else
                     "")); if skipped > 0 then unknownN else noneN)
           else
-            (print_m (fn () =>
+            (print_n (fn () =>
                  excipit ("could not find a" ^
                           (if max_genuine = 1 then
                              " better " ^ das_wort_model ^ "."
@@ -1017,7 +1023,7 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
       run_batches 0 (length batches) batches
                   (false, max_potential, max_genuine, 0)
       handle TimeLimit.TimeOut =>
-             (print_m (fn () => excipit "ran out of time after checking");
+             (print_n (fn () => excipit "ran out of time after checking");
               if !met_potential > 0 then potentialN else unknownN)
     val _ = print_v (fn () =>
                 "Total time: " ^ string_from_time (Timer.checkRealTimer timer) ^
@@ -1027,13 +1033,13 @@ fun pick_them_nits_in_term deadline state (params : params) auto i n step
 (* Give the inner timeout a chance. *)
 val timeout_bonus = seconds 1.0
 
-fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) auto i n
+fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) mode i n
                       step subst assm_ts orig_t =
-  let val print_m = if auto then K () else Output.urgent_message in
+  let val print_n = if mode = Normal then Output.urgent_message else K () in
     if getenv "KODKODI" = "" then
       (* The "expect" argument is deliberately ignored if Kodkodi is missing so
          that the "Nitpick_Examples" can be processed on any machine. *)
-      (print_m (Pretty.string_of (plazy install_kodkodi_message));
+      (print_n (Pretty.string_of (plazy install_kodkodi_message));
        ("no_kodkodi", state))
     else
       let
@@ -1042,17 +1048,17 @@ fun pick_nits_in_term state (params as {debug, timeout, expect, ...}) auto i n
         val outcome as (outcome_code, _) =
           time_limit (if debug orelse is_none timeout then NONE
                       else SOME (Time.+ (the timeout, timeout_bonus)))
-              (pick_them_nits_in_term deadline state params auto i n step subst
+              (pick_them_nits_in_term deadline state params mode i n step subst
                                       assm_ts) orig_t
           handle TOO_LARGE (_, details) =>
-                 (print_m ("Limit reached: " ^ details ^ "."); unknown_outcome)
+                 (print_n ("Limit reached: " ^ details ^ "."); unknown_outcome)
                | TOO_SMALL (_, details) =>
-                 (print_m ("Limit reached: " ^ details ^ "."); unknown_outcome)
+                 (print_n ("Limit reached: " ^ details ^ "."); unknown_outcome)
                | Kodkod.SYNTAX (_, details) =>
-                 (print_m ("Malformed Kodkodi output: " ^ details ^ ".");
+                 (print_n ("Malformed Kodkodi output: " ^ details ^ ".");
                   unknown_outcome)
                | TimeLimit.TimeOut =>
-                 (print_m "Nitpick ran out of time."; unknown_outcome)
+                 (print_n "Nitpick ran out of time."; unknown_outcome)
       in
         if expect = "" orelse outcome_code = expect then outcome
         else error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
@@ -1070,7 +1076,7 @@ fun extract_fixed_frees ctxt (assms, t) =
       |>> map Logic.dest_equals
   in (subst, other_assms, subst_atomic subst t) end
 
-fun pick_nits_in_subgoal state params auto i step =
+fun pick_nits_in_subgoal state params mode i step =
   let
     val ctxt = Proof.context_of state
     val t = state |> Proof.raw_goal |> #goal |> prop_of
@@ -1082,7 +1088,7 @@ fun pick_nits_in_subgoal state params auto i step =
         val t = Logic.goal_params t i |> fst
         val assms = map term_of (Assumption.all_assms_of ctxt)
         val (subst, assms, t) = extract_fixed_frees ctxt (assms, t)
-      in pick_nits_in_term state params auto i n step subst assms t end
+      in pick_nits_in_term state params mode i n step subst assms t end
   end
 
 end;

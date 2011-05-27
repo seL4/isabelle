@@ -15,6 +15,8 @@ struct
 
 open ATP_Problem
 open ATP_Proof
+open Nitpick
+open Nitpick_Isar
 
 exception SYNTAX of string
 
@@ -124,16 +126,15 @@ fun pick_nits_in_fof_file file_name =
          ("format", "1000"),
          ("max_potential", "0"),
          (* ("timeout", "240 s"), *)
-         ("expect", Nitpick.genuineN)]
-        |> Nitpick_Isar.default_params @{theory}
-      val auto = false
+         ("expect", genuineN)]
+        |> default_params @{theory}
       val i = 1
       val n = 1
       val step = 0
       val subst = []
     in
-      Nitpick.pick_nits_in_term state params auto i n step subst ts
-                                @{prop False} |> fst
+      pick_nits_in_term state params Normal i n step subst ts @{prop False}
+      |> fst
     end
 
 end;
