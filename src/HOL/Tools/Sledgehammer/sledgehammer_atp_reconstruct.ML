@@ -1018,7 +1018,7 @@ fun isar_proof_text ctxt
         (metis_params as (_, _, type_sys, atp_proof, facts_offset, fact_names,
                           typed_helpers, goal, i)) =
   let
-    val (params, hyp_ts, concl_t) = strip_subgoal goal i
+    val (params, hyp_ts, concl_t) = strip_subgoal ctxt goal i
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []
     val tfrees = fold Term.add_tfrees (concl_t :: hyp_ts) []
     val full_types = uses_typed_helpers typed_helpers atp_proof

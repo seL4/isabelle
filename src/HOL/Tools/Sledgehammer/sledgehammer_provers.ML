@@ -479,7 +479,7 @@ fun run_atp auto name
   let
     val thy = Proof.theory_of state
     val ctxt = Proof.context_of state
-    val (_, hyp_ts, concl_t) = strip_subgoal goal subgoal
+    val (_, hyp_ts, concl_t) = strip_subgoal ctxt goal subgoal
     val (dest_dir, problem_prefix) =
       if overlord then overlord_file_location_for_prover name
       else (Config.get ctxt dest_dir, Config.get ctxt problem_prefix)

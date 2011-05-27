@@ -47,6 +47,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
                  isar_shrink_factor, ...} : params)
         explicit_apply_opt silent (prover : prover) timeout i n state facts =
   let
+    val ctxt = Proof.context_of state
     val thy = Proof.theory_of state
     val _ =
       print silent (fn () =>
@@ -58,7 +59,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
       case explicit_apply_opt of
         SOME explicit_apply => explicit_apply
       | NONE =>
-        let val (_, hyp_ts, concl_t) = strip_subgoal goal i in
+        let val (_, hyp_ts, concl_t) = strip_subgoal ctxt goal i in
           not (forall (Meson.is_fol_term thy)
                       (concl_t :: hyp_ts @ maps (map prop_of o snd) facts))
         end

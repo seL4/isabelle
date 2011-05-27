@@ -31,7 +31,7 @@ fun run_atp force_full_types timeout i n ctxt goal name =
     val relevance_fudge =
       Sledgehammer_Provers.relevance_fudge_for_prover ctxt name
     val relevance_override = {add = [], del = [], only = false}
-    val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal i
+    val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal ctxt goal i
     val facts =
       Sledgehammer_Filter.relevant_facts ctxt relevance_thresholds
           (the_default default_max_relevant max_relevant) (K true)

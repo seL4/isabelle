@@ -390,7 +390,7 @@ fun run_sh prover_name prover type_sys max_relevant slicing e_weight_method spas
     val relevance_fudge =
       Sledgehammer_Provers.relevance_fudge_for_prover ctxt prover_name
     val relevance_override = {add = [], del = [], only = false}
-    val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal goal i
+    val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal ctxt goal i
     val time_limit =
       (case hard_timeout of
         NONE => I

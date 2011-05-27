@@ -184,7 +184,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
         state |> Proof.map_context (Config.put SMT_Config.verbose debug)
       val ctxt = Proof.context_of state
       val {facts = chained_ths, goal, ...} = Proof.goal state
-      val (_, hyp_ts, concl_t) = strip_subgoal goal i
+      val (_, hyp_ts, concl_t) = strip_subgoal ctxt goal i
       val _ = () |> not blocking ? kill_provers
       val _ = case find_first (not o is_prover_supported ctxt) provers of
                 SOME name => error ("No such prover: " ^ name ^ ".")

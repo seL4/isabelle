@@ -28,7 +28,8 @@ sig
   val transform_elim_prop : term -> term
   val specialize_type : theory -> (string * typ) -> term -> term
   val subgoal_count : Proof.state -> int
-  val strip_subgoal : thm -> int -> (string * typ) list * term list * term
+  val strip_subgoal :
+    Proof.context -> thm -> int -> (string * typ) list * term list * term
   val reserved_isar_keyword_table : unit -> unit Symtab.table
 end;
 
@@ -237,12 +238,14 @@ fun specialize_type thy (s, T) t =
 
 val subgoal_count = Logic.count_prems o prop_of o #goal o Proof.goal
 
-fun strip_subgoal goal i =
+fun strip_subgoal ctxt goal i =
   let
-    val (t, frees) = Logic.goal_params (prop_of goal) i
+    val (t, (frees, params)) =
+      Logic.goal_params (prop_of goal) i
+      ||> (map dest_Free #> Variable.variant_frees ctxt [] #> `(map Free))
     val hyp_ts = t |> Logic.strip_assums_hyp |> map (curry subst_bounds frees)
     val concl_t = t |> Logic.strip_assums_concl |> curry subst_bounds frees
-  in (rev (map dest_Free frees), hyp_ts, concl_t) end
+  in (rev params, hyp_ts, concl_t) end
 
 fun reserved_isar_keyword_table () =
   union (op =) (Keyword.dest_keywords ()) (Keyword.dest_commands ())
