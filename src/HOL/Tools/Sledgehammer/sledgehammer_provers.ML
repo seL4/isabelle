@@ -382,24 +382,36 @@ fun proof_banner mode blocking name =
   | Minimize => "Try this"
 
 (* based on "Mirabelle.can_apply" and generalized *)
-fun try_apply timeout tac state i =
+fun timed_apply timeout tac state i =
   let
     val {context = ctxt, facts, goal} = Proof.goal state
     val full_tac = Method.insert_tac facts i THEN tac ctxt i
-  in try (TimeLimit.timeLimit timeout (Seq.pull o full_tac)) goal end
+  in TimeLimit.timeLimit timeout (try (Seq.pull o full_tac)) goal end
 
-fun try_metis debug timeout ths =
-  try_apply timeout (Config.put Metis_Tactics.verbose debug
-                     #> (fn ctxt => Metis_Tactics.metis_tac ctxt ths))
+fun tac_for_reconstructor Metis = Metis_Tactics.metisHO_tac
+  | tac_for_reconstructor MetisFT = Metis_Tactics.metisFT_tac
+  | tac_for_reconstructor _ = raise Fail "unexpected reconstructor"
+
+fun timed_reconstructor reconstructor debug timeout ths =
+  (Config.put Metis_Tactics.verbose debug
+   #> (fn ctxt => tac_for_reconstructor reconstructor ctxt ths))
+  |> timed_apply timeout
 
 fun filter_used_facts used = filter (member (op =) used o fst)
 
-fun preplay_one_line_proof debug reconstructor_guess timeout ths state i =
-  let val timer = Timer.startRealTimer () in
-    case try_metis debug timeout ths state i of
-      SOME (SOME _) => Preplayed (Metis, Timer.checkRealTimer timer)
-    | SOME NONE => Preplay_Failed
-    | NONE => Trust_Playable (reconstructor_guess, SOME timeout)
+fun preplay_one_line_proof debug timeout ths state i reconstructor =
+  let
+    fun preplay reconstructor =
+      let val timer = Timer.startRealTimer () in
+        case timed_reconstructor reconstructor debug timeout ths state i of
+          SOME (SOME _) => Preplayed (reconstructor, Timer.checkRealTimer timer)
+        | _ =>
+          if reconstructor = Metis then preplay MetisFT else Failed_to_Preplay
+      end
+      handle TimeLimit.TimeOut => Trust_Playable (reconstructor, SOME timeout)
+  in
+    if timeout = Time.zeroTime then Trust_Playable (reconstructor, NONE)
+    else preplay reconstructor
   end
 
 
@@ -749,15 +761,15 @@ fun run_atp mode name
           val used_facts =
             used_facts_in_atp_proof ctxt type_sys facts_offset fact_names
                                     atp_proof
-          val reconstructor_guess =
+          val reconstructor =
             if uses_typed_helpers typed_helpers atp_proof then MetisFT
             else Metis
           val ths = facts |> map untranslated_fact
                           |> filter_used_facts used_facts
                           |> map snd
           val preplay =
-            preplay_one_line_proof debug reconstructor_guess preplay_timeout ths
-                                   state subgoal
+            preplay_one_line_proof debug preplay_timeout ths state subgoal
+                                   reconstructor
           val full_types = uses_typed_helpers typed_helpers atp_proof
           val isar_params =
             (debug, full_types, isar_shrink_factor, type_sys, pool,
@@ -932,8 +944,8 @@ fun run_smt_solver mode name
         NONE =>
         let
           val (settings, method, time) =
-            case preplay_one_line_proof debug Metis preplay_timeout
-                    (map snd used_facts) state subgoal of
+            case preplay_one_line_proof debug preplay_timeout
+                    (map snd used_facts) state subgoal Metis of
               Preplayed (method, time) =>
               ("", reconstructor_name method, SOME (false, time))
             | _ => (if name = SMT_Solver.solver_name_of ctxt then ""

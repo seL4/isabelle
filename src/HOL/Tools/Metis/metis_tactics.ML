@@ -16,6 +16,7 @@ sig
   val metis_tac : Proof.context -> thm list -> int -> tactic
   val metisF_tac : Proof.context -> thm list -> int -> tactic
   val metisFT_tac : Proof.context -> thm list -> int -> tactic
+  val metisHO_tac : Proof.context -> thm list -> int -> tactic
   val setup : theory -> theory
 end
 
@@ -52,8 +53,12 @@ val waiting_params =
    models = []}
 val resolution_params = {active = active_params, waiting = waiting_params}
 
+fun method_binding_for_mode HO = @{binding metis}
+  | method_binding_for_mode FO = @{binding metisF}
+  | method_binding_for_mode FT = @{binding metisFT}
+
 (* Main function to start Metis proof and reconstruction *)
-fun FOL_SOLVE mode ctxt cls ths0 =
+fun FOL_SOLVE (mode :: fallback_modes) ctxt cls ths0 =
   let val thy = Proof_Context.theory_of ctxt
       val type_lits = Config.get ctxt type_lits
       val new_skolemizer =
@@ -116,21 +121,23 @@ fun FOL_SOLVE mode ctxt cls ths0 =
             end
         | Metis_Resolution.Satisfiable _ =>
             (trace_msg ctxt (fn () => "Metis: No first-order proof with the lemmas supplied");
-             if mode <> FT then
-               raise METIS ("FOL_SOLVE",
-                            "No first-order proof with the lemmas supplied")
+             if null fallback_modes then
+               ()
              else
-               ();
+               raise METIS ("FOL_SOLVE",
+                            "No first-order proof with the lemmas supplied");
              [])
   end
   handle METIS (loc, msg) =>
-         if mode <> FT then
-           (verbose_warning ctxt ("Falling back on \"metisFT\".");
-            FOL_SOLVE FT ctxt cls ths0)
-         else
-           error ("Failed to replay Metis proof in Isabelle." ^
-                  (if Config.get ctxt verbose then "\n" ^ loc ^ ": " ^ msg
-                   else ""))
+         case fallback_modes of
+           [] => error ("Failed to replay Metis proof in Isabelle." ^
+                        (if Config.get ctxt verbose then "\n" ^ loc ^ ": " ^ msg
+                         else ""))
+         | mode :: _ =>
+           (verbose_warning ctxt
+                ("Falling back on " ^
+                 quote (Binding.str_of (method_binding_for_mode mode)) ^ "...");
+            FOL_SOLVE fallback_modes ctxt cls ths0)
 
 val neg_clausify =
   single
@@ -149,23 +156,30 @@ fun preskolem_tac ctxt st0 =
 val type_has_top_sort =
   exists_subtype (fn TFree (_, []) => true | TVar (_, []) => true | _ => false)
 
-fun generic_metis_tac mode ctxt ths i st0 =
+fun generic_metis_tac modes ctxt ths i st0 =
   let
     val _ = trace_msg ctxt (fn () =>
-        "Metis called with theorems " ^ cat_lines (map (Display.string_of_thm ctxt) ths))
+        "Metis called with theorems " ^
+        cat_lines (map (Display.string_of_thm ctxt) ths))
   in
     if exists_type type_has_top_sort (prop_of st0) then
       (verbose_warning ctxt "Proof state contains the universal sort {}";
        Seq.empty)
     else
       Meson.MESON (preskolem_tac ctxt) (maps neg_clausify)
-                  (fn cls => resolve_tac (FOL_SOLVE mode ctxt cls ths) 1)
+                  (fn cls => resolve_tac (FOL_SOLVE modes ctxt cls ths) 1)
                   ctxt i st0
   end
 
-val metis_tac = generic_metis_tac HO
-val metisF_tac = generic_metis_tac FO
-val metisFT_tac = generic_metis_tac FT
+val metis_modes = [HO, FT]
+val metisF_modes = [FO, FT]
+val metisFT_modes = [FT]
+val metisHO_modes = [HO]
+
+val metis_tac = generic_metis_tac metis_modes
+val metisF_tac = generic_metis_tac metisF_modes
+val metisFT_tac = generic_metis_tac metisFT_modes
+val metisHO_tac = generic_metis_tac metisHO_modes
 
 (* Whenever "X" has schematic type variables, we treat "using X by metis" as
    "by (metis X)", to prevent "Subgoal.FOCUS" from freezing the type variables.
@@ -174,22 +188,24 @@ val metisFT_tac = generic_metis_tac FT
    applied) and brings few benefits. *)
 val has_tvar =
   exists_type (exists_subtype (fn TVar _ => true | _ => false)) o prop_of
-fun method name mode =
-  Method.setup name (Attrib.thms >> (fn ths => fn ctxt =>
-    METHOD (fn facts =>
-               let
-                 val (schem_facts, nonschem_facts) =
-                   List.partition has_tvar facts
-               in
-                 HEADGOAL (Method.insert_tac nonschem_facts THEN'
-                           CHANGED_PROP
-                           o generic_metis_tac mode ctxt (schem_facts @ ths))
-               end)))
+
+fun setup_method (modes as mode :: _) =
+  Method.setup (method_binding_for_mode mode)
+    (Attrib.thms >> (fn ths => fn ctxt =>
+       METHOD (fn facts =>
+                  let
+                    val (schem_facts, nonschem_facts) =
+                      List.partition has_tvar facts
+                  in
+                    HEADGOAL (Method.insert_tac nonschem_facts THEN'
+                              CHANGED_PROP
+                              o generic_metis_tac modes ctxt (schem_facts @ ths))
+                  end)))
 
 val setup =
-  method @{binding metis} HO "Metis for FOL/HOL problems"
-  #> method @{binding metisF} FO "Metis for FOL problems"
-  #> method @{binding metisFT} FT
-            "Metis for FOL/HOL problems with fully-typed translation"
+  [(metis_modes, "Metis for FOL and HOL problems"),
+   (metisF_modes, "Metis for FOL problems"),
+   (metisFT_modes, "Metis for FOL/HOL problems with fully-typed translation")]
+  |> fold (uncurry setup_method)
 
 end;

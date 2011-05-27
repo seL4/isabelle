@@ -20,7 +20,7 @@ sig
   datatype preplay =
     Preplayed of reconstructor * Time.time |
     Trust_Playable of reconstructor * Time.time option|
-    Preplay_Failed
+    Failed_to_Preplay
 
   type minimize_command = string list -> string
   type one_line_params =
@@ -73,7 +73,7 @@ datatype reconstructor =
 datatype preplay =
   Preplayed of reconstructor * Time.time |
   Trust_Playable of reconstructor * Time.time option |
-  Preplay_Failed
+  Failed_to_Preplay
 
 type minimize_command = string list -> string
 type one_line_params =
@@ -261,7 +261,7 @@ fun reconstructor_settings (SMT settings) = settings
 fun string_for_label (s, num) = s ^ string_of_int num
 
 fun show_time NONE = ""
-  | show_time (SOME ext_time) = " ~ " ^ string_from_ext_time ext_time
+  | show_time (SOME ext_time) = " (" ^ string_from_ext_time ext_time ^ ")"
 
 fun set_settings "" = ""
   | set_settings settings = "using [[" ^ settings ^ "]] "
@@ -304,7 +304,7 @@ fun one_line_proof_text (preplay, banner, used_facts, minimize_command,
            NONE => NONE
          | SOME time =>
            if time = Time.zeroTime then NONE else SOME (true, time))
-      | Preplay_Failed => (NONE, NONE)
+      | Failed_to_Preplay => (NONE, NONE)
     val n = Logic.count_prems (prop_of goal)
     val try_line =
       case reconstructor of
@@ -1085,7 +1085,7 @@ fun isar_proof_text ctxt
 
 fun proof_text ctxt isar_proof isar_params
                (one_line_params as (preplay, _, _, _, _, _)) =
-  (if isar_proof orelse preplay = Preplay_Failed then
+  (if isar_proof orelse preplay = Failed_to_Preplay then
      isar_proof_text ctxt isar_params
    else
      one_line_proof_text) one_line_params

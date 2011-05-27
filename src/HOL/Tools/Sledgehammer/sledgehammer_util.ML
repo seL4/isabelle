@@ -61,8 +61,8 @@ val has_junk =
 fun parse_time_option _ "none" = NONE
   | parse_time_option name s =
     let val secs = if has_junk s then NONE else Real.fromString s in
-      if is_none secs orelse Real.<= (the secs, 0.0) then
-        error ("Parameter " ^ quote name ^ " must be assigned a positive \
+      if is_none secs orelse Real.< (the secs, 0.0) then
+        error ("Parameter " ^ quote name ^ " must be assigned a nonnegative \
                \number of seconds (e.g., \"60\", \"0.5\") or \"none\".")
       else
         SOME (seconds (the secs))
@@ -70,9 +70,13 @@ fun parse_time_option _ "none" = NONE
 
 fun string_from_ext_time (plus, time) =
   let val ms = Time.toMilliseconds time in
-    if plus then signed_string_of_int ((ms + 999) div 1000) ^ "+ s"
-    else if ms < 1000 then signed_string_of_int ms ^ " ms"
-    else string_of_real (0.01 * Real.fromInt (ms div 10)) ^ " s"
+    (if plus then "> " else "") ^
+    (if plus andalso ms mod 1000 = 0 then
+       signed_string_of_int (ms div 1000) ^ " s"
+     else if ms < 1000 then
+       signed_string_of_int ms ^ " ms"
+     else
+       string_of_real (0.01 * Real.fromInt (ms div 10)) ^ " s")
   end
 
 val string_from_time = string_from_ext_time o pair false
