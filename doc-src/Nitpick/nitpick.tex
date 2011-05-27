@@ -2742,10 +2742,12 @@ favorite counterexample generator:
 
 \prew
 $\textbf{val}\,~\textit{pick\_nits\_in\_term} : \\
-\hbox{}\quad\textit{Proof.state} \rightarrow \textit{params} \rightarrow \textit{bool} \rightarrow \textit{term~list} \rightarrow \textit{term} \\
-\hbox{}\quad{\rightarrow}\; \textit{string} * \textit{Proof.state}$ \\
+\hbox{}\quad\textit{Proof.state} \rightarrow \textit{params} \rightarrow \textit{mode}
+\rightarrow \textit{int} \rightarrow \textit{int} \rightarrow \textit{int}$ \\
+$\hbox{}\quad{\rightarrow}\; (\textit{term} * \textit{term})~\textit{list}
+\rightarrow \textit{term~list} \rightarrow \textit{term} \rightarrow \textit{string} * \textit{Proof.state}$ \\
 $\textbf{val}\,~\textit{pick\_nits\_in\_subgoal} : \\
-\hbox{}\quad\textit{Proof.state} \rightarrow \textit{params} \rightarrow \textit{bool} \rightarrow \textit{int} \rightarrow \textit{string} * \textit{Proof.state}$
+\hbox{}\quad\textit{Proof.state} \rightarrow \textit{params} \rightarrow \textit{mode} \rightarrow \textit{int} \rightarrow \textit{int} \rightarrow \textit{string} * \textit{Proof.state}$
 \postw
 
 The return value is a new proof state paired with an outcome string
@@ -2760,13 +2762,13 @@ $\textbf{val}\,~\textit{default\_params} :\,
 \postw
 
 The second argument lets you override option values before they are parsed and
-put into a \textit{params} record. Here is an example:
+put into a \textit{params} record. Here is an example where Nitpick is invoked
+on subgoal $i$ of $n$ with no time limit:
 
 \prew
 $\textbf{val}\,~\textit{params} = \textit{Nitpick\_Isar.default\_params}~\textit{thy}~[(\textrm{``}\textrm{timeout\/}\textrm{''},\, \textrm{``}\textrm{none}\textrm{''})]$ \\
-$\textbf{val}\,~(\textit{outcome},\, \textit{state}') = \textit{Nitpick.pick\_nits\_in\_subgoal}~\begin{aligned}[t]
-& \textit{state}~\textit{params}~\textit{false} \\[-2pt]
-& \textit{subgoal}\end{aligned}$
+$\textbf{val}\,~(\textit{outcome},\, \textit{state}') = {}$ \\
+$\hbox{}\quad\textit{Nitpick.pick\_nits\_in\_subgoal}~\textit{state}~\textit{params}~\textit{Nitpick.Normal}~\textit{i}~\textit{n}$
 \postw
 
 \let\antiq=\textrm
