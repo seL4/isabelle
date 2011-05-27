@@ -13,6 +13,8 @@ sig
   val tryN : string
   val auto_time_limit: real Unsynchronized.ref
 
+  val serial_commas : string -> string list -> string list
+  val subgoal_count : Proof.state -> int
   val register_tool : tool -> theory -> theory
   val get_tools : theory -> tool list
   val try_tools : Proof.state -> (string * string) option
@@ -39,31 +41,50 @@ val _ =
       auto_try_time_limitN "Time limit for automatically tried tools (in seconds).")
 
 
+(* helpers *)
+
+fun serial_commas _ [] = ["??"]
+  | serial_commas _ [s] = [s]
+  | serial_commas conj [s1, s2] = [s1, conj, s2]
+  | serial_commas conj [s1, s2, s3] = [s1 ^ ",", s2 ^ ",", conj, s3]
+  | serial_commas conj (s :: ss) = s ^ "," :: serial_commas conj ss
+
+val subgoal_count = Logic.count_prems o prop_of o #goal o Proof.goal
+
+
 (* configuration *)
+
+val tool_ord = prod_ord int_ord string_ord o pairself (swap o apsnd #1)
 
 structure Data = Theory_Data
 (
   type T = tool list
   val empty = []
   val extend = I
-  fun merge data : T = AList.merge (op =) (K true) data
+  fun merge data : T = Ord_List.merge tool_ord data
 )
 
 val get_tools = Data.get
 
-val register_tool = Data.map o Ord_List.insert (int_ord o pairself (#1 o snd))
+val register_tool = Data.map o Ord_List.insert tool_ord
 
 (* try command *)
 
 fun try_tools state =
-  get_tools (Proof.theory_of state)
-  |> tap (fn tools => "Trying " ^ commas_quote (map fst tools) ^ "..."
-                      |> Output.urgent_message)
-  |> Par_List.get_some
-         (fn (name, (_, _, tool)) =>
-             case try (tool false) state of
-               SOME (true, (outcome_code, _)) => SOME (name, outcome_code)
-             | _ => NONE)
+  if subgoal_count state = 0 then
+    (Output.urgent_message "No subgoal!"; NONE)
+  else
+    get_tools (Proof.theory_of state)
+    |> tap (fn tools =>
+               "Trying " ^ space_implode " "
+                    (serial_commas "and" (map (quote o fst) tools)) ^ "..."
+               |> Output.urgent_message)
+    |> Par_List.get_some
+           (fn (name, (_, _, tool)) =>
+               case try (tool false) state of
+                 SOME (true, (outcome_code, _)) => SOME (name, outcome_code)
+               | _ => NONE)
+    |> tap (fn NONE => Output.urgent_message "Tried in vain." | _ => ())
 
 val _ =
   Outer_Syntax.improper_command tryN
