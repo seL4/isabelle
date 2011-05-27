@@ -338,13 +338,13 @@ fun unmangled_const s =
     (hd ss, map unmangled_type (tl ss))
   end
 
-fun introduce_proxies format type_sys tm =
+fun introduce_proxies format type_sys =
   let
-    fun aux ary top_level (CombApp (tm1, tm2)) =
-        CombApp (aux (ary + 1) top_level tm1, aux 0 false tm2)
-      | aux ary top_level (CombConst (name as (s, _), T, T_args)) =
+    fun intro top_level (CombApp (tm1, tm2)) =
+        CombApp (intro top_level tm1, intro false tm2)
+      | intro top_level (CombConst (name as (s, _), T, T_args)) =
         (case proxify_const s of
-           SOME (proxy_ary, proxy_base) =>
+           SOME (_, proxy_base) =>
            if top_level orelse is_setting_higher_order format type_sys then
              case (top_level, s) of
                (_, "c_False") => (`I tptp_false, [])
@@ -354,20 +354,15 @@ fun introduce_proxies format type_sys tm =
              | (false, "c_disj") => (`I tptp_or, [])
              | (false, "c_implies") => (`I tptp_implies, [])
              | (false, s) =>
-               (* Proxies are not needed in THF, but we generate them for "="
-                  when it is not fully applied to work around parsing bugs in
-                  the provers ("= @ x @ x" is challenging to some). *)
-               if is_tptp_equal s andalso ary = proxy_ary then
-                 (`I tptp_equal, [])
-               else
-                 (proxy_base |>> prefix const_prefix, T_args)
+               if is_tptp_equal s then (`I tptp_equal, [])
+               else (proxy_base |>> prefix const_prefix, T_args)
              | _ => (name, [])
            else
              (proxy_base |>> prefix const_prefix, T_args)
           | NONE => (name, T_args))
         |> (fn (name, T_args) => CombConst (name, T, T_args))
-      | aux _ _ tm = tm
-  in aux 0 true tm end
+      | intro _ tm = tm
+  in intro true end
 
 fun combformula_from_prop thy format type_sys eq_as_iff =
   let
