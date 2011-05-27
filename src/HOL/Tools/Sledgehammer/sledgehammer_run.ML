@@ -174,7 +174,9 @@ fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
       let
         val (outcome_code, message) = TimeLimit.timeLimit hard_timeout go ()
       in
-        (if outcome_code = someN then message else quote name ^ ": " ^ message)
+        (if outcome_code = someN then message
+         else if mode = Normal then quote name ^ ": " ^ message
+         else "")
         |> Async_Manager.break_into_chunks
         |> List.app Output.urgent_message;
         (outcome_code, state)
