@@ -44,7 +44,7 @@ fun print silent f = if silent then () else Output.urgent_message (f ())
 
 fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
                  max_new_mono_instances, type_sys, isar_proof,
-                 isar_shrink_factor, metis_timeout, ...} : params)
+                 isar_shrink_factor, preplay_timeout, ...} : params)
         explicit_apply_opt silent (prover : prover) timeout i n state facts =
   let
     val ctxt = Proof.context_of state
@@ -70,7 +70,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
        max_mono_iters = max_mono_iters,
        max_new_mono_instances = max_new_mono_instances, isar_proof = isar_proof,
        isar_shrink_factor = isar_shrink_factor, slicing = false,
-       timeout = timeout, metis_timeout = metis_timeout, expect = ""}
+       timeout = timeout, preplay_timeout = preplay_timeout, expect = ""}
     val facts =
       facts |> maps (fn (n, ths) => ths |> map (Untranslated_Fact o pair n))
     val problem =

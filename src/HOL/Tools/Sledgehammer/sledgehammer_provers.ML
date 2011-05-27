@@ -35,7 +35,7 @@ sig
      isar_shrink_factor: int,
      slicing: bool,
      timeout: Time.time,
-     metis_timeout: Time.time,
+     preplay_timeout: Time.time,
      expect: string}
 
   datatype prover_fact =
@@ -279,7 +279,7 @@ type params =
    isar_shrink_factor: int,
    slicing: bool,
    timeout: Time.time,
-   metis_timeout: Time.time,
+   preplay_timeout: Time.time,
    expect: string}
 
 datatype prover_fact =
@@ -870,23 +870,32 @@ fun smt_filter_loop ctxt name
       end
   in do_slice timeout 1 NONE Time.zeroTime end
 
-(* taken from "Mirabelle" and generalized *)
-fun can_apply timeout tac state i =
+(* based on "Mirabelle.can_apply" and generalized *)
+fun try_apply timeout tac state i =
   let
     val {context = ctxt, facts, goal} = Proof.goal state
     val full_tac = Method.insert_tac facts i THEN tac ctxt i
-  in
-    case try (TimeLimit.timeLimit timeout (Seq.pull o full_tac)) goal of
-      SOME (SOME _) => true
-    | _ => false
-  end
+  in try (TimeLimit.timeLimit timeout (Seq.pull o full_tac)) goal end
 
-fun can_apply_metis debug timeout ths =
-  can_apply timeout (Config.put Metis_Tactics.verbose debug
+fun try_metis debug timeout ths =
+  try_apply timeout (Config.put Metis_Tactics.verbose debug
                      #> (fn ctxt => Metis_Tactics.metis_tac ctxt ths))
 
+datatype metis_try =
+  Preplayed of string * Time.time |
+  Preplay_Timed_Out |
+  Preplay_Failed
+
+fun preplay debug timeout ths state i =
+  let val timer = Timer.startRealTimer () in
+    case try_metis debug timeout ths state i of
+      SOME (SOME _) => Preplayed ("metis", Timer.checkRealTimer timer)
+    | SOME NONE => Preplay_Failed
+    | NONE => Preplay_Timed_Out
+  end
+
 fun run_smt_solver auto name
-        (params as {debug, verbose, blocking, metis_timeout, ...})
+        (params as {debug, verbose, blocking, preplay_timeout, ...})
         minimize_command
         ({state, subgoal, subgoal_count, facts, smt_filter, ...}
          : prover_problem) =
@@ -903,13 +912,13 @@ fun run_smt_solver auto name
       case outcome of
         NONE =>
         let
-          val (method, settings) =
-            if can_apply_metis debug metis_timeout (map snd used_facts) state
-                               subgoal then
-              ("metis", "")
-            else
-              ("smt", if name = SMT_Solver.solver_name_of ctxt then ""
-                      else "smt_solver = " ^ maybe_quote name)
+          val (settings, method, time) =
+            case preplay debug preplay_timeout (map snd used_facts) state
+                         subgoal of
+              Preplayed (method, time) => (method, "", SOME time)
+            | _ => (if name = SMT_Solver.solver_name_of ctxt then ""
+                    else "smt_solver = " ^ maybe_quote name,
+                    "smt", NONE)
         in
           try_command_line (proof_banner auto blocking name)
               (apply_on_subgoal settings subgoal subgoal_count ^

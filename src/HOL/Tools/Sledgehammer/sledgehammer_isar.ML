@@ -88,7 +88,7 @@ val default_default_params =
    ("isar_proof", "false"),
    ("isar_shrink_factor", "1"),
    ("slicing", "true"),
-   ("metis_timeout", "5")]
+   ("preplay_timeout", "5")]
 
 val alias_params =
   [("prover", "provers"),
@@ -107,7 +107,7 @@ val negated_alias_params =
 val params_for_minimize =
   ["debug", "verbose", "overlord", "type_sys", "full_types", "max_mono_iters",
    "max_new_mono_instances", "isar_proof", "isar_shrink_factor", "timeout",
-   "metis_timeout"]
+   "preplay_timeout"]
 
 val property_dependent_params = ["provers", "full_types", "timeout"]
 
@@ -277,8 +277,9 @@ fun extract_params auto default_params override_params =
     val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
     val slicing = not auto andalso lookup_bool "slicing"
     val timeout = (if auto then NONE else lookup_time "timeout") |> the_timeout
-    val metis_timeout =
-      if auto then Time.zeroTime else lookup_time "metis_timeout" |> the_timeout
+    val preplay_timeout =
+      if auto then Time.zeroTime
+      else lookup_time "preplay_timeout" |> the_timeout
     val expect = lookup_string "expect"
   in
     {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
@@ -287,7 +288,7 @@ fun extract_params auto default_params override_params =
      max_new_mono_instances = max_new_mono_instances, type_sys = type_sys,
      explicit_apply = explicit_apply, isar_proof = isar_proof,
      isar_shrink_factor = isar_shrink_factor, slicing = slicing,
-     timeout = timeout, metis_timeout = metis_timeout, expect = expect}
+     timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
   end
 
 fun get_params auto ctxt = extract_params auto (default_raw_params ctxt)
