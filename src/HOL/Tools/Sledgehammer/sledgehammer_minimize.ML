@@ -189,7 +189,7 @@ fun run_minimize (params as {provers, ...}) i refs state =
   let
     val ctxt = Proof.context_of state
     val reserved = reserved_isar_keyword_table ()
-    val chained_ths = #facts (Proof.goal state)
+    val chained_ths = normalize_chained_theorems (#facts (Proof.goal state))
     val facts =
       refs
       |> maps (map (apsnd single) o fact_from_ref ctxt reserved chained_ths)

@@ -31,6 +31,7 @@ sig
   val subgoal_count : Proof.state -> int
   val strip_subgoal :
     Proof.context -> thm -> int -> (string * typ) list * term list * term
+  val normalize_chained_theorems : thm list -> thm list
   val reserved_isar_keyword_table : unit -> unit Symtab.table
 end;
 
@@ -253,6 +254,8 @@ fun strip_subgoal ctxt goal i =
     val concl_t = t |> Logic.strip_assums_concl |> curry subst_bounds frees
   in (rev params, hyp_ts, concl_t) end
 
+val normalize_chained_theorems =
+  maps (fn th => insert Thm.eq_thm_prop (zero_var_indexes th) [th])
 fun reserved_isar_keyword_table () =
   union (op =) (Keyword.dest_keywords ()) (Keyword.dest_commands ())
   |> map (rpair ()) |> Symtab.make

@@ -146,7 +146,7 @@ fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
                       reraise exn
                     else
                       (unknownN, "Internal error:\n" ^
-                                ML_Compiler.exn_message exn ^ "\n"))
+                                 ML_Compiler.exn_message exn ^ "\n"))
         val _ =
           (* The "expect" argument is deliberately ignored if the prover is
              missing so that the "Metis_Examples" can be processed on any
@@ -183,7 +183,7 @@ fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
       end
     else
       (Async_Manager.launch das_tool birth_time death_time (desc ())
-                            (apfst (curry (op <>) timeoutN) o go);
+                            (apfst (curry (op =) someN) o go);
        (unknownN, state))
   end
 
@@ -191,7 +191,8 @@ fun class_of_smt_solver ctxt name =
   ctxt |> select_smt_solver name
        |> SMT_Config.solver_class_of |> SMT_Utils.string_of_class
 
-(* Makes backtraces more transparent and might be more efficient as well. *)
+(* Makes backtraces more transparent and might well be more efficient as
+   well. *)
 fun smart_par_list_map _ [] = []
   | smart_par_list_map f [x] = [f x]
   | smart_par_list_map f xs = Par_List.map f xs
@@ -217,6 +218,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
         state |> Proof.map_context (Config.put SMT_Config.verbose debug)
       val ctxt = Proof.context_of state
       val {facts = chained_ths, goal, ...} = Proof.goal state
+      val chained_ths = chained_ths |> normalize_chained_theorems
       val (_, hyp_ts, concl_t) = strip_subgoal ctxt goal i
       val _ = () |> not blocking ? kill_provers
       val _ = case find_first (not o is_prover_supported ctxt) provers of
@@ -318,7 +320,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
       val launch_ueq_atps =
         launch_atps "Unit equational provers" is_unit_equality ueq_atps
       fun launch_atps_and_smt_solvers () =
-        [launch_full_atps, launch_ueq_atps, launch_smts]
+        [launch_full_atps, launch_smts, launch_ueq_atps]
         |> smart_par_list_map (fn f => ignore (f (unknownN, state)))
         handle ERROR msg => (print ("Error: " ^ msg); error msg)
       fun maybe f (accum as (outcome_code, _)) =
