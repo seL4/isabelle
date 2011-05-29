@@ -399,19 +399,22 @@ fun timed_reconstructor reconstructor debug timeout ths =
 
 fun filter_used_facts used = filter (member (op =) used o fst)
 
-fun preplay_one_line_proof debug timeout ths state i reconstructor =
+fun preplay_one_line_proof debug timeout ths state i reconstructors =
   let
-    fun preplay reconstructor =
-      let val timer = Timer.startRealTimer () in
-        case timed_reconstructor reconstructor debug timeout ths state i of
-          SOME (SOME _) => Preplayed (reconstructor, Timer.checkRealTimer timer)
-        | _ =>
-          if reconstructor = Metis then preplay MetisFT else Failed_to_Preplay
-      end
-      handle TimeLimit.TimeOut => Trust_Playable (reconstructor, SOME timeout)
+    fun preplay [] [] = Failed_to_Preplay
+      | preplay (timed_out :: _) [] = Trust_Playable (timed_out, SOME timeout)
+      | preplay timed_out (reconstructor :: reconstructors) =
+        let val timer = Timer.startRealTimer () in
+          case timed_reconstructor reconstructor debug timeout ths state i of
+            SOME (SOME _) =>
+            Preplayed (reconstructor, Timer.checkRealTimer timer)
+          | _ => preplay timed_out reconstructors
+        end
+        handle TimeLimit.TimeOut =>
+               preplay (reconstructor :: timed_out) reconstructors
   in
-    if timeout = Time.zeroTime then Trust_Playable (reconstructor, NONE)
-    else preplay reconstructor
+    if timeout = Time.zeroTime then Trust_Playable (hd reconstructors, NONE)
+    else preplay [] reconstructors
   end
 
 
@@ -590,7 +593,8 @@ fun run_atp mode name
                   length facts |> is_none max_relevant
                                   ? Integer.min best_max_relevant
                 val (format, type_sys) =
-                  determine_format_and_type_sys best_type_systems formats type_sys
+                  determine_format_and_type_sys best_type_systems formats
+                                                type_sys
                 val fairly_sound = is_type_sys_fairly_sound type_sys
                 val facts =
                   facts |> not fairly_sound
@@ -751,16 +755,16 @@ fun run_atp mode name
           val used_facts =
             used_facts_in_atp_proof ctxt type_sys facts_offset fact_names
                                     atp_proof
-          val reconstructor =
-            if uses_typed_helpers typed_helpers atp_proof then MetisFT
-            else Metis
+          val reconstructors =
+            if uses_typed_helpers typed_helpers atp_proof then [MetisFT, Metis]
+            else [Metis, MetisFT]
           val used_ths =
             facts |> map untranslated_fact
                   |> filter_used_facts used_facts
                   |> map snd
           val preplay =
             preplay_one_line_proof debug preplay_timeout used_ths state subgoal
-                                   reconstructor
+                                   reconstructors
           val full_types = uses_typed_helpers typed_helpers atp_proof
           val isar_params =
             (debug, full_types, isar_shrink_factor, type_sys, pool,
@@ -950,7 +954,7 @@ fun run_smt_solver mode name
             else "smt_solver = " ^ maybe_quote name
           val preplay =
             case preplay_one_line_proof debug preplay_timeout used_ths state
-                                        subgoal Metis of
+                                        subgoal [Metis, MetisFT] of
               p as Preplayed _ => p
             | _ => Trust_Playable (SMT (smt_settings ()), NONE)
           val one_line_params =
