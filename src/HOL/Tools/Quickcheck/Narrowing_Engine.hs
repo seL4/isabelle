@@ -43,7 +43,7 @@ str_of_list [] = "[]";
 str_of_list (x:xs) = "(" ++ x ++ " :: " ++ str_of_list xs ++ ")";
 
 report :: Result -> [Narrowing_term] -> IO Int;
-report r xs = putStrLn ("SOME (" ++ (str_of_list $ zipWith ($) (showArgs r) $ head [ys | ys <- mapM total xs]) ++ ")") >> hFlush stdout >> exitWith ExitSuccess;
+report r xs = putStrLn ("SOME (" ++ (str_of_list $ zipWith ($) (showArgs r) xs) ++ ")") >> hFlush stdout >> exitWith ExitSuccess;
 
 eval :: Bool -> (Bool -> IO a) -> (Pos -> IO a) -> IO a;
 eval p k u = answer p (\p -> answer p k u) u;
@@ -67,7 +67,8 @@ instance Show Typerep where {
 instance Show Term where {
   show (Const c t) = "Const (\"" ++ c ++ "\", " ++ show t ++ ")";
   show (App s t) = "(" ++ show s ++ ") $ (" ++ show t ++ ")";
-  show (Abs s ty t) = "Abs (\"" ++ s ++ "\", " ++ show ty ++ ", " ++ show t ++ ")";  
+  show (Abs s ty t) = "Abs (\"" ++ s ++ "\", " ++ show ty ++ ", " ++ show t ++ ")";
+  show (Free s ty) = "Free (\"" ++ s ++  "\", " ++ show ty ++ ")";
 };
 
 data Result =
@@ -89,12 +90,12 @@ instance Testable Bool where {
   property app = P $ \n d -> Result [] [] (app . reverse);
 };
 
-instance (Term_of a, Narrowing a, Testable b) => Testable (a -> b) where {
+instance (Partial_term_of a, Narrowing a, Testable b) => Testable (a -> b) where {
   property f = P $ \n d ->
     let C t c = narrowing d
         c' = conv c
         r = run (\(x:xs) -> f xs (c' x)) (n+1) d
-    in  r { args = Var [n] t : args r, showArgs = (show . term_of . c') : showArgs r };
+    in  r { args = Var [n] t : args r, showArgs = (show . partial_term_of (Type :: Itself a)) : showArgs r };
 };
 
 -- Top-level interface

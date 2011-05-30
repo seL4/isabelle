@@ -10,6 +10,7 @@ sig
     Proof.context -> (term * term list) list -> int list -> term list option * Quickcheck.report option
   val put_counterexample: (unit -> term list option) -> Proof.context -> Proof.context
   val finite_functions : bool Config.T
+  val overlord : bool Config.T
   val setup: theory -> theory
 end;
 
@@ -63,7 +64,7 @@ fun mk_partial_term_of_eq thy ty (i, (c, (_, tys))) =
   let
     val frees = map Free (Name.names Name.context "a" (map (K @{typ narrowing_term}) tys))
     val narrowing_term = @{term "Quickcheck_Narrowing.Ctr"} $ HOLogic.mk_number @{typ code_int} i
-      $ (HOLogic.mk_list @{typ narrowing_term} frees)
+      $ (HOLogic.mk_list @{typ narrowing_term} (rev frees))
     val rhs = fold (fn u => fn t => @{term "Code_Evaluation.App"} $ t $ u)
         (map mk_partial_term_of (frees ~~ tys))
         (@{term "Code_Evaluation.Const"} $ HOLogic.mk_literal c $ HOLogic.mk_typerep (tys ---> ty))
@@ -86,7 +87,14 @@ fun add_partial_term_of_code tyco raw_vs raw_cs thy =
     val cs = (map o apsnd o apsnd o map o map_atyps)
       (fn TFree (v, _) => TFree (v, (the o AList.lookup (op =) vs) v)) raw_cs;
     val const = AxClass.param_of_inst thy (@{const_name partial_term_of}, tyco);
-    val eqs = map_index (mk_partial_term_of_eq thy ty) cs;
+    val var_insts = map (SOME o Thm.cterm_of thy o map_types Logic.unvarifyT_global o Logic.varify_global)
+        [Free ("ty", Term.itselfT ty), @{term "Quickcheck_Narrowing.Var p tt"},
+          @{term "Code_Evaluation.Free (STR ''_'')"} $ HOLogic.mk_typerep ty]
+    val var_eq =
+      @{thm partial_term_of_anything}
+      |> Drule.instantiate' [SOME (Thm.ctyp_of thy ty)] var_insts
+      |> Thm.varifyT_global
+    val eqs = var_eq :: map_index (mk_partial_term_of_eq thy ty) cs;
  in
     thy
     |> Code.del_eqns const
@@ -183,7 +191,7 @@ val narrowing_engine = File.read (Path.explode "~~/src/HOL/Tools/Quickcheck/Narr
 fun exec verbose code =
   ML_Context.exec (fn () => Secure.use_text ML_Env.local_context (0, "generated code") verbose code)
 
-fun with_tmp_dir name f =
+fun with_overlord_dir name f =
   let
     val path = Path.append (Path.explode "~/.isabelle") (Path.basic (name ^ serial_string ()))
     val _ = Isabelle_System.mkdirs path;
@@ -192,8 +200,8 @@ fun with_tmp_dir name f =
 fun value ctxt (get, put, put_ml) (code, value) size =
   let
     val tmp_prefix = "Quickcheck_Narrowing"
-    val with_tmp_dir = if Config.get ctxt overlord 
-      then Isabelle_System.with_tmp_dir else Quickcheck_Narrowing.with_tmp_dir 
+    val with_tmp_dir =
+      if Config.get ctxt overlord then with_overlord_dir else Isabelle_System.with_tmp_dir 
     fun run in_path = 
       let
         val code_file = Path.append in_path (Path.basic "Code.hs")
