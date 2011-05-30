@@ -676,7 +676,7 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
       ((facts |> filter (member Thm.eq_thm_prop ths o snd)) @
        (accepts |> filter_out (member Thm.eq_thm_prop ths o snd)))
       |> take max_relevant
-    fun append_facts ths accepts =
+    fun append_to_facts accepts ths =
       let val add = facts |> filter (member Thm.eq_thm_prop ths o snd) in
         (accepts |> filter_out (member Thm.eq_thm_prop ths o snd)
                  |> take (max_relevant - length add)) @
@@ -685,20 +685,22 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
     fun uses_const s t =
       fold_aterms (curry (fn (Const (s', _), false) => s' = s | (_, b) => b)) t
                   false
-    fun maybe_add_set_const (s, ths) accepts =
-      accepts |> (if exists (uses_const s o prop_of o snd) accepts orelse
-                     exists (uses_const s) (concl_t :: hyp_ts) then
-                    append_facts ths
-                  else
-                    I)
+    fun add_set_const_thms accepts (s, ths) =
+      if exists (uses_const s o prop_of o snd) accepts orelse
+         exists (uses_const s) (concl_t :: hyp_ts) then
+        append ths
+      else
+        I
+    fun append_special_facts accepts =
+       [] |> could_benefit_from_ext is_built_in_const accepts ? cons @{thm ext}
+          |> fold (add_set_const_thms accepts) set_consts
+          |> append_to_facts accepts
+
   in
     facts |> map_filter (pair_consts_fact thy is_built_in_const fudge)
           |> iter 0 max_relevant threshold0 goal_const_tab []
           |> not (null add_ths) ? prepend_facts add_ths
-          |> (fn accepts =>
-                 accepts |> could_benefit_from_ext is_built_in_const accepts
-                            ? append_facts @{thms ext}
-                         |> fold maybe_add_set_const set_consts)
+          |> append_special_facts
           |> tap (fn accepts => trace_msg ctxt (fn () =>
                       "Total relevant: " ^ string_of_int (length accepts)))
   end
