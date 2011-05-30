@@ -11,17 +11,7 @@ val all_thy_names = sort string_ord (Thy_Info.get_names ());
 
 fun app_index f xs = fold_index (fn x => K (f x)) xs ();
 
-fun parse_request (ScgiReq.Req {request_method, query_string, ...}, content, send) =
-  (case request_method of
-     ScgiReq.Get => query_string
-   | ScgiReq.Post =>
-      content
-      |> Byte.bytesToString
-      |> HttpUtil.parse_query_string
-   | ScgiReq.Head => raise Fail "Cannot handle Head requests.",
-  send);
-
-fun find_theorems (arg_data, send) =
+fun find_theorems arg_data send =
   let
     val args = Symtab.lookup arg_data;
 
@@ -66,7 +56,7 @@ fun find_theorems (arg_data, send) =
 in
 
 val () = Printer.show_question_marks_default := false;
-val () = ScgiServer.register ("find_theorems", SOME Mime.html, find_theorems o parse_request);
+val () = ScgiServer.register ("find_theorems", SOME Mime.html, ScgiServer.simple_handler find_theorems);
 
 end;
 

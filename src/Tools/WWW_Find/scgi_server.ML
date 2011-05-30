@@ -11,6 +11,7 @@ sig
   val register : (string * Mime.t option * handler) -> unit
   val server : string -> int -> unit
   val server' : int -> string -> int -> unit (* keeps trying for port *)
+  val simple_handler : (string Symtab.table -> (string -> unit) -> unit) -> handler
 end;
 
 structure ScgiServer : SCGI_SERVER =
@@ -120,6 +121,16 @@ fun server' 0 server_prefix port = (warning "Giving up."; exit 1)
            OS.Process.sleep (Time.fromSeconds delay);
            server' (countdown - 1) server_prefix port);
 end;
+
+fun simple_handler h (ScgiReq.Req {request_method, query_string, ...}, content, send) =
+  h (case request_method of
+     ScgiReq.Get => query_string
+   | ScgiReq.Post =>
+      content
+      |> Byte.bytesToString
+      |> HttpUtil.parse_query_string
+   | ScgiReq.Head => raise Fail "Cannot handle Head requests.")
+  send;
 
 end;
 
