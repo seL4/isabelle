@@ -1267,7 +1267,7 @@ fun timing_depth_tac start ctxt lim i st0 =
     prove (state, start, [initBranch (mkGoal concl :: hyps, lim)], cont)
     |> Seq.map (rotate_prems (1 - i))
   end
-  handle PROVE => Seq.empty;
+  handle PROVE => Seq.empty | THM _ => Seq.empty;
 
 (*Public version with fixed depth*)
 fun depth_tac ctxt lim i st = timing_depth_tac (Timing.start ()) ctxt lim i st;
