@@ -43,7 +43,7 @@ sig
   val reconstructor_name : reconstructor -> string
   val one_line_proof_text : one_line_params -> string
   val isar_proof_text :
-    Proof.context -> isar_params -> one_line_params -> string
+    Proof.context -> bool -> isar_params -> one_line_params -> string
   val proof_text :
     Proof.context -> bool -> isar_params -> one_line_params -> string
 end;
@@ -303,7 +303,7 @@ fun one_line_proof_text (preplay, banner, used_facts, minimize_command,
         SOME r => ([], map fst extra)
                   |> reconstructor_command r subgoal subgoal_count
                   |> try_command_line banner ext_time
-      | NONE => "Proof reconstruction failed."
+      | NONE => "One-line proof reconstruction failed."
   in try_line ^ minimize_line minimize_command (map fst (extra @ chained)) end
 
 (** Hard-core proof reconstruction: structured Isar proofs **)
@@ -1045,11 +1045,13 @@ fun string_for_proof ctxt0 full_types i n =
         (if n <> 1 then "next" else "qed")
   in do_proof end
 
-fun isar_proof_text ctxt
+fun isar_proof_text ctxt isar_proof_requested
         (debug, full_types, isar_shrink_factor, type_sys, pool,
          conjecture_shape, facts_offset, fact_names, sym_tab, atp_proof, goal)
         (one_line_params as (_, _, _, _, subgoal, subgoal_count)) =
   let
+    val isar_shrink_factor =
+      (if isar_proof_requested then 1 else 2) * isar_shrink_factor
     val (params, hyp_ts, concl_t) = strip_subgoal ctxt goal subgoal
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []
     val tfrees = fold Term.add_tfrees (concl_t :: hyp_ts) []
@@ -1065,20 +1067,31 @@ fun isar_proof_text ctxt
            |> kill_useless_labels_in_proof
            |> relabel_proof
            |> string_for_proof ctxt full_types subgoal subgoal_count of
-        "" => "\nNo structured proof available (proof too short)."
-      | proof => "\n\nStructured proof:\n" ^ Markup.markup Markup.sendback proof
+        "" =>
+        if isar_proof_requested then
+          "\nNo structured proof available (proof too short)."
+        else
+          ""
+      | proof =>
+        "\n\n" ^ (if isar_proof_requested then "Structured proof"
+                  else "Perhaps this will work") ^
+        ":\n" ^ Markup.markup Markup.sendback proof
     val isar_proof =
       if debug then
         isar_proof_for ()
       else
-        try isar_proof_for ()
-        |> the_default "\nWarning: The Isar proof construction failed."
+        case try isar_proof_for () of
+          SOME s => s
+        | NONE => if isar_proof_requested then
+                    "\nWarning: The Isar proof construction failed."
+                  else
+                    ""
   in one_line_proof ^ isar_proof end
 
 fun proof_text ctxt isar_proof isar_params
                (one_line_params as (preplay, _, _, _, _, _)) =
   (if isar_proof orelse preplay = Failed_to_Play then
-     isar_proof_text ctxt isar_params
+     isar_proof_text ctxt isar_proof isar_params
    else
      one_line_proof_text) one_line_params
 
