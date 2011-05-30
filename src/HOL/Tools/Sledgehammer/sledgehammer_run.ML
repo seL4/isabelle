@@ -128,7 +128,7 @@ fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
        smt_filter = smt_filter}
     fun really_go () =
       problem
-      |> get_minimizing_prover ctxt mode name params (minimize_command name)
+      |> get_minimizing_prover ctxt mode name params minimize_command
       |> (fn {outcome, message, ...} =>
              (if outcome = SOME ATP_Proof.TimedOut then timeoutN
               else if is_some outcome then noneN

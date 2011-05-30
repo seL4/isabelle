@@ -309,16 +309,20 @@ fun default_params thy = get_params Normal thy o map (apsnd single)
 
 (* Sledgehammer the given subgoal *)
 
+val default_minimize_prover = Metis_Tactics.metisN
+
 val is_raw_param_relevant_for_minimize =
   member (op =) params_for_minimize o fst o unalias_raw_param
 fun string_for_raw_param (key, values) =
   key ^ (case implode_param values of "" => "" | value => " = " ^ value)
 
 fun minimize_command override_params i prover_name fact_names =
-  sledgehammerN ^ " " ^ minN ^ " [" ^ prover_name ^
+  sledgehammerN ^ " " ^ minN ^
+  (if prover_name = default_minimize_prover then ""
+   else enclose "[" "]" prover_name) ^
   (override_params |> filter is_raw_param_relevant_for_minimize
                    |> implode o map (prefix ", " o string_for_raw_param)) ^
-  "] (" ^ space_implode " " fact_names ^ ")" ^
+  " (" ^ space_implode " " fact_names ^ ")" ^
   (if i = 1 then "" else " " ^ string_of_int i)
 
 fun hammer_away override_params subcommand opt_i relevance_override state =
@@ -335,7 +339,9 @@ fun hammer_away override_params subcommand opt_i relevance_override state =
         |> K ()
       end
     else if subcommand = minN then
-      run_minimize (get_params Minimize ctxt override_params)
+      run_minimize (get_params Minimize ctxt
+                               (("provers", [default_minimize_prover]) ::
+                                override_params))
                    (the_default 1 opt_i) (#add relevance_override) state
     else if subcommand = messagesN then
       messages opt_i

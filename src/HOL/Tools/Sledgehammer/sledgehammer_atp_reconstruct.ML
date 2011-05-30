@@ -40,6 +40,7 @@ sig
     Proof.context -> type_system -> int list list -> int
     -> (string * locality) list vector -> 'a proof -> string list option
   val uses_typed_helpers : int list -> 'a proof -> bool
+  val reconstructor_name : reconstructor -> string
   val one_line_proof_text : one_line_params -> string
   val isar_proof_text :
     Proof.context -> isar_params -> one_line_params -> string

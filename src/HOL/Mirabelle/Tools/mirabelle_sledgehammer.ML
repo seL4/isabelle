@@ -415,7 +415,7 @@ fun run_sh prover_name prover type_sys max_relevant slicing e_weight_method spas
            subgoal_count = Sledgehammer_Util.subgoal_count st,
            facts = facts |> map Sledgehammer_Provers.Untranslated_Fact,
            smt_filter = NONE}
-      in prover params (K "") problem end)) ()
+      in prover params (K (K "")) problem end)) ()
       handle TimeLimit.TimeOut => failed ATP_Proof.TimedOut
            | Fail "inappropriate" => failed ATP_Proof.Inappropriate
     val time_prover = run_time_in_msecs |> the_default ~1

@@ -43,7 +43,7 @@ fun run_atp force_full_types timeout i n ctxt goal name =
        facts = map Sledgehammer_Provers.Untranslated_Fact facts,
        smt_filter = NONE}
   in
-    (case prover params (K "") problem of
+    (case prover params (K (K "")) problem of
       {outcome = NONE, used_facts, ...} => used_facts |> map fst |> SOME
     | _ => NONE)
       handle ERROR message => (warning ("Error: " ^ message ^ "\n"); NONE)

@@ -58,7 +58,8 @@ sig
      run_time_in_msecs: int option,
      message: string}
 
-  type prover = params -> minimize_command -> prover_problem -> prover_result
+  type prover =
+    params -> (string -> minimize_command) -> prover_problem -> prover_result
 
   val smt_triggers : bool Config.T
   val smt_weights : bool Config.T
@@ -318,7 +319,8 @@ type prover_result =
    used_facts: (string * locality) list,
    run_time_in_msecs: int option}
 
-type prover = params -> minimize_command -> prover_problem -> prover_result
+type prover =
+  params -> (string -> minimize_command) -> prover_problem -> prover_result
 
 
 (* configuration attributes *)
@@ -516,13 +518,25 @@ fun adjust_dumb_type_sys formats (Simple_Types level) =
                  | _ => type_sys)
      | format => (format, type_sys))
 
-fun determine_format_and_type_sys _ formats (Dumb_Type_Sys type_sys) =
+fun choose_format_and_type_sys _ formats (Dumb_Type_Sys type_sys) =
     adjust_dumb_type_sys formats type_sys
-  | determine_format_and_type_sys best_type_systems formats
-                                  (Smart_Type_Sys full_types) =
+  | choose_format_and_type_sys best_type_systems formats
+                               (Smart_Type_Sys full_types) =
     map type_sys_from_string best_type_systems @ fallback_best_type_systems
     |> find_first (if full_types then is_type_sys_virtually_sound else K true)
     |> the |> adjust_dumb_type_sys formats
+
+val metis_minimize_max_time = seconds 2.0
+
+fun choose_minimize_command minimize_command name preplay =
+  (case preplay of
+     Played (reconstructor, time) =>
+     if Time.<= (time, metis_minimize_max_time) then
+       reconstructor_name reconstructor
+     else
+       name
+   | _ => name)
+  |> minimize_command
 
 fun repair_smt_monomorph_context debug max_mono_iters max_mono_instances =
   Config.put SMT_Config.verbose debug
@@ -605,8 +619,7 @@ fun run_atp mode name
                   length facts |> is_none max_relevant
                                   ? Integer.min best_max_relevant
                 val (format, type_sys) =
-                  determine_format_and_type_sys best_type_systems formats
-                                                type_sys
+                  choose_format_and_type_sys best_type_systems formats type_sys
                 val fairly_sound = is_type_sys_fairly_sound type_sys
                 val facts =
                   facts |> not fairly_sound
@@ -783,7 +796,8 @@ fun run_atp mode name
              goal)
           val one_line_params =
             (preplay, proof_banner mode blocking name, used_facts,
-             minimize_command, subgoal, subgoal_count)
+             choose_minimize_command minimize_command name preplay,
+             subgoal, subgoal_count)
         in
           (proof_text ctxt isar_proof isar_params one_line_params ^
            (if verbose then
@@ -970,7 +984,8 @@ fun run_smt_solver mode name
             | _ => Trust_Playable (SMT (smt_settings ()), NONE)
           val one_line_params =
             (preplay, proof_banner mode blocking name, used_facts,
-             minimize_command, subgoal, subgoal_count)
+             choose_minimize_command minimize_command name preplay,
+             subgoal, subgoal_count)
         in
           one_line_proof_text one_line_params ^
           (if verbose then
@@ -1002,7 +1017,7 @@ fun run_metis mode name ({debug, blocking, timeout, ...} : params)
       let
         val one_line_params =
           (play, proof_banner mode blocking name, used_facts,
-           minimize_command, subgoal, subgoal_count)
+           minimize_command name, subgoal, subgoal_count)
       in
         {outcome = NONE, used_facts = used_facts,
          run_time_in_msecs = SOME (Time.toMilliseconds time),

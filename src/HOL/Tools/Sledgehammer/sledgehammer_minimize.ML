@@ -76,7 +76,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
       {state = state, goal = goal, subgoal = i, subgoal_count = n,
        facts = facts, smt_filter = NONE}
     val result as {outcome, used_facts, run_time_in_msecs, ...} =
-      prover params (K "") problem
+      prover params (K (K "")) problem
   in
     print silent (fn () =>
         case outcome of
