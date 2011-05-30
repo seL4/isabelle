@@ -431,13 +431,7 @@ val limit = Unsynchronized.ref 40;
 
 fun filter_theorems ctxt theorems opt_goal opt_limit rem_dups criteria =
   let
-    val assms =
-      Proof_Context.get_fact ctxt (Facts.named "local.assms")
-        handle ERROR _ => [];
-    val add_prems = Seq.hd o TRY (Method.insert_tac assms 1);
-    val opt_goal' = Option.map add_prems opt_goal;
-
-    val filters = map (filter_criterion ctxt opt_goal') criteria;
+    val filters = map (filter_criterion ctxt opt_goal) criteria;
 
     fun find_all theorems =
       let
@@ -464,9 +458,17 @@ fun filter_theorems_cmd ctxt theorems opt_goal opt_limit rem_dups raw_criteria =
     (map (apsnd (read_criterion ctxt)) raw_criteria);
 
 fun gen_find_theorems filter ctxt opt_goal opt_limit rem_dups raw_criteria =
-  filter ctxt (map Internal (all_facts_of ctxt)) opt_goal opt_limit
-     rem_dups raw_criteria
-  |> apsnd (map (fn Internal f => f));
+  let
+    val assms =
+      Proof_Context.get_fact ctxt (Facts.named "local.assms")
+        handle ERROR _ => [];
+    val add_prems = Seq.hd o TRY (Method.insert_tac assms 1);
+    val opt_goal' = Option.map add_prems opt_goal;
+  in
+    filter ctxt (map Internal (all_facts_of ctxt)) opt_goal' opt_limit
+       rem_dups raw_criteria
+    |> apsnd (map (fn Internal f => f))
+  end;
 
 val find_theorems = gen_find_theorems filter_theorems;
 val find_theorems_cmd = gen_find_theorems filter_theorems_cmd;
