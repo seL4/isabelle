@@ -397,9 +397,10 @@ fun run_sh prover_name prover type_sys max_relevant slicing e_weight_method spas
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
     fun failed failure =
-      ({outcome = SOME failure, message = "", used_facts = [],
-        run_time_in_msecs = NONE}, ~1)
-    val ({outcome, message, used_facts, run_time_in_msecs}
+      ({outcome = SOME failure, used_facts = [], run_time_in_msecs = NONE,
+        preplay = K Sledgehammer_ATP_Reconstruct.Failed_to_Play,
+        message = K ""}, ~1)
+    val ({outcome, used_facts, run_time_in_msecs, preplay, message}
          : Sledgehammer_Provers.prover_result,
         time_isa) = time_limit (Mirabelle.cpu_time (fn () =>
       let
@@ -419,10 +420,11 @@ fun run_sh prover_name prover type_sys max_relevant slicing e_weight_method spas
       handle TimeLimit.TimeOut => failed ATP_Proof.TimedOut
            | Fail "inappropriate" => failed ATP_Proof.Inappropriate
     val time_prover = run_time_in_msecs |> the_default ~1
+    val msg = message (preplay ())
   in
     case outcome of
-      NONE => (message, SH_OK (time_isa, time_prover, used_facts))
-    | SOME _ => (message, SH_FAIL (time_isa, time_prover))
+      NONE => (msg, SH_OK (time_isa, time_prover, used_facts))
+    | SOME _ => (msg, SH_FAIL (time_isa, time_prover))
   end
   handle ERROR msg => ("error: " ^ msg, SH_ERROR)
 
@@ -512,9 +514,11 @@ fun run_minimize args reconstructor named_thms id
       Sledgehammer_Minimize.minimize_facts prover_name params
           (SOME explicit_apply) true 1 (Sledgehammer_Util.subgoal_count st)
     val _ = log separator
+    val (used_facts, (preplay, message)) = minimize st (these (!named_thms))
+    val msg = message (preplay ())
   in
-    case minimize st (these (!named_thms)) of
-      (SOME named_thms', msg) =>
+    case used_facts of
+      SOME named_thms' =>
         (change_data id inc_min_succs;
          change_data id (inc_min_ab_ratios ((100 * length named_thms') div n0));
          if length named_thms' = n0
@@ -523,7 +527,7 @@ fun run_minimize args reconstructor named_thms id
                named_thms := SOME named_thms';
                log (minimize_tag id ^ "succeeded:\n" ^ msg))
         )
-    | (NONE, msg) => log (minimize_tag id ^ "failed: " ^ msg)
+    | NONE => log (minimize_tag id ^ "failed: " ^ msg)
   end
 
 

@@ -8,13 +8,15 @@ Minimization of fact list for Metis using external provers.
 signature SLEDGEHAMMER_MINIMIZE =
 sig
   type locality = Sledgehammer_Filter.locality
+  type play = Sledgehammer_ATP_Reconstruct.play
   type params = Sledgehammer_Provers.params
 
   val binary_min_facts : int Config.T
   val minimize_facts :
     string -> params -> bool option -> bool -> int -> int -> Proof.state
     -> ((string * locality) * thm list) list
-    -> ((string * locality) * thm list) list option * string
+    -> ((string * locality) * thm list) list option
+       * ((unit -> play) * (play -> string))
   val run_minimize :
     params -> int -> (Facts.ref * Attrib.src list) list -> Proof.state -> unit
 end;
@@ -25,6 +27,7 @@ struct
 open ATP_Proof
 open Sledgehammer_Util
 open Sledgehammer_Filter
+open Sledgehammer_ATP_Reconstruct
 open Sledgehammer_Provers
 
 (* wrapper for calling external prover *)
@@ -171,7 +174,7 @@ fun minimize_facts prover_name (params as {timeout, ...}) explicit_apply_opt
            Int.min (msecs, Time.toMilliseconds time + slack_msecs)
            |> Time.fromMilliseconds
          val facts = filter_used_facts used_facts facts
-         val (min_thms, {message, ...}) =
+         val (min_thms, {preplay, message, ...}) =
            if length facts >= Config.get ctxt binary_min_facts then
              binary_minimize (do_test new_timeout) facts
            else
@@ -182,13 +185,16 @@ fun minimize_facts prover_name (params as {timeout, ...}) explicit_apply_opt
             (case length (filter (curry (op =) Chained o snd o fst) min_thms) of
                0 => ""
              | n => " (including " ^ string_of_int n ^ " chained)") ^ ".")
-       in (SOME min_thms, message) end
-     | {outcome = SOME TimedOut, ...} =>
-       (NONE, "Timeout: You can increase the time limit using the \"timeout\" \
-              \option (e.g., \"timeout = " ^
-              string_of_int (10 + msecs div 1000) ^ "\").")
-     | {message, ...} => (NONE, "Prover error: " ^ message))
-    handle ERROR msg => (NONE, "Error: " ^ msg)
+       in (SOME min_thms, (preplay, message)) end
+     | {outcome = SOME TimedOut, preplay, ...} =>
+       (NONE,
+        (preplay,
+         fn _ => "Timeout: You can increase the time limit using the \
+                 \\"timeout\" option (e.g., \"timeout = " ^
+                 string_of_int (10 + msecs div 1000) ^ "\")."))
+     | {preplay, message, ...} =>
+       (NONE, (preplay, prefix "Prover error: " o message)))
+    handle ERROR msg => (NONE, (K Failed_to_Play, fn _ => "Error: " ^ msg))
   end
 
 fun run_minimize (params as {provers, ...}) i refs state =
@@ -207,7 +213,8 @@ fun run_minimize (params as {provers, ...}) i refs state =
            | prover :: _ =>
              (kill_provers ();
               minimize_facts prover params NONE false i n state facts
-              |> snd |> Output.urgent_message)
+              |> (fn (_, (preplay, message)) =>
+                     Output.urgent_message (message (preplay ()))))
   end
 
 end;

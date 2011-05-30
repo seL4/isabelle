@@ -31,6 +31,7 @@ struct
 open Sledgehammer_Util
 open Sledgehammer_Filter
 open Sledgehammer_ATP_Translate
+open Sledgehammer_ATP_Reconstruct
 open Sledgehammer_Provers
 open Sledgehammer_Minimize
 
@@ -67,25 +68,45 @@ val auto_minimize_min_facts =
   Attrib.setup_config_int @{binding sledgehammer_auto_minimize_min_facts}
       (fn generic => Config.get_generic generic binary_min_facts)
 
+val auto_minimize_max_seconds =
+  Attrib.setup_config_real @{binding sledgehammer_auto_minimize_max_seconds}
+      (K 5.0)
+
 fun get_minimizing_prover ctxt mode name
         (params as {debug, verbose, explicit_apply, ...}) minimize_command
         (problem as {state, subgoal, subgoal_count, facts, ...}) =
   get_prover ctxt mode name params minimize_command problem
-  |> (fn result as {outcome, used_facts, run_time_in_msecs, message} =>
+  |> (fn result as {outcome, used_facts, run_time_in_msecs, preplay, message} =>
          if is_some outcome then
            result
          else
            let
-             val (used_facts, message) =
-               if length used_facts
-                  >= Config.get ctxt auto_minimize_min_facts then
-                 minimize_facts name params (SOME explicit_apply) (not verbose)
-                     subgoal subgoal_count state
+             val num_facts = length used_facts
+             val ((minimize, minimize_name), preplay) =
+               if mode = Normal then
+                 if num_facts >= Config.get ctxt auto_minimize_min_facts then
+                   ((true, name), preplay)
+                 else
+                   let val preplay = preplay () in
+                     (case preplay of
+                        Played (reconstructor, timeout) =>
+                        (0.001 * Real.fromInt ((num_facts + 2)
+                                               * Time.toMilliseconds timeout)
+                        <= Config.get ctxt auto_minimize_max_seconds,
+                        reconstructor_name reconstructor)
+                      | _ => (false, name), K preplay)
+                   end
+               else
+                 ((false, name), preplay)
+             val (used_facts, (preplay, message)) =
+               if minimize then
+                 minimize_facts minimize_name params (SOME explicit_apply)
+                     (not verbose) subgoal subgoal_count state
                      (filter_used_facts used_facts
                           (map (apsnd single o untranslated_fact) facts))
                  |>> Option.map (map fst)
                else
-                 (SOME used_facts, message)
+                 (SOME used_facts, (preplay, message))
            in
              case used_facts of
                SOME used_facts =>
@@ -103,7 +124,8 @@ fun get_minimizing_prover ctxt mode name
                 else
                   ();
                 {outcome = NONE, used_facts = used_facts,
-                 run_time_in_msecs = run_time_in_msecs, message = message})
+                 run_time_in_msecs = run_time_in_msecs, preplay = preplay,
+                 message = message})
              | NONE => result
            end)
 
@@ -129,10 +151,10 @@ fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
     fun really_go () =
       problem
       |> get_minimizing_prover ctxt mode name params minimize_command
-      |> (fn {outcome, message, ...} =>
+      |> (fn {outcome, preplay, message, ...} =>
              (if outcome = SOME ATP_Proof.TimedOut then timeoutN
               else if is_some outcome then noneN
-              else someN, message))
+              else someN, message o preplay))
     fun go () =
       let
         val (outcome_code, message) =
@@ -140,13 +162,13 @@ fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
             really_go ()
           else
             (really_go ()
-             handle ERROR message => (unknownN, "Error: " ^ message ^ "\n")
+             handle ERROR msg => (unknownN, fn () => "Error: " ^ msg ^ "\n")
                   | exn =>
                     if Exn.is_interrupt exn then
                       reraise exn
                     else
-                      (unknownN, "Internal error:\n" ^
-                                 ML_Compiler.exn_message exn ^ "\n"))
+                      (unknownN, fn () => "Internal error:\n" ^
+                                          ML_Compiler.exn_message exn ^ "\n"))
         val _ =
           (* The "expect" argument is deliberately ignored if the prover is
              missing so that the "Metis_Examples" can be processed on any
@@ -167,15 +189,15 @@ fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
          |> outcome_code = someN
             ? Proof.goal_message (fn () =>
                   [Pretty.str "",
-                   Pretty.mark Markup.hilite (Pretty.str message)]
+                   Pretty.mark Markup.hilite (Pretty.str (message ()))]
                   |> Pretty.chunks))
       end
     else if blocking then
       let
         val (outcome_code, message) = TimeLimit.timeLimit hard_timeout go ()
       in
-        (if outcome_code = someN then message
-         else if mode = Normal then quote name ^ ": " ^ message
+        (if outcome_code = someN then message ()
+         else if mode = Normal then quote name ^ ": " ^ message ()
          else "")
         |> Async_Manager.break_into_chunks
         |> List.app Output.urgent_message;
@@ -183,7 +205,8 @@ fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
       end
     else
       (Async_Manager.launch das_tool birth_time death_time (desc ())
-                            (apfst (curry (op =) someN) o go);
+                            ((fn (outcome_code, message) =>
+                                 (outcome_code = someN, message ())) o go);
        (unknownN, state))
   end
 
