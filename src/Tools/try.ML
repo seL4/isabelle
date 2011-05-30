@@ -54,7 +54,8 @@ val subgoal_count = Logic.count_prems o prop_of o #goal o Proof.goal
 
 (* configuration *)
 
-val tool_ord = prod_ord int_ord string_ord o pairself (swap o apsnd #1)
+fun tool_ord ((name1, (weight1, _, _)), (name2, (weight2, _, _))) =
+  prod_ord int_ord string_ord ((weight1, name1), (weight2, name2))
 
 structure Data = Theory_Data
 (
