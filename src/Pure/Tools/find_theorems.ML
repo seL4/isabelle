@@ -17,6 +17,7 @@ sig
   val limit: int Unsynchronized.ref
 
   val read_criterion: Proof.context -> string criterion -> term criterion
+  val query_parser: (bool * string criterion) list parser
 
   val find_theorems: Proof.context -> thm option -> int option -> bool ->
     (bool * term criterion) list -> int option * (Facts.ref * thm) list
@@ -530,10 +531,12 @@ val options =
         --| Parse.$$$ ")")) (NONE, true);
 in
 
+val query_parser = Scan.repeat (((Scan.option Parse.minus >> is_none) -- criterion));
+
 val _ =
   Outer_Syntax.improper_command "find_theorems" "print theorems meeting specified criteria"
     Keyword.diag
-    (options -- Scan.repeat (((Scan.option Parse.minus >> is_none) -- criterion))
+    (options -- query_parser
       >> (fn ((opt_lim, rem_dups), spec) =>
         Toplevel.no_timing o
         Toplevel.keep (fn state =>

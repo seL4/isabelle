@@ -159,18 +159,6 @@ fun html_thm ctxt (n, (thmref, thm)) =
 
 end;
 
-val criterion =
-  Parse.reserved "name" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.xname) >> Find_Theorems.Name ||
-  Parse.reserved "intro" >> K Find_Theorems.Intro ||
-  Parse.reserved "elim" >> K Find_Theorems.Elim ||
-  Parse.reserved "dest" >> K Find_Theorems.Dest ||
-  Parse.reserved "solves" >> K Find_Theorems.Solves ||
-  Parse.reserved "simp" |-- Parse.!!! (Parse.$$$ ":" |-- Parse.term) >> Find_Theorems.Simp ||
-  Parse.term >> Find_Theorems.Pattern;
-
-val parse_query =
-  Scan.repeat (((Scan.option Parse.minus >> is_none) -- criterion));
-
 fun app_index f xs = fold_index (fn x => K (f x)) xs ();
 
 fun find_theorems (req as ScgiReq.Req {request_method, query_string, ...},
@@ -193,7 +181,7 @@ fun find_theorems (req as ScgiReq.Req {request_method, query_string, ...},
       |> (fn s => s ^ ";")
       |> Outer_Syntax.scan Position.start
       |> filter Token.is_proper
-      |> Scan.error parse_query
+      |> Scan.error Find_Theorems.query_parser
       |> fst;
 
     val limit =
