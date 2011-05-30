@@ -476,8 +476,15 @@ fun is_cons program name = case Graph.get_node program name
 fun is_case (Fun (_, (_, SOME _))) = true
   | is_case _ = false;
 
-fun contr_classparam_typs program name = case Graph.get_node program name
- of Classparam (_, class) => let
+fun lookup_classparam_instance program name = program |> Graph.get_first
+  (fn (_, (Classinst ((class, _), (_, (param_insts, _))), _)) =>
+    Option.map (fn ((const, _), _) => (class, const))
+      (find_first (fn ((_, (inst_const, _)), _) => inst_const = name) param_insts) | _ => NONE)
+
+fun contr_classparam_typs program name = 
+  let
+    fun contr_classparam_typs' (class, name) =
+      let
         val Class (_, (_, (_, params))) = Graph.get_node program class;
         val SOME ty = AList.lookup (op =) params name;
         val (tys, res_ty) = unfold_fun ty;
@@ -487,8 +494,15 @@ fun contr_classparam_typs program name = case Graph.get_node program name
         then map (fn ty => if no_tyvar ty then NONE else SOME ty) tys
         else []
       end
-  | _ => [];
-
+ in 
+   case Graph.get_node program name
+   of Classparam (_, class) => contr_classparam_typs' (class, name)
+    | Fun (c, _) => (case lookup_classparam_instance program name
+      of NONE => []
+       | SOME (class, name) => the_default [] (try contr_classparam_typs' (class, name)))
+    | _ => []
+  end;
+  
 fun labelled_name thy program name =
   let val ctxt = Proof_Context.init_global thy in
     case Graph.get_node program name of
