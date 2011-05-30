@@ -750,6 +750,11 @@ noncommercial user. Sledgehammer has been tested with versions 2.7 to 2.18.
 \item[$\bullet$] \textbf{\textit{z3\_atp}:} This version of Z3 pretends to be an
 ATP, exploiting Z3's undocumented support for the TPTP format. It is included
 for experimental purposes. It requires version 2.18 or above.
+
+\item[$\bullet$] \textbf{\textit{metis}:} Although it is much less powerful than
+the external provers, Metis itself can be used for proof search.
+
+\item[$\bullet$] \textbf{\textit{metisFT}:} Fully typed version of Metis.
 \end{enum}
 
 In addition, the following remote provers are supported:
@@ -813,6 +818,9 @@ It is a good idea to run several provers in parallel, although it could slow
 down your machine. Running E, SPASS, and Vampire for 5~seconds yields a similar
 success rate to running the most effective of these for 120~seconds
 \cite{boehme-nipkow-2010}.
+
+For the \textit{min} subcommand, the default prover is \textit{metis}. If
+several provers are set, the first one is used.
 
 \opnodefault{prover}{string}
 Alias for \textit{provers}.
