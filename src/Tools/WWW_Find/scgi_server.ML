@@ -12,6 +12,7 @@ sig
   val server : string -> int -> unit
   val server' : int -> string -> int -> unit (* keeps trying for port *)
   val simple_handler : (string Symtab.table -> (string -> unit) -> unit) -> handler
+  val raw_post_handler : (string -> string) -> handler
 end;
 
 structure ScgiServer : SCGI_SERVER =
@@ -131,6 +132,10 @@ fun simple_handler h (ScgiReq.Req {request_method, query_string, ...}, content, 
       |> HttpUtil.parse_query_string
    | ScgiReq.Head => raise Fail "Cannot handle Head requests.")
   send;
+
+fun raw_post_handler h (ScgiReq.Req {request_method=ScgiReq.Post, ...}, content, send) =
+      send (h (Byte.bytesToString content))
+  | raw_post_handler _ _ = raise Fail "Can only handle POST request.";
 
 end;
 

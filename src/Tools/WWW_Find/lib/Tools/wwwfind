@@ -124,7 +124,7 @@ fi
 
 WWWPORT=`sed -e 's/[ 	]*//g' -ne 's/server.port=\([0-9][0-9]*\),\?/\1/p' "$WWWCONFIG"`
 SCGIPORT=`sed -e 's/[ 	]*//g' -ne 's/"port"=>\([0-9][0-9]*\),\?/\1/p' "$WWWCONFIG"`
-MLSTARTSERVER="ScgiServer.server' 10 \"/\" $SCGIPORT;"
+MLSTARTSERVER="YXML_Find_Theorems.init (); ScgiServer.server' 10 \"/\" $SCGIPORT;"
 
 case "$COMMAND" in
   start)

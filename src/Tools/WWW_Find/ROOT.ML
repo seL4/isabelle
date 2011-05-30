@@ -11,5 +11,6 @@ then
   use "scgi_server.ML";
   use "echo.ML";
   use "html_templates.ML";
-  use "find_theorems.ML")
+  use "find_theorems.ML";
+  use "yxml_find_theorems.ML")
 else ()
