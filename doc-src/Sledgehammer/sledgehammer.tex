@@ -663,7 +663,6 @@ General's ``Isabelle'' menu. Sledgehammer's output is also more concise.
 \def\optrue#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool}$\bigr]$\enskip \defl\textit{true}\defr\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
 \def\opfalse#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool}$\bigr]$\enskip \defl\textit{false}\defr\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
 \def\opsmart#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{smart\_bool}$\bigr]$\enskip \defl\textit{smart}\defr\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
-\def\opsmartx#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{smart\_bool}$\bigr]$\enskip \defl\textit{smart}\defr\hfill\\\hbox{}\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
 \def\opnodefault#1#2{\flushitem{\textit{#1} = \qtybf{#2}} \nopagebreak\\[\parskip]}
 \def\opnodefaultbrk#1#2{\flushitem{$\bigl[$\textit{#1} =$\bigr]$ \qtybf{#2}} \nopagebreak\\[\parskip]}
 \def\opdefault#1#2#3{\flushitem{\textit{#1} = \qtybf{#2}\enskip \defl\textit{#3}\defr} \nopagebreak\\[\parskip]}
@@ -866,13 +865,6 @@ safely remove them after Sledgehammer has run.
 \label{problem-encoding}
 
 \begin{enum}
-\opfalse{explicit\_apply}{implicit\_apply}
-Specifies whether function application should be encoded as an explicit
-``apply'' operator in ATP problems. If the option is set to \textit{false}, each
-function will be directly applied to as many arguments as possible. Enabling
-this option can sometimes help discover higher-order proofs that otherwise would
-not be found.
-
 \opfalse{full\_types}{partial\_types}
 Specifies whether full type information is encoded in ATP problems. Enabling
 this option prevents the discovery of type-incorrect proofs, but it can slow
@@ -974,6 +966,12 @@ irrespective of the value of this option.
 \nopagebreak
 {\small See also \textit{max\_new\_mono\_instances} (\S\ref{relevance-filter})
 and \textit{max\_mono\_iters} (\S\ref{relevance-filter}).}
+
+\opsmart{explicit\_apply}{implicit\_apply}
+Specifies whether function application should be encoded as an explicit
+``apply'' operator in ATP problems. If the option is set to \textit{false}, each
+function will be directly applied to as many arguments as possible. Disabling
+this option can sometimes prevent the discovery of higher-order proofs.
 \end{enum}
 
 \subsection{Relevance Filter}
@@ -988,11 +986,11 @@ is reached). The effective threshold is quadratically interpolated for the other
 iterations. Each threshold ranges from 0 to 1, where 0 means that all theorems
 are relevant and 1 only theorems that refer to previously seen constants.
 
-\opsmart{max\_relevant}{smart\_int}
+\opdefault{max\_relevant}{smart\_int}{smart}
 Specifies the maximum number of facts that may be returned by the relevance
 filter. If the option is set to \textit{smart}, it is set to a value that was
 empirically found to be appropriate for the prover. A typical value would be
-300.
+250.
 
 \opdefault{max\_new\_mono\_instances}{int}{\upshape 400}
 Specifies the maximum number of monomorphic instances to generate beyond
