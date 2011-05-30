@@ -581,12 +581,12 @@ fun pretty_theorem ctxt (Internal (thmref, thm)) = Pretty.block
 
 fun pretty_thm ctxt (thmref, thm) = pretty_theorem ctxt (Internal (thmref, thm));
 
-fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
+fun gen_print_theorems find ctxt opt_goal opt_limit rem_dups raw_criteria =
   let
     val start = Timing.start ();
 
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
-    val (foundo, theorems) = filter_theorems ctxt (map Internal (all_facts_of ctxt))
+    val (foundo, theorems) = find
       {goal=opt_goal, limit=opt_limit, rem_dups=rem_dups, criteria=criteria};
     val returned = length theorems;
 
@@ -609,6 +609,8 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
         map (pretty_theorem ctxt) theorems)
   end |> Pretty.chunks |> Pretty.writeln;
 
+fun print_theorems ctxt =
+  gen_print_theorems (filter_theorems ctxt (map Internal (all_facts_of ctxt))) ctxt;
 
 
 (** command syntax **)
