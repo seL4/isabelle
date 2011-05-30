@@ -111,7 +111,9 @@ fun print_new_messages () =
   Synchronized.change_result global_state
       (fn {manager, timeout_heap, active, canceling, messages, store} =>
           messages
-          |> List.partition (fn (urgent, _) => null active orelse urgent)
+          |> List.partition
+                 (fn (urgent, _) =>
+                     (null active andalso null canceling) orelse urgent)
           ||> (fn postponed_messages =>
                   make_state manager timeout_heap active canceling
                                      postponed_messages store))
@@ -156,7 +158,7 @@ fun check_thread_manager () = Synchronized.change global_state
         do
           (Synchronized.timed_access global_state (SOME o time_limit o #timeout_heap) action
             |> these
-            |> List.app (unregister (false, "Timed out.\n"));
+            |> List.app (unregister (false, "Timed out."));
             print_new_messages ();
             (*give threads some time to respond to interrupt*)
             OS.Process.sleep min_wait_time)
