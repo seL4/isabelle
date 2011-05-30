@@ -10,5 +10,6 @@ then
   use "scgi_req.ML";
   use "scgi_server.ML";
   use "echo.ML";
+  use "html_templates.ML";
   use "find_theorems.ML")
 else ()
