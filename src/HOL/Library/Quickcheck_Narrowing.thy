@@ -86,7 +86,7 @@ where
   "nat_of i = nat (int_of i)"
 
 
-code_datatype "number_of \<Colon> int \<Rightarrow> code_numeral"
+code_datatype "number_of \<Colon> int \<Rightarrow> code_int"
   
   
 instantiation code_int :: "{minus, linordered_semidom, semiring_div, linorder}"
@@ -200,16 +200,19 @@ code_abort of_int
 
 subsubsection {* Narrowing's deep representation of types and terms *}
 
-datatype type = SumOfProd "type list list"
+datatype narrowing_type = SumOfProd "narrowing_type list list"
 
-datatype "term" = Var "code_int list" type | Ctr code_int "term list"
-
-datatype 'a cons = C type "(term list => 'a) list"
+datatype narrowing_term = Var "code_int list" narrowing_type | Ctr code_int "narrowing_term list"
+datatype 'a cons = C narrowing_type "(narrowing_term list => 'a) list"
 
 subsubsection {* From narrowing's deep representation of terms to Code_Evaluation's terms *}
 
 class partial_term_of = typerep +
-  fixes partial_term_of :: "'a itself => term => Code_Evaluation.term"
+  fixes partial_term_of :: "'a itself => narrowing_term => Code_Evaluation.term"
+
+lemma partial_term_of_anything: "partial_term_of x nt \<equiv> t"
+  by (rule eq_reflection) (cases "partial_term_of x nt", cases t, simp)
+
 
 subsubsection {* Auxilary functions for Narrowing *}
 
@@ -241,12 +244,12 @@ definition cons :: "'a => 'a narrowing"
 where
   "cons a d = (C (SumOfProd [[]]) [(%_. a)])"
 
-fun conv :: "(term list => 'a) list => term => 'a"
+fun conv :: "(narrowing_term list => 'a) list => narrowing_term => 'a"
 where
   "conv cs (Var p _) = error (Char Nibble0 Nibble0 # map toEnum p)"
 | "conv cs (Ctr i xs) = (nth cs i) xs"
 
-fun nonEmpty :: "type => bool"
+fun nonEmpty :: "narrowing_type => bool"
 where
   "nonEmpty (SumOfProd ps) = (\<not> (List.null ps))"
 
@@ -270,7 +273,7 @@ where
 lemma [fundef_cong]:
   assumes "a d = a' d" "b d = b' d" "d = d'"
   shows "sum a b d = sum a' b' d'"
-using assms unfolding sum_def by (auto split: cons.split type.split)
+using assms unfolding sum_def by (auto split: cons.split narrowing_type.split)
 
 lemma [fundef_cong]:
   assumes "f d = f' d" "(\<And>d'. 0 <= d' & d' < d ==> a d' = a' d')"
@@ -284,7 +287,7 @@ proof -
   have "int_of (of_int (int_of d' - int_of (of_int 1))) < int_of d'"
     by (simp add: of_int_inverse)
   ultimately show ?thesis
-    unfolding apply_def by (auto split: cons.split type.split simp add: Let_def)
+    unfolding apply_def by (auto split: cons.split narrowing_type.split simp add: Let_def)
 qed
 
 type_synonym pos = "code_int list"
@@ -459,7 +462,7 @@ class is_testable
 
 instance bool :: is_testable ..
 
-instance "fun" :: ("{term_of, narrowing}", is_testable) is_testable ..
+instance "fun" :: ("{term_of, narrowing, partial_term_of}", is_testable) is_testable ..
 
 definition ensure_testable :: "'a :: is_testable => 'a :: is_testable"
 where
@@ -494,8 +497,8 @@ use "~~/src/HOL/Tools/Quickcheck/narrowing_generators.ML"
 
 setup {* Narrowing_Generators.setup *}
 
-hide_type (open) code_int type "term" cons
+hide_type (open) code_int narrowing_type narrowing_term cons
 hide_const (open) int_of of_int nth error toEnum map_index split_At empty
-  cons conv nonEmpty "apply" sum cons1 cons2 ensure_testable
+  C cons conv nonEmpty "apply" sum cons1 cons2 ensure_testable
 
 end

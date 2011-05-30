@@ -19,8 +19,89 @@ struct
 (* configurations *)
 
 val finite_functions = Attrib.setup_config_bool @{binding quickcheck_finite_functions} (K true)
+val overlord = Attrib.setup_config_bool @{binding quickcheck_narrowing_overlord} (K false)
 
-(* narrowing specific names and types *)
+(* partial_term_of instances *)
+
+fun mk_partial_term_of (x, T) =
+  Const (@{const_name Quickcheck_Narrowing.partial_term_of_class.partial_term_of},
+    Term.itselfT T --> @{typ narrowing_term} --> @{typ Code_Evaluation.term})
+      $ Const ("TYPE", Term.itselfT T) $ x
+
+(** formal definition **)
+
+fun add_partial_term_of tyco raw_vs thy =
+  let
+    val vs = map (fn (v, _) => (v, @{sort typerep})) raw_vs;
+    val ty = Type (tyco, map TFree vs);
+    val lhs = Const (@{const_name partial_term_of},
+        Term.itselfT ty --> @{typ narrowing_term} --> @{typ Code_Evaluation.term})
+      $ Free ("x", Term.itselfT ty) $ Free ("t", @{typ narrowing_term});
+    val rhs = @{term "undefined :: Code_Evaluation.term"};
+    val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
+    fun triv_name_of t = (fst o dest_Free o fst o strip_comb o fst
+      o HOLogic.dest_eq o HOLogic.dest_Trueprop) t ^ "_triv";
+  in
+    thy
+    |> Class.instantiation ([tyco], vs, @{sort partial_term_of})
+    |> `(fn lthy => Syntax.check_term lthy eq)
+    |-> (fn eq => Specification.definition (NONE, ((Binding.name (triv_name_of eq), []), eq)))
+    |> snd
+    |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
+  end;
+
+fun ensure_partial_term_of (tyco, (raw_vs, _)) thy =
+  let
+    val need_inst = not (can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort partial_term_of})
+      andalso can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort typerep};
+  in if need_inst then add_partial_term_of tyco raw_vs thy else thy end;
+
+
+(** code equations for datatypes **)
+
+fun mk_partial_term_of_eq thy ty (i, (c, (_, tys))) =
+  let
+    val frees = map Free (Name.names Name.context "a" (map (K @{typ narrowing_term}) tys))
+    val narrowing_term = @{term "Quickcheck_Narrowing.Ctr"} $ HOLogic.mk_number @{typ code_int} i
+      $ (HOLogic.mk_list @{typ narrowing_term} frees)
+    val rhs = fold (fn u => fn t => @{term "Code_Evaluation.App"} $ t $ u)
+        (map mk_partial_term_of (frees ~~ tys))
+        (@{term "Code_Evaluation.Const"} $ HOLogic.mk_literal c $ HOLogic.mk_typerep (tys ---> ty))
+    val insts =
+      map (SOME o Thm.cterm_of thy o map_types Logic.unvarifyT_global o Logic.varify_global)
+        [Free ("ty", Term.itselfT ty), narrowing_term, rhs]
+    val cty = Thm.ctyp_of thy ty;
+  in
+    @{thm partial_term_of_anything}
+    |> Drule.instantiate' [SOME cty] insts
+    |> Thm.varifyT_global
+  end
+
+fun add_partial_term_of_code tyco raw_vs raw_cs thy =
+  let
+    val algebra = Sign.classes_of thy;
+    val vs = map (fn (v, sort) =>
+      (v, curry (Sorts.inter_sort algebra) @{sort typerep} sort)) raw_vs;
+    val ty = Type (tyco, map TFree vs);
+    val cs = (map o apsnd o apsnd o map o map_atyps)
+      (fn TFree (v, _) => TFree (v, (the o AList.lookup (op =) vs) v)) raw_cs;
+    val const = AxClass.param_of_inst thy (@{const_name partial_term_of}, tyco);
+    val eqs = map_index (mk_partial_term_of_eq thy ty) cs;
+ in
+    thy
+    |> Code.del_eqns const
+    |> fold Code.add_eqn eqs
+  end;
+
+fun ensure_partial_term_of_code (tyco, (raw_vs, cs)) thy =
+  let
+    val has_inst = can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort partial_term_of};
+  in if has_inst then add_partial_term_of_code tyco raw_vs cs thy else thy end;
+
+
+(* narrowing generators *)
+
+(** narrowing specific names and types **)
 
 exception FUNCTION_TYPE;
 
@@ -48,7 +129,7 @@ fun mk_sum (t, u) =
     Const (@{const_name Quickcheck_Narrowing.sum}, T --> T --> T) $ t $ u
   end
 
-(* creating narrowing instances *)
+(** deriving narrowing instances **)
 
 fun mk_equations descr vs tycos narrowings (Ts, Us) =
   let
@@ -95,16 +176,24 @@ fun instantiate_narrowing_datatype config descr vs tycos prfx (names, auxnames) 
 
 val target = "Haskell"
 
-(* invocation of Haskell interpreter *)
+(** invocation of Haskell interpreter **)
 
 val narrowing_engine = File.read (Path.explode "~~/src/HOL/Tools/Quickcheck/Narrowing_Engine.hs")
 
 fun exec verbose code =
   ML_Context.exec (fn () => Secure.use_text ML_Env.local_context (0, "generated code") verbose code)
 
+fun with_tmp_dir name f =
+  let
+    val path = Path.append (Path.explode "~/.isabelle") (Path.basic (name ^ serial_string ()))
+    val _ = Isabelle_System.mkdirs path;
+  in Exn.release (Exn.capture f path) end;
+  
 fun value ctxt (get, put, put_ml) (code, value) size =
   let
     val tmp_prefix = "Quickcheck_Narrowing"
+    val with_tmp_dir = if Config.get ctxt overlord 
+      then Isabelle_System.with_tmp_dir else Quickcheck_Narrowing.with_tmp_dir 
     fun run in_path = 
       let
         val code_file = Path.append in_path (Path.basic "Code.hs")
@@ -127,7 +216,7 @@ fun value ctxt (get, put, put_ml) (code, value) size =
       in
         bash_output cmd
       end
-    val result = Isabelle_System.with_tmp_dir tmp_prefix run
+    val result = with_tmp_dir tmp_prefix run
     val output_value = the_default "NONE"
       (try (snd o split_last o filter_out (fn s => s = "") o split_lines o fst) result)
       |> translate_string (fn s => if s = "\\" then "\\\\" else s)
@@ -152,7 +241,7 @@ fun dynamic_value_strict cookie thy postproc t args size =
       evaluation cookie thy (Code_Target.evaluator thy target naming program deps) (vs_ty, t) args size;
   in Exn.release (Code_Thingol.dynamic_value thy (Exn.map_result o postproc) evaluator t) end;
 
-(* counterexample generator *)
+(** counterexample generator **)
   
 structure Counterexample = Proof_Data
 (
@@ -203,9 +292,12 @@ fun compile_generator_expr ctxt [(t, eval_terms)] [_, size] =
     (result, NONE)
   end;
 
+(* setup *)
 
 val setup =
-  Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
+  Code.datatype_interpretation ensure_partial_term_of
+  #> Code.datatype_interpretation ensure_partial_term_of_code
+  #> Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
     (((@{sort typerep}, @{sort term_of}), @{sort narrowing}), instantiate_narrowing_datatype))
   #> Context.theory_map
     (Quickcheck.add_generator ("narrowing", compile_generator_expr))
