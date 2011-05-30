@@ -160,7 +160,7 @@ fun minimize_facts prover_name (params as {timeout, ...}) explicit_apply_opt
     val ctxt = Proof.context_of state
     val prover = get_prover ctxt Minimize prover_name
     val msecs = Time.toMilliseconds timeout
-    val _ = print silent (fn () => "Sledgehammer minimize: " ^
+    val _ = print silent (fn () => "Sledgehammer minimizer: " ^
                                    quote prover_name ^ ".")
     fun do_test timeout =
       test_facts params explicit_apply_opt silent prover timeout i n state

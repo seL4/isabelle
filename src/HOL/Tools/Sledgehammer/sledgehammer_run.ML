@@ -19,6 +19,7 @@ sig
   val timeoutN : string
   val unknownN : string
   val auto_minimize_min_facts : int Config.T
+  val auto_minimize_max_seconds : real Config.T
   val get_minimizing_prover : Proof.context -> mode -> string -> prover
   val run_sledgehammer :
     params -> mode -> int -> relevance_override -> (string -> minimize_command)
@@ -67,7 +68,6 @@ fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
 val auto_minimize_min_facts =
   Attrib.setup_config_int @{binding sledgehammer_auto_minimize_min_facts}
       (fn generic => Config.get_generic generic binary_min_facts)
-
 val auto_minimize_max_seconds =
   Attrib.setup_config_real @{binding sledgehammer_auto_minimize_max_seconds}
       (K 5.0)
@@ -82,6 +82,9 @@ fun get_minimizing_prover ctxt mode name
          else
            let
              val num_facts = length used_facts
+             fun can_minimize_fast_enough msecs =
+               0.001 * Real.fromInt ((num_facts + 2) * msecs)
+               <= Config.get ctxt auto_minimize_max_seconds
              val ((minimize, minimize_name), preplay) =
                if mode = Normal then
                  if num_facts >= Config.get ctxt auto_minimize_min_facts then
@@ -90,11 +93,13 @@ fun get_minimizing_prover ctxt mode name
                    let val preplay = preplay () in
                      (case preplay of
                         Played (reconstructor, timeout) =>
-                        (0.001 * Real.fromInt ((num_facts + 2)
-                                               * Time.toMilliseconds timeout)
-                        <= Config.get ctxt auto_minimize_max_seconds,
-                        reconstructor_name reconstructor)
-                      | _ => (false, name), K preplay)
+                        (can_minimize_fast_enough (Time.toMilliseconds timeout),
+                         reconstructor_name reconstructor)
+                      | _ =>
+                        case run_time_in_msecs of
+                          SOME msecs => (can_minimize_fast_enough msecs, name)
+                        | NONE => (false, name),
+                     K preplay)
                    end
                else
                  ((false, name), preplay)
@@ -196,9 +201,10 @@ fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
       let
         val (outcome_code, message) = TimeLimit.timeLimit hard_timeout go ()
       in
-        (if outcome_code = someN then message ()
-         else if mode = Normal then quote name ^ ": " ^ message ()
-         else "")
+        (if outcome_code = someN orelse mode = Normal then
+           quote name ^ ": " ^ message ()
+         else
+           "")
         |> Async_Manager.break_into_chunks
         |> List.app Output.urgent_message;
         (outcome_code, state)
