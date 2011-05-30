@@ -210,7 +210,7 @@ fun find_theorems (req as ScgiReq.Req {request_method, query_string, ...},
         val ctxt = Proof_Context.init_global (Thy_Info.get_theory thy_name);
         val query = get_query ();
         val (othmslen, thms) = apsnd rev
-          (Find_Theorems.find_theorems ctxt NONE (SOME limit) with_dups query);
+          (Find_Theorems.find_theorems_cmd ctxt NONE (SOME limit) with_dups query);
         val thmslen = length thms;
         fun thm_row args = Xhtml.write send (html_thm ctxt args);
       in
