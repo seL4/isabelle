@@ -317,13 +317,19 @@ fun string_for_raw_param (key, values) =
   key ^ (case implode_param values of "" => "" | value => " = " ^ value)
 
 fun minimize_command override_params i prover_name fact_names =
-  sledgehammerN ^ " " ^ minN ^
-  (if prover_name = default_minimize_prover then ""
-   else enclose "[" "]" prover_name) ^
-  (override_params |> filter is_raw_param_relevant_for_minimize
-                   |> implode o map (prefix ", " o string_for_raw_param)) ^
-  " (" ^ space_implode " " fact_names ^ ")" ^
-  (if i = 1 then "" else " " ^ string_of_int i)
+  let
+    val params =
+      override_params
+      |> filter is_raw_param_relevant_for_minimize
+      |> map string_for_raw_param
+      |> (if prover_name = default_minimize_prover then I else cons prover_name)
+      |> space_implode ", "
+  in
+    sledgehammerN ^ " " ^ minN ^
+    (if params = "" then "" else enclose " [" "]" params) ^
+    " (" ^ space_implode " " fact_names ^ ")" ^
+    (if i = 1 then "" else " " ^ string_of_int i)
+  end
 
 fun hammer_away override_params subcommand opt_i relevance_override state =
   let
