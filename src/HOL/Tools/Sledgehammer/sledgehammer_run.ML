@@ -73,7 +73,7 @@ val auto_minimize_max_seconds =
       (K 5.0)
 
 fun get_minimizing_prover ctxt mode name
-        (params as {debug, verbose, explicit_apply, ...}) minimize_command
+        (params as {debug, verbose, ...}) minimize_command
         (problem as {state, subgoal, subgoal_count, facts, ...}) =
   get_prover ctxt mode name params minimize_command problem
   |> (fn result as {outcome, used_facts, run_time_in_msecs, preplay, message} =>
@@ -105,7 +105,7 @@ fun get_minimizing_prover ctxt mode name
                  ((false, name), preplay)
              val (used_facts, (preplay, message)) =
                if minimize then
-                 minimize_facts minimize_name params (SOME explicit_apply)
+                 minimize_facts minimize_name params
                      (not verbose) subgoal subgoal_count state
                      (filter_used_facts used_facts
                           (map (apsnd single o untranslated_fact) facts))

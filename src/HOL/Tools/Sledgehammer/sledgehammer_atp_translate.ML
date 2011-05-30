@@ -46,7 +46,7 @@ sig
     -> translated_formula option * ((string * locality) * thm)
   val prepare_atp_problem :
     Proof.context -> format -> formula_kind -> formula_kind -> type_system
-    -> bool -> term list -> term
+    -> bool option -> term list -> term
     -> (translated_formula option * ((string * 'a) * thm)) list
     -> string problem * string Symtab.table * int * int
        * (string * 'a) list vector * int list * int Symtab.table
@@ -199,6 +199,13 @@ fun update_combformula f ({name, locality, kind, combformula, atomic_types}
 
 fun fact_lift f ({combformula, ...} : translated_formula) = f combformula
 
+val type_instance = Sign.typ_instance o Proof_Context.theory_of
+
+fun insert_type ctxt get_T x xs =
+  let val T = get_T x in
+    if exists (curry (type_instance ctxt) T o get_T) xs then xs
+    else x :: filter_out (curry (type_instance ctxt o swap) T o get_T) xs
+  end
 
 (* The Booleans indicate whether all type arguments should be kept. *)
 datatype type_arg_policy =
@@ -519,8 +526,6 @@ fun deep_freeze_atyp (TVar (_, S)) = TFree ("v", S)
   | deep_freeze_atyp T = T
 val deep_freeze_type = map_atyps deep_freeze_atyp
 
-val type_instance = Sign.typ_instance o Proof_Context.theory_of
-
 (* Finite types such as "unit", "bool", "bool * bool", and "bool => bool" are
    dangerous because their "exhaust" properties can easily lead to unsound ATP
    proofs. On the other hand, all HOL infinite types can be given the same
@@ -567,46 +572,91 @@ fun homogenized_type ctxt nonmono_Ts level =
 (** "hBOOL" and "hAPP" **)
 
 type sym_info =
-  {pred_sym : bool, min_ary : int, max_ary : int, typ : typ option}
+  {pred_sym : bool, min_ary : int, max_ary : int, types : typ list}
 
-fun add_combterm_syms_to_table explicit_apply =
+fun add_combterm_syms_to_table ctxt explicit_apply =
   let
-    fun aux top_level tm =
+    fun consider_var_arity const_T var_T max_ary =
+      let
+        fun iter ary T =
+          if ary = max_ary orelse type_instance ctxt (var_T, T) then ary
+          else iter (ary + 1) (range_type T)
+      in iter 0 const_T end
+    fun add top_level tm (accum as (ho_var_Ts, sym_tab)) =
       let val (head, args) = strip_combterm_comb tm in
         (case head of
            CombConst ((s, _), T, _) =>
            if String.isPrefix bound_var_prefix s then
-             I
+             if explicit_apply = NONE andalso can dest_funT T then
+               let
+                 fun repair_min_arity {pred_sym, min_ary, max_ary, types} =
+                   {pred_sym = pred_sym,
+                    min_ary =
+                      fold (fn T' => consider_var_arity T' T) types min_ary,
+                    max_ary = max_ary, types = types}
+                 val ho_var_Ts' = ho_var_Ts |> insert_type ctxt I T
+               in
+                 if pointer_eq (ho_var_Ts', ho_var_Ts) then accum
+                 else (ho_var_Ts', Symtab.map (K repair_min_arity) sym_tab)
+               end
+             else
+               accum
            else
-             let val ary = length args in
-               Symtab.map_default
-                   (s, {pred_sym = true,
-                        min_ary = if explicit_apply then 0 else ary,
-                        max_ary = 0, typ = SOME T})
-                   (fn {pred_sym, min_ary, max_ary, typ} =>
-                       {pred_sym = pred_sym andalso top_level,
-                        min_ary = Int.min (ary, min_ary),
-                        max_ary = Int.max (ary, max_ary),
-                        typ = if typ = SOME T then typ else NONE})
-            end
-         | _ => I)
-        #> fold (aux false) args
+             let
+               val ary = length args
+             in
+               (ho_var_Ts,
+                case Symtab.lookup sym_tab s of
+                  SOME {pred_sym, min_ary, max_ary, types} =>
+                  let
+                    val types' = types |> insert_type ctxt I T
+                    val min_ary =
+                      if is_some explicit_apply orelse
+                         pointer_eq (types', types) then
+                        min_ary
+                      else
+                        fold (consider_var_arity T) ho_var_Ts min_ary
+                  in
+                    Symtab.update (s, {pred_sym = pred_sym andalso top_level,
+                                       min_ary = Int.min (ary, min_ary),
+                                       max_ary = Int.max (ary, max_ary),
+                                       types = types'})
+                                  sym_tab
+                  end
+                | NONE =>
+                  let
+                    val min_ary =
+                      case explicit_apply of
+                        SOME true => 0
+                      | SOME false => ary
+                      | NONE => fold (consider_var_arity T) ho_var_Ts ary
+                  in
+                    Symtab.update_new (s, {pred_sym = top_level,
+                                           min_ary = min_ary, max_ary = ary,
+                                           types = [T]})
+                                      sym_tab
+                  end)
+             end
+         | _ => accum)
+        |> fold (add false) args
       end
-  in aux true end
-fun add_fact_syms_to_table explicit_apply =
-  fact_lift (formula_fold NONE (K (add_combterm_syms_to_table explicit_apply)))
+  in add true end
+fun add_fact_syms_to_table ctxt explicit_apply =
+  fact_lift (formula_fold NONE
+                          (K (add_combterm_syms_to_table ctxt explicit_apply)))
 
 val default_sym_table_entries : (string * sym_info) list =
-  [(tptp_equal, {pred_sym = true, min_ary = 2, max_ary = 2, typ = NONE}),
-   (tptp_old_equal, {pred_sym = true, min_ary = 2, max_ary = 2, typ = NONE}),
+  [(tptp_equal, {pred_sym = true, min_ary = 2, max_ary = 2, types = []}),
+   (tptp_old_equal, {pred_sym = true, min_ary = 2, max_ary = 2, types = []}),
    (make_fixed_const predicator_name,
-    {pred_sym = true, min_ary = 1, max_ary = 1, typ = NONE})] @
+    {pred_sym = true, min_ary = 1, max_ary = 1, types = []})] @
   ([tptp_false, tptp_true]
-   |> map (rpair {pred_sym = true, min_ary = 0, max_ary = 0, typ = NONE}))
+   |> map (rpair {pred_sym = true, min_ary = 0, max_ary = 0, types = []}))
 
-fun sym_table_for_facts explicit_apply facts =
-  Symtab.empty |> fold Symtab.default default_sym_table_entries
-               |> fold (add_fact_syms_to_table explicit_apply) facts
+fun sym_table_for_facts ctxt explicit_apply facts =
+  Symtab.empty
+  |> fold Symtab.default default_sym_table_entries
+  |> pair [] |> fold (add_fact_syms_to_table ctxt explicit_apply) facts |> snd
 
 fun min_arity_of sym_tab s =
   case Symtab.lookup sym_tab s of
@@ -759,7 +809,7 @@ fun ti_ti_helper_fact () =
              |> close_formula_universally, simp_info, NONE)
   end
 
-fun helper_facts_for_sym ctxt format type_sys (s, {typ, ...} : sym_info) =
+fun helper_facts_for_sym ctxt format type_sys (s, {types, ...} : sym_info) =
   case strip_prefix_and_unascii const_prefix s of
     SOME mangled_s =>
     let
@@ -775,9 +825,9 @@ fun helper_facts_for_sym ctxt format type_sys (s, {typ, ...} : sym_info) =
                     Mangled_Type_Args _ => true
                   | _ => false) andalso
                  not (null (Term.hidden_polymorphism t)))
-                ? (case typ of
-                     SOME T => specialize_type thy (invert_const unmangled_s, T)
-                   | NONE => I)
+                ? (case types of
+                     [T] => specialize_type thy (invert_const unmangled_s, T)
+                   | _ => I)
          end)
       fun make_facts eq_as_iff =
         map_filter (make_fact ctxt format type_sys false eq_as_iff false)
@@ -989,12 +1039,6 @@ fun formula_lines_for_free_types format type_sys facts =
   in map2 formula_line_for_free_type (0 upto length lits - 1) lits end
 
 (** Symbol declarations **)
-
-fun insert_type ctxt get_T x xs =
-  let val T = get_T x in
-    if exists (curry (type_instance ctxt) T o get_T) xs then xs
-    else x :: filter_out (curry (type_instance ctxt o swap) T o get_T) xs
-  end
 
 fun should_declare_sym type_sys pred_sym s =
   is_tptp_user_symbol s andalso not (String.isPrefix bound_var_prefix s) andalso
@@ -1223,11 +1267,12 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
   let
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
       translate_formulas ctxt format prem_kind type_sys hyp_ts concl_t facts
-    val sym_tab = conjs @ facts |> sym_table_for_facts explicit_apply
+    val sym_tab = conjs @ facts |> sym_table_for_facts ctxt explicit_apply
     val nonmono_Ts = conjs @ facts |> nonmonotonic_types_for_facts ctxt type_sys
     val repair = repair_fact ctxt format nonmono_Ts type_sys sym_tab
     val (conjs, facts) = (conjs, facts) |> pairself (map repair)
-    val repaired_sym_tab = conjs @ facts |> sym_table_for_facts false
+    val repaired_sym_tab =
+      conjs @ facts |> sym_table_for_facts ctxt (SOME false)
     val helpers =
       repaired_sym_tab |> helper_facts_for_sym_table ctxt format type_sys
                        |> map repair

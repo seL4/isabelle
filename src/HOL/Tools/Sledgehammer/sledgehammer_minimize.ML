@@ -13,7 +13,7 @@ sig
 
   val binary_min_facts : int Config.T
   val minimize_facts :
-    string -> params -> bool option -> bool -> int -> int -> Proof.state
+    string -> params -> bool -> int -> int -> Proof.state
     -> ((string * locality) * thm list) list
     -> ((string * locality) * thm list) list option
        * ((unit -> play) * (play -> string))
@@ -45,26 +45,16 @@ fun n_facts names =
 fun print silent f = if silent then () else Output.urgent_message (f ())
 
 fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
-                 max_new_mono_instances, type_sys, isar_proof,
+                 max_new_mono_instances, type_sys, explicit_apply, isar_proof,
                  isar_shrink_factor, preplay_timeout, ...} : params)
-        explicit_apply_opt silent (prover : prover) timeout i n state facts =
+               silent (prover : prover) timeout i n state facts =
   let
-    val ctxt = Proof.context_of state
-    val thy = Proof.theory_of state
     val _ =
       print silent (fn () =>
           "Testing " ^ n_facts (map fst facts) ^
           (if verbose then " (timeout: " ^ string_from_time timeout ^ ")"
           else "") ^ "...")
     val {goal, ...} = Proof.goal state
-    val explicit_apply =
-      case explicit_apply_opt of
-        SOME explicit_apply => explicit_apply
-      | NONE =>
-        let val (_, hyp_ts, concl_t) = strip_subgoal ctxt goal i in
-          not (forall (Meson.is_fol_term thy)
-                      (concl_t :: hyp_ts @ maps (map prop_of o snd) facts))
-        end
     val params =
       {debug = debug, verbose = verbose, overlord = overlord, blocking = true,
        provers = provers, type_sys = type_sys, explicit_apply = explicit_apply,
@@ -154,16 +144,15 @@ fun binary_minimize test xs =
    part of the timeout. *)
 val slack_msecs = 200
 
-fun minimize_facts prover_name (params as {timeout, ...}) explicit_apply_opt
-                   silent i n state facts =
+fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
+                   facts =
   let
     val ctxt = Proof.context_of state
     val prover = get_prover ctxt Minimize prover_name
     val msecs = Time.toMilliseconds timeout
     val _ = print silent (fn () => "Sledgehammer minimizer: " ^
                                    quote prover_name ^ ".")
-    fun do_test timeout =
-      test_facts params explicit_apply_opt silent prover timeout i n state
+    fun do_test timeout = test_facts params silent prover timeout i n state
     val timer = Timer.startRealTimer ()
   in
     (case do_test timeout facts of
@@ -212,7 +201,7 @@ fun run_minimize (params as {provers, ...}) i refs state =
              [] => error "No prover is set."
            | prover :: _ =>
              (kill_provers ();
-              minimize_facts prover params NONE false i n state facts
+              minimize_facts prover params false i n state facts
               |> (fn (_, (preplay, message)) =>
                      Output.urgent_message (message (preplay ()))))
   end

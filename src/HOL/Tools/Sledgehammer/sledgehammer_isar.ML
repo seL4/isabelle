@@ -96,7 +96,7 @@ val default_default_params =
    ("max_relevant", "smart"),
    ("max_mono_iters", "3"),
    ("max_new_mono_instances", "400"),
-   ("explicit_apply", "false"),
+   ("explicit_apply", "smart"),
    ("isar_proof", "false"),
    ("isar_shrink_factor", "1"),
    ("slicing", "true"),
@@ -118,8 +118,8 @@ val negated_alias_params =
 
 val params_for_minimize =
   ["debug", "verbose", "overlord", "type_sys", "full_types", "max_mono_iters",
-   "max_new_mono_instances", "isar_proof", "isar_shrink_factor", "timeout",
-   "preplay_timeout"]
+   "max_new_mono_instances", "explicit_apply", "isar_proof",
+   "isar_shrink_factor", "timeout", "preplay_timeout"]
 
 val property_dependent_params = ["provers", "full_types", "timeout"]
 
@@ -262,10 +262,10 @@ fun extract_params mode default_params override_params =
                   | _ => error ("Parameter " ^ quote name ^
                                 "must be assigned a pair of floating-point \
                                 \values (e.g., \"0.6 0.95\")")
-    fun lookup_int_option name =
+    fun lookup_option lookup' name =
       case lookup name of
         SOME "smart" => NONE
-      | _ => SOME (lookup_int name)
+      | _ => SOME (lookup' name)
     val debug = mode <> Auto_Try andalso lookup_bool "debug"
     val verbose = debug orelse (mode <> Auto_Try andalso lookup_bool "verbose")
     val overlord = lookup_bool "overlord"
@@ -281,10 +281,10 @@ fun extract_params mode default_params override_params =
         "smart" => Smart_Type_Sys (mode = Try orelse lookup_bool "full_types")
       | s => Dumb_Type_Sys (type_sys_from_string s)
     val relevance_thresholds = lookup_real_pair "relevance_thresholds"
-    val max_relevant = lookup_int_option "max_relevant"
+    val max_relevant = lookup_option lookup_int "max_relevant"
     val max_mono_iters = lookup_int "max_mono_iters"
     val max_new_mono_instances = lookup_int "max_new_mono_instances"
-    val explicit_apply = lookup_bool "explicit_apply"
+    val explicit_apply = lookup_option lookup_bool "explicit_apply"
     val isar_proof = lookup_bool "isar_proof"
     val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
     val slicing = mode <> Auto_Try andalso lookup_bool "slicing"

@@ -505,14 +505,14 @@ fun run_minimize args reconstructor named_thms id
       AList.lookup (op =) args minimize_timeoutK
       |> Option.map (fst o read_int o raw_explode)  (* FIXME Symbol.explode (?) *)
       |> the_default 5
-    val params as {explicit_apply, ...} = Sledgehammer_Isar.default_params ctxt
+    val params = Sledgehammer_Isar.default_params ctxt
       [("provers", prover_name),
        ("verbose", "true"),
        ("type_sys", type_sys),
        ("timeout", string_of_int timeout)]
     val minimize =
       Sledgehammer_Minimize.minimize_facts prover_name params
-          (SOME explicit_apply) true 1 (Sledgehammer_Util.subgoal_count st)
+          true 1 (Sledgehammer_Util.subgoal_count st)
     val _ = log separator
     val (used_facts, (preplay, message)) = minimize st (these (!named_thms))
     val msg = message (preplay ())
