@@ -33,7 +33,7 @@ sig
      max_relevant: int option,
      max_mono_iters: int,
      max_new_mono_instances: int,
-     explicit_apply: bool,
+     explicit_apply: bool option,
      isar_proof: bool,
      isar_shrink_factor: int,
      slicing: bool,
@@ -155,8 +155,14 @@ fun is_prover_installed ctxt =
   is_metis_prover orf is_smt_prover ctxt orf
   is_atp_installed (Proof_Context.theory_of ctxt)
 
-fun get_slices slicing slices =
-  (0 upto length slices - 1) ~~ slices |> not slicing ? (List.last #> single)
+fun get_slices num_facts slicing slices =
+  (0 upto length slices - 1) ~~ slices
+  |> (if slicing andalso
+         exists (fn (_, (_, (max_facts, _))) => max_facts < num_facts)
+                slices then
+        I
+      else
+        List.last #> single)
 
 val metis_default_max_relevant = 20
 
@@ -166,7 +172,8 @@ fun default_max_relevant_for_prover ctxt slicing name =
       metis_default_max_relevant
     else if is_atp thy name then
       fold (Integer.max o fst o snd o snd o snd)
-           (get_slices slicing (#best_slices (get_atp thy name) ctxt)) 0
+           (get_slices 16384 (* large number *) slicing
+                       (#best_slices (get_atp thy name) ctxt)) 0
     else (* is_smt_prover ctxt name *)
       SMT_Solver.default_max_relevant ctxt name
   end
@@ -295,7 +302,7 @@ type params =
    max_relevant: int option,
    max_mono_iters: int,
    max_new_mono_instances: int,
-   explicit_apply: bool,
+   explicit_apply: bool option,
    isar_proof: bool,
    isar_shrink_factor: int,
    slicing: bool,
@@ -592,7 +599,8 @@ fun run_atp mode name
           let
             (* If slicing is disabled, we expand the last slice to fill the
                entire time available. *)
-            val actual_slices = get_slices slicing (best_slices ctxt)
+            val actual_slices =
+              get_slices (length facts) slicing (best_slices ctxt)
             val num_actual_slices = length actual_slices
             fun monomorphize_facts facts =
               let
@@ -787,12 +795,9 @@ fun run_atp mode name
                 val used_ths =
                   facts |> map untranslated_fact |> filter_used_facts used_facts
                         |> map snd
-                val reconstructors =
-                  [Metis, MetisFT]
-                  |> uses_typed_helpers typed_helpers atp_proof ? rev
               in
                 play_one_line_proof debug preplay_timeout used_ths state subgoal
-                                    reconstructors
+                                    [Metis, MetisFT]
               end,
            fn preplay =>
               let
