@@ -16,7 +16,7 @@ sig
 
   datatype failure =
     Unprovable |
-    IncompleteUnprovable |
+    GaveUp |
     ProofMissing |
     ProofIncomplete |
     UnsoundProof of bool * string list |
@@ -73,7 +73,7 @@ exception UNRECOGNIZED_ATP_PROOF of unit
 
 datatype failure =
   Unprovable |
-  IncompleteUnprovable |
+  GaveUp |
   ProofMissing |
   ProofIncomplete |
   UnsoundProof of bool * string list |
@@ -146,7 +146,7 @@ fun involving [] = ""
     " "
 
 fun string_for_failure Unprovable = "The problem is unprovable."
-  | string_for_failure IncompleteUnprovable = "The prover gave up."
+  | string_for_failure GaveUp = "The prover gave up."
   | string_for_failure ProofMissing =
     "The prover claims the conjecture is a theorem but did not provide a proof."
   | string_for_failure ProofIncomplete =
@@ -231,7 +231,7 @@ fun extract_tstplike_proof_and_outcome verbose complete res_code proof_delims
         extract_known_failure known_failures output) of
     (_, SOME ProofIncomplete) => ("", SOME ProofIncomplete)
   | ("", SOME failure) =>
-    ("", SOME (if failure = IncompleteUnprovable andalso complete then Unprovable
+    ("", SOME (if failure = GaveUp andalso complete then Unprovable
                else failure))
   | ("", NONE) =>
     ("", SOME (if res_code = 0 andalso output = "" then ProofMissing

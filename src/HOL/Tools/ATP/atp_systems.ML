@@ -256,7 +256,7 @@ val spass_config : atp_config =
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
      known_perl_failures @
-     [(IncompleteUnprovable, "SPASS beiseite: Completion found"),
+     [(GaveUp, "SPASS beiseite: Completion found"),
       (TimedOut, "SPASS beiseite: Ran out of time"),
       (OutOfResources, "SPASS beiseite: Maximal number of loops exceeded"),
       (MalformedInput, "Undefined symbol"),
@@ -296,9 +296,9 @@ val vampire_config : atp_config =
       ("% SZS output start Refutation", "% SZS output end Refutation"),
       ("% SZS output start Proof", "% SZS output end Proof")],
    known_failures =
-     [(Unprovable, "UNPROVABLE"),
-      (IncompleteUnprovable, "CANNOT PROVE"),
-      (IncompleteUnprovable, "SZS status GaveUp"),
+     [(GaveUp, "UNPROVABLE"),
+      (GaveUp, "CANNOT PROVE"),
+      (GaveUp, "SZS status GaveUp"),
       (ProofIncomplete, "predicate_definition_introduction,[]"),
       (TimedOut, "SZS status Timeout"),
       (Unprovable, "Satisfiability detected"),
@@ -329,8 +329,8 @@ val z3_atp_config : atp_config =
    proof_delims = [],
    known_failures =
      [(Unprovable, "\nsat"),
-      (IncompleteUnprovable, "\nunknown"),
-      (IncompleteUnprovable, "SZS status Satisfiable"),
+      (GaveUp, "\nunknown"),
+      (GaveUp, "SZS status Satisfiable"),
       (ProofMissing, "\nunsat"),
       (ProofMissing, "SZS status Unsatisfiable")],
    conj_sym_kind = Hypothesis,
@@ -388,10 +388,10 @@ fun remote_config system_name system_versions proof_delims known_failures
    known_failures = known_failures @ known_perl_failures @
      [(Unprovable, "says Satisfiable"),
       (Unprovable, "says CounterSatisfiable"),
+      (GaveUp, "says Unknown"),
+      (GaveUp, "says GaveUp"),
       (ProofMissing, "says Theorem"),
       (ProofMissing, "says Unsatisfiable"),
-      (IncompleteUnprovable, "says Unknown"),
-      (IncompleteUnprovable, "says GaveUp"),
       (TimedOut, "says Timeout"),
       (Inappropriate, "says Inappropriate")],
    conj_sym_kind = conj_sym_kind,

@@ -17,14 +17,14 @@ sig
     MetisFT |
     SMT of string
 
-  datatype preplay =
-    Preplayed of reconstructor * Time.time |
+  datatype play =
+    Played of reconstructor * Time.time |
     Trust_Playable of reconstructor * Time.time option|
-    Failed_to_Preplay
+    Failed_to_Play
 
   type minimize_command = string list -> string
   type one_line_params =
-    preplay * string * (string * locality) list * minimize_command * int * int
+    play * string * (string * locality) list * minimize_command * int * int
   type isar_params =
     bool * bool * int * type_system * string Symtab.table * int list list
     * int * (string * locality) list vector * int Symtab.table * string proof
@@ -62,14 +62,14 @@ datatype reconstructor =
   MetisFT |
   SMT of string
 
-datatype preplay =
-  Preplayed of reconstructor * Time.time |
+datatype play =
+  Played of reconstructor * Time.time |
   Trust_Playable of reconstructor * Time.time option |
-  Failed_to_Preplay
+  Failed_to_Play
 
 type minimize_command = string list -> string
 type one_line_params =
-  preplay * string * (string * locality) list * minimize_command * int * int
+  play * string * (string * locality) list * minimize_command * int * int
 type isar_params =
   bool * bool * int * type_system * string Symtab.table * int list list * int
   * (string * locality) list vector * int Symtab.table * string proof * thm
@@ -288,7 +288,7 @@ fun one_line_proof_text (preplay, banner, used_facts, minimize_command,
     val (chained, extra) = split_used_facts used_facts
     val (reconstructor, ext_time) =
       case preplay of
-        Preplayed (reconstructor, time) =>
+        Played (reconstructor, time) =>
         (SOME reconstructor, (SOME (false, time)))
       | Trust_Playable (reconstructor, time) =>
         (SOME reconstructor,
@@ -296,7 +296,7 @@ fun one_line_proof_text (preplay, banner, used_facts, minimize_command,
            NONE => NONE
          | SOME time =>
            if time = Time.zeroTime then NONE else SOME (true, time))
-      | Failed_to_Preplay => (NONE, NONE)
+      | Failed_to_Play => (NONE, NONE)
     val try_line =
       case reconstructor of
         SOME r => ([], map fst extra)
@@ -1076,7 +1076,7 @@ fun isar_proof_text ctxt
 
 fun proof_text ctxt isar_proof isar_params
                (one_line_params as (preplay, _, _, _, _, _)) =
-  (if isar_proof orelse preplay = Failed_to_Preplay then
+  (if isar_proof orelse preplay = Failed_to_Play then
      isar_proof_text ctxt isar_params
    else
      one_line_proof_text) one_line_params

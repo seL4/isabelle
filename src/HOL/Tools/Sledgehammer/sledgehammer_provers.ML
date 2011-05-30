@@ -73,6 +73,8 @@ sig
   val smt_slice_min_secs : int Config.T
   val das_tool : string
   val select_smt_solver : string -> Proof.context -> Proof.context
+  val is_metis_prover : string -> bool
+  val is_atp : theory -> string -> bool
   val is_smt_prover : Proof.context -> string -> bool
   val is_unit_equational_atp : Proof.context -> string -> bool
   val is_prover_supported : Proof.context -> string -> bool
@@ -123,6 +125,11 @@ datatype mode = Auto_Try | Try | Normal | Minimize
    "Async_Manager". *)
 val das_tool = "Sledgehammer"
 
+val metis_prover_names = [Metis_Tactics.metisN, Metis_Tactics.metisFT_N]
+
+val is_metis_prover = member (op =) metis_prover_names
+val is_atp = member (op =) o supported_atps
+
 val select_smt_solver =
   Context.proof_map o SMT_Config.select_solver
 
@@ -138,22 +145,27 @@ fun is_unit_equational_atp ctxt name =
 
 fun is_prover_supported ctxt name =
   let val thy = Proof_Context.theory_of ctxt in
-    is_smt_prover ctxt name orelse member (op =) (supported_atps thy) name
+    is_metis_prover name orelse is_atp thy name orelse is_smt_prover ctxt name
   end
 
 fun is_prover_installed ctxt =
-  is_smt_prover ctxt orf is_atp_installed (Proof_Context.theory_of ctxt)
+  is_metis_prover orf is_smt_prover ctxt orf
+  is_atp_installed (Proof_Context.theory_of ctxt)
 
 fun get_slices slicing slices =
   (0 upto length slices - 1) ~~ slices |> not slicing ? (List.last #> single)
 
+val metis_default_max_relevant = 20
+
 fun default_max_relevant_for_prover ctxt slicing name =
   let val thy = Proof_Context.theory_of ctxt in
-    if is_smt_prover ctxt name then
-      SMT_Solver.default_max_relevant ctxt name
-    else
+    if is_metis_prover name then
+      metis_default_max_relevant
+    else if is_atp thy name then
       fold (Integer.max o fst o snd o snd o snd)
            (get_slices slicing (#best_slices (get_atp thy name) ctxt)) 0
+    else (* is_smt_prover ctxt name *)
+      SMT_Solver.default_max_relevant ctxt name
   end
 
 (* These are either simplified away by "Meson.presimplify" (most of the time) or
@@ -250,6 +262,7 @@ fun supported_provers ctxt =
   let
     val thy = Proof_Context.theory_of ctxt
     val (remote_provers, local_provers) =
+      metis_prover_names @
       sort_strings (supported_atps thy) @
       sort_strings (SMT_Solver.available_solvers_of ctxt)
       |> List.partition (String.isPrefix remote_prefix)
@@ -399,22 +412,21 @@ fun timed_reconstructor reconstructor debug timeout ths =
 
 fun filter_used_facts used = filter (member (op =) used o fst)
 
-fun preplay_one_line_proof debug timeout ths state i reconstructors =
+fun play_one_line_proof debug timeout ths state i reconstructors =
   let
-    fun preplay [] [] = Failed_to_Preplay
-      | preplay (timed_out :: _) [] = Trust_Playable (timed_out, SOME timeout)
-      | preplay timed_out (reconstructor :: reconstructors) =
+    fun play [] [] = Failed_to_Play
+      | play (timed_out :: _) [] = Trust_Playable (timed_out, SOME timeout)
+      | play timed_out (reconstructor :: reconstructors) =
         let val timer = Timer.startRealTimer () in
           case timed_reconstructor reconstructor debug timeout ths state i of
-            SOME (SOME _) =>
-            Preplayed (reconstructor, Timer.checkRealTimer timer)
-          | _ => preplay timed_out reconstructors
+            SOME (SOME _) => Played (reconstructor, Timer.checkRealTimer timer)
+          | _ => play timed_out reconstructors
         end
         handle TimeLimit.TimeOut =>
-               preplay (reconstructor :: timed_out) reconstructors
+               play (reconstructor :: timed_out) reconstructors
   in
     if timeout = Time.zeroTime then Trust_Playable (hd reconstructors, NONE)
-    else preplay [] reconstructors
+    else play [] reconstructors
   end
 
 
@@ -676,8 +688,7 @@ fun run_atp mode name
                            UnsoundProof (is_type_sys_virtually_sound type_sys,
                                          facts |> sort string_ord))
                   | SOME Unprovable =>
-                    if null blacklist then outcome
-                    else SOME IncompleteUnprovable
+                    if null blacklist then outcome else SOME GaveUp
                   | _ => outcome
               in
                 ((pool, conjecture_shape, facts_offset, fact_names,
@@ -763,8 +774,8 @@ fun run_atp mode name
                   |> filter_used_facts used_facts
                   |> map snd
           val preplay =
-            preplay_one_line_proof debug preplay_timeout used_ths state subgoal
-                                   reconstructors
+            play_one_line_proof debug preplay_timeout used_ths state subgoal
+                                reconstructors
           val full_types = uses_typed_helpers typed_helpers atp_proof
           val isar_params =
             (debug, full_types, isar_shrink_factor, type_sys, pool,
@@ -814,7 +825,7 @@ val smt_failures =
   remote_smt_failures @ z3_wrapper_failures @ z3_failures @ unix_failures
 
 fun failure_from_smt_failure (SMT_Failure.Counterexample {is_real_cex, ...}) =
-    if is_real_cex then Unprovable else IncompleteUnprovable
+    if is_real_cex then Unprovable else GaveUp
   | failure_from_smt_failure SMT_Failure.Time_Out = TimedOut
   | failure_from_smt_failure (SMT_Failure.Abnormal_Termination code) =
     (case AList.lookup (op =) smt_failures code of
@@ -953,9 +964,9 @@ fun run_smt_solver mode name
             if name = SMT_Solver.solver_name_of ctxt then ""
             else "smt_solver = " ^ maybe_quote name
           val preplay =
-            case preplay_one_line_proof debug preplay_timeout used_ths state
-                                        subgoal [Metis, MetisFT] of
-              p as Preplayed _ => p
+            case play_one_line_proof debug preplay_timeout used_ths state
+                                     subgoal [Metis, MetisFT] of
+              p as Played _ => p
             | _ => Trust_Playable (SMT (smt_settings ()), NONE)
           val one_line_params =
             (preplay, proof_banner mode blocking name, used_facts,
@@ -975,12 +986,41 @@ fun run_smt_solver mode name
      run_time_in_msecs = run_time_in_msecs, message = message}
   end
 
+fun run_metis mode name ({debug, blocking, timeout, ...} : params)
+              minimize_command
+              ({state, subgoal, subgoal_count, facts, ...} : prover_problem) =
+  let
+    val reconstructor = if name = Metis_Tactics.metisN then Metis
+                        else if name = Metis_Tactics.metisFT_N then MetisFT
+                        else raise Fail ("unknown Metis version: " ^ quote name)
+    val (used_facts, used_ths) =
+      facts |> map untranslated_fact |> ListPair.unzip
+  in
+    case play_one_line_proof debug timeout used_ths state subgoal
+                             [reconstructor] of
+      play as Played (_, time) =>
+      let
+        val one_line_params =
+          (play, proof_banner mode blocking name, used_facts,
+           minimize_command, subgoal, subgoal_count)
+      in
+        {outcome = NONE, used_facts = used_facts,
+         run_time_in_msecs = SOME (Time.toMilliseconds time),
+         message = one_line_proof_text one_line_params}
+      end
+    | play =>
+      {outcome = SOME (if play = Failed_to_Play then GaveUp else TimedOut),
+       used_facts = [], run_time_in_msecs = NONE, message = ""}
+  end
+
 fun get_prover ctxt mode name =
   let val thy = Proof_Context.theory_of ctxt in
-    if is_smt_prover ctxt name then
-      run_smt_solver mode name
-    else if member (op =) (supported_atps thy) name then
+    if is_metis_prover name then
+      run_metis mode name
+    else if is_atp thy name then
       run_atp mode name (get_atp thy name)
+    else if is_smt_prover ctxt name then
+      run_smt_solver mode name
     else
       error ("No such prover: " ^ name ^ ".")
   end

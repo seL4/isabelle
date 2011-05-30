@@ -75,13 +75,19 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
     val problem =
       {state = state, goal = goal, subgoal = i, subgoal_count = n,
        facts = facts, smt_filter = NONE}
-    val result as {outcome, used_facts, ...} = prover params (K "") problem
+    val result as {outcome, used_facts, run_time_in_msecs, ...} =
+      prover params (K "") problem
   in
     print silent (fn () =>
         case outcome of
           SOME failure => string_for_failure failure
-        | NONE => if length used_facts = length facts then "Found proof."
-                  else "Found proof with " ^ n_facts used_facts ^ ".");
+        | NONE => "Found proof" ^
+                  (if length used_facts = length facts then ""
+                   else " with " ^ n_facts used_facts) ^
+                  (case run_time_in_msecs of
+                     SOME ms =>
+                     " (" ^ string_from_time (Time.fromMilliseconds ms) ^ ")"
+                   | NONE => "") ^ ".");
     result
   end
 

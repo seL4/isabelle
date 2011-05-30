@@ -9,6 +9,9 @@ HOL setup for the Metis prover.
 
 signature METIS_TACTICS =
 sig
+  val metisN : string
+  val metisF_N : string
+  val metisFT_N : string
   val trace : bool Config.T
   val verbose : bool Config.T
   val type_lits : bool Config.T
@@ -25,6 +28,14 @@ struct
 
 open Metis_Translate
 open Metis_Reconstruct
+
+fun method_binding_for_mode HO = @{binding metis}
+  | method_binding_for_mode FO = @{binding metisF}
+  | method_binding_for_mode FT = @{binding metisFT}
+
+val metisN = Binding.qualified_name_of (method_binding_for_mode HO)
+val metisF_N = Binding.qualified_name_of (method_binding_for_mode FO)
+val metisFT_N = Binding.qualified_name_of (method_binding_for_mode FT)
 
 val type_lits = Attrib.setup_config_bool @{binding metis_type_lits} (K true)
 val new_skolemizer = Attrib.setup_config_bool @{binding metis_new_skolemizer} (K false)
@@ -52,10 +63,6 @@ val waiting_params =
    literalsWeight = 0.0,
    models = []}
 val resolution_params = {active = active_params, waiting = waiting_params}
-
-fun method_binding_for_mode HO = @{binding metis}
-  | method_binding_for_mode FO = @{binding metisF}
-  | method_binding_for_mode FT = @{binding metisFT}
 
 (* Main function to start Metis proof and reconstruction *)
 fun FOL_SOLVE (mode :: fallback_modes) ctxt cls ths0 =
@@ -136,7 +143,8 @@ fun FOL_SOLVE (mode :: fallback_modes) ctxt cls ths0 =
          | mode :: _ =>
            (verbose_warning ctxt
                 ("Falling back on " ^
-                 quote (Binding.str_of (method_binding_for_mode mode)) ^ "...");
+                 quote (Binding.qualified_name_of
+                            (method_binding_for_mode mode)) ^ "...");
             FOL_SOLVE fallback_modes ctxt cls ths0)
 
 val neg_clausify =
