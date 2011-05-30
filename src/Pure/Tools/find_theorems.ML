@@ -13,6 +13,13 @@ sig
   datatype theorem =
     Internal of Facts.ref * thm | External of Facts.ref * term
 
+  type 'term query = {
+    goal: thm option,
+    limit: int option,
+    rem_dups: bool,
+    criteria: (bool * 'term criterion) list
+  }
+
   val tac_limit: int Unsynchronized.ref
   val limit: int Unsynchronized.ref
 
@@ -23,11 +30,10 @@ sig
     (bool * term criterion) list -> int option * (Facts.ref * thm) list
   val find_theorems_cmd: Proof.context -> thm option -> int option -> bool ->
     (bool * string criterion) list -> int option * (Facts.ref * thm) list
-  val filter_theorems: Proof.context -> theorem list -> thm option ->
-    int option -> bool -> (bool * term criterion) list ->
+
+  val filter_theorems: Proof.context -> theorem list -> term query ->
     int option * theorem list
-  val filter_theorems_cmd: Proof.context -> theorem list -> thm option ->
-    int option -> bool -> (bool * string criterion) list ->
+  val filter_theorems_cmd: Proof.context -> theorem list -> string query ->
     int option * theorem list
 
   val pretty_theorem: Proof.context -> theorem -> Pretty.T
@@ -88,6 +94,19 @@ fun pretty_criterion ctxt (b, c) =
     | Pattern pat => Pretty.enclose (prfx " \"") "\""
         [Syntax.pretty_term ctxt (Term.show_dummy_patterns pat)])
   end;
+
+
+(** queries **)
+
+type 'term query = {
+  goal: thm option,
+  limit: int option,
+  rem_dups: bool,
+  criteria: (bool * 'term criterion) list
+};
+
+fun map_criteria f {goal, limit, rem_dups, criteria} =
+  {goal=goal, limit=limit, rem_dups=rem_dups, criteria=f criteria};
 
 
 (** theorems, either internal or external (without proof) **)
@@ -429,8 +448,9 @@ fun all_facts_of ctxt =
 
 val limit = Unsynchronized.ref 40;
 
-fun filter_theorems ctxt theorems opt_goal opt_limit rem_dups criteria =
+fun filter_theorems ctxt theorems query =
   let
+    val {goal=opt_goal, limit=opt_limit, rem_dups, criteria} = query
     val filters = map (filter_criterion ctxt opt_goal) criteria;
 
     fun find_all theorems =
@@ -453,9 +473,9 @@ fun filter_theorems ctxt theorems opt_goal opt_limit rem_dups criteria =
 
   in find theorems end;
 
-fun filter_theorems_cmd ctxt theorems opt_goal opt_limit rem_dups raw_criteria =
-  filter_theorems ctxt theorems opt_goal opt_limit rem_dups
-    (map (apsnd (read_criterion ctxt)) raw_criteria);
+fun filter_theorems_cmd ctxt theorems raw_query = 
+  filter_theorems ctxt theorems (map_criteria 
+    (map (apsnd (read_criterion ctxt))) raw_query);
 
 fun gen_find_theorems filter ctxt opt_goal opt_limit rem_dups raw_criteria =
   let
@@ -465,8 +485,8 @@ fun gen_find_theorems filter ctxt opt_goal opt_limit rem_dups raw_criteria =
     val add_prems = Seq.hd o TRY (Method.insert_tac assms 1);
     val opt_goal' = Option.map add_prems opt_goal;
   in
-    filter ctxt (map Internal (all_facts_of ctxt)) opt_goal' opt_limit
-       rem_dups raw_criteria
+    filter ctxt (map Internal (all_facts_of ctxt)) 
+      {goal=opt_goal', limit=opt_limit, rem_dups=rem_dups, criteria=raw_criteria}
     |> apsnd (map (fn Internal f => f))
   end;
 
@@ -488,7 +508,7 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
 
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
     val (foundo, theorems) = filter_theorems ctxt (map Internal (all_facts_of ctxt))
-      opt_goal opt_limit rem_dups criteria;
+      {goal=opt_goal, limit=opt_limit, rem_dups=rem_dups, criteria=criteria};
     val returned = length theorems;
 
     val tally_msg =
