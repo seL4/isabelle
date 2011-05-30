@@ -92,13 +92,6 @@ fun show_criterion (b, c) =
     fun prfx s = let
         val (c, v) = if b then ("criterion", s) else ("ncriterion", "-" ^ s);
       in span (class c, v) end;
-
-    fun prfxwith s = let
-        val (c, v) =
-          if b
-          then ("criterion", "with " ^ s)
-          else ("ncriterion", "without " ^ s);
-      in span (class c, v) end;
   in
     (case c of
       Find_Theorems.Name name => prfx ("name: " ^ quote name)
@@ -111,7 +104,7 @@ fun show_criterion (b, c) =
     | Find_Theorems.Pattern pat => prfx ("\"" ^ pat ^ "\""))
   end;
 
-fun find_theorems_summary (othmslen, thmslen, query, args) =
+fun find_theorems_summary (othmslen, thmslen, args) =
   let
     val args =
       (case othmslen of
@@ -131,11 +124,8 @@ fun find_theorems_summary (othmslen, thmslen, query, args) =
       if is_some othmslen
       then " (" ^ string_of_int thmslen ^ " displayed)"
       else "";
-    fun show_search c = tr [ td' noid [show_criterion c] ];
   in
     table (class "findtheoremsquery")
-    (* [ tr [ th (noid, "searched for:") ] ]
-       @ map show_search query @ *)
       [ tr [ th' noid (found @ [text (displayed ^ ":")]) ] ]
   end
 
@@ -161,71 +151,62 @@ end;
 
 fun app_index f xs = fold_index (fn x => K (f x)) xs ();
 
-fun find_theorems (req as ScgiReq.Req {request_method, query_string, ...},
-                   content, send) =
-  let
-    val arg_data =
-      (case request_method of
-         ScgiReq.Get => query_string
-       | ScgiReq.Post =>
-          content
-          |> Byte.bytesToString
-          |> HttpUtil.parse_query_string
-       | ScgiReq.Head => raise Fail "Cannot handle Head requests.");
+fun parse_request (ScgiReq.Req {request_method, query_string, ...}, content, send) =
+  (case request_method of
+     ScgiReq.Get => query_string
+   | ScgiReq.Post =>
+      content
+      |> Byte.bytesToString
+      |> HttpUtil.parse_query_string
+   | ScgiReq.Head => raise Fail "Cannot handle Head requests.",
+  send);
 
+fun find_theorems (arg_data, send) =
+  let
     val args = Symtab.lookup arg_data;
 
-    val query = the_default "" (args "query");
+    val query_str = the_default "" (args "query");
     fun get_query () =
-      query
-      |> (fn s => s ^ ";")
+      (query_str ^ ";")
       |> Outer_Syntax.scan Position.start
       |> filter Token.is_proper
       |> Scan.error Find_Theorems.query_parser
       |> fst;
 
-    val limit =
-      args "limit"
-      |> Option.mapPartial Int.fromString
-      |> the_default default_limit;
-    val thy_name =
-      args "theory"
-      |> the_default "Main";
+    val limit = case args "limit" of
+        NONE => default_limit
+      | SOME str => the_default default_limit (Int.fromString str);
+    val thy_name = the_default "Main" (args "theory");
     val with_dups = is_some (args "with_dups");
+    
+    val ctxt = Proof_Context.init_global (Thy_Info.get_theory thy_name);
 
-    fun do_find () =
+    fun do_find query =
       let
-        val ctxt = Proof_Context.init_global (Thy_Info.get_theory thy_name);
-        val query = get_query ();
-        val (othmslen, thms) = apsnd rev
-          (Find_Theorems.find_theorems_cmd ctxt NONE (SOME limit) with_dups query);
-        val thmslen = length thms;
-        fun thm_row args = Xhtml.write send (html_thm ctxt args);
+        val (othmslen, thms) =
+          Find_Theorems.find_theorems_cmd ctxt NONE (SOME limit) with_dups query
+          ||> rev;
       in
         Xhtml.write send
-          (find_theorems_summary (othmslen, thmslen, query, arg_data));
+          (find_theorems_summary (othmslen, length thms, arg_data));
         if null thms then ()
-        else (Xhtml.write_open send find_theorems_table;
-              HTML_Unicode.print_mode (app_index thm_row) thms;
-              Xhtml.write_close send find_theorems_table)
+        else Xhtml.write_enclosed send find_theorems_table (fn send =>
+               HTML_Unicode.print_mode (app_index (Xhtml.write send o html_thm ctxt)) thms)
       end;
-
-    val header = (html_header thy_name (args "query", limit, with_dups));
   in
     send Xhtml.doctype_xhtml1_0_strict;
-    Xhtml.write_open send header;
-    if query = "" then ()
-    else
-      do_find ()
-        handle
-          ERROR msg => Xhtml.write send (html_error msg)
-        | e => Xhtml.write send (html_error ("Server error: " ^ exnMessage e)); (* FIXME avoid handle e *)
-    Xhtml.write_close send header
+    Xhtml.write_enclosed send
+      (html_header thy_name (args "query", limit, with_dups))
+      (fn send => 
+        if query_str = "" then ()
+        else
+          do_find (get_query ())
+          handle ERROR msg => Xhtml.write send (html_error msg))
   end;
 in
 
 val () = Printer.show_question_marks_default := false;
-val () = ScgiServer.register (find_theorems_url, SOME Mime.html, find_theorems);
+val () = ScgiServer.register (find_theorems_url, SOME Mime.html, find_theorems o parse_request);
 
 end;
 

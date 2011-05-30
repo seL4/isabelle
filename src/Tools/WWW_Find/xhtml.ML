@@ -31,8 +31,7 @@ sig
   val show: tag -> string list
 
   val write: (string -> unit) -> tag -> unit
-  val write_open: (string -> unit) -> tag -> unit
-  val write_close: (string -> unit) -> tag -> unit
+  val write_enclosed: (string -> unit) -> tag -> ((string -> unit) -> unit) -> unit
 
   val html: { lang : string } -> tag list -> tag
   val head: { title : string, stylesheet_href : string } -> tag list -> tag
@@ -242,6 +241,9 @@ fun write_close pr =
                 let val (xs, x) = split_last b;
                 in f x; close nm; pr_text text end);
   in f end;
+
+fun write_enclosed pr template content =
+  (write_open pr template; content pr; write_close pr template)
 
 fun html { lang } tags = Tag ("html",
                               [("xmlns", "http://www.w3.org/1999/xhtml"),
