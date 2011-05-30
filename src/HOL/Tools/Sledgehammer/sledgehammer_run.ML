@@ -134,8 +134,8 @@ fun get_minimizing_prover ctxt mode name
              | NONE => result
            end)
 
-fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
-                              expect, ...})
+fun launch_prover (params as {debug, verbose, blocking, max_relevant, slicing,
+                              timeout, expect, ...})
         mode minimize_command only
         {state, goal, subgoal, subgoal_count, facts, smt_filter} name =
   let
@@ -212,7 +212,8 @@ fun launch_prover (params as {debug, blocking, max_relevant, slicing, timeout,
     else
       (Async_Manager.launch das_tool birth_time death_time (desc ())
                             ((fn (outcome_code, message) =>
-                                 (outcome_code = someN, message ())) o go);
+                                 (verbose orelse outcome_code = someN,
+                                  message ())) o go);
        (unknownN, state))
   end
 
