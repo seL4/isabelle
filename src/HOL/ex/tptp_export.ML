@@ -17,9 +17,9 @@ end;
 structure TPTP_Export : TPTP_EXPORT =
 struct
 
-val ascii_of = Metis_Translate.ascii_of
+val ascii_of = ATP_Translate.ascii_of
 
-val fact_name_of = prefix Sledgehammer_ATP_Translate.fact_prefix o ascii_of
+val fact_name_of = prefix ATP_Translate.fact_prefix o ascii_of
 
 fun facts_of thy =
   Sledgehammer_Filter.all_facts (ProofContext.init_global thy) Symtab.empty
@@ -60,9 +60,9 @@ fun generate_tptp_graph_file_for_theory ctxt thy file_name =
         val s =
           "[" ^ Thm.legacy_get_kind thm ^ "] " ^
           (if member (op =) axioms name then "A" else "T") ^ " " ^
-          prefix Sledgehammer_ATP_Translate.fact_prefix (ascii_of name) ^ ": " ^
+          prefix ATP_Translate.fact_prefix (ascii_of name) ^ ": " ^
           commas (theorems_mentioned_in_proof_term thm) ^ "; " ^
-          commas (map (prefix Metis_Translate.const_prefix o ascii_of)
+          commas (map (prefix ATP_Translate.const_prefix o ascii_of)
                       (interesting_const_names ctxt (Thm.prop_of thm))) ^ " \n"
       in File.append path s end
     val thms = facts_of thy |> map (snd o snd)
@@ -91,21 +91,21 @@ fun generate_tptp_inference_file_for_theory ctxt thy full_types file_name =
   let
     val format = ATP_Problem.FOF
     val type_sys =
-      Sledgehammer_ATP_Translate.Preds
-          (Sledgehammer_ATP_Translate.Polymorphic,
-           if full_types then Sledgehammer_ATP_Translate.All_Types
-           else Sledgehammer_ATP_Translate.Const_Arg_Types,
-           Sledgehammer_ATP_Translate.Heavy)
+      ATP_Translate.Preds
+          (ATP_Translate.Polymorphic,
+           if full_types then ATP_Translate.All_Types
+           else ATP_Translate.Const_Arg_Types,
+           ATP_Translate.Heavy)
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val facts0 = facts_of thy
     val facts =
       facts0 |> map_filter (try (fn ((_, loc), (_, th)) =>
-                    Sledgehammer_ATP_Translate.translate_atp_fact ctxt format
+                    ATP_Translate.translate_atp_fact ctxt format
                     type_sys true ((Thm.get_name_hint th, loc), th)))
     val explicit_apply = NONE
     val (atp_problem, _, _, _, _, _, _) =
-      Sledgehammer_ATP_Translate.prepare_atp_problem ctxt format
+      ATP_Translate.prepare_atp_problem ctxt format
           ATP_Problem.Axiom ATP_Problem.Axiom type_sys explicit_apply []
           @{prop False} facts
     val infers =

@@ -335,7 +335,7 @@ fun get_prover ctxt args =
     | NONE => get_prover (default_prover_name ()))
   end
 
-type locality = Sledgehammer_Filter.locality
+type locality = ATP_Translate.locality
 
 (* hack *)
 fun reconstructor_from_msg args msg =
@@ -361,7 +361,7 @@ fun run_sh prover_name prover type_sys max_relevant slicing e_weight_method spas
     fun change_dir (SOME dir) =
         Config.put Sledgehammer_Provers.dest_dir dir
         #> Config.put SMT_Config.debug_files
-          (dir ^ "/" ^ Name.desymbolize false (ATP_Problem.timestamp ()) ^ "_"
+          (dir ^ "/" ^ Name.desymbolize false (ATP_Util.timestamp ()) ^ "_"
           ^ serial_string ())
       | change_dir NONE = I
     val st' =
@@ -391,14 +391,14 @@ fun run_sh prover_name prover type_sys max_relevant slicing e_weight_method spas
     val relevance_fudge =
       Sledgehammer_Provers.relevance_fudge_for_prover ctxt prover_name
     val relevance_override = {add = [], del = [], only = false}
-    val (_, hyp_ts, concl_t) = Sledgehammer_Util.strip_subgoal ctxt goal i
+    val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal i
     val time_limit =
       (case hard_timeout of
         NONE => I
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
     fun failed failure =
       ({outcome = SOME failure, used_facts = [], run_time_in_msecs = NONE,
-        preplay = K Sledgehammer_ATP_Reconstruct.Failed_to_Play,
+        preplay = K ATP_Reconstruct.Failed_to_Play,
         message = K ""}, ~1)
     val ({outcome, used_facts, run_time_in_msecs, preplay, message}
          : Sledgehammer_Provers.prover_result,
@@ -469,7 +469,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id ({pre=st, log, ...
     case result of
       SH_OK (time_isa, time_prover, names) =>
         let
-          fun get_thms (_, Sledgehammer_Filter.Chained) = NONE
+          fun get_thms (_, ATP_Translate.Chained) = NONE
             | get_thms (name, loc) =
               SOME ((name, loc), thms_of_name (Proof.context_of st) name)
         in
