@@ -23,14 +23,15 @@ sig
     TConsLit of name * name * name list |
     TVarLit of name * name
 
-  datatype arity_clause =
-    ArityClause of
-      {name: string,
-       prem_lits: arity_literal list,
-       concl_lits: arity_literal}
+  type arity_clause =
+    {name: string,
+     prem_lits: arity_literal list,
+     concl_lits: arity_literal}
 
-  datatype class_rel_clause =
-    ClassRelClause of {name: string, subclass: name, superclass: name}
+  type class_rel_clause =
+    {name: string,
+     subclass: name,
+     superclass: name}
 
   datatype combterm =
     CombConst of name * typ * typ list |
@@ -341,11 +342,10 @@ fun pack_sort (_,[])  = []
   | pack_sort (tvar, cls :: srt) =
     (`make_type_class cls, `I tvar) :: pack_sort (tvar, srt)
 
-datatype arity_clause =
-  ArityClause of
-    {name: string,
-     prem_lits: arity_literal list,
-     concl_lits: arity_literal}
+type arity_clause =
+  {name: string,
+   prem_lits: arity_literal list,
+   concl_lits: arity_literal}
 
 (* Arity of type constructor "tcon :: (arg1, ..., argN) res" *)
 fun make_axiom_arity_clause (tcons, name, (cls, args)) =
@@ -353,11 +353,11 @@ fun make_axiom_arity_clause (tcons, name, (cls, args)) =
     val tvars = gen_TVars (length args)
     val tvars_srts = ListPair.zip (tvars, args)
   in
-    ArityClause {name = name,
-                 prem_lits = map TVarLit (union_all (map pack_sort tvars_srts)),
-                 concl_lits = TConsLit (`make_type_class cls,
-                                        `make_fixed_type_const tcons,
-                                        tvars ~~ tvars)}
+    {name = name,
+     prem_lits = map TVarLit (union_all (map pack_sort tvars_srts)),
+     concl_lits = TConsLit (`make_type_class cls,
+                            `make_fixed_type_const tcons,
+                            tvars ~~ tvars)}
   end
 
 fun arity_clause _ _ (_, []) = []
@@ -401,8 +401,10 @@ fun make_arity_clauses thy tycons =
 
 (** Isabelle class relations **)
 
-datatype class_rel_clause =
-  ClassRelClause of {name: string, subclass: name, superclass: name}
+type class_rel_clause =
+  {name: string,
+   subclass: name,
+   superclass: name}
 
 (*Generate all pairs (sub,super) such that sub is a proper subclass of super in theory thy.*)
 fun class_pairs _ [] _ = []
@@ -414,9 +416,9 @@ fun class_pairs _ [] _ = []
       in fold add_supers subs [] end
 
 fun make_class_rel_clause (sub,super) =
-  ClassRelClause {name = sub ^ "_" ^ super,
-                  subclass = `make_type_class sub,
-                  superclass = `make_type_class super}
+  {name = sub ^ "_" ^ super,
+   subclass = `make_type_class sub,
+   superclass = `make_type_class super}
 
 fun make_class_rel_clauses thy subs supers =
   map make_class_rel_clause (class_pairs thy subs supers);
@@ -1461,8 +1463,8 @@ fun formula_line_for_fact ctxt format prefix nonmono_Ts type_sys
            | Simp => simp_info
            | _ => NONE)
 
-fun formula_line_for_class_rel_clause
-        (ClassRelClause {name, subclass, superclass, ...}) =
+fun formula_line_for_class_rel_clause ({name, subclass, superclass, ...}
+                                       : class_rel_clause) =
   let val ty_arg = ATerm (`I "T", []) in
     Formula (class_rel_clause_prefix ^ ascii_of name, Axiom,
              AConn (AImplies, [AAtom (ATerm (subclass, [ty_arg])),
@@ -1475,8 +1477,8 @@ fun fo_literal_from_arity_literal (TConsLit (c, t, args)) =
   | fo_literal_from_arity_literal (TVarLit (c, sort)) =
     (false, ATerm (c, [ATerm (sort, [])]))
 
-fun formula_line_for_arity_clause
-        (ArityClause {name, prem_lits, concl_lits, ...}) =
+fun formula_line_for_arity_clause ({name, prem_lits, concl_lits, ...}
+                                   : arity_clause) =
   Formula (arity_clause_prefix ^ ascii_of name, Axiom,
            mk_ahorn (map (formula_from_fo_literal o apfst not
                           o fo_literal_from_arity_literal) prem_lits)

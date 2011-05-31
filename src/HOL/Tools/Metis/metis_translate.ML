@@ -272,7 +272,7 @@ fun m_arity_cls (TConsLit ((c, _), (t, _), args)) =
   | m_arity_cls (TVarLit ((c, _), (s, _))) =
     metis_lit false c [Metis_Term.Var s]
 (*TrueI is returned as the Isabelle counterpart because there isn't any.*)
-fun arity_cls (ArityClause {prem_lits, concl_lits, ...}) =
+fun arity_cls ({prem_lits, concl_lits, ...} : arity_clause) =
   (TrueI,
    Metis_Thm.axiom (Metis_LiteralSet.fromList
                         (map m_arity_cls (concl_lits :: prem_lits))));
@@ -280,7 +280,7 @@ fun arity_cls (ArityClause {prem_lits, concl_lits, ...}) =
 (* CLASSREL CLAUSE *)
 fun m_class_rel_cls (subclass, _) (superclass, _) =
   [metis_lit false subclass [Metis_Term.Var "T"], metis_lit true superclass [Metis_Term.Var "T"]];
-fun class_rel_cls (ClassRelClause {subclass, superclass, ...}) =
+fun class_rel_cls ({subclass, superclass, ...} : class_rel_clause) =
   (TrueI, Metis_Thm.axiom (Metis_LiteralSet.fromList (m_class_rel_cls subclass superclass)));
 
 fun type_ext thy tms =
