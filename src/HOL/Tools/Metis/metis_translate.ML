@@ -25,8 +25,7 @@ sig
   val reveal_old_skolem_terms : (string * term) list -> term -> term
   val string_of_mode : mode -> string
   val prepare_metis_problem :
-    mode -> Proof.context -> bool -> thm list -> thm list list
-    -> mode * metis_problem
+    mode -> Proof.context -> thm list -> thm list list -> mode * metis_problem
 end
 
 structure Metis_Translate : METIS_TRANSLATE =
@@ -207,7 +206,7 @@ fun has_default_sort _ (TVar _) = false
 fun metis_of_tfree tf =
   Metis_Thm.axiom (Metis_LiteralSet.singleton (metis_of_type_literals true tf));
 
-fun hol_thm_to_fol is_conjecture ctxt type_lits mode j old_skolems th =
+fun hol_thm_to_fol is_conjecture ctxt mode j old_skolems th =
   let
     val thy = Proof_Context.theory_of ctxt
     val (old_skolems, (mlits, types_sorts)) =
@@ -222,8 +221,7 @@ fun hol_thm_to_fol is_conjecture ctxt type_lits mode j old_skolems th =
       let
         val tylits = types_sorts |> filter_out (has_default_sort ctxt)
                                  |> raw_type_literals_for_types
-        val mtylits =
-          if type_lits then map (metis_of_type_literals false) tylits else []
+        val mtylits = map (metis_of_type_literals false) tylits
       in
         (Metis_Thm.axiom (Metis_LiteralSet.fromList(mtylits @ mlits)), [],
          old_skolems)
@@ -295,9 +293,9 @@ fun type_ext thy tms =
   end;
 
 (* Function to generate metis clauses, including comb and type clauses *)
-fun prepare_metis_problem New ctxt type_lits cls thss =
+fun prepare_metis_problem New ctxt cls thss =
     error "Not implemented yet"
-  | prepare_metis_problem mode ctxt type_lits cls thss =
+  | prepare_metis_problem mode ctxt cls thss =
     let
       val thy = Proof_Context.theory_of ctxt
       (* The modes FO and FT are sticky. HO can be downgraded to FO. *)
@@ -312,8 +310,8 @@ fun prepare_metis_problem New ctxt type_lits cls thss =
                   {axioms, tfrees, old_skolems} : metis_problem =
         let
           val (mth, tfree_lits, old_skolems) =
-            hol_thm_to_fol is_conjecture ctxt type_lits mode (length axioms)
-                           old_skolems metis_ith
+            hol_thm_to_fol is_conjecture ctxt mode (length axioms) old_skolems
+                           metis_ith
         in
            {axioms = (mth, isa_ith) :: axioms,
             tfrees = union (op =) tfree_lits tfrees, old_skolems = old_skolems}

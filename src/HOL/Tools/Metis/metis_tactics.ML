@@ -15,7 +15,6 @@ sig
   val metisX_N : string
   val trace : bool Config.T
   val verbose : bool Config.T
-  val type_lits : bool Config.T
   val new_skolemizer : bool Config.T
   val metis_tac : Proof.context -> thm list -> int -> tactic
   val metisF_tac : Proof.context -> thm list -> int -> tactic
@@ -42,7 +41,6 @@ val metisF_N = Binding.qualified_name_of (method_binding_for_mode FO)
 val metisFT_N = Binding.qualified_name_of (method_binding_for_mode FT)
 val metisX_N = Binding.qualified_name_of (method_binding_for_mode New)
 
-val type_lits = Attrib.setup_config_bool @{binding metis_type_lits} (K true)
 val new_skolemizer =
   Attrib.setup_config_bool @{binding metis_new_skolemizer} (K false)
 
@@ -73,7 +71,6 @@ val resolution_params = {active = active_params, waiting = waiting_params}
 (* Main function to start Metis proof and reconstruction *)
 fun FOL_SOLVE (mode :: fallback_modes) ctxt cls ths0 =
   let val thy = Proof_Context.theory_of ctxt
-      val type_lits = Config.get ctxt type_lits
       val new_skolemizer =
         Config.get ctxt new_skolemizer orelse null (Meson.choice_theorems thy)
       val th_cls_pairs =
@@ -88,7 +85,7 @@ fun FOL_SOLVE (mode :: fallback_modes) ctxt cls ths0 =
       val _ = trace_msg ctxt (fn () => "THEOREM CLAUSES")
       val _ = app (app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th))) thss
       val (mode, {axioms, tfrees, old_skolems}) =
-        prepare_metis_problem mode ctxt type_lits cls thss
+        prepare_metis_problem mode ctxt cls thss
       val _ = if null tfrees then ()
               else (trace_msg ctxt (fn () => "TFREE CLAUSES");
                     app (fn TyLitFree ((s, _), (s', _)) =>
