@@ -9,12 +9,12 @@ Generic prover abstraction for Sledgehammer.
 signature SLEDGEHAMMER_PROVERS =
 sig
   type failure = ATP_Proof.failure
-  type locality = Sledgehammer_Filter.locality
+  type locality = ATP_Translate.locality
   type relevance_fudge = Sledgehammer_Filter.relevance_fudge
-  type translated_formula = Sledgehammer_ATP_Translate.translated_formula
-  type type_system = Sledgehammer_ATP_Translate.type_system
-  type play = Sledgehammer_ATP_Reconstruct.play
-  type minimize_command = Sledgehammer_ATP_Reconstruct.minimize_command
+  type translated_formula = ATP_Translate.translated_formula
+  type type_system = ATP_Translate.type_system
+  type play = ATP_Reconstruct.play
+  type minimize_command = ATP_Reconstruct.minimize_command
 
   datatype mode = Auto_Try | Try | Normal | Minimize
 
@@ -111,14 +111,14 @@ end;
 structure Sledgehammer_Provers : SLEDGEHAMMER_PROVERS =
 struct
 
+open ATP_Util
 open ATP_Problem
 open ATP_Proof
 open ATP_Systems
-open Metis_Translate
+open ATP_Translate
+open ATP_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Filter
-open Sledgehammer_ATP_Translate
-open Sledgehammer_ATP_Reconstruct
 
 (** The Sledgehammer **)
 
@@ -838,8 +838,7 @@ val remote_smt_failures =
   [(22, CantConnect),
    (2, NoLibwwwPerl)]
 val z3_wrapper_failures =
-  [(10, NoRealZ3),
-   (11, InternalError),
+  [(11, InternalError),
    (12, InternalError),
    (13, InternalError)]
 val z3_failures =

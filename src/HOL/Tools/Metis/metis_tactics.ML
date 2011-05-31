@@ -26,6 +26,7 @@ end
 structure Metis_Tactics : METIS_TACTICS =
 struct
 
+open ATP_Translate
 open Metis_Translate
 open Metis_Reconstruct
 

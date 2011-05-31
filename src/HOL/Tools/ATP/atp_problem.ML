@@ -70,9 +70,6 @@ sig
     -> 'd -> 'd
   val formula_map : ('c -> 'd) -> ('a, 'b, 'c) formula -> ('a, 'b, 'd) formula
   val is_format_typed : format -> bool
-  val timestamp : unit -> string
-  val hashw : word * word -> word
-  val hashw_string : string * word -> word
   val tptp_strings_for_atp_problem : format -> string problem -> string list
   val filter_cnf_ueq_problem :
     (string * string) problem -> (string * string) problem
@@ -86,6 +83,9 @@ end;
 
 structure ATP_Problem : ATP_PROBLEM =
 struct
+
+open ATP_Util
+
 
 (** ATP problem **)
 
@@ -171,15 +171,6 @@ fun formula_map f (AQuant (q, xs, phi)) = AQuant (q, xs, formula_map f phi)
   | formula_map f (AAtom tm) = AAtom (f tm)
 
 val is_format_typed = member (op =) [TFF, THF]
-
-val timestamp = Date.fmt "%Y-%m-%d %H:%M:%S" o Date.fromTimeLocal o Time.now
-
-(* This hash function is recommended in "Compilers: Principles, Techniques, and
-   Tools" by Aho, Sethi, and Ullman. The "hashpjw" function, which they
-   particularly recommend, triggers a bug in versions of Poly/ML up to 4.2.0. *)
-fun hashw (u, w) = Word.+ (u, Word.* (0w65599, w))
-fun hashw_char (c, w) = hashw (Word.fromInt (Char.ord c), w)
-fun hashw_string (s : string, w) = CharVector.foldl hashw_char w s
 
 fun string_for_kind Axiom = "axiom"
   | string_for_kind Definition = "definition"

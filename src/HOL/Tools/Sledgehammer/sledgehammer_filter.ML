@@ -7,7 +7,7 @@ Sledgehammer's relevance filter.
 
 signature SLEDGEHAMMER_FILTER =
 sig
-  datatype locality = General | Intro | Elim | Simp | Local | Assum | Chained
+  type locality = ATP_Translate.locality
 
   type relevance_fudge =
     {local_const_multiplier : real,
@@ -39,7 +39,6 @@ sig
   val new_monomorphizer : bool Config.T
   val ignore_no_atp : bool Config.T
   val instantiate_inducts : bool Config.T
-  val is_locality_global : locality -> bool
   val fact_from_ref :
     Proof.context -> unit Symtab.table -> thm list
     -> Facts.ref * Attrib.src list -> ((string * locality) * thm) list
@@ -59,6 +58,7 @@ end;
 structure Sledgehammer_Filter : SLEDGEHAMMER_FILTER =
 struct
 
+open ATP_Translate
 open Sledgehammer_Util
 
 val trace =
@@ -72,14 +72,6 @@ val ignore_no_atp =
   Attrib.setup_config_bool @{binding sledgehammer_ignore_no_atp} (K false)
 val instantiate_inducts =
   Attrib.setup_config_bool @{binding sledgehammer_instantiate_inducts} (K false)
-
-datatype locality = General | Intro | Elim | Simp | Local | Assum | Chained
-
-(* (quasi-)underapproximation of the truth *)
-fun is_locality_global Local = false
-  | is_locality_global Assum = false
-  | is_locality_global Chained = false
-  | is_locality_global _ = true
 
 type relevance_fudge =
   {local_const_multiplier : real,

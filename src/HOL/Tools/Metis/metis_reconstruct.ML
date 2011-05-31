@@ -30,6 +30,7 @@ end;
 structure Metis_Reconstruct : METIS_RECONSTRUCT =
 struct
 
+open ATP_Translate
 open Metis_Translate
 
 exception METIS of string * string

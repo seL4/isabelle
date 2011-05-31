@@ -7,8 +7,8 @@ Minimization of fact list for Metis using external provers.
 
 signature SLEDGEHAMMER_MINIMIZE =
 sig
-  type locality = Sledgehammer_Filter.locality
-  type play = Sledgehammer_ATP_Reconstruct.play
+  type locality = ATP_Translate.locality
+  type play = ATP_Reconstruct.play
   type params = Sledgehammer_Provers.params
 
   val binary_min_facts : int Config.T
@@ -24,10 +24,12 @@ end;
 structure Sledgehammer_Minimize : SLEDGEHAMMER_MINIMIZE =
 struct
 
+open ATP_Util
 open ATP_Proof
+open ATP_Translate
+open ATP_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Filter
-open Sledgehammer_ATP_Reconstruct
 open Sledgehammer_Provers
 
 (* wrapper for calling external prover *)
@@ -53,7 +55,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
       print silent (fn () =>
           "Testing " ^ n_facts (map fst facts) ^
           (if verbose then " (timeout: " ^ string_from_time timeout ^ ")"
-          else "") ^ "...")
+           else "") ^ "...")
     val {goal, ...} = Proof.goal state
     val params =
       {debug = debug, verbose = verbose, overlord = overlord, blocking = true,

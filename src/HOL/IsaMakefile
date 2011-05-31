@@ -300,7 +300,10 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   $(SRC)/Provers/Arith/extract_common_term.ML \
   Tools/ATP/atp_problem.ML \
   Tools/ATP/atp_proof.ML \
+  Tools/ATP/atp_reconstruct.ML \
   Tools/ATP/atp_systems.ML \
+  Tools/ATP/atp_translate.ML \
+  Tools/ATP/atp_util.ML \
   Tools/choice_specification.ML \
   Tools/code_evaluation.ML \
   Tools/groebner.ML \
@@ -353,8 +356,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/record.ML \
   Tools/semiring_normalizer.ML \
   Tools/Sledgehammer/async_manager.ML \
-  Tools/Sledgehammer/sledgehammer_atp_reconstruct.ML \
-  Tools/Sledgehammer/sledgehammer_atp_translate.ML \
   Tools/Sledgehammer/sledgehammer_filter.ML \
   Tools/Sledgehammer/sledgehammer_minimize.ML \
   Tools/Sledgehammer/sledgehammer_isar.ML \

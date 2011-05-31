@@ -240,7 +240,7 @@ fun pretty_serial_commas _ [] = []
 
 val parse_bool_option = Sledgehammer_Util.parse_bool_option
 val parse_time_option = Sledgehammer_Util.parse_time_option
-val string_from_time = Sledgehammer_Util.string_from_time
+val string_from_time = ATP_Util.string_from_time
 
 val i_subscript = implode o map (prefix "\<^isub>") o raw_explode  (* FIXME Symbol.explode (?) *)
 fun be_subscript s = "\<^bsub>" ^ s ^ "\<^esub>"
@@ -265,15 +265,15 @@ val int_T = @{typ int}
 
 val simple_string_of_typ = Refute.string_of_typ
 val is_real_constr = Refute.is_IDT_constructor
-val typ_of_dtyp = Sledgehammer_Util.typ_of_dtyp
-val varify_type = Sledgehammer_Util.varify_type
-val instantiate_type = Sledgehammer_Util.instantiate_type
-val varify_and_instantiate_type = Sledgehammer_Util.varify_and_instantiate_type
+val typ_of_dtyp = ATP_Util.typ_of_dtyp
+val varify_type = ATP_Util.varify_type
+val instantiate_type = ATP_Util.instantiate_type
+val varify_and_instantiate_type = ATP_Util.varify_and_instantiate_type
 val is_of_class_const = Refute.is_const_of_class
 val get_class_def = Refute.get_classdef
-val monomorphic_term = Sledgehammer_Util.monomorphic_term
-val specialize_type = Sledgehammer_Util.specialize_type
-val eta_expand = Sledgehammer_Util.eta_expand
+val monomorphic_term = ATP_Util.monomorphic_term
+val specialize_type = ATP_Util.specialize_type
+val eta_expand = ATP_Util.eta_expand
 
 fun time_limit NONE = I
   | time_limit (SOME delay) = TimeLimit.timeLimit delay
@@ -290,15 +290,15 @@ val indent_size = 2
 
 val pstrs = Pretty.breaks o map Pretty.str o space_explode " "
 
-val unyxml = Sledgehammer_Util.unyxml
+val unyxml = ATP_Util.unyxml
 
-val maybe_quote = Sledgehammer_Util.maybe_quote
+val maybe_quote = ATP_Util.maybe_quote
 fun pretty_maybe_quote pretty =
   let val s = Pretty.str_of pretty in
     if maybe_quote s = s then pretty else Pretty.enum "" "\"" "\"" [pretty]
   end
 
-val hashw = ATP_Problem.hashw
-val hashw_string = ATP_Problem.hashw_string
+val hashw = ATP_Util.hashw
+val hashw_string = ATP_Util.hashw_string
 
 end;

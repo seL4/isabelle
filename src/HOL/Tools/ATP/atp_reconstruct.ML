@@ -1,16 +1,16 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_atp_reconstruct.ML
+(*  Title:      HOL/Tools/ATP/atp_reconstruct.ML
     Author:     Lawrence C. Paulson, Cambridge University Computer Laboratory
     Author:     Claire Quigley, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
 
-Proof reconstruction for Sledgehammer.
+Proof reconstruction from ATP proofs.
 *)
 
-signature SLEDGEHAMMER_ATP_RECONSTRUCT =
+signature ATP_RECONSTRUCT =
 sig
   type 'a proof = 'a ATP_Proof.proof
-  type locality = Sledgehammer_Filter.locality
-  type type_system = Sledgehammer_ATP_Translate.type_system
+  type locality = ATP_Translate.locality
+  type type_system = ATP_Translate.type_system
 
   datatype reconstructor =
     Metis |
@@ -48,15 +48,13 @@ sig
     Proof.context -> bool -> isar_params -> one_line_params -> string
 end;
 
-structure Sledgehammer_ATP_Reconstruct : SLEDGEHAMMER_ATP_RECONSTRUCT =
+structure ATP_Reconstruct : ATP_RECONSTRUCT =
 struct
 
+open ATP_Util
 open ATP_Problem
 open ATP_Proof
-open Metis_Translate
-open Sledgehammer_Util
-open Sledgehammer_Filter
-open Sledgehammer_ATP_Translate
+open ATP_Translate
 
 datatype reconstructor =
   Metis |
@@ -411,6 +409,9 @@ fun repair_tptp_variable_name f s =
                    | NONE => s)
     | _ => s
   end
+  
+fun num_type_args thy s =
+  (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
 
 (* First-order translation. No types are known for variables. "HOLogic.typeT"
    should allow them to be inferred. *)
@@ -456,7 +457,8 @@ fun raw_term_from_pred thy sym_tab tfrees =
                 val term_ts = map (aux NONE []) term_us
                 val extra_ts = map (aux NONE []) extra_us
                 val T =
-                  if num_type_args thy s' = length type_us then
+                  if not (null type_us) andalso
+                     num_type_args thy s' = length type_us then
                     Sign.const_instance thy
                         (s', map (typ_from_fo_term tfrees) type_us)
                   else case opt_T of

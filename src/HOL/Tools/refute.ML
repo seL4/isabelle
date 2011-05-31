@@ -393,7 +393,7 @@ fun actual_params ctxt override =
 (* TRANSLATION HOL -> PROPOSITIONAL LOGIC, BOOLEAN ASSIGNMENT -> MODEL       *)
 (* ------------------------------------------------------------------------- *)
 
-val typ_of_dtyp = Sledgehammer_Util.typ_of_dtyp
+val typ_of_dtyp = ATP_Util.typ_of_dtyp
 
 (* ------------------------------------------------------------------------- *)
 (* close_form: universal closure over schematic variables in 't'             *)
@@ -410,8 +410,8 @@ fun close_form t =
       Term.all T $ Abs (x, T, abstract_over (Var ((x, i), T), t'))) vars t
   end;
 
-val monomorphic_term = Sledgehammer_Util.monomorphic_term
-val specialize_type = Sledgehammer_Util.specialize_type
+val monomorphic_term = ATP_Util.monomorphic_term
+val specialize_type = ATP_Util.specialize_type
 
 (* ------------------------------------------------------------------------- *)
 (* is_const_of_class: returns 'true' iff 'Const (s, T)' is a constant that   *)

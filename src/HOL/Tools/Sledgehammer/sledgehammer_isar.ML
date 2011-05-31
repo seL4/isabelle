@@ -21,8 +21,8 @@ structure Sledgehammer_Isar : SLEDGEHAMMER_ISAR =
 struct
 
 open ATP_Systems
+open ATP_Translate
 open Sledgehammer_Util
-open Sledgehammer_ATP_Translate
 open Sledgehammer_Provers
 open Sledgehammer_Minimize
 open Sledgehammer_Run
