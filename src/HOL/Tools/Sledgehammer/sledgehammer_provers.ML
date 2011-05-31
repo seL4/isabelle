@@ -667,7 +667,8 @@ fun run_atp mode name
                      fact_names, typed_helpers, sym_tab) =
                   prepare_atp_problem ctxt format conj_sym_kind prem_kind
                       type_sys explicit_apply
-                      (Config.get ctxt atp_readable_names) hyp_ts concl_t facts
+                      (Config.get ctxt atp_readable_names) true hyp_ts concl_t
+                      facts
                 fun weights () = atp_problem_weights atp_problem
                 val core =
                   File.shell_path command ^ " " ^

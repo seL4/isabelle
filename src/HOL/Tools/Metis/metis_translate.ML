@@ -44,8 +44,8 @@ val metis_generated_var_prefix = "_"
 val metis_name_table =
   [((tptp_equal, 2), metis_equal),
    ((tptp_old_equal, 2), metis_equal),
-   ((predicator_name, 1), metis_predicator),
-   ((app_op_name, 2), metis_app_op)]
+   ((const_prefix ^ predicator_name, 1), metis_predicator),
+   ((const_prefix ^ app_op_name, 2), metis_app_op)]
 
 fun predicate_of thy ((@{const Not} $ P), pos) = predicate_of thy (P, not pos)
   | predicate_of thy (t, pos) =
@@ -314,9 +314,8 @@ fun prepare_metis_problem ctxt New conj_clauses fact_clauses =
       val clauses = conj_clauses @ fact_clauses
       val (atp_problem, _, _, _, _, _, sym_tab) =
         prepare_atp_problem ctxt CNF Hypothesis Axiom type_sys
-                            explicit_apply false (map prop_of clauses)
+                            explicit_apply false false (map prop_of clauses)
                             @{prop False} []
-      (* val _ = tracing (PolyML.makestring atp_problem) FIXME ### *)
       val axioms =
         atp_problem
         |> maps (map_filter (try (metis_axiom_from_atp clauses)) o snd)
