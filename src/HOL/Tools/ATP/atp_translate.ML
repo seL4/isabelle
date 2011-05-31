@@ -1332,7 +1332,7 @@ fun add_classes (sorts, cset) = List.foldl set_insert cset (flat sorts)
 fun delete_type cset = Symtab.delete_safe (the_single @{sort HOL.type}) cset
 
 fun classes_of_terms get_Ts =
-  map (map #2 o get_Ts)
+  map (map snd o get_Ts)
   #> List.foldl add_classes Symtab.empty
   #> delete_type #> Symtab.keys
 
