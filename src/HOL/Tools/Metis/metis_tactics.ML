@@ -12,6 +12,7 @@ sig
   val metisN : string
   val metisF_N : string
   val metisFT_N : string
+  val metisX_N : string
   val trace : bool Config.T
   val verbose : bool Config.T
   val type_lits : bool Config.T
@@ -20,6 +21,7 @@ sig
   val metisF_tac : Proof.context -> thm list -> int -> tactic
   val metisFT_tac : Proof.context -> thm list -> int -> tactic
   val metisHO_tac : Proof.context -> thm list -> int -> tactic
+  val metisX_tac : Proof.context -> thm list -> int -> tactic
   val setup : theory -> theory
 end
 
@@ -33,13 +35,16 @@ open Metis_Reconstruct
 fun method_binding_for_mode HO = @{binding metis}
   | method_binding_for_mode FO = @{binding metisF}
   | method_binding_for_mode FT = @{binding metisFT}
+  | method_binding_for_mode New = @{binding metisX}
 
 val metisN = Binding.qualified_name_of (method_binding_for_mode HO)
 val metisF_N = Binding.qualified_name_of (method_binding_for_mode FO)
 val metisFT_N = Binding.qualified_name_of (method_binding_for_mode FT)
+val metisX_N = Binding.qualified_name_of (method_binding_for_mode New)
 
 val type_lits = Attrib.setup_config_bool @{binding metis_type_lits} (K true)
-val new_skolemizer = Attrib.setup_config_bool @{binding metis_new_skolemizer} (K false)
+val new_skolemizer =
+  Attrib.setup_config_bool @{binding metis_new_skolemizer} (K false)
 
 fun is_false t = t aconv (HOLogic.mk_Trueprop HOLogic.false_const);
 
@@ -184,11 +189,13 @@ val metis_modes = [HO, FT]
 val metisF_modes = [FO, FT]
 val metisFT_modes = [FT]
 val metisHO_modes = [HO]
+val metisX_modes = [New]
 
 val metis_tac = generic_metis_tac metis_modes
 val metisF_tac = generic_metis_tac metisF_modes
 val metisFT_tac = generic_metis_tac metisFT_modes
 val metisHO_tac = generic_metis_tac metisHO_modes
+val metisX_tac = generic_metis_tac metisX_modes
 
 (* Whenever "X" has schematic type variables, we treat "using X by metis" as
    "by (metis X)", to prevent "Subgoal.FOCUS" from freezing the type variables.
@@ -214,7 +221,8 @@ fun setup_method (modes as mode :: _) =
 val setup =
   [(metis_modes, "Metis for FOL and HOL problems"),
    (metisF_modes, "Metis for FOL problems"),
-   (metisFT_modes, "Metis for FOL/HOL problems with fully-typed translation")]
+   (metisFT_modes, "Metis for FOL/HOL problems with fully-typed translation"),
+   (metisX_modes, "Metis for FOL and HOL problems (experimental)")]
   |> fold (uncurry setup_method)
 
 end;
