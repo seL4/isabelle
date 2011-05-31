@@ -14,7 +14,7 @@ FILES = isar-ref.tex style.sty Thy/document/Generic.tex			\
   Thy/document/ML_Tactic.tex Thy/document/Proof.tex			\
   Thy/document/Quick_Reference.tex Thy/document/Spec.tex		\
   Thy/document/ZF_Specific.tex Thy/document/Inner_Syntax.tex		\
-  Thy/document/Introduction.tex Thy/document/Document_Preparation.tex	\
+  Thy/document/Preface.tex Thy/document/Document_Preparation.tex	\
   Thy/document/Misc.tex Thy/document/Outer_Syntax.tex			\
   Thy/document/Symbols.tex ../isar.sty ../proof.sty ../iman.sty		\
   ../extra.sty ../ttbox.sty ../../lib/texinputs/isabelle.sty		\

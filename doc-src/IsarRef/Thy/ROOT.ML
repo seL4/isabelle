@@ -1,7 +1,7 @@
 quick_and_dirty := true;
 
 use_thys [
-  "Introduction",
+  "Preface",
   "Framework",
   "First_Order_Logic",
   "Outer_Syntax",

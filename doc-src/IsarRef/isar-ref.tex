@@ -46,10 +46,12 @@
 
 \maketitle 
 
-\pagenumbering{roman} \tableofcontents \clearfirst
+\pagenumbering{roman}
+{\def\isamarkupchapter#1{\chapter*{#1}}\input{Thy/document/Preface.tex}}
+\tableofcontents
+\clearfirst
 
 \part{Basic Concepts}
-\input{Thy/document/Introduction.tex}
 \input{Thy/document/Framework.tex}
 \input{Thy/document/First_Order_Logic.tex}
 \part{General Language Elements}

@@ -1,13 +1,29 @@
-theory Introduction
-imports Base Main
-begin
-
-chapter {* Introduction *}
-
-section {* Overview *}
-
-text {*
-  The \emph{Isabelle} system essentially provides a generic
+%
+\begin{isabellebody}%
+\def\isabellecontext{Preface}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ Preface\isanewline
+\isakeyword{imports}\ Base\ Main\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupchapter{Preface%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The \emph{Isabelle} system essentially provides a generic
   infrastructure for building deductive systems (programmed in
   Standard ML), with a special focus on interactive theorem proving in
   higher-order logics.  Many years ago, even end-users would refer to
@@ -62,12 +78,30 @@ text {*
   \medskip Isar commands may be either \emph{proper} document
   constructors, or \emph{improper commands}.  Some proof methods and
   attributes introduced later are classified as improper as well.
-  Improper Isar language elements, which are marked by ``@{text
-  "\<^sup>*"}'' in the subsequent chapters; they are often helpful
+  Improper Isar language elements, which are marked by ``\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}'' in the subsequent chapters; they are often helpful
   when developing proof documents, but their use is discouraged for
   the final human-readable outcome.  Typical examples are diagnostic
   commands that print terms or theorems according to the current
-  context; other commands emulate old-style tactical theorem proving.
-*}
-
-end
+  context; other commands emulate old-style tactical theorem proving.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isanewline
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
