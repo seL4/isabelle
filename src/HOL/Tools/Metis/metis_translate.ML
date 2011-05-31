@@ -14,15 +14,20 @@ sig
   datatype mode = FO | HO | FT | New
 
   type metis_problem =
-    {axioms: (Metis_Thm.thm * thm) list,
-     tfrees: type_literal list,
-     old_skolems: (string * term) list}
+    {axioms : (Metis_Thm.thm * thm) list,
+     tfrees : type_literal list,
+     old_skolems : (string * term) list}
 
+  val metis_equal : string
+  val metis_predicator : string
+  val metis_app_op : string
   val metis_generated_var_prefix : string
+  val metis_name_table : ((string * int) * string) list
   val reveal_old_skolem_terms : (string * term) list -> term -> term
   val string_of_mode : mode -> string
   val prepare_metis_problem :
-    Proof.context -> mode -> thm list -> thm list -> mode * metis_problem
+    Proof.context -> mode -> thm list -> thm list
+    -> mode * int Symtab.table * metis_problem
 end
 
 structure Metis_Translate : METIS_TRANSLATE =
@@ -31,7 +36,16 @@ struct
 open ATP_Problem
 open ATP_Translate
 
+val metis_equal = "="
+val metis_predicator = "{}"
+val metis_app_op = "."
 val metis_generated_var_prefix = "_"
+
+val metis_name_table =
+  [((tptp_equal, 2), metis_equal),
+   ((tptp_old_equal, 2), metis_equal),
+   ((predicator_name, 1), metis_predicator),
+   ((app_op_name, 2), metis_app_op)]
 
 fun predicate_of thy ((@{const Not} $ P), pos) = predicate_of thy (P, not pos)
   | predicate_of thy (t, pos) =
@@ -113,7 +127,7 @@ fun fn_isa_to_met_sublevel "equal" = "c_fequal"
   | fn_isa_to_met_sublevel "c_implies" = "c_fimplies"
   | fn_isa_to_met_sublevel x = x
 
-fun fn_isa_to_met_toplevel "equal" = "="
+fun fn_isa_to_met_toplevel "equal" = metis_equal
   | fn_isa_to_met_toplevel x = x
 
 fun metis_lit b c args = (b, (c, args));
@@ -138,10 +152,10 @@ fun hol_term_to_fol_FO tm =
     | _ => raise Fail "non-first-order combterm"
 
 fun hol_term_to_fol_HO (CombConst ((a, _), _, Ts)) =
-      Metis_Term.Fn (fn_isa_to_met_sublevel a, map metis_term_from_typ Ts)
+    Metis_Term.Fn (fn_isa_to_met_sublevel a, map metis_term_from_typ Ts)
   | hol_term_to_fol_HO (CombVar ((s, _), _)) = Metis_Term.Var s
   | hol_term_to_fol_HO (CombApp (tm1, tm2)) =
-       Metis_Term.Fn (".", map hol_term_to_fol_HO [tm1, tm2]);
+    Metis_Term.Fn (metis_app_op, map hol_term_to_fol_HO [tm1, tm2])
 
 (*The fully-typed translation, to avoid type errors*)
 fun tag_with_type tm T =
@@ -152,8 +166,9 @@ fun hol_term_to_fol_FT (CombVar ((s, _), ty)) =
   | hol_term_to_fol_FT (CombConst ((a, _), ty, _)) =
     tag_with_type (Metis_Term.Fn (fn_isa_to_met_sublevel a, [])) ty
   | hol_term_to_fol_FT (tm as CombApp (tm1,tm2)) =
-    tag_with_type (Metis_Term.Fn (".", map hol_term_to_fol_FT [tm1, tm2]))
-                  (combtyp_of tm)
+    tag_with_type
+        (Metis_Term.Fn (metis_app_op, map hol_term_to_fol_FT [tm1, tm2]))
+        (combtyp_of tm)
 
 fun hol_literal_to_fol FO (pos, tm) =
       let
@@ -164,13 +179,13 @@ fun hol_literal_to_fol FO (pos, tm) =
   | hol_literal_to_fol HO (pos, tm) =
      (case strip_combterm_comb tm of
           (CombConst(("equal", _), _, _), tms) =>
-            metis_lit pos "=" (map hol_term_to_fol_HO tms)
-        | _ => metis_lit pos "{}" [hol_term_to_fol_HO tm])   (*hBOOL*)
+            metis_lit pos metis_equal (map hol_term_to_fol_HO tms)
+        | _ => metis_lit pos metis_predicator [hol_term_to_fol_HO tm])
   | hol_literal_to_fol FT (pos, tm) =
      (case strip_combterm_comb tm of
           (CombConst(("equal", _), _, _), tms) =>
-            metis_lit pos "=" (map hol_term_to_fol_FT tms)
-        | _ => metis_lit pos "{}" [hol_term_to_fol_FT tm])   (*hBOOL*);
+            metis_lit pos metis_equal (map hol_term_to_fol_FT tms)
+        | _ => metis_lit pos metis_predicator [hol_term_to_fol_FT tm])
 
 fun literals_of_hol_term thy mode t =
   let val (lits, types_sorts) = literals_of_term thy t in
@@ -217,9 +232,9 @@ fun hol_thm_to_fol is_conjecture ctxt mode j old_skolems th =
 (* ------------------------------------------------------------------------- *)
 
 type metis_problem =
-  {axioms: (Metis_Thm.thm * thm) list,
-   tfrees: type_literal list,
-   old_skolems: (string * term) list}
+  {axioms : (Metis_Thm.thm * thm) list,
+   tfrees : type_literal list,
+   old_skolems : (string * term) list}
 
 fun is_quasi_fol_clause thy =
   Meson.is_fol_term thy o snd o conceal_old_skolem_terms ~1 [] o prop_of
@@ -266,16 +281,16 @@ fun type_ext thy tms =
     val class_rel_clauses = make_class_rel_clauses thy subs supers'
   in map class_rel_cls class_rel_clauses @ map arity_cls arity_clauses end
 
-fun metis_name_from_atp s =
-  if is_tptp_equal s then "="
-  else if s = predicator_name then "{}"
-  else if s = app_op_name then "."
-  else s
+fun metis_name_from_atp s ary =
+  AList.lookup (op =) metis_name_table (s, ary) |> the_default s
 fun metis_term_from_atp (ATerm (s, tms)) =
-  if is_tptp_variable s then Metis_Term.Var s
-  else Metis_Term.Fn (metis_name_from_atp s, map metis_term_from_atp tms)
+  if is_tptp_variable s then
+    Metis_Term.Var s
+  else
+    Metis_Term.Fn (metis_name_from_atp s (length tms),
+                   map metis_term_from_atp tms)
 fun metis_atom_from_atp (AAtom (ATerm (s, tms))) =
-    (metis_name_from_atp s, map metis_term_from_atp tms)
+    (metis_name_from_atp s (length tms), map metis_term_from_atp tms)
   | metis_atom_from_atp _ = raise Fail "not CNF -- expected atom"
 fun metis_literal_from_atp (AConn (ANot, [phi])) =
     (false, metis_atom_from_atp phi)
@@ -294,10 +309,10 @@ fun metis_axiom_from_atp clauses (Formula (ident, _, phi, _, _)) =
 (* Function to generate metis clauses, including comb and type clauses *)
 fun prepare_metis_problem ctxt New conj_clauses fact_clauses =
     let
-      val type_sys = Preds (Polymorphic, (* Nonmonotonic_Types FIXME ### *) No_Types, Light)
+      val type_sys = Preds (Polymorphic, (* Nonmonotonic_Types FIXME ### *) Const_Arg_Types, Light)
       val explicit_apply = NONE
       val clauses = conj_clauses @ fact_clauses
-      val (atp_problem, pool, _, _, _, _, sym_tab) =
+      val (atp_problem, _, _, _, _, _, sym_tab) =
         prepare_atp_problem ctxt CNF Hypothesis Axiom type_sys
                             explicit_apply false (map prop_of clauses)
                             @{prop False} []
@@ -305,7 +320,10 @@ fun prepare_metis_problem ctxt New conj_clauses fact_clauses =
       val axioms =
         atp_problem
         |> maps (map_filter (try (metis_axiom_from_atp clauses)) o snd)
-    in (New, {axioms = axioms, tfrees = [], old_skolems = [] (* FIXME ### *)}) end
+    in
+      (New, sym_tab,
+       {axioms = axioms, tfrees = [], old_skolems = [] (* FIXME ### *)})
+    end
   | prepare_metis_problem ctxt mode conj_clauses fact_clauses =
     let
       val thy = Proof_Context.theory_of ctxt
@@ -361,6 +379,6 @@ fun prepare_metis_problem ctxt New conj_clauses fact_clauses =
                           else map prepare_helper thms)
           in problem |> fold (add_thm false) helper_ths end
       val type_ths = type_ext thy (map prop_of (conj_clauses @ fact_clauses))
-    in (mode, fold add_type_thm type_ths problem) end
+    in (mode, Symtab.empty, fold add_type_thm type_ths problem) end
 
 end;

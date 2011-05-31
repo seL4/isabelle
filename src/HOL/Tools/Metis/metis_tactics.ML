@@ -84,7 +84,7 @@ fun FOL_SOLVE (mode :: fallback_modes) ctxt cls ths0 =
       val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) cls
       val _ = trace_msg ctxt (fn () => "THEOREM CLAUSES")
       val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) ths
-      val (mode, {axioms, old_skolems, ...}) =
+      val (mode, sym_tab, {axioms, old_skolems, ...}) =
         prepare_metis_problem ctxt mode cls ths
       val _ = trace_msg ctxt (fn () => "CLAUSES GIVEN TO METIS")
       val thms = map #1 axioms
@@ -103,8 +103,9 @@ fun FOL_SOLVE (mode :: fallback_modes) ctxt cls ths0 =
                 val ctxt' = fold Variable.declare_constraints (map prop_of cls) ctxt
                              (*add constraints arising from converting goal to clause form*)
                 val proof = Metis_Proof.proof mth
-                val result = fold (replay_one_inference ctxt' mode old_skolems)
-                                  proof axioms
+                val result =
+                  fold (replay_one_inference ctxt' mode old_skolems sym_tab)
+                       proof axioms
                 and used = map_filter (used_axioms axioms) proof
                 val _ = trace_msg ctxt (fn () => "METIS COMPLETED...clauses actually used:")
                 val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) used

@@ -8,6 +8,7 @@ Proof reconstruction from ATP proofs.
 
 signature ATP_RECONSTRUCT =
 sig
+  type 'a fo_term = 'a ATP_Problem.fo_term
   type 'a proof = 'a ATP_Proof.proof
   type locality = ATP_Translate.locality
   type type_system = ATP_Translate.type_system
@@ -42,6 +43,9 @@ sig
   val uses_typed_helpers : int list -> 'a proof -> bool
   val reconstructor_name : reconstructor -> string
   val one_line_proof_text : one_line_params -> string
+  val term_from_atp :
+    theory -> bool -> int Symtab.table -> (string * sort) list -> typ option
+    -> string fo_term -> term
   val isar_proof_text :
     Proof.context -> bool -> isar_params -> one_line_params -> string
   val proof_text :
@@ -393,7 +397,7 @@ fun add_type_constraint false (cl, TFree (a ,_)) = add_var ((a, ~1), cl)
   | add_type_constraint false (cl, TVar (ix, _)) = add_var (ix, cl)
   | add_type_constraint _ _ = I
 
-fun repair_tptp_variable_name f s =
+fun repair_variable_name f s =
   let
     fun subscript_name s n = s ^ nat_subscript n
     val s = String.map f s
@@ -412,8 +416,10 @@ fun repair_tptp_variable_name f s =
   
 (* First-order translation. No types are known for variables. "HOLogic.typeT"
    should allow them to be inferred. *)
-fun term_from_atp thy sym_tab tfrees =
+fun term_from_atp thy textual sym_tab tfrees =
   let
+    (* see also "mk_var" in "Metis_Reconstruct" *)
+    val var_index = if textual then 0 else 1
     fun do_term extra_us opt_T u =
       case u of
         ATerm (a, us) =>
@@ -421,7 +427,8 @@ fun term_from_atp thy sym_tab tfrees =
           @{const True} (* ignore TPTP type information *)
         else if a = tptp_equal then
           let val ts = map (do_term [] NONE) us in
-            if length ts = 2 andalso hd ts aconv List.last ts then
+            if textual andalso length ts = 2 andalso
+              hd ts aconv List.last ts then
               (* Vampire is keen on producing these. *)
               @{const True}
             else
@@ -473,22 +480,18 @@ fun term_from_atp thy sym_tab tfrees =
                 SOME b => Free (b, T)
               | NONE =>
                 case strip_prefix_and_unascii schematic_var_prefix a of
-                  SOME b => Var ((b, 0), T)
+                  SOME b => Var ((b, var_index), T)
                 | NONE =>
-                  if is_tptp_variable a then
-                    Var ((repair_tptp_variable_name Char.toLower a, 0), T)
-                  else
-                    (* Skolem constants? *)
-                    Var ((repair_tptp_variable_name Char.toUpper a, 0), T)
+                  Var ((repair_variable_name Char.toLower a, var_index), T)
           in list_comb (t, ts) end
   in do_term [] end
 
-fun term_from_atom thy sym_tab tfrees pos (u as ATerm (s, _)) =
+fun term_from_atom thy textual sym_tab tfrees pos (u as ATerm (s, _)) =
   if String.isPrefix class_prefix s then
     add_type_constraint pos (type_constraint_from_term tfrees u)
     #> pair @{const True}
   else
-    pair (term_from_atp thy sym_tab tfrees (SOME @{typ bool}) u)
+    pair (term_from_atp thy textual sym_tab tfrees (SOME @{typ bool}) u)
 
 val combinator_table =
   [(@{const_name Meson.COMBI}, @{thm Meson.COMBI_def_raw}),
@@ -533,7 +536,7 @@ fun quantify_over_var quant_of var_s t =
 
 (* Interpret an ATP formula as a HOL term, extracting sort constraints as they
    appear in the formula. *)
-fun prop_from_formula thy sym_tab tfrees phi =
+fun prop_from_formula thy textual sym_tab tfrees phi =
   let
     fun do_formula pos phi =
       case phi of
@@ -544,7 +547,7 @@ fun prop_from_formula thy sym_tab tfrees phi =
         #>> quantify_over_var (case q of
                                  AForall => forall_of
                                | AExists => exists_of)
-                              (repair_tptp_variable_name Char.toLower s)
+                              (repair_variable_name Char.toLower s)
       | AConn (ANot, [phi']) => do_formula (not pos) phi' #>> s_not
       | AConn (c, [phi1, phi2]) =>
         do_formula (pos |> c = AImplies ? not) phi1
@@ -557,7 +560,7 @@ fun prop_from_formula thy sym_tab tfrees phi =
              | AIff => s_iff
              | ANotIff => s_not o s_iff
              | _ => raise Fail "unexpected connective")
-      | AAtom tm => term_from_atom thy sym_tab tfrees pos tm
+      | AAtom tm => term_from_atom thy textual sym_tab tfrees pos tm
       | _ => raise FORMULA [phi]
   in repair_tvar_sorts (do_formula true phi Vartab.empty) end
 
@@ -574,11 +577,11 @@ fun unvarify_term (Var ((s, 0), T)) = Free (s, T)
 fun decode_line sym_tab tfrees (Definition (name, phi1, phi2)) ctxt =
     let
       val thy = Proof_Context.theory_of ctxt
-      val t1 = prop_from_formula thy sym_tab tfrees phi1
+      val t1 = prop_from_formula thy true sym_tab tfrees phi1
       val vars = snd (strip_comb t1)
       val frees = map unvarify_term vars
       val unvarify_args = subst_atomic (vars ~~ frees)
-      val t2 = prop_from_formula thy sym_tab tfrees phi2
+      val t2 = prop_from_formula thy true sym_tab tfrees phi2
       val (t1, t2) =
         HOLogic.eq_const HOLogic.typeT $ t1 $ t2
         |> unvarify_args |> uncombine_term thy |> check_formula ctxt
@@ -590,7 +593,7 @@ fun decode_line sym_tab tfrees (Definition (name, phi1, phi2)) ctxt =
   | decode_line sym_tab tfrees (Inference (name, u, deps)) ctxt =
     let
       val thy = Proof_Context.theory_of ctxt
-      val t = u |> prop_from_formula thy sym_tab tfrees
+      val t = u |> prop_from_formula thy true sym_tab tfrees
                 |> uncombine_term thy |> check_formula ctxt
     in
       (Inference (name, t, deps),
