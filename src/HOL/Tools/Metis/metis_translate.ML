@@ -11,7 +11,7 @@ signature METIS_TRANSLATE =
 sig
   type type_literal = ATP_Translate.type_literal
 
-  datatype mode = FO | HO | FT
+  datatype mode = FO | HO | FT | New
 
   type metis_problem =
     {axioms: (Metis_Thm.thm * thm) list,
@@ -113,11 +113,13 @@ fun reveal_old_skolem_terms old_skolems =
 (* HOL to FOL  (Isabelle to Metis)                                           *)
 (* ------------------------------------------------------------------------- *)
 
-datatype mode = FO | HO | FT  (* first-order, higher-order, fully-typed *)
+(* first-order, higher-order, fully-typed, new *)
+datatype mode = FO | HO | FT | New
 
 fun string_of_mode FO = "FO"
   | string_of_mode HO = "HO"
   | string_of_mode FT = "FT"
+  | string_of_mode New = "New"
 
 fun fn_isa_to_met_sublevel "equal" = "c_fequal"
   | fn_isa_to_met_sublevel "c_False" = "c_fFalse"
@@ -293,15 +295,18 @@ fun type_ext thy tms =
   end;
 
 (* Function to generate metis clauses, including comb and type clauses *)
-fun prepare_metis_problem mode0 ctxt type_lits cls thss =
-  let val thy = Proof_Context.theory_of ctxt
-      (*The modes FO and FT are sticky. HO can be downgraded to FO.*)
-      fun set_mode FO = FO
-        | set_mode HO =
-          if forall (forall (is_quasi_fol_clause thy)) (cls :: thss) then FO
-          else HO
-        | set_mode FT = FT
-      val mode = set_mode mode0
+fun prepare_metis_problem New ctxt type_lits cls thss =
+    error "Not implemented yet"
+  | prepare_metis_problem mode ctxt type_lits cls thss =
+    let
+      val thy = Proof_Context.theory_of ctxt
+      (* The modes FO and FT are sticky. HO can be downgraded to FO. *)
+      val mode =
+        if mode = HO andalso
+           forall (forall (is_quasi_fol_clause thy)) (cls :: thss) then
+          FO
+        else
+          mode
       (*transform isabelle clause to metis clause *)
       fun add_thm is_conjecture (isa_ith, metis_ith)
                   {axioms, tfrees, old_skolems} : metis_problem =
@@ -338,8 +343,9 @@ fun prepare_metis_problem mode0 ctxt type_lits cls thss =
                           if needs_full_types andalso mode <> FT then []
                           else map prepare_helper thms)
           in lmap |> fold (add_thm false) helper_ths end
-  in
-    (mode, add_type_thm (type_ext thy (maps (map prop_of) (cls :: thss))) lmap)
-  end
+    in
+      (mode,
+       add_type_thm (type_ext thy (maps (map prop_of) (cls :: thss))) lmap)
+    end
 
 end;
