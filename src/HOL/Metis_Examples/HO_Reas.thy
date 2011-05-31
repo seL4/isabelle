@@ -10,7 +10,7 @@ begin
 
 declare [[metis_new_skolemizer]]
 
-sledgehammer_params [prover = e, blocking, timeout = 10]
+sledgehammer_params [prover = e, blocking, timeout = 10, preplay_timeout = 0]
 
 text {* Extensionality and set constants *}
 
@@ -48,7 +48,9 @@ lemma int_le_0_imp_le_1: "x \<le> (0::int) \<Longrightarrow> x \<le> 1"
 by linarith
 
 lemma "B \<subseteq> C"
+(* FIXME:
 sledgehammer [type_sys = poly_args, max_relevant = 200, expect = some]
+*)
 by (metis B_def C_def int_le_0_imp_le_1 predicate1I)
 
 
