@@ -906,6 +906,7 @@ fun preprocess_prop ctxt presimp kind t =
       |> Raw_Simplifier.rewrite_term thy (Meson.unfold_set_const_simps ctxt) []
       |> extensionalize_term ctxt
       |> presimp ? presimplify_term ctxt
+      |> perhaps (try (HOLogic.dest_Trueprop))
       |> introduce_combinators_in_term ctxt kind
   end
 

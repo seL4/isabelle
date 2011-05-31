@@ -48,9 +48,7 @@ lemma int_le_0_imp_le_1: "x \<le> (0::int) \<Longrightarrow> x \<le> 1"
 by linarith
 
 lemma "B \<subseteq> C"
-(* FIXME:
 sledgehammer [type_sys = poly_args, max_relevant = 200, expect = some]
-*)
 by (metis B_def C_def int_le_0_imp_le_1 predicate1I)
 
 
