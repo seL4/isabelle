@@ -103,6 +103,7 @@ sig
   val level_of_type_sys : type_system -> type_level
   val is_type_sys_virtually_sound : type_system -> bool
   val is_type_sys_fairly_sound : type_system -> bool
+  val choose_format : format list -> type_system -> format * type_system
   val raw_type_literals_for_types : typ list -> type_literal list
   val unmangled_const : string -> string * string fo_term list
   val translate_atp_fact :
@@ -567,6 +568,20 @@ val is_type_sys_fairly_sound = is_type_level_fairly_sound o level_of_type_sys
 
 fun is_setting_higher_order THF (Simple_Types _) = true
   | is_setting_higher_order _ _ = false
+
+fun choose_format formats (Simple_Types level) =
+    if member (op =) formats THF then (THF, Simple_Types level)
+    else if member (op =) formats TFF then (TFF, Simple_Types level)
+    else choose_format formats (Preds (Mangled_Monomorphic, level, Heavy))
+  | choose_format formats type_sys =
+    (case hd formats of
+       CNF_UEQ =>
+       (CNF_UEQ, case type_sys of
+                   Preds stuff =>
+                   (if is_type_sys_fairly_sound type_sys then Preds else Tags)
+                       stuff
+                 | _ => type_sys)
+     | format => (format, type_sys))
 
 type translated_formula =
   {name: string,
@@ -1756,6 +1771,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
                         explicit_apply readable_names preproc hyp_ts concl_t
                         facts =
   let
+    val (format, type_sys) = choose_format [format] type_sys
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
       translate_formulas ctxt format prem_kind type_sys preproc hyp_ts concl_t
                          facts

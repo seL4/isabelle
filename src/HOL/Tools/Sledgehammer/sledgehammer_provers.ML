@@ -514,30 +514,13 @@ val atp_important_message_keep_quotient = 10
 val fallback_best_type_systems =
   [Preds (Mangled_Monomorphic, Nonmonotonic_Types, Light)]
 
-fun adjust_dumb_type_sys formats (Simple_Types level) =
-    if member (op =) formats THF then
-      (THF, Simple_Types level)
-    else if member (op =) formats TFF then
-      (TFF, Simple_Types level)
-    else
-      adjust_dumb_type_sys formats (Preds (Mangled_Monomorphic, level, Heavy))
-  | adjust_dumb_type_sys formats type_sys =
-    (case hd formats of
-       CNF_UEQ =>
-       (CNF_UEQ, case type_sys of
-                   Preds stuff =>
-                   (if is_type_sys_fairly_sound type_sys then Preds else Tags)
-                       stuff
-                 | _ => type_sys)
-     | format => (format, type_sys))
-
 fun choose_format_and_type_sys _ formats (Dumb_Type_Sys type_sys) =
-    adjust_dumb_type_sys formats type_sys
+    choose_format formats type_sys
   | choose_format_and_type_sys best_type_systems formats
                                (Smart_Type_Sys full_types) =
     map type_sys_from_string best_type_systems @ fallback_best_type_systems
     |> find_first (if full_types then is_type_sys_virtually_sound else K true)
-    |> the |> adjust_dumb_type_sys formats
+    |> the |> choose_format formats
 
 val metis_minimize_max_time = seconds 2.0
 
