@@ -20,10 +20,11 @@ sig
      old_skolems : (string * term) list}
 
   val metis_equal : string
+  val metis_type_tag : string
   val metis_predicator : string
   val metis_app_op : string
   val metis_generated_var_prefix : string
-  val metis_name_table : ((string * int) * string) list
+  val metis_name_table : ((string * int) * (string * bool)) list
   val reveal_old_skolem_terms : (string * term) list -> term -> term
   val string_of_mode : mode -> string
   val prepare_metis_problem :
@@ -40,13 +41,15 @@ open ATP_Translate
 val metis_equal = "="
 val metis_predicator = "{}"
 val metis_app_op = "."
+val metis_type_tag = ":"
 val metis_generated_var_prefix = "_"
 
 val metis_name_table =
-  [((tptp_equal, 2), metis_equal),
-   ((tptp_old_equal, 2), metis_equal),
-   ((const_prefix ^ predicator_name, 1), metis_predicator),
-   ((const_prefix ^ app_op_name, 2), metis_app_op)]
+  [((tptp_equal, 2), (metis_equal, false)),
+   ((tptp_old_equal, 2), (metis_equal, false)),
+   ((const_prefix ^ predicator_name, 1), (metis_predicator, false)),
+   ((const_prefix ^ app_op_name, 2), (metis_app_op, false)),
+   ((const_prefix ^ type_tag_name, 2), (metis_type_tag, true))]
 
 fun predicate_of thy ((@{const Not} $ P), pos) = predicate_of thy (P, not pos)
   | predicate_of thy (t, pos) =
@@ -160,7 +163,7 @@ fun hol_term_to_fol_HO (CombConst ((a, _), _, Ts)) =
 
 (*The fully-typed translation, to avoid type errors*)
 fun tag_with_type tm T =
-  Metis_Term.Fn (type_tag_name, [tm, metis_term_from_typ T])
+  Metis_Term.Fn (metis_type_tag, [tm, metis_term_from_typ T])
 
 fun hol_term_to_fol_FT (CombVar ((s, _), ty)) =
     tag_with_type (Metis_Term.Var s) ty
@@ -283,15 +286,18 @@ fun type_ext thy tms =
   in map class_rel_cls class_rel_clauses @ map arity_cls arity_clauses end
 
 fun metis_name_from_atp s ary =
-  AList.lookup (op =) metis_name_table (s, ary) |> the_default s
+  AList.lookup (op =) metis_name_table (s, ary) |> the_default (s, false)
 fun metis_term_from_atp (ATerm (s, tms)) =
   if is_tptp_variable s then
     Metis_Term.Var s
   else
-    Metis_Term.Fn (metis_name_from_atp s (length tms),
-                   map metis_term_from_atp tms)
-fun metis_atom_from_atp (AAtom (ATerm (s, tms))) =
-    (metis_name_from_atp s (length tms), map metis_term_from_atp tms)
+    let val (s, swap) = metis_name_from_atp s (length tms) in
+      Metis_Term.Fn (s, tms |> map metis_term_from_atp |> swap ? rev)
+    end
+fun metis_atom_from_atp (AAtom tm) =
+    (case metis_term_from_atp tm of
+       Metis_Term.Fn x => x
+     | _ => raise Fail "non CNF -- expected function")
   | metis_atom_from_atp _ = raise Fail "not CNF -- expected atom"
 fun metis_literal_from_atp (AConn (ANot, [phi])) =
     (false, metis_atom_from_atp phi)

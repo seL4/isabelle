@@ -52,7 +52,6 @@ sig
 
   type translated_formula
 
-  val type_tag_name : string
   val bound_var_prefix : string
   val schematic_var_prefix: string
   val fixed_var_prefix: string
@@ -70,6 +69,7 @@ sig
   val typed_helper_suffix : string
   val predicator_name : string
   val app_op_name : string
+  val type_tag_name : string
   val type_pred_name : string
   val simple_type_prefix : string
   val ascii_of: string -> string
@@ -146,8 +146,6 @@ val intro_info = useful_isabelle_info "intro"
 val elim_info = useful_isabelle_info "elim"
 val simp_info = useful_isabelle_info "simp"
 
-val type_tag_name = "ti"
-
 val bound_var_prefix = "B_"
 val schematic_var_prefix = "V_"
 val fixed_var_prefix = "v_"
@@ -178,6 +176,7 @@ val untyped_helper_suffix = "_U"
 
 val predicator_name = "hBOOL"
 val app_op_name = "hAPP"
+val type_tag_name = "ti"
 val type_pred_name = "is"
 val simple_type_prefix = "ty_"
 

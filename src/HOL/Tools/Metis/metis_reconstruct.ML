@@ -180,20 +180,20 @@ fun hol_term_from_metis_FT ctxt fol_tm =
           else
             Const (c, dummyT)
         end
-      fun cvt (Metis_Term.Fn ("ti", [Metis_Term.Var v, _])) =
+      fun cvt (Metis_Term.Fn (":", [Metis_Term.Var v, _])) =
              (case strip_prefix_and_unascii schematic_var_prefix v of
                   SOME w =>  mk_var(w, dummyT)
                 | NONE   => mk_var(v, dummyT))
-        | cvt (Metis_Term.Fn ("ti", [Metis_Term.Fn ("=",[]), _])) =
+        | cvt (Metis_Term.Fn (":", [Metis_Term.Fn ("=",[]), _])) =
             Const (@{const_name HOL.eq}, HOLogic.typeT)
-        | cvt (Metis_Term.Fn ("ti", [Metis_Term.Fn (x,[]), ty])) =
+        | cvt (Metis_Term.Fn (":", [Metis_Term.Fn (x,[]), ty])) =
            (case strip_prefix_and_unascii const_prefix x of
                 SOME c => do_const c
               | NONE => (*Not a constant. Is it a fixed variable??*)
             case strip_prefix_and_unascii fixed_var_prefix x of
                 SOME v => Free (v, hol_type_from_metis_term ctxt ty)
               | NONE => raise Fail ("hol_term_from_metis_FT bad constant: " ^ x))
-        | cvt (Metis_Term.Fn ("ti", [Metis_Term.Fn (".", [tm1,tm2]), _])) =
+        | cvt (Metis_Term.Fn (":", [Metis_Term.Fn (".", [tm1,tm2]), _])) =
             cvt tm1 $ cvt tm2
         | cvt (Metis_Term.Fn (".",[tm1,tm2])) = (*untyped application*)
             cvt tm1 $ cvt tm2
@@ -215,11 +215,13 @@ fun hol_term_from_metis_FT ctxt fol_tm =
   in fol_tm |> cvt end
 
 fun atp_name_from_metis s =
-  case AList.find (op =) metis_name_table s of
-    (s', ary) :: _ => (s', SOME ary)
-  | _ => (s, NONE)
+  case find_first (fn (_, (s', _)) => s' = s) metis_name_table of
+    SOME ((s, _), (_, swap)) => (s, swap)
+  | _ => (s, false)
 fun atp_term_from_metis (Metis_Term.Fn (s, tms)) =
-    ATerm (fst (atp_name_from_metis s), map atp_term_from_metis tms)
+    let val (s, swap) = atp_name_from_metis s in
+      ATerm (s, tms |> map atp_term_from_metis |> swap ? rev)
+    end
   | atp_term_from_metis (Metis_Term.Var s) = ATerm (s, [])
 
 fun hol_term_from_metis_MX sym_tab ctxt =
@@ -487,6 +489,14 @@ fun equality_inf ctxt mode old_skolems sym_tab (pos, atm) fp fr =
       val _ = trace_msg ctxt (fn () => "sign of the literal: " ^ Bool.toString pos)
       fun replace_item_list lx 0 (_::ls) = lx::ls
         | replace_item_list lx i (l::ls) = l :: replace_item_list lx (i-1) ls
+      fun path_finder_fail mode tm ps t =
+        raise Fail ("Cannot replay Metis proof in Isabelle:\n" ^
+                    "equality_inf, path_finder_" ^ string_of_mode mode ^
+                    ": path = " ^ space_implode " " (map string_of_int ps) ^
+                    " isa-term: " ^ Syntax.string_of_term ctxt tm ^
+                    (case t of
+                       SOME t => " fol-term: " ^ Metis_Term.toString t
+                     | NONE => ""))
       fun path_finder_FO tm [] = (tm, Bound 0)
         | path_finder_FO tm (p::ps) =
             let val (tm1,args) = strip_comb tm
@@ -507,27 +517,22 @@ fun equality_inf ctxt mode old_skolems sym_tab (pos, atm) fp fr =
       fun path_finder_HO tm [] = (tm, Bound 0)
         | path_finder_HO (t$u) (0::ps) = (fn(x,y) => (x, y$u)) (path_finder_HO t ps)
         | path_finder_HO (t$u) (_::ps) = (fn(x,y) => (x, t$y)) (path_finder_HO u ps)
-        | path_finder_HO tm ps =
-          raise Fail ("Cannot replay Metis proof in Isabelle:\n" ^
-                      "equality_inf, path_finder_HO: path = " ^
-                      space_implode " " (map string_of_int ps) ^
-                      " isa-term: " ^  Syntax.string_of_term ctxt tm)
+        | path_finder_HO tm ps = path_finder_fail HO tm ps NONE
       fun path_finder_FT tm [] _ = (tm, Bound 0)
-        | path_finder_FT tm (0::ps) (Metis_Term.Fn ("ti", [t1, _])) =
+        | path_finder_FT tm (0::ps) (Metis_Term.Fn (":", [t1, _])) =
             path_finder_FT tm ps t1
         | path_finder_FT (t$u) (0::ps) (Metis_Term.Fn (".", [t1, _])) =
             (fn(x,y) => (x, y$u)) (path_finder_FT t ps t1)
         | path_finder_FT (t$u) (1::ps) (Metis_Term.Fn (".", [_, t2])) =
             (fn(x,y) => (x, t$y)) (path_finder_FT u ps t2)
-        | path_finder_FT tm ps t =
-          raise Fail ("Cannot replay Metis proof in Isabelle:\n" ^
-                      "equality_inf, path_finder_FT: path = " ^
-                      space_implode " " (map string_of_int ps) ^
-                      " isa-term: " ^  Syntax.string_of_term ctxt tm ^
-                      " fol-term: " ^ Metis_Term.toString t)
+        | path_finder_FT tm ps t = path_finder_fail FT tm ps (SOME t)
       fun path_finder_MX tm [] _ = (tm, Bound 0)
         | path_finder_MX tm (p :: ps) (t as Metis_Term.Fn (s, ts)) =
-          if s = metis_app_op (* FIXME ### mangled etc. *) then
+          (* FIXME ### what if these are mangled? *) 
+          if s = metis_type_tag then
+            if p = 1 then path_finder_MX tm ps (nth ts 1)
+            else path_finder_fail MX tm (p :: ps) (SOME t)
+          else if s = metis_app_op then
             let
               val (tm1, tm2) = dest_comb tm in
               if p = 0 then path_finder_MX tm1 ps (hd ts) ||> (fn y => y $ tm2)
@@ -540,21 +545,13 @@ fun equality_inf ctxt mode old_skolems sym_tab (pos, atm) fp fr =
               val p' = if adjustment > p then p else p - adjustment
               val tm_p = nth args p'
                 handle Subscript =>
-                       raise METIS ("equality_inf",
-                                    string_of_int p ^ " adj " ^
-                                    string_of_int adjustment ^ " term " ^
-                                    Syntax.string_of_term ctxt tm)
+                       path_finder_fail MX tm (p :: ps) (SOME t)
               val _ = trace_msg ctxt (fn () =>
                   "path_finder: " ^ string_of_int p ^ "  " ^
                   Syntax.string_of_term ctxt tm_p)
               val (r, t) = path_finder_MX tm_p ps (nth ts p)
             in (r, list_comb (tm1, replace_item_list t p' args)) end
-        | path_finder_MX tm ps t =
-          raise Fail ("Cannot replay Metis proof in Isabelle:\n" ^
-                      "equality_inf, path_finder_MX: path = " ^
-                      space_implode " " (map string_of_int ps) ^
-                      " isa-term: " ^  Syntax.string_of_term ctxt tm ^
-                      " fol-term: " ^ Metis_Term.toString t)
+        | path_finder_MX tm ps t = path_finder_fail MX tm ps (SOME t)
       fun path_finder FO tm ps _ = path_finder_FO tm ps
         | path_finder HO (tm as Const(@{const_name HOL.eq},_) $ _ $ _) (p::ps) _ =
              (*equality: not curried, as other predicates are*)
