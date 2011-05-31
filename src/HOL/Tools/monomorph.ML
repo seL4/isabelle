@@ -91,31 +91,29 @@ datatype thm_info =
     schematics: typ list Symtab.table,
     initial_round: int }
 
-fun make_thm_info index initial_round schematics thm =
-  if Symtab.is_empty schematics then Ground thm
-  else Schematic {
-    index = index,
-    theorem = thm,
-    tvars = Term.add_tvars (Thm.prop_of thm) [],
-    schematics = schematics,
-    initial_round = initial_round }
-
 fun prepare schematic_consts_of rthms =
   let
     val empty_subst = ((0, false, false), Vartab.empty)
 
     fun prep (r, thm) ((i, idx), (consts, substs)) =
-      let
-        (* increase indices to avoid clashes of type variables *)
-        val thm' = Thm.incr_indexes idx thm
-        val idx' = Thm.maxidx_of thm' + 1
-        val schematics = schematic_consts_of (Thm.prop_of thm')
-        val consts' =
-          Symtab.fold (fn (n, _) => Symtab.update (n, [])) schematics consts
-        val substs' = Inttab.update (i, [empty_subst]) substs
-      in
-        (make_thm_info i r schematics thm', ((i+1, idx'), (consts', substs')))
-      end
+      if not (Term.exists_type typ_has_tvars (Thm.prop_of thm)) then
+        (Ground thm, ((i+1, idx + Thm.maxidx_of thm + 1), (consts, substs)))
+      else
+        let
+          (* increase indices to avoid clashes of type variables *)
+          val thm' = Thm.incr_indexes idx thm
+          val idx' = Thm.maxidx_of thm' + 1
+          val schematics = schematic_consts_of (Thm.prop_of thm')
+          val consts' =
+            Symtab.fold (fn (n, _) => Symtab.update (n, [])) schematics consts
+          val substs' = Inttab.update (i, [empty_subst]) substs
+          val thm_info = Schematic {
+            index = i,
+            theorem = thm',
+            tvars = Term.add_tvars (Thm.prop_of thm') [],
+            schematics = schematics,
+            initial_round = r }
+      in (thm_info, ((i+1, idx'), (consts', substs'))) end
   in fold_map prep rthms ((0, 0), (Symtab.empty, Inttab.empty)) ||> snd end
 
 
@@ -212,14 +210,14 @@ fun refine ctxt known_grounds new_grounds info =
   end
 
 
-fun make_subst_ctxt ctxt thm_infos (known_grounds, substitutions) =
+fun make_subst_ctxt ctxt thm_infos known_grounds substitutions =
   let
     val limit = Config.get ctxt max_new_instances
 
     fun add_ground_consts (Ground thm) = collect_instances known_grounds thm
       | add_ground_consts (Schematic _) = I
     val initial_grounds = fold add_ground_consts thm_infos Symtab.empty
-  in (thm_infos, (known_grounds, (limit, substitutions, initial_grounds))) end
+  in (known_grounds, (limit, substitutions, initial_grounds)) end
 
 fun with_new round f thm_info =
   (case thm_info of
@@ -235,7 +233,7 @@ fun with_active round f thm_info =
       else f (round, index, theorem, tvars, schematics)
   | Ground _ => I)
 
-fun collect_substitutions ctxt round thm_infos (known_grounds, subst_ctxt) =
+fun collect_substitutions thm_infos ctxt round (known_grounds, subst_ctxt) =
   let val (limit, substitutions, next_grounds) = subst_ctxt
   in
     (*
@@ -311,24 +309,31 @@ fun instantiate_all ctxt thm_infos (_, (_, substitutions, _)) =
 
 (** overall procedure **)
 
-fun limit_rounds ctxt f thm_infos =
+fun limit_rounds ctxt f =
   let
     val max = Config.get ctxt max_rounds
 
-    fun round _ (true, x) = (thm_infos, x)
+    fun round _ (true, x) = x
       | round i (_, x) =
-          if i <= max then round (i + 1) (f ctxt i thm_infos x)
+          if i <= max then round (i + 1) (f ctxt i x)
           else (
             show_info ctxt "Warning: Monomorphization limit reached";
-            (thm_infos, x))
+            x)
   in round 1 o pair false end
 
 fun monomorph schematic_consts_of rthms ctxt =
-  rthms
-  |> prepare schematic_consts_of
-  |-> make_subst_ctxt ctxt
-  |-> limit_rounds ctxt collect_substitutions
-  |-> instantiate_all ctxt
+  let
+    val (thm_infos, (known_grounds, substitutions)) =
+      prepare schematic_consts_of rthms
+  in
+    if Symtab.is_empty known_grounds then
+      (map (single o pair 0 o snd) rthms, ctxt)
+    else
+      make_subst_ctxt ctxt thm_infos known_grounds substitutions
+      |> limit_rounds ctxt (collect_substitutions thm_infos)
+      |> instantiate_all ctxt thm_infos
+  end
+
 
 end
 

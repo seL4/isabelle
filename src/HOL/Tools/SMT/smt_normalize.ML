@@ -626,12 +626,44 @@ fun apply_extra_norms ithms ctxt =
     val es = SMT_Utils.dict_lookup (Extra_Norms.get (Context.Proof ctxt)) cs
   in (burrow_ids (fold (fn e => e ctxt) es o rpair []) ithms, ctxt) end
 
+local
+  val ignored = member (op =) [@{const_name All}, @{const_name Ex},
+    @{const_name Let}, @{const_name If}, @{const_name HOL.eq}]
+
+  val schematic_consts_of =
+    let
+      fun collect (@{const SMT.trigger} $ p $ t) =
+            collect_trigger p #> collect t
+        | collect (t $ u) = collect t #> collect u
+        | collect (Abs (_, _, t)) = collect t
+        | collect (t as Const (n, _)) = 
+            if not (ignored n) then Monomorph.add_schematic_consts_of t else I
+        | collect _ = I
+      and collect_trigger t =
+        let val dest = these o try HOLogic.dest_list 
+        in fold (fold collect_pat o dest) (dest t) end
+      and collect_pat (Const (@{const_name SMT.pat}, _) $ t) = collect t
+        | collect_pat (Const (@{const_name SMT.nopat}, _) $ t) = collect t
+        | collect_pat _ = I
+    in (fn t => collect t Symtab.empty) end
+in
+
+fun monomorph xthms ctxt =
+  let val (xs, thms) = split_list xthms
+  in
+    (map (pair 1) thms, ctxt)
+    |-> Monomorph.monomorph schematic_consts_of
+    |>> maps (uncurry (map o pair)) o map2 pair xs o map (map snd)
+  end
+
+end
+
 fun normalize iwthms ctxt =
   iwthms
   |> gen_normalize ctxt
   |> unfold1 ctxt
   |> rpair ctxt
-  |-> SMT_Monomorph.monomorph
+  |-> monomorph
   |-> unfold2
   |-> apply_extra_norms
 
