@@ -320,7 +320,15 @@ fun prepare_metis_problem ctxt MX type_sys conj_clauses fact_clauses =
     let
       val type_sys = type_sys |> the_default default_type_sys
       val explicit_apply = NONE
-      val clauses = conj_clauses @ fact_clauses
+      val clauses =
+        conj_clauses @ fact_clauses
+        |> (if polymorphism_of_type_sys type_sys = Polymorphic then
+              I
+            else
+              map (pair 0)
+              #> rpair ctxt
+              #-> Monomorph.monomorph Monomorph.all_schematic_consts_of
+              #> fst #> maps (map snd))
       val (atp_problem, _, _, _, _, _, sym_tab) =
         prepare_atp_problem ctxt CNF Hypothesis Axiom type_sys explicit_apply
                             false false (map prop_of clauses) @{prop False} []
