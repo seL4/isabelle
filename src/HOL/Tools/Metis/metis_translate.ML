@@ -25,7 +25,7 @@ sig
   val reveal_old_skolem_terms : (string * term) list -> term -> term
   val string_of_mode : mode -> string
   val prepare_metis_problem :
-    mode -> Proof.context -> thm list -> thm list list -> mode * metis_problem
+    Proof.context -> mode -> thm list -> thm list list -> mode * metis_problem
 end
 
 structure Metis_Translate : METIS_TRANSLATE =
@@ -247,18 +247,6 @@ fun init_tfrees ctxt =
     |> raw_type_literals_for_types
   end;
 
-(*Insert non-logical axioms corresponding to all accumulated TFrees*)
-fun add_tfrees {axioms, tfrees, old_skolems} : metis_problem =
-     {axioms = map (rpair TrueI o metis_of_tfree) (distinct (op =) tfrees) @
-               axioms,
-      tfrees = tfrees, old_skolems = old_skolems}
-
-(*transform isabelle type / arity clause to metis clause *)
-fun add_type_thm [] lmap = lmap
-  | add_type_thm ((ith, mth) :: cls) {axioms, tfrees, old_skolems} =
-      add_type_thm cls {axioms = (mth, ith) :: axioms, tfrees = tfrees,
-                        old_skolems = old_skolems}
-
 fun const_in_metis c (pred, tm_list) =
   let
     fun in_mterm (Metis_Term.Var _) = false
@@ -279,33 +267,39 @@ fun arity_cls ({prem_lits, concl_lits, ...} : arity_clause) =
 
 (* CLASSREL CLAUSE *)
 fun m_class_rel_cls (subclass, _) (superclass, _) =
-  [metis_lit false subclass [Metis_Term.Var "T"], metis_lit true superclass [Metis_Term.Var "T"]];
+  [metis_lit false subclass [Metis_Term.Var "T"],
+   metis_lit true superclass [Metis_Term.Var "T"]]
 fun class_rel_cls ({subclass, superclass, ...} : class_rel_clause) =
-  (TrueI, Metis_Thm.axiom (Metis_LiteralSet.fromList (m_class_rel_cls subclass superclass)));
+  (TrueI, m_class_rel_cls subclass superclass
+          |> Metis_LiteralSet.fromList |> Metis_Thm.axiom)
 
 fun type_ext thy tms =
-  let val subs = tfree_classes_of_terms tms
-      val supers = tvar_classes_of_terms tms
-      val tycons = type_consts_of_terms thy tms
-      val (supers', arity_clauses) = make_arity_clauses thy tycons supers
-      val class_rel_clauses = make_class_rel_clauses thy subs supers'
-  in  map class_rel_cls class_rel_clauses @ map arity_cls arity_clauses
-  end;
+  let
+    val subs = tfree_classes_of_terms tms
+    val supers = tvar_classes_of_terms tms
+    val tycons = type_consts_of_terms thy tms
+    val (supers', arity_clauses) = make_arity_clauses thy tycons supers
+    val class_rel_clauses = make_class_rel_clauses thy subs supers'
+  in map class_rel_cls class_rel_clauses @ map arity_cls arity_clauses end
 
 (* Function to generate metis clauses, including comb and type clauses *)
-fun prepare_metis_problem New ctxt cls thss =
-    error "Not implemented yet"
-  | prepare_metis_problem mode ctxt cls thss =
+fun prepare_metis_problem ctxt New conj_clauses fact_clausess =
+    let
+      val x = 1
+    in
+      error "Not implemented yet"
+    end
+  | prepare_metis_problem ctxt mode conj_clauses fact_clausess =
     let
       val thy = Proof_Context.theory_of ctxt
       (* The modes FO and FT are sticky. HO can be downgraded to FO. *)
       val mode =
         if mode = HO andalso
-           forall (forall (is_quasi_fol_clause thy)) (cls :: thss) then
+           forall (forall (is_quasi_fol_clause thy))
+                  (conj_clauses :: fact_clausess) then
           FO
         else
           mode
-      (*transform isabelle clause to metis clause *)
       fun add_thm is_conjecture (isa_ith, metis_ith)
                   {axioms, tfrees, old_skolems} : metis_problem =
         let
@@ -313,19 +307,27 @@ fun prepare_metis_problem New ctxt cls thss =
             hol_thm_to_fol is_conjecture ctxt mode (length axioms) old_skolems
                            metis_ith
         in
-           {axioms = (mth, isa_ith) :: axioms,
-            tfrees = union (op =) tfree_lits tfrees, old_skolems = old_skolems}
+          {axioms = (mth, isa_ith) :: axioms,
+           tfrees = union (op =) tfree_lits tfrees, old_skolems = old_skolems}
         end;
-      val lmap = {axioms = [], tfrees = init_tfrees ctxt, old_skolems = []}
-                 |> fold (add_thm true o `Meson.make_meta_clause) cls
-                 |> add_tfrees
-                 |> fold (fold (add_thm false o `Meson.make_meta_clause)) thss
-      val clause_lists = map (Metis_Thm.clause o #1) (#axioms lmap)
+      fun add_type_thm (ith, mth) {axioms, tfrees, old_skolems} =
+        {axioms = (mth, ith) :: axioms, tfrees = tfrees,
+         old_skolems = old_skolems}
+      fun add_tfrees {axioms, tfrees, old_skolems} =
+        {axioms =
+           map (rpair TrueI o metis_of_tfree) (distinct (op =) tfrees) @ axioms,
+         tfrees = tfrees, old_skolems = old_skolems}
+      val problem =
+        {axioms = [], tfrees = init_tfrees ctxt, old_skolems = []}
+        |> fold (add_thm true o `Meson.make_meta_clause) conj_clauses
+        |> add_tfrees
+        |> fold (fold (add_thm false o `Meson.make_meta_clause)) fact_clausess
+      val clause_lists = map (Metis_Thm.clause o #1) (#axioms problem)
       fun is_used c =
         exists (Metis_LiteralSet.exists (const_in_metis c o #2)) clause_lists
-      val lmap =
+      val problem =
         if mode = FO then
-          lmap
+          problem
         else
           let
             val fdefs = @{thms fFalse_def fTrue_def fNot_def fconj_def fdisj_def
@@ -340,10 +342,9 @@ fun prepare_metis_problem New ctxt cls thss =
               |> maps (fn (_, (needs_full_types, thms)) =>
                           if needs_full_types andalso mode <> FT then []
                           else map prepare_helper thms)
-          in lmap |> fold (add_thm false) helper_ths end
-    in
-      (mode,
-       add_type_thm (type_ext thy (maps (map prop_of) (cls :: thss))) lmap)
-    end
+          in problem |> fold (add_thm false) helper_ths end
+      val type_ths =
+        type_ext thy (maps (map prop_of) (conj_clauses :: fact_clausess))
+    in (mode, fold add_type_thm type_ths problem) end
 
 end;
