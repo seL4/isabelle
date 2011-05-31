@@ -567,7 +567,9 @@ fun read_expectation "no_expectation" = No_Expectation
   | read_expectation "counterexample" = Counterexample
   | read_expectation s = error ("Not an expectation value: " ^ s)
 
-fun valid_tester_name genctxt = AList.defined (op =) (fst (fst (fst (Data.get genctxt))))
+fun valid_tester_name genctxt name =
+  AList.defined (op =) (fst (fst (fst (Data.get genctxt)))) name orelse
+    AList.defined (op =) (snd (fst (fst (Data.get genctxt)))) name
 
 fun parse_tester name genctxt =
   if valid_tester_name genctxt name then

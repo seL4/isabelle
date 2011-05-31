@@ -6,8 +6,7 @@ Narrowing-based counterexample generation.
 
 signature NARROWING_GENERATORS =
 sig
-  val compile_generator_expr:
-    Proof.context -> (term * term list) list -> int list -> term list option * Quickcheck.report option
+  val test_term: Proof.context -> bool * bool -> term * term list -> Quickcheck.result
   val put_counterexample: (unit -> term list option) -> Proof.context -> Proof.context
   val finite_functions : bool Config.T
   val overlord : bool Config.T
@@ -197,8 +196,9 @@ fun with_overlord_dir name f =
     val _ = Isabelle_System.mkdirs path;
   in Exn.release (Exn.capture f path) end;
   
-fun value ctxt (get, put, put_ml) (code, value) size =
+fun value ctxt (get, put, put_ml) (code, value_name) =
   let
+    fun message s = if Config.get ctxt Quickcheck.quiet then () else Output.urgent_message s
     val tmp_prefix = "Quickcheck_Narrowing"
     val with_tmp_dir =
       if Config.get ctxt overlord then with_overlord_dir else Isabelle_System.with_tmp_dir 
@@ -208,45 +208,55 @@ fun value ctxt (get, put, put_ml) (code, value) size =
         val narrowing_engine_file = Path.append in_path (Path.basic "Narrowing_Engine.hs")
         val main_file = Path.append in_path (Path.basic "Main.hs")
         val main = "module Main where {\n\n" ^
+          "import System;\n" ^
           "import Narrowing_Engine;\n" ^
           "import Code;\n\n" ^
-          "main = Narrowing_Engine.depthCheck " ^ string_of_int size ^ " (Code.value ())\n\n" ^
+          "main = getArgs >>= \\[size] -> Narrowing_Engine.depthCheck (read size) (Code.value ())\n\n" ^
           "}\n"
         val code' = prefix "module Code where {\n\ndata Typerep = Typerep String [Typerep];\n"
           (unprefix "module Code where {" code)
         val _ = File.write code_file code'
         val _ = File.write narrowing_engine_file narrowing_engine
         val _ = File.write main_file main
-        val executable = File.shell_path (Path.append in_path (Path.basic "isa_lsc"))
-        val cmd = "( exec \"$ISABELLE_GHC\" -fglasgow-exts " ^
+        val executable = File.shell_path (Path.append in_path (Path.basic "isabelle_quickcheck_narrowing"))
+        val cmd = "exec \"$ISABELLE_GHC\" -fglasgow-exts " ^
           (space_implode " " (map File.shell_path [code_file, narrowing_engine_file, main_file])) ^
-          " -o " ^ executable ^ "; ) && " ^ executable
-      in
-        bash_output cmd
+          " -o " ^ executable ^ ";"
+        val _ = if bash cmd <> 0 then
+          error "Compilation failed!"
+        else
+          ()
+        fun with_size k =
+          if k > Config.get ctxt Quickcheck.size then
+            NONE
+          else
+            let
+              val _ = message ("Test data size: " ^ string_of_int k)
+              val (response, _) = bash_output (executable ^ " " ^ string_of_int k)
+            in
+              if response = "NONE\n" then with_size (k + 1) else SOME response
+            end
+      in case with_size 0 of
+           NONE => NONE
+         | SOME response =>
+           let
+             val output_value = the_default "NONE"
+               (try (snd o split_last o filter_out (fn s => s = "") o split_lines) response)
+               |> translate_string (fn s => if s = "\\" then "\\\\" else s)
+             val ml_code = "\nval _ = Context.set_thread_data (SOME (Context.map_proof (" ^ put_ml
+               ^ " (fn () => " ^ output_value ^ ")) (ML_Context.the_generic_context ())))";
+             val ctxt' = ctxt
+               |> put (fn () => error ("Bad evaluation for " ^ quote put_ml))
+               |> Context.proof_map (exec false ml_code);
+           in get ctxt' () end     
       end
-    val result = with_tmp_dir tmp_prefix run
-    val output_value = the_default "NONE"
-      (try (snd o split_last o filter_out (fn s => s = "") o split_lines o fst) result)
-      |> translate_string (fn s => if s = "\\" then "\\\\" else s)
-    val ml_code = "\nval _ = Context.set_thread_data (SOME (Context.map_proof (" ^ put_ml
-      ^ " (fn () => " ^ output_value ^ ")) (ML_Context.the_generic_context ())))";
-    val ctxt' = ctxt
-      |> put (fn () => error ("Bad evaluation for " ^ quote put_ml))
-      |> Context.proof_map (exec false ml_code);
-  in get ctxt' () end;
+  in with_tmp_dir tmp_prefix run end;
 
-fun evaluation cookie thy evaluator vs_t args size =
+fun dynamic_value_strict cookie thy postproc t =
   let
-    val ctxt = Proof_Context.init_global thy;
-    val (program_code, value_name) = evaluator vs_t;
-    val value_code = space_implode " "
-      (value_name :: "()" :: map (enclose "(" ")") args);
-  in Exn.interruptible_capture (value ctxt cookie (program_code, value_code)) size end;
-
-fun dynamic_value_strict cookie thy postproc t args size =
-  let
-    fun evaluator naming program ((_, vs_ty), t) deps =
-      evaluation cookie thy (Code_Target.evaluator thy target naming program deps) (vs_ty, t) args size;
+    val ctxt = Proof_Context.init_global thy
+    fun evaluator naming program ((_, vs_ty), t) deps = Exn.interruptible_capture (value ctxt cookie)
+      (Code_Target.evaluator thy target naming program deps (vs_ty, t));    
   in Exn.release (Code_Thingol.dynamic_value thy (Exn.map_result o postproc) evaluator t) end;
 
 (** counterexample generator **)
@@ -286,7 +296,9 @@ fun finitize_functions t =
     list_abs (names ~~ Ts', t'')
   end
 
-fun compile_generator_expr ctxt [(t, eval_terms)] [_, size] =
+(** tester **)
+  
+fun test_term  ctxt (limit_time, is_interactive) (t, eval_terms) =
   let
     val thy = Proof_Context.theory_of ctxt
     val t' = list_abs_free (Term.add_frees t [], t)
@@ -295,10 +307,21 @@ fun compile_generator_expr ctxt [(t, eval_terms)] [_, size] =
       Const (@{const_name Quickcheck_Narrowing.ensure_testable}, fastype_of t --> fastype_of t) $ t
     val result = dynamic_value_strict
       (Counterexample.get, Counterexample.put, "Narrowing_Generators.put_counterexample")
-      thy (Option.map o map) (ensure_testable t'') [] size
+      thy (Option.map o map) (ensure_testable t'')
   in
-    (result, NONE)
+    Quickcheck.Result {counterexample = Option.map ((curry (op ~~)) (Term.add_free_names t [])) result,
+      evaluation_terms = Option.map (K []) result, timings = [], reports = []}
   end;
+
+fun test_goals ctxt (limit_time, is_interactive) insts goals =
+  let
+    val correct_inst_goals = Quickcheck.instantiate_goals ctxt insts goals
+  in
+    if Config.get ctxt Quickcheck.finite_types then
+      error "Quickcheck-Narrowing does not support finite_types"
+    else
+      Quickcheck.collect_results (test_term ctxt (limit_time, is_interactive)) (maps (map snd) correct_inst_goals) []
+  end
 
 (* setup *)
 
@@ -307,7 +330,6 @@ val setup =
   #> Code.datatype_interpretation ensure_partial_term_of_code
   #> Datatype.interpretation (Quickcheck_Common.ensure_sort_datatype
     (((@{sort typerep}, @{sort term_of}), @{sort narrowing}), instantiate_narrowing_datatype))
-  #> Context.theory_map
-    (Quickcheck.add_generator ("narrowing", compile_generator_expr))
+  #> Context.theory_map (Quickcheck.add_tester ("narrowing", test_goals))
     
 end;
