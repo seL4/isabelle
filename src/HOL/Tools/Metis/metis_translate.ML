@@ -10,7 +10,7 @@ Translation of HOL to FOL for Metis.
 signature METIS_TRANSLATE =
 sig
   type type_literal = ATP_Translate.type_literal
-  type type_system = ATP_Translate.type_system
+  type type_sys = ATP_Translate.type_sys
 
   datatype mode = FO | HO | FT | New
 
@@ -27,7 +27,7 @@ sig
   val reveal_old_skolem_terms : (string * term) list -> term -> term
   val string_of_mode : mode -> string
   val prepare_metis_problem :
-    Proof.context -> mode -> type_system option -> thm list -> thm list
+    Proof.context -> mode -> type_sys option -> thm list -> thm list
     -> mode * int Symtab.table * metis_problem
 end
 

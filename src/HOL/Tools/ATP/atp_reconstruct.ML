@@ -11,7 +11,7 @@ sig
   type 'a fo_term = 'a ATP_Problem.fo_term
   type 'a proof = 'a ATP_Proof.proof
   type locality = ATP_Translate.locality
-  type type_system = ATP_Translate.type_system
+  type type_sys = ATP_Translate.type_sys
 
   datatype reconstructor =
     Metis |
@@ -27,18 +27,17 @@ sig
   type one_line_params =
     play * string * (string * locality) list * minimize_command * int * int
   type isar_params =
-    bool * bool * int * type_system * string Symtab.table * int list list
-    * int * (string * locality) list vector * int Symtab.table * string proof
-    * thm
+    bool * bool * int * type_sys * string Symtab.table * int list list * int
+    * (string * locality) list vector * int Symtab.table * string proof * thm
   val repair_conjecture_shape_and_fact_names :
-    type_system -> string -> int list list -> int
+    type_sys -> string -> int list list -> int
     -> (string * locality) list vector -> int list
     -> int list list * int * (string * locality) list vector * int list
   val used_facts_in_atp_proof :
-    Proof.context -> type_system -> int -> (string * locality) list vector
+    Proof.context -> type_sys -> int -> (string * locality) list vector
     -> string proof -> (string * locality) list
   val used_facts_in_unsound_atp_proof :
-    Proof.context -> type_system -> int list list -> int
+    Proof.context -> type_sys -> int list list -> int
     -> (string * locality) list vector -> 'a proof -> string list option
   val uses_typed_helpers : int list -> 'a proof -> bool
   val reconstructor_name : reconstructor -> string
@@ -74,7 +73,7 @@ type minimize_command = string list -> string
 type one_line_params =
   play * string * (string * locality) list * minimize_command * int * int
 type isar_params =
-  bool * bool * int * type_system * string Symtab.table * int list list * int
+  bool * bool * int * type_sys * string Symtab.table * int list list * int
   * (string * locality) list vector * int Symtab.table * string proof * thm
 
 fun is_head_digit s = Char.isDigit (String.sub (s, 0))

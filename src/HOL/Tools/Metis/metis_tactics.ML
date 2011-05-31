@@ -9,7 +9,7 @@ HOL setup for the Metis prover.
 
 signature METIS_TACTICS =
 sig
-  type type_system = ATP_Translate.type_system
+  type type_sys = ATP_Translate.type_sys
 
   val metisN : string
   val metisF_N : string
@@ -22,8 +22,7 @@ sig
   val metisF_tac : Proof.context -> thm list -> int -> tactic
   val metisFT_tac : Proof.context -> thm list -> int -> tactic
   val metisHO_tac : Proof.context -> thm list -> int -> tactic
-  val metisX_tac :
-    Proof.context -> type_system option -> thm list -> int -> tactic
+  val metisX_tac : Proof.context -> type_sys option -> thm list -> int -> tactic
   val setup : theory -> theory
 end
 

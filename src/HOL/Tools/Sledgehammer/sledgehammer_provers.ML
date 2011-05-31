@@ -12,14 +12,14 @@ sig
   type locality = ATP_Translate.locality
   type relevance_fudge = Sledgehammer_Filter.relevance_fudge
   type translated_formula = ATP_Translate.translated_formula
-  type type_system = ATP_Translate.type_system
+  type type_sys = ATP_Translate.type_sys
   type play = ATP_Reconstruct.play
   type minimize_command = ATP_Reconstruct.minimize_command
 
   datatype mode = Auto_Try | Try | Normal | Minimize
 
-  datatype rich_type_system =
-    Dumb_Type_Sys of type_system |
+  datatype rich_type_sys =
+    Dumb_Type_Sys of type_sys |
     Smart_Type_Sys of bool
 
   type params =
@@ -28,7 +28,7 @@ sig
      overlord: bool,
      blocking: bool,
      provers: string list,
-     type_sys: rich_type_system,
+     type_sys: rich_type_sys,
      relevance_thresholds: real * real,
      max_relevant: int option,
      max_mono_iters: int,
@@ -288,8 +288,8 @@ val messages = Async_Manager.thread_messages das_tool "prover"
 
 (** problems, results, ATPs, etc. **)
 
-datatype rich_type_system =
-  Dumb_Type_Sys of type_system |
+datatype rich_type_sys =
+  Dumb_Type_Sys of type_sys |
   Smart_Type_Sys of bool
 
 type params =
@@ -298,7 +298,7 @@ type params =
    overlord: bool,
    blocking: bool,
    provers: string list,
-   type_sys: rich_type_system,
+   type_sys: rich_type_sys,
    relevance_thresholds: real * real,
    max_relevant: int option,
    max_mono_iters: int,

@@ -45,7 +45,7 @@ sig
     All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
   datatype type_heaviness = Heavy | Light
 
-  datatype type_system =
+  datatype type_sys =
     Simple_Types of type_level |
     Preds of polymorphism * type_level * type_heaviness |
     Tags of polymorphism * type_level * type_heaviness
@@ -98,23 +98,23 @@ sig
   val combterm_from_term :
     theory -> (string * typ) list -> term -> combterm * typ list
   val is_locality_global : locality -> bool
-  val type_sys_from_string : string -> type_system
-  val polymorphism_of_type_sys : type_system -> polymorphism
-  val level_of_type_sys : type_system -> type_level
-  val is_type_sys_virtually_sound : type_system -> bool
-  val is_type_sys_fairly_sound : type_system -> bool
-  val choose_format : format list -> type_system -> format * type_system
+  val type_sys_from_string : string -> type_sys
+  val polymorphism_of_type_sys : type_sys -> polymorphism
+  val level_of_type_sys : type_sys -> type_level
+  val is_type_sys_virtually_sound : type_sys -> bool
+  val is_type_sys_fairly_sound : type_sys -> bool
+  val choose_format : format list -> type_sys -> format * type_sys
   val raw_type_literals_for_types : typ list -> type_literal list
   val unmangled_const : string -> string * string fo_term list
   val translate_atp_fact :
-    Proof.context -> format -> type_system -> bool -> (string * locality) * thm
+    Proof.context -> format -> type_sys -> bool -> (string * locality) * thm
     -> translated_formula option * ((string * locality) * thm)
   val helper_table : (string * (bool * thm list)) list
   val tfree_classes_of_terms : term list -> string list
   val tvar_classes_of_terms : term list -> string list
   val type_consts_of_terms : theory -> term list -> string list
   val prepare_atp_problem :
-    Proof.context -> format -> formula_kind -> formula_kind -> type_system
+    Proof.context -> format -> formula_kind -> formula_kind -> type_sys
     -> bool option -> bool -> bool -> term list -> term
     -> (translated_formula option * ((string * 'a) * thm)) list
     -> string problem * string Symtab.table * int * int
@@ -498,7 +498,7 @@ datatype type_level =
   All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
 datatype type_heaviness = Heavy | Light
 
-datatype type_system =
+datatype type_sys =
   Simple_Types of type_level |
   Preds of polymorphism * type_level * type_heaviness |
   Tags of polymorphism * type_level * type_heaviness
