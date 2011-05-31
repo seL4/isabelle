@@ -1,0 +1,503 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Synopsis}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ Synopsis\isanewline
+\isakeyword{imports}\ Base\ Main\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupchapter{Synopsis%
+}
+\isamarkuptrue%
+%
+\isamarkupsection{Notepad%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+An Isar proof body serves as mathematical notepad to compose logical
+  content, consisting of facts, terms, types.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Facts%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+A fact is a simultaneous list of theorems.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Producing facts%
+}
+\isamarkuptrue%
+\isacommand{notepad}\isamarkupfalse%
+\isanewline
+\isakeyword{begin}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{isamarkuptxt}%
+Via assumption (``lambda''):%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{assume}\isamarkupfalse%
+\ a{\isaliteral{3A}{\isacharcolon}}\ A%
+\begin{isamarkuptxt}%
+Via proof (``let''):%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{have}\isamarkupfalse%
+\ b{\isaliteral{3A}{\isacharcolon}}\ B\ \isacommand{sorry}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+Via abbreviation (``let''):%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{note}\isamarkupfalse%
+\ c\ {\isaliteral{3D}{\isacharequal}}\ a\ b%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\isanewline
+\isacommand{end}\isamarkupfalse%
+%
+\isamarkupsubsubsection{Referencing facts%
+}
+\isamarkuptrue%
+\isacommand{notepad}\isamarkupfalse%
+\isanewline
+\isakeyword{begin}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{isamarkuptxt}%
+Via explicit name:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{assume}\isamarkupfalse%
+\ a{\isaliteral{3A}{\isacharcolon}}\ A\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ a%
+\begin{isamarkuptxt}%
+Via implicit name:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{assume}\isamarkupfalse%
+\ A\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ this%
+\begin{isamarkuptxt}%
+Via literal proposition (unification with results from the proof text):%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{assume}\isamarkupfalse%
+\ A\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}A{\isaliteral{60}{\isacharbackquoteclose}}\isanewline
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ B\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}B\ a{\isaliteral{60}{\isacharbackquoteclose}}\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}B\ b{\isaliteral{60}{\isacharbackquoteclose}}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\isacommand{end}\isamarkupfalse%
+%
+\isamarkupsubsubsection{Manipulating facts%
+}
+\isamarkuptrue%
+\isacommand{notepad}\isamarkupfalse%
+\isanewline
+\isakeyword{begin}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{isamarkuptxt}%
+Instantiation:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{assume}\isamarkupfalse%
+\ a{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ B\ x{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ a\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ a\ {\isaliteral{5B}{\isacharbrackleft}}of\ b{\isaliteral{5D}{\isacharbrackright}}\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ a\ {\isaliteral{5B}{\isacharbrackleft}}\isakeyword{where}\ x\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{5D}{\isacharbrackright}}%
+\begin{isamarkuptxt}%
+Backchaining:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isadigit{1}}{\isaliteral{3A}{\isacharcolon}}\ A\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isadigit{2}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ C{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ {\isadigit{2}}\ {\isaliteral{5B}{\isacharbrackleft}}OF\ {\isadigit{1}}{\isaliteral{5D}{\isacharbrackright}}\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ {\isadigit{1}}\ {\isaliteral{5B}{\isacharbrackleft}}THEN\ {\isadigit{2}}{\isaliteral{5D}{\isacharbrackright}}%
+\begin{isamarkuptxt}%
+Symmetric results:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ this\ {\isaliteral{5B}{\isacharbrackleft}}symmetric{\isaliteral{5D}{\isacharbrackright}}\isanewline
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{5C3C6E6F7465713E}{\isasymnoteq}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ this\ {\isaliteral{5B}{\isacharbrackleft}}symmetric{\isaliteral{5D}{\isacharbrackright}}%
+\begin{isamarkuptxt}%
+Adhoc-simplication (take care!):%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{40}{\isacharat}}\ xs{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ this\ {\isaliteral{5B}{\isacharbrackleft}}simplified{\isaliteral{5D}{\isacharbrackright}}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\isacommand{end}\isamarkupfalse%
+%
+\isamarkupsubsubsection{Projections%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Isar facts consist of multiple theorems.  There is notation to project
+  interval ranges.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{notepad}\isamarkupfalse%
+\isanewline
+\isakeyword{begin}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{assume}\isamarkupfalse%
+\ stuff{\isaliteral{3A}{\isacharcolon}}\ A\ B\ C\ D\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ stuff{\isaliteral{28}{\isacharparenleft}}{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ stuff{\isaliteral{28}{\isacharparenleft}}{\isadigit{2}}{\isaliteral{2D}{\isacharminus}}{\isadigit{3}}{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ stuff{\isaliteral{28}{\isacharparenleft}}{\isadigit{2}}{\isaliteral{2D}{\isacharminus}}{\isaliteral{29}{\isacharparenright}}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isacommand{end}\isamarkupfalse%
+%
+\isamarkupsubsubsection{Naming conventions%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{itemize}
+
+  \item Lower-case identifiers are usually preferred.
+
+  \item Facts can be named after the main term within the proposition.
+
+  \item Facts should \emph{not} be named after the command that
+  introduced them (\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}, \hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}).  This is
+  misleading and hard to maintain.
+
+  \item Natural numbers can be used as ``meaningless'' names (more
+  appropriate than \isa{{\isaliteral{22}{\isachardoublequote}}a{\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}a{\isadigit{2}}{\isaliteral{22}{\isachardoublequote}}} etc.)
+
+  \item Symbolic identifiers are supported (e.g. \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}}).
+
+  \end{itemize}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Block structure%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The formal notepad is block structured.  The fact produced by the last
+  entry of a block is exported into the outer context.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{notepad}\isamarkupfalse%
+\isanewline
+\isakeyword{begin}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{{\isaliteral{7B}{\isacharbraceleft}}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ a{\isaliteral{3A}{\isacharcolon}}\ A\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ b{\isaliteral{3A}{\isacharcolon}}\ B\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{note}\isamarkupfalse%
+\ a\ b\isanewline
+\ \ \isacommand{{\isaliteral{7D}{\isacharbraceright}}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ this\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}A{\isaliteral{60}{\isacharbackquoteclose}}\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}B{\isaliteral{60}{\isacharbackquoteclose}}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isacommand{end}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Explicit blocks as well as implicit blocks of nested goal
+  statements (e.g.\ \hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}) automatically introduce one extra
+  pair of parentheses in reserve.  The \hyperlink{command.next}{\mbox{\isa{\isacommand{next}}}} command allows
+  to ``jump'' these sub-blocks.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{notepad}\isamarkupfalse%
+\isanewline
+\isakeyword{begin}\isanewline
+%
+\isadelimproof
+\isanewline
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{{\isaliteral{7B}{\isacharbraceleft}}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ a{\isaliteral{3A}{\isacharcolon}}\ A\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ b{\isaliteral{3A}{\isacharcolon}}\ B\isanewline
+\ \ \ \ \isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
+\ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
+\ B\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
+\ c{\isaliteral{3A}{\isacharcolon}}\ C\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
+\ d{\isaliteral{3A}{\isacharcolon}}\ D\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{{\isaliteral{7D}{\isacharbraceright}}}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+Alternative version with explicit parentheses everywhere:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{{\isaliteral{7B}{\isacharbraceleft}}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{{\isaliteral{7B}{\isacharbraceleft}}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
+\ a{\isaliteral{3A}{\isacharcolon}}\ A\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{{\isaliteral{7D}{\isacharbraceright}}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{{\isaliteral{7B}{\isacharbraceleft}}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
+\ b{\isaliteral{3A}{\isacharcolon}}\ B\isanewline
+\ \ \ \ \ \ \isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
+\ \ \ \ \ \ \ \ \isacommand{{\isaliteral{7B}{\isacharbraceleft}}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
+\ B\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \ \ \isacommand{{\isaliteral{7D}{\isacharbraceright}}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \ \ \isacommand{{\isaliteral{7B}{\isacharbraceleft}}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
+\ c{\isaliteral{3A}{\isacharcolon}}\ C\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \ \ \isacommand{{\isaliteral{7D}{\isacharbraceright}}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \ \ \isacommand{{\isaliteral{7B}{\isacharbraceleft}}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \ \ \ \ \isacommand{have}\isamarkupfalse%
+\ d{\isaliteral{3A}{\isacharcolon}}\ D\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \ \ \isacommand{{\isaliteral{7D}{\isacharbraceright}}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{{\isaliteral{7D}{\isacharbraceright}}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{{\isaliteral{7D}{\isacharbraceright}}}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{end}\isamarkupfalse%
+%
+\isamarkupsubsection{Terms and Types%
+}
+\isamarkuptrue%
+\isacommand{notepad}\isamarkupfalse%
+\isanewline
+\isakeyword{begin}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{isamarkuptxt}%
+Locally fixed entities:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{fix}\isamarkupfalse%
+\ x\ \ \ %
+\isamarkupcmt{local constant, without any type information yet%
+}
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ \ %
+\isamarkupcmt{variant with explicit type-constraint for subsequent use%
+}
+\isanewline
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ a\ b\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{22}{\isachardoublequoteclose}}\ \ %
+\isamarkupcmt{type assignment at first occurrence in concrete term%
+}
+%
+\begin{isamarkuptxt}%
+Definitions (non-polymorphic):%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{def}\isamarkupfalse%
+\ x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{22}{\isachardoublequoteopen}}t{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequoteclose}}%
+\begin{isamarkuptxt}%
+Abbreviations (polymorphic):%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{let}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}f\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ x{\isaliteral{22}{\isachardoublequoteclose}}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\ \ \isacommand{term}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}f\ {\isaliteral{3F}{\isacharquery}}f{\isaliteral{22}{\isachardoublequoteclose}}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{isamarkuptxt}%
+Notation:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{write}\isamarkupfalse%
+\ x\ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\isacommand{end}\isamarkupfalse%
+\isanewline
+%
+\isadelimtheory
+\isanewline
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
