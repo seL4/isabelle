@@ -53,6 +53,10 @@ sig
   val add_batch_validator:
     string * (Proof.context -> term list -> (int -> bool) list)
       -> Context.generic -> Context.generic
+  (* basic operations *)
+  val instantiate_goals: Proof.context -> (string * typ) list -> (term * term list) list
+    -> (typ option * (term * term list)) list list
+  val collect_results: ('a -> result) -> 'a list -> result list -> result list
   (* testing terms and proof states *)
   val test_term: Proof.context -> bool * bool -> term * term list -> result
   val test_goal_terms:
@@ -413,7 +417,7 @@ fun monomorphic_term thy insts default_T =
 
 datatype wellsorted_error = Wellsorted_Error of string | Term of term * term list
 
-fun test_goal_terms lthy (limit_time, is_interactive) insts check_goals =
+fun instantiate_goals lthy insts goals =
   let
     fun map_goal_and_eval_terms f (check_goal, eval_terms) = (f check_goal, map f eval_terms)
     val thy = Proof_Context.theory_of lthy
@@ -427,7 +431,7 @@ fun test_goal_terms lthy (limit_time, is_interactive) insts check_goals =
               (map_goal_and_eval_terms (monomorphic_term thy insts T) (check_goal, eval_terms))
               handle WELLSORTED s => (SOME T, Wellsorted_Error s)) default_insts
         else
-          [(NONE, Term (Object_Logic.atomize_term thy check_goal, eval_terms))]) check_goals
+          [(NONE, Term (Object_Logic.atomize_term thy check_goal, eval_terms))]) goals
     val error_msg =
       cat_lines
         (maps (map_filter (fn (_, Term t) => NONE | (_, Wellsorted_Error s) => SOME s)) inst_goals)
@@ -438,20 +442,28 @@ fun test_goal_terms lthy (limit_time, is_interactive) insts check_goals =
         [[]] => error error_msg
       | xs => xs
     val _ = if Config.get lthy quiet then () else warning error_msg
-    fun collect_results f [] results = results
-      | collect_results f (t :: ts) results =
-        let
-          val result = f t
-        in
-          if found_counterexample result then
-            (result :: results)
-          else
-            collect_results f ts (result :: results)
-        end
+  in
+    correct_inst_goals
+  end
+
+fun collect_results f [] results = results
+  | collect_results f (t :: ts) results =
+    let
+      val result = f t
+    in
+      if found_counterexample result then
+        (result :: results)
+      else
+        collect_results f ts (result :: results)
+    end  
+
+fun test_goal_terms lthy (limit_time, is_interactive) insts goals =
+  let
     fun test_term' goal =
       case goal of
         [(NONE, t)] => test_term lthy (limit_time, is_interactive) t
       | ts => test_term_with_increasing_cardinality lthy (limit_time, is_interactive) (map snd ts)
+    val correct_inst_goals = instantiate_goals lthy insts goals
   in
     if Config.get lthy finite_types then
       collect_results test_term' correct_inst_goals []
@@ -475,14 +487,14 @@ fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
      of NONE => Assumption.all_assms_of lthy
       | SOME locale => Assumption.local_assms_of lthy (Locale.init locale thy);
     val proto_goal = Logic.list_implies (map Thm.term_of assms, subst_bounds (frees, strip gi));
-    val check_goals = case some_locale
+    val goals = case some_locale
      of NONE => [(proto_goal, eval_terms)]
       | SOME locale =>
         map (fn (_, phi) => (Morphism.term phi proto_goal, map (Morphism.term phi) eval_terms))
           (Locale.registrations_of (Context.Theory thy) (*FIXME*) locale);
     val test_goals = the_default test_goal_terms (lookup_tester lthy (Config.get lthy tester))
   in
-    test_goals lthy (time_limit, is_interactive) insts check_goals
+    test_goals lthy (time_limit, is_interactive) insts goals
   end
 
 (* pretty printing *)
