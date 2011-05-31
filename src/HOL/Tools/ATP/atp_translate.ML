@@ -616,18 +616,21 @@ fun should_drop_arg_type_args (Simple_Types _) =
     level_of_type_sys type_sys = All_Types andalso
     heaviness_of_type_sys type_sys = Heavy
 
-fun general_type_arg_policy type_sys =
-  if level_of_type_sys type_sys = No_Types then
-    No_Type_Args
-  else if polymorphism_of_type_sys type_sys = Mangled_Monomorphic then
-    Mangled_Type_Args (should_drop_arg_type_args type_sys)
-  else
-    Explicit_Type_Args (should_drop_arg_type_args type_sys)
+fun general_type_arg_policy (Tags (_, All_Types, Heavy)) = No_Type_Args
+  | general_type_arg_policy type_sys =
+    if level_of_type_sys type_sys = No_Types then
+      No_Type_Args
+    else if polymorphism_of_type_sys type_sys = Mangled_Monomorphic then
+      Mangled_Type_Args (should_drop_arg_type_args type_sys)
+    else
+      Explicit_Type_Args (should_drop_arg_type_args type_sys)
 
 fun type_arg_policy type_sys s =
   if s = @{const_name HOL.eq} orelse
      (s = app_op_name andalso level_of_type_sys type_sys = Const_Arg_Types) then
     No_Type_Args
+  else if s = type_tag_name then
+    Explicit_Type_Args false
   else
     general_type_arg_policy type_sys
 
