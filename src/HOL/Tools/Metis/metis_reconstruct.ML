@@ -525,21 +525,29 @@ fun equality_inf ctxt mode old_skolems sym_tab (pos, atm) fp fr =
                       " isa-term: " ^  Syntax.string_of_term ctxt tm ^
                       " fol-term: " ^ Metis_Term.toString t)
       fun path_finder_New tm [] _ = (tm, Bound 0)
-        | path_finder_New tm (p :: ps) (t as Metis_Term.Fn (_, ts)) =
-          let
-            val (tm1, args) = strip_comb tm
-            val adjustment = length ts - length args
-            val p' = if adjustment > p then p else p - adjustment
-            val tm_p = nth args p'
-              handle Subscript =>
-                     raise METIS ("equality_inf",
-                                  string_of_int p ^ " adj " ^
-                                  string_of_int adjustment ^ " term " ^
-                                  Syntax.string_of_term ctxt tm)
-            val _ = trace_msg ctxt (fn () => "path_finder: " ^ string_of_int p ^
-                                  "  " ^ Syntax.string_of_term ctxt tm_p)
-            val (r, t) = path_finder_New tm_p ps t
-          in (r, list_comb (tm1, replace_item_list t p' args)) end
+        | path_finder_New tm (p :: ps) (t as Metis_Term.Fn (s, ts)) =
+          if s = metis_app_op (* FIXME ### mangled etc. *) then
+            let
+              val (tm1, tm2) = dest_comb tm in
+              if p = 0 then path_finder_New tm1 ps (hd ts) ||> (fn y => y $ tm2)
+              else path_finder_New tm2 ps (nth ts 1) ||> (fn y => tm1 $ y)
+            end
+          else
+            let
+              val (tm1, args) = strip_comb tm
+              val adjustment = length ts - length args
+              val p' = if adjustment > p then p else p - adjustment
+              val tm_p = nth args p'
+                handle Subscript =>
+                       raise METIS ("equality_inf",
+                                    string_of_int p ^ " adj " ^
+                                    string_of_int adjustment ^ " term " ^
+                                    Syntax.string_of_term ctxt tm)
+              val _ = trace_msg ctxt (fn () =>
+                  "path_finder: " ^ string_of_int p ^ "  " ^
+                  Syntax.string_of_term ctxt tm_p)
+              val (r, t) = path_finder_New tm_p ps (nth ts p)
+            in (r, list_comb (tm1, replace_item_list t p' args)) end
         | path_finder_New tm ps t =
           raise Fail ("Cannot replay Metis proof in Isabelle:\n" ^
                       "equality_inf, path_finder_New: path = " ^
