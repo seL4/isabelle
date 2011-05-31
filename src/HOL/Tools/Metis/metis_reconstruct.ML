@@ -530,7 +530,7 @@ fun equality_inf ctxt mode old_skolems sym_tab (pos, atm) fp fr =
         | path_finder_MX tm (p :: ps) (t as Metis_Term.Fn (s, ts)) =
           (* FIXME ### what if these are mangled? *) 
           if s = metis_type_tag then
-            if p = 1 then path_finder_MX tm ps (nth ts 1)
+            if p = 0 then path_finder_MX tm ps (hd ts)
             else path_finder_fail MX tm (p :: ps) (SOME t)
           else if s = metis_app_op then
             let

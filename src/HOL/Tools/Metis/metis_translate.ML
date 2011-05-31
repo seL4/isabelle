@@ -20,9 +20,9 @@ sig
      old_skolems : (string * term) list}
 
   val metis_equal : string
-  val metis_type_tag : string
   val metis_predicator : string
   val metis_app_op : string
+  val metis_type_tag : string
   val metis_generated_var_prefix : string
   val metis_name_table : ((string * int) * (string * bool)) list
   val reveal_old_skolem_terms : (string * term) list -> term -> term
