@@ -86,6 +86,8 @@ sig
   val make_fixed_const : string -> string
   val make_fixed_type_const : string -> string
   val make_type_class : string -> string
+  val new_skolem_var_name_from_const : string -> string
+  val num_type_args : theory -> string -> int
   val make_arity_clauses :
     theory -> string list -> class list -> class list * arity_clause list
   val make_class_rel_clauses :
@@ -166,7 +168,7 @@ val sym_formula_prefix = "sym_"
 val fact_prefix = "fact_"
 val conjecture_prefix = "conj_"
 val helper_prefix = "help_"
-val class_rel_clause_prefix = "crel_";
+val class_rel_clause_prefix = "crel_"
 val arity_clause_prefix = "arity_"
 val tfree_clause_prefix = "tfree_"
 
@@ -186,7 +188,7 @@ val sledgehammer_weak_prefix = "Sledgehammer:"
   The character _ goes to __
   Characters in the range ASCII space to / go to _A to _P, respectively.
   Other characters go to _nnn where nnn is the decimal ASCII code.*)
-val upper_a_minus_space = Char.ord #"A" - Char.ord #" ";
+val upper_a_minus_space = Char.ord #"A" - Char.ord #" "
 
 fun stringN_of_int 0 _ = ""
   | stringN_of_int k n =
@@ -311,6 +313,20 @@ fun make_fixed_type_const c = type_const_prefix ^ lookup_const c
 
 fun make_type_class clas = class_prefix ^ ascii_of clas
 
+fun new_skolem_var_name_from_const s =
+  let val ss = s |> space_explode Long_Name.separator in
+    nth ss (length ss - 2)
+  end
+
+(* The number of type arguments of a constant, zero if it's monomorphic. For
+   (instances of) Skolem pseudoconstants, this information is encoded in the
+   constant name. *)
+fun num_type_args thy s =
+  if String.isPrefix skolem_const_prefix s then
+    s |> space_explode Long_Name.separator |> List.last |> Int.fromString |> the
+  else
+    (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
+
 (** Definitions and functions for FOL clauses and formulas for TPTP **)
 
 (* The first component is the type class; the second is a "TVar" or "TFree". *)
@@ -326,7 +342,7 @@ datatype arity_literal =
   TVarLit of name * name
 
 fun gen_TVars 0 = []
-  | gen_TVars n = ("T_" ^ string_of_int n) :: gen_TVars (n-1);
+  | gen_TVars n = ("T_" ^ string_of_int n) :: gen_TVars (n-1)
 
 fun pack_sort (_,[])  = []
   | pack_sort (tvar, "HOL.type" :: srt) =
@@ -370,13 +386,14 @@ fun multi_arity_clause [] = []
 (*Generate all pairs (tycon,class,sorts) such that tycon belongs to class in theory thy
   provided its arguments have the corresponding sorts.*)
 fun type_class_pairs thy tycons classes =
-  let val alg = Sign.classes_of thy
-      fun domain_sorts tycon = Sorts.mg_domain alg tycon o single
-      fun add_class tycon class =
-        cons (class, domain_sorts tycon class)
-        handle Sorts.CLASS_ERROR _ => I
-      fun try_classes tycon = (tycon, fold (add_class tycon) classes [])
-  in  map try_classes tycons  end;
+  let
+    val alg = Sign.classes_of thy
+    fun domain_sorts tycon = Sorts.mg_domain alg tycon o single
+    fun add_class tycon class =
+      cons (class, domain_sorts tycon class)
+      handle Sorts.CLASS_ERROR _ => I
+    fun try_classes tycon = (tycon, fold (add_class tycon) classes [])
+  in map try_classes tycons end
 
 (*Proving one (tycon, class) membership may require proving others, so iterate.*)
 fun iter_type_class_pairs _ _ [] = ([], [])
@@ -385,7 +402,7 @@ fun iter_type_class_pairs _ _ [] = ([], [])
           val newclasses = union_all (union_all (union_all (map (map #2 o #2) cpairs)))
             |> subtract (op =) classes |> subtract (op =) HOLogic.typeS
           val (classes', cpairs') = iter_type_class_pairs thy tycons newclasses
-      in (union (op =) classes' classes, union (op =) cpairs' cpairs) end;
+      in (union (op =) classes' classes, union (op =) cpairs' cpairs) end
 
 fun make_arity_clauses thy tycons =
   iter_type_class_pairs thy tycons ##> multi_arity_clause
@@ -413,7 +430,7 @@ fun make_class_rel_clause (sub,super) =
    superclass = `make_type_class super}
 
 fun make_class_rel_clauses thy subs supers =
-  map make_class_rel_clause (class_pairs thy subs supers);
+  map make_class_rel_clause (class_pairs thy subs supers)
 
 datatype combterm =
   CombConst of name * typ * typ list |
@@ -601,14 +618,16 @@ fun type_arg_policy type_sys s =
     general_type_arg_policy type_sys
 
 (*Make literals for sorted type variables*)
-fun sorts_on_typs_aux (_, [])   = []
-  | sorts_on_typs_aux ((x,i),  s::ss) =
-      let val sorts = sorts_on_typs_aux ((x,i), ss)
-      in
-          if s = the_single @{sort HOL.type} then sorts
-          else if i = ~1 then TyLitFree (`make_type_class s, `make_fixed_type_var x) :: sorts
-          else TyLitVar (`make_type_class s, (make_schematic_type_var (x,i), x)) :: sorts
-      end;
+fun sorts_on_typs_aux (_, []) = []
+  | sorts_on_typs_aux ((x, i), s :: ss) =
+    sorts_on_typs_aux ((x, i), ss)
+    |> (if s = the_single @{sort HOL.type} then
+          I
+        else if i = ~1 then
+          cons (TyLitFree (`make_type_class s, `make_fixed_type_var x))
+        else
+          cons (TyLitVar (`make_type_class s,
+                          (make_schematic_type_var (x, i), x))))
 
 fun sorts_on_typs (TFree (a, s)) = sorts_on_typs_aux ((a, ~1), s)
   | sorts_on_typs (TVar (v, s)) = sorts_on_typs_aux (v, s)
@@ -1286,17 +1305,17 @@ fun add_classes (sorts, cset) = List.foldl set_insert cset (flat sorts)
 (* Remove this trivial type class (FIXME: similar code elsewhere) *)
 fun delete_type cset = Symtab.delete_safe (the_single @{sort HOL.type}) cset
 
-fun tfree_classes_of_terms ts =
-  let val sorts_list = map (map #2 o OldTerm.term_tfrees) ts
-  in  Symtab.keys (delete_type (List.foldl add_classes Symtab.empty sorts_list))  end;
+fun classes_of_terms get_Ts =
+  map (map #2 o get_Ts)
+  #> List.foldl add_classes Symtab.empty
+  #> delete_type #> Symtab.keys
 
-fun tvar_classes_of_terms ts =
-  let val sorts_list = map (map #2 o OldTerm.term_tvars) ts
-  in  Symtab.keys (delete_type (List.foldl add_classes Symtab.empty sorts_list))  end;
+val tfree_classes_of_terms = classes_of_terms OldTerm.term_tfrees
+val tvar_classes_of_terms = classes_of_terms OldTerm.term_tvars
 
 (*fold type constructors*)
 fun fold_type_consts f (Type (a, Ts)) x = fold (fold_type_consts f) Ts (f (a,x))
-  | fold_type_consts _ _ x = x;
+  | fold_type_consts _ _ x = x
 
 (*Type constructors used to instantiate overloaded constants are the only ones needed.*)
 fun add_type_consts_in_term thy =
@@ -1310,7 +1329,7 @@ fun add_type_consts_in_term thy =
   in aux end
 
 fun type_consts_of_terms thy ts =
-  Symtab.keys (fold (add_type_consts_in_term thy) ts Symtab.empty);
+  Symtab.keys (fold (add_type_consts_in_term thy) ts Symtab.empty)
 
 
 fun translate_formulas ctxt format prem_kind type_sys hyp_ts concl_t

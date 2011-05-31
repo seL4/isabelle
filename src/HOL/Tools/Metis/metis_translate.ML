@@ -19,9 +19,6 @@ sig
      old_skolems: (string * term) list}
 
   val metis_generated_var_prefix : string
-  val new_skolem_const_prefix : string
-  val num_type_args: theory -> string -> int
-  val new_skolem_var_name_from_const : string -> string
   val reveal_old_skolem_terms : (string * term) list -> term -> term
   val string_of_mode : mode -> string
   val prepare_metis_problem :
@@ -35,20 +32,6 @@ open ATP_Problem
 open ATP_Translate
 
 val metis_generated_var_prefix = "_"
-
-(* The number of type arguments of a constant, zero if it's monomorphic. For
-   (instances of) Skolem pseudoconstants, this information is encoded in the
-   constant name. *)
-fun num_type_args thy s =
-  if String.isPrefix skolem_const_prefix s then
-    s |> space_explode Long_Name.separator |> List.last |> Int.fromString |> the
-  else
-    (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
-
-fun new_skolem_var_name_from_const s =
-  let val ss = s |> space_explode Long_Name.separator in
-    nth ss (length ss - 2)
-  end
 
 fun predicate_of thy ((@{const Not} $ P), pos) = predicate_of thy (P, not pos)
   | predicate_of thy (t, pos) =

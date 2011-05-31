@@ -212,8 +212,10 @@ fun hol_term_from_metis_FT ctxt fol_tm =
                    hol_term_from_metis_PT ctxt t)
   in fol_tm |> cvt end
 
-fun hol_term_from_metis FT = hol_term_from_metis_FT
-  | hol_term_from_metis _ = hol_term_from_metis_PT
+fun hol_term_from_metis FO = hol_term_from_metis_PT
+  | hol_term_from_metis HO = hol_term_from_metis_PT
+  | hol_term_from_metis FT = hol_term_from_metis_FT
+(*  | hol_term_from_metis New = ###*)
 
 fun hol_terms_from_metis ctxt mode old_skolems fol_tms =
   let val ts = map (hol_term_from_metis mode ctxt) fol_tms
@@ -453,9 +455,11 @@ val ssubst_em = @{lemma "s = t ==> P t ==> ~ P s ==> False" by simp}
 
 val metis_eq = Metis_Term.Fn ("=", []);
 
-fun get_ty_arg_size _ (Const (@{const_name HOL.eq}, _)) = 0  (*equality has no type arguments*)
-  | get_ty_arg_size thy (Const (c, _)) = (num_type_args thy c handle TYPE _ => 0)
-  | get_ty_arg_size _ _ = 0;
+(* Equality has no type arguments *)
+fun get_ty_arg_size _ (Const (@{const_name HOL.eq}, _)) = 0
+  | get_ty_arg_size thy (Const (s, _)) =
+    (num_type_args thy s handle TYPE _ => 0)
+  | get_ty_arg_size _ _ = 0
 
 fun equality_inf ctxt mode skolem_params (pos, atm) fp fr =
   let val thy = Proof_Context.theory_of ctxt

@@ -359,8 +359,8 @@ exception SAME of unit
 
 (* Type variables are given the basic sort "HOL.type". Some will later be
    constrained by information from type literals, or by type inference. *)
-fun typ_from_fo_term tfrees (u as ATerm (a, us)) =
-  let val Ts = map (typ_from_fo_term tfrees) us in
+fun typ_from_atp tfrees (u as ATerm (a, us)) =
+  let val Ts = map (typ_from_atp tfrees) us in
     case strip_prefix_and_unascii type_const_prefix a of
       SOME b => Type (invert_const b, Ts)
     | NONE =>
@@ -383,7 +383,7 @@ fun typ_from_fo_term tfrees (u as ATerm (a, us)) =
    type. *)
 fun type_constraint_from_term tfrees (u as ATerm (a, us)) =
   case (strip_prefix_and_unascii class_prefix a,
-        map (typ_from_fo_term tfrees) us) of
+        map (typ_from_atp tfrees) us) of
     (SOME b, [T]) => (b, T)
   | _ => raise FO_TERM [u]
 
@@ -410,20 +410,17 @@ fun repair_tptp_variable_name f s =
     | _ => s
   end
   
-fun num_type_args thy s =
-  (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
-
 (* First-order translation. No types are known for variables. "HOLogic.typeT"
    should allow them to be inferred. *)
-fun raw_term_from_pred thy sym_tab tfrees =
+fun term_from_atp thy sym_tab tfrees =
   let
-    fun aux opt_T extra_us u =
+    fun do_term extra_us opt_T u =
       case u of
         ATerm (a, us) =>
         if String.isPrefix simple_type_prefix a then
           @{const True} (* ignore TPTP type information *)
         else if a = tptp_equal then
-          let val ts = map (aux NONE []) us in
+          let val ts = map (do_term [] NONE) us in
             if length ts = 2 andalso hd ts aconv List.last ts then
               (* Vampire is keen on producing these. *)
               @{const True}
@@ -438,12 +435,12 @@ fun raw_term_from_pred thy sym_tab tfrees =
             if s' = type_tag_name then
               case mangled_us @ us of
                 [typ_u, term_u] =>
-                aux (SOME (typ_from_fo_term tfrees typ_u)) extra_us term_u
+                do_term extra_us (SOME (typ_from_atp tfrees typ_u)) term_u
               | _ => raise FO_TERM us
             else if s' = predicator_name then
-              aux (SOME @{typ bool}) [] (hd us)
+              do_term [] (SOME @{typ bool}) (hd us)
             else if s' = app_op_name then
-              aux opt_T (nth us 1 :: extra_us) (hd us)
+              do_term (nth us 1 :: extra_us) opt_T (hd us)
             else if s' = type_pred_name then
               @{const True} (* ignore type predicates *)
             else
@@ -454,13 +451,13 @@ fun raw_term_from_pred thy sym_tab tfrees =
                   chop num_ty_args us |>> append mangled_us
                 (* Extra args from "hAPP" come after any arguments given
                    directly to the constant. *)
-                val term_ts = map (aux NONE []) term_us
-                val extra_ts = map (aux NONE []) extra_us
+                val term_ts = map (do_term [] NONE) term_us
+                val extra_ts = map (do_term [] NONE) extra_us
                 val T =
                   if not (null type_us) andalso
                      num_type_args thy s' = length type_us then
-                    Sign.const_instance thy
-                        (s', map (typ_from_fo_term tfrees) type_us)
+                    (s', map (typ_from_atp tfrees) type_us)
+                    |> Sign.const_instance thy
                   else case opt_T of
                     SOME T => map fastype_of (term_ts @ extra_ts) ---> T
                   | NONE => HOLogic.typeT
@@ -469,7 +466,7 @@ fun raw_term_from_pred thy sym_tab tfrees =
           end
         | NONE => (* a free or schematic variable *)
           let
-            val ts = map (aux NONE []) (us @ extra_us)
+            val ts = map (do_term [] NONE) (us @ extra_us)
             val T = map fastype_of ts ---> HOLogic.typeT
             val t =
               case strip_prefix_and_unascii fixed_var_prefix a of
@@ -484,14 +481,14 @@ fun raw_term_from_pred thy sym_tab tfrees =
                     (* Skolem constants? *)
                     Var ((repair_tptp_variable_name Char.toUpper a, 0), T)
           in list_comb (t, ts) end
-  in aux (SOME HOLogic.boolT) [] end
+  in do_term [] end
 
-fun term_from_pred thy sym_tab tfrees pos (u as ATerm (s, _)) =
+fun term_from_atom thy sym_tab tfrees pos (u as ATerm (s, _)) =
   if String.isPrefix class_prefix s then
     add_type_constraint pos (type_constraint_from_term tfrees u)
     #> pair @{const True}
   else
-    pair (raw_term_from_pred thy sym_tab tfrees u)
+    pair (term_from_atp thy sym_tab tfrees (SOME @{typ bool}) u)
 
 val combinator_table =
   [(@{const_name Meson.COMBI}, @{thm Meson.COMBI_def_raw}),
@@ -560,7 +557,7 @@ fun prop_from_formula thy sym_tab tfrees phi =
              | AIff => s_iff
              | ANotIff => s_not o s_iff
              | _ => raise Fail "unexpected connective")
-      | AAtom tm => term_from_pred thy sym_tab tfrees pos tm
+      | AAtom tm => term_from_atom thy sym_tab tfrees pos tm
       | _ => raise FORMULA [phi]
   in repair_tvar_sorts (do_formula true phi Vartab.empty) end
 
@@ -569,7 +566,7 @@ fun check_formula ctxt =
   #> Syntax.check_term
          (Proof_Context.set_mode Proof_Context.mode_schematic ctxt)
 
-(**** Translation of TSTP files to Isar Proofs ****)
+(**** Translation of TSTP files to Isar proofs ****)
 
 fun unvarify_term (Var ((s, 0), T)) = Free (s, T)
   | unvarify_term t = raise TERM ("unvarify_term: non-Var", [t])
