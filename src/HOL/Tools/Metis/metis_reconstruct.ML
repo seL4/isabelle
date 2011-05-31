@@ -401,7 +401,7 @@ val select_literal = negate_head oo make_last
 fun resolve_inf ctxt mode skolem_params thpairs atm th1 th2 =
   let
     val thy = Proof_Context.theory_of ctxt
-    val i_th1 = lookth thpairs th1 and i_th2 = lookth thpairs th2
+    val (i_th1, i_th2) = pairself (lookth thpairs) (th1, th2)
     val _ = trace_msg ctxt (fn () => "  isa th1 (pos): " ^ Display.string_of_thm ctxt i_th1)
     val _ = trace_msg ctxt (fn () => "  isa th2 (neg): " ^ Display.string_of_thm ctxt i_th2)
   in
@@ -521,6 +521,7 @@ fun equality_inf ctxt mode skolem_params (pos, atm) fp fr =
         | path_finder FT tm (_ :: ps) (Metis_Term.Fn ("{}", [t1])) = path_finder_FT tm ps t1
              (*if not equality, ignore head to skip the hBOOL predicate*)
         | path_finder FT tm ps t = path_finder_FT tm ps t  (*really an error case!*)
+        | path_finder New tm ps t = path_finder HO tm ps t (* ### *)
       fun path_finder_lit ((nt as Const (@{const_name Not}, _)) $ tm_a) idx =
             let val (tm, tm_rslt) = path_finder mode tm_a idx m_tm
             in (tm, nt $ tm_rslt) end

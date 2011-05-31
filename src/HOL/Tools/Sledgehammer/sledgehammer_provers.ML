@@ -63,6 +63,10 @@ sig
   type prover =
     params -> (string -> minimize_command) -> prover_problem -> prover_result
 
+  val dest_dir : string Config.T
+  val problem_prefix : string Config.T
+  val measure_run_time : bool Config.T
+  val atp_readable_names : bool Config.T
   val smt_triggers : bool Config.T
   val smt_weights : bool Config.T
   val smt_weight_min_facts : int Config.T
@@ -90,9 +94,6 @@ sig
   val atp_relevance_fudge : relevance_fudge
   val smt_relevance_fudge : relevance_fudge
   val relevance_fudge_for_prover : Proof.context -> string -> relevance_fudge
-  val dest_dir : string Config.T
-  val problem_prefix : string Config.T
-  val measure_run_time : bool Config.T
   val weight_smt_fact :
     Proof.context -> int -> ((string * locality) * thm) * int
     -> (string * locality) * (int option * thm)
@@ -335,15 +336,19 @@ type prover =
 
 (* configuration attributes *)
 
+(* Empty string means create files in Isabelle's temporary files directory. *)
 val dest_dir =
   Attrib.setup_config_string @{binding sledgehammer_dest_dir} (K "")
-  (* Empty string means create files in Isabelle's temporary files directory. *)
-
 val problem_prefix =
   Attrib.setup_config_string @{binding sledgehammer_problem_prefix} (K "prob")
-
 val measure_run_time =
   Attrib.setup_config_bool @{binding sledgehammer_measure_run_time} (K false)
+
+(* In addition to being easier to read, readable names are often much shorter,
+   especially if types are mangled in names. For these reason, they are enabled
+   by default. *)
+val atp_readable_names =
+  Attrib.setup_config_bool @{binding sledgehammer_atp_readable_names} (K true)
 
 val smt_triggers =
   Attrib.setup_config_bool @{binding sledgehammer_smt_triggers} (K true)
@@ -661,7 +666,8 @@ fun run_atp mode name
                 val (atp_problem, pool, conjecture_offset, facts_offset,
                      fact_names, typed_helpers, sym_tab) =
                   prepare_atp_problem ctxt format conj_sym_kind prem_kind
-                      type_sys explicit_apply hyp_ts concl_t facts
+                      type_sys explicit_apply
+                      (Config.get ctxt atp_readable_names) hyp_ts concl_t facts
                 fun weights () = atp_problem_weights atp_problem
                 val core =
                   File.shell_path command ^ " " ^

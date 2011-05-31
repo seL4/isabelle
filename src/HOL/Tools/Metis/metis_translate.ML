@@ -25,12 +25,13 @@ sig
   val reveal_old_skolem_terms : (string * term) list -> term -> term
   val string_of_mode : mode -> string
   val prepare_metis_problem :
-    Proof.context -> mode -> thm list -> thm list list -> mode * metis_problem
+    Proof.context -> mode -> thm list -> thm list -> mode * metis_problem
 end
 
 structure Metis_Translate : METIS_TRANSLATE =
 struct
 
+open ATP_Problem
 open ATP_Translate
 
 val metis_generated_var_prefix = "_"
@@ -282,21 +283,54 @@ fun type_ext thy tms =
     val class_rel_clauses = make_class_rel_clauses thy subs supers'
   in map class_rel_cls class_rel_clauses @ map arity_cls arity_clauses end
 
-(* Function to generate metis clauses, including comb and type clauses *)
-fun prepare_metis_problem ctxt New conj_clauses fact_clausess =
-    let
-      val x = 1
-    in
-      error "Not implemented yet"
+fun metis_name_from_atp s =
+  if is_tptp_equal s then "="
+  else if s = predicator_name then "{}"
+  else if s = app_op_name then "."
+  else s
+fun metis_term_from_atp (ATerm (s, tms)) =
+  if is_tptp_variable s then Metis_Term.Var s
+  else Metis_Term.Fn (metis_name_from_atp s, map metis_term_from_atp tms)
+fun metis_atom_from_atp (AAtom (ATerm (s, tms))) =
+    (metis_name_from_atp s, map metis_term_from_atp tms)
+  | metis_atom_from_atp _ = raise Fail "not CNF -- expected atom"
+fun metis_literal_from_atp (AConn (ANot, [phi])) =
+    (false, metis_atom_from_atp phi)
+  | metis_literal_from_atp phi = (true, metis_atom_from_atp phi)
+fun metis_literals_from_atp (AConn (AOr, [phi1, phi2])) =
+    uncurry (union (op =)) (pairself metis_literals_from_atp (phi1, phi2))
+  | metis_literals_from_atp phi = [metis_literal_from_atp phi]
+fun metis_axiom_from_atp clauses (Formula (ident, _, phi, _, _)) =
+    let val j = ident |> unprefix conjecture_prefix |> Int.fromString |> the in
+      (phi |> metis_literals_from_atp |> Metis_LiteralSet.fromList
+           |> Metis_Thm.axiom,
+       Meson.make_meta_clause (nth clauses j))
     end
-  | prepare_metis_problem ctxt mode conj_clauses fact_clausess =
+  | metis_axiom_from_atp _ _ = raise Fail "not CNF -- expected formula"
+
+(* Function to generate metis clauses, including comb and type clauses *)
+fun prepare_metis_problem ctxt New conj_clauses fact_clauses =
+    let
+      val type_sys = Preds (Polymorphic, (* Nonmonotonic_Types FIXME ### *) No_Types, Light)
+      val explicit_apply = NONE
+      val clauses = conj_clauses @ fact_clauses
+      val (atp_problem, pool, _, _, _, _, sym_tab) =
+        prepare_atp_problem ctxt CNF Hypothesis Axiom type_sys
+                            explicit_apply false (map prop_of clauses)
+                            @{prop False} []
+      (* val _ = tracing (PolyML.makestring atp_problem) FIXME ### *)
+      val axioms =
+        atp_problem
+        |> maps (map_filter (try (metis_axiom_from_atp clauses)) o snd)
+    in (New, {axioms = axioms, tfrees = [], old_skolems = [] (* FIXME ### *)}) end
+  | prepare_metis_problem ctxt mode conj_clauses fact_clauses =
     let
       val thy = Proof_Context.theory_of ctxt
       (* The modes FO and FT are sticky. HO can be downgraded to FO. *)
       val mode =
         if mode = HO andalso
            forall (forall (is_quasi_fol_clause thy))
-                  (conj_clauses :: fact_clausess) then
+                  [conj_clauses, fact_clauses] then
           FO
         else
           mode
@@ -321,7 +355,7 @@ fun prepare_metis_problem ctxt New conj_clauses fact_clausess =
         {axioms = [], tfrees = init_tfrees ctxt, old_skolems = []}
         |> fold (add_thm true o `Meson.make_meta_clause) conj_clauses
         |> add_tfrees
-        |> fold (fold (add_thm false o `Meson.make_meta_clause)) fact_clausess
+        |> fold (add_thm false o `Meson.make_meta_clause) fact_clauses
       val clause_lists = map (Metis_Thm.clause o #1) (#axioms problem)
       fun is_used c =
         exists (Metis_LiteralSet.exists (const_in_metis c o #2)) clause_lists
@@ -343,8 +377,7 @@ fun prepare_metis_problem ctxt New conj_clauses fact_clausess =
                           if needs_full_types andalso mode <> FT then []
                           else map prepare_helper thms)
           in problem |> fold (add_thm false) helper_ths end
-      val type_ths =
-        type_ext thy (maps (map prop_of) (conj_clauses :: fact_clausess))
+      val type_ths = type_ext thy (map prop_of (conj_clauses @ fact_clauses))
     in (mode, fold add_type_thm type_ths problem) end
 
 end;

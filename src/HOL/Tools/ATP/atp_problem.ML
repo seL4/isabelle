@@ -17,7 +17,7 @@ sig
 
   datatype 'a ho_type = AType of 'a | AFun of 'a ho_type * 'a ho_type
 
-  datatype format = CNF_UEQ | FOF | TFF | THF
+  datatype format = CNF | CNF_UEQ | FOF | TFF | THF
   datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
   datatype 'a problem_line =
     Decl of string * 'a * 'a ho_type |
@@ -71,6 +71,8 @@ sig
   val formula_map : ('c -> 'd) -> ('a, 'b, 'c) formula -> ('a, 'b, 'd) formula
   val is_format_typed : format -> bool
   val tptp_strings_for_atp_problem : format -> string problem -> string list
+  val ensure_cnf_problem :
+    (string * string) problem -> (string * string) problem
   val filter_cnf_ueq_problem :
     (string * string) problem -> (string * string) problem
   val declare_undeclared_syms_in_atp_problem :
@@ -99,7 +101,7 @@ datatype ('a, 'b, 'c) formula =
 
 datatype 'a ho_type = AType of 'a | AFun of 'a ho_type * 'a ho_type
 
-datatype format = CNF_UEQ | FOF | TFF | THF
+datatype format = CNF | CNF_UEQ | FOF | TFF | THF
 datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
 datatype 'a problem_line =
   Decl of string * 'a * 'a ho_type |
@@ -256,7 +258,8 @@ fun string_for_formula format (AQuant (q, xs, phi)) =
 val default_source =
   ATerm ("inference", ATerm ("isabelle", []) :: replicate 2 (ATerm ("[]", [])))
 
-fun string_for_format CNF_UEQ = tptp_cnf
+fun string_for_format CNF = tptp_cnf
+  | string_for_format CNF_UEQ = tptp_cnf
   | string_for_format FOF = tptp_fof
   | string_for_format TFF = tptp_tff
   | string_for_format THF = tptp_thf
@@ -305,6 +308,8 @@ fun open_formula_line (Formula (ident, kind, phi, source, info)) =
 fun negate_conjecture_line (Formula (ident, Conjecture, phi, source, info)) =
     Formula (ident, Hypothesis, mk_anot phi, source, info)
   | negate_conjecture_line line = line
+
+fun ensure_cnf_problem problem = problem |> map (apsnd (map open_formula_line))
 
 fun filter_cnf_ueq_problem problem =
   problem

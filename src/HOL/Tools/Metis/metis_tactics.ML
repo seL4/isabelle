@@ -78,18 +78,14 @@ fun FOL_SOLVE (mode :: fallback_modes) ctxt cls ths0 =
                 (Thm.get_name_hint th,
                  Meson_Clausify.cnf_axiom ctxt new_skolemizer j th))
              (0 upto length ths0 - 1) ths0
-      val thss = map (snd o snd) th_cls_pairs
+      val ths = maps (snd o snd) th_cls_pairs
       val dischargers = map (fst o snd) th_cls_pairs
       val _ = trace_msg ctxt (fn () => "FOL_SOLVE: CONJECTURE CLAUSES")
       val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) cls
       val _ = trace_msg ctxt (fn () => "THEOREM CLAUSES")
-      val _ = app (app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th))) thss
-      val (mode, {axioms, tfrees, old_skolems}) =
-        prepare_metis_problem ctxt mode cls thss
-      val _ = if null tfrees then ()
-              else (trace_msg ctxt (fn () => "TFREE CLAUSES");
-                    app (fn TyLitFree ((s, _), (s', _)) =>
-                            trace_msg ctxt (fn () => s ^ "(" ^ s' ^ ")")) tfrees)
+      val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) ths
+      val (mode, {axioms, old_skolems, ...}) =
+        prepare_metis_problem ctxt mode cls ths
       val _ = trace_msg ctxt (fn () => "CLAUSES GIVEN TO METIS")
       val thms = map #1 axioms
       val _ = app (fn th => trace_msg ctxt (fn () => Metis_Thm.toString th)) thms

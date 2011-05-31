@@ -52,7 +52,6 @@ sig
 
   type translated_formula
 
-  val readable_names : bool Config.T
   val type_tag_name : string
   val bound_var_prefix : string
   val schematic_var_prefix: string
@@ -113,7 +112,7 @@ sig
   val type_consts_of_terms : theory -> term list -> string list
   val prepare_atp_problem :
     Proof.context -> format -> formula_kind -> formula_kind -> type_system
-    -> bool option -> term list -> term
+    -> bool option -> bool -> term list -> term
     -> (translated_formula option * ((string * 'a) * thm)) list
     -> string problem * string Symtab.table * int * int
        * (string * 'a) list vector * int list * int Symtab.table
@@ -143,13 +142,6 @@ fun useful_isabelle_info s =
 val intro_info = useful_isabelle_info "intro"
 val elim_info = useful_isabelle_info "elim"
 val simp_info = useful_isabelle_info "simp"
-
-(* Readable names are often much shorter, especially if types are mangled in
-   names. Also, the logic for generating legal SNARK sort names is only
-   implemented for readable names. Finally, readable names are, well, more
-   readable. For these reason, they are enabled by default. *)
-val readable_names =
-  Attrib.setup_config_bool @{binding sledgehammer_atp_readable_names} (K true)
 
 val type_tag_name = "ti"
 
@@ -1734,7 +1726,7 @@ val conjsN = "Conjectures"
 val free_typesN = "Type variables"
 
 fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
-                        explicit_apply hyp_ts concl_t facts =
+                        explicit_apply readable_names hyp_ts concl_t facts =
   let
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
       translate_formulas ctxt format prem_kind type_sys hyp_ts concl_t facts
@@ -1781,14 +1773,16 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
         formula_lines_for_free_types format type_sys (facts @ conjs))]
     val problem =
       problem
-      |> (if format = CNF_UEQ then filter_cnf_ueq_problem else I)
+      |> (case format of
+            CNF => ensure_cnf_problem
+          | CNF_UEQ => filter_cnf_ueq_problem
+          | _ => I)
       |> (if is_format_typed format then
             declare_undeclared_syms_in_atp_problem type_decl_prefix
                                                    implicit_declsN
           else
             I)
-    val (problem, pool) =
-      problem |> nice_atp_problem (Config.get ctxt readable_names)
+    val (problem, pool) = problem |> nice_atp_problem readable_names
     val helpers_offset = offset_of_heading_in_problem helpersN problem 0
     val typed_helpers =
       map_filter (fn (j, {name, ...}) =>
