@@ -165,6 +165,25 @@ proof -
   finally show "f = F f" .
 qed
 
+text {* Fixpoint induction rule *}
+
+lemma fixp_induct_uc:
+  fixes F :: "'c \<Rightarrow> 'c" and
+    U :: "'c \<Rightarrow> 'b \<Rightarrow> 'a" and
+    C :: "('b \<Rightarrow> 'a) \<Rightarrow> 'c" and
+    P :: "('b \<Rightarrow> 'a) \<Rightarrow> bool"
+  assumes mono: "\<And>x. mono_body (\<lambda>f. U (F (C f)) x)"
+  assumes eq: "f \<equiv> C (fixp_fun (\<lambda>f. U (F (C f))))"
+  assumes inverse: "\<And>f. U (C f) = f"
+  assumes adm: "ccpo.admissible le_fun lub_fun P"
+  assumes step: "\<And>f. P (U f) \<Longrightarrow> P (U (F f))"
+  shows "P (U f)"
+unfolding eq inverse
+apply (rule ccpo.fixp_induct[OF ccpo adm])
+apply (insert mono, auto simp: monotone_def fun_ord_def)[1]
+by (rule_tac f="C x" in step, simp add: inverse)
+
+
 text {* Rules for @{term mono_body}: *}
 
 lemma const_mono[partial_function_mono]: "monotone ord leq (\<lambda>f. c)"
@@ -224,12 +243,6 @@ interpretation option!:
   partial_function_definitions "flat_ord None" "flat_lub None"
 by (rule flat_interpretation)
 
-declaration {* Partial_Function.init "tailrec" @{term tailrec.fixp_fun}
-  @{term tailrec.mono_body} @{thm tailrec.fixp_rule_uc} NONE *}
-
-declaration {* Partial_Function.init "option" @{term option.fixp_fun}
-  @{term option.mono_body} @{thm option.fixp_rule_uc} NONE *}
-
 
 abbreviation "option_ord \<equiv> flat_ord None"
 abbreviation "mono_option \<equiv> monotone (fun_ord option_ord) option_ord"
@@ -287,6 +300,27 @@ proof (rule ccpo.admissibleI[OF option.ccpo])
     with IH show "P x y" by auto
   qed
 qed
+
+lemma fixp_induct_option:
+  fixes F :: "'c \<Rightarrow> 'c" and
+    U :: "'c \<Rightarrow> 'b \<Rightarrow> 'a option" and
+    C :: "('b \<Rightarrow> 'a option) \<Rightarrow> 'c" and
+    P :: "'b \<Rightarrow> 'a \<Rightarrow> bool"
+  assumes mono: "\<And>x. mono_option (\<lambda>f. U (F (C f)) x)"
+  assumes eq: "f \<equiv> C (ccpo.fixp (fun_ord option_ord) (fun_lub (flat_lub None)) (\<lambda>f. U (F (C f))))"
+  assumes inverse2: "\<And>f. U (C f) = f"
+  assumes step: "\<And>f x y. (\<And>x y. U f x = Some y \<Longrightarrow> P x y) \<Longrightarrow> U (F f) x = Some y \<Longrightarrow> P x y"
+  assumes defined: "U f x = Some y"
+  shows "P x y"
+  using step defined option.fixp_induct_uc[of U F C, OF mono eq inverse2 option_admissible]
+  by blast
+
+declaration {* Partial_Function.init "tailrec" @{term tailrec.fixp_fun}
+  @{term tailrec.mono_body} @{thm tailrec.fixp_rule_uc} NONE *}
+
+declaration {* Partial_Function.init "option" @{term option.fixp_fun}
+  @{term option.mono_body} @{thm option.fixp_rule_uc} 
+  (SOME @{thm fixp_induct_option}) *}
 
 
 hide_const (open) chain
