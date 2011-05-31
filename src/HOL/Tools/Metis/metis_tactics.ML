@@ -199,18 +199,14 @@ val metisX_tac = generic_metis_tac metisX_modes
 val has_tvar =
   exists_type (exists_subtype (fn TVar _ => true | _ => false)) o prop_of
 
+fun method modes ths ctxt facts =
+  let val (schem_facts, nonschem_facts) = List.partition has_tvar facts in
+    HEADGOAL (Method.insert_tac nonschem_facts THEN'
+              CHANGED_PROP o generic_metis_tac modes ctxt (schem_facts @ ths))
+  end
 fun setup_method (modes as mode :: _) =
   Method.setup (method_binding_for_mode mode)
-    (Attrib.thms >> (fn ths => fn ctxt =>
-       METHOD (fn facts =>
-                  let
-                    val (schem_facts, nonschem_facts) =
-                      List.partition has_tvar facts
-                  in
-                    HEADGOAL (Method.insert_tac nonschem_facts THEN'
-                              CHANGED_PROP
-                              o generic_metis_tac modes ctxt (schem_facts @ ths))
-                  end)))
+               (Attrib.thms >> (METHOD oo method modes))
 
 val setup =
   [(metis_modes, "Metis for FOL and HOL problems"),
