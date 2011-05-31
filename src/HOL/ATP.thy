@@ -7,7 +7,8 @@ header {* Automatic Theorem Provers (ATPs) *}
 
 theory ATP
 imports Meson
-uses "Tools/ATP/atp_util.ML"
+uses "Tools/monomorph.ML"
+     "Tools/ATP/atp_util.ML"
      "Tools/ATP/atp_problem.ML"
      "Tools/ATP/atp_proof.ML"
      "Tools/ATP/atp_systems.ML"
