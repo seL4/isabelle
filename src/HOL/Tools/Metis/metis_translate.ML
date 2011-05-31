@@ -10,6 +10,7 @@ Translation of HOL to FOL for Metis.
 signature METIS_TRANSLATE =
 sig
   type type_literal = ATP_Translate.type_literal
+  type type_system = ATP_Translate.type_system
 
   datatype mode = FO | HO | FT | New
 
@@ -26,7 +27,7 @@ sig
   val reveal_old_skolem_terms : (string * term) list -> term -> term
   val string_of_mode : mode -> string
   val prepare_metis_problem :
-    Proof.context -> mode -> thm list -> thm list
+    Proof.context -> mode -> type_system option -> thm list -> thm list
     -> mode * int Symtab.table * metis_problem
 end
 
@@ -306,10 +307,12 @@ fun metis_axiom_from_atp clauses (Formula (ident, _, phi, _, _)) =
      | NONE => TrueI)
   | metis_axiom_from_atp _ _ = raise Fail "not CNF -- expected formula"
 
+val default_type_sys = Preds (Polymorphic, Nonmonotonic_Types, Light)
+
 (* Function to generate metis clauses, including comb and type clauses *)
-fun prepare_metis_problem ctxt New conj_clauses fact_clauses =
+fun prepare_metis_problem ctxt New type_sys conj_clauses fact_clauses =
     let
-      val type_sys = Preds (Polymorphic, (* Nonmonotonic_Types FIXME ### *) Const_Arg_Types, Light)
+      val type_sys = type_sys |> the_default default_type_sys
       val explicit_apply = NONE
       val clauses = conj_clauses @ fact_clauses
       val (atp_problem, _, _, _, _, _, sym_tab) =
@@ -322,7 +325,7 @@ fun prepare_metis_problem ctxt New conj_clauses fact_clauses =
       (New, sym_tab,
        {axioms = axioms, tfrees = [], old_skolems = [] (* FIXME ### *)})
     end
-  | prepare_metis_problem ctxt mode conj_clauses fact_clauses =
+  | prepare_metis_problem ctxt mode _ conj_clauses fact_clauses =
     let
       val thy = Proof_Context.theory_of ctxt
       (* The modes FO and FT are sticky. HO can be downgraded to FO. *)
