@@ -12,7 +12,7 @@ sig
   type type_literal = ATP_Translate.type_literal
   type type_sys = ATP_Translate.type_sys
 
-  datatype mode = FO | HO | FT | New
+  datatype mode = FO | HO | FT | MX
 
   type metis_problem =
     {axioms : (Metis_Thm.thm * thm) list,
@@ -111,13 +111,13 @@ fun reveal_old_skolem_terms old_skolems =
 (* HOL to FOL  (Isabelle to Metis)                                           *)
 (* ------------------------------------------------------------------------- *)
 
-(* first-order, higher-order, fully-typed, new *)
-datatype mode = FO | HO | FT | New
+(* first-order, higher-order, fully-typed, mode X (fleXible) *)
+datatype mode = FO | HO | FT | MX
 
 fun string_of_mode FO = "FO"
   | string_of_mode HO = "HO"
   | string_of_mode FT = "FT"
-  | string_of_mode New = "New"
+  | string_of_mode MX = "MX"
 
 fun fn_isa_to_met_sublevel "equal" = "c_fequal"
   | fn_isa_to_met_sublevel "c_False" = "c_fFalse"
@@ -310,7 +310,7 @@ fun metis_axiom_from_atp clauses (Formula (ident, _, phi, _, _)) =
 val default_type_sys = Preds (Polymorphic, Nonmonotonic_Types, Light)
 
 (* Function to generate metis clauses, including comb and type clauses *)
-fun prepare_metis_problem ctxt New type_sys conj_clauses fact_clauses =
+fun prepare_metis_problem ctxt MX type_sys conj_clauses fact_clauses =
     let
       val type_sys = type_sys |> the_default default_type_sys
       val explicit_apply = NONE
@@ -322,7 +322,7 @@ fun prepare_metis_problem ctxt New type_sys conj_clauses fact_clauses =
         atp_problem
         |> maps (map_filter (try (metis_axiom_from_atp clauses)) o snd)
     in
-      (New, sym_tab,
+      (MX, sym_tab,
        {axioms = axioms, tfrees = [], old_skolems = [] (* FIXME ### *)})
     end
   | prepare_metis_problem ctxt mode _ conj_clauses fact_clauses =

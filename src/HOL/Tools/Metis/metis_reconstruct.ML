@@ -222,15 +222,16 @@ fun atp_term_from_metis (Metis_Term.Fn (s, tms)) =
     ATerm (fst (atp_name_from_metis s), map atp_term_from_metis tms)
   | atp_term_from_metis (Metis_Term.Var s) = ATerm (s, [])
 
-fun hol_term_from_metis_New sym_tab ctxt =
+fun hol_term_from_metis_MX sym_tab ctxt =
   let val thy = Proof_Context.theory_of ctxt in
-    atp_term_from_metis #> term_from_atp thy false sym_tab [](*###tfrees*) NONE
+    atp_term_from_metis #> term_from_atp thy false sym_tab []
+    (* FIXME ### tfrees instead of []? *) NONE
   end
 
 fun hol_term_from_metis FO _ = hol_term_from_metis_PT
   | hol_term_from_metis HO _ = hol_term_from_metis_PT
   | hol_term_from_metis FT _ = hol_term_from_metis_FT
-  | hol_term_from_metis New sym_tab = hol_term_from_metis_New sym_tab
+  | hol_term_from_metis MX sym_tab = hol_term_from_metis_MX sym_tab
 
 fun hol_terms_from_metis ctxt mode old_skolems sym_tab fol_tms =
   let val ts = map (hol_term_from_metis mode sym_tab ctxt) fol_tms
@@ -524,13 +525,13 @@ fun equality_inf ctxt mode old_skolems sym_tab (pos, atm) fp fr =
                       space_implode " " (map string_of_int ps) ^
                       " isa-term: " ^  Syntax.string_of_term ctxt tm ^
                       " fol-term: " ^ Metis_Term.toString t)
-      fun path_finder_New tm [] _ = (tm, Bound 0)
-        | path_finder_New tm (p :: ps) (t as Metis_Term.Fn (s, ts)) =
+      fun path_finder_MX tm [] _ = (tm, Bound 0)
+        | path_finder_MX tm (p :: ps) (t as Metis_Term.Fn (s, ts)) =
           if s = metis_app_op (* FIXME ### mangled etc. *) then
             let
               val (tm1, tm2) = dest_comb tm in
-              if p = 0 then path_finder_New tm1 ps (hd ts) ||> (fn y => y $ tm2)
-              else path_finder_New tm2 ps (nth ts 1) ||> (fn y => tm1 $ y)
+              if p = 0 then path_finder_MX tm1 ps (hd ts) ||> (fn y => y $ tm2)
+              else path_finder_MX tm2 ps (nth ts 1) ||> (fn y => tm1 $ y)
             end
           else
             let
@@ -546,11 +547,11 @@ fun equality_inf ctxt mode old_skolems sym_tab (pos, atm) fp fr =
               val _ = trace_msg ctxt (fn () =>
                   "path_finder: " ^ string_of_int p ^ "  " ^
                   Syntax.string_of_term ctxt tm_p)
-              val (r, t) = path_finder_New tm_p ps (nth ts p)
+              val (r, t) = path_finder_MX tm_p ps (nth ts p)
             in (r, list_comb (tm1, replace_item_list t p' args)) end
-        | path_finder_New tm ps t =
+        | path_finder_MX tm ps t =
           raise Fail ("Cannot replay Metis proof in Isabelle:\n" ^
-                      "equality_inf, path_finder_New: path = " ^
+                      "equality_inf, path_finder_MX: path = " ^
                       space_implode " " (map string_of_int ps) ^
                       " isa-term: " ^  Syntax.string_of_term ctxt tm ^
                       " fol-term: " ^ Metis_Term.toString t)
@@ -573,7 +574,7 @@ fun equality_inf ctxt mode old_skolems sym_tab (pos, atm) fp fr =
         | path_finder FT tm (_ :: ps) (Metis_Term.Fn ("{}", [t1])) = path_finder_FT tm ps t1
              (*if not equality, ignore head to skip the hBOOL predicate*)
         | path_finder FT tm ps t = path_finder_FT tm ps t  (*really an error case!*)
-        | path_finder New tm ps t = path_finder_New tm ps t
+        | path_finder MX tm ps t = path_finder_MX tm ps t
       fun path_finder_lit ((nt as Const (@{const_name Not}, _)) $ tm_a) idx =
             let val (tm, tm_rslt) = path_finder mode tm_a idx m_tm
             in (tm, nt $ tm_rslt) end

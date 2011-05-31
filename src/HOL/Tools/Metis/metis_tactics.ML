@@ -36,12 +36,12 @@ open Metis_Reconstruct
 fun method_binding_for_mode HO = @{binding metis}
   | method_binding_for_mode FO = @{binding metisF}
   | method_binding_for_mode FT = @{binding metisFT}
-  | method_binding_for_mode New = @{binding metisX}
+  | method_binding_for_mode MX = @{binding metisX}
 
 val metisN = Binding.qualified_name_of (method_binding_for_mode HO)
 val metisF_N = Binding.qualified_name_of (method_binding_for_mode FO)
 val metisFT_N = Binding.qualified_name_of (method_binding_for_mode FT)
-val metisX_N = Binding.qualified_name_of (method_binding_for_mode New)
+val metisX_N = Binding.qualified_name_of (method_binding_for_mode MX)
 
 val new_skolemizer =
   Attrib.setup_config_bool @{binding metis_new_skolemizer} (K false)
@@ -184,7 +184,7 @@ val metis_modes = [HO, FT]
 val metisF_modes = [FO, FT]
 val metisFT_modes = [FT]
 val metisHO_modes = [HO]
-val metisX_modes = [New]
+val metisX_modes = [MX]
 
 val metis_tac = generic_metis_tac metis_modes NONE
 val metisF_tac = generic_metis_tac metisF_modes NONE
@@ -212,7 +212,7 @@ fun method modes (type_sys, ths) ctxt facts =
 
 fun setup_method (modes as mode :: _) =
   Method.setup (method_binding_for_mode mode)
-               ((if mode = New then
+               ((if mode = MX then
                    Scan.lift (Scan.option (Args.parens Parse.short_ident))
                  else
                    Scan.succeed NONE)
