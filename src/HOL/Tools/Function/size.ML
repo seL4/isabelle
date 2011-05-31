@@ -1,5 +1,5 @@
 (*  Title:      HOL/Tools/Function/size.ML
-    Author:     Stefan Berghofer, Florian Haftmann & Alexander Krauss, TU Muenchen
+    Author:     Stefan Berghofer, Florian Haftmann, TU Muenchen
 
 Size functions for datatypes.
 *)
