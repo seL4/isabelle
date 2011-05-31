@@ -482,7 +482,8 @@ fun term_from_atp thy textual sym_tab tfrees =
                 case strip_prefix_and_unascii schematic_var_prefix a of
                   SOME b => Var ((b, var_index), T)
                 | NONE =>
-                  Var ((repair_variable_name Char.toLower a, var_index), T)
+                  Var ((a |> textual ? repair_variable_name Char.toLower,
+                        var_index), T)
           in list_comb (t, ts) end
   in do_term [] end
 
@@ -547,7 +548,7 @@ fun prop_from_formula thy textual sym_tab tfrees phi =
         #>> quantify_over_var (case q of
                                  AForall => forall_of
                                | AExists => exists_of)
-                              (repair_variable_name Char.toLower s)
+                              (s |> textual ? repair_variable_name Char.toLower)
       | AConn (ANot, [phi']) => do_formula (not pos) phi' #>> s_not
       | AConn (c, [phi1, phi2]) =>
         do_formula (pos |> c = AImplies ? not) phi1

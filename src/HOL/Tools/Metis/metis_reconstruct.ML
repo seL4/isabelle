@@ -216,7 +216,7 @@ fun hol_term_from_metis_FT ctxt fol_tm =
 
 fun atp_name_from_metis s =
   case AList.find (op =) metis_name_table s of
-    [(s', ary)] => (s', SOME ary)
+    (s', ary) :: _ => (s', SOME ary)
   | _ => (s, NONE)
 fun atp_term_from_metis (Metis_Term.Fn (s, tms)) =
     ATerm (fst (atp_name_from_metis s), map atp_term_from_metis tms)
@@ -525,14 +525,10 @@ fun equality_inf ctxt mode old_skolems sym_tab (pos, atm) fp fr =
                       " isa-term: " ^  Syntax.string_of_term ctxt tm ^
                       " fol-term: " ^ Metis_Term.toString t)
       fun path_finder_New tm [] _ = (tm, Bound 0)
-        | path_finder_New tm (p :: ps) (t as Metis_Term.Fn (s, ts)) =
+        | path_finder_New tm (p :: ps) (t as Metis_Term.Fn (_, ts)) =
           let
             val (tm1, args) = strip_comb tm
-            val adjustment =
-              case atp_name_from_metis s of
-                (_, SOME _) => 0
-              | (s', NONE) =>
-                length ts - the_default 0 (Symtab.lookup sym_tab s')
+            val adjustment = length ts - length args
             val p' = if adjustment > p then p else p - adjustment
             val tm_p = nth args p'
               handle Subscript =>
