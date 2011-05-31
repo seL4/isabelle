@@ -3,8 +3,6 @@ imports Complex_Main
 uses "tptp_export.ML"
 begin
 
-declare [[sledgehammer_atp_readable_names = false]]
-
 ML {*
 val do_it = false; (* switch to true to generate files *)
 val thy = @{theory Complex_Main};

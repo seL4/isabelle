@@ -13,6 +13,7 @@ end;
 structure Nitrox : NITROX =
 struct
 
+open ATP_Util
 open ATP_Problem
 open ATP_Proof
 open Nitpick

@@ -128,8 +128,7 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
                (Sledgehammer_Provers.relevance_fudge_for_prover ctxt prover)
          val relevance_override = {add = [], del = [], only = false}
          val subgoal = 1
-         val (_, hyp_ts, concl_t) =
-           Sledgehammer_Util.strip_subgoal ctxt goal subgoal
+         val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal subgoal
          val facts =
            Sledgehammer_Filter.relevant_facts ctxt relevance_thresholds
                (the_default default_max_relevant max_relevant)

@@ -8,8 +8,8 @@ Sledgehammer's heart.
 
 signature SLEDGEHAMMER_RUN =
 sig
+  type minimize_command = ATP_Reconstruct.minimize_command
   type relevance_override = Sledgehammer_Filter.relevance_override
-  type minimize_command = Sledgehammer_ATP_Reconstruct.minimize_command
   type mode = Sledgehammer_Provers.mode
   type params = Sledgehammer_Provers.params
   type prover = Sledgehammer_Provers.prover
@@ -29,10 +29,11 @@ end;
 structure Sledgehammer_Run : SLEDGEHAMMER_RUN =
 struct
 
+open ATP_Util
+open ATP_Translate
+open ATP_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Filter
-open Sledgehammer_ATP_Translate
-open Sledgehammer_ATP_Reconstruct
 open Sledgehammer_Provers
 open Sledgehammer_Minimize
 

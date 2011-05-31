@@ -6,60 +6,132 @@
 Translation of HOL to FOL for Sledgehammer.
 *)
 
-signature SLEDGEHAMMER_ATP_TRANSLATE =
+signature ATP_TRANSLATE =
 sig
   type 'a fo_term = 'a ATP_Problem.fo_term
   type format = ATP_Problem.format
   type formula_kind = ATP_Problem.formula_kind
   type 'a problem = 'a ATP_Problem.problem
-  type locality = Sledgehammer_Filter.locality
+
+  type name = string * string
+
+  datatype type_literal =
+    TyLitVar of name * name |
+    TyLitFree of name * name
+
+  datatype arity_literal =
+    TConsLit of name * name * name list |
+    TVarLit of name * name
+
+  type arity_clause =
+    {name: string,
+     prem_lits: arity_literal list,
+     concl_lits: arity_literal}
+
+  type class_rel_clause =
+    {name: string,
+     subclass: name,
+     superclass: name}
+
+  datatype combterm =
+    CombConst of name * typ * typ list |
+    CombVar of name * typ |
+    CombApp of combterm * combterm
+
+  datatype locality = General | Intro | Elim | Simp | Local | Assum | Chained
 
   datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
   datatype type_level =
     All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
   datatype type_heaviness = Heavy | Light
 
-  datatype type_system =
+  datatype type_sys =
     Simple_Types of type_level |
     Preds of polymorphism * type_level * type_heaviness |
     Tags of polymorphism * type_level * type_heaviness
 
   type translated_formula
 
-  val readable_names : bool Config.T
+  val bound_var_prefix : string
+  val schematic_var_prefix: string
+  val fixed_var_prefix: string
+  val tvar_prefix: string
+  val tfree_prefix: string
+  val const_prefix: string
+  val type_const_prefix: string
+  val class_prefix: string
+  val skolem_const_prefix : string
+  val old_skolem_const_prefix : string
+  val new_skolem_const_prefix : string
   val fact_prefix : string
   val conjecture_prefix : string
   val helper_prefix : string
   val typed_helper_suffix : string
   val predicator_name : string
   val app_op_name : string
+  val type_tag_name : string
   val type_pred_name : string
   val simple_type_prefix : string
-  val type_sys_from_string : string -> type_system
-  val polymorphism_of_type_sys : type_system -> polymorphism
-  val level_of_type_sys : type_system -> type_level
-  val is_type_sys_virtually_sound : type_system -> bool
-  val is_type_sys_fairly_sound : type_system -> bool
+  val ascii_of: string -> string
+  val unascii_of: string -> string
+  val strip_prefix_and_unascii : string -> string -> string option
+  val proxify_const : string -> (int * (string * string)) option
+  val invert_const: string -> string
+  val unproxify_const: string -> string
+  val make_bound_var : string -> string
+  val make_schematic_var : string * int -> string
+  val make_fixed_var : string -> string
+  val make_schematic_type_var : string * int -> string
+  val make_fixed_type_var : string -> string
+  val make_fixed_const : string -> string
+  val make_fixed_type_const : string -> string
+  val make_type_class : string -> string
+  val new_skolem_var_name_from_const : string -> string
+  val num_type_args : theory -> string -> int
+  val make_arity_clauses :
+    theory -> string list -> class list -> class list * arity_clause list
+  val make_class_rel_clauses :
+    theory -> class list -> class list -> class_rel_clause list
+  val combtyp_of : combterm -> typ
+  val strip_combterm_comb : combterm -> combterm * combterm list
+  val atyps_of : typ -> typ list
+  val combterm_from_term :
+    theory -> (string * typ) list -> term -> combterm * typ list
+  val is_locality_global : locality -> bool
+  val type_sys_from_string : string -> type_sys
+  val polymorphism_of_type_sys : type_sys -> polymorphism
+  val level_of_type_sys : type_sys -> type_level
+  val is_type_sys_virtually_sound : type_sys -> bool
+  val is_type_sys_fairly_sound : type_sys -> bool
+  val choose_format : format list -> type_sys -> format * type_sys
+  val raw_type_literals_for_types : typ list -> type_literal list
   val unmangled_const : string -> string * string fo_term list
   val translate_atp_fact :
-    Proof.context -> format -> type_system -> bool -> (string * locality) * thm
+    Proof.context -> format -> type_sys -> bool -> (string * locality) * thm
     -> translated_formula option * ((string * locality) * thm)
+  val helper_table : (string * (bool * thm list)) list
+  val tfree_classes_of_terms : term list -> string list
+  val tvar_classes_of_terms : term list -> string list
+  val type_consts_of_terms : theory -> term list -> string list
   val prepare_atp_problem :
-    Proof.context -> format -> formula_kind -> formula_kind -> type_system
-    -> bool option -> term list -> term
+    Proof.context -> format -> formula_kind -> formula_kind -> type_sys
+    -> bool option -> bool -> bool -> term list -> term
     -> (translated_formula option * ((string * 'a) * thm)) list
     -> string problem * string Symtab.table * int * int
        * (string * 'a) list vector * int list * int Symtab.table
   val atp_problem_weights : string problem -> (string * real) list
 end;
 
-structure Sledgehammer_ATP_Translate : SLEDGEHAMMER_ATP_TRANSLATE =
+structure ATP_Translate : ATP_TRANSLATE =
 struct
 
+open ATP_Util
 open ATP_Problem
-open Metis_Translate
-open Sledgehammer_Util
-open Sledgehammer_Filter
+
+type name = string * string
+
+(* FIXME: avoid *)
+fun union_all xss = fold (union (op =)) xss []
 
 (* experimental *)
 val generate_useful_info = false
@@ -74,12 +146,20 @@ val intro_info = useful_isabelle_info "intro"
 val elim_info = useful_isabelle_info "elim"
 val simp_info = useful_isabelle_info "simp"
 
-(* Readable names are often much shorter, especially if types are mangled in
-   names. Also, the logic for generating legal SNARK sort names is only
-   implemented for readable names. Finally, readable names are, well, more
-   readable. For these reason, they are enabled by default. *)
-val readable_names =
-  Attrib.setup_config_bool @{binding sledgehammer_atp_readable_names} (K true)
+val bound_var_prefix = "B_"
+val schematic_var_prefix = "V_"
+val fixed_var_prefix = "v_"
+
+val tvar_prefix = "T_"
+val tfree_prefix = "t_"
+
+val const_prefix = "c_"
+val type_const_prefix = "tc_"
+val class_prefix = "cl_"
+
+val skolem_const_prefix = "Sledgehammer" ^ Long_Name.separator ^ "Sko"
+val old_skolem_const_prefix = skolem_const_prefix ^ "o"
+val new_skolem_const_prefix = skolem_const_prefix ^ "n"
 
 val type_decl_prefix = "ty_"
 val sym_decl_prefix = "sy_"
@@ -87,34 +167,337 @@ val sym_formula_prefix = "sym_"
 val fact_prefix = "fact_"
 val conjecture_prefix = "conj_"
 val helper_prefix = "help_"
-val class_rel_clause_prefix = "crel_";
+val class_rel_clause_prefix = "crel_"
 val arity_clause_prefix = "arity_"
-val tfree_prefix = "tfree_"
+val tfree_clause_prefix = "tfree_"
 
 val typed_helper_suffix = "_T"
 val untyped_helper_suffix = "_U"
 
 val predicator_name = "hBOOL"
 val app_op_name = "hAPP"
+val type_tag_name = "ti"
 val type_pred_name = "is"
 val simple_type_prefix = "ty_"
 
-fun make_simple_type s =
-  if s = tptp_bool_type orelse s = tptp_fun_type orelse
-     s = tptp_individual_type then
-    s
-  else
-    simple_type_prefix ^ ascii_of s
-
 (* Freshness almost guaranteed! *)
 val sledgehammer_weak_prefix = "Sledgehammer:"
+
+(*Escaping of special characters.
+  Alphanumeric characters are left unchanged.
+  The character _ goes to __
+  Characters in the range ASCII space to / go to _A to _P, respectively.
+  Other characters go to _nnn where nnn is the decimal ASCII code.*)
+val upper_a_minus_space = Char.ord #"A" - Char.ord #" "
+
+fun stringN_of_int 0 _ = ""
+  | stringN_of_int k n =
+    stringN_of_int (k - 1) (n div 10) ^ string_of_int (n mod 10)
+
+fun ascii_of_char c =
+  if Char.isAlphaNum c then
+    String.str c
+  else if c = #"_" then
+    "__"
+  else if #" " <= c andalso c <= #"/" then
+    "_" ^ String.str (Char.chr (Char.ord c + upper_a_minus_space))
+  else
+    (* fixed width, in case more digits follow *)
+    "_" ^ stringN_of_int 3 (Char.ord c)
+
+val ascii_of = String.translate ascii_of_char
+
+(** Remove ASCII armoring from names in proof files **)
+
+(* We don't raise error exceptions because this code can run inside a worker
+   thread. Also, the errors are impossible. *)
+val unascii_of =
+  let
+    fun un rcs [] = String.implode(rev rcs)
+      | un rcs [#"_"] = un (#"_" :: rcs) [] (* ERROR *)
+        (* Three types of _ escapes: __, _A to _P, _nnn *)
+      | un rcs (#"_" :: #"_" :: cs) = un (#"_"::rcs) cs
+      | un rcs (#"_" :: c :: cs) =
+        if #"A" <= c andalso c<= #"P" then
+          (* translation of #" " to #"/" *)
+          un (Char.chr (Char.ord c - upper_a_minus_space) :: rcs) cs
+        else
+          let val digits = List.take (c::cs, 3) handle Subscript => [] in
+            case Int.fromString (String.implode digits) of
+              SOME n => un (Char.chr n :: rcs) (List.drop (cs, 2))
+            | NONE => un (c:: #"_"::rcs) cs (* ERROR *)
+          end
+      | un rcs (c :: cs) = un (c :: rcs) cs
+  in un [] o String.explode end
+
+(* If string s has the prefix s1, return the result of deleting it,
+   un-ASCII'd. *)
+fun strip_prefix_and_unascii s1 s =
+  if String.isPrefix s1 s then
+    SOME (unascii_of (String.extract (s, size s1, NONE)))
+  else
+    NONE
+
+val proxies =
+  [("c_False",
+    (@{const_name False}, (0, ("fFalse", @{const_name ATP.fFalse})))),
+   ("c_True", (@{const_name True}, (0, ("fTrue", @{const_name ATP.fTrue})))),
+   ("c_Not", (@{const_name Not}, (1, ("fNot", @{const_name ATP.fNot})))),
+   ("c_conj", (@{const_name conj}, (2, ("fconj", @{const_name ATP.fconj})))),
+   ("c_disj", (@{const_name disj}, (2, ("fdisj", @{const_name ATP.fdisj})))),
+   ("c_implies",
+    (@{const_name implies}, (2, ("fimplies", @{const_name ATP.fimplies})))),
+   ("equal",
+    (@{const_name HOL.eq}, (2, ("fequal", @{const_name ATP.fequal}))))]
+
+val proxify_const = AList.lookup (op =) proxies #> Option.map snd
+
+(* Readable names for the more common symbolic functions. Do not mess with the
+   table unless you know what you are doing. *)
+val const_trans_table =
+  [(@{type_name Product_Type.prod}, "prod"),
+   (@{type_name Sum_Type.sum}, "sum"),
+   (@{const_name False}, "False"),
+   (@{const_name True}, "True"),
+   (@{const_name Not}, "Not"),
+   (@{const_name conj}, "conj"),
+   (@{const_name disj}, "disj"),
+   (@{const_name implies}, "implies"),
+   (@{const_name HOL.eq}, "equal"),
+   (@{const_name If}, "If"),
+   (@{const_name Set.member}, "member"),
+   (@{const_name Meson.COMBI}, "COMBI"),
+   (@{const_name Meson.COMBK}, "COMBK"),
+   (@{const_name Meson.COMBB}, "COMBB"),
+   (@{const_name Meson.COMBC}, "COMBC"),
+   (@{const_name Meson.COMBS}, "COMBS")]
+  |> Symtab.make
+  |> fold (Symtab.update o swap o snd o snd o snd) proxies
+
+(* Invert the table of translations between Isabelle and ATPs. *)
+val const_trans_table_inv =
+  const_trans_table |> Symtab.dest |> map swap |> Symtab.make
+val const_trans_table_unprox =
+  Symtab.empty
+  |> fold (fn (_, (isa, (_, (_, metis)))) => Symtab.update (metis, isa)) proxies
+
+val invert_const = perhaps (Symtab.lookup const_trans_table_inv)
+val unproxify_const = perhaps (Symtab.lookup const_trans_table_unprox)
+
+fun lookup_const c =
+  case Symtab.lookup const_trans_table c of
+    SOME c' => c'
+  | NONE => ascii_of c
+
+(*Remove the initial ' character from a type variable, if it is present*)
+fun trim_type_var s =
+  if s <> "" andalso String.sub(s,0) = #"'" then String.extract(s,1,NONE)
+  else raise Fail ("trim_type: Malformed type variable encountered: " ^ s)
+
+fun ascii_of_indexname (v,0) = ascii_of v
+  | ascii_of_indexname (v,i) = ascii_of v ^ "_" ^ string_of_int i
+
+fun make_bound_var x = bound_var_prefix ^ ascii_of x
+fun make_schematic_var v = schematic_var_prefix ^ ascii_of_indexname v
+fun make_fixed_var x = fixed_var_prefix ^ ascii_of x
+
+fun make_schematic_type_var (x,i) =
+      tvar_prefix ^ (ascii_of_indexname (trim_type_var x, i))
+fun make_fixed_type_var x = tfree_prefix ^ (ascii_of (trim_type_var x))
+
+(* HOL.eq MUST BE "equal" because it's built into ATPs. *)
+fun make_fixed_const @{const_name HOL.eq} = "equal"
+  | make_fixed_const c = const_prefix ^ lookup_const c
+
+fun make_fixed_type_const c = type_const_prefix ^ lookup_const c
+
+fun make_type_class clas = class_prefix ^ ascii_of clas
+
+fun new_skolem_var_name_from_const s =
+  let val ss = s |> space_explode Long_Name.separator in
+    nth ss (length ss - 2)
+  end
+
+(* The number of type arguments of a constant, zero if it's monomorphic. For
+   (instances of) Skolem pseudoconstants, this information is encoded in the
+   constant name. *)
+fun num_type_args thy s =
+  if String.isPrefix skolem_const_prefix s then
+    s |> space_explode Long_Name.separator |> List.last |> Int.fromString |> the
+  else
+    (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
+
+(** Definitions and functions for FOL clauses and formulas for TPTP **)
+
+(* The first component is the type class; the second is a "TVar" or "TFree". *)
+datatype type_literal =
+  TyLitVar of name * name |
+  TyLitFree of name * name
+
+
+(** Isabelle arities **)
+
+datatype arity_literal =
+  TConsLit of name * name * name list |
+  TVarLit of name * name
+
+fun gen_TVars 0 = []
+  | gen_TVars n = ("T_" ^ string_of_int n) :: gen_TVars (n-1)
+
+fun pack_sort (_,[])  = []
+  | pack_sort (tvar, "HOL.type" :: srt) =
+    pack_sort (tvar, srt) (* IGNORE sort "type" *)
+  | pack_sort (tvar, cls :: srt) =
+    (`make_type_class cls, `I tvar) :: pack_sort (tvar, srt)
+
+type arity_clause =
+  {name: string,
+   prem_lits: arity_literal list,
+   concl_lits: arity_literal}
+
+(* Arity of type constructor "tcon :: (arg1, ..., argN) res" *)
+fun make_axiom_arity_clause (tcons, name, (cls, args)) =
+  let
+    val tvars = gen_TVars (length args)
+    val tvars_srts = ListPair.zip (tvars, args)
+  in
+    {name = name,
+     prem_lits = map TVarLit (union_all (map pack_sort tvars_srts)),
+     concl_lits = TConsLit (`make_type_class cls,
+                            `make_fixed_type_const tcons,
+                            tvars ~~ tvars)}
+  end
+
+fun arity_clause _ _ (_, []) = []
+  | arity_clause seen n (tcons, ("HOL.type",_)::ars) =  (*ignore*)
+      arity_clause seen n (tcons,ars)
+  | arity_clause seen n (tcons, (ar as (class,_)) :: ars) =
+      if member (op =) seen class then (*multiple arities for the same tycon, class pair*)
+          make_axiom_arity_clause (tcons, lookup_const tcons ^ "_" ^ class ^ "_" ^ string_of_int n, ar) ::
+          arity_clause seen (n+1) (tcons,ars)
+      else
+          make_axiom_arity_clause (tcons, lookup_const tcons ^ "_" ^ class, ar) ::
+          arity_clause (class::seen) n (tcons,ars)
+
+fun multi_arity_clause [] = []
+  | multi_arity_clause ((tcons, ars) :: tc_arlists) =
+      arity_clause [] 1 (tcons, ars) @ multi_arity_clause tc_arlists
+
+(*Generate all pairs (tycon,class,sorts) such that tycon belongs to class in theory thy
+  provided its arguments have the corresponding sorts.*)
+fun type_class_pairs thy tycons classes =
+  let
+    val alg = Sign.classes_of thy
+    fun domain_sorts tycon = Sorts.mg_domain alg tycon o single
+    fun add_class tycon class =
+      cons (class, domain_sorts tycon class)
+      handle Sorts.CLASS_ERROR _ => I
+    fun try_classes tycon = (tycon, fold (add_class tycon) classes [])
+  in map try_classes tycons end
+
+(*Proving one (tycon, class) membership may require proving others, so iterate.*)
+fun iter_type_class_pairs _ _ [] = ([], [])
+  | iter_type_class_pairs thy tycons classes =
+      let val cpairs = type_class_pairs thy tycons classes
+          val newclasses = union_all (union_all (union_all (map (map #2 o #2) cpairs)))
+            |> subtract (op =) classes |> subtract (op =) HOLogic.typeS
+          val (classes', cpairs') = iter_type_class_pairs thy tycons newclasses
+      in (union (op =) classes' classes, union (op =) cpairs' cpairs) end
+
+fun make_arity_clauses thy tycons =
+  iter_type_class_pairs thy tycons ##> multi_arity_clause
+
+
+(** Isabelle class relations **)
+
+type class_rel_clause =
+  {name: string,
+   subclass: name,
+   superclass: name}
+
+(*Generate all pairs (sub,super) such that sub is a proper subclass of super in theory thy.*)
+fun class_pairs _ [] _ = []
+  | class_pairs thy subs supers =
+      let
+        val class_less = Sorts.class_less (Sign.classes_of thy)
+        fun add_super sub super = class_less (sub, super) ? cons (sub, super)
+        fun add_supers sub = fold (add_super sub) supers
+      in fold add_supers subs [] end
+
+fun make_class_rel_clause (sub,super) =
+  {name = sub ^ "_" ^ super,
+   subclass = `make_type_class sub,
+   superclass = `make_type_class super}
+
+fun make_class_rel_clauses thy subs supers =
+  map make_class_rel_clause (class_pairs thy subs supers)
+
+datatype combterm =
+  CombConst of name * typ * typ list |
+  CombVar of name * typ |
+  CombApp of combterm * combterm
+
+fun combtyp_of (CombConst (_, T, _)) = T
+  | combtyp_of (CombVar (_, T)) = T
+  | combtyp_of (CombApp (t1, _)) = snd (dest_funT (combtyp_of t1))
+
+(*gets the head of a combinator application, along with the list of arguments*)
+fun strip_combterm_comb u =
+    let fun stripc (CombApp(t,u), ts) = stripc (t, u::ts)
+        |   stripc  x =  x
+    in stripc(u,[]) end
+
+fun atyps_of T = fold_atyps (insert (op =)) T []
+
+fun new_skolem_const_name s num_T_args =
+  [new_skolem_const_prefix, s, string_of_int num_T_args]
+  |> space_implode Long_Name.separator
+
+(* Converts a term (with combinators) into a combterm. Also accumulates sort
+   infomation. *)
+fun combterm_from_term thy bs (P $ Q) =
+    let
+      val (P', P_atomics_Ts) = combterm_from_term thy bs P
+      val (Q', Q_atomics_Ts) = combterm_from_term thy bs Q
+    in (CombApp (P', Q'), union (op =) P_atomics_Ts Q_atomics_Ts) end
+  | combterm_from_term thy _ (Const (c, T)) =
+    let
+      val tvar_list =
+        (if String.isPrefix old_skolem_const_prefix c then
+           [] |> Term.add_tvarsT T |> map TVar
+         else
+           (c, T) |> Sign.const_typargs thy)
+      val c' = CombConst (`make_fixed_const c, T, tvar_list)
+    in (c', atyps_of T) end
+  | combterm_from_term _ _ (Free (v, T)) =
+    (CombConst (`make_fixed_var v, T, []), atyps_of T)
+  | combterm_from_term _ _ (Var (v as (s, _), T)) =
+    (if String.isPrefix Meson_Clausify.new_skolem_var_prefix s then
+       let
+         val Ts = T |> strip_type |> swap |> op ::
+         val s' = new_skolem_const_name s (length Ts)
+       in CombConst (`make_fixed_const s', T, Ts) end
+     else
+       CombVar ((make_schematic_var v, s), T), atyps_of T)
+  | combterm_from_term _ bs (Bound j) =
+    nth bs j
+    |> (fn (s, T) => (CombConst (`make_bound_var s, T, []), atyps_of T))
+  | combterm_from_term _ _ (Abs _) = raise Fail "HOL clause: Abs"
+
+datatype locality = General | Intro | Elim | Simp | Local | Assum | Chained
+
+(* (quasi-)underapproximation of the truth *)
+fun is_locality_global Local = false
+  | is_locality_global Assum = false
+  | is_locality_global Chained = false
+  | is_locality_global _ = true
 
 datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
 datatype type_level =
   All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
 datatype type_heaviness = Heavy | Light
 
-datatype type_system =
+datatype type_sys =
   Simple_Types of type_level |
   Preds of polymorphism * type_level * type_heaviness |
   Tags of polymorphism * type_level * type_heaviness
@@ -185,6 +568,20 @@ val is_type_sys_fairly_sound = is_type_level_fairly_sound o level_of_type_sys
 fun is_setting_higher_order THF (Simple_Types _) = true
   | is_setting_higher_order _ _ = false
 
+fun choose_format formats (Simple_Types level) =
+    if member (op =) formats THF then (THF, Simple_Types level)
+    else if member (op =) formats TFF then (TFF, Simple_Types level)
+    else choose_format formats (Preds (Mangled_Monomorphic, level, Heavy))
+  | choose_format formats type_sys =
+    (case hd formats of
+       CNF_UEQ =>
+       (CNF_UEQ, case type_sys of
+                   Preds stuff =>
+                   (if is_type_sys_fairly_sound type_sys then Preds else Tags)
+                       stuff
+                 | _ => type_sys)
+     | format => (format, type_sys))
+
 type translated_formula =
   {name: string,
    locality: locality,
@@ -219,28 +616,47 @@ fun should_drop_arg_type_args (Simple_Types _) =
     level_of_type_sys type_sys = All_Types andalso
     heaviness_of_type_sys type_sys = Heavy
 
-fun general_type_arg_policy type_sys =
-  if level_of_type_sys type_sys = No_Types then
-    No_Type_Args
-  else if polymorphism_of_type_sys type_sys = Mangled_Monomorphic then
-    Mangled_Type_Args (should_drop_arg_type_args type_sys)
-  else
-    Explicit_Type_Args (should_drop_arg_type_args type_sys)
+fun general_type_arg_policy (Tags (_, All_Types, Heavy)) = No_Type_Args
+  | general_type_arg_policy type_sys =
+    if level_of_type_sys type_sys = No_Types then
+      No_Type_Args
+    else if polymorphism_of_type_sys type_sys = Mangled_Monomorphic then
+      Mangled_Type_Args (should_drop_arg_type_args type_sys)
+    else
+      Explicit_Type_Args (should_drop_arg_type_args type_sys)
 
 fun type_arg_policy type_sys s =
   if s = @{const_name HOL.eq} orelse
      (s = app_op_name andalso level_of_type_sys type_sys = Const_Arg_Types) then
     No_Type_Args
+  else if s = type_tag_name then
+    Explicit_Type_Args false
   else
     general_type_arg_policy type_sys
 
-fun atp_type_literals_for_types format type_sys kind Ts =
-  if level_of_type_sys type_sys = No_Types orelse format = CNF_UEQ then
-    []
-  else
-    Ts |> type_literals_for_types
-       |> filter (fn TyLitVar _ => kind <> Conjecture
-                   | TyLitFree _ => kind = Conjecture)
+(*Make literals for sorted type variables*)
+fun generic_sorts_on_type (_, []) = []
+  | generic_sorts_on_type ((x, i), s :: ss) =
+    generic_sorts_on_type ((x, i), ss)
+    |> (if s = the_single @{sort HOL.type} then
+          I
+        else if i = ~1 then
+          cons (TyLitFree (`make_type_class s, `make_fixed_type_var x))
+        else
+          cons (TyLitVar (`make_type_class s,
+                          (make_schematic_type_var (x, i), x))))
+fun sorts_on_tfree (TFree (s, S)) = generic_sorts_on_type ((s, ~1), S)
+  | sorts_on_tfree _ = []
+fun sorts_on_tvar (TVar z) = generic_sorts_on_type z
+  | sorts_on_tvar _ = []
+
+(* Given a list of sorted type variables, return a list of type literals. *)
+fun raw_type_literals_for_types Ts =
+  union_all (map sorts_on_tfree Ts @ map sorts_on_tvar Ts)
+
+fun type_literals_for_types type_sys sorts_on_typ Ts =
+  if level_of_type_sys type_sys = No_Types then []
+  else union_all (map sorts_on_typ Ts)
 
 fun mk_aconns c phis =
   let val (phis', phi') = split_last phis in
@@ -298,6 +714,13 @@ fun generic_mangled_type_name f (ATerm (name, [])) = f name
     ^ ")"
 
 val bool_atype = AType (`I tptp_bool_type)
+
+fun make_simple_type s =
+  if s = tptp_bool_type orelse s = tptp_fun_type orelse
+     s = tptp_individual_type then
+    s
+  else
+    simple_type_prefix ^ ascii_of s
 
 fun ho_type_from_fo_term higher_order pred_sym ary =
   let
@@ -387,7 +810,8 @@ fun combformula_from_prop thy format type_sys eq_as_iff =
       #>> uncurry (mk_aconn c)
     and do_formula bs t =
       case t of
-        @{const Not} $ t1 => do_formula bs t1 #>> mk_anot
+        @{const Trueprop} $ t1 => do_formula bs t1
+      | @{const Not} $ t1 => do_formula bs t1 #>> mk_anot
       | Const (@{const_name All}, _) $ Abs (s, T, t') =>
         do_quant bs AForall s T t'
       | Const (@{const_name Ex}, _) $ Abs (s, T, t') =>
@@ -470,22 +894,24 @@ fun freeze_term t =
       | aux t = t
   in t |> exists_subterm is_Var t ? aux end
 
-(* making fact and conjecture formulas *)
-fun make_formula ctxt format type_sys eq_as_iff presimp name loc kind t =
+fun preprocess_prop ctxt presimp kind t =
   let
     val thy = Proof_Context.theory_of ctxt
     val t = t |> Envir.beta_eta_contract
               |> transform_elim_prop
               |> Object_Logic.atomize_term thy
     val need_trueprop = (fastype_of t = @{typ bool})
-    val t = t |> need_trueprop ? HOLogic.mk_Trueprop
-              |> Raw_Simplifier.rewrite_term thy
-                     (Meson.unfold_set_const_simps ctxt) []
-              |> extensionalize_term ctxt
-              |> presimp ? presimplify_term ctxt
-              |> perhaps (try (HOLogic.dest_Trueprop))
-              |> introduce_combinators_in_term ctxt kind
-              |> kind <> Axiom ? freeze_term
+  in
+    t |> need_trueprop ? HOLogic.mk_Trueprop
+      |> Raw_Simplifier.rewrite_term thy (Meson.unfold_set_const_simps ctxt) []
+      |> extensionalize_term ctxt
+      |> presimp ? presimplify_term ctxt
+      |> introduce_combinators_in_term ctxt kind
+  end
+
+(* making fact and conjecture formulas *)
+fun make_formula thy format type_sys eq_as_iff name loc kind t =
+  let
     val (combformula, atomic_types) =
       combformula_from_prop thy format type_sys eq_as_iff t []
   in
@@ -493,16 +919,23 @@ fun make_formula ctxt format type_sys eq_as_iff presimp name loc kind t =
      atomic_types = atomic_types}
   end
 
-fun make_fact ctxt format type_sys keep_trivial eq_as_iff presimp
+fun make_fact ctxt format type_sys keep_trivial eq_as_iff preproc presimp
               ((name, loc), t) =
-  case (keep_trivial,
-        make_formula ctxt format type_sys eq_as_iff presimp name loc Axiom t) of
-    (false, formula as {combformula = AAtom (CombConst ((s, _), _, _)), ...}) =>
-    if s = tptp_true then NONE else SOME formula
-  | (_, formula) => SOME formula
+  let val thy = Proof_Context.theory_of ctxt in
+    case (keep_trivial,
+          t |> preproc ? preprocess_prop ctxt presimp Axiom
+            |> make_formula thy format type_sys eq_as_iff name loc Axiom) of
+      (false,
+       formula as {combformula = AAtom (CombConst ((s, _), _, _)), ...}) =>
+      if s = tptp_true then NONE else SOME formula
+    | (_, formula) => SOME formula
+  end
 
-fun make_conjecture ctxt format prem_kind type_sys ts =
-  let val last = length ts - 1 in
+fun make_conjecture ctxt format prem_kind type_sys preproc ts =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val last = length ts - 1
+  in
     map2 (fn j => fn t =>
              let
                val (kind, maybe_negate) =
@@ -513,8 +946,9 @@ fun make_conjecture ctxt format prem_kind type_sys ts =
                     if prem_kind = Conjecture then update_combformula mk_anot
                     else I)
               in
-                t |> make_formula ctxt format type_sys true true
-                                  (string_of_int j) General kind
+                t |> preproc ? (preprocess_prop ctxt true kind #> freeze_term)
+                  |> make_formula thy format type_sys true (string_of_int j)
+                                  General kind
                   |> maybe_negate
               end)
          (0 upto last) ts
@@ -799,6 +1233,40 @@ fun repair_fact ctxt format nonmono_Ts type_sys sym_tab =
 
 (** Helper facts **)
 
+(* The Boolean indicates that a fairly sound type encoding is needed. *)
+val helper_table =
+  [("COMBI", (false, @{thms Meson.COMBI_def})),
+   ("COMBK", (false, @{thms Meson.COMBK_def})),
+   ("COMBB", (false, @{thms Meson.COMBB_def})),
+   ("COMBC", (false, @{thms Meson.COMBC_def})),
+   ("COMBS", (false, @{thms Meson.COMBS_def})),
+   ("fequal",
+    (* This is a lie: Higher-order equality doesn't need a sound type encoding.
+       However, this is done so for backward compatibility: Including the
+       equality helpers by default in Metis breaks a few existing proofs. *)
+    (true, @{thms fequal_def [THEN Meson.iff_to_disjD, THEN conjunct1]
+                  fequal_def [THEN Meson.iff_to_disjD, THEN conjunct2]})),
+   ("fFalse", (true, @{thms True_or_False})),
+   ("fFalse", (false, [@{lemma "~ fFalse" by (unfold fFalse_def) fast}])),
+   ("fTrue", (true, @{thms True_or_False})),
+   ("fTrue", (false, [@{lemma "fTrue" by (unfold fTrue_def) fast}])),
+   ("fNot",
+    (false, @{thms fNot_def [THEN Meson.iff_to_disjD, THEN conjunct1]
+                   fNot_def [THEN Meson.iff_to_disjD, THEN conjunct2]})),
+   ("fconj",
+    (false,
+     @{lemma "~ P | ~ Q | fconj P Q" "~ fconj P Q | P" "~ fconj P Q | Q"
+         by (unfold fconj_def) fast+})),
+   ("fdisj",
+    (false,
+     @{lemma "~ P | fdisj P Q" "~ Q | fdisj P Q" "~ fdisj P Q | P | Q"
+         by (unfold fdisj_def) fast+})),
+   ("fimplies",
+    (false, @{lemma "P | fimplies P Q" "~ Q | fimplies P Q"
+                    "~ fimplies P Q | ~ P | Q"
+                by (unfold fimplies_def) fast+})),
+   ("If", (true, @{thms if_True if_False True_or_False}))]
+
 fun ti_ti_helper_fact () =
   let
     fun var s = ATerm (`I s, [])
@@ -830,10 +1298,10 @@ fun helper_facts_for_sym ctxt format type_sys (s, {types, ...} : sym_info) =
                    | _ => I)
          end)
       fun make_facts eq_as_iff =
-        map_filter (make_fact ctxt format type_sys false eq_as_iff false)
+        map_filter (make_fact ctxt format type_sys true false eq_as_iff false)
       val fairly_sound = is_type_sys_fairly_sound type_sys
     in
-      metis_helpers
+      helper_table
       |> maps (fn (metis_s, (needs_fairly_sound, ths)) =>
                   if metis_s <> unmangled_s orelse
                      (needs_fairly_sound andalso not fairly_sound) then
@@ -849,9 +1317,46 @@ fun helper_facts_for_sym_table ctxt format type_sys sym_tab =
                   []
 
 fun translate_atp_fact ctxt format type_sys keep_trivial =
-  `(make_fact ctxt format type_sys keep_trivial true true o apsnd prop_of)
+  `(make_fact ctxt format type_sys keep_trivial true true true o apsnd prop_of)
 
-fun translate_formulas ctxt format prem_kind type_sys hyp_ts concl_t
+(***************************************************************)
+(* Type Classes Present in the Axiom or Conjecture Clauses     *)
+(***************************************************************)
+
+fun set_insert (x, s) = Symtab.update (x, ()) s
+
+fun add_classes (sorts, cset) = List.foldl set_insert cset (flat sorts)
+
+(* Remove this trivial type class (FIXME: similar code elsewhere) *)
+fun delete_type cset = Symtab.delete_safe (the_single @{sort HOL.type}) cset
+
+fun classes_of_terms get_Ts =
+  map (map #2 o get_Ts)
+  #> List.foldl add_classes Symtab.empty
+  #> delete_type #> Symtab.keys
+
+val tfree_classes_of_terms = classes_of_terms OldTerm.term_tfrees
+val tvar_classes_of_terms = classes_of_terms OldTerm.term_tvars
+
+(*fold type constructors*)
+fun fold_type_consts f (Type (a, Ts)) x = fold (fold_type_consts f) Ts (f (a,x))
+  | fold_type_consts _ _ x = x
+
+(*Type constructors used to instantiate overloaded constants are the only ones needed.*)
+fun add_type_consts_in_term thy =
+  let
+    fun aux (Const (@{const_name Meson.skolem}, _) $ _) = I
+      | aux (t $ u) = aux t #> aux u
+      | aux (Const x) =
+        fold (fold_type_consts set_insert) (Sign.const_typargs thy x)
+      | aux (Abs (_, _, u)) = aux u
+      | aux _ = I
+  in aux end
+
+fun type_consts_of_terms thy ts =
+  Symtab.keys (fold (add_type_consts_in_term thy) ts Symtab.empty)
+
+fun translate_formulas ctxt format prem_kind type_sys preproc hyp_ts concl_t
                        rich_facts =
   let
     val thy = Proof_Context.theory_of ctxt
@@ -870,7 +1375,8 @@ fun translate_formulas ctxt format prem_kind type_sys hyp_ts concl_t
     val supers = tvar_classes_of_terms all_ts
     val tycons = type_consts_of_terms thy all_ts
     val conjs =
-      hyp_ts @ [concl_t] |> make_conjecture ctxt format prem_kind type_sys
+      hyp_ts @ [concl_t]
+      |> make_conjecture ctxt format prem_kind type_sys preproc
     val (supers', arity_clauses) =
       if level_of_type_sys type_sys = No_Types then ([], [])
       else make_arity_clauses thy tycons supers
@@ -965,9 +1471,9 @@ and formula_from_combformula ctxt format nonmono_Ts type_sys
       | do_formula _ (AAtom tm) = AAtom (do_term tm)
   in do_formula o SOME end
 
-fun bound_atomic_types format type_sys Ts =
+fun bound_tvars type_sys Ts =
   mk_ahorn (map (formula_from_fo_literal o fo_literal_from_type_literal)
-                (atp_type_literals_for_types format type_sys Axiom Ts))
+                (type_literals_for_types type_sys sorts_on_tvar Ts))
 
 fun formula_for_fact ctxt format nonmono_Ts type_sys
                      ({combformula, atomic_types, ...} : translated_formula) =
@@ -975,7 +1481,7 @@ fun formula_for_fact ctxt format nonmono_Ts type_sys
   |> close_combformula_universally
   |> formula_from_combformula ctxt format nonmono_Ts type_sys
                               is_var_nonmonotonic_in_formula true
-  |> bound_atomic_types format type_sys atomic_types
+  |> bound_tvars type_sys atomic_types
   |> close_formula_universally
 
 (* Each fact is given a unique fact number to avoid name clashes (e.g., because
@@ -993,8 +1499,8 @@ fun formula_line_for_fact ctxt format prefix nonmono_Ts type_sys
            | Simp => simp_info
            | _ => NONE)
 
-fun formula_line_for_class_rel_clause
-        (ClassRelClause {name, subclass, superclass, ...}) =
+fun formula_line_for_class_rel_clause ({name, subclass, superclass, ...}
+                                       : class_rel_clause) =
   let val ty_arg = ATerm (`I "T", []) in
     Formula (class_rel_clause_prefix ^ ascii_of name, Axiom,
              AConn (AImplies, [AAtom (ATerm (subclass, [ty_arg])),
@@ -1007,8 +1513,8 @@ fun fo_literal_from_arity_literal (TConsLit (c, t, args)) =
   | fo_literal_from_arity_literal (TVarLit (c, sort)) =
     (false, ATerm (c, [ATerm (sort, [])]))
 
-fun formula_line_for_arity_clause
-        (ArityClause {name, prem_lits, concl_lits, ...}) =
+fun formula_line_for_arity_clause ({name, prem_lits, concl_lits, ...}
+                                   : arity_clause) =
   Formula (arity_clause_prefix ^ ascii_of name, Axiom,
            mk_ahorn (map (formula_from_fo_literal o apfst not
                           o fo_literal_from_arity_literal) prem_lits)
@@ -1017,24 +1523,24 @@ fun formula_line_for_arity_clause
            |> close_formula_universally, intro_info, NONE)
 
 fun formula_line_for_conjecture ctxt format nonmono_Ts type_sys
-        ({name, kind, combformula, ...} : translated_formula) =
+        ({name, kind, combformula, atomic_types, ...} : translated_formula) =
   Formula (conjecture_prefix ^ name, kind,
            formula_from_combformula ctxt format nonmono_Ts type_sys
                is_var_nonmonotonic_in_formula false
                (close_combformula_universally combformula)
+           |> bound_tvars type_sys atomic_types
            |> close_formula_universally, NONE, NONE)
 
-fun free_type_literals format type_sys
-                       ({atomic_types, ...} : translated_formula) =
-  atomic_types |> atp_type_literals_for_types format type_sys Conjecture
+fun free_type_literals type_sys ({atomic_types, ...} : translated_formula) =
+  atomic_types |> type_literals_for_types type_sys sorts_on_tfree
                |> map fo_literal_from_type_literal
 
 fun formula_line_for_free_type j lit =
-  Formula (tfree_prefix ^ string_of_int j, Hypothesis,
+  Formula (tfree_clause_prefix ^ string_of_int j, Hypothesis,
            formula_from_fo_literal lit, NONE, NONE)
-fun formula_lines_for_free_types format type_sys facts =
+fun formula_lines_for_free_types type_sys facts =
   let
-    val litss = map (free_type_literals format type_sys) facts
+    val litss = map (free_type_literals type_sys) facts
     val lits = fold (union (op =)) litss []
   in map2 formula_line_for_free_type (0 upto length lits - 1) lits end
 
@@ -1074,7 +1580,8 @@ fun sym_decl_table_for_facts ctxt type_sys repaired_sym_tab (conjs, facts) =
 
 (* These types witness that the type classes they belong to allow infinite
    models and hence that any types with these type classes is monotonic. *)
-val known_infinite_types = [@{typ nat}, @{typ int}, @{typ "nat => bool"}]
+val known_infinite_types =
+  [@{typ nat}, Type ("Int.int", []), @{typ "nat => bool"}]
 
 (* This inference is described in section 2.3 of Claessen et al.'s "Sorting it
    out with monotonicity" paper presented at CADE 2011. *)
@@ -1142,7 +1649,7 @@ fun formula_line_for_pred_sym_decl ctxt format conj_sym_kind nonmono_Ts type_sys
              |> AAtom |> mk_aquant AForall (bound_names ~~ bound_Ts)
              |> formula_from_combformula ctxt format nonmono_Ts type_sys
                                          (K (K (K (K true)))) true
-             |> n > 1 ? bound_atomic_types format type_sys (atyps_of T)
+             |> n > 1 ? bound_tvars type_sys (atyps_of T)
              |> close_formula_universally
              |> maybe_negate,
              intro_info, NONE)
@@ -1165,7 +1672,7 @@ fun formula_lines_for_tag_sym_decl ctxt format conj_sym_kind nonmono_Ts type_sys
     fun eq tms =
       (if pred_sym then AConn (AIff, map AAtom tms)
        else AAtom (ATerm (`I tptp_equal, tms)))
-      |> bound_atomic_types format type_sys atomic_Ts
+      |> bound_tvars type_sys atomic_Ts
       |> close_formula_universally
       |> maybe_negate
     val should_encode = should_encode_type ctxt nonmono_Ts All_Types
@@ -1263,10 +1770,13 @@ val conjsN = "Conjectures"
 val free_typesN = "Type variables"
 
 fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
-                        explicit_apply hyp_ts concl_t facts =
+                        explicit_apply readable_names preproc hyp_ts concl_t
+                        facts =
   let
+    val (format, type_sys) = choose_format [format] type_sys
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
-      translate_formulas ctxt format prem_kind type_sys hyp_ts concl_t facts
+      translate_formulas ctxt format prem_kind type_sys preproc hyp_ts concl_t
+                         facts
     val sym_tab = conjs @ facts |> sym_table_for_facts ctxt explicit_apply
     val nonmono_Ts = conjs @ facts |> nonmonotonic_types_for_facts ctxt type_sys
     val repair = repair_fact ctxt format nonmono_Ts type_sys sym_tab
@@ -1306,18 +1816,19 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
        (conjsN,
         map (formula_line_for_conjecture ctxt format nonmono_Ts type_sys)
             conjs),
-       (free_typesN,
-        formula_lines_for_free_types format type_sys (facts @ conjs))]
+       (free_typesN, formula_lines_for_free_types type_sys (facts @ conjs))]
     val problem =
       problem
-      |> (if format = CNF_UEQ then filter_cnf_ueq_problem else I)
+      |> (case format of
+            CNF => ensure_cnf_problem
+          | CNF_UEQ => filter_cnf_ueq_problem
+          | _ => I)
       |> (if is_format_typed format then
             declare_undeclared_syms_in_atp_problem type_decl_prefix
                                                    implicit_declsN
           else
             I)
-    val (problem, pool) =
-      problem |> nice_atp_problem (Config.get ctxt readable_names)
+    val (problem, pool) = problem |> nice_atp_problem readable_names
     val helpers_offset = offset_of_heading_in_problem helpersN problem 0
     val typed_helpers =
       map_filter (fn (j, {name, ...}) =>

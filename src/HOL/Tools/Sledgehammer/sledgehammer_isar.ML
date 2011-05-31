@@ -21,8 +21,8 @@ structure Sledgehammer_Isar : SLEDGEHAMMER_ISAR =
 struct
 
 open ATP_Systems
+open ATP_Translate
 open Sledgehammer_Util
-open Sledgehammer_ATP_Translate
 open Sledgehammer_Provers
 open Sledgehammer_Minimize
 open Sledgehammer_Run
@@ -385,7 +385,7 @@ fun sledgehammer_params_trans params =
 
 val parse_key =
   Scan.repeat1 (Parse.typ_group || Parse.$$$ "?" || Parse.$$$ "!")
-               >> implode_param
+  >> implode_param
 val parse_value =
   Scan.repeat1 (Parse.xname || Parse.float_number || Parse.$$$ "?"
                 || Parse.$$$ "!")

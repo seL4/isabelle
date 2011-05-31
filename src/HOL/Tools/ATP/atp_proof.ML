@@ -28,7 +28,6 @@ sig
     VampireTooOld |
     NoPerl |
     NoLibwwwPerl |
-    NoRealZ3 |
     MalformedInput |
     MalformedOutput |
     Interrupted |
@@ -44,7 +43,6 @@ sig
 
   type 'a proof = ('a, 'a, 'a fo_term) formula step list
 
-  val strip_spaces : bool -> (char -> bool) -> string -> string
   val short_output : bool -> string -> string
   val string_for_failure : failure -> string
   val extract_important_message : string -> string
@@ -67,6 +65,7 @@ end;
 structure ATP_Proof : ATP_PROOF =
 struct
 
+open ATP_Util
 open ATP_Problem
 
 exception UNRECOGNIZED_ATP_PROOF of unit
@@ -85,41 +84,12 @@ datatype failure =
   VampireTooOld |
   NoPerl |
   NoLibwwwPerl |
-  NoRealZ3 |
   MalformedInput |
   MalformedOutput |
   Interrupted |
   Crashed |
   InternalError |
   UnknownError of string
-
-fun strip_c_style_comment _ [] = []
-  | strip_c_style_comment is_evil (#"*" :: #"/" :: cs) =
-    strip_spaces_in_list true is_evil cs
-  | strip_c_style_comment is_evil (_ :: cs) = strip_c_style_comment is_evil cs
-and strip_spaces_in_list _ _ [] = []
-  | strip_spaces_in_list true is_evil (#"%" :: cs) =
-    strip_spaces_in_list true is_evil
-                         (cs |> chop_while (not_equal #"\n") |> snd)
-  | strip_spaces_in_list true is_evil (#"/" :: #"*" :: cs) =
-    strip_c_style_comment is_evil cs
-  | strip_spaces_in_list _ _ [c1] = if Char.isSpace c1 then [] else [str c1]
-  | strip_spaces_in_list skip_comments is_evil [c1, c2] =
-    strip_spaces_in_list skip_comments is_evil [c1] @
-    strip_spaces_in_list skip_comments is_evil [c2]
-  | strip_spaces_in_list skip_comments is_evil (c1 :: c2 :: c3 :: cs) =
-    if Char.isSpace c1 then
-      strip_spaces_in_list skip_comments is_evil (c2 :: c3 :: cs)
-    else if Char.isSpace c2 then
-      if Char.isSpace c3 then
-        strip_spaces_in_list skip_comments is_evil (c1 :: c3 :: cs)
-      else
-        str c1 :: (if forall is_evil [c1, c3] then [" "] else []) @
-        strip_spaces_in_list skip_comments is_evil (c3 :: cs)
-    else
-      str c1 :: strip_spaces_in_list skip_comments is_evil (c2 :: c3 :: cs)
-fun strip_spaces skip_comments is_evil =
-  implode o strip_spaces_in_list skip_comments is_evil o String.explode
 
 fun is_ident_char c = Char.isAlphaNum c orelse c = #"_"
 val strip_spaces_except_between_ident_chars = strip_spaces true is_ident_char
@@ -182,12 +152,11 @@ fun string_for_failure Unprovable = "The problem is unprovable."
   | string_for_failure NoPerl = "Perl" ^ missing_message_tail
   | string_for_failure NoLibwwwPerl =
     "The Perl module \"libwww-perl\"" ^ missing_message_tail
-  | string_for_failure NoRealZ3 =
-    "The environment variable \"Z3_REAL_SOLVER\" must be set to Z3's full path."
   | string_for_failure MalformedInput =
     "The generated problem is malformed. Please report this to the Isabelle \
     \developers."
   | string_for_failure MalformedOutput = "The prover output is malformed."
+  | string_for_failure Interrupted = "The prover was interrupted."
   | string_for_failure Crashed = "The prover crashed."
   | string_for_failure InternalError = "An internal prover error occurred."
   | string_for_failure (UnknownError string) =

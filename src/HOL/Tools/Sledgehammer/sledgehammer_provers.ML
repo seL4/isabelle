@@ -9,17 +9,17 @@ Generic prover abstraction for Sledgehammer.
 signature SLEDGEHAMMER_PROVERS =
 sig
   type failure = ATP_Proof.failure
-  type locality = Sledgehammer_Filter.locality
+  type locality = ATP_Translate.locality
   type relevance_fudge = Sledgehammer_Filter.relevance_fudge
-  type translated_formula = Sledgehammer_ATP_Translate.translated_formula
-  type type_system = Sledgehammer_ATP_Translate.type_system
-  type play = Sledgehammer_ATP_Reconstruct.play
-  type minimize_command = Sledgehammer_ATP_Reconstruct.minimize_command
+  type translated_formula = ATP_Translate.translated_formula
+  type type_sys = ATP_Translate.type_sys
+  type play = ATP_Reconstruct.play
+  type minimize_command = ATP_Reconstruct.minimize_command
 
   datatype mode = Auto_Try | Try | Normal | Minimize
 
-  datatype rich_type_system =
-    Dumb_Type_Sys of type_system |
+  datatype rich_type_sys =
+    Dumb_Type_Sys of type_sys |
     Smart_Type_Sys of bool
 
   type params =
@@ -28,7 +28,7 @@ sig
      overlord: bool,
      blocking: bool,
      provers: string list,
-     type_sys: rich_type_system,
+     type_sys: rich_type_sys,
      relevance_thresholds: real * real,
      max_relevant: int option,
      max_mono_iters: int,
@@ -63,6 +63,10 @@ sig
   type prover =
     params -> (string -> minimize_command) -> prover_problem -> prover_result
 
+  val dest_dir : string Config.T
+  val problem_prefix : string Config.T
+  val measure_run_time : bool Config.T
+  val atp_readable_names : bool Config.T
   val smt_triggers : bool Config.T
   val smt_weights : bool Config.T
   val smt_weight_min_facts : int Config.T
@@ -90,9 +94,6 @@ sig
   val atp_relevance_fudge : relevance_fudge
   val smt_relevance_fudge : relevance_fudge
   val relevance_fudge_for_prover : Proof.context -> string -> relevance_fudge
-  val dest_dir : string Config.T
-  val problem_prefix : string Config.T
-  val measure_run_time : bool Config.T
   val weight_smt_fact :
     Proof.context -> int -> ((string * locality) * thm) * int
     -> (string * locality) * (int option * thm)
@@ -111,14 +112,14 @@ end;
 structure Sledgehammer_Provers : SLEDGEHAMMER_PROVERS =
 struct
 
+open ATP_Util
 open ATP_Problem
 open ATP_Proof
 open ATP_Systems
-open Metis_Translate
+open ATP_Translate
+open ATP_Reconstruct
 open Sledgehammer_Util
 open Sledgehammer_Filter
-open Sledgehammer_ATP_Translate
-open Sledgehammer_ATP_Reconstruct
 
 (** The Sledgehammer **)
 
@@ -287,8 +288,8 @@ val messages = Async_Manager.thread_messages das_tool "prover"
 
 (** problems, results, ATPs, etc. **)
 
-datatype rich_type_system =
-  Dumb_Type_Sys of type_system |
+datatype rich_type_sys =
+  Dumb_Type_Sys of type_sys |
   Smart_Type_Sys of bool
 
 type params =
@@ -297,7 +298,7 @@ type params =
    overlord: bool,
    blocking: bool,
    provers: string list,
-   type_sys: rich_type_system,
+   type_sys: rich_type_sys,
    relevance_thresholds: real * real,
    max_relevant: int option,
    max_mono_iters: int,
@@ -335,15 +336,19 @@ type prover =
 
 (* configuration attributes *)
 
+(* Empty string means create files in Isabelle's temporary files directory. *)
 val dest_dir =
   Attrib.setup_config_string @{binding sledgehammer_dest_dir} (K "")
-  (* Empty string means create files in Isabelle's temporary files directory. *)
-
 val problem_prefix =
   Attrib.setup_config_string @{binding sledgehammer_problem_prefix} (K "prob")
-
 val measure_run_time =
   Attrib.setup_config_bool @{binding sledgehammer_measure_run_time} (K false)
+
+(* In addition to being easier to read, readable names are often much shorter,
+   especially if types are mangled in names. For these reason, they are enabled
+   by default. *)
+val atp_readable_names =
+  Attrib.setup_config_bool @{binding sledgehammer_atp_readable_names} (K true)
 
 val smt_triggers =
   Attrib.setup_config_bool @{binding sledgehammer_smt_triggers} (K true)
@@ -509,30 +514,13 @@ val atp_important_message_keep_quotient = 10
 val fallback_best_type_systems =
   [Preds (Mangled_Monomorphic, Nonmonotonic_Types, Light)]
 
-fun adjust_dumb_type_sys formats (Simple_Types level) =
-    if member (op =) formats THF then
-      (THF, Simple_Types level)
-    else if member (op =) formats TFF then
-      (TFF, Simple_Types level)
-    else
-      adjust_dumb_type_sys formats (Preds (Mangled_Monomorphic, level, Heavy))
-  | adjust_dumb_type_sys formats type_sys =
-    (case hd formats of
-       CNF_UEQ =>
-       (CNF_UEQ, case type_sys of
-                   Preds stuff =>
-                   (if is_type_sys_fairly_sound type_sys then Preds else Tags)
-                       stuff
-                 | _ => type_sys)
-     | format => (format, type_sys))
-
 fun choose_format_and_type_sys _ formats (Dumb_Type_Sys type_sys) =
-    adjust_dumb_type_sys formats type_sys
+    choose_format formats type_sys
   | choose_format_and_type_sys best_type_systems formats
                                (Smart_Type_Sys full_types) =
     map type_sys_from_string best_type_systems @ fallback_best_type_systems
     |> find_first (if full_types then is_type_sys_virtually_sound else K true)
-    |> the |> adjust_dumb_type_sys formats
+    |> the |> choose_format formats
 
 val metis_minimize_max_time = seconds 2.0
 
@@ -661,7 +649,9 @@ fun run_atp mode name
                 val (atp_problem, pool, conjecture_offset, facts_offset,
                      fact_names, typed_helpers, sym_tab) =
                   prepare_atp_problem ctxt format conj_sym_kind prem_kind
-                      type_sys explicit_apply hyp_ts concl_t facts
+                      type_sys explicit_apply
+                      (Config.get ctxt atp_readable_names) true hyp_ts concl_t
+                      facts
                 fun weights () = atp_problem_weights atp_problem
                 val core =
                   File.shell_path command ^ " " ^
@@ -838,8 +828,7 @@ val remote_smt_failures =
   [(22, CantConnect),
    (2, NoLibwwwPerl)]
 val z3_wrapper_failures =
-  [(10, NoRealZ3),
-   (11, InternalError),
+  [(11, InternalError),
    (12, InternalError),
    (13, InternalError)]
 val z3_failures =

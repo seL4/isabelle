@@ -271,8 +271,8 @@ val forbidden_mutant_constnames =
  @{const_name "equal_bool_inst.equal_bool"},
  @{const_name "ord_fun_inst.less_eq_fun"},
  @{const_name "ord_fun_inst.less_fun"},
- @{const_name Metis.fequal},
  @{const_name Meson.skolem},
+ @{const_name ATP.fequal},
  @{const_name transfer_morphism},
  @{const_name enum_prod_inst.enum_all_prod},
  @{const_name enum_prod_inst.enum_ex_prod}
