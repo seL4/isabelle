@@ -299,11 +299,11 @@ fun metis_literals_from_atp (AConn (AOr, [phi1, phi2])) =
     uncurry (union (op =)) (pairself metis_literals_from_atp (phi1, phi2))
   | metis_literals_from_atp phi = [metis_literal_from_atp phi]
 fun metis_axiom_from_atp clauses (Formula (ident, _, phi, _, _)) =
-    let val j = ident |> unprefix conjecture_prefix |> Int.fromString |> the in
-      (phi |> metis_literals_from_atp |> Metis_LiteralSet.fromList
-           |> Metis_Thm.axiom,
-       Meson.make_meta_clause (nth clauses j))
-    end
+    (phi |> metis_literals_from_atp |> Metis_LiteralSet.fromList
+         |> Metis_Thm.axiom,
+     case try (unprefix conjecture_prefix) ident of
+       SOME s => Meson.make_meta_clause (nth clauses (the (Int.fromString s)))
+     | NONE => TrueI)
   | metis_axiom_from_atp _ _ = raise Fail "not CNF -- expected formula"
 
 (* Function to generate metis clauses, including comb and type clauses *)
@@ -313,9 +313,8 @@ fun prepare_metis_problem ctxt New conj_clauses fact_clauses =
       val explicit_apply = NONE
       val clauses = conj_clauses @ fact_clauses
       val (atp_problem, _, _, _, _, _, sym_tab) =
-        prepare_atp_problem ctxt CNF Hypothesis Axiom type_sys
-                            explicit_apply false false (map prop_of clauses)
-                            @{prop False} []
+        prepare_atp_problem ctxt CNF Hypothesis Axiom type_sys explicit_apply
+                            false false (map prop_of clauses) @{prop False} []
       val axioms =
         atp_problem
         |> maps (map_filter (try (metis_axiom_from_atp clauses)) o snd)

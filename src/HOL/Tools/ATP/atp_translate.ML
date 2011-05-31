@@ -618,9 +618,9 @@ fun type_arg_policy type_sys s =
     general_type_arg_policy type_sys
 
 (*Make literals for sorted type variables*)
-fun sorts_on_typs_aux (_, []) = []
-  | sorts_on_typs_aux ((x, i), s :: ss) =
-    sorts_on_typs_aux ((x, i), ss)
+fun generic_sorts_on_type (_, []) = []
+  | generic_sorts_on_type ((x, i), s :: ss) =
+    generic_sorts_on_type ((x, i), ss)
     |> (if s = the_single @{sort HOL.type} then
           I
         else if i = ~1 then
@@ -628,21 +628,18 @@ fun sorts_on_typs_aux (_, []) = []
         else
           cons (TyLitVar (`make_type_class s,
                           (make_schematic_type_var (x, i), x))))
+fun sorts_on_tfree (TFree (s, S)) = generic_sorts_on_type ((s, ~1), S)
+  | sorts_on_tfree _ = []
+fun sorts_on_tvar (TVar z) = generic_sorts_on_type z
+  | sorts_on_tvar _ = []
 
-fun sorts_on_typs (TFree (a, s)) = sorts_on_typs_aux ((a, ~1), s)
-  | sorts_on_typs (TVar (v, s)) = sorts_on_typs_aux (v, s)
-  | sorts_on_typs _ = raise Fail "expected \"TVar\" or \"TFree\""
+(* Given a list of sorted type variables, return a list of type literals. *)
+fun raw_type_literals_for_types Ts =
+  union_all (map sorts_on_tfree Ts @ map sorts_on_tvar Ts)
 
-(*Given a list of sorted type variables, return a list of type literals.*)
-val raw_type_literals_for_types = union_all o map sorts_on_typs
-
-fun type_literals_for_types format type_sys kind Ts =
-  if level_of_type_sys type_sys = No_Types orelse format = CNF_UEQ then
-    []
-  else
-    Ts |> raw_type_literals_for_types
-       |> filter (fn TyLitVar _ => kind <> Conjecture
-                   | TyLitFree _ => kind = Conjecture)
+fun type_literals_for_types type_sys sorts_on_typ Ts =
+  if level_of_type_sys type_sys = No_Types then []
+  else union_all (map sorts_on_typ Ts)
 
 fun mk_aconns c phis =
   let val (phis', phi') = split_last phis in
@@ -893,7 +890,6 @@ fun preprocess_prop ctxt presimp kind t =
       |> extensionalize_term ctxt
       |> presimp ? presimplify_term ctxt
       |> introduce_combinators_in_term ctxt kind
-      |> kind <> Axiom ? freeze_term
   end
 
 (* making fact and conjecture formulas *)
@@ -933,7 +929,7 @@ fun make_conjecture ctxt format prem_kind type_sys preproc ts =
                     if prem_kind = Conjecture then update_combformula mk_anot
                     else I)
               in
-                t |> preproc ? preprocess_prop ctxt true kind
+                t |> preproc ? (preprocess_prop ctxt true kind #> freeze_term)
                   |> make_formula thy format type_sys true (string_of_int j)
                                   General kind
                   |> maybe_negate
@@ -1458,9 +1454,9 @@ and formula_from_combformula ctxt format nonmono_Ts type_sys
       | do_formula _ (AAtom tm) = AAtom (do_term tm)
   in do_formula o SOME end
 
-fun bound_atomic_types format type_sys Ts =
+fun bound_tvars type_sys Ts =
   mk_ahorn (map (formula_from_fo_literal o fo_literal_from_type_literal)
-                (type_literals_for_types format type_sys Axiom Ts))
+                (type_literals_for_types type_sys sorts_on_tvar Ts))
 
 fun formula_for_fact ctxt format nonmono_Ts type_sys
                      ({combformula, atomic_types, ...} : translated_formula) =
@@ -1468,7 +1464,7 @@ fun formula_for_fact ctxt format nonmono_Ts type_sys
   |> close_combformula_universally
   |> formula_from_combformula ctxt format nonmono_Ts type_sys
                               is_var_nonmonotonic_in_formula true
-  |> bound_atomic_types format type_sys atomic_types
+  |> bound_tvars type_sys atomic_types
   |> close_formula_universally
 
 (* Each fact is given a unique fact number to avoid name clashes (e.g., because
@@ -1510,24 +1506,24 @@ fun formula_line_for_arity_clause ({name, prem_lits, concl_lits, ...}
            |> close_formula_universally, intro_info, NONE)
 
 fun formula_line_for_conjecture ctxt format nonmono_Ts type_sys
-        ({name, kind, combformula, ...} : translated_formula) =
+        ({name, kind, combformula, atomic_types, ...} : translated_formula) =
   Formula (conjecture_prefix ^ name, kind,
            formula_from_combformula ctxt format nonmono_Ts type_sys
                is_var_nonmonotonic_in_formula false
                (close_combformula_universally combformula)
+           |> bound_tvars type_sys atomic_types
            |> close_formula_universally, NONE, NONE)
 
-fun free_type_literals format type_sys
-                       ({atomic_types, ...} : translated_formula) =
-  atomic_types |> type_literals_for_types format type_sys Conjecture
+fun free_type_literals type_sys ({atomic_types, ...} : translated_formula) =
+  atomic_types |> type_literals_for_types type_sys sorts_on_tfree
                |> map fo_literal_from_type_literal
 
 fun formula_line_for_free_type j lit =
   Formula (tfree_clause_prefix ^ string_of_int j, Hypothesis,
            formula_from_fo_literal lit, NONE, NONE)
-fun formula_lines_for_free_types format type_sys facts =
+fun formula_lines_for_free_types type_sys facts =
   let
-    val litss = map (free_type_literals format type_sys) facts
+    val litss = map (free_type_literals type_sys) facts
     val lits = fold (union (op =)) litss []
   in map2 formula_line_for_free_type (0 upto length lits - 1) lits end
 
@@ -1636,7 +1632,7 @@ fun formula_line_for_pred_sym_decl ctxt format conj_sym_kind nonmono_Ts type_sys
              |> AAtom |> mk_aquant AForall (bound_names ~~ bound_Ts)
              |> formula_from_combformula ctxt format nonmono_Ts type_sys
                                          (K (K (K (K true)))) true
-             |> n > 1 ? bound_atomic_types format type_sys (atyps_of T)
+             |> n > 1 ? bound_tvars type_sys (atyps_of T)
              |> close_formula_universally
              |> maybe_negate,
              intro_info, NONE)
@@ -1659,7 +1655,7 @@ fun formula_lines_for_tag_sym_decl ctxt format conj_sym_kind nonmono_Ts type_sys
     fun eq tms =
       (if pred_sym then AConn (AIff, map AAtom tms)
        else AAtom (ATerm (`I tptp_equal, tms)))
-      |> bound_atomic_types format type_sys atomic_Ts
+      |> bound_tvars type_sys atomic_Ts
       |> close_formula_universally
       |> maybe_negate
     val should_encode = should_encode_type ctxt nonmono_Ts All_Types
@@ -1802,8 +1798,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
        (conjsN,
         map (formula_line_for_conjecture ctxt format nonmono_Ts type_sys)
             conjs),
-       (free_typesN,
-        formula_lines_for_free_types format type_sys (facts @ conjs))]
+       (free_typesN, formula_lines_for_free_types type_sys (facts @ conjs))]
     val problem =
       problem
       |> (case format of

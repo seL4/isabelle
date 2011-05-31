@@ -143,6 +143,17 @@ fun is_built_in_tptp_symbol s =
 fun is_tptp_variable s = Char.isUpper (String.sub (s, 0))
 val is_tptp_user_symbol = not o (is_tptp_variable orf is_built_in_tptp_symbol)
 
+fun raw_polarities_of_conn ANot = (SOME false, NONE)
+  | raw_polarities_of_conn AAnd = (SOME true, SOME true)
+  | raw_polarities_of_conn AOr = (SOME true, SOME true)
+  | raw_polarities_of_conn AImplies = (SOME false, SOME true)
+  | raw_polarities_of_conn AIf = (SOME true, SOME false)
+  | raw_polarities_of_conn AIff = (NONE, NONE)
+  | raw_polarities_of_conn ANotIff = (NONE, NONE)
+fun polarities_of_conn NONE = K (NONE, NONE)
+  | polarities_of_conn (SOME pos) =
+    raw_polarities_of_conn #> not pos ? pairself (Option.map not)
+
 fun mk_anot (AConn (ANot, [phi])) = phi
   | mk_anot phi = AConn (ANot, [phi])
 fun mk_aconn c phi1 phi2 = AConn (c, [phi1, phi2])
@@ -286,7 +297,7 @@ fun tptp_strings_for_atp_problem format problem =
        problem
 
 
-(** CNF UEQ (Waldmeister) **)
+(** CNF (Metis) and CNF UEQ (Waldmeister) **)
 
 fun is_problem_line_negated (Formula (_, _, AConn (ANot, _), _, _)) = true
   | is_problem_line_negated _ = false
@@ -298,9 +309,17 @@ fun is_problem_line_cnf_ueq
 fun open_conjecture_term (ATerm ((s, s'), tms)) =
   ATerm (if is_tptp_variable s then (s |> Name.desymbolize false, s')
          else (s, s'), tms |> map open_conjecture_term)
-fun open_formula conj (AQuant (AForall, _, phi)) = open_formula conj phi
-  | open_formula true (AAtom t) = AAtom (open_conjecture_term t)
-  | open_formula _ phi = phi
+fun open_formula conj =
+  let
+    fun opn (pos as SOME true) (AQuant (AForall, xs, phi)) = opn pos phi
+      | opn (pos as SOME false) (AQuant (AExists, xs, phi)) = opn pos phi
+      | opn pos (AConn (ANot, [phi])) = mk_anot (opn (Option.map not pos) phi)
+      | opn pos (AConn (c, [phi1, phi2])) =
+        let val (pos1, pos2) = polarities_of_conn pos c in
+          AConn (c, [opn pos1 phi1, opn pos2 phi2])
+        end
+      | opn _ (AAtom t) = AAtom (t |> conj ? open_conjecture_term)
+  in opn (SOME (not conj)) end
 fun open_formula_line (Formula (ident, kind, phi, source, info)) =
     Formula (ident, kind, open_formula (kind = Conjecture) phi, source, info)
   | open_formula_line line = line
@@ -309,7 +328,31 @@ fun negate_conjecture_line (Formula (ident, Conjecture, phi, source, info)) =
     Formula (ident, Hypothesis, mk_anot phi, source, info)
   | negate_conjecture_line line = line
 
-fun ensure_cnf_problem problem = problem |> map (apsnd (map open_formula_line))
+exception CLAUSIFY of unit
+
+fun clausify_formula pos (phi as AAtom _) = phi |> not pos ? mk_anot
+  | clausify_formula pos (AConn (ANot, [phi])) = clausify_formula (not pos) phi
+  | clausify_formula false (AConn (AAnd, phis)) =
+    AConn (AOr, map (clausify_formula false) phis)
+  | clausify_formula true (AConn (AOr, phis)) =
+    AConn (AOr, map (clausify_formula true) phis)
+  | clausify_formula true (AConn (AImplies, [phi1, phi2])) =
+    AConn (AOr, [clausify_formula false phi1, clausify_formula true phi2])
+  | clausify_formula true (AConn (AIf, phis)) =
+    clausify_formula true (AConn (AImplies, rev phis))
+  | clausify_formula _ _ = raise CLAUSIFY ()
+
+fun clausify_formula_line (Formula (ident, kind, phi, source, info)) =
+    (case try (clausify_formula true) phi of
+       SOME phi => SOME (Formula (ident, kind, phi, source, info))
+     | NONE => NONE)
+  | clausify_formula_line _ = NONE
+
+fun ensure_cnf_problem_line line =
+  line |> open_formula_line |> negate_conjecture_line |> clausify_formula_line
+
+fun ensure_cnf_problem problem =
+  problem |> map (apsnd (map_filter ensure_cnf_problem_line))
 
 fun filter_cnf_ueq_problem problem =
   problem
