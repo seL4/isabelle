@@ -95,7 +95,7 @@ fun generate_tptp_inference_file_for_theory ctxt thy full_types file_name =
           (ATP_Translate.Polymorphic,
            if full_types then ATP_Translate.All_Types
            else ATP_Translate.Const_Arg_Types,
-           ATP_Translate.Heavy)
+           ATP_Translate.Heavyweight)
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val facts0 = facts_of thy

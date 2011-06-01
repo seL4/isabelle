@@ -43,7 +43,7 @@ sig
   datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
   datatype type_level =
     All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
-  datatype type_heaviness = Heavy | Light
+  datatype type_heaviness = Heavyweight | Lightweight
 
   datatype type_sys =
     Simple_Types of type_level |
@@ -504,7 +504,7 @@ fun is_locality_global Local = false
 datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
 datatype type_level =
   All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
-datatype type_heaviness = Heavy | Light
+datatype type_heaviness = Heavyweight | Lightweight
 
 datatype type_sys =
   Simple_Types of type_level |
@@ -534,22 +534,22 @@ fun type_sys_from_string s =
             | NONE => (All_Types, s))
   ||> apsnd (fn s =>
                 case try (unsuffix "_heavy") s of
-                  SOME s => (Heavy, s)
-                | NONE => (Light, s))
+                  SOME s => (Heavyweight, s)
+                | NONE => (Lightweight, s))
   |> (fn (poly, (level, (heaviness, core))) =>
          case (core, (poly, level, heaviness)) of
-           ("simple", (NONE, _, Light)) => Simple_Types level
+           ("simple", (NONE, _, Lightweight)) => Simple_Types level
          | ("preds", (SOME poly, _, _)) => Preds (poly, level, heaviness)
          | ("tags", (SOME Polymorphic, All_Types, _)) =>
            Tags (Polymorphic, All_Types, heaviness)
          | ("tags", (SOME Polymorphic, _, _)) =>
            (* The actual light encoding is very unsound. *)
-           Tags (Polymorphic, level, Heavy)
+           Tags (Polymorphic, level, Heavyweight)
          | ("tags", (SOME poly, _, _)) => Tags (poly, level, heaviness)
-         | ("args", (SOME poly, All_Types (* naja *), Light)) =>
-           Preds (poly, Const_Arg_Types, Light)
-         | ("erased", (NONE, All_Types (* naja *), Light)) =>
-           Preds (Polymorphic, No_Types, Light)
+         | ("args", (SOME poly, All_Types (* naja *), Lightweight)) =>
+           Preds (poly, Const_Arg_Types, Lightweight)
+         | ("erased", (NONE, All_Types (* naja *), Lightweight)) =>
+           Preds (Polymorphic, No_Types, Lightweight)
          | _ => raise Same.SAME)
   handle Same.SAME => error ("Unknown type system: " ^ quote s ^ ".")
 
@@ -561,7 +561,7 @@ fun level_of_type_sys (Simple_Types level) = level
   | level_of_type_sys (Preds (_, level, _)) = level
   | level_of_type_sys (Tags (_, level, _)) = level
 
-fun heaviness_of_type_sys (Simple_Types _) = Heavy
+fun heaviness_of_type_sys (Simple_Types _) = Heavyweight
   | heaviness_of_type_sys (Preds (_, _, heaviness)) = heaviness
   | heaviness_of_type_sys (Tags (_, _, heaviness)) = heaviness
 
@@ -580,7 +580,7 @@ fun is_setting_higher_order THF (Simple_Types _) = true
 fun choose_format formats (Simple_Types level) =
     if member (op =) formats THF then (THF, Simple_Types level)
     else if member (op =) formats TFF then (TFF, Simple_Types level)
-    else choose_format formats (Preds (Mangled_Monomorphic, level, Heavy))
+    else choose_format formats (Preds (Mangled_Monomorphic, level, Heavyweight))
   | choose_format formats type_sys =
     (case hd formats of
        CNF_UEQ =>
@@ -623,9 +623,9 @@ fun should_drop_arg_type_args (Simple_Types _) =
     false (* since TFF doesn't support overloading *)
   | should_drop_arg_type_args type_sys =
     level_of_type_sys type_sys = All_Types andalso
-    heaviness_of_type_sys type_sys = Heavy
+    heaviness_of_type_sys type_sys = Heavyweight
 
-fun general_type_arg_policy (Tags (_, All_Types, Heavy)) = No_Type_Args
+fun general_type_arg_policy (Tags (_, All_Types, Heavyweight)) = No_Type_Args
   | general_type_arg_policy type_sys =
     if level_of_type_sys type_sys = No_Types then
       No_Type_Args
@@ -983,7 +983,7 @@ fun should_encode_type ctxt (nonmono_Ts as _ :: _) _ T =
 
 fun should_predicate_on_type ctxt nonmono_Ts (Preds (_, level, heaviness))
                              should_predicate_on_var T =
-    (heaviness = Heavy orelse should_predicate_on_var ()) andalso
+    (heaviness = Heavyweight orelse should_predicate_on_var ()) andalso
     should_encode_type ctxt nonmono_Ts level T
   | should_predicate_on_type _ _ _ _ _ = false
 
@@ -997,8 +997,8 @@ datatype tag_site = Top_Level | Eq_Arg | Elsewhere
 fun should_tag_with_type _ _ _ Top_Level _ _ = false
   | should_tag_with_type ctxt nonmono_Ts (Tags (_, level, heaviness)) site u T =
     (case heaviness of
-       Heavy => should_encode_type ctxt nonmono_Ts level T
-     | Light =>
+       Heavyweight => should_encode_type ctxt nonmono_Ts level T
+     | Lightweight =>
        case (site, is_var_or_bound_var u) of
          (Eq_Arg, true) => should_encode_type ctxt nonmono_Ts level T
        | _ => false)
@@ -1204,7 +1204,7 @@ fun enforce_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys =
             if s = const_prefix ^ app_op_name andalso
                length T_args = 2 andalso
                not (is_type_sys_virtually_sound type_sys) andalso
-               heaviness_of_type_sys type_sys = Heavy then
+               heaviness_of_type_sys type_sys = Heavyweight then
               T_args |> map (homogenized_type ctxt nonmono_Ts level 0)
                      |> (fn Ts => let val T = hd Ts --> nth Ts 1 in
                                     (T --> T, tl Ts)
@@ -1560,7 +1560,7 @@ fun should_declare_sym type_sys pred_sym s =
   is_tptp_user_symbol s andalso not (String.isPrefix bound_var_prefix s) andalso
   (case type_sys of
      Simple_Types _ => true
-   | Tags (_, _, Light) => true
+   | Tags (_, _, Lightweight) => true
    | _ => not pred_sym)
 
 fun sym_decl_table_for_facts ctxt type_sys repaired_sym_tab (conjs, facts) =
@@ -1745,8 +1745,8 @@ fun problem_lines_for_sym_decls ctxt format conj_sym_kind nonmono_Ts type_sys
     end
   | Tags (_, _, heaviness) =>
     (case heaviness of
-       Heavy => []
-     | Light =>
+       Heavyweight => []
+     | Lightweight =>
        let val n = length decls in
          (0 upto n - 1 ~~ decls)
          |> maps (formula_lines_for_tags_sym_decl ctxt format conj_sym_kind
@@ -1762,7 +1762,7 @@ fun problem_lines_for_sym_decl_table ctxt format conj_sym_kind nonmono_Ts
   |-> fold_rev (append o problem_lines_for_sym_decls ctxt format conj_sym_kind
                                                      nonmono_Ts type_sys)
 
-fun should_add_ti_ti_helper (Tags (Polymorphic, level, Heavy)) =
+fun should_add_ti_ti_helper (Tags (Polymorphic, level, Heavyweight)) =
     level = Nonmonotonic_Types orelse level = Finite_Types
   | should_add_ti_ti_helper _ = false
 

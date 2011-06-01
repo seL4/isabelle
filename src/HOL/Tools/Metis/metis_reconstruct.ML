@@ -17,6 +17,8 @@ sig
   val trace_msg : Proof.context -> (unit -> string) -> unit
   val verbose : bool Config.T
   val verbose_warning : Proof.context -> string -> unit
+  val hol_term_from_metis :
+    mode -> int Symtab.table -> Proof.context -> Metis_Term.term -> term
   val lookth : (Metis_Thm.thm * 'a) list -> Metis_Thm.thm -> 'a
   val untyped_aconv : term -> term -> bool
   val replay_one_inference :
@@ -244,7 +246,7 @@ fun hol_terms_from_metis ctxt mode old_skolems sym_tab fol_tms =
                    |> infer_types ctxt
       val _ = app (fn t => trace_msg ctxt
                     (fn () => "  final term: " ^ Syntax.string_of_term ctxt t ^
-                              "  of type  " ^ Syntax.string_of_typ ctxt (type_of t)))
+                              " of type " ^ Syntax.string_of_typ ctxt (type_of t)))
                   ts'
   in  ts'  end;
 

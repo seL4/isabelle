@@ -53,7 +53,7 @@ fun have_common_thm ths1 ths2 =
 
 (*Determining which axiom clauses are actually used*)
 fun used_axioms axioms (th, Metis_Proof.Axiom _) = SOME (lookth axioms th)
-  | used_axioms _ _ = NONE;
+  | used_axioms _ _ = NONE
 
 val clause_params =
   {ordering = Metis_KnuthBendixOrder.default,

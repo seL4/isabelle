@@ -310,10 +310,16 @@ fun metis_axiom_from_atp clauses (Formula (ident, _, phi, _, _)) =
          |> Metis_Thm.axiom,
      case try (unprefix conjecture_prefix) ident of
        SOME s => Meson.make_meta_clause (nth clauses (the (Int.fromString s)))
-     | NONE => TrueI)
+     | NONE =>
+(* FIXME: missing:
+       if String.isPrefix helper_prefix then
+         ...
+       else
+*)
+       TrueI)
   | metis_axiom_from_atp _ _ = raise Fail "not CNF -- expected formula"
 
-val default_type_sys = Preds (Polymorphic, Nonmonotonic_Types, Light)
+val default_type_sys = Preds (Polymorphic, Nonmonotonic_Types, Lightweight)
 
 (* Function to generate metis clauses, including comb and type clauses *)
 fun prepare_metis_problem ctxt MX type_sys conj_clauses fact_clauses =
