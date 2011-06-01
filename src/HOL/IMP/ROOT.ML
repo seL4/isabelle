@@ -2,6 +2,7 @@ use_thys
 ["BExp",
  "ASM",
  "Small_Step",
+ "Denotation",
  "Compiler"(*,
  "Poly_Types",
  "Sec_Typing",

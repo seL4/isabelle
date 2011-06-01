@@ -5,17 +5,7 @@
 
 header "Denotational Semantics of Commands in HOLCF"
 
-theory Denotational imports HOLCF "~~/src/HOL/IMP/Natural" begin
-
-text {* Disable conflicting syntax from HOL Map theory. *}
-
-no_syntax
-  "_maplet"  :: "['a, 'a] => maplet"             ("_ /|->/ _")
-  "_maplets" :: "['a, 'a] => maplet"             ("_ /[|->]/ _")
-  ""         :: "maplet => maplets"             ("_")
-  "_Maplets" :: "[maplet, maplets] => maplets" ("_,/ _")
-  "_MapUpd"  :: "['a ~=> 'b, maplets] => 'a ~=> 'b" ("_/'(_')" [900,0]900)
-  "_Map"     :: "maplets => 'a ~=> 'b"            ("(1[_])")
+theory Denotational imports HOLCF "~~/src/HOL/IMP/Big_Step" begin
 
 subsection "Definition"
 
@@ -25,13 +15,13 @@ definition
 
 primrec D :: "com => state discr -> state lift"
 where
-  "D(\<SKIP>) = (LAM s. Def(undiscr s))"
-| "D(X :== a) = (LAM s. Def((undiscr s)[X \<mapsto> a(undiscr s)]))"
+  "D(SKIP) = (LAM s. Def(undiscr s))"
+| "D(X ::= a) = (LAM s. Def((undiscr s)(X := aval a (undiscr s))))"
 | "D(c0 ; c1) = (dlift(D c1) oo (D c0))"
-| "D(\<IF> b \<THEN> c1 \<ELSE> c2) =
-        (LAM s. if b (undiscr s) then (D c1)\<cdot>s else (D c2)\<cdot>s)"
-| "D(\<WHILE> b \<DO> c) =
-        fix\<cdot>(LAM w s. if b (undiscr s) then (dlift w)\<cdot>((D c)\<cdot>s)
+| "D(IF b THEN c1 ELSE c2) =
+        (LAM s. if bval b (undiscr s) then (D c1)\<cdot>s else (D c2)\<cdot>s)"
+| "D(WHILE b DO c) =
+        fix\<cdot>(LAM w s. if bval b (undiscr s) then (dlift w)\<cdot>((D c)\<cdot>s)
                       else Def(undiscr s))"
 
 subsection
@@ -47,32 +37,31 @@ lemma dlift_is_Def [simp]:
     "(dlift f\<cdot>l = Def y) = (\<exists>x. l = Def x \<and> f\<cdot>(Discr x) = Def y)"
   by (simp add: dlift_def split: lift.split)
 
-lemma eval_implies_D: "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t ==> D c\<cdot>(Discr s) = (Def t)"
-  apply (induct set: evalc)
-        apply simp_all
-   apply (subst fix_eq)
-   apply simp
-  apply (subst fix_eq)
-  apply simp
-  done
+lemma eval_implies_D: "(c,s) \<Rightarrow> t ==> D c\<cdot>(Discr s) = (Def t)"
+apply (induct rule: big_step_induct)
+      apply (auto)
+ apply (subst fix_eq)
+ apply simp
+apply (subst fix_eq)
+apply simp
+done
 
-lemma D_implies_eval: "!s t. D c\<cdot>(Discr s) = (Def t) --> \<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t"
-  apply (induct c)
-      apply simp
-     apply simp
-    apply force
-   apply (simp (no_asm))
-   apply force
-  apply (simp (no_asm))
-  apply (rule fix_ind)
-    apply (fast intro!: adm_lemmas adm_chfindom ax_flat)
-   apply (simp (no_asm))
-  apply (simp (no_asm))
-  apply safe
-  apply fast
-  done
+lemma D_implies_eval: "!s t. D c\<cdot>(Discr s) = (Def t) --> (c,s) \<Rightarrow> t"
+apply (induct c)
+    apply fastsimp
+   apply fastsimp
+  apply force
+ apply (simp (no_asm))
+ apply force
+apply (simp (no_asm))
+apply (rule fix_ind)
+  apply (fast intro!: adm_lemmas adm_chfindom ax_flat)
+ apply (simp (no_asm))
+apply (simp (no_asm))
+apply force
+done
 
-theorem D_is_eval: "(D c\<cdot>(Discr s) = (Def t)) = (\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t)"
-  by (fast elim!: D_implies_eval [rule_format] eval_implies_D)
+theorem D_is_eval: "(D c\<cdot>(Discr s) = (Def t)) = ((c,s) \<Rightarrow> t)"
+by (fast elim!: D_implies_eval [rule_format] eval_implies_D)
 
 end
