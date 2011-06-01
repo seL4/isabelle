@@ -55,9 +55,10 @@ fun have_common_thm ths1 ths2 =
 fun used_axioms axioms (th, Metis_Proof.Axiom _) = SOME (lookth axioms th)
   | used_axioms _ _ = NONE
 
-fun cterm_from_metis ctxt sym_tab tm =
+fun cterm_from_metis ctxt sym_tab wrap tm =
   let val thy = Proof_Context.theory_of ctxt in
     tm |> hol_term_from_metis MX sym_tab ctxt
+       |> wrap
        |> Syntax.check_term
               (Proof_Context.set_mode Proof_Context.mode_schematic ctxt)
        |> cterm_of thy
@@ -70,10 +71,11 @@ fun cterm_from_metis ctxt sym_tab tm =
 fun lightweight_tags_sym_theorem_from_metis ctxt sym_tab mth =
   (case Metis_LiteralSet.toList (Metis_Thm.clause mth) of
      [(true, (_, [_, tm]))] =>
-     tm |> cterm_from_metis ctxt sym_tab |> Thm.reflexive
+     tm |> cterm_from_metis ctxt sym_tab I |> Thm.reflexive
      RS @{thm meta_eq_to_obj_eq}
    | [_, (_, tm)] =>
-     tm |> Metis_Term.Fn |> cterm_from_metis ctxt sym_tab |> Thm.assume
+     tm |> Metis_Term.Fn |> cterm_from_metis ctxt sym_tab HOLogic.mk_Trueprop
+        |> Thm.trivial
    | _ => raise Fail "unexpected tags sym clause")
   |> Meson.make_meta_clause
 
