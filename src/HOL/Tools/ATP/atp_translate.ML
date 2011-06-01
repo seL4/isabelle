@@ -66,7 +66,7 @@ sig
   val type_decl_prefix : string
   val sym_decl_prefix : string
   val preds_sym_formula_prefix : string
-  val tags_sym_formula_prefix : string
+  val lightweight_tags_sym_formula_prefix : string
   val fact_prefix : string
   val conjecture_prefix : string
   val helper_prefix : string
@@ -172,7 +172,7 @@ val new_skolem_const_prefix = skolem_const_prefix ^ "n"
 val type_decl_prefix = "ty_"
 val sym_decl_prefix = "sy_"
 val preds_sym_formula_prefix = "psy_"
-val tags_sym_formula_prefix = "tsy_"
+val lightweight_tags_sym_formula_prefix = "tsy_"
 val fact_prefix = "fact_"
 val conjecture_prefix = "conj_"
 val helper_prefix = "help_"
@@ -1665,11 +1665,11 @@ fun formula_line_for_preds_sym_decl ctxt format conj_sym_kind nonmono_Ts
              intro_info, NONE)
   end
 
-fun formula_lines_for_tags_sym_decl ctxt format conj_sym_kind nonmono_Ts
-        type_sys n s (j, (s', T_args, T, pred_sym, ary, in_conj)) =
+fun formula_lines_for_lightweight_tags_sym_decl ctxt format conj_sym_kind
+        nonmono_Ts type_sys n s (j, (s', T_args, T, pred_sym, ary, in_conj)) =
   let
     val ident_base =
-      tags_sym_formula_prefix ^ s ^
+      lightweight_tags_sym_formula_prefix ^ s ^
       (if n > 1 then "_" ^ string_of_int j else "")
     val (kind, maybe_negate) =
       if in_conj then (conj_sym_kind, conj_sym_kind = Conjecture ? mk_anot)
@@ -1749,8 +1749,8 @@ fun problem_lines_for_sym_decls ctxt format conj_sym_kind nonmono_Ts type_sys
      | Lightweight =>
        let val n = length decls in
          (0 upto n - 1 ~~ decls)
-         |> maps (formula_lines_for_tags_sym_decl ctxt format conj_sym_kind
-                                                  nonmono_Ts type_sys n s)
+         |> maps (formula_lines_for_lightweight_tags_sym_decl ctxt format
+                      conj_sym_kind nonmono_Ts type_sys n s)
        end)
 
 fun problem_lines_for_sym_decl_table ctxt format conj_sym_kind nonmono_Ts

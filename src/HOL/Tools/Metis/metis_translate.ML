@@ -15,7 +15,7 @@ sig
   datatype mode = FO | HO | FT | MX
 
   type metis_problem =
-    {axioms : (Metis_Thm.thm * thm) list,
+    {axioms : (Metis_Thm.thm * thm option) list,
      tfrees : type_literal list,
      old_skolems : (string * term) list}
 
@@ -236,7 +236,7 @@ fun hol_thm_to_fol is_conjecture ctxt mode j old_skolems th =
 (* ------------------------------------------------------------------------- *)
 
 type metis_problem =
-  {axioms : (Metis_Thm.thm * thm) list,
+  {axioms : (Metis_Thm.thm * thm option) list,
    tfrees : type_literal list,
    old_skolems : (string * term) list}
 
@@ -309,14 +309,17 @@ fun metis_axiom_from_atp clauses (Formula (ident, _, phi, _, _)) =
     (phi |> metis_literals_from_atp |> Metis_LiteralSet.fromList
          |> Metis_Thm.axiom,
      case try (unprefix conjecture_prefix) ident of
-       SOME s => Meson.make_meta_clause (nth clauses (the (Int.fromString s)))
+       SOME s =>
+       SOME (Meson.make_meta_clause (nth clauses (the (Int.fromString s))))
      | NONE =>
+       if String.isPrefix lightweight_tags_sym_formula_prefix ident then
+         NONE
 (* FIXME: missing:
-       if String.isPrefix helper_prefix then
+       else if String.isPrefix helper_prefix then
          ...
-       else
 *)
-       TrueI)
+       else
+         SOME TrueI)
   | metis_axiom_from_atp _ _ = raise Fail "not CNF -- expected formula"
 
 val default_type_sys = Preds (Polymorphic, Nonmonotonic_Types, Lightweight)
@@ -363,15 +366,15 @@ fun prepare_metis_problem ctxt MX type_sys conj_clauses fact_clauses =
             hol_thm_to_fol is_conjecture ctxt mode (length axioms) old_skolems
                            metis_ith
         in
-          {axioms = (mth, isa_ith) :: axioms,
+          {axioms = (mth, SOME isa_ith) :: axioms,
            tfrees = union (op =) tfree_lits tfrees, old_skolems = old_skolems}
         end;
       fun add_type_thm (ith, mth) {axioms, tfrees, old_skolems} =
-        {axioms = (mth, ith) :: axioms, tfrees = tfrees,
+        {axioms = (mth, SOME ith) :: axioms, tfrees = tfrees,
          old_skolems = old_skolems}
       fun add_tfrees {axioms, tfrees, old_skolems} =
-        {axioms =
-           map (rpair TrueI o metis_of_tfree) (distinct (op =) tfrees) @ axioms,
+        {axioms = map (rpair (SOME TrueI) o metis_of_tfree)
+                      (distinct (op =) tfrees) @ axioms,
          tfrees = tfrees, old_skolems = old_skolems}
       val problem =
         {axioms = [], tfrees = init_tfrees ctxt, old_skolems = []}

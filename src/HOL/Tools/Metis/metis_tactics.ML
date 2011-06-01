@@ -55,6 +55,28 @@ fun have_common_thm ths1 ths2 =
 fun used_axioms axioms (th, Metis_Proof.Axiom _) = SOME (lookth axioms th)
   | used_axioms _ _ = NONE
 
+fun cterm_from_metis ctxt sym_tab tm =
+  let val thy = Proof_Context.theory_of ctxt in
+    tm |> hol_term_from_metis MX sym_tab ctxt
+       |> Syntax.check_term
+              (Proof_Context.set_mode Proof_Context.mode_schematic ctxt)
+       |> cterm_of thy
+  end
+
+(* Lightweight predicate type information comes in two flavors, "t = t'" and
+   "t => t'", where "t" and "t'" are the same term modulo type tags.
+   In Isabelle, type tags are stripped away, so we are left with "t = t" or
+   "t => t". *)
+fun lightweight_tags_sym_theorem_from_metis ctxt sym_tab mth =
+  (case Metis_LiteralSet.toList (Metis_Thm.clause mth) of
+     [(true, (_, [_, tm]))] =>
+     tm |> cterm_from_metis ctxt sym_tab |> Thm.reflexive
+     RS @{thm meta_eq_to_obj_eq}
+   | [_, (_, tm)] =>
+     tm |> Metis_Term.Fn |> cterm_from_metis ctxt sym_tab |> Thm.assume
+   | _ => raise Fail "unexpected tags sym clause")
+  |> Meson.make_meta_clause
+
 val clause_params =
   {ordering = Metis_KnuthBendixOrder.default,
    orderLiterals = Metis_Clause.UnsignedLiteralOrder,
@@ -88,6 +110,11 @@ fun FOL_SOLVE type_sys (mode :: fallback_modes) ctxt cls ths0 =
       val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) ths
       val (mode, sym_tab, {axioms, old_skolems, ...}) =
         prepare_metis_problem ctxt mode type_sys cls ths
+      val axioms =
+        axioms |> map
+            (fn (mth, SOME th) => (mth, th)
+              | (mth, NONE) =>
+                (mth, lightweight_tags_sym_theorem_from_metis ctxt sym_tab mth))
       val _ = trace_msg ctxt (fn () => "CLAUSES GIVEN TO METIS")
       val thms = map #1 axioms
       val _ = app (fn th => trace_msg ctxt (fn () => Metis_Thm.toString th)) thms
