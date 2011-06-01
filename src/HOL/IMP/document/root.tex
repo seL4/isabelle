@@ -1,13 +1,38 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
 
-\documentclass[a4wide]{article}
-\usepackage{graphicx,isabelle,isabellesym}
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
+
+%\usepackage{amssymb}
+  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
+  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
+  %\<triangleq>, \<yen>, \<lozenge>
+
+%\usepackage[greek,english]{babel}
+  %option greek for \<euro>
+  %option english (default language) for \<guillemotleft>, \<guillemotright>
+
+%\usepackage[latin1]{inputenc}
+  %for \<onesuperior>, \<onequarter>, \<twosuperior>, \<onehalf>,
+  %\<threesuperior>, \<threequarters>, \<degree>
+
+%\usepackage[only,bigsqcap]{stmaryrd}
+  %for \<Sqinter>
+
+%\usepackage{eufrak}
+  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
+
+%\usepackage{textcomp}
+  %for \<cent>, \<currency>
+
+% this should be the last package used
 \usepackage{pdfsetup}
 
+% urls in roman style, theory text in math-similar italics
 \urlstyle{rm}
-\renewcommand{\isachardoublequote}{}
+\isabellestyle{it}
 
-% pretty printing for the Com language
-%\newcommand{\CMD}[1]{\isatext{\bf\sffamily#1}}
 \newcommand{\CMD}[1]{\isatext{\rm\sffamily#1}}
 \newcommand{\isasymSKIP}{\CMD{skip}}
 \newcommand{\isasymIF}{\CMD{if}}
@@ -16,37 +41,26 @@
 \newcommand{\isasymWHILE}{\CMD{while}}
 \newcommand{\isasymDO}{\CMD{do}}
 
-\addtolength{\hoffset}{-1cm}
-\addtolength{\textwidth}{2cm}
+% for uniform font size
+\renewcommand{\isastyle}{\isastyleminor}
+
 
 \begin{document}
 
-\title{IMP --- A {\tt WHILE}-language and its Semantics}
-\author{Gerwin Klein, Heiko Loetzbeyer, Tobias Nipkow, Robert Sandner}
+\title{Concrete Semantics}
+\author{TN \& GK}
 \maketitle
 
-\parindent 0pt\parskip 0.5ex
-
-\begin{abstract}\noindent
-  The denotational, operational, and axiomatic semantics, a verification
-  condition generator, and all the necessary soundness, completeness and
-  equivalence proofs. Essentially a formalization of the first 100 pages of
-  \cite{Winskel}.
-  
-  An eminently readable description of this theory is found in \cite{Nipkow}.
-  See also HOLCF/IMP for a denotational semantics.
-\end{abstract}
-
 \tableofcontents
+\newpage
 
-\begin{center}
-  \includegraphics[scale=0.7]{session_graph}
-\end{center}
-
-\parindent 0pt\parskip 0.5ex
+% generated text of all theories
 \input{session}
 
-\bibliographystyle{plain}
+\nocite{Nipkow}
+
+% optional bibliography
+\bibliographystyle{abbrv}
 \bibliography{root}
 
 \end{document}
