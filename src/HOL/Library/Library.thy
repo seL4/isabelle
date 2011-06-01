@@ -52,7 +52,7 @@ imports
   Quotient_Type
   Ramsey
   Reflection
-  RBT
+  RBT_Mapping
   Set_Algebras
   SML_Quickcheck
   State_Monad

@@ -467,7 +467,8 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/Quotient_List.thy Library/Quotient_Option.thy			\
   Library/Quotient_Product.thy Library/Quotient_Sum.thy			\
   Library/Quotient_Syntax.thy Library/Quotient_Type.thy			\
-  Library/RBT.thy Library/RBT_Impl.thy Library/README.html		\
+  Library/RBT.thy Library/RBT_Impl.thy Library/RBT_Mapping.thy 		\
+  Library/README.html 							\
   Library/Set_Algebras.thy Library/State_Monad.thy Library/Ramsey.thy	\
   Library/Reflection.thy Library/SML_Quickcheck.thy 			\
   Library/Sublist_Order.thy Library/Sum_of_Squares.thy			\
