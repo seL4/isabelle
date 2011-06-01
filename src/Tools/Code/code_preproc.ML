@@ -157,15 +157,15 @@ fun preprocess_functrans thy =
 
 fun preprocess thy =
   let
+    val ctxt = Proof_Context.init_global thy;
     val pre = (Simplifier.global_context thy o #pre o the_thmproc) thy;
   in
     preprocess_functrans thy
-    #> (map o apfst) (rewrite_eqn pre)
+    #> (map o apfst) (singleton (Variable.trade (K (map (rewrite_eqn pre))) ctxt)) 
   end;
 
 fun preprocess_conv thy =
   let
-    val ctxt = Proof_Context.init_global thy;
     val pre = (Simplifier.global_context thy o #pre o the_thmproc) thy;
   in
     Simplifier.rewrite pre
