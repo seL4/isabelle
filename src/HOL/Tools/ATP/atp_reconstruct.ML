@@ -43,11 +43,13 @@ sig
   val uses_typed_helpers : int list -> 'a proof -> bool
   val reconstructor_name : reconstructor -> string
   val one_line_proof_text : one_line_params -> string
+  val make_tvar : string -> typ
+  val make_tfree : Proof.context -> string -> typ
   val term_from_atp :
-    theory -> bool -> int Symtab.table -> (string * sort) list -> typ option
-    -> string fo_term -> term
+    Proof.context -> bool -> int Symtab.table -> typ option -> string fo_term
+    -> term
   val prop_from_atp :
-    theory -> bool -> int Symtab.table -> (string * sort) list
+    Proof.context -> bool -> int Symtab.table
     -> (string, string, string fo_term) formula -> term
   val isar_proof_text :
     Proof.context -> bool -> isar_params -> one_line_params -> string
@@ -344,6 +346,12 @@ fun s_iff (@{const True}, t2) = t2
 fun forall_of v t = HOLogic.all_const (fastype_of v) $ lambda v t
 fun exists_of v t = HOLogic.exists_const (fastype_of v) $ lambda v t
 
+fun make_tvar s = TVar (("'" ^ s, 0), HOLogic.typeS)
+fun make_tfree ctxt w =
+  let val ww = "'" ^ w in
+    TFree (ww, the_default HOLogic.typeS (Variable.def_sort ctxt (ww, ~1)))
+  end
+
 val indent_size = 2
 val no_label = ("", ~1)
 
@@ -366,21 +374,18 @@ exception SAME of unit
 
 (* Type variables are given the basic sort "HOL.type". Some will later be
    constrained by information from type literals, or by type inference. *)
-fun typ_from_atp tfrees (u as ATerm (a, us)) =
-  let val Ts = map (typ_from_atp tfrees) us in
+fun typ_from_atp ctxt (u as ATerm (a, us)) =
+  let val Ts = map (typ_from_atp ctxt) us in
     case strip_prefix_and_unascii type_const_prefix a of
       SOME b => Type (invert_const b, Ts)
     | NONE =>
       if not (null us) then
         raise FO_TERM [u]  (* only "tconst"s have type arguments *)
       else case strip_prefix_and_unascii tfree_prefix a of
-        SOME b =>
-        let val s = "'" ^ b in
-          TFree (s, AList.lookup (op =) tfrees s |> the_default HOLogic.typeS)
-        end
+        SOME b => make_tfree ctxt b
       | NONE =>
         case strip_prefix_and_unascii tvar_prefix a of
-          SOME b => TVar (("'" ^ b, 0), HOLogic.typeS)
+          SOME b => make_tvar b
         | NONE =>
           (* Variable from the ATP, say "X1" *)
           Type_Infer.param 0 (a, HOLogic.typeS)
@@ -388,9 +393,8 @@ fun typ_from_atp tfrees (u as ATerm (a, us)) =
 
 (* Type class literal applied to a type. Returns triple of polarity, class,
    type. *)
-fun type_constraint_from_term tfrees (u as ATerm (a, us)) =
-  case (strip_prefix_and_unascii class_prefix a,
-        map (typ_from_atp tfrees) us) of
+fun type_constraint_from_term ctxt (u as ATerm (a, us)) =
+  case (strip_prefix_and_unascii class_prefix a, map (typ_from_atp ctxt) us) of
     (SOME b, [T]) => (b, T)
   | _ => raise FO_TERM [u]
 
@@ -419,8 +423,9 @@ fun repair_variable_name f s =
   
 (* First-order translation. No types are known for variables. "HOLogic.typeT"
    should allow them to be inferred. *)
-fun term_from_atp thy textual sym_tab tfrees =
+fun term_from_atp ctxt textual sym_tab =
   let
+    val thy = Proof_Context.theory_of ctxt
     (* see also "mk_var" in "Metis_Reconstruct" *)
     val var_index = if textual then 0 else 1
     fun do_term extra_ts opt_T u =
@@ -445,7 +450,7 @@ fun term_from_atp thy textual sym_tab tfrees =
             if s' = type_tag_name then
               case mangled_us @ us of
                 [typ_u, term_u] =>
-                do_term extra_ts (SOME (typ_from_atp tfrees typ_u)) term_u
+                do_term extra_ts (SOME (typ_from_atp ctxt typ_u)) term_u
               | _ => raise FO_TERM us
             else if s' = predicator_name then
               do_term [] (SOME @{typ bool}) (hd us)
@@ -469,7 +474,7 @@ fun term_from_atp thy textual sym_tab tfrees =
                 val T =
                   if not (null type_us) andalso
                      num_type_args thy s' = length type_us then
-                    (s', map (typ_from_atp tfrees) type_us)
+                    (s', map (typ_from_atp ctxt) type_us)
                     |> Sign.const_instance thy
                   else case opt_T of
                     SOME T => map fastype_of term_ts ---> T
@@ -493,12 +498,12 @@ fun term_from_atp thy textual sym_tab tfrees =
           in list_comb (t, ts) end
   in do_term [] end
 
-fun term_from_atom thy textual sym_tab tfrees pos (u as ATerm (s, _)) =
+fun term_from_atom ctxt textual sym_tab pos (u as ATerm (s, _)) =
   if String.isPrefix class_prefix s then
-    add_type_constraint pos (type_constraint_from_term tfrees u)
+    add_type_constraint pos (type_constraint_from_term ctxt u)
     #> pair @{const True}
   else
-    pair (term_from_atp thy textual sym_tab tfrees (SOME @{typ bool}) u)
+    pair (term_from_atp ctxt textual sym_tab (SOME @{typ bool}) u)
 
 val combinator_table =
   [(@{const_name Meson.COMBI}, @{thm Meson.COMBI_def_raw}),
@@ -543,7 +548,7 @@ fun quantify_over_var quant_of var_s t =
 
 (* Interpret an ATP formula as a HOL term, extracting sort constraints as they
    appear in the formula. *)
-fun prop_from_atp thy textual sym_tab tfrees phi =
+fun prop_from_atp ctxt textual sym_tab phi =
   let
     fun do_formula pos phi =
       case phi of
@@ -567,7 +572,7 @@ fun prop_from_atp thy textual sym_tab tfrees phi =
              | AIff => s_iff
              | ANotIff => s_not o s_iff
              | _ => raise Fail "unexpected connective")
-      | AAtom tm => term_from_atom thy textual sym_tab tfrees pos tm
+      | AAtom tm => term_from_atom ctxt textual sym_tab pos tm
       | _ => raise FORMULA [phi]
   in repair_tvar_sorts (do_formula true phi Vartab.empty) end
 
@@ -581,14 +586,14 @@ fun infer_formula_types ctxt =
 fun unvarify_term (Var ((s, 0), T)) = Free (s, T)
   | unvarify_term t = raise TERM ("unvarify_term: non-Var", [t])
 
-fun decode_line sym_tab tfrees (Definition (name, phi1, phi2)) ctxt =
+fun decode_line sym_tab (Definition (name, phi1, phi2)) ctxt =
     let
       val thy = Proof_Context.theory_of ctxt
-      val t1 = prop_from_atp thy true sym_tab tfrees phi1
+      val t1 = prop_from_atp ctxt true sym_tab phi1
       val vars = snd (strip_comb t1)
       val frees = map unvarify_term vars
       val unvarify_args = subst_atomic (vars ~~ frees)
-      val t2 = prop_from_atp thy true sym_tab tfrees phi2
+      val t2 = prop_from_atp ctxt true sym_tab phi2
       val (t1, t2) =
         HOLogic.eq_const HOLogic.typeT $ t1 $ t2
         |> unvarify_args |> uncombine_term thy |> infer_formula_types ctxt
@@ -597,17 +602,17 @@ fun decode_line sym_tab tfrees (Definition (name, phi1, phi2)) ctxt =
       (Definition (name, t1, t2),
        fold Variable.declare_term (maps OldTerm.term_frees [t1, t2]) ctxt)
     end
-  | decode_line sym_tab tfrees (Inference (name, u, deps)) ctxt =
+  | decode_line sym_tab (Inference (name, u, deps)) ctxt =
     let
       val thy = Proof_Context.theory_of ctxt
-      val t = u |> prop_from_atp thy true sym_tab tfrees
+      val t = u |> prop_from_atp ctxt true sym_tab
                 |> uncombine_term thy |> infer_formula_types ctxt
     in
       (Inference (name, t, deps),
        fold Variable.declare_term (OldTerm.term_frees t) ctxt)
     end
-fun decode_lines ctxt sym_tab tfrees lines =
-  fst (fold_map (decode_line sym_tab tfrees) lines ctxt)
+fun decode_lines ctxt sym_tab lines =
+  fst (fold_map (decode_line sym_tab) lines ctxt)
 
 fun is_same_inference _ (Definition _) = false
   | is_same_inference t (Inference (_, t', _)) = t aconv t'
@@ -743,7 +748,7 @@ fun repair_name "$true" = "c_True"
     else
       s
 
-fun isar_proof_from_atp_proof pool ctxt type_sys tfrees isar_shrink_factor
+fun isar_proof_from_atp_proof pool ctxt type_sys isar_shrink_factor
         conjecture_shape facts_offset fact_names sym_tab params frees
         atp_proof =
   let
@@ -752,7 +757,7 @@ fun isar_proof_from_atp_proof pool ctxt type_sys tfrees isar_shrink_factor
       |> clean_up_atp_proof_dependencies
       |> nasty_atp_proof pool
       |> map_term_names_in_atp_proof repair_name
-      |> decode_lines ctxt sym_tab tfrees
+      |> decode_lines ctxt sym_tab
       |> rpair [] |-> fold_rev (add_line type_sys conjecture_shape fact_names)
       |> rpair [] |-> fold_rev add_nontrivial_line
       |> rpair (0, [])
@@ -1063,13 +1068,11 @@ fun isar_proof_text ctxt isar_proof_requested
       (if isar_proof_requested then 1 else 2) * isar_shrink_factor
     val (params, hyp_ts, concl_t) = strip_subgoal ctxt goal subgoal
     val frees = fold Term.add_frees (concl_t :: hyp_ts) []
-    val tfrees = fold Term.add_tfrees (concl_t :: hyp_ts) []
     val one_line_proof = one_line_proof_text one_line_params
     fun isar_proof_for () =
       case atp_proof
-           |> isar_proof_from_atp_proof pool ctxt type_sys tfrees
-                  isar_shrink_factor conjecture_shape facts_offset
-                  fact_names sym_tab params frees
+           |> isar_proof_from_atp_proof pool ctxt type_sys isar_shrink_factor
+                  conjecture_shape facts_offset fact_names sym_tab params frees
            |> redirect_proof hyp_ts concl_t
            |> kill_duplicate_assumptions_in_proof
            |> then_chain_proof

@@ -59,8 +59,7 @@ fun used_axioms axioms (th, Metis_Proof.Axiom _) = SOME (lookth axioms th)
 
 fun cterm_from_metis ctxt sym_tab wrap tm =
   let val thy = Proof_Context.theory_of ctxt in
-    tm |> hol_term_from_metis MX sym_tab ctxt
-       |> wrap
+    tm |> hol_term_from_metis ctxt MX sym_tab |> wrap
        |> Syntax.check_term
               (Proof_Context.set_mode Proof_Context.mode_schematic ctxt)
        |> cterm_of thy
