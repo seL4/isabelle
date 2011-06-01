@@ -262,7 +262,7 @@ fun m_arity_cls (TConsLit ((c, _), (t, _), args)) =
     metis_lit true c [Metis_Term.Fn(t, map (Metis_Term.Var o fst) args)]
   | m_arity_cls (TVarLit ((c, _), (s, _))) =
     metis_lit false c [Metis_Term.Var s]
-(*TrueI is returned as the Isabelle counterpart because there isn't any.*)
+(* TrueI is returned as the Isabelle counterpart because there isn't any. *)
 fun arity_cls ({prem_lits, concl_lits, ...} : arity_clause) =
   (TrueI,
    Metis_Thm.axiom (Metis_LiteralSet.fromList
