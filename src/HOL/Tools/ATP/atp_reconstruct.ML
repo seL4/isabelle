@@ -9,6 +9,7 @@ Proof reconstruction from ATP proofs.
 signature ATP_RECONSTRUCT =
 sig
   type 'a fo_term = 'a ATP_Problem.fo_term
+  type ('a, 'b, 'c) formula = ('a, 'b, 'c) ATP_Problem.formula
   type 'a proof = 'a ATP_Proof.proof
   type locality = ATP_Translate.locality
   type type_sys = ATP_Translate.type_sys
@@ -45,6 +46,9 @@ sig
   val term_from_atp :
     theory -> bool -> int Symtab.table -> (string * sort) list -> typ option
     -> string fo_term -> term
+  val prop_from_atp :
+    theory -> bool -> int Symtab.table -> (string * sort) list
+    -> (string, string, string fo_term) formula -> term
   val isar_proof_text :
     Proof.context -> bool -> isar_params -> one_line_params -> string
   val proof_text :
@@ -536,7 +540,7 @@ fun quantify_over_var quant_of var_s t =
 
 (* Interpret an ATP formula as a HOL term, extracting sort constraints as they
    appear in the formula. *)
-fun prop_from_formula thy textual sym_tab tfrees phi =
+fun prop_from_atp thy textual sym_tab tfrees phi =
   let
     fun do_formula pos phi =
       case phi of
@@ -577,11 +581,11 @@ fun unvarify_term (Var ((s, 0), T)) = Free (s, T)
 fun decode_line sym_tab tfrees (Definition (name, phi1, phi2)) ctxt =
     let
       val thy = Proof_Context.theory_of ctxt
-      val t1 = prop_from_formula thy true sym_tab tfrees phi1
+      val t1 = prop_from_atp thy true sym_tab tfrees phi1
       val vars = snd (strip_comb t1)
       val frees = map unvarify_term vars
       val unvarify_args = subst_atomic (vars ~~ frees)
-      val t2 = prop_from_formula thy true sym_tab tfrees phi2
+      val t2 = prop_from_atp thy true sym_tab tfrees phi2
       val (t1, t2) =
         HOLogic.eq_const HOLogic.typeT $ t1 $ t2
         |> unvarify_args |> uncombine_term thy |> check_formula ctxt
@@ -593,7 +597,7 @@ fun decode_line sym_tab tfrees (Definition (name, phi1, phi2)) ctxt =
   | decode_line sym_tab tfrees (Inference (name, u, deps)) ctxt =
     let
       val thy = Proof_Context.theory_of ctxt
-      val t = u |> prop_from_formula thy true sym_tab tfrees
+      val t = u |> prop_from_atp thy true sym_tab tfrees
                 |> uncombine_term thy |> check_formula ctxt
     in
       (Inference (name, t, deps),
