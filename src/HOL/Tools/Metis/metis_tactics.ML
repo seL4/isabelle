@@ -57,27 +57,21 @@ fun have_common_thm ths1 ths2 =
 fun used_axioms axioms (th, Metis_Proof.Axiom _) = SOME (lookth axioms th)
   | used_axioms _ _ = NONE
 
-fun cterm_from_metis ctxt sym_tab wrap tm =
-  let val thy = Proof_Context.theory_of ctxt in
-    tm |> hol_term_from_metis ctxt MX sym_tab |> wrap
-       |> Syntax.check_term
-              (Proof_Context.set_mode Proof_Context.mode_schematic ctxt)
-       |> cterm_of thy
-  end
-
 (* Lightweight predicate type information comes in two flavors, "t = t'" and
    "t => t'", where "t" and "t'" are the same term modulo type tags.
    In Isabelle, type tags are stripped away, so we are left with "t = t" or
    "t => t". *)
 fun lightweight_tags_sym_theorem_from_metis ctxt sym_tab mth =
-  (case Metis_LiteralSet.toList (Metis_Thm.clause mth) of
-     [(true, (_, [_, tm]))] =>
-     tm |> cterm_from_metis ctxt sym_tab I |> Thm.reflexive
-     RS @{thm meta_eq_to_obj_eq}
-   | [_, (_, tm)] =>
-     tm |> Metis_Term.Fn |> cterm_from_metis ctxt sym_tab HOLogic.mk_Trueprop
-        |> Thm.trivial
-   | _ => raise Fail "unexpected tags sym clause")
+  let val thy = Proof_Context.theory_of ctxt in
+    case hol_clause_from_metis_MX ctxt sym_tab
+             (Metis_LiteralSet.toList (Metis_Thm.clause mth)) of
+      Const (@{const_name HOL.eq}, _) $ _ $ t =>
+      t |> cterm_of thy |> Thm.reflexive RS @{thm meta_eq_to_obj_eq}
+    | Const (@{const_name disj}, _) $ t1 $ t2 =>
+      (if can HOLogic.dest_not t1 then t2 else t1)
+      |> HOLogic.mk_Trueprop |> cterm_of thy |> Thm.trivial
+    | _ => raise Fail "unexpected tags sym clause"
+  end
   |> Meson.make_meta_clause
 
 val clause_params =

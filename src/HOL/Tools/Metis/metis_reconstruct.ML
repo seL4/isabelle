@@ -17,8 +17,8 @@ sig
   val trace_msg : Proof.context -> (unit -> string) -> unit
   val verbose : bool Config.T
   val verbose_warning : Proof.context -> string -> unit
-  val hol_term_from_metis :
-    Proof.context -> mode -> int Symtab.table -> Metis_Term.term -> term
+  val hol_clause_from_metis_MX :
+    Proof.context -> int Symtab.table -> Metis_Literal.literal list -> term
   val lookth : (Metis_Thm.thm * 'a) list -> Metis_Thm.thm -> 'a
   val untyped_aconv : term * term -> bool
   val replay_one_inference :
@@ -229,6 +229,15 @@ fun hol_term_from_metis ctxt FO _ = hol_term_from_metis_PT ctxt
   | hol_term_from_metis ctxt HO _ = hol_term_from_metis_PT ctxt
   | hol_term_from_metis ctxt FT _ = hol_term_from_metis_FT ctxt
   | hol_term_from_metis ctxt MX sym_tab = hol_term_from_metis_MX ctxt sym_tab
+
+fun atp_literal_from_metis (pos, atom) =
+  atom |> Metis_Term.Fn |> atp_term_from_metis |> AAtom |> not pos ? mk_anot
+fun atp_clause_from_metis [] = AAtom (ATerm (tptp_false, []))
+  | atp_clause_from_metis lits =
+    lits |> map atp_literal_from_metis |> mk_aconns AOr
+
+fun hol_clause_from_metis_MX ctxt sym_tab =
+  atp_clause_from_metis #> prop_from_atp ctxt false sym_tab
 
 fun hol_terms_from_metis ctxt mode old_skolems sym_tab fol_tms =
   let val ts = map (hol_term_from_metis ctxt mode sym_tab) fol_tms

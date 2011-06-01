@@ -9,6 +9,8 @@ Translation of HOL to FOL for Sledgehammer.
 signature ATP_TRANSLATE =
 sig
   type 'a fo_term = 'a ATP_Problem.fo_term
+  type connective = ATP_Problem.connective
+  type ('a, 'b, 'c) formula = ('a, 'b, 'c) ATP_Problem.formula
   type format = ATP_Problem.format
   type formula_kind = ATP_Problem.formula_kind
   type 'a problem = 'a ATP_Problem.problem
@@ -115,6 +117,8 @@ sig
   val is_type_sys_fairly_sound : type_sys -> bool
   val choose_format : format list -> type_sys -> format * type_sys
   val raw_type_literals_for_types : typ list -> type_literal list
+  val mk_aconns :
+    connective -> ('a, 'b, 'c) formula list -> ('a, 'b, 'c) formula
   val unmangled_const_name : string -> string
   val unmangled_const : string -> string * string fo_term list
   val translate_atp_fact :

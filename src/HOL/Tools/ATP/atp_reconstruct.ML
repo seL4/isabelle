@@ -548,7 +548,7 @@ fun quantify_over_var quant_of var_s t =
 
 (* Interpret an ATP formula as a HOL term, extracting sort constraints as they
    appear in the formula. *)
-fun prop_from_atp ctxt textual sym_tab phi =
+fun raw_prop_from_atp ctxt textual sym_tab phi =
   let
     fun do_formula pos phi =
       case phi of
@@ -581,6 +581,12 @@ fun infer_formula_types ctxt =
   #> Syntax.check_term
          (Proof_Context.set_mode Proof_Context.mode_schematic ctxt)
 
+fun prop_from_atp ctxt textual sym_tab =
+  let val thy = Proof_Context.theory_of ctxt in
+    raw_prop_from_atp ctxt textual sym_tab
+    #> uncombine_term thy #> infer_formula_types ctxt
+  end
+
 (**** Translation of TSTP files to Isar proofs ****)
 
 fun unvarify_term (Var ((s, 0), T)) = Free (s, T)
@@ -589,11 +595,12 @@ fun unvarify_term (Var ((s, 0), T)) = Free (s, T)
 fun decode_line sym_tab (Definition (name, phi1, phi2)) ctxt =
     let
       val thy = Proof_Context.theory_of ctxt
-      val t1 = prop_from_atp ctxt true sym_tab phi1
+      (* FIXME: prop or term? *)
+      val t1 = raw_prop_from_atp ctxt true sym_tab phi1
       val vars = snd (strip_comb t1)
       val frees = map unvarify_term vars
       val unvarify_args = subst_atomic (vars ~~ frees)
-      val t2 = prop_from_atp ctxt true sym_tab phi2
+      val t2 = raw_prop_from_atp ctxt true sym_tab phi2
       val (t1, t2) =
         HOLogic.eq_const HOLogic.typeT $ t1 $ t2
         |> unvarify_args |> uncombine_term thy |> infer_formula_types ctxt
@@ -603,11 +610,7 @@ fun decode_line sym_tab (Definition (name, phi1, phi2)) ctxt =
        fold Variable.declare_term (maps OldTerm.term_frees [t1, t2]) ctxt)
     end
   | decode_line sym_tab (Inference (name, u, deps)) ctxt =
-    let
-      val thy = Proof_Context.theory_of ctxt
-      val t = u |> prop_from_atp ctxt true sym_tab
-                |> uncombine_term thy |> infer_formula_types ctxt
-    in
+    let val t = u |> prop_from_atp ctxt true sym_tab in
       (Inference (name, t, deps),
        fold Variable.declare_term (OldTerm.term_frees t) ctxt)
     end
