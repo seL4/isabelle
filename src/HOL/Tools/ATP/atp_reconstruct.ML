@@ -423,7 +423,7 @@ fun term_from_atp thy textual sym_tab tfrees =
   let
     (* see also "mk_var" in "Metis_Reconstruct" *)
     val var_index = if textual then 0 else 1
-    fun do_term extra_us opt_T u =
+    fun do_term extra_ts opt_T u =
       case u of
         ATerm (a, us) =>
         if String.isPrefix simple_type_prefix a then
@@ -445,12 +445,18 @@ fun term_from_atp thy textual sym_tab tfrees =
             if s' = type_tag_name then
               case mangled_us @ us of
                 [typ_u, term_u] =>
-                do_term extra_us (SOME (typ_from_atp tfrees typ_u)) term_u
+                do_term extra_ts (SOME (typ_from_atp tfrees typ_u)) term_u
               | _ => raise FO_TERM us
             else if s' = predicator_name then
               do_term [] (SOME @{typ bool}) (hd us)
             else if s' = app_op_name then
-              do_term (List.last us :: extra_us) opt_T (nth us (length us - 2))
+              let val extra_t = do_term [] NONE (List.last us) in
+                do_term (extra_t :: extra_ts)
+                        (case opt_T of
+                           SOME T => SOME (fastype_of extra_t --> T)
+                         | NONE => NONE)
+                        (nth us (length us - 2))
+              end
             else if s' = type_pred_name then
               @{const True} (* ignore type predicates *)
             else
@@ -459,24 +465,21 @@ fun term_from_atp thy textual sym_tab tfrees =
                   length us - the_default 0 (Symtab.lookup sym_tab s)
                 val (type_us, term_us) =
                   chop num_ty_args us |>> append mangled_us
-                (* Extra args from "hAPP" come after any arguments given
-                   directly to the constant. *)
                 val term_ts = map (do_term [] NONE) term_us
-                val extra_ts = map (do_term [] NONE) extra_us
                 val T =
                   if not (null type_us) andalso
                      num_type_args thy s' = length type_us then
                     (s', map (typ_from_atp tfrees) type_us)
                     |> Sign.const_instance thy
                   else case opt_T of
-                    SOME T => map fastype_of (term_ts @ extra_ts) ---> T
+                    SOME T => map fastype_of term_ts ---> T
                   | NONE => HOLogic.typeT
                 val s' = s' |> unproxify_const
               in list_comb (Const (s', T), term_ts @ extra_ts) end
           end
         | NONE => (* a free or schematic variable *)
           let
-            val ts = map (do_term [] NONE) (us @ extra_us)
+            val ts = map (do_term [] NONE) us @ extra_ts
             val T = map fastype_of ts ---> HOLogic.typeT
             val t =
               case strip_prefix_and_unascii fixed_var_prefix a of
@@ -568,7 +571,7 @@ fun prop_from_atp thy textual sym_tab tfrees phi =
       | _ => raise FORMULA [phi]
   in repair_tvar_sorts (do_formula true phi Vartab.empty) end
 
-fun check_formula ctxt =
+fun infer_formula_types ctxt =
   Type.constraint HOLogic.boolT
   #> Syntax.check_term
          (Proof_Context.set_mode Proof_Context.mode_schematic ctxt)
@@ -588,7 +591,7 @@ fun decode_line sym_tab tfrees (Definition (name, phi1, phi2)) ctxt =
       val t2 = prop_from_atp thy true sym_tab tfrees phi2
       val (t1, t2) =
         HOLogic.eq_const HOLogic.typeT $ t1 $ t2
-        |> unvarify_args |> uncombine_term thy |> check_formula ctxt
+        |> unvarify_args |> uncombine_term thy |> infer_formula_types ctxt
         |> HOLogic.dest_eq
     in
       (Definition (name, t1, t2),
@@ -598,7 +601,7 @@ fun decode_line sym_tab tfrees (Definition (name, phi1, phi2)) ctxt =
     let
       val thy = Proof_Context.theory_of ctxt
       val t = u |> prop_from_atp thy true sym_tab tfrees
-                |> uncombine_term thy |> check_formula ctxt
+                |> uncombine_term thy |> infer_formula_types ctxt
     in
       (Inference (name, t, deps),
        fold Variable.declare_term (OldTerm.term_frees t) ctxt)
