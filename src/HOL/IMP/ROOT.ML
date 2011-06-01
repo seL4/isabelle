@@ -1,7 +1,24 @@
-(*  Title:     HOL/IMP/ROOT.ML
-    Author:    Heiko Loetzbeyer, Robert Sandner, Tobias Nipkow, David von Oheimb
-
-Caveat: HOLCF/IMP depends on HOL/IMP
+use_thys
+["BExp",
+ "ASM",
+ "Small_Step",
+ "Denotation",
+ "Compiler"(*,
+ "Poly_Types",
+ "Sec_Typing",
+ "Sec_TypingT",
+ "Def_Ass_Sound_Big",
+ "Def_Ass_Sound_Small",
+ "Def_Ass2_Sound_Small",
+ "Def_Ass2_Big0",
+ "Live",
+ "Hoare_Examples",
+ "VC",
+ "HoareT",
+ "Procs_Dyn_Vars_Dyn",
+ "Procs_Stat_Vars_Dyn",
+ "Procs_Stat_Vars_Stat",
+ "C_like",
+ "OO"
 *)
-
-use_thys ["Expr", "Transition", "VC", "Hoare_Den", "Examples", "Compiler0", "Compiler", "Live"];
+];

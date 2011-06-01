@@ -1,298 +1,237 @@
-(*  Title:      HOL/IMP/Compiler.thy
-    Author:     Tobias Nipkow, TUM
-    Copyright   1996 TUM
-*)
+(* Author: Tobias Nipkow *)
 
-theory Compiler imports Machines begin
+header "A Compiler for IMP"
 
-subsection "The compiler"
+theory Compiler imports Big_Step
+begin
 
-primrec compile :: "com \<Rightarrow> instr list"
+subsection "Instructions and Stack Machine"
+
+datatype instr = 
+  LOADI int | LOAD string | ADD |
+  STORE string |
+  JMPF nat |
+  JMPB nat |
+  JMPFLESS nat |
+  JMPFGE nat
+
+type_synonym stack = "int list"
+type_synonym config = "nat\<times>state\<times>stack"
+
+abbreviation "hd2 xs == hd(tl xs)"
+abbreviation "tl2 xs == tl(tl xs)"
+
+inductive exec1 :: "instr list \<Rightarrow> config \<Rightarrow> config \<Rightarrow> bool"
+    ("(_/ \<turnstile> (_ \<rightarrow>/ _))" [50,0,0] 50)
+  for P :: "instr list"
 where
-  "compile \<SKIP> = []"
-| "compile (x:==a) = [SET x a]"
-| "compile (c1;c2) = compile c1 @ compile c2"
-| "compile (\<IF> b \<THEN> c1 \<ELSE> c2) =
-    [JMPF b (length(compile c1) + 1)] @ compile c1 @
-    [JMPF (\<lambda>x. False) (length(compile c2))] @ compile c2"
-| "compile (\<WHILE> b \<DO> c) = [JMPF b (length(compile c) + 1)] @ compile c @
-    [JMPB (length(compile c)+1)]"
+"\<lbrakk> i < size P;  P!i = LOADI n \<rbrakk> \<Longrightarrow>
+ P \<turnstile> (i,s,stk) \<rightarrow> (i+1,s, n#stk)" |
+"\<lbrakk> i < size P;  P!i = LOAD x \<rbrakk> \<Longrightarrow> 
+ P \<turnstile> (i,s,stk) \<rightarrow> (i+1,s, s x # stk)" |
+"\<lbrakk> i < size P;  P!i = ADD \<rbrakk> \<Longrightarrow> 
+ P \<turnstile> (i,s,stk) \<rightarrow> (i+1,s, (hd2 stk + hd stk) # tl2 stk)" |
+"\<lbrakk> i < size P;  P!i = STORE n \<rbrakk> \<Longrightarrow>
+ P \<turnstile> (i,s,stk) \<rightarrow> (i+1,s(n := hd stk),tl stk)" |
+"\<lbrakk> i < size P;  P!i = JMPF n \<rbrakk> \<Longrightarrow>
+ P \<turnstile> (i,s,stk) \<rightarrow> (i+1+n,s,stk)" |
+"\<lbrakk> i < size P;  P!i = JMPB n;  n \<le> i+1 \<rbrakk> \<Longrightarrow>
+ P \<turnstile> (i,s,stk) \<rightarrow> (i+1-n,s,stk)" |
+"\<lbrakk> i < size P;  P!i = JMPFLESS n \<rbrakk> \<Longrightarrow>
+ P \<turnstile> (i,s,stk) \<rightarrow> (if hd2 stk < hd stk then i+1+n else i+1,s,tl2 stk)" |
+"\<lbrakk> i < size P;  P!i = JMPFGE n \<rbrakk> \<Longrightarrow>
+ P \<turnstile> (i,s,stk) \<rightarrow> (if hd2 stk >= hd stk then i+1+n else i+1,s,tl2 stk)"
 
-subsection "Compiler correctness"
+code_pred exec1 .
 
-theorem assumes A: "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t"
-shows "\<And>p q. \<langle>compile c @ p,q,s\<rangle> -*\<rightarrow> \<langle>p,rev(compile c)@q,t\<rangle>"
-  (is "\<And>p q. ?P c s t p q")
-proof -
-  from A show "\<And>p q. ?thesis p q"
-  proof induct
-    case Skip thus ?case by simp
-  next
-    case Assign thus ?case by force
-  next
-    case Semi thus ?case by simp (blast intro:rtrancl_trans)
-  next
-    fix b c0 c1 s0 s1 p q
-    assume IH: "\<And>p q. ?P c0 s0 s1 p q"
-    assume "b s0"
-    thus "?P (\<IF> b \<THEN> c0 \<ELSE> c1) s0 s1 p q"
-      by(simp add: IH[THEN rtrancl_trans])
-  next
-    case IfFalse thus ?case by(simp)
-  next
-    case WhileFalse thus ?case by simp
-  next
-    fix b c and s0::state and s1 s2 p q
-    assume b: "b s0" and
-      IHc: "\<And>p q. ?P c s0 s1 p q" and
-      IHw: "\<And>p q. ?P (\<WHILE> b \<DO> c) s1 s2 p q"
-    show "?P (\<WHILE> b \<DO> c) s0 s2 p q"
-      using b  IHc[THEN rtrancl_trans] IHw by(simp)
-  qed
+declare exec1.intros[intro]
+
+inductive exec :: "instr list \<Rightarrow> config \<Rightarrow> config \<Rightarrow> bool" ("_/ \<turnstile> (_ \<rightarrow>*/ _)" 50)
+where
+refl: "P \<turnstile> c \<rightarrow>* c" |
+step: "P \<turnstile> c \<rightarrow> c' \<Longrightarrow> P \<turnstile> c' \<rightarrow>* c'' \<Longrightarrow> P \<turnstile> c \<rightarrow>* c''"
+
+declare exec.intros[intro]
+
+lemmas exec_induct = exec.induct[split_format(complete)]
+
+code_pred exec .
+
+values
+  "{(i,map t [''x'',''y''],stk) | i t stk.
+    [LOAD ''y'', STORE ''x''] \<turnstile>
+    (0,lookup[(''x'',3),(''y'',4)],[]) \<rightarrow>* (i,t,stk)}"
+
+
+subsection{* Verification infrastructure *}
+
+lemma exec_trans: "P \<turnstile> c \<rightarrow>* c' \<Longrightarrow> P \<turnstile> c' \<rightarrow>* c'' \<Longrightarrow> P \<turnstile> c \<rightarrow>* c''"
+apply(induct rule: exec.induct)
+ apply blast
+by (metis exec.step)
+
+lemma exec1_subst: "P \<turnstile> c \<rightarrow> c' \<Longrightarrow> c' = c'' \<Longrightarrow> P \<turnstile> c \<rightarrow> c''"
+by auto
+
+lemmas exec1_simps = exec1.intros[THEN exec1_subst]
+
+text{* Below we need to argue about the execution of code that is embedded in
+larger programs. For this purpose we show that execution is preserved by
+appending code to the left or right of a program. *}
+
+lemma exec1_appendR: assumes "P \<turnstile> c \<rightarrow> c'" shows "P@P' \<turnstile> c \<rightarrow> c'"
+proof-
+  from assms show ?thesis
+  by cases (simp_all add: exec1_simps nth_append)
+  -- "All cases proved with the final simp-all"
 qed
 
-text {* The other direction! *}
+lemma exec_appendR: "P \<turnstile> c \<rightarrow>* c' \<Longrightarrow> P@P' \<turnstile> c \<rightarrow>* c'"
+apply(induct rule: exec.induct)
+ apply blast
+by (metis exec1_appendR exec.step)
 
-inductive_cases [elim!]: "(([],p,s),(is',p',s')) : stepa1"
+lemma exec1_appendL:
+assumes "P \<turnstile> (i,s,stk) \<rightarrow> (i',s',stk')"
+shows "P' @ P \<turnstile> (size(P')+i,s,stk) \<rightarrow> (size(P')+i',s',stk')"
+proof-
+  from assms show ?thesis
+  by cases (simp_all add: exec1_simps)
+qed
 
-lemma [simp]: "(\<langle>[],q,s\<rangle> -n\<rightarrow> \<langle>p',q',t\<rangle>) = (n=0 \<and> p' = [] \<and> q' = q \<and> t = s)"
-apply(rule iffI)
- apply(erule rel_pow_E2, simp, fast)
+lemma exec_appendL:
+ "P \<turnstile> (i,s,stk) \<rightarrow>* (i',s',stk')  \<Longrightarrow>
+  P' @ P \<turnstile> (size(P')+i,s,stk) \<rightarrow>* (size(P')+i',s',stk')"
+apply(induct rule: exec_induct)
+ apply blast
+by (blast intro: exec1_appendL exec.step)
+
+text{* Now we specialise the above lemmas to enable automatic proofs of
+@{prop "P \<turnstile> c \<rightarrow>* c'"} where @{text P} is a mixture of concrete instructions and
+pieces of code that we already know how they execute (by induction), combined
+by @{text "@"} and @{text "#"}. Backward jumps are not supported.
+The details should be skipped on a first reading.
+
+If the pc points beyond the first instruction or part of the program, drop it: *}
+
+lemma exec_Cons_Suc[intro]:
+  "P \<turnstile> (i,s,stk) \<rightarrow>* (j,t,stk') \<Longrightarrow>
+  instr#P \<turnstile> (Suc i,s,stk) \<rightarrow>* (Suc j,t,stk')"
+apply(drule exec_appendL[where P'="[instr]"])
 apply simp
 done
 
-lemma [simp]: "(\<langle>[],q,s\<rangle> -*\<rightarrow> \<langle>p',q',t\<rangle>) = (p' = [] \<and> q' = q \<and> t = s)"
-by(simp add: rtrancl_is_UN_rel_pow)
-
-definition
-  forws :: "instr \<Rightarrow> nat set" where
-  "forws instr = (case instr of
-     SET x a \<Rightarrow> {0} |
-     JMPF b n \<Rightarrow> {0,n} |
-     JMPB n \<Rightarrow> {})"
-
-definition
-  backws :: "instr \<Rightarrow> nat set" where
-  "backws instr = (case instr of
-     SET x a \<Rightarrow> {} |
-     JMPF b n \<Rightarrow> {} |
-     JMPB n \<Rightarrow> {n})"
-
-primrec closed :: "nat \<Rightarrow> nat \<Rightarrow> instr list \<Rightarrow> bool"
-where
-  "closed m n [] = True"
-| "closed m n (instr#is) = ((\<forall>j \<in> forws instr. j \<le> size is+n) \<and>
-                          (\<forall>j \<in> backws instr. j \<le> m) \<and> closed (Suc m) n is)"
-
-lemma [simp]:
- "\<And>m n. closed m n (C1@C2) =
-         (closed m (n+size C2) C1 \<and> closed (m+size C1) n C2)"
-by(induct C1) (simp, simp add:add_ac)
-
-theorem [simp]: "\<And>m n. closed m n (compile c)"
-by(induct c) (simp_all add:backws_def forws_def)
-
-lemma drop_lem: "n \<le> size(p1@p2)
- \<Longrightarrow> (p1' @ p2 = drop n p1 @ drop (n - size p1) p2) =
-    (n \<le> size p1 & p1' = drop n p1)"
-apply(rule iffI)
- defer apply simp
-apply(subgoal_tac "n \<le> size p1")
- apply simp
-apply(rule ccontr)
-apply(drule_tac f = length in arg_cong)
+lemma exec_appendL_if[intro]:
+ "size P' <= i
+  \<Longrightarrow> P \<turnstile> (i - size P',s,stk) \<rightarrow>* (i',s',stk')
+  \<Longrightarrow> P' @ P \<turnstile> (i,s,stk) \<rightarrow>* (size P' + i',s',stk')"
+apply(drule exec_appendL[where P'=P'])
 apply simp
 done
 
-lemma reduce_exec1:
- "\<langle>i # p1 @ p2,q1 @ q2,s\<rangle> -1\<rightarrow> \<langle>p1' @ p2,q1' @ q2,s'\<rangle> \<Longrightarrow>
-  \<langle>i # p1,q1,s\<rangle> -1\<rightarrow> \<langle>p1',q1',s'\<rangle>"
-by(clarsimp simp add: drop_lem split:instr.split_asm split_if_asm)
+text{* Split the execution of a compound program up into the excution of its
+parts: *}
+
+lemma exec_append_trans[intro]:
+"P \<turnstile> (0,s,stk) \<rightarrow>* (i',s',stk') \<Longrightarrow>
+ size P \<le> i' \<Longrightarrow>
+ P' \<turnstile>  (i' - size P,s',stk') \<rightarrow>* (i'',s'',stk'') \<Longrightarrow>
+ j'' = size P + i''
+ \<Longrightarrow>
+ P @ P' \<turnstile> (0,s,stk) \<rightarrow>* (j'',s'',stk'')"
+by(metis exec_trans[OF  exec_appendR exec_appendL_if])
 
 
-lemma closed_exec1:
- "\<lbrakk> closed 0 0 (rev q1 @ instr # p1);
-    \<langle>instr # p1 @ p2, q1 @ q2,r\<rangle> -1\<rightarrow> \<langle>p',q',r'\<rangle> \<rbrakk> \<Longrightarrow>
-  \<exists>p1' q1'. p' = p1'@p2 \<and> q' = q1'@q2 \<and> rev q1' @ p1' = rev q1 @ instr # p1"
-apply(clarsimp simp add:forws_def backws_def
-               split:instr.split_asm split_if_asm)
+declare Let_def[simp] eval_nat_numeral[simp]
+
+
+subsection "Compilation"
+
+fun acomp :: "aexp \<Rightarrow> instr list" where
+"acomp (N n) = [LOADI n]" |
+"acomp (V x) = [LOAD x]" |
+"acomp (Plus a1 a2) = acomp a1 @ acomp a2 @ [ADD]"
+
+lemma acomp_correct[intro]:
+  "acomp a \<turnstile> (0,s,stk) \<rightarrow>* (size(acomp a),s,aval a s#stk)"
+apply(induct a arbitrary: stk)
+apply(fastsimp)+
 done
 
-theorem closed_execn_decomp: "\<And>C1 C2 r.
- \<lbrakk> closed 0 0 (rev C1 @ C2);
-   \<langle>C2 @ p1 @ p2, C1 @ q,r\<rangle> -n\<rightarrow> \<langle>p2,rev p1 @ rev C2 @ C1 @ q,t\<rangle> \<rbrakk>
- \<Longrightarrow> \<exists>s n1 n2. \<langle>C2,C1,r\<rangle> -n1\<rightarrow> \<langle>[],rev C2 @ C1,s\<rangle> \<and>
-     \<langle>p1@p2,rev C2 @ C1 @ q,s\<rangle> -n2\<rightarrow> \<langle>p2, rev p1 @ rev C2 @ C1 @ q,t\<rangle> \<and>
-         n = n1+n2"
-(is "\<And>C1 C2 r. \<lbrakk>?CL C1 C2; ?H C1 C2 r n\<rbrakk> \<Longrightarrow> ?P C1 C2 r n")
-proof(induct n)
-  fix C1 C2 r
-  assume "?H C1 C2 r 0"
-  thus "?P C1 C2 r 0" by simp
+fun bcomp :: "bexp \<Rightarrow> bool \<Rightarrow> nat \<Rightarrow> instr list" where
+"bcomp (B bv) c n = (if bv=c then [JMPF n] else [])" |
+"bcomp (Not b) c n = bcomp b (\<not>c) n" |
+"bcomp (And b1 b2) c n =
+ (let cb2 = bcomp b2 c n;
+      m = (if c then size cb2 else size cb2+n);
+      cb1 = bcomp b1 False m
+  in cb1 @ cb2)" |
+"bcomp (Less a1 a2) c n =
+ acomp a1 @ acomp a2 @ (if c then [JMPFLESS n] else [JMPFGE n])"
+
+value
+  "bcomp (And (Less (V ''x'') (V ''y'')) (Not(Less (V ''u'') (V ''v''))))
+     False 3"
+
+lemma bcomp_correct[intro]:
+ "bcomp b c n \<turnstile>
+ (0,s,stk)  \<rightarrow>*  (size(bcomp b c n) + (if c = bval b s then n else 0),s,stk)"
+proof(induct b arbitrary: c n m)
+  case Not
+  from Not[of "~c"] show ?case by fastsimp
 next
-  fix C1 C2 r n
-  assume IH: "\<And>C1 C2 r. ?CL C1 C2 \<Longrightarrow> ?H C1 C2 r n \<Longrightarrow> ?P C1 C2 r n"
-  assume CL: "?CL C1 C2" and H: "?H C1 C2 r (Suc n)"
-  show "?P C1 C2 r (Suc n)"
-  proof (cases C2)
-    assume "C2 = []" with H show ?thesis by simp
-  next
-    fix instr tlC2
-    assume C2: "C2 = instr # tlC2"
-    from H C2 obtain p' q' r'
-      where 1: "\<langle>instr # tlC2 @ p1 @ p2, C1 @ q,r\<rangle> -1\<rightarrow> \<langle>p',q',r'\<rangle>"
-      and n: "\<langle>p',q',r'\<rangle> -n\<rightarrow> \<langle>p2,rev p1 @ rev C2 @ C1 @ q,t\<rangle>"
-      by(fastsimp simp add:rel_pow_commute)
-    from CL closed_exec1[OF _ 1] C2
-    obtain C2' C1' where pq': "p' = C2' @ p1 @ p2 \<and> q' = C1' @ q"
-      and same: "rev C1' @ C2' = rev C1 @ C2"
-      by fastsimp
-    have rev_same: "rev C2' @ C1' = rev C2 @ C1"
-    proof -
-      have "rev C2' @ C1' = rev(rev C1' @ C2')" by simp
-      also have "\<dots> = rev(rev C1 @ C2)" by(simp only:same)
-      also have "\<dots> =  rev C2 @ C1" by simp
-      finally show ?thesis .
-    qed
-    hence rev_same': "\<And>p. rev C2' @ C1' @ p = rev C2 @ C1 @ p" by simp
-    from n have n': "\<langle>C2' @ p1 @ p2,C1' @ q,r'\<rangle> -n\<rightarrow>
-                     \<langle>p2,rev p1 @ rev C2' @ C1' @ q,t\<rangle>"
-      by(simp add:pq' rev_same')
-    from IH[OF _ n'] CL
-    obtain s n1 n2 where n1: "\<langle>C2',C1',r'\<rangle> -n1\<rightarrow> \<langle>[],rev C2 @ C1,s\<rangle>" and
-      "\<langle>p1 @ p2,rev C2 @ C1 @ q,s\<rangle> -n2\<rightarrow> \<langle>p2,rev p1 @ rev C2 @ C1 @ q,t\<rangle> \<and>
-       n = n1 + n2"
-      by(fastsimp simp add: same rev_same rev_same')
-    moreover
-    from 1 n1 pq' C2 have "\<langle>C2,C1,r\<rangle> -Suc n1\<rightarrow> \<langle>[],rev C2 @ C1,s\<rangle>"
-      by (simp del:relpow.simps exec_simp) (fast dest:reduce_exec1)
-    ultimately show ?thesis by (fastsimp simp del:relpow.simps)
-  qed
-qed
-
-lemma execn_decomp:
-"\<langle>compile c @ p1 @ p2,q,r\<rangle> -n\<rightarrow> \<langle>p2,rev p1 @ rev(compile c) @ q,t\<rangle>
- \<Longrightarrow> \<exists>s n1 n2. \<langle>compile c,[],r\<rangle> -n1\<rightarrow> \<langle>[],rev(compile c),s\<rangle> \<and>
-     \<langle>p1@p2,rev(compile c) @ q,s\<rangle> -n2\<rightarrow> \<langle>p2, rev p1 @ rev(compile c) @ q,t\<rangle> \<and>
-         n = n1+n2"
-using closed_execn_decomp[of "[]",simplified] by simp
-
-lemma exec_star_decomp:
-"\<langle>compile c @ p1 @ p2,q,r\<rangle> -*\<rightarrow> \<langle>p2,rev p1 @ rev(compile c) @ q,t\<rangle>
- \<Longrightarrow> \<exists>s. \<langle>compile c,[],r\<rangle> -*\<rightarrow> \<langle>[],rev(compile c),s\<rangle> \<and>
-     \<langle>p1@p2,rev(compile c) @ q,s\<rangle> -*\<rightarrow> \<langle>p2, rev p1 @ rev(compile c) @ q,t\<rangle>"
-by(simp add:rtrancl_is_UN_rel_pow)(fast dest: execn_decomp)
+  case (And b1 b2)
+  from And(1)[of "False"] And(2)[of "c"] show ?case by fastsimp
+qed fastsimp+
 
 
-(* Alternative:
-lemma exec_comp_n:
-"\<And>p1 p2 q r t n.
- \<langle>compile c @ p1 @ p2,q,r\<rangle> -n\<rightarrow> \<langle>p2,rev p1 @ rev(compile c) @ q,t\<rangle>
- \<Longrightarrow> \<exists>s n1 n2. \<langle>compile c,[],r\<rangle> -n1\<rightarrow> \<langle>[],rev(compile c),s\<rangle> \<and>
-     \<langle>p1@p2,rev(compile c) @ q,s\<rangle> -n2\<rightarrow> \<langle>p2, rev p1 @ rev(compile c) @ q,t\<rangle> \<and>
-         n = n1+n2"
- (is "\<And>p1 p2 q r t n. ?H c p1 p2 q r t n \<Longrightarrow> ?P c p1 p2 q r t n")
-proof (induct c)
-*)
+fun ccomp :: "com \<Rightarrow> instr list" where
+"ccomp SKIP = []" |
+"ccomp (x ::= a) = acomp a @ [STORE x]" |
+"ccomp (c\<^isub>1;c\<^isub>2) = ccomp c\<^isub>1 @ ccomp c\<^isub>2" |
+"ccomp (IF b THEN c\<^isub>1 ELSE c\<^isub>2) =
+  (let cc\<^isub>1 = ccomp c\<^isub>1; cc\<^isub>2 = ccomp c\<^isub>2; cb = bcomp b False (size cc\<^isub>1 + 1)
+   in cb @ cc\<^isub>1 @ JMPF(size cc\<^isub>2) # cc\<^isub>2)" |
+"ccomp (WHILE b DO c) =
+ (let cc = ccomp c; cb = bcomp b False (size cc + 1)
+  in cb @ cc @ [JMPB (size cb + size cc + 1)])"
 
-text{*Warning: 
-@{prop"\<langle>compile c @ p,q,s\<rangle> -*\<rightarrow> \<langle>p,rev(compile c)@q,t\<rangle> \<Longrightarrow> \<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t"}
-is not true! *}
+value "ccomp
+ (IF Less (V ''u'') (N 1) THEN ''u'' ::= Plus (V ''u'') (N 1)
+  ELSE ''v'' ::= V ''u'')"
 
-theorem "\<And>s t.
- \<langle>compile c,[],s\<rangle> -*\<rightarrow> \<langle>[],rev(compile c),t\<rangle> \<Longrightarrow> \<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t"
-proof (induct c)
-  fix s t
-  assume "\<langle>compile SKIP,[],s\<rangle> -*\<rightarrow> \<langle>[],rev(compile SKIP),t\<rangle>"
-  thus "\<langle>SKIP,s\<rangle> \<longrightarrow>\<^sub>c t" by simp
+value "ccomp (WHILE Less (V ''u'') (N 1) DO (''u'' ::= Plus (V ''u'') (N 1)))"
+
+
+subsection "Preservation of sematics"
+
+lemma ccomp_correct:
+  "(c,s) \<Rightarrow> t \<Longrightarrow> ccomp c \<turnstile> (0,s,stk) \<rightarrow>* (size(ccomp c),t,stk)"
+proof(induct arbitrary: stk rule: big_step_induct)
+  case (Assign x a s)
+  show ?case by (fastsimp simp:fun_upd_def)
 next
-  fix s t v f
-  assume "\<langle>compile(v :== f),[],s\<rangle> -*\<rightarrow> \<langle>[],rev(compile(v :== f)),t\<rangle>"
-  thus "\<langle>v :== f,s\<rangle> \<longrightarrow>\<^sub>c t" by simp
+  case (Semi c1 s1 s2 c2 s3)
+  let ?cc1 = "ccomp c1"  let ?cc2 = "ccomp c2"
+  have "?cc1 @ ?cc2 \<turnstile> (0,s1,stk) \<rightarrow>* (size ?cc1,s2,stk)"
+    using Semi.hyps(2) by (fastsimp)
+  moreover
+  have "?cc1 @ ?cc2 \<turnstile> (size ?cc1,s2,stk) \<rightarrow>* (size(?cc1 @ ?cc2),s3,stk)"
+    using Semi.hyps(4) by (fastsimp)
+  ultimately show ?case by simp (blast intro: exec_trans)
 next
-  fix s1 s3 c1 c2
-  let ?C1 = "compile c1" let ?C2 = "compile c2"
-  assume IH1: "\<And>s t. \<langle>?C1,[],s\<rangle> -*\<rightarrow> \<langle>[],rev ?C1,t\<rangle> \<Longrightarrow> \<langle>c1,s\<rangle> \<longrightarrow>\<^sub>c t"
-     and IH2: "\<And>s t. \<langle>?C2,[],s\<rangle> -*\<rightarrow> \<langle>[],rev ?C2,t\<rangle> \<Longrightarrow> \<langle>c2,s\<rangle> \<longrightarrow>\<^sub>c t"
-  assume "\<langle>compile(c1;c2),[],s1\<rangle> -*\<rightarrow> \<langle>[],rev(compile(c1;c2)),s3\<rangle>"
-  then obtain s2 where exec1: "\<langle>?C1,[],s1\<rangle> -*\<rightarrow> \<langle>[],rev ?C1,s2\<rangle>" and
-             exec2: "\<langle>?C2,rev ?C1,s2\<rangle> -*\<rightarrow> \<langle>[],rev(compile(c1;c2)),s3\<rangle>"
-    by(fastsimp dest:exec_star_decomp[of _ _ "[]" "[]",simplified])
-  from exec2 have exec2': "\<langle>?C2,[],s2\<rangle> -*\<rightarrow> \<langle>[],rev ?C2,s3\<rangle>"
-    using exec_star_decomp[of _ "[]" "[]"] by fastsimp
-  have "\<langle>c1,s1\<rangle> \<longrightarrow>\<^sub>c s2" using IH1 exec1 by simp
-  moreover have "\<langle>c2,s2\<rangle> \<longrightarrow>\<^sub>c s3" using IH2 exec2' by fastsimp
-  ultimately show "\<langle>c1;c2,s1\<rangle> \<longrightarrow>\<^sub>c s3" ..
-next
-  fix s t b c1 c2
-  let ?if = "IF b THEN c1 ELSE c2" let ?C = "compile ?if"
-  let ?C1 = "compile c1" let ?C2 = "compile c2"
-  assume IH1: "\<And>s t. \<langle>?C1,[],s\<rangle> -*\<rightarrow> \<langle>[],rev ?C1,t\<rangle> \<Longrightarrow> \<langle>c1,s\<rangle> \<longrightarrow>\<^sub>c t"
-     and IH2: "\<And>s t. \<langle>?C2,[],s\<rangle> -*\<rightarrow> \<langle>[],rev ?C2,t\<rangle> \<Longrightarrow> \<langle>c2,s\<rangle> \<longrightarrow>\<^sub>c t"
-     and H: "\<langle>?C,[],s\<rangle> -*\<rightarrow> \<langle>[],rev ?C,t\<rangle>"
-  show "\<langle>?if,s\<rangle> \<longrightarrow>\<^sub>c t"
-  proof cases
-    assume b: "b s"
-    with H have "\<langle>?C1,[],s\<rangle> -*\<rightarrow> \<langle>[],rev ?C1,t\<rangle>"
-      by (fastsimp dest:exec_star_decomp
-            [of _ "[JMPF (\<lambda>x. False) (size ?C2)]@?C2" "[]",simplified])
-    hence "\<langle>c1,s\<rangle> \<longrightarrow>\<^sub>c t" by(rule IH1)
-    with b show ?thesis ..
-  next
-    assume b: "\<not> b s"
-    with H have "\<langle>?C2,[],s\<rangle> -*\<rightarrow> \<langle>[],rev ?C2,t\<rangle>"
-      using exec_star_decomp[of _ "[]" "[]"] by simp
-    hence "\<langle>c2,s\<rangle> \<longrightarrow>\<^sub>c t" by(rule IH2)
-    with b show ?thesis ..
-  qed
-next
-  fix b c s t
-  let ?w = "WHILE b DO c" let ?W = "compile ?w" let ?C = "compile c"
-  let ?j1 = "JMPF b (size ?C + 1)" let ?j2 = "JMPB (size ?C + 1)"
-  assume IHc: "\<And>s t. \<langle>?C,[],s\<rangle> -*\<rightarrow> \<langle>[],rev ?C,t\<rangle> \<Longrightarrow> \<langle>c,s\<rangle> \<longrightarrow>\<^sub>c t"
-     and H: "\<langle>?W,[],s\<rangle> -*\<rightarrow> \<langle>[],rev ?W,t\<rangle>"
-  from H obtain k where ob:"\<langle>?W,[],s\<rangle> -k\<rightarrow> \<langle>[],rev ?W,t\<rangle>"
-    by(simp add:rtrancl_is_UN_rel_pow) blast
-  { fix n have "\<And>s. \<langle>?W,[],s\<rangle> -n\<rightarrow> \<langle>[],rev ?W,t\<rangle> \<Longrightarrow> \<langle>?w,s\<rangle> \<longrightarrow>\<^sub>c t"
-    proof (induct n rule: less_induct)
-      fix n
-      assume IHm: "\<And>m s. \<lbrakk>m < n; \<langle>?W,[],s\<rangle> -m\<rightarrow> \<langle>[],rev ?W,t\<rangle> \<rbrakk> \<Longrightarrow> \<langle>?w,s\<rangle> \<longrightarrow>\<^sub>c t"
-      fix s
-      assume H: "\<langle>?W,[],s\<rangle> -n\<rightarrow> \<langle>[],rev ?W,t\<rangle>"
-      show "\<langle>?w,s\<rangle> \<longrightarrow>\<^sub>c t"
-      proof cases
-        assume b: "b s"
-        then obtain m where m: "n = Suc m"
-          and "\<langle>?C @ [?j2],[?j1],s\<rangle> -m\<rightarrow> \<langle>[],rev ?W,t\<rangle>"
-          using H by fastsimp
-        then obtain r n1 n2 where n1: "\<langle>?C,[],s\<rangle> -n1\<rightarrow> \<langle>[],rev ?C,r\<rangle>"
-          and n2: "\<langle>[?j2],rev ?C @ [?j1],r\<rangle> -n2\<rightarrow> \<langle>[],rev ?W,t\<rangle>"
-          and n12: "m = n1+n2"
-          using execn_decomp[of _ "[?j2]"]
-          by(simp del: execn_simp) fast
-        have n2n: "n2 - 1 < n" using m n12 by arith
-        note b
-        moreover
-        { from n1 have "\<langle>?C,[],s\<rangle> -*\<rightarrow> \<langle>[],rev ?C,r\<rangle>"
-            by (simp add:rtrancl_is_UN_rel_pow) fast
-          hence "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c r" by(rule IHc)
-        }
-        moreover
-        { have "n2 - 1 < n" using m n12 by arith
-          moreover from n2 have "\<langle>?W,[],r\<rangle> -n2- 1\<rightarrow> \<langle>[],rev ?W,t\<rangle>" by fastsimp
-          ultimately have "\<langle>?w,r\<rangle> \<longrightarrow>\<^sub>c t" by(rule IHm)
-        }
-        ultimately show ?thesis ..
-      next
-        assume b: "\<not> b s"
-        hence "t = s" using H by simp
-        with b show ?thesis by simp
-      qed
-    qed
-  }
-  with ob show "\<langle>?w,s\<rangle> \<longrightarrow>\<^sub>c t" by fast
-qed
-
-(* TODO: connect with Machine 0 using M_equiv *)
+  case (WhileTrue b s1 c s2 s3)
+  let ?cc = "ccomp c"
+  let ?cb = "bcomp b False (size ?cc + 1)"
+  let ?cw = "ccomp(WHILE b DO c)"
+  have "?cw \<turnstile> (0,s1,stk) \<rightarrow>* (size ?cb + size ?cc,s2,stk)"
+    using WhileTrue(1,3) by fastsimp
+  moreover
+  have "?cw \<turnstile> (size ?cb + size ?cc,s2,stk) \<rightarrow>* (0,s2,stk)"
+    by (fastsimp)
+  moreover
+  have "?cw \<turnstile> (0,s2,stk) \<rightarrow>* (size ?cw,s3,stk)" by(rule WhileTrue(5))
+  ultimately show ?case by(blast intro: exec_trans)
+qed fastsimp+
 
 end
