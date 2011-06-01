@@ -48,8 +48,10 @@ val new_skolemizer =
 
 fun is_false t = t aconv (HOLogic.mk_Trueprop HOLogic.false_const);
 
+(* Designed to work also with monomorphic instances of polymorphic theorems. *)
 fun have_common_thm ths1 ths2 =
-  exists (member Thm.eq_thm ths1) (map Meson.make_meta_clause ths2)
+  exists (member (untyped_aconv o pairself prop_of) ths1)
+         (map Meson.make_meta_clause ths2)
 
 (*Determining which axiom clauses are actually used*)
 fun used_axioms axioms (th, Metis_Proof.Axiom _) = SOME (lookth axioms th)
@@ -137,18 +139,24 @@ fun FOL_SOLVE type_sys (mode :: fallback_modes) ctxt cls ths0 =
                 val result =
                   fold (replay_one_inference ctxt' mode old_skolems sym_tab)
                        proof axioms
-                and used = map_filter (used_axioms axioms) proof
+                val used = map_filter (used_axioms axioms) proof
                 val _ = trace_msg ctxt (fn () => "METIS COMPLETED...clauses actually used:")
                 val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) used
-                val unused = th_cls_pairs |> map_filter (fn (name, (_, cls)) =>
-                  if have_common_thm used cls then NONE else SOME name)
+                val names = th_cls_pairs |> map fst
+                val used_names =
+                  th_cls_pairs
+                  |> map_filter (fn (name, (_, cls)) =>
+                                    if have_common_thm used cls then SOME name
+                                    else NONE)
+                val unused_names = names |> subtract (op =) used_names
             in
                 if not (null cls) andalso not (have_common_thm used cls) then
                   verbose_warning ctxt "The assumptions are inconsistent"
                 else
                   ();
-                if not (null unused) then
-                  verbose_warning ctxt ("Unused theorems: " ^ commas_quote unused)
+                if not (null unused_names) then
+                  "Unused theorems: " ^ commas_quote unused_names
+                  |> verbose_warning ctxt
                 else
                   ();
                 case result of

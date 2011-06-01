@@ -20,7 +20,7 @@ sig
   val hol_term_from_metis :
     mode -> int Symtab.table -> Proof.context -> Metis_Term.term -> term
   val lookth : (Metis_Thm.thm * 'a) list -> Metis_Thm.thm -> 'a
-  val untyped_aconv : term -> term -> bool
+  val untyped_aconv : term * term -> bool
   val replay_one_inference :
     Proof.context -> mode -> (string * term) list -> int Symtab.table
     -> Metis_Thm.thm * Metis_Proof.inference -> (Metis_Thm.thm * thm) list
@@ -379,22 +379,22 @@ fun simp_not_not (@{const Not} $ t) = s_not (simp_not_not t)
   | simp_not_not t = t
 
 (* Match untyped terms. *)
-fun untyped_aconv (Const (a, _)) (Const(b, _)) = (a = b)
-  | untyped_aconv (Free (a, _)) (Free (b, _)) = (a = b)
-  | untyped_aconv (Var ((a, _), _)) (Var ((b, _), _)) =
-    (a = b) (* The index is ignored, for some reason. *)
-  | untyped_aconv (Bound i) (Bound j) = (i = j)
-  | untyped_aconv (Abs (_, _, t)) (Abs (_, _, u)) = untyped_aconv t u
-  | untyped_aconv (t1 $ t2) (u1 $ u2) =
-    untyped_aconv t1 u1 andalso untyped_aconv t2 u2
-  | untyped_aconv _ _ = false
+fun untyped_aconv (Const (a, _), Const(b, _)) = (a = b)
+  | untyped_aconv (Free (a, _), Free (b, _)) = (a = b)
+  | untyped_aconv (Var ((a, _), _), Var ((b, _), _)) = (a = b)
+  | untyped_aconv (Bound i, Bound j) = (i = j)
+  | untyped_aconv (Abs (_, _, t), Abs (_, _, u)) = untyped_aconv (t, u)
+  | untyped_aconv (t1 $ t2, u1 $ u2) =
+    untyped_aconv (t1, u1) andalso untyped_aconv (t2, u2)
+  | untyped_aconv _ = false
 
 (* Finding the relative location of an untyped term within a list of terms *)
 fun index_of_literal lit haystack =
   let
     val normalize = simp_not_not o Envir.eta_contract
     val match_lit =
-      HOLogic.dest_Trueprop #> normalize #> untyped_aconv (lit |> normalize)
+      HOLogic.dest_Trueprop #> normalize
+      #> curry untyped_aconv (lit |> normalize)
   in case find_index match_lit haystack of ~1 => raise Empty | n => n + 1 end
 
 (* Permute a rule's premises to move the i-th premise to the last position. *)
@@ -644,7 +644,7 @@ fun resynchronize ctxt fol_th th =
     else
       let
         val (prems0, concl) = th |> prop_of |> Logic.strip_horn
-        val prems = prems0 |> distinct (uncurry untyped_aconv)
+        val prems = prems0 |> distinct untyped_aconv
         val goal = Logic.list_implies (prems, concl)
       in
         if length prems = length prems0 then
@@ -692,7 +692,7 @@ fun unify_first_prem_with_concl thy i th =
     val prem = goal |> Logic.strip_assums_hyp |> hd
     val concl = goal |> Logic.strip_assums_concl
     fun pair_untyped_aconv (t1, t2) (u1, u2) =
-      untyped_aconv t1 u1 andalso untyped_aconv t2 u2
+      untyped_aconv (t1, u1) andalso untyped_aconv (t2, u2)
     fun add_terms tp inst =
       if exists (pair_untyped_aconv tp) inst then inst
       else tp :: map (apsnd (subst_atomic [tp])) inst
