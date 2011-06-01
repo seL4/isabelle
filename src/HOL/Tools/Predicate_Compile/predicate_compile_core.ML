@@ -1896,13 +1896,15 @@ fun eval ctxt stats param_user_modes (options as (compilation, arguments)) k t_c
      handle TimeLimit.TimeOut => error "Reached timeout during execution of values"
   in ((T, ts), statistics) end;
 
-fun values ctxt param_user_modes ((raw_expected, stats), comp_options) k t_compr =
+fun values param_user_modes ((raw_expected, stats), comp_options) k t_compr ctxt =
   let
     val ((T, ts), statistics) = eval ctxt stats param_user_modes comp_options k t_compr
     val setT = HOLogic.mk_setT T
     val elems = HOLogic.mk_set T ts
-    val cont = Free ("dots", setT)  (* FIXME proper name!? *)
+    val ([dots], ctxt') =
+      Proof_Context.add_fixes [(Binding.name "dots", SOME setT, Mixfix ("...", [], 1000))] ctxt 
     (* check expected values *)
+    val union = Const (@{const_abbrev Set.union}, setT --> setT --> setT)
     val () =
       case raw_expected of
         NONE => ()
@@ -1913,17 +1915,16 @@ fun values ctxt param_user_modes ((raw_expected, stats), comp_options) k t_compr
             "expected values: " ^ Syntax.string_of_term ctxt (Syntax.read_term ctxt s) ^ "\n" ^
             "computed values: " ^ Syntax.string_of_term ctxt elems ^ "\n")
   in
-    (if k = ~1 orelse length ts < k then elems
-    else Const (@{const_abbrev Set.union}, setT --> setT --> setT) $ elems $ cont, statistics)
+    ((if k = ~1 orelse length ts < k then elems else union $ elems $ Free (dots, setT), statistics), ctxt')
   end;
 
 fun values_cmd print_modes param_user_modes options k raw_t state =
   let
     val ctxt = Toplevel.context_of state
     val t = Syntax.read_term ctxt raw_t
-    val (t', stats) = values ctxt param_user_modes options k t
+    val ((t', stats), ctxt') = values param_user_modes options k t ctxt
     val ty' = Term.type_of t'
-    val ctxt' = Variable.auto_fixes t' ctxt
+    val ctxt'' = Variable.auto_fixes t' ctxt'
     val pretty_stat =
       case stats of
           NONE => []
@@ -1940,8 +1941,8 @@ fun values_cmd print_modes param_user_modes options k raw_t state =
              @ maps pretty_entry xs
           end
     val p = Print_Mode.with_modes print_modes (fn () =>
-      Pretty.block ([Pretty.quote (Syntax.pretty_term ctxt' t'), Pretty.fbrk,
-        Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' ty')]
+      Pretty.block ([Pretty.quote (Syntax.pretty_term ctxt'' t'), Pretty.fbrk,
+        Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt'' ty')]
         @ pretty_stat)) ();
   in Pretty.writeln p end;
 
