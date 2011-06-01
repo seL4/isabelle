@@ -330,29 +330,44 @@ fun negate_conjecture_line (Formula (ident, Conjecture, phi, source, info)) =
 
 exception CLAUSIFY of unit
 
-fun clausify_formula pos (phi as AAtom _) = phi |> not pos ? mk_anot
-  | clausify_formula pos (AConn (ANot, [phi])) = clausify_formula (not pos) phi
-  | clausify_formula false (AConn (AAnd, phis)) =
-    AConn (AOr, map (clausify_formula false) phis)
-  | clausify_formula true (AConn (AOr, phis)) =
-    AConn (AOr, map (clausify_formula true) phis)
-  | clausify_formula true (AConn (AImplies, [phi1, phi2])) =
-    AConn (AOr, [clausify_formula false phi1, clausify_formula true phi2])
-  | clausify_formula true (AConn (AIf, phis)) =
-    clausify_formula true (AConn (AImplies, rev phis))
-  | clausify_formula _ _ = raise CLAUSIFY ()
+(* This "clausification" only expands syntactic sugar, such as "phi => psi" to
+   "~ phi | psi" and "phi <=> psi" to "~ phi | psi" and "~ psi | phi". We don't
+   attempt to distribute conjunctions over disjunctions. *)
+fun clausify_formula1 pos (phi as AAtom _) = phi |> not pos ? mk_anot
+  | clausify_formula1 pos (AConn (ANot, [phi])) = clausify_formula1 (not pos) phi
+  | clausify_formula1 false (AConn (AAnd, phis)) =
+    AConn (AOr, map (clausify_formula1 false) phis)
+  | clausify_formula1 true (AConn (AOr, phis)) =
+    AConn (AOr, map (clausify_formula1 true) phis)
+  | clausify_formula1 true (AConn (AImplies, [phi1, phi2])) =
+    AConn (AOr, [clausify_formula1 false phi1, clausify_formula1 true phi2])
+  | clausify_formula1 true (AConn (AIf, phis)) =
+    clausify_formula1 true (AConn (AImplies, rev phis))
+  | clausify_formula1 _ _ = raise CLAUSIFY ()
+fun clausify_formula true (AConn (AIff, phis)) =
+    [clausify_formula1 true (AConn (AIf, phis)),
+     clausify_formula1 true (AConn (AImplies, phis))]
+  | clausify_formula false (AConn (ANotIff, phis)) =
+    clausify_formula true (AConn (AIff, phis))
+  | clausify_formula pos phi = [clausify_formula1 pos phi]
 
 fun clausify_formula_line (Formula (ident, kind, phi, source, info)) =
-    (case try (clausify_formula true) phi of
-       SOME phi => SOME (Formula (ident, kind, phi, source, info))
-     | NONE => NONE)
-  | clausify_formula_line _ = NONE
+    let
+      val (n, phis) = phi |> try (clausify_formula true) |> these |> `length
+    in
+      map2 (fn phi => fn j =>
+               Formula (ident ^
+                        (if n > 1 then "_cls" ^ string_of_int j else ""),
+                        kind, phi, source, info))
+           phis (1 upto n)
+    end
+  | clausify_formula_line _ = []
 
 fun ensure_cnf_problem_line line =
   line |> open_formula_line |> negate_conjecture_line |> clausify_formula_line
 
 fun ensure_cnf_problem problem =
-  problem |> map (apsnd (map_filter ensure_cnf_problem_line))
+  problem |> map (apsnd (maps ensure_cnf_problem_line))
 
 fun filter_cnf_ueq_problem problem =
   problem
