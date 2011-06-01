@@ -480,6 +480,368 @@ Alternative version with explicit parentheses everywhere:%
 \endisadelimproof
 \isanewline
 \isacommand{end}\isamarkupfalse%
+%
+\isamarkupsection{Calculational reasoning%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+For example, see \verb|~~/src/HOL/Isar_Examples/Group.thy|.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Special names in Isar proofs%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{itemize}
+
+  \item term \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}thesis{\isaliteral{22}{\isachardoublequote}}} --- the main conclusion of the
+  innermost pending claim
+
+  \item term \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}} --- the argument of the last explicitly
+    stated result (for infix application this is the right-hand side)
+
+  \item fact \isa{{\isaliteral{22}{\isachardoublequote}}this{\isaliteral{22}{\isachardoublequote}}} --- the last result produced in the text
+
+  \end{itemize}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{notepad}\isamarkupfalse%
+\isanewline
+\isakeyword{begin}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}x\ {\isaliteral{3D}{\isacharequal}}\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{2D}{\isacharminus}}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \ \ \isacommand{term}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\isanewline
+%
+\isadelimproof
+\ \ \ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{show}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{sorry}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \ \ \isacommand{term}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \ %
+\isamarkupcmt{static!%
+}
+\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \isacommand{term}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{thm}\isamarkupfalse%
+\ this\isanewline
+\isacommand{end}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+Calculational reasoning maintains the special fact called
+  ``\isa{calculation}'' in the background.  Certain language
+  elements combine primary \isa{this} with secondary \isa{calculation}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Transitive chains%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The Idea is to combine \isa{this} and \isa{calculation}
+  via typical \isa{trans} rules (see also \hyperlink{command.print-trans-rules}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}trans{\isaliteral{5F}{\isacharunderscore}}rules}}}}):%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{thm}\isamarkupfalse%
+\ trans\isanewline
+\isacommand{thm}\isamarkupfalse%
+\ less{\isaliteral{5F}{\isacharunderscore}}trans\isanewline
+\isacommand{thm}\isamarkupfalse%
+\ less{\isaliteral{5F}{\isacharunderscore}}le{\isaliteral{5F}{\isacharunderscore}}trans\isanewline
+\isanewline
+\isacommand{notepad}\isamarkupfalse%
+\isanewline
+\isakeyword{begin}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{isamarkuptxt}%
+Plain bottom-up calculation:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}b\ {\isaliteral{3D}{\isacharequal}}\ c{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}c\ {\isaliteral{3D}{\isacharequal}}\ d{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{finally}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{3D}{\isacharequal}}\ d{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+Variant using the \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{22}{\isachardoublequote}}} abbreviation:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ c{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ d{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{finally}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{3D}{\isacharequal}}\ d{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+Top-down version with explicit claim at the head:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{3D}{\isacharequal}}\ d{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{2D}{\isacharminus}}\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{also}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ c{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{also}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ d{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{finally}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}thesis\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\isacommand{next}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+Mixed inequalities (require suitable base type):%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{fix}\isamarkupfalse%
+\ a\ b\ c\ d\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ nat\isanewline
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{3C}{\isacharless}}\ b{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}b{\isaliteral{5C3C6C653E}{\isasymle}}\ c{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}c\ {\isaliteral{3D}{\isacharequal}}\ d{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{finally}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{3C}{\isacharless}}\ d{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\isacommand{end}\isamarkupfalse%
+%
+\isamarkupsubsubsection{Notes%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{itemize}
+
+  \item The notion of \isa{trans} rule is very general due to the
+  flexibility of Isabelle/Pure rule composition.
+
+  \item User applications may declare there own rules, with some care
+  about the operational details of higher-order unification.
+
+  \end{itemize}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Degenerate calculations and bigstep reasoning%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The Idea is to append \isa{this} to \isa{calculation},
+  without rule composition.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{notepad}\isamarkupfalse%
+\isanewline
+\isakeyword{begin}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{isamarkuptxt}%
+A vacous proof:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{have}\isamarkupfalse%
+\ A\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{moreover}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ B\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{moreover}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ C\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{ultimately}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ A\ \isakeyword{and}\ B\ \isakeyword{and}\ C\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
+\isanewline
+\isacommand{next}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+Slightly more content (trivial bigstep reasoning):%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{have}\isamarkupfalse%
+\ A\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{moreover}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ B\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{moreover}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ C\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{ultimately}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B\ {\isaliteral{5C3C616E643E}{\isasymand}}\ C{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ blast\isanewline
+\isacommand{next}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+More ambitous bigstep reasoning involving structured results:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{5C3C6F723E}{\isasymor}}\ B\ {\isaliteral{5C3C6F723E}{\isasymor}}\ C{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{moreover}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{{\isaliteral{7B}{\isacharbraceleft}}}\isamarkupfalse%
+\ \isacommand{assume}\isamarkupfalse%
+\ A\ \isacommand{have}\isamarkupfalse%
+\ R\ \isacommand{sorry}\isamarkupfalse%
+\ \isacommand{{\isaliteral{7D}{\isacharbraceright}}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{moreover}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{{\isaliteral{7B}{\isacharbraceleft}}}\isamarkupfalse%
+\ \isacommand{assume}\isamarkupfalse%
+\ B\ \isacommand{have}\isamarkupfalse%
+\ R\ \isacommand{sorry}\isamarkupfalse%
+\ \isacommand{{\isaliteral{7D}{\isacharbraceright}}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{moreover}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{{\isaliteral{7B}{\isacharbraceleft}}}\isamarkupfalse%
+\ \isacommand{assume}\isamarkupfalse%
+\ C\ \isacommand{have}\isamarkupfalse%
+\ R\ \isacommand{sorry}\isamarkupfalse%
+\ \isacommand{{\isaliteral{7D}{\isacharbraceright}}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{ultimately}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ R\ \isacommand{by}\isamarkupfalse%
+\ blast\ \ %
+\isamarkupcmt{``big-bang integration'' of proof blocks (occasionally fragile)%
+}
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\isacommand{end}\isamarkupfalse%
 \isanewline
 %
 \isadelimtheory

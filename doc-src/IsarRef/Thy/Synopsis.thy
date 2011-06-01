@@ -213,4 +213,153 @@ begin
 
 end
 
+
+section {* Calculational reasoning *}
+
+text {*
+  For example, see @{file "~~/src/HOL/Isar_Examples/Group.thy"}.
+*}
+
+
+subsection {* Special names in Isar proofs *}
+
+text {*
+  \begin{itemize}
+
+  \item term @{text "?thesis"} --- the main conclusion of the
+  innermost pending claim
+
+  \item term @{text "\<dots>"} --- the argument of the last explicitly
+    stated result (for infix application this is the right-hand side)
+
+  \item fact @{text "this"} --- the last result produced in the text
+
+  \end{itemize}
+*}
+
+notepad
+begin
+  have "x = y"
+  proof -
+    term ?thesis
+    show ?thesis sorry
+    term ?thesis  -- {* static! *}
+  qed
+  term "\<dots>"
+  thm this
+end
+
+text {* Calculational reasoning maintains the special fact called
+  ``@{text calculation}'' in the background.  Certain language
+  elements combine primary @{text this} with secondary @{text
+  calculation}. *}
+
+
+subsection {* Transitive chains *}
+
+text {* The Idea is to combine @{text this} and @{text calculation}
+  via typical @{text trans} rules (see also @{command
+  print_trans_rules}): *}
+
+thm trans
+thm less_trans
+thm less_le_trans
+
+notepad
+begin
+  txt {* Plain bottom-up calculation: *}
+  have "a = b" sorry
+  also
+  have "b = c" sorry
+  also
+  have "c = d" sorry
+  finally
+  have "a = d" .
+
+  txt {* Variant using the @{text "\<dots>"} abbreviation: *}
+  have "a = b" sorry
+  also
+  have "\<dots> = c" sorry
+  also
+  have "\<dots> = d" sorry
+  finally
+  have "a = d" .
+
+  txt {* Top-down version with explicit claim at the head: *}
+  have "a = d"
+  proof -
+    have "a = b" sorry
+    also
+    have "\<dots> = c" sorry
+    also
+    have "\<dots> = d" sorry
+    finally
+    show ?thesis .
+  qed
+next
+  txt {* Mixed inequalities (require suitable base type): *}
+  fix a b c d :: nat
+
+  have "a < b" sorry
+  also
+  have "b\<le> c" sorry
+  also
+  have "c = d" sorry
+  finally
+  have "a < d" .
+end
+
+
+subsubsection {* Notes *}
+
+text {*
+  \begin{itemize}
+
+  \item The notion of @{text trans} rule is very general due to the
+  flexibility of Isabelle/Pure rule composition.
+
+  \item User applications may declare there own rules, with some care
+  about the operational details of higher-order unification.
+
+  \end{itemize}
+*}
+
+
+subsection {* Degenerate calculations and bigstep reasoning *}
+
+text {* The Idea is to append @{text this} to @{text calculation},
+  without rule composition.  *}
+
+notepad
+begin
+  txt {* A vacous proof: *}
+  have A sorry
+  moreover
+  have B sorry
+  moreover
+  have C sorry
+  ultimately
+  have A and B and C .
+next
+  txt {* Slightly more content (trivial bigstep reasoning): *}
+  have A sorry
+  moreover
+  have B sorry
+  moreover
+  have C sorry
+  ultimately
+  have "A \<and> B \<and> C" by blast
+next
+  txt {* More ambitous bigstep reasoning involving structured results: *}
+  have "A \<or> B \<or> C" sorry
+  moreover
+  { assume A have R sorry }
+  moreover
+  { assume B have R sorry }
+  moreover
+  { assume C have R sorry }
+  ultimately
+  have R by blast  -- {* ``big-bang integration'' of proof blocks (occasionally fragile) *}
+end
+
 end
