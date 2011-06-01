@@ -28,9 +28,85 @@
 %
 \begin{isamarkuptext}%
 An Isar proof body serves as mathematical notepad to compose logical
-  content, consisting of facts, terms, types.%
+  content, consisting of types, terms, facts.%
 \end{isamarkuptext}%
 \isamarkuptrue%
+%
+\isamarkupsubsection{Types and terms%
+}
+\isamarkuptrue%
+\isacommand{notepad}\isamarkupfalse%
+\isanewline
+\isakeyword{begin}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{isamarkuptxt}%
+Locally fixed entities:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{fix}\isamarkupfalse%
+\ x\ \ \ %
+\isamarkupcmt{local constant, without any type information yet%
+}
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ \ %
+\isamarkupcmt{variant with explicit type-constraint for subsequent use%
+}
+\isanewline
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ a\ b\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{22}{\isachardoublequoteclose}}\ \ %
+\isamarkupcmt{type assignment at first occurrence in concrete term%
+}
+%
+\begin{isamarkuptxt}%
+Definitions (non-polymorphic):%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{def}\isamarkupfalse%
+\ x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{22}{\isachardoublequoteopen}}t{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequoteclose}}%
+\begin{isamarkuptxt}%
+Abbreviations (polymorphic):%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{let}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}f\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ x{\isaliteral{22}{\isachardoublequoteclose}}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\ \ \isacommand{term}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}f\ {\isaliteral{3F}{\isacharquery}}f{\isaliteral{22}{\isachardoublequoteclose}}%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{isamarkuptxt}%
+Notation:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \isacommand{write}\isamarkupfalse%
+\ x\ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+\isanewline
+\isacommand{end}\isamarkupfalse%
 %
 \isamarkupsubsection{Facts%
 }
@@ -308,7 +384,7 @@ The formal notepad is block structured.  The fact produced by the last
 Explicit blocks as well as implicit blocks of nested goal
   statements (e.g.\ \hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}) automatically introduce one extra
   pair of parentheses in reserve.  The \hyperlink{command.next}{\mbox{\isa{\isacommand{next}}}} command allows
-  to ``jump'' these sub-blocks.%
+  to ``jump'' between these sub-blocks.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{notepad}\isamarkupfalse%
@@ -400,82 +476,6 @@ Alternative version with explicit parentheses everywhere:%
 %
 \isadelimproof
 \isanewline
-%
-\endisadelimproof
-\isanewline
-\isacommand{end}\isamarkupfalse%
-%
-\isamarkupsubsection{Terms and Types%
-}
-\isamarkuptrue%
-\isacommand{notepad}\isamarkupfalse%
-\isanewline
-\isakeyword{begin}%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-%
-\begin{isamarkuptxt}%
-Locally fixed entities:%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\ \ \isacommand{fix}\isamarkupfalse%
-\ x\ \ \ %
-\isamarkupcmt{local constant, without any type information yet%
-}
-\isanewline
-\ \ \isacommand{fix}\isamarkupfalse%
-\ x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\ \ %
-\isamarkupcmt{variant with explicit type-constraint for subsequent use%
-}
-\isanewline
-\isanewline
-\ \ \isacommand{fix}\isamarkupfalse%
-\ a\ b\isanewline
-\ \ \isacommand{assume}\isamarkupfalse%
-\ {\isaliteral{22}{\isachardoublequoteopen}}a\ {\isaliteral{3D}{\isacharequal}}\ b{\isaliteral{22}{\isachardoublequoteclose}}\ \ %
-\isamarkupcmt{type assignment at first occurrence in concrete term%
-}
-%
-\begin{isamarkuptxt}%
-Definitions (non-polymorphic):%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\ \ \isacommand{def}\isamarkupfalse%
-\ x\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ {\isaliteral{22}{\isachardoublequoteopen}}t{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequoteclose}}%
-\begin{isamarkuptxt}%
-Abbreviations (polymorphic):%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\ \ \isacommand{let}\isamarkupfalse%
-\ {\isaliteral{3F}{\isacharquery}}f\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C6C616D6264613E}{\isasymlambda}}x{\isaliteral{2E}{\isachardot}}\ x{\isaliteral{22}{\isachardoublequoteclose}}%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
-%
-\endisadelimproof
-\isanewline
-\ \ \isacommand{term}\isamarkupfalse%
-\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{3F}{\isacharquery}}f\ {\isaliteral{3F}{\isacharquery}}f{\isaliteral{22}{\isachardoublequoteclose}}%
-\isadelimproof
-%
-\endisadelimproof
-%
-\isatagproof
-%
-\begin{isamarkuptxt}%
-Notation:%
-\end{isamarkuptxt}%
-\isamarkuptrue%
-\ \ \isacommand{write}\isamarkupfalse%
-\ x\ \ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}%
-\endisatagproof
-{\isafoldproof}%
-%
-\isadelimproof
 %
 \endisadelimproof
 \isanewline

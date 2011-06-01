@@ -8,8 +8,31 @@ section {* Notepad *}
 
 text {*
   An Isar proof body serves as mathematical notepad to compose logical
-  content, consisting of facts, terms, types.
+  content, consisting of types, terms, facts.
 *}
+
+
+subsection {* Types and terms *}
+
+notepad
+begin
+  txt {* Locally fixed entities: *}
+  fix x   -- {* local constant, without any type information yet *}
+  fix x :: 'a  -- {* variant with explicit type-constraint for subsequent use*}
+
+  fix a b
+  assume "a = b"  -- {* type assignment at first occurrence in concrete term *}
+
+  txt {* Definitions (non-polymorphic): *}
+  def x \<equiv> "t::'a"
+
+  txt {* Abbreviations (polymorphic): *}
+  let ?f = "\<lambda>x. x"
+  term "?f ?f"
+
+  txt {* Notation: *}
+  write x  ("***")
+end
 
 
 subsection {* Facts *}
@@ -188,29 +211,6 @@ begin
     }
   }
 
-end
-
-
-subsection {* Terms and Types *}
-
-notepad
-begin
-  txt {* Locally fixed entities: *}
-  fix x   -- {* local constant, without any type information yet *}
-  fix x :: 'a  -- {* variant with explicit type-constraint for subsequent use*}
-
-  fix a b
-  assume "a = b"  -- {* type assignment at first occurrence in concrete term *}
-
-  txt {* Definitions (non-polymorphic): *}
-  def x \<equiv> "t::'a"
-
-  txt {* Abbreviations (polymorphic): *}
-  let ?f = "\<lambda>x. x"
-  term "?f ?f"
-
-  txt {* Notation: *}
-  write x  ("***")
 end
 
 end
