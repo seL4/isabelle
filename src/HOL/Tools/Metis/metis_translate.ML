@@ -337,7 +337,7 @@ fun prepare_metis_problem ctxt MX type_sys conj_clauses fact_clauses =
               map (pair 0)
               #> rpair ctxt
               #-> Monomorph.monomorph Monomorph.all_schematic_consts_of
-              #> fst #> maps (map snd))
+              #> fst #> maps (map (zero_var_indexes o snd)))
       val (atp_problem, _, _, _, _, _, sym_tab) =
         prepare_atp_problem ctxt CNF Hypothesis Axiom type_sys explicit_apply
                             false false (map prop_of clauses) @{prop False} []
