@@ -48,8 +48,8 @@ val metis_name_table =
   [((tptp_equal, 2), (metis_equal, false)),
    ((tptp_old_equal, 2), (metis_equal, false)),
    ((const_prefix ^ predicator_name, 1), (metis_predicator, false)),
-   ((const_prefix ^ app_op_name, 2), (metis_app_op, false)),
-   ((const_prefix ^ type_tag_name, 2), (metis_type_tag, true))]
+   ((prefixed_app_op_name, 2), (metis_app_op, false)),
+   ((prefixed_type_tag_name, 2), (metis_type_tag, true))]
 
 fun predicate_of thy ((@{const Not} $ P), pos) = predicate_of thy (P, not pos)
   | predicate_of thy (t, pos) =

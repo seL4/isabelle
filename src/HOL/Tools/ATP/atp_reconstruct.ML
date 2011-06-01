@@ -450,7 +450,7 @@ fun term_from_atp thy textual sym_tab tfrees =
             else if s' = predicator_name then
               do_term [] (SOME @{typ bool}) (hd us)
             else if s' = app_op_name then
-              do_term (nth us 1 :: extra_us) opt_T (hd us)
+              do_term (List.last us :: extra_us) opt_T (nth us (length us - 2))
             else if s' = type_pred_name then
               @{const True} (* ignore type predicates *)
             else

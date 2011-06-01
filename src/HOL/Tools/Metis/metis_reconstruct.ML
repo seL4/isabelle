@@ -530,29 +530,33 @@ fun equality_inf ctxt mode old_skolems sym_tab (pos, atm) fp fr =
         | path_finder_FT tm ps t = path_finder_fail FT tm ps (SOME t)
       fun path_finder_MX tm [] _ = (tm, Bound 0)
         | path_finder_MX tm (p :: ps) (t as Metis_Term.Fn (s, ts)) =
-          (* FIXME ### what if these are mangled? *) 
-          if s = metis_type_tag then
-            if p = 0 then path_finder_MX tm ps (hd ts)
-            else path_finder_fail MX tm (p :: ps) (SOME t)
-          else if s = metis_app_op then
-            let
-              val (tm1, tm2) = dest_comb tm in
-              if p = 0 then path_finder_MX tm1 ps (hd ts) ||> (fn y => y $ tm2)
-              else path_finder_MX tm2 ps (nth ts 1) ||> (fn y => tm1 $ y)
-            end
-          else
-            let
-              val (tm1, args) = strip_comb tm
-              val adjustment = length ts - length args
-              val p' = if adjustment > p then p else p - adjustment
-              val tm_p = nth args p'
-                handle Subscript =>
-                       path_finder_fail MX tm (p :: ps) (SOME t)
-              val _ = trace_msg ctxt (fn () =>
-                  "path_finder: " ^ string_of_int p ^ "  " ^
-                  Syntax.string_of_term ctxt tm_p)
-              val (r, t) = path_finder_MX tm_p ps (nth ts p)
-            in (r, list_comb (tm1, replace_item_list t p' args)) end
+          let val s = s |> unmangled_const_name in
+            if s = metis_type_tag orelse s = prefixed_type_tag_name then
+              path_finder_MX tm ps (nth ts p)
+            else if s = metis_app_op orelse s = prefixed_app_op_name then
+              let
+                val (tm1, tm2) = dest_comb tm
+                val p' = p - (length ts - 2)
+              in
+                if p' = 0 then
+                  path_finder_MX tm1 ps (nth ts p) ||> (fn y => y $ tm2)
+                else
+                  path_finder_MX tm2 ps (nth ts p) ||> (fn y => tm1 $ y)
+              end
+            else
+              let
+                val (tm1, args) = strip_comb tm
+                val adjustment = length ts - length args
+                val p' = if adjustment > p then p else p - adjustment
+                val tm_p = nth args p'
+                  handle Subscript =>
+                         path_finder_fail MX tm (p :: ps) (SOME t)
+                val _ = trace_msg ctxt (fn () =>
+                    "path_finder: " ^ string_of_int p ^ "  " ^
+                    Syntax.string_of_term ctxt tm_p)
+                val (r, t) = path_finder_MX tm_p ps (nth ts p)
+              in (r, list_comb (tm1, replace_item_list t p' args)) end
+          end
         | path_finder_MX tm ps t = path_finder_fail MX tm ps (SOME t)
       fun path_finder FO tm ps _ = path_finder_FO tm ps
         | path_finder HO (tm as Const(@{const_name HOL.eq},_) $ _ $ _) (p::ps) _ =

@@ -80,6 +80,8 @@ sig
   val type_tag_name : string
   val type_pred_name : string
   val simple_type_prefix : string
+  val prefixed_app_op_name : string
+  val prefixed_type_tag_name : string
   val ascii_of: string -> string
   val unascii_of: string -> string
   val strip_prefix_and_unascii : string -> string -> string option
@@ -113,6 +115,7 @@ sig
   val is_type_sys_fairly_sound : type_sys -> bool
   val choose_format : format list -> type_sys -> format * type_sys
   val raw_type_literals_for_types : typ list -> type_literal list
+  val unmangled_const_name : string -> string
   val unmangled_const : string -> string * string fo_term list
   val translate_atp_fact :
     Proof.context -> format -> type_sys -> bool -> (string * locality) * thm
@@ -188,6 +191,9 @@ val app_op_name = "hAPP"
 val type_tag_name = "ti"
 val type_pred_name = "is"
 val simple_type_prefix = "ty_"
+
+val prefixed_app_op_name = const_prefix ^ app_op_name
+val prefixed_type_tag_name = const_prefix ^ type_tag_name
 
 (* Freshness almost guaranteed! *)
 val sledgehammer_weak_prefix = "Sledgehammer:"
@@ -1138,13 +1144,14 @@ fun introduce_predicators_in_combterm sym_tab tm =
 
 fun list_app head args = fold (curry (CombApp o swap)) args head
 
+val app_op = `make_fixed_const app_op_name
+
 fun explicit_app arg head =
   let
     val head_T = combtyp_of head
     val (arg_T, res_T) = dest_funT head_T
     val explicit_app =
-      CombConst (`make_fixed_const app_op_name, head_T --> head_T,
-                 [arg_T, res_T])
+      CombConst (app_op, head_T --> head_T, [arg_T, res_T])
   in list_app explicit_app [head, arg] end
 fun list_explicit_app head args = fold explicit_app args head
 
@@ -1201,8 +1208,7 @@ fun enforce_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys =
                anyway, by distinguishing overloads only on the homogenized
                result type. Don't do it for lightweight type systems, though,
                since it leads to too many unsound proofs. *)
-            if s = const_prefix ^ app_op_name andalso
-               length T_args = 2 andalso
+            if s = prefixed_app_op_name andalso length T_args = 2 andalso
                not (is_type_sys_virtually_sound type_sys) andalso
                heaviness_of_type_sys type_sys = Heavyweight then
               T_args |> map (homogenized_type ctxt nonmono_Ts level 0)
@@ -1277,10 +1283,12 @@ val helper_table =
                 by (unfold fimplies_def) fast+})),
    ("If", (true, @{thms if_True if_False True_or_False}))]
 
+val type_tag = `make_fixed_const type_tag_name
+
 fun ti_ti_helper_fact () =
   let
     fun var s = ATerm (`I s, [])
-    fun tag tm = ATerm (`make_fixed_const type_tag_name, [var "X", tm])
+    fun tag tm = ATerm (type_tag, [var "X", tm])
   in
     Formula (helper_prefix ^ "ti_ti", Axiom,
              AAtom (ATerm (`I tptp_equal, [tag (tag (var "Y")), tag (var "Y")]))
@@ -1402,8 +1410,10 @@ fun fo_literal_from_type_literal (TyLitVar (class, name)) =
 
 fun formula_from_fo_literal (pos, t) = AAtom t |> not pos ? mk_anot
 
+val type_pred = `make_fixed_const type_pred_name
+
 fun type_pred_combterm ctxt nonmono_Ts type_sys T tm =
-  CombApp (CombConst (`make_fixed_const type_pred_name, T --> @{typ bool}, [T])
+  CombApp (CombConst (type_pred, T --> @{typ bool}, [T])
            |> enforce_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys,
            tm)
 
@@ -1418,7 +1428,7 @@ fun mk_const_aterm x T_args args =
   ATerm (x, map (fo_term_from_typ false) T_args @ args)
 
 fun tag_with_type ctxt format nonmono_Ts type_sys T tm =
-  CombConst (`make_fixed_const type_tag_name, T --> T, [T])
+  CombConst (type_tag, T --> T, [T])
   |> enforce_type_arg_policy_in_combterm ctxt nonmono_Ts type_sys
   |> term_from_combterm ctxt format nonmono_Ts type_sys Top_Level
   |> (fn ATerm (s, tms) => ATerm (s, tms @ [tm]))
