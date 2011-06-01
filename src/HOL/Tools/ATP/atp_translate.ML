@@ -1056,9 +1056,7 @@ fun add_combterm_syms_to_table ctxt explicit_apply =
              else
                accum
            else
-             let
-               val ary = length args
-             in
+             let val ary = length args in
                (ho_var_Ts,
                 case Symtab.lookup sym_tab s of
                   SOME {pred_sym, min_ary, max_ary, types} =>
@@ -1099,18 +1097,18 @@ fun add_fact_syms_to_table ctxt explicit_apply =
   fact_lift (formula_fold NONE
                           (K (add_combterm_syms_to_table ctxt explicit_apply)))
 
-val default_sym_table_entries : (string * sym_info) list =
-  [(tptp_equal, {pred_sym = true, min_ary = 2, max_ary = 2, types = []}),
-   (tptp_old_equal, {pred_sym = true, min_ary = 2, max_ary = 2, types = []}),
-   (make_fixed_const predicator_name,
-    {pred_sym = true, min_ary = 1, max_ary = 1, types = []})] @
+val default_sym_tab_entries : (string * sym_info) list =
+  (make_fixed_const predicator_name,
+   {pred_sym = true, min_ary = 1, max_ary = 1, types = []}) ::
   ([tptp_false, tptp_true]
-   |> map (rpair {pred_sym = true, min_ary = 0, max_ary = 0, types = []}))
+   |> map (rpair {pred_sym = true, min_ary = 0, max_ary = 0, types = []})) @
+  ([tptp_equal, tptp_old_equal]
+   |> map (rpair {pred_sym = true, min_ary = 2, max_ary = 2, types = []}))
 
 fun sym_table_for_facts ctxt explicit_apply facts =
   Symtab.empty
-  |> fold Symtab.default default_sym_table_entries
   |> pair [] |> fold (add_fact_syms_to_table ctxt explicit_apply) facts |> snd
+  |> fold Symtab.update default_sym_tab_entries
 
 fun min_arity_of sym_tab s =
   case Symtab.lookup sym_tab s of
