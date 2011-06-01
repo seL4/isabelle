@@ -74,10 +74,10 @@ lemma extreal_uminus_uminus[simp]:
   fixes a :: extreal shows "- (- a) = a"
   by (cases a) simp_all
 
-lemma MInfty_eq[simp]:
+lemma MInfty_eq[simp, code_post]:
   "MInfty = - \<infinity>" by simp
 
-declare uminus_extreal.simps(2)[simp del]
+declare uminus_extreal.simps(2)[code_inline, simp del]
 
 lemma extreal_cases[case_names real PInf MInf, cases type: extreal]:
   assumes "\<And>r. x = extreal r \<Longrightarrow> P"
