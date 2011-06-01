@@ -860,6 +860,26 @@ proof (rule wfI_min)
   qed
 qed
 
+text{* Bounded increase must terminate: *}
+
+lemma wf_bounded_measure:
+fixes ub :: "'a \<Rightarrow> nat" and f :: "'a \<Rightarrow> nat"
+assumes "!!a b. (b,a) : r \<Longrightarrow> ub b \<le> ub a & ub a > f b & f b > f a"
+shows "wf r"
+apply(rule wf_subset[OF wf_measure[of "%a. ub a - f a"]])
+apply (auto dest: assms)
+done
+
+lemma wf_bounded_set:
+fixes ub :: "'a \<Rightarrow> 'b set" and f :: "'a \<Rightarrow> 'b set"
+assumes "!!a b. (b,a) : r \<Longrightarrow>
+  finite(ub a) & ub b \<subseteq> ub a & ub a \<supset> f b & f b \<supset> f a"
+shows "wf r"
+apply(rule wf_bounded_measure[of r "%a. card(ub a)" "%a. card(f a)"])
+apply(drule assms)
+apply (blast intro: card_mono finite_subset  psubset_card_mono dest: psubset_eq[THEN iffD2])
+done
+
 
 subsection{*Weakly decreasing sequences (w.r.t. some well-founded order) 
    stabilize.*}
