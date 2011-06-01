@@ -20,8 +20,6 @@ fun C :: "com \<Rightarrow> com_den" where
 "C(WHILE b DO c) = lfp (Gamma b (C c))"
 
 
-(**** mono (Gamma(b,c)) ****)
-
 lemma Gamma_mono: "mono (Gamma b c)"
 by (unfold Gamma_def mono_def) fast
 
@@ -31,10 +29,9 @@ apply (subst lfp_unfold [OF Gamma_mono])  --{*lhs only*}
 apply (simp add: Gamma_def)
 done
 
-(* Operational Semantics implies Denotational Semantics *)
+text{* Equivalence of denotational and big-step semantics: *}
 
 lemma com1: "(c,s) \<Rightarrow> t \<Longrightarrow> (s,t) \<in> C(c)"
-(* start with rule induction *)
 apply (induct rule: big_step_induct)
 apply auto
 (* while *)
@@ -44,8 +41,6 @@ apply fast
 apply (subst lfp_unfold[OF Gamma_mono, simplified Gamma_def])
 apply auto 
 done
-
-(* Denotational Semantics implies Operational Semantics *)
 
 lemma com2: "(s,t) \<in> C(c) \<Longrightarrow> (c,s) \<Rightarrow> t"
 apply (induct c arbitrary: s t)
@@ -57,10 +52,7 @@ apply (unfold Gamma_def)
 apply auto
 done
 
-
-(**** Proof of Equivalence ****)
-
-lemma denotational_is_natural: "(s,t) \<in> C(c)  =  ((c,s) \<Rightarrow> t)"
+lemma denotational_is_big_step: "(s,t) \<in> C(c)  =  ((c,s) \<Rightarrow> t)"
 by (fast elim: com2 dest: com1)
 
 end
