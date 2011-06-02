@@ -3,10 +3,10 @@
 header {* Lists with elements distinct as canonical example for datatype invariants *}
 
 theory Dlist
-imports Main Cset
+imports Main More_List
 begin
 
-section {* The type of distinct lists *}
+subsection {* The type of distinct lists *}
 
 typedef (open) 'a dlist = "{xs::'a list. distinct xs}"
   morphisms list_of_dlist Abs_dlist
@@ -80,7 +80,7 @@ definition foldr :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a dli
   "foldr f dxs = List.foldr f (list_of_dlist dxs)"
 
 
-section {* Executable version obeying invariant *}
+subsection {* Executable version obeying invariant *}
 
 lemma list_of_dlist_empty [simp, code abstract]:
   "list_of_dlist empty = []"
@@ -130,7 +130,7 @@ lemma [code nbe]:
   by (fact equal_refl)
 
 
-section {* Induction principle and case distinction *}
+subsection {* Induction principle and case distinction *}
 
 lemma dlist_induct [case_names empty insert, induct type: dlist]:
   assumes empty: "P empty"
@@ -173,144 +173,10 @@ proof (cases dxs)
 qed
 
 
-section {* Functorial structure *}
+subsection {* Functorial structure *}
 
 enriched_type map: map
   by (simp_all add: List.map.id remdups_map_remdups fun_eq_iff dlist_eq_iff)
-
-
-section {* Implementation of sets by distinct lists -- canonical! *}
-
-definition Set :: "'a dlist \<Rightarrow> 'a Cset.set" where
-  "Set dxs = Cset.set (list_of_dlist dxs)"
-
-definition Coset :: "'a dlist \<Rightarrow> 'a Cset.set" where
-  "Coset dxs = Cset.coset (list_of_dlist dxs)"
-
-code_datatype Set Coset
-
-declare member_code [code del]
-declare Cset.is_empty_set [code del]
-declare Cset.empty_set [code del]
-declare Cset.UNIV_set [code del]
-declare insert_set [code del]
-declare remove_set [code del]
-declare compl_set [code del]
-declare compl_coset [code del]
-declare map_set [code del]
-declare filter_set [code del]
-declare forall_set [code del]
-declare exists_set [code del]
-declare card_set [code del]
-declare inter_project [code del]
-declare subtract_remove [code del]
-declare union_insert [code del]
-declare Infimum_inf [code del]
-declare Supremum_sup [code del]
-
-lemma Set_Dlist [simp]:
-  "Set (Dlist xs) = Cset.Set (set xs)"
-  by (rule Cset.set_eqI) (simp add: Set_def)
-
-lemma Coset_Dlist [simp]:
-  "Coset (Dlist xs) = Cset.Set (- set xs)"
-  by (rule Cset.set_eqI) (simp add: Coset_def)
-
-lemma member_Set [simp]:
-  "Cset.member (Set dxs) = List.member (list_of_dlist dxs)"
-  by (simp add: Set_def member_set)
-
-lemma member_Coset [simp]:
-  "Cset.member (Coset dxs) = Not \<circ> List.member (list_of_dlist dxs)"
-  by (simp add: Coset_def member_set not_set_compl)
-
-lemma Set_dlist_of_list [code]:
-  "Cset.set xs = Set (dlist_of_list xs)"
-  by (rule Cset.set_eqI) simp
-
-lemma Coset_dlist_of_list [code]:
-  "Cset.coset xs = Coset (dlist_of_list xs)"
-  by (rule Cset.set_eqI) simp
-
-lemma is_empty_Set [code]:
-  "Cset.is_empty (Set dxs) \<longleftrightarrow> null dxs"
-  by (simp add: null_def List.null_def member_set)
-
-lemma bot_code [code]:
-  "bot = Set empty"
-  by (simp add: empty_def)
-
-lemma top_code [code]:
-  "top = Coset empty"
-  by (simp add: empty_def)
-
-lemma insert_code [code]:
-  "Cset.insert x (Set dxs) = Set (insert x dxs)"
-  "Cset.insert x (Coset dxs) = Coset (remove x dxs)"
-  by (simp_all add: insert_def remove_def member_set not_set_compl)
-
-lemma remove_code [code]:
-  "Cset.remove x (Set dxs) = Set (remove x dxs)"
-  "Cset.remove x (Coset dxs) = Coset (insert x dxs)"
-  by (auto simp add: insert_def remove_def member_set not_set_compl)
-
-lemma member_code [code]:
-  "Cset.member (Set dxs) = member dxs"
-  "Cset.member (Coset dxs) = Not \<circ> member dxs"
-  by (simp_all add: member_def)
-
-lemma compl_code [code]:
-  "- Set dxs = Coset dxs"
-  "- Coset dxs = Set dxs"
-  by (rule Cset.set_eqI, simp add: member_set not_set_compl)+
-
-lemma map_code [code]:
-  "Cset.map f (Set dxs) = Set (map f dxs)"
-  by (rule Cset.set_eqI) (simp add: member_set)
-  
-lemma filter_code [code]:
-  "Cset.filter f (Set dxs) = Set (filter f dxs)"
-  by (rule Cset.set_eqI) (simp add: member_set)
-
-lemma forall_Set [code]:
-  "Cset.forall P (Set xs) \<longleftrightarrow> list_all P (list_of_dlist xs)"
-  by (simp add: member_set list_all_iff)
-
-lemma exists_Set [code]:
-  "Cset.exists P (Set xs) \<longleftrightarrow> list_ex P (list_of_dlist xs)"
-  by (simp add: member_set list_ex_iff)
-
-lemma card_code [code]:
-  "Cset.card (Set dxs) = length dxs"
-  by (simp add: length_def member_set distinct_card)
-
-lemma inter_code [code]:
-  "inf A (Set xs) = Set (filter (Cset.member A) xs)"
-  "inf A (Coset xs) = foldr Cset.remove xs A"
-  by (simp_all only: Set_def Coset_def foldr_def inter_project list_of_dlist_filter)
-
-lemma subtract_code [code]:
-  "A - Set xs = foldr Cset.remove xs A"
-  "A - Coset xs = Set (filter (Cset.member A) xs)"
-  by (simp_all only: Set_def Coset_def foldr_def subtract_remove list_of_dlist_filter)
-
-lemma union_code [code]:
-  "sup (Set xs) A = foldr Cset.insert xs A"
-  "sup (Coset xs) A = Coset (filter (Not \<circ> Cset.member A) xs)"
-  by (simp_all only: Set_def Coset_def foldr_def union_insert list_of_dlist_filter)
-
-context complete_lattice
-begin
-
-lemma Infimum_code [code]:
-  "Infimum (Set As) = foldr inf As top"
-  by (simp only: Set_def Infimum_inf foldr_def inf.commute)
-
-lemma Supremum_code [code]:
-  "Supremum (Set As) = foldr sup As bot"
-  by (simp only: Set_def Supremum_sup foldr_def sup.commute)
-
-end
 
 
 hide_const (open) member fold foldr empty insert remove map filter null member length fold
