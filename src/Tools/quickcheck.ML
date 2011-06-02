@@ -457,18 +457,21 @@ fun collect_results f [] results = results
         collect_results f ts (result :: results)
     end  
 
-fun test_goal_terms lthy (limit_time, is_interactive) insts goals =
+fun test_goal_terms ctxt (limit_time, is_interactive) insts goals =
   let
     fun test_term' goal =
       case goal of
-        [(NONE, t)] => test_term lthy (limit_time, is_interactive) t
-      | ts => test_term_with_increasing_cardinality lthy (limit_time, is_interactive) (map snd ts)
-    val correct_inst_goals = instantiate_goals lthy insts goals
+        [(NONE, t)] => test_term ctxt (limit_time, is_interactive) t
+      | ts => test_term_with_increasing_cardinality ctxt (limit_time, is_interactive) (map snd ts)
+    val correct_inst_goals = instantiate_goals ctxt insts goals
   in
-    if Config.get lthy finite_types then
-      collect_results test_term' correct_inst_goals []
-    else
-      collect_results (test_term lthy (limit_time, is_interactive)) (maps (map snd) correct_inst_goals) []
+    case lookup_tester ctxt (Config.get ctxt tester) of
+      SOME test_goal_terms => test_goal_terms ctxt (limit_time, is_interactive) insts goals
+    | NONE =>
+        if Config.get ctxt finite_types then
+          collect_results test_term' correct_inst_goals []
+        else
+          collect_results (test_term ctxt (limit_time, is_interactive)) (maps (map snd) correct_inst_goals) []
   end;
 
 fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
@@ -492,9 +495,8 @@ fun test_goal (time_limit, is_interactive) (insts, eval_terms) i state =
       | SOME locale =>
         map (fn (_, phi) => (Morphism.term phi proto_goal, map (Morphism.term phi) eval_terms))
           (Locale.registrations_of (Context.Theory thy) (*FIXME*) locale);
-    val test_goals = the_default test_goal_terms (lookup_tester lthy (Config.get lthy tester))
   in
-    test_goals lthy (time_limit, is_interactive) insts goals
+    test_goal_terms lthy (time_limit, is_interactive) insts goals
   end
 
 (* pretty printing *)
