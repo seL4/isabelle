@@ -363,7 +363,7 @@ next
 end
 
 
-section {* Structured induction proofs *}
+section {* Induction *}
 
 subsection {* Induction as Natural Deduction *}
 
@@ -561,7 +561,7 @@ begin
 end
 
 
-section {* Structured Natural Deduction \label{sec:natural-deduction-synopsis} *}
+section {* Natural Deduction \label{sec:natural-deduction-synopsis} *}
 
 subsection {* Rule statements *}
 
