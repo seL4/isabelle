@@ -87,6 +87,7 @@ ML {*
 val mtds = [
   MutabelleExtra.quickcheck_mtd (Config.put Quickcheck.tester \"random\") \"random\",
   MutabelleExtra.quickcheck_mtd (Config.put Quickcheck.tester \"exhaustive\") \"exhaustive\",
+  MutabelleExtra.quickcheck_mtd (Config.put Quickcheck.tester \"exhaustive\" #> Config.put Quickcheck.finite_types false) \"exhaustive_nft\",
   MutabelleExtra.nitpick_mtd
 ]
 *}
@@ -124,6 +125,8 @@ echo "random      : C: $(count "quickcheck_random" "GenuineCex") N: $(count "qui
 T: $(count "quickcheck_random" "Timeout") E: $(count "quickcheck_random" "Error")"
 echo "exhaustive  : C: $(count "quickcheck_exhaustive" "GenuineCex") N: $(count "quickcheck_exhaustive" "NoCex") \
 T: $(count "quickcheck_exhaustive" "Timeout") E: $(count "quickcheck_exhaustive" "Error")"
+echo "exhaustive_nft: C: $(count "quickcheck_exhaustive_nft" "GenuineCex") N: $(count "quickcheck_exhaustive_nft" "NoCex") \
+T: $(count "quickcheck_exhaustive_nft" "Timeout") E: $(count "quickcheck_exhaustive_nft" "Error")"
 echo "nitpick     : C: $(count "nitpick" "GenuineCex") N: $(count "nitpick" "NoCex") \
 T: $(count "nitpick" "Timeout") E: $(count "nitpick" "Error")"
 
