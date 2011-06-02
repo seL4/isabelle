@@ -77,7 +77,7 @@ echo "Starting Mutabelle..."
 mkdir -p "$MUTABELLE_OUTPUT_PATH"
 
 echo "theory Mutabelle_Test
-imports $MUTABELLE_IMPORTS
+imports \"~~/src/HOL/Library/Quickcheck_Narrowing\" $MUTABELLE_IMPORTS
 uses     
   \"$MUTABELLE_HOME/mutabelle.ML\"
   \"$MUTABELLE_HOME/mutabelle_extra.ML\"
@@ -88,7 +88,10 @@ val mtds = [
   MutabelleExtra.quickcheck_mtd (Config.put Quickcheck.tester \"random\") \"random\",
   MutabelleExtra.quickcheck_mtd (Config.put Quickcheck.tester \"exhaustive\") \"exhaustive\",
   MutabelleExtra.quickcheck_mtd (Config.put Quickcheck.tester \"exhaustive\" #> Config.put Quickcheck.finite_types false) \"exhaustive_nft\",
-  MutabelleExtra.nitpick_mtd
+  MutabelleExtra.quickcheck_mtd (Config.put Quickcheck.tester \"narrowing\" #> Config.put Quickcheck.finite_types false) \"narrowing\",
+  MutabelleExtra.quickcheck_mtd (Config.put Quickcheck.tester \"narrowing\" #> Config.put Quickcheck.finite_types false
+    #> Context.proof_map (Quickcheck.map_test_params (apfst (K [@{typ int}])))) \"narrowing_nat\"  
+(*  MutabelleExtra.nitpick_mtd *)
 ]
 *}
 
@@ -121,15 +124,16 @@ function count() {
   cat "$MUTABELLE_OUTPUT_PATH/log" | grep "$1: $2" | wc -l
 }
 
-echo "random      : C: $(count "quickcheck_random" "GenuineCex") N: $(count "quickcheck_random" "NoCex") \
-T: $(count "quickcheck_random" "Timeout") E: $(count "quickcheck_random" "Error")"
-echo "exhaustive  : C: $(count "quickcheck_exhaustive" "GenuineCex") N: $(count "quickcheck_exhaustive" "NoCex") \
-T: $(count "quickcheck_exhaustive" "Timeout") E: $(count "quickcheck_exhaustive" "Error")"
-echo "exhaustive_nft: C: $(count "quickcheck_exhaustive_nft" "GenuineCex") N: $(count "quickcheck_exhaustive_nft" "NoCex") \
-T: $(count "quickcheck_exhaustive_nft" "Timeout") E: $(count "quickcheck_exhaustive_nft" "Error")"
-echo "nitpick     : C: $(count "nitpick" "GenuineCex") N: $(count "nitpick" "NoCex") \
-T: $(count "nitpick" "Timeout") E: $(count "nitpick" "Error")"
+function mk_stat() {
+  echo "$1 : C: $(count $1 "GenuineCex") N: $(count $1 "NoCex") T: $(count $1 "Timeout") E: $(count $1 "Error")"
+}
 
+mk_stat "quickcheck_random"
+mk_stat "quickcheck_exhaustive"
+mk_stat "quickcheck_exhaustive_nft"
+mk_stat "quickcheck_narrowing"
+mk_stat "quickcheck_narrowing_nat"
+mk_stat "nitpick"
 
 ## cleanup
 
