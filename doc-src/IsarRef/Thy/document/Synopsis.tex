@@ -481,7 +481,7 @@ Alternative version with explicit parentheses everywhere:%
 \isanewline
 \isacommand{end}\isamarkupfalse%
 %
-\isamarkupsection{Calculational reasoning%
+\isamarkupsection{Calculational reasoning \label{sec:calculations-synopsis}%
 }
 \isamarkuptrue%
 %
@@ -843,7 +843,437 @@ More ambitious bigstep reasoning involving structured results:%
 \isanewline
 \isacommand{end}\isamarkupfalse%
 %
-\isamarkupsection{Structured Natural Deduction%
+\isamarkupsection{Structured induction proofs%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsection{Induction as Natural Deduction%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+In principle, induction is just a special case of Natural
+  Deduction (see also \secref{sec:natural-deduction-synopsis}).  For
+  example:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{thm}\isamarkupfalse%
+\ nat{\isaliteral{2E}{\isachardot}}induct\isanewline
+\isacommand{print{\isaliteral{5F}{\isacharunderscore}}statement}\isamarkupfalse%
+\ nat{\isaliteral{2E}{\isachardot}}induct\isanewline
+\isanewline
+\isacommand{notepad}\isamarkupfalse%
+\isanewline
+\isakeyword{begin}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{fix}\isamarkupfalse%
+\ n\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ nat\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}rule\ nat{\isaliteral{2E}{\isachardot}}induct{\isaliteral{29}{\isacharparenright}}\ \ %
+\isamarkupcmt{fragile rule application!%
+}
+\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ n\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ nat\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isacommand{end}\isamarkupfalse%
+%
+\begin{isamarkuptext}%
+In practice, much more proof infrastructure is required.
+
+  The proof method \hyperlink{method.induct}{\mbox{\isa{induct}}} provides:
+  \begin{itemize}
+
+  \item implicit rule selection and robust instantiation
+
+  \item context elements via symbolic case names
+
+  \item support for rule-structured induction statements, with local
+    parameters, premises, etc.
+
+  \end{itemize}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{notepad}\isamarkupfalse%
+\isanewline
+\isakeyword{begin}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{fix}\isamarkupfalse%
+\ n\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ nat\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}induct\ n{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ {\isadigit{0}}\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}case\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \isacommand{from}\isamarkupfalse%
+\ Suc{\isaliteral{2E}{\isachardot}}hyps\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}case\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isacommand{end}\isamarkupfalse%
+%
+\isamarkupsubsubsection{Example%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The subsequent example combines the following proof patterns:
+  \begin{itemize}
+
+  \item outermost induction (over the datatype structure of natural
+  numbers), to decompose the proof problem in top-down manner
+
+  \item calculational reasoning (\secref{sec:calculations-synopsis})
+  to compose the result in each case
+
+  \item solving local claims within the calculation by simplification
+
+  \end{itemize}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\isanewline
+\ \ \isakeyword{fixes}\ n\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ nat\isanewline
+\ \ \isakeyword{shows}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C53756D3E}{\isasymSum}}i{\isaliteral{3D}{\isacharequal}}{\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}n{\isaliteral{2E}{\isachardot}}\ i{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ n\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ div\ {\isadigit{2}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}induct\ n{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ {\isadigit{0}}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C53756D3E}{\isasymSum}}i{\isaliteral{3D}{\isacharequal}}{\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}{\isadigit{0}}{\isaliteral{2E}{\isachardot}}\ i{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}nat{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ {\isadigit{0}}\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{28}{\isacharparenleft}}{\isadigit{0}}\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ div\ {\isadigit{2}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\ \ \isacommand{finally}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}case\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
+\isanewline
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{case}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C53756D3E}{\isasymSum}}i{\isaliteral{3D}{\isacharequal}}{\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}Suc\ n{\isaliteral{2E}{\isachardot}}\ i{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C53756D3E}{\isasymSum}}i{\isaliteral{3D}{\isacharequal}}{\isadigit{0}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}n{\isaliteral{2E}{\isachardot}}\ i{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2B}{\isacharplus}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ n\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ div\ {\isadigit{2}}\ {\isaliteral{2B}{\isacharplus}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}simp\ add{\isaliteral{3A}{\isacharcolon}}\ Suc{\isaliteral{2E}{\isachardot}}hyps{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{2}}\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{28}{\isacharparenleft}}n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ div\ {\isadigit{2}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}Suc\ n\ {\isaliteral{2A}{\isacharasterisk}}\ {\isaliteral{28}{\isacharparenleft}}Suc\ n\ {\isaliteral{2B}{\isacharplus}}\ {\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ div\ {\isadigit{2}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{by}\isamarkupfalse%
+\ simp\isanewline
+\ \ \isacommand{finally}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{3F}{\isacharquery}}case\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+This demonstrates how induction proofs can be done without
+  having to consider the raw Natural Deduction structure.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Induction with local parameters and premises%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Idea: Pure rule statements are passed through the induction
+  rule.  This achieves convenient proof patterns, thanks to some
+  internal trickery in the \hyperlink{method.induct}{\mbox{\isa{induct}}} method.
+
+  Important: Using compact HOL formulae with \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}{\isaliteral{2F}{\isacharslash}}{\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}{\isaliteral{22}{\isachardoublequote}}} is a
+  well-known anti-pattern! It would produce useless formal noise.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{notepad}\isamarkupfalse%
+\isanewline
+\isakeyword{begin}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{fix}\isamarkupfalse%
+\ n\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ nat\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ P\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ Q\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}induct\ n{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ {\isadigit{0}}\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \isacommand{from}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}P\ n{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}A\ n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}induct\ n{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ {\isadigit{0}}\isanewline
+\ \ \ \ \isacommand{from}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}A\ {\isadigit{0}}{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \isacommand{from}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}A\ n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ n{\isaliteral{60}{\isacharbackquoteclose}}\isanewline
+\ \ \ \ \ \ \isakeyword{and}\ {\isaliteral{60}{\isacharbackquoteopen}}A\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ Q\ x\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}induct\ n{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ {\isadigit{0}}\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}Q\ x\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \isacommand{from}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}{\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ Q\ x\ n{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}Q\ x\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+%
+\begin{isamarkuptxt}%
+Local quantification admits arbitrary instances:%
+\end{isamarkuptxt}%
+\isamarkuptrue%
+\ \ \ \ \isacommand{note}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}Q\ a\ n{\isaliteral{60}{\isacharbackquoteclose}}\ \isakeyword{and}\ {\isaliteral{60}{\isacharbackquoteopen}}Q\ b\ n{\isaliteral{60}{\isacharbackquoteclose}}\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isacommand{end}\isamarkupfalse%
+%
+\isamarkupsubsection{Implicit induction context%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The \hyperlink{method.induct}{\mbox{\isa{induct}}} method can isolate local parameters and
+  premises directly from the given statement.  This is convenient in
+  practical applications, but requires some understanding of what is
+  going on internally (as explained above).%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{notepad}\isamarkupfalse%
+\isanewline
+\isakeyword{begin}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{fix}\isamarkupfalse%
+\ n\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ nat\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ Q\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ x\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{27}{\isacharprime}}a\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}A\ x\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}Q\ x\ n{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}induct\ n\ arbitrary{\isaliteral{3A}{\isacharcolon}}\ x{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ {\isadigit{0}}\isanewline
+\ \ \ \ \isacommand{from}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}A\ x\ {\isadigit{0}}{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}Q\ x\ {\isadigit{0}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \isacommand{from}\isamarkupfalse%
+\ {\isaliteral{60}{\isacharbackquoteopen}}{\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ A\ x\ n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q\ x\ n{\isaliteral{60}{\isacharbackquoteclose}}\ \ %
+\isamarkupcmt{arbitrary instances can be produced here%
+}
+\isanewline
+\ \ \ \ \ \ \isakeyword{and}\ {\isaliteral{60}{\isacharbackquoteopen}}A\ x\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{60}{\isacharbackquoteclose}}\ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}Q\ x\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isacommand{end}\isamarkupfalse%
+%
+\isamarkupsubsection{Advanced induction with term definitions%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Induction over subexpressions of a certain shape are delicate
+  to formalize.  The Isar \hyperlink{method.induct}{\mbox{\isa{induct}}} method provides
+  infrastructure for this.
+
+  Idea: sub-expressions of the problem are turned into a defined
+  induction variable; often accompanied with fixing of auxiliary
+  parameters in the original expression.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{notepad}\isamarkupfalse%
+\isanewline
+\isakeyword{begin}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{fix}\isamarkupfalse%
+\ a\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{27}{\isacharprime}}a\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ nat{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ A\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}nat\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}A\ {\isaliteral{28}{\isacharparenleft}}a\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P\ {\isaliteral{28}{\isacharparenleft}}a\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}induct\ {\isaliteral{22}{\isachardoublequoteopen}}a\ x{\isaliteral{22}{\isachardoublequoteclose}}\ arbitrary{\isaliteral{3A}{\isacharcolon}}\ x{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ {\isadigit{0}}\isanewline
+\ \ \ \ \isacommand{note}\isamarkupfalse%
+\ prem\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{60}{\isacharbackquoteopen}}A\ {\isaliteral{28}{\isacharparenleft}}a\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{60}{\isacharbackquoteclose}}\isanewline
+\ \ \ \ \ \ \isakeyword{and}\ defn\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{60}{\isacharbackquoteopen}}{\isadigit{0}}\ {\isaliteral{3D}{\isacharequal}}\ a\ x{\isaliteral{60}{\isacharbackquoteclose}}\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P\ {\isaliteral{28}{\isacharparenleft}}a\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{case}\isamarkupfalse%
+\ {\isaliteral{28}{\isacharparenleft}}Suc\ n{\isaliteral{29}{\isacharparenright}}\isanewline
+\ \ \ \ \isacommand{note}\isamarkupfalse%
+\ hyp\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{60}{\isacharbackquoteopen}}{\isaliteral{5C3C416E643E}{\isasymAnd}}x{\isaliteral{2E}{\isachardot}}\ n\ {\isaliteral{3D}{\isacharequal}}\ a\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A\ {\isaliteral{28}{\isacharparenleft}}a\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ {\isaliteral{28}{\isacharparenleft}}a\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{60}{\isacharbackquoteclose}}\isanewline
+\ \ \ \ \ \ \isakeyword{and}\ prem\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{60}{\isacharbackquoteopen}}A\ {\isaliteral{28}{\isacharparenleft}}a\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{60}{\isacharbackquoteclose}}\isanewline
+\ \ \ \ \ \ \isakeyword{and}\ defn\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{60}{\isacharbackquoteopen}}Suc\ n\ {\isaliteral{3D}{\isacharequal}}\ a\ x{\isaliteral{60}{\isacharbackquoteclose}}\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}P\ {\isaliteral{28}{\isacharparenleft}}a\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isacommand{end}\isamarkupfalse%
+%
+\isamarkupsection{Structured Natural Deduction \label{sec:natural-deduction-synopsis}%
 }
 \isamarkuptrue%
 %

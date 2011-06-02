@@ -214,7 +214,7 @@ begin
 end
 
 
-section {* Calculational reasoning *}
+section {* Calculational reasoning \label{sec:calculations-synopsis} *}
 
 text {*
   For example, see @{file "~~/src/HOL/Isar_Examples/Group.thy"}.
@@ -363,7 +363,205 @@ next
 end
 
 
-section {* Structured Natural Deduction *}
+section {* Structured induction proofs *}
+
+subsection {* Induction as Natural Deduction *}
+
+text {* In principle, induction is just a special case of Natural
+  Deduction (see also \secref{sec:natural-deduction-synopsis}).  For
+  example: *}
+
+thm nat.induct
+print_statement nat.induct
+
+notepad
+begin
+  fix n :: nat
+  have "P n"
+  proof (rule nat.induct)  -- {* fragile rule application! *}
+    show "P 0" sorry
+  next
+    fix n :: nat
+    assume "P n"
+    show "P (Suc n)" sorry
+  qed
+end
+
+text {*
+  In practice, much more proof infrastructure is required.
+
+  The proof method @{method induct} provides:
+  \begin{itemize}
+
+  \item implicit rule selection and robust instantiation
+
+  \item context elements via symbolic case names
+
+  \item support for rule-structured induction statements, with local
+    parameters, premises, etc.
+
+  \end{itemize}
+*}
+
+notepad
+begin
+  fix n :: nat
+  have "P n"
+  proof (induct n)
+    case 0
+    show ?case sorry
+  next
+    case (Suc n)
+    from Suc.hyps show ?case sorry
+  qed
+end
+
+
+subsubsection {* Example *}
+
+text {*
+  The subsequent example combines the following proof patterns:
+  \begin{itemize}
+
+  \item outermost induction (over the datatype structure of natural
+  numbers), to decompose the proof problem in top-down manner
+
+  \item calculational reasoning (\secref{sec:calculations-synopsis})
+  to compose the result in each case
+
+  \item solving local claims within the calculation by simplification
+
+  \end{itemize}
+*}
+
+lemma
+  fixes n :: nat
+  shows "(\<Sum>i=0..n. i) = n * (n + 1) div 2"
+proof (induct n)
+  case 0
+  have "(\<Sum>i=0..0. i) = (0::nat)" by simp
+  also have "\<dots> = 0 * (0 + 1) div 2" by simp
+  finally show ?case .
+next
+  case (Suc n)
+  have "(\<Sum>i=0..Suc n. i) = (\<Sum>i=0..n. i) + (n + 1)" by simp
+  also have "\<dots> = n * (n + 1) div 2 + (n + 1)" by (simp add: Suc.hyps)
+  also have "\<dots> = (n * (n + 1) + 2 * (n + 1)) div 2" by simp
+  also have "\<dots> = (Suc n * (Suc n + 1)) div 2" by simp
+  finally show ?case .
+qed
+
+text {* This demonstrates how induction proofs can be done without
+  having to consider the raw Natural Deduction structure. *}
+
+
+subsection {* Induction with local parameters and premises *}
+
+text {* Idea: Pure rule statements are passed through the induction
+  rule.  This achieves convenient proof patterns, thanks to some
+  internal trickery in the @{method induct} method.
+
+  Important: Using compact HOL formulae with @{text "\<forall>/\<longrightarrow>"} is a
+  well-known anti-pattern! It would produce useless formal noise.
+*}
+
+notepad
+begin
+  fix n :: nat
+  fix P :: "nat \<Rightarrow> bool"
+  fix Q :: "'a \<Rightarrow> nat \<Rightarrow> bool"
+
+  have "P n"
+  proof (induct n)
+    case 0
+    show "P 0" sorry
+  next
+    case (Suc n)
+    from `P n` show "P (Suc n)" sorry
+  qed
+
+  have "A n \<Longrightarrow> P n"
+  proof (induct n)
+    case 0
+    from `A 0` show "P 0" sorry
+  next
+    case (Suc n)
+    from `A n \<Longrightarrow> P n`
+      and `A (Suc n)` show "P (Suc n)" sorry
+  qed
+
+  have "\<And>x. Q x n"
+  proof (induct n)
+    case 0
+    show "Q x 0" sorry
+  next
+    case (Suc n)
+    from `\<And>x. Q x n` show "Q x (Suc n)" sorry
+    txt {* Local quantification admits arbitrary instances: *}
+    note `Q a n` and `Q b n`
+  qed
+end
+
+
+subsection {* Implicit induction context *}
+
+text {* The @{method induct} method can isolate local parameters and
+  premises directly from the given statement.  This is convenient in
+  practical applications, but requires some understanding of what is
+  going on internally (as explained above).  *}
+
+notepad
+begin
+  fix n :: nat
+  fix Q :: "'a \<Rightarrow> nat \<Rightarrow> bool"
+
+  fix x :: 'a
+  assume "A x n"
+  then have "Q x n"
+  proof (induct n arbitrary: x)
+    case 0
+    from `A x 0` show "Q x 0" sorry
+  next
+    case (Suc n)
+    from `\<And>x. A x n \<Longrightarrow> Q x n`  -- {* arbitrary instances can be produced here *}
+      and `A x (Suc n)` show "Q x (Suc n)" sorry
+  qed
+end
+
+
+subsection {* Advanced induction with term definitions *}
+
+text {* Induction over subexpressions of a certain shape are delicate
+  to formalize.  The Isar @{method induct} method provides
+  infrastructure for this.
+
+  Idea: sub-expressions of the problem are turned into a defined
+  induction variable; often accompanied with fixing of auxiliary
+  parameters in the original expression.  *}
+
+notepad
+begin
+  fix a :: "'a \<Rightarrow> nat"
+  fix A :: "nat \<Rightarrow> bool"
+
+  assume "A (a x)"
+  then have "P (a x)"
+  proof (induct "a x" arbitrary: x)
+    case 0
+    note prem = `A (a x)`
+      and defn = `0 = a x`
+    show "P (a x)" sorry
+  next
+    case (Suc n)
+    note hyp = `\<And>x. n = a x \<Longrightarrow> A (a x) \<Longrightarrow> P (a x)`
+      and prem = `A (a x)`
+      and defn = `Suc n = a x`
+    show "P (a x)" sorry
+  qed
+end
+
+
+section {* Structured Natural Deduction \label{sec:natural-deduction-synopsis} *}
 
 subsection {* Rule statements *}
 
