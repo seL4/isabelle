@@ -104,7 +104,7 @@ begin
   assume "x \<noteq> y"
   note this [symmetric]
 
-  txt {* Adhoc-simplication (take care!): *}
+  txt {* Adhoc-simplification (take care!): *}
   assume "P ([] @ xs)"
   note this [simplified]
 end
@@ -952,6 +952,157 @@ next
 
   have "x \<in> \<Union>A" sorry
   then obtain a where "a \<in> A" and "x \<in> a" ..
+end
+
+
+section {* Generalized elimination and cases *}
+
+subsection {* General elimination rules *}
+
+text {*
+  The general format of elimination rules is illustrated by the
+  following typical representatives:
+*}
+
+thm exE     -- {* local parameter *}
+thm conjE   -- {* local premises *}
+thm disjE   -- {* split into cases *}
+
+text {*
+  Combining these characteristics leads to the following general scheme
+  for elimination rules with cases:
+
+  \begin{itemize}
+
+  \item prefix of assumptions (or ``major premises'')
+
+  \item one or more cases that enable to establish the main conclusion
+    in an augmented context
+
+  \end{itemize}
+*}
+
+notepad
+begin
+  assume r:
+    "A1 \<Longrightarrow> A2 \<Longrightarrow>  (* assumptions *)
+      (\<And>x y. B1 x y \<Longrightarrow> C1 x y \<Longrightarrow> R) \<Longrightarrow>  (* case 1 *)
+      (\<And>x y. B2 x y \<Longrightarrow> C2 x y \<Longrightarrow> R) \<Longrightarrow>  (* case 2 *)
+      R  (* main conclusion *)"
+
+  have A1 and A2 sorry
+  then have R
+  proof (rule r)
+    fix x y
+    assume "B1 x y" and "C1 x y"
+    show ?thesis sorry
+  next
+    fix x y
+    assume "B2 x y" and "C2 x y"
+    show ?thesis sorry
+  qed
+end
+
+text {* Here @{text "?thesis"} is used to refer to the unchanged goal
+  statement.  *}
+
+
+subsection {* Rules with cases *}
+
+text {*
+  Applying an elimination rule to some goal, leaves that unchanged
+  but allows to augment the context in the sub-proof of each case.
+
+  Isar provides some infrastructure to support this:
+
+  \begin{itemize}
+
+  \item native language elements to state eliminations
+
+  \item symbolic case names
+
+  \item method @{method cases} to recover this structure in a
+  sub-proof
+
+  \end{itemize}
+*}
+
+print_statement exE
+print_statement conjE
+print_statement disjE
+
+lemma
+  assumes A1 and A2  -- {* assumptions *}
+  obtains
+    (case1)  x y where "B1 x y" and "C1 x y"
+  | (case2)  x y where "B2 x y" and "C2 x y"
+  sorry
+
+
+subsubsection {* Example *}
+
+lemma tertium_non_datur:
+  obtains
+    (T)  A
+  | (F)  "\<not> A"
+  by blast
+
+notepad
+begin
+  fix x y :: 'a
+  have C
+  proof (cases "x = y" rule: tertium_non_datur)
+    case T
+    from `x = y` show ?thesis sorry
+  next
+    case F
+    from `x \<noteq> y` show ?thesis sorry
+  qed
+end
+
+
+subsubsection {* Example *}
+
+text {*
+  Isabelle/HOL specification mechanisms (datatype, inductive, etc.)
+  provide suitable derived cases rules.
+*}
+
+datatype foo = Foo | Bar foo
+
+notepad
+begin
+  fix x :: foo
+  have C
+  proof (cases x)
+    case Foo
+    from `x = Foo` show ?thesis sorry
+  next
+    case (Bar a)
+    from `x = Bar a` show ?thesis sorry
+  qed
+end
+
+
+subsection {* Obtaining local contexts *}
+
+text {* A single ``case'' branch may be inlined into Isar proof text
+  via @{command obtain}.  This proves @{prop "(\<And>x. B x \<Longrightarrow> thesis) \<Longrightarrow>
+  thesis"} on the spot, and augments the context afterwards.  *}
+
+notepad
+begin
+  fix B :: "'a \<Rightarrow> bool"
+
+  obtain x where "B x" sorry
+  note `B x`
+
+  txt {* Conclusions from this context may not mention @{term x} again! *}
+  {
+    obtain x where "B x" sorry
+    from `B x` have C sorry
+  }
+  note `C`
 end
 
 end
