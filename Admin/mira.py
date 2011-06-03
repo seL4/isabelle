@@ -270,7 +270,11 @@ def invoke_mutabelle(theory, env, case, paths, dep_paths, playground):
 
     (loc_isabelle,) = paths
     (dep_isabelle,) = dep_paths
-    prepare_isabelle_repository(loc_isabelle, env.settings.contrib, dep_isabelle)
+    more_settings = '''
+ISABELLE_GHC="/usr/local/ldist/bin/ghc"
+'''
+    prepare_isabelle_repository(loc_isabelle, env.settings.contrib, dep_isabelle,
+      more_settings = more_settings)
     os.chdir(loc_isabelle)
     
     (return_code, log) = env.run_process('bin/isabelle',
