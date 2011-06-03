@@ -336,47 +336,6 @@ added by \texttt{addsimps} as well as local assumptions.
 \index{rewrite rules|)}
 
 
-\subsection{*Simplification procedures}
-\begin{ttbox}
-addsimprocs : simpset * simproc list -> simpset
-delsimprocs : simpset * simproc list -> simpset
-\end{ttbox}
-
-Simplification procedures are {\ML} objects of abstract type
-\texttt{simproc}.  Basically they are just functions that may produce
-\emph{proven} rewrite rules on demand.  They are associated with
-certain patterns that conceptually represent left-hand sides of
-equations; these are shown by \texttt{print_ss}.  During its
-operation, the simplifier may offer a simplification procedure the
-current redex and ask for a suitable rewrite rule.  Thus rules may be
-specifically fashioned for particular situations, resulting in a more
-powerful mechanism than term rewriting by a fixed set of rules.
-
-
-\begin{ttdescription}
-  
-\item[$ss$ \ttindexbold{addsimprocs} $procs$] adds the simplification
-  procedures $procs$ to the current simpset.
-  
-\item[$ss$ \ttindexbold{delsimprocs} $procs$] deletes the simplification
-  procedures $procs$ from the current simpset.
-
-\end{ttdescription}
-
-For example, simplification procedures \ttindexbold{nat_cancel} of
-\texttt{HOL/Arith} cancel common summands and constant factors out of
-several relations of sums over natural numbers.
-
-Consider the following goal, which after cancelling $a$ on both sides
-contains a factor of $2$.  Simplifying with the simpset of
-\texttt{Arith.thy} will do the cancellation automatically:
-\begin{ttbox}
-{\out 1. x + a + x < y + y + 2 + a + a + a + a + a}
-by (Simp_tac 1);
-{\out 1. x < Suc (a + (a + y))}
-\end{ttbox}
-
-
 \subsection{*Congruence rules}\index{congruence rules}\label{sec:simp-congs}
 \begin{ttbox}
 addcongs   : simpset * thm list -> simpset \hfill{\bf infix 4}
@@ -918,82 +877,6 @@ knowing more about~$t$ and~$u$ we cannot say whether they both go to $t=u$
 or~$u=t$.)  Then the simplifier can prove the goal outright.
 
 \index{rewrite rules!permutative|)}
-
-
-\section{*Coding simplification procedures}
-\begin{ttbox}
-  val Simplifier.simproc: Sign.sg -> string -> string list
-    -> (Sign.sg -> simpset -> term -> thm option) -> simproc
-  val Simplifier.simproc_i: Sign.sg -> string -> term list
-    -> (Sign.sg -> simpset -> term -> thm option) -> simproc
-\end{ttbox}
-
-\begin{ttdescription}
-\item[\ttindexbold{Simplifier.simproc}~$sign$~$name$~$lhss$~$proc$] makes
-  $proc$ a simplification procedure for left-hand side patterns $lhss$.  The
-  name just serves as a comment.  The function $proc$ may be invoked by the
-  simplifier for redex positions matched by one of $lhss$ as described below
-  (which are be specified as strings to be read as terms).
-  
-\item[\ttindexbold{Simplifier.simproc_i}] is similar to
-  \verb,Simplifier.simproc,, but takes well-typed terms as pattern argument.
-\end{ttdescription}
-
-Simplification procedures are applied in a two-stage process as
-follows: The simplifier tries to match the current redex position
-against any one of the $lhs$ patterns of any simplification procedure.
-If this succeeds, it invokes the corresponding {\ML} function, passing
-with the current signature, local assumptions and the (potential)
-redex.  The result may be either \texttt{None} (indicating failure) or
-\texttt{Some~$thm$}.
-
-Any successful result is supposed to be a (possibly conditional)
-rewrite rule $t \equiv u$ that is applicable to the current redex.
-The rule will be applied just as any ordinary rewrite rule.  It is
-expected to be already in \emph{internal form}, though, bypassing the
-automatic preprocessing of object-level equivalences.
-
-\medskip
-
-As an example of how to write your own simplification procedures,
-consider eta-expansion of pair abstraction (see also
-\texttt{HOL/Modelcheck/MCSyn} where this is used to provide external
-model checker syntax).
-  
-The HOL theory of tuples (see \texttt{HOL/Prod}) provides an operator
-\texttt{split} together with some concrete syntax supporting
-$\lambda\,(x,y).b$ abstractions.  Assume that we would like to offer a tactic
-that rewrites any function $\lambda\,p.f\,p$ (where $p$ is of some pair type)
-to $\lambda\,(x,y).f\,(x,y)$.  The corresponding rule is:
-\begin{ttbox}
-pair_eta_expand:  (f::'a*'b=>'c) = (\%(x, y). f (x, y))
-\end{ttbox}
-Unfortunately, term rewriting using this rule directly would not
-terminate!  We now use the simplification procedure mechanism in order
-to stop the simplifier from applying this rule over and over again,
-making it rewrite only actual abstractions.  The simplification
-procedure \texttt{pair_eta_expand_proc} is defined as follows:
-\begin{ttbox}
-val pair_eta_expand_proc =
-  Simplifier.simproc (Theory.sign_of (the_context ()))
-    "pair_eta_expand" ["f::'a*'b=>'c"]
-    (fn _ => fn _ => fn t =>
-      case t of Abs _ => Some (mk_meta_eq pair_eta_expand)
-      | _ => None);
-\end{ttbox}
-This is an example of using \texttt{pair_eta_expand_proc}:
-\begin{ttbox}
-{\out 1. P (\%p::'a * 'a. fst p + snd p + z)}
-by (simp_tac (simpset() addsimprocs [pair_eta_expand_proc]) 1);
-{\out 1. P (\%(x::'a,y::'a). x + y + z)}
-\end{ttbox}
-
-\medskip
-
-In the above example the simplification procedure just did fine
-grained control over rule application, beyond higher-order pattern
-matching.  Usually, procedures would do some more work, in particular
-prove particular theorems depending on the current redex.
 
 
 \section{*Setting up the Simplifier}\label{sec:setting-up-simp}

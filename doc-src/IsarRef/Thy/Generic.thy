@@ -468,7 +468,22 @@ text {*
 
 subsection {* Simplification procedures *}
 
-text {*
+text {* Simplification procedures are ML functions that produce proven
+  rewrite rules on demand.  They are associated with higher-order
+  patterns that approximate the left-hand sides of equations.  The
+  Simplifier first matches the current redex against one of the LHS
+  patterns; if this succeeds, the corresponding ML function is
+  invoked, passing the Simplifier context and redex term.  Thus rules
+  may be specifically fashioned for particular situations, resulting
+  in a more powerful mechanism than term rewriting by a fixed set of
+  rules.
+
+  Any successful result needs to be a (possibly conditional) rewrite
+  rule @{text "t \<equiv> u"} that is applicable to the current redex.  The
+  rule will be applied just as any ordinary rewrite rule.  It is
+  expected to be already in \emph{internal form}, bypassing the
+  automatic preprocessing of object-level equivalences.
+
   \begin{matharray}{rcl}
     @{command_def "simproc_setup"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     simproc & : & @{text attribute} \\
@@ -510,6 +525,26 @@ text {*
 
   \end{description}
 *}
+
+
+subsubsection {* Example *}
+
+text {* The following simplification procedure for @{thm
+  [source=false, show_types] unit_eq} in HOL performs fine-grained
+  control over rule application, beyond higher-order pattern matching.
+  Declaring @{thm unit_eq} as @{attribute simp} directly would make
+  the simplifier loop!  Note that a version of this simplification
+  procedure is already active in Isabelle/HOL.  *}
+
+simproc_setup unit ("x::unit") = {*
+  fn _ => fn _ => fn ct =>
+    if HOLogic.is_unit (term_of ct) then NONE
+    else SOME (mk_meta_eq @{thm unit_eq})
+*}
+
+text {* Since the Simplifier applies simplification procedures
+  frequently, it is important to make the failure check in ML
+  reasonably fast. *}
 
 
 subsection {* Forward simplification *}

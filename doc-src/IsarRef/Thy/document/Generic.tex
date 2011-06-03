@@ -734,7 +734,23 @@ The following improper proof methods emulate traditional tactics.
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-\begin{matharray}{rcl}
+Simplification procedures are ML functions that produce proven
+  rewrite rules on demand.  They are associated with higher-order
+  patterns that approximate the left-hand sides of equations.  The
+  Simplifier first matches the current redex against one of the LHS
+  patterns; if this succeeds, the corresponding ML function is
+  invoked, passing the Simplifier context and redex term.  Thus rules
+  may be specifically fashioned for particular situations, resulting
+  in a more powerful mechanism than term rewriting by a fixed set of
+  rules.
+
+  Any successful result needs to be a (possibly conditional) rewrite
+  rule \isa{{\isaliteral{22}{\isachardoublequote}}t\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ u{\isaliteral{22}{\isachardoublequote}}} that is applicable to the current redex.  The
+  rule will be applied just as any ordinary rewrite rule.  It is
+  expected to be already in \emph{internal form}, bypassing the
+  automatic preprocessing of object-level equivalences.
+
+  \begin{matharray}{rcl}
     \indexdef{}{command}{simproc\_setup}\hypertarget{command.simproc-setup}{\hyperlink{command.simproc-setup}{\mbox{\isa{\isacommand{simproc{\isaliteral{5F}{\isacharunderscore}}setup}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
     simproc & : & \isa{attribute} \\
   \end{matharray}
@@ -807,6 +823,48 @@ The following improper proof methods emulate traditional tactics.
   already adds the new simproc to the subsequent context.
 
   \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Example%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The following simplification procedure for \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}u{\isaliteral{5C3C436F6C6F6E3E}{\isasymColon}}unit{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{29}{\isacharparenright}}} in HOL performs fine-grained
+  control over rule application, beyond higher-order pattern matching.
+  Declaring \isa{unit{\isaliteral{5F}{\isacharunderscore}}eq} as \hyperlink{attribute.simp}{\mbox{\isa{simp}}} directly would make
+  the simplifier loop!  Note that a version of this simplification
+  procedure is already active in Isabelle/HOL.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+\isacommand{simproc{\isaliteral{5F}{\isacharunderscore}}setup}\isamarkupfalse%
+\ unit\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequoteopen}}x{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}unit{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ fn\ {\isaliteral{5F}{\isacharunderscore}}\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ fn\ {\isaliteral{5F}{\isacharunderscore}}\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ fn\ ct\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\isanewline
+\ \ \ \ if\ HOLogic{\isaliteral{2E}{\isachardot}}is{\isaliteral{5F}{\isacharunderscore}}unit\ {\isaliteral{28}{\isacharparenleft}}term{\isaliteral{5F}{\isacharunderscore}}of\ ct{\isaliteral{29}{\isacharparenright}}\ then\ NONE\isanewline
+\ \ \ \ else\ SOME\ {\isaliteral{28}{\isacharparenleft}}mk{\isaliteral{5F}{\isacharunderscore}}meta{\isaliteral{5F}{\isacharunderscore}}eq\ %
+\isaantiq
+thm\ unit{\isaliteral{5F}{\isacharunderscore}}eq{}%
+\endisaantiq
+{\isaliteral{29}{\isacharparenright}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\begin{isamarkuptext}%
+Since the Simplifier applies simplification procedures
+  frequently, it is important to make the failure check in ML
+  reasonably fast.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
