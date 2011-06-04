@@ -582,6 +582,197 @@ text {*
 
 section {* The Classical Reasoner \label{sec:classical} *}
 
+subsection {* Introduction *}
+
+text {* Although Isabelle is generic, many users will be working in
+  some extension of classical first-order logic.  Isabelle/ZF is built
+  upon theory FOL, while Isabelle/HOL conceptually contains
+  first-order logic as a fragment.  Theorem-proving in predicate logic
+  is undecidable, but many automated strategies have been developed to
+  assist in this task.
+
+  Isabelle's classical reasoner is a generic package that accepts
+  certain information about a logic and delivers a suite of automatic
+  proof tools, based on rules that are classified and declared in the
+  context.  These proof procedures are slow and simplistic compared
+  with high-end automated theorem provers, but they can save
+  considerable time and effort in practice.  They can prove theorems
+  such as Pelletier's \cite{pelletier86} problems 40 and 41 in a few
+  milliseconds (including full proof reconstruction): *}
+
+lemma "(\<exists>y. \<forall>x. F x y \<longleftrightarrow> F x x) \<longrightarrow> \<not> (\<forall>x. \<exists>y. \<forall>z. F z y \<longleftrightarrow> \<not> F z x)"
+  by blast
+
+lemma "(\<forall>z. \<exists>y. \<forall>x. f x y \<longleftrightarrow> f x z \<and> \<not> f x x) \<longrightarrow> \<not> (\<exists>z. \<forall>x. f x z)"
+  by blast
+
+text {* The proof tools are generic.  They are not restricted to
+  first-order logic, and have been heavily used in the development of
+  the Isabelle/HOL library and applications.  The tactics can be
+  traced, and their components can be called directly; in this manner,
+  any proof can be viewed interactively.  *}
+
+
+subsubsection {* The sequent calculus *}
+
+text {* Isabelle supports natural deduction, which is easy to use for
+  interactive proof.  But natural deduction does not easily lend
+  itself to automation, and has a bias towards intuitionism.  For
+  certain proofs in classical logic, it can not be called natural.
+  The \emph{sequent calculus}, a generalization of natural deduction,
+  is easier to automate.
+
+  A \textbf{sequent} has the form @{text "\<Gamma> \<turnstile> \<Delta>"}, where @{text "\<Gamma>"}
+  and @{text "\<Delta>"} are sets of formulae.\footnote{For first-order
+  logic, sequents can equivalently be made from lists or multisets of
+  formulae.} The sequent @{text "P\<^sub>1, \<dots>, P\<^sub>m \<turnstile> Q\<^sub>1, \<dots>, Q\<^sub>n"} is
+  \textbf{valid} if @{text "P\<^sub>1 \<and> \<dots> \<and> P\<^sub>m"} implies @{text "Q\<^sub>1 \<or> \<dots> \<or>
+  Q\<^sub>n"}.  Thus @{text "P\<^sub>1, \<dots>, P\<^sub>m"} represent assumptions, each of which
+  is true, while @{text "Q\<^sub>1, \<dots>, Q\<^sub>n"} represent alternative goals.  A
+  sequent is \textbf{basic} if its left and right sides have a common
+  formula, as in @{text "P, Q \<turnstile> Q, R"}; basic sequents are trivially
+  valid.
+
+  Sequent rules are classified as \textbf{right} or \textbf{left},
+  indicating which side of the @{text "\<turnstile>"} symbol they operate on.
+  Rules that operate on the right side are analogous to natural
+  deduction's introduction rules, and left rules are analogous to
+  elimination rules.  The sequent calculus analogue of @{text "(\<longrightarrow>I)"}
+  is the rule
+  \[
+  \infer[@{text "(\<longrightarrow>R)"}]{@{text "\<Gamma> \<turnstile> \<Delta>, P \<longrightarrow> Q"}}{@{text "P, \<Gamma> \<turnstile> \<Delta>, Q"}}
+  \]
+  Applying the rule backwards, this breaks down some implication on
+  the right side of a sequent; @{text "\<Gamma>"} and @{text "\<Delta>"} stand for
+  the sets of formulae that are unaffected by the inference.  The
+  analogue of the pair @{text "(\<or>I1)"} and @{text "(\<or>I2)"} is the
+  single rule
+  \[
+  \infer[@{text "(\<or>R)"}]{@{text "\<Gamma> \<turnstile> \<Delta>, P \<or> Q"}}{@{text "\<Gamma> \<turnstile> \<Delta>, P, Q"}}
+  \]
+  This breaks down some disjunction on the right side, replacing it by
+  both disjuncts.  Thus, the sequent calculus is a kind of
+  multiple-conclusion logic.
+
+  To illustrate the use of multiple formulae on the right, let us
+  prove the classical theorem @{text "(P \<longrightarrow> Q) \<or> (Q \<longrightarrow> P)"}.  Working
+  backwards, we reduce this formula to a basic sequent:
+  \[
+  \infer[@{text "(\<or>R)"}]{@{text "\<turnstile> (P \<longrightarrow> Q) \<or> (Q \<longrightarrow> P)"}}
+    {\infer[@{text "(\<longrightarrow>R)"}]{@{text "\<turnstile> (P \<longrightarrow> Q), (Q \<longrightarrow> P)"}}
+      {\infer[@{text "(\<longrightarrow>R)"}]{@{text "P \<turnstile> Q, (Q \<longrightarrow> P)"}}
+        {@{text "P, Q \<turnstile> Q, P"}}}}
+  \]
+
+  This example is typical of the sequent calculus: start with the
+  desired theorem and apply rules backwards in a fairly arbitrary
+  manner.  This yields a surprisingly effective proof procedure.
+  Quantifiers add only few complications, since Isabelle handles
+  parameters and schematic variables.  See \cite[Chapter
+  10]{paulson-ml2} for further discussion.  *}
+
+
+subsubsection {* Simulating sequents by natural deduction *}
+
+text {* Isabelle can represent sequents directly, as in the
+  object-logic LK.  But natural deduction is easier to work with, and
+  most object-logics employ it.  Fortunately, we can simulate the
+  sequent @{text "P\<^sub>1, \<dots>, P\<^sub>m \<turnstile> Q\<^sub>1, \<dots>, Q\<^sub>n"} by the Isabelle formula
+  @{text "P\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> P\<^sub>m \<Longrightarrow> \<not> Q\<^sub>2 \<Longrightarrow> ... \<Longrightarrow> \<not> Q\<^sub>n \<Longrightarrow> Q\<^sub>1"} where the order of
+  the assumptions and the choice of @{text "Q\<^sub>1"} are arbitrary.
+  Elim-resolution plays a key role in simulating sequent proofs.
+
+  We can easily handle reasoning on the left.  Elim-resolution with
+  the rules @{text "(\<or>E)"}, @{text "(\<bottom>E)"} and @{text "(\<exists>E)"} achieves
+  a similar effect as the corresponding sequent rules.  For the other
+  connectives, we use sequent-style elimination rules instead of
+  destruction rules such as @{text "(\<and>E1, 2)"} and @{text "(\<forall>E)"}.
+  But note that the rule @{text "(\<not>L)"} has no effect under our
+  representation of sequents!
+  \[
+  \infer[@{text "(\<not>L)"}]{@{text "\<not> P, \<Gamma> \<turnstile> \<Delta>"}}{@{text "\<Gamma> \<turnstile> \<Delta>, P"}}
+  \]
+
+  What about reasoning on the right?  Introduction rules can only
+  affect the formula in the conclusion, namely @{text "Q\<^sub>1"}.  The
+  other right-side formulae are represented as negated assumptions,
+  @{text "\<not> Q\<^sub>2, \<dots>, \<not> Q\<^sub>n"}.  In order to operate on one of these, it
+  must first be exchanged with @{text "Q\<^sub>1"}.  Elim-resolution with the
+  @{text swap} rule has this effect: @{text "\<not> P \<Longrightarrow> (\<not> R \<Longrightarrow> P) \<Longrightarrow> R"}
+
+  To ensure that swaps occur only when necessary, each introduction
+  rule is converted into a swapped form: it is resolved with the
+  second premise of @{text "(swap)"}.  The swapped form of @{text
+  "(\<and>I)"}, which might be called @{text "(\<not>\<and>E)"}, is
+  @{text [display] "\<not> (P \<and> Q) \<Longrightarrow> (\<not> R \<Longrightarrow> P) \<Longrightarrow> (\<not> R \<Longrightarrow> Q) \<Longrightarrow> R"}
+
+  Similarly, the swapped form of @{text "(\<longrightarrow>I)"} is
+  @{text [display] "\<not> (P \<longrightarrow> Q) \<Longrightarrow> (\<not> R \<Longrightarrow> P \<Longrightarrow> Q) \<Longrightarrow> R"}
+
+  Swapped introduction rules are applied using elim-resolution, which
+  deletes the negated formula.  Our representation of sequents also
+  requires the use of ordinary introduction rules.  If we had no
+  regard for readability of intermediate goal states, we could treat
+  the right side more uniformly by representing sequents as @{text
+  [display] "P\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> P\<^sub>m \<Longrightarrow> \<not> Q\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> \<not> Q\<^sub>n \<Longrightarrow> \<bottom>"}
+*}
+
+
+subsubsection {* Extra rules for the sequent calculus *}
+
+text {* As mentioned, destruction rules such as @{text "(\<and>E1, 2)"} and
+  @{text "(\<forall>E)"} must be replaced by sequent-style elimination rules.
+  In addition, we need rules to embody the classical equivalence
+  between @{text "P \<longrightarrow> Q"} and @{text "\<not> P \<or> Q"}.  The introduction
+  rules @{text "(\<or>I1, 2)"} are replaced by a rule that simulates
+  @{text "(\<or>R)"}: @{text [display] "(\<not> Q \<Longrightarrow> P) \<Longrightarrow> P \<or> Q"}
+
+  The destruction rule @{text "(\<longrightarrow>E)"} is replaced by @{text [display]
+  "(P \<longrightarrow> Q) \<Longrightarrow> (\<not> P \<Longrightarrow> R) \<Longrightarrow> (Q \<Longrightarrow> R) \<Longrightarrow> R"}
+
+  Quantifier replication also requires special rules.  In classical
+  logic, @{text "\<exists>x. P x"} is equivalent to @{text "\<not> (\<forall>x. \<not> P x)"};
+  the rules @{text "(\<exists>R)"} and @{text "(\<forall>L)"} are dual:
+  \[
+  \infer[@{text "(\<exists>R)"}]{@{text "\<Gamma> \<turnstile> \<Delta>, \<exists>x. P x"}}{@{text "\<Gamma> \<turnstile> \<Delta>, \<exists>x. P x, P t"}}
+  \qquad
+  \infer[@{text "(\<forall>L)"}]{@{text "\<forall>x. P x, \<Gamma> \<turnstile> \<Delta>"}}{@{text "P t, \<forall>x. P x, \<Gamma> \<turnstile> \<Delta>"}}
+  \]
+  Thus both kinds of quantifier may be replicated.  Theorems requiring
+  multiple uses of a universal formula are easy to invent; consider
+  @{text [display] "(\<forall>x. P x \<longrightarrow> P (f x)) \<and> P a \<longrightarrow> P (f\<^sup>n a)"} for any
+  @{text "n > 1"}.  Natural examples of the multiple use of an
+  existential formula are rare; a standard one is @{text "\<exists>x. \<forall>y. P x
+  \<longrightarrow> P y"}.
+
+  Forgoing quantifier replication loses completeness, but gains
+  decidability, since the search space becomes finite.  Many useful
+  theorems can be proved without replication, and the search generally
+  delivers its verdict in a reasonable time.  To adopt this approach,
+  represent the sequent rules @{text "(\<exists>R)"}, @{text "(\<exists>L)"} and
+  @{text "(\<forall>R)"} by @{text "(\<exists>I)"}, @{text "(\<exists>E)"} and @{text "(\<forall>I)"},
+  respectively, and put @{text "(\<forall>E)"} into elimination form: @{text
+  [display] "\<forall>x. P x \<Longrightarrow> (P t \<Longrightarrow> Q) \<Longrightarrow> Q"}
+
+  Elim-resolution with this rule will delete the universal formula
+  after a single use.  To replicate universal quantifiers, replace the
+  rule by @{text [display] "\<forall>x. P x \<Longrightarrow> (P t \<Longrightarrow> \<forall>x. P x \<Longrightarrow> Q) \<Longrightarrow> Q"}
+
+  To replicate existential quantifiers, replace @{text "(\<exists>I)"} by
+  @{text [display] "(\<not> (\<exists>x. P x) \<Longrightarrow> P t) \<Longrightarrow> \<exists>x. P x"}
+
+  All introduction rules mentioned above are also useful in swapped
+  form.
+
+  Replication makes the search space infinite; we must apply the rules
+  with care.  The classical reasoner distinguishes between safe and
+  unsafe rules, applying the latter only when there is no alternative.
+  Depth-first search may well go down a blind alley; best-first search
+  is better behaved in an infinite search space.  However, quantifier
+  replication is too expensive to prove any but the simplest theorems.
+*}
+
+
 subsection {* Basic methods *}
 
 text {*

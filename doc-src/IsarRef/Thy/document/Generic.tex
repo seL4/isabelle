@@ -924,6 +924,254 @@ Since the Simplifier applies simplification procedures
 }
 \isamarkuptrue%
 %
+\isamarkupsubsection{Introduction%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Although Isabelle is generic, many users will be working in
+  some extension of classical first-order logic.  Isabelle/ZF is built
+  upon theory FOL, while Isabelle/HOL conceptually contains
+  first-order logic as a fragment.  Theorem-proving in predicate logic
+  is undecidable, but many automated strategies have been developed to
+  assist in this task.
+
+  Isabelle's classical reasoner is a generic package that accepts
+  certain information about a logic and delivers a suite of automatic
+  proof tools, based on rules that are classified and declared in the
+  context.  These proof procedures are slow and simplistic compared
+  with high-end automated theorem provers, but they can save
+  considerable time and effort in practice.  They can prove theorems
+  such as Pelletier's \cite{pelletier86} problems 40 and 41 in a few
+  milliseconds (including full proof reconstruction):%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}y{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ F\ x\ y\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ F\ x\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}y{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}z{\isaliteral{2E}{\isachardot}}\ F\ z\ y\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ F\ z\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ blast%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}z{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}y{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ f\ x\ y\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ f\ x\ z\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ f\ x\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}z{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ f\ x\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ blast%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+The proof tools are generic.  They are not restricted to
+  first-order logic, and have been heavily used in the development of
+  the Isabelle/HOL library and applications.  The tactics can be
+  traced, and their components can be called directly; in this manner,
+  any proof can be viewed interactively.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{The sequent calculus%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Isabelle supports natural deduction, which is easy to use for
+  interactive proof.  But natural deduction does not easily lend
+  itself to automation, and has a bias towards intuitionism.  For
+  certain proofs in classical logic, it can not be called natural.
+  The \emph{sequent calculus}, a generalization of natural deduction,
+  is easier to automate.
+
+  A \textbf{sequent} has the form \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{22}{\isachardoublequote}}}, where \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}{\isaliteral{22}{\isachardoublequote}}}
+  and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{22}{\isachardoublequote}}} are sets of formulae.\footnote{For first-order
+  logic, sequents can equivalently be made from lists or multisets of
+  formulae.} The sequent \isa{{\isaliteral{22}{\isachardoublequote}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ P\isaliteral{5C3C5E7375623E}{}\isactrlsub m\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} is
+  \textbf{valid} if \isa{{\isaliteral{22}{\isachardoublequote}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ P\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{22}{\isachardoublequote}}} implies \isa{{\isaliteral{22}{\isachardoublequote}}Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}.  Thus \isa{{\isaliteral{22}{\isachardoublequote}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ P\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{22}{\isachardoublequote}}} represent assumptions, each of which
+  is true, while \isa{{\isaliteral{22}{\isachardoublequote}}Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} represent alternative goals.  A
+  sequent is \textbf{basic} if its left and right sides have a common
+  formula, as in \isa{{\isaliteral{22}{\isachardoublequote}}P{\isaliteral{2C}{\isacharcomma}}\ Q\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ Q{\isaliteral{2C}{\isacharcomma}}\ R{\isaliteral{22}{\isachardoublequote}}}; basic sequents are trivially
+  valid.
+
+  Sequent rules are classified as \textbf{right} or \textbf{left},
+  indicating which side of the \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}{\isaliteral{22}{\isachardoublequote}}} symbol they operate on.
+  Rules that operate on the right side are analogous to natural
+  deduction's introduction rules, and left rules are analogous to
+  elimination rules.  The sequent calculus analogue of \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}I{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}
+  is the rule
+  \[
+  \infer[\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}R{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}]{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{2C}{\isacharcomma}}\ P\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ Q{\isaliteral{22}{\isachardoublequote}}}}{\isa{{\isaliteral{22}{\isachardoublequote}}P{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{2C}{\isacharcomma}}\ Q{\isaliteral{22}{\isachardoublequote}}}}
+  \]
+  Applying the rule backwards, this breaks down some implication on
+  the right side of a sequent; \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{22}{\isachardoublequote}}} stand for
+  the sets of formulae that are unaffected by the inference.  The
+  analogue of the pair \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6F723E}{\isasymor}}I{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6F723E}{\isasymor}}I{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} is the
+  single rule
+  \[
+  \infer[\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6F723E}{\isasymor}}R{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}]{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{2C}{\isacharcomma}}\ P\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q{\isaliteral{22}{\isachardoublequote}}}}{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{2C}{\isacharcomma}}\ P{\isaliteral{2C}{\isacharcomma}}\ Q{\isaliteral{22}{\isachardoublequote}}}}
+  \]
+  This breaks down some disjunction on the right side, replacing it by
+  both disjuncts.  Thus, the sequent calculus is a kind of
+  multiple-conclusion logic.
+
+  To illustrate the use of multiple formulae on the right, let us
+  prove the classical theorem \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}P\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{28}{\isacharparenleft}}Q\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}.  Working
+  backwards, we reduce this formula to a basic sequent:
+  \[
+  \infer[\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6F723E}{\isasymor}}R{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}]{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{28}{\isacharparenleft}}P\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{28}{\isacharparenleft}}Q\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}}
+    {\infer[\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}R{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}]{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{28}{\isacharparenleft}}P\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{28}{\isacharparenleft}}Q\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}}
+      {\infer[\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}R{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}]{\isa{{\isaliteral{22}{\isachardoublequote}}P\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ Q{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{28}{\isacharparenleft}}Q\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}}
+        {\isa{{\isaliteral{22}{\isachardoublequote}}P{\isaliteral{2C}{\isacharcomma}}\ Q\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ Q{\isaliteral{2C}{\isacharcomma}}\ P{\isaliteral{22}{\isachardoublequote}}}}}}
+  \]
+
+  This example is typical of the sequent calculus: start with the
+  desired theorem and apply rules backwards in a fairly arbitrary
+  manner.  This yields a surprisingly effective proof procedure.
+  Quantifiers add only few complications, since Isabelle handles
+  parameters and schematic variables.  See \cite[Chapter
+  10]{paulson-ml2} for further discussion.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Simulating sequents by natural deduction%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Isabelle can represent sequents directly, as in the
+  object-logic LK.  But natural deduction is easier to work with, and
+  most object-logics employ it.  Fortunately, we can simulate the
+  sequent \isa{{\isaliteral{22}{\isachardoublequote}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ P\isaliteral{5C3C5E7375623E}{}\isactrlsub m\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} by the Isabelle formula
+  \isa{{\isaliteral{22}{\isachardoublequote}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\isaliteral{5C3C5E7375623E}{}\isactrlsub m\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}} where the order of
+  the assumptions and the choice of \isa{{\isaliteral{22}{\isachardoublequote}}Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}} are arbitrary.
+  Elim-resolution plays a key role in simulating sequent proofs.
+
+  We can easily handle reasoning on the left.  Elim-resolution with
+  the rules \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6F723E}{\isasymor}}E{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C626F74746F6D3E}{\isasymbottom}}E{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}E{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} achieves
+  a similar effect as the corresponding sequent rules.  For the other
+  connectives, we use sequent-style elimination rules instead of
+  destruction rules such as \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616E643E}{\isasymand}}E{\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}E{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}.
+  But note that the rule \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}L{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} has no effect under our
+  representation of sequents!
+  \[
+  \infer[\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}L{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}]{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{22}{\isachardoublequote}}}}{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{2C}{\isacharcomma}}\ P{\isaliteral{22}{\isachardoublequote}}}}
+  \]
+
+  What about reasoning on the right?  Introduction rules can only
+  affect the formula in the conclusion, namely \isa{{\isaliteral{22}{\isachardoublequote}}Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}}.  The
+  other right-side formulae are represented as negated assumptions,
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}.  In order to operate on one of these, it
+  must first be exchanged with \isa{{\isaliteral{22}{\isachardoublequote}}Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}}.  Elim-resolution with the
+  \isa{swap} rule has this effect: \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ R\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ R{\isaliteral{22}{\isachardoublequote}}}
+
+  To ensure that swaps occur only when necessary, each introduction
+  rule is converted into a swapped form: it is resolved with the
+  second premise of \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}swap{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}.  The swapped form of \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616E643E}{\isasymand}}I{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}, which might be called \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}{\isaliteral{5C3C616E643E}{\isasymand}}E{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}, is
+  \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{28}{\isacharparenleft}}P\ {\isaliteral{5C3C616E643E}{\isasymand}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ R\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ R\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ R{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle}
+
+  Similarly, the swapped form of \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}I{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} is
+  \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{28}{\isacharparenleft}}P\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ R\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ R{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle}
+
+  Swapped introduction rules are applied using elim-resolution, which
+  deletes the negated formula.  Our representation of sequents also
+  requires the use of ordinary introduction rules.  If we had no
+  regard for readability of intermediate goal states, we could treat
+  the right side more uniformly by representing sequents as \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\isaliteral{5C3C5E7375623E}{}\isactrlsub m\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C626F74746F6D3E}{\isasymbottom}}{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Extra rules for the sequent calculus%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+As mentioned, destruction rules such as \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616E643E}{\isasymand}}E{\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} and
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}E{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} must be replaced by sequent-style elimination rules.
+  In addition, we need rules to embody the classical equivalence
+  between \isa{{\isaliteral{22}{\isachardoublequote}}P\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ Q{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q{\isaliteral{22}{\isachardoublequote}}}.  The introduction
+  rules \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6F723E}{\isasymor}}I{\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} are replaced by a rule that simulates
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6F723E}{\isasymor}}R{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}: \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ Q\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle}
+
+  The destruction rule \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}E{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} is replaced by \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}P\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ R{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}Q\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ R{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ R{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle}
+
+  Quantifier replication also requires special rules.  In classical
+  logic, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{22}{\isachardoublequote}}} is equivalent to \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}};
+  the rules \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}R{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}L{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} are dual:
+  \[
+  \infer[\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}R{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}]{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{22}{\isachardoublequote}}}}{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{2C}{\isacharcomma}}\ P\ t{\isaliteral{22}{\isachardoublequote}}}}
+  \qquad
+  \infer[\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}L{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}]{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{22}{\isachardoublequote}}}}{\isa{{\isaliteral{22}{\isachardoublequote}}P\ t{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{22}{\isachardoublequote}}}}
+  \]
+  Thus both kinds of quantifier may be replicated.  Theorems requiring
+  multiple uses of a universal formula are easy to invent; consider
+  \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P\ {\isaliteral{28}{\isacharparenleft}}f\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ P\ a\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P\ {\isaliteral{28}{\isacharparenleft}}f\isaliteral{5C3C5E7375703E}{}\isactrlsup n\ a{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle} for any
+  \isa{{\isaliteral{22}{\isachardoublequote}}n\ {\isaliteral{3E}{\isachargreater}}\ {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}}.  Natural examples of the multiple use of an
+  existential formula are rare; a standard one is \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}y{\isaliteral{2E}{\isachardot}}\ P\ x\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P\ y{\isaliteral{22}{\isachardoublequote}}}.
+
+  Forgoing quantifier replication loses completeness, but gains
+  decidability, since the search space becomes finite.  Many useful
+  theorems can be proved without replication, and the search generally
+  delivers its verdict in a reasonable time.  To adopt this approach,
+  represent the sequent rules \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}R{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}L{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} and
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}R{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} by \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}I{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}E{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}I{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}},
+  respectively, and put \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}E{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} into elimination form: \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}P\ t\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle}
+
+  Elim-resolution with this rule will delete the universal formula
+  after a single use.  To replicate universal quantifiers, replace the
+  rule by \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}P\ t\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle}
+
+  To replicate existential quantifiers, replace \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}I{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} by
+  \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle}
+
+  All introduction rules mentioned above are also useful in swapped
+  form.
+
+  Replication makes the search space infinite; we must apply the rules
+  with care.  The classical reasoner distinguishes between safe and
+  unsafe rules, applying the latter only when there is no alternative.
+  Depth-first search may well go down a blind alley; best-first search
+  is better behaved in an infinite search space.  However, quantifier
+  replication is too expensive to prove any but the simplest theorems.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsubsection{Basic methods%
 }
 \isamarkuptrue%
