@@ -1403,14 +1403,15 @@ text {*
 
   \item @{command (HOL) "value"}~@{text t} evaluates and prints a
     term; optionally @{text modes} can be specified, which are
-    appended to the current print mode (see also \cite{isabelle-ref}).
+    appended to the current print mode; see \secref{sec:print-modes}.
     Internally, the evaluation is performed by registered evaluators,
     which are invoked sequentially until a result is returned.
     Alternatively a specific evaluator can be selected using square
     brackets; typical evaluators use the current set of code equations
-    to normalize and include @{text simp} for fully symbolic evaluation
-    using the simplifier, @{text nbe} for \emph{normalization by evaluation}
-    and \emph{code} for code generation in SML.
+    to normalize and include @{text simp} for fully symbolic
+    evaluation using the simplifier, @{text nbe} for
+    \emph{normalization by evaluation} and \emph{code} for code
+    generation in SML.
 
   \item @{command (HOL) "quickcheck"} tests the current goal for
     counterexamples using a series of assignments for its
