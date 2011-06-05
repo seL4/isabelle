@@ -875,47 +875,6 @@ text {* The proof tools of the Classical Reasoner depend on
   illustrative purposes: the Classical Reasoner already swaps rules
   internally as explained above.
 
-  \end{description} *}
-
-
-subsection {* Basic methods *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{method_def rule} & : & @{text method} \\
-    @{method_def contradiction} & : & @{text method} \\
-    @{method_def intro} & : & @{text method} \\
-    @{method_def elim} & : & @{text method} \\
-  \end{matharray}
-
-  @{rail "
-    (@@{method rule} | @@{method intro} | @@{method elim}) @{syntax thmrefs}?
-  "}
-
-  \begin{description}
-
-  \item @{method rule} as offered by the Classical Reasoner is a
-  refinement over the primitive one (see \secref{sec:pure-meth-att}).
-  Both versions essentially work the same, but the classical version
-  observes the classical rule context in addition to that of
-  Isabelle/Pure.
-
-  Common object logics (HOL, ZF, etc.) declare a rich collection of
-  classical rules (even if these would qualify as intuitionistic
-  ones), but only few declarations to the rule context of
-  Isabelle/Pure (\secref{sec:pure-meth-att}).
-
-  \item @{method contradiction} solves some goal by contradiction,
-  deriving any result from both @{text "\<not> A"} and @{text A}.  Chained
-  facts, which are guaranteed to participate, may appear in either
-  order.
-
-  \item @{method intro} and @{method elim} repeatedly refine some goal
-  by intro- or elim-resolution, after having inserted any chained
-  facts.  Exactly the rules given as arguments are taken into account;
-  this allows fine-tuned decomposition of a proof problem, in contrast
-  to common automated tools.
-
   \end{description}
 *}
 
@@ -1004,6 +963,47 @@ text {*
 
   Facts provided by forward chaining are inserted into the goal before
   doing the search.
+
+  \end{description}
+*}
+
+
+subsection {* Structured proof methods *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{method_def rule} & : & @{text method} \\
+    @{method_def contradiction} & : & @{text method} \\
+    @{method_def intro} & : & @{text method} \\
+    @{method_def elim} & : & @{text method} \\
+  \end{matharray}
+
+  @{rail "
+    (@@{method rule} | @@{method intro} | @@{method elim}) @{syntax thmrefs}?
+  "}
+
+  \begin{description}
+
+  \item @{method rule} as offered by the Classical Reasoner is a
+  refinement over the Pure one (see \secref{sec:pure-meth-att}).  Both
+  versions work the same, but the classical version observes the
+  classical rule context in addition to that of Isabelle/Pure.
+
+  Common object logics (HOL, ZF, etc.) declare a rich collection of
+  classical rules (even if these would qualify as intuitionistic
+  ones), but only few declarations to the rule context of
+  Isabelle/Pure (\secref{sec:pure-meth-att}).
+
+  \item @{method contradiction} solves some goal by contradiction,
+  deriving any result from both @{text "\<not> A"} and @{text A}.  Chained
+  facts, which are guaranteed to participate, may appear in either
+  order.
+
+  \item @{method intro} and @{method elim} repeatedly refine some goal
+  by intro- or elim-resolution, after having inserted any chained
+  facts.  Exactly the rules given as arguments are taken into account;
+  this allows fine-tuned decomposition of a proof problem, in contrast
+  to common automated tools.
 
   \end{description}
 *}

@@ -1311,63 +1311,6 @@ The proof tools of the Classical Reasoner depend on
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Basic methods%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-\begin{matharray}{rcl}
-    \indexdef{}{method}{rule}\hypertarget{method.rule}{\hyperlink{method.rule}{\mbox{\isa{rule}}}} & : & \isa{method} \\
-    \indexdef{}{method}{contradiction}\hypertarget{method.contradiction}{\hyperlink{method.contradiction}{\mbox{\isa{contradiction}}}} & : & \isa{method} \\
-    \indexdef{}{method}{intro}\hypertarget{method.intro}{\hyperlink{method.intro}{\mbox{\isa{intro}}}} & : & \isa{method} \\
-    \indexdef{}{method}{elim}\hypertarget{method.elim}{\hyperlink{method.elim}{\mbox{\isa{elim}}}} & : & \isa{method} \\
-  \end{matharray}
-
-  \begin{railoutput}
-\rail@begin{3}{}
-\rail@bar
-\rail@term{\hyperlink{method.rule}{\mbox{\isa{rule}}}}[]
-\rail@nextbar{1}
-\rail@term{\hyperlink{method.intro}{\mbox{\isa{intro}}}}[]
-\rail@nextbar{2}
-\rail@term{\hyperlink{method.elim}{\mbox{\isa{elim}}}}[]
-\rail@endbar
-\rail@bar
-\rail@nextbar{1}
-\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
-\rail@endbar
-\rail@end
-\end{railoutput}
-
-
-  \begin{description}
-
-  \item \hyperlink{method.rule}{\mbox{\isa{rule}}} as offered by the Classical Reasoner is a
-  refinement over the primitive one (see \secref{sec:pure-meth-att}).
-  Both versions essentially work the same, but the classical version
-  observes the classical rule context in addition to that of
-  Isabelle/Pure.
-
-  Common object logics (HOL, ZF, etc.) declare a rich collection of
-  classical rules (even if these would qualify as intuitionistic
-  ones), but only few declarations to the rule context of
-  Isabelle/Pure (\secref{sec:pure-meth-att}).
-
-  \item \hyperlink{method.contradiction}{\mbox{\isa{contradiction}}} solves some goal by contradiction,
-  deriving any result from both \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A{\isaliteral{22}{\isachardoublequote}}} and \isa{A}.  Chained
-  facts, which are guaranteed to participate, may appear in either
-  order.
-
-  \item \hyperlink{method.intro}{\mbox{\isa{intro}}} and \hyperlink{method.elim}{\mbox{\isa{elim}}} repeatedly refine some goal
-  by intro- or elim-resolution, after having inserted any chained
-  facts.  Exactly the rules given as arguments are taken into account;
-  this allows fine-tuned decomposition of a proof problem, in contrast
-  to common automated tools.
-
-  \end{description}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
 \isamarkupsubsection{Automated methods%
 }
 \isamarkuptrue%
@@ -1573,6 +1516,62 @@ The proof tools of the Classical Reasoner depend on
 
   Facts provided by forward chaining are inserted into the goal before
   doing the search.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Structured proof methods%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{}{method}{rule}\hypertarget{method.rule}{\hyperlink{method.rule}{\mbox{\isa{rule}}}} & : & \isa{method} \\
+    \indexdef{}{method}{contradiction}\hypertarget{method.contradiction}{\hyperlink{method.contradiction}{\mbox{\isa{contradiction}}}} & : & \isa{method} \\
+    \indexdef{}{method}{intro}\hypertarget{method.intro}{\hyperlink{method.intro}{\mbox{\isa{intro}}}} & : & \isa{method} \\
+    \indexdef{}{method}{elim}\hypertarget{method.elim}{\hyperlink{method.elim}{\mbox{\isa{elim}}}} & : & \isa{method} \\
+  \end{matharray}
+
+  \begin{railoutput}
+\rail@begin{3}{}
+\rail@bar
+\rail@term{\hyperlink{method.rule}{\mbox{\isa{rule}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{method.intro}{\mbox{\isa{intro}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{method.elim}{\mbox{\isa{elim}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
+
+  \begin{description}
+
+  \item \hyperlink{method.rule}{\mbox{\isa{rule}}} as offered by the Classical Reasoner is a
+  refinement over the Pure one (see \secref{sec:pure-meth-att}).  Both
+  versions work the same, but the classical version observes the
+  classical rule context in addition to that of Isabelle/Pure.
+
+  Common object logics (HOL, ZF, etc.) declare a rich collection of
+  classical rules (even if these would qualify as intuitionistic
+  ones), but only few declarations to the rule context of
+  Isabelle/Pure (\secref{sec:pure-meth-att}).
+
+  \item \hyperlink{method.contradiction}{\mbox{\isa{contradiction}}} solves some goal by contradiction,
+  deriving any result from both \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A{\isaliteral{22}{\isachardoublequote}}} and \isa{A}.  Chained
+  facts, which are guaranteed to participate, may appear in either
+  order.
+
+  \item \hyperlink{method.intro}{\mbox{\isa{intro}}} and \hyperlink{method.elim}{\mbox{\isa{elim}}} repeatedly refine some goal
+  by intro- or elim-resolution, after having inserted any chained
+  facts.  Exactly the rules given as arguments are taken into account;
+  this allows fine-tuned decomposition of a proof problem, in contrast
+  to common automated tools.
 
   \end{description}%
 \end{isamarkuptext}%
