@@ -773,6 +773,111 @@ text {* As mentioned, destruction rules such as @{text "(\<and>E1, 2)"} and
 *}
 
 
+subsection {* Rule declarations *}
+
+text {* The proof tools of the Classical Reasoner depend on
+  collections of rules declared in the context, which are classified
+  as introduction, elimination or destruction and as \emph{safe} or
+  \emph{unsafe}.  In general, safe rules can be attempted blindly,
+  while unsafe rules must be used with care.  A safe rule must never
+  reduce a provable goal to an unprovable set of subgoals.
+
+  The rule @{text "P \<Longrightarrow> P \<or> Q"} is unsafe because it reduces @{text "P
+  \<or> Q"} to @{text "P"}, which might turn out as premature choice of an
+  unprovable subgoal.  Any rule is unsafe whose premises contain new
+  unknowns.  The elimination rule @{text "\<forall>x. P x \<Longrightarrow> (P t \<Longrightarrow> Q) \<Longrightarrow> Q"} is
+  unsafe, since it is applied via elim-resolution, which discards the
+  assumption @{text "\<forall>x. P x"} and replaces it by the weaker
+  assumption @{text "P t"}.  The rule @{text "P t \<Longrightarrow> \<exists>x. P x"} is
+  unsafe for similar reasons.  The quantifier duplication rule @{text
+  "\<forall>x. P x \<Longrightarrow> (P t \<Longrightarrow> \<forall>x. P x \<Longrightarrow> Q) \<Longrightarrow> Q"} is unsafe in a different sense:
+  since it keeps the assumption @{text "\<forall>x. P x"}, it is prone to
+  looping.  In classical first-order logic, all rules are safe except
+  those mentioned above.
+
+  The safe~/ unsafe distinction is vague, and may be regarded merely
+  as a way of giving some rules priority over others.  One could argue
+  that @{text "(\<or>E)"} is unsafe, because repeated application of it
+  could generate exponentially many subgoals.  Induction rules are
+  unsafe because inductive proofs are difficult to set up
+  automatically.  Any inference is unsafe that instantiates an unknown
+  in the proof state --- thus matching must be used, rather than
+  unification.  Even proof by assumption is unsafe if it instantiates
+  unknowns shared with other subgoals.
+
+  \begin{matharray}{rcl}
+    @{command_def "print_claset"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{attribute_def intro} & : & @{text attribute} \\
+    @{attribute_def elim} & : & @{text attribute} \\
+    @{attribute_def dest} & : & @{text attribute} \\
+    @{attribute_def rule} & : & @{text attribute} \\
+    @{attribute_def iff} & : & @{text attribute} \\
+    @{attribute_def swapped} & : & @{text attribute} \\
+  \end{matharray}
+
+  @{rail "
+    (@@{attribute intro} | @@{attribute elim} | @@{attribute dest}) ('!' | () | '?') @{syntax nat}?
+    ;
+    @@{attribute rule} 'del'
+    ;
+    @@{attribute iff} (((() | 'add') '?'?) | 'del')
+  "}
+
+  \begin{description}
+
+  \item @{command "print_claset"} prints the collection of rules
+  declared to the Classical Reasoner, i.e.\ the @{ML_type claset}
+  within the context.
+
+  \item @{attribute intro}, @{attribute elim}, and @{attribute dest}
+  declare introduction, elimination, and destruction rules,
+  respectively.  By default, rules are considered as \emph{unsafe}
+  (i.e.\ not applied blindly without backtracking), while ``@{text
+  "!"}'' classifies as \emph{safe}.  Rule declarations marked by
+  ``@{text "?"}'' coincide with those of Isabelle/Pure, cf.\
+  \secref{sec:pure-meth-att} (i.e.\ are only applied in single steps
+  of the @{method rule} method).  The optional natural number
+  specifies an explicit weight argument, which is ignored by the
+  automated reasoning tools, but determines the search order of single
+  rule steps.
+
+  Introduction rules are those that can be applied using ordinary
+  resolution.  Their swapped forms are generated internally, which
+  will be applied using elim-resolution.  Elimination rules are
+  applied using elim-resolution.  Rules are sorted by the number of
+  new subgoals they will yield; rules that generate the fewest
+  subgoals will be tried first.  Otherwise, later declarations take
+  precedence over earlier ones.
+
+  Rules already present in the context with the same classification
+  are ignored.  A warning is printed if the rule has already been
+  added with some other classification, but the rule is added anyway
+  as requested.
+
+  \item @{attribute rule}~@{text del} deletes all occurrences of a
+  rule from the classical context, regardless of its classification as
+  introduction~/ elimination~/ destruction and safe~/ unsafe.
+
+  \item @{attribute iff} declares logical equivalences to the
+  Simplifier and the Classical reasoner at the same time.
+  Non-conditional rules result in a safe introduction and elimination
+  pair; conditional ones are considered unsafe.  Rules with negative
+  conclusion are automatically inverted (using @{text "\<not>"}-elimination
+  internally).
+
+  The ``@{text "?"}'' version of @{attribute iff} declares rules to
+  the Isabelle/Pure context only, and omits the Simplifier
+  declaration.
+
+  \item @{attribute swapped} turns an introduction rule into an
+  elimination, by resolving with the classical swap principle @{text
+  "\<not> P \<Longrightarrow> (\<not> R \<Longrightarrow> P) \<Longrightarrow> R"} in the second position.  This is mainly for
+  illustrative purposes: the Classical Reasoner already swaps rules
+  internally as explained above.
+
+  \end{description} *}
+
+
 subsection {* Basic methods *}
 
 text {*
@@ -899,78 +1004,6 @@ text {*
 
   Facts provided by forward chaining are inserted into the goal before
   doing the search.
-
-  \end{description}
-*}
-
-
-subsection {* Declaring rules *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{command_def "print_claset"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{attribute_def intro} & : & @{text attribute} \\
-    @{attribute_def elim} & : & @{text attribute} \\
-    @{attribute_def dest} & : & @{text attribute} \\
-    @{attribute_def rule} & : & @{text attribute} \\
-    @{attribute_def iff} & : & @{text attribute} \\
-  \end{matharray}
-
-  @{rail "
-    (@@{attribute intro} | @@{attribute elim} | @@{attribute dest}) ('!' | () | '?') @{syntax nat}?
-    ;
-    @@{attribute rule} 'del'
-    ;
-    @@{attribute iff} (((() | 'add') '?'?) | 'del')
-  "}
-
-  \begin{description}
-
-  \item @{command "print_claset"} prints the collection of rules
-  declared to the Classical Reasoner, which is also known as
-  ``claset'' internally \cite{isabelle-ref}.
-  
-  \item @{attribute intro}, @{attribute elim}, and @{attribute dest}
-  declare introduction, elimination, and destruction rules,
-  respectively.  By default, rules are considered as \emph{unsafe}
-  (i.e.\ not applied blindly without backtracking), while ``@{text
-  "!"}'' classifies as \emph{safe}.  Rule declarations marked by
-  ``@{text "?"}'' coincide with those of Isabelle/Pure, cf.\
-  \secref{sec:pure-meth-att} (i.e.\ are only applied in single steps
-  of the @{method rule} method).  The optional natural number
-  specifies an explicit weight argument, which is ignored by automated
-  tools, but determines the search order of single rule steps.
-
-  \item @{attribute rule}~@{text del} deletes introduction,
-  elimination, or destruction rules from the context.
-
-  \item @{attribute iff} declares logical equivalences to the
-  Simplifier and the Classical reasoner at the same time.
-  Non-conditional rules result in a ``safe'' introduction and
-  elimination pair; conditional ones are considered ``unsafe''.  Rules
-  with negative conclusion are automatically inverted (using @{text
-  "\<not>"}-elimination internally).
-
-  The ``@{text "?"}'' version of @{attribute iff} declares rules to
-  the Isabelle/Pure context only, and omits the Simplifier
-  declaration.
-
-  \end{description}
-*}
-
-
-subsection {* Classical operations *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{attribute_def swapped} & : & @{text attribute} \\
-  \end{matharray}
-
-  \begin{description}
-
-  \item @{attribute swapped} turns an introduction rule into an
-  elimination, by resolving with the classical swap principle @{text
-  "(\<not> B \<Longrightarrow> A) \<Longrightarrow> (\<not> A \<Longrightarrow> B)"}.
 
   \end{description}
 *}

@@ -1172,6 +1172,145 @@ As mentioned, destruction rules such as \isa{{\isaliteral{22}{\isachardoublequot
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsubsection{Rule declarations%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The proof tools of the Classical Reasoner depend on
+  collections of rules declared in the context, which are classified
+  as introduction, elimination or destruction and as \emph{safe} or
+  \emph{unsafe}.  In general, safe rules can be attempted blindly,
+  while unsafe rules must be used with care.  A safe rule must never
+  reduce a provable goal to an unprovable set of subgoals.
+
+  The rule \isa{{\isaliteral{22}{\isachardoublequote}}P\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q{\isaliteral{22}{\isachardoublequote}}} is unsafe because it reduces \isa{{\isaliteral{22}{\isachardoublequote}}P\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q{\isaliteral{22}{\isachardoublequote}}} to \isa{{\isaliteral{22}{\isachardoublequote}}P{\isaliteral{22}{\isachardoublequote}}}, which might turn out as premature choice of an
+  unprovable subgoal.  Any rule is unsafe whose premises contain new
+  unknowns.  The elimination rule \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}P\ t\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q{\isaliteral{22}{\isachardoublequote}}} is
+  unsafe, since it is applied via elim-resolution, which discards the
+  assumption \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{22}{\isachardoublequote}}} and replaces it by the weaker
+  assumption \isa{{\isaliteral{22}{\isachardoublequote}}P\ t{\isaliteral{22}{\isachardoublequote}}}.  The rule \isa{{\isaliteral{22}{\isachardoublequote}}P\ t\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{22}{\isachardoublequote}}} is
+  unsafe for similar reasons.  The quantifier duplication rule \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}P\ t\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q{\isaliteral{22}{\isachardoublequote}}} is unsafe in a different sense:
+  since it keeps the assumption \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{22}{\isachardoublequote}}}, it is prone to
+  looping.  In classical first-order logic, all rules are safe except
+  those mentioned above.
+
+  The safe~/ unsafe distinction is vague, and may be regarded merely
+  as a way of giving some rules priority over others.  One could argue
+  that \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6F723E}{\isasymor}}E{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} is unsafe, because repeated application of it
+  could generate exponentially many subgoals.  Induction rules are
+  unsafe because inductive proofs are difficult to set up
+  automatically.  Any inference is unsafe that instantiates an unknown
+  in the proof state --- thus matching must be used, rather than
+  unification.  Even proof by assumption is unsafe if it instantiates
+  unknowns shared with other subgoals.
+
+  \begin{matharray}{rcl}
+    \indexdef{}{command}{print\_claset}\hypertarget{command.print-claset}{\hyperlink{command.print-claset}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}claset}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{attribute}{intro}\hypertarget{attribute.intro}{\hyperlink{attribute.intro}{\mbox{\isa{intro}}}} & : & \isa{attribute} \\
+    \indexdef{}{attribute}{elim}\hypertarget{attribute.elim}{\hyperlink{attribute.elim}{\mbox{\isa{elim}}}} & : & \isa{attribute} \\
+    \indexdef{}{attribute}{dest}\hypertarget{attribute.dest}{\hyperlink{attribute.dest}{\mbox{\isa{dest}}}} & : & \isa{attribute} \\
+    \indexdef{}{attribute}{rule}\hypertarget{attribute.rule}{\hyperlink{attribute.rule}{\mbox{\isa{rule}}}} & : & \isa{attribute} \\
+    \indexdef{}{attribute}{iff}\hypertarget{attribute.iff}{\hyperlink{attribute.iff}{\mbox{\isa{iff}}}} & : & \isa{attribute} \\
+    \indexdef{}{attribute}{swapped}\hypertarget{attribute.swapped}{\hyperlink{attribute.swapped}{\mbox{\isa{swapped}}}} & : & \isa{attribute} \\
+  \end{matharray}
+
+  \begin{railoutput}
+\rail@begin{3}{}
+\rail@bar
+\rail@term{\hyperlink{attribute.intro}{\mbox{\isa{intro}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{attribute.elim}{\mbox{\isa{elim}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{attribute.dest}{\mbox{\isa{dest}}}}[]
+\rail@endbar
+\rail@bar
+\rail@term{\isa{{\isaliteral{21}{\isacharbang}}}}[]
+\rail@nextbar{1}
+\rail@nextbar{2}
+\rail@term{\isa{{\isaliteral{3F}{\isacharquery}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{1}{}
+\rail@term{\hyperlink{attribute.rule}{\mbox{\isa{rule}}}}[]
+\rail@term{\isa{del}}[]
+\rail@end
+\rail@begin{3}{}
+\rail@term{\hyperlink{attribute.iff}{\mbox{\isa{iff}}}}[]
+\rail@bar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{add}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{3F}{\isacharquery}}}}[]
+\rail@endbar
+\rail@nextbar{2}
+\rail@term{\isa{del}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
+
+  \begin{description}
+
+  \item \hyperlink{command.print-claset}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}claset}}}} prints the collection of rules
+  declared to the Classical Reasoner, i.e.\ the \verb|claset|
+  within the context.
+
+  \item \hyperlink{attribute.intro}{\mbox{\isa{intro}}}, \hyperlink{attribute.elim}{\mbox{\isa{elim}}}, and \hyperlink{attribute.dest}{\mbox{\isa{dest}}}
+  declare introduction, elimination, and destruction rules,
+  respectively.  By default, rules are considered as \emph{unsafe}
+  (i.e.\ not applied blindly without backtracking), while ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{21}{\isacharbang}}{\isaliteral{22}{\isachardoublequote}}}'' classifies as \emph{safe}.  Rule declarations marked by
+  ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}{\isaliteral{22}{\isachardoublequote}}}'' coincide with those of Isabelle/Pure, cf.\
+  \secref{sec:pure-meth-att} (i.e.\ are only applied in single steps
+  of the \hyperlink{method.rule}{\mbox{\isa{rule}}} method).  The optional natural number
+  specifies an explicit weight argument, which is ignored by the
+  automated reasoning tools, but determines the search order of single
+  rule steps.
+
+  Introduction rules are those that can be applied using ordinary
+  resolution.  Their swapped forms are generated internally, which
+  will be applied using elim-resolution.  Elimination rules are
+  applied using elim-resolution.  Rules are sorted by the number of
+  new subgoals they will yield; rules that generate the fewest
+  subgoals will be tried first.  Otherwise, later declarations take
+  precedence over earlier ones.
+
+  Rules already present in the context with the same classification
+  are ignored.  A warning is printed if the rule has already been
+  added with some other classification, but the rule is added anyway
+  as requested.
+
+  \item \hyperlink{attribute.rule}{\mbox{\isa{rule}}}~\isa{del} deletes all occurrences of a
+  rule from the classical context, regardless of its classification as
+  introduction~/ elimination~/ destruction and safe~/ unsafe.
+
+  \item \hyperlink{attribute.iff}{\mbox{\isa{iff}}} declares logical equivalences to the
+  Simplifier and the Classical reasoner at the same time.
+  Non-conditional rules result in a safe introduction and elimination
+  pair; conditional ones are considered unsafe.  Rules with negative
+  conclusion are automatically inverted (using \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}{\isaliteral{22}{\isachardoublequote}}}-elimination
+  internally).
+
+  The ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}{\isaliteral{22}{\isachardoublequote}}}'' version of \hyperlink{attribute.iff}{\mbox{\isa{iff}}} declares rules to
+  the Isabelle/Pure context only, and omits the Simplifier
+  declaration.
+
+  \item \hyperlink{attribute.swapped}{\mbox{\isa{swapped}}} turns an introduction rule into an
+  elimination, by resolving with the classical swap principle \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ R\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ R{\isaliteral{22}{\isachardoublequote}}} in the second position.  This is mainly for
+  illustrative purposes: the Classical Reasoner already swaps rules
+  internally as explained above.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsubsection{Basic methods%
 }
 \isamarkuptrue%
@@ -1434,113 +1573,6 @@ As mentioned, destruction rules such as \isa{{\isaliteral{22}{\isachardoublequot
 
   Facts provided by forward chaining are inserted into the goal before
   doing the search.
-
-  \end{description}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{Declaring rules%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-\begin{matharray}{rcl}
-    \indexdef{}{command}{print\_claset}\hypertarget{command.print-claset}{\hyperlink{command.print-claset}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}claset}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
-    \indexdef{}{attribute}{intro}\hypertarget{attribute.intro}{\hyperlink{attribute.intro}{\mbox{\isa{intro}}}} & : & \isa{attribute} \\
-    \indexdef{}{attribute}{elim}\hypertarget{attribute.elim}{\hyperlink{attribute.elim}{\mbox{\isa{elim}}}} & : & \isa{attribute} \\
-    \indexdef{}{attribute}{dest}\hypertarget{attribute.dest}{\hyperlink{attribute.dest}{\mbox{\isa{dest}}}} & : & \isa{attribute} \\
-    \indexdef{}{attribute}{rule}\hypertarget{attribute.rule}{\hyperlink{attribute.rule}{\mbox{\isa{rule}}}} & : & \isa{attribute} \\
-    \indexdef{}{attribute}{iff}\hypertarget{attribute.iff}{\hyperlink{attribute.iff}{\mbox{\isa{iff}}}} & : & \isa{attribute} \\
-  \end{matharray}
-
-  \begin{railoutput}
-\rail@begin{3}{}
-\rail@bar
-\rail@term{\hyperlink{attribute.intro}{\mbox{\isa{intro}}}}[]
-\rail@nextbar{1}
-\rail@term{\hyperlink{attribute.elim}{\mbox{\isa{elim}}}}[]
-\rail@nextbar{2}
-\rail@term{\hyperlink{attribute.dest}{\mbox{\isa{dest}}}}[]
-\rail@endbar
-\rail@bar
-\rail@term{\isa{{\isaliteral{21}{\isacharbang}}}}[]
-\rail@nextbar{1}
-\rail@nextbar{2}
-\rail@term{\isa{{\isaliteral{3F}{\isacharquery}}}}[]
-\rail@endbar
-\rail@bar
-\rail@nextbar{1}
-\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
-\rail@endbar
-\rail@end
-\rail@begin{1}{}
-\rail@term{\hyperlink{attribute.rule}{\mbox{\isa{rule}}}}[]
-\rail@term{\isa{del}}[]
-\rail@end
-\rail@begin{3}{}
-\rail@term{\hyperlink{attribute.iff}{\mbox{\isa{iff}}}}[]
-\rail@bar
-\rail@bar
-\rail@nextbar{1}
-\rail@term{\isa{add}}[]
-\rail@endbar
-\rail@bar
-\rail@nextbar{1}
-\rail@term{\isa{{\isaliteral{3F}{\isacharquery}}}}[]
-\rail@endbar
-\rail@nextbar{2}
-\rail@term{\isa{del}}[]
-\rail@endbar
-\rail@end
-\end{railoutput}
-
-
-  \begin{description}
-
-  \item \hyperlink{command.print-claset}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}claset}}}} prints the collection of rules
-  declared to the Classical Reasoner, which is also known as
-  ``claset'' internally \cite{isabelle-ref}.
-  
-  \item \hyperlink{attribute.intro}{\mbox{\isa{intro}}}, \hyperlink{attribute.elim}{\mbox{\isa{elim}}}, and \hyperlink{attribute.dest}{\mbox{\isa{dest}}}
-  declare introduction, elimination, and destruction rules,
-  respectively.  By default, rules are considered as \emph{unsafe}
-  (i.e.\ not applied blindly without backtracking), while ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{21}{\isacharbang}}{\isaliteral{22}{\isachardoublequote}}}'' classifies as \emph{safe}.  Rule declarations marked by
-  ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}{\isaliteral{22}{\isachardoublequote}}}'' coincide with those of Isabelle/Pure, cf.\
-  \secref{sec:pure-meth-att} (i.e.\ are only applied in single steps
-  of the \hyperlink{method.rule}{\mbox{\isa{rule}}} method).  The optional natural number
-  specifies an explicit weight argument, which is ignored by automated
-  tools, but determines the search order of single rule steps.
-
-  \item \hyperlink{attribute.rule}{\mbox{\isa{rule}}}~\isa{del} deletes introduction,
-  elimination, or destruction rules from the context.
-
-  \item \hyperlink{attribute.iff}{\mbox{\isa{iff}}} declares logical equivalences to the
-  Simplifier and the Classical reasoner at the same time.
-  Non-conditional rules result in a ``safe'' introduction and
-  elimination pair; conditional ones are considered ``unsafe''.  Rules
-  with negative conclusion are automatically inverted (using \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}{\isaliteral{22}{\isachardoublequote}}}-elimination internally).
-
-  The ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}{\isaliteral{22}{\isachardoublequote}}}'' version of \hyperlink{attribute.iff}{\mbox{\isa{iff}}} declares rules to
-  the Isabelle/Pure context only, and omits the Simplifier
-  declaration.
-
-  \end{description}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{Classical operations%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-\begin{matharray}{rcl}
-    \indexdef{}{attribute}{swapped}\hypertarget{attribute.swapped}{\hyperlink{attribute.swapped}{\mbox{\isa{swapped}}}} & : & \isa{attribute} \\
-  \end{matharray}
-
-  \begin{description}
-
-  \item \hyperlink{attribute.swapped}{\mbox{\isa{swapped}}} turns an introduction rule into an
-  elimination, by resolving with the classical swap principle \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}.
 
   \end{description}%
 \end{isamarkuptext}%
