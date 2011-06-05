@@ -237,22 +237,6 @@ rules.  First, it attempts to prove the goal using \texttt{assume_tac} or
 resolution and also elim-resolution with the swapped form.
 \end{ttdescription}
 
-\subsection{Creating swapped rules}
-\begin{ttbox} 
-swapify   : thm list -> thm list
-joinrules : thm list * thm list -> (bool * thm) list
-\end{ttbox}
-\begin{ttdescription}
-\item[\ttindexbold{swapify} {\it thms}] returns a list consisting of the
-swapped versions of~{\it thms}, regarded as introduction rules.
-
-\item[\ttindexbold{joinrules} ({\it intrs}, {\it elims})]
-joins introduction rules, their swapped versions, and elimination rules for
-use with \ttindex{biresolve_tac}.  Each rule is paired with~\texttt{false}
-(indicating ordinary resolution) or~\texttt{true} (indicating
-elim-resolution).
-\end{ttdescription}
-
 
 \section{Setting up the classical reasoner}\label{sec:classical-setup}
 \index{classical reasoner!setting up}
