@@ -759,9 +759,7 @@ Here is a simple composition lemma for \isa{map{\isaliteral{5F}{\isacharundersco
   automated termination proof by searching for a lexicographic
   combination of size measures on the arguments of the function. The
   method accepts the same arguments as the \hyperlink{method.auto}{\mbox{\isa{auto}}} method,
-  which it uses internally to prove local descents.  The same context
-  modifiers as for \hyperlink{method.auto}{\mbox{\isa{auto}}} are accepted, see
-  \secref{sec:clasimp}.
+  which it uses internally to prove local descents.  The \hyperlink{syntax.clasimpmod}{\mbox{\isa{clasimpmod}}} modifiers are accepted (as for \hyperlink{method.auto}{\mbox{\isa{auto}}}).
 
   In case of failure, extensive information is printed, which can help
   to analyse the situation (cf.\ \cite{isabelle-function}).
@@ -775,7 +773,8 @@ Here is a simple composition lemma for \isa{map{\isaliteral{5F}{\isacharundersco
   tried in order. The search for a termination proof uses SAT solving
   internally.
 
- For local descent proofs, the same context modifiers as for \hyperlink{method.auto}{\mbox{\isa{auto}}} are accepted, see \secref{sec:clasimp}.
+  For local descent proofs, the \hyperlink{syntax.clasimpmod}{\mbox{\isa{clasimpmod}}} modifiers are
+  accepted (as for \hyperlink{method.auto}{\mbox{\isa{auto}}}).
 
   \end{description}%
 \end{isamarkuptext}%
@@ -955,9 +954,9 @@ The old TFL commands \hyperlink{command.HOL.recdef}{\mbox{\isa{\isacommand{recde
   TFL to recover from failed proof attempts, returning unfinished
   results.  The \isa{recdef{\isaliteral{5F}{\isacharunderscore}}simp}, \isa{recdef{\isaliteral{5F}{\isacharunderscore}}cong}, and \isa{recdef{\isaliteral{5F}{\isacharunderscore}}wf} hints refer to auxiliary rules to be used in the internal
   automated proof process of TFL.  Additional \hyperlink{syntax.clasimpmod}{\mbox{\isa{clasimpmod}}}
-  declarations (cf.\ \secref{sec:clasimp}) may be given to tune the
-  context of the Simplifier (cf.\ \secref{sec:simplifier}) and
-  Classical reasoner (cf.\ \secref{sec:classical}).
+  declarations may be given to tune the context of the Simplifier
+  (cf.\ \secref{sec:simplifier}) and Classical reasoner (cf.\
+  \secref{sec:classical}).
 
   \item \hyperlink{command.HOL.recdef-tc}{\mbox{\isa{\isacommand{recdef{\isaliteral{5F}{\isacharunderscore}}tc}}}}~\isa{{\isaliteral{22}{\isachardoublequote}}c\ {\isaliteral{28}{\isacharparenleft}}i{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} recommences the
   proof for leftover termination condition number \isa{i} (default

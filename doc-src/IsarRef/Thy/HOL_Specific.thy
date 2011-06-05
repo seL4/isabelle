@@ -520,9 +520,8 @@ text {*
   automated termination proof by searching for a lexicographic
   combination of size measures on the arguments of the function. The
   method accepts the same arguments as the @{method auto} method,
-  which it uses internally to prove local descents.  The same context
-  modifiers as for @{method auto} are accepted, see
-  \secref{sec:clasimp}.
+  which it uses internally to prove local descents.  The @{syntax
+  clasimpmod} modifiers are accepted (as for @{method auto}).
 
   In case of failure, extensive information is printed, which can help
   to analyse the situation (cf.\ \cite{isabelle-function}).
@@ -536,8 +535,8 @@ text {*
   tried in order. The search for a termination proof uses SAT solving
   internally.
 
- For local descent proofs, the same context modifiers as for @{method
-  auto} are accepted, see \secref{sec:clasimp}.
+  For local descent proofs, the @{syntax clasimpmod} modifiers are
+  accepted (as for @{method auto}).
 
   \end{description}
 *}
@@ -647,9 +646,9 @@ text {*
   results.  The @{text recdef_simp}, @{text recdef_cong}, and @{text
   recdef_wf} hints refer to auxiliary rules to be used in the internal
   automated proof process of TFL.  Additional @{syntax clasimpmod}
-  declarations (cf.\ \secref{sec:clasimp}) may be given to tune the
-  context of the Simplifier (cf.\ \secref{sec:simplifier}) and
-  Classical reasoner (cf.\ \secref{sec:classical}).
+  declarations may be given to tune the context of the Simplifier
+  (cf.\ \secref{sec:simplifier}) and Classical reasoner (cf.\
+  \secref{sec:classical}).
 
   \item @{command (HOL) "recdef_tc"}~@{text "c (i)"} recommences the
   proof for leftover termination condition number @{text i} (default

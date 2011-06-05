@@ -124,129 +124,28 @@ When a simpset combined with a claset is to be augmented, this should done
 
 
 \section{The classical tactics}
-\index{classical reasoner!tactics} If installed, the classical module provides
-powerful theorem-proving tactics.
-
-
-\subsection{The tableau prover}
-The tactic \texttt{blast_tac} searches for a proof using a fast tableau prover,
-coded directly in \ML.  It then reconstructs the proof using Isabelle
-tactics.  It is faster and more powerful than the other classical
-reasoning tactics, but has major limitations too.
-\begin{itemize}
-\item It does not use the wrapper tacticals described above, such as
-  \ttindex{addss}.
-\item It does not perform higher-order unification, as needed by the rule {\tt
-    rangeI} in HOL and \texttt{RepFunI} in ZF.  There are often alternatives
-  to such rules, for example {\tt range_eqI} and \texttt{RepFun_eqI}.
-\item Function variables may only be applied to parameters of the subgoal.
-(This restriction arises because the prover does not use higher-order
-unification.)  If other function variables are present then the prover will
-fail with the message {\small\tt Function Var's argument not a bound variable}.
-\item Its proof strategy is more general than \texttt{fast_tac}'s but can be
-  slower.  If \texttt{blast_tac} fails or seems to be running forever, try {\tt
-  fast_tac} and the other tactics described below.
-\end{itemize}
-%
-\begin{ttbox} 
-blast_tac        : claset -> int -> tactic
-Blast.depth_tac  : claset -> int -> int -> tactic
-Blast.trace      : bool ref \hfill{\bf initially false}
-\end{ttbox}
-The two tactics differ on how they bound the number of unsafe steps used in a
-proof.  While \texttt{blast_tac} starts with a bound of zero and increases it
-successively to~20, \texttt{Blast.depth_tac} applies a user-supplied search bound.
-\begin{ttdescription}
-\item[\ttindexbold{blast_tac} $cs$ $i$] tries to prove
-  subgoal~$i$, increasing the search bound using iterative
-  deepening~\cite{korf85}. 
-  
-\item[\ttindexbold{Blast.depth_tac} $cs$ $lim$ $i$] tries
-  to prove subgoal~$i$ using a search bound of $lim$.  Sometimes a slow
-  proof using \texttt{blast_tac} can be made much faster by supplying the
-  successful search bound to this tactic instead.
-  
-\item[set \ttindexbold{Blast.trace};] \index{tracing!of classical prover}
-  causes the tableau prover to print a trace of its search.  At each step it
-  displays the formula currently being examined and reports whether the branch
-  has been closed, extended or split.
-\end{ttdescription}
-
-
-\subsection{Automatic tactics}\label{sec:automatic-tactics}
-\begin{ttbox} 
-type clasimpset = claset * simpset;
-auto_tac        : clasimpset ->        tactic
-force_tac       : clasimpset -> int -> tactic
-auto            : unit -> unit
-force           : int  -> unit
-\end{ttbox}
-The automatic tactics attempt to prove goals using a combination of
-simplification and classical reasoning. 
-\begin{ttdescription}
-\item[\ttindexbold{auto_tac $(cs,ss)$}] is intended for situations where 
-there are a lot of mostly trivial subgoals; it proves all the easy ones, 
-leaving the ones it cannot prove.
-(Unfortunately, attempting to prove the hard ones may take a long time.)  
-\item[\ttindexbold{force_tac} $(cs,ss)$ $i$] is intended to prove subgoal~$i$ 
-completely. It tries to apply all fancy tactics it knows about, 
-performing a rather exhaustive search.
-\end{ttdescription}
-
 
 \subsection{Semi-automatic tactics}
 \begin{ttbox} 
-clarify_tac      : claset -> int -> tactic
 clarify_step_tac : claset -> int -> tactic
-clarsimp_tac     : clasimpset -> int -> tactic
 \end{ttbox}
-Use these when the automatic tactics fail.  They perform all the obvious
-logical inferences that do not split the subgoal.  The result is a
-simpler subgoal that can be tackled by other means, such as by
-instantiating quantifiers yourself.
+
 \begin{ttdescription}
-\item[\ttindexbold{clarify_tac} $cs$ $i$] performs a series of safe steps on
-subgoal~$i$ by repeatedly calling \texttt{clarify_step_tac}.
 \item[\ttindexbold{clarify_step_tac} $cs$ $i$] performs a safe step on
   subgoal~$i$.  No splitting step is applied; for example, the subgoal $A\conj
   B$ is left as a conjunction.  Proof by assumption, Modus Ponens, etc., may be
   performed provided they do not instantiate unknowns.  Assumptions of the
   form $x=t$ may be eliminated.  The user-supplied safe wrapper tactical is
   applied.
-\item[\ttindexbold{clarsimp_tac} $cs$ $i$] acts like \texttt{clarify_tac}, but
-also does simplification with the given simpset. Note that if the simpset 
-includes a splitter for the premises, the subgoal may still be split.
 \end{ttdescription}
 
 
 \subsection{Other classical tactics}
 \begin{ttbox} 
-fast_tac      : claset -> int -> tactic
-best_tac      : claset -> int -> tactic
-slow_tac      : claset -> int -> tactic
 slow_best_tac : claset -> int -> tactic
 \end{ttbox}
-These tactics attempt to prove a subgoal using sequent-style reasoning.
-Unlike \texttt{blast_tac}, they construct proofs directly in Isabelle.  Their
-effect is restricted (by \texttt{SELECT_GOAL}) to one subgoal; they either prove
-this subgoal or fail.  The \texttt{slow_} versions conduct a broader
-search.%
-\footnote{They may, when backtracking from a failed proof attempt, undo even
-  the step of proving a subgoal by assumption.}
 
-The best-first tactics are guided by a heuristic function: typically, the
-total size of the proof state.  This function is supplied in the functor call
-that sets up the classical reasoner.
 \begin{ttdescription}
-\item[\ttindexbold{fast_tac} $cs$ $i$] applies \texttt{step_tac} using
-depth-first search to prove subgoal~$i$.
-
-\item[\ttindexbold{best_tac} $cs$ $i$] applies \texttt{step_tac} using
-best-first search to prove subgoal~$i$.
-
-\item[\ttindexbold{slow_tac} $cs$ $i$] applies \texttt{slow_step_tac} using
-depth-first search to prove subgoal~$i$.
-
 \item[\ttindexbold{slow_best_tac} $cs$ $i$] applies \texttt{slow_step_tac} with
 best-first search to prove subgoal~$i$.
 \end{ttdescription}
@@ -277,7 +176,6 @@ repeatedly with increasing depths, starting with~$m$.
 \subsection{Single-step tactics}
 \begin{ttbox} 
 safe_step_tac : claset -> int -> tactic
-safe_tac      : claset        -> tactic
 inst_step_tac : claset -> int -> tactic
 step_tac      : claset -> int -> tactic
 slow_step_tac : claset -> int -> tactic
@@ -289,9 +187,6 @@ yourself, you can execute these procedures one step at a time.
   subgoal~$i$.  The safe wrapper tacticals are applied to a tactic that may
   include proof by assumption or Modus Ponens (taking care not to instantiate
   unknowns), or substitution.
-
-\item[\ttindexbold{safe_tac} $cs$] repeatedly performs safe steps on all 
-subgoals.  It is deterministic, with at most one outcome.  
 
 \item[\ttindexbold{inst_step_tac} $cs$ $i$] is like \texttt{safe_step_tac},
 but allows unknowns to be instantiated.

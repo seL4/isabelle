@@ -582,7 +582,7 @@ text {*
 
 section {* The Classical Reasoner \label{sec:classical} *}
 
-subsection {* Introduction *}
+subsection {* Basic concepts *}
 
 text {* Although Isabelle is generic, many users will be working in
   some extension of classical first-order logic.  Isabelle/ZF is built
@@ -884,64 +884,31 @@ subsection {* Automated methods *}
 text {*
   \begin{matharray}{rcl}
     @{method_def blast} & : & @{text method} \\
+    @{method_def auto} & : & @{text method} \\
+    @{method_def force} & : & @{text method} \\
     @{method_def fast} & : & @{text method} \\
     @{method_def slow} & : & @{text method} \\
     @{method_def best} & : & @{text method} \\
-    @{method_def safe} & : & @{text method} \\
-    @{method_def clarify} & : & @{text method} \\
-  \end{matharray}
-
-  @{rail "
-    @@{method blast} @{syntax nat}? (@{syntax clamod} * )
-    ;
-    (@@{method fast} | @@{method slow} | @@{method best} | @@{method safe} | @@{method clarify})
-      (@{syntax clamod} * )
-    ;
-
-    @{syntax_def clamod}:
-      (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del') ':' @{syntax thmrefs}
-  "}
-
-  \begin{description}
-
-  \item @{method blast} refers to the classical tableau prover (see
-  @{ML blast_tac} in \cite{isabelle-ref}).  The optional argument
-  specifies a user-supplied search bound (default 20).
-
-  \item @{method fast}, @{method slow}, @{method best}, @{method
-  safe}, and @{method clarify} refer to the generic classical
-  reasoner.  See @{ML fast_tac}, @{ML slow_tac}, @{ML best_tac}, @{ML
-  safe_tac}, and @{ML clarify_tac} in \cite{isabelle-ref} for more
-  information.
-
-  \end{description}
-
-  Any of the above methods support additional modifiers of the context
-  of classical rules.  Their semantics is analogous to the attributes
-  given before.  Facts provided by forward chaining are inserted into
-  the goal before commencing proof search.
-*}
-
-
-subsection {* Combined automated methods \label{sec:clasimp} *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{method_def auto} & : & @{text method} \\
-    @{method_def force} & : & @{text method} \\
-    @{method_def clarsimp} & : & @{text method} \\
     @{method_def fastsimp} & : & @{text method} \\
     @{method_def slowsimp} & : & @{text method} \\
     @{method_def bestsimp} & : & @{text method} \\
   \end{matharray}
 
   @{rail "
+    @@{method blast} @{syntax nat}? (@{syntax clamod} * )
+    ;
     @@{method auto} (@{syntax nat} @{syntax nat})? (@{syntax clasimpmod} * )
     ;
-    (@@{method force} | @@{method clarsimp} | @@{method fastsimp} | @@{method slowsimp} |
-      @@{method bestsimp}) (@{syntax clasimpmod} * )
+    @@{method force} (@{syntax clasimpmod} * )
     ;
-
+    (@@{method fast} | @@{method slow} | @@{method best}) (@{syntax clamod} * )
+    ;
+    (@@{method fastsimp} | @@{method slowsimp} | @@{method bestsimp})
+      (@{syntax clasimpmod} * )
+    ;
+    @{syntax_def clamod}:
+      (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del') ':' @{syntax thmrefs}
+    ;
     @{syntax_def clasimpmod}: ('simp' (() | 'add' | 'del' | 'only') |
       ('cong' | 'split') (() | 'add' | 'del') |
       'iff' (((() | 'add') '?'?) | 'del') |
@@ -950,19 +917,121 @@ text {*
 
   \begin{description}
 
-  \item @{method auto}, @{method force}, @{method clarsimp}, @{method
-  fastsimp}, @{method slowsimp}, and @{method bestsimp} provide access
-  to Isabelle's combined simplification and classical reasoning
-  tactics.  These correspond to @{ML auto_tac}, @{ML force_tac}, @{ML
-  clarsimp_tac}, and Classical Reasoner tactics with the Simplifier
-  added as wrapper, see \cite{isabelle-ref} for more information.  The
-  modifier arguments correspond to those given in
-  \secref{sec:simplifier} and \secref{sec:classical}.  Just note that
-  the ones related to the Simplifier are prefixed by @{text simp}
-  here.
+  \item @{method blast} is a separate classical tableau prover that
+  uses the same classical rule declarations as explained before.
 
-  Facts provided by forward chaining are inserted into the goal before
-  doing the search.
+  Proof search is coded directly in ML using special data structures.
+  A successful proof is then reconstructed using regular Isabelle
+  inferences.  It is faster and more powerful than the other classical
+  reasoning tools, but has major limitations too.
+
+  \begin{itemize}
+
+  \item It does not use the classical wrapper tacticals, such as the
+  integration with the Simplifier of @{method fastsimp}.
+
+  \item It does not perform higher-order unification, as needed by the
+  rule @{thm [source=false] rangeI} in HOL.  There are often
+  alternatives to such rules, for example @{thm [source=false]
+  range_eqI}.
+
+  \item Function variables may only be applied to parameters of the
+  subgoal.  (This restriction arises because the prover does not use
+  higher-order unification.)  If other function variables are present
+  then the prover will fail with the message \texttt{Function Var's
+  argument not a bound variable}.
+
+  \item Its proof strategy is more general than @{method fast} but can
+  be slower.  If @{method blast} fails or seems to be running forever,
+  try @{method fast} and the other proof tools described below.
+
+  \end{itemize}
+
+  The optional integer argument specifies a bound for the number of
+  unsafe steps used in a proof.  By default, @{method blast} starts
+  with a bound of 0 and increases it successively to 20.  In contrast,
+  @{text "(blast lim)"} tries to prove the goal using a search bound
+  of @{text "lim"}.  Sometimes a slow proof using @{method blast} can
+  be made much faster by supplying the successful search bound to this
+  proof method instead.
+
+  \item @{method auto} combines classical reasoning with
+  simplification.  It is intended for situations where there are a lot
+  of mostly trivial subgoals; it proves all the easy ones, leaving the
+  ones it cannot prove.  Occasionally, attempting to prove the hard
+  ones may take a long time.
+
+  %FIXME auto nat arguments
+
+  \item @{method force} is intended to prove the first subgoal
+  completely, using many fancy proof tools and performing a rather
+  exhaustive search.  As a result, proof attempts may take rather long
+  or diverge easily.
+
+  \item @{method fast}, @{method best}, @{method slow} attempt to
+  prove the first subgoal using sequent-style reasoning as explained
+  before.  Unlike @{method blast}, they construct proofs directly in
+  Isabelle.
+
+  There is a difference in search strategy and back-tracking: @{method
+  fast} uses depth-first search and @{method best} uses best-first
+  search (guided by a heuristic function: normally the total size of
+  the proof state).
+
+  Method @{method slow} is like @{method fast}, but conducts a broader
+  search: it may, when backtracking from a failed proof attempt, undo
+  even the step of proving a subgoal by assumption.
+
+  \item @{method fastsimp}, @{method slowsimp}, @{method bestsimp} are
+  like @{method fast}, @{method slow}, @{method best}, respectively,
+  but use the Simplifier as additional wrapper.
+
+  \end{description}
+
+  Any of the above methods support additional modifiers of the context
+  of classical (and simplifier) rules, but the ones related to the
+  Simplifier are explicitly prefixed by @{text simp} here.  The
+  semantics of these ad-hoc rule declarations is analogous to the
+  attributes given before.  Facts provided by forward chaining are
+  inserted into the goal before commencing proof search.
+*}
+
+
+subsection {* Semi-automated methods *}
+
+text {* These proof methods may help in situations when the
+  fully-automated tools fail.  The result is a simpler subgoal that
+  can be tackled by other means, such as by manual instantiation of
+  quantifiers.
+
+  \begin{matharray}{rcl}
+    @{method_def safe} & : & @{text method} \\
+    @{method_def clarify} & : & @{text method} \\
+    @{method_def clarsimp} & : & @{text method} \\
+  \end{matharray}
+
+  @{rail "
+    (@@{method safe} | @@{method clarify}) (@{syntax clamod} * )
+    ;
+    @@{method clarsimp} (@{syntax clasimpmod} * )
+  "}
+
+  \begin{description}
+
+  \item @{method safe} repeatedly performs safe steps on all subgoals.
+  It is deterministic, with at most one outcome.
+
+  \item @{method clarify} performs a series of safe steps as follows.
+
+  No splitting step is applied; for example, the subgoal @{text "A \<and>
+  B"} is left as a conjunction.  Proof by assumption, Modus Ponens,
+  etc., may be performed provided they do not instantiate unknowns.
+  Assumptions of the form @{text "x = t"} may be eliminated.  The safe
+  wrapper tactical is applied.
+
+  \item @{method clarsimp} acts like @{method clarify}, but also does
+  simplification.  Note that if the Simplifier context includes a
+  splitter for the premises, the subgoal may still be split.
 
   \end{description}
 *}
