@@ -321,14 +321,18 @@ local
     Make application explicit for functions with varying number of arguments.
   *)
 
-  fun add t i = Termtab.map_default (t, i) (Integer.min i)
+  fun add t i = apfst (Termtab.map_default (t, i) (Integer.min i))
+  fun add_type T = apsnd (Typtab.update (T, ()))
 
   fun min_arities t =
     (case Term.strip_comb t of
       (u as Const _, ts) => add u (length ts) #> fold min_arities ts
     | (u as Free _, ts) => add u (length ts) #> fold min_arities ts
-    | (Abs (_, _, u), ts) => min_arities u #> fold min_arities ts
+    | (Abs (_, T, u), ts) => add_type T #> min_arities u #> fold min_arities ts
     | (_, ts) => fold min_arities ts)
+
+  fun minimize types t i =
+    if i = 0 orelse Typtab.defined types (Term.type_of t) then 0 else i
 
   fun app u (t, T) =
     (Const (@{const_name SMT.fun_app}, T --> T) $ t $ u, Term.range_type T)
@@ -340,14 +344,22 @@ local
     in fst (fold app ts2 (Term.list_comb (t, ts1), U)) end
 in
 
-fun intro_explicit_application ts =
+fun intro_explicit_application ctxt ts =
   let
-    val arities = fold min_arities ts Termtab.empty
-    fun apply' t = apply (the (Termtab.lookup arities t)) t
+    val (arities, types) = fold min_arities ts (Termtab.empty, Typtab.empty)
+    val arities' = Termtab.map (minimize types) arities
+    fun apply' t = apply (the (Termtab.lookup arities' t)) t
 
     fun traverse Ts t =
       (case Term.strip_comb t of
-        (u as Const (_, T), ts) => apply' u T (map (traverse Ts) ts)
+        (q as Const (@{const_name All}, _), [u as Abs _]) => q $ traverse Ts u
+      | (q as Const (@{const_name Ex}, _), [u as Abs _]) => q $ traverse Ts u
+      | (q as Const (@{const_name Ex}, _), [u1 as Abs _, u2]) =>
+          q $ traverse Ts u1 $ traverse Ts u2
+      | (u as Const (c as (_, T)), ts) =>
+          (case SMT_Builtin.dest_builtin ctxt c ts of
+            SOME (_, _, us, mk) => mk (map (traverse Ts) us)
+          | NONE => apply' u T (map (traverse Ts) ts))
       | (u as Free (_, T), ts) => apply' u T (map (traverse Ts) ts)
       | (u as Bound i, ts) => apply 0 u (nth Ts i) (map (traverse Ts) ts)
       | (Abs (n, T, u), ts) => traverses Ts (Abs (n, T, traverse (T::Ts) u)) ts
@@ -574,7 +586,7 @@ fun translate ctxt comments ithms =
       ts2
       |> eta_expand ctxt1 is_fol funcs
       |> lift_lambdas ctxt1
-      ||> intro_explicit_application
+      |-> (fn ctxt1' => pair ctxt1' o intro_explicit_application ctxt1)
 
     val ((rewrite_rules, extra_thms, builtin), ts4) =
       (if is_fol then folify ctxt2 else pair ([], [], I)) ts3
