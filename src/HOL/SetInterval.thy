@@ -348,7 +348,7 @@ by (simp add: lessThan_def)
 lemma lessThan_Suc: "lessThan (Suc k) = insert k (lessThan k)"
 by (simp add: lessThan_def less_Suc_eq, blast)
 
-text {* The following proof is convinient in induction proofs where
+text {* The following proof is convenient in induction proofs where
 new elements get indices at the beginning. So it is used to transform
 @{term "{..<Suc n}"} to @{term "0::nat"} and @{term "{..< n}"}. *}
 
