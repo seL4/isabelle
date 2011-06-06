@@ -288,7 +288,7 @@ fun type_ext thy tms =
   let
     val subs = tfree_classes_of_terms tms
     val supers = tvar_classes_of_terms tms
-    val tycons = type_consts_of_terms thy tms
+    val tycons = type_constrs_of_terms thy tms
     val (supers', arity_clauses) = make_arity_clauses thy tycons supers
     val class_rel_clauses = make_class_rel_clauses thy subs supers'
   in map class_rel_cls class_rel_clauses @ map arity_cls arity_clauses end

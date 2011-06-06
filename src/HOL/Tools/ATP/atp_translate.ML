@@ -131,7 +131,7 @@ sig
   val should_specialize_helper : type_sys -> term -> bool
   val tfree_classes_of_terms : term list -> string list
   val tvar_classes_of_terms : term list -> string list
-  val type_consts_of_terms : theory -> term list -> string list
+  val type_constrs_of_terms : theory -> term list -> string list
   val prepare_atp_problem :
     Proof.context -> format -> formula_kind -> formula_kind -> type_sys
     -> bool option -> bool -> bool -> term list -> term
@@ -1368,23 +1368,24 @@ val tfree_classes_of_terms = classes_of_terms OldTerm.term_tfrees
 val tvar_classes_of_terms = classes_of_terms OldTerm.term_tvars
 
 (*fold type constructors*)
-fun fold_type_consts f (Type (a, Ts)) x = fold (fold_type_consts f) Ts (f (a,x))
-  | fold_type_consts _ _ x = x
+fun fold_type_constrs f (Type (a, Ts)) x =
+    fold (fold_type_constrs f) Ts (f (a,x))
+  | fold_type_constrs _ _ x = x
 
 (*Type constructors used to instantiate overloaded constants are the only ones needed.*)
-fun add_type_consts_in_term thy =
+fun add_type_constrs_in_term thy =
   let
     fun add (Const (@{const_name Meson.skolem}, _) $ _) = I
       | add (t $ u) = add t #> add u
       | add (Const (x as (s, _))) =
         if String.isPrefix skolem_const_prefix s then I
-        else x |> Sign.const_typargs thy |> fold (fold_type_consts set_insert)
+        else x |> Sign.const_typargs thy |> fold (fold_type_constrs set_insert)
       | add (Abs (_, _, u)) = add u
       | add _ = I
   in add end
 
-fun type_consts_of_terms thy ts =
-  Symtab.keys (fold (add_type_consts_in_term thy) ts Symtab.empty)
+fun type_constrs_of_terms thy ts =
+  Symtab.keys (fold (add_type_constrs_in_term thy) ts Symtab.empty)
 
 fun translate_formulas ctxt format prem_kind type_sys preproc hyp_ts concl_t
                        rich_facts =
@@ -1403,7 +1404,7 @@ fun translate_formulas ctxt format prem_kind type_sys preproc hyp_ts concl_t
     val all_ts = goal_t :: fact_ts
     val subs = tfree_classes_of_terms all_ts
     val supers = tvar_classes_of_terms all_ts
-    val tycons = type_consts_of_terms thy all_ts
+    val tycons = type_constrs_of_terms thy all_ts
     val conjs =
       hyp_ts @ [concl_t]
       |> make_conjecture ctxt format prem_kind type_sys preproc
