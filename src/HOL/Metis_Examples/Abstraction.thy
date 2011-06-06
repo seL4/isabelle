@@ -1,9 +1,11 @@
 (*  Title:      HOL/Metis_Examples/Abstraction.thy
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Lawrence C. Paulson, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
 
-Testing Metis.
+Example featuring Metis's support for lambda-abstractions.
 *)
+
+header {* Example Featuring Metis's Support for Lambda-Abstractions *}
 
 theory Abstraction
 imports Main "~~/src/HOL/Library/FuncSet"
@@ -93,7 +95,7 @@ qed
 
 declare [[ sledgehammer_problem_prefix = "Abstraction__Sigma_Collect_Pi" ]]
 lemma
-    "(cl,f) \<in> (SIGMA cl: CL. {f. f \<in> pset cl \<rightarrow> pset cl}) ==> 
+    "(cl,f) \<in> (SIGMA cl: CL. {f. f \<in> pset cl \<rightarrow> pset cl}) ==>
     f \<in> pset cl \<rightarrow> pset cl"
 proof -
   assume A1: "(cl, f) \<in> (SIGMA cl:CL. {f. f \<in> pset cl \<rightarrow> pset cl})"
@@ -125,38 +127,38 @@ lemma
 by auto
 
 declare [[ sledgehammer_problem_prefix = "Abstraction__CLF_subset_Collect_Int" ]]
-lemma "(cl,f) \<in> CLF ==> 
+lemma "(cl,f) \<in> CLF ==>
    CLF \<subseteq> (SIGMA cl: CL. {f. f \<in> pset cl \<inter> cl}) ==>
    f \<in> pset cl \<inter> cl"
 by auto
 
 
 declare [[ sledgehammer_problem_prefix = "Abstraction__CLF_eq_Collect_Int" ]]
-lemma "(cl,f) \<in> CLF ==> 
+lemma "(cl,f) \<in> CLF ==>
    CLF = (SIGMA cl: CL. {f. f \<in> pset cl \<inter> cl}) ==>
    f \<in> pset cl \<inter> cl"
 by auto
 
 
 declare [[ sledgehammer_problem_prefix = "Abstraction__CLF_subset_Collect_Pi" ]]
-lemma 
-   "(cl,f) \<in> CLF ==> 
-    CLF \<subseteq> (SIGMA cl': CL. {f. f \<in> pset cl' \<rightarrow> pset cl'}) ==> 
+lemma
+   "(cl,f) \<in> CLF ==>
+    CLF \<subseteq> (SIGMA cl': CL. {f. f \<in> pset cl' \<rightarrow> pset cl'}) ==>
     f \<in> pset cl \<rightarrow> pset cl"
 by fast
 
 
 declare [[ sledgehammer_problem_prefix = "Abstraction__CLF_eq_Collect_Pi" ]]
-lemma 
-  "(cl,f) \<in> CLF ==> 
-   CLF = (SIGMA cl: CL. {f. f \<in> pset cl \<rightarrow> pset cl}) ==> 
+lemma
+  "(cl,f) \<in> CLF ==>
+   CLF = (SIGMA cl: CL. {f. f \<in> pset cl \<rightarrow> pset cl}) ==>
    f \<in> pset cl \<rightarrow> pset cl"
 by auto
 
 
 declare [[ sledgehammer_problem_prefix = "Abstraction__CLF_eq_Collect_Pi_mono" ]]
-lemma 
-  "(cl,f) \<in> CLF ==> 
+lemma
+  "(cl,f) \<in> CLF ==>
    CLF = (SIGMA cl: CL. {f. f \<in> pset cl \<rightarrow> pset cl & monotone f (pset cl) (order cl)}) ==>
    (f \<in> pset cl \<rightarrow> pset cl)  &  (monotone f (pset cl) (order cl))"
 by auto
@@ -168,7 +170,7 @@ apply (induct xs)
 by auto
 
 declare [[ sledgehammer_problem_prefix = "Abstraction__map_eq_zipB" ]]
-lemma "map (%w. (w -> w, w \<times> w)) xs = 
+lemma "map (%w. (w -> w, w \<times> w)) xs =
        zip (map (%w. w -> w) xs) (map (%w. w \<times> w) xs)"
 apply (induct xs)
  apply (metis Nil_is_map_conv zip_Nil)
@@ -179,12 +181,12 @@ lemma "(%x. Suc(f x)) ` {x. even x} <= A ==> (\<forall>x. even x --> Suc(f x) \<
 by (metis Collect_def image_subset_iff mem_def)
 
 declare [[ sledgehammer_problem_prefix = "Abstraction__image_evenB" ]]
-lemma "(%x. f (f x)) ` ((%x. Suc(f x)) ` {x. even x}) <= A 
+lemma "(%x. f (f x)) ` ((%x. Suc(f x)) ` {x. even x}) <= A
        ==> (\<forall>x. even x --> f (f (Suc(f x))) \<in> A)";
 by (metis Collect_def imageI image_image image_subset_iff mem_def)
 
 declare [[ sledgehammer_problem_prefix = "Abstraction__image_curry" ]]
-lemma "f \<in> (%u v. b \<times> u \<times> v) ` A ==> \<forall>u v. P (b \<times> u \<times> v) ==> P(f y)" 
+lemma "f \<in> (%u v. b \<times> u \<times> v) ` A ==> \<forall>u v. P (b \<times> u \<times> v) ==> P(f y)"
 (*sledgehammer*)
 by auto
 
@@ -203,13 +205,13 @@ apply (erule SigmaE)
 (*V manages from here: Abstraction__image_TimesA_simpler_1_a.p*)
 apply (erule ssubst)
 apply (subst split_conv)
-apply (rule SigmaI) 
+apply (rule SigmaI)
 apply (erule imageI) +
 txt{*subgoal 2*}
 apply (clarify );
-apply (simp add: );  
-apply (rule rev_image_eqI)  
-apply (blast intro: elim:); 
+apply (simp add: );
+apply (rule rev_image_eqI)
+apply (blast intro: elim:);
 apply (simp add: );
 done
 
@@ -224,8 +226,8 @@ by force
 
 declare [[ sledgehammer_problem_prefix = "Abstraction__image_TimesC" ]]
 lemma image_TimesC:
-    "(%(x,y). (x \<rightarrow> x, y \<times> y)) ` (A \<times> B) = 
-     ((%x. x \<rightarrow> x) ` A) \<times> ((%y. y \<times> y) ` B)" 
+    "(%(x,y). (x \<rightarrow> x, y \<times> y)) ` (A \<times> B) =
+     ((%x. x \<rightarrow> x) ` A) \<times> ((%y. y \<times> y) ` B)"
 (*sledgehammer*)
 by auto
 

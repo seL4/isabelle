@@ -1,11 +1,13 @@
-(*  Title:      HOL/Metis_Examples/set.thy
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+(*  Title:      HOL/Metis_Examples/Sets.thy
+    Author:     Lawrence C. Paulson, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
 
-Testing Metis.
+Metis example featuring typed set theory.
 *)
 
-theory set
+header {* Metis Example Featuring Typed Set Theory *}
+
+theory Sets
 imports Main
 begin
 
@@ -13,7 +15,7 @@ declare [[metis_new_skolemizer]]
 
 lemma "EX x X. ALL y. EX z Z. (~P(y,y) | P(x,x) | ~S(z,x)) &
                (S(x,y) | ~S(y,z) | Q(Z,Z))  &
-               (Q(X,y) | ~Q(y,Z) | S(X,X))" 
+               (Q(X,y) | ~Q(y,Z) | S(X,X))"
 by metis
 
 lemma "P(n::nat) ==> ~P(0) ==> n ~= 0"

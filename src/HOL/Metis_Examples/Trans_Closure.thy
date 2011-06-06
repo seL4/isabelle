@@ -1,11 +1,13 @@
-(*  Title:      HOL/Metis_Examples/TransClosure.thy
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+(*  Title:      HOL/Metis_Examples/Trans_Closure.thy
+    Author:     Lawrence C. Paulson, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
 
-Testing Metis.
+Metis example featuring the transitive closure.
 *)
 
-theory TransClosure
+header {* Metis Example Featuring the Transitive Closure *}
+
+theory Trans_Closure
 imports Main
 begin
 

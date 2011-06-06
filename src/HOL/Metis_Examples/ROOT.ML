@@ -5,5 +5,5 @@
 Testing Metis and Sledgehammer.
 *)
 
-use_thys ["Abstraction", "BigO", "BT", "Clausify", "HO_Reas", "Message",
-          "Tarski", "TransClosure", "Typings", "set"];
+use_thys ["Abstraction", "Big_O", "Binary_Tree", "Clausification", "Message",
+          "Proxies", "Tarski", "Trans_Closure", "Sets"];

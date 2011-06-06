@@ -1,12 +1,21 @@
-(*  Title:      HOL/Metis_Examples/Typings.thy
+(*  Title:      HOL/Metis_Examples/Type_Encodings.thy
     Author:     Jasmin Blanchette, TU Muenchen
 
-Testing the new Metis's (and hence Sledgehammer's) type translations.
+Example that exercises Metis's (and hence Sledgehammer's) type encodings.
 *)
 
-theory Typings
+header {*
+Example that Exercises Metis's (and Hence Sledgehammer's) Type Encodings
+*}
+
+theory Type_Encodings
 imports Main
 begin
+
+declare [[metis_new_skolemizer]]
+
+sledgehammer_params [prover = e, blocking, timeout = 10, preplay_timeout = 0]
+
 
 text {* Setup for testing Metis exhaustively *}
 
@@ -49,7 +58,7 @@ method_setup metis_eXhaust = {*
 *} "exhaustively run the new Metis with all type encodings"
 
 
-text {* Metis tests *}
+text {* Miscellaneous tests *}
 
 lemma "x = y \<Longrightarrow> y = x"
 by metis_eXhaust

@@ -1,16 +1,18 @@
-(*  Title:      HOL/Metis_Examples/HO_Reas.thy
+(*  Title:      HOL/Metis_Examples/Proxies.thy
     Author:     Jasmin Blanchette, TU Muenchen
 
-Testing Metis's and Sledgehammer's higher-order reasoning capabilities.
+Example that exercises Metis's and Sledgehammer's logical symbol proxies for
+rudimentary higher-order reasoning.
 *)
 
-theory HO_Reas
-imports Typings
+header {*
+Example that Exercises Metis's and Sledgehammer's Logical Symbol Proxies for
+Rudimentary Higher-Order Reasoning.
+*}
+
+theory Proxies
+imports Type_Encodings
 begin
-
-declare [[metis_new_skolemizer]]
-
-sledgehammer_params [prover = e, blocking, timeout = 10, preplay_timeout = 0]
 
 text {* Extensionality and set constants *}
 

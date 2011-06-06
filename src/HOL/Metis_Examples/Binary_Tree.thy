@@ -1,13 +1,13 @@
-(*  Title:      HOL/Metis_Examples/BT.thy
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+(*  Title:      HOL/Metis_Examples/Binary_Tree.thy
+    Author:     Lawrence C. Paulson, Cambridge University Computer Laboratory
     Author:     Jasmin Blanchette, TU Muenchen
 
-Testing Metis.
+Metis example featuring binary trees.
 *)
 
-header {* Binary trees *}
+header {* Metis Example Featuring Binary Trees *}
 
-theory BT
+theory Binary_Tree
 imports Main
 begin
 
@@ -120,7 +120,7 @@ qed
 declare [[ sledgehammer_problem_prefix = "BT__bt_map_ident" ]]
 
 lemma bt_map_ident: "bt_map (%x. x) = (%y. y)"
-apply (rule ext) 
+apply (rule ext)
 apply (induct_tac y)
  apply (metis bt_map.simps(1))
 by (metis bt_map.simps(2))
