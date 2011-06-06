@@ -360,14 +360,19 @@ fun prepare_metis_problem ctxt MX type_sys conj_clauses fact_clauses =
               #> rpair ctxt
               #-> Monomorph.monomorph Monomorph.all_schematic_consts_of
               #> fst #> maps (map (zero_var_indexes o snd)))
+      val (old_skolems, props) =
+        fold_rev (fn clause => fn (old_skolems, props) =>
+                     conceal_old_skolem_terms (length clauses) old_skolems
+                                              (prop_of clause)
+                     ||> (fn prop => prop :: props))
+             clauses ([], [])
       val (atp_problem, _, _, _, _, _, sym_tab) =
         prepare_atp_problem ctxt CNF Hypothesis Axiom type_sys explicit_apply
-                            false false (map prop_of clauses) @{prop False} []
+                            false false props @{prop False} []
       val axioms =
         atp_problem |> maps (map_filter (metis_axiom_from_atp clauses) o snd)
     in
-      (MX, sym_tab,
-       {axioms = axioms, tfrees = [], old_skolems = [] (* FIXME ### *)})
+      (MX, sym_tab, {axioms = axioms, tfrees = [], old_skolems = old_skolems})
     end
   | prepare_metis_problem ctxt mode _ conj_clauses fact_clauses =
     let
