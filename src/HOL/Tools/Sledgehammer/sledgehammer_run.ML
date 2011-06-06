@@ -73,7 +73,7 @@ val auto_minimize_max_seconds =
   Attrib.setup_config_real @{binding sledgehammer_auto_minimize_max_seconds}
       (K 5.0)
 
-fun minimize ctxt mode name (params as {debug, verbose, ...})
+fun minimize ctxt mode name (params as {debug, verbose, isar_proof, ...})
              ({state, subgoal, subgoal_count, facts, ...} : prover_problem)
              (result as {outcome, used_facts, run_time_in_msecs, preplay,
                          message} : prover_result) =
@@ -82,24 +82,32 @@ fun minimize ctxt mode name (params as {debug, verbose, ...})
   else
     let
       val num_facts = length used_facts
-      fun can_minimize_fast_enough msecs =
-        0.001 * Real.fromInt ((num_facts + 2) * msecs)
-        <= Config.get ctxt auto_minimize_max_seconds
       val ((minimize, minimize_name), preplay) =
         if mode = Normal then
           if num_facts >= Config.get ctxt auto_minimize_min_facts then
             ((true, name), preplay)
           else
-            let val preplay = preplay () in
-              (case preplay of
-                 Played (reconstructor, timeout) =>
-                 (can_minimize_fast_enough (Time.toMilliseconds timeout),
-                  reconstructor_name reconstructor)
-               | _ =>
-                 case run_time_in_msecs of
-                   SOME msecs => (can_minimize_fast_enough msecs, name)
-                 | NONE => (false, name),
-               K preplay)
+            let
+              fun can_min_fast_enough msecs =
+                0.001 * Real.fromInt ((num_facts + 2) * msecs)
+                <= Config.get ctxt auto_minimize_max_seconds
+              val prover_fast_enough =
+                run_time_in_msecs |> Option.map can_min_fast_enough
+                                  |> the_default false
+            in
+              if isar_proof then
+                ((prover_fast_enough, name), preplay)
+              else
+                let val preplay = preplay () in
+                  (case preplay of
+                     Played (reconstructor, timeout) =>
+                     if can_min_fast_enough (Time.toMilliseconds timeout) then
+                       (true, reconstructor_name reconstructor)
+                     else
+                       (prover_fast_enough, name)
+                   | _ => (prover_fast_enough, name),
+                   K preplay)
+                end
             end
         else
           ((false, name), preplay)
