@@ -22,23 +22,52 @@ text {* Setup for testing Metis exhaustively *}
 lemma fork: "P \<Longrightarrow> P \<Longrightarrow> P" by assumption
 
 ML {*
-open ATP_Translate
-
-val polymorphisms = [Polymorphic, Monomorphic, Mangled_Monomorphic]
-val levels =
-  [All_Types, Nonmonotonic_Types, Finite_Types, Const_Arg_Types, No_Types]
-val heaviness = [Heavyweight, Lightweight]
+(* The commented-out type systems are too incomplete for our exhaustive
+   tests. *)
 val type_syss =
-  (levels |> map Simple_Types) @
-  (map_product pair levels heaviness
-   (* The following two families of type systems are too incomplete for our
-      tests. *)
-   |> remove (op =) (Nonmonotonic_Types, Heavyweight)
-   |> remove (op =) (Finite_Types, Heavyweight)
-   |> map_product pair polymorphisms
-   |> map_product (fn constr => fn (poly, (level, heaviness)) =>
-                      constr (poly, level, heaviness))
-                  [Preds, Tags])
+  ["erased",
+   "poly_preds",
+   "poly_preds_heavy",
+   "poly_tags",
+   "poly_tags_heavy",
+   "poly_args",
+   "mono_preds",
+   "mono_preds_heavy",
+   "mono_tags",
+   "mono_tags_heavy",
+   "mono_args",
+   "mangled_preds",
+   "mangled_preds_heavy",
+   "mangled_tags",
+   "mangled_tags_heavy",
+   "mangled_args",
+   "simple",
+   "poly_preds?",
+(* "poly_preds_heavy?", *)
+(* "poly_tags?", *)
+(* "poly_tags_heavy?", *)
+   "mono_preds?",
+   "mono_preds_heavy?",
+   "mono_tags?",
+   "mono_tags_heavy?",
+   "mangled_preds?",
+   "mangled_preds_heavy?",
+   "mangled_tags?",
+   "mangled_tags_heavy?",
+   "simple?",
+   "poly_preds!",
+(* "poly_preds_heavy!", *)
+(* "poly_tags!", *)
+(* "poly_tags_heavy!", *)
+   "mono_preds!",
+   "mono_preds_heavy!",
+   "mono_tags!",
+   "mono_tags_heavy!",
+   "mangled_preds!",
+   "mangled_preds_heavy!",
+   "mangled_tags!",
+   "mangled_tags_heavy!",
+   "simple!"]
 
 fun new_metis_exhaust_tac ctxt ths =
   let
