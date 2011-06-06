@@ -516,13 +516,12 @@ fun equality_inference ctxt mode old_skolems sym_tab (pos, atom) fp fr =
       fun replace_item_list lx 0 (_::ls) = lx::ls
         | replace_item_list lx i (l::ls) = l :: replace_item_list lx (i-1) ls
       fun path_finder_fail tm ps t =
-        raise Fail ("Cannot replay Metis proof in Isabelle:\n" ^
-                    "equality_inference, path_finder: path = " ^
-                    space_implode " " (map string_of_int ps) ^
-                    " isa-term: " ^ Syntax.string_of_term ctxt tm ^
-                    (case t of
-                       SOME t => " fol-term: " ^ Metis_Term.toString t
-                     | NONE => ""))
+        raise METIS ("equality_inference (path_finder)",
+                     "path = " ^ space_implode " " (map string_of_int ps) ^
+                     " isa-term: " ^ Syntax.string_of_term ctxt tm ^
+                     (case t of
+                        SOME t => " fol-term: " ^ Metis_Term.toString t
+                      | NONE => ""))
       fun path_finder_FO tm [] = (tm, Bound 0)
         | path_finder_FO tm (p::ps) =
             let val (tm1,args) = strip_comb tm
