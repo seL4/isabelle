@@ -789,8 +789,7 @@ fun instantiate_forall_tac thy t i st =
   end
 
 fun fix_exists_tac t =
-  etac @{thm exE}
-  THEN' rename_tac [t |> dest_Var |> fst |> fst]
+  etac @{thm exE} THEN' rename_tac [t |> dest_Var |> fst |> fst]
 
 fun release_quantifier_tac thy (skolem, t) =
   (if skolem then fix_exists_tac else instantiate_forall_tac thy) t
