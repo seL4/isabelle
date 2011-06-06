@@ -1791,8 +1791,10 @@ fun problem_lines_for_sym_decl_table ctxt format conj_sym_kind nonmono_Ts
   |-> fold_rev (append o problem_lines_for_sym_decls ctxt format conj_sym_kind
                                                      nonmono_Ts type_sys)
 
-fun needs_type_tag_idempotence (Tags (Polymorphic, level, Heavyweight)) =
-    level = Nonmonotonic_Types orelse level = Finite_Types
+fun needs_type_tag_idempotence (Tags (poly, level, heaviness)) =
+    poly <> Mangled_Monomorphic andalso
+    ((level = All_Types andalso heaviness = Lightweight) orelse
+     level = Nonmonotonic_Types orelse level = Finite_Types)
   | needs_type_tag_idempotence _ = false
 
 fun offset_of_heading_in_problem _ [] j = j
