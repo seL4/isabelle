@@ -46,8 +46,6 @@ val metisX_N = Binding.qualified_name_of (method_binding_for_mode MX)
 val new_skolemizer =
   Attrib.setup_config_bool @{binding metis_new_skolemizer} (K false)
 
-fun is_false t = t aconv (HOLogic.mk_Trueprop HOLogic.false_const);
-
 (* Designed to work also with monomorphic instances of polymorphic theorems. *)
 fun have_common_thm ths1 ths2 =
   exists (member (untyped_aconv o pairself prop_of) ths1)
@@ -60,11 +58,10 @@ fun used_axioms axioms (th, Metis_Proof.Axiom _) = SOME (lookth axioms th)
 (* Lightweight predicate type information comes in two flavors, "t = t'" and
    "t => t'", where "t" and "t'" are the same term modulo type tags.
    In Isabelle, type tags are stripped away, so we are left with "t = t" or
-   "t => t". *)
-fun lightweight_tags_sym_theorem_from_metis ctxt sym_tab mth =
+   "t => t". Type tag idempotence is also handled this way. *)
+fun reflexive_or_trivial_from_metis ctxt sym_tab mth =
   let val thy = Proof_Context.theory_of ctxt in
-    case hol_clause_from_metis_MX ctxt sym_tab
-             (Metis_LiteralSet.toList (Metis_Thm.clause mth)) of
+    case hol_clause_from_metis ctxt sym_tab mth of
       Const (@{const_name HOL.eq}, _) $ _ $ t =>
       t |> cterm_of thy |> Thm.reflexive RS @{thm meta_eq_to_obj_eq}
     | Const (@{const_name disj}, _) $ t1 $ t2 =>
@@ -73,6 +70,9 @@ fun lightweight_tags_sym_theorem_from_metis ctxt sym_tab mth =
     | _ => raise Fail "unexpected tags sym clause"
   end
   |> Meson.make_meta_clause
+
+(* FIXME: implement using "hol_clause_from_metis ctxt sym_tab mth" *)
+fun specialize_helper mth ith = ith
 
 val clause_params =
   {ordering = Metis_KnuthBendixOrder.default,
@@ -107,19 +107,21 @@ fun FOL_SOLVE type_sys (mode :: fallback_modes) ctxt cls ths0 =
       val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) ths
       val (mode, sym_tab, {axioms, old_skolems, ...}) =
         prepare_metis_problem ctxt mode type_sys cls ths
-      val axioms =
-        axioms |> map
-            (fn (mth, SOME th) => (mth, th)
-              | (mth, NONE) =>
-                (mth, lightweight_tags_sym_theorem_from_metis ctxt sym_tab mth))
+      fun get_isa_thm mth Isa_Reflexive_or_Trivial =
+          reflexive_or_trivial_from_metis ctxt sym_tab mth
+        | get_isa_thm mth (Isa_Helper ith) =
+          ith |> should_specialize_helper (the type_sys) (prop_of ith)
+                 ? specialize_helper mth
+        | get_isa_thm _ (Isa_Raw ith) = ith
+      val axioms = axioms |> map (fn (mth, ith) => (mth, get_isa_thm mth ith))
       val _ = trace_msg ctxt (fn () => "CLAUSES GIVEN TO METIS")
-      val thms = map #1 axioms
+      val thms = axioms |> map fst
       val _ = app (fn th => trace_msg ctxt (fn () => Metis_Thm.toString th)) thms
       val _ = trace_msg ctxt (fn () => "mode = " ^ string_of_mode mode)
       val _ = trace_msg ctxt (fn () => "START METIS PROVE PROCESS")
   in
-      case filter (is_false o prop_of) cls of
-          false_th::_ => [false_th RS @{thm FalseE}]
+      case filter (fn t => prop_of t aconv @{prop False}) cls of
+          false_th :: _ => [false_th RS @{thm FalseE}]
         | [] =>
       case Metis_Resolution.new resolution_params {axioms = thms, conjecture = []}
            |> Metis_Resolution.loop of

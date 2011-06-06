@@ -77,6 +77,7 @@ sig
   val tfree_clause_prefix : string
   val typed_helper_suffix : string
   val untyped_helper_suffix : string
+  val type_tag_idempotence_helper_name : string
   val predicator_name : string
   val app_op_name : string
   val type_tag_name : string
@@ -87,7 +88,8 @@ sig
   val ascii_of: string -> string
   val unascii_of: string -> string
   val strip_prefix_and_unascii : string -> string -> string option
-  val proxify_const : string -> (int * (string * string)) option
+  val proxy_table : (string * (string * (thm * (string * string)))) list
+  val proxify_const : string -> (string * string) option
   val invert_const: string -> string
   val unproxify_const: string -> string
   val make_bound_var : string -> string
@@ -125,6 +127,7 @@ sig
     Proof.context -> format -> type_sys -> bool -> (string * locality) * thm
     -> translated_formula option * ((string * locality) * thm)
   val helper_table : (string * (bool * thm list)) list
+  val should_specialize_helper : type_sys -> term -> bool
   val tfree_classes_of_terms : term list -> string list
   val tvar_classes_of_terms : term list -> string list
   val type_consts_of_terms : theory -> term list -> string list
@@ -183,12 +186,13 @@ val lightweight_tags_sym_formula_prefix = "tsy_"
 val fact_prefix = "fact_"
 val conjecture_prefix = "conj_"
 val helper_prefix = "help_"
-val class_rel_clause_prefix = "crel_"
+val class_rel_clause_prefix = "clar_"
 val arity_clause_prefix = "arity_"
 val tfree_clause_prefix = "tfree_"
 
 val typed_helper_suffix = "_T"
 val untyped_helper_suffix = "_U"
+val type_tag_idempotence_helper_name = helper_prefix ^ "ti_idem"
 
 val predicator_name = "hBOOL"
 val app_op_name = "hAPP"
@@ -257,19 +261,23 @@ fun strip_prefix_and_unascii s1 s =
   else
     NONE
 
-val proxies =
-  [("c_False",
-    (@{const_name False}, (0, ("fFalse", @{const_name ATP.fFalse})))),
-   ("c_True", (@{const_name True}, (0, ("fTrue", @{const_name ATP.fTrue})))),
-   ("c_Not", (@{const_name Not}, (1, ("fNot", @{const_name ATP.fNot})))),
-   ("c_conj", (@{const_name conj}, (2, ("fconj", @{const_name ATP.fconj})))),
-   ("c_disj", (@{const_name disj}, (2, ("fdisj", @{const_name ATP.fdisj})))),
-   ("c_implies",
-    (@{const_name implies}, (2, ("fimplies", @{const_name ATP.fimplies})))),
-   ("equal",
-    (@{const_name HOL.eq}, (2, ("fequal", @{const_name ATP.fequal}))))]
+val proxy_table =
+  [("c_False", (@{const_name False}, (@{thm fFalse_def},
+       ("fFalse", @{const_name ATP.fFalse})))),
+   ("c_True", (@{const_name True}, (@{thm fTrue_def},
+       ("fTrue", @{const_name ATP.fTrue})))),
+   ("c_Not", (@{const_name Not}, (@{thm fNot_def},
+       ("fNot", @{const_name ATP.fNot})))),
+   ("c_conj", (@{const_name conj}, (@{thm fconj_def},
+       ("fconj", @{const_name ATP.fconj})))),
+   ("c_disj", (@{const_name disj}, (@{thm fdisj_def},
+       ("fdisj", @{const_name ATP.fdisj})))),
+   ("c_implies", (@{const_name implies}, (@{thm fimplies_def},
+       ("fimplies", @{const_name ATP.fimplies})))),
+   ("equal", (@{const_name HOL.eq}, (@{thm fequal_def},
+       ("fequal", @{const_name ATP.fequal}))))]
 
-val proxify_const = AList.lookup (op =) proxies #> Option.map snd
+val proxify_const = AList.lookup (op =) proxy_table #> Option.map (snd o snd)
 
 (* Readable names for the more common symbolic functions. Do not mess with the
    table unless you know what you are doing. *)
@@ -291,14 +299,14 @@ val const_trans_table =
    (@{const_name Meson.COMBC}, "COMBC"),
    (@{const_name Meson.COMBS}, "COMBS")]
   |> Symtab.make
-  |> fold (Symtab.update o swap o snd o snd o snd) proxies
+  |> fold (Symtab.update o swap o snd o snd o snd) proxy_table
 
 (* Invert the table of translations between Isabelle and ATPs. *)
 val const_trans_table_inv =
   const_trans_table |> Symtab.dest |> map swap |> Symtab.make
 val const_trans_table_unprox =
   Symtab.empty
-  |> fold (fn (_, (isa, (_, (_, metis)))) => Symtab.update (metis, isa)) proxies
+  |> fold (fn (_, (isa, (_, (_, atp)))) => Symtab.update (atp, isa)) proxy_table
 
 val invert_const = perhaps (Symtab.lookup const_trans_table_inv)
 val unproxify_const = perhaps (Symtab.lookup const_trans_table_unprox)
@@ -793,7 +801,7 @@ fun introduce_proxies format type_sys =
         CombApp (intro top_level tm1, intro false tm2)
       | intro top_level (CombConst (name as (s, _), T, T_args)) =
         (case proxify_const s of
-           SOME (_, proxy_base) =>
+           SOME proxy_base =>
            if top_level orelse is_setting_higher_order format type_sys then
              case (top_level, s) of
                (_, "c_False") => (`I tptp_false, [])
@@ -1284,18 +1292,25 @@ val helper_table =
                     "~ fimplies P Q | ~ P | Q"
                 by (unfold fimplies_def) fast+})),
    ("If", (true, @{thms if_True if_False True_or_False}))]
+  |> map (apsnd (apsnd (map zero_var_indexes)))
 
 val type_tag = `make_fixed_const type_tag_name
 
-fun ti_ti_helper_fact () =
+fun type_tag_idempotence_fact () =
   let
     fun var s = ATerm (`I s, [])
-    fun tag tm = ATerm (type_tag, [var "X", tm])
+    fun tag tm = ATerm (type_tag, [var "T", tm])
+    val tagged_x = tag (var "X")
   in
-    Formula (helper_prefix ^ "ti_ti", Axiom,
-             AAtom (ATerm (`I tptp_equal, [tag (tag (var "Y")), tag (var "Y")]))
+    Formula (type_tag_idempotence_helper_name, Axiom,
+             AAtom (ATerm (`I tptp_equal, [tag tagged_x, tagged_x]))
              |> close_formula_universally, simp_info, NONE)
   end
+
+fun should_specialize_helper type_sys t =
+  case general_type_arg_policy type_sys of
+    Mangled_Type_Args _ => not (null (Term.hidden_polymorphism t))
+  | _ => false
 
 fun helper_facts_for_sym ctxt format type_sys (s, {types, ...} : sym_info) =
   case strip_prefix_and_unascii const_prefix s of
@@ -1303,33 +1318,31 @@ fun helper_facts_for_sym ctxt format type_sys (s, {types, ...} : sym_info) =
     let
       val thy = Proof_Context.theory_of ctxt
       val unmangled_s = mangled_s |> unmangled_const_name
-      fun dub_and_inst c needs_fairly_sound (th, j) =
-        ((c ^ "_" ^ string_of_int j ^
+      fun dub_and_inst needs_fairly_sound (th, j) =
+        ((unmangled_s ^ "_" ^ string_of_int j ^
+          (if mangled_s = unmangled_s then "" else "_" ^ ascii_of mangled_s) ^
           (if needs_fairly_sound then typed_helper_suffix
            else untyped_helper_suffix),
           General),
          let val t = th |> prop_of in
-           t |> ((case general_type_arg_policy type_sys of
-                    Mangled_Type_Args _ => true
-                  | _ => false) andalso
-                 not (null (Term.hidden_polymorphism t)))
+           t |> should_specialize_helper type_sys t
                 ? (case types of
                      [T] => specialize_type thy (invert_const unmangled_s, T)
                    | _ => I)
          end)
-      fun make_facts eq_as_iff =
-        map_filter (make_fact ctxt format type_sys true false eq_as_iff false)
+      val make_facts =
+        map_filter (make_fact ctxt format type_sys false false false false)
       val fairly_sound = is_type_sys_fairly_sound type_sys
     in
       helper_table
-      |> maps (fn (metis_s, (needs_fairly_sound, ths)) =>
-                  if metis_s <> unmangled_s orelse
+      |> maps (fn (helper_s, (needs_fairly_sound, ths)) =>
+                  if helper_s <> unmangled_s orelse
                      (needs_fairly_sound andalso not fairly_sound) then
                     []
                   else
                     ths ~~ (1 upto length ths)
-                    |> map (dub_and_inst mangled_s needs_fairly_sound)
-                    |> make_facts (not needs_fairly_sound))
+                    |> map (dub_and_inst needs_fairly_sound)
+                    |> make_facts)
     end
   | NONE => []
 fun helper_facts_for_sym_table ctxt format type_sys sym_tab =
@@ -1509,11 +1522,14 @@ fun formula_for_fact ctxt format nonmono_Ts type_sys
 (* Each fact is given a unique fact number to avoid name clashes (e.g., because
    of monomorphization). The TPTP explicitly forbids name clashes, and some of
    the remote provers might care. *)
-fun formula_line_for_fact ctxt format prefix nonmono_Ts type_sys
+fun formula_line_for_fact ctxt format prefix encode freshen nonmono_Ts type_sys
                           (j, formula as {name, locality, kind, ...}) =
-  Formula (prefix ^ (if polymorphism_of_type_sys type_sys = Polymorphic then ""
-                     else string_of_int j ^ "_") ^
-           ascii_of name,
+  Formula (prefix ^
+           (if freshen andalso
+               polymorphism_of_type_sys type_sys <> Polymorphic then
+              string_of_int j ^ "_"
+            else
+              "") ^ encode name,
            kind, formula_for_fact ctxt format nonmono_Ts type_sys formula, NONE,
            case locality of
              Intro => intro_info
@@ -1774,9 +1790,9 @@ fun problem_lines_for_sym_decl_table ctxt format conj_sym_kind nonmono_Ts
   |-> fold_rev (append o problem_lines_for_sym_decls ctxt format conj_sym_kind
                                                      nonmono_Ts type_sys)
 
-fun should_add_ti_ti_helper (Tags (Polymorphic, level, Heavyweight)) =
+fun needs_type_tag_idempotence (Tags (Polymorphic, level, Heavyweight)) =
     level = Nonmonotonic_Types orelse level = Finite_Types
-  | should_add_ti_ti_helper _ = false
+  | needs_type_tag_idempotence _ = false
 
 fun offset_of_heading_in_problem _ [] j = j
   | offset_of_heading_in_problem needle ((heading, lines) :: problem) j =
@@ -1822,16 +1838,19 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
                                           lavish_nonmono_Ts type_sys
     val helper_lines =
       0 upto length helpers - 1 ~~ helpers
-      |> map (formula_line_for_fact ctxt format helper_prefix lavish_nonmono_Ts
-                                    type_sys)
-      |> (if should_add_ti_ti_helper type_sys then cons (ti_ti_helper_fact ())
-          else I)
+      |> map (formula_line_for_fact ctxt format helper_prefix I false
+                                    lavish_nonmono_Ts type_sys)
+      |> (if needs_type_tag_idempotence type_sys then
+            cons (type_tag_idempotence_fact ())
+          else
+            I)
     (* Reordering these might confuse the proof reconstruction code or the SPASS
        FLOTTER hack. *)
     val problem =
       [(explicit_declsN, sym_decl_lines),
        (factsN,
-        map (formula_line_for_fact ctxt format fact_prefix nonmono_Ts type_sys)
+        map (formula_line_for_fact ctxt format fact_prefix ascii_of true
+                                   nonmono_Ts type_sys)
             (0 upto length facts - 1 ~~ facts)),
        (class_relsN, map formula_line_for_class_rel_clause class_rel_clauses),
        (aritiesN, map formula_line_for_arity_clause arity_clauses),

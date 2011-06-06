@@ -14,8 +14,13 @@ sig
 
   datatype mode = FO | HO | FT | MX
 
+  datatype isa_thm =
+    Isa_Reflexive_or_Trivial |
+    Isa_Helper of thm |
+    Isa_Raw of thm
+
   type metis_problem =
-    {axioms : (Metis_Thm.thm * thm option) list,
+    {axioms : (Metis_Thm.thm * isa_thm) list,
      tfrees : type_literal list,
      old_skolems : (string * term) list}
 
@@ -235,8 +240,13 @@ fun hol_thm_to_fol is_conjecture ctxt mode j old_skolems th =
 (* Logic maps manage the interface between HOL and first-order logic.        *)
 (* ------------------------------------------------------------------------- *)
 
+datatype isa_thm =
+  Isa_Reflexive_or_Trivial |
+  Isa_Helper of thm |
+  Isa_Raw of thm
+
 type metis_problem =
-  {axioms : (Metis_Thm.thm * thm option) list,
+  {axioms : (Metis_Thm.thm * isa_thm) list,
    tfrees : type_literal list,
    old_skolems : (string * term) list}
 
@@ -285,6 +295,10 @@ fun type_ext thy tms =
     val class_rel_clauses = make_class_rel_clauses thy subs supers'
   in map class_rel_cls class_rel_clauses @ map arity_cls arity_clauses end
 
+val proxy_defs = map (fst o snd o snd) proxy_table
+val prepare_helper =
+  Meson.make_meta_clause #> rewrite_rule (map safe_mk_meta_eq proxy_defs)
+
 fun metis_name_from_atp s ary =
   AList.lookup (op =) metis_name_table (s, ary) |> the_default (s, false)
 fun metis_term_from_atp (ATerm (s, tms)) =
@@ -308,18 +322,23 @@ fun metis_literals_from_atp (AConn (AOr, [phi1, phi2])) =
 fun metis_axiom_from_atp clauses (Formula (ident, _, phi, _, _)) =
     (phi |> metis_literals_from_atp |> Metis_LiteralSet.fromList
          |> Metis_Thm.axiom,
-     case try (unprefix conjecture_prefix) ident of
+     if ident = type_tag_idempotence_helper_name orelse
+        String.isPrefix lightweight_tags_sym_formula_prefix ident then
+       Isa_Reflexive_or_Trivial
+     else if String.isPrefix helper_prefix ident then
+       case space_explode "_" ident  of
+         _ :: const :: j :: _ =>
+         Isa_Helper (nth (AList.lookup (op =) helper_table const |> the |> snd)
+                         (the (Int.fromString j) - 1)
+                     |> prepare_helper)
+       | _ => raise Fail ("malformed helper identifier " ^ quote ident)
+     else case try (unprefix conjecture_prefix) ident of
        SOME s =>
-       SOME (Meson.make_meta_clause (nth clauses (the (Int.fromString s))))
-     | NONE =>
-       if String.isPrefix lightweight_tags_sym_formula_prefix ident then
-         NONE
-(* FIXME: missing:
-       else if String.isPrefix helper_prefix then
-         ...
-*)
-       else
-         SOME TrueI)
+       let val j = the (Int.fromString s) in
+         Isa_Raw (if j = length clauses then TrueI
+                  else Meson.make_meta_clause (nth clauses j))
+       end
+     | NONE => Isa_Raw TrueI)
   | metis_axiom_from_atp _ _ = raise Fail "not CNF -- expected formula"
 
 val default_type_sys = Preds (Polymorphic, Nonmonotonic_Types, Lightweight)
@@ -342,8 +361,7 @@ fun prepare_metis_problem ctxt MX type_sys conj_clauses fact_clauses =
         prepare_atp_problem ctxt CNF Hypothesis Axiom type_sys explicit_apply
                             false false (map prop_of clauses) @{prop False} []
       val axioms =
-        atp_problem
-        |> maps (map_filter (try (metis_axiom_from_atp clauses)) o snd)
+        atp_problem |> maps (map (metis_axiom_from_atp clauses) o snd)
     in
       (MX, sym_tab,
        {axioms = axioms, tfrees = [], old_skolems = [] (* FIXME ### *)})
@@ -366,14 +384,14 @@ fun prepare_metis_problem ctxt MX type_sys conj_clauses fact_clauses =
             hol_thm_to_fol is_conjecture ctxt mode (length axioms) old_skolems
                            metis_ith
         in
-          {axioms = (mth, SOME isa_ith) :: axioms,
+          {axioms = (mth, Isa_Raw isa_ith) :: axioms,
            tfrees = union (op =) tfree_lits tfrees, old_skolems = old_skolems}
         end;
       fun add_type_thm (ith, mth) {axioms, tfrees, old_skolems} =
-        {axioms = (mth, SOME ith) :: axioms, tfrees = tfrees,
+        {axioms = (mth, Isa_Raw ith) :: axioms, tfrees = tfrees,
          old_skolems = old_skolems}
       fun add_tfrees {axioms, tfrees, old_skolems} =
-        {axioms = map (rpair (SOME TrueI) o metis_of_tfree)
+        {axioms = map (rpair (Isa_Raw TrueI) o metis_of_tfree)
                       (distinct (op =) tfrees) @ axioms,
          tfrees = tfrees, old_skolems = old_skolems}
       val problem =
@@ -389,18 +407,12 @@ fun prepare_metis_problem ctxt MX type_sys conj_clauses fact_clauses =
           problem
         else
           let
-            val fdefs = @{thms fFalse_def fTrue_def fNot_def fconj_def fdisj_def
-                               fimplies_def fequal_def}
-            val prepare_helper =
-              zero_var_indexes
-              #> `(Meson.make_meta_clause
-                   #> rewrite_rule (map safe_mk_meta_eq fdefs))
             val helper_ths =
               helper_table
               |> filter (is_used o prefix const_prefix o fst)
               |> maps (fn (_, (needs_full_types, thms)) =>
                           if needs_full_types andalso mode <> FT then []
-                          else map prepare_helper thms)
+                          else map (`prepare_helper) thms)
           in problem |> fold (add_thm false) helper_ths end
       val type_ths = type_ext thy (map prop_of (conj_clauses @ fact_clauses))
     in (mode, Symtab.empty, fold add_type_thm type_ths problem) end
