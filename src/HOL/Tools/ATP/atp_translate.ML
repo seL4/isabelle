@@ -1046,8 +1046,11 @@ fun add_combterm_syms_to_table ctxt explicit_apply =
     fun consider_var_arity const_T var_T max_ary =
       let
         fun iter ary T =
-          if ary = max_ary orelse type_instance ctxt (var_T, T) then ary
-          else iter (ary + 1) (range_type T)
+          if ary = max_ary orelse type_instance ctxt (var_T, T) orelse
+             type_instance ctxt (T, var_T) then
+            ary
+          else
+            iter (ary + 1) (range_type T)
       in iter 0 const_T end
     fun add_var_or_bound_var T (accum as ((bool_vars, fun_var_Ts), sym_tab)) =
       if explicit_apply = NONE andalso
@@ -1287,8 +1290,7 @@ val helper_table =
     @{lemma "~ P | fdisj P Q" "~ Q | fdisj P Q" "~ fdisj P Q | P | Q"
         by (unfold fdisj_def) fast+}),
    (("fimplies", false),
-    @{lemma "P | fimplies P Q" "~ Q | fimplies P Q"
-            "~ fimplies P Q | ~ P | Q"
+    @{lemma "P | fimplies P Q" "~ Q | fimplies P Q" "~ fimplies P Q | ~ P | Q"
         by (unfold fimplies_def) fast+}),
    (("If", true), @{thms if_True if_False True_or_False})]
   |> map (apsnd (map zero_var_indexes))
