@@ -11,12 +11,13 @@ signature METIS_TACTICS =
 sig
   val metisN : string
   val metisFT_N : string
+  val default_unsound_type_sys : string
+  val default_sound_type_sys : string
   val trace : bool Config.T
   val verbose : bool Config.T
   val new_skolemizer : bool Config.T
   val old_metis_tac : Proof.context -> thm list -> int -> tactic
   val old_metisF_tac : Proof.context -> thm list -> int -> tactic
-  val old_metisH_tac : Proof.context -> thm list -> int -> tactic
   val old_metisFT_tac : Proof.context -> thm list -> int -> tactic
   val new_metis_tac : string list -> Proof.context -> thm list -> int -> tactic
   val new_metisFT_tac : Proof.context -> thm list -> int -> tactic
@@ -30,22 +31,22 @@ open ATP_Translate
 open Metis_Translate
 open Metis_Reconstruct
 
-val full_typesN = "full_types"
-val default_unsound_type_sys = "poly_args"
-val default_sound_type_sys = "poly_preds_query"
-
-fun method_call_for_mode HO = (@{binding metis}, "")
-  | method_call_for_mode FO = (@{binding metisF}, "")
-  | method_call_for_mode FT = (@{binding metisFT}, "")
-  | method_call_for_mode (Type_Sys type_sys) =
-    if type_sys = default_sound_type_sys then
-      (@{binding new_metisFT}, "")
-    else
-      (@{binding new_metis},
-       if type_sys = default_unsound_type_sys then "" else type_sys)
-
 val metisN = Binding.qualified_name_of @{binding metis}
 val metisFT_N = Binding.qualified_name_of @{binding metisFT}
+val full_typesN = "full_types"
+
+val default_unsound_type_sys = "poly_args"
+val default_sound_type_sys = "poly_preds_heavy_query"
+
+fun method_call_for_mode HO = (@{binding old_metis}, "")
+  | method_call_for_mode FO = (@{binding metisF}, "")
+  | method_call_for_mode FT = (@{binding old_metisFT}, "")
+  | method_call_for_mode (Type_Sys type_sys) =
+    if type_sys = default_sound_type_sys then
+      (@{binding metisFT}, "")
+    else
+      (@{binding metis},
+       if type_sys = default_unsound_type_sys then "" else type_sys)
 
 val new_skolemizer =
   Attrib.setup_config_bool @{binding metis_new_skolemizer} (K false)
@@ -219,7 +220,6 @@ fun generic_metis_tac modes ctxt ths i st0 =
 
 val old_metis_modes = [HO, FT]
 val old_metisF_modes = [FO, FT]
-val old_metisH_modes = [HO]
 val old_metisFT_modes = [FT]
 val new_metis_default_modes =
   map Type_Sys [default_unsound_type_sys, default_sound_type_sys]
@@ -227,7 +227,6 @@ val new_metisFT_modes = [Type_Sys default_sound_type_sys]
 
 val old_metis_tac = generic_metis_tac old_metis_modes
 val old_metisF_tac = generic_metis_tac old_metisF_modes
-val old_metisH_tac = generic_metis_tac old_metisH_modes
 val old_metisFT_tac = generic_metis_tac old_metisFT_modes
 fun new_metis_tac [] = generic_metis_tac new_metis_default_modes
   | new_metis_tac type_syss = generic_metis_tac (map Type_Sys type_syss)

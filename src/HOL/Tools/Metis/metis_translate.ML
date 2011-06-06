@@ -376,8 +376,10 @@ val _ = tracing ("PROPS:\n" ^ cat_lines (map (Syntax.string_of_term ctxt) props)
 (*
 val _ = tracing ("ATP PROBLEM: " ^ cat_lines (tptp_strings_for_atp_problem CNF atp_problem))
 *)
+      (* "rev" is for compatibility *)
       val axioms =
         atp_problem |> maps (map_filter (metis_axiom_from_atp clauses) o snd)
+                    |> rev
     in
       (mode, sym_tab, {axioms = axioms, tfrees = [], old_skolems = old_skolems})
     end
