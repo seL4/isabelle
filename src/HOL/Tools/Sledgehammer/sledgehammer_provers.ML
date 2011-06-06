@@ -417,8 +417,8 @@ fun timed_apply timeout tac state i =
   in TimeLimit.timeLimit timeout (try (Seq.pull o full_tac)) goal end
 
 fun tac_for_reconstructor Metis =
-    Metis_Tactics.new_metis_tac [Metis_Tactics.default_unsound_type_sys]
-  | tac_for_reconstructor MetisFT = Metis_Tactics.new_metisFT_tac
+    Metis_Tactics.metis_tac [Metis_Tactics.default_unsound_type_sys]
+  | tac_for_reconstructor MetisFT = Metis_Tactics.metisFT_tac
   | tac_for_reconstructor _ = raise Fail "unexpected reconstructor"
 
 fun timed_reconstructor reconstructor debug timeout ths =

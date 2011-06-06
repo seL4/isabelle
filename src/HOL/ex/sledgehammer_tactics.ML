@@ -70,7 +70,7 @@ fun sledgehammer_with_metis_tac ctxt i th =
   in
     case run_atp false timeout i i ctxt th atp of
       SOME facts =>
-      Metis_Tactics.new_metis_tac [] ctxt (maps (thms_of_name ctxt) facts) i th
+      Metis_Tactics.metis_tac [] ctxt (maps (thms_of_name ctxt) facts) i th
     | NONE => Seq.empty
   end
 

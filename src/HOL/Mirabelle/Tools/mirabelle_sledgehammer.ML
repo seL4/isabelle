@@ -542,9 +542,9 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
        else if !reconstructor = "smt" then
          SMT_Solver.smt_tac
        else if full orelse !reconstructor = "metisFT" then
-         Metis_Tactics.new_metisFT_tac
+         Metis_Tactics.metisFT_tac
        else
-         Metis_Tactics.new_metis_tac []) ctxt thms
+         Metis_Tactics.metis_tac []) ctxt thms
     fun apply_reconstructor thms =
       Mirabelle.can_apply timeout (do_reconstructor thms) st
 

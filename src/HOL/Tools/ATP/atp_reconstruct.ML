@@ -427,7 +427,10 @@ fun slack_fastype_of t = fastype_of t handle TERM _ => HOLogic.typeT
 fun term_from_atp ctxt textual sym_tab =
   let
     val thy = Proof_Context.theory_of ctxt
-    (* see also "mk_var" in "Metis_Reconstruct" *)
+    (* For Metis, we use 1 rather than 0 because variable references in clauses
+       may otherwise conflict with variable constraints in the goal. At least,
+       type inference often fails otherwise. See also "axiom_inference" in
+       "Metis_Reconstruct". *)
     val var_index = if textual then 0 else 1
     fun do_term extra_ts opt_T u =
       case u of
