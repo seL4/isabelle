@@ -327,12 +327,14 @@ fun metis_axiom_from_atp clauses (Formula (ident, _, phi, _, _)) =
          String.isPrefix lightweight_tags_sym_formula_prefix ident then
         Isa_Reflexive_or_Trivial |> some
       else if String.isPrefix helper_prefix ident then
-        case space_explode "_" ident  of
-          _ :: const :: j :: _ =>
-          nth (helper_table |> filter (curry (op =) const o fst)
-                            |> maps (snd o snd))
+        case (String.isSuffix typed_helper_suffix ident,
+              space_explode "_" ident) of
+          (needs_fairly_sound, _ :: const :: j :: _) =>
+          nth ((const, needs_fairly_sound)
+               |> AList.lookup (op =) helper_table |> the)
               (the (Int.fromString j) - 1)
-          |> prepare_helper |> Isa_Raw |> some
+          |> prepare_helper
+          |> Isa_Raw |> some
         | _ => raise Fail ("malformed helper identifier " ^ quote ident)
       else case try (unprefix conjecture_prefix) ident of
         SOME s =>
@@ -424,8 +426,8 @@ val _ = tracing ("ATP PROBLEM: " ^ cat_lines (tptp_strings_for_atp_problem CNF a
           let
             val helper_ths =
               helper_table
-              |> filter (is_used o prefix const_prefix o fst)
-              |> maps (fn (_, (needs_full_types, thms)) =>
+              |> filter (is_used o prefix const_prefix o fst o fst)
+              |> maps (fn ((_, needs_full_types), thms) =>
                           if needs_full_types andalso mode <> FT then []
                           else map (`prepare_helper) thms)
           in problem |> fold (add_thm false) helper_ths end

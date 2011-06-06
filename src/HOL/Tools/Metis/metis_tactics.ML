@@ -195,7 +195,7 @@ val type_has_top_sort =
 fun generic_metis_tac modes type_sys ctxt ths i st0 =
   let
     val _ = trace_msg ctxt (fn () =>
-        "Metis called with theorems " ^
+        "Metis called with theorems\n" ^
         cat_lines (map (Display.string_of_thm ctxt) ths))
     fun tac clause = resolve_tac (FOL_SOLVE type_sys modes ctxt clause ths) 1
   in

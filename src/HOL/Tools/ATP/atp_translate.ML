@@ -127,7 +127,7 @@ sig
   val translate_atp_fact :
     Proof.context -> format -> type_sys -> bool -> (string * locality) * thm
     -> translated_formula option * ((string * locality) * thm)
-  val helper_table : (string * (bool * thm list)) list
+  val helper_table : ((string * bool) * thm list) list
   val should_specialize_helper : type_sys -> term -> bool
   val tfree_classes_of_terms : term list -> string list
   val tvar_classes_of_terms : term list -> string list
@@ -1253,42 +1253,38 @@ fun repair_fact ctxt format type_sys sym_tab =
 
 (** Helper facts **)
 
-(* The Boolean indicates that a fairly sound type encoding is needed.
-   "false" must precede "true" to ensure consistent numbering and a correct
-   mapping in Metis. *)
+(* The Boolean indicates that a fairly sound type encoding is needed. *)
 val helper_table =
-  [("COMBI", (false, @{thms Meson.COMBI_def})),
-   ("COMBK", (false, @{thms Meson.COMBK_def})),
-   ("COMBB", (false, @{thms Meson.COMBB_def})),
-   ("COMBC", (false, @{thms Meson.COMBC_def})),
-   ("COMBS", (false, @{thms Meson.COMBS_def})),
-   ("fequal",
+  [(("COMBI", false), @{thms Meson.COMBI_def}),
+   (("COMBK", false), @{thms Meson.COMBK_def}),
+   (("COMBB", false), @{thms Meson.COMBB_def}),
+   (("COMBC", false), @{thms Meson.COMBC_def}),
+   (("COMBS", false), @{thms Meson.COMBS_def}),
+   (("fequal", true),
     (* This is a lie: Higher-order equality doesn't need a sound type encoding.
        However, this is done so for backward compatibility: Including the
        equality helpers by default in Metis breaks a few existing proofs. *)
-    (true, @{thms fequal_def [THEN Meson.iff_to_disjD, THEN conjunct1]
-                  fequal_def [THEN Meson.iff_to_disjD, THEN conjunct2]})),
-   ("fFalse", (false, [@{lemma "~ fFalse" by (unfold fFalse_def) fast}])),
-   ("fFalse", (true, @{thms True_or_False})),
-   ("fTrue", (false, [@{lemma "fTrue" by (unfold fTrue_def) fast}])),
-   ("fTrue", (true, @{thms True_or_False})),
-   ("fNot",
-    (false, @{thms fNot_def [THEN Meson.iff_to_disjD, THEN conjunct1]
-                   fNot_def [THEN Meson.iff_to_disjD, THEN conjunct2]})),
-   ("fconj",
-    (false,
-     @{lemma "~ P | ~ Q | fconj P Q" "~ fconj P Q | P" "~ fconj P Q | Q"
-         by (unfold fconj_def) fast+})),
-   ("fdisj",
-    (false,
-     @{lemma "~ P | fdisj P Q" "~ Q | fdisj P Q" "~ fdisj P Q | P | Q"
-         by (unfold fdisj_def) fast+})),
-   ("fimplies",
-    (false, @{lemma "P | fimplies P Q" "~ Q | fimplies P Q"
-                    "~ fimplies P Q | ~ P | Q"
-                by (unfold fimplies_def) fast+})),
-   ("If", (true, @{thms if_True if_False True_or_False}))]
-  |> map (apsnd (apsnd (map zero_var_indexes)))
+    @{thms fequal_def [THEN Meson.iff_to_disjD, THEN conjunct1]
+           fequal_def [THEN Meson.iff_to_disjD, THEN conjunct2]}),
+   (("fFalse", false), [@{lemma "~ fFalse" by (unfold fFalse_def) fast}]),
+   (("fFalse", true), @{thms True_or_False}),
+   (("fTrue", false), [@{lemma "fTrue" by (unfold fTrue_def) fast}]),
+   (("fTrue", true), @{thms True_or_False}),
+   (("fNot", false),
+    @{thms fNot_def [THEN Meson.iff_to_disjD, THEN conjunct1]
+           fNot_def [THEN Meson.iff_to_disjD, THEN conjunct2]}),
+   (("fconj", false),
+    @{lemma "~ P | ~ Q | fconj P Q" "~ fconj P Q | P" "~ fconj P Q | Q"
+        by (unfold fconj_def) fast+}),
+   (("fdisj", false),
+    @{lemma "~ P | fdisj P Q" "~ Q | fdisj P Q" "~ fdisj P Q | P | Q"
+        by (unfold fdisj_def) fast+}),
+   (("fimplies", false),
+    @{lemma "P | fimplies P Q" "~ Q | fimplies P Q"
+            "~ fimplies P Q | ~ P | Q"
+        by (unfold fimplies_def) fast+}),
+   (("If", true), @{thms if_True if_False True_or_False})]
+  |> map (apsnd (map zero_var_indexes))
 
 val type_tag = `make_fixed_const type_tag_name
 
@@ -1331,7 +1327,7 @@ fun helper_facts_for_sym ctxt format type_sys (s, {types, ...} : sym_info) =
       val fairly_sound = is_type_sys_fairly_sound type_sys
     in
       helper_table
-      |> maps (fn (helper_s, (needs_fairly_sound, ths)) =>
+      |> maps (fn ((helper_s, needs_fairly_sound), ths) =>
                   if helper_s <> unmangled_s orelse
                      (needs_fairly_sound andalso not fairly_sound) then
                     []
