@@ -428,7 +428,7 @@ fun filter_used_facts used = filter (member (op =) used o fst)
 fun play_one_line_proof debug timeout ths state i reconstructors =
   let
     fun play [] [] = Failed_to_Play (hd reconstructors)
-      | play (timed_out :: _) [] = Trust_Playable (timed_out, SOME timeout)
+      | play timed_outs [] = Trust_Playable (List.last timed_outs, SOME timeout)
       | play timed_out (reconstructor :: reconstructors) =
         let val timer = Timer.startRealTimer () in
           case timed_reconstructor reconstructor debug timeout ths state i of
