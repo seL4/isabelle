@@ -535,11 +535,14 @@ fun equality_inf ctxt mode old_skolems sym_tab (pos, atm) fp fr =
         | path_finder_FT tm ps t = path_finder_fail FT tm ps (SOME t)
       fun path_finder_MX tm [] _ = (tm, Bound 0)
         | path_finder_MX tm (p :: ps) (t as Metis_Term.Fn (s, ts)) =
-          let val s = s |> unmangled_const_name in
-            if s = metis_predicator orelse s = prefixed_predicator_name orelse
-               s = metis_type_tag orelse s = prefixed_type_tag_name then
+          let
+            val s = s |> perhaps (try (strip_prefix_and_unascii const_prefix
+                                       #> the #> unmangled_const_name))
+          in
+            if s = metis_predicator orelse s = predicator_name orelse
+               s = metis_type_tag orelse s = type_tag_name then
               path_finder_MX tm ps (nth ts p)
-            else if s = metis_app_op orelse s = prefixed_app_op_name then
+            else if s = metis_app_op orelse s = app_op_name then
               let
                 val (tm1, tm2) = dest_comb tm
                 val p' = p - (length ts - 2)
