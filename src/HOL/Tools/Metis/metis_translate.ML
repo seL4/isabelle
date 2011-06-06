@@ -367,9 +367,15 @@ fun prepare_metis_problem ctxt MX type_sys conj_clauses fact_clauses =
                                                         old_skolems
                             ||> (fn prop => prop :: props))
              clauses ([], [])
+(*
+val _ = tracing ("PROPS:\n" ^ cat_lines (map (Syntax.string_of_term ctxt) props))
+*)
       val (atp_problem, _, _, _, _, _, sym_tab) =
         prepare_atp_problem ctxt CNF Hypothesis Axiom type_sys explicit_apply
                             false false props @{prop False} []
+(*
+val _ = tracing ("ATP PROBLEM: " ^ cat_lines (tptp_strings_for_atp_problem CNF atp_problem))
+*)
       val axioms =
         atp_problem |> maps (map_filter (metis_axiom_from_atp clauses) o snd)
     in

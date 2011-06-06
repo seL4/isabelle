@@ -298,8 +298,8 @@ fun tptp_strings_for_atp_problem format problem =
 fun is_problem_line_negated (Formula (_, _, AConn (ANot, _), _, _)) = true
   | is_problem_line_negated _ = false
 
-fun is_problem_line_cnf_ueq
-        (Formula (_, _, AAtom (ATerm ((s, _), _)), _, _)) = is_tptp_equal s
+fun is_problem_line_cnf_ueq (Formula (_, _, AAtom (ATerm ((s, _), _)), _, _)) =
+    is_tptp_equal s
   | is_problem_line_cnf_ueq _ = false
 
 fun open_conjecture_term (ATerm ((s, s'), tms)) =
@@ -307,8 +307,10 @@ fun open_conjecture_term (ATerm ((s, s'), tms)) =
          else (s, s'), tms |> map open_conjecture_term)
 fun open_formula conj =
   let
-    fun opn (pos as SOME true) (AQuant (AForall, xs, phi)) = opn pos phi
-      | opn (pos as SOME false) (AQuant (AExists, xs, phi)) = opn pos phi
+    (* We are conveniently assuming that all bound variable names are
+       distinct, which should be the case for the formulas we generate. *)
+    fun opn (pos as SOME true) (AQuant (AForall, _, phi)) = opn pos phi
+      | opn (pos as SOME false) (AQuant (AExists, _, phi)) = opn pos phi
       | opn pos (AConn (ANot, [phi])) = mk_anot (opn (Option.map not pos) phi)
       | opn pos (AConn (c, [phi1, phi2])) =
         let val (pos1, pos2) = polarities_of_conn pos c in
@@ -329,19 +331,20 @@ exception CLAUSIFY of unit
 (* This "clausification" only expands syntactic sugar, such as "phi => psi" to
    "~ phi | psi" and "phi <=> psi" to "~ phi | psi" and "~ psi | phi". We don't
    attempt to distribute conjunctions over disjunctions. *)
-fun clausify_formula1 pos (phi as AAtom _) = phi |> not pos ? mk_anot
-  | clausify_formula1 pos (AConn (ANot, [phi])) = clausify_formula1 (not pos) phi
-  | clausify_formula1 false (AConn (AAnd, phis)) =
-    AConn (AOr, map (clausify_formula1 false) phis)
-  | clausify_formula1 true (AConn (AOr, phis)) =
-    AConn (AOr, map (clausify_formula1 true) phis)
-  | clausify_formula1 true (AConn (AImplies, [phi1, phi2])) =
-    AConn (AOr, [clausify_formula1 false phi1, clausify_formula1 true phi2])
-  | clausify_formula1 _ _ = raise CLAUSIFY ()
-fun clausify_formula true (AConn (AIff, phis)) =
-    [clausify_formula1 true (AConn (AImplies, rev phis)),
-     clausify_formula1 true (AConn (AImplies, phis))]
-  | clausify_formula pos phi = [clausify_formula1 pos phi]
+fun clausify_formula pos (phi as AAtom _) = [phi |> not pos ? mk_anot]
+  | clausify_formula pos (AConn (ANot, [phi])) = clausify_formula (not pos) phi
+  | clausify_formula true (AConn (AOr, [phi1, phi2])) =
+    (phi1, phi2) |> pairself (clausify_formula true)
+                 |> uncurry (map_product (mk_aconn AOr))
+  | clausify_formula false (AConn (AAnd, [phi1, phi2])) =
+    (phi1, phi2) |> pairself (clausify_formula false)
+                 |> uncurry (map_product (mk_aconn AOr))
+  | clausify_formula true (AConn (AImplies, [phi1, phi2])) =
+    clausify_formula true (AConn (AOr, [mk_anot phi1, phi2]))
+  | clausify_formula true (AConn (AIff, phis)) =
+    clausify_formula true (AConn (AImplies, phis)) @
+    clausify_formula true (AConn (AImplies, rev phis))
+  | clausify_formula _ _ = raise CLAUSIFY ()
 
 fun clausify_formula_line (Formula (ident, kind, phi, source, info)) =
     let

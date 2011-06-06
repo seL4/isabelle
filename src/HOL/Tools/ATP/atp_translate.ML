@@ -981,8 +981,8 @@ fun make_conjecture ctxt format prem_kind type_sys preproc ts =
                     else I)
               in
                 t |> preproc ? (preprocess_prop ctxt true kind #> freeze_term)
-                  |> make_formula thy format type_sys true (string_of_int j)
-                                  General kind
+                  |> make_formula thy format type_sys (format <> CNF)
+                                  (string_of_int j) General kind
                   |> maybe_negate
               end)
          (0 upto last) ts
