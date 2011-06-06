@@ -302,8 +302,8 @@ val vampire_config : atp_config =
    formats = [FOF],
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.333, (false, (400, ["mangled_preds_heavy"]))) (* SOS *),
-      (0.333, (false, (400, ["mangled_tags?"]))) (* SOS *),
+     [(0.333, (false, (200, ["mangled_preds_heavy"]))) (* SOS *),
+      (0.333, (false, (300, ["mangled_tags?"]))) (* SOS *),
       (0.334, (true, (400, ["poly_preds"]))) (* ~SOS *)]
      |> (if Config.get ctxt vampire_force_sos then hd #> apfst (K 1.0) #> single
          else I)}
