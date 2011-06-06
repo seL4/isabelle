@@ -705,6 +705,7 @@ The theory \isa{Pure} contains constant declarations for the
   \begin{mldecls}
   \indexdef{}{ML type}{thm}\verb|type thm| \\
   \indexdef{}{ML}{proofs}\verb|proofs: int Unsynchronized.ref| \\
+  \indexdef{}{ML}{Thm.transfer}\verb|Thm.transfer: theory -> thm -> thm| \\
   \indexdef{}{ML}{Thm.assume}\verb|Thm.assume: cterm -> thm| \\
   \indexdef{}{ML}{Thm.forall\_intr}\verb|Thm.forall_intr: cterm -> thm -> thm| \\
   \indexdef{}{ML}{Thm.forall\_elim}\verb|Thm.forall_elim: cterm -> thm -> thm| \\
@@ -751,6 +752,13 @@ The theory \isa{Pure} contains constant declarations for the
   \verb|1| records oracle names and propositions, \verb|2| additionally
   records full proof terms.  Officially named theorems that contribute
   to a result are recorded in any case.
+
+  \item \verb|Thm.transfer|~\isa{thy\ thm} transfers the given
+  theorem to a \emph{larger} theory, see also \secref{sec:context}.
+  This formal adjustment of the background context has no logical
+  significance, but is occasionally required for formal reasons, e.g.\
+  when theorems that are imported from more basic theories are used in
+  the current situation.
 
   \item \verb|Thm.assume|, \verb|Thm.forall_intr|, \verb|Thm.forall_elim|, \verb|Thm.implies_intr|, and \verb|Thm.implies_elim|
   correspond to the primitive inferences of \figref{fig:prim-rules}.

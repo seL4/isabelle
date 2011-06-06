@@ -634,6 +634,7 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML_type thm} \\
   @{index_ML proofs: "int Unsynchronized.ref"} \\
+  @{index_ML Thm.transfer: "theory -> thm -> thm"} \\
   @{index_ML Thm.assume: "cterm -> thm"} \\
   @{index_ML Thm.forall_intr: "cterm -> thm -> thm"} \\
   @{index_ML Thm.forall_elim: "cterm -> thm -> thm"} \\
@@ -681,6 +682,13 @@ text %mlref {*
   @{ML 1} records oracle names and propositions, @{ML 2} additionally
   records full proof terms.  Officially named theorems that contribute
   to a result are recorded in any case.
+
+  \item @{ML Thm.transfer}~@{text "thy thm"} transfers the given
+  theorem to a \emph{larger} theory, see also \secref{sec:context}.
+  This formal adjustment of the background context has no logical
+  significance, but is occasionally required for formal reasons, e.g.\
+  when theorems that are imported from more basic theories are used in
+  the current situation.
 
   \item @{ML Thm.assume}, @{ML Thm.forall_intr}, @{ML
   Thm.forall_elim}, @{ML Thm.implies_intr}, and @{ML Thm.implies_elim}

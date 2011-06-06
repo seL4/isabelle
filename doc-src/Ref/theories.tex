@@ -1,25 +1,5 @@
 
-\chapter{Theories, Terms and Types} \label{theories}
-\index{theories|(}
-
-\section{Basic operations on theories}\label{BasicOperationsOnTheories}
-
-\subsection{*Theory inclusion}
-\begin{ttbox}
-transfer    : theory -> thm -> thm
-\end{ttbox}
-
-Transferring theorems to super theories has no logical significance,
-but may affect some operations in subtle ways (e.g.\ implicit merges
-of signatures when applying rules, or pretty printing of theorems).
-
-\begin{ttdescription}
-
-\item[\ttindexbold{transfer} $thy$ $thm$] transfers theorem $thm$ to
-  theory $thy$, provided the latter includes the theory of $thm$.
-  
-\end{ttdescription}
-
+\chapter{Terms}
 
 \section{*Variable binding}
 \begin{ttbox}
@@ -57,9 +37,6 @@ bound variables.
   free in~$u$.
 
 \end{ttdescription}
-
-\index{theories|)}
-
 
 %%% Local Variables: 
 %%% mode: latex
