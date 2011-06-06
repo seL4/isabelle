@@ -66,7 +66,7 @@ sledgehammer [type_sys = mangled_tags?, expect = some] (id_apply)
 sledgehammer [type_sys = mangled_tags, expect = some] (id_apply)
 sledgehammer [type_sys = mangled_preds?, expect = some] (id_apply)
 sledgehammer [type_sys = mangled_preds, expect = some] (id_apply)
-by (metisX id_apply)
+by (metisFT id_apply)
 
 lemma "id True"
 sledgehammer [type_sys = erased, expect = some] (id_apply)
@@ -127,7 +127,7 @@ sledgehammer [type_sys = mangled_tags?, expect = some] ()
 sledgehammer [type_sys = mangled_tags, expect = some] ()
 sledgehammer [type_sys = mangled_preds?, expect = some] ()
 sledgehammer [type_sys = mangled_preds, expect = some] ()
-by metisX
+by metisFT
 
 lemma "id (\<not> a) \<Longrightarrow> \<not> id a"
 sledgehammer [type_sys = erased, expect = some] (id_apply)
