@@ -12,6 +12,9 @@
 %\usepackage[scaled=.85]{beramono}
 \usepackage{../../lib/texinputs/isabelle,../iman,../pdfsetup}
 
+\def\qty#1{\ensuremath{\left<\mathit{#1\/}\right>}}
+\def\qtybf#1{$\mathbf{\left<\textbf{\textit{#1\/}}\right>}$}
+
 %\oddsidemargin=4.6mm
 %\evensidemargin=4.6mm
 %\textwidth=150mm
@@ -574,7 +577,7 @@ the \textbf{sledgehammer} command in the theory file. Its general syntax is as
 follows:
 
 \prew
-\textbf{sledgehammer} \textit{subcommand\/$^?$ options\/$^?$ facts\_override\/$^?$ num\/$^?$}
+\textbf{sledgehammer} \qty{subcommand}$^?$ \qty{options}$^?$ \qty{facts\_override}$^?$ \qty{num}$^?$
 \postw
 
 For convenience, Sledgehammer is also available in the ``Commands'' submenu of
@@ -582,19 +585,19 @@ the ``Isabelle'' menu in Proof General or by pressing the Emacs key sequence C-c
 C-a C-s. This is equivalent to entering the \textbf{sledgehammer} command with
 no arguments in the theory text.
 
-In the general syntax, the \textit{subcommand} may be any of the following:
+In the general syntax, the \qty{subcommand} may be any of the following:
 
 \begin{enum}
 \item[$\bullet$] \textbf{\textit{run} (the default):} Runs Sledgehammer on
-subgoal number \textit{num} (1 by default), with the given options and facts.
+subgoal number \qty{num} (1 by default), with the given options and facts.
 
-\item[$\bullet$] \textbf{\textit{min}:} Attempts to minimize the provided facts
-(specified in the \textit{facts\_override} argument) to obtain a simpler proof
+\item[$\bullet$] \textbf{\textit{min}:} Attempts to minimize the facts
+specified in the \qty{facts\_override} argument to obtain a simpler proof
 involving fewer facts. The options and goal number are as for \textit{run}.
 
 \item[$\bullet$] \textbf{\textit{messages}:} Redisplays recent messages issued
 by Sledgehammer. This allows you to examine results that might have been lost
-due to Sledgehammer's asynchronous nature. The \textit{num} argument specifies a
+due to Sledgehammer's asynchronous nature. The \qty{num} argument specifies a
 limit on the number of messages to display (5 by default).
 
 \item[$\bullet$] \textbf{\textit{supported\_provers}:} Prints the list of
@@ -613,33 +616,33 @@ automatic provers.
 ATPs available at System\-On\-TPTP \cite{sutcliffe-2000}.
 \end{enum}
 
-Sledgehammer's behavior can be influenced by various \textit{options}, which can
-be specified in brackets after the \textbf{sledgehammer} command. The
-\textit{options} are a list of key--value pairs of the form ``[$k_1 = v_1,
+Sledgehammer's behavior can be influenced by various \qty{options}, which can be
+specified in brackets after the \textbf{sledgehammer} command. The
+\qty{options} are a list of key--value pairs of the form ``[$k_1 = v_1,
 \ldots, k_n = v_n$]''. For Boolean options, ``= \textit{true}'' is optional. For
 example:
 
 \prew
-\textbf{sledgehammer} [\textit{isar\_proof}, \,\textit{timeout} = 120$\,s$]
+\textbf{sledgehammer} [\textit{isar\_proof}, \,\textit{timeout} = 120]
 \postw
 
 Default values can be set using \textbf{sledgehammer\_\allowbreak params}:
 
 \prew
-\textbf{sledgehammer\_params} \textit{options}
+\textbf{sledgehammer\_params} \qty{options}
 \postw
 
 The supported options are described in \S\ref{option-reference}.
 
-The \textit{facts\_override} argument lets you alter the set of facts that go
-through the relevance filter. It may be of the form ``(\textit{facts})'', where
-\textit{facts} is a space-separated list of Isabelle facts (theorems, local
+The \qty{facts\_override} argument lets you alter the set of facts that go
+through the relevance filter. It may be of the form ``(\qty{facts})'', where
+\qty{facts} is a space-separated list of Isabelle facts (theorems, local
 assumptions, etc.), in which case the relevance filter is bypassed and the given
-facts are used. It may also be of the form ``(\textit{add}:\ \textit{facts}$_1$)'',
-``(\textit{del}:\ \textit{facts}$_2$)'', or ``(\textit{add}:\ \textit{facts}$_1$\
-\textit{del}:\ \textit{facts}$_2$)'', where the relevance filter is instructed to
-proceed as usual except that it should consider \textit{facts}$_1$
-highly-relevant and \textit{facts}$_2$ fully irrelevant.
+facts are used. It may also be of the form ``(\textit{add}:\ \qty{facts\/_{\mathrm{1}}})'',
+``(\textit{del}:\ \qty{facts\/_{\mathrm{2}}})'', or ``(\textit{add}:\ \qty{facts\/_{\mathrm{1}}}\
+\textit{del}:\ \qty{facts\/_{\mathrm{2}}})'', where the relevance filter is instructed to
+proceed as usual except that it should consider \qty{facts\/_{\mathrm{1}}}
+highly-relevant and \qty{facts\/_{\mathrm{2}}} fully irrelevant.
 
 You can instruct Sledgehammer to run automatically on newly entered theorems by
 enabling the ``Auto Sledgehammer'' option from the ``Isabelle'' menu in Proof
@@ -651,6 +654,19 @@ and \textit{debug} (\S\ref{output-format}) are disabled, and \textit{timeout}
 (\S\ref{timeouts}) is superseded by the ``Auto Tools Time Limit'' in Proof
 General's ``Isabelle'' menu. Sledgehammer's output is also more concise.
 
+The \textit{metis} proof method has the syntax
+
+\prew
+\textbf{\textit{metis}}~(\qty{type\_sys})${}^?$~\qty{facts}${}^?$
+\postw
+
+where \qty{type\_sys} is a type system specification with the same semantics as
+Sledgehammer's \textit{type\_sys} option (\S\ref{problem-encoding}) and
+\qty{facts} is a list of arbitrary facts. \qty{type\_sys} may also be
+\textit{full\_types}, in which case an appropriate type-sound encoding is
+chosen. The companion proof method \textit{metisFT} is an abbreviation for
+``\textit{metis}~(\textit{full\_types})''.
+
 \section{Option Reference}
 \label{option-reference}
 
@@ -658,8 +674,6 @@ General's ``Isabelle'' menu. Sledgehammer's output is also more concise.
 \def\defr{\}}
 
 \def\flushitem#1{\item[]\noindent\kern-\leftmargin \textbf{#1}}
-\def\qty#1{$\left<\textit{#1}\right>$}
-\def\qtybf#1{$\mathbf{\left<\textbf{\textit{#1}}\right>}$}
 \def\optrue#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool}$\bigr]$\enskip \defl\textit{true}\defr\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
 \def\opfalse#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{bool}$\bigr]$\enskip \defl\textit{false}\defr\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
 \def\opsmart#1#2{\flushitem{\textit{#1} $\bigl[$= \qtybf{smart\_bool}$\bigr]$\enskip \defl\textit{smart}\defr\hfill (neg.: \textit{#2})}\nopagebreak\\[\parskip]}
@@ -866,11 +880,12 @@ safely remove them after Sledgehammer has run.
 
 \begin{enum}
 \opfalse{full\_types}{partial\_types}
-Specifies whether full type information is encoded in ATP problems. Enabling
-this option prevents the discovery of type-incorrect proofs, but it can slow
-down the ATP slightly. This option is implicitly enabled for automatic runs. For
-historical reasons, the default value of this option can be overridden using the
-option ``Sledgehammer: Full Types'' from the ``Isabelle'' menu in Proof General.
+Specifies whether a type-sound encoding should be used when translating
+higher-order types to untyped first-order logic. Enabling this option virtually
+prevents the discovery of type-incorrect proofs, but it can slow down the ATP
+slightly. This option is implicitly enabled for automatic runs. For historical
+reasons, the default value of this option can be overridden using the option
+``Sledgehammer: Full Types'' from the ``Isabelle'' menu in Proof General.
 
 \opdefault{type\_sys}{string}{smart}
 Specifies the type system to use in ATP problems. Some of the type systems are
@@ -934,7 +949,9 @@ The type systems \textit{poly\_preds}, \textit{poly\_tags},
 of these, Sledgehammer also provides a lighter, virtually sound variant
 identified by a question mark (`{?}')\ that detects and erases monotonic types,
 notably infinite types. (For \textit{simple}, the types are not actually erased
-but rather replaced by a shared uniform type of individuals.)
+but rather replaced by a shared uniform type of individuals.) As argument to the
+\textit{metis} proof method, the question mark is replaced by a
+``\textit{\_query}'' suffix.
 
 \item[$\bullet$]
 \textbf{%
@@ -947,7 +964,9 @@ The type systems \textit{poly\_preds}, \textit{poly\_tags},
 very efficient) variant identified by an exclamation mark (`{!}') that detects
 and erases erases all types except those that are clearly finite (e.g.,
 \textit{bool}). (For \textit{simple}, the types are not actually erased but
-rather replaced by a shared uniform type of individuals.)
+rather replaced by a shared uniform type of individuals.) As argument to the
+\textit{metis} proof method, the exclamation mark is replaced by a
+``\textit{\_bang}'' suffix.
 
 \item[$\bullet$] \textbf{\textit{smart}:} If \textit{full\_types} is enabled,
 uses a sound or virtually sound encoding; otherwise, uses any encoding. The actual
