@@ -398,7 +398,7 @@ fun run_sh prover_name prover type_sys max_relevant slicing e_weight_method spas
       | SOME secs => TimeLimit.timeLimit (Time.fromSeconds secs))
     fun failed failure =
       ({outcome = SOME failure, used_facts = [], run_time_in_msecs = NONE,
-        preplay = K ATP_Reconstruct.Failed_to_Play,
+        preplay = K (ATP_Reconstruct.Failed_to_Play ATP_Reconstruct.Metis),
         message = K ""}, ~1)
     val ({outcome, used_facts, run_time_in_msecs, preplay, message}
          : Sledgehammer_Provers.prover_result,

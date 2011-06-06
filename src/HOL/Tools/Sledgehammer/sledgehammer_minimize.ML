@@ -185,7 +185,8 @@ fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
                  string_of_int (10 + msecs div 1000) ^ "\")."))
      | {preplay, message, ...} =>
        (NONE, (preplay, prefix "Prover error: " o message)))
-    handle ERROR msg => (NONE, (K Failed_to_Play, fn _ => "Error: " ^ msg))
+    handle ERROR msg =>
+           (NONE, (K (Failed_to_Play Metis), fn _ => "Error: " ^ msg))
   end
 
 fun run_minimize (params as {provers, ...}) i refs state =

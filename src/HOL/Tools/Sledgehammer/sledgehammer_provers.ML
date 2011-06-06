@@ -429,7 +429,7 @@ fun filter_used_facts used = filter (member (op =) used o fst)
 
 fun play_one_line_proof debug timeout ths state i reconstructors =
   let
-    fun play [] [] = Failed_to_Play
+    fun play [] [] = Failed_to_Play (hd reconstructors)
       | play (timed_out :: _) [] = Trust_Playable (timed_out, SOME timeout)
       | play timed_out (reconstructor :: reconstructors) =
         let val timer = Timer.startRealTimer () in
@@ -815,7 +815,7 @@ fun run_atp mode name
               end)
         end
       | SOME failure =>
-        ([], K Failed_to_Play, fn _ => string_for_failure failure)
+        ([], K (Failed_to_Play Metis), fn _ => string_for_failure failure)
   in
     {outcome = outcome, used_facts = used_facts, run_time_in_msecs = msecs,
      preplay = preplay, message = message}
@@ -1000,7 +1000,8 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
                else
                  "")
             end)
-      | SOME failure => (K Failed_to_Play, fn _ => string_for_failure failure)
+      | SOME failure =>
+        (K (Failed_to_Play Metis), fn _ => string_for_failure failure)
   in
     {outcome = outcome, used_facts = used_facts,
      run_time_in_msecs = run_time_in_msecs, preplay = preplay,
@@ -1029,7 +1030,9 @@ fun run_metis mode name ({debug, timeout, ...} : params) minimize_command
                           minimize_command name, subgoal, subgoal_count)
                     in one_line_proof_text one_line_params end}
     | play =>
-      let val failure = if play = Failed_to_Play then GaveUp else TimedOut in
+      let
+        val failure = case play of Failed_to_Play _ => GaveUp | _ => TimedOut
+      in
         {outcome = SOME failure, used_facts = [], run_time_in_msecs = NONE,
          preplay = K play, message = fn _ => string_for_failure failure}
       end

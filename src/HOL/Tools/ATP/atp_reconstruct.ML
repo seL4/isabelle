@@ -22,7 +22,7 @@ sig
   datatype play =
     Played of reconstructor * Time.time |
     Trust_Playable of reconstructor * Time.time option|
-    Failed_to_Play
+    Failed_to_Play of reconstructor
 
   type minimize_command = string list -> string
   type one_line_params =
@@ -73,7 +73,7 @@ datatype reconstructor =
 datatype play =
   Played of reconstructor * Time.time |
   Trust_Playable of reconstructor * Time.time option |
-  Failed_to_Play
+  Failed_to_Play of reconstructor
 
 type minimize_command = string list -> string
 type one_line_params =
@@ -294,23 +294,22 @@ fun one_line_proof_text (preplay, banner, used_facts, minimize_command,
                          subgoal, subgoal_count) =
   let
     val (chained, extra) = split_used_facts used_facts
-    val (reconstructor, ext_time) =
+    val (failed, reconstructor, ext_time) =
       case preplay of
         Played (reconstructor, time) =>
-        (SOME reconstructor, (SOME (false, time)))
+        (false, reconstructor, (SOME (false, time)))
       | Trust_Playable (reconstructor, time) =>
-        (SOME reconstructor,
+        (false, reconstructor,
          case time of
            NONE => NONE
          | SOME time =>
            if time = Time.zeroTime then NONE else SOME (true, time))
-      | Failed_to_Play => (NONE, NONE)
+      | Failed_to_Play reconstructor => (true, reconstructor, NONE)
     val try_line =
-      case reconstructor of
-        SOME r => ([], map fst extra)
-                  |> reconstructor_command r subgoal subgoal_count
-                  |> try_command_line banner ext_time
-      | NONE => "One-line proof reconstruction failed."
+      ([], map fst extra)
+      |> reconstructor_command reconstructor subgoal subgoal_count
+      |> (if failed then enclose "One-line proof reconstruction failed: " "."
+          else try_command_line banner ext_time)
   in try_line ^ minimize_line minimize_command (map fst (extra @ chained)) end
 
 (** Hard-core proof reconstruction: structured Isar proofs **)
@@ -1103,7 +1102,7 @@ fun isar_proof_text ctxt isar_proof_requested
 
 fun proof_text ctxt isar_proof isar_params
                (one_line_params as (preplay, _, _, _, _, _)) =
-  (if isar_proof orelse preplay = Failed_to_Play then
+  (if case preplay of Failed_to_Play _ => true | _ => isar_proof then
      isar_proof_text ctxt isar_proof isar_params
    else
      one_line_proof_text) one_line_params
