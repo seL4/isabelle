@@ -93,6 +93,11 @@ val resolution_params = {active = active_params, waiting = waiting_params}
 (* Main function to start Metis proof and reconstruction *)
 fun FOL_SOLVE (mode :: fallback_modes) ctxt cls ths0 =
   let val thy = Proof_Context.theory_of ctxt
+      val _ =
+        if mode = FO then
+          legacy_feature "Old 'metisF' command -- use 'metis' instead"
+        else
+          ()
       val new_skolemizer =
         Config.get ctxt new_skolemizer orelse null (Meson.choice_theorems thy)
       val th_cls_pairs =

@@ -85,6 +85,9 @@ INCOMPATIBILITY.
     TPTP problems (TFF).
   - Added "type_sys", "max_mono_iters", and "max_new_mono_instances" options.
 
+* Metis:
+  - Obsoleted "metisF" -- use "metis" instead.
+
 * "try":
   - Added "simp:", "intro:", and "elim:" options.
 
