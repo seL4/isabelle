@@ -22,6 +22,10 @@ val heaviness = [Heavyweight, Lightweight]
 val type_syss =
   (levels |> map Simple_Types) @
   (map_product pair levels heaviness
+   (* The following two families of type systems are too incomplete for our
+      tests. *)
+   |> remove (op =) (Nonmonotonic_Types, Heavyweight)
+   |> remove (op =) (Finite_Types, Heavyweight)
    |> map_product pair polymorphisms
    |> map_product (fn constr => fn (poly, (level, heaviness)) =>
                       constr (poly, level, heaviness))
