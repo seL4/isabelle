@@ -839,8 +839,7 @@ fun combformula_from_prop thy format type_sys eq_as_iff =
         #>> mk_aquant q [(`make_bound_var s, SOME T)]
       end
     and do_conn bs c t1 t2 =
-      do_formula bs t1 ##>> do_formula bs t2
-      #>> uncurry (mk_aconn c)
+      do_formula bs t1 ##>> do_formula bs t2 #>> uncurry (mk_aconn c)
     and do_formula bs t =
       case t of
         @{const Trueprop} $ t1 => do_formula bs t1
