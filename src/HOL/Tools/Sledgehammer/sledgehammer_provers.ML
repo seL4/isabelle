@@ -11,7 +11,6 @@ sig
   type failure = ATP_Proof.failure
   type locality = ATP_Translate.locality
   type relevance_fudge = Sledgehammer_Filter.relevance_fudge
-  type translated_formula = ATP_Translate.translated_formula
   type type_sys = ATP_Translate.type_sys
   type play = ATP_Reconstruct.play
   type minimize_command = ATP_Reconstruct.minimize_command
@@ -388,8 +387,6 @@ fun weight_smt_fact ctxt num_facts ((info, th), j) =
 
 fun untranslated_fact (Untranslated_Fact p) = p
   | untranslated_fact (SMT_Weighted_Fact (info, (_, th))) = (info, th)
-fun atp_translated_fact ctxt format type_sys fact =
-  translate_atp_fact ctxt format type_sys false (untranslated_fact fact)
 fun smt_weighted_fact _ _ (SMT_Weighted_Fact p, _) = p
   | smt_weighted_fact ctxt num_facts (fact, j) =
     (untranslated_fact fact, j) |> weight_smt_fact ctxt num_facts
@@ -593,7 +590,6 @@ fun run_atp mode name
             val num_actual_slices = length actual_slices
             fun monomorphize_facts facts =
               let
-                val facts = facts |> map untranslated_fact
                 (* pseudo-theorem involving the same constants as the subgoal *)
                 val subgoal_th =
                   Logic.list_implies (hyp_ts, concl_t)
@@ -607,7 +603,7 @@ fun run_atp mode name
                      |> SMT_Monomorph.monomorph indexed_facts
                      |> fst |> sort (int_ord o pairself fst)
                      |> filter_out (curry (op =) ~1 o fst)
-                     |> map (Untranslated_Fact o apfst (fst o nth facts))
+                     |> map (apfst (fst o nth facts))
               end
             fun run_slice blacklist (slice, (time_frac, (complete,
                                        (best_max_relevant, best_type_systems))))
@@ -620,16 +616,14 @@ fun run_atp mode name
                   choose_format_and_type_sys best_type_systems formats type_sys
                 val fairly_sound = is_type_sys_fairly_sound type_sys
                 val facts =
-                  facts |> not fairly_sound
-                           ? filter_out (is_dangerous_prop ctxt o prop_of o snd
-                                         o untranslated_fact)
+                  facts |> map untranslated_fact
+                        |> not fairly_sound
+                           ? filter_out (is_dangerous_prop ctxt o prop_of o snd)
                         |> take num_facts
                         |> not (null blacklist)
-                           ? filter_out (member (op =) blacklist o fst
-                                         o untranslated_fact)
+                           ? filter_out (member (op =) blacklist o fst)
                         |> polymorphism_of_type_sys type_sys <> Polymorphic
                            ? monomorphize_facts
-                        |> map (atp_translated_fact ctxt format type_sys)
                 val real_ms = Real.fromInt o Time.toMilliseconds
                 val slice_timeout =
                   ((real_ms time_left

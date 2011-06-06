@@ -52,8 +52,6 @@ sig
     Preds of polymorphism * type_level * type_heaviness |
     Tags of polymorphism * type_level * type_heaviness
 
-  type translated_formula
-
   val bound_var_prefix : string
   val schematic_var_prefix: string
   val fixed_var_prefix: string
@@ -124,9 +122,6 @@ sig
     connective -> ('a, 'b, 'c) formula list -> ('a, 'b, 'c) formula
   val unmangled_const_name : string -> string
   val unmangled_const : string -> string * string fo_term list
-  val translate_atp_fact :
-    Proof.context -> format -> type_sys -> bool -> (string * locality) * thm
-    -> translated_formula option * ((string * locality) * thm)
   val helper_table : ((string * bool) * thm list) list
   val should_specialize_helper : type_sys -> term -> bool
   val tfree_classes_of_terms : term list -> string list
@@ -135,9 +130,9 @@ sig
   val prepare_atp_problem :
     Proof.context -> format -> formula_kind -> formula_kind -> type_sys
     -> bool option -> bool -> bool -> term list -> term
-    -> (translated_formula option * ((string * 'a) * thm)) list
+    -> ((string * locality) * thm) list
     -> string problem * string Symtab.table * int * int
-       * (string * 'a) list vector * int list * int Symtab.table
+       * (string * locality) list vector * int list * int Symtab.table
   val atp_problem_weights : string problem -> (string * real) list
 end;
 
@@ -1348,9 +1343,6 @@ fun helper_facts_for_sym_table ctxt format type_sys sym_tab =
   Symtab.fold_rev (append o helper_facts_for_sym ctxt format type_sys) sym_tab
                   []
 
-fun translate_atp_fact ctxt format type_sys keep_trivial =
-  `(make_fact ctxt format type_sys keep_trivial true true true o apsnd prop_of)
-
 (***************************************************************)
 (* Type Classes Present in the Axiom or Conjecture Clauses     *)
 (***************************************************************)
@@ -1391,15 +1383,17 @@ fun type_constrs_of_terms thy ts =
   Symtab.keys (fold (add_type_constrs_in_term thy) ts Symtab.empty)
 
 fun translate_formulas ctxt format prem_kind type_sys preproc hyp_ts concl_t
-                       rich_facts =
+                       facts =
   let
     val thy = Proof_Context.theory_of ctxt
-    val fact_ts = map (prop_of o snd o snd) rich_facts
+    val fact_ts = facts |> map (prop_of o snd)
     val (facts, fact_names) =
-      rich_facts
-      |> map_filter (fn (NONE, _) => NONE
-                      | (SOME fact, (name, _)) => SOME (fact, name))
-      |> ListPair.unzip
+      facts |> map (fn (name, th) =>
+                        (name, prop_of th)
+                        |> make_fact ctxt format type_sys false true true true
+                        |> rpair name)
+            |> map_filter (try (apfst the))
+            |> ListPair.unzip
     (* Remove existing facts from the conjecture, as this can dramatically
        boost an ATP's performance (for some reason). *)
     val hyp_ts =
