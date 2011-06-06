@@ -17,7 +17,6 @@ sig
   datatype reconstructor =
     Metis |
     MetisFT |
-    MetisX |
     SMT of string
 
   datatype play =
@@ -69,7 +68,6 @@ open ATP_Translate
 datatype reconstructor =
   Metis |
   MetisFT |
-  MetisX |
   SMT of string
 
 datatype play =
@@ -255,7 +253,6 @@ fun uses_typed_helpers typed_helpers =
 
 fun reconstructor_name Metis = "metis"
   | reconstructor_name MetisFT = "metisFT"
-  | reconstructor_name MetisX = "metisX"
   | reconstructor_name (SMT _) = "smt"
 
 fun reconstructor_settings (SMT settings) = settings

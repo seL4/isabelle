@@ -12,9 +12,7 @@ sig
   type type_sys = ATP_Translate.type_sys
 
   val metisN : string
-  val metisF_N : string
   val metisFT_N : string
-  val metisX_N : string
   val trace : bool Config.T
   val verbose : bool Config.T
   val new_skolemizer : bool Config.T

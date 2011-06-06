@@ -129,8 +129,7 @@ datatype mode = Auto_Try | Try | Normal | Minimize
    "Async_Manager". *)
 val das_tool = "Sledgehammer"
 
-val metis_prover_names =
-  [Metis_Tactics.metisN, Metis_Tactics.metisFT_N, Metis_Tactics.metisX_N]
+val metis_prover_names = [Metis_Tactics.metisN, Metis_Tactics.metisFT_N]
 
 val is_metis_prover = member (op =) metis_prover_names
 val is_atp = member (op =) o supported_atps
@@ -419,8 +418,6 @@ fun timed_apply timeout tac state i =
 
 fun tac_for_reconstructor Metis = Metis_Tactics.metisH_tac
   | tac_for_reconstructor MetisFT = Metis_Tactics.metisFT_tac
-  | tac_for_reconstructor MetisX =
-    (fn ctxt => Metis_Tactics.metisX_tac ctxt NONE)
   | tac_for_reconstructor _ = raise Fail "unexpected reconstructor"
 
 fun timed_reconstructor reconstructor debug timeout ths =
@@ -1016,7 +1013,6 @@ fun run_metis mode name ({debug, timeout, ...} : params) minimize_command
   let
     val reconstructor = if name = Metis_Tactics.metisN then Metis
                         else if name = Metis_Tactics.metisFT_N then MetisFT
-                        else if name = Metis_Tactics.metisX_N then MetisX
                         else raise Fail ("unknown Metis version: " ^ quote name)
     val (used_facts, used_ths) =
       facts |> map untranslated_fact |> ListPair.unzip
