@@ -1049,44 +1049,51 @@ fun add_combterm_syms_to_table ctxt explicit_apply =
           if ary = max_ary orelse type_instance ctxt (var_T, T) then ary
           else iter (ary + 1) (range_type T)
       in iter 0 const_T end
-    fun add top_level tm (accum as (ho_var_Ts, sym_tab)) =
-      let
-        fun do_var_or_bound_var T =
-          if explicit_apply = NONE andalso can dest_funT T then
-            let
-              fun repair_min_arity {pred_sym, min_ary, max_ary, types} =
-                {pred_sym = pred_sym,
-                 min_ary =
-                   fold (fn T' => consider_var_arity T' T) types min_ary,
-                 max_ary = max_ary, types = types}
-              val ho_var_Ts' = ho_var_Ts |> insert_type ctxt I T
-            in
-              if pointer_eq (ho_var_Ts', ho_var_Ts) then accum
-              else (ho_var_Ts', Symtab.map (K repair_min_arity) sym_tab)
-            end
-          else
+    fun add_var_or_bound_var T (accum as ((bool_vars, fun_var_Ts), sym_tab)) =
+      if explicit_apply = NONE andalso
+         (can dest_funT T orelse T = @{typ bool}) then
+        let
+          val bool_vars' = bool_vars orelse body_type T = @{typ bool}
+          fun repair_min_arity {pred_sym, min_ary, max_ary, types} =
+            {pred_sym = pred_sym andalso not bool_vars',
+             min_ary =
+               fold (fn T' => consider_var_arity T' T) types min_ary,
+             max_ary = max_ary, types = types}
+          val fun_var_Ts' =
+            fun_var_Ts |> can dest_funT T ? insert_type ctxt I T
+        in
+          if bool_vars' = bool_vars andalso
+             pointer_eq (fun_var_Ts', fun_var_Ts) then
             accum
-        val (head, args) = strip_combterm_comb tm
-      in
+          else
+            ((bool_vars', fun_var_Ts'),
+             Symtab.map (K repair_min_arity) sym_tab)
+        end
+      else
+        accum
+    fun add top_level tm (accum as ((bool_vars, fun_var_Ts), sym_tab)) =
+      let val (head, args) = strip_combterm_comb tm in
         (case head of
            CombConst ((s, _), T, _) =>
            if String.isPrefix bound_var_prefix s then
-             do_var_or_bound_var T
+             add_var_or_bound_var T accum
            else
              let val ary = length args in
-               (ho_var_Ts,
+               ((bool_vars, fun_var_Ts),
                 case Symtab.lookup sym_tab s of
                   SOME {pred_sym, min_ary, max_ary, types} =>
                   let
+                    val pred_sym =
+                      pred_sym andalso top_level andalso not bool_vars
                     val types' = types |> insert_type ctxt I T
                     val min_ary =
                       if is_some explicit_apply orelse
                          pointer_eq (types', types) then
                         min_ary
                       else
-                        fold (consider_var_arity T) ho_var_Ts min_ary
+                        fold (consider_var_arity T) fun_var_Ts min_ary
                   in
-                    Symtab.update (s, {pred_sym = pred_sym andalso top_level,
+                    Symtab.update (s, {pred_sym = pred_sym,
                                        min_ary = Int.min (ary, min_ary),
                                        max_ary = Int.max (ary, max_ary),
                                        types = types'})
@@ -1094,19 +1101,20 @@ fun add_combterm_syms_to_table ctxt explicit_apply =
                   end
                 | NONE =>
                   let
+                    val pred_sym = top_level andalso not bool_vars
                     val min_ary =
                       case explicit_apply of
                         SOME true => 0
                       | SOME false => ary
-                      | NONE => fold (consider_var_arity T) ho_var_Ts ary
+                      | NONE => fold (consider_var_arity T) fun_var_Ts ary
                   in
-                    Symtab.update_new (s, {pred_sym = top_level,
+                    Symtab.update_new (s, {pred_sym = pred_sym,
                                            min_ary = min_ary, max_ary = ary,
                                            types = [T]})
                                       sym_tab
                   end)
              end
-         | CombVar (_, T) => do_var_or_bound_var T
+         | CombVar (_, T) => add_var_or_bound_var T accum
          | _ => accum)
         |> fold (add false) args
       end
@@ -1124,8 +1132,8 @@ val default_sym_tab_entries : (string * sym_info) list =
    |> map (rpair {pred_sym = true, min_ary = 2, max_ary = 2, types = []}))
 
 fun sym_table_for_facts ctxt explicit_apply facts =
-  Symtab.empty
-  |> pair [] |> fold (add_fact_syms_to_table ctxt explicit_apply) facts |> snd
+  ((false, []), Symtab.empty)
+  |> fold (add_fact_syms_to_table ctxt explicit_apply) facts |> snd
   |> fold Symtab.update default_sym_tab_entries
 
 fun min_arity_of sym_tab s =
