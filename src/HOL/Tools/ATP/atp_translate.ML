@@ -1299,10 +1299,10 @@ fun type_tag_idempotence_fact () =
   let
     fun var s = ATerm (`I s, [])
     fun tag tm = ATerm (type_tag, [var "T", tm])
-    val tagged_x = tag (var "X")
+    val tagged_a = tag (var "A")
   in
     Formula (type_tag_idempotence_helper_name, Axiom,
-             AAtom (ATerm (`I tptp_equal, [tag tagged_x, tagged_x]))
+             AAtom (ATerm (`I tptp_equal, [tag tagged_a, tagged_a]))
              |> close_formula_universally, simp_info, NONE)
   end
 
