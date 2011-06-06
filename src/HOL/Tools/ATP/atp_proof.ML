@@ -307,15 +307,21 @@ fun parse_literal x =
       >> (fn (n, phi) => phi |> n mod 2 = 1 ? mk_anot)) x
 and parse_formula x =
   (parse_literal
-   -- Scan.option ((Scan.this_string tptp_implies >> K AImplies
-                    || Scan.this_string tptp_iff >> K AIff
-                    || Scan.this_string tptp_not_iff >> K ANotIff
-                    || Scan.this_string tptp_if >> K AIf
-                    || $$ tptp_or >> K AOr
-                    || $$ tptp_and >> K AAnd)
-                   -- parse_formula)
+   -- Scan.option ((Scan.this_string tptp_implies
+                    || Scan.this_string tptp_iff
+                    || Scan.this_string tptp_not_iff
+                    || Scan.this_string tptp_if
+                    || $$ tptp_or
+                    || $$ tptp_and) -- parse_formula)
    >> (fn (phi1, NONE) => phi1
-        | (phi1, SOME (c, phi2)) => mk_aconn c phi1 phi2)) x
+        | (phi1, SOME (c, phi2)) =>
+          if c = tptp_implies then mk_aconn AImplies phi1 phi2
+          else if c = tptp_iff then mk_aconn AIff phi1 phi2
+          else if c = tptp_not_iff then mk_anot (mk_aconn AIff phi1 phi2)
+          else if c = tptp_if then mk_aconn AImplies phi2 phi1
+          else if c = tptp_or then mk_aconn AOr phi1 phi2
+          else if c = tptp_and then mk_aconn AAnd phi1 phi2
+          else raise Fail ("impossible connective " ^ quote c))) x
 and parse_quantified_formula x =
   (($$ tptp_forall >> K AForall || $$ tptp_exists >> K AExists)
    --| $$ "[" -- parse_terms --| $$ "]" --| $$ ":" -- parse_literal

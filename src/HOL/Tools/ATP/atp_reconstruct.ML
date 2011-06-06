@@ -568,10 +568,8 @@ fun raw_prop_from_atp ctxt textual sym_tab phi =
                AAnd => s_conj
              | AOr => s_disj
              | AImplies => s_imp
-             | AIf => s_imp o swap
              | AIff => s_iff
-             | ANotIff => s_not o s_iff
-             | _ => raise Fail "unexpected connective")
+             | ANot => raise Fail "impossible connective")
       | AAtom tm => term_from_atom ctxt textual sym_tab pos tm
       | _ => raise FORMULA [phi]
   in repair_tvar_sorts (do_formula true phi Vartab.empty) end

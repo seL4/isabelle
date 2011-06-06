@@ -9,7 +9,7 @@ signature ATP_PROBLEM =
 sig
   datatype 'a fo_term = ATerm of 'a * 'a fo_term list
   datatype quantifier = AForall | AExists
-  datatype connective = ANot | AAnd | AOr | AImplies | AIf | AIff | ANotIff
+  datatype connective = ANot | AAnd | AOr | AImplies | AIff
   datatype ('a, 'b, 'c) formula =
     AQuant of quantifier * ('a * 'b option) list * ('a, 'b, 'c) formula |
     AConn of connective * ('a, 'b, 'c) formula list |
@@ -93,7 +93,7 @@ open ATP_Util
 
 datatype 'a fo_term = ATerm of 'a * 'a fo_term list
 datatype quantifier = AForall | AExists
-datatype connective = ANot | AAnd | AOr | AImplies | AIf | AIff | ANotIff
+datatype connective = ANot | AAnd | AOr | AImplies | AIff
 datatype ('a, 'b, 'c) formula =
   AQuant of quantifier * ('a * 'b option) list * ('a, 'b, 'c) formula |
   AConn of connective * ('a, 'b, 'c) formula list |
@@ -147,9 +147,7 @@ fun raw_polarities_of_conn ANot = (SOME false, NONE)
   | raw_polarities_of_conn AAnd = (SOME true, SOME true)
   | raw_polarities_of_conn AOr = (SOME true, SOME true)
   | raw_polarities_of_conn AImplies = (SOME false, SOME true)
-  | raw_polarities_of_conn AIf = (SOME true, SOME false)
   | raw_polarities_of_conn AIff = (NONE, NONE)
-  | raw_polarities_of_conn ANotIff = (NONE, NONE)
 fun polarities_of_conn NONE = K (NONE, NONE)
   | polarities_of_conn (SOME pos) =
     raw_polarities_of_conn #> not pos ? pairself (Option.map not)
@@ -235,9 +233,7 @@ fun string_for_connective ANot = tptp_not
   | string_for_connective AAnd = tptp_and
   | string_for_connective AOr = tptp_or
   | string_for_connective AImplies = tptp_implies
-  | string_for_connective AIf = tptp_if
   | string_for_connective AIff = tptp_iff
-  | string_for_connective ANotIff = tptp_not_iff
 
 fun string_for_bound_var format (s, ty) =
   s ^ (if format = TFF orelse format = THF then
@@ -341,14 +337,10 @@ fun clausify_formula1 pos (phi as AAtom _) = phi |> not pos ? mk_anot
     AConn (AOr, map (clausify_formula1 true) phis)
   | clausify_formula1 true (AConn (AImplies, [phi1, phi2])) =
     AConn (AOr, [clausify_formula1 false phi1, clausify_formula1 true phi2])
-  | clausify_formula1 true (AConn (AIf, phis)) =
-    clausify_formula1 true (AConn (AImplies, rev phis))
   | clausify_formula1 _ _ = raise CLAUSIFY ()
 fun clausify_formula true (AConn (AIff, phis)) =
-    [clausify_formula1 true (AConn (AIf, phis)),
+    [clausify_formula1 true (AConn (AImplies, rev phis)),
      clausify_formula1 true (AConn (AImplies, phis))]
-  | clausify_formula false (AConn (ANotIff, phis)) =
-    clausify_formula true (AConn (AIff, phis))
   | clausify_formula pos phi = [clausify_formula1 pos phi]
 
 fun clausify_formula_line (Formula (ident, kind, phi, source, info)) =
