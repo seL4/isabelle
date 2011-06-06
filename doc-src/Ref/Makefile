@@ -9,10 +9,9 @@ default: dvi
 include ../Makefile.in
 
 NAME = ref
-FILES = ref.tex introduction.tex tactic.tex tctical.tex thm.tex	\
-	defining.tex syntax.tex substitution.tex	\
-	simplifier.tex classical.tex ../proof.sty ../iman.sty	\
-	../extra.sty ../ttbox.sty ../manual.bib
+FILES = ref.tex tactic.tex tctical.tex thm.tex defining.tex syntax.tex	\
+	substitution.tex simplifier.tex classical.tex ../proof.sty	\
+	../iman.sty ../extra.sty ../ttbox.sty ../manual.bib
 
 dvi: $(NAME).dvi
 
