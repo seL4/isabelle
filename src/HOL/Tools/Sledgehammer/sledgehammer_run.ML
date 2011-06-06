@@ -73,67 +73,68 @@ val auto_minimize_max_seconds =
   Attrib.setup_config_real @{binding sledgehammer_auto_minimize_max_seconds}
       (K 5.0)
 
-fun get_minimizing_prover ctxt mode name
-        (params as {debug, verbose, ...}) minimize_command
-        (problem as {state, subgoal, subgoal_count, facts, ...}) =
-  get_prover ctxt mode name params minimize_command problem
-  |> (fn result as {outcome, used_facts, run_time_in_msecs, preplay, message} =>
-         if is_some outcome then
-           result
+fun minimize ctxt mode name (params as {debug, verbose, ...})
+             ({state, subgoal, subgoal_count, facts, ...} : prover_problem)
+             (result as {outcome, used_facts, run_time_in_msecs, preplay,
+                         message} : prover_result) =
+  if is_some outcome then
+    result
+  else
+    let
+      val num_facts = length used_facts
+      fun can_minimize_fast_enough msecs =
+        0.001 * Real.fromInt ((num_facts + 2) * msecs)
+        <= Config.get ctxt auto_minimize_max_seconds
+      val ((minimize, minimize_name), preplay) =
+        if mode = Normal then
+          if num_facts >= Config.get ctxt auto_minimize_min_facts then
+            ((true, name), preplay)
+          else
+            let val preplay = preplay () in
+              (case preplay of
+                 Played (reconstructor, timeout) =>
+                 (can_minimize_fast_enough (Time.toMilliseconds timeout),
+                  reconstructor_name reconstructor)
+               | _ =>
+                 case run_time_in_msecs of
+                   SOME msecs => (can_minimize_fast_enough msecs, name)
+                 | NONE => (false, name),
+               K preplay)
+            end
+        else
+          ((false, name), preplay)
+      val (used_facts, (preplay, message)) =
+        if minimize then
+          minimize_facts minimize_name params (not verbose) subgoal
+                         subgoal_count state
+                         (filter_used_facts used_facts
+                              (map (apsnd single o untranslated_fact) facts))
+          |>> Option.map (map fst)
+        else
+          (SOME used_facts, (preplay, message))
+    in
+      case used_facts of
+        SOME used_facts =>
+        (if debug andalso not (null used_facts) then
+           facts ~~ (0 upto length facts - 1)
+           |> map (fn (fact, j) => fact |> untranslated_fact |> apsnd (K j))
+           |> filter_used_facts used_facts
+           |> map (fn ((name, _), j) => name ^ "@" ^ string_of_int j)
+           |> commas
+           |> enclose ("Fact" ^ plural_s (length facts) ^ " in " ^ quote name ^
+                       " proof (of " ^ string_of_int (length facts) ^ "): ") "."
+           |> Output.urgent_message
          else
-           let
-             val num_facts = length used_facts
-             fun can_minimize_fast_enough msecs =
-               0.001 * Real.fromInt ((num_facts + 2) * msecs)
-               <= Config.get ctxt auto_minimize_max_seconds
-             val ((minimize, minimize_name), preplay) =
-               if mode = Normal then
-                 if num_facts >= Config.get ctxt auto_minimize_min_facts then
-                   ((true, name), preplay)
-                 else
-                   let val preplay = preplay () in
-                     (case preplay of
-                        Played (reconstructor, timeout) =>
-                        (can_minimize_fast_enough (Time.toMilliseconds timeout),
-                         reconstructor_name reconstructor)
-                      | _ =>
-                        case run_time_in_msecs of
-                          SOME msecs => (can_minimize_fast_enough msecs, name)
-                        | NONE => (false, name),
-                     K preplay)
-                   end
-               else
-                 ((false, name), preplay)
-             val (used_facts, (preplay, message)) =
-               if minimize then
-                 minimize_facts minimize_name params
-                     (not verbose) subgoal subgoal_count state
-                     (filter_used_facts used_facts
-                          (map (apsnd single o untranslated_fact) facts))
-                 |>> Option.map (map fst)
-               else
-                 (SOME used_facts, (preplay, message))
-           in
-             case used_facts of
-               SOME used_facts =>
-               (if debug andalso not (null used_facts) then
-                  facts ~~ (0 upto length facts - 1)
-                  |> map (fn (fact, j) =>
-                             fact |> untranslated_fact |> apsnd (K j))
-                  |> filter_used_facts used_facts
-                  |> map (fn ((name, _), j) => name ^ "@" ^ string_of_int j)
-                  |> commas
-                  |> enclose ("Fact" ^ plural_s (length facts) ^ " in " ^
-                              quote name ^ " proof (of " ^
-                              string_of_int (length facts) ^ "): ") "."
-                  |> Output.urgent_message
-                else
-                  ();
-                {outcome = NONE, used_facts = used_facts,
-                 run_time_in_msecs = run_time_in_msecs, preplay = preplay,
-                 message = message})
-             | NONE => result
-           end)
+           ();
+         {outcome = NONE, used_facts = used_facts,
+          run_time_in_msecs = run_time_in_msecs, preplay = preplay,
+          message = message})
+      | NONE => result
+    end
+
+fun get_minimizing_prover ctxt mode name params minimize_command problem =
+  get_prover ctxt mode name params minimize_command problem
+  |> minimize ctxt mode name params problem
 
 fun launch_prover (params as {debug, verbose, blocking, max_relevant, slicing,
                               timeout, expect, ...})
