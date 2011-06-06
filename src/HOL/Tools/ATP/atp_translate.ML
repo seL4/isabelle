@@ -1045,24 +1045,28 @@ fun add_combterm_syms_to_table ctxt explicit_apply =
           else iter (ary + 1) (range_type T)
       in iter 0 const_T end
     fun add top_level tm (accum as (ho_var_Ts, sym_tab)) =
-      let val (head, args) = strip_combterm_comb tm in
+      let
+        fun do_var_or_bound_var T =
+          if explicit_apply = NONE andalso can dest_funT T then
+            let
+              fun repair_min_arity {pred_sym, min_ary, max_ary, types} =
+                {pred_sym = pred_sym,
+                 min_ary =
+                   fold (fn T' => consider_var_arity T' T) types min_ary,
+                 max_ary = max_ary, types = types}
+              val ho_var_Ts' = ho_var_Ts |> insert_type ctxt I T
+            in
+              if pointer_eq (ho_var_Ts', ho_var_Ts) then accum
+              else (ho_var_Ts', Symtab.map (K repair_min_arity) sym_tab)
+            end
+          else
+            accum
+        val (head, args) = strip_combterm_comb tm
+      in
         (case head of
            CombConst ((s, _), T, _) =>
            if String.isPrefix bound_var_prefix s then
-             if explicit_apply = NONE andalso can dest_funT T then
-               let
-                 fun repair_min_arity {pred_sym, min_ary, max_ary, types} =
-                   {pred_sym = pred_sym,
-                    min_ary =
-                      fold (fn T' => consider_var_arity T' T) types min_ary,
-                    max_ary = max_ary, types = types}
-                 val ho_var_Ts' = ho_var_Ts |> insert_type ctxt I T
-               in
-                 if pointer_eq (ho_var_Ts', ho_var_Ts) then accum
-                 else (ho_var_Ts', Symtab.map (K repair_min_arity) sym_tab)
-               end
-             else
-               accum
+             do_var_or_bound_var T
            else
              let val ary = length args in
                (ho_var_Ts,
@@ -1097,6 +1101,7 @@ fun add_combterm_syms_to_table ctxt explicit_apply =
                                       sym_tab
                   end)
              end
+         | CombVar (_, T) => do_var_or_bound_var T
          | _ => accum)
         |> fold (add false) args
       end
