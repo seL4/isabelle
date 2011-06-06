@@ -318,25 +318,29 @@ fun metis_literals_from_atp (AConn (AOr, [phi1, phi2])) =
     uncurry (union (op =)) (pairself metis_literals_from_atp (phi1, phi2))
   | metis_literals_from_atp phi = [metis_literal_from_atp phi]
 fun metis_axiom_from_atp clauses (Formula (ident, _, phi, _, _)) =
-    (phi |> metis_literals_from_atp |> Metis_LiteralSet.fromList
-         |> Metis_Thm.axiom,
-     if ident = type_tag_idempotence_helper_name orelse
-        String.isPrefix lightweight_tags_sym_formula_prefix ident then
-       Isa_Reflexive_or_Trivial
-     else if String.isPrefix helper_prefix ident then
-       case space_explode "_" ident  of
-         _ :: const :: j :: _ =>
-         Isa_Raw (nth (AList.lookup (op =) helper_table const |> the |> snd)
-                      (the (Int.fromString j) - 1)
-                  |> prepare_helper)
-       | _ => raise Fail ("malformed helper identifier " ^ quote ident)
-     else case try (unprefix conjecture_prefix) ident of
-       SOME s =>
-       let val j = the (Int.fromString s) in
-         Isa_Raw (if j = length clauses then TrueI
-                  else Meson.make_meta_clause (nth clauses j))
-       end
-     | NONE => Isa_Raw TrueI)
+    let
+      fun some isa =
+        SOME (phi |> metis_literals_from_atp |> Metis_LiteralSet.fromList
+                  |> Metis_Thm.axiom, isa)
+    in
+      if ident = type_tag_idempotence_helper_name orelse
+         String.isPrefix lightweight_tags_sym_formula_prefix ident then
+        Isa_Reflexive_or_Trivial |> some
+      else if String.isPrefix helper_prefix ident then
+        case space_explode "_" ident  of
+          _ :: const :: j :: _ =>
+          nth (AList.lookup (op =) helper_table const |> the |> snd)
+              (the (Int.fromString j) - 1)
+          |> prepare_helper |> Isa_Raw |> some
+        | _ => raise Fail ("malformed helper identifier " ^ quote ident)
+      else case try (unprefix conjecture_prefix) ident of
+        SOME s =>
+        let val j = the (Int.fromString s) in
+          if j = length clauses then NONE
+          else Meson.make_meta_clause (nth clauses j) |> Isa_Raw |> some
+        end
+      | NONE => TrueI |> Isa_Raw |> some
+    end
   | metis_axiom_from_atp _ _ = raise Fail "not CNF -- expected formula"
 
 val default_type_sys = Preds (Polymorphic, Nonmonotonic_Types, Lightweight)
@@ -359,7 +363,7 @@ fun prepare_metis_problem ctxt MX type_sys conj_clauses fact_clauses =
         prepare_atp_problem ctxt CNF Hypothesis Axiom type_sys explicit_apply
                             false false (map prop_of clauses) @{prop False} []
       val axioms =
-        atp_problem |> maps (map (metis_axiom_from_atp clauses) o snd)
+        atp_problem |> maps (map_filter (metis_axiom_from_atp clauses) o snd)
     in
       (MX, sym_tab,
        {axioms = axioms, tfrees = [], old_skolems = [] (* FIXME ### *)})
