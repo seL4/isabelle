@@ -422,7 +422,9 @@ fun repair_variable_name f s =
                    | NONE => s)
     | _ => s
   end
-  
+
+fun slack_fastype_of t = fastype_of t handle TERM _ => HOLogic.typeT
+
 (* First-order translation. No types are known for variables. "HOLogic.typeT"
    should allow them to be inferred. *)
 fun term_from_atp ctxt textual sym_tab =
@@ -460,7 +462,7 @@ fun term_from_atp ctxt textual sym_tab =
               let val extra_t = do_term [] NONE (List.last us) in
                 do_term (extra_t :: extra_ts)
                         (case opt_T of
-                           SOME T => SOME (fastype_of extra_t --> T)
+                           SOME T => SOME (slack_fastype_of extra_t --> T)
                          | NONE => NONE)
                         (nth us (length us - 2))
               end
@@ -479,7 +481,7 @@ fun term_from_atp ctxt textual sym_tab =
                     (s', map (typ_from_atp ctxt) type_us)
                     |> Sign.const_instance thy
                   else case opt_T of
-                    SOME T => map fastype_of term_ts ---> T
+                    SOME T => map slack_fastype_of term_ts ---> T
                   | NONE => HOLogic.typeT
                 val s' = s' |> unproxify_const
               in list_comb (Const (s', T), term_ts @ extra_ts) end
@@ -487,7 +489,7 @@ fun term_from_atp ctxt textual sym_tab =
         | NONE => (* a free or schematic variable *)
           let
             val ts = map (do_term [] NONE) us @ extra_ts
-            val T = map fastype_of ts ---> HOLogic.typeT
+            val T = map slack_fastype_of ts ---> HOLogic.typeT
             val t =
               case strip_prefix_and_unascii fixed_var_prefix a of
                 SOME b => Free (b, T)
