@@ -63,8 +63,8 @@ fun isabellep_tac ctxt max_secs =
 *}
 
 method_setup isabellep = {*
-  Scan.lift Parse.nat >>
+  Scan.lift (Scan.optional Parse.nat 1) >>
     (fn m => fn ctxt => SIMPLE_METHOD (isabellep_tac ctxt m))
-*} ""
+*} "combination of Isabelle provers and oracles for CASC"
 
 end
