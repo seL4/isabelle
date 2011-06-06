@@ -79,7 +79,7 @@ fun infer_types ctxt =
 
 (* We use 1 rather than 0 because variable references in clauses may otherwise
    conflict with variable constraints in the goal...at least, type inference
-   often fails otherwise. See also "axiom_inf" below. *)
+   often fails otherwise. See also "axiom_inference" below. *)
 fun make_var (w, T) = Var ((w, 1), T)
 
 (*Remove the "apply" operator from an HO term*)
@@ -285,7 +285,7 @@ fun cterm_incr_types thy idx = cterm_of thy o (map_types (Logic.incr_tvar idx));
 
 (* This causes variables to have an index of 1 by default. See also "make_var"
    above. *)
-fun axiom_inf th_pairs th = Thm.incr_indexes 1 (lookth th_pairs th)
+fun axiom_inference th_pairs th = Thm.incr_indexes 1 (lookth th_pairs th)
 
 (* INFERENCE RULE: ASSUME *)
 
@@ -297,7 +297,7 @@ fun inst_excluded_middle thy i_atm =
       val substs = [(cterm_of thy (Var vx), cterm_of thy i_atm)]
   in  cterm_instantiate substs th  end;
 
-fun assume_inf ctxt mode old_skolems sym_tab atm =
+fun assume_inference ctxt mode old_skolems sym_tab atm =
   inst_excluded_middle
       (Proof_Context.theory_of ctxt)
       (singleton (hol_terms_from_metis ctxt mode old_skolems sym_tab)
@@ -308,7 +308,7 @@ fun assume_inf ctxt mode old_skolems sym_tab atm =
    sorts. Instead we try to arrange that new TVars are distinct and that types
    can be inferred from terms. *)
 
-fun inst_inf ctxt mode old_skolems sym_tab th_pairs fsubst th =
+fun inst_inference ctxt mode old_skolems sym_tab th_pairs fsubst th =
   let val thy = Proof_Context.theory_of ctxt
       val i_th = lookth th_pairs th
       val i_th_vars = Term.add_vars (prop_of i_th) []
@@ -345,8 +345,8 @@ fun inst_inf ctxt mode old_skolems sym_tab th_pairs fsubst th =
             Syntax.string_of_term ctxt (term_of x) ^ " |-> " ^
             Syntax.string_of_term ctxt (term_of y)))));
   in cterm_instantiate substs' i_th end
-  handle THM (msg, _, _) => raise METIS ("inst_inf", msg)
-       | ERROR msg => raise METIS ("inst_inf", msg)
+  handle THM (msg, _, _) => raise METIS ("inst_inference", msg)
+       | ERROR msg => raise METIS ("inst_inference", msg)
 
 (* INFERENCE RULE: RESOLVE *)
 
@@ -433,7 +433,7 @@ fun negate_head th =
 (* Maps the clause  [P1,...Pn]==>False to [P1,...,P(i-1),P(i+1),...Pn] ==> ~P *)
 val select_literal = negate_head oo make_last
 
-fun resolve_inf ctxt mode old_skolems sym_tab th_pairs atm th1 th2 =
+fun resolve_inference ctxt mode old_skolems sym_tab th_pairs atm th1 th2 =
   let
     val thy = Proof_Context.theory_of ctxt
     val (i_th1, i_th2) = pairself (lookth th_pairs) (th1, th2)
@@ -463,7 +463,7 @@ fun resolve_inf ctxt mode old_skolems sym_tab th_pairs atm th1 th2 =
         val _ = trace_msg ctxt (fn () => "  index_th2: " ^ string_of_int index_th2)
     in
       resolve_inc_tyvars thy (select_literal index_th1 i_th1) index_th2 i_th2
-      handle TERM (s, _) => raise METIS ("resolve_inf", s)
+      handle TERM (s, _) => raise METIS ("resolve_inference", s)
     end
   end;
 
@@ -474,7 +474,7 @@ val REFL_THM = Thm.incr_indexes 2 @{lemma "t ~= t ==> False" by simp}
 val refl_x = cterm_of @{theory} (Var (hd (Term.add_vars (prop_of REFL_THM) [])));
 val refl_idx = 1 + Thm.maxidx_of REFL_THM;
 
-fun refl_inf ctxt mode old_skolems sym_tab t =
+fun refl_inference ctxt mode old_skolems sym_tab t =
   let
     val thy = Proof_Context.theory_of ctxt
     val i_t = singleton (hol_terms_from_metis ctxt mode old_skolems sym_tab) t
@@ -495,7 +495,7 @@ fun get_ty_arg_size _ (Const (@{const_name HOL.eq}, _)) = 0
     (num_type_args thy s handle TYPE _ => 0)
   | get_ty_arg_size _ _ = 0
 
-fun equality_inf ctxt mode old_skolems sym_tab (pos, atm) fp fr =
+fun equality_inference ctxt mode old_skolems sym_tab (pos, atm) fp fr =
   let val thy = Proof_Context.theory_of ctxt
       val m_tm = Metis_Term.Fn atm
       val [i_atm, i_tm] =
@@ -505,7 +505,7 @@ fun equality_inf ctxt mode old_skolems sym_tab (pos, atm) fp fr =
         | replace_item_list lx i (l::ls) = l :: replace_item_list lx (i-1) ls
       fun path_finder_fail mode tm ps t =
         raise Fail ("Cannot replay Metis proof in Isabelle:\n" ^
-                    "equality_inf, path_finder_" ^ string_of_mode mode ^
+                    "equality_inference, path_finder_" ^ string_of_mode mode ^
                     ": path = " ^ space_implode " " (map string_of_int ps) ^
                     " isa-term: " ^ Syntax.string_of_term ctxt tm ^
                     (case t of
@@ -518,7 +518,7 @@ fun equality_inf ctxt mode old_skolems sym_tab (pos, atm) fp fr =
                 val p' = if adjustment > p then p else p - adjustment
                 val tm_p = nth args p'
                   handle Subscript =>
-                         raise METIS ("equality_inf",
+                         raise METIS ("equality_inference",
                                       string_of_int p ^ " adj " ^
                                       string_of_int adjustment ^ " term " ^
                                       Syntax.string_of_term ctxt tm)
@@ -614,17 +614,19 @@ val factor = Seq.hd o distinct_subgoals_tac
 
 fun one_step ctxt mode old_skolems sym_tab th_pairs p =
   case p of
-    (fol_th, Metis_Proof.Axiom _) => axiom_inf th_pairs fol_th |> factor
+    (fol_th, Metis_Proof.Axiom _) => axiom_inference th_pairs fol_th |> factor
   | (_, Metis_Proof.Assume f_atm) =>
-    assume_inf ctxt mode old_skolems sym_tab f_atm
+    assume_inference ctxt mode old_skolems sym_tab f_atm
   | (_, Metis_Proof.Metis_Subst (f_subst, f_th1)) =>
-    inst_inf ctxt mode old_skolems sym_tab th_pairs f_subst f_th1 |> factor
-  | (_, Metis_Proof.Resolve(f_atm, f_th1, f_th2)) =>
-    resolve_inf ctxt mode old_skolems sym_tab th_pairs f_atm f_th1 f_th2
+    inst_inference ctxt mode old_skolems sym_tab th_pairs f_subst f_th1
     |> factor
-  | (_, Metis_Proof.Refl f_tm) => refl_inf ctxt mode old_skolems sym_tab f_tm
+  | (_, Metis_Proof.Resolve(f_atm, f_th1, f_th2)) =>
+    resolve_inference ctxt mode old_skolems sym_tab th_pairs f_atm f_th1 f_th2
+    |> factor
+  | (_, Metis_Proof.Refl f_tm) =>
+    refl_inference ctxt mode old_skolems sym_tab f_tm
   | (_, Metis_Proof.Equality (f_lit, f_p, f_r)) =>
-    equality_inf ctxt mode old_skolems sym_tab f_lit f_p f_r
+    equality_inference ctxt mode old_skolems sym_tab f_lit f_p f_r
 
 fun flexflex_first_order th =
   case Thm.tpairs_of th of
