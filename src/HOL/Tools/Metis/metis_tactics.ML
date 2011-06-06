@@ -20,8 +20,8 @@ sig
   val new_skolemizer : bool Config.T
   val metis_tac : Proof.context -> thm list -> int -> tactic
   val metisF_tac : Proof.context -> thm list -> int -> tactic
+  val metisH_tac : Proof.context -> thm list -> int -> tactic
   val metisFT_tac : Proof.context -> thm list -> int -> tactic
-  val metisHO_tac : Proof.context -> thm list -> int -> tactic
   val metisX_tac : Proof.context -> type_sys option -> thm list -> int -> tactic
   val setup : theory -> theory
 end
@@ -206,16 +206,16 @@ fun generic_metis_tac modes type_sys ctxt ths i st0 =
       Meson.MESON (preskolem_tac ctxt) (maps neg_clausify) tac ctxt i st0
   end
 
-val metis_modes = [HO, MX]
-val metisF_modes = [FO, MX]
+val metis_modes = [HO, FT]
+val metisF_modes = [FO, FT]
+val metisH_modes = [HO]
 val metisFT_modes = [FT]
-val metisHO_modes = [HO]
 val metisX_modes = [MX]
 
 val metis_tac = generic_metis_tac metis_modes NONE
 val metisF_tac = generic_metis_tac metisF_modes NONE
+val metisH_tac = generic_metis_tac metisH_modes NONE
 val metisFT_tac = generic_metis_tac metisFT_modes NONE
-val metisHO_tac = generic_metis_tac metisHO_modes NONE
 fun metisX_tac ctxt type_sys = generic_metis_tac metisX_modes type_sys ctxt
 
 (* Whenever "X" has schematic type variables, we treat "using X by metis" as

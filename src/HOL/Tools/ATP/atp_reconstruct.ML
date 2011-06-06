@@ -1040,7 +1040,7 @@ fun string_for_proof ctxt0 full_types i n =
        else
          if member (op =) qs Show then "show" else "have")
     val do_term = maybe_quote o fix_print_mode (Syntax.string_of_term ctxt)
-    val reconstructor = if full_types then MetisX else Metis
+    val reconstructor = if full_types then MetisFT else Metis
     fun do_facts (ls, ss) =
       reconstructor_command reconstructor 1 1
           (ls |> sort_distinct (prod_ord string_ord int_ord),

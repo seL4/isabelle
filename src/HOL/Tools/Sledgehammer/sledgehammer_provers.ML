@@ -417,7 +417,7 @@ fun timed_apply timeout tac state i =
     val full_tac = Method.insert_tac facts i THEN tac ctxt i
   in TimeLimit.timeLimit timeout (try (Seq.pull o full_tac)) goal end
 
-fun tac_for_reconstructor Metis = Metis_Tactics.metisHO_tac
+fun tac_for_reconstructor Metis = Metis_Tactics.metisH_tac
   | tac_for_reconstructor MetisFT = Metis_Tactics.metisFT_tac
   | tac_for_reconstructor MetisX =
     (fn ctxt => Metis_Tactics.metisX_tac ctxt NONE)
@@ -790,7 +790,7 @@ fun run_atp mode name
                         |> map snd
               in
                 play_one_line_proof debug preplay_timeout used_ths state subgoal
-                                    [Metis, MetisX]
+                                    [Metis, MetisFT]
               end,
            fn preplay =>
               let
@@ -984,7 +984,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
                 else "smt_solver = " ^ maybe_quote name
             in
               case play_one_line_proof debug preplay_timeout used_ths state
-                                       subgoal [Metis, MetisX] of
+                                       subgoal [Metis, MetisFT] of
                 p as Played _ => p
               | _ => Trust_Playable (SMT (smt_settings ()), NONE)
             end,

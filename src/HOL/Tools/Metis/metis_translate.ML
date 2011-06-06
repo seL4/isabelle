@@ -346,7 +346,8 @@ fun metis_axiom_from_atp clauses (Formula (ident, _, phi, _, _)) =
     end
   | metis_axiom_from_atp _ _ = raise Fail "not CNF -- expected formula"
 
-val default_type_sys = Preds (Polymorphic, Nonmonotonic_Types, Lightweight)
+(* FIXME: put in "Metis_Tactics" as string *)
+val default_type_sys = Preds (Polymorphic, Const_Arg_Types, Lightweight)
 
 (* Function to generate metis clauses, including comb and type clauses *)
 fun prepare_metis_problem ctxt MX type_sys conj_clauses fact_clauses =
