@@ -58,7 +58,7 @@ text {* Proxies for logical constants *}
 
 lemma "id (op =) x x"
 sledgehammer [type_sys = erased, expect = none] (id_apply)
-sledgehammer [type_sys = poly_tags?, expect = none] (id_apply) (* unfortunate *)
+sledgehammer [type_sys = poly_tags?, expect = some] (id_apply)
 sledgehammer [type_sys = poly_tags, expect = some] (id_apply)
 sledgehammer [type_sys = poly_preds?, expect = some] (id_apply)
 sledgehammer [type_sys = poly_preds, expect = some] (id_apply)

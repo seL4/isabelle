@@ -1059,8 +1059,7 @@ fun add_combterm_syms_to_table ctxt explicit_apply =
           val bool_vars' = bool_vars orelse body_type T = @{typ bool}
           fun repair_min_arity {pred_sym, min_ary, max_ary, types} =
             {pred_sym = pred_sym andalso not bool_vars',
-             min_ary =
-               fold (fn T' => consider_var_arity T' T) types min_ary,
+             min_ary = fold (fn T' => consider_var_arity T' T) types min_ary,
              max_ary = max_ary, types = types}
           val fun_var_Ts' =
             fun_var_Ts |> can dest_funT T ? insert_type ctxt I T
@@ -1069,8 +1068,7 @@ fun add_combterm_syms_to_table ctxt explicit_apply =
              pointer_eq (fun_var_Ts', fun_var_Ts) then
             accum
           else
-            ((bool_vars', fun_var_Ts'),
-             Symtab.map (K repair_min_arity) sym_tab)
+            ((bool_vars', fun_var_Ts'), Symtab.map (K repair_min_arity) sym_tab)
         end
       else
         accum
@@ -1833,7 +1831,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
       repaired_sym_tab |> helper_facts_for_sym_table ctxt format type_sys
                        |> map repair
     val lavish_nonmono_Ts =
-      if null nonmono_Ts orelse
+      if null nonmono_Ts orelse nonmono_Ts = [@{typ bool}] orelse
          polymorphism_of_type_sys type_sys <> Polymorphic then
         nonmono_Ts
       else
