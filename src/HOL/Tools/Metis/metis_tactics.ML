@@ -206,8 +206,8 @@ fun generic_metis_tac modes type_sys ctxt ths i st0 =
       Meson.MESON (preskolem_tac ctxt) (maps neg_clausify) tac ctxt i st0
   end
 
-val metis_modes = [HO, FT]
-val metisF_modes = [FO, FT]
+val metis_modes = [HO, MX]
+val metisF_modes = [FO, MX]
 val metisFT_modes = [FT]
 val metisHO_modes = [HO]
 val metisX_modes = [MX]
