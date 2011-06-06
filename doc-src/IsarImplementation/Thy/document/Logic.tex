@@ -404,6 +404,7 @@ The language of terms is that of simply-typed \isa{{\isaliteral{5C3C6C616D626461
   \indexdef{}{ML}{fastype\_of}\verb|fastype_of: term -> typ| \\
   \indexdef{}{ML}{lambda}\verb|lambda: term -> term -> term| \\
   \indexdef{}{ML}{betapply}\verb|betapply: term * term -> term| \\
+  \indexdef{}{ML}{incr\_boundvars}\verb|incr_boundvars: int -> term -> term| \\
   \indexdef{}{ML}{Sign.declare\_const}\verb|Sign.declare_const: Proof.context ->|\isasep\isanewline%
 \verb|  (binding * typ) * mixfix -> theory -> term * theory| \\
   \indexdef{}{ML}{Sign.add\_abbrev}\verb|Sign.add_abbrev: string -> binding * term ->|\isasep\isanewline%
@@ -443,6 +444,12 @@ The language of terms is that of simply-typed \isa{{\isaliteral{5C3C6C616D626461
 
   \item \verb|betapply|~\isa{{\isaliteral{28}{\isacharparenleft}}t{\isaliteral{2C}{\isacharcomma}}\ u{\isaliteral{29}{\isacharparenright}}} produces an application \isa{t\ u}, with topmost \isa{{\isaliteral{5C3C626574613E}{\isasymbeta}}}-conversion if \isa{t} is an
   abstraction.
+
+  \item \verb|incr_boundvars|~\isa{j} increments a term's dangling
+  bound variables by the offset \isa{j}.  This is required when
+  moving a subterm into a context where it is enclosed by a different
+  number of abstractions.  Bound variables with a matching abstraction
+  are unaffected.
 
   \item \verb|Sign.declare_const|~\isa{ctxt\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}c{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ mx{\isaliteral{29}{\isacharparenright}}} declares
   a new constant \isa{c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}} with optional mixfix syntax.

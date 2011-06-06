@@ -366,6 +366,7 @@ text %mlref {*
   @{index_ML fastype_of: "term -> typ"} \\
   @{index_ML lambda: "term -> term -> term"} \\
   @{index_ML betapply: "term * term -> term"} \\
+  @{index_ML incr_boundvars: "int -> term -> term"} \\
   @{index_ML Sign.declare_const: "Proof.context ->
   (binding * typ) * mixfix -> theory -> term * theory"} \\
   @{index_ML Sign.add_abbrev: "string -> binding * term ->
@@ -413,6 +414,12 @@ text %mlref {*
   \item @{ML betapply}~@{text "(t, u)"} produces an application @{text
   "t u"}, with topmost @{text "\<beta>"}-conversion if @{text "t"} is an
   abstraction.
+
+  \item @{ML incr_boundvars}~@{text "j"} increments a term's dangling
+  bound variables by the offset @{text "j"}.  This is required when
+  moving a subterm into a context where it is enclosed by a different
+  number of abstractions.  Bound variables with a matching abstraction
+  are unaffected.
 
   \item @{ML Sign.declare_const}~@{text "ctxt ((c, \<sigma>), mx)"} declares
   a new constant @{text "c :: \<sigma>"} with optional mixfix syntax.
