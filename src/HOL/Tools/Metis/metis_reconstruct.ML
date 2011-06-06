@@ -18,7 +18,8 @@ sig
   val verbose : bool Config.T
   val verbose_warning : Proof.context -> string -> unit
   val hol_clause_from_metis :
-    Proof.context -> int Symtab.table -> Metis_Thm.thm -> term
+    Proof.context -> int Symtab.table -> (string * term) list -> Metis_Thm.thm
+    -> term
   val lookth : (Metis_Thm.thm * 'a) list -> Metis_Thm.thm -> 'a
   val untyped_aconv : term * term -> bool
   val replay_one_inference :
@@ -74,7 +75,7 @@ fun apply_list rator nargs rands =
   end;
 
 fun infer_types ctxt =
-  Syntax.check_terms (Proof_Context.set_mode Proof_Context.mode_pattern ctxt);
+  Syntax.check_terms (Proof_Context.set_mode Proof_Context.mode_pattern ctxt)
 
 (* We use 1 rather than 0 because variable references in clauses may otherwise
    conflict with variable constraints in the goal...at least, type inference
@@ -223,7 +224,8 @@ fun atp_term_from_metis (Metis_Term.Fn (s, tms)) =
   | atp_term_from_metis (Metis_Term.Var s) = ATerm (s, [])
 
 fun hol_term_from_metis_MX ctxt sym_tab =
-  atp_term_from_metis #> term_from_atp ctxt false sym_tab NONE
+  atp_term_from_metis
+  #> term_from_atp ctxt false sym_tab NONE
 
 fun hol_term_from_metis ctxt FO _ = hol_term_from_metis_PT ctxt
   | hol_term_from_metis ctxt HO _ = hol_term_from_metis_PT ctxt
@@ -236,19 +238,24 @@ fun atp_clause_from_metis [] = AAtom (ATerm (tptp_false, []))
   | atp_clause_from_metis lits =
     lits |> map atp_literal_from_metis |> mk_aconns AOr
 
-fun hol_clause_from_metis ctxt sym_tab =
+fun reveal_old_skolems_and_infer_types ctxt old_skolems =
+  map (reveal_old_skolem_terms old_skolems)
+  #> infer_types ctxt
+
+fun hol_clause_from_metis ctxt sym_tab old_skolems =
   Metis_Thm.clause
   #> Metis_LiteralSet.toList
   #> atp_clause_from_metis
   #> prop_from_atp ctxt false sym_tab
+  #> singleton (reveal_old_skolems_and_infer_types ctxt old_skolems)
 
 fun hol_terms_from_metis ctxt mode old_skolems sym_tab fol_tms =
   let val ts = map (hol_term_from_metis ctxt mode sym_tab) fol_tms
       val _ = trace_msg ctxt (fn () => "  calling type inference:")
       val _ = app (fn t => trace_msg ctxt
                                      (fn () => Syntax.string_of_term ctxt t)) ts
-      val ts' = ts |> map (reveal_old_skolem_terms old_skolems)
-                   |> infer_types ctxt
+      val ts' =
+        ts |> reveal_old_skolems_and_infer_types ctxt old_skolems
       val _ = app (fn t => trace_msg ctxt
                     (fn () => "  final term: " ^ Syntax.string_of_term ctxt t ^
                               " of type " ^ Syntax.string_of_typ ctxt (type_of t)))
@@ -308,7 +315,7 @@ fun inst_inf ctxt mode old_skolems sym_tab th_pairs fsubst th =
       fun find_var x = the (List.find (fn ((a,_),_) => a=x) i_th_vars)
       fun subst_translation (x,y) =
         let val v = find_var x
-            (* We call "reveal_old_skolem_terms" and "infer_types" below. *)
+            (* We call "reveal_old_skolems_and_infer_types" below. *)
             val t = hol_term_from_metis ctxt mode sym_tab y
         in  SOME (cterm_of thy (Var v), t)  end
         handle Option.Option =>
@@ -327,9 +334,9 @@ fun inst_inf ctxt mode old_skolems sym_tab th_pairs fsubst th =
               | NONE => SOME (a,t)    (*internal Metis var?*)
       val _ = trace_msg ctxt (fn () => "  isa th: " ^ Display.string_of_thm ctxt i_th)
       val substs = map_filter remove_typeinst (Metis_Subst.toList fsubst)
-      val (vars,rawtms) = ListPair.unzip (map_filter subst_translation substs)
-      val tms = rawtms |> map (reveal_old_skolem_terms old_skolems)
-                       |> infer_types ctxt
+      val (vars, tms) =
+        ListPair.unzip (map_filter subst_translation substs)
+        ||> reveal_old_skolems_and_infer_types ctxt old_skolems
       val ctm_of = cterm_incr_types thy (1 + Thm.maxidx_of i_th)
       val substs' = ListPair.zip (vars, map ctm_of tms)
       val _ = trace_msg ctxt (fn () =>

@@ -59,9 +59,9 @@ fun used_axioms axioms (th, Metis_Proof.Axiom _) = SOME (lookth axioms th)
    "t => t'", where "t" and "t'" are the same term modulo type tags.
    In Isabelle, type tags are stripped away, so we are left with "t = t" or
    "t => t". Type tag idempotence is also handled this way. *)
-fun reflexive_or_trivial_from_metis ctxt sym_tab mth =
+fun reflexive_or_trivial_from_metis ctxt sym_tab old_skolems mth =
   let val thy = Proof_Context.theory_of ctxt in
-    case hol_clause_from_metis ctxt sym_tab mth of
+    case hol_clause_from_metis ctxt sym_tab old_skolems mth of
       Const (@{const_name HOL.eq}, _) $ _ $ t =>
       t |> cterm_of thy |> Thm.reflexive RS @{thm meta_eq_to_obj_eq}
     | Const (@{const_name disj}, _) $ t1 $ t2 =>
@@ -105,7 +105,7 @@ fun FOL_SOLVE type_sys (mode :: fallback_modes) ctxt cls ths0 =
       val (mode, sym_tab, {axioms, old_skolems, ...}) =
         prepare_metis_problem ctxt mode type_sys cls ths
       fun get_isa_thm mth Isa_Reflexive_or_Trivial =
-          reflexive_or_trivial_from_metis ctxt sym_tab mth
+          reflexive_or_trivial_from_metis ctxt sym_tab old_skolems mth
         | get_isa_thm _ (Isa_Raw ith) = ith
       val axioms = axioms |> map (fn (mth, ith) => (mth, get_isa_thm mth ith))
       val _ = trace_msg ctxt (fn () => "CLAUSES GIVEN TO METIS")
