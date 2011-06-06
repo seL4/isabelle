@@ -291,17 +291,17 @@ fun axiom_inference th_pairs th = Thm.incr_indexes 1 (lookth th_pairs th)
 
 val EXCLUDED_MIDDLE = @{lemma "P ==> ~ P ==> False" by (rule notE)}
 
-fun inst_excluded_middle thy i_atm =
+fun inst_excluded_middle thy i_atom =
   let val th = EXCLUDED_MIDDLE
       val [vx] = Term.add_vars (prop_of th) []
-      val substs = [(cterm_of thy (Var vx), cterm_of thy i_atm)]
+      val substs = [(cterm_of thy (Var vx), cterm_of thy i_atom)]
   in  cterm_instantiate substs th  end;
 
-fun assume_inference ctxt mode old_skolems sym_tab atm =
+fun assume_inference ctxt mode old_skolems sym_tab atom =
   inst_excluded_middle
       (Proof_Context.theory_of ctxt)
       (singleton (hol_terms_from_metis ctxt mode old_skolems sym_tab)
-                 (Metis_Term.Fn atm))
+                 (Metis_Term.Fn atom))
 
 (* INFERENCE RULE: INSTANTIATE (SUBST). Type instantiations are ignored. Trying
    to reconstruct them admits new possibilities of errors, e.g. concerning
@@ -400,14 +400,15 @@ fun untyped_aconv (Const (a, _), Const(b, _)) = (a = b)
     untyped_aconv (t1, u1) andalso untyped_aconv (t2, u2)
   | untyped_aconv _ = false
 
-(* Finding the relative location of an untyped term within a list of terms *)
+(* Find the relative location of an untyped term within a list of terms as a
+   1-based index. Returns 0 in case of failure. *)
 fun index_of_literal lit haystack =
   let
     val normalize = simp_not_not o Envir.eta_contract
     val match_lit =
       HOLogic.dest_Trueprop #> normalize
       #> curry untyped_aconv (lit |> normalize)
-  in case find_index match_lit haystack of ~1 => raise Empty | n => n + 1 end
+  in find_index match_lit haystack + 1 end
 
 (* Permute a rule's premises to move the i-th premise to the last position. *)
 fun make_last i th =
@@ -433,12 +434,12 @@ fun negate_head th =
 (* Maps the clause  [P1,...Pn]==>False to [P1,...,P(i-1),P(i+1),...Pn] ==> ~P *)
 val select_literal = negate_head oo make_last
 
-fun resolve_inference ctxt mode old_skolems sym_tab th_pairs atm th1 th2 =
+fun resolve_inference ctxt mode old_skolems sym_tab th_pairs atom th1 th2 =
   let
-    val thy = Proof_Context.theory_of ctxt
     val (i_th1, i_th2) = pairself (lookth th_pairs) (th1, th2)
-    val _ = trace_msg ctxt (fn () => "  isa th1 (pos): " ^ Display.string_of_thm ctxt i_th1)
-    val _ = trace_msg ctxt (fn () => "  isa th2 (neg): " ^ Display.string_of_thm ctxt i_th2)
+    val _ = trace_msg ctxt (fn () =>
+        "  isa th1 (pos): " ^ Display.string_of_thm ctxt i_th1 ^ "\n\
+        \  isa th2 (neg): " ^ Display.string_of_thm ctxt i_th2)
   in
     (* Trivial cases where one operand is type info *)
     if Thm.eq_thm (TrueI, i_th1) then
@@ -447,25 +448,29 @@ fun resolve_inference ctxt mode old_skolems sym_tab th_pairs atm th1 th2 =
       i_th1
     else
       let
-        val i_atm =
+        val thy = Proof_Context.theory_of ctxt
+        val i_atom =
           singleton (hol_terms_from_metis ctxt mode old_skolems sym_tab)
-                    (Metis_Term.Fn atm)
-        val _ = trace_msg ctxt (fn () => "  atom: " ^ Syntax.string_of_term ctxt i_atm)
-        val prems_th1 = prems_of i_th1
-        val prems_th2 = prems_of i_th2
-        val index_th1 =
-          index_of_literal (s_not i_atm) prems_th1
-          handle Empty => raise Fail "Failed to find literal in th1"
-        val _ = trace_msg ctxt (fn () => "  index_th1: " ^ string_of_int index_th1)
-        val index_th2 =
-          index_of_literal i_atm prems_th2
-          handle Empty => raise Fail "Failed to find literal in th2"
-        val _ = trace_msg ctxt (fn () => "  index_th2: " ^ string_of_int index_th2)
-    in
-      resolve_inc_tyvars thy (select_literal index_th1 i_th1) index_th2 i_th2
-      handle TERM (s, _) => raise METIS ("resolve_inference", s)
-    end
-  end;
+                    (Metis_Term.Fn atom)
+        val _ = trace_msg ctxt (fn () =>
+                    "  atom: " ^ Syntax.string_of_term ctxt i_atom)
+      in
+        case index_of_literal (s_not i_atom) (prems_of i_th1) of
+          0 =>
+          (trace_msg ctxt (fn () => "Failed to find literal in \"th1\"");
+           i_th1)
+        | j1 =>
+          (trace_msg ctxt (fn () => "  index th1: " ^ string_of_int j1);
+           case index_of_literal i_atom (prems_of i_th2) of
+             0 =>
+             (trace_msg ctxt (fn () => "Failed to find literal in \"th2\"");
+              i_th2)
+           | j2 =>
+             (trace_msg ctxt (fn () => "  index th2: " ^ string_of_int j2);
+              resolve_inc_tyvars thy (select_literal j1 i_th1) j2 i_th2
+              handle TERM (s, _) => raise METIS ("resolve_inference", s)))
+      end
+  end
 
 (* INFERENCE RULE: REFL *)
 
@@ -495,10 +500,10 @@ fun get_ty_arg_size _ (Const (@{const_name HOL.eq}, _)) = 0
     (num_type_args thy s handle TYPE _ => 0)
   | get_ty_arg_size _ _ = 0
 
-fun equality_inference ctxt mode old_skolems sym_tab (pos, atm) fp fr =
+fun equality_inference ctxt mode old_skolems sym_tab (pos, atom) fp fr =
   let val thy = Proof_Context.theory_of ctxt
-      val m_tm = Metis_Term.Fn atm
-      val [i_atm, i_tm] =
+      val m_tm = Metis_Term.Fn atom
+      val [i_atom, i_tm] =
         hol_terms_from_metis ctxt mode old_skolems sym_tab [m_tm, fr]
       val _ = trace_msg ctxt (fn () => "sign of the literal: " ^ Bool.toString pos)
       fun replace_item_list lx 0 (_::ls) = lx::ls
@@ -598,7 +603,7 @@ fun equality_inference ctxt mode old_skolems sym_tab (pos, atm) fp fr =
             let val (tm, tm_rslt) = path_finder mode tm_a idx m_tm
             in (tm, nt $ tm_rslt) end
         | path_finder_lit tm_a idx = path_finder mode tm_a idx m_tm
-      val (tm_subst, body) = path_finder_lit i_atm fp
+      val (tm_subst, body) = path_finder_lit i_atom fp
       val tm_abs = Abs ("x", type_of tm_subst, body)
       val _ = trace_msg ctxt (fn () => "abstraction: " ^ Syntax.string_of_term ctxt tm_abs)
       val _ = trace_msg ctxt (fn () => "i_tm: " ^ Syntax.string_of_term ctxt i_tm)
@@ -615,13 +620,13 @@ val factor = Seq.hd o distinct_subgoals_tac
 fun one_step ctxt mode old_skolems sym_tab th_pairs p =
   case p of
     (fol_th, Metis_Proof.Axiom _) => axiom_inference th_pairs fol_th |> factor
-  | (_, Metis_Proof.Assume f_atm) =>
-    assume_inference ctxt mode old_skolems sym_tab f_atm
+  | (_, Metis_Proof.Assume f_atom) =>
+    assume_inference ctxt mode old_skolems sym_tab f_atom
   | (_, Metis_Proof.Metis_Subst (f_subst, f_th1)) =>
     inst_inference ctxt mode old_skolems sym_tab th_pairs f_subst f_th1
     |> factor
-  | (_, Metis_Proof.Resolve(f_atm, f_th1, f_th2)) =>
-    resolve_inference ctxt mode old_skolems sym_tab th_pairs f_atm f_th1 f_th2
+  | (_, Metis_Proof.Resolve(f_atom, f_th1, f_th2)) =>
+    resolve_inference ctxt mode old_skolems sym_tab th_pairs f_atom f_th1 f_th2
     |> factor
   | (_, Metis_Proof.Refl f_tm) =>
     refl_inference ctxt mode old_skolems sym_tab f_tm
