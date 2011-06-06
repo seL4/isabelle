@@ -1266,7 +1266,9 @@ fun repair_fact ctxt format nonmono_Ts type_sys sym_tab =
 
 (** Helper facts **)
 
-(* The Boolean indicates that a fairly sound type encoding is needed. *)
+(* The Boolean indicates that a fairly sound type encoding is needed.
+   "false" must precede "true" to ensure consistent numbering and a correct
+   mapping in Metis. *)
 val helper_table =
   [("COMBI", (false, @{thms Meson.COMBI_def})),
    ("COMBK", (false, @{thms Meson.COMBK_def})),
@@ -1279,10 +1281,10 @@ val helper_table =
        equality helpers by default in Metis breaks a few existing proofs. *)
     (true, @{thms fequal_def [THEN Meson.iff_to_disjD, THEN conjunct1]
                   fequal_def [THEN Meson.iff_to_disjD, THEN conjunct2]})),
-   ("fFalse", (true, @{thms True_or_False})),
    ("fFalse", (false, [@{lemma "~ fFalse" by (unfold fFalse_def) fast}])),
-   ("fTrue", (true, @{thms True_or_False})),
+   ("fFalse", (true, @{thms True_or_False})),
    ("fTrue", (false, [@{lemma "fTrue" by (unfold fTrue_def) fast}])),
+   ("fTrue", (true, @{thms True_or_False})),
    ("fNot",
     (false, @{thms fNot_def [THEN Meson.iff_to_disjD, THEN conjunct1]
                    fNot_def [THEN Meson.iff_to_disjD, THEN conjunct2]})),

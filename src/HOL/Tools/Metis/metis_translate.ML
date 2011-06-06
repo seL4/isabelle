@@ -329,7 +329,8 @@ fun metis_axiom_from_atp clauses (Formula (ident, _, phi, _, _)) =
       else if String.isPrefix helper_prefix ident then
         case space_explode "_" ident  of
           _ :: const :: j :: _ =>
-          nth (AList.lookup (op =) helper_table const |> the |> snd)
+          nth (helper_table |> filter (curry (op =) const o fst)
+                            |> maps (snd o snd))
               (the (Int.fromString j) - 1)
           |> prepare_helper |> Isa_Raw |> some
         | _ => raise Fail ("malformed helper identifier " ^ quote ident)
