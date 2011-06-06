@@ -476,13 +476,17 @@ fun term_from_atp ctxt textual sym_tab =
                   chop num_ty_args us |>> append mangled_us
                 val term_ts = map (do_term [] NONE) term_us
                 val T =
-                  if not (null type_us) andalso
-                     num_type_args thy s' = length type_us then
-                    (s', map (typ_from_atp ctxt) type_us)
-                    |> Sign.const_instance thy
-                  else case opt_T of
-                    SOME T => map slack_fastype_of term_ts ---> T
-                  | NONE => HOLogic.typeT
+                  (if not (null type_us) andalso
+                      num_type_args thy s' = length type_us then
+                     try (Sign.const_instance thy)
+                         (s', map (typ_from_atp ctxt) type_us)
+                   else
+                     NONE)
+                  |> (fn SOME T => T
+                       | NONE => map slack_fastype_of term_ts --->
+                                 (case opt_T of
+                                    SOME T => T
+                                  | NONE => HOLogic.typeT))
                 val s' = s' |> unproxify_const
               in list_comb (Const (s', T), term_ts @ extra_ts) end
           end
