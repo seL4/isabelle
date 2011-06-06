@@ -230,7 +230,8 @@ fun hol_term_from_metis_MX ctxt sym_tab =
 fun hol_term_from_metis ctxt FO _ = hol_term_from_metis_PT ctxt
   | hol_term_from_metis ctxt HO _ = hol_term_from_metis_PT ctxt
   | hol_term_from_metis ctxt FT _ = hol_term_from_metis_FT ctxt
-  | hol_term_from_metis ctxt MX sym_tab = hol_term_from_metis_MX ctxt sym_tab
+  | hol_term_from_metis ctxt (Type_Sys _) sym_tab =
+    hol_term_from_metis_MX ctxt sym_tab
 
 fun atp_literal_from_metis (pos, atom) =
   atom |> Metis_Term.Fn |> atp_term_from_metis |> AAtom |> not pos ? mk_anot
@@ -514,10 +515,10 @@ fun equality_inference ctxt mode old_skolems sym_tab (pos, atom) fp fr =
       val _ = trace_msg ctxt (fn () => "sign of the literal: " ^ Bool.toString pos)
       fun replace_item_list lx 0 (_::ls) = lx::ls
         | replace_item_list lx i (l::ls) = l :: replace_item_list lx (i-1) ls
-      fun path_finder_fail mode tm ps t =
+      fun path_finder_fail tm ps t =
         raise Fail ("Cannot replay Metis proof in Isabelle:\n" ^
-                    "equality_inference, path_finder_" ^ string_of_mode mode ^
-                    ": path = " ^ space_implode " " (map string_of_int ps) ^
+                    "equality_inference, path_finder: path = " ^
+                    space_implode " " (map string_of_int ps) ^
                     " isa-term: " ^ Syntax.string_of_term ctxt tm ^
                     (case t of
                        SOME t => " fol-term: " ^ Metis_Term.toString t
@@ -542,7 +543,7 @@ fun equality_inference ctxt mode old_skolems sym_tab (pos, atom) fp fr =
       fun path_finder_HO tm [] = (tm, Bound 0)
         | path_finder_HO (t$u) (0::ps) = (fn(x,y) => (x, y$u)) (path_finder_HO t ps)
         | path_finder_HO (t$u) (_::ps) = (fn(x,y) => (x, t$y)) (path_finder_HO u ps)
-        | path_finder_HO tm ps = path_finder_fail HO tm ps NONE
+        | path_finder_HO tm ps = path_finder_fail tm ps NONE
       fun path_finder_FT tm [] _ = (tm, Bound 0)
         | path_finder_FT tm (0::ps) (Metis_Term.Fn (":", [t1, _])) =
             path_finder_FT tm ps t1
@@ -550,7 +551,7 @@ fun equality_inference ctxt mode old_skolems sym_tab (pos, atom) fp fr =
             (fn(x,y) => (x, y$u)) (path_finder_FT t ps t1)
         | path_finder_FT (t$u) (1::ps) (Metis_Term.Fn (".", [_, t2])) =
             (fn(x,y) => (x, t$y)) (path_finder_FT u ps t2)
-        | path_finder_FT tm ps t = path_finder_fail FT tm ps (SOME t)
+        | path_finder_FT tm ps t = path_finder_fail tm ps (SOME t)
       fun path_finder_MX tm [] _ = (tm, Bound 0)
         | path_finder_MX tm (p :: ps) (t as Metis_Term.Fn (s, ts)) =
           let
@@ -575,16 +576,16 @@ fun equality_inference ctxt mode old_skolems sym_tab (pos, atom) fp fr =
                 val (tm1, args) = strip_comb tm
                 val adjustment = length ts - length args
                 val p' = if adjustment > p then p else p - adjustment
-                val tm_p = nth args p'
-                  handle Subscript =>
-                         path_finder_fail MX tm (p :: ps) (SOME t)
+                val tm_p =
+                  nth args p'
+                  handle Subscript => path_finder_fail tm (p :: ps) (SOME t)
                 val _ = trace_msg ctxt (fn () =>
                     "path_finder: " ^ string_of_int p ^ "  " ^
                     Syntax.string_of_term ctxt tm_p)
                 val (r, t) = path_finder_MX tm_p ps (nth ts p)
               in (r, list_comb (tm1, replace_item_list t p' args)) end
           end
-        | path_finder_MX tm ps t = path_finder_fail MX tm ps (SOME t)
+        | path_finder_MX tm ps t = path_finder_fail tm ps (SOME t)
       fun path_finder FO tm ps _ = path_finder_FO tm ps
         | path_finder HO (tm as Const(@{const_name HOL.eq},_) $ _ $ _) (p::ps) _ =
              (*equality: not curried, as other predicates are*)
@@ -604,7 +605,7 @@ fun equality_inference ctxt mode old_skolems sym_tab (pos, atom) fp fr =
         | path_finder FT tm (_ :: ps) (Metis_Term.Fn ("{}", [t1])) = path_finder_FT tm ps t1
              (*if not equality, ignore head to skip the hBOOL predicate*)
         | path_finder FT tm ps t = path_finder_FT tm ps t  (*really an error case!*)
-        | path_finder MX tm ps t = path_finder_MX tm ps t
+        | path_finder (Type_Sys _) tm ps t = path_finder_MX tm ps t
       val (tm_subst, body) = path_finder mode i_atom fp m_tm
       val tm_abs = Abs ("x", type_of tm_subst, body)
       val _ = trace_msg ctxt (fn () => "abstraction: " ^ Syntax.string_of_term ctxt tm_abs)

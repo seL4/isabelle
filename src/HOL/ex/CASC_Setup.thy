@@ -51,7 +51,8 @@ fun isabellep_tac ctxt max_secs =
    SOLVE_TIMEOUT (max_secs div 10) "auto" (auto_tac ctxt
        THEN ALLGOALS (Sledgehammer_Tactics.sledgehammer_as_oracle_tac ctxt))
    ORELSE
-   SOLVE_TIMEOUT (max_secs div 10) "metis" (ALLGOALS (Metis_Tactics.metis_tac ctxt []))
+   SOLVE_TIMEOUT (max_secs div 10) "metis"
+       (ALLGOALS (Metis_Tactics.new_metis_tac ctxt NONE []))
    ORELSE
    SOLVE_TIMEOUT (max_secs div 10) "fast" (ALLGOALS (fast_tac ctxt))
    ORELSE

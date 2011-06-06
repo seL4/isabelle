@@ -9,18 +9,17 @@ HOL setup for the Metis prover.
 
 signature METIS_TACTICS =
 sig
-  type type_sys = ATP_Translate.type_sys
-
   val metisN : string
   val metisFT_N : string
   val trace : bool Config.T
   val verbose : bool Config.T
   val new_skolemizer : bool Config.T
-  val metis_tac : Proof.context -> thm list -> int -> tactic
-  val metisF_tac : Proof.context -> thm list -> int -> tactic
-  val metisH_tac : Proof.context -> thm list -> int -> tactic
-  val metisFT_tac : Proof.context -> thm list -> int -> tactic
-  val metisX_tac : Proof.context -> type_sys option -> thm list -> int -> tactic
+  val old_metis_tac : Proof.context -> thm list -> int -> tactic
+  val old_metisF_tac : Proof.context -> thm list -> int -> tactic
+  val old_metisH_tac : Proof.context -> thm list -> int -> tactic
+  val old_metisFT_tac : Proof.context -> thm list -> int -> tactic
+  val new_metis_tac : string list -> Proof.context -> thm list -> int -> tactic
+  val new_metisFT_tac : Proof.context -> thm list -> int -> tactic
   val setup : theory -> theory
 end
 
@@ -31,15 +30,22 @@ open ATP_Translate
 open Metis_Translate
 open Metis_Reconstruct
 
-fun method_binding_for_mode HO = @{binding metis}
-  | method_binding_for_mode FO = @{binding metisF}
-  | method_binding_for_mode FT = @{binding metisFT}
-  | method_binding_for_mode MX = @{binding metisX}
+val full_typesN = "full_types"
+val default_unsound_type_sys = "poly_args"
+val default_sound_type_sys = "poly_preds_query"
 
-val metisN = Binding.qualified_name_of (method_binding_for_mode HO)
-val metisF_N = Binding.qualified_name_of (method_binding_for_mode FO)
-val metisFT_N = Binding.qualified_name_of (method_binding_for_mode FT)
-val metisX_N = Binding.qualified_name_of (method_binding_for_mode MX)
+fun method_call_for_mode HO = (@{binding metis}, "")
+  | method_call_for_mode FO = (@{binding metisF}, "")
+  | method_call_for_mode FT = (@{binding metisFT}, "")
+  | method_call_for_mode (Type_Sys type_sys) =
+    if type_sys = default_sound_type_sys then
+      (@{binding new_metisFT}, "")
+    else
+      (@{binding new_metis},
+       if type_sys = default_unsound_type_sys then "" else type_sys)
+
+val metisN = Binding.qualified_name_of @{binding metis}
+val metisFT_N = Binding.qualified_name_of @{binding metisFT}
 
 val new_skolemizer =
   Attrib.setup_config_bool @{binding metis_new_skolemizer} (K false)
@@ -85,7 +91,7 @@ val waiting_params =
 val resolution_params = {active = active_params, waiting = waiting_params}
 
 (* Main function to start Metis proof and reconstruction *)
-fun FOL_SOLVE type_sys (mode :: fallback_modes) ctxt cls ths0 =
+fun FOL_SOLVE (mode :: fallback_modes) ctxt cls ths0 =
   let val thy = Proof_Context.theory_of ctxt
       val new_skolemizer =
         Config.get ctxt new_skolemizer orelse null (Meson.choice_theorems thy)
@@ -101,7 +107,7 @@ fun FOL_SOLVE type_sys (mode :: fallback_modes) ctxt cls ths0 =
       val _ = trace_msg ctxt (fn () => "THEOREM CLAUSES")
       val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) ths
       val (mode, sym_tab, {axioms, old_skolems, ...}) =
-        prepare_metis_problem ctxt mode type_sys cls ths
+        prepare_metis_problem ctxt mode cls ths
       fun get_isa_thm mth Isa_Reflexive_or_Trivial =
           reflexive_or_trivial_from_metis ctxt sym_tab old_skolems mth
         | get_isa_thm _ (Isa_Raw ith) = ith
@@ -167,11 +173,13 @@ fun FOL_SOLVE type_sys (mode :: fallback_modes) ctxt cls ths0 =
                         (if Config.get ctxt verbose then "\n" ^ loc ^ ": " ^ msg
                          else ""))
          | mode :: _ =>
-           (verbose_warning ctxt
-                ("Falling back on " ^
-                 quote (Binding.qualified_name_of
-                            (method_binding_for_mode mode)) ^ "...");
-            FOL_SOLVE type_sys fallback_modes ctxt cls ths0)
+           let val (binding, arg) = method_call_for_mode mode in
+             (verbose_warning ctxt
+                  ("Falling back on " ^
+                   quote (Binding.qualified_name_of binding ^
+                          (arg |> arg <> "" ? enclose " (" ")")) ^ "...");
+              FOL_SOLVE fallback_modes ctxt cls ths0)
+            end
 
 val neg_clausify =
   single
@@ -190,12 +198,12 @@ fun preskolem_tac ctxt st0 =
 val type_has_top_sort =
   exists_subtype (fn TFree (_, []) => true | TVar (_, []) => true | _ => false)
 
-fun generic_metis_tac modes type_sys ctxt ths i st0 =
+fun generic_metis_tac modes ctxt ths i st0 =
   let
     val _ = trace_msg ctxt (fn () =>
         "Metis called with theorems\n" ^
         cat_lines (map (Display.string_of_thm ctxt) ths))
-    fun tac clause = resolve_tac (FOL_SOLVE type_sys modes ctxt clause ths) 1
+    fun tac clause = resolve_tac (FOL_SOLVE modes ctxt clause ths) 1
   in
     if exists_type type_has_top_sort (prop_of st0) then
       (verbose_warning ctxt "Proof state contains the universal sort {}";
@@ -204,17 +212,21 @@ fun generic_metis_tac modes type_sys ctxt ths i st0 =
       Meson.MESON (preskolem_tac ctxt) (maps neg_clausify) tac ctxt i st0
   end
 
-val metis_modes = [HO, FT]
-val metisF_modes = [FO, FT]
-val metisH_modes = [HO]
-val metisFT_modes = [FT]
-val metisX_modes = [MX]
+val old_metis_modes = [HO, FT]
+val old_metisF_modes = [FO, FT]
+val old_metisH_modes = [HO]
+val old_metisFT_modes = [FT]
+val new_metis_default_modes =
+  map Type_Sys [default_unsound_type_sys, default_sound_type_sys]
+val new_metisFT_modes = [Type_Sys default_sound_type_sys]
 
-val metis_tac = generic_metis_tac metis_modes NONE
-val metisF_tac = generic_metis_tac metisF_modes NONE
-val metisH_tac = generic_metis_tac metisH_modes NONE
-val metisFT_tac = generic_metis_tac metisFT_modes NONE
-fun metisX_tac ctxt type_sys = generic_metis_tac metisX_modes type_sys ctxt
+val old_metis_tac = generic_metis_tac old_metis_modes
+val old_metisF_tac = generic_metis_tac old_metisF_modes
+val old_metisH_tac = generic_metis_tac old_metisH_modes
+val old_metisFT_tac = generic_metis_tac old_metisFT_modes
+fun new_metis_tac [] = generic_metis_tac new_metis_default_modes
+  | new_metis_tac type_syss = generic_metis_tac (map Type_Sys type_syss)
+val new_metisFT_tac = generic_metis_tac new_metisFT_modes
 
 (* Whenever "X" has schematic type variables, we treat "using X by metis" as
    "by (metis X)" to prevent "Subgoal.FOCUS" from freezing the type variables.
@@ -227,26 +239,30 @@ val has_tvar =
 fun method modes (type_sys, ths) ctxt facts =
   let
     val (schem_facts, nonschem_facts) = List.partition has_tvar facts
-    val type_sys = type_sys |> Option.map type_sys_from_string
+    val modes = type_sys |> Option.map (single o Type_Sys) |> the_default modes
   in
     HEADGOAL (Method.insert_tac nonschem_facts THEN'
-              CHANGED_PROP
-              o generic_metis_tac modes type_sys ctxt (schem_facts @ ths))
+              CHANGED_PROP o generic_metis_tac modes ctxt (schem_facts @ ths))
   end
 
 fun setup_method (modes as mode :: _) =
-  Method.setup (method_binding_for_mode mode)
-               ((if mode = MX then
-                   Scan.lift (Scan.option (Args.parens Parse.short_ident))
-                 else
-                   Scan.succeed NONE)
-                -- Attrib.thms >> (METHOD oo method modes))
+  (if modes = new_metis_default_modes then
+     (Args.parens Parse.short_ident
+      >> (fn s => if s = full_typesN then default_sound_type_sys else s))
+     |> Scan.option |> Scan.lift
+   else
+     Scan.succeed NONE)
+  -- Attrib.thms >> (METHOD oo method modes)
+  |> Method.setup (fst (method_call_for_mode mode))
 
 val setup =
-  [(metis_modes, "Metis for FOL and HOL problems"),
-   (metisF_modes, "Metis for FOL problems"),
-   (metisFT_modes, "Metis for FOL/HOL problems with fully-typed translation"),
-   (metisX_modes, "Metis for FOL and HOL problems (experimental)")]
+  [(old_metis_modes, "Metis for FOL and HOL problems"),
+   (old_metisF_modes, "Metis for FOL problems (legacy)"),
+   (old_metisFT_modes,
+    "Metis for FOL/HOL problems with fully-typed translation"),
+   (new_metis_default_modes, "Metis for FOL and HOL problems (experimental)"),
+   (new_metisFT_modes,
+    "Metis for FOL/HOL problems with fully-typed translation (experimental)")]
   |> fold (uncurry setup_method)
 
 end;
