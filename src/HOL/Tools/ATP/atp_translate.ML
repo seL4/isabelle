@@ -1374,13 +1374,18 @@ fun fold_type_consts f (Type (a, Ts)) x = fold (fold_type_consts f) Ts (f (a,x))
 (*Type constructors used to instantiate overloaded constants are the only ones needed.*)
 fun add_type_consts_in_term thy =
   let
-    fun aux (Const (@{const_name Meson.skolem}, _) $ _) = I
-      | aux (t $ u) = aux t #> aux u
-      | aux (Const x) =
-        fold (fold_type_consts set_insert) (Sign.const_typargs thy x)
-      | aux (Abs (_, _, u)) = aux u
-      | aux _ = I
-  in aux end
+    fun add ((t as Const (s, _)) $ u) =
+        if s = @{const_name Meson.skolem} orelse
+           String.isPrefix skolem_const_prefix s then
+          I
+        else
+          add t #> add u
+      | add (t $ u) = add t #> add u
+      | add (Const x) =
+        x |> Sign.const_typargs thy |> fold (fold_type_consts set_insert)
+      | add (Abs (_, _, u)) = add u
+      | add _ = I
+  in add end
 
 fun type_consts_of_terms thy ts =
   Symtab.keys (fold (add_type_consts_in_term thy) ts Symtab.empty)
