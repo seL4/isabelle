@@ -584,7 +584,7 @@ fun infer_formula_types ctxt =
 fun prop_from_atp ctxt textual sym_tab =
   let val thy = Proof_Context.theory_of ctxt in
     raw_prop_from_atp ctxt textual sym_tab
-    #> uncombine_term thy #> infer_formula_types ctxt
+    #> textual ? uncombine_term thy #> infer_formula_types ctxt
   end
 
 (**** Translation of TSTP files to Isar proofs ****)
