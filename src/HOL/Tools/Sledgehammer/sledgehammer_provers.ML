@@ -158,7 +158,7 @@ fun is_prover_installed ctxt =
 fun get_slices num_facts slicing slices =
   (0 upto length slices - 1) ~~ slices
   |> (if slicing andalso
-         exists (fn (_, (_, (max_facts, _))) => max_facts < num_facts)
+         exists (fn (_, (_, (max_facts, _))) => num_facts >= max_facts)
                 slices then
         I
       else
