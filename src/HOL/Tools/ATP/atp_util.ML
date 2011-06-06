@@ -201,12 +201,11 @@ fun is_type_surely_finite ctxt T = tiny_card_of_type ctxt 0 [] T <> 0
 fun is_type_surely_infinite ctxt infinite_Ts T =
   tiny_card_of_type ctxt 1 (map (rpair 0) infinite_Ts) T = 0
 
-fun monomorphic_term subst t =
+fun monomorphic_term subst =
   map_types (map_type_tvar (fn v =>
       case Type.lookup subst v of
         SOME typ => typ
-      | NONE => raise TERM ("monomorphic_term: uninstanitated schematic type \
-                            \variable", [t]))) t
+      | NONE => TVar v))
 
 fun eta_expand _ t 0 = t
   | eta_expand Ts (Abs (s, T, t')) n =
