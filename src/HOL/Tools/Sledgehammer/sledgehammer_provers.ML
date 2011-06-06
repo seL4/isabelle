@@ -156,13 +156,7 @@ fun is_prover_installed ctxt =
   is_atp_installed (Proof_Context.theory_of ctxt)
 
 fun get_slices num_facts slicing slices =
-  (0 upto length slices - 1) ~~ slices
-  |> (if slicing andalso
-         exists (fn (_, (_, (max_facts, _))) => num_facts >= max_facts)
-                slices then
-        I
-      else
-        List.last #> single)
+  (0 upto length slices - 1) ~~ slices |> not slicing ? (List.last #> single)
 
 val metis_default_max_relevant = 20
 
