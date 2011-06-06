@@ -482,8 +482,10 @@ fun term_from_atp ctxt textual sym_tab =
                      let val Ts = type_us |> map (typ_from_atp ctxt) in
                        if new_skolem then
                          SOME (Type_Infer.paramify_vars (tl Ts ---> hd Ts))
-                       else
+                       else if textual then
                          try (Sign.const_instance thy) (s', Ts)
+                       else
+                         NONE
                      end
                    else
                      NONE)
