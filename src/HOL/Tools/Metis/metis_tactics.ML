@@ -71,9 +71,6 @@ fun reflexive_or_trivial_from_metis ctxt sym_tab mth =
   end
   |> Meson.make_meta_clause
 
-(* FIXME: implement using "hol_clause_from_metis ctxt sym_tab mth" *)
-fun specialize_helper mth ith = ith
-
 val clause_params =
   {ordering = Metis_KnuthBendixOrder.default,
    orderLiterals = Metis_Clause.UnsignedLiteralOrder,
@@ -109,9 +106,6 @@ fun FOL_SOLVE type_sys (mode :: fallback_modes) ctxt cls ths0 =
         prepare_metis_problem ctxt mode type_sys cls ths
       fun get_isa_thm mth Isa_Reflexive_or_Trivial =
           reflexive_or_trivial_from_metis ctxt sym_tab mth
-        | get_isa_thm mth (Isa_Helper ith) =
-          ith |> should_specialize_helper (the type_sys) (prop_of ith)
-                 ? specialize_helper mth
         | get_isa_thm _ (Isa_Raw ith) = ith
       val axioms = axioms |> map (fn (mth, ith) => (mth, get_isa_thm mth ith))
       val _ = trace_msg ctxt (fn () => "CLAUSES GIVEN TO METIS")

@@ -16,7 +16,6 @@ sig
 
   datatype isa_thm =
     Isa_Reflexive_or_Trivial |
-    Isa_Helper of thm |
     Isa_Raw of thm
 
   type metis_problem =
@@ -242,7 +241,6 @@ fun hol_thm_to_fol is_conjecture ctxt mode j old_skolems th =
 
 datatype isa_thm =
   Isa_Reflexive_or_Trivial |
-  Isa_Helper of thm |
   Isa_Raw of thm
 
 type metis_problem =
@@ -328,9 +326,9 @@ fun metis_axiom_from_atp clauses (Formula (ident, _, phi, _, _)) =
      else if String.isPrefix helper_prefix ident then
        case space_explode "_" ident  of
          _ :: const :: j :: _ =>
-         Isa_Helper (nth (AList.lookup (op =) helper_table const |> the |> snd)
-                         (the (Int.fromString j) - 1)
-                     |> prepare_helper)
+         Isa_Raw (nth (AList.lookup (op =) helper_table const |> the |> snd)
+                      (the (Int.fromString j) - 1)
+                  |> prepare_helper)
        | _ => raise Fail ("malformed helper identifier " ^ quote ident)
      else case try (unprefix conjecture_prefix) ident of
        SOME s =>
