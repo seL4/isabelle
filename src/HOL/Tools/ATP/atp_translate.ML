@@ -1399,7 +1399,9 @@ fun translate_formulas ctxt format prem_kind type_sys preproc hyp_ts concl_t
       |> ListPair.unzip
     (* Remove existing facts from the conjecture, as this can dramatically
        boost an ATP's performance (for some reason). *)
-    val hyp_ts = hyp_ts |> filter_out (member (op aconv) fact_ts)
+    val hyp_ts =
+      hyp_ts
+      |> map (fn t => if member (op aconv) fact_ts t then @{prop True} else t)
     val goal_t = Logic.list_implies (hyp_ts, concl_t)
     val all_ts = goal_t :: fact_ts
     val subs = tfree_classes_of_terms all_ts
