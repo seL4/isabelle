@@ -354,10 +354,10 @@ Let's see if Sledgehammer can find a proof:
 
 \prew
 \textbf{sledgehammer} \\[2\smallskipamount]
-{\slshape Sledgehammer: external prover ``$e$'' for subgoal 1: \\
+{\slshape Sledgehammer: ``$e$'' on goal: \\
 $\exists{!}x.\; P~x\,\Longrightarrow\, P~(\hbox{\slshape THE}~y.\; P~y)$ \\
-Try this command: \textrm{apply}~(\textit{metis~the\_equality})} \\[2\smallskipamount]
-\textbf{apply}~(\textit{metis~the\_equality\/}) \nopagebreak \\[2\smallskipamount]
+Try this: \textrm{apply}~(\textit{metis~theI}) (21 ms).} \\[2\smallskipamount]
+\textbf{by}~(\textit{metis~theI\/}) \nopagebreak \\[2\smallskipamount]
 {\slshape No subgoals!}% \\[2\smallskipamount]
 %\textbf{done}
 \postw
