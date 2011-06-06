@@ -295,7 +295,7 @@ text {*
 *}
 
 
-subsubsection {* Styled antiquotations *}
+subsection {* Styled antiquotations *}
 
 text {* The antiquotations @{text thm}, @{text prop} and @{text
   term} admit an extra \emph{style} specification to modify the
@@ -323,7 +323,7 @@ text {* The antiquotations @{text thm}, @{text prop} and @{text
 *}
 
 
-subsubsection {* General options *}
+subsection {* General options *}
 
 text {* The following options are available to tune the printed output
   of antiquotations.  Note that many of these coincide with global ML

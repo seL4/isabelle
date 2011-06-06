@@ -2,7 +2,7 @@ theory Spec
 imports Base Main
 begin
 
-chapter {* Theory specifications *}
+chapter {* Specifications *}
 
 text {*
   The Isabelle/Isar theory format integrates specifications and
@@ -922,14 +922,14 @@ text {*
       Thm.rule_attribute
         (fn context: Context.generic => fn th: thm =>
           let val th' = th OF ths
-          in th' end)) *}  "my rule"
+          in th' end)) *}
 
   attribute_setup my_declaration = {*
     Attrib.thms >> (fn ths =>
       Thm.declaration_attribute
         (fn th: thm => fn context: Context.generic =>
           let val context' = context
-          in context' end)) *}  "my declaration"
+          in context' end)) *}
 
 
 section {* Primitive specification elements *}
