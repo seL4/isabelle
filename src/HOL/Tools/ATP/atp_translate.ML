@@ -83,6 +83,7 @@ sig
   val type_tag_name : string
   val type_pred_name : string
   val simple_type_prefix : string
+  val prefixed_predicator_name : string
   val prefixed_app_op_name : string
   val prefixed_type_tag_name : string
   val ascii_of: string -> string
@@ -200,6 +201,7 @@ val type_tag_name = "ti"
 val type_pred_name = "is"
 val simple_type_prefix = "ty_"
 
+val prefixed_predicator_name = const_prefix ^ predicator_name
 val prefixed_app_op_name = const_prefix ^ app_op_name
 val prefixed_type_tag_name = const_prefix ^ type_tag_name
 
@@ -1111,7 +1113,7 @@ fun add_fact_syms_to_table ctxt explicit_apply =
                           (K (add_combterm_syms_to_table ctxt explicit_apply)))
 
 val default_sym_tab_entries : (string * sym_info) list =
-  (make_fixed_const predicator_name,
+  (prefixed_predicator_name,
    {pred_sym = true, min_ary = 1, max_ary = 1, types = []}) ::
   ([tptp_false, tptp_true]
    |> map (rpair {pred_sym = true, min_ary = 0, max_ary = 0, types = []})) @

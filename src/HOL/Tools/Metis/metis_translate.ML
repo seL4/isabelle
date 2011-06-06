@@ -51,7 +51,7 @@ val metis_generated_var_prefix = "_"
 val metis_name_table =
   [((tptp_equal, 2), (metis_equal, false)),
    ((tptp_old_equal, 2), (metis_equal, false)),
-   ((const_prefix ^ predicator_name, 1), (metis_predicator, false)),
+   ((prefixed_predicator_name, 1), (metis_predicator, false)),
    ((prefixed_app_op_name, 2), (metis_app_op, false)),
    ((prefixed_type_tag_name, 2), (metis_type_tag, true))]
 
