@@ -387,7 +387,8 @@ fun resolve_inc_tyvars thy tha i thb =
 
 fun s_not (@{const Not} $ t) = t
   | s_not t = HOLogic.mk_not t
-fun simp_not_not (@{const Not} $ t) = s_not (simp_not_not t)
+fun simp_not_not (@{const Trueprop} $ t) = @{const Trueprop} $ simp_not_not t
+  | simp_not_not (@{const Not} $ t) = s_not (simp_not_not t)
   | simp_not_not t = t
 
 (* Match untyped terms. *)
@@ -400,15 +401,20 @@ fun untyped_aconv (Const (a, _), Const(b, _)) = (a = b)
     untyped_aconv (t1, u1) andalso untyped_aconv (t2, u2)
   | untyped_aconv _ = false
 
+val normalize_literal = simp_not_not o Envir.eta_contract
+
 (* Find the relative location of an untyped term within a list of terms as a
    1-based index. Returns 0 in case of failure. *)
 fun index_of_literal lit haystack =
   let
-    val normalize = simp_not_not o Envir.eta_contract
-    val match_lit =
+    fun match_lit normalize =
       HOLogic.dest_Trueprop #> normalize
       #> curry untyped_aconv (lit |> normalize)
-  in find_index match_lit haystack + 1 end
+  in
+    (case find_index (match_lit I) haystack of
+       ~1 => find_index (match_lit (simp_not_not o Envir.eta_contract)) haystack
+     | j => j) + 1
+  end
 
 (* Permute a rule's premises to move the i-th premise to the last position. *)
 fun make_last i th =
@@ -599,11 +605,7 @@ fun equality_inference ctxt mode old_skolems sym_tab (pos, atom) fp fr =
              (*if not equality, ignore head to skip the hBOOL predicate*)
         | path_finder FT tm ps t = path_finder_FT tm ps t  (*really an error case!*)
         | path_finder MX tm ps t = path_finder_MX tm ps t
-      fun path_finder_lit ((nt as Const (@{const_name Not}, _)) $ tm_a) idx =
-            let val (tm, tm_rslt) = path_finder mode tm_a idx m_tm
-            in (tm, nt $ tm_rslt) end
-        | path_finder_lit tm_a idx = path_finder mode tm_a idx m_tm
-      val (tm_subst, body) = path_finder_lit i_atom fp
+      val (tm_subst, body) = path_finder mode i_atom fp m_tm
       val tm_abs = Abs ("x", type_of tm_subst, body)
       val _ = trace_msg ctxt (fn () => "abstraction: " ^ Syntax.string_of_term ctxt tm_abs)
       val _ = trace_msg ctxt (fn () => "i_tm: " ^ Syntax.string_of_term ctxt i_tm)
@@ -667,14 +669,17 @@ fun resynchronize ctxt fol_th th =
     else
       let
         val (prems0, concl) = th |> prop_of |> Logic.strip_horn
-        val prems = prems0 |> distinct untyped_aconv
+        val prems = prems0 |> map normalize_literal
+                           |> distinct untyped_aconv
         val goal = Logic.list_implies (prems, concl)
+        val tac = cut_rules_tac [th] 1
+                  THEN rewrite_goals_tac @{thms not_not [THEN eq_reflection]}
+                  THEN ALLGOALS assume_tac
       in
         if length prems = length prems0 then
           raise METIS ("resynchronize", "Out of sync")
         else
-          Goal.prove ctxt [] [] goal (K (cut_rules_tac [th] 1
-                                         THEN ALLGOALS assume_tac))
+          Goal.prove ctxt [] [] goal (K tac)
           |> resynchronize ctxt fol_th
       end
   end
