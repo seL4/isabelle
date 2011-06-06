@@ -27,7 +27,7 @@ code_pred small_step .
 
 values "{(c',map t [''x'',''y'',''z'']) |c' t.
    (''x'' ::= V ''z''; ''y'' ::= V ''x'',
-    lookup[(''x'',3),(''y'',7),(''z'',5)]) \<rightarrow>* (c',t)}"
+    [''x'' \<rightarrow> 3, ''y'' \<rightarrow> 7, ''z'' \<rightarrow> 5]) \<rightarrow>* (c',t)}"
 
 
 subsection{* Proof infrastructure *}

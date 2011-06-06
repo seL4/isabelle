@@ -25,7 +25,7 @@ fun aexec :: "ainstr list \<Rightarrow> state \<Rightarrow> stack \<Rightarrow> 
 "aexec (i#is) s stk = aexec is s (aexec1 i s stk)"
 
 value "aexec [LOADI 5, LOAD ''y'', ADD]
-  (lookup[(''x'',42), (''y'',43)]) [50]"
+ [''x'' \<rightarrow> 42, ''y'' \<rightarrow> 43] [50]"
 
 lemma aexec_append[simp]:
   "aexec (is1@is2) s stk = aexec is2 s (aexec is1 s stk)"

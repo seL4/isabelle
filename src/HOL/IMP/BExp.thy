@@ -11,7 +11,7 @@ fun bval :: "bexp \<Rightarrow> state \<Rightarrow> bool" where
 "bval (Less a1 a2) s = (aval a1 s < aval a2 s)"
 
 value "bval (Less (V ''x'') (Plus (N 3) (V ''y'')))
-  (lookup [(''x'',3),(''y'',1)])"
+            [''x'' \<rightarrow> 3, ''y'' \<rightarrow> 1]"
 
 
 subsection "Optimization"

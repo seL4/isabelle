@@ -18,12 +18,42 @@ fun aval :: "aexp \<Rightarrow> state \<Rightarrow> val" where
 
 value "aval (Plus (V ''x'') (N 5)) (%x. if x = ''x'' then 7 else 0)"
 
-fun lookup :: "(string * val)list \<Rightarrow> string \<Rightarrow> val" where
-"lookup ((x,i)#xis) y = (if x=y then i else lookup xis y)"
+text {* The same state more concisely: *}
+value "aval (Plus (V ''x'') (N 5)) ((%x. 0) (''x'':= 7))"
 
-value "aval (Plus (V ''x'') (N 5)) (lookup [(''x'',7)])"
+text {* A little syntax magic to write larger states compactly: *}
 
-value "aval (Plus (V ''x'') (N 5)) (lookup [(''y'',7)])"
+nonterminal funlets and funlet
+
+syntax
+  "_funlet"  :: "['a, 'a] => funlet"             ("_ /->/ _")
+   ""         :: "funlet => funlets"             ("_")
+  "_Funlets" :: "[funlet, funlets] => funlets"   ("_,/ _")
+  "_Fun"     :: "funlets => 'a => 'b"            ("(1[_])")
+  "_FunUpd"  :: "['a => 'b, funlets] => 'a => 'b" ("_/'(_')" [900,0]900)
+
+syntax (xsymbols)
+  "_funlet"  :: "['a, 'a] => funlet"             ("_ /\<rightarrow>/ _")
+
+translations
+  "_FunUpd m (_Funlets xy ms)"  == "_FunUpd (_FunUpd m xy) ms"
+  "_FunUpd m (_funlet  x y)"    == "m(x := y)"
+  "_Fun ms"                     == "_FunUpd (%_. 0) ms"
+  "_Fun (_Funlets ms1 ms2)"     <= "_FunUpd (_Fun ms1) ms2"
+  "_Funlets ms1 (_Funlets ms2 ms3)" <= "_Funlets (_Funlets ms1 ms2) ms3"
+
+text {* 
+  We can now write a series of updates to the function @{text "\<lambda>x. 0"} compactly:
+*}
+lemma "[a \<rightarrow> Suc 0, b \<rightarrow> 2] = ((%_. 0) (a := Suc 0)) (b := 2)"
+  by (rule refl)
+
+value "aval (Plus (V ''x'') (N 5)) [''x'' \<rightarrow> 7]"
+
+text {* Variables that are not mentioned in the state are 0 by default in 
+  the @{term "[a \<rightarrow> b::int]"} syntax: 
+*}   
+value "aval (Plus (V ''x'') (N 5)) [''y'' \<rightarrow> 7]"
 
 
 subsection "Optimization"
@@ -53,7 +83,6 @@ fun plus :: "aexp \<Rightarrow> aexp \<Rightarrow> aexp" where
 "plus a (N i) = (if i=0 then a else Plus a (N i))" |
 "plus a1 a2 = Plus a1 a2"
 
-text ""
 code_thms plus
 code_thms plus
 

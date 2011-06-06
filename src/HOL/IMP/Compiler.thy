@@ -60,7 +60,7 @@ code_pred exec .
 values
   "{(i,map t [''x'',''y''],stk) | i t stk.
     [LOAD ''y'', STORE ''x''] \<turnstile>
-    (0,lookup[(''x'',3),(''y'',4)],[]) \<rightarrow>* (i,t,stk)}"
+    (0, [''x'' \<rightarrow> 3, ''y'' \<rightarrow> 4], []) \<rightarrow>* (i,t,stk)}"
 
 
 subsection{* Verification infrastructure *}

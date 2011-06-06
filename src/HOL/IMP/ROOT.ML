@@ -4,13 +4,11 @@ use_thys
  "Small_Step",
  "Denotation",
  "Compiler",
- "Poly_Types"(*,
+ "Poly_Types",
  "Sec_Typing",
  "Sec_TypingT",
  "Def_Ass_Sound_Big",
  "Def_Ass_Sound_Small",
- "Def_Ass2_Sound_Small",
- "Def_Ass2_Big0",
  "Live",
  "Hoare_Examples",
  "VC",
@@ -20,5 +18,4 @@ use_thys
  "Procs_Stat_Vars_Stat",
  "C_like",
  "OO"
-*)
 ];

@@ -37,18 +37,18 @@ code_pred big_step .
 text{* For inductive definitions we need command
        \texttt{values} instead of \texttt{value}. *}
 
-values "{t. (SKIP, lookup[]) \<Rightarrow> t}"
+values "{t. (SKIP, %_. 0) \<Rightarrow> t}"
 
 text{* We need to translate the result state into a list
 to display it. *}
 
-values "{map t [''x''] |t. (SKIP, lookup [(''x'',42)]) \<Rightarrow> t}"
+values "{map t [''x''] |t. (SKIP, [''x'' \<rightarrow> 42]) \<Rightarrow> t}"
 
-values "{map t [''x''] |t. (''x'' ::= N 2, lookup [(''x'',42)]) \<Rightarrow> t}"
+values "{map t [''x''] |t. (''x'' ::= N 2, [''x'' \<rightarrow> 42]) \<Rightarrow> t}"
 
 values "{map t [''x'',''y''] |t.
   (WHILE Less (V ''x'') (V ''y'') DO (''x'' ::= Plus (V ''x'') (N 5)),
-   lookup [(''x'',0),(''y'',13)]) \<Rightarrow> t}"
+   [''x'' \<rightarrow> 0, ''y'' \<rightarrow> 13]) \<Rightarrow> t}"
 
 
 text{* Proof automation: *}
