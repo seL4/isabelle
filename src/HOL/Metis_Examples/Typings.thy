@@ -8,7 +8,6 @@ theory Typings
 imports Main
 begin
 
-
 text {* Setup for testing Metis exhaustively *}
 
 lemma fork: "P \<Longrightarrow> P \<Longrightarrow> P" by assumption
@@ -28,46 +27,47 @@ val type_syss =
                       constr (poly, level, heaviness))
                   [Preds, Tags])
 
-fun metis_exhaust_tac ctxt ths =
+fun metis_eXhaust_tac ctxt ths =
   let
-    fun tac [] = all_tac
-      | tac (type_sys :: type_syss) =
-        (if null type_syss then all_tac else rtac @{thm fork} 1)
-        THEN Metis_Tactics.metisX_tac ctxt (SOME type_sys) ths 1
-        THEN COND (has_fewer_prems 2) all_tac no_tac
-        THEN tac type_syss
+    fun tac [] st = all_tac st
+      | tac (type_sys :: type_syss) st =
+        st (* |> tap (fn _ => tracing (PolyML.makestring type_sys)) *)
+           |> ((if null type_syss then all_tac else rtac @{thm fork} 1)
+               THEN Metis_Tactics.metisX_tac ctxt (SOME type_sys) ths 1
+               THEN COND (has_fewer_prems 2) all_tac no_tac
+               THEN tac type_syss)
   in tac end
 *}
 
-method_setup metis_exhaust = {*
+method_setup metis_eXhaust = {*
   Attrib.thms >>
-    (fn ths => fn ctxt => SIMPLE_METHOD (metis_exhaust_tac ctxt ths type_syss))
+    (fn ths => fn ctxt => SIMPLE_METHOD (metis_eXhaust_tac ctxt ths type_syss))
 *} "exhaustively run the new Metis with all type encodings"
 
 
 text {* Metis tests *}
 
 lemma "x = y \<Longrightarrow> y = x"
-by metis_exhaust
+by metis_eXhaust
 
 lemma "[a] = [1 + 1] \<Longrightarrow> a = 1 + (1::int)"
-by (metis_exhaust last.simps)
+by (metis_eXhaust last.simps)
 
 lemma "map Suc [0] = [Suc 0]"
-by (metis_exhaust map.simps)
+by (metis_eXhaust map.simps)
 
 lemma "map Suc [1 + 1] = [Suc 2]"
-by (metis_exhaust map.simps nat_1_add_1)
+by (metis_eXhaust map.simps nat_1_add_1)
 
 lemma "map Suc [2] = [Suc (1 + 1)]"
-by (metis_exhaust map.simps nat_1_add_1)
+by (metis_eXhaust map.simps nat_1_add_1)
 
 definition "null xs = (xs = [])"
 
 lemma "P (null xs) \<Longrightarrow> null xs \<Longrightarrow> xs = []"
-by (metis_exhaust null_def)
+by (metis_eXhaust null_def)
 
 lemma "(0::nat) + 0 = 0"
-by (metis_exhaust arithmetic_simps(38))
+by (metis_eXhaust arithmetic_simps(38))
 
 end
