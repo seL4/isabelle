@@ -470,6 +470,7 @@ fun term_from_atp ctxt textual sym_tab =
               @{const True} (* ignore type predicates *)
             else
               let
+                val new_skolem = String.isPrefix new_skolem_const_prefix s
                 val num_ty_args =
                   length us - the_default 0 (Symtab.lookup sym_tab s)
                 val (type_us, term_us) =
@@ -478,8 +479,12 @@ fun term_from_atp ctxt textual sym_tab =
                 val T =
                   (if not (null type_us) andalso
                       num_type_args thy s' = length type_us then
-                     try (Sign.const_instance thy)
-                         (s', map (typ_from_atp ctxt) type_us)
+                     let val Ts = type_us |> map (typ_from_atp ctxt) in
+                       if new_skolem then
+                         SOME (Type_Infer.paramify_vars (tl Ts ---> hd Ts))
+                       else
+                         try (Sign.const_instance thy) (s', Ts)
+                     end
                    else
                      NONE)
                   |> (fn SOME T => T
@@ -487,8 +492,12 @@ fun term_from_atp ctxt textual sym_tab =
                                  (case opt_T of
                                     SOME T => T
                                   | NONE => HOLogic.typeT))
-                val s' = s' |> unproxify_const
-              in list_comb (Const (s', T), term_ts @ extra_ts) end
+                val t =
+                  if new_skolem then
+                    Var ((new_skolem_var_name_from_const s, var_index), T)
+                  else
+                    Const (unproxify_const s', T)
+              in list_comb (t, term_ts @ extra_ts) end
           end
         | NONE => (* a free or schematic variable *)
           let
