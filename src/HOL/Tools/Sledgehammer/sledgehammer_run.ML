@@ -102,7 +102,8 @@ fun minimize ctxt mode name (params as {debug, verbose, isar_proof, ...})
                   (case preplay of
                      Played (reconstructor, timeout) =>
                      if can_min_fast_enough (Time.toMilliseconds timeout) then
-                       (true, reconstructor_name reconstructor)
+                       (true, prover_name_for_reconstructor reconstructor
+                              |> the_default name)
                      else
                        (prover_fast_enough, name)
                    | _ => (prover_fast_enough, name),
