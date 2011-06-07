@@ -510,7 +510,8 @@ fun mutate_theorems_and_write_report thy mtds thms file_name =
     "QC options = " ^
       (*"quickcheck_generator: " ^ quickcheck_generator ^ ";*)
       "size: " ^ string_of_int (Config.get ctxt Quickcheck.size) ^
-      "; iterations: " ^ string_of_int (Config.get ctxt Quickcheck.iterations) ^ "\n");
+      "; iterations: " ^ string_of_int (Config.get ctxt Quickcheck.iterations) ^ "\n" ^
+    "Isabelle environment = ISABELLE_GHC: " ^ getenv "ISABELLE_GHC" ^ "\n");
     map (File.append path o gen_string_for_entry o mutate_theorem gen_create_entry thy mtds) thms;
     ()
   end
