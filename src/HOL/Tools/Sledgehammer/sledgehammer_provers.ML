@@ -546,12 +546,6 @@ fun repair_monomorph_context max_iters max_new_instances =
   #> Config.put Monomorph.max_new_instances max_new_instances
   #> Config.put Monomorph.keep_partial_instances false
 
-fun repair_smt_monomorph_context debug max_mono_iters max_mono_instances =
-  (not debug ? Config.put SMT_Config.verbose false)
-  #> Config.put SMT_Config.monomorph_limit max_mono_iters
-  #> Config.put SMT_Config.monomorph_instances max_mono_instances
-  #> Config.put SMT_Config.monomorph_full false
-
 fun run_atp mode name
         ({exec, required_execs, arguments, proof_delims, known_failures,
           conj_sym_kind, prem_kind, formats, best_slices, ...} : atp_config)
@@ -891,8 +885,8 @@ fun smt_filter_loop ctxt name
         val timer = Timer.startRealTimer ()
         val state =
           state |> Proof.map_context
-                       (repair_smt_monomorph_context debug max_mono_iters
-                            (max_new_mono_instances + length facts))
+                       (repair_monomorph_context max_mono_iters
+                                                 max_new_mono_instances)
         val ms = timeout |> Time.toMilliseconds
         val slice_timeout =
           if slice < max_slices then
