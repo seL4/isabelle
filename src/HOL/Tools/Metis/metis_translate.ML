@@ -175,7 +175,7 @@ fun prepare_metis_problem ctxt type_sys conj_clauses fact_clauses =
           else
             map (pair 0)
             #> rpair ctxt
-            #-> Monomorph.monomorph Monomorph.all_schematic_consts_of
+            #-> Monomorph.monomorph atp_schematic_consts_of
             #> fst #> maps (map (zero_var_indexes o snd)))
     val (old_skolems, props) =
       fold_rev (fn clause => fn (old_skolems, props) =>

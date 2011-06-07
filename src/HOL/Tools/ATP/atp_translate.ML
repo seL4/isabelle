@@ -101,6 +101,8 @@ sig
   val make_type_class : string -> string
   val new_skolem_var_name_from_const : string -> string
   val num_type_args : theory -> string -> int
+  val atp_irrelevant_consts : string list
+  val atp_schematic_consts_of : term -> typ list Symtab.table
   val make_arity_clauses :
     theory -> string list -> class list -> class list * arity_clause list
   val make_class_rel_clauses :
@@ -350,6 +352,26 @@ fun num_type_args thy s =
     s |> space_explode Long_Name.separator |> List.last |> Int.fromString |> the
   else
     (s, Sign.the_const_type thy s) |> Sign.const_typargs thy |> length
+
+(* These are either simplified away by "Meson.presimplify" (most of the time) or
+   handled specially via "fFalse", "fTrue", ..., "fequal". *)
+val atp_irrelevant_consts =
+  [@{const_name False}, @{const_name True}, @{const_name Not},
+   @{const_name conj}, @{const_name disj}, @{const_name implies},
+   @{const_name HOL.eq}, @{const_name If}, @{const_name Let}]
+
+val atp_monomorph_bad_consts =
+  atp_irrelevant_consts @
+  (* These are ignored anyway by the relevance filter (unless they appear in
+     higher-order places) but not by the monomorphizer. *)
+  [@{const_name all}, @{const_name "==>"}, @{const_name "=="},
+   @{const_name Trueprop}, @{const_name All}, @{const_name Ex},
+   @{const_name Ex1}, @{const_name Ball}, @{const_name Bex}]
+
+val atp_schematic_consts_of =
+  Monomorph.all_schematic_consts_of
+  #> Symtab.map (fn s => fn Ts =>
+                    if member (op =) atp_monomorph_bad_consts s then [] else Ts)
 
 (** Definitions and functions for FOL clauses and formulas for TPTP **)
 

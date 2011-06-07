@@ -184,13 +184,6 @@ fun default_max_relevant_for_prover ctxt slicing name =
       SMT_Solver.default_max_relevant ctxt name
   end
 
-(* These are either simplified away by "Meson.presimplify" (most of the time) or
-   handled specially via "fFalse", "fTrue", ..., "fequal". *)
-val atp_irrelevant_consts =
-  [@{const_name False}, @{const_name True}, @{const_name Not},
-   @{const_name conj}, @{const_name disj}, @{const_name implies},
-   @{const_name HOL.eq}, @{const_name If}, @{const_name Let}]
-
 fun is_if (@{const_name If}, _) = true
   | is_if _ = false
 
@@ -611,7 +604,7 @@ fun run_atp mode name
                   Logic.list_implies (hyp_ts, concl_t)
                   |> Skip_Proof.make_thm thy
               in
-                Monomorph.monomorph Monomorph.all_schematic_consts_of
+                Monomorph.monomorph atp_schematic_consts_of
                     (subgoal_th :: map snd facts |> map (pair 0)) ctxt
                 |> fst |> tl
                 |> curry ListPair.zip (map fst facts)
