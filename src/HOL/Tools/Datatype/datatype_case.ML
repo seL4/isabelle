@@ -64,7 +64,7 @@ fun pattern_subst theta (tm, x) = (subst_free theta tm, x);
 fun row_of_pat x = fst (snd x);
 
 fun add_row_used ((prfx, pats), (tm, tag)) =
-  fold Term.add_free_names (tm :: pats @ prfx);
+  fold Term.add_free_names (tm :: pats @ map Free prfx);
 
 (* try to preserve names given by user *)
 fun default_names names ts =
@@ -172,10 +172,10 @@ fun mk_pat ((c, c'), l) =
       in (prfx, tag, list_comb (c', args) :: plist') end
   in map build l end;
 
-fun v_to_prfx (prfx, v::pats) = (v::prfx,pats)
+fun v_to_prfx (prfx, Free v::pats) = (v::prfx,pats)
   | v_to_prfx _ = raise CASE_ERROR ("mk_case: v_to_prfx", ~1);
 
-fun v_to_pats (v::prfx,tag, pats) = (prfx, tag, v::pats)
+fun v_to_pats (v::prfx,tag, pats) = (prfx, tag, Free v::pats)
   | v_to_pats _ = raise CASE_ERROR ("mk_case: v_to_pats", ~1);
 
 
