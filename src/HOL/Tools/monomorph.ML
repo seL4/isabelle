@@ -206,7 +206,12 @@ fun collect_instances known_grounds thm =
 
 fun make_subst_ctxt ctxt thm_infos known_grounds substitutions =
   let
-    val limit = Config.get ctxt max_new_instances
+    (* The total limit of returned (ground) facts is the number of facts
+       given to the monomorphizer increased by max_new_instances.  Since
+       initially ground facts are returned anyway, the limit here is not
+       counting them. *)
+    val limit = Config.get ctxt max_new_instances + 
+      fold (fn Schematic _ => Integer.add 1 | _ => I) thm_infos 0
 
     fun add_ground_consts (Ground thm) = collect_instances known_grounds thm
       | add_ground_consts (Schematic _) = I
