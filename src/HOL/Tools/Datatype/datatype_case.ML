@@ -88,7 +88,7 @@ fun fresh_constr ty_match ty_inst colty used c =
  pattern with constructor = name.*)
 fun mk_group (name, T) rows =
   let val k = length (binder_types T) in
-    fold (fn (row as ((prfx, p :: rst), rhs as (_, i))) =>
+    fold (fn (row as ((prfx, p :: ps), rhs as (_, i))) =>
       fn ((in_group, not_in_group), (names, cnstrts)) =>
         (case strip_comb p of
           (Const (name', _), args) =>
@@ -96,7 +96,7 @@ fun mk_group (name, T) rows =
               if length args = k then
                 let val (args', cnstrts') = split_list (map strip_constraints args)
                 in
-                  ((((prfx, args' @ rst), rhs) :: in_group, not_in_group),
+                  ((((prfx, args' @ ps), rhs) :: in_group, not_in_group),
                    (default_names names args', map2 append cnstrts cnstrts'))
                 end
               else raise CASE_ERROR
@@ -111,12 +111,12 @@ fun mk_group (name, T) rows =
 
 fun partition _ _ _ _ _ _ _ [] = raise CASE_ERROR ("partition: no rows", ~1)
   | partition ty_match ty_inst type_of used constructors colty res_ty
-        (rows as (((prfx, _ :: rstp), _) :: _)) =
+        (rows as (((prfx, _ :: ps), _) :: _)) =
       let
         fun part {constrs = [], rows = [], A} = rev A
           | part {constrs = [], rows = (_, (_, i)) :: _, A} =
               raise CASE_ERROR ("Not a constructor pattern", i)
-          | part {constrs = c :: crst, rows, A} =
+          | part {constrs = c :: cs, rows, A} =
               let
                 val ((in_group, not_in_group), (names, cnstrts)) =
                   mk_group (dest_Const c) rows;
@@ -126,17 +126,17 @@ fun partition _ _ _ _ _ _ _ [] = raise CASE_ERROR ("partition: no rows", ~1)
                   if null in_group  (* Constructor not given *)
                   then
                     let
-                      val Ts = map type_of rstp;
+                      val Ts = map type_of ps;
                       val xs = Name.variant_list
                         (fold Term.add_free_names gvars used')
-                        (replicate (length rstp) "x")
+                        (replicate (length ps) "x")
                     in
                       [((prfx, gvars @ map Free (xs ~~ Ts)),
                         (Const (@{const_syntax undefined}, res_ty), ~1))]
                     end
                   else in_group
               in
-                part{constrs = crst,
+                part{constrs = cs,
                   rows = not_in_group,
                   A = {constructor = c',
                     new_formals = gvars,
@@ -157,14 +157,14 @@ fun mk_case tab ctxt ty_match ty_inst type_of used range_ty =
     val name = Name.variant used "a";
     fun expand constructors used ty ((_, []), _) =
           raise CASE_ERROR ("mk_case: expand_var_row", ~1)
-      | expand constructors used ty (row as ((prfx, p :: rst), (rhs, tag))) =
+      | expand constructors used ty (row as ((prfx, p :: ps), (rhs, tag))) =
           if is_Free p then
             let
               val used' = add_row_used row used;
               fun expnd c =
                 let val capp =
                   list_comb (fresh_constr ty_match ty_inst ty used' c)
-                in ((prfx, capp :: rst), (subst_free [(p, capp)] rhs, tag))
+                in ((prfx, capp :: ps), (subst_free [(p, capp)] rhs, tag))
                 end
             in map expnd constructors end
           else [row]
@@ -173,26 +173,26 @@ fun mk_case tab ctxt ty_match ty_inst type_of used range_ty =
           ([tag], tm)
       | mk {path, rows as ((row as ((_, [Free _]), _)) :: _ :: _)} =
           mk {path = path, rows = [row]}
-      | mk {path = u :: rstp, rows as ((_, _ :: _), _) :: _} =
+      | mk {path = u :: us, rows as ((_, _ :: _), _) :: _} =
           let val col0 = map (fn ((_, p :: _), (_, i)) => (p, i)) rows in
             (case Option.map (apfst head_of) (find_first (not o is_Free o fst) col0) of
               NONE =>
                 let
                   val rows' = map (fn ((v, _), row) => row ||>
                     apfst (subst_free [(v, u)]) |>> v_to_prfx) (col0 ~~ rows);
-                in mk {path = rstp, rows = rows'} end
+                in mk {path = us, rows = rows'} end
             | SOME (Const (cname, cT), i) =>
                 (case ty_info tab (cname, cT) of
                   NONE => raise CASE_ERROR ("Not a datatype constructor: " ^ cname, i)
                 | SOME {case_name, constructors} =>
                   let
                     val pty = body_type cT;
-                    val used' = fold Term.add_free_names rstp used;
+                    val used' = fold Term.add_free_names us used;
                     val nrows = maps (expand constructors used' pty) rows;
                     val subproblems = partition ty_match ty_inst type_of used'
                       constructors pty range_ty nrows;
                     val news = map (fn {new_formals, group, ...} =>
-                      {path = new_formals @ rstp, rows = group}) subproblems;
+                      {path = new_formals @ us, rows = group}) subproblems;
                     val (pat_rect, dtrees) = split_list (map mk news);
                     val case_functions = map2
                       (fn {new_formals, names, constraints, ...} =>
