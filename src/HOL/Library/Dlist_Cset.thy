@@ -3,21 +3,21 @@
 header {* Canonical implementation of sets by distinct lists *}
 
 theory Dlist_Cset
-imports Dlist Cset
+imports Dlist List_Cset
 begin
 
 definition Set :: "'a dlist \<Rightarrow> 'a Cset.set" where
-  "Set dxs = Cset.set (list_of_dlist dxs)"
+  "Set dxs = List_Cset.set (list_of_dlist dxs)"
 
 definition Coset :: "'a dlist \<Rightarrow> 'a Cset.set" where
-  "Coset dxs = Cset.coset (list_of_dlist dxs)"
+  "Coset dxs = List_Cset.coset (list_of_dlist dxs)"
 
 code_datatype Set Coset
 
 declare member_code [code del]
-declare Cset.is_empty_set [code del]
-declare Cset.empty_set [code del]
-declare Cset.UNIV_set [code del]
+declare List_Cset.is_empty_set [code del]
+declare List_Cset.empty_set [code del]
+declare List_Cset.UNIV_set [code del]
 declare insert_set [code del]
 declare remove_set [code del]
 declare compl_set [code del]
@@ -50,11 +50,11 @@ lemma member_Coset [simp]:
   by (simp add: Coset_def member_set not_set_compl)
 
 lemma Set_dlist_of_list [code]:
-  "Cset.set xs = Set (dlist_of_list xs)"
+  "List_Cset.set xs = Set (dlist_of_list xs)"
   by (rule Cset.set_eqI) simp
 
 lemma Coset_dlist_of_list [code]:
-  "Cset.coset xs = Coset (dlist_of_list xs)"
+  "List_Cset.coset xs = Coset (dlist_of_list xs)"
   by (rule Cset.set_eqI) simp
 
 lemma is_empty_Set [code]:
