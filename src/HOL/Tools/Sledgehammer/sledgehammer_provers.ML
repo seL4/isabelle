@@ -539,9 +539,8 @@ fun choose_minimize_command minimize_command name preplay =
    | _ => name)
   |> minimize_command
 
-fun repair_monomorph_context debug max_iters max_new_instances =
-  (not debug ? Config.put Monomorph.verbose false)
-  #> Config.put Monomorph.max_rounds max_iters
+fun repair_monomorph_context max_iters max_new_instances =
+  Config.put Monomorph.max_rounds max_iters
   #> Config.put Monomorph.max_new_instances max_new_instances
   #> Config.put Monomorph.complete_instances false
 
@@ -603,7 +602,7 @@ fun run_atp mode name
             fun monomorphize_facts facts =
               let
                 val ctxt =
-                  ctxt |> repair_monomorph_context debug max_mono_iters
+                  ctxt |> repair_monomorph_context max_mono_iters
                                                    max_new_mono_instances
                 (* pseudo-theorem involving the same constants as the subgoal *)
                 val subgoal_th =

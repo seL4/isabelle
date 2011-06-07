@@ -174,8 +174,7 @@ fun prepare_metis_problem ctxt type_sys conj_clauses fact_clauses =
             I
           else
             map (pair 0)
-            #> rpair (ctxt |> not (Config.get ctxt verbose)
-                              ? Config.put Monomorph.verbose false)
+            #> rpair ctxt
             #-> Monomorph.monomorph Monomorph.all_schematic_consts_of
             #> fst #> maps (map (zero_var_indexes o snd)))
     val (old_skolems, props) =

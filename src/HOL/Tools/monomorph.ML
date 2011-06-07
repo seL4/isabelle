@@ -35,7 +35,6 @@ sig
     typ list Symtab.table
 
   (* configuration options *)
-  val verbose: bool Config.T
   val max_rounds: int Config.T
   val max_new_instances: int Config.T
   val complete_instances: bool Config.T
@@ -64,7 +63,6 @@ fun all_schematic_consts_of t = add_schematic_consts_of t Symtab.empty
 
 (* configuration options *)
 
-val verbose = Attrib.setup_config_bool @{binding monomorph_verbose} (K true)
 val max_rounds = Attrib.setup_config_int @{binding monomorph_max_rounds} (K 5)
 val max_new_instances =
   Attrib.setup_config_int @{binding monomorph_max_new_instances} (K 300)
