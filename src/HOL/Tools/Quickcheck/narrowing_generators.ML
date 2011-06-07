@@ -299,9 +299,9 @@ val put_existential_counterexample = Existential_Counterexample.put
 
 val put_counterexample = Counterexample.put
 
-fun finitize_functions t =
+fun finitize_functions (xTs, t) =
   let
-    val ((names, Ts), t') = apfst split_list (strip_abs t)
+    val (names, boundTs) = split_list xTs
     fun mk_eval_ffun dT rT =
       Const (@{const_name "Quickcheck_Narrowing.eval_ffun"}, 
         Type (@{type_name "Quickcheck_Narrowing.ffun"}, [dT, rT]) --> dT --> rT)
@@ -320,17 +320,19 @@ fun finitize_functions t =
             Type (@{type_name "Quickcheck_Narrowing.ffun"}, [dT, rT']))
       end
       | eval_function T = (I, T)
-    val (tt, Ts') = split_list (map eval_function Ts)
-    val t'' = subst_bounds (map2 (fn f => fn x => f x) (rev tt) (map_index (Bound o fst) Ts), t')
+    val (tt, boundTs') = split_list (map eval_function boundTs)
+    val t' = subst_bounds (map2 (fn f => fn x => f x) (rev tt) (map_index (Bound o fst) boundTs), t)
   in
-    list_abs (names ~~ Ts', t'')
+    (names ~~ boundTs', t')
   end
 
 (** tester **)
 
 val rewrs =
-  map (swap o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of) (@{thms all_simps} @ @{thms ex_simps})
-    @ map (HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of) [@{thm not_ex}, @{thm not_all}]
+    map (swap o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of)
+      (@{thms all_simps} @ @{thms ex_simps})
+    @ map (HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of)
+        [@{thm iff_conv_conj_imp}, @{thm not_ex}, @{thm not_all}]
 
 fun make_pnf_term thy t = Pattern.rewrite_term thy rewrs [] t
 
@@ -355,7 +357,6 @@ fun mk_property qs t =
       (list_comb (t , map Bound (((length qs) - 1) downto 0))))
   end
 
-  
 fun mk_case_term ctxt p ((@{const_name Ex}, (x, T)) :: qs') (Existential_Counterexample cs) =
     fst (Datatype.make_case ctxt Datatype_Case.Quiet [] (Free (x, T)) (map (fn (t, c) =>
       (t, mk_case_term ctxt (p - 1) qs' c)) cs))
@@ -378,8 +379,12 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
   in
     if Config.get ctxt allow_existentials andalso contains_existentials pnf_t then
       let
-        val (qs, t') = strip_quantifiers pnf_t
-        val prop_term = fold_rev (fn (_, (x, T)) => fn t => Abs (x, T, t)) qs t'
+        fun wrap f (qs, t) =
+          let val (qs1, qs2) = split_list qs in
+          apfst (map2 pair qs1) (f (qs2, t)) end
+        val finitize = if Config.get ctxt finite_functions then wrap finitize_functions else I
+        val (qs, prop_t) = finitize (strip_quantifiers pnf_t)
+        val prop_term = fold_rev (fn (_, (x, T)) => fn t => Abs (x, T, t)) qs prop_t
         val ((prop_def, _), ctxt') = Local_Theory.define ((Binding.conceal (Binding.name "test_property"), NoSyn),
           ((Binding.conceal Binding.empty, [Code.add_default_eqn_attrib]), prop_term)) ctxt
         val (prop_def', thy') = Local_Theory.exit_result_global Morphism.term (prop_def, ctxt') 
@@ -392,18 +397,20 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
         Quickcheck.Result {counterexample = result', evaluation_terms = Option.map (K []) result,
           timings = [], reports = []}
       end
-    else (let
-      val t' = HOLogic.list_all (Term.add_frees t [], t)
-      val t'' = if Config.get ctxt finite_functions then finitize_functions t' else t'
-      fun ensure_testable t =
-        Const (@{const_name Quickcheck_Narrowing.ensure_testable}, fastype_of t --> fastype_of t) $ t
-      val result = dynamic_value_strict false
-        (Counterexample.get, Counterexample.put, "Narrowing_Generators.put_counterexample")
-        thy (Option.map o map) (ensure_testable t'')
-    in
-      Quickcheck.Result {counterexample = Option.map ((curry (op ~~)) (Term.add_free_names t [])) result,
-        evaluation_terms = Option.map (K []) result, timings = [], reports = []}
-    end)
+    else
+      let
+        val t' = Term.list_abs_free (Term.add_frees t [], t)
+        fun wrap f t = list_abs (f (strip_abs t))
+        val finitize = if Config.get ctxt finite_functions then wrap finitize_functions else I
+        fun ensure_testable t =
+          Const (@{const_name Quickcheck_Narrowing.ensure_testable}, fastype_of t --> fastype_of t) $ t
+        val result = dynamic_value_strict false
+          (Counterexample.get, Counterexample.put, "Narrowing_Generators.put_counterexample")
+          thy (Option.map o map) (ensure_testable (finitize t'))
+      in
+        Quickcheck.Result {counterexample = Option.map ((curry (op ~~)) (Term.add_free_names t [])) result,
+          evaluation_terms = Option.map (K []) result, timings = [], reports = []}
+      end
   end;
 
 fun test_goals ctxt (limit_time, is_interactive) insts goals =
