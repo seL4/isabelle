@@ -180,7 +180,7 @@ val _ = tracing ("PROPS:\n" ^ cat_lines (map (Syntax.string_of_term ctxt) props)
       prepare_atp_problem ctxt CNF Hypothesis Axiom type_sys explicit_apply
                           false false props @{prop False} []
 (*
-val _ = tracing ("ATP PROBLEM: " ^ cat_lines (tptp_strings_for_atp_problem CNF atp_problem))
+val _ = tracing ("ATP PROBLEM: " ^ cat_lines (tptp_lines_for_atp_problem CNF atp_problem))
 *)
     (* "rev" is for compatibility *)
     val axioms =

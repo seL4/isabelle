@@ -652,7 +652,7 @@ fun run_atp mode name
                      "exec " ^ core) ^ " 2>&1"
                 val _ =
                   atp_problem
-                  |> tptp_strings_for_atp_problem format
+                  |> tptp_lines_for_atp_problem format
                   |> cons ("% " ^ command ^ "\n")
                   |> File.write_list prob_file
                 val conjecture_shape =
