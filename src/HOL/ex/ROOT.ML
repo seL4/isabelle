@@ -73,7 +73,7 @@ use_thys [
   "Gauge_Integration",
   "Dedekind_Real",
   "Quicksort",
-  "Birthday_Paradoxon",
+  "Birthday_Paradox",
   "List_to_Set_Comprehension_Examples",
   "Set_Algebras"
 ];

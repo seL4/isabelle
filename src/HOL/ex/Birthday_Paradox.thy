@@ -1,10 +1,10 @@
-(*  Title: HOL/ex/Birthday_Paradoxon.thy
+(*  Title: HOL/ex/Birthday_Paradox.thy
     Author: Lukas Bulwahn, TU Muenchen, 2007
 *)
 
-header {* A Formulation of the Birthday Paradoxon *}
+header {* A Formulation of the Birthday Paradox *}
 
-theory Birthday_Paradoxon
+theory Birthday_Paradox
 imports Main "~~/src/HOL/Fact" "~~/src/HOL/Library/FuncSet"
 begin
 
@@ -85,9 +85,9 @@ lemma setprod_upto_nat_unfold:
   "setprod f {m..(n::nat)} = (if n < m then 1 else (if n = 0 then f 0 else f n * setprod f {m..(n - 1)}))"
   by auto (auto simp add: gr0_conv_Suc atLeastAtMostSuc_conv)
 
-section {* Birthday paradoxon *}
+section {* Birthday paradox *}
 
-lemma birthday_paradoxon:
+lemma birthday_paradox:
   assumes "card S = 23" "card T = 365"
   shows "2 * card {f \<in> extensional_funcset S T. \<not> inj_on f S} \<ge> card (extensional_funcset S T)"
 proof -
