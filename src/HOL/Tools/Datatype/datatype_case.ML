@@ -32,9 +32,7 @@ exception CASE_ERROR of string * int;
 
 fun match_type thy pat ob = Sign.typ_match thy (pat, ob) Vartab.empty;
 
-(*---------------------------------------------------------------------------
- * Get information about datatypes
- *---------------------------------------------------------------------------*)
+(* Get information about datatypes *)
 
 fun ty_info tab sT =
   (case tab sT of
@@ -51,18 +49,14 @@ fun ty_info tab sT =
   | NONE => NONE);
 
 
-(*---------------------------------------------------------------------------
- * Each pattern carries with it a tag i, which denotes
- * the clause it came from. i = ~1 indicates that
- * the clause was added by pattern completion.
- *---------------------------------------------------------------------------*)
-
-fun pattern_subst theta (tm, x) = (subst_free theta tm, x);
+(*Each pattern carries with it a tag i, which denotes the clause it
+came from. i = ~1 indicates that the clause was added by pattern
+completion.*)
 
 fun add_row_used ((prfx, pats), (tm, tag)) =
   fold Term.add_free_names (tm :: pats @ map Free prfx);
 
-(* try to preserve names given by user *)
+(*try to preserve names given by user*)
 fun default_names names ts =
   map (fn ("", Free (name', _)) => name' | (name, _) => name) (names ~~ ts);
 
@@ -75,9 +69,7 @@ fun mk_fun_constrain tT t =
     (Syntax.const @{type_syntax fun} $ tT $ Syntax.const @{type_syntax dummy});
 
 
-(*---------------------------------------------------------------------------
- * Produce an instance of a constructor, plus genvars for its arguments.
- *---------------------------------------------------------------------------*)
+(*Produce an instance of a constructor, plus fresh variables for its arguments.*)
 fun fresh_constr ty_match ty_inst colty used c =
   let
     val (_, Ty) = dest_Const c
@@ -92,10 +84,8 @@ fun fresh_constr ty_match ty_inst colty used c =
   in (c', gvars) end;
 
 
-(*---------------------------------------------------------------------------
- * Goes through a list of rows and picks out the ones beginning with a
- * pattern with constructor = name.
- *---------------------------------------------------------------------------*)
+(*Goes through a list of rows and picks out the ones beginning with a
+ pattern with constructor = name.*)
 fun mk_group (name, T) rows =
   let val k = length (binder_types T) in
     fold (fn (row as ((prfx, p :: rst), rhs as (_, i))) =>
@@ -116,9 +106,9 @@ fun mk_group (name, T) rows =
     rows (([], []), (replicate k "", replicate k [])) |>> pairself rev
   end;
 
-(*---------------------------------------------------------------------------
- * Partition the rows. Not efficient: we should use hashing.
- *---------------------------------------------------------------------------*)
+
+(* Partitioning *)
+
 fun partition _ _ _ _ _ _ _ [] = raise CASE_ERROR ("partition: no rows", ~1)
   | partition ty_match ty_inst type_of used constructors colty res_ty
         (rows as (((prfx, _ :: rstp), _) :: _)) =
@@ -156,35 +146,25 @@ fun partition _ _ _ _ _ _ _ [] = raise CASE_ERROR ("partition: no rows", ~1)
               end
       in part {constrs = constructors, rows = rows, A = []} end;
 
-(*---------------------------------------------------------------------------
- * Misc. routines used in mk_case
- *---------------------------------------------------------------------------*)
-
 fun v_to_prfx (prfx, Free v::pats) = (v::prfx,pats)
   | v_to_prfx _ = raise CASE_ERROR ("mk_case: v_to_prfx", ~1);
 
 
-(*----------------------------------------------------------------------------
- * Translation of pattern terms into nested case expressions.
- *
- * This performs the translation and also builds the full set of patterns.
- * Thus it supports the construction of induction theorems even when an
- * incomplete set of patterns is given.
- *---------------------------------------------------------------------------*)
-
+(* Translation of pattern terms into nested case expressions. *)
+ 
 fun mk_case tab ctxt ty_match ty_inst type_of used range_ty =
   let
     val name = Name.variant used "a";
     fun expand constructors used ty ((_, []), _) =
           raise CASE_ERROR ("mk_case: expand_var_row", ~1)
-      | expand constructors used ty (row as ((prfx, p :: rst), rhs)) =
+      | expand constructors used ty (row as ((prfx, p :: rst), (rhs, tag))) =
           if is_Free p then
             let
               val used' = add_row_used row used;
               fun expnd c =
                 let val capp =
                   list_comb (fresh_constr ty_match ty_inst ty used' c)
-                in ((prfx, capp :: rst), pattern_subst [(p, capp)] rhs)
+                in ((prfx, capp :: rst), (subst_free [(p, capp)] rhs, tag))
                 end
             in map expnd constructors end
           else [row]
@@ -199,7 +179,7 @@ fun mk_case tab ctxt ty_match ty_inst type_of used range_ty =
               NONE =>
                 let
                   val rows' = map (fn ((v, _), row) => row ||>
-                    pattern_subst [(v, u)] |>> v_to_prfx) (col0 ~~ rows);
+                    apfst (subst_free [(v, u)]) |>> v_to_prfx) (col0 ~~ rows);
                 in mk {path = rstp, rows = rows'} end
             | SOME (Const (cname, cT), i) =>
                 (case ty_info tab (cname, cT) of
@@ -234,7 +214,7 @@ fun mk_case tab ctxt ty_match ty_inst type_of used range_ty =
 
 fun case_error s = error ("Error in case expression:\n" ^ s);
 
-(* Repeated variable occurrences in a pattern are not allowed. *)
+(*Repeated variable occurrences in a pattern are not allowed.*)
 fun no_repeat_vars ctxt pat = fold_aterms
   (fn x as Free (s, _) => (fn xs =>
         if member op aconv xs x then
@@ -324,9 +304,7 @@ fun case_tr err tab_of ctxt [t, u] =
   | case_tr _ _ _ ts = case_error "case_tr";
 
 
-(*---------------------------------------------------------------------------
- * Pretty printing of nested case expressions
- *---------------------------------------------------------------------------*)
+(* Pretty printing of nested case expressions *)
 
 (* destruct one level of pattern matching *)
 
