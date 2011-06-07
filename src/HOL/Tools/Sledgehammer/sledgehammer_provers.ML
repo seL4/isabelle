@@ -525,11 +525,17 @@ fun choose_minimize_command minimize_command name preplay =
    | _ => name)
   |> minimize_command
 
+fun repair_monomorph_context debug max_iters max_new_instances =
+  Config.put Monomorph.verbose debug
+  #> Config.put Monomorph.max_rounds max_iters
+  #> Config.put Monomorph.max_new_instances max_new_instances
+  #> Config.put Monomorph.complete_instances false
+
 fun repair_smt_monomorph_context debug max_mono_iters max_mono_instances =
   Config.put SMT_Config.verbose debug
-  #> Config.put SMT_Config.monomorph_full false
   #> Config.put SMT_Config.monomorph_limit max_mono_iters
   #> Config.put SMT_Config.monomorph_instances max_mono_instances
+  #> Config.put SMT_Config.monomorph_full false
 
 fun run_atp mode name
         ({exec, required_execs, arguments, proof_delims, known_failures,
@@ -582,20 +588,19 @@ fun run_atp mode name
             val num_actual_slices = length actual_slices
             fun monomorphize_facts facts =
               let
+                val ctxt =
+                  ctxt |> repair_monomorph_context debug max_mono_iters
+                                                   max_new_mono_instances
                 (* pseudo-theorem involving the same constants as the subgoal *)
                 val subgoal_th =
                   Logic.list_implies (hyp_ts, concl_t)
                   |> Skip_Proof.make_thm thy
-                val indexed_facts =
-                  (~1, subgoal_th) :: (0 upto length facts - 1 ~~ map snd facts)
-                val max_mono_instances = max_new_mono_instances + length facts
               in
-                ctxt |> repair_smt_monomorph_context debug max_mono_iters
-                                                     max_mono_instances
-                     |> SMT_Monomorph.monomorph indexed_facts
-                     |> fst |> sort (int_ord o pairself fst)
-                     |> filter_out (curry (op =) ~1 o fst)
-                     |> map (apfst (fst o nth facts))
+                Monomorph.monomorph Monomorph.all_schematic_consts_of
+                    (subgoal_th :: map snd facts |> map (pair 0)) ctxt
+                |> fst |> tl
+                |> curry ListPair.zip (map fst facts)
+                |> maps (fn (name, rths) => map (pair name o snd) rths)
               end
             fun run_slice blacklist (slice, (time_frac, (complete,
                                        (best_max_relevant, best_type_systems))))
@@ -616,7 +621,7 @@ fun run_atp mode name
                            ? filter_out (member (op =) blacklist o fst)
                         |> polymorphism_of_type_sys type_sys <> Polymorphic
                            ? monomorphize_facts
-                        |> map (apsnd prop_of )
+                        |> map (apsnd prop_of)
                 val real_ms = Real.fromInt o Time.toMilliseconds
                 val slice_timeout =
                   ((real_ms time_left
