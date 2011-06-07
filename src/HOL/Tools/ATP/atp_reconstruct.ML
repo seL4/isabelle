@@ -16,7 +16,8 @@ sig
 
   datatype reconstructor =
     Metis |
-    MetisFT |
+    Metis_Full_Types |
+    Metis_No_Types |
     SMT of string
 
   datatype play =
@@ -67,7 +68,8 @@ open ATP_Translate
 
 datatype reconstructor =
   Metis |
-  MetisFT |
+  Metis_Full_Types |
+  Metis_No_Types |
   SMT of string
 
 datatype play =
@@ -251,8 +253,10 @@ fun uses_typed_helpers typed_helpers =
 
 (** Soft-core proof reconstruction: Metis one-liner **)
 
+(* unfortunate leaking abstraction *)
 fun reconstructor_name Metis = "metis"
-  | reconstructor_name MetisFT = "metisFT"
+  | reconstructor_name Metis_Full_Types = "metis (full_types)"
+  | reconstructor_name Metis_No_Types = "metis (no_types)"
   | reconstructor_name (SMT _) = "smt"
 
 fun reconstructor_settings (SMT settings) = settings
@@ -1042,7 +1046,7 @@ fun string_for_proof ctxt0 full_types i n =
        else
          if member (op =) qs Show then "show" else "have")
     val do_term = maybe_quote o fix_print_mode (Syntax.string_of_term ctxt)
-    val reconstructor = if full_types then MetisFT else Metis
+    val reconstructor = if full_types then Metis_Full_Types else Metis
     fun do_facts (ls, ss) =
       reconstructor_command reconstructor 1 1
           (ls |> sort_distinct (prod_ord string_ord int_ord),

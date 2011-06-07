@@ -128,9 +128,18 @@ datatype mode = Auto_Try | Try | Normal | Minimize
    "Async_Manager". *)
 val das_tool = "Sledgehammer"
 
-val metis_prover_names = [Metis_Tactics.metisN, Metis_Tactics.metisFT_N]
+val metisN = Metis_Tactics.metisN
+val metis_full_typesN = metisN ^ "_" ^ Metis_Tactics.full_typesN
+val metis_no_typesN = metisN ^ "_" ^ Metis_Tactics.no_typesN
 
-val is_metis_prover = member (op =) metis_prover_names
+val metis_prover_infos =
+  [(metisN, Metis),
+   (metis_full_typesN, Metis_Full_Types),
+   (metis_no_typesN, Metis_No_Types)]
+
+val metis_reconstructors = map snd metis_prover_infos
+
+val is_metis_prover = AList.defined (op =) metis_prover_infos
 val is_atp = member (op =) o supported_atps
 
 val select_smt_solver =
@@ -265,7 +274,7 @@ fun supported_provers ctxt =
   let
     val thy = Proof_Context.theory_of ctxt
     val (remote_provers, local_provers) =
-      metis_prover_names @
+      map fst metis_prover_infos @
       sort_strings (supported_atps thy) @
       sort_strings (SMT_Solver.available_solvers_of ctxt)
       |> List.partition (String.isPrefix remote_prefix)
@@ -407,8 +416,11 @@ fun timed_apply timeout tac state i =
   in TimeLimit.timeLimit timeout (try (Seq.pull o full_tac)) goal end
 
 fun tac_for_reconstructor Metis =
-    Metis_Tactics.metis_tac [Metis_Tactics.default_unsound_type_sys]
-  | tac_for_reconstructor MetisFT = Metis_Tactics.metisFT_tac
+    Metis_Tactics.metis_tac [Metis_Tactics.partial_type_sys]
+  | tac_for_reconstructor Metis_Full_Types =
+    Metis_Tactics.metis_tac [Metis_Tactics.full_type_sys]
+  | tac_for_reconstructor Metis_No_Types =
+    Metis_Tactics.metis_tac [Metis_Tactics.no_type_sys]
   | tac_for_reconstructor _ = raise Fail "unexpected reconstructor"
 
 fun timed_reconstructor reconstructor debug timeout ths =
@@ -519,7 +531,9 @@ fun choose_minimize_command minimize_command name preplay =
   (case preplay of
      Played (reconstructor, time) =>
      if Time.<= (time, metis_minimize_max_time) then
-       reconstructor_name reconstructor
+       case AList.find (op =) metis_prover_infos reconstructor of
+         metis_name :: _ => metis_name
+       | [] => name
      else
        name
    | _ => name)
@@ -780,7 +794,7 @@ fun run_atp mode name
                         |> map snd
               in
                 play_one_line_proof debug preplay_timeout used_ths state subgoal
-                                    [Metis, MetisFT]
+                                    metis_reconstructors
               end,
            fn preplay =>
               let
@@ -974,7 +988,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
                 else "smt_solver = " ^ maybe_quote name
             in
               case play_one_line_proof debug preplay_timeout used_ths state
-                                       subgoal [Metis, MetisFT] of
+                                       subgoal metis_reconstructors of
                 p as Played _ => p
               | _ => Trust_Playable (SMT (smt_settings ()), NONE)
             end,
@@ -1004,9 +1018,10 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
 fun run_metis mode name ({debug, timeout, ...} : params) minimize_command
               ({state, subgoal, subgoal_count, facts, ...} : prover_problem) =
   let
-    val reconstructor = if name = Metis_Tactics.metisN then Metis
-                        else if name = Metis_Tactics.metisFT_N then MetisFT
-                        else raise Fail ("unknown Metis version: " ^ quote name)
+    val reconstructor =
+      case AList.lookup (op =) metis_prover_infos name of
+        SOME r => r
+      | NONE => raise Fail ("unknown Metis version: " ^ quote name)
     val (used_facts, used_ths) =
       facts |> map untranslated_fact |> ListPair.unzip
   in

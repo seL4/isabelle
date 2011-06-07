@@ -342,7 +342,8 @@ fun reconstructor_from_msg args msg =
   (case AList.lookup (op =) args reconstructorK of
     SOME name => name
   | NONE =>
-    if String.isSubstring "metisFT" msg then "metisFT"
+    if String.isSubstring "metis (full_types)" msg then "metis (full_types)"
+    else if String.isSubstring "metis (no_types)" msg then "metis (no_types)"
     else if String.isSubstring "metis" msg then "metis"
     else "smt")
 
@@ -541,8 +542,10 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
             Sledgehammer_Tactics.sledgehammer_as_unsound_oracle_tac ctxt)
        else if !reconstructor = "smt" then
          SMT_Solver.smt_tac
-       else if full orelse !reconstructor = "metisFT" then
-         Metis_Tactics.metisFT_tac
+       else if full orelse !reconstructor = "metis (full_types)" then
+         Metis_Tactics.metis_tac [Metis_Tactics.full_type_sys]
+       else if !reconstructor = "metis (no_types)" then
+         Metis_Tactics.metis_tac [Metis_Tactics.no_type_sys]
        else
          Metis_Tactics.metis_tac []) ctxt thms
     fun apply_reconstructor thms =
