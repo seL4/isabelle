@@ -35,17 +35,20 @@ syntax
 syntax (xsymbols)
   "_funlet"  :: "['a, 'a] => funlet"             ("_ /\<rightarrow>/ _")
 
+definition
+  "null_heap \<equiv> \<lambda>x. 0"
+
 translations
   "_FunUpd m (_Funlets xy ms)"  == "_FunUpd (_FunUpd m xy) ms"
   "_FunUpd m (_funlet  x y)"    == "m(x := y)"
-  "_Fun ms"                     == "_FunUpd (%_. 0) ms"
+  "_Fun ms"                     == "_FunUpd (CONST null_heap) ms"
   "_Fun (_Funlets ms1 ms2)"     <= "_FunUpd (_Fun ms1) ms2"
   "_Funlets ms1 (_Funlets ms2 ms3)" <= "_Funlets (_Funlets ms1 ms2) ms3"
 
 text {* 
   We can now write a series of updates to the function @{text "\<lambda>x. 0"} compactly:
 *}
-lemma "[a \<rightarrow> Suc 0, b \<rightarrow> 2] = ((%_. 0) (a := Suc 0)) (b := 2)"
+lemma "[a \<rightarrow> Suc 0, b \<rightarrow> 2] = (null_heap (a := Suc 0)) (b := 2)"
   by (rule refl)
 
 value "aval (Plus (V ''x'') (N 5)) [''x'' \<rightarrow> 7]"
