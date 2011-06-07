@@ -1,6 +1,6 @@
-theory TPTP_Export
+theory ATP_Export
 imports Complex_Main
-uses "tptp_export.ML"
+uses "atp_export.ML"
 begin
 
 ML {*
@@ -11,7 +11,7 @@ val ctxt = @{context}
 
 ML {*
 if do_it then
-  TPTP_Export.generate_tptp_inference_file_for_theory ctxt thy true
+  ATP_Export.generate_tptp_inference_file_for_theory ctxt thy true
       "/tmp/infs_full_types.tptp"
 else
   ()
@@ -19,7 +19,7 @@ else
 
 ML {*
 if do_it then
-  TPTP_Export.generate_tptp_inference_file_for_theory ctxt thy false
+  ATP_Export.generate_tptp_inference_file_for_theory ctxt thy false
       "/tmp/infs_partial_types.tptp"
 else
   ()
@@ -27,7 +27,7 @@ else
 
 ML {*
 if do_it then
-  TPTP_Export.generate_tptp_graph_file_for_theory ctxt thy
+  ATP_Export.generate_tptp_graph_file_for_theory ctxt thy
       "/tmp/graph.out"
 else
   ()

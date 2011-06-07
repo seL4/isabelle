@@ -12,7 +12,7 @@ no_document use_thys [
   "Hebrew",
   "Chinese",
   "Serbian",
-  "TPTP_Export"
+  "ATP_Export"
 ];
 
 use_thys [
