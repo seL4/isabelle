@@ -38,7 +38,7 @@ sig
   val verbose: bool Config.T
   val max_rounds: int Config.T
   val max_new_instances: int Config.T
-  val complete_instances: bool Config.T
+  val keep_partial_instances: bool Config.T
 
   (* monomorphization *)
   val monomorph: (term -> typ list Symtab.table) -> (int * thm) list ->
@@ -68,8 +68,8 @@ val verbose = Attrib.setup_config_bool @{binding monomorph_verbose} (K true)
 val max_rounds = Attrib.setup_config_int @{binding monomorph_max_rounds} (K 5)
 val max_new_instances =
   Attrib.setup_config_int @{binding monomorph_max_new_instances} (K 300)
-val complete_instances =
-  Attrib.setup_config_bool @{binding monomorph_complete_instances} (K true)
+val keep_partial_instances =
+  Attrib.setup_config_bool @{binding monomorph_keep_partial_instances} (K true)
 
 
 
@@ -163,7 +163,7 @@ fun fold_partial_substs derive add = within_limit (
 fun refine ctxt round known_grounds new_grounds (tvars, schematics) cx =
   let
     val thy = Proof_Context.theory_of ctxt
-    val count_partial = Config.get ctxt complete_instances
+    val count_partial = Config.get ctxt keep_partial_instances
 
     fun add_new_ground subst n T =
       let val T' = Envir.subst_type subst T
@@ -289,7 +289,7 @@ fun instantiate_all' (mT, ctxt) subs thm_infos =
   in (map inst thm_infos, ctxt) end
 
 fun instantiate_all ctxt thm_infos (_, (_, subs, _)) =
-  if Config.get ctxt complete_instances then
+  if Config.get ctxt keep_partial_instances then
     let fun is_refined ((_, _, refined), _) = refined
     in
       (Inttab.map (K (filter_out is_refined)) subs, thm_infos)

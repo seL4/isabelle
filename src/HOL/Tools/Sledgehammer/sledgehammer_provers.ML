@@ -543,7 +543,7 @@ fun repair_monomorph_context debug max_iters max_new_instances =
   Config.put Monomorph.verbose debug
   #> Config.put Monomorph.max_rounds max_iters
   #> Config.put Monomorph.max_new_instances max_new_instances
-  #> Config.put Monomorph.complete_instances false
+  #> Config.put Monomorph.keep_partial_instances false
 
 fun repair_smt_monomorph_context debug max_mono_iters max_mono_instances =
   Config.put SMT_Config.verbose debug
