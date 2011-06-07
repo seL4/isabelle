@@ -6,10 +6,15 @@ Narrowing-based counterexample generation.
 
 signature NARROWING_GENERATORS =
 sig
-  val test_term: Proof.context -> bool * bool -> term * term list -> Quickcheck.result
-  val put_counterexample: (unit -> term list option) -> Proof.context -> Proof.context
+  val allow_existentials : bool Config.T
   val finite_functions : bool Config.T
   val overlord : bool Config.T
+  val test_term: Proof.context -> bool * bool -> term * term list -> Quickcheck.result
+  datatype counterexample = Universal_Counterexample of (term * counterexample)
+    | Existential_Counterexample of (term * counterexample) list
+    | Empty_Assignment
+  val put_counterexample: (unit -> term list option) -> Proof.context -> Proof.context
+  val put_existential_counterexample : (unit -> counterexample option) -> Proof.context -> Proof.context
   val setup: theory -> theory
 end;
 
@@ -18,6 +23,7 @@ struct
 
 (* configurations *)
 
+val allow_existentials = Attrib.setup_config_bool @{binding quickcheck_allow_existentials} (K true)
 val finite_functions = Attrib.setup_config_bool @{binding quickcheck_finite_functions} (K true)
 val overlord = Attrib.setup_config_bool @{binding quickcheck_narrowing_overlord} (K false)
 
@@ -165,18 +171,25 @@ fun mk_equations descr vs tycos narrowings (Ts, Us) =
   in
     eqs
   end
-  
+    
+fun contains_recursive_type_under_function_types xs =
+  exists (fn (_, (_, _, cs)) => cs |> exists (snd #> exists (fn dT =>
+    (case Datatype_Aux.strip_dtyp dT of (_ :: _, Datatype.DtRec _) => true | _ => false)))) xs
+
 fun instantiate_narrowing_datatype config descr vs tycos prfx (names, auxnames) (Ts, Us) thy =
   let
     val _ = Datatype_Aux.message config "Creating narrowing generators ...";
     val narrowingsN = map (prefix (narrowingN ^ "_")) (names @ auxnames);
   in
-    thy
-    |> Class.instantiation (tycos, vs, @{sort narrowing})
-    |> Quickcheck_Common.define_functions
-      (fn narrowings => mk_equations descr vs tycos narrowings (Ts, Us), NONE)
-      prfx [] narrowingsN (map narrowingT (Ts @ Us))
-    |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
+    if not (contains_recursive_type_under_function_types descr) then
+      thy
+      |> Class.instantiation (tycos, vs, @{sort narrowing})
+      |> Quickcheck_Common.define_functions
+        (fn narrowings => mk_equations descr vs tycos narrowings (Ts, Us), NONE)
+        prfx [] narrowingsN (map narrowingT (Ts @ Us))
+      |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
+    else
+      thy
   end;
 
 (* testing framework *)
@@ -186,6 +199,7 @@ val target = "Haskell"
 (** invocation of Haskell interpreter **)
 
 val narrowing_engine = File.read (Path.explode "~~/src/HOL/Tools/Quickcheck/Narrowing_Engine.hs")
+val pnf_narrowing_engine = File.read (Path.explode "~~/src/HOL/Tools/Quickcheck/PNF_Narrowing_Engine.hs")
 
 fun exec verbose code =
   ML_Context.exec (fn () => Secure.use_text ML_Env.local_context (0, "generated code") verbose code)
@@ -196,7 +210,7 @@ fun with_overlord_dir name f =
     val _ = Isabelle_System.mkdirs path;
   in Exn.release (Exn.capture f path) end;
   
-fun value ctxt (get, put, put_ml) (code, value_name) =
+fun value contains_existentials ctxt (get, put, put_ml) (code, value_name) =
   let
     fun message s = if Config.get ctxt Quickcheck.quiet then () else Output.urgent_message s
     val tmp_prefix = "Quickcheck_Narrowing"
@@ -216,16 +230,14 @@ fun value ctxt (get, put, put_ml) (code, value_name) =
         val code' = prefix "module Code where {\n\ndata Typerep = Typerep String [Typerep];\n"
           (unprefix "module Code where {" code)
         val _ = File.write code_file code'
-        val _ = File.write narrowing_engine_file narrowing_engine
+        val _ = File.write narrowing_engine_file
+          (if contains_existentials then pnf_narrowing_engine else narrowing_engine)
         val _ = File.write main_file main
         val executable = File.shell_path (Path.append in_path (Path.basic "isabelle_quickcheck_narrowing"))
         val cmd = "exec \"$ISABELLE_GHC\" -fglasgow-exts " ^
           (space_implode " " (map File.shell_path [code_file, narrowing_engine_file, main_file])) ^
           " -o " ^ executable ^ ";"
-        val _ = if bash cmd <> 0 then
-          error "Compilation failed!"
-        else
-          ()
+        val _ = if bash cmd <> 0 then error "Compilation with GHC failed" else ()
         fun with_size k =
           if k > Config.get ctxt Quickcheck.size then
             NONE
@@ -252,10 +264,10 @@ fun value ctxt (get, put, put_ml) (code, value_name) =
       end
   in with_tmp_dir tmp_prefix run end;
 
-fun dynamic_value_strict cookie thy postproc t =
+fun dynamic_value_strict contains_existentials cookie thy postproc t =
   let
     val ctxt = Proof_Context.init_global thy
-    fun evaluator naming program ((_, vs_ty), t) deps = Exn.interruptible_capture (value ctxt cookie)
+    fun evaluator naming program ((_, vs_ty), t) deps = Exn.interruptible_capture (value contains_existentials ctxt cookie)
       (Code_Target.evaluator thy target naming program deps (vs_ty, t));    
   in Exn.release (Code_Thingol.dynamic_value thy (Exn.map_result o postproc) evaluator t) end;
 
@@ -266,6 +278,24 @@ structure Counterexample = Proof_Data
   type T = unit -> term list option
   fun init _ () = error "Counterexample"
 )
+
+datatype counterexample = Universal_Counterexample of (term * counterexample)
+  | Existential_Counterexample of (term * counterexample) list
+  | Empty_Assignment
+  
+fun map_counterexample f Empty_Assignment = Empty_Assignment
+  | map_counterexample f (Universal_Counterexample (t, c)) =
+      Universal_Counterexample (f t, map_counterexample f c)
+  | map_counterexample f (Existential_Counterexample cs) =
+      Existential_Counterexample (map (fn (t, c) => (f t, map_counterexample f c)) cs)
+
+structure Existential_Counterexample = Proof_Data
+(
+  type T = unit -> counterexample option
+  fun init _ () = error "Counterexample"
+)
+
+val put_existential_counterexample = Existential_Counterexample.put
 
 val put_counterexample = Counterexample.put
 
@@ -297,20 +327,83 @@ fun finitize_functions t =
   end
 
 (** tester **)
+
+val rewrs =
+  map (swap o HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of) (@{thms all_simps} @ @{thms ex_simps})
+    @ map (HOLogic.dest_eq o HOLogic.dest_Trueprop o Thm.prop_of) [@{thm not_ex}, @{thm not_all}]
+
+fun make_pnf_term thy t = Pattern.rewrite_term thy rewrs [] t
+
+fun strip_quantifiers (Const (@{const_name Ex}, _) $ Abs (x, T, t)) =
+    apfst (cons (@{const_name Ex}, (x, T))) (strip_quantifiers t)
+  | strip_quantifiers (Const (@{const_name All}, _) $ Abs (x, T, t)) =
+    apfst (cons (@{const_name All}, (x, T))) (strip_quantifiers t)
+  | strip_quantifiers t = ([], t)
+
+fun contains_existentials t = exists (fn (Q, _) => Q = @{const_name Ex}) (fst (strip_quantifiers t))
+
+fun mk_property qs t =
+  let
+    fun enclose (@{const_name Ex}, (x, T)) t =
+        Const (@{const_name Quickcheck_Narrowing.exists}, (T --> @{typ property}) --> @{typ property})
+          $ Abs (x, T, t)
+      | enclose (@{const_name All}, (x, T)) t =
+        Const (@{const_name Quickcheck_Narrowing.all}, (T --> @{typ property}) --> @{typ property})
+          $ Abs (x, T, t)
+  in
+    fold_rev enclose qs (@{term Quickcheck_Narrowing.Property} $
+      (list_comb (t , map Bound (((length qs) - 1) downto 0))))
+  end
+
   
-fun test_term  ctxt (limit_time, is_interactive) (t, eval_terms) =
+fun mk_case_term ctxt p ((@{const_name Ex}, (x, T)) :: qs') (Existential_Counterexample cs) =
+    fst (Datatype.make_case ctxt Datatype_Case.Quiet [] (Free (x, T)) (map (fn (t, c) =>
+      (t, mk_case_term ctxt (p - 1) qs' c)) cs))
+  | mk_case_term ctxt p ((@{const_name All}, (x, T)) :: qs') (Universal_Counterexample (t, c)) =
+    if p = 0 then t else mk_case_term ctxt (p - 1) qs' c
+
+fun mk_terms ctxt qs result =
+  let
+    val
+      ps = filter (fn (_, (@{const_name All}, _)) => true | _ => false) (map_index I qs)
+    in
+      map (fn (p, (_, (x, T))) => (x, mk_case_term ctxt p qs result)) ps
+    end
+  
+fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
   let
     val thy = Proof_Context.theory_of ctxt
-    val t' = list_abs_free (Term.add_frees t [], t)
-    val t'' = if Config.get ctxt finite_functions then finitize_functions t' else t'
-    fun ensure_testable t =
-      Const (@{const_name Quickcheck_Narrowing.ensure_testable}, fastype_of t --> fastype_of t) $ t
-    val result = dynamic_value_strict
-      (Counterexample.get, Counterexample.put, "Narrowing_Generators.put_counterexample")
-      thy (Option.map o map) (ensure_testable t'')
+    val t' = fold_rev (fn (x, T) => fn t => HOLogic.mk_all (x, T, t)) (Term.add_frees t []) t
+    val pnf_t = make_pnf_term thy t'
   in
-    Quickcheck.Result {counterexample = Option.map ((curry (op ~~)) (Term.add_free_names t [])) result,
-      evaluation_terms = Option.map (K []) result, timings = [], reports = []}
+    if Config.get ctxt allow_existentials andalso contains_existentials pnf_t then
+      let
+        val (qs, t') = strip_quantifiers pnf_t
+        val prop_term = fold_rev (fn (_, (x, T)) => fn t => Abs (x, T, t)) qs t'
+        val ((prop_def, _), ctxt') = Local_Theory.define ((Binding.conceal (Binding.name "test_property"), NoSyn),
+          ((Binding.conceal Binding.empty, [Code.add_default_eqn_attrib]), prop_term)) ctxt
+        val (prop_def', thy') = Local_Theory.exit_result_global Morphism.term (prop_def, ctxt') 
+        val result = dynamic_value_strict true
+          (Existential_Counterexample.get, Existential_Counterexample.put,
+            "Narrowing_Generators.put_existential_counterexample")
+          thy' (Option.map o map_counterexample) (mk_property qs prop_def')
+        val result' = Option.map (mk_terms ctxt' (fst (strip_quantifiers pnf_t))) result
+      in
+        Quickcheck.Result {counterexample = result', evaluation_terms = Option.map (K []) result,
+          timings = [], reports = []}
+      end
+    else (let
+      val t' = HOLogic.list_all (Term.add_frees t [], t)
+      val t'' = if Config.get ctxt finite_functions then finitize_functions t' else t'
+      fun ensure_testable t =
+        Const (@{const_name Quickcheck_Narrowing.ensure_testable}, fastype_of t --> fastype_of t) $ t
+      val result = dynamic_value_strict false
+        (Counterexample.get, Counterexample.put, "Narrowing_Generators.put_counterexample")
+        thy (Option.map o map) (ensure_testable t'')
+    in
+      Quickcheck.Result {counterexample = Option.map ((curry (op ~~)) (Term.add_free_names t [])) result,
+        evaluation_terms = Option.map (K []) result, timings = [], reports = []}
+    end)
   end;
 
 fun test_goals ctxt (limit_time, is_interactive) insts goals =

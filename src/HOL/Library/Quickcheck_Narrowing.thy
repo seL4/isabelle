@@ -5,6 +5,8 @@ header {* Counterexample generator preforming narrowing-based testing *}
 theory Quickcheck_Narrowing
 imports Main "~~/src/HOL/Library/Code_Char"
 uses
+  ("~~/src/HOL/Tools/Quickcheck/PNF_Narrowing_Engine.hs")
+  ("~~/src/HOL/Tools/Quickcheck/Narrowing_Engine.hs")
   ("~~/src/HOL/Tools/Quickcheck/narrowing_generators.ML")
 begin
 
@@ -454,6 +456,17 @@ instance ..
 
 end
 
+datatype property = Universal narrowing_type "(narrowing_term => property)" "narrowing_term => Code_Evaluation.term" | Existential narrowing_type "(narrowing_term => property)" "narrowing_term => Code_Evaluation.term" | Property bool
+
+(* FIXME: hard-wired maximal depth of 100 here *)
+fun exists :: "('a :: {narrowing, partial_term_of} => property) => property"
+where
+  "exists f = (case narrowing (100 :: code_int) of C ty cs => Existential ty (\<lambda> t. f (conv cs t)) (partial_term_of (TYPE('a))))"
+
+fun "all" :: "('a :: {narrowing, partial_term_of} => property) => property"
+where
+  "all f = (case narrowing (100 :: code_int) of C ty cs => Universal ty (\<lambda>t. f (conv cs t)) (partial_term_of (TYPE('a))))"
+
 subsubsection {* class @{text is_testable} *}
 
 text {* The class @{text is_testable} ensures that all necessary type instances are generated. *}
@@ -492,13 +505,15 @@ hide_type (open) cfun
 hide_const (open) Constant eval_cfun
 
 subsubsection {* Setting up the counterexample generator *}
-  
+
+setup {* Thy_Load.provide_file (Path.explode ("~~/src/HOL/Tools/Quickcheck/PNF_Narrowing_Engine.hs")) *}
+setup {* Thy_Load.provide_file (Path.explode ("~~/src/HOL/Tools/Quickcheck/Narrowing_Engine.hs")) *}
 use "~~/src/HOL/Tools/Quickcheck/narrowing_generators.ML"
 
 setup {* Narrowing_Generators.setup *}
 
 hide_type (open) code_int narrowing_type narrowing_term cons
 hide_const (open) int_of of_int nth error toEnum map_index split_At empty
-  C cons conv nonEmpty "apply" sum cons1 cons2 ensure_testable
+  C cons conv nonEmpty "apply" sum cons1 cons2 ensure_testable all exists
 
 end
