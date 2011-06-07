@@ -23,14 +23,56 @@ quickcheck[tester = narrowing, finite_types = true, expect = counterexample]
 oops
 *)
 
+(*declare [[quickcheck_narrowing_overlord]]*)
+subsection {* Simple examples with existentials *}
+
+lemma
+  "\<exists> y :: nat. \<forall> x. x = y"
+quickcheck[tester = narrowing, finite_types = false, expect = counterexample]
+oops
+
+lemma
+  "x > 1 --> (\<exists>y :: nat. x < y & y <= 1)"
+quickcheck[tester = narrowing, finite_types = false, expect = counterexample]
+oops
+
+lemma
+  "x > 2 --> (\<exists>y :: nat. x < y & y <= 2)"
+quickcheck[tester = narrowing, finite_types = false, size = 10]
+oops
+
+lemma
+  "\<forall> x. \<exists> y :: nat. x > 3 --> (y < x & y > 3)"
+quickcheck[tester = narrowing, finite_types = false, size = 7]
+oops
+
+text {* A false conjecture derived from an partial copy-n-paste of @{thm not_distinct_decomp} *}
+lemma
+  "~ distinct ws ==> EX xs ys zs y. ws = xs @ [y] @ ys @ [y]"
+quickcheck[tester = narrowing, finite_types = false, default_type = nat, expect = counterexample]
+oops
+
+text {* A false conjecture derived from theorems @{thm split_list_first} and @{thm split_list_last} *}  
+lemma
+  "x : set xs ==> EX ys zs. xs = ys @ x # zs & x ~: set zs & x ~: set ys"
+quickcheck[tester = narrowing, finite_types = false, default_type = nat, expect = counterexample]
+oops
+
+text {* A false conjecture derived from @{thm map_eq_Cons_conv} with a typo *}
+lemma
+  "(map f xs = y # ys) = (EX z zs. xs = z' # zs & f z = y & map f zs = ys)"
+quickcheck[tester = narrowing, finite_types = false, default_type = nat, expect = counterexample]
+oops
+
 subsection {* Simple list examples *}
 
 lemma "rev xs = xs"
-  quickcheck[tester = narrowing, finite_types = false, default_type = nat, expect = counterexample]
+quickcheck[tester = narrowing, finite_types = false, default_type = nat, expect = counterexample]
 oops
 
+(* FIXME: integer has strange representation! *)
 lemma "rev xs = xs"
-  quickcheck[tester = narrowing, finite_types = false, default_type = int, expect = counterexample]
+quickcheck[tester = narrowing, finite_types = false, default_type = int, expect = counterexample]
 oops
 (*
 lemma "rev xs = xs"
@@ -39,30 +81,29 @@ oops
 *)
 subsection {* Simple examples with functions *}
 
-declare [[quickcheck_finite_functions]]
-(*
 lemma "map f xs = map g xs"
-  quickcheck[tester = narrowing, finite_types = true, expect = counterexample]
+  quickcheck[tester = narrowing, finite_types = false, expect = counterexample]
 oops
 
 lemma "map f xs = map f ys ==> xs = ys"
-  quickcheck[tester = narrowing, finite_types = true, expect = counterexample]
+  quickcheck[tester = narrowing, finite_types = false, expect = counterexample]
 oops
 
 lemma
   "list_all2 P (rev xs) (rev ys) = list_all2 P xs (rev ys)"
-  quickcheck[tester = narrowing, expect = counterexample]
+  quickcheck[tester = narrowing, finite_types = false, expect = counterexample]
 oops
 
-lemma "map f xs = F f xs"
-  quickcheck[tester = narrowing, finite_types = true, expect = counterexample]
-oops
-*)
 lemma "map f xs = F f xs"
   quickcheck[tester = narrowing, finite_types = false, expect = counterexample]
 oops
 
-(* requires some work...
+lemma "map f xs = F f xs"
+  quickcheck[tester = narrowing, finite_types = false, expect = counterexample]
+oops
+
+(* requires some work...*)
+(*
 lemma "R O S = S O R"
   quickcheck[tester = narrowing, size = 2]
 oops
