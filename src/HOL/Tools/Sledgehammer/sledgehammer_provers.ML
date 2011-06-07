@@ -603,9 +603,14 @@ fun run_atp mode name
                 val subgoal_th =
                   Logic.list_implies (hyp_ts, concl_t)
                   |> Skip_Proof.make_thm thy
+                val rths =
+                  facts |> chop (length facts div 4)
+                        |>> map (pair 1 o snd)
+                        ||> map (pair 2 o snd)
+                        |> op @
+                        |> cons (0, subgoal_th)
               in
-                Monomorph.monomorph atp_schematic_consts_of
-                    (subgoal_th :: map snd facts |> map (pair 0)) ctxt
+                Monomorph.monomorph atp_schematic_consts_of rths ctxt
                 |> fst |> tl
                 |> curry ListPair.zip (map fst facts)
                 |> maps (fn (name, rths) => map (pair name o snd) rths)
