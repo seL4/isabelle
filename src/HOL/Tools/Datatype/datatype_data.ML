@@ -26,7 +26,7 @@ sig
   val info_of_case : theory -> string -> info option
   val interpretation : (config -> string list -> theory -> theory) -> theory -> theory
   val make_case :  Proof.context -> Datatype_Case.config -> string list -> term ->
-    (term * term) list -> term * (term * (int * bool)) list
+    (term * term) list -> term
   val strip_case : Proof.context -> bool -> term -> (term * (term * term) list) option
   val read_typ: theory -> string -> (string * sort) list -> typ * (string * sort) list
   val cert_typ: theory -> typ -> (string * sort) list -> typ * (string * sort) list

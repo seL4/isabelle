@@ -634,13 +634,13 @@ fun compile_match compilation_modifiers additional_arguments ctxt param_modes
     val v = Free (name, T);
     val v' = Free (name', T);
   in
-    lambda v (fst (Datatype.make_case ctxt Datatype_Case.Quiet [] v
+    lambda v (Datatype.make_case ctxt Datatype_Case.Quiet [] v
       [(HOLogic.mk_tuple out_ts,
         if null eqs'' then success_t
         else Const (@{const_name HOL.If}, HOLogic.boolT --> U --> U --> U) $
           foldr1 HOLogic.mk_conj eqs'' $ success_t $
             mk_bot compfuns U'),
-       (v', mk_bot compfuns U')]))
+       (v', mk_bot compfuns U')])
   end;
 
 fun string_of_tderiv ctxt (t, deriv) = 
@@ -920,9 +920,9 @@ fun compile_switch compilation_modifiers ctxt all_vs param_modes additional_argu
         in
           (pattern, compilation)
         end
-        val switch = fst (Datatype.make_case ctxt Datatype_Case.Quiet [] inp_var
+        val switch = Datatype.make_case ctxt Datatype_Case.Quiet [] inp_var
           ((map compile_single_case switched_clauses) @
-            [(xt, mk_bot compfuns (HOLogic.mk_tupleT outTs))]))
+            [(xt, mk_bot compfuns (HOLogic.mk_tupleT outTs))])
       in
         case compile_switch_tree all_vs ctxt_eqs left_clauses of
           NONE => SOME switch

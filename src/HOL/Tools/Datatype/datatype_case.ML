@@ -11,7 +11,7 @@ sig
   type info = Datatype_Aux.info
   val make_case: (string * typ -> info option) ->
     Proof.context -> config -> string list -> term -> (term * term) list ->
-    term * (term * (int * bool)) list
+    term
   val dest_case: (string -> info option) -> bool ->
     string list -> term -> (term * (term * term) list) option
   val strip_case: (string -> info option) -> bool ->
@@ -164,19 +164,8 @@ fun partition _ _ _ _ _ _ _ [] = raise CASE_ERROR ("partition: no rows", ~1)
  * Misc. routines used in mk_case
  *---------------------------------------------------------------------------*)
 
-fun mk_pat ((c, c'), l) =
-  let
-    val L = length (binder_types (fastype_of c))
-    fun build (prfx, tag, plist) =
-      let val (args, plist') = chop L plist
-      in (prfx, tag, list_comb (c', args) :: plist') end
-  in map build l end;
-
 fun v_to_prfx (prfx, Free v::pats) = (v::prfx,pats)
   | v_to_prfx _ = raise CASE_ERROR ("mk_case: v_to_prfx", ~1);
-
-fun v_to_pats (v::prfx,tag, pats) = (prfx, tag, Free v::pats)
-  | v_to_pats _ = raise CASE_ERROR ("mk_case: v_to_pats", ~1);
 
 
 (*----------------------------------------------------------------------------
@@ -205,7 +194,7 @@ fun mk_case tab ctxt ty_match ty_inst type_of used range_ty =
           else [row]
     fun mk {rows = [], ...} = raise CASE_ERROR ("no rows", ~1)
       | mk {path = [], rows = ((prfx, []), (tm, tag)) :: _} =  (* Done *)
-          ([(prfx, tag, [])], tm)
+          ([tag], tm)
       | mk {path, rows as ((row as ((_, [Free _]), _)) :: _ :: _)} =
           mk {path = path, rows = [row]}
       | mk {path = u :: rstp, rows as ((_, _ :: _), _) :: _} =
@@ -215,8 +204,7 @@ fun mk_case tab ctxt ty_match ty_inst type_of used range_ty =
                 let
                   val rows' = map (fn ((v, _), row) => row ||>
                     pattern_subst [(v, u)] |>> v_to_prfx) (col0 ~~ rows);
-                  val (pref_patl, tm) = mk {path = rstp, rows = rows'}
-                in (map v_to_pats pref_patl, tm) end
+                in mk {path = rstp, rows = rows'} end
             | SOME (Const (cname, cT), i) =>
                 (case ty_info tab (cname, cT) of
                   NONE => raise CASE_ERROR ("Not a datatype constructor: " ^ cname, i)
@@ -227,7 +215,6 @@ fun mk_case tab ctxt ty_match ty_inst type_of used range_ty =
                     val nrows = maps (expand constructors used' pty) rows;
                     val subproblems = partition ty_match ty_inst type_of used'
                       constructors pty range_ty nrows;
-                    val constructors' = map #constructor subproblems
                     val news = map (fn {new_formals, group, ...} =>
                       {path = new_formals @ rstp, rows = group}) subproblems;
                     val (pat_rect, dtrees) = split_list (map mk news);
@@ -242,8 +229,7 @@ fun mk_case tab ctxt ty_match ty_inst type_of used range_ty =
                     val types = map type_of (case_functions @ [u]);
                     val case_const = Const (case_name, types ---> range_ty)
                     val tree = list_comb (case_const, case_functions @ [u])
-                    val pat_rect1 = maps mk_pat (constructors ~~ constructors' ~~ pat_rect)
-                  in (pat_rect1, tree) end)
+                  in (flat pat_rect, tree) end)
             | SOME (t, i) => raise CASE_ERROR ("Not a datatype constructor: " ^
                 Syntax.string_of_term ctxt t, i))
           end
@@ -274,16 +260,12 @@ fun gen_make_case ty_match ty_inst type_of tab ctxt config used x clauses =
       | [T] => T
       | _ => case_error "all cases must have the same result type");
     val used' = fold add_row_used rows used;
-    val (patts, case_tm) = mk_case tab ctxt ty_match ty_inst type_of
+    val (tags, case_tm) = mk_case tab ctxt ty_match ty_inst type_of
         used' rangeT {path = [x], rows = rows}
       handle CASE_ERROR (msg, i) => case_error (msg ^
         (if i < 0 then ""
          else "\nIn clause\n" ^ string_of_clause (nth clauses i)));
-    val patts1 = map
-      (fn (_, tag, [pat]) => (pat, tag)
-        | _ => case_error "error in pattern-match translation") patts;
-    val patts2 = Library.sort (int_ord o pairself row_of_pat) patts1
-    val finals = map row_of_pat patts2
+    val finals = map fst tags
     val originals = map (row_of_pat o #2) rows
     val _ =
       (case subtract (op =) finals originals of
@@ -293,7 +275,7 @@ fun gen_make_case ty_match ty_inst type_of tab ctxt config used x clauses =
             ("The following clauses are redundant (covered by preceding clauses):\n" ^
              cat_lines (map (string_of_clause o nth clauses) is)));
   in
-    (case_tm, patts2)
+    case_tm
   end;
 
 fun make_case tab ctxt = gen_make_case
@@ -340,7 +322,7 @@ fun case_tr err tab_of ctxt [t, u] =
         fun dest_case2 (Const (@{syntax_const "_case2"}, _) $ t $ u) = t :: dest_case2 u
           | dest_case2 t = [t];
         val (cases, cnstrts) = split_list (map dest_case1 (dest_case2 u));
-        val (case_tm, _) = make_case_untyped (tab_of thy) ctxt
+        val case_tm = make_case_untyped (tab_of thy) ctxt
           (if err then Error else Warning) []
           (fold (fn tT => fn t => Syntax.const @{syntax_const "_constrain"} $ t $ tT)
              (flat cnstrts) t) cases;
