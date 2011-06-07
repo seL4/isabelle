@@ -101,7 +101,7 @@ fun generate_tptp_inference_file_for_theory ctxt thy full_types file_name =
     val facts0 = facts_of thy
     val facts =
       facts0 |> map (fn ((_, loc), (_, th)) =>
-                        ((Thm.get_name_hint th, loc), th))
+                        ((Thm.get_name_hint th, loc), prop_of th))
     val explicit_apply = NONE
     val (atp_problem, _, _, _, _, _, _) =
       ATP_Translate.prepare_atp_problem ctxt format

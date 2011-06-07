@@ -155,7 +155,7 @@ fun is_prover_installed ctxt =
   is_metis_prover orf is_smt_prover ctxt orf
   is_atp_installed (Proof_Context.theory_of ctxt)
 
-fun get_slices num_facts slicing slices =
+fun get_slices slicing slices =
   (0 upto length slices - 1) ~~ slices |> not slicing ? (List.last #> single)
 
 val metis_default_max_relevant = 20
@@ -166,8 +166,7 @@ fun default_max_relevant_for_prover ctxt slicing name =
       metis_default_max_relevant
     else if is_atp thy name then
       fold (Integer.max o fst o snd o snd o snd)
-           (get_slices 16384 (* large number *) slicing
-                       (#best_slices (get_atp thy name) ctxt)) 0
+           (get_slices slicing (#best_slices (get_atp thy name) ctxt)) 0
     else (* is_smt_prover ctxt name *)
       SMT_Solver.default_max_relevant ctxt name
   end
@@ -579,8 +578,7 @@ fun run_atp mode name
           let
             (* If slicing is disabled, we expand the last slice to fill the
                entire time available. *)
-            val actual_slices =
-              get_slices (length facts) slicing (best_slices ctxt)
+            val actual_slices = get_slices slicing (best_slices ctxt)
             val num_actual_slices = length actual_slices
             fun monomorphize_facts facts =
               let
@@ -618,6 +616,7 @@ fun run_atp mode name
                            ? filter_out (member (op =) blacklist o fst)
                         |> polymorphism_of_type_sys type_sys <> Polymorphic
                            ? monomorphize_facts
+                        |> map (apsnd prop_of )
                 val real_ms = Real.fromInt o Time.toMilliseconds
                 val slice_timeout =
                   ((real_ms time_left
