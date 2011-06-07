@@ -245,14 +245,14 @@ in the problem.  This is a (possibly nonterminating) fixed-point
 construction whose cycles are limited by the following option.
 *}
 
-declare [[ smt_monomorph_limit = 10 ]]
+declare [[ monomorph_max_rounds = 5 ]]
 
 text {*
 In addition, the number of generated monomorphic instances is limited
 by the following option.
 *}
 
-declare [[ smt_monomorph_instances = 500 ]]
+declare [[ monomorph_max_new_instances = 500 ]]
 
 
 
