@@ -541,9 +541,15 @@ fun choose_minimize_command minimize_command name preplay =
    | _ => name)
   |> minimize_command
 
-fun repair_monomorph_context max_iters max_new_instances =
+fun is_polymorphic_fact get_thm =
+  get_thm #> prop_of #> Term.exists_type Monomorph.typ_has_tvars
+fun num_polymorphic_facts get_thm facts =
+  fold (fn fact => is_polymorphic_fact get_thm fact ? Integer.add 1) facts 0
+
+fun repair_monomorph_context max_iters get_thm facts max_new_instances =
   Config.put Monomorph.max_rounds max_iters
-  #> Config.put Monomorph.max_new_instances max_new_instances
+  #> Config.put Monomorph.max_new_instances
+                (num_polymorphic_facts get_thm facts + max_new_instances)
   #> Config.put Monomorph.keep_partial_instances false
 
 fun run_atp mode name
@@ -598,7 +604,7 @@ fun run_atp mode name
             fun monomorphize_facts facts =
               let
                 val ctxt =
-                  ctxt |> repair_monomorph_context max_mono_iters
+                  ctxt |> repair_monomorph_context max_mono_iters snd facts
                                                    max_new_mono_instances
                 (* pseudo-theorem involving the same constants as the subgoal *)
                 val subgoal_th =
@@ -885,8 +891,8 @@ fun smt_filter_loop ctxt name
         val timer = Timer.startRealTimer ()
         val state =
           state |> Proof.map_context
-                       (repair_monomorph_context max_mono_iters
-                                                 max_new_mono_instances)
+                       (repair_monomorph_context max_mono_iters (snd o snd)
+                                                 facts max_new_mono_instances)
         val ms = timeout |> Time.toMilliseconds
         val slice_timeout =
           if slice < max_slices then
