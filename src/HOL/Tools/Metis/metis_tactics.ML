@@ -243,7 +243,7 @@ fun method type_syss (type_sys, ths) ctxt facts =
               o generic_metis_tac type_syss ctxt (schem_facts @ ths))
   end
 
-fun setup_method (binding, type_syss as type_sys :: _) =
+fun setup_method (binding, type_syss) =
   (if type_syss = metis_default_type_syss then
      (Args.parens Parse.short_ident
       >> (fn s => AList.lookup (op =) type_sys_aliases s |> the_default s))
