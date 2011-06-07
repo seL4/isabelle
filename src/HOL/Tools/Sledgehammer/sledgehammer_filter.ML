@@ -44,7 +44,7 @@ sig
     -> Facts.ref * Attrib.src list -> ((string * locality) * thm) list
   val all_facts :
     Proof.context -> 'a Symtab.table -> bool -> (term -> bool) -> thm list
-    -> thm list -> (((unit -> string) * locality) * (bool * thm)) list
+    -> thm list -> (((unit -> string) * locality) * thm) list
   val const_names_in_fact :
     theory -> (string * typ -> term list -> bool * term list) -> term
     -> string list
@@ -184,8 +184,7 @@ fun struct_induct_rule_on th =
       NONE
   | _ => NONE
 
-fun instantiate_induct_rule ctxt concl_prop p_name ((name, loc), (multi, th))
-                            ind_x =
+fun instantiate_induct_rule ctxt concl_prop p_name ((name, loc), th) ind_x =
   let
     fun varify_noninducts (t as Free (s, T)) =
         if (s, T) = ind_x orelse can dest_funT T then t else Var ((s, 0), T)
@@ -196,14 +195,14 @@ fun instantiate_induct_rule ctxt concl_prop p_name ((name, loc), (multi, th))
                  |> string_for_term ctxt
   in
     ((fn () => name () ^ "[where " ^ p_name ^ " = " ^ quote p_inst ^ "]", loc),
-     (multi, th |> read_instantiate ctxt [((p_name, 0), p_inst)]))
+     th |> read_instantiate ctxt [((p_name, 0), p_inst)])
   end
 
 fun type_match thy (T1, T2) =
   (Sign.typ_match thy (T2, T1) Vartab.empty; true)
   handle Type.TYPE_MATCH => false
 
-fun instantiate_if_induct_rule ctxt stmt stmt_xs (ax as (_, (_, th))) =
+fun instantiate_if_induct_rule ctxt stmt stmt_xs (ax as (_, th)) =
   case struct_induct_rule_on th of
     SOME (p_name, ind_T) =>
     let val thy = Proof_Context.theory_of ctxt in
@@ -712,9 +711,9 @@ fun is_package_def a =
      String.isSuffix "_def" a) orelse String.isSuffix "_defs" a
   end
 
-fun mk_fact_table g f xs =
-  fold (Termtab.update o `(g o prop_of o f)) xs Termtab.empty
-fun uniquify xs = Termtab.fold (cons o snd) (mk_fact_table I snd xs) []
+fun uniquify xs =
+  Termtab.fold (cons o snd)
+               (fold (Termtab.update o `(prop_of o snd)) xs Termtab.empty) []
 
 (* FIXME: put other record thms here, or declare as "no_atp" *)
 fun multi_base_blacklist ctxt =
@@ -797,16 +796,18 @@ val normalize_simp_prop =
   #> map_aterms (fn Var ((s, _), T) => Var ((s, 0), T) | t => t)
   #> map_types (map_type_tvar (fn ((s, _), S) => TVar ((s, 0), S)))
 
-fun clasimpset_rules_of ctxt =
+fun clasimpset_rule_table_of ctxt =
   let
+    fun add loc g f = fold (Termtab.update o rpair loc o g o prop_of o f)
     val {safeIs, safeEs, hazIs, hazEs, ...} = ctxt |> claset_of |> Classical.rep_cs
     val intros = Item_Net.content safeIs @ Item_Net.content hazIs
     val elims = map Classical.classical_rule (Item_Net.content safeEs @ Item_Net.content hazEs)
     val simps = ctxt |> simpset_of |> dest_ss |> #simps
   in
-    (mk_fact_table I I intros,
-     mk_fact_table I I elims,
-     mk_fact_table normalize_simp_prop snd simps)
+    Termtab.empty |> add Intro I I intros
+                  |> add Elim I I elims
+                  |> add Simp I snd simps
+                  |> add Simp normalize_simp_prop snd simps
   end
 
 fun all_facts ctxt reserved really_all is_appropriate_prop add_ths chained_ths =
@@ -818,17 +819,12 @@ fun all_facts ctxt reserved really_all is_appropriate_prop add_ths chained_ths =
     val assms = Assumption.all_assms_of ctxt
     fun is_assum th = exists (fn ct => prop_of th aconv term_of ct) assms
     val is_chained = member Thm.eq_thm_prop chained_ths
-    val (intros, elims, simps) = clasimpset_rules_of ctxt
+    val clasimpset_table = clasimpset_rule_table_of ctxt
     fun locality_of_theorem global th =
       if is_chained th then
         Chained
       else if global then
-        let val t = prop_of th in
-          if Termtab.defined intros t then Intro
-          else if Termtab.defined elims t then Elim
-          else if Termtab.defined simps (normalize_simp_prop t) then Simp
-          else General
-        end
+        Termtab.lookup clasimpset_table (prop_of th) |> the_default General
       else
         if is_assum th then Assum else Local
     fun is_good_unnamed_local th =
@@ -861,13 +857,15 @@ fun all_facts ctxt reserved really_all is_appropriate_prop add_ths chained_ths =
               | SOME ths' => eq_list Thm.eq_thm_prop (ths, ths')
           in
             pair 1
-            #> fold (fn th => fn (j, rest) =>
+            #> fold (fn th => fn (j, (multis, unis)) =>
                         (j + 1,
                          if not (member Thm.eq_thm_prop add_ths th) andalso
                             is_theorem_bad_for_atps is_appropriate_prop th then
-                           rest
+                           (multis, unis)
                          else
-                           (((fn () =>
+                           let
+                             val new =
+                               (((fn () =>
                                  if name0 = "" then
                                    th |> backquote_thm
                                  else
@@ -878,21 +876,20 @@ fun all_facts ctxt reserved really_all is_appropriate_prop add_ths chained_ths =
                                    |> (fn SOME name =>
                                           make_name reserved multi j name
                                         | NONE => "")),
-                              locality_of_theorem global th),
-                              (multi, th)) :: rest)) ths
+                                locality_of_theorem global th), th)
+                           in
+                             if multi then (new :: multis, unis)
+                             else (multis, new :: unis)
+                           end)) ths
             #> snd
           end)
   in
-    [] |> add_facts false fold local_facts (unnamed_locals @ named_locals)
-       |> add_facts true Facts.fold_static global_facts global_facts
+    (* The single-name theorems go after the multiple-name ones, so that single
+       names are preferred when both are available. *)
+    ([], []) |> add_facts false fold local_facts (unnamed_locals @ named_locals)
+             |> add_facts true Facts.fold_static global_facts global_facts
+             |> op @
   end
-
-(* The single-name theorems go after the multiple-name ones, so that single
-   names are preferred when both are available. *)
-fun rearrange_facts ctxt only =
-  List.partition (fst o snd) #> op @ #> map (apsnd snd)
-  #> (not (Config.get ctxt ignore_no_atp) andalso not only)
-     ? filter_out (No_ATPs.member ctxt o snd)
 
 fun external_frees t =
   [] |> Term.add_frees t |> filter_out (can Name.dest_internal o fst)
@@ -912,13 +909,14 @@ fun relevant_facts ctxt (threshold0, threshold1) max_relevant
     val ind_stmt_xs = external_frees ind_stmt
     val facts =
       (if only then
-         maps (map (fn ((name, loc), th) => ((K name, loc), (true, th)))
+         maps (map (fn ((name, loc), th) => ((K name, loc), th))
                o fact_from_ref ctxt reserved chained_ths) add
        else
          all_facts ctxt reserved false is_appropriate_prop add_ths chained_ths)
       |> Config.get ctxt instantiate_inducts
          ? maps (instantiate_if_induct_rule ctxt ind_stmt ind_stmt_xs)
-      |> rearrange_facts ctxt only
+      |> (not (Config.get ctxt ignore_no_atp) andalso not only)
+         ? filter_out (No_ATPs.member ctxt o snd)
       |> uniquify
   in
     trace_msg ctxt (fn () => "Considering " ^ string_of_int (length facts) ^

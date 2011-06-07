@@ -65,7 +65,7 @@ fun generate_tptp_graph_file_for_theory ctxt thy file_name =
           commas (map (prefix ATP_Translate.const_prefix o ascii_of)
                       (interesting_const_names ctxt (Thm.prop_of thm))) ^ " \n"
       in File.append path s end
-    val thms = facts_of thy |> map (snd o snd)
+    val thms = facts_of thy |> map snd
     val _ = map do_thm thms
   in () end
 
@@ -100,7 +100,7 @@ fun generate_tptp_inference_file_for_theory ctxt thy full_types file_name =
     val _ = File.write path ""
     val facts0 = facts_of thy
     val facts =
-      facts0 |> map (fn ((_, loc), (_, th)) =>
+      facts0 |> map (fn ((_, loc), th) =>
                         ((Thm.get_name_hint th, loc), prop_of th))
     val explicit_apply = NONE
     val (atp_problem, _, _, _, _, _, _) =
@@ -108,7 +108,7 @@ fun generate_tptp_inference_file_for_theory ctxt thy full_types file_name =
           ATP_Problem.Axiom ATP_Problem.Axiom type_sys explicit_apply false true
           [] @{prop False} facts
     val infers =
-      facts0 |> map (fn (_, (_, th)) =>
+      facts0 |> map (fn (_, th) =>
                         (fact_name_of (Thm.get_name_hint th),
                          theorems_mentioned_in_proof_term th))
     val infers =
