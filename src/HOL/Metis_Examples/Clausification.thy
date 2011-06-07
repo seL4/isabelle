@@ -28,13 +28,13 @@ lemma "\<exists>b. \<forall>a. (q b a \<or> q a b)"
 by (metis qax)
 
 lemma "\<exists>b. \<forall>a. (q b a \<or> q a b)"
-by (metisFT qax)
+by (metis (full_types) qax)
 
 lemma "\<exists>b. \<forall>a. (q b a \<and> q 0 0 \<and> q 1 a \<and> q a 1) \<or> (q 0 1 \<and> q 1 0 \<and> q a b \<and> q 1 1)"
 by (metis qax)
 
 lemma "\<exists>b. \<forall>a. (q b a \<and> q 0 0 \<and> q 1 a \<and> q a 1) \<or> (q 0 1 \<and> q 1 0 \<and> q a b \<and> q 1 1)"
-by (metisFT qax)
+by (metis (full_types) qax)
 
 declare [[metis_new_skolemizer]]
 
@@ -42,13 +42,13 @@ lemma "\<exists>b. \<forall>a. (q b a \<or> q a b)"
 by (metis qax)
 
 lemma "\<exists>b. \<forall>a. (q b a \<or> q a b)"
-by (metisFT qax)
+by (metis (full_types) qax)
 
 lemma "\<exists>b. \<forall>a. (q b a \<and> q 0 0 \<and> q 1 a \<and> q a 1) \<or> (q 0 1 \<and> q 1 0 \<and> q a b \<and> q 1 1)"
 by (metis qax)
 
 lemma "\<exists>b. \<forall>a. (q b a \<and> q 0 0 \<and> q 1 a \<and> q a 1) \<or> (q 0 1 \<and> q 1 0 \<and> q a b \<and> q 1 1)"
-by (metisFT qax)
+by (metis (full_types) qax)
 
 declare [[meson_max_clauses = 60]]
 
@@ -64,7 +64,7 @@ lemma "r 0 0 \<or> r 1 1 \<or> r 2 2 \<or> r 3 3"
 by (metis rax)
 
 lemma "r 0 0 \<or> r 1 1 \<or> r 2 2 \<or> r 3 3"
-by (metisFT rax)
+by (metis (full_types) rax)
 
 declare [[metis_new_skolemizer]]
 
@@ -72,7 +72,7 @@ lemma "r 0 0 \<or> r 1 1 \<or> r 2 2 \<or> r 3 3"
 by (metis rax)
 
 lemma "r 0 0 \<or> r 1 1 \<or> r 2 2 \<or> r 3 3"
-by (metisFT rax)
+by (metis (full_types) rax)
 
 lemma "(r 0 0 \<and> r 0 1 \<and> r 0 2 \<and> r 0 3) \<or>
        (r 1 0 \<and> r 1 1 \<and> r 1 2 \<and> r 1 3) \<or>
@@ -84,7 +84,7 @@ lemma "(r 0 0 \<and> r 0 1 \<and> r 0 2 \<and> r 0 3) \<or>
        (r 1 0 \<and> r 1 1 \<and> r 1 2 \<and> r 1 3) \<or>
        (r 2 0 \<and> r 2 1 \<and> r 2 2 \<and> r 2 3) \<or>
        (r 3 0 \<and> r 3 1 \<and> r 3 2 \<and> r 3 3)"
-by (metisFT rax)
+by (metis (full_types) rax)
 
 
 text {* Definitional CNF for goal *}
@@ -100,7 +100,7 @@ by (metis pax)
 
 lemma "\<exists>b. \<forall>a. \<exists>x. (p b a \<or> x) \<and> (p 0 0 \<or> x) \<and> (p 1 a \<or> x) \<and>
                    (p 0 1 \<or> \<not> x) \<and> (p 1 0 \<or> \<not> x) \<and> (p a b \<or> \<not> x)"
-by (metisFT pax)
+by (metis (full_types) pax)
 
 declare [[metis_new_skolemizer]]
 
@@ -110,7 +110,7 @@ by (metis pax)
 
 lemma "\<exists>b. \<forall>a. \<exists>x. (p b a \<or> x) \<and> (p 0 0 \<or> x) \<and> (p 1 a \<or> x) \<and>
                    (p 0 1 \<or> \<not> x) \<and> (p 1 0 \<or> \<not> x) \<and> (p a b \<or> \<not> x)"
-by (metisFT pax)
+by (metis (full_types) pax)
 
 
 text {* New Skolemizer *}
@@ -134,7 +134,7 @@ lemma
   assumes a: "Quotient R Abs Rep"
   shows "symp R"
 using a unfolding Quotient_def using sympI
-by metisFT
+by (metis (full_types))
 
 lemma
   "(\<exists>x \<in> set xs. P x) \<longleftrightarrow>

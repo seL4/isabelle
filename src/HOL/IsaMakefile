@@ -1046,8 +1046,8 @@ HOL-ex: HOL $(LOG)/HOL-ex.gz
 
 $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   Number_Theory/Primes.thy ex/Abstract_NAT.thy ex/Antiquote.thy		\
-  ex/Arith_Examples.thy ex/Arithmetic_Series_Complex.thy ex/BT.thy	\
-  ex/BinEx.thy ex/Binary.thy ex/Birthday_Paradox.thy			\
+  ex/ATP_Export.thy ex/Arith_Examples.thy ex/Arithmetic_Series_Complex.thy \
+  ex/BT.thy	ex/BinEx.thy ex/Binary.thy ex/Birthday_Paradox.thy			\
   ex/CASC_Setup.thy ex/CTL.thy ex/Case_Product.thy			\
   ex/Chinese.thy ex/Classical.thy ex/CodegenSML_Test.thy		\
   ex/Coercion_Examples.thy ex/Coherent.thy ex/Dedekind_Real.thy		\
@@ -1068,7 +1068,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Decision_Procs/Commutative_Ring.thy	\
   ex/SVC_Oracle.thy ex/Serbian.thy ex/Set_Algebras.thy			\
   ex/sledgehammer_tactics.ML ex/Sqrt.thy				\
   ex/Sqrt_Script.thy ex/Sudoku.thy ex/Tarski.thy ex/Termination.thy	\
-  ex/TPTP_Export.thy ex/Transfer_Ex.thy ex/Tree23.thy			\
+  ex/Transfer_Ex.thy ex/Tree23.thy			\
   ex/Unification.thy ex/While_Combinator_Example.thy			\
   ex/document/root.bib ex/document/root.tex ex/set.thy ex/svc_funcs.ML	\
   ex/svc_test.thy							\

@@ -86,7 +86,8 @@ INCOMPATIBILITY.
   - Added "type_sys", "max_mono_iters", and "max_new_mono_instances" options.
 
 * Metis:
-  - Obsoleted "metisF" -- use "metis" instead.
+  - Removed "metisF" -- use "metis" instead.
+  - Obsoleted "metisFT" -- use "metis (full_types)" instead.
 
 * "try":
   - Added "simp:", "intro:", and "elim:" options.

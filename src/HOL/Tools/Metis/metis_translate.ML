@@ -20,6 +20,10 @@ sig
   val metis_app_op : string
   val metis_type_tag : string
   val metis_generated_var_prefix : string
+  val trace : bool Config.T
+  val verbose : bool Config.T
+  val trace_msg : Proof.context -> (unit -> string) -> unit
+  val verbose_warning : Proof.context -> string -> unit
   val metis_name_table : ((string * int) * (string * bool)) list
   val reveal_old_skolem_terms : (string * term) list -> term -> term
   val prepare_metis_problem :
@@ -38,6 +42,13 @@ val metis_predicator = "{}"
 val metis_app_op = "."
 val metis_type_tag = ":"
 val metis_generated_var_prefix = "_"
+
+val trace = Attrib.setup_config_bool @{binding metis_trace} (K false)
+val verbose = Attrib.setup_config_bool @{binding metis_verbose} (K true)
+
+fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
+fun verbose_warning ctxt msg =
+  if Config.get ctxt verbose then warning ("Metis: " ^ msg) else ()
 
 val metis_name_table =
   [((tptp_equal, 2), (metis_equal, false)),
@@ -180,7 +191,7 @@ val _ = tracing ("PROPS:\n" ^ cat_lines (map (Syntax.string_of_term ctxt) props)
       prepare_atp_problem ctxt CNF Hypothesis Axiom type_sys explicit_apply
                           false false props @{prop False} []
 (*
-val _ = tracing ("ATP PROBLEM: " ^ cat_lines (tptp_strings_for_atp_problem CNF atp_problem))
+val _ = tracing ("ATP PROBLEM: " ^ cat_lines (tptp_lines_for_atp_problem CNF atp_problem))
 *)
     (* "rev" is for compatibility *)
     val axioms =

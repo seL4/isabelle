@@ -130,7 +130,7 @@ sig
   val prepare_atp_problem :
     Proof.context -> format -> formula_kind -> formula_kind -> type_sys
     -> bool option -> bool -> bool -> term list -> term
-    -> ((string * locality) * thm) list
+    -> ((string * locality) * term) list
     -> string problem * string Symtab.table * int * int
        * (string * locality) list vector * int list * int Symtab.table
   val atp_problem_weights : string problem -> (string * real) list
@@ -1386,10 +1386,10 @@ fun translate_formulas ctxt format prem_kind type_sys preproc hyp_ts concl_t
                        facts =
   let
     val thy = Proof_Context.theory_of ctxt
-    val fact_ts = facts |> map (prop_of o snd)
+    val fact_ts = facts |> map snd
     val (facts, fact_names) =
-      facts |> map (fn (name, th) =>
-                        (name, prop_of th)
+      facts |> map (fn (name, t) =>
+                        (name, t)
                         |> make_fact ctxt format type_sys false true true true
                         |> rpair name)
             |> map_filter (try (apfst the))

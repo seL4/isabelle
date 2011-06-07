@@ -16,7 +16,8 @@ sig
 
   datatype reconstructor =
     Metis |
-    MetisFT |
+    Metis_Full_Types |
+    Metis_No_Types |
     SMT of string
 
   datatype play =
@@ -41,7 +42,6 @@ sig
     Proof.context -> type_sys -> int list list -> int
     -> (string * locality) list vector -> 'a proof -> string list option
   val uses_typed_helpers : int list -> 'a proof -> bool
-  val reconstructor_name : reconstructor -> string
   val one_line_proof_text : one_line_params -> string
   val make_tvar : string -> typ
   val make_tfree : Proof.context -> string -> typ
@@ -67,7 +67,8 @@ open ATP_Translate
 
 datatype reconstructor =
   Metis |
-  MetisFT |
+  Metis_Full_Types |
+  Metis_No_Types |
   SMT of string
 
 datatype play =
@@ -251,9 +252,11 @@ fun uses_typed_helpers typed_helpers =
 
 (** Soft-core proof reconstruction: Metis one-liner **)
 
-fun reconstructor_name Metis = "metis"
-  | reconstructor_name MetisFT = "metisFT"
-  | reconstructor_name (SMT _) = "smt"
+(* unfortunate leaking abstraction *)
+fun name_of_reconstructor Metis = "metis"
+  | name_of_reconstructor Metis_Full_Types = "metis (full_types)"
+  | name_of_reconstructor Metis_No_Types = "metis (no_types)"
+  | name_of_reconstructor (SMT _) = "smt"
 
 fun reconstructor_settings (SMT settings) = settings
   | reconstructor_settings _ = ""
@@ -279,7 +282,7 @@ fun using_labels [] = ""
 fun reconstructor_command reconstructor i n (ls, ss) =
   using_labels ls ^
   apply_on_subgoal (reconstructor_settings reconstructor) i n ^
-  command_call (reconstructor_name reconstructor) ss
+  command_call (name_of_reconstructor reconstructor) ss
 fun minimize_line _ [] = ""
   | minimize_line minimize_command ss =
     case minimize_command ss of
@@ -1042,7 +1045,7 @@ fun string_for_proof ctxt0 full_types i n =
        else
          if member (op =) qs Show then "show" else "have")
     val do_term = maybe_quote o fix_print_mode (Syntax.string_of_term ctxt)
-    val reconstructor = if full_types then MetisFT else Metis
+    val reconstructor = if full_types then Metis_Full_Types else Metis
     fun do_facts (ls, ss) =
       reconstructor_command reconstructor 1 1
           (ls |> sort_distinct (prod_ord string_ord int_ord),

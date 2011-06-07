@@ -1,4 +1,4 @@
-(*  Title:      HOL/ex/tptp_export.ML
+(*  Title:      HOL/ex/atp_export.ML
     Author:     Jasmin Blanchette, TU Muenchen
     Copyright   2011
 
@@ -6,7 +6,7 @@ Export Isabelle theories as first-order TPTP inferences, exploiting
 Sledgehammer's translation.
 *)
 
-signature TPTP_EXPORT =
+signature ATP_EXPORT =
 sig
   val generate_tptp_graph_file_for_theory :
     Proof.context -> theory -> string -> unit
@@ -14,7 +14,7 @@ sig
     Proof.context -> theory -> bool -> string -> unit
 end;
 
-structure TPTP_Export : TPTP_EXPORT =
+structure ATP_Export : ATP_EXPORT =
 struct
 
 val ascii_of = ATP_Translate.ascii_of
@@ -101,7 +101,7 @@ fun generate_tptp_inference_file_for_theory ctxt thy full_types file_name =
     val facts0 = facts_of thy
     val facts =
       facts0 |> map (fn ((_, loc), (_, th)) =>
-                        ((Thm.get_name_hint th, loc), th))
+                        ((Thm.get_name_hint th, loc), prop_of th))
     val explicit_apply = NONE
     val (atp_problem, _, _, _, _, _, _) =
       ATP_Translate.prepare_atp_problem ctxt format
@@ -114,8 +114,7 @@ fun generate_tptp_inference_file_for_theory ctxt thy full_types file_name =
     val infers =
       infers |> map (apsnd (filter (member (op = o apsnd fst) infers)))
     val atp_problem = atp_problem |> add_inferences_to_problem infers
-    val ss =
-      ATP_Problem.tptp_strings_for_atp_problem ATP_Problem.FOF atp_problem
+    val ss = ATP_Problem.tptp_lines_for_atp_problem ATP_Problem.FOF atp_problem
     val _ = app (File.append path) ss
   in () end
 

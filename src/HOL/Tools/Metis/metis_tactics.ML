@@ -10,14 +10,16 @@ HOL setup for the Metis prover.
 signature METIS_TACTICS =
 sig
   val metisN : string
-  val metisFT_N : string
-  val default_unsound_type_sys : string
-  val default_sound_type_sys : string
+  val full_typesN : string
+  val partial_typesN : string
+  val no_typesN : string
+  val full_type_sys : string
+  val partial_type_sys : string
+  val no_type_sys : string
   val trace : bool Config.T
   val verbose : bool Config.T
   val new_skolemizer : bool Config.T
   val metis_tac : string list -> Proof.context -> thm list -> int -> tactic
-  val metisFT_tac : Proof.context -> thm list -> int -> tactic
   val setup : theory -> theory
 end
 
@@ -29,18 +31,25 @@ open Metis_Translate
 open Metis_Reconstruct
 
 val metisN = Binding.qualified_name_of @{binding metis}
-val metisFT_N = Binding.qualified_name_of @{binding metisFT}
-val full_typesN = "full_types"
 
-val default_unsound_type_sys = "poly_args"
-val default_sound_type_sys = "poly_preds_heavy_query"
+val full_typesN = "full_types"
+val partial_typesN = "partial_types"
+val no_typesN = "no_types"
+
+val full_type_sys = "poly_preds_heavy_query"
+val partial_type_sys = "poly_args"
+val no_type_sys = "erased"
+
+val type_sys_aliases =
+  [(full_typesN, full_type_sys),
+   (partial_typesN, partial_type_sys),
+   (no_typesN, no_type_sys)]
 
 fun method_call_for_type_sys type_sys =
-  if type_sys = default_sound_type_sys then
-    (@{binding metisFT}, "")
-  else
-    (@{binding metis},
-     if type_sys = default_unsound_type_sys then "" else type_sys)
+  metisN ^ " (" ^
+  (case AList.find (op =) type_sys_aliases type_sys of
+     [alias] => alias
+   | _ => type_sys) ^ ")"
 
 val new_skolemizer =
   Attrib.setup_config_bool @{binding metis_new_skolemizer} (K false)
@@ -168,13 +177,10 @@ fun FOL_SOLVE (type_sys :: fallback_type_syss) ctxt cls ths0 =
                         (if Config.get ctxt verbose then "\n" ^ loc ^ ": " ^ msg
                          else ""))
          | type_sys :: _ =>
-           let val (binding, arg) = method_call_for_type_sys type_sys in
-             (verbose_warning ctxt
-                  ("Falling back on " ^
-                   quote (Binding.qualified_name_of binding ^
-                          (arg |> arg <> "" ? enclose " (" ")")) ^ "...");
-              FOL_SOLVE fallback_type_syss ctxt cls ths0)
-            end
+           (verbose_warning ctxt
+                ("Falling back on " ^
+                 quote (method_call_for_type_sys type_sys) ^ "...");
+            FOL_SOLVE fallback_type_syss ctxt cls ths0)
 
 val neg_clausify =
   single
@@ -207,12 +213,11 @@ fun generic_metis_tac type_syss ctxt ths i st0 =
       Meson.MESON (preskolem_tac ctxt) (maps neg_clausify) tac ctxt i st0
   end
 
-val metis_default_type_syss = [default_unsound_type_sys, default_sound_type_sys]
-val metisFT_type_syss = [default_sound_type_sys]
+val metis_default_type_syss = [partial_type_sys, full_type_sys]
+val metisFT_type_syss = [full_type_sys]
 
 fun metis_tac [] = generic_metis_tac metis_default_type_syss
   | metis_tac type_syss = generic_metis_tac type_syss
-val metisFT_tac = generic_metis_tac metisFT_type_syss
 
 (* Whenever "X" has schematic type variables, we treat "using X by metis" as
    "by (metis X)" to prevent "Subgoal.FOCUS" from freezing the type variables.
@@ -224,6 +229,12 @@ val has_tvar =
 
 fun method type_syss (type_sys, ths) ctxt facts =
   let
+    val _ =
+      if type_syss = metisFT_type_syss then
+        legacy_feature "Old 'metisFT' method -- \
+                       \use 'metis (full_types)' instead"
+      else
+        ()
     val (schem_facts, nonschem_facts) = List.partition has_tvar facts
     val type_syss = type_sys |> Option.map single |> the_default type_syss
   in
@@ -232,19 +243,20 @@ fun method type_syss (type_sys, ths) ctxt facts =
               o generic_metis_tac type_syss ctxt (schem_facts @ ths))
   end
 
-fun setup_method (type_syss as type_sys :: _) =
+fun setup_method (binding, type_syss as type_sys :: _) =
   (if type_syss = metis_default_type_syss then
      (Args.parens Parse.short_ident
-      >> (fn s => if s = full_typesN then default_sound_type_sys else s))
+      >> (fn s => AList.lookup (op =) type_sys_aliases s |> the_default s))
      |> Scan.option |> Scan.lift
    else
      Scan.succeed NONE)
   -- Attrib.thms >> (METHOD oo method type_syss)
-  |> Method.setup (fst (method_call_for_type_sys type_sys))
+  |> Method.setup binding
 
 val setup =
-  [(metis_default_type_syss, "Metis for FOL and HOL problems"),
-   (metisFT_type_syss,
+  [((@{binding metis}, metis_default_type_syss),
+    "Metis for FOL and HOL problems"),
+   ((@{binding metisFT}, metisFT_type_syss),
     "Metis for FOL/HOL problems with fully-typed translation")]
   |> fold (uncurry setup_method)
 
