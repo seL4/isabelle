@@ -199,12 +199,11 @@ fun extract_tstplike_proof_and_outcome verbose complete res_code proof_delims
   case (extract_tstplike_proof proof_delims output,
         extract_known_failure known_failures output) of
     (_, SOME ProofIncomplete) => ("", SOME ProofIncomplete)
+  | ("", SOME ProofMissing) => ("", NONE)
   | ("", SOME failure) =>
     ("", SOME (if failure = GaveUp andalso complete then Unprovable
                else failure))
-  | ("", NONE) =>
-    ("", SOME (if res_code = 0 andalso output = "" then ProofMissing
-               else UnknownError (short_output verbose output)))
+  | ("", NONE) => ("", SOME (UnknownError (short_output verbose output)))
   | (tstplike_proof, _) => (tstplike_proof, NONE)
 
 type step_name = string * string option
