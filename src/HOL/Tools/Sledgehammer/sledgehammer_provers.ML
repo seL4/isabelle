@@ -540,13 +540,13 @@ fun choose_minimize_command minimize_command name preplay =
   |> minimize_command
 
 fun repair_monomorph_context debug max_iters max_new_instances =
-  Config.put Monomorph.verbose debug
+  (not debug ? Config.put Monomorph.verbose false)
   #> Config.put Monomorph.max_rounds max_iters
   #> Config.put Monomorph.max_new_instances max_new_instances
   #> Config.put Monomorph.complete_instances false
 
 fun repair_smt_monomorph_context debug max_mono_iters max_mono_instances =
-  Config.put SMT_Config.verbose debug
+  (not debug ? Config.put SMT_Config.verbose false)
   #> Config.put SMT_Config.monomorph_limit max_mono_iters
   #> Config.put SMT_Config.monomorph_instances max_mono_instances
   #> Config.put SMT_Config.monomorph_full false

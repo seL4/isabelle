@@ -11,10 +11,6 @@ signature METIS_RECONSTRUCT =
 sig
   exception METIS of string * string
 
-  val trace : bool Config.T
-  val trace_msg : Proof.context -> (unit -> string) -> unit
-  val verbose : bool Config.T
-  val verbose_warning : Proof.context -> string -> unit
   val hol_clause_from_metis :
     Proof.context -> int Symtab.table -> (string * term) list -> Metis_Thm.thm
     -> term
@@ -37,13 +33,6 @@ open ATP_Reconstruct
 open Metis_Translate
 
 exception METIS of string * string
-
-val trace = Attrib.setup_config_bool @{binding metis_trace} (K false)
-val verbose = Attrib.setup_config_bool @{binding metis_verbose} (K true)
-
-fun trace_msg ctxt msg = if Config.get ctxt trace then tracing (msg ()) else ()
-fun verbose_warning ctxt msg =
-  if Config.get ctxt verbose then warning ("Metis: " ^ msg) else ()
 
 datatype term_or_type = SomeTerm of term | SomeType of typ
 
