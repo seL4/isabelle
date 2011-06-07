@@ -52,16 +52,12 @@ fun ty_info tab sT =
 
 
 (*---------------------------------------------------------------------------
- * Each pattern carries with it a tag (i,b) where
- * i is the clause it came from and
- * b=true indicates that clause was given by the user
- * (or is an instantiation of a user supplied pattern)
- * b=false --> i = ~1
+ * Each pattern carries with it a tag i, which denotes
+ * the clause it came from. i = ~1 indicates that
+ * the clause was added by pattern completion.
  *---------------------------------------------------------------------------*)
 
 fun pattern_subst theta (tm, x) = (subst_free theta tm, x);
-
-fun row_of_pat x = fst (snd x);
 
 fun add_row_used ((prfx, pats), (tm, tag)) =
   fold Term.add_free_names (tm :: pats @ map Free prfx);
@@ -102,7 +98,7 @@ fun fresh_constr ty_match ty_inst colty used c =
  *---------------------------------------------------------------------------*)
 fun mk_group (name, T) rows =
   let val k = length (binder_types T) in
-    fold (fn (row as ((prfx, p :: rst), rhs as (_, (i, _)))) =>
+    fold (fn (row as ((prfx, p :: rst), rhs as (_, i))) =>
       fn ((in_group, not_in_group), (names, cnstrts)) =>
         (case strip_comb p of
           (Const (name', _), args) =>
@@ -128,7 +124,7 @@ fun partition _ _ _ _ _ _ _ [] = raise CASE_ERROR ("partition: no rows", ~1)
         (rows as (((prfx, _ :: rstp), _) :: _)) =
       let
         fun part {constrs = [], rows = [], A} = rev A
-          | part {constrs = [], rows = (_, (_, (i, _))) :: _, A} =
+          | part {constrs = [], rows = (_, (_, i)) :: _, A} =
               raise CASE_ERROR ("Not a constructor pattern", i)
           | part {constrs = c :: crst, rows, A} =
               let
@@ -146,7 +142,7 @@ fun partition _ _ _ _ _ _ _ [] = raise CASE_ERROR ("partition: no rows", ~1)
                         (replicate (length rstp) "x")
                     in
                       [((prfx, gvars @ map Free (xs ~~ Ts)),
-                        (Const (@{const_syntax undefined}, res_ty), (~1, false)))]
+                        (Const (@{const_syntax undefined}, res_ty), ~1))]
                     end
                   else in_group
               in
@@ -198,7 +194,7 @@ fun mk_case tab ctxt ty_match ty_inst type_of used range_ty =
       | mk {path, rows as ((row as ((_, [Free _]), _)) :: _ :: _)} =
           mk {path = path, rows = [row]}
       | mk {path = u :: rstp, rows as ((_, _ :: _), _) :: _} =
-          let val col0 = map (fn ((_, p :: _), (_, (i, _))) => (p, i)) rows in
+          let val col0 = map (fn ((_, p :: _), (_, i)) => (p, i)) rows in
             (case Option.map (apfst head_of) (find_first (not o is_Free o fst) col0) of
               NONE =>
                 let
@@ -253,7 +249,7 @@ fun gen_make_case ty_match ty_inst type_of tab ctxt config used x clauses =
       Syntax.string_of_term ctxt (Syntax.const @{syntax_const "_case1"} $ pat $ rhs);
     val _ = map (no_repeat_vars ctxt o fst) clauses;
     val rows = map_index (fn (i, (pat, rhs)) =>
-      (([], [pat]), (rhs, (i, true)))) clauses;
+      (([], [pat]), (rhs, i))) clauses;
     val rangeT =
       (case distinct op = (map (type_of o snd) clauses) of
         [] => case_error "no clauses given"
@@ -265,10 +261,8 @@ fun gen_make_case ty_match ty_inst type_of tab ctxt config used x clauses =
       handle CASE_ERROR (msg, i) => case_error (msg ^
         (if i < 0 then ""
          else "\nIn clause\n" ^ string_of_clause (nth clauses i)));
-    val finals = map fst tags
-    val originals = map (row_of_pat o #2) rows
     val _ =
-      (case subtract (op =) finals originals of
+      (case subtract (op =) tags (map (snd o snd) rows) of
         [] => ()
       | is =>
           (case config of Error => case_error | Warning => warning | Quiet => fn _ => {})
