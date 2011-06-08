@@ -220,7 +220,7 @@ fun infer ctxt =
       | inf _ (Free (_, T)) tye_idx = (T, tye_idx)
       | inf _ (Var (_, T)) tye_idx = (T, tye_idx)
       | inf bs (Bound i) tye_idx =
-          (snd (nth bs i handle Subscript => err_loose i), tye_idx)
+          (snd (nth bs i handle General.Subscript => err_loose i), tye_idx)
       | inf bs (Abs (x, T, t)) tye_idx =
           let val (U, tye_idx') = inf ((x, T) :: bs) t tye_idx
           in (T --> U, tye_idx') end

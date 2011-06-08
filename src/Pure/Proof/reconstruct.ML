@@ -88,7 +88,7 @@ fun infer_type thy (env as Envir.Envir {maxidx, tenv, tyenv}) Ts vTs
           in (t' $ u', V, vTs2, unifyT thy env3 T (U --> V)) end)
       end
   | infer_type thy env Ts vTs (t as Bound i) = ((t, nth Ts i, vTs, env)
-      handle Subscript => error ("infer_type: bad variable index " ^ string_of_int i));
+      handle General.Subscript => error ("infer_type: bad variable index " ^ string_of_int i));
 
 fun cantunify thy (t, u) = error ("Non-unifiable terms:\n" ^
   Syntax.string_of_term_global thy t ^ "\n\n" ^ Syntax.string_of_term_global thy u);
@@ -145,7 +145,7 @@ fun make_constraints_cprf thy env cprf =
       (Envir.head_norm env prop, prf, cnstrts, env, vTs);
 
     fun mk_cnstrts env _ Hs vTs (PBound i) = ((nth Hs i, PBound i, [], env, vTs)
-          handle Subscript => error ("mk_cnstrts: bad variable index " ^ string_of_int i))
+          handle General.Subscript => error ("mk_cnstrts: bad variable index " ^ string_of_int i))
       | mk_cnstrts env Ts Hs vTs (Abst (s, opT, cprf)) =
           let
             val (T, env') =

@@ -287,6 +287,7 @@ fun collect_vars i (Bound j) vs = if j < i then vs else insert (op =) (Bound (j 
   | collect_vars i (Abs (_, _, t)) vs = collect_vars (i+1) t vs
   | collect_vars i (t $ u) vs = collect_vars i u (collect_vars i t vs);
 
+(* FIXME proper SUBGOAL/CSUBGOAL instead of cprems_of etc. *)
 fun finite_guess_tac_i tactical ss i st =
     let val goal = nth (cprems_of st) (i - 1)
     in
@@ -318,12 +319,14 @@ fun finite_guess_tac_i tactical ss i st =
           end
         | _ => Seq.empty
     end
-    handle Subscript => Seq.empty
+    handle General.Subscript => Seq.empty
+(* FIXME proper SUBGOAL/CSUBGOAL instead of cprems_of etc. *)
 
 
 (* tactic that guesses whether an atom is fresh for an expression  *)
 (* it first collects all free variables and tries to show that the *) 
 (* support of these free variables (op supports) the goal          *)
+(* FIXME proper SUBGOAL/CSUBGOAL instead of cprems_of etc. *)
 fun fresh_guess_tac_i tactical ss i st =
     let 
         val goal = nth (cprems_of st) (i - 1)
@@ -361,7 +364,8 @@ fun fresh_guess_tac_i tactical ss i st =
         | _ => (tactical ("if it is not of the form _\<sharp>_, then try the simplifier",   
                           (asm_full_simp_tac (HOL_ss addsimps [fresh_prod]@fresh_atm) i))) st
     end
-    handle Subscript => Seq.empty;
+    handle General.Subscript => Seq.empty;
+(* FIXME proper SUBGOAL/CSUBGOAL instead of cprems_of etc. *)
 
 val eqvt_simp_tac        = eqvt_asm_full_simp_tac_i NO_DEBUG_tac;
 

@@ -60,7 +60,7 @@ fun decode_url s =
           then f (Substring.full " "::pre::done, Substring.triml 1 post)
           else let
             val (c, rest) = Substring.splitAt (post, 3)
-                            handle Subscript =>
+                            handle General.Subscript =>
                               (Substring.full "%25", Substring.triml 1 post);
           in f (to_char c::pre::done, rest) end
       end;

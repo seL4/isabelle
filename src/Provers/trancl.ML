@@ -567,6 +567,6 @@ fun rtrancl_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
       val thms = map (prove thy rel' prems) prfs
     in rtac (prove thy rel' thms prf) 1 end) ctxt n st
  end
- handle Cannot => Seq.empty | Subscript => Seq.empty);
+ handle Cannot => Seq.empty | General.Subscript => Seq.empty);
 
 end;

@@ -529,7 +529,7 @@ fun prf_subst_bounds args prf =
     fun subst' lev (Bound i) =
          (if i<lev then raise Same.SAME    (*var is locally bound*)
           else  incr_boundvars lev (nth args (i-lev))
-                  handle Subscript => Bound (i-n))  (*loose: change it*)
+                  handle General.Subscript => Bound (i-n))  (*loose: change it*)
       | subst' lev (Abs (a, T, body)) = Abs (a, T,  subst' (lev+1) body)
       | subst' lev (f $ t) = (subst' lev f $ substh' lev t
           handle Same.SAME => f $ subst' lev t)
@@ -554,7 +554,7 @@ fun prf_subst_pbounds args prf =
     fun subst (PBound i) Plev tlev =
          (if i < Plev then raise Same.SAME    (*var is locally bound*)
           else incr_pboundvars Plev tlev (nth args (i-Plev))
-                 handle Subscript => PBound (i-n)  (*loose: change it*))
+                 handle General.Subscript => PBound (i-n)  (*loose: change it*))
       | subst (AbsP (a, t, body)) Plev tlev = AbsP (a, t, subst body (Plev+1) tlev)
       | subst (Abst (a, T, body)) Plev tlev = Abst (a, T, subst body Plev (tlev+1))
       | subst (prf %% prf') Plev tlev = (subst prf Plev tlev %% substh prf' Plev tlev
