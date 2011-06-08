@@ -56,7 +56,7 @@ val new_skolemizer =
 
 (* Designed to work also with monomorphic instances of polymorphic theorems. *)
 fun have_common_thm ths1 ths2 =
-  exists (member (metis_aconv_untyped o pairself prop_of) ths1)
+  exists (member (Term.aconv_untyped o pairself prop_of) ths1)
          (map Meson.make_meta_clause ths2)
 
 (*Determining which axiom clauses are actually used*)
