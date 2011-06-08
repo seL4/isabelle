@@ -167,7 +167,6 @@ fun metis_axiom_from_atp clauses (Formula (ident, _, phi, _, _)) =
 fun prepare_metis_problem ctxt type_sys conj_clauses fact_clauses =
   let
     val type_sys = type_sys_from_string type_sys
-    val explicit_apply = NONE
     val clauses =
       conj_clauses @ fact_clauses
       |> (if polymorphism_of_type_sys type_sys = Polymorphic then
@@ -188,8 +187,8 @@ fun prepare_metis_problem ctxt type_sys conj_clauses fact_clauses =
 val _ = tracing ("PROPS:\n" ^ cat_lines (map (Syntax.string_of_term ctxt) props))
 *)
     val (atp_problem, _, _, _, _, _, sym_tab) =
-      prepare_atp_problem ctxt CNF Hypothesis Axiom type_sys explicit_apply
-                          false false props @{prop False} []
+      prepare_atp_problem ctxt CNF Hypothesis Axiom type_sys false false props
+                          @{prop False} []
 (*
 val _ = tracing ("ATP PROBLEM: " ^ cat_lines (tptp_lines_for_atp_problem CNF atp_problem))
 *)

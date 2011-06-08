@@ -131,8 +131,7 @@ sig
   val type_constrs_of_terms : theory -> term list -> string list
   val prepare_atp_problem :
     Proof.context -> format -> formula_kind -> formula_kind -> type_sys
-    -> bool option -> bool -> bool -> term list -> term
-    -> ((string * locality) * term) list
+    -> bool -> bool -> term list -> term -> ((string * locality) * term) list
     -> string problem * string Symtab.table * int * int
        * (string * locality) list vector * int list * int Symtab.table
   val atp_problem_weights : string problem -> (string * real) list
@@ -1833,9 +1832,10 @@ val helpersN = "Helper facts"
 val conjsN = "Conjectures"
 val free_typesN = "Type variables"
 
+val explicit_apply = NONE (* for experimental purposes *)
+
 fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
-                        explicit_apply readable_names preproc hyp_ts concl_t
-                        facts =
+                        readable_names preproc hyp_ts concl_t facts =
   let
     val (format, type_sys) = choose_format [format] type_sys
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =

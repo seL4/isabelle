@@ -706,7 +706,7 @@ fun discharge_skolem_premises ctxt axioms prems_imp_false =
       val ax_counts =
         Int_Tysubst_Table.empty
         |> fold (fn (ax_no, (_, (tysubst, _))) =>
-                    Int_Tysubst_Table.map_default ((ax_no, tysubst), 0)
+                    Int_Tysubst_Table.map_default ((ax_no, [](*###*)), 0)
                                                   (Integer.add 1)) substs
         |> Int_Tysubst_Table.dest
       val needed_axiom_props =

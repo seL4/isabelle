@@ -47,7 +47,7 @@ fun n_facts names =
 fun print silent f = if silent then () else Output.urgent_message (f ())
 
 fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
-                 max_new_mono_instances, type_sys, explicit_apply, isar_proof,
+                 max_new_mono_instances, type_sys, isar_proof,
                  isar_shrink_factor, preplay_timeout, ...} : params)
                silent (prover : prover) timeout i n state facts =
   let
@@ -59,7 +59,7 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
     val {goal, ...} = Proof.goal state
     val params =
       {debug = debug, verbose = verbose, overlord = overlord, blocking = true,
-       provers = provers, type_sys = type_sys, explicit_apply = explicit_apply,
+       provers = provers, type_sys = type_sys,
        relevance_thresholds = (1.01, 1.01), max_relevant = NONE,
        max_mono_iters = max_mono_iters,
        max_new_mono_instances = max_new_mono_instances, isar_proof = isar_proof,
@@ -73,16 +73,18 @@ fun test_facts ({debug, verbose, overlord, provers, max_mono_iters,
     val result as {outcome, used_facts, run_time_in_msecs, ...} =
       prover params (K (K "")) problem
   in
-    print silent (fn () =>
-        case outcome of
-          SOME failure => string_for_failure failure
-        | NONE => "Found proof" ^
-                  (if length used_facts = length facts then ""
-                   else " with " ^ n_facts used_facts) ^
-                  (case run_time_in_msecs of
-                     SOME ms =>
-                     " (" ^ string_from_time (Time.fromMilliseconds ms) ^ ")"
-                   | NONE => "") ^ ".");
+    print silent
+          (fn () =>
+              case outcome of
+                SOME failure => string_for_failure failure
+              | NONE =>
+                "Found proof" ^
+                 (if length used_facts = length facts then ""
+                  else " with " ^ n_facts used_facts) ^
+                 (case run_time_in_msecs of
+                    SOME ms =>
+                    " (" ^ string_from_time (Time.fromMilliseconds ms) ^ ")"
+                  | NONE => "") ^ ".");
     result
   end
 

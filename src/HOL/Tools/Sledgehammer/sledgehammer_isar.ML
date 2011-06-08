@@ -96,7 +96,6 @@ val default_default_params =
    ("max_relevant", "smart"),
    ("max_mono_iters", "3"),
    ("max_new_mono_instances", "400"),
-   ("explicit_apply", "smart"),
    ("isar_proof", "false"),
    ("isar_shrink_factor", "1"),
    ("slicing", "true"),
@@ -112,14 +111,13 @@ val negated_alias_params =
    ("no_overlord", "overlord"),
    ("non_blocking", "blocking"),
    ("partial_types", "full_types"),
-   ("implicit_apply", "explicit_apply"),
    ("no_isar_proof", "isar_proof"),
    ("no_slicing", "slicing")]
 
 val params_for_minimize =
   ["debug", "verbose", "overlord", "type_sys", "full_types", "max_mono_iters",
-   "max_new_mono_instances", "explicit_apply", "isar_proof",
-   "isar_shrink_factor", "timeout", "preplay_timeout"]
+   "max_new_mono_instances", "isar_proof", "isar_shrink_factor", "timeout",
+   "preplay_timeout"]
 
 val property_dependent_params = ["provers", "full_types", "timeout"]
 
@@ -284,7 +282,6 @@ fun extract_params mode default_params override_params =
     val max_relevant = lookup_option lookup_int "max_relevant"
     val max_mono_iters = lookup_int "max_mono_iters"
     val max_new_mono_instances = lookup_int "max_new_mono_instances"
-    val explicit_apply = lookup_option lookup_bool "explicit_apply"
     val isar_proof = lookup_bool "isar_proof"
     val isar_shrink_factor = Int.max (1, lookup_int "isar_shrink_factor")
     val slicing = mode <> Auto_Try andalso lookup_bool "slicing"
@@ -299,9 +296,9 @@ fun extract_params mode default_params override_params =
      provers = provers, relevance_thresholds = relevance_thresholds,
      max_relevant = max_relevant, max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances, type_sys = type_sys,
-     explicit_apply = explicit_apply, isar_proof = isar_proof,
-     isar_shrink_factor = isar_shrink_factor, slicing = slicing,
-     timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
+     isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
+     slicing = slicing, timeout = timeout, preplay_timeout = preplay_timeout,
+     expect = expect}
   end
 
 fun get_params mode ctxt = extract_params mode (default_raw_params ctxt)

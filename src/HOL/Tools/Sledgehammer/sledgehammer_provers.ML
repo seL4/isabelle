@@ -33,7 +33,6 @@ sig
      max_relevant: int option,
      max_mono_iters: int,
      max_new_mono_instances: int,
-     explicit_apply: bool option,
      isar_proof: bool,
      isar_shrink_factor: int,
      slicing: bool,
@@ -301,7 +300,6 @@ type params =
    max_relevant: int option,
    max_mono_iters: int,
    max_new_mono_instances: int,
-   explicit_apply: bool option,
    isar_proof: bool,
    isar_shrink_factor: int,
    slicing: bool,
@@ -549,8 +547,8 @@ fun run_atp mode name
         ({exec, required_execs, arguments, proof_delims, known_failures,
           conj_sym_kind, prem_kind, formats, best_slices, ...} : atp_config)
         ({debug, verbose, overlord, type_sys, max_relevant, max_mono_iters,
-          max_new_mono_instances, explicit_apply, isar_proof,
-          isar_shrink_factor, slicing, timeout, preplay_timeout, ...} : params)
+          max_new_mono_instances, isar_proof, isar_shrink_factor, slicing,
+          timeout, preplay_timeout, ...} : params)
         minimize_command
         ({state, goal, subgoal, subgoal_count, facts, ...} : prover_problem) =
   let
@@ -655,9 +653,8 @@ fun run_atp mode name
                 val (atp_problem, pool, conjecture_offset, facts_offset,
                      fact_names, typed_helpers, sym_tab) =
                   prepare_atp_problem ctxt format conj_sym_kind prem_kind
-                      type_sys explicit_apply
-                      (Config.get ctxt atp_readable_names) true hyp_ts concl_t
-                      facts
+                      type_sys (Config.get ctxt atp_readable_names) true hyp_ts
+                      concl_t facts
                 fun weights () = atp_problem_weights atp_problem
                 val core =
                   File.shell_path command ^ " " ^
