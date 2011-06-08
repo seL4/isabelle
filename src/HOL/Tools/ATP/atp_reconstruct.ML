@@ -228,22 +228,23 @@ fun used_facts_in_atp_proof ctxt type_sys facts_offset fact_names atp_proof =
   if null atp_proof then Vector.foldl (op @) [] fact_names
   else fold (add_fact ctxt type_sys facts_offset fact_names) atp_proof []
 
-fun is_conjecture_referred_to_in_proof conjecture_shape =
+fun is_conjecture_used_in_proof conjecture_shape =
   exists (fn Inference (name, _, []) => is_conjecture conjecture_shape name
            | _ => false)
 
-fun used_facts_in_unsound_atp_proof ctxt type_sys conjecture_shape facts_offset
+fun used_facts_in_unsound_atp_proof _ _ _ _ _ [] = NONE
+  | used_facts_in_unsound_atp_proof ctxt type_sys conjecture_shape facts_offset
                                     fact_names atp_proof =
-  let
-    val used_facts =
-      used_facts_in_atp_proof ctxt type_sys facts_offset fact_names atp_proof
-  in
-    if forall (is_locality_global o snd) used_facts andalso
-       not (is_conjecture_referred_to_in_proof conjecture_shape atp_proof) then
-      SOME (map fst used_facts)
-    else
-      NONE
-  end
+    let
+      val used_facts =
+        used_facts_in_atp_proof ctxt type_sys facts_offset fact_names atp_proof
+    in
+      if forall (is_locality_global o snd) used_facts andalso
+         not (is_conjecture_used_in_proof conjecture_shape atp_proof) then
+        SOME (map fst used_facts)
+      else
+        NONE
+    end
 
 fun uses_typed_helpers typed_helpers =
   exists (fn Inference (name, _, []) => is_typed_helper typed_helpers name
