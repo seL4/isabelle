@@ -17,6 +17,7 @@ sig
   val make_cnf: thm list -> thm -> Proof.context -> thm list * Proof.context
   val finish_cnf: thm list -> thm list
   val unfold_set_const_simps : Proof.context -> thm list
+  val presimplified_consts : Proof.context -> string list
   val presimplify: Proof.context -> thm -> thm
   val make_nnf: Proof.context -> thm -> thm
   val choice_theorems : theory -> thm list
@@ -576,7 +577,15 @@ val nnf_extra_simps = @{thms split_ifs ex_simps all_simps simp_thms}
 
 val nnf_ss =
   HOL_basic_ss addsimps nnf_extra_simps
-    addsimprocs [@{simproc defined_All}, @{simproc defined_Ex}, @{simproc neq}, @{simproc let_simp}];
+    addsimprocs [@{simproc defined_All}, @{simproc defined_Ex}, @{simproc neq},
+                 @{simproc let_simp}]
+
+fun presimplified_consts ctxt =
+  [@{const_name simp_implies}, @{const_name False}, @{const_name True},
+   @{const_name Ex1}, @{const_name Ball}, @{const_name Bex}, @{const_name If},
+   @{const_name Let}]
+  |> Config.get ctxt unfold_set_consts
+     ? append ([@{const_name Collect}, @{const_name Set.member}])
 
 fun presimplify ctxt =
   rewrite_rule (map safe_mk_meta_eq nnf_simps)

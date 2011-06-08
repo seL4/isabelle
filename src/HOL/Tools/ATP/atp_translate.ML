@@ -870,10 +870,12 @@ fun combformula_from_prop thy format type_sys eq_as_iff =
       | _ => do_term bs t
   in do_formula [] end
 
-fun presimplify_term ctxt =
-  Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
-  #> Meson.presimplify ctxt
-  #> prop_of
+fun presimplify_term _ [] t = t
+  | presimplify_term ctxt presimp_consts t =
+    t |> exists_Const (member (op =) presimp_consts o fst) t
+         ? (Skip_Proof.make_thm (Proof_Context.theory_of ctxt)
+            #> Meson.presimplify ctxt
+            #> prop_of)
 
 fun concealed_bound_name j = sledgehammer_weak_prefix ^ string_of_int j
 fun conceal_bounds Ts t =
@@ -940,7 +942,7 @@ fun freeze_term t =
       | aux t = t
   in t |> exists_subterm is_Var t ? aux end
 
-fun preprocess_prop ctxt presimp kind t =
+fun preprocess_prop ctxt presimp_consts kind t =
   let
     val thy = Proof_Context.theory_of ctxt
     val t = t |> Envir.beta_eta_contract
@@ -951,7 +953,7 @@ fun preprocess_prop ctxt presimp kind t =
     t |> need_trueprop ? HOLogic.mk_Trueprop
       |> Raw_Simplifier.rewrite_term thy (Meson.unfold_set_const_simps ctxt) []
       |> extensionalize_term ctxt
-      |> presimp ? presimplify_term ctxt
+      |> presimplify_term ctxt presimp_consts
       |> perhaps (try (HOLogic.dest_Trueprop))
       |> introduce_combinators_in_term ctxt kind
   end
@@ -966,11 +968,11 @@ fun make_formula thy format type_sys eq_as_iff name loc kind t =
      atomic_types = atomic_types}
   end
 
-fun make_fact ctxt format type_sys keep_trivial eq_as_iff preproc presimp
+fun make_fact ctxt format type_sys keep_trivial eq_as_iff preproc presimp_consts
               ((name, loc), t) =
   let val thy = Proof_Context.theory_of ctxt in
     case (keep_trivial,
-          t |> preproc ? preprocess_prop ctxt presimp Axiom
+          t |> preproc ? preprocess_prop ctxt presimp_consts Axiom
             |> make_formula thy format type_sys eq_as_iff name loc Axiom) of
       (false,
        formula as {combformula = AAtom (CombConst ((s, _), _, _)), ...}) =>
@@ -978,7 +980,7 @@ fun make_fact ctxt format type_sys keep_trivial eq_as_iff preproc presimp
     | (_, formula) => SOME formula
   end
 
-fun make_conjecture ctxt format prem_kind type_sys preproc ts =
+fun make_conjecture ctxt format prem_kind type_sys preproc presimp_consts ts =
   let
     val thy = Proof_Context.theory_of ctxt
     val last = length ts - 1
@@ -993,7 +995,8 @@ fun make_conjecture ctxt format prem_kind type_sys preproc ts =
                     if prem_kind = Conjecture then update_combformula mk_anot
                     else I)
               in
-                t |> preproc ? (preprocess_prop ctxt true kind #> freeze_term)
+                t |> preproc ?
+                     (preprocess_prop ctxt presimp_consts kind #> freeze_term)
                   |> make_formula thy format type_sys (format <> CNF)
                                   (string_of_int j) General kind
                   |> maybe_negate
@@ -1344,7 +1347,7 @@ fun helper_facts_for_sym ctxt format type_sys (s, {types, ...} : sym_info) =
                    | _ => I)
          end)
       val make_facts =
-        map_filter (make_fact ctxt format type_sys false false false false)
+        map_filter (make_fact ctxt format type_sys false false false [])
       val fairly_sound = is_type_sys_fairly_sound type_sys
     in
       helper_table
@@ -1406,11 +1409,11 @@ fun translate_formulas ctxt format prem_kind type_sys preproc hyp_ts concl_t
   let
     val thy = Proof_Context.theory_of ctxt
     val fact_ts = facts |> map snd
+    val presimp_consts = Meson.presimplified_consts ctxt
+    val make_fact =
+      make_fact ctxt format type_sys false true true presimp_consts
     val (facts, fact_names) =
-      facts |> map (fn (name, t) =>
-                        (name, t)
-                        |> make_fact ctxt format type_sys false true true true
-                        |> rpair name)
+      facts |> map (fn (name, t) => (name, t) |> make_fact |> rpair name)
             |> map_filter (try (apfst the))
             |> ListPair.unzip
     (* Remove existing facts from the conjecture, as this can dramatically
@@ -1425,7 +1428,7 @@ fun translate_formulas ctxt format prem_kind type_sys preproc hyp_ts concl_t
     val tycons = type_constrs_of_terms thy all_ts
     val conjs =
       hyp_ts @ [concl_t]
-      |> make_conjecture ctxt format prem_kind type_sys preproc
+      |> make_conjecture ctxt format prem_kind type_sys preproc presimp_consts
     val (supers', arity_clauses) =
       if level_of_type_sys type_sys = No_Types then ([], [])
       else make_arity_clauses thy tycons supers
