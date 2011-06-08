@@ -167,6 +167,8 @@ val lineLength : int ref
 
 val toString : 'a pp -> 'a -> string
 
+val toLine : 'a pp -> 'a -> string
+
 val toStream : 'a pp -> 'a -> string Stream.stream
 
 val trace : 'a pp -> string -> 'a -> unit

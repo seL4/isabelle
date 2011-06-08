@@ -3,8 +3,11 @@
 (* Copyright (c) 2004 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
-functor ElementSet (KM : KeyMap) :> ElementSet
-where type element = KM.key and type 'a map = 'a KM.map =
+functor ElementSet (
+  KM : KeyMap
+) :> ElementSet
+where type element = KM.key
+and type 'a map = 'a KM.map =
 struct
 
 (* ------------------------------------------------------------------------- *)
@@ -293,6 +296,25 @@ fun equal (Set m1) (Set m2) = KM.equal equalValue m1 m2;
 fun subset (Set m1) (Set m2) = KM.subsetDomain m1 m2;
 
 fun disjoint (Set m1) (Set m2) = KM.disjointDomain m1 m2;
+
+(* ------------------------------------------------------------------------- *)
+(* Closing under an operation.                                               *)
+(* ------------------------------------------------------------------------- *)
+
+fun closedAdd f =
+    let
+      fun adds acc set = foldl check acc set
+
+      and check (elt,acc) =
+          if member elt acc then acc
+          else expand (add acc elt) elt
+
+      and expand acc elt = adds acc (f elt)
+    in
+      adds
+    end;
+
+fun close f = closedAdd f empty;
 
 (* ------------------------------------------------------------------------- *)
 (* Converting to and from lists.                                             *)

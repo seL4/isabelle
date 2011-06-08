@@ -1165,17 +1165,13 @@ end;
 
 val lineLength = ref initialLineLength;
 
-fun toStream ppA a =
-    Stream.map (fn {indent,line} => nSpaces indent ^ line ^ "\n")
-      (execute {lineLength = !lineLength} (ppA a));
-
 local
   fun inc {indent,line} acc = line :: nSpaces indent :: acc;
 
   fun incn (indent_line,acc) = inc indent_line ("\n" :: acc);
 in
-  fun toString ppA a =
-      case execute {lineLength = !lineLength} (ppA a) of
+  fun toLines len ppA a =
+      case execute {lineLength = len} (ppA a) of
         Stream.Nil => ""
       | Stream.Cons (h,t) =>
         let
@@ -1184,6 +1180,14 @@ in
           String.concat (rev lines)
         end;
 end;
+
+fun toString ppA a = toLines (!lineLength) ppA a;
+
+fun toLine ppA a = toLines 100000 ppA a;
+
+fun toStream ppA a =
+    Stream.map (fn {indent,line} => nSpaces indent ^ line ^ "\n")
+      (execute {lineLength = !lineLength} (ppA a));
 
 local
   val sep = mkStringSize " =";

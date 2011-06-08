@@ -5417,6 +5417,14 @@ val subset : set -> set -> bool
 val disjoint : set -> set -> bool
 
 (* ------------------------------------------------------------------------- *)
+(* Closing under an operation.                                               *)
+(* ------------------------------------------------------------------------- *)
+
+val closedAdd : (element -> set) -> set -> set -> set
+
+val close : (element -> set) -> set -> set
+
+(* ------------------------------------------------------------------------- *)
 (* Converting to and from lists.                                             *)
 (* ------------------------------------------------------------------------- *)
 
@@ -5467,8 +5475,11 @@ end
 (* Copyright (c) 2004 Joe Hurd, distributed under the BSD License            *)
 (* ========================================================================= *)
 
-functor Metis_ElementSet (KM : Metis_KeyMap) :> Metis_ElementSet
-where type element = KM.key and type 'a map = 'a KM.map =
+functor Metis_ElementSet (
+  KM : Metis_KeyMap
+) :> Metis_ElementSet
+where type element = KM.key
+and type 'a map = 'a KM.map =
 struct
 
 (* ------------------------------------------------------------------------- *)
@@ -5757,6 +5768,25 @@ fun equal (Metis_Set m1) (Metis_Set m2) = KM.equal equalValue m1 m2;
 fun subset (Metis_Set m1) (Metis_Set m2) = KM.subsetDomain m1 m2;
 
 fun disjoint (Metis_Set m1) (Metis_Set m2) = KM.disjointDomain m1 m2;
+
+(* ------------------------------------------------------------------------- *)
+(* Closing under an operation.                                               *)
+(* ------------------------------------------------------------------------- *)
+
+fun closedAdd f =
+    let
+      fun adds acc set = foldl check acc set
+
+      and check (elt,acc) =
+          if member elt acc then acc
+          else expand (add acc elt) elt
+
+      and expand acc elt = adds acc (f elt)
+    in
+      adds
+    end;
+
+fun close f = closedAdd f empty;
 
 (* ------------------------------------------------------------------------- *)
 (* Converting to and from lists.                                             *)
@@ -6652,6 +6682,8 @@ val ppInfixes :
 val lineLength : int Unsynchronized.ref
 
 val toString : 'a pp -> 'a -> string
+
+val toLine : 'a pp -> 'a -> string
 
 val toStream : 'a pp -> 'a -> string Metis_Stream.stream
 
@@ -7828,17 +7860,13 @@ end;
 
 val lineLength = Unsynchronized.ref initialLineLength;
 
-fun toStream ppA a =
-    Metis_Stream.map (fn {indent,line} => nSpaces indent ^ line ^ "\n")
-      (execute {lineLength = !lineLength} (ppA a));
-
 local
   fun inc {indent,line} acc = line :: nSpaces indent :: acc;
 
   fun incn (indent_line,acc) = inc indent_line ("\n" :: acc);
 in
-  fun toString ppA a =
-      case execute {lineLength = !lineLength} (ppA a) of
+  fun toLines len ppA a =
+      case execute {lineLength = len} (ppA a) of
         Metis_Stream.Nil => ""
       | Metis_Stream.Cons (h,t) =>
         let
@@ -7847,6 +7875,14 @@ in
           String.concat (rev lines)
         end;
 end;
+
+fun toString ppA a = toLines (!lineLength) ppA a;
+
+fun toLine ppA a = toLines 100000 ppA a;
+
+fun toStream ppA a =
+    Metis_Stream.map (fn {indent,line} => nSpaces indent ^ line ^ "\n")
+      (execute {lineLength = !lineLength} (ppA a));
 
 local
   val sep = mkStringSize " =";
