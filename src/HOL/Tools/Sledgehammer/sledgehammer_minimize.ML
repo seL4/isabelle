@@ -109,7 +109,7 @@ fun sublinear_minimize _ [] p = p
 
 fun binary_minimize test xs =
   let
-    fun p xs = #outcome (test xs : prover_result) = NONE
+    fun pred xs = #outcome (test xs : prover_result) = NONE
     fun split [] p = p
       | split [h] (l, r) = (h :: l, r)
       | split (h1 :: h2 :: t) (l, r) = split t (h1 :: l, h2 :: r)
@@ -124,9 +124,9 @@ fun binary_minimize test xs =
 *)
           val (l0, r0) = split xs ([], [])
         in
-          if p (sup @ l0) then
+          if pred (sup @ l0) then
             min (depth + 1) sup l0
-          else if p (sup @ r0) then
+          else if pred (sup @ r0) then
             min (depth + 1) sup r0
           else
             let
@@ -139,7 +139,7 @@ fun binary_minimize test xs =
 *)
     val xs =
       case min 0 [] xs of
-        [x] => if p [] then [] else [x]
+        [x] => if pred [] then [] else [x]
       | xs => xs
   in (xs, test xs) end
 
