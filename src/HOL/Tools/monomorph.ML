@@ -117,6 +117,13 @@ fun exceeded limit = (limit <= 0)
 fun exceeded_limit (limit, _, _) = exceeded limit
 
 
+fun derived_subst subst' subst = subst' |> Vartab.forall (fn (n, (_, T)) => 
+  Vartab.lookup subst n |> Option.map (equal T o snd) |> the_default false)
+
+fun eq_subst (subst1, subst2) =
+  derived_subst subst1 subst2 andalso derived_subst subst2 subst1
+
+
 fun with_all_grounds cx grounds f =
   if exceeded_limit cx then I else Symtab.fold f grounds
 
@@ -129,15 +136,12 @@ fun derive_new_substs thy cx new_grounds schematics subst =
     (with_all_type_combinations cx schematics (fn T => fn U =>
       (case try (Sign.typ_match thy (T, U)) subst of
         NONE => I
-      | SOME subst' => cons subst'))) []
+      | SOME subst' => insert eq_subst subst'))) []
 
 
-fun same_subst subst' (_, subst) = subst' |> Vartab.forall (fn (n, (_, T)) => 
-  Vartab.lookup subst n |> Option.map (equal T o snd) |> the_default false)
-
-fun known_subst sub subs1 subs2 subst =
-  same_subst subst sub orelse exists (same_subst subst) subs1 orelse
-  exists (same_subst subst) subs2
+fun known_subst sub subs1 subs2 subst' =
+  let fun derived (_, subst) = derived_subst subst' subst
+  in derived sub orelse exists derived subs1 orelse exists derived subs2 end
 
 fun within_limit f cx = if exceeded_limit cx then cx else f cx
 
