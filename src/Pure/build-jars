@@ -9,6 +9,19 @@
 
 ## diagnostics
 
+PRG="$(basename "$0")"
+
+function usage()
+{
+  echo
+  echo "Usage: isabelle $PRG [OPTIONS]"
+  echo
+  echo "  Options are:"
+  echo "    -f           fresh build"
+  echo
+  exit 1
+}
+
 function fail()
 {
   echo "$1" >&2
@@ -17,6 +30,33 @@ function fail()
 
 [ -z "$ISABELLE_HOME" ] && fail "Missing Isabelle settings environment"
 [ -z "$SCALA_HOME" ] && fail "Unknown SCALA_HOME -- Scala unavailable"
+
+
+## process command line
+
+# options
+
+FRESH=""
+
+while getopts "f" OPT
+do
+  case "$OPT" in
+    f)
+      FRESH=true
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+[ "$#" -ne 0 ] && usage
+
 
 
 ## dependencies
@@ -75,16 +115,19 @@ declare -a TARGETS=("$PURE_JAR" "$FULL_JAR")
 
 ## main
 
-OUTDATED=false
-
-for SOURCE in "${SOURCES[@]}"
-do
-  [ ! -e "$SOURCE" ] && fail "Missing source file: $SOURCE"
-  for TARGET in "${TARGETS[@]}"
+if [ -n "$FRESH" ]; then
+  OUTDATED=true
+else
+  OUTDATED=false
+  for SOURCE in "${SOURCES[@]}"
   do
-    [ ! -e "$TARGET" -o "$SOURCE" -nt "$TARGET" ] && OUTDATED=true
+    [ ! -e "$SOURCE" ] && fail "Missing source file: $SOURCE"
+    for TARGET in "${TARGETS[@]}"
+    do
+      [ ! -e "$TARGET" -o "$SOURCE" -nt "$TARGET" ] && OUTDATED=true
+    done
   done
-done
+fi
 
 if [ "$OUTDATED" = true ]
 then
@@ -96,17 +139,20 @@ then
   "$SCALA_HOME/bin/scalac" -unchecked -deprecation -d classes -target:jvm-1.5 "${SOURCES[@]}" || \
     fail "Failed to compile sources"
   mkdir -p "$TARGET_DIR" || fail "Failed to create directory $TARGET_DIR"
-  (
-    cd classes
-    jar cfe "$(jvmpath "$PURE_JAR")" isabelle.GUI_Setup isabelle || \
-      fail "Failed to produce $PURE_JAR"
 
-    cp "$SCALA_HOME/lib/scala-swing.jar" .
-    jar xf scala-swing.jar
+  pushd classes
 
-    cp "$SCALA_HOME/lib/scala-library.jar" "$FULL_JAR"
-    jar ufe "$(jvmpath "$FULL_JAR")" isabelle.GUI_Setup isabelle scala || \
-      fail "Failed to produce $FULL_JAR"
-  )
+  jar cfe "$(jvmpath "$PURE_JAR")" isabelle.GUI_Setup isabelle || \
+    fail "Failed to produce $PURE_JAR"
+
+  cp "$SCALA_HOME/lib/scala-swing.jar" .
+  jar xf scala-swing.jar
+
+  cp "$SCALA_HOME/lib/scala-library.jar" "$FULL_JAR"
+  jar ufe "$(jvmpath "$FULL_JAR")" isabelle.GUI_Setup isabelle scala || \
+    fail "Failed to produce $FULL_JAR"
+
+  popd >/dev/null
+
   rm -rf classes
 fi
