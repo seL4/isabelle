@@ -387,11 +387,12 @@ fun typ_from_atp ctxt (u as ATerm (a, us)) =
       else case strip_prefix_and_unascii tfree_prefix a of
         SOME b => make_tfree ctxt b
       | NONE =>
-        case strip_prefix_and_unascii tvar_prefix a of
-          SOME b => make_tvar b
-        | NONE =>
-          (* Variable from the ATP, say "X1" *)
-          Type_Infer.param 0 (a, HOLogic.typeS)
+        (* Could be an Isabelle variable or a variable from the ATP, say "X1"
+           or "_5018". Sometimes variables from the ATP are indistinguishable
+           from Isabelle variables, which forces us to use a type parameter in
+           all cases. *)
+        (a |> perhaps (strip_prefix_and_unascii tvar_prefix), HOLogic.typeS)
+        |> Type_Infer.param 0
   end
 
 (* Type class literal applied to a type. Returns triple of polarity, class,
