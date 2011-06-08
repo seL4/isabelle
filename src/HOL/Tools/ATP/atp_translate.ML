@@ -119,7 +119,6 @@ sig
   val is_type_sys_virtually_sound : type_sys -> bool
   val is_type_sys_fairly_sound : type_sys -> bool
   val choose_format : format list -> type_sys -> format * type_sys
-  val raw_type_literals_for_types : typ list -> type_literal list
   val mk_aconns :
     connective -> ('a, 'b, 'c) formula list -> ('a, 'b, 'c) formula
   val unmangled_const_name : string -> string
@@ -144,9 +143,6 @@ open ATP_Util
 open ATP_Problem
 
 type name = string * string
-
-(* FIXME: avoid *)
-fun union_all xss = fold (union (op =)) xss []
 
 (* experimental *)
 val generate_useful_info = false
@@ -393,11 +389,10 @@ datatype arity_literal =
 fun gen_TVars 0 = []
   | gen_TVars n = ("T_" ^ string_of_int n) :: gen_TVars (n-1)
 
-fun pack_sort (_,[])  = []
-  | pack_sort (tvar, "HOL.type" :: srt) =
-    pack_sort (tvar, srt) (* IGNORE sort "type" *)
-  | pack_sort (tvar, cls :: srt) =
-    (`make_type_class cls, `I tvar) :: pack_sort (tvar, srt)
+val type_class = the_single @{sort type}
+
+fun add_packed_sort tvar =
+  fold (fn s => s <> type_class ? cons (`make_type_class s, `I tvar))
 
 type arity_clause =
   {name: string,
@@ -411,7 +406,7 @@ fun make_axiom_arity_clause (tcons, name, (cls, args)) =
     val tvars_srts = ListPair.zip (tvars, args)
   in
     {name = name,
-     prem_lits = map TVarLit (union_all (map pack_sort tvars_srts)),
+     prem_lits = [] |> fold (uncurry add_packed_sort) tvars_srts |> map TVarLit,
      concl_lits = TConsLit (`make_type_class cls,
                             `make_fixed_type_const tcons,
                             tvars ~~ tvars)}
@@ -447,10 +442,14 @@ fun type_class_pairs thy tycons classes =
 (*Proving one (tycon, class) membership may require proving others, so iterate.*)
 fun iter_type_class_pairs _ _ [] = ([], [])
   | iter_type_class_pairs thy tycons classes =
-      let val cpairs = type_class_pairs thy tycons classes
-          val newclasses = union_all (union_all (union_all (map (map #2 o #2) cpairs)))
-            |> subtract (op =) classes |> subtract (op =) HOLogic.typeS
-          val (classes', cpairs') = iter_type_class_pairs thy tycons newclasses
+      let
+        fun maybe_insert_class s =
+          (s <> type_class andalso not (member (op =) classes s))
+          ? insert (op =) s
+        val cpairs = type_class_pairs thy tycons classes
+        val newclasses =
+          [] |> fold (fold (fold (fold maybe_insert_class) o snd) o snd) cpairs
+        val (classes', cpairs') = iter_type_class_pairs thy tycons newclasses
       in (union (op =) classes' classes, union (op =) cpairs' cpairs) end
 
 fun make_arity_clauses thy tycons =
@@ -684,28 +683,23 @@ fun type_arg_policy type_sys s =
     general_type_arg_policy type_sys
 
 (*Make literals for sorted type variables*)
-fun generic_sorts_on_type (_, []) = []
-  | generic_sorts_on_type ((x, i), s :: ss) =
-    generic_sorts_on_type ((x, i), ss)
-    |> (if s = the_single @{sort HOL.type} then
+fun generic_add_sorts_on_type (_, []) = I
+  | generic_add_sorts_on_type ((x, i), s :: ss) =
+    generic_add_sorts_on_type ((x, i), ss)
+    #> (if s = the_single @{sort HOL.type} then
           I
         else if i = ~1 then
-          cons (TyLitFree (`make_type_class s, `make_fixed_type_var x))
+          insert (op =) (TyLitFree (`make_type_class s, `make_fixed_type_var x))
         else
-          cons (TyLitVar (`make_type_class s,
-                          (make_schematic_type_var (x, i), x))))
-fun sorts_on_tfree (TFree (s, S)) = generic_sorts_on_type ((s, ~1), S)
-  | sorts_on_tfree _ = []
-fun sorts_on_tvar (TVar z) = generic_sorts_on_type z
-  | sorts_on_tvar _ = []
+          insert (op =) (TyLitVar (`make_type_class s,
+                                   (make_schematic_type_var (x, i), x))))
+fun add_sorts_on_tfree (TFree (s, S)) = generic_add_sorts_on_type ((s, ~1), S)
+  | add_sorts_on_tfree _ = I
+fun add_sorts_on_tvar (TVar z) = generic_add_sorts_on_type z
+  | add_sorts_on_tvar _ = I
 
-(* Given a list of sorted type variables, return a list of type literals. *)
-fun raw_type_literals_for_types Ts =
-  union_all (map sorts_on_tfree Ts @ map sorts_on_tvar Ts)
-
-fun type_literals_for_types type_sys sorts_on_typ Ts =
-  if level_of_type_sys type_sys = No_Types then []
-  else union_all (map sorts_on_typ Ts)
+fun type_literals_for_types type_sys add_sorts_on_typ Ts =
+  [] |> level_of_type_sys type_sys <> No_Types ? fold add_sorts_on_typ Ts
 
 fun mk_aconns c phis =
   let val (phis', phi') = split_last phis in
@@ -1529,7 +1523,7 @@ and formula_from_combformula ctxt format nonmono_Ts type_sys
 
 fun bound_tvars type_sys Ts =
   mk_ahorn (map (formula_from_fo_literal o fo_literal_from_type_literal)
-                (type_literals_for_types type_sys sorts_on_tvar Ts))
+                (type_literals_for_types type_sys add_sorts_on_tvar Ts))
 
 fun formula_for_fact ctxt format nonmono_Ts type_sys
                      ({combformula, atomic_types, ...} : translated_formula) =
@@ -1591,7 +1585,7 @@ fun formula_line_for_conjecture ctxt format nonmono_Ts type_sys
            |> close_formula_universally, NONE, NONE)
 
 fun free_type_literals type_sys ({atomic_types, ...} : translated_formula) =
-  atomic_types |> type_literals_for_types type_sys sorts_on_tfree
+  atomic_types |> type_literals_for_types type_sys add_sorts_on_tfree
                |> map fo_literal_from_type_literal
 
 fun formula_line_for_free_type j lit =
