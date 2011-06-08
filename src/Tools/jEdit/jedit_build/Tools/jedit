@@ -120,9 +120,16 @@ then
     cp -a "${JEDIT_JARS[@]}" "${SCALA_JARS[@]}" "$ISABELLE_HOME/lib/classes/Pure.jar" \
       "$TARGET_DIR/jars/." || failed
 
+    declare -a JVM_SOURCES=()
+    for SOURCE in "${SOURCES[@]}"
+    do
+      JVM_SOURCES["${#JVM_SOURCES[@]}"]="$(jvmpath "$SOURCE")"
+    done
+
     CLASSPATH="$(jvmpath "$CLASSPATH")"
+
     "$SCALA_HOME/bin/scalac" -unchecked -deprecation \
-      -d "$TARGET_DIR/classes" -target:jvm-1.5 "${SOURCES[@]}" || \
+      -d "$(jvmpath "$TARGET_DIR/classes")" -target:jvm-1.5 "${JVM_SOURCES[@]}" || \
       fail "Failed to compile sources"
 
     cd "$TARGET_DIR/classes"
