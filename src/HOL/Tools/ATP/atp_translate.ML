@@ -625,7 +625,7 @@ fun choose_format formats (Simple_Types level) =
        CNF_UEQ =>
        (CNF_UEQ, case type_sys of
                    Preds stuff =>
-                   (if is_type_sys_fairly_sound type_sys then Preds else Tags)
+                   (if is_type_sys_fairly_sound type_sys then Tags else Preds)
                        stuff
                  | _ => type_sys)
      | format => (format, type_sys))
