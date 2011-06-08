@@ -22,7 +22,7 @@ val ascii_of = ATP_Translate.ascii_of
 val fact_name_of = prefix ATP_Translate.fact_prefix o ascii_of
 
 fun facts_of thy =
-  Sledgehammer_Filter.all_facts (ProofContext.init_global thy) Symtab.empty
+  Sledgehammer_Filter.all_facts (Proof_Context.init_global thy) Symtab.empty
                                 true (K true) [] []
 
 fun fold_body_thms f =
@@ -44,7 +44,7 @@ fun theorems_mentioned_in_proof_term thm =
   in names end
 
 fun interesting_const_names ctxt =
-  let val thy = ProofContext.theory_of ctxt in
+  let val thy = Proof_Context.theory_of ctxt in
     Sledgehammer_Filter.const_names_in_fact thy
         (Sledgehammer_Provers.is_built_in_const_for_prover ctxt ATP_Systems.eN)
   end
