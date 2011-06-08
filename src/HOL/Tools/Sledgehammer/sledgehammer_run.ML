@@ -77,7 +77,7 @@ fun minimize ctxt mode name (params as {debug, verbose, isar_proof, ...})
              ({state, subgoal, subgoal_count, facts, ...} : prover_problem)
              (result as {outcome, used_facts, run_time_in_msecs, preplay,
                          message, message_tail} : prover_result) =
-  if is_some outcome then
+  if is_some outcome orelse null used_facts then
     result
   else
     let
