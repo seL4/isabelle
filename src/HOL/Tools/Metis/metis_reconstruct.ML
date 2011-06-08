@@ -15,7 +15,7 @@ sig
     Proof.context -> int Symtab.table -> (string * term) list -> Metis_Thm.thm
     -> term
   val lookth : (Metis_Thm.thm * 'a) list -> Metis_Thm.thm -> 'a
-  val untyped_aconv : term * term -> bool
+  val metis_aconv_untyped : term * term -> bool
   val replay_one_inference :
     Proof.context -> (string * term) list -> int Symtab.table
     -> Metis_Thm.thm * Metis_Proof.inference -> (Metis_Thm.thm * thm) list
@@ -228,15 +228,16 @@ fun simp_not_not (@{const Trueprop} $ t) = @{const Trueprop} $ simp_not_not t
   | simp_not_not t = t
 
 (* Match untyped terms. *)
-fun untyped_aconv (Const (a, _), Const(b, _)) = (a = b)
-  | untyped_aconv (Free (a, _), Free (b, _)) = (a = b)
-  | untyped_aconv (Var ((a, _), _), Var ((b, _), _)) =
-    (a = b) (* ignore variable numbers *)
-  | untyped_aconv (Bound i, Bound j) = (i = j)
-  | untyped_aconv (Abs (_, _, t), Abs (_, _, u)) = untyped_aconv (t, u)
-  | untyped_aconv (t1 $ t2, u1 $ u2) =
-    untyped_aconv (t1, u1) andalso untyped_aconv (t2, u2)
-  | untyped_aconv _ = false
+fun metis_aconv_untyped (Const (a, _), Const(b, _)) = (a = b)
+  | metis_aconv_untyped (Free (a, _), Free (b, _)) = (a = b)
+  | metis_aconv_untyped (Var ((a, _), _), Var ((b, _), _)) =
+    a = b (* ignore variable numbers *)
+  | metis_aconv_untyped (Bound i, Bound j) = (i = j)
+  | metis_aconv_untyped (Abs (_, _, t), Abs (_, _, u)) =
+    metis_aconv_untyped (t, u)
+  | metis_aconv_untyped (t1 $ t2, u1 $ u2) =
+    metis_aconv_untyped (t1, u1) andalso metis_aconv_untyped (t2, u2)
+  | metis_aconv_untyped _ = false
 
 val normalize_literal = simp_not_not o Envir.eta_contract
 
@@ -246,7 +247,7 @@ fun index_of_literal lit haystack =
   let
     fun match_lit normalize =
       HOLogic.dest_Trueprop #> normalize
-      #> curry untyped_aconv (lit |> normalize)
+      #> curry metis_aconv_untyped (lit |> normalize)
   in
     (case find_index (match_lit I) haystack of
        ~1 => find_index (match_lit (simp_not_not o Envir.eta_contract)) haystack
@@ -451,7 +452,7 @@ fun resynchronize ctxt fol_th th =
       let
         val (prems0, concl) = th |> prop_of |> Logic.strip_horn
         val prems = prems0 |> map normalize_literal
-                           |> distinct untyped_aconv
+                           |> distinct metis_aconv_untyped
         val goal = Logic.list_implies (prems, concl)
         val tac = cut_rules_tac [th] 1
                   THEN rewrite_goals_tac @{thms not_not [THEN eq_reflection]}
@@ -501,7 +502,7 @@ fun unify_first_prem_with_concl thy i th =
     val prem = goal |> Logic.strip_assums_hyp |> hd
     val concl = goal |> Logic.strip_assums_concl
     fun pair_untyped_aconv (t1, t2) (u1, u2) =
-      untyped_aconv (t1, u1) andalso untyped_aconv (t2, u2)
+      metis_aconv_untyped (t1, u1) andalso metis_aconv_untyped (t2, u2)
     fun add_terms tp inst =
       if exists (pair_untyped_aconv tp) inst then inst
       else tp :: map (apsnd (subst_atomic [tp])) inst
