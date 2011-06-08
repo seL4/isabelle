@@ -1,4 +1,4 @@
-/*  Title:      Pure/Isar/outer_parse.scala
+/*  Title:      Pure/Isar/parse.scala
     Author:     Makarius
 
 Generic parsers for Isabelle/Isar outer syntax.

@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/jedit/isabelle_markup.scala
+/*  Title:      Tools/jEdit/src/isabelle_markup.scala
     Author:     Makarius
 
 Isabelle specific physical rendering and markup selection.

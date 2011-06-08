@@ -389,7 +389,7 @@ fun create_detailed_entry thy thm exec mutants mtds =
 fun mutate_theorem create_entry thy mtds thm =
   let
     val exec = is_executable_thm thy thm
-    val _ = Output.tracing (if exec then "EXEC" else "NOEXEC")
+    val _ = tracing (if exec then "EXEC" else "NOEXEC")
     val mutants =
           (if num_mutations = 0 then
              [Thm.prop_of thm]

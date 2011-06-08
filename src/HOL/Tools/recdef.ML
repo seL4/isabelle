@@ -261,7 +261,7 @@ fun gen_recdef_tc prep_att prep_name (bname, raw_atts) raw_name opt_i int lthy =
         NONE => error ("No recdef definition of constant: " ^ quote name)
       | SOME {tcs, ...} => tcs);
     val i = the_default 1 opt_i;
-    val tc = nth tcs (i - 1) handle Subscript =>
+    val tc = nth tcs (i - 1) handle General.Subscript =>
       error ("No termination condition #" ^ string_of_int i ^
         " in recdef definition of " ^ quote name);
   in

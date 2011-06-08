@@ -354,7 +354,7 @@ fun CHANGED_GOAL tac i st =
             orelse
              not (Pattern.aeconv (t, Thm.term_of (Thm.cprem_of st' (Thm.nprems_of st' - d))))
     in  Seq.filter diff (tac i st)  end
-    handle Subscript => Seq.empty  (*no subgoal i*);
+    handle General.Subscript => Seq.empty  (*no subgoal i*);
 
 (*Returns all states where some subgoals have been solved.  For
   subgoal-based tactics this means subgoal i has been solved

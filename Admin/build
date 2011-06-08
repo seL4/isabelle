@@ -27,6 +27,7 @@ Usage: $PRG [MODULES]
     browser         graph browser (requires jdk)
     doc             documentation (requires latex and rail)
     jars            Isabelle/Scala layer (requires Scala in \$SCALA_HOME)
+    jars_fresh      fresh build of jars
 
 EOF
   exit 1
@@ -84,7 +85,7 @@ function build_doc ()
 function build_jars ()
 {
   pushd "$ISABELLE_HOME/src/Pure" >/dev/null
-  "$ISABELLE_TOOL" env ./build-jars || exit $?
+  "$ISABELLE_TOOL" env ./build-jars "$@" || exit $?
   popd >/dev/null
 }
 
@@ -98,6 +99,7 @@ do
     browser) build_browser;;
     doc) build_doc;;
     jars) build_jars;;
+    jars_fresh) build_jars -f;;
     *) fail "Bad module $MODULE"
   esac
 done

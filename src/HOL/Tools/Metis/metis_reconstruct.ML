@@ -377,7 +377,7 @@ fun equality_inference ctxt old_skolems sym_tab (pos, atom) fp fr =
                 val p' = if adjustment > p then p else p - adjustment
                 val tm_p =
                   nth args p'
-                  handle Subscript => path_finder_fail tm (p :: ps) (SOME t)
+                  handle General.Subscript => path_finder_fail tm (p :: ps) (SOME t)
                 val _ = trace_msg ctxt (fn () =>
                     "path_finder: " ^ string_of_int p ^ "  " ^
                     Syntax.string_of_term ctxt tm_p)

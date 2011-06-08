@@ -311,7 +311,7 @@ fun strip_type T = (binder_types T, body_type T);
 fun type_of1 (Ts, Const (_,T)) = T
   | type_of1 (Ts, Free  (_,T)) = T
   | type_of1 (Ts, Bound i) = (nth Ts i
-        handle Subscript => raise TYPE("type_of: bound variable", [], [Bound i]))
+        handle General.Subscript => raise TYPE("type_of: bound variable", [], [Bound i]))
   | type_of1 (Ts, Var (_,T)) = T
   | type_of1 (Ts, Abs (_,T,body)) = T --> type_of1(T::Ts, body)
   | type_of1 (Ts, f$u) =
@@ -336,7 +336,7 @@ fun fastype_of1 (Ts, f$u) =
   | fastype_of1 (_, Const (_,T)) = T
   | fastype_of1 (_, Free (_,T)) = T
   | fastype_of1 (Ts, Bound i) = (nth Ts i
-         handle Subscript => raise TERM("fastype_of: Bound", [Bound i]))
+         handle General.Subscript => raise TERM("fastype_of: Bound", [Bound i]))
   | fastype_of1 (_, Var (_,T)) = T
   | fastype_of1 (Ts, Abs (_,T,u)) = T --> fastype_of1 (T::Ts, u);
 
@@ -668,7 +668,7 @@ fun subst_bounds (args: term list, t) : term =
     fun subst (t as Bound i, lev) =
          (if i < lev then raise Same.SAME   (*var is locally bound*)
           else incr_boundvars lev (nth args (i - lev))
-            handle Subscript => Bound (i - n))  (*loose: change it*)
+            handle General.Subscript => Bound (i - n))  (*loose: change it*)
       | subst (Abs (a, T, body), lev) = Abs (a, T, subst (body, lev + 1))
       | subst (f $ t, lev) =
           (subst (f, lev) $ (subst (t, lev) handle Same.SAME => t)

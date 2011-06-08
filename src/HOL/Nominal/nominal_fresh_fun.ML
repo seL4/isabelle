@@ -5,8 +5,13 @@ Provides a tactic to generate fresh names and
 a tactic to analyse instances of the fresh_fun.
 *)
 
-(* First some functions that should be in the library *)
+(* First some functions that should be in the library *)  (* FIXME really?? *)
 
+(* FIXME proper ML structure *)
+
+(* FIXME res_inst_tac mostly obsolete, cf. Subgoal.FOCUS *)
+
+(* FIXME proper SUBGOAL/CSUBGOAL instead of cprems_of etc. *)
 fun gen_res_inst_tac_term instf tyinst tinst elim th i st =
   let
     val thy = theory_of_thm st;
@@ -25,7 +30,8 @@ fun gen_res_inst_tac_term instf tyinst tinst elim th i st =
       (Thm.lift_rule cgoal th)
   in
     compose_tac (elim, th', nprems_of th) i st
-  end handle Subscript => Seq.empty;
+  end handle General.Subscript => Seq.empty;
+(* FIXME proper SUBGOAL/CSUBGOAL instead of cprems_of etc. *)
 
 val res_inst_tac_term =
   gen_res_inst_tac_term (curry Thm.instantiate);

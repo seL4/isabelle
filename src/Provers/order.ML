@@ -1247,9 +1247,9 @@ in
   end
   handle Contr p =>
       (Subgoal.FOCUS (fn {prems = asms, ...} => rtac (prove asms p) 1) ctxt n st
-        handle Subscript => Seq.empty)
+        handle General.Subscript => Seq.empty)
    | Cannot => Seq.empty
-   | Subscript => Seq.empty)
+   | General.Subscript => Seq.empty)
 end;
 
 (* partial_tac - solves partial orders *)

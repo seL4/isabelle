@@ -360,7 +360,7 @@ fun parent_components thy (Ts, pname, renaming) =
     val all_comps = rename renaming (parent_comps @ map (apsnd subst) components);
   in all_comps end;
 
-fun take_upto i xs = List.take(xs,i) handle Subscript => xs;
+fun take_upto i xs = List.take(xs,i) handle General.Subscript => xs;
 
 fun statespace_definition state_type args name parents parent_comps components thy =
   let

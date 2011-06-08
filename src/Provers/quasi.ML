@@ -589,8 +589,8 @@ fun quasi_tac ctxt = SUBGOAL (fn (A, n) => fn st =>
  end
  handle Contr p =>
     (Subgoal.FOCUS (fn {prems, ...} => rtac (prove prems p) 1) ctxt n st
-      handle Subscript => Seq.empty)
+      handle General.Subscript => Seq.empty)
   | Cannot => Seq.empty
-  | Subscript => Seq.empty);
+  | General.Subscript => Seq.empty);
 
 end;

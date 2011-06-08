@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/jedit/isabelle_sidekick.scala
+/*  Title:      Tools/jEdit/src/isabelle_sidekick.scala
     Author:     Fabian Immler, TU Munich
     Author:     Makarius
 

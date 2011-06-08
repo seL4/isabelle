@@ -1,4 +1,4 @@
-/*  Title:      Pure/System/isabelle_process.ML
+/*  Title:      Pure/System/isabelle_process.scala
     Author:     Makarius
     Options:    :folding=explicit:collapseFolds=1:
 

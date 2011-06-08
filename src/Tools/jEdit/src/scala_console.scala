@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/jedit/scala_console.scala
+/*  Title:      Tools/jEdit/src/scala_console.scala
     Author:     Makarius
 
 Scala instance of Console plugin.

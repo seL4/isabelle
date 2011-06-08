@@ -206,7 +206,7 @@ fun infer_arities thy arities (optf, t) fs = case strip_comb t of
   | (u, ts) => (case Option.map (lookup_arity thy arities) (name_type_of u) of
       SOME (SOME (_, (arity, _))) =>
         (fold (infer_arities thy arities) (arity ~~ List.take (ts, length arity)) fs
-           handle Subscript => error "infer_arities: bad term")
+           handle General.Subscript => error "infer_arities: bad term")
     | _ => fold (infer_arities thy arities) (map (pair NONE) ts)
       (case optf of
          NONE => fs

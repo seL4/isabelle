@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/jedit/output_dockable.scala
+/*  Title:      Tools/jEdit/src/output_dockable.scala
     Author:     Makarius
 
 Dockable window with result message output.

@@ -429,7 +429,7 @@ fun chop_while P [] = ([], [])
   raise Subscript if list too short*)
 fun nth xs i = List.nth (xs, i);
 
-fun nth_list xss i = nth xss i handle Subscript => [];
+fun nth_list xss i = nth xss i handle General.Subscript => [];
 
 fun nth_map 0 f (x :: xs) = f x :: xs
   | nth_map n f (x :: xs) = x :: nth_map (n - 1) f xs

@@ -289,7 +289,7 @@ fun fastype (Envir {tyenv, ...}) =
       | fast Ts (Const (_, T)) = T
       | fast Ts (Free (_, T)) = T
       | fast Ts (Bound i) =
-          (nth Ts i handle Subscript => raise TERM ("fastype: Bound", [Bound i]))
+          (nth Ts i handle General.Subscript => raise TERM ("fastype: Bound", [Bound i]))
       | fast Ts (Var (_, T)) = T
       | fast Ts (Abs (_, T, u)) = T --> fast (T :: Ts) u;
   in fast end;

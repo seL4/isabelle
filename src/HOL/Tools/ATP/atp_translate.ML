@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_atp_translate.ML
+(*  Title:      HOL/Tools/ATP/atp_translate.ML
     Author:     Fabian Immler, TU Muenchen
     Author:     Makarius
     Author:     Jasmin Blanchette, TU Muenchen
@@ -239,7 +239,7 @@ val unascii_of =
           (* translation of #" " to #"/" *)
           un (Char.chr (Char.ord c - upper_a_minus_space) :: rcs) cs
         else
-          let val digits = List.take (c::cs, 3) handle Subscript => [] in
+          let val digits = List.take (c::cs, 3) handle General.Subscript => [] in
             case Int.fromString (String.implode digits) of
               SOME n => un (Char.chr n :: rcs) (List.drop (cs, 2))
             | NONE => un (c:: #"_"::rcs) cs (* ERROR *)

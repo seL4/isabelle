@@ -246,7 +246,7 @@ fun generate_constraints ctxt err =
       | gen cs _ (Free (_, T)) tye_idx = (T, tye_idx, cs)
       | gen cs _ (Var (_, T)) tye_idx = (T, tye_idx, cs)
       | gen cs bs (Bound i) tye_idx =
-          (snd (nth bs i handle Subscript => err_loose i), tye_idx, cs)
+          (snd (nth bs i handle General.Subscript => err_loose i), tye_idx, cs)
       | gen cs bs (Abs (x, T, t)) tye_idx =
           let val (U, tye_idx', cs') = gen cs ((x, T) :: bs) t tye_idx
           in (T --> U, tye_idx', cs') end
@@ -636,7 +636,7 @@ fun insert_coercions ctxt tye ts =
           let val T' = T;
           in (Var (xi, T'), T') end
       | insert bs (Bound i) =
-          let val T = nth bs i handle Subscript => err_loose i;
+          let val T = nth bs i handle General.Subscript => err_loose i;
           in (Bound i, T) end
       | insert bs (Abs (x, T, t)) =
           let
@@ -671,7 +671,7 @@ fun coercion_infer_types ctxt raw_ts =
       | inf _ (t as (Free (_, T))) tye_idx = (t, T, tye_idx)
       | inf _ (t as (Var (_, T))) tye_idx = (t, T, tye_idx)
       | inf bs (t as (Bound i)) tye_idx =
-          (t, snd (nth bs i handle Subscript => err_loose i), tye_idx)
+          (t, snd (nth bs i handle General.Subscript => err_loose i), tye_idx)
       | inf bs (Abs (x, T, t)) tye_idx =
           let val (t', U, tye_idx') = inf ((x, T) :: bs) t tye_idx
           in (Abs (x, T, t'), T --> U, tye_idx') end

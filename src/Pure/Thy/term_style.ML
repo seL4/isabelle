@@ -53,7 +53,7 @@ val parse = Args.context :|-- (fn ctxt => Scan.lift
       >> fold I
   || Scan.succeed I));
 
-val parse_bare = Args.context :|-- (fn ctxt => (Output.legacy_feature "Old-style antiquotation style.";
+val parse_bare = Args.context :|-- (fn ctxt => (legacy_feature "Old-style antiquotation style.";
   Scan.lift Args.liberal_name
   >> (fn name => fst (Args.context_syntax "style"
        (Scan.lift (the_style (Proof_Context.theory_of ctxt) name))
@@ -84,7 +84,7 @@ val style_prem = Args.name >> (fn raw_i => fn ctxt => fn t =>
 fun style_parm_premise i = Scan.succeed (fn ctxt => fn t =>
   let
     val i_str = string_of_int i;
-    val _ = Output.legacy_feature (quote ("prem" ^ i_str)
+    val _ = legacy_feature (quote ("prem" ^ i_str)
       ^ " term style encountered; use explicit argument syntax "
       ^ quote ("prem " ^ i_str) ^ " instead.");
     val prems = Logic.strip_imp_prems t;

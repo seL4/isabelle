@@ -1,7 +1,7 @@
-(*  Title:      src/Pure/Tools/yxml_find_theorems.ML
+(*  Title:      Tools/WWW_Find/yxml_find_theorems.ML
     Author:     Sree Harsha Totakura, TUM
-                Lars Noschinski, TUM
-                Alexander Krauss, TUM
+    Author:     Lars Noschinski, TUM
+    Author:     Alexander Krauss, TUM
 
 Simple find theorems web service with yxml interface for programmatic
 invocation.
@@ -32,7 +32,7 @@ fun visible_facts facts =
   Facts.dest_static [] facts
   |> filter_out (Facts.is_concealed facts o #1);
 
-fun init () = 
+fun init () =
   let
     val all_facts =
       maps Facts.selections

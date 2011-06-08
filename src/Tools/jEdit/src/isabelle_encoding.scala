@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/jedit/isabelle_encoding.scala
+/*  Title:      Tools/jEdit/src/isabelle_encoding.scala
     Author:     Makarius
 
 Isabelle encoding -- based on UTF-8.
