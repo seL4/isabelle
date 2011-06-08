@@ -145,6 +145,8 @@ fun metis_axiom_from_atp clauses (Formula (ident, _, phi, _, _)) =
       if ident = type_tag_idempotence_helper_name orelse
          String.isPrefix lightweight_tags_sym_formula_prefix ident then
         Isa_Reflexive_or_Trivial |> some
+      else if String.isPrefix conjecture_prefix ident then
+        NONE
       else if String.isPrefix helper_prefix ident then
         case (String.isSuffix typed_helper_suffix ident,
               space_explode "_" ident) of
@@ -155,12 +157,11 @@ fun metis_axiom_from_atp clauses (Formula (ident, _, phi, _, _)) =
           |> prepare_helper
           |> Isa_Raw |> some
         | _ => raise Fail ("malformed helper identifier " ^ quote ident)
-      else case try (unprefix conjecture_prefix) ident of
+      else case try (unprefix fact_prefix) ident of
         SOME s =>
-        let val j = the (Int.fromString s) in
-          if j = length clauses then NONE
-          else Meson.make_meta_clause (nth clauses j) |> Isa_Raw |> some
-        end
+        let
+          val j = s |> space_explode "_" |> List.last |> Int.fromString |> the
+        in Meson.make_meta_clause (snd (nth clauses j)) |> Isa_Raw |> some end
       | NONE => TrueI |> Isa_Raw |> some
     end
   | metis_axiom_from_atp _ _ = raise Fail "not CNF -- expected formula"
@@ -169,31 +170,40 @@ fun metis_axiom_from_atp clauses (Formula (ident, _, phi, _, _)) =
 fun prepare_metis_problem ctxt type_sys conj_clauses fact_clauses =
   let
     val type_sys = type_sys_from_string type_sys
+    val (conj_clauses, fact_clauses) =
+      if polymorphism_of_type_sys type_sys = Polymorphic then
+        (conj_clauses, fact_clauses)
+      else
+        conj_clauses @ fact_clauses
+        |> map (pair 0)
+        |> rpair ctxt
+        |-> Monomorph.monomorph atp_schematic_consts_of
+        |> fst |> chop (length conj_clauses)
+        |> pairself (maps (map (zero_var_indexes o snd)))
+    val num_conjs = length conj_clauses
     val clauses =
-      conj_clauses @ fact_clauses
-      |> (if polymorphism_of_type_sys type_sys = Polymorphic then
-            I
-          else
-            map (pair 0)
-            #> rpair ctxt
-            #-> Monomorph.monomorph atp_schematic_consts_of
-            #> fst #> maps (map (zero_var_indexes o snd)))
+      map2 (fn j => pair (Int.toString j, Local))
+           (0 upto num_conjs - 1) conj_clauses @
+      (* "General" below isn't quite correct; the fact could be local. *)
+      map2 (fn j => pair (Int.toString (num_conjs + j), General))
+           (0 upto length fact_clauses - 1) fact_clauses
     val (old_skolems, props) =
-      fold_rev (fn clause => fn (old_skolems, props) =>
-                   clause |> prop_of |> Logic.strip_imp_concl
-                          |> conceal_old_skolem_terms (length clauses)
-                                                      old_skolems
-                          ||> (fn prop => prop :: props))
-           clauses ([], [])
-(*
-val _ = tracing ("PROPS:\n" ^ cat_lines (map (Syntax.string_of_term ctxt) props))
-*)
+      fold_rev (fn (name, th) => fn (old_skolems, props) =>
+                   th |> prop_of |> Logic.strip_imp_concl
+                      |> conceal_old_skolem_terms (length clauses) old_skolems
+                      ||> (fn prop => (name, prop) :: props))
+               clauses ([], [])
+    (*
+    val _ =
+      tracing ("PROPS:\n" ^ cat_lines (map (Syntax.string_of_term ctxt) props))
+    *)
     val (atp_problem, _, _, _, _, _, sym_tab) =
-      prepare_atp_problem ctxt CNF Hypothesis Axiom type_sys false false props
-                          @{prop False} []
-(*
-val _ = tracing ("ATP PROBLEM: " ^ cat_lines (tptp_lines_for_atp_problem CNF atp_problem))
-*)
+      prepare_atp_problem ctxt CNF Hypothesis Axiom type_sys false false []
+                          @{prop False} props
+    (*
+    val _ = tracing ("ATP PROBLEM: " ^
+                     cat_lines (tptp_lines_for_atp_problem CNF atp_problem))
+    *)
     (* "rev" is for compatibility *)
     val axioms =
       atp_problem |> maps (map_filter (metis_axiom_from_atp clauses) o snd)

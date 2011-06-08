@@ -351,9 +351,8 @@ fun clausify_formula_line (Formula (ident, kind, phi, source, info)) =
       val (n, phis) = phi |> try (clausify_formula true) |> these |> `length
     in
       map2 (fn phi => fn j =>
-               Formula (ident ^
-                        (if n > 1 then "_cls" ^ string_of_int j else ""),
-                        kind, phi, source, info))
+               Formula (ident ^ replicate_string (j - 1) "x", kind, phi, source,
+                        info))
            phis (1 upto n)
     end
   | clausify_formula_line _ = []

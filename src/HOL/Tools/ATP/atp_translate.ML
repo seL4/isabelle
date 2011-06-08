@@ -975,16 +975,15 @@ fun make_formula thy format type_sys eq_as_iff name loc kind t =
      atomic_types = atomic_types}
   end
 
-fun make_fact ctxt format type_sys keep_trivial eq_as_iff preproc presimp_consts
+fun make_fact ctxt format type_sys eq_as_iff preproc presimp_consts
               ((name, loc), t) =
   let val thy = Proof_Context.theory_of ctxt in
-    case (keep_trivial,
-          t |> preproc ? preprocess_prop ctxt presimp_consts Axiom
-            |> make_formula thy format type_sys eq_as_iff name loc Axiom) of
-      (false,
-       formula as {combformula = AAtom (CombConst ((s, _), _, _)), ...}) =>
+    case t |> preproc ? preprocess_prop ctxt presimp_consts Axiom
+           |> make_formula thy format type_sys (eq_as_iff andalso format <> CNF)
+                           name loc Axiom of
+      formula as {combformula = AAtom (CombConst ((s, _), _, _)), ...} =>
       if s = tptp_true then NONE else SOME formula
-    | (_, formula) => SOME formula
+    | formula => SOME formula
   end
 
 fun make_conjecture ctxt format prem_kind type_sys preproc presimp_consts ts =
@@ -1354,7 +1353,7 @@ fun helper_facts_for_sym ctxt format type_sys (s, {types, ...} : sym_info) =
                    | _ => I)
          end)
       val make_facts =
-        map_filter (make_fact ctxt format type_sys false false false [])
+        map_filter (make_fact ctxt format type_sys false false [])
       val fairly_sound = is_type_sys_fairly_sound type_sys
     in
       helper_table
@@ -1417,8 +1416,7 @@ fun translate_formulas ctxt format prem_kind type_sys preproc hyp_ts concl_t
     val thy = Proof_Context.theory_of ctxt
     val fact_ts = facts |> map snd
     val presimp_consts = Meson.presimplified_consts ctxt
-    val make_fact =
-      make_fact ctxt format type_sys false true true presimp_consts
+    val make_fact = make_fact ctxt format type_sys true preproc presimp_consts
     val (facts, fact_names) =
       facts |> map (fn (name, t) => (name, t) |> make_fact |> rpair name)
             |> map_filter (try (apfst the))
