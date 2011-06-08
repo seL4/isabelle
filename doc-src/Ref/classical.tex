@@ -3,292 +3,8 @@
 \index{classical reasoner|(}
 \newcommand\ainfer[2]{\begin{array}{r@{\,}l}#2\\ \hline#1\end{array}}
 
-Although Isabelle is generic, many users will be working in some extension of
-classical first-order logic.  Isabelle's set theory~ZF is built upon
-theory~FOL, while HOL conceptually contains first-order logic as a fragment.
-Theorem-proving in predicate logic is undecidable, but many researchers have
-developed strategies to assist in this task.
-
-Isabelle's classical reasoner is an \ML{} functor that accepts certain
-information about a logic and delivers a suite of automatic tactics.  Each
-tactic takes a collection of rules and executes a simple, non-clausal proof
-procedure.  They are slow and simplistic compared with resolution theorem
-provers, but they can save considerable time and effort.  They can prove
-theorems such as Pelletier's~\cite{pelletier86} problems~40 and~41 in
-seconds:
-\[ (\exists y. \forall x. J(y,x) \bimp \neg J(x,x))  
-   \imp  \neg (\forall x. \exists y. \forall z. J(z,y) \bimp \neg J(z,x)) \]
-\[ (\forall z. \exists y. \forall x. F(x,y) \bimp F(x,z) \conj \neg F(x,x))
-   \imp \neg (\exists z. \forall x. F(x,z))  
-\]
-%
-The tactics are generic.  They are not restricted to first-order logic, and
-have been heavily used in the development of Isabelle's set theory.  Few
-interactive proof assistants provide this much automation.  The tactics can
-be traced, and their components can be called directly; in this manner,
-any proof can be viewed interactively.
-
-We shall first discuss the underlying principles, then present the classical
-reasoner.  Finally, we shall see how to instantiate it for new logics.  The
-logics FOL, ZF, HOL and HOLCF have it already installed.
-
-
-\section{The sequent calculus}
-\index{sequent calculus}
-Isabelle supports natural deduction, which is easy to use for interactive
-proof.  But natural deduction does not easily lend itself to automation,
-and has a bias towards intuitionism.  For certain proofs in classical
-logic, it can not be called natural.  The {\bf sequent calculus}, a
-generalization of natural deduction, is easier to automate.
-
-A {\bf sequent} has the form $\Gamma\turn\Delta$, where $\Gamma$
-and~$\Delta$ are sets of formulae.%
-\footnote{For first-order logic, sequents can equivalently be made from
-  lists or multisets of formulae.} The sequent
-\[ P@1,\ldots,P@m\turn Q@1,\ldots,Q@n \]
-is {\bf valid} if $P@1\conj\ldots\conj P@m$ implies $Q@1\disj\ldots\disj
-Q@n$.  Thus $P@1,\ldots,P@m$ represent assumptions, each of which is true,
-while $Q@1,\ldots,Q@n$ represent alternative goals.  A sequent is {\bf
-basic} if its left and right sides have a common formula, as in $P,Q\turn
-Q,R$; basic sequents are trivially valid.
-
-Sequent rules are classified as {\bf right} or {\bf left}, indicating which
-side of the $\turn$~symbol they operate on.  Rules that operate on the
-right side are analogous to natural deduction's introduction rules, and
-left rules are analogous to elimination rules.  
-Recall the natural deduction rules for
-  first-order logic, 
-\iflabelundefined{fol-fig}{from {\it Introduction to Isabelle}}%
-                          {Fig.\ts\ref{fol-fig}}.
-The sequent calculus analogue of~$({\imp}I)$ is the rule
-$$
-\ainfer{\Gamma &\turn \Delta, P\imp Q}{P,\Gamma &\turn \Delta,Q}
-\eqno({\imp}R)
-$$
-This breaks down some implication on the right side of a sequent; $\Gamma$
-and $\Delta$ stand for the sets of formulae that are unaffected by the
-inference.  The analogue of the pair~$({\disj}I1)$ and~$({\disj}I2)$ is the
-single rule 
-$$
-\ainfer{\Gamma &\turn \Delta, P\disj Q}{\Gamma &\turn \Delta,P,Q}
-\eqno({\disj}R)
-$$
-This breaks down some disjunction on the right side, replacing it by both
-disjuncts.  Thus, the sequent calculus is a kind of multiple-conclusion logic.
-
-To illustrate the use of multiple formulae on the right, let us prove
-the classical theorem $(P\imp Q)\disj(Q\imp P)$.  Working backwards, we
-reduce this formula to a basic sequent:
-\[ \infer[(\disj)R]{\turn(P\imp Q)\disj(Q\imp P)}
-   {\infer[(\imp)R]{\turn(P\imp Q), (Q\imp P)\;}
-    {\infer[(\imp)R]{P \turn Q, (Q\imp P)\qquad}
-                    {P, Q \turn Q, P\qquad\qquad}}}
-\]
-This example is typical of the sequent calculus: start with the desired
-theorem and apply rules backwards in a fairly arbitrary manner.  This yields a
-surprisingly effective proof procedure.  Quantifiers add few complications,
-since Isabelle handles parameters and schematic variables.  See Chapter~10
-of {\em ML for the Working Programmer}~\cite{paulson-ml2} for further
-discussion.
-
-
-\section{Simulating sequents by natural deduction}
-Isabelle can represent sequents directly, as in the object-logic~\texttt{LK}\@.
-But natural deduction is easier to work with, and most object-logics employ
-it.  Fortunately, we can simulate the sequent $P@1,\ldots,P@m\turn
-Q@1,\ldots,Q@n$ by the Isabelle formula
-\[ \List{P@1;\ldots;P@m; \neg Q@2;\ldots; \neg Q@n}\Imp Q@1, \]
-where the order of the assumptions and the choice of~$Q@1$ are arbitrary.
-Elim-resolution plays a key role in simulating sequent proofs.
-
-We can easily handle reasoning on the left.
-As discussed in
-\iflabelundefined{destruct}{{\it Introduction to Isabelle}}{{\S}\ref{destruct}}, 
-elim-resolution with the rules $(\disj E)$, $(\bot E)$ and $(\exists E)$
-achieves a similar effect as the corresponding sequent rules.  For the
-other connectives, we use sequent-style elimination rules instead of
-destruction rules such as $({\conj}E1,2)$ and $(\forall E)$.  But note that
-the rule $(\neg L)$ has no effect under our representation of sequents!
-$$
-\ainfer{\neg P,\Gamma &\turn \Delta}{\Gamma &\turn \Delta,P}\eqno({\neg}L)
-$$
-What about reasoning on the right?  Introduction rules can only affect the
-formula in the conclusion, namely~$Q@1$.  The other right-side formulae are
-represented as negated assumptions, $\neg Q@2$, \ldots,~$\neg Q@n$.  
-\index{assumptions!negated}
-In order to operate on one of these, it must first be exchanged with~$Q@1$.
-Elim-resolution with the {\bf swap} rule has this effect:
-$$ \List{\neg P; \; \neg R\Imp P} \Imp R   \eqno(swap)  $$
-To ensure that swaps occur only when necessary, each introduction rule is
-converted into a swapped form: it is resolved with the second premise
-of~$(swap)$.  The swapped form of~$({\conj}I)$, which might be
-called~$({\neg\conj}E)$, is
-\[ \List{\neg(P\conj Q); \; \neg R\Imp P; \; \neg R\Imp Q} \Imp R. \]
-Similarly, the swapped form of~$({\imp}I)$ is
-\[ \List{\neg(P\imp Q); \; \List{\neg R;P}\Imp Q} \Imp R  \]
-Swapped introduction rules are applied using elim-resolution, which deletes
-the negated formula.  Our representation of sequents also requires the use
-of ordinary introduction rules.  If we had no regard for readability, we
-could treat the right side more uniformly by representing sequents as
-\[ \List{P@1;\ldots;P@m; \neg Q@1;\ldots; \neg Q@n}\Imp \bot. \]
-
-
-\section{Extra rules for the sequent calculus}
-As mentioned, destruction rules such as $({\conj}E1,2)$ and $(\forall E)$
-must be replaced by sequent-style elimination rules.  In addition, we need
-rules to embody the classical equivalence between $P\imp Q$ and $\neg P\disj
-Q$.  The introduction rules~$({\disj}I1,2)$ are replaced by a rule that
-simulates $({\disj}R)$:
-\[ (\neg Q\Imp P) \Imp P\disj Q \]
-The destruction rule $({\imp}E)$ is replaced by
-\[ \List{P\imp Q;\; \neg P\Imp R;\; Q\Imp R} \Imp R. \]
-Quantifier replication also requires special rules.  In classical logic,
-$\exists x{.}P$ is equivalent to $\neg\forall x{.}\neg P$; the rules
-$(\exists R)$ and $(\forall L)$ are dual:
-\[ \ainfer{\Gamma &\turn \Delta, \exists x{.}P}
-          {\Gamma &\turn \Delta, \exists x{.}P, P[t/x]} \; (\exists R)
-   \qquad
-   \ainfer{\forall x{.}P, \Gamma &\turn \Delta}
-          {P[t/x], \forall x{.}P, \Gamma &\turn \Delta} \; (\forall L)
-\]
-Thus both kinds of quantifier may be replicated.  Theorems requiring
-multiple uses of a universal formula are easy to invent; consider 
-\[ (\forall x.P(x)\imp P(f(x))) \conj P(a) \imp P(f^n(a)), \]
-for any~$n>1$.  Natural examples of the multiple use of an existential
-formula are rare; a standard one is $\exists x.\forall y. P(x)\imp P(y)$.
-
-Forgoing quantifier replication loses completeness, but gains decidability,
-since the search space becomes finite.  Many useful theorems can be proved
-without replication, and the search generally delivers its verdict in a
-reasonable time.  To adopt this approach, represent the sequent rules
-$(\exists R)$, $(\exists L)$ and $(\forall R)$ by $(\exists I)$, $(\exists
-E)$ and $(\forall I)$, respectively, and put $(\forall E)$ into elimination
-form:
-$$ \List{\forall x{.}P(x); P(t)\Imp Q} \Imp Q    \eqno(\forall E@2) $$
-Elim-resolution with this rule will delete the universal formula after a
-single use.  To replicate universal quantifiers, replace the rule by
-$$
-\List{\forall x{.}P(x);\; \List{P(t); \forall x{.}P(x)}\Imp Q} \Imp Q.
-\eqno(\forall E@3)
-$$
-To replicate existential quantifiers, replace $(\exists I)$ by
-\[ \List{\neg(\exists x{.}P(x)) \Imp P(t)} \Imp \exists x{.}P(x). \]
-All introduction rules mentioned above are also useful in swapped form.
-
-Replication makes the search space infinite; we must apply the rules with
-care.  The classical reasoner distinguishes between safe and unsafe
-rules, applying the latter only when there is no alternative.  Depth-first
-search may well go down a blind alley; best-first search is better behaved
-in an infinite search space.  However, quantifier replication is too
-expensive to prove any but the simplest theorems.
-
-
 \section{Classical rule sets}
 \index{classical sets}
-Each automatic tactic takes a {\bf classical set} --- a collection of
-rules, classified as introduction or elimination and as {\bf safe} or {\bf
-unsafe}.  In general, safe rules can be attempted blindly, while unsafe
-rules must be used with care.  A safe rule must never reduce a provable
-goal to an unprovable set of subgoals.  
-
-The rule~$({\disj}I1)$ is unsafe because it reduces $P\disj Q$ to~$P$.  Any
-rule is unsafe whose premises contain new unknowns.  The elimination
-rule~$(\forall E@2)$ is unsafe, since it is applied via elim-resolution,
-which discards the assumption $\forall x{.}P(x)$ and replaces it by the
-weaker assumption~$P(\Var{t})$.  The rule $({\exists}I)$ is unsafe for
-similar reasons.  The rule~$(\forall E@3)$ is unsafe in a different sense:
-since it keeps the assumption $\forall x{.}P(x)$, it is prone to looping.
-In classical first-order logic, all rules are safe except those mentioned
-above.
-
-The safe/unsafe distinction is vague, and may be regarded merely as a way
-of giving some rules priority over others.  One could argue that
-$({\disj}E)$ is unsafe, because repeated application of it could generate
-exponentially many subgoals.  Induction rules are unsafe because inductive
-proofs are difficult to set up automatically.  Any inference is unsafe that
-instantiates an unknown in the proof state --- thus \ttindex{match_tac}
-must be used, rather than \ttindex{resolve_tac}.  Even proof by assumption
-is unsafe if it instantiates unknowns shared with other subgoals --- thus
-\ttindex{eq_assume_tac} must be used, rather than \ttindex{assume_tac}.
-
-\subsection{Adding rules to classical sets}
-Classical rule sets belong to the abstract type \mltydx{claset}, which
-supports the following operations (provided the classical reasoner is
-installed!):
-\begin{ttbox} 
-empty_cs : claset
-print_cs : claset -> unit
-rep_cs : claset -> \{safeEs: thm list, safeIs: thm list,
-                    hazEs: thm list,  hazIs: thm list, 
-                    swrappers: (string * wrapper) list, 
-                    uwrappers: (string * wrapper) list,
-                    safe0_netpair: netpair, safep_netpair: netpair,
-                    haz_netpair: netpair, dup_netpair: netpair\}
-addSIs   : claset * thm list -> claset                 \hfill{\bf infix 4}
-addSEs   : claset * thm list -> claset                 \hfill{\bf infix 4}
-addSDs   : claset * thm list -> claset                 \hfill{\bf infix 4}
-addIs    : claset * thm list -> claset                 \hfill{\bf infix 4}
-addEs    : claset * thm list -> claset                 \hfill{\bf infix 4}
-addDs    : claset * thm list -> claset                 \hfill{\bf infix 4}
-delrules : claset * thm list -> claset                 \hfill{\bf infix 4}
-\end{ttbox}
-The add operations ignore any rule already present in the claset with the same
-classification (such as safe introduction).  They print a warning if the rule
-has already been added with some other classification, but add the rule
-anyway.  Calling \texttt{delrules} deletes all occurrences of a rule from the
-claset, but see the warning below concerning destruction rules.
-\begin{ttdescription}
-\item[\ttindexbold{empty_cs}] is the empty classical set.
-
-\item[\ttindexbold{print_cs} $cs$] displays the printable contents of~$cs$,
-  which is the rules. All other parts are non-printable.
-
-\item[\ttindexbold{rep_cs} $cs$] decomposes $cs$ as a record of its internal 
-  components, namely the safe introduction and elimination rules, the unsafe
-  introduction and elimination rules, the lists of safe and unsafe wrappers
-  (see \ref{sec:modifying-search}), and the internalized forms of the rules.
-
-\item[$cs$ addSIs $rules$] \indexbold{*addSIs}
-adds safe introduction~$rules$ to~$cs$.
-
-\item[$cs$ addSEs $rules$] \indexbold{*addSEs}
-adds safe elimination~$rules$ to~$cs$.
-
-\item[$cs$ addSDs $rules$] \indexbold{*addSDs}
-adds safe destruction~$rules$ to~$cs$.
-
-\item[$cs$ addIs $rules$] \indexbold{*addIs}
-adds unsafe introduction~$rules$ to~$cs$.
-
-\item[$cs$ addEs $rules$] \indexbold{*addEs}
-adds unsafe elimination~$rules$ to~$cs$.
-
-\item[$cs$ addDs $rules$] \indexbold{*addDs}
-adds unsafe destruction~$rules$ to~$cs$.
-
-\item[$cs$ delrules $rules$] \indexbold{*delrules}
-deletes~$rules$ from~$cs$.  It prints a warning for those rules that are not
-in~$cs$.
-\end{ttdescription}
-
-\begin{warn}
-  If you added $rule$ using \texttt{addSDs} or \texttt{addDs}, then you must delete
-  it as follows:
-\begin{ttbox}
-\(cs\) delrules [make_elim \(rule\)]
-\end{ttbox}
-\par\noindent
-This is necessary because the operators \texttt{addSDs} and \texttt{addDs} convert
-the destruction rules to elimination rules by applying \ttindex{make_elim},
-and then insert them using \texttt{addSEs} and \texttt{addEs}, respectively.
-\end{warn}
-
-Introduction rules are those that can be applied using ordinary resolution.
-The classical set automatically generates their swapped forms, which will
-be applied using elim-resolution.  Elimination rules are applied using
-elim-resolution.  In a classical set, rules are sorted by the number of new
-subgoals they will yield; rules that generate the fewest subgoals will be
-tried first (see {\S}\ref{biresolve_tac}).
 
 For elimination and destruction rules there are variants of the add operations
 adding a rule in a way such that it is applied only if also its second premise
@@ -408,129 +124,28 @@ When a simpset combined with a claset is to be augmented, this should done
 
 
 \section{The classical tactics}
-\index{classical reasoner!tactics} If installed, the classical module provides
-powerful theorem-proving tactics.
-
-
-\subsection{The tableau prover}
-The tactic \texttt{blast_tac} searches for a proof using a fast tableau prover,
-coded directly in \ML.  It then reconstructs the proof using Isabelle
-tactics.  It is faster and more powerful than the other classical
-reasoning tactics, but has major limitations too.
-\begin{itemize}
-\item It does not use the wrapper tacticals described above, such as
-  \ttindex{addss}.
-\item It does not perform higher-order unification, as needed by the rule {\tt
-    rangeI} in HOL and \texttt{RepFunI} in ZF.  There are often alternatives
-  to such rules, for example {\tt range_eqI} and \texttt{RepFun_eqI}.
-\item Function variables may only be applied to parameters of the subgoal.
-(This restriction arises because the prover does not use higher-order
-unification.)  If other function variables are present then the prover will
-fail with the message {\small\tt Function Var's argument not a bound variable}.
-\item Its proof strategy is more general than \texttt{fast_tac}'s but can be
-  slower.  If \texttt{blast_tac} fails or seems to be running forever, try {\tt
-  fast_tac} and the other tactics described below.
-\end{itemize}
-%
-\begin{ttbox} 
-blast_tac        : claset -> int -> tactic
-Blast.depth_tac  : claset -> int -> int -> tactic
-Blast.trace      : bool ref \hfill{\bf initially false}
-\end{ttbox}
-The two tactics differ on how they bound the number of unsafe steps used in a
-proof.  While \texttt{blast_tac} starts with a bound of zero and increases it
-successively to~20, \texttt{Blast.depth_tac} applies a user-supplied search bound.
-\begin{ttdescription}
-\item[\ttindexbold{blast_tac} $cs$ $i$] tries to prove
-  subgoal~$i$, increasing the search bound using iterative
-  deepening~\cite{korf85}. 
-  
-\item[\ttindexbold{Blast.depth_tac} $cs$ $lim$ $i$] tries
-  to prove subgoal~$i$ using a search bound of $lim$.  Sometimes a slow
-  proof using \texttt{blast_tac} can be made much faster by supplying the
-  successful search bound to this tactic instead.
-  
-\item[set \ttindexbold{Blast.trace};] \index{tracing!of classical prover}
-  causes the tableau prover to print a trace of its search.  At each step it
-  displays the formula currently being examined and reports whether the branch
-  has been closed, extended or split.
-\end{ttdescription}
-
-
-\subsection{Automatic tactics}\label{sec:automatic-tactics}
-\begin{ttbox} 
-type clasimpset = claset * simpset;
-auto_tac        : clasimpset ->        tactic
-force_tac       : clasimpset -> int -> tactic
-auto            : unit -> unit
-force           : int  -> unit
-\end{ttbox}
-The automatic tactics attempt to prove goals using a combination of
-simplification and classical reasoning. 
-\begin{ttdescription}
-\item[\ttindexbold{auto_tac $(cs,ss)$}] is intended for situations where 
-there are a lot of mostly trivial subgoals; it proves all the easy ones, 
-leaving the ones it cannot prove.
-(Unfortunately, attempting to prove the hard ones may take a long time.)  
-\item[\ttindexbold{force_tac} $(cs,ss)$ $i$] is intended to prove subgoal~$i$ 
-completely. It tries to apply all fancy tactics it knows about, 
-performing a rather exhaustive search.
-\end{ttdescription}
-
 
 \subsection{Semi-automatic tactics}
 \begin{ttbox} 
-clarify_tac      : claset -> int -> tactic
 clarify_step_tac : claset -> int -> tactic
-clarsimp_tac     : clasimpset -> int -> tactic
 \end{ttbox}
-Use these when the automatic tactics fail.  They perform all the obvious
-logical inferences that do not split the subgoal.  The result is a
-simpler subgoal that can be tackled by other means, such as by
-instantiating quantifiers yourself.
+
 \begin{ttdescription}
-\item[\ttindexbold{clarify_tac} $cs$ $i$] performs a series of safe steps on
-subgoal~$i$ by repeatedly calling \texttt{clarify_step_tac}.
 \item[\ttindexbold{clarify_step_tac} $cs$ $i$] performs a safe step on
   subgoal~$i$.  No splitting step is applied; for example, the subgoal $A\conj
   B$ is left as a conjunction.  Proof by assumption, Modus Ponens, etc., may be
   performed provided they do not instantiate unknowns.  Assumptions of the
   form $x=t$ may be eliminated.  The user-supplied safe wrapper tactical is
   applied.
-\item[\ttindexbold{clarsimp_tac} $cs$ $i$] acts like \texttt{clarify_tac}, but
-also does simplification with the given simpset. Note that if the simpset 
-includes a splitter for the premises, the subgoal may still be split.
 \end{ttdescription}
 
 
 \subsection{Other classical tactics}
 \begin{ttbox} 
-fast_tac      : claset -> int -> tactic
-best_tac      : claset -> int -> tactic
-slow_tac      : claset -> int -> tactic
 slow_best_tac : claset -> int -> tactic
 \end{ttbox}
-These tactics attempt to prove a subgoal using sequent-style reasoning.
-Unlike \texttt{blast_tac}, they construct proofs directly in Isabelle.  Their
-effect is restricted (by \texttt{SELECT_GOAL}) to one subgoal; they either prove
-this subgoal or fail.  The \texttt{slow_} versions conduct a broader
-search.%
-\footnote{They may, when backtracking from a failed proof attempt, undo even
-  the step of proving a subgoal by assumption.}
 
-The best-first tactics are guided by a heuristic function: typically, the
-total size of the proof state.  This function is supplied in the functor call
-that sets up the classical reasoner.
 \begin{ttdescription}
-\item[\ttindexbold{fast_tac} $cs$ $i$] applies \texttt{step_tac} using
-depth-first search to prove subgoal~$i$.
-
-\item[\ttindexbold{best_tac} $cs$ $i$] applies \texttt{step_tac} using
-best-first search to prove subgoal~$i$.
-
-\item[\ttindexbold{slow_tac} $cs$ $i$] applies \texttt{slow_step_tac} using
-depth-first search to prove subgoal~$i$.
-
 \item[\ttindexbold{slow_best_tac} $cs$ $i$] applies \texttt{slow_step_tac} with
 best-first search to prove subgoal~$i$.
 \end{ttdescription}
@@ -561,7 +176,6 @@ repeatedly with increasing depths, starting with~$m$.
 \subsection{Single-step tactics}
 \begin{ttbox} 
 safe_step_tac : claset -> int -> tactic
-safe_tac      : claset        -> tactic
 inst_step_tac : claset -> int -> tactic
 step_tac      : claset -> int -> tactic
 slow_step_tac : claset -> int -> tactic
@@ -573,9 +187,6 @@ yourself, you can execute these procedures one step at a time.
   subgoal~$i$.  The safe wrapper tacticals are applied to a tactic that may
   include proof by assumption or Modus Ponens (taking care not to instantiate
   unknowns), or substitution.
-
-\item[\ttindexbold{safe_tac} $cs$] repeatedly performs safe steps on all 
-subgoals.  It is deterministic, with at most one outcome.  
 
 \item[\ttindexbold{inst_step_tac} $cs$ $i$] is like \texttt{safe_step_tac},
 but allows unknowns to be instantiated.
@@ -624,22 +235,6 @@ the proof state using {\it thms}, which should be a list of introduction
 rules.  First, it attempts to prove the goal using \texttt{assume_tac} or
 \texttt{contr_tac}.  It then attempts to apply each rule in turn, attempting
 resolution and also elim-resolution with the swapped form.
-\end{ttdescription}
-
-\subsection{Creating swapped rules}
-\begin{ttbox} 
-swapify   : thm list -> thm list
-joinrules : thm list * thm list -> (bool * thm) list
-\end{ttbox}
-\begin{ttdescription}
-\item[\ttindexbold{swapify} {\it thms}] returns a list consisting of the
-swapped versions of~{\it thms}, regarded as introduction rules.
-
-\item[\ttindexbold{joinrules} ({\it intrs}, {\it elims})]
-joins introduction rules, their swapped versions, and elimination rules for
-use with \ttindex{biresolve_tac}.  Each rule is paired with~\texttt{false}
-(indicating ordinary resolution) or~\texttt{true} (indicating
-elim-resolution).
 \end{ttdescription}
 
 

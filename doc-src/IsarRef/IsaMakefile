@@ -23,10 +23,10 @@ HOL-IsarRef: $(LOG)/HOL-IsarRef.gz
 
 $(LOG)/HOL-IsarRef.gz: Thy/ROOT.ML ../antiquote_setup.ML Thy/Base.thy	\
   Thy/First_Order_Logic.thy Thy/Framework.thy Thy/Inner_Syntax.thy	\
-  Thy/Introduction.thy Thy/Outer_Syntax.thy Thy/Spec.thy Thy/Proof.thy	\
+  Thy/Preface.thy Thy/Outer_Syntax.thy Thy/Spec.thy Thy/Proof.thy	\
   Thy/Misc.thy Thy/Document_Preparation.thy Thy/Generic.thy		\
-  Thy/HOL_Specific.thy Thy/Quick_Reference.thy Thy/Symbols.thy		\
-  Thy/ML_Tactic.thy
+  Thy/HOL_Specific.thy Thy/Quick_Reference.thy Thy/Synopsis.thy		\
+  Thy/Symbols.thy Thy/ML_Tactic.thy
 	@$(USEDIR) -s IsarRef HOL Thy
 	@rm -f Thy/document/isabelle.sty Thy/document/isabellesym.sty \
 	 Thy/document/pdfsetup.sty Thy/document/session.tex

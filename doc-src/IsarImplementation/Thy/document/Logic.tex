@@ -404,6 +404,7 @@ The language of terms is that of simply-typed \isa{{\isaliteral{5C3C6C616D626461
   \indexdef{}{ML}{fastype\_of}\verb|fastype_of: term -> typ| \\
   \indexdef{}{ML}{lambda}\verb|lambda: term -> term -> term| \\
   \indexdef{}{ML}{betapply}\verb|betapply: term * term -> term| \\
+  \indexdef{}{ML}{incr\_boundvars}\verb|incr_boundvars: int -> term -> term| \\
   \indexdef{}{ML}{Sign.declare\_const}\verb|Sign.declare_const: Proof.context ->|\isasep\isanewline%
 \verb|  (binding * typ) * mixfix -> theory -> term * theory| \\
   \indexdef{}{ML}{Sign.add\_abbrev}\verb|Sign.add_abbrev: string -> binding * term ->|\isasep\isanewline%
@@ -443,6 +444,12 @@ The language of terms is that of simply-typed \isa{{\isaliteral{5C3C6C616D626461
 
   \item \verb|betapply|~\isa{{\isaliteral{28}{\isacharparenleft}}t{\isaliteral{2C}{\isacharcomma}}\ u{\isaliteral{29}{\isacharparenright}}} produces an application \isa{t\ u}, with topmost \isa{{\isaliteral{5C3C626574613E}{\isasymbeta}}}-conversion if \isa{t} is an
   abstraction.
+
+  \item \verb|incr_boundvars|~\isa{j} increments a term's dangling
+  bound variables by the offset \isa{j}.  This is required when
+  moving a subterm into a context where it is enclosed by a different
+  number of abstractions.  Bound variables with a matching abstraction
+  are unaffected.
 
   \item \verb|Sign.declare_const|~\isa{ctxt\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{28}{\isacharparenleft}}c{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ mx{\isaliteral{29}{\isacharparenright}}} declares
   a new constant \isa{c\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5C3C7369676D613E}{\isasymsigma}}} with optional mixfix syntax.
@@ -705,6 +712,7 @@ The theory \isa{Pure} contains constant declarations for the
   \begin{mldecls}
   \indexdef{}{ML type}{thm}\verb|type thm| \\
   \indexdef{}{ML}{proofs}\verb|proofs: int Unsynchronized.ref| \\
+  \indexdef{}{ML}{Thm.transfer}\verb|Thm.transfer: theory -> thm -> thm| \\
   \indexdef{}{ML}{Thm.assume}\verb|Thm.assume: cterm -> thm| \\
   \indexdef{}{ML}{Thm.forall\_intr}\verb|Thm.forall_intr: cterm -> thm -> thm| \\
   \indexdef{}{ML}{Thm.forall\_elim}\verb|Thm.forall_elim: cterm -> thm -> thm| \\
@@ -751,6 +759,13 @@ The theory \isa{Pure} contains constant declarations for the
   \verb|1| records oracle names and propositions, \verb|2| additionally
   records full proof terms.  Officially named theorems that contribute
   to a result are recorded in any case.
+
+  \item \verb|Thm.transfer|~\isa{thy\ thm} transfers the given
+  theorem to a \emph{larger} theory, see also \secref{sec:context}.
+  This formal adjustment of the background context has no logical
+  significance, but is occasionally required for formal reasons, e.g.\
+  when theorems that are imported from more basic theories are used in
+  the current situation.
 
   \item \verb|Thm.assume|, \verb|Thm.forall_intr|, \verb|Thm.forall_elim|, \verb|Thm.implies_intr|, and \verb|Thm.implies_elim|
   correspond to the primitive inferences of \figref{fig:prim-rules}.

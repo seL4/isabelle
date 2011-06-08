@@ -77,8 +77,8 @@ text {*
   \end{description}
 
   All of the diagnostic commands above admit a list of @{text modes}
-  to be specified, which is appended to the current print mode (see
-  also \cite{isabelle-ref}).  Thus the output behavior may be modified
+  to be specified, which is appended to the current print mode; see
+  \secref{sec:print-modes}.  Thus the output behavior may be modified
   according particular print mode features.  For example, @{command
   "pr"}~@{text "(latex xsymbols)"} would print the current proof state
   with mathematical symbols and special characters represented in

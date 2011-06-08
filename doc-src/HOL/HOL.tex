@@ -2,38 +2,6 @@
 \index{higher-order logic|(}
 \index{HOL system@{\sc hol} system}
 
-The theory~\thydx{HOL} implements higher-order logic.  It is based on
-Gordon's~{\sc hol} system~\cite{mgordon-hol}, which itself is based on
-Church's original paper~\cite{church40}.  Andrews's book~\cite{andrews86} is a
-full description of the original Church-style higher-order logic.  Experience
-with the {\sc hol} system has demonstrated that higher-order logic is widely
-applicable in many areas of mathematics and computer science, not just
-hardware verification, {\sc hol}'s original \textit{raison d'{\^e}tre\/}.  It
-is weaker than ZF set theory but for most applications this does not matter.
-If you prefer {\ML} to Lisp, you will probably prefer HOL to~ZF.
-
-The syntax of HOL\footnote{Earlier versions of Isabelle's HOL used a different
-  syntax.  Ancient releases of Isabelle included still another version of~HOL,
-  with explicit type inference rules~\cite{paulson-COLOG}.  This version no
-  longer exists, but \thydx{ZF} supports a similar style of reasoning.}
-follows $\lambda$-calculus and functional programming.  Function application
-is curried.  To apply the function~$f$ of type $\tau@1\To\tau@2\To\tau@3$ to
-the arguments~$a$ and~$b$ in HOL, you simply write $f\,a\,b$.  There is no
-`apply' operator as in \thydx{ZF}.  Note that $f(a,b)$ means ``$f$ applied to
-the pair $(a,b)$'' in HOL.  We write ordered pairs as $(a,b)$, not $\langle
-a,b\rangle$ as in ZF.
-
-HOL has a distinct feel, compared with ZF and CTT.  It identifies object-level
-types with meta-level types, taking advantage of Isabelle's built-in
-type-checker.  It identifies object-level functions with meta-level functions,
-so it uses Isabelle's operations for abstraction and application.
-
-These identifications allow Isabelle to support HOL particularly nicely, but
-they also mean that HOL requires more sophistication from the user --- in
-particular, an understanding of Isabelle's type system.  Beginners should work
-with \texttt{show_types} (or even \texttt{show_sorts}) set to \texttt{true}.
-
-
 \begin{figure}
 \begin{constants}
   \it name      &\it meta-type  & \it description \\
@@ -147,9 +115,9 @@ function types, is overloaded with arity {\tt(term,\thinspace
   term} if $\sigma$ and~$\tau$ do, allowing quantification over
 functions.
 
-HOL allows new types to be declared as subsets of existing types;
-see~{\S}\ref{sec:HOL:Types}.  ML-like datatypes can also be declared; see
-~{\S}\ref{sec:HOL:datatype}.
+HOL allows new types to be declared as subsets of existing types,
+either using the primitive \texttt{typedef} or the more convenient
+\texttt{datatype} (see~{\S}\ref{sec:HOL:datatype}).
 
 Several syntactic type classes --- \cldx{plus}, \cldx{minus},
 \cldx{times} and
@@ -342,8 +310,7 @@ definitions.
 \begin{warn}
 The definitions above should never be expanded and are shown for completeness
 only.  Instead users should reason in terms of the derived rules shown below
-or, better still, using high-level tactics
-(see~{\S}\ref{sec:HOL:generic-packages}).
+or, better still, using high-level tactics.
 \end{warn}
 
 Some of the rules mention type variables; for example, \texttt{refl}
@@ -912,13 +879,7 @@ There is also a large collection of monotonicity theorems for constructions
 on sets in the file \texttt{HOL/mono.ML}.
 
 
-\section{Generic packages}
-\label{sec:HOL:generic-packages}
-
-HOL instantiates most of Isabelle's generic packages, making available the
-simplifier and the classical reasoner.
-
-\subsection{Simplification and substitution}
+\section{Simplification and substitution}
 
 Simplification tactics tactics such as \texttt{Asm_simp_tac} and \texttt{Full_simp_tac} use the default simpset
 (\texttt{simpset()}), which works for most purposes.  A quite minimal
@@ -964,7 +925,7 @@ HOL provides the tactic \ttindex{hyp_subst_tac}, which substitutes for an
 equality throughout a subgoal and its hypotheses.  This tactic uses HOL's
 general substitution rule.
 
-\subsubsection{Case splitting}
+\subsection{Case splitting}
 \label{subsec:HOL:case:splitting}
 
 HOL also provides convenient means for case splitting during rewriting. Goals
@@ -1020,115 +981,6 @@ imperative versions of \texttt{addsplits} and \texttt{delsplits}
 \ttindexbold{Delsplits}: thm list -> unit
 \end{ttbox}
 for adding splitting rules to, and deleting them from the current simpset.
-
-\subsection{Classical reasoning}
-
-HOL derives classical introduction rules for $\disj$ and~$\exists$, as well as
-classical elimination rules for~$\imp$ and~$\bimp$, and the swap rule; recall
-Fig.\ts\ref{hol-lemmas2} above.
-
-The classical reasoner is installed.  Tactics such as \texttt{Blast_tac} and
-{\tt Best_tac} refer to the default claset (\texttt{claset()}), which works
-for most purposes.  Named clasets include \ttindexbold{prop_cs}, which
-includes the propositional rules, and \ttindexbold{HOL_cs}, which also
-includes quantifier rules.  See the file \texttt{HOL/cladata.ML} for lists of
-the classical rules,
-and \iflabelundefined{chap:classical}{the {\em Reference Manual\/}}%
-{Chap.\ts\ref{chap:classical}} for more discussion of classical proof methods.
-
-
-%FIXME outdated, both from the Isabelle and SVC perspective
-% \section{Calling the decision procedure SVC}\label{sec:HOL:SVC}
-
-% \index{SVC decision procedure|(}
-
-% The Stanford Validity Checker (SVC) is a tool that can check the validity of
-% certain types of formulae.  If it is installed on your machine, then
-% Isabelle/HOL can be configured to call it through the tactic
-% \ttindex{svc_tac}.  It is ideal for large tautologies and complex problems in
-% linear arithmetic.  Subexpressions that SVC cannot handle are automatically
-% replaced by variables, so you can call the tactic on any subgoal.  See the
-% file \texttt{HOL/ex/svc_test.ML} for examples.
-% \begin{ttbox} 
-% svc_tac   : int -> tactic
-% Svc.trace : bool ref      \hfill{\bf initially false}
-% \end{ttbox}
-
-% \begin{ttdescription}
-% \item[\ttindexbold{svc_tac} $i$] attempts to prove subgoal~$i$ by translating
-%   it into a formula recognized by~SVC\@.  If it succeeds then the subgoal is
-%   removed.  It fails if SVC is unable to prove the subgoal.  It crashes with
-%   an error message if SVC appears not to be installed.  Numeric variables may
-%   have types \texttt{nat}, \texttt{int} or \texttt{real}.
-
-% \item[\ttindexbold{Svc.trace}] is a flag that, if set, causes \texttt{svc_tac}
-%   to trace its operations: abstraction of the subgoal, translation to SVC
-%   syntax, SVC's response.
-% \end{ttdescription}
-
-% Here is an example, with tracing turned on:
-% \begin{ttbox}
-% set Svc.trace;
-% {\out val it : bool = true}
-% Goal "(#3::nat)*a <= #2 + #4*b + #6*c  & #11 <= #2*a + b + #2*c & \ttback
-% \ttback     a + #3*b <= #5 + #2*c  --> #2 + #3*b <= #2*a + #6*c";
-
-% by (svc_tac 1);
-% {\out Subgoal abstracted to}
-% {\out #3 * a <= #2 + #4 * b + #6 * c &}
-% {\out #11 <= #2 * a + b + #2 * c & a + #3 * b <= #5 + #2 * c -->}
-% {\out #2 + #3 * b <= #2 * a + #6 * c}
-% {\out Calling SVC:}
-% {\out (=> (<= 0  (F_c) )  (=> (<= 0  (F_b) )  (=> (<= 0  (F_a) )}
-% {\out   (=> (AND (<= {* 3  (F_a) }  {+ {+ 2  {* 4  (F_b) } }  }
-% {\out {* 6  (F_c) } } )  (AND (<= 11  {+ {+ {* 2  (F_a) }  (F_b) }}
-% {\out   {* 2  (F_c) } } )  (<= {+ (F_a)  {* 3  (F_b) } }  {+ 5  }
-% {\out {* 2  (F_c) } } ) ) )  (< {+ 2  {* 3  (F_b) } }  {+ 1  {+ }
-% {\out {* 2  (F_a) }  {* 6  (F_c) } } } ) ) ) ) ) }
-% {\out SVC Returns:}
-% {\out VALID}
-% {\out Level 1}
-% {\out #3 * a <= #2 + #4 * b + #6 * c &}
-% {\out #11 <= #2 * a + b + #2 * c & a + #3 * b <= #5 + #2 * c -->}
-% {\out #2 + #3 * b <= #2 * a + #6 * c}
-% {\out No subgoals!}
-% \end{ttbox}
-
-
-% \begin{warn}
-% Calling \ttindex{svc_tac} entails an above-average risk of
-% unsoundness.  Isabelle does not check SVC's result independently.  Moreover,
-% the tactic translates the submitted formula using code that lies outside
-% Isabelle's inference core.  Theorems that depend upon results proved using SVC
-% (and other oracles) are displayed with the annotation \texttt{[!]} attached.
-% You can also use \texttt{\#der (rep_thm $th$)} to examine the proof object of
-% theorem~$th$, as described in the \emph{Reference Manual}.  
-% \end{warn}
-
-% To start, first download SVC from the Internet at URL
-% \begin{ttbox}
-% http://agamemnon.stanford.edu/~levitt/vc/index.html
-% \end{ttbox}
-% and install it using the instructions supplied.  SVC requires two environment
-% variables:
-% \begin{ttdescription}
-% \item[\ttindexbold{SVC_HOME}] is an absolute pathname to the SVC
-%     distribution directory. 
-    
-%   \item[\ttindexbold{SVC_MACHINE}] identifies the type of computer and
-%     operating system.  
-% \end{ttdescription}
-% You can set these environment variables either using the Unix shell or through
-% an Isabelle \texttt{settings} file.  Isabelle assumes SVC to be installed if
-% \texttt{SVC_HOME} is defined.
-
-% \paragraph*{Acknowledgement.}  This interface uses code supplied by S{\o}ren
-% Heilmann.
-
-
-% \index{SVC decision procedure|)}
-
-
 
 
 \section{Types}\label{sec:HOL:Types}
@@ -1249,9 +1101,7 @@ The definition of products and sums in terms of existing types is not
 shown.  The constructions are fairly standard and can be found in the
 respective theory files. Although the sum and product types are
 constructed manually for foundational reasons, they are represented as
-actual datatypes later (see {\S}\ref{subsec:datatype:rep_datatype}).
-Therefore, the theory \texttt{Datatype} should be used instead of
-\texttt{Sum} or \texttt{Prod}.
+actual datatypes later.
 
 \begin{figure}
 \begin{constants}
@@ -1375,7 +1225,7 @@ Note that Isabelle insists on precisely this format; you may not even change
 the order of the two cases.
 Both \texttt{primrec} and \texttt{case} are realized by a recursion operator
 \cdx{nat_rec}, which is available because \textit{nat} is represented as
-a datatype (see {\S}\ref{subsec:datatype:rep_datatype}).
+a datatype.
 
 %The predecessor relation, \cdx{pred_nat}, is shown to be well-founded.
 %Recursion along this relation resembles primitive recursion, but is
@@ -1591,92 +1441,10 @@ which can be fed to \ttindex{addsplits} just like
 \texttt{split_if} (see~{\S}\ref{subsec:HOL:case:splitting}).
 
 \texttt{List} provides a basic library of list processing functions defined by
-primitive recursion (see~{\S}\ref{sec:HOL:primrec}).  The recursion equations
+primitive recursion.  The recursion equations
 are shown in Figs.\ts\ref{fig:HOL:list-simps} and~\ref{fig:HOL:list-simps2}.
 
 \index{list@{\textit{list}} type|)}
-
-
-\subsection{Introducing new types} \label{sec:typedef}
-
-The HOL-methodology dictates that all extensions to a theory should be
-\textbf{definitional}.  The type definition mechanism that meets this
-criterion is \ttindex{typedef}.  Note that \emph{type synonyms}, which are
-inherited from Pure and described elsewhere, are just syntactic abbreviations
-that have no logical meaning.
-
-\begin{warn}
-  Types in HOL must be non-empty; otherwise the quantifier rules would be
-  unsound, because $\exists x. x=x$ is a theorem \cite[{\S}7]{paulson-COLOG}.
-\end{warn}
-A \bfindex{type definition} identifies the new type with a subset of
-an existing type.  More precisely, the new type is defined by
-exhibiting an existing type~$\tau$, a set~$A::\tau\,set$, and a
-theorem of the form $x:A$.  Thus~$A$ is a non-empty subset of~$\tau$,
-and the new type denotes this subset.  New functions are defined that
-establish an isomorphism between the new type and the subset.  If
-type~$\tau$ involves type variables $\alpha@1$, \ldots, $\alpha@n$,
-then the type definition creates a type constructor
-$(\alpha@1,\ldots,\alpha@n)ty$ rather than a particular type.
-
-The syntax for type definitions is given in the Isabelle/Isar
-reference manual.
-
-If all context conditions are met (no duplicate type variables in
-`typevarlist', no extra type variables in `set', and no free term variables
-in `set'), the following components are added to the theory:
-\begin{itemize}
-\item a type $ty :: (term,\dots,term)term$
-\item constants
-\begin{eqnarray*}
-T &::& \tau\;set \\
-Rep_T &::& (\alpha@1,\dots,\alpha@n)ty \To \tau \\
-Abs_T &::& \tau \To (\alpha@1,\dots,\alpha@n)ty
-\end{eqnarray*}
-\item a definition and three axioms
-\[
-\begin{array}{ll}
-T{\tt_def} & T \equiv A \\
-{\tt Rep_}T & Rep_T\,x \in T \\
-{\tt Rep_}T{\tt_inverse} & Abs_T\,(Rep_T\,x) = x \\
-{\tt Abs_}T{\tt_inverse} & y \in T \Imp Rep_T\,(Abs_T\,y) = y
-\end{array}
-\]
-stating that $(\alpha@1,\dots,\alpha@n)ty$ is isomorphic to $A$ by $Rep_T$
-and its inverse $Abs_T$.
-\end{itemize}
-Below are two simple examples of HOL type definitions.  Non-emptiness is
-proved automatically here.
-\begin{ttbox}
-typedef unit = "{\ttlbrace}True{\ttrbrace}"
-
-typedef (prod)
-  ('a, 'b) "*"    (infixr 20)
-      = "{\ttlbrace}f . EX (a::'a) (b::'b). f = (\%x y. x = a & y = b){\ttrbrace}"
-\end{ttbox}
-
-Type definitions permit the introduction of abstract data types in a safe
-way, namely by providing models based on already existing types.  Given some
-abstract axiomatic description $P$ of a type, this involves two steps:
-\begin{enumerate}
-\item Find an appropriate type $\tau$ and subset $A$ which has the desired
-  properties $P$, and make a type definition based on this representation.
-\item Prove that $P$ holds for $ty$ by lifting $P$ from the representation.
-\end{enumerate}
-You can now forget about the representation and work solely in terms of the
-abstract properties $P$.
-
-\begin{warn}
-If you introduce a new type (constructor) $ty$ axiomatically, i.e.\ by
-declaring the type and its operations and by stating the desired axioms, you
-should make sure the type has a non-empty model.  You must also have a clause
-\par
-\begin{ttbox}
-arities \(ty\) :: (term,\thinspace\(\dots\),{\thinspace}term){\thinspace}term
-\end{ttbox}
-in your theory file to tell Isabelle that $ty$ is in class \texttt{term}, the
-class of all HOL types.
-\end{warn}
 
 
 \section{Datatype definitions}
@@ -1685,7 +1453,7 @@ class of all HOL types.
 
 Inductive datatypes, similar to those of \ML, frequently appear in
 applications of Isabelle/HOL.  In principle, such types could be defined by
-hand via \texttt{typedef} (see {\S}\ref{sec:typedef}), but this would be far too
+hand via \texttt{typedef}, but this would be far too
 tedious.  The \ttindex{datatype} definition package of Isabelle/HOL (cf.\ 
 \cite{Berghofer-Wenzel:1999:TPHOL}) automates such chores.  It generates an
 appropriate \texttt{typedef} based on a least fixed-point construction, and
@@ -2022,351 +1790,20 @@ In case of mutually recursive datatypes, \texttt{recs}, \texttt{size}, \texttt{i
 and \texttt{simps} are contained in a separate structure named $t@1_\ldots_t@n$.
 
 
-\subsection{Representing existing types as datatypes}\label{subsec:datatype:rep_datatype}
-
-For foundational reasons, some basic types such as \texttt{nat}, \texttt{*}, {\tt
-  +}, \texttt{bool} and \texttt{unit} are not defined in a \texttt{datatype} section,
-but by more primitive means using \texttt{typedef}. To be able to use the
-tactics \texttt{induct_tac} and \texttt{case_tac} and to define functions by
-primitive recursion on these types, such types may be represented as actual
-datatypes.  This is done by specifying the constructors of the desired type,
-plus a proof of the  induction rule, as well as theorems
-stating the distinctness and injectivity of constructors in a {\tt
-rep_datatype} section.  For the sum type this works as follows:
-\begin{ttbox}
-rep_datatype (sum) Inl Inr
-proof -
-  fix P
-  fix s :: "'a + 'b"
-  assume x: "!!x::'a. P (Inl x)" and y: "!!y::'b. P (Inr y)"
-  then show "P s" by (auto intro: sumE [of s])
-qed simp_all
-\end{ttbox}
-The datatype package automatically derives additional theorems for recursion
-and case combinators from these rules.  Any of the basic HOL types mentioned
-above are represented as datatypes.  Try an induction on \texttt{bool}
-today.
-
-
-\subsection{Examples}
-
-\subsubsection{The datatype $\alpha~mylist$}
-
-We want to define a type $\alpha~mylist$. To do this we have to build a new
-theory that contains the type definition.  We start from the theory
-\texttt{Datatype} instead of \texttt{Main} in order to avoid clashes with the
-\texttt{List} theory of Isabelle/HOL.
-\begin{ttbox}
-MyList = Datatype +
-  datatype 'a mylist = Nil | Cons 'a ('a mylist)
-end
-\end{ttbox}
-After loading the theory, we can prove $Cons~x~xs\neq xs$, for example.  To
-ease the induction applied below, we state the goal with $x$ quantified at the
-object-level.  This will be stripped later using \ttindex{qed_spec_mp}.
-\begin{ttbox}
-Goal "!x. Cons x xs ~= xs";
-{\out Level 0}
-{\out ! x. Cons x xs ~= xs}
-{\out  1. ! x. Cons x xs ~= xs}
-\end{ttbox}
-This can be proved by the structural induction tactic:
-\begin{ttbox}
-by (induct_tac "xs" 1);
-{\out Level 1}
-{\out ! x. Cons x xs ~= xs}
-{\out  1. ! x. Cons x Nil ~= Nil}
-{\out  2. !!a mylist.}
-{\out        ! x. Cons x mylist ~= mylist ==>}
-{\out        ! x. Cons x (Cons a mylist) ~= Cons a mylist}
-\end{ttbox}
-The first subgoal can be proved using the simplifier.  Isabelle/HOL has
-already added the freeness properties of lists to the default simplification
-set.
-\begin{ttbox}
-by (Simp_tac 1);
-{\out Level 2}
-{\out ! x. Cons x xs ~= xs}
-{\out  1. !!a mylist.}
-{\out        ! x. Cons x mylist ~= mylist ==>}
-{\out        ! x. Cons x (Cons a mylist) ~= Cons a mylist}
-\end{ttbox}
-Similarly, we prove the remaining goal.
-\begin{ttbox}
-by (Asm_simp_tac 1);
-{\out Level 3}
-{\out ! x. Cons x xs ~= xs}
-{\out No subgoals!}
-\ttbreak
-qed_spec_mp "not_Cons_self";
-{\out val not_Cons_self = "Cons x xs ~= xs" : thm}
-\end{ttbox}
-Because both subgoals could have been proved by \texttt{Asm_simp_tac}
-we could have done that in one step:
-\begin{ttbox}
-by (ALLGOALS Asm_simp_tac);
-\end{ttbox}
-
-
-\subsubsection{The datatype $\alpha~mylist$ with mixfix syntax}
-
-In this example we define the type $\alpha~mylist$ again but this time
-we want to write \texttt{[]} for \texttt{Nil} and we want to use infix
-notation \verb|#| for \texttt{Cons}.  To do this we simply add mixfix
-annotations after the constructor declarations as follows:
-\begin{ttbox}
-MyList = Datatype +
-  datatype 'a mylist =
-    Nil ("[]")  |
-    Cons 'a ('a mylist)  (infixr "#" 70)
-end
-\end{ttbox}
-Now the theorem in the previous example can be written \verb|x#xs ~= xs|.
-
-
-\subsubsection{A datatype for weekdays}
-
-This example shows a datatype that consists of 7 constructors:
-\begin{ttbox}
-Days = Main +
-  datatype days = Mon | Tue | Wed | Thu | Fri | Sat | Sun
-end
-\end{ttbox}
-Because there are more than 6 constructors, inequality is expressed via a function
-\verb|days_ord|.  The theorem \verb|Mon ~= Tue| is not directly
-contained among the distinctness theorems, but the simplifier can
-prove it thanks to rewrite rules inherited from theory \texttt{NatArith}:
-\begin{ttbox}
-Goal "Mon ~= Tue";
-by (Simp_tac 1);
-\end{ttbox}
-You need not derive such inequalities explicitly: the simplifier will dispose
-of them automatically.
-\index{*datatype|)}
-
-
-\section{Recursive function definitions}\label{sec:HOL:recursive}
-\index{recursive functions|see{recursion}}
-
-Isabelle/HOL provides two main mechanisms of defining recursive functions.
-\begin{enumerate}
-\item \textbf{Primitive recursion} is available only for datatypes, and it is
-  somewhat restrictive.  Recursive calls are only allowed on the argument's
-  immediate constituents.  On the other hand, it is the form of recursion most
-  often wanted, and it is easy to use.
-  
-\item \textbf{Well-founded recursion} requires that you supply a well-founded
-  relation that governs the recursion.  Recursive calls are only allowed if
-  they make the argument decrease under the relation.  Complicated recursion
-  forms, such as nested recursion, can be dealt with.  Termination can even be
-  proved at a later time, though having unsolved termination conditions around
-  can make work difficult.%
-  \footnote{This facility is based on Konrad Slind's TFL
-    package~\cite{slind-tfl}.  Thanks are due to Konrad for implementing TFL
-    and assisting with its installation.}
-\end{enumerate}
-
-Following good HOL tradition, these declarations do not assert arbitrary
-axioms.  Instead, they define the function using a recursion operator.  Both
-HOL and ZF derive the theory of well-founded recursion from first
-principles~\cite{paulson-set-II}.  Primitive recursion over some datatype
-relies on the recursion operator provided by the datatype package.  With
-either form of function definition, Isabelle proves the desired recursion
-equations as theorems.
-
-
-\subsection{Primitive recursive functions}
-\label{sec:HOL:primrec}
-\index{recursion!primitive|(}
-\index{*primrec|(}
-
-Datatypes come with a uniform way of defining functions, {\bf primitive
-  recursion}.  In principle, one could introduce primitive recursive functions
-by asserting their reduction rules as new axioms, but this is not recommended:
-\begin{ttbox}\slshape
-Append = Main +
-consts app :: ['a list, 'a list] => 'a list
-rules 
-   app_Nil   "app [] ys = ys"
-   app_Cons  "app (x#xs) ys = x#app xs ys"
-end
-\end{ttbox}
-Asserting axioms brings the danger of accidentally asserting nonsense, as
-in \verb$app [] ys = us$.
-
-The \ttindex{primrec} declaration is a safe means of defining primitive
-recursive functions on datatypes:
-\begin{ttbox}
-Append = Main +
-consts app :: ['a list, 'a list] => 'a list
-primrec
-   "app [] ys = ys"
-   "app (x#xs) ys = x#app xs ys"
-end
-\end{ttbox}
-Isabelle will now check that the two rules do indeed form a primitive
-recursive definition.  For example
-\begin{ttbox}
-primrec
-    "app [] ys = us"
-\end{ttbox}
-is rejected with an error message ``\texttt{Extra variables on rhs}''.
-
-\bigskip
-
-The general form of a primitive recursive definition is
-\begin{ttbox}
-primrec
-    {\it reduction rules}
-\end{ttbox}
-where \textit{reduction rules} specify one or more equations of the form
-\[ f \, x@1 \, \dots \, x@m \, (C \, y@1 \, \dots \, y@k) \, z@1 \,
-\dots \, z@n = r \] such that $C$ is a constructor of the datatype, $r$
-contains only the free variables on the left-hand side, and all recursive
-calls in $r$ are of the form $f \, \dots \, y@i \, \dots$ for some $i$.  There
-must be at most one reduction rule for each constructor.  The order is
-immaterial.  For missing constructors, the function is defined to return a
-default value.  
-
-If you would like to refer to some rule by name, then you must prefix
-the rule with an identifier.  These identifiers, like those in the
-\texttt{rules} section of a theory, will be visible at the \ML\ level.
-
-The primitive recursive function can have infix or mixfix syntax:
-\begin{ttbox}\underscoreon
-consts "@"  :: ['a list, 'a list] => 'a list  (infixr 60)
-primrec
-   "[] @ ys = ys"
-   "(x#xs) @ ys = x#(xs @ ys)"
-\end{ttbox}
-
-The reduction rules become part of the default simpset, which
-leads to short proof scripts:
-\begin{ttbox}\underscoreon
-Goal "(xs @ ys) @ zs = xs @ (ys @ zs)";
-by (induct\_tac "xs" 1);
-by (ALLGOALS Asm\_simp\_tac);
-\end{ttbox}
-
-\subsubsection{Example: Evaluation of expressions}
-Using mutual primitive recursion, we can define evaluation functions \texttt{evala}
-and \texttt{eval_bexp} for the datatypes of arithmetic and boolean expressions mentioned in
-{\S}\ref{subsec:datatype:basics}:
-\begin{ttbox}
-consts
-  evala :: "['a => nat, 'a aexp] => nat"
-  evalb :: "['a => nat, 'a bexp] => bool"
-
-primrec
-  "evala env (If_then_else b a1 a2) =
-     (if evalb env b then evala env a1 else evala env a2)"
-  "evala env (Sum a1 a2) = evala env a1 + evala env a2"
-  "evala env (Diff a1 a2) = evala env a1 - evala env a2"
-  "evala env (Var v) = env v"
-  "evala env (Num n) = n"
-
-  "evalb env (Less a1 a2) = (evala env a1 < evala env a2)"
-  "evalb env (And b1 b2) = (evalb env b1 & evalb env b2)"
-  "evalb env (Or b1 b2) = (evalb env b1 & evalb env b2)"
-\end{ttbox}
-Since the value of an expression depends on the value of its variables,
-the functions \texttt{evala} and \texttt{evalb} take an additional
-parameter, an {\em environment} of type \texttt{'a => nat}, which maps
-variables to their values.
-
-Similarly, we may define substitution functions \texttt{substa}
-and \texttt{substb} for expressions: The mapping \texttt{f} of type
-\texttt{'a => 'a aexp} given as a parameter is lifted canonically
-on the types \texttt{'a aexp} and \texttt{'a bexp}:
-\begin{ttbox}
-consts
-  substa :: "['a => 'b aexp, 'a aexp] => 'b aexp"
-  substb :: "['a => 'b aexp, 'a bexp] => 'b bexp"
-
-primrec
-  "substa f (If_then_else b a1 a2) =
-     If_then_else (substb f b) (substa f a1) (substa f a2)"
-  "substa f (Sum a1 a2) = Sum (substa f a1) (substa f a2)"
-  "substa f (Diff a1 a2) = Diff (substa f a1) (substa f a2)"
-  "substa f (Var v) = f v"
-  "substa f (Num n) = Num n"
-
-  "substb f (Less a1 a2) = Less (substa f a1) (substa f a2)"
-  "substb f (And b1 b2) = And (substb f b1) (substb f b2)"
-  "substb f (Or b1 b2) = Or (substb f b1) (substb f b2)"
-\end{ttbox}
-In textbooks about semantics one often finds {\em substitution theorems},
-which express the relationship between substitution and evaluation. For
-\texttt{'a aexp} and \texttt{'a bexp}, we can prove such a theorem by mutual
-induction, followed by simplification:
-\begin{ttbox}
-Goal
-  "evala env (substa (Var(v := a')) a) =
-     evala (env(v := evala env a')) a &
-   evalb env (substb (Var(v := a')) b) =
-     evalb (env(v := evala env a')) b";
-by (induct_tac "a b" 1);
-by (ALLGOALS Asm_full_simp_tac);
-\end{ttbox}
-
-\subsubsection{Example: A substitution function for terms}
-Functions on datatypes with nested recursion, such as the type
-\texttt{term} mentioned in {\S}\ref{subsec:datatype:basics}, are
-also defined by mutual primitive recursion. A substitution
-function \texttt{subst_term} on type \texttt{term}, similar to the functions
-\texttt{substa} and \texttt{substb} described above, can
-be defined as follows:
-\begin{ttbox}
-consts
-  subst_term :: "['a => ('a,'b) term, ('a,'b) term] => ('a,'b) term"
-  subst_term_list ::
-    "['a => ('a,'b) term, ('a,'b) term list] => ('a,'b) term list"
-
-primrec
-  "subst_term f (Var a) = f a"
-  "subst_term f (App b ts) = App b (subst_term_list f ts)"
-
-  "subst_term_list f [] = []"
-  "subst_term_list f (t # ts) =
-     subst_term f t # subst_term_list f ts"
-\end{ttbox}
-The recursion scheme follows the structure of the unfolded definition of type
-\texttt{term} shown in {\S}\ref{subsec:datatype:basics}. To prove properties of
-this substitution function, mutual induction is needed:
-\begin{ttbox}
-Goal
-  "(subst_term ((subst_term f1) o f2) t) =
-     (subst_term f1 (subst_term f2 t)) &
-   (subst_term_list ((subst_term f1) o f2) ts) =
-     (subst_term_list f1 (subst_term_list f2 ts))";
-by (induct_tac "t ts" 1);
-by (ALLGOALS Asm_full_simp_tac);
-\end{ttbox}
-
-\subsubsection{Example: A map function for infinitely branching trees}
-Defining functions on infinitely branching datatypes by primitive
-recursion is just as easy. For example, we can define a function
-\texttt{map_tree} on \texttt{'a tree} as follows:
-\begin{ttbox}
-consts
-  map_tree :: "('a => 'b) => 'a tree => 'b tree"
-
-primrec
-  "map_tree f (Atom a) = Atom (f a)"
-  "map_tree f (Branch ts) = Branch (\%x. map_tree f (ts x))"
-\end{ttbox}
-Note that all occurrences of functions such as \texttt{ts} in the
-\texttt{primrec} clauses must be applied to an argument. In particular,
-\texttt{map_tree f o ts} is not allowed.
-
-\index{recursion!primitive|)}
-\index{*primrec|)}
-
-
-\subsection{General recursive functions}
-\label{sec:HOL:recdef}
+\section{Old-style recursive function definitions}\label{sec:HOL:recursive}
 \index{recursion!general|(}
 \index{*recdef|(}
+
+Old-style recursive definitions via \texttt{recdef} requires that you
+supply a well-founded relation that governs the recursion.  Recursive
+calls are only allowed if they make the argument decrease under the
+relation.  Complicated recursion forms, such as nested recursion, can
+be dealt with.  Termination can even be proved at a later time, though
+having unsolved termination conditions around can make work
+difficult.%
+\footnote{This facility is based on Konrad Slind's TFL
+  package~\cite{slind-tfl}.  Thanks are due to Konrad for implementing
+  TFL and assisting with its installation.}
 
 Using \texttt{recdef}, you can declare functions involving nested recursion
 and pattern-matching.  Recursion need not involve datatypes and there are few
@@ -2541,186 +1978,6 @@ remain unproved, they will become additional premises of this rule.
 
 \index{recursion!general|)}
 \index{*recdef|)}
-
-
-\section{Inductive and coinductive definitions}
-\index{*inductive|(}
-\index{*coinductive|(}
-
-An {\bf inductive definition} specifies the least set~$R$ closed under given
-rules.  (Applying a rule to elements of~$R$ yields a result within~$R$.)  For
-example, a structural operational semantics is an inductive definition of an
-evaluation relation.  Dually, a {\bf coinductive definition} specifies the
-greatest set~$R$ consistent with given rules.  (Every element of~$R$ can be
-seen as arising by applying a rule to elements of~$R$.)  An important example
-is using bisimulation relations to formalise equivalence of processes and
-infinite data structures.
-
-A theory file may contain any number of inductive and coinductive
-definitions.  They may be intermixed with other declarations; in
-particular, the (co)inductive sets {\bf must} be declared separately as
-constants, and may have mixfix syntax or be subject to syntax translations.
-
-Each (co)inductive definition adds definitions to the theory and also
-proves some theorems.  Each definition creates an \ML\ structure, which is a
-substructure of the main theory structure.
-
-This package is related to the ZF one, described in a separate
-paper,%
-\footnote{It appeared in CADE~\cite{paulson-CADE}; a longer version is
-  distributed with Isabelle.}  %
-which you should refer to in case of difficulties.  The package is simpler
-than ZF's thanks to HOL's extra-logical automatic type-checking.  The types of
-the (co)inductive sets determine the domain of the fixedpoint definition, and
-the package does not have to use inference rules for type-checking.
-
-
-\subsection{The result structure}
-Many of the result structure's components have been discussed in the paper;
-others are self-explanatory.
-\begin{description}
-\item[\tt defs] is the list of definitions of the recursive sets.
-
-\item[\tt mono] is a monotonicity theorem for the fixedpoint operator.
-
-\item[\tt unfold] is a fixedpoint equation for the recursive set (the union of
-the recursive sets, in the case of mutual recursion).
-
-\item[\tt intrs] is the list of introduction rules, now proved as theorems, for
-the recursive sets.  The rules are also available individually, using the
-names given them in the theory file. 
-
-\item[\tt elims] is the list of elimination rule.  This is for compatibility
-  with ML scripts; within the theory the name is \texttt{cases}.
-  
-\item[\tt elim] is the head of the list \texttt{elims}.  This is for
-  compatibility only.
-  
-\item[\tt mk_cases] is a function to create simplified instances of {\tt
-elim} using freeness reasoning on underlying datatypes.
-\end{description}
-
-For an inductive definition, the result structure contains the
-rule \texttt{induct}.  For a
-coinductive definition, it contains the rule \verb|coinduct|.
-
-Figure~\ref{def-result-fig} summarises the two result signatures,
-specifying the types of all these components.
-
-\begin{figure}
-\begin{ttbox}
-sig
-val defs         : thm list
-val mono         : thm
-val unfold       : thm
-val intrs        : thm list
-val elims        : thm list
-val elim         : thm
-val mk_cases     : string -> thm
-{\it(Inductive definitions only)} 
-val induct       : thm
-{\it(coinductive definitions only)}
-val coinduct     : thm
-end
-\end{ttbox}
-\hrule
-\caption{The {\ML} result of a (co)inductive definition} \label{def-result-fig}
-\end{figure}
-
-\subsection{The syntax of a (co)inductive definition}
-An inductive definition has the form
-\begin{ttbox}
-inductive    {\it inductive sets}
-  intrs      {\it introduction rules}
-  monos      {\it monotonicity theorems}
-\end{ttbox}
-A coinductive definition is identical, except that it starts with the keyword
-\texttt{coinductive}.  
-
-The \texttt{monos} section is optional; if present it is specified by a list
-of identifiers.
-
-\begin{itemize}
-\item The \textit{inductive sets} are specified by one or more strings.
-
-\item The \textit{introduction rules} specify one or more introduction rules in
-  the form \textit{ident\/}~\textit{string}, where the identifier gives the name of
-  the rule in the result structure.
-
-\item The \textit{monotonicity theorems} are required for each operator
-  applied to a recursive set in the introduction rules.  There {\bf must}
-  be a theorem of the form $A\subseteq B\Imp M(A)\subseteq M(B)$, for each
-  premise $t\in M(R@i)$ in an introduction rule!
-
-\item The \textit{constructor definitions} contain definitions of constants
-  appearing in the introduction rules.  In most cases it can be omitted.
-\end{itemize}
-
-
-\subsection{*Monotonicity theorems}
-
-Each theory contains a default set of theorems that are used in monotonicity
-proofs. New rules can be added to this set via the \texttt{mono} attribute.
-Theory \texttt{Inductive} shows how this is done. In general, the following
-monotonicity theorems may be added:
-\begin{itemize}
-\item Theorems of the form $A\subseteq B\Imp M(A)\subseteq M(B)$, for proving
-  monotonicity of inductive definitions whose introduction rules have premises
-  involving terms such as $t\in M(R@i)$.
-\item Monotonicity theorems for logical operators, which are of the general form
-  $\List{\cdots \to \cdots;~\ldots;~\cdots \to \cdots} \Imp
-    \cdots \to \cdots$.
-  For example, in the case of the operator $\lor$, the corresponding theorem is
-  \[
-  \infer{P@1 \lor P@2 \to Q@1 \lor Q@2}
-    {P@1 \to Q@1 & P@2 \to Q@2}
-  \]
-\item De Morgan style equations for reasoning about the ``polarity'' of expressions, e.g.
-  \[
-  (\lnot \lnot P) ~=~ P \qquad\qquad
-  (\lnot (P \land Q)) ~=~ (\lnot P \lor \lnot Q)
-  \]
-\item Equations for reducing complex operators to more primitive ones whose
-  monotonicity can easily be proved, e.g.
-  \[
-  (P \to Q) ~=~ (\lnot P \lor Q) \qquad\qquad
-  \mathtt{Ball}~A~P ~\equiv~ \forall x.~x \in A \to P~x
-  \]
-\end{itemize}
-
-\subsection{Example of an inductive definition}
-Two declarations, included in a theory file, define the finite powerset
-operator.  First we declare the constant~\texttt{Fin}.  Then we declare it
-inductively, with two introduction rules:
-\begin{ttbox}
-consts Fin :: 'a set => 'a set set
-inductive "Fin A"
-  intrs
-    emptyI  "{\ttlbrace}{\ttrbrace} : Fin A"
-    insertI "[| a: A;  b: Fin A |] ==> insert a b : Fin A"
-\end{ttbox}
-The resulting theory structure contains a substructure, called~\texttt{Fin}.
-It contains the \texttt{Fin}$~A$ introduction rules as the list \texttt{Fin.intrs},
-and also individually as \texttt{Fin.emptyI} and \texttt{Fin.consI}.  The induction
-rule is \texttt{Fin.induct}.
-
-For another example, here is a theory file defining the accessible part of a
-relation.  The paper \cite{paulson-CADE} discusses a ZF version of this
-example in more detail.
-\begin{ttbox}
-Acc = WF + Inductive +
-
-consts acc :: "('a * 'a)set => 'a set"   (* accessible part *)
-
-inductive "acc r"
-  intrs
-    accI "ALL y. (y, x) : r --> y : acc r ==> x : acc r"
-
-end
-\end{ttbox}
-The Isabelle distribution contains many other inductive definitions.
-
-\index{*coinductive|)} \index{*inductive|)}
 
 
 \section{Example: Cantor's Theorem}\label{sec:hol-cantor}

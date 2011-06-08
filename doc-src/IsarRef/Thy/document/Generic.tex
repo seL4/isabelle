@@ -734,7 +734,23 @@ The following improper proof methods emulate traditional tactics.
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-\begin{matharray}{rcl}
+Simplification procedures are ML functions that produce proven
+  rewrite rules on demand.  They are associated with higher-order
+  patterns that approximate the left-hand sides of equations.  The
+  Simplifier first matches the current redex against one of the LHS
+  patterns; if this succeeds, the corresponding ML function is
+  invoked, passing the Simplifier context and redex term.  Thus rules
+  may be specifically fashioned for particular situations, resulting
+  in a more powerful mechanism than term rewriting by a fixed set of
+  rules.
+
+  Any successful result needs to be a (possibly conditional) rewrite
+  rule \isa{{\isaliteral{22}{\isachardoublequote}}t\ {\isaliteral{5C3C65717569763E}{\isasymequiv}}\ u{\isaliteral{22}{\isachardoublequote}}} that is applicable to the current redex.  The
+  rule will be applied just as any ordinary rewrite rule.  It is
+  expected to be already in \emph{internal form}, bypassing the
+  automatic preprocessing of object-level equivalences.
+
+  \begin{matharray}{rcl}
     \indexdef{}{command}{simproc\_setup}\hypertarget{command.simproc-setup}{\hyperlink{command.simproc-setup}{\mbox{\isa{\isacommand{simproc{\isaliteral{5F}{\isacharunderscore}}setup}}}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}local{\isaliteral{5F}{\isacharunderscore}}theory\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}\ local{\isaliteral{5F}{\isacharunderscore}}theory{\isaliteral{22}{\isachardoublequote}}} \\
     simproc & : & \isa{attribute} \\
   \end{matharray}
@@ -810,6 +826,48 @@ The following improper proof methods emulate traditional tactics.
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsubsubsection{Example%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The following simplification procedure for \isa{{\isaliteral{28}{\isacharparenleft}}{\isaliteral{3F}{\isacharquery}}u{\isaliteral{5C3C436F6C6F6E3E}{\isasymColon}}unit{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{29}{\isacharparenright}}} in HOL performs fine-grained
+  control over rule application, beyond higher-order pattern matching.
+  Declaring \isa{unit{\isaliteral{5F}{\isacharunderscore}}eq} as \hyperlink{attribute.simp}{\mbox{\isa{simp}}} directly would make
+  the simplifier loop!  Note that a version of this simplification
+  procedure is already active in Isabelle/HOL.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+\isacommand{simproc{\isaliteral{5F}{\isacharunderscore}}setup}\isamarkupfalse%
+\ unit\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{22}{\isachardoublequoteopen}}x{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}unit{\isaliteral{22}{\isachardoublequoteclose}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
+\ \ fn\ {\isaliteral{5F}{\isacharunderscore}}\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ fn\ {\isaliteral{5F}{\isacharunderscore}}\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\ fn\ ct\ {\isaliteral{3D}{\isacharequal}}{\isaliteral{3E}{\isachargreater}}\isanewline
+\ \ \ \ if\ HOLogic{\isaliteral{2E}{\isachardot}}is{\isaliteral{5F}{\isacharunderscore}}unit\ {\isaliteral{28}{\isacharparenleft}}term{\isaliteral{5F}{\isacharunderscore}}of\ ct{\isaliteral{29}{\isacharparenright}}\ then\ NONE\isanewline
+\ \ \ \ else\ SOME\ {\isaliteral{28}{\isacharparenleft}}mk{\isaliteral{5F}{\isacharunderscore}}meta{\isaliteral{5F}{\isacharunderscore}}eq\ %
+\isaantiq
+thm\ unit{\isaliteral{5F}{\isacharunderscore}}eq{}%
+\endisaantiq
+{\isaliteral{29}{\isacharparenright}}\isanewline
+{\isaliteral{2A7D}{\isacharverbatimclose}}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\begin{isamarkuptext}%
+Since the Simplifier applies simplification procedures
+  frequently, it is important to make the failure check in ML
+  reasonably fast.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsubsection{Forward simplification%
 }
 \isamarkuptrue%
@@ -866,30 +924,334 @@ The following improper proof methods emulate traditional tactics.
 }
 \isamarkuptrue%
 %
-\isamarkupsubsection{Basic methods%
+\isamarkupsubsection{Basic concepts%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-\begin{matharray}{rcl}
-    \indexdef{}{method}{rule}\hypertarget{method.rule}{\hyperlink{method.rule}{\mbox{\isa{rule}}}} & : & \isa{method} \\
-    \indexdef{}{method}{contradiction}\hypertarget{method.contradiction}{\hyperlink{method.contradiction}{\mbox{\isa{contradiction}}}} & : & \isa{method} \\
-    \indexdef{}{method}{intro}\hypertarget{method.intro}{\hyperlink{method.intro}{\mbox{\isa{intro}}}} & : & \isa{method} \\
-    \indexdef{}{method}{elim}\hypertarget{method.elim}{\hyperlink{method.elim}{\mbox{\isa{elim}}}} & : & \isa{method} \\
+Although Isabelle is generic, many users will be working in
+  some extension of classical first-order logic.  Isabelle/ZF is built
+  upon theory FOL, while Isabelle/HOL conceptually contains
+  first-order logic as a fragment.  Theorem-proving in predicate logic
+  is undecidable, but many automated strategies have been developed to
+  assist in this task.
+
+  Isabelle's classical reasoner is a generic package that accepts
+  certain information about a logic and delivers a suite of automatic
+  proof tools, based on rules that are classified and declared in the
+  context.  These proof procedures are slow and simplistic compared
+  with high-end automated theorem provers, but they can save
+  considerable time and effort in practice.  They can prove theorems
+  such as Pelletier's \cite{pelletier86} problems 40 and 41 in a few
+  milliseconds (including full proof reconstruction):%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}y{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ F\ x\ y\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ F\ x\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}y{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}z{\isaliteral{2E}{\isachardot}}\ F\ z\ y\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ F\ z\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ blast%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ {\isaliteral{22}{\isachardoublequoteopen}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}z{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}y{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ f\ x\ y\ {\isaliteral{5C3C6C6F6E676C65667472696768746172726F773E}{\isasymlongleftrightarrow}}\ f\ x\ z\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ f\ x\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}z{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ f\ x\ z{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ blast%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+The proof tools are generic.  They are not restricted to
+  first-order logic, and have been heavily used in the development of
+  the Isabelle/HOL library and applications.  The tactics can be
+  traced, and their components can be called directly; in this manner,
+  any proof can be viewed interactively.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{The sequent calculus%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Isabelle supports natural deduction, which is easy to use for
+  interactive proof.  But natural deduction does not easily lend
+  itself to automation, and has a bias towards intuitionism.  For
+  certain proofs in classical logic, it can not be called natural.
+  The \emph{sequent calculus}, a generalization of natural deduction,
+  is easier to automate.
+
+  A \textbf{sequent} has the form \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{22}{\isachardoublequote}}}, where \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}{\isaliteral{22}{\isachardoublequote}}}
+  and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{22}{\isachardoublequote}}} are sets of formulae.\footnote{For first-order
+  logic, sequents can equivalently be made from lists or multisets of
+  formulae.} The sequent \isa{{\isaliteral{22}{\isachardoublequote}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ P\isaliteral{5C3C5E7375623E}{}\isactrlsub m\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} is
+  \textbf{valid} if \isa{{\isaliteral{22}{\isachardoublequote}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ P\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{22}{\isachardoublequote}}} implies \isa{{\isaliteral{22}{\isachardoublequote}}Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}.  Thus \isa{{\isaliteral{22}{\isachardoublequote}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ P\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{22}{\isachardoublequote}}} represent assumptions, each of which
+  is true, while \isa{{\isaliteral{22}{\isachardoublequote}}Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} represent alternative goals.  A
+  sequent is \textbf{basic} if its left and right sides have a common
+  formula, as in \isa{{\isaliteral{22}{\isachardoublequote}}P{\isaliteral{2C}{\isacharcomma}}\ Q\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ Q{\isaliteral{2C}{\isacharcomma}}\ R{\isaliteral{22}{\isachardoublequote}}}; basic sequents are trivially
+  valid.
+
+  Sequent rules are classified as \textbf{right} or \textbf{left},
+  indicating which side of the \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}{\isaliteral{22}{\isachardoublequote}}} symbol they operate on.
+  Rules that operate on the right side are analogous to natural
+  deduction's introduction rules, and left rules are analogous to
+  elimination rules.  The sequent calculus analogue of \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}I{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}
+  is the rule
+  \[
+  \infer[\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}R{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}]{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{2C}{\isacharcomma}}\ P\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ Q{\isaliteral{22}{\isachardoublequote}}}}{\isa{{\isaliteral{22}{\isachardoublequote}}P{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{2C}{\isacharcomma}}\ Q{\isaliteral{22}{\isachardoublequote}}}}
+  \]
+  Applying the rule backwards, this breaks down some implication on
+  the right side of a sequent; \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{22}{\isachardoublequote}}} stand for
+  the sets of formulae that are unaffected by the inference.  The
+  analogue of the pair \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6F723E}{\isasymor}}I{\isadigit{1}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6F723E}{\isasymor}}I{\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} is the
+  single rule
+  \[
+  \infer[\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6F723E}{\isasymor}}R{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}]{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{2C}{\isacharcomma}}\ P\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q{\isaliteral{22}{\isachardoublequote}}}}{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{2C}{\isacharcomma}}\ P{\isaliteral{2C}{\isacharcomma}}\ Q{\isaliteral{22}{\isachardoublequote}}}}
+  \]
+  This breaks down some disjunction on the right side, replacing it by
+  both disjuncts.  Thus, the sequent calculus is a kind of
+  multiple-conclusion logic.
+
+  To illustrate the use of multiple formulae on the right, let us
+  prove the classical theorem \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}P\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{28}{\isacharparenleft}}Q\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}.  Working
+  backwards, we reduce this formula to a basic sequent:
+  \[
+  \infer[\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6F723E}{\isasymor}}R{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}]{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{28}{\isacharparenleft}}P\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C6F723E}{\isasymor}}\ {\isaliteral{28}{\isacharparenleft}}Q\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}}
+    {\infer[\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}R{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}]{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{28}{\isacharparenleft}}P\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{28}{\isacharparenleft}}Q\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}}
+      {\infer[\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}R{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}]{\isa{{\isaliteral{22}{\isachardoublequote}}P\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ Q{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{28}{\isacharparenleft}}Q\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}}
+        {\isa{{\isaliteral{22}{\isachardoublequote}}P{\isaliteral{2C}{\isacharcomma}}\ Q\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ Q{\isaliteral{2C}{\isacharcomma}}\ P{\isaliteral{22}{\isachardoublequote}}}}}}
+  \]
+
+  This example is typical of the sequent calculus: start with the
+  desired theorem and apply rules backwards in a fairly arbitrary
+  manner.  This yields a surprisingly effective proof procedure.
+  Quantifiers add only few complications, since Isabelle handles
+  parameters and schematic variables.  See \cite[Chapter
+  10]{paulson-ml2} for further discussion.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Simulating sequents by natural deduction%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Isabelle can represent sequents directly, as in the
+  object-logic LK.  But natural deduction is easier to work with, and
+  most object-logics employ it.  Fortunately, we can simulate the
+  sequent \isa{{\isaliteral{22}{\isachardoublequote}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ P\isaliteral{5C3C5E7375623E}{}\isactrlsub m\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}} by the Isabelle formula
+  \isa{{\isaliteral{22}{\isachardoublequote}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\isaliteral{5C3C5E7375623E}{}\isactrlsub m\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}} where the order of
+  the assumptions and the choice of \isa{{\isaliteral{22}{\isachardoublequote}}Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}} are arbitrary.
+  Elim-resolution plays a key role in simulating sequent proofs.
+
+  We can easily handle reasoning on the left.  Elim-resolution with
+  the rules \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6F723E}{\isasymor}}E{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C626F74746F6D3E}{\isasymbottom}}E{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}E{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} achieves
+  a similar effect as the corresponding sequent rules.  For the other
+  connectives, we use sequent-style elimination rules instead of
+  destruction rules such as \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616E643E}{\isasymand}}E{\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}E{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}.
+  But note that the rule \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}L{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} has no effect under our
+  representation of sequents!
+  \[
+  \infer[\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}L{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}]{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{22}{\isachardoublequote}}}}{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{2C}{\isacharcomma}}\ P{\isaliteral{22}{\isachardoublequote}}}}
+  \]
+
+  What about reasoning on the right?  Introduction rules can only
+  affect the formula in the conclusion, namely \isa{{\isaliteral{22}{\isachardoublequote}}Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}}.  The
+  other right-side formulae are represented as negated assumptions,
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{2}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}.  In order to operate on one of these, it
+  must first be exchanged with \isa{{\isaliteral{22}{\isachardoublequote}}Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}}.  Elim-resolution with the
+  \isa{swap} rule has this effect: \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ R\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ R{\isaliteral{22}{\isachardoublequote}}}
+
+  To ensure that swaps occur only when necessary, each introduction
+  rule is converted into a swapped form: it is resolved with the
+  second premise of \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}swap{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}.  The swapped form of \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616E643E}{\isasymand}}I{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}, which might be called \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}{\isaliteral{5C3C616E643E}{\isasymand}}E{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}, is
+  \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{28}{\isacharparenleft}}P\ {\isaliteral{5C3C616E643E}{\isasymand}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ R\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ R\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ R{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle}
+
+  Similarly, the swapped form of \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}I{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} is
+  \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{28}{\isacharparenleft}}P\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ R\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ R{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle}
+
+  Swapped introduction rules are applied using elim-resolution, which
+  deletes the negated formula.  Our representation of sequents also
+  requires the use of ordinary introduction rules.  If we had no
+  regard for readability of intermediate goal states, we could treat
+  the right side more uniformly by representing sequents as \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}P\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\isaliteral{5C3C5E7375623E}{}\isactrlsub m\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ Q\isaliteral{5C3C5E7375623E}{}\isactrlsub n\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C626F74746F6D3E}{\isasymbottom}}{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsubsection{Extra rules for the sequent calculus%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+As mentioned, destruction rules such as \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C616E643E}{\isasymand}}E{\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} and
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}E{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} must be replaced by sequent-style elimination rules.
+  In addition, we need rules to embody the classical equivalence
+  between \isa{{\isaliteral{22}{\isachardoublequote}}P\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ Q{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q{\isaliteral{22}{\isachardoublequote}}}.  The introduction
+  rules \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6F723E}{\isasymor}}I{\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isadigit{2}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} are replaced by a rule that simulates
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6F723E}{\isasymor}}R{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}: \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ Q\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle}
+
+  The destruction rule \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}E{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} is replaced by \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}P\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ R{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}Q\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ R{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ R{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle}
+
+  Quantifier replication also requires special rules.  In classical
+  logic, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{22}{\isachardoublequote}}} is equivalent to \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}};
+  the rules \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}R{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}L{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} are dual:
+  \[
+  \infer[\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}R{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}]{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{22}{\isachardoublequote}}}}{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{2C}{\isacharcomma}}\ P\ t{\isaliteral{22}{\isachardoublequote}}}}
+  \qquad
+  \infer[\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}L{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}]{\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{22}{\isachardoublequote}}}}{\isa{{\isaliteral{22}{\isachardoublequote}}P\ t{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C47616D6D613E}{\isasymGamma}}\ {\isaliteral{5C3C7475726E7374696C653E}{\isasymturnstile}}\ {\isaliteral{5C3C44656C74613E}{\isasymDelta}}{\isaliteral{22}{\isachardoublequote}}}}
+  \]
+  Thus both kinds of quantifier may be replicated.  Theorems requiring
+  multiple uses of a universal formula are easy to invent; consider
+  \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P\ {\isaliteral{28}{\isacharparenleft}}f\ x{\isaliteral{29}{\isacharparenright}}{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C616E643E}{\isasymand}}\ P\ a\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P\ {\isaliteral{28}{\isacharparenleft}}f\isaliteral{5C3C5E7375703E}{}\isactrlsup n\ a{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle} for any
+  \isa{{\isaliteral{22}{\isachardoublequote}}n\ {\isaliteral{3E}{\isachargreater}}\ {\isadigit{1}}{\isaliteral{22}{\isachardoublequote}}}.  Natural examples of the multiple use of an
+  existential formula are rare; a standard one is \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}y{\isaliteral{2E}{\isachardot}}\ P\ x\ {\isaliteral{5C3C6C6F6E6772696768746172726F773E}{\isasymlongrightarrow}}\ P\ y{\isaliteral{22}{\isachardoublequote}}}.
+
+  Forgoing quantifier replication loses completeness, but gains
+  decidability, since the search space becomes finite.  Many useful
+  theorems can be proved without replication, and the search generally
+  delivers its verdict in a reasonable time.  To adopt this approach,
+  represent the sequent rules \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}R{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}L{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} and
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}R{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} by \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}I{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}, \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}E{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} and \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}I{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}},
+  respectively, and put \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}E{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} into elimination form: \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}P\ t\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle}
+
+  Elim-resolution with this rule will delete the universal formula
+  after a single use.  To replicate universal quantifiers, replace the
+  rule by \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}P\ t\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle}
+
+  To replicate existential quantifiers, replace \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}I{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} by
+  \begin{isabelle}%
+{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ t{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{22}{\isachardoublequote}}%
+\end{isabelle}
+
+  All introduction rules mentioned above are also useful in swapped
+  form.
+
+  Replication makes the search space infinite; we must apply the rules
+  with care.  The classical reasoner distinguishes between safe and
+  unsafe rules, applying the latter only when there is no alternative.
+  Depth-first search may well go down a blind alley; best-first search
+  is better behaved in an infinite search space.  However, quantifier
+  replication is too expensive to prove any but the simplest theorems.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Rule declarations%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The proof tools of the Classical Reasoner depend on
+  collections of rules declared in the context, which are classified
+  as introduction, elimination or destruction and as \emph{safe} or
+  \emph{unsafe}.  In general, safe rules can be attempted blindly,
+  while unsafe rules must be used with care.  A safe rule must never
+  reduce a provable goal to an unprovable set of subgoals.
+
+  The rule \isa{{\isaliteral{22}{\isachardoublequote}}P\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q{\isaliteral{22}{\isachardoublequote}}} is unsafe because it reduces \isa{{\isaliteral{22}{\isachardoublequote}}P\ {\isaliteral{5C3C6F723E}{\isasymor}}\ Q{\isaliteral{22}{\isachardoublequote}}} to \isa{{\isaliteral{22}{\isachardoublequote}}P{\isaliteral{22}{\isachardoublequote}}}, which might turn out as premature choice of an
+  unprovable subgoal.  Any rule is unsafe whose premises contain new
+  unknowns.  The elimination rule \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}P\ t\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q{\isaliteral{22}{\isachardoublequote}}} is
+  unsafe, since it is applied via elim-resolution, which discards the
+  assumption \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{22}{\isachardoublequote}}} and replaces it by the weaker
+  assumption \isa{{\isaliteral{22}{\isachardoublequote}}P\ t{\isaliteral{22}{\isachardoublequote}}}.  The rule \isa{{\isaliteral{22}{\isachardoublequote}}P\ t\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C6578697374733E}{\isasymexists}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{22}{\isachardoublequote}}} is
+  unsafe for similar reasons.  The quantifier duplication rule \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}P\ t\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ Q{\isaliteral{22}{\isachardoublequote}}} is unsafe in a different sense:
+  since it keeps the assumption \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C666F72616C6C3E}{\isasymforall}}x{\isaliteral{2E}{\isachardot}}\ P\ x{\isaliteral{22}{\isachardoublequote}}}, it is prone to
+  looping.  In classical first-order logic, all rules are safe except
+  those mentioned above.
+
+  The safe~/ unsafe distinction is vague, and may be regarded merely
+  as a way of giving some rules priority over others.  One could argue
+  that \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6F723E}{\isasymor}}E{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} is unsafe, because repeated application of it
+  could generate exponentially many subgoals.  Induction rules are
+  unsafe because inductive proofs are difficult to set up
+  automatically.  Any inference is unsafe that instantiates an unknown
+  in the proof state --- thus matching must be used, rather than
+  unification.  Even proof by assumption is unsafe if it instantiates
+  unknowns shared with other subgoals.
+
+  \begin{matharray}{rcl}
+    \indexdef{}{command}{print\_claset}\hypertarget{command.print-claset}{\hyperlink{command.print-claset}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}claset}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
+    \indexdef{}{attribute}{intro}\hypertarget{attribute.intro}{\hyperlink{attribute.intro}{\mbox{\isa{intro}}}} & : & \isa{attribute} \\
+    \indexdef{}{attribute}{elim}\hypertarget{attribute.elim}{\hyperlink{attribute.elim}{\mbox{\isa{elim}}}} & : & \isa{attribute} \\
+    \indexdef{}{attribute}{dest}\hypertarget{attribute.dest}{\hyperlink{attribute.dest}{\mbox{\isa{dest}}}} & : & \isa{attribute} \\
+    \indexdef{}{attribute}{rule}\hypertarget{attribute.rule}{\hyperlink{attribute.rule}{\mbox{\isa{rule}}}} & : & \isa{attribute} \\
+    \indexdef{}{attribute}{iff}\hypertarget{attribute.iff}{\hyperlink{attribute.iff}{\mbox{\isa{iff}}}} & : & \isa{attribute} \\
+    \indexdef{}{attribute}{swapped}\hypertarget{attribute.swapped}{\hyperlink{attribute.swapped}{\mbox{\isa{swapped}}}} & : & \isa{attribute} \\
   \end{matharray}
 
   \begin{railoutput}
 \rail@begin{3}{}
 \rail@bar
-\rail@term{\hyperlink{method.rule}{\mbox{\isa{rule}}}}[]
+\rail@term{\hyperlink{attribute.intro}{\mbox{\isa{intro}}}}[]
 \rail@nextbar{1}
-\rail@term{\hyperlink{method.intro}{\mbox{\isa{intro}}}}[]
+\rail@term{\hyperlink{attribute.elim}{\mbox{\isa{elim}}}}[]
 \rail@nextbar{2}
-\rail@term{\hyperlink{method.elim}{\mbox{\isa{elim}}}}[]
+\rail@term{\hyperlink{attribute.dest}{\mbox{\isa{dest}}}}[]
+\rail@endbar
+\rail@bar
+\rail@term{\isa{{\isaliteral{21}{\isacharbang}}}}[]
+\rail@nextbar{1}
+\rail@nextbar{2}
+\rail@term{\isa{{\isaliteral{3F}{\isacharquery}}}}[]
 \rail@endbar
 \rail@bar
 \rail@nextbar{1}
-\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{1}{}
+\rail@term{\hyperlink{attribute.rule}{\mbox{\isa{rule}}}}[]
+\rail@term{\isa{del}}[]
+\rail@end
+\rail@begin{3}{}
+\rail@term{\hyperlink{attribute.iff}{\mbox{\isa{iff}}}}[]
+\rail@bar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{add}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{3F}{\isacharquery}}}}[]
+\rail@endbar
+\rail@nextbar{2}
+\rail@term{\isa{del}}[]
 \rail@endbar
 \rail@end
 \end{railoutput}
@@ -897,27 +1259,53 @@ The following improper proof methods emulate traditional tactics.
 
   \begin{description}
 
-  \item \hyperlink{method.rule}{\mbox{\isa{rule}}} as offered by the Classical Reasoner is a
-  refinement over the primitive one (see \secref{sec:pure-meth-att}).
-  Both versions essentially work the same, but the classical version
-  observes the classical rule context in addition to that of
-  Isabelle/Pure.
+  \item \hyperlink{command.print-claset}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}claset}}}} prints the collection of rules
+  declared to the Classical Reasoner, i.e.\ the \verb|claset|
+  within the context.
 
-  Common object logics (HOL, ZF, etc.) declare a rich collection of
-  classical rules (even if these would qualify as intuitionistic
-  ones), but only few declarations to the rule context of
-  Isabelle/Pure (\secref{sec:pure-meth-att}).
+  \item \hyperlink{attribute.intro}{\mbox{\isa{intro}}}, \hyperlink{attribute.elim}{\mbox{\isa{elim}}}, and \hyperlink{attribute.dest}{\mbox{\isa{dest}}}
+  declare introduction, elimination, and destruction rules,
+  respectively.  By default, rules are considered as \emph{unsafe}
+  (i.e.\ not applied blindly without backtracking), while ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{21}{\isacharbang}}{\isaliteral{22}{\isachardoublequote}}}'' classifies as \emph{safe}.  Rule declarations marked by
+  ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}{\isaliteral{22}{\isachardoublequote}}}'' coincide with those of Isabelle/Pure, cf.\
+  \secref{sec:pure-meth-att} (i.e.\ are only applied in single steps
+  of the \hyperlink{method.rule}{\mbox{\isa{rule}}} method).  The optional natural number
+  specifies an explicit weight argument, which is ignored by the
+  automated reasoning tools, but determines the search order of single
+  rule steps.
 
-  \item \hyperlink{method.contradiction}{\mbox{\isa{contradiction}}} solves some goal by contradiction,
-  deriving any result from both \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A{\isaliteral{22}{\isachardoublequote}}} and \isa{A}.  Chained
-  facts, which are guaranteed to participate, may appear in either
-  order.
+  Introduction rules are those that can be applied using ordinary
+  resolution.  Their swapped forms are generated internally, which
+  will be applied using elim-resolution.  Elimination rules are
+  applied using elim-resolution.  Rules are sorted by the number of
+  new subgoals they will yield; rules that generate the fewest
+  subgoals will be tried first.  Otherwise, later declarations take
+  precedence over earlier ones.
 
-  \item \hyperlink{method.intro}{\mbox{\isa{intro}}} and \hyperlink{method.elim}{\mbox{\isa{elim}}} repeatedly refine some goal
-  by intro- or elim-resolution, after having inserted any chained
-  facts.  Exactly the rules given as arguments are taken into account;
-  this allows fine-tuned decomposition of a proof problem, in contrast
-  to common automated tools.
+  Rules already present in the context with the same classification
+  are ignored.  A warning is printed if the rule has already been
+  added with some other classification, but the rule is added anyway
+  as requested.
+
+  \item \hyperlink{attribute.rule}{\mbox{\isa{rule}}}~\isa{del} deletes all occurrences of a
+  rule from the classical context, regardless of its classification as
+  introduction~/ elimination~/ destruction and safe~/ unsafe.
+
+  \item \hyperlink{attribute.iff}{\mbox{\isa{iff}}} declares logical equivalences to the
+  Simplifier and the Classical reasoner at the same time.
+  Non-conditional rules result in a safe introduction and elimination
+  pair; conditional ones are considered unsafe.  Rules with negative
+  conclusion are automatically inverted (using \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}{\isaliteral{22}{\isachardoublequote}}}-elimination
+  internally).
+
+  The ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}{\isaliteral{22}{\isachardoublequote}}}'' version of \hyperlink{attribute.iff}{\mbox{\isa{iff}}} declares rules to
+  the Isabelle/Pure context only, and omits the Simplifier
+  declaration.
+
+  \item \hyperlink{attribute.swapped}{\mbox{\isa{swapped}}} turns an introduction rule into an
+  elimination, by resolving with the classical swap principle \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ P\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ R\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ P{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ R{\isaliteral{22}{\isachardoublequote}}} in the second position.  This is mainly for
+  illustrative purposes: the Classical Reasoner already swaps rules
+  internally as explained above.
 
   \end{description}%
 \end{isamarkuptext}%
@@ -930,11 +1318,14 @@ The following improper proof methods emulate traditional tactics.
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
     \indexdef{}{method}{blast}\hypertarget{method.blast}{\hyperlink{method.blast}{\mbox{\isa{blast}}}} & : & \isa{method} \\
+    \indexdef{}{method}{auto}\hypertarget{method.auto}{\hyperlink{method.auto}{\mbox{\isa{auto}}}} & : & \isa{method} \\
+    \indexdef{}{method}{force}\hypertarget{method.force}{\hyperlink{method.force}{\mbox{\isa{force}}}} & : & \isa{method} \\
     \indexdef{}{method}{fast}\hypertarget{method.fast}{\hyperlink{method.fast}{\mbox{\isa{fast}}}} & : & \isa{method} \\
     \indexdef{}{method}{slow}\hypertarget{method.slow}{\hyperlink{method.slow}{\mbox{\isa{slow}}}} & : & \isa{method} \\
     \indexdef{}{method}{best}\hypertarget{method.best}{\hyperlink{method.best}{\mbox{\isa{best}}}} & : & \isa{method} \\
-    \indexdef{}{method}{safe}\hypertarget{method.safe}{\hyperlink{method.safe}{\mbox{\isa{safe}}}} & : & \isa{method} \\
-    \indexdef{}{method}{clarify}\hypertarget{method.clarify}{\hyperlink{method.clarify}{\mbox{\isa{clarify}}}} & : & \isa{method} \\
+    \indexdef{}{method}{fastsimp}\hypertarget{method.fastsimp}{\hyperlink{method.fastsimp}{\mbox{\isa{fastsimp}}}} & : & \isa{method} \\
+    \indexdef{}{method}{slowsimp}\hypertarget{method.slowsimp}{\hyperlink{method.slowsimp}{\mbox{\isa{slowsimp}}}} & : & \isa{method} \\
+    \indexdef{}{method}{bestsimp}\hypertarget{method.bestsimp}{\hyperlink{method.bestsimp}{\mbox{\isa{bestsimp}}}} & : & \isa{method} \\
   \end{matharray}
 
   \begin{railoutput}
@@ -949,21 +1340,49 @@ The following improper proof methods emulate traditional tactics.
 \rail@cnont{\hyperlink{syntax.clamod}{\mbox{\isa{clamod}}}}[]
 \rail@endplus
 \rail@end
-\rail@begin{5}{}
+\rail@begin{2}{}
+\rail@term{\hyperlink{method.auto}{\mbox{\isa{auto}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.clasimpmod}{\mbox{\isa{clasimpmod}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{2}{}
+\rail@term{\hyperlink{method.force}{\mbox{\isa{force}}}}[]
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.clasimpmod}{\mbox{\isa{clasimpmod}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{3}{}
 \rail@bar
 \rail@term{\hyperlink{method.fast}{\mbox{\isa{fast}}}}[]
 \rail@nextbar{1}
 \rail@term{\hyperlink{method.slow}{\mbox{\isa{slow}}}}[]
 \rail@nextbar{2}
 \rail@term{\hyperlink{method.best}{\mbox{\isa{best}}}}[]
-\rail@nextbar{3}
-\rail@term{\hyperlink{method.safe}{\mbox{\isa{safe}}}}[]
-\rail@nextbar{4}
-\rail@term{\hyperlink{method.clarify}{\mbox{\isa{clarify}}}}[]
 \rail@endbar
 \rail@plus
 \rail@nextplus{1}
 \rail@cnont{\hyperlink{syntax.clamod}{\mbox{\isa{clamod}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{3}{}
+\rail@bar
+\rail@term{\hyperlink{method.fastsimp}{\mbox{\isa{fastsimp}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{method.slowsimp}{\mbox{\isa{slowsimp}}}}[]
+\rail@nextbar{2}
+\rail@term{\hyperlink{method.bestsimp}{\mbox{\isa{bestsimp}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.clasimpmod}{\mbox{\isa{clasimpmod}}}}[]
 \rail@endplus
 \rail@end
 \rail@begin{4}{\indexdef{}{syntax}{clamod}\hypertarget{syntax.clamod}{\hyperlink{syntax.clamod}{\mbox{\isa{clamod}}}}}
@@ -986,72 +1405,6 @@ The following improper proof methods emulate traditional tactics.
 \rail@endbar
 \rail@term{\isa{{\isaliteral{3A}{\isacharcolon}}}}[]
 \rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
-\rail@end
-\end{railoutput}
-
-
-  \begin{description}
-
-  \item \hyperlink{method.blast}{\mbox{\isa{blast}}} refers to the classical tableau prover (see
-  \verb|blast_tac| in \cite{isabelle-ref}).  The optional argument
-  specifies a user-supplied search bound (default 20).
-
-  \item \hyperlink{method.fast}{\mbox{\isa{fast}}}, \hyperlink{method.slow}{\mbox{\isa{slow}}}, \hyperlink{method.best}{\mbox{\isa{best}}}, \hyperlink{method.safe}{\mbox{\isa{safe}}}, and \hyperlink{method.clarify}{\mbox{\isa{clarify}}} refer to the generic classical
-  reasoner.  See \verb|fast_tac|, \verb|slow_tac|, \verb|best_tac|, \verb|safe_tac|, and \verb|clarify_tac| in \cite{isabelle-ref} for more
-  information.
-
-  \end{description}
-
-  Any of the above methods support additional modifiers of the context
-  of classical rules.  Their semantics is analogous to the attributes
-  given before.  Facts provided by forward chaining are inserted into
-  the goal before commencing proof search.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{Combined automated methods \label{sec:clasimp}%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-\begin{matharray}{rcl}
-    \indexdef{}{method}{auto}\hypertarget{method.auto}{\hyperlink{method.auto}{\mbox{\isa{auto}}}} & : & \isa{method} \\
-    \indexdef{}{method}{force}\hypertarget{method.force}{\hyperlink{method.force}{\mbox{\isa{force}}}} & : & \isa{method} \\
-    \indexdef{}{method}{clarsimp}\hypertarget{method.clarsimp}{\hyperlink{method.clarsimp}{\mbox{\isa{clarsimp}}}} & : & \isa{method} \\
-    \indexdef{}{method}{fastsimp}\hypertarget{method.fastsimp}{\hyperlink{method.fastsimp}{\mbox{\isa{fastsimp}}}} & : & \isa{method} \\
-    \indexdef{}{method}{slowsimp}\hypertarget{method.slowsimp}{\hyperlink{method.slowsimp}{\mbox{\isa{slowsimp}}}} & : & \isa{method} \\
-    \indexdef{}{method}{bestsimp}\hypertarget{method.bestsimp}{\hyperlink{method.bestsimp}{\mbox{\isa{bestsimp}}}} & : & \isa{method} \\
-  \end{matharray}
-
-  \begin{railoutput}
-\rail@begin{2}{}
-\rail@term{\hyperlink{method.auto}{\mbox{\isa{auto}}}}[]
-\rail@bar
-\rail@nextbar{1}
-\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
-\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
-\rail@endbar
-\rail@plus
-\rail@nextplus{1}
-\rail@cnont{\hyperlink{syntax.clasimpmod}{\mbox{\isa{clasimpmod}}}}[]
-\rail@endplus
-\rail@end
-\rail@begin{5}{}
-\rail@bar
-\rail@term{\hyperlink{method.force}{\mbox{\isa{force}}}}[]
-\rail@nextbar{1}
-\rail@term{\hyperlink{method.clarsimp}{\mbox{\isa{clarsimp}}}}[]
-\rail@nextbar{2}
-\rail@term{\hyperlink{method.fastsimp}{\mbox{\isa{fastsimp}}}}[]
-\rail@nextbar{3}
-\rail@term{\hyperlink{method.slowsimp}{\mbox{\isa{slowsimp}}}}[]
-\rail@nextbar{4}
-\rail@term{\hyperlink{method.bestsimp}{\mbox{\isa{bestsimp}}}}[]
-\rail@endbar
-\rail@plus
-\rail@nextplus{1}
-\rail@cnont{\hyperlink{syntax.clasimpmod}{\mbox{\isa{clasimpmod}}}}[]
-\rail@endplus
 \rail@end
 \rail@begin{14}{\indexdef{}{syntax}{clasimpmod}\hypertarget{syntax.clasimpmod}{\hyperlink{syntax.clasimpmod}{\mbox{\isa{clasimpmod}}}}}
 \rail@bar
@@ -1117,73 +1470,166 @@ The following improper proof methods emulate traditional tactics.
 
   \begin{description}
 
-  \item \hyperlink{method.auto}{\mbox{\isa{auto}}}, \hyperlink{method.force}{\mbox{\isa{force}}}, \hyperlink{method.clarsimp}{\mbox{\isa{clarsimp}}}, \hyperlink{method.fastsimp}{\mbox{\isa{fastsimp}}}, \hyperlink{method.slowsimp}{\mbox{\isa{slowsimp}}}, and \hyperlink{method.bestsimp}{\mbox{\isa{bestsimp}}} provide access
-  to Isabelle's combined simplification and classical reasoning
-  tactics.  These correspond to \verb|auto_tac|, \verb|force_tac|, \verb|clarsimp_tac|, and Classical Reasoner tactics with the Simplifier
-  added as wrapper, see \cite{isabelle-ref} for more information.  The
-  modifier arguments correspond to those given in
-  \secref{sec:simplifier} and \secref{sec:classical}.  Just note that
-  the ones related to the Simplifier are prefixed by \isa{simp}
-  here.
+  \item \hyperlink{method.blast}{\mbox{\isa{blast}}} is a separate classical tableau prover that
+  uses the same classical rule declarations as explained before.
 
-  Facts provided by forward chaining are inserted into the goal before
-  doing the search.
+  Proof search is coded directly in ML using special data structures.
+  A successful proof is then reconstructed using regular Isabelle
+  inferences.  It is faster and more powerful than the other classical
+  reasoning tools, but has major limitations too.
+
+  \begin{itemize}
+
+  \item It does not use the classical wrapper tacticals, such as the
+  integration with the Simplifier of \hyperlink{method.fastsimp}{\mbox{\isa{fastsimp}}}.
+
+  \item It does not perform higher-order unification, as needed by the
+  rule \isa{{\isaliteral{3F}{\isacharquery}}f\ {\isaliteral{3F}{\isacharquery}}x\ {\isaliteral{5C3C696E3E}{\isasymin}}\ range\ {\isaliteral{3F}{\isacharquery}}f} in HOL.  There are often
+  alternatives to such rules, for example \isa{{\isaliteral{3F}{\isacharquery}}b\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{3F}{\isacharquery}}f\ {\isaliteral{3F}{\isacharquery}}x\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{3F}{\isacharquery}}b\ {\isaliteral{5C3C696E3E}{\isasymin}}\ range\ {\isaliteral{3F}{\isacharquery}}f}.
+
+  \item Function variables may only be applied to parameters of the
+  subgoal.  (This restriction arises because the prover does not use
+  higher-order unification.)  If other function variables are present
+  then the prover will fail with the message \texttt{Function Var's
+  argument not a bound variable}.
+
+  \item Its proof strategy is more general than \hyperlink{method.fast}{\mbox{\isa{fast}}} but can
+  be slower.  If \hyperlink{method.blast}{\mbox{\isa{blast}}} fails or seems to be running forever,
+  try \hyperlink{method.fast}{\mbox{\isa{fast}}} and the other proof tools described below.
+
+  \end{itemize}
+
+  The optional integer argument specifies a bound for the number of
+  unsafe steps used in a proof.  By default, \hyperlink{method.blast}{\mbox{\isa{blast}}} starts
+  with a bound of 0 and increases it successively to 20.  In contrast,
+  \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}blast\ lim{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} tries to prove the goal using a search bound
+  of \isa{{\isaliteral{22}{\isachardoublequote}}lim{\isaliteral{22}{\isachardoublequote}}}.  Sometimes a slow proof using \hyperlink{method.blast}{\mbox{\isa{blast}}} can
+  be made much faster by supplying the successful search bound to this
+  proof method instead.
+
+  \item \hyperlink{method.auto}{\mbox{\isa{auto}}} combines classical reasoning with
+  simplification.  It is intended for situations where there are a lot
+  of mostly trivial subgoals; it proves all the easy ones, leaving the
+  ones it cannot prove.  Occasionally, attempting to prove the hard
+  ones may take a long time.
+
+  %FIXME auto nat arguments
+
+  \item \hyperlink{method.force}{\mbox{\isa{force}}} is intended to prove the first subgoal
+  completely, using many fancy proof tools and performing a rather
+  exhaustive search.  As a result, proof attempts may take rather long
+  or diverge easily.
+
+  \item \hyperlink{method.fast}{\mbox{\isa{fast}}}, \hyperlink{method.best}{\mbox{\isa{best}}}, \hyperlink{method.slow}{\mbox{\isa{slow}}} attempt to
+  prove the first subgoal using sequent-style reasoning as explained
+  before.  Unlike \hyperlink{method.blast}{\mbox{\isa{blast}}}, they construct proofs directly in
+  Isabelle.
+
+  There is a difference in search strategy and back-tracking: \hyperlink{method.fast}{\mbox{\isa{fast}}} uses depth-first search and \hyperlink{method.best}{\mbox{\isa{best}}} uses best-first
+  search (guided by a heuristic function: normally the total size of
+  the proof state).
+
+  Method \hyperlink{method.slow}{\mbox{\isa{slow}}} is like \hyperlink{method.fast}{\mbox{\isa{fast}}}, but conducts a broader
+  search: it may, when backtracking from a failed proof attempt, undo
+  even the step of proving a subgoal by assumption.
+
+  \item \hyperlink{method.fastsimp}{\mbox{\isa{fastsimp}}}, \hyperlink{method.slowsimp}{\mbox{\isa{slowsimp}}}, \hyperlink{method.bestsimp}{\mbox{\isa{bestsimp}}} are
+  like \hyperlink{method.fast}{\mbox{\isa{fast}}}, \hyperlink{method.slow}{\mbox{\isa{slow}}}, \hyperlink{method.best}{\mbox{\isa{best}}}, respectively,
+  but use the Simplifier as additional wrapper.
+
+  \end{description}
+
+  Any of the above methods support additional modifiers of the context
+  of classical (and simplifier) rules, but the ones related to the
+  Simplifier are explicitly prefixed by \isa{simp} here.  The
+  semantics of these ad-hoc rule declarations is analogous to the
+  attributes given before.  Facts provided by forward chaining are
+  inserted into the goal before commencing proof search.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Semi-automated methods%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+These proof methods may help in situations when the
+  fully-automated tools fail.  The result is a simpler subgoal that
+  can be tackled by other means, such as by manual instantiation of
+  quantifiers.
+
+  \begin{matharray}{rcl}
+    \indexdef{}{method}{safe}\hypertarget{method.safe}{\hyperlink{method.safe}{\mbox{\isa{safe}}}} & : & \isa{method} \\
+    \indexdef{}{method}{clarify}\hypertarget{method.clarify}{\hyperlink{method.clarify}{\mbox{\isa{clarify}}}} & : & \isa{method} \\
+    \indexdef{}{method}{clarsimp}\hypertarget{method.clarsimp}{\hyperlink{method.clarsimp}{\mbox{\isa{clarsimp}}}} & : & \isa{method} \\
+  \end{matharray}
+
+  \begin{railoutput}
+\rail@begin{2}{}
+\rail@bar
+\rail@term{\hyperlink{method.safe}{\mbox{\isa{safe}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{method.clarify}{\mbox{\isa{clarify}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.clamod}{\mbox{\isa{clamod}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{2}{}
+\rail@term{\hyperlink{method.clarsimp}{\mbox{\isa{clarsimp}}}}[]
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.clasimpmod}{\mbox{\isa{clasimpmod}}}}[]
+\rail@endplus
+\rail@end
+\end{railoutput}
+
+
+  \begin{description}
+
+  \item \hyperlink{method.safe}{\mbox{\isa{safe}}} repeatedly performs safe steps on all subgoals.
+  It is deterministic, with at most one outcome.
+
+  \item \hyperlink{method.clarify}{\mbox{\isa{clarify}}} performs a series of safe steps as follows.
+
+  No splitting step is applied; for example, the subgoal \isa{{\isaliteral{22}{\isachardoublequote}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{22}{\isachardoublequote}}} is left as a conjunction.  Proof by assumption, Modus Ponens,
+  etc., may be performed provided they do not instantiate unknowns.
+  Assumptions of the form \isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{3D}{\isacharequal}}\ t{\isaliteral{22}{\isachardoublequote}}} may be eliminated.  The safe
+  wrapper tactical is applied.
+
+  \item \hyperlink{method.clarsimp}{\mbox{\isa{clarsimp}}} acts like \hyperlink{method.clarify}{\mbox{\isa{clarify}}}, but also does
+  simplification.  Note that if the Simplifier context includes a
+  splitter for the premises, the subgoal may still be split.
 
   \end{description}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Declaring rules%
+\isamarkupsubsection{Structured proof methods%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{command}{print\_claset}\hypertarget{command.print-claset}{\hyperlink{command.print-claset}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}claset}}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{{\isaliteral{22}{\isachardoublequote}}context\ {\isaliteral{5C3C72696768746172726F773E}{\isasymrightarrow}}{\isaliteral{22}{\isachardoublequote}}} \\
-    \indexdef{}{attribute}{intro}\hypertarget{attribute.intro}{\hyperlink{attribute.intro}{\mbox{\isa{intro}}}} & : & \isa{attribute} \\
-    \indexdef{}{attribute}{elim}\hypertarget{attribute.elim}{\hyperlink{attribute.elim}{\mbox{\isa{elim}}}} & : & \isa{attribute} \\
-    \indexdef{}{attribute}{dest}\hypertarget{attribute.dest}{\hyperlink{attribute.dest}{\mbox{\isa{dest}}}} & : & \isa{attribute} \\
-    \indexdef{}{attribute}{rule}\hypertarget{attribute.rule}{\hyperlink{attribute.rule}{\mbox{\isa{rule}}}} & : & \isa{attribute} \\
-    \indexdef{}{attribute}{iff}\hypertarget{attribute.iff}{\hyperlink{attribute.iff}{\mbox{\isa{iff}}}} & : & \isa{attribute} \\
+    \indexdef{}{method}{rule}\hypertarget{method.rule}{\hyperlink{method.rule}{\mbox{\isa{rule}}}} & : & \isa{method} \\
+    \indexdef{}{method}{contradiction}\hypertarget{method.contradiction}{\hyperlink{method.contradiction}{\mbox{\isa{contradiction}}}} & : & \isa{method} \\
+    \indexdef{}{method}{intro}\hypertarget{method.intro}{\hyperlink{method.intro}{\mbox{\isa{intro}}}} & : & \isa{method} \\
+    \indexdef{}{method}{elim}\hypertarget{method.elim}{\hyperlink{method.elim}{\mbox{\isa{elim}}}} & : & \isa{method} \\
   \end{matharray}
 
   \begin{railoutput}
 \rail@begin{3}{}
 \rail@bar
-\rail@term{\hyperlink{attribute.intro}{\mbox{\isa{intro}}}}[]
+\rail@term{\hyperlink{method.rule}{\mbox{\isa{rule}}}}[]
 \rail@nextbar{1}
-\rail@term{\hyperlink{attribute.elim}{\mbox{\isa{elim}}}}[]
+\rail@term{\hyperlink{method.intro}{\mbox{\isa{intro}}}}[]
 \rail@nextbar{2}
-\rail@term{\hyperlink{attribute.dest}{\mbox{\isa{dest}}}}[]
-\rail@endbar
-\rail@bar
-\rail@term{\isa{{\isaliteral{21}{\isacharbang}}}}[]
-\rail@nextbar{1}
-\rail@nextbar{2}
-\rail@term{\isa{{\isaliteral{3F}{\isacharquery}}}}[]
+\rail@term{\hyperlink{method.elim}{\mbox{\isa{elim}}}}[]
 \rail@endbar
 \rail@bar
 \rail@nextbar{1}
-\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
-\rail@endbar
-\rail@end
-\rail@begin{1}{}
-\rail@term{\hyperlink{attribute.rule}{\mbox{\isa{rule}}}}[]
-\rail@term{\isa{del}}[]
-\rail@end
-\rail@begin{3}{}
-\rail@term{\hyperlink{attribute.iff}{\mbox{\isa{iff}}}}[]
-\rail@bar
-\rail@bar
-\rail@nextbar{1}
-\rail@term{\isa{add}}[]
-\rail@endbar
-\rail@bar
-\rail@nextbar{1}
-\rail@term{\isa{{\isaliteral{3F}{\isacharquery}}}}[]
-\rail@endbar
-\rail@nextbar{2}
-\rail@term{\isa{del}}[]
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
 \rail@endbar
 \rail@end
 \end{railoutput}
@@ -1191,50 +1637,26 @@ The following improper proof methods emulate traditional tactics.
 
   \begin{description}
 
-  \item \hyperlink{command.print-claset}{\mbox{\isa{\isacommand{print{\isaliteral{5F}{\isacharunderscore}}claset}}}} prints the collection of rules
-  declared to the Classical Reasoner, which is also known as
-  ``claset'' internally \cite{isabelle-ref}.
-  
-  \item \hyperlink{attribute.intro}{\mbox{\isa{intro}}}, \hyperlink{attribute.elim}{\mbox{\isa{elim}}}, and \hyperlink{attribute.dest}{\mbox{\isa{dest}}}
-  declare introduction, elimination, and destruction rules,
-  respectively.  By default, rules are considered as \emph{unsafe}
-  (i.e.\ not applied blindly without backtracking), while ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{21}{\isacharbang}}{\isaliteral{22}{\isachardoublequote}}}'' classifies as \emph{safe}.  Rule declarations marked by
-  ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}{\isaliteral{22}{\isachardoublequote}}}'' coincide with those of Isabelle/Pure, cf.\
-  \secref{sec:pure-meth-att} (i.e.\ are only applied in single steps
-  of the \hyperlink{method.rule}{\mbox{\isa{rule}}} method).  The optional natural number
-  specifies an explicit weight argument, which is ignored by automated
-  tools, but determines the search order of single rule steps.
+  \item \hyperlink{method.rule}{\mbox{\isa{rule}}} as offered by the Classical Reasoner is a
+  refinement over the Pure one (see \secref{sec:pure-meth-att}).  Both
+  versions work the same, but the classical version observes the
+  classical rule context in addition to that of Isabelle/Pure.
 
-  \item \hyperlink{attribute.rule}{\mbox{\isa{rule}}}~\isa{del} deletes introduction,
-  elimination, or destruction rules from the context.
+  Common object logics (HOL, ZF, etc.) declare a rich collection of
+  classical rules (even if these would qualify as intuitionistic
+  ones), but only few declarations to the rule context of
+  Isabelle/Pure (\secref{sec:pure-meth-att}).
 
-  \item \hyperlink{attribute.iff}{\mbox{\isa{iff}}} declares logical equivalences to the
-  Simplifier and the Classical reasoner at the same time.
-  Non-conditional rules result in a ``safe'' introduction and
-  elimination pair; conditional ones are considered ``unsafe''.  Rules
-  with negative conclusion are automatically inverted (using \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}{\isaliteral{22}{\isachardoublequote}}}-elimination internally).
+  \item \hyperlink{method.contradiction}{\mbox{\isa{contradiction}}} solves some goal by contradiction,
+  deriving any result from both \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A{\isaliteral{22}{\isachardoublequote}}} and \isa{A}.  Chained
+  facts, which are guaranteed to participate, may appear in either
+  order.
 
-  The ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{3F}{\isacharquery}}{\isaliteral{22}{\isachardoublequote}}}'' version of \hyperlink{attribute.iff}{\mbox{\isa{iff}}} declares rules to
-  the Isabelle/Pure context only, and omits the Simplifier
-  declaration.
-
-  \end{description}%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isamarkupsubsection{Classical operations%
-}
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
-\begin{matharray}{rcl}
-    \indexdef{}{attribute}{swapped}\hypertarget{attribute.swapped}{\hyperlink{attribute.swapped}{\mbox{\isa{swapped}}}} & : & \isa{attribute} \\
-  \end{matharray}
-
-  \begin{description}
-
-  \item \hyperlink{attribute.swapped}{\mbox{\isa{swapped}}} turns an introduction rule into an
-  elimination, by resolving with the classical swap principle \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ B\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ A{\isaliteral{29}{\isacharparenright}}\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ {\isaliteral{28}{\isacharparenleft}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A\ {\isaliteral{5C3C4C6F6E6772696768746172726F773E}{\isasymLongrightarrow}}\ B{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}}.
+  \item \hyperlink{method.intro}{\mbox{\isa{intro}}} and \hyperlink{method.elim}{\mbox{\isa{elim}}} repeatedly refine some goal
+  by intro- or elim-resolution, after having inserted any chained
+  facts.  Exactly the rules given as arguments are taken into account;
+  this allows fine-tuned decomposition of a proof problem, in contrast
+  to common automated tools.
 
   \end{description}%
 \end{isamarkuptext}%

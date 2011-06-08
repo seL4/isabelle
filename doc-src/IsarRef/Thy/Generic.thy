@@ -468,7 +468,22 @@ text {*
 
 subsection {* Simplification procedures *}
 
-text {*
+text {* Simplification procedures are ML functions that produce proven
+  rewrite rules on demand.  They are associated with higher-order
+  patterns that approximate the left-hand sides of equations.  The
+  Simplifier first matches the current redex against one of the LHS
+  patterns; if this succeeds, the corresponding ML function is
+  invoked, passing the Simplifier context and redex term.  Thus rules
+  may be specifically fashioned for particular situations, resulting
+  in a more powerful mechanism than term rewriting by a fixed set of
+  rules.
+
+  Any successful result needs to be a (possibly conditional) rewrite
+  rule @{text "t \<equiv> u"} that is applicable to the current redex.  The
+  rule will be applied just as any ordinary rewrite rule.  It is
+  expected to be already in \emph{internal form}, bypassing the
+  automatic preprocessing of object-level equivalences.
+
   \begin{matharray}{rcl}
     @{command_def "simproc_setup"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     simproc & : & @{text attribute} \\
@@ -512,6 +527,26 @@ text {*
 *}
 
 
+subsubsection {* Example *}
+
+text {* The following simplification procedure for @{thm
+  [source=false, show_types] unit_eq} in HOL performs fine-grained
+  control over rule application, beyond higher-order pattern matching.
+  Declaring @{thm unit_eq} as @{attribute simp} directly would make
+  the simplifier loop!  Note that a version of this simplification
+  procedure is already active in Isabelle/HOL.  *}
+
+simproc_setup unit ("x::unit") = {*
+  fn _ => fn _ => fn ct =>
+    if HOLogic.is_unit (term_of ct) then NONE
+    else SOME (mk_meta_eq @{thm unit_eq})
+*}
+
+text {* Since the Simplifier applies simplification procedures
+  frequently, it is important to make the failure check in ML
+  reasonably fast. *}
+
+
 subsection {* Forward simplification *}
 
 text {*
@@ -547,7 +582,462 @@ text {*
 
 section {* The Classical Reasoner \label{sec:classical} *}
 
-subsection {* Basic methods *}
+subsection {* Basic concepts *}
+
+text {* Although Isabelle is generic, many users will be working in
+  some extension of classical first-order logic.  Isabelle/ZF is built
+  upon theory FOL, while Isabelle/HOL conceptually contains
+  first-order logic as a fragment.  Theorem-proving in predicate logic
+  is undecidable, but many automated strategies have been developed to
+  assist in this task.
+
+  Isabelle's classical reasoner is a generic package that accepts
+  certain information about a logic and delivers a suite of automatic
+  proof tools, based on rules that are classified and declared in the
+  context.  These proof procedures are slow and simplistic compared
+  with high-end automated theorem provers, but they can save
+  considerable time and effort in practice.  They can prove theorems
+  such as Pelletier's \cite{pelletier86} problems 40 and 41 in a few
+  milliseconds (including full proof reconstruction): *}
+
+lemma "(\<exists>y. \<forall>x. F x y \<longleftrightarrow> F x x) \<longrightarrow> \<not> (\<forall>x. \<exists>y. \<forall>z. F z y \<longleftrightarrow> \<not> F z x)"
+  by blast
+
+lemma "(\<forall>z. \<exists>y. \<forall>x. f x y \<longleftrightarrow> f x z \<and> \<not> f x x) \<longrightarrow> \<not> (\<exists>z. \<forall>x. f x z)"
+  by blast
+
+text {* The proof tools are generic.  They are not restricted to
+  first-order logic, and have been heavily used in the development of
+  the Isabelle/HOL library and applications.  The tactics can be
+  traced, and their components can be called directly; in this manner,
+  any proof can be viewed interactively.  *}
+
+
+subsubsection {* The sequent calculus *}
+
+text {* Isabelle supports natural deduction, which is easy to use for
+  interactive proof.  But natural deduction does not easily lend
+  itself to automation, and has a bias towards intuitionism.  For
+  certain proofs in classical logic, it can not be called natural.
+  The \emph{sequent calculus}, a generalization of natural deduction,
+  is easier to automate.
+
+  A \textbf{sequent} has the form @{text "\<Gamma> \<turnstile> \<Delta>"}, where @{text "\<Gamma>"}
+  and @{text "\<Delta>"} are sets of formulae.\footnote{For first-order
+  logic, sequents can equivalently be made from lists or multisets of
+  formulae.} The sequent @{text "P\<^sub>1, \<dots>, P\<^sub>m \<turnstile> Q\<^sub>1, \<dots>, Q\<^sub>n"} is
+  \textbf{valid} if @{text "P\<^sub>1 \<and> \<dots> \<and> P\<^sub>m"} implies @{text "Q\<^sub>1 \<or> \<dots> \<or>
+  Q\<^sub>n"}.  Thus @{text "P\<^sub>1, \<dots>, P\<^sub>m"} represent assumptions, each of which
+  is true, while @{text "Q\<^sub>1, \<dots>, Q\<^sub>n"} represent alternative goals.  A
+  sequent is \textbf{basic} if its left and right sides have a common
+  formula, as in @{text "P, Q \<turnstile> Q, R"}; basic sequents are trivially
+  valid.
+
+  Sequent rules are classified as \textbf{right} or \textbf{left},
+  indicating which side of the @{text "\<turnstile>"} symbol they operate on.
+  Rules that operate on the right side are analogous to natural
+  deduction's introduction rules, and left rules are analogous to
+  elimination rules.  The sequent calculus analogue of @{text "(\<longrightarrow>I)"}
+  is the rule
+  \[
+  \infer[@{text "(\<longrightarrow>R)"}]{@{text "\<Gamma> \<turnstile> \<Delta>, P \<longrightarrow> Q"}}{@{text "P, \<Gamma> \<turnstile> \<Delta>, Q"}}
+  \]
+  Applying the rule backwards, this breaks down some implication on
+  the right side of a sequent; @{text "\<Gamma>"} and @{text "\<Delta>"} stand for
+  the sets of formulae that are unaffected by the inference.  The
+  analogue of the pair @{text "(\<or>I1)"} and @{text "(\<or>I2)"} is the
+  single rule
+  \[
+  \infer[@{text "(\<or>R)"}]{@{text "\<Gamma> \<turnstile> \<Delta>, P \<or> Q"}}{@{text "\<Gamma> \<turnstile> \<Delta>, P, Q"}}
+  \]
+  This breaks down some disjunction on the right side, replacing it by
+  both disjuncts.  Thus, the sequent calculus is a kind of
+  multiple-conclusion logic.
+
+  To illustrate the use of multiple formulae on the right, let us
+  prove the classical theorem @{text "(P \<longrightarrow> Q) \<or> (Q \<longrightarrow> P)"}.  Working
+  backwards, we reduce this formula to a basic sequent:
+  \[
+  \infer[@{text "(\<or>R)"}]{@{text "\<turnstile> (P \<longrightarrow> Q) \<or> (Q \<longrightarrow> P)"}}
+    {\infer[@{text "(\<longrightarrow>R)"}]{@{text "\<turnstile> (P \<longrightarrow> Q), (Q \<longrightarrow> P)"}}
+      {\infer[@{text "(\<longrightarrow>R)"}]{@{text "P \<turnstile> Q, (Q \<longrightarrow> P)"}}
+        {@{text "P, Q \<turnstile> Q, P"}}}}
+  \]
+
+  This example is typical of the sequent calculus: start with the
+  desired theorem and apply rules backwards in a fairly arbitrary
+  manner.  This yields a surprisingly effective proof procedure.
+  Quantifiers add only few complications, since Isabelle handles
+  parameters and schematic variables.  See \cite[Chapter
+  10]{paulson-ml2} for further discussion.  *}
+
+
+subsubsection {* Simulating sequents by natural deduction *}
+
+text {* Isabelle can represent sequents directly, as in the
+  object-logic LK.  But natural deduction is easier to work with, and
+  most object-logics employ it.  Fortunately, we can simulate the
+  sequent @{text "P\<^sub>1, \<dots>, P\<^sub>m \<turnstile> Q\<^sub>1, \<dots>, Q\<^sub>n"} by the Isabelle formula
+  @{text "P\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> P\<^sub>m \<Longrightarrow> \<not> Q\<^sub>2 \<Longrightarrow> ... \<Longrightarrow> \<not> Q\<^sub>n \<Longrightarrow> Q\<^sub>1"} where the order of
+  the assumptions and the choice of @{text "Q\<^sub>1"} are arbitrary.
+  Elim-resolution plays a key role in simulating sequent proofs.
+
+  We can easily handle reasoning on the left.  Elim-resolution with
+  the rules @{text "(\<or>E)"}, @{text "(\<bottom>E)"} and @{text "(\<exists>E)"} achieves
+  a similar effect as the corresponding sequent rules.  For the other
+  connectives, we use sequent-style elimination rules instead of
+  destruction rules such as @{text "(\<and>E1, 2)"} and @{text "(\<forall>E)"}.
+  But note that the rule @{text "(\<not>L)"} has no effect under our
+  representation of sequents!
+  \[
+  \infer[@{text "(\<not>L)"}]{@{text "\<not> P, \<Gamma> \<turnstile> \<Delta>"}}{@{text "\<Gamma> \<turnstile> \<Delta>, P"}}
+  \]
+
+  What about reasoning on the right?  Introduction rules can only
+  affect the formula in the conclusion, namely @{text "Q\<^sub>1"}.  The
+  other right-side formulae are represented as negated assumptions,
+  @{text "\<not> Q\<^sub>2, \<dots>, \<not> Q\<^sub>n"}.  In order to operate on one of these, it
+  must first be exchanged with @{text "Q\<^sub>1"}.  Elim-resolution with the
+  @{text swap} rule has this effect: @{text "\<not> P \<Longrightarrow> (\<not> R \<Longrightarrow> P) \<Longrightarrow> R"}
+
+  To ensure that swaps occur only when necessary, each introduction
+  rule is converted into a swapped form: it is resolved with the
+  second premise of @{text "(swap)"}.  The swapped form of @{text
+  "(\<and>I)"}, which might be called @{text "(\<not>\<and>E)"}, is
+  @{text [display] "\<not> (P \<and> Q) \<Longrightarrow> (\<not> R \<Longrightarrow> P) \<Longrightarrow> (\<not> R \<Longrightarrow> Q) \<Longrightarrow> R"}
+
+  Similarly, the swapped form of @{text "(\<longrightarrow>I)"} is
+  @{text [display] "\<not> (P \<longrightarrow> Q) \<Longrightarrow> (\<not> R \<Longrightarrow> P \<Longrightarrow> Q) \<Longrightarrow> R"}
+
+  Swapped introduction rules are applied using elim-resolution, which
+  deletes the negated formula.  Our representation of sequents also
+  requires the use of ordinary introduction rules.  If we had no
+  regard for readability of intermediate goal states, we could treat
+  the right side more uniformly by representing sequents as @{text
+  [display] "P\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> P\<^sub>m \<Longrightarrow> \<not> Q\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> \<not> Q\<^sub>n \<Longrightarrow> \<bottom>"}
+*}
+
+
+subsubsection {* Extra rules for the sequent calculus *}
+
+text {* As mentioned, destruction rules such as @{text "(\<and>E1, 2)"} and
+  @{text "(\<forall>E)"} must be replaced by sequent-style elimination rules.
+  In addition, we need rules to embody the classical equivalence
+  between @{text "P \<longrightarrow> Q"} and @{text "\<not> P \<or> Q"}.  The introduction
+  rules @{text "(\<or>I1, 2)"} are replaced by a rule that simulates
+  @{text "(\<or>R)"}: @{text [display] "(\<not> Q \<Longrightarrow> P) \<Longrightarrow> P \<or> Q"}
+
+  The destruction rule @{text "(\<longrightarrow>E)"} is replaced by @{text [display]
+  "(P \<longrightarrow> Q) \<Longrightarrow> (\<not> P \<Longrightarrow> R) \<Longrightarrow> (Q \<Longrightarrow> R) \<Longrightarrow> R"}
+
+  Quantifier replication also requires special rules.  In classical
+  logic, @{text "\<exists>x. P x"} is equivalent to @{text "\<not> (\<forall>x. \<not> P x)"};
+  the rules @{text "(\<exists>R)"} and @{text "(\<forall>L)"} are dual:
+  \[
+  \infer[@{text "(\<exists>R)"}]{@{text "\<Gamma> \<turnstile> \<Delta>, \<exists>x. P x"}}{@{text "\<Gamma> \<turnstile> \<Delta>, \<exists>x. P x, P t"}}
+  \qquad
+  \infer[@{text "(\<forall>L)"}]{@{text "\<forall>x. P x, \<Gamma> \<turnstile> \<Delta>"}}{@{text "P t, \<forall>x. P x, \<Gamma> \<turnstile> \<Delta>"}}
+  \]
+  Thus both kinds of quantifier may be replicated.  Theorems requiring
+  multiple uses of a universal formula are easy to invent; consider
+  @{text [display] "(\<forall>x. P x \<longrightarrow> P (f x)) \<and> P a \<longrightarrow> P (f\<^sup>n a)"} for any
+  @{text "n > 1"}.  Natural examples of the multiple use of an
+  existential formula are rare; a standard one is @{text "\<exists>x. \<forall>y. P x
+  \<longrightarrow> P y"}.
+
+  Forgoing quantifier replication loses completeness, but gains
+  decidability, since the search space becomes finite.  Many useful
+  theorems can be proved without replication, and the search generally
+  delivers its verdict in a reasonable time.  To adopt this approach,
+  represent the sequent rules @{text "(\<exists>R)"}, @{text "(\<exists>L)"} and
+  @{text "(\<forall>R)"} by @{text "(\<exists>I)"}, @{text "(\<exists>E)"} and @{text "(\<forall>I)"},
+  respectively, and put @{text "(\<forall>E)"} into elimination form: @{text
+  [display] "\<forall>x. P x \<Longrightarrow> (P t \<Longrightarrow> Q) \<Longrightarrow> Q"}
+
+  Elim-resolution with this rule will delete the universal formula
+  after a single use.  To replicate universal quantifiers, replace the
+  rule by @{text [display] "\<forall>x. P x \<Longrightarrow> (P t \<Longrightarrow> \<forall>x. P x \<Longrightarrow> Q) \<Longrightarrow> Q"}
+
+  To replicate existential quantifiers, replace @{text "(\<exists>I)"} by
+  @{text [display] "(\<not> (\<exists>x. P x) \<Longrightarrow> P t) \<Longrightarrow> \<exists>x. P x"}
+
+  All introduction rules mentioned above are also useful in swapped
+  form.
+
+  Replication makes the search space infinite; we must apply the rules
+  with care.  The classical reasoner distinguishes between safe and
+  unsafe rules, applying the latter only when there is no alternative.
+  Depth-first search may well go down a blind alley; best-first search
+  is better behaved in an infinite search space.  However, quantifier
+  replication is too expensive to prove any but the simplest theorems.
+*}
+
+
+subsection {* Rule declarations *}
+
+text {* The proof tools of the Classical Reasoner depend on
+  collections of rules declared in the context, which are classified
+  as introduction, elimination or destruction and as \emph{safe} or
+  \emph{unsafe}.  In general, safe rules can be attempted blindly,
+  while unsafe rules must be used with care.  A safe rule must never
+  reduce a provable goal to an unprovable set of subgoals.
+
+  The rule @{text "P \<Longrightarrow> P \<or> Q"} is unsafe because it reduces @{text "P
+  \<or> Q"} to @{text "P"}, which might turn out as premature choice of an
+  unprovable subgoal.  Any rule is unsafe whose premises contain new
+  unknowns.  The elimination rule @{text "\<forall>x. P x \<Longrightarrow> (P t \<Longrightarrow> Q) \<Longrightarrow> Q"} is
+  unsafe, since it is applied via elim-resolution, which discards the
+  assumption @{text "\<forall>x. P x"} and replaces it by the weaker
+  assumption @{text "P t"}.  The rule @{text "P t \<Longrightarrow> \<exists>x. P x"} is
+  unsafe for similar reasons.  The quantifier duplication rule @{text
+  "\<forall>x. P x \<Longrightarrow> (P t \<Longrightarrow> \<forall>x. P x \<Longrightarrow> Q) \<Longrightarrow> Q"} is unsafe in a different sense:
+  since it keeps the assumption @{text "\<forall>x. P x"}, it is prone to
+  looping.  In classical first-order logic, all rules are safe except
+  those mentioned above.
+
+  The safe~/ unsafe distinction is vague, and may be regarded merely
+  as a way of giving some rules priority over others.  One could argue
+  that @{text "(\<or>E)"} is unsafe, because repeated application of it
+  could generate exponentially many subgoals.  Induction rules are
+  unsafe because inductive proofs are difficult to set up
+  automatically.  Any inference is unsafe that instantiates an unknown
+  in the proof state --- thus matching must be used, rather than
+  unification.  Even proof by assumption is unsafe if it instantiates
+  unknowns shared with other subgoals.
+
+  \begin{matharray}{rcl}
+    @{command_def "print_claset"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{attribute_def intro} & : & @{text attribute} \\
+    @{attribute_def elim} & : & @{text attribute} \\
+    @{attribute_def dest} & : & @{text attribute} \\
+    @{attribute_def rule} & : & @{text attribute} \\
+    @{attribute_def iff} & : & @{text attribute} \\
+    @{attribute_def swapped} & : & @{text attribute} \\
+  \end{matharray}
+
+  @{rail "
+    (@@{attribute intro} | @@{attribute elim} | @@{attribute dest}) ('!' | () | '?') @{syntax nat}?
+    ;
+    @@{attribute rule} 'del'
+    ;
+    @@{attribute iff} (((() | 'add') '?'?) | 'del')
+  "}
+
+  \begin{description}
+
+  \item @{command "print_claset"} prints the collection of rules
+  declared to the Classical Reasoner, i.e.\ the @{ML_type claset}
+  within the context.
+
+  \item @{attribute intro}, @{attribute elim}, and @{attribute dest}
+  declare introduction, elimination, and destruction rules,
+  respectively.  By default, rules are considered as \emph{unsafe}
+  (i.e.\ not applied blindly without backtracking), while ``@{text
+  "!"}'' classifies as \emph{safe}.  Rule declarations marked by
+  ``@{text "?"}'' coincide with those of Isabelle/Pure, cf.\
+  \secref{sec:pure-meth-att} (i.e.\ are only applied in single steps
+  of the @{method rule} method).  The optional natural number
+  specifies an explicit weight argument, which is ignored by the
+  automated reasoning tools, but determines the search order of single
+  rule steps.
+
+  Introduction rules are those that can be applied using ordinary
+  resolution.  Their swapped forms are generated internally, which
+  will be applied using elim-resolution.  Elimination rules are
+  applied using elim-resolution.  Rules are sorted by the number of
+  new subgoals they will yield; rules that generate the fewest
+  subgoals will be tried first.  Otherwise, later declarations take
+  precedence over earlier ones.
+
+  Rules already present in the context with the same classification
+  are ignored.  A warning is printed if the rule has already been
+  added with some other classification, but the rule is added anyway
+  as requested.
+
+  \item @{attribute rule}~@{text del} deletes all occurrences of a
+  rule from the classical context, regardless of its classification as
+  introduction~/ elimination~/ destruction and safe~/ unsafe.
+
+  \item @{attribute iff} declares logical equivalences to the
+  Simplifier and the Classical reasoner at the same time.
+  Non-conditional rules result in a safe introduction and elimination
+  pair; conditional ones are considered unsafe.  Rules with negative
+  conclusion are automatically inverted (using @{text "\<not>"}-elimination
+  internally).
+
+  The ``@{text "?"}'' version of @{attribute iff} declares rules to
+  the Isabelle/Pure context only, and omits the Simplifier
+  declaration.
+
+  \item @{attribute swapped} turns an introduction rule into an
+  elimination, by resolving with the classical swap principle @{text
+  "\<not> P \<Longrightarrow> (\<not> R \<Longrightarrow> P) \<Longrightarrow> R"} in the second position.  This is mainly for
+  illustrative purposes: the Classical Reasoner already swaps rules
+  internally as explained above.
+
+  \end{description}
+*}
+
+
+subsection {* Automated methods *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{method_def blast} & : & @{text method} \\
+    @{method_def auto} & : & @{text method} \\
+    @{method_def force} & : & @{text method} \\
+    @{method_def fast} & : & @{text method} \\
+    @{method_def slow} & : & @{text method} \\
+    @{method_def best} & : & @{text method} \\
+    @{method_def fastsimp} & : & @{text method} \\
+    @{method_def slowsimp} & : & @{text method} \\
+    @{method_def bestsimp} & : & @{text method} \\
+  \end{matharray}
+
+  @{rail "
+    @@{method blast} @{syntax nat}? (@{syntax clamod} * )
+    ;
+    @@{method auto} (@{syntax nat} @{syntax nat})? (@{syntax clasimpmod} * )
+    ;
+    @@{method force} (@{syntax clasimpmod} * )
+    ;
+    (@@{method fast} | @@{method slow} | @@{method best}) (@{syntax clamod} * )
+    ;
+    (@@{method fastsimp} | @@{method slowsimp} | @@{method bestsimp})
+      (@{syntax clasimpmod} * )
+    ;
+    @{syntax_def clamod}:
+      (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del') ':' @{syntax thmrefs}
+    ;
+    @{syntax_def clasimpmod}: ('simp' (() | 'add' | 'del' | 'only') |
+      ('cong' | 'split') (() | 'add' | 'del') |
+      'iff' (((() | 'add') '?'?) | 'del') |
+      (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del')) ':' @{syntax thmrefs}
+  "}
+
+  \begin{description}
+
+  \item @{method blast} is a separate classical tableau prover that
+  uses the same classical rule declarations as explained before.
+
+  Proof search is coded directly in ML using special data structures.
+  A successful proof is then reconstructed using regular Isabelle
+  inferences.  It is faster and more powerful than the other classical
+  reasoning tools, but has major limitations too.
+
+  \begin{itemize}
+
+  \item It does not use the classical wrapper tacticals, such as the
+  integration with the Simplifier of @{method fastsimp}.
+
+  \item It does not perform higher-order unification, as needed by the
+  rule @{thm [source=false] rangeI} in HOL.  There are often
+  alternatives to such rules, for example @{thm [source=false]
+  range_eqI}.
+
+  \item Function variables may only be applied to parameters of the
+  subgoal.  (This restriction arises because the prover does not use
+  higher-order unification.)  If other function variables are present
+  then the prover will fail with the message \texttt{Function Var's
+  argument not a bound variable}.
+
+  \item Its proof strategy is more general than @{method fast} but can
+  be slower.  If @{method blast} fails or seems to be running forever,
+  try @{method fast} and the other proof tools described below.
+
+  \end{itemize}
+
+  The optional integer argument specifies a bound for the number of
+  unsafe steps used in a proof.  By default, @{method blast} starts
+  with a bound of 0 and increases it successively to 20.  In contrast,
+  @{text "(blast lim)"} tries to prove the goal using a search bound
+  of @{text "lim"}.  Sometimes a slow proof using @{method blast} can
+  be made much faster by supplying the successful search bound to this
+  proof method instead.
+
+  \item @{method auto} combines classical reasoning with
+  simplification.  It is intended for situations where there are a lot
+  of mostly trivial subgoals; it proves all the easy ones, leaving the
+  ones it cannot prove.  Occasionally, attempting to prove the hard
+  ones may take a long time.
+
+  %FIXME auto nat arguments
+
+  \item @{method force} is intended to prove the first subgoal
+  completely, using many fancy proof tools and performing a rather
+  exhaustive search.  As a result, proof attempts may take rather long
+  or diverge easily.
+
+  \item @{method fast}, @{method best}, @{method slow} attempt to
+  prove the first subgoal using sequent-style reasoning as explained
+  before.  Unlike @{method blast}, they construct proofs directly in
+  Isabelle.
+
+  There is a difference in search strategy and back-tracking: @{method
+  fast} uses depth-first search and @{method best} uses best-first
+  search (guided by a heuristic function: normally the total size of
+  the proof state).
+
+  Method @{method slow} is like @{method fast}, but conducts a broader
+  search: it may, when backtracking from a failed proof attempt, undo
+  even the step of proving a subgoal by assumption.
+
+  \item @{method fastsimp}, @{method slowsimp}, @{method bestsimp} are
+  like @{method fast}, @{method slow}, @{method best}, respectively,
+  but use the Simplifier as additional wrapper.
+
+  \end{description}
+
+  Any of the above methods support additional modifiers of the context
+  of classical (and simplifier) rules, but the ones related to the
+  Simplifier are explicitly prefixed by @{text simp} here.  The
+  semantics of these ad-hoc rule declarations is analogous to the
+  attributes given before.  Facts provided by forward chaining are
+  inserted into the goal before commencing proof search.
+*}
+
+
+subsection {* Semi-automated methods *}
+
+text {* These proof methods may help in situations when the
+  fully-automated tools fail.  The result is a simpler subgoal that
+  can be tackled by other means, such as by manual instantiation of
+  quantifiers.
+
+  \begin{matharray}{rcl}
+    @{method_def safe} & : & @{text method} \\
+    @{method_def clarify} & : & @{text method} \\
+    @{method_def clarsimp} & : & @{text method} \\
+  \end{matharray}
+
+  @{rail "
+    (@@{method safe} | @@{method clarify}) (@{syntax clamod} * )
+    ;
+    @@{method clarsimp} (@{syntax clasimpmod} * )
+  "}
+
+  \begin{description}
+
+  \item @{method safe} repeatedly performs safe steps on all subgoals.
+  It is deterministic, with at most one outcome.
+
+  \item @{method clarify} performs a series of safe steps as follows.
+
+  No splitting step is applied; for example, the subgoal @{text "A \<and>
+  B"} is left as a conjunction.  Proof by assumption, Modus Ponens,
+  etc., may be performed provided they do not instantiate unknowns.
+  Assumptions of the form @{text "x = t"} may be eliminated.  The safe
+  wrapper tactical is applied.
+
+  \item @{method clarsimp} acts like @{method clarify}, but also does
+  simplification.  Note that if the Simplifier context includes a
+  splitter for the premises, the subgoal may still be split.
+
+  \end{description}
+*}
+
+
+subsection {* Structured proof methods *}
 
 text {*
   \begin{matharray}{rcl}
@@ -564,10 +1054,9 @@ text {*
   \begin{description}
 
   \item @{method rule} as offered by the Classical Reasoner is a
-  refinement over the primitive one (see \secref{sec:pure-meth-att}).
-  Both versions essentially work the same, but the classical version
-  observes the classical rule context in addition to that of
-  Isabelle/Pure.
+  refinement over the Pure one (see \secref{sec:pure-meth-att}).  Both
+  versions work the same, but the classical version observes the
+  classical rule context in addition to that of Isabelle/Pure.
 
   Common object logics (HOL, ZF, etc.) declare a rich collection of
   classical rules (even if these would qualify as intuitionistic
@@ -584,167 +1073,6 @@ text {*
   facts.  Exactly the rules given as arguments are taken into account;
   this allows fine-tuned decomposition of a proof problem, in contrast
   to common automated tools.
-
-  \end{description}
-*}
-
-
-subsection {* Automated methods *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{method_def blast} & : & @{text method} \\
-    @{method_def fast} & : & @{text method} \\
-    @{method_def slow} & : & @{text method} \\
-    @{method_def best} & : & @{text method} \\
-    @{method_def safe} & : & @{text method} \\
-    @{method_def clarify} & : & @{text method} \\
-  \end{matharray}
-
-  @{rail "
-    @@{method blast} @{syntax nat}? (@{syntax clamod} * )
-    ;
-    (@@{method fast} | @@{method slow} | @@{method best} | @@{method safe} | @@{method clarify})
-      (@{syntax clamod} * )
-    ;
-
-    @{syntax_def clamod}:
-      (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del') ':' @{syntax thmrefs}
-  "}
-
-  \begin{description}
-
-  \item @{method blast} refers to the classical tableau prover (see
-  @{ML blast_tac} in \cite{isabelle-ref}).  The optional argument
-  specifies a user-supplied search bound (default 20).
-
-  \item @{method fast}, @{method slow}, @{method best}, @{method
-  safe}, and @{method clarify} refer to the generic classical
-  reasoner.  See @{ML fast_tac}, @{ML slow_tac}, @{ML best_tac}, @{ML
-  safe_tac}, and @{ML clarify_tac} in \cite{isabelle-ref} for more
-  information.
-
-  \end{description}
-
-  Any of the above methods support additional modifiers of the context
-  of classical rules.  Their semantics is analogous to the attributes
-  given before.  Facts provided by forward chaining are inserted into
-  the goal before commencing proof search.
-*}
-
-
-subsection {* Combined automated methods \label{sec:clasimp} *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{method_def auto} & : & @{text method} \\
-    @{method_def force} & : & @{text method} \\
-    @{method_def clarsimp} & : & @{text method} \\
-    @{method_def fastsimp} & : & @{text method} \\
-    @{method_def slowsimp} & : & @{text method} \\
-    @{method_def bestsimp} & : & @{text method} \\
-  \end{matharray}
-
-  @{rail "
-    @@{method auto} (@{syntax nat} @{syntax nat})? (@{syntax clasimpmod} * )
-    ;
-    (@@{method force} | @@{method clarsimp} | @@{method fastsimp} | @@{method slowsimp} |
-      @@{method bestsimp}) (@{syntax clasimpmod} * )
-    ;
-
-    @{syntax_def clasimpmod}: ('simp' (() | 'add' | 'del' | 'only') |
-      ('cong' | 'split') (() | 'add' | 'del') |
-      'iff' (((() | 'add') '?'?) | 'del') |
-      (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del')) ':' @{syntax thmrefs}
-  "}
-
-  \begin{description}
-
-  \item @{method auto}, @{method force}, @{method clarsimp}, @{method
-  fastsimp}, @{method slowsimp}, and @{method bestsimp} provide access
-  to Isabelle's combined simplification and classical reasoning
-  tactics.  These correspond to @{ML auto_tac}, @{ML force_tac}, @{ML
-  clarsimp_tac}, and Classical Reasoner tactics with the Simplifier
-  added as wrapper, see \cite{isabelle-ref} for more information.  The
-  modifier arguments correspond to those given in
-  \secref{sec:simplifier} and \secref{sec:classical}.  Just note that
-  the ones related to the Simplifier are prefixed by @{text simp}
-  here.
-
-  Facts provided by forward chaining are inserted into the goal before
-  doing the search.
-
-  \end{description}
-*}
-
-
-subsection {* Declaring rules *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{command_def "print_claset"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
-    @{attribute_def intro} & : & @{text attribute} \\
-    @{attribute_def elim} & : & @{text attribute} \\
-    @{attribute_def dest} & : & @{text attribute} \\
-    @{attribute_def rule} & : & @{text attribute} \\
-    @{attribute_def iff} & : & @{text attribute} \\
-  \end{matharray}
-
-  @{rail "
-    (@@{attribute intro} | @@{attribute elim} | @@{attribute dest}) ('!' | () | '?') @{syntax nat}?
-    ;
-    @@{attribute rule} 'del'
-    ;
-    @@{attribute iff} (((() | 'add') '?'?) | 'del')
-  "}
-
-  \begin{description}
-
-  \item @{command "print_claset"} prints the collection of rules
-  declared to the Classical Reasoner, which is also known as
-  ``claset'' internally \cite{isabelle-ref}.
-  
-  \item @{attribute intro}, @{attribute elim}, and @{attribute dest}
-  declare introduction, elimination, and destruction rules,
-  respectively.  By default, rules are considered as \emph{unsafe}
-  (i.e.\ not applied blindly without backtracking), while ``@{text
-  "!"}'' classifies as \emph{safe}.  Rule declarations marked by
-  ``@{text "?"}'' coincide with those of Isabelle/Pure, cf.\
-  \secref{sec:pure-meth-att} (i.e.\ are only applied in single steps
-  of the @{method rule} method).  The optional natural number
-  specifies an explicit weight argument, which is ignored by automated
-  tools, but determines the search order of single rule steps.
-
-  \item @{attribute rule}~@{text del} deletes introduction,
-  elimination, or destruction rules from the context.
-
-  \item @{attribute iff} declares logical equivalences to the
-  Simplifier and the Classical reasoner at the same time.
-  Non-conditional rules result in a ``safe'' introduction and
-  elimination pair; conditional ones are considered ``unsafe''.  Rules
-  with negative conclusion are automatically inverted (using @{text
-  "\<not>"}-elimination internally).
-
-  The ``@{text "?"}'' version of @{attribute iff} declares rules to
-  the Isabelle/Pure context only, and omits the Simplifier
-  declaration.
-
-  \end{description}
-*}
-
-
-subsection {* Classical operations *}
-
-text {*
-  \begin{matharray}{rcl}
-    @{attribute_def swapped} & : & @{text attribute} \\
-  \end{matharray}
-
-  \begin{description}
-
-  \item @{attribute swapped} turns an introduction rule into an
-  elimination, by resolving with the classical swap principle @{text
-  "(\<not> B \<Longrightarrow> A) \<Longrightarrow> (\<not> A \<Longrightarrow> B)"}.
 
   \end{description}
 *}
