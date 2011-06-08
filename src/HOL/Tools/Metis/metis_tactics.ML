@@ -13,9 +13,12 @@ sig
   val full_typesN : string
   val partial_typesN : string
   val no_typesN : string
+  val really_full_type_sys : string
   val full_type_sys : string
   val partial_type_sys : string
   val no_type_sys : string
+  val full_type_syss : string list
+  val partial_type_syss : string list
   val trace : bool Config.T
   val verbose : bool Config.T
   val new_skolemizer : bool Config.T
@@ -36,20 +39,24 @@ val full_typesN = "full_types"
 val partial_typesN = "partial_types"
 val no_typesN = "no_types"
 
+val really_full_type_sys = "poly_tags_heavy"
 val full_type_sys = "poly_preds_heavy_query"
 val partial_type_sys = "poly_args"
 val no_type_sys = "erased"
 
-val type_sys_aliases =
-  [(full_typesN, full_type_sys),
-   (partial_typesN, partial_type_sys),
-   (no_typesN, no_type_sys)]
+val full_type_syss = [full_type_sys, really_full_type_sys]
+val partial_type_syss = partial_type_sys :: full_type_syss
 
-fun method_call_for_type_sys type_sys =
+val type_sys_aliases =
+  [(full_typesN, full_type_syss),
+   (partial_typesN, partial_type_syss),
+   (no_typesN, [no_type_sys])]
+
+fun method_call_for_type_sys type_syss =
   metisN ^ " (" ^
-  (case AList.find (op =) type_sys_aliases type_sys of
+  (case AList.find (op =) type_sys_aliases type_syss of
      [alias] => alias
-   | _ => type_sys) ^ ")"
+   | _ => hd type_syss) ^ ")"
 
 val new_skolemizer =
   Attrib.setup_config_bool @{binding metis_new_skolemizer} (K false)
@@ -176,10 +183,10 @@ fun FOL_SOLVE (type_sys :: fallback_type_syss) ctxt cls ths0 =
            [] => error ("Failed to replay Metis proof in Isabelle." ^
                         (if Config.get ctxt verbose then "\n" ^ loc ^ ": " ^ msg
                          else ""))
-         | type_sys :: _ =>
+         | _ =>
            (verbose_warning ctxt
                 ("Falling back on " ^
-                 quote (method_call_for_type_sys type_sys) ^ "...");
+                 quote (method_call_for_type_sys fallback_type_syss) ^ "...");
             FOL_SOLVE fallback_type_syss ctxt cls ths0)
 
 val neg_clausify =
@@ -213,10 +220,7 @@ fun generic_metis_tac type_syss ctxt ths i st0 =
     Meson.MESON (preskolem_tac ctxt) (maps neg_clausify) tac ctxt i st0
   end
 
-val metis_default_type_syss = [partial_type_sys, full_type_sys]
-val metisFT_type_syss = [full_type_sys]
-
-fun metis_tac [] = generic_metis_tac metis_default_type_syss
+fun metis_tac [] = generic_metis_tac partial_type_syss
   | metis_tac type_syss = generic_metis_tac type_syss
 
 (* Whenever "X" has schematic type variables, we treat "using X by metis" as
@@ -227,16 +231,16 @@ fun metis_tac [] = generic_metis_tac metis_default_type_syss
 val has_tvar =
   exists_type (exists_subtype (fn TVar _ => true | _ => false)) o prop_of
 
-fun method type_syss (type_sys, ths) ctxt facts =
+fun method default_type_syss (override_type_syss, ths) ctxt facts =
   let
     val _ =
-      if type_syss = metisFT_type_syss then
+      if default_type_syss = full_type_syss then
         legacy_feature "Old 'metisFT' method -- \
                        \use 'metis (full_types)' instead"
       else
         ()
     val (schem_facts, nonschem_facts) = List.partition has_tvar facts
-    val type_syss = type_sys |> Option.map single |> the_default type_syss
+    val type_syss = override_type_syss |> the_default default_type_syss
   in
     HEADGOAL (Method.insert_tac nonschem_facts THEN'
               CHANGED_PROP
@@ -244,19 +248,18 @@ fun method type_syss (type_sys, ths) ctxt facts =
   end
 
 fun setup_method (binding, type_syss) =
-  (if type_syss = metis_default_type_syss then
-     (Args.parens Parse.short_ident
-      >> (fn s => AList.lookup (op =) type_sys_aliases s |> the_default s))
-     |> Scan.option |> Scan.lift
-   else
-     Scan.succeed NONE)
+  ((Args.parens (Scan.repeat Parse.short_ident)
+    >> maps (fn s => case AList.lookup (op =) type_sys_aliases s of
+                       SOME tss => tss
+                     | NONE => [s]))
+    |> Scan.option |> Scan.lift)
   -- Attrib.thms >> (METHOD oo method type_syss)
   |> Method.setup binding
 
 val setup =
-  [((@{binding metis}, metis_default_type_syss),
+  [((@{binding metis}, partial_type_syss),
     "Metis for FOL and HOL problems"),
-   ((@{binding metisFT}, metisFT_type_syss),
+   ((@{binding metisFT}, full_type_syss),
     "Metis for FOL/HOL problems with fully-typed translation")]
   |> fold (uncurry setup_method)
 

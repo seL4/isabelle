@@ -415,7 +415,7 @@ fun timed_apply timeout tac state i =
 fun tac_for_reconstructor Metis =
     Metis_Tactics.metis_tac [Metis_Tactics.partial_type_sys]
   | tac_for_reconstructor Metis_Full_Types =
-    Metis_Tactics.metis_tac [Metis_Tactics.full_type_sys]
+    Metis_Tactics.metis_tac Metis_Tactics.full_type_syss
   | tac_for_reconstructor Metis_No_Types =
     Metis_Tactics.metis_tac [Metis_Tactics.no_type_sys]
   | tac_for_reconstructor _ = raise Fail "unexpected reconstructor"
