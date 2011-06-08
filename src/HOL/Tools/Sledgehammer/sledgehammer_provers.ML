@@ -57,7 +57,8 @@ sig
      used_facts: (string * locality) list,
      run_time_in_msecs: int option,
      preplay: unit -> play,
-     message: play -> string}
+     message: play -> string,
+     message_tail: string}
 
   type prover =
     params -> (string -> minimize_command) -> prover_problem -> prover_result
@@ -324,7 +325,8 @@ type prover_result =
    used_facts: (string * locality) list,
    run_time_in_msecs: int option,
    preplay: unit -> play,
-   message: play -> string}
+   message: play -> string,
+   message_tail: string}
 
 type prover =
   params -> (string -> minimize_command) -> prover_problem -> prover_result
@@ -774,7 +776,7 @@ fun run_atp mode name
         extract_important_message output
       else
         ""
-    val (used_facts, preplay, message) =
+    val (used_facts, preplay, message, message_tail) =
       case outcome of
         NONE =>
         let
@@ -803,25 +805,23 @@ fun run_atp mode name
                   (preplay, proof_banner mode name, used_facts,
                    choose_minimize_command minimize_command name preplay,
                    subgoal, subgoal_count)
-              in
-                proof_text ctxt isar_proof isar_params one_line_params ^
-                (if verbose then
-                   "\nATP real CPU time: " ^
-                   string_from_time (Time.fromMilliseconds (the msecs)) ^ "."
-                 else
-                   "") ^
-                (if important_message <> "" then
-                   "\n\nImportant message from Dr. Geoff Sutcliffe:\n" ^
-                   important_message
-                 else
-                   "")
-              end)
+              in proof_text ctxt isar_proof isar_params one_line_params end,
+           (if verbose then
+              "\nATP real CPU time: " ^
+              string_from_time (Time.fromMilliseconds (the msecs)) ^ "."
+            else
+              "") ^
+           (if important_message <> "" then
+              "\n\nImportant message from Dr. Geoff Sutcliffe:\n" ^
+              important_message
+            else
+              ""))
         end
       | SOME failure =>
-        ([], K (Failed_to_Play Metis), fn _ => string_for_failure failure)
+        ([], K (Failed_to_Play Metis), fn _ => string_for_failure failure, "")
   in
     {outcome = outcome, used_facts = used_facts, run_time_in_msecs = msecs,
-     preplay = preplay, message = message}
+     preplay = preplay, message = message, message_tail = message_tail}
   end
 
 (* "SMT_Failure.Abnormal_Termination" carries the solver's return code. Until
@@ -974,7 +974,7 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
       smt_filter_loop ctxt name params state subgoal smt_filter facts
     val (used_facts, used_ths) = used_facts |> ListPair.unzip
     val outcome = outcome |> Option.map failure_from_smt_failure
-    val (preplay, message) =
+    val (preplay, message, message_tail) =
       case outcome of
         NONE =>
         (fn () =>
@@ -994,21 +994,19 @@ fun run_smt_solver mode name (params as {debug, verbose, preplay_timeout, ...})
                 (preplay, proof_banner mode name, used_facts,
                  choose_minimize_command minimize_command name preplay,
                  subgoal, subgoal_count)
-            in
-              one_line_proof_text one_line_params ^
-              (if verbose then
-                 "\nSMT solver real CPU time: " ^
-                 string_from_time (Time.fromMilliseconds
-                                       (the run_time_in_msecs)) ^ "."
-               else
-                 "")
-            end)
+            in one_line_proof_text one_line_params end,
+         if verbose then
+           "\nSMT solver real CPU time: " ^
+           string_from_time (Time.fromMilliseconds
+                                 (the run_time_in_msecs)) ^ "."
+         else
+           "")
       | SOME failure =>
-        (K (Failed_to_Play Metis), fn _ => string_for_failure failure)
+        (K (Failed_to_Play Metis), fn _ => string_for_failure failure, "")
   in
     {outcome = outcome, used_facts = used_facts,
      run_time_in_msecs = run_time_in_msecs, preplay = preplay,
-     message = message}
+     message = message, message_tail = message_tail}
   end
 
 fun run_metis mode name ({debug, timeout, ...} : params) minimize_command
@@ -1032,13 +1030,15 @@ fun run_metis mode name ({debug, timeout, ...} : params) minimize_command
                       val one_line_params =
                          (play, proof_banner mode name, used_facts,
                           minimize_command name, subgoal, subgoal_count)
-                    in one_line_proof_text one_line_params end}
+                    in one_line_proof_text one_line_params end,
+       message_tail = ""}
     | play =>
       let
         val failure = case play of Failed_to_Play _ => GaveUp | _ => TimedOut
       in
         {outcome = SOME failure, used_facts = [], run_time_in_msecs = NONE,
-         preplay = K play, message = fn _ => string_for_failure failure}
+         preplay = K play, message = fn _ => string_for_failure failure,
+         message_tail = ""}
       end
   end
 

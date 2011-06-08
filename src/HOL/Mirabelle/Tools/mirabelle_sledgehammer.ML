@@ -400,9 +400,9 @@ fun run_sh prover_name prover type_sys max_relevant slicing e_weight_method spas
     fun failed failure =
       ({outcome = SOME failure, used_facts = [], run_time_in_msecs = NONE,
         preplay = K (ATP_Reconstruct.Failed_to_Play ATP_Reconstruct.Metis),
-        message = K ""}, ~1)
-    val ({outcome, used_facts, run_time_in_msecs, preplay, message}
-         : Sledgehammer_Provers.prover_result,
+        message = K "", message_tail = ""}, ~1)
+    val ({outcome, used_facts, run_time_in_msecs, preplay, message,
+          message_tail} : Sledgehammer_Provers.prover_result,
         time_isa) = time_limit (Mirabelle.cpu_time (fn () =>
       let
         val _ = if is_appropriate_prop concl_t then ()
@@ -421,7 +421,7 @@ fun run_sh prover_name prover type_sys max_relevant slicing e_weight_method spas
       handle TimeLimit.TimeOut => failed ATP_Proof.TimedOut
            | Fail "inappropriate" => failed ATP_Proof.Inappropriate
     val time_prover = run_time_in_msecs |> the_default ~1
-    val msg = message (preplay ())
+    val msg = message (preplay ()) ^ message_tail
   in
     case outcome of
       NONE => (msg, SH_OK (time_isa, time_prover, used_facts))
@@ -515,8 +515,9 @@ fun run_minimize args reconstructor named_thms id
       Sledgehammer_Minimize.minimize_facts prover_name params
           true 1 (Sledgehammer_Util.subgoal_count st)
     val _ = log separator
-    val (used_facts, (preplay, message)) = minimize st (these (!named_thms))
-    val msg = message (preplay ())
+    val (used_facts, (preplay, message, message_tail)) =
+      minimize st (these (!named_thms))
+    val msg = message (preplay ()) ^ message_tail
   in
     case used_facts of
       SOME named_thms' =>

@@ -76,7 +76,7 @@ val auto_minimize_max_seconds =
 fun minimize ctxt mode name (params as {debug, verbose, isar_proof, ...})
              ({state, subgoal, subgoal_count, facts, ...} : prover_problem)
              (result as {outcome, used_facts, run_time_in_msecs, preplay,
-                         message} : prover_result) =
+                         message, message_tail} : prover_result) =
   if is_some outcome then
     result
   else
@@ -112,7 +112,7 @@ fun minimize ctxt mode name (params as {debug, verbose, isar_proof, ...})
             end
         else
           ((false, name), preplay)
-      val (used_facts, (preplay, message)) =
+      val (used_facts, (preplay, message, _)) =
         if minimize then
           minimize_facts minimize_name params (not verbose) subgoal
                          subgoal_count state
@@ -120,7 +120,7 @@ fun minimize ctxt mode name (params as {debug, verbose, isar_proof, ...})
                               (map (apsnd single o untranslated_fact) facts))
           |>> Option.map (map fst)
         else
-          (SOME used_facts, (preplay, message))
+          (SOME used_facts, (preplay, message, ""))
     in
       case used_facts of
         SOME used_facts =>
@@ -137,7 +137,7 @@ fun minimize ctxt mode name (params as {debug, verbose, isar_proof, ...})
            ();
          {outcome = NONE, used_facts = used_facts,
           run_time_in_msecs = run_time_in_msecs, preplay = preplay,
-          message = message})
+          message = message, message_tail = message_tail})
       | NONE => result
     end
 
@@ -167,10 +167,10 @@ fun launch_prover (params as {debug, verbose, blocking, max_relevant, slicing,
     fun really_go () =
       problem
       |> get_minimizing_prover ctxt mode name params minimize_command
-      |> (fn {outcome, preplay, message, ...} =>
+      |> (fn {outcome, preplay, message, message_tail, ...} =>
              (if outcome = SOME ATP_Proof.TimedOut then timeoutN
               else if is_some outcome then noneN
-              else someN, message o preplay))
+              else someN, fn () => message (preplay ()) ^ message_tail))
     fun go () =
       let
         val (outcome_code, message) =
