@@ -5,6 +5,34 @@
 # DESCRIPTION: Isabelle/jEdit interface wrapper
 
 
+## sources
+
+declare -a SOURCES=(
+  "src/dockable.scala"
+  "src/document_model.scala"
+  "src/document_view.scala"
+  "src/html_panel.scala"
+  "src/isabelle_encoding.scala"
+  "src/isabelle_hyperlinks.scala"
+  "src/isabelle_markup.scala"
+  "src/isabelle_options.scala"
+  "src/isabelle_sidekick.scala"
+  "src/output_dockable.scala"
+  "src/plugin.scala"
+  "src/protocol_dockable.scala"
+  "src/raw_output_dockable.scala"
+  "src/scala_console.scala"
+  "src/session_dockable.scala"
+)
+
+declare -a PLUGIN_FILES=(
+  "plugin/actions.xml"
+  "plugin/dockables.xml"
+  "plugin/Isabelle.props"
+  "plugin/services.xml"
+)
+
+
 ## diagnostics
 
 PRG="$(basename "$0")"
@@ -17,7 +45,9 @@ function usage()
   echo "  Options are:"
   echo "    -J OPTION    add JVM runtime option"
   echo "                 (default JEDIT_JAVA_OPTIONS=$JEDIT_JAVA_OPTIONS)"
+  echo "    -b           build only"
   echo "    -d           enable debugger"
+  echo "    -f           fresh build"
   echo "    -j OPTION    add jEdit runtime option"
   echo "                 (default JEDIT_OPTIONS=$JEDIT_OPTIONS)"
   echo "    -l NAME      logic image name (default ISABELLE_LOGIC=$ISABELLE_LOGIC)"
@@ -44,21 +74,29 @@ function failed()
 
 # options
 
+BUILD_ONLY=false
+BUILD_JARS="jars"
 JEDIT_LOGIC="$ISABELLE_LOGIC"
 JEDIT_PRINT_MODE=""
 
 function getoptions()
 {
   OPTIND=1
-  while getopts "J:dj:l:m:" OPT
+  while getopts "J:bdfj:l:m:" OPT
   do
     case "$OPT" in
       J)
         JAVA_ARGS["${#JAVA_ARGS[@]}"]="$OPTARG"
         ;;
+      b)
+        BUILD_ONLY=true
+        ;;
       d)
         JAVA_ARGS["${#JAVA_ARGS[@]}"]="-Xdebug"
         JAVA_ARGS["${#JAVA_ARGS[@]}"]="-Xrunjdwp:transport=dt_socket,server=y,suspend=n"
+        ;;
+      f)
+        BUILD_JARS="jars_fresh"
         ;;
       j)
         ARGS["${#ARGS[@]}"]="$OPTARG"
@@ -103,35 +141,7 @@ done
 
 ## dependencies
 
-pushd "$JEDIT_HOME" || failed
-
-
-# sources
-
-declare -a SOURCES=(
-  "src/dockable.scala"
-  "src/document_model.scala"
-  "src/document_view.scala"
-  "src/html_panel.scala"
-  "src/isabelle_encoding.scala"
-  "src/isabelle_hyperlinks.scala"
-  "src/isabelle_markup.scala"
-  "src/isabelle_options.scala"
-  "src/isabelle_sidekick.scala"
-  "src/output_dockable.scala"
-  "src/plugin.scala"
-  "src/protocol_dockable.scala"
-  "src/raw_output_dockable.scala"
-  "src/scala_console.scala"
-  "src/session_dockable.scala"
-)
-
-declare -a PLUGIN_FILES=(
-  "plugin/actions.xml"
-  "plugin/dockables.xml"
-  "plugin/Isabelle.props"
-  "plugin/services.xml"
-)
+pushd "$JEDIT_HOME" >/dev/null || failed
 
 JEDIT_JAR="$ISABELLE_JEDIT_BUILD_HOME/contrib/$ISABELLE_JEDIT_BUILD_VERSION/jedit.jar"
 
@@ -155,30 +165,34 @@ SCALA_JARS=(
 
 TARGET="dist/jars/Isabelle-jEdit.jar"
 
-OUTDATED=false
-for SOURCE in "${SOURCES[@]}" "${PLUGIN_FILES[@]}" "$JEDIT_JAR" "${JEDIT_JARS[@]}"
-do
-  [ ! -e "$SOURCE" ] && fail "Missing file: $SOURCE"
-  [ ! -e "$TARGET" -o "$SOURCE" -nt "$TARGET" ] && OUTDATED=true
-done
+if [ "$BUILD_JARS" = jars_fresh ]; then
+  OUTDATED=true
+else
+  OUTDATED=false
+  for SOURCE in "${SOURCES[@]}" "${PLUGIN_FILES[@]}" "$JEDIT_JAR" "${JEDIT_JARS[@]}"
+  do
+    [ ! -e "$SOURCE" ] && fail "Missing file: $SOURCE"
+    [ ! -e "$TARGET" -o "$SOURCE" -nt "$TARGET" ] && OUTDATED=true
+  done
+fi
 
 
 # build
 
 if [ "$OUTDATED" = true ]
 then
-  echo "###"
-  echo "### Building Isabelle/jEdit ..."
-  echo "###"
-
   [ -z "$SCALA_HOME" ] && fail "Unknown SCALA_HOME -- Scala unavailable"
 
   [ -z "$ISABELLE_JEDIT_BUILD_HOME" ] && \
     fail "Unknown ISABELLE_JEDIT_BUILD_HOME -- missing auxiliary component"
 
   [ -e "$ISABELLE_HOME/Admin/build" ] && \
-    { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
+    { "$ISABELLE_HOME/Admin/build" "$BUILD_JARS" || exit $?; }
 
+
+  echo "###"
+  echo "### Building Isabelle/jEdit ..."
+  echo "###"
 
   rm -rf dist || failed
   mkdir -p dist dist/classes || failed
@@ -240,16 +254,18 @@ fi
 
 # run
 
-case "$JEDIT_LOGIC" in
-  /*)
-    ;;
-  */*)
-    JEDIT_LOGIC="$(pwd -P)/$JEDIT_LOGIC"
-    ;;
-esac
+[ "$BUILD_ONLY" = true ] || {
+  case "$JEDIT_LOGIC" in
+    /*)
+      ;;
+    */*)
+      JEDIT_LOGIC="$(pwd -P)/$JEDIT_LOGIC"
+      ;;
+  esac
 
-export JEDIT_LOGIC JEDIT_PRINT_MODE
+  export JEDIT_LOGIC JEDIT_PRINT_MODE
 
-exec "$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" \
-  -jar "$(jvmpath "$JEDIT_HOME/dist/jedit.jar")" \
-  "-settings=$(jvmpath "$JEDIT_SETTINGS")" "${ARGS[@]}"
+  exec "$ISABELLE_TOOL" java "${JAVA_ARGS[@]}" \
+    -jar "$(jvmpath "$JEDIT_HOME/dist/jedit.jar")" \
+    "-settings=$(jvmpath "$JEDIT_SETTINGS")" "${ARGS[@]}"
+}

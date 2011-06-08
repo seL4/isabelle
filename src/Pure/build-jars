@@ -140,7 +140,7 @@ then
     fail "Failed to compile sources"
   mkdir -p "$TARGET_DIR" || fail "Failed to create directory $TARGET_DIR"
 
-  pushd classes
+  pushd classes >/dev/null
 
   jar cfe "$(jvmpath "$PURE_JAR")" isabelle.GUI_Setup isabelle || \
     fail "Failed to produce $PURE_JAR"
