@@ -230,7 +230,8 @@ fun simp_not_not (@{const Trueprop} $ t) = @{const Trueprop} $ simp_not_not t
 (* Match untyped terms. *)
 fun untyped_aconv (Const (a, _), Const(b, _)) = (a = b)
   | untyped_aconv (Free (a, _), Free (b, _)) = (a = b)
-  | untyped_aconv (Var ((a, _), _), Var ((b, _), _)) = (a = b)
+  | untyped_aconv (Var ((a, _), _), Var ((b, _), _)) =
+    (a = b) (* ignore variable numbers *)
   | untyped_aconv (Bound i, Bound j) = (i = j)
   | untyped_aconv (Abs (_, _, t), Abs (_, _, u)) = untyped_aconv (t, u)
   | untyped_aconv (t1 $ t2, u1 $ u2) =
