@@ -1005,7 +1005,7 @@ fun make_conjecture ctxt format prem_kind type_sys preproc presimp_consts ts =
                 t |> preproc ?
                      (preprocess_prop ctxt presimp_consts kind #> freeze_term)
                   |> make_formula thy format type_sys (format <> CNF)
-                                  (string_of_int j) General kind
+                                  (string_of_int j) Local kind
                   |> maybe_negate
               end)
          (0 upto last) ts
@@ -1648,21 +1648,22 @@ val known_infinite_types =
 
 (* This inference is described in section 2.3 of Claessen et al.'s "Sorting it
    out with monotonicity" paper presented at CADE 2011. *)
-fun add_combterm_nonmonotonic_types _ _ (SOME false) _ = I
-  | add_combterm_nonmonotonic_types ctxt level _
+fun add_combterm_nonmonotonic_types _ _ _ (SOME false) _ = I
+  | add_combterm_nonmonotonic_types ctxt level locality _
         (CombApp (CombApp (CombConst ((s, _), Type (_, [T, _]), _), tm1),
                            tm2)) =
     (is_tptp_equal s andalso exists is_var_or_bound_var [tm1, tm2] andalso
      (case level of
         Nonmonotonic_Types =>
+        not (is_locality_global locality) orelse
         not (is_type_surely_infinite ctxt known_infinite_types T)
       | Finite_Types => is_type_surely_finite ctxt T
       | _ => true)) ? insert_type ctxt I (deep_freeze_type T)
-  | add_combterm_nonmonotonic_types _ _ _ _ = I
-fun add_fact_nonmonotonic_types ctxt level ({kind, combformula, ...}
+  | add_combterm_nonmonotonic_types _ _ _ _ _ = I
+fun add_fact_nonmonotonic_types ctxt level ({kind, locality, combformula, ...}
                                             : translated_formula) =
   formula_fold (SOME (kind <> Conjecture))
-               (add_combterm_nonmonotonic_types ctxt level) combformula
+               (add_combterm_nonmonotonic_types ctxt level locality) combformula
 fun nonmonotonic_types_for_facts ctxt type_sys facts =
   let val level = level_of_type_sys type_sys in
     if level = Nonmonotonic_Types orelse level = Finite_Types then
