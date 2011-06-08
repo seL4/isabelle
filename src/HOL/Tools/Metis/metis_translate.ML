@@ -114,14 +114,16 @@ val proxy_defs = map (fst o snd o snd) proxy_table
 val prepare_helper =
   Meson.make_meta_clause #> rewrite_rule (map safe_mk_meta_eq proxy_defs)
 
-fun metis_name_from_atp s ary =
-  AList.lookup (op =) metis_name_table (s, ary) |> the_default (s, false)
 fun metis_term_from_atp (ATerm (s, tms)) =
   if is_tptp_variable s then
-    Metis_Term.Var s
+    Metis_Term.Var (Metis_Name.fromString s)
   else
-    let val (s, swap) = metis_name_from_atp s (length tms) in
-      Metis_Term.Fn (s, tms |> map metis_term_from_atp |> swap ? rev)
+    let
+      val (s, swap) = AList.lookup (op =) metis_name_table (s, length tms)
+                      |> the_default (s, false)
+    in
+      Metis_Term.Fn (Metis_Name.fromString s,
+                     tms |> map metis_term_from_atp |> swap ? rev)
     end
 fun metis_atom_from_atp (AAtom tm) =
     (case metis_term_from_atp tm of
@@ -131,8 +133,8 @@ fun metis_atom_from_atp (AAtom tm) =
 fun metis_literal_from_atp (AConn (ANot, [phi])) =
     (false, metis_atom_from_atp phi)
   | metis_literal_from_atp phi = (true, metis_atom_from_atp phi)
-fun metis_literals_from_atp (AConn (AOr, [phi1, phi2])) =
-    uncurry (union (op =)) (pairself metis_literals_from_atp (phi1, phi2))
+fun metis_literals_from_atp (AConn (AOr, phis)) =
+    maps metis_literals_from_atp phis
   | metis_literals_from_atp phi = [metis_literal_from_atp phi]
 fun metis_axiom_from_atp clauses (Formula (ident, _, phi, _, _)) =
     let

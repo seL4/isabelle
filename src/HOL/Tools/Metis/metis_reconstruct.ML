@@ -57,10 +57,10 @@ fun atp_name_from_metis s =
     SOME ((s, _), (_, swap)) => (s, swap)
   | _ => (s, false)
 fun atp_term_from_metis (Metis_Term.Fn (s, tms)) =
-    let val (s, swap) = atp_name_from_metis s in
+    let val (s, swap) = atp_name_from_metis (Metis_Name.toString s) in
       ATerm (s, tms |> map atp_term_from_metis |> swap ? rev)
     end
-  | atp_term_from_metis (Metis_Term.Var s) = ATerm (s, [])
+  | atp_term_from_metis (Metis_Term.Var s) = ATerm (Metis_Name.toString s, [])
 
 fun hol_term_from_metis ctxt sym_tab =
   atp_term_from_metis #> term_from_atp ctxt false sym_tab NONE
@@ -160,11 +160,14 @@ fun inst_inference ctxt old_skolems sym_tab th_pairs fsubst th =
                                          " in " ^ Display.string_of_thm ctxt i_th);
                 NONE)
       fun remove_typeinst (a, t) =
-            case strip_prefix_and_unascii schematic_var_prefix a of
-                SOME b => SOME (b, t)
-              | NONE => case strip_prefix_and_unascii tvar_prefix a of
-                SOME _ => NONE          (*type instantiations are forbidden!*)
-              | NONE => SOME (a,t)    (*internal Metis var?*)
+        let val a = Metis_Name.toString a in
+          case strip_prefix_and_unascii schematic_var_prefix a of
+            SOME b => SOME (b, t)
+          | NONE =>
+            case strip_prefix_and_unascii tvar_prefix a of
+              SOME _ => NONE (* type instantiations are forbidden *)
+            | NONE => SOME (a, t) (* internal Metis var? *)
+        end
       val _ = trace_msg ctxt (fn () => "  isa th: " ^ Display.string_of_thm ctxt i_th)
       val substs = map_filter remove_typeinst (Metis_Subst.toList fsubst)
       val (vars, tms) =
@@ -349,7 +352,8 @@ fun equality_inference ctxt old_skolems sym_tab (pos, atom) fp fr =
       fun path_finder tm [] _ = (tm, Bound 0)
         | path_finder tm (p :: ps) (t as Metis_Term.Fn (s, ts)) =
           let
-            val s = s |> perhaps (try (strip_prefix_and_unascii const_prefix
+            val s = s |> Metis_Name.toString
+                      |> perhaps (try (strip_prefix_and_unascii const_prefix
                                        #> the #> unmangled_const_name))
           in
             if s = metis_predicator orelse s = predicator_name orelse
@@ -422,7 +426,8 @@ fun flexflex_first_order th =
         in  th'  end
         handle THM _ => th;
 
-fun is_metis_literal_genuine (_, (s, _)) = not (String.isPrefix class_prefix s)
+fun is_metis_literal_genuine (_, (s, _)) =
+  not (String.isPrefix class_prefix (Metis_Name.toString s))
 fun is_isabelle_literal_genuine t =
   case t of _ $ (Const (@{const_name Meson.skolem}, _) $ _) => false | _ => true
 

@@ -40,7 +40,6 @@ EOF
     echo -e "$FILE" >&2
     "$THIS/scripts/mlpp" -c polyml "$FILE" | \
     perl -p -e \
-'s/type name$/type name = string/;'\
 's/\bref\b/Unsynchronized.ref/g;'\
 "`grep "^\(signature\|structure\|functor\)" $FILES | \
   sed "s/[^:]*:[a-z]* \([A-Za-z0-9_]*\).*/\1/" | \
