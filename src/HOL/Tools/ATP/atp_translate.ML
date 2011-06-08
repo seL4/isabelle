@@ -1,4 +1,4 @@
-(*  Title:      HOL/Tools/Sledgehammer/sledgehammer_atp_translate.ML
+(*  Title:      HOL/Tools/ATP/atp_translate.ML
     Author:     Fabian Immler, TU Muenchen
     Author:     Makarius
     Author:     Jasmin Blanchette, TU Muenchen
