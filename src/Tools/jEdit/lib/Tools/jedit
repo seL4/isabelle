@@ -7,7 +7,7 @@
 
 ## sources
 
-declare -a SOURCES=(
+declare -a SOURCE_FILES=(
   "src/dockable.scala"
   "src/document_model.scala"
   "src/document_view.scala"
@@ -25,11 +25,11 @@ declare -a SOURCES=(
   "src/session_dockable.scala"
 )
 
-declare -a PLUGIN_FILES=(
-  "plugin/actions.xml"
-  "plugin/dockables.xml"
-  "plugin/Isabelle.props"
-  "plugin/services.xml"
+declare -a MORE_FILES=(
+  "src/actions.xml"
+  "src/dockables.xml"
+  "src/Isabelle.props"
+  "src/services.xml"
 )
 
 
@@ -169,7 +169,7 @@ if [ "$BUILD_JARS" = jars_fresh ]; then
   OUTDATED=true
 else
   OUTDATED=false
-  for SOURCE in "${SOURCES[@]}" "${PLUGIN_FILES[@]}" "$JEDIT_JAR" "${JEDIT_JARS[@]}"
+  for SOURCE in "${SOURCE_FILES[@]}" "${MORE_FILES[@]}" "$JEDIT_JAR" "${JEDIT_JARS[@]}"
   do
     [ ! -e "$SOURCE" ] && fail "Missing file: $SOURCE"
     [ ! -e "$TARGET" -o "$SOURCE" -nt "$TARGET" ] && OUTDATED=true
@@ -198,9 +198,8 @@ then
   mkdir -p dist dist/classes || failed
   cp -a "$ISABELLE_JEDIT_BUILD_HOME/contrib/$ISABELLE_JEDIT_BUILD_VERSION/." dist/.
 
-  cp -a "${PLUGIN_FILES[@]}" dist/classes/.
+  cp -a "${MORE_FILES[@]}" dist/classes/.
   cp -a dist-template/. dist/.
-  cp -a README dist/.
 
   perl -i -e 'while (<>) { if (m/NAME="javacc"/) {
     print qq,<MODE NAME="isabelle" FILE="isabelle.xml" FILE_NAME_GLOB="*.thy"/>\n\n,;
@@ -218,7 +217,7 @@ then
     CLASSPATH="$(jvmpath "$CLASSPATH")"
 
     exec "$SCALA_HOME/bin/scalac" -unchecked -deprecation \
-      -d dist/classes -target:jvm-1.5 "${SOURCES[@]}"
+      -d dist/classes -target:jvm-1.5 "${SOURCE_FILES[@]}"
   ) || fail "Failed to compile sources"
 
   cd dist/classes
