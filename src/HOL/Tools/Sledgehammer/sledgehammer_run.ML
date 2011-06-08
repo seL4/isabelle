@@ -19,7 +19,7 @@ sig
   val timeoutN : string
   val unknownN : string
   val auto_minimize_min_facts : int Config.T
-  val auto_minimize_max_seconds : real Config.T
+  val auto_minimize_max_time : real Config.T
   val get_minimizing_prover : Proof.context -> mode -> string -> prover
   val run_sledgehammer :
     params -> mode -> int -> relevance_override -> (string -> minimize_command)
@@ -69,8 +69,8 @@ fun prover_description ctxt ({verbose, blocking, ...} : params) name num_facts i
 val auto_minimize_min_facts =
   Attrib.setup_config_int @{binding sledgehammer_auto_minimize_min_facts}
       (fn generic => Config.get_generic generic binary_min_facts)
-val auto_minimize_max_seconds =
-  Attrib.setup_config_real @{binding sledgehammer_auto_minimize_max_seconds}
+val auto_minimize_max_time =
+  Attrib.setup_config_real @{binding sledgehammer_auto_minimize_max_time}
       (K 5.0)
 
 fun minimize ctxt mode name (params as {debug, verbose, isar_proof, ...})
@@ -90,7 +90,7 @@ fun minimize ctxt mode name (params as {debug, verbose, isar_proof, ...})
             let
               fun can_min_fast_enough msecs =
                 0.001 * Real.fromInt ((num_facts + 2) * msecs)
-                <= Config.get ctxt auto_minimize_max_seconds
+                <= Config.get ctxt auto_minimize_max_time
               val prover_fast_enough =
                 run_time_in_msecs |> Option.map can_min_fast_enough
                                   |> the_default false
