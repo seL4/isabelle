@@ -649,8 +649,8 @@ fun run_atp mode name
                 val (atp_problem, pool, conjecture_offset, facts_offset,
                      fact_names, typed_helpers, sym_tab) =
                   prepare_atp_problem ctxt format conj_sym_kind prem_kind
-                      type_sys (Config.get ctxt atp_readable_names) true hyp_ts
-                      concl_t facts
+                      type_sys true (Config.get ctxt atp_readable_names) true
+                      hyp_ts concl_t facts
                 fun weights () = atp_problem_weights atp_problem
                 val core =
                   File.shell_path command ^ " " ^
@@ -685,7 +685,7 @@ fun run_atp mode name
                 val (conjecture_shape, facts_offset, fact_names,
                      typed_helpers) =
                   if is_none outcome then
-                    repair_conjecture_shape_and_fact_names type_sys output
+                    repair_conjecture_shape_and_fact_names output
                         conjecture_shape facts_offset fact_names typed_helpers
                   else
                     (* don't bother repairing *)
@@ -693,7 +693,7 @@ fun run_atp mode name
                 val outcome =
                   case outcome of
                     NONE =>
-                    used_facts_in_unsound_atp_proof ctxt type_sys
+                    used_facts_in_unsound_atp_proof ctxt
                         conjecture_shape facts_offset fact_names atp_proof
                     |> Option.map (fn facts =>
                            UnsoundProof (is_type_sys_virtually_sound type_sys,
@@ -704,11 +704,11 @@ fun run_atp mode name
               in
                 ((pool, conjecture_shape, facts_offset, fact_names,
                   typed_helpers, sym_tab),
-                 (output, msecs, type_sys, atp_proof, outcome))
+                 (output, msecs, atp_proof, outcome))
               end
             val timer = Timer.startRealTimer ()
             fun maybe_run_slice blacklist slice
-                                (result as (_, (_, msecs0, _, _, SOME _))) =
+                                (result as (_, (_, msecs0, _, SOME _))) =
                 let
                   val time_left = Time.- (timeout, Timer.checkRealTimer timer)
                 in
@@ -716,18 +716,17 @@ fun run_atp mode name
                     result
                   else
                     (run_slice blacklist slice time_left
-                     |> (fn (stuff, (output, msecs, type_sys, atp_proof,
-                                     outcome)) =>
-                            (stuff, (output, int_opt_add msecs0 msecs, type_sys,
+                     |> (fn (stuff, (output, msecs, atp_proof, outcome)) =>
+                            (stuff, (output, int_opt_add msecs0 msecs,
                                      atp_proof, outcome))))
                 end
               | maybe_run_slice _ _ result = result
             fun maybe_blacklist_facts_and_retry iter blacklist
                     (result as ((_, _, facts_offset, fact_names, _, _),
-                                (_, _, type_sys, atp_proof,
+                                (_, _, atp_proof,
                                  SOME (UnsoundProof (false, _))))) =
-                (case used_facts_in_atp_proof ctxt type_sys facts_offset
-                                              fact_names atp_proof of
+                (case used_facts_in_atp_proof ctxt facts_offset fact_names
+                                              atp_proof of
                    [] => result
                  | new_baddies =>
                    if slicing andalso iter < atp_blacklist_max_iters - 1 then
@@ -741,8 +740,7 @@ fun run_atp mode name
               | maybe_blacklist_facts_and_retry _ _ result = result
           in
             ((Symtab.empty, [], 0, Vector.fromList [], [], Symtab.empty),
-             ("", SOME 0, hd fallback_best_type_systems, [],
-              SOME InternalError))
+             ("", SOME 0, [], SOME InternalError))
             |> fold (maybe_run_slice []) actual_slices
                (* The ATP found an unsound proof? Automatically try again
                   without the offending facts! *)
@@ -755,14 +753,14 @@ fun run_atp mode name
        the proof file too. *)
     fun cleanup prob_file =
       if dest_dir = "" then try File.rm prob_file else NONE
-    fun export prob_file (_, (output, _, _, _, _)) =
+    fun export prob_file (_, (output, _, _, _)) =
       if dest_dir = "" then
         ()
       else
         File.write (Path.explode (Path.implode prob_file ^ "_proof")) output
     val ((pool, conjecture_shape, facts_offset, fact_names, typed_helpers,
           sym_tab),
-         (output, msecs, type_sys, atp_proof, outcome)) =
+         (output, msecs, atp_proof, outcome)) =
       with_path cleanup export run_on problem_path_name
     val important_message =
       if mode = Normal andalso
@@ -775,8 +773,7 @@ fun run_atp mode name
         NONE =>
         let
           val used_facts =
-            used_facts_in_atp_proof ctxt type_sys facts_offset fact_names
-                                    atp_proof
+            used_facts_in_atp_proof ctxt facts_offset fact_names atp_proof
         in
           (used_facts,
            fn () =>
@@ -792,9 +789,9 @@ fun run_atp mode name
               let
                 val full_types = uses_typed_helpers typed_helpers atp_proof
                 val isar_params =
-                  (debug, full_types, isar_shrink_factor, type_sys, pool,
-                   conjecture_shape, facts_offset, fact_names, sym_tab, atp_proof,
-                   goal)
+                  (debug, full_types, isar_shrink_factor, pool,
+                   conjecture_shape, facts_offset, fact_names, sym_tab,
+                   atp_proof, goal)
                 val one_line_params =
                   (preplay, proof_banner mode name, used_facts,
                    choose_minimize_command minimize_command name preplay,

@@ -130,7 +130,8 @@ sig
   val type_constrs_of_terms : theory -> term list -> string list
   val prepare_atp_problem :
     Proof.context -> format -> formula_kind -> formula_kind -> type_sys
-    -> bool -> bool -> term list -> term -> ((string * locality) * term) list
+    -> bool -> bool -> bool -> term list -> term
+    -> ((string * locality) * term) list
     -> string problem * string Symtab.table * int * int
        * (string * locality) list vector * int list * int Symtab.table
   val atp_problem_weights : string problem -> (string * real) list
@@ -1547,12 +1548,8 @@ fun formula_for_fact ctxt format nonmono_Ts type_sys
    the remote provers might care. *)
 fun formula_line_for_fact ctxt format prefix encode freshen nonmono_Ts type_sys
                           (j, formula as {name, locality, kind, ...}) =
-  Formula (prefix ^
-           (if freshen andalso
-               polymorphism_of_type_sys type_sys <> Polymorphic then
-              string_of_int j ^ "_"
-            else
-              "") ^ encode name,
+  Formula (prefix ^ (if freshen then string_of_int j ^ "_" else "") ^
+           encode name,
            kind, formula_for_fact ctxt format nonmono_Ts type_sys formula, NONE,
            case locality of
              Intro => intro_info
@@ -1838,7 +1835,7 @@ val free_typesN = "Type variables"
 val explicit_apply = NONE (* for experimental purposes *)
 
 fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
-                        readable_names preproc hyp_ts concl_t facts =
+        freshen_facts readable_names preproc hyp_ts concl_t facts =
   let
     val (format, type_sys) = choose_format [format] type_sys
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
@@ -1877,8 +1874,8 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
     val problem =
       [(explicit_declsN, sym_decl_lines),
        (factsN,
-        map (formula_line_for_fact ctxt format fact_prefix ascii_of true
-                                   nonmono_Ts type_sys)
+        map (formula_line_for_fact ctxt format fact_prefix ascii_of
+                                   freshen_facts nonmono_Ts type_sys)
             (0 upto length facts - 1 ~~ facts)),
        (class_relsN, map formula_line_for_class_rel_clause class_rel_clauses),
        (aritiesN, map formula_line_for_arity_clause arity_clauses),
