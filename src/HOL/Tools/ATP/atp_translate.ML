@@ -885,11 +885,18 @@ fun reveal_bounds Ts =
   subst_atomic (map (fn (j, T) => (Free (concealed_bound_name j, T), Bound j))
                     (0 upto length Ts - 1 ~~ Ts))
 
+fun is_fun_equality (@{const_name HOL.eq},
+                     Type (_, [Type (@{type_name fun}, _), _])) = true
+  | is_fun_equality _ = false
+
 fun extensionalize_term ctxt t =
-  let val thy = Proof_Context.theory_of ctxt in
-    t |> cterm_of thy |> Meson.extensionalize_conv ctxt
-      |> prop_of |> Logic.dest_equals |> snd
-  end
+  if exists_Const is_fun_equality t then
+    let val thy = Proof_Context.theory_of ctxt in
+      t |> cterm_of thy |> Meson.extensionalize_conv ctxt
+        |> prop_of |> Logic.dest_equals |> snd
+    end
+  else
+    t
 
 fun introduce_combinators_in_term ctxt kind t =
   let val thy = Proof_Context.theory_of ctxt in
