@@ -450,7 +450,7 @@ fun iter_type_class_pairs _ _ [] = ([], [])
         val newclasses =
           [] |> fold (fold (fold (fold maybe_insert_class) o snd) o snd) cpairs
         val (classes', cpairs') = iter_type_class_pairs thy tycons newclasses
-      in (union (op =) classes' classes, union (op =) cpairs' cpairs) end
+      in (classes' @ classes, union (op =) cpairs' cpairs) end
 
 fun make_arity_clauses thy tycons =
   iter_type_class_pairs thy tycons ##> multi_arity_clause
