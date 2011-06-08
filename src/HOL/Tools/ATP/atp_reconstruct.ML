@@ -225,7 +225,7 @@ fun add_fact _ type_sys facts_offset fact_names (Inference (name, _, [])) =
   | add_fact _ _ _ _ _ = I
 
 fun used_facts_in_atp_proof ctxt type_sys facts_offset fact_names atp_proof =
-  if null atp_proof then Vector.foldl (op @) [] fact_names
+  if null atp_proof then Vector.foldl (uncurry (union (op =))) [] fact_names
   else fold (add_fact ctxt type_sys facts_offset fact_names) atp_proof []
 
 fun is_conjecture_used_in_proof conjecture_shape =
