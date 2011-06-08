@@ -21,3 +21,4 @@ syntax: regexp
 ^doc-src/.*\.log
 ^doc-src/.*\.out
 ^doc-src/.*\.toc
+^src/Tools/jEdit/dist/

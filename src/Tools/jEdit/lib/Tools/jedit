@@ -196,10 +196,11 @@ then
 
   rm -rf dist || failed
   mkdir -p dist dist/classes || failed
-  cp -a "$ISABELLE_JEDIT_BUILD_HOME/contrib/$ISABELLE_JEDIT_BUILD_VERSION/." dist/.
 
+  cp -a "$ISABELLE_JEDIT_BUILD_HOME/contrib/$ISABELLE_JEDIT_BUILD_VERSION/." dist/.
   cp -a "${MORE_FILES[@]}" dist/classes/.
-  cp -a dist-template/. dist/.
+  cp src/jEdit.props dist/properties/.
+  cp -a src/modes/. dist/modes/.
 
   perl -i -e 'while (<>) { if (m/NAME="javacc"/) {
     print qq,<MODE NAME="isabelle" FILE="isabelle.xml" FILE_NAME_GLOB="*.thy"/>\n\n,;
