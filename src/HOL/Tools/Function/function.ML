@@ -87,8 +87,7 @@ fun prepare_function is_external prep default_constraint fixspec eqns config lth
     val defname = mk_defname fixes
     val FunctionConfig {partials, default, ...} = config
     val _ =
-      if is_some default then Output.legacy_feature
-        "'function (default)'. Use 'partial_function'."
+      if is_some default then legacy_feature "'function (default)'. Use 'partial_function'."
       else ()
 
     val ((goal_state, cont), lthy') =

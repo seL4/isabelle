@@ -211,7 +211,7 @@ fun get_specification options thy t =
     | ths => rev ths
     val _ =
       if show_intermediate_results options then
-        Output.tracing ("Specification for " ^ (Syntax.string_of_term_global thy t) ^ ":\n" ^
+        tracing ("Specification for " ^ (Syntax.string_of_term_global thy t) ^ ":\n" ^
           commas (map (Display.string_of_thm_global thy) spec))
       else ()
   in

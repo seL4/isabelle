@@ -86,9 +86,9 @@ fun add_catchall ctxt fixes spec =
 fun warnings ctxt origs tss =
   let
     fun warn_redundant t =
-      Output.warning ("Ignoring redundant equation: " ^ quote (Syntax.string_of_term ctxt t))
+      warning ("Ignoring redundant equation: " ^ quote (Syntax.string_of_term ctxt t))
     fun warn_missing strs =
-      Output.warning (cat_lines ("Missing patterns in function definition:" :: strs))
+      warning (cat_lines ("Missing patterns in function definition:" :: strs))
 
     val (tss', added) = chop (length origs) tss
 
