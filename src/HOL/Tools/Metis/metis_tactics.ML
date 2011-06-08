@@ -207,10 +207,10 @@ fun generic_metis_tac type_syss ctxt ths i st0 =
     fun tac clause = resolve_tac (FOL_SOLVE type_syss ctxt clause ths) 1
   in
     if exists_type type_has_top_sort (prop_of st0) then
-      (verbose_warning ctxt "Proof state contains the universal sort {}";
-       Seq.empty)
+      verbose_warning ctxt "Proof state contains the universal sort {}"
     else
-      Meson.MESON (preskolem_tac ctxt) (maps neg_clausify) tac ctxt i st0
+      ();
+    Meson.MESON (preskolem_tac ctxt) (maps neg_clausify) tac ctxt i st0
   end
 
 val metis_default_type_syss = [partial_type_sys, full_type_sys]
