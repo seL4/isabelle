@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/jedit/document_model.scala
+/*  Title:      Tools/jEdit/src/document_model.scala
     Author:     Fabian Immler, TU Munich
     Author:     Makarius
 

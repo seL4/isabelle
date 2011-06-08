@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/jedit/raw_output_dockable.scala
+/*  Title:      Tools/jEdit/src/raw_output_dockable.scala
     Author:     Makarius
 
 Dockable window for raw process output (stdout).

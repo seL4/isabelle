@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/jedit/isabelle_hyperlinks.scala
+/*  Title:      Tools/jEdit/src/isabelle_hyperlinks.scala
     Author:     Fabian Immler, TU Munich
 
 Hyperlink setup for Isabelle proof documents.

@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/jedit/session_dockable.scala
+/*  Title:      Tools/jEdit/src/session_dockable.scala
     Author:     Makarius
 
 Dockable window for prover session management.

@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/jedit/html_panel.scala
+/*  Title:      Tools/jEdit/src/html_panel.scala
     Author:     Makarius
 
 HTML panel based on Lobo/Cobra.

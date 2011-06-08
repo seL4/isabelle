@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/jedit/protocol_dockable.scala
+/*  Title:      Tools/jEdit/src/protocol_dockable.scala
     Author:     Makarius
 
 Dockable window for protocol messages.

@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/jedit/dockable.scala
+/*  Title:      Tools/jEdit/src/dockable.scala
     Author:     Makarius
 
 Generic dockable window.

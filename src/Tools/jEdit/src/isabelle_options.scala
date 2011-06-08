@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/jedit/isabelle_options.scala
+/*  Title:      Tools/jEdit/src/isabelle_options.scala
     Author:     Johannes Hölzl, TU Munich
 
 Editor pane for plugin options.

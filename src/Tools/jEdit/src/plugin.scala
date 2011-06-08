@@ -1,4 +1,4 @@
-/*  Title:      Tools/jEdit/src/jedit/plugin.scala
+/*  Title:      Tools/jEdit/src/plugin.scala
     Author:     Makarius
 
 Main Isabelle/jEdit plugin setup.
