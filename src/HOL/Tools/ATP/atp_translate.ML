@@ -368,10 +368,14 @@ val atp_monomorph_bad_consts =
    @{const_name Trueprop}, @{const_name All}, @{const_name Ex},
    @{const_name Ex1}, @{const_name Ball}, @{const_name Bex}]
 
-val atp_schematic_consts_of =
-  Monomorph.all_schematic_consts_of
-  #> Symtab.map (fn s => fn Ts =>
-                    if member (op =) atp_monomorph_bad_consts s then [] else Ts)
+fun add_schematic_const (x as (_, T)) =
+  Monomorph.typ_has_tvars T ? Symtab.insert_list (op =) x
+val add_schematic_consts_of =
+  Term.fold_aterms (fn Const (x as (s, _)) =>
+                       not (member (op =) atp_monomorph_bad_consts s)
+                       ? add_schematic_const x
+                      | _ => I)
+fun atp_schematic_consts_of t = add_schematic_consts_of t Symtab.empty
 
 (** Definitions and functions for FOL clauses and formulas for TPTP **)
 
