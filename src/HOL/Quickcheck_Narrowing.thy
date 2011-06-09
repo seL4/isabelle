@@ -26,20 +26,6 @@ code_const Typerep.Typerep
 
 code_reserved Haskell_Quickcheck Typerep
 
-code_type char
-  (Haskell_Quickcheck "Char")
-
-setup {*
-  fold String_Code.add_literal_char ["Haskell_Quickcheck"] 
-  #> String_Code.add_literal_list_string "Haskell_Quickcheck"
-*}
-
-code_instance char :: equal
-  (Haskell_Quickcheck -)
-
-code_const "HOL.equal \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
-  (Haskell_Quickcheck infix 4 "==")
-
 subsubsection {* Type @{text "code_int"} for Haskell_Quickcheck's Int type *}
 
 typedef (open) code_int = "UNIV \<Colon> int set"
@@ -248,10 +234,10 @@ consts toEnum :: "code_int => char"
 
 code_const toEnum (Haskell_Quickcheck "toEnum")
 
-consts map_index :: "(code_int * 'a => 'b) => 'a list => 'b list"  
+consts marker :: "char"
 
-consts split_At :: "code_int => 'a list => 'a list * 'a list"
- 
+code_const marker (Haskell_Quickcheck "''\\0'")
+
 subsubsection {* Narrowing's basic operations *}
 
 type_synonym 'a narrowing = "code_int => 'a cons"
@@ -266,7 +252,7 @@ where
 
 fun conv :: "(narrowing_term list => 'a) list => narrowing_term => 'a"
 where
-  "conv cs (Var p _) = error (Char Nibble0 Nibble0 # map toEnum p)"
+  "conv cs (Var p _) = error (marker # map toEnum p)"
 | "conv cs (Ctr i xs) = (nth cs i) xs"
 
 fun nonEmpty :: "narrowing_type => bool"
@@ -384,7 +370,7 @@ use "~~/src/HOL/Tools/Quickcheck/narrowing_generators.ML"
 setup {* Narrowing_Generators.setup *}
 
 hide_type code_int narrowing_type narrowing_term cons property
-hide_const int_of of_int nth error toEnum map_index split_At empty
+hide_const int_of of_int nth error toEnum marker empty
   C cons conv nonEmpty "apply" sum ensure_testable all exists 
 hide_fact empty_def cons_def conv.simps nonEmpty.simps apply_def sum_def ensure_testable_def all_def exists_def
 
