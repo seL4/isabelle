@@ -3,7 +3,7 @@
 header {* Counterexample generator preforming narrowing-based testing *}
 
 theory Quickcheck_Narrowing
-imports Main "~~/src/HOL/Library/Code_Char"
+imports Quickcheck_Exhaustive
 uses
   ("~~/src/HOL/Tools/Quickcheck/PNF_Narrowing_Engine.hs")
   ("~~/src/HOL/Tools/Quickcheck/Narrowing_Engine.hs")
@@ -25,6 +25,20 @@ code_const Typerep.Typerep
   (Haskell_Quickcheck "Typerep")
 
 code_reserved Haskell_Quickcheck Typerep
+
+code_type char
+  (Haskell_Quickcheck "Char")
+
+setup {*
+  fold String_Code.add_literal_char ["Haskell_Quickcheck"] 
+  #> String_Code.add_literal_list_string "Haskell_Quickcheck"
+*}
+
+code_instance char :: equal
+  (Haskell_Quickcheck -)
+
+code_const "HOL.equal \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
+  (Haskell_Quickcheck infix 4 "==")
 
 subsubsection {* Type @{text "code_int"} for Haskell_Quickcheck's Int type *}
 
