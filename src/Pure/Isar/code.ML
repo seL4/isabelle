@@ -1145,8 +1145,8 @@ fun del_eqns c = change_fun_spec true c (K empty_fun_spec);
 
 fun case_cong thy case_const (num_args, (pos, _)) =
   let
-    val ([x, y], ctxt) = Name.variants ["A", "A'"] Name.context;
-    val (zs, _) = Name.variants (replicate (num_args - 1) "") ctxt;
+    val ([x, y], ctxt) = fold_map Name.variant ["A", "A'"] Name.context;
+    val (zs, _) = fold_map Name.variant (replicate (num_args - 1) "") ctxt;
     val (ws, vs) = chop pos zs;
     val T = Logic.unvarifyT_global (Sign.the_const_type thy case_const);
     val Ts = binder_types T;

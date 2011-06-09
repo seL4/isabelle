@@ -165,7 +165,7 @@ fun make_vars names = (fold (fn name => Symtab.update_new (name, name)) names Sy
 
 fun intro_vars names (namemap, namectxt) =
   let
-    val (names', namectxt') = Name.variants names namectxt;
+    val (names', namectxt') = fold_map Name.variant names namectxt;
     val namemap' = fold2 (curry Symtab.update) names names' namemap;
   in (namemap', namectxt') end;
 
@@ -186,7 +186,7 @@ fun aux_params vars lhss =
     val fished1 = fold (map2 fish_param) lhss (replicate (length (hd lhss)) NONE);
     val x = singleton (Name.variant_list (map_filter I fished1)) "x";
     val fished2 = map_index (fillup_param x) fished1;
-    val (fished3, _) = Name.variants fished2 Name.context;
+    val (fished3, _) = fold_map Name.variant fished2 Name.context;
     val vars' = intro_vars fished3 vars;
   in map (lookup_var vars') fished3 end;
 

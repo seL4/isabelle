@@ -136,7 +136,7 @@ val mangle_name = strip_underscores #> strip_tilde;
 fun mk_variables thy prfx xs ty (tab, ctxt) =
   let
     val T = mk_type thy prfx ty;
-    val (ys, ctxt') = Name.variants (map mangle_name xs) ctxt;
+    val (ys, ctxt') = fold_map Name.variant (map mangle_name xs) ctxt;
     val zs = map (Free o rpair T) ys;
   in (zs, (fold (Symtab.update o apsnd (rpair ty)) (xs ~~ zs) tab, ctxt')) end;
 
@@ -779,7 +779,7 @@ fun declare_missing_pfuns thy prfx funs pfuns vcs (tab, ctxt) =
       map_filter (fn s => lookup funs s |>
         Option.map (fn ty => (s, (SOME ty, pfun_type thy prfx ty)))) |>
       split_list ||> split_list;
-    val (fs', ctxt') = Name.variants fs ctxt
+    val (fs', ctxt') = fold_map Name.variant fs ctxt
   in
     (fold Symtab.update_new (fs ~~ (tys ~~ map Free (fs' ~~ Ts))) pfuns,
      Element.Fixes (map2 (fn s => fn T =>

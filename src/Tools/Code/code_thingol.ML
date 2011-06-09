@@ -354,7 +354,7 @@ end; (*local*)
 
 fun add_variant update (thing, name) (tab, used) =
   let
-    val (name', used') = yield_singleton Name.variants name used;
+    val (name', used') = Name.variant name used;
     val tab' = update (thing, name') tab;
   in (tab', used') end;
 

@@ -294,16 +294,16 @@ fun scala_program_of_program labelled_name reserved module_alias program =
       in (name_fragment, ((declare nsp_class, declare nsp_object), declare nsp_common)) end;
     fun namify_class base ((nsp_class, nsp_object), nsp_common) =
       let
-        val (base', nsp_class') = yield_singleton Name.variants base nsp_class
+        val (base', nsp_class') = Name.variant base nsp_class
       in (base', ((nsp_class', nsp_object), Name.declare base' nsp_common)) end;
     fun namify_object base ((nsp_class, nsp_object), nsp_common) =
       let
-        val (base', nsp_object') = yield_singleton Name.variants base nsp_object
+        val (base', nsp_object') = Name.variant base nsp_object
       in (base', ((nsp_class, nsp_object'), Name.declare base' nsp_common)) end;
     fun namify_common upper base ((nsp_class, nsp_object), nsp_common) =
       let
         val (base', nsp_common') =
-          yield_singleton Name.variants (if upper then first_upper base else base) nsp_common
+          Name.variant (if upper then first_upper base else base) nsp_common
       in
         (base',
           ((Name.declare base' nsp_class, Name.declare base' nsp_object), nsp_common'))

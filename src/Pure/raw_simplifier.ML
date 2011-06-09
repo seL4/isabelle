@@ -305,7 +305,7 @@ fun prnt ss warn a = if warn then warning a else trace_depth ss a;
 fun show_bounds (Simpset ({bounds = (_, bs), ...}, _)) t =
   let
     val names = Term.declare_term_names t Name.context;
-    val xs = rev (#1 (Name.variants (rev (map #2 bs)) names));
+    val xs = rev (#1 (fold_map Name.variant (rev (map #2 bs)) names));
     fun subst (((b, T), _), x') = (Free (b, T), Syntax_Trans.mark_boundT (x', T));
   in Term.subst_atomic (ListPair.map subst (bs, xs)) t end;
 

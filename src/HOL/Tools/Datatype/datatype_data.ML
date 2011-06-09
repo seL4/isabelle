@@ -134,7 +134,7 @@ fun the_descr thy (raw_tycos as raw_tyco :: _) =
 
     val names = map Long_Name.base_name (the_default tycos (#alt_names info));
     val (auxnames, _) = Name.make_context names
-      |> fold_map (yield_singleton Name.variants o Datatype_Aux.name_of_typ) Us;
+      |> fold_map (Name.variant o Datatype_Aux.name_of_typ) Us;
     val prefix = space_implode "_" names;
 
   in (descr, vs, tycos, prefix, (names, auxnames), (Ts, Us)) end;

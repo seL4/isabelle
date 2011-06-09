@@ -446,8 +446,7 @@ local
       val nctxt = Name.make_context (duplicates (op =) (names_of t []))
 
       fun fresh (i, nctxt) = (position_prefix ^ string_of_int i, (i+1, nctxt))
-      fun renamed n (i, nctxt) =
-        yield_singleton Name.variants n nctxt ||> pair i
+      fun renamed n (i, nctxt) = Name.variant n nctxt ||> pair i
       fun mk_label (name, t) = @{term assert_at} $ Free (name, @{typ bool}) $ t
 
       fun unique t =
@@ -472,11 +471,11 @@ local
         all_names
         |> map_filter (try (fn n => (n, short_var_name n)))
         |> split_list
-        ||>> (fn names => Name.variants names (Name.make_context all_names))
+        ||>> (fn names => fold_map Name.variant names (Name.make_context all_names))
         |>> Symtab.make o (op ~~)
 
       fun rename_free n = the_default n (Symtab.lookup names n)
-      fun rename_abs n = yield_singleton Name.variants (short_var_name n)
+      fun rename_abs n = Name.variant (short_var_name n)
 
       fun rename _ (Free (n, T)) = Free (rename_free n, T)
         | rename nctxt (Abs (n, T, t)) =

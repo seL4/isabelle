@@ -84,8 +84,8 @@ fun mk_rewr_eq (func, pred) =
     val (argTs, resT) = strip_type (fastype_of func)
     val nctxt =
       Name.make_context (Term.fold_aterms (fn Free (x, _) => insert (op =) x | _ => I) (func $ pred) [])
-    val (argnames, nctxt') = Name.variants (replicate (length argTs) "a") nctxt
-    val ([resname], nctxt'') = Name.variants ["r"] nctxt'
+    val (argnames, nctxt') = fold_map Name.variant (replicate (length argTs) "a") nctxt
+    val (resname, nctxt'') = Name.variant "r" nctxt'
     val args = map Free (argnames ~~ argTs)
     val res = Free (resname, resT)
   in Logic.mk_equals

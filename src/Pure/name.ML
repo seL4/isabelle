@@ -24,7 +24,7 @@ sig
   val invents: context -> string -> int -> string list
   val names: context -> string -> 'a list -> (string * 'a) list
   val invent_list: string list -> string -> int -> string list
-  val variants: string list -> context -> string list * context
+  val variant: string -> context -> string * context
   val variant_list: string list -> string list -> string list
   val desymbolize: bool -> string -> string
 end;
@@ -115,7 +115,7 @@ val invent_list = invents o make_context;
 
 (*makes a variant of a name distinct from already used names in a
   context; preserves a suffix of underscores "_"*)
-val variants = fold_map (fn name => fn ctxt =>
+fun variant name ctxt =
   let
     fun vary x =
       (case declared ctxt x of
@@ -133,9 +133,9 @@ val variants = fold_map (fn name => fn ctxt =>
             |> x0 <> x' ? declare_renaming (x0, x')
             |> declare x';
         in (x', ctxt') end;
-  in (x' ^ replicate_string n "_", ctxt') end);
+  in (x' ^ replicate_string n "_", ctxt') end;
 
-fun variant_list used names = #1 (make_context used |> variants names);
+fun variant_list used names = #1 (make_context used |> fold_map variant names);
 
 
 (* names conforming to typical requirements of identifiers in the world outside *)

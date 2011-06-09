@@ -46,8 +46,7 @@ fun build_module_namespace { module_alias, module_prefix, reserved } program =
   let
     fun alias_fragments name = case module_alias name
      of SOME name' => Long_Name.explode name'
-      | NONE => map (fn name => fst (yield_singleton Name.variants name reserved))
-          (Long_Name.explode name);
+      | NONE => map (fn name => fst (Name.variant name reserved)) (Long_Name.explode name);
     val module_names = Graph.fold (insert (op =) o fst o dest_name o fst) program [];
   in
     fold (fn name => Symtab.update (name, Long_Name.explode module_prefix @ alias_fragments name))

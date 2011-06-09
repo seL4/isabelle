@@ -542,7 +542,7 @@ fun strip_ex (Const (@{const_name Ex}, _) $ Abs (x, T, t)) =
 fun focus_ex t nctxt =
   let
     val ((xs, Ts), t') = apfst split_list (strip_ex t) 
-    val (xs', nctxt') = Name.variants xs nctxt;
+    val (xs', nctxt') = fold_map Name.variant xs nctxt;
     val ps' = xs' ~~ Ts;
     val vs = map Free ps';
     val t'' = Term.subst_bounds (rev vs, t');

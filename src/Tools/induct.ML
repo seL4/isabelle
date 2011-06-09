@@ -692,7 +692,7 @@ fun add_defs def_insts =
       | add (SOME (NONE, (t as Free _, _))) ctxt = ((SOME t, []), ctxt)
       | add (SOME (NONE, (t, _))) ctxt =
           let
-            val ([s], _) = Name.variants ["x"] (Variable.names_of ctxt);
+            val (s, _) = Name.variant "x" (Variable.names_of ctxt);
             val ([(lhs, (_, th))], ctxt') =
               Local_Defs.add_defs [((Binding.name s, NoSyn),
                 (Thm.empty_binding, t))] ctxt

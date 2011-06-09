@@ -715,12 +715,12 @@ fun ml_program_of_program labelled_name reserved module_alias program =
   let
     fun namify_const upper base (nsp_const, nsp_type) =
       let
-        val (base', nsp_const') = yield_singleton Name.variants
-          (if upper then first_upper base else base) nsp_const
+        val (base', nsp_const') =
+          Name.variant (if upper then first_upper base else base) nsp_const
       in (base', (nsp_const', nsp_type)) end;
     fun namify_type base (nsp_const, nsp_type) =
       let
-        val (base', nsp_type') = yield_singleton Name.variants base nsp_type
+        val (base', nsp_type') = Name.variant base nsp_type
       in (base', (nsp_const, nsp_type')) end;
     fun namify_stmt (Code_Thingol.Fun _) = namify_const false
       | namify_stmt (Code_Thingol.Datatype _) = namify_type

@@ -345,7 +345,7 @@ fun varify_global fixed t =
       (fn TFree v => if member (op =) fixed v then I else insert (op =) v | _ => I)) t [];
     val used = Name.context
       |> fold_types (fold_atyps (fn TVar ((a, _), _) => Name.declare a | _ => I)) t;
-    val fmap = fs ~~ map (rpair 0) (#1 (Name.variants (map fst fs) used));
+    val fmap = fs ~~ map (rpair 0) (#1 (fold_map Name.variant (map fst fs) used));
     fun thaw (f as (_, S)) =
       (case AList.lookup (op =) fmap f of
         NONE => TFree f

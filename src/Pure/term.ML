@@ -514,7 +514,8 @@ fun declare_term_names tm =
 val declare_term_frees = fold_aterms (fn Free (x, _) => Name.declare x | _ => I);
 
 fun variant_frees t frees =
-  fst (Name.variants (map fst frees) (declare_term_names t Name.context)) ~~ map snd frees;
+  fst (fold_map Name.variant (map fst frees) (declare_term_names t Name.context)) ~~
+    map snd frees;
 
 fun rename_wrt_term t frees = rev (variant_frees t frees);  (*reversed result!*)
 
@@ -705,7 +706,7 @@ fun strip_abs_eta k t =
     fun strip_abs t (0, used) = (([], t), (0, used))
       | strip_abs (Abs (v, T, t)) (k, used) =
           let
-            val ([v'], used') = Name.variants [v] used;
+            val (v', used') = Name.variant v used;
             val t' = subst_bound (Free (v', T), t);
             val ((vs, t''), (k', used'')) = strip_abs t' (k - 1, used');
           in (((v', T) :: vs, t''), (k', used'')) end
@@ -713,7 +714,7 @@ fun strip_abs_eta k t =
     fun expand_eta [] t _ = ([], t)
       | expand_eta (T::Ts) t used =
           let
-            val ([v], used') = Name.variants [""] used;
+            val (v, used') = Name.variant "" used;
             val (vs, t') = expand_eta Ts (t $ Free (v, T)) used';
           in ((v, T) :: vs, t') end;
     val ((vs1, t'), (k', used')) = strip_abs t (k, used);
