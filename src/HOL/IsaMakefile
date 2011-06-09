@@ -281,6 +281,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Predicate_Compile.thy \
   Quickcheck.thy \
   Quickcheck_Exhaustive.thy \
+  Quickcheck_Narrowing.thy \
   Quotient.thy \
   Random.thy \
   Random_Sequence.thy \
@@ -348,6 +349,9 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Quickcheck/exhaustive_generators.ML \
   Tools/Quickcheck/random_generators.ML \
   Tools/Quickcheck/quickcheck_common.ML \
+  Tools/Quickcheck/narrowing_generators.ML \
+  Tools/Quickcheck/Narrowing_Engine.hs \
+  Tools/Quickcheck/PNF_Narrowing_Engine.hs \
   Tools/Quotient/quotient_def.ML \
   Tools/Quotient/quotient_info.ML \
   Tools/Quotient/quotient_tacs.ML \
@@ -479,9 +483,6 @@ $(OUT)/HOL-Library: $(OUT)/HOL Library/ROOT.ML				\
   Library/While_Combinator.thy Library/Zorn.thy	\
   $(SRC)/Tools/adhoc_overloading.ML Library/positivstellensatz.ML	\
   Library/reflection.ML Library/reify_data.ML				\
-  Library/Quickcheck_Narrowing.thy \
-  Tools/Quickcheck/narrowing_generators.ML \
-  Tools/Quickcheck/Narrowing_Engine.hs \
   Library/document/root.bib Library/document/root.tex
 	@cd Library; $(ISABELLE_TOOL) usedir -b $(OUT)/HOL HOL-Library
 
