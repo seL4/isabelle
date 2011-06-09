@@ -1254,7 +1254,7 @@ A \emph{basic name} essentially consists of a single Isabelle
   \indexdef{}{ML type}{Name.context}\verb|type Name.context| \\
   \indexdef{}{ML}{Name.context}\verb|Name.context: Name.context| \\
   \indexdef{}{ML}{Name.declare}\verb|Name.declare: string -> Name.context -> Name.context| \\
-  \indexdef{}{ML}{Name.invents}\verb|Name.invents: Name.context -> string -> int -> string list| \\
+  \indexdef{}{ML}{Name.invent}\verb|Name.invent: Name.context -> string -> int -> string list| \\
   \indexdef{}{ML}{Name.variant}\verb|Name.variant: string -> Name.context -> string * Name.context| \\
   \end{mldecls}
   \begin{mldecls}
@@ -1275,7 +1275,7 @@ A \emph{basic name} essentially consists of a single Isabelle
   \item \verb|Name.declare|~\isa{name} enters a used name into the
   context.
 
-  \item \verb|Name.invents|~\isa{context\ name\ n} produces \isa{n} fresh names derived from \isa{name}.
+  \item \verb|Name.invent|~\isa{context\ name\ n} produces \isa{n} fresh names derived from \isa{name}.
 
   \item \verb|Name.variant|~\isa{name\ context} produces a fresh
   variant of \isa{name}; the result is declared to the context.
@@ -1325,7 +1325,7 @@ The following simple examples demonstrate how to produce
 \isatagML
 \isacommand{ML}\isamarkupfalse%
 \ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
-\ \ val\ list{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ Name{\isaliteral{2E}{\isachardot}}invents\ Name{\isaliteral{2E}{\isachardot}}context\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}\ {\isadigit{5}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ val\ list{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ Name{\isaliteral{2E}{\isachardot}}invent\ Name{\isaliteral{2E}{\isachardot}}context\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}\ {\isadigit{5}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \ \ %
 \isaantiq
 assert{}%
@@ -1370,7 +1370,7 @@ context{}%
 \endisaantiq
 {\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-\ \ val\ list{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ Name{\isaliteral{2E}{\isachardot}}invents\ names\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}\ {\isadigit{5}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ val\ list{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ Name{\isaliteral{2E}{\isachardot}}invent\ names\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}\ {\isadigit{5}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \ \ %
 \isaantiq
 assert{}%

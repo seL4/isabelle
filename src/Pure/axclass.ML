@@ -265,7 +265,7 @@ fun insert_arity_completions thy t ((c, Ss), ((th, thy_name))) (finished, aritie
       |> filter_out (fn c1 => exists (fn ((c2, Ss2), _) =>
             c1 = c2 andalso Sorts.sorts_le algebra (Ss2, Ss)) ars);
 
-    val names = Name.invents Name.context Name.aT (length Ss);
+    val names = Name.invent Name.context Name.aT (length Ss);
     val std_vars = map (fn a => SOME (ctyp_of thy (TVar ((a, 0), [])))) names;
 
     val completions = super_class_completions |> map (fn c1 =>
@@ -445,7 +445,7 @@ fun add_arity raw_th thy =
     val (th', thy') = Global_Theory.store_thm
       (Binding.name (prefix arity_prefix (Logic.name_arity arity)), th) thy;
 
-    val args = Name.names Name.context Name.aT Ss;
+    val args = Name.invent_names Name.context Name.aT Ss;
     val T = Type (t, map TFree args);
     val std_vars = map (fn (a, S) => SOME (ctyp_of thy' (TVar ((a, 0), [])))) args;
 

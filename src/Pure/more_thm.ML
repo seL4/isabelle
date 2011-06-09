@@ -341,7 +341,7 @@ fun close_derivation thm =
 fun stripped_sorts thy t =
   let
     val tfrees = rev (map TFree (Term.add_tfrees t []));
-    val tfrees' = map (fn a => TFree (a, [])) (Name.invents Name.context Name.aT (length tfrees));
+    val tfrees' = map (fn a => TFree (a, [])) (Name.invent Name.context Name.aT (length tfrees));
     val strip = tfrees ~~ tfrees';
     val recover = map (pairself (Thm.ctyp_of thy o Logic.varifyT_global) o swap) strip;
     val t' = Term.map_types (Term.map_atyps (perhaps (AList.lookup (op =) strip))) t;

@@ -67,7 +67,7 @@ fun ensure_partial_term_of (tyco, (raw_vs, _)) thy =
 
 fun mk_partial_term_of_eq thy ty (i, (c, (_, tys))) =
   let
-    val frees = map Free (Name.names Name.context "a" (map (K @{typ narrowing_term}) tys))
+    val frees = map Free (Name.invent_names Name.context "a" (map (K @{typ narrowing_term}) tys))
     val narrowing_term = @{term "Quickcheck_Narrowing.Ctr"} $ HOLogic.mk_number @{typ code_int} i
       $ (HOLogic.mk_list @{typ narrowing_term} (rev frees))
     val rhs = fold (fn u => fn t => @{term "Code_Evaluation.App"} $ t $ u)

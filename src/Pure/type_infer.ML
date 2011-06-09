@@ -96,7 +96,7 @@ fun finish ctxt tye (Ts, ts) =
     val used =
       (fold o fold_types) (add_names tye) ts (fold (add_names tye) Ts (Variable.names_of ctxt));
     val parms = rev ((fold o fold_types) (add_parms tye) ts (fold (add_parms tye) Ts []));
-    val names = Name.invents used ("?" ^ Name.aT) (length parms);
+    val names = Name.invent used ("?" ^ Name.aT) (length parms);
     val tab = Vartab.make (parms ~~ names);
 
     fun finish_typ T =
@@ -117,7 +117,7 @@ fun fixate ctxt ts =
     fun subst_param (xi, S) (inst, used) =
       if is_param xi then
         let
-          val [a] = Name.invents used Name.aT 1;
+          val [a] = Name.invent used Name.aT 1;
           val used' = Name.declare a used;
         in (((xi, S), TFree (a, S)) :: inst, used') end
       else (inst, used);

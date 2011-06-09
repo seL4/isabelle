@@ -149,7 +149,7 @@ fun print_scala_stmt labelled_name tyco_syntax const_syntax reserved
     fun print_def name (vs, ty) [] =
           let
             val (tys, ty') = Code_Thingol.unfold_fun ty;
-            val params = Name.invents (snd reserved) "a" (length tys);
+            val params = Name.invent (snd reserved) "a" (length tys);
             val tyvars = intro_tyvars vs reserved;
             val vars = intro_vars params reserved;
           in
@@ -214,7 +214,7 @@ fun print_scala_stmt labelled_name tyco_syntax const_syntax reserved
                     (fn (v, arg) => constraint (str v) (print_typ tyvars NOBR arg)) NOBR
                     (applify "[" "]" (str o lookup_tyvar tyvars) NOBR ((concat o map str)
                       ["final", "case", "class", deresolve co]) vs_args)
-                    (Name.names (snd reserved) "a" tys),
+                    (Name.invent_names (snd reserved) "a" tys),
                     str "extends",
                     applify "[" "]" (str o lookup_tyvar tyvars o fst) NOBR
                       ((str o deresolve) name) vs
@@ -238,9 +238,9 @@ fun print_scala_stmt labelled_name tyco_syntax const_syntax reserved
             fun print_classparam_def (classparam, ty) =
               let
                 val (tys, ty) = Code_Thingol.unfold_fun ty;
-                val [implicit_name] = Name.invents (snd reserved) (lookup_tyvar tyvars v) 1;
+                val [implicit_name] = Name.invent (snd reserved) (lookup_tyvar tyvars v) 1;
                 val proto_vars = intro_vars [implicit_name] reserved;
-                val auxs = Name.invents (snd proto_vars) "a" (length tys);
+                val auxs = Name.invent (snd proto_vars) "a" (length tys);
                 val vars = intro_vars auxs proto_vars;
               in
                 concat [str "def", constraint (Pretty.block [applify "(" ")"
@@ -267,7 +267,7 @@ fun print_scala_stmt labelled_name tyco_syntax const_syntax reserved
             val classtyp = (class, tyco `%% map (ITyVar o fst) vs);
             fun print_classparam_instance ((classparam, const as (_, (_, tys))), (thm, _)) =
               let
-                val aux_tys = Name.names (snd reserved) "a" tys;
+                val aux_tys = Name.invent_names (snd reserved) "a" tys;
                 val auxs = map fst aux_tys;
                 val vars = intro_vars auxs reserved;
                 val aux_abstr = if null auxs then [] else [enum "," "(" ")"

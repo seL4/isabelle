@@ -47,7 +47,7 @@ let
 fun add_typerep tyco thy =
   let
     val sorts = replicate (Sign.arity_number thy tyco) @{sort typerep};
-    val vs = Name.names Name.context "'a" sorts;
+    val vs = Name.invent_names Name.context "'a" sorts;
     val ty = Type (tyco, map TFree vs);
     val lhs = Const (@{const_name typerep}, Term.itselfT ty --> @{typ typerep})
       $ Free ("T", Term.itselfT ty);

@@ -156,7 +156,7 @@ fun pretty_full_theory verbose thy =
     val tfrees = map (fn v => TFree (v, []));
     fun pretty_type syn (t, (Type.LogicalType n)) =
           if syn then NONE
-          else SOME (prt_typ (Type (t, tfrees (Name.invents Name.context Name.aT n))))
+          else SOME (prt_typ (Type (t, tfrees (Name.invent Name.context Name.aT n))))
       | pretty_type syn (t, (Type.Abbreviation (vs, U, syn'))) =
           if syn <> syn' then NONE
           else SOME (Pretty.block

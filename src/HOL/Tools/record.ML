@@ -1801,7 +1801,7 @@ fun mk_random_eq tyco vs extN Ts =
     fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit => term"});
     val T = Type (tyco, map TFree vs);
     val Tm = termifyT T;
-    val params = Name.names Name.context "x" Ts;
+    val params = Name.invent_names Name.context "x" Ts;
     val lhs = HOLogic.mk_random T size;
     val tc = HOLogic.mk_return Tm @{typ Random.seed}
       (HOLogic.mk_valtermify_app extN params T);
@@ -1820,7 +1820,7 @@ fun mk_full_exhaustive_eq tyco vs extN Ts =
     fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit => term"});
     val T = Type (tyco, map TFree vs);
     val test_function = Free ("f", termifyT T --> @{typ "term list option"});
-    val params = Name.names Name.context "x" Ts;
+    val params = Name.invent_names Name.context "x" Ts;
     fun full_exhaustiveT T = (termifyT T --> @{typ "Code_Evaluation.term list option"})
       --> @{typ code_numeral} --> @{typ "Code_Evaluation.term list option"}
     fun mk_full_exhaustive T =

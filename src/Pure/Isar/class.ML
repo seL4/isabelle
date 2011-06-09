@@ -426,7 +426,7 @@ fun read_multi_arity thy (raw_tycos, raw_sorts, raw_sort) =
       (raw_tyco, raw_sorts, raw_sort)) raw_tycos;
     val tycos = map #1 all_arities;
     val (_, sorts, sort) = hd all_arities;
-    val vs = Name.names Name.context Name.aT sorts;
+    val vs = Name.invent_names Name.context Name.aT sorts;
   in (tycos, vs, sort) end;
 
 

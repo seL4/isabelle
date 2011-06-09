@@ -952,7 +952,7 @@ local
 
 fun canonical_instance typs =
   let
-    val names = Name.invents Name.context Name.aT (length typs);
+    val names = Name.invent Name.context Name.aT (length typs);
     val instT = map2 (fn a => fn T => (((a, 0), []), Type.strip_sorts T)) names typs;
   in instantiate (instT, []) end;
 

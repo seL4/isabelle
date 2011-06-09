@@ -237,7 +237,7 @@ fun unfold_abs_eta [] t = ([], t)
   | unfold_abs_eta tys t =
       let
         val ctxt = fold_varnames Name.declare t Name.context;
-        val vs_tys = (map o apfst) SOME (Name.names ctxt "a" tys);
+        val vs_tys = (map o apfst) SOME (Name.invent_names ctxt "a" tys);
       in (vs_tys, t `$$ map (IVar o fst) vs_tys) end;
 
 fun eta_expand k (c as (name, (_, tys)), ts) =
@@ -248,7 +248,7 @@ fun eta_expand k (c as (name, (_, tys)), ts) =
       then error ("Impossible eta-expansion for constant " ^ quote name) else ();
     val ctxt = (fold o fold_varnames) Name.declare ts Name.context;
     val vs_tys = (map o apfst) SOME
-      (Name.names ctxt "a" ((take l o drop j) tys));
+      (Name.invent_names ctxt "a" ((take l o drop j) tys));
   in vs_tys `|==> IConst c `$$ ts @ map (IVar o fst) vs_tys end;
 
 fun contains_dict_var t =
@@ -671,7 +671,7 @@ and ensure_inst thy (algbr as (_, algebra)) eqngr permissive (class, tyco) =
     val classparams = these_classparams class;
     val further_classparams = maps these_classparams
       ((Sorts.complete_sort algebra o Sorts.super_classes algebra) class);
-    val vs = Name.names Name.context "'a" (Sorts.mg_domain algebra tyco [class]);
+    val vs = Name.invent_names Name.context "'a" (Sorts.mg_domain algebra tyco [class]);
     val sorts' = Sorts.mg_domain (Sign.classes_of thy) tyco [class];
     val vs' = map2 (fn (v, sort1) => fn sort2 => (v,
       Sorts.inter_sort (Sign.classes_of thy) (sort1, sort2))) vs sorts';
@@ -820,7 +820,7 @@ and translate_app_case thy algbr eqngr permissive some_thm (case_scheme as (num_
       val k = length ts;
       val tys = (take (num_args - k) o drop k o fst o strip_type) ty;
       val ctxt = (fold o fold_aterms) Term.declare_term_frees ts Name.context;
-      val vs = Name.names ctxt "a" tys;
+      val vs = Name.invent_names ctxt "a" tys;
     in
       fold_map (translate_typ thy algbr eqngr permissive) tys
       ##>> translate_case thy algbr eqngr permissive some_thm case_scheme ((c, ty), ts @ map Free vs)

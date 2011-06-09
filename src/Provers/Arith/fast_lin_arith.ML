@@ -749,7 +749,7 @@ fun refutes ctxt params show_ex :
                     let
                       val (param_names, ctxt') = ctxt |> Variable.variant_fixes (map fst params)
                       val (more_names, ctxt'') = ctxt' |> Variable.variant_fixes
-                        (Name.invents (Variable.names_of ctxt') Name.uu (length Ts - length params))
+                        (Name.invent (Variable.names_of ctxt') Name.uu (length Ts - length params))
                       val params' = (more_names @ param_names) ~~ Ts
                     in
                       trace_ex ctxt'' params' atoms (discr initems) n hist

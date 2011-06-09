@@ -98,7 +98,7 @@ fun make_comp_prop ctxt variances (tyco, mapper) =
     val Ts32 = maps mk_argT ((Ts3 ~~ Ts2) ~~ variances);
     fun invents n k nctxt =
       let
-        val names = Name.invents nctxt n k;
+        val names = Name.invent nctxt n k;
       in (names, fold Name.declare names nctxt) end;
     val ((names21, names32), nctxt) = Variable.names_of ctxt
       |> invents "f" (length Ts21)
@@ -120,7 +120,7 @@ fun make_comp_prop ctxt variances (tyco, mapper) =
     val mapper31 = mk_mapper T3 T1 args31;
     val eq1 = (HOLogic.mk_Trueprop o HOLogic.mk_eq)
       (HOLogic.mk_comp (mapper21, mapper32), mapper31);
-    val x = Free (the_single (Name.invents nctxt (Long_Name.base_name tyco) 1), T3)
+    val x = Free (the_single (Name.invent nctxt (Long_Name.base_name tyco) 1), T3)
     val eq2 = (HOLogic.mk_Trueprop o HOLogic.mk_eq)
       (mapper21 $ (mapper32 $ x), mapper31 $ x);
     val comp_prop = fold_rev Logic.all (map Free (args21 @ args32)) eq1;

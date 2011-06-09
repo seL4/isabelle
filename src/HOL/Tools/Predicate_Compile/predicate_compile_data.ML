@@ -129,7 +129,7 @@ fun full_fun_cong_expand th =
 
 fun declare_names s xs ctxt =
   let
-    val res = Name.names ctxt s xs
+    val res = Name.invent_names ctxt s xs
   in (res, fold Name.declare (map fst res) ctxt) end
   
 fun split_all_pairs thy th =

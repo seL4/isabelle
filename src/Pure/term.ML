@@ -957,7 +957,7 @@ fun no_dummy_patterns tm =
   else raise TERM ("Illegal occurrence of '_' dummy pattern", [tm]);
 
 fun free_dummy_patterns (Const ("dummy_pattern", T)) used =
-      let val [x] = Name.invents used Name.uu 1
+      let val [x] = Name.invent used Name.uu 1
       in (Free (Name.internal x, T), Name.declare x used) end
   | free_dummy_patterns (Abs (x, T, b)) used =
       let val (b', used') = free_dummy_patterns b used

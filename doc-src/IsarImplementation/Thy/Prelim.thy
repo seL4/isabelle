@@ -854,7 +854,7 @@ text %mlref {*
   @{index_ML_type Name.context} \\
   @{index_ML Name.context: Name.context} \\
   @{index_ML Name.declare: "string -> Name.context -> Name.context"} \\
-  @{index_ML Name.invents: "Name.context -> string -> int -> string list"} \\
+  @{index_ML Name.invent: "Name.context -> string -> int -> string list"} \\
   @{index_ML Name.variant: "string -> Name.context -> string * Name.context"} \\
   \end{mldecls}
   \begin{mldecls}
@@ -875,7 +875,7 @@ text %mlref {*
   \item @{ML Name.declare}~@{text "name"} enters a used name into the
   context.
 
-  \item @{ML Name.invents}~@{text "context name n"} produces @{text
+  \item @{ML Name.invent}~@{text "context name n"} produces @{text
   "n"} fresh names derived from @{text "name"}.
 
   \item @{ML Name.variant}~@{text "name context"} produces a fresh
@@ -897,7 +897,7 @@ text %mlex {* The following simple examples demonstrate how to produce
   fresh names from the initial @{ML Name.context}. *}
 
 ML {*
-  val list1 = Name.invents Name.context "a" 5;
+  val list1 = Name.invent Name.context "a" 5;
   @{assert} (list1 = ["a", "b", "c", "d", "e"]);
 
   val list2 =
@@ -914,7 +914,7 @@ begin
 ML {*
   val names = Variable.names_of @{context};
 
-  val list1 = Name.invents names "a" 5;
+  val list1 = Name.invent names "a" 5;
   @{assert} (list1 = ["d", "e", "f", "g", "h"]);
 
   val list2 =

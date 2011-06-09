@@ -21,8 +21,8 @@ sig
   val make_context: string list -> context
   val declare: string -> context -> context
   val is_declared: context -> string -> bool
-  val invents: context -> string -> int -> string list
-  val names: context -> string -> 'a list -> (string * 'a) list
+  val invent: context -> string -> int -> string list
+  val invent_names: context -> string -> 'a list -> (string * 'a) list
   val invent_list: string list -> string -> int -> string list
   val variant: string -> context -> string * context
   val variant_list: string list -> string list -> string list
@@ -94,21 +94,19 @@ val context = Context Symtab.empty |> fold declare ["", "'"];
 fun make_context used = fold declare used context;
 
 
-(* invents *)
+(* invent names *)
 
-fun invents ctxt =
+fun invent ctxt =
   let
     fun invs _ 0 = []
       | invs x n =
-          let val x' = Symbol.bump_string x in
-            if is_declared ctxt x then invs x' n
-            else x :: invs x' (n - 1)
-          end;
+          let val x' = Symbol.bump_string x
+          in if is_declared ctxt x then invs x' n else x :: invs x' (n - 1) end;
   in invs o clean end;
 
-fun names ctxt x xs = invents ctxt x (length xs) ~~ xs;
+fun invent_names ctxt x xs = invent ctxt x (length xs) ~~ xs;
 
-val invent_list = invents o make_context;
+val invent_list = invent o make_context;
 
 
 (* variants *)

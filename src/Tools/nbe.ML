@@ -330,7 +330,8 @@ fun assemble_eqnss idx_of deps eqnss =
         val vs = (fold o Code_Thingol.fold_varnames)
           (fn v => AList.map_default (op =) (v, 0) (Integer.add 1)) args [];
         val names = Name.make_context (map fst vs);
-        fun declare v k ctxt = let val vs = Name.invents ctxt v k
+        fun declare v k ctxt =
+          let val vs = Name.invent ctxt v k
           in (vs, fold Name.declare vs ctxt) end;
         val (vs_renames, _) = fold_map (fn (v, k) => if k > 1
           then declare v (k - 1) #>> (fn vs => (v, vs))
@@ -372,7 +373,7 @@ fun assemble_eqnss idx_of deps eqnss =
     fun assemble_eqns (c, (num_args, (dicts, eqns))) =
       let
         val default_args = map nbe_default
-          (Name.invents Name.context "a" (num_args - length dicts));
+          (Name.invent Name.context "a" (num_args - length dicts));
         val eqns' = map_index (assemble_eqn c dicts default_args) eqns
           @ (if c = "" then [] else [(nbe_fun (length eqns) c,
             [([ml_list (rev (dicts @ default_args))],
@@ -421,7 +422,7 @@ fun eqns_of_stmt (_, Code_Thingol.Fun (_, ((_, []), _))) =
   | eqns_of_stmt (class, Code_Thingol.Class (_, (v, (super_classes, classparams)))) =
       let
         val names = map snd super_classes @ map fst classparams;
-        val params = Name.invents Name.context "d" (length names);
+        val params = Name.invent Name.context "d" (length names);
         fun mk (k, name) =
           (name, ([(v, [])],
             [([IConst (class, (([], []), [])) `$$ map (IVar o SOME) params],
