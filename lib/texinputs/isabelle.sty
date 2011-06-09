@@ -15,8 +15,14 @@
 \newcommand{\isastyletxt}{\rm}
 \newcommand{\isastylecmt}{\rm}
 
-\newcommand{\isaspacing}{\sfcode`\.1000 \sfcode 63 1000 \sfcode`\!1000
-  \sfcode`\:1000 \sfcode`\;1000 \sfcode`\,1000}
+\newcommand{\isaspacing}{%
+  \sfcode 42 1000 % .
+  \sfcode 63 1000 % ?
+  \sfcode 33 1000 % !
+  \sfcode 58 1000 % :
+  \sfcode 59 1000 % ;
+  \sfcode 44 1000 % ,
+}
 
 %symbol markup -- \emph achieves decent spacing via italic corrections
 \newcommand{\isamath}[1]{\emph{$#1$}}
