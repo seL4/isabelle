@@ -1513,7 +1513,11 @@ The proof tools of the Classical Reasoner depend on
   ones it cannot prove.  Occasionally, attempting to prove the hard
   ones may take a long time.
 
-  %FIXME auto nat arguments
+  The optional depth arguments in \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{28}{\isacharparenleft}}auto\ m\ n{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequote}}} refer to its
+  builtin classical reasoning procedures: \isa{m} (default 4) is for
+  \hyperlink{method.blast}{\mbox{\isa{blast}}}, which is tried first, and \isa{n} (default 2) is
+  for a slower but more general alternative that also takes wrappers
+  into account.
 
   \item \hyperlink{method.force}{\mbox{\isa{force}}} is intended to prove the first subgoal
   completely, using many fancy proof tools and performing a rather
