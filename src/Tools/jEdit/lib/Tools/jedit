@@ -7,7 +7,7 @@
 
 ## sources
 
-declare -a SOURCE_FILES=(
+declare -a SOURCES=(
   "src/dockable.scala"
   "src/document_model.scala"
   "src/document_view.scala"
@@ -25,7 +25,7 @@ declare -a SOURCE_FILES=(
   "src/session_dockable.scala"
 )
 
-declare -a MORE_FILES=(
+declare -a RESOURCES=(
   "src/actions.xml"
   "src/dockables.xml"
   "src/Isabelle.props"
@@ -169,7 +169,7 @@ if [ "$BUILD_JARS" = jars_fresh ]; then
   OUTDATED=true
 else
   OUTDATED=false
-  for SOURCE in "${SOURCE_FILES[@]}" "${MORE_FILES[@]}" "$JEDIT_JAR" "${JEDIT_JARS[@]}"
+  for SOURCE in "${SOURCES[@]}" "${RESOURCES[@]}" "$JEDIT_JAR" "${JEDIT_JARS[@]}"
   do
     [ ! -e "$SOURCE" ] && fail "Missing file: $SOURCE"
     [ ! -e "$TARGET" -o "$SOURCE" -nt "$TARGET" ] && OUTDATED=true
@@ -198,7 +198,7 @@ then
   mkdir -p dist dist/classes || failed
 
   cp -a "$ISABELLE_JEDIT_BUILD_HOME/contrib/$ISABELLE_JEDIT_BUILD_VERSION/." dist/.
-  cp -a "${MORE_FILES[@]}" dist/classes/.
+  cp -a "${RESOURCES[@]}" dist/classes/.
   cp src/jEdit.props dist/properties/.
   cp -a src/modes/. dist/modes/.
 
@@ -218,7 +218,7 @@ then
     CLASSPATH="$(jvmpath "$CLASSPATH")"
 
     exec "$SCALA_HOME/bin/scalac" -unchecked -deprecation \
-      -d dist/classes -target:jvm-1.5 "${SOURCE_FILES[@]}"
+      -d dist/classes -target:jvm-1.5 "${SOURCES[@]}"
   ) || fail "Failed to compile sources"
 
   cd dist/classes
