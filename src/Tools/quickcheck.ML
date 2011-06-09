@@ -38,6 +38,7 @@ sig
       evaluation_terms : (term * term) list option,
       timings : (string * int) list,
       reports : (int * report) list}
+  val empty_result : result
   val counterexample_of : result -> (string * term) list option
   val timings_of : result -> (string * int) list
   (* registering generators *)

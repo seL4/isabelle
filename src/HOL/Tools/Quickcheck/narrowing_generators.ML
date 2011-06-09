@@ -415,14 +415,16 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
   end;
 
 fun test_goals ctxt (limit_time, is_interactive) insts goals =
-  let
-    val correct_inst_goals = Quickcheck.instantiate_goals ctxt insts goals
-  in
-    if Config.get ctxt Quickcheck.finite_types then
-      error "Quickcheck-Narrowing does not support finite_types"
-    else
+  if (not (getenv "ISABELLE_GHC" = "")) then
+    let
+      val correct_inst_goals = Quickcheck.instantiate_goals ctxt insts goals
+    in
       Quickcheck.collect_results (test_term ctxt (limit_time, is_interactive)) (maps (map snd) correct_inst_goals) []
-  end
+    end
+  else
+    (if Config.get ctxt Quickcheck.quiet then () else Output.urgent_message
+      ("Environment variable ISABELLE_GHC is not set. To use narrowing-based quickcheck, please set "
+        ^ "this variable to your GHC Haskell compiler in your settings file."); [Quickcheck.empty_result])
 
 (* setup *)
 

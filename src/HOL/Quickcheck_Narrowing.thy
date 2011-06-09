@@ -533,5 +533,6 @@ setup {* Narrowing_Generators.setup *}
 hide_type (open) code_int narrowing_type narrowing_term cons
 hide_const (open) int_of of_int nth error toEnum map_index split_At empty
   C cons conv nonEmpty "apply" sum cons1 cons2 ensure_testable all exists
+hide_fact empty_def
 
 end
