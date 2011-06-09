@@ -7,13 +7,9 @@ header {*Information theory*}
 
 theory Information
 imports
-  Probability_Measure
+  Independent_Family
   "~~/src/HOL/Library/Convex"
 begin
-
-lemma (in prob_space) not_zero_less_distribution[simp]:
-  "(\<not> 0 < distribution X A) \<longleftrightarrow> distribution X A = 0"
-  using distribution_positive[of X A] by arith
 
 lemma log_le: "1 < a \<Longrightarrow> 0 < x \<Longrightarrow> x \<le> y \<Longrightarrow> log a x \<le> log a y"
   by (subst log_le_cancel_iff) auto
@@ -175,7 +171,211 @@ text {* The Kullback$-$Leibler divergence is also known as relative entropy or
 Kullback$-$Leibler distance. *}
 
 definition
-  "KL_divergence b M \<nu> = \<integral>x. log b (real (RN_deriv M \<nu> x)) \<partial>M\<lparr>measure := \<nu>\<rparr>"
+  "entropy_density b M \<nu> = log b \<circ> real \<circ> RN_deriv M \<nu>"
+
+definition
+  "KL_divergence b M \<nu> = integral\<^isup>L (M\<lparr>measure := \<nu>\<rparr>) (entropy_density b M \<nu>)"
+
+lemma (in information_space) measurable_entropy_density:
+  assumes ps: "prob_space (M\<lparr>measure := \<nu>\<rparr>)"
+  assumes ac: "absolutely_continuous \<nu>"
+  shows "entropy_density b M \<nu> \<in> borel_measurable M"
+proof -
+  interpret \<nu>: prob_space "M\<lparr>measure := \<nu>\<rparr>" by fact
+  have "measure_space (M\<lparr>measure := \<nu>\<rparr>)" by fact
+  from RN_deriv[OF this ac] b_gt_1 show ?thesis
+    unfolding entropy_density_def
+    by (intro measurable_comp) auto
+qed
+
+lemma (in information_space) KL_gt_0:
+  assumes ps: "prob_space (M\<lparr>measure := \<nu>\<rparr>)"
+  assumes ac: "absolutely_continuous \<nu>"
+  assumes int: "integrable (M\<lparr> measure := \<nu> \<rparr>) (entropy_density b M \<nu>)"
+  assumes A: "A \<in> sets M" "\<nu> A \<noteq> \<mu> A"
+  shows "0 < KL_divergence b M \<nu>"
+proof -
+  interpret \<nu>: prob_space "M\<lparr>measure := \<nu>\<rparr>" by fact
+  have ms: "measure_space (M\<lparr>measure := \<nu>\<rparr>)" by default
+  have fms: "finite_measure (M\<lparr>measure := \<nu>\<rparr>)" by default
+  note RN = RN_deriv[OF ms ac]
+
+  from real_RN_deriv[OF fms ac] guess D . note D = this
+  with absolutely_continuous_AE[OF ms] ac
+  have D\<nu>: "AE x in M\<lparr>measure := \<nu>\<rparr>. RN_deriv M \<nu> x = extreal (D x)"
+    by auto
+
+  def f \<equiv> "\<lambda>x. if D x = 0 then 1 else 1 / D x"
+  with D have f_borel: "f \<in> borel_measurable M"
+    by (auto intro!: measurable_If)
+
+  have "KL_divergence b M \<nu> = 1 / ln b * (\<integral> x. ln b * entropy_density b M \<nu> x \<partial>M\<lparr>measure := \<nu>\<rparr>)"
+    unfolding KL_divergence_def using int b_gt_1
+    by (simp add: integral_cmult)
+
+  { fix A assume "A \<in> sets M"
+    with RN D have "\<nu>.\<mu> A = (\<integral>\<^isup>+ x. extreal (D x) * indicator A x \<partial>M)"
+      by (auto intro!: positive_integral_cong_AE) }
+  note D_density = this
+
+  have ln_entropy: "(\<lambda>x. ln b * entropy_density b M \<nu> x) \<in> borel_measurable M"
+    using measurable_entropy_density[OF ps ac] by auto
+
+  have "integrable (M\<lparr>measure := \<nu>\<rparr>) (\<lambda>x. ln b * entropy_density b M \<nu> x)"
+    using int by auto
+  moreover have "integrable (M\<lparr>measure := \<nu>\<rparr>) (\<lambda>x. ln b * entropy_density b M \<nu> x) \<longleftrightarrow>
+      integrable M (\<lambda>x. D x * (ln b * entropy_density b M \<nu> x))"
+    using D D_density ln_entropy
+    by (intro integral_translated_density) auto
+  ultimately have M_int: "integrable M (\<lambda>x. D x * (ln b * entropy_density b M \<nu> x))"
+    by simp
+
+  have D_neg: "(\<integral>\<^isup>+ x. extreal (- D x) \<partial>M) = 0"
+    using D by (subst positive_integral_0_iff_AE) auto
+
+  have "(\<integral>\<^isup>+ x. extreal (D x) \<partial>M) = \<nu> (space M)"
+    using RN D by (auto intro!: positive_integral_cong_AE)
+  then have D_pos: "(\<integral>\<^isup>+ x. extreal (D x) \<partial>M) = 1"
+    using \<nu>.measure_space_1 by simp
+
+  have "integrable M D"
+    using D_pos D_neg D by (auto simp: integrable_def)
+
+  have "integral\<^isup>L M D = 1"
+    using D_pos D_neg by (auto simp: lebesgue_integral_def)
+
+  let ?D_set = "{x\<in>space M. D x \<noteq> 0}"
+  have [simp, intro]: "?D_set \<in> sets M"
+    using D by (auto intro: sets_Collect)
+
+  have "0 \<le> 1 - \<mu>' ?D_set"
+    using prob_le_1 by (auto simp: field_simps)
+  also have "\<dots> = (\<integral> x. D x - indicator ?D_set x \<partial>M)"
+    using `integrable M D` `integral\<^isup>L M D = 1`
+    by (simp add: \<mu>'_def)
+  also have "\<dots> < (\<integral> x. D x * (ln b * entropy_density b M \<nu> x) \<partial>M)"
+  proof (rule integral_less_AE)
+    show "integrable M (\<lambda>x. D x - indicator ?D_set x)"
+      using `integrable M D`
+      by (intro integral_diff integral_indicator) auto
+  next
+    show "integrable M (\<lambda>x. D x * (ln b * entropy_density b M \<nu> x))"
+      by fact
+  next
+    show "\<mu> {x\<in>space M. D x \<noteq> 1 \<and> D x \<noteq> 0} \<noteq> 0"
+    proof
+      assume eq_0: "\<mu> {x\<in>space M. D x \<noteq> 1 \<and> D x \<noteq> 0} = 0"
+      then have disj: "AE x. D x = 1 \<or> D x = 0"
+        using D(1) by (auto intro!: AE_I[OF subset_refl] sets_Collect)
+
+      have "\<mu> {x\<in>space M. D x = 1} = (\<integral>\<^isup>+ x. indicator {x\<in>space M. D x = 1} x \<partial>M)"
+        using D(1) by auto
+      also have "\<dots> = (\<integral>\<^isup>+ x. extreal (D x) * indicator {x\<in>space M. D x \<noteq> 0} x \<partial>M)"
+        using disj by (auto intro!: positive_integral_cong_AE simp: indicator_def one_extreal_def)
+      also have "\<dots> = \<nu> {x\<in>space M. D x \<noteq> 0}"
+        using D(1) D_density by auto
+      also have "\<dots> = \<nu> (space M)"
+        using D_density D(1) by (auto intro!: positive_integral_cong simp: indicator_def)
+      finally have "AE x. D x = 1"
+        using D(1) \<nu>.measure_space_1 by (intro AE_I_eq_1) auto
+      then have "(\<integral>\<^isup>+x. indicator A x\<partial>M) = (\<integral>\<^isup>+x. extreal (D x) * indicator A x\<partial>M)"
+        by (intro positive_integral_cong_AE) (auto simp: one_extreal_def[symmetric])
+      also have "\<dots> = \<nu> A"
+        using `A \<in> sets M` D_density by simp
+      finally show False using `A \<in> sets M` `\<nu> A \<noteq> \<mu> A` by simp
+    qed
+    show "{x\<in>space M. D x \<noteq> 1 \<and> D x \<noteq> 0} \<in> sets M"
+      using D(1) by (auto intro: sets_Collect)
+
+    show "AE t. t \<in> {x\<in>space M. D x \<noteq> 1 \<and> D x \<noteq> 0} \<longrightarrow>
+      D t - indicator ?D_set t \<noteq> D t * (ln b * entropy_density b M \<nu> t)"
+      using D(2)
+    proof (elim AE_mp, safe intro!: AE_I2)
+      fix t assume Dt: "t \<in> space M" "D t \<noteq> 1" "D t \<noteq> 0"
+        and RN: "RN_deriv M \<nu> t = extreal (D t)"
+        and eq: "D t - indicator ?D_set t = D t * (ln b * entropy_density b M \<nu> t)"
+
+      have "D t - 1 = D t - indicator ?D_set t"
+        using Dt by simp
+      also note eq
+      also have "D t * (ln b * entropy_density b M \<nu> t) = - D t * ln (1 / D t)"
+        using RN b_gt_1 `D t \<noteq> 0` `0 \<le> D t`
+        by (simp add: entropy_density_def log_def ln_div less_le)
+      finally have "ln (1 / D t) = 1 / D t - 1"
+        using `D t \<noteq> 0` by (auto simp: field_simps)
+      from ln_eq_minus_one[OF _ this] `D t \<noteq> 0` `0 \<le> D t` `D t \<noteq> 1`
+      show False by auto
+    qed
+
+    show "AE t. D t - indicator ?D_set t \<le> D t * (ln b * entropy_density b M \<nu> t)"
+      using D(2)
+    proof (elim AE_mp, intro AE_I2 impI)
+      fix t assume "t \<in> space M" and RN: "RN_deriv M \<nu> t = extreal (D t)"
+      show "D t - indicator ?D_set t \<le> D t * (ln b * entropy_density b M \<nu> t)"
+      proof cases
+        assume asm: "D t \<noteq> 0"
+        then have "0 < D t" using `0 \<le> D t` by auto
+        then have "0 < 1 / D t" by auto
+        have "D t - indicator ?D_set t \<le> - D t * (1 / D t - 1)"
+          using asm `t \<in> space M` by (simp add: field_simps)
+        also have "- D t * (1 / D t - 1) \<le> - D t * ln (1 / D t)"
+          using ln_le_minus_one `0 < 1 / D t` by (intro mult_left_mono_neg) auto
+        also have "\<dots> = D t * (ln b * entropy_density b M \<nu> t)"
+          using `0 < D t` RN b_gt_1
+          by (simp_all add: log_def ln_div entropy_density_def)
+        finally show ?thesis by simp
+      qed simp
+    qed
+  qed
+  also have "\<dots> = (\<integral> x. ln b * entropy_density b M \<nu> x \<partial>M\<lparr>measure := \<nu>\<rparr>)"
+    using D D_density ln_entropy
+    by (intro integral_translated_density[symmetric]) auto
+  also have "\<dots> = ln b * (\<integral> x. entropy_density b M \<nu> x \<partial>M\<lparr>measure := \<nu>\<rparr>)"
+    using int by (rule \<nu>.integral_cmult)
+  finally show "0 < KL_divergence b M \<nu>"
+    using b_gt_1 by (auto simp: KL_divergence_def zero_less_mult_iff)
+qed
+
+lemma (in sigma_finite_measure) KL_eq_0:
+  assumes eq: "\<forall>A\<in>sets M. \<nu> A = measure M A"
+  shows "KL_divergence b M \<nu> = 0"
+proof -
+  have "AE x. 1 = RN_deriv M \<nu> x"
+  proof (rule RN_deriv_unique)
+    show "measure_space (M\<lparr>measure := \<nu>\<rparr>)"
+      using eq by (intro measure_space_cong) auto
+    show "absolutely_continuous \<nu>"
+      unfolding absolutely_continuous_def using eq by auto
+    show "(\<lambda>x. 1) \<in> borel_measurable M" "AE x. 0 \<le> (1 :: extreal)" by auto
+    fix A assume "A \<in> sets M"
+    with eq show "\<nu> A = \<integral>\<^isup>+ x. 1 * indicator A x \<partial>M" by simp
+  qed
+  then have "AE x. log b (real (RN_deriv M \<nu> x)) = 0"
+    by (elim AE_mp) simp
+  from integral_cong_AE[OF this]
+  have "integral\<^isup>L M (entropy_density b M \<nu>) = 0"
+    by (simp add: entropy_density_def comp_def)
+  with eq show "KL_divergence b M \<nu> = 0"
+    unfolding KL_divergence_def
+    by (subst integral_cong_measure) auto
+qed
+
+lemma (in information_space) KL_eq_0_imp:
+  assumes ps: "prob_space (M\<lparr>measure := \<nu>\<rparr>)"
+  assumes ac: "absolutely_continuous \<nu>"
+  assumes int: "integrable (M\<lparr> measure := \<nu> \<rparr>) (entropy_density b M \<nu>)"
+  assumes KL: "KL_divergence b M \<nu> = 0"
+  shows "\<forall>A\<in>sets M. \<nu> A = \<mu> A"
+  by (metis less_imp_neq KL_gt_0 assms)
+
+lemma (in information_space) KL_ge_0:
+  assumes ps: "prob_space (M\<lparr>measure := \<nu>\<rparr>)"
+  assumes ac: "absolutely_continuous \<nu>"
+  assumes int: "integrable (M\<lparr> measure := \<nu> \<rparr>) (entropy_density b M \<nu>)"
+  shows "0 \<le> KL_divergence b M \<nu>"
+  using KL_eq_0 KL_gt_0[OF ps ac int]
+  by (cases "\<forall>A\<in>sets M. \<nu> A = measure M A") (auto simp: le_less)
+
 
 lemma (in sigma_finite_measure) KL_divergence_vimage:
   assumes T: "T \<in> measure_preserving M M'"
@@ -209,7 +409,7 @@ proof -
   have AE: "AE x. RN_deriv M' \<nu>' (T x) = RN_deriv M \<nu> x"
     by (rule RN_deriv_vimage[OF T T' inv \<nu>'])
   show ?thesis
-    unfolding KL_divergence_def
+    unfolding KL_divergence_def entropy_density_def comp_def
   proof (subst \<nu>'.integral_vimage[OF sa T'])
     show "(\<lambda>x. log b (real (RN_deriv M \<nu> x))) \<in> borel_measurable (M\<lparr>measure := \<nu>\<rparr>)"
       by (auto intro!: RN_deriv[OF M ac] borel_measurable_log[OF _ `1 < b`])
@@ -233,9 +433,9 @@ lemma (in sigma_finite_measure) KL_divergence_cong:
 proof -
   interpret \<nu>: measure_space ?\<nu> by fact
   have "KL_divergence b M \<nu> = \<integral>x. log b (real (RN_deriv N \<nu>' x)) \<partial>?\<nu>"
-    by (simp cong: RN_deriv_cong \<nu>.integral_cong add: KL_divergence_def)
+    by (simp cong: RN_deriv_cong \<nu>.integral_cong add: KL_divergence_def entropy_density_def)
   also have "\<dots> = KL_divergence b N \<nu>'"
-    by (auto intro!: \<nu>.integral_cong_measure[symmetric] simp: KL_divergence_def)
+    by (auto intro!: \<nu>.integral_cong_measure[symmetric] simp: KL_divergence_def entropy_density_def comp_def)
   finally show ?thesis .
 qed
 
@@ -243,7 +443,7 @@ lemma (in finite_measure_space) KL_divergence_eq_finite:
   assumes v: "finite_measure_space (M\<lparr>measure := \<nu>\<rparr>)"
   assumes ac: "absolutely_continuous \<nu>"
   shows "KL_divergence b M \<nu> = (\<Sum>x\<in>space M. real (\<nu> {x}) * log b (real (\<nu> {x}) / real (\<mu> {x})))" (is "_ = ?sum")
-proof (simp add: KL_divergence_def finite_measure_space.integral_finite_singleton[OF v])
+proof (simp add: KL_divergence_def finite_measure_space.integral_finite_singleton[OF v] entropy_density_def)
   interpret v: finite_measure_space "M\<lparr>measure := \<nu>\<rparr>" by fact
   have ms: "measure_space (M\<lparr>measure := \<nu>\<rparr>)" by default
   show "(\<Sum>x \<in> space M. log b (real (RN_deriv M \<nu> x)) * real (\<nu> {x})) = ?sum"
@@ -257,27 +457,10 @@ lemma (in finite_prob_space) KL_divergence_positive_finite:
   and "1 < b"
   shows "0 \<le> KL_divergence b M \<nu>"
 proof -
+  interpret information_space M by default fact
   interpret v: finite_prob_space "M\<lparr>measure := \<nu>\<rparr>" by fact
-  have ms: "finite_measure_space (M\<lparr>measure := \<nu>\<rparr>)" by default
-
-  have "- (KL_divergence b M \<nu>) \<le> log b (\<Sum>x\<in>space M. real (\<mu> {x}))"
-  proof (subst KL_divergence_eq_finite[OF ms ac], safe intro!: log_setsum_divide not_empty)
-    show "finite (space M)" using finite_space by simp
-    show "1 < b" by fact
-    show "(\<Sum>x\<in>space M. real (\<nu> {x})) = 1"
-      using v.finite_sum_over_space_eq_1 by (simp add: v.\<mu>'_def)
-
-    fix x assume "x \<in> space M"
-    then have x: "{x} \<in> sets M" unfolding sets_eq_Pow by auto
-    { assume "0 < real (\<nu> {x})"
-      then have "\<nu> {x} \<noteq> 0" by auto
-      then have "\<mu> {x} \<noteq> 0"
-        using ac[unfolded absolutely_continuous_def, THEN bspec, of "{x}"] x by auto
-      thus "0 < real (\<mu> {x})" using real_measure[OF x] by auto }
-    show "0 \<le> real (\<mu> {x})" "0 \<le> real (\<nu> {x})"
-      using real_measure[OF x] v.real_measure[of "{x}"] x by auto
-  qed
-  thus "0 \<le> KL_divergence b M \<nu>" using finite_sum_over_space_eq_1 by (simp add: \<mu>'_def)
+  have ps: "prob_space (M\<lparr>measure := \<nu>\<rparr>)" by default
+  from KL_ge_0[OF this ac v.integral_finite_singleton(1)] show ?thesis .
 qed
 
 subsection {* Mutual Information *}
@@ -286,6 +469,163 @@ definition (in prob_space)
   "mutual_information b S T X Y =
     KL_divergence b (S\<lparr>measure := extreal\<circ>distribution X\<rparr> \<Otimes>\<^isub>M T\<lparr>measure := extreal\<circ>distribution Y\<rparr>)
       (extreal\<circ>joint_distribution X Y)"
+
+lemma (in information_space)
+  fixes S T X Y
+  defines "P \<equiv> S\<lparr>measure := extreal\<circ>distribution X\<rparr> \<Otimes>\<^isub>M T\<lparr>measure := extreal\<circ>distribution Y\<rparr>"
+  shows "indep_var S X T Y \<longleftrightarrow>
+    (random_variable S X \<and> random_variable T Y \<and>
+      measure_space.absolutely_continuous P (extreal\<circ>joint_distribution X Y) \<and>
+      integrable (P\<lparr>measure := (extreal\<circ>joint_distribution X Y)\<rparr>)
+        (entropy_density b P (extreal\<circ>joint_distribution X Y)) \<and>
+     mutual_information b S T X Y = 0)"
+proof safe
+  assume indep: "indep_var S X T Y"
+  then have "random_variable S X" "random_variable T Y"
+    by (blast dest: indep_var_rv1 indep_var_rv2)+
+  then show "sigma_algebra S" "X \<in> measurable M S" "sigma_algebra T" "Y \<in> measurable M T"
+    by blast+
+
+  interpret X: prob_space "S\<lparr>measure := extreal\<circ>distribution X\<rparr>"
+    by (rule distribution_prob_space) fact
+  interpret Y: prob_space "T\<lparr>measure := extreal\<circ>distribution Y\<rparr>"
+    by (rule distribution_prob_space) fact
+  interpret XY: pair_prob_space "S\<lparr>measure := extreal\<circ>distribution X\<rparr>" "T\<lparr>measure := extreal\<circ>distribution Y\<rparr>" by default
+  interpret XY: information_space XY.P b by default (rule b_gt_1)
+
+  let ?J = "XY.P\<lparr> measure := (extreal\<circ>joint_distribution X Y) \<rparr>"
+  { fix A assume "A \<in> sets XY.P"
+    then have "extreal (joint_distribution X Y A) = XY.\<mu> A"
+      using indep_var_distributionD[OF indep]
+      by (simp add: XY.P.finite_measure_eq) }
+  note j_eq = this
+
+  interpret J: prob_space ?J
+    using j_eq by (intro XY.prob_space_cong) auto
+
+  have ac: "XY.absolutely_continuous (extreal\<circ>joint_distribution X Y)"
+    by (simp add: XY.absolutely_continuous_def j_eq)
+  then show "measure_space.absolutely_continuous P (extreal\<circ>joint_distribution X Y)"
+    unfolding P_def .
+
+  have ed: "entropy_density b XY.P (extreal\<circ>joint_distribution X Y) \<in> borel_measurable XY.P"
+    by (rule XY.measurable_entropy_density) (default | fact)+
+
+  have "AE x in XY.P. 1 = RN_deriv XY.P (extreal\<circ>joint_distribution X Y) x"
+  proof (rule XY.RN_deriv_unique[OF _ ac])
+    show "measure_space ?J" by default
+    fix A assume "A \<in> sets XY.P"
+    then show "(extreal\<circ>joint_distribution X Y) A = (\<integral>\<^isup>+ x. 1 * indicator A x \<partial>XY.P)"
+      by (simp add: j_eq)
+  qed (insert XY.measurable_const[of 1 borel], auto)
+  then have ae_XY: "AE x in XY.P. entropy_density b XY.P (extreal\<circ>joint_distribution X Y) x = 0"
+    by (elim XY.AE_mp) (simp add: entropy_density_def)
+  have ae_J: "AE x in ?J. entropy_density b XY.P (extreal\<circ>joint_distribution X Y) x = 0"
+  proof (rule XY.absolutely_continuous_AE)
+    show "measure_space ?J" by default
+    show "XY.absolutely_continuous (measure ?J)"
+      using ac by simp
+  qed (insert ae_XY, simp_all)
+  then show "integrable (P\<lparr>measure := (extreal\<circ>joint_distribution X Y)\<rparr>)
+        (entropy_density b P (extreal\<circ>joint_distribution X Y))"
+    unfolding P_def
+    using ed XY.measurable_const[of 0 borel]
+    by (subst J.integrable_cong_AE) auto
+
+  show "mutual_information b S T X Y = 0"
+    unfolding mutual_information_def KL_divergence_def P_def
+    by (subst J.integral_cong_AE[OF ae_J]) simp
+next
+  assume "sigma_algebra S" "X \<in> measurable M S" "sigma_algebra T" "Y \<in> measurable M T"
+  then have rvs: "random_variable S X" "random_variable T Y" by blast+
+
+  interpret X: prob_space "S\<lparr>measure := extreal\<circ>distribution X\<rparr>"
+    by (rule distribution_prob_space) fact
+  interpret Y: prob_space "T\<lparr>measure := extreal\<circ>distribution Y\<rparr>"
+    by (rule distribution_prob_space) fact
+  interpret XY: pair_prob_space "S\<lparr>measure := extreal\<circ>distribution X\<rparr>" "T\<lparr>measure := extreal\<circ>distribution Y\<rparr>" by default
+  interpret XY: information_space XY.P b by default (rule b_gt_1)
+
+  let ?J = "XY.P\<lparr> measure := (extreal\<circ>joint_distribution X Y) \<rparr>"
+  interpret J: prob_space ?J
+    using rvs by (intro joint_distribution_prob_space) auto
+
+  assume ac: "measure_space.absolutely_continuous P (extreal\<circ>joint_distribution X Y)"
+  assume int: "integrable (P\<lparr>measure := (extreal\<circ>joint_distribution X Y)\<rparr>)
+        (entropy_density b P (extreal\<circ>joint_distribution X Y))"
+  assume I_eq_0: "mutual_information b S T X Y = 0"
+
+  have eq: "\<forall>A\<in>sets XY.P. (extreal \<circ> joint_distribution X Y) A = XY.\<mu> A"
+  proof (rule XY.KL_eq_0_imp)
+    show "prob_space ?J" by default
+    show "XY.absolutely_continuous (extreal\<circ>joint_distribution X Y)"
+      using ac by (simp add: P_def)
+    show "integrable ?J (entropy_density b XY.P (extreal\<circ>joint_distribution X Y))"
+      using int by (simp add: P_def)
+    show "KL_divergence b XY.P (extreal\<circ>joint_distribution X Y) = 0"
+      using I_eq_0 unfolding mutual_information_def by (simp add: P_def)
+  qed
+
+  { fix S X assume "sigma_algebra S"
+    interpret S: sigma_algebra S by fact
+    have "Int_stable \<lparr>space = space M, sets = {X -` A \<inter> space M |A. A \<in> sets S}\<rparr>"
+    proof (safe intro!: Int_stableI)
+      fix A B assume "A \<in> sets S" "B \<in> sets S"
+      then show "\<exists>C. (X -` A \<inter> space M) \<inter> (X -` B \<inter> space M) = (X -` C \<inter> space M) \<and> C \<in> sets S"
+        by (intro exI[of _ "A \<inter> B"]) auto
+    qed }
+  note Int_stable = this
+
+  show "indep_var S X T Y" unfolding indep_var_eq
+  proof (intro conjI indep_set_sigma_sets Int_stable)
+    show "indep_set {X -` A \<inter> space M |A. A \<in> sets S} {Y -` A \<inter> space M |A. A \<in> sets T}"
+    proof (safe intro!: indep_setI)
+      { fix A assume "A \<in> sets S" then show "X -` A \<inter> space M \<in> sets M"
+        using `X \<in> measurable M S` by (auto intro: measurable_sets) }
+      { fix A assume "A \<in> sets T" then show "Y -` A \<inter> space M \<in> sets M"
+        using `Y \<in> measurable M T` by (auto intro: measurable_sets) }
+    next
+      fix A B assume ab: "A \<in> sets S" "B \<in> sets T"
+      have "extreal (prob ((X -` A \<inter> space M) \<inter> (Y -` B \<inter> space M))) =
+        extreal (joint_distribution X Y (A \<times> B))"
+        unfolding distribution_def
+        by (intro arg_cong[where f="\<lambda>C. extreal (prob C)"]) auto
+      also have "\<dots> = XY.\<mu> (A \<times> B)"
+        using ab eq by (auto simp: XY.finite_measure_eq)
+      also have "\<dots> = extreal (distribution X A) * extreal (distribution Y B)"
+        using ab by (simp add: XY.pair_measure_times)
+      finally show "prob ((X -` A \<inter> space M) \<inter> (Y -` B \<inter> space M)) =
+        prob (X -` A \<inter> space M) * prob (Y -` B \<inter> space M)"
+        unfolding distribution_def by simp
+    qed
+  qed fact+
+qed
+
+lemma (in information_space) mutual_information_commute_generic:
+  assumes X: "random_variable S X" and Y: "random_variable T Y"
+  assumes ac: "measure_space.absolutely_continuous
+    (S\<lparr>measure := extreal\<circ>distribution X\<rparr> \<Otimes>\<^isub>M T\<lparr>measure := extreal\<circ>distribution Y\<rparr>) (extreal\<circ>joint_distribution X Y)"
+  shows "mutual_information b S T X Y = mutual_information b T S Y X"
+proof -
+  let ?S = "S\<lparr>measure := extreal\<circ>distribution X\<rparr>" and ?T = "T\<lparr>measure := extreal\<circ>distribution Y\<rparr>"
+  interpret S: prob_space ?S using X by (rule distribution_prob_space)
+  interpret T: prob_space ?T using Y by (rule distribution_prob_space)
+  interpret P: pair_prob_space ?S ?T ..
+  interpret Q: pair_prob_space ?T ?S ..
+  show ?thesis
+    unfolding mutual_information_def
+  proof (intro Q.KL_divergence_vimage[OF Q.measure_preserving_swap _ _ _ _ ac b_gt_1])
+    show "(\<lambda>(x,y). (y,x)) \<in> measure_preserving
+      (P.P \<lparr> measure := extreal\<circ>joint_distribution X Y\<rparr>) (Q.P \<lparr> measure := extreal\<circ>joint_distribution Y X\<rparr>)"
+      using X Y unfolding measurable_def
+      unfolding measure_preserving_def using P.pair_sigma_algebra_swap_measurable
+      by (auto simp add: space_pair_measure distribution_def intro!: arg_cong[where f=\<mu>'])
+    have "prob_space (P.P\<lparr> measure := extreal\<circ>joint_distribution X Y\<rparr>)"
+      using X Y by (auto intro!: distribution_prob_space random_variable_pairI)
+    then show "measure_space (P.P\<lparr> measure := extreal\<circ>joint_distribution X Y\<rparr>)"
+      unfolding prob_space_def by simp
+  qed auto
+qed
 
 definition (in prob_space)
   "entropy b s X = mutual_information b s s X X"
@@ -354,32 +694,6 @@ proof -
   show ?positive
     using XY.KL_divergence_positive_finite[OF P_ps finite_variables_absolutely_continuous[OF MX MY] b_gt_1]
     unfolding mutual_information_def .
-qed
-
-lemma (in information_space) mutual_information_commute_generic:
-  assumes X: "random_variable S X" and Y: "random_variable T Y"
-  assumes ac: "measure_space.absolutely_continuous
-    (S\<lparr>measure := extreal\<circ>distribution X\<rparr> \<Otimes>\<^isub>M T\<lparr>measure := extreal\<circ>distribution Y\<rparr>) (extreal\<circ>joint_distribution X Y)"
-  shows "mutual_information b S T X Y = mutual_information b T S Y X"
-proof -
-  let ?S = "S\<lparr>measure := extreal\<circ>distribution X\<rparr>" and ?T = "T\<lparr>measure := extreal\<circ>distribution Y\<rparr>"
-  interpret S: prob_space ?S using X by (rule distribution_prob_space)
-  interpret T: prob_space ?T using Y by (rule distribution_prob_space)
-  interpret P: pair_prob_space ?S ?T ..
-  interpret Q: pair_prob_space ?T ?S ..
-  show ?thesis
-    unfolding mutual_information_def
-  proof (intro Q.KL_divergence_vimage[OF Q.measure_preserving_swap _ _ _ _ ac b_gt_1])
-    show "(\<lambda>(x,y). (y,x)) \<in> measure_preserving
-      (P.P \<lparr> measure := extreal\<circ>joint_distribution X Y\<rparr>) (Q.P \<lparr> measure := extreal\<circ>joint_distribution Y X\<rparr>)"
-      using X Y unfolding measurable_def
-      unfolding measure_preserving_def using P.pair_sigma_algebra_swap_measurable
-      by (auto simp add: space_pair_measure distribution_def intro!: arg_cong[where f=\<mu>'])
-    have "prob_space (P.P\<lparr> measure := extreal\<circ>joint_distribution X Y\<rparr>)"
-      using X Y by (auto intro!: distribution_prob_space random_variable_pairI)
-    then show "measure_space (P.P\<lparr> measure := extreal\<circ>joint_distribution X Y\<rparr>)"
-      unfolding prob_space_def by simp
-  qed auto
 qed
 
 lemma (in information_space) mutual_information_commute:

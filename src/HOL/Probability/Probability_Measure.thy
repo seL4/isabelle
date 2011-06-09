@@ -275,7 +275,7 @@ lemma (in prob_space) expectation_less:
 proof -
   have "expectation X < expectation (\<lambda>x. b)"
     using gt measure_space_1
-    by (intro integral_less_AE) auto
+    by (intro integral_less_AE_space) auto
   then show ?thesis using prob_space by simp
 qed
 
@@ -286,7 +286,7 @@ lemma (in prob_space) expectation_greater:
 proof -
   have "expectation (\<lambda>x. a) < expectation X"
     using gt measure_space_1
-    by (intro integral_less_AE) auto
+    by (intro integral_less_AE_space) auto
   then show ?thesis using prob_space by simp
 qed
 
