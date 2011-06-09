@@ -191,6 +191,8 @@ ML_PLATFORM="x86_64-linux"
 ML_HOME="/home/polyml/polyml-svn/x86_64-linux"
 ML_SYSTEM="polyml-5.4.1"
 ML_OPTIONS="-H 8000 --gcthreads 6"
+
+ISABELLE_GHC="/usr/bin/ghc"
 '''
 
     isabelle_home = paths[0]
