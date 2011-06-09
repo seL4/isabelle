@@ -387,4 +387,47 @@ proof -
   finally show ?thesis using b by (simp add: field_simps)
 qed
 
+lemma ln_le_minus_one:
+  "0 < x \<Longrightarrow> ln x \<le> x - 1"
+  using exp_ge_add_one_self[of "ln x"] by simp
+
+lemma ln_eq_minus_one:
+  assumes "0 < x" "ln x = x - 1" shows "x = 1"
+proof -
+  let "?l y" = "ln y - y + 1"
+  have D: "\<And>x. 0 < x \<Longrightarrow> DERIV ?l x :> (1 / x - 1)"
+    by (auto intro!: DERIV_intros)
+
+  show ?thesis
+  proof (cases rule: linorder_cases)
+    assume "x < 1"
+    from dense[OF `x < 1`] obtain a where "x < a" "a < 1" by blast
+    from `x < a` have "?l x < ?l a"
+    proof (rule DERIV_pos_imp_increasing, safe)
+      fix y assume "x \<le> y" "y \<le> a"
+      with `0 < x` `a < 1` have "0 < 1 / y - 1" "0 < y"
+        by (auto simp: field_simps)
+      with D show "\<exists>z. DERIV ?l y :> z \<and> 0 < z"
+        by auto
+    qed
+    also have "\<dots> \<le> 0"
+      using ln_le_minus_one `0 < x` `x < a` by (auto simp: field_simps)
+    finally show "x = 1" using assms by auto
+  next
+    assume "1 < x"
+    from dense[OF `1 < x`] obtain a where "1 < a" "a < x" by blast
+    from `a < x` have "?l x < ?l a"
+    proof (rule DERIV_neg_imp_decreasing, safe)
+      fix y assume "a \<le> y" "y \<le> x"
+      with `1 < a` have "1 / y - 1 < 0" "0 < y"
+        by (auto simp: field_simps)
+      with D show "\<exists>z. DERIV ?l y :> z \<and> z < 0"
+        by blast
+    qed
+    also have "\<dots> \<le> 0"
+      using ln_le_minus_one `1 < a` by (auto simp: field_simps)
+    finally show "x = 1" using assms by auto
+  qed simp
+qed
+
 end
