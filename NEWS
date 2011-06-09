@@ -97,6 +97,11 @@ INCOMPATIBILITY.
     (currently only supported by the default (exhaustive) tester)
   - Added post-processing of terms to obtain readable counterexamples
     (currently only supported by the default (exhaustive) tester)
+  - New counterexample generator quickcheck[narrowing] enables
+    narrowing-based testing.
+    It requires that the Glasgow Haskell compiler is installed and
+    its location is known to Isabelle with the environment variable
+    ISABELLE_GHC.
 
 * Function package: discontinued option "tailrec".
 INCOMPATIBILITY. Use partial_function instead.
