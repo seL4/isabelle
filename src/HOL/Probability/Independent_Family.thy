@@ -117,6 +117,16 @@ lemma (in prob_space) indep_setD:
   using indep[unfolded indep_set_def, THEN indep_setsD, of UNIV "bool_case a b"] ev
   by (simp add: ac_simps UNIV_bool)
 
+lemma (in prob_space) indep_var_eq:
+  "indep_var S X T Y \<longleftrightarrow>
+    (random_variable S X \<and> random_variable T Y) \<and>
+    indep_set
+      (sigma_sets (space M) { X -` A \<inter> space M | A. A \<in> sets S})
+      (sigma_sets (space M) { Y -` A \<inter> space M | A. A \<in> sets T})"
+  unfolding indep_var_def indep_vars_def indep_set_def UNIV_bool
+  by (intro arg_cong2[where f="op \<and>"] arg_cong2[where f=indep_sets] ext)
+     (auto split: bool.split)
+
 lemma (in prob_space)
   assumes indep: "indep_set A B"
   shows indep_setD_ev1: "A \<subseteq> events"
@@ -491,7 +501,7 @@ lemma (in prob_space) sigma_algebra_terminal_events:
 proof (simp add: sigma_algebra_iff2, safe)
   let ?A = "(\<Inter>n. sigma_sets (space M) (UNION {n..} A))"
   interpret A: sigma_algebra "\<lparr>space = space M, sets = A i\<rparr>" for i by fact
-  { fix X x assume "X \<in> ?A" "x \<in> X" 
+  { fix X x assume "X \<in> ?A" "x \<in> X"
     then have "\<And>n. X \<in> sigma_sets (space M) (UNION {n..} A)" by auto
     from this[of 0] have "X \<in> sigma_sets (space M) (UNION UNIV A)" by simp
     then have "X \<subseteq> space M"
@@ -572,7 +582,7 @@ proof -
       show "Int_stable \<lparr>space = space M, sets = A m\<rparr>"
         unfolding Int_stable_def using A.Int by auto
     qed
-    also have "(\<lambda>b. sigma_sets (space M) (\<Union>m\<in>bool_case {..n} {Suc n..} b. A m)) = 
+    also have "(\<lambda>b. sigma_sets (space M) (\<Union>m\<in>bool_case {..n} {Suc n..} b. A m)) =
       bool_case (sigma_sets (space M) (\<Union>m\<in>{..n}. A m)) (sigma_sets (space M) (\<Union>m\<in>{Suc n..}. A m))"
       by (auto intro!: ext split: bool.split)
     finally have indep: "indep_set (sigma_sets (space M) (\<Union>m\<in>{..n}. A m)) (sigma_sets (space M) (\<Union>m\<in>{Suc n..}. A m))"
@@ -732,7 +742,7 @@ proof -
         by (auto simp del: vimage_Int intro!: exI[of _ "A \<inter> B"] dest: Int_stableD)
     qed }
   note indep_sets_sigma_sets_iff[OF this, simp]
- 
+
   { fix i assume "i \<in> I"
     { fix A assume "A \<in> sets (M' i)"
       then have "A \<in> sets (sigma (M' i))" by (auto simp: sets_sigma intro: sigma_sets.Basic)
@@ -745,7 +755,7 @@ proof -
       "space M \<in> {X i -` A \<inter> space M |A. A \<in> sets (M' i)}"
       by (auto intro!: exI[of _ "space (M' i)"]) }
   note indep_sets_finite[OF I this, simp]
-  
+
   have "(\<forall>A\<in>\<Pi> i\<in>I. {X i -` A \<inter> space M |A. A \<in> sets (M' i)}. prob (INTER I A) = (\<Prod>j\<in>I. prob (A j))) =
     (\<forall>A\<in>\<Pi> i\<in>I. sets (M' i). prob ((\<Inter>j\<in>I. X j -` A j) \<inter> space M) = (\<Prod>x\<in>I. prob (X x -` A x \<inter> space M)))"
     (is "?L = ?R")
@@ -847,7 +857,7 @@ proof -
         by (simp_all add: product_algebra_def)
       show "A \<in> sets (sigma P.G)"
         using `A \<in> sets P.P` by (simp add: product_algebra_def)
-    
+
       fix E assume E: "E \<in> sets P.G"
       then have "E \<in> sets P.P"
         by (simp add: sets_sigma sigma_sets.Basic product_algebra_def)
@@ -915,10 +925,67 @@ proof -
   finally show ?thesis .
 qed
 
+lemma (in prob_space)
+  assumes "indep_var S X T Y"
+  shows indep_var_rv1: "random_variable S X"
+    and indep_var_rv2: "random_variable T Y"
+proof -
+  have "\<forall>i\<in>UNIV. random_variable (bool_case S T i) (bool_case X Y i)"
+    using assms unfolding indep_var_def indep_vars_def by auto
+  then show "random_variable S X" "random_variable T Y"
+    unfolding UNIV_bool by auto
+qed
+
 lemma (in prob_space) indep_var_distributionD:
-  assumes "indep_var Ma A Mb B"
-  assumes "Xa \<in> sets Ma" "Xb \<in> sets Mb"
-  shows "joint_distribution A B (Xa \<times> Xb) = distribution A Xa * distribution B Xb"
-  unfolding distribution_def using assms by (rule indep_varD)
+  assumes indep: "indep_var S X T Y"
+  defines "P \<equiv> S\<lparr>measure := extreal\<circ>distribution X\<rparr> \<Otimes>\<^isub>M T\<lparr>measure := extreal\<circ>distribution Y\<rparr>"
+  assumes "A \<in> sets P"
+  shows "joint_distribution X Y A = finite_measure.\<mu>' P A"
+proof -
+  from indep have rvs: "random_variable S X" "random_variable T Y"
+    by (blast dest: indep_var_rv1 indep_var_rv2)+
+
+  let ?S = "S\<lparr>measure := extreal\<circ>distribution X\<rparr>"
+  let ?T = "T\<lparr>measure := extreal\<circ>distribution Y\<rparr>"
+  interpret X: prob_space ?S by (rule distribution_prob_space) fact
+  interpret Y: prob_space ?T by (rule distribution_prob_space) fact
+  interpret XY: pair_prob_space ?S ?T by default
+
+  let ?J = "XY.P\<lparr> measure := extreal \<circ> joint_distribution X Y \<rparr>"
+  interpret J: prob_space ?J
+    by (rule joint_distribution_prob_space) (simp_all add: rvs)
+
+  have "finite_measure.\<mu>' (XY.P\<lparr> measure := extreal \<circ> joint_distribution X Y \<rparr>) A = XY.\<mu>' A"
+  proof (rule prob_space_unique_Int_stable)
+    show "Int_stable (pair_measure_generator ?S ?T)" (is "Int_stable ?P")
+      by fact
+    show "space ?P \<in> sets ?P"
+      unfolding space_pair_measure[simplified pair_measure_def space_sigma]
+      using X.top Y.top by (auto intro!: pair_measure_generatorI)
+
+    show "prob_space ?J" by default
+    show "space ?J = space ?P"
+      by (simp add: pair_measure_generator_def space_pair_measure)
+    show "sets ?J = sets (sigma ?P)"
+      by (simp add: pair_measure_def)
+
+    show "prob_space XY.P" by default
+    show "space XY.P = space ?P" "sets XY.P = sets (sigma ?P)"
+      by (simp_all add: pair_measure_generator_def pair_measure_def)
+
+    show "A \<in> sets (sigma ?P)"
+      using `A \<in> sets P` unfolding P_def pair_measure_def by simp
+
+    fix X assume "X \<in> sets ?P"
+    then obtain A B where "A \<in> sets S" "B \<in> sets T" "X = A \<times> B"
+      by (auto simp: sets_pair_measure_generator)
+    then show "J.\<mu>' X = XY.\<mu>' X"
+      unfolding J.\<mu>'_def XY.\<mu>'_def using indep
+      by (simp add: XY.pair_measure_times)
+         (simp add: distribution_def indep_varD)
+  qed
+  then show ?thesis
+    using `A \<in> sets P` unfolding P_def J.\<mu>'_def XY.\<mu>'_def by simp
+qed
 
 end

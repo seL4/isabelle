@@ -1366,7 +1366,7 @@ by (rule DERIV_cos [THEN DERIV_isCont])
 
 declare
   DERIV_exp[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
-  DERIV_ln[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
+  DERIV_ln_divide[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
   DERIV_sin[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
   DERIV_cos[THEN DERIV_chain2, THEN DERIV_cong, DERIV_intros]
 

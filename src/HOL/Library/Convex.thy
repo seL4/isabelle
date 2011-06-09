@@ -465,6 +465,25 @@ next
   thus "convex_on C f" unfolding convex_on_def by auto
 qed
 
+lemma convex_on_diff:
+  fixes f :: "real \<Rightarrow> real"
+  assumes f: "convex_on I f" and I: "x\<in>I" "y\<in>I" and t: "x < t" "t < y"
+  shows "(f x - f t) / (x - t) \<le> (f x - f y) / (x - y)" "(f x - f y) / (x - y) \<le> (f t - f y) / (t - y)"
+proof -
+  def a \<equiv> "(t - y) / (x - y)"
+  with t have "0 \<le> a" "0 \<le> 1 - a" by (auto simp: field_simps)
+  with f `x \<in> I` `y \<in> I` have cvx: "f (a * x + (1 - a) * y) \<le> a * f x + (1 - a) * f y"
+    by (auto simp: convex_on_def)
+  have "a * x + (1 - a) * y = a * (x - y) + y" by (simp add: field_simps)
+  also have "\<dots> = t" unfolding a_def using `x < t` `t < y` by simp
+  finally have "f t \<le> a * f x + (1 - a) * f y" using cvx by simp
+  also have "\<dots> = a * (f x - f y) + f y" by (simp add: field_simps)
+  finally have "f t - f y \<le> a * (f x - f y)" by simp
+  with t show "(f x - f t) / (x - t) \<le> (f x - f y) / (x - y)"
+    by (simp add: times_divide_eq le_divide_eq divide_le_eq field_simps a_def)
+  with t show "(f x - f y) / (x - y) \<le> (f t - f y) / (t - y)"
+    by (simp add: times_divide_eq le_divide_eq divide_le_eq field_simps)
+qed
 
 lemma pos_convex_function:
   fixes f :: "real \<Rightarrow> real"
