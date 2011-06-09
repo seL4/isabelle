@@ -575,7 +575,8 @@ fun print_ocaml_stmt labelled_name tyco_syntax const_syntax reserved is_cons der
             (concat (
               str definer
               :: (str o deresolve) inst
-              :: print_dict_args vs
+              :: (if is_pseudo_fun inst then [str "()"]
+                  else print_dict_args vs)
               @ str "="
               @@ brackets [
                 enum_default "()" ";" "{" "}" (map print_super_instance super_instances
