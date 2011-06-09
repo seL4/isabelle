@@ -194,7 +194,7 @@ fun instantiate_narrowing_datatype config descr vs tycos prfx (names, auxnames) 
 
 (* testing framework *)
 
-val target = "Haskell"
+val target = "Haskell_Quickcheck"
 
 (** invocation of Haskell interpreter **)
 
@@ -210,9 +210,9 @@ fun with_overlord_dir name f =
     val _ = Isabelle_System.mkdirs path;
   in Exn.release (Exn.capture f path) end;
   
-fun value contains_existentials ctxt (get, put, put_ml) (code, value_name) =
+fun value (contains_existentials, (quiet, size)) ctxt (get, put, put_ml) (code, value_name) =
   let
-    fun message s = if Config.get ctxt Quickcheck.quiet then () else Output.urgent_message s
+    fun message s = if quiet then () else Output.urgent_message s
     val tmp_prefix = "Quickcheck_Narrowing"
     val with_tmp_dir =
       if Config.get ctxt overlord then with_overlord_dir else Isabelle_System.with_tmp_dir 
@@ -239,7 +239,7 @@ fun value contains_existentials ctxt (get, put, put_ml) (code, value_name) =
           " -o " ^ executable ^ ";"
         val _ = if bash cmd <> 0 then error "Compilation with GHC failed" else ()
         fun with_size k =
-          if k > Config.get ctxt Quickcheck.size then
+          if k > size then
             NONE
           else
             let
@@ -264,10 +264,10 @@ fun value contains_existentials ctxt (get, put, put_ml) (code, value_name) =
       end
   in with_tmp_dir tmp_prefix run end;
 
-fun dynamic_value_strict contains_existentials cookie thy postproc t =
+fun dynamic_value_strict opts cookie thy postproc t =
   let
     val ctxt = Proof_Context.init_global thy
-    fun evaluator naming program ((_, vs_ty), t) deps = Exn.interruptible_capture (value contains_existentials ctxt cookie)
+    fun evaluator naming program ((_, vs_ty), t) deps = Exn.interruptible_capture (value opts ctxt cookie)
       (Code_Target.evaluator thy target naming program deps (vs_ty, t));    
   in Exn.release (Code_Thingol.dynamic_value thy (Exn.map_result o postproc) evaluator t) end;
 
@@ -373,6 +373,7 @@ fun mk_terms ctxt qs result =
   
 fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
   let
+    val opts = (Config.get ctxt Quickcheck.quiet, Config.get ctxt Quickcheck.size)
     val thy = Proof_Context.theory_of ctxt
     val t' = fold_rev (fn (x, T) => fn t => HOLogic.mk_all (x, T, t)) (Term.add_frees t []) t
     val pnf_t = make_pnf_term thy t'
@@ -388,7 +389,7 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
         val ((prop_def, _), ctxt') = Local_Theory.define ((Binding.conceal (Binding.name "test_property"), NoSyn),
           ((Binding.conceal Binding.empty, [Code.add_default_eqn_attrib]), prop_term)) ctxt
         val (prop_def', thy') = Local_Theory.exit_result_global Morphism.term (prop_def, ctxt') 
-        val result = dynamic_value_strict true
+        val result = dynamic_value_strict (true, opts)
           (Existential_Counterexample.get, Existential_Counterexample.put,
             "Narrowing_Generators.put_existential_counterexample")
           thy' (Option.map o map_counterexample) (mk_property qs prop_def')
@@ -404,7 +405,7 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
         val finitize = if Config.get ctxt finite_functions then wrap finitize_functions else I
         fun ensure_testable t =
           Const (@{const_name Quickcheck_Narrowing.ensure_testable}, fastype_of t --> fastype_of t) $ t
-        val result = dynamic_value_strict false
+        val result = dynamic_value_strict (false, opts)
           (Counterexample.get, Counterexample.put, "Narrowing_Generators.put_counterexample")
           thy (Option.map o map) (ensure_testable (finitize t'))
       in

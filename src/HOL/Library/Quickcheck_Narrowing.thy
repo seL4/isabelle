@@ -12,17 +12,21 @@ begin
 
 subsection {* Counterexample generator *}
 
+text {* We create a new target for the necessary code generation setup. *}
+
+setup {* Code_Target.extend_target ("Haskell_Quickcheck", (Code_Haskell.target, K I)) *}
+
 subsubsection {* Code generation setup *}
 
 code_type typerep
-  ("Haskell" "Typerep")
+  (Haskell_Quickcheck "Typerep")
 
 code_const Typerep.Typerep
-  ("Haskell" "Typerep")
+  (Haskell_Quickcheck "Typerep")
 
-code_reserved Haskell Typerep
+code_reserved Haskell_Quickcheck Typerep
 
-subsubsection {* Type @{text "code_int"} for Haskell's Int type *}
+subsubsection {* Type @{text "code_int"} for Haskell_Quickcheck's Int type *}
 
 typedef (open) code_int = "UNIV \<Colon> int set"
   morphisms int_of of_int by rule
@@ -169,34 +173,34 @@ qed
 
 
 code_instance code_numeral :: equal
-  (Haskell -)
+  (Haskell_Quickcheck -)
 
 setup {* fold (Numeral.add_code @{const_name number_code_int_inst.number_of_code_int}
-  false Code_Printer.literal_numeral) ["Haskell"]  *}
+  false Code_Printer.literal_numeral) ["Haskell_Quickcheck"]  *}
 
 code_const "0 \<Colon> code_int"
-  (Haskell "0")
+  (Haskell_Quickcheck "0")
 
 code_const "1 \<Colon> code_int"
-  (Haskell "1")
+  (Haskell_Quickcheck "1")
 
 code_const "minus \<Colon> code_int \<Rightarrow> code_int \<Rightarrow> code_int"
-  (Haskell "(_/ -/ _)")
+  (Haskell_Quickcheck "(_/ -/ _)")
 
 code_const div_mod_code_int
-  (Haskell "divMod")
+  (Haskell_Quickcheck "divMod")
 
 code_const "HOL.equal \<Colon> code_int \<Rightarrow> code_int \<Rightarrow> bool"
-  (Haskell infix 4 "==")
+  (Haskell_Quickcheck infix 4 "==")
 
 code_const "op \<le> \<Colon> code_int \<Rightarrow> code_int \<Rightarrow> bool"
-  (Haskell infix 4 "<=")
+  (Haskell_Quickcheck infix 4 "<=")
 
 code_const "op < \<Colon> code_int \<Rightarrow> code_int \<Rightarrow> bool"
-  (Haskell infix 4 "<")
+  (Haskell_Quickcheck infix 4 "<")
 
 code_type code_int
-  (Haskell "Int")
+  (Haskell_Quickcheck "Int")
 
 code_abort of_int
 
@@ -220,15 +224,15 @@ subsubsection {* Auxilary functions for Narrowing *}
 
 consts nth :: "'a list => code_int => 'a"
 
-code_const nth ("Haskell" infixl 9  "!!")
+code_const nth (Haskell_Quickcheck infixl 9  "!!")
 
 consts error :: "char list => 'a"
 
-code_const error ("Haskell" "error")
+code_const error (Haskell_Quickcheck "error")
 
 consts toEnum :: "code_int => char"
 
-code_const toEnum ("Haskell" "toEnum")
+code_const toEnum (Haskell_Quickcheck "toEnum")
 
 consts map_index :: "(code_int * 'a => 'b) => 'a list => 'b list"  
 
