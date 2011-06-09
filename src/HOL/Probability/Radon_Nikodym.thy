@@ -1311,6 +1311,59 @@ proof -
     by (auto simp: RN_deriv_positive_integral[OF ms \<nu>(2)])
 qed
 
+lemma (in sigma_finite_measure) real_RN_deriv:
+  assumes "finite_measure (M\<lparr>measure := \<nu>\<rparr>)" (is "finite_measure ?\<nu>")
+  assumes ac: "absolutely_continuous \<nu>"
+  obtains D where "D \<in> borel_measurable M"
+    and "AE x. RN_deriv M \<nu> x = extreal (D x)"
+    and "AE x in M\<lparr>measure := \<nu>\<rparr>. 0 < D x"
+    and "\<And>x. 0 \<le> D x"
+proof
+  interpret \<nu>: finite_measure ?\<nu> by fact
+  have ms: "measure_space ?\<nu>" by default
+  note RN = RN_deriv[OF ms ac]
+
+  let ?RN = "\<lambda>t. {x \<in> space M. RN_deriv M \<nu> x = t}"
+
+  show "(\<lambda>x. real (RN_deriv M \<nu> x)) \<in> borel_measurable M"
+    using RN by auto
+
+  have "\<nu> (?RN \<infinity>) = (\<integral>\<^isup>+ x. RN_deriv M \<nu> x * indicator (?RN \<infinity>) x \<partial>M)"
+    using RN by auto
+  also have "\<dots> = (\<integral>\<^isup>+ x. \<infinity> * indicator (?RN \<infinity>) x \<partial>M)"
+    by (intro positive_integral_cong) (auto simp: indicator_def)
+  also have "\<dots> = \<infinity> * \<mu> (?RN \<infinity>)"
+    using RN by (intro positive_integral_cmult_indicator) auto
+  finally have eq: "\<nu> (?RN \<infinity>) = \<infinity> * \<mu> (?RN \<infinity>)" .
+  moreover
+  have "\<mu> (?RN \<infinity>) = 0"
+  proof (rule ccontr)
+    assume "\<mu> {x \<in> space M. RN_deriv M \<nu> x = \<infinity>} \<noteq> 0"
+    moreover from RN have "0 \<le> \<mu> {x \<in> space M. RN_deriv M \<nu> x = \<infinity>}" by auto
+    ultimately have "0 < \<mu> {x \<in> space M. RN_deriv M \<nu> x = \<infinity>}" by auto
+    with eq have "\<nu> (?RN \<infinity>) = \<infinity>" by simp
+    with \<nu>.finite_measure[of "?RN \<infinity>"] RN show False by auto
+  qed
+  ultimately have "AE x. RN_deriv M \<nu> x < \<infinity>"
+    using RN by (intro AE_iff_measurable[THEN iffD2]) auto
+  then show "AE x. RN_deriv M \<nu> x = extreal (real (RN_deriv M \<nu> x))"
+    using RN(3) by (auto simp: extreal_real)
+  then have eq: "AE x in (M\<lparr>measure := \<nu>\<rparr>) . RN_deriv M \<nu> x = extreal (real (RN_deriv M \<nu> x))"
+    using ac absolutely_continuous_AE[OF ms] by auto
+
+  show "\<And>x. 0 \<le> real (RN_deriv M \<nu> x)"
+    using RN by (auto intro: real_of_extreal_pos)
+
+  have "\<nu> (?RN 0) = (\<integral>\<^isup>+ x. RN_deriv M \<nu> x * indicator (?RN 0) x \<partial>M)"
+    using RN by auto
+  also have "\<dots> = (\<integral>\<^isup>+ x. 0 \<partial>M)"
+    by (intro positive_integral_cong) (auto simp: indicator_def)
+  finally have "AE x in (M\<lparr>measure := \<nu>\<rparr>). RN_deriv M \<nu> x \<noteq> 0"
+    using RN by (intro \<nu>.AE_iff_measurable[THEN iffD2]) auto
+  with RN(3) eq show "AE x in (M\<lparr>measure := \<nu>\<rparr>). 0 < real (RN_deriv M \<nu> x)"
+    by (auto simp: zero_less_real_of_extreal le_less)
+qed
+
 lemma (in sigma_finite_measure) RN_deriv_singleton:
   assumes "measure_space (M\<lparr>measure := \<nu>\<rparr>)"
   and ac: "absolutely_continuous \<nu>"
