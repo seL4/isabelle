@@ -241,7 +241,7 @@ fun mfix_to_xprod is_logtype (mfix as Mfix (sy, typ, const, pris, pri)) =
           val rangeT = Term.range_type typ handle Match =>
             err_in_mfix "Missing structure argument for indexed syntax" mfix;
 
-          val xs = map Ast.Variable (Name.invent_list [] "xa" (length args - 1));
+          val xs = map Ast.Variable (Name.invents Name.context "xa" (length args - 1));
           val (xs1, xs2) = chop (find_index is_index args) xs;
           val i = Ast.Variable "i";
           val lhs = Ast.mk_appl (Ast.Constant indexed_const)

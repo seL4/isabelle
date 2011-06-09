@@ -372,7 +372,7 @@ fun assemble_eqnss idx_of deps eqnss =
     fun assemble_eqns (c, (num_args, (dicts, eqns))) =
       let
         val default_args = map nbe_default
-          (Name.invent_list [] "a" (num_args - length dicts));
+          (Name.invents Name.context "a" (num_args - length dicts));
         val eqns' = map_index (assemble_eqn c dicts default_args) eqns
           @ (if c = "" then [] else [(nbe_fun (length eqns) c,
             [([ml_list (rev (dicts @ default_args))],
@@ -421,7 +421,7 @@ fun eqns_of_stmt (_, Code_Thingol.Fun (_, ((_, []), _))) =
   | eqns_of_stmt (class, Code_Thingol.Class (_, (v, (super_classes, classparams)))) =
       let
         val names = map snd super_classes @ map fst classparams;
-        val params = Name.invent_list [] "d" (length names);
+        val params = Name.invents Name.context "d" (length names);
         fun mk (k, name) =
           (name, ([(v, [])],
             [([IConst (class, (([], []), [])) `$$ map (IVar o SOME) params],
