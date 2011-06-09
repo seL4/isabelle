@@ -234,7 +234,7 @@ fun compile_pat match_name pat rhs taken =
           in comp_con T f rhs' (v::vs) taken' end
       | Const (c, cT) =>
           let
-            val n = Name.variant taken "v"
+            val n = singleton (Name.variant_list taken) "v"
             val v = Free(n, T)
             val m = Const(match_name c, matcherT (cT, fastype_of rhs))
             val k = big_lambdas vs rhs

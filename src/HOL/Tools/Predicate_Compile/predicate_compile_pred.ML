@@ -77,7 +77,7 @@ fun flatten constname atom (defs, thy) =
   if is_compound atom then
     let
       val atom = Envir.beta_norm (Pattern.eta_long [] atom)
-      val constname = Name.variant (map (Long_Name.base_name o fst) defs)
+      val constname = singleton (Name.variant_list (map (Long_Name.base_name o fst) defs))
         ((Long_Name.base_name constname) ^ "_aux")
       val full_constname = Sign.full_bname thy constname
       val (params, args) = List.partition (is_predT o fastype_of)
@@ -108,7 +108,7 @@ fun flatten constname atom (defs, thy) =
       | SOME (atom', srs) =>
         let      
           val frees = map Free (Term.add_frees atom' [])
-          val constname = Name.variant (map (Long_Name.base_name o fst) defs)
+          val constname = singleton (Name.variant_list (map (Long_Name.base_name o fst) defs))
            ((Long_Name.base_name constname) ^ "_aux")
           val full_constname = Sign.full_bname thy constname
           val constT = map fastype_of frees ---> HOLogic.boolT
@@ -239,8 +239,9 @@ fun flat_higher_order_arguments (intross, thy) =
             val vars = map Var (Term.add_vars abs_arg [])
             val abs_arg' = Logic.unvarify_global abs_arg
             val frees = map Free (Term.add_frees abs_arg' [])
-            val constname = Name.variant (map (Long_Name.base_name o fst) new_defs)
-              ((Long_Name.base_name constname) ^ "_hoaux")
+            val constname =
+              singleton (Name.variant_list (map (Long_Name.base_name o fst) new_defs))
+                ((Long_Name.base_name constname) ^ "_hoaux")
             val full_constname = Sign.full_bname thy constname
             val constT = map fastype_of frees ---> (fastype_of abs_arg')
             val const = Const (full_constname, constT)

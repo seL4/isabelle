@@ -117,10 +117,6 @@ fun clarsimp_tac ctxt =
 
 (* auto_tac *)
 
-fun blast_depth_tac ctxt m i thm =
-  Blast.depth_tac ctxt m i thm
-    handle Blast.TRANS s => (warning ("Blast_tac: " ^ s); Seq.empty);
-
 (* a variant of depth_tac that avoids interference of the simplifier
    with dup_step_tac when they are combined by auto_tac *)
 local
@@ -140,12 +136,12 @@ fun nodup_depth_tac ctxt m i st =
 
 end;
 
-(*Designed to be idempotent, except if blast_depth_tac instantiates variables
+(*Designed to be idempotent, except if Blast.depth_tac instantiates variables
   in some of the subgoals*)
 fun mk_auto_tac ctxt m n =
   let
     val main_tac =
-      blast_depth_tac ctxt m  (* fast but can't use wrappers *)
+      Blast.depth_tac ctxt m  (* fast but can't use wrappers *)
       ORELSE'
       (CHANGED o nodup_depth_tac (addss ctxt) n);  (* slower but more general *)
   in

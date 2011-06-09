@@ -622,7 +622,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
               (resolve_tac rep_intrs 1)) thy |> (fn ((_, r), thy) =>
         let
           val permT = mk_permT
-            (TFree (Name.variant (map fst tvs) "'a", HOLogic.typeS));
+            (TFree (singleton (Name.variant_list (map fst tvs)) "'a", HOLogic.typeS));
           val pi = Free ("pi", permT);
           val T = Type (Sign.intern_type thy name, map TFree tvs);
         in apfst (pair r o hd)
@@ -1169,7 +1169,7 @@ fun gen_add_nominal_datatype prep_typ config new_type_names dts thy =
         val rec_tnames = map fst (filter (is_rec_type o snd) (tnames ~~ cargs));
         val frees = tnames ~~ Ts;
         val frees' = partition_cargs idxs frees;
-        val z = (Name.variant tnames "z", fsT);
+        val z = (singleton (Name.variant_list tnames) "z", fsT);
 
         fun mk_prem ((dt, s), T) =
           let

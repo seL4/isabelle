@@ -433,7 +433,7 @@ fun constrset_of_consts thy cs =
       in (c, (vs'', binder_types ty')) end;
     val c' :: cs' = map (analyze_constructor thy) cs;
     val ((tyco, sorts), cs'') = fold add cs' (apsnd single c');
-    val vs = Name.names Name.context Name.aT sorts;
+    val vs = Name.invent_names Name.context Name.aT sorts;
     val cs''' = map (inst vs) cs'';
   in (tyco, (vs, rev cs''')) end;
 
@@ -444,7 +444,7 @@ fun get_type_entry thy tyco = case these (Symtab.lookup ((the_types o the_exec) 
 fun get_type thy tyco = case get_type_entry thy tyco
  of SOME (vs, spec) => apfst (pair vs) (constructors_of spec)
   | NONE => arity_number thy tyco
-      |> Name.invents Name.context Name.aT
+      |> Name.invent Name.context Name.aT
       |> map (rpair [])
       |> rpair []
       |> rpair false;
@@ -779,7 +779,7 @@ fun cert_of_eqns thy c [] = empty_cert thy c
         fun inter_sorts vs =
           fold (curry (Sorts.inter_sort (Sign.classes_of thy)) o snd) vs [];
         val sorts = map_transpose inter_sorts vss;
-        val vts = Name.names Name.context Name.aT sorts;
+        val vts = Name.invent_names Name.context Name.aT sorts;
         val thms' =
           map2 (fn vs => Thm.certify_instantiate (vs ~~ map TFree vts, [])) vss thms;
         val head_thm = Thm.symmetric (Thm.assume (build_head thy (head_eqn (hd thms'))));
@@ -1145,8 +1145,8 @@ fun del_eqns c = change_fun_spec true c (K empty_fun_spec);
 
 fun case_cong thy case_const (num_args, (pos, _)) =
   let
-    val ([x, y], ctxt) = Name.variants ["A", "A'"] Name.context;
-    val (zs, _) = Name.variants (replicate (num_args - 1) "") ctxt;
+    val ([x, y], ctxt) = fold_map Name.variant ["A", "A'"] Name.context;
+    val (zs, _) = fold_map Name.variant (replicate (num_args - 1) "") ctxt;
     val (ws, vs) = chop pos zs;
     val T = Logic.unvarifyT_global (Sign.the_const_type thy case_const);
     val Ts = binder_types T;

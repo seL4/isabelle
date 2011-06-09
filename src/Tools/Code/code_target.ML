@@ -416,7 +416,7 @@ fun evaluation mounted_serializer prepared_program consts ((vs, ty), t) =
   let
     val _ = if Code_Thingol.contains_dict_var t then
       error "Term to be evaluated contains free dictionaries" else ();
-    val v' = Name.variant (map fst vs) "a";
+    val v' = singleton (Name.variant_list (map fst vs)) "a";
     val vs' = (v', []) :: vs;
     val ty' = Code_Thingol.fun_tyco `%% [ITyVar v', ty];
     val value_name = "Value.value.value"

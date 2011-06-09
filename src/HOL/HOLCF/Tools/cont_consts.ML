@@ -23,7 +23,7 @@ fun change_arrow 0 T = T
 
 fun trans_rules name2 name1 n mx =
   let
-    val vnames = Name.invents Name.context "a" n
+    val vnames = Name.invent Name.context "a" n
     val extra_parse_rule = Syntax.Parse_Rule (Ast.Constant name2, Ast.Constant name1)
   in
     [Syntax.Parse_Print_Rule

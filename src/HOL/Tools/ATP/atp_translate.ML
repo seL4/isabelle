@@ -849,7 +849,7 @@ fun combformula_from_prop thy format type_sys eq_as_iff =
       |>> (introduce_proxies format type_sys #> AAtom)
       ||> union (op =) atomic_types
     fun do_quant bs q s T t' =
-      let val s = Name.variant (map fst bs) s in
+      let val s = singleton (Name.variant_list (map fst bs)) s in
         do_formula ((s, T) :: bs) t'
         #>> mk_aquant q [(`make_bound_var s, SOME T)]
       end

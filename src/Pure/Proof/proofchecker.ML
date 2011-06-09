@@ -100,7 +100,7 @@ fun thm_of_proof thy prf =
 
       | thm_of (vs, names) Hs (Abst (s, SOME T, prf)) =
           let
-            val ([x], names') = Name.variants [s] names;
+            val (x, names') = Name.variant s names;
             val thm = thm_of ((x, T) :: vs, names') Hs prf
           in
             Thm.forall_intr (Thm.cterm_of thy (Free (x, T))) thm

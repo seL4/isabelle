@@ -163,7 +163,7 @@ fun inst_subst_tac b rl = CSUBGOAL (fn (cBi, i) =>
           | t => Term.abstract_over (t, Term.incr_boundvars 1 Q));
         val thy = Thm.theory_of_thm rl';
         val (instT, _) = Thm.match (pairself (cterm_of thy o Logic.mk_type) (V, U));
-      in compose_tac (true, Drule.instantiate (instT,
+      in compose_tac (true, Drule.instantiate_normalize (instT,
         map (pairself (cterm_of thy))
           [(Var (ixn, Ts ---> U --> body_type T), u),
            (Var (fst (dest_Var (head_of v1)), Ts ---> U), list_abs (ps, t)),

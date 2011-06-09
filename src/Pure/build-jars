@@ -6,6 +6,53 @@
 #
 # Requires proper Isabelle settings environment.
 
+## sources
+
+declare -a SOURCES=(
+  Concurrent/future.scala
+  Concurrent/simple_thread.scala
+  Concurrent/volatile.scala
+  General/exn.scala
+  General/timing.scala
+  General/linear_set.scala
+  General/markup.scala
+  General/position.scala
+  General/pretty.scala
+  General/scan.scala
+  General/sha1.scala
+  General/symbol.scala
+  General/xml.scala
+  General/xml_data.scala
+  General/yxml.scala
+  Isar/keyword.scala
+  Isar/outer_syntax.scala
+  Isar/parse.scala
+  Isar/token.scala
+  PIDE/command.scala
+  PIDE/document.scala
+  PIDE/isar_document.scala
+  PIDE/markup_tree.scala
+  PIDE/text.scala
+  System/cygwin.scala
+  System/download.scala
+  System/event_bus.scala
+  System/gui_setup.scala
+  System/isabelle_process.scala
+  System/isabelle_syntax.scala
+  System/isabelle_system.scala
+  System/platform.scala
+  System/session.scala
+  System/session_manager.scala
+  System/standard_system.scala
+  System/swing_thread.scala
+  Thy/completion.scala
+  Thy/html.scala
+  Thy/thy_header.scala
+  Thy/thy_syntax.scala
+  library.scala
+  package.scala
+)
+
 
 ## diagnostics
 
@@ -60,51 +107,6 @@ shift $(($OPTIND - 1))
 
 
 ## dependencies
-
-declare -a SOURCES=(
-  Concurrent/future.scala
-  Concurrent/simple_thread.scala
-  Concurrent/volatile.scala
-  General/exn.scala
-  General/timing.scala
-  General/linear_set.scala
-  General/markup.scala
-  General/position.scala
-  General/pretty.scala
-  General/scan.scala
-  General/sha1.scala
-  General/symbol.scala
-  General/xml.scala
-  General/xml_data.scala
-  General/yxml.scala
-  Isar/keyword.scala
-  Isar/outer_syntax.scala
-  Isar/parse.scala
-  Isar/token.scala
-  PIDE/command.scala
-  PIDE/document.scala
-  PIDE/isar_document.scala
-  PIDE/markup_tree.scala
-  PIDE/text.scala
-  System/cygwin.scala
-  System/download.scala
-  System/event_bus.scala
-  System/gui_setup.scala
-  System/isabelle_process.scala
-  System/isabelle_syntax.scala
-  System/isabelle_system.scala
-  System/platform.scala
-  System/session.scala
-  System/session_manager.scala
-  System/standard_system.scala
-  System/swing_thread.scala
-  Thy/completion.scala
-  Thy/html.scala
-  Thy/thy_header.scala
-  Thy/thy_syntax.scala
-  library.scala
-  package.scala
-)
 
 TARGET_DIR="$ISABELLE_HOME/lib/classes"
 PURE_JAR="$TARGET_DIR/Pure.jar"

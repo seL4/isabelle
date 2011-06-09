@@ -73,7 +73,7 @@ fun complete_split_rule_var (t as Var (v, T), ts) (rl, vs) =
         val cterm = Thm.cterm_of (Thm.theory_of_thm rl);
         val (vs', insts) = fold mk_tuple ts (vs, []);
       in
-        (instantiate ([], [(cterm t, cterm newt)] @ insts) rl, vs')
+        (Drule.instantiate_normalize ([], [(cterm t, cterm newt)] @ insts) rl, vs')
       end
   | complete_split_rule_var _ x = x;
 

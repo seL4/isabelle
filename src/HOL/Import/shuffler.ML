@@ -228,7 +228,7 @@ fun freeze_thaw_term t =
         val (type_inst,_) =
             fold (fn (w as (v,_), S) => fn (inst, used) =>
                       let
-                          val v' = Name.variant used v
+                          val v' = singleton (Name.variant_list used) v
                       in
                           ((w,TFree(v',S))::inst,v'::used)
                       end)
@@ -249,7 +249,7 @@ fun inst_tfrees thy [] thm = thm
         val mid =
             case rens of
                 [] => thm'
-              | [((_, S), idx)] => instantiate
+              | [((_, S), idx)] => Drule.instantiate_normalize
             ([(ctyp_of thy (TVar (idx, S)), cU)], []) thm'
               | _ => error "Shuffler.inst_tfrees internal error"
     in
@@ -298,7 +298,7 @@ fun eta_contract thy assumes origt =
               then
                   let
                       val cert = cterm_of thy
-                      val v = Free (Name.variant (Term.add_free_names t []) "v", xT)
+                      val v = Free (singleton (Name.variant_list (Term.add_free_names t [])) "v", xT)
                       val cv = cert v
                       val ct = cert t
                       val th = (Thm.assume ct)
@@ -361,7 +361,7 @@ fun eta_expand thy assumes origt =
                       Type("fun",[aT,bT]) =>
                       let
                           val cert = cterm_of thy
-                          val vname = Name.variant (Term.add_free_names t []) "v"
+                          val vname = singleton (Name.variant_list (Term.add_free_names t [])) "v"
                           val v = Free(vname,aT)
                           val cv = cert v
                           val ct = cert t

@@ -255,7 +255,7 @@ fun global_thm_context th = declare_thm th (Proof_Context.init_global (Thm.theor
 fun variant_frees ctxt ts frees =
   let
     val names = names_of (fold declare_names ts ctxt);
-    val xs = fst (Name.variants (map #1 frees) names);
+    val xs = fst (fold_map Name.variant (map #1 frees) names);
   in xs ~~ map snd frees end;
 
 
@@ -365,7 +365,7 @@ fun add_fixes_binding bs ctxt =
     val xs = map check_name bs;
     val names = names_of ctxt;
     val (xs', names') =
-      if is_body ctxt then Name.variants xs names |>> map Name.skolem
+      if is_body ctxt then fold_map Name.variant xs names |>> map Name.skolem
       else (xs, fold Name.declare xs names);
   in ctxt |> new_fixes names' xs xs' (map Binding.pos_of bs) end;
 
@@ -373,7 +373,7 @@ fun variant_fixes raw_xs ctxt =
   let
     val names = names_of ctxt;
     val xs = map (fn x => Name.clean x |> can Name.dest_internal x ? Name.internal) raw_xs;
-    val (xs', names') = Name.variants xs names |>> (is_body ctxt ? map Name.skolem);
+    val (xs', names') = fold_map Name.variant xs names |>> (is_body ctxt ? map Name.skolem);
   in ctxt |> new_fixes names' xs xs' (replicate (length xs) Position.none) end;
 
 end;
@@ -391,7 +391,7 @@ fun auto_fixes t ctxt = ctxt
 
 fun invent_types Ss ctxt =
   let
-    val tfrees = Name.invents (names_of ctxt) Name.aT (length Ss) ~~ Ss;
+    val tfrees = Name.invent (names_of ctxt) Name.aT (length Ss) ~~ Ss;
     val ctxt' = fold (declare_constraints o Logic.mk_type o TFree) tfrees ctxt;
   in (tfrees, ctxt') end;
 

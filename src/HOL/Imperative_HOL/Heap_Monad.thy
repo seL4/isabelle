@@ -618,7 +618,6 @@ let
 open Code_Thingol;
 
 fun imp_program naming =
-
   let
     fun is_const c = case lookup_const naming c
      of SOME c' => (fn c'' => c' = c'')
@@ -635,7 +634,7 @@ fun imp_program naming =
       | dest_abs (t, ty) =
           let
             val vs = fold_varnames cons t [];
-            val v = Name.variant vs "x";
+            val v = singleton (Name.variant_list vs) "x";
             val ty' = (hd o fst o unfold_fun) ty;
           in ((SOME v, ty'), t `$ IVar (SOME v)) end;
     fun force (t as IConst (c, _) `$ t') = if is_return c

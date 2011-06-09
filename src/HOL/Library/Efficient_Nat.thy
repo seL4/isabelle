@@ -113,8 +113,8 @@ let
 
 fun remove_suc thy thms =
   let
-    val vname = Name.variant (map fst
-      (fold (Term.add_var_names o Thm.full_prop_of) thms [])) "n";
+    val vname = singleton (Name.variant_list (map fst
+      (fold (Term.add_var_names o Thm.full_prop_of) thms []))) "n";
     val cv = cterm_of thy (Var ((vname, 0), HOLogic.natT));
     fun lhs_of th = snd (Thm.dest_comb
       (fst (Thm.dest_comb (cprop_of th))));
@@ -166,8 +166,8 @@ val eqn_suc_preproc = Code_Preproc.simple_functrans eqn_suc_base_preproc;
 
 fun remove_suc_clause thy thms =
   let
-    val vname = Name.variant (map fst
-      (fold (Term.add_var_names o Thm.full_prop_of) thms [])) "x";
+    val vname = singleton (Name.variant_list (map fst
+      (fold (Term.add_var_names o Thm.full_prop_of) thms []))) "x";
     fun find_var (t as Const (@{const_name Suc}, _) $ (v as Var _)) = SOME (t, v)
       | find_var (t $ u) = (case find_var t of NONE => find_var u | x => x)
       | find_var _ = NONE;

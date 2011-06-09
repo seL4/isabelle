@@ -155,7 +155,7 @@ fun all_prefixes_of s =
 fun close_form t =
   (t, [] |> Term.add_free_names t |> maps all_prefixes_of)
   |> fold (fn ((s, i), T) => fn (t', taken) =>
-              let val s' = Name.variant taken s in
+              let val s' = singleton (Name.variant_list taken) s in
                 ((if fastype_of t' = HOLogic.boolT then HOLogic.all_const
                   else Term.all) T
                  $ Abs (s', T, abstract_over (Var ((s, i), T), t')),

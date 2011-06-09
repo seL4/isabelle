@@ -156,10 +156,10 @@ fun myfwd (th1, th2, th3) p q
       [(th_1,th_2,th_3), (th_1',th_2',th_3')] =
   let
    val (mp', mq') = (get_pmi th_1, get_pmi th_1')
-   val mi_th = FWD (instantiate ([],[(p_v,p),(q_v,q), (p_v',mp'),(q_v',mq')]) th1)
+   val mi_th = FWD (Drule.instantiate_normalize ([],[(p_v,p),(q_v,q), (p_v',mp'),(q_v',mq')]) th1)
                    [th_1, th_1']
-   val infD_th = FWD (instantiate ([],[(p_v,mp'), (q_v, mq')]) th3) [th_3,th_3']
-   val set_th = FWD (instantiate ([],[(p_v,p), (q_v,q)]) th2) [th_2, th_2']
+   val infD_th = FWD (Drule.instantiate_normalize ([],[(p_v,mp'), (q_v, mq')]) th3) [th_3,th_3']
+   val set_th = FWD (Drule.instantiate_normalize ([],[(p_v,p), (q_v,q)]) th2) [th_2, th_2']
   in (mi_th, set_th, infD_th)
   end;
 

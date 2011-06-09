@@ -167,12 +167,19 @@ fun inst_inference ctxt old_skolems sym_tab th_pairs fsubst th =
 
 (* INFERENCE RULE: RESOLVE *)
 
+(*Increment the indexes of only the type variables*)
+fun incr_type_indexes inc th =
+  let val tvs = Term.add_tvars (Thm.full_prop_of th) []
+      and thy = Thm.theory_of_thm th
+      fun inc_tvar ((a,i),s) = pairself (ctyp_of thy) (TVar ((a,i),s), TVar ((a,i+inc),s))
+  in Thm.instantiate (map inc_tvar tvs, []) th end;
+
 (* Like RSN, but we rename apart only the type variables. Vars here typically
    have an index of 1, and the use of RSN would increase this typically to 3.
    Instantiations of those Vars could then fail. *)
 fun resolve_inc_tyvars thy tha i thb =
   let
-    val tha = Drule.incr_type_indexes (1 + Thm.maxidx_of thb) tha
+    val tha = incr_type_indexes (1 + Thm.maxidx_of thb) tha
     fun aux tha thb =
       case Thm.bicompose false (false, tha, nprems_of tha) i thb
            |> Seq.list_of |> distinct Thm.eq_thm of
@@ -199,7 +206,7 @@ fun resolve_inc_tyvars thy tha i thb =
                    |> map (fn (x, (S, T)) =>
                               pairself (ctyp_of thy) (TVar (x, S), T)) of
              [] => raise TERM z
-           | ps => aux (instantiate (ps, []) tha) (instantiate (ps, []) thb)
+           | ps => aux (Drule.instantiate_normalize (ps, []) tha) (Drule.instantiate_normalize (ps, []) thb)
   end
 
 fun s_not (@{const Not} $ t) = t
@@ -555,7 +562,7 @@ fun instantiate_forall_tac thy t i st =
                         tyenv []
           val t_inst =
             [pairself (cterm_of thy o Envir.norm_term env) (Var var, t')]
-        in th |> instantiate (ty_inst, t_inst) end
+        in th |> Drule.instantiate_normalize (ty_inst, t_inst) end
       | _ => raise Fail "expected a single non-zapped, non-Metis Var"
   in
     (DETERM (etac @{thm allE} i THEN rotate_tac ~1 i)

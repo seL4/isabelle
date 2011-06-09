@@ -24,7 +24,7 @@ sig
   val legacy_freeze_thaw_robust: thm -> thm * (int -> thm -> thm)
   val implies_elim_list: thm -> thm list -> thm
   val implies_intr_list: cterm list -> thm -> thm
-  val instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
+  val instantiate_normalize: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
   val zero_var_indexes_list: thm list -> thm list
   val zero_var_indexes: thm -> thm
   val implies_intr_hyps: thm -> thm
@@ -110,7 +110,6 @@ sig
   val comp_no_flatten: thm * int -> int -> thm -> thm
   val rename_bvars: (string * string) list -> thm -> thm
   val rename_bvars': string option list -> thm -> thm
-  val incr_type_indexes: int -> thm -> thm
   val incr_indexes: thm -> thm -> thm
   val incr_indexes2: thm -> thm -> thm -> thm
   val remdups_rl: thm
@@ -337,7 +336,7 @@ fun legacy_freeze_thaw th =
        [] => (fth, fn x => x)
      | vars =>
          let fun newName (Var(ix,_), (pairs,used)) =
-                   let val v = Name.variant used (string_of_indexname ix)
+                   let val v = singleton (Name.variant_list used) (string_of_indexname ix)
                    in  ((ix,v)::pairs, v::used)  end;
              val (alist, _) = List.foldr newName ([], Library.foldr OldTerm.add_term_names
                (prop :: Thm.terms_of_tpairs tpairs, [])) vars
@@ -803,13 +802,6 @@ fun norm_hhf_cterm ct =
 
 (* var indexes *)
 
-(*Increment the indexes of only the type variables*)
-fun incr_type_indexes inc th =
-  let val tvs = OldTerm.term_tvars (prop_of th)
-      and thy = Thm.theory_of_thm th
-      fun inc_tvar ((a,i),s) = pairself (ctyp_of thy) (TVar ((a,i),s), TVar ((a,i+inc),s))
-  in Thm.instantiate (map inc_tvar tvs, []) th end;
-
 fun incr_indexes th = Thm.incr_indexes (Thm.maxidx_of th + 1);
 
 fun incr_indexes2 th1 th2 =
@@ -829,8 +821,7 @@ fun comp_no_flatten (th, n) i rule =
 
 (*** Instantiate theorem th, reading instantiations in theory thy ****)
 
-(*Version that normalizes the result: Thm.instantiate no longer does that*)
-fun instantiate instpair th =
+fun instantiate_normalize instpair th =
   Thm.adjust_maxidx_thm ~1 (Thm.instantiate instpair th COMP_INCR asm_rl);
 
 (*Left-to-right replacements: tpairs = [...,(vi,ti),...].
@@ -862,7 +853,7 @@ fun cterm_instantiate [] th = th
         let val inst = cterm_of thy o Term.map_types (Envir.norm_type tye) o term_of
         in (inst ct, inst cu) end
       fun ctyp2 (ixn, (S, T)) = (ctyp_of thy (TVar (ixn, S)), ctyp_of thy (Envir.norm_type tye T))
-  in  instantiate (map ctyp2 (Vartab.dest tye), map instT ctpairs0) th  end
+  in  instantiate_normalize (map ctyp2 (Vartab.dest tye), map instT ctpairs0) th  end
   handle TERM _ =>
            raise THM("cterm_instantiate: incompatible theories",0,[th])
        | TYPE (msg, _, _) => raise THM(msg, 0, [th])

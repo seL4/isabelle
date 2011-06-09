@@ -306,7 +306,7 @@ local
         (fn t => null (FuncUtil.Ctermfunc.dom (vector_lincomb t))) (map snd rawdests)
 
   in fst (RealArith.real_linear_prover translator
-        (map (fn t => instantiate ([(tv_n, ctyp_of_term t)],[]) pth_zero)
+        (map (fn t => Drule.instantiate_normalize ([(tv_n, ctyp_of_term t)],[]) pth_zero)
             zerodests,
         map (fconv_rule (try_conv (Conv.top_sweep_conv (K norm_canon_conv) ctxt) then_conv
                        arg_conv (arg_conv real_poly_conv))) ges',
@@ -343,7 +343,7 @@ fun real_vector_ineq_prover ctxt translator (ges,gts) =
   val shs = filter (member (fn (t,th) => t aconvc cprop_of th) asl) (#hyps (crep_thm th1))
   val th11 = hd (Variable.export ctxt' ctxt [fold Thm.implies_intr shs th1])
   val cps = map (swap o Thm.dest_equals) (cprems_of th11)
-  val th12 = instantiate ([], cps) th11
+  val th12 = Drule.instantiate_normalize ([], cps) th11
   val th13 = fold Thm.elim_implies (map (Thm.reflexive o snd) cps) th12;
  in hd (Variable.export ctxt' ctxt [th13])
  end

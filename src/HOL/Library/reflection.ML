@@ -157,7 +157,7 @@ fun genreif ctxt raw_eqs t =
                  map (fn ((vn,vi),(tT,t)) => (cert(Var ((vn,vi),tT)), cert t)) invs)
               val ctyenv = map (fn ((vn,vi),(s,ty)) => (certy (TVar((vn,vi),s)), certy ty)) (Vartab.dest tyenv)
             in ((fts ~~ (replicate (length fts) ctxt),
-                 Library.apfst (FWD (instantiate (ctyenv, its) cong))), bds)
+                 Library.apfst (FWD (Drule.instantiate_normalize (ctyenv, its) cong))), bds)
             end handle Pattern.MATCH => decomp_genreif da congs (t,ctxt) bds))
       end;
 
@@ -230,7 +230,7 @@ fun genreif ctxt raw_eqs t =
             val substt =
               let val ih = Drule.cterm_rule (Thm.instantiate (subst_ty,[]))
               in map (fn (v,t) => (ih v, ih t)) (subst_ns@subst_vs@cts)  end
-            val th = (instantiate (subst_ty, substt)  eq) RS sym
+            val th = (Drule.instantiate_normalize (subst_ty, substt)  eq) RS sym
           in (hd (Variable.export ctxt'' ctxt [th]), bds) end)
           handle Pattern.MATCH => tryeqs eqs bds)
       in tryeqs (filter isat eqs) bds end), bds);
@@ -277,7 +277,7 @@ fun genreif ctxt raw_eqs t =
     val cert = cterm_of (Proof_Context.theory_of ctxt)
     val cvs = map (fn (v as Var(n,t)) => (cert v,
                   the (AList.lookup Type.could_unify bds t) |> snd |> HOLogic.mk_list (dest_listT t) |> cert)) vars
-    val th' = instantiate ([], cvs) th
+    val th' = Drule.instantiate_normalize ([], cvs) th
     val t' = (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) th'
     val th'' = Goal.prove ctxt [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, t')))
                (fn _ => simp_tac (simpset_of ctxt) 1)

@@ -101,7 +101,7 @@ fun mk_abstractedrule TsFake Ts rule =
       val names = usednames_of_thm rule;
       val (fromnames,tonames,names2,Ts') = 
           Library.foldl (fn ((rnf,rnt,names, Ts''),((faken,_),(n,ty))) => 
-                    let val n2 = Name.variant names n in
+                    let val n2 = singleton (Name.variant_list names) n in
                       (ctermify (Free(faken,ty)) :: rnf,
                        ctermify (Free(n2,ty)) :: rnt, 
                        n2 :: names,
@@ -146,7 +146,7 @@ fun mk_renamings tgt rule_inst =
       val vars_to_fix = union (op =) termvars cond_vs;
       val (renamings, names2) = 
           List.foldr (fn (((n,i),ty), (vs, names')) => 
-                    let val n' = Name.variant names' n in
+                    let val n' = singleton (Name.variant_list names') n in
                       ((((n,i),ty), Free (n', ty)) :: vs, n'::names')
                     end)
                 ([], names) vars_to_fix;
@@ -154,7 +154,7 @@ fun mk_renamings tgt rule_inst =
 
 (* make a new fresh typefree instantiation for the given tvar *)
 fun new_tfree (tv as (ix,sort), (pairs,used)) =
-      let val v = Name.variant used (string_of_indexname ix)
+      let val v = singleton (Name.variant_list used) (string_of_indexname ix)
       in  ((ix,(sort,TFree(v,sort)))::pairs, v::used)  end;
 
 

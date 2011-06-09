@@ -162,7 +162,7 @@ fun rewr_conv rule ct =
     val lhs = Thm.lhs_of rule1;
     val rule2 = Thm.rename_boundvars (Thm.term_of lhs) (Thm.term_of ct) rule1;
   in
-    Drule.instantiate (Thm.match (lhs, ct)) rule2
+    Drule.instantiate_normalize (Thm.match (lhs, ct)) rule2
       handle Pattern.MATCH => raise CTERM ("rewr_conv", [lhs, ct])
   end;
 

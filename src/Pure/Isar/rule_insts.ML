@@ -173,7 +173,7 @@ fun read_instantiate_mixed ctxt mixed_insts thm =
         else
           Token.assign (SOME (Token.Term (the (AList.lookup (op =) term_insts xi)))) arg);
   in
-    Drule.instantiate insts thm |> Rule_Cases.save thm
+    Drule.instantiate_normalize insts thm |> Rule_Cases.save thm
   end;
 
 fun read_instantiate_mixed' ctxt (args, concl_args) thm =
@@ -323,7 +323,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
         fun liftpair (cv,ct) =
               (cterm_fun liftvar cv, cterm_fun liftterm ct)
         val lifttvar = pairself (ctyp_of thy o Logic.incr_tvar inc);
-        val rule = Drule.instantiate
+        val rule = Drule.instantiate_normalize
               (map lifttvar envT', map liftpair cenv)
               (Thm.lift_rule (Thm.cprem_of st i) thm)
       in
@@ -347,7 +347,7 @@ fun make_elim_preserve rl =
     val maxidx = Thm.maxidx_of rl;
     fun cvar xi = cert (Var (xi, propT));
     val revcut_rl' =
-      instantiate ([], [(cvar ("V", 0), cvar ("V", maxidx + 1)),
+      Drule.instantiate_normalize ([], [(cvar ("V", 0), cvar ("V", maxidx + 1)),
         (cvar ("W", 0), cvar ("W", maxidx + 1))]) Drule.revcut_rl;
   in
     (case Seq.list_of (Thm.bicompose false (false, rl, Thm.nprems_of rl) 1 revcut_rl') of

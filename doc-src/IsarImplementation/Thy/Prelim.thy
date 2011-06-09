@@ -854,8 +854,8 @@ text %mlref {*
   @{index_ML_type Name.context} \\
   @{index_ML Name.context: Name.context} \\
   @{index_ML Name.declare: "string -> Name.context -> Name.context"} \\
-  @{index_ML Name.invents: "Name.context -> string -> int -> string list"} \\
-  @{index_ML Name.variants: "string list -> Name.context -> string list * Name.context"} \\
+  @{index_ML Name.invent: "Name.context -> string -> int -> string list"} \\
+  @{index_ML Name.variant: "string -> Name.context -> string * Name.context"} \\
   \end{mldecls}
   \begin{mldecls}
   @{index_ML Variable.names_of: "Proof.context -> Name.context"} \\
@@ -875,11 +875,11 @@ text %mlref {*
   \item @{ML Name.declare}~@{text "name"} enters a used name into the
   context.
 
-  \item @{ML Name.invents}~@{text "context name n"} produces @{text
+  \item @{ML Name.invent}~@{text "context name n"} produces @{text
   "n"} fresh names derived from @{text "name"}.
 
-  \item @{ML Name.variants}~@{text "names context"} produces fresh
-  variants of @{text "names"}; the result is entered into the context.
+  \item @{ML Name.variant}~@{text "name context"} produces a fresh
+  variant of @{text "name"}; the result is declared to the context.
 
   \item @{ML Variable.names_of}~@{text "ctxt"} retrieves the context
   of declared type and term variable names.  Projecting a proof
@@ -897,11 +897,11 @@ text %mlex {* The following simple examples demonstrate how to produce
   fresh names from the initial @{ML Name.context}. *}
 
 ML {*
-  val list1 = Name.invents Name.context "a" 5;
+  val list1 = Name.invent Name.context "a" 5;
   @{assert} (list1 = ["a", "b", "c", "d", "e"]);
 
   val list2 =
-    #1 (Name.variants ["x", "x", "a", "a", "'a", "'a"] Name.context);
+    #1 (fold_map Name.variant ["x", "x", "a", "a", "'a", "'a"] Name.context);
   @{assert} (list2 = ["x", "xa", "a", "aa", "'a", "'aa"]);
 *}
 
@@ -914,11 +914,11 @@ begin
 ML {*
   val names = Variable.names_of @{context};
 
-  val list1 = Name.invents names "a" 5;
+  val list1 = Name.invent names "a" 5;
   @{assert} (list1 = ["d", "e", "f", "g", "h"]);
 
   val list2 =
-    #1 (Name.variants ["x", "x", "a", "a", "'a", "'a"] names);
+    #1 (fold_map Name.variant ["x", "x", "a", "a", "'a", "'a"] names);
   @{assert} (list2 = ["x", "xa", "aa", "ab", "'aa", "'ab"]);
 *}
 

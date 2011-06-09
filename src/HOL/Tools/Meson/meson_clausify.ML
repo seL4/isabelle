@@ -75,7 +75,7 @@ fun old_skolem_defs th =
         in dec_sko (subst_bound (comb, p)) (rhs :: rhss) end
       | dec_sko (Const (@{const_name All},_) $ Abs (a, T, p)) rhss =
         (*Universal quant: insert a free variable into body and continue*)
-        let val fname = Name.variant (OldTerm.add_term_names (p,[])) a
+        let val fname = singleton (Name.variant_list (OldTerm.add_term_names (p, []))) a
         in dec_sko (subst_bound (Free(fname,T), p)) rhss end
       | dec_sko (@{const conj} $ p $ q) rhss = rhss |> dec_sko p |> dec_sko q
       | dec_sko (@{const disj} $ p $ q) rhss = rhss |> dec_sko p |> dec_sko q

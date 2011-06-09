@@ -133,7 +133,7 @@ fun gen_obtain prep_att prep_vars prep_propp
     val _ = Variable.warn_extra_tfrees fix_ctxt parms_ctxt;
 
     (*obtain statements*)
-    val thesisN = Name.variant xs Auto_Bind.thesisN;
+    val thesisN = singleton (Name.variant_list xs) Auto_Bind.thesisN;
     val (thesis_var, thesis) = #1 (bind_judgment fix_ctxt thesisN);
 
     val that_name = if name = "" then thatN else name;

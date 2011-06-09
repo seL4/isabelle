@@ -36,7 +36,7 @@ fun unquantify t =
   let
     val (vs, Ts) = split_list (strip_qnt_vars "all" t);
     val body = strip_qnt_body "all" t;
-    val (vs', _) = Name.variants vs (Name.make_context (fold_aterms
+    val (vs', _) = fold_map Name.variant vs (Name.make_context (fold_aterms
       (fn Free (v, _) => insert (op =) v | _ => I) body []))
   in (curry subst_bounds (map2 (curry Free) vs' Ts |> rev) body) end;
 
@@ -207,7 +207,7 @@ fun get_fns fns ((i : int, (tname, _, constrs)), rec_name) (fs, defs) =
 fun make_def ctxt fixes fs (fname, ls, rs, rec_name, tname) =
   let
     val used = map fst (fold Term.add_frees fs []);
-    val x = (Name.variant used "x", dummyT);
+    val x = (singleton (Name.variant_list used) "x", dummyT);
     val frees = ls @ x :: rs;
     val raw_rhs = list_abs_free (frees,
       list_comb (Const (rec_name, dummyT), fs @ [Free x]))

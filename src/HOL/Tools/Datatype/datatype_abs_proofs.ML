@@ -281,7 +281,7 @@ fun prove_case_thms (config : Datatype_Aux.config)
     val recTs = Datatype_Aux.get_rec_types descr' sorts;
     val used = List.foldr OldTerm.add_typ_tfree_names [] recTs;
     val newTs = take (length (hd descr)) recTs;
-    val T' = TFree (Name.variant used "'t", HOLogic.typeS);
+    val T' = TFree (singleton (Name.variant_list used) "'t", HOLogic.typeS);
 
     fun mk_dummyT dt = binder_types (Datatype_Aux.typ_of_dtyp descr' sorts dt) ---> T';
 

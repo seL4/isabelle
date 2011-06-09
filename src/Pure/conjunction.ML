@@ -130,7 +130,7 @@ fun elim_balanced 0 _ = []
 local
 
 fun conjs thy n =
-  let val As = map (fn A => Thm.cterm_of thy (Free (A, propT))) (Name.invents Name.context "A" n)
+  let val As = map (fn A => Thm.cterm_of thy (Free (A, propT))) (Name.invent Name.context "A" n)
   in (As, mk_conjunction_balanced As) end;
 
 val B = read_prop "B";

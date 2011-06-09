@@ -63,9 +63,9 @@ fun mk_nat_thm thy t =
   let
     val cn = cterm_of thy (Var (("n", 0), HOLogic.natT))
     and ct = cterm_of thy t
-  in instantiate ([], [(cn, ct)]) @{thm le0} end;
+  in Drule.instantiate_normalize ([], [(cn, ct)]) @{thm le0} end;
 
-end;  (* LA_Logic *)
+end;
 
 
 (* arith context data *)

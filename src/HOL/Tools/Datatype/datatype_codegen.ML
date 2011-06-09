@@ -47,7 +47,7 @@ fun mk_case_cert thy tyco =
       |> Term.strip_comb
       |> apsnd (fst o split_last)
       |> list_comb;
-    val lhs = Free (Name.variant params "case", Term.fastype_of rhs);
+    val lhs = Free (singleton (Name.variant_list params) "case", Term.fastype_of rhs);
     val asm = (Thm.cterm_of thy o Logic.mk_equals) (lhs, rhs);
   in
     thms

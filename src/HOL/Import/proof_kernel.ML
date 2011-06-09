@@ -1419,7 +1419,7 @@ fun INST_TYPE lambda (hth as HOLThm(rens,th)) thy =
                                 | NONE => (ctyp_of thy (TVar iS), ctyp_of thy (TFree bef))
                              ))
                          (zip tys_before tys_after)
-        val res = Drule.instantiate (tyinst,[]) th1
+        val res = Drule.instantiate_normalize (tyinst,[]) th1
         val hth = HOLThm([],res)
         val res = norm_hthm thy hth
         val _ = message "RESULT:"

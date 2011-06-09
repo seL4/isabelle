@@ -96,7 +96,7 @@ let
                Syntax.string_of_term ctxt t);
 
   (*** Construct the fixedpoint definition ***)
-  val mk_variant = Name.variant (List.foldr OldTerm.add_term_names [] intr_tms);
+  val mk_variant = singleton (Name.variant_list (List.foldr OldTerm.add_term_names [] intr_tms));
 
   val z' = mk_variant"z" and X' = mk_variant"X" and w' = mk_variant"w";
 
@@ -493,7 +493,7 @@ let
        The name "x.1" comes from the "RS spec" !*)
      val inst =
          case elem_frees of [_] => I
-            | _ => instantiate ([], [(cterm_of thy1 (Var(("x",1), Ind_Syntax.iT)),
+            | _ => Drule.instantiate_normalize ([], [(cterm_of thy1 (Var(("x",1), Ind_Syntax.iT)),
                                       cterm_of thy1 elem_tuple)]);
 
      (*strip quantifier and the implication*)

@@ -205,7 +205,7 @@ fun mk_conform f empty avoid name =
       (filter (fn s => Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s)
         (Symbol.explode name)))
     val name'' = f (if name' = "" then empty else name')
-  in (if member (op =) avoid name'' then Name.variant avoid name'' else name'') end
+  in if member (op =) avoid name'' then singleton (Name.variant_list avoid) name'' else name'' end
 
 (** constant table **)
 

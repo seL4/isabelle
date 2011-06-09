@@ -439,7 +439,7 @@ fun impl_ast_tr' asts =
 (* dependent / nondependent quantifiers *)
 
 fun var_abs mark (x, T, b) =
-  let val ([x'], _) = Name.variants [x] (Term.declare_term_names b Name.context)
+  let val (x', _) = Name.variant x (Term.declare_term_names b Name.context)
   in (x', subst_bound (mark (x', T), b)) end;
 
 val variant_abs = var_abs Free;

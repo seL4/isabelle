@@ -657,7 +657,7 @@ fun varify_proof t fixed prf =
       (fn TFree v => if member (op =) fixed v then I else insert (op =) v | _ => I)) t [];
     val used = Name.context
       |> fold_types (fold_atyps (fn TVar ((a, _), _) => Name.declare a | _ => I)) t;
-    val fmap = fs ~~ #1 (Name.variants (map fst fs) used);
+    val fmap = fs ~~ #1 (fold_map Name.variant (map fst fs) used);
     fun thaw (f as (a, S)) =
       (case AList.lookup (op =) fmap f of
         NONE => TFree f
@@ -668,7 +668,7 @@ fun varify_proof t fixed prf =
 local
 
 fun new_name (ix, (pairs,used)) =
-  let val v = Name.variant used (string_of_indexname ix)
+  let val v = singleton (Name.variant_list used) (string_of_indexname ix)
   in  ((ix, v) :: pairs, v :: used)  end;
 
 fun freeze_one alist (ix, sort) = (case AList.lookup (op =) alist ix of
@@ -952,7 +952,7 @@ local
 
 fun canonical_instance typs =
   let
-    val names = Name.invents Name.context Name.aT (length typs);
+    val names = Name.invent Name.context Name.aT (length typs);
     val instT = map2 (fn a => fn T => (((a, 0), []), Type.strip_sorts T)) names typs;
   in instantiate (instT, []) end;
 

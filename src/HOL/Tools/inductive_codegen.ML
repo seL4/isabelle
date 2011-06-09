@@ -326,7 +326,7 @@ fun mk_v s (names, vs) =
   (case AList.lookup (op =) vs s of
     NONE => (s, (names, (s, [s])::vs))
   | SOME xs =>
-      let val s' = Name.variant names s
+      let val s' = singleton (Name.variant_list names) s
       in (s', (s'::names, AList.update (op =) (s, s'::xs) vs)) end);
 
 fun distinct_v (Var ((s, 0), T)) nvs =
@@ -414,7 +414,7 @@ fun compile_clause thy codegen_mode defs dep module all_vs arg_vs modes (iss, is
     fun check_constrt t (names, eqs) =
       if is_constrt thy t then (t, (names, eqs))
       else
-        let val s = Name.variant names "x";
+        let val s = singleton (Name.variant_list names) "x";
         in (Var ((s, 0), fastype_of t), (s::names, (s, t)::eqs)) end;
 
     fun compile_eq (s, t) gr =

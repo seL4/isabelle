@@ -238,7 +238,7 @@ fun dest_comb(t1 $ t2) = {Rator = t1, Rand = t2}
 
 fun dest_abs used (a as Abs(s, ty, M)) =
      let
-       val s' = Name.variant used s;
+       val s' = singleton (Name.variant_list used) s;
        val v = Free(s', ty);
      in ({Bvar = v, Body = Term.betapply (a,v)}, s'::used)
      end

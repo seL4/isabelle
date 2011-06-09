@@ -21,12 +21,11 @@ sig
   val make_context: string list -> context
   val declare: string -> context -> context
   val is_declared: context -> string -> bool
-  val invents: context -> string -> int -> string list
-  val names: context -> string -> 'a list -> (string * 'a) list
+  val invent: context -> string -> int -> string list
+  val invent_names: context -> string -> 'a list -> (string * 'a) list
   val invent_list: string list -> string -> int -> string list
-  val variants: string list -> context -> string list * context
+  val variant: string -> context -> string * context
   val variant_list: string list -> string list -> string list
-  val variant: string list -> string -> string
   val desymbolize: bool -> string -> string
 end;
 
@@ -95,28 +94,26 @@ val context = Context Symtab.empty |> fold declare ["", "'"];
 fun make_context used = fold declare used context;
 
 
-(* invents *)
+(* invent names *)
 
-fun invents ctxt =
+fun invent ctxt =
   let
     fun invs _ 0 = []
       | invs x n =
-          let val x' = Symbol.bump_string x in
-            if is_declared ctxt x then invs x' n
-            else x :: invs x' (n - 1)
-          end;
+          let val x' = Symbol.bump_string x
+          in if is_declared ctxt x then invs x' n else x :: invs x' (n - 1) end;
   in invs o clean end;
 
-fun names ctxt x xs = invents ctxt x (length xs) ~~ xs;
+fun invent_names ctxt x xs = invent ctxt x (length xs) ~~ xs;
 
-val invent_list = invents o make_context;
+val invent_list = invent o make_context;
 
 
 (* variants *)
 
 (*makes a variant of a name distinct from already used names in a
   context; preserves a suffix of underscores "_"*)
-val variants = fold_map (fn name => fn ctxt =>
+fun variant name ctxt =
   let
     fun vary x =
       (case declared ctxt x of
@@ -134,10 +131,9 @@ val variants = fold_map (fn name => fn ctxt =>
             |> x0 <> x' ? declare_renaming (x0, x')
             |> declare x';
         in (x', ctxt') end;
-  in (x' ^ replicate_string n "_", ctxt') end);
+  in (x' ^ replicate_string n "_", ctxt') end;
 
-fun variant_list used names = #1 (make_context used |> variants names);
-fun variant used = singleton (variant_list used);
+fun variant_list used names = #1 (make_context used |> fold_map variant names);
 
 
 (* names conforming to typical requirements of identifiers in the world outside *)

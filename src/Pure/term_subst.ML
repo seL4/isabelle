@@ -163,7 +163,7 @@ end;
 fun zero_var_inst vars =
   fold (fn v as ((x, i), X) => fn (inst, used) =>
     let
-      val ([x'], used') = Name.variants [if Name.is_bound x then "u" else x] used;
+      val (x', used') = Name.variant (if Name.is_bound x then "u" else x) used;
     in if x = x' andalso i = 0 then (inst, used') else ((v, ((x', 0), X)) :: inst, used') end)
   vars ([], Name.context) |> #1;
 

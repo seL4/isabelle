@@ -961,7 +961,11 @@ text {*
   ones it cannot prove.  Occasionally, attempting to prove the hard
   ones may take a long time.
 
-  %FIXME auto nat arguments
+  The optional depth arguments in @{text "(auto m n)"} refer to its
+  builtin classical reasoning procedures: @{text m} (default 4) is for
+  @{method blast}, which is tried first, and @{text n} (default 2) is
+  for a slower but more general alternative that also takes wrappers
+  into account.
 
   \item @{method force} is intended to prove the first subgoal
   completely, using many fancy proof tools and performing a rather

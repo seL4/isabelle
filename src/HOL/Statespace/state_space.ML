@@ -379,8 +379,8 @@ fun statespace_definition state_type args name parents parent_comps components t
 
     val Ts = distinct_types (map snd all_comps);
     val arg_names = map fst args;
-    val valueN = Name.variant arg_names "'value";
-    val nameN = Name.variant (valueN::arg_names) "'name";
+    val valueN = singleton (Name.variant_list arg_names) "'value";
+    val nameN = singleton (Name.variant_list (valueN :: arg_names)) "'name";
     val valueT = TFree (valueN, Sign.defaultS thy);
     val nameT = TFree (nameN, Sign.defaultS thy);
     val stateT = nameT --> valueT;

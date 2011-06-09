@@ -139,8 +139,9 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
     (** make definition **)
 
     (*the recursive argument*)
-    val rec_arg = Free (Name.variant (map #1 (ls@rs)) (Long_Name.base_name big_rec_name),
-                        Ind_Syntax.iT)
+    val rec_arg =
+      Free (singleton (Name.variant_list (map #1 (ls@rs))) (Long_Name.base_name big_rec_name),
+        Ind_Syntax.iT)
 
     val def_tm = Logic.mk_equals
                     (subst_bound (rec_arg, fabs),

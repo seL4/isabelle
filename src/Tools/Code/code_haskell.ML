@@ -264,13 +264,12 @@ fun haskell_program_of_program labelled_name module_alias module_prefix reserved
   let
     fun namify_fun upper base (nsp_fun, nsp_typ) =
       let
-        val (base', nsp_fun') = yield_singleton Name.variants
-          (if upper then first_upper base else base) nsp_fun;
+        val (base', nsp_fun') =
+          Name.variant (if upper then first_upper base else base) nsp_fun;
       in (base', (nsp_fun', nsp_typ)) end;
     fun namify_typ base (nsp_fun, nsp_typ) =
       let
-        val (base', nsp_typ') = yield_singleton Name.variants
-          (first_upper base) nsp_typ
+        val (base', nsp_typ') = Name.variant (first_upper base) nsp_typ;
       in (base', (nsp_fun, nsp_typ')) end;
     fun namify_stmt (Code_Thingol.Fun (_, (_, SOME _))) = pair
       | namify_stmt (Code_Thingol.Fun _) = namify_fun false

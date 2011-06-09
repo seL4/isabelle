@@ -253,7 +253,7 @@ fun name_arities (t, _, S) =
 fun name_arity (t, dom, c) = hd (name_arities (t, dom, [c]));
 
 fun mk_arities (t, Ss, S) =
-  let val T = Type (t, ListPair.map TFree (Name.invents Name.context Name.aT (length Ss), Ss))
+  let val T = Type (t, ListPair.map TFree (Name.invent Name.context Name.aT (length Ss), Ss))
   in map (fn c => mk_of_class (T, c)) S end;
 
 fun dest_arity tm =
@@ -279,7 +279,7 @@ fun unconstrainT shyps prop =
     val extra = fold (Sorts.remove_sort o #2) present shyps;
 
     val n = length present;
-    val (names1, names2) = Name.invents Name.context Name.aT (n + length extra) |> chop n;
+    val (names1, names2) = Name.invent Name.context Name.aT (n + length extra) |> chop n;
 
     val present_map =
       map2 (fn (T, S) => fn a => (T, TVar ((a, 0), S))) present names1;

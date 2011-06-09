@@ -1254,8 +1254,8 @@ A \emph{basic name} essentially consists of a single Isabelle
   \indexdef{}{ML type}{Name.context}\verb|type Name.context| \\
   \indexdef{}{ML}{Name.context}\verb|Name.context: Name.context| \\
   \indexdef{}{ML}{Name.declare}\verb|Name.declare: string -> Name.context -> Name.context| \\
-  \indexdef{}{ML}{Name.invents}\verb|Name.invents: Name.context -> string -> int -> string list| \\
-  \indexdef{}{ML}{Name.variants}\verb|Name.variants: string list -> Name.context -> string list * Name.context| \\
+  \indexdef{}{ML}{Name.invent}\verb|Name.invent: Name.context -> string -> int -> string list| \\
+  \indexdef{}{ML}{Name.variant}\verb|Name.variant: string -> Name.context -> string * Name.context| \\
   \end{mldecls}
   \begin{mldecls}
   \indexdef{}{ML}{Variable.names\_of}\verb|Variable.names_of: Proof.context -> Name.context| \\
@@ -1275,10 +1275,10 @@ A \emph{basic name} essentially consists of a single Isabelle
   \item \verb|Name.declare|~\isa{name} enters a used name into the
   context.
 
-  \item \verb|Name.invents|~\isa{context\ name\ n} produces \isa{n} fresh names derived from \isa{name}.
+  \item \verb|Name.invent|~\isa{context\ name\ n} produces \isa{n} fresh names derived from \isa{name}.
 
-  \item \verb|Name.variants|~\isa{names\ context} produces fresh
-  variants of \isa{names}; the result is entered into the context.
+  \item \verb|Name.variant|~\isa{name\ context} produces a fresh
+  variant of \isa{name}; the result is declared to the context.
 
   \item \verb|Variable.names_of|~\isa{ctxt} retrieves the context
   of declared type and term variable names.  Projecting a proof
@@ -1325,7 +1325,7 @@ The following simple examples demonstrate how to produce
 \isatagML
 \isacommand{ML}\isamarkupfalse%
 \ {\isaliteral{7B2A}{\isacharverbatimopen}}\isanewline
-\ \ val\ list{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ Name{\isaliteral{2E}{\isachardot}}invents\ Name{\isaliteral{2E}{\isachardot}}context\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}\ {\isadigit{5}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ val\ list{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ Name{\isaliteral{2E}{\isachardot}}invent\ Name{\isaliteral{2E}{\isachardot}}context\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}\ {\isadigit{5}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \ \ %
 \isaantiq
 assert{}%
@@ -1333,7 +1333,7 @@ assert{}%
 \ {\isaliteral{28}{\isacharparenleft}}list{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}b{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}c{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}d{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}e{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
 \ \ val\ list{\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
-\ \ \ \ {\isaliteral{23}{\isacharhash}}{\isadigit{1}}\ {\isaliteral{28}{\isacharparenleft}}Name{\isaliteral{2E}{\isachardot}}variants\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{22}{\isachardoublequote}}x{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}x{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5D}{\isacharbrackright}}\ Name{\isaliteral{2E}{\isachardot}}context{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ \ \ {\isaliteral{23}{\isacharhash}}{\isadigit{1}}\ {\isaliteral{28}{\isacharparenleft}}fold{\isaliteral{5F}{\isacharunderscore}}map\ Name{\isaliteral{2E}{\isachardot}}variant\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{22}{\isachardoublequote}}x{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}x{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5D}{\isacharbrackright}}\ Name{\isaliteral{2E}{\isachardot}}context{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \ \ %
 \isaantiq
 assert{}%
@@ -1370,7 +1370,7 @@ context{}%
 \endisaantiq
 {\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
-\ \ val\ list{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ Name{\isaliteral{2E}{\isachardot}}invents\ names\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}\ {\isadigit{5}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ val\ list{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ Name{\isaliteral{2E}{\isachardot}}invent\ names\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}\ {\isadigit{5}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \ \ %
 \isaantiq
 assert{}%
@@ -1378,7 +1378,7 @@ assert{}%
 \ {\isaliteral{28}{\isacharparenleft}}list{\isadigit{1}}\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{22}{\isachardoublequote}}d{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}e{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}f{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}g{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}h{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5D}{\isacharbrackright}}{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \isanewline
 \ \ val\ list{\isadigit{2}}\ {\isaliteral{3D}{\isacharequal}}\isanewline
-\ \ \ \ {\isaliteral{23}{\isacharhash}}{\isadigit{1}}\ {\isaliteral{28}{\isacharparenleft}}Name{\isaliteral{2E}{\isachardot}}variants\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{22}{\isachardoublequote}}x{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}x{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5D}{\isacharbrackright}}\ names{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
+\ \ \ \ {\isaliteral{23}{\isacharhash}}{\isadigit{1}}\ {\isaliteral{28}{\isacharparenleft}}fold{\isaliteral{5F}{\isacharunderscore}}map\ Name{\isaliteral{2E}{\isachardot}}variant\ {\isaliteral{5B}{\isacharbrackleft}}{\isaliteral{22}{\isachardoublequote}}x{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}x{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{22}{\isachardoublequote}}{\isaliteral{27}{\isacharprime}}a{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5D}{\isacharbrackright}}\ names{\isaliteral{29}{\isacharparenright}}{\isaliteral{3B}{\isacharsemicolon}}\isanewline
 \ \ %
 \isaantiq
 assert{}%

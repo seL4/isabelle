@@ -134,7 +134,7 @@ fun the_descr thy (raw_tycos as raw_tyco :: _) =
 
     val names = map Long_Name.base_name (the_default tycos (#alt_names info));
     val (auxnames, _) = Name.make_context names
-      |> fold_map (yield_singleton Name.variants o Datatype_Aux.name_of_typ) Us;
+      |> fold_map (Name.variant o Datatype_Aux.name_of_typ) Us;
     val prefix = space_implode "_" names;
 
   in (descr, vs, tycos, prefix, (names, auxnames), (Ts, Us)) end;
@@ -407,7 +407,7 @@ fun gen_rep_datatype prep_term config after_qed alt_names raw_ts thy =
     fun inter_sort m = map (fn xs => nth xs m) raw_vss
       |> Library.foldr1 (Sorts.inter_sort (Sign.classes_of thy))
     val sorts = map inter_sort ms;
-    val vs = Name.names Name.context Name.aT sorts;
+    val vs = Name.invent_names Name.context Name.aT sorts;
 
     fun norm_constr (raw_vs, (c, T)) = (c, map_atyps
       (TFree o (the o AList.lookup (op =) (map fst raw_vs ~~ vs)) o fst o dest_TFree) T);

@@ -403,7 +403,7 @@ fun add_case_combinator
 
     (* calculate function arguments of case combinator *)
     val tns = map fst (Term.add_tfreesT lhsT [])
-    val resultT = TFree (Name.variant tns "'t", @{sort pcpo})
+    val resultT = TFree (singleton (Name.variant_list tns) "'t", @{sort pcpo})
     fun fTs T = map (fn (_, args) => map snd args -->> T) spec
     val fns = Datatype_Prop.indexify_names (map (K "f") spec)
     val fs = map Free (fns ~~ fTs resultT)
@@ -768,7 +768,7 @@ fun add_match_combinators
     val resultT : typ =
       let
         val ts : string list = map fst (Term.add_tfreesT lhsT [])
-        val t : string = Name.variant ts "'t"
+        val t : string = singleton (Name.variant_list ts) "'t"
       in TFree (t, @{sort pcpo}) end
 
     (* define match combinators *)

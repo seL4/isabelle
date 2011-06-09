@@ -542,7 +542,7 @@ fun strip_ex (Const (@{const_name Ex}, _) $ Abs (x, T, t)) =
 fun focus_ex t nctxt =
   let
     val ((xs, Ts), t') = apfst split_list (strip_ex t) 
-    val (xs', nctxt') = Name.variants xs nctxt;
+    val (xs', nctxt') = fold_map Name.variant xs nctxt;
     val ps' = xs' ~~ Ts;
     val vs = map Free ps';
     val t'' = Term.subst_bounds (rev vs, t');
@@ -906,7 +906,7 @@ fun make_case_distribs new_type_names descr sorts thy =
         val Type ("fun", [T, T']) = fastype_of comb;
         val (Const (case_name, _), fs) = strip_comb comb
         val used = Term.add_tfree_names comb []
-        val U = TFree (Name.variant used "'t", HOLogic.typeS)
+        val U = TFree (singleton (Name.variant_list used) "'t", HOLogic.typeS)
         val x = Free ("x", T)
         val f = Free ("f", T' --> U)
         fun apply_f f' =

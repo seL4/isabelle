@@ -588,9 +588,10 @@ fun guess_instance ctxt rule i st =
         val concl = Logic.strip_assums_concl goal;
       in
         Unify.smash_unifiers thy [(Thm.concl_of rule', concl)] (Envir.empty (Thm.maxidx_of rule'))
-        |> Seq.map (fn env => Drule.instantiate (dest_env thy env) rule')
+        |> Seq.map (fn env => Drule.instantiate_normalize (dest_env thy env) rule')
       end
-  end handle General.Subscript => Seq.empty;
+  end
+  handle General.Subscript => Seq.empty;
 
 end;
 
@@ -692,7 +693,7 @@ fun add_defs def_insts =
       | add (SOME (NONE, (t as Free _, _))) ctxt = ((SOME t, []), ctxt)
       | add (SOME (NONE, (t, _))) ctxt =
           let
-            val ([s], _) = Name.variants ["x"] (Variable.names_of ctxt);
+            val (s, _) = Name.variant "x" (Variable.names_of ctxt);
             val ([(lhs, (_, th))], ctxt') =
               Local_Defs.add_defs [((Binding.name s, NoSyn),
                 (Thm.empty_binding, t))] ctxt
