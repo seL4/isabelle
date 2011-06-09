@@ -110,7 +110,6 @@ sig
   val comp_no_flatten: thm * int -> int -> thm -> thm
   val rename_bvars: (string * string) list -> thm -> thm
   val rename_bvars': string option list -> thm -> thm
-  val incr_type_indexes: int -> thm -> thm
   val incr_indexes: thm -> thm -> thm
   val incr_indexes2: thm -> thm -> thm -> thm
   val remdups_rl: thm
@@ -802,13 +801,6 @@ fun norm_hhf_cterm ct =
 
 
 (* var indexes *)
-
-(*Increment the indexes of only the type variables*)
-fun incr_type_indexes inc th =
-  let val tvs = OldTerm.term_tvars (prop_of th)
-      and thy = Thm.theory_of_thm th
-      fun inc_tvar ((a,i),s) = pairself (ctyp_of thy) (TVar ((a,i),s), TVar ((a,i+inc),s))
-  in Thm.instantiate (map inc_tvar tvs, []) th end;
 
 fun incr_indexes th = Thm.incr_indexes (Thm.maxidx_of th + 1);
 

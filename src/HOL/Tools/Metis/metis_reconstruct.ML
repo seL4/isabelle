@@ -167,12 +167,19 @@ fun inst_inference ctxt old_skolems sym_tab th_pairs fsubst th =
 
 (* INFERENCE RULE: RESOLVE *)
 
+(*Increment the indexes of only the type variables*)
+fun incr_type_indexes inc th =
+  let val tvs = Term.add_tvars (Thm.full_prop_of th) []
+      and thy = Thm.theory_of_thm th
+      fun inc_tvar ((a,i),s) = pairself (ctyp_of thy) (TVar ((a,i),s), TVar ((a,i+inc),s))
+  in Thm.instantiate (map inc_tvar tvs, []) th end;
+
 (* Like RSN, but we rename apart only the type variables. Vars here typically
    have an index of 1, and the use of RSN would increase this typically to 3.
    Instantiations of those Vars could then fail. *)
 fun resolve_inc_tyvars thy tha i thb =
   let
-    val tha = Drule.incr_type_indexes (1 + Thm.maxidx_of thb) tha
+    val tha = incr_type_indexes (1 + Thm.maxidx_of thb) tha
     fun aux tha thb =
       case Thm.bicompose false (false, tha, nprems_of tha) i thb
            |> Seq.list_of |> distinct Thm.eq_thm of
