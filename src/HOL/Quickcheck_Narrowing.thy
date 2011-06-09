@@ -26,7 +26,7 @@ code_const Typerep.Typerep
 
 code_reserved Haskell_Quickcheck Typerep
 
-subsubsection {* Type @{text "code_int"} for Haskell_Quickcheck's Int type *}
+subsubsection {* Type @{text "code_int"} for Haskell Quickcheck's Int type *}
 
 typedef (open) code_int = "UNIV \<Colon> int set"
   morphisms int_of of_int by rule
@@ -218,7 +218,7 @@ declare Quickcheck_Narrowing.equal_narrowing_type_def[code del]
 datatype narrowing_term = Var "code_int list" narrowing_type | Ctr code_int "narrowing_term list"
 datatype 'a cons = C narrowing_type "(narrowing_term list => 'a) list"
 
-subsubsection {* From narrowing's deep representation of terms to Code_Evaluation's terms *}
+subsubsection {* From narrowing's deep representation of terms to @{theory Code_Evaluation}'s terms *}
 
 class partial_term_of = typerep +
   fixes partial_term_of :: "'a itself => narrowing_term => Code_Evaluation.term"
