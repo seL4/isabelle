@@ -1712,6 +1712,12 @@ lemma (in measure_space) integral_cong_measure:
   shows "integral\<^isup>L N f = integral\<^isup>L M f"
   by (simp add: positive_integral_cong_measure[OF assms] lebesgue_integral_def)
 
+lemma (in measure_space) integrable_cong_measure:
+  assumes "\<And>A. A \<in> sets M \<Longrightarrow> measure N A = \<mu> A" "sets N = sets M" "space N = space M"
+  shows "integrable N f \<longleftrightarrow> integrable M f"
+  using assms
+  by (simp add: positive_integral_cong_measure[OF assms] integrable_def measurable_def)
+
 lemma (in measure_space) integral_cong_AE:
   assumes cong: "AE x. f x = g x"
   shows "integral\<^isup>L M f = integral\<^isup>L M g"
@@ -1720,6 +1726,18 @@ proof -
     "AE x. extreal (- f x) = extreal (- g x)" using cong by auto
   show ?thesis
     unfolding *[THEN positive_integral_cong_AE] lebesgue_integral_def ..
+qed
+
+lemma (in measure_space) integrable_cong_AE:
+  assumes borel: "f \<in> borel_measurable M" "g \<in> borel_measurable M"
+  assumes "AE x. f x = g x"
+  shows "integrable M f = integrable M g"
+proof -
+  have "(\<integral>\<^isup>+ x. extreal (f x) \<partial>M) = (\<integral>\<^isup>+ x. extreal (g x) \<partial>M)"
+    "(\<integral>\<^isup>+ x. extreal (- f x) \<partial>M) = (\<integral>\<^isup>+ x. extreal (- g x) \<partial>M)"
+    using assms by (auto intro!: positive_integral_cong_AE)
+  with assms show ?thesis
+    by (auto simp: integrable_def)
 qed
 
 lemma (in measure_space) integrable_cong:
@@ -1765,6 +1783,48 @@ proof -
   then show ?thesis
     using f unfolding lebesgue_integral_def integrable_def
     by (auto simp: borel[THEN positive_integral_vimage[OF T]])
+qed
+
+lemma (in measure_space) integral_translated_density:
+  assumes f: "f \<in> borel_measurable M" "AE x. 0 \<le> f x"
+    and g: "g \<in> borel_measurable M"
+    and N: "space N = space M" "sets N = sets M"
+    and density: "\<And>A. A \<in> sets M \<Longrightarrow> measure N A = (\<integral>\<^isup>+ x. f x * indicator A x \<partial>M)"
+      (is "\<And>A. _ \<Longrightarrow> _ = ?d A")
+  shows "integral\<^isup>L N g = (\<integral> x. f x * g x \<partial>M)" (is ?integral)
+    and "integrable N g = integrable M (\<lambda>x. f x * g x)" (is ?integrable)
+proof -
+  from f have ms: "measure_space (M\<lparr>measure := ?d\<rparr>)"
+    by (intro measure_space_density[where u="\<lambda>x. extreal (f x)"]) auto
+
+  from ms density N have "(\<integral>\<^isup>+ x. g x \<partial>N) =  (\<integral>\<^isup>+ x. max 0 (extreal (g x)) \<partial>M\<lparr>measure := ?d\<rparr>)"
+    unfolding positive_integral_max_0
+    by (intro measure_space.positive_integral_cong_measure) auto
+  also have "\<dots> = (\<integral>\<^isup>+ x. extreal (f x) * max 0 (extreal (g x)) \<partial>M)"
+    using f g by (intro positive_integral_translated_density) auto
+  also have "\<dots> = (\<integral>\<^isup>+ x. max 0 (extreal (f x * g x)) \<partial>M)"
+    using f by (intro positive_integral_cong_AE)
+               (auto simp: extreal_max_0 zero_le_mult_iff split: split_max)
+  finally have pos: "(\<integral>\<^isup>+ x. g x \<partial>N) = (\<integral>\<^isup>+ x. f x * g x \<partial>M)"
+    by (simp add: positive_integral_max_0)
+  
+  from ms density N have "(\<integral>\<^isup>+ x. - (g x) \<partial>N) =  (\<integral>\<^isup>+ x. max 0 (extreal (- g x)) \<partial>M\<lparr>measure := ?d\<rparr>)"
+    unfolding positive_integral_max_0
+    by (intro measure_space.positive_integral_cong_measure) auto
+  also have "\<dots> = (\<integral>\<^isup>+ x. extreal (f x) * max 0 (extreal (- g x)) \<partial>M)"
+    using f g by (intro positive_integral_translated_density) auto
+  also have "\<dots> = (\<integral>\<^isup>+ x. max 0 (extreal (- f x * g x)) \<partial>M)"
+    using f by (intro positive_integral_cong_AE)
+               (auto simp: extreal_max_0 mult_le_0_iff split: split_max)
+  finally have neg: "(\<integral>\<^isup>+ x. - g x \<partial>N) = (\<integral>\<^isup>+ x. - (f x * g x) \<partial>M)"
+    by (simp add: positive_integral_max_0)
+
+  have g_N: "g \<in> borel_measurable N"
+    using g N unfolding measurable_def by simp
+
+  show ?integral ?integrable
+    unfolding lebesgue_integral_def integrable_def
+    using pos neg f g g_N by auto
 qed
 
 lemma (in measure_space) integral_minus[intro, simp]:
@@ -2221,9 +2281,14 @@ proof -
     by (simp add: \<mu>'_def lebesgue_integral_def positive_integral_const_If)
 qed
 
+lemma indicator_less[simp]:
+  "indicator A x \<le> (indicator B x::extreal) \<longleftrightarrow> (x \<in> A \<longrightarrow> x \<in> B)"
+  by (simp add: indicator_def not_le)
+
 lemma (in finite_measure) integral_less_AE:
   assumes int: "integrable M X" "integrable M Y"
-  assumes gt: "AE x. X x < Y x" and neq0: "\<mu> (space M) \<noteq> 0"
+  assumes A: "\<mu> A \<noteq> 0" "A \<in> sets M" "AE x. x \<in> A \<longrightarrow> X x \<noteq> Y x"
+  assumes gt: "AE x. X x \<le> Y x"
   shows "integral\<^isup>L M X < integral\<^isup>L M Y"
 proof -
   have "integral\<^isup>L M X \<le> integral\<^isup>L M Y"
@@ -2231,23 +2296,29 @@ proof -
   moreover
   have "integral\<^isup>L M X \<noteq> integral\<^isup>L M Y"
   proof
-    from gt have "AE x. Y x - X x \<noteq> 0"
-      by auto
-    then have \<mu>: "\<mu> {x\<in>space M. Y x - X x \<noteq> 0} = \<mu> (space M)"
-      using int
-      by (intro AE_measure borel_measurable_neq) (auto simp add: integrable_def)
-
     assume eq: "integral\<^isup>L M X = integral\<^isup>L M Y"
     have "integral\<^isup>L M (\<lambda>x. \<bar>Y x - X x\<bar>) = integral\<^isup>L M (\<lambda>x. Y x - X x)"
       using gt by (intro integral_cong_AE) auto
     also have "\<dots> = 0"
       using eq int by simp
-    finally show False
-      using \<mu> int neq0
-      by (subst (asm) integral_0_iff) auto
+    finally have "\<mu> {x \<in> space M. Y x - X x \<noteq> 0} = 0"
+      using int by (simp add: integral_0_iff)
+    moreover
+    have "(\<integral>\<^isup>+x. indicator A x \<partial>M) \<le> (\<integral>\<^isup>+x. indicator {x \<in> space M. Y x - X x \<noteq> 0} x \<partial>M)"
+      using A by (intro positive_integral_mono_AE) auto
+    then have "\<mu> A \<le> \<mu> {x \<in> space M. Y x - X x \<noteq> 0}"
+      using int A by (simp add: integrable_def)
+    moreover note `\<mu> A \<noteq> 0` positive_measure[OF `A \<in> sets M`]
+    ultimately show False by auto
   qed
   ultimately show ?thesis by auto
 qed
+
+lemma (in finite_measure) integral_less_AE_space:
+  assumes int: "integrable M X" "integrable M Y"
+  assumes gt: "AE x. X x < Y x" "\<mu> (space M) \<noteq> 0"
+  shows "integral\<^isup>L M X < integral\<^isup>L M Y"
+  using gt by (intro integral_less_AE[OF int, where A="space M"]) auto
 
 lemma (in measure_space) integral_dominated_convergence:
   assumes u: "\<And>i. integrable M (u i)" and bound: "\<And>x j. x\<in>space M \<Longrightarrow> \<bar>u j x\<bar> \<le> w x"

@@ -28,6 +28,14 @@ definition (in prob_space)
 abbreviation (in prob_space)
   "joint_distribution X Y \<equiv> distribution (\<lambda>x. (X x, Y x))"
 
+lemma (in prob_space) prob_space_cong:
+  assumes "\<And>A. A \<in> sets M \<Longrightarrow> measure N A = \<mu> A" "space N = space M" "sets N = sets M"
+  shows "prob_space N"
+proof -
+  interpret N: measure_space N by (intro measure_space_cong assms)
+  show ?thesis by default (insert assms measure_space_1, simp)
+qed
+
 lemma (in prob_space) distribution_cong:
   assumes "\<And>x. x \<in> space M \<Longrightarrow> X x = Y x"
   shows "distribution X = distribution Y"
@@ -54,14 +62,29 @@ lemma (in prob_space) prob_le_1[simp, intro]: "prob A \<le> 1"
 lemma (in prob_space) distribution_positive[simp, intro]:
   "0 \<le> distribution X A" unfolding distribution_def by auto
 
+lemma (in prob_space) not_zero_less_distribution[simp]:
+  "(\<not> 0 < distribution X A) \<longleftrightarrow> distribution X A = 0"
+  using distribution_positive[of X A] by arith
+
 lemma (in prob_space) joint_distribution_remove[simp]:
     "joint_distribution X X {(x, x)} = distribution X {x}"
   unfolding distribution_def by (auto intro!: arg_cong[where f=\<mu>'])
+
+lemma (in prob_space) not_empty: "space M \<noteq> {}"
+  using prob_space empty_measure' by auto
 
 lemma (in prob_space) measure_le_1: "X \<in> sets M \<Longrightarrow> \<mu> X \<le> 1"
   unfolding measure_space_1[symmetric]
   using sets_into_space
   by (intro measure_mono) auto
+
+lemma (in prob_space) AE_I_eq_1:
+  assumes "\<mu> {x\<in>space M. P x} = 1" "{x\<in>space M. P x} \<in> sets M"
+  shows "AE x. P x"
+proof (rule AE_I)
+  show "\<mu> (space M - {x \<in> space M. P x}) = 0"
+    using assms measure_space_1 by (simp add: measure_compl)
+qed (insert assms, auto)
 
 lemma (in prob_space) distribution_1:
   "distribution X A \<le> 1"
@@ -244,6 +267,146 @@ lemma (in prob_space) distribution_eq_integral:
   "random_variable S X \<Longrightarrow> A \<in> sets S \<Longrightarrow> distribution X A = expectation (indicator (X -` A \<inter> space M))"
   using finite_measure_eq[of "X -` A \<inter> space M"]
   by (auto simp: measurable_sets distribution_def)
+
+lemma (in prob_space) expectation_less:
+  assumes [simp]: "integrable M X"
+  assumes gt: "\<forall>x\<in>space M. X x < b"
+  shows "expectation X < b"
+proof -
+  have "expectation X < expectation (\<lambda>x. b)"
+    using gt measure_space_1
+    by (intro integral_less_AE) auto
+  then show ?thesis using prob_space by simp
+qed
+
+lemma (in prob_space) expectation_greater:
+  assumes [simp]: "integrable M X"
+  assumes gt: "\<forall>x\<in>space M. a < X x"
+  shows "a < expectation X"
+proof -
+  have "expectation (\<lambda>x. a) < expectation X"
+    using gt measure_space_1
+    by (intro integral_less_AE) auto
+  then show ?thesis using prob_space by simp
+qed
+
+lemma convex_le_Inf_differential:
+  fixes f :: "real \<Rightarrow> real"
+  assumes "convex_on I f"
+  assumes "x \<in> interior I" "y \<in> I"
+  shows "f y \<ge> f x + Inf ((\<lambda>t. (f x - f t) / (x - t)) ` ({x<..} \<inter> I)) * (y - x)"
+    (is "_ \<ge> _ + Inf (?F x) * (y - x)")
+proof -
+  show ?thesis
+  proof (cases rule: linorder_cases)
+    assume "x < y"
+    moreover
+    have "open (interior I)" by auto
+    from openE[OF this `x \<in> interior I`] guess e . note e = this
+    moreover def t \<equiv> "min (x + e / 2) ((x + y) / 2)"
+    ultimately have "x < t" "t < y" "t \<in> ball x e"
+      by (auto simp: mem_ball dist_real_def field_simps split: split_min)
+    with `x \<in> interior I` e interior_subset[of I] have "t \<in> I" "x \<in> I" by auto
+
+    have "open (interior I)" by auto
+    from openE[OF this `x \<in> interior I`] guess e .
+    moreover def K \<equiv> "x - e / 2"
+    with `0 < e` have "K \<in> ball x e" "K < x" by (auto simp: mem_ball dist_real_def)
+    ultimately have "K \<in> I" "K < x" "x \<in> I"
+      using interior_subset[of I] `x \<in> interior I` by auto
+
+    have "Inf (?F x) \<le> (f x - f y) / (x - y)"
+    proof (rule Inf_lower2)
+      show "(f x - f t) / (x - t) \<in> ?F x"
+        using `t \<in> I` `x < t` by auto
+      show "(f x - f t) / (x - t) \<le> (f x - f y) / (x - y)"
+        using `convex_on I f` `x \<in> I` `y \<in> I` `x < t` `t < y` by (rule convex_on_diff)
+    next
+      fix y assume "y \<in> ?F x"
+      with order_trans[OF convex_on_diff[OF `convex_on I f` `K \<in> I` _ `K < x` _]]
+      show "(f K - f x) / (K - x) \<le> y" by auto
+    qed
+    then show ?thesis
+      using `x < y` by (simp add: field_simps)
+  next
+    assume "y < x"
+    moreover
+    have "open (interior I)" by auto
+    from openE[OF this `x \<in> interior I`] guess e . note e = this
+    moreover def t \<equiv> "x + e / 2"
+    ultimately have "x < t" "t \<in> ball x e"
+      by (auto simp: mem_ball dist_real_def field_simps)
+    with `x \<in> interior I` e interior_subset[of I] have "t \<in> I" "x \<in> I" by auto
+
+    have "(f x - f y) / (x - y) \<le> Inf (?F x)"
+    proof (rule Inf_greatest)
+      have "(f x - f y) / (x - y) = (f y - f x) / (y - x)"
+        using `y < x` by (auto simp: field_simps)
+      also
+      fix z  assume "z \<in> ?F x"
+      with order_trans[OF convex_on_diff[OF `convex_on I f` `y \<in> I` _ `y < x`]]
+      have "(f y - f x) / (y - x) \<le> z" by auto
+      finally show "(f x - f y) / (x - y) \<le> z" .
+    next
+      have "open (interior I)" by auto
+      from openE[OF this `x \<in> interior I`] guess e . note e = this
+      then have "x + e / 2 \<in> ball x e" by (auto simp: mem_ball dist_real_def)
+      with e interior_subset[of I] have "x + e / 2 \<in> {x<..} \<inter> I" by auto
+      then show "?F x \<noteq> {}" by blast
+    qed
+    then show ?thesis
+      using `y < x` by (simp add: field_simps)
+  qed simp
+qed
+
+lemma (in prob_space) jensens_inequality:
+  fixes a b :: real
+  assumes X: "integrable M X" "X ` space M \<subseteq> I"
+  assumes I: "I = {a <..< b} \<or> I = {a <..} \<or> I = {..< b} \<or> I = UNIV"
+  assumes q: "integrable M (\<lambda>x. q (X x))" "convex_on I q"
+  shows "q (expectation X) \<le> expectation (\<lambda>x. q (X x))"
+proof -
+  let "?F x" = "Inf ((\<lambda>t. (q x - q t) / (x - t)) ` ({x<..} \<inter> I))"
+  from not_empty X(2) have "I \<noteq> {}" by auto
+
+  from I have "open I" by auto
+
+  note I
+  moreover
+  { assume "I \<subseteq> {a <..}"
+    with X have "a < expectation X"
+      by (intro expectation_greater) auto }
+  moreover
+  { assume "I \<subseteq> {..< b}"
+    with X have "expectation X < b"
+      by (intro expectation_less) auto }
+  ultimately have "expectation X \<in> I"
+    by (elim disjE)  (auto simp: subset_eq)
+  moreover
+  { fix y assume y: "y \<in> I"
+    with q(2) `open I` have "Sup ((\<lambda>x. q x + ?F x * (y - x)) ` I) = q y"
+      by (auto intro!: Sup_eq_maximum convex_le_Inf_differential image_eqI[OF _ y] simp: interior_open) }
+  ultimately have "q (expectation X) = Sup ((\<lambda>x. q x + ?F x * (expectation X - x)) ` I)"
+    by simp
+  also have "\<dots> \<le> expectation (\<lambda>w. q (X w))"
+  proof (rule Sup_least)
+    show "(\<lambda>x. q x + ?F x * (expectation X - x)) ` I \<noteq> {}"
+      using `I \<noteq> {}` by auto
+  next
+    fix k assume "k \<in> (\<lambda>x. q x + ?F x * (expectation X - x)) ` I"
+    then guess x .. note x = this
+    have "q x + ?F x * (expectation X  - x) = expectation (\<lambda>w. q x + ?F x * (X w - x))"
+      using prob_space
+      by (simp add: integral_add integral_cmult integral_diff lebesgue_integral_const X)
+    also have "\<dots> \<le> expectation (\<lambda>w. q (X w))"
+      using `x \<in> I` `open I` X(2)
+      by (intro integral_mono integral_add integral_cmult integral_diff
+                lebesgue_integral_const X q convex_le_Inf_differential)
+         (auto simp: interior_open)
+    finally show "k \<le> expectation (\<lambda>w. q (X w))" using x by auto
+  qed
+  finally show "q (expectation X) \<le> expectation (\<lambda>x. q (X x))" .
+qed
 
 lemma (in prob_space) distribution_eq_translated_integral:
   assumes "random_variable S X" "A \<in> sets S"
@@ -722,9 +885,6 @@ lemma finite_prob_space_eq:
   unfolding finite_prob_space_def finite_measure_space_def prob_space_def prob_space_axioms_def
   by auto
 
-lemma (in prob_space) not_empty: "space M \<noteq> {}"
-  using prob_space empty_measure' by auto
-
 lemma (in finite_prob_space) sum_over_space_eq_1: "(\<Sum>x\<in>space M. \<mu> {x}) = 1"
   using measure_space_1 sum_over_space by simp
 
@@ -829,7 +989,7 @@ proof -
   also have "\<dots> = real_of_nat (card (space M)) * prob {x}" by simp
   finally have one: "1 = real (card (space M)) * prob {x}"
     using real_eq_of_nat by auto
-  hence two: "real (card (space M)) \<noteq> 0" by fastsimp 
+  hence two: "real (card (space M)) \<noteq> 0" by fastsimp
   from one have three: "prob {x} \<noteq> 0" by fastsimp
   thus ?thesis using one two three divide_cancel_right
     by (auto simp:field_simps)
