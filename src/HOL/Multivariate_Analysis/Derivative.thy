@@ -105,6 +105,22 @@ lemma has_derivative_within_open:
   "a \<in> s \<Longrightarrow> open s \<Longrightarrow> ((f has_derivative f') (at a within s) \<longleftrightarrow> (f has_derivative f') (at a))"
   by (simp only: at_within_interior interior_open)
 
+lemma has_derivative_right:
+  fixes f :: "real \<Rightarrow> real" and y :: "real"
+  shows "(f has_derivative (op * y)) (at x within ({x <..} \<inter> I)) \<longleftrightarrow>
+    ((\<lambda>t. (f x - f t) / (x - t)) ---> y) (at x within ({x <..} \<inter> I))"
+proof -
+  have "((\<lambda>t. (f t - (f x + y * (t - x))) / \<bar>t - x\<bar>) ---> 0) (at x within ({x<..} \<inter> I)) \<longleftrightarrow>
+    ((\<lambda>t. (f t - f x) / (t - x) - y) ---> 0) (at x within ({x<..} \<inter> I))"
+    by (intro Lim_cong_within) (auto simp add: divide.diff divide.add)
+  also have "\<dots> \<longleftrightarrow> ((\<lambda>t. (f t - f x) / (t - x)) ---> y) (at x within ({x<..} \<inter> I))"
+    by (simp add: Lim_null[symmetric])
+  also have "\<dots> \<longleftrightarrow> ((\<lambda>t. (f x - f t) / (x - t)) ---> y) (at x within ({x<..} \<inter> I))"
+    by (intro Lim_cong_within) (simp_all add: times_divide_eq field_simps)
+  finally show ?thesis
+    by (simp add: mult.bounded_linear_right has_derivative_within)
+qed
+
 lemma bounded_linear_imp_linear: "bounded_linear f \<Longrightarrow> linear f" (* TODO: move elsewhere *)
 proof -
   assume "bounded_linear f"

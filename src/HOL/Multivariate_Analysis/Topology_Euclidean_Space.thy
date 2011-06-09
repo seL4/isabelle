@@ -1122,6 +1122,100 @@ next
   thus ?lhs by (rule Lim_at_within)
 qed
 
+lemma Lim_within_LIMSEQ:
+  fixes a :: real and L :: "'a::metric_space"
+  assumes "\<forall>S. (\<forall>n. S n \<noteq> a \<and> S n \<in> T) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L"
+  shows "(X ---> L) (at a within T)"
+proof (rule ccontr)
+  assume "\<not> (X ---> L) (at a within T)"
+  hence "\<exists>r>0. \<forall>s>0. \<exists>x\<in>T. x \<noteq> a \<and> \<bar>x - a\<bar> < s \<and> r \<le> dist (X x) L"
+    unfolding tendsto_iff eventually_within dist_norm by (simp add: not_less[symmetric])
+  then obtain r where r: "r > 0" "\<And>s. s > 0 \<Longrightarrow> \<exists>x\<in>T-{a}. \<bar>x - a\<bar> < s \<and> dist (X x) L \<ge> r" by blast
+
+  let ?F = "\<lambda>n::nat. SOME x. x \<in> T \<and> x \<noteq> a \<and> \<bar>x - a\<bar> < inverse (real (Suc n)) \<and> dist (X x) L \<ge> r"
+  have "\<And>n. \<exists>x. x \<in> T \<and> x \<noteq> a \<and> \<bar>x - a\<bar> < inverse (real (Suc n)) \<and> dist (X x) L \<ge> r"
+    using r by (simp add: Bex_def)
+  hence F: "\<And>n. ?F n \<in> T \<and> ?F n \<noteq> a \<and> \<bar>?F n - a\<bar> < inverse (real (Suc n)) \<and> dist (X (?F n)) L \<ge> r"
+    by (rule someI_ex)
+  hence F1: "\<And>n. ?F n \<in> T \<and> ?F n \<noteq> a"
+    and F2: "\<And>n. \<bar>?F n - a\<bar> < inverse (real (Suc n))"
+    and F3: "\<And>n. dist (X (?F n)) L \<ge> r"
+    by fast+
+
+  have "?F ----> a"
+  proof (rule LIMSEQ_I, unfold real_norm_def)
+      fix e::real
+      assume "0 < e"
+        (* choose no such that inverse (real (Suc n)) < e *)
+      then have "\<exists>no. inverse (real (Suc no)) < e" by (rule reals_Archimedean)
+      then obtain m where nodef: "inverse (real (Suc m)) < e" by auto
+      show "\<exists>no. \<forall>n. no \<le> n --> \<bar>?F n - a\<bar> < e"
+      proof (intro exI allI impI)
+        fix n
+        assume mlen: "m \<le> n"
+        have "\<bar>?F n - a\<bar> < inverse (real (Suc n))"
+          by (rule F2)
+        also have "inverse (real (Suc n)) \<le> inverse (real (Suc m))"
+          using mlen by auto
+        also from nodef have
+          "inverse (real (Suc m)) < e" .
+        finally show "\<bar>?F n - a\<bar> < e" .
+      qed
+  qed
+  moreover note `\<forall>S. (\<forall>n. S n \<noteq> a \<and> S n \<in> T) \<and> S ----> a \<longrightarrow> (\<lambda>n. X (S n)) ----> L`
+  ultimately have "(\<lambda>n. X (?F n)) ----> L" using F1 by simp
+  
+  moreover have "\<not> ((\<lambda>n. X (?F n)) ----> L)"
+  proof -
+    {
+      fix no::nat
+      obtain n where "n = no + 1" by simp
+      then have nolen: "no \<le> n" by simp
+        (* We prove this by showing that for any m there is an n\<ge>m such that |X (?F n) - L| \<ge> r *)
+      have "dist (X (?F n)) L \<ge> r"
+        by (rule F3)
+      with nolen have "\<exists>n. no \<le> n \<and> dist (X (?F n)) L \<ge> r" by fast
+    }
+    then have "(\<forall>no. \<exists>n. no \<le> n \<and> dist (X (?F n)) L \<ge> r)" by simp
+    with r have "\<exists>e>0. (\<forall>no. \<exists>n. no \<le> n \<and> dist (X (?F n)) L \<ge> e)" by auto
+    thus ?thesis by (unfold LIMSEQ_def, auto simp add: not_less)
+  qed
+  ultimately show False by simp
+qed
+
+lemma Lim_right_bound:
+  fixes f :: "real \<Rightarrow> real"
+  assumes mono: "\<And>a b. a \<in> I \<Longrightarrow> b \<in> I \<Longrightarrow> x < a \<Longrightarrow> a \<le> b \<Longrightarrow> f a \<le> f b"
+  assumes bnd: "\<And>a. a \<in> I \<Longrightarrow> x < a \<Longrightarrow> K \<le> f a"
+  shows "(f ---> Inf (f ` ({x<..} \<inter> I))) (at x within ({x<..} \<inter> I))"
+proof cases
+  assume "{x<..} \<inter> I = {}" then show ?thesis by (simp add: Lim_within_empty)
+next
+  assume [simp]: "{x<..} \<inter> I \<noteq> {}"
+  show ?thesis
+  proof (rule Lim_within_LIMSEQ, safe)
+    fix S assume S: "\<forall>n. S n \<noteq> x \<and> S n \<in> {x <..} \<inter> I" "S ----> x"
+    
+    show "(\<lambda>n. f (S n)) ----> Inf (f ` ({x<..} \<inter> I))"
+    proof (rule LIMSEQ_I, rule ccontr)
+      fix r :: real assume "0 < r"
+      with Inf_close[of "f ` ({x<..} \<inter> I)" r]
+      obtain y where y: "x < y" "y \<in> I" "f y < Inf (f ` ({x <..} \<inter> I)) + r" by auto
+      from `x < y` have "0 < y - x" by auto
+      from S(2)[THEN LIMSEQ_D, OF this]
+      obtain N where N: "\<And>n. N \<le> n \<Longrightarrow> \<bar>S n - x\<bar> < y - x" by auto
+      
+      assume "\<not> (\<exists>N. \<forall>n\<ge>N. norm (f (S n) - Inf (f ` ({x<..} \<inter> I))) < r)"
+      moreover have "\<And>n. Inf (f ` ({x<..} \<inter> I)) \<le> f (S n)"
+        using S bnd by (intro Inf_lower[where z=K]) auto
+      ultimately obtain n where n: "N \<le> n" "r + Inf (f ` ({x<..} \<inter> I)) \<le> f (S n)"
+        by (auto simp: not_less field_simps)
+      with N[OF n(1)] mono[OF _ `y \<in> I`, of "S n"] S(1)[THEN spec, of n] y
+      show False by auto
+    qed
+  qed
+qed
+
 text{* Another limit point characterization. *}
 
 lemma islimpt_sequential:
@@ -1505,14 +1599,16 @@ text{* A congruence rule allowing us to transform limits assuming not at point. 
 (* FIXME: Only one congruence rule for tendsto can be used at a time! *)
 
 lemma Lim_cong_within(*[cong add]*):
-  assumes "\<And>x. x \<noteq> a \<Longrightarrow> f x = g x"
-  shows "((\<lambda>x. f x) ---> l) (at a within S) \<longleftrightarrow> ((g ---> l) (at a within S))"
+  assumes "a = b" "x = y" "S = T"
+  assumes "\<And>x. x \<noteq> b \<Longrightarrow> x \<in> T \<Longrightarrow> f x = g x"
+  shows "(f ---> x) (at a within S) \<longleftrightarrow> (g ---> y) (at b within T)"
   unfolding tendsto_def Limits.eventually_within eventually_at_topological
   using assms by simp
 
 lemma Lim_cong_at(*[cong add]*):
+  assumes "a = b" "x = y"
   assumes "\<And>x. x \<noteq> a \<Longrightarrow> f x = g x"
-  shows "((\<lambda>x. f x) ---> l) (at a) \<longleftrightarrow> ((g ---> l) (at a))"
+  shows "((\<lambda>x. f x) ---> x) (at a) \<longleftrightarrow> ((g ---> y) (at a))"
   unfolding tendsto_def eventually_at_topological
   using assms by simp
 
