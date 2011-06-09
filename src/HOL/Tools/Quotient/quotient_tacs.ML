@@ -108,7 +108,7 @@ fun calculate_inst ctxt ball_bex_thm redex R1 R2 =
     | SOME thm' =>
         (case try (get_match_inst thy (get_lhs thm')) redex of
           NONE => NONE
-        | SOME inst2 => try (Drule.instantiate inst2) thm'))
+        | SOME inst2 => try (Drule.instantiate_normalize inst2) thm'))
   end
 
 fun ball_bex_range_simproc ss redex =
@@ -490,7 +490,7 @@ fun lambda_prs_simple_conv ctxt ctrm =
           if ty_c = ty_d
           then make_inst_id (term_of (Thm.lhs_of thm3)) (term_of ctrm)
           else make_inst (term_of (Thm.lhs_of thm3)) (term_of ctrm)
-        val thm4 = Drule.instantiate ([], [(cterm_of thy insp, cterm_of thy inst)]) thm3
+        val thm4 = Drule.instantiate_normalize ([], [(cterm_of thy insp, cterm_of thy inst)]) thm3
       in
         Conv.rewr_conv thm4 ctrm
       end

@@ -24,7 +24,7 @@ sig
   val legacy_freeze_thaw_robust: thm -> thm * (int -> thm -> thm)
   val implies_elim_list: thm -> thm list -> thm
   val implies_intr_list: cterm list -> thm -> thm
-  val instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
+  val instantiate_normalize: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm
   val zero_var_indexes_list: thm list -> thm list
   val zero_var_indexes: thm -> thm
   val implies_intr_hyps: thm -> thm
@@ -821,8 +821,7 @@ fun comp_no_flatten (th, n) i rule =
 
 (*** Instantiate theorem th, reading instantiations in theory thy ****)
 
-(*Version that normalizes the result: Thm.instantiate no longer does that*)
-fun instantiate instpair th =
+fun instantiate_normalize instpair th =
   Thm.adjust_maxidx_thm ~1 (Thm.instantiate instpair th COMP_INCR asm_rl);
 
 (*Left-to-right replacements: tpairs = [...,(vi,ti),...].
@@ -854,7 +853,7 @@ fun cterm_instantiate [] th = th
         let val inst = cterm_of thy o Term.map_types (Envir.norm_type tye) o term_of
         in (inst ct, inst cu) end
       fun ctyp2 (ixn, (S, T)) = (ctyp_of thy (TVar (ixn, S)), ctyp_of thy (Envir.norm_type tye T))
-  in  instantiate (map ctyp2 (Vartab.dest tye), map instT ctpairs0) th  end
+  in  instantiate_normalize (map ctyp2 (Vartab.dest tye), map instT ctpairs0) th  end
   handle TERM _ =>
            raise THM("cterm_instantiate: incompatible theories",0,[th])
        | TYPE (msg, _, _) => raise THM(msg, 0, [th])

@@ -108,7 +108,7 @@ fun split_rule_var (Var(v,_), Type("fun",[T1,T2]), rl) =
           val newt = ap_split T1 T2 (Var(v,T'))
           val cterm = Thm.cterm_of (Thm.theory_of_thm rl)
       in
-          remove_split (instantiate ([], [(cterm (Var(v, Ind_Syntax.iT-->T2)), 
+          remove_split (Drule.instantiate_normalize ([], [(cterm (Var(v, Ind_Syntax.iT-->T2)), 
                                            cterm newt)]) rl)
       end
   | split_rule_var (t,T,rl) = rl;

@@ -270,7 +270,7 @@ local (* this is fragile *)
       val gspec = Thm.forall_intr (cterm_of thy x) spec
 in
 fun SPEC tm thm =
-   let val gspec' = instantiate ([(cTV, Thm.ctyp_of_term tm)], []) gspec
+   let val gspec' = Drule.instantiate_normalize ([(cTV, Thm.ctyp_of_term tm)], []) gspec
    in thm RS (Thm.forall_elim tm gspec') end
 end;
 
@@ -298,7 +298,7 @@ fun GEN v th =
        val Const("all",_)$Abs(x,ty,rst) = Thm.prop_of gth
        val P' = Abs(x,ty, HOLogic.dest_Trueprop rst)  (* get rid of trueprop *)
        val theta = Pattern.match thy (P,P') (Vartab.empty, Vartab.empty);
-       val allI2 = instantiate (certify thy theta) allI
+       val allI2 = Drule.instantiate_normalize (certify thy theta) allI
        val thm = Thm.implies_elim allI2 gth
        val tp $ (A $ Abs(_,_,M)) = Thm.prop_of thm
        val prop' = tp $ (A $ Abs(x,ty,M))

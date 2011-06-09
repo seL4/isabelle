@@ -588,9 +588,10 @@ fun guess_instance ctxt rule i st =
         val concl = Logic.strip_assums_concl goal;
       in
         Unify.smash_unifiers thy [(Thm.concl_of rule', concl)] (Envir.empty (Thm.maxidx_of rule'))
-        |> Seq.map (fn env => Drule.instantiate (dest_env thy env) rule')
+        |> Seq.map (fn env => Drule.instantiate_normalize (dest_env thy env) rule')
       end
-  end handle General.Subscript => Seq.empty;
+  end
+  handle General.Subscript => Seq.empty;
 
 end;
 

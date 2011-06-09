@@ -249,7 +249,7 @@ fun inst_tfrees thy [] thm = thm
         val mid =
             case rens of
                 [] => thm'
-              | [((_, S), idx)] => instantiate
+              | [((_, S), idx)] => Drule.instantiate_normalize
             ([(ctyp_of thy (TVar (idx, S)), cU)], []) thm'
               | _ => error "Shuffler.inst_tfrees internal error"
     in

@@ -206,7 +206,7 @@ fun resolve_inc_tyvars thy tha i thb =
                    |> map (fn (x, (S, T)) =>
                               pairself (ctyp_of thy) (TVar (x, S), T)) of
              [] => raise TERM z
-           | ps => aux (instantiate (ps, []) tha) (instantiate (ps, []) thb)
+           | ps => aux (Drule.instantiate_normalize (ps, []) tha) (Drule.instantiate_normalize (ps, []) thb)
   end
 
 fun s_not (@{const Not} $ t) = t
@@ -562,7 +562,7 @@ fun instantiate_forall_tac thy t i st =
                         tyenv []
           val t_inst =
             [pairself (cterm_of thy o Envir.norm_term env) (Var var, t')]
-        in th |> instantiate (ty_inst, t_inst) end
+        in th |> Drule.instantiate_normalize (ty_inst, t_inst) end
       | _ => raise Fail "expected a single non-zapped, non-Metis Var"
   in
     (DETERM (etac @{thm allE} i THEN rotate_tac ~1 i)

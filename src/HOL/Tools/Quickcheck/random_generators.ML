@@ -100,7 +100,7 @@ fun random_aux_primrec eq lthy =
     val cT_random_aux = inst pt_random_aux;
     val cT_rhs = inst pt_rhs;
     val rule = @{thm random_aux_rec}
-      |> Drule.instantiate ([(aT, icT)],
+      |> Drule.instantiate_normalize ([(aT, icT)],
            [(cT_random_aux, cert t_random_aux), (cT_rhs, cert t_rhs)]);
     val tac = ALLGOALS (rtac rule)
       THEN ALLGOALS (simp_tac rew_ss)
