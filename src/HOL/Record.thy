@@ -9,7 +9,7 @@
 header {* Extensible records with structural subtyping *}
 
 theory Record
-imports Plain Quickcheck_Exhaustive
+imports Plain Quickcheck_Narrowing
 uses ("Tools/record.ML")
 begin
 
