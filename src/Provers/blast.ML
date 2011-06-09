@@ -1234,18 +1234,14 @@ fun fromSubgoal thy t =
   in  skoSubgoal 0 (from 0 (discard_foralls t))  end;
 
 
-(*Tactic using tableau engine and proof reconstruction.
- "start" is CPU time at start, for printing SEARCH time
-        (also prints reconstruction time)
+(*Tableau engine and proof reconstruction operating on subgoal 1.
+ "start" is CPU time at start, for printing SEARCH time (also prints reconstruction time)
  "lim" is depth limit.*)
-fun timing_depth_tac start ctxt lim i st0 =
+fun raw_blast start ctxt lim st =
   let val thy = Proof_Context.theory_of ctxt
       val state = initialize ctxt
       val trace = Config.get ctxt trace;
       val stats = Config.get ctxt stats;
-      val st = st0
-        |> rotate_prems (i - 1)
-        |> Conv.gconv_rule Object_Logic.atomize_prems 1
       val skoprem = fromSubgoal thy (#1 (Logic.dest_implies (Thm.prop_of st)))
       val hyps  = strip_imp_prems skoprem
       and concl = strip_imp_concl skoprem
@@ -1265,20 +1261,29 @@ fun timing_depth_tac start ctxt lim i st0 =
           end
   in
     prove (state, start, [initBranch (mkGoal concl :: hyps, lim)], cont)
-    |> Seq.map (rotate_prems (1 - i))
   end
-  handle PROVE => Seq.empty | THM _ => Seq.empty;
+  handle PROVE => Seq.empty
+    | TRANS s => (if Config.get ctxt trace then warning ("Blast: " ^ s) else (); Seq.empty);
 
-(*Public version with fixed depth*)
-fun depth_tac ctxt lim i st = timing_depth_tac (Timing.start ()) ctxt lim i st;
+fun depth_tac ctxt lim i st =
+  SELECT_GOAL
+    (Object_Logic.atomize_prems_tac 1 THEN
+      raw_blast (Timing.start ()) ctxt lim) i st;
+
 
 val (depth_limit, setup_depth_limit) =
   Attrib.config_int @{binding blast_depth_limit} (K 20);
 
 fun blast_tac ctxt i st =
-  ((DEEPEN (1, Config.get ctxt depth_limit) (timing_depth_tac (Timing.start ()) ctxt) 0) i
-    THEN flexflex_tac) st
-  handle TRANS s => (if Config.get ctxt trace then warning ("blast: " ^ s) else (); Seq.empty);
+  let
+    val start = Timing.start ();
+    val lim = Config.get ctxt depth_limit;
+  in
+    SELECT_GOAL
+     (Object_Logic.atomize_prems_tac 1 THEN
+      DEEPEN (1, lim) (fn m => fn _ => raw_blast start ctxt m) 0 1 THEN
+      flexflex_tac) i st
+  end;
 
 
 
