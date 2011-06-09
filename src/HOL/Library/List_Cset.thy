@@ -219,4 +219,6 @@ proof -
     by (auto simp add: coset_def)
 qed
 
+declare mem_def[simp del]
+
 end
