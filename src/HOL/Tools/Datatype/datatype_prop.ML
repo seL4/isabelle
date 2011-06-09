@@ -263,7 +263,7 @@ fun make_case_combs new_type_names descr sorts thy fname =
     val recTs = Datatype_Aux.get_rec_types descr' sorts;
     val used = List.foldr OldTerm.add_typ_tfree_names [] recTs;
     val newTs = take (length (hd descr)) recTs;
-    val T' = TFree (Name.variant used "'t", HOLogic.typeS);
+    val T' = TFree (singleton (Name.variant_list used) "'t", HOLogic.typeS);
 
     val case_fn_Ts = map (fn (i, (_, _, constrs)) =>
       map (fn (_, cargs) =>
@@ -310,7 +310,7 @@ fun make_splits new_type_names descr sorts thy =
     val recTs = Datatype_Aux.get_rec_types descr' sorts;
     val used' = List.foldr OldTerm.add_typ_tfree_names [] recTs;
     val newTs = take (length (hd descr)) recTs;
-    val T' = TFree (Name.variant used' "'t", HOLogic.typeS);
+    val T' = TFree (singleton (Name.variant_list used') "'t", HOLogic.typeS);
     val P = Free ("P", T' --> HOLogic.boolT);
 
     fun make_split (((_, (_, _, constrs)), T), comb_t) =

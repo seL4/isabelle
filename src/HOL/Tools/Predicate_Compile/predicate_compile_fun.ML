@@ -118,7 +118,7 @@ fun flatten thy lookup_pred t (names, prems) =
           val absnames = Name.variant_list names (map fst vars)
           val frees = map2 (curry Free) absnames (map snd vars)
           val body' = subst_bounds (rev frees, body)
-          val resname = Name.variant (absnames @ names) "res"
+          val resname = singleton (Name.variant_list (absnames @ names)) "res"
           val resvar = Free (resname, fastype_of body)
           val t = flatten' body' ([], [])
             |> map (fn (res, (inner_names, inner_prems)) =>
@@ -241,7 +241,7 @@ fun flatten thy lookup_pred t (names, prems) =
                             HOLogic.mk_eq (@{term False}, Bound 0)))
                         end
                     val argvs' = map2 lift_arg Ts argvs
-                    val resname = Name.variant names' "res"
+                    val resname = singleton (Name.variant_list names') "res"
                     val resvar = Free (resname, body_type (fastype_of t))
                     val prem = HOLogic.mk_Trueprop (list_comb (pred, argvs' @ [resvar]))
                   in (resvar, (resname :: names', prem :: prems')) end))

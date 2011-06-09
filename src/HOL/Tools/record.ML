@@ -1662,7 +1662,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
     val variants = map (fn Free (x, _) => x) vars_more;
     val ext = mk_ext vars_more;
     val s = Free (rN, extT);
-    val P = Free (Name.variant variants "P", extT --> HOLogic.boolT);
+    val P = Free (singleton (Name.variant_list variants) "P", extT --> HOLogic.boolT);
 
     val inject_prop =
       let val vars_more' = map (fn (Free (x, T)) => Free (x ^ "'", T)) vars_more in
@@ -1677,7 +1677,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
       (All (map dest_Free vars_more) (Trueprop (P $ ext)), Trueprop (P $ s));
 
     val split_meta_prop =
-      let val P = Free (Name.variant variants "P", extT --> Term.propT) in
+      let val P = Free (singleton (Name.variant_list variants) "P", extT --> Term.propT) in
         Logic.mk_equals
          (All [dest_Free s] (P $ s), All (map dest_Free vars_more) (P $ ext))
       end;
@@ -1938,7 +1938,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
     val all_vars = parent_vars @ vars;
     val all_named_vars = (parent_names ~~ parent_vars) @ named_vars;
 
-    val zeta = (Name.variant (map #1 alphas) "'z", HOLogic.typeS);
+    val zeta = (singleton (Name.variant_list (map #1 alphas)) "'z", HOLogic.typeS);
     val moreT = TFree zeta;
     val more = Free (moreN, moreT);
     val full_moreN = full (Binding.name moreN);
@@ -2134,9 +2134,9 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
 
     (* prepare propositions *)
     val _ = timing_msg "record preparing propositions";
-    val P = Free (Name.variant all_variants "P", rec_schemeT0 --> HOLogic.boolT);
-    val C = Free (Name.variant all_variants "C", HOLogic.boolT);
-    val P_unit = Free (Name.variant all_variants "P", recT0 --> HOLogic.boolT);
+    val P = Free (singleton (Name.variant_list all_variants) "P", rec_schemeT0 --> HOLogic.boolT);
+    val C = Free (singleton (Name.variant_list all_variants) "C", HOLogic.boolT);
+    val P_unit = Free (singleton (Name.variant_list all_variants) "P", recT0 --> HOLogic.boolT);
 
     (*selectors*)
     val sel_conv_props =
@@ -2145,7 +2145,8 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
     (*updates*)
     fun mk_upd_prop i (c, T) =
       let
-        val x' = Free (Name.variant all_variants (Long_Name.base_name c ^ "'"), T --> T);
+        val x' =
+          Free (singleton (Name.variant_list all_variants) (Long_Name.base_name c ^ "'"), T --> T);
         val n = parent_fields_len + i;
         val args' = nth_map n (K (x' $ nth all_vars_more n)) all_vars_more;
       in mk_upd updateN c x' r_rec0 === mk_rec args' 0 end;
@@ -2174,7 +2175,9 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
 
     (*split*)
     val split_meta_prop =
-      let val P = Free (Name.variant all_variants "P", rec_schemeT0-->Term.propT) in
+      let
+        val P = Free (singleton (Name.variant_list all_variants) "P", rec_schemeT0-->Term.propT);
+      in
         Logic.mk_equals
          (All [dest_Free r0] (P $ r0), All (map dest_Free all_vars_more) (P $ r_rec0))
       end;

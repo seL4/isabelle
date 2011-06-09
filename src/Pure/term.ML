@@ -936,7 +936,8 @@ fun dest_abs (x, T, body) =
       | name_clash (Abs (_, _, t)) = name_clash t
       | name_clash _ = false;
   in
-    if name_clash body then dest_abs (Name.variant [x] x, T, body)    (*potentially slow*)
+    if name_clash body then
+      dest_abs (singleton (Name.variant_list [x]) x, T, body)    (*potentially slow*)
     else (x, subst_bound (Free (x, T), body))
   end;
 

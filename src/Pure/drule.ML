@@ -337,7 +337,7 @@ fun legacy_freeze_thaw th =
        [] => (fth, fn x => x)
      | vars =>
          let fun newName (Var(ix,_), (pairs,used)) =
-                   let val v = Name.variant used (string_of_indexname ix)
+                   let val v = singleton (Name.variant_list used) (string_of_indexname ix)
                    in  ((ix,v)::pairs, v::used)  end;
              val (alist, _) = List.foldr newName ([], Library.foldr OldTerm.add_term_names
                (prop :: Thm.terms_of_tpairs tpairs, [])) vars

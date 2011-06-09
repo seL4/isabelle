@@ -302,7 +302,7 @@ val depth_limited_comp_modifiers = Comp_Mod.Comp_Modifiers
   mk_random = (fn _ => error "no random generation"),
   additional_arguments = fn names =>
     let
-      val depth_name = Name.variant names "depth"
+      val depth_name = singleton (Name.variant_list names) "depth"
     in [Free (depth_name, @{typ code_numeral})] end,
   modify_funT = (fn T => let val (Ts, U) = strip_type T
   val Ts' = [@{typ code_numeral}] in (Ts @ Ts') ---> U end),
@@ -563,7 +563,7 @@ fun mk_v (names, vs) s T = (case AList.lookup (op =) vs s of
       NONE => (Free (s, T), (names, (s, [])::vs))
     | SOME xs =>
         let
-          val s' = Name.variant names s;
+          val s' = singleton (Name.variant_list names) s;
           val v = Free (s', T)
         in
           (v, (s'::names, AList.update (op =) (s, v::xs) vs))
@@ -626,8 +626,8 @@ fun compile_match compilation_modifiers additional_arguments ctxt param_modes
     val eqs'' =
       map (compile_arg compilation_modifiers additional_arguments ctxt param_modes) eqs''
     val names = fold Term.add_free_names (success_t :: eqs'' @ out_ts) [];
-    val name = Name.variant names "x";
-    val name' = Name.variant (name :: names) "y";
+    val name = singleton (Name.variant_list names) "x";
+    val name' = singleton (Name.variant_list (name :: names)) "y";
     val T = HOLogic.mk_tupleT (map fastype_of out_ts);
     val U = fastype_of success_t;
     val U' = dest_predT compfuns U;
@@ -905,7 +905,7 @@ fun compile_switch compilation_modifiers ctxt all_vs param_modes additional_argu
       let
         val (i, is) = argument_position_of mode position
         val inp_var = nth_pair is (nth in_ts' i)
-        val x = Name.variant all_vs "x"
+        val x = singleton (Name.variant_list all_vs) "x"
         val xt = Free (x, fastype_of inp_var)
         fun compile_single_case ((c, T), switched) =
           let
@@ -962,7 +962,7 @@ fun compile_pred options compilation_modifiers ctxt all_vs param_vs s T (pol, mo
           (Free (hd param_vs, T), (tl param_vs, names))
         else
           let
-            val new = Name.variant names "x"
+            val new = singleton (Name.variant_list names) "x"
           in (Free (new, T), (param_vs, new :: names)) end)) inpTs
         (param_vs, (all_vs @ param_vs))
     val in_ts' = map_filter (map_filter_prod
@@ -1009,7 +1009,7 @@ fun strip_split_abs (Const (@{const_name prod_case}, _) $ t) = strip_split_abs t
 fun mk_args is_eval (m as Pair (m1, m2), T as Type (@{type_name Product_Type.prod}, [T1, T2])) names =
     if eq_mode (m, Input) orelse eq_mode (m, Output) then
       let
-        val x = Name.variant names "x"
+        val x = singleton (Name.variant_list names) "x"
       in
         (Free (x, T), x :: names)
       end
@@ -1023,7 +1023,7 @@ fun mk_args is_eval (m as Pair (m1, m2), T as Type (@{type_name Product_Type.pro
   | mk_args is_eval ((m as Fun _), T) names =
     let
       val funT = funT_of PredicateCompFuns.compfuns m T
-      val x = Name.variant names "x"
+      val x = singleton (Name.variant_list names) "x"
       val (args, _) = fold_map (mk_args is_eval) (strip_fun_mode m ~~ binder_types T) (x :: names)
       val (inargs, outargs) = split_map_mode (fn _ => fn t => (SOME t, NONE)) m args
       val t = fold_rev HOLogic.tupled_lambda args (PredicateCompFuns.mk_Eval
@@ -1033,7 +1033,7 @@ fun mk_args is_eval (m as Pair (m1, m2), T as Type (@{type_name Product_Type.pro
     end
   | mk_args is_eval (_, T) names =
     let
-      val x = Name.variant names "x"
+      val x = singleton (Name.variant_list names) "x"
     in
       (Free (x, T), x :: names)
     end

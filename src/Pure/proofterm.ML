@@ -668,7 +668,7 @@ fun varify_proof t fixed prf =
 local
 
 fun new_name (ix, (pairs,used)) =
-  let val v = Name.variant used (string_of_indexname ix)
+  let val v = singleton (Name.variant_list used) (string_of_indexname ix)
   in  ((ix, v) :: pairs, v :: used)  end;
 
 fun freeze_one alist (ix, sort) = (case AList.lookup (op =) alist ix of

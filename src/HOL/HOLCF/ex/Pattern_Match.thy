@@ -531,7 +531,7 @@ fun add_pattern_combinators
     (* prove strictness and reduction rules of pattern combinators *)
     local
       val tns = map (fst o dest_TFree) (snd (dest_Type lhsT));
-      val rn = Name.variant tns "'r";
+      val rn = singleton (Name.variant_list tns) "'r";
       val R = TFree (rn, @{sort pcpo});
       fun pat_lhs (pat, args) =
         let

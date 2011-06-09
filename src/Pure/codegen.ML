@@ -273,7 +273,7 @@ fun preprocess thy =
 
 fun preprocess_term thy t =
   let
-    val x = Free (Name.variant (OldTerm.add_term_names (t, [])) "x", fastype_of t);
+    val x = Free (singleton (Name.variant_list (OldTerm.add_term_names (t, []))) "x", fastype_of t);
     (* fake definition *)
     val eq = Skip_Proof.make_thm thy (Logic.mk_equals (x, t));
     fun err () = error "preprocess_term: bad preprocessor"

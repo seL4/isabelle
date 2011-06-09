@@ -73,7 +73,8 @@ fun specialise_intros black_list (pred, intros) pats thy =
     fun mk_fresh_name names =
       let
         val name =
-          Name.variant names ("specialised_" ^ Long_Name.base_name (fst (dest_Const pred)))
+          singleton (Name.variant_list names)
+            ("specialised_" ^ Long_Name.base_name (fst (dest_Const pred)))
         val bname = Sign.full_bname thy name
       in
         if Sign.declared_const thy bname then
@@ -119,7 +120,7 @@ and find_specialisations black_list specs thy =
     val add_vars = fold_aterms (fn Var v => cons v | _ => I);
     fun fresh_free T free_names =
       let
-        val free_name = Name.variant free_names "x"
+        val free_name = singleton (Name.variant_list free_names) "x"
       in
         (Free (free_name, T), free_name :: free_names)
       end

@@ -152,7 +152,7 @@ fun v_to_prfx (prfx, Free v::pats) = (v::prfx,pats)
  
 fun mk_case tab ctxt ty_match ty_inst type_of used range_ty =
   let
-    val name = Name.variant used "a";
+    val name = singleton (Name.variant_list used) "a";
     fun expand constructors used ty ((_, []), _) =
           raise CASE_ERROR ("mk_case: expand_var_row", ~1)
       | expand constructors used ty (row as ((prfx, p :: ps), (rhs, tag))) =
@@ -264,11 +264,12 @@ fun case_tr err tab_of ctxt [t, u] =
 
         (* replace occurrences of dummy_pattern by distinct variables *)
         (* internalize constant names                                 *)
+        (* FIXME proper name context!? *)
         fun prep_pat ((c as Const (@{syntax_const "_constrain"}, _)) $ t $ tT) used =
               let val (t', used') = prep_pat t used
               in (c $ t' $ tT, used') end
           | prep_pat (Const (@{const_syntax dummy_pattern}, T)) used =
-              let val x = Name.variant used "x"
+              let val x = singleton (Name.variant_list used) "x"
               in (Free (x, T), x :: used) end
           | prep_pat (Const (s, T)) used =
               (Const (intern_const_syntax s, T), used)
@@ -305,6 +306,7 @@ fun case_tr err tab_of ctxt [t, u] =
 
 (* destruct one level of pattern matching *)
 
+(* FIXME proper name context!? *)
 fun gen_dest_case name_of type_of tab d used t =
   (case apfst name_of (strip_comb t) of
     (SOME cname, ts as _ :: _) =>
@@ -345,7 +347,7 @@ fun gen_dest_case name_of type_of tab d used t =
                 val R = type_of t;
                 val dummy =
                   if d then Const (@{const_name dummy_pattern}, R)
-                  else Free (Name.variant used "x", R);
+                  else Free (singleton (Name.variant_list used) "x", R);
               in
                 SOME (x,
                   map mk_case

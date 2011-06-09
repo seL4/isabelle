@@ -207,7 +207,7 @@ fun get_fns fns ((i : int, (tname, _, constrs)), rec_name) (fs, defs) =
 fun make_def ctxt fixes fs (fname, ls, rs, rec_name, tname) =
   let
     val used = map fst (fold Term.add_frees fs []);
-    val x = (Name.variant used "x", dummyT);
+    val x = (singleton (Name.variant_list used) "x", dummyT);
     val frees = ls @ x :: rs;
     val raw_rhs = list_abs_free (frees,
       list_comb (Const (rec_name, dummyT), fs @ [Free x]))

@@ -179,7 +179,7 @@ fun mk_foo_match mkuptermfunc Ts t =
 fun fakefree_badbounds Ts t = 
     let val (FakeTs,Ts,newnames) = 
             List.foldr (fn ((n,ty),(FakeTs,Ts,usednames)) => 
-                           let val newname = Name.variant usednames n
+                           let val newname = singleton (Name.variant_list usednames) n
                            in ((RWTools.mk_fake_bound_name newname,ty)::FakeTs,
                                (newname,ty)::Ts, 
                                newname::usednames) end)

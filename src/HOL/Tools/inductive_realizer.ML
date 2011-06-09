@@ -36,7 +36,7 @@ val pred_of = fst o dest_Const o head_of;
 
 fun strip_all' used names (Const ("all", _) $ Abs (s, T, t)) =
       let val (s', names') = (case names of
-          [] => (Name.variant used s, [])
+          [] => (singleton (Name.variant_list used) s, [])
         | name :: names' => (name, names'))
       in strip_all' (s'::used) names' (subst_bound (Free (s', T), t)) end
   | strip_all' used names ((t as Const ("==>", _) $ P) $ Q) =
@@ -246,7 +246,7 @@ fun add_dummies f [] _ thy =
     handle Datatype_Aux.Datatype_Empty name' =>
       let
         val name = Long_Name.base_name name';
-        val dname = Name.variant used "Dummy";
+        val dname = singleton (Name.variant_list used) "Dummy";
       in
         thy
         |> add_dummies f (map (add_dummy (Binding.name name) (Binding.name dname)) dts) (dname :: used)

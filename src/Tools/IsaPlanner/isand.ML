@@ -190,7 +190,7 @@ fun fix_tvars_to_tfrees_in_terms names ts =
       val tvars = List.foldr OldTerm.add_term_tvars [] ts;
       val (names',renamings) = 
           List.foldr (fn (tv as ((n,i),s),(Ns,Rs)) => 
-                         let val n2 = Name.variant Ns n in 
+                         let val n2 = singleton (Name.variant_list Ns) n in 
                            (n2::Ns, (tv, (n2,s))::Rs)
                          end) (tfree_names @ names,[]) tvars;
     in renamings end;
@@ -223,7 +223,7 @@ fun fix_vars_to_frees_in_terms names ts =
       val Ns = List.foldr OldTerm.add_term_names names ts;
       val (_,renamings) = 
           Library.foldl (fn ((Ns,Rs),v as ((n,i),ty)) => 
-                    let val n2 = Name.variant Ns n in
+                    let val n2 = singleton (Name.variant_list Ns) n in
                       (n2 :: Ns, (v, (n2,ty)) :: Rs)
                     end) ((Ns,[]), vars);
     in renamings end;

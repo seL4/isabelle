@@ -26,7 +26,6 @@ sig
   val invent_list: string list -> string -> int -> string list
   val variants: string list -> context -> string list * context
   val variant_list: string list -> string list -> string list
-  val variant: string list -> string -> string
   val desymbolize: bool -> string -> string
 end;
 
@@ -137,7 +136,6 @@ val variants = fold_map (fn name => fn ctxt =>
   in (x' ^ replicate_string n "_", ctxt') end);
 
 fun variant_list used names = #1 (make_context used |> variants names);
-fun variant used = singleton (variant_list used);
 
 
 (* names conforming to typical requirements of identifiers in the world outside *)

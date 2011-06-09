@@ -249,7 +249,7 @@ fun collect_non_invertible_subterms ctxt (f as Free _) (names, eqs) = (f, (names
           end
         else
           let
-            val s = Name.variant names "x"
+            val s = singleton (Name.variant_list names) "x"
             val v = Free (s, fastype_of t)
           in
             (v, (s :: names, HOLogic.mk_eq (v, t) :: eqs))
@@ -257,7 +257,7 @@ fun collect_non_invertible_subterms ctxt (f as Free _) (names, eqs) = (f, (names
 (*
   if is_constrt thy t then (t, (names, eqs)) else
     let
-      val s = Name.variant names "x"
+      val s = singleton (Name.variant_list names) "x"
       val v = Free (s, fastype_of t)
     in (v, (s::names, HOLogic.mk_eq (v, t)::eqs)) end;
 *)

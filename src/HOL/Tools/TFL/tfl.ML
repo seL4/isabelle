@@ -324,7 +324,7 @@ fun mk_functional thy clauses =
                               map_index (fn (i, t) => (t,(i,true))) R)
      val names = List.foldr OldTerm.add_term_names [] R
      val atype = type_of(hd pats)
-     and aname = Name.variant names "a"
+     and aname = singleton (Name.variant_list names) "a"
      val a = Free(aname,atype)
      val ty_info = Thry.match_info thy
      val ty_match = Thry.match_type thy
@@ -480,7 +480,7 @@ fun wfrec_eqns thy fid tflCongs eqns =
      val tych = Thry.typecheck thy
      val WFREC_THM0 = Rules.ISPEC (tych functional) Thms.WFREC_COROLLARY
      val Const(@{const_name All},_) $ Abs(Rname,Rtype,_) = concl WFREC_THM0
-     val R = Free (Name.variant (List.foldr OldTerm.add_term_names [] eqns) Rname,
+     val R = Free (singleton (Name.variant_list (List.foldr OldTerm.add_term_names [] eqns)) Rname,
                    Rtype)
      val WFREC_THM = Rules.ISPECL [tych R, tych g] WFREC_THM0
      val ([proto_def, WFR],_) = USyntax.strip_imp(concl WFREC_THM)
@@ -679,8 +679,8 @@ fun complete_cases thy =
  in fn pats =>
  let val names = List.foldr OldTerm.add_term_names [] pats
      val T = type_of (hd pats)
-     val aname = Name.variant names "a"
-     val vname = Name.variant (aname::names) "v"
+     val aname = singleton (Name.variant_list names) "a"
+     val vname = singleton (Name.variant_list (aname::names)) "v"
      val a = Free (aname, T)
      val v = Free (vname, T)
      val a_eq_v = HOLogic.mk_eq(a,v)
@@ -830,8 +830,8 @@ let val tych = Thry.typecheck thy
     val (pats,TCsl) = ListPair.unzip pat_TCs_list
     val case_thm = complete_cases thy pats
     val domain = (type_of o hd) pats
-    val Pname = Name.variant (List.foldr (Library.foldr OldTerm.add_term_names)
-                              [] (pats::TCsl)) "P"
+    val Pname = singleton (Name.variant_list (List.foldr (Library.foldr OldTerm.add_term_names)
+                              [] (pats::TCsl))) "P"
     val P = Free(Pname, domain --> HOLogic.boolT)
     val Sinduct = Rules.SPEC (tych P) Sinduction
     val Sinduct_assumf = USyntax.rand ((#ant o USyntax.dest_imp o concl) Sinduct)
@@ -841,9 +841,10 @@ let val tych = Thry.typecheck thy
     val cases = map (fn pat => Term.betapply (Sinduct_assumf, pat)) pats
     val tasks = Utils.zip3 cases TCl' (Rules.CONJUNCTS Rinduct_assum)
     val proved_cases = map (prove_case fconst thy) tasks
-    val v = Free (Name.variant (List.foldr OldTerm.add_term_names [] (map concl proved_cases))
-                    "v",
-                  domain)
+    val v =
+      Free (singleton
+        (Name.variant_list (List.foldr OldTerm.add_term_names [] (map concl proved_cases))) "v",
+          domain)
     val vtyped = tych v
     val substs = map (Rules.SYM o Rules.ASSUME o tych o (curry HOLogic.mk_eq v)) pats
     val proved_cases1 = ListPair.map (fn (th,th') => Rules.SUBS[th]th')
