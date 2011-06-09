@@ -6,7 +6,7 @@
 header {* Examples for narrowing-based testing  *}
 
 theory Quickcheck_Narrowing_Examples
-imports "~~/src/HOL/Library/Quickcheck_Narrowing"
+imports Main
 begin
 
 subsection {* Minimalistic examples *}
