@@ -15,8 +15,8 @@ sig
     {exec : string * string,
      required_execs : (string * string) list,
      arguments :
-       Proof.context -> int -> Time.time -> (unit -> (string * real) list)
-       -> string,
+       Proof.context -> bool -> int -> Time.time
+       -> (unit -> (string * real) list) -> string,
      proof_delims : (string * string) list,
      known_failures : (failure * string) list,
      conj_sym_kind : formula_kind,
@@ -68,7 +68,7 @@ type atp_config =
   {exec : string * string,
    required_execs : (string * string) list,
    arguments :
-     Proof.context -> int -> Time.time -> (unit -> (string * real) list)
+     Proof.context -> bool -> int -> Time.time -> (unit -> (string * real) list)
      -> string,
    proof_delims : (string * string) list,
    known_failures : (failure * string) list,
@@ -200,10 +200,12 @@ fun method_for_slice ctxt slice =
 val e_config : atp_config =
   {exec = ("E_HOME", "eproof"),
    required_execs = [],
-   arguments = fn ctxt => fn slice => fn timeout => fn weights =>
-     "--tstp-in --tstp-out -l5 " ^
-     e_weight_arguments ctxt (method_for_slice ctxt slice) weights ^
-     " -tAutoDev --silent --cpu-limit=" ^ string_of_int (to_secs timeout),
+   arguments =
+     fn ctxt => fn full_proof => fn slice => fn timeout => fn weights =>
+        "--tstp-in --tstp-out -l5 " ^
+        e_weight_arguments ctxt (method_for_slice ctxt slice) weights ^
+        " -tAutoDev --silent --cpu-limit=" ^ string_of_int (to_secs timeout) ^
+        (if full_proof orelse is_old_e_version () then "" else " --trim"),
    proof_delims = tstp_proof_delims,
    known_failures =
      [(Unprovable, "SZS status: CounterSatisfiable"),
@@ -241,7 +243,7 @@ val spass_force_sos =
 val spass_config : atp_config =
   {exec = ("ISABELLE_ATP", "scripts/spass"),
    required_execs = [("SPASS_HOME", "SPASS"), ("SPASS_HOME", "tptp2dfg")],
-   arguments = fn ctxt => fn slice => fn timeout => fn _ =>
+   arguments = fn ctxt => fn _ => fn slice => fn timeout => fn _ =>
      ("-Auto -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
       \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_secs timeout))
      |> (slice < 2 orelse Config.get ctxt spass_force_sos) ? prefix "-SOS=1 ",
@@ -277,7 +279,7 @@ val vampire_force_sos =
 val vampire_config : atp_config =
   {exec = ("VAMPIRE_HOME", "vampire"),
    required_execs = [],
-   arguments = fn ctxt => fn slice => fn timeout => fn _ =>
+   arguments = fn ctxt => fn _ => fn slice => fn timeout => fn _ =>
      "--proof tptp --mode casc -t " ^ string_of_int (to_secs timeout) ^
      " --thanks \"Andrei and Krystof\" --input_file"
      |> (slice < 2 orelse Config.get ctxt vampire_force_sos)
@@ -316,7 +318,7 @@ val vampire = (vampireN, vampire_config)
 val z3_atp_config : atp_config =
   {exec = ("Z3_HOME", "z3"),
    required_execs = [],
-   arguments = fn _ => fn _ => fn timeout => fn _ =>
+   arguments = fn _ => fn _ => fn _ => fn timeout => fn _ =>
      "MBQI=true -p -t:" ^ string_of_int (to_secs timeout),
    proof_delims = [],
    known_failures =
@@ -373,7 +375,7 @@ fun remote_config system_name system_versions proof_delims known_failures
                   conj_sym_kind prem_kind formats best_slice : atp_config =
   {exec = ("ISABELLE_ATP", "scripts/remote_atp"),
    required_execs = [],
-   arguments = fn _ => fn _ => fn timeout => fn _ =>
+   arguments = fn _ => fn _ => fn _ => fn timeout => fn _ =>
      "-t " ^ string_of_int (Int.min (max_remote_secs, to_secs timeout))
      ^ " -s " ^ the_system system_name system_versions,
    proof_delims = union (op =) tstp_proof_delims proof_delims,

@@ -654,7 +654,7 @@ fun run_atp mode name
                 fun weights () = atp_problem_weights atp_problem
                 val core =
                   File.shell_path command ^ " " ^
-                  arguments ctxt slice slice_timeout weights ^ " " ^
+                  arguments ctxt isar_proof slice slice_timeout weights ^ " " ^
                   File.shell_path prob_file
                 val command =
                   (if measure_run_time then
