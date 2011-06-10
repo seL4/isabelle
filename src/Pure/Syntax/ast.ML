@@ -23,8 +23,8 @@ sig
   val unfold_ast_p: string -> ast -> ast list * ast
   val trace_raw: Config.raw
   val trace: bool Config.T
-  val stat_raw: Config.raw
-  val stat: bool Config.T
+  val stats_raw: Config.raw
+  val stats: bool Config.T
   val normalize: Proof.context -> (string -> (ast * ast) list) -> ast -> ast
 end;
 
@@ -167,8 +167,8 @@ fun match ast pat =
 val trace_raw = Config.declare "syntax_ast_trace" (fn _ => Config.Bool false);
 val trace = Config.bool trace_raw;
 
-val stat_raw = Config.declare "syntax_ast_stat" (fn _ => Config.Bool false);
-val stat = Config.bool stat_raw;
+val stats_raw = Config.declare "syntax_ast_stats" (fn _ => Config.Bool false);
+val stats = Config.bool stats_raw;
 
 fun message head body =
   Pretty.string_of (Pretty.block [Pretty.str head, Pretty.brk 1, body]);
@@ -177,7 +177,7 @@ fun message head body =
 fun normalize ctxt get_rules pre_ast =
   let
     val trace = Config.get ctxt trace;
-    val stat = Config.get ctxt stat;
+    val stats = Config.get ctxt stats;
 
     val passes = Unsynchronized.ref 0;
     val failed_matches = Unsynchronized.ref 0;
@@ -239,7 +239,7 @@ fun normalize ctxt get_rules pre_ast =
     val _ = if trace then tracing (message "pre:" (pretty_ast pre_ast)) else ();
     val post_ast = normal pre_ast;
     val _ =
-      if trace orelse stat then
+      if trace orelse stats then
         tracing (message "post:" (pretty_ast post_ast) ^ "\nnormalize: " ^
           string_of_int (! passes) ^ " passes, " ^
           string_of_int (! changes) ^ " changes, " ^
