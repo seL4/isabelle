@@ -10,27 +10,29 @@ imports Main
 begin
 
 subsection {* Minimalistic examples *}
-(*
+
 lemma
   "x = y"
 quickcheck[tester = narrowing, finite_types = false, default_type = int, expect = counterexample]
 oops
-*)
-(*
+
 lemma
   "x = y"
-quickcheck[tester = narrowing, finite_types = true, expect = counterexample]
+quickcheck[tester = narrowing, finite_types = false, default_type = nat, expect = counterexample]
 oops
-*)
 
-(*declare [[quickcheck_narrowing_overlord]]*)
 subsection {* Simple examples with existentials *}
 
 lemma
   "\<exists> y :: nat. \<forall> x. x = y"
 quickcheck[tester = narrowing, finite_types = false, expect = counterexample]
 oops
-
+(*
+lemma
+  "\<exists> y :: int. \<forall> x. x = y"
+quickcheck[tester = narrowing, size = 2]
+oops
+*)
 lemma
   "x > 1 --> (\<exists>y :: nat. x < y & y <= 1)"
 quickcheck[tester = narrowing, finite_types = false, expect = counterexample]

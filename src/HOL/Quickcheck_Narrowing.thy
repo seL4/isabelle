@@ -1,6 +1,6 @@
 (* Author: Lukas Bulwahn, TU Muenchen *)
 
-header {* Counterexample generator preforming narrowing-based testing *}
+header {* Counterexample generator performing narrowing-based testing *}
 
 theory Quickcheck_Narrowing
 imports Quickcheck_Exhaustive
@@ -218,6 +218,10 @@ declare Quickcheck_Narrowing.equal_narrowing_type_def[code del]
 datatype narrowing_term = Var "code_int list" narrowing_type | Ctr code_int "narrowing_term list"
 datatype 'a cons = C narrowing_type "(narrowing_term list => 'a) list"
 
+primrec map_cons :: "('a => 'b) => 'a cons => 'b cons"
+where
+  "map_cons f (C ty cs) = C ty (map (%c. f o c) cs)"
+
 subsubsection {* From narrowing's deep representation of terms to @{theory Code_Evaluation}'s terms *}
 
 class partial_term_of = typerep +
@@ -225,8 +229,7 @@ class partial_term_of = typerep +
 
 lemma partial_term_of_anything: "partial_term_of x nt \<equiv> t"
   by (rule eq_reflection) (cases "partial_term_of x nt", cases t, simp)
-
-
+ 
 subsubsection {* Auxilary functions for Narrowing *}
 
 consts nth :: "'a list => code_int => 'a"
@@ -308,19 +311,6 @@ subsubsection {* Narrowing generator type class *}
 class narrowing =
   fixes narrowing :: "code_int => 'a cons"
 
-definition drawn_from :: "'a list => 'a cons"
-where "drawn_from xs = C (SumOfProd (map (%_. []) xs)) (map (%x y. x) xs)"
-
-instantiation int :: narrowing
-begin
-
-definition
-  "narrowing_int d = (let i = Quickcheck_Narrowing.int_of d in drawn_from [-i .. i])"
-
-instance ..
-
-end
-
 datatype property = Universal narrowing_type "(narrowing_term => property)" "narrowing_term => Code_Evaluation.term" | Existential narrowing_type "(narrowing_term => property)" "narrowing_term => Code_Evaluation.term" | Property bool
 
 (* FIXME: hard-wired maximal depth of 100 here *)
@@ -376,9 +366,122 @@ use "~~/src/HOL/Tools/Quickcheck/narrowing_generators.ML"
 
 setup {* Narrowing_Generators.setup *}
 
+subsection {* Narrowing for integers *}
+
+
+definition drawn_from :: "'a list => 'a cons"
+where "drawn_from xs = C (SumOfProd (map (%_. []) xs)) (map (%x y. x) xs)"
+
+function around_zero :: "int => int list"
+where
+  "around_zero i = (if i < 0 then [] else (if i = 0 then [0] else around_zero (i - 1) @ [i, -i]))"
+by pat_completeness auto
+termination by (relation "measure nat") auto
+
+declare around_zero.simps[simp del]
+
+lemma length_around_zero:
+  assumes "i >= 0" 
+  shows "length (around_zero i) = 2 * nat i + 1"
+proof (induct rule: int_ge_induct[OF assms])
+  case 1
+  from 1 show ?case by (simp add: around_zero.simps)
+next
+  case (2 i)
+  from 2 show ?case
+    by (simp add: around_zero.simps[of "i + 1"])
+qed
+
+lemma
+  assumes "int n <= 2 * i"
+  shows "(n mod 2 = 1 --> around_zero i ! n = (int n + 1) div 2) &
+    (n mod 2 = 0 --> around_zero i ! n = (- (int n)) div 2)"
+using assms
+proof (cases "i >= 0")
+  case False
+  with assms show ?thesis by (simp add: around_zero.simps[of i])
+next
+  case True
+  from assms show ?thesis
+  proof (induct rule:  int_ge_induct[OF True])
+    case (2 i)
+    have i: "n < Suc (2 * nat i) \<or> n = Suc (2 * nat i) \<or> n = (2 * nat i) + 2 \<or> n > (2 * nat i) + 2"
+      by arith
+    show ?case    
+    proof -
+      {
+        assume "n mod 2 = 1"
+        from 2 length_around_zero[OF 2(1)] this i have "around_zero (i + 1) ! n = (int n + 1) div 2"
+          unfolding around_zero.simps[of "i + 1"]
+          by (auto simp add: nth_append)
+      } moreover
+      {
+        assume a: "n mod 2 = 0"
+        have "\<forall> q q'. 2 * q \<noteq> Suc (2 * q')" by arith
+        from a 2 length_around_zero[OF 2(1)] this i have "around_zero (i + 1) ! n = - int n div 2"
+          unfolding around_zero.simps[of "i + 1"]
+          by (auto simp add: nth_append)
+      }
+      ultimately show ?thesis by auto
+    qed
+   next
+     case 1
+     from 1 show ?case by (auto simp add: around_zero.simps[of 0])
+  qed
+qed
+
+instantiation int :: narrowing
+begin
+
+definition
+  "narrowing_int d = (let (u :: _ => _ => unit) = conv; i = Quickcheck_Narrowing.int_of d in drawn_from (around_zero i))"
+
+instance ..
+
+end
+
+lemma [code, code del]: "partial_term_of (ty :: int itself) t == undefined"
+by (rule partial_term_of_anything)+
+
+lemma [code]:
+  "partial_term_of (ty :: int itself) (Var p t) == Code_Evaluation.Free (STR ''_'') (Typerep.Typerep (STR ''Int.int'') [])"
+  "partial_term_of (ty :: int itself) (Ctr i []) == (if i mod 2 = 0 then
+     Code_Evaluation.term_of (- (int_of i) div 2) else Code_Evaluation.term_of ((int_of i + 1) div 2))"
+by (rule partial_term_of_anything)+
+
+text {* Defining integers by positive and negative copy of naturals *}
+(*
+datatype simple_int = Positive nat | Negative nat
+
+primrec int_of_simple_int :: "simple_int => int"
+where
+  "int_of_simple_int (Positive n) = int n"
+| "int_of_simple_int (Negative n) = (-1 - int n)"
+
+instantiation int :: narrowing
+begin
+
+definition narrowing_int :: "code_int => int cons"
+where
+  "narrowing_int d = map_cons int_of_simple_int ((narrowing :: simple_int narrowing) d)"
+
+instance ..
+
+end
+
+text {* printing the partial terms *}
+
+lemma [code]:
+  "partial_term_of (ty :: int itself) t == Code_Evaluation.App (Code_Evaluation.Const (STR ''Quickcheck_Narrowing.int_of_simple_int'')
+     (Typerep.Typerep (STR ''fun'') [Typerep.Typerep (STR ''Quickcheck_Narrowing.simple_int'') [], Typerep.Typerep (STR ''Int.int'') []])) (partial_term_of (TYPE(simple_int)) t)"
+by (rule partial_term_of_anything)
+
+*)
+
 hide_type code_int narrowing_type narrowing_term cons property
 hide_const int_of of_int nth error toEnum marker empty
   C cons conv nonEmpty "apply" sum ensure_testable all exists 
 hide_fact empty_def cons_def conv.simps nonEmpty.simps apply_def sum_def ensure_testable_def all_def exists_def
+
 
 end
