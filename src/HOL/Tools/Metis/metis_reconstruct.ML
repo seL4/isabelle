@@ -180,14 +180,14 @@ fun incr_type_indexes inc th =
 fun resolve_inc_tyvars thy tha i thb =
   let
     val tha = incr_type_indexes (1 + Thm.maxidx_of thb) tha
-    fun aux tha thb =
+    fun aux (tha, thb) =
       case Thm.bicompose false (false, tha, nprems_of tha) i thb
            |> Seq.list_of |> distinct Thm.eq_thm of
         [th] => th
       | _ => raise THM ("resolve_inc_tyvars: unique result expected", i,
                         [tha, thb])
   in
-    aux tha thb
+    aux (tha, thb)
     handle TERM z =>
            (* The unifier, which is invoked from "Thm.bicompose", will sometimes
               refuse to unify "?a::?'a" with "?a::?'b" or "?a::nat" and throw a
@@ -206,7 +206,8 @@ fun resolve_inc_tyvars thy tha i thb =
                    |> map (fn (x, (S, T)) =>
                               pairself (ctyp_of thy) (TVar (x, S), T)) of
              [] => raise TERM z
-           | ps => aux (Drule.instantiate_normalize (ps, []) tha) (Drule.instantiate_normalize (ps, []) thb)
+           | ps => (tha, thb) |> pairself (Drule.instantiate_normalize (ps, []))
+                              |> aux
   end
 
 fun s_not (@{const Not} $ t) = t
