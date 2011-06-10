@@ -95,7 +95,7 @@ val default_default_params =
    ("relevance_thresholds", "0.45 0.85"),
    ("max_relevant", "smart"),
    ("max_mono_iters", "3"),
-   ("max_new_mono_instances", "400"),
+   ("max_new_mono_instances", "200"),
    ("isar_proof", "false"),
    ("isar_shrink_factor", "1"),
    ("slicing", "true"),
