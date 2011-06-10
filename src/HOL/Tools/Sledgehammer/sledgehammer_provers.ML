@@ -652,9 +652,10 @@ fun run_atp mode name
                       type_sys true (Config.get ctxt atp_readable_names) true
                       hyp_ts concl_t facts
                 fun weights () = atp_problem_weights atp_problem
+                val full_proof = debug orelse isar_proof
                 val core =
                   File.shell_path command ^ " " ^
-                  arguments ctxt isar_proof slice slice_timeout weights ^ " " ^
+                  arguments ctxt full_proof slice slice_timeout weights ^ " " ^
                   File.shell_path prob_file
                 val command =
                   (if measure_run_time then
