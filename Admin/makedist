@@ -24,6 +24,7 @@ function usage()
 Usage: $PRG [OPTIONS] [VERSION]
 
   Options are:
+    -j JEDIT_BUILD     build Isabelle/jEdit via given jedit_build component
     -r RELEASE         proper release with name"
 
   Make Isabelle distribution from the main Mercurial repository at TUM.
@@ -47,10 +48,14 @@ function fail()
 # options
 
 RELEASE=""
+ISABELLE_JEDIT_BUILD_HOME=""
 
-while getopts "r:" OPT
+while getopts "j:r:" OPT
 do
   case "$OPT" in
+    j)
+      ISABELLE_JEDIT_BUILD_HOME="$OPTARG"
+      ;;
     r)
       RELEASE="$OPTARG"
       ;;
@@ -136,6 +141,15 @@ find . "(" -name \*.thy -o -name \*.ML ")" -perm +111 -print | xargs chmod -f -x
 find . -print | xargs chmod -f u+rw
 
 ./Admin/build all || fail "Failed to build distribution"
+
+if [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
+  [ -d "$ISABELLE_JEDIT_BUILD_HOME" ] || fail "Bad jedit_build component directory: \"$ISABELLE_JEDIT_BUILD_HOME\""
+  eval "$(fgrep ISABELLE_JEDIT_BUILD_VERSION "$ISABELLE_JEDIT_BUILD_HOME/etc/settings")"
+  [ -n "$ISABELLE_JEDIT_BUILD_VERSION" ] || fail "Bad ISABELLE_JEDIT_BUILD_VERSION"
+  export ISABELLE_JEDIT_BUILD_HOME ISABELLE_JEDIT_BUILD_VERSION
+  ./bin/isabelle jedit -b || fail "Failed to build Isabelle/jEdit"
+fi
+
 rm -rf Admin
 
 MOVE=$(find doc-src \( -type f -a -not -type l -a -not -name isabelle_isar.pdf -a -not -name pghead.pdf -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')
