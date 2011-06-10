@@ -59,22 +59,15 @@ sig
     | $  of term*term;
   val depth_tac: Proof.context -> int -> int -> tactic
   val depth_limit: int Config.T
+  val trace: bool Config.T
+  val stats: bool Config.T
   val blast_tac: Proof.context -> int -> tactic
   val setup: theory -> theory
   (*debugging tools*)
   type branch
-  val trace: bool Config.T
-  val stats: bool Config.T
-  val fromType: (indexname * term) list Unsynchronized.ref -> Term.typ -> term
-  val fromTerm: theory -> Term.term -> term
-  val fromSubgoal: theory -> Term.term -> term
-  val instVars: term -> (unit -> unit)
-  val toTerm: int -> term -> Term.term
-  val readGoal: Proof.context -> string -> term
   val tryIt: Proof.context -> int -> string ->
     {fullTrace: branch list list,
       result: ((int -> tactic) list * branch list list * (int * int * exn) list)}
-  val normBr: branch -> branch
 end;
 
 functor Blast(Data: BLAST_DATA): BLAST =
@@ -111,6 +104,7 @@ type branch =
 
 datatype state = State of
  {ctxt: Proof.context,
+  names: Name.context Unsynchronized.ref,
   fullTrace: branch list list Unsynchronized.ref,
   trail: term option Unsynchronized.ref list Unsynchronized.ref,
   ntrail: int Unsynchronized.ref,
@@ -129,6 +123,7 @@ fun initialize ctxt =
   in
     State
      {ctxt = ctxt,
+      names = Unsynchronized.ref (Variable.names_of ctxt),
       fullTrace = Unsynchronized.ref [],
       trail = Unsynchronized.ref [],
       ntrail = Unsynchronized.ref 0,
@@ -136,6 +131,8 @@ fun initialize ctxt =
       ntried = Unsynchronized.ref 1} (*number of branches created by splitting (counting from 1)*)
   end;
 
+fun gensym (State {names, ...}) x =
+  Unsynchronized.change_result names (Name.variant x);
 
 
 (** Basic syntactic operations **)
@@ -446,19 +443,19 @@ fun delete_concl [] = raise ElimBadPrem
           else P :: delete_concl Ps
       | _ => P :: delete_concl Ps);
 
-fun skoPrem vars (Const ("all", _) $ Abs (_, P)) =
-        skoPrem vars (subst_bound (Skolem (gensym "S_", vars), P))
-  | skoPrem vars P = P;
+fun skoPrem state vars (Const ("all", _) $ Abs (_, P)) =
+        skoPrem state vars (subst_bound (Skolem (gensym state "S", vars), P))
+  | skoPrem _ _ P = P;
 
 fun convertPrem t =
     delete_concl (mkGoal (strip_imp_concl t) :: strip_imp_prems t);
 
 (*Expects elimination rules to have a formula variable as conclusion*)
-fun convertRule vars t =
+fun convertRule state vars t =
   let val (P::Ps) = strip_imp_prems t
       val Var v   = strip_imp_concl t
   in  v := SOME (Const ("*False*", []));
-      (P, map (convertPrem o skoPrem vars) Ps)
+      (P, map (convertPrem o skoPrem state vars) Ps)
   end
   handle Bind => raise ElimBadConcl;
 
@@ -495,9 +492,9 @@ fun rmtac ctxt upd rl = TRACE ctxt rl (if upd then rtac rl else match_tac [rl]);
 (*Tableau rule from elimination rule.
   Flag "upd" says that the inference updated the branch.
   Flag "dup" requests duplication of the affected formula.*)
-fun fromRule ctxt vars rl =
+fun fromRule (state as State {ctxt, ...}) vars rl =
   let val thy = Proof_Context.theory_of ctxt
-      val trl = rl |> Thm.prop_of |> fromTerm thy |> convertRule vars
+      val trl = rl |> Thm.prop_of |> fromTerm thy |> convertRule state vars
       fun tac (upd, dup,rot) i =
         emtac ctxt upd (if dup then rev_dup_elim rl else rl) i
         THEN
@@ -519,10 +516,10 @@ fun fromRule ctxt vars rl =
 
 fun convertIntrPrem t = mkGoal (strip_imp_concl t) :: strip_imp_prems t;
 
-fun convertIntrRule vars t =
+fun convertIntrRule state vars t =
   let val Ps = strip_imp_prems t
       val P  = strip_imp_concl t
-  in  (mkGoal P, map (convertIntrPrem o skoPrem vars) Ps)
+  in  (mkGoal P, map (convertIntrPrem o skoPrem state vars) Ps)
   end;
 
 (*Tableau rule from introduction rule.
@@ -530,9 +527,9 @@ fun convertIntrRule vars t =
   Flag "dup" requests duplication of the affected formula.
   Since haz rules are now delayed, "dup" is always FALSE for
   introduction rules.*)
-fun fromIntrRule ctxt vars rl =
+fun fromIntrRule (state as State {ctxt, ...}) vars rl =
   let val thy = Proof_Context.theory_of ctxt
-      val trl = rl |> Thm.prop_of |> fromTerm thy |> convertIntrRule vars
+      val trl = rl |> Thm.prop_of |> fromTerm thy |> convertIntrRule state vars
       fun tac (upd,dup,rot) i =
          rmtac ctxt upd (if dup then Classical.dup_intr rl else rl) i
          THEN
@@ -554,16 +551,16 @@ fun toTerm 0 _             = dummyVar
   | toTerm d (f $ u)       = Term.$ (toTerm d f, toTerm (d-1) u);
 
 
-fun netMkRules ctxt P vars (nps: Classical.netpair list) =
+fun netMkRules state P vars (nps: Classical.netpair list) =
   case P of
       (Const ("*Goal*", _) $ G) =>
         let val pG = mk_Trueprop (toTerm 2 G)
             val intrs = maps (fn (inet,_) => Net.unify_term inet pG) nps
-        in  map (fromIntrRule ctxt vars o #2) (order_list intrs)  end
+        in  map (fromIntrRule state vars o #2) (order_list intrs)  end
     | _ =>
         let val pP = mk_Trueprop (toTerm 3 P)
             val elims = maps (fn (_,enet) => Net.unify_term enet pP) nps
-        in  map_filter (fromRule ctxt vars o #2) (order_list elims)  end;
+        in  map_filter (fromRule state vars o #2) (order_list elims)  end;
 
 
 (*Normalize a branch--for tracing*)
@@ -939,7 +936,7 @@ fun prove (state, start, brs, cont) =
               val nbrs = length brs0
               val nxtVars = nextVars brs
               val G = norm G
-              val rules = netMkRules ctxt G vars safeList
+              val rules = netMkRules state G vars safeList
               (*Make a new branch, decrementing "lim" if instantiations occur*)
               fun newBr (vars',lim') prems =
                   map (fn prem =>
@@ -1033,7 +1030,7 @@ fun prove (state, start, brs, cont) =
               handle CLOSEF =>   closeFl ((br,haz)::pairs)
                 handle CLOSEF => deeper rules
                   handle NEWBRANCHES =>
-                   (case netMkRules ctxt G vars hazList of
+                   (case netMkRules state G vars hazList of
                        [] => (*there are no plausible haz rules*)
                              (traceMsg trace "moving formula to literals";
                               prv (tacs, brs0::trs, choices,
@@ -1067,7 +1064,7 @@ fun prove (state, start, brs, cont) =
           let exception PRV (*backtrack to precisely this recursion!*)
               val H = norm H
               val ntrl = !ntrail
-              val rules = netMkRules ctxt H vars hazList
+              val rules = netMkRules state H vars hazList
               (*new premises of haz rules may NOT be duplicated*)
               fun newPrem (vars,P,dup,lim') prem =
                   let val Gs' = map (fn Q => (Q,false)) prem
@@ -1191,8 +1188,9 @@ fun getVars []                  i = []
 exception TRANS of string;
 
 (*Translation of a subgoal: Skolemize all parameters*)
-fun fromSubgoal thy t =
-  let val alistVar = Unsynchronized.ref []
+fun fromSubgoal (state as State {ctxt, ...}) t =
+  let val thy = Proof_Context.theory_of ctxt
+      val alistVar = Unsynchronized.ref []
       and alistTVar = Unsynchronized.ref []
       fun hdvar ((ix,(v,is))::_) = v
       fun from lev t =
@@ -1230,8 +1228,7 @@ fun fromSubgoal thy t =
       fun skoSubgoal i t =
           if i<npars then
               skoSubgoal (i+1)
-                (subst_bound (Skolem (gensym "T_", getVars (!alistVar) i),
-                              t))
+                (subst_bound (Skolem (gensym state "T", getVars (!alistVar) i), t))
           else t
 
   in  skoSubgoal 0 (from 0 (discard_foralls t))  end;
@@ -1241,11 +1238,10 @@ fun fromSubgoal thy t =
  "start" is CPU time at start, for printing SEARCH time (also prints reconstruction time)
  "lim" is depth limit.*)
 fun raw_blast start ctxt lim st =
-  let val thy = Proof_Context.theory_of ctxt
-      val state = initialize ctxt
+  let val state = initialize ctxt
       val trace = Config.get ctxt trace;
       val stats = Config.get ctxt stats;
-      val skoprem = fromSubgoal thy (#1 (Logic.dest_implies (Thm.prop_of st)))
+      val skoprem = fromSubgoal state (#1 (Logic.dest_implies (Thm.prop_of st)))
       val hyps  = strip_imp_prems skoprem
       and concl = strip_imp_concl skoprem
       fun cont (tacs,_,choices) =
