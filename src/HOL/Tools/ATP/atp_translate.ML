@@ -580,11 +580,8 @@ fun type_sys_from_string s =
          case (core, (poly, level, heaviness)) of
            ("simple", (NONE, _, Lightweight)) => Simple_Types level
          | ("preds", (SOME poly, _, _)) => Preds (poly, level, heaviness)
-         | ("tags", (SOME Polymorphic, All_Types, _)) =>
-           Tags (Polymorphic, All_Types, heaviness)
          | ("tags", (SOME Polymorphic, _, _)) =>
-           (* The actual light encoding is very unsound. *)
-           Tags (Polymorphic, level, Heavyweight)
+           Tags (Polymorphic, level, heaviness)
          | ("tags", (SOME poly, _, _)) => Tags (poly, level, heaviness)
          | ("args", (SOME poly, All_Types (* naja *), Lightweight)) =>
            Preds (poly, Const_Arg_Types, Lightweight)
@@ -1039,15 +1036,26 @@ fun is_var_or_bound_var (CombConst ((s, _), _, _)) =
   | is_var_or_bound_var (CombVar _) = true
   | is_var_or_bound_var _ = false
 
-datatype tag_site = Top_Level | Eq_Arg | Elsewhere
+datatype tag_site =
+  Top_Level of bool option |
+  Eq_Arg of bool option |
+  Elsewhere
 
-fun should_tag_with_type _ _ _ Top_Level _ _ = false
-  | should_tag_with_type ctxt nonmono_Ts (Tags (_, level, heaviness)) site u T =
+fun should_tag_with_type _ _ _ (Top_Level _) _ _ = false
+  | should_tag_with_type ctxt nonmono_Ts (Tags (poly, level, heaviness)) site
+                         u T =
     (case heaviness of
        Heavyweight => should_encode_type ctxt nonmono_Ts level T
      | Lightweight =>
        case (site, is_var_or_bound_var u) of
-         (Eq_Arg, true) => should_encode_type ctxt nonmono_Ts level T
+         (Eq_Arg pos, true) =>
+         (* The first disjunct prevents a subtle soundness issue explained in
+            Blanchette's Ph.D. thesis. See also
+            "formula_lines_for_lightweight_tags_sym_decl". *)
+         (pos <> SOME false andalso poly = Polymorphic andalso
+          level <> All_Types andalso heaviness = Lightweight andalso
+          exists (fn T' => type_instance ctxt (T', T)) nonmono_Ts) orelse
+         should_encode_type ctxt nonmono_Ts level T
        | _ => false)
   | should_tag_with_type _ _ _ _ _ _ = false
 
@@ -1466,10 +1474,10 @@ fun is_var_nonmonotonic_in_formula _ _ (SOME false) _ = false
 fun mk_const_aterm format type_sys x T_args args =
   ATerm (x, map (fo_term_from_typ format type_sys) T_args @ args)
 
-fun tag_with_type ctxt format nonmono_Ts type_sys T tm =
+fun tag_with_type ctxt format nonmono_Ts type_sys pos T tm =
   CombConst (type_tag, T --> T, [T])
   |> enforce_type_arg_policy_in_combterm ctxt format type_sys
-  |> term_from_combterm ctxt format nonmono_Ts type_sys Top_Level
+  |> term_from_combterm ctxt format nonmono_Ts type_sys (Top_Level pos)
   |> (fn ATerm (s, tms) => ATerm (s, tms @ [tm]))
 and term_from_combterm ctxt format nonmono_Ts type_sys =
   let
@@ -1481,14 +1489,18 @@ and term_from_combterm ctxt format nonmono_Ts type_sys =
             CombConst (name, _, T_args) => (name, T_args)
           | CombVar (name, _) => (name, [])
           | CombApp _ => raise Fail "impossible \"CombApp\""
-        val arg_site = if site = Top_Level andalso is_tptp_equal s then Eq_Arg
-                       else Elsewhere
+        val (pos, arg_site) =
+          case site of
+            Top_Level pos =>
+            (pos, if is_tptp_equal s then Eq_Arg pos else Elsewhere)
+          | Eq_Arg pos => (pos, Elsewhere)
+          | Elsewhere => (NONE, Elsewhere)
         val t = mk_const_aterm format type_sys x T_args
                     (map (aux arg_site) args)
         val T = combtyp_of u
       in
         t |> (if should_tag_with_type ctxt nonmono_Ts type_sys site u T then
-                tag_with_type ctxt format nonmono_Ts type_sys T
+                tag_with_type ctxt format nonmono_Ts type_sys pos T
               else
                 I)
       end
@@ -1496,7 +1508,8 @@ and term_from_combterm ctxt format nonmono_Ts type_sys =
 and formula_from_combformula ctxt format nonmono_Ts type_sys
                              should_predicate_on_var =
   let
-    val do_term = term_from_combterm ctxt format nonmono_Ts type_sys Top_Level
+    fun do_term pos =
+      term_from_combterm ctxt format nonmono_Ts type_sys (Top_Level pos)
     val do_bound_type =
       case type_sys of
         Simple_Types level =>
@@ -1508,7 +1521,7 @@ and formula_from_combformula ctxt format nonmono_Ts type_sys
              (fn () => should_predicate_on_var pos phi universal name) T then
         CombVar (name, T)
         |> type_pred_combterm ctxt format type_sys T
-        |> do_term |> AAtom |> SOME
+        |> do_term pos |> AAtom |> SOME
       else
         NONE
     fun do_formula pos (AQuant (q, xs, phi)) =
@@ -1527,7 +1540,7 @@ and formula_from_combformula ctxt format nonmono_Ts type_sys
                       phi)
         end
       | do_formula pos (AConn conn) = aconn_map pos do_formula conn
-      | do_formula _ (AAtom tm) = AAtom (do_term tm)
+      | do_formula pos (AAtom tm) = AAtom (do_term pos tm)
   in do_formula o SOME end
 
 fun bound_tvars type_sys Ts =
@@ -1736,8 +1749,14 @@ fun formula_lines_for_lightweight_tags_sym_decl ctxt format conj_sym_kind
       |> bound_tvars type_sys atomic_Ts
       |> close_formula_universally
       |> maybe_negate
-    val should_encode = should_encode_type ctxt nonmono_Ts All_Types
-    val tag_with = tag_with_type ctxt format nonmono_Ts type_sys
+    (* See also "should_tag_with_type". *)
+    fun should_encode T =
+      should_encode_type ctxt nonmono_Ts All_Types T orelse
+      (case type_sys of
+         Tags (Polymorphic, level, Lightweight) =>
+         level <> All_Types andalso Monomorph.typ_has_tvars T
+       | _ => false)
+    val tag_with = tag_with_type ctxt format nonmono_Ts type_sys NONE
     val add_formula_for_res =
       if should_encode res_T then
         cons (Formula (ident_base ^ "_res", kind,
