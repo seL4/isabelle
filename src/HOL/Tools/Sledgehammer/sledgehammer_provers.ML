@@ -512,7 +512,7 @@ val atp_blacklist_max_iters = 10
 val atp_important_message_keep_quotient = 10
 
 val fallback_best_type_systems =
-  [Preds (Mangled_Monomorphic, Nonmonotonic_Types, Lightweight)]
+  [Preds (Mangled_Monomorphic, Noninf_Nonmono_Types, Lightweight)]
 
 fun choose_format_and_type_sys _ formats (Dumb_Type_Sys type_sys) =
     choose_format formats type_sys

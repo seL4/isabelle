@@ -44,7 +44,8 @@ sig
 
   datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
   datatype type_level =
-    All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
+    All_Types | Noninf_Nonmono_Types | Fin_Nonmono_Types | Const_Arg_Types |
+    No_Types
   datatype type_heaviness = Heavyweight | Lightweight
 
   datatype type_sys =
@@ -543,7 +544,8 @@ fun is_locality_global Local = false
 
 datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
 datatype type_level =
-  All_Types | Nonmonotonic_Types | Finite_Types | Const_Arg_Types | No_Types
+  All_Types | Noninf_Nonmono_Types | Fin_Nonmono_Types | Const_Arg_Types |
+  No_Types
 datatype type_heaviness = Heavyweight | Lightweight
 
 datatype type_sys =
@@ -567,10 +569,10 @@ fun type_sys_from_string s =
   ||> (fn s =>
           (* "_query" and "_bang" are for the ASCII-challenged Mirabelle. *)
           case try_unsuffixes ["?", "_query"] s of
-            SOME s => (Nonmonotonic_Types, s)
+            SOME s => (Noninf_Nonmono_Types, s)
           | NONE =>
             case try_unsuffixes ["!", "_bang"] s of
-              SOME s => (Finite_Types, s)
+              SOME s => (Fin_Nonmono_Types, s)
             | NONE => (All_Types, s))
   ||> apsnd (fn s =>
                 case try (unsuffix "_heavy") s of
@@ -603,12 +605,12 @@ fun heaviness_of_type_sys (Simple_Types _) = Heavyweight
   | heaviness_of_type_sys (Tags (_, _, heaviness)) = heaviness
 
 fun is_type_level_virtually_sound level =
-  level = All_Types orelse level = Nonmonotonic_Types
+  level = All_Types orelse level = Noninf_Nonmono_Types
 val is_type_sys_virtually_sound =
   is_type_level_virtually_sound o level_of_type_sys
 
 fun is_type_level_fairly_sound level =
-  is_type_level_virtually_sound level orelse level = Finite_Types
+  is_type_level_virtually_sound level orelse level = Fin_Nonmono_Types
 val is_type_sys_fairly_sound = is_type_level_fairly_sound o level_of_type_sys
 
 fun is_setting_higher_order THF (Simple_Types _) = true
@@ -1022,7 +1024,7 @@ val deep_freeze_type = map_atyps deep_freeze_atyp
 fun should_encode_type ctxt (nonmono_Ts as _ :: _) _ T =
     exists (curry (type_instance ctxt) (deep_freeze_type T)) nonmono_Ts
   | should_encode_type _ _ All_Types _ = true
-  | should_encode_type ctxt _ Finite_Types T = is_type_surely_finite ctxt T
+  | should_encode_type ctxt _ Fin_Nonmono_Types T = is_type_surely_finite ctxt T
   | should_encode_type _ _ _ _ = false
 
 fun should_predicate_on_type ctxt nonmono_Ts (Preds (_, level, heaviness))
@@ -1662,10 +1664,10 @@ fun add_combterm_nonmonotonic_types _ _ _ (SOME false) _ = I
                            tm2)) =
     (is_tptp_equal s andalso exists is_var_or_bound_var [tm1, tm2] andalso
      (case level of
-        Nonmonotonic_Types =>
+        Noninf_Nonmono_Types =>
         not (is_locality_global locality) orelse
         not (is_type_surely_infinite ctxt known_infinite_types T)
-      | Finite_Types => is_type_surely_finite ctxt T
+      | Fin_Nonmono_Types => is_type_surely_finite ctxt T
       | _ => true)) ? insert_type ctxt I (deep_freeze_type T)
   | add_combterm_nonmonotonic_types _ _ _ _ _ = I
 fun add_fact_nonmonotonic_types ctxt level ({kind, locality, combformula, ...}
@@ -1674,7 +1676,7 @@ fun add_fact_nonmonotonic_types ctxt level ({kind, locality, combformula, ...}
                (add_combterm_nonmonotonic_types ctxt level locality) combformula
 fun nonmonotonic_types_for_facts ctxt type_sys facts =
   let val level = level_of_type_sys type_sys in
-    if level = Nonmonotonic_Types orelse level = Finite_Types then
+    if level = Noninf_Nonmono_Types orelse level = Fin_Nonmono_Types then
       [] |> fold (add_fact_nonmonotonic_types ctxt level) facts
          (* We must add "bool" in case the helper "True_or_False" is added
             later. In addition, several places in the code rely on the list of
@@ -1834,7 +1836,7 @@ fun problem_lines_for_sym_decl_table ctxt format conj_sym_kind nonmono_Ts
 fun needs_type_tag_idempotence (Tags (poly, level, heaviness)) =
     poly <> Mangled_Monomorphic andalso
     ((level = All_Types andalso heaviness = Lightweight) orelse
-     level = Nonmonotonic_Types orelse level = Finite_Types)
+     level = Noninf_Nonmono_Types orelse level = Fin_Nonmono_Types)
   | needs_type_tag_idempotence _ = false
 
 fun offset_of_heading_in_problem _ [] j = j
