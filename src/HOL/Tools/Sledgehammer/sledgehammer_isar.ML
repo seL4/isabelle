@@ -102,9 +102,7 @@ val default_default_params =
    ("preplay_timeout", "4")]
 
 val alias_params =
-  [("prover", "provers"),
-   ("atps", "provers"), (* FIXME: legacy *)
-   ("atp", "provers")]  (* FIXME: legacy *)
+  [("prover", "provers")]
 val negated_alias_params =
   [("no_debug", "debug"),
    ("quiet", "verbose"),
