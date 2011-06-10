@@ -110,7 +110,7 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
     (case Prooftab.lookup (!proof_table) (line_num, col_num) of
        SOME proofs =>
        let
-         val {context = ctxt, facts, goal} = Proof.goal pre
+         val {context = ctxt, facts = chained_ths, goal} = Proof.goal pre
          val prover = AList.lookup (op =) args "prover"
                       |> the_default default_prover
          val {relevance_thresholds, max_relevant, slicing, ...} =
@@ -130,10 +130,13 @@ fun action args id ({pre, pos, log, ...} : Mirabelle.run_args) =
          val subgoal = 1
          val (_, hyp_ts, concl_t) = ATP_Util.strip_subgoal ctxt goal subgoal
          val facts =
-           Sledgehammer_Filter.relevant_facts ctxt relevance_thresholds
-               (the_default default_max_relevant max_relevant)
-               is_appropriate_prop is_built_in_const relevance_fudge
-               relevance_override facts hyp_ts concl_t
+          Sledgehammer_Filter.nearly_all_facts ctxt relevance_override
+                                               chained_ths hyp_ts concl_t
+          |> filter (is_appropriate_prop o prop_of o snd)
+          |> Sledgehammer_Filter.relevant_facts ctxt relevance_thresholds
+                 (the_default default_max_relevant max_relevant)
+                 is_built_in_const relevance_fudge relevance_override
+                 chained_ths hyp_ts concl_t
            |> map (fst o fst)
          val (found_facts, lost_facts) =
            flat proofs |> sort_distinct string_ord

@@ -39,19 +39,23 @@ sig
   val new_monomorphizer : bool Config.T
   val ignore_no_atp : bool Config.T
   val instantiate_inducts : bool Config.T
+  val const_names_in_fact :
+    theory -> (string * typ -> term list -> bool * term list) -> term
+    -> string list
   val fact_from_ref :
     Proof.context -> unit Symtab.table -> thm list
     -> Facts.ref * Attrib.src list -> ((string * locality) * thm) list
   val all_facts :
-    Proof.context -> 'a Symtab.table -> bool -> (term -> bool) -> thm list
-    -> thm list -> (((unit -> string) * locality) * thm) list
-  val const_names_in_fact :
-    theory -> (string * typ -> term list -> bool * term list) -> term
-    -> string list
+    Proof.context -> 'a Symtab.table -> bool -> thm list -> thm list
+    -> (((unit -> string) * locality) * thm) list
+  val nearly_all_facts :
+    Proof.context -> relevance_override -> thm list -> term list -> term
+    -> (((unit -> string) * locality) * thm) list
   val relevant_facts :
-    Proof.context -> real * real -> int -> (term -> bool)
+    Proof.context -> real * real -> int
     -> (string * typ -> term list -> bool * term list) -> relevance_fudge
     -> relevance_override -> thm list -> term list -> term
+    -> (((unit -> string) * locality) * thm) list
     -> ((string * locality) * thm) list
 end;
 
@@ -778,12 +782,11 @@ val type_has_top_sort =
 (**** Predicates to detect unwanted facts (prolific or likely to cause
       unsoundness) ****)
 
-fun is_theorem_bad_for_atps is_appropriate_prop thm =
+fun is_theorem_bad_for_atps thm =
   let val t = prop_of thm in
-    not (is_appropriate_prop t) orelse is_formula_too_complex t orelse
-    exists_type type_has_top_sort t orelse exists_sledgehammer_const t orelse
-    exists_low_level_class_const t orelse is_metastrange_theorem thm orelse
-    is_that_fact thm
+    is_formula_too_complex t orelse exists_type type_has_top_sort t orelse
+    exists_sledgehammer_const t orelse exists_low_level_class_const t orelse
+    is_metastrange_theorem thm orelse is_that_fact thm
   end
 
 fun meta_equify (@{const Trueprop}
@@ -810,7 +813,7 @@ fun clasimpset_rule_table_of ctxt =
                   |> add Simp normalize_simp_prop snd simps
   end
 
-fun all_facts ctxt reserved really_all is_appropriate_prop add_ths chained_ths =
+fun all_facts ctxt reserved really_all add_ths chained_ths =
   let
     val thy = Proof_Context.theory_of ctxt
     val global_facts = Global_Theory.facts_of thy
@@ -860,7 +863,7 @@ fun all_facts ctxt reserved really_all is_appropriate_prop add_ths chained_ths =
             #> fold (fn th => fn (j, (multis, unis)) =>
                         (j + 1,
                          if not (member Thm.eq_thm_prop add_ths th) andalso
-                            is_theorem_bad_for_atps is_appropriate_prop th then
+                            is_theorem_bad_for_atps th then
                            (multis, unis)
                          else
                            let
@@ -894,30 +897,36 @@ fun all_facts ctxt reserved really_all is_appropriate_prop add_ths chained_ths =
 fun external_frees t =
   [] |> Term.add_frees t |> filter_out (can Name.dest_internal o fst)
 
-fun relevant_facts ctxt (threshold0, threshold1) max_relevant
-        is_appropriate_prop is_built_in_const fudge
-        (override as {add, only, ...}) chained_ths hyp_ts concl_t =
+fun nearly_all_facts ctxt ({add, only, ...} : relevance_override) chained_ths
+                     hyp_ts concl_t =
   let
     val thy = Proof_Context.theory_of ctxt
-    val decay = Math.pow ((1.0 - threshold1) / (1.0 - threshold0),
-                          1.0 / Real.fromInt (max_relevant + 1))
-    val add_ths = Attrib.eval_thms ctxt add
     val reserved = reserved_isar_keyword_table ()
+    val add_ths = Attrib.eval_thms ctxt add
     val ind_stmt =
       Logic.list_implies (hyp_ts |> filter_out (null o external_frees), concl_t)
       |> Object_Logic.atomize_term thy
     val ind_stmt_xs = external_frees ind_stmt
-    val facts =
-      (if only then
-         maps (map (fn ((name, loc), th) => ((K name, loc), th))
-               o fact_from_ref ctxt reserved chained_ths) add
-       else
-         all_facts ctxt reserved false is_appropriate_prop add_ths chained_ths)
-      |> Config.get ctxt instantiate_inducts
-         ? maps (instantiate_if_induct_rule ctxt ind_stmt ind_stmt_xs)
-      |> (not (Config.get ctxt ignore_no_atp) andalso not only)
-         ? filter_out (No_ATPs.member ctxt o snd)
-      |> uniquify
+  in
+    (if only then
+       maps (map (fn ((name, loc), th) => ((K name, loc), th))
+             o fact_from_ref ctxt reserved chained_ths) add
+     else
+       all_facts ctxt reserved false add_ths chained_ths)
+    |> Config.get ctxt instantiate_inducts
+       ? maps (instantiate_if_induct_rule ctxt ind_stmt ind_stmt_xs)
+    |> (not (Config.get ctxt ignore_no_atp) andalso not only)
+       ? filter_out (No_ATPs.member ctxt o snd)
+    |> uniquify
+  end
+
+fun relevant_facts ctxt (threshold0, threshold1) max_relevant
+                   is_built_in_const fudge (override as {only, ...}) chained_ths
+                   hyp_ts concl_t facts =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val decay = Math.pow ((1.0 - threshold1) / (1.0 - threshold0),
+                          1.0 / Real.fromInt (max_relevant + 1))
   in
     trace_msg ctxt (fn () => "Considering " ^ string_of_int (length facts) ^
                              " facts");

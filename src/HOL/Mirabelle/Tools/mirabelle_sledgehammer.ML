@@ -408,10 +408,13 @@ fun run_sh prover_name prover type_sys max_relevant slicing e_weight_method spas
         val _ = if is_appropriate_prop concl_t then ()
                 else raise Fail "inappropriate"
         val facts =
-          Sledgehammer_Filter.relevant_facts ctxt relevance_thresholds
-              (the_default default_max_relevant max_relevant)
-              is_appropriate_prop is_built_in_const relevance_fudge
-              relevance_override chained_ths hyp_ts concl_t
+          Sledgehammer_Filter.nearly_all_facts ctxt relevance_override
+                                               chained_ths hyp_ts concl_t
+          |> filter (is_appropriate_prop o prop_of o snd)
+          |> Sledgehammer_Filter.relevant_facts ctxt relevance_thresholds
+                 (the_default default_max_relevant max_relevant)
+                 is_built_in_const relevance_fudge relevance_override
+                 chained_ths hyp_ts concl_t
         val problem =
           {state = st', goal = goal, subgoal = i,
            subgoal_count = Sledgehammer_Util.subgoal_count st,

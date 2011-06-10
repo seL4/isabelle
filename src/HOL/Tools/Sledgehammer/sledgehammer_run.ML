@@ -260,6 +260,8 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
       val {facts = chained_ths, goal, ...} = Proof.goal state
       val chained_ths = chained_ths |> normalize_chained_theorems
       val (_, hyp_ts, concl_t) = strip_subgoal ctxt goal i
+      val facts = nearly_all_facts ctxt relevance_override chained_ths hyp_ts
+                                   concl_t
       val _ = () |> not blocking ? kill_provers
       val _ = case find_first (not o is_prover_supported ctxt) provers of
                 SOME name => error ("No such prover: " ^ name ^ ".")
@@ -307,9 +309,13 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
           val is_built_in_const =
             is_built_in_const_for_prover ctxt (hd provers)
         in
-          relevant_facts ctxt relevance_thresholds max_max_relevant
-                         is_appropriate_prop is_built_in_const relevance_fudge
-                         relevance_override chained_ths hyp_ts concl_t
+          facts
+          |> (case is_appropriate_prop of
+                SOME is_app => filter (is_app o prop_of o snd)
+              | NONE => I)
+          |> relevant_facts ctxt relevance_thresholds max_max_relevant
+                            is_built_in_const relevance_fudge relevance_override
+                            chained_ths hyp_ts concl_t
           |> tap (fn facts =>
                      if debug then
                        label ^ plural_s (length provers) ^ ": " ^
@@ -326,7 +332,8 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
       fun launch_atps label is_appropriate_prop atps accum =
         if null atps then
           accum
-        else if not (is_appropriate_prop concl_t) then
+        else if is_some is_appropriate_prop andalso
+                not (the is_appropriate_prop concl_t) then
           (if verbose orelse length atps = length provers then
              "Goal outside the scope of " ^
              space_implode " " (serial_commas "and" (map quote atps)) ^ "."
@@ -343,7 +350,7 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
           accum
         else
           let
-            val facts = get_facts "SMT solver" (K true) smt_relevance_fudge smts
+            val facts = get_facts "SMT solver" NONE smt_relevance_fudge smts
             val weight = SMT_Weighted_Fact oo weight_smt_fact ctxt
             fun smt_filter facts =
               (if debug then curry (op o) SOME
@@ -356,9 +363,9 @@ fun run_sledgehammer (params as {debug, verbose, blocking, provers,
                              #> fst)
                  |> max_outcome_code |> rpair state
           end
-      val launch_full_atps = launch_atps "ATP" (K true) full_atps
+      val launch_full_atps = launch_atps "ATP" NONE full_atps
       val launch_ueq_atps =
-        launch_atps "Unit equational provers" is_unit_equality ueq_atps
+        launch_atps "Unit equational provers" (SOME is_unit_equality) ueq_atps
       fun launch_atps_and_smt_solvers () =
         [launch_full_atps, launch_smts, launch_ueq_atps]
         |> smart_par_list_map (fn f => ignore (f (unknownN, state)))
