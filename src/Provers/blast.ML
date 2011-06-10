@@ -1262,6 +1262,7 @@ fun raw_blast start ctxt lim st =
           end
   in
     prove (state, start, [initBranch (mkGoal concl :: hyps, lim)], cont)
+    |> Seq.maps Thm.flexflex_rule
   end
   handle PROVE => Seq.empty
     | TRANS s => (if Config.get ctxt trace then warning ("Blast: " ^ s) else (); Seq.empty);
@@ -1271,7 +1272,6 @@ fun depth_tac ctxt lim i st =
     (Object_Logic.atomize_prems_tac 1 THEN
       raw_blast (Timing.start ()) ctxt lim) i st;
 
-
 fun blast_tac ctxt i st =
   let
     val start = Timing.start ();
@@ -1279,8 +1279,7 @@ fun blast_tac ctxt i st =
   in
     SELECT_GOAL
      (Object_Logic.atomize_prems_tac 1 THEN
-      DEEPEN (1, lim) (fn m => fn _ => raw_blast start ctxt m) 0 1 THEN
-      flexflex_tac) i st
+      DEEPEN (1, lim) (fn m => fn _ => raw_blast start ctxt m) 0 1) i st
   end;
 
 
