@@ -63,8 +63,8 @@ sig
   val setup: theory -> theory
   (*debugging tools*)
   type branch
-  val stats: bool Config.T
   val trace: bool Config.T
+  val stats: bool Config.T
   val fromType: (indexname * term) list Unsynchronized.ref -> Term.typ -> term
   val fromTerm: theory -> Term.term -> term
   val fromSubgoal: theory -> Term.term -> term
@@ -82,9 +82,12 @@ struct
 
 structure Classical = Data.Classical;
 
-val trace = Config.bool (Config.declare "Blast.trace" (K (Config.Bool false)));
-val stats = Config.bool (Config.declare "Blast.stats" (K (Config.Bool false)));
-(*for runtime and search statistics*)
+(* options *)
+
+val (depth_limit, setup_depth_limit) = Attrib.config_int @{binding blast_depth_limit} (K 20);
+val (trace, setup_trace) = Attrib.config_bool @{binding blast_trace} (K false);
+val (stats, setup_stats) = Attrib.config_bool @{binding blast_stats} (K false);
+
 
 datatype term =
     Const  of string * term list  (*typargs constant--as a terms!*)
@@ -1251,8 +1254,6 @@ fun raw_blast start ctxt lim st =
           case Seq.pull(EVERY' (rev tacs) 1 st) of
               NONE => (writeln ("PROOF FAILED for depth " ^
                                 string_of_int lim);
-                       if trace then error "************************\n"
-                       else ();
                        backtrack trace choices)
             | cell => (if (trace orelse stats)
                        then writeln (Timing.message (Timing.result start) ^ " for reconstruction")
@@ -1270,9 +1271,6 @@ fun depth_tac ctxt lim i st =
     (Object_Logic.atomize_prems_tac 1 THEN
       raw_blast (Timing.start ()) ctxt lim) i st;
 
-
-val (depth_limit, setup_depth_limit) =
-  Attrib.config_int @{binding blast_depth_limit} (K 20);
 
 fun blast_tac ctxt i st =
   let
@@ -1305,6 +1303,8 @@ fun tryIt ctxt lim s =
 
 val setup =
   setup_depth_limit #>
+  setup_trace #>
+  setup_stats #>
   Method.setup @{binding blast}
     (Scan.lift (Scan.option Parse.nat) --| Method.sections Classical.cla_modifiers >>
       (fn NONE => SIMPLE_METHOD' o blast_tac
