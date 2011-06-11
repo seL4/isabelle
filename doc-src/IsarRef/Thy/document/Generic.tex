@@ -1387,6 +1387,7 @@ The proof tools of the Classical Reasoner depend on
     \indexdef{}{method}{fastsimp}\hypertarget{method.fastsimp}{\hyperlink{method.fastsimp}{\mbox{\isa{fastsimp}}}} & : & \isa{method} \\
     \indexdef{}{method}{slowsimp}\hypertarget{method.slowsimp}{\hyperlink{method.slowsimp}{\mbox{\isa{slowsimp}}}} & : & \isa{method} \\
     \indexdef{}{method}{bestsimp}\hypertarget{method.bestsimp}{\hyperlink{method.bestsimp}{\mbox{\isa{bestsimp}}}} & : & \isa{method} \\
+    \indexdef{}{method}{deepen}\hypertarget{method.deepen}{\hyperlink{method.deepen}{\mbox{\isa{deepen}}}} & : & \isa{method} \\
   \end{matharray}
 
   \begin{railoutput}
@@ -1444,6 +1445,17 @@ The proof tools of the Classical Reasoner depend on
 \rail@plus
 \rail@nextplus{1}
 \rail@cnont{\hyperlink{syntax.clasimpmod}{\mbox{\isa{clasimpmod}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{2}{}
+\rail@term{\hyperlink{method.deepen}{\mbox{\isa{deepen}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.clamod}{\mbox{\isa{clamod}}}}[]
 \rail@endplus
 \rail@end
 \rail@begin{4}{\indexdef{}{syntax}{clamod}\hypertarget{syntax.clamod}{\hyperlink{syntax.clamod}{\mbox{\isa{clamod}}}}}
@@ -1601,6 +1613,14 @@ The proof tools of the Classical Reasoner depend on
   \item \hyperlink{method.fastsimp}{\mbox{\isa{fastsimp}}}, \hyperlink{method.slowsimp}{\mbox{\isa{slowsimp}}}, \hyperlink{method.bestsimp}{\mbox{\isa{bestsimp}}} are
   like \hyperlink{method.fast}{\mbox{\isa{fast}}}, \hyperlink{method.slow}{\mbox{\isa{slow}}}, \hyperlink{method.best}{\mbox{\isa{best}}}, respectively,
   but use the Simplifier as additional wrapper.
+
+  \item \hyperlink{method.deepen}{\mbox{\isa{deepen}}} works by exhaustive search up to a certain
+  depth.  The start depth is 4 (unless specified explicitly), and the
+  depth is increased iteratively up to 10.  Unsafe rules are modified
+  to preserve the formula they act on, so that it be used repeatedly.
+  This method can prove more goals than \hyperlink{method.fast}{\mbox{\isa{fast}}}, but is much
+  slower, for example if the assumptions have many universal
+  quantifiers.
 
   \end{description}
 

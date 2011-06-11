@@ -935,6 +935,7 @@ text {*
     @{method_def fastsimp} & : & @{text method} \\
     @{method_def slowsimp} & : & @{text method} \\
     @{method_def bestsimp} & : & @{text method} \\
+    @{method_def deepen} & : & @{text method} \\
   \end{matharray}
 
   @{rail "
@@ -948,6 +949,8 @@ text {*
     ;
     (@@{method fastsimp} | @@{method slowsimp} | @@{method bestsimp})
       (@{syntax clasimpmod} * )
+    ;
+    @@{method deepen} (@{syntax nat} ?) (@{syntax clamod} * )
     ;
     @{syntax_def clamod}:
       (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del') ':' @{syntax thmrefs}
@@ -1032,6 +1035,14 @@ text {*
   \item @{method fastsimp}, @{method slowsimp}, @{method bestsimp} are
   like @{method fast}, @{method slow}, @{method best}, respectively,
   but use the Simplifier as additional wrapper.
+
+  \item @{method deepen} works by exhaustive search up to a certain
+  depth.  The start depth is 4 (unless specified explicitly), and the
+  depth is increased iteratively up to 10.  Unsafe rules are modified
+  to preserve the formula they act on, so that it be used repeatedly.
+  This method can prove more goals than @{method fast}, but is much
+  slower, for example if the assumptions have many universal
+  quantifiers.
 
   \end{description}
 

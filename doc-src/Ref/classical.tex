@@ -136,28 +136,6 @@ best-first search to prove subgoal~$i$.
 \end{ttdescription}
 
 
-\subsection{Depth-limited automatic tactics}
-\begin{ttbox} 
-depth_tac  : claset -> int -> int -> tactic
-deepen_tac : claset -> int -> int -> tactic
-\end{ttbox}
-These work by exhaustive search up to a specified depth.  Unsafe rules are
-modified to preserve the formula they act on, so that it be used repeatedly.
-They can prove more goals than \texttt{fast_tac} can but are much
-slower, for example if the assumptions have many universal quantifiers.
-
-The depth limits the number of unsafe steps.  If you can estimate the minimum
-number of unsafe steps needed, supply this value as~$m$ to save time.
-\begin{ttdescription}
-\item[\ttindexbold{depth_tac} $cs$ $m$ $i$] 
-tries to prove subgoal~$i$ by exhaustive search up to depth~$m$.
-
-\item[\ttindexbold{deepen_tac} $cs$ $m$ $i$] 
-tries to prove subgoal~$i$ by iterative deepening.  It calls \texttt{depth_tac}
-repeatedly with increasing depths, starting with~$m$.
-\end{ttdescription}
-
-
 \subsection{Other useful tactics}
 \index{tactics!for contradiction}
 \index{tactics!for Modus Ponens}
