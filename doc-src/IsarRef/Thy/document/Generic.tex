@@ -1656,16 +1656,59 @@ These proof methods may help in situations when the
   \item \hyperlink{method.safe}{\mbox{\isa{safe}}} repeatedly performs safe steps on all subgoals.
   It is deterministic, with at most one outcome.
 
-  \item \hyperlink{method.clarify}{\mbox{\isa{clarify}}} performs a series of safe steps as follows.
-
-  No splitting step is applied; for example, the subgoal \isa{{\isaliteral{22}{\isachardoublequote}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{22}{\isachardoublequote}}} is left as a conjunction.  Proof by assumption, Modus Ponens,
-  etc., may be performed provided they do not instantiate unknowns.
-  Assumptions of the form \isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{3D}{\isacharequal}}\ t{\isaliteral{22}{\isachardoublequote}}} may be eliminated.  The safe
-  wrapper tactical is applied.
+  \item \hyperlink{method.clarify}{\mbox{\isa{clarify}}} performs a series of safe steps without
+  splitting subgoals; see also \verb|clarify_step_tac|.
 
   \item \hyperlink{method.clarsimp}{\mbox{\isa{clarsimp}}} acts like \hyperlink{method.clarify}{\mbox{\isa{clarify}}}, but also does
   simplification.  Note that if the Simplifier context includes a
   splitter for the premises, the subgoal may still be split.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Single-step tactics%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{}{ML}{safe\_step\_tac}\verb|safe_step_tac: Proof.context -> int -> tactic| \\
+    \indexdef{}{ML}{inst\_step\_tac}\verb|inst_step_tac: Proof.context -> int -> tactic| \\
+    \indexdef{}{ML}{step\_tac}\verb|step_tac: Proof.context -> int -> tactic| \\
+    \indexdef{}{ML}{slow\_step\_tac}\verb|slow_step_tac: Proof.context -> int -> tactic| \\
+    \indexdef{}{ML}{clarify\_step\_tac}\verb|clarify_step_tac: Proof.context -> int -> tactic| \\
+  \end{matharray}
+
+  These are the primitive tactics behind the (semi)automated proof
+  methods of the Classical Reasoner.  By calling them yourself, you
+  can execute these procedures one step at a time.
+
+  \begin{description}
+
+  \item \verb|safe_step_tac|~\isa{{\isaliteral{22}{\isachardoublequote}}ctxt\ i{\isaliteral{22}{\isachardoublequote}}} performs a safe step on
+  subgoal \isa{i}.  The safe wrapper tacticals are applied to a
+  tactic that may include proof by assumption or Modus Ponens (taking
+  care not to instantiate unknowns), or substitution.
+
+  \item \verb|inst_step_tac| is like \verb|safe_step_tac|, but allows
+  unknowns to be instantiated.
+
+  \item \verb|step_tac|~\isa{{\isaliteral{22}{\isachardoublequote}}ctxt\ i{\isaliteral{22}{\isachardoublequote}}} is the basic step of the proof
+  procedure.  The unsafe wrapper tacticals are applied to a tactic
+  that tries \verb|safe_tac|, \verb|inst_step_tac|, or applies an unsafe
+  rule from the context.
+
+  \item \verb|slow_step_tac| resembles \verb|step_tac|, but allows
+  backtracking between using safe rules with instantiation (\verb|inst_step_tac|) and using unsafe rules.  The resulting search space
+  is larger.
+
+  \item \verb|clarify_step_tac|~\isa{{\isaliteral{22}{\isachardoublequote}}ctxt\ i{\isaliteral{22}{\isachardoublequote}}} performs a safe step
+  on subgoal \isa{i}.  No splitting step is applied; for example,
+  the subgoal \isa{{\isaliteral{22}{\isachardoublequote}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{22}{\isachardoublequote}}} is left as a conjunction.  Proof by
+  assumption, Modus Ponens, etc., may be performed provided they do
+  not instantiate unknowns.  Assumptions of the form \isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{3D}{\isacharequal}}\ t{\isaliteral{22}{\isachardoublequote}}}
+  may be eliminated.  The safe wrapper tactical is applied.
 
   \end{description}%
 \end{isamarkuptext}%

@@ -1068,17 +1068,58 @@ text {* These proof methods may help in situations when the
   \item @{method safe} repeatedly performs safe steps on all subgoals.
   It is deterministic, with at most one outcome.
 
-  \item @{method clarify} performs a series of safe steps as follows.
-
-  No splitting step is applied; for example, the subgoal @{text "A \<and>
-  B"} is left as a conjunction.  Proof by assumption, Modus Ponens,
-  etc., may be performed provided they do not instantiate unknowns.
-  Assumptions of the form @{text "x = t"} may be eliminated.  The safe
-  wrapper tactical is applied.
+  \item @{method clarify} performs a series of safe steps without
+  splitting subgoals; see also @{ML clarify_step_tac}.
 
   \item @{method clarsimp} acts like @{method clarify}, but also does
   simplification.  Note that if the Simplifier context includes a
   splitter for the premises, the subgoal may still be split.
+
+  \end{description}
+*}
+
+
+subsection {* Single-step tactics *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{index_ML safe_step_tac: "Proof.context -> int -> tactic"} \\
+    @{index_ML inst_step_tac: "Proof.context -> int -> tactic"} \\
+    @{index_ML step_tac: "Proof.context -> int -> tactic"} \\
+    @{index_ML slow_step_tac: "Proof.context -> int -> tactic"} \\
+    @{index_ML clarify_step_tac: "Proof.context -> int -> tactic"} \\
+  \end{matharray}
+
+  These are the primitive tactics behind the (semi)automated proof
+  methods of the Classical Reasoner.  By calling them yourself, you
+  can execute these procedures one step at a time.
+
+  \begin{description}
+
+  \item @{ML safe_step_tac}~@{text "ctxt i"} performs a safe step on
+  subgoal @{text i}.  The safe wrapper tacticals are applied to a
+  tactic that may include proof by assumption or Modus Ponens (taking
+  care not to instantiate unknowns), or substitution.
+
+  \item @{ML inst_step_tac} is like @{ML safe_step_tac}, but allows
+  unknowns to be instantiated.
+
+  \item @{ML step_tac}~@{text "ctxt i"} is the basic step of the proof
+  procedure.  The unsafe wrapper tacticals are applied to a tactic
+  that tries @{ML safe_tac}, @{ML inst_step_tac}, or applies an unsafe
+  rule from the context.
+
+  \item @{ML slow_step_tac} resembles @{ML step_tac}, but allows
+  backtracking between using safe rules with instantiation (@{ML
+  inst_step_tac}) and using unsafe rules.  The resulting search space
+  is larger.
+
+  \item @{ML clarify_step_tac}~@{text "ctxt i"} performs a safe step
+  on subgoal @{text i}.  No splitting step is applied; for example,
+  the subgoal @{text "A \<and> B"} is left as a conjunction.  Proof by
+  assumption, Modus Ponens, etc., may be performed provided they do
+  not instantiate unknowns.  Assumptions of the form @{text "x = t"}
+  may be eliminated.  The safe wrapper tactical is applied.
 
   \end{description}
 *}

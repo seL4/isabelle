@@ -125,21 +125,6 @@ When a simpset combined with a claset is to be augmented, this should done
 
 \section{The classical tactics}
 
-\subsection{Semi-automatic tactics}
-\begin{ttbox} 
-clarify_step_tac : claset -> int -> tactic
-\end{ttbox}
-
-\begin{ttdescription}
-\item[\ttindexbold{clarify_step_tac} $cs$ $i$] performs a safe step on
-  subgoal~$i$.  No splitting step is applied; for example, the subgoal $A\conj
-  B$ is left as a conjunction.  Proof by assumption, Modus Ponens, etc., may be
-  performed provided they do not instantiate unknowns.  Assumptions of the
-  form $x=t$ may be eliminated.  The user-supplied safe wrapper tactical is
-  applied.
-\end{ttdescription}
-
-
 \subsection{Other classical tactics}
 \begin{ttbox} 
 slow_best_tac : claset -> int -> tactic
@@ -170,36 +155,6 @@ tries to prove subgoal~$i$ by exhaustive search up to depth~$m$.
 \item[\ttindexbold{deepen_tac} $cs$ $m$ $i$] 
 tries to prove subgoal~$i$ by iterative deepening.  It calls \texttt{depth_tac}
 repeatedly with increasing depths, starting with~$m$.
-\end{ttdescription}
-
-
-\subsection{Single-step tactics}
-\begin{ttbox} 
-safe_step_tac : claset -> int -> tactic
-inst_step_tac : claset -> int -> tactic
-step_tac      : claset -> int -> tactic
-slow_step_tac : claset -> int -> tactic
-\end{ttbox}
-The automatic proof procedures call these tactics.  By calling them
-yourself, you can execute these procedures one step at a time.
-\begin{ttdescription}
-\item[\ttindexbold{safe_step_tac} $cs$ $i$] performs a safe step on
-  subgoal~$i$.  The safe wrapper tacticals are applied to a tactic that may
-  include proof by assumption or Modus Ponens (taking care not to instantiate
-  unknowns), or substitution.
-
-\item[\ttindexbold{inst_step_tac} $cs$ $i$] is like \texttt{safe_step_tac},
-but allows unknowns to be instantiated.
-
-\item[\ttindexbold{step_tac} $cs$ $i$] is the basic step of the proof
-  procedure.  The unsafe wrapper tacticals are applied to a tactic that tries
-  \texttt{safe_tac}, \texttt{inst_step_tac}, or applies an unsafe rule
-  from~$cs$.
-
-\item[\ttindexbold{slow_step_tac}] 
-  resembles \texttt{step_tac}, but allows backtracking between using safe
-  rules with instantiation (\texttt{inst_step_tac}) and using unsafe rules.
-  The resulting search space is larger.
 \end{ttdescription}
 
 
