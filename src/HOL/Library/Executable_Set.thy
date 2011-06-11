@@ -12,7 +12,7 @@ begin
 text {*
   This is just an ad-hoc hack which will rarely give you what you want.
   For the moment, whenever you need executable sets, consider using
-  type @{text fset} from theory @{text Cset}.
+  type @{text Cset.set} from theory @{text Cset}.
 *}
 
 declare mem_def [code del]
