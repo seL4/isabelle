@@ -29,35 +29,27 @@ class Text_Painter(model: Document_Model, text_area: JEditTextArea) extends Text
     }
   }
 
-
-  /* wrap_margin -- cf. org.gjt.sp.jedit.textarea.TextArea.propertiesChanged */
-
-  private def wrap_margin(): Int =
-  {
-    val buffer = text_area.getBuffer
-    val painter = text_area.getPainter
-    val font = painter.getFont
-    val font_context = painter.getFontRenderContext
-
-    val soft_wrap = buffer.getStringProperty("wrap") == "soft"
-    val max = buffer.getIntegerProperty("maxLineLen", 0)
-
-    if (max > 0) font.getStringBounds(" " * max, font_context).getWidth.toInt
-    else if (soft_wrap)
-      painter.getWidth - (font.getStringBounds(" ", font_context).getWidth.round.toInt) * 3
-    else 0
-  }
-
-
-  /* chunks */
-
-  private def line_chunks(physical_lines: Set[Int]): Map[Text.Offset, Chunk] =
+  def line_chunks(physical_lines: Set[Int]): Map[Text.Offset, Chunk] =
   {
     import scala.collection.JavaConversions._
 
     val buffer = text_area.getBuffer
     val painter = text_area.getPainter
-    val margin = wrap_margin().toFloat
+    val wrap_margin =
+      // see org.gjt.sp.jedit.textarea.TextArea.propertiesChanged
+      // and org.gjt.sp.jedit.textarea.TextArea.setMaxLineLength
+    {
+      val font = painter.getFont
+      val font_context = painter.getFontRenderContext
+
+      val soft_wrap = buffer.getStringProperty("wrap") == "soft"
+      val max = buffer.getIntegerProperty("maxLineLen", 0)
+
+      if (max > 0) font.getStringBounds(" " * max, font_context).getWidth.toInt
+      else if (soft_wrap)
+        painter.getWidth - (font.getStringBounds(" ", font_context).getWidth.round.toInt) * 3
+      else 0
+    }.toFloat
 
     val out = new ArrayList[Chunk]
     val handler = new DisplayTokenHandler
@@ -65,7 +57,7 @@ class Text_Painter(model: Document_Model, text_area: JEditTextArea) extends Text
     var result = Map[Text.Offset, Chunk]()
     for (line <- physical_lines) {
       out.clear
-      handler.init(painter.getStyles, painter.getFontRenderContext, painter, out, margin)
+      handler.init(painter.getStyles, painter.getFontRenderContext, painter, out, wrap_margin)
       buffer.markTokens(line, handler)
 
       val line_start = buffer.getLineStartOffset(line)
