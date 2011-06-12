@@ -17,13 +17,12 @@ import java.awt.event.{MouseAdapter, MouseMotionAdapter, MouseEvent,
   FocusAdapter, FocusEvent, WindowEvent, WindowAdapter}
 import javax.swing.{JPanel, ToolTipManager, Popup, PopupFactory, SwingUtilities, BorderFactory}
 import javax.swing.event.{CaretListener, CaretEvent}
-import java.util.ArrayList
 
 import org.gjt.sp.jedit.{jEdit, OperatingSystem, Debug}
 import org.gjt.sp.jedit.gui.RolloverButton
 import org.gjt.sp.jedit.options.GutterOptionPane
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaExtension, TextAreaPainter}
-import org.gjt.sp.jedit.syntax.{SyntaxStyle, DisplayTokenHandler, Chunk, Token}
+import org.gjt.sp.jedit.syntax.{SyntaxStyle}
 
 
 object Document_View
@@ -85,52 +84,6 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
   {
     Swing_Thread.require()
     text_area.getPainter.setStyles(styles)
-  }
-
-
-  /* wrap_margin -- cf. org.gjt.sp.jedit.textarea.TextArea.propertiesChanged */
-
-  def wrap_margin(): Int =
-  {
-    val buffer = text_area.getBuffer
-    val painter = text_area.getPainter
-    val font = painter.getFont
-    val font_context = painter.getFontRenderContext
-
-    val soft_wrap = buffer.getStringProperty("wrap") == "soft"
-    val max = buffer.getIntegerProperty("maxLineLen", 0)
-
-    if (max > 0) font.getStringBounds(" " * max, font_context).getWidth.toInt
-    else if (soft_wrap)
-      painter.getWidth - (font.getStringBounds(" ", font_context).getWidth.round.toInt) * 3
-    else 0
-  }
-
-
-  /* chunks */
-
-  def line_chunks(physical_lines: Set[Int]): Map[Text.Offset, Chunk] =
-  {
-    import scala.collection.JavaConversions._
-
-    val buffer = text_area.getBuffer
-    val painter = text_area.getPainter
-    val margin = wrap_margin().toFloat
-
-    val out = new ArrayList[Chunk]
-    val handler = new DisplayTokenHandler
-
-    var result = Map[Text.Offset, Chunk]()
-    for (line <- physical_lines) {
-      out.clear
-      handler.init(painter.getStyles, painter.getFontRenderContext, painter, out, margin)
-      buffer.markTokens(line, handler)
-
-      val line_start = buffer.getLineStartOffset(line)
-      for (chunk <- handler.getChunkList.iterator)
-        result += (line_start + chunk.offset -> chunk)
-    }
-    result
   }
 
 
@@ -357,37 +310,7 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
     }
   }
 
-  var use_text_painter = false
-
-  private val text_painter = new TextAreaExtension
-  {
-    override def paintScreenLineRange(gfx: Graphics2D,
-      first_line: Int, last_line: Int, physical_lines: Array[Int],
-      start: Array[Int], end: Array[Int], y: Int, line_height: Int)
-    {
-      if (use_text_painter) {
-        Isabelle.swing_buffer_lock(model.buffer) {
-          val painter = text_area.getPainter
-          val fm = painter.getFontMetrics
-
-          val all_chunks = line_chunks(Set[Int]() ++ physical_lines.iterator.filter(i => i != -1))
-
-          val x0 = text_area.getHorizontalOffset
-          var y0 = y + fm.getHeight - (fm.getLeading + 1) - fm.getDescent
-          for (i <- 0 until physical_lines.length) {
-            if (physical_lines(i) != -1) {
-              all_chunks.get(start(i)) match {
-                case Some(chunk) =>
-                  Chunk.paintChunkList(chunk, gfx, x0, y0, !Debug.DISABLE_GLYPH_VECTOR)
-                case None =>
-              }
-            }
-            y0 += line_height
-          }
-        }
-      }
-    }
-  }
+  val text_painter = new Text_Painter(model, text_area)
 
   private val gutter_painter = new TextAreaExtension
   {
@@ -558,7 +481,7 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
   {
     val painter = text_area.getPainter
     painter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, background_painter)
-    painter.addExtension(TextAreaPainter.TEXT_LAYER + 1, text_painter)
+    text_painter.activate()
     text_area.getGutter.addExtension(gutter_painter)
     text_area.addFocusListener(focus_listener)
     text_area.getView.addWindowListener(window_listener)
@@ -580,7 +503,7 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
     text_area.removeCaretListener(caret_listener)
     text_area.removeLeftOfScrollBar(overview)
     text_area.getGutter.removeExtension(gutter_painter)
-    painter.removeExtension(text_painter)
+    text_painter.deactivate()
     painter.removeExtension(background_painter)
     exit_popup()
   }
