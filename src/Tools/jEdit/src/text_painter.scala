@@ -29,45 +29,6 @@ class Text_Painter(model: Document_Model, text_area: JEditTextArea) extends Text
     }
   }
 
-  def line_chunks(physical_lines: Set[Int]): Map[Text.Offset, Chunk] =
-  {
-    import scala.collection.JavaConversions._
-
-    val buffer = text_area.getBuffer
-    val painter = text_area.getPainter
-    val wrap_margin =
-      // see org.gjt.sp.jedit.textarea.TextArea.propertiesChanged
-      // and org.gjt.sp.jedit.textarea.TextArea.setMaxLineLength
-    {
-      val font = painter.getFont
-      val font_context = painter.getFontRenderContext
-
-      val soft_wrap = buffer.getStringProperty("wrap") == "soft"
-      val max = buffer.getIntegerProperty("maxLineLen", 0)
-
-      if (max > 0) font.getStringBounds(" " * max, font_context).getWidth.toInt
-      else if (soft_wrap)
-        painter.getWidth - (font.getStringBounds(" ", font_context).getWidth.round.toInt) * 3
-      else 0
-    }.toFloat
-
-    val out = new ArrayList[Chunk]
-    val handler = new DisplayTokenHandler
-
-    var result = Map[Text.Offset, Chunk]()
-    for (line <- physical_lines) {
-      out.clear
-      handler.init(painter.getStyles, painter.getFontRenderContext, painter, out, wrap_margin)
-      buffer.markTokens(line, handler)
-
-      val line_start = buffer.getLineStartOffset(line)
-      for (chunk <- handler.getChunkList.iterator)
-        result += (line_start + chunk.offset -> chunk)
-    }
-    result
-  }
-
-
   var use = false
 
   override def paintScreenLineRange(gfx: Graphics2D,
@@ -75,19 +36,63 @@ class Text_Painter(model: Document_Model, text_area: JEditTextArea) extends Text
     start: Array[Int], end: Array[Int], y: Int, line_height: Int)
   {
     if (use) {
-      Isabelle.swing_buffer_lock(model.buffer) {
+      val buffer = text_area.getBuffer
+      Isabelle.swing_buffer_lock(buffer) {
         val painter = text_area.getPainter
+        val font = painter.getFont
+        val font_context = painter.getFontRenderContext
         val fm = painter.getFontMetrics
 
-        val all_chunks = line_chunks(Set[Int]() ++ physical_lines.iterator.filter(i => i != -1))
+        // see org.gjt.sp.jedit.textarea.TextArea.propertiesChanged
+        // and org.gjt.sp.jedit.textarea.TextArea.setMaxLineLength
+        val char_width = font.getStringBounds(" ", font_context).getWidth.round.toInt
+        val soft_wrap = buffer.getStringProperty("wrap") == "soft"
+        val wrap_margin =
+        {
+          val max = buffer.getIntegerProperty("maxLineLen", 0)
+          if (max > 0) font.getStringBounds(" " * max, font_context).getWidth.toInt
+          else if (soft_wrap)
+            painter.getWidth - (font.getStringBounds(" ", font_context).getWidth.round.toInt) * 3
+          else 0
+        }.toFloat
+
+        type Line_Info = (Chunk, Boolean)
+        val line_infos: Map[Text.Offset, Line_Info] =
+        {
+          import scala.collection.JavaConversions._
+
+          val out = new ArrayList[Chunk]
+          val handler = new DisplayTokenHandler
+          val margin = if (soft_wrap) wrap_margin else 0.0f
+
+          var result = Map[Text.Offset, Line_Info]()
+          for (line <- physical_lines.iterator.filter(i => i != -1)) {
+            out.clear
+            handler.init(painter.getStyles, font_context, painter, out, margin)
+            buffer.markTokens(line, handler)
+
+            val line_start = buffer.getLineStartOffset(line)
+            val len = out.size
+            for (i <- 0 until len) {
+              val chunk = out.get(i)
+              result += (line_start + chunk.offset -> (chunk, i == len - 1))
+            }
+          }
+          result
+        }
 
         val x0 = text_area.getHorizontalOffset
         var y0 = y + fm.getHeight - (fm.getLeading + 1) - fm.getDescent
         for (i <- 0 until physical_lines.length) {
           if (physical_lines(i) != -1) {
-            all_chunks.get(start(i)) match {
-              case Some(chunk) =>
-                Chunk.paintChunkList(chunk, gfx, x0, y0, !Debug.DISABLE_GLYPH_VECTOR)
+            line_infos.get(start(i)) match {
+              case Some((chunk, last_subregion)) =>
+                val x1 = x0 + Chunk.paintChunkList(chunk, gfx, x0, y0, !Debug.DISABLE_GLYPH_VECTOR)
+                if (!last_subregion) {
+                  gfx.setFont(font)
+                  gfx.setColor(painter.getEOLMarkerColor)
+                  gfx.drawString(":", (x0 + wrap_margin + char_width) max x1, y0)
+                }
               case None =>
             }
           }
