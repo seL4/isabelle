@@ -169,11 +169,15 @@ if [ "$BUILD_JARS" = jars_fresh ]; then
   OUTDATED=true
 else
   OUTDATED=false
-  for SOURCE in "${SOURCES[@]}" "${RESOURCES[@]}" "$JEDIT_JAR" "${JEDIT_JARS[@]}"
-  do
-    [ ! -e "$SOURCE" ] && fail "Missing file: $SOURCE"
-    [ ! -e "$TARGET" -o "$SOURCE" -nt "$TARGET" ] && OUTDATED=true
-  done
+  if [ ! -e "$TARGET" ]; then
+    OUTDATED=true
+  elif [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
+    for SOURCE in "${SOURCES[@]}" "${RESOURCES[@]}" "$JEDIT_JAR" "${JEDIT_JARS[@]}"
+    do
+      [ ! -e "$SOURCE" ] && fail "Missing file: $SOURCE"
+      [ "$SOURCE" -nt "$TARGET" ] && OUTDATED=true
+    done
+  fi
 fi
 
 
