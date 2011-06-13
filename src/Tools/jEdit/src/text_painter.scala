@@ -44,55 +44,52 @@ class Text_Painter(model: Document_Model, text_area: JEditTextArea) extends Text
         val fm = painter.getFontMetrics
 
         // see org.gjt.sp.jedit.textarea.TextArea.propertiesChanged
-        // and org.gjt.sp.jedit.textarea.TextArea.setMaxLineLength
+        // see org.gjt.sp.jedit.textarea.TextArea.setMaxLineLength
         val char_width = font.getStringBounds(" ", font_context).getWidth.round.toInt
         val soft_wrap = buffer.getStringProperty("wrap") == "soft"
         val wrap_margin =
         {
           val max = buffer.getIntegerProperty("maxLineLen", 0)
           if (max > 0) font.getStringBounds(" " * max, font_context).getWidth.toInt
-          else if (soft_wrap)
-            painter.getWidth - (font.getStringBounds(" ", font_context).getWidth.round.toInt) * 3
+          else if (soft_wrap) painter.getWidth - char_width * 3
           else 0
         }.toFloat
 
-        type Line_Info = (Chunk, Boolean)
-        val line_infos: Map[Text.Offset, Line_Info] =
+        val line_infos: Map[Text.Offset, Chunk] =
         {
-          import scala.collection.JavaConversions._
-
           val out = new ArrayList[Chunk]
           val handler = new DisplayTokenHandler
           val margin = if (soft_wrap) wrap_margin else 0.0f
 
-          var result = Map[Text.Offset, Line_Info]()
+          var result = Map[Text.Offset, Chunk]()
           for (line <- physical_lines.iterator.filter(i => i != -1)) {
             out.clear
             handler.init(painter.getStyles, font_context, painter, out, margin)
             buffer.markTokens(line, handler)
 
             val line_start = buffer.getLineStartOffset(line)
-            val len = out.size
-            for (i <- 0 until len) {
+            for (i <- 0 until out.size) {
               val chunk = out.get(i)
-              result += (line_start + chunk.offset -> (chunk, i == len - 1))
+              result += (line_start + chunk.offset -> chunk)
             }
           }
           result
         }
 
+        val clip = gfx.getClip
         val x0 = text_area.getHorizontalOffset
         var y0 = y + fm.getHeight - (fm.getLeading + 1) - fm.getDescent
         for (i <- 0 until physical_lines.length) {
           if (physical_lines(i) != -1) {
             line_infos.get(start(i)) match {
-              case Some((chunk, last_subregion)) =>
-                val x1 = x0 + Chunk.paintChunkList(chunk, gfx, x0, y0, !Debug.DISABLE_GLYPH_VECTOR)
-                if (!last_subregion) {
-                  gfx.setFont(font)
-                  gfx.setColor(painter.getEOLMarkerColor)
-                  gfx.drawString(":", (x0 + wrap_margin + char_width) max x1, y0)
-                }
+              case Some(chunk) =>
+                val w = Chunk.paintChunkList(chunk, gfx, x0, y0, !Debug.DISABLE_GLYPH_VECTOR).toInt
+                gfx.setFont(font)
+                gfx.clipRect(x0 + w, 0, Integer.MAX_VALUE, Integer.MAX_VALUE)
+                orig_text_painter.paintValidLine(
+                  gfx, first_line + i, physical_lines(i), start(i), end(i), y + line_height * i)
+                gfx.setClip(clip)
+
               case None =>
             }
           }
