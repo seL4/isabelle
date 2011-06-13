@@ -18,6 +18,8 @@ object Isabelle_Markup
 {
   /* physical rendering */
 
+  // see http://www.w3schools.com/css/css_colornames.asp
+
   val outdated_color = new Color(240, 240, 240)
   val unfinished_color = new Color(255, 228, 225)
 
@@ -30,7 +32,7 @@ object Isabelle_Markup
 
   val free_color = new Color(0, 0, 0xFF)
   val skolem_color = new Color(0xD2, 0x69, 0x1E)
-  val bound_color = new Color(0, 0x8B, 0)
+  val bound_color = new Color(0, 0x80, 0)
 
   class Icon(val priority: Int, val icon: javax.swing.Icon)
   {
