@@ -81,7 +81,6 @@ class Text_Painter(model: Document_Model, text_area: JEditTextArea) extends Text
           line_infos.get(start(i)) match {
             case Some(chunk) =>
               val w = Chunk.paintChunkList(chunk, gfx, x0, y0, !Debug.DISABLE_GLYPH_VECTOR).toInt
-              gfx.setFont(font)
               gfx.clipRect(x0 + w, 0, Integer.MAX_VALUE, Integer.MAX_VALUE)
               orig_text_painter.paintValidLine(
                 gfx, first_line + i, physical_lines(i), start(i), end(i), y + line_height * i)
