@@ -28,6 +28,10 @@ object Isabelle_Markup
   val bad_color = new Color(255, 106, 106, 100)
   val hilite_color = new Color(255, 204, 102, 100)
 
+  val free_color = new Color(0, 0, 0xFF)
+  val skolem_color = new Color(0xD2, 0x69, 0x1E)
+  val bound_color = new Color(0, 0x8B, 0)
+
   class Icon(val priority: Int, val icon: javax.swing.Icon)
   {
     def >= (that: Icon): Boolean = this.priority >= that.priority
@@ -100,6 +104,13 @@ object Isabelle_Markup
     case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => light_color
   }
 
+  val foreground: Markup_Tree.Select[Color] =
+  {
+    case Text.Info(_, XML.Elem(Markup(Markup.FREE, _), _)) => free_color
+    case Text.Info(_, XML.Elem(Markup(Markup.SKOLEM, _), _)) => skolem_color
+    case Text.Info(_, XML.Elem(Markup(Markup.BOUND, _), _)) => bound_color
+  }
+
   val tooltip: Markup_Tree.Select[String] =
   {
     case Text.Info(_, XML.Elem(Markup.Entity(kind, name), _)) => kind + " \"" + name + "\""
@@ -157,10 +168,10 @@ object Isabelle_Markup
       Markup.DYNAMIC_FACT -> LABEL,
       // inner syntax
       Markup.TFREE -> NULL,
-      Markup.FREE -> MARKUP,
+      Markup.FREE -> NULL,
       Markup.TVAR -> NULL,
-      Markup.SKOLEM -> COMMENT2,
-      Markup.BOUND -> LABEL,
+      Markup.SKOLEM -> NULL,
+      Markup.BOUND -> NULL,
       Markup.VAR -> NULL,
       Markup.NUM -> DIGIT,
       Markup.FLOAT -> DIGIT,

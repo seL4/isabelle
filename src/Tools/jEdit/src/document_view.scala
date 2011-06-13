@@ -62,7 +62,7 @@ object Document_View
 }
 
 
-class Document_View(val model: Document_Model, text_area: JEditTextArea)
+class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 {
   private val session = model.session
 
@@ -207,7 +207,35 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
   }
 
 
-  /* TextArea painters */
+  /* TextArea painting */
+
+  @volatile private var _text_area_snapshot: Option[Document.Snapshot] = None
+
+  def text_area_snapshot(): Document.Snapshot =
+    _text_area_snapshot match {
+      case Some(snapshot) => snapshot
+      case None => error("Missing text area snapshot")
+    }
+
+  private val set_snapshot = new TextAreaExtension
+  {
+    override def paintScreenLineRange(gfx: Graphics2D,
+      first_line: Int, last_line: Int, physical_lines: Array[Int],
+      start: Array[Int], end: Array[Int], y: Int, line_height: Int)
+    {
+      _text_area_snapshot = Some(model.snapshot())
+    }
+  }
+
+  private val reset_snapshot = new TextAreaExtension
+  {
+    override def paintScreenLineRange(gfx: Graphics2D,
+      first_line: Int, last_line: Int, physical_lines: Array[Int],
+      start: Array[Int], end: Array[Int], y: Int, line_height: Int)
+    {
+      _text_area_snapshot = None
+    }
+  }
 
   private val background_painter = new TextAreaExtension
   {
@@ -216,7 +244,7 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
       Isabelle.swing_buffer_lock(model.buffer) {
-        val snapshot = model.snapshot()
+        val snapshot = text_area_snapshot()
         val ascent = text_area.getPainter.getFontMetrics.getAscent
 
         for (i <- 0 until physical_lines.length) {
@@ -310,7 +338,10 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
     }
   }
 
-  val text_painter = new Text_Painter(model, text_area)
+  val text_painter = new Text_Painter(this)
+
+
+  /* Gutter painting */
 
   private val gutter_painter = new TextAreaExtension
   {
@@ -480,8 +511,12 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
   private def activate()
   {
     val painter = text_area.getPainter
+
+    painter.addExtension(TextAreaPainter.LOWEST_LAYER, set_snapshot)
     painter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, background_painter)
     text_painter.activate()
+    painter.addExtension(TextAreaPainter.HIGHEST_LAYER, reset_snapshot)
+
     text_area.getGutter.addExtension(gutter_painter)
     text_area.addFocusListener(focus_listener)
     text_area.getView.addWindowListener(window_listener)
@@ -495,6 +530,7 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
   private def deactivate()
   {
     val painter = text_area.getPainter
+
     session.commands_changed -= main_actor
     session.global_settings -= main_actor
     text_area.removeFocusListener(focus_listener)
@@ -503,8 +539,11 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
     text_area.removeCaretListener(caret_listener)
     text_area.removeLeftOfScrollBar(overview)
     text_area.getGutter.removeExtension(gutter_painter)
+
+    painter.removeExtension(reset_snapshot)
     text_painter.deactivate()
     painter.removeExtension(background_painter)
+    painter.removeExtension(set_snapshot)
     exit_popup()
   }
 }

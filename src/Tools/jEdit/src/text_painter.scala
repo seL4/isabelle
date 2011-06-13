@@ -17,8 +17,10 @@ import org.gjt.sp.jedit.syntax.{DisplayTokenHandler, Chunk}
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextAreaExtension, TextAreaPainter}
 
 
-class Text_Painter(model: Document_Model, text_area: JEditTextArea) extends TextAreaExtension
+class Text_Painter(doc_view: Document_View) extends TextAreaExtension
 {
+  private val text_area = doc_view.text_area
+
   private val orig_text_painter: TextAreaExtension =
   {
     val name = "org.gjt.sp.jedit.textarea.TextAreaPainter$PaintText"
@@ -33,35 +35,56 @@ class Text_Painter(model: Document_Model, text_area: JEditTextArea) extends Text
     first_line: Int, last_line: Int, physical_lines: Array[Int],
     start: Array[Int], end: Array[Int], y_start: Int, line_height: Int)
   {
-    def paint_chunk_list(head: Chunk, x: Float, y: Float): Float =
-    {
-      val clip_rect = gfx.getClipBounds
-      var w = 0.0f
-      var chunk = head
-      while (chunk != null) {
-        if (x + w + chunk.width > clip_rect.x &&
-            x + w < clip_rect.x + clip_rect.width &&
-            chunk.accessable && chunk.visible)
-        {
-          gfx.setFont(chunk.style.getFont)
-          gfx.setColor(chunk.style.getForegroundColor)
-          if (!Debug.DISABLE_GLYPH_VECTOR && chunk.gv != null)
-            gfx.drawGlyphVector(chunk.gv, x + w, y)
-          else if (chunk.str != null)
-            gfx.drawString(chunk.str, (x + w).toInt, y.toInt)
-        }
-        w += chunk.width
-        chunk = chunk.next.asInstanceOf[Chunk]
-      }
-      w
-    }
-
     val buffer = text_area.getBuffer
     Isabelle.swing_buffer_lock(buffer) {
       val painter = text_area.getPainter
       val font = painter.getFont
       val font_context = painter.getFontRenderContext
-      val fm = painter.getFontMetrics
+      val font_metrics = painter.getFontMetrics
+
+      def paint_chunk_list(head_offset: Text.Offset, head: Chunk, x: Float, y: Float): Float =
+      {
+        val clip_rect = gfx.getClipBounds
+
+        var w = 0.0f
+        var offset = head_offset
+        var chunk = head
+        while (chunk != null) {
+          val chunk_length = if (chunk.str == null) 0 else chunk.str.length
+
+          if (x + w + chunk.width > clip_rect.x &&
+              x + w < clip_rect.x + clip_rect.width &&
+              chunk.accessable && chunk.visible)
+          {
+            val chunk_range = Text.Range(offset, offset + chunk_length)
+            val chunk_font = chunk.style.getFont
+            val chunk_color = chunk.style.getForegroundColor
+
+            val markup =
+              doc_view.text_area_snapshot.select_markup(chunk_range)(Isabelle_Markup.foreground)
+
+            gfx.setFont(chunk_font)
+            if (!Debug.DISABLE_GLYPH_VECTOR && chunk.gv != null &&
+                markup.forall(info => info.info.isEmpty)) {
+              gfx.setColor(chunk_color)
+              gfx.drawGlyphVector(chunk.gv, x + w, y)
+            }
+            else {
+              var xpos = x + w
+              for (Text.Info(range, info) <- markup) {
+                val str = chunk.str.substring(range.start - offset, range.stop - offset)
+                gfx.setColor(info.getOrElse(chunk_color))
+                gfx.drawString(str, xpos.toInt, y.toInt)
+                xpos += chunk_font.getStringBounds(str, font_context).getWidth.toFloat
+              }
+            }
+          }
+          w += chunk.width
+          offset += chunk_length
+          chunk = chunk.next.asInstanceOf[Chunk]
+        }
+        w
+      }
 
       // see org.gjt.sp.jedit.textarea.TextArea.propertiesChanged
       // see org.gjt.sp.jedit.textarea.TextArea.setMaxLineLength
@@ -98,12 +121,14 @@ class Text_Painter(model: Document_Model, text_area: JEditTextArea) extends Text
 
       val clip = gfx.getClip
       val x0 = text_area.getHorizontalOffset
-      var y0 = y_start + fm.getHeight - (fm.getLeading + 1) - fm.getDescent
+      var y0 =
+        y_start + font_metrics.getHeight - (font_metrics.getLeading + 1) - font_metrics.getDescent
+
       for (i <- 0 until physical_lines.length) {
         if (physical_lines(i) != -1) {
           line_infos.get(start(i)) match {
             case Some(chunk) =>
-              val w = paint_chunk_list(chunk, x0, y0).toInt
+              val w = paint_chunk_list(start(i), chunk, x0, y0).toInt
               gfx.clipRect(x0 + w, 0, Integer.MAX_VALUE, Integer.MAX_VALUE)
               orig_text_painter.paintValidLine(gfx,
                 first_line + i, physical_lines(i), start(i), end(i), y_start + line_height * i)
