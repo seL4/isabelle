@@ -31,8 +31,31 @@ class Text_Painter(model: Document_Model, text_area: JEditTextArea) extends Text
 
   override def paintScreenLineRange(gfx: Graphics2D,
     first_line: Int, last_line: Int, physical_lines: Array[Int],
-    start: Array[Int], end: Array[Int], y: Int, line_height: Int)
+    start: Array[Int], end: Array[Int], y_start: Int, line_height: Int)
   {
+    def paint_chunk_list(head: Chunk, x: Float, y: Float): Float =
+    {
+      val clip_rect = gfx.getClipBounds
+      var w = 0.0f
+      var chunk = head
+      while (chunk != null) {
+        if (x + w + chunk.width > clip_rect.x &&
+            x + w < clip_rect.x + clip_rect.width &&
+            chunk.accessable && chunk.visible)
+        {
+          gfx.setFont(chunk.style.getFont)
+          gfx.setColor(chunk.style.getForegroundColor)
+          if (!Debug.DISABLE_GLYPH_VECTOR && chunk.gv != null)
+            gfx.drawGlyphVector(chunk.gv, x + w, y)
+          else if (chunk.str != null)
+            gfx.drawString(chunk.str, (x + w).toInt, y.toInt)
+        }
+        w += chunk.width
+        chunk = chunk.next.asInstanceOf[Chunk]
+      }
+      w
+    }
+
     val buffer = text_area.getBuffer
     Isabelle.swing_buffer_lock(buffer) {
       val painter = text_area.getPainter
@@ -75,15 +98,15 @@ class Text_Painter(model: Document_Model, text_area: JEditTextArea) extends Text
 
       val clip = gfx.getClip
       val x0 = text_area.getHorizontalOffset
-      var y0 = y + fm.getHeight - (fm.getLeading + 1) - fm.getDescent
+      var y0 = y_start + fm.getHeight - (fm.getLeading + 1) - fm.getDescent
       for (i <- 0 until physical_lines.length) {
         if (physical_lines(i) != -1) {
           line_infos.get(start(i)) match {
             case Some(chunk) =>
-              val w = Chunk.paintChunkList(chunk, gfx, x0, y0, !Debug.DISABLE_GLYPH_VECTOR).toInt
+              val w = paint_chunk_list(chunk, x0, y0).toInt
               gfx.clipRect(x0 + w, 0, Integer.MAX_VALUE, Integer.MAX_VALUE)
-              orig_text_painter.paintValidLine(
-                gfx, first_line + i, physical_lines(i), start(i), end(i), y + line_height * i)
+              orig_text_painter.paintValidLine(gfx,
+                first_line + i, physical_lines(i), start(i), end(i), y_start + line_height * i)
               gfx.setClip(clip)
 
             case None =>
