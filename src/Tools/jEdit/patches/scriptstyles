@@ -1,0 +1,30 @@
+diff -r jEdit/org/gjt/sp/jedit/syntax/Token.java jEdit-patched/org/gjt/sp/jedit/syntax/Token.java
+60c60
+< 		return (token == Token.END) ? "END" : TOKEN_TYPES[token];
+---
+> 		return (token == Token.END) ? "END" : TOKEN_TYPES[(token >= ID_COUNT) ? 0 : token];
+diff -r jEdit/org/gjt/sp/util/SyntaxUtilities.java jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java
+196a197,207
+> 	 * Style with sub/superscript font attribute.
+> 	 */
+> 	public static SyntaxStyle scriptStyle(String family, int size, int script)
+> 	{
+> 		Font font = new Font(family, 0, size);
+> 		java.util.Map attributes = new java.util.HashMap();
+> 		attributes.put(java.awt.font.TextAttribute.SUPERSCRIPT, new Integer(script));
+> 		return new SyntaxStyle(Color.black, null, font.deriveFont(attributes));
+> 	}
+> 	
+> 	/**
+206c217
+< 		SyntaxStyle[] styles = new SyntaxStyle[Token.ID_COUNT];
+---
+> 		SyntaxStyle[] styles = new SyntaxStyle[Token.ID_COUNT + 2];
+209c220
+< 		for(int i = 1; i < styles.length; i++)
+---
+> 		for(int i = 1; i < Token.ID_COUNT; i++)
+225a237,239
+> 		styles[Token.ID_COUNT] = scriptStyle(family, size, -1);
+> 		styles[Token.ID_COUNT + 1] = scriptStyle(family, size, 1);
+> 

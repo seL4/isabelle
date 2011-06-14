@@ -69,24 +69,6 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
   /** token handling **/
 
-  /* extended token styles */
-
-  private var styles: Array[SyntaxStyle] = null  // owned by Swing thread
-
-  def extend_styles()
-  {
-    Swing_Thread.require()
-    styles = Document_Model.Token_Markup.extend_styles(text_area.getPainter.getStyles)
-  }
-  extend_styles()
-
-  def set_styles()
-  {
-    Swing_Thread.require()
-    text_area.getPainter.setStyles(styles)
-  }
-
-
   /* visible line ranges */
 
   // simplify slightly odd result of TextArea.getScreenLineEndOffset etc.
