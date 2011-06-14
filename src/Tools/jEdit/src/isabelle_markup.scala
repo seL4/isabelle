@@ -11,6 +11,7 @@ import isabelle._
 
 import java.awt.Color
 
+import org.lobobrowser.util.gui.ColorFactory
 import org.gjt.sp.jedit.syntax.Token
 
 
@@ -19,6 +20,8 @@ object Isabelle_Markup
   /* physical rendering */
 
   // see http://www.w3schools.com/css/css_colornames.asp
+
+  def get_color(s: String): Color = ColorFactory.getInstance.getColor(s)
 
   val outdated_color = new Color(240, 240, 240)
   val unfinished_color = new Color(255, 228, 225)
@@ -30,9 +33,8 @@ object Isabelle_Markup
   val bad_color = new Color(255, 106, 106, 100)
   val hilite_color = new Color(255, 204, 102, 100)
 
-  val free_color = new Color(0, 0, 0xFF)
-  val skolem_color = new Color(0xD2, 0x69, 0x1E)
-  val bound_color = new Color(0, 0x80, 0)
+  val keyword1_color = get_color("#006699")
+  val keyword2_color = get_color("#009966")
 
   class Icon(val priority: Int, val icon: javax.swing.Icon)
   {
@@ -106,11 +108,33 @@ object Isabelle_Markup
     case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => light_color
   }
 
+  private val foreground_colors: Map[String, Color] =
+    Map(
+      Markup.TCLASS -> get_color("red"),
+      Markup.TFREE -> get_color("#A020F0"),
+      Markup.TVAR -> get_color("#A020F0"),
+      Markup.CONST -> get_color("dimgrey"),
+      Markup.FREE -> get_color("blue"),
+      Markup.SKOLEM -> get_color("#D2691E"),
+      Markup.BOUND -> get_color("green"),
+      Markup.VAR -> get_color("#00009B"),
+      Markup.INNER_STRING -> get_color("#D2691E"),
+      Markup.INNER_COMMENT -> get_color("#8B0000"),
+      Markup.DYNAMIC_FACT -> get_color("yellowgreen"),
+      Markup.LITERAL -> keyword1_color,
+      Markup.ML_KEYWORD -> keyword1_color,
+      Markup.ML_DELIMITER -> get_color("black"),
+      Markup.ML_NUMERAL -> get_color("red"),
+      Markup.ML_CHAR -> get_color("#D2691E"),
+      Markup.ML_STRING -> get_color("#D2691E"),
+      Markup.ML_COMMENT -> get_color("#8B0000"),
+      Markup.ML_MALFORMED -> get_color("#FF6A6A")
+    )
+
   val foreground: Markup_Tree.Select[Color] =
   {
-    case Text.Info(_, XML.Elem(Markup(Markup.FREE, _), _)) => free_color
-    case Text.Info(_, XML.Elem(Markup(Markup.SKOLEM, _), _)) => skolem_color
-    case Text.Info(_, XML.Elem(Markup(Markup.BOUND, _), _)) => bound_color
+    case Text.Info(_, XML.Elem(Markup(m, _), _))
+    if foreground_colors.isDefinedAt(m) => foreground_colors(m)
   }
 
   val tooltip: Markup_Tree.Select[String] =
@@ -162,39 +186,6 @@ object Isabelle_Markup
   {
     import Token._
     Map[String, Byte](
-      // logical entities
-      Markup.TCLASS -> NULL,
-      Markup.TYCON -> NULL,
-      Markup.FIXED -> NULL,
-      Markup.CONST -> LITERAL2,
-      Markup.DYNAMIC_FACT -> LABEL,
-      // inner syntax
-      Markup.TFREE -> NULL,
-      Markup.FREE -> NULL,
-      Markup.TVAR -> NULL,
-      Markup.SKOLEM -> NULL,
-      Markup.BOUND -> NULL,
-      Markup.VAR -> NULL,
-      Markup.NUM -> DIGIT,
-      Markup.FLOAT -> DIGIT,
-      Markup.XNUM -> DIGIT,
-      Markup.XSTR -> LITERAL4,
-      Markup.LITERAL -> OPERATOR,
-      Markup.INNER_COMMENT -> COMMENT1,
-      Markup.SORT -> NULL,
-      Markup.TYP -> NULL,
-      Markup.TERM -> NULL,
-      Markup.PROP -> NULL,
-      // ML syntax
-      Markup.ML_KEYWORD -> KEYWORD1,
-      Markup.ML_DELIMITER -> OPERATOR,
-      Markup.ML_IDENT -> NULL,
-      Markup.ML_TVAR -> NULL,
-      Markup.ML_NUMERAL -> DIGIT,
-      Markup.ML_CHAR -> LITERAL1,
-      Markup.ML_STRING -> LITERAL1,
-      Markup.ML_COMMENT -> COMMENT1,
-      Markup.ML_MALFORMED -> INVALID,
       // embedded source text
       Markup.ML_SOURCE -> COMMENT3,
       Markup.DOC_SOURCE -> COMMENT3,
