@@ -90,7 +90,7 @@ val mtds = [
   MutabelleExtra.quickcheck_mtd (Config.put Quickcheck.tester \"exhaustive\" #> Config.put Quickcheck.finite_types false) \"exhaustive_nft\",
   MutabelleExtra.quickcheck_mtd (Config.put Quickcheck.tester \"narrowing\" #> Config.put Quickcheck.finite_types false) \"narrowing\",
   MutabelleExtra.quickcheck_mtd (Config.put Quickcheck.tester \"narrowing\" #> Config.put Quickcheck.finite_types false
-    #> Context.proof_map (Quickcheck.map_test_params (apfst (K [@{typ int}])))) \"narrowing_nat\"  
+    #> Context.proof_map (Quickcheck.map_test_params (apfst (K [@{typ nat}])))) \"narrowing_nat\"  
 (*  MutabelleExtra.nitpick_mtd *)
 ]
 *}
