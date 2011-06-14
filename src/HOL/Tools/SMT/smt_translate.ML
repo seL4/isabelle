@@ -160,7 +160,6 @@ fun collect_datatypes_and_records (tr_context, ctxt) ts =
       Termtab.update (constr, length selects) #>
       fold (Termtab.update o rpair 1) selects
     val funcs = fold (fold (fold add o snd)) declss Termtab.empty
-
   in ((funcs, declss', tr_context', ctxt'), ts) end
     (* FIXME: also return necessary datatype and record theorems *)
 
@@ -344,11 +343,14 @@ local
     in fst (fold app ts2 (Term.list_comb (t, ts1), U)) end
 in
 
-fun intro_explicit_application ctxt ts =
+fun intro_explicit_application ctxt funcs ts =
   let
     val (arities, types) = fold min_arities ts (Termtab.empty, Typtab.empty)
     val arities' = Termtab.map (minimize types) arities
-    fun apply' t = apply (the (Termtab.lookup arities' t)) t
+
+    fun app_func t T ts =
+      if is_some (Termtab.lookup funcs t) then Term.list_comb (t, ts)
+      else apply (the (Termtab.lookup arities' t)) t T ts
 
     fun traverse Ts t =
       (case Term.strip_comb t of
@@ -359,8 +361,8 @@ fun intro_explicit_application ctxt ts =
       | (u as Const (c as (_, T)), ts) =>
           (case SMT_Builtin.dest_builtin ctxt c ts of
             SOME (_, _, us, mk) => mk (map (traverse Ts) us)
-          | NONE => apply' u T (map (traverse Ts) ts))
-      | (u as Free (_, T), ts) => apply' u T (map (traverse Ts) ts)
+          | NONE => app_func u T (map (traverse Ts) ts))
+      | (u as Free (_, T), ts) => app_func u T (map (traverse Ts) ts)
       | (u as Bound i, ts) => apply 0 u (nth Ts i) (map (traverse Ts) ts)
       | (Abs (n, T, u), ts) => traverses Ts (Abs (n, T, traverse (T::Ts) u)) ts
       | (u, ts) => traverses Ts u ts)
@@ -586,7 +588,7 @@ fun translate ctxt comments ithms =
       ts2
       |> eta_expand ctxt1 is_fol funcs
       |> lift_lambdas ctxt1
-      |-> (fn ctxt1' => pair ctxt1' o intro_explicit_application ctxt1)
+      |-> (fn ctxt1' => pair ctxt1' o intro_explicit_application ctxt1 funcs)
 
     val ((rewrite_rules, extra_thms, builtin), ts4) =
       (if is_fol then folify ctxt2 else pair ([], [], I)) ts3
