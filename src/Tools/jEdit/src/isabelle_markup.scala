@@ -33,6 +33,9 @@ object Isabelle_Markup
   val bad_color = new Color(255, 106, 106, 100)
   val hilite_color = new Color(255, 204, 102, 100)
 
+  val keyword1_color = get_color("#006699")
+  val keyword2_color = get_color("#009966")
+
   class Icon(val priority: Int, val icon: javax.swing.Icon)
   {
     def >= (that: Icon): Boolean = this.priority >= that.priority
@@ -118,8 +121,8 @@ object Isabelle_Markup
       Markup.INNER_STRING -> get_color("#D2691E"),
       Markup.INNER_COMMENT -> get_color("#8B0000"),
       Markup.DYNAMIC_FACT -> get_color("yellowgreen"),
-      Markup.LITERAL -> get_color("black"),
-      Markup.ML_KEYWORD -> get_color("grey"),
+      Markup.LITERAL -> keyword1_color,
+      Markup.ML_KEYWORD -> keyword1_color,
       Markup.ML_DELIMITER -> get_color("black"),
       Markup.ML_NUMERAL -> get_color("red"),
       Markup.ML_CHAR -> get_color("#D2691E"),
