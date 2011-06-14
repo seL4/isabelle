@@ -406,7 +406,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   private def activate()
   {
     val painter = text_area.getPainter
-    painter.addExtension(TextAreaPainter.TEXT_LAYER, tooltip_painter)
+    painter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, tooltip_painter)
     text_area_painter.activate()
     text_area.getGutter.addExtension(gutter_painter)
     text_area.addFocusListener(focus_listener)
