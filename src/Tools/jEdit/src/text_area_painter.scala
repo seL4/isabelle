@@ -9,12 +9,12 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.{Graphics, Graphics2D}
+import java.awt.Graphics2D
 import java.util.ArrayList
 
 import org.gjt.sp.jedit.Debug
 import org.gjt.sp.jedit.syntax.{DisplayTokenHandler, Chunk}
-import org.gjt.sp.jedit.textarea.{JEditTextArea, TextAreaExtension, TextAreaPainter}
+import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter}
 
 
 class Text_Area_Painter(doc_view: Document_View)
@@ -211,12 +211,12 @@ class Text_Area_Painter(doc_view: Document_View)
           gfx.drawGlyphVector(chunk.gv, x + w, y)
         }
         else {
-          var xpos = x + w
+          var x1 = x + w
           for (Text.Info(range, info) <- markup) {
             val str = chunk.str.substring(range.start - chunk_offset, range.stop - chunk_offset)
             gfx.setColor(info.getOrElse(chunk_color))
-            gfx.drawString(str, xpos.toInt, y.toInt)
-            xpos += chunk_font.getStringBounds(str, font_context).getWidth.toFloat
+            gfx.drawString(str, x1.toInt, y.toInt)
+            x1 += chunk_font.getStringBounds(str, font_context).getWidth.toFloat
           }
         }
       }
