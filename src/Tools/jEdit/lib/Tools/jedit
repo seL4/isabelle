@@ -166,17 +166,27 @@ SCALA_JARS=(
 
 TARGET="dist/jars/Isabelle-jEdit.jar"
 
+declare -a UPDATED=()
+
 if [ "$BUILD_JARS" = jars_fresh ]; then
   OUTDATED=true
 else
   OUTDATED=false
   if [ ! -e "$TARGET" ]; then
     OUTDATED=true
-  elif [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
-    for SOURCE in "${SOURCES[@]}" "${RESOURCES[@]}" "$JEDIT_JAR" "${JEDIT_JARS[@]}"
+  else
+    if [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
+      declare -a DEPS=("${SOURCES[@]}" "${RESOURCES[@]}" "$JEDIT_JAR" "${JEDIT_JARS[@]}")
+    else
+      declare -a DEPS=("${SOURCES[@]}" "${RESOURCES[@]}")
+    fi
+    for DEP in "${DEPS[@]}"
     do
-      [ ! -e "$SOURCE" ] && fail "Missing file: $SOURCE"
-      [ "$SOURCE" -nt "$TARGET" ] && OUTDATED=true
+      [ ! -e "$DEP" ] && fail "Missing file: $DEP"
+      [ "$DEP" -nt "$TARGET" ] && {
+        OUTDATED=true
+        UPDATED["${#UPDATED[@]}"]="$DEP"
+      }
     done
   fi
 fi
@@ -186,6 +196,14 @@ fi
 
 if [ "$OUTDATED" = true ]
 then
+  [ "${#UPDATED[@]}" -gt 0 ] && {
+    echo "Rebuild due to updated file dependencies:"
+    for FILE in "${UPDATED[@]}"
+    do
+      echo "  $FILE"
+    done
+  }
+
   [ -z "$SCALA_HOME" ] && fail "Unknown SCALA_HOME -- Scala unavailable"
 
   [ -z "$ISABELLE_JEDIT_BUILD_HOME" ] && \
