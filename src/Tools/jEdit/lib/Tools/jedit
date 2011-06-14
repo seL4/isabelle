@@ -23,7 +23,7 @@ declare -a SOURCES=(
   "src/raw_output_dockable.scala"
   "src/scala_console.scala"
   "src/session_dockable.scala"
-  "src/text_painter.scala"
+  "src/text_area_painter.scala"
 )
 
 declare -a RESOURCES=(
