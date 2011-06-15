@@ -31,15 +31,6 @@ object Document_View
 
   private val key = new Object
 
-  def init(model: Document_Model, text_area: JEditTextArea): Document_View =
-  {
-    Swing_Thread.require()
-    val doc_view = new Document_View(model, text_area)
-    text_area.putClientProperty(key, doc_view)
-    doc_view.activate()
-    doc_view
-  }
-
   def apply(text_area: JEditTextArea): Option[Document_View] =
   {
     Swing_Thread.require()
@@ -58,6 +49,15 @@ object Document_View
         doc_view.deactivate()
         text_area.putClientProperty(key, null)
     }
+  }
+
+  def init(model: Document_Model, text_area: JEditTextArea): Document_View =
+  {
+    exit(text_area)
+    val doc_view = new Document_View(model, text_area)
+    text_area.putClientProperty(key, doc_view)
+    doc_view.activate()
+    doc_view
   }
 }
 

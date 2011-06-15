@@ -1,30 +1,71 @@
-diff -r jEdit/org/gjt/sp/jedit/syntax/Token.java jEdit-patched/org/gjt/sp/jedit/syntax/Token.java
-60c60
-< 		return (token == Token.END) ? "END" : TOKEN_TYPES[token];
----
-> 		return (token == Token.END) ? "END" : TOKEN_TYPES[(token >= ID_COUNT) ? 0 : token];
-diff -r jEdit/org/gjt/sp/util/SyntaxUtilities.java jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java
-196a197,207
-> 	 * Style with sub/superscript font attribute.
-> 	 */
-> 	public static SyntaxStyle scriptStyle(String family, int size, int script)
-> 	{
-> 		Font font = new Font(family, 0, size);
-> 		java.util.Map attributes = new java.util.HashMap();
-> 		attributes.put(java.awt.font.TextAttribute.SUPERSCRIPT, new Integer(script));
-> 		return new SyntaxStyle(Color.black, null, font.deriveFont(attributes));
-> 	}
-> 	
-> 	/**
-206c217
-< 		SyntaxStyle[] styles = new SyntaxStyle[Token.ID_COUNT];
----
-> 		SyntaxStyle[] styles = new SyntaxStyle[Token.ID_COUNT + 2];
-209c220
-< 		for(int i = 1; i < styles.length; i++)
----
-> 		for(int i = 1; i < Token.ID_COUNT; i++)
-225a237,239
-> 		styles[Token.ID_COUNT] = scriptStyle(family, size, -1);
-> 		styles[Token.ID_COUNT + 1] = scriptStyle(family, size, 1);
-> 
+diff -ru jEdit/org/gjt/sp/jedit/syntax/Token.java jEdit-patched/org/gjt/sp/jedit/syntax/Token.java
+--- jEdit/org/gjt/sp/jedit/syntax/Token.java	2010-05-09 14:29:24.000000000 +0200
++++ jEdit-patched/org/gjt/sp/jedit/syntax/Token.java	2011-06-15 13:48:42.000000000 +0200
+@@ -57,7 +57,7 @@
+ 	 */
+ 	public static String tokenToString(byte token)
+ 	{
+-		return (token == Token.END) ? "END" : TOKEN_TYPES[token];
++		return (token == Token.END) ? "END" : TOKEN_TYPES[token % ID_COUNT];
+ 	} //}}}
+ 
+ 	//{{{ Token types
+diff -ru jEdit/org/gjt/sp/util/SyntaxUtilities.java jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java
+--- jEdit/org/gjt/sp/util/SyntaxUtilities.java	2010-05-09 14:29:29.000000000 +0200
++++ jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java	2011-06-15 14:11:30.000000000 +0200
+@@ -26,6 +26,7 @@
+ //{{{ Imports
+ import java.awt.Color;
+ import java.awt.Font;
++import java.awt.font.TextAttribute;
+ import java.util.Locale;
+ import java.util.StringTokenizer;
+ import org.gjt.sp.jedit.syntax.SyntaxStyle;
+@@ -194,6 +195,17 @@
+ 	}
+ 	
+ 	/**
++	 * Style with sub/superscript font attribute.
++	 */
++	public static SyntaxStyle scriptStyle(SyntaxStyle style, int script)
++	{
++		java.util.Map attributes = new java.util.HashMap();
++		attributes.put(TextAttribute.SUPERSCRIPT, new Integer(script));
++		return new SyntaxStyle(style.getForegroundColor(), style.getBackgroundColor(),
++                  style.getFont().deriveFont(attributes));
++	}
++	
++	/**
+ 	 * Loads the syntax styles from the properties, giving them the specified
+ 	 * base font family and size.
+ 	 * @param family The font family
+@@ -203,10 +215,10 @@
+ 	 */
+ 	public static SyntaxStyle[] loadStyles(String family, int size, boolean color)
+ 	{
+-		SyntaxStyle[] styles = new SyntaxStyle[Token.ID_COUNT];
++		SyntaxStyle[] styles = new SyntaxStyle[3 * Token.ID_COUNT + 1];
+ 
+ 		// start at 1 not 0 to skip Token.NULL
+-		for(int i = 1; i < styles.length; i++)
++		for(int i = 1; i < Token.ID_COUNT; i++)
+ 		{
+ 			try
+ 			{
+@@ -223,6 +235,16 @@
+ 			}
+ 		}
+ 
++		styles[0] = new SyntaxStyle(Color.black, null, new Font(family, 0, size));
++		for(int i = 0; i < Token.ID_COUNT; i++)
++		{
++			styles[i + Token.ID_COUNT] = scriptStyle(styles[i], -1);
++			styles[i + 2 * Token.ID_COUNT] = scriptStyle(styles[i], 1);
++		}
++		styles[0] = null;
++		styles[3 * Token.ID_COUNT] =
++			new SyntaxStyle(Color.black, null, new Font(family, 0, 1));
++
+ 		return styles;
+ 	} //}}}
+ 	

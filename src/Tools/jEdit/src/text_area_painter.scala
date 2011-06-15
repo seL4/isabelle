@@ -9,12 +9,16 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.Graphics2D
+import java.awt.{Graphics2D, Shape}
+import java.awt.font.TextAttribute
+import java.text.AttributedString
 import java.util.ArrayList
+
+import org.gjt.sp.util.Log
 
 import org.gjt.sp.jedit.Debug
 import org.gjt.sp.jedit.syntax.{DisplayTokenHandler, Chunk}
-import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter}
+import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter, JEditTextArea}
 
 
 class Text_Area_Painter(doc_view: Document_View)
@@ -23,9 +27,20 @@ class Text_Area_Painter(doc_view: Document_View)
   private val buffer = model.buffer
   private val text_area = doc_view.text_area
 
-  private val orig_text_painter: TextAreaExtension =
+  private def painter_body(body: => Unit)
   {
-    val name = "org.gjt.sp.jedit.textarea.TextAreaPainter$PaintText"
+    if (buffer == text_area.getBuffer)
+      Swing_Thread.now {
+        try { Isabelle.buffer_lock(buffer) { body } }
+        catch { case t: Throwable => Log.log(Log.ERROR, this, t) }
+      }
+  }
+
+
+  /* original painters */
+
+  private def pick_extension(name: String): TextAreaExtension =
+  {
     text_area.getPainter.getExtensions.iterator.filter(x => x.getClass.getName == name).toList
     match {
       case List(x) => x
@@ -33,34 +48,34 @@ class Text_Area_Painter(doc_view: Document_View)
     }
   }
 
+  private val orig_text_painter =
+    pick_extension("org.gjt.sp.jedit.textarea.TextAreaPainter$PaintText")
 
-  /* painter snapshot */
 
-  @volatile private var _painter_snapshot: Option[Document.Snapshot] = None
+  /* common painter state */
 
-  private def painter_snapshot(): Document.Snapshot =
-    _painter_snapshot match {
-      case Some(snapshot) => snapshot
-      case None => error("Missing document snapshot for text area painter")
-    }
+  @volatile private var painter_snapshot: Document.Snapshot = null
+  @volatile private var painter_clip: Shape = null
 
-  private val set_snapshot = new TextAreaExtension
+  private val set_state = new TextAreaExtension
   {
     override def paintScreenLineRange(gfx: Graphics2D,
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      _painter_snapshot = Some(model.snapshot())
+      painter_snapshot = model.snapshot()
+      painter_clip = gfx.getClip
     }
   }
 
-  private val reset_snapshot = new TextAreaExtension
+  private val reset_state = new TextAreaExtension
   {
     override def paintScreenLineRange(gfx: Graphics2D,
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      _painter_snapshot = None
+      painter_snapshot = null
+      painter_clip = null
     }
   }
 
@@ -73,8 +88,8 @@ class Text_Area_Painter(doc_view: Document_View)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      Isabelle.swing_buffer_lock(buffer) {
-        val snapshot = painter_snapshot()
+      painter_body {
+        val snapshot = painter_snapshot
         val ascent = text_area.getPainter.getFontMetrics.getAscent
 
         for (i <- 0 until physical_lines.length) {
@@ -148,6 +163,14 @@ class Text_Area_Painter(doc_view: Document_View)
 
   /* text */
 
+  def char_width(): Int =
+  {
+    val painter = text_area.getPainter
+    val font = painter.getFont
+    val font_context = painter.getFontRenderContext
+    font.getStringBounds(" ", font_context).getWidth.round.toInt
+  }
+
   private def line_infos(physical_lines: Iterator[Int]): Map[Text.Offset, Chunk] =
   {
     val painter = text_area.getPainter
@@ -161,7 +184,7 @@ class Text_Area_Painter(doc_view: Document_View)
       else {
         val max = buffer.getIntegerProperty("maxLineLen", 0)
         if (max > 0) font.getStringBounds(" " * max, font_context).getWidth.toInt
-        else painter.getWidth - font.getStringBounds(" ", font_context).getWidth.round.toInt * 3
+        else painter.getWidth - char_width() * 3
       }.toFloat
 
     val out = new ArrayList[Chunk]
@@ -183,10 +206,11 @@ class Text_Area_Painter(doc_view: Document_View)
   }
 
   private def paint_chunk_list(gfx: Graphics2D,
-    offset: Text.Offset, head: Chunk, x: Float, y: Float): Float =
+    offset: Text.Offset, caret_offset: Text.Offset, head: Chunk, x: Float, y: Float): Float =
   {
     val clip_rect = gfx.getClipBounds
-    val font_context = text_area.getPainter.getFontRenderContext
+    val painter = text_area.getPainter
+    val font_context = painter.getFontRenderContext
 
     var w = 0.0f
     var chunk_offset = offset
@@ -206,7 +230,8 @@ class Text_Area_Painter(doc_view: Document_View)
 
         gfx.setFont(chunk_font)
         if (!Debug.DISABLE_GLYPH_VECTOR && chunk.gv != null &&
-            markup.forall(info => info.info.isEmpty)) {
+            markup.forall(info => info.info.isEmpty) &&
+            !chunk_range.contains(caret_offset)) {
           gfx.setColor(chunk_color)
           gfx.drawGlyphVector(chunk.gv, x + w, y)
         }
@@ -215,7 +240,17 @@ class Text_Area_Painter(doc_view: Document_View)
           for (Text.Info(range, info) <- markup) {
             val str = chunk.str.substring(range.start - chunk_offset, range.stop - chunk_offset)
             gfx.setColor(info.getOrElse(chunk_color))
-            gfx.drawString(str, x1.toInt, y.toInt)
+            if (range.contains(caret_offset)) {
+              val astr = new AttributedString(str)
+              val i = caret_offset - range.start
+              astr.addAttribute(TextAttribute.FONT, chunk_font)
+              astr.addAttribute(TextAttribute.FOREGROUND, painter.getCaretColor, i, i + 1)
+              astr.addAttribute(TextAttribute.SWAP_COLORS, TextAttribute.SWAP_COLORS_ON, i, i + 1)
+              gfx.drawString(astr.getIterator, x1.toInt, y.toInt)
+            }
+            else {
+              gfx.drawString(str, x1.toInt, y.toInt)
+            }
             x1 += chunk_font.getStringBounds(str, font_context).getWidth.toFloat
           }
         }
@@ -233,26 +268,73 @@ class Text_Area_Painter(doc_view: Document_View)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      Isabelle.swing_buffer_lock(buffer) {
+      painter_body {
         val clip = gfx.getClip
         val x0 = text_area.getHorizontalOffset
         val fm = text_area.getPainter.getFontMetrics
         var y0 = y + fm.getHeight - (fm.getLeading + 1) - fm.getDescent
 
+        val caret_offset =
+          if (text_area.hasFocus) text_area.getCaretPosition
+          else -1
+
         val infos = line_infos(physical_lines.iterator.filter(i => i != -1))
         for (i <- 0 until physical_lines.length) {
           if (physical_lines(i) != -1) {
-            infos.get(start(i)) match {
-              case Some(chunk) =>
-                val w = paint_chunk_list(gfx, start(i), chunk, x0, y0).toInt
-                gfx.clipRect(x0 + w, 0, Integer.MAX_VALUE, Integer.MAX_VALUE)
-                orig_text_painter.paintValidLine(gfx,
-                  first_line + i, physical_lines(i), start(i), end(i), y + line_height * i)
-                gfx.setClip(clip)
-              case None =>
-            }
+            val x1 =
+              infos.get(start(i)) match {
+                case None => x0
+                case Some(chunk) =>
+                  gfx.clipRect(x0, y + line_height * i, Integer.MAX_VALUE, line_height)
+                  val w = paint_chunk_list(gfx, start(i), caret_offset, chunk, x0, y0).toInt
+                  x0 + w.toInt
+              }
+            gfx.clipRect(x1, 0, Integer.MAX_VALUE, Integer.MAX_VALUE)
+            orig_text_painter.paintValidLine(gfx,
+              first_line + i, physical_lines(i), start(i), end(i), y + line_height * i)
+            gfx.setClip(clip)
           }
           y0 += line_height
+        }
+      }
+    }
+  }
+
+
+  /* caret -- outside of text range */
+
+  private class Caret_Painter(before: Boolean) extends TextAreaExtension
+  {
+    override def paintValidLine(gfx: Graphics2D,
+      screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int)
+    {
+      if (before) gfx.clipRect(0, 0, 0, 0)
+      else gfx.setClip(painter_clip)
+    }
+  }
+
+  private val before_caret_painter1 = new Caret_Painter(true)
+  private val after_caret_painter1 = new Caret_Painter(false)
+  private val before_caret_painter2 = new Caret_Painter(true)
+  private val after_caret_painter2 = new Caret_Painter(false)
+
+  private val caret_painter = new TextAreaExtension
+  {
+    override def paintValidLine(gfx: Graphics2D,
+      screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int)
+    {
+      painter_body {
+        if (text_area.hasFocus) {
+          val caret = text_area.getCaretPosition
+          if (start <= caret && caret == end - 1) {
+            val painter = text_area.getPainter
+            val fm = painter.getFontMetrics
+
+            val offset = caret - text_area.getLineStartOffset(physical_line)
+            val x = text_area.offsetToXY(physical_line, offset).x
+            gfx.setColor(painter.getCaretColor)
+            gfx.drawRect(x, y, char_width() - 1, fm.getHeight - 1)
+          }
         }
       }
     }
@@ -264,10 +346,15 @@ class Text_Area_Painter(doc_view: Document_View)
   def activate()
   {
     val painter = text_area.getPainter
-    painter.addExtension(TextAreaPainter.LOWEST_LAYER, set_snapshot)
+    painter.addExtension(TextAreaPainter.LOWEST_LAYER, set_state)
     painter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, background_painter)
     painter.addExtension(TextAreaPainter.TEXT_LAYER, text_painter)
-    painter.addExtension(TextAreaPainter.HIGHEST_LAYER, reset_snapshot)
+    painter.addExtension(TextAreaPainter.CARET_LAYER - 1, before_caret_painter1)
+    painter.addExtension(TextAreaPainter.CARET_LAYER + 1, after_caret_painter1)
+    painter.addExtension(TextAreaPainter.BLOCK_CARET_LAYER - 1, before_caret_painter2)
+    painter.addExtension(TextAreaPainter.BLOCK_CARET_LAYER + 1, after_caret_painter2)
+    painter.addExtension(TextAreaPainter.BLOCK_CARET_LAYER + 2, caret_painter)
+    painter.addExtension(TextAreaPainter.HIGHEST_LAYER, reset_state)
     painter.removeExtension(orig_text_painter)
   }
 
@@ -275,10 +362,15 @@ class Text_Area_Painter(doc_view: Document_View)
   {
     val painter = text_area.getPainter
     painter.addExtension(TextAreaPainter.TEXT_LAYER, orig_text_painter)
-    painter.removeExtension(reset_snapshot)
+    painter.removeExtension(reset_state)
+    painter.removeExtension(caret_painter)
+    painter.removeExtension(after_caret_painter2)
+    painter.removeExtension(before_caret_painter2)
+    painter.removeExtension(after_caret_painter1)
+    painter.removeExtension(before_caret_painter1)
     painter.removeExtension(text_painter)
     painter.removeExtension(background_painter)
-    painter.removeExtension(set_snapshot)
+    painter.removeExtension(set_state)
   }
 }
 

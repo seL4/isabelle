@@ -25,6 +25,16 @@ object Document_Model
 {
   object Token_Markup
   {
+    /* extended token styles */
+
+    private val plain_range: Int = Token.ID_COUNT
+    private def check_range(i: Int) { require(0 <= i && i < plain_range) }
+
+    def subscript(i: Byte): Byte = { check_range(i); (i + plain_range).toByte }
+    def superscript(i: Byte): Byte = { check_range(i); (i + 2 * plain_range).toByte }
+    val hidden: Byte = (3 * plain_range).toByte
+
+
     /* line context */
 
     private val dummy_rules = new ParserRuleSet("isabelle", "MAIN")
@@ -46,15 +56,6 @@ object Document_Model
 
   private val key = "isabelle.document_model"
 
-  def init(session: Session, buffer: Buffer, thy_name: String): Document_Model =
-  {
-    Swing_Thread.require()
-    val model = new Document_Model(session, buffer, thy_name)
-    buffer.setProperty(key, model)
-    model.activate()
-    model
-  }
-
   def apply(buffer: Buffer): Option[Document_Model] =
   {
     Swing_Thread.require()
@@ -73,6 +74,15 @@ object Document_Model
         model.deactivate()
         buffer.unsetProperty(key)
     }
+  }
+
+  def init(session: Session, buffer: Buffer, thy_name: String): Document_Model =
+  {
+    exit(buffer)
+    val model = new Document_Model(session, buffer, thy_name)
+    buffer.setProperty(key, model)
+    model.activate()
+    model
   }
 }
 
