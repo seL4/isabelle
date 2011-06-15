@@ -197,7 +197,7 @@ fi
 if [ "$OUTDATED" = true ]
 then
   [ "${#UPDATED[@]}" -gt 0 ] && {
-    echo "Rebuild due to updated file dependencies:"
+    echo "Rebuild due changed files:"
     for FILE in "${UPDATED[@]}"
     do
       echo "  $FILE"
