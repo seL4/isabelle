@@ -348,6 +348,7 @@ class Text_Area_Painter(doc_view: Document_View)
   def deactivate()
   {
     val painter = text_area.getPainter
+    painter.addExtension(TextAreaPainter.TEXT_LAYER, orig_text_painter)
     painter.removeExtension(reset_state)
     painter.removeExtension(caret_painter)
     painter.removeExtension(after_caret_painter2)
