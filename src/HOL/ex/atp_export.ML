@@ -11,7 +11,7 @@ sig
   val generate_tptp_graph_file_for_theory :
     Proof.context -> theory -> string -> unit
   val generate_tptp_inference_file_for_theory :
-    Proof.context -> theory -> bool -> string -> unit
+    Proof.context -> theory -> string -> string -> unit
 end;
 
 structure ATP_Export : ATP_EXPORT =
@@ -87,15 +87,10 @@ fun add_inferences_to_problem_line infers
 val add_inferences_to_problem =
   map o apsnd o map o add_inferences_to_problem_line
 
-fun generate_tptp_inference_file_for_theory ctxt thy full_types file_name =
+fun generate_tptp_inference_file_for_theory ctxt thy type_sys file_name =
   let
     val format = ATP_Problem.FOF
-    val type_sys =
-      ATP_Translate.Preds
-          (ATP_Translate.Polymorphic,
-           if full_types then ATP_Translate.All_Types
-           else ATP_Translate.Const_Arg_Types,
-           ATP_Translate.Heavyweight)
+    val type_sys = type_sys |> ATP_Translate.type_sys_from_string
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val facts0 = facts_of thy

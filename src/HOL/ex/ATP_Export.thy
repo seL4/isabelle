@@ -4,23 +4,31 @@ uses "atp_export.ML"
 begin
 
 ML {*
-val do_it = false; (* switch to true to generate files *)
+val do_it = false; (* switch to "true" to generate files *)
 val thy = @{theory Complex_Main};
 val ctxt = @{context}
 *}
 
 ML {*
 if do_it then
-  ATP_Export.generate_tptp_inference_file_for_theory ctxt thy true
-      "/tmp/infs_full_types.tptp"
+  ATP_Export.generate_tptp_inference_file_for_theory ctxt thy "poly_preds"
+      "/tmp/infs_poly_preds.tptp"
 else
   ()
 *}
 
 ML {*
 if do_it then
-  ATP_Export.generate_tptp_inference_file_for_theory ctxt thy false
-      "/tmp/infs_partial_types.tptp"
+  ATP_Export.generate_tptp_inference_file_for_theory ctxt thy "poly_tags"
+      "/tmp/infs_poly_tags.tptp"
+else
+  ()
+*}
+
+ML {*
+if do_it then
+  ATP_Export.generate_tptp_inference_file_for_theory ctxt thy "poly_tags_heavy"
+      "/tmp/infs_poly_tags_heavy.tptp"
 else
   ()
 *}
