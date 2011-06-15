@@ -14,6 +14,8 @@ import java.awt.font.TextAttribute
 import java.text.AttributedString
 import java.util.ArrayList
 
+import org.gjt.sp.util.Log
+
 import org.gjt.sp.jedit.Debug
 import org.gjt.sp.jedit.syntax.{DisplayTokenHandler, Chunk}
 import org.gjt.sp.jedit.textarea.{TextAreaExtension, TextAreaPainter, JEditTextArea}
@@ -24,6 +26,15 @@ class Text_Area_Painter(doc_view: Document_View)
   private val model = doc_view.model
   private val buffer = model.buffer
   private val text_area = doc_view.text_area
+
+  private def painter_body(body: => Unit)
+  {
+    if (buffer == text_area.getBuffer)
+      Swing_Thread.now {
+        try { Isabelle.buffer_lock(buffer) { body } }
+        catch { case t: Throwable => Log.log(Log.ERROR, this, t) }
+      }
+  }
 
 
   /* original painters */
@@ -77,7 +88,7 @@ class Text_Area_Painter(doc_view: Document_View)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      Isabelle.swing_buffer_lock(buffer) {
+      painter_body {
         val snapshot = painter_snapshot
         val ascent = text_area.getPainter.getFontMetrics.getAscent
 
@@ -257,7 +268,7 @@ class Text_Area_Painter(doc_view: Document_View)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      Isabelle.swing_buffer_lock(buffer) {
+      painter_body {
         val clip = gfx.getClip
         val x0 = text_area.getHorizontalOffset
         val fm = text_area.getPainter.getFontMetrics
@@ -312,16 +323,18 @@ class Text_Area_Painter(doc_view: Document_View)
     override def paintValidLine(gfx: Graphics2D,
       screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int)
     {
-      if (text_area.hasFocus) {
-        val caret = text_area.getCaretPosition
-        if (start <= caret && caret == end - 1) {
-          val painter = text_area.getPainter
-          val fm = painter.getFontMetrics
+      painter_body {
+        if (text_area.hasFocus) {
+          val caret = text_area.getCaretPosition
+          if (start <= caret && caret == end - 1) {
+            val painter = text_area.getPainter
+            val fm = painter.getFontMetrics
 
-          val offset = caret - text_area.getLineStartOffset(physical_line)
-          val x = text_area.offsetToXY(physical_line, offset).x
-          gfx.setColor(painter.getCaretColor)
-          gfx.drawRect(x, y, char_width() - 1, fm.getHeight - 1)
+            val offset = caret - text_area.getLineStartOffset(physical_line)
+            val x = text_area.offsetToXY(physical_line, offset).x
+            gfx.setColor(painter.getCaretColor)
+            gfx.drawRect(x, y, char_width() - 1, fm.getHeight - 1)
+          }
         }
       }
     }
