@@ -32,12 +32,11 @@ fun get_datatype_decl ({descr, ...} : Datatype.info) n Ts ctxt =
     val vars = the (get_first get_vars descr) ~~ Ts
     val lookup_var = the o AList.lookup (op =) vars
 
-    val dTs = map (apsnd (fn (m, vs, _) => Type (m, map lookup_var vs))) descr
-    val lookup_typ = the o AList.lookup (op =) dTs
-
     fun typ_of (dt as Datatype.DtTFree _) = lookup_var dt
-      | typ_of (Datatype.DtType (n, dts)) = Type (n, map typ_of dts)
-      | typ_of (Datatype.DtRec i) = lookup_typ i
+      | typ_of (Datatype.DtType (m, dts)) = Type (m, map typ_of dts)
+      | typ_of (Datatype.DtRec i) =
+          the (AList.lookup (op =) descr i)
+          |> (fn (m, dts, _) => Type (m, map typ_of dts))
 
     fun mk_constr T (m, dts) ctxt =
       let
@@ -48,7 +47,7 @@ fun get_datatype_decl ({descr, ...} : Datatype.info) n Ts ctxt =
 
     fun mk_decl (i, (_, _, constrs)) ctxt =
       let
-        val T = lookup_typ i
+        val T = typ_of (Datatype.DtRec i)
         val (css, ctxt') = fold_map (mk_constr T) constrs ctxt
       in ((T, css), ctxt') end
 
@@ -87,6 +86,7 @@ fun get_typedef_decl (info : Typedef.info) T Ts =
 (* collection of declarations *)
 
 fun declared declss T = exists (exists (equal T o fst)) declss
+fun declared' dss T = exists (exists (equal T o fst) o snd) dss
 
 fun get_decls T n Ts ctxt =
   let val thy = Proof_Context.theory_of ctxt
@@ -104,13 +104,15 @@ fun get_decls T n Ts ctxt =
 
 fun add_decls T (declss, ctxt) =
   let
+    fun depends Ts ds = exists (member (op =) (map fst ds)) Ts
+
     fun add (TFree _) = I
       | add (TVar _) = I
       | add (T as Type (@{type_name fun}, _)) =
           fold add (Term.body_type T :: Term.binder_types T)
       | add @{typ bool} = I
       | add (T as Type (n, Ts)) = (fn (dss, ctxt1) =>
-          if declared declss T orelse declared dss T then (dss, ctxt1)
+          if declared declss T orelse declared' dss T then (dss, ctxt1)
           else if SMT_Builtin.is_builtin_typ_ext ctxt1 T then (dss, ctxt1)
           else
             (case get_decls T n Ts ctxt1 of
@@ -120,7 +122,13 @@ fun add_decls T (declss, ctxt) =
                   val constrTs =
                     maps (map (snd o Term.dest_Const o fst) o snd) ds
                   val Us = fold (union (op =) o Term.binder_types) constrTs []
-            in fold add Us (ds :: dss, ctxt2) end))
-  in add T ([], ctxt) |>> append declss end
+
+                  fun ins [] = [(Us, ds)]
+                    | ins ((Uds as (Us', _)) :: Udss) =
+                        if depends Us' ds then (Us, ds) :: Uds :: Udss
+                        else Uds :: ins Udss
+            in fold add Us (ins dss, ctxt2) end))
+  in add T ([], ctxt) |>> append declss o map snd end
+
 
 end

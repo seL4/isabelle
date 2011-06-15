@@ -17,13 +17,12 @@ import java.awt.event.{MouseAdapter, MouseMotionAdapter, MouseEvent,
   FocusAdapter, FocusEvent, WindowEvent, WindowAdapter}
 import javax.swing.{JPanel, ToolTipManager, Popup, PopupFactory, SwingUtilities, BorderFactory}
 import javax.swing.event.{CaretListener, CaretEvent}
-import java.util.ArrayList
 
 import org.gjt.sp.jedit.{jEdit, OperatingSystem, Debug}
 import org.gjt.sp.jedit.gui.RolloverButton
 import org.gjt.sp.jedit.options.GutterOptionPane
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea, TextAreaExtension, TextAreaPainter}
-import org.gjt.sp.jedit.syntax.{SyntaxStyle, DisplayTokenHandler, Chunk, Token}
+import org.gjt.sp.jedit.syntax.{SyntaxStyle}
 
 
 object Document_View
@@ -63,76 +62,12 @@ object Document_View
 }
 
 
-class Document_View(val model: Document_Model, text_area: JEditTextArea)
+class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 {
   private val session = model.session
 
 
   /** token handling **/
-
-  /* extended token styles */
-
-  private var styles: Array[SyntaxStyle] = null  // owned by Swing thread
-
-  def extend_styles()
-  {
-    Swing_Thread.require()
-    styles = Document_Model.Token_Markup.extend_styles(text_area.getPainter.getStyles)
-  }
-  extend_styles()
-
-  def set_styles()
-  {
-    Swing_Thread.require()
-    text_area.getPainter.setStyles(styles)
-  }
-
-
-  /* wrap_margin -- cf. org.gjt.sp.jedit.textarea.TextArea.propertiesChanged */
-
-  def wrap_margin(): Int =
-  {
-    val buffer = text_area.getBuffer
-    val painter = text_area.getPainter
-    val font = painter.getFont
-    val font_context = painter.getFontRenderContext
-
-    val soft_wrap = buffer.getStringProperty("wrap") == "soft"
-    val max = buffer.getIntegerProperty("maxLineLen", 0)
-
-    if (max > 0) font.getStringBounds(" " * max, font_context).getWidth.toInt
-    else if (soft_wrap)
-      painter.getWidth - (font.getStringBounds(" ", font_context).getWidth.round.toInt) * 3
-    else 0
-  }
-
-
-  /* chunks */
-
-  def line_chunks(physical_lines: Set[Int]): Map[Text.Offset, Chunk] =
-  {
-    import scala.collection.JavaConversions._
-
-    val buffer = text_area.getBuffer
-    val painter = text_area.getPainter
-    val margin = wrap_margin().toFloat
-
-    val out = new ArrayList[Chunk]
-    val handler = new DisplayTokenHandler
-
-    var result = Map[Text.Offset, Chunk]()
-    for (line <- physical_lines) {
-      out.clear
-      handler.init(painter.getStyles, painter.getFontRenderContext, painter, out, margin)
-      buffer.markTokens(line, handler)
-
-      val line_start = buffer.getLineStartOffset(line)
-      for (chunk <- handler.getChunkList.iterator)
-        result += (line_start + chunk.offset -> chunk)
-    }
-    result
-  }
-
 
   /* visible line ranges */
 
@@ -209,7 +144,8 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
     }
   }
 
-  private var highlight_range: Option[(Text.Range, Color)] = None
+  @volatile private var _highlight_range: Option[(Text.Range, Color)] = None
+  def highlight_range(): Option[(Text.Range, Color)] = _highlight_range
 
 
   /* CONTROL-mouse management */
@@ -219,12 +155,12 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
   private def exit_control()
   {
     exit_popup()
-    highlight_range = None
+    _highlight_range = None
   }
 
   private val focus_listener = new FocusAdapter {
     override def focusLost(e: FocusEvent) {
-      highlight_range = None // FIXME exit_control !?
+      _highlight_range = None // FIXME exit_control !?
     }
   }
 
@@ -246,93 +182,20 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
 
           if (control) init_popup(snapshot, x, y)
 
-          highlight_range map { case (range, _) => invalidate_line_range(range) }
-          highlight_range = if (control) subexp_range(snapshot, x, y) else None
-          highlight_range map { case (range, _) => invalidate_line_range(range) }
+          _highlight_range map { case (range, _) => invalidate_line_range(range) }
+          _highlight_range = if (control) subexp_range(snapshot, x, y) else None
+          _highlight_range map { case (range, _) => invalidate_line_range(range) }
         }
     }
   }
 
 
-  /* TextArea painters */
+  /* text area painting */
 
-  private val background_painter = new TextAreaExtension
+  private val text_area_painter = new Text_Area_Painter(this)
+
+  private val tooltip_painter = new TextAreaExtension
   {
-    override def paintScreenLineRange(gfx: Graphics2D,
-      first_line: Int, last_line: Int, physical_lines: Array[Int],
-      start: Array[Int], end: Array[Int], y: Int, line_height: Int)
-    {
-      Isabelle.swing_buffer_lock(model.buffer) {
-        val snapshot = model.snapshot()
-        val ascent = text_area.getPainter.getFontMetrics.getAscent
-
-        for (i <- 0 until physical_lines.length) {
-          if (physical_lines(i) != -1) {
-            val line_range = proper_line_range(start(i), end(i))
-
-            // background color: status
-            val cmds = snapshot.node.command_range(snapshot.revert(line_range))
-            for {
-              (command, command_start) <- cmds if !command.is_ignored
-              val range = line_range.restrict(snapshot.convert(command.range + command_start))
-              r <- Isabelle.gfx_range(text_area, range)
-              color <- Isabelle_Markup.status_color(snapshot, command)
-            } {
-              gfx.setColor(color)
-              gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
-            }
-
-            // background color (1): markup
-            for {
-              Text.Info(range, Some(color)) <-
-                snapshot.select_markup(line_range)(Isabelle_Markup.background1).iterator
-              r <- Isabelle.gfx_range(text_area, range)
-            } {
-              gfx.setColor(color)
-              gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
-            }
-
-            // background color (2): markup
-            for {
-              Text.Info(range, Some(color)) <-
-                snapshot.select_markup(line_range)(Isabelle_Markup.background2).iterator
-              r <- Isabelle.gfx_range(text_area, range)
-            } {
-              gfx.setColor(color)
-              gfx.fillRect(r.x + 2, y + i * line_height + 2, r.length - 4, line_height - 4)
-            }
-
-            // sub-expression highlighting -- potentially from other snapshot
-            highlight_range match {
-              case Some((range, color)) if line_range.overlaps(range) =>
-                Isabelle.gfx_range(text_area, line_range.restrict(range)) match {
-                  case None =>
-                  case Some(r) =>
-                    gfx.setColor(color)
-                    gfx.drawRect(r.x, y + i * line_height, r.length - 1, line_height - 1)
-                }
-              case _ =>
-            }
-
-            // squiggly underline
-            for {
-              Text.Info(range, Some(color)) <-
-                snapshot.select_markup(line_range)(Isabelle_Markup.message).iterator
-              r <- Isabelle.gfx_range(text_area, range)
-            } {
-              gfx.setColor(color)
-              val x0 = (r.x / 2) * 2
-              val y0 = r.y + ascent + 1
-              for (x1 <- Range(x0, x0 + r.length, 2)) {
-                val y1 = if (x1 % 4 < 2) y0 else y0 + 1
-                gfx.drawLine(x1, y1, x1 + 1, y1)
-              }
-            }
-          }
-        }
-      }
-    }
-
     override def getToolTipText(x: Int, y: Int): String =
     {
       Isabelle.swing_buffer_lock(model.buffer) {
@@ -351,38 +214,6 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
           {
             case Text.Info(_, Some(text)) #:: _ => Isabelle.tooltip(text)
             case _ => null
-          }
-        }
-      }
-    }
-  }
-
-  var use_text_painter = false
-
-  private val text_painter = new TextAreaExtension
-  {
-    override def paintScreenLineRange(gfx: Graphics2D,
-      first_line: Int, last_line: Int, physical_lines: Array[Int],
-      start: Array[Int], end: Array[Int], y: Int, line_height: Int)
-    {
-      if (use_text_painter) {
-        Isabelle.swing_buffer_lock(model.buffer) {
-          val painter = text_area.getPainter
-          val fm = painter.getFontMetrics
-
-          val all_chunks = line_chunks(Set[Int]() ++ physical_lines.iterator.filter(i => i != -1))
-
-          val x0 = text_area.getHorizontalOffset
-          var y0 = y + fm.getHeight - (fm.getLeading + 1) - fm.getDescent
-          for (i <- 0 until physical_lines.length) {
-            if (physical_lines(i) != -1) {
-              all_chunks.get(start(i)) match {
-                case Some(chunk) =>
-                  Chunk.paintChunkList(chunk, gfx, x0, y0, !Debug.DISABLE_GLYPH_VECTOR)
-                case None =>
-              }
-            }
-            y0 += line_height
           }
         }
       }
@@ -557,8 +388,8 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
   private def activate()
   {
     val painter = text_area.getPainter
-    painter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, background_painter)
-    painter.addExtension(TextAreaPainter.TEXT_LAYER + 1, text_painter)
+    painter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, tooltip_painter)
+    text_area_painter.activate()
     text_area.getGutter.addExtension(gutter_painter)
     text_area.addFocusListener(focus_listener)
     text_area.getView.addWindowListener(window_listener)
@@ -580,8 +411,8 @@ class Document_View(val model: Document_Model, text_area: JEditTextArea)
     text_area.removeCaretListener(caret_listener)
     text_area.removeLeftOfScrollBar(overview)
     text_area.getGutter.removeExtension(gutter_painter)
-    painter.removeExtension(text_painter)
-    painter.removeExtension(background_painter)
+    text_area_painter.deactivate()
+    painter.removeExtension(tooltip_painter)
     exit_popup()
   }
 }

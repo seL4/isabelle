@@ -209,6 +209,10 @@ fun with_overlord_dir name f =
     val path = Path.append (Path.explode "~/.isabelle") (Path.basic (name ^ serial_string ()))
     val _ = Isabelle_System.mkdirs path;
   in Exn.release (Exn.capture f path) end;
+
+fun elapsed_time description e =
+  let val ({elapsed, ...}, result) = Timing.timing e ()
+  in (result, (description, Time.toMilliseconds elapsed)) end
   
 fun value (contains_existentials, (quiet, size)) ctxt (get, put, put_ml) (code, value_name) =
   let
@@ -237,20 +241,23 @@ fun value (contains_existentials, (quiet, size)) ctxt (get, put, put_ml) (code, 
         val cmd = "exec \"$ISABELLE_GHC\" -fglasgow-exts " ^
           (space_implode " " (map File.shell_path [code_file, narrowing_engine_file, main_file])) ^
           " -o " ^ executable ^ ";"
+        val (result, compilation_time) = elapsed_time "Haskell compilation" (fn () => bash cmd) 
         val _ = if bash cmd <> 0 then error "Compilation with GHC failed" else ()
-        fun with_size k =
+        fun with_size k exec_times =
           if k > size then
-            NONE
+            (NONE, exec_times)
           else
             let
               val _ = message ("Test data size: " ^ string_of_int k)
-              val (response, _) = bash_output (executable ^ " " ^ string_of_int k)
+              val ((response, _), exec_time) = elapsed_time ("execution of size " ^ string_of_int k)
+                (fn () => bash_output (executable ^ " " ^ string_of_int k))
             in
-              if response = "NONE\n" then with_size (k + 1) else SOME response
+              if response = "NONE\n" then with_size (k + 1) (exec_time :: exec_times)
+                else (SOME response, exec_time :: exec_times)
             end
-      in case with_size 0 of
-           NONE => NONE
-         | SOME response =>
+      in case with_size 0 [compilation_time] of
+           (NONE, exec_times) => (NONE, exec_times)
+         | (SOME response, exec_times) =>
            let
              val output_value = the_default "NONE"
                (try (snd o split_last o filter_out (fn s => s = "") o split_lines) response)
@@ -260,7 +267,7 @@ fun value (contains_existentials, (quiet, size)) ctxt (get, put, put_ml) (code, 
              val ctxt' = ctxt
                |> put (fn () => error ("Bad evaluation for " ^ quote put_ml))
                |> Context.proof_map (exec false ml_code);
-           in get ctxt' () end     
+           in (get ctxt' (), exec_times) end     
       end
   in with_tmp_dir tmp_prefix run end;
 
@@ -389,14 +396,14 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
         val ((prop_def, _), ctxt') = Local_Theory.define ((Binding.conceal (Binding.name "test_property"), NoSyn),
           ((Binding.conceal Binding.empty, [Code.add_default_eqn_attrib]), prop_term)) ctxt
         val (prop_def', thy') = Local_Theory.exit_result_global Morphism.term (prop_def, ctxt') 
-        val result = dynamic_value_strict (true, opts)
+        val (result, timings) = dynamic_value_strict (true, opts)
           (Existential_Counterexample.get, Existential_Counterexample.put,
             "Narrowing_Generators.put_existential_counterexample")
-          thy' (Option.map o map_counterexample) (mk_property qs prop_def')
+          thy' (apfst o Option.map o map_counterexample) (mk_property qs prop_def')
         val result' = Option.map (mk_terms ctxt' (fst (strip_quantifiers pnf_t))) result
       in
         Quickcheck.Result {counterexample = result', evaluation_terms = Option.map (K []) result,
-          timings = [], reports = []}
+          timings = timings, reports = []}
       end
     else
       let
@@ -405,12 +412,12 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
         val finitize = if Config.get ctxt finite_functions then wrap finitize_functions else I
         fun ensure_testable t =
           Const (@{const_name Quickcheck_Narrowing.ensure_testable}, fastype_of t --> fastype_of t) $ t
-        val result = dynamic_value_strict (false, opts)
+        val (result, timings) = dynamic_value_strict (false, opts)
           (Counterexample.get, Counterexample.put, "Narrowing_Generators.put_counterexample")
-          thy (Option.map o map) (ensure_testable (finitize t'))
+          thy (apfst o Option.map o map) (ensure_testable (finitize t'))
       in
         Quickcheck.Result {counterexample = Option.map ((curry (op ~~)) (Term.add_free_names t [])) result,
-          evaluation_terms = Option.map (K []) result, timings = [], reports = []}
+          evaluation_terms = Option.map (K []) result, timings = timings, reports = []}
       end
   end;
 

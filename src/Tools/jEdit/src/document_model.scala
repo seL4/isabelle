@@ -25,36 +25,6 @@ object Document_Model
 {
   object Token_Markup
   {
-    /* extended token styles */
-
-    private val plain_range: Int = Token.ID_COUNT
-    private val full_range: Int = 3 * plain_range
-    private def check_range(i: Int) { require(0 <= i && i < plain_range) }
-
-    def subscript(i: Byte): Byte = { check_range(i); (i + plain_range).toByte }
-    def superscript(i: Byte): Byte = { check_range(i); (i + 2 * plain_range).toByte }
-
-    private def script_style(style: SyntaxStyle, i: Int): SyntaxStyle =
-    {
-      import scala.collection.JavaConversions._
-      val script_font =
-        style.getFont.deriveFont(Map(TextAttribute.SUPERSCRIPT -> new java.lang.Integer(i)))
-      new SyntaxStyle(style.getForegroundColor, style.getBackgroundColor, script_font)
-    }
-
-    def extend_styles(styles: Array[SyntaxStyle]): Array[SyntaxStyle] =
-    {
-      val new_styles = new Array[SyntaxStyle](full_range)
-      for (i <- 0 until plain_range) {
-        val style = styles(i)
-        new_styles(i) = style
-        new_styles(subscript(i.toByte)) = script_style(style, -1)
-        new_styles(superscript(i.toByte)) = script_style(style, 1)
-      }
-      new_styles
-    }
-
-
     /* line context */
 
     private val dummy_rules = new ParserRuleSet("isabelle", "MAIN")
@@ -196,12 +166,6 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
 
         val start = buffer.getLineStartOffset(line)
         val stop = start + line_segment.count
-
-        /* FIXME
-        for (text_area <- Isabelle.jedit_text_areas(buffer)
-              if Document_View(text_area).isDefined)
-          Document_View(text_area).get.set_styles()
-        */
 
         def handle_token(style: Byte, offset: Text.Offset, length: Int) =
           handler.handleToken(line_segment, style, offset, length, context)

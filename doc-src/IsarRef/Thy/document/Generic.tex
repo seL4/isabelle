@@ -123,6 +123,8 @@ For historical reasons, some tools cannot take the full proof
     \indexdef{}{method}{erule}\hypertarget{method.erule}{\hyperlink{method.erule}{\mbox{\isa{erule}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{method} \\
     \indexdef{}{method}{drule}\hypertarget{method.drule}{\hyperlink{method.drule}{\mbox{\isa{drule}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{method} \\
     \indexdef{}{method}{frule}\hypertarget{method.frule}{\hyperlink{method.frule}{\mbox{\isa{frule}}}}\isa{{\isaliteral{22}{\isachardoublequote}}\isaliteral{5C3C5E7375703E}{}\isactrlsup {\isaliteral{2A}{\isacharasterisk}}{\isaliteral{22}{\isachardoublequote}}} & : & \isa{method} \\
+    \indexdef{}{method}{intro}\hypertarget{method.intro}{\hyperlink{method.intro}{\mbox{\isa{intro}}}} & : & \isa{method} \\
+    \indexdef{}{method}{elim}\hypertarget{method.elim}{\hyperlink{method.elim}{\mbox{\isa{elim}}}} & : & \isa{method} \\
     \indexdef{}{method}{succeed}\hypertarget{method.succeed}{\hyperlink{method.succeed}{\mbox{\isa{succeed}}}} & : & \isa{method} \\
     \indexdef{}{method}{fail}\hypertarget{method.fail}{\hyperlink{method.fail}{\mbox{\isa{fail}}}} & : & \isa{method} \\
   \end{matharray}
@@ -154,6 +156,17 @@ For historical reasons, some tools cannot take the full proof
 \rail@endbar
 \rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
 \rail@end
+\rail@begin{2}{}
+\rail@bar
+\rail@term{\hyperlink{method.intro}{\mbox{\isa{intro}}}}[]
+\rail@nextbar{1}
+\rail@term{\hyperlink{method.elim}{\mbox{\isa{elim}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@endbar
+\rail@end
 \end{railoutput}
 
 
@@ -181,6 +194,12 @@ For historical reasons, some tools cannot take the full proof
   For example, a proper single-step elimination would be done using
   the plain \hyperlink{method.rule}{\mbox{\isa{rule}}} method, with forward chaining of current
   facts.
+
+  \item \hyperlink{method.intro}{\mbox{\isa{intro}}} and \hyperlink{method.elim}{\mbox{\isa{elim}}} repeatedly refine some goal
+  by intro- or elim-resolution, after having inserted any chained
+  facts.  Exactly the rules given as arguments are taken into account;
+  this allows fine-tuned decomposition of a proof problem, in contrast
+  to common automated tools.
 
   \item \hyperlink{method.succeed}{\mbox{\isa{succeed}}} yields a single (unchanged) result; it is
   the identity of the ``\isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{2C}{\isacharcomma}}{\isaliteral{22}{\isachardoublequote}}}'' method combinator (cf.\
@@ -1311,6 +1330,48 @@ The proof tools of the Classical Reasoner depend on
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsubsection{Structured methods%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{}{method}{rule}\hypertarget{method.rule}{\hyperlink{method.rule}{\mbox{\isa{rule}}}} & : & \isa{method} \\
+    \indexdef{}{method}{contradiction}\hypertarget{method.contradiction}{\hyperlink{method.contradiction}{\mbox{\isa{contradiction}}}} & : & \isa{method} \\
+  \end{matharray}
+
+  \begin{railoutput}
+\rail@begin{2}{}
+\rail@term{\hyperlink{method.rule}{\mbox{\isa{rule}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
+
+  \begin{description}
+
+  \item \hyperlink{method.rule}{\mbox{\isa{rule}}} as offered by the Classical Reasoner is a
+  refinement over the Pure one (see \secref{sec:pure-meth-att}).  Both
+  versions work the same, but the classical version observes the
+  classical rule context in addition to that of Isabelle/Pure.
+
+  Common object logics (HOL, ZF, etc.) declare a rich collection of
+  classical rules (even if these would qualify as intuitionistic
+  ones), but only few declarations to the rule context of
+  Isabelle/Pure (\secref{sec:pure-meth-att}).
+
+  \item \hyperlink{method.contradiction}{\mbox{\isa{contradiction}}} solves some goal by contradiction,
+  deriving any result from both \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A{\isaliteral{22}{\isachardoublequote}}} and \isa{A}.  Chained
+  facts, which are guaranteed to participate, may appear in either
+  order.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsubsection{Automated methods%
 }
 \isamarkuptrue%
@@ -1326,6 +1387,7 @@ The proof tools of the Classical Reasoner depend on
     \indexdef{}{method}{fastsimp}\hypertarget{method.fastsimp}{\hyperlink{method.fastsimp}{\mbox{\isa{fastsimp}}}} & : & \isa{method} \\
     \indexdef{}{method}{slowsimp}\hypertarget{method.slowsimp}{\hyperlink{method.slowsimp}{\mbox{\isa{slowsimp}}}} & : & \isa{method} \\
     \indexdef{}{method}{bestsimp}\hypertarget{method.bestsimp}{\hyperlink{method.bestsimp}{\mbox{\isa{bestsimp}}}} & : & \isa{method} \\
+    \indexdef{}{method}{deepen}\hypertarget{method.deepen}{\hyperlink{method.deepen}{\mbox{\isa{deepen}}}} & : & \isa{method} \\
   \end{matharray}
 
   \begin{railoutput}
@@ -1383,6 +1445,17 @@ The proof tools of the Classical Reasoner depend on
 \rail@plus
 \rail@nextplus{1}
 \rail@cnont{\hyperlink{syntax.clasimpmod}{\mbox{\isa{clasimpmod}}}}[]
+\rail@endplus
+\rail@end
+\rail@begin{2}{}
+\rail@term{\hyperlink{method.deepen}{\mbox{\isa{deepen}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.nat}{\mbox{\isa{nat}}}}[]
+\rail@endbar
+\rail@plus
+\rail@nextplus{1}
+\rail@cnont{\hyperlink{syntax.clamod}{\mbox{\isa{clamod}}}}[]
 \rail@endplus
 \rail@end
 \rail@begin{4}{\indexdef{}{syntax}{clamod}\hypertarget{syntax.clamod}{\hyperlink{syntax.clamod}{\mbox{\isa{clamod}}}}}
@@ -1541,6 +1614,14 @@ The proof tools of the Classical Reasoner depend on
   like \hyperlink{method.fast}{\mbox{\isa{fast}}}, \hyperlink{method.slow}{\mbox{\isa{slow}}}, \hyperlink{method.best}{\mbox{\isa{best}}}, respectively,
   but use the Simplifier as additional wrapper.
 
+  \item \hyperlink{method.deepen}{\mbox{\isa{deepen}}} works by exhaustive search up to a certain
+  depth.  The start depth is 4 (unless specified explicitly), and the
+  depth is increased iteratively up to 10.  Unsafe rules are modified
+  to preserve the formula they act on, so that it be used repeatedly.
+  This method can prove more goals than \hyperlink{method.fast}{\mbox{\isa{fast}}}, but is much
+  slower, for example if the assumptions have many universal
+  quantifiers.
+
   \end{description}
 
   Any of the above methods support additional modifiers of the context
@@ -1595,12 +1676,8 @@ These proof methods may help in situations when the
   \item \hyperlink{method.safe}{\mbox{\isa{safe}}} repeatedly performs safe steps on all subgoals.
   It is deterministic, with at most one outcome.
 
-  \item \hyperlink{method.clarify}{\mbox{\isa{clarify}}} performs a series of safe steps as follows.
-
-  No splitting step is applied; for example, the subgoal \isa{{\isaliteral{22}{\isachardoublequote}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{22}{\isachardoublequote}}} is left as a conjunction.  Proof by assumption, Modus Ponens,
-  etc., may be performed provided they do not instantiate unknowns.
-  Assumptions of the form \isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{3D}{\isacharequal}}\ t{\isaliteral{22}{\isachardoublequote}}} may be eliminated.  The safe
-  wrapper tactical is applied.
+  \item \hyperlink{method.clarify}{\mbox{\isa{clarify}}} performs a series of safe steps without
+  splitting subgoals; see also \verb|clarify_step_tac|.
 
   \item \hyperlink{method.clarsimp}{\mbox{\isa{clarsimp}}} acts like \hyperlink{method.clarify}{\mbox{\isa{clarify}}}, but also does
   simplification.  Note that if the Simplifier context includes a
@@ -1610,57 +1687,48 @@ These proof methods may help in situations when the
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Structured proof methods%
+\isamarkupsubsection{Single-step tactics%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
-    \indexdef{}{method}{rule}\hypertarget{method.rule}{\hyperlink{method.rule}{\mbox{\isa{rule}}}} & : & \isa{method} \\
-    \indexdef{}{method}{contradiction}\hypertarget{method.contradiction}{\hyperlink{method.contradiction}{\mbox{\isa{contradiction}}}} & : & \isa{method} \\
-    \indexdef{}{method}{intro}\hypertarget{method.intro}{\hyperlink{method.intro}{\mbox{\isa{intro}}}} & : & \isa{method} \\
-    \indexdef{}{method}{elim}\hypertarget{method.elim}{\hyperlink{method.elim}{\mbox{\isa{elim}}}} & : & \isa{method} \\
+    \indexdef{}{ML}{safe\_step\_tac}\verb|safe_step_tac: Proof.context -> int -> tactic| \\
+    \indexdef{}{ML}{inst\_step\_tac}\verb|inst_step_tac: Proof.context -> int -> tactic| \\
+    \indexdef{}{ML}{step\_tac}\verb|step_tac: Proof.context -> int -> tactic| \\
+    \indexdef{}{ML}{slow\_step\_tac}\verb|slow_step_tac: Proof.context -> int -> tactic| \\
+    \indexdef{}{ML}{clarify\_step\_tac}\verb|clarify_step_tac: Proof.context -> int -> tactic| \\
   \end{matharray}
 
-  \begin{railoutput}
-\rail@begin{3}{}
-\rail@bar
-\rail@term{\hyperlink{method.rule}{\mbox{\isa{rule}}}}[]
-\rail@nextbar{1}
-\rail@term{\hyperlink{method.intro}{\mbox{\isa{intro}}}}[]
-\rail@nextbar{2}
-\rail@term{\hyperlink{method.elim}{\mbox{\isa{elim}}}}[]
-\rail@endbar
-\rail@bar
-\rail@nextbar{1}
-\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
-\rail@endbar
-\rail@end
-\end{railoutput}
-
+  These are the primitive tactics behind the (semi)automated proof
+  methods of the Classical Reasoner.  By calling them yourself, you
+  can execute these procedures one step at a time.
 
   \begin{description}
 
-  \item \hyperlink{method.rule}{\mbox{\isa{rule}}} as offered by the Classical Reasoner is a
-  refinement over the Pure one (see \secref{sec:pure-meth-att}).  Both
-  versions work the same, but the classical version observes the
-  classical rule context in addition to that of Isabelle/Pure.
+  \item \verb|safe_step_tac|~\isa{{\isaliteral{22}{\isachardoublequote}}ctxt\ i{\isaliteral{22}{\isachardoublequote}}} performs a safe step on
+  subgoal \isa{i}.  The safe wrapper tacticals are applied to a
+  tactic that may include proof by assumption or Modus Ponens (taking
+  care not to instantiate unknowns), or substitution.
 
-  Common object logics (HOL, ZF, etc.) declare a rich collection of
-  classical rules (even if these would qualify as intuitionistic
-  ones), but only few declarations to the rule context of
-  Isabelle/Pure (\secref{sec:pure-meth-att}).
+  \item \verb|inst_step_tac| is like \verb|safe_step_tac|, but allows
+  unknowns to be instantiated.
 
-  \item \hyperlink{method.contradiction}{\mbox{\isa{contradiction}}} solves some goal by contradiction,
-  deriving any result from both \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{5C3C6E6F743E}{\isasymnot}}\ A{\isaliteral{22}{\isachardoublequote}}} and \isa{A}.  Chained
-  facts, which are guaranteed to participate, may appear in either
-  order.
+  \item \verb|step_tac|~\isa{{\isaliteral{22}{\isachardoublequote}}ctxt\ i{\isaliteral{22}{\isachardoublequote}}} is the basic step of the proof
+  procedure.  The unsafe wrapper tacticals are applied to a tactic
+  that tries \verb|safe_tac|, \verb|inst_step_tac|, or applies an unsafe
+  rule from the context.
 
-  \item \hyperlink{method.intro}{\mbox{\isa{intro}}} and \hyperlink{method.elim}{\mbox{\isa{elim}}} repeatedly refine some goal
-  by intro- or elim-resolution, after having inserted any chained
-  facts.  Exactly the rules given as arguments are taken into account;
-  this allows fine-tuned decomposition of a proof problem, in contrast
-  to common automated tools.
+  \item \verb|slow_step_tac| resembles \verb|step_tac|, but allows
+  backtracking between using safe rules with instantiation (\verb|inst_step_tac|) and using unsafe rules.  The resulting search space
+  is larger.
+
+  \item \verb|clarify_step_tac|~\isa{{\isaliteral{22}{\isachardoublequote}}ctxt\ i{\isaliteral{22}{\isachardoublequote}}} performs a safe step
+  on subgoal \isa{i}.  No splitting step is applied; for example,
+  the subgoal \isa{{\isaliteral{22}{\isachardoublequote}}A\ {\isaliteral{5C3C616E643E}{\isasymand}}\ B{\isaliteral{22}{\isachardoublequote}}} is left as a conjunction.  Proof by
+  assumption, Modus Ponens, etc., may be performed provided they do
+  not instantiate unknowns.  Assumptions of the form \isa{{\isaliteral{22}{\isachardoublequote}}x\ {\isaliteral{3D}{\isacharequal}}\ t{\isaliteral{22}{\isachardoublequote}}}
+  may be eliminated.  The safe wrapper tactical is applied.
 
   \end{description}%
 \end{isamarkuptext}%

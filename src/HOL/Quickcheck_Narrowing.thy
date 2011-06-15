@@ -207,14 +207,6 @@ code_abort of_int
 subsubsection {* Narrowing's deep representation of types and terms *}
 
 datatype narrowing_type = SumOfProd "narrowing_type list list"
-text {*
-The definition of the automatically derived equal type class instance for @{typ narrowing_type}
-causes an error in the OCaml serializer.
-For the moment, we delete this equation manually because we do not require an executable equality
-on this type anyway.   
-*}
-declare Quickcheck_Narrowing.equal_narrowing_type_def[code del]
-
 datatype narrowing_term = Var "code_int list" narrowing_type | Ctr code_int "narrowing_term list"
 datatype 'a cons = C narrowing_type "(narrowing_term list => 'a) list"
 

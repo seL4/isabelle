@@ -64,6 +64,8 @@ text {*
     @{method_def erule}@{text "\<^sup>*"} & : & @{text method} \\
     @{method_def drule}@{text "\<^sup>*"} & : & @{text method} \\
     @{method_def frule}@{text "\<^sup>*"} & : & @{text method} \\
+    @{method_def intro} & : & @{text method} \\
+    @{method_def elim} & : & @{text method} \\
     @{method_def succeed} & : & @{text method} \\
     @{method_def fail} & : & @{text method} \\
   \end{matharray}
@@ -73,6 +75,8 @@ text {*
     ;
     (@@{method erule} | @@{method drule} | @@{method frule})
       ('(' @{syntax nat} ')')? @{syntax thmrefs}
+    ;
+    (@@{method intro} | @@{method elim}) @{syntax thmrefs}?
   "}
 
   \begin{description}
@@ -102,6 +106,12 @@ text {*
   For example, a proper single-step elimination would be done using
   the plain @{method rule} method, with forward chaining of current
   facts.
+
+  \item @{method intro} and @{method elim} repeatedly refine some goal
+  by intro- or elim-resolution, after having inserted any chained
+  facts.  Exactly the rules given as arguments are taken into account;
+  this allows fine-tuned decomposition of a proof problem, in contrast
+  to common automated tools.
 
   \item @{method succeed} yields a single (unchanged) result; it is
   the identity of the ``@{text ","}'' method combinator (cf.\
@@ -879,6 +889,39 @@ text {* The proof tools of the Classical Reasoner depend on
 *}
 
 
+subsection {* Structured methods *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{method_def rule} & : & @{text method} \\
+    @{method_def contradiction} & : & @{text method} \\
+  \end{matharray}
+
+  @{rail "
+    @@{method rule} @{syntax thmrefs}?
+  "}
+
+  \begin{description}
+
+  \item @{method rule} as offered by the Classical Reasoner is a
+  refinement over the Pure one (see \secref{sec:pure-meth-att}).  Both
+  versions work the same, but the classical version observes the
+  classical rule context in addition to that of Isabelle/Pure.
+
+  Common object logics (HOL, ZF, etc.) declare a rich collection of
+  classical rules (even if these would qualify as intuitionistic
+  ones), but only few declarations to the rule context of
+  Isabelle/Pure (\secref{sec:pure-meth-att}).
+
+  \item @{method contradiction} solves some goal by contradiction,
+  deriving any result from both @{text "\<not> A"} and @{text A}.  Chained
+  facts, which are guaranteed to participate, may appear in either
+  order.
+
+  \end{description}
+*}
+
+
 subsection {* Automated methods *}
 
 text {*
@@ -892,6 +935,7 @@ text {*
     @{method_def fastsimp} & : & @{text method} \\
     @{method_def slowsimp} & : & @{text method} \\
     @{method_def bestsimp} & : & @{text method} \\
+    @{method_def deepen} & : & @{text method} \\
   \end{matharray}
 
   @{rail "
@@ -905,6 +949,8 @@ text {*
     ;
     (@@{method fastsimp} | @@{method slowsimp} | @@{method bestsimp})
       (@{syntax clasimpmod} * )
+    ;
+    @@{method deepen} (@{syntax nat} ?) (@{syntax clamod} * )
     ;
     @{syntax_def clamod}:
       (('intro' | 'elim' | 'dest') ('!' | () | '?') | 'del') ':' @{syntax thmrefs}
@@ -990,6 +1036,14 @@ text {*
   like @{method fast}, @{method slow}, @{method best}, respectively,
   but use the Simplifier as additional wrapper.
 
+  \item @{method deepen} works by exhaustive search up to a certain
+  depth.  The start depth is 4 (unless specified explicitly), and the
+  depth is increased iteratively up to 10.  Unsafe rules are modified
+  to preserve the formula they act on, so that it be used repeatedly.
+  This method can prove more goals than @{method fast}, but is much
+  slower, for example if the assumptions have many universal
+  quantifiers.
+
   \end{description}
 
   Any of the above methods support additional modifiers of the context
@@ -1025,13 +1079,8 @@ text {* These proof methods may help in situations when the
   \item @{method safe} repeatedly performs safe steps on all subgoals.
   It is deterministic, with at most one outcome.
 
-  \item @{method clarify} performs a series of safe steps as follows.
-
-  No splitting step is applied; for example, the subgoal @{text "A \<and>
-  B"} is left as a conjunction.  Proof by assumption, Modus Ponens,
-  etc., may be performed provided they do not instantiate unknowns.
-  Assumptions of the form @{text "x = t"} may be eliminated.  The safe
-  wrapper tactical is applied.
+  \item @{method clarify} performs a series of safe steps without
+  splitting subgoals; see also @{ML clarify_step_tac}.
 
   \item @{method clarsimp} acts like @{method clarify}, but also does
   simplification.  Note that if the Simplifier context includes a
@@ -1041,42 +1090,47 @@ text {* These proof methods may help in situations when the
 *}
 
 
-subsection {* Structured proof methods *}
+subsection {* Single-step tactics *}
 
 text {*
   \begin{matharray}{rcl}
-    @{method_def rule} & : & @{text method} \\
-    @{method_def contradiction} & : & @{text method} \\
-    @{method_def intro} & : & @{text method} \\
-    @{method_def elim} & : & @{text method} \\
+    @{index_ML safe_step_tac: "Proof.context -> int -> tactic"} \\
+    @{index_ML inst_step_tac: "Proof.context -> int -> tactic"} \\
+    @{index_ML step_tac: "Proof.context -> int -> tactic"} \\
+    @{index_ML slow_step_tac: "Proof.context -> int -> tactic"} \\
+    @{index_ML clarify_step_tac: "Proof.context -> int -> tactic"} \\
   \end{matharray}
 
-  @{rail "
-    (@@{method rule} | @@{method intro} | @@{method elim}) @{syntax thmrefs}?
-  "}
+  These are the primitive tactics behind the (semi)automated proof
+  methods of the Classical Reasoner.  By calling them yourself, you
+  can execute these procedures one step at a time.
 
   \begin{description}
 
-  \item @{method rule} as offered by the Classical Reasoner is a
-  refinement over the Pure one (see \secref{sec:pure-meth-att}).  Both
-  versions work the same, but the classical version observes the
-  classical rule context in addition to that of Isabelle/Pure.
+  \item @{ML safe_step_tac}~@{text "ctxt i"} performs a safe step on
+  subgoal @{text i}.  The safe wrapper tacticals are applied to a
+  tactic that may include proof by assumption or Modus Ponens (taking
+  care not to instantiate unknowns), or substitution.
 
-  Common object logics (HOL, ZF, etc.) declare a rich collection of
-  classical rules (even if these would qualify as intuitionistic
-  ones), but only few declarations to the rule context of
-  Isabelle/Pure (\secref{sec:pure-meth-att}).
+  \item @{ML inst_step_tac} is like @{ML safe_step_tac}, but allows
+  unknowns to be instantiated.
 
-  \item @{method contradiction} solves some goal by contradiction,
-  deriving any result from both @{text "\<not> A"} and @{text A}.  Chained
-  facts, which are guaranteed to participate, may appear in either
-  order.
+  \item @{ML step_tac}~@{text "ctxt i"} is the basic step of the proof
+  procedure.  The unsafe wrapper tacticals are applied to a tactic
+  that tries @{ML safe_tac}, @{ML inst_step_tac}, or applies an unsafe
+  rule from the context.
 
-  \item @{method intro} and @{method elim} repeatedly refine some goal
-  by intro- or elim-resolution, after having inserted any chained
-  facts.  Exactly the rules given as arguments are taken into account;
-  this allows fine-tuned decomposition of a proof problem, in contrast
-  to common automated tools.
+  \item @{ML slow_step_tac} resembles @{ML step_tac}, but allows
+  backtracking between using safe rules with instantiation (@{ML
+  inst_step_tac}) and using unsafe rules.  The resulting search space
+  is larger.
+
+  \item @{ML clarify_step_tac}~@{text "ctxt i"} performs a safe step
+  on subgoal @{text i}.  No splitting step is applied; for example,
+  the subgoal @{text "A \<and> B"} is left as a conjunction.  Proof by
+  assumption, Modus Ponens, etc., may be performed provided they do
+  not instantiate unknowns.  Assumptions of the form @{text "x = t"}
+  may be eliminated.  The safe wrapper tactical is applied.
 
   \end{description}
 *}
