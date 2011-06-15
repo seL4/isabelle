@@ -1699,8 +1699,6 @@ fun decl_line_for_sym ctxt format nonmono_Ts type_sys s
           |> mangled_type format type_sys pred_sym (length T_arg_Ts + ary))
   end
 
-fun is_polymorphic_type T = fold_atyps (fn TVar _ => K true | _ => I) T false
-
 fun formula_line_for_preds_sym_decl ctxt format conj_sym_kind nonmono_Ts
         type_sys n s j (s', T_args, T, _, ary, in_conj) =
   let
@@ -1708,13 +1706,14 @@ fun formula_line_for_preds_sym_decl ctxt format conj_sym_kind nonmono_Ts
       if in_conj then (conj_sym_kind, conj_sym_kind = Conjecture ? mk_anot)
       else (Axiom, I)
     val (arg_Ts, res_T) = chop_fun ary T
+    val num_args = length arg_Ts
     val bound_names =
-      1 upto length arg_Ts |> map (`I o make_bound_var o string_of_int)
+      1 upto num_args |> map (`I o make_bound_var o string_of_int)
     val bounds =
       bound_names ~~ arg_Ts |> map (fn (name, T) => CombConst (name, T, []))
     val bound_Ts =
-      arg_Ts |> map (fn T => if n > 1 orelse is_polymorphic_type T then SOME T
-                             else NONE)
+      if n > 1 andalso should_drop_arg_type_args type_sys then map SOME arg_Ts
+      else replicate num_args NONE
   in
     Formula (preds_sym_formula_prefix ^ s ^
              (if n > 1 then "_" ^ string_of_int j else ""), kind,
