@@ -117,18 +117,31 @@ declare -a TARGETS=("$PURE_JAR" "$FULL_JAR")
 
 ## main
 
+declare -a UPDATED=()
+
 if [ -n "$FRESH" ]; then
   OUTDATED=true
 else
   OUTDATED=false
-  for SOURCE in "${SOURCES[@]}"
+  for TARGET in "${TARGETS[@]}"
   do
-    [ ! -e "$SOURCE" ] && fail "Missing source file: $SOURCE"
-    for TARGET in "${TARGETS[@]}"
-    do
-      [ ! -e "$TARGET" -o "$SOURCE" -nt "$TARGET" ] && OUTDATED=true
-    done
+    [ ! -e "$TARGET" ] && OUTDATED=true
   done
+  if [ "$OUTDATED" = false ]; then
+    for DEP in "${SOURCES[@]}"
+    do
+      [ ! -e "$DEP" ] && fail "Missing file: $DEP"
+      UPDATE=""
+      for TARGET in "${TARGETS[@]}"
+      do
+        [ "$DEP" -nt "$TARGET" ] && {
+          OUTDATED=true
+          UPDATE=true
+        }
+      done
+      [ -n "$UPDATE" ] && UPDATED["${#UPDATED[@]}"]="$DEP"
+    done
+  fi
 fi
 
 if [ "$OUTDATED" = true ]
@@ -136,6 +149,14 @@ then
   echo "###"
   echo "### Building Isabelle/Scala layer ..."
   echo "###"
+
+  [ "${#UPDATED[@]}" -gt 0 ] && {
+    echo "Changed files:"
+    for FILE in "${UPDATED[@]}"
+    do
+      echo "  $FILE"
+    done
+  }
 
   rm -rf classes && mkdir classes
   "$SCALA_HOME/bin/scalac" -unchecked -deprecation -d classes -target:jvm-1.5 "${SOURCES[@]}" || \

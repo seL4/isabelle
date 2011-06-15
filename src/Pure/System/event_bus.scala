@@ -20,7 +20,7 @@ class Event_Bus[Event]
   def + (r: Actor): Event_Bus[Event] = { this += r; this }
 
   def += (f: Event => Unit) {
-    this += actor { loop { react { case x: Event => f(x) } } }
+    this += actor { loop { react { case x => f(x.asInstanceOf[Event]) } } }
   }
 
   def + (f: Event => Unit): Event_Bus[Event] = { this += f; this }
