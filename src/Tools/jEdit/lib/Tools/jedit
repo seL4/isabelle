@@ -196,26 +196,25 @@ fi
 
 if [ "$OUTDATED" = true ]
 then
+  [ -z "$SCALA_HOME" ] && fail "Unknown SCALA_HOME -- Scala unavailable"
+
+  [ -e "$ISABELLE_HOME/Admin/build" ] && \
+    { "$ISABELLE_HOME/Admin/build" "$BUILD_JARS" || exit $?; }
+
+  echo "###"
+  echo "### Building Isabelle/jEdit ..."
+  echo "###"
+
   [ "${#UPDATED[@]}" -gt 0 ] && {
-    echo "Rebuild due changed files:"
+    echo "Changed files:"
     for FILE in "${UPDATED[@]}"
     do
       echo "  $FILE"
     done
   }
 
-  [ -z "$SCALA_HOME" ] && fail "Unknown SCALA_HOME -- Scala unavailable"
-
   [ -z "$ISABELLE_JEDIT_BUILD_HOME" ] && \
     fail "Unknown ISABELLE_JEDIT_BUILD_HOME -- missing auxiliary component"
-
-  [ -e "$ISABELLE_HOME/Admin/build" ] && \
-    { "$ISABELLE_HOME/Admin/build" "$BUILD_JARS" || exit $?; }
-
-
-  echo "###"
-  echo "### Building Isabelle/jEdit ..."
-  echo "###"
 
   rm -rf dist || failed
   mkdir -p dist dist/classes || failed
