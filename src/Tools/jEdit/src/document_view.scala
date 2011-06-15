@@ -18,6 +18,8 @@ import java.awt.event.{MouseAdapter, MouseMotionAdapter, MouseEvent,
 import javax.swing.{JPanel, ToolTipManager, Popup, PopupFactory, SwingUtilities, BorderFactory}
 import javax.swing.event.{CaretListener, CaretEvent}
 
+import org.gjt.sp.util.Log
+
 import org.gjt.sp.jedit.{jEdit, OperatingSystem, Debug}
 import org.gjt.sp.jedit.gui.RolloverButton
 import org.gjt.sp.jedit.options.GutterOptionPane
@@ -65,6 +67,20 @@ object Document_View
 class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 {
   private val session = model.session
+
+
+  /** robust extension body **/
+
+  def robust_body[A](default: A)(body: => A): A =
+    Swing_Thread.now {
+      try {
+        Isabelle.buffer_lock(model.buffer) {
+          if (model.buffer == text_area.getBuffer) body
+          else default
+        }
+      }
+      catch { case t: Throwable => Log.log(Log.ERROR, this, t); default }
+    }
 
 
   /** token handling **/
@@ -198,7 +214,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   {
     override def getToolTipText(x: Int, y: Int): String =
     {
-      Isabelle.swing_buffer_lock(model.buffer) {
+      robust_body(null: String) {
         val snapshot = model.snapshot()
         val offset = text_area.xyToOffset(x, y)
         if (control) {
@@ -226,30 +242,32 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      val gutter = text_area.getGutter
-      val width = GutterOptionPane.getSelectionAreaWidth
-      val border_width = jEdit.getIntegerProperty("view.gutter.borderWidth", 3)
-      val FOLD_MARKER_SIZE = 12
-
-      if (gutter.isSelectionAreaEnabled && !gutter.isExpanded && width >= 12 && line_height >= 12) {
-        Isabelle.swing_buffer_lock(model.buffer) {
-          val snapshot = model.snapshot()
-          for (i <- 0 until physical_lines.length) {
-            if (physical_lines(i) != -1) {
-              val line_range = proper_line_range(start(i), end(i))
-
-              // gutter icons
-              val icons =
-                (for (Text.Info(_, Some(icon)) <- // FIXME snapshot.cumulate
-                  snapshot.select_markup(line_range)(Isabelle_Markup.gutter_message).iterator)
-                yield icon).toList.sortWith(_ >= _)
-              icons match {
-                case icon :: _ =>
-                  val icn = icon.icon
-                  val x0 = (FOLD_MARKER_SIZE + width - border_width - icn.getIconWidth) max 10
-                  val y0 = y + i * line_height + (((line_height - icn.getIconHeight) / 2) max 0)
-                  icn.paintIcon(gutter, gfx, x0, y0)
-                case Nil =>
+      robust_body(()) {
+        val gutter = text_area.getGutter
+        val width = GutterOptionPane.getSelectionAreaWidth
+        val border_width = jEdit.getIntegerProperty("view.gutter.borderWidth", 3)
+        val FOLD_MARKER_SIZE = 12
+  
+        if (gutter.isSelectionAreaEnabled && !gutter.isExpanded && width >= 12 && line_height >= 12) {
+          Isabelle.swing_buffer_lock(model.buffer) {
+            val snapshot = model.snapshot()
+            for (i <- 0 until physical_lines.length) {
+              if (physical_lines(i) != -1) {
+                val line_range = proper_line_range(start(i), end(i))
+  
+                // gutter icons
+                val icons =
+                  (for (Text.Info(_, Some(icon)) <- // FIXME snapshot.cumulate
+                    snapshot.select_markup(line_range)(Isabelle_Markup.gutter_message).iterator)
+                  yield icon).toList.sortWith(_ >= _)
+                icons match {
+                  case icon :: _ =>
+                    val icn = icon.icon
+                    val x0 = (FOLD_MARKER_SIZE + width - border_width - icn.getIconWidth) max 10
+                    val y0 = y + i * line_height + (((line_height - icn.getIconHeight) / 2) max 0)
+                    icn.paintIcon(gutter, gfx, x0, y0)
+                  case Nil =>
+                }
               }
             }
           }
