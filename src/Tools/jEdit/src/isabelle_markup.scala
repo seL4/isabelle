@@ -185,8 +185,6 @@ object Isabelle_Markup
   private val token_style: Map[String, Byte] =
   {
     import Token._
-    val SUBSCRIPT: Byte = ID_COUNT
-    val SUPERSCRIPT: Byte = ID_COUNT + 1
     Map[String, Byte](
       // embedded source text
       Markup.ML_SOURCE -> COMMENT3,

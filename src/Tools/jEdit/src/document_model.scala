@@ -25,6 +25,16 @@ object Document_Model
 {
   object Token_Markup
   {
+    /* extended token styles */
+
+    private val plain_range: Int = Token.ID_COUNT
+    private def check_range(i: Int) { require(0 <= i && i < plain_range) }
+
+    def subscript(i: Byte): Byte = { check_range(i); (i + plain_range).toByte }
+    def superscript(i: Byte): Byte = { check_range(i); (i + 2 * plain_range).toByte }
+    val hidden: Byte = (3 * plain_range).toByte
+
+
     /* line context */
 
     private val dummy_rules = new ParserRuleSet("isabelle", "MAIN")
