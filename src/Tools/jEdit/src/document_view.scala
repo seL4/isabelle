@@ -396,7 +396,6 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     painter.addMouseMotionListener(mouse_motion_listener)
     text_area.addCaretListener(caret_listener)
     text_area.addLeftOfScrollBar(overview)
-    if (text_area.isCaretBlinkEnabled) text_area.setCaretBlinkEnabled(false)
     session.commands_changed += main_actor
     session.global_settings += main_actor
   }
@@ -406,7 +405,6 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     val painter = text_area.getPainter
     session.commands_changed -= main_actor
     session.global_settings -= main_actor
-		text_area.setCaretBlinkEnabled(jEdit.getBooleanProperty("view.caretBlink"))
     text_area.removeFocusListener(focus_listener)
     text_area.getView.removeWindowListener(window_listener)
     painter.removeMouseMotionListener(mouse_motion_listener)

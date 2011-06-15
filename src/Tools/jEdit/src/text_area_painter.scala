@@ -9,7 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
-import java.awt.Graphics2D
+import java.awt.{Graphics2D, Shape}
 import java.awt.font.TextAttribute
 import java.text.AttributedString
 import java.util.ArrayList
@@ -40,37 +40,31 @@ class Text_Area_Painter(doc_view: Document_View)
   private val orig_text_painter =
     pick_extension("org.gjt.sp.jedit.textarea.TextAreaPainter$PaintText")
 
-  private val orig_caret_painter =
-    pick_extension("org.gjt.sp.jedit.textarea.TextAreaPainter$PaintCaret")
 
+  /* common painter state */
 
-  /* painter snapshot */
+  @volatile private var painter_snapshot: Document.Snapshot = null
+  @volatile private var painter_clip: Shape = null
 
-  @volatile private var _painter_snapshot: Option[Document.Snapshot] = None
-
-  private def painter_snapshot(): Document.Snapshot =
-    _painter_snapshot match {
-      case Some(snapshot) => snapshot
-      case None => error("Missing document snapshot for text area painter")
-    }
-
-  private val set_snapshot = new TextAreaExtension
+  private val set_state = new TextAreaExtension
   {
     override def paintScreenLineRange(gfx: Graphics2D,
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      _painter_snapshot = Some(model.snapshot())
+      painter_snapshot = model.snapshot()
+      painter_clip = gfx.getClip
     }
   }
 
-  private val reset_snapshot = new TextAreaExtension
+  private val reset_state = new TextAreaExtension
   {
     override def paintScreenLineRange(gfx: Graphics2D,
       first_line: Int, last_line: Int, physical_lines: Array[Int],
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
-      _painter_snapshot = None
+      painter_snapshot = null
+      painter_clip = null
     }
   }
 
@@ -84,7 +78,7 @@ class Text_Area_Painter(doc_view: Document_View)
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
       Isabelle.swing_buffer_lock(buffer) {
-        val snapshot = painter_snapshot()
+        val snapshot = painter_snapshot
         val ascent = text_area.getPainter.getFontMetrics.getAscent
 
         for (i <- 0 until physical_lines.length) {
@@ -158,6 +152,14 @@ class Text_Area_Painter(doc_view: Document_View)
 
   /* text */
 
+  def char_width(): Int =
+  {
+    val painter = text_area.getPainter
+    val font = painter.getFont
+    val font_context = painter.getFontRenderContext
+    font.getStringBounds(" ", font_context).getWidth.round.toInt
+  }
+
   private def line_infos(physical_lines: Iterator[Int]): Map[Text.Offset, Chunk] =
   {
     val painter = text_area.getPainter
@@ -171,7 +173,7 @@ class Text_Area_Painter(doc_view: Document_View)
       else {
         val max = buffer.getIntegerProperty("maxLineLen", 0)
         if (max > 0) font.getStringBounds(" " * max, font_context).getWidth.toInt
-        else painter.getWidth - font.getStringBounds(" ", font_context).getWidth.round.toInt * 3
+        else painter.getWidth - char_width() * 3
       }.toFloat
 
     val out = new ArrayList[Chunk]
@@ -279,11 +281,47 @@ class Text_Area_Painter(doc_view: Document_View)
             gfx.clipRect(x1, 0, Integer.MAX_VALUE, Integer.MAX_VALUE)
             orig_text_painter.paintValidLine(gfx,
               first_line + i, physical_lines(i), start(i), end(i), y + line_height * i)
-            orig_caret_painter.paintValidLine(gfx,
-              first_line + i, physical_lines(i), start(i), end(i), y + line_height * i)
             gfx.setClip(clip)
           }
           y0 += line_height
+        }
+      }
+    }
+  }
+
+
+  /* caret -- outside of text range */
+
+  private class Caret_Painter(before: Boolean) extends TextAreaExtension
+  {
+    override def paintValidLine(gfx: Graphics2D,
+      screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int)
+    {
+      if (before) gfx.clipRect(0, 0, 0, 0)
+      else gfx.setClip(painter_clip)
+    }
+  }
+
+  private val before_caret_painter1 = new Caret_Painter(true)
+  private val after_caret_painter1 = new Caret_Painter(false)
+  private val before_caret_painter2 = new Caret_Painter(true)
+  private val after_caret_painter2 = new Caret_Painter(false)
+
+  private val caret_painter = new TextAreaExtension
+  {
+    override def paintValidLine(gfx: Graphics2D,
+      screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int)
+    {
+      if (text_area.hasFocus) {
+        val caret = text_area.getCaretPosition
+        if (start <= caret && caret == end - 1) {
+          val painter = text_area.getPainter
+          val fm = painter.getFontMetrics
+
+          val offset = caret - text_area.getLineStartOffset(physical_line)
+          val x = text_area.offsetToXY(physical_line, offset).x
+          gfx.setColor(painter.getCaretColor)
+          gfx.drawRect(x, y, char_width() - 1, fm.getHeight - 1)
         }
       }
     }
@@ -295,26 +333,30 @@ class Text_Area_Painter(doc_view: Document_View)
   def activate()
   {
     val painter = text_area.getPainter
-    painter.addExtension(TextAreaPainter.LOWEST_LAYER, set_snapshot)
+    painter.addExtension(TextAreaPainter.LOWEST_LAYER, set_state)
     painter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, background_painter)
     painter.addExtension(TextAreaPainter.TEXT_LAYER, text_painter)
-    painter.addExtension(TextAreaPainter.HIGHEST_LAYER, reset_snapshot)
+    painter.addExtension(TextAreaPainter.CARET_LAYER - 1, before_caret_painter1)
+    painter.addExtension(TextAreaPainter.CARET_LAYER + 1, after_caret_painter1)
+    painter.addExtension(TextAreaPainter.BLOCK_CARET_LAYER - 1, before_caret_painter2)
+    painter.addExtension(TextAreaPainter.BLOCK_CARET_LAYER + 1, after_caret_painter2)
+    painter.addExtension(TextAreaPainter.BLOCK_CARET_LAYER + 2, caret_painter)
+    painter.addExtension(TextAreaPainter.HIGHEST_LAYER, reset_state)
     painter.removeExtension(orig_text_painter)
-    painter.removeExtension(orig_caret_painter)
   }
 
   def deactivate()
   {
     val painter = text_area.getPainter
-    val caret_layer =
-      if (painter.isBlockCaretEnabled) TextAreaPainter.BLOCK_CARET_LAYER
-      else TextAreaPainter.CARET_LAYER
-    painter.addExtension(caret_layer, orig_caret_painter)
-    painter.addExtension(TextAreaPainter.TEXT_LAYER, orig_text_painter)
-    painter.removeExtension(reset_snapshot)
+    painter.removeExtension(reset_state)
+    painter.removeExtension(caret_painter)
+    painter.removeExtension(after_caret_painter2)
+    painter.removeExtension(before_caret_painter2)
+    painter.removeExtension(after_caret_painter1)
+    painter.removeExtension(before_caret_painter1)
     painter.removeExtension(text_painter)
     painter.removeExtension(background_painter)
-    painter.removeExtension(set_snapshot)
+    painter.removeExtension(set_state)
   }
 }
 
