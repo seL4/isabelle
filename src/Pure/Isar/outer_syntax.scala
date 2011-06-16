@@ -8,6 +8,7 @@ package isabelle
 
 
 import scala.util.parsing.input.{Reader, CharSequenceReader}
+import scala.collection.mutable
 
 
 class Outer_Syntax(symbols: Symbol.Interpretation)
@@ -73,4 +74,21 @@ class Outer_Syntax(symbols: Symbol.Interpretation)
 
   def scan(input: CharSequence): List[Token] =
     scan(new CharSequenceReader(input))
+
+  def scan_context(input: CharSequence, context: Scan.Context): (List[Token], Scan.Context) =
+  {
+    import lexicon._
+
+    var in: Reader[Char] = new CharSequenceReader(input)
+    val toks = new mutable.ListBuffer[Token]
+    var ctxt = context
+    while (!in.atEnd) {
+      parse(token_context(symbols, is_command, ctxt), in) match {
+        case Success((x, c), rest) => { toks += x; ctxt = c; in = rest }
+        case NoSuccess(_, rest) =>
+          error("Unexpected failure of tokenizing input:\n" + rest.source.toString)
+      }
+    }
+    (toks.toList, ctxt)
+  }
 }
