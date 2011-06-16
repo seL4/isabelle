@@ -268,8 +268,10 @@ object Scan
 
     /* nested comments */
 
-    def comment: Parser[String] = new Parser[String]
+    private def comment_depth(depth: Int): Parser[(String, Int)] = new Parser[(String, Int)]
     {
+      require(depth >= 0)
+
       val comment_text =
         rep1(many1(sym => sym != "*" && sym != "(") | """\*(?!\))|\((?!\*)""".r)
 
@@ -283,18 +285,36 @@ object Scan
             case _ => false
           }
         }
-        var depth = 0
+        var d = depth
         var finished = false
         while (!finished) {
-          if (try_parse("(*")) depth += 1
-          else if (depth > 0 && try_parse("*)")) depth -= 1
-          else if (depth == 0 || !try_parse(comment_text)) finished = true
+          if (try_parse("(*")) d += 1
+          else if (d > 0 && try_parse("*)")) d -= 1
+          else if (d == 0 || !try_parse(comment_text)) finished = true
         }
-        if (in.offset < rest.offset && depth == 0)
-          Success(in.source.subSequence(in.offset, rest.offset).toString, rest)
+        if (in.offset < rest.offset)
+          Success((in.source.subSequence(in.offset, rest.offset).toString, d), rest)
         else Failure("comment expected", in)
       }
-    }.named("comment")
+    }.named("comment_depth")
+
+    def comment: Parser[String] =
+      comment_depth(0) ^? { case (x, d) if d == 0 => x }
+
+    def comment_context(ctxt: Context): Parser[(String, Context)] =
+    {
+      val depth =
+        ctxt match {
+          case Finished => 0
+          case Comment(d) => d
+          case _ => -1
+        }
+      if (depth >= 0)
+        comment_depth(depth) ^^
+          { case (x, 0) => (x, Finished)
+            case (x, d) => (x, Comment(d)) }
+      else failure("")
+    }
 
     def comment_content(source: String): String =
     {
@@ -366,17 +386,16 @@ object Scan
         quoted_context("\"", ctxt) ^^ { case (x, c) => (Token(Token.Kind.STRING, x), c) }
       val alt_string =
         quoted_context("`", ctxt) ^^ { case (x, c) => (Token(Token.Kind.ALT_STRING, x), c) }
-      val verb =
-        verbatim_context(ctxt) ^^ { case (x, c) => (Token(Token.Kind.VERBATIM, x), c) }
-      // FIXME comment_context
-      val cmt = comment ^^ (x => Token(Token.Kind.COMMENT, x))
+      val verb = verbatim_context(ctxt) ^^ { case (x, c) => (Token(Token.Kind.VERBATIM, x), c) }
+      val cmt = comment_context(ctxt) ^^ { case (x, c) => (Token(Token.Kind.COMMENT, x), c) }
+
       val other: Parser[(Token, Context)] =
         ctxt match {
-          case Finished => (cmt | other_token(symbols, is_command)) ^^ { case x => (x, Finished) }
+          case Finished => other_token(symbols, is_command) ^^ { case x => (x, Finished) }
           case _ => failure("")
         }
 
-      string | (alt_string | (verb | other))
+      string | (alt_string | (verb | (cmt | other)))
     }
   }
 
