@@ -64,6 +64,7 @@ object Token
 sealed case class Token(val kind: Token.Kind.Value, val source: String)
 {
   def is_command: Boolean = kind == Token.Kind.COMMAND
+  def is_keyword: Boolean = kind == Token.Kind.KEYWORD
   def is_delimited: Boolean =
     kind == Token.Kind.STRING ||
     kind == Token.Kind.ALT_STRING ||

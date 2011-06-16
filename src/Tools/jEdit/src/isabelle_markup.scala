@@ -215,5 +215,7 @@ object Isabelle_Markup
   def token_markup(syntax: Outer_Syntax, token: Token): Byte =
     if (token.is_command)
       command_style(syntax.keyword_kind(token.content).getOrElse(""))
+    else if (token.is_keyword && !Symbol.is_ascii_identifier(token.content))
+      JEditToken.OPERATOR
     else token_style(token.kind)
 }
