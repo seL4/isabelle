@@ -317,6 +317,7 @@ fun open_formula conj =
           AConn (c, [opn pos1 phi1, opn pos2 phi2])
         end
       | opn _ (AAtom t) = AAtom (t |> conj ? open_conjecture_term)
+      | opn _ phi = phi
   in opn (SOME (not conj)) end
 fun open_formula_line (Formula (ident, kind, phi, source, info)) =
     Formula (ident, kind, open_formula (kind = Conjecture) phi, source, info)
