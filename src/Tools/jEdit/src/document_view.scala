@@ -386,10 +386,6 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
                 val line_cmds = snapshot.node.command_range(snapshot.revert(range)).map(_._1)
                 if line_cmds.exists(changed)
               } text_area.invalidateScreenLineRange(line, line)
-
-              // FIXME danger of deadlock!?
-              // FIXME potentially slow!?
-              model.buffer.propertiesChanged()
             }
           }
 

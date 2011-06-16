@@ -24,6 +24,7 @@ declare -a SOURCES=(
   "src/scala_console.scala"
   "src/session_dockable.scala"
   "src/text_area_painter.scala"
+  "src/token_markup.scala"
 )
 
 declare -a RESOURCES=(
