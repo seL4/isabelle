@@ -231,8 +231,11 @@ class Text_Area_Painter(doc_view: Document_View)
         else {
           var x1 = x + w
           for (Text.Info(range, info) <- markup) {
-            // FIXME range check!?
-            val str = chunk.str.substring(range.start - chunk_offset, range.stop - chunk_offset)
+            // FIXME proper range!?
+            val str =
+              chunk.str.substring(
+                (range.start - chunk_offset) max 0,
+                (range.stop - chunk_offset) min chunk_length)
             gfx.setColor(info.getOrElse(chunk_color))
             if (range.contains(caret_offset)) {
               val astr = new AttributedString(str)
