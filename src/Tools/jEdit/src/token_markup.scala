@@ -30,8 +30,8 @@ object Token_Markup
 
   private val isabelle_rules = new ParserRuleSet("isabelle", "MAIN")
 
-  private class Line_Context(val context: Scan.Context)
-    extends TokenMarker.LineContext(isabelle_rules, null)
+  private class Line_Context(val context: Scan.Context, prev: Line_Context)
+    extends TokenMarker.LineContext(isabelle_rules, prev)
   {
     override def hashCode: Int = context.hashCode
     override def equals(that: Any): Boolean =
@@ -43,32 +43,29 @@ object Token_Markup
 
   def token_marker(session: Session, buffer: Buffer): TokenMarker =
     new TokenMarker {
-      override def markTokens(context: TokenMarker.LineContext,
+      override def markTokens(raw_context: TokenMarker.LineContext,
           handler: TokenHandler, line: Segment): TokenMarker.LineContext =
       {
-        Isabelle.swing_buffer_lock(buffer) {
-          val syntax = session.current_syntax()
+        val syntax = session.current_syntax()
 
-          val ctxt =
-            context match {
-              case c: Line_Context => c.context
-              case _ => Scan.Finished
-            }
+        val context = raw_context.asInstanceOf[Line_Context]
+        val ctxt = if (context == null) Scan.Finished else context.context
 
-          val (tokens, ctxt1) = syntax.scan_context(line, ctxt)
-          val context1 = new Line_Context(ctxt1)
+        val (tokens, ctxt1) = syntax.scan_context(line, ctxt)
+        val context1 = new Line_Context(ctxt1, context)
 
-          var offset = 0
-          for (token <- tokens) {
-            val style = Isabelle_Markup.token_markup(syntax, token)
-            val length = token.source.length
-            handler.handleToken(line, style, offset, length, context1)
-            offset += length
-          }
-          handler.handleToken(line, JToken.END, line.count, 0, context1)
-          handler.setLineContext(context1)
-          context1
+        var offset = 0
+        for (token <- tokens) {
+          val style = Isabelle_Markup.token_markup(syntax, token)
+          val length = token.source.length
+          handler.handleToken(line, style, offset, length, context1)
+          offset += length
         }
+        handler.handleToken(line, JToken.END, line.count, 0, context1)
+
+        val context2 = context1.intern
+        handler.setLineContext(context2)
+        context2
       }
     }
 }
