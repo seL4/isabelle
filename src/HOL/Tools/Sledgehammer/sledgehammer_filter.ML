@@ -141,9 +141,11 @@ fun fact_from_ref ctxt reserved chained_ths (xthm as (xref, args)) =
   in
     (ths, (0, []))
     |-> fold (fn th => fn (j, rest) =>
-                 (j + 1, ((nth_name j,
-                          if member Thm.eq_thm_prop chained_ths th then Chained
-                          else General), th) :: rest))
+                 (j + 1,
+                  ((nth_name j,
+                    if member Thm.eq_thm_prop chained_ths th then Chained
+                    else if Thm.eq_thm_prop (th, @{thm ext}) then Extensionality
+                    else General), th) :: rest))
     |> snd
   end
 
@@ -479,13 +481,13 @@ fun irrel_pconst_weight (fudge as {local_const_multiplier, abs_irrel_weight,
                         chained_const_irrel_weight (irrel_weight_for fudge) swap
                         const_tab chained_const_tab
 
-fun locality_bonus (_ : relevance_fudge) General = 0.0
-  | locality_bonus {intro_bonus, ...} Intro = intro_bonus
+fun locality_bonus ({intro_bonus, ...} : relevance_fudge) Intro = intro_bonus
   | locality_bonus {elim_bonus, ...} Elim = elim_bonus
   | locality_bonus {simp_bonus, ...} Simp = simp_bonus
   | locality_bonus {local_bonus, ...} Local = local_bonus
   | locality_bonus {assum_bonus, ...} Assum = assum_bonus
   | locality_bonus {chained_bonus, ...} Chained = chained_bonus
+  | locality_bonus _ _ = 0.0
 
 fun is_odd_const_name s =
   s = abs_name orelse String.isPrefix skolem_prefix s orelse
@@ -827,7 +829,10 @@ fun all_facts ctxt reserved really_all add_ths chained_ths =
       if is_chained th then
         Chained
       else if global then
-        Termtab.lookup clasimpset_table (prop_of th) |> the_default General
+        case Termtab.lookup clasimpset_table (prop_of th) of
+          SOME loc => loc
+        | NONE => if Thm.eq_thm_prop (th, @{thm ext}) then Extensionality
+                  else General
       else
         if is_assum th then Assum else Local
     fun is_good_unnamed_local th =

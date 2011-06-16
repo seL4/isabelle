@@ -40,7 +40,9 @@ sig
     CombVar of name * typ |
     CombApp of combterm * combterm
 
-  datatype locality = General | Intro | Elim | Simp | Local | Assum | Chained
+  datatype locality =
+    General | Helper | Extensionality | Intro | Elim | Simp | Local | Assum |
+    Chained
 
   datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
   datatype type_level =
@@ -534,7 +536,9 @@ fun combterm_from_term thy bs (P $ Q) =
     |> (fn (s, T) => (CombConst (`make_bound_var s, T, []), atyps_of T))
   | combterm_from_term _ _ (Abs _) = raise Fail "HOL clause: Abs"
 
-datatype locality = General | Intro | Elim | Simp | Local | Assum | Chained
+datatype locality =
+  General | Helper | Extensionality | Intro | Elim | Simp | Local | Assum |
+  Chained
 
 (* (quasi-)underapproximation of the truth *)
 fun is_locality_global Local = false
@@ -1357,7 +1361,7 @@ fun helper_facts_for_sym ctxt format type_sys (s, {types, ...} : sym_info) =
           (if mangled_s = unmangled_s then "" else "_" ^ ascii_of mangled_s) ^
           (if needs_fairly_sound then typed_helper_suffix
            else untyped_helper_suffix),
-          General),
+          Helper),
          let val t = th |> prop_of in
            t |> should_specialize_helper type_sys t
                 ? (case types of
@@ -1467,12 +1471,12 @@ fun type_pred_combterm ctxt format type_sys T tm =
   CombApp (CombConst (type_pred, T --> @{typ bool}, [T])
            |> enforce_type_arg_policy_in_combterm ctxt format type_sys, tm)
 
-fun var_occurs_positively_naked_in_term _ (SOME false) _ accum = accum
-  | var_occurs_positively_naked_in_term name _ (ATerm ((s, _), tms)) accum =
+fun is_var_positively_naked_in_term _ (SOME false) _ accum = accum
+  | is_var_positively_naked_in_term name _ (ATerm ((s, _), tms)) accum =
     accum orelse (is_tptp_equal s andalso member (op =) tms (ATerm (name, [])))
 fun is_var_nonmonotonic_in_formula _ _ (SOME false) _ = false
   | is_var_nonmonotonic_in_formula pos phi _ name =
-    formula_fold pos (var_occurs_positively_naked_in_term name) phi false
+    formula_fold pos (is_var_positively_naked_in_term name) phi false
 
 fun mk_const_aterm format type_sys x T_args args =
   ATerm (x, map_filter (fo_term_for_type_arg format type_sys) T_args @ args)
@@ -1666,8 +1670,12 @@ fun add_combterm_nonmonotonic_types _ _ _ (SOME false) _ = I
     (is_tptp_equal s andalso exists is_var_or_bound_var [tm1, tm2] andalso
      (case level of
         Noninf_Nonmono_Types =>
+        (* Unlike virtually any other polymorphic fact whose type variables can
+           be instantiated by a known infinite type, extensionality actually
+           encodes a cardinality constraints. *)
         not (is_locality_global locality) orelse
-        not (is_type_surely_infinite ctxt known_infinite_types T)
+        not (is_type_surely_infinite ctxt (if locality = Extensionality then []
+                                           else known_infinite_types) T)
       | Fin_Nonmono_Types => is_type_surely_finite ctxt T
       | _ => true)) ? insert_type ctxt I (deep_freeze_type T)
   | add_combterm_nonmonotonic_types _ _ _ _ _ = I
