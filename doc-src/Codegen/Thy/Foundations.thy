@@ -324,7 +324,7 @@ text {*
       language.
 
     \ditem{\emph{Inspect code equations}.}  Code equations are the central
-      carrier of code generation.  Most problems occuring while generating
+      carrier of code generation.  Most problems occurring while generating
       code can be traced to single equations which are printed as part of
       the error message.  A closer inspection of those may offer the key
       for solving issues (cf.~\secref{sec:equations}).
