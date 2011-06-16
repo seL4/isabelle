@@ -72,15 +72,17 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   /** robust extension body **/
 
   def robust_body[A](default: A)(body: => A): A =
-    Swing_Thread.now {
-      try {
-        Isabelle.buffer_lock(model.buffer) {
-          if (model.buffer == text_area.getBuffer) body
-          else default
-        }
+  {
+    try {
+      Swing_Thread.require()
+      if (model.buffer == text_area.getBuffer) body
+      else {
+        // FIXME Log.log(Log.ERROR, this, new RuntimeException("Inconsistent document model"))
+        default
       }
-      catch { case t: Throwable => Log.log(Log.ERROR, this, t); default }
     }
+    catch { case t: Throwable => Log.log(Log.ERROR, this, t); default }
+  }
 
 
   /** token handling **/
