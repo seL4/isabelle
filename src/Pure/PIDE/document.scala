@@ -322,9 +322,7 @@ object Document
                 if result.isDefinedAt(Text.Info(convert(r0 + command_start), info)) =>
                   result(Text.Info(convert(r0 + command_start), info))
               }
-            val r = convert(r0 + command_start)
-            if !r.is_singularity
-          } yield Text.Info(r, x)
+          } yield Text.Info(convert(r0 + command_start), x)
         }
       }
     }
