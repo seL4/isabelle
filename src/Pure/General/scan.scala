@@ -388,12 +388,7 @@ object Scan
         quoted_context("`", ctxt) ^^ { case (x, c) => (Token(Token.Kind.ALT_STRING, x), c) }
       val verb = verbatim_context(ctxt) ^^ { case (x, c) => (Token(Token.Kind.VERBATIM, x), c) }
       val cmt = comment_context(ctxt) ^^ { case (x, c) => (Token(Token.Kind.COMMENT, x), c) }
-
-      val other: Parser[(Token, Context)] =
-        ctxt match {
-          case Finished => other_token(symbols, is_command) ^^ { case x => (x, Finished) }
-          case _ => failure("")
-        }
+      val other = other_token(symbols, is_command) ^^ { case x => (x, Finished) }
 
       string | (alt_string | (verb | (cmt | other)))
     }
