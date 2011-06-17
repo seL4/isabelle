@@ -529,7 +529,7 @@ HOL-IMP: HOL $(LOG)/HOL-IMP.gz
 
 $(LOG)/HOL-IMP.gz: $(OUT)/HOL IMP/ASM.thy IMP/AExp.thy IMP/BExp.thy	\
   IMP/Big_Step.thy IMP/C_like.thy IMP/Com.thy IMP/Compiler.thy \
-  IMP/Def_Ass.thy IMP/Def_Ass_Big.thy IMP/Def_Ass_Exp.thy \
+  IMP/Comp_Rev.thy IMP/Def_Ass.thy IMP/Def_Ass_Big.thy IMP/Def_Ass_Exp.thy \
   IMP/Def_Ass_Small.thy IMP/Def_Ass_Sound_Big.thy \
   IMP/Def_Ass_Sound_Small.thy IMP/Denotation.thy IMP/Hoare.thy \
   IMP/HoareT.thy IMP/Hoare_Examples.thy IMP/Hoare_Sound_Complete.thy \

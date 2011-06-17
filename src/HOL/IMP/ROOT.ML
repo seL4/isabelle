@@ -3,7 +3,7 @@ use_thys
  "ASM",
  "Small_Step",
  "Denotation",
- "Compiler",
+ "Comp_Rev",
  "Poly_Types",
  "Sec_Typing",
  "Sec_TypingT",
