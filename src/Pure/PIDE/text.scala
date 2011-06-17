@@ -25,7 +25,8 @@ object Text
   sealed case class Range(val start: Offset, val stop: Offset)
   {
     // denotation: {start} Un {i. start < i & i < stop}
-    require(start <= stop)
+    if (start > stop)
+      error("Bad range: [" + start.toString + ":" + stop.toString + "]")
 
     override def toString = "[" + start.toString + ":" + stop.toString + "]"
 
@@ -71,11 +72,13 @@ object Text
 
     private def transform(do_insert: Boolean, i: Offset): Offset =
       if (i < start) i
-      else if (is_insert == do_insert) i + text.length
+      else if (do_insert) i + text.length
       else (i - text.length) max start
 
-    def convert(i: Offset): Offset = transform(true, i)
-    def revert(i: Offset): Offset = transform(false, i)
+    def convert(i: Offset): Offset = transform(is_insert, i)
+    def revert(i: Offset): Offset = transform(!is_insert, i)
+    def convert(range: Range): Range = range.map(convert)
+    def revert(range: Range): Range = range.map(revert)
 
 
     /* edit strings */
