@@ -90,10 +90,10 @@ class Text_Area_Painter(doc_view: Document_View)
             val line_range = doc_view.proper_line_range(start(i), end(i))
 
             // background color: status
-            val cmds = snapshot.node.command_range(snapshot.revert(line_range))
             for {
-              (command, command_start) <- cmds if !command.is_ignored
-              val range = line_range.restrict(snapshot.convert(command.range + command_start))
+              (command, command_start) <- snapshot.node.command_range(snapshot.revert(line_range))
+              if !command.is_ignored
+              range <- line_range.try_restrict(snapshot.convert(command.range + command_start))
               r <- Isabelle.gfx_range(text_area, range)
               color <- Isabelle_Markup.status_color(snapshot, command)
             } {
@@ -220,8 +220,10 @@ class Text_Area_Painter(doc_view: Document_View)
         val chunk_color = chunk.style.getForegroundColor
 
         val markup =
-          painter_snapshot.select_markup(chunk_range)(Isabelle_Markup.foreground)
-            .map(_.restrict(chunk_range))
+          for {
+            x <- painter_snapshot.select_markup(chunk_range)(Isabelle_Markup.foreground)
+            y <- x.try_restrict(chunk_range)
+          } yield y
 
         gfx.setFont(chunk_font)
         if (!Debug.DISABLE_GLYPH_VECTOR && chunk.gv != null &&
@@ -233,11 +235,10 @@ class Text_Area_Painter(doc_view: Document_View)
         else if (!markup.isEmpty) {
           var x1 = x + w
           for {
-            Text.Info(r, info) <-
+            Text.Info(range, info) <-
               Iterator(Text.Info(Text.Range(chunk_range.start, markup.head.range.start), None)) ++
               markup.iterator ++
               Iterator(Text.Info(Text.Range(markup.last.range.stop, chunk_range.stop), None))
-            val range = r.restrict(chunk_range)
             if !range.is_singularity
           } {
             val str = chunk.str.substring(range.start - chunk_offset, range.stop - chunk_offset)

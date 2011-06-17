@@ -43,6 +43,10 @@ object Text
 
     def restrict(that: Range): Range =
       Range(this.start max that.start, this.stop min that.stop)
+
+    def try_restrict(that: Range): Option[Range] =
+      try { Some (restrict(that)) }
+      catch { case _: RuntimeException => None }
   }
 
 
@@ -51,6 +55,9 @@ object Text
   case class Info[A](val range: Text.Range, val info: A)
   {
     def restrict(r: Text.Range): Info[A] = Info(range.restrict(r), info)
+    def try_restrict(r: Text.Range): Option[Info[A]] =
+      try { Some(Info(range.restrict(r), info)) }
+      catch { case _: RuntimeException => None }
   }
 
 
