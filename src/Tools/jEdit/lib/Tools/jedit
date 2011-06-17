@@ -24,6 +24,7 @@ declare -a SOURCES=(
   "src/scala_console.scala"
   "src/session_dockable.scala"
   "src/text_area_painter.scala"
+  "src/token_markup.scala"
 )
 
 declare -a RESOURCES=(
@@ -142,6 +143,11 @@ done
 
 ## dependencies
 
+[ -e "$ISABELLE_HOME/Admin/build" ] && \
+  { "$ISABELLE_HOME/Admin/build" "$BUILD_JARS" || exit $?; }
+
+PURE_JAR="$ISABELLE_HOME/lib/classes/Pure.jar"
+
 pushd "$JEDIT_HOME" >/dev/null || failed
 
 JEDIT_JAR="$ISABELLE_JEDIT_BUILD_HOME/contrib/$ISABELLE_JEDIT_BUILD_VERSION/jedit.jar"
@@ -176,9 +182,9 @@ else
     OUTDATED=true
   else
     if [ -n "$ISABELLE_JEDIT_BUILD_HOME" ]; then
-      declare -a DEPS=("${SOURCES[@]}" "${RESOURCES[@]}" "$JEDIT_JAR" "${JEDIT_JARS[@]}")
+      declare -a DEPS=("${SOURCES[@]}" "${RESOURCES[@]}" "$PURE_JAR" "$JEDIT_JAR" "${JEDIT_JARS[@]}")
     else
-      declare -a DEPS=("${SOURCES[@]}" "${RESOURCES[@]}")
+      declare -a DEPS=("${SOURCES[@]}" "${RESOURCES[@]}" "$PURE_JAR")
     fi
     for DEP in "${DEPS[@]}"
     do
@@ -196,11 +202,6 @@ fi
 
 if [ "$OUTDATED" = true ]
 then
-  [ -z "$SCALA_HOME" ] && fail "Unknown SCALA_HOME -- Scala unavailable"
-
-  [ -e "$ISABELLE_HOME/Admin/build" ] && \
-    { "$ISABELLE_HOME/Admin/build" "$BUILD_JARS" || exit $?; }
-
   echo "###"
   echo "### Building Isabelle/jEdit ..."
   echo "###"
@@ -233,9 +234,7 @@ then
       print qq,<MODE NAME="scala" FILE="scala.xml" FILE_NAME_GLOB="*.scala" />\n\n,; }
     print; }' dist/modes/catalog
 
-  cp -a "${JEDIT_JARS[@]}" "${SCALA_JARS[@]}" "$ISABELLE_HOME/lib/classes/Pure.jar" \
-    dist/jars/. || failed
-
+  cp -a "${JEDIT_JARS[@]}" "${SCALA_JARS[@]}" "$PURE_JAR" dist/jars/. || failed
   (
     for JAR in "$JEDIT_JAR" "${JEDIT_JARS[@]}" "$SCALA_HOME/lib/scala-compiler.jar"
     do

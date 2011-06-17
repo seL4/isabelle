@@ -18,6 +18,16 @@ import java.io.{File, InputStream, BufferedInputStream, FileInputStream}
 
 object Scan
 {
+  /** context of partial scans **/
+
+  sealed abstract class Context
+  case object Finished extends Context
+  case class Quoted(quote: String) extends Context
+  case object Verbatim extends Context
+  case class Comment(depth: Int) extends Context
+
+
+
   /** Lexicon -- position tree **/
 
   object Lexicon
@@ -116,6 +126,12 @@ object Scan
     override val whiteSpace = "".r
 
 
+    /* optional termination */
+
+    def opt_term[T](p: => Parser[T]): Parser[Option[T]] =
+      p ^^ (x => Some(x)) | """\z""".r ^^ (_ => None)
+
+
     /* keywords from lexicon */
 
     def keyword: Parser[String] = new Parser[String]
@@ -178,12 +194,15 @@ object Scan
 
     /* quoted strings */
 
+    private def quoted_body(quote: String): Parser[String] =
+    {
+      rep(many1(sym => sym != quote && sym != "\\") | "\\" + quote | "\\\\" |
+        (("""\\\d\d\d""".r) ^? { case x if x.substring(1, 4).toInt <= 255 => x })) ^^ (_.mkString)
+    }
+
     private def quoted(quote: String): Parser[String] =
     {
-      quote ~
-        rep(many1(sym => sym != quote && sym != "\\") | "\\" + quote | "\\\\" |
-          (("""\\\d\d\d""".r) ^? { case x if x.substring(1, 4).toInt <= 255 => x })) ~
-      quote ^^ { case x ~ ys ~ z => x + ys.mkString + z }
+      quote ~ quoted_body(quote) ~ quote ^^ { case x ~ y ~ z => x + y + z }
     }.named("quoted")
 
     def quoted_content(quote: String, source: String): String =
@@ -199,13 +218,30 @@ object Scan
       else body
     }
 
+    def quoted_context(quote: String, ctxt: Context): Parser[(String, Context)] =
+    {
+      ctxt match {
+        case Finished =>
+          quote ~ quoted_body(quote) ~ opt_term(quote) ^^
+            { case x ~ y ~ Some(z) => (x + y + z, Finished)
+              case x ~ y ~ None => (x + y, Quoted(quote)) }
+        case Quoted(q) if q == quote =>
+          quoted_body(quote) ~ opt_term(quote) ^^
+            { case x ~ Some(y) => (x + y, Finished)
+              case x ~ None => (x, ctxt) }
+        case _ => failure("")
+      }
+    }.named("quoted_context")
+
 
     /* verbatim text */
 
+    private def verbatim_body: Parser[String] =
+      rep(many1(sym => sym != "*") | """\*(?!\})""".r) ^^ (_.mkString)
+
     private def verbatim: Parser[String] =
     {
-      "{*" ~ rep(many1(sym => sym != "*") | """\*(?!\})""".r) ~ "*}" ^^
-        { case x ~ ys ~ z => x + ys.mkString + z }
+      "{*" ~ verbatim_body ~ "*}" ^^ { case x ~ y ~ z => x + y + z }
     }.named("verbatim")
 
     def verbatim_content(source: String): String =
@@ -214,11 +250,28 @@ object Scan
       source.substring(2, source.length - 2)
     }
 
+    def verbatim_context(ctxt: Context): Parser[(String, Context)] =
+    {
+      ctxt match {
+        case Finished =>
+          "{*" ~ verbatim_body ~ opt_term("*}") ^^
+            { case x ~ y ~ Some(z) => (x + y + z, Finished)
+              case x ~ y ~ None => (x + y, Verbatim) }
+        case Verbatim =>
+          verbatim_body ~ opt_term("*}") ^^
+            { case x ~ Some(y) => (x + y, Finished)
+              case x ~ None => (x, Verbatim) }
+        case _ => failure("")
+      }
+    }.named("verbatim_context")
+
 
     /* nested comments */
 
-    def comment: Parser[String] = new Parser[String]
+    private def comment_depth(depth: Int): Parser[(String, Int)] = new Parser[(String, Int)]
     {
+      require(depth >= 0)
+
       val comment_text =
         rep1(many1(sym => sym != "*" && sym != "(") | """\*(?!\))|\((?!\*)""".r)
 
@@ -232,18 +285,36 @@ object Scan
             case _ => false
           }
         }
-        var depth = 0
+        var d = depth
         var finished = false
         while (!finished) {
-          if (try_parse("(*")) depth += 1
-          else if (depth > 0 && try_parse("*)")) depth -= 1
-          else if (depth == 0 || !try_parse(comment_text)) finished = true
+          if (try_parse("(*")) d += 1
+          else if (d > 0 && try_parse("*)")) d -= 1
+          else if (d == 0 || !try_parse(comment_text)) finished = true
         }
-        if (in.offset < rest.offset && depth == 0)
-          Success(in.source.subSequence(in.offset, rest.offset).toString, rest)
+        if (in.offset < rest.offset)
+          Success((in.source.subSequence(in.offset, rest.offset).toString, d), rest)
         else Failure("comment expected", in)
       }
-    }.named("comment")
+    }.named("comment_depth")
+
+    def comment: Parser[String] =
+      comment_depth(0) ^? { case (x, d) if d == 0 => x }
+
+    def comment_context(ctxt: Context): Parser[(String, Context)] =
+    {
+      val depth =
+        ctxt match {
+          case Finished => 0
+          case Comment(d) => d
+          case _ => -1
+        }
+      if (depth >= 0)
+        comment_depth(depth) ^^
+          { case (x, 0) => (x, Finished)
+            case (x, d) => (x, Comment(d)) }
+      else failure("")
+    }
 
     def comment_content(source: String): String =
     {
@@ -254,7 +325,18 @@ object Scan
 
     /* outer syntax tokens */
 
-    def token(symbols: Symbol.Interpretation, is_command: String => Boolean): Parser[Token] =
+    private def delimited_token: Parser[Token] =
+    {
+      val string = quoted("\"") ^^ (x => Token(Token.Kind.STRING, x))
+      val alt_string = quoted("`") ^^ (x => Token(Token.Kind.ALT_STRING, x))
+      val verb = verbatim ^^ (x => Token(Token.Kind.VERBATIM, x))
+      val cmt = comment ^^ (x => Token(Token.Kind.COMMENT, x))
+
+      string | (alt_string | (verb | cmt))
+    }
+
+    private def other_token(symbols: Symbol.Interpretation, is_command: String => Boolean)
+      : Parser[Token] =
     {
       val id = one(symbols.is_letter) ~ many(symbols.is_letdig) ^^ { case x ~ y => x + y }
       val nat = many1(symbols.is_digit)
@@ -278,23 +360,37 @@ object Scan
 
       val space = many1(symbols.is_blank) ^^ (x => Token(Token.Kind.SPACE, x))
 
-      val string = quoted("\"") ^^ (x => Token(Token.Kind.STRING, x))
-      val alt_string = quoted("`") ^^ (x => Token(Token.Kind.ALT_STRING, x))
+      // FIXME check
+      val junk = many(sym => !(symbols.is_blank(sym)))
+      val junk1 = many1(sym => !(symbols.is_blank(sym)))
 
-      val junk = many1(sym => !(symbols.is_blank(sym)))
       val bad_delimiter =
         ("\"" | "`" | "{*" | "(*") ~ junk ^^ { case x ~ y => Token(Token.Kind.UNPARSED, x + y) }
-      val bad = junk ^^ (x => Token(Token.Kind.UNPARSED, x))
+      val bad = junk1 ^^ (x => Token(Token.Kind.UNPARSED, x))
 
+      val command_keyword =
+        keyword ^^ (x => Token(if (is_command(x)) Token.Kind.COMMAND else Token.Kind.KEYWORD, x))
 
-      /* tokens */
+      space | (bad_delimiter |
+        (((ident | (var_ | (type_ident | (type_var | (float | (nat_ | sym_ident)))))) |||
+          command_keyword) | bad))
+    }
 
-      (space | (string | (alt_string | (verbatim ^^ (x => Token(Token.Kind.VERBATIM, x)) |
-        comment ^^ (x => Token(Token.Kind.COMMENT, x)))))) |
-      bad_delimiter |
-      ((ident | (var_ | (type_ident | (type_var | (float | (nat_ | sym_ident)))))) |||
-        keyword ^^ (x => Token(if (is_command(x)) Token.Kind.COMMAND else Token.Kind.KEYWORD, x))) |
-      bad
+    def token(symbols: Symbol.Interpretation, is_command: String => Boolean): Parser[Token] =
+      delimited_token | other_token(symbols, is_command)
+
+    def token_context(symbols: Symbol.Interpretation, is_command: String => Boolean, ctxt: Context)
+      : Parser[(Token, Context)] =
+    {
+      val string =
+        quoted_context("\"", ctxt) ^^ { case (x, c) => (Token(Token.Kind.STRING, x), c) }
+      val alt_string =
+        quoted_context("`", ctxt) ^^ { case (x, c) => (Token(Token.Kind.ALT_STRING, x), c) }
+      val verb = verbatim_context(ctxt) ^^ { case (x, c) => (Token(Token.Kind.VERBATIM, x), c) }
+      val cmt = comment_context(ctxt) ^^ { case (x, c) => (Token(Token.Kind.COMMENT, x), c) }
+      val other = other_token(symbols, is_command) ^^ { case x => (x, Finished) }
+
+      string | (alt_string | (verb | (cmt | other)))
     }
   }
 

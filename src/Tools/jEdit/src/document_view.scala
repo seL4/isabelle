@@ -69,21 +69,21 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   private val session = model.session
 
 
-  /** robust extension body **/
+  /* robust extension body */
 
   def robust_body[A](default: A)(body: => A): A =
-    Swing_Thread.now {
-      try {
-        Isabelle.buffer_lock(model.buffer) {
-          if (model.buffer == text_area.getBuffer) body
-          else default
-        }
+  {
+    try {
+      Swing_Thread.require()
+      if (model.buffer == text_area.getBuffer) body
+      else {
+        // FIXME Log.log(Log.ERROR, this, new RuntimeException("Inconsistent document model"))
+        default
       }
-      catch { case t: Throwable => Log.log(Log.ERROR, this, t); default }
     }
+    catch { case t: Throwable => Log.log(Log.ERROR, this, t); default }
+  }
 
-
-  /** token handling **/
 
   /* visible line ranges */
 
@@ -107,6 +107,31 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     text_area.invalidateLineRange(
       model.buffer.getLineOfOffset(range.start),
       model.buffer.getLineOfOffset(range.stop))
+  }
+
+
+  /* snapshot */
+
+  // owned by Swing thread
+  @volatile private var was_outdated = false
+  @volatile private var was_updated = false
+
+  def update_snapshot(): Document.Snapshot =
+  {
+    Swing_Thread.require()
+    val snapshot = model.snapshot()
+    was_updated = was_outdated && !snapshot.is_outdated
+    was_outdated = was_outdated || snapshot.is_outdated
+    snapshot
+  }
+
+  def flush_snapshot(): (Boolean, Document.Snapshot) =
+  {
+    Swing_Thread.require()
+    val snapshot = update_snapshot()
+    val updated = was_updated
+    if (updated) { was_outdated = false; was_updated = false }
+    (updated, snapshot)
   }
 
 
@@ -194,7 +219,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       if (!model.buffer.isLoaded) exit_control()
       else
         Isabelle.swing_buffer_lock(model.buffer) {
-          val snapshot = model.snapshot
+          val snapshot = update_snapshot()
 
           if (control) init_popup(snapshot, x, y)
 
@@ -215,7 +240,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
     override def getToolTipText(x: Int, y: Int): String =
     {
       robust_body(null: String) {
-        val snapshot = model.snapshot()
+        val snapshot = update_snapshot()
         val offset = text_area.xyToOffset(x, y)
         if (control) {
           snapshot.select_markup(Text.Range(offset, offset + 1))(Isabelle_Markup.tooltip) match
@@ -247,14 +272,14 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
         val width = GutterOptionPane.getSelectionAreaWidth
         val border_width = jEdit.getIntegerProperty("view.gutter.borderWidth", 3)
         val FOLD_MARKER_SIZE = 12
-  
+
         if (gutter.isSelectionAreaEnabled && !gutter.isExpanded && width >= 12 && line_height >= 12) {
           Isabelle.swing_buffer_lock(model.buffer) {
-            val snapshot = model.snapshot()
+            val snapshot = update_snapshot()
             for (i <- 0 until physical_lines.length) {
               if (physical_lines(i) != -1) {
                 val line_range = proper_line_range(start(i), end(i))
-  
+
                 // gutter icons
                 val icons =
                   (for (Text.Info(_, Some(icon)) <- // FIXME snapshot.cumulate
@@ -282,7 +307,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   def selected_command(): Option[Command] =
   {
     Swing_Thread.require()
-    model.snapshot().node.proper_command_at(text_area.getCaretPosition)
+    update_snapshot().node.proper_command_at(text_area.getCaretPosition)
   }
 
   private val caret_listener = new CaretListener {
@@ -329,7 +354,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
 
       val buffer = model.buffer
       Isabelle.buffer_lock(buffer) {
-        val snapshot = model.snapshot()
+        val snapshot = update_snapshot()
 
         def line_range(command: Command, start: Text.Offset): Option[(Int, Int)] =
         {
@@ -370,26 +395,26 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
         case Session.Commands_Changed(changed) =>
           val buffer = model.buffer
           Isabelle.swing_buffer_lock(buffer) {
-            val snapshot = model.snapshot()
+            val (updated, snapshot) = flush_snapshot()
+            val visible_range = screen_lines_range()
 
-            if (changed.exists(snapshot.node.commands.contains))
+            if (updated || changed.exists(snapshot.node.commands.contains))
               overview.repaint()
 
-            val visible_range = screen_lines_range()
-            val visible_cmds = snapshot.node.command_range(snapshot.revert(visible_range)).map(_._1)
-            if (visible_cmds.exists(changed)) {
-              for {
-                line <- 0 until text_area.getVisibleLines
-                val start = text_area.getScreenLineStartOffset(line) if start >= 0
-                val end = text_area.getScreenLineEndOffset(line) if end >= 0
-                val range = proper_line_range(start, end)
-                val line_cmds = snapshot.node.command_range(snapshot.revert(range)).map(_._1)
-                if line_cmds.exists(changed)
-              } text_area.invalidateScreenLineRange(line, line)
-
-              // FIXME danger of deadlock!?
-              // FIXME potentially slow!?
-              model.buffer.propertiesChanged()
+            if (updated) invalidate_line_range(visible_range)
+            else {
+              val visible_cmds =
+                snapshot.node.command_range(snapshot.revert(visible_range)).map(_._1)
+              if (visible_cmds.exists(changed)) {
+                for {
+                  line <- 0 until text_area.getVisibleLines
+                  val start = text_area.getScreenLineStartOffset(line) if start >= 0
+                  val end = text_area.getScreenLineEndOffset(line) if end >= 0
+                  val range = proper_line_range(start, end)
+                  val line_cmds = snapshot.node.command_range(snapshot.revert(range)).map(_._1)
+                  if line_cmds.exists(changed)
+                } text_area.invalidateScreenLineRange(line, line)
+              }
             }
           }
 

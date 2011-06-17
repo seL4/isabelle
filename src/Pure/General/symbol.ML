@@ -134,7 +134,7 @@ fun is_malformed s = String.isPrefix "\\<" s andalso not (String.isSuffix ">" s)
 fun malformed_msg s = "Malformed symbolic character: " ^ quote s;
 
 
-(* ascii symbols *)
+(* ASCII symbols *)
 
 fun is_ascii s = is_char s andalso ord s < 128;
 

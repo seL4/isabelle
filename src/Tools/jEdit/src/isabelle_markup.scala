@@ -12,7 +12,7 @@ import isabelle._
 import java.awt.Color
 
 import org.lobobrowser.util.gui.ColorFactory
-import org.gjt.sp.jedit.syntax.Token
+import org.gjt.sp.jedit.syntax.{Token => JEditToken}
 
 
 object Isabelle_Markup
@@ -108,6 +108,14 @@ object Isabelle_Markup
     case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => light_color
   }
 
+  /* FIXME update
+      Markup.ML_SOURCE -> COMMENT3,
+      Markup.DOC_SOURCE -> COMMENT3,
+      Markup.ANTIQ -> COMMENT4,
+      Markup.ML_ANTIQ -> COMMENT4,
+      Markup.DOC_ANTIQ -> COMMENT4,
+  */
+
   private val foreground_colors: Map[String, Color] =
     Map(
       Markup.TCLASS -> get_color("red"),
@@ -172,7 +180,7 @@ object Isabelle_Markup
 
   private val command_style: Map[String, Byte] =
   {
-    import Token._
+    import JEditToken._
     Map[String, Byte](
       Keyword.THY_END -> KEYWORD2,
       Keyword.THY_SCRIPT -> LABEL,
@@ -182,39 +190,32 @@ object Isabelle_Markup
     ).withDefaultValue(KEYWORD1)
   }
 
-  private val token_style: Map[String, Byte] =
+  private val token_style: Map[Token.Kind.Value, Byte] =
   {
-    import Token._
-    Map[String, Byte](
-      // embedded source text
-      Markup.ML_SOURCE -> COMMENT3,
-      Markup.DOC_SOURCE -> COMMENT3,
-      Markup.ANTIQ -> COMMENT4,
-      Markup.ML_ANTIQ -> COMMENT4,
-      Markup.DOC_ANTIQ -> COMMENT4,
-      // outer syntax
-      Markup.KEYWORD -> KEYWORD2,
-      Markup.OPERATOR -> OPERATOR,
-      Markup.COMMAND -> KEYWORD1,
-      Markup.IDENT -> NULL,
-      Markup.VERBATIM -> COMMENT3,
-      Markup.COMMENT -> COMMENT1,
-      Markup.CONTROL -> COMMENT3,
-      Markup.MALFORMED -> INVALID,
-      Markup.STRING -> LITERAL3,
-      Markup.ALTSTRING -> LITERAL1
+    import JEditToken._
+    Map[Token.Kind.Value, Byte](
+      Token.Kind.KEYWORD -> KEYWORD2,
+      Token.Kind.IDENT -> NULL,
+      Token.Kind.LONG_IDENT -> NULL,
+      Token.Kind.SYM_IDENT -> NULL,
+      Token.Kind.VAR -> NULL,
+      Token.Kind.TYPE_IDENT -> NULL,
+      Token.Kind.TYPE_VAR -> NULL,
+      Token.Kind.NAT -> NULL,
+      Token.Kind.FLOAT -> NULL,
+      Token.Kind.STRING -> LITERAL3,
+      Token.Kind.ALT_STRING -> LITERAL1,
+      Token.Kind.VERBATIM -> COMMENT3,
+      Token.Kind.SPACE -> NULL,
+      Token.Kind.COMMENT -> COMMENT1,
+      Token.Kind.UNPARSED -> INVALID
     ).withDefaultValue(NULL)
   }
 
-  def tokens(syntax: Outer_Syntax): Markup_Tree.Select[Byte] =
-  {
-    case Text.Info(_, XML.Elem(Markup(Markup.COMMAND, List((Markup.NAME, name))), _))
-    if syntax.keyword_kind(name).isDefined => command_style(syntax.keyword_kind(name).get)
-
-    case Text.Info(_, XML.Elem(Markup(Markup.ENTITY, Markup.Kind(kind)), _))
-    if token_style(kind) != Token.NULL => token_style(kind)
-
-    case Text.Info(_, XML.Elem(Markup(name, _), _))
-    if token_style(name) != Token.NULL => token_style(name)
-  }
+  def token_markup(syntax: Outer_Syntax, token: Token): Byte =
+    if (token.is_command)
+      command_style(syntax.keyword_kind(token.content).getOrElse(""))
+    else if (token.is_keyword && !Symbol.is_ascii_identifier(token.content))
+      JEditToken.OPERATOR
+    else token_style(token.kind)
 }

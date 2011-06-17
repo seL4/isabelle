@@ -53,7 +53,7 @@ class Text_Area_Painter(doc_view: Document_View)
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
       doc_view.robust_body(()) {
-        painter_snapshot = model.snapshot()
+        painter_snapshot = doc_view.update_snapshot()
         painter_clip = gfx.getClip
       }
     }
@@ -231,7 +231,11 @@ class Text_Area_Painter(doc_view: Document_View)
         else {
           var x1 = x + w
           for (Text.Info(range, info) <- markup) {
-            val str = chunk.str.substring(range.start - chunk_offset, range.stop - chunk_offset)
+            // FIXME proper range!?
+            val str =
+              chunk.str.substring(
+                (range.start - chunk_offset) max 0,
+                (range.stop - chunk_offset) min chunk_length)
             gfx.setColor(info.getOrElse(chunk_color))
             if (range.contains(caret_offset)) {
               val astr = new AttributedString(str)

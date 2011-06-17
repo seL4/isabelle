@@ -14,44 +14,13 @@ import scala.collection.mutable
 
 import org.gjt.sp.jedit.Buffer
 import org.gjt.sp.jedit.buffer.{BufferAdapter, BufferListener, JEditBuffer}
-import org.gjt.sp.jedit.syntax.{SyntaxStyle, Token, TokenMarker, TokenHandler, ParserRuleSet}
 import org.gjt.sp.jedit.textarea.TextArea
 
 import java.awt.font.TextAttribute
-import javax.swing.text.Segment;
 
 
 object Document_Model
 {
-  object Token_Markup
-  {
-    /* extended token styles */
-
-    private val plain_range: Int = Token.ID_COUNT
-    private def check_range(i: Int) { require(0 <= i && i < plain_range) }
-
-    def subscript(i: Byte): Byte = { check_range(i); (i + plain_range).toByte }
-    def superscript(i: Byte): Byte = { check_range(i); (i + 2 * plain_range).toByte }
-    val hidden: Byte = (3 * plain_range).toByte
-
-
-    /* line context */
-
-    private val dummy_rules = new ParserRuleSet("isabelle", "MAIN")
-
-    class Line_Context(val line: Int, prev: Line_Context)
-      extends TokenMarker.LineContext(dummy_rules, prev)
-    {
-      override def hashCode: Int = line
-      override def equals(that: Any): Boolean =
-        that match {
-          case other: Line_Context => line == other.line
-          case _ => false
-        }
-    }
-  }
-
-
   /* document model of buffer */
 
   private val key = "isabelle.document_model"
@@ -160,46 +129,9 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
   }
 
 
-  /* semantic token marker */
+  /* token marker */
 
-  private val token_marker = new TokenMarker
-  {
-    override def markTokens(prev: TokenMarker.LineContext,
-        handler: TokenHandler, line_segment: Segment): TokenMarker.LineContext =
-    {
-      Isabelle.swing_buffer_lock(buffer) {
-        val snapshot = Document_Model.this.snapshot()
-
-        val previous = prev.asInstanceOf[Document_Model.Token_Markup.Line_Context]
-        val line = if (prev == null) 0 else previous.line + 1
-        val context = new Document_Model.Token_Markup.Line_Context(line, previous)
-
-        val start = buffer.getLineStartOffset(line)
-        val stop = start + line_segment.count
-
-        def handle_token(style: Byte, offset: Text.Offset, length: Int) =
-          handler.handleToken(line_segment, style, offset, length, context)
-
-        val syntax = session.current_syntax()
-        val tokens = snapshot.select_markup(Text.Range(start, stop))(Isabelle_Markup.tokens(syntax))
-
-        var last = start
-        for (token <- tokens.iterator) {
-          val Text.Range(token_start, token_stop) = token.range
-          if (last < token_start)
-            handle_token(Token.COMMENT1, last - start, token_start - last)
-          handle_token(token.info getOrElse Token.NULL,
-            token_start - start, token_stop - token_start)
-          last = token_stop
-        }
-        if (last < stop) handle_token(Token.COMMENT1, last - start, stop - last)
-
-        handle_token(Token.END, line_segment.count, 0)
-        handler.setLineContext(context)
-        context
-      }
-    }
-  }
+  private val token_marker = Token_Markup.token_marker(session, buffer)
 
 
   /* activation */
