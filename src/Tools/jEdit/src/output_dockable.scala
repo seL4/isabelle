@@ -34,7 +34,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
         Document_View(view.getTextArea) match {
           case Some(doc_view) =>
             val cmd = current_command.get
-            val start_ofs = doc_view.model.snapshot().node.command_start(cmd).get
+            val start_ofs = doc_view.update_snapshot().node.command_start(cmd).get
             val buffer = view.getBuffer
             buffer.beginCompoundEdit()
             buffer.remove(start_ofs, cmd.length)
@@ -83,7 +83,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
         case Some(doc_view) =>
           current_command match {
             case Some(cmd) if !restriction.isDefined || restriction.get.contains(cmd) =>
-              val snapshot = doc_view.model.snapshot()
+              val snapshot = doc_view.update_snapshot()
               val filtered_results =
                 snapshot.state(cmd).results.iterator.map(_._2) filter {
                   case XML.Elem(Markup(Markup.TRACING, _), _) => show_tracing  // FIXME not scalable

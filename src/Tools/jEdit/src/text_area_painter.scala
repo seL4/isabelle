@@ -53,7 +53,7 @@ class Text_Area_Painter(doc_view: Document_View)
       start: Array[Int], end: Array[Int], y: Int, line_height: Int)
     {
       doc_view.robust_body(()) {
-        painter_snapshot = model.snapshot()
+        painter_snapshot = doc_view.update_snapshot()
         painter_clip = gfx.getClip
       }
     }
