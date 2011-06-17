@@ -219,7 +219,9 @@ class Text_Area_Painter(doc_view: Document_View)
         val chunk_font = chunk.style.getFont
         val chunk_color = chunk.style.getForegroundColor
 
-        val markup = painter_snapshot.select_markup(chunk_range)(Isabelle_Markup.foreground)
+        val markup =
+          painter_snapshot.select_markup(chunk_range)(Isabelle_Markup.foreground)
+            .map(_.restrict(chunk_range))
 
         gfx.setFont(chunk_font)
         if (!Debug.DISABLE_GLYPH_VECTOR && chunk.gv != null &&
@@ -228,14 +230,17 @@ class Text_Area_Painter(doc_view: Document_View)
           gfx.setColor(chunk_color)
           gfx.drawGlyphVector(chunk.gv, x + w, y)
         }
-        else {
+        else if (!markup.isEmpty) {
           var x1 = x + w
-          for (Text.Info(range, info) <- markup) {
-            // FIXME proper range!?
-            val str =
-              chunk.str.substring(
-                (range.start - chunk_offset) max 0,
-                (range.stop - chunk_offset) min chunk_length)
+          for {
+            Text.Info(r, info) <-
+              Iterator(Text.Info(Text.Range(chunk_range.start, markup.head.range.start), None)) ++
+              markup.iterator ++
+              Iterator(Text.Info(Text.Range(markup.last.range.stop, chunk_range.stop), None))
+            val range = r.restrict(chunk_range)
+            if !range.is_singularity
+          } {
+            val str = chunk.str.substring(range.start - chunk_offset, range.stop - chunk_offset)
             gfx.setColor(info.getOrElse(chunk_color))
             if (range.contains(caret_offset)) {
               val astr = new AttributedString(str)
