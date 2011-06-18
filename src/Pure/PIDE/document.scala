@@ -307,20 +307,8 @@ object Document
 
         def convert(offset: Text.Offset) = (offset /: edits)((i, edit) => edit.convert(i))
         def revert(offset: Text.Offset) = (offset /: reverse_edits)((i, edit) => edit.revert(i))
-
-        def convert(range: Text.Range): Text.Range =
-          try { if (edits.isEmpty) range else range.map(convert(_)) }
-          catch { // FIXME tmp
-            case e: IllegalArgumentException =>
-              System.err.println((true, range, edits)); throw(e)
-          }
-
-        def revert(range: Text.Range): Text.Range =
-          try { if (edits.isEmpty) range else range.map(revert(_)) }
-          catch { // FIXME tmp
-            case e: IllegalArgumentException =>
-              System.err.println((false, range, reverse_edits)); throw(e)
-          }
+        def convert(range: Text.Range) = (range /: edits)((r, edit) => edit.convert(r))
+        def revert(range: Text.Range) = (range /: reverse_edits)((r, edit) => edit.revert(r))
 
         def select_markup[A](range: Text.Range)(result: Markup_Tree.Select[A])
           : Stream[Text.Info[Option[A]]] =
@@ -334,9 +322,7 @@ object Document
                 if result.isDefinedAt(Text.Info(convert(r0 + command_start), info)) =>
                   result(Text.Info(convert(r0 + command_start), info))
               }
-            val r = convert(r0 + command_start)
-            if !r.is_singularity
-          } yield Text.Info(r, x)
+          } yield Text.Info(convert(r0 + command_start), x)
         }
       }
     }

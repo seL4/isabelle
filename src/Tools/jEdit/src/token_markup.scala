@@ -30,8 +30,8 @@ object Token_Markup
 
   private val isabelle_rules = new ParserRuleSet("isabelle", "MAIN")
 
-  private class Line_Context(val context: Scan.Context, prev: Line_Context)
-    extends TokenMarker.LineContext(isabelle_rules, prev)
+  private class Line_Context(val context: Scan.Context)
+    extends TokenMarker.LineContext(isabelle_rules, null)
   {
     override def hashCode: Int = context.hashCode
     override def equals(that: Any): Boolean =
@@ -43,16 +43,17 @@ object Token_Markup
 
   def token_marker(session: Session, buffer: Buffer): TokenMarker =
     new TokenMarker {
-      override def markTokens(raw_context: TokenMarker.LineContext,
+      override def markTokens(context: TokenMarker.LineContext,
           handler: TokenHandler, line: Segment): TokenMarker.LineContext =
       {
         val syntax = session.current_syntax()
-
-        val context = raw_context.asInstanceOf[Line_Context]
-        val ctxt = if (context == null) Scan.Finished else context.context
-
+        val ctxt =
+          context match {
+            case c: Line_Context => c.context
+            case _ => Scan.Finished
+          }
         val (tokens, ctxt1) = syntax.scan_context(line, ctxt)
-        val context1 = new Line_Context(ctxt1, context)
+        val context1 = new Line_Context(ctxt1)
 
         var offset = 0
         for (token <- tokens) {

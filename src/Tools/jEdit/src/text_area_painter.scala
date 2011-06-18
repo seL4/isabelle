@@ -90,10 +90,10 @@ class Text_Area_Painter(doc_view: Document_View)
             val line_range = doc_view.proper_line_range(start(i), end(i))
 
             // background color: status
-            val cmds = snapshot.node.command_range(snapshot.revert(line_range))
             for {
-              (command, command_start) <- cmds if !command.is_ignored
-              val range = line_range.restrict(snapshot.convert(command.range + command_start))
+              (command, command_start) <- snapshot.node.command_range(snapshot.revert(line_range))
+              if !command.is_ignored
+              range <- line_range.try_restrict(snapshot.convert(command.range + command_start))
               r <- Isabelle.gfx_range(text_area, range)
               color <- Isabelle_Markup.status_color(snapshot, command)
             } {
@@ -119,18 +119,6 @@ class Text_Area_Painter(doc_view: Document_View)
             } {
               gfx.setColor(color)
               gfx.fillRect(r.x + 2, y + i * line_height + 2, r.length - 4, line_height - 4)
-            }
-
-            // sub-expression highlighting -- potentially from other snapshot
-            doc_view.highlight_range match {
-              case Some((range, color)) if line_range.overlaps(range) =>
-                Isabelle.gfx_range(text_area, line_range.restrict(range)) match {
-                  case None =>
-                  case Some(r) =>
-                    gfx.setColor(color)
-                    gfx.drawRect(r.x, y + i * line_height, r.length - 1, line_height - 1)
-                }
-              case _ =>
             }
 
             // squiggly underline
@@ -219,7 +207,11 @@ class Text_Area_Painter(doc_view: Document_View)
         val chunk_font = chunk.style.getFont
         val chunk_color = chunk.style.getForegroundColor
 
-        val markup = painter_snapshot.select_markup(chunk_range)(Isabelle_Markup.foreground)
+        val markup =
+          for {
+            x <- painter_snapshot.select_markup(chunk_range)(Isabelle_Markup.text_color)
+            y <- x.try_restrict(chunk_range)
+          } yield y
 
         gfx.setFont(chunk_font)
         if (!Debug.DISABLE_GLYPH_VECTOR && chunk.gv != null &&
@@ -228,14 +220,16 @@ class Text_Area_Painter(doc_view: Document_View)
           gfx.setColor(chunk_color)
           gfx.drawGlyphVector(chunk.gv, x + w, y)
         }
-        else {
+        else if (!markup.isEmpty) {
           var x1 = x + w
-          for (Text.Info(range, info) <- markup) {
-            // FIXME proper range!?
-            val str =
-              chunk.str.substring(
-                (range.start - chunk_offset) max 0,
-                (range.stop - chunk_offset) min chunk_length)
+          for {
+            Text.Info(range, info) <-
+              Iterator(Text.Info(Text.Range(chunk_range.start, markup.head.range.start), None)) ++
+              markup.iterator ++
+              Iterator(Text.Info(Text.Range(markup.last.range.stop, chunk_range.stop), None))
+            if !range.is_singularity
+          } {
+            val str = chunk.str.substring(range.start - chunk_offset, range.stop - chunk_offset)
             gfx.setColor(info.getOrElse(chunk_color))
             if (range.contains(caret_offset)) {
               val astr = new AttributedString(str)
@@ -298,6 +292,39 @@ class Text_Area_Painter(doc_view: Document_View)
   }
 
 
+  /* foreground */
+
+  private val foreground_painter = new TextAreaExtension
+  {
+    override def paintScreenLineRange(gfx: Graphics2D,
+      first_line: Int, last_line: Int, physical_lines: Array[Int],
+      start: Array[Int], end: Array[Int], y: Int, line_height: Int)
+    {
+      doc_view.robust_body(()) {
+        val snapshot = painter_snapshot
+
+        for (i <- 0 until physical_lines.length) {
+          if (physical_lines(i) != -1) {
+            val line_range = doc_view.proper_line_range(start(i), end(i))
+
+            // highlighted range -- potentially from other snapshot
+            doc_view.highlight_range match {
+              case Some((range, color)) if line_range.overlaps(range) =>
+                Isabelle.gfx_range(text_area, line_range.restrict(range)) match {
+                  case None =>
+                  case Some(r) =>
+                    gfx.setColor(color)
+                    gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
+                }
+              case _ =>
+            }
+          }
+        }
+      }
+    }
+  }
+
+
   /* caret -- outside of text range */
 
   private class Caret_Painter(before: Boolean) extends TextAreaExtension
@@ -353,6 +380,7 @@ class Text_Area_Painter(doc_view: Document_View)
     painter.addExtension(TextAreaPainter.BLOCK_CARET_LAYER - 1, before_caret_painter2)
     painter.addExtension(TextAreaPainter.BLOCK_CARET_LAYER + 1, after_caret_painter2)
     painter.addExtension(TextAreaPainter.BLOCK_CARET_LAYER + 2, caret_painter)
+    painter.addExtension(500, foreground_painter)
     painter.addExtension(TextAreaPainter.HIGHEST_LAYER, reset_state)
     painter.removeExtension(orig_text_painter)
   }
@@ -362,6 +390,7 @@ class Text_Area_Painter(doc_view: Document_View)
     val painter = text_area.getPainter
     painter.addExtension(TextAreaPainter.TEXT_LAYER, orig_text_painter)
     painter.removeExtension(reset_state)
+    painter.removeExtension(foreground_painter)
     painter.removeExtension(caret_painter)
     painter.removeExtension(after_caret_painter2)
     painter.removeExtension(before_caret_painter2)
