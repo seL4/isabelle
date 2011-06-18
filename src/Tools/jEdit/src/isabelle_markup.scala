@@ -112,6 +112,9 @@ object Isabelle_Markup
 
   private val text_colors: Map[String, Color] =
     Map(
+      Markup.LITERAL -> keyword1_color,
+      Markup.DELIMITER -> get_color("black"),
+      Markup.IDENT -> get_color("black"),
       Markup.TCLASS -> get_color("red"),
       Markup.TFREE -> get_color("#A020F0"),
       Markup.TVAR -> get_color("#A020F0"),
@@ -123,8 +126,6 @@ object Isabelle_Markup
       Markup.INNER_STRING -> get_color("#D2691E"),
       Markup.INNER_COMMENT -> get_color("#8B0000"),
       Markup.DYNAMIC_FACT -> get_color("yellowgreen"),
-      Markup.LITERAL -> keyword1_color,
-      Markup.DELIMITER -> get_color("black"),
       Markup.ML_KEYWORD -> keyword1_color,
       Markup.ML_DELIMITER -> get_color("black"),
       Markup.ML_NUMERAL -> get_color("red"),
