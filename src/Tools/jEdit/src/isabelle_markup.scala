@@ -108,7 +108,7 @@ object Isabelle_Markup
     case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => light_color
   }
 
-  private val foreground_colors: Map[String, Color] =
+  private val text_colors: Map[String, Color] =
     Map(
       Markup.TCLASS -> get_color("red"),
       Markup.TFREE -> get_color("#A020F0"),
@@ -132,10 +132,10 @@ object Isabelle_Markup
       Markup.ML_MALFORMED -> get_color("#FF6A6A"),
       Markup.ANTIQ -> get_color("blue"))
 
-  val foreground: Markup_Tree.Select[Color] =
+  val text_color: Markup_Tree.Select[Color] =
   {
     case Text.Info(_, XML.Elem(Markup(m, _), _))
-    if foreground_colors.isDefinedAt(m) => foreground_colors(m)
+    if text_colors.isDefinedAt(m) => text_colors(m)
   }
 
   private val tooltips: Map[String, String] =

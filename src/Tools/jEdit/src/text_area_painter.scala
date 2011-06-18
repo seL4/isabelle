@@ -221,7 +221,7 @@ class Text_Area_Painter(doc_view: Document_View)
 
         val markup =
           for {
-            x <- painter_snapshot.select_markup(chunk_range)(Isabelle_Markup.foreground)
+            x <- painter_snapshot.select_markup(chunk_range)(Isabelle_Markup.text_color)
             y <- x.try_restrict(chunk_range)
           } yield y
 
