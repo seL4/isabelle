@@ -33,6 +33,8 @@ object Isabelle_Markup
   val bad_color = new Color(255, 106, 106, 100)
   val hilite_color = new Color(255, 204, 102, 100)
 
+  val subexp_color = new Color(0xC0, 0xC0, 0xC0, 100)
+
   val keyword1_color = get_color("#006699")
   val keyword2_color = get_color("#009966")
 
@@ -172,7 +174,7 @@ object Isabelle_Markup
   val subexp: Markup_Tree.Select[(Text.Range, Color)] =
   {
     case Text.Info(range, XML.Elem(Markup(name, _), _)) if subexp_include(name) =>
-      (range, Color.black)
+      (range, subexp_color)
   }
 
 

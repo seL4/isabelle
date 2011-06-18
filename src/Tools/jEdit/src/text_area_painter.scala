@@ -121,18 +121,6 @@ class Text_Area_Painter(doc_view: Document_View)
               gfx.fillRect(r.x + 2, y + i * line_height + 2, r.length - 4, line_height - 4)
             }
 
-            // sub-expression highlighting -- potentially from other snapshot
-            doc_view.highlight_range match {
-              case Some((range, color)) if line_range.overlaps(range) =>
-                Isabelle.gfx_range(text_area, line_range.restrict(range)) match {
-                  case None =>
-                  case Some(r) =>
-                    gfx.setColor(color)
-                    gfx.drawRect(r.x, y + i * line_height, r.length - 1, line_height - 1)
-                }
-              case _ =>
-            }
-
             // squiggly underline
             for {
               Text.Info(range, Some(color)) <-
@@ -304,6 +292,39 @@ class Text_Area_Painter(doc_view: Document_View)
   }
 
 
+  /* foreground */
+
+  private val foreground_painter = new TextAreaExtension
+  {
+    override def paintScreenLineRange(gfx: Graphics2D,
+      first_line: Int, last_line: Int, physical_lines: Array[Int],
+      start: Array[Int], end: Array[Int], y: Int, line_height: Int)
+    {
+      doc_view.robust_body(()) {
+        val snapshot = painter_snapshot
+
+        for (i <- 0 until physical_lines.length) {
+          if (physical_lines(i) != -1) {
+            val line_range = doc_view.proper_line_range(start(i), end(i))
+
+            // highlighted range -- potentially from other snapshot
+            doc_view.highlight_range match {
+              case Some((range, color)) if line_range.overlaps(range) =>
+                Isabelle.gfx_range(text_area, line_range.restrict(range)) match {
+                  case None =>
+                  case Some(r) =>
+                    gfx.setColor(color)
+                    gfx.fillRect(r.x, y + i * line_height, r.length, line_height)
+                }
+              case _ =>
+            }
+          }
+        }
+      }
+    }
+  }
+
+
   /* caret -- outside of text range */
 
   private class Caret_Painter(before: Boolean) extends TextAreaExtension
@@ -359,6 +380,7 @@ class Text_Area_Painter(doc_view: Document_View)
     painter.addExtension(TextAreaPainter.BLOCK_CARET_LAYER - 1, before_caret_painter2)
     painter.addExtension(TextAreaPainter.BLOCK_CARET_LAYER + 1, after_caret_painter2)
     painter.addExtension(TextAreaPainter.BLOCK_CARET_LAYER + 2, caret_painter)
+    painter.addExtension(500, foreground_painter)
     painter.addExtension(TextAreaPainter.HIGHEST_LAYER, reset_state)
     painter.removeExtension(orig_text_painter)
   }
@@ -368,6 +390,7 @@ class Text_Area_Painter(doc_view: Document_View)
     val painter = text_area.getPainter
     painter.addExtension(TextAreaPainter.TEXT_LAYER, orig_text_painter)
     painter.removeExtension(reset_state)
+    painter.removeExtension(foreground_painter)
     painter.removeExtension(caret_painter)
     painter.removeExtension(after_caret_painter2)
     painter.removeExtension(before_caret_painter2)
