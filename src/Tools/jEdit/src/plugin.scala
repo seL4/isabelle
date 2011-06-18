@@ -191,6 +191,12 @@ object Isabelle
     buffer_lock(buffer) { buffer.getText(0, buffer.getLength) }
 
 
+  /* document model and view */
+
+  def document_model(buffer: Buffer): Option[Document_Model] = Document_Model(buffer)
+  def document_view(text_area: JEditTextArea): Option[Document_View] = Document_View(text_area)
+
+
   /* dockable windows */
 
   private def wm(view: View): DockableWindowManager = view.getDockableWindowManager
