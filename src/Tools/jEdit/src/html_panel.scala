@@ -61,7 +61,7 @@ class HTML_Panel(
 
   /* contexts and event handling */
 
-  protected val handler: PartialFunction[HTML_Panel.Event, Unit] = Library.undefined
+  protected val handler: PartialFunction[HTML_Panel.Event, Unit] = Map.empty
 
   private val ucontext = new SimpleUserAgentContext
   private val rcontext = new SimpleHtmlRendererContext(this, ucontext)
