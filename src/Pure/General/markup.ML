@@ -47,6 +47,7 @@ sig
   val varN: string val var: T
   val numeralN: string val numeral: T
   val literalN: string val literal: T
+  val delimiterN: string val delimiter: T
   val inner_stringN: string val inner_string: T
   val inner_commentN: string val inner_comment: T
   val token_rangeN: string val token_range: T
@@ -223,6 +224,7 @@ val (boundN, bound) = markup_elem "bound";
 val (varN, var) = markup_elem "var";
 val (numeralN, numeral) = markup_elem "numeral";
 val (literalN, literal) = markup_elem "literal";
+val (delimiterN, delimiter) = markup_elem "delimiter";
 val (inner_stringN, inner_string) = markup_elem "inner_string";
 val (inner_commentN, inner_comment) = markup_elem "inner_comment";
 

@@ -122,6 +122,7 @@ object Isabelle_Markup
       Markup.INNER_COMMENT -> get_color("#8B0000"),
       Markup.DYNAMIC_FACT -> get_color("yellowgreen"),
       Markup.LITERAL -> keyword1_color,
+      Markup.DELIMITER -> get_color("black"),
       Markup.ML_KEYWORD -> keyword1_color,
       Markup.ML_DELIMITER -> get_color("black"),
       Markup.ML_NUMERAL -> get_color("red"),

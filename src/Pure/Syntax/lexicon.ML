@@ -203,8 +203,11 @@ val token_kind_markup =
   | Comment     => Markup.inner_comment
   | EOF         => Markup.empty;
 
-fun report_token ctxt (Token (kind, _, (pos, _))) =
-  Context_Position.report ctxt pos (token_kind_markup kind);
+fun report_token ctxt (Token (kind, s, (pos, _))) =
+  let val markup =
+    if kind = Literal andalso not (is_ascii_identifier s) then Markup.delimiter
+    else token_kind_markup kind
+  in Context_Position.report ctxt pos markup end;
 
 fun reported_token_range ctxt tok =
   if is_proper tok

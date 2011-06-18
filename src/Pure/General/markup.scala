@@ -167,6 +167,7 @@ object Markup
   val XNUM = "xnum"
   val XSTR = "xstr"
   val LITERAL = "literal"
+  val DELIMITER = "delimiter"
   val INNER_STRING = "inner_string"
   val INNER_COMMENT = "inner_comment"
 

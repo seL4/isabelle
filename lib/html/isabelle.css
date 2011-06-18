@@ -28,6 +28,7 @@ body { background-color: #FFFFFF; }
 .var, var                     { color: #00009B; }
 .numeral, numeral             { }
 .literal, literal             { font-weight: bold; }
+.delimiter, delimiter         { }
 .inner_string, inner_string   { color: #D2691E; }
 .inner_comment, inner_comment { color: #8B0000; }
 
