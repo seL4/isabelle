@@ -302,6 +302,24 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   }
 
 
+  /* caret range */
+
+  def caret_range(): Text.Range =
+    Isabelle.buffer_lock(model.buffer) {
+      def text(i: Text.Offset): Char = model.buffer.getText(i, 1).charAt(0)
+      val caret = text_area.getCaretPosition
+      try {
+        val c = text(caret)
+        if (Character.isHighSurrogate(c) && Character.isLowSurrogate(text(caret + 1)))
+          Text.Range(caret, caret + 2)
+        else if (Character.isLowSurrogate(c) && Character.isHighSurrogate(text(caret - 1)))
+          Text.Range(caret - 1, caret + 1)
+        else Text.Range(caret, caret + 1)
+      }
+      catch { case _: ArrayIndexOutOfBoundsException => Text.Range(caret, caret + 1) }
+    }
+
+
   /* caret handling */
 
   def selected_command(): Option[Command] =

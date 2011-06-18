@@ -186,8 +186,8 @@ class Text_Area_Painter(doc_view: Document_View)
     result
   }
 
-  private def paint_chunk_list(gfx: Graphics2D,
-    offset: Text.Offset, caret_offset: Text.Offset, head: Chunk, x: Float, y: Float): Float =
+  private def paint_chunk_list(
+    gfx: Graphics2D, offset: Text.Offset, head: Chunk, x: Float, y: Float): Float =
   {
     val clip_rect = gfx.getClipBounds
     val painter = text_area.getPainter
@@ -207,6 +207,10 @@ class Text_Area_Painter(doc_view: Document_View)
         val chunk_font = chunk.style.getFont
         val chunk_color = chunk.style.getForegroundColor
 
+        val caret_range =
+          if (text_area.hasFocus) doc_view.caret_range()
+          else Text.Range(-1)
+
         val markup =
           for {
             x <- painter_snapshot.select_markup(chunk_range)(Isabelle_Markup.text_color)
@@ -214,13 +218,9 @@ class Text_Area_Painter(doc_view: Document_View)
           } yield y
 
         gfx.setFont(chunk_font)
-        if (!Debug.DISABLE_GLYPH_VECTOR && chunk.gv != null &&
-            markup.forall(info => info.info.isEmpty) &&
-            !chunk_range.contains(caret_offset)) {
-          gfx.setColor(chunk_color)
-          gfx.drawGlyphVector(chunk.gv, x + w, y)
-        }
-        else if (!markup.isEmpty) {
+        if (markup.isEmpty)
+          gfx.drawString(chunk.str, x.toInt, y.toInt)
+        else {
           var x1 = x + w
           for {
             Text.Info(range, info) <-
@@ -231,16 +231,18 @@ class Text_Area_Painter(doc_view: Document_View)
           } {
             val str = chunk.str.substring(range.start - chunk_offset, range.stop - chunk_offset)
             gfx.setColor(info.getOrElse(chunk_color))
-            if (range.contains(caret_offset)) {
-              val astr = new AttributedString(str)
-              val i = caret_offset - range.start
-              astr.addAttribute(TextAttribute.FONT, chunk_font)
-              astr.addAttribute(TextAttribute.FOREGROUND, painter.getCaretColor, i, i + 1)
-              astr.addAttribute(TextAttribute.SWAP_COLORS, TextAttribute.SWAP_COLORS_ON, i, i + 1)
-              gfx.drawString(astr.getIterator, x1.toInt, y.toInt)
-            }
-            else {
-              gfx.drawString(str, x1.toInt, y.toInt)
+
+            range.try_restrict(caret_range) match {
+              case Some(r) if !r.is_singularity =>
+                val astr = new AttributedString(str)
+                val i = r.start - range.start
+                val j = r.stop - range.start
+                astr.addAttribute(TextAttribute.FONT, chunk_font)
+                astr.addAttribute(TextAttribute.FOREGROUND, painter.getCaretColor, i, j)
+                astr.addAttribute(TextAttribute.SWAP_COLORS, TextAttribute.SWAP_COLORS_ON, i, j)
+                gfx.drawString(astr.getIterator, x1.toInt, y.toInt)
+              case _ =>
+                gfx.drawString(str, x1.toInt, y.toInt)
             }
             x1 += chunk_font.getStringBounds(str, font_context).getWidth.toFloat
           }
@@ -265,10 +267,6 @@ class Text_Area_Painter(doc_view: Document_View)
         val fm = text_area.getPainter.getFontMetrics
         var y0 = y + fm.getHeight - (fm.getLeading + 1) - fm.getDescent
 
-        val caret_offset =
-          if (text_area.hasFocus) text_area.getCaretPosition
-          else -1
-
         val infos = line_infos(physical_lines.iterator.filter(i => i != -1))
         for (i <- 0 until physical_lines.length) {
           if (physical_lines(i) != -1) {
@@ -277,7 +275,7 @@ class Text_Area_Painter(doc_view: Document_View)
                 case None => x0
                 case Some(chunk) =>
                   gfx.clipRect(x0, y + line_height * i, Integer.MAX_VALUE, line_height)
-                  val w = paint_chunk_list(gfx, start(i), caret_offset, chunk, x0, y0).toInt
+                  val w = paint_chunk_list(gfx, start(i), chunk, x0, y0).toInt
                   x0 + w.toInt
               }
             gfx.clipRect(x1, 0, Integer.MAX_VALUE, Integer.MAX_VALUE)
