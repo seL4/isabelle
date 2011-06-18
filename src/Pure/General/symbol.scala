@@ -327,6 +327,6 @@ object Symbol
     def is_symbolic(sym: String): Boolean =
       sym.startsWith("\\<") && sym.endsWith(">") && !sym.startsWith("\\<^")
     def is_controllable(sym: String): Boolean =
-      !is_blank(sym) && !sym.startsWith("\\<^")
+      !is_blank(sym) && !sym.startsWith("\\<^") && !is_malformed(sym)
   }
 }
