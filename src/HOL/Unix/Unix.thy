@@ -847,7 +847,7 @@ text {*
   The following invariant over the root file-system describes the
   bogus situation in an abstract manner: located at a certain @{term
   path} within the file-system is a non-empty directory that is
-  neither owned and nor writable by @{term user\<^isub>1}.
+  neither owned nor writable by @{term user\<^isub>1}.
 *}
 
 definition
