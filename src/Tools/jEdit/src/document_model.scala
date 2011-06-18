@@ -129,30 +129,18 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
   }
 
 
-  /* token marker */
-
-  private val token_marker = Token_Markup.token_marker(session, buffer)
-
-
   /* activation */
 
   def activate()
   {
-    buffer.setTokenMarker(token_marker)
     buffer.addBufferListener(buffer_listener)
     buffer.propertiesChanged()
     pending_edits.init()
   }
 
-  def refresh()
-  {
-    buffer.setTokenMarker(token_marker)
-  }
-
   def deactivate()
   {
     pending_edits.flush()
-    buffer.setTokenMarker(buffer.getMode.getTokenMarker)
     buffer.removeBufferListener(buffer_listener)
   }
 }

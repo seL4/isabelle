@@ -9,8 +9,10 @@ package isabelle.jedit
 
 import isabelle._
 
-import org.gjt.sp.jedit.Buffer
-import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler, ParserRuleSet}
+import org.gjt.sp.jedit.Mode
+import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler,
+  ParserRuleSet, ModeProvider, XModeHandler}
+
 import javax.swing.text.Segment
 
 
@@ -78,46 +80,65 @@ object Token_Markup
       }
   }
 
-  def token_marker(session: Session, buffer: Buffer): TokenMarker =
-    new TokenMarker {
-      override def markTokens(context: TokenMarker.LineContext,
-          handler: TokenHandler, line: Segment): TokenMarker.LineContext =
-      {
-        val syntax = session.current_syntax()
-        val ctxt =
-          context match {
-            case c: Line_Context => c.context
-            case _ => Scan.Finished
-          }
-        val (tokens, ctxt1) = syntax.scan_context(line, ctxt)
-        val context1 = new Line_Context(ctxt1)
+  class Marker extends TokenMarker
+  {
+    override def markTokens(context: TokenMarker.LineContext,
+        handler: TokenHandler, line: Segment): TokenMarker.LineContext =
+    {
+      val symbols = Isabelle.system.symbols
+      val syntax = Isabelle.session.current_syntax()
 
-        val extended = extended_styles(session.system.symbols, line)
-
-        var offset = 0
-        for (token <- tokens) {
-          val style = Isabelle_Markup.token_markup(syntax, token)
-          val length = token.source.length
-          val end_offset = offset + length
-          if ((offset until end_offset) exists extended.isDefinedAt) {
-            for (i <- offset until end_offset) {
-              val style1 =
-                extended.get(i) match {
-                  case None => style
-                  case Some(ext) => ext(style)
-                }
-              handler.handleToken(line, style1, i, 1, context1)
-            }
-          }
-          else handler.handleToken(line, style, offset, length, context1)
-          offset += length
+      val ctxt =
+        context match {
+          case c: Line_Context => c.context
+          case _ => Scan.Finished
         }
-        handler.handleToken(line, JEditToken.END, line.count, 0, context1)
+      val (tokens, ctxt1) = syntax.scan_context(line, ctxt)
+      val context1 = new Line_Context(ctxt1)
 
-        val context2 = context1.intern
-        handler.setLineContext(context2)
-        context2
+      val extended = extended_styles(symbols, line)
+
+      var offset = 0
+      for (token <- tokens) {
+        val style = Isabelle_Markup.token_markup(syntax, token)
+        val length = token.source.length
+        val end_offset = offset + length
+        if ((offset until end_offset) exists extended.isDefinedAt) {
+          for (i <- offset until end_offset) {
+            val style1 =
+              extended.get(i) match {
+                case None => style
+                case Some(ext) => ext(style)
+              }
+            handler.handleToken(line, style1, i, 1, context1)
+          }
+        }
+        else handler.handleToken(line, style, offset, length, context1)
+        offset += length
       }
+      handler.handleToken(line, JEditToken.END, line.count, 0, context1)
+
+      val context2 = context1.intern
+      handler.setLineContext(context2)
+      context2
     }
+  }
+
+
+  /* mode provider */
+
+  class Mode_Provider(orig_provider: ModeProvider) extends ModeProvider
+  {
+    for (mode <- orig_provider.getModes) addMode(mode)
+
+    val isabelle_token_marker = new Token_Markup.Marker
+
+    override def loadMode(mode: Mode, xmh: XModeHandler)
+    {
+      super.loadMode(mode, xmh)
+      if (mode.getName == "isabelle")
+        mode.setTokenMarker(isabelle_token_marker)
+    }
+  }
 }
 

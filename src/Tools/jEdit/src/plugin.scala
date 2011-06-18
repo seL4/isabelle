@@ -19,7 +19,7 @@ import org.gjt.sp.jedit.{jEdit, GUIUtilities, EBMessage, EBPlugin,
   Buffer, EditPane, ServiceManager, View}
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
-import org.gjt.sp.jedit.syntax.{Token => JEditToken}
+import org.gjt.sp.jedit.syntax.{Token => JEditToken, ModeProvider}
 import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, PropertiesChanged}
 import org.gjt.sp.jedit.gui.DockableWindowManager
 
@@ -290,7 +290,7 @@ class Plugin extends EBPlugin
     Isabelle.swing_buffer_lock(buffer) {
       val opt_model =
         Document_Model(buffer) match {
-          case Some(model) => model.refresh; Some(model)
+          case Some(model) => Some(model)
           case None =>
             Thy_Header.split_thy_path(Isabelle.system.posix_path(buffer.getPath)) match {
               case Some((dir, thy_name)) =>
@@ -408,8 +408,10 @@ class Plugin extends EBPlugin
     }
   }
 
+
   override def start()
   {
+    ModeProvider.instance = new Token_Markup.Mode_Provider(ModeProvider.instance)
     Isabelle.plugin = this
     Isabelle.setup_tooltips()
     Isabelle.system = new Isabelle_System
