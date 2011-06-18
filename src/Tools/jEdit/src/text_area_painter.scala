@@ -213,15 +213,14 @@ class Text_Area_Painter(doc_view: Document_View)
 
         val markup =
           for {
-            x <- painter_snapshot.select_markup(chunk_range)(Isabelle_Markup.text_color)
-            y <- x.try_restrict(chunk_range)
-          } yield y
+            r1 <- painter_snapshot.select_markup(chunk_range)(Isabelle_Markup.text_color)
+            r2 <- r1.try_restrict(chunk_range)
+          } yield r2
 
+        var x1 = x + w
         gfx.setFont(chunk_font)
-        if (markup.isEmpty)
-          gfx.drawString(chunk.str, x.toInt, y.toInt)
+        if (markup.isEmpty) gfx.drawString(chunk.str, x1, y)
         else {
-          var x1 = x + w
           for {
             Text.Info(range, info) <-
               Iterator(Text.Info(Text.Range(chunk_range.start, markup.head.range.start), None)) ++
@@ -240,9 +239,9 @@ class Text_Area_Painter(doc_view: Document_View)
                 astr.addAttribute(TextAttribute.FONT, chunk_font)
                 astr.addAttribute(TextAttribute.FOREGROUND, painter.getCaretColor, i, j)
                 astr.addAttribute(TextAttribute.SWAP_COLORS, TextAttribute.SWAP_COLORS_ON, i, j)
-                gfx.drawString(astr.getIterator, x1.toInt, y.toInt)
+                gfx.drawString(astr.getIterator, x1, y)
               case _ =>
-                gfx.drawString(str, x1.toInt, y.toInt)
+                gfx.drawString(str, x1, y)
             }
             x1 += chunk_font.getStringBounds(str, font_context).getWidth.toFloat
           }
