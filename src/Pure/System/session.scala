@@ -31,7 +31,7 @@ object Session
 }
 
 
-class Session(system: Isabelle_System)
+class Session(val system: Isabelle_System)
 {
   /* real time parameters */  // FIXME properties or settings (!?)
 

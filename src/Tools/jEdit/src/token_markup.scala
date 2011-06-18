@@ -16,7 +16,7 @@ import javax.swing.text.Segment
 
 object Token_Markup
 {
-  /* extended jEdit syntax styles */
+  /* extended syntax styles */
 
   private val plain_range: Int = JEditToken.ID_COUNT
   private def check_range(i: Int) { require(0 <= i && i < plain_range) }
@@ -24,6 +24,43 @@ object Token_Markup
   def subscript(i: Byte): Byte = { check_range(i); (i + plain_range).toByte }
   def superscript(i: Byte): Byte = { check_range(i); (i + 2 * plain_range).toByte }
   val hidden: Byte = (3 * plain_range).toByte
+
+  // FIXME \\<^bsub> \\<^esub> \\<^bsup> \\<^esup>
+  // FIXME \\<^bold> \\<^loc>
+
+  private val ctrl_styles: Map[String, Byte => Byte] =
+    Map(
+      "\\<^sub>" -> subscript,
+      "\\<^sup>" -> superscript,
+      "\\<^isub>" -> subscript,
+      "\\<^isup>" -> superscript)
+
+  private def extended_styles(symbols: Symbol.Interpretation, text: CharSequence)
+    : Map[Text.Offset, Byte => Byte] =
+  {
+    if (Isabelle.extended_styles) {
+      var result = Map[Text.Offset, Byte => Byte]()
+      def mark(start: Text.Offset, stop: Text.Offset, style: Byte => Byte)
+      {
+        for (i <- start until stop) result += (i -> style)
+      }
+      var offset = 0
+      var ctrl = ""
+      for (sym <- Symbol.iterator(text).map(_.toString)) {
+        if (ctrl_styles.isDefinedAt(sym)) ctrl = sym
+        else if (ctrl != "") {
+          if (symbols.is_controllable(sym)) {
+            mark(offset - ctrl.length, offset, _ => hidden)
+            mark(offset, offset + sym.length, ctrl_styles(ctrl))
+          }
+          ctrl = ""
+        }
+        offset += sym.length
+      }
+      result
+    }
+    else Map.empty
+  }
 
 
   /* token marker */
@@ -55,11 +92,24 @@ object Token_Markup
         val (tokens, ctxt1) = syntax.scan_context(line, ctxt)
         val context1 = new Line_Context(ctxt1)
 
+        val extended = extended_styles(session.system.symbols, line)
+
         var offset = 0
         for (token <- tokens) {
           val style = Isabelle_Markup.token_markup(syntax, token)
           val length = token.source.length
-          handler.handleToken(line, style, offset, length, context1)
+          val end_offset = offset + length
+          if ((offset until end_offset) exists extended.isDefinedAt) {
+            for (i <- offset until end_offset) {
+              val style1 =
+                extended.get(i) match {
+                  case None => style
+                  case Some(ext) => ext(style)
+                }
+              handler.handleToken(line, style1, i, 1, context1)
+            }
+          }
+          else handler.handleToken(line, style, offset, length, context1)
           offset += length
         }
         handler.handleToken(line, JEditToken.END, line.count, 0, context1)

@@ -19,9 +19,11 @@ import org.gjt.sp.jedit.{jEdit, GUIUtilities, EBMessage, EBPlugin,
   Buffer, EditPane, ServiceManager, View}
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
+import org.gjt.sp.jedit.syntax.{Token => JEditToken}
 import org.gjt.sp.jedit.msg.{EditorStarted, BufferUpdate, EditPaneUpdate, PropertiesChanged}
 import org.gjt.sp.jedit.gui.DockableWindowManager
 
+import org.gjt.sp.util.SyntaxUtilities
 import org.gjt.sp.util.Log
 
 import scala.actors.Actor
@@ -32,8 +34,14 @@ object Isabelle
 {
   /* plugin instance */
 
+  var plugin: Plugin = null
   var system: Isabelle_System = null
   var session: Session = null
+
+
+  /* extended syntax styles */
+
+  def extended_styles: Boolean = plugin != null && plugin._extended_styles
 
 
   /* properties */
@@ -256,6 +264,19 @@ object Isabelle
 
 class Plugin extends EBPlugin
 {
+  /* extended syntax styles */
+
+  @volatile var _extended_styles: Boolean = false
+
+  private def check_extended_styles()
+  {
+    val family = jEdit.getProperty("view.font")
+    val size = jEdit.getIntegerProperty("view.fontsize", 12)
+    val styles = SyntaxUtilities.loadStyles(family, size)
+    _extended_styles = (styles.length == JEditToken.ID_COUNT * 3 + 1)
+  }
+
+
   /* session management */
 
   private def init_model(buffer: Buffer)
@@ -346,6 +367,7 @@ class Plugin extends EBPlugin
     message match {
       case msg: EditorStarted =>
       Isabelle.check_jvm()
+      check_extended_styles()
       if (Isabelle.Boolean_Property("auto-start")) Isabelle.start_session()
 
       case msg: BufferUpdate
@@ -382,6 +404,7 @@ class Plugin extends EBPlugin
 
   override def start()
   {
+    Isabelle.plugin = this
     Isabelle.setup_tooltips()
     Isabelle.system = new Isabelle_System
     Isabelle.system.install_fonts()
