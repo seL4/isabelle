@@ -400,7 +400,7 @@ fun finish () =
         File.copy (Path.explode "~~/lib/browser/GraphBrowser.jar") html_prefix;
         List.app (fn (a, txt) => File.write (Path.append html_prefix (Path.basic a)) txt)
           (HTML.applet_pages name (Url.File index_path, name));
-        File.copy (Path.explode "~~/lib/html/isabelle.css") html_prefix;
+        File.copy (Path.explode "~~/etc/isabelle.css") html_prefix;
         List.app finish_html thys;
         List.app (uncurry File.write) files;
         if verbose then Output.raw_stderr ("Browser info at " ^ show_path html_prefix ^ "\n")
