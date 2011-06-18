@@ -1,6 +1,18 @@
+diff -ru jEdit/org/gjt/sp/jedit/Buffer.java jEdit-patched/org/gjt/sp/jedit/Buffer.java
+--- jEdit/org/gjt/sp/jedit/Buffer.java	2010-05-09 14:29:25.000000000 +0200
++++ jEdit-patched/org/gjt/sp/jedit/Buffer.java	2011-06-18 18:28:19.000000000 +0200
+@@ -2232,7 +2232,7 @@
+ 			start = next;
+ 			token = token.next;
+ 		}
+-		if (token.id == Token.END || token.id == Token.NULL)
++		if (token.id == Token.END || (token.id % Token.ID_COUNT) == Token.NULL)
+ 		{
+ 			JOptionPane.showMessageDialog(jEdit.getActiveView(),
+ 				jEdit.getProperty("syntax-style-no-token.message"),
 diff -ru jEdit/org/gjt/sp/jedit/syntax/Token.java jEdit-patched/org/gjt/sp/jedit/syntax/Token.java
 --- jEdit/org/gjt/sp/jedit/syntax/Token.java	2010-05-09 14:29:24.000000000 +0200
-+++ jEdit-patched/org/gjt/sp/jedit/syntax/Token.java	2011-06-15 13:48:42.000000000 +0200
++++ jEdit-patched/org/gjt/sp/jedit/syntax/Token.java	2011-06-18 18:28:10.000000000 +0200
 @@ -57,7 +57,7 @@
  	 */
  	public static String tokenToString(byte token)
@@ -12,7 +24,7 @@ diff -ru jEdit/org/gjt/sp/jedit/syntax/Token.java jEdit-patched/org/gjt/sp/jedit
  	//{{{ Token types
 diff -ru jEdit/org/gjt/sp/util/SyntaxUtilities.java jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java
 --- jEdit/org/gjt/sp/util/SyntaxUtilities.java	2010-05-09 14:29:29.000000000 +0200
-+++ jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java	2011-06-15 14:11:30.000000000 +0200
++++ jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java	2011-06-18 18:28:10.000000000 +0200
 @@ -26,6 +26,7 @@
  //{{{ Imports
  import java.awt.Color;
