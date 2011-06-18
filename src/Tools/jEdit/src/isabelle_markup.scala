@@ -118,7 +118,7 @@ object Isabelle_Markup
       Markup.TCLASS -> get_color("red"),
       Markup.TFREE -> get_color("#A020F0"),
       Markup.TVAR -> get_color("#A020F0"),
-      Markup.CONST -> get_color("dimgrey"),
+      Markup.CONST -> get_color("black"),
       Markup.FREE -> get_color("blue"),
       Markup.SKOLEM -> get_color("#D2691E"),
       Markup.BOUND -> get_color("green"),
