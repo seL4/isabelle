@@ -10,7 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import org.gjt.sp.jedit.Buffer
-import org.gjt.sp.jedit.syntax.{Token => JToken, TokenMarker, TokenHandler, ParserRuleSet}
+import org.gjt.sp.jedit.syntax.{Token => JEditToken, TokenMarker, TokenHandler, ParserRuleSet}
 import javax.swing.text.Segment
 
 
@@ -18,7 +18,7 @@ object Token_Markup
 {
   /* extended jEdit syntax styles */
 
-  private val plain_range: Int = JToken.ID_COUNT
+  private val plain_range: Int = JEditToken.ID_COUNT
   private def check_range(i: Int) { require(0 <= i && i < plain_range) }
 
   def subscript(i: Byte): Byte = { check_range(i); (i + plain_range).toByte }
@@ -62,7 +62,7 @@ object Token_Markup
           handler.handleToken(line, style, offset, length, context1)
           offset += length
         }
-        handler.handleToken(line, JToken.END, line.count, 0, context1)
+        handler.handleToken(line, JEditToken.END, line.count, 0, context1)
 
         val context2 = context1.intern
         handler.setLineContext(context2)
