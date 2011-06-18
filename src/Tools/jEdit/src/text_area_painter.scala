@@ -219,7 +219,10 @@ class Text_Area_Painter(doc_view: Document_View)
 
         var x1 = x + w
         gfx.setFont(chunk_font)
-        if (markup.isEmpty) gfx.drawString(chunk.str, x1, y)
+        if (markup.isEmpty) {
+          gfx.setColor(chunk_color)
+          gfx.drawString(chunk.str, x1, y)
+        }
         else {
           for {
             Text.Info(range, info) <-
