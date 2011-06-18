@@ -65,7 +65,7 @@ val token_kind_markup =
   | Token.EOF           => Markup.control;
 
 fun token_markup tok =
-  if Token.keyword_with (not o Lexicon.is_identifier) tok then Markup.operator
+  if Token.keyword_with (not o Lexicon.is_ascii_identifier) tok then Markup.operator
   else
     let
       val kind = Token.kind_of tok;
