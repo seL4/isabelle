@@ -108,14 +108,6 @@ object Isabelle_Markup
     case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => light_color
   }
 
-  /* FIXME update
-      Markup.ML_SOURCE -> COMMENT3,
-      Markup.DOC_SOURCE -> COMMENT3,
-      Markup.ANTIQ -> COMMENT4,
-      Markup.ML_ANTIQ -> COMMENT4,
-      Markup.DOC_ANTIQ -> COMMENT4,
-  */
-
   private val foreground_colors: Map[String, Color] =
     Map(
       Markup.TCLASS -> get_color("red"),
@@ -136,8 +128,8 @@ object Isabelle_Markup
       Markup.ML_CHAR -> get_color("#D2691E"),
       Markup.ML_STRING -> get_color("#D2691E"),
       Markup.ML_COMMENT -> get_color("#8B0000"),
-      Markup.ML_MALFORMED -> get_color("#FF6A6A")
-    )
+      Markup.ML_MALFORMED -> get_color("#FF6A6A"),
+      Markup.ANTIQ -> get_color("blue"))
 
   val foreground: Markup_Tree.Select[Color] =
   {
@@ -145,29 +137,36 @@ object Isabelle_Markup
     if foreground_colors.isDefinedAt(m) => foreground_colors(m)
   }
 
+  private val tooltips: Map[String, String] =
+    Map(
+      Markup.SORT -> "sort",
+      Markup.TYP -> "type",
+      Markup.TERM -> "term",
+      Markup.PROP -> "proposition",
+      Markup.TOKEN_RANGE -> "inner syntax token",
+      Markup.FREE -> "free variable (globally fixed)",
+      Markup.SKOLEM -> "skolem variable (locally fixed)",
+      Markup.BOUND -> "bound variable (internally fixed)",
+      Markup.VAR -> "schematic variable",
+      Markup.TFREE -> "free type variable",
+      Markup.TVAR -> "schematic type variable",
+      Markup.ML_SOURCE -> "ML source",
+      Markup.DOC_SOURCE -> "document source")
+
   val tooltip: Markup_Tree.Select[String] =
   {
     case Text.Info(_, XML.Elem(Markup.Entity(kind, name), _)) => kind + " \"" + name + "\""
     case Text.Info(_, XML.Elem(Markup(Markup.ML_TYPING, _), body)) =>
       Pretty.string_of(List(Pretty.block(XML.Text("ML:") :: Pretty.Break(1) :: body)),
         margin = Isabelle.Int_Property("tooltip-margin"))
-    case Text.Info(_, XML.Elem(Markup(Markup.SORT, _), _)) => "sort"
-    case Text.Info(_, XML.Elem(Markup(Markup.TYP, _), _)) => "type"
-    case Text.Info(_, XML.Elem(Markup(Markup.TERM, _), _)) => "term"
-    case Text.Info(_, XML.Elem(Markup(Markup.PROP, _), _)) => "proposition"
-    case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => "inner syntax token"
-    case Text.Info(_, XML.Elem(Markup(Markup.FREE, _), _)) => "free variable (globally fixed)"
-    case Text.Info(_, XML.Elem(Markup(Markup.SKOLEM, _), _)) => "skolem variable (locally fixed)"
-    case Text.Info(_, XML.Elem(Markup(Markup.BOUND, _), _)) => "bound variable (internally fixed)"
-    case Text.Info(_, XML.Elem(Markup(Markup.VAR, _), _)) => "schematic variable"
-    case Text.Info(_, XML.Elem(Markup(Markup.TFREE, _), _)) => "free type variable"
-    case Text.Info(_, XML.Elem(Markup(Markup.TVAR, _), _)) => "schematic type variable"
+    case Text.Info(_, XML.Elem(Markup(name, _), _))
+    if tooltips.isDefinedAt(name) => tooltips(name)
   }
 
   private val subexp_include =
     Set(Markup.SORT, Markup.TYP, Markup.TERM, Markup.PROP, Markup.ML_TYPING, Markup.TOKEN_RANGE,
       Markup.ENTITY, Markup.FREE, Markup.SKOLEM, Markup.BOUND, Markup.VAR,
-      Markup.TFREE, Markup.TVAR)
+      Markup.TFREE, Markup.TVAR, Markup.ML_SOURCE, Markup.DOC_SOURCE)
 
   val subexp: Markup_Tree.Select[(Text.Range, Color)] =
   {
@@ -203,8 +202,8 @@ object Isabelle_Markup
       Token.Kind.TYPE_VAR -> NULL,
       Token.Kind.NAT -> NULL,
       Token.Kind.FLOAT -> NULL,
-      Token.Kind.STRING -> LITERAL3,
-      Token.Kind.ALT_STRING -> LITERAL1,
+      Token.Kind.STRING -> LITERAL1,
+      Token.Kind.ALT_STRING -> LITERAL2,
       Token.Kind.VERBATIM -> COMMENT3,
       Token.Kind.SPACE -> NULL,
       Token.Kind.COMMENT -> COMMENT1,
