@@ -129,8 +129,8 @@ fun string_for_failure Unprovable = "The problem is unprovable."
   | string_for_failure (UnsoundProof (true, ss)) =
     "The prover found a type-unsound proof " ^ involving ss ^
     "even though a supposedly type-sound encoding was used (or, less likely, \
-    \your axioms are inconsistent). You might want to report this to the \
-    \Isabelle developers."
+    \your axioms are inconsistent). Please report this to the Isabelle \
+    \developers."
   | string_for_failure CantConnect = "Cannot connect to remote server."
   | string_for_failure TimedOut = "Timed out."
   | string_for_failure Inappropriate =

@@ -4,7 +4,7 @@ uses "atp_export.ML"
 begin
 
 ML {*
-val do_it = false; (* switch to "true" to generate files *)
+val do_it = false; (* switch to "true" to generate the files *)
 val thy = @{theory Complex_Main};
 val ctxt = @{context}
 *}
