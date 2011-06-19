@@ -8,6 +8,7 @@ Sledgehammer's translation.
 
 signature ATP_EXPORT =
 sig
+  val theorems_mentioned_in_proof_term : thm -> string list
   val generate_tptp_graph_file_for_theory :
     Proof.context -> theory -> string -> unit
   val generate_tptp_inference_file_for_theory :
@@ -25,16 +26,22 @@ fun facts_of thy =
   Sledgehammer_Filter.all_facts (Proof_Context.init_global thy) Symtab.empty
                                 true [] []
 
+(* FIXME: Similar yet different code in "mirabelle.ML". The code here has a few
+   fixes that seem to be missing over there; or maybe the two code portions are
+   not doing the same? *)
 fun fold_body_thms f =
   let
-    fun app n (PBody {thms, ...}) = thms |> fold (fn (i, (name, prop, body)) => fn (x, seen) =>
-      if Inttab.defined seen i then (x, seen)
-      else
-        let
-          val body' = Future.join body;
-          val (x', seen') = app (n + (if name = "" then 0 else 1)) body' (x, Inttab.update (i, ()) seen);
-        in (x' |> n = 1 ? f (name, prop, body'), seen') end);
-  in fn bodies => fn x => #1 (fold (app 0) bodies (x, Inttab.empty)) end;
+    fun app n (PBody {thms, ...}) =
+      thms |> fold (fn (i, (name, prop, body)) => fn (x, seen) =>
+        if Inttab.defined seen i then
+          (x, seen)
+        else
+          let
+            val body' = Future.join body
+            val n' = n + (if name = "" then 0 else 1)
+            val (x', seen') = (x, seen) |> n' <= 1 ? app n' body'
+          in (x' |> n = 1 ? f (name, prop, body'), seen') end)
+  in fn bodies => fn x => #1 (fold (app 0) bodies (x, Inttab.empty)) end
 
 fun theorems_mentioned_in_proof_term thm =
   let
