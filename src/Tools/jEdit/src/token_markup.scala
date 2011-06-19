@@ -49,7 +49,7 @@ object Token_Markup
       for (sym <- Symbol.iterator(text).map(_.toString)) {
         if (ctrl_style(sym).isDefined) ctrl = sym
         else if (ctrl != "") {
-          if (symbols.is_controllable(sym)) {
+          if (symbols.is_controllable(sym) && sym != "\"") {
             mark(offset - ctrl.length, offset, _ => hidden)
             mark(offset, offset + sym.length, ctrl_style(ctrl).get)
           }
