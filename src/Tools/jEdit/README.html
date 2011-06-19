@@ -4,6 +4,9 @@
 
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<style type="text/css" media="screen">
+body { font-family: IsabelleText; font-size: 14pt; }
+</style>
 <title>Notes on the Isabelle/jEdit Prover IDE</title>
 </head>
 
@@ -47,6 +50,14 @@
     <tt>\&lt;foo&gt;</tt>, <tt>\&lt;bar&gt;</tt>, <tt>\&lt;baz&gt;</tt>, &hellip;<br/>
   </li>
 
+  <li>There are some special control symbols to modify the style of a
+  <em>single</em> symbol:<br/>
+    &#8681; subscript<br/>
+    &#8679; superscript<br/>
+    &#8675; subscript within identifier<br/>
+    &#8673; superscript within identifier<br/>
+    &#10073; bold face</li>
+
   <li>A default mapping relates some Isabelle symbols to Unicode points
     (see <tt>$ISABELLE_HOME/etc/symbols</tt> and <tt>$ISABELLE_HOME_USER/etc/symbols</tt>).
   </li>
@@ -80,6 +91,13 @@
       <tr><td>noteq</td>          <td><tt>~=</tt></td>          <td>&ne;</td></tr>
       <tr><td>in</td>             <td><tt>:</tt></td>           <td>&isin;</td></tr>
       <tr><td>notin</td>          <td><tt>~:</tt></td>          <td>&notin;</td></tr>
+
+      <tr><td>sub</td>            <td><tt>=_</tt></td>          <td>&#8681;</td></tr>
+      <tr><td>sup</td>            <td><tt>=^</tt></td>          <td>&#8679;</td></tr>
+      <tr><td>isup</td>           <td><tt>-_</tt></td>          <td>&#8675;</td></tr>
+      <tr><td>isub</td>           <td><tt>-^</tt></td>          <td>&#8673;</td></tr>
+      <tr><td>bold</td>           <td><tt>-.</tt></td>          <td>&#10073;</td></tr>
+
     </table>
     </li>
   </ul>
