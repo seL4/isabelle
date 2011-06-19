@@ -353,9 +353,9 @@
 \<hungarumlaut>         code: 0x0002dd
 \<spacespace>           code: 0x002423  font: Isabelle
 \<some>                 code: 0x0003f5  font: Isabelle
-\<^sub>                 code: 0x0021e9
-\<^sup>                 code: 0x0021e7
-\<^isub>                code: 0x0021e3
-\<^isup>                code: 0x0021e1
-\<^bold>                code: 0x002759
+\<^sub>                 code: 0x0021e9  abbrev: =_
+\<^sup>                 code: 0x0021e7  abbrev: =^
+\<^isub>                code: 0x0021e3  abbrev: -_
+\<^isup>                code: 0x0021e1  abbrev: -^
+\<^bold>                code: 0x002759  abbrev: -.
 
