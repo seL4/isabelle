@@ -49,6 +49,7 @@ object HTML
 
   def sub(txt: String): XML.Elem = XML.elem("sub", List(XML.Text(txt)))
   def sup(txt: String): XML.Elem = XML.elem("sup", List(XML.Text(txt)))
+  def bold(txt: String): XML.Elem = span("bold", List(XML.Text(txt)))
 
   def spans(symbols: Symbol.Interpretation,
     input: XML.Tree, original_data: Boolean = false): XML.Body =
@@ -77,15 +78,13 @@ object HTML
             val s1 = syms.next
             def s2() = if (syms.hasNext) syms.next else ""
             if (s1 == "\n") add(XML.elem(BR))
-            else if (symbols.is_subscript_decoded(s1)) { add(hidden(s1)); add(sub(s2())) }
-            else if (symbols.is_superscript_decoded(s1)) { add(hidden(s1)); add(sup(s2())) }
             else if (s1 == "\\<^bsub>") t ++= s1  // FIXME
             else if (s1 == "\\<^esub>") t ++= s1  // FIXME
             else if (s1 == "\\<^bsup>") t ++= s1  // FIXME
             else if (s1 == "\\<^esup>") t ++= s1  // FIXME
-            else if (symbols.is_bold_decoded(s1)) {
-              add(hidden(s1)); add(span("bold", List(XML.Text(s2()))))
-            }
+            else if (symbols.is_subscript_decoded(s1)) { add(hidden(s1)); add(sub(s2())) }
+            else if (symbols.is_superscript_decoded(s1)) { add(hidden(s1)); add(sup(s2())) }
+            else if (symbols.is_bold_decoded(s1)) { add(hidden(s1)); add(bold(s2())) }
             else t ++= s1
           }
           flush()
