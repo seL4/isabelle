@@ -25,17 +25,18 @@ object Token_Markup
 
   def subscript(i: Byte): Byte = { check_range(i); (i + plain_range).toByte }
   def superscript(i: Byte): Byte = { check_range(i); (i + 2 * plain_range).toByte }
-  val hidden: Byte = (3 * plain_range).toByte
+  def bold(i: Byte): Byte = { check_range(i); (i + 3 * plain_range).toByte }
+  val hidden: Byte = (4 * plain_range).toByte
 
   private def extended_styles(symbols: Symbol.Interpretation, text: CharSequence)
     : Map[Text.Offset, Byte => Byte] =
   {
     if (Isabelle.extended_styles) {
       // FIXME \\<^bsub> \\<^esub> \\<^bsup> \\<^esup>
-      // FIXME \\<^bold>
       def ctrl_style(sym: String): Option[Byte => Byte] =
         if (symbols.is_subscript_decoded(sym)) Some(subscript(_))
         else if (symbols.is_superscript_decoded(sym)) Some(superscript(_))
+        else if (symbols.is_bold_decoded(sym)) Some(bold(_))
         else None
 
       var result = Map[Text.Offset, Byte => Byte]()

@@ -24,7 +24,7 @@ diff -ru jEdit/org/gjt/sp/jedit/syntax/Token.java jEdit-patched/org/gjt/sp/jedit
  	//{{{ Token types
 diff -ru jEdit/org/gjt/sp/util/SyntaxUtilities.java jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java
 --- jEdit/org/gjt/sp/util/SyntaxUtilities.java	2010-05-09 14:29:29.000000000 +0200
-+++ jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java	2011-06-18 18:28:10.000000000 +0200
++++ jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java	2011-06-19 21:24:41.000000000 +0200
 @@ -26,6 +26,7 @@
  //{{{ Imports
  import java.awt.Color;
@@ -33,7 +33,7 @@ diff -ru jEdit/org/gjt/sp/util/SyntaxUtilities.java jEdit-patched/org/gjt/sp/uti
  import java.util.Locale;
  import java.util.StringTokenizer;
  import org.gjt.sp.jedit.syntax.SyntaxStyle;
-@@ -194,6 +195,17 @@
+@@ -194,6 +195,22 @@
  	}
  	
  	/**
@@ -46,17 +46,22 @@ diff -ru jEdit/org/gjt/sp/util/SyntaxUtilities.java jEdit-patched/org/gjt/sp/uti
 +		return new SyntaxStyle(style.getForegroundColor(), style.getBackgroundColor(),
 +                  style.getFont().deriveFont(attributes));
 +	}
++
++	public static SyntaxStyle boldStyle(SyntaxStyle style) {
++		return new SyntaxStyle(style.getForegroundColor(), style.getBackgroundColor(),
++                  style.getFont().deriveFont(Font.BOLD));
++	}
 +	
 +	/**
  	 * Loads the syntax styles from the properties, giving them the specified
  	 * base font family and size.
  	 * @param family The font family
-@@ -203,10 +215,10 @@
+@@ -203,10 +220,10 @@
  	 */
  	public static SyntaxStyle[] loadStyles(String family, int size, boolean color)
  	{
 -		SyntaxStyle[] styles = new SyntaxStyle[Token.ID_COUNT];
-+		SyntaxStyle[] styles = new SyntaxStyle[3 * Token.ID_COUNT + 1];
++		SyntaxStyle[] styles = new SyntaxStyle[4 * Token.ID_COUNT + 1];
  
  		// start at 1 not 0 to skip Token.NULL
 -		for(int i = 1; i < styles.length; i++)
@@ -64,7 +69,7 @@ diff -ru jEdit/org/gjt/sp/util/SyntaxUtilities.java jEdit-patched/org/gjt/sp/uti
  		{
  			try
  			{
-@@ -223,6 +235,16 @@
+@@ -223,6 +240,17 @@
  			}
  		}
  
@@ -73,10 +78,11 @@ diff -ru jEdit/org/gjt/sp/util/SyntaxUtilities.java jEdit-patched/org/gjt/sp/uti
 +		{
 +			styles[i + Token.ID_COUNT] = scriptStyle(styles[i], -1);
 +			styles[i + 2 * Token.ID_COUNT] = scriptStyle(styles[i], 1);
++			styles[i + 3 * Token.ID_COUNT] = boldStyle(styles[i]);
 +		}
 +		styles[0] = null;
-+		styles[3 * Token.ID_COUNT] =
-+			new SyntaxStyle(Color.black, null, new Font(family, 0, 1));
++		styles[4 * Token.ID_COUNT] =
++			new SyntaxStyle(Color.white, null, new Font(family, 0, 1));
 +
  		return styles;
  	} //}}}

@@ -279,7 +279,7 @@ class Plugin extends EBPlugin
     val family = jEdit.getProperty("view.font")
     val size = jEdit.getIntegerProperty("view.fontsize", 12)
     val styles = SyntaxUtilities.loadStyles(family, size)
-    _extended_styles = (styles.length == JEditToken.ID_COUNT * 3 + 1)
+    _extended_styles = (styles.length == JEditToken.ID_COUNT * 4 + 1)
   }
 
 
