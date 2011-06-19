@@ -32,7 +32,7 @@ object Token_Markup
   {
     if (Isabelle.extended_styles) {
       // FIXME \\<^bsub> \\<^esub> \\<^bsup> \\<^esup>
-      // FIXME \\<^bold> \\<^loc>
+      // FIXME \\<^bold>
       def ctrl_style(sym: String): Option[Byte => Byte] =
         if (symbols.is_subscript_decoded(sym)) Some(subscript(_))
         else if (symbols.is_superscript_decoded(sym)) Some(superscript(_))

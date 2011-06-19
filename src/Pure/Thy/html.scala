@@ -86,7 +86,6 @@ object HTML
             else if (symbols.is_bold_decoded(s1)) {
               add(hidden(s1)); add(span("bold", List(XML.Text(s2()))))
             }
-            else if (s1 == "\\<^loc>") { add(hidden(s1)); add(span("loc", List(XML.Text(s2())))) }
             else t ++= s1
           }
           flush()

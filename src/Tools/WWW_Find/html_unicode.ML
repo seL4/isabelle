@@ -51,13 +51,11 @@ local
 
   fun output_sub s = apsnd (enclose "<sub>" "</sub>") (output_sym s);
   fun output_sup s = apsnd (enclose "<sup>" "</sup>") (output_sym s);
-  fun output_loc s = apsnd (enclose "<span class=\"loc\">" "</span>") (output_sym s);
 
   fun output_syms ("\<^sub>" :: s :: ss) = output_sub s :: output_syms ss
     | output_syms ("\<^isub>" :: s :: ss) = output_sub s :: output_syms ss
     | output_syms ("\<^sup>" :: s :: ss) = output_sup s :: output_syms ss
     | output_syms ("\<^isup>" :: s :: ss) = output_sup s :: output_syms ss
-    | output_syms ("\<^loc>" :: s :: ss) = output_loc s :: output_syms ss
     | output_syms (s :: ss) = output_sym s :: output_syms ss
     | output_syms [] = [];
 
