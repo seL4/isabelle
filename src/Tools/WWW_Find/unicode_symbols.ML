@@ -87,10 +87,17 @@ val scan_comment =
   $$$ "#" |-- (Scan.many (not_contains "\n") @@@ ($$$ "\n"))
   >> token Comment;
 
+fun is_sym s =
+  Symbol.not_eof s andalso
+    (case Symbol.decode s of
+      Symbol.Sym _ => true
+    | Symbol.Ctrl _ => true
+    | _ => false);
+
 fun tokenize syms =
   let
     val scanner =
-      Scan.one (Symbol.is_symbolic o Symbol_Pos.symbol) >> (token Symbol o single) ||
+      Scan.one (is_sym o Symbol_Pos.symbol) >> (token Symbol o single) ||
       scan_comment ||
       scan_space ||
       scan_code ||
