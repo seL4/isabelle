@@ -230,7 +230,7 @@ object Symbol
 
     val names: Map[String, String] =
     {
-      val name = new Regex("""\\<([A-Za-z][A-Za-z0-9_']*)>""")
+      val name = new Regex("""\\<\^?([A-Za-z][A-Za-z0-9_']*)>""")
       Map((for ((sym @ name(a), _) <- symbols) yield (sym -> a)): _*)
     }
 
