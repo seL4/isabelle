@@ -217,7 +217,7 @@ val e_config : atp_config =
        "# Cannot determine problem status within resource limit"),
       (OutOfResources, "SZS status: ResourceOut"),
       (OutOfResources, "SZS status ResourceOut")],
-   conj_sym_kind = Conjecture, (* FIXME: try out Hypothesis *)
+   conj_sym_kind = Hypothesis,
    prem_kind = Conjecture,
    formats = [FOF],
    best_slices = fn ctxt =>
@@ -257,7 +257,7 @@ val spass_config : atp_config =
       (MalformedInput, "Free Variable"),
       (SpassTooOld, "tptp2dfg"),
       (InternalError, "Please report this error")],
-   conj_sym_kind = Axiom, (* FIXME: try out Hypothesis *)
+   conj_sym_kind = Hypothesis,
    prem_kind = Conjecture,
    formats = [FOF],
    best_slices = fn ctxt =>
@@ -299,7 +299,7 @@ val vampire_config : atp_config =
       (Unprovable, "Termination reason: Satisfiable"),
       (VampireTooOld, "not a valid option"),
       (Interrupted, "Aborted by signal SIGINT")],
-   conj_sym_kind = Conjecture, (* FIXME: try out Hypothesis *)
+   conj_sym_kind = Conjecture,
    prem_kind = Conjecture,
    formats = [FOF],
    best_slices = fn ctxt =>
