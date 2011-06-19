@@ -27,20 +27,17 @@ object Token_Markup
   def superscript(i: Byte): Byte = { check_range(i); (i + 2 * plain_range).toByte }
   val hidden: Byte = (3 * plain_range).toByte
 
-  // FIXME \\<^bsub> \\<^esub> \\<^bsup> \\<^esup>
-  // FIXME \\<^bold> \\<^loc>
-
-  private val ctrl_styles: Map[String, Byte => Byte] =
-    Map(
-      "\\<^sub>" -> subscript,
-      "\\<^sup>" -> superscript,
-      "\\<^isub>" -> subscript,
-      "\\<^isup>" -> superscript)
-
   private def extended_styles(symbols: Symbol.Interpretation, text: CharSequence)
     : Map[Text.Offset, Byte => Byte] =
   {
     if (Isabelle.extended_styles) {
+      // FIXME \\<^bsub> \\<^esub> \\<^bsup> \\<^esup>
+      // FIXME \\<^bold> \\<^loc>
+      def ctrl_style(sym: String): Option[Byte => Byte] =
+        if (symbols.is_subscript_decoded(sym)) Some(subscript(_))
+        else if (symbols.is_superscript_decoded(sym)) Some(superscript(_))
+        else None
+
       var result = Map[Text.Offset, Byte => Byte]()
       def mark(start: Text.Offset, stop: Text.Offset, style: Byte => Byte)
       {
@@ -49,11 +46,11 @@ object Token_Markup
       var offset = 0
       var ctrl = ""
       for (sym <- Symbol.iterator(text).map(_.toString)) {
-        if (ctrl_styles.isDefinedAt(sym)) ctrl = sym
+        if (ctrl_style(sym).isDefined) ctrl = sym
         else if (ctrl != "") {
           if (symbols.is_controllable(sym)) {
             mark(offset - ctrl.length, offset, _ => hidden)
-            mark(offset, offset + sym.length, ctrl_styles(ctrl))
+            mark(offset, offset + sym.length, ctrl_style(ctrl).get)
           }
           ctrl = ""
         }

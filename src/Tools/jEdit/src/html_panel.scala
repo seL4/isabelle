@@ -168,7 +168,7 @@ class HTML_Panel(
           Pretty.formatted(List(div), current_margin, Pretty.font_metric(current_font_metrics))
             .map(t =>
               XML.Elem(Markup(HTML.PRE, List((Markup.CLASS, Markup.MESSAGE))),
-                HTML.spans(t, true))))
+                HTML.spans(system.symbols, t, true))))
       val doc =
         builder.parse(
           new InputSourceImpl(

@@ -50,7 +50,8 @@ object HTML
   def sub(txt: String): XML.Elem = XML.elem("sub", List(XML.Text(txt)))
   def sup(txt: String): XML.Elem = XML.elem("sup", List(XML.Text(txt)))
 
-  def spans(input: XML.Tree, original_data: Boolean = false): XML.Body =
+  def spans(symbols: Symbol.Interpretation,
+    input: XML.Tree, original_data: Boolean = false): XML.Body =
   {
     def html_spans(tree: XML.Tree): XML.Body =
       tree match {
@@ -75,18 +76,18 @@ object HTML
           while (syms.hasNext) {
             val s1 = syms.next
             def s2() = if (syms.hasNext) syms.next else ""
-            s1 match {
-              case "\n" => add(XML.elem(BR))
-              case "\\<^bsub>" => t ++= s1  // FIXME
-              case "\\<^esub>" => t ++= s1  // FIXME
-              case "\\<^bsup>" => t ++= s1  // FIXME
-              case "\\<^esup>" => t ++= s1  // FIXME
-              case "\\<^sub>" | "\\<^isub>" => add(hidden(s1)); add(sub(s2()))
-              case "\\<^sup>" | "\\<^isup>" => add(hidden(s1)); add(sup(s2()))
-              case "\\<^bold>" => add(hidden(s1)); add(span("bold", List(XML.Text(s2()))))
-              case "\\<^loc>" => add(hidden(s1)); add(span("loc", List(XML.Text(s2()))))
-              case _ => t ++= s1
+            if (s1 == "\n") add(XML.elem(BR))
+            else if (symbols.is_subscript_decoded(s1)) { add(hidden(s1)); add(sub(s2())) }
+            else if (symbols.is_superscript_decoded(s1)) { add(hidden(s1)); add(sup(s2())) }
+            else if (s1 == "\\<^bsub>") t ++= s1  // FIXME
+            else if (s1 == "\\<^esub>") t ++= s1  // FIXME
+            else if (s1 == "\\<^bsup>") t ++= s1  // FIXME
+            else if (s1 == "\\<^esup>") t ++= s1  // FIXME
+            else if (symbols.is_bold_decoded(s1)) {
+              add(hidden(s1)); add(span("bold", List(XML.Text(s2()))))
             }
+            else if (s1 == "\\<^loc>") { add(hidden(s1)); add(span("loc", List(XML.Text(s2())))) }
+            else t ++= s1
           }
           flush()
           ts.toList
