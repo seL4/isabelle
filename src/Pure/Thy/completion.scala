@@ -21,8 +21,8 @@ private object Completion
   {
     override val whiteSpace = "".r
 
-    def reverse_symbol: Parser[String] = """>[A-Za-z0-9_']+<\\""".r
-    def reverse_symb: Parser[String] = """[A-Za-z0-9_']{2,}<\\""".r
+    def reverse_symbol: Parser[String] = """>[A-Za-z0-9_']+\^?<\\""".r
+    def reverse_symb: Parser[String] = """[A-Za-z0-9_']{2,}\^?<\\""".r
     def word: Parser[String] = "[a-zA-Z0-9_']{2,}".r
 
     def read(in: CharSequence): Option[String] =
