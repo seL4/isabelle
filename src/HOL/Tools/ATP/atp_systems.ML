@@ -253,8 +253,8 @@ val spass_config : atp_config =
    formats = [FOF],
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.333, (false, (300, ["mangled_preds?"], sosN))),
-      (0.333, (false, (100, ["mangled_tags"], sosN))),
+     [(0.333, (false, (100, ["mangled_tags"], sosN))),
+      (0.333, (false, (500, ["mangled_preds?"], sosN))),
       (0.334, (true, (50, ["mangled_tags?"], no_sosN)))]
      |> (if Config.get ctxt spass_force_sos then hd #> apfst (K 1.0) #> single
          else I)}
@@ -294,9 +294,9 @@ val vampire_config : atp_config =
    formats = [FOF],
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.333, (false, (200, ["mangled_tags_heavy?"], sosN))),
-      (0.333, (false, (200, ["poly_preds"], sosN))),
-      (0.334, (true, (50, ["mangled_preds?"], no_sosN)))]
+     [(0.333, (false, (50, ["mangled_preds_heavy"], sosN))),
+      (0.333, (false, (500, ["mangled_tags_heavy?"], sosN))),
+      (0.334, (true, (100, ["mangled_preds?"], no_sosN)))]
      |> (if Config.get ctxt vampire_force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
