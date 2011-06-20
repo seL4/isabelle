@@ -867,7 +867,8 @@ fun all_facts ctxt reserved really_all add_ths chained_ths =
             pair 1
             #> fold (fn th => fn (j, (multis, unis)) =>
                         (j + 1,
-                         if not (member Thm.eq_thm_prop add_ths th) andalso
+                         if not really_all andalso
+                            not (member Thm.eq_thm_prop add_ths th) andalso
                             is_theorem_bad_for_atps th then
                            (multis, unis)
                          else
