@@ -506,7 +506,6 @@ fun is_dangerous_prop ctxt =
 fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
   | int_opt_add _ _ = NONE
 
-val atp_blacklist_max_iters = 10
 (* Important messages are important but not so important that users want to see
    them each time. *)
 val atp_important_message_keep_quotient = 10
@@ -609,7 +608,7 @@ fun run_atp mode name
                 |> curry ListPair.zip (map fst facts)
                 |> maps (fn (name, rths) => map (pair name o snd) rths)
               end
-            fun run_slice blacklist (slice, (time_frac, (complete,
+            fun run_slice (slice, (time_frac, (complete,
                                    (best_max_relevant, best_type_syss, extra))))
                           time_left =
               let
@@ -624,8 +623,6 @@ fun run_atp mode name
                         |> not fairly_sound
                            ? filter_out (is_dangerous_prop ctxt o prop_of o snd)
                         |> take num_facts
-                        |> not (null blacklist)
-                           ? filter_out (member (op =) blacklist o fst)
                         |> polymorphism_of_type_sys type_sys <> Polymorphic
                            ? monomorphize_facts
                         |> map (apsnd prop_of)
@@ -699,8 +696,6 @@ fun run_atp mode name
                     |> Option.map (fn facts =>
                            UnsoundProof (is_type_sys_virtually_sound type_sys,
                                          facts |> sort string_ord))
-                  | SOME Unprovable =>
-                    if null blacklist then outcome else SOME GaveUp
                   | _ => outcome
               in
                 ((pool, conjecture_shape, facts_offset, fact_names,
@@ -708,44 +703,23 @@ fun run_atp mode name
                  (output, msecs, atp_proof, outcome))
               end
             val timer = Timer.startRealTimer ()
-            fun maybe_run_slice blacklist slice
-                                (result as (_, (_, msecs0, _, SOME _))) =
+            fun maybe_run_slice slice (result as (_, (_, msecs0, _, SOME _))) =
                 let
                   val time_left = Time.- (timeout, Timer.checkRealTimer timer)
                 in
                   if Time.<= (time_left, Time.zeroTime) then
                     result
                   else
-                    (run_slice blacklist slice time_left
+                    (run_slice slice time_left
                      |> (fn (stuff, (output, msecs, atp_proof, outcome)) =>
                             (stuff, (output, int_opt_add msecs0 msecs,
                                      atp_proof, outcome))))
                 end
-              | maybe_run_slice _ _ result = result
-            fun maybe_blacklist_facts_and_retry iter blacklist
-                    (result as ((_, _, facts_offset, fact_names, _, _),
-                                (_, _, atp_proof,
-                                 SOME (UnsoundProof (false, _))))) =
-                (case used_facts_in_atp_proof ctxt facts_offset fact_names
-                                              atp_proof of
-                   [] => result
-                 | new_baddies =>
-                   if slicing andalso iter < atp_blacklist_max_iters - 1 then
-                     let val blacklist = new_baddies @ blacklist in
-                       result
-                       |> maybe_run_slice blacklist (List.last actual_slices)
-                       |> maybe_blacklist_facts_and_retry (iter + 1) blacklist
-                     end
-                   else
-                     result)
-              | maybe_blacklist_facts_and_retry _ _ result = result
+              | maybe_run_slice _ result = result
           in
             ((Symtab.empty, [], 0, Vector.fromList [], [], Symtab.empty),
              ("", SOME 0, [], SOME InternalError))
-            |> fold (maybe_run_slice []) actual_slices
-               (* The ATP found an unsound proof? Automatically try again
-                  without the offending facts! *)
-            |> maybe_blacklist_facts_and_retry 0 []
+            |> fold maybe_run_slice actual_slices
           end
         else
           error ("Bad executable: " ^ Path.print command ^ ".")
