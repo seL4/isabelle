@@ -43,20 +43,20 @@ body { font-family: IsabelleText; font-size: 14pt; }
 <ul>
 
   <li>Isabelle supports infinitely many symbols:<br/>
-    &alpha;, &beta;, &gamma;, &hellip;<br/>
-    &forall;, &exist;, &or;, &and;, &#10230;, &#10231;, &hellip;<br/>
-    &le;, &ge;, &#8851;, &#8852;, &hellip;<br/>
-    &#8501;, &#9651;, &#8711;, &hellip;<br/>
-    <tt>\&lt;foo&gt;</tt>, <tt>\&lt;bar&gt;</tt>, <tt>\&lt;baz&gt;</tt>, &hellip;<br/>
+    α, β, γ, …<br/>
+    ∀, ∃, ∨, ∧, ⟶, ⟷, …<br/>
+    ≤, ≥, ⊓, ⊔, …<br/>
+    ℵ, △, ∇, …<br/>
+    <tt>\&lt;foo&gt;</tt>, <tt>\&lt;bar&gt;</tt>, <tt>\&lt;baz&gt;</tt>, …<br/>
   </li>
 
   <li>There are some special control symbols to modify the style of a
   <em>single</em> symbol:<br/>
-    &#8681; subscript<br/>
-    &#8679; superscript<br/>
-    &#8675; subscript within identifier<br/>
-    &#8673; superscript within identifier<br/>
-    &#10073; bold face</li>
+    ⇩ subscript<br/>
+    ⇧ superscript<br/>
+    ⇣ subscript within identifier<br/>
+    ⇡ superscript within identifier<br/>
+    ❙ bold face</li>
 
   <li>A default mapping relates some Isabelle symbols to Unicode points
     (see <tt>$ISABELLE_HOME/etc/symbols</tt> and <tt>$ISABELLE_HOME_USER/etc/symbols</tt>).
@@ -75,28 +75,28 @@ body { font-family: IsabelleText; font-size: 14pt; }
       <table border="1">
       <tr><th><b>name</b></th>    <th><b>abbreviation</b></th>  <th><b>symbol</b></th></tr>
 
-      <tr><td>lambda</td>         <td></td>                     <td>&lambda;</td></tr>
-      <tr><td>Rightarrow</td>     <td><tt>=&gt;</tt></td>       <td>&#8658;</td></tr>
-      <tr><td>Longrightarrow</td> <td><tt>==&gt;</tt></td>      <td>&#10233;</td></tr>
+      <tr><td>lambda</td>         <td><tt>%</tt></td>           <td>λ</td></tr>
+      <tr><td>Rightarrow</td>     <td><tt>=&gt;</tt></td>       <td>⇒</td></tr>
+      <tr><td>Longrightarrow</td> <td><tt>==&gt;</tt></td>      <td>⟹</td></tr>
 
-      <tr><td>And</td>            <td><tt>!!</tt></td>          <td>&#8896;</td></tr>
-      <tr><td>equiv</td>          <td><tt>==</tt></td>          <td>&equiv;</td></tr>
+      <tr><td>And</td>            <td><tt>!!</tt></td>          <td>⋀</td></tr>
+      <tr><td>equiv</td>          <td><tt>==</tt></td>          <td>≡</td></tr>
 
-      <tr><td>forall</td>         <td><tt>!</tt></td>           <td>&forall;</td></tr>
-      <tr><td>exists</td>         <td><tt>?</tt></td>           <td>&exist;</td></tr>
-      <tr><td>longrightarrow</td> <td><tt>--&gt;</tt></td>      <td>&#10230;</td></tr>
-      <tr><td>and</td>            <td><tt>/\</tt></td>          <td>&and;</td></tr>
-      <tr><td>or</td>             <td><tt>\/</tt></td>          <td>&or;</td></tr>
-      <tr><td>not</td>            <td><tt>~ </tt></td>          <td>&not;</td></tr>
-      <tr><td>noteq</td>          <td><tt>~=</tt></td>          <td>&ne;</td></tr>
-      <tr><td>in</td>             <td><tt>:</tt></td>           <td>&isin;</td></tr>
-      <tr><td>notin</td>          <td><tt>~:</tt></td>          <td>&notin;</td></tr>
+      <tr><td>forall</td>         <td><tt>!</tt></td>           <td>∀</td></tr>
+      <tr><td>exists</td>         <td><tt>?</tt></td>           <td>∃</td></tr>
+      <tr><td>longrightarrow</td> <td><tt>--&gt;</tt></td>      <td>⟶</td></tr>
+      <tr><td>and</td>            <td><tt>/\</tt></td>          <td>∧</td></tr>
+      <tr><td>or</td>             <td><tt>\/</tt></td>          <td>∨</td></tr>
+      <tr><td>not</td>            <td><tt>~ </tt></td>          <td>¬</td></tr>
+      <tr><td>noteq</td>          <td><tt>~=</tt></td>          <td>≠</td></tr>
+      <tr><td>in</td>             <td><tt>:</tt></td>           <td>∈</td></tr>
+      <tr><td>notin</td>          <td><tt>~:</tt></td>          <td>∉</td></tr>
 
-      <tr><td>sub</td>            <td><tt>=_</tt></td>          <td>&#8681;</td></tr>
-      <tr><td>sup</td>            <td><tt>=^</tt></td>          <td>&#8679;</td></tr>
-      <tr><td>isup</td>           <td><tt>-_</tt></td>          <td>&#8675;</td></tr>
-      <tr><td>isub</td>           <td><tt>-^</tt></td>          <td>&#8673;</td></tr>
-      <tr><td>bold</td>           <td><tt>-.</tt></td>          <td>&#10073;</td></tr>
+      <tr><td>sub</td>            <td><tt>=_</tt></td>          <td>⇩</td></tr>
+      <tr><td>sup</td>            <td><tt>=^</tt></td>          <td>⇧</td></tr>
+      <tr><td>isup</td>           <td><tt>-_</tt></td>          <td>⇣</td></tr>
+      <tr><td>isub</td>           <td><tt>-^</tt></td>          <td>⇡</td></tr>
+      <tr><td>bold</td>           <td><tt>-.</tt></td>          <td>❙</td></tr>
 
     </table>
     </li>
