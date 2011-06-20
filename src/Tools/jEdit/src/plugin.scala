@@ -396,7 +396,7 @@ class Plugin extends EBPlugin
     Isabelle.system = new Isabelle_System
     Isabelle.system.install_fonts()
     Isabelle.session = new Session(Isabelle.system)
-    SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender)
+    SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender(Isabelle.system.symbols))
     ModeProvider.instance = new Token_Markup.Mode_Provider(ModeProvider.instance)
     Isabelle.session.phase_changed += session_manager
   }

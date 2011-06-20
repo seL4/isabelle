@@ -234,6 +234,14 @@ object Symbol
       Map((for ((sym @ name(a), _) <- symbols) yield (sym -> a)): _*)
     }
 
+    val fonts: Map[String, String] =
+      Map((
+        for ((sym, props) <- symbols if props.isDefinedAt("font"))
+          yield (sym -> props("font"))): _*)
+
+    val font_names: List[String] = Set(fonts.toList.map(_._2): _*).toList
+    val font_index: Map[String, Int] = Map((font_names zip (0 until font_names.length).toList): _*)
+
     val abbrevs: Map[String, String] =
       Map((
         for ((sym, props) <- symbols if props.isDefinedAt("abbrev"))

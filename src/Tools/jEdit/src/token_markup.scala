@@ -25,27 +25,33 @@ object Token_Markup
   /* extended syntax styles */
 
   private val plain_range: Int = JEditToken.ID_COUNT
-  private val full_range: Int = 4 * plain_range + 1
   private def check_range(i: Int) { require(0 <= i && i < plain_range) }
 
   def subscript(i: Byte): Byte = { check_range(i); (i + plain_range).toByte }
   def superscript(i: Byte): Byte = { check_range(i); (i + 2 * plain_range).toByte }
   def bold(i: Byte): Byte = { check_range(i); (i + 3 * plain_range).toByte }
-  val hidden: Byte = (4 * plain_range).toByte
+  def user_font(idx: Int, i: Byte): Byte = { check_range(i); (i + (4 + idx) * plain_range).toByte }
+  val hidden: Byte = (6 * plain_range).toByte
+
+  private def font_style(style: SyntaxStyle, f: Font => Font): SyntaxStyle =
+    new SyntaxStyle(style.getForegroundColor, style.getBackgroundColor, f(style.getFont))
 
   private def script_style(style: SyntaxStyle, i: Int): SyntaxStyle =
   {
     import scala.collection.JavaConversions._
-    val font = style.getFont.deriveFont(Map(TextAttribute.SUPERSCRIPT -> new java.lang.Integer(i)))
-    new SyntaxStyle(style.getForegroundColor, style.getBackgroundColor, font)
+    font_style(style, font =>
+      style.getFont.deriveFont(Map(TextAttribute.SUPERSCRIPT -> new java.lang.Integer(i))))
   }
 
   private def bold_style(style: SyntaxStyle): SyntaxStyle =
-    new SyntaxStyle(style.getForegroundColor, style.getBackgroundColor,
-      style.getFont.deriveFont(Font.BOLD))
+    font_style(style, _.deriveFont(Font.BOLD))
 
-  class Style_Extender extends SyntaxUtilities.StyleExtender
+  class Style_Extender(symbols: Symbol.Interpretation) extends SyntaxUtilities.StyleExtender
   {
+    if (symbols.font_names.length > 2)
+      error("Too many user symbol fonts (max 2 permitted): " + symbols.font_names.mkString(", "))
+    private val full_range: Int = (4 + symbols.font_names.length) * plain_range + 1
+
     override def extendStyles(styles: Array[SyntaxStyle]): Array[SyntaxStyle] =
     {
       val new_styles = new Array[SyntaxStyle](full_range)
@@ -55,6 +61,11 @@ object Token_Markup
         new_styles(subscript(i.toByte)) = script_style(style, -1)
         new_styles(superscript(i.toByte)) = script_style(style, 1)
         new_styles(bold(i.toByte)) = bold_style(style)
+        for ((family, idx) <- symbols.font_index) {
+          // FIXME adjust size
+          new_styles(user_font(idx, i.toByte)) =
+            font_style(style, font => new Font(family, font.getStyle, font.getSize))
+        }
       }
       new_styles(hidden) =
         new SyntaxStyle(Color.white, null, new Font(styles(0).getFont.getFamily, 0, 1))
@@ -62,7 +73,7 @@ object Token_Markup
     }
   }
 
-  private def extended_styles(symbols: Symbol.Interpretation, text: CharSequence)
+  def extended_styles(symbols: Symbol.Interpretation, text: CharSequence)
     : Map[Text.Offset, Byte => Byte] =
   {
     // FIXME \\<^bsub> \\<^esub> \\<^bsup> \\<^esup>
@@ -82,11 +93,17 @@ object Token_Markup
     for (sym <- Symbol.iterator(text).map(_.toString)) {
       if (ctrl_style(sym).isDefined) ctrl = sym
       else if (ctrl != "") {
-        if (symbols.is_controllable(sym) && sym != "\"") {
+        if (symbols.is_controllable(sym) && sym != "\"" && !symbols.fonts.isDefinedAt(sym)) {
           mark(offset - ctrl.length, offset, _ => hidden)
           mark(offset, offset + sym.length, ctrl_style(ctrl).get)
         }
         ctrl = ""
+      }
+      // FIXME avoid symbols.encode!?
+      symbols.fonts.get(symbols.encode(sym)) match {
+        case Some(font) =>
+          mark(offset, offset + sym.length, user_font(symbols.font_index(font), _))
+        case _ =>
       }
       offset += sym.length
     }
