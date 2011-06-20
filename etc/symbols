@@ -1,325 +1,325 @@
 # Default interpretation of some Isabelle symbols
 
-\<zero>                 code: 0x01d7ec  font: Isabelle
-\<one>                  code: 0x01d7ed  font: Isabelle
-\<two>                  code: 0x01d7ee  font: Isabelle
-\<three>                code: 0x01d7ef  font: Isabelle
-\<four>                 code: 0x01d7f0  font: Isabelle
-\<five>                 code: 0x01d7f1  font: Isabelle
-\<six>                  code: 0x01d7f2  font: Isabelle
-\<seven>                code: 0x01d7f3  font: Isabelle
-\<eight>                code: 0x01d7f4  font: Isabelle
-\<nine>                 code: 0x01d7f5  font: Isabelle
-\<A>                    code: 0x01d49c  font: Isabelle
-\<B>                    code: 0x00212c  font: Isabelle
-\<C>                    code: 0x01d49e  font: Isabelle
-\<D>                    code: 0x01d49f  font: Isabelle
-\<E>                    code: 0x002130  font: Isabelle
-\<F>                    code: 0x002131  font: Isabelle
-\<G>                    code: 0x01d4a2  font: Isabelle
-\<H>                    code: 0x00210b  font: Isabelle
-\<I>                    code: 0x002110  font: Isabelle
-\<J>                    code: 0x01d4a5  font: Isabelle
-\<K>                    code: 0x01d4a6  font: Isabelle
-\<L>                    code: 0x002112  font: Isabelle
-\<M>                    code: 0x002133  font: Isabelle
-\<N>                    code: 0x01d4a9  font: Isabelle
-\<O>                    code: 0x01d4aa  font: Isabelle
-\<P>                    code: 0x01d4ab  font: Isabelle
-\<Q>                    code: 0x01d4ac  font: Isabelle
-\<R>                    code: 0x00211b  font: Isabelle
-\<S>                    code: 0x01d4ae  font: Isabelle
-\<T>                    code: 0x01d4af  font: Isabelle
-\<U>                    code: 0x01d4b0  font: Isabelle
-\<V>                    code: 0x01d4b1  font: Isabelle
-\<W>                    code: 0x01d4b2  font: Isabelle
-\<X>                    code: 0x01d4b3  font: Isabelle
-\<Y>                    code: 0x01d4b4  font: Isabelle
-\<Z>                    code: 0x01d4b5  font: Isabelle
-\<a>                    code: 0x01d5ba  font: Isabelle
-\<b>                    code: 0x01d5bb  font: Isabelle
-\<c>                    code: 0x01d5bc  font: Isabelle
-\<d>                    code: 0x01d5bd  font: Isabelle
-\<e>                    code: 0x01d5be  font: Isabelle
-\<f>                    code: 0x01d5bf  font: Isabelle
-\<g>                    code: 0x01d5c0  font: Isabelle
-\<h>                    code: 0x01d5c1  font: Isabelle
-\<i>                    code: 0x01d5c2  font: Isabelle
-\<j>                    code: 0x01d5c3  font: Isabelle
-\<k>                    code: 0x01d5c4  font: Isabelle
-\<l>                    code: 0x01d5c5  font: Isabelle
-\<m>                    code: 0x01d5c6  font: Isabelle
-\<n>                    code: 0x01d5c7  font: Isabelle
-\<o>                    code: 0x01d5c8  font: Isabelle
-\<p>                    code: 0x01d5c9  font: Isabelle
-\<q>                    code: 0x01d5ca  font: Isabelle
-\<r>                    code: 0x01d5cb  font: Isabelle
-\<s>                    code: 0x01d5cc  font: Isabelle
-\<t>                    code: 0x01d5cd  font: Isabelle
-\<u>                    code: 0x01d5ce  font: Isabelle
-\<v>                    code: 0x01d5cf  font: Isabelle
-\<w>                    code: 0x01d5d0  font: Isabelle
-\<x>                    code: 0x01d5d1  font: Isabelle
-\<y>                    code: 0x01d5d2  font: Isabelle
-\<z>                    code: 0x01d5d3  font: Isabelle
-\<AA>                   code: 0x01d504  font: Isabelle
-\<BB>                   code: 0x01d505  font: Isabelle
-\<CC>                   code: 0x00212d  font: Isabelle
-\<DD>                   code: 0x01d507  font: Isabelle
-\<EE>                   code: 0x01d508  font: Isabelle
-\<FF>                   code: 0x01d509  font: Isabelle
-\<GG>                   code: 0x01d50a  font: Isabelle
-\<HH>                   code: 0x00210c  font: Isabelle
-#\<II>                   code: 0x01d50c  font: Isabelle
-\<JJ>                   code: 0x01d50d  font: Isabelle
-\<KK>                   code: 0x01d50e  font: Isabelle
-\<LL>                   code: 0x01d50f  font: Isabelle
-\<MM>                   code: 0x01d510  font: Isabelle
-\<NN>                   code: 0x01d511  font: Isabelle
-\<OO>                   code: 0x01d512  font: Isabelle
-\<PP>                   code: 0x01d513  font: Isabelle
-\<QQ>                   code: 0x01d514  font: Isabelle
-#\<RR>                   code: 0x01d515  font: Isabelle
-\<SS>                   code: 0x01d516  font: Isabelle
-\<TT>                   code: 0x01d517  font: Isabelle
-\<UU>                   code: 0x01d518  font: Isabelle
-\<VV>                   code: 0x01d519  font: Isabelle
-\<WW>                   code: 0x01d51a  font: Isabelle
-\<XX>                   code: 0x01d51b  font: Isabelle
-\<YY>                   code: 0x01d51c  font: Isabelle
-\<ZZ>                   code: 0x002128  font: Isabelle
-\<aa>                   code: 0x01d51e  font: Isabelle
-\<bb>                   code: 0x01d51f  font: Isabelle
-\<cc>                   code: 0x01d520  font: Isabelle
-\<dd>                   code: 0x01d521  font: Isabelle
-\<ee>                   code: 0x01d522  font: Isabelle
-\<ff>                   code: 0x01d523  font: Isabelle
-\<gg>                   code: 0x01d524  font: Isabelle
-\<hh>                   code: 0x01d525  font: Isabelle
-\<ii>                   code: 0x01d526  font: Isabelle
-\<jj>                   code: 0x01d527  font: Isabelle
-\<kk>                   code: 0x01d528  font: Isabelle
-\<ll>                   code: 0x01d529  font: Isabelle
-\<mm>                   code: 0x01d52a  font: Isabelle
-\<nn>                   code: 0x01d52b  font: Isabelle
-\<oo>                   code: 0x01d52c  font: Isabelle
-\<pp>                   code: 0x01d52d  font: Isabelle
-\<qq>                   code: 0x01d52e  font: Isabelle
-\<rr>                   code: 0x01d52f  font: Isabelle
-\<ss>                   code: 0x01d530  font: Isabelle
-\<tt>                   code: 0x01d531  font: Isabelle
-\<uu>                   code: 0x01d532  font: Isabelle
-\<vv>                   code: 0x01d533  font: Isabelle
-\<ww>                   code: 0x01d534  font: Isabelle
-\<xx>                   code: 0x01d535  font: Isabelle
-\<yy>                   code: 0x01d536  font: Isabelle
-\<zz>                   code: 0x01d537  font: Isabelle
-\<alpha>                code: 0x0003b1  font: Isabelle
-\<beta>                 code: 0x0003b2  font: Isabelle
-\<gamma>                code: 0x0003b3  font: Isabelle
-\<delta>                code: 0x0003b4  font: Isabelle
-\<epsilon>              code: 0x0003b5  font: Isabelle
-\<zeta>                 code: 0x0003b6  font: Isabelle
-\<eta>                  code: 0x0003b7  font: Isabelle
-\<theta>                code: 0x0003b8  font: Isabelle
-\<iota>                 code: 0x0003b9  font: Isabelle
-\<kappa>                code: 0x0003ba  font: Isabelle
-\<lambda>               code: 0x0003bb  font: Isabelle  abbrev: %
-\<mu>                   code: 0x0003bc  font: Isabelle
-\<nu>                   code: 0x0003bd  font: Isabelle
-\<xi>                   code: 0x0003be  font: Isabelle
-\<pi>                   code: 0x0003c0  font: Isabelle
-\<rho>                  code: 0x0003c1  font: Isabelle
-\<sigma>                code: 0x0003c3  font: Isabelle
-\<tau>                  code: 0x0003c4  font: Isabelle
-\<upsilon>              code: 0x0003c5  font: Isabelle
-\<phi>                  code: 0x0003c6  font: Isabelle
-\<chi>                  code: 0x0003c7  font: Isabelle
-\<psi>                  code: 0x0003c8  font: Isabelle
-\<omega>                code: 0x0003c9  font: Isabelle
-\<Gamma>                code: 0x000393  font: Isabelle
-\<Delta>                code: 0x000394  font: Isabelle
-\<Theta>                code: 0x000398  font: Isabelle
-\<Lambda>               code: 0x00039b  font: Isabelle
-\<Xi>                   code: 0x00039e  font: Isabelle
-\<Pi>                   code: 0x0003a0  font: Isabelle
-\<Sigma>                code: 0x0003a3  font: Isabelle
-\<Upsilon>              code: 0x0003a5  font: Isabelle
-\<Phi>                  code: 0x0003a6  font: Isabelle
-\<Psi>                  code: 0x0003a8  font: Isabelle
-\<Omega>                code: 0x0003a9  font: Isabelle
-\<bool>                 code: 0x01d539  font: Isabelle
-\<complex>              code: 0x002102  font: Isabelle
-\<nat>                  code: 0x002115  font: Isabelle
-\<rat>                  code: 0x00211a  font: Isabelle
-\<real>                 code: 0x00211d  font: Isabelle
-\<int>                  code: 0x002124  font: Isabelle
-\<leftarrow>            code: 0x002190  font: Isabelle
-\<longleftarrow>        code: 0x0027f5  font: Isabelle
-\<rightarrow>           code: 0x002192  font: Isabelle  abbrev: ->
-\<longrightarrow>       code: 0x0027f6  font: Isabelle  abbrev: -->
-\<Leftarrow>            code: 0x0021d0  font: Isabelle
-\<Longleftarrow>        code: 0x0027f8  font: Isabelle 
-\<Rightarrow>           code: 0x0021d2  font: Isabelle  abbrev: =>
-\<Longrightarrow>       code: 0x0027f9  font: Isabelle  abbrev: ==>
-\<leftrightarrow>       code: 0x002194  font: Isabelle
-\<longleftrightarrow>   code: 0x0027f7  font: Isabelle  abbrev: <->
-\<Leftrightarrow>       code: 0x0021d4  font: Isabelle
-\<Longleftrightarrow>   code: 0x0027fa  font: Isabelle  abbrev: <=>
-\<mapsto>               code: 0x0021a6  font: Isabelle  abbrev: |->
-\<longmapsto>           code: 0x0027fc  font: Isabelle  abbrev: |-->
-\<midarrow>             code: 0x002500  font: Isabelle
-\<Midarrow>             code: 0x002550  font: Isabelle
-\<hookleftarrow>        code: 0x0021a9  font: Isabelle
-\<hookrightarrow>       code: 0x0021aa  font: Isabelle
-\<leftharpoondown>      code: 0x0021bd  font: Isabelle
-\<rightharpoondown>     code: 0x0021c1  font: Isabelle
-\<leftharpoonup>        code: 0x0021bc  font: Isabelle
-\<rightharpoonup>       code: 0x0021c0  font: Isabelle
-\<rightleftharpoons>    code: 0x0021cc  font: Isabelle
-\<leadsto>              code: 0x00219d  font: Isabelle  abbrev: ~>
-\<downharpoonleft>      code: 0x0021c3  font: Isabelle
-\<downharpoonright>     code: 0x0021c2  font: Isabelle
-\<upharpoonleft>        code: 0x0021bf  font: Isabelle
-#\<upharpoonright>       code: 0x0021be  font: Isabelle
-\<restriction>          code: 0x0021be  font: Isabelle
-\<Colon>                code: 0x002237  font: Isabelle
-\<up>                   code: 0x002191  font: Isabelle
-\<Up>                   code: 0x0021d1  font: Isabelle
-\<down>                 code: 0x002193  font: Isabelle
-\<Down>                 code: 0x0021d3  font: Isabelle
-\<updown>               code: 0x002195  font: Isabelle
-\<Updown>               code: 0x0021d5  font: Isabelle
-\<langle>               code: 0x0027e8  font: Isabelle  abbrev: <.
-\<rangle>               code: 0x0027e9  font: Isabelle  abbrev: .>
-\<lceil>                code: 0x002308  font: Isabelle
-\<rceil>                code: 0x002309  font: Isabelle
-\<lfloor>               code: 0x00230a  font: Isabelle
-\<rfloor>               code: 0x00230b  font: Isabelle
-\<lparr>                code: 0x002987  font: Isabelle  abbrev: (|
-\<rparr>                code: 0x002988  font: Isabelle  abbrev: |)
-\<lbrakk>               code: 0x0027e6  font: Isabelle  abbrev: [|
-\<rbrakk>               code: 0x0027e7  font: Isabelle  abbrev: |]
-\<lbrace>               code: 0x002983  font: Isabelle  abbrev: {.
-\<rbrace>               code: 0x002984  font: Isabelle  abbrev: .}
-\<guillemotleft>        code: 0x0000ab                  abbrev: <<
-\<guillemotright>       code: 0x0000bb                  abbrev: >>
-\<bottom>               code: 0x0022a5  font: Isabelle
-\<top>                  code: 0x0022a4  font: Isabelle
-\<and>                  code: 0x002227  font: Isabelle  abbrev: /\
-\<And>                  code: 0x0022c0  font: Isabelle  abbrev: !!
-\<or>                   code: 0x002228  font: Isabelle  abbrev: \/
-\<Or>                   code: 0x0022c1  font: Isabelle  abbrev: ??
-\<forall>               code: 0x002200  font: Isabelle  abbrev: !
-\<exists>               code: 0x002203  font: Isabelle  abbrev: ?
-\<nexists>              code: 0x002204  font: Isabelle  abbrev: ~?
-\<not>                  code: 0x0000ac  font: Isabelle  abbrev: ~
-\<box>                  code: 0x0025a1  font: Isabelle
-\<diamond>              code: 0x0025c7  font: Isabelle
-\<turnstile>            code: 0x0022a2  font: Isabelle  abbrev: |-
-\<Turnstile>            code: 0x0022a8  font: Isabelle  abbrev: |=
-\<tturnstile>           code: 0x0022a9  font: Isabelle  abbrev: ||-
-\<TTurnstile>           code: 0x0022ab  font: Isabelle  abbrev: ||=
-\<stileturn>            code: 0x0022a3  font: Isabelle  abbrev: -|
-\<surd>                 code: 0x00221a  font: Isabelle
-\<le>                   code: 0x002264  font: Isabelle  abbrev: <=
-\<ge>                   code: 0x002265  font: Isabelle  abbrev: >=
-\<lless>                code: 0x00226a  font: Isabelle
-\<ggreater>             code: 0x00226b  font: Isabelle
-\<lesssim>              code: 0x002272  font: Isabelle
-\<greatersim>           code: 0x002273  font: Isabelle
-\<lessapprox>           code: 0x002a85  font: Isabelle
-\<greaterapprox>        code: 0x002a86  font: Isabelle
-\<in>                   code: 0x002208  font: Isabelle  abbrev: :
-\<notin>                code: 0x002209  font: Isabelle  abbrev: ~:
-\<subset>               code: 0x002282  font: Isabelle
-\<supset>               code: 0x002283  font: Isabelle
-\<subseteq>             code: 0x002286  font: Isabelle  abbrev: (=
-\<supseteq>             code: 0x002287  font: Isabelle  abbrev: =)
-\<sqsubset>             code: 0x00228f  font: Isabelle
-\<sqsupset>             code: 0x002290  font: Isabelle
-\<sqsubseteq>           code: 0x002291  font: Isabelle  abbrev: [=
-\<sqsupseteq>           code: 0x002292  font: Isabelle  abbrev: =]
-\<inter>                code: 0x002229  font: Isabelle  abbrev: Int
-\<Inter>                code: 0x0022c2  font: Isabelle  abbrev: Inter
-\<union>                code: 0x00222a  font: Isabelle  abbrev: Un
-\<Union>                code: 0x0022c3  font: Isabelle  abbrev: Union
-\<squnion>              code: 0x002294  font: Isabelle
-\<Squnion>              code: 0x002a06  font: Isabelle
-\<sqinter>              code: 0x002293  font: Isabelle
-\<Sqinter>              code: 0x002a05  font: Isabelle
-\<setminus>             code: 0x002216  font: Isabelle
-\<propto>               code: 0x00221d  font: Isabelle
-\<uplus>                code: 0x00228e  font: Isabelle
-\<Uplus>                code: 0x002a04  font: Isabelle
-\<noteq>                code: 0x002260  font: Isabelle  abbrev: ~=
-\<sim>                  code: 0x00223c  font: Isabelle
-\<doteq>                code: 0x002250  font: Isabelle
-\<simeq>                code: 0x002243  font: Isabelle
-\<approx>               code: 0x002248  font: Isabelle
-\<asymp>                code: 0x00224d  font: Isabelle
-\<cong>                 code: 0x002245  font: Isabelle
-\<smile>                code: 0x002323  font: Isabelle
-\<equiv>                code: 0x002261  font: Isabelle  abbrev: ==
-\<frown>                code: 0x002322  font: Isabelle
-\<Join>                 code: 0x0022c8  font: Isabelle
-\<bowtie>               code: 0x002a1d  font: Isabelle
-\<prec>                 code: 0x00227a  font: Isabelle
-\<succ>                 code: 0x00227b  font: Isabelle
-\<preceq>               code: 0x00227c  font: Isabelle
-\<succeq>               code: 0x00227d  font: Isabelle
-\<parallel>             code: 0x002225  font: Isabelle  abbrev: ||
+\<zero>                 code: 0x01d7ec
+\<one>                  code: 0x01d7ed
+\<two>                  code: 0x01d7ee
+\<three>                code: 0x01d7ef
+\<four>                 code: 0x01d7f0
+\<five>                 code: 0x01d7f1
+\<six>                  code: 0x01d7f2
+\<seven>                code: 0x01d7f3
+\<eight>                code: 0x01d7f4
+\<nine>                 code: 0x01d7f5
+\<A>                    code: 0x01d49c
+\<B>                    code: 0x00212c
+\<C>                    code: 0x01d49e
+\<D>                    code: 0x01d49f
+\<E>                    code: 0x002130
+\<F>                    code: 0x002131
+\<G>                    code: 0x01d4a2
+\<H>                    code: 0x00210b
+\<I>                    code: 0x002110
+\<J>                    code: 0x01d4a5
+\<K>                    code: 0x01d4a6
+\<L>                    code: 0x002112
+\<M>                    code: 0x002133
+\<N>                    code: 0x01d4a9
+\<O>                    code: 0x01d4aa
+\<P>                    code: 0x01d4ab
+\<Q>                    code: 0x01d4ac
+\<R>                    code: 0x00211b
+\<S>                    code: 0x01d4ae
+\<T>                    code: 0x01d4af
+\<U>                    code: 0x01d4b0
+\<V>                    code: 0x01d4b1
+\<W>                    code: 0x01d4b2
+\<X>                    code: 0x01d4b3
+\<Y>                    code: 0x01d4b4
+\<Z>                    code: 0x01d4b5
+\<a>                    code: 0x01d5ba
+\<b>                    code: 0x01d5bb
+\<c>                    code: 0x01d5bc
+\<d>                    code: 0x01d5bd
+\<e>                    code: 0x01d5be
+\<f>                    code: 0x01d5bf
+\<g>                    code: 0x01d5c0
+\<h>                    code: 0x01d5c1
+\<i>                    code: 0x01d5c2
+\<j>                    code: 0x01d5c3
+\<k>                    code: 0x01d5c4
+\<l>                    code: 0x01d5c5
+\<m>                    code: 0x01d5c6
+\<n>                    code: 0x01d5c7
+\<o>                    code: 0x01d5c8
+\<p>                    code: 0x01d5c9
+\<q>                    code: 0x01d5ca
+\<r>                    code: 0x01d5cb
+\<s>                    code: 0x01d5cc
+\<t>                    code: 0x01d5cd
+\<u>                    code: 0x01d5ce
+\<v>                    code: 0x01d5cf
+\<w>                    code: 0x01d5d0
+\<x>                    code: 0x01d5d1
+\<y>                    code: 0x01d5d2
+\<z>                    code: 0x01d5d3
+\<AA>                   code: 0x01d504
+\<BB>                   code: 0x01d505
+\<CC>                   code: 0x00212d
+\<DD>                   code: 0x01d507
+\<EE>                   code: 0x01d508
+\<FF>                   code: 0x01d509
+\<GG>                   code: 0x01d50a
+\<HH>                   code: 0x00210c
+#\<II>                   code: 0x01d50c
+\<JJ>                   code: 0x01d50d
+\<KK>                   code: 0x01d50e
+\<LL>                   code: 0x01d50f
+\<MM>                   code: 0x01d510
+\<NN>                   code: 0x01d511
+\<OO>                   code: 0x01d512
+\<PP>                   code: 0x01d513
+\<QQ>                   code: 0x01d514
+#\<RR>                   code: 0x01d515
+\<SS>                   code: 0x01d516
+\<TT>                   code: 0x01d517
+\<UU>                   code: 0x01d518
+\<VV>                   code: 0x01d519
+\<WW>                   code: 0x01d51a
+\<XX>                   code: 0x01d51b
+\<YY>                   code: 0x01d51c
+\<ZZ>                   code: 0x002128
+\<aa>                   code: 0x01d51e
+\<bb>                   code: 0x01d51f
+\<cc>                   code: 0x01d520
+\<dd>                   code: 0x01d521
+\<ee>                   code: 0x01d522
+\<ff>                   code: 0x01d523
+\<gg>                   code: 0x01d524
+\<hh>                   code: 0x01d525
+\<ii>                   code: 0x01d526
+\<jj>                   code: 0x01d527
+\<kk>                   code: 0x01d528
+\<ll>                   code: 0x01d529
+\<mm>                   code: 0x01d52a
+\<nn>                   code: 0x01d52b
+\<oo>                   code: 0x01d52c
+\<pp>                   code: 0x01d52d
+\<qq>                   code: 0x01d52e
+\<rr>                   code: 0x01d52f
+\<ss>                   code: 0x01d530
+\<tt>                   code: 0x01d531
+\<uu>                   code: 0x01d532
+\<vv>                   code: 0x01d533
+\<ww>                   code: 0x01d534
+\<xx>                   code: 0x01d535
+\<yy>                   code: 0x01d536
+\<zz>                   code: 0x01d537
+\<alpha>                code: 0x0003b1
+\<beta>                 code: 0x0003b2
+\<gamma>                code: 0x0003b3
+\<delta>                code: 0x0003b4
+\<epsilon>              code: 0x0003b5
+\<zeta>                 code: 0x0003b6
+\<eta>                  code: 0x0003b7
+\<theta>                code: 0x0003b8
+\<iota>                 code: 0x0003b9
+\<kappa>                code: 0x0003ba
+\<lambda>               code: 0x0003bb  abbrev: %
+\<mu>                   code: 0x0003bc
+\<nu>                   code: 0x0003bd
+\<xi>                   code: 0x0003be
+\<pi>                   code: 0x0003c0
+\<rho>                  code: 0x0003c1
+\<sigma>                code: 0x0003c3
+\<tau>                  code: 0x0003c4
+\<upsilon>              code: 0x0003c5
+\<phi>                  code: 0x0003c6
+\<chi>                  code: 0x0003c7
+\<psi>                  code: 0x0003c8
+\<omega>                code: 0x0003c9
+\<Gamma>                code: 0x000393
+\<Delta>                code: 0x000394
+\<Theta>                code: 0x000398
+\<Lambda>               code: 0x00039b
+\<Xi>                   code: 0x00039e
+\<Pi>                   code: 0x0003a0
+\<Sigma>                code: 0x0003a3
+\<Upsilon>              code: 0x0003a5
+\<Phi>                  code: 0x0003a6
+\<Psi>                  code: 0x0003a8
+\<Omega>                code: 0x0003a9
+\<bool>                 code: 0x01d539
+\<complex>              code: 0x002102
+\<nat>                  code: 0x002115
+\<rat>                  code: 0x00211a
+\<real>                 code: 0x00211d
+\<int>                  code: 0x002124
+\<leftarrow>            code: 0x002190
+\<longleftarrow>        code: 0x0027f5
+\<rightarrow>           code: 0x002192  abbrev: ->
+\<longrightarrow>       code: 0x0027f6  abbrev: -->
+\<Leftarrow>            code: 0x0021d0
+\<Longleftarrow>        code: 0x0027f8
+\<Rightarrow>           code: 0x0021d2  abbrev: =>
+\<Longrightarrow>       code: 0x0027f9  abbrev: ==>
+\<leftrightarrow>       code: 0x002194
+\<longleftrightarrow>   code: 0x0027f7  abbrev: <->
+\<Leftrightarrow>       code: 0x0021d4
+\<Longleftrightarrow>   code: 0x0027fa  abbrev: <=>
+\<mapsto>               code: 0x0021a6  abbrev: |->
+\<longmapsto>           code: 0x0027fc  abbrev: |-->
+\<midarrow>             code: 0x002500
+\<Midarrow>             code: 0x002550
+\<hookleftarrow>        code: 0x0021a9
+\<hookrightarrow>       code: 0x0021aa
+\<leftharpoondown>      code: 0x0021bd
+\<rightharpoondown>     code: 0x0021c1
+\<leftharpoonup>        code: 0x0021bc
+\<rightharpoonup>       code: 0x0021c0
+\<rightleftharpoons>    code: 0x0021cc
+\<leadsto>              code: 0x00219d  abbrev: ~>
+\<downharpoonleft>      code: 0x0021c3
+\<downharpoonright>     code: 0x0021c2
+\<upharpoonleft>        code: 0x0021bf
+#\<upharpoonright>       code: 0x0021be
+\<restriction>          code: 0x0021be
+\<Colon>                code: 0x002237
+\<up>                   code: 0x002191
+\<Up>                   code: 0x0021d1
+\<down>                 code: 0x002193
+\<Down>                 code: 0x0021d3
+\<updown>               code: 0x002195
+\<Updown>               code: 0x0021d5
+\<langle>               code: 0x0027e8  abbrev: <.
+\<rangle>               code: 0x0027e9  abbrev: .>
+\<lceil>                code: 0x002308
+\<rceil>                code: 0x002309
+\<lfloor>               code: 0x00230a
+\<rfloor>               code: 0x00230b
+\<lparr>                code: 0x002987  abbrev: (|
+\<rparr>                code: 0x002988  abbrev: |)
+\<lbrakk>               code: 0x0027e6  abbrev: [|
+\<rbrakk>               code: 0x0027e7  abbrev: |]
+\<lbrace>               code: 0x002983  abbrev: {.
+\<rbrace>               code: 0x002984  abbrev: .}
+\<guillemotleft>        code: 0x0000ab  abbrev: <<
+\<guillemotright>       code: 0x0000bb  abbrev: >>
+\<bottom>               code: 0x0022a5
+\<top>                  code: 0x0022a4
+\<and>                  code: 0x002227  abbrev: /\
+\<And>                  code: 0x0022c0  abbrev: !!
+\<or>                   code: 0x002228  abbrev: \/
+\<Or>                   code: 0x0022c1  abbrev: ??
+\<forall>               code: 0x002200  abbrev: !
+\<exists>               code: 0x002203  abbrev: ?
+\<nexists>              code: 0x002204  abbrev: ~?
+\<not>                  code: 0x0000ac  abbrev: ~
+\<box>                  code: 0x0025a1
+\<diamond>              code: 0x0025c7
+\<turnstile>            code: 0x0022a2  abbrev: |-
+\<Turnstile>            code: 0x0022a8  abbrev: |=
+\<tturnstile>           code: 0x0022a9  abbrev: ||-
+\<TTurnstile>           code: 0x0022ab  abbrev: ||=
+\<stileturn>            code: 0x0022a3  abbrev: -|
+\<surd>                 code: 0x00221a
+\<le>                   code: 0x002264  abbrev: <=
+\<ge>                   code: 0x002265  abbrev: >=
+\<lless>                code: 0x00226a
+\<ggreater>             code: 0x00226b
+\<lesssim>              code: 0x002272
+\<greatersim>           code: 0x002273
+\<lessapprox>           code: 0x002a85
+\<greaterapprox>        code: 0x002a86
+\<in>                   code: 0x002208  abbrev: :
+\<notin>                code: 0x002209  abbrev: ~:
+\<subset>               code: 0x002282
+\<supset>               code: 0x002283
+\<subseteq>             code: 0x002286  abbrev: (=
+\<supseteq>             code: 0x002287  abbrev: =)
+\<sqsubset>             code: 0x00228f
+\<sqsupset>             code: 0x002290
+\<sqsubseteq>           code: 0x002291  abbrev: [=
+\<sqsupseteq>           code: 0x002292  abbrev: =]
+\<inter>                code: 0x002229  abbrev: Int
+\<Inter>                code: 0x0022c2  abbrev: Inter
+\<union>                code: 0x00222a  abbrev: Un
+\<Union>                code: 0x0022c3  abbrev: Union
+\<squnion>              code: 0x002294
+\<Squnion>              code: 0x002a06
+\<sqinter>              code: 0x002293
+\<Sqinter>              code: 0x002a05
+\<setminus>             code: 0x002216
+\<propto>               code: 0x00221d
+\<uplus>                code: 0x00228e
+\<Uplus>                code: 0x002a04
+\<noteq>                code: 0x002260  abbrev: ~=
+\<sim>                  code: 0x00223c
+\<doteq>                code: 0x002250
+\<simeq>                code: 0x002243
+\<approx>               code: 0x002248
+\<asymp>                code: 0x00224d
+\<cong>                 code: 0x002245
+\<smile>                code: 0x002323
+\<equiv>                code: 0x002261  abbrev: ==
+\<frown>                code: 0x002322
+\<Join>                 code: 0x0022c8
+\<bowtie>               code: 0x002a1d
+\<prec>                 code: 0x00227a
+\<succ>                 code: 0x00227b
+\<preceq>               code: 0x00227c
+\<succeq>               code: 0x00227d
+\<parallel>             code: 0x002225  abbrev: ||
 \<bar>                  code: 0x0000a6
-\<plusminus>            code: 0x0000b1  font: Isabelle
-\<minusplus>            code: 0x002213  font: Isabelle
-\<times>                code: 0x0000d7  font: Isabelle
-\<div>                  code: 0x0000f7  font: Isabelle
-\<cdot>                 code: 0x0022c5  font: Isabelle
-\<star>                 code: 0x0022c6  font: Isabelle
-\<bullet>               code: 0x002219  font: Isabelle
-\<circ>                 code: 0x002218  font: Isabelle
-\<dagger>               code: 0x002020  font: Isabelle
-\<ddagger>              code: 0x002021  font: Isabelle
-\<lhd>                  code: 0x0022b2  font: Isabelle
-\<rhd>                  code: 0x0022b3  font: Isabelle
-\<unlhd>                code: 0x0022b4  font: Isabelle
-\<unrhd>                code: 0x0022b5  font: Isabelle
-\<triangleleft>         code: 0x0025c3  font: Isabelle
-\<triangleright>        code: 0x0025b9  font: Isabelle
-\<triangle>             code: 0x0025b3  font: Isabelle
-\<triangleq>            code: 0x00225c  font: Isabelle
-\<oplus>                code: 0x002295  font: Isabelle  abbrev: +o
-\<Oplus>                code: 0x002a01  font: Isabelle  abbrev: +O
-\<otimes>               code: 0x002297  font: Isabelle  abbrev: *o
-\<Otimes>               code: 0x002a02  font: Isabelle  abbrev: *O
-\<odot>                 code: 0x002299  font: Isabelle  abbrev: .o
-\<Odot>                 code: 0x002a00  font: Isabelle  abbrev: .O
-\<ominus>               code: 0x002296  font: Isabelle  abbrev: -o
-\<oslash>               code: 0x002298  font: Isabelle  abbrev: /o
-\<dots>                 code: 0x002026  font: Isabelle  abbrev: ...
-\<cdots>                code: 0x0022ef  font: Isabelle
-\<Sum>                  code: 0x002211  font: Isabelle  abbrev: SUM
-\<Prod>                 code: 0x00220f  font: Isabelle  abbrev: PROD
-\<Coprod>               code: 0x002210  font: Isabelle
-\<infinity>             code: 0x00221e  font: Isabelle
-\<integral>             code: 0x00222b  font: Isabelle
-\<ointegral>            code: 0x00222e  font: Isabelle
-\<clubsuit>             code: 0x002663  font: Isabelle
-\<diamondsuit>          code: 0x002662  font: Isabelle
-\<heartsuit>            code: 0x002661  font: Isabelle
-\<spadesuit>            code: 0x002660  font: Isabelle
-\<aleph>                code: 0x002135  font: Isabelle
-\<emptyset>             code: 0x002205  font: Isabelle
-\<nabla>                code: 0x002207  font: Isabelle
-\<partial>              code: 0x002202  font: Isabelle
-\<Re>                   code: 0x00211c  font: Isabelle
-\<Im>                   code: 0x002111  font: Isabelle
-\<flat>                 code: 0x00266d  font: Isabelle
-\<natural>              code: 0x00266e  font: Isabelle
-\<sharp>                code: 0x00266f  font: Isabelle
-\<angle>                code: 0x002220  font: Isabelle
-\<copyright>            code: 0x0000a9  font: Isabelle
-\<registered>           code: 0x0000ae  font: Isabelle
+\<plusminus>            code: 0x0000b1
+\<minusplus>            code: 0x002213
+\<times>                code: 0x0000d7
+\<div>                  code: 0x0000f7
+\<cdot>                 code: 0x0022c5
+\<star>                 code: 0x0022c6
+\<bullet>               code: 0x002219
+\<circ>                 code: 0x002218
+\<dagger>               code: 0x002020
+\<ddagger>              code: 0x002021
+\<lhd>                  code: 0x0022b2
+\<rhd>                  code: 0x0022b3
+\<unlhd>                code: 0x0022b4
+\<unrhd>                code: 0x0022b5
+\<triangleleft>         code: 0x0025c3
+\<triangleright>        code: 0x0025b9
+\<triangle>             code: 0x0025b3
+\<triangleq>            code: 0x00225c
+\<oplus>                code: 0x002295  abbrev: +o
+\<Oplus>                code: 0x002a01  abbrev: +O
+\<otimes>               code: 0x002297  abbrev: *o
+\<Otimes>               code: 0x002a02  abbrev: *O
+\<odot>                 code: 0x002299  abbrev: .o
+\<Odot>                 code: 0x002a00  abbrev: .O
+\<ominus>               code: 0x002296  abbrev: -o
+\<oslash>               code: 0x002298  abbrev: /o
+\<dots>                 code: 0x002026  abbrev: ...
+\<cdots>                code: 0x0022ef
+\<Sum>                  code: 0x002211  abbrev: SUM
+\<Prod>                 code: 0x00220f  abbrev: PROD
+\<Coprod>               code: 0x002210
+\<infinity>             code: 0x00221e
+\<integral>             code: 0x00222b
+\<ointegral>            code: 0x00222e
+\<clubsuit>             code: 0x002663
+\<diamondsuit>          code: 0x002662
+\<heartsuit>            code: 0x002661
+\<spadesuit>            code: 0x002660
+\<aleph>                code: 0x002135
+\<emptyset>             code: 0x002205
+\<nabla>                code: 0x002207
+\<partial>              code: 0x002202
+\<Re>                   code: 0x00211c
+\<Im>                   code: 0x002111
+\<flat>                 code: 0x00266d
+\<natural>              code: 0x00266e
+\<sharp>                code: 0x00266f
+\<angle>                code: 0x002220
+\<copyright>            code: 0x0000a9
+\<registered>           code: 0x0000ae
 \<hyphen>               code: 0x0000ad
 \<inverse>              code: 0x0000af
 \<onesuperior>          code: 0x0000b9
@@ -339,20 +339,20 @@
 \<yen>                  code: 0x0000a5
 \<cent>                 code: 0x0000a2
 \<currency>             code: 0x0000a4
-\<degree>               code: 0x0000b0  font: Isabelle
-\<amalg>                code: 0x002a3f  font: Isabelle
-\<mho>                  code: 0x002127  font: Isabelle
-\<lozenge>              code: 0x0025ca  font: Isabelle
-\<wp>                   code: 0x002118  font: Isabelle
-\<wrong>                code: 0x002240  font: Isabelle
-\<struct>               code: 0x0022c4  font: Isabelle
+\<degree>               code: 0x0000b0
+\<amalg>                code: 0x002a3f
+\<mho>                  code: 0x002127
+\<lozenge>              code: 0x0025ca
+\<wp>                   code: 0x002118
+\<wrong>                code: 0x002240
+\<struct>               code: 0x0022c4
 \<acute>                code: 0x0000b4
-\<index>                code: 0x000131  font: Isabelle
+\<index>                code: 0x000131
 \<dieresis>             code: 0x0000a8
 \<cedilla>              code: 0x0000b8
 \<hungarumlaut>         code: 0x0002dd
-\<spacespace>           code: 0x002423  font: Isabelle
-\<some>                 code: 0x0003f5  font: Isabelle
+\<spacespace>           code: 0x002423
+\<some>                 code: 0x0003f5
 \<^sub>                 code: 0x0021e9  abbrev: =_
 \<^sup>                 code: 0x0021e7  abbrev: =^
 \<^isub>                code: 0x0021e3  abbrev: -_
