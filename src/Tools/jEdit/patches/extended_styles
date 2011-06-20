@@ -1,3 +1,4 @@
+Only in jEdit-patched: build
 diff -ru jEdit/org/gjt/sp/jedit/Buffer.java jEdit-patched/org/gjt/sp/jedit/Buffer.java
 --- jEdit/org/gjt/sp/jedit/Buffer.java	2010-05-09 14:29:25.000000000 +0200
 +++ jEdit-patched/org/gjt/sp/jedit/Buffer.java	2011-06-18 18:28:19.000000000 +0200
@@ -24,66 +25,39 @@ diff -ru jEdit/org/gjt/sp/jedit/syntax/Token.java jEdit-patched/org/gjt/sp/jedit
  	//{{{ Token types
 diff -ru jEdit/org/gjt/sp/util/SyntaxUtilities.java jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java
 --- jEdit/org/gjt/sp/util/SyntaxUtilities.java	2010-05-09 14:29:29.000000000 +0200
-+++ jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java	2011-06-19 21:24:41.000000000 +0200
-@@ -26,6 +26,7 @@
- //{{{ Imports
- import java.awt.Color;
- import java.awt.Font;
-+import java.awt.font.TextAttribute;
- import java.util.Locale;
- import java.util.StringTokenizer;
- import org.gjt.sp.jedit.syntax.SyntaxStyle;
-@@ -194,6 +195,22 @@
++++ jEdit-patched/org/gjt/sp/util/SyntaxUtilities.java	2011-06-20 21:30:58.000000000 +0200
+@@ -194,6 +194,23 @@
  	}
  	
  	/**
-+	 * Style with sub/superscript font attribute.
++	 * Extended styles derived from the user-specified style array.
 +	 */
-+	public static SyntaxStyle scriptStyle(SyntaxStyle style, int script)
++
++	public static class StyleExtender
 +	{
-+		java.util.Map attributes = new java.util.HashMap();
-+		attributes.put(TextAttribute.SUPERSCRIPT, new Integer(script));
-+		return new SyntaxStyle(style.getForegroundColor(), style.getBackgroundColor(),
-+                  style.getFont().deriveFont(attributes));
++		public SyntaxStyle[] extendStyles(SyntaxStyle[] styles)
++		{
++			return styles;
++		}
++	}
++	volatile private static StyleExtender _styleExtender = new StyleExtender();
++	public static void setStyleExtender(StyleExtender ext)
++	{
++		_styleExtender = ext;
 +	}
 +
-+	public static SyntaxStyle boldStyle(SyntaxStyle style) {
-+		return new SyntaxStyle(style.getForegroundColor(), style.getBackgroundColor(),
-+                  style.getFont().deriveFont(Font.BOLD));
-+	}
-+	
 +	/**
  	 * Loads the syntax styles from the properties, giving them the specified
  	 * base font family and size.
  	 * @param family The font family
-@@ -203,10 +220,10 @@
- 	 */
- 	public static SyntaxStyle[] loadStyles(String family, int size, boolean color)
- 	{
--		SyntaxStyle[] styles = new SyntaxStyle[Token.ID_COUNT];
-+		SyntaxStyle[] styles = new SyntaxStyle[4 * Token.ID_COUNT + 1];
- 
- 		// start at 1 not 0 to skip Token.NULL
--		for(int i = 1; i < styles.length; i++)
-+		for(int i = 1; i < Token.ID_COUNT; i++)
- 		{
- 			try
- 			{
-@@ -223,6 +240,17 @@
+@@ -222,8 +239,9 @@
+ 				Log.log(Log.ERROR,StandardUtilities.class,e);
  			}
  		}
- 
 +		styles[0] = new SyntaxStyle(Color.black, null, new Font(family, 0, size));
-+		for(int i = 0; i < Token.ID_COUNT; i++)
-+		{
-+			styles[i + Token.ID_COUNT] = scriptStyle(styles[i], -1);
-+			styles[i + 2 * Token.ID_COUNT] = scriptStyle(styles[i], 1);
-+			styles[i + 3 * Token.ID_COUNT] = boldStyle(styles[i]);
-+		}
-+		styles[0] = null;
-+		styles[4 * Token.ID_COUNT] =
-+			new SyntaxStyle(Color.white, null, new Font(family, 0, 1));
-+
- 		return styles;
+ 
+-		return styles;
++		return _styleExtender.extendStyles(styles);
  	} //}}}
  	
+ 	private SyntaxUtilities(){}

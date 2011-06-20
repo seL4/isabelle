@@ -39,11 +39,6 @@ object Isabelle
   var session: Session = null
 
 
-  /* extended syntax styles */
-
-  def extended_styles: Boolean = plugin != null && plugin._extended_styles
-
-
   /* properties */
 
   val OPTION_PREFIX = "options.isabelle."
@@ -270,19 +265,6 @@ object Isabelle
 
 class Plugin extends EBPlugin
 {
-  /* extended syntax styles */
-
-  @volatile var _extended_styles: Boolean = false
-
-  private def check_extended_styles()
-  {
-    val family = jEdit.getProperty("view.font")
-    val size = jEdit.getIntegerProperty("view.fontsize", 12)
-    val styles = SyntaxUtilities.loadStyles(family, size)
-    _extended_styles = (styles.length == JEditToken.ID_COUNT * 4 + 1)
-  }
-
-
   /* session management */
 
   private def init_model(buffer: Buffer)
@@ -373,7 +355,6 @@ class Plugin extends EBPlugin
     message match {
       case msg: EditorStarted =>
       Isabelle.check_jvm()
-      check_extended_styles()
       if (Isabelle.Boolean_Property("auto-start")) Isabelle.start_session()
 
       case msg: BufferUpdate
@@ -408,15 +389,15 @@ class Plugin extends EBPlugin
     }
   }
 
-
   override def start()
   {
-    ModeProvider.instance = new Token_Markup.Mode_Provider(ModeProvider.instance)
     Isabelle.plugin = this
     Isabelle.setup_tooltips()
     Isabelle.system = new Isabelle_System
     Isabelle.system.install_fonts()
     Isabelle.session = new Session(Isabelle.system)
+    SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender)
+    ModeProvider.instance = new Token_Markup.Mode_Provider(ModeProvider.instance)
     Isabelle.session.phase_changed += session_manager
   }
 
