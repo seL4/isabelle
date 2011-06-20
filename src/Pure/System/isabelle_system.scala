@@ -390,24 +390,13 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
 
   /* fonts */
 
-  val font_family = getenv_strict("ISABELLE_FONT_FAMILY")
-  val font_family_default = "IsabelleText"
-
-  def get_font(size: Int = 1, bold: Boolean = false): Font =
-    new Font(font_family, if (bold) Font.BOLD else Font.PLAIN, size)
-
-  def create_default_font(bold: Boolean = false): Font =
-    if (bold)
-      Font.createFont(Font.TRUETYPE_FONT,
-        platform_file("$ISABELLE_HOME/lib/fonts/IsabelleTextBold.ttf"))
-    else
-      Font.createFont(Font.TRUETYPE_FONT,
-        platform_file("$ISABELLE_HOME/lib/fonts/IsabelleText.ttf"))
+  def get_font(family: String = "IsabelleText", size: Int = 1, bold: Boolean = false): Font =
+    new Font(family, if (bold) Font.BOLD else Font.PLAIN, size)
 
   def install_fonts()
   {
     val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
-    ge.registerFont(create_default_font(bold = false))
-    ge.registerFont(create_default_font(bold = true))
+    for (font <- getenv_strict("ISABELLE_FONTS").split(":"))
+      ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, platform_file(font)))
   }
 }
