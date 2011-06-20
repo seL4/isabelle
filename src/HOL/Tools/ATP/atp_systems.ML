@@ -211,15 +211,14 @@ val e_config : atp_config =
    prem_kind = Conjecture,
    formats = [FOF],
    best_slices = fn ctxt =>
-     (* FUDGE *)
      let val method = effective_e_weight_method ctxt in
+       (* FUDGE *)
        if method = e_smartN then
-         [(0.333, (true, (100, ["mangled_preds_heavy"], e_sym_offset_weightN))),
-          (0.333, (true, (800, ["poly_preds?"], e_autoN))),
-          (0.334, (true,
-             (200, ["mangled_tags!", "mangled_tags?"], e_fun_weightN)))]
+         [(0.333, (true, (200, ["mangled_preds"], e_sym_offset_weightN))),
+          (0.333, (true, (1000, ["mangled_preds?"], e_fun_weightN))),
+          (0.334, (true, (50, ["mangled_tags?"], e_sym_offset_weightN)))]
        else
-         [(1.0, (true, (200, ["mangled_tags!", "mangled_tags?"], method)))]
+         [(1.0, (true, (300, ["mangled_tags?"], method)))]
      end}
 
 val e = (eN, e_config)
