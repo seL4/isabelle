@@ -43,7 +43,7 @@ sig
   val encode_raw: string -> string
   datatype sym =
     Char of string | UTF8 of string | Sym of string | Ctrl of string | Raw of string |
-    Malformed of string
+    Malformed of string | EOF
   val decode: symbol -> sym
   datatype kind = Letter | Digit | Quasi | Blank | Other
   val kind: symbol -> kind
@@ -222,10 +222,11 @@ fun decode_raw s =
 
 datatype sym =
   Char of string | UTF8 of string | Sym of string | Ctrl of string | Raw of string |
-  Malformed of string;
+  Malformed of string | EOF;
 
 fun decode s =
-  if is_char s then Char s
+  if s = "" then EOF
+  else if is_char s then Char s
   else if is_utf8 s then UTF8 s
   else if is_raw s then Raw (decode_raw s)
   else if is_malformed s then Malformed s
