@@ -155,7 +155,7 @@ val e_sym_offs_weight_span =
 fun e_weight_method_case method fw sow =
   if method = e_fun_weightN then fw
   else if method = e_sym_offset_weightN then sow
-  else raise Fail ("unexpected" ^ quote method)
+  else raise Fail ("unexpected " ^ quote method)
 
 fun scaled_e_weight ctxt method w =
   w * Config.get ctxt
@@ -214,9 +214,9 @@ val e_config : atp_config =
      let val method = effective_e_weight_method ctxt in
        (* FUDGE *)
        if method = e_smartN then
-         [(0.333, (true, (200, ["mangled_preds"], e_sym_offset_weightN))),
-          (0.333, (true, (1000, ["mangled_preds?"], e_fun_weightN))),
-          (0.334, (true, (50, ["mangled_tags?"], e_sym_offset_weightN)))]
+         [(0.333, (true, (500, ["mangled_tags?"], e_fun_weightN))),
+          (0.333, (true, (1000, ["mangled_tags?"], e_sym_offset_weightN))),
+          (0.334, (true, (50, ["mangled_preds?"], e_fun_weightN)))]
        else
          [(1.0, (true, (300, ["mangled_tags?"], method)))]
      end}
