@@ -30,10 +30,6 @@ sig
   type isar_params =
     bool * bool * int * string Symtab.table * int list list * int
     * (string * locality) list vector * int Symtab.table * string proof * thm
-  val repair_conjecture_shape_and_fact_names :
-    string -> int list list -> int -> (string * locality) list vector
-    -> int list
-    -> int list list * int * (string * locality) list vector * int list
   val used_facts_in_atp_proof :
     Proof.context -> int -> (string * locality) list vector -> string proof
     -> (string * locality) list
@@ -82,9 +78,6 @@ type isar_params =
   bool * bool * int * string Symtab.table * int list list * int
   * (string * locality) list vector * int Symtab.table * string proof * thm
 
-fun is_head_digit s = Char.isDigit (String.sub (s, 0))
-val scan_integer = Scan.many1 is_head_digit >> (the o Int.fromString o implode)
-
 val is_typed_helper_name =
   String.isPrefix helper_prefix andf String.isSuffix typed_helper_suffix
 
@@ -92,78 +85,22 @@ fun find_first_in_list_vector vec key =
   Vector.foldl (fn (ps, NONE) => AList.lookup (op =) ps key
                  | (_, value) => value) NONE vec
 
-
-(** SPASS's FLOTTER hack **)
-
-(* This is a hack required for keeping track of facts after they have been
-   clausified by SPASS's FLOTTER preprocessor. The "ATP/scripts/spass" script is
-   also part of this hack. *)
-
-val set_ClauseFormulaRelationN = "set_ClauseFormulaRelation"
-
-fun extract_clause_sequence output =
-  let
-    val tokens_of = String.tokens (not o Char.isAlphaNum)
-    fun extract_num ("clause" :: (ss as _ :: _)) = Int.fromString (List.last ss)
-      | extract_num _ = NONE
-  in output |> split_lines |> map_filter (extract_num o tokens_of) end
-
-val parse_clause_formula_pair =
-  $$ "(" |-- scan_integer --| $$ ","
-  -- (Symbol.scan_id ::: Scan.repeat ($$ "," |-- Symbol.scan_id)) --| $$ ")"
-  --| Scan.option ($$ ",")
-val parse_clause_formula_relation =
-  Scan.this_string set_ClauseFormulaRelationN |-- $$ "("
-  |-- Scan.repeat parse_clause_formula_pair
-val extract_clause_formula_relation =
-  Substring.full #> Substring.position set_ClauseFormulaRelationN
-  #> snd #> Substring.position "." #> fst #> Substring.string
-  #> raw_explode #> filter_out Symbol.is_blank #> parse_clause_formula_relation
-  #> fst
-
 val unprefix_fact_number = space_implode "_" o tl o space_explode "_"
-
-fun repair_conjecture_shape_and_fact_names output conjecture_shape
-        fact_offset fact_names typed_helpers =
-  if String.isSubstring set_ClauseFormulaRelationN output then
-    let
-      val j0 = hd (hd conjecture_shape)
-      val seq = extract_clause_sequence output
-      val name_map = extract_clause_formula_relation output
-      fun renumber_conjecture j =
-        conjecture_prefix ^ string_of_int (j - j0)
-        |> AList.find (fn (s, ss) => member (op =) ss s) name_map
-        |> map (fn s => find_index (curry (op =) s) seq + 1)
-      fun names_for_number j =
-        j |> AList.lookup (op =) name_map |> these
-          |> map_filter (try (unascii_of o unprefix_fact_number
-                              o unprefix fact_prefix))
-          |> map (fn name =>
-                     (name, name |> find_first_in_list_vector fact_names |> the)
-                     handle Option.Option =>
-                            error ("No such fact: " ^ quote name ^ "."))
-    in
-      (conjecture_shape |> map (maps renumber_conjecture), 0,
-       seq |> map names_for_number |> Vector.fromList,
-       name_map |> filter (forall is_typed_helper_name o snd) |> map fst)
-    end
-  else
-    (conjecture_shape, fact_offset, fact_names, typed_helpers)
 
 val vampire_step_prefix = "f" (* grrr... *)
 
 val extract_step_number =
   Int.fromString o perhaps (try (unprefix vampire_step_prefix))
 
-fun resolve_fact _ fact_names (_, SOME s) =
-    (case try (unprefix fact_prefix) s of
-       SOME s' =>
-       let val s' = s' |> unprefix_fact_number |> unascii_of in
-         case find_first_in_list_vector fact_names s' of
-           SOME x => [(s', x)]
-         | NONE => []
-       end
-     | NONE => [])
+fun resolve_one_named_fact fact_names s =
+  case try (unprefix fact_prefix) s of
+    SOME s' =>
+    let val s' = s' |> unprefix_fact_number |> unascii_of in
+      s' |> find_first_in_list_vector fact_names |> Option.map (pair s')
+    end
+  | NONE => NONE
+fun resolve_fact _ fact_names (_, SOME ss) =
+    map_filter (resolve_one_named_fact fact_names) ss
   | resolve_fact facts_offset fact_names (num, NONE) =
     (case extract_step_number num of
        SOME j =>
@@ -177,13 +114,13 @@ fun resolve_fact _ fact_names (_, SOME s) =
 
 fun is_fact conjecture_shape = not o null o resolve_fact 0 conjecture_shape
 
-fun resolve_conjecture _ (_, SOME s) =
-    (case try (unprefix conjecture_prefix) s of
-       SOME s' =>
-       (case Int.fromString s' of
-          SOME j => [j]
-        | NONE => [])
-     | NONE => [])
+fun resolve_one_named_conjecture s =
+  case try (unprefix conjecture_prefix) s of
+    SOME s' => Int.fromString s'
+  | NONE => NONE
+
+fun resolve_conjecture _ (_, SOME ss) =
+    map_filter resolve_one_named_conjecture ss
   | resolve_conjecture conjecture_shape (num, NONE) =
     case extract_step_number num of
       SOME i => (case find_index (exists (curry (op =) i)) conjecture_shape of
@@ -194,7 +131,7 @@ fun resolve_conjecture _ (_, SOME s) =
 fun is_conjecture conjecture_shape =
   not o null o resolve_conjecture conjecture_shape
 
-fun is_typed_helper _ (_, SOME s) = is_typed_helper_name s
+fun is_typed_helper _ (_, SOME ss) = exists is_typed_helper_name ss
   | is_typed_helper typed_helpers (num, NONE) =
     (case extract_step_number num of
        SOME i => member (op =) typed_helpers i

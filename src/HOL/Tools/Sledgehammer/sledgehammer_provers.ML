@@ -678,16 +678,8 @@ fun run_atp mode name
                 val (atp_proof, outcome) =
                   extract_tstplike_proof_and_outcome verbose complete
                       proof_delims known_failures output
-                  |>> atp_proof_from_tstplike_proof atp_problem
+                  |>> atp_proof_from_tstplike_proof atp_problem output
                   handle UNRECOGNIZED_ATP_PROOF () => ([], SOME ProofIncomplete)
-                val (conjecture_shape, facts_offset, fact_names,
-                     typed_helpers) =
-                  if is_none outcome then
-                    repair_conjecture_shape_and_fact_names output
-                        conjecture_shape facts_offset fact_names typed_helpers
-                  else
-                    (* don't bother repairing *)
-                    (conjecture_shape, facts_offset, fact_names, typed_helpers)
                 val outcome =
                   case outcome of
                     NONE =>

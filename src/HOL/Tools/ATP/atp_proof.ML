@@ -35,7 +35,7 @@ sig
     InternalError |
     UnknownError of string
 
-  type step_name = string * string option
+  type step_name = string * string list option
 
   datatype 'a step =
     Definition of step_name * 'a * 'a |
@@ -55,7 +55,8 @@ sig
   val scan_general_id : string list -> string * string list
   val parse_formula :
     string list -> (string, 'a, string fo_term) formula * string list
-  val atp_proof_from_tstplike_proof : string problem -> string -> string proof
+  val atp_proof_from_tstplike_proof :
+    string problem -> string -> string -> string proof
   val clean_up_atp_proof_dependencies : string proof -> string proof
   val map_term_names_in_atp_proof :
     (string -> string) -> string proof -> string proof
@@ -206,7 +207,7 @@ fun extract_tstplike_proof_and_outcome verbose complete proof_delims
   | ("", NONE) => ("", SOME (UnknownError (short_output verbose output)))
   | (tstplike_proof, _) => (tstplike_proof, NONE)
 
-type step_name = string * string option
+type step_name = string * string list option
 
 fun is_same_atp_step (s1, _) (s2, _) = s1 = s2
 
@@ -387,7 +388,7 @@ fun matching_formula_line_identifier phi (Formula (ident, _, phi', _, _)) =
 
 fun find_formula_in_problem problem phi =
   problem |> maps snd |> map_filter (matching_formula_line_identifier phi)
-          |> try hd
+          |> try (single o hd)
 
 (* Syntax: (cnf|fof|tff|thf)\(<num>, <formula_role>,
             <formula> <extra_arguments>\).
@@ -410,7 +411,7 @@ fun parse_tstp_line problem =
                   else if s = waldmeister_conjecture then
                     find_formula_in_problem problem (mk_anot phi)
                   else
-                    SOME (s |> perhaps (try (unprefix tofof_fact_prefix)))),
+                    SOME [s |> perhaps (try (unprefix tofof_fact_prefix))]),
                  [])
               | ["file", _] => ((num, find_formula_in_problem problem phi), [])
               | _ => ((num, NONE), deps)
@@ -455,27 +456,79 @@ fun parse_horn_clause x =
      -- Scan.repeat parse_decorated_atom
    >> (mk_horn o apfst (op @))) x
 
+fun resolve_spass_num spass_names num =
+  case Int.fromString num of
+    SOME j => if j > 0 andalso j <= Vector.length spass_names then
+                SOME (Vector.sub (spass_names, j - 1))
+              else
+                NONE
+  | NONE => NONE
+
 (* Syntax: <num>[0:<inference><annotations>]
    <atoms> || <atoms> -> <atoms>. *)
-fun parse_spass_line x =
+fun parse_spass_line spass_names x =
   (scan_general_id --| $$ "[" --| $$ "0" --| $$ ":" --| Symbol.scan_id
      -- parse_spass_annotations --| $$ "]" -- parse_horn_clause --| $$ "."
    >> (fn ((num, deps), u) =>
-          Inference ((num, NONE), u, map (rpair NONE) deps))) x
+          Inference ((num, resolve_spass_num spass_names num), u,
+                     map (swap o `(resolve_spass_num spass_names)) deps))) x
 
-fun parse_line problem = parse_tstp_line problem || parse_spass_line
-fun parse_proof problem s =
-  s |> strip_spaces_except_between_ident_chars
-    |> raw_explode
-    |> Scan.finite Symbol.stopper
-           (Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
-                           (Scan.repeat1 (parse_line problem))))
-    |> fst
+fun parse_line problem spass_names =
+  parse_tstp_line problem || parse_spass_line spass_names
+fun parse_proof problem spass_names tstp =
+  tstp |> strip_spaces_except_between_ident_chars
+       |> raw_explode
+       |> Scan.finite Symbol.stopper
+              (Scan.error (!! (fn _ => raise UNRECOGNIZED_ATP_PROOF ())
+                              (Scan.repeat1 (parse_line problem spass_names))))
+       |> fst
 
-fun atp_proof_from_tstplike_proof _ "" = []
-  | atp_proof_from_tstplike_proof problem s =
-    s ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
-    |> parse_proof problem
+(** SPASS's FLOTTER hack **)
+
+(* This is a hack required for keeping track of facts after they have been
+   clausified by SPASS's FLOTTER preprocessor. The "ATP/scripts/spass" script is
+   also part of this hack. *)
+
+val set_ClauseFormulaRelationN = "set_ClauseFormulaRelation"
+
+fun extract_clause_sequence output =
+  let
+    val tokens_of = String.tokens (not o Char.isAlphaNum)
+    fun extract_num ("clause" :: (ss as _ :: _)) = Int.fromString (List.last ss)
+      | extract_num _ = NONE
+  in output |> split_lines |> map_filter (extract_num o tokens_of) end
+
+fun is_head_digit s = Char.isDigit (String.sub (s, 0))
+val scan_integer = Scan.many1 is_head_digit >> (the o Int.fromString o implode)
+
+val parse_clause_formula_pair =
+  $$ "(" |-- scan_integer --| $$ ","
+  -- (Symbol.scan_id ::: Scan.repeat ($$ "," |-- Symbol.scan_id)) --| $$ ")"
+  --| Scan.option ($$ ",")
+val parse_clause_formula_relation =
+  Scan.this_string set_ClauseFormulaRelationN |-- $$ "("
+  |-- Scan.repeat parse_clause_formula_pair
+val extract_clause_formula_relation =
+  Substring.full #> Substring.position set_ClauseFormulaRelationN
+  #> snd #> Substring.position "." #> fst #> Substring.string
+  #> raw_explode #> filter_out Symbol.is_blank #> parse_clause_formula_relation
+  #> fst
+
+fun extract_spass_name_vector output =
+  (if String.isSubstring set_ClauseFormulaRelationN output then
+     let
+       val num_seq = extract_clause_sequence output
+       val name_map = extract_clause_formula_relation output
+       val name_seq = num_seq |> map (these o AList.lookup (op =) name_map)
+     in name_seq end
+   else
+     [])
+  |> Vector.fromList
+
+fun atp_proof_from_tstplike_proof _ _ "" = []
+  | atp_proof_from_tstplike_proof problem output tstp =
+    tstp ^ "$" (* the $ sign acts as a sentinel (FIXME: needed?) *)
+    |> parse_proof problem (extract_spass_name_vector output)
     |> sort (step_name_ord o pairself step_name)
 
 fun clean_up_dependencies _ [] = []
