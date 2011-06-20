@@ -178,7 +178,7 @@ fun default_max_relevant_for_prover ctxt slicing name =
     if is_metis_prover name then
       metis_default_max_relevant
     else if is_atp thy name then
-      fold (Integer.max o fst o snd o snd o snd)
+      fold (Integer.max o #1 o snd o snd o snd)
            (get_slices slicing (#best_slices (get_atp thy name) ctxt)) 0
     else (* is_smt_prover ctxt name *)
       SMT_Solver.default_max_relevant ctxt name
@@ -511,14 +511,14 @@ val atp_blacklist_max_iters = 10
    them each time. *)
 val atp_important_message_keep_quotient = 10
 
-val fallback_best_type_systems =
+val fallback_best_type_syss =
   [Preds (Mangled_Monomorphic, Noninf_Nonmono_Types, Lightweight)]
 
 fun choose_format_and_type_sys _ formats (Dumb_Type_Sys type_sys) =
     choose_format formats type_sys
-  | choose_format_and_type_sys best_type_systems formats
+  | choose_format_and_type_sys best_type_syss formats
                                (Smart_Type_Sys full_types) =
-    map type_sys_from_string best_type_systems @ fallback_best_type_systems
+    map type_sys_from_string best_type_syss @ fallback_best_type_syss
     |> find_first (if full_types then is_type_sys_virtually_sound else K true)
     |> the |> choose_format formats
 
@@ -610,14 +610,14 @@ fun run_atp mode name
                 |> maps (fn (name, rths) => map (pair name o snd) rths)
               end
             fun run_slice blacklist (slice, (time_frac, (complete,
-                                       (best_max_relevant, best_type_systems))))
+                                   (best_max_relevant, best_type_syss, extra))))
                           time_left =
               let
                 val num_facts =
                   length facts |> is_none max_relevant
                                   ? Integer.min best_max_relevant
                 val (format, type_sys) =
-                  choose_format_and_type_sys best_type_systems formats type_sys
+                  choose_format_and_type_sys best_type_syss formats type_sys
                 val fairly_sound = is_type_sys_fairly_sound type_sys
                 val facts =
                   facts |> map untranslated_fact
@@ -655,7 +655,7 @@ fun run_atp mode name
                 val full_proof = debug orelse isar_proof
                 val core =
                   File.shell_path command ^ " " ^
-                  arguments ctxt full_proof slice slice_timeout weights ^ " " ^
+                  arguments ctxt full_proof extra slice_timeout weights ^ " " ^
                   File.shell_path prob_file
                 val command =
                   (if measure_run_time then
@@ -671,7 +671,7 @@ fun run_atp mode name
                   conjecture_offset + 1
                     upto conjecture_offset + length hyp_ts + 1
                   |> map single
-                val ((output, msecs), res_code) =
+                val ((output, msecs), _) =
                   bash_output command
                   |>> (if overlord then
                          prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n")
@@ -679,7 +679,7 @@ fun run_atp mode name
                          I)
                   |>> (if measure_run_time then split_time else rpair NONE)
                 val (atp_proof, outcome) =
-                  extract_tstplike_proof_and_outcome verbose complete res_code
+                  extract_tstplike_proof_and_outcome verbose complete
                       proof_delims known_failures output
                   |>> atp_proof_from_tstplike_proof atp_problem
                   handle UNRECOGNIZED_ATP_PROOF () => ([], SOME ProofIncomplete)

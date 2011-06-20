@@ -15,14 +15,15 @@ sig
     {exec : string * string,
      required_execs : (string * string) list,
      arguments :
-       Proof.context -> bool -> int -> Time.time
+       Proof.context -> bool -> string -> Time.time
        -> (unit -> (string * real) list) -> string,
      proof_delims : (string * string) list,
      known_failures : (failure * string) list,
      conj_sym_kind : formula_kind,
      prem_kind : formula_kind,
      formats : format list,
-     best_slices : Proof.context -> (real * (bool * (int * string list))) list}
+     best_slices :
+       Proof.context -> (real * (bool * (int * string list * string))) list}
 
   val e_weight_method : string Config.T
   val e_default_fun_weight : real Config.T
@@ -68,14 +69,15 @@ type atp_config =
   {exec : string * string,
    required_execs : (string * string) list,
    arguments :
-     Proof.context -> bool -> int -> Time.time -> (unit -> (string * real) list)
-     -> string,
+     Proof.context -> bool -> string -> Time.time
+     -> (unit -> (string * real) list) -> string,
    proof_delims : (string * string) list,
    known_failures : (failure * string) list,
    conj_sym_kind : formula_kind,
    prem_kind : formula_kind,
    formats : format list,
-   best_slices : Proof.context -> (real * (bool * (int * string list))) list}
+   best_slices :
+     Proof.context -> (real * (bool * (int * string list * string))) list}
 
 (* "best_slices" must be found empirically, taking a wholistic approach since
    the ATPs are run in parallel. The "real" components give the faction of the
@@ -119,6 +121,9 @@ structure Data = Theory_Data
 
 fun to_secs time = (Time.toMilliseconds time + 999) div 1000
 
+val sosN = "sos"
+val no_sosN = "no_sos"
+
 
 (* E *)
 
@@ -126,13 +131,13 @@ val tstp_proof_delims =
   [("# SZS output start CNFRefutation.", "# SZS output end CNFRefutation"),
    ("% SZS output start CNFRefutation", "% SZS output end CNFRefutation")]
 
-val e_slicesN = "slices"
+val e_smartN = "smart"
 val e_autoN = "auto"
 val e_fun_weightN = "fun_weight"
 val e_sym_offset_weightN = "sym_offset_weight"
 
 val e_weight_method =
-  Attrib.setup_config_string @{binding atp_e_weight_method} (K e_slicesN)
+  Attrib.setup_config_string @{binding atp_e_weight_method} (K e_smartN)
 (* FUDGE *)
 val e_default_fun_weight =
   Attrib.setup_config_real @{binding atp_e_default_fun_weight} (K 20.0)
@@ -184,26 +189,12 @@ fun is_old_e_version () = (string_ord (getenv "E_VERSION", "1.2w") = LESS)
 fun effective_e_weight_method ctxt =
   if is_old_e_version () then e_autoN else Config.get ctxt e_weight_method
 
-(* The order here must correspond to the order in "e_config" below. *)
-fun method_for_slice ctxt slice =
-  let val method = effective_e_weight_method ctxt in
-    if method = e_slicesN then
-      case slice of
-        0 => e_sym_offset_weightN
-      | 1 => e_autoN
-      | 2 => e_fun_weightN
-      | _ => raise Fail "no such slice"
-    else
-      method
-  end
-
 val e_config : atp_config =
   {exec = ("E_HOME", "eproof"),
    required_execs = [],
    arguments =
-     fn ctxt => fn full_proof => fn slice => fn timeout => fn weights =>
-        "--tstp-in --tstp-out -l5 " ^
-        e_weight_arguments ctxt (method_for_slice ctxt slice) weights ^
+     fn ctxt => fn full_proof => fn method => fn timeout => fn weights =>
+        "--tstp-in --tstp-out -l5 " ^ e_weight_arguments ctxt method weights ^
         " -tAutoDev --silent --cpu-limit=" ^ string_of_int (to_secs timeout) ^
         (if full_proof orelse is_old_e_version () then "" else " --trim"),
    proof_delims = tstp_proof_delims,
@@ -221,13 +212,15 @@ val e_config : atp_config =
    formats = [FOF],
    best_slices = fn ctxt =>
      (* FUDGE *)
-     if effective_e_weight_method ctxt = e_slicesN then
-       [(0.333, (true, (100, ["mangled_preds_heavy"]))) (* sym_offset_weight *),
-        (0.333, (true, (800, ["poly_preds?"]))) (* auto *),
-        (0.334, (true, (200, ["mangled_tags!", "mangled_tags?"])))
-                                                               (* fun_weight *)]
-     else
-       [(1.0, (true, (200, ["mangled_tags!", "mangled_tags?"])))]}
+     let val method = effective_e_weight_method ctxt in
+       if method = e_smartN then
+         [(0.333, (true, (100, ["mangled_preds_heavy"], e_sym_offset_weightN))),
+          (0.333, (true, (800, ["poly_preds?"], e_autoN))),
+          (0.334, (true,
+             (200, ["mangled_tags!", "mangled_tags?"], e_fun_weightN)))]
+       else
+         [(1.0, (true, (200, ["mangled_tags!", "mangled_tags?"], method)))]
+     end}
 
 val e = (eN, e_config)
 
@@ -242,10 +235,10 @@ val spass_force_sos =
 val spass_config : atp_config =
   {exec = ("ISABELLE_ATP", "scripts/spass"),
    required_execs = [("SPASS_HOME", "SPASS"), ("SPASS_HOME", "tptp2dfg")],
-   arguments = fn ctxt => fn _ => fn slice => fn timeout => fn _ =>
+   arguments = fn ctxt => fn _ => fn sos => fn timeout => fn _ =>
      ("-Auto -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
       \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_secs timeout))
-     |> (slice < 2 orelse Config.get ctxt spass_force_sos) ? prefix "-SOS=1 ",
+     |> sos = sosN ? prefix "-SOS=1 ",
    proof_delims = [("Here is a proof", "Formulae used in the proof")],
    known_failures =
      known_perl_failures @
@@ -261,9 +254,9 @@ val spass_config : atp_config =
    formats = [FOF],
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.333, (false, (150, ["mangled_preds_heavy"]))) (* SOS *),
-      (0.333, (false, (150, ["mangled_preds?"]))) (* SOS *),
-      (0.334, (true, (150, ["poly_preds"]))) (* ~SOS *)]
+     [(0.333, (false, (150, ["mangled_preds_heavy"], sosN))),
+      (0.333, (false, (150, ["mangled_preds?"], sosN))),
+      (0.334, (true, (150, ["poly_preds"], no_sosN)))]
      |> (if Config.get ctxt spass_force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
@@ -278,11 +271,10 @@ val vampire_force_sos =
 val vampire_config : atp_config =
   {exec = ("VAMPIRE_HOME", "vampire"),
    required_execs = [],
-   arguments = fn ctxt => fn _ => fn slice => fn timeout => fn _ =>
+   arguments = fn ctxt => fn _ => fn sos => fn timeout => fn _ =>
      "--proof tptp --mode casc -t " ^ string_of_int (to_secs timeout) ^
      " --thanks \"Andrei and Krystof\" --input_file"
-     |> (slice < 2 orelse Config.get ctxt vampire_force_sos)
-        ? prefix "--sos on ",
+     |> sos = sosN ? prefix "--sos on ",
    proof_delims =
      [("=========== Refutation ==========",
        "======= End of refutation ======="),
@@ -303,9 +295,9 @@ val vampire_config : atp_config =
    formats = [FOF],
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.333, (false, (200, ["mangled_preds_heavy"]))) (* SOS *),
-      (0.333, (false, (300, ["mangled_tags?"]))) (* SOS *),
-      (0.334, (true, (400, ["poly_preds"]))) (* ~SOS *)]
+     [(0.333, (false, (200, ["mangled_preds_heavy"], sosN))),
+      (0.333, (false, (300, ["mangled_tags?"], sosN))),
+      (0.334, (true, (400, ["poly_preds"], no_sosN)))]
      |> (if Config.get ctxt vampire_force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
@@ -331,7 +323,7 @@ val z3_atp_config : atp_config =
    formats = [FOF],
    best_slices =
      (* FUDGE (FIXME) *)
-     K [(1.0, (false, (250, [])))]}
+     K [(1.0, (false, (250, [], "")))]}
 
 val z3_atp = (z3_atpN, z3_atp_config)
 
@@ -390,14 +382,19 @@ fun remote_config system_name system_versions proof_delims known_failures
    conj_sym_kind = conj_sym_kind,
    prem_kind = prem_kind,
    formats = formats,
-   best_slices = fn ctxt => [(1.0, (false, best_slice ctxt))]}
+   best_slices = fn ctxt =>
+     let val (max_relevant, type_syss) = best_slice ctxt in
+       [(1.0, (false, (max_relevant, type_syss, "")))]
+     end}
 
 fun remotify_config system_name system_versions
         ({proof_delims, known_failures, conj_sym_kind, prem_kind, formats,
           best_slices, ...} : atp_config) : atp_config =
   remote_config system_name system_versions proof_delims known_failures
                 conj_sym_kind prem_kind formats
-                (best_slices #> List.last #> snd #> snd)
+                (best_slices #> List.last #> snd #> snd
+                 #> (fn (max_relevant, type_syss, _) =>
+                        (max_relevant, type_syss)))
 
 fun remote_atp name system_name system_versions proof_delims known_failures
         conj_sym_kind prem_kind formats best_slice =
