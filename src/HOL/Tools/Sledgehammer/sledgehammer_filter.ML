@@ -581,6 +581,11 @@ fun could_benefit_from_ext is_built_in_const facts =
   fold (consider_arities is_built_in_const o snd) facts (SOME Symtab.empty)
   |> is_none
 
+(* High enough so that it isn't wrongly considered as very relevant (e.g., for E
+   weights), but low enough so that it is unlikely to be truncated away if few
+   facts are included. *)
+val special_fact_index = 75
+
 fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
         (fudge as {threshold_divisor, ridiculous_threshold, ...})
         ({add, del, ...} : relevance_override) facts chained_ts hyp_ts concl_t =
@@ -673,12 +678,6 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
       ((facts |> filter (member Thm.eq_thm_prop ths o snd)) @
        (accepts |> filter_out (member Thm.eq_thm_prop ths o snd)))
       |> take max_relevant
-    fun append_to_facts accepts ths =
-      let val add = facts |> filter (member Thm.eq_thm_prop ths o snd) in
-        (accepts |> filter_out (member Thm.eq_thm_prop ths o snd)
-                 |> take (max_relevant - length add)) @
-        add
-      end
     fun uses_const s t =
       fold_aterms (curry (fn (Const (s', _), false) => s' = s | (_, b) => b)) t
                   false
@@ -688,16 +687,24 @@ fun relevance_filter ctxt threshold0 decay max_relevant is_built_in_const
         append ths
       else
         I
-    fun append_special_facts accepts =
+    fun insert_into_facts accepts [] = accepts
+      | insert_into_facts accepts ths =
+        let
+          val add = facts |> filter (member Thm.eq_thm_prop ths o snd)
+          val (bef, after) =
+            accepts |> filter_out (member Thm.eq_thm_prop ths o snd)
+                    |> take (max_relevant - length add)
+                    |> chop special_fact_index
+        in bef @ add @ after end
+    fun insert_special_facts accepts =
        [] |> could_benefit_from_ext is_built_in_const accepts ? cons @{thm ext}
           |> fold (add_set_const_thms accepts) set_consts
-          |> append_to_facts accepts
-
+          |> insert_into_facts accepts
   in
     facts |> map_filter (pair_consts_fact thy is_built_in_const fudge)
           |> iter 0 max_relevant threshold0 goal_const_tab []
           |> not (null add_ths) ? prepend_facts add_ths
-          |> append_special_facts
+          |> insert_special_facts
           |> tap (fn accepts => trace_msg ctxt (fn () =>
                       "Total relevant: " ^ string_of_int (length accepts)))
   end
