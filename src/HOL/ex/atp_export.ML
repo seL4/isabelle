@@ -31,7 +31,7 @@ fun facts_of thy =
 (* FIXME: Similar yet different code in "mirabelle.ML". The code here has a few
    fixes that seem to be missing over there; or maybe the two code portions are
    not doing the same? *)
-fun fold_body_thms all_names f =
+fun fold_body_thms thm_name all_names f =
   let
     fun app n (PBody {thms, ...}) =
       thms |> fold (fn (_, (name, prop, body)) => fn x =>
@@ -40,7 +40,10 @@ fun fold_body_thms all_names f =
           val n' =
             n + (if name = "" orelse
                     (is_some all_names andalso
-                     not (member (op =) (the all_names) name)) then
+                     not (member (op =) (the all_names) name)) orelse
+                    (* uncommon case where the proved theorem occurs twice
+                       (e.g., "Transitive_Closure.trancl_into_trancl") *)
+                    n = 1 andalso name = thm_name then
                    0
                  else
                    1)
@@ -52,7 +55,8 @@ fun theorems_mentioned_in_proof_term all_names thm =
   let
     fun collect (s, _, _) = if s <> "" then insert (op =) s else I
     val names =
-      [] |> fold_body_thms all_names collect [Thm.proof_body_of thm]
+      [] |> fold_body_thms (Thm.get_name_hint thm) all_names collect
+                           [Thm.proof_body_of thm]
          |> map fact_name_of
   in names end
 
