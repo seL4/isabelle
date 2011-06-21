@@ -1,0 +1,12 @@
+diff -ru jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java jEdit-patched/org/gjt/sp/jedit/gui/PanelWindowContainer.java
+--- jEdit/org/gjt/sp/jedit/gui/PanelWindowContainer.java	2010-05-09 14:29:17.000000000 +0200
++++ jEdit-patched/org/gjt/sp/jedit/gui/PanelWindowContainer.java	2011-06-21 23:00:11.000000000 +0200
+@@ -646,7 +646,7 @@
+ 			this.font = font;
+ 
+ 			FontRenderContext fontRenderContext
+-				= new FontRenderContext(null,true,true);
++				= new FontRenderContext(null,true,false);
+ 			glyphs = font.createGlyphVector(fontRenderContext,text);
+ 			width = (int)glyphs.getLogicalBounds().getWidth() + 4;
+ 			//height = (int)glyphs.getLogicalBounds().getHeight();
