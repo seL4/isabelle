@@ -85,6 +85,7 @@ sig
   val unmangled_const : string -> string * string fo_term list
   val unmangled_const_name : string -> string
   val helper_table : ((string * bool) * thm list) list
+  val factsN : string
   val prepare_atp_problem :
     Proof.context -> format -> formula_kind -> formula_kind -> type_sys
     -> bool -> bool -> bool -> term list -> term
@@ -1516,15 +1517,15 @@ fun bound_tvars type_sys Ts =
 (* Each fact is given a unique fact number to avoid name clashes (e.g., because
    of monomorphization). The TPTP explicitly forbids name clashes, and some of
    the remote provers might care. *)
-fun formula_line_for_fact ctxt format prefix encode exporter nonmono_Ts type_sys
-                          (j, {name, locality, kind, combformula, atomic_types}) =
-  (prefix ^ (if exporter then "" else string_of_int j ^ "_") ^ encode name,
+fun formula_line_for_fact ctxt format prefix encode freshen pos nonmono_Ts
+        type_sys (j, {name, locality, kind, combformula, atomic_types}) =
+  (prefix ^ (if freshen then string_of_int j ^ "_" else "") ^ encode name,
    kind,
    combformula
    |> close_combformula_universally
    |> formula_from_combformula ctxt format nonmono_Ts type_sys
                                should_predicate_on_var_in_formula
-                               (if exporter then NONE else SOME true)
+                               (if pos then SOME true else NONE)
    |> bound_tvars type_sys atomic_types
    |> close_formula_universally,
    NONE,
@@ -1845,7 +1846,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
                                                poly_nonmono_Ts type_sys
     val helper_lines =
       0 upto length helpers - 1 ~~ helpers
-      |> map (formula_line_for_fact ctxt format helper_prefix I exporter
+      |> map (formula_line_for_fact ctxt format helper_prefix I false true
                                     poly_nonmono_Ts type_sys)
       |> (if needs_type_tag_idempotence type_sys then
             cons (type_tag_idempotence_fact ())
@@ -1856,8 +1857,9 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
     val problem =
       [(explicit_declsN, sym_decl_lines),
        (factsN,
-        map (formula_line_for_fact ctxt format fact_prefix ascii_of exporter
-                                   nonmono_Ts type_sys)
+        map (formula_line_for_fact ctxt format fact_prefix ascii_of
+                                   (not exporter) (not exporter) nonmono_Ts
+                                   type_sys)
             (0 upto length facts - 1 ~~ facts)),
        (class_relsN, map formula_line_for_class_rel_clause class_rel_clauses),
        (aritiesN, map formula_line_for_arity_clause arity_clauses),
