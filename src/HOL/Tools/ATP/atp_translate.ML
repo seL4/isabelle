@@ -1474,9 +1474,9 @@ fun type_pred_combterm ctxt format type_sys T tm =
 fun is_var_positively_naked_in_term _ (SOME false) _ accum = accum
   | is_var_positively_naked_in_term name _ (ATerm ((s, _), tms)) accum =
     accum orelse (is_tptp_equal s andalso member (op =) tms (ATerm (name, [])))
-fun is_var_nonmonotonic_in_formula _ _ (SOME false) _ = false
-  | is_var_nonmonotonic_in_formula pos phi _ name =
+fun should_predicate_on_var_in_formula pos phi (SOME true) name =
     formula_fold pos (is_var_positively_naked_in_term name) phi false
+  | should_predicate_on_var_in_formula _ _ _ _ = true
 
 fun mk_const_aterm format type_sys x T_args args =
   ATerm (x, map_filter (fo_term_for_type_arg format type_sys) T_args @ args)
@@ -1548,34 +1548,33 @@ and formula_from_combformula ctxt format nonmono_Ts type_sys
         end
       | do_formula pos (AConn conn) = aconn_map pos do_formula conn
       | do_formula pos (AAtom tm) = AAtom (do_term pos tm)
-  in do_formula o SOME end
+  in do_formula end
 
 fun bound_tvars type_sys Ts =
   mk_ahorn (map (formula_from_fo_literal o fo_literal_from_type_literal)
                 (type_literals_for_types type_sys add_sorts_on_tvar Ts))
 
-fun formula_for_fact ctxt format nonmono_Ts type_sys
-                     ({combformula, atomic_types, ...} : translated_formula) =
-  combformula
-  |> close_combformula_universally
-  |> formula_from_combformula ctxt format nonmono_Ts type_sys
-                              is_var_nonmonotonic_in_formula true
-  |> bound_tvars type_sys atomic_types
-  |> close_formula_universally
-
 (* Each fact is given a unique fact number to avoid name clashes (e.g., because
    of monomorphization). The TPTP explicitly forbids name clashes, and some of
    the remote provers might care. *)
-fun formula_line_for_fact ctxt format prefix encode freshen nonmono_Ts type_sys
-                          (j, formula as {name, locality, kind, ...}) =
-  Formula (prefix ^ (if freshen then string_of_int j ^ "_" else "") ^
-           encode name,
-           kind, formula_for_fact ctxt format nonmono_Ts type_sys formula, NONE,
-           case locality of
-             Intro => intro_info
-           | Elim => elim_info
-           | Simp => simp_info
-           | _ => NONE)
+fun formula_line_for_fact ctxt format prefix encode exporter nonmono_Ts type_sys
+                          (j, {name, locality, kind, combformula, atomic_types}) =
+  (prefix ^ (if exporter then "" else string_of_int j ^ "_") ^ encode name,
+   kind,
+   combformula
+   |> close_combformula_universally
+   |> formula_from_combformula ctxt format nonmono_Ts type_sys
+                               should_predicate_on_var_in_formula
+                               (if exporter then NONE else SOME true)
+   |> bound_tvars type_sys atomic_types
+   |> close_formula_universally,
+   NONE,
+   case locality of
+     Intro => intro_info
+   | Elim => elim_info
+   | Simp => simp_info
+   | _ => NONE)
+  |> Formula
 
 fun formula_line_for_class_rel_clause ({name, subclass, superclass, ...}
                                        : class_rel_clause) =
@@ -1604,7 +1603,7 @@ fun formula_line_for_conjecture ctxt format nonmono_Ts type_sys
         ({name, kind, combformula, atomic_types, ...} : translated_formula) =
   Formula (conjecture_prefix ^ name, kind,
            formula_from_combformula ctxt format nonmono_Ts type_sys
-               is_var_nonmonotonic_in_formula false
+               should_predicate_on_var_in_formula (SOME false)
                (close_combformula_universally combformula)
            |> bound_tvars type_sys atomic_types
            |> close_formula_universally, NONE, NONE)
@@ -1725,7 +1724,7 @@ fun formula_line_for_preds_sym_decl ctxt format conj_sym_kind nonmono_Ts
              |> type_pred_combterm ctxt format type_sys res_T
              |> AAtom |> mk_aquant AForall (bound_names ~~ bound_Ts)
              |> formula_from_combformula ctxt format poly_nonmono_Ts type_sys
-                                         (K (K (K (K true)))) true
+                                         (K (K (K (K true)))) (SOME true)
              |> n > 1 ? bound_tvars type_sys (atyps_of T)
              |> close_formula_universally
              |> maybe_negate,
@@ -1859,7 +1858,7 @@ val free_typesN = "Type variables"
 val explicit_apply = NONE (* for experimental purposes *)
 
 fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
-        freshen_facts readable_names preproc hyp_ts concl_t facts =
+        exporter readable_names preproc hyp_ts concl_t facts =
   let
     val (format, type_sys) = choose_format [format] type_sys
     val (fact_names, (conjs, facts, class_rel_clauses, arity_clauses)) =
@@ -1887,7 +1886,7 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
                                                poly_nonmono_Ts type_sys
     val helper_lines =
       0 upto length helpers - 1 ~~ helpers
-      |> map (formula_line_for_fact ctxt format helper_prefix I false
+      |> map (formula_line_for_fact ctxt format helper_prefix I exporter
                                     poly_nonmono_Ts type_sys)
       |> (if needs_type_tag_idempotence type_sys then
             cons (type_tag_idempotence_fact ())
@@ -1898,8 +1897,8 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
     val problem =
       [(explicit_declsN, sym_decl_lines),
        (factsN,
-        map (formula_line_for_fact ctxt format fact_prefix ascii_of
-                                   freshen_facts nonmono_Ts type_sys)
+        map (formula_line_for_fact ctxt format fact_prefix ascii_of exporter
+                                   nonmono_Ts type_sys)
             (0 upto length facts - 1 ~~ facts)),
        (class_relsN, map formula_line_for_class_rel_clause class_rel_clauses),
        (aritiesN, map formula_line_for_arity_clause arity_clauses),

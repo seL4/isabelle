@@ -646,7 +646,7 @@ fun run_atp mode name
                 val (atp_problem, pool, conjecture_offset, facts_offset,
                      fact_names, typed_helpers, sym_tab) =
                   prepare_atp_problem ctxt format conj_sym_kind prem_kind
-                      type_sys true (Config.get ctxt atp_readable_names) true
+                      type_sys false (Config.get ctxt atp_readable_names) true
                       hyp_ts concl_t facts
                 fun weights () = atp_problem_weights atp_problem
                 val full_proof = debug orelse isar_proof
