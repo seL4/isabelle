@@ -90,7 +90,7 @@ object Token_Markup
     }
     var offset = 0
     var ctrl = ""
-    for (sym <- Symbol.iterator(text).map(_.toString)) {
+    for (sym <- Symbol.iterator_string(text)) {
       if (ctrl_style(sym).isDefined) ctrl = sym
       else if (ctrl != "") {
         if (symbols.is_controllable(sym) && sym != "\"" && !symbols.fonts.isDefinedAt(sym)) {

@@ -85,21 +85,38 @@ object Symbol
   }
 
 
-  /* iterator */
+  /* efficient iterators */
 
-  def iterator(text: CharSequence) = new Iterator[CharSequence]
-  {
-    private val matcher = new Matcher(text)
-    private var i = 0
-    def hasNext = i < text.length
-    def next =
+  def iterator(text: CharSequence): Iterator[CharSequence] =
+    new Iterator[CharSequence]
     {
-      val n = matcher(i, text.length)
-      val s = text.subSequence(i, i + n)
-      i += n
-      s
+      private val matcher = new Matcher(text)
+      private var i = 0
+      def hasNext = i < text.length
+      def next =
+      {
+        val n = matcher(i, text.length)
+        val s = text.subSequence(i, i + n)
+        i += n
+        s
+      }
     }
-  }
+
+  private val char_symbols: Array[String] =
+    (0 to 127).iterator.map(i => new String(Array(i.toChar))).toArray
+
+  private def make_string(sym: CharSequence): String =
+    sym.length match {
+      case 0 => ""
+      case 1 =>
+        val c = sym.charAt(0)
+        if (c < char_symbols.length) char_symbols(c)
+        else sym.toString
+      case _ => sym.toString
+    }
+
+  def iterator_string(text: CharSequence): Iterator[String] =
+    iterator(text).map(make_string)
 
 
   /* decoding offsets */

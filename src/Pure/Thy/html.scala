@@ -73,7 +73,7 @@ object HTML
             flush()
             ts += elem
           }
-          val syms = Symbol.iterator(txt).map(_.toString)
+          val syms = Symbol.iterator_string(txt)
           while (syms.hasNext) {
             val s1 = syms.next
             def s2() = if (syms.hasNext) syms.next else ""
