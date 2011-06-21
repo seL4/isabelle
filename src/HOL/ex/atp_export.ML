@@ -8,6 +8,8 @@ Sledgehammer's translation.
 
 signature ATP_EXPORT =
 sig
+  val theorems_mentioned_in_proof_term :
+    string list option -> thm -> string list
   val generate_tptp_graph_file_for_theory :
     Proof.context -> theory -> string -> unit
   val generate_tptp_inference_file_for_theory :
@@ -110,7 +112,7 @@ fun generate_tptp_inference_file_for_theory ctxt thy type_sys file_name =
       facts0 |> map (fn ((_, loc), th) =>
                         ((Thm.get_name_hint th, loc), prop_of th))
     val (atp_problem, _, _, _, _, _, _) =
-      prepare_atp_problem ctxt format Axiom Axiom type_sys false false true []
+      prepare_atp_problem ctxt format Axiom Axiom type_sys true false true []
                           @{prop False} facts
     val all_names = facts0 |> map (Thm.get_name_hint o snd)
     val infers =
