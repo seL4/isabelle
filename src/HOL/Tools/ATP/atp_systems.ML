@@ -215,10 +215,10 @@ val e_config : atp_config =
        (* FUDGE *)
        if method = e_smartN then
          [(0.333, (true, (500, ["mangled_tags?"], e_fun_weightN))),
-          (0.333, (true, (1000, ["mangled_tags?"], e_sym_offset_weightN))),
-          (0.334, (true, (50, ["mangled_preds?"], e_fun_weightN)))]
+          (0.334, (true, (50, ["mangled_preds?"], e_fun_weightN))),
+          (0.333, (true, (1000, ["mangled_tags?"], e_sym_offset_weightN)))]
        else
-         [(1.0, (true, (300, ["mangled_tags?"], method)))]
+         [(1.0, (true, (500, ["mangled_tags?"], method)))]
      end}
 
 val e = (eN, e_config)
@@ -253,8 +253,8 @@ val spass_config : atp_config =
    formats = [FOF],
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.333, (false, (100, ["mangled_tags"], sosN))),
-      (0.333, (false, (500, ["mangled_preds?"], sosN))),
+     [(0.333, (false, (150, ["mangled_tags"], sosN))),
+      (0.333, (false, (300, ["poly_tags?"], sosN))),
       (0.334, (true, (50, ["mangled_tags?"], no_sosN)))]
      |> (if Config.get ctxt spass_force_sos then hd #> apfst (K 1.0) #> single
          else I)}
@@ -294,9 +294,9 @@ val vampire_config : atp_config =
    formats = [FOF],
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.333, (false, (50, ["mangled_preds_heavy"], sosN))),
-      (0.333, (false, (500, ["mangled_tags_heavy?"], sosN))),
-      (0.334, (true, (100, ["mangled_preds?"], no_sosN)))]
+     [(0.333, (false, (150, ["poly_preds"], sosN))),
+      (0.334, (true, (50, ["mangled_preds?"], no_sosN))),
+      (0.333, (false, (500, ["mangled_tags?"], sosN)))]
      |> (if Config.get ctxt vampire_force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
