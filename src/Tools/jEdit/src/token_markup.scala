@@ -25,6 +25,7 @@ object Token_Markup
   /* extended syntax styles */
 
   private val plain_range: Int = JEditToken.ID_COUNT
+  private val full_range = 6 * plain_range + 1
   private def check_range(i: Int) { require(0 <= i && i < plain_range) }
 
   def subscript(i: Byte): Byte = { check_range(i); (i + plain_range).toByte }
@@ -50,7 +51,6 @@ object Token_Markup
   {
     if (symbols.font_names.length > 2)
       error("Too many user symbol fonts (max 2 permitted): " + symbols.font_names.mkString(", "))
-    private val full_range: Int = (4 + symbols.font_names.length) * plain_range + 1
 
     override def extendStyles(styles: Array[SyntaxStyle]): Array[SyntaxStyle] =
     {
@@ -99,10 +99,8 @@ object Token_Markup
         }
         ctrl = ""
       }
-      // FIXME avoid symbols.encode!?
-      symbols.fonts.get(symbols.encode(sym)) match {
-        case Some(font) =>
-          mark(offset, offset + sym.length, user_font(symbols.font_index(font), _))
+      symbols.lookup_font(sym) match {
+        case Some(idx) => mark(offset, offset + sym.length, user_font(idx, _))
         case _ =>
       }
       offset += sym.length

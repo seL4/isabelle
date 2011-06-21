@@ -234,6 +234,14 @@ object Symbol
       Map((for ((sym @ name(a), _) <- symbols) yield (sym -> a)): _*)
     }
 
+    val abbrevs: Map[String, String] =
+      Map((
+        for ((sym, props) <- symbols if props.isDefinedAt("abbrev"))
+          yield (sym -> props("abbrev"))): _*)
+
+
+    /* user fonts */
+
     val fonts: Map[String, String] =
       Map((
         for ((sym, props) <- symbols if props.isDefinedAt("font"))
@@ -242,10 +250,7 @@ object Symbol
     val font_names: List[String] = Set(fonts.toList.map(_._2): _*).toList
     val font_index: Map[String, Int] = Map((font_names zip (0 until font_names.length).toList): _*)
 
-    val abbrevs: Map[String, String] =
-      Map((
-        for ((sym, props) <- symbols if props.isDefinedAt("abbrev"))
-          yield (sym -> props("abbrev"))): _*)
+    def lookup_font(sym: String): Option[Int] = fonts.get(sym).map(font_index(_))
 
 
     /* main recoder methods */
@@ -336,10 +341,16 @@ object Symbol
       sym.startsWith("\\<") && sym.endsWith(">") && !sym.startsWith("\\<^")
 
 
-    /* special control symbols */
+    /* control symbols */
+
+    private val ctrl_decoded: Set[String] =
+      Set((for ((sym, _) <- symbols if sym.startsWith("\\<^")) yield decode(sym)): _*)
+
+    def is_ctrl(sym: String): Boolean =
+      sym.startsWith("\\<^") || ctrl_decoded.contains(sym)
 
     def is_controllable(sym: String): Boolean =
-      !is_blank(sym) && !sym.startsWith("\\<^") && !is_malformed(sym)
+      !is_blank(sym) && !is_ctrl(sym) && !is_malformed(sym)
 
     private val subscript_decoded = Set(decode("\\<^sub>"), decode("\\<^isub>"))
     private val superscript_decoded = Set(decode("\\<^sup>"), decode("\\<^isup>"))
