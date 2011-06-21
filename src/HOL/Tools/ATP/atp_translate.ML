@@ -417,15 +417,19 @@ fun make_axiom_arity_clause (tcons, name, (cls, args)) =
   end
 
 fun arity_clause _ _ (_, []) = []
-  | arity_clause seen n (tcons, ("HOL.type",_)::ars) =  (*ignore*)
-      arity_clause seen n (tcons,ars)
-  | arity_clause seen n (tcons, (ar as (class,_)) :: ars) =
-      if member (op =) seen class then (*multiple arities for the same tycon, class pair*)
-          make_axiom_arity_clause (tcons, lookup_const tcons ^ "_" ^ class ^ "_" ^ string_of_int n, ar) ::
-          arity_clause seen (n+1) (tcons,ars)
-      else
-          make_axiom_arity_clause (tcons, lookup_const tcons ^ "_" ^ class, ar) ::
-          arity_clause (class::seen) n (tcons,ars)
+  | arity_clause seen n (tcons, ("HOL.type", _) :: ars) =  (* ignore *)
+    arity_clause seen n (tcons, ars)
+  | arity_clause seen n (tcons, (ar as (class, _)) :: ars) =
+    if member (op =) seen class then
+      (* multiple arities for the same (tycon, class) pair *)
+      make_axiom_arity_clause (tcons,
+          lookup_const tcons ^ "___" ^ ascii_of class ^ "_" ^ string_of_int n,
+          ar) ::
+      arity_clause seen (n + 1) (tcons, ars)
+    else
+      make_axiom_arity_clause (tcons, lookup_const tcons ^ "___" ^
+                               ascii_of class, ar) ::
+      arity_clause (class :: seen) n (tcons, ars)
 
 fun multi_arity_clause [] = []
   | multi_arity_clause ((tcons, ars) :: tc_arlists) =
@@ -1592,7 +1596,7 @@ fun fo_literal_from_arity_literal (TConsLit (c, t, args)) =
 
 fun formula_line_for_arity_clause ({name, prem_lits, concl_lits, ...}
                                    : arity_clause) =
-  Formula (arity_clause_prefix ^ ascii_of name, Axiom,
+  Formula (arity_clause_prefix ^ name, Axiom,
            mk_ahorn (map (formula_from_fo_literal o apfst not
                           o fo_literal_from_arity_literal) prem_lits)
                     (formula_from_fo_literal
