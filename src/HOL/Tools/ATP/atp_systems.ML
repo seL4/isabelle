@@ -386,26 +386,29 @@ fun remote_config system_name system_versions proof_delims known_failures
        [(1.0, (false, (max_relevant, type_syss, "")))]
      end}
 
-fun remotify_config system_name system_versions
-        ({proof_delims, known_failures, conj_sym_kind, prem_kind, formats,
-          best_slices, ...} : atp_config) : atp_config =
+fun remotify_config system_name system_versions best_slice
+        ({proof_delims, known_failures, conj_sym_kind, prem_kind, formats, ...}
+         : atp_config) : atp_config =
   remote_config system_name system_versions proof_delims known_failures
-                conj_sym_kind prem_kind formats
-                (best_slices #> List.last #> snd #> snd
-                 #> (fn (max_relevant, type_syss, _) =>
-                        (max_relevant, type_syss)))
+                conj_sym_kind prem_kind formats best_slice
 
 fun remote_atp name system_name system_versions proof_delims known_failures
         conj_sym_kind prem_kind formats best_slice =
   (remote_prefix ^ name,
    remote_config system_name system_versions proof_delims known_failures
                  conj_sym_kind prem_kind formats best_slice)
-fun remotify_atp (name, config) system_name system_versions =
-  (remote_prefix ^ name, remotify_config system_name system_versions config)
+fun remotify_atp (name, config) system_name system_versions best_slice =
+  (remote_prefix ^ name,
+   remotify_config system_name system_versions best_slice config)
 
-val remote_e = remotify_atp e "EP" ["1.0", "1.1", "1.2"]
-val remote_vampire = remotify_atp vampire "Vampire" ["0.6", "9.0", "1.0"]
-val remote_z3_atp = remotify_atp z3_atp "Z3" ["2.18"]
+val remote_e =
+  remotify_atp e "EP" ["1.0", "1.1", "1.2"]
+               (K (750, ["mangled_tags?"]) (* FUDGE *))
+val remote_vampire =
+  remotify_atp vampire "Vampire" ["0.6", "9.0", "1.0"]
+               (K (150, ["mangled_preds?"]) (* FUDGE *))
+val remote_z3_atp =
+  remotify_atp z3_atp "Z3" ["2.18"] (K (250, ["mangled_preds?"]) (* FUDGE *))
 val remote_leo2 =
   remote_atp leo2N "LEO-II" ["1.2.6"] [] [] Axiom Hypothesis [THF]
              (K (100, ["simple"]) (* FUDGE *))
@@ -415,7 +418,7 @@ val remote_satallax =
 val remote_sine_e =
   remote_atp sine_eN "SInE" ["0.4"] [] (#known_failures e_config)
              Axiom Conjecture [FOF]
-             (K (500, ["poly_tags_heavy!", "poly_tags_heavy"]) (* FUDGE *))
+             (K (500, ["poly_tags_heavy"]) (* FUDGE *))
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r029", "20080805r024"]
              [("refutation.", "end_refutation.")] [] Hypothesis Hypothesis
@@ -429,7 +432,7 @@ val remote_waldmeister =
              [(OutOfResources, "Too many function symbols"),
               (Crashed, "Unrecoverable Segmentation Fault")]
              Hypothesis Hypothesis [CNF_UEQ]
-             (K (50, ["mangled_args", "mangled_tags?"]) (* FUDGE *))
+             (K (50, ["mangled_tags?"]) (* FUDGE *))
 
 (* Setup *)
 
