@@ -10,7 +10,8 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.{Font, Color}
-import java.awt.font.TextAttribute
+import java.awt.font.{TextAttribute, TransformAttribute}
+import java.awt.geom.AffineTransform
 
 import org.gjt.sp.util.SyntaxUtilities
 import org.gjt.sp.jedit.Mode
@@ -47,6 +48,15 @@ object Token_Markup
   private def bold_style(style: SyntaxStyle): SyntaxStyle =
     font_style(style, _.deriveFont(Font.BOLD))
 
+  private def hidden_font(font: Font): Font =
+  {
+    import scala.collection.JavaConversions._
+    val base_font = new Font(font.getFamily, 0, 1)
+    val transform =
+      new TransformAttribute(AffineTransform.getScaleInstance(1.0, font.getSize.toDouble))
+    base_font.deriveFont(Map(TextAttribute.TRANSFORM -> transform))
+  }
+
   class Style_Extender(symbols: Symbol.Interpretation) extends SyntaxUtilities.StyleExtender
   {
     if (symbols.font_names.length > 2)
@@ -67,8 +77,7 @@ object Token_Markup
             font_style(style, font => new Font(family, font.getStyle, font.getSize))
         }
       }
-      new_styles(hidden) =
-        new SyntaxStyle(Color.white, null, new Font(styles(0).getFont.getFamily, 0, 1))
+      new_styles(hidden) = new SyntaxStyle(Color.white, null, hidden_font(styles(0).getFont))
       new_styles
     }
   }
