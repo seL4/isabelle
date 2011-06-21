@@ -357,5 +357,9 @@
 \<^sup>                 code: 0x0021e7  abbrev: =^
 \<^isub>                code: 0x0021e3  abbrev: -_
 \<^isup>                code: 0x0021e1  abbrev: -^
+\<^bsub>                code: 0x0021d8  abbrev: =_(
+\<^esub>                code: 0x0021d9  abbrev: =_)
+\<^bsup>                code: 0x0021d7  abbrev: =^(
+\<^esup>                code: 0x0021d6  abbrev: =^)
 \<^bold>                code: 0x002759  abbrev: -.
 
