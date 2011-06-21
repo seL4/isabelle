@@ -10,7 +10,7 @@ package isabelle.jedit
 import isabelle._
 
 import java.awt.{Font, Color}
-import java.awt.font.{TextAttribute, TransformAttribute}
+import java.awt.font.{TextAttribute, TransformAttribute, FontRenderContext, LineMetrics}
 import java.awt.geom.AffineTransform
 
 import org.gjt.sp.util.SyntaxUtilities
@@ -23,6 +23,24 @@ import javax.swing.text.Segment
 
 object Token_Markup
 {
+  /* font operations */
+
+  private def font_metrics(font: Font): LineMetrics =
+    font.getLineMetrics("", new FontRenderContext(null, false, false))
+
+  private def imitate_font(family: String, font: Font): Font =
+  {
+    val font1 = new Font (family, font.getStyle, font.getSize)
+    font1.deriveFont(font_metrics(font).getAscent / font_metrics(font1).getAscent * font.getSize)
+  }
+
+  private def transform_font(font: Font, transform: AffineTransform): Font =
+  {
+    import scala.collection.JavaConversions._
+    font.deriveFont(Map(TextAttribute.TRANSFORM -> new TransformAttribute(transform)))
+  }
+
+
   /* extended syntax styles */
 
   private val plain_range: Int = JEditToken.ID_COUNT
@@ -40,22 +58,26 @@ object Token_Markup
 
   private def script_style(style: SyntaxStyle, i: Int): SyntaxStyle =
   {
-    import scala.collection.JavaConversions._
-    font_style(style, font =>
-      style.getFont.deriveFont(Map(TextAttribute.SUPERSCRIPT -> new java.lang.Integer(i))))
+    font_style(style, font0 =>
+      {
+        import scala.collection.JavaConversions._
+        val font1 = font0.deriveFont(Map(TextAttribute.SUPERSCRIPT -> new java.lang.Integer(i)))
+
+        def shift(y: Float): Font =
+          transform_font(font1, AffineTransform.getTranslateInstance(0.0, y.toDouble))
+
+        val m0 = font_metrics(font0)
+        val m1 = font_metrics(font1)
+        val a = m1.getAscent - m0.getAscent
+        val b = (m1.getDescent + m1.getLeading) - (m0.getDescent + m0.getLeading)
+        if (a > 0.0f) shift(a)
+        else if (b > 0.0f) shift(- b)
+        else font1
+      })
   }
 
   private def bold_style(style: SyntaxStyle): SyntaxStyle =
     font_style(style, _.deriveFont(Font.BOLD))
-
-  private def hidden_font(font: Font): Font =
-  {
-    import scala.collection.JavaConversions._
-    val base_font = new Font(font.getFamily, 0, 1)
-    val transform =
-      new TransformAttribute(AffineTransform.getScaleInstance(1.0, font.getSize.toDouble))
-    base_font.deriveFont(Map(TextAttribute.TRANSFORM -> transform))
-  }
 
   class Style_Extender(symbols: Symbol.Interpretation) extends SyntaxUtilities.StyleExtender
   {
@@ -71,13 +93,14 @@ object Token_Markup
         new_styles(subscript(i.toByte)) = script_style(style, -1)
         new_styles(superscript(i.toByte)) = script_style(style, 1)
         new_styles(bold(i.toByte)) = bold_style(style)
-        for ((family, idx) <- symbols.font_index) {
-          // FIXME adjust size
-          new_styles(user_font(idx, i.toByte)) =
-            font_style(style, font => new Font(family, font.getStyle, font.getSize))
-        }
+        for ((family, idx) <- symbols.font_index)
+          new_styles(user_font(idx, i.toByte)) = font_style(style, imitate_font(family, _))
       }
-      new_styles(hidden) = new SyntaxStyle(Color.white, null, hidden_font(styles(0).getFont))
+      new_styles(hidden) =
+        new SyntaxStyle(Color.white, null,
+          { val font = styles(0).getFont
+            transform_font(new Font(font.getFamily, 0, 1),
+              AffineTransform.getScaleInstance(1.0, font.getSize.toDouble)) })
       new_styles
     }
   }
