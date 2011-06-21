@@ -103,7 +103,7 @@ object Symbol
     }
 
   private val char_symbols: Array[String] =
-    (0 to 127).iterator.map(i => new String(Array(i.toChar))).toArray
+    (0 until 128).iterator.map(i => new String(Array(i.toChar))).toArray
 
   private def make_string(sym: CharSequence): String =
     sym.length match {
@@ -257,20 +257,7 @@ object Symbol
           yield (sym -> props("abbrev"))): _*)
 
 
-    /* user fonts */
-
-    val fonts: Map[String, String] =
-      Map((
-        for ((sym, props) <- symbols if props.isDefinedAt("font"))
-          yield (sym -> props("font"))): _*)
-
-    val font_names: List[String] = Set(fonts.toList.map(_._2): _*).toList
-    val font_index: Map[String, Int] = Map((font_names zip (0 until font_names.length).toList): _*)
-
-    def lookup_font(sym: String): Option[Int] = fonts.get(sym).map(font_index(_))
-
-
-    /* main recoder methods */
+    /* recoding */
 
     private val (decoder, encoder) =
     {
@@ -295,19 +282,35 @@ object Symbol
     def decode(text: String): String = decoder.recode(text)
     def encode(text: String): String = encoder.recode(text)
 
+    private def recode_set(elems: String*): Set[String] =
+    {
+      val content = elems.toList
+      Set((content ::: content.map(decode)): _*)
+    }
+
+    private def recode_map[A](elems: (String, A)*): Map[String, A] =
+    {
+      val content = elems.toList
+      Map((content ::: content.map({ case (sym, a) => (decode(sym), a) })): _*)
+    }
+
+
+    /* user fonts */
+
+    val fonts: Map[String, String] =
+      recode_map((
+        for ((sym, props) <- symbols if props.isDefinedAt("font"))
+          yield (sym -> props("font"))): _*)
+
+    val font_names: List[String] = Set(fonts.toList.map(_._2): _*).toList
+    val font_index: Map[String, Int] = Map((font_names zip (0 until font_names.length).toList): _*)
+
+    def lookup_font(sym: String): Option[Int] = fonts.get(sym).map(font_index(_))
+
 
     /* classification */
 
-    private object Decode_Set
-    {
-      def apply(elems: String*): Set[String] =
-      {
-        val content = elems.toList
-        Set((content ::: content.map(decode)): _*)
-      }
-    }
-
-    private val letters = Decode_Set(
+    private val letters = recode_set(
       "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
       "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
       "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
@@ -343,7 +346,7 @@ object Symbol
       "\\<^isub>", "\\<^isup>")
 
     private val blanks =
-      Decode_Set(space, "\t", "\n", "\u000B", "\f", "\r", "\\<spacespace>", "\\<^newline>")
+      recode_set(space, "\t", "\n", "\u000B", "\f", "\r", "\\<spacespace>", "\\<^newline>")
 
     private val sym_chars =
       Set("!", "#", "$", "%", "&", "*", "+", "-", "/", "<", "=", ">", "?", "@", "^", "_", "|", "~")

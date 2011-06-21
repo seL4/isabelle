@@ -37,12 +37,16 @@ object HTML
   val BR = "br"
   val PRE = "pre"
   val CLASS = "class"
+  val STYLE = "style"
 
 
   // document markup
 
   def span(cls: String, body: XML.Body): XML.Elem =
     XML.Elem(Markup(SPAN, List((CLASS, cls))), body)
+
+  def user_font(font: String, txt: String): XML.Elem =
+    XML.Elem(Markup(SPAN, List((STYLE, "font-family: " + font))), List(XML.Text(txt)))
 
   def hidden(txt: String): XML.Elem =
     span(Markup.HIDDEN, List(XML.Text(txt)))
@@ -85,6 +89,7 @@ object HTML
             else if (symbols.is_subscript_decoded(s1)) { add(hidden(s1)); add(sub(s2())) }
             else if (symbols.is_superscript_decoded(s1)) { add(hidden(s1)); add(sup(s2())) }
             else if (symbols.is_bold_decoded(s1)) { add(hidden(s1)); add(bold(s2())) }
+            else if (symbols.fonts.isDefinedAt(s1)) { add(user_font(symbols.fonts(s1), s1)) }
             else t ++= s1
           }
           flush()
