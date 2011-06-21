@@ -15,31 +15,6 @@ sig
   type formula_kind = ATP_Problem.formula_kind
   type 'a problem = 'a ATP_Problem.problem
 
-  type name = string * string
-
-  datatype type_literal =
-    TyLitVar of name * name |
-    TyLitFree of name * name
-
-  datatype arity_literal =
-    TConsLit of name * name * name list |
-    TVarLit of name * name
-
-  type arity_clause =
-    {name: string,
-     prem_lits: arity_literal list,
-     concl_lits: arity_literal}
-
-  type class_rel_clause =
-    {name: string,
-     subclass: name,
-     superclass: name}
-
-  datatype combterm =
-    CombConst of name * typ * typ list |
-    CombVar of name * typ |
-    CombApp of combterm * combterm
-
   datatype locality =
     General | Helper | Extensionality | Intro | Elim | Simp | Local | Assum |
     Chained
@@ -56,13 +31,13 @@ sig
     Tags of polymorphism * type_level * type_heaviness
 
   val bound_var_prefix : string
-  val schematic_var_prefix: string
-  val fixed_var_prefix: string
-  val tvar_prefix: string
-  val tfree_prefix: string
-  val const_prefix: string
-  val type_const_prefix: string
-  val class_prefix: string
+  val schematic_var_prefix : string
+  val fixed_var_prefix : string
+  val tvar_prefix : string
+  val tfree_prefix : string
+  val const_prefix : string
+  val type_const_prefix : string
+  val class_prefix : string
   val skolem_const_prefix : string
   val old_skolem_const_prefix : string
   val new_skolem_const_prefix : string
@@ -87,34 +62,17 @@ sig
   val prefixed_predicator_name : string
   val prefixed_app_op_name : string
   val prefixed_type_tag_name : string
-  val ascii_of: string -> string
-  val unascii_of: string -> string
+  val ascii_of : string -> string
+  val unascii_of : string -> string
   val strip_prefix_and_unascii : string -> string -> string option
   val proxy_table : (string * (string * (thm * (string * string)))) list
   val proxify_const : string -> (string * string) option
-  val invert_const: string -> string
-  val unproxify_const: string -> string
-  val make_bound_var : string -> string
-  val make_schematic_var : string * int -> string
-  val make_fixed_var : string -> string
-  val make_schematic_type_var : string * int -> string
-  val make_fixed_type_var : string -> string
-  val make_fixed_const : string -> string
-  val make_fixed_type_const : string -> string
-  val make_type_class : string -> string
+  val invert_const : string -> string
+  val unproxify_const : string -> string
   val new_skolem_var_name_from_const : string -> string
   val num_type_args : theory -> string -> int
   val atp_irrelevant_consts : string list
   val atp_schematic_consts_of : term -> typ list Symtab.table
-  val make_arity_clauses :
-    theory -> string list -> class list -> class list * arity_clause list
-  val make_class_rel_clauses :
-    theory -> class list -> class list -> class_rel_clause list
-  val combtyp_of : combterm -> typ
-  val strip_combterm_comb : combterm -> combterm * combterm list
-  val atyps_of : typ -> typ list
-  val combterm_from_term :
-    theory -> (string * typ) list -> term -> combterm * typ list
   val is_locality_global : locality -> bool
   val type_sys_from_string : string -> type_sys
   val polymorphism_of_type_sys : type_sys -> polymorphism
@@ -124,13 +82,9 @@ sig
   val choose_format : format list -> type_sys -> format * type_sys
   val mk_aconns :
     connective -> ('a, 'b, 'c) formula list -> ('a, 'b, 'c) formula
-  val unmangled_const_name : string -> string
   val unmangled_const : string -> string * string fo_term list
+  val unmangled_const_name : string -> string
   val helper_table : ((string * bool) * thm list) list
-  val should_specialize_helper : type_sys -> term -> bool
-  val tfree_classes_of_terms : term list -> string list
-  val tvar_classes_of_terms : term list -> string list
-  val type_constrs_of_terms : theory -> term list -> string list
   val prepare_atp_problem :
     Proof.context -> format -> formula_kind -> formula_kind -> type_sys
     -> bool -> bool -> bool -> term list -> term
@@ -237,16 +191,16 @@ val unascii_of =
     fun un rcs [] = String.implode(rev rcs)
       | un rcs [#"_"] = un (#"_" :: rcs) [] (* ERROR *)
         (* Three types of _ escapes: __, _A to _P, _nnn *)
-      | un rcs (#"_" :: #"_" :: cs) = un (#"_"::rcs) cs
+      | un rcs (#"_" :: #"_" :: cs) = un (#"_" :: rcs) cs
       | un rcs (#"_" :: c :: cs) =
         if #"A" <= c andalso c<= #"P" then
           (* translation of #" " to #"/" *)
           un (Char.chr (Char.ord c - upper_a_minus_space) :: rcs) cs
         else
-          let val digits = List.take (c::cs, 3) handle General.Subscript => [] in
+          let val digits = List.take (c :: cs, 3) handle General.Subscript => [] in
             case Int.fromString (String.implode digits) of
               SOME n => un (Char.chr n :: rcs) (List.drop (cs, 2))
-            | NONE => un (c:: #"_"::rcs) cs (* ERROR *)
+            | NONE => un (c :: #"_" :: rcs) cs (* ERROR *)
           end
       | un rcs (c :: cs) = un (c :: rcs) cs
   in un [] o String.explode end
@@ -399,9 +353,9 @@ fun add_packed_sort tvar =
   fold (fn s => s <> type_class ? cons (`make_type_class s, `I tvar))
 
 type arity_clause =
-  {name: string,
-   prem_lits: arity_literal list,
-   concl_lits: arity_literal}
+  {name : string,
+   prem_lits : arity_literal list,
+   concl_lits : arity_literal}
 
 (* Arity of type constructor "tcon :: (arg1, ..., argN) res" *)
 fun make_axiom_arity_clause (tcons, name, (cls, args)) =
@@ -467,9 +421,9 @@ fun make_arity_clauses thy tycons =
 (** Isabelle class relations **)
 
 type class_rel_clause =
-  {name: string,
-   subclass: name,
-   superclass: name}
+  {name : string,
+   subclass : name,
+   superclass : name}
 
 (*Generate all pairs (sub,super) such that sub is a proper subclass of super in theory thy.*)
 fun class_pairs _ [] _ = []
@@ -499,9 +453,10 @@ fun combtyp_of (CombConst (_, T, _)) = T
 
 (*gets the head of a combinator application, along with the list of arguments*)
 fun strip_combterm_comb u =
-    let fun stripc (CombApp(t,u), ts) = stripc (t, u::ts)
-        |   stripc  x =  x
-    in stripc(u,[]) end
+  let
+    fun stripc (CombApp (t, u), ts) = stripc (t, u :: ts)
+      | stripc x = x
+  in stripc (u, []) end
 
 fun atyps_of T = fold_atyps (insert (op =)) T []
 
@@ -639,11 +594,11 @@ fun choose_format formats (Simple_Types level) =
      | format => (format, type_sys))
 
 type translated_formula =
-  {name: string,
-   locality: locality,
-   kind: formula_kind,
-   combformula: (name, typ, combterm) formula,
-   atomic_types: typ list}
+  {name : string,
+   locality : locality,
+   kind : formula_kind,
+   combformula : (name, typ, combterm) formula,
+   atomic_types : typ list}
 
 fun update_combformula f ({name, locality, kind, combformula, atomic_types}
                           : translated_formula) =

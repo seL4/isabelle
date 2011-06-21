@@ -9,8 +9,6 @@ Translation of HOL to FOL for Metis.
 
 signature METIS_TRANSLATE =
 sig
-  type type_literal = ATP_Translate.type_literal
-
   datatype isa_thm =
     Isa_Reflexive_or_Trivial |
     Isa_Raw of thm
