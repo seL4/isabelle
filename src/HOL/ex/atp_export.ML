@@ -105,6 +105,14 @@ val add_inferences_to_problem =
 fun ident_of_problem_line (Decl (ident, _, _)) = ident
   | ident_of_problem_line (Formula (ident, _, _, _, _)) = ident
 
+structure String_Graph = Graph(type key = string val ord = string_ord);
+
+fun order_facts ord = sort (ord o pairself ident_of_problem_line)
+fun order_problem_facts _ [] = []
+  | order_problem_facts ord ((heading, lines) :: problem) =
+    if heading = factsN then (heading, order_facts ord lines) :: problem
+    else (heading, lines) :: order_problem_facts ord problem
+
 fun generate_tptp_inference_file_for_theory ctxt thy type_sys file_name =
   let
     val format = FOF
@@ -126,8 +134,22 @@ fun generate_tptp_inference_file_for_theory ctxt thy type_sys file_name =
     val all_atp_problem_names =
       atp_problem |> maps (map ident_of_problem_line o snd)
     val infers =
-      infers |> map (apsnd (filter (member (op =) all_atp_problem_names)))
-    val atp_problem = atp_problem |> add_inferences_to_problem infers
+      infers |> filter (member (op =) all_atp_problem_names o fst)
+             |> map (apsnd (filter (member (op =) all_atp_problem_names)))
+    val ordered_names =
+      String_Graph.empty
+      |> fold (String_Graph.new_node o rpair ()) all_atp_problem_names
+      |> fold (fn (to, froms) =>
+                  fold (fn from => String_Graph.add_edge (from, to)) froms) infers
+      |> String_Graph.topological_order
+    val order_tab =
+      Symtab.empty
+      |> fold (Symtab.insert (op =))
+              (ordered_names ~~ (1 upto length ordered_names))
+    val name_ord = int_ord o pairself (the o Symtab.lookup order_tab)
+    val atp_problem =
+      atp_problem |> add_inferences_to_problem infers
+                  |> order_problem_facts name_ord
     val ss = tptp_lines_for_atp_problem FOF atp_problem
     val _ = app (File.append path) ss
   in () end
