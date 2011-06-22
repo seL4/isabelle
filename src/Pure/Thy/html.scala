@@ -82,13 +82,13 @@ object HTML
             val s1 = syms.next
             def s2() = if (syms.hasNext) syms.next else ""
             if (s1 == "\n") add(XML.elem(BR))
-            else if (s1 == "\\<^bsub>") t ++= s1  // FIXME
-            else if (s1 == "\\<^esub>") t ++= s1  // FIXME
-            else if (s1 == "\\<^bsup>") t ++= s1  // FIXME
-            else if (s1 == "\\<^esup>") t ++= s1  // FIXME
+            else if (s1 == symbols.bsub_decoded) t ++= s1  // FIXME
+            else if (s1 == symbols.esub_decoded) t ++= s1  // FIXME
+            else if (s1 == symbols.bsup_decoded) t ++= s1  // FIXME
+            else if (s1 == symbols.esup_decoded) t ++= s1  // FIXME
             else if (symbols.is_subscript_decoded(s1)) { add(hidden(s1)); add(sub(s2())) }
             else if (symbols.is_superscript_decoded(s1)) { add(hidden(s1)); add(sup(s2())) }
-            else if (symbols.is_bold_decoded(s1)) { add(hidden(s1)); add(bold(s2())) }
+            else if (s1 == symbols.bold_decoded) { add(hidden(s1)); add(bold(s2())) }
             else if (symbols.fonts.isDefinedAt(s1)) { add(user_font(symbols.fonts(s1), s1)) }
             else t ++= s1
           }

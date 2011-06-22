@@ -108,11 +108,11 @@ object Token_Markup
   def extended_styles(symbols: Symbol.Interpretation, text: CharSequence)
     : Map[Text.Offset, Byte => Byte] =
   {
-    // FIXME \\<^bsub> \\<^esub> \\<^bsup> \\<^esup>
+    // FIXME symbols.bsub_decoded etc.
     def ctrl_style(sym: String): Option[Byte => Byte] =
       if (symbols.is_subscript_decoded(sym)) Some(subscript(_))
       else if (symbols.is_superscript_decoded(sym)) Some(superscript(_))
-      else if (symbols.is_bold_decoded(sym)) Some(bold(_))
+      else if (sym == symbols.bold_decoded) Some(bold(_))
       else None
 
     var result = Map[Text.Offset, Byte => Byte]()
