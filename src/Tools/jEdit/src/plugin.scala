@@ -394,13 +394,15 @@ class Plugin extends EBPlugin
     Isabelle.system.install_fonts()
     Isabelle.session = new Session(Isabelle.system)
     SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender(Isabelle.system.symbols))
-    ModeProvider.instance = new Token_Markup.Mode_Provider(ModeProvider.instance)
+    if (ModeProvider.instance.isInstanceOf[ModeProvider])
+      ModeProvider.instance = new Token_Markup.Mode_Provider(ModeProvider.instance)
     Isabelle.session.phase_changed += session_manager
   }
 
   override def stop()
   {
-    Isabelle.session.stop()
     Isabelle.session.phase_changed -= session_manager
+    Isabelle.jedit_buffers.foreach(Isabelle.exit_model)
+    Isabelle.session.stop()
   }
 }
