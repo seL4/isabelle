@@ -69,7 +69,7 @@ class Isabelle_Process(system: Isabelle_System, timeout: Time, receiver: Actor, 
   /* demo constructor */
 
   def this(args: String*) =
-    this(new Isabelle_System, Time.seconds(10),
+    this(Isabelle_System.default, Time.seconds(10),
       actor { loop { react { case res => Console.println(res) } } }, args: _*)
 
 
