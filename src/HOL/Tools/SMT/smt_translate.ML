@@ -38,6 +38,8 @@ sig
   (*translation*)
   val add_config: SMT_Utils.class * (Proof.context -> config) ->
     Context.generic -> Context.generic 
+  val lift_lambdas: Proof.context -> term list ->
+    Proof.context * (term list * term list)
   val translate: Proof.context -> string list -> (int * thm) list ->
     string * recon
 end
@@ -308,7 +310,7 @@ fun lift_lambdas ctxt ts =
   (Termtab.empty, ctxt)
   |> fold_map (traverse []) ts
   |> (fn (us, (defs, ctxt')) =>
-       (ctxt', Termtab.fold (cons o snd o snd) defs us))
+       (ctxt', (Termtab.fold (cons o snd o snd) defs [], us)))
 
 end
 
@@ -588,6 +590,7 @@ fun translate ctxt comments ithms =
       ts2
       |> eta_expand ctxt1 is_fol funcs
       |> lift_lambdas ctxt1
+      ||> (op @)
       |-> (fn ctxt1' => pair ctxt1' o intro_explicit_application ctxt1 funcs)
 
     val ((rewrite_rules, extra_thms, builtin), ts4) =
