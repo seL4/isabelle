@@ -191,6 +191,54 @@ object Isabelle
   def document_model(buffer: Buffer): Option[Document_Model] = Document_Model(buffer)
   def document_view(text_area: JEditTextArea): Option[Document_View] = Document_View(text_area)
 
+  def init_model(buffer: Buffer)
+  {
+    swing_buffer_lock(buffer) {
+      val opt_model =
+        document_model(buffer) match {
+          case Some(model) => Some(model)
+          case None =>
+            // FIXME strip protocol prefix of URL
+            Thy_Header.split_thy_path(system.posix_path(buffer.getPath)) match {
+              case Some((dir, thy_name)) =>
+                Some(Document_Model.init(session, buffer, dir + "/" + thy_name))
+              case None => None
+            }
+        }
+      if (opt_model.isDefined) {
+        for (text_area <- jedit_text_areas(buffer)) {
+          if (document_view(text_area).map(_.model) != opt_model)
+            Document_View.init(opt_model.get, text_area)
+        }
+      }
+    }
+  }
+
+  def exit_model(buffer: Buffer)
+  {
+    swing_buffer_lock(buffer) {
+      jedit_text_areas(buffer).foreach(Document_View.exit)
+      Document_Model.exit(buffer)
+    }
+  }
+
+  def init_view(buffer: Buffer, text_area: JEditTextArea)
+  {
+    swing_buffer_lock(buffer) {
+      document_model(buffer) match {
+        case Some(model) => Document_View.init(model, text_area)
+        case None =>
+      }
+    }
+  }
+
+  def exit_view(buffer: Buffer, text_area: JEditTextArea)
+  {
+    swing_buffer_lock(buffer) {
+      Document_View.exit(text_area)
+    }
+  }
+
 
   /* dockable windows */
 
@@ -267,47 +315,13 @@ class Plugin extends EBPlugin
 {
   /* session management */
 
-  private def init_model(buffer: Buffer)
-  {
-    Isabelle.swing_buffer_lock(buffer) {
-      val opt_model =
-        Document_Model(buffer) match {
-          case Some(model) => Some(model)
-          case None =>
-            Thy_Header.split_thy_path(Isabelle.system.posix_path(buffer.getPath)) match {
-              case Some((dir, thy_name)) =>
-                Some(Document_Model.init(Isabelle.session, buffer, dir + "/" + thy_name))
-              case None => None
-            }
-        }
-      if (opt_model.isDefined) {
-        for (text_area <- Isabelle.jedit_text_areas(buffer)) {
-          if (Document_View(text_area).map(_.model) != opt_model)
-            Document_View.init(opt_model.get, text_area)
-        }
-      }
-    }
-  }
-
-  private def exit_model(buffer: Buffer)
-  {
-    Isabelle.swing_buffer_lock(buffer) {
-      Isabelle.jedit_text_areas(buffer).foreach(Document_View.exit)
-      Document_Model.exit(buffer)
-    }
-  }
-
-  private case class Init_Model(buffer: Buffer)
-  private case class Exit_Model(buffer: Buffer)
-  private case class Init_View(buffer: Buffer, text_area: JEditTextArea)
-  private case class Exit_View(buffer: Buffer, text_area: JEditTextArea)
+  @volatile private var session_ready = false
 
   private val session_manager = actor {
-    var ready = false
     loop {
       react {
         case phase: Session.Phase =>
-          ready = phase == Session.Ready
+          session_ready = phase == Session.Ready
           phase match {
             case Session.Failed =>
               Swing_Thread.now {
@@ -316,30 +330,9 @@ class Plugin extends EBPlugin
                 Library.error_dialog(jEdit.getActiveView, "Failed to start Isabelle process", text)
               }
 
-            case Session.Ready => Isabelle.jedit_buffers.foreach(init_model)
-            case Session.Shutdown => Isabelle.jedit_buffers.foreach(exit_model)
+            case Session.Ready => Isabelle.jedit_buffers.foreach(Isabelle.init_model)
+            case Session.Shutdown => Isabelle.jedit_buffers.foreach(Isabelle.exit_model)
             case _ =>
-          }
-
-        case Init_Model(buffer) =>
-          if (ready) init_model(buffer)
-
-        case Exit_Model(buffer) =>
-          exit_model(buffer)
-
-        case Init_View(buffer, text_area) =>
-          if (ready) {
-            Isabelle.swing_buffer_lock(buffer) {
-              Document_Model(buffer) match {
-                case Some(model) => Document_View.init(model, text_area)
-                case None =>
-              }
-            }
-          }
-
-        case Exit_View(buffer, text_area) =>
-          Isabelle.swing_buffer_lock(buffer) {
-            Document_View.exit(text_area)
           }
 
         case bad => System.err.println("session_manager: ignoring bad message " + bad)
@@ -352,16 +345,19 @@ class Plugin extends EBPlugin
 
   override def handleMessage(message: EBMessage)
   {
+    Swing_Thread.assert()
     message match {
       case msg: EditorStarted =>
-      Isabelle.check_jvm()
-      if (Isabelle.Boolean_Property("auto-start")) Isabelle.start_session()
+        Isabelle.check_jvm()
+        if (Isabelle.Boolean_Property("auto-start"))
+          Isabelle.start_session()
 
       case msg: BufferUpdate
       if msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>
 
         val buffer = msg.getBuffer
-        if (buffer != null) session_manager ! Init_Model(buffer)
+        if (buffer != null && session_ready)
+          Isabelle.init_model(buffer)
 
       case msg: EditPaneUpdate
       if (msg.getWhat == EditPaneUpdate.BUFFER_CHANGING ||
@@ -375,10 +371,11 @@ class Plugin extends EBPlugin
 
         if (buffer != null && text_area != null) {
           if (msg.getWhat == EditPaneUpdate.BUFFER_CHANGED ||
-              msg.getWhat == EditPaneUpdate.CREATED)
-            session_manager ! Init_View(buffer, text_area)
-          else
-            session_manager ! Exit_View(buffer, text_area)
+              msg.getWhat == EditPaneUpdate.CREATED) {
+            if (session_ready)
+              Isabelle.init_view(buffer, text_area)
+          }
+          else Isabelle.exit_view(buffer, text_area)
         }
 
       case msg: PropertiesChanged =>
@@ -397,13 +394,15 @@ class Plugin extends EBPlugin
     Isabelle.system.install_fonts()
     Isabelle.session = new Session(Isabelle.system)
     SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender(Isabelle.system.symbols))
-    ModeProvider.instance = new Token_Markup.Mode_Provider(ModeProvider.instance)
+    if (ModeProvider.instance.isInstanceOf[ModeProvider])
+      ModeProvider.instance = new Token_Markup.Mode_Provider(ModeProvider.instance)
     Isabelle.session.phase_changed += session_manager
   }
 
   override def stop()
   {
-    Isabelle.session.stop()
     Isabelle.session.phase_changed -= session_manager
+    Isabelle.jedit_buffers.foreach(Isabelle.exit_model)
+    Isabelle.session.stop()
   }
 }

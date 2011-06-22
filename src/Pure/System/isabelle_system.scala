@@ -18,6 +18,11 @@ import scala.util.matching.Regex
 import scala.collection.mutable
 
 
+object Isabelle_System
+{
+  lazy val default: Isabelle_System = new Isabelle_System
+}
+
 class Isabelle_System(this_isabelle_home: String) extends Standard_System
 {
   def this() = this(null)

@@ -42,7 +42,7 @@ object GUI_Setup extends SwingApplication
     text.append("JVM name: " + Platform.jvm_name + "\n")
     text.append("JVM platform: " + Platform.jvm_platform + "\n")
     try {
-      val isabelle_system = new Isabelle_System
+      val isabelle_system = Isabelle_System.default
       text.append("ML platform: " + isabelle_system.getenv("ML_PLATFORM") + "\n")
       text.append("Isabelle platform: " + isabelle_system.getenv("ISABELLE_PLATFORM") + "\n")
       val platform64 = isabelle_system.getenv("ISABELLE_PLATFORM64")

@@ -374,10 +374,13 @@ object Symbol
 
     private val subscript_decoded = Set(decode("\\<^sub>"), decode("\\<^isub>"))
     private val superscript_decoded = Set(decode("\\<^sup>"), decode("\\<^isup>"))
-    val bold_decoded = decode("\\<^bold>")
-
     def is_subscript_decoded(sym: String): Boolean = subscript_decoded.contains(sym)
     def is_superscript_decoded(sym: String): Boolean = superscript_decoded.contains(sym)
-    def is_bold_decoded(sym: String): Boolean = sym == bold_decoded
+
+    val bold_decoded = decode("\\<^bold>")
+    val bsub_decoded = decode("\\<^bsub>")
+    val esub_decoded = decode("\\<^esub>")
+    val bsup_decoded = decode("\\<^bsup>")
+    val esup_decoded = decode("\\<^esup>")
   }
 }

@@ -77,7 +77,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
       Swing_Thread.require()
       if (model.buffer == text_area.getBuffer) body
       else {
-        // FIXME Log.log(Log.ERROR, this, new RuntimeException("Inconsistent document model"))
+        Log.log(Log.ERROR, this, new RuntimeException("Inconsistent document model"))
         default
       }
     }
