@@ -135,6 +135,7 @@ HOLCF-ex: HOLCF $(LOG)/HOLCF-ex.gz
 
 $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF \
   ../Library/Nat_Infinity.thy \
+  ex/Concurrency_Monad.thy \
   ex/Dagstuhl.thy \
   ex/Dnat.thy \
   ex/Domain_Proofs.thy \

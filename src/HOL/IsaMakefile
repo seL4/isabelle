@@ -1594,6 +1594,7 @@ $(LOG)/HOLCF-IMP.gz: $(OUT)/HOLCF \
 HOLCF-ex: HOLCF $(LOG)/HOLCF-ex.gz
 
 $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF \
+  HOLCF/ex/Concurrency_Monad.thy \
   HOLCF/ex/Dagstuhl.thy \
   HOLCF/ex/Dnat.thy \
   HOLCF/ex/Domain_Proofs.thy \
