@@ -187,23 +187,21 @@ class Text_Area_Painter(doc_view: Document_View)
   }
 
   private def paint_chunk_list(
-    gfx: Graphics2D, offset: Text.Offset, head: Chunk, x: Float, y: Float): Float =
+    gfx: Graphics2D, line_start: Text.Offset, head: Chunk, x: Float, y: Float): Float =
   {
     val clip_rect = gfx.getClipBounds
     val painter = text_area.getPainter
     val font_context = painter.getFontRenderContext
 
     var w = 0.0f
-    var chunk_offset = offset
     var chunk = head
     while (chunk != null) {
-      val chunk_length = if (chunk.str == null) 0 else chunk.str.length
-
+      val chunk_offset = line_start + chunk.offset
       if (x + w + chunk.width > clip_rect.x &&
           x + w < clip_rect.x + clip_rect.width &&
           chunk.accessable && chunk.visible)
       {
-        val chunk_range = Text.Range(chunk_offset, chunk_offset + chunk_length)
+        val chunk_range = Text.Range(chunk_offset, chunk_offset + chunk.length)
         val chunk_font = chunk.style.getFont
         val chunk_color = chunk.style.getForegroundColor
 
@@ -251,7 +249,6 @@ class Text_Area_Painter(doc_view: Document_View)
         }
       }
       w += chunk.width
-      chunk_offset += chunk_length
       chunk = chunk.next.asInstanceOf[Chunk]
     }
     w
