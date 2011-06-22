@@ -131,16 +131,17 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
 
   /* activation */
 
-  def activate()
+  private def activate()
   {
     buffer.addBufferListener(buffer_listener)
-    buffer.propertiesChanged()
     pending_edits.init()
+    buffer.propertiesChanged()
   }
 
-  def deactivate()
+  private def deactivate()
   {
     pending_edits.flush()
     buffer.removeBufferListener(buffer_listener)
+    buffer.propertiesChanged()
   }
 }
