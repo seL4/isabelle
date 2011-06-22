@@ -647,13 +647,13 @@ declare power_nat_number_of_number_of [simp]
 text{*For arbitrary rings*}
 
 lemma power_number_of_even:
-  fixes z :: "'a::number_ring"
+  fixes z :: "'a::monoid_mult"
   shows "z ^ number_of (Int.Bit0 w) = (let w = z ^ (number_of w) in w * w)"
 by (cases "w \<ge> 0") (auto simp add: Let_def Bit0_def nat_number_of_def number_of_is_id
   nat_add_distrib power_add simp del: nat_number_of)
 
 lemma power_number_of_odd:
-  fixes z :: "'a::number_ring"
+  fixes z :: "'a::monoid_mult"
   shows "z ^ number_of (Int.Bit1 w) = (if (0::int) <= number_of w
      then (let w = z ^ (number_of w) in z * w * w) else 1)"
 unfolding Let_def Bit1_def nat_number_of_def number_of_is_id
