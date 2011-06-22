@@ -198,8 +198,7 @@ class Text_Area_Painter(doc_view: Document_View)
     while (chunk != null) {
       val chunk_offset = line_start + chunk.offset
       if (x + w + chunk.width > clip_rect.x &&
-          x + w < clip_rect.x + clip_rect.width &&
-          chunk.accessable && chunk.visible)
+          x + w < clip_rect.x + clip_rect.width && chunk.accessable)
       {
         val chunk_range = Text.Range(chunk_offset, chunk_offset + chunk.length)
         val chunk_font = chunk.style.getFont
