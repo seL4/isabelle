@@ -60,6 +60,7 @@ if [ "$OSTYPE" = cygwin ]; then
   THIS_CYGWIN="$(jvmpath "/")"
 else
   function jvmpath() { echo "$@"; }
+  CLASSPATH="$CLASSPATH"
 fi
 HOME_JVM="$HOME"
 
