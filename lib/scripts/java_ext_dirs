@@ -24,10 +24,14 @@ if [ ! -e "$TARGET" -o "$SOURCE" -nt "$TARGET" ]; then
   mkdir -p "$TARGET_DIR" || fail "Bad directory: \"$TARGET_DIR\""
   pushd "$TARGET_DIR" >/dev/null
 
-  rm -rf classes && mkdir classes
-  javac -d classes -source 1.5 "$(jvmpath "$SOURCE")" || fail "Failed to compile sources"
-  jar cf "$(jvmpath "$TARGET")" -C classes . || fail "Failed to produce $TARGET"
-  rm -rf classes
+  BUILD="build$$"
+  TMP_JAR="java_ext_dirs$$.jar"
+
+  rm -rf "$BUILD" && mkdir "$BUILD"
+  javac -d "$BUILD" -source 1.5 "$(jvmpath "$SOURCE")" || fail "Failed to compile sources"
+  jar cf "$TMP_JAR" -C "$BUILD" . || fail "Failed to produce $TMP_JAR"
+  mv "$TMP_JAR" "$TARGET"
+  rm -rf "$BUILD"
 
   popd >/dev/null
 fi
