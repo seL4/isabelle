@@ -180,6 +180,9 @@ then
   jar ufe "$(jvmpath "$FULL_JAR")" isabelle.GUI_Setup isabelle scala || \
     fail "Failed to produce $FULL_JAR"
 
+  mkdir -p "$TARGET_DIR/ext"
+  cp "$FULL_JAR" "$TARGET_DIR/ext/"
+
   popd >/dev/null
 
   rm -rf classes

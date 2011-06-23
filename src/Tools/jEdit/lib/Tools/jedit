@@ -234,14 +234,13 @@ then
       print qq,<MODE NAME="scala" FILE="scala.xml" FILE_NAME_GLOB="*.scala" />\n\n,; }
     print; }' dist/modes/catalog
 
-  cp -a "${JEDIT_JARS[@]}" "${SCALA_JARS[@]}" "$PURE_JAR" dist/jars/. || failed
+  cp -a "${JEDIT_JARS[@]}" "$SCALA_HOME/lib/scala-compiler.jar" dist/jars/. || failed
   (
-    for JAR in "$JEDIT_JAR" "${JEDIT_JARS[@]}" "$SCALA_HOME/lib/scala-compiler.jar"
+    for JAR in "$JEDIT_JAR" "${JEDIT_JARS[@]}" "$PURE_JAR" "$SCALA_HOME/lib/scala-compiler.jar"
     do
       CLASSPATH="$CLASSPATH:$JAR"
     done
     CLASSPATH="$(jvmpath "$CLASSPATH")"
-
     exec "$SCALA_HOME/bin/scalac" -unchecked -deprecation \
       -d dist/classes -target:jvm-1.5 "${SOURCES[@]}"
   ) || fail "Failed to compile sources"

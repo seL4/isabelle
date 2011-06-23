@@ -36,5 +36,6 @@ fi
 ## main
 
 JAVA_EXE="${THIS_JAVA:-$ISABELLE_JAVA}"
-exec "$JAVA_EXE" -classpath "$(jvmpath "$TARGET")" isabelle.Java_Ext_Dirs "$@"
+exec "$JAVA_EXE" -classpath "$(jvmpath "$TARGET")" isabelle.Java_Ext_Dirs \
+  "$(jvmpath "$ISABELLE_HOME/lib/classes/ext")"
 

@@ -9,4 +9,5 @@
 [ -e "$ISABELLE_HOME/Admin/build" ] && { "$ISABELLE_HOME/Admin/build" jars || exit $?; }
 
 CLASSPATH="$(jvmpath "$CLASSPATH")"
-exec "$SCALA_HOME/bin/scala" -Dfile.encoding=UTF-8 "$@"
+exec "$SCALA_HOME/bin/scala" -Dfile.encoding=UTF-8 \
+  "-Djava.ext.dirs=$("$ISABELLE_HOME/lib/scripts/java_ext_dirs")" "$@"
