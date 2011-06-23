@@ -107,16 +107,10 @@ shift $(($OPTIND - 1))
 
 
 
-## dependencies
+# build
 
 TARGET_DIR="$ISABELLE_HOME/lib/classes"
-PURE_JAR="$TARGET_DIR/Pure.jar"
-FULL_JAR="$TARGET_DIR/isabelle-scala.jar"
-
-declare -a TARGETS=("$PURE_JAR" "$FULL_JAR")
-
-
-## main
+TARGET="$TARGET_DIR/ext/Pure.jar"
 
 declare -a UPDATED=()
 
@@ -124,23 +118,16 @@ if [ -n "$FRESH" ]; then
   OUTDATED=true
 else
   OUTDATED=false
-  for TARGET in "${TARGETS[@]}"
-  do
-    [ ! -e "$TARGET" ] && OUTDATED=true
-  done
-  if [ "$OUTDATED" = false ]; then
+  if [ ! -e "$TARGET" ]; then
+    OUTDATED=true
+  else
     for DEP in "${SOURCES[@]}"
     do
       [ ! -e "$DEP" ] && fail "Missing file: $DEP"
-      UPDATE=""
-      for TARGET in "${TARGETS[@]}"
-      do
-        [ "$DEP" -nt "$TARGET" ] && {
-          OUTDATED=true
-          UPDATE=true
-        }
-      done
-      [ -n "$UPDATE" ] && UPDATED["${#UPDATED[@]}"]="$DEP"
+      [ "$DEP" -nt "$TARGET" ] && {
+        OUTDATED=true
+        UPDATED["${#UPDATED[@]}"]="$DEP"
+      }
     done
   fi
 fi
@@ -162,7 +149,7 @@ then
   rm -rf classes && mkdir classes
   "$SCALA_HOME/bin/scalac" -unchecked -deprecation -d classes -target:jvm-1.5 "${SOURCES[@]}" || \
     fail "Failed to compile sources"
-  mkdir -p "$TARGET_DIR" || fail "Failed to create directory $TARGET_DIR"
+  mkdir -p "$TARGET_DIR/ext" || fail "Failed to create directory $TARGET_DIR/ext"
 
   pushd classes >/dev/null
 
@@ -170,18 +157,10 @@ then
   mkdir -p "$(dirname "$CHARSET_SERVICE")"
   echo isabelle.Isabelle_Charset_Provider > "$CHARSET_SERVICE"
 
-  jar cfe "$(jvmpath "$PURE_JAR")" isabelle.GUI_Setup META-INF isabelle || \
-    fail "Failed to produce $PURE_JAR"
+  jar cfe "$(jvmpath "$TARGET")" isabelle.GUI_Setup META-INF isabelle || \
+    fail "Failed to produce $TARGET"
 
-  cp "$SCALA_HOME/lib/scala-swing.jar" .
-  jar xf scala-swing.jar
-
-  cp "$SCALA_HOME/lib/scala-library.jar" "$FULL_JAR"
-  jar ufe "$(jvmpath "$FULL_JAR")" isabelle.GUI_Setup isabelle scala || \
-    fail "Failed to produce $FULL_JAR"
-
-  mkdir -p "$TARGET_DIR/ext"
-  cp "$FULL_JAR" "$TARGET_DIR/ext/"
+  cp "$SCALA_HOME/lib/scala-swing.jar" "$SCALA_HOME/lib/scala-library.jar" "$TARGET_DIR/ext"
 
   popd >/dev/null
 

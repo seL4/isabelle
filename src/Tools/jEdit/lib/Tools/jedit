@@ -146,7 +146,7 @@ done
 [ -e "$ISABELLE_HOME/Admin/build" ] && \
   { "$ISABELLE_HOME/Admin/build" "$BUILD_JARS" || exit $?; }
 
-PURE_JAR="$ISABELLE_HOME/lib/classes/Pure.jar"
+PURE_JAR="$ISABELLE_HOME/lib/classes/ext/Pure.jar"
 
 pushd "$JEDIT_HOME" >/dev/null || failed
 
