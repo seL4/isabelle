@@ -7,10 +7,13 @@
 CLASSPATH="$(jvmpath "$CLASSPATH")"
 
 JAVA_EXE="${THIS_JAVA:-$ISABELLE_JAVA}"
-if "$JAVA_EXE" -server >/dev/null 2>/dev/null
-then
-  exec "$JAVA_EXE" -Dfile.encoding=UTF-8 -server "$@"
+
+if "$JAVA_EXE" -server >/dev/null 2>/dev/null; then
+  SERVER="-server"
 else
-  exec "$JAVA_EXE" -Dfile.encoding=UTF-8 "$@"
+  SERVER=""
 fi
+
+exec "$JAVA_EXE" -Dfile.encoding=UTF-8 $SERVER \
+  "-Djava.ext.dirs=$("$ISABELLE_HOME/lib/scripts/java_ext_dirs")" "$@"
 

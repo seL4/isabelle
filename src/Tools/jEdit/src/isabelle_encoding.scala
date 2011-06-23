@@ -29,8 +29,7 @@ object Isabelle_Encoding
 
 class Isabelle_Encoding extends Encoding
 {
-  private val charset = Charset.forName(Standard_System.charset)
-  val BUFSIZE = 32768
+  private val BUFSIZE = 32768
 
   private def text_reader(in: InputStream, codec: Codec): Reader =
   {
@@ -54,12 +53,12 @@ class Isabelle_Encoding extends Encoding
     val buffer = new ByteArrayOutputStream(BUFSIZE) {
       override def flush()
       {
-        val text = Isabelle.system.symbols.encode(toString(Standard_System.charset))
+        val text = Isabelle.system.symbols.encode(toString(Standard_System.charset_name))
         out.write(text.getBytes(Standard_System.charset))
         out.flush()
       }
       override def close() { out.close() }
     }
-    new OutputStreamWriter(buffer, charset.newEncoder())
+    new OutputStreamWriter(buffer, Standard_System.charset.newEncoder())
   }
 }

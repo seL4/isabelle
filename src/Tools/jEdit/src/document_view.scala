@@ -12,6 +12,7 @@ import isabelle._
 
 import scala.actors.Actor._
 
+import java.lang.System
 import java.awt.{BorderLayout, Graphics, Color, Dimension, Graphics2D, Point}
 import java.awt.event.{MouseAdapter, MouseMotionAdapter, MouseEvent,
   FocusAdapter, FocusEvent, WindowEvent, WindowAdapter}

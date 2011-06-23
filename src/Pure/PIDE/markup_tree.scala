@@ -7,7 +7,7 @@ Markup trees over nested / non-overlapping text ranges.
 
 package isabelle
 
-
+import java.lang.System
 import javax.swing.tree.DefaultMutableTreeNode
 
 import scala.collection.immutable.SortedMap

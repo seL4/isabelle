@@ -6,6 +6,7 @@ Isabelle system support (settings environment etc.).
 
 package isabelle
 
+import java.lang.System
 import java.util.regex.Pattern
 import java.util.Locale
 import java.io.{InputStream, FileInputStream, OutputStream, FileOutputStream, File,
@@ -41,7 +42,7 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
   {
     import scala.collection.JavaConversions._
 
-    val env0 = Map(java.lang.System.getenv.toList: _*) +
+    val env0 = Map(System.getenv.toList: _*) +
       ("THIS_JAVA" -> this_java())
 
     val isabelle_home =
@@ -49,7 +50,7 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
       else
         env0.get("ISABELLE_HOME") match {
           case None | Some("") =>
-            val path = java.lang.System.getProperty("isabelle.home")
+            val path = System.getProperty("isabelle.home")
             if (path == null || path == "") error("Unknown Isabelle home directory")
             else path
           case Some(path) => path
@@ -70,8 +71,8 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
             else (entry.substring(0, i) -> entry.substring(i + 1))
           }
         Map(entries: _*) +
-          ("HOME" -> java.lang.System.getenv("HOME")) +
-          ("PATH" -> java.lang.System.getenv("PATH"))
+          ("HOME" -> System.getenv("HOME")) +
+          ("PATH" -> System.getenv("PATH"))
       }
   }
 

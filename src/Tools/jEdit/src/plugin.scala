@@ -9,6 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
+import java.lang.System
 import java.io.{FileInputStream, IOException}
 import java.awt.Font
 

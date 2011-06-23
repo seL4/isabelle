@@ -7,6 +7,7 @@ Prover commands with semantic state.
 
 package isabelle
 
+import java.lang.System
 
 import scala.collection.immutable.SortedMap
 
