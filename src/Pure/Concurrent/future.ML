@@ -454,7 +454,8 @@ fun join_next deps = (*requires SYNCHRONIZED*)
 fun execute_work NONE = ()
   | execute_work (SOME (work, deps')) = (worker_joining (fn () => execute work); join_work deps')
 and join_work deps =
-  execute_work (SYNCHRONIZED "join" (fn () => join_next deps));
+  Multithreading.with_attributes Multithreading.no_interrupts
+    (fn _ => execute_work (SYNCHRONIZED "join" (fn () => join_next deps)));
 
 in
 
