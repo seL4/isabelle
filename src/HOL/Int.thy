@@ -941,6 +941,15 @@ subsection {* Converting Numerals to Rings: @{term number_of} *}
 class number_ring = number + comm_ring_1 +
   assumes number_of_eq: "number_of k = of_int k"
 
+class number_semiring = number + comm_semiring_1 +
+  assumes number_of_int: "number_of (of_nat n) = of_nat n"
+
+instance number_ring \<subseteq> number_semiring
+proof
+  fix n show "number_of (of_nat n) = (of_nat n :: 'a)"
+    unfolding number_of_eq by (rule of_int_of_nat_eq)
+qed
+
 text {* self-embedding of the integers *}
 
 instantiation int :: number_ring
@@ -995,13 +1004,23 @@ text {*
   Converting numerals 0 and 1 to their abstract versions.
 *}
 
+lemma semiring_numeral_0_eq_0:
+  "Numeral0 = (0::'a::number_semiring)"
+  using number_of_int [where 'a='a and n=0]
+  unfolding numeral_simps by simp
+
+lemma semiring_numeral_1_eq_1:
+  "Numeral1 = (1::'a::number_semiring)"
+  using number_of_int [where 'a='a and n=1]
+  unfolding numeral_simps by simp
+
 lemma numeral_0_eq_0 [simp, code_post]:
   "Numeral0 = (0::'a::number_ring)"
-  unfolding number_of_eq numeral_simps by simp
+  by (rule semiring_numeral_0_eq_0)
 
 lemma numeral_1_eq_1 [simp, code_post]:
   "Numeral1 = (1::'a::number_ring)"
-  unfolding number_of_eq numeral_simps by simp
+  by (rule semiring_numeral_1_eq_1)
 
 text {*
   Special-case simplification for small constants.
@@ -1467,8 +1486,12 @@ by simp
 lemmas add_number_of_eq = number_of_add [symmetric]
 
 text{*Allow 1 on either or both sides*}
+lemma semiring_one_add_one_is_two: "1 + 1 = (2::'a::number_semiring)"
+  using number_of_int [where 'a='a and n="Suc (Suc 0)"]
+  by (simp add: numeral_simps)
+
 lemma one_add_one_is_two: "1 + 1 = (2::'a::number_ring)"
-by (simp del: numeral_1_eq_1 add: numeral_1_eq_1 [symmetric])
+by (rule semiring_one_add_one_is_two)
 
 lemmas add_special =
     one_add_one_is_two
@@ -1555,11 +1578,18 @@ lemma of_int_number_of_eq [simp]:
 by (simp add: number_of_eq) 
 
 text{*Lemmas for specialist use, NOT as default simprules*}
+(* TODO: see if semiring duplication can be removed without breaking proofs *)
+lemma semiring_mult_2: "2 * z = (z+z::'a::number_semiring)"
+unfolding semiring_one_add_one_is_two [symmetric] left_distrib by simp
+
+lemma semiring_mult_2_right: "z * 2 = (z+z::'a::number_semiring)"
+by (subst mult_commute, rule semiring_mult_2)
+
 lemma mult_2: "2 * z = (z+z::'a::number_ring)"
-unfolding one_add_one_is_two [symmetric] left_distrib by simp
+by (rule semiring_mult_2)
 
 lemma mult_2_right: "z * 2 = (z+z::'a::number_ring)"
-by (subst mult_commute, rule mult_2)
+by (rule semiring_mult_2_right)
 
 
 subsection{*More Inequality Reasoning*}

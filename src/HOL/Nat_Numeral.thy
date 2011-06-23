@@ -15,14 +15,17 @@ text {*
   Arithmetic for naturals is reduced to that for the non-negative integers.
 *}
 
-instantiation nat :: number
+instantiation nat :: number_semiring
 begin
 
 definition
   nat_number_of_def [code_unfold, code del]: "number_of v = nat (number_of v)"
 
-instance ..
-
+instance proof
+  fix n show "number_of (int n) = (of_nat n :: nat)"
+    unfolding nat_number_of_def number_of_eq by simp
+qed
+ 
 end
 
 lemma [code_post]:
@@ -250,9 +253,9 @@ lemma sum_power2_gt_zero_iff:
 end
 
 lemma power2_sum:
-  fixes x y :: "'a::number_ring"
+  fixes x y :: "'a::number_semiring"
   shows "(x + y)\<twosuperior> = x\<twosuperior> + y\<twosuperior> + 2 * x * y"
-  by (simp add: ring_distribs power2_eq_square mult_2) (rule mult_commute)
+  by (simp add: algebra_simps power2_eq_square semiring_mult_2_right)
 
 lemma power2_diff:
   fixes x y :: "'a::number_ring"
@@ -345,6 +348,9 @@ lemma int_nat_number_of [simp]:
   unfolding nat_number_of_def number_of_is_id neg_def
   by simp
 
+lemma nonneg_int_cases:
+  fixes k :: int assumes "0 \<le> k" obtains n where "k = of_nat n"
+  using assms by (cases k, simp, simp)
 
 subsubsection{*Successor *}
 
@@ -390,7 +396,30 @@ lemma nat_1_add_number_of [simp]:
   by (simp add: nat_add_distrib)
 
 lemma nat_1_add_1 [simp]: "1 + 1 = (2::nat)"
-  by (rule int_int_eq [THEN iffD1]) simp
+  by (rule semiring_one_add_one_is_two)
+
+text {* TODO: replace simp rules above with these generic ones: *}
+
+lemma semiring_add_number_of:
+  "\<lbrakk>Int.Pls \<le> v; Int.Pls \<le> v'\<rbrakk> \<Longrightarrow>
+    (number_of v :: 'a::number_semiring) + number_of v' = number_of (v + v')"
+  unfolding Int.Pls_def
+  by (elim nonneg_int_cases,
+    simp only: number_of_int of_nat_add [symmetric])
+
+lemma semiring_number_of_add_1:
+  "Int.Pls \<le> v \<Longrightarrow>
+    number_of v + (1::'a::number_semiring) = number_of (Int.succ v)"
+  unfolding Int.Pls_def Int.succ_def
+  by (elim nonneg_int_cases,
+    simp only: number_of_int add_commute [where b=1] of_nat_Suc [symmetric])
+
+lemma semiring_1_add_number_of:
+  "Int.Pls \<le> v \<Longrightarrow>
+    (1::'a::number_semiring) + number_of v = number_of (Int.succ v)"
+  unfolding Int.Pls_def Int.succ_def
+  by (elim nonneg_int_cases,
+    simp only: number_of_int add_commute [where b=1] of_nat_Suc [symmetric])
 
 
 subsubsection{*Subtraction *}
@@ -425,6 +454,14 @@ lemma mult_nat_number_of [simp]:
        (if v < Int.Pls then 0 else number_of (v * v'))"
   unfolding nat_number_of_def number_of_is_id numeral_simps
   by (simp add: nat_mult_distrib)
+
+(* TODO: replace mult_nat_number_of with this next rule *)
+lemma semiring_mult_number_of:
+  "\<lbrakk>Int.Pls \<le> v; Int.Pls \<le> v'\<rbrakk> \<Longrightarrow>
+    (number_of v :: 'a::number_semiring) * number_of v' = number_of (v * v')"
+  unfolding Int.Pls_def
+  by (elim nonneg_int_cases,
+    simp only: number_of_int of_nat_mult [symmetric])
 
 
 subsection{*Comparisons*}
@@ -842,10 +879,10 @@ text {*Evens and Odds, for Mutilated Chess Board*}
 
 text{*Lemmas for specialist use, NOT as default simprules*}
 lemma nat_mult_2: "2 * z = (z+z::nat)"
-unfolding nat_1_add_1 [symmetric] left_distrib by simp
+by (rule semiring_mult_2)
 
 lemma nat_mult_2_right: "z * 2 = (z+z::nat)"
-by (subst mult_commute, rule nat_mult_2)
+by (rule semiring_mult_2_right)
 
 text{*Case analysis on @{term "n<2"}*}
 lemma less_2_cases: "(n::nat) < 2 ==> n = 0 | n = Suc 0"
