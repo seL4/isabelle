@@ -89,7 +89,8 @@ fun release_all results =
   else raise EXCEPTIONS (flatten_list (List.mapPartial get_exn results));
 
 fun release_first results = release_all results
-  handle EXCEPTIONS (exn :: _) => reraise exn;
+  handle EXCEPTIONS [] => interrupt ()
+    | EXCEPTIONS (exn :: _) => reraise exn;
 
 end;
 
