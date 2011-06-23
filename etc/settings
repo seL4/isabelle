@@ -62,8 +62,6 @@ else
   ISABELLE_JAVA="java"
 fi
 
-classpath "$ISABELLE_HOME/lib/classes/Pure.jar"
-
 
 ###
 ### Interactive sessions (cf. isabelle tty)

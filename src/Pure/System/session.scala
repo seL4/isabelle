@@ -7,6 +7,7 @@ Isabelle session, potentially with running prover.
 
 package isabelle
 
+import java.lang.System
 
 import scala.actors.TIMEOUT
 import scala.actors.Actor

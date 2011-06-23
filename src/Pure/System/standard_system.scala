@@ -6,6 +6,7 @@ Standard system operations, with basic Cygwin/Posix compatibility.
 
 package isabelle
 
+import java.lang.System
 import java.util.zip.{ZipEntry, ZipInputStream}
 import java.util.regex.Pattern
 import java.util.Locale
@@ -13,6 +14,7 @@ import java.net.URL
 import java.io.{BufferedWriter, OutputStreamWriter, FileOutputStream, BufferedOutputStream,
   BufferedInputStream, InputStream, FileInputStream, BufferedReader, InputStreamReader,
   File, FileFilter, IOException}
+import java.nio.charset.Charset
 
 import scala.io.{Source, Codec}
 import scala.util.matching.Regex
@@ -23,7 +25,8 @@ object Standard_System
 {
   /* UTF-8 charset */
 
-  val charset = "UTF-8"
+  val charset_name: String = "UTF-8"
+  val charset: Charset = Charset.forName(charset_name)
   def codec(): Codec = Codec(charset)
 
   def string_bytes(s: String): Array[Byte] = s.getBytes(charset)
@@ -95,7 +98,8 @@ object Standard_System
 
   def write_file(file: File, text: CharSequence)
   {
-    val writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), charset))
+    val writer =
+      new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), charset))
     try { writer.append(text) }
     finally { writer.close }
   }

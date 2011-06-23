@@ -6,6 +6,7 @@ Simple XML tree values.
 
 package isabelle
 
+import java.lang.System
 import java.util.WeakHashMap
 import java.lang.ref.WeakReference
 import javax.xml.parsers.DocumentBuilderFactory

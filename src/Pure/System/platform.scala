@@ -6,6 +6,7 @@ Raw platform identification.
 
 package isabelle
 
+import java.lang.System
 import javax.swing.UIManager
 
 import scala.util.matching.Regex
@@ -34,7 +35,7 @@ object Platform
   lazy val jvm_platform: String =
   {
     val arch =
-      java.lang.System.getProperty("os.arch") match {
+      System.getProperty("os.arch") match {
         case X86() => "x86"
         case X86_64() => "x86_64"
         case Sparc() => "sparc"
@@ -42,7 +43,7 @@ object Platform
         case _ => error("Failed to determine CPU architecture")
       }
     val os =
-      java.lang.System.getProperty("os.name") match {
+      System.getProperty("os.name") match {
         case Solaris() => "solaris"
         case Linux() => "linux"
         case Darwin() => "darwin"
@@ -55,7 +56,7 @@ object Platform
 
   /* JVM name */
 
-  val jvm_name: String = java.lang.System.getProperty("java.vm.name")
+  val jvm_name: String = System.getProperty("java.vm.name")
   val is_hotspot: Boolean = jvm_name.startsWith("Java HotSpot")
 
 

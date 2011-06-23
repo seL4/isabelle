@@ -26,4 +26,4 @@ unset ISABELLE_SITE_SETTINGS_PRESENT
 CLASSPATH="$(jvmpath "$CLASSPATH")"
 exec "$ISABELLE_TOOL" java \
   "-Disabelle.home=$(jvmpath "$ISABELLE_HOME")" \
-  -jar "$(jvmpath "$ISABELLE_HOME/lib/classes/isabelle-scala.jar")" "$@"
+  isabelle.GUI_Setup "$@"

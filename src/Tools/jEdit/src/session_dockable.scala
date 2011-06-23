@@ -13,6 +13,7 @@ import scala.actors.Actor._
 import scala.swing.{FlowPanel, Button, TextArea, Label, ScrollPane, TabbedPane, Component, Swing}
 import scala.swing.event.{ButtonClicked, SelectionChanged}
 
+import java.lang.System
 import java.awt.BorderLayout
 import javax.swing.border.{BevelBorder, SoftBevelBorder}
 
