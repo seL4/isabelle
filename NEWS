@@ -22,8 +22,10 @@ obsolete since Isabelle2009-2.
 
 * Theory loader: source files are exclusively located via the master
 directory of each theory node (where the .thy file itself resides).
-The global load path (such as src/HOL/Library) is has been
-discontinued.  INCOMPATIBILITY.
+The global load path (such as src/HOL/Library) has been discontinued.
+Note that the path element ~~ may be used to reference theories in the
+Isabelle home folder -- for instance, "~~/src/HOL/Library/FuncSet".
+INCOMPATIBILITY.
 
 * Various optional external tools are referenced more robustly and
 uniformly by explicit Isabelle settings as follows:
