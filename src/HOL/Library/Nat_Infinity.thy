@@ -240,6 +240,12 @@ lemma of_nat_eq_Fin: "of_nat n = Fin n"
   apply (simp add: plus_1_iSuc iSuc_Fin)
   done
 
+instance inat :: number_semiring
+proof
+  fix n show "number_of (int n) = (of_nat n :: inat)"
+    unfolding number_of_inat_def number_of_int of_nat_id of_nat_eq_Fin ..
+qed
+
 instance inat :: semiring_char_0 proof
   have "inj Fin" by (rule injI) simp
   then show "inj (\<lambda>n. of_nat n :: inat)" by (simp add: of_nat_eq_Fin)
