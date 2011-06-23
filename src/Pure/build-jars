@@ -37,6 +37,7 @@ declare -a SOURCES=(
   System/download.scala
   System/event_bus.scala
   System/gui_setup.scala
+  System/isabelle_charset.scala
   System/isabelle_process.scala
   System/isabelle_syntax.scala
   System/isabelle_system.scala
@@ -165,7 +166,11 @@ then
 
   pushd classes >/dev/null
 
-  jar cfe "$(jvmpath "$PURE_JAR")" isabelle.GUI_Setup isabelle || \
+  CHARSET_SERVICE="META-INF/services/java.nio.charset.spi.CharsetProvider"
+  mkdir -p "$(dirname "$CHARSET_SERVICE")"
+  echo isabelle.Isabelle_Charset_Provider > "$CHARSET_SERVICE"
+
+  jar cfe "$(jvmpath "$PURE_JAR")" isabelle.GUI_Setup META-INF isabelle || \
     fail "Failed to produce $PURE_JAR"
 
   cp "$SCALA_HOME/lib/scala-swing.jar" .
