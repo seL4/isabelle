@@ -6,6 +6,7 @@ Accessing the Cygwin installation.
 
 package isabelle
 
+import java.lang.System
 import java.lang.reflect.Method
 import java.io.File
 import java.net.URL
@@ -91,7 +92,7 @@ object Cygwin
 
   def check_root(): String =
   {
-    val this_cygwin = java.lang.System.getenv("THIS_CYGWIN")
+    val this_cygwin = System.getenv("THIS_CYGWIN")
     val root =
       if (this_cygwin != null && this_cygwin != "") this_cygwin
       else

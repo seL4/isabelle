@@ -6,6 +6,8 @@ GUI for basic system setup.
 
 package isabelle
 
+import java.lang.System
+
 import scala.swing.{Button, FlowPanel, BorderPanel, MainFrame, TextArea, SwingApplication}
 import scala.swing.event.ButtonClicked
 

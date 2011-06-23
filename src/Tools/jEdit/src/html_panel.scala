@@ -9,6 +9,7 @@ package isabelle.jedit
 
 import isabelle._
 
+import java.lang.System
 import java.io.StringReader
 import java.awt.{Font, BorderLayout, Dimension, GraphicsEnvironment, Toolkit, FontMetrics}
 import java.awt.event.MouseEvent

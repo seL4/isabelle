@@ -6,6 +6,7 @@ Standard system operations, with basic Cygwin/Posix compatibility.
 
 package isabelle
 
+import java.lang.System
 import java.util.zip.{ZipEntry, ZipInputStream}
 import java.util.regex.Pattern
 import java.util.Locale
