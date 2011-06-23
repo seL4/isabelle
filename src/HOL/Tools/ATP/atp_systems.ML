@@ -406,7 +406,7 @@ val remote_e =
                (K (750, ["mangled_tags?"]) (* FUDGE *))
 val remote_vampire =
   remotify_atp vampire "Vampire" ["0.6", "9.0", "1.0"]
-               (K (150, ["mangled_preds?"]) (* FUDGE *))
+               (K (200, ["mangled_preds?"]) (* FUDGE *))
 val remote_z3_atp =
   remotify_atp z3_atp "Z3" ["2.18"] (K (250, ["mangled_preds?"]) (* FUDGE *))
 val remote_leo2 =
@@ -418,7 +418,7 @@ val remote_satallax =
 val remote_sine_e =
   remote_atp sine_eN "SInE" ["0.4"] [] (#known_failures e_config)
              Axiom Conjecture [FOF]
-             (K (500, ["poly_tags_heavy"]) (* FUDGE *))
+             (K (500, ["mangled_preds?"]) (* FUDGE *))
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r029", "20080805r024"]
              [("refutation.", "end_refutation.")] [] Hypothesis Hypothesis
