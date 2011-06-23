@@ -1,5 +1,6 @@
 (*  Title:      HOL/Library/Countable.thy
     Author:     Alexander Krauss, TU Muenchen
+    Author:     Brian Huffman, Portland State University
 *)
 
 header {* Encoding (almost) everything into natural numbers *}
@@ -103,33 +104,6 @@ instance String.literal :: countable
   by (rule countable_classI [of "to_nat o explode"])
     (auto simp add: explode_inject)
 
-instantiation typerep :: countable
-begin
-
-fun to_nat_typerep :: "typerep \<Rightarrow> nat" where
-  "to_nat_typerep (Typerep.Typerep c ts) = to_nat (to_nat c, to_nat (map to_nat_typerep ts))"
-
-instance proof (rule countable_classI)
-  fix t t' :: typerep and ts ts' :: "typerep list"
-  assume "to_nat_typerep t = to_nat_typerep t'"
-  moreover have "to_nat_typerep t = to_nat_typerep t' \<Longrightarrow> t = t'"
-    and "map to_nat_typerep ts = map to_nat_typerep ts' \<Longrightarrow> ts = ts'"
-  proof (induct t and ts arbitrary: t' and ts' rule: typerep.inducts)
-    case (Typerep c ts t')
-    then obtain c' ts' where t': "t' = Typerep.Typerep c' ts'" by (cases t') auto
-    with Typerep have "c = c'" and "ts = ts'" by simp_all
-    with t' show "Typerep.Typerep c ts = t'" by simp
-  next
-    case Nil_typerep then show ?case by simp
-  next
-    case (Cons_typerep t ts) then show ?case by auto
-  qed
-  ultimately show "t = t'" by simp
-qed
-
-end
-
-
 text {* Functions *}
 
 instance "fun" :: (finite, countable) countable
@@ -192,5 +166,145 @@ proof
       by (rule surj_imp_inj_inv)
   qed
 qed
+
+
+subsection {* Automatically proving countability of datatypes *}
+
+inductive finite_item :: "'a Datatype.item \<Rightarrow> bool" where
+  undefined: "finite_item undefined"
+| In0: "finite_item x \<Longrightarrow> finite_item (Datatype.In0 x)"
+| In1: "finite_item x \<Longrightarrow> finite_item (Datatype.In1 x)"
+| Leaf: "finite_item (Datatype.Leaf a)"
+| Scons: "\<lbrakk>finite_item x; finite_item y\<rbrakk> \<Longrightarrow> finite_item (Datatype.Scons x y)"
+
+function
+  nth_item :: "nat \<Rightarrow> ('a::countable) Datatype.item"
+where
+  "nth_item 0 = undefined"
+| "nth_item (Suc n) =
+  (case sum_decode n of
+    Inl i \<Rightarrow>
+    (case sum_decode i of
+      Inl j \<Rightarrow> Datatype.In0 (nth_item j)
+    | Inr j \<Rightarrow> Datatype.In1 (nth_item j))
+  | Inr i \<Rightarrow>
+    (case sum_decode i of
+      Inl j \<Rightarrow> Datatype.Leaf (from_nat j)
+    | Inr j \<Rightarrow>
+      (case prod_decode j of
+        (a, b) \<Rightarrow> Datatype.Scons (nth_item a) (nth_item b))))"
+by pat_completeness auto
+
+lemma le_sum_encode_Inl: "x \<le> y \<Longrightarrow> x \<le> sum_encode (Inl y)"
+unfolding sum_encode_def by simp
+
+lemma le_sum_encode_Inr: "x \<le> y \<Longrightarrow> x \<le> sum_encode (Inr y)"
+unfolding sum_encode_def by simp
+
+termination
+by (relation "measure id")
+  (auto simp add: sum_encode_eq [symmetric] prod_encode_eq [symmetric]
+    le_imp_less_Suc le_sum_encode_Inl le_sum_encode_Inr
+    le_prod_encode_1 le_prod_encode_2)
+
+lemma nth_item_covers: "finite_item x \<Longrightarrow> \<exists>n. nth_item n = x"
+proof (induct set: finite_item)
+  case undefined
+  have "nth_item 0 = undefined" by simp
+  thus ?case ..
+next
+  case (In0 x)
+  then obtain n where "nth_item n = x" by fast
+  hence "nth_item (Suc (sum_encode (Inl (sum_encode (Inl n)))))
+    = Datatype.In0 x" by simp
+  thus ?case ..
+next
+  case (In1 x)
+  then obtain n where "nth_item n = x" by fast
+  hence "nth_item (Suc (sum_encode (Inl (sum_encode (Inr n)))))
+    = Datatype.In1 x" by simp
+  thus ?case ..
+next
+  case (Leaf a)
+  have "nth_item (Suc (sum_encode (Inr (sum_encode (Inl (to_nat a))))))
+    = Datatype.Leaf a" by simp
+  thus ?case ..
+next
+  case (Scons x y)
+  then obtain i j where "nth_item i = x" and "nth_item j = y" by fast
+  hence "nth_item
+    (Suc (sum_encode (Inr (sum_encode (Inr (prod_encode (i, j)))))))
+      = Datatype.Scons x y" by simp
+  thus ?case ..
+qed
+
+theorem countable_datatype:
+  fixes Rep :: "'b \<Rightarrow> ('a::countable) Datatype.item"
+  fixes Abs :: "('a::countable) Datatype.item \<Rightarrow> 'b"
+  fixes rep_set :: "('a::countable) Datatype.item \<Rightarrow> bool"
+  assumes type: "type_definition Rep Abs (Collect rep_set)"
+  assumes finite_item: "\<And>x. rep_set x \<Longrightarrow> finite_item x"
+  shows "OFCLASS('b, countable_class)"
+proof
+  def f \<equiv> "\<lambda>y. LEAST n. nth_item n = Rep y"
+  {
+    fix y :: 'b
+    have "rep_set (Rep y)"
+      using type_definition.Rep [OF type] by simp
+    hence "finite_item (Rep y)"
+      by (rule finite_item)
+    hence "\<exists>n. nth_item n = Rep y"
+      by (rule nth_item_covers)
+    hence "nth_item (f y) = Rep y"
+      unfolding f_def by (rule LeastI_ex)
+    hence "Abs (nth_item (f y)) = y"
+      using type_definition.Rep_inverse [OF type] by simp
+  }
+  hence "inj f"
+    by (rule inj_on_inverseI)
+  thus "\<exists>f::'b \<Rightarrow> nat. inj f"
+    by - (rule exI)
+qed
+
+method_setup countable_datatype = {*
+let
+  fun countable_tac ctxt =
+    SUBGOAL (fn (goal, i) =>
+      let
+        val ty_name =
+          (case goal of
+            (_ $ Const ("TYPE", Type ("itself", [Type (n, _)]))) => n
+          | _ => raise Match)
+        val typedef_info = hd (Typedef.get_info ctxt ty_name)
+        val typedef_thm = #type_definition (snd typedef_info)
+        val pred_name =
+          (case HOLogic.dest_Trueprop (concl_of typedef_thm) of
+            (typedef $ rep $ abs $ (collect $ Const (n, _))) => n
+          | _ => raise Match)
+        val induct_info = Inductive.the_inductive ctxt pred_name
+        val pred_names = #names (fst induct_info)
+        val induct_thms = #inducts (snd induct_info)
+        val alist = pred_names ~~ induct_thms
+        val induct_thm = the (AList.lookup (op =) alist pred_name)
+        val rules = @{thms finite_item.intros}
+      in
+        SOLVED' (fn i => EVERY
+          [rtac @{thm countable_datatype} i,
+           rtac typedef_thm i,
+           etac induct_thm i,
+           REPEAT (resolve_tac rules i ORELSE atac i)]) 1
+      end)
+in
+  Scan.succeed (fn ctxt => SIMPLE_METHOD' (countable_tac ctxt))
+end
+*} "prove countable class instances for datatypes"
+
+hide_const (open) finite_item nth_item
+
+
+subsection {* Countable datatypes *}
+
+instance typerep :: countable
+  by countable_datatype
 
 end
