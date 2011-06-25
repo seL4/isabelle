@@ -10,12 +10,12 @@ public class Java_Ext_Dirs
 {
   public static void main(String [] args) {
     StringBuilder s = new StringBuilder();
-    s.append(System.getProperty("java.ext.dirs"));
     int i;
     for (i = 0; i < args.length; i++) {
-      s.append(System.getProperty("path.separator"));
       s.append(args[i]);
+      s.append(System.getProperty("path.separator"));
     }
+    s.append(System.getProperty("java.ext.dirs"));
     System.out.println(s.toString());
   }
 }
