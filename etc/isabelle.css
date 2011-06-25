@@ -17,34 +17,34 @@ body { background-color: #FFFFFF; }
 
 /* basic syntax markup */
 
-.hidden, hidden { font-size: 0.1pt; visibility: hidden; }
+.hidden         { font-size: 0.1pt; visibility: hidden; }
 
-.binding, binding             { color: #9966FF; }
-.entity_class                 { color: red; }
-.tfree, tfree                 { color: #A020F0; }
-.tvar, tvar                   { color: #A020F0; }
-.free, free                   { color: blue; }
-.skolem, skolem               { color: #D2691E; }
-.bound, bound                 { color: green; }
-.var, var                     { color: #00009B; }
-.numeral, numeral             { }
-.literal, literal             { font-weight: bold; }
-.delimiter, delimiter         { }
-.inner_string, inner_string   { color: #D2691E; }
-.inner_comment, inner_comment { color: #8B0000; }
+.binding        { color: #9966FF; }
+.entity_class   { color: red; }
+.tfree          { color: #A020F0; }
+.tvar           { color: #A020F0; }
+.free           { color: blue; }
+.skolem         { color: #D2691E; }
+.bound          { color: green; }
+.var            { color: #00009B; }
+.numeral        { }
+.literal        { font-weight: bold; }
+.delimiter      { }
+.inner_string   { color: #D2691E; }
+.inner_comment  { color: #8B0000; }
 
-.bold, bold  { font-weight: bold; }
+.bold           { font-weight: bold; }
 
-.keyword, keyword      { font-weight: bold; }
-.operator, operator    { }
-.command, command      { font-weight: bold; }
-.ident, ident          { }
-.string, string        { color: #008B00; }
-.altstring, altstring  { color: #8B8B00; }
-.verbatim, verbatim    { color: #00008B; }
-.comment, comment      { color: #8B0000; }
-.control, control      { background-color: #FF6A6A; }
-.malformed, malformed  { background-color: #FF6A6A; }
+.keyword        { font-weight: bold; }
+.operator       { }
+.command        { font-weight: bold; }
+.ident          { }
+.string         { color: #008B00; }
+.altstring      { color: #8B8B00; }
+.verbatim       { color: #00008B; }
+.comment        { color: #8B0000; }
+.control        { background-color: #FF6A6A; }
+.malformed      { background-color: #FF6A6A; }
 
-.malformed_span, malformed_span { background-color: #FF6A6A; }
+.malformed_span { background-color: #FF6A6A; }
 
