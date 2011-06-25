@@ -129,6 +129,7 @@ class Session(val system: Isabelle_System)
     _phase = new_phase
     phase_changed.event(new_phase)
   }
+  def is_ready: Boolean = phase == Session.Ready
 
   private val global_state = new Volatile(Document.State.init)
   def current_state(): Document.State = global_state.peek()
