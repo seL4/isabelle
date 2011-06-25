@@ -33,7 +33,7 @@ open ATP_Translate
 open Metis_Translate
 open Metis_Reconstruct
 
-val metisN = Binding.qualified_name_of @{binding metis}
+val metisN = "metis"
 
 val full_typesN = "full_types"
 val partial_typesN = "partial_types"
