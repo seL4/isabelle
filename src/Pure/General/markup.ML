@@ -36,9 +36,9 @@ sig
   val fbreakN: string val fbreak: T
   val hiddenN: string val hidden: T
   val classN: string
-  val tyconN: string val tycon: string -> T
+  val typeN: string
+  val constantN: string
   val fixedN: string val fixed: string -> T
-  val constN: string val const: string -> T
   val dynamic_factN: string val dynamic_fact: string -> T
   val tfreeN: string val tfree: T
   val tvarN: string val tvar: T
@@ -213,9 +213,10 @@ val (hiddenN, hidden) = markup_elem "hidden";
 (* logical entities *)
 
 val classN = "class";
-val (tyconN, tycon) = markup_string "tycon" nameN;
+val typeN = "type";
+val constantN = "constant";
+
 val (fixedN, fixed) = markup_string "fixed" nameN;
-val (constN, const) = markup_string "constant" nameN;
 val (dynamic_factN, dynamic_fact) = markup_string "dynamic_fact" nameN;
 
 

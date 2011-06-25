@@ -148,9 +148,10 @@ object Markup
   /* logical entities */
 
   val CLASS = "class"
-  val TYCON = "tycon"
+  val TYPE = "type"
   val FIXED = "fixed"
-  val CONST = "constant"
+  val CONSTANT = "constant"
+
   val DYNAMIC_FACT = "dynamic_fact"
 
 

@@ -112,7 +112,9 @@ object Isabelle_Markup
 
   private val text_entity_colors: Map[String, Color] =
     Map(
-      Markup.CLASS -> get_color("red"))
+      Markup.CLASS -> get_color("red"),
+      Markup.TYPE -> get_color("black"),
+      Markup.CONSTANT -> get_color("black"))
 
   private val text_colors: Map[String, Color] =
     Map(
@@ -121,7 +123,6 @@ object Isabelle_Markup
       Markup.IDENT -> get_color("black"),
       Markup.TFREE -> get_color("#A020F0"),
       Markup.TVAR -> get_color("#A020F0"),
-      Markup.CONST -> get_color("black"),
       Markup.FREE -> get_color("blue"),
       Markup.SKOLEM -> get_color("#D2691E"),
       Markup.BOUND -> get_color("green"),

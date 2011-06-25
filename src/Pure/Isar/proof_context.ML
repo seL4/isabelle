@@ -451,7 +451,6 @@ fun prep_const_proper ctxt strict (c, pos) =
     val _ =
       if strict then ignore (Consts.the_type consts d) handle TYPE (msg, _, _) => err msg
       else ();
-    val _ = Context_Position.report ctxt pos (Markup.const d);
     val _ = Context_Position.report ctxt pos (Name_Space.markup (Consts.space_of consts) d);
   in t end;
 
@@ -475,7 +474,6 @@ fun read_type_name ctxt strict text =
             Type.LogicalType n => n
           | Type.Abbreviation (vs, _, _) => if strict then err () else length vs
           | Type.Nonterminal => if strict then err () else 0);
-        val _ = Context_Position.report ctxt pos (Markup.tycon d);
         val _ = Context_Position.report ctxt pos (Name_Space.markup (Type.type_space tsig) d);
       in Type (d, replicate args dummyT) end
   end;

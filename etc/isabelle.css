@@ -21,6 +21,8 @@ body { background-color: #FFFFFF; }
 
 .binding        { color: #336655; }
 .entity_class   { color: red; }
+.entity_type    { }
+.entity_constant { }
 .tfree          { color: #A020F0; }
 .tvar           { color: #A020F0; }
 .free           { color: blue; }
