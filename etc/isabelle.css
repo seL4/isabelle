@@ -19,7 +19,7 @@ body { background-color: #FFFFFF; }
 
 .hidden         { font-size: 0.1pt; visibility: hidden; }
 
-.binding        { color: #9966FF; }
+.binding        { color: #336655; }
 .entity_class   { color: red; }
 .tfree          { color: #A020F0; }
 .tvar           { color: #A020F0; }
