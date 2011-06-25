@@ -362,7 +362,6 @@ fun read_class ctxt text =
     val (syms, pos) = Syntax.read_token text;
     val c = Type.cert_class tsig (Type.intern_class tsig (Symbol_Pos.content syms))
       handle TYPE (msg, _, _) => error (msg ^ Position.str_of pos);
-    val _ = Context_Position.report ctxt pos (Markup.tclass c);
     val _ = Context_Position.report ctxt pos (Name_Space.markup (Type.class_space tsig) c);
   in c end;
 

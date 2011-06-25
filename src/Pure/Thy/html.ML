@@ -48,7 +48,12 @@ fun html_mode f x = Print_Mode.with_modes [htmlN] f x;
 
 fun span class = ("<span class=" ^ quote (XML.text class) ^ ">", "</span>");
 
-val _ = Markup.add_mode htmlN (fn (name, _) => span name);
+fun span_class (name, props) =
+  (case Markup.get_entity_kind (name, props) of
+    SOME kind => Markup.entityN ^ "_" ^ name
+  | NONE => name);
+
+val _ = Markup.add_mode htmlN (span o span_class);
 
 
 (* symbol output *)

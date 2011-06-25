@@ -60,10 +60,12 @@ object HTML
   {
     def html_spans(tree: XML.Tree): XML.Body =
       tree match {
-        case XML.Elem(Markup(name, _), ts) =>
-          if (original_data)
-            List(XML.Elem(Markup.Data, List(tree, span(name, ts.flatMap(html_spans)))))
-          else List(span(name, ts.flatMap(html_spans)))
+        case XML.Elem(m @ Markup(name, props), ts) =>
+          val span_class =
+            m match { case Markup.Entity(kind, _) => name + "_" + kind case _ => name }
+          val html_span = span(span_class, ts.flatMap(html_spans))
+          if (original_data) List(XML.Elem(Markup.Data, List(tree, html_span)))
+          else List(html_span)
         case XML.Text(txt) =>
           val ts = new ListBuffer[XML.Tree]
           val t = new StringBuilder

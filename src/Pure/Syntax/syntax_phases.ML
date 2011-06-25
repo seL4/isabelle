@@ -624,7 +624,7 @@ fun unparse_t t_to_ast prt_t markup ctxt t =
         SOME "" => ([], c)
       | SOME b => markup_extern b
       | NONE => c |> Lexicon.unmark
-         {case_class = fn x => ([Markup.tclass x], Proof_Context.extern_class ctxt x),
+         {case_class = fn x => (markup_class ctxt x, Proof_Context.extern_class ctxt x),
           case_type = fn x => ([Markup.tycon x], Proof_Context.extern_type ctxt x),
           case_const = fn x => ([Markup.const x], Proof_Context.extern_const ctxt x),
           case_fixed = fn x => free_or_skolem ctxt x,

@@ -17,6 +17,7 @@ sig
   val kindN: string
   val bindingN: string val binding: T
   val entityN: string val entity: string -> string -> T
+  val get_entity_kind: T -> string option
   val defN: string
   val refN: string
   val lineN: string
@@ -34,7 +35,7 @@ sig
   val breakN: string val break: int -> T
   val fbreakN: string val fbreak: T
   val hiddenN: string val hidden: T
-  val tclassN: string val tclass: string -> T
+  val classN: string
   val tyconN: string val tycon: string -> T
   val fixedN: string val fixed: string -> T
   val constN: string val const: string -> T
@@ -170,6 +171,10 @@ val (bindingN, binding) = markup_elem "binding";
 val entityN = "entity";
 fun entity kind name = (entityN, [(nameN, name), (kindN, kind)]);
 
+fun get_entity_kind (name, props) =
+  if name = entityN then AList.lookup (op =) props kindN
+  else NONE;
+
 val defN = "def";
 val refN = "ref";
 
@@ -207,7 +212,7 @@ val (hiddenN, hidden) = markup_elem "hidden";
 
 (* logical entities *)
 
-val (tclassN, tclass) = markup_string "tclass" nameN;
+val classN = "class";
 val (tyconN, tycon) = markup_string "tycon" nameN;
 val (fixedN, fixed) = markup_string "fixed" nameN;
 val (constN, const) = markup_string "constant" nameN;

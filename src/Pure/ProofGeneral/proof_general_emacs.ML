@@ -43,14 +43,18 @@ and render_tree (XML.Text s) = Buffer.add s
           else if name = Markup.sendbackN then (special "W", special "X")
           else if name = Markup.bindingN then (special "F", special "A")
           else if name = Markup.hiliteN then (special "0", special "1")
-          else if name = Markup.tclassN then (special "B", special "A")
           else if name = Markup.tfreeN then (special "C", special "A")
           else if name = Markup.tvarN then (special "D", special "A")
           else if name = Markup.freeN then (special "E", special "A")
           else if name = Markup.boundN then (special "F", special "A")
           else if name = Markup.varN then (special "G", special "A")
           else if name = Markup.skolemN then (special "H", special "A")
-          else Markup.no_output;
+          else
+            (case Markup.get_entity_kind (name, props) of
+              SOME kind =>
+                if kind = Markup.classN then (special "B", special "A")
+                else Markup.no_output
+            | NONE => Markup.no_output);
       in
         Buffer.add bg1 #>
         Buffer.add bg2 #>

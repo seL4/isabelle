@@ -101,7 +101,7 @@ fun pgml_sym s =
 val pgml_syms = map pgml_sym o Symbol.explode;
 
 val token_markups =
- [Markup.tclassN, Markup.tfreeN, Markup.tvarN, Markup.freeN,
+ [Markup.tfreeN, Markup.tvarN, Markup.freeN,
   Markup.boundN, Markup.varN, Markup.skolemN];
 
 in

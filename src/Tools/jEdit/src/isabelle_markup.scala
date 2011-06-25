@@ -110,12 +110,15 @@ object Isabelle_Markup
     case Text.Info(_, XML.Elem(Markup(Markup.TOKEN_RANGE, _), _)) => light_color
   }
 
+  private val text_entity_colors: Map[String, Color] =
+    Map(
+      Markup.CLASS -> get_color("red"))
+
   private val text_colors: Map[String, Color] =
     Map(
       Markup.LITERAL -> keyword1_color,
       Markup.DELIMITER -> get_color("black"),
       Markup.IDENT -> get_color("black"),
-      Markup.TCLASS -> get_color("red"),
       Markup.TFREE -> get_color("#A020F0"),
       Markup.TVAR -> get_color("#A020F0"),
       Markup.CONST -> get_color("black"),
@@ -137,6 +140,8 @@ object Isabelle_Markup
 
   val text_color: Markup_Tree.Select[Color] =
   {
+    case Text.Info(_, XML.Elem(Markup.Entity(kind, _), _))
+    if text_entity_colors.isDefinedAt(kind) => text_entity_colors(kind)
     case Text.Info(_, XML.Elem(Markup(m, _), _))
     if text_colors.isDefinedAt(m) => text_colors(m)
   }
