@@ -24,7 +24,6 @@ sig
   val qualify: bool -> string -> binding -> binding
   val qualified: bool -> string -> binding -> binding
   val qualified_name: string -> binding
-  val qualified_name_of: binding -> string
   val prefix_of: binding -> (string * bool) list
   val map_prefix: ((string * bool) list -> (string * bool) list) -> binding -> binding
   val prefix: bool -> string -> binding -> binding
@@ -100,10 +99,6 @@ fun qualified_name "" = empty
       let val (qualifier, name) = split_last (Long_Name.explode s)
       in make_binding (false, [], map (rpair false) qualifier, name, Position.none) end;
 
-fun qualified_name_of (b as Binding {qualifier, name, ...}) =
-  if is_empty b then ""
-  else Long_Name.implode (map #1 qualifier @ [name]);
-
 
 (* system prefix *)
 
@@ -126,9 +121,11 @@ val conceal =
 
 (* print *)
 
-fun str_of binding =
-  qualified_name_of binding
-  |> Markup.markup (Position.markup (pos_of binding) (Markup.binding (name_of binding)));
+fun str_of (Binding {prefix, qualifier, name, pos, ...}) =
+  if name = "" then ""
+  else
+    Long_Name.implode (map #1 (prefix @ qualifier) @ [name])
+    |> Markup.markup (Position.markup pos (Markup.binding name));
 
 val print = quote o str_of;
 
