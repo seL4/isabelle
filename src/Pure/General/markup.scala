@@ -147,7 +147,7 @@ object Markup
 
   /* logical entities */
 
-  val TCLASS = "tclass"
+  val CLASS = "class"
   val TYCON = "tycon"
   val FIXED = "fixed"
   val CONST = "constant"
@@ -289,7 +289,6 @@ object Markup
   val Serial = new Long_Property("serial")
 
   val MESSAGE = "message"
-  val CLASS = "class"
 
   val INIT = "init"
   val STATUS = "status"
