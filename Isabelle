@@ -23,7 +23,6 @@ unset ISABELLE_SITE_SETTINGS_PRESENT
 
 [ -e "$ISABELLE_HOME/Admin/build" ] && "$ISABELLE_HOME/Admin/build" jars
 
-CLASSPATH="$(jvmpath "$CLASSPATH")"
 exec "$ISABELLE_TOOL" java \
   "-Disabelle.home=$(jvmpath "$ISABELLE_HOME")" \
   isabelle.GUI_Setup "$@"
