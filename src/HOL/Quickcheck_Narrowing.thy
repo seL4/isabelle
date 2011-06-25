@@ -384,44 +384,6 @@ next
     by (simp add: around_zero.simps[of "i + 1"])
 qed
 
-lemma
-  assumes "int n <= 2 * i"
-  shows "(n mod 2 = 1 --> around_zero i ! n = (int n + 1) div 2) &
-    (n mod 2 = 0 --> around_zero i ! n = (- (int n)) div 2)"
-using assms
-proof (cases "i >= 0")
-  case False
-  with assms show ?thesis by (simp add: around_zero.simps[of i])
-next
-  case True
-  from assms show ?thesis
-  proof (induct rule:  int_ge_induct[OF True])
-    case (2 i)
-    have i: "n < Suc (2 * nat i) \<or> n = Suc (2 * nat i) \<or> n = (2 * nat i) + 2 \<or> n > (2 * nat i) + 2"
-      by arith
-    show ?case    
-    proof -
-      {
-        assume "n mod 2 = 1"
-        from 2 length_around_zero[OF 2(1)] this i have "around_zero (i + 1) ! n = (int n + 1) div 2"
-          unfolding around_zero.simps[of "i + 1"]
-          by (auto simp add: nth_append)
-      } moreover
-      {
-        assume a: "n mod 2 = 0"
-        have "\<forall> q q'. 2 * q \<noteq> Suc (2 * q')" by arith
-        from a 2 length_around_zero[OF 2(1)] this i have "around_zero (i + 1) ! n = - int n div 2"
-          unfolding around_zero.simps[of "i + 1"]
-          by (auto simp add: nth_append)
-      }
-      ultimately show ?thesis by auto
-    qed
-   next
-     case 1
-     from 1 show ?case by (auto simp add: around_zero.simps[of 0])
-  qed
-qed
-
 instantiation int :: narrowing
 begin
 
