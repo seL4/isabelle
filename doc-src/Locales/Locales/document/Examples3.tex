@@ -49,7 +49,7 @@ In the above example, the fact that \isa{op\ {\isaliteral{5C3C6C653E}{\isasymle}
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
 \ int{\isaliteral{3A}{\isacharcolon}}\ partial{\isaliteral{5F}{\isacharunderscore}}order\ {\isaliteral{22}{\isachardoublequoteopen}}op\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ int\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ int\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
-\ \ \ \ \isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}partial{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{2E}{\isachardot}}less\ op\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}int{\isaliteral{29}{\isacharparenright}}\ y\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{3C}{\isacharless}}\ y{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \isakeyword{where}\ {\isaliteral{22}{\isachardoublequoteopen}}int{\isaliteral{2E}{\isachardot}}less\ x\ y\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{3C}{\isacharless}}\ y{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
 \ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
@@ -61,7 +61,7 @@ In the above example, the fact that \isa{op\ {\isaliteral{5C3C6C653E}{\isasymle}
 \ int{\isaliteral{3A}{\isacharcolon}}\ partial{\isaliteral{5F}{\isacharunderscore}}order\ {\isaliteral{22}{\isachardoublequoteopen}}op\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{5B}{\isacharbrackleft}}int{\isaliteral{2C}{\isacharcomma}}\ int{\isaliteral{5D}{\isacharbrackright}}\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isaliteral{22}{\isachardoublequoteopen}}partial{\isaliteral{5F}{\isacharunderscore}}order{\isaliteral{2E}{\isachardot}}less\ op\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}int{\isaliteral{29}{\isacharparenright}}\ y\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{3C}{\isacharless}}\ y{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}int{\isaliteral{2E}{\isachardot}}less\ x\ y\ {\isaliteral{3D}{\isacharequal}}\ {\isaliteral{28}{\isacharparenleft}}x\ {\isaliteral{3C}{\isacharless}}\ y{\isaliteral{29}{\isacharparenright}}{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \isacommand{unfolding}\isamarkupfalse%
 \ int{\isaliteral{2E}{\isachardot}}less{\isaliteral{5F}{\isacharunderscore}}def\ \isacommand{by}\isamarkupfalse%
 \ auto\isanewline
@@ -108,8 +108,8 @@ Further interpretations are necessary for
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
 \ int{\isaliteral{3A}{\isacharcolon}}\ lattice\ {\isaliteral{22}{\isachardoublequoteopen}}op\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ int\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ int\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
-\ \ \ \ \isakeyword{where}\ int{\isaliteral{5F}{\isacharunderscore}}min{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}lattice{\isaliteral{2E}{\isachardot}}meet\ op\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}int{\isaliteral{29}{\isacharparenright}}\ y\ {\isaliteral{3D}{\isacharequal}}\ min\ x\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
-\ \ \ \ \ \ \isakeyword{and}\ int{\isaliteral{5F}{\isacharunderscore}}max{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}lattice{\isaliteral{2E}{\isachardot}}join\ op\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}int{\isaliteral{29}{\isacharparenright}}\ y\ {\isaliteral{3D}{\isacharequal}}\ max\ x\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \isakeyword{where}\ int{\isaliteral{5F}{\isacharunderscore}}min{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}int{\isaliteral{2E}{\isachardot}}meet\ x\ y\ {\isaliteral{3D}{\isacharequal}}\ min\ x\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ \ \ \ \ \ \isakeyword{and}\ int{\isaliteral{5F}{\isacharunderscore}}max{\isaliteral{5F}{\isacharunderscore}}eq{\isaliteral{3A}{\isacharcolon}}\ {\isaliteral{22}{\isachardoublequoteopen}}int{\isaliteral{2E}{\isachardot}}join\ x\ y\ {\isaliteral{3D}{\isacharequal}}\ max\ x\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
 \ {\isaliteral{2D}{\isacharminus}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
@@ -157,11 +157,11 @@ Further interpretations are necessary for
 \ int{\isaliteral{3A}{\isacharcolon}}\ lattice\ {\isaliteral{22}{\isachardoublequoteopen}}op\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}\ int\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ int\ {\isaliteral{5C3C52696768746172726F773E}{\isasymRightarrow}}\ bool{\isaliteral{22}{\isachardoublequoteclose}}\ \isacommand{{\isaliteral{2E}{\isachardot}}}\isamarkupfalse%
 \isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isaliteral{22}{\isachardoublequoteopen}}lattice{\isaliteral{2E}{\isachardot}}meet\ op\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}int{\isaliteral{29}{\isacharparenright}}\ y\ {\isaliteral{3D}{\isacharequal}}\ min\ x\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}int{\isaliteral{2E}{\isachardot}}meet\ x\ y\ {\isaliteral{3D}{\isacharequal}}\ min\ x\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
 \ {\isaliteral{28}{\isacharparenleft}}bestsimp\ simp{\isaliteral{3A}{\isacharcolon}}\ int{\isaliteral{2E}{\isachardot}}meet{\isaliteral{5F}{\isacharunderscore}}def\ int{\isaliteral{2E}{\isachardot}}is{\isaliteral{5F}{\isacharunderscore}}inf{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \ \ \isacommand{show}\isamarkupfalse%
-\ {\isaliteral{22}{\isachardoublequoteopen}}lattice{\isaliteral{2E}{\isachardot}}join\ op\ {\isaliteral{5C3C6C653E}{\isasymle}}\ {\isaliteral{28}{\isacharparenleft}}x{\isaliteral{3A}{\isacharcolon}}{\isaliteral{3A}{\isacharcolon}}int{\isaliteral{29}{\isacharparenright}}\ y\ {\isaliteral{3D}{\isacharequal}}\ max\ x\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
+\ {\isaliteral{22}{\isachardoublequoteopen}}int{\isaliteral{2E}{\isachardot}}join\ x\ y\ {\isaliteral{3D}{\isacharequal}}\ max\ x\ y{\isaliteral{22}{\isachardoublequoteclose}}\isanewline
 \ \ \ \ \ \ \isacommand{by}\isamarkupfalse%
 \ {\isaliteral{28}{\isacharparenleft}}bestsimp\ simp{\isaliteral{3A}{\isacharcolon}}\ int{\isaliteral{2E}{\isachardot}}join{\isaliteral{5F}{\isacharunderscore}}def\ int{\isaliteral{2E}{\isachardot}}is{\isaliteral{5F}{\isacharunderscore}}sup{\isaliteral{5F}{\isacharunderscore}}def{\isaliteral{29}{\isacharparenright}}\isanewline
 \ \ \isacommand{qed}\isamarkupfalse%

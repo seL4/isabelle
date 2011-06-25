@@ -797,6 +797,14 @@ end;
 
 (*** Interpretation ***)
 
+fun read_with_extended_syntax parse_prop deps ctxt props =
+  let
+    val deps_ctxt = fold Locale.activate_declarations deps ctxt;
+  in
+    map (parse_prop deps_ctxt o snd) props |> Syntax.check_terms deps_ctxt
+      |> Variable.export_terms deps_ctxt ctxt
+  end;
+
 (** Interpretation in theories and proof contexts **)
 
 local
@@ -825,8 +833,8 @@ fun gen_interpretation prep_expr parse_prop prep_attr
   let
     val ((propss, deps, export), expr_ctxt) = Proof_Context.init_global theory
       |> prep_expr expression;
+    val eqns = read_with_extended_syntax parse_prop deps expr_ctxt equations;
 
-    val eqns = map (parse_prop expr_ctxt o snd) equations |> Syntax.check_terms expr_ctxt;
     val attrss = map ((apsnd o map) (prep_attr theory) o fst) equations;
     val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
     val export' = Variable.export_morphism goal_ctxt expr_ctxt;
@@ -845,8 +853,8 @@ fun gen_interpret prep_expr parse_prop prep_attr
     val theory = Proof_Context.theory_of ctxt;
 
     val ((propss, deps, export), expr_ctxt) = prep_expr expression ctxt;
+    val eqns = read_with_extended_syntax parse_prop deps expr_ctxt equations;
 
-    val eqns = map (parse_prop expr_ctxt o snd) equations |> Syntax.check_terms expr_ctxt;
     val attrss = map ((apsnd o map) (prep_attr theory) o fst) equations;
     val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
     val export' = Variable.export_morphism goal_ctxt expr_ctxt;
@@ -904,8 +912,8 @@ fun gen_sublocale prep_expr intern parse_prop prep_attr
     val target = intern thy raw_target;
     val target_ctxt = Named_Target.init before_exit target thy;
     val ((propss, deps, export), expr_ctxt) = prep_expr expression target_ctxt;
+    val eqns = read_with_extended_syntax parse_prop deps expr_ctxt equations;
 
-    val eqns = map (parse_prop expr_ctxt o snd) equations |> Syntax.check_terms expr_ctxt;
     val attrss = map ((apsnd o map) (prep_attr thy) o fst) equations;
     val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
     val export' = Variable.export_morphism goal_ctxt expr_ctxt;

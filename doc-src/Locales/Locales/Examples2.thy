@@ -3,7 +3,7 @@ imports Examples
 begin
 text {* \vspace{-5ex} *}
   interpretation %visible int: partial_order "op \<le> :: [int, int] \<Rightarrow> bool"
-    where "partial_order.less op \<le> (x::int) y = (x < y)"
+    where "int.less x y = (x < y)"
   proof -
     txt {* \normalsize The goals are now:
       @{subgoals [display]}
@@ -12,7 +12,7 @@ text {* \vspace{-5ex} *}
       by unfold_locales auto
     txt {* \normalsize The second goal is shown by unfolding the
       definition of @{term "partial_order.less"}. *}
-    show "partial_order.less op \<le> (x::int) y = (x < y)"
+    show "partial_order.less op \<le> x y = (x < y)"
       unfolding partial_order.less_def [OF `partial_order op \<le>`]
       by auto
   qed

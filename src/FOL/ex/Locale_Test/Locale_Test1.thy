@@ -499,7 +499,7 @@ definition lor_o (infixl "||" 50) where
 end
 
 interpretation x: logic_o "op &" "Not"
-  where bool_logic_o: "logic_o.lor_o(op &, Not, x, y) <-> x | y"
+  where bool_logic_o: "x.lor_o(x, y) <-> x | y"
 proof -
   show bool_logic_o: "PROP logic_o(op &, Not)" by unfold_locales fast+
   show "logic_o.lor_o(op &, Not, x, y) <-> x | y"

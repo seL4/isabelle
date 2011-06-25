@@ -17,12 +17,12 @@ text {* In the above example, the fact that @{term "op \<le>"} is a partial
   repeat the example from the previous section to illustrate this. *}
 
   interpretation %visible int: partial_order "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"
-    where "partial_order.less op \<le> (x::int) y = (x < y)"
+    where "int.less x y = (x < y)"
   proof -
     show "partial_order (op \<le> :: int \<Rightarrow> int \<Rightarrow> bool)"
       by unfold_locales auto
     then interpret int: partial_order "op \<le> :: [int, int] \<Rightarrow> bool" .
-    show "partial_order.less op \<le> (x::int) y = (x < y)"
+    show "int.less x y = (x < y)"
       unfolding int.less_def by auto
   qed
 
@@ -47,8 +47,8 @@ text {* Further interpretations are necessary for
   so they can be used in a later example.  *}
 
   interpretation %visible int: lattice "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool"
-    where int_min_eq: "lattice.meet op \<le> (x::int) y = min x y"
-      and int_max_eq: "lattice.join op \<le> (x::int) y = max x y"
+    where int_min_eq: "int.meet x y = min x y"
+      and int_max_eq: "int.join x y = max x y"
   proof -
     show "lattice (op \<le> :: int \<Rightarrow> int \<Rightarrow> bool)"
       txt {* \normalsize We have already shown that this is a partial
@@ -69,9 +69,9 @@ text {* Further interpretations are necessary for
       in a situation where the lattice theorems can be used in a
       convenient way. *}
     then interpret int: lattice "op \<le> :: int \<Rightarrow> int \<Rightarrow> bool" .
-    show "lattice.meet op \<le> (x::int) y = min x y"
+    show "int.meet x y = min x y"
       by (bestsimp simp: int.meet_def int.is_inf_def)
-    show "lattice.join op \<le> (x::int) y = max x y"
+    show "int.join x y = max x y"
       by (bestsimp simp: int.join_def int.is_sup_def)
   qed
 
