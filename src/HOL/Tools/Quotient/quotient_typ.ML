@@ -181,7 +181,7 @@ fun sanity_check ((vs, qty_name, _), (rty, rel, _)) =
     val rel_frees = map fst (Term.add_frees rel [])
     val rel_vars = Term.add_vars rel []
     val rel_tvars = Term.add_tvars rel []
-    val qty_str = Binding.str_of qty_name ^ ": "
+    val qty_str = Binding.print qty_name ^ ": "
 
     val illegal_rel_vars =
       if null rel_vars andalso null rel_tvars then []

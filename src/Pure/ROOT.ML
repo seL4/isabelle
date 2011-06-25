@@ -44,8 +44,6 @@ use "General/ord_list.ML";
 use "General/balanced_tree.ML";
 use "General/graph.ML";
 use "General/linear_set.ML";
-use "General/long_name.ML";
-use "General/binding.ML";
 use "General/path.ML";
 use "General/url.ML";
 use "General/buffer.ML";
@@ -54,6 +52,8 @@ use "General/xml.ML";
 use "General/xml_data.ML";
 use "General/yxml.ML";
 use "General/pretty.ML";
+use "General/long_name.ML";
+use "General/binding.ML";
 
 use "General/sha1.ML";
 if String.isPrefix "polyml" ml_system

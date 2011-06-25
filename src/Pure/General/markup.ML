@@ -15,7 +15,7 @@ sig
   val nameN: string
   val name: string -> T -> T
   val kindN: string
-  val bindingN: string val binding: string -> T
+  val bindingN: string val binding: T
   val entityN: string val entity: string -> string -> T
   val defN: string
   val refN: string
@@ -165,7 +165,7 @@ val kindN = "kind";
 
 (* formal entities *)
 
-val (bindingN, binding) = markup_string "binding" nameN;
+val (bindingN, binding) = markup_elem "binding";
 
 val entityN = "entity";
 fun entity kind name = (entityN, [(nameN, name), (kindN, kind)]);

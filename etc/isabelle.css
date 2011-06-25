@@ -19,6 +19,7 @@ body { background-color: #FFFFFF; }
 
 .hidden, hidden { font-size: 0.1pt; visibility: hidden; }
 
+.binding, binding             { color: #9966FF; }
 .tclass, tclass               { color: red; }
 .tfree, tfree                 { color: #A020F0; }
 .tvar, tvar                   { color: #A020F0; }

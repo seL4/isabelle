@@ -28,7 +28,7 @@ sig
   val map_prefix: ((string * bool) list -> (string * bool) list) -> binding -> binding
   val prefix: bool -> string -> binding -> binding
   val conceal: binding -> binding
-  val str_of: binding -> string
+  val pretty: binding -> Pretty.T
   val print: binding -> string
   val bad: binding -> string
   val check: binding -> unit
@@ -121,13 +121,13 @@ val conceal =
 
 (* print *)
 
-fun str_of (Binding {prefix, qualifier, name, pos, ...}) =
-  if name = "" then ""
+fun pretty (Binding {prefix, qualifier, name, pos, ...}) =
+  if name = "" then Pretty.str ""
   else
-    Long_Name.implode (map #1 (prefix @ qualifier) @ [name])
-    |> Markup.markup (Position.markup pos (Markup.binding name));
+    Pretty.markup (Position.markup pos Markup.binding)
+      [Pretty.str (Long_Name.implode (map #1 (prefix @ qualifier) @ [name]))];
 
-val print = quote o str_of;
+val print = Pretty.str_of o pretty;
 
 
 (* check *)

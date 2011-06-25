@@ -1604,7 +1604,7 @@ A \isa{name\ space} manages a collection of long names,
   \indexdef{}{ML}{Binding.qualify}\verb|Binding.qualify: bool -> string -> binding -> binding| \\
   \indexdef{}{ML}{Binding.prefix}\verb|Binding.prefix: bool -> string -> binding -> binding| \\
   \indexdef{}{ML}{Binding.conceal}\verb|Binding.conceal: binding -> binding| \\
-  \indexdef{}{ML}{Binding.str\_of}\verb|Binding.str_of: binding -> string| \\
+  \indexdef{}{ML}{Binding.print}\verb|Binding.print: binding -> string| \\
   \end{mldecls}
   \begin{mldecls}
   \indexdef{}{ML type}{Name\_Space.naming}\verb|type Name_Space.naming| \\
@@ -1651,7 +1651,7 @@ A \isa{name\ space} manages a collection of long names,
   specification mechanism etc.  Other tools should not depend on the
   particulars of concealed entities (cf.\ \verb|Name_Space.is_concealed|).
 
-  \item \verb|Binding.str_of|~\isa{binding} produces a string
+  \item \verb|Binding.print|~\isa{binding} produces a string
   representation for human-readable output, together with some formal
   markup that might get used in GUI front-ends, for example.
 

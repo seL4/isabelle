@@ -41,6 +41,7 @@ and render_tree (XML.Text s) = Buffer.add s
           if null ts then Markup.no_output
           else if name = Markup.stateN then (special "O" ^ "\n", "\n" ^ special "P")
           else if name = Markup.sendbackN then (special "W", special "X")
+          else if name = Markup.bindingN then (special "F", special "A")
           else if name = Markup.hiliteN then (special "0", special "1")
           else if name = Markup.tclassN then (special "B", special "A")
           else if name = Markup.tfreeN then (special "C", special "A")

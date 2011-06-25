@@ -1094,7 +1094,7 @@ text %mlref {*
   @{index_ML Binding.qualify: "bool -> string -> binding -> binding"} \\
   @{index_ML Binding.prefix: "bool -> string -> binding -> binding"} \\
   @{index_ML Binding.conceal: "binding -> binding"} \\
-  @{index_ML Binding.str_of: "binding -> string"} \\
+  @{index_ML Binding.print: "binding -> string"} \\
   \end{mldecls}
   \begin{mldecls}
   @{index_ML_type Name_Space.naming} \\
@@ -1144,7 +1144,7 @@ text %mlref {*
   particulars of concealed entities (cf.\ @{ML
   Name_Space.is_concealed}).
 
-  \item @{ML Binding.str_of}~@{text "binding"} produces a string
+  \item @{ML Binding.print}~@{text "binding"} produces a string
   representation for human-readable output, together with some formal
   markup that might get used in GUI front-ends, for example.
 

@@ -129,8 +129,9 @@ fun pretty_items _ _ [] = []
 
 fun pretty_name_atts ctxt (b, atts) sep =
   if Binding.is_empty b andalso null atts then []
-  else [Pretty.block (Pretty.breaks
-    (Pretty.str (Binding.str_of b) :: Attrib.pretty_attribs ctxt atts @ [Pretty.str sep]))];
+  else
+    [Pretty.block (Pretty.breaks
+      (Binding.pretty b :: Attrib.pretty_attribs ctxt atts @ [Pretty.str sep]))];
 
 
 (* pretty_stmt *)
