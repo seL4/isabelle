@@ -333,7 +333,14 @@ local
     | (_, ts) => fold min_arities ts)
 
   fun minimize types t i =
-    if i = 0 orelse Typtab.defined types (Term.type_of t) then 0 else i
+    let
+      fun find_min j [] _ = j
+        | find_min j (U :: Us) T =
+            if Typtab.defined types T then j
+            else find_min (j + 1) Us (U --> T)
+
+      val (Ts, T) = Term.strip_type (Term.type_of t)
+    in find_min 0 (take i (rev Ts)) T end
 
   fun app u (t, T) =
     (Const (@{const_name SMT.fun_app}, T --> T) $ t $ u, Term.range_type T)
@@ -354,11 +361,15 @@ fun intro_explicit_application ctxt funcs ts =
       if is_some (Termtab.lookup funcs t) then Term.list_comb (t, ts)
       else apply (the (Termtab.lookup arities' t)) t T ts
 
+    fun in_list T f t = HOLogic.mk_list T (map f (HOLogic.dest_list t))
+
     fun traverse Ts t =
       (case Term.strip_comb t of
-        (q as Const (@{const_name All}, _), [u as Abs _]) => q $ traverse Ts u
-      | (q as Const (@{const_name Ex}, _), [u as Abs _]) => q $ traverse Ts u
-      | (q as Const (@{const_name Ex}, _), [u1 as Abs _, u2]) =>
+        (q as Const (@{const_name All}, _), [Abs (x, T, u)]) =>
+          q $ Abs (x, T, in_trigger (T :: Ts) u)
+      | (q as Const (@{const_name Ex}, _), [Abs (x, T, u)]) =>
+          q $ Abs (x, T, in_trigger (T :: Ts) u)
+      | (q as Const (@{const_name Let}, _), [u1 as Abs _, u2]) =>
           q $ traverse Ts u1 $ traverse Ts u2
       | (u as Const (c as (_, T)), ts) =>
           (case SMT_Builtin.dest_builtin ctxt c ts of
@@ -368,6 +379,20 @@ fun intro_explicit_application ctxt funcs ts =
       | (u as Bound i, ts) => apply 0 u (nth Ts i) (map (traverse Ts) ts)
       | (Abs (n, T, u), ts) => traverses Ts (Abs (n, T, traverse (T::Ts) u)) ts
       | (u, ts) => traverses Ts u ts)
+    and in_trigger Ts ((c as @{const SMT.trigger}) $ p $ t) =
+          c $ in_pats Ts p $ in_weight Ts t
+      | in_trigger Ts t = in_weight Ts t
+    and in_pats Ts ps =
+      in_list @{typ "SMT.pattern list"}
+        (in_list @{typ SMT.pattern} (in_pat Ts)) ps
+    and in_pat Ts ((p as Const (@{const_name SMT.pat}, _)) $ t) =
+          p $ traverse Ts t
+      | in_pat Ts ((p as Const (@{const_name SMT.nopat}, _)) $ t) =
+          p $ traverse Ts t
+      | in_pat _ t = raise TERM ("bad pattern", [t])
+    and in_weight Ts ((c as @{const SMT.weight}) $ w $ t) =
+          c $ w $ traverse Ts t
+      | in_weight Ts t = traverse Ts t 
     and traverses Ts t ts = Term.list_comb (t, map (traverse Ts) ts)
   in map (traverse []) ts end
 
