@@ -25,6 +25,10 @@ sig
      best_slices :
        Proof.context -> (real * (bool * (int * string list * string))) list}
 
+  val e_smartN : string
+  val e_autoN : string
+  val e_fun_weightN : string
+  val e_sym_offset_weightN : string
   val e_weight_method : string Config.T
   val e_default_fun_weight : real Config.T
   val e_fun_weight_base : real Config.T

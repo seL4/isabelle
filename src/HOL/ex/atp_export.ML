@@ -21,6 +21,8 @@ struct
 
 open ATP_Problem
 open ATP_Translate
+open ATP_Proof
+open ATP_Systems
 
 val fact_name_of = prefix fact_prefix o ascii_of
 
@@ -63,7 +65,7 @@ fun theorems_mentioned_in_proof_term all_names thm =
 fun interesting_const_names ctxt =
   let val thy = Proof_Context.theory_of ctxt in
     Sledgehammer_Filter.const_names_in_fact thy
-        (Sledgehammer_Provers.is_built_in_const_for_prover ctxt ATP_Systems.eN)
+        (Sledgehammer_Provers.is_built_in_const_for_prover ctxt eN)
   end
 
 fun generate_tptp_graph_file_for_theory ctxt thy file_name =
@@ -105,6 +107,38 @@ val add_inferences_to_problem =
 fun ident_of_problem_line (Decl (ident, _, _)) = ident
   | ident_of_problem_line (Formula (ident, _, _, _, _)) = ident
 
+fun run_some_atp ctxt problem =
+  let
+    val thy = Proof_Context.theory_of ctxt
+    val prob_file = Path.explode "/tmp/prob.tptp"
+    val {exec, arguments, proof_delims, known_failures, ...} =
+      get_atp thy spassN
+    val _ = problem |> tptp_lines_for_atp_problem FOF
+                    |> File.write_list prob_file
+    val command =
+      File.shell_path (Path.explode (getenv (fst exec) ^ "/" ^ snd exec)) ^
+      " " ^ arguments ctxt false "" (seconds 1.0) (K []) ^ " " ^
+      File.shell_path prob_file
+  in
+    TimeLimit.timeLimit (seconds 0.15) bash_output command
+    |> fst
+    |> extract_tstplike_proof_and_outcome false true proof_delims
+                                          known_failures
+    |> snd
+  end
+  handle TimeLimit.TimeOut => SOME TimedOut
+
+val likely_tautology_prefixes =
+  [@{theory HOL}, @{theory Meson}, @{theory Metis}]
+  |> map (fact_name_of o Context.theory_name)
+
+fun is_problem_line_tautology ctxt (Formula (ident, _, phi, _, _)) =
+    exists (fn prefix => String.isPrefix prefix ident)
+           likely_tautology_prefixes andalso
+    is_none (run_some_atp ctxt
+                 [(factsN, [Formula (ident, Conjecture, phi, NONE, NONE)])])
+  | is_problem_line_tautology _ _ = false
+
 structure String_Graph = Graph(type key = string val ord = string_ord);
 
 fun order_facts ord = sort (ord o pairself ident_of_problem_line)
@@ -126,11 +160,15 @@ fun generate_tptp_inference_file_for_theory ctxt thy type_sys file_name =
     val (atp_problem, _, _, _, _, _, _) =
       prepare_atp_problem ctxt format Axiom Axiom type_sys true false true []
                           @{prop False} facts
+    val atp_problem =
+      atp_problem
+      |> map (apsnd (filter_out (is_problem_line_tautology ctxt)))
     val all_names = facts0 |> map (Thm.get_name_hint o snd)
     val infers =
       facts0 |> map (fn (_, th) =>
                         (fact_name_of (Thm.get_name_hint th),
                          theorems_mentioned_in_proof_term (SOME all_names) th))
+
     val all_atp_problem_names =
       atp_problem |> maps (map ident_of_problem_line o snd)
     val infers =
@@ -140,7 +178,8 @@ fun generate_tptp_inference_file_for_theory ctxt thy type_sys file_name =
       String_Graph.empty
       |> fold (String_Graph.new_node o rpair ()) all_atp_problem_names
       |> fold (fn (to, froms) =>
-                  fold (fn from => String_Graph.add_edge (from, to)) froms) infers
+                  fold (fn from => String_Graph.add_edge (from, to)) froms)
+              infers
       |> String_Graph.topological_order
     val order_tab =
       Symtab.empty
