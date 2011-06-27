@@ -88,8 +88,8 @@ type atp_config =
    time available given to the slice and should add up to 1.0. The "bool"
    component indicates whether the slice's strategy is complete; the "int", the
    preferred number of facts to pass; the first "string", the preferred type
-   system; the second "string", extra information to the prover (e.g., SOS or no
-   SOS).
+   system (which should be sound or quasi-sound); the second "string", extra
+   information to the prover (e.g., SOS or no SOS).
 
    The last slice should be the most "normal" one, because it will get all the
    time available if the other slices fail early and also because it is used if
