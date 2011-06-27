@@ -633,7 +633,7 @@ fun trace_ex ctxt params atoms discr n (hist: history) =
           handle NoEx => NONE
       in
         case ex of
-          SOME s => (warning "Linear arithmetic failed - see trace for a counterexample."; tracing s)
+          SOME s => (warning "Linear arithmetic failed - see trace for a (potentially spurious) counterexample."; tracing s)
         | NONE => warning "Linear arithmetic failed"
       end;
 
