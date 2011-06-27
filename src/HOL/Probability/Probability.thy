@@ -4,6 +4,7 @@ imports
   Probability_Measure
   Infinite_Product_Measure
   Independent_Family
+  Conditional_Probability
   Information
   "ex/Dining_Cryptographers"
   "ex/Koepf_Duermuth_Countermeasure"

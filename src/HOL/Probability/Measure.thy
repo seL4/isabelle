@@ -1205,6 +1205,10 @@ lemma (in finite_measure) finite_measure_eq: "A \<in> sets M \<Longrightarrow> \
 lemma (in finite_measure) positive_measure'[simp, intro]: "0 \<le> \<mu>' A"
   unfolding \<mu>'_def by (auto simp: real_of_extreal_pos)
 
+lemma (in finite_measure) real_measure:
+  assumes A: "A \<in> sets M" shows "\<exists>r. 0 \<le> r \<and> \<mu> A = extreal r"
+  using finite_measure[OF A] positive_measure[OF A] by (cases "\<mu> A") auto
+
 lemma (in finite_measure) bounded_measure: "\<mu>' A \<le> \<mu>' (space M)"
 proof cases
   assume "A \<in> sets M"

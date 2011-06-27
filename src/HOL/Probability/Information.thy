@@ -8,6 +8,7 @@ header {*Information theory*}
 theory Information
 imports
   Independent_Family
+  Radon_Nikodym
   "~~/src/HOL/Library/Convex"
 begin
 

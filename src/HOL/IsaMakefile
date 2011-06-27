@@ -1203,6 +1203,7 @@ HOL-Probability: HOL-Multivariate_Analysis $(OUT)/HOL-Probability
 $(OUT)/HOL-Probability: $(OUT)/HOL-Multivariate_Analysis		\
   Probability/Binary_Product_Measure.thy Probability/Borel_Space.thy	\
   Probability/Caratheodory.thy Probability/Complete_Measure.thy		\
+  Probability/Conditional_Probability.thy				\
   Probability/ex/Dining_Cryptographers.thy				\
   Probability/ex/Koepf_Duermuth_Countermeasure.thy			\
   Probability/Finite_Product_Measure.thy				\
