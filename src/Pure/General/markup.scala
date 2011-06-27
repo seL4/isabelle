@@ -189,8 +189,9 @@ object Markup
   val DOC_SOURCE = "doc_source"
 
   val ANTIQ = "antiq"
-  val ML_ANTIQ = "ML_antiq"
-  val DOC_ANTIQ = "doc_antiq"
+  val ML_ANTIQUOTATION = "ML antiquotation"
+  val DOCUMENT_ANTIQUOTATION = "document antiquotation"
+  val DOCUMENT_ANTIQUOTATION_OPTION = "document antiquotation option"
 
 
   /* ML syntax */

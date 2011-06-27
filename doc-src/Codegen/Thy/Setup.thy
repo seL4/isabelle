@@ -8,6 +8,8 @@ uses
 begin
 
 setup {*
+  Antiquote_Setup.setup #>
+  More_Antiquote.setup #>
 let
   val typ = Simple_Syntax.read_typ;
 in

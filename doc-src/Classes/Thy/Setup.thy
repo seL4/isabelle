@@ -5,7 +5,11 @@ uses
   "../../more_antiquote.ML"
 begin
 
-setup {* Code_Target.set_default_code_width 74 *}
+setup {*
+  Antiquote_Setup.setup #>
+  More_Antiquote.setup #>
+  Code_Target.set_default_code_width 74
+*}
 
 syntax
   "_alpha" :: "type"  ("\<alpha>")

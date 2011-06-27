@@ -211,7 +211,7 @@ sig
     'a -> 'b -> 'c * 'b
   val partition_eq: ('a * 'a -> bool) -> 'a list -> 'a list list
   val partition_list: (int -> 'a -> bool) -> int -> int -> 'a list -> 'a list list
-  val gensym: string -> string
+  val legacy_gensym: string -> string
   type stamp = unit Unsynchronized.ref
   val stamp: unit -> stamp
   type serial = int
@@ -1043,9 +1043,8 @@ fun partition_eq (eq: 'a * 'a -> bool) =
 
 
 
-(* generating identifiers *)
+(* generating identifiers -- often fresh *)
 
-(** Freshly generated identifiers; supplied prefix MUST start with a letter **)
 local
 (*Maps 0-61 to A-Z, a-z, 0-9; exclude _ or ' to avoid clash with internal/unusual indentifiers*)
 fun gensym_char i =
@@ -1059,8 +1058,8 @@ fun newid n = implode (map (fn i => Vector.sub (char_vec, i)) (radixpand (62, n)
 val gensym_seed = Unsynchronized.ref (0: int);
 
 in
-  fun gensym pre =
-    pre ^ newid (NAMED_CRITICAL "gensym" (fn () => Unsynchronized.inc gensym_seed));
+  fun legacy_gensym pre =
+    pre ^ newid (NAMED_CRITICAL "legacy_gensym" (fn () => Unsynchronized.inc gensym_seed));
 end;
 
 

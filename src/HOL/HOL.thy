@@ -853,9 +853,11 @@ structure Classical = Classical
 
 structure Basic_Classical: BASIC_CLASSICAL = Classical; 
 open Basic_Classical;
+*}
 
-ML_Antiquote.value "claset"
-  (Scan.succeed "Classical.claset_of (ML_Context.the_local_context ())");
+setup {*
+  ML_Antiquote.value @{binding claset}
+    (Scan.succeed "Classical.claset_of (ML_Context.the_local_context ())")
 *}
 
 setup Classical.setup

@@ -139,8 +139,9 @@ val cong_del = attrib (op delcongs);
 fun map_simpset f = Context.proof_map (map_ss f);
 fun simpset_of ctxt = Raw_Simplifier.context ctxt (get_ss (Context.Proof ctxt));
 
-val _ = ML_Antiquote.value "simpset"
-  (Scan.succeed "Simplifier.simpset_of (ML_Context.the_local_context ())");
+val _ = Context.>> (Context.map_theory
+  (ML_Antiquote.value (Binding.name "simpset")
+    (Scan.succeed "Simplifier.simpset_of (ML_Context.the_local_context ())")));
 
 
 (* global simpset *)
@@ -158,15 +159,16 @@ fun Delsimprocs args = Context.>> (map_ss (fn ss => ss delsimprocs args));
 
 (* get simprocs *)
 
-fun check_simproc ctxt = Name_Space.check ctxt (get_simprocs ctxt);
+fun check_simproc ctxt = Name_Space.check ctxt (get_simprocs ctxt) #> #1;
 val the_simproc = Name_Space.get o get_simprocs;
 
 val _ =
-  ML_Antiquote.value "simproc"
-    (Args.context -- Scan.lift (Parse.position Args.name)
-      >> (fn (ctxt, name) =>
-        "Simplifier.the_simproc (ML_Context.the_local_context ()) " ^
-          ML_Syntax.print_string (check_simproc ctxt name)));
+  Context.>> (Context.map_theory
+   (ML_Antiquote.value (Binding.name "simproc")
+      (Args.context -- Scan.lift (Parse.position Args.name)
+        >> (fn (ctxt, name) =>
+          "Simplifier.the_simproc (ML_Context.the_local_context ()) " ^
+            ML_Syntax.print_string (check_simproc ctxt name)))));
 
 
 (* define simprocs *)

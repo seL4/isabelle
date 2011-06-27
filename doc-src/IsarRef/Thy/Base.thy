@@ -4,6 +4,7 @@ uses "../../antiquote_setup.ML"
 begin
 
 setup {*
+  Antiquote_Setup.setup #>
   member (op =) (Session.id ()) "ZF" ? Pure_Thy.old_appl_syntax_setup
 *}
 

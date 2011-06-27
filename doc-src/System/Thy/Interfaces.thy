@@ -1,5 +1,5 @@
 theory Interfaces
-imports Pure
+imports Base
 begin
 
 chapter {* User interfaces *}

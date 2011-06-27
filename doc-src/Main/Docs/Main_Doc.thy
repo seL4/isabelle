@@ -3,16 +3,19 @@ theory Main_Doc
 imports Main
 begin
 
-ML {*
-fun pretty_term_type_only ctxt (t, T) =
-  (if fastype_of t = Sign.certify_typ (Proof_Context.theory_of ctxt) T then ()
-   else error "term_type_only: type mismatch";
-   Syntax.pretty_typ ctxt T)
-
-val _ = Thy_Output.antiquotation "term_type_only" (Args.term -- Args.typ_abbrev)
-  (fn {source, context = ctxt, ...} => fn arg =>
-    Thy_Output.output ctxt
-      (Thy_Output.maybe_pretty_source pretty_term_type_only ctxt source [arg]));
+setup {*
+  let
+    fun pretty_term_type_only ctxt (t, T) =
+      (if fastype_of t = Sign.certify_typ (Proof_Context.theory_of ctxt) T then ()
+       else error "term_type_only: type mismatch";
+       Syntax.pretty_typ ctxt T)
+  in
+    Thy_Output.antiquotation @{binding term_type_only}
+      (Args.term -- Args.typ_abbrev)
+      (fn {source, context = ctxt, ...} => fn arg =>
+        Thy_Output.output ctxt
+          (Thy_Output.maybe_pretty_source pretty_term_type_only ctxt source [arg]))
+  end
 *}
 (*>*)
 text{*

@@ -1,4 +1,6 @@
-(*<*)theory Even imports Main uses "../../antiquote_setup.ML" begin(*>*)
+(*<*)theory Even imports Main uses "../../antiquote_setup.ML" begin
+setup {* Antiquote_Setup.setup *}
+(*>*)
 
 section{* The Set of Even Numbers *}
 

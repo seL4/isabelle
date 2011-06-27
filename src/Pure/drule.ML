@@ -313,7 +313,7 @@ fun legacy_freeze_thaw_robust th =
    case List.foldr OldTerm.add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
        [] => (fth, fn i => fn x => x)   (*No vars: nothing to do!*)
      | vars =>
-         let fun newName (Var(ix,_)) = (ix, gensym (string_of_indexname ix))
+         let fun newName (Var(ix,_)) = (ix, legacy_gensym (string_of_indexname ix))
              val alist = map newName vars
              fun mk_inst (Var(v,T)) =
                  (cterm_of thy (Var(v,T)),

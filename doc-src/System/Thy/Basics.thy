@@ -1,5 +1,5 @@
 theory Basics
-imports Pure
+imports Base
 begin
 
 chapter {* The Isabelle system environment *}

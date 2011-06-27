@@ -29,6 +29,7 @@ setup {*
   Solve_Direct.setup
   #> Code_Preproc.setup
   #> Code_Simp.setup
+  #> Code_Target.setup
   #> Code_ML.setup
   #> Code_Haskell.setup
   #> Code_Scala.setup
