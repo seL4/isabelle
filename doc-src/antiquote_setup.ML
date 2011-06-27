@@ -192,7 +192,9 @@ val _ = entity_antiqs no_check "" "inference";
 val _ = entity_antiqs no_check "isatt" "executable";
 val _ = entity_antiqs (K check_tool) "isatt" "tool";
 val _ = entity_antiqs (K (can Thy_Info.get_theory)) "" "theory";
-val _ = entity_antiqs no_check "" "ML antiquotation";  (* FIXME proper check *)
+val _ =
+  entity_antiqs
+    (thy_check ML_Context.intern_antiq ML_Context.defined_antiq) "" Markup.ML_antiquotationN;
 
 end;
 
