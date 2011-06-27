@@ -85,12 +85,14 @@ INCOMPATIBILITY.
     INCOMPATIBILITY.
   - Added support for SNARK and ToFoF-E on SystemOnTPTP and for simply typed
     TPTP problems (TFF).
-  - Added "type_sys", "max_mono_iters", and "max_new_mono_instances" options.
+  - Added "type_sys", "sound", "max_mono_iters", and "max_new_mono_instances"
+    options.
   - Removed "full_types" option and corresponding Proof General menu item.
+    INCOMPATIBILITY.
 
 * Metis:
-  - Removed "metisF" -- use "metis" instead.
-  - Obsoleted "metisFT" -- use "metis (full_types)" instead.
+  - Removed "metisF" -- use "metis" instead. INCOMPATIBILITY.
+  - Obsoleted "metisFT" -- use "metis (full_types)" instead. INCOMPATIBILITY.
 
 * "try":
   - Renamed "try_methods" and added "simp:", "intro:", "dest:", and "elim:"
