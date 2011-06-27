@@ -23,6 +23,7 @@ sig
   val get_constrs : theory -> string -> (string * typ) list option
   val get_all : theory -> info Symtab.table
   val info_of_constr : theory -> string * typ -> info option
+  val info_of_constr_permissive : theory -> string * typ -> info option
   val info_of_case : theory -> string -> info option
   val interpretation : (config -> string list -> theory -> theory) -> theory -> theory
   val make_case :  Proof.context -> Datatype_Case.config -> string list -> term ->
@@ -68,6 +69,15 @@ fun the_info thy name =
   | NONE => error ("Unknown datatype " ^ quote name));
 
 fun info_of_constr thy (c, T) =
+  let
+    val tab = Symtab.lookup_list ((#constrs o DatatypesData.get) thy) c;
+  in
+    case body_type T of
+      Type (tyco, _) => AList.lookup (op =) tab tyco
+    | _ => NONE
+  end;
+
+fun info_of_constr_permissive thy (c, T) =
   let
     val tab = Symtab.lookup_list ((#constrs o DatatypesData.get) thy) c;
     val hint = case body_type T of Type (tyco, _) => SOME tyco | _ => NONE;
@@ -216,7 +226,7 @@ end;
 (* translation rules for case *)
 
 fun make_case ctxt = Datatype_Case.make_case
-  (info_of_constr (Proof_Context.theory_of ctxt)) ctxt;
+  (info_of_constr_permissive (Proof_Context.theory_of ctxt)) ctxt;
 
 fun strip_case ctxt = Datatype_Case.strip_case
   (info_of_case (Proof_Context.theory_of ctxt));
@@ -230,7 +240,7 @@ fun add_case_tr' case_names thy =
 
 val trfun_setup =
   Sign.add_advanced_trfuns ([],
-    [(@{syntax_const "_case_syntax"}, Datatype_Case.case_tr true info_of_constr)],
+    [(@{syntax_const "_case_syntax"}, Datatype_Case.case_tr true info_of_constr_permissive)],
     [], []);
 
 
