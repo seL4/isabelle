@@ -120,7 +120,7 @@ fun run_some_atp ctxt problem =
       " " ^ arguments ctxt false "" (seconds 1.0) (K []) ^ " " ^
       File.shell_path prob_file
   in
-    TimeLimit.timeLimit (seconds 0.15) bash_output command
+    TimeLimit.timeLimit (seconds 0.3) bash_output command
     |> fst
     |> extract_tstplike_proof_and_outcome false true proof_delims
                                           known_failures
@@ -129,7 +129,7 @@ fun run_some_atp ctxt problem =
   handle TimeLimit.TimeOut => SOME TimedOut
 
 val likely_tautology_prefixes =
-  [@{theory HOL}, @{theory Meson}, @{theory Metis}]
+  [@{theory HOL}, @{theory Meson}, @{theory ATP}, @{theory Metis}]
   |> map (fact_name_of o Context.theory_name)
 
 fun is_problem_line_tautology ctxt (Formula (ident, _, phi, _, _)) =

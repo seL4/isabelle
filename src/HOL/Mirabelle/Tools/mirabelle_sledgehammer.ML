@@ -8,7 +8,6 @@ struct
 val proverK = "prover"
 val prover_timeoutK = "prover_timeout"
 val keepK = "keep"
-val full_typesK = "full_types"
 val type_sysK = "type_sys"
 val slicingK = "slicing"
 val e_weight_methodK = "e_weight_method"
@@ -630,8 +629,6 @@ fun sledgehammer_action args id (st as {pre, name, ...}: Mirabelle.run_args) =
   end
 
 fun invoke args =
-  let
-    val _ = Sledgehammer_Isar.full_types := AList.defined (op =) args full_typesK
-  in Mirabelle.register (init, sledgehammer_action args, done) end
+  Mirabelle.register (init, sledgehammer_action args, done)
 
 end

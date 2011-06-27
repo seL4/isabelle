@@ -12,7 +12,6 @@ sig
   val auto : bool Unsynchronized.ref
   val provers : string Unsynchronized.ref
   val timeout : int Unsynchronized.ref
-  val full_types : bool Unsynchronized.ref
   val default_params : Proof.context -> (string * string) list -> params
   val setup : theory -> theory
 end;
@@ -65,7 +64,6 @@ fun merge_relevance_overrides rs =
 
 val provers = Unsynchronized.ref ""
 val timeout = Unsynchronized.ref 30
-val full_types = Unsynchronized.ref false
 
 val _ =
   ProofGeneralPgip.add_preference Preferences.category_proof
@@ -78,11 +76,6 @@ val _ =
       (Preferences.int_pref timeout
           "Sledgehammer: Time Limit"
           "ATPs will be interrupted after this time (in seconds)")
-
-val _ =
-  ProofGeneralPgip.add_preference Preferences.category_proof
-      (Preferences.bool_pref full_types
-          "Sledgehammer: Full Types" "ATPs will use full type information")
 
 type raw_param = string * string list
 
@@ -108,16 +101,15 @@ val negated_alias_params =
    ("quiet", "verbose"),
    ("no_overlord", "overlord"),
    ("non_blocking", "blocking"),
-   ("partial_types", "full_types"),
    ("no_isar_proof", "isar_proof"),
    ("no_slicing", "slicing")]
 
 val params_for_minimize =
-  ["debug", "verbose", "overlord", "type_sys", "full_types", "max_mono_iters",
+  ["debug", "verbose", "overlord", "type_sys", "max_mono_iters",
    "max_new_mono_instances", "isar_proof", "isar_shrink_factor", "timeout",
    "preplay_timeout"]
 
-val property_dependent_params = ["provers", "full_types", "timeout"]
+val property_dependent_params = ["provers", "timeout"]
 
 fun is_known_raw_param s =
   AList.defined (op =) default_default_params s orelse
@@ -218,7 +210,6 @@ fun default_raw_params ctxt =
             [("provers", [case !provers of
                             "" => default_provers_param_value ctxt
                           | s => s]),
-             ("full_types", [if !full_types then "true" else "false"]),
              ("timeout", let val timeout = !timeout in
                            [if timeout <= 0 then "none"
                             else string_of_int timeout]
@@ -272,10 +263,10 @@ fun extract_params mode default_params override_params =
                   |> mode = Auto_Try ? single o hd
     val type_sys =
       if mode = Auto_Try then
-        Smart_Type_Sys true
+        NONE
       else case lookup_string "type_sys" of
-        "smart" => Smart_Type_Sys (mode = Try orelse lookup_bool "full_types")
-      | s => Dumb_Type_Sys (type_sys_from_string s)
+        "smart" => NONE
+      | s => SOME (type_sys_from_string s)
     val relevance_thresholds = lookup_real_pair "relevance_thresholds"
     val max_relevant = lookup_option lookup_int "max_relevant"
     val max_mono_iters = lookup_int "max_mono_iters"

@@ -18,17 +18,13 @@ sig
 
   datatype mode = Auto_Try | Try | Normal | Minimize
 
-  datatype rich_type_sys =
-    Dumb_Type_Sys of type_sys |
-    Smart_Type_Sys of bool
-
   type params =
     {debug: bool,
      verbose: bool,
      overlord: bool,
      blocking: bool,
      provers: string list,
-     type_sys: rich_type_sys,
+     type_sys: type_sys option,
      relevance_thresholds: real * real,
      max_relevant: int option,
      max_mono_iters: int,
@@ -286,17 +282,13 @@ val messages = Async_Manager.thread_messages das_tool "prover"
 
 (** problems, results, ATPs, etc. **)
 
-datatype rich_type_sys =
-  Dumb_Type_Sys of type_sys |
-  Smart_Type_Sys of bool
-
 type params =
   {debug: bool,
    verbose: bool,
    overlord: bool,
    blocking: bool,
    provers: string list,
-   type_sys: rich_type_sys,
+   type_sys: type_sys option,
    relevance_thresholds: real * real,
    max_relevant: int option,
    max_mono_iters: int,
@@ -510,16 +502,11 @@ fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
    them each time. *)
 val atp_important_message_keep_quotient = 10
 
-val fallback_best_type_syss =
-  [Preds (Mangled_Monomorphic, Noninf_Nonmono_Types, Lightweight)]
-
-fun choose_format_and_type_sys _ formats (Dumb_Type_Sys type_sys) =
-    choose_format formats type_sys
-  | choose_format_and_type_sys best_type_syss formats
-                               (Smart_Type_Sys full_types) =
-    map type_sys_from_string best_type_syss @ fallback_best_type_syss
-    |> find_first (if full_types then is_type_sys_virtually_sound else K true)
-    |> the |> choose_format formats
+fun choose_format_and_type_sys best_type_sys formats type_sys_opt =
+  (case type_sys_opt of
+     SOME ts => ts
+   | NONE => type_sys_from_string best_type_sys)
+  |> choose_format formats
 
 val metis_minimize_max_time = seconds 2.0
 
@@ -609,14 +596,14 @@ fun run_atp mode name
                 |> maps (fn (name, rths) => map (pair name o snd) rths)
               end
             fun run_slice (slice, (time_frac, (complete,
-                                   (best_max_relevant, best_type_syss, extra))))
+                                    (best_max_relevant, best_type_sys, extra))))
                           time_left =
               let
                 val num_facts =
                   length facts |> is_none max_relevant
                                   ? Integer.min best_max_relevant
                 val (format, type_sys) =
-                  choose_format_and_type_sys best_type_syss formats type_sys
+                  choose_format_and_type_sys best_type_sys formats type_sys
                 val fairly_sound = is_type_sys_fairly_sound type_sys
                 val facts =
                   facts |> map untranslated_fact

@@ -23,7 +23,7 @@ sig
      prem_kind : formula_kind,
      formats : format list,
      best_slices :
-       Proof.context -> (real * (bool * (int * string list * string))) list}
+       Proof.context -> (real * (bool * (int * string * string))) list}
 
   val e_smartN : string
   val e_autoN : string
@@ -52,7 +52,7 @@ sig
   val remote_atp :
     string -> string -> string list -> (string * string) list
     -> (failure * string) list -> formula_kind -> formula_kind -> format list
-    -> (Proof.context -> int * string list) -> string * atp_config
+    -> (Proof.context -> int * string) -> string * atp_config
   val add_atp : string * atp_config -> theory -> theory
   val get_atp : theory -> string -> atp_config
   val supported_atps : theory -> string list
@@ -81,19 +81,19 @@ type atp_config =
    prem_kind : formula_kind,
    formats : format list,
    best_slices :
-     Proof.context -> (real * (bool * (int * string list * string))) list}
+     Proof.context -> (real * (bool * (int * string * string))) list}
 
 (* "best_slices" must be found empirically, taking a wholistic approach since
    the ATPs are run in parallel. The "real" components give the faction of the
-   time available given to the slice; these should add up to 1.0. The "bool"
+   time available given to the slice and should add up to 1.0. The "bool"
    component indicates whether the slice's strategy is complete; the "int", the
-   preferred number of facts to pass; the "string list", the preferred type
-   systems, which should be of the form [sound] or [unsound, sound], where
-   "sound" is a sound type system and "unsound" is an unsound one.
+   preferred number of facts to pass; the first "string", the preferred type
+   system; the second "string", extra information to the prover (e.g., SOS or no
+   SOS).
 
    The last slice should be the most "normal" one, because it will get all the
-   time available if the other slices fail early and also because it is used for
-   remote provers and if slicing is disabled. *)
+   time available if the other slices fail early and also because it is used if
+   slicing is disabled (e.g., by the minimizer). *)
 
 val known_perl_failures =
   [(CantConnect, "HTTP error"),
@@ -217,11 +217,11 @@ val e_config : atp_config =
      let val method = effective_e_weight_method ctxt in
        (* FUDGE *)
        if method = e_smartN then
-         [(0.333, (true, (500, ["mangled_tags?"], e_fun_weightN))),
-          (0.334, (true, (50, ["mangled_preds?"], e_fun_weightN))),
-          (0.333, (true, (1000, ["mangled_tags?"], e_sym_offset_weightN)))]
+         [(0.333, (true, (500, "mangled_tags?", e_fun_weightN))),
+          (0.334, (true, (50, "mangled_preds?", e_fun_weightN))),
+          (0.333, (true, (1000, "mangled_tags?", e_sym_offset_weightN)))]
        else
-         [(1.0, (true, (500, ["mangled_tags?"], method)))]
+         [(1.0, (true, (500, "mangled_tags?", method)))]
      end}
 
 val e = (eN, e_config)
@@ -237,7 +237,7 @@ val spass_force_sos =
 val spass_config : atp_config =
   {exec = ("ISABELLE_ATP", "scripts/spass"),
    required_execs = [("SPASS_HOME", "SPASS"), ("SPASS_HOME", "tptp2dfg")],
-   arguments = fn ctxt => fn _ => fn sos => fn timeout => fn _ =>
+   arguments = fn _ => fn _ => fn sos => fn timeout => fn _ =>
      ("-Auto -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof \
       \-VarWeight=3 -TimeLimit=" ^ string_of_int (to_secs timeout))
      |> sos = sosN ? prefix "-SOS=1 ",
@@ -256,9 +256,9 @@ val spass_config : atp_config =
    formats = [FOF],
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.333, (false, (150, ["mangled_tags"], sosN))),
-      (0.333, (false, (300, ["poly_tags?"], sosN))),
-      (0.334, (true, (50, ["mangled_tags?"], no_sosN)))]
+     [(0.333, (false, (150, "mangled_tags", sosN))),
+      (0.333, (false, (300, "poly_tags?", sosN))),
+      (0.334, (true, (50, "mangled_tags?", no_sosN)))]
      |> (if Config.get ctxt spass_force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
@@ -273,7 +273,7 @@ val vampire_force_sos =
 val vampire_config : atp_config =
   {exec = ("VAMPIRE_HOME", "vampire"),
    required_execs = [],
-   arguments = fn ctxt => fn _ => fn sos => fn timeout => fn _ =>
+   arguments = fn _ => fn _ => fn sos => fn timeout => fn _ =>
      "--proof tptp --mode casc -t " ^ string_of_int (to_secs timeout) ^
      " --thanks \"Andrei and Krystof\" --input_file"
      |> sos = sosN ? prefix "--sos on ",
@@ -297,9 +297,9 @@ val vampire_config : atp_config =
    formats = [FOF],
    best_slices = fn ctxt =>
      (* FUDGE *)
-     [(0.333, (false, (150, ["poly_preds"], sosN))),
-      (0.334, (true, (50, ["mangled_preds?"], no_sosN))),
-      (0.333, (false, (500, ["mangled_tags?"], sosN)))]
+     [(0.333, (false, (150, "poly_preds", sosN))),
+      (0.334, (true, (50, "mangled_preds?", no_sosN))),
+      (0.333, (false, (500, "mangled_tags?", sosN)))]
      |> (if Config.get ctxt vampire_force_sos then hd #> apfst (K 1.0) #> single
          else I)}
 
@@ -325,7 +325,7 @@ val z3_atp_config : atp_config =
    formats = [FOF],
    best_slices =
      (* FUDGE (FIXME) *)
-     K [(1.0, (false, (250, [], "")))]}
+     K [(1.0, (false, (250, "mangled_preds?", "")))]}
 
 val z3_atp = (z3_atpN, z3_atp_config)
 
@@ -385,8 +385,8 @@ fun remote_config system_name system_versions proof_delims known_failures
    prem_kind = prem_kind,
    formats = formats,
    best_slices = fn ctxt =>
-     let val (max_relevant, type_syss) = best_slice ctxt in
-       [(1.0, (false, (max_relevant, type_syss, "")))]
+     let val (max_relevant, type_sys) = best_slice ctxt in
+       [(1.0, (false, (max_relevant, type_sys, "")))]
      end}
 
 fun remotify_config system_name system_versions best_slice
@@ -406,36 +406,35 @@ fun remotify_atp (name, config) system_name system_versions best_slice =
 
 val remote_e =
   remotify_atp e "EP" ["1.0", "1.1", "1.2"]
-               (K (750, ["mangled_tags?"]) (* FUDGE *))
+               (K (750, "mangled_tags?") (* FUDGE *))
 val remote_vampire =
   remotify_atp vampire "Vampire" ["0.6", "9.0", "1.0"]
-               (K (200, ["mangled_preds?"]) (* FUDGE *))
+               (K (200, "mangled_preds?") (* FUDGE *))
 val remote_z3_atp =
-  remotify_atp z3_atp "Z3" ["2.18"] (K (250, ["mangled_preds?"]) (* FUDGE *))
+  remotify_atp z3_atp "Z3" ["2.18"] (K (250, "mangled_preds?") (* FUDGE *))
 val remote_leo2 =
   remote_atp leo2N "LEO-II" ["1.2.6"] [] [] Axiom Hypothesis [THF]
-             (K (100, ["simple"]) (* FUDGE *))
+             (K (100, "simple") (* FUDGE *))
 val remote_satallax =
   remote_atp satallaxN "Satallax" ["2.0"] [] [] Axiom Hypothesis [THF]
-             (K (64, ["simple"]) (* FUDGE *))
+             (K (64, "simple") (* FUDGE *))
 val remote_sine_e =
-  remote_atp sine_eN "SInE" ["0.4"] [] (#known_failures e_config)
-             Axiom Conjecture [FOF]
-             (K (500, ["mangled_preds?"]) (* FUDGE *))
+  remote_atp sine_eN "SInE" ["0.4"] [] (#known_failures e_config) Axiom
+             Conjecture [FOF] (K (500, "mangled_preds?") (* FUDGE *))
 val remote_snark =
   remote_atp snarkN "SNARK" ["20080805r029", "20080805r024"]
              [("refutation.", "end_refutation.")] [] Hypothesis Hypothesis
-             [TFF, FOF] (K (100, ["simple"]) (* FUDGE *))
+             [TFF, FOF] (K (100, "simple") (* FUDGE *))
 val remote_tofof_e =
   remote_atp tofof_eN "ToFoF" ["0.1"] [] (#known_failures e_config)
-             Axiom Hypothesis [TFF] (K (150, ["simple"]) (* FUDGE *))
+             Axiom Hypothesis [TFF] (K (150, "simple") (* FUDGE *))
 val remote_waldmeister =
   remote_atp waldmeisterN "Waldmeister" ["710"]
              [("#START OF PROOF", "Proved Goals:")]
              [(OutOfResources, "Too many function symbols"),
               (Crashed, "Unrecoverable Segmentation Fault")]
              Hypothesis Hypothesis [CNF_UEQ]
-             (K (50, ["mangled_tags?"]) (* FUDGE *))
+             (K (50, "mangled_tags?") (* FUDGE *))
 
 (* Setup *)
 
