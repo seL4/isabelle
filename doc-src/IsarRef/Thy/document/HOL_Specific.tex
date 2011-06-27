@@ -1816,6 +1816,60 @@ This avoids re-doing basic definitions and proofs from the
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsection{Model Elimination and Resolution%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{HOL}{method}{meson}\hypertarget{method.HOL.meson}{\hyperlink{method.HOL.meson}{\mbox{\isa{meson}}}} & : & \isa{method} \\
+    \indexdef{HOL}{method}{metis}\hypertarget{method.HOL.metis}{\hyperlink{method.HOL.metis}{\mbox{\isa{metis}}}} & : & \isa{method} \\
+  \end{matharray}
+
+  \begin{railoutput}
+\rail@begin{2}{}
+\rail@term{\hyperlink{method.HOL.meson}{\mbox{\isa{meson}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@endbar
+\rail@end
+\rail@begin{5}{}
+\rail@term{\hyperlink{method.HOL.metis}{\mbox{\isa{metis}}}}[]
+\rail@bar
+\rail@nextbar{1}
+\rail@term{\isa{{\isaliteral{28}{\isacharparenleft}}}}[]
+\rail@bar
+\rail@term{\isa{partial{\isaliteral{5F}{\isacharunderscore}}types}}[]
+\rail@nextbar{2}
+\rail@term{\isa{full{\isaliteral{5F}{\isacharunderscore}}types}}[]
+\rail@nextbar{3}
+\rail@term{\isa{no{\isaliteral{5F}{\isacharunderscore}}types}}[]
+\rail@nextbar{4}
+\rail@nont{\hyperlink{syntax.name}{\mbox{\isa{name}}}}[]
+\rail@endbar
+\rail@term{\isa{{\isaliteral{29}{\isacharparenright}}}}[]
+\rail@endbar
+\rail@bar
+\rail@nextbar{1}
+\rail@nont{\hyperlink{syntax.thmrefs}{\mbox{\isa{thmrefs}}}}[]
+\rail@endbar
+\rail@end
+\end{railoutput}
+
+
+  The \hyperlink{method.HOL.meson}{\mbox{\isa{meson}}} method implements Loveland's model elimination
+  procedure \cite{loveland-78}. See \verb|~~/src/HOL/ex/Meson_Test.thy| for
+  examples.
+
+  The \hyperlink{method.HOL.metis}{\mbox{\isa{metis}}} method combines ordered resolution and ordered
+  paramodulation to find first-order (or mildly higher-order) proofs. The first
+  optional argument specifies a type encoding; see the Sledgehammer manual
+  \cite{isabelle-sledgehammer} for details. The \verb|~~/src/HOL/Metis_Examples| directory contains several small theories
+  developed to a large extent using Metis.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsection{Coherent Logic%
 }
 \isamarkuptrue%

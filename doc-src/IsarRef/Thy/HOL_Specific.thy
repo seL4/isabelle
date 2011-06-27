@@ -1287,6 +1287,33 @@ text {*
   number of rule premises will be taken into account here.
 *}
 
+section {* Model Elimination and Resolution *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{method_def (HOL) "meson"} & : & @{text method} \\
+    @{method_def (HOL) "metis"} & : & @{text method} \\
+  \end{matharray}
+
+  @{rail "
+    @@{method (HOL) meson} @{syntax thmrefs}?
+    ;
+
+    @@{method (HOL) metis} ( '(' ('partial_types' | 'full_types' | 'no_types'
+                                  | @{syntax name}) ')' )? @{syntax thmrefs}?
+  "}
+
+  The @{method (HOL) meson} method implements Loveland's model elimination
+  procedure \cite{loveland-78}. See @{file "~~/src/HOL/ex/Meson_Test.thy"} for
+  examples.
+
+  The @{method (HOL) metis} method combines ordered resolution and ordered
+  paramodulation to find first-order (or mildly higher-order) proofs. The first
+  optional argument specifies a type encoding; see the Sledgehammer manual
+  \cite{isabelle-sledgehammer} for details. The @{file
+  "~~/src/HOL/Metis_Examples"} directory contains several small theories
+  developed to a large extent using Metis.
+*}
 
 section {* Coherent Logic *}
 
