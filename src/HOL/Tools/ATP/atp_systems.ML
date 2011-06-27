@@ -197,10 +197,9 @@ val e_config : atp_config =
   {exec = ("E_HOME", "eproof"),
    required_execs = [],
    arguments =
-     fn ctxt => fn full_proof => fn method => fn timeout => fn weights =>
+     fn ctxt => fn _ => fn method => fn timeout => fn weights =>
         "--tstp-in --tstp-out -l5 " ^ e_weight_arguments ctxt method weights ^
-        " -tAutoDev --silent --cpu-limit=" ^ string_of_int (to_secs timeout) ^
-        (if full_proof orelse is_old_e_version () then "" else " --trim"),
+        " -tAutoDev --silent --cpu-limit=" ^ string_of_int (to_secs timeout),
    proof_delims = tstp_proof_delims,
    known_failures =
      [(Unprovable, "SZS status: CounterSatisfiable"),
