@@ -50,7 +50,7 @@ sig
   val declare: Proof.context -> bool -> naming -> binding -> T -> string * T
   val alias: naming -> binding -> string -> T -> T
   type 'a table = T * 'a Symtab.table
-  val check: Proof.context -> 'a table -> xstring * Position.T -> string
+  val check: Proof.context -> 'a table -> xstring * Position.T -> string * 'a
   val get: 'a table -> string -> 'a
   val define: Proof.context -> bool -> naming -> binding * 'a -> 'a table -> string * 'a table
   val empty_table: string -> 'a table
@@ -383,15 +383,15 @@ fun alias naming binding name space =
 
 
 
-(** name spaces coupled with symbol tables **)
+(** name space coupled with symbol table **)
 
 type 'a table = T * 'a Symtab.table;
 
 fun check ctxt (space, tab) (xname, pos) =
   let val name = intern space xname in
-    if Symtab.defined tab name
-    then (Context_Position.report ctxt pos (markup space name); name)
-    else error (undefined (kind_of space) name ^ Position.str_of pos)
+    (case Symtab.lookup tab name of
+      SOME x => (Context_Position.report ctxt pos (markup space name); (name, x))
+    | NONE => error (undefined (kind_of space) name ^ Position.str_of pos))
   end;
 
 fun get (space, tab) name =

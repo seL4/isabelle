@@ -177,10 +177,13 @@ structure Cla = Classical
   val hyp_subst_tacs = [hyp_subst_tac]
 );
 
-ML_Antiquote.value "claset" (Scan.succeed "Cla.claset_of (ML_Context.the_local_context ())");
-
 structure Basic_Classical: BASIC_CLASSICAL = Cla;
 open Basic_Classical;
+*}
+
+setup {*
+  ML_Antiquote.value @{binding claset}
+    (Scan.succeed "Cla.claset_of (ML_Context.the_local_context ())")
 *}
 
 setup Cla.setup

@@ -72,7 +72,7 @@ sig
   val ML_sourceN: string val ML_source: T
   val doc_sourceN: string val doc_source: T
   val antiqN: string val antiq: T
-  val ML_antiqN: string val ML_antiq: string -> T
+  val ML_antiquotationN: string
   val doc_antiqN: string val doc_antiq: string -> T
   val keyword_declN: string val keyword_decl: string -> T
   val command_declN: string val command_decl: string -> string -> T
@@ -266,7 +266,7 @@ val (ML_sourceN, ML_source) = markup_elem "ML_source";
 val (doc_sourceN, doc_source) = markup_elem "doc_source";
 
 val (antiqN, antiq) = markup_elem "antiq";
-val (ML_antiqN, ML_antiq) = markup_string "ML_antiq" nameN;
+val ML_antiquotationN = "ML antiquotation";
 val (doc_antiqN, doc_antiq) = markup_string "doc_antiq" nameN;
 
 

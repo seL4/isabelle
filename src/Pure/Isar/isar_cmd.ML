@@ -303,8 +303,12 @@ fun diag_goal () =
   Proof.goal (Toplevel.proof_of (diag_state ()))
     handle Toplevel.UNDEF => error "No goal present";
 
-val _ = ML_Antiquote.value "Isar.state" (Scan.succeed "Isar_Cmd.diag_state ()");
-val _ = ML_Antiquote.value "Isar.goal" (Scan.succeed "Isar_Cmd.diag_goal ()");
+val _ =
+  Context.>> (Context.map_theory
+   (ML_Antiquote.value (Binding.qualify true "Isar" (Binding.name "state"))
+      (Scan.succeed "Isar_Cmd.diag_state ()") #>
+    ML_Antiquote.value (Binding.qualify true "Isar" (Binding.name "goal"))
+      (Scan.succeed "Isar_Cmd.diag_goal ()")));
 
 
 (* present draft files *)

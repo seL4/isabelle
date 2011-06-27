@@ -24,7 +24,7 @@ sig
   val ml_store_thms: string * thm list -> unit
   val ml_store_thm: string * thm -> unit
   type antiq = Proof.context -> (Proof.context -> string * string) * Proof.context
-  val add_antiq: string -> (Position.T -> antiq context_parser) -> unit
+  val add_antiq: binding -> (Position.T -> antiq context_parser) -> theory -> theory
   val trace_raw: Config.raw
   val trace: bool Config.T
   val eval_antiquotes: ML_Lex.token Antiquote.antiquote list * Position.T ->
@@ -99,29 +99,25 @@ fun bind_thms (name, thms) = ml_store_thms (name, map Drule.export_without_conte
 
 type antiq = Proof.context -> (Proof.context -> string * string) * Proof.context;
 
-local
+structure Antiq_Parsers = Theory_Data
+(
+  type T = (Position.T -> antiq context_parser) Name_Space.table;
+  val empty : T = Name_Space.empty_table Markup.ML_antiquotationN;
+  val extend = I;
+  fun merge data : T = Name_Space.merge_tables data;
+);
 
-val global_parsers =
-  Unsynchronized.ref (Symtab.empty: (Position.T -> antiq context_parser) Symtab.table);
-
-in
-
-fun add_antiq name scan = CRITICAL (fn () =>
-  Unsynchronized.change global_parsers (fn tab =>
-   (if not (Symtab.defined tab name) then ()
-    else warning ("Redefined ML antiquotation: " ^ quote name);
-    Symtab.update (name, scan) tab)));
+fun add_antiq name scan thy = thy
+  |> Antiq_Parsers.map
+    (Name_Space.define (Proof_Context.init_global thy) true (Sign.naming_of thy)
+      (name, scan) #> snd);
 
 fun antiquotation src ctxt =
-  let val ((name, _), pos) = Args.dest_src src in
-    (case Symtab.lookup (! global_parsers) name of
-      NONE => error ("Unknown ML antiquotation command: " ^ quote name ^ Position.str_of pos)
-    | SOME scan =>
-       (Context_Position.report ctxt pos (Markup.ML_antiq name);
-        Args.context_syntax "ML antiquotation" (scan pos) src ctxt))
-  end;
-
-end;
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val ((xname, _), pos) = Args.dest_src src;
+    val (_, scan) = Name_Space.check ctxt (Antiq_Parsers.get thy) (xname, pos);
+  in Args.context_syntax Markup.ML_antiquotationN (scan pos) src ctxt end;
 
 
 (* parsing and evaluation *)

@@ -33,7 +33,7 @@ fun thm_bind kind a i =
 
 (* fact references *)
 
-fun thm_antiq kind scan = ML_Context.add_antiq kind
+fun thm_antiq kind scan = ML_Context.add_antiq (Binding.name kind)
   (fn _ => scan >> (fn ths => fn background =>
     let
       val i = serial ();
@@ -42,8 +42,10 @@ fun thm_antiq kind scan = ML_Context.add_antiq kind
       val ml = (thm_bind kind a i, "Isabelle." ^ a);
     in (K ml, background') end));
 
-val _ = thm_antiq "thm" (Attrib.thm >> single);
-val _ = thm_antiq "thms" Attrib.thms;
+val _ =
+  Context.>> (Context.map_theory
+   (thm_antiq "thm" (Attrib.thm >> single) #>
+    thm_antiq "thms" Attrib.thms));
 
 
 (* ad-hoc goals *)
@@ -52,25 +54,27 @@ val and_ = Args.$$$ "and";
 val by = Args.$$$ "by";
 val goal = Scan.unless (by || and_) Args.name;
 
-val _ = ML_Context.add_antiq "lemma"
-  (fn _ => Args.context -- Args.mode "open" --
-      Scan.lift (Parse.and_list1 (Scan.repeat1 goal) --
-        (by |-- Method.parse -- Scan.option Method.parse)) >>
-    (fn ((ctxt, is_open), (raw_propss, methods)) => fn background =>
-      let
-        val propss = burrow (map (rpair []) o Syntax.read_props ctxt) raw_propss;
-        val i = serial ();
-        val prep_result = Goal.norm_result #> not is_open ? Thm.close_derivation;
-        fun after_qed res goal_ctxt =
-          put_thms (i, map prep_result (Proof_Context.export goal_ctxt ctxt (flat res))) goal_ctxt;
-        val ctxt' = ctxt
-          |> Proof.theorem NONE after_qed propss
-          |> Proof.global_terminal_proof methods;
-        val (a, background') = background
-          |> ML_Antiquote.variant "lemma" ||> put_thms (i, the_thms ctxt' i);
-        val ml =
-          (thm_bind (if length (flat propss) = 1 then "thm" else "thms") a i, "Isabelle." ^ a);
-      in (K ml, background') end));
+val _ =
+  Context.>> (Context.map_theory
+   (ML_Context.add_antiq (Binding.name "lemma")
+    (fn _ => Args.context -- Args.mode "open" --
+        Scan.lift (Parse.and_list1 (Scan.repeat1 goal) --
+          (by |-- Method.parse -- Scan.option Method.parse)) >>
+      (fn ((ctxt, is_open), (raw_propss, methods)) => fn background =>
+        let
+          val propss = burrow (map (rpair []) o Syntax.read_props ctxt) raw_propss;
+          val i = serial ();
+          val prep_result = Goal.norm_result #> not is_open ? Thm.close_derivation;
+          fun after_qed res goal_ctxt =
+            put_thms (i, map prep_result (Proof_Context.export goal_ctxt ctxt (flat res))) goal_ctxt;
+          val ctxt' = ctxt
+            |> Proof.theorem NONE after_qed propss
+            |> Proof.global_terminal_proof methods;
+          val (a, background') = background
+            |> ML_Antiquote.variant "lemma" ||> put_thms (i, the_thms ctxt' i);
+          val ml =
+            (thm_bind (if length (flat propss) = 1 then "thm" else "thms") a i, "Isabelle." ^ a);
+        in (K ml, background') end))));
 
 end;
 

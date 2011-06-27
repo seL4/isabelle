@@ -336,7 +336,9 @@ val code_reflect_cmd = gen_code_reflect Code_Target.read_tyco Code.read_const;
 
 (** Isar setup **)
 
-val _ = ML_Context.add_antiq "code" (fn _ => Args.term >> ml_code_antiq);
+val _ =
+  Context.>> (Context.map_theory
+    (ML_Context.add_antiq (Binding.name "code") (fn _ => Args.term >> ml_code_antiq)));
 
 local
 
