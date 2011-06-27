@@ -17,14 +17,17 @@ sig
   val source: bool Config.T
   val break: bool Config.T
   val add_wrapper: ((unit -> string) -> unit -> string) -> Proof.context -> Proof.context
-  val add_option: string -> (string -> Proof.context -> Proof.context) -> unit
-  val defined_command: string -> bool
-  val defined_option: string -> bool
-  val print_antiquotations: unit -> unit
+  val add_option: binding -> (string -> Proof.context -> Proof.context) -> theory -> theory
+  val intern_command: theory -> xstring -> string
+  val defined_command: theory -> string -> bool
+  val intern_option: theory -> xstring -> string
+  val defined_option: theory -> string -> bool
+  val print_antiquotations: Proof.context -> unit
+  val antiquotation: binding -> 'a context_parser ->
+    ({source: Args.src, state: Toplevel.state, context: Proof.context} -> 'a -> string) ->
+      theory -> theory
   val boolean: string -> bool
   val integer: string -> int
-  val antiquotation: string -> 'a context_parser ->
-    ({source: Args.src, state: Toplevel.state, context: Proof.context} -> 'a -> string) -> unit
   datatype markup = Markup | MarkupEnv | Verbatim
   val modes: string list Unsynchronized.ref
   val eval_antiq: Scan.lexicon -> Toplevel.state -> Symbol_Pos.T list * Position.range -> string
@@ -72,55 +75,66 @@ val wrap = Wrappers.get #> fold (fn wrapper => fn f => wrapper f);
 
 (** maintain global antiquotations **)
 
-local
+structure Antiquotations = Theory_Data
+(
+  type T =
+    (Args.src -> Toplevel.state -> Proof.context -> string) Name_Space.table *
+      (string -> Proof.context -> Proof.context) Name_Space.table;
+  val empty : T =
+    (Name_Space.empty_table Markup.doc_antiquotationN,
+      Name_Space.empty_table Markup.doc_antiquotation_optionN);
+  val extend = I;
+  fun merge ((commands1, options1), (commands2, options2)) : T =
+    (Name_Space.merge_tables (commands1, commands2),
+      Name_Space.merge_tables (options1, options2));
+);
 
-val global_commands =
-  Unsynchronized.ref
-    (Symtab.empty: (Args.src -> Toplevel.state -> Proof.context -> string) Symtab.table);
+fun add_command name cmd thy =
+  thy |> Antiquotations.map
+    (apfst
+      (Name_Space.define
+        (Proof_Context.init_global thy) true (Sign.naming_of thy) (name, cmd) #> snd));
 
-val global_options =
-  Unsynchronized.ref (Symtab.empty: (string -> Proof.context -> Proof.context) Symtab.table);
+fun add_option name opt thy =
+  thy |> Antiquotations.map
+    (apsnd
+      (Name_Space.define
+        (Proof_Context.init_global thy) true (Sign.naming_of thy) (name, opt) #> snd));
 
-fun add_item kind name item tab =
- (if not (Symtab.defined tab name) then ()
-  else warning ("Redefined document antiquotation " ^ kind ^ ": " ^ quote name);
-  Symtab.update (name, item) tab);
+val intern_command = Name_Space.intern o #1 o #1 o Antiquotations.get;
+val defined_command = Symtab.defined o #2 o #1 o Antiquotations.get;
 
-in
+val intern_option = Name_Space.intern o #1 o #2 o Antiquotations.get;
+val defined_option = Symtab.defined o #2 o #2 o Antiquotations.get;
 
-fun add_command name cmd =
-  CRITICAL (fn () => Unsynchronized.change global_commands (add_item "command" name cmd));
-fun add_option name opt =
-  CRITICAL (fn () => Unsynchronized.change global_options (add_item "option" name opt));
-
-fun defined_command name = Symtab.defined (! global_commands) name;
-fun defined_option name = Symtab.defined (! global_options) name;
-
-fun command src =
-  let val ((name, _), pos) = Args.dest_src src in
-    (case Symtab.lookup (! global_commands) name of
-      NONE => error ("Unknown document antiquotation: " ^ quote name ^ Position.str_of pos)
-    | SOME f =>
-       (Position.report pos (Markup.doc_antiq name);
-        (fn state => fn ctxt => f src state ctxt handle ERROR msg =>
-          cat_error msg ("The error(s) above occurred in document antiquotation: " ^
-            quote name ^ Position.str_of pos))))
+fun command src state ctxt =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val ((xname, _), pos) = Args.dest_src src;
+    val (name, f) = Name_Space.check ctxt (#1 (Antiquotations.get thy)) (xname, pos);
+  in
+    f src state ctxt handle ERROR msg =>
+      cat_error msg ("The error(s) above occurred in document antiquotation: " ^
+        quote name ^ Position.str_of pos)
   end;
 
-fun option (name, s) ctxt =
-  (case Symtab.lookup (! global_options) name of
-    NONE => error ("Unknown document antiquotation option: " ^ quote name)
-  | SOME opt => opt s ctxt);
+fun option ((xname, pos), s) ctxt =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val (_, opt) = Name_Space.check ctxt (#2 (Antiquotations.get thy)) (xname, pos);
+  in opt s ctxt end;
 
-
-fun print_antiquotations () =
- [Pretty.big_list "document antiquotation commands:"
-    (map Pretty.str (sort_strings (Symtab.keys (! global_commands)))),
-  Pretty.big_list "document antiquotation options:"
-    (map Pretty.str (sort_strings (Symtab.keys (! global_options))))]
- |> Pretty.chunks |> Pretty.writeln;
-
-end;
+fun print_antiquotations ctxt =
+  let
+    val thy = Proof_Context.theory_of ctxt;
+    val (commands, options) = Antiquotations.get thy;
+    val command_names = map #1 (Name_Space.extern_table ctxt commands);
+    val option_names = map #1 (Name_Space.extern_table ctxt options);
+  in
+    [Pretty.big_list "document antiquotations:" (map Pretty.str command_names),
+      Pretty.big_list "document antiquotation options:" (map Pretty.str option_names)]
+    |> Pretty.chunks |> Pretty.writeln
+  end;
 
 fun antiquotation name scan out =
   add_command name
@@ -152,7 +166,7 @@ fun integer s =
 local
 
 val property =
-  Parse.xname -- Scan.optional (Parse.$$$ "=" |-- Parse.!!! Parse.xname) "";
+  Parse.position Parse.xname -- Scan.optional (Parse.$$$ "=" |-- Parse.!!! Parse.xname) "";
 
 val properties =
   Scan.optional (Parse.$$$ "[" |-- Parse.!!! (Parse.enum "," property --| Parse.$$$ "]")) [];
@@ -445,23 +459,25 @@ end;
 
 (* options *)
 
-val _ = add_option "show_types" (Config.put show_types o boolean);
-val _ = add_option "show_sorts" (Config.put show_sorts o boolean);
-val _ = add_option "show_structs" (Config.put show_structs o boolean);
-val _ = add_option "show_question_marks" (Config.put show_question_marks o boolean);
-val _ = add_option "show_abbrevs" (Config.put show_abbrevs o boolean);
-val _ = add_option "names_long" (Config.put Name_Space.names_long o boolean);
-val _ = add_option "names_short" (Config.put Name_Space.names_short o boolean);
-val _ = add_option "names_unique" (Config.put Name_Space.names_unique o boolean);
-val _ = add_option "eta_contract" (Config.put Syntax_Trans.eta_contract o boolean);
-val _ = add_option "display" (Config.put display o boolean);
-val _ = add_option "break" (Config.put break o boolean);
-val _ = add_option "quotes" (Config.put quotes o boolean);
-val _ = add_option "mode" (add_wrapper o Print_Mode.with_modes o single);
-val _ = add_option "margin" (add_wrapper o setmp_CRITICAL Pretty.margin_default o integer);
-val _ = add_option "indent" (Config.put indent o integer);
-val _ = add_option "source" (Config.put source o boolean);
-val _ = add_option "goals_limit" (Config.put Goal_Display.goals_limit o integer);
+val _ =
+  Context.>> (Context.map_theory
+   (add_option (Binding.name "show_types") (Config.put show_types o boolean) #>
+    add_option (Binding.name "show_sorts") (Config.put show_sorts o boolean) #>
+    add_option (Binding.name "show_structs") (Config.put show_structs o boolean) #>
+    add_option (Binding.name "show_question_marks") (Config.put show_question_marks o boolean) #>
+    add_option (Binding.name "show_abbrevs") (Config.put show_abbrevs o boolean) #>
+    add_option (Binding.name "names_long") (Config.put Name_Space.names_long o boolean) #>
+    add_option (Binding.name "names_short") (Config.put Name_Space.names_short o boolean) #>
+    add_option (Binding.name "names_unique") (Config.put Name_Space.names_unique o boolean) #>
+    add_option (Binding.name "eta_contract") (Config.put Syntax_Trans.eta_contract o boolean) #>
+    add_option (Binding.name "display") (Config.put display o boolean) #>
+    add_option (Binding.name "break") (Config.put break o boolean) #>
+    add_option (Binding.name "quotes") (Config.put quotes o boolean) #>
+    add_option (Binding.name "mode") (add_wrapper o Print_Mode.with_modes o single) #>
+    add_option (Binding.name "margin") (add_wrapper o setmp_CRITICAL Pretty.margin_default o integer) #>
+    add_option (Binding.name "indent") (Config.put indent o integer) #>
+    add_option (Binding.name "source") (Config.put source o boolean) #>
+    add_option (Binding.name "goals_limit") (Config.put Goal_Display.goals_limit o integer)));
 
 
 (* basic pretty printing *)
@@ -562,22 +578,26 @@ fun basic_entity name scan = basic_entities name (scan >> single);
 
 in
 
-val _ = basic_entities_style "thm" (Term_Style.parse -- Attrib.thms) pretty_thm_style;
-val _ = basic_entity "prop" (Term_Style.parse -- Args.prop) pretty_term_style;
-val _ = basic_entity "term" (Term_Style.parse -- Args.term) pretty_term_style;
-val _ = basic_entity "term_type" (Term_Style.parse -- Args.term) pretty_term_typ;
-val _ = basic_entity "typeof" (Term_Style.parse -- Args.term) pretty_term_typeof;
-val _ = basic_entity "const" (Args.const_proper false) pretty_const;
-val _ = basic_entity "abbrev" (Scan.lift Args.name_source) pretty_abbrev;
-val _ = basic_entity "typ" Args.typ_abbrev Syntax.pretty_typ;
-val _ = basic_entity "class" (Scan.lift Args.name) pretty_class;
-val _ = basic_entity "type" (Scan.lift Args.name) pretty_type;
-val _ = basic_entity "text" (Scan.lift Args.name) pretty_text;
-val _ = basic_entities "prf" Attrib.thms (pretty_prf false);
-val _ = basic_entities "full_prf" Attrib.thms (pretty_prf true);
-val _ = basic_entity "theory" (Scan.lift Args.name) pretty_theory;
-val _ = basic_entities_style "thm_style" (Term_Style.parse_bare -- Attrib.thms) pretty_thm_style;
-val _ = basic_entity "term_style" (Term_Style.parse_bare -- Args.term) pretty_term_style;
+val _ =
+  Context.>> (Context.map_theory
+   (basic_entities_style (Binding.name "thm") (Term_Style.parse -- Attrib.thms) pretty_thm_style #>
+    basic_entity (Binding.name "prop") (Term_Style.parse -- Args.prop) pretty_term_style #>
+    basic_entity (Binding.name "term") (Term_Style.parse -- Args.term) pretty_term_style #>
+    basic_entity (Binding.name "term_type") (Term_Style.parse -- Args.term) pretty_term_typ #>
+    basic_entity (Binding.name "typeof") (Term_Style.parse -- Args.term) pretty_term_typeof #>
+    basic_entity (Binding.name "const") (Args.const_proper false) pretty_const #>
+    basic_entity (Binding.name "abbrev") (Scan.lift Args.name_source) pretty_abbrev #>
+    basic_entity (Binding.name "typ") Args.typ_abbrev Syntax.pretty_typ #>
+    basic_entity (Binding.name "class") (Scan.lift Args.name) pretty_class #>
+    basic_entity (Binding.name "type") (Scan.lift Args.name) pretty_type #>
+    basic_entity (Binding.name "text") (Scan.lift Args.name) pretty_text #>
+    basic_entities (Binding.name "prf") Attrib.thms (pretty_prf false) #>
+    basic_entities (Binding.name "full_prf") Attrib.thms (pretty_prf true) #>
+    basic_entity (Binding.name "theory") (Scan.lift Args.name) pretty_theory #>
+    basic_entities_style (Binding.name "thm_style")
+      (Term_Style.parse_bare -- Attrib.thms) pretty_thm_style #>
+    basic_entity (Binding.name "term_style")
+      (Term_Style.parse_bare -- Args.term) pretty_term_style));
 
 end;
 
@@ -598,8 +618,10 @@ fun goal_state name main_goal = antiquotation name (Scan.succeed ())
 
 in
 
-val _ = goal_state "goals" true;
-val _ = goal_state "subgoals" false;
+val _ =
+  Context.>> (Context.map_theory
+   (goal_state (Binding.name "goals") true #>
+    goal_state (Binding.name "subgoals") false));
 
 end;
 
@@ -608,16 +630,19 @@ end;
 
 val _ = Keyword.keyword "by";
 
-val _ = antiquotation "lemma"
-  (Args.prop -- Scan.lift (Args.$$$ "by" |-- Method.parse -- Scan.option Method.parse))
-  (fn {source, context, ...} => fn (prop, methods) =>
-    let
-      val prop_src =
-        (case Args.dest_src source of ((a, arg :: _), pos) => Args.src ((a, [arg]), pos));
-      val _ = context
-        |> Proof.theorem NONE (K I) [[(prop, [])]]
-        |> Proof.global_terminal_proof methods;
-    in output context (maybe_pretty_source pretty_term context prop_src [prop]) end);
+val _ =
+  Context.>> (Context.map_theory
+   (antiquotation (Binding.name "lemma")
+    (Args.prop -- Scan.lift (Args.$$$ "by" |-- Method.parse -- Scan.option Method.parse))
+    (fn {source, context, ...} => fn (prop, methods) =>
+      let
+        val prop_src =
+          (case Args.dest_src source of ((a, arg :: _), pos) => Args.src ((a, [arg]), pos));
+        (* FIXME check proof!? *)
+        val _ = context
+          |> Proof.theorem NONE (K I) [[(prop, [])]]
+          |> Proof.global_terminal_proof methods;
+      in output context (maybe_pretty_source pretty_term context prop_src [prop]) end)));
 
 
 (* ML text *)
@@ -642,25 +667,30 @@ fun ml_enclose bg en pos txt =
 
 in
 
-val _ = ml_text "ML" (ml_enclose "fn _ => (" ");");
-val _ = ml_text "ML_type" (ml_enclose "val _ = NONE : (" ") option;");
-val _ = ml_text "ML_struct" (ml_enclose "functor XXX() = struct structure XX = " " end;");
+val _ =
+  Context.>> (Context.map_theory
+   (ml_text (Binding.name "ML") (ml_enclose "fn _ => (" ");") #>
+    ml_text (Binding.name "ML_type") (ml_enclose "val _ = NONE : (" ") option;") #>
+    ml_text (Binding.name "ML_struct")
+      (ml_enclose "functor XXX() = struct structure XX = " " end;") #>
 
-val _ = ml_text "ML_functor"   (* FIXME formal treatment of functor name (!?) *)
-  (fn pos => fn txt =>
-    ML_Lex.read Position.none ("ML_Env.check_functor " ^
-      ML_Syntax.print_string (Symbol_Pos.content (Symbol_Pos.explode (txt, pos)))));
+    ml_text (Binding.name "ML_functor")   (* FIXME formal treatment of functor name (!?) *)
+      (fn pos => fn txt =>
+        ML_Lex.read Position.none ("ML_Env.check_functor " ^
+          ML_Syntax.print_string (Symbol_Pos.content (Symbol_Pos.explode (txt, pos))))) #>
 
-val _ = ml_text "ML_text" (K (K []));
+    ml_text (Binding.name "ML_text") (K (K []))));
 
 end;
 
 
 (* files *)
 
-val _ = antiquotation "file" (Scan.lift Args.name)
-  (fn {context, ...} => fn path =>
-    if File.exists (Path.explode path) then verb_text path
-    else error ("Bad file: " ^ quote path));
+val _ =
+  Context.>> (Context.map_theory
+   (antiquotation (Binding.name "file") (Scan.lift Args.name)
+    (fn _ => fn path =>
+      if File.exists (Path.explode path) then verb_text path
+      else error ("Bad file: " ^ quote path))));
 
 end;

@@ -384,7 +384,8 @@ val print_trans_rules = Toplevel.unknown_context o
 val print_methods = Toplevel.unknown_theory o
   Toplevel.keep (Method.print_methods o Toplevel.theory_of);
 
-val print_antiquotations = Toplevel.imperative Thy_Output.print_antiquotations;
+val print_antiquotations =
+  Toplevel.keep (Thy_Output.print_antiquotations o Toplevel.context_of);
 
 val thy_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   let

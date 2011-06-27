@@ -115,7 +115,9 @@ object Isabelle_Markup
       Markup.CLASS -> get_color("red"),
       Markup.TYPE -> get_color("black"),
       Markup.CONSTANT -> get_color("black"),
-      Markup.ML_ANTIQUOTATION -> get_color("black"))
+      Markup.ML_ANTIQUOTATION -> get_color("black"),
+      Markup.DOCUMENT_ANTIQUOTATION -> get_color("black"),
+      Markup.DOCUMENT_ANTIQUOTATION_OPTION -> get_color("black"))
 
   private val text_colors: Map[String, Color] =
     Map(

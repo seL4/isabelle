@@ -6,6 +6,7 @@ More antiquotations.
 
 signature MORE_ANTIQUOTE =
 sig
+  val setup: theory -> theory
 end;
 
 structure More_Antiquote : MORE_ANTIQUOTE =
@@ -40,8 +41,9 @@ fun pretty_code_thm src ctxt raw_const =
 
 in
 
-val _ = Thy_Output.antiquotation "code_thms" Args.term
-  (fn {source, context, ...} => pretty_code_thm source context);
+val setup =
+  Thy_Output.antiquotation @{binding code_thms} Args.term
+    (fn {source, context, ...} => pretty_code_thm source context);
 
 end;
 

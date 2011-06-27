@@ -60,6 +60,8 @@ sig
   val add_include: string -> string * (string * string list) option -> theory -> theory
 
   val codegen_tool: string (*theory name*) -> string (*export_code expr*) -> unit
+
+  val setup: theory -> theory
 end;
 
 structure Code_Target : CODE_TARGET =
@@ -143,7 +145,7 @@ datatype target = Target of {
 };
 
 fun make_target ((serial, description), ((reserved, includes), (module_alias, symbol_syntax))) =
-  Target { serial = serial, description = description, reserved = reserved, 
+  Target { serial = serial, description = description, reserved = reserved,
     includes = includes, module_alias = module_alias, symbol_syntax = symbol_syntax };
 fun map_target f ( Target { serial, description, reserved, includes, module_alias, symbol_syntax } ) =
   make_target (f ((serial, description), ((reserved, includes), (module_alias, symbol_syntax))));
@@ -199,7 +201,7 @@ fun put_target (target, seri) thy =
           | _ => true);
     val _ = if overwriting
       then warning ("Overwriting existing target " ^ quote target)
-      else (); 
+      else ();
   in
     thy
     |> (Targets.map o apfst o apfst o Symtab.update)
@@ -251,7 +253,7 @@ fun the_literals thy = #literals o the_fundamental thy;
 fun collapse_hierarchy thy =
   let
     val ((targets, _), _) = Targets.get thy;
-    fun collapse target = 
+    fun collapse target =
       let
         val data = case Symtab.lookup targets target
          of SOME data => data
@@ -352,7 +354,7 @@ fun mount_serializer thy target some_width module_name args naming program names
     val serializer = case the_description data
      of Fundamental seri => #serializer seri;
     val reserved = the_reserved data;
-    val module_alias = the_module_alias data 
+    val module_alias = the_module_alias data
     val { class, instance, tyco, const } = the_symbol_syntax data;
     val literals = the_literals thy target;
     val (prepared_serializer, prepared_program) = prepare_serializer thy
@@ -396,7 +398,7 @@ fun check_code_for thy target strict args naming program names_cs =
     val { env_var, make_destination, make_command } =
       (#check o the_fundamental thy) target;
     fun ext_check p =
-      let 
+      let
         val destination = make_destination p;
         val _ = export (SOME destination) (invoke_serializer thy target (SOME 80)
           module_name args naming program names_cs);
@@ -495,7 +497,7 @@ val parse_const_terms = Scan.repeat1 Args.term
 fun parse_names category parse internalize lookup =
   Scan.lift (Args.parens (Args.$$$ category)) |-- Scan.repeat1 parse
   >> (fn xs => fn thy => fn naming => map_filter (lookup naming o internalize thy) xs);
-  
+
 val parse_consts = parse_names "consts" Args.term
   Code.check_const Code_Thingol.lookup_const ;
 
@@ -511,15 +513,17 @@ val parse_instances = parse_names "instances" (Scan.lift (Args.name --| Args.$$$
 
 in
 
-val _ = Thy_Output.antiquotation "code_stmts"
-  (parse_const_terms -- Scan.repeat (parse_consts || parse_types || parse_classes || parse_instances)
-    -- Scan.lift (Args.parens (Args.name -- Scan.option Parse.int)))
-  (fn {context = ctxt, ...} => fn ((mk_cs, mk_stmtss), (target, some_width)) =>
-    let val thy = Proof_Context.theory_of ctxt in
-      present_code thy (mk_cs thy)
-        (fn naming => maps (fn f => f thy naming) mk_stmtss)
-        target some_width "Example" []
-    end);
+val antiq_setup =
+  Thy_Output.antiquotation @{binding code_stmts}
+    (parse_const_terms --
+      Scan.repeat (parse_consts || parse_types || parse_classes || parse_instances)
+      -- Scan.lift (Args.parens (Args.name -- Scan.option Parse.int)))
+    (fn {context = ctxt, ...} => fn ((mk_cs, mk_stmtss), (target, some_width)) =>
+      let val thy = Proof_Context.theory_of ctxt in
+        present_code thy (mk_cs thy)
+          (fn naming => maps (fn f => f thy naming) mk_stmtss)
+          target some_width "Example" []
+      end);
 
 end;
 
@@ -744,5 +748,10 @@ fun codegen_tool thyname cmd_expr =
    of SOME f => (writeln "Now generating code..."; f thy)
     | NONE => error ("Bad directive " ^ quote cmd_expr)
   end;
+
+
+(** theory setup **)
+
+val setup = antiq_setup;
 
 end; (*struct*)

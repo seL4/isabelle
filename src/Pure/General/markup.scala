@@ -190,7 +190,8 @@ object Markup
 
   val ANTIQ = "antiq"
   val ML_ANTIQUOTATION = "ML antiquotation"
-  val DOC_ANTIQ = "doc_antiq"
+  val DOCUMENT_ANTIQUOTATION = "document antiquotation"
+  val DOCUMENT_ANTIQUOTATION_OPTION = "document antiquotation option"
 
 
   /* ML syntax */

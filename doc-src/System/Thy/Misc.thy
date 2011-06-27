@@ -1,5 +1,5 @@
 theory Misc
-imports Pure
+imports Base
 begin
 
 chapter {* Miscellaneous tools \label{ch:tools} *}

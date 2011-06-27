@@ -1,4 +1,6 @@
-(*<*)theory Advanced imports Even uses "../../antiquote_setup.ML" begin(*>*)
+(*<*)theory Advanced imports Even uses "../../antiquote_setup.ML" begin
+setup {* Antiquote_Setup.setup *}
+(*>*)
 
 text {*
 The premises of introduction rules may contain universal quantifiers and

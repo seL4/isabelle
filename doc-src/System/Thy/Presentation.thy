@@ -1,5 +1,5 @@
 theory Presentation
-imports Pure
+imports Base
 begin
 
 chapter {* Presenting theories \label{ch:present} *}
