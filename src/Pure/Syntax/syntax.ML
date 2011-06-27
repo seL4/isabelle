@@ -369,8 +369,8 @@ fun unparse_arity ctxt (a, Ss, S) =
 fun read_sort ctxt = parse_sort ctxt #> check_sort ctxt;
 fun read_typ ctxt = parse_typ ctxt #> singleton (check_typs ctxt);
 
-fun read_terms ctxt = map (parse_term ctxt) #> check_terms ctxt;
-fun read_props ctxt = map (parse_prop ctxt) #> check_props ctxt;
+fun read_terms ctxt = Par_List.map_name "Syntax.read_terms" (parse_term ctxt) #> check_terms ctxt;
+fun read_props ctxt = Par_List.map_name "Syntax.read_props" (parse_prop ctxt) #> check_props ctxt;
 
 val read_term = singleton o read_terms;
 val read_prop = singleton o read_props;
