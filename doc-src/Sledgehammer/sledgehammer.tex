@@ -406,27 +406,18 @@ contact the author at \authoremail.
 
 \point{How can I tell whether a generated proof is sound?}
 
-First, if Metis can reconstruct it, the proof is sound (modulo soundness of
-Isabelle's inference kernel). If it fails or runs seemingly forever, you can try
+First, if Metis can reconstruct it, the proof is sound (assuming Isabelle's
+inference kernel is sound). If it fails or runs seemingly forever, you can try
 
 \prew
 \textbf{apply}~\textbf{--} \\
-\textbf{sledgehammer} [\textit{type\_sys} = \textit{poly\_tags}] (\textit{metis\_facts})
+\textbf{sledgehammer} [\textit{sound}] (\textit{metis\_facts})
 \postw
 
 where \textit{metis\_facts} is the list of facts appearing in the suggested
-Metis call. The automatic provers should be able to re-find the proof very
-quickly if it is sound, and the \textit{type\_sys} $=$ \textit{poly\_tags}
-option (\S\ref{problem-encoding}) ensures that no unsound proofs are found.
-
-%The \textit{full\_types} option (\S\ref{problem-encoding}) can also be used
-%here, but it is unsound in extremely rare degenerate cases such as the
-%following:
-%
-%\prew
-%\textbf{lemma} ``$\forall x\> y\Colon{'}\!a.\ x = y \,\Longrightarrow \exists f\> g\Colon\mathit{nat} \Rightarrow {'}\!a.\ f \not= g$'' \\
-%\textbf{sledgehammer} [\textit{full\_types}] (\textit{nat.distinct\/}(1))
-%\postw
+Metis call. The automatic provers should be able to re-find the proof quickly if
+it is sound, and the \textit{sound} option (\S\ref{problem-encoding}) ensures
+that no unsound proofs are found.
 
 \point{Which facts are passed to the automatic provers?}
 
@@ -448,7 +439,7 @@ actual facts using \textit{debug} (\S\ref{output-format}).
 Sledgehammer is good at finding short proofs combining a handful of existing
 lemmas. If you are looking for longer proofs, you must typically restrict the
 number of facts, by setting the \textit{max\_relevant} option
-(\S\ref{relevance-filter}) to, say, 50 or 100.
+(\S\ref{relevance-filter}) to, say, 25 or 50.
 
 You can also influence which facts are actually selected in a number of ways. If
 you simply want to ensure that a fact is included, you can specify it using the
@@ -646,9 +637,8 @@ You can instruct Sledgehammer to run automatically on newly entered theorems by
 enabling the ``Auto Sledgehammer'' option from the ``Isabelle'' menu in Proof
 General. For automatic runs, only the first prover set using \textit{provers}
 (\S\ref{mode-of-operation}) is considered, fewer facts are passed to the prover,
-\textit{slicing} (\S\ref{mode-of-operation}) is disabled,
-%\textit{full\_types} (\S\ref{problem-encoding}) is enabled,
-\textit{verbose} (\S\ref{output-format})
+\textit{slicing} (\S\ref{mode-of-operation}) is disabled, \textit{sound}
+(\S\ref{problem-encoding}) is enabled, \textit{verbose} (\S\ref{output-format})
 and \textit{debug} (\S\ref{output-format}) are disabled, and \textit{timeout}
 (\S\ref{timeouts}) is superseded by the ``Auto Tools Time Limit'' in Proof
 General's ``Isabelle'' menu. Sledgehammer's output is also more concise.
@@ -883,14 +873,6 @@ safely remove them after Sledgehammer has run.
 \label{problem-encoding}
 
 \begin{enum}
-%\opfalse{full\_types}{partial\_types}
-%Specifies whether a type-sound encoding should be used when translating
-%higher-order types to untyped first-order logic. Enabling this option virtually
-%prevents the discovery of type-incorrect proofs, but it can slow down the ATP
-%slightly. This option is implicitly enabled for automatic runs. For historical
-%reasons, the default value of this option can be overridden using the option
-%``Sledgehammer: Full Types'' from the ``Isabelle'' menu in Proof General.
-
 \opdefault{type\_sys}{string}{smart}
 Specifies the type system to use in ATP problems. Some of the type systems are
 unsound, meaning that they can give rise to spurious proofs (unreconstructible
@@ -953,7 +935,8 @@ identified by a question mark (`{?}')\ that detects and erases monotonic types,
 notably infinite types. (For \textit{simple}, the types are not actually erased
 but rather replaced by a shared uniform type of individuals.) As argument to the
 \textit{metis} proof method, the question mark is replaced by a
-``\textit{\_query}'' suffix.
+``\textit{\_query}'' suffix. If the \emph{sound} option is enabled, these
+encodings are fully sound.
 
 \item[$\bullet$]
 \textbf{%
@@ -986,6 +969,11 @@ irrespective of the value of this option.
 \nopagebreak
 {\small See also \textit{max\_new\_mono\_instances} (\S\ref{relevance-filter})
 and \textit{max\_mono\_iters} (\S\ref{relevance-filter}).}
+
+\opfalse{sound}{unsound}
+Specifies whether Sledgehammer should run in its fully sound mode. In that mode,
+quasi-sound type encodings are made fully sound, at the cost of some (usually
+needless) clutter.
 \end{enum}
 
 \subsection{Relevance Filter}
