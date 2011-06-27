@@ -87,7 +87,7 @@ sig
   val helper_table : ((string * bool) * thm list) list
   val factsN : string
   val prepare_atp_problem :
-    Proof.context -> format -> formula_kind -> formula_kind -> type_sys
+    Proof.context -> format -> formula_kind -> formula_kind -> type_sys -> bool
     -> bool -> bool -> bool -> term list -> term
     -> ((string * locality) * term) list
     -> string problem * string Symtab.table * int * int
@@ -991,7 +991,8 @@ val deep_freeze_type = map_atyps deep_freeze_atyp
 fun should_encode_type ctxt (nonmono_Ts as _ :: _) _ T =
     exists (curry (type_instance ctxt) (deep_freeze_type T)) nonmono_Ts
   | should_encode_type _ _ All_Types _ = true
-  | should_encode_type ctxt _ Fin_Nonmono_Types T = is_type_surely_finite ctxt T
+  | should_encode_type ctxt _ Fin_Nonmono_Types T =
+    is_type_surely_finite ctxt false T
   | should_encode_type _ _ _ _ = false
 
 fun should_predicate_on_type ctxt nonmono_Ts (Preds (_, level, heaviness))
@@ -1617,26 +1618,27 @@ fun sym_decl_table_for_facts ctxt type_sys repaired_sym_tab (conjs, facts) =
 
 (* This inference is described in section 2.3 of Claessen et al.'s "Sorting it
    out with monotonicity" paper presented at CADE 2011. *)
-fun add_combterm_nonmonotonic_types _ _ _ (SOME false) _ = I
-  | add_combterm_nonmonotonic_types ctxt level locality _
+fun add_combterm_nonmonotonic_types _ _ _ _ (SOME false) _ = I
+  | add_combterm_nonmonotonic_types ctxt level sound locality _
         (CombApp (CombApp (CombConst ((s, _), Type (_, [T, _]), _), tm1),
                            tm2)) =
     (is_tptp_equal s andalso exists is_var_or_bound_var [tm1, tm2] andalso
      (case level of
         Noninf_Nonmono_Types =>
         not (is_locality_global locality) orelse
-        not (is_type_surely_infinite ctxt T)
-      | Fin_Nonmono_Types => is_type_surely_finite ctxt T
+        not (is_type_surely_infinite ctxt sound T)
+      | Fin_Nonmono_Types => is_type_surely_finite ctxt false T
       | _ => true)) ? insert_type ctxt I (deep_freeze_type T)
-  | add_combterm_nonmonotonic_types _ _ _ _ _ = I
-fun add_fact_nonmonotonic_types ctxt level ({kind, locality, combformula, ...}
-                                            : translated_formula) =
+  | add_combterm_nonmonotonic_types _ _ _ _ _ _ = I
+fun add_fact_nonmonotonic_types ctxt level sound
+        ({kind, locality, combformula, ...} : translated_formula) =
   formula_fold (SOME (kind <> Conjecture))
-               (add_combterm_nonmonotonic_types ctxt level locality) combformula
-fun nonmonotonic_types_for_facts ctxt type_sys facts =
+               (add_combterm_nonmonotonic_types ctxt level sound locality)
+               combformula
+fun nonmonotonic_types_for_facts ctxt type_sys sound facts =
   let val level = level_of_type_sys type_sys in
     if level = Noninf_Nonmono_Types orelse level = Fin_Nonmono_Types then
-      [] |> fold (add_fact_nonmonotonic_types ctxt level) facts
+      [] |> fold (add_fact_nonmonotonic_types ctxt level sound) facts
          (* We must add "bool" in case the helper "True_or_False" is added
             later. In addition, several places in the code rely on the list of
             nonmonotonic types not being empty. *)
@@ -1817,7 +1819,7 @@ val free_typesN = "Type variables"
 
 val explicit_apply = NONE (* for experimental purposes *)
 
-fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
+fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys sound
         exporter readable_names preproc hyp_ts concl_t facts =
   let
     val (format, type_sys) = choose_format [format] type_sys
@@ -1825,7 +1827,8 @@ fun prepare_atp_problem ctxt format conj_sym_kind prem_kind type_sys
       translate_formulas ctxt format prem_kind type_sys preproc hyp_ts concl_t
                          facts
     val sym_tab = conjs @ facts |> sym_table_for_facts ctxt explicit_apply
-    val nonmono_Ts = conjs @ facts |> nonmonotonic_types_for_facts ctxt type_sys
+    val nonmono_Ts =
+      conjs @ facts |> nonmonotonic_types_for_facts ctxt type_sys sound
     val repair = repair_fact ctxt format type_sys sym_tab
     val (conjs, facts) = (conjs, facts) |> pairself (map repair)
     val repaired_sym_tab =

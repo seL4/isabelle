@@ -85,6 +85,7 @@ val default_default_params =
    ("overlord", "false"),
    ("blocking", "false"),
    ("type_sys", "smart"),
+   ("sound", "false"),
    ("relevance_thresholds", "0.45 0.85"),
    ("max_relevant", "smart"),
    ("max_mono_iters", "3"),
@@ -101,11 +102,12 @@ val negated_alias_params =
    ("quiet", "verbose"),
    ("no_overlord", "overlord"),
    ("non_blocking", "blocking"),
+   ("unsound", "sound"),
    ("no_isar_proof", "isar_proof"),
    ("no_slicing", "slicing")]
 
 val params_for_minimize =
-  ["debug", "verbose", "overlord", "type_sys", "max_mono_iters",
+  ["debug", "verbose", "overlord", "type_sys", "sound", "max_mono_iters",
    "max_new_mono_instances", "isar_proof", "isar_shrink_factor", "timeout",
    "preplay_timeout"]
 
@@ -122,7 +124,8 @@ fun is_prover_list ctxt s =
     ss as _ :: _ => forall (is_prover_supported ctxt) ss
   | _ => false
 
-(* Secret feature: "provers =" and "type_sys =" can be left out. *)
+(* "provers =" and "type_sys =" can be left out. The latter is a secret
+   feature. *)
 fun check_and_repair_raw_param ctxt (name, value) =
   if is_known_raw_param name then
     (name, value)
@@ -267,6 +270,7 @@ fun extract_params mode default_params override_params =
       else case lookup_string "type_sys" of
         "smart" => NONE
       | s => SOME (type_sys_from_string s)
+    val sound = mode = Auto_Try orelse lookup_bool "sound"
     val relevance_thresholds = lookup_real_pair "relevance_thresholds"
     val max_relevant = lookup_option lookup_int "max_relevant"
     val max_mono_iters = lookup_int "max_mono_iters"
@@ -285,9 +289,9 @@ fun extract_params mode default_params override_params =
      provers = provers, relevance_thresholds = relevance_thresholds,
      max_relevant = max_relevant, max_mono_iters = max_mono_iters,
      max_new_mono_instances = max_new_mono_instances, type_sys = type_sys,
-     isar_proof = isar_proof, isar_shrink_factor = isar_shrink_factor,
-     slicing = slicing, timeout = timeout, preplay_timeout = preplay_timeout,
-     expect = expect}
+     sound = sound, isar_proof = isar_proof,
+     isar_shrink_factor = isar_shrink_factor, slicing = slicing,
+     timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}
   end
 
 fun get_params mode ctxt = extract_params mode (default_raw_params ctxt)

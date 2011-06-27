@@ -25,6 +25,7 @@ sig
      blocking: bool,
      provers: string list,
      type_sys: type_sys option,
+     sound: bool,
      relevance_thresholds: real * real,
      max_relevant: int option,
      max_mono_iters: int,
@@ -289,6 +290,7 @@ type params =
    blocking: bool,
    provers: string list,
    type_sys: type_sys option,
+   sound: bool,
    relevance_thresholds: real * real,
    max_relevant: int option,
    max_mono_iters: int,
@@ -492,7 +494,7 @@ fun has_bound_or_var_of_type pred =
    are omitted. *)
 fun is_dangerous_prop ctxt =
   transform_elim_prop
-  #> (has_bound_or_var_of_type (is_type_surely_finite ctxt) orf
+  #> (has_bound_or_var_of_type (is_type_surely_finite ctxt false) orf
       is_exhaustive_finite)
 
 fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
@@ -528,9 +530,9 @@ fun repair_monomorph_context max_iters max_new_instances =
 fun run_atp mode name
         ({exec, required_execs, arguments, proof_delims, known_failures,
           conj_sym_kind, prem_kind, formats, best_slices, ...} : atp_config)
-        ({debug, verbose, overlord, type_sys, max_relevant, max_mono_iters,
-          max_new_mono_instances, isar_proof, isar_shrink_factor, slicing,
-          timeout, preplay_timeout, ...} : params)
+        ({debug, verbose, overlord, type_sys, sound, max_relevant,
+          max_mono_iters, max_new_mono_instances, isar_proof,
+          isar_shrink_factor, slicing, timeout, preplay_timeout, ...} : params)
         minimize_command
         ({state, goal, subgoal, subgoal_count, facts, ...} : prover_problem) =
   let
@@ -633,8 +635,8 @@ fun run_atp mode name
                 val (atp_problem, pool, conjecture_offset, facts_offset,
                      fact_names, typed_helpers, sym_tab) =
                   prepare_atp_problem ctxt format conj_sym_kind prem_kind
-                      type_sys false (Config.get ctxt atp_readable_names) true
-                      hyp_ts concl_t facts
+                      type_sys sound false (Config.get ctxt atp_readable_names)
+                      true hyp_ts concl_t facts
                 fun weights () = atp_problem_weights atp_problem
                 val full_proof = debug orelse isar_proof
                 val core =

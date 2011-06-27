@@ -196,8 +196,8 @@ fun prepare_metis_problem ctxt type_sys conj_clauses fact_clauses =
       tracing ("PROPS:\n" ^ cat_lines (map (Syntax.string_of_term ctxt) props))
     *)
     val (atp_problem, _, _, _, _, _, sym_tab) =
-      prepare_atp_problem ctxt CNF Hypothesis Axiom type_sys false false false
-                          [] @{prop False} props
+      prepare_atp_problem ctxt CNF Hypothesis Axiom type_sys true false false
+                          false [] @{prop False} props
     (*
     val _ = tracing ("ATP PROBLEM: " ^
                      cat_lines (tptp_lines_for_atp_problem CNF atp_problem))

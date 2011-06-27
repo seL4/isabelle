@@ -158,8 +158,8 @@ fun generate_tptp_inference_file_for_theory ctxt thy type_sys file_name =
       facts0 |> map (fn ((_, loc), th) =>
                         ((Thm.get_name_hint th, loc), prop_of th))
     val (atp_problem, _, _, _, _, _, _) =
-      prepare_atp_problem ctxt format Axiom Axiom type_sys true false true []
-                          @{prop False} facts
+      prepare_atp_problem ctxt format Axiom Axiom type_sys true true false true
+                          [] @{prop False} facts
     val atp_problem =
       atp_problem
       |> map (apsnd (filter_out (is_problem_line_tautology ctxt)))
