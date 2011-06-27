@@ -738,6 +738,10 @@ fun run_atp mode name
                   facts |> map untranslated_fact |> filter_used_facts used_facts
                         |> map snd
               in
+                (if mode = Minimize then
+                   Output.urgent_message "Preplaying proof..."
+                 else
+                   ());
                 play_one_line_proof debug preplay_timeout used_ths state subgoal
                                     metis_reconstructors
               end,
