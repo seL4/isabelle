@@ -29,6 +29,8 @@ val fact_name_of = prefix fact_prefix o ascii_of
 fun facts_of thy =
   Sledgehammer_Filter.all_facts (Proof_Context.init_global thy) Symtab.empty
                                 true [] []
+  |> filter (curry (op =) @{typ bool} o fastype_of
+             o Object_Logic.atomize_term thy o prop_of o snd)
 
 (* FIXME: Similar yet different code in "mirabelle.ML". The code here has a few
    fixes that seem to be missing over there; or maybe the two code portions are
@@ -153,22 +155,20 @@ fun generate_tptp_inference_file_for_theory ctxt thy type_sys file_name =
     val type_sys = type_sys |> type_sys_from_string
     val path = file_name |> Path.explode
     val _ = File.write path ""
-    val facts0 = facts_of thy
-    val facts =
-      facts0 |> map (fn ((_, loc), th) =>
-                        ((Thm.get_name_hint th, loc), prop_of th))
+    val facts = facts_of thy
     val (atp_problem, _, _, _, _, _, _) =
-      prepare_atp_problem ctxt format Axiom Axiom type_sys true true false true
-                          [] @{prop False} facts
+      facts
+      |> map (fn ((_, loc), th) => ((Thm.get_name_hint th, loc), prop_of th))
+      |> prepare_atp_problem ctxt format Axiom Axiom type_sys true true false
+                             true [] @{prop False}
     val atp_problem =
       atp_problem
       |> map (apsnd (filter_out (is_problem_line_tautology ctxt)))
-    val all_names = facts0 |> map (Thm.get_name_hint o snd)
+    val all_names = facts |> map (Thm.get_name_hint o snd)
     val infers =
-      facts0 |> map (fn (_, th) =>
-                        (fact_name_of (Thm.get_name_hint th),
-                         theorems_mentioned_in_proof_term (SOME all_names) th))
-
+      facts |> map (fn (_, th) =>
+                       (fact_name_of (Thm.get_name_hint th),
+                        theorems_mentioned_in_proof_term (SOME all_names) th))
     val all_atp_problem_names =
       atp_problem |> maps (map ident_of_problem_line o snd)
     val infers =

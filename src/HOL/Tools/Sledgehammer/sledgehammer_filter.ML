@@ -776,9 +776,9 @@ val exists_low_level_class_const =
 
 fun is_metastrange_theorem th =
   case head_of (concl_of th) of
-      Const (a, _) => (a <> @{const_name Trueprop} andalso
-                       a <> @{const_name "=="})
-    | _ => false
+    Const (s, _) => (s <> @{const_name Trueprop} andalso
+                     s <> @{const_name "=="})
+  | _ => false
 
 fun is_that_fact th =
   String.isSuffix (Long_Name.separator ^ Obtain.thatN) (Thm.get_name_hint th)
@@ -791,12 +791,14 @@ val type_has_top_sort =
 (**** Predicates to detect unwanted facts (prolific or likely to cause
       unsoundness) ****)
 
-fun is_theorem_bad_for_atps thm =
-  let val t = prop_of thm in
-    is_formula_too_complex t orelse exists_type type_has_top_sort t orelse
-    exists_sledgehammer_const t orelse exists_low_level_class_const t orelse
-    is_metastrange_theorem thm orelse is_that_fact thm
-  end
+fun is_theorem_bad_for_atps exporter thm =
+  is_metastrange_theorem thm orelse
+  (not exporter andalso
+   let val t = prop_of thm in
+     is_formula_too_complex t orelse exists_type type_has_top_sort t orelse
+     exists_sledgehammer_const t orelse exists_low_level_class_const t orelse
+     is_that_fact thm
+   end)
 
 fun meta_equify (@{const Trueprop}
                  $ (Const (@{const_name HOL.eq}, Type (_, [T, _])) $ t1 $ t2)) =
@@ -822,7 +824,7 @@ fun clasimpset_rule_table_of ctxt =
                   |> add Simp normalize_simp_prop snd simps
   end
 
-fun all_facts ctxt reserved really_all add_ths chained_ths =
+fun all_facts ctxt reserved exporter add_ths chained_ths =
   let
     val thy = Proof_Context.theory_of ctxt
     val global_facts = Global_Theory.facts_of thy
@@ -852,7 +854,7 @@ fun all_facts ctxt reserved really_all add_ths chained_ths =
       Name_Space.merge (Facts.space_of global_facts, Facts.space_of local_facts)
     fun add_facts global foldx facts =
       foldx (fn (name0, ths) =>
-        if not really_all andalso name0 <> "" andalso
+        if not exporter andalso name0 <> "" andalso
            forall (not o member Thm.eq_thm_prop add_ths) ths andalso
            (Facts.is_concealed facts name0 orelse
             (not (Config.get ctxt ignore_no_atp) andalso
@@ -874,9 +876,8 @@ fun all_facts ctxt reserved really_all add_ths chained_ths =
             pair 1
             #> fold (fn th => fn (j, (multis, unis)) =>
                         (j + 1,
-                         if not really_all andalso
-                            not (member Thm.eq_thm_prop add_ths th) andalso
-                            is_theorem_bad_for_atps th then
+                         if not (member Thm.eq_thm_prop add_ths th) andalso
+                            is_theorem_bad_for_atps exporter th then
                            (multis, unis)
                          else
                            let
