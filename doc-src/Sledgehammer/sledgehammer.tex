@@ -337,12 +337,6 @@ remote\_vampire}''). For convenience, you can omit ``\textit{provers}~=''
 and simply write the prover names as a space-separated list (e.g., ``\textit{e
 spass remote\_vampire}'').
 
-\item[$\bullet$] \textbf{\textit{full\_types}} (\S\ref{problem-encoding})
-specifies whether type-sound encodings should be used. By default, Sledgehammer
-employs a mixture of type-sound and type-unsound encodings, occasionally
-yielding unsound ATP proofs. In contrast, SMT solver proofs should always be
-sound.
-
 \item[$\bullet$] \textbf{\textit{max\_relevant}} (\S\ref{relevance-filter})
 specifies the maximum number of facts that should be passed to the provers. By
 default, the value is prover-dependent but varies between about 150 and 1000. If
@@ -404,13 +398,11 @@ In some rare cases, Metis fails fairly quickly, and you get the error message
 Proof reconstruction failed.
 \postw
 
-This usually indicates that Sledgehammer found a type-incorrect proof.
-Sledgehammer erases some type information to speed up the search. Try
-Sledgehammer again with full type information: \textit{full\_types}
-(\S\ref{problem-encoding}), or choose a specific type encoding with
-\textit{type\_sys} (\S\ref{problem-encoding}). Older versions of Sledgehammer
-were frequent victims of this problem. Now this should very seldom be an issue,
-but if you notice many unsound proofs, contact the author at \authoremail.
+This message usually indicates that Sledgehammer found a type-incorrect proof.
+This was a frequent issue with older versions of Sledgehammer, which did not
+supply enough typing information to the ATPs by default. If you notice many
+unsound proofs and are not using \textit{type\_sys} (\S\ref{problem-encoding}),
+contact the author at \authoremail.
 
 \point{How can I tell whether a generated proof is sound?}
 
@@ -427,14 +419,14 @@ Metis call. The automatic provers should be able to re-find the proof very
 quickly if it is sound, and the \textit{type\_sys} $=$ \textit{poly\_tags}
 option (\S\ref{problem-encoding}) ensures that no unsound proofs are found.
 
-The \textit{full\_types} option (\S\ref{problem-encoding}) can also be used
-here, but it is unsound in extremely rare degenerate cases such as the
-following:
-
-\prew
-\textbf{lemma} ``$\forall x\> y\Colon{'}\!a.\ x = y \,\Longrightarrow \exists f\> g\Colon\mathit{nat} \Rightarrow {'}\!a.\ f \not= g$'' \\
-\textbf{sledgehammer} [\textit{full\_types}] (\textit{nat.distinct\/}(1))
-\postw
+%The \textit{full\_types} option (\S\ref{problem-encoding}) can also be used
+%here, but it is unsound in extremely rare degenerate cases such as the
+%following:
+%
+%\prew
+%\textbf{lemma} ``$\forall x\> y\Colon{'}\!a.\ x = y \,\Longrightarrow \exists f\> g\Colon\mathit{nat} \Rightarrow {'}\!a.\ f \not= g$'' \\
+%\textbf{sledgehammer} [\textit{full\_types}] (\textit{nat.distinct\/}(1))
+%\postw
 
 \point{Which facts are passed to the automatic provers?}
 
@@ -654,8 +646,9 @@ You can instruct Sledgehammer to run automatically on newly entered theorems by
 enabling the ``Auto Sledgehammer'' option from the ``Isabelle'' menu in Proof
 General. For automatic runs, only the first prover set using \textit{provers}
 (\S\ref{mode-of-operation}) is considered, fewer facts are passed to the prover,
-\textit{slicing} (\S\ref{mode-of-operation}) is disabled, \textit{full\_types}
-(\S\ref{problem-encoding}) is enabled, \textit{verbose} (\S\ref{output-format})
+\textit{slicing} (\S\ref{mode-of-operation}) is disabled,
+%\textit{full\_types} (\S\ref{problem-encoding}) is enabled,
+\textit{verbose} (\S\ref{output-format})
 and \textit{debug} (\S\ref{output-format}) are disabled, and \textit{timeout}
 (\S\ref{timeouts}) is superseded by the ``Auto Tools Time Limit'' in Proof
 General's ``Isabelle'' menu. Sledgehammer's output is also more concise.
@@ -890,13 +883,13 @@ safely remove them after Sledgehammer has run.
 \label{problem-encoding}
 
 \begin{enum}
-\opfalse{full\_types}{partial\_types}
-Specifies whether a type-sound encoding should be used when translating
-higher-order types to untyped first-order logic. Enabling this option virtually
-prevents the discovery of type-incorrect proofs, but it can slow down the ATP
-slightly. This option is implicitly enabled for automatic runs. For historical
-reasons, the default value of this option can be overridden using the option
-``Sledgehammer: Full Types'' from the ``Isabelle'' menu in Proof General.
+%\opfalse{full\_types}{partial\_types}
+%Specifies whether a type-sound encoding should be used when translating
+%higher-order types to untyped first-order logic. Enabling this option virtually
+%prevents the discovery of type-incorrect proofs, but it can slow down the ATP
+%slightly. This option is implicitly enabled for automatic runs. For historical
+%reasons, the default value of this option can be overridden using the option
+%``Sledgehammer: Full Types'' from the ``Isabelle'' menu in Proof General.
 
 \opdefault{type\_sys}{string}{smart}
 Specifies the type system to use in ATP problems. Some of the type systems are
@@ -977,9 +970,8 @@ rather replaced by a shared uniform type of individuals.) As argument to the
 \textit{metis} proof method, the exclamation mark is replaced by a
 ``\textit{\_bang}'' suffix.
 
-\item[$\bullet$] \textbf{\textit{smart}:} If \textit{full\_types} is enabled,
-uses a sound or virtually sound encoding; otherwise, uses any encoding. The actual
-encoding used depends on the ATP and should be the most efficient for that ATP.
+\item[$\bullet$] \textbf{\textit{smart}:} The actual encoding used depends on
+the ATP and should be the most efficient virtually sound encoding for that ATP.
 \end{enum}
 
 In addition, all the \textit{preds} and \textit{tags} type systems are available
