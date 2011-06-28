@@ -197,10 +197,7 @@ apply (blast dest: parts.Body)
 txt{*Message 2*}
 apply (blast dest!: Gets_imp_Says elim!: knows_Spy_partsEs)
 txt{*Message 3*}
-apply (frule_tac hr_form, assumption)
-apply (elim disjE exE) 
-apply (simp_all add: parts_insert2)
-apply (blast intro: subsetD [OF parts_mono [OF Set.subset_insertI]])  
+apply (metis parts_insertI)
 done
 
 lemma Spy_dont_know_RPwd [rule_format]:
@@ -226,8 +223,7 @@ by (auto simp add: Spy_dont_know_RPwd)
 
 lemma Spy_analz_RPwd_iff [simp]:
     "evs \<in> certified_mail ==> (Key (RPwd A) \<in> analz(spies evs)) = (A\<in>bad)"
-by (auto simp add: Spy_dont_know_RPwd [OF _ analz_subset_parts [THEN subsetD]])
-
+by (metis Spy_know_RPwd_iff Spy_spies_bad_shrK analz.Inj analz_into_parts)
 
 text{*Unused, but a guarantee of sorts*}
 theorem CertAutenticity:
@@ -308,8 +304,7 @@ txt{*Message 1*}
 apply (clarsimp, blast)
 txt{*Message 2*}
 apply (simp add: parts_insert2, clarify) 
-apply (drule parts_cut, assumption, simp) 
-apply (blast intro: usedI) 
+apply (metis parts_cut Un_empty_left usedI)
 txt{*Message 3*} 
 apply (blast dest: Notes_SSL_imp_used used_parts_subset_parts) 
 done 
