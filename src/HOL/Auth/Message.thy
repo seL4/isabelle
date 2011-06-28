@@ -811,6 +811,39 @@ text{*Cannot be added with @{text "[simp]"} -- messages should not always be
 lemmas pushes = pushKeys pushCrypts
 
 
+subsection{*The set of key-free messages*}
+
+(*Note that even the encryption of a key-free message remains key-free.
+  This concept is valuable because of the theorem analz_keyfree_into_Un, proved below. *)
+
+inductive_set
+  keyfree :: "msg set"
+  where
+    Agent:  "Agent A \<in> keyfree"
+  | Number: "Number N \<in> keyfree"
+  | Nonce:  "Nonce N \<in> keyfree"
+  | Hash:   "Hash X \<in> keyfree"
+  | MPair:  "[|X \<in> keyfree;  Y \<in> keyfree|] ==> {|X,Y|} \<in> keyfree"
+  | Crypt:  "[|X \<in> keyfree|] ==> Crypt K X \<in> keyfree"
+
+
+declare keyfree.intros [intro] 
+
+inductive_cases keyfree_KeyE: "Key K \<in> keyfree"
+inductive_cases keyfree_MPairE: "{|X,Y|} \<in> keyfree"
+inductive_cases keyfree_CryptE: "Crypt K X \<in> keyfree"
+
+lemma parts_keyfree: "parts (keyfree) \<subseteq> keyfree"
+  by (clarify, erule parts.induct, auto elim!: keyfree_KeyE keyfree_MPairE keyfree_CryptE)
+
+(*The key-free part of a set of messages can be removed from the scope of the analz operator.*)
+lemma analz_keyfree_into_Un: "\<lbrakk>X \<in> analz (G \<union> H); G \<subseteq> keyfree\<rbrakk> \<Longrightarrow> X \<in> parts G \<union> analz H"
+apply (erule analz.induct, auto)
+apply (blast dest:parts.Body)
+apply (blast dest: parts.Body)
+apply (metis Un_absorb2 keyfree_KeyE mem_def parts_Un parts_keyfree sup1I2)
+done
+
 subsection{*Tactics useful for many protocol proofs*}
 ML
 {*
