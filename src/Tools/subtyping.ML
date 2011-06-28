@@ -84,6 +84,7 @@ val is_compT = fn (Type (_, _ :: _)) => true | _ => false;
 val is_freeT = fn (TFree _) => true | _ => false;
 val is_fixedvarT = fn (TVar (xi, _)) => not (Type_Infer.is_param xi) | _ => false;
 val is_funtype = fn (Type ("fun", [_, _])) => true | _ => false;
+val is_identity = fn (Abs (_, _, Bound 0)) => true | _ => false;
 
 
 (* unification *)
@@ -614,7 +615,9 @@ fun gen_coercion ctxt tye (T1, T2) =
                 let
                   val used_coes = map_filter sub_co ((snd tmap) ~~ (Ts ~~ Us));
                 in
-                  Term.list_comb
+                  if null (filter (not o is_identity) used_coes)
+                  then Abs (Name.uu, Type (a, Ts), Bound 0)
+                  else Term.list_comb
                     (inst (fst tmap) (ts_of (map fastype_of used_coes)), used_coes)
                 end)
           end
