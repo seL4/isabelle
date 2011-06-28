@@ -214,9 +214,15 @@ fun elapsed_time description e =
   let val ({elapsed, ...}, result) = Timing.timing e ()
   in (result, (description, Time.toMilliseconds elapsed)) end
   
-fun value (contains_existentials, (quiet, size)) ctxt (get, put, put_ml) (code, value_name) =
+fun value (contains_existentials, opts) ctxt cookie (code, value_name) =
   let
+    val (limit_time, is_interactive, timeout, quiet, size) = opts
+    val (get, put, put_ml) = cookie
     fun message s = if quiet then () else Output.urgent_message s
+    val current_size = Unsynchronized.ref 0
+    val current_result = Unsynchronized.ref Quickcheck.empty_result 
+    fun excipit () =
+      "Quickcheck ran out of time while testing at size " ^ string_of_int (!current_size)
     val tmp_prefix = "Quickcheck_Narrowing"
     val with_tmp_dir =
       if Config.get ctxt overlord then with_overlord_dir else Isabelle_System.with_tmp_dir 
@@ -242,34 +248,39 @@ fun value (contains_existentials, (quiet, size)) ctxt (get, put, put_ml) (code, 
           (space_implode " " (map File.shell_path [code_file, narrowing_engine_file, main_file])) ^
           " -o " ^ executable ^ ";"
         val (result, compilation_time) = elapsed_time "Haskell compilation" (fn () => bash cmd) 
+        val _ = Quickcheck.add_timing compilation_time current_result
         val _ = if bash cmd <> 0 then error "Compilation with GHC failed" else ()
-        fun with_size k exec_times =
+        fun with_size k =
           if k > size then
-            (NONE, exec_times)
+            (NONE, !current_result)
           else
             let
               val _ = message ("Test data size: " ^ string_of_int k)
-              val ((response, _), exec_time) = elapsed_time ("execution of size " ^ string_of_int k)
+              val _ = current_size := k
+              val ((response, _), timing) = elapsed_time ("execution of size " ^ string_of_int k)
                 (fn () => bash_output (executable ^ " " ^ string_of_int k))
+              val _ = Quickcheck.add_timing timing current_result
             in
-              if response = "NONE\n" then with_size (k + 1) (exec_time :: exec_times)
-                else (SOME response, exec_time :: exec_times)
-            end
-      in case with_size 0 [compilation_time] of
-           (NONE, exec_times) => (NONE, exec_times)
-         | (SOME response, exec_times) =>
-           let
-             val output_value = the_default "NONE"
-               (try (snd o split_last o filter_out (fn s => s = "") o split_lines) response)
-               |> translate_string (fn s => if s = "\\" then "\\\\" else s)
-             val ml_code = "\nval _ = Context.set_thread_data (SOME (Context.map_proof (" ^ put_ml
-               ^ " (fn () => " ^ output_value ^ ")) (ML_Context.the_generic_context ())))";
-             val ctxt' = ctxt
-               |> put (fn () => error ("Bad evaluation for " ^ quote put_ml))
-               |> Context.proof_map (exec false ml_code);
-           in (get ctxt' (), exec_times) end     
-      end
-  in with_tmp_dir tmp_prefix run end;
+              if response = "NONE\n" then
+                with_size (k + 1)
+              else
+                let
+                  val output_value = the_default "NONE"
+                    (try (snd o split_last o filter_out (fn s => s = "") o split_lines) response)
+                    |> translate_string (fn s => if s = "\\" then "\\\\" else s)
+                  val ml_code = "\nval _ = Context.set_thread_data (SOME (Context.map_proof (" ^ put_ml
+                    ^ " (fn () => " ^ output_value ^ ")) (ML_Context.the_generic_context ())))";
+                  val ctxt' = ctxt
+                    |> put (fn () => error ("Bad evaluation for " ^ quote put_ml))
+                    |> Context.proof_map (exec false ml_code);
+                in (get ctxt' (), !current_result) end
+            end 
+      in with_size 0 end
+  in
+    Quickcheck.limit timeout (limit_time, is_interactive) 
+      (fn () => with_tmp_dir tmp_prefix run)
+      (fn () => (message (excipit ()); (NONE, !current_result))) ()
+  end;
 
 fun dynamic_value_strict opts cookie thy postproc t =
   let
@@ -380,7 +391,10 @@ fun mk_terms ctxt qs result =
   
 fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
   let
-    val opts = (Config.get ctxt Quickcheck.quiet, Config.get ctxt Quickcheck.size)
+    fun dest_result (Quickcheck.Result r) = r 
+    val opts =
+      (limit_time, is_interactive, seconds (Config.get ctxt Quickcheck.timeout),
+        Config.get ctxt Quickcheck.quiet, Config.get ctxt Quickcheck.size)
     val thy = Proof_Context.theory_of ctxt
     val t' = fold_rev (fn (x, T) => fn t => HOLogic.mk_all (x, T, t)) (Term.add_frees t []) t
     val pnf_t = make_pnf_term thy t'
@@ -396,14 +410,15 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
         val ((prop_def, _), ctxt') = Local_Theory.define ((Binding.conceal (Binding.name "test_property"), NoSyn),
           ((Binding.conceal Binding.empty, [Code.add_default_eqn_attrib]), prop_term)) ctxt
         val (prop_def', thy') = Local_Theory.exit_result_global Morphism.term (prop_def, ctxt') 
-        val (result, timings) = dynamic_value_strict (true, opts)
+        val (counterexample, result) = dynamic_value_strict (true, opts)
           (Existential_Counterexample.get, Existential_Counterexample.put,
             "Narrowing_Generators.put_existential_counterexample")
           thy' (apfst o Option.map o map_counterexample) (mk_property qs prop_def')
-        val result' = Option.map (mk_terms ctxt' (fst (strip_quantifiers pnf_t))) result
       in
-        Quickcheck.Result {counterexample = result', evaluation_terms = Option.map (K []) result,
-          timings = timings, reports = []}
+        Quickcheck.Result
+         {counterexample = Option.map (mk_terms ctxt' qs) counterexample,
+          evaluation_terms = Option.map (K []) counterexample,
+          timings = #timings (dest_result result), reports = #reports (dest_result result)}
       end
     else
       let
@@ -412,12 +427,14 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
         val finitize = if Config.get ctxt finite_functions then wrap finitize_functions else I
         fun ensure_testable t =
           Const (@{const_name Quickcheck_Narrowing.ensure_testable}, fastype_of t --> fastype_of t) $ t
-        val (result, timings) = dynamic_value_strict (false, opts)
+        val (counterexample, result) = dynamic_value_strict (false, opts)
           (Counterexample.get, Counterexample.put, "Narrowing_Generators.put_counterexample")
           thy (apfst o Option.map o map) (ensure_testable (finitize t'))
       in
-        Quickcheck.Result {counterexample = Option.map ((curry (op ~~)) (Term.add_free_names t [])) result,
-          evaluation_terms = Option.map (K []) result, timings = timings, reports = []}
+        Quickcheck.Result
+         {counterexample = Option.map ((curry (op ~~)) (Term.add_free_names t [])) counterexample,
+          evaluation_terms = Option.map (K []) counterexample,
+          timings = #timings (dest_result result), reports = #reports (dest_result result)}
       end
   end;
 

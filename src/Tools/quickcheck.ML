@@ -39,6 +39,7 @@ sig
       timings : (string * int) list,
       reports : (int * report) list}
   val empty_result : result
+  val add_timing : (string * int) -> result Unsynchronized.ref -> unit
   val counterexample_of : result -> (string * term) list option
   val timings_of : result -> (string * int) list
   (* registering generators *)
@@ -55,6 +56,7 @@ sig
     string * (Proof.context -> term list -> (int -> bool) list)
       -> Context.generic -> Context.generic
   (* basic operations *)
+  val limit : Time.time -> (bool * bool) -> (unit -> 'a) -> (unit -> 'a) -> unit -> 'a  
   val instantiate_goals: Proof.context -> (string * typ) list -> (term * term list) list
     -> (typ option * (term * term list)) list list
   val collect_results: ('a -> result) -> 'a list -> result list -> result list
@@ -124,6 +126,15 @@ fun set_reponse names eval_terms (SOME ts) (Result r) =
       timings = #timings r, reports = #reports r}
   end
   | set_reponse _ _ NONE result = result
+
+
+fun set_counterexample counterexample (Result r) =
+  Result {counterexample = counterexample,  evaluation_terms = #evaluation_terms r,
+    timings = #timings r, reports = #reports r}
+
+fun set_evaluation_terms evaluation_terms (Result r) =
+  Result {counterexample = #counterexample r,  evaluation_terms = evaluation_terms,
+    timings = #timings r, reports = #reports r}
 
 fun cons_timing timing (Result r) =
   Result {counterexample = #counterexample r, evaluation_terms = #evaluation_terms r,
@@ -258,9 +269,9 @@ fun cpu_time description e =
   let val ({cpu, ...}, result) = Timing.timing e ()
   in (result, (description, Time.toMilliseconds cpu)) end
 
-fun limit ctxt (limit_time, is_interactive) f exc () =
+fun limit timeout (limit_time, is_interactive) f exc () =
   if limit_time then
-      TimeLimit.timeLimit (seconds (Config.get ctxt timeout)) f ()
+      TimeLimit.timeLimit timeout f ()
     handle TimeLimit.TimeOut =>
       if is_interactive then exc () else raise TimeLimit.TimeOut
   else
@@ -290,7 +301,7 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
           case result of NONE => with_size test_fun (k + 1) | SOME q => SOME q
         end;
   in
-    limit ctxt (limit_time, is_interactive) (fn () =>
+    limit (seconds (Config.get ctxt timeout)) (limit_time, is_interactive) (fn () =>
       let
         val (test_fun, comp_time) = cpu_time "quickcheck compilation"
           (fn () => mk_tester ctxt [(t, eval_terms)]);
@@ -375,7 +386,7 @@ fun test_term_with_increasing_cardinality ctxt (limit_time, is_interactive) ts =
         map_product pair (1 upto (length ts)) (1 upto (Config.get ctxt size))
         |> sort (fn ((c1, s1), (c2, s2)) => int_ord ((c1 + s1), (c2 + s2)))
   in
-    limit ctxt (limit_time, is_interactive) (fn () =>
+    limit (seconds (Config.get ctxt timeout)) (limit_time, is_interactive) (fn () =>
       let
         val (test_fun, comp_time) = cpu_time "quickcheck compilation" (fn () => mk_tester ctxt ts)
         val _ = add_timing comp_time current_result
