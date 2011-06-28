@@ -70,7 +70,7 @@ val auto_min_min_facts =
   Attrib.setup_config_int @{binding sledgehammer_auto_min_min_facts}
       (fn generic => Config.get_generic generic binary_min_facts)
 val auto_min_max_time =
-  Attrib.setup_config_real @{binding sledgehammer_auto_min_max_time} (K 0.0) (*###*)
+  Attrib.setup_config_real @{binding sledgehammer_auto_min_max_time} (K 5.0)
 
 fun minimize ctxt mode name (params as {debug, verbose, isar_proof, ...})
              ({state, subgoal, subgoal_count, facts, ...} : prover_problem)
