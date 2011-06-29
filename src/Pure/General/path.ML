@@ -163,7 +163,7 @@ val print = Pretty.str_of o pretty;
 (* base element *)
 
 fun split_path f (Path (Basic s :: xs)) = f (Path xs, s)
-  | split_path _ path = error ("Cannot split path into dir/base: " ^ quote (implode_path path));
+  | split_path _ path = error ("Cannot split path into dir/base: " ^ print path);
 
 val dir = split_path #1;
 val base = split_path (fn (_, s) => Path [Basic s]);
