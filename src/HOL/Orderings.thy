@@ -534,7 +534,7 @@ let
 fun prp t thm = (#prop (rep_thm thm) = t);
 
 fun prove_antisym_le sg ss ((le as Const(_,T)) $ r $ s) =
-  let val prems = prems_of_ss ss;
+  let val prems = Simplifier.prems_of ss;
       val less = Const (@{const_name less}, T);
       val t = HOLogic.mk_Trueprop(le $ s $ r);
   in case find_first (prp t) prems of
@@ -549,7 +549,7 @@ fun prove_antisym_le sg ss ((le as Const(_,T)) $ r $ s) =
   handle THM _ => NONE;
 
 fun prove_antisym_less sg ss (NotC $ ((less as Const(_,T)) $ r $ s)) =
-  let val prems = prems_of_ss ss;
+  let val prems = Simplifier.prems_of ss;
       val le = Const (@{const_name less_eq}, T);
       val t = HOLogic.mk_Trueprop(le $ r $ s);
   in case find_first (prp t) prems of
@@ -570,7 +570,7 @@ fun add_simprocs procs thy =
 
 fun add_solver name tac =
   Simplifier.map_simpset_global (fn ss => ss addSolver
-    mk_solver name (fn ss => tac (Simplifier.the_context ss) (prems_of_ss ss)));
+    mk_solver name (fn ss => tac (Simplifier.the_context ss) (Simplifier.prems_of ss)));
 
 in
   add_simprocs [

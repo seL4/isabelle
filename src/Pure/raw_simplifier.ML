@@ -37,7 +37,6 @@ sig
   val make_simproc: {name: string, lhss: cterm list,
     proc: morphism -> simpset -> cterm -> thm option, identifier: thm list} -> simproc
   val mk_simproc: string -> cterm list -> (theory -> simpset -> term -> thm option) -> simproc
-  val prems_of_ss: simpset -> thm list
   val addsimps: simpset * thm list -> simpset
   val delsimps: simpset * thm list -> simpset
   val addeqcongs: simpset * thm list -> simpset
@@ -97,6 +96,7 @@ sig
     subgoal_tac: simpset -> int -> tactic,
     loop_tacs: (string * (simpset -> int -> tactic)) list,
     solvers: solver list * solver list}
+  val prems_of: simpset -> thm list
   val add_simp: thm -> simpset -> simpset
   val del_simp: thm -> simpset -> simpset
   val solver: simpset -> solver -> int -> tactic
@@ -235,7 +235,7 @@ fun make_simpset (args1, args2) = Simpset (make_ss1 args1, make_ss2 args2);
 fun map_simpset1 f (Simpset (r1, r2)) = Simpset (map_ss1 f r1, r2);
 fun map_simpset2 f (Simpset (r1, r2)) = Simpset (r1, map_ss2 f r2);
 
-fun prems_of_ss (Simpset ({prems, ...}, _)) = prems;
+fun prems_of (Simpset ({prems, ...}, _)) = prems;
 
 fun eq_procid ((s1: stamp, ths1: thm list), (s2, ths2)) =
   s1 = s2 andalso eq_list Thm.eq_thm (ths1, ths2);
@@ -562,7 +562,7 @@ fun is_full_cong_prems [] [] = true
 
 fun is_full_cong thm =
   let
-    val prems = prems_of thm and concl = concl_of thm;
+    val prems = Thm.prems_of thm and concl = Thm.concl_of thm;
     val (lhs, rhs) = Logic.dest_equals concl;
     val (f, xs) = strip_comb lhs and (g, ys) = strip_comb rhs;
   in
@@ -1278,7 +1278,7 @@ fun rewrite_cterm mode prover raw_ss raw_ct =
   in bottomc (mode, Option.map Drule.flexflex_unique oo prover, thy, maxidx) ss ct end;
 
 val simple_prover =
-  SINGLE o (fn ss => ALLGOALS (resolve_tac (prems_of_ss ss)));
+  SINGLE o (fn ss => ALLGOALS (resolve_tac (prems_of ss)));
 
 fun rewrite _ [] ct = Thm.reflexive ct
   | rewrite full thms ct = rewrite_cterm (full, false, false) simple_prover

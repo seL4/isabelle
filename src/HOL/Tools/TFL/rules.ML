@@ -657,7 +657,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
      fun prover used ss thm =
      let fun cong_prover ss thm =
          let val dummy = say "cong_prover:"
-             val cntxt = Simplifier.prems_of_ss ss
+             val cntxt = Simplifier.prems_of ss
              val dummy = print_thms "cntxt:" cntxt
              val dummy = say "cong rule:"
              val dummy = say (Display.string_of_thm_without_context thm)
@@ -739,7 +739,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
 
         fun restrict_prover ss thm =
           let val dummy = say "restrict_prover:"
-              val cntxt = rev(Simplifier.prems_of_ss ss)
+              val cntxt = rev (Simplifier.prems_of ss)
               val dummy = print_thms "cntxt:" cntxt
               val thy = Thm.theory_of_thm thm
               val Const("==>",_) $ (Const(@{const_name Trueprop},_) $ A) $ _ = Thm.prop_of thm

@@ -329,7 +329,7 @@ let
      val min_ss = Simplifier.global_context thy empty_ss
            setmksimps (K (map mk_eq o ZF_atomize o gen_all))
            setSolver (mk_solver "minimal"
-                      (fn ss => resolve_tac (triv_rls @ prems_of_ss ss)
+                      (fn ss => resolve_tac (triv_rls @ Simplifier.prems_of ss)
                                    ORELSE' assume_tac
                                    ORELSE' etac @{thm FalseE}));
 

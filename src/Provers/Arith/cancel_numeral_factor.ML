@@ -47,7 +47,7 @@ struct
 fun proc ss t =
   let
     val ctxt = Simplifier.the_context ss;
-    val prems = prems_of_ss ss;
+    val prems = Simplifier.prems_of ss;
     val ([t'], ctxt') = Variable.import_terms true [t] ctxt
     val export = singleton (Variable.export ctxt' ctxt)
 

@@ -307,7 +307,7 @@ local
     let
       val (le, r, s) = dest_binop t
       val less = Const (@{const_name less}, Term.fastype_of le)
-      val prems = Simplifier.prems_of_ss ss
+      val prems = Simplifier.prems_of ss
     in
       (case find_first (eq_prop (le $ s $ r)) prems of
         NONE =>
@@ -321,7 +321,7 @@ local
     let
       val (less, r, s) = dest_binop (HOLogic.dest_not t)
       val le = Const (@{const_name less_eq}, Term.fastype_of less)
-      val prems = prems_of_ss ss
+      val prems = Simplifier.prems_of ss
     in
       (case find_first (eq_prop (le $ r $ s)) prems of
         NONE =>

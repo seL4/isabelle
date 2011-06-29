@@ -59,11 +59,11 @@ val triv_rls = [@{thm FalseL}, @{thm TrueR}, @{thm basic}, @{thm refl},
   @{thm iff_refl}, reflexive_thm];
 
 fun unsafe_solver ss =
-  FIRST' [resolve_tac (triv_rls @ prems_of_ss ss), assume_tac];
+  FIRST' [resolve_tac (triv_rls @ Simplifier.prems_of ss), assume_tac];
 
 (*No premature instantiation of variables during simplification*)
 fun safe_solver ss =
- FIRST' [fn i => DETERM (match_tac (triv_rls @ prems_of_ss ss) i), eq_assume_tac];
+ FIRST' [fn i => DETERM (match_tac (triv_rls @ Simplifier.prems_of ss) i), eq_assume_tac];
 
 (*No simprules, but basic infrastructure for simplification*)
 val LK_basic_ss =

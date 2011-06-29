@@ -107,7 +107,7 @@ fun type_solver_tac ctxt hyps = SELECT_GOAL
 
 val type_solver =
   Simplifier.mk_solver "ZF typecheck" (fn ss =>
-    type_solver_tac (Simplifier.the_context ss) (prems_of_ss ss));
+    type_solver_tac (Simplifier.the_context ss) (Simplifier.prems_of ss));
 
 
 (* concrete syntax *)
