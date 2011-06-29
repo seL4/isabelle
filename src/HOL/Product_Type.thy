@@ -556,6 +556,7 @@ local
         if Pair_pat k i (t $ u) then incr_boundvars k arg
         else (subst arg k i t $ subst arg k i u)
     | subst arg k i t = t;
+in
   fun beta_proc ss (s as Const (@{const_name prod_case}, _) $ Abs (_, _, t) $ arg) =
         (case split_pat beta_term_pat 1 t of
           SOME (i, f) => SOME (metaeq ss s (subst arg 0 i f))
@@ -566,13 +567,10 @@ local
           SOME (_, ft) => SOME (metaeq ss s (let val (f $ arg) = ft in f end))
         | NONE => NONE)
     | eta_proc _ _ = NONE;
-in
-  val split_beta_proc = Simplifier.simproc_global @{theory} "split_beta" ["split f z"] (K beta_proc);
-  val split_eta_proc = Simplifier.simproc_global @{theory} "split_eta" ["split f"] (K eta_proc);
 end;
-
-Addsimprocs [split_beta_proc, split_eta_proc];
 *}
+simproc_setup split_beta ("split f z") = {* fn _ => fn ss => fn ct => beta_proc ss (term_of ct) *}
+simproc_setup split_eta ("split f") = {* fn _ => fn ss => fn ct => eta_proc ss (term_of ct) *}
 
 lemma split_beta [mono]: "(%(x, y). P x y) z = P (fst z) (snd z)"
   by (subst surjective_pairing, rule split_conv)

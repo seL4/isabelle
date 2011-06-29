@@ -6,7 +6,6 @@ Instantiation of the generic linear arithmetic package for int.
 signature INT_ARITH =
 sig
   val setup: Context.generic -> Context.generic
-  val global_setup: theory -> theory
 end
 
 structure Int_Arith : INT_ARITH =
@@ -77,16 +76,6 @@ val lhss' =
 val zero_one_idom_simproc =
   make_simproc {lhss = lhss' , name = "zero_one_idom_simproc",
   proc = sproc, identifier = []}
-
-val fast_int_arith_simproc =
-  Simplifier.simproc_global @{theory} "fast_int_arith"
-     ["(m::'a::{linordered_idom,number_ring}) < n",
-      "(m::'a::{linordered_idom,number_ring}) <= n",
-      "(m::'a::{linordered_idom,number_ring}) = n"] (K Lin_Arith.simproc);
-
-val global_setup =
-  Simplifier.map_simpset_global (fn ss => ss addsimprocs [fast_int_arith_simproc]);
-
 
 fun number_of thy T n =
   if not (Sign.of_sort thy (T, @{sort number}))
