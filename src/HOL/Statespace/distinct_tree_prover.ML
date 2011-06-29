@@ -352,10 +352,8 @@ fun distinctTree_tac names ctxt = SUBGOAL (fn (goal, i) =>
         | NONE => no_tac)
     | _ => no_tac))
 
-fun distinctFieldSolver names = mk_solver' "distinctFieldSolver"
-     (fn ss => case try Simplifier.the_context ss of
-                 SOME ctxt => distinctTree_tac names ctxt
-               | NONE => K no_tac)
+fun distinctFieldSolver names = mk_solver "distinctFieldSolver"
+     (distinctTree_tac names o Simplifier.the_context)
 
 fun distinct_simproc names =
   Simplifier.simproc_global @{theory HOL} "DistinctTreeProver.distinct_simproc" ["x = y"]

@@ -108,10 +108,10 @@ val op delsplits = Splitter.delsplits;
 
 val triv_rls = [@{thm TrueI}, @{thm refl}, reflexive_thm, @{thm iff_refl}, @{thm notFalseI}];
 
-fun unsafe_solver prems = FIRST'[resolve_tac (triv_rls @ prems),
+fun unsafe_solver ss = FIRST'[resolve_tac (triv_rls @ prems_of_ss ss),
                                  atac, etac @{thm FalseE}];
 (*No premature instantiation of variables during simplification*)
-fun   safe_solver prems = FIRST'[match_tac (triv_rls @ prems),
+fun safe_solver ss = FIRST'[match_tac (triv_rls @ prems_of_ss ss),
                                  eq_assume_tac, ematch_tac [@{thm FalseE}]];
 
 (*No simprules, but basic infastructure for simplification*)

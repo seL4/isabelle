@@ -105,8 +105,9 @@ fun type_solver_tac ctxt hyps = SELECT_GOAL
                   ORELSE (ares_tac hyps 1
                           APPEND typecheck_step_tac (tcset_of ctxt))));
 
-val type_solver = Simplifier.mk_solver' "ZF typecheck" (fn ss =>
-  type_solver_tac (Simplifier.the_context ss) (Simplifier.prems_of_ss ss));
+val type_solver =
+  Simplifier.mk_solver "ZF typecheck" (fn ss =>
+    type_solver_tac (Simplifier.the_context ss) (prems_of_ss ss));
 
 
 (* concrete syntax *)

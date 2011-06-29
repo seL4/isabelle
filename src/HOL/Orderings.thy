@@ -570,7 +570,7 @@ fun add_simprocs procs thy =
 
 fun add_solver name tac =
   Simplifier.map_simpset_global (fn ss => ss addSolver
-    mk_solver' name (fn ss => tac (Simplifier.the_context ss) (Simplifier.prems_of_ss ss)));
+    mk_solver name (fn ss => tac (Simplifier.the_context ss) (prems_of_ss ss)));
 
 in
   add_simprocs [

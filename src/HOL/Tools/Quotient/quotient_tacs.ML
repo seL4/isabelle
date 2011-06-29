@@ -55,7 +55,7 @@ fun equiv_tac ctxt =
   REPEAT_ALL_NEW (resolve_tac (Quotient_Info.equiv_rules_get ctxt))
 
 fun equiv_solver_tac ss = equiv_tac (Simplifier.the_context ss)
-val equiv_solver = Simplifier.mk_solver' "Equivalence goal solver" equiv_solver_tac
+val equiv_solver = mk_solver "Equivalence goal solver" equiv_solver_tac
 
 fun quotient_tac ctxt =
   (REPEAT_ALL_NEW (FIRST'
@@ -63,8 +63,7 @@ fun quotient_tac ctxt =
      resolve_tac (Quotient_Info.quotient_rules_get ctxt)]))
 
 fun quotient_solver_tac ss = quotient_tac (Simplifier.the_context ss)
-val quotient_solver =
-  Simplifier.mk_solver' "Quotient goal solver" quotient_solver_tac
+val quotient_solver = mk_solver "Quotient goal solver" quotient_solver_tac
 
 fun solve_quotient_assm ctxt thm =
   case Seq.pull (quotient_tac ctxt 1 thm) of

@@ -20,8 +20,7 @@ sig
   type simpset
   type proc
   type solver
-  val mk_solver': string -> (simpset -> int -> tactic) -> solver
-  val mk_solver: string -> (thm list -> int -> tactic) -> solver
+  val mk_solver: string -> (simpset -> int -> tactic) -> solver
   val empty_ss: simpset
   val merge_ss: simpset * simpset -> simpset
   val dest_ss: simpset ->
@@ -242,8 +241,7 @@ fun eq_procid ((s1: stamp, ths1: thm list), (s2, ths2)) =
   s1 = s2 andalso eq_list Thm.eq_thm (ths1, ths2);
 fun eq_proc (Proc {id = id1, ...}, Proc {id = id2, ...}) = eq_procid (id1, id2);
 
-fun mk_solver' name solver = Solver {name = name, solver = solver, id = stamp ()};
-fun mk_solver name solver = mk_solver' name (solver o prems_of_ss);
+fun mk_solver name solver = Solver {name = name, solver = solver, id = stamp ()};
 
 fun solver_name (Solver {name, ...}) = name;
 fun solver ss (Solver {solver = tac, ...}) = tac ss;

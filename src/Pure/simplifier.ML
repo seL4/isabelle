@@ -396,11 +396,11 @@ fun easy_setup reflect trivs = method_setup [] #> Context.theory_map (map_ss (fn
   let
     val trivialities = Drule.reflexive_thm :: trivs;
 
-    fun unsafe_solver_tac prems = FIRST' [resolve_tac (trivialities @ prems), assume_tac];
+    fun unsafe_solver_tac ss = FIRST' [resolve_tac (trivialities @ prems_of_ss ss), assume_tac];
     val unsafe_solver = mk_solver "easy unsafe" unsafe_solver_tac;
 
     (*no premature instantiation of variables during simplification*)
-    fun safe_solver_tac prems = FIRST' [match_tac (trivialities @ prems), eq_assume_tac];
+    fun safe_solver_tac ss = FIRST' [match_tac (trivialities @ prems_of_ss ss), eq_assume_tac];
     val safe_solver = mk_solver "easy safe" safe_solver_tac;
 
     fun mk_eq thm =
