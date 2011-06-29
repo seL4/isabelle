@@ -59,8 +59,9 @@ val _ = Markup.add_mode htmlN (span o span_class);
 (* symbol output *)
 
 local
-  val hidden = XML.text #> (span Markup.hiddenN |-> enclose);
+  val hidden = span Markup.hiddenN |-> enclose;
 
+  (* FIXME proper unicode -- produced on Scala side *)
   val html_syms = Symtab.make
    [("", (0, "")),
     ("\n", (0, "<br/>")),
@@ -205,10 +206,10 @@ local
     ("\\<longleftrightarrow>", (3, "&lt;-&gt;")),
     ("\\<longrightarrow>", (3, "--&gt;")),
     ("\\<rightarrow>", (2, "-&gt;")),
-    ("\\<^bsub>", (0, hidden "\\<^bsub>" ^ "<sub>")),
-    ("\\<^esub>", (0, hidden "\\<^esub>" ^ "</sub>")),
-    ("\\<^bsup>", (0, hidden "\\<^bsup>" ^ "<sup>")),
-    ("\\<^esup>", (0, hidden "\\<^esup>" ^ "</sup>"))];
+    ("\\<^bsub>", (0, hidden "&#8664;" ^ "<sub>")),
+    ("\\<^esub>", (0, hidden "&#8665;" ^ "</sub>")),
+    ("\\<^bsup>", (0, hidden "&#8663;" ^ "<sup>")),
+    ("\\<^esup>", (0, hidden "&#8662;" ^ "</sup>"))];
 
   fun output_sym s =
     if Symbol.is_raw s then (1, Symbol.decode_raw s)
@@ -224,16 +225,17 @@ local
   val output_sub = output_markup ("<sub>", "</sub>");
   val output_sup = output_markup ("<sup>", "</sup>");
   val output_bold = output_markup (span "bold");
-  val output_loc = output_markup (span "loc");
 
   fun output_syms [] (result, width) = (implode (rev result), width)
     | output_syms (s1 :: rest) (result, width) =
         let
           val (s2, ss) = (case rest of [] => ("", []) | s2 :: ss => (s2, ss));
           val ((w, s), r) =
-            if s1 = "\\<^sub>" orelse s1 = "\\<^isub>" then (output_sub s1 s2, ss)
-            else if s1 = "\\<^sup>" orelse s1 = "\\<^isup>" then (output_sup s1 s2, ss)
-            else if s1 = "\\<^bold>" then (output_bold s1 s2, ss)
+            if s1 = "\\<^sub>" then (output_sub "&#8681;" s2, ss)
+            else if s1 = "\\<^isub>" then (output_sub "&#8675;" s2, ss)
+            else if s1 = "\\<^sup>" then (output_sup "&#8679;" s2, ss)
+            else if s1 = "\\<^isup>" then (output_sup "&#8673;" s2, ss)
+            else if s1 = "\\<^bold>" then (output_bold "&#10073;" s2, ss)
             else (output_sym s1, rest);
         in output_syms r (s :: result, width + w) end;
 in
