@@ -31,7 +31,7 @@ toplevel_pp ["Context", "theory"] "Context.pretty_thy";
 toplevel_pp ["Context", "theory_ref"] "Context.pretty_thy o Theory.deref";
 toplevel_pp ["Context", "Proof", "context"] "Proof_Display.pp_context";
 toplevel_pp ["Ast", "ast"] "Ast.pretty_ast";
-toplevel_pp ["Path", "T"] "Pretty.str o Path.print";
+toplevel_pp ["Path", "T"] "Path.pretty";
 toplevel_pp ["SHA1", "digest"] "Pretty.str o quote o SHA1.rep";
 toplevel_pp ["Proof", "state"] "(fn _: Proof.state => Pretty.str \"<Proof.state>\")";
 toplevel_pp ["Toplevel", "state"] "Toplevel.pretty_abstract";

@@ -20,9 +20,10 @@ sig
   val append: T -> T -> T
   val appends: T list -> T
   val make: string list -> T
-  val print: T -> string
   val implode: T -> string
   val explode: string -> T
+  val pretty: T -> Pretty.T
+  val print: T -> string
   val dir: T -> T
   val base: T -> T
   val ext: string -> T -> T
@@ -120,8 +121,6 @@ fun implode_path (Path []) = "."
 
 end;
 
-val print = quote o implode_path;
-
 
 (* explode *)
 
@@ -150,6 +149,15 @@ fun explode_path str =
   in Path (norm (explode_elems raw_elems @ roots)) end;
 
 end;
+
+
+(* print *)
+
+fun pretty path =
+  let val s = implode_path path
+  in Pretty.mark (Markup.path s) (Pretty.str (quote s)) end;
+
+val print = Pretty.str_of o pretty;
 
 
 (* base element *)
