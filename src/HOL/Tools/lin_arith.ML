@@ -21,6 +21,7 @@ sig
   val global_setup: theory -> theory
   val split_limit: int Config.T
   val neq_limit: int Config.T
+  val verbose: bool Config.T
   val trace: bool Unsynchronized.ref
 end;
 
@@ -101,12 +102,14 @@ fun add_inj_const c = Lin_Arith_Data.map (fn {splits, inj_consts, discrete} =>
 
 val split_limit = Attrib.setup_config_int @{binding linarith_split_limit} (K 9);
 val neq_limit = Attrib.setup_config_int @{binding linarith_neq_limit} (K 9);
+val verbose  = Attrib.setup_config_bool @{binding linarith_verbose} (K true);
 
 
 structure LA_Data =
 struct
 
 val fast_arith_neq_limit = neq_limit;
+val fast_arith_verbose = verbose;
 
 
 (* Decomposition of terms *)

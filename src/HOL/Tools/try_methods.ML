@@ -113,7 +113,8 @@ fun time_string (s, ms) = s ^ ": " ^ string_of_int ms ^ " ms"
 
 fun do_try_methods mode timeout_opt quad st =
   let
-    val st = st |> Proof.map_context (Config.put Metis_Tactics.verbose false)
+    val st = st |> Proof.map_context (Config.put Metis_Tactics.verbose false #>
+      Config.put Lin_Arith.verbose false)
   in
     if mode = Normal then
       "Trying " ^ space_implode " " (Try.serial_commas "and"

@@ -60,6 +60,9 @@ sig
   (*the limit on the number of ~= allowed; because each ~= is split
     into two cases, this can lead to an explosion*)
   val fast_arith_neq_limit: int Config.T
+
+  (*configures whether (potentially spurious) counterexamples are printed*)
+  val fast_arith_verbose: bool Config.T
 end;
 (*
 decomp(`x Rel y') should yield (p,i,Rel,q,j,d)
@@ -612,11 +615,10 @@ fun print_atom((a,d),r) =
               else string_of_int p ^ "/" ^ string_of_int q
   in a ^ " = " ^ s end;
 
-fun produce_ex sds =
-  curry (op ~~) sds
-  #> map print_atom
-  #> commas
-  #> curry (op ^) "Counterexample (possibly spurious):\n";
+fun is_variable (Free _) = true
+  | is_variable (Var _) = true
+  | is_variable (Bound _) = true
+  | is_variable _ = false
 
 fun trace_ex ctxt params atoms discr n (hist: history) =
   case hist of
@@ -628,8 +630,15 @@ fun trace_ex ctxt params atoms discr n (hist: history) =
         val start =
           if v = ~1 then (hist', findex0 discr n lineqs)
           else (hist, replicate n Rat.zero)
-        val ex = SOME (produce_ex (map show_term atoms ~~ discr)
-            (uncurry (fold (findex1 discr)) start))
+        val produce_ex =
+          map print_atom #> commas #>
+          prefix "Counterexample (possibly spurious):\n"
+        val ex = (
+          uncurry (fold (findex1 discr)) start
+          |> map2 pair (atoms ~~ discr)
+          |> filter (fn ((t, _), _) => is_variable t)
+          |> map (apfst (apfst show_term))
+          |> (fn [] => NONE | sdss => SOME (produce_ex sdss)))
           handle NoEx => NONE
       in
         case ex of
@@ -744,7 +753,7 @@ fun refutes ctxt params show_ex :
                  (trace_msg ("Contradiction! (" ^ string_of_int (length js + 1) ^ ")");
                   refute initemss (js @ [j]))
              | Failure hist =>
-                 (if not show_ex then ()
+                 (if not show_ex orelse not (Config.get ctxt LA_Data.fast_arith_verbose) then ()
                   else
                     let
                       val (param_names, ctxt') = ctxt |> Variable.variant_fixes (map fst params)
