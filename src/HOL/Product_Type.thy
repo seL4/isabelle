@@ -55,14 +55,10 @@ text {*
   this rule directly --- it loops!
 *}
 
-ML {*
-  val unit_eq_proc =
-    let val unit_meta_eq = mk_meta_eq @{thm unit_eq} in
-      Simplifier.simproc_global @{theory} "unit_eq" ["x::unit"]
-      (fn _ => fn _ => fn t => if HOLogic.is_unit t then NONE else SOME unit_meta_eq)
-    end;
-
-  Addsimprocs [unit_eq_proc];
+simproc_setup unit_eq ("x::unit") = {*
+  fn _ => fn _ => fn ct =>
+    if HOLogic.is_unit (term_of ct) then NONE
+    else SOME (mk_meta_eq @{thm unit_eq})
 *}
 
 rep_datatype "()" by simp
@@ -74,7 +70,7 @@ lemma unit_all_eq2: "(!!x::unit. PROP P) == PROP P"
   by (rule triv_forall_equality)
 
 text {*
-  This rewrite counters the effect of @{text unit_eq_proc} on @{term
+  This rewrite counters the effect of simproc @{text unit_eq} on @{term
   [source] "%u::unit. f u"}, replacing it by @{term [source]
   f} rather than by @{term [source] "%u. f ()"}.
 *}
@@ -497,7 +493,7 @@ ML {*
       | exists_paired_all _ = false;
     val ss = HOL_basic_ss
       addsimps [@{thm split_paired_all}, @{thm unit_all_eq2}, @{thm unit_abs_eta_conv}]
-      addsimprocs [unit_eq_proc];
+      addsimprocs [@{simproc unit_eq}];
   in
     val split_all_tac = SUBGOAL (fn (t, i) =>
       if exists_paired_all t then safe_full_simp_tac ss i else no_tac);

@@ -679,9 +679,7 @@ by (simp add: divmod_nat_zero divmod_nat_base divmod_nat_step)
 text {* Simproc for cancelling @{const div} and @{const mod} *}
 
 ML {*
-local
-
-structure CancelDivMod = CancelDivModFun
+structure Cancel_Div_Mod_Nat = Cancel_Div_Mod
 (
   val div_name = @{const_name div};
   val mod_name = @{const_name mod};
@@ -694,16 +692,9 @@ structure CancelDivMod = CancelDivModFun
   val prove_eq_sums = Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac
     (@{thm add_0_left} :: @{thm add_0_right} :: @{thms add_ac}))
 )
-
-in
-
-val cancel_div_mod_nat_proc = Simplifier.simproc_global @{theory}
-  "cancel_div_mod" ["(m::nat) + n"] (K CancelDivMod.proc);
-
-val _ = Addsimprocs [cancel_div_mod_nat_proc];
-
-end
 *}
+
+simproc_setup cancel_div_mod_nat ("(m::nat) + n") = {* K Cancel_Div_Mod_Nat.proc *}
 
 
 subsubsection {* Quotient *}
@@ -1437,9 +1428,7 @@ by(simp add: mult_commute zmod_zdiv_equality[symmetric])
 text {* Tool setup *}
 
 ML {*
-local
-
-structure CancelDivMod = CancelDivModFun
+structure Cancel_Div_Mod_Int = Cancel_Div_Mod
 (
   val div_name = @{const_name div};
   val mod_name = @{const_name mod};
@@ -1452,16 +1441,9 @@ structure CancelDivMod = CancelDivModFun
   val prove_eq_sums = Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac 
     (@{thm diff_minus} :: @{thms add_0s} @ @{thms add_ac}))
 )
-
-in
-
-val cancel_div_mod_int_proc = Simplifier.simproc_global @{theory}
-  "cancel_zdiv_zmod" ["(k::int) + l"] (K CancelDivMod.proc);
-
-val _ = Addsimprocs [cancel_div_mod_int_proc];
-
-end
 *}
+
+simproc_setup cancel_div_mod_int ("(k::int) + l") = {* K Cancel_Div_Mod_Int.proc *}
 
 lemma pos_mod_conj : "(0::int) < b ==> 0 \<le> a mod b & a mod b < b"
 apply (cut_tac a = a and b = b in divmod_int_correct)
