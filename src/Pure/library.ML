@@ -218,6 +218,10 @@ sig
   val serial: unit -> serial
   val serial_string: unit -> string
   structure Object: sig type T = exn end
+  val cd: string -> unit
+  val pwd: unit -> string
+  val getenv: string -> string
+  val getenv_strict: string -> string
 end;
 
 signature LIBRARY =
@@ -1078,6 +1082,25 @@ val serial_string = string_of_int o serial;
 (*note that the builtin exception datatype may be extended by new
   constructors at any time*)
 structure Object = struct type T = exn end;
+
+
+(* current directory *)
+
+val cd = OS.FileSys.chDir;
+val pwd = OS.FileSys.getDir;
+
+
+(* getenv *)
+
+fun getenv x =
+  (case OS.Process.getEnv x of
+    NONE => ""
+  | SOME y => y);
+
+fun getenv_strict x =
+  (case getenv x of
+    "" => error ("Undefined Isabelle environment variable: " ^ quote x)
+  | y => y);
 
 end;
 

@@ -179,19 +179,10 @@ val split_ext = split_path (fn (prfx, s) => apfst (append prfx)
 
 (* expand variables *)
 
-local
-
-fun eval (Variable s) =
-      (case getenv s of
-        "" => error ("Undefined Isabelle environment variable: " ^ quote s)
-      | path => rep (explode_path path))
+fun eval (Variable s) = rep (explode_path (getenv_strict s))
   | eval x = [x];
 
-in
-
 val expand = rep #> maps eval #> norm #> Path;
-
-end;
 
 
 (* source position *)

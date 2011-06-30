@@ -73,23 +73,6 @@ val ml_make_string = "PolyML.makestring";
 
 
 
-(** OS related **)
-
-(* current directory *)
-
-val cd = OS.FileSys.chDir;
-val pwd = OS.FileSys.getDir;
-
-
-(* getenv *)
-
-fun getenv var =
-  (case OS.Process.getEnv var of
-    NONE => ""
-  | SOME txt => txt);
-
-
-
 (** Runtime system **)
 
 val exception_trace = PolyML.exception_trace;
