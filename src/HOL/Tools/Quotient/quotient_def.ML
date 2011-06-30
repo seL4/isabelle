@@ -6,10 +6,10 @@ Definitions for constants on quotient types.
 
 signature QUOTIENT_DEF =
 sig
-  val quotient_def: (binding option * mixfix) * (Attrib.binding * (term * term)) ->
+  val quotient_def: (binding * typ option * mixfix) option * (Attrib.binding * (term * term)) ->
     local_theory -> Quotient_Info.qconsts_info * local_theory
 
-  val quotdef_cmd: (binding option * mixfix) * (Attrib.binding * (string * string)) ->
+  val quotdef_cmd: (binding * string option * mixfix) option * (Attrib.binding * (string * string)) ->
     local_theory -> Quotient_Info.qconsts_info * local_theory
 
   val lift_raw_const: typ list -> (string * term * mixfix) -> local_theory ->
@@ -43,26 +43,30 @@ fun error_msg bind str =
       quote str ^ " differs from declaration " ^ name ^ pos)
   end
 
-fun quotient_def ((optbind, mx), (attr, (lhs, rhs))) lthy =
+fun gen_quotient_def prep_vars prep_term (raw_var, (attr, (lhs_raw, rhs_raw))) lthy =
   let
+    val (vars, ctxt) = prep_vars (the_list raw_var) lthy
+    val lhs = prep_term ctxt lhs_raw
+    val rhs = prep_term ctxt rhs_raw
+
     val (lhs_str, lhs_ty) = dest_Free lhs handle TERM _ => error "Constant already defined."
     val _ = if null (strip_abs_vars rhs) then () else error "The definiens cannot be an abstraction"
     val _ = if is_Const rhs then () else warning "The definiens is not a constant"
 
-    fun sanity_test NONE _ = true
-      | sanity_test (SOME bind) str =
-          if Variable.check_name bind = str then true
-          else error_msg bind str
+    val var =
+      (case vars of 
+        [] => (Binding.name lhs_str, NoSyn)
+      | [(binding, _, mx)] =>
+          if Variable.check_name binding = lhs_str then (binding, mx)
+          else error_msg binding lhs_str
+      | _ => raise Match)
 
-    val _ = sanity_test optbind lhs_str
-
-    val qconst_bname = Binding.name lhs_str
     val absrep_trm = Quotient_Term.absrep_fun Quotient_Term.AbsF lthy (fastype_of rhs, lhs_ty) $ rhs
     val prop = Logic.mk_equals (lhs, Syntax.check_term lthy absrep_trm)
     val (_, prop') = Local_Defs.cert_def lthy prop
     val (_, newrhs) = Local_Defs.abs_def prop'
 
-    val ((trm, (_ , thm)), lthy') = Local_Theory.define ((qconst_bname, mx), (attr, newrhs)) lthy
+    val ((trm, (_ , thm)), lthy') = Local_Theory.define (var, (attr, newrhs)) lthy
 
     (* data storage *)
     val qconst_data = {qconst = trm, rconst = rhs, def = thm}
@@ -76,15 +80,9 @@ fun quotient_def ((optbind, mx), (attr, (lhs, rhs))) lthy =
     (qconst_data, lthy'')
   end
 
-fun quotdef_cmd (decl, (attr, (lhs_str, rhs_str))) lthy =
-  let
-    val lhs = Syntax.read_term lthy lhs_str
-    val rhs = Syntax.read_term lthy rhs_str
-    val lthy' = Variable.declare_term lhs lthy
-    val lthy'' = Variable.declare_term rhs lthy'
-  in
-    quotient_def (decl, (attr, (lhs, rhs))) lthy''
-  end
+val quotient_def = gen_quotient_def Proof_Context.cert_vars Syntax.check_term
+val quotdef_cmd = gen_quotient_def Proof_Context.read_vars Syntax.read_term
+
 
 (* a wrapper for automatically lifting a raw constant *)
 fun lift_raw_const qtys (qconst_name, rconst, mx) ctxt =
@@ -93,14 +91,12 @@ fun lift_raw_const qtys (qconst_name, rconst, mx) ctxt =
     val qty = Quotient_Term.derive_qtyp ctxt qtys rty
     val lhs = Free (qconst_name, qty)
   in
-    quotient_def ((NONE, mx), (Attrib.empty_binding, (lhs, rconst))) ctxt
+    quotient_def (SOME (Binding.name qconst_name, NONE, mx), (Attrib.empty_binding, (lhs, rconst))) ctxt
   end
 
 (* parser and command *)
-val quotdef_decl = (Parse.binding >> SOME) -- Parse.opt_mixfix' --| Parse.$$$ "where"
-
 val quotdef_parser =
-  Scan.optional quotdef_decl (NONE, NoSyn) --
+  Scan.option Parse_Spec.constdecl --
     Parse.!!! (Parse_Spec.opt_thm_name ":" -- (Parse.term --| Parse.$$$ "is" -- Parse.term))
 
 val _ =
