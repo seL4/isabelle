@@ -102,19 +102,19 @@ class Path
   def is_absolute: Boolean = !elems.isEmpty && elems.last.isInstanceOf[Path.Root]
   def is_basic: Boolean = elems match { case List(Path.Basic(_)) => true case _ => false }
 
-  def append(other: Path): Path = Path((elems :\ other.elems)(Path.apply_elem))
+  def +(other: Path): Path = Path((elems :\ other.elems)(Path.apply_elem))
 
 
-  /* print */
+  /* implode */
 
-  override def toString: String =
+  def implode: String =
     elems match {
       case Nil => "."
       case List(Path.Root("")) => "/"
-      case _ => elems.reverse.map(Path.implode_elem).mkString("/")
+      case _ => elems.map(Path.implode_elem).reverse.mkString("/")
     }
 
-  def print: String = Library.quote(toString)
+  override def toString: String = Library.quote(implode)
 
 
   /* base element */
@@ -122,7 +122,7 @@ class Path
   private def split_path: (Path, String) =
     elems match {
       case Path.Basic(s) :: xs => (Path(xs), s)
-      case _ => error("Cannot split path into dir/base: " + print)
+      case _ => error("Cannot split path into dir/base: " + toString)
     }
 
   def dir: Path = split_path._1
@@ -132,6 +132,20 @@ class Path
     if (e == "") this
     else {
       val (prfx, s) = split_path
-      prfx.append(Path.basic(s + "." + e))
+      prfx + Path.basic(s + "." + e)
     }
+
+
+  /* expand */
+
+  def expand(env: String => String): Path =
+  {
+    def eval(elem: Path.Elem): List[Path.Elem] =
+      elem match {
+        case Path.Variable(s) => Path.explode(env(s)).elems
+        case x => List(x)
+      }
+
+    Path(Path.norm_elems(elems.map(eval).flatten))
+  }
 }
