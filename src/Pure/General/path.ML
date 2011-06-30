@@ -1,8 +1,8 @@
 (*  Title:      Pure/General/path.ML
     Author:     Markus Wenzel, TU Muenchen
 
-Abstract algebra of file paths: basic POSIX notation, extended by
-named roots (e.g. //foo) and variables (e.g. $BAR).
+Algebra of file-system paths: basic POSIX notation, extended by named
+roots (e.g. //foo) and variables (e.g. $BAR).
 *)
 
 signature PATH =

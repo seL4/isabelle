@@ -1,8 +1,8 @@
 /*  Title:      Pure/General/path.scala
     Author:     Makarius
 
-Abstract algebra of file paths: basic POSIX notation, extended by
-named roots (e.g. //foo) and variables (e.g. $BAR).
+Algebra of file-system paths: basic POSIX notation, extended by named
+roots (e.g. //foo) and variables (e.g. $BAR).
 */
 
 package isabelle
