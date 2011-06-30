@@ -1545,8 +1545,12 @@ lemmas int_arith_rules =
   of_int_0 of_int_1 of_int_add of_int_mult
 
 use "Tools/int_arith.ML"
-setup {* Int_Arith.global_setup *}
 declaration {* K Int_Arith.setup *}
+
+simproc_setup fast_arith ("(m::'a::{linordered_idom,number_ring}) < n" |
+  "(m::'a::{linordered_idom,number_ring}) <= n" |
+  "(m::'a::{linordered_idom,number_ring}) = n") =
+  {* fn _ => fn ss => fn ct => Lin_Arith.simproc ss (term_of ct) *}
 
 setup {*
   Reorient_Proc.add

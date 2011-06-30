@@ -28,7 +28,7 @@ class External_Hyperlink(start: Int, end: Int, line: Int, def_file: String, def_
   extends AbstractHyperlink(start, end, line, "")
 {
   override def click(view: View) = {
-    Isabelle.system.source_file(def_file) match {
+    Isabelle.system.source_file(Path.explode(def_file)) match {
       case None =>
         Library.error_dialog(view, "File not found", "Could not find source file " + def_file)
       case Some(file) =>

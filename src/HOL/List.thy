@@ -726,54 +726,44 @@ Currently only tries to rearrange @{text "@"} to see if
 - or both lists end in the same list.
 *}
 
-ML {*
-local
-
-fun last (cons as Const(@{const_name Cons},_) $ _ $ xs) =
-  (case xs of Const(@{const_name Nil},_) => cons | _ => last xs)
-  | last (Const(@{const_name append},_) $ _ $ ys) = last ys
-  | last t = t;
-
-fun list1 (Const(@{const_name Cons},_) $ _ $ Const(@{const_name Nil},_)) = true
-  | list1 _ = false;
-
-fun butlast ((cons as Const(@{const_name Cons},_) $ x) $ xs) =
-  (case xs of Const(@{const_name Nil},_) => xs | _ => cons $ butlast xs)
-  | butlast ((app as Const(@{const_name append},_) $ xs) $ ys) = app $ butlast ys
-  | butlast xs = Const(@{const_name Nil},fastype_of xs);
-
-val rearr_ss = HOL_basic_ss addsimps [@{thm append_assoc},
-  @{thm append_Nil}, @{thm append_Cons}];
-
-fun list_eq ss (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
+simproc_setup list_eq ("(xs::'a list) = ys")  = {*
   let
-    val lastl = last lhs and lastr = last rhs;
-    fun rearr conv =
+    fun last (cons as Const (@{const_name Cons}, _) $ _ $ xs) =
+          (case xs of Const (@{const_name Nil}, _) => cons | _ => last xs)
+      | last (Const(@{const_name append},_) $ _ $ ys) = last ys
+      | last t = t;
+    
+    fun list1 (Const(@{const_name Cons},_) $ _ $ Const(@{const_name Nil},_)) = true
+      | list1 _ = false;
+    
+    fun butlast ((cons as Const(@{const_name Cons},_) $ x) $ xs) =
+          (case xs of Const (@{const_name Nil}, _) => xs | _ => cons $ butlast xs)
+      | butlast ((app as Const (@{const_name append}, _) $ xs) $ ys) = app $ butlast ys
+      | butlast xs = Const(@{const_name Nil}, fastype_of xs);
+    
+    val rearr_ss =
+      HOL_basic_ss addsimps [@{thm append_assoc}, @{thm append_Nil}, @{thm append_Cons}];
+    
+    fun list_eq ss (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
       let
-        val lhs1 = butlast lhs and rhs1 = butlast rhs;
-        val Type(_,listT::_) = eqT
-        val appT = [listT,listT] ---> listT
-        val app = Const(@{const_name append},appT)
-        val F2 = eq $ (app$lhs1$lastl) $ (app$rhs1$lastr)
-        val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (F,F2));
-        val thm = Goal.prove (Simplifier.the_context ss) [] [] eq
-          (K (simp_tac (Simplifier.inherit_context ss rearr_ss) 1));
-      in SOME ((conv RS (thm RS trans)) RS eq_reflection) end;
-
-  in
-    if list1 lastl andalso list1 lastr then rearr @{thm append1_eq_conv}
-    else if lastl aconv lastr then rearr @{thm append_same_eq}
-    else NONE
-  end;
-
-in
-
-val list_eq_simproc =
-  Simplifier.simproc_global @{theory} "list_eq" ["(xs::'a list) = ys"] (K list_eq);
-
-end;
-
-Addsimprocs [list_eq_simproc];
+        val lastl = last lhs and lastr = last rhs;
+        fun rearr conv =
+          let
+            val lhs1 = butlast lhs and rhs1 = butlast rhs;
+            val Type(_,listT::_) = eqT
+            val appT = [listT,listT] ---> listT
+            val app = Const(@{const_name append},appT)
+            val F2 = eq $ (app$lhs1$lastl) $ (app$rhs1$lastr)
+            val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (F,F2));
+            val thm = Goal.prove (Simplifier.the_context ss) [] [] eq
+              (K (simp_tac (Simplifier.inherit_context ss rearr_ss) 1));
+          in SOME ((conv RS (thm RS trans)) RS eq_reflection) end;
+      in
+        if list1 lastl andalso list1 lastr then rearr @{thm append1_eq_conv}
+        else if lastl aconv lastr then rearr @{thm append_same_eq}
+        else NONE
+      end;
+  in fn _ => fn ss => fn ct => list_eq ss (term_of ct) end;
 *}
 
 

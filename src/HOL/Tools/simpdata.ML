@@ -112,19 +112,19 @@ fun mk_atomize pairs =
 fun mksimps pairs (_: simpset) =
   map_filter (try mk_eq) o mk_atomize pairs o gen_all;
 
-fun unsafe_solver_tac prems =
+fun unsafe_solver_tac ss =
   (fn i => REPEAT_DETERM (match_tac @{thms simp_impliesI} i)) THEN'
-  FIRST' [resolve_tac (reflexive_thm :: @{thm TrueI} :: @{thm refl} :: prems), atac,
-    etac @{thm FalseE}];
+  FIRST' [resolve_tac (reflexive_thm :: @{thm TrueI} :: @{thm refl} :: Simplifier.prems_of ss),
+    atac, etac @{thm FalseE}];
 
 val unsafe_solver = mk_solver "HOL unsafe" unsafe_solver_tac;
 
 
 (*No premature instantiation of variables during simplification*)
-fun safe_solver_tac prems =
+fun safe_solver_tac ss =
   (fn i => REPEAT_DETERM (match_tac @{thms simp_impliesI} i)) THEN'
-  FIRST' [match_tac (reflexive_thm :: @{thm TrueI} :: @{thm refl} :: prems),
-         eq_assume_tac, ematch_tac @{thms FalseE}];
+  FIRST' [match_tac (reflexive_thm :: @{thm TrueI} :: @{thm refl} :: Simplifier.prems_of ss),
+    eq_assume_tac, ematch_tac @{thms FalseE}];
 
 val safe_solver = mk_solver "HOL safe" safe_solver_tac;
 

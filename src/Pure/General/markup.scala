@@ -128,8 +128,21 @@ object Markup
   val DEF_ID = "def_id"
 
   val POSITION_PROPERTIES = Set(LINE, COLUMN, OFFSET, END_OFFSET, FILE, ID)
-
   val POSITION = "position"
+
+
+  /* path */
+
+  val PATH = "path"
+
+  object Path
+  {
+    def unapply(markup: Markup): Option[String] =
+      markup match {
+        case Markup(PATH, Name(name)) => Some(name)
+        case _ => None
+      }
+  }
 
 
   /* pretty printing */

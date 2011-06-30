@@ -13,17 +13,39 @@ import javax.swing.JOptionPane
 
 import scala.swing.ComboBox
 import scala.swing.event.SelectionChanged
+import scala.collection.mutable
 
 
 object Library
 {
-  /* separate */
+  /* lists */
 
   def separate[A](s: A, list: List[A]): List[A] =
     list match {
       case x :: xs if !xs.isEmpty => x :: s :: separate(s, xs)
       case _ => list
     }
+
+  def space_explode(sep: Char, str: String): List[String] =
+    if (str.isEmpty) Nil
+    else {
+      val result = new mutable.ListBuffer[String]
+      var start = 0
+      var finished = false
+      while (!finished) {
+        val i = str.indexOf(sep, start)
+        if (i == -1) { result += str.substring(start); finished = true }
+        else { result += str.substring(start, i); start = i + 1 }
+      }
+      result.toList
+    }
+
+
+  /* strings */
+
+  def quote(s: String): String = "\"" + s + "\""
+  def commas(ss: Iterable[String]): String = ss.iterator.mkString(", ")
+  def commas_quote(ss: Iterable[String]): String = ss.iterator.mkString("\"", ", ", "\"")
 
 
   /* reverse CharSequence */

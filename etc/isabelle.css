@@ -17,7 +17,7 @@ body { background-color: #FFFFFF; }
 
 /* basic syntax markup */
 
-.hidden         { font-size: 0.1pt; visibility: hidden; }
+.hidden         { font-size: 1px; visibility: hidden; }
 
 .binding        { color: #336655; }
 .entity_class   { color: red; }

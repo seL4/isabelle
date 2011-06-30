@@ -27,11 +27,11 @@ end;
 
 signature CANCEL_DIV_MOD =
 sig
-  val proc: simpset -> term -> thm option
+  val proc: simpset -> cterm -> thm option
 end;
 
 
-functor CancelDivModFun(Data: CANCEL_DIV_MOD_DATA): CANCEL_DIV_MOD =
+functor Cancel_Div_Mod(Data: CANCEL_DIV_MOD_DATA): CANCEL_DIV_MOD =
 struct
 
 fun coll_div_mod (Const(@{const_name Groups.plus},_) $ s $ t) dms =
@@ -70,12 +70,16 @@ fun cancel ss t pq =
   let val teqt' = Data.prove_eq_sums ss (t, rearrange t pq)
   in hd (Data.div_mod_eqs RL [teqt' RS transitive_thm]) end;
 
-fun proc ss t =
-  let val (divs,mods) = coll_div_mod t ([],[])
-  in if null divs orelse null mods then NONE
-     else case inter (op =) mods divs of
-            pq :: _ => SOME (cancel ss t pq)
-          | [] => NONE
-  end
+fun proc ss ct =
+  let
+    val t = term_of ct;
+    val (divs, mods) = coll_div_mod t ([], []);
+  in
+    if null divs orelse null mods then NONE
+    else
+      (case inter (op =) mods divs of
+        pq :: _ => SOME (cancel ss t pq)
+      | [] => NONE)
+  end;
 
 end

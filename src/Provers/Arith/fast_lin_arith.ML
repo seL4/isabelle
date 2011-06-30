@@ -844,7 +844,7 @@ fun simpset_lin_arith_tac ss show_ex = SUBGOAL (fn (A, i) =>
   end);
 
 fun cut_lin_arith_tac ss =
-  cut_facts_tac (Simplifier.prems_of_ss ss) THEN'
+  cut_facts_tac (Simplifier.prems_of ss) THEN'
   simpset_lin_arith_tac ss false;
 
 fun lin_arith_tac ctxt =
@@ -925,7 +925,7 @@ fun prover ss thms Tconcl (js : injust list) split_neq pos : thm option =
 fun lin_arith_simproc ss concl =
   let
     val ctxt = Simplifier.the_context ss
-    val thms = maps LA_Logic.atomize (Simplifier.prems_of_ss ss)
+    val thms = maps LA_Logic.atomize (Simplifier.prems_of ss)
     val Hs = map Thm.prop_of thms
     val Tconcl = LA_Logic.mk_Trueprop concl
   in

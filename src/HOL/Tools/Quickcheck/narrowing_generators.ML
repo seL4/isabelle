@@ -206,7 +206,8 @@ fun exec verbose code =
 
 fun with_overlord_dir name f =
   let
-    val path = Path.append (Path.explode "~/.isabelle") (Path.basic (name ^ serial_string ()))
+    val path =
+      Path.append (Path.explode "$ISABELLE_HOME_USER") (Path.basic (name ^ serial_string ()))
     val _ = Isabelle_System.mkdirs path;
   in Exn.release (Exn.capture f path) end;
 

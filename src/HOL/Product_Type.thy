@@ -55,14 +55,10 @@ text {*
   this rule directly --- it loops!
 *}
 
-ML {*
-  val unit_eq_proc =
-    let val unit_meta_eq = mk_meta_eq @{thm unit_eq} in
-      Simplifier.simproc_global @{theory} "unit_eq" ["x::unit"]
-      (fn _ => fn _ => fn t => if HOLogic.is_unit t then NONE else SOME unit_meta_eq)
-    end;
-
-  Addsimprocs [unit_eq_proc];
+simproc_setup unit_eq ("x::unit") = {*
+  fn _ => fn _ => fn ct =>
+    if HOLogic.is_unit (term_of ct) then NONE
+    else SOME (mk_meta_eq @{thm unit_eq})
 *}
 
 rep_datatype "()" by simp
@@ -74,7 +70,7 @@ lemma unit_all_eq2: "(!!x::unit. PROP P) == PROP P"
   by (rule triv_forall_equality)
 
 text {*
-  This rewrite counters the effect of @{text unit_eq_proc} on @{term
+  This rewrite counters the effect of simproc @{text unit_eq} on @{term
   [source] "%u::unit. f u"}, replacing it by @{term [source]
   f} rather than by @{term [source] "%u. f ()"}.
 *}
@@ -497,7 +493,7 @@ ML {*
       | exists_paired_all _ = false;
     val ss = HOL_basic_ss
       addsimps [@{thm split_paired_all}, @{thm unit_all_eq2}, @{thm unit_abs_eta_conv}]
-      addsimprocs [unit_eq_proc];
+      addsimprocs [@{simproc unit_eq}];
   in
     val split_all_tac = SUBGOAL (fn (t, i) =>
       if exists_paired_all t then safe_full_simp_tac ss i else no_tac);
@@ -560,6 +556,7 @@ local
         if Pair_pat k i (t $ u) then incr_boundvars k arg
         else (subst arg k i t $ subst arg k i u)
     | subst arg k i t = t;
+in
   fun beta_proc ss (s as Const (@{const_name prod_case}, _) $ Abs (_, _, t) $ arg) =
         (case split_pat beta_term_pat 1 t of
           SOME (i, f) => SOME (metaeq ss s (subst arg 0 i f))
@@ -570,13 +567,10 @@ local
           SOME (_, ft) => SOME (metaeq ss s (let val (f $ arg) = ft in f end))
         | NONE => NONE)
     | eta_proc _ _ = NONE;
-in
-  val split_beta_proc = Simplifier.simproc_global @{theory} "split_beta" ["split f z"] (K beta_proc);
-  val split_eta_proc = Simplifier.simproc_global @{theory} "split_eta" ["split f"] (K eta_proc);
 end;
-
-Addsimprocs [split_beta_proc, split_eta_proc];
 *}
+simproc_setup split_beta ("split f z") = {* fn _ => fn ss => fn ct => beta_proc ss (term_of ct) *}
+simproc_setup split_eta ("split f") = {* fn _ => fn ss => fn ct => eta_proc ss (term_of ct) *}
 
 lemma split_beta [mono]: "(%(x, y). P x y) z = P (fst z) (snd z)"
   by (subst surjective_pairing, rule split_conv)

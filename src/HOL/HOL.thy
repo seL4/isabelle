@@ -1232,7 +1232,7 @@ let
   fun proc ss ct =
     (case Thm.term_of ct of
       eq $ lhs $ rhs =>
-        (case find_first (is_neq eq lhs rhs) (Simplifier.prems_of_ss ss) of
+        (case find_first (is_neq eq lhs rhs) (Simplifier.prems_of ss) of
           SOME thm => SOME (thm RS neq_to_EQ_False)
         | NONE => NONE)
      | _ => NONE);

@@ -58,12 +58,12 @@ fun mk_meta_cong ss rl =
 val triv_rls = [@{thm FalseL}, @{thm TrueR}, @{thm basic}, @{thm refl},
   @{thm iff_refl}, reflexive_thm];
 
-fun unsafe_solver prems =
-  FIRST' [resolve_tac (triv_rls @ prems), assume_tac];
+fun unsafe_solver ss =
+  FIRST' [resolve_tac (triv_rls @ Simplifier.prems_of ss), assume_tac];
 
 (*No premature instantiation of variables during simplification*)
-fun safe_solver prems =
- FIRST' [fn i => DETERM (match_tac (triv_rls @ prems) i), eq_assume_tac];
+fun safe_solver ss =
+ FIRST' [fn i => DETERM (match_tac (triv_rls @ Simplifier.prems_of ss) i), eq_assume_tac];
 
 (*No simprules, but basic infrastructure for simplification*)
 val LK_basic_ss =

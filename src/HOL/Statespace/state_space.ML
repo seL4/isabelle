@@ -225,10 +225,8 @@ fun distinctTree_tac ctxt = SUBGOAL (fn (goal, i) =>
       | NONE => no_tac)
   | _ => no_tac));
 
-val distinctNameSolver = mk_solver' "distinctNameSolver"
-     (fn ss => case try Simplifier.the_context ss of
-                 SOME ctxt => distinctTree_tac ctxt
-                | NONE => K no_tac)
+val distinctNameSolver = mk_solver "distinctNameSolver"
+     (distinctTree_tac o Simplifier.the_context)
 
 val distinct_simproc =
   Simplifier.simproc_global @{theory HOL} "StateSpace.distinct_simproc" ["x = y"]

@@ -1129,7 +1129,7 @@ fun load_cplexResult name =
 
 exception Execute of string;
 
-fun tmp_file s = Path.implode (Path.expand (File.tmp_path (Path.make [s])));
+fun tmp_file s = Path.implode (Path.expand (File.tmp_path (Path.basic s)));
 fun wrap s = "\""^s^"\"";
 
 fun solve_glpk prog =

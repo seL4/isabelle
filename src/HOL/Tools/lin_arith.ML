@@ -897,15 +897,8 @@ end;
 
 val setup =
   init_arith_data #>
-  Simplifier.map_ss (fn ss => ss addsimprocs [Simplifier.simproc_global @{theory} "fast_nat_arith"
-    ["(m::nat) < n","(m::nat) <= n", "(m::nat) = n"] (K simproc)]
-    (* Because of fast_nat_arith_simproc, the arithmetic solver is really only
-    useful to detect inconsistencies among the premises for subgoals which are
-    *not* themselves (in)equalities, because the latter activate
-    fast_nat_arith_simproc anyway. However, it seems cheaper to activate the
-    solver all the time rather than add the additional check. *)
-    addSolver (mk_solver' "lin_arith"
-      (add_arith_facts #> Fast_Arith.cut_lin_arith_tac)))
+  Simplifier.map_ss (fn ss => ss
+    addSolver (mk_solver "lin_arith" (add_arith_facts #> Fast_Arith.cut_lin_arith_tac)));
 
 val global_setup =
   Attrib.setup @{binding arith_split} (Scan.succeed (Thm.declaration_attribute add_split))

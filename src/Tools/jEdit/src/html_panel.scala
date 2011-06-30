@@ -96,7 +96,7 @@ class HTML_Panel(
 <head>
 <style media="all" type="text/css">
 """ +
-  system.try_read(system.getenv_strict("JEDIT_STYLE_SHEETS").split(":"))
+  system.try_read(system.getenv_strict("JEDIT_STYLE_SHEETS").split(":").map(Path.explode))
 
   private val template_tail =
 """

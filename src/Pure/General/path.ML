@@ -1,8 +1,8 @@
 (*  Title:      Pure/General/path.ML
     Author:     Markus Wenzel, TU Muenchen
 
-Abstract algebra of file paths: basic POSIX notation, extended by
-named roots (e.g. //foo) and variables (e.g. $BAR).
+Algebra of file-system paths: basic POSIX notation, extended by named
+roots (e.g. //foo) and variables (e.g. $BAR).
 *)
 
 signature PATH =
@@ -20,9 +20,10 @@ sig
   val append: T -> T -> T
   val appends: T list -> T
   val make: string list -> T
-  val print: T -> string
   val implode: T -> string
   val explode: string -> T
+  val pretty: T -> Pretty.T
+  val print: T -> string
   val dir: T -> T
   val base: T -> T
   val ext: string -> T -> T
@@ -120,8 +121,6 @@ fun implode_path (Path []) = "."
 
 end;
 
-val print = quote o implode_path;
-
 
 (* explode *)
 
@@ -152,10 +151,19 @@ fun explode_path str =
 end;
 
 
+(* print *)
+
+fun pretty path =
+  let val s = implode_path path
+  in Pretty.mark (Markup.path s) (Pretty.str (quote s)) end;
+
+val print = Pretty.str_of o pretty;
+
+
 (* base element *)
 
 fun split_path f (Path (Basic s :: xs)) = f (Path xs, s)
-  | split_path _ path = error ("Cannot split path into dir/base: " ^ quote (implode_path path));
+  | split_path _ path = error ("Cannot split path into dir/base: " ^ print path);
 
 val dir = split_path #1;
 val base = split_path (fn (_, s) => Path [Basic s]);
@@ -171,19 +179,10 @@ val split_ext = split_path (fn (prfx, s) => apfst (append prfx)
 
 (* expand variables *)
 
-local
-
-fun eval (Variable s) =
-      (case getenv s of
-        "" => error ("Undefined Isabelle environment variable: " ^ quote s)
-      | path => rep (explode_path path))
+fun eval (Variable s) = rep (explode_path (getenv_strict s))
   | eval x = [x];
 
-in
-
 val expand = rep #> maps eval #> norm #> Path;
-
-end;
 
 
 (* source position *)
