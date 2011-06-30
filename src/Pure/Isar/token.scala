@@ -81,6 +81,9 @@ sealed case class Token(val kind: Token.Kind.Value, val source: String)
   def is_comment: Boolean = kind == Token.Kind.COMMENT
   def is_ignored: Boolean = is_space || is_comment
 
+  def is_begin: Boolean = kind == Token.Kind.KEYWORD && source == "begin"
+  def is_end: Boolean = kind == Token.Kind.COMMAND && source == "end"
+
   def content: String =
     if (kind == Token.Kind.STRING) Scan.Lexicon.empty.quoted_content("\"", source)
     else if (kind == Token.Kind.ALT_STRING) Scan.Lexicon.empty.quoted_content("`", source)
