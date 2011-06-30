@@ -102,7 +102,7 @@ class Path
   def is_absolute: Boolean = !elems.isEmpty && elems.last.isInstanceOf[Path.Root]
   def is_basic: Boolean = elems match { case List(Path.Basic(_)) => true case _ => false }
 
-  def +(other: Path): Path = Path((elems :\ other.elems)(Path.apply_elem))
+  def +(other: Path): Path = Path((other.elems :\ elems)(Path.apply_elem))
 
 
   /* implode */
