@@ -183,9 +183,8 @@ fun install_kodkodi_message () =
   "Nitpick requires the external Java program Kodkodi. To install it, download \
   \the package from Isabelle's web page and add the \"kodkodi-x.y.z\" \
   \directory's full path to " ^
-  Path.print (Path.expand (Path.appends
-      (Path.variable "ISABELLE_HOME_USER" ::
-       map Path.basic ["etc", "components"]))) ^ " on a line of its own."
+  Path.print (Path.expand (Path.explode "$ISABELLE_HOME_USER/etc/components")) ^
+  " on a line of its own."
 
 val max_unsound_delay_ms = 200
 val max_unsound_delay_percent = 2

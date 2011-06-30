@@ -142,9 +142,7 @@ fun string_for_failure Unprovable = "The problem is unprovable."
     \TPTP syntax. To install it, download and extract the package \
     \\"http://isabelle.in.tum.de/dist/contrib/spass-3.7.tar.gz\" and add the \
     \\"spass-3.7\" directory's absolute path to " ^
-    Path.print (Path.expand (Path.appends
-               (Path.variable "ISABELLE_HOME_USER" ::
-                map Path.basic ["etc", "components"]))) ^
+    Path.print (Path.expand (Path.explode "$ISABELLE_HOME_USER/etc/components")) ^
     " on a line of its own."
   | string_for_failure VampireTooOld =
     "Isabelle requires a more recent version of Vampire. To install it, follow \

@@ -703,7 +703,7 @@ fun run_atp mode name
             |> fold maybe_run_slice actual_slices
           end
         else
-          error ("Bad executable: " ^ Path.print command ^ ".")
+          error ("Bad executable: " ^ Path.print command)
 
     (* If the problem file has not been exported, remove it; otherwise, export
        the proof file too. *)

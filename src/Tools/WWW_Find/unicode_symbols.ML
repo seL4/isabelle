@@ -135,11 +135,6 @@ in
 
 val line = (symbol -- unicode --| font -- abbr) >> Parse.triple1;
 
-val symbols_path =
-  [getenv "ISABELLE_HOME", "etc", "symbols"]
-  |> map Path.explode
-  |> Path.appends;
-
 end;
 
 local (* build tables *)
@@ -164,8 +159,7 @@ in
 fun read_symbols path =
   let
     val parsed_lines =
-      File.read path
-      |> (fn x => Symbol_Pos.explode (x, Position.file (Path.implode path)))
+      Symbol_Pos.explode (File.read path, Path.position path)
       |> tokenize
       |> filter is_proper
       |> Scan.finite stopper (Scan.repeat line)
@@ -179,7 +173,7 @@ fun read_symbols path =
 end;
 
 local
-val (fromsym, fromabbr, tosym, toabbr) = read_symbols symbols_path;
+val (fromsym, fromabbr, tosym, toabbr) = read_symbols (Path.explode "~~/etc/symbols");
 in
 val symbol_to_unicode = Symtab.lookup fromsym;
 val abbrev_to_unicode = Symtab.lookup fromabbr;

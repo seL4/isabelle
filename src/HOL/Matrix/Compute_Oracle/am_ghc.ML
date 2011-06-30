@@ -210,7 +210,7 @@ fun get_guid () =
         string_of_int (Time.toMicroseconds (Time.now ())) ^ string_of_int c
     end
 
-fun tmp_file s = Path.implode (Path.expand (File.tmp_path (Path.make [s])));
+fun tmp_file s = Path.implode (Path.expand (File.tmp_path (Path.basic s)));
 fun wrap s = "\""^s^"\""
 
 fun writeTextFile name s = File.write (Path.explode name) s
