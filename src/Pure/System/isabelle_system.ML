@@ -22,7 +22,7 @@ struct
 
 fun isabelle_tool name args =
   (case space_explode ":" (getenv "ISABELLE_TOOLS") |> get_first (fn dir =>
-      let val path = dir ^ "/" ^ name in
+      let val path = File.platform_path (Path.append (Path.explode dir) (Path.basic name)) in
         if can OS.FileSys.modTime path andalso
           not (OS.FileSys.isDir path) andalso
           OS.FileSys.access (path, [OS.FileSys.A_READ, OS.FileSys.A_EXEC])

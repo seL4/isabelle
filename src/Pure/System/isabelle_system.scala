@@ -92,74 +92,19 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
 
 
 
-  /** file path specifications **/
+  /** file-system operations **/
 
-  /* expand_path */
+  /* path specifications */
 
-  private val Root = new Regex("(//+[^/]*|/)(.*)")
-  private val Only_Root = new Regex("//+[^/]*|/")
+  def standard_path(path: Path): String = path.expand(getenv_strict).implode
 
-  def expand_path(isabelle_path: String): String =
-  {
-    val result_path = new StringBuilder
-    def init(path: String): String =
-    {
-      path match {
-        case Root(root, rest) =>
-          result_path.clear
-          result_path ++= root
-          rest
-        case _ => path
-      }
-    }
-    def append(path: String)
-    {
-      val rest = init(path)
-      for (p <- rest.split("/") if p != "" && p != ".") {
-        if (p == "..") {
-          val result = result_path.toString
-          if (!Only_Root.pattern.matcher(result).matches) {
-            val i = result.lastIndexOf("/")
-            if (result == "")
-              result_path ++= ".."
-            else if (result.substring(i + 1) == "..")
-              result_path ++= "/.."
-            else if (i < 0)
-              result_path.length = 0
-            else
-              result_path.length = i
-          }
-        }
-        else {
-          val len = result_path.length
-          if (len > 0 && result_path(len - 1) != '/')
-            result_path += '/'
-          result_path ++= p
-        }
-      }
-    }
-    val rest = init(isabelle_path)
-    for (p <- rest.split("/")) {
-      if (p.startsWith("$")) append(getenv_strict(p.substring(1)))
-      else if (p == "~") append(getenv_strict("HOME"))
-      else if (p == "~~") append(getenv_strict("ISABELLE_HOME"))
-      else append(p)
-    }
-    result_path.toString
-  }
-
-
-  /* platform_path */
-
-  def platform_path(isabelle_path: String): String =
-    jvm_path(expand_path(isabelle_path))
-
-  def platform_file(path: String) = new File(platform_path(path))
+  def platform_path(path: Path): String = jvm_path(standard_path(path))
+  def platform_file(path: Path) = new File(platform_path(path))
 
 
   /* try_read */
 
-  def try_read(paths: Seq[String]): String =
+  def try_read(paths: Seq[Path]): String =
   {
     val buf = new StringBuilder
     for {
@@ -175,15 +120,15 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
 
   private def try_file(file: File) = if (file.isFile) Some(file) else None
 
-  def source_file(path: String): Option[File] =
+  def source_file(path: Path): Option[File] =
   {
-    if (path.startsWith("/") || path == "")
+    if (path.is_absolute || path.is_current)
       try_file(platform_file(path))
     else {
-      val pure_file = platform_file("$ISABELLE_HOME/src/Pure/" + path)
+      val pure_file = platform_file(Path.explode("~~/src/Pure") + path)
       if (pure_file.isFile) Some(pure_file)
       else if (getenv("ML_SOURCES") != "")
-        try_file(platform_file("$ML_SOURCES/" + path))
+        try_file(platform_file(Path.explode("$ML_SOURCES") + path))
       else None
     }
   }
@@ -208,7 +153,7 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
   class Managed_Process(redirect: Boolean, args: String*)
   {
     private val params =
-      List(expand_path("$ISABELLE_HOME/lib/scripts/process"), "group", "-", "no_script")
+      List(standard_path(Path.explode("~~/lib/scripts/process")), "group", "-", "no_script")
     private val proc = execute(redirect, (params ++ args):_*)
 
 
@@ -295,7 +240,7 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
   def isabelle_tool(name: String, args: String*): (String, Int) =
   {
     getenv_strict("ISABELLE_TOOLS").split(":").find { dir =>
-      val file = platform_file(dir + "/" + name)
+      val file = platform_file(Path.explode(dir) + Path.basic(name))
       try {
         file.isFile && file.canRead && file.canExecute &&
           !name.endsWith("~") && !name.endsWith(".orig")
@@ -303,8 +248,8 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
       catch { case _: SecurityException => false }
     } match {
       case Some(dir) =>
-        Standard_System.process_output(
-          execute(true, (List(expand_path(dir + "/" + name)) ++ args): _*))
+        val file = standard_path(Path.explode(dir) + Path.basic(name))
+        Standard_System.process_output(execute(true, (List(file) ++ args): _*))
       case None => ("Unknown Isabelle tool: " + name, 2)
     }
   }
@@ -336,7 +281,7 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
   def fifo_input_stream(fifo: String): InputStream =
   {
     if (Platform.is_windows) { // Cygwin fifo as Windows/Java input stream
-      val proc = execute(false, expand_path("$ISABELLE_HOME/lib/scripts/raw_dump"), fifo, "-")
+      val proc = execute(false, standard_path(Path.explode("~~/lib/scripts/raw_dump")), fifo, "-")
       proc.getOutputStream.close
       proc.getErrorStream.close
       proc.getInputStream
@@ -347,7 +292,7 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
   def fifo_output_stream(fifo: String): OutputStream =
   {
     if (Platform.is_windows) { // Cygwin fifo as Windows/Java output stream
-      val proc = execute(false, expand_path("$ISABELLE_HOME/lib/scripts/raw_dump"), "-", fifo)
+      val proc = execute(false, standard_path(Path.explode("~~/lib/scripts/raw_dump")), "-", fifo)
       proc.getInputStream.close
       proc.getErrorStream.close
       val out = proc.getOutputStream
@@ -379,7 +324,7 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
     val ml_ident = getenv_strict("ML_IDENTIFIER")
     val logics = new mutable.ListBuffer[String]
     for (dir <- getenv_strict("ISABELLE_PATH").split(":")) {
-      val files = platform_file(dir + "/" + ml_ident).listFiles()
+      val files = platform_file(Path.explode(dir) + Path.explode(ml_ident)).listFiles()
       if (files != null) {
         for (file <- files if file.isFile) logics += file.getName
       }
@@ -391,7 +336,8 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
   /* symbols */
 
   val symbols = new Symbol.Interpretation(
-    try_read(getenv_strict("ISABELLE_SYMBOLS").split(":").toList).split("\n").toList)
+    try_read(getenv_strict("ISABELLE_SYMBOLS").split(":").toList.map(Path.explode))
+      .split("\n").toList)
 
 
   /* fonts */
@@ -403,6 +349,6 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
   {
     val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
     for (font <- getenv_strict("ISABELLE_FONTS").split(":"))
-      ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, platform_file(font)))
+      ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, platform_file(Path.explode(font))))
   }
 }
