@@ -101,6 +101,7 @@ fun pretty_criterion ctxt (b, c) =
   end;
 
 
+
 (** queries **)
 
 type 'term query = {
@@ -154,6 +155,8 @@ fun query_of_xml (XML.Elem (("Query", properties), body)) =
       end
   | query_of_xml tree = raise XML_Syntax.XML ("query_of_xml: bad tree", tree);
 
+
+
 (** theorems, either internal or external (without proof) **)
 
 datatype theorem =
@@ -164,21 +167,21 @@ fun fact_ref_markup (Facts.Named ((name, pos), SOME [Facts.Single i])) =
       Position.markup pos o Markup.properties [("name", name), ("index", Markup.print_int i)]
   | fact_ref_markup (Facts.Named ((name, pos), NONE)) =
       Position.markup pos o Markup.properties [("name", name)]
-  | fact_ref_markup fact_ref = raise Fail "bad fact ref"
+  | fact_ref_markup fact_ref = raise Fail "bad fact ref";
 
 fun xml_of_theorem (Internal _) = raise Fail "xml_of_theorem: Internal"
   | xml_of_theorem (External (fact_ref, prop)) =
-      XML.Elem (fact_ref_markup fact_ref ("External", []), [XML_Syntax.xml_of_term prop])
+      XML.Elem (fact_ref_markup fact_ref ("External", []), [XML_Syntax.xml_of_term prop]);
 
 fun theorem_of_xml (XML.Elem (("External", properties), [tree])) =
-    let
-      val name = the (Properties.get properties "name");
-      val pos = Position.of_properties properties;
-      val intvs_opt = Option.map (single o Facts.Single o Markup.parse_int)
-        (Properties.get properties "index");
-    in
-      External (Facts.Named ((name, pos), intvs_opt), XML_Syntax.term_of_xml tree)
-    end
+      let
+        val name = the (Properties.get properties "name");
+        val pos = Position.of_properties properties;
+        val intvs_opt = Option.map (single o Facts.Single o Markup.parse_int)
+          (Properties.get properties "index");
+      in
+        External (Facts.Named ((name, pos), intvs_opt), XML_Syntax.term_of_xml tree)
+      end
   | theorem_of_xml tree = raise XML_Syntax.XML ("theorem_of_xml: bad tree", tree);
 
 fun xml_of_result (opt_found, theorems) =
@@ -207,6 +210,8 @@ fun major_prem_of (Internal (_, thm)) = Thm.major_prem_of thm
 fun fact_ref_of (Internal (fact_ref, _)) = fact_ref
   | fact_ref_of (External (fact_ref, _)) = fact_ref;
 
+
+
 (** search criterion filters **)
 
 (*generated filters are to be of the form
@@ -228,7 +233,7 @@ fun fact_ref_of (Internal (fact_ref, _)) = fact_ref
 
 fun is_nontrivial thy = Term.is_Const o Term.head_of o Object_Logic.drop_judgment thy;
 
-(*educated guesses on HOL*)  (* FIXME broken *)
+(*educated guesses on HOL*)  (* FIXME utterly broken *)
 val boolT = Type ("bool", []);
 val iff_const = Const ("op =", boolT --> boolT --> boolT);
 
@@ -339,8 +344,8 @@ fun filter_solves ctxt goal =
       else (etacn thm THEN_ALL_NEW (Goal.norm_hhf_tac THEN' Method.assm_tac ctxt)) 1 goal;
   in
     fn Internal (_, thm) =>
-      if is_some (Seq.pull (try_thm thm))
-      then SOME (Thm.nprems_of thm, 0) else NONE
+        if is_some (Seq.pull (try_thm thm))
+        then SOME (Thm.nprems_of thm, 0) else NONE
      | External _ => NONE
   end;
 
@@ -422,7 +427,6 @@ fun app_filters thm =
           let val (r', consts') = f (thm, consts)
           in app (opt_add r r', consts', fs) end;
   in app end;
-
 
 in
 
@@ -520,8 +524,6 @@ fun all_facts_of ctxt =
   in
     maps Facts.selections
      (visible_facts (Global_Theory.facts_of (Proof_Context.theory_of ctxt)) @
-
-
       visible_facts (Proof_Context.facts_of ctxt))
   end;
 

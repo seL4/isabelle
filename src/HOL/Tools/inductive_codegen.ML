@@ -884,7 +884,7 @@ fun test_term ctxt [(t, [])] =
         val (_, thy') = Inductive.add_inductive_global
           {quiet_mode=true, verbose=false, alt_name=Binding.empty, coind=false,
            no_elim=true, no_ind=false, skip_mono=false, fork_mono=false}
-          [((Binding.name "quickcheckp", T), NoSyn)] []
+          [((@{binding quickcheckp}, T), NoSyn)] []
           [(Attrib.empty_binding, rl)] [] (Theory.copy thy);
         val pred = HOLogic.mk_Trueprop (list_comb
           (Const (Sign.intern_const thy' "quickcheckp", T),

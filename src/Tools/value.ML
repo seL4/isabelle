@@ -69,7 +69,7 @@ val _ =
           (value_cmd some_name modes t)));
 
 val antiq_setup =
-  Thy_Output.antiquotation (Binding.name "value")
+  Thy_Output.antiquotation @{binding value}
     (Scan.lift opt_evaluator -- Term_Style.parse -- Args.term)
     (fn {source, context, ...} => fn ((some_name, style), t) => Thy_Output.output context
       (Thy_Output.maybe_pretty_source Thy_Output.pretty_term context source

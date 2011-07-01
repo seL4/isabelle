@@ -408,8 +408,10 @@ fun test_term ctxt (limit_time, is_interactive) (t, eval_terms) =
         val finitize = if Config.get ctxt finite_functions then wrap finitize_functions else I
         val (qs, prop_t) = finitize (strip_quantifiers pnf_t)
         val prop_term = fold_rev (fn (_, (x, T)) => fn t => Abs (x, T, t)) qs prop_t
-        val ((prop_def, _), ctxt') = Local_Theory.define ((Binding.conceal (Binding.name "test_property"), NoSyn),
-          ((Binding.conceal Binding.empty, [Code.add_default_eqn_attrib]), prop_term)) ctxt
+        (* FIXME proper naming convention for local_theory *)
+        val ((prop_def, _), ctxt') =
+          Local_Theory.define ((Binding.conceal @{binding test_property}, NoSyn),
+            ((Binding.conceal Binding.empty, [Code.add_default_eqn_attrib]), prop_term)) ctxt
         val (prop_def', thy') = Local_Theory.exit_result_global Morphism.term (prop_def, ctxt') 
         val (counterexample, result) = dynamic_value_strict (true, opts)
           (Existential_Counterexample.get, Existential_Counterexample.put,

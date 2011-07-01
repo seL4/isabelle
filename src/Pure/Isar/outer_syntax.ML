@@ -249,13 +249,13 @@ fun prepare_span commands span =
     handle ERROR msg => (Toplevel.malformed range_pos msg, true)
   end;
 
-fun prepare_atom commands init (cmd, proof, proper_proof) =
+fun prepare_element commands init {head, proof, proper_proof} =
   let
-    val (tr, proper_cmd) = prepare_span commands cmd |>> Toplevel.modify_init init;
+    val (tr, proper_head) = prepare_span commands head |>> Toplevel.modify_init init;
     val proof_trs = map (prepare_span commands) proof |> filter #2 |> map #1;
   in
-    if proper_cmd andalso proper_proof then [(tr, proof_trs)]
-    else map (rpair []) (if proper_cmd then tr :: proof_trs else proof_trs)
+    if proper_head andalso proper_proof then [(tr, proof_trs)]
+    else map (rpair []) (if proper_head then tr :: proof_trs else proof_trs)
   end;
 
 fun prepare_command pos str =
@@ -278,14 +278,14 @@ fun load_thy name init pos text =
     val toks = Source.exhausted (Thy_Syntax.token_source lexs pos (Source.of_string text));
     val spans = Source.exhaust (Thy_Syntax.span_source toks);
     val _ = List.app Thy_Syntax.report_span spans;  (* FIXME ?? *)
-    val atoms = Source.exhaust (Thy_Syntax.atom_source (Source.of_list spans))
-      |> Par_List.map_name "Outer_Syntax.prepare_atom" (prepare_atom commands init) |> flat;
+    val elements = Source.exhaust (Thy_Syntax.element_source (Source.of_list spans))
+      |> Par_List.map_name "Outer_Syntax.prepare_element" (prepare_element commands init) |> flat;
 
     val _ = Present.theory_source name
       (fn () => HTML.html_mode (implode o map Thy_Syntax.present_span) spans);
 
     val _ = if time then writeln ("\n**** Starting theory " ^ quote name ^ " ****") else ();
-    val (results, thy) = cond_timeit time "" (fn () => Toplevel.excursion atoms);
+    val (results, thy) = cond_timeit time "" (fn () => Toplevel.excursion elements);
     val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();
 
     val present =

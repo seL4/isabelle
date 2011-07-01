@@ -21,8 +21,9 @@ sig
   val parse_spans: Scan.lexicon * Scan.lexicon -> Position.T -> string -> span list
   val present_span: span -> Output.output
   val report_span: span -> unit
-  val atom_source: (span, 'a) Source.source ->
-    (span * span list * bool, (span, 'a) Source.source) Source.source
+  type element = {head: span, proof: span list, proper_proof: bool}
+  val element_source: (span, 'a) Source.source ->
+    (element, (span, 'a) Source.source) Source.source
 end;
 
 structure Thy_Syntax: THY_SYNTAX =
@@ -159,7 +160,13 @@ end;
 
 
 
-(** specification atoms: commands with optional proof **)
+(** specification elements: commands with optional proof **)
+
+type element = {head: span, proof: span list, proper_proof: bool};
+
+fun make_element head proof proper_proof =
+  {head = head, proof = proof, proper_proof = proper_proof};
+
 
 (* scanning spans *)
 
@@ -173,7 +180,7 @@ val not_eof = not o is_eof;
 val stopper = Scan.stopper (K eof) is_eof;
 
 
-(* atom_source *)
+(* element_source *)
 
 local
 
@@ -187,13 +194,14 @@ val proof = Scan.pass 1 (Scan.repeat (Scan.depend (fn d =>
     (if d = 0 then Scan.fail else command_with Keyword.is_qed >> pair (d - 1)) ||
     Scan.unless (command_with Keyword.is_theory) (Scan.one not_eof) >> pair d)) -- Scan.state);
 
-val atom =
-  command_with Keyword.is_theory_goal -- proof >> (fn (a, (bs, d)) => (a, bs, d >= 0)) ||
-  Scan.one not_eof >> (fn a => (a, [], true));
+val element =
+  command_with Keyword.is_theory_goal -- proof
+    >> (fn (a, (bs, d)) => make_element a bs (d >= 0)) ||
+  Scan.one not_eof >> (fn a => make_element a [] true);
 
 in
 
-fun atom_source src = Source.source stopper (Scan.bulk atom) NONE src;
+fun element_source src = Source.source stopper (Scan.bulk element) NONE src;
 
 end;
 

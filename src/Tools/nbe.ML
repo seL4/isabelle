@@ -78,7 +78,7 @@ local
 val get_triv_classes = map fst o Triv_Class_Data.get;
 
 val (_, triv_of_class) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (Binding.name "triv_of_class", fn (thy, T, class) =>
+  (Thm.add_oracle (@{binding triv_of_class}, fn (thy, T, class) =>
     Thm.cterm_of thy (Logic.mk_of_class (T, class)))));
 
 in
@@ -589,7 +589,7 @@ fun mk_equals thy lhs raw_rhs =
   in Thm.mk_binop eq lhs rhs end;
 
 val (_, raw_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (Binding.name "normalization_by_evaluation",
+  (Thm.add_oracle (@{binding normalization_by_evaluation},
     fn (thy, program, nbe_program_idx_tab, vsp_ty_t, deps, ct) =>
       mk_equals thy ct (eval_term thy program nbe_program_idx_tab vsp_ty_t deps))));
 
