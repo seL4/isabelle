@@ -1197,9 +1197,10 @@ fun register_type (tyco, vs_spec) thy =
       case these (Symtab.lookup ((the_types o the_exec) thy) tyco)
        of (_, (_, Constructors (cos, _))) :: _ => (map fst cos, NONE)
         | (_, (_, Abstractor ((co, _), (proj, _)))) :: _ => ([co], SOME proj)
-        | [] => ([], NONE)
-    val outdated_funs = case some_old_proj
-     of NONE => old_constrs
+        | [] => ([], NONE);
+    val outdated_funs1 = (map fst o fst o constructors_of o snd) vs_spec;
+    val outdated_funs2 = case some_old_proj
+     of NONE => []
       | SOME old_proj => Symtab.fold
           (fn (c, ((_, spec), _)) =>
             if member (op =) (the_list (associated_abstype spec)) tyco
@@ -1211,7 +1212,7 @@ fun register_type (tyco, vs_spec) thy =
           then insert (op =) c else I) cases []) cases;
   in
     thy
-    |> fold del_eqns outdated_funs
+    |> fold del_eqns (outdated_funs1 @ outdated_funs2)
     |> map_exec_purge
         ((map_typs o Symtab.map_default (tyco, [])) (cons (serial (), vs_spec))
         #> (map_cases o apfst) drop_outdated_cases)
@@ -1231,7 +1232,6 @@ fun add_datatype proto_constrs thy =
     val (tyco, (vs, cos)) = constrset_of_consts thy constrs;
   in
     thy
-    |> fold (del_eqns o fst) constrs
     |> register_type (tyco, (vs, Constructors (cos, [])))
     |> Datatype_Interpretation.data (tyco, serial ())
   end;
@@ -1251,7 +1251,6 @@ fun add_abstype proto_thm thy =
       error_thm (check_abstype_cert thy) proto_thm;
   in
     thy
-    |> del_eqns abs
     |> register_type (tyco, (vs, Abstractor (abs_ty, (rep, cert))))
     |> change_fun_spec false rep ((K o Proj)
         (map_types Logic.varifyT_global (mk_proj tyco vs ty abs rep), tyco))
