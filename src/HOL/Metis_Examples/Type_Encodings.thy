@@ -43,8 +43,8 @@ val type_encs =
    "mangled_args",
    "simple",
    "poly_preds?",
-(* "poly_preds_heavy?", *)
-(* "poly_tags?", *)
+   "poly_preds_heavy?",
+   "poly_tags?",
 (* "poly_tags_heavy?", *)
    "mono_preds?",
    "mono_preds_heavy?",
@@ -56,9 +56,9 @@ val type_encs =
    "mangled_tags_heavy?",
    "simple?",
    "poly_preds!",
-(* "poly_preds_heavy!", *)
+   "poly_preds_heavy!",
 (* "poly_tags!", *)
-(* "poly_tags_heavy!", *)
+   "poly_tags_heavy!",
    "mono_preds!",
    "mono_preds_heavy!",
    "mono_tags!",

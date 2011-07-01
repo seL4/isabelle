@@ -50,7 +50,7 @@ lemma int_le_0_imp_le_1: "x \<le> (0::int) \<Longrightarrow> x \<le> 1"
 by linarith
 
 lemma "B \<subseteq> C"
-sledgehammer [type_enc = poly_args, max_relevant = 200, expect = some]
+sledgehammer [type_enc = poly_args, max_relevant = 100, expect = some]
 by (metis_exhaust B_def C_def int_le_0_imp_le_1 predicate1I)
 
 
