@@ -153,16 +153,19 @@ fun read_const thy = check_unoverload thy o read_bare_const thy;
 
 (* datatypes *)
 
-datatype typ_spec = Constructors of (string * ((string * sort) list * typ list)) list
+datatype typ_spec = Constructors of (string * ((string * sort) list * typ list)) list *
+      string list (*references to associated case constructors*)
   | Abstractor of (string * ((string * sort) list * typ)) * (string * thm);
 
-fun constructors_of (Constructors cos) = (cos, false)
+fun constructors_of (Constructors (cos, _)) = (cos, false)
   | constructors_of (Abstractor ((co, (vs, ty)), _)) = ([(co, (vs, [ty]))], true);
 
 
 (* functions *)
 
 datatype fun_spec = Default of (thm * bool) list * (thm * bool) list lazy
+      (* (cache for default equations, lazy computation of default equations)
+         -- helps to restore natural order of default equations *)
   | Eqns of (thm * bool) list
   | Proj of term * string
   | Abstr of thm * string;
@@ -1160,16 +1163,26 @@ fun case_cong thy case_const (num_args, (pos, _)) =
 
 fun add_case thm thy =
   let
-    val (case_const, (k, case_pats)) = case_cert thm;
-    val _ = case filter_out (is_constr thy) case_pats
+    val (case_const, (k, cos)) = case_cert thm;
+    val _ = case filter_out (is_constr thy) cos
      of [] => ()
       | cs => error ("Non-constructor(s) in case certificate: " ^ commas (map quote cs));
-    val entry = (1 + Int.max (1, length case_pats), (k, case_pats));
+    val entry = (1 + Int.max (1, length cos), (k, cos));
+    fun register_case cong = (map_cases o apfst)
+      (Symtab.update (case_const, (entry, cong)));
+    fun register_for_constructors (Constructors (cos', cases)) =
+         Constructors (cos',
+           if exists (fn (co, _) => member (op =) cos co) cos'
+           then insert (op =) case_const cases
+           else cases)
+      | register_for_constructors (x as Abstractor _) = x;
+    val register_type = (map_typs o Symtab.map)
+      (K ((map o apsnd o apsnd) register_for_constructors));
   in
     thy
     |> Theory.checkpoint
     |> `(fn thy => case_cong thy case_const entry)
-    |-> (fn cong => (map_exec_purge o map_cases o apfst) (Symtab.update (case_const, (entry, cong))))
+    |-> (fn cong => map_exec_purge (register_case cong #> register_type))
   end;
 
 fun add_undefined c thy =
@@ -1182,7 +1195,7 @@ fun register_type (tyco, vs_spec) thy =
   let
     val (old_constrs, some_old_proj) =
       case these (Symtab.lookup ((the_types o the_exec) thy) tyco)
-       of (_, (_, Constructors cos)) :: _ => (map fst cos, NONE)
+       of (_, (_, Constructors (cos, _))) :: _ => (map fst cos, NONE)
         | (_, (_, Abstractor ((co, _), (proj, _)))) :: _ => ([co], SOME proj)
         | [] => ([], NONE)
     val outdated_funs = case some_old_proj
@@ -1219,7 +1232,7 @@ fun add_datatype proto_constrs thy =
   in
     thy
     |> fold (del_eqns o fst) constrs
-    |> register_type (tyco, (vs, Constructors cos))
+    |> register_type (tyco, (vs, Constructors (cos, [])))
     |> Datatype_Interpretation.data (tyco, serial ())
   end;
 
