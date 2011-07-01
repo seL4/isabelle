@@ -21,7 +21,6 @@ sig
   val string_of: XML.tree -> string
   val parse_body: string -> XML.body
   val parse: string -> XML.tree
-  val parse_file: (XML.tree -> 'a -> 'a) -> Path.T -> 'a -> 'a
 end;
 
 structure YXML: YXML =
@@ -107,7 +106,6 @@ fun push "" _ _ = err_element ()
 fun pop ((("", _), _) :: _) = err_unbalanced ""
   | pop ((markup, body) :: pending) = add (XML.Elem (markup, rev body)) pending;
 
-val stack_init = [(("", []), [])];
 
 (* parsing *)
 
@@ -121,16 +119,10 @@ fun parse_chunk ["", ""] = pop
   | parse_chunk ("" :: name :: atts) = push name (map parse_attrib atts)
   | parse_chunk txts = fold (add o XML.Text) txts;
 
-fun preparse_chunk _ "" x = x
-  | preparse_chunk f str (pending, results) =
-      (case parse_chunk (String.fields (is_char Y) str) pending of
-        [(("", _), [result])] => (stack_init, f result results)
-      | x => (x, results));
-
 in
 
 fun parse_body source =
-  (case fold parse_chunk (split_string source) stack_init of
+  (case fold parse_chunk (split_string source) [(("", []), [])] of
     [(("", _), result)] => rev result
   | ((name, _), _) :: _ => err_unbalanced name);
 
@@ -139,13 +131,6 @@ fun parse source =
     [result] => result
   | [] => XML.Text ""
   | _ => err "multiple results");
-
-(*folds a function over each XML.Tree in the file*)
-fun parse_file f path s =
-  (case File.fold_fields (is_char X) (preparse_chunk f)
-      path (stack_init, s) of
-    ([(("", _), [])], result) => result
-  | (((name, _), _) :: _, _) => err_unbalanced name);
 
 end;
 
