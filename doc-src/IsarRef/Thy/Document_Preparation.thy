@@ -188,6 +188,7 @@ text {*
       @@{antiquotation lemma} options @{syntax prop} @'by' @{syntax method} @{syntax method}? |
       @@{antiquotation prop} options styles @{syntax prop} |
       @@{antiquotation term} options styles @{syntax term} |
+      @@{antiquotation value} options styles @{syntax term} |
       @@{antiquotation term_type} options styles @{syntax term} |
       @@{antiquotation typeof} options styles @{syntax term} |
       @@{antiquotation const} options @{syntax term} |
@@ -236,6 +237,8 @@ text {*
   @{text "\<phi>"} by method @{text m} and prints the original @{text "\<phi>"}.
 
   \item @{text "@{term t}"} prints a well-typed term @{text "t"}.
+  
+  \item @{text "@{value t}"} evaluates a term @{text "t"} and prints its result.
 
   \item @{text "@{term_type t}"} prints a well-typed term @{text "t"}
   annotated with its type.

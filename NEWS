@@ -126,6 +126,8 @@ INCOMPATIBILITY. Use partial_function instead.
 * Antiquotation @{rail} layouts railroad syntax diagrams, see also
 isar-ref manual.
 
+* Antiquotation @{value} evaluates the given term and presents its result.
+
 * Localized \isabellestyle switch can be used within blocks or groups
 like this:
 
