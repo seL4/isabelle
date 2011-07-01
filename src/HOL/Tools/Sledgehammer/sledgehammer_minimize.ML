@@ -173,7 +173,7 @@ fun minimize_facts prover_name (params as {timeout, ...}) silent i n state
            else
              sublinear_minimize (do_test new_timeout) facts ([], result)
          val _ = print silent (fn () => cat_lines
-           ["Minimized to " ^ n_facts used_facts] ^
+           ["Minimized to " ^ n_facts (map fst min_facts)] ^
             (case length (filter (curry (op =) Chained o snd o fst) min_facts) of
                0 => ""
              | n => "\n(including " ^ string_of_int n ^ " chained)") ^ ".")
