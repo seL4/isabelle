@@ -163,7 +163,7 @@ fun check_holds thy evaluator vs_t deps ct =
   end;
 
 val (_, raw_check_holds_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (Binding.name "holds_by_evaluation",
+  (Thm.add_oracle (@{binding holds_by_evaluation},
   fn (thy, evaluator, vs_t, deps, ct) => check_holds thy evaluator vs_t deps ct)));
 
 fun check_holds_oracle thy evaluator ((_, vs_ty), t) deps ct =
@@ -338,7 +338,7 @@ val code_reflect_cmd = gen_code_reflect Code_Target.read_tyco Code.read_const;
 
 val _ =
   Context.>> (Context.map_theory
-    (ML_Context.add_antiq (Binding.name "code") (fn _ => Args.term >> ml_code_antiq)));
+    (ML_Context.add_antiq @{binding code} (fn _ => Args.term >> ml_code_antiq)));
 
 local
 
