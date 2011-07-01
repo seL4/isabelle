@@ -19,6 +19,7 @@ sig
     General | Helper | Extensionality | Intro | Elim | Simp | Local | Assum |
     Chained
 
+  datatype order = First_Order | Higher_Order
   datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
   datatype type_level =
     All_Types | Noninf_Nonmono_Types | Fin_Nonmono_Types | Const_Arg_Types |
@@ -26,7 +27,7 @@ sig
   datatype type_heaviness = Heavyweight | Lightweight
 
   datatype type_sys =
-    Simple_Types of type_level |
+    Simple_Types of order * type_level |
     Preds of polymorphism * type_level * type_heaviness |
     Tags of polymorphism * type_level * type_heaviness
 
@@ -501,6 +502,7 @@ fun is_locality_global Local = false
   | is_locality_global Chained = false
   | is_locality_global _ = true
 
+datatype order = First_Order | Higher_Order
 datatype polymorphism = Polymorphic | Monomorphic | Mangled_Monomorphic
 datatype type_level =
   All_Types | Noninf_Nonmono_Types | Fin_Nonmono_Types | Const_Arg_Types |
@@ -508,7 +510,7 @@ datatype type_level =
 datatype type_heaviness = Heavyweight | Lightweight
 
 datatype type_sys =
-  Simple_Types of type_level |
+  Simple_Types of order * type_level |
   Preds of polymorphism * type_level * type_heaviness |
   Tags of polymorphism * type_level * type_heaviness
 
@@ -526,7 +528,8 @@ fun type_sys_from_string s =
          SOME s => (SOME Mangled_Monomorphic, s)
        | NONE => (NONE, s))
   ||> (fn s =>
-          (* "_query" and "_bang" are for the ASCII-challenged Mirabelle. *)
+          (* "_query" and "_bang" are for the ASCII-challenged Metis and
+             Mirabelle. *)
           case try_unsuffixes ["?", "_query"] s of
             SOME s => (Noninf_Nonmono_Types, s)
           | NONE =>
@@ -539,7 +542,10 @@ fun type_sys_from_string s =
                 | NONE => (Lightweight, s))
   |> (fn (poly, (level, (heaviness, core))) =>
          case (core, (poly, level, heaviness)) of
-           ("simple", (NONE, _, Lightweight)) => Simple_Types level
+           ("simple", (NONE, _, Lightweight)) =>
+           Simple_Types (First_Order, level)
+         | ("simple_higher", (NONE, _, Lightweight)) =>
+           Simple_Types (Higher_Order, level)
          | ("preds", (SOME poly, _, _)) => Preds (poly, level, heaviness)
          | ("tags", (SOME Polymorphic, _, _)) =>
            Tags (Polymorphic, level, heaviness)
@@ -551,11 +557,14 @@ fun type_sys_from_string s =
          | _ => raise Same.SAME)
   handle Same.SAME => error ("Unknown type system: " ^ quote s ^ ".")
 
+fun is_type_sys_higher_order (Simple_Types (Higher_Order, _)) = true
+  | is_type_sys_higher_order _ = false
+
 fun polymorphism_of_type_sys (Simple_Types _) = Mangled_Monomorphic
   | polymorphism_of_type_sys (Preds (poly, _, _)) = poly
   | polymorphism_of_type_sys (Tags (poly, _, _)) = poly
 
-fun level_of_type_sys (Simple_Types level) = level
+fun level_of_type_sys (Simple_Types (_, level)) = level
   | level_of_type_sys (Preds (_, level, _)) = level
   | level_of_type_sys (Tags (_, level, _)) = level
 
@@ -572,13 +581,13 @@ fun is_type_level_fairly_sound level =
   is_type_level_virtually_sound level orelse level = Fin_Nonmono_Types
 val is_type_sys_fairly_sound = is_type_level_fairly_sound o level_of_type_sys
 
-fun is_setting_higher_order THF (Simple_Types _) = true
-  | is_setting_higher_order _ _ = false
-
-fun choose_format formats (Simple_Types level) =
-    if member (op =) formats THF then (THF, Simple_Types level)
-    else if member (op =) formats TFF then (TFF, Simple_Types level)
-    else choose_format formats (Preds (Mangled_Monomorphic, level, Heavyweight))
+fun choose_format formats (Simple_Types (order, level)) =
+    if member (op =) formats THF then
+      (THF, Simple_Types (order, level))
+    else if member (op =) formats TFF then
+      (TFF, Simple_Types (First_Order, level))
+    else
+      choose_format formats (Preds (Mangled_Monomorphic, level, Heavyweight))
   | choose_format formats type_sys =
     (case hd formats of
        CNF_UEQ =>
@@ -699,7 +708,7 @@ val homo_infinite_type = Type (homo_infinite_type_name, [])
 fun fo_term_from_typ format type_sys =
   let
     fun term (Type (s, Ts)) =
-      ATerm (case (is_setting_higher_order format type_sys, s) of
+      ATerm (case (is_type_sys_higher_order type_sys, s) of
                (true, @{type_name bool}) => `I tptp_bool_type
              | (true, @{type_name fun}) => `I tptp_fun_type
              | _ => if s = homo_infinite_type_name andalso
@@ -733,7 +742,7 @@ fun make_simple_type s =
   else
     simple_type_prefix ^ ascii_of s
 
-fun ho_type_from_fo_term format type_sys pred_sym ary =
+fun ho_type_from_fo_term type_sys pred_sym ary =
   let
     fun to_atype ty =
       AType ((make_simple_type (generic_mangled_type_name fst ty),
@@ -743,10 +752,10 @@ fun ho_type_from_fo_term format type_sys pred_sym ary =
       | to_fo ary (ATerm (_, tys)) = to_afun to_atype (to_fo (ary - 1)) tys
     fun to_ho (ty as ATerm ((s, _), tys)) =
       if s = tptp_fun_type then to_afun to_ho to_ho tys else to_atype ty
-  in if is_setting_higher_order format type_sys then to_ho else to_fo ary end
+  in if is_type_sys_higher_order type_sys then to_ho else to_fo ary end
 
 fun mangled_type format type_sys pred_sym ary =
-  ho_type_from_fo_term format type_sys pred_sym ary
+  ho_type_from_fo_term type_sys pred_sym ary
   o fo_term_from_typ format type_sys
 
 fun mangled_const_name format type_sys T_args (s, s') =
@@ -780,14 +789,14 @@ fun unmangled_const s =
     (hd ss, map unmangled_type (tl ss))
   end
 
-fun introduce_proxies format type_sys =
+fun introduce_proxies type_sys =
   let
     fun intro top_level (CombApp (tm1, tm2)) =
         CombApp (intro top_level tm1, intro false tm2)
       | intro top_level (CombConst (name as (s, _), T, T_args)) =
         (case proxify_const s of
            SOME proxy_base =>
-           if top_level orelse is_setting_higher_order format type_sys then
+           if top_level orelse is_type_sys_higher_order type_sys then
              case (top_level, s) of
                (_, "c_False") => (`I tptp_false, [])
              | (_, "c_True") => (`I tptp_true, [])
@@ -806,11 +815,11 @@ fun introduce_proxies format type_sys =
       | intro _ tm = tm
   in intro true end
 
-fun combformula_from_prop thy format type_sys eq_as_iff =
+fun combformula_from_prop thy type_sys eq_as_iff =
   let
     fun do_term bs t atomic_types =
       combterm_from_term thy bs (Envir.eta_contract t)
-      |>> (introduce_proxies format type_sys #> AAtom)
+      |>> (introduce_proxies type_sys #> AAtom)
       ||> union (op =) atomic_types
     fun do_quant bs q s T t' =
       let val s = singleton (Name.variant_list (map fst bs)) s in
@@ -931,10 +940,10 @@ fun preprocess_prop ctxt presimp_consts kind t =
   end
 
 (* making fact and conjecture formulas *)
-fun make_formula thy format type_sys eq_as_iff name loc kind t =
+fun make_formula thy type_sys eq_as_iff name loc kind t =
   let
     val (combformula, atomic_types) =
-      combformula_from_prop thy format type_sys eq_as_iff t []
+      combformula_from_prop thy type_sys eq_as_iff t []
   in
     {name = name, locality = loc, kind = kind, combformula = combformula,
      atomic_types = atomic_types}
@@ -944,8 +953,8 @@ fun make_fact ctxt format type_sys eq_as_iff preproc presimp_consts
               ((name, loc), t) =
   let val thy = Proof_Context.theory_of ctxt in
     case t |> preproc ? preprocess_prop ctxt presimp_consts Axiom
-           |> make_formula thy format type_sys (eq_as_iff andalso format <> CNF)
-                           name loc Axiom of
+           |> make_formula thy type_sys (eq_as_iff andalso format <> CNF) name
+                           loc Axiom of
       formula as {combformula = AAtom (CombConst ((s, _), _, _)), ...} =>
       if s = tptp_true then NONE else SOME formula
     | formula => SOME formula
@@ -968,8 +977,8 @@ fun make_conjecture ctxt format prem_kind type_sys preproc presimp_consts ts =
               in
                 t |> preproc ?
                      (preprocess_prop ctxt presimp_consts kind #> freeze_term)
-                  |> make_formula thy format type_sys (format <> CNF)
-                                  (string_of_int j) Local kind
+                  |> make_formula thy type_sys (format <> CNF) (string_of_int j)
+                                  Local kind
                   |> maybe_negate
               end)
          (0 upto last) ts
@@ -1249,7 +1258,7 @@ fun enforce_type_arg_policy_in_combterm ctxt format type_sys =
   in aux 0 end
 
 fun repair_combterm ctxt format type_sys sym_tab =
-  not (is_setting_higher_order format type_sys)
+  not (is_type_sys_higher_order type_sys)
   ? (introduce_explicit_apps_in_combterm sym_tab
      #> introduce_predicators_in_combterm sym_tab)
   #> enforce_type_arg_policy_in_combterm ctxt format type_sys
@@ -1477,7 +1486,7 @@ and formula_from_combformula ctxt format nonmono_Ts type_sys
       term_from_combterm ctxt format nonmono_Ts type_sys (Top_Level pos)
     val do_bound_type =
       case type_sys of
-        Simple_Types level =>
+        Simple_Types (_, level) =>
         homogenized_type ctxt nonmono_Ts level 0
         #> mangled_type format type_sys false 0 #> SOME
       | _ => K NONE
@@ -1649,7 +1658,7 @@ fun decl_line_for_sym ctxt format nonmono_Ts type_sys s
   let
     val (T_arg_Ts, level) =
       case type_sys of
-        Simple_Types level => ([], level)
+        Simple_Types (_, level) => ([], level)
       | _ => (replicate (length T_args) homo_infinite_type, No_Types)
   in
     Decl (sym_decl_prefix ^ s, (s, s'),
