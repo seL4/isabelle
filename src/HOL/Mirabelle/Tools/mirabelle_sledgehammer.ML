@@ -8,7 +8,7 @@ struct
 val proverK = "prover"
 val prover_timeoutK = "prover_timeout"
 val keepK = "keep"
-val type_sysK = "type_sys"
+val type_encK = "type_enc"
 val slicingK = "slicing"
 val e_weight_methodK = "e_weight_method"
 val spass_force_sosK = "spass_force_sos"
@@ -353,7 +353,7 @@ datatype sh_result =
   SH_FAIL of int * int |
   SH_ERROR
 
-fun run_sh prover_name prover type_sys max_relevant slicing e_weight_method spass_force_sos
+fun run_sh prover_name prover type_enc max_relevant slicing e_weight_method spass_force_sos
       vampire_force_sos hard_timeout timeout dir st =
   let
     val {context = ctxt, facts = chained_ths, goal} = Proof.goal st
@@ -377,7 +377,7 @@ fun run_sh prover_name prover type_sys max_relevant slicing e_weight_method spas
     val params as {relevance_thresholds, max_relevant, slicing, ...} =
       Sledgehammer_Isar.default_params ctxt
           [("verbose", "true"),
-           ("type_sys", type_sys),
+           ("type_enc", type_enc),
            ("max_relevant", max_relevant),
            ("slicing", slicing),
            ("timeout", string_of_int timeout)]
@@ -452,7 +452,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id ({pre=st, log, ...
     val _ = change_data id inc_sh_calls
     val _ = if trivial then () else change_data id inc_sh_nontriv_calls
     val (prover_name, prover) = get_prover (Proof.context_of st) args
-    val type_sys = AList.lookup (op =) args type_sysK |> the_default "smart"
+    val type_enc = AList.lookup (op =) args type_encK |> the_default "smart"
     val max_relevant = AList.lookup (op =) args max_relevantK |> the_default "smart"
     val slicing = AList.lookup (op =) args slicingK |> the_default "true"
     val e_weight_method = AList.lookup (op =) args e_weight_methodK
@@ -466,7 +466,7 @@ fun run_sledgehammer trivial args reconstructor named_thms id ({pre=st, log, ...
        minimizer has a chance to do its magic *)
     val hard_timeout = SOME (2 * timeout)
     val (msg, result) =
-      run_sh prover_name prover type_sys max_relevant slicing e_weight_method spass_force_sos
+      run_sh prover_name prover type_enc max_relevant slicing e_weight_method spass_force_sos
         vampire_force_sos hard_timeout timeout dir st
   in
     case result of
@@ -503,7 +503,7 @@ fun run_minimize args reconstructor named_thms id
     val ctxt = Proof.context_of st
     val n0 = length (these (!named_thms))
     val (prover_name, _) = get_prover ctxt args
-    val type_sys = AList.lookup (op =) args type_sysK |> the_default "smart"
+    val type_enc = AList.lookup (op =) args type_encK |> the_default "smart"
     val timeout =
       AList.lookup (op =) args minimize_timeoutK
       |> Option.map (fst o read_int o raw_explode)  (* FIXME Symbol.explode (?) *)
@@ -511,7 +511,7 @@ fun run_minimize args reconstructor named_thms id
     val params = Sledgehammer_Isar.default_params ctxt
       [("provers", prover_name),
        ("verbose", "true"),
-       ("type_sys", type_sys),
+       ("type_enc", type_enc),
        ("timeout", string_of_int timeout)]
     val minimize =
       Sledgehammer_Minimize.minimize_facts prover_name params
@@ -546,9 +546,9 @@ fun run_reconstructor trivial full m name reconstructor named_thms id
        else if !reconstructor = "smt" then
          SMT_Solver.smt_tac
        else if full orelse !reconstructor = "metis (full_types)" then
-         Metis_Tactics.metis_tac [Metis_Tactics.full_type_sys]
+         Metis_Tactics.metis_tac [Metis_Tactics.full_type_enc]
        else if !reconstructor = "metis (no_types)" then
-         Metis_Tactics.metis_tac [Metis_Tactics.no_type_sys]
+         Metis_Tactics.metis_tac [Metis_Tactics.no_type_enc]
        else
          Metis_Tactics.metis_tac []) ctxt thms
     fun apply_reconstructor thms =

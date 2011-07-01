@@ -10,7 +10,7 @@ signature SLEDGEHAMMER_PROVERS =
 sig
   type failure = ATP_Proof.failure
   type locality = ATP_Translate.locality
-  type type_sys = ATP_Translate.type_sys
+  type type_enc = ATP_Translate.type_enc
   type reconstructor = ATP_Reconstruct.reconstructor
   type play = ATP_Reconstruct.play
   type minimize_command = ATP_Reconstruct.minimize_command
@@ -24,7 +24,7 @@ sig
      overlord: bool,
      blocking: bool,
      provers: string list,
-     type_sys: type_sys option,
+     type_enc: type_enc option,
      sound: bool,
      relevance_thresholds: real * real,
      max_relevant: int option,
@@ -289,7 +289,7 @@ type params =
    overlord: bool,
    blocking: bool,
    provers: string list,
-   type_sys: type_sys option,
+   type_enc: type_enc option,
    sound: bool,
    relevance_thresholds: real * real,
    max_relevant: int option,
@@ -407,11 +407,11 @@ fun timed_apply timeout tac state i =
   in TimeLimit.timeLimit timeout (try (Seq.pull o full_tac)) goal end
 
 fun tac_for_reconstructor Metis =
-    Metis_Tactics.metis_tac [Metis_Tactics.partial_type_sys]
+    Metis_Tactics.metis_tac [Metis_Tactics.partial_type_enc]
   | tac_for_reconstructor Metis_Full_Types =
     Metis_Tactics.metis_tac Metis_Tactics.full_type_syss
   | tac_for_reconstructor Metis_No_Types =
-    Metis_Tactics.metis_tac [Metis_Tactics.no_type_sys]
+    Metis_Tactics.metis_tac [Metis_Tactics.no_type_enc]
   | tac_for_reconstructor _ = raise Fail "unexpected reconstructor"
 
 fun timed_reconstructor reconstructor debug timeout ths =
@@ -504,10 +504,10 @@ fun int_opt_add (SOME m) (SOME n) = SOME (m + n)
    them each time. *)
 val atp_important_message_keep_quotient = 10
 
-fun choose_format_and_type_sys best_type_sys formats type_sys_opt =
-  (case type_sys_opt of
+fun choose_format_and_type_enc best_type_enc formats type_enc_opt =
+  (case type_enc_opt of
      SOME ts => ts
-   | NONE => type_sys_from_string best_type_sys)
+   | NONE => type_enc_from_string best_type_enc)
   |> choose_format formats
 
 val metis_minimize_max_time = seconds 2.0
@@ -530,7 +530,7 @@ fun repair_monomorph_context max_iters max_new_instances =
 fun run_atp mode name
         ({exec, required_execs, arguments, proof_delims, known_failures,
           conj_sym_kind, prem_kind, formats, best_slices, ...} : atp_config)
-        ({debug, verbose, overlord, type_sys, sound, max_relevant,
+        ({debug, verbose, overlord, type_enc, sound, max_relevant,
           max_mono_iters, max_new_mono_instances, isar_proof,
           isar_shrink_factor, slicing, timeout, preplay_timeout, ...} : params)
         minimize_command
@@ -598,21 +598,21 @@ fun run_atp mode name
                 |> maps (fn (name, rths) => map (pair name o snd) rths)
               end
             fun run_slice (slice, (time_frac, (complete,
-                                    (best_max_relevant, best_type_sys, extra))))
+                                    (best_max_relevant, best_type_enc, extra))))
                           time_left =
               let
                 val num_facts =
                   length facts |> is_none max_relevant
                                   ? Integer.min best_max_relevant
-                val (format, type_sys) =
-                  choose_format_and_type_sys best_type_sys formats type_sys
-                val fairly_sound = is_type_sys_fairly_sound type_sys
+                val (format, type_enc) =
+                  choose_format_and_type_enc best_type_enc formats type_enc
+                val fairly_sound = is_type_enc_fairly_sound type_enc
                 val facts =
                   facts |> map untranslated_fact
                         |> not fairly_sound
                            ? filter_out (is_dangerous_prop ctxt o prop_of o snd)
                         |> take num_facts
-                        |> polymorphism_of_type_sys type_sys <> Polymorphic
+                        |> polymorphism_of_type_enc type_enc <> Polymorphic
                            ? monomorphize_facts
                         |> map (apsnd prop_of)
                 val real_ms = Real.fromInt o Time.toMilliseconds
@@ -635,7 +635,7 @@ fun run_atp mode name
                 val (atp_problem, pool, conjecture_offset, facts_offset,
                      fact_names, typed_helpers, sym_tab) =
                   prepare_atp_problem ctxt format conj_sym_kind prem_kind
-                      type_sys sound false (Config.get ctxt atp_readable_names)
+                      type_enc sound false (Config.get ctxt atp_readable_names)
                       true hyp_ts concl_t facts
                 fun weights () = atp_problem_weights atp_problem
                 val full_proof = debug orelse isar_proof
@@ -675,7 +675,7 @@ fun run_atp mode name
                     used_facts_in_unsound_atp_proof ctxt
                         conjecture_shape facts_offset fact_names atp_proof
                     |> Option.map (fn facts =>
-                           UnsoundProof (is_type_sys_virtually_sound type_sys,
+                           UnsoundProof (is_type_enc_virtually_sound type_enc,
                                          facts |> sort string_ord))
                   | _ => outcome
               in

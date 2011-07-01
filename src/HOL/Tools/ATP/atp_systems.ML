@@ -386,8 +386,8 @@ fun remote_config system_name system_versions proof_delims known_failures
    prem_kind = prem_kind,
    formats = formats,
    best_slices = fn ctxt =>
-     let val (max_relevant, type_sys) = best_slice ctxt in
-       [(1.0, (false, (max_relevant, type_sys, "")))]
+     let val (max_relevant, type_enc) = best_slice ctxt in
+       [(1.0, (false, (max_relevant, type_enc, "")))]
      end}
 
 fun remotify_config system_name system_versions best_slice

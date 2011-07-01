@@ -13,10 +13,10 @@ sig
   val full_typesN : string
   val partial_typesN : string
   val no_typesN : string
-  val really_full_type_sys : string
-  val full_type_sys : string
-  val partial_type_sys : string
-  val no_type_sys : string
+  val really_full_type_enc : string
+  val full_type_enc : string
+  val partial_type_enc : string
+  val no_type_enc : string
   val full_type_syss : string list
   val partial_type_syss : string list
   val trace : bool Config.T
@@ -39,22 +39,22 @@ val full_typesN = "full_types"
 val partial_typesN = "partial_types"
 val no_typesN = "no_types"
 
-val really_full_type_sys = "poly_tags_heavy"
-val full_type_sys = "poly_preds_heavy_query"
-val partial_type_sys = "poly_args"
-val no_type_sys = "erased"
+val really_full_type_enc = "poly_tags_heavy"
+val full_type_enc = "poly_preds_heavy_query"
+val partial_type_enc = "poly_args"
+val no_type_enc = "erased"
 
-val full_type_syss = [full_type_sys, really_full_type_sys]
-val partial_type_syss = partial_type_sys :: full_type_syss
+val full_type_syss = [full_type_enc, really_full_type_enc]
+val partial_type_syss = partial_type_enc :: full_type_syss
 
-val type_sys_aliases =
+val type_enc_aliases =
   [(full_typesN, full_type_syss),
    (partial_typesN, partial_type_syss),
-   (no_typesN, [no_type_sys])]
+   (no_typesN, [no_type_enc])]
 
-fun method_call_for_type_sys type_syss =
+fun method_call_for_type_enc type_syss =
   metisN ^ " (" ^
-  (case AList.find (op =) type_sys_aliases type_syss of
+  (case AList.find (op =) type_enc_aliases type_syss of
      [alias] => alias
    | _ => hd type_syss) ^ ")"
 
@@ -102,7 +102,7 @@ val waiting_params =
 val resolution_params = {active = active_params, waiting = waiting_params}
 
 (* Main function to start Metis proof and reconstruction *)
-fun FOL_SOLVE (type_sys :: fallback_type_syss) ctxt cls ths0 =
+fun FOL_SOLVE (type_enc :: fallback_type_syss) ctxt cls ths0 =
   let val thy = Proof_Context.theory_of ctxt
       val new_skolemizer =
         Config.get ctxt new_skolemizer orelse null (Meson.choice_theorems thy)
@@ -118,7 +118,7 @@ fun FOL_SOLVE (type_sys :: fallback_type_syss) ctxt cls ths0 =
       val _ = trace_msg ctxt (fn () => "THEOREM CLAUSES")
       val _ = app (fn th => trace_msg ctxt (fn () => Display.string_of_thm ctxt th)) ths
       val (sym_tab, axioms, old_skolems) =
-        prepare_metis_problem ctxt type_sys cls ths
+        prepare_metis_problem ctxt type_enc cls ths
       fun get_isa_thm mth Isa_Reflexive_or_Trivial =
           reflexive_or_trivial_from_metis ctxt sym_tab old_skolems mth
         | get_isa_thm _ (Isa_Raw ith) = ith
@@ -126,7 +126,7 @@ fun FOL_SOLVE (type_sys :: fallback_type_syss) ctxt cls ths0 =
       val _ = trace_msg ctxt (fn () => "CLAUSES GIVEN TO METIS")
       val thms = axioms |> map fst
       val _ = app (fn th => trace_msg ctxt (fn () => Metis_Thm.toString th)) thms
-      val _ = trace_msg ctxt (fn () => "type_sys = " ^ type_sys)
+      val _ = trace_msg ctxt (fn () => "type_enc = " ^ type_enc)
       val _ = trace_msg ctxt (fn () => "START METIS PROVE PROCESS")
   in
       case filter (fn t => prop_of t aconv @{prop False}) cls of
@@ -186,7 +186,7 @@ fun FOL_SOLVE (type_sys :: fallback_type_syss) ctxt cls ths0 =
          | _ =>
            (verbose_warning ctxt
                 ("Falling back on " ^
-                 quote (method_call_for_type_sys fallback_type_syss) ^ "...");
+                 quote (method_call_for_type_enc fallback_type_syss) ^ "...");
             FOL_SOLVE fallback_type_syss ctxt cls ths0)
 
 val neg_clausify =
@@ -249,7 +249,7 @@ fun method default_type_syss (override_type_syss, ths) ctxt facts =
 
 fun setup_method (binding, type_syss) =
   ((Args.parens (Scan.repeat Parse.short_ident)
-    >> maps (fn s => case AList.lookup (op =) type_sys_aliases s of
+    >> maps (fn s => case AList.lookup (op =) type_enc_aliases s of
                        SOME tss => tss
                      | NONE => [s]))
     |> Scan.option |> Scan.lift)

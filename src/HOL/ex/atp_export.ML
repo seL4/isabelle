@@ -149,17 +149,17 @@ fun order_problem_facts _ [] = []
     if heading = factsN then (heading, order_facts ord lines) :: problem
     else (heading, lines) :: order_problem_facts ord problem
 
-fun generate_tptp_inference_file_for_theory ctxt thy type_sys file_name =
+fun generate_tptp_inference_file_for_theory ctxt thy type_enc file_name =
   let
     val format = FOF
-    val type_sys = type_sys |> type_sys_from_string
+    val type_enc = type_enc |> type_enc_from_string
     val path = file_name |> Path.explode
     val _ = File.write path ""
     val facts = facts_of thy
     val (atp_problem, _, _, _, _, _, _) =
       facts
       |> map (fn ((_, loc), th) => ((Thm.get_name_hint th, loc), prop_of th))
-      |> prepare_atp_problem ctxt format Axiom Axiom type_sys true true false
+      |> prepare_atp_problem ctxt format Axiom Axiom type_enc true true false
                              true [] @{prop False}
     val atp_problem =
       atp_problem

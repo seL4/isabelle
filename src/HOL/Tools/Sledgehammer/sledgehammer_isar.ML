@@ -84,7 +84,7 @@ val default_default_params =
    ("verbose", "false"),
    ("overlord", "false"),
    ("blocking", "false"),
-   ("type_sys", "smart"),
+   ("type_enc", "smart"),
    ("sound", "false"),
    ("relevance_thresholds", "0.45 0.85"),
    ("max_relevant", "smart"),
@@ -107,7 +107,7 @@ val negated_alias_params =
    ("no_slicing", "slicing")]
 
 val params_for_minimize =
-  ["debug", "verbose", "overlord", "type_sys", "sound", "max_mono_iters",
+  ["debug", "verbose", "overlord", "type_enc", "sound", "max_mono_iters",
    "max_new_mono_instances", "isar_proof", "isar_shrink_factor", "timeout",
    "preplay_timeout"]
 
@@ -124,15 +124,15 @@ fun is_prover_list ctxt s =
     ss as _ :: _ => forall (is_prover_supported ctxt) ss
   | _ => false
 
-(* "provers =" and "type_sys =" can be left out. The latter is a secret
+(* "provers =" and "type_enc =" can be left out. The latter is a secret
    feature. *)
 fun check_and_repair_raw_param ctxt (name, value) =
   if is_known_raw_param name then
     (name, value)
   else if is_prover_list ctxt name andalso null value then
     ("provers", [name])
-  else if can type_sys_from_string name andalso null value then
-    ("type_sys", [name])
+  else if can type_enc_from_string name andalso null value then
+    ("type_enc", [name])
   else
     error ("Unknown parameter: " ^ quote name ^ ".")
 
@@ -264,12 +264,12 @@ fun extract_params mode default_params override_params =
       lookup_bool "blocking"
     val provers = lookup_string "provers" |> space_explode " "
                   |> mode = Auto_Try ? single o hd
-    val type_sys =
+    val type_enc =
       if mode = Auto_Try then
         NONE
-      else case lookup_string "type_sys" of
+      else case lookup_string "type_enc" of
         "smart" => NONE
-      | s => SOME (type_sys_from_string s)
+      | s => SOME (type_enc_from_string s)
     val sound = mode = Auto_Try orelse lookup_bool "sound"
     val relevance_thresholds = lookup_real_pair "relevance_thresholds"
     val max_relevant = lookup_option lookup_int "max_relevant"
@@ -288,7 +288,7 @@ fun extract_params mode default_params override_params =
     {debug = debug, verbose = verbose, overlord = overlord, blocking = blocking,
      provers = provers, relevance_thresholds = relevance_thresholds,
      max_relevant = max_relevant, max_mono_iters = max_mono_iters,
-     max_new_mono_instances = max_new_mono_instances, type_sys = type_sys,
+     max_new_mono_instances = max_new_mono_instances, type_enc = type_enc,
      sound = sound, isar_proof = isar_proof,
      isar_shrink_factor = isar_shrink_factor, slicing = slicing,
      timeout = timeout, preplay_timeout = preplay_timeout, expect = expect}

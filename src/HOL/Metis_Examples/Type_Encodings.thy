@@ -24,7 +24,7 @@ lemma fork: "P \<Longrightarrow> P \<Longrightarrow> P" by assumption
 ML {*
 (* The commented-out type systems are too incomplete for our exhaustive
    tests. *)
-val type_syss =
+val type_encs =
   ["erased",
    "poly_preds",
    "poly_preds_heavy",
@@ -72,18 +72,18 @@ val type_syss =
 fun metis_exhaust_tac ctxt ths =
   let
     fun tac [] st = all_tac st
-      | tac (type_sys :: type_syss) st =
-        st (* |> tap (fn _ => tracing (PolyML.makestring type_sys)) *)
-           |> ((if null type_syss then all_tac else rtac @{thm fork} 1)
-               THEN Metis_Tactics.metis_tac [type_sys] ctxt ths 1
+      | tac (type_enc :: type_encs) st =
+        st (* |> tap (fn _ => tracing (PolyML.makestring type_enc)) *)
+           |> ((if null type_encs then all_tac else rtac @{thm fork} 1)
+               THEN Metis_Tactics.metis_tac [type_enc] ctxt ths 1
                THEN COND (has_fewer_prems 2) all_tac no_tac
-               THEN tac type_syss)
+               THEN tac type_encs)
   in tac end
 *}
 
 method_setup metis_exhaust = {*
   Attrib.thms >>
-    (fn ths => fn ctxt => SIMPLE_METHOD (metis_exhaust_tac ctxt ths type_syss))
+    (fn ths => fn ctxt => SIMPLE_METHOD (metis_exhaust_tac ctxt ths type_encs))
 *} "exhaustively run the new Metis with all type encodings"
 
 

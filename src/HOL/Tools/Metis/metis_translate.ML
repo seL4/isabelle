@@ -165,11 +165,11 @@ fun metis_axiom_from_atp clauses (Formula (ident, _, phi, _, _)) =
   | metis_axiom_from_atp _ _ = raise Fail "not CNF -- expected formula"
 
 (* Function to generate metis clauses, including comb and type clauses *)
-fun prepare_metis_problem ctxt type_sys conj_clauses fact_clauses =
+fun prepare_metis_problem ctxt type_enc conj_clauses fact_clauses =
   let
-    val type_sys = type_sys_from_string type_sys
+    val type_enc = type_enc_from_string type_enc
     val (conj_clauses, fact_clauses) =
-      if polymorphism_of_type_sys type_sys = Polymorphic then
+      if polymorphism_of_type_enc type_enc = Polymorphic then
         (conj_clauses, fact_clauses)
       else
         conj_clauses @ fact_clauses
@@ -196,7 +196,7 @@ fun prepare_metis_problem ctxt type_sys conj_clauses fact_clauses =
       tracing ("PROPS:\n" ^ cat_lines (map (Syntax.string_of_term ctxt) props))
     *)
     val (atp_problem, _, _, _, _, _, sym_tab) =
-      prepare_atp_problem ctxt CNF Hypothesis Axiom type_sys true false false
+      prepare_atp_problem ctxt CNF Hypothesis Axiom type_enc true false false
                           false [] @{prop False} props
     (*
     val _ = tracing ("ATP PROBLEM: " ^
