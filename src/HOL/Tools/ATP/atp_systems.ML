@@ -172,6 +172,7 @@ fun e_weight_arguments ctxt method weights =
   if method = e_autoN then
     "-xAutoDev"
   else
+    (* supplied by Stephan Schulz *)
     "--split-clauses=4 --split-reuse-defs --simul-paramod --forward-context-sr \
     \--destructive-er-aggressive --destructive-er --presat-simplify \
     \--prefer-initial-clauses -tKBO6 -winvfreqrank -c1 -Ginvfreqconjmax -F1 \

@@ -269,24 +269,19 @@ fun lookup_const c =
     SOME c' => c'
   | NONE => ascii_of c
 
-(*Remove the initial ' character from a type variable, if it is present*)
-fun trim_type_var s =
-  if s <> "" andalso String.sub(s,0) = #"'" then String.extract(s,1,NONE)
-  else raise Fail ("trim_type: Malformed type variable encountered: " ^ s)
-
-fun ascii_of_indexname (v,0) = ascii_of v
-  | ascii_of_indexname (v,i) = ascii_of v ^ "_" ^ string_of_int i
+fun ascii_of_indexname (v, 0) = ascii_of v
+  | ascii_of_indexname (v, i) = ascii_of v ^ "_" ^ string_of_int i
 
 fun make_bound_var x = bound_var_prefix ^ ascii_of x
 fun make_schematic_var v = schematic_var_prefix ^ ascii_of_indexname v
 fun make_fixed_var x = fixed_var_prefix ^ ascii_of x
 
-fun make_schematic_type_var (x,i) =
-      tvar_prefix ^ (ascii_of_indexname (trim_type_var x, i))
-fun make_fixed_type_var x = tfree_prefix ^ (ascii_of (trim_type_var x))
+fun make_schematic_type_var (x, i) =
+      tvar_prefix ^ (ascii_of_indexname (unprefix "'" x, i))
+fun make_fixed_type_var x = tfree_prefix ^ (ascii_of (unprefix "'" x))
 
-(* HOL.eq MUST BE "equal" because it's built into ATPs. *)
-fun make_fixed_const @{const_name HOL.eq} = "equal"
+(* "HOL.eq" is mapped to the ATP's equality. *)
+fun make_fixed_const @{const_name HOL.eq} = tptp_old_equal
   | make_fixed_const c = const_prefix ^ lookup_const c
 
 fun make_fixed_type_const c = type_const_prefix ^ lookup_const c
@@ -390,8 +385,8 @@ fun multi_arity_clause [] = []
   | multi_arity_clause ((tcons, ars) :: tc_arlists) =
       arity_clause [] 1 (tcons, ars) @ multi_arity_clause tc_arlists
 
-(*Generate all pairs (tycon,class,sorts) such that tycon belongs to class in theory thy
-  provided its arguments have the corresponding sorts.*)
+(* Generate all pairs (tycon, class, sorts) such that tycon belongs to class in
+   theory thy provided its arguments have the corresponding sorts. *)
 fun type_class_pairs thy tycons classes =
   let
     val alg = Sign.classes_of thy
@@ -426,7 +421,8 @@ type class_rel_clause =
    subclass : name,
    superclass : name}
 
-(*Generate all pairs (sub,super) such that sub is a proper subclass of super in theory thy.*)
+(* Generate all pairs (sub, super) such that sub is a proper subclass of super
+   in theory "thy". *)
 fun class_pairs _ [] _ = []
   | class_pairs thy subs supers =
       let
@@ -435,9 +431,8 @@ fun class_pairs _ [] _ = []
         fun add_supers sub = fold (add_super sub) supers
       in fold add_supers subs [] end
 
-fun make_class_rel_clause (sub,super) =
-  {name = sub ^ "_" ^ super,
-   subclass = `make_type_class sub,
+fun make_class_rel_clause (sub, super) =
+  {name = sub ^ "_" ^ super, subclass = `make_type_class sub,
    superclass = `make_type_class super}
 
 fun make_class_rel_clauses thy subs supers =
@@ -1367,9 +1362,8 @@ fun classes_of_terms get_Ts =
 val tfree_classes_of_terms = classes_of_terms OldTerm.term_tfrees
 val tvar_classes_of_terms = classes_of_terms OldTerm.term_tvars
 
-(*fold type constructors*)
-fun fold_type_constrs f (Type (a, Ts)) x =
-    fold (fold_type_constrs f) Ts (f (a,x))
+fun fold_type_constrs f (Type (s, Ts)) x =
+    fold (fold_type_constrs f) Ts (f (s, x))
   | fold_type_constrs _ _ x = x
 
 (*Type constructors used to instantiate overloaded constants are the only ones needed.*)
