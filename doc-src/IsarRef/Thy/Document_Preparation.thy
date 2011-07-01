@@ -179,6 +179,7 @@ text {*
   antiquotations are checked within the current theory or proof
   context.
 
+  %% FIXME less monolithic presentation, move to individual sections!?
   @{rail "
     '@{' antiquotation '}'
     ;
@@ -188,7 +189,7 @@ text {*
       @@{antiquotation lemma} options @{syntax prop} @'by' @{syntax method} @{syntax method}? |
       @@{antiquotation prop} options styles @{syntax prop} |
       @@{antiquotation term} options styles @{syntax term} |
-      @@{antiquotation value} options styles @{syntax term} |
+      @@{antiquotation (HOL) value} options styles @{syntax term} |
       @@{antiquotation term_type} options styles @{syntax term} |
       @@{antiquotation typeof} options styles @{syntax term} |
       @@{antiquotation const} options @{syntax term} |
@@ -238,7 +239,8 @@ text {*
 
   \item @{text "@{term t}"} prints a well-typed term @{text "t"}.
   
-  \item @{text "@{value t}"} evaluates a term @{text "t"} and prints its result.
+  \item @{text "@{value t}"} evaluates a term @{text "t"} and prints
+  its result, see also @{command_ref (HOL) value}.
 
   \item @{text "@{term_type t}"} prints a well-typed term @{text "t"}
   annotated with its type.

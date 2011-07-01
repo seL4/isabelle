@@ -229,6 +229,7 @@ Isabelle/Isar provides a simple document preparation system
   antiquotations are checked within the current theory or proof
   context.
 
+  %% FIXME less monolithic presentation, move to individual sections!?
   \begin{railoutput}
 \rail@begin{1}{}
 \rail@term{\isa{{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}}}[]
@@ -266,7 +267,7 @@ Isabelle/Isar provides a simple document preparation system
 \rail@nont{\isa{styles}}[]
 \rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
 \rail@nextbar{6}
-\rail@term{\hyperlink{antiquotation.value}{\mbox{\isa{value}}}}[]
+\rail@term{\hyperlink{antiquotation.HOL.value}{\mbox{\isa{value}}}}[]
 \rail@nont{\isa{options}}[]
 \rail@nont{\isa{styles}}[]
 \rail@nont{\hyperlink{syntax.term}{\mbox{\isa{term}}}}[]
@@ -396,7 +397,8 @@ Isabelle/Isar provides a simple document preparation system
 
   \item \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}term\ t{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}} prints a well-typed term \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{22}{\isachardoublequote}}}.
   
-  \item \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}value\ t{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}} evaluates a term \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{22}{\isachardoublequote}}} and prints its result.
+  \item \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}value\ t{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}} evaluates a term \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{22}{\isachardoublequote}}} and prints
+  its result, see also \indexref{HOL}{command}{value}\hyperlink{command.HOL.value}{\mbox{\isa{\isacommand{value}}}}.
 
   \item \isa{{\isaliteral{22}{\isachardoublequote}}{\isaliteral{40}{\isacharat}}{\isaliteral{7B}{\isacharbraceleft}}term{\isaliteral{5F}{\isacharunderscore}}type\ t{\isaliteral{7D}{\isacharbraceright}}{\isaliteral{22}{\isachardoublequote}}} prints a well-typed term \isa{{\isaliteral{22}{\isachardoublequote}}t{\isaliteral{22}{\isachardoublequote}}}
   annotated with its type.
