@@ -177,14 +177,14 @@ Vampire executable from somewhere (e.g., \url{http://www.vprover.org/}),
 set the environment variable \texttt{E\_HOME}, \texttt{SPASS\_HOME}, or
 \texttt{VAMPIRE\_HOME} to the directory that contains the \texttt{eproof},
 \texttt{SPASS}, or \texttt{vampire} executable. Sledgehammer has been tested
-with E 1.0 and 1.2, SPASS 3.5 and 3.7, and Vampire 0.6 and 1.0%
+with E 1.0 to 1.3, SPASS 3.5 and 3.7, and Vampire 0.6 and 1.0%
 \footnote{Following the rewrite of Vampire, the counter for version numbers was
 reset to 0; hence the (new) Vampire versions 0.6 and 1.0 are more recent than,
 say, Vampire 11.5.}%
 . Since the ATPs' output formats are neither documented nor stable, other
 versions of the ATPs might or might not work well with Sledgehammer. Ideally,
 also set \texttt{E\_VERSION}, \texttt{SPASS\_VERSION}, or
-\texttt{VAMPIRE\_VERSION} to the ATP's version number (e.g., ``1.2'').
+\texttt{VAMPIRE\_VERSION} to the ATP's version number (e.g., ``1.3'').
 \end{enum}
 
 To check whether E and SPASS are successfully installed, follow the example in
@@ -401,7 +401,7 @@ Proof reconstruction failed.
 This message usually indicates that Sledgehammer found a type-incorrect proof.
 This was a frequent issue with older versions of Sledgehammer, which did not
 supply enough typing information to the ATPs by default. If you notice many
-unsound proofs and are not using \textit{type\_sys} (\S\ref{problem-encoding}),
+unsound proofs and are not using \textit{type\_enc} (\S\ref{problem-encoding}),
 contact the author at \authoremail.
 
 \point{How can I tell whether a generated proof is sound?}
@@ -646,13 +646,13 @@ General's ``Isabelle'' menu. Sledgehammer's output is also more concise.
 The \textit{metis} proof method has the syntax
 
 \prew
-\textbf{\textit{metis}}~(\qty{type\_sys})${}^?$~\qty{facts}${}^?$
+\textbf{\textit{metis}}~(\qty{type\_enc})${}^?$~\qty{facts}${}^?$
 \postw
 
-where \qty{type\_sys} is a type system specification with the same semantics as
-Sledgehammer's \textit{type\_sys} option (\S\ref{problem-encoding}) and
+where \qty{type\_enc} is a type encoding specification with the same semantics
+as Sledgehammer's \textit{type\_enc} option (\S\ref{problem-encoding}) and
 \qty{facts} is a list of arbitrary facts. In addition to the values listed in
-\S\ref{problem-encoding}, \qty{type\_sys} may also be \textit{full\_types}, in
+\S\ref{problem-encoding}, \qty{type\_enc} may also be \textit{full\_types}, in
 which case an appropriate type-sound encoding is chosen, \textit{partial\_types}
 (the default type-unsound encoding), or \textit{no\_types}, a synonym for
 \textit{erased}.
@@ -876,11 +876,11 @@ safely remove them after Sledgehammer has run.
 \label{problem-encoding}
 
 \begin{enum}
-\opdefault{type\_sys}{string}{smart}
-Specifies the type system to use in ATP problems. Some of the type systems are
-unsound, meaning that they can give rise to spurious proofs (unreconstructible
-using Metis). The supported type systems are listed below, with an indication of
-their soundness in parentheses:
+\opdefault{type\_enc}{string}{smart}
+Specifies the type encoding to use in ATP problems. Some of the type encodings
+are unsound, meaning that they can give rise to spurious proofs
+(unreconstructible using Metis). The supported type encodings are listed below,
+with an indication of their soundness in parentheses:
 
 \begin{enum}
 \item[$\bullet$] \textbf{\textit{erased} (very unsound):} No type information is
@@ -935,7 +935,7 @@ monomorphized.
 \textbf{%
 \textit{poly\_preds}?, \textit{poly\_tags}?, \textit{mono\_preds}?, \textit{mono\_tags}?, \\
 \textit{mangled\_preds}?, \textit{mangled\_tags}?, \textit{simple}?, \textit{simple\_higher}? (quasi-sound):} \\
-The type systems \textit{poly\_preds}, \textit{poly\_tags},
+The type encodings \textit{poly\_preds}, \textit{poly\_tags},
 \textit{mono\_preds}, \textit{mono\_tags}, \textit{mangled\_preds},
 \textit{mangled\_tags}, \textit{simple}, and \textit{simple\_higher} are fully
 typed and sound. For each of these, Sledgehammer also provides a lighter,
@@ -951,7 +951,7 @@ suffix. If the \emph{sound} option is enabled, these encodings are fully sound.
 \textit{poly\_preds}!, \textit{poly\_tags}!, \textit{mono\_preds}!, \textit{mono\_tags}!, \\
 \textit{mangled\_preds}!, \textit{mangled\_tags}!, \textit{simple}!, \textit{simple\_higher}! \\
 (mildly unsound):} \\
-The type systems \textit{poly\_preds}, \textit{poly\_tags},
+The type encodings \textit{poly\_preds}, \textit{poly\_tags},
 \textit{mono\_preds}, \textit{mono\_tags}, \textit{mangled\_preds},
 \textit{mangled\_tags}, \textit{simple}, and \textit{simple\_higher} also admit
 a mildly unsound (but very efficient) variant identified by an exclamation mark
@@ -965,14 +965,14 @@ mark is replaced by a \hbox{``\textit{\_bang}''} suffix.
 the ATP and should be the most efficient virtually sound encoding for that ATP.
 \end{enum}
 
-In addition, all the \textit{preds} and \textit{tags} type systems are available
-in two variants, a lightweight and a heavyweight variant. The lightweight
-variants are generally more efficient and are the default; the heavyweight
-variants are identified by a \textit{\_heavy} suffix (e.g.,
+In addition, all the \textit{preds} and \textit{tags} type encodings are
+available in two variants, a lightweight and a heavyweight variant. The
+lightweight variants are generally more efficient and are the default; the
+heavyweight variants are identified by a \textit{\_heavy} suffix (e.g.,
 \textit{mangled\_preds\_heavy}{?}).
 
-For SMT solvers, the type system is always \textit{simple}, irrespective of the
-value of this option.
+For SMT solvers, the type encoding is always \textit{simple}, irrespective of
+the value of this option.
 
 \nopagebreak
 {\small See also \textit{max\_new\_mono\_instances} (\S\ref{relevance-filter})
@@ -1006,19 +1006,19 @@ empirically found to be appropriate for the prover. A typical value would be
 Specifies the maximum number of monomorphic instances to generate beyond
 \textit{max\_relevant}. The higher this limit is, the more monomorphic instances
 are potentially generated. Whether monomorphization takes place depends on the
-type system used.
+type encoding used.
 
 \nopagebreak
-{\small See also \textit{type\_sys} (\S\ref{problem-encoding}).}
+{\small See also \textit{type\_enc} (\S\ref{problem-encoding}).}
 
 \opdefault{max\_mono\_iters}{int}{\upshape 3}
 Specifies the maximum number of iterations for the monomorphization fixpoint
 construction. The higher this limit is, the more monomorphic instances are
 potentially generated. Whether monomorphization takes place depends on the
-type system used.
+type encoding used.
 
 \nopagebreak
-{\small See also \textit{type\_sys} (\S\ref{problem-encoding}).}
+{\small See also \textit{type\_enc} (\S\ref{problem-encoding}).}
 \end{enum}
 
 \subsection{Output Format}

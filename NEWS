@@ -81,14 +81,14 @@ INCOMPATIBILITY.
     INCOMPATIBILITY.
 
 * Sledgehammer:
-  - sledgehammer available_provers ~> sledgehammer supported_provers
+  - sledgehammer available_provers ~> sledgehammer supported_provers.
     INCOMPATIBILITY.
   - Added support for SNARK and ToFoF-E on SystemOnTPTP and for simply typed
     TPTP problems (TFF).
-  - Added "type_sys", "sound", "max_mono_iters", and "max_new_mono_instances"
-    options.
-  - Removed "full_types" option and corresponding Proof General menu item.
-    INCOMPATIBILITY.
+  - Added "preplay_timeout", "slicing", "type_enc", "sound", "max_mono_iters",
+    and "max_new_mono_instances" options.
+  - Removed "explicit_apply" and "full_types" options as well as "Full Types"
+    Proof General menu item. INCOMPATIBILITY.
 
 * Metis:
   - Removed "metisF" -- use "metis" instead. INCOMPATIBILITY.
