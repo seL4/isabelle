@@ -1366,11 +1366,12 @@ text {*
 
   The optional ``@{text "arbitrary: x\<^sub>1 \<dots> x\<^sub>m"}''
   specification generalizes variables @{text "x\<^sub>1, \<dots>,
-  x\<^sub>m"} of the original goal before applying induction.  Thus
-  induction hypotheses may become sufficiently general to get the
-  proof through.  Together with definitional instantiations, one may
-  effectively perform induction over expressions of a certain
-  structure.
+  x\<^sub>m"} of the original goal before applying induction.  One can
+  separate variables by ``@{text "and"}'' to generalize them in other
+  goals then the first. Thus induction hypotheses may become
+  sufficiently general to get the proof through.  Together with
+  definitional instantiations, one may effectively perform induction
+  over expressions of a certain structure.
   
   The optional ``@{text "taking: t\<^sub>1 \<dots> t\<^sub>n"}''
   specification provides additional instantiations of a prefix of

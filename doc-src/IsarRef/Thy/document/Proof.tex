@@ -1898,11 +1898,12 @@ The Isar provides separate commands to accommodate tactic-style
   using the \indexdef{}{attribute}{induct\_simp}\hypertarget{attribute.induct-simp}{\hyperlink{attribute.induct-simp}{\mbox{\isa{induct{\isaliteral{5F}{\isacharunderscore}}simp}}}} attribute.
 
   The optional ``\isa{{\isaliteral{22}{\isachardoublequote}}arbitrary{\isaliteral{3A}{\isacharcolon}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{22}{\isachardoublequote}}}''
-  specification generalizes variables \isa{{\isaliteral{22}{\isachardoublequote}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{22}{\isachardoublequote}}} of the original goal before applying induction.  Thus
-  induction hypotheses may become sufficiently general to get the
-  proof through.  Together with definitional instantiations, one may
-  effectively perform induction over expressions of a certain
-  structure.
+  specification generalizes variables \isa{{\isaliteral{22}{\isachardoublequote}}x\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}{\isaliteral{2C}{\isacharcomma}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}{\isaliteral{2C}{\isacharcomma}}\ x\isaliteral{5C3C5E7375623E}{}\isactrlsub m{\isaliteral{22}{\isachardoublequote}}} of the original goal before applying induction.  One can
+  separate variables by ``\isa{{\isaliteral{22}{\isachardoublequote}}and{\isaliteral{22}{\isachardoublequote}}}'' to generalize them in other
+  goals then the first. Thus induction hypotheses may become
+  sufficiently general to get the proof through.  Together with
+  definitional instantiations, one may effectively perform induction
+  over expressions of a certain structure.
   
   The optional ``\isa{{\isaliteral{22}{\isachardoublequote}}taking{\isaliteral{3A}{\isacharcolon}}\ t\isaliteral{5C3C5E7375623E}{}\isactrlsub {\isadigit{1}}\ {\isaliteral{5C3C646F74733E}{\isasymdots}}\ t\isaliteral{5C3C5E7375623E}{}\isactrlsub n{\isaliteral{22}{\isachardoublequote}}}''
   specification provides additional instantiations of a prefix of
