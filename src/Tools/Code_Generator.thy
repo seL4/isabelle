@@ -34,6 +34,7 @@ setup {*
   #> Code_Haskell.setup
   #> Code_Scala.setup
   #> Quickcheck.setup
+  #> Value.setup
 *}
 
 code_datatype "TYPE('a\<Colon>{})"

@@ -10,6 +10,7 @@ sig
   val value_select: string -> Proof.context -> term -> term
   val value_cmd: string option -> string list -> string -> Toplevel.state -> unit
   val add_evaluator: string * (Proof.context -> term -> term) -> theory -> theory
+  val setup : theory -> theory
 end;
 
 structure Value : VALUE =
@@ -38,13 +39,16 @@ fun value ctxt t = let val evaluators = Evaluator.get (Proof_Context.theory_of c
       | NONE => evaluator ctxt t
   end end;
 
+fun value_maybe_select some_name =
+  case some_name
+    of NONE => value
+     | SOME name => value_select name;
+  
 fun value_cmd some_name modes raw_t state =
   let
     val ctxt = Toplevel.context_of state;
     val t = Syntax.read_term ctxt raw_t;
-    val t' = case some_name
-     of NONE => value ctxt t
-      | SOME name => value_select name ctxt t;
+    val t' = value_maybe_select some_name ctxt t;
     val ty' = Term.type_of t';
     val ctxt' = Variable.auto_fixes t' ctxt;
     val p = Print_Mode.with_modes modes (fn () =>
@@ -55,10 +59,22 @@ fun value_cmd some_name modes raw_t state =
 val opt_modes =
   Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.xname --| Parse.$$$ ")")) [];
 
+val opt_evaluator =
+  Scan.option (Parse.$$$ "[" |-- Parse.xname --| Parse.$$$ "]")
+  
 val _ =
   Outer_Syntax.improper_command "value" "evaluate and print term" Keyword.diag
-    (Scan.option (Parse.$$$ "[" |-- Parse.xname --| Parse.$$$ "]") -- opt_modes -- Parse.term
+    (opt_evaluator -- opt_modes -- Parse.term
       >> (fn ((some_name, modes), t) => Toplevel.no_timing o Toplevel.keep
           (value_cmd some_name modes t)));
+
+val antiq_setup =
+  Thy_Output.antiquotation (Binding.name "value")
+    (Scan.lift opt_evaluator -- Term_Style.parse -- Args.term)
+    (fn {source, context, ...} => fn ((some_name, style), t) => Thy_Output.output context
+      (Thy_Output.maybe_pretty_source Thy_Output.pretty_term context source
+        [style (value_maybe_select some_name context t)]));
+
+val setup = antiq_setup;
 
 end;
