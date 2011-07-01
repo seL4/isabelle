@@ -1205,7 +1205,7 @@ fun register_type (tyco, vs_spec) thy =
           (fn (c, ((_, spec), _)) =>
             if member (op =) (the_list (associated_abstype spec)) tyco
             then insert (op =) c else I)
-            ((the_functions o the_exec) thy) (old_proj :: old_constrs);
+            ((the_functions o the_exec) thy) [old_proj];
     fun drop_outdated_cases cases = fold Symtab.delete_safe
       (Symtab.fold (fn (c, ((_, (_, cos)), _)) =>
         if exists (member (op =) old_constrs) cos
