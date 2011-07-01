@@ -772,36 +772,39 @@ point).
 on Geoff Sutcliffe's Miami servers \cite{sutcliffe-2000}.
 
 \item[$\bullet$] \textbf{\textit{remote\_leo2}:} LEO-II is an automatic
-higher-order prover developed by Christoph Benzm\"uller et al. \cite{leo2}. The
-remote version of LEO-II runs on Geoff Sutcliffe's Miami servers. In the current
-setup, the problems given to LEO-II are only mildly higher-order.
+higher-order prover developed by Christoph Benzm\"uller et al.\ \cite{leo2},
+with support for the TPTP higher-order syntax (THF). The remote version of
+LEO-II runs on Geoff Sutcliffe's Miami servers. In the current setup, the
+problems given to LEO-II are only mildly higher-order.
 
 \item[$\bullet$] \textbf{\textit{remote\_satallax}:} Satallax is an automatic
-higher-order prover developed by Chad Brown et al. \cite{satallax}. The remote
-version of Satallax runs on Geoff Sutcliffe's Miami servers. In the current
-setup, the problems given to Satallax are only mildly higher-order.
+higher-order prover developed by Chad Brown et al.\ \cite{satallax}, with
+support for the TPTP higher-order syntax (THF). The remote version of Satallax
+runs on Geoff Sutcliffe's Miami servers. In the current setup, the problems
+given to Satallax are only mildly higher-order.
 
 \item[$\bullet$] \textbf{\textit{remote\_sine\_e}:} SInE-E is a metaprover
 developed by Kry\v stof Hoder \cite{sine} based on E. The remote version of
 SInE runs on Geoff Sutcliffe's Miami servers.
 
 \item[$\bullet$] \textbf{\textit{remote\_snark}:} SNARK is a first-order
-resolution prover developed by Stickel et al.\ \cite{snark}. The remote version
-of SNARK runs on Geoff Sutcliffe's Miami servers.
+resolution prover developed by Stickel et al.\ \cite{snark}. It supports the
+TPTP many-typed first-order format (TFF). The remote version of SNARK runs on
+Geoff Sutcliffe's Miami servers.
 
 \item[$\bullet$] \textbf{\textit{remote\_tofof\_e}:} ToFoF-E is a metaprover
 developed by Geoff Sutcliffe \cite{tofof} based on E running on his Miami
-servers. This ATP supports a fragment of the TPTP many-typed first-order format
-(TFF). It is supported primarily for experimenting with the
-\textit{type\_sys} $=$ \textit{simple} option (\S\ref{problem-encoding}).
+servers. This ATP supports the TPTP many-typed first-order format (TFF). The
+remote version of ToFoF-E runs on Geoff Sutcliffe's Miami servers.
 
 \item[$\bullet$] \textbf{\textit{remote\_vampire}:} The remote version of
 Vampire runs on Geoff Sutcliffe's Miami servers. Version 9 is used.
 
 \item[$\bullet$] \textbf{\textit{remote\_waldmeister}:} Waldmeister is a unit
 equality prover developed by Hillenbrand et al.\ \cite{waldmeister}. It can be
-used to prove universally quantified equations using unconditional equations.
-The remote version of Waldmeister runs on Geoff Sutcliffe's Miami servers.
+used to prove universally quantified equations using unconditional equations,
+corresponding to the TPTP CNF UEQ division. The remote version of Waldmeister
+runs on Geoff Sutcliffe's Miami servers.
 
 \item[$\bullet$] \textbf{\textit{remote\_z3}:} The remote version of Z3 runs on
 servers at the TU M\"unchen (or wherever \texttt{REMOTE\_SMT\_URL} is set to
@@ -919,39 +922,44 @@ becomes a unary predicate $\mathit{has\_type\_}\tau(t)$, and the binary function
 $\mathit{type\_info\/}(\tau, t)$ becomes a unary function
 $\mathit{type\_info\_}\tau(t)$.
 
-\item[$\bullet$] \textbf{\textit{simple} (sound):} Use the prover's support for
-simple types if available; otherwise, fall back on \textit{mangled\_preds}. The
-problem is monomorphized.
+\item[$\bullet$] \textbf{\textit{simple} (sound):} Exploit simple first-order
+types if the prover supports the TFF or THF syntax; otherwise, fall back on
+\textit{mangled\_preds}. The problem is monomorphized.
+
+\item[$\bullet$] \textbf{\textit{simple\_higher} (sound):} Exploit simple
+higher-order types if the prover supports the THF syntax; otherwise, fall back
+on \textit{simple} or \textit{mangled\_preds\_heavy}. The problem is
+monomorphized.
 
 \item[$\bullet$]
 \textbf{%
 \textit{poly\_preds}?, \textit{poly\_tags}?, \textit{mono\_preds}?, \textit{mono\_tags}?, \\
-\textit{mangled\_preds}?, \textit{mangled\_tags}?, \textit{simple}? (quasi-sound):} \\
+\textit{mangled\_preds}?, \textit{mangled\_tags}?, \textit{simple}?, \textit{simple\_higher}? (quasi-sound):} \\
 The type systems \textit{poly\_preds}, \textit{poly\_tags},
 \textit{mono\_preds}, \textit{mono\_tags}, \textit{mangled\_preds},
-\textit{mangled\_tags}, and \textit{simple} are fully typed and sound. For each
-of these, Sledgehammer also provides a lighter, virtually sound variant
-identified by a question mark (`{?}')\ that detects and erases monotonic types,
-notably infinite types. (For \textit{simple}, the types are not actually erased
-but rather replaced by a shared uniform type of individuals.) As argument to the
-\textit{metis} proof method, the question mark is replaced by a
-``\textit{\_query}'' suffix. If the \emph{sound} option is enabled, these
-encodings are fully sound.
+\textit{mangled\_tags}, \textit{simple}, and \textit{simple\_higher} are fully
+typed and sound. For each of these, Sledgehammer also provides a lighter,
+virtually sound variant identified by a question mark (`{?}')\ that detects and
+erases monotonic types, notably infinite types. (For \textit{simple} and
+\textit{simple\_higher}, the types are not actually erased but rather replaced
+by a shared uniform type of individuals.) As argument to the \textit{metis}
+proof method, the question mark is replaced by a \hbox{``\textit{\_query}''}
+suffix. If the \emph{sound} option is enabled, these encodings are fully sound.
 
 \item[$\bullet$]
 \textbf{%
 \textit{poly\_preds}!, \textit{poly\_tags}!, \textit{mono\_preds}!, \textit{mono\_tags}!, \\
-\textit{mangled\_preds}!, \textit{mangled\_tags}!, \textit{simple}! \\
+\textit{mangled\_preds}!, \textit{mangled\_tags}!, \textit{simple}!, \textit{simple\_higher}! \\
 (mildly unsound):} \\
 The type systems \textit{poly\_preds}, \textit{poly\_tags},
 \textit{mono\_preds}, \textit{mono\_tags}, \textit{mangled\_preds},
-\textit{mangled\_tags}, and \textit{simple} also admit a mildly unsound (but
-very efficient) variant identified by an exclamation mark (`{!}') that detects
-and erases erases all types except those that are clearly finite (e.g.,
-\textit{bool}). (For \textit{simple}, the types are not actually erased but
-rather replaced by a shared uniform type of individuals.) As argument to the
-\textit{metis} proof method, the exclamation mark is replaced by a
-``\textit{\_bang}'' suffix.
+\textit{mangled\_tags}, \textit{simple}, and \textit{simple\_higher} also admit
+a mildly unsound (but very efficient) variant identified by an exclamation mark
+(`{!}') that detects and erases erases all types except those that are clearly
+finite (e.g., \textit{bool}). (For \textit{simple} and \textit{simple\_higher},
+the types are not actually erased but rather replaced by a shared uniform type
+of individuals.) As argument to the \textit{metis} proof method, the exclamation
+mark is replaced by a \hbox{``\textit{\_bang}''} suffix.
 
 \item[$\bullet$] \textbf{\textit{smart}:} The actual encoding used depends on
 the ATP and should be the most efficient virtually sound encoding for that ATP.
@@ -963,8 +971,8 @@ variants are generally more efficient and are the default; the heavyweight
 variants are identified by a \textit{\_heavy} suffix (e.g.,
 \textit{mangled\_preds\_heavy}{?}).
 
-For SMT solvers and ToFoF-E, the type system is always \textit{simple},
-irrespective of the value of this option.
+For SMT solvers, the type system is always \textit{simple}, irrespective of the
+value of this option.
 
 \nopagebreak
 {\small See also \textit{max\_new\_mono\_instances} (\S\ref{relevance-filter})
