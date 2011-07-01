@@ -7,8 +7,9 @@ Theory headers -- independent of outer syntax.
 package isabelle
 
 
+import scala.annotation.tailrec
 import scala.collection.mutable
-import scala.util.parsing.input.{Reader, CharSequenceReader}
+import scala.util.parsing.input.Reader
 import scala.util.matching.Regex
 
 import java.io.File
@@ -25,6 +26,12 @@ object Thy_Header
   val lexicon = Scan.Lexicon("%", "(", ")", ";", BEGIN, HEADER, IMPORTS, THEORY, USES)
 
   final case class Header(val name: String, val imports: List[String], val uses: List[String])
+  {
+    def decode_permissive_utf8: Header =
+      Header(Standard_System.decode_permissive_utf8(name),
+        imports.map(Standard_System.decode_permissive_utf8),
+        uses.map(Standard_System.decode_permissive_utf8))
+  }
 
 
   /* file name */
@@ -50,8 +57,8 @@ class Thy_Header(symbols: Symbol.Interpretation) extends Parse.Parser
 
   val header: Parser[Header] =
   {
-    val file_name = atom("file name", _.is_name) ^^ Standard_System.decode_permissive_utf8
-    val theory_name = atom("theory name", _.is_name) ^^ Standard_System.decode_permissive_utf8
+    val file_name = atom("file name", _.is_name)
+    val theory_name = atom("theory name", _.is_name)
 
     val file =
       keyword("(") ~! (file_name ~ keyword(")")) ^^ { case _ ~ (x ~ _) => x } | file_name
@@ -70,27 +77,32 @@ class Thy_Header(symbols: Symbol.Interpretation) extends Parse.Parser
 
   /* read -- lazy scanning */
 
-  def read(file: File): Header =
+  def read(reader: Reader[Char]): Header =
   {
     val token = lexicon.token(symbols, _ => false)
     val toks = new mutable.ListBuffer[Token]
 
-    def scan_to_begin(in: Reader[Char])
+    @tailrec def scan_to_begin(in: Reader[Char])
     {
       token(in) match {
         case lexicon.Success(tok, rest) =>
           toks += tok
-          if (!(tok.kind == Token.Kind.KEYWORD && tok.content == BEGIN))
-            scan_to_begin(rest)
+          if (!tok.is_begin) scan_to_begin(rest)
         case _ =>
       }
     }
-    val reader = Scan.byte_reader(file)
-    try { scan_to_begin(reader) } finally { reader.close }
+    scan_to_begin(reader)
 
     parse(commit(header), Token.reader(toks.toList)) match {
       case Success(result, _) => result
       case bad => error(bad.toString)
     }
+  }
+
+  def read(file: File): Header =
+  {
+    val reader = Scan.byte_reader(file)
+    try { read(reader).decode_permissive_utf8 }
+    finally { reader.close }
   }
 }
