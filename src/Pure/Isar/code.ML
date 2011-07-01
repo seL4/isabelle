@@ -160,6 +160,8 @@ datatype typ_spec = Constructors of (string * ((string * sort) list * typ list))
 fun constructors_of (Constructors (cos, _)) = (cos, false)
   | constructors_of (Abstractor ((co, (vs, ty)), _)) = ([(co, (vs, [ty]))], true);
 
+fun case_consts_of (Constructors (_, case_consts)) = case_consts
+  | case_consts_of (Abstractor _) = [];
 
 (* functions *)
 
@@ -213,12 +215,15 @@ fun merge_spec (Spec { history_concluded = _, signatures = (tycos1, sigs1), func
         val history = if null filtered_history
           then raw_history else filtered_history;
       in ((false, (snd o hd) history), history) end;
-    val all_constructors =
-      maps (map fst o fst o constructors_of o snd o snd o hd o snd) (Symtab.dest types);
+    val all_datatype_specs = map (snd o snd o hd o snd) (Symtab.dest types);
+    val all_constructors = maps (map fst o fst o constructors_of) all_datatype_specs;
+    val all_case_consts = maps (case_consts_of) all_datatype_specs;
     val functions = Symtab.join (K merge_functions) (functions1, functions2)
       |> fold (fn c => Symtab.map_entry c (apfst (K (true, empty_fun_spec)))) all_constructors;
-    val cases = (Symtab.merge (K true) (cases1, cases2),
-      Symtab.merge (K true) (undefs1, undefs2));
+    val proto_cases = Symtab.merge (K true) (cases1, cases2);
+    val illegal_cases = subtract (op =) all_case_consts (Symtab.keys proto_cases);
+    val cases = (Symtab.merge (K true) (cases1, cases2)
+      |> fold Symtab.delete illegal_cases, Symtab.merge (K true) (undefs1, undefs2));
   in make_spec (false, ((signatures, functions), (types, cases))) end;
 
 fun history_concluded (Spec { history_concluded, ... }) = history_concluded;
