@@ -632,28 +632,28 @@ fun should_drop_arg_type_args (Simple_Types _) =
     level_of_type_enc type_enc = All_Types andalso
     heaviness_of_type_enc type_enc = Heavyweight
 
-fun general_type_arg_policy (Tags (_, All_Types, Heavyweight)) = No_Type_Args
-  | general_type_arg_policy type_enc =
-    if level_of_type_enc type_enc = No_Types then
-      No_Type_Args
-    else if polymorphism_of_type_enc type_enc = Mangled_Monomorphic then
-      Mangled_Type_Args (should_drop_arg_type_args type_enc)
-    else
-      Explicit_Type_Args (should_drop_arg_type_args type_enc)
-
 fun type_arg_policy type_enc s =
-  if s = @{const_name HOL.eq} orelse
-     (s = app_op_name andalso level_of_type_enc type_enc = Const_Arg_Types) then
-    No_Type_Args
-  else if s = type_tag_name then
+  if s = type_tag_name then
     (if polymorphism_of_type_enc type_enc = Mangled_Monomorphic then
        Mangled_Type_Args
      else
        Explicit_Type_Args) false
-  else
-    general_type_arg_policy type_enc
+  else case type_enc of
+    Tags (_, All_Types, Heavyweight) => No_Type_Args
+  | _ =>
+    if level_of_type_enc type_enc = No_Types orelse
+       s = @{const_name HOL.eq} orelse
+       (s = app_op_name andalso
+        level_of_type_enc type_enc = Const_Arg_Types) then
+      No_Type_Args
+    else
+      should_drop_arg_type_args type_enc
+      |> (if polymorphism_of_type_enc type_enc = Mangled_Monomorphic then
+            Mangled_Type_Args
+          else
+            Explicit_Type_Args)
 
-(*Make literals for sorted type variables*)
+(* Make literals for sorted type variables. *)
 fun generic_add_sorts_on_type (_, []) = I
   | generic_add_sorts_on_type ((x, i), s :: ss) =
     generic_add_sorts_on_type ((x, i), ss)
@@ -1314,9 +1314,9 @@ fun type_tag_idempotence_fact () =
   end
 
 fun should_specialize_helper type_enc t =
-  case general_type_arg_policy type_enc of
-    Mangled_Type_Args _ => not (null (Term.hidden_polymorphism t))
-  | _ => false
+  polymorphism_of_type_enc type_enc = Mangled_Monomorphic andalso
+  level_of_type_enc type_enc <> No_Types andalso
+  not (null (Term.hidden_polymorphism t))
 
 fun helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
   case strip_prefix_and_unascii const_prefix s of
@@ -1324,18 +1324,21 @@ fun helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
     let
       val thy = Proof_Context.theory_of ctxt
       val unmangled_s = mangled_s |> unmangled_const_name
+      fun dub needs_fairly_sound j k =
+        (unmangled_s ^ "_" ^ string_of_int j ^ "_" ^ string_of_int k ^
+         (if mangled_s = unmangled_s then "" else "_" ^ ascii_of mangled_s) ^
+         (if needs_fairly_sound then typed_helper_suffix
+          else untyped_helper_suffix),
+         Helper)
       fun dub_and_inst needs_fairly_sound (th, j) =
-        ((unmangled_s ^ "_" ^ string_of_int j ^
-          (if mangled_s = unmangled_s then "" else "_" ^ ascii_of mangled_s) ^
-          (if needs_fairly_sound then typed_helper_suffix
-           else untyped_helper_suffix),
-          Helper),
-         let val t = th |> prop_of in
-           t |> should_specialize_helper type_enc t
-                ? (case types of
-                     [T] => specialize_type thy (invert_const unmangled_s, T)
-                   | _ => I)
-         end)
+        let val t = prop_of th in
+          if should_specialize_helper type_enc t then
+            map (fn T => specialize_type thy (invert_const unmangled_s, T) t)
+                types
+          else
+            [t]
+        end
+        |> map (fn (k, t) => (dub needs_fairly_sound j k, t)) o tag_list 1
       val make_facts =
         map_filter (make_fact ctxt format type_enc false false [])
       val fairly_sound = is_type_enc_fairly_sound type_enc
@@ -1347,7 +1350,7 @@ fun helper_facts_for_sym ctxt format type_enc (s, {types, ...} : sym_info) =
                     []
                   else
                     ths ~~ (1 upto length ths)
-                    |> map (dub_and_inst needs_fairly_sound)
+                    |> maps (dub_and_inst needs_fairly_sound)
                     |> make_facts)
     end
   | NONE => []
