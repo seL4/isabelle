@@ -637,7 +637,10 @@ fun type_arg_policy type_sys s =
      (s = app_op_name andalso level_of_type_sys type_sys = Const_Arg_Types) then
     No_Type_Args
   else if s = type_tag_name then
-    Explicit_Type_Args false
+    (if polymorphism_of_type_sys type_sys = Mangled_Monomorphic then
+       Mangled_Type_Args
+     else
+       Explicit_Type_Args) false
   else
     general_type_arg_policy type_sys
 
