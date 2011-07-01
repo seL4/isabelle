@@ -527,6 +527,10 @@ fun repair_monomorph_context max_iters max_new_instances =
   #> Config.put Monomorph.max_new_instances max_new_instances
   #> Config.put Monomorph.keep_partial_instances false
 
+(* Give the ATPs some slack before interrupting them the hard way. "z3_atp" on
+   Linux appears to be the only ATP that does not honor its time limit. *)
+val atp_timeout_slack = seconds 5.0
+
 fun run_atp mode name
         ({exec, required_execs, arguments, proof_delims, known_failures,
           conj_sym_kind, prem_kind, formats, best_slices, ...} : atp_config)
@@ -623,6 +627,7 @@ fun run_atp mode name
                         else
                           I))
                    * 0.001) |> seconds
+                val generous_slice_timeout = slice_timeout + atp_timeout_slack
                 val _ =
                   if debug then
                     quote name ^ " slice #" ^ string_of_int (slice + 1) ^
@@ -657,18 +662,24 @@ fun run_atp mode name
                   conjecture_offset + 1
                     upto conjecture_offset + length hyp_ts + 1
                   |> map single
-                val ((output, msecs), _) =
-                  bash_output command
+                val ((output, msecs), (atp_proof, outcome)) =
+                  TimeLimit.timeLimit generous_slice_timeout bash_output command
                   |>> (if overlord then
                          prefix ("% " ^ command ^ "\n% " ^ timestamp () ^ "\n")
                        else
                          I)
-                  |>> (if measure_run_time then split_time else rpair NONE)
-                val (atp_proof, outcome) =
-                  extract_tstplike_proof_and_outcome verbose complete
-                      proof_delims known_failures output
-                  |>> atp_proof_from_tstplike_proof atp_problem output
-                  handle UNRECOGNIZED_ATP_PROOF () => ([], SOME ProofIncomplete)
+                  |> fst
+                  |> (if measure_run_time then split_time else rpair NONE)
+                  |> (fn accum as (output, _) =>
+                         (accum,
+                          extract_tstplike_proof_and_outcome verbose complete
+                              proof_delims known_failures output
+                          |>> atp_proof_from_tstplike_proof atp_problem output
+                          handle UNRECOGNIZED_ATP_PROOF () =>
+                                 ([], SOME ProofIncomplete)))
+                  handle TimeLimit.TimeOut =>
+                         (("", SOME (Time.toMilliseconds slice_timeout)),
+                          ([], SOME TimedOut))
                 val outcome =
                   case outcome of
                     NONE =>
@@ -779,20 +790,15 @@ fun run_atp mode name
    these are sorted out properly in the SMT module, we have to interpret these
    ourselves. *)
 val remote_smt_failures =
-  [(22, CantConnect),
-   (2, NoLibwwwPerl)]
-val z3_wrapper_failures =
-  [(11, InternalError),
-   (12, InternalError),
-   (13, InternalError)]
+  [(2, NoLibwwwPerl),
+   (22, CantConnect)]
 val z3_failures =
   [(101, OutOfResources),
    (103, MalformedInput),
    (110, MalformedInput)]
 val unix_failures =
   [(139, Crashed)]
-val smt_failures =
-  remote_smt_failures @ z3_wrapper_failures @ z3_failures @ unix_failures
+val smt_failures = remote_smt_failures @ z3_failures @ unix_failures
 
 fun failure_from_smt_failure (SMT_Failure.Counterexample {is_real_cex, ...}) =
     if is_real_cex then Unprovable else GaveUp
