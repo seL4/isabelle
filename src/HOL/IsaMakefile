@@ -150,6 +150,7 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/project_rule.ML \
   $(SRC)/Tools/quickcheck.ML \
   $(SRC)/Tools/solve_direct.ML \
+  $(SRC)/Tools/subtyping.ML \
   $(SRC)/Tools/try.ML \
   $(SRC)/Tools/value.ML \
   HOL.thy \
@@ -168,7 +169,6 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   $(SRC)/Provers/trancl.ML \
   $(SRC)/Tools/Metis/metis.ML \
   $(SRC)/Tools/rat.ML \
-  $(SRC)/Tools/subtyping.ML \
   Complete_Lattice.thy \
   Complete_Partial_Order.thy \
   Datatype.thy \
