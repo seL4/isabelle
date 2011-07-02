@@ -387,7 +387,7 @@ fun nat i = if i < 0 then 0 else i;
 *}
 
 code_const nat
-  (SML "IntInf.max/ (/0,/ _)")
+  (SML "IntInf.max/ (0,/ _)")
   (OCaml "Big'_int.max'_big'_int/ Big'_int.zero'_big'_int")
   (Eval "Integer.max/ _/ 0")
 
