@@ -9,7 +9,7 @@ package isabelle
 
 import scala.annotation.tailrec
 import scala.collection.mutable
-import scala.util.parsing.input.Reader
+import scala.util.parsing.input.{Reader, CharSequenceReader}
 import scala.util.matching.Regex
 
 import java.io.File
@@ -98,6 +98,9 @@ class Thy_Header(symbols: Symbol.Interpretation) extends Parse.Parser
       case bad => error(bad.toString)
     }
   }
+
+  def read(source: CharSequence): Header =
+    read(new CharSequenceReader(source))
 
   def read(file: File): Header =
   {
