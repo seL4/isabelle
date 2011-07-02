@@ -28,6 +28,15 @@ lemma
     and [code nbe]: "HOL.equal P P \<longleftrightarrow> True"
   by (simp_all add: equal)
 
+lemma If_case_cert:
+  assumes "CASE \<equiv> (\<lambda>b. If b f g)"
+  shows "(CASE True \<equiv> f) &&& (CASE False \<equiv> g)"
+  using assms by simp_all
+
+setup {*
+  Code.add_case @{thm If_case_cert}
+*}
+
 code_const "HOL.equal \<Colon> bool \<Rightarrow> bool \<Rightarrow> bool"
   (Haskell infix 4 "==")
 

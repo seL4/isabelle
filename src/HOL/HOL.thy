@@ -1892,14 +1892,8 @@ lemma Let_case_cert:
   shows "CASE x \<equiv> f x"
   using assms by simp_all
 
-lemma If_case_cert:
-  assumes "CASE \<equiv> (\<lambda>b. If b f g)"
-  shows "(CASE True \<equiv> f) &&& (CASE False \<equiv> g)"
-  using assms by simp_all
-
 setup {*
   Code.add_case @{thm Let_case_cert}
-  #> Code.add_case @{thm If_case_cert}
   #> Code.add_undefined @{const_name undefined}
 *}
 
