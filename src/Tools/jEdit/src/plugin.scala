@@ -316,13 +316,10 @@ class Plugin extends EBPlugin
 {
   /* session management */
 
-  @volatile private var session_ready = false
-
   private val session_manager = actor {
     loop {
       react {
         case phase: Session.Phase =>
-          session_ready = phase == Session.Ready
           phase match {
             case Session.Failed =>
               Swing_Thread.now {
@@ -335,7 +332,6 @@ class Plugin extends EBPlugin
             case Session.Shutdown => Isabelle.jedit_buffers.foreach(Isabelle.exit_model)
             case _ =>
           }
-
         case bad => System.err.println("session_manager: ignoring bad message " + bad)
       }
     }
@@ -357,7 +353,7 @@ class Plugin extends EBPlugin
       if msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>
 
         val buffer = msg.getBuffer
-        if (buffer != null && session_ready)
+        if (buffer != null && Isabelle.session.is_ready)
           Isabelle.init_model(buffer)
 
       case msg: EditPaneUpdate
@@ -373,7 +369,7 @@ class Plugin extends EBPlugin
         if (buffer != null && text_area != null) {
           if (msg.getWhat == EditPaneUpdate.BUFFER_CHANGED ||
               msg.getWhat == EditPaneUpdate.CREATED) {
-            if (session_ready)
+            if (Isabelle.session.is_ready)
               Isabelle.init_view(buffer, text_area)
           }
           else Isabelle.exit_view(buffer, text_area)
