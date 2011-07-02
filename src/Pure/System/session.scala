@@ -16,6 +16,14 @@ import scala.actors.Actor._
 
 object Session
 {
+  /* abstract file store */
+
+  abstract class File_Store
+  {
+    def read(path: Path): String
+  }
+
+
   /* events */
 
   case object Global_Settings
@@ -32,7 +40,7 @@ object Session
 }
 
 
-class Session(val system: Isabelle_System)
+class Session(val system: Isabelle_System, val file_store: Session.File_Store)
 {
   /* real time parameters */  // FIXME properties or settings (!?)
 

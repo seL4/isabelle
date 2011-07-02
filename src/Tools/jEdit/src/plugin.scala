@@ -10,14 +10,14 @@ package isabelle.jedit
 import isabelle._
 
 import java.lang.System
-import java.io.{FileInputStream, IOException}
+import java.io.{File, FileInputStream, IOException}
 import java.awt.Font
 
 import scala.collection.mutable
 import scala.swing.ComboBox
 
 import org.gjt.sp.jedit.{jEdit, GUIUtilities, EBMessage, EBPlugin,
-  Buffer, EditPane, ServiceManager, View}
+  Buffer, EditPane, MiscUtilities, ServiceManager, View}
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 import org.gjt.sp.jedit.syntax.{Token => JEditToken, ModeProvider}
@@ -314,7 +314,25 @@ object Isabelle
 
 class Plugin extends EBPlugin
 {
-  /* session management */
+  /* editor file store */
+
+  private val file_store = new Session.File_Store
+  {
+    def read(path: Path): String =
+    {
+      val platform_path = Isabelle.system.platform_path(path)
+      val canonical_path = MiscUtilities.resolveSymlinks(platform_path)
+
+      Isabelle.jedit_buffers().find(buffer =>
+          MiscUtilities.resolveSymlinks(buffer.getPath) == canonical_path) match {
+        case Some(buffer) => Isabelle.buffer_text(buffer)
+        case None => Standard_System.read_file(new File(platform_path))
+      }
+    }
+  }
+
+
+  /* session manager */
 
   private val session_manager = actor {
     loop {
@@ -389,7 +407,7 @@ class Plugin extends EBPlugin
     Isabelle.setup_tooltips()
     Isabelle.system = new Isabelle_System
     Isabelle.system.install_fonts()
-    Isabelle.session = new Session(Isabelle.system)
+    Isabelle.session = new Session(Isabelle.system, file_store)
     SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender(Isabelle.system.symbols))
     if (ModeProvider.instance.isInstanceOf[ModeProvider])
       ModeProvider.instance = new Token_Markup.Mode_Provider(ModeProvider.instance)
