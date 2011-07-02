@@ -207,6 +207,7 @@ fun merge_spec (Spec { history_concluded = _, signatures = (tycos1, sigs1), func
     val signatures = (Symtab.merge (op =) (tycos1, tycos2),
       Symtab.merge typ_equiv (sigs1, sigs2));
     val types = Symtab.join (K (AList.merge (op =) (K true))) (types1, types2);
+    val case_consts_of' = (maps case_consts_of o map (snd o snd o hd o snd) o Symtab.dest);
     fun merge_functions ((_, history1), (_, history2)) =
       let
         val raw_history = AList.merge (op = : serial * serial -> bool)
@@ -217,13 +218,12 @@ fun merge_spec (Spec { history_concluded = _, signatures = (tycos1, sigs1), func
       in ((false, (snd o hd) history), history) end;
     val all_datatype_specs = map (snd o snd o hd o snd) (Symtab.dest types);
     val all_constructors = maps (map fst o fst o constructors_of) all_datatype_specs;
-    val all_case_consts = maps (case_consts_of) all_datatype_specs;
+    val invalidated_case_consts = union (op =) (case_consts_of' types1) (case_consts_of' types2)
+      |> subtract (op =) (maps case_consts_of all_datatype_specs)
     val functions = Symtab.join (K merge_functions) (functions1, functions2)
       |> fold (fn c => Symtab.map_entry c (apfst (K (true, empty_fun_spec)))) all_constructors;
-    val proto_cases = Symtab.merge (K true) (cases1, cases2);
-    val illegal_cases = subtract (op =) all_case_consts (Symtab.keys proto_cases);
     val cases = (Symtab.merge (K true) (cases1, cases2)
-      |> fold Symtab.delete illegal_cases, Symtab.merge (K true) (undefs1, undefs2));
+      |> fold Symtab.delete invalidated_case_consts, Symtab.merge (K true) (undefs1, undefs2));
   in make_spec (false, ((signatures, functions), (types, cases))) end;
 
 fun history_concluded (Spec { history_concluded, ... }) = history_concluded;
