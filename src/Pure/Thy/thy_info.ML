@@ -165,8 +165,10 @@ fun update_thy deps theory = NAMED_CRITICAL "Thy_Info" (fn () =>
 
 (* scheduling loader tasks *)
 
+type result = theory * unit future * (unit -> unit);
+
 datatype task =
-  Task of string list * (theory list -> (theory * unit future * (unit -> unit))) |
+  Task of string list * (theory list -> result) |
   Finished of theory;
 
 fun task_finished (Task _) = false
@@ -174,15 +176,15 @@ fun task_finished (Task _) = false
 
 local
 
+fun finish_thy ((thy, present, commit): result) =
+  (Global_Theory.join_proofs thy; Future.join present; commit (); thy);
+
 fun schedule_seq task_graph =
   ((Graph.topological_order task_graph, Symtab.empty) |-> fold (fn name => fn tab =>
     (case Graph.get_node task_graph name of
       Task (parents, body) =>
-        let
-          val (thy, present, commit) = body (map (the o Symtab.lookup tab) parents);
-          val _ = Future.join present;
-          val _ = commit ();
-        in Symtab.update (name, thy) tab end
+        let val result = body (map (the o Symtab.lookup tab) parents)
+        in Symtab.update (name, finish_thy result) tab end
     | Finished thy => Symtab.update (name, thy) tab))) |> ignore;
 
 fun schedule_futures task_graph = uninterruptible (fn _ => fn () =>
@@ -210,10 +212,8 @@ fun schedule_futures task_graph = uninterruptible (fn _ => fn () =>
     val _ =
       tasks |> maps (fn name =>
         let
-          val (thy, present, commit) = Future.join (the (Symtab.lookup futures name));
-          val _ = Global_Theory.join_proofs thy;
-          val _ = Future.join present;
-          val _ = commit ();
+          val result = Future.join (the (Symtab.lookup futures name));
+          val _ = finish_thy result;
         in [] end handle exn => [Exn.Exn exn])
       |> rev |> Exn.release_all;
   in () end) ();
