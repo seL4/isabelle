@@ -80,10 +80,10 @@ fun reset_after id entries =
     NONE => entries
   | SOME next => Entries.update (next, NONE) entries);
 
-fun edit_node (hook, SOME id2) (Node entries) =
-      Node (Entries.insert_after hook (id2, NONE) entries)
-  | edit_node (hook, NONE) (Node entries) =
-      Node (entries |> Entries.delete_after hook |> reset_after hook);
+fun edit_node (id, SOME id2) (Node entries) =
+      Node (Entries.insert_after id (id2, NONE) entries)
+  | edit_node (id, NONE) (Node entries) =
+      Node (entries |> Entries.delete_after id |> reset_after id);
 
 
 (* version operations *)
