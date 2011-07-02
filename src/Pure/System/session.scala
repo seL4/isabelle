@@ -116,6 +116,8 @@ class Session(val system: Isabelle_System)
 
   /** main protocol actor **/
 
+  val thy_header = new Thy_Header(system.symbols)
+
   @volatile private var syntax = new Outer_Syntax(system.symbols)
   def current_syntax(): Outer_Syntax = syntax
 

@@ -60,7 +60,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
 {
   /* pending text edits */
 
-  object pending_edits  // owned by Swing thread
+  private object pending_edits  // owned by Swing thread
   {
     private val pending = new mutable.ListBuffer[Text.Edit]
     def snapshot(): List[Text.Edit] = pending.toList
