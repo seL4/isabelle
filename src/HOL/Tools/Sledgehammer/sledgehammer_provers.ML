@@ -627,7 +627,8 @@ fun run_atp mode name
                         else
                           I))
                    * 0.001) |> seconds
-                val generous_slice_timeout = slice_timeout + atp_timeout_slack
+                val generous_slice_timeout =
+                  Time.+ (slice_timeout, atp_timeout_slack)
                 val _ =
                   if debug then
                     quote name ^ " slice #" ^ string_of_int (slice + 1) ^
