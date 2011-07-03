@@ -36,8 +36,10 @@ object Thy_Header
 
   /* file name */
 
-  val Thy_Path1 = new Regex("([^/]*)\\.thy")
-  val Thy_Path2 = new Regex("(.*)/([^/]*)\\.thy")
+  def thy_path(name: String): Path = Path.basic(name).ext("thy")
+
+  private val Thy_Path1 = new Regex("([^/]*)\\.thy")
+  private val Thy_Path2 = new Regex("(.*)/([^/]*)\\.thy")
 
   def split_thy_path(path: String): Option[(String, String)] =
     path match {
@@ -107,5 +109,16 @@ class Thy_Header(symbols: Symbol.Interpretation) extends Parse.Parser
     val reader = Scan.byte_reader(file)
     try { read(reader).decode_permissive_utf8 }
     finally { reader.close }
+  }
+
+
+  /* check */
+
+  def check(name: String, source: CharSequence): Header =
+  {
+    val header = read(source)
+    val name1 = header.name
+    if (name == name1) header
+    else error("Bad file name " + Thy_Header.thy_path(name) + " for theory " + Library.quote(name1))
   }
 }

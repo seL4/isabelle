@@ -201,8 +201,8 @@ object Isabelle
           case None =>
             // FIXME strip protocol prefix of URL
             Thy_Header.split_thy_path(system.posix_path(buffer.getPath)) match {
-              case Some((dir, thy_name)) =>
-                Some(Document_Model.init(session, buffer, dir + "/" + thy_name))
+              case Some((master_dir, thy_name)) =>
+                Some(Document_Model.init(session, buffer, master_dir, thy_name))
               case None => None
             }
         }

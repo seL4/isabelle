@@ -45,10 +45,10 @@ object Document_Model
     }
   }
 
-  def init(session: Session, buffer: Buffer, thy_name: String): Document_Model =
+  def init(session: Session, buffer: Buffer, master_dir: String, thy_name: String): Document_Model =
   {
     exit(buffer)
-    val model = new Document_Model(session, buffer, thy_name)
+    val model = new Document_Model(session, buffer, master_dir, thy_name)
     buffer.setProperty(key, model)
     model.activate()
     model
@@ -56,31 +56,36 @@ object Document_Model
 }
 
 
-class Document_Model(val session: Session, val buffer: Buffer, val thy_name: String)
+class Document_Model(val session: Session,
+  val buffer: Buffer, val master_dir: String, val thy_name: String)
 {
   /* pending text edits */
+
+  private def capture_header(): Exn.Result[Thy_Header.Header] =
+    Exn.capture {
+      session.thy_header.check(thy_name, buffer.getSegment(0, buffer.getLength))
+    }
 
   private object pending_edits  // owned by Swing thread
   {
     private val pending = new mutable.ListBuffer[Text.Edit]
     def snapshot(): List[Text.Edit] = pending.toList
 
-    def flush(more_edits: Option[List[Text.Edit]]*)
+    def flush()
     {
       Swing_Thread.require()
-      val edits = snapshot()
-      pending.clear
-
-      val all_edits =
-        if (edits.isEmpty) more_edits.toList
-        else Some(edits) :: more_edits.toList
-      if (!all_edits.isEmpty) session.edit_version(all_edits.map((thy_name, _)))
+      snapshot() match {
+        case Nil =>
+        case edits =>
+          pending.clear
+          session.edit_node(master_dir + "/" + thy_name, capture_header(), edits)
+      }
     }
 
     def init()
     {
-      Swing_Thread.require()
-      flush(None, Some(List(Text.Edit.insert(0, Isabelle.buffer_text(buffer)))))
+      flush()
+      session.init_node(master_dir + "/" + thy_name, capture_header(), Isabelle.buffer_text(buffer))
     }
 
     private val delay_flush =
@@ -100,7 +105,7 @@ class Document_Model(val session: Session, val buffer: Buffer, val thy_name: Str
   def snapshot(): Document.Snapshot =
   {
     Swing_Thread.require()
-    session.snapshot(thy_name, pending_edits.snapshot())
+    session.snapshot(master_dir + "/" + thy_name, pending_edits.snapshot())
   }
 
 
