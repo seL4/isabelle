@@ -98,6 +98,11 @@ text {*
 value %quote [nbe] "42 / (12 :: rat)"
 
 text {*
+  To employ dynamic evaluation in the document generation, there is also
+  a @{text value} antiquotation. By default, it also tries all available evaluation
+  techniques and prints the result of the first succeeding one, unless a particular
+  technique is specified in square brackets.
+
   Static evaluation freezes the code generator configuration at a
   certain point and uses this context whenever evaluation is issued
   later on.  This is particularly appropriate for proof procedures
