@@ -156,7 +156,7 @@ class Session(val system: Isabelle_System, val file_store: Session.File_Store)
   private val (_, session_actor) = Simple_Thread.actor("session_actor", daemon = true)
   {
     val this_actor = self
-    var prover: Isabelle_Process with Isar_Document = null
+    var prover: Option[Isabelle_Process with Isar_Document] = None
 
 
     /* document changes */
@@ -188,7 +188,8 @@ class Session(val system: Isabelle_System, val file_store: Session.File_Store)
                       case Some(command) =>
                         if (global_state.peek().lookup_command(command.id).isEmpty) {
                           global_state.change(_.define_command(command))
-                          prover.define_command(command.id, system.symbols.encode(command.source))
+                          prover.get.
+                            define_command(command.id, system.symbols.encode(command.source))
                         }
                         Some(command.id)
                     }
@@ -197,7 +198,7 @@ class Session(val system: Isabelle_System, val file_store: Session.File_Store)
             (name -> Some(ids))
         }
       global_state.change(_.define_version(version, former_assignment))
-      prover.edit_version(previous.id, version.id, id_edits)
+      prover.get.edit_version(previous.id, version.id, id_edits)
     }
     //}}}
 
@@ -276,41 +277,42 @@ class Session(val system: Isabelle_System, val file_store: Session.File_Store)
     while (!finished) {
       receive {
         case Interrupt_Prover =>
-          if (prover != null) prover.interrupt
+          prover.map(_.interrupt)
 
-        case Edit_Node(thy_name, header, text_edits) if prover != null =>
+        case Edit_Node(thy_name, header, text_edits) if prover.isDefined =>
           edit_version(List((thy_name, Some(text_edits))))
           reply(())
 
-        case Init_Node(thy_name, header, text) if prover != null =>
+        case Init_Node(thy_name, header, text) if prover.isDefined =>
           // FIXME compare with existing node
           edit_version(List(
             (thy_name, None),
             (thy_name, Some(List(Text.Edit.insert(0, text))))))
           reply(())
 
-        case change: Document.Change if prover != null =>
+        case change: Document.Change if prover.isDefined =>
           handle_change(change)
 
         case result: Isabelle_Process.Result => handle_result(result)
 
-        case Start(timeout, args) if prover == null =>
+        case Start(timeout, args) if prover.isEmpty =>
           if (phase == Session.Inactive || phase == Session.Failed) {
             phase = Session.Startup
-            prover = new Isabelle_Process(system, timeout, this_actor, args:_*) with Isar_Document
+            prover =
+              Some(new Isabelle_Process(system, timeout, this_actor, args:_*) with Isar_Document)
           }
 
         case Stop =>
           if (phase == Session.Ready) {
             global_state.change(_ => Document.State.init)  // FIXME event bus!?
             phase = Session.Shutdown
-            prover.terminate
+            prover.get.terminate
             phase = Session.Inactive
           }
           finished = true
           reply(())
 
-        case bad if prover != null =>
+        case bad if prover.isDefined =>
           System.err.println("session_actor: ignoring bad message " + bad)
       }
     }
