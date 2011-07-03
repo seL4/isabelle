@@ -261,7 +261,8 @@ class Session(val system: Isabelle_System, val file_store: Session.File_Store)
 
         case Edit_Version(edits) if prover != null =>
           val previous = global_state.peek().history.tip.version
-          val result = Future.fork { Thy_Syntax.text_edits(Session.this, previous.join, edits) }
+          val syntax = current_syntax()
+          val result = Future.fork { Thy_Syntax.text_edits(syntax, new_id _, previous.join, edits) }
           val change = global_state.change_yield(_.extend_history(previous, edits, result))
 
           val this_actor = self
