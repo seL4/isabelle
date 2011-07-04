@@ -2,7 +2,7 @@
     Author:     Makarius
     Options:    :folding=explicit:collapseFolds=1:
 
-Isabelle session, potentially with running prover.
+Main Isabelle/Scala session, potentially with running prover process.
 */
 
 package isabelle
@@ -124,7 +124,7 @@ class Session(val system: Isabelle_System, val file_store: Session.File_Store)
 
   /** main protocol actor **/
 
-  val thy_header = new Thy_Header(system.symbols)
+  /* global state */
 
   @volatile private var syntax = new Outer_Syntax(system.symbols)
   def current_syntax(): Outer_Syntax = syntax
@@ -143,6 +143,28 @@ class Session(val system: Isabelle_System, val file_store: Session.File_Store)
 
   private val global_state = new Volatile(Document.State.init)
   def current_state(): Document.State = global_state.peek()
+
+
+  /* theory files */
+
+  val thy_header = new Thy_Header(system.symbols)
+
+  val thy_load = new Thy_Load
+  {
+    override def check_thy(dir: Path, name: String): (String, Thy_Header.Header) =
+    {
+      val file = system.platform_file(dir + Thy_Header.thy_path(name))
+      if (!file.exists || !file.isFile) error("No such file: " + Library.quote(file.toString))
+      val text = Standard_System.read_file(file)
+      val header = thy_header.read(text)
+      (text, header)
+    }
+  }
+
+  val thy_info = new Thy_Info(thy_load)
+
+
+  /* actor messages */
 
   private case object Interrupt_Prover
   private case class Edit_Node(thy_name: String,

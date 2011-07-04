@@ -279,13 +279,14 @@ and require_thy initiators dir str tasks =
   let
     val path = Path.expand (Path.explode str);
     val name = Path.implode (Path.base path);
-    val dir' = Path.append dir (Path.dir path);
-    val _ = member (op =) initiators name andalso error (cycle_msg initiators);
   in
     (case try (Graph.get_node tasks) name of
       SOME task => (task_finished task, tasks)
     | NONE =>
         let
+          val dir' = Path.append dir (Path.dir path);
+          val _ = member (op =) initiators name andalso error (cycle_msg initiators);
+
           val (current, deps, imports) = check_deps dir' name
             handle ERROR msg => cat_error msg
               (loader_msg "the error(s) above occurred while examining theory" [name] ^
