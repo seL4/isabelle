@@ -18,6 +18,27 @@ import scala.collection.mutable
 
 object Library
 {
+  /* user errors */
+
+  object ERROR
+  {
+    def apply(message: String): Throwable = new RuntimeException(message)
+    def unapply(exn: Throwable): Option[String] =
+      exn match {
+        case e: RuntimeException =>
+          val msg = e.getMessage
+          Some(if (msg == null) "" else msg)
+        case _ => None
+      }
+  }
+
+  def error(message: String): Nothing = throw ERROR(message)
+
+  def cat_error(msg1: String, msg2: String): Nothing =
+    if (msg1 == "") error(msg1)
+    else error(msg1 + "\n" + msg2)
+
+
   /* lists */
 
   def separate[A](s: A, list: List[A]): List[A] =
@@ -39,6 +60,37 @@ object Library
       }
       result.toList
     }
+
+
+  /* iterate over chunks (cf. space_explode) */
+
+  def chunks(source: CharSequence, sep: Char = '\n') = new Iterator[CharSequence]
+  {
+    private val end = source.length
+    private def next_chunk(i: Int): Option[(CharSequence, Int)] =
+    {
+      if (i < end) {
+        var j = i; do j += 1 while (j < end && source.charAt(j) != sep)
+        Some((source.subSequence(i + 1, j), j))
+      }
+      else None
+    }
+    private var state: Option[(CharSequence, Int)] = if (end == 0) None else next_chunk(-1)
+
+    def hasNext(): Boolean = state.isDefined
+    def next(): CharSequence =
+      state match {
+        case Some((s, i)) => { state = next_chunk(i); s }
+        case None => Iterator.empty.next()
+      }
+  }
+
+  def first_line(source: CharSequence): String =
+  {
+    val lines = chunks(source)
+    if (lines.hasNext) lines.next.toString
+    else ""
+  }
 
 
   /* strings */
@@ -70,37 +122,6 @@ object Library
         buf.append(charAt(i))
       buf.toString
     }
-  }
-
-
-  /* iterate over chunks (cf. space_explode/split_lines in ML) */
-
-  def chunks(source: CharSequence, sep: Char = '\n') = new Iterator[CharSequence]
-  {
-    private val end = source.length
-    private def next_chunk(i: Int): Option[(CharSequence, Int)] =
-    {
-      if (i < end) {
-        var j = i; do j += 1 while (j < end && source.charAt(j) != sep)
-        Some((source.subSequence(i + 1, j), j))
-      }
-      else None
-    }
-    private var state: Option[(CharSequence, Int)] = if (end == 0) None else next_chunk(-1)
-
-    def hasNext(): Boolean = state.isDefined
-    def next(): CharSequence =
-      state match {
-        case Some((s, i)) => { state = next_chunk(i); s }
-        case None => Iterator.empty.next()
-      }
-  }
-
-  def first_line(source: CharSequence): String =
-  {
-    val lines = chunks(source)
-    if (lines.hasNext) lines.next.toString
-    else ""
   }
 
 
@@ -159,4 +180,18 @@ object Library
         new Time(stop - start).message + " elapsed time")
     Exn.release(result)
   }
+}
+
+
+class Basic_Library
+{
+  val space_explode = Library.space_explode _
+
+  val quote = Library.quote _
+  val commas = Library.commas _
+  val commas_quote = Library.commas_quote _
+
+  val ERROR = Library.ERROR
+  val error = Library.error _
+  val cat_error = Library.cat_error _
 }

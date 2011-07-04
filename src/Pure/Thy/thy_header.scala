@@ -119,6 +119,6 @@ class Thy_Header(symbols: Symbol.Interpretation) extends Parse.Parser
     val header = read(source)
     val name1 = header.name
     if (name == name1) header
-    else error("Bad file name " + Thy_Header.thy_path(name) + " for theory " + Library.quote(name1))
+    else error("Bad file name " + Thy_Header.thy_path(name) + " for theory " + quote(name1))
   }
 }

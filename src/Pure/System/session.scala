@@ -154,7 +154,7 @@ class Session(val system: Isabelle_System, val file_store: Session.File_Store)
     override def check_thy(dir: Path, name: String): (String, Thy_Header.Header) =
     {
       val file = system.platform_file(dir + Thy_Header.thy_path(name))
-      if (!file.exists || !file.isFile) error("No such file: " + Library.quote(file.toString))
+      if (!file.exists || !file.isFile) error("No such file: " + quote(file.toString))
       val text = Standard_System.read_file(file)
       val header = thy_header.read(text)
       (text, header)

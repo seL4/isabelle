@@ -19,7 +19,7 @@ object Path
   private case object Parent extends Elem
 
   private def err_elem(msg: String, s: String): Nothing =
-    error (msg + " path element specification: " + Library.quote(s))
+    error (msg + " path element specification: " + quote(s))
 
   private def check_elem(s: String): String =
     if (s == "" || s == "~" || s == "~~") err_elem("Illegal", s)
@@ -27,7 +27,7 @@ object Path
       s.iterator.filter(c => c == '/' || c == '\\' || c == '$' || c == ':').toList match {
         case Nil => s
         case bads =>
-          err_elem ("Illegal character(s) " + Library.commas_quote(bads.map(_.toString)) + " in", s)
+          err_elem ("Illegal character(s) " + commas_quote(bads.map(_.toString)) + " in", s)
       }
 
   private def root_elem(s: String): Elem = Root(check_elem(s))
@@ -114,7 +114,7 @@ class Path
       case _ => elems.map(Path.implode_elem).reverse.mkString("/")
     }
 
-  override def toString: String = Library.quote(implode)
+  override def toString: String = quote(implode)
 
 
   /* base element */
