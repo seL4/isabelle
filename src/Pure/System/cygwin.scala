@@ -115,7 +115,7 @@ object Cygwin
     try {
       Download.file(parent, "Downloading", new URL("http://www.cygwin.com/setup.exe"), setup_exe)
     }
-    catch { case _: RuntimeException => error("Failed to download Cygwin setup program") }
+    catch { case ERROR(_) => error("Failed to download Cygwin setup program") }
 
     val (_, rc) = Standard_System.raw_exec(root, null, true,
         setup_exe.toString, "-R", root.toString, "-l", download.toString,
