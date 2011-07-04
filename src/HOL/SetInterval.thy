@@ -284,6 +284,21 @@ lemma greaterThanLessThan_subseteq_atLeastAtMost_iff:
   using dense[of "a" "min c b"] dense[of "max a d" "b"]
   by (force simp: subset_eq Ball_def not_less[symmetric])
 
+lemma atLeastAtMost_subseteq_atLeastLessThan_iff:
+  "{a .. b} \<subseteq> { c ..< d } \<longleftrightarrow> (a \<le> b \<longrightarrow> c \<le> a \<and> b < d)"
+  using dense[of "max a d" "b"]
+  by (force simp: subset_eq Ball_def not_less[symmetric])
+
+lemma greaterThanAtMost_subseteq_atLeastLessThan_iff:
+  "{a <.. b} \<subseteq> { c ..< d } \<longleftrightarrow> (a < b \<longrightarrow> c \<le> a \<and> b < d)"
+  using dense[of "a" "min c b"]
+  by (force simp: subset_eq Ball_def not_less[symmetric])
+
+lemma greaterThanLessThan_subseteq_atLeastLessThan_iff:
+  "{a <..< b} \<subseteq> { c ..< d } \<longleftrightarrow> (a < b \<longrightarrow> c \<le> a \<and> b \<le> d)"
+  using dense[of "a" "min c b"] dense[of "max a d" "b"]
+  by (force simp: subset_eq Ball_def not_less[symmetric])
+
 end
 
 lemma (in linorder) atLeastLessThan_subset_iff:
