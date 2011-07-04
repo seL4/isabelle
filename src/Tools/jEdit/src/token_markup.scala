@@ -79,8 +79,9 @@ object Token_Markup
   private def bold_style(style: SyntaxStyle): SyntaxStyle =
     font_style(style, _.deriveFont(Font.BOLD))
 
-  class Style_Extender(symbols: Symbol.Interpretation) extends SyntaxUtilities.StyleExtender
+  class Style_Extender extends SyntaxUtilities.StyleExtender
   {
+    val symbols = Isabelle_System.symbols
     if (symbols.font_names.length > 2)
       error("Too many user symbol fonts (max 2 permitted): " + symbols.font_names.mkString(", "))
 
@@ -105,9 +106,10 @@ object Token_Markup
     }
   }
 
-  def extended_styles(symbols: Symbol.Interpretation, text: CharSequence)
-    : Map[Text.Offset, Byte => Byte] =
+  def extended_styles(text: CharSequence): Map[Text.Offset, Byte => Byte] =
   {
+    val symbols = Isabelle_System.symbols
+
     // FIXME symbols.bsub_decoded etc.
     def ctrl_style(sym: String): Option[Byte => Byte] =
       if (symbols.is_subscript_decoded(sym)) Some(subscript(_))
@@ -163,7 +165,6 @@ object Token_Markup
     {
       val context1 =
         if (Isabelle.session.is_ready) {
-          val symbols = Isabelle.system.symbols
           val syntax = Isabelle.session.current_syntax()
     
           val ctxt =
@@ -174,7 +175,7 @@ object Token_Markup
           val (tokens, ctxt1) = syntax.scan_context(line, ctxt)
           val context1 = new Line_Context(ctxt1)
     
-          val extended = extended_styles(symbols, line)
+          val extended = extended_styles(line)
     
           var offset = 0
           for (token <- tokens) {

@@ -15,7 +15,7 @@ import scala.util.matching.Regex
 import java.io.File
 
 
-object Thy_Header
+object Thy_Header extends Parse.Parser
 {
   val HEADER = "header"
   val THEORY = "theory"
@@ -47,12 +47,6 @@ object Thy_Header
       case Thy_Path2(dir, name) => Some((dir, name))
       case _ => None
     }
-}
-
-
-class Thy_Header(symbols: Symbol.Interpretation) extends Parse.Parser
-{
-  import Thy_Header._
 
 
   /* header */
@@ -81,7 +75,7 @@ class Thy_Header(symbols: Symbol.Interpretation) extends Parse.Parser
 
   def read(reader: Reader[Char]): Header =
   {
-    val token = lexicon.token(symbols, _ => false)
+    val token = lexicon.token(Isabelle_System.symbols, _ => false)
     val toks = new mutable.ListBuffer[Token]
 
     @tailrec def scan_to_begin(in: Reader[Char])
@@ -119,6 +113,6 @@ class Thy_Header(symbols: Symbol.Interpretation) extends Parse.Parser
     val header = read(source)
     val name1 = header.name
     if (name == name1) header
-    else error("Bad file name " + Thy_Header.thy_path(name) + " for theory " + quote(name1))
+    else error("Bad file name " + thy_path(name) + " for theory " + quote(name1))
   }
 }

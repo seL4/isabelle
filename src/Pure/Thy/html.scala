@@ -55,9 +55,10 @@ object HTML
   def sup(txt: String): XML.Elem = XML.elem("sup", List(XML.Text(txt)))
   def bold(txt: String): XML.Elem = span("bold", List(XML.Text(txt)))
 
-  def spans(symbols: Symbol.Interpretation,
-    input: XML.Tree, original_data: Boolean = false): XML.Body =
+  def spans(input: XML.Tree, original_data: Boolean = false): XML.Body =
   {
+    val symbols = Isabelle_System.symbols
+
     def html_spans(tree: XML.Tree): XML.Body =
       tree match {
         case XML.Elem(m @ Markup(name, props), ts) =>

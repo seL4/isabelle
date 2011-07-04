@@ -36,7 +36,6 @@ object Isabelle
   /* plugin instance */
 
   var plugin: Plugin = null
-  var system: Isabelle_System = null
   var session: Session = null
 
 
@@ -200,7 +199,7 @@ object Isabelle
           case Some(model) => Some(model)
           case None =>
             // FIXME strip protocol prefix of URL
-            Thy_Header.split_thy_path(system.posix_path(buffer.getPath)) match {
+            Thy_Header.split_thy_path(Isabelle_System.posix_path(buffer.getPath)) match {
               case Some((master_dir, thy_name)) =>
                 Some(Document_Model.init(session, buffer, master_dir, thy_name))
               case None => None
@@ -274,9 +273,9 @@ object Isabelle
 
   def default_logic(): String =
   {
-    val logic = system.getenv("JEDIT_LOGIC")
+    val logic = Isabelle_System.getenv("JEDIT_LOGIC")
     if (logic != "") logic
-    else system.getenv_strict("ISABELLE_LOGIC")
+    else Isabelle_System.getenv_strict("ISABELLE_LOGIC")
   }
 
   class Logic_Entry(val name: String, val description: String)
@@ -288,7 +287,7 @@ object Isabelle
   {
     val entries =
       new Logic_Entry("", "default (" + default_logic() + ")") ::
-        system.find_logics().map(name => new Logic_Entry(name, name))
+        Isabelle_System.find_logics().map(name => new Logic_Entry(name, name))
     val component = new ComboBox(entries)
     entries.find(_.name == logic) match {
       case None =>
@@ -301,7 +300,7 @@ object Isabelle
   def start_session()
   {
     val timeout = Time_Property("startup-timeout", Time.seconds(10)) max Time.seconds(5)
-    val modes = system.getenv("JEDIT_PRINT_MODE").split(",").toList.map("-m" + _)
+    val modes = Isabelle_System.getenv("JEDIT_PRINT_MODE").split(",").toList.map("-m" + _)
     val logic = {
       val logic = Property("logic")
       if (logic != null && logic != "") logic
@@ -320,7 +319,7 @@ class Plugin extends EBPlugin
   {
     def read(path: Path): String =
     {
-      val platform_path = Isabelle.system.platform_path(path)
+      val platform_path = Isabelle_System.platform_path(path)
       val canonical_path = MiscUtilities.resolveSymlinks(platform_path)
 
       Isabelle.jedit_buffers().find(buffer =>
@@ -405,10 +404,10 @@ class Plugin extends EBPlugin
   {
     Isabelle.plugin = this
     Isabelle.setup_tooltips()
-    Isabelle.system = new Isabelle_System
-    Isabelle.system.install_fonts()
-    Isabelle.session = new Session(Isabelle.system, file_store)
-    SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender(Isabelle.system.symbols))
+    Isabelle_System.init()
+    Isabelle_System.install_fonts()
+    Isabelle.session = new Session(file_store)
+    SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender)
     if (ModeProvider.instance.isInstanceOf[ModeProvider])
       ModeProvider.instance = new Token_Markup.Mode_Provider(ModeProvider.instance)
     Isabelle.session.phase_changed += session_manager

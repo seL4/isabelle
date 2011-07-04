@@ -1,7 +1,8 @@
 /*  Title:      Pure/System/isabelle_system.scala
     Author:     Makarius
 
-Isabelle system support (settings environment etc.).
+Fundamental Isabelle system environment: settings, symbols etc.
+Quasi-static module with optional init operation.
 */
 
 package isabelle
@@ -21,15 +22,24 @@ import scala.collection.mutable
 
 object Isabelle_System
 {
-  lazy val default: Isabelle_System = new Isabelle_System
-}
+  /** implicit state **/
 
-class Isabelle_System(this_isabelle_home: String) extends Standard_System
-{
-  def this() = this(null)
+  private case class State(
+    standard_system: Standard_System,
+    settings: Map[String, String],
+    symbols: Symbol.Interpretation)
 
+  @volatile private var _state: Option[State] = None
 
-  /** Isabelle environment **/
+  private def check_state(): State =
+  {
+    if (_state.isEmpty) init()  // unsynchronized check
+    _state.get
+  }
+
+  def standard_system: Standard_System = check_state().standard_system
+  def settings: Map[String, String] = check_state().settings
+  def symbols: Symbol.Interpretation = check_state().symbols
 
   /*
     isabelle_home precedence:
@@ -37,59 +47,73 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
       (2) ISABELLE_HOME process environment variable (e.g. inherited from running isabelle tool)
       (3) isabelle.home system property (e.g. via JVM application boot process)
   */
+  def init(this_isabelle_home: String = null) = synchronized {
+    if (_state.isEmpty) {
+      import scala.collection.JavaConversions._
 
-  private val environment: Map[String, String] =
-  {
-    import scala.collection.JavaConversions._
+      val standard_system = new Standard_System
 
-    val env0 = Map(System.getenv.toList: _*) +
-      ("THIS_JAVA" -> this_java())
+      val settings =
+      {
+        val env = Map(System.getenv.toList: _*) +
+          ("THIS_JAVA" -> standard_system.this_java())
 
-    val isabelle_home =
-      if (this_isabelle_home != null) this_isabelle_home
-      else
-        env0.get("ISABELLE_HOME") match {
-          case None | Some("") =>
-            val path = System.getProperty("isabelle.home")
-            if (path == null || path == "") error("Unknown Isabelle home directory")
-            else path
-          case Some(path) => path
-        }
+        val isabelle_home =
+          if (this_isabelle_home != null) this_isabelle_home
+          else
+            env.get("ISABELLE_HOME") match {
+              case None | Some("") =>
+                val path = System.getProperty("isabelle.home")
+                if (path == null || path == "") error("Unknown Isabelle home directory")
+                else path
+              case Some(path) => path
+            }
 
-    Standard_System.with_tmp_file("settings") { dump =>
-        val shell_prefix =
-          if (Platform.is_windows) List(platform_root + "\\bin\\bash", "-l") else Nil
-        val cmdline =
-          shell_prefix ::: List(isabelle_home + "/bin/isabelle", "getenv", "-d", dump.toString)
-        val (output, rc) = Standard_System.raw_exec(null, env0, true, cmdline: _*)
-        if (rc != 0) error(output)
+          Standard_System.with_tmp_file("settings") { dump =>
+              val shell_prefix =
+                if (Platform.is_windows) List(standard_system.platform_root + "\\bin\\bash", "-l")
+                else Nil
+              val cmdline =
+                shell_prefix ::: List(isabelle_home + "/bin/isabelle", "getenv", "-d", dump.toString)
+              val (output, rc) = Standard_System.raw_exec(null, env, true, cmdline: _*)
+              if (rc != 0) error(output)
 
-        val entries =
-          for (entry <- Source.fromFile(dump).mkString split "\0" if entry != "") yield {
-            val i = entry.indexOf('=')
-            if (i <= 0) (entry -> "")
-            else (entry.substring(0, i) -> entry.substring(i + 1))
+              val entries =
+                for (entry <- Source.fromFile(dump).mkString split "\0" if entry != "") yield {
+                  val i = entry.indexOf('=')
+                  if (i <= 0) (entry -> "")
+                  else (entry.substring(0, i) -> entry.substring(i + 1))
+                }
+              Map(entries: _*) +
+                ("HOME" -> System.getenv("HOME")) +
+                ("PATH" -> System.getenv("PATH"))
+            }
           }
-        Map(entries: _*) +
-          ("HOME" -> System.getenv("HOME")) +
-          ("PATH" -> System.getenv("PATH"))
+
+      val symbols =
+      {
+        val isabelle_symbols = settings.getOrElse("ISABELLE_SYMBOLS", "")
+        if (isabelle_symbols == "") error("Undefined environment variable: ISABELLE_SYMBOLS")
+        val files =
+          isabelle_symbols.split(":").toList.map(s => new File(standard_system.jvm_path(s)))
+        new Symbol.Interpretation(Standard_System.try_read(files).split("\n").toList)
       }
+
+      _state = Some(State(standard_system, settings, symbols))
+    }
   }
 
 
   /* getenv */
 
   def getenv(name: String): String =
-    environment.getOrElse(if (name == "HOME") "HOME_JVM" else name, "")
+    settings.getOrElse(if (name == "HOME") "HOME_JVM" else name, "")
 
   def getenv_strict(name: String): String =
   {
     val value = getenv(name)
     if (value != "") value else error("Undefined environment variable: " + name)
   }
-
-  override def toString = getenv_strict("ISABELLE_HOME")
-
 
 
   /** file-system operations **/
@@ -98,8 +122,10 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
 
   def standard_path(path: Path): String = path.expand(getenv_strict).implode
 
-  def platform_path(path: Path): String = jvm_path(standard_path(path))
+  def platform_path(path: Path): String = standard_system.jvm_path(standard_path(path))
   def platform_file(path: Path) = new File(platform_path(path))
+
+  def posix_path(jvm_path: String): String = standard_system.posix_path(jvm_path)
 
 
   /* try_read */
@@ -142,9 +168,9 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
   def execute(redirect: Boolean, args: String*): Process =
   {
     val cmdline =
-      if (Platform.is_windows) List(platform_root + "\\bin\\env.exe") ++ args
+      if (Platform.is_windows) List(standard_system.platform_root + "\\bin\\env.exe") ++ args
       else args
-    Standard_System.raw_execute(null, environment, redirect, cmdline: _*)
+    Standard_System.raw_execute(null, settings, redirect, cmdline: _*)
   }
 
 
@@ -271,7 +297,7 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
   }
 
   def rm_fifo(fifo: String): Boolean =
-    (new File(jvm_path(if (Platform.is_windows) fifo + ".lnk" else fifo))).delete
+    (new File(standard_system.jvm_path(if (Platform.is_windows) fifo + ".lnk" else fifo))).delete
 
   def fifo_input_stream(fifo: String): InputStream =
   {
@@ -326,13 +352,6 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
     }
     logics.toList.sortWith(_ < _)
   }
-
-
-  /* symbols */
-
-  val symbols = new Symbol.Interpretation(
-    try_read(getenv_strict("ISABELLE_SYMBOLS").split(":").toList.map(Path.explode))
-      .split("\n").toList)
 
 
   /* fonts */

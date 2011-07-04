@@ -10,7 +10,7 @@ package isabelle
 import java.io.{File, FileFilter}
 
 
-class Session_Manager(system: Isabelle_System)
+class Session_Manager
 {
   val ROOT_NAME = "session.root"
 
@@ -42,7 +42,8 @@ class Session_Manager(system: Isabelle_System)
   def component_sessions(): List[List[String]] =
   {
     val toplevel_sessions =
-      system.components().map(s => system.platform_file(Path.explode(s))).filter(is_session_dir)
+      Isabelle_System.components().map(s =>
+        Isabelle_System.platform_file(Path.explode(s))).filter(is_session_dir)
     ((Nil: List[List[String]]) /: toplevel_sessions)(find_sessions(Nil, _, _)).reverse
   }
 }

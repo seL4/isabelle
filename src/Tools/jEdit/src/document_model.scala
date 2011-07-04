@@ -63,7 +63,7 @@ class Document_Model(val session: Session,
 
   private def capture_header(): Exn.Result[Thy_Header.Header] =
     Exn.capture {
-      session.thy_header.check(thy_name, buffer.getSegment(0, buffer.getLength))
+      Thy_Header.check(thy_name, buffer.getSegment(0, buffer.getLength))
     }
 
   private object pending_edits  // owned by Swing thread

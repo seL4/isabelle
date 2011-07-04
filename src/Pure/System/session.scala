@@ -40,7 +40,7 @@ object Session
 }
 
 
-class Session(val system: Isabelle_System, val file_store: Session.File_Store)
+class Session(val file_store: Session.File_Store)
 {
   /* real time parameters */  // FIXME properties or settings (!?)
 
@@ -117,7 +117,7 @@ class Session(val system: Isabelle_System, val file_store: Session.File_Store)
 
   val new_id = new Counter
 
-  @volatile private var syntax = new Outer_Syntax(system.symbols)
+  @volatile private var syntax = new Outer_Syntax(Isabelle_System.symbols)
   def current_syntax(): Outer_Syntax = syntax
 
   @volatile private var reverse_syslog = List[XML.Elem]()
@@ -138,16 +138,14 @@ class Session(val system: Isabelle_System, val file_store: Session.File_Store)
 
   /* theory files */
 
-  val thy_header = new Thy_Header(system.symbols)
-
   val thy_load = new Thy_Load
   {
     override def check_thy(dir: Path, name: String): (String, Thy_Header.Header) =
     {
-      val file = system.platform_file(dir + Thy_Header.thy_path(name))
+      val file = Isabelle_System.platform_file(dir + Thy_Header.thy_path(name))
       if (!file.exists || !file.isFile) error("No such file: " + quote(file.toString))
       val text = Standard_System.read_file(file)
-      val header = thy_header.read(text)
+      val header = Thy_Header.read(text)
       (text, header)
     }
   }
@@ -202,7 +200,8 @@ class Session(val system: Isabelle_System, val file_store: Session.File_Store)
                         if (global_state.peek().lookup_command(command.id).isEmpty) {
                           global_state.change(_.define_command(command))
                           prover.get.
-                            define_command(command.id, system.symbols.encode(command.source))
+                            define_command(command.id,
+                              Isabelle_System.symbols.encode(command.source))
                         }
                         Some(command.id)
                     }
@@ -311,8 +310,7 @@ class Session(val system: Isabelle_System, val file_store: Session.File_Store)
         case Start(timeout, args) if prover.isEmpty =>
           if (phase == Session.Inactive || phase == Session.Failed) {
             phase = Session.Startup
-            prover =
-              Some(new Isabelle_Process(system, timeout, this_actor, args:_*) with Isar_Document)
+            prover = Some(new Isabelle_Process(timeout, this_actor, args:_*) with Isar_Document)
           }
 
         case Stop =>

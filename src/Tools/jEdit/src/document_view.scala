@@ -143,7 +143,7 @@ class Document_View(val model: Document_Model, val text_area: JEditTextArea)
   private def exit_popup() { html_popup.map(_.hide) }
 
   private val html_panel =
-    new HTML_Panel(Isabelle.system, Isabelle.font_family(), scala.math.round(Isabelle.font_size()))
+    new HTML_Panel(Isabelle.font_family(), scala.math.round(Isabelle.font_size()))
   html_panel.setBorder(BorderFactory.createLineBorder(Color.black))
 
   private def html_panel_resize()

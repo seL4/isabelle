@@ -62,7 +62,7 @@ object Isabelle_Process
 }
 
 
-class Isabelle_Process(system: Isabelle_System, timeout: Time, receiver: Actor, args: String*)
+class Isabelle_Process(timeout: Time, receiver: Actor, args: String*)
 {
   import Isabelle_Process._
 
@@ -70,8 +70,7 @@ class Isabelle_Process(system: Isabelle_System, timeout: Time, receiver: Actor, 
   /* demo constructor */
 
   def this(args: String*) =
-    this(Isabelle_System.default, Time.seconds(10),
-      actor { loop { react { case res => Console.println(res) } } }, args: _*)
+    this(Time.seconds(10), actor { loop { react { case res => Console.println(res) } } }, args: _*)
 
 
   /* results */
@@ -93,7 +92,7 @@ class Isabelle_Process(system: Isabelle_System, timeout: Time, receiver: Actor, 
 
   private def put_result(kind: String, text: String)
   {
-    put_result(kind, Nil, List(XML.Text(system.symbols.decode(text))))
+    put_result(kind, Nil, List(XML.Text(Isabelle_System.symbols.decode(text))))
   }
 
 
@@ -117,15 +116,16 @@ class Isabelle_Process(system: Isabelle_System, timeout: Time, receiver: Actor, 
 
   /** process manager **/
 
-  private val in_fifo = system.mk_fifo()
-  private val out_fifo = system.mk_fifo()
-  private def rm_fifos() { system.rm_fifo(in_fifo); system.rm_fifo(out_fifo) }
+  private val in_fifo = Isabelle_System.mk_fifo()
+  private val out_fifo = Isabelle_System.mk_fifo()
+  private def rm_fifos() { Isabelle_System.rm_fifo(in_fifo); Isabelle_System.rm_fifo(out_fifo) }
 
   private val process =
     try {
       val cmdline =
-        List(system.getenv_strict("ISABELLE_PROCESS"), "-W", in_fifo + ":" + out_fifo) ++ args
-      new system.Managed_Process(true, cmdline: _*)
+        List(Isabelle_System.getenv_strict("ISABELLE_PROCESS"), "-W",
+          in_fifo + ":" + out_fifo) ++ args
+      new Isabelle_System.Managed_Process(true, cmdline: _*)
     }
     catch { case e: IOException => rm_fifos(); throw(e) }
 
@@ -168,8 +168,8 @@ class Isabelle_Process(system: Isabelle_System, timeout: Time, receiver: Actor, 
     }
     else {
       // rendezvous
-      val command_stream = system.fifo_output_stream(in_fifo)
-      val message_stream = system.fifo_input_stream(out_fifo)
+      val command_stream = Isabelle_System.fifo_output_stream(in_fifo)
+      val message_stream = Isabelle_System.fifo_input_stream(out_fifo)
 
       standard_input = stdin_actor()
       val stdout = stdout_actor()
@@ -341,7 +341,7 @@ class Isabelle_Process(system: Isabelle_System, timeout: Time, receiver: Actor, 
 
         if (i != n) throw new Protocol_Error("bad message chunk content")
 
-        YXML.parse_body_failsafe(YXML.decode_chars(system.symbols.decode, buf, 0, n))
+        YXML.parse_body_failsafe(YXML.decode_chars(Isabelle_System.symbols.decode, buf, 0, n))
         //}}}
       }
 

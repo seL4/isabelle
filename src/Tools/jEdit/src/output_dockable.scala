@@ -26,7 +26,7 @@ class Output_Dockable(view: View, position: String) extends Dockable(view, posit
   Swing_Thread.require()
 
   private val html_panel =
-    new HTML_Panel(Isabelle.system, Isabelle.font_family(), scala.math.round(Isabelle.font_size()))
+    new HTML_Panel(Isabelle.font_family(), scala.math.round(Isabelle.font_size()))
   {
     override val handler: PartialFunction[HTML_Panel.Event, Unit] = {
       case HTML_Panel.Mouse_Click(elem, event) if elem.getClassName() == "sendback" =>

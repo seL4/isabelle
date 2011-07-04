@@ -127,7 +127,7 @@ class Scala_Console extends Shell("Scala")
      "The following special toplevel bindings are provided:\n" +
      "  view      -- current jEdit/Swing view (e.g. view.getBuffer, view.getTextArea)\n" +
      "  console   -- jEdit Console plugin instance\n" +
-     "  Isabelle  -- Isabelle plugin instance (e.g. Isabelle.system, Isabelle.session)\n")
+     "  Isabelle  -- Isabelle plugin instance (e.g. Isabelle.session)\n")
   }
 
   override def printPrompt(console: Console, out: Output)

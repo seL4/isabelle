@@ -24,8 +24,8 @@ class Session_Dockable(view: View, position: String) extends Dockable(view: View
 {
   /* main tabs */
 
-  private val readme = new HTML_Panel(Isabelle.system, "SansSerif", 14)
-  readme.render_document(Isabelle.system.try_read(List(Path.explode("$JEDIT_HOME/README.html"))))
+  private val readme = new HTML_Panel("SansSerif", 14)
+  readme.render_document(Isabelle_System.try_read(List(Path.explode("$JEDIT_HOME/README.html"))))
 
   private val syslog = new TextArea(Isabelle.session.syslog())
   syslog.editable = false
