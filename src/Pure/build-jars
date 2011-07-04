@@ -50,6 +50,8 @@ declare -a SOURCES=(
   Thy/completion.scala
   Thy/html.scala
   Thy/thy_header.scala
+  Thy/thy_info.scala
+  Thy/thy_load.scala
   Thy/thy_syntax.scala
   library.scala
   package.scala

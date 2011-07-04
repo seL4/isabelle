@@ -34,10 +34,11 @@ struct
 datatype action = Update | Remove;
 
 local
-  val hooks = Unsynchronized.ref ([]: (action -> string -> unit) list);
+  val hooks = Synchronized.var "Thy_Info.hooks" ([]: (action -> string -> unit) list);
 in
-  fun add_hook f = NAMED_CRITICAL "Thy_Info" (fn () => Unsynchronized.change hooks (cons f));
-  fun perform action name = List.app (fn f => (try (fn () => f action name) (); ())) (! hooks);
+  fun add_hook f = Synchronized.change hooks (cons f);
+  fun perform action name =
+    List.app (fn f => (try (fn () => f action name) (); ())) (Synchronized.value hooks);
 end;
 
 
@@ -135,7 +136,7 @@ fun loaded_files name = NAMED_CRITICAL "Thy_Info" (fn () =>
 
 (** thy operations **)
 
-(* remove theory *)
+(* main loader actions *)
 
 fun remove_thy name = NAMED_CRITICAL "Thy_Info" (fn () =>
   if is_finished name then error (loader_msg "attempt to change finished theory" [name])
@@ -151,11 +152,23 @@ fun kill_thy name = NAMED_CRITICAL "Thy_Info" (fn () =>
   if known_thy name then remove_thy name
   else ());
 
+fun update_thy deps theory = NAMED_CRITICAL "Thy_Info" (fn () =>
+  let
+    val name = Context.theory_name theory;
+    val parents = map Context.theory_name (Theory.parents_of theory);
+    val _ = kill_thy name;
+    val _ = map get_theory parents;
+    val _ = change_thys (new_entry name parents (SOME deps, SOME theory));
+    val _ = perform Update name;
+  in () end);
+
 
 (* scheduling loader tasks *)
 
+type result = theory * unit future * (unit -> unit);
+
 datatype task =
-  Task of string list * (theory list -> (theory * unit future * (unit -> unit))) |
+  Task of string list * (theory list -> result) |
   Finished of theory;
 
 fun task_finished (Task _) = false
@@ -163,15 +176,15 @@ fun task_finished (Task _) = false
 
 local
 
+fun finish_thy ((thy, present, commit): result) =
+  (Global_Theory.join_proofs thy; Future.join present; commit (); thy);
+
 fun schedule_seq task_graph =
   ((Graph.topological_order task_graph, Symtab.empty) |-> fold (fn name => fn tab =>
     (case Graph.get_node task_graph name of
       Task (parents, body) =>
-        let
-          val (thy, present, commit) = body (map (the o Symtab.lookup tab) parents);
-          val _ = Future.join present;
-          val _ = commit ();
-        in Symtab.update (name, thy) tab end
+        let val result = body (map (the o Symtab.lookup tab) parents)
+        in Symtab.update (name, finish_thy result) tab end
     | Finished thy => Symtab.update (name, thy) tab))) |> ignore;
 
 fun schedule_futures task_graph = uninterruptible (fn _ => fn () =>
@@ -199,10 +212,8 @@ fun schedule_futures task_graph = uninterruptible (fn _ => fn () =>
     val _ =
       tasks |> maps (fn name =>
         let
-          val (thy, present, commit) = Future.join (the (Symtab.lookup futures name));
-          val _ = Global_Theory.join_proofs thy;
-          val _ = Future.join present;
-          val _ = commit ();
+          val result = Future.join (the (Symtab.lookup futures name));
+          val _ = finish_thy result;
         in [] end handle exn => [Exn.Exn exn])
       |> rev |> Exn.release_all;
   in () end) ();
@@ -226,7 +237,7 @@ local
 fun required_by _ [] = ""
   | required_by s initiators = s ^ "(required by " ^ show_path (rev initiators) ^ ")";
 
-fun load_thy initiators update_time (deps: deps) text name parent_thys =
+fun load_thy initiators update_time deps text name parent_thys =
   let
     val _ = kill_thy name;
     val _ = Output.urgent_message ("Loading theory " ^ quote name ^ required_by " " initiators);
@@ -240,13 +251,7 @@ fun load_thy initiators update_time (deps: deps) text name parent_thys =
       |> Present.begin_theory update_time dir uses;
 
     val (theory, present) = Outer_Syntax.load_thy name init pos text;
-
-    val parents = map Context.theory_name parent_thys;
-    fun commit () =
-      NAMED_CRITICAL "Thy_Info" (fn () =>
-       (map get_theory parents;
-        change_thys (new_entry name parents (SOME deps, SOME theory));
-        perform Update name));
+    fun commit () = update_thy deps theory;
   in (theory, present, commit) end;
 
 fun check_deps dir name =
@@ -274,13 +279,14 @@ and require_thy initiators dir str tasks =
   let
     val path = Path.expand (Path.explode str);
     val name = Path.implode (Path.base path);
-    val dir' = Path.append dir (Path.dir path);
-    val _ = member (op =) initiators name andalso error (cycle_msg initiators);
   in
     (case try (Graph.get_node tasks) name of
       SOME task => (task_finished task, tasks)
     | NONE =>
         let
+          val dir' = Path.append dir (Path.dir path);
+          val _ = member (op =) initiators name andalso error (cycle_msg initiators);
+
           val (current, deps, imports) = check_deps dir' name
             handle ERROR msg => cat_error msg
               (loader_msg "the error(s) above occurred while examining theory" [name] ^
@@ -332,16 +338,12 @@ fun register_thy theory =
   let
     val name = Context.theory_name theory;
     val {master, ...} = Thy_Load.check_thy (Thy_Load.master_directory theory) name;
-    val parents = map Context.theory_name (Theory.parents_of theory);
     val imports = Thy_Load.imports_of theory;
-    val deps = make_deps master imports;
   in
     NAMED_CRITICAL "Thy_Info" (fn () =>
      (kill_thy name;
       Output.urgent_message ("Registering theory " ^ quote name);
-      map get_theory parents;
-      change_thys (new_entry name parents (SOME deps, SOME theory));
-      perform Update name))
+      update_thy (make_deps master imports) theory))
   end;
 
 

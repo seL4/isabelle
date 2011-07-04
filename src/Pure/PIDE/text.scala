@@ -46,7 +46,7 @@ object Text
 
     def try_restrict(that: Range): Option[Range] =
       try { Some (restrict(that)) }
-      catch { case _: RuntimeException => None }
+      catch { case ERROR(_) => None }
   }
 
 
@@ -57,7 +57,7 @@ object Text
     def restrict(r: Text.Range): Info[A] = Info(range.restrict(r), info)
     def try_restrict(r: Text.Range): Option[Info[A]] =
       try { Some(Info(range.restrict(r), info)) }
-      catch { case _: RuntimeException => None }
+      catch { case ERROR(_) => None }
   }
 
 

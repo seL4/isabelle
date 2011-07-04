@@ -51,9 +51,7 @@ object GUI_Setup extends SwingApplication
       if (platform64 != "") text.append("Isabelle platform (64 bit): " + platform64 + "\n")
       text.append("Isabelle home: " + isabelle_system.getenv("ISABELLE_HOME") + "\n")
       text.append("Isabelle java: " + isabelle_system.this_java() + "\n")
-    } catch {
-      case e: RuntimeException => text.append(e.getMessage + "\n")
-    }
+    } catch { case ERROR(msg) => text.append(msg + "\n") }
 
     // reactions
     listenTo(ok)

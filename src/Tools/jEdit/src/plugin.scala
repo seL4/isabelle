@@ -10,14 +10,14 @@ package isabelle.jedit
 import isabelle._
 
 import java.lang.System
-import java.io.{FileInputStream, IOException}
+import java.io.{File, FileInputStream, IOException}
 import java.awt.Font
 
 import scala.collection.mutable
 import scala.swing.ComboBox
 
 import org.gjt.sp.jedit.{jEdit, GUIUtilities, EBMessage, EBPlugin,
-  Buffer, EditPane, ServiceManager, View}
+  Buffer, EditPane, MiscUtilities, ServiceManager, View}
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextArea}
 import org.gjt.sp.jedit.syntax.{Token => JEditToken, ModeProvider}
@@ -201,8 +201,8 @@ object Isabelle
           case None =>
             // FIXME strip protocol prefix of URL
             Thy_Header.split_thy_path(system.posix_path(buffer.getPath)) match {
-              case Some((dir, thy_name)) =>
-                Some(Document_Model.init(session, buffer, dir + "/" + thy_name))
+              case Some((master_dir, thy_name)) =>
+                Some(Document_Model.init(session, buffer, master_dir, thy_name))
               case None => None
             }
         }
@@ -314,15 +314,30 @@ object Isabelle
 
 class Plugin extends EBPlugin
 {
-  /* session management */
+  /* editor file store */
 
-  @volatile private var session_ready = false
+  private val file_store = new Session.File_Store
+  {
+    def read(path: Path): String =
+    {
+      val platform_path = Isabelle.system.platform_path(path)
+      val canonical_path = MiscUtilities.resolveSymlinks(platform_path)
+
+      Isabelle.jedit_buffers().find(buffer =>
+          MiscUtilities.resolveSymlinks(buffer.getPath) == canonical_path) match {
+        case Some(buffer) => Isabelle.buffer_text(buffer)
+        case None => Standard_System.read_file(new File(platform_path))
+      }
+    }
+  }
+
+
+  /* session manager */
 
   private val session_manager = actor {
     loop {
       react {
         case phase: Session.Phase =>
-          session_ready = phase == Session.Ready
           phase match {
             case Session.Failed =>
               Swing_Thread.now {
@@ -335,7 +350,6 @@ class Plugin extends EBPlugin
             case Session.Shutdown => Isabelle.jedit_buffers.foreach(Isabelle.exit_model)
             case _ =>
           }
-
         case bad => System.err.println("session_manager: ignoring bad message " + bad)
       }
     }
@@ -357,7 +371,7 @@ class Plugin extends EBPlugin
       if msg.getWhat == BufferUpdate.PROPERTIES_CHANGED =>
 
         val buffer = msg.getBuffer
-        if (buffer != null && session_ready)
+        if (buffer != null && Isabelle.session.is_ready)
           Isabelle.init_model(buffer)
 
       case msg: EditPaneUpdate
@@ -373,7 +387,7 @@ class Plugin extends EBPlugin
         if (buffer != null && text_area != null) {
           if (msg.getWhat == EditPaneUpdate.BUFFER_CHANGED ||
               msg.getWhat == EditPaneUpdate.CREATED) {
-            if (session_ready)
+            if (Isabelle.session.is_ready)
               Isabelle.init_view(buffer, text_area)
           }
           else Isabelle.exit_view(buffer, text_area)
@@ -393,7 +407,7 @@ class Plugin extends EBPlugin
     Isabelle.setup_tooltips()
     Isabelle.system = new Isabelle_System
     Isabelle.system.install_fonts()
-    Isabelle.session = new Session(Isabelle.system)
+    Isabelle.session = new Session(Isabelle.system, file_store)
     SyntaxUtilities.setStyleExtender(new Token_Markup.Style_Extender(Isabelle.system.symbols))
     if (ModeProvider.instance.isInstanceOf[ModeProvider])
       ModeProvider.instance = new Token_Markup.Mode_Provider(ModeProvider.instance)

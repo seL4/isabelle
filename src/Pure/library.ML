@@ -28,7 +28,7 @@ sig
   val funpow: int -> ('a -> 'a) -> 'a -> 'a
   val funpow_yield: int -> ('a -> 'b * 'a) -> 'a -> 'b list * 'a
 
-  (*errors*)
+  (*user errors*)
   exception ERROR of string
   val error: string -> 'a
   val cat_error: string -> string -> 'a
@@ -260,7 +260,7 @@ fun funpow_yield (0 : int) _ x = ([], x)
   | funpow_yield n f x = x |> f ||>> funpow_yield (n - 1) f |>> op ::;
 
 
-(* errors *)
+(* user errors *)
 
 exception ERROR of string;
 fun error msg = raise ERROR msg;

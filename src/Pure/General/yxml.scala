@@ -144,12 +144,12 @@ object YXML
   def parse_body_failsafe(source: CharSequence): XML.Body =
   {
     try { parse_body(source) }
-    catch { case _: RuntimeException => List(markup_failsafe(source)) }
+    catch { case ERROR(_) => List(markup_failsafe(source)) }
   }
 
   def parse_failsafe(source: CharSequence): XML.Tree =
   {
     try { parse(source) }
-    catch { case _: RuntimeException => markup_failsafe(source) }
+    catch { case ERROR(_) => markup_failsafe(source) }
   }
 }

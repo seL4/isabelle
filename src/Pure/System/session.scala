@@ -2,7 +2,7 @@
     Author:     Makarius
     Options:    :folding=explicit:collapseFolds=1:
 
-Isabelle session, potentially with running prover.
+Main Isabelle/Scala session, potentially with running prover process.
 */
 
 package isabelle
@@ -16,6 +16,14 @@ import scala.actors.Actor._
 
 object Session
 {
+  /* abstract file store */
+
+  abstract class File_Store
+  {
+    def read(path: Path): String
+  }
+
+
   /* events */
 
   case object Global_Settings
@@ -32,7 +40,7 @@ object Session
 }
 
 
-class Session(val system: Isabelle_System)
+class Session(val system: Isabelle_System, val file_store: Session.File_Store)
 {
   /* real time parameters */  // FIXME properties or settings (!?)
 
@@ -116,6 +124,8 @@ class Session(val system: Isabelle_System)
 
   /** main protocol actor **/
 
+  /* global state */
+
   @volatile private var syntax = new Outer_Syntax(system.symbols)
   def current_syntax(): Outer_Syntax = syntax
 
@@ -134,15 +144,41 @@ class Session(val system: Isabelle_System)
   private val global_state = new Volatile(Document.State.init)
   def current_state(): Document.State = global_state.peek()
 
+
+  /* theory files */
+
+  val thy_header = new Thy_Header(system.symbols)
+
+  val thy_load = new Thy_Load
+  {
+    override def check_thy(dir: Path, name: String): (String, Thy_Header.Header) =
+    {
+      val file = system.platform_file(dir + Thy_Header.thy_path(name))
+      if (!file.exists || !file.isFile) error("No such file: " + quote(file.toString))
+      val text = Standard_System.read_file(file)
+      val header = thy_header.read(text)
+      (text, header)
+    }
+  }
+
+  val thy_info = new Thy_Info(thy_load)
+
+
+  /* actor messages */
+
   private case object Interrupt_Prover
-  private case class Edit_Version(edits: List[Document.Edit_Text])
+  private case class Edit_Node(thy_name: String,
+    header: Exn.Result[Thy_Header.Header], edits: List[Text.Edit])
+  private case class Init_Node(thy_name: String,
+    header: Exn.Result[Thy_Header.Header], text: String)
   private case class Start(timeout: Time, args: List[String])
 
   var verbose: Boolean = false
 
   private val (_, session_actor) = Simple_Thread.actor("session_actor", daemon = true)
   {
-    var prover: Isabelle_Process with Isar_Document = null
+    val this_actor = self
+    var prover: Option[Isabelle_Process with Isar_Document] = None
 
 
     /* document changes */
@@ -174,7 +210,8 @@ class Session(val system: Isabelle_System)
                       case Some(command) =>
                         if (global_state.peek().lookup_command(command.id).isEmpty) {
                           global_state.change(_.define_command(command))
-                          prover.define_command(command.id, system.symbols.encode(command.source))
+                          prover.get.
+                            define_command(command.id, system.symbols.encode(command.source))
                         }
                         Some(command.id)
                     }
@@ -183,7 +220,7 @@ class Session(val system: Isabelle_System)
             (name -> Some(ids))
         }
       global_state.change(_.define_version(version, former_assignment))
-      prover.edit_version(previous.id, version.id, id_edits)
+      prover.get.edit_version(previous.id, version.id, id_edits)
     }
     //}}}
 
@@ -241,47 +278,63 @@ class Session(val system: Isabelle_System)
     //}}}
 
 
+    def edit_version(edits: List[Document.Edit_Text])
+    //{{{
+    {
+      val previous = global_state.peek().history.tip.version
+      val syntax = current_syntax()
+      val result = Future.fork { Thy_Syntax.text_edits(syntax, new_id _, previous.join, edits) }
+      val change = global_state.change_yield(_.extend_history(previous, edits, result))
+
+      change.version.map(_ => {
+        assignments.await { global_state.peek().is_assigned(previous.get_finished) }
+        this_actor ! change })
+    }
+    //}}}
+
+
     /* main loop */
 
     var finished = false
     while (!finished) {
       receive {
         case Interrupt_Prover =>
-          if (prover != null) prover.interrupt
+          prover.map(_.interrupt)
 
-        case Edit_Version(edits) if prover != null =>
-          val previous = global_state.peek().history.tip.version
-          val result = Future.fork { Thy_Syntax.text_edits(Session.this, previous.join, edits) }
-          val change = global_state.change_yield(_.extend_history(previous, edits, result))
-
-          val this_actor = self
-          change.version.map(_ => {
-            assignments.await { global_state.peek().is_assigned(previous.get_finished) }
-            this_actor ! change })
-
+        case Edit_Node(thy_name, header, text_edits) if prover.isDefined =>
+          edit_version(List((thy_name, Some(text_edits))))
           reply(())
 
-        case change: Document.Change if prover != null => handle_change(change)
+        case Init_Node(thy_name, header, text) if prover.isDefined =>
+          // FIXME compare with existing node
+          edit_version(List(
+            (thy_name, None),
+            (thy_name, Some(List(Text.Edit.insert(0, text))))))
+          reply(())
+
+        case change: Document.Change if prover.isDefined =>
+          handle_change(change)
 
         case result: Isabelle_Process.Result => handle_result(result)
 
-        case Start(timeout, args) if prover == null =>
+        case Start(timeout, args) if prover.isEmpty =>
           if (phase == Session.Inactive || phase == Session.Failed) {
             phase = Session.Startup
-            prover = new Isabelle_Process(system, timeout, self, args:_*) with Isar_Document
+            prover =
+              Some(new Isabelle_Process(system, timeout, this_actor, args:_*) with Isar_Document)
           }
 
         case Stop =>
           if (phase == Session.Ready) {
             global_state.change(_ => Document.State.init)  // FIXME event bus!?
             phase = Session.Shutdown
-            prover.terminate
+            prover.get.terminate
             phase = Session.Inactive
           }
           finished = true
           reply(())
 
-        case bad if prover != null =>
+        case bad if prover.isDefined =>
           System.err.println("session_actor: ignoring bad message " + bad)
       }
     }
@@ -297,7 +350,15 @@ class Session(val system: Isabelle_System)
 
   def interrupt() { session_actor ! Interrupt_Prover }
 
-  def edit_version(edits: List[Document.Edit_Text]) { session_actor !? Edit_Version(edits) }
+  def edit_node(thy_name: String, header: Exn.Result[Thy_Header.Header], edits: List[Text.Edit])
+  {
+    session_actor !? Edit_Node(thy_name, header, edits)
+  }
+
+  def init_node(thy_name: String, header: Exn.Result[Thy_Header.Header], text: String)
+  {
+    session_actor !? Init_Node(thy_name, header, text)
+  }
 
   def snapshot(name: String, pending_edits: List[Text.Edit]): Document.Snapshot =
     global_state.peek().snapshot(name, pending_edits)

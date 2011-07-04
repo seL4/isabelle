@@ -4,8 +4,7 @@
 Toplevel isabelle package.
 */
 
-package object isabelle
+package object isabelle extends isabelle.Basic_Library
 {
-  def error(message: String): Nothing = throw new RuntimeException(message)
 }
 
