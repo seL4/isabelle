@@ -99,7 +99,7 @@ object Thy_Syntax
 
   /** text edits **/
 
-  def text_edits(syntax: Outer_Syntax, new_id: Counter, previous: Document.Version,
+  def text_edits(syntax: Outer_Syntax, previous: Document.Version,
       edits: List[Document.Edit_Text]): (List[Document.Edit_Command], Document.Version) =
   {
     /* phase 1: edit individual command source */
@@ -159,7 +159,7 @@ object Thy_Syntax
               (Some(last), spans1.take(spans1.length - 1))
             else (commands.next(last), spans1)
 
-          val inserted = spans2.map(span => new Command(new_id(), span))
+          val inserted = spans2.map(span => new Command(Document.new_id(), span))
           val new_commands =
             commands.delete_between(before_edit, after_edit).append_after(before_edit, inserted)
           recover_spans(new_commands)
@@ -195,7 +195,7 @@ object Thy_Syntax
           doc_edits += (name -> Some(cmd_edits))
           nodes += (name -> new Document.Node(commands2))
       }
-      (doc_edits.toList, new Document.Version(new_id(), nodes))
+      (doc_edits.toList, new Document.Version(Document.new_id(), nodes))
     }
   }
 }

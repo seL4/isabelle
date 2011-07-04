@@ -27,7 +27,8 @@ object Document
   type Command_ID = ID
   type Exec_ID = ID
 
-  val NO_ID: ID = 0
+  val no_id: ID = 0
+  val new_id = new Counter
 
 
 
@@ -121,7 +122,7 @@ object Document
 
   object Version
   {
-    val init: Version = new Version(NO_ID, Map().withDefaultValue(Node.empty))
+    val init: Version = new Version(no_id, Map().withDefaultValue(Node.empty))
   }
 
   class Version(val id: Version_ID, val nodes: Map[String, Node])

@@ -115,8 +115,6 @@ class Session(val file_store: Session.File_Store)
 
   /* global state */
 
-  val new_id = new Counter
-
   @volatile private var syntax = new Outer_Syntax(Isabelle_System.symbols)
   def current_syntax(): Outer_Syntax = syntax
 
@@ -273,7 +271,7 @@ class Session(val file_store: Session.File_Store)
     {
       val previous = global_state.peek().history.tip.version
       val syntax = current_syntax()
-      val result = Future.fork { Thy_Syntax.text_edits(syntax, new_id, previous.join, edits) }
+      val result = Future.fork { Thy_Syntax.text_edits(syntax, previous.join, edits) }
       val change = global_state.change_yield(_.extend_history(previous, edits, result))
 
       change.version.map(_ => {

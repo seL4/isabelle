@@ -80,10 +80,10 @@ object Command
   /* dummy commands */
 
   def unparsed(source: String): Command =
-    new Command(Document.NO_ID, List(Token(Token.Kind.UNPARSED, source)))
+    new Command(Document.no_id, List(Token(Token.Kind.UNPARSED, source)))
 
   def span(toks: List[Token]): Command =
-    new Command(Document.NO_ID, toks)
+    new Command(Document.no_id, toks)
 }
 
 
@@ -97,7 +97,7 @@ class Command(
   def is_ignored: Boolean = span.forall(_.is_ignored)
   def is_malformed: Boolean = !is_command && !is_ignored
 
-  def is_unparsed = id == Document.NO_ID
+  def is_unparsed = id == Document.no_id
 
   def name: String = if (is_command) span.head.content else ""
   override def toString =
