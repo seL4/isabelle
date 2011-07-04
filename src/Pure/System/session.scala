@@ -64,17 +64,6 @@ class Session(val system: Isabelle_System, val file_store: Session.File_Store)
   val assignments = new Event_Bus[Session.Assignment.type]
 
 
-  /* unique ids */
-
-  private var id_count: Document.ID = 0
-  def new_id(): Document.ID = synchronized {
-    require(id_count > java.lang.Long.MIN_VALUE)
-    id_count -= 1
-    id_count
-  }
-
-
-
   /** buffered command changes (delay_first discipline) **/
 
   private case object Stop
@@ -125,6 +114,8 @@ class Session(val system: Isabelle_System, val file_store: Session.File_Store)
   /** main protocol actor **/
 
   /* global state */
+
+  val new_id = new Counter
 
   @volatile private var syntax = new Outer_Syntax(system.symbols)
   def current_syntax(): Outer_Syntax = syntax
@@ -283,7 +274,7 @@ class Session(val system: Isabelle_System, val file_store: Session.File_Store)
     {
       val previous = global_state.peek().history.tip.version
       val syntax = current_syntax()
-      val result = Future.fork { Thy_Syntax.text_edits(syntax, new_id _, previous.join, edits) }
+      val result = Future.fork { Thy_Syntax.text_edits(syntax, new_id, previous.join, edits) }
       val change = global_state.change_yield(_.extend_history(previous, edits, result))
 
       change.version.map(_ => {

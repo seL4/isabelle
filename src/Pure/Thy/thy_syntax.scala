@@ -99,7 +99,7 @@ object Thy_Syntax
 
   /** text edits **/
 
-  def text_edits(syntax: Outer_Syntax, new_id: () => Document.ID, previous: Document.Version,
+  def text_edits(syntax: Outer_Syntax, new_id: Counter, previous: Document.Version,
       edits: List[Document.Edit_Text]): (List[Document.Edit_Command], Document.Version) =
   {
     /* phase 1: edit individual command source */

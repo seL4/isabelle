@@ -257,18 +257,13 @@ class Isabelle_System(this_isabelle_home: String) extends Standard_System
 
   /* named pipes */
 
-  private var fifo_count: Long = 0
-  private def next_fifo(): String = synchronized {
-    require(fifo_count < java.lang.Long.MAX_VALUE)
-    fifo_count += 1
-    fifo_count.toString
-  }
+  private val next_fifo = new Counter
 
   def mk_fifo(): String =
   {
     val i = next_fifo()
     val script =
-      "FIFO=\"/tmp/isabelle-fifo-${PPID}-$$-" + i + "\"\n" +
+      "FIFO=\"/tmp/isabelle-fifo-${PPID}-$$" + i + "\"\n" +
       "echo -n \"$FIFO\"\n" +
       "mkfifo -m 600 \"$FIFO\"\n"
     val (out, err, rc) = bash(script)
