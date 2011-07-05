@@ -46,8 +46,9 @@ fun error_msg bind str =
 fun gen_quotient_def prep_vars prep_term (raw_var, (attr, (lhs_raw, rhs_raw))) lthy =
   let
     val (vars, ctxt) = prep_vars (the_list raw_var) lthy
-    val lhs = prep_term ctxt lhs_raw
-    val rhs = prep_term ctxt rhs_raw
+    val T_opt = (case vars of [(_, SOME T, _)] => SOME T | _ => NONE)
+    val lhs = prep_term T_opt ctxt lhs_raw
+    val rhs = prep_term NONE ctxt rhs_raw
 
     val (lhs_str, lhs_ty) = dest_Free lhs handle TERM _ => error "Constant already defined."
     val _ = if null (strip_abs_vars rhs) then () else error "The definiens cannot be an abstraction"
@@ -80,8 +81,12 @@ fun gen_quotient_def prep_vars prep_term (raw_var, (attr, (lhs_raw, rhs_raw))) l
     (qconst_data, lthy'')
   end
 
-val quotient_def = gen_quotient_def Proof_Context.cert_vars Syntax.check_term
-val quotdef_cmd = gen_quotient_def Proof_Context.read_vars Syntax.read_term
+fun check_term' cnstr ctxt =
+  Syntax.check_term ctxt o (case cnstr of SOME T => Type.constraint T | _ => I)
+fun read_term' cnstr ctxt = check_term' cnstr ctxt o tap (writeln o @{make_string}) o Syntax.parse_term ctxt
+
+val quotient_def = gen_quotient_def Proof_Context.cert_vars check_term'
+val quotdef_cmd = gen_quotient_def Proof_Context.read_vars read_term'
 
 
 (* a wrapper for automatically lifting a raw constant *)
