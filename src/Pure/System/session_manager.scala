@@ -42,8 +42,7 @@ class Session_Manager
   def component_sessions(): List[List[String]] =
   {
     val toplevel_sessions =
-      Isabelle_System.components().map(s =>
-        Isabelle_System.platform_file(Path.explode(s))).filter(is_session_dir)
+      Isabelle_System.components().map(Isabelle_System.platform_file).filter(is_session_dir)
     ((Nil: List[List[String]]) /: toplevel_sessions)(find_sessions(Nil, _, _)).reverse
   }
 }

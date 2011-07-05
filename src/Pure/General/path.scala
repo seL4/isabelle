@@ -92,7 +92,11 @@ object Path
       else (List(root_elem(es.head)), es.tail)
     Path(norm_elems(explode_elems(raw_elems) ++ roots))
   }
+
+  def split(str: String): List[Path] =
+    Library.space_explode(':', str).filter(_ != "").map(explode)
 }
+
 
 class Path
 {
