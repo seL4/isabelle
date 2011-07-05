@@ -18,7 +18,7 @@ sig
   type edit = string * ((command_id option * command_id option) list) option
   type state
   val init_state: state
-  val cancel: state -> unit
+  val cancel_execution: state -> unit -> unit
   val define_command: command_id -> string -> state -> state
   val edit: version_id -> version_id -> edit list -> state -> (command_id * exec_id) list * state
   val execute: version_id -> state -> state
@@ -185,11 +185,9 @@ fun the_exec (State {execs, ...}) (id: exec_id) =
 
 (* document execution *)
 
-fun cancel (State {execution, ...}) =
-  List.app Future.cancel execution;
-
-fun await_cancellation (State {execution, ...}) =
-  ignore (Future.join_results execution);
+fun cancel_execution (State {execution, ...}) =
+  (List.app Future.cancel execution;
+    fn () => ignore (Future.join_results execution));
 
 end;
 
@@ -338,20 +336,12 @@ fun execute version_id state =
       fun force_exec NONE = ()
         | force_exec (SOME exec_id) = ignore (Lazy.force (the_exec state exec_id));
 
-      val _ = cancel state;
-
       val execution' = (* FIXME proper node deps *)
         Future.forks {name = "Document.execute", group = NONE, deps = [], pri = 1}
           [fn () =>
-            let
-              val _ = await_cancellation state;
-              val _ =
-                node_names_of version |> List.app (fn name =>
-                  fold_entries NONE (fn (_, exec) => fn () => force_exec exec)
-                      (get_node version name) ());
-            in () end];
-
-      val _ = await_cancellation state;  (* FIXME async!? *)
+            node_names_of version |> List.app (fn name =>
+              fold_entries NONE (fn (_, exec) => fn () => force_exec exec)
+                  (get_node version name) ())];
 
     in (versions, commands, execs, execution') end);
 
