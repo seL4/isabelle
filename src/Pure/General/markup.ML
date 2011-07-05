@@ -92,6 +92,7 @@ sig
   val command_spanN: string val command_span: string -> T
   val ignored_spanN: string val ignored_span: T
   val malformed_spanN: string val malformed_span: T
+  val loaded_theoryN: string val loaded_theory: string -> T
   val elapsedN: string
   val cpuN: string
   val gcN: string
@@ -303,6 +304,11 @@ fun token props = (tokenN, props);
 val (command_spanN, command_span) = markup_string "command_span" nameN;
 val (ignored_spanN, ignored_span) = markup_elem "ignored_span";
 val (malformed_spanN, malformed_span) = markup_elem "malformed_span";
+
+
+(* theory loader *)
+
+val (loaded_theoryN, loaded_theory) = markup_string "loaded_theory" nameN;
 
 
 (* timing *)

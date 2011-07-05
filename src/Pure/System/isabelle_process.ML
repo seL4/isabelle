@@ -180,6 +180,7 @@ fun init in_fifo out_fifo = ignore (Simple_Thread.fork false (fn () =>
 
     val in_stream = setup_channels in_fifo out_fifo;
     val _ = Keyword.status ();
+    val _ = Thy_Info.status ();
     val _ = Output.status (Markup.markup Markup.ready "process ready");
   in loop in_stream end));
 

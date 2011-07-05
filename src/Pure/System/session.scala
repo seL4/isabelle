@@ -115,6 +115,8 @@ class Session(val file_store: Session.File_Store)
 
   /* global state */
 
+  @volatile var loaded_theories: Set[String] = Set()
+
   @volatile private var syntax = new Outer_Syntax(Isabelle_System.symbols)
   def current_syntax(): Outer_Syntax = syntax
 
@@ -138,6 +140,9 @@ class Session(val file_store: Session.File_Store)
 
   val thy_load = new Thy_Load
   {
+    override def is_loaded(name: String): Boolean =
+      loaded_theories.contains(name)
+
     override def check_thy(dir: Path, name: String): (String, Thy_Header.Header) =
     {
       val file = Isabelle_System.platform_file(dir + Thy_Header.thy_path(name))
@@ -255,6 +260,7 @@ class Session(val file_store: Session.File_Store)
                 catch { case _: Document.State.Fail => bad_result(result) }
               case List(Keyword.Command_Decl(name, kind)) => syntax += (name, kind)
               case List(Keyword.Keyword_Decl(name)) => syntax += name
+              case List(Thy_Info.Loaded_Theory(name)) => loaded_theories += name
               case _ => bad_result(result)
             }
           }
