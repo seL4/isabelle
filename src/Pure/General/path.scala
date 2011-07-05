@@ -138,11 +138,12 @@ class Path
 
   /* expand */
 
-  def expand(env: String => String): Path =
+  def expand: Path =
   {
     def eval(elem: Path.Elem): List[Path.Elem] =
       elem match {
-        case Path.Variable(s) => Path.explode(env(s)).elems
+        case Path.Variable(s) =>
+          Path.explode(Isabelle_System.getenv_strict(s)).elems
         case x => List(x)
       }
 

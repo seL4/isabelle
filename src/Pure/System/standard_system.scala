@@ -264,8 +264,9 @@ object Standard_System
 
 class Standard_System
 {
+  /* platform_root */
+
   val platform_root = if (Platform.is_windows) Cygwin.check_root() else "/"
-  override def toString = platform_root
 
 
   /* jvm_path */

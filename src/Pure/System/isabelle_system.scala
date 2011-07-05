@@ -120,7 +120,7 @@ object Isabelle_System
 
   /* path specifications */
 
-  def standard_path(path: Path): String = path.expand(getenv_strict).implode
+  def standard_path(path: Path): String = path.expand.implode
 
   def platform_path(path: Path): String = standard_system.jvm_path(standard_path(path))
   def platform_file(path: Path) = new File(platform_path(path))
