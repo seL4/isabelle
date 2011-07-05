@@ -4,11 +4,18 @@
 Protocol message formats for interactive Isar documents.
 *)
 
-structure Isar_Document: sig end =
+signature ISAR_DOCUMENT =
+sig
+  val state: unit -> Document.state
+end
+
+structure Isar_Document: ISAR_DOCUMENT =
 struct
 
 val global_state = Synchronized.var "Isar_Document" Document.init_state;
 val change_state = Synchronized.change global_state;
+
+fun state () = Synchronized.value global_state;
 
 val _ =
   Isabelle_Process.add_command "Isar_Document.define_command"
