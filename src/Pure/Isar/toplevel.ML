@@ -185,7 +185,7 @@ fun proof_position_of state =
     Proof (prf, _) => Proof_Node.position prf
   | _ => raise UNDEF);
 
-fun end_theory _ (State (NONE, SOME (Theory (Context.Theory thy, _)))) = Theory.end_theory thy
+fun end_theory _ (State (NONE, SOME (Theory (Context.Theory thy, _)))) = thy
   | end_theory pos _ = error ("Unfinished theory at end of input" ^ Position.str_of pos);
 
 
@@ -284,6 +284,12 @@ fun apply_transaction f g node =
     | SOME exn => raise FAILURE (result', exn))
   end;
 
+val exit_transaction =
+  apply_transaction
+    (fn Theory (Context.Theory thy, _) => Theory (Context.Theory (Theory.end_theory thy), NONE)
+      | node => node) (K ())
+  #> (fn State (node', _) => State (NONE, node'));
+
 end;
 
 
@@ -300,8 +306,8 @@ local
 fun apply_tr _ (Init (master, _, f)) (State (NONE, _)) =
       State (SOME (Theory (Context.Theory
           (Theory.checkpoint (Runtime.controlled_execution f master)), NONE)), NONE)
-  | apply_tr _ Exit (State (prev as SOME (Theory (Context.Theory _, _)), _)) =
-      State (NONE, prev)
+  | apply_tr _ Exit (State (SOME (state as Theory (Context.Theory _, _)), _)) =
+      exit_transaction state
   | apply_tr int (Keep f) state =
       Runtime.controlled_execution (fn x => tap (f int) x) state
   | apply_tr int (Transaction (f, g)) (State (SOME state, _)) =
