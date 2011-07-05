@@ -96,7 +96,7 @@ object Isabelle_System
         if (isabelle_symbols == "") error("Undefined environment variable: ISABELLE_SYMBOLS")
         val files =
           Path.split(isabelle_symbols).map(p => new File(standard_system.jvm_path(p.implode)))
-        new Symbol.Interpretation(Standard_System.try_read(files).split("\n").toList)
+        new Symbol.Interpretation(split_lines(Standard_System.try_read(files)))
       }
 
       _state = Some(State(standard_system, settings, symbols))

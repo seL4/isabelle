@@ -82,7 +82,7 @@ object Path
 
   def explode(str: String): Path =
   {
-    val ss = Library.space_explode('/', str)
+    val ss = space_explode('/', str)
     val r = ss.takeWhile(_.isEmpty).length
     val es = ss.dropWhile(_.isEmpty)
     val (roots, raw_elems) =
@@ -94,7 +94,7 @@ object Path
   }
 
   def split(str: String): List[Path] =
-    Library.space_explode(':', str).filter(_ != "").map(explode)
+    space_explode(':', str).filterNot(_.isEmpty).map(explode)
 }
 
 

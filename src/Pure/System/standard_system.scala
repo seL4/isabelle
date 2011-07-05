@@ -292,7 +292,7 @@ class Standard_System
             path
           case path => path
         }
-      for (p <- rest.split("/") if p != "") {
+      for (p <- space_explode('/', rest) if p != "") {
         val len = result_path.length
         if (len > 0 && result_path(len - 1) != File.separatorChar)
           result_path += File.separatorChar
