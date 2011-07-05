@@ -8,7 +8,7 @@ Proof reconstruction from ATP proofs.
 
 signature ATP_RECONSTRUCT =
 sig
-  type 'a fo_term = 'a ATP_Problem.fo_term
+  type ('a, 'b) ho_term = ('a, 'b) ATP_Problem.ho_term
   type ('a, 'b, 'c) formula = ('a, 'b, 'c) ATP_Problem.formula
   type 'a proof = 'a ATP_Proof.proof
   type locality = ATP_Translate.locality
@@ -41,11 +41,11 @@ sig
   val make_tvar : string -> typ
   val make_tfree : Proof.context -> string -> typ
   val term_from_atp :
-    Proof.context -> bool -> int Symtab.table -> typ option -> string fo_term
+    Proof.context -> bool -> int Symtab.table -> typ option -> (string, string) ho_term
     -> term
   val prop_from_atp :
     Proof.context -> bool -> int Symtab.table
-    -> (string, string, string fo_term) formula -> term
+    -> (string, string, (string, string) ho_term) formula -> term
   val isar_proof_text :
     Proof.context -> bool -> isar_params -> one_line_params -> string
   val proof_text :
@@ -304,8 +304,8 @@ fun raw_label_for_name conjecture_shape name =
 
 (**** INTERPRETATION OF TSTP SYNTAX TREES ****)
 
-exception FO_TERM of string fo_term list
-exception FORMULA of (string, string, string fo_term) formula list
+exception HO_TERM of (string, string) ho_term list
+exception FORMULA of (string, string, (string, string) ho_term) formula list
 exception SAME of unit
 
 (* Type variables are given the basic sort "HOL.type". Some will later be
@@ -316,7 +316,7 @@ fun typ_from_atp ctxt (u as ATerm (a, us)) =
       SOME b => Type (invert_const b, Ts)
     | NONE =>
       if not (null us) then
-        raise FO_TERM [u]  (* only "tconst"s have type arguments *)
+        raise HO_TERM [u]  (* only "tconst"s have type arguments *)
       else case strip_prefix_and_unascii tfree_prefix a of
         SOME b => make_tfree ctxt b
       | NONE =>
@@ -333,7 +333,7 @@ fun typ_from_atp ctxt (u as ATerm (a, us)) =
 fun type_constraint_from_term ctxt (u as ATerm (a, us)) =
   case (strip_prefix_and_unascii class_prefix a, map (typ_from_atp ctxt) us) of
     (SOME b, [T]) => (b, T)
-  | _ => raise FO_TERM [u]
+  | _ => raise HO_TERM [u]
 
 (** Accumulate type constraints in a formula: negative type literals **)
 fun add_var (key, z)  = Vartab.map_default (key, []) (cons z)
@@ -393,7 +393,7 @@ fun term_from_atp ctxt textual sym_tab =
               case mangled_us @ us of
                 [typ_u, term_u] =>
                 do_term extra_ts (SOME (typ_from_atp ctxt typ_u)) term_u
-              | _ => raise FO_TERM us
+              | _ => raise HO_TERM us
             else if s' = predicator_name then
               do_term [] (SOME @{typ bool}) (hd us)
             else if s' = app_op_name then

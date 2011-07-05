@@ -229,7 +229,11 @@ val proxy_table =
    ("c_implies", (@{const_name implies}, (@{thm fimplies_def},
        ("fimplies", @{const_name ATP.fimplies})))),
    ("equal", (@{const_name HOL.eq}, (@{thm fequal_def},
-       ("fequal", @{const_name ATP.fequal}))))]
+       ("fequal", @{const_name ATP.fequal})))),
+   ("c_All", (@{const_name All}, (@{thm fAll_def},
+       ("fAll", @{const_name ATP.fAll})))),
+   ("c_Ex", (@{const_name Ex}, (@{thm fEx_def},
+       ("fEx", @{const_name ATP.fEx}))))]
 
 val proxify_const = AList.lookup (op =) proxy_table #> Option.map (snd o snd)
 
@@ -245,6 +249,8 @@ val const_trans_table =
    (@{const_name disj}, "disj"),
    (@{const_name implies}, "implies"),
    (@{const_name HOL.eq}, "equal"),
+   (@{const_name All}, "All"),
+   (@{const_name Ex}, "Ex"),
    (@{const_name If}, "If"),
    (@{const_name Set.member}, "member"),
    (@{const_name Meson.COMBI}, "COMBI"),
@@ -493,7 +499,11 @@ fun combterm_from_term thy bs (P $ Q) =
     nth bs j
     |> (fn (s, T) => (CombConst (`make_bound_var s, T, []), atyps_of T))
   | combterm_from_term thy bs (Abs (s, T, t)) =
-    let val (tm, atomic_Ts) = combterm_from_term thy ((s, T) :: bs) t in
+    let
+      fun vary s = s |> AList.defined (op =) bs s ? vary o Symbol.bump_string
+      val s = vary s
+      val (tm, atomic_Ts) = combterm_from_term thy ((s, T) :: bs) t
+    in
       (CombAbs ((`make_bound_var s, T), tm),
        union (op =) atomic_Ts (atyps_of T))
     end
@@ -817,6 +827,8 @@ fun introduce_proxies type_enc =
              | (false, "c_conj") => (`I tptp_and, [])
              | (false, "c_disj") => (`I tptp_or, [])
              | (false, "c_implies") => (`I tptp_implies, [])
+             | (false, "c_All") => (`I tptp_ho_forall, [])
+             | (false, "c_Ex") => (`I tptp_ho_exists, [])
              | (false, s) =>
                if is_tptp_equal s then (`I tptp_equal, [])
                else (proxy_base |>> prefix const_prefix, T_args)
@@ -886,7 +898,7 @@ fun extensionalize_term ctxt t =
   else
     t
 
-fun introduce_combinators_in_term ctxt kind t =
+fun process_abstractions_in_term ctxt type_enc kind t =
   let val thy = Proof_Context.theory_of ctxt in
     if Meson.is_fol_term thy t then
       t
@@ -911,6 +923,8 @@ fun introduce_combinators_in_term ctxt kind t =
             t0 $ aux Ts t1 $ aux Ts t2
           | _ => if not (exists_subterm (fn Abs _ => true | _ => false) t) then
                    t
+                 else if is_type_enc_higher_order type_enc then
+                   t |> Envir.eta_contract
                  else
                    t |> conceal_bounds Ts
                      |> Envir.eta_contract
@@ -950,8 +964,7 @@ fun preprocess_prop ctxt type_enc presimp_consts kind t =
       |> extensionalize_term ctxt
       |> presimplify_term ctxt presimp_consts
       |> perhaps (try (HOLogic.dest_Trueprop))
-      |> not (is_type_enc_higher_order type_enc)
-         ? introduce_combinators_in_term ctxt kind
+      |> process_abstractions_in_term ctxt type_enc kind
   end
 
 (* making fact and conjecture formulas *)
@@ -1140,6 +1153,8 @@ fun add_combterm_syms_to_table ctxt explicit_apply =
                   end)
              end
          | CombVar (_, T) => add_var_or_bound_var T accum
+         | CombAbs ((_, T), tm) =>
+           accum |> add_var_or_bound_var T |> add false tm
          | _ => accum)
         |> fold (add false) args
       end
@@ -1291,12 +1306,6 @@ val helper_table =
    (("COMBB", false), @{thms Meson.COMBB_def}),
    (("COMBC", false), @{thms Meson.COMBC_def}),
    (("COMBS", false), @{thms Meson.COMBS_def}),
-   (("fequal", true),
-    (* This is a lie: Higher-order equality doesn't need a sound type encoding.
-       However, this is done so for backward compatibility: Including the
-       equality helpers by default in Metis breaks a few existing proofs. *)
-    @{thms fequal_def [THEN Meson.iff_to_disjD, THEN conjunct1]
-           fequal_def [THEN Meson.iff_to_disjD, THEN conjunct2]}),
    (("fFalse", false), [@{lemma "~ fFalse" by (unfold fFalse_def) fast}]),
    (("fFalse", true), @{thms True_or_False}),
    (("fTrue", false), [@{lemma "fTrue" by (unfold fTrue_def) fast}]),
@@ -1313,6 +1322,14 @@ val helper_table =
    (("fimplies", false),
     @{lemma "P | fimplies P Q" "~ Q | fimplies P Q" "~ fimplies P Q | ~ P | Q"
         by (unfold fimplies_def) fast+}),
+   (("fequal", true),
+    (* This is a lie: Higher-order equality doesn't need a sound type encoding.
+       However, this is done so for backward compatibility: Including the
+       equality helpers by default in Metis breaks a few existing proofs. *)
+    @{thms fequal_def [THEN Meson.iff_to_disjD, THEN conjunct1]
+           fequal_def [THEN Meson.iff_to_disjD, THEN conjunct2]}),
+   (("fAll", false), []), (*TODO: add helpers*)
+   (("fEx", false), []), (*TODO: add helpers*)
    (("If", true), @{thms if_True if_False True_or_False})]
   |> map (apsnd (map zero_var_indexes))
 
@@ -1491,7 +1508,7 @@ and ho_term_from_combterm ctxt format nonmono_Ts type_enc =
             in
               mk_aterm format type_enc name T_args (map (aux arg_site) args)
             end
-          | CombVar (name, _) => mk_aterm format type_enc name [] []
+          | CombVar (name, _) => mk_aterm format type_enc name [] (map (aux Elsewhere) args)
           | CombAbs ((name, T), tm) =>
             AAbs ((name, ho_type_from_typ format type_enc true 0 T), aux Elsewhere tm)
           | CombApp _ => raise Fail "impossible \"CombApp\""
@@ -1635,6 +1652,7 @@ fun sym_decl_table_for_facts ctxt type_enc repaired_sym_tab (conjs, facts) =
              else
                I
            end
+         | CombAbs (_, tm) => add_combterm in_conj tm
          | _ => I)
         #> fold (add_combterm in_conj) args
       end

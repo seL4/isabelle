@@ -39,6 +39,11 @@ definition fimplies :: "bool \<Rightarrow> bool \<Rightarrow> bool" where [no_at
 definition fequal :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where [no_atp]:
 "fequal x y \<longleftrightarrow> (x = y)"
 
+definition fAll :: "('a \<Rightarrow> bool) \<Rightarrow> bool" where [no_atp]:
+"fAll P \<longleftrightarrow> All P"
+
+definition fEx :: "('a \<Rightarrow> bool) \<Rightarrow> bool" where [no_atp]:
+"fEx P \<longleftrightarrow> Ex P"
 
 subsection {* Setup *}
 

@@ -38,7 +38,9 @@ sig
   val tptp_fun_type : string
   val tptp_product_type : string
   val tptp_forall : string
+  val tptp_ho_forall : string
   val tptp_exists : string
+  val tptp_ho_exists : string
   val tptp_not : string
   val tptp_and : string
   val tptp_or : string
@@ -125,7 +127,9 @@ val tptp_individual_type = "$i"
 val tptp_fun_type = ">"
 val tptp_product_type = "*"
 val tptp_forall = "!"
+val tptp_ho_forall = "!!"
 val tptp_exists = "?"
+val tptp_ho_exists = "??"
 val tptp_not = "~"
 val tptp_and = "&"
 val tptp_or = "|"

@@ -8,7 +8,7 @@ Abstract representation of ATP proofs and TSTP/SPASS syntax.
 
 signature ATP_PROOF =
 sig
-  type 'a fo_term = 'a ATP_Problem.fo_term
+  type ('a, 'b) ho_term = ('a, 'b) ATP_Problem.ho_term
   type ('a, 'b, 'c) formula = ('a, 'b, 'c) ATP_Problem.formula
   type 'a problem = 'a ATP_Problem.problem
 
@@ -41,7 +41,7 @@ sig
     Definition of step_name * 'a * 'a |
     Inference of step_name * 'a * step_name list
 
-  type 'a proof = ('a, 'a, 'a fo_term) formula step list
+  type 'a proof = ('a, 'a, ('a, 'a) ho_term) formula step list
 
   val short_output : bool -> string -> string
   val string_for_failure : failure -> string
@@ -54,7 +54,7 @@ sig
   val is_same_atp_step : step_name -> step_name -> bool
   val scan_general_id : string list -> string * string list
   val parse_formula :
-    string list -> (string, 'a, string fo_term) formula * string list
+    string list -> (string, 'a, (string, 'a) ho_term) formula * string list
   val atp_proof_from_tstplike_proof :
     string problem -> string -> string -> string proof
   val clean_up_atp_proof_dependencies : string proof -> string proof
@@ -228,7 +228,7 @@ datatype 'a step =
   Definition of step_name * 'a * 'a |
   Inference of step_name * 'a * step_name list
 
-type 'a proof = ('a, 'a, 'a fo_term) formula step list
+type 'a proof = ('a, 'a, ('a, 'a) ho_term) formula step list
 
 fun step_name (Definition (name, _, _)) = name
   | step_name (Inference (name, _, _)) = name
@@ -293,7 +293,7 @@ fun parse_atom x =
         | (u1, SOME (SOME _, u2)) =>
           mk_anot (AAtom (ATerm ("equal", [u1, u2]))))) x
 
-fun fo_term_head (ATerm (s, _)) = s
+fun ho_term_head (ATerm (s, _)) = s
 
 (* TPTP formulas are fully parenthesized, so we don't need to worry about
    operator precedence. *)
@@ -325,7 +325,7 @@ and parse_quantified_formula x =
    --| $$ "[" -- parse_terms --| $$ "]" --| $$ ":" -- parse_literal
    >> (fn ((q, ts), phi) =>
           (* We ignore TFF and THF types for now. *)
-          AQuant (q, map (rpair NONE o fo_term_head) ts, phi))) x
+          AQuant (q, map (rpair NONE o ho_term_head) ts, phi))) x
 
 fun skip_formula ss =
   let
