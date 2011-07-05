@@ -442,11 +442,13 @@ fun make_class_rel_clauses thy subs supers =
 datatype combterm =
   CombConst of name * typ * typ list |
   CombVar of name * typ |
-  CombApp of combterm * combterm
+  CombApp of combterm * combterm |
+  CombAbs of (name * typ) * combterm
 
 fun combtyp_of (CombConst (_, T, _)) = T
   | combtyp_of (CombVar (_, T)) = T
   | combtyp_of (CombApp (t1, _)) = snd (dest_funT (combtyp_of t1))
+  | combtyp_of (CombAbs ((_, T), tm)) = T --> combtyp_of tm
 
 (*gets the head of a combinator application, along with the list of arguments*)
 fun strip_combterm_comb u =
@@ -490,7 +492,11 @@ fun combterm_from_term thy bs (P $ Q) =
   | combterm_from_term _ bs (Bound j) =
     nth bs j
     |> (fn (s, T) => (CombConst (`make_bound_var s, T, []), atyps_of T))
-  | combterm_from_term _ _ (Abs _) = raise Fail "HOL clause: Abs"
+  | combterm_from_term thy bs (Abs (s, T, t)) =
+    let val (tm, atomic_Ts) = combterm_from_term thy ((s, T) :: bs) t in
+      (CombAbs ((`make_bound_var s, T), tm),
+       union (op =) atomic_Ts (atyps_of T))
+    end
 
 datatype locality =
   General | Helper | Extensionality | Intro | Elim | Simp | Local | Assum |
@@ -697,6 +703,7 @@ fun close_universally atom_vars phi =
 fun combterm_vars (CombApp (tm1, tm2)) = fold combterm_vars [tm1, tm2]
   | combterm_vars (CombConst _) = I
   | combterm_vars (CombVar (name, T)) = insert (op =) (name, SOME T)
+  | combterm_vars (CombAbs (_, tm)) = combterm_vars tm
 fun close_combformula_universally phi = close_universally combterm_vars phi
 
 fun term_vars bounds (ATerm (name as (s, _), tms)) =
@@ -760,7 +767,7 @@ fun ho_type_from_ho_term type_enc pred_sym ary =
       | to_ho _ = raise Fail "unexpected type abstraction"
   in if is_type_enc_higher_order type_enc then to_ho else to_fo ary end
 
-fun mangled_type format type_enc pred_sym ary =
+fun ho_type_from_typ format type_enc pred_sym ary =
   ho_type_from_ho_term type_enc pred_sym ary
   o ho_term_from_typ format type_enc
 
@@ -818,6 +825,7 @@ fun introduce_proxies type_enc =
              (proxy_base |>> prefix const_prefix, T_args)
           | NONE => (name, T_args))
         |> (fn (name, T_args) => CombConst (name, T, T_args))
+      | intro _ (CombAbs (bound, tm)) = CombAbs (bound, intro false tm)
       | intro _ tm = tm
   in intro true end
 
@@ -929,7 +937,7 @@ fun freeze_term t =
       | aux t = t
   in t |> exists_subterm is_Var t ? aux end
 
-fun preprocess_prop ctxt presimp_consts kind t =
+fun preprocess_prop ctxt type_enc presimp_consts kind t =
   let
     val thy = Proof_Context.theory_of ctxt
     val t = t |> Envir.beta_eta_contract
@@ -942,7 +950,8 @@ fun preprocess_prop ctxt presimp_consts kind t =
       |> extensionalize_term ctxt
       |> presimplify_term ctxt presimp_consts
       |> perhaps (try (HOLogic.dest_Trueprop))
-      |> introduce_combinators_in_term ctxt kind
+      |> not (is_type_enc_higher_order type_enc)
+         ? introduce_combinators_in_term ctxt kind
   end
 
 (* making fact and conjecture formulas *)
@@ -958,7 +967,7 @@ fun make_formula thy type_enc eq_as_iff name loc kind t =
 fun make_fact ctxt format type_enc eq_as_iff preproc presimp_consts
               ((name, loc), t) =
   let val thy = Proof_Context.theory_of ctxt in
-    case t |> preproc ? preprocess_prop ctxt presimp_consts Axiom
+    case t |> preproc ? preprocess_prop ctxt type_enc presimp_consts Axiom
            |> make_formula thy type_enc (eq_as_iff andalso format <> CNF) name
                            loc Axiom of
       formula as {combformula = AAtom (CombConst ((s, _), _, _)), ...} =>
@@ -982,7 +991,7 @@ fun make_conjecture ctxt format prem_kind type_enc preproc presimp_consts ts =
                     else I)
               in
                 t |> preproc ?
-                     (preprocess_prop ctxt presimp_consts kind #> freeze_term)
+                     (preprocess_prop ctxt type_enc presimp_consts kind #> freeze_term)
                   |> make_formula thy type_enc (format <> CNF) (string_of_int j)
                                   Local kind
                   |> maybe_negate
@@ -1260,6 +1269,7 @@ fun enforce_type_arg_policy_in_combterm ctxt format type_enc =
              | No_Type_Args => (name, [])
            end)
         |> (fn (name, T_args) => CombConst (name, T, T_args))
+      | aux _ (CombAbs (bound, tm)) = CombAbs (bound, aux 0 tm)
       | aux _ tm = tm
   in aux 0 end
 
@@ -1455,32 +1465,36 @@ fun should_predicate_on_var_in_formula pos phi (SOME true) name =
     formula_fold pos (is_var_positively_naked_in_term name) phi false
   | should_predicate_on_var_in_formula _ _ _ _ = true
 
-fun mk_const_aterm format type_enc x T_args args =
-  ATerm (x, map_filter (ho_term_for_type_arg format type_enc) T_args @ args)
+fun mk_aterm format type_enc name T_args args =
+  ATerm (name, map_filter (ho_term_for_type_arg format type_enc) T_args @ args)
 
 fun tag_with_type ctxt format nonmono_Ts type_enc pos T tm =
   CombConst (type_tag, T --> T, [T])
   |> enforce_type_arg_policy_in_combterm ctxt format type_enc
-  |> term_from_combterm ctxt format nonmono_Ts type_enc (Top_Level pos)
+  |> ho_term_from_combterm ctxt format nonmono_Ts type_enc (Top_Level pos)
   |> (fn ATerm (s, tms) => ATerm (s, tms @ [tm]))
-and term_from_combterm ctxt format nonmono_Ts type_enc =
+and ho_term_from_combterm ctxt format nonmono_Ts type_enc =
   let
     fun aux site u =
       let
         val (head, args) = strip_combterm_comb u
-        val (x as (s, _), T_args) =
-          case head of
-            CombConst (name, _, T_args) => (name, T_args)
-          | CombVar (name, _) => (name, [])
-          | CombApp _ => raise Fail "impossible \"CombApp\""
-        val (pos, arg_site) =
+        val pos =
           case site of
-            Top_Level pos =>
-            (pos, if is_tptp_equal s then Eq_Arg pos else Elsewhere)
-          | Eq_Arg pos => (pos, Elsewhere)
-          | Elsewhere => (NONE, Elsewhere)
-        val t = mk_const_aterm format type_enc x T_args
-                    (map (aux arg_site) args)
+            Top_Level pos => pos
+          | Eq_Arg pos => pos
+          | Elsewhere => NONE
+        val t =
+          case head of
+            CombConst (name as (s, _), _, T_args) =>
+            let
+              val arg_site = if is_tptp_equal s then Eq_Arg pos else Elsewhere
+            in
+              mk_aterm format type_enc name T_args (map (aux arg_site) args)
+            end
+          | CombVar (name, _) => mk_aterm format type_enc name [] []
+          | CombAbs ((name, T), tm) =>
+            AAbs ((name, ho_type_from_typ format type_enc true 0 T), aux Elsewhere tm)
+          | CombApp _ => raise Fail "impossible \"CombApp\""
         val T = combtyp_of u
       in
         t |> (if should_tag_with_type ctxt nonmono_Ts type_enc site u T then
@@ -1493,12 +1507,12 @@ and formula_from_combformula ctxt format nonmono_Ts type_enc
                              should_predicate_on_var =
   let
     fun do_term pos =
-      term_from_combterm ctxt format nonmono_Ts type_enc (Top_Level pos)
+      ho_term_from_combterm ctxt format nonmono_Ts type_enc (Top_Level pos)
     val do_bound_type =
       case type_enc of
         Simple_Types (_, level) =>
         homogenized_type ctxt nonmono_Ts level 0
-        #> mangled_type format type_enc false 0 #> SOME
+        #> ho_type_from_typ format type_enc false 0 #> SOME
       | _ => K NONE
     fun do_out_of_bound_type pos phi universal (name, T) =
       if should_predicate_on_type ctxt nonmono_Ts type_enc
@@ -1673,7 +1687,7 @@ fun decl_line_for_sym ctxt format nonmono_Ts type_enc s
   in
     Decl (sym_decl_prefix ^ s, (s, s'),
           (T_arg_Ts ---> (T |> homogenized_type ctxt nonmono_Ts level ary))
-          |> mangled_type format type_enc pred_sym (length T_arg_Ts + ary))
+          |> ho_type_from_typ format type_enc pred_sym (length T_arg_Ts + ary))
   end
 
 fun formula_line_for_preds_sym_decl ctxt format conj_sym_kind nonmono_Ts
@@ -1723,7 +1737,7 @@ fun formula_lines_for_lightweight_tags_sym_decl ctxt format conj_sym_kind
     val bound_names =
       1 upto length arg_Ts |> map (`I o make_bound_var o string_of_int)
     val bounds = bound_names |> map (fn name => ATerm (name, []))
-    val cst = mk_const_aterm format type_enc (s, s') T_args
+    val cst = mk_aterm format type_enc (s, s') T_args
     val atomic_Ts = atyps_of T
     fun eq tms =
       (if pred_sym then AConn (AIff, map AAtom tms)

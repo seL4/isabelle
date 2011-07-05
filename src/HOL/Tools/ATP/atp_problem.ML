@@ -230,7 +230,7 @@ fun string_for_term _ (ATerm (s, [])) = s
           s ^ "(" ^ commas ss ^ ")"
       end
   | string_for_term THF (AAbs ((s, ty), tm)) =
-    "^[" ^ s ^ ":" ^ string_for_type THF ty ^ "] : " ^ string_for_term THF tm
+    "(^[" ^ s ^ ":" ^ string_for_type THF ty ^ "] : " ^ string_for_term THF tm ^ ")"
   | string_for_term _ _ = raise Fail "unexpected term in first-order format"
 
 fun string_for_quantifier AForall = tptp_forall
