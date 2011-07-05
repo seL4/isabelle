@@ -567,7 +567,7 @@ fun setmp_thread_position (Transition {pos, ...}) f x =
   Position.setmp_thread_data pos f x;
 
 fun status tr m =
-  setmp_thread_position tr (fn () => Output.status (Markup.markup m "")) ();
+  setmp_thread_position tr (fn () => Output.status (Markup.markup_only m)) ();
 
 fun error_msg tr msg =
   setmp_thread_position tr (fn () => Output.error_msg msg) ();
