@@ -173,8 +173,10 @@ fun init in_fifo out_fifo = ignore (Simple_Thread.fork false (fn () =>
     val _ = quick_and_dirty := true;
     val _ = Goal.parallel_proofs := 0;
     val _ = Context.set_thread_data NONE;
-    val _ = Unsynchronized.change print_mode
-      (fold (update op =) [isabelle_processN, Keyword.keyword_statusN, Pretty.symbolicN]);
+    val _ =
+      Unsynchronized.change print_mode
+        (fold (update op =)
+          [Symbol.xsymbolsN, isabelle_processN, Keyword.keyword_statusN, Pretty.symbolicN]);
 
     val in_stream = setup_channels in_fifo out_fifo;
     val _ = Keyword.status ();
