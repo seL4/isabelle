@@ -844,7 +844,7 @@ proof
     by induct (insert `A \<subseteq> B`, auto intro: sigma_sets.intros)
 qed
 
-lemma sigma_sets_subseteq: "A \<subseteq> sigma_sets X A"
+lemma sigma_sets_superset_generator: "A \<subseteq> sigma_sets X A"
   by (auto intro: sigma_sets.Basic)
 
 lemma (in product_prob_space) infprod_algebra_alt:
@@ -859,7 +859,7 @@ proof (rule measure_space.equality)
     fix J assume J: "J \<in> {J. J \<noteq> {} \<and> finite J \<and> J \<subseteq> I}"
     have "emb I J ` Pi\<^isub>E J ` (\<Pi> i\<in>J. sets (M i)) \<subseteq> emb I J ` sets (Pi\<^isub>M J M)" by auto
     also have "\<dots> \<subseteq> ?G" using J by (rule UN_upper)
-    also have "\<dots> \<subseteq> sigma_sets ?O ?G" by (rule sigma_sets_subseteq)
+    also have "\<dots> \<subseteq> sigma_sets ?O ?G" by (rule sigma_sets_superset_generator)
     finally show "emb I J ` Pi\<^isub>E J ` (\<Pi> i\<in>J. sets (M i)) \<subseteq> sigma_sets ?O ?G" .
     have "emb I J ` sets (Pi\<^isub>M J M) = emb I J ` sigma_sets (space (Pi\<^isub>M J M)) (Pi\<^isub>E J ` (\<Pi> i \<in> J. sets (M i)))"
       by (simp add: sets_sigma product_algebra_generator_def product_algebra_def)
