@@ -8,7 +8,7 @@ Translation of HOL to FOL for Sledgehammer.
 
 signature ATP_TRANSLATE =
 sig
-  type 'a fo_term = 'a ATP_Problem.fo_term
+  type ('a, 'b) ho_term = ('a, 'b) ATP_Problem.ho_term
   type connective = ATP_Problem.connective
   type ('a, 'b, 'c) formula = ('a, 'b, 'c) ATP_Problem.formula
   type format = ATP_Problem.format
@@ -83,7 +83,7 @@ sig
   val choose_format : format list -> type_enc -> format * type_enc
   val mk_aconns :
     connective -> ('a, 'b, 'c) formula list -> ('a, 'b, 'c) formula
-  val unmangled_const : string -> string * string fo_term list
+  val unmangled_const : string -> string * (string, 'b) ho_term list
   val unmangled_const_name : string -> string
   val helper_table : ((string * bool) * thm list) list
   val factsN : string
@@ -545,7 +545,8 @@ fun type_enc_from_string s =
            ("simple", (NONE, _, Lightweight)) =>
            Simple_Types (First_Order, level)
          | ("simple_higher", (NONE, _, Lightweight)) =>
-           Simple_Types (Higher_Order, level)
+           if level = Noninf_Nonmono_Types then raise Same.SAME
+           else Simple_Types (Higher_Order, level)
          | ("preds", (SOME poly, _, _)) => Preds (poly, level, heaviness)
          | ("tags", (SOME Polymorphic, _, _)) =>
            Tags (Polymorphic, level, heaviness)
@@ -698,14 +699,16 @@ fun combterm_vars (CombApp (tm1, tm2)) = fold combterm_vars [tm1, tm2]
   | combterm_vars (CombVar (name, T)) = insert (op =) (name, SOME T)
 fun close_combformula_universally phi = close_universally combterm_vars phi
 
-fun term_vars (ATerm (name as (s, _), tms)) =
-  is_tptp_variable s ? insert (op =) (name, NONE) #> fold term_vars tms
-fun close_formula_universally phi = close_universally term_vars phi
+fun term_vars bounds (ATerm (name as (s, _), tms)) =
+    (is_tptp_variable s andalso not (member (op =) bounds name))
+    ? insert (op =) (name, NONE) #> fold (term_vars bounds) tms
+  | term_vars bounds (AAbs ((name, _), tm)) = term_vars (name :: bounds) tm
+fun close_formula_universally phi = close_universally (term_vars []) phi
 
 val homo_infinite_type_name = @{type_name ind} (* any infinite type *)
 val homo_infinite_type = Type (homo_infinite_type_name, [])
 
-fun fo_term_from_typ format type_enc =
+fun ho_term_from_typ format type_enc =
   let
     fun term (Type (s, Ts)) =
       ATerm (case (is_type_enc_higher_order type_enc, s) of
@@ -722,8 +725,8 @@ fun fo_term_from_typ format type_enc =
       ATerm ((make_schematic_type_var x, s), [])
   in term end
 
-fun fo_term_for_type_arg format type_enc T =
-  if T = dummyT then NONE else SOME (fo_term_from_typ format type_enc T)
+fun ho_term_for_type_arg format type_enc T =
+  if T = dummyT then NONE else SOME (ho_term_from_typ format type_enc T)
 
 (* This shouldn't clash with anything else. *)
 val mangled_type_sep = "\000"
@@ -732,6 +735,7 @@ fun generic_mangled_type_name f (ATerm (name, [])) = f name
   | generic_mangled_type_name f (ATerm (name, tys)) =
     f name ^ "(" ^ space_implode "," (map (generic_mangled_type_name f) tys)
     ^ ")"
+  | generic_mangled_type_name f _ = raise Fail "unexpected type abstraction"
 
 val bool_atype = AType (`I tptp_bool_type)
 
@@ -742,7 +746,7 @@ fun make_simple_type s =
   else
     simple_type_prefix ^ ascii_of s
 
-fun ho_type_from_fo_term type_enc pred_sym ary =
+fun ho_type_from_ho_term type_enc pred_sym ary =
   let
     fun to_atype ty =
       AType ((make_simple_type (generic_mangled_type_name fst ty),
@@ -750,17 +754,19 @@ fun ho_type_from_fo_term type_enc pred_sym ary =
     fun to_afun f1 f2 tys = AFun (f1 (hd tys), f2 (nth tys 1))
     fun to_fo 0 ty = if pred_sym then bool_atype else to_atype ty
       | to_fo ary (ATerm (_, tys)) = to_afun to_atype (to_fo (ary - 1)) tys
+      | to_fo ary _ = raise Fail "unexpected type abstraction"
     fun to_ho (ty as ATerm ((s, _), tys)) =
-      if s = tptp_fun_type then to_afun to_ho to_ho tys else to_atype ty
+        if s = tptp_fun_type then to_afun to_ho to_ho tys else to_atype ty
+      | to_ho _ = raise Fail "unexpected type abstraction"
   in if is_type_enc_higher_order type_enc then to_ho else to_fo ary end
 
 fun mangled_type format type_enc pred_sym ary =
-  ho_type_from_fo_term type_enc pred_sym ary
-  o fo_term_from_typ format type_enc
+  ho_type_from_ho_term type_enc pred_sym ary
+  o ho_term_from_typ format type_enc
 
 fun mangled_const_name format type_enc T_args (s, s') =
   let
-    val ty_args = T_args |> map_filter (fo_term_for_type_arg format type_enc)
+    val ty_args = T_args |> map_filter (ho_term_for_type_arg format type_enc)
     fun type_suffix f g =
       fold_rev (curry (op ^) o g o prefix mangled_type_sep
                 o generic_mangled_type_name f) ty_args ""
@@ -1444,12 +1450,13 @@ fun type_pred_combterm ctxt format type_enc T tm =
 fun is_var_positively_naked_in_term _ (SOME false) _ accum = accum
   | is_var_positively_naked_in_term name _ (ATerm ((s, _), tms)) accum =
     accum orelse (is_tptp_equal s andalso member (op =) tms (ATerm (name, [])))
+  | is_var_positively_naked_in_term name _ _ _ = true
 fun should_predicate_on_var_in_formula pos phi (SOME true) name =
     formula_fold pos (is_var_positively_naked_in_term name) phi false
   | should_predicate_on_var_in_formula _ _ _ _ = true
 
 fun mk_const_aterm format type_enc x T_args args =
-  ATerm (x, map_filter (fo_term_for_type_arg format type_enc) T_args @ args)
+  ATerm (x, map_filter (ho_term_for_type_arg format type_enc) T_args @ args)
 
 fun tag_with_type ctxt format nonmono_Ts type_enc pos T tm =
   CombConst (type_tag, T --> T, [T])
@@ -1924,8 +1931,9 @@ val fact_max_weight = 1.0
 val type_info_default_weight = 0.8
 
 fun add_term_weights weight (ATerm (s, tms)) =
-  is_tptp_user_symbol s ? Symtab.default (s, weight)
-  #> fold (add_term_weights weight) tms
+    is_tptp_user_symbol s ? Symtab.default (s, weight)
+    #> fold (add_term_weights weight) tms
+  | add_term_weights weight (AAbs (_, tm)) = add_term_weights weight tm
 fun add_problem_line_weights weight (Formula (_, _, phi, _, _)) =
     formula_fold NONE (K (add_term_weights weight)) phi
   | add_problem_line_weights _ _ = I

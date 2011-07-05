@@ -7,7 +7,9 @@ Abstract representation of ATP problems and TPTP syntax.
 
 signature ATP_PROBLEM =
 sig
-  datatype 'a fo_term = ATerm of 'a * 'a fo_term list
+  datatype ('a, 'b) ho_term =
+    ATerm of 'a * ('a, 'b) ho_term list |
+    AAbs of ('a * 'b) * ('a, 'b) ho_term
   datatype quantifier = AForall | AExists
   datatype connective = ANot | AAnd | AOr | AImplies | AIff
   datatype ('a, 'b, 'c) formula =
@@ -21,8 +23,8 @@ sig
   datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
   datatype 'a problem_line =
     Decl of string * 'a * 'a ho_type |
-    Formula of string * formula_kind * ('a, 'a ho_type, 'a fo_term) formula
-               * string fo_term option * string fo_term option
+    Formula of string * formula_kind * ('a, 'a ho_type, ('a, 'a ho_type) ho_term) formula
+               * (string, string ho_type) ho_term option * (string, string ho_type) ho_term option
   type 'a problem = (string * 'a problem_line list) list
 
   val tptp_cnf : string
@@ -91,7 +93,9 @@ open ATP_Util
 
 (** ATP problem **)
 
-datatype 'a fo_term = ATerm of 'a * 'a fo_term list
+datatype ('a, 'b) ho_term =
+  ATerm of 'a * ('a, 'b) ho_term list |
+  AAbs of ('a * 'b) * ('a, 'b) ho_term
 datatype quantifier = AForall | AExists
 datatype connective = ANot | AAnd | AOr | AImplies | AIff
 datatype ('a, 'b, 'c) formula =
@@ -105,8 +109,8 @@ datatype format = CNF | CNF_UEQ | FOF | TFF | THF
 datatype formula_kind = Axiom | Definition | Lemma | Hypothesis | Conjecture
 datatype 'a problem_line =
   Decl of string * 'a * 'a ho_type |
-  Formula of string * formula_kind * ('a, 'a ho_type, 'a fo_term) formula
-             * string fo_term option * string fo_term option
+  Formula of string * formula_kind * ('a, 'a ho_type, ('a, 'a ho_type) ho_term) formula
+             * (string, string ho_type) ho_term option * (string, string ho_type) ho_term option
 type 'a problem = (string * 'a problem_line list) list
 
 (* official TPTP syntax *)
@@ -225,6 +229,9 @@ fun string_for_term _ (ATerm (s, [])) = s
         else
           s ^ "(" ^ commas ss ^ ")"
       end
+  | string_for_term THF (AAbs ((s, ty), tm)) =
+    "^[" ^ s ^ ":" ^ string_for_type THF ty ^ "] : " ^ string_for_term THF tm
+  | string_for_term _ _ = raise Fail "unexpected term in first-order format"
 
 fun string_for_quantifier AForall = tptp_forall
   | string_for_quantifier AExists = tptp_exists
@@ -303,8 +310,9 @@ fun is_problem_line_cnf_ueq (Formula (_, _, AAtom (ATerm ((s, _), _)), _, _)) =
   | is_problem_line_cnf_ueq _ = false
 
 fun open_conjecture_term (ATerm ((s, s'), tms)) =
-  ATerm (if is_tptp_variable s then (s |> Name.desymbolize false, s')
-         else (s, s'), tms |> map open_conjecture_term)
+    ATerm (if is_tptp_variable s then (s |> Name.desymbolize false, s')
+           else (s, s'), tms |> map open_conjecture_term)
+  | open_conjecture_term _ = raise Fail "unexpected higher-order term"
 fun open_formula conj =
   let
     (* We are conveniently assuming that all bound variable names are
@@ -403,9 +411,10 @@ fun undeclared_syms_in_problem declared problem =
     fun do_type (AFun (ty1, ty2)) = fold do_type [ty1, ty2]
       | do_type (AType name) = do_sym name (K atype_of_types)
     fun do_term pred_sym (ATerm (name as (s, _), tms)) =
-      is_tptp_user_symbol s
-      ? do_sym name (fn _ => default_type pred_sym (length tms))
-      #> fold (do_term false) tms
+        is_tptp_user_symbol s
+        ? do_sym name (fn _ => default_type pred_sym (length tms))
+        #> fold (do_term false) tms
+      | do_term _ (AAbs ((_, ty), tm)) = do_type ty #> do_term false tm
     fun do_formula (AQuant (_, xs, phi)) =
         fold do_type (map_filter snd xs) #> do_formula phi
       | do_formula (AConn (_, phis)) = fold do_formula phis
@@ -496,10 +505,12 @@ fun nice_name (full_name, _) NONE = (full_name, NONE)
           end
       in add 0 |> apsnd SOME end
 
-fun nice_term (ATerm (name, ts)) =
-  nice_name name ##>> pool_map nice_term ts #>> ATerm
 fun nice_type (AType name) = nice_name name #>> AType
   | nice_type (AFun (ty1, ty2)) = nice_type ty1 ##>> nice_type ty2 #>> AFun
+fun nice_term (ATerm (name, ts)) =
+    nice_name name ##>> pool_map nice_term ts #>> ATerm
+  | nice_term (AAbs ((name, ty), tm)) =
+    nice_name name ##>> nice_type ty ##>> nice_term tm #>> AAbs
 fun nice_formula (AQuant (q, xs, phi)) =
     pool_map nice_name (map fst xs)
     ##>> pool_map (fn NONE => pair NONE
