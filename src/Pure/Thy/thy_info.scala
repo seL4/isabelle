@@ -70,5 +70,5 @@ class Thy_Info(thy_load: Thy_Load)
   }
 
   def dependencies(dir: Path, str: String): Deps =
-    require_thy(thy_load.is_loaded, Nil, dir, Map.empty, str)  // FIXME capture errors in str (!??)
+    require_thy(thy_load.is_loaded, Nil, dir, Map.empty, str)
 }
