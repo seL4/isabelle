@@ -326,7 +326,10 @@ val z3_atp_config : atp_config =
    formats = [FOF],
    best_slices =
      (* FUDGE (FIXME) *)
-     K [(1.0, (false, (250, "mangled_preds?", "")))]}
+     K [(0.5, (false, (250, "mangled_preds?", ""))),
+        (0.25, (false, (125, "mangled_preds?", ""))),
+        (0.125, (false, (62, "mangled_preds?", ""))),
+        (0.125, (false, (31, "mangled_preds?", "")))]}
 
 val z3_atp = (z3_atpN, z3_atp_config)
 

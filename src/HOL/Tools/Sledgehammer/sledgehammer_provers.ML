@@ -529,7 +529,7 @@ fun repair_monomorph_context max_iters max_new_instances =
 
 (* Give the ATPs some slack before interrupting them the hard way. "z3_atp" on
    Linux appears to be the only ATP that does not honor its time limit. *)
-val atp_timeout_slack = seconds 5.0
+val atp_timeout_slack = seconds 1.0
 
 fun run_atp mode name
         ({exec, required_execs, arguments, proof_delims, known_failures,
