@@ -2411,7 +2411,7 @@ fun definition (alphas, binding) parent (parents: parent_info list) raw_fields t
       |> add_extsplit extension_name ext_split
       |> add_splits extension_id (split_meta', split_object', split_ex', induct_scheme')
       |> add_extfields extension_name (fields @ [(full_moreN, moreT)])
-      |> add_fieldext (extension_name, snd extension) (names @ [full_moreN])
+      |> add_fieldext (extension_name, snd extension) names
       |> add_code ext_tyco vs extT ext simps' ext_inject
       |> Sign.restore_naming thy;
 
