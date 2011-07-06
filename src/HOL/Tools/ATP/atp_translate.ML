@@ -105,17 +105,15 @@ open ATP_Problem
 type name = string * string
 
 (* experimental *)
-val generate_useful_info = false
+val generate_info = false
 
-fun useful_isabelle_info s =
-  if generate_useful_info then
-    SOME (ATerm ("[]", [ATerm ("isabelle_" ^ s, [])]))
-  else
-    NONE
+fun isabelle_info s =
+  if generate_info then SOME (ATerm ("[]", [ATerm ("isabelle_" ^ s, [])]))
+  else NONE
 
-val intro_info = useful_isabelle_info "intro"
-val elim_info = useful_isabelle_info "elim"
-val simp_info = useful_isabelle_info "simp"
+val introN = "intro"
+val elimN = "elim"
+val simpN = "simp"
 
 val bound_var_prefix = "B_"
 val schematic_var_prefix = "V_"
@@ -1343,7 +1341,7 @@ fun type_tag_idempotence_fact () =
   in
     Formula (type_tag_idempotence_helper_name, Axiom,
              AAtom (ATerm (`I tptp_equal, [tag tagged_a, tagged_a]))
-             |> close_formula_universally, simp_info, NONE)
+             |> close_formula_universally, isabelle_info simpN, NONE)
   end
 
 fun should_specialize_helper type_enc t =
@@ -1579,9 +1577,9 @@ fun formula_line_for_fact ctxt format prefix encode freshen pos nonmono_Ts
    |> close_formula_universally,
    NONE,
    case locality of
-     Intro => intro_info
-   | Elim => elim_info
-   | Simp => simp_info
+     Intro => isabelle_info introN
+   | Elim => isabelle_info elimN
+   | Simp => isabelle_info simpN
    | _ => NONE)
   |> Formula
 
@@ -1591,7 +1589,7 @@ fun formula_line_for_class_rel_clause ({name, subclass, superclass, ...}
     Formula (class_rel_clause_prefix ^ ascii_of name, Axiom,
              AConn (AImplies, [AAtom (ATerm (subclass, [ty_arg])),
                                AAtom (ATerm (superclass, [ty_arg]))])
-             |> close_formula_universally, intro_info, NONE)
+             |> close_formula_universally, isabelle_info introN, NONE)
   end
 
 fun fo_literal_from_arity_literal (TConsLit (c, t, args)) =
@@ -1606,7 +1604,7 @@ fun formula_line_for_arity_clause ({name, prem_lits, concl_lits, ...}
                           o fo_literal_from_arity_literal) prem_lits)
                     (formula_from_fo_literal
                          (fo_literal_from_arity_literal concl_lits))
-           |> close_formula_universally, intro_info, NONE)
+           |> close_formula_universally, isabelle_info introN, NONE)
 
 fun formula_line_for_conjecture ctxt format nonmono_Ts type_enc
         ({name, kind, combformula, atomic_types, ...} : translated_formula) =
@@ -1739,7 +1737,7 @@ fun formula_line_for_preds_sym_decl ctxt format conj_sym_kind nonmono_Ts
              |> n > 1 ? bound_tvars type_enc (atyps_of T)
              |> close_formula_universally
              |> maybe_negate,
-             intro_info, NONE)
+             isabelle_info introN, NONE)
   end
 
 fun formula_lines_for_lightweight_tags_sym_decl ctxt format conj_sym_kind
@@ -1776,7 +1774,7 @@ fun formula_lines_for_lightweight_tags_sym_decl ctxt format conj_sym_kind
       if should_encode res_T then
         cons (Formula (ident_base ^ "_res", kind,
                        eq [tag_with res_T (cst bounds), cst bounds],
-                       simp_info, NONE))
+                       isabelle_info simpN, NONE))
       else
         I
     fun add_formula_for_arg k =
@@ -1787,7 +1785,7 @@ fun formula_lines_for_lightweight_tags_sym_decl ctxt format conj_sym_kind
             cons (Formula (ident_base ^ "_arg" ^ string_of_int (k + 1), kind,
                            eq [cst (bounds1 @ tag_with arg_T bound :: bounds2),
                                cst bounds],
-                           simp_info, NONE))
+                           isabelle_info simpN, NONE))
           | _ => raise Fail "expected nonempty tail"
         else
           I
