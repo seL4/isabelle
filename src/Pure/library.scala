@@ -61,6 +61,8 @@ object Library
       result.toList
     }
 
+  def split_lines(str: String): List[String] = space_explode('\n', str)
+
 
   /* iterate over chunks (cf. space_explode) */
 
@@ -185,13 +187,14 @@ object Library
 
 class Basic_Library
 {
+  val ERROR = Library.ERROR
+  val error = Library.error _
+  val cat_error = Library.cat_error _
+
   val space_explode = Library.space_explode _
+  val split_lines = Library.split_lines _
 
   val quote = Library.quote _
   val commas = Library.commas _
   val commas_quote = Library.commas_quote _
-
-  val ERROR = Library.ERROR
-  val error = Library.error _
-  val cat_error = Library.cat_error _
 }

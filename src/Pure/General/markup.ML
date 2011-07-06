@@ -92,6 +92,7 @@ sig
   val command_spanN: string val command_span: string -> T
   val ignored_spanN: string val ignored_span: T
   val malformed_spanN: string val malformed_span: T
+  val loaded_theoryN: string val loaded_theory: string -> T
   val elapsedN: string
   val cpuN: string
   val gcN: string
@@ -110,7 +111,7 @@ sig
   val versionN: string
   val execN: string
   val assignN: string val assign: int -> T
-  val editN: string val edit: int -> int -> T
+  val editN: string val edit: int * int -> T
   val serialN: string
   val promptN: string val prompt: T
   val readyN: string val ready: T
@@ -123,6 +124,7 @@ sig
   val output: T -> Output.output * Output.output
   val enclose: T -> Output.output -> Output.output
   val markup: T -> string -> string
+  val markup_only: T -> string
 end;
 
 structure Markup: MARKUP =
@@ -304,6 +306,11 @@ val (ignored_spanN, ignored_span) = markup_elem "ignored_span";
 val (malformed_spanN, malformed_span) = markup_elem "malformed_span";
 
 
+(* theory loader *)
+
+val (loaded_theoryN, loaded_theory) = markup_string "loaded_theory" nameN;
+
+
 (* timing *)
 
 val timingN = "timing";
@@ -347,7 +354,7 @@ val execN = "exec";
 val (assignN, assign) = markup_int "assign" versionN;
 
 val editN = "edit";
-fun edit cmd_id exec_id : T = (editN, [(idN, print_int cmd_id), (execN, print_int exec_id)]);
+fun edit (cmd_id, exec_id) : T = (editN, [(idN, print_int cmd_id), (execN, print_int exec_id)]);
 
 
 (* messages *)
@@ -386,5 +393,7 @@ val enclose = output #-> Library.enclose;
 fun markup m =
   let val (bg, en) = output m
   in Library.enclose (Output.escape bg) (Output.escape en) end;
+
+fun markup_only m = markup m "";
 
 end;

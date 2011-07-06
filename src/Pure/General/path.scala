@@ -82,7 +82,7 @@ object Path
 
   def explode(str: String): Path =
   {
-    val ss = Library.space_explode('/', str)
+    val ss = space_explode('/', str)
     val r = ss.takeWhile(_.isEmpty).length
     val es = ss.dropWhile(_.isEmpty)
     val (roots, raw_elems) =
@@ -92,7 +92,11 @@ object Path
       else (List(root_elem(es.head)), es.tail)
     Path(norm_elems(explode_elems(raw_elems) ++ roots))
   }
+
+  def split(str: String): List[Path] =
+    space_explode(':', str).filterNot(_.isEmpty).map(explode)
 }
+
 
 class Path
 {
@@ -138,11 +142,12 @@ class Path
 
   /* expand */
 
-  def expand(env: String => String): Path =
+  def expand: Path =
   {
     def eval(elem: Path.Elem): List[Path.Elem] =
       elem match {
-        case Path.Variable(s) => Path.explode(env(s)).elems
+        case Path.Variable(s) =>
+          Path.explode(Isabelle_System.getenv_strict(s)).elems
         case x => List(x)
       }
 

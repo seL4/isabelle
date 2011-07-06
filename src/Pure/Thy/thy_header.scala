@@ -112,7 +112,8 @@ object Thy_Header extends Parse.Parser
   {
     val header = read(source)
     val name1 = header.name
-    if (name == name1) header
-    else error("Bad file name " + thy_path(name) + " for theory " + quote(name1))
+    if (name != name1) error("Bad file name " + thy_path(name) + " for theory " + quote(name1))
+    Path.explode(name)
+    header
   }
 }

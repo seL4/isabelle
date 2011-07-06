@@ -95,8 +95,8 @@ object Isabelle_System
         val isabelle_symbols = settings.getOrElse("ISABELLE_SYMBOLS", "")
         if (isabelle_symbols == "") error("Undefined environment variable: ISABELLE_SYMBOLS")
         val files =
-          isabelle_symbols.split(":").toList.map(s => new File(standard_system.jvm_path(s)))
-        new Symbol.Interpretation(Standard_System.try_read(files).split("\n").toList)
+          Path.split(isabelle_symbols).map(p => new File(standard_system.jvm_path(p.implode)))
+        new Symbol.Interpretation(split_lines(Standard_System.try_read(files)))
       }
 
       _state = Some(State(standard_system, settings, symbols))
@@ -120,7 +120,7 @@ object Isabelle_System
 
   /* path specifications */
 
-  def standard_path(path: Path): String = path.expand(getenv_strict).implode
+  def standard_path(path: Path): String = path.expand.implode
 
   def platform_path(path: Path): String = standard_system.jvm_path(standard_path(path))
   def platform_file(path: Path) = new File(platform_path(path))
@@ -265,8 +265,8 @@ object Isabelle_System
 
   def isabelle_tool(name: String, args: String*): (String, Int) =
   {
-    getenv_strict("ISABELLE_TOOLS").split(":").find { dir =>
-      val file = platform_file(Path.explode(dir) + Path.basic(name))
+    Path.split(getenv_strict("ISABELLE_TOOLS")).find { dir =>
+      val file = platform_file(dir + Path.basic(name))
       try {
         file.isFile && file.canRead && file.canExecute &&
           !name.endsWith("~") && !name.endsWith(".orig")
@@ -274,7 +274,7 @@ object Isabelle_System
       catch { case _: SecurityException => false }
     } match {
       case Some(dir) =>
-        val file = standard_path(Path.explode(dir) + Path.basic(name))
+        val file = standard_path(dir + Path.basic(name))
         Standard_System.process_output(execute(true, (List(file) ++ args): _*))
       case None => ("Unknown Isabelle tool: " + name, 2)
     }
@@ -334,8 +334,8 @@ object Isabelle_System
 
   /* components */
 
-  def components(): List[String] =
-    getenv_strict("ISABELLE_COMPONENTS").split(":").toList
+  def components(): List[Path] =
+    Path.split(getenv_strict("ISABELLE_COMPONENTS"))
 
 
   /* find logics */
@@ -344,8 +344,8 @@ object Isabelle_System
   {
     val ml_ident = getenv_strict("ML_IDENTIFIER")
     val logics = new mutable.ListBuffer[String]
-    for (dir <- getenv_strict("ISABELLE_PATH").split(":")) {
-      val files = platform_file(Path.explode(dir) + Path.explode(ml_ident)).listFiles()
+    for (dir <- Path.split(getenv_strict("ISABELLE_PATH"))) {
+      val files = platform_file(dir + Path.explode(ml_ident)).listFiles()
       if (files != null) {
         for (file <- files if file.isFile) logics += file.getName
       }
@@ -362,7 +362,7 @@ object Isabelle_System
   def install_fonts()
   {
     val ge = GraphicsEnvironment.getLocalGraphicsEnvironment()
-    for (font <- getenv_strict("ISABELLE_FONTS").split(":"))
-      ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, platform_file(Path.explode(font))))
+    for (font <- Path.split(getenv_strict("ISABELLE_FONTS")))
+      ge.registerFont(Font.createFont(Font.TRUETYPE_FONT, platform_file(font)))
   }
 }

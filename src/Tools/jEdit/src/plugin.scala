@@ -300,7 +300,7 @@ object Isabelle
   def start_session()
   {
     val timeout = Time_Property("startup-timeout", Time.seconds(10)) max Time.seconds(5)
-    val modes = Isabelle_System.getenv("JEDIT_PRINT_MODE").split(",").toList.map("-m" + _)
+    val modes = space_explode(',', Isabelle_System.getenv("JEDIT_PRINT_MODE")).map("-m" + _)
     val logic = {
       val logic = Property("logic")
       if (logic != null && logic != "") logic

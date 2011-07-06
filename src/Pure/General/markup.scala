@@ -246,6 +246,11 @@ object Markup
   val MALFORMED_SPAN = "malformed_span"
 
 
+  /* theory loader */
+
+  val LOADED_THEORY = "loaded_theory"
+
+
   /* timing */
 
   val TIMING = "timing"

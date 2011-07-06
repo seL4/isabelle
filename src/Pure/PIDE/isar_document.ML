@@ -4,11 +4,18 @@
 Protocol message formats for interactive Isar documents.
 *)
 
-structure Isar_Document: sig end =
+signature ISAR_DOCUMENT =
+sig
+  val state: unit -> Document.state
+end
+
+structure Isar_Document: ISAR_DOCUMENT =
 struct
 
 val global_state = Synchronized.var "Isar_Document" Document.init_state;
 val change_state = Synchronized.change global_state;
+
+fun state () = Synchronized.value global_state;
 
 val _ =
   Isabelle_Process.add_command "Isar_Document.define_command"
@@ -30,12 +37,12 @@ val _ =
                     (XML_Data.dest_option XML_Data.dest_int)
                     (XML_Data.dest_option XML_Data.dest_int))))) (YXML.parse_body edits_yxml);
 
-      val _ = Document.cancel state;
+      val await_cancellation = Document.cancel_execution state;
       val (updates, state') = Document.edit old_id new_id edits state;
+      val _ = await_cancellation ();
       val _ =
-        implode (map (fn (id, exec_id) => Markup.markup (Markup.edit id exec_id) "") updates)
-        |> Markup.markup (Markup.assign new_id)
-        |> Output.status;
+        Output.status (Markup.markup (Markup.assign new_id)
+          (implode (map (Markup.markup_only o Markup.edit) updates)));
       val state'' = Document.execute new_id state';
     in state'' end));
 
