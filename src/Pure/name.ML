@@ -7,6 +7,7 @@ Names of basic logical entities (variables etc.).
 signature NAME =
 sig
   val uu: string
+  val uu_: string
   val aT: string
   val bound: int -> string
   val is_bound: string -> bool
@@ -35,6 +36,7 @@ struct
 (** common defaults **)
 
 val uu = "uu";
+val uu_ = "uu_";
 val aT = "'a";
 
 

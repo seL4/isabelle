@@ -718,8 +718,8 @@ fun record_field_types_tr more ctxt t =
                     list_comb
                       (Syntax.const (Lexicon.mark_type (suffix ext_typeN ext)), alphas' @ [more'])
                   end
-              | NONE => err ("no fields defined for " ^ ext))
-          | NONE => err (name ^ " is no proper field"))
+              | NONE => err ("no fields defined for " ^ quote ext))
+          | NONE => err (quote name ^ " is no proper field"))
       | mk_ext [] = more;
   in
     mk_ext (field_types_tr t)
@@ -753,8 +753,8 @@ fun record_fields_tr more ctxt t =
                       handle Fail msg => err msg;
                     val more' = mk_ext rest;
                   in list_comb (Syntax.const (Lexicon.mark_const (ext ^ extN)), args @ [more']) end
-              | NONE => err ("no fields defined for " ^ ext))
-          | NONE => err (name ^ " is no proper field"))
+              | NONE => err ("no fields defined for " ^ quote ext))
+          | NONE => err (quote name ^ " is no proper field"))
       | mk_ext [] = more;
   in mk_ext (fields_tr t) end;
 
@@ -766,7 +766,7 @@ fun record_scheme_tr ctxt [t, more] = record_fields_tr more ctxt t
 
 
 fun field_update_tr (Const (@{syntax_const "_field_update"}, _) $ Const (name, _) $ arg) =
-      Syntax.const (suffix updateN name) $ Abs ("_", dummyT, arg)
+      Syntax.const (suffix updateN name) $ Abs (Name.uu_, dummyT, arg)
   | field_update_tr t = raise TERM ("field_update_tr", [t]);
 
 fun field_updates_tr (Const (@{syntax_const "_field_updates"}, _) $ t $ u) =
@@ -1369,7 +1369,7 @@ fun split_simproc P =
                             @{const_name all} => all_thm
                           | @{const_name All} => All_thm RS eq_reflection
                           | @{const_name Ex} => Ex_thm RS eq_reflection
-                          | _ => error "split_simproc"))
+                          | _ => raise Fail "split_simproc"))
                   else NONE
                 end)
           else NONE
@@ -1658,7 +1658,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
     val s = Free (rN, extT);
     val P = Free (singleton (Name.variant_list variants) "P", extT --> HOLogic.boolT);
 
-    val inject_prop =
+    val inject_prop =  (* FIXME local x x' *)
       let val vars_more' = map (fn (Free (x, T)) => Free (x ^ "'", T)) vars_more in
         HOLogic.mk_conj (HOLogic.eq_const extT $
           mk_ext vars_more $ mk_ext vars_more', HOLogic.true_const)
@@ -1670,7 +1670,7 @@ fun extension_definition name fields alphas zeta moreT more vars thy =
     val induct_prop =
       (All (map dest_Free vars_more) (Trueprop (P $ ext)), Trueprop (P $ s));
 
-    val split_meta_prop =
+    val split_meta_prop =  (* FIXME local P *)
       let val P = Free (singleton (Name.variant_list variants) "P", extT --> Term.propT) in
         Logic.mk_equals
          (All [dest_Free s] (P $ s), All (map dest_Free vars_more) (P $ ext))
@@ -1791,6 +1791,7 @@ fun meta_to_obj_all thm =
 
 fun mk_random_eq tyco vs extN Ts =
   let
+    (* FIXME local i etc. *)
     val size = @{term "i::code_numeral"};
     fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit => term"});
     val T = Type (tyco, map TFree vs);
@@ -1810,23 +1811,25 @@ fun mk_random_eq tyco vs extN Ts =
 
 fun mk_full_exhaustive_eq tyco vs extN Ts =
   let
+    (* FIXME local i etc. *)
     val size = @{term "i::code_numeral"};
     fun termifyT T = HOLogic.mk_prodT (T, @{typ "unit => term"});
     val T = Type (tyco, map TFree vs);
     val test_function = Free ("f", termifyT T --> @{typ "term list option"});
     val params = Name.invent_names Name.context "x" Ts;
-    fun full_exhaustiveT T = (termifyT T --> @{typ "Code_Evaluation.term list option"})
-      --> @{typ code_numeral} --> @{typ "Code_Evaluation.term list option"}
+    fun full_exhaustiveT T =
+      (termifyT T --> @{typ "Code_Evaluation.term list option"}) -->
+        @{typ code_numeral} --> @{typ "Code_Evaluation.term list option"};
     fun mk_full_exhaustive T =
       Const (@{const_name "Quickcheck_Exhaustive.full_exhaustive_class.full_exhaustive"},
-        full_exhaustiveT T)
+        full_exhaustiveT T);
     val lhs = mk_full_exhaustive T $ test_function $ size;
     val tc = test_function $ (HOLogic.mk_valtermify_app extN params T);
     val rhs = fold_rev (fn (v, T) => fn cont =>
-        mk_full_exhaustive T $ (lambda (Free (v, termifyT T)) cont) $ size) params tc
+        mk_full_exhaustive T $ (lambda (Free (v, termifyT T)) cont) $ size) params tc;
   in
     (lhs, rhs)
-  end
+  end;
 
 fun instantiate_sort_record (sort, mk_eq) tyco vs extN Ts thy =
   let
@@ -1838,7 +1841,7 @@ fun instantiate_sort_record (sort, mk_eq) tyco vs extN Ts thy =
     |-> (fn eq => Specification.definition (NONE, (apfst Binding.conceal Attrib.empty_binding, eq)))
     |> snd
     |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
-  end
+  end;
 
 fun ensure_sort_record (sort, mk_eq) ext_tyco vs extN Ts thy =
   let
