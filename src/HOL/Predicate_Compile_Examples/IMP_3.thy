@@ -29,7 +29,7 @@ inductive exec :: "com => state => state => bool" where
 
 lemma
   "exec c s s' ==> exec (Seq c c) s s'"
-  quickcheck[tester = predicate_compile_ff_nofs, size=2, iterations=10, quiet = false, expect = counterexample]
+  quickcheck[tester = predicate_compile_ff_nofs, size=2, iterations=100, quiet = false, expect = counterexample]
 oops
 
 

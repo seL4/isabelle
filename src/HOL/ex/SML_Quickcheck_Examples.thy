@@ -16,6 +16,7 @@ the generic code generator.
 *}
 
 declare [[quickcheck_finite_types = false]]
+declare [[quickcheck_timeout = 600.0]]
 
 subsection {* Lists *}
 
