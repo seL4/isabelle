@@ -670,6 +670,15 @@ fun decode_type thy t =
 
 local
 
+fun split_args (field :: fields) ((name, arg) :: fargs) =
+      if can (unsuffix name) field then
+        let val (args, rest) = split_args fields fargs
+        in (arg :: args, rest) end
+      else raise Fail ("expecting field " ^ quote field ^ " but got " ^ quote name)
+  | split_args [] (fargs as (_ :: _)) = ([], fargs)
+  | split_args (_ :: _) [] = raise Fail "expecting more fields"
+  | split_args _ _ = ([], []);
+
 fun field_type_tr ((Const (@{syntax_const "_field_type"}, _) $ Const (name, _) $ arg)) =
       (name, arg)
   | field_type_tr t = raise TERM ("field_type_tr", [t]);
@@ -683,15 +692,6 @@ fun record_field_types_tr more ctxt t =
     val thy = Proof_Context.theory_of ctxt;
     fun err msg = raise TERM ("Error in record-type input: " ^ msg, [t]);
 
-    fun split_args (field :: fields) ((name, arg) :: fargs) =
-          if can (unsuffix name) field then
-            let val (args, rest) = split_args fields fargs
-            in (arg :: args, rest) end
-          else err ("expecting field " ^ field ^ " but got " ^ name)
-      | split_args [] (fargs as (_ :: _)) = ([], fargs)
-      | split_args (_ :: _) [] = err "expecting more fields"
-      | split_args _ _ = ([], []);
-
     fun mk_ext (fargs as (name, _) :: _) =
           (case get_fieldext thy (Proof_Context.intern_const ctxt name) of
             SOME (ext, alphas) =>
@@ -700,7 +700,8 @@ fun record_field_types_tr more ctxt t =
                   let
                     val (fields', _) = split_last fields;
                     val types = map snd fields';
-                    val (args, rest) = split_args (map fst fields') fargs;
+                    val (args, rest) = split_args (map fst fields') fargs
+                      handle Fail msg => err msg;
                     val argtypes = map (Sign.certify_typ thy o decode_type thy) args;
                     val midx = fold Term.maxidx_typ argtypes 0;
                     val varifyT = varifyT midx;
@@ -742,23 +743,14 @@ fun record_fields_tr more ctxt t =
     val thy = Proof_Context.theory_of ctxt;
     fun err msg = raise TERM ("Error in record input: " ^ msg, [t]);
 
-    fun split_args (field :: fields) ((name, arg) :: fargs) =
-          if can (unsuffix name) field
-          then
-            let val (args, rest) = split_args fields fargs
-            in (arg :: args, rest) end
-          else err ("expecting field " ^ field ^ " but got " ^ name)
-      | split_args [] (fargs as (_ :: _)) = ([], fargs)
-      | split_args (_ :: _) [] = err "expecting more fields"
-      | split_args _ _ = ([], []);
-
     fun mk_ext (fargs as (name, _) :: _) =
           (case get_fieldext thy (Proof_Context.intern_const ctxt name) of
             SOME (ext, _) =>
               (case get_extfields thy ext of
                 SOME fields =>
                   let
-                    val (args, rest) = split_args (map fst (fst (split_last fields))) fargs;
+                    val (args, rest) = split_args (map fst (fst (split_last fields))) fargs
+                      handle Fail msg => err msg;
                     val more' = mk_ext rest;
                   in list_comb (Syntax.const (Lexicon.mark_const (ext ^ extN)), args @ [more']) end
               | NONE => err ("no fields defined for " ^ ext))
