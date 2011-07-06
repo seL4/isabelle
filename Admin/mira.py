@@ -224,11 +224,6 @@ def Pure(env, case, paths, dep_paths, playground):
       {'timing': extract_isabelle_run_timing(log)}, {'log': log}, result)
 
 @configuration(repos = [Isabelle], deps = [(Pure, [0])])
-def FOL(*args):
-    """FOL image"""
-    return build_isabelle_image('FOL', 'Pure', 'FOL', *args)
-
-@configuration(repos = [Isabelle], deps = [(Pure, [0])])
 def HOL(*args):
     """HOL image"""
     return build_isabelle_image('HOL', 'Pure', 'HOL', *args)
