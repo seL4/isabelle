@@ -207,14 +207,11 @@ ISABELLE_GHC="/usr/bin/ghc"
       {'timing': extract_isabelle_run_timing(log)}, {'log': log}, None)
 
 
-# Isabelle configurations
-
-@configuration(repos = [Isabelle], deps = [])
-def Pure(env, case, paths, dep_paths, playground):
-    """Pure image"""
+def make_pure(env, case, paths, dep_paths, playground, more_settings=''):
 
     isabelle_home = paths[0]
-    prepare_isabelle_repository(isabelle_home, env.settings.contrib, '')
+    prepare_isabelle_repository(isabelle_home, env.settings.contrib, '',
+      more_settings=more_settings)
     os.chdir(path.join(isabelle_home, 'src', 'Pure'))
 
     (return_code, log) = env.run_process('%s/bin/isabelle' % isabelle_home, 'make', 'Pure')
@@ -223,34 +220,52 @@ def Pure(env, case, paths, dep_paths, playground):
     return (return_code == 0, extract_isabelle_run_summary(log),
       {'timing': extract_isabelle_run_timing(log)}, {'log': log}, result)
 
+
+# Isabelle configurations
+
+@configuration(repos = [Isabelle], deps = [])
+def Pure(*args):
+    """Pure image"""
+    return make_pure(*args)
+
+@configuration(repos = [Isabelle], deps = [])
+def Pure_64(*args):
+    """Pure image (64 bit)"""
+    return make_pure(*args, more_settings='ML_PLATFORM=x86_64-linux')
+
 @configuration(repos = [Isabelle], deps = [(Pure, [0])])
 def HOL(*args):
     """HOL image"""
     return build_isabelle_image('HOL', 'Pure', 'HOL', *args)
 
-@configuration(repos = [Isabelle], deps = [(HOL, [0])])
-def HOL_HOLCF(*args):
-    """HOL-HOLCF image"""
-    return build_isabelle_image('HOL/HOLCF', 'HOL', 'HOLCF', *args)
+@configuration(repos = [Isabelle], deps = [(Pure_64, [0])])
+def HOL_64(*args):
+    """HOL image (64 bit)"""
+    return build_isabelle_image('HOL', 'Pure', 'HOL', *args, more_settings='ML_PLATFORM=x86_64-linux')
 
-@configuration(repos = [Isabelle], deps = [(HOL, [0])])
-def HOL_Nominal(*args):
-    """HOL-Nominal image"""
-    return build_isabelle_image('HOL/Nominal', 'HOL', 'HOL-Nominal', *args)
+@configuration(repos = [Isabelle], deps = [(HOL_64, [0])])
+def HOL_HOLCF_64(*args):
+    """HOL-HOLCF image (64 bit)"""
+    return build_isabelle_image('HOL/HOLCF', 'HOL', 'HOLCF', *args, more_settings='ML_PLATFORM=x86_64-linux')
 
-@configuration(repos = [Isabelle], deps = [(HOL, [0])])
-def HOL_Word(*args):
-    """HOL-Word image"""
-    return build_isabelle_image('HOL/Word', 'HOL', 'HOL-Word', *args)
+@configuration(repos = [Isabelle], deps = [(HOL_64, [0])])
+def HOL_Nominal_64(*args):
+    """HOL-Nominal image (64 bit)"""
+    return build_isabelle_image('HOL/Nominal', 'HOL', 'HOL-Nominal', *args, more_settings='ML_PLATFORM=x86_64-linux')
+
+@configuration(repos = [Isabelle], deps = [(HOL_64, [0])])
+def HOL_Word_64(*args):
+    """HOL-Word image (64 bit)"""
+    return build_isabelle_image('HOL/Word', 'HOL', 'HOL-Word', *args, more_settings='ML_PLATFORM=x86_64-linux')
 
 @configuration(repos = [Isabelle], deps = [
-    (HOL, [0]),
-    (HOL_HOLCF, [0]),
-    (HOL_Nominal, [0]),
-    (HOL_Word, [0])
+    (HOL_64, [0]),
+    (HOL_HOLCF_64, [0]),
+    (HOL_Nominal_64, [0]),
+    (HOL_Word_64, [0])
   ])
 def AFP_images(*args):
-    """Isabelle images needed for the AFP"""
+    """Isabelle images needed for the AFP (64 bit)"""
     return isabelle_dependency_only(*args)
 
 @configuration(repos = [Isabelle], deps = [])
