@@ -20,6 +20,13 @@ use "library.ML";
 use "General/print_mode.ML";
 use "General/alist.ML";
 use "General/table.ML";
+
+use "Concurrent/simple_thread.ML";
+
+use "Concurrent/synchronized.ML";
+if Multithreading.available then ()
+else use "Concurrent/synchronized_sequential.ML";
+
 use "General/output.ML";
 use "General/timing.ML";
 use "General/properties.ML";
@@ -63,15 +70,9 @@ else ();
 
 (* concurrency within the ML runtime *)
 
-use "Concurrent/simple_thread.ML";
-
 use "Concurrent/single_assignment.ML";
 if Multithreading.available then ()
 else use "Concurrent/single_assignment_sequential.ML";
-
-use "Concurrent/synchronized.ML";
-if Multithreading.available then ()
-else use "Concurrent/synchronized_sequential.ML";
 
 if String.isPrefix "smlnj" ml_system then ()
 else use "Concurrent/time_limit.ML";

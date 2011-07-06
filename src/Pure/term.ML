@@ -762,7 +762,7 @@ fun lambda v t = lambda_name ("", v) t;
 
 (*Form an abstraction over a free variable.*)
 fun absfree (a,T,body) = Abs (a, T, abstract_over (Free (a, T), body));
-fun absdummy (T, body) = Abs (Name.internal Name.uu, T, body);
+fun absdummy (T, body) = Abs (Name.uu_, T, body);
 
 (*Abstraction over a list of free variables*)
 fun list_abs_free ([ ] ,     t) = t

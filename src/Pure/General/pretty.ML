@@ -75,12 +75,13 @@ fun default_indent (_: string) = Symbol.spaces;
 
 local
   val default = {indent = default_indent};
-  val modes = Unsynchronized.ref (Symtab.make [("", default)]);
+  val modes = Synchronized.var "Pretty.modes" (Symtab.make [("", default)]);
 in
-  fun add_mode name indent = CRITICAL (fn () =>
-    Unsynchronized.change modes (Symtab.update_new (name, {indent = indent})));
+  fun add_mode name indent =
+    Synchronized.change modes (Symtab.update_new (name, {indent = indent}));
   fun get_mode () =
-    the_default default (Library.get_first (Symtab.lookup (! modes)) (print_mode_value ()));
+    the_default default
+      (Library.get_first (Symtab.lookup (Synchronized.value modes)) (print_mode_value ()));
 end;
 
 fun mode_indent x y = #indent (get_mode ()) x y;

@@ -20,7 +20,7 @@ sig
   val is_active: unit -> bool
   val add_command: string -> (string list -> unit) -> unit
   val command: string -> string list -> unit
-  val crashes: exn list Unsynchronized.ref
+  val crashes: exn list Synchronized.var
   val init: string -> string -> unit
 end;
 
@@ -41,18 +41,19 @@ val _ = Markup.add_mode isabelle_processN YXML.output_markup;
 
 local
 
-val global_commands = Unsynchronized.ref (Symtab.empty: (string list -> unit) Symtab.table);
+val commands =
+  Synchronized.var "Isabelle_Process.commands" (Symtab.empty: (string list -> unit) Symtab.table);
 
 in
 
-fun add_command name cmd = CRITICAL (fn () =>
-  Unsynchronized.change global_commands (fn cmds =>
+fun add_command name cmd =
+  Synchronized.change commands (fn cmds =>
    (if not (Symtab.defined cmds name) then ()
     else warning ("Redefining Isabelle process command " ^ quote name);
-    Symtab.update (name, cmd) cmds)));
+    Symtab.update (name, cmd) cmds));
 
 fun command name args =
-  (case Symtab.lookup (! global_commands) name of
+  (case Symtab.lookup (Synchronized.value commands) name of
     NONE => error ("Undefined Isabelle process command " ^ quote name)
   | SOME cmd => cmd args);
 
@@ -118,12 +119,12 @@ end;
 
 (* protocol loop -- uninterruptible *)
 
-val crashes = Unsynchronized.ref ([]: exn list);
+val crashes = Synchronized.var "Isabelle_Process.crashes" ([]: exn list);
 
 local
 
 fun recover crash =
-  (CRITICAL (fn () => Unsynchronized.change crashes (cons crash));
+  (Synchronized.change crashes (cons crash);
     warning "Recovering from Isabelle process crash -- see also Isabelle_Process.crashes");
 
 fun read_chunk stream len =

@@ -247,11 +247,12 @@ local
 
 type kind = { empty: Object.T };
 
-val kinds = Unsynchronized.ref (Datatab.empty: kind Datatab.table);
+val kinds = Synchronized.var "Code_Data" (Datatab.empty: kind Datatab.table);
 
-fun invoke f k = case Datatab.lookup (! kinds) k
- of SOME kind => f kind
-  | NONE => raise Fail "Invalid code data identifier";
+fun invoke f k =
+  (case Datatab.lookup (Synchronized.value kinds) k of
+    SOME kind => f kind
+  | NONE => raise Fail "Invalid code data identifier");
 
 in
 
@@ -259,7 +260,7 @@ fun declare_data empty =
   let
     val k = serial ();
     val kind = { empty = empty };
-    val _ = CRITICAL (fn () => Unsynchronized.change kinds (Datatab.update (k, kind)));
+    val _ = Synchronized.change kinds (Datatab.update (k, kind));
   in k end;
 
 fun invoke_init k = invoke (fn kind => #empty kind) k;
