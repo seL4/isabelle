@@ -169,6 +169,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   $(SRC)/Provers/trancl.ML \
   $(SRC)/Tools/Metis/metis.ML \
   $(SRC)/Tools/rat.ML \
+  ATP.thy \
   Complete_Lattice.thy \
   Complete_Partial_Order.thy \
   Datatype.thy \
@@ -195,6 +196,12 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES) \
   SAT.thy \
   Set.thy \
   Sum_Type.thy \
+  Tools/ATP/atp_problem.ML \
+  Tools/ATP/atp_proof.ML \
+  Tools/ATP/atp_reconstruct.ML \
+  Tools/ATP/atp_systems.ML \
+  Tools/ATP/atp_translate.ML \
+  Tools/ATP/atp_util.ML \
   Tools/Datatype/datatype.ML \
   Tools/Datatype/datatype_abs_proofs.ML \
   Tools/Datatype/datatype_aux.ML \
@@ -256,7 +263,6 @@ $(OUT)/HOL-Plain: plain.ML $(PLAIN_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -f plain.ML -g true $(OUT)/Pure HOL-Plain
 
 MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
-  ATP.thy \
   Big_Operators.thy \
   Code_Evaluation.thy \
   Code_Numeral.thy \
@@ -299,12 +305,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   $(SRC)/Provers/Arith/cancel_numerals.ML \
   $(SRC)/Provers/Arith/combine_numerals.ML \
   $(SRC)/Provers/Arith/extract_common_term.ML \
-  Tools/ATP/atp_problem.ML \
-  Tools/ATP/atp_proof.ML \
-  Tools/ATP/atp_reconstruct.ML \
-  Tools/ATP/atp_systems.ML \
-  Tools/ATP/atp_translate.ML \
-  Tools/ATP/atp_util.ML \
   Tools/choice_specification.ML \
   Tools/code_evaluation.ML \
   Tools/groebner.ML \
