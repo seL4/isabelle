@@ -752,7 +752,7 @@ fun generic_mangled_type_name f (ATerm (name, [])) = f name
   | generic_mangled_type_name f (ATerm (name, tys)) =
     f name ^ "(" ^ space_implode "," (map (generic_mangled_type_name f) tys)
     ^ ")"
-  | generic_mangled_type_name f _ = raise Fail "unexpected type abstraction"
+  | generic_mangled_type_name _ _ = raise Fail "unexpected type abstraction"
 
 val bool_atype = AType (`I tptp_bool_type)
 
@@ -771,7 +771,7 @@ fun ho_type_from_ho_term type_enc pred_sym ary =
     fun to_afun f1 f2 tys = AFun (f1 (hd tys), f2 (nth tys 1))
     fun to_fo 0 ty = if pred_sym then bool_atype else to_atype ty
       | to_fo ary (ATerm (_, tys)) = to_afun to_atype (to_fo (ary - 1)) tys
-      | to_fo ary _ = raise Fail "unexpected type abstraction"
+      | to_fo _ _ = raise Fail "unexpected type abstraction"
     fun to_ho (ty as ATerm ((s, _), tys)) =
         if s = tptp_fun_type then to_afun to_ho to_ho tys else to_atype ty
       | to_ho _ = raise Fail "unexpected type abstraction"
@@ -1477,7 +1477,7 @@ fun type_pred_combterm ctxt format type_enc T tm =
 fun is_var_positively_naked_in_term _ (SOME false) _ accum = accum
   | is_var_positively_naked_in_term name _ (ATerm ((s, _), tms)) accum =
     accum orelse (is_tptp_equal s andalso member (op =) tms (ATerm (name, [])))
-  | is_var_positively_naked_in_term name _ _ _ = true
+  | is_var_positively_naked_in_term _ _ _ _ = true
 fun should_predicate_on_var_in_formula pos phi (SOME true) name =
     formula_fold pos (is_var_positively_naked_in_term name) phi false
   | should_predicate_on_var_in_formula _ _ _ _ = true
@@ -1489,7 +1489,8 @@ fun tag_with_type ctxt format nonmono_Ts type_enc pos T tm =
   CombConst (type_tag, T --> T, [T])
   |> enforce_type_arg_policy_in_combterm ctxt format type_enc
   |> ho_term_from_combterm ctxt format nonmono_Ts type_enc (Top_Level pos)
-  |> (fn ATerm (s, tms) => ATerm (s, tms @ [tm]))
+  |> (fn ATerm (s, tms) => ATerm (s, tms @ [tm])
+       | _ => raise Fail "unexpected lambda-abstraction")
 and ho_term_from_combterm ctxt format nonmono_Ts type_enc =
   let
     fun aux site u =
