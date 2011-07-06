@@ -17,7 +17,7 @@ sig
   val undo: int -> unit
   val kill: unit -> unit
   val kill_proof: unit -> unit
-  val crashes: exn list Unsynchronized.ref
+  val crashes: exn list Synchronized.var
   val toplevel_loop: TextIO.instream ->
     {init: bool, welcome: bool, sync: bool, secure: bool} -> unit
   val loop: unit -> unit
@@ -113,7 +113,7 @@ fun op >>> [] = ()
 
 (* toplevel loop -- uninterruptible *)
 
-val crashes = Unsynchronized.ref ([]: exn list);
+val crashes = Synchronized.var "Isar.crashes" ([]: exn list);
 
 local
 
@@ -128,7 +128,7 @@ fun raw_loop secure src =
     handle exn =>
       (Output.error_msg (ML_Compiler.exn_message exn)
         handle crash =>
-          (CRITICAL (fn () => Unsynchronized.change crashes (cons crash));
+          (Synchronized.change crashes (cons crash);
             warning "Recovering from Isar toplevel crash -- see also Isar.crashes");
         raw_loop secure src)
   end;

@@ -128,10 +128,10 @@ type kind =
   extend: Object.T -> Object.T,
   merge: pretty -> Object.T * Object.T -> Object.T};
 
-val kinds = Unsynchronized.ref (Datatab.empty: kind Datatab.table);
+val kinds = Synchronized.var "Theory_Data" (Datatab.empty: kind Datatab.table);
 
 fun invoke name f k x =
-  (case Datatab.lookup (! kinds) k of
+  (case Datatab.lookup (Synchronized.value kinds) k of
     SOME kind =>
       if ! timing andalso name <> "" then
         Timing.cond_timeit true ("Theory_Data." ^ name ^ Position.str_of (#pos kind))
@@ -149,7 +149,7 @@ fun declare_theory_data pos empty extend merge =
   let
     val k = serial ();
     val kind = {pos = pos, empty = empty, extend = extend, merge = merge};
-    val _ = CRITICAL (fn () => Unsynchronized.change kinds (Datatab.update (k, kind)));
+    val _ = Synchronized.change kinds (Datatab.update (k, kind));
   in k end;
 
 val extend_data = Datatab.map invoke_extend;
@@ -475,15 +475,15 @@ fun map_prf f (Proof.Context (data, thy_ref)) = Proof.Context (f data, thy_ref);
 
 local
 
-val kinds = Unsynchronized.ref (Datatab.empty: (theory -> Object.T) Datatab.table);
+val kinds = Synchronized.var "Proof_Data" (Datatab.empty: (theory -> Object.T) Datatab.table);
 
 fun invoke_init k =
-  (case Datatab.lookup (! kinds) k of
+  (case Datatab.lookup (Synchronized.value kinds) k of
     SOME init => init
   | NONE => raise Fail "Invalid proof data identifier");
 
 fun init_data thy =
-  Datatab.map (fn k => fn _ => invoke_init k thy) (! kinds);
+  Datatab.map (fn k => fn _ => invoke_init k thy) (Synchronized.value kinds);
 
 fun init_new_data data thy =
   Datatab.merge (K true) (data, init_data thy);
@@ -511,7 +511,7 @@ struct
 fun declare init =
   let
     val k = serial ();
-    val _ = CRITICAL (fn () => Unsynchronized.change kinds (Datatab.update (k, init)));
+    val _ = Synchronized.change kinds (Datatab.update (k, init));
   in k end;
 
 fun get k dest prf =

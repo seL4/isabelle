@@ -378,12 +378,13 @@ fun default_output (_: T) = no_output;
 
 local
   val default = {output = default_output};
-  val modes = Unsynchronized.ref (Symtab.make [("", default)]);
+  val modes = Synchronized.var "Markup.modes" (Symtab.make [("", default)]);
 in
-  fun add_mode name output = CRITICAL (fn () =>
-    Unsynchronized.change modes (Symtab.update_new (name, {output = output})));
+  fun add_mode name output =
+    Synchronized.change modes (Symtab.update_new (name, {output = output}));
   fun get_mode () =
-    the_default default (Library.get_first (Symtab.lookup (! modes)) (print_mode_value ()));
+    the_default default
+      (Library.get_first (Symtab.lookup (Synchronized.value modes)) (print_mode_value ()));
 end;
 
 fun output m = if is_empty m then no_output else #output (get_mode ()) m;

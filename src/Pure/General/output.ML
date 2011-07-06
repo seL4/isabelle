@@ -55,12 +55,13 @@ fun default_escape (s: output) = s;
 
 local
   val default = {output = default_output, escape = default_escape};
-  val modes = Unsynchronized.ref (Symtab.make [("", default)]);
+  val modes = Synchronized.var "Output.modes" (Symtab.make [("", default)]);
 in
-  fun add_mode name output escape = CRITICAL (fn () =>
-    Unsynchronized.change modes (Symtab.update_new (name, {output = output, escape = escape})));
+  fun add_mode name output escape =
+    Synchronized.change modes (Symtab.update_new (name, {output = output, escape = escape}));
   fun get_mode () =
-    the_default default (Library.get_first (Symtab.lookup (! modes)) (print_mode_value ()));
+    the_default default
+      (Library.get_first (Symtab.lookup (Synchronized.value modes)) (print_mode_value ()));
 end;
 
 fun output_width x = #output (get_mode ()) x;
