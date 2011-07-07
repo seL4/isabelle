@@ -38,14 +38,10 @@ object Thy_Header extends Parse.Parser
 
   def thy_path(name: String): Path = Path.basic(name).ext("thy")
 
-  private val Thy_Path1 = new Regex("([^/]*)\\.thy")
-  private val Thy_Path2 = new Regex("(.*)/([^/]*)\\.thy")
-
-  def split_thy_path(path: String): Option[(String, String)] =
-    path match {
-      case Thy_Path1(name) => Some(("", name))
-      case Thy_Path2(dir, name) => Some((dir, name))
-      case _ => None
+  def split_thy_path(path: Path): (Path, String) =
+    path.split_ext match {
+      case (path1, "thy") => (path1.dir, path1.base.implode)
+      case _ => error("Bad theory file specification: " + path)
     }
 
 

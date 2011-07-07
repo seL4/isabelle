@@ -181,7 +181,8 @@ object Thy_Syntax
           nodes -= name
 
         case (name, Some(text_edits)) =>
-          val commands0 = nodes(name).commands
+          val node = nodes(name)
+          val commands0 = node.commands
           val commands1 = edit_text(text_edits, commands0)
           val commands2 = recover_spans(commands1)   // FIXME somewhat slow
 
@@ -193,7 +194,7 @@ object Thy_Syntax
             inserted_commands.map(cmd => (commands2.prev(cmd), Some(cmd)))
 
           doc_edits += (name -> Some(cmd_edits))
-          nodes += (name -> new Document.Node(commands2))
+          nodes += (name -> new Document.Node(node.header, commands2))
       }
       (doc_edits.toList, new Document.Version(Document.new_id(), nodes))
     }

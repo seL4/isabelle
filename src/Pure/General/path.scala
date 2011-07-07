@@ -8,6 +8,9 @@ roots (e.g. //foo) and variables (e.g. $BAR).
 package isabelle
 
 
+import scala.util.matching.Regex
+
+
 object Path
 {
   /* path elements */
@@ -138,6 +141,17 @@ class Path
       val (prfx, s) = split_path
       prfx + Path.basic(s + "." + e)
     }
+
+  private val Ext = new Regex("(.*)\\.([^.]*)")
+
+  def split_ext: (Path, String) =
+  {
+    val (prefix, base) = split_path
+    base match {
+      case Ext(b, e) => (prefix + Path.basic(b), e)
+      case _ => (Path.basic(base), "")
+    }
+  }
 
 
   /* expand */

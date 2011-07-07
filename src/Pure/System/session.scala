@@ -159,10 +159,8 @@ class Session(val file_store: Session.File_Store)
   /* actor messages */
 
   private case object Interrupt_Prover
-  private case class Edit_Node(thy_name: String,
-    header: Exn.Result[Thy_Header.Header], edits: List[Text.Edit])
-  private case class Init_Node(thy_name: String,
-    header: Exn.Result[Thy_Header.Header], text: String)
+  private case class Edit_Node(name: String, header: Document.Node.Header, edits: List[Text.Edit])
+  private case class Init_Node(name: String, header: Document.Node.Header, text: String)
   private case class Start(timeout: Time, args: List[String])
 
   var verbose: Boolean = false
@@ -293,15 +291,17 @@ class Session(val file_store: Session.File_Store)
         case Interrupt_Prover =>
           prover.map(_.interrupt)
 
-        case Edit_Node(thy_name, header, text_edits) if prover.isDefined =>
-          edit_version(List((thy_name, Some(text_edits))))
+        case Edit_Node(name, header, text_edits) if prover.isDefined =>
+          val node_name = (header.master_dir + Path.basic(name)).implode  // FIXME
+          edit_version(List((node_name, Some(text_edits))))
           reply(())
 
-        case Init_Node(thy_name, header, text) if prover.isDefined =>
+        case Init_Node(name, header, text) if prover.isDefined =>
           // FIXME compare with existing node
+          val node_name = (header.master_dir + Path.basic(name)).implode  // FIXME
           edit_version(List(
-            (thy_name, None),
-            (thy_name, Some(List(Text.Edit.insert(0, text))))))
+            (node_name, None),
+            (node_name, Some(List(Text.Edit.insert(0, text))))))
           reply(())
 
         case change: Document.Change if prover.isDefined =>
@@ -341,14 +341,14 @@ class Session(val file_store: Session.File_Store)
 
   def interrupt() { session_actor ! Interrupt_Prover }
 
-  def edit_node(thy_name: String, header: Exn.Result[Thy_Header.Header], edits: List[Text.Edit])
+  def edit_node(name: String, header: Document.Node.Header, edits: List[Text.Edit])
   {
-    session_actor !? Edit_Node(thy_name, header, edits)
+    session_actor !? Edit_Node(name, header, edits)
   }
 
-  def init_node(thy_name: String, header: Exn.Result[Thy_Header.Header], text: String)
+  def init_node(name: String, header: Document.Node.Header, text: String)
   {
-    session_actor !? Init_Node(thy_name, header, text)
+    session_actor !? Init_Node(name, header, text)
   }
 
   def snapshot(name: String, pending_edits: List[Text.Edit]): Document.Snapshot =
