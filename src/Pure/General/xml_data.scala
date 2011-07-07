@@ -55,6 +55,15 @@ object XML_Data
       case _ => throw new XML_Body(List(t))
     }
 
+  private def make_tagged(tag: Int, ts: XML.Body): XML.Tree =
+    XML.Elem(Markup(make_int_atom(tag), Nil), ts)
+
+  private def dest_tagged(t: XML.Tree): (Int, XML.Body) =
+    t match {
+      case XML.Elem(Markup(s, Nil), ts) => (dest_int_atom(s), ts)
+      case _ => throw new XML_Body(List(t))
+    }
+
 
   /* representation of standard types */
 
@@ -122,14 +131,29 @@ object XML_Data
 
   def make_option[A](make: A => XML.Body)(opt: Option[A]): XML.Body =
     opt match {
-      case None => make_list(make)(Nil)
-      case Some(x) => make_list(make)(List(x))
+      case None => Nil
+      case Some(x) => List(make_node(make(x)))
     }
 
   def dest_option[A](dest: XML.Body => A)(ts: XML.Body): Option[A] =
-    dest_list(dest)(ts) match {
+    ts match {
       case Nil => None
-      case List(x) => Some(x)
+      case List(t) => Some(dest(dest_node(t)))
+      case _ => throw new XML_Body(ts)
+    }
+
+
+  def make_variant[A](makes: List[PartialFunction[A, XML.Body]])(x: A): XML.Body =
+  {
+    val (make, tag) = makes.iterator.zipWithIndex.find(p => p._1.isDefinedAt(x)).get
+    List(make_tagged(tag, make(x)))
+  }
+
+  def dest_variant[A](dests: List[XML.Body => A])(ts: XML.Body): A =
+    ts match {
+      case List(t) =>
+        val (tag, ts) = dest_tagged(t)
+        dests(tag)(ts)
       case _ => throw new XML_Body(ts)
     }
 }
