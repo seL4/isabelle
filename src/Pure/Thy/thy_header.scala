@@ -75,7 +75,7 @@ object Thy_Header extends Parse.Parser
 
   def read(reader: Reader[Char]): Header =
   {
-    val token = lexicon.token(Isabelle_System.symbols, _ => false)
+    val token = lexicon.token(_ => false)
     val toks = new mutable.ListBuffer[Token]
 
     @tailrec def scan_to_begin(in: Reader[Char])

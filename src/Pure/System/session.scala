@@ -117,7 +117,7 @@ class Session(val file_store: Session.File_Store)
 
   @volatile var loaded_theories: Set[String] = Set()
 
-  @volatile private var syntax = new Outer_Syntax(Isabelle_System.symbols)
+  @volatile private var syntax = new Outer_Syntax
   def current_syntax(): Outer_Syntax = syntax
 
   @volatile private var reverse_syslog = List[XML.Elem]()
@@ -202,9 +202,7 @@ class Session(val file_store: Session.File_Store)
                       case Some(command) =>
                         if (global_state.peek().lookup_command(command.id).isEmpty) {
                           global_state.change(_.define_command(command))
-                          prover.get.
-                            define_command(command.id,
-                              Isabelle_System.symbols.encode(command.source))
+                          prover.get.define_command(command.id, Symbol.encode(command.source))
                         }
                         Some(command.id)
                     }

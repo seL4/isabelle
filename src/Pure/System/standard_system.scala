@@ -96,16 +96,6 @@ object Standard_System
 
   def read_file(file: File): String = slurp(new FileInputStream(file))
 
-  def try_read(files: Seq[File]): String =
-  {
-    val buf = new StringBuilder
-    for {
-      file <- files if file.isFile
-      c <- (Source.fromFile(file) ++ Iterator.single('\n'))
-    } buf.append(c)
-    buf.toString
-  }
-
   def write_file(file: File, text: CharSequence)
   {
     val writer =

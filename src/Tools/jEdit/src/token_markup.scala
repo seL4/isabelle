@@ -81,9 +81,8 @@ object Token_Markup
 
   class Style_Extender extends SyntaxUtilities.StyleExtender
   {
-    val symbols = Isabelle_System.symbols
-    if (symbols.font_names.length > 2)
-      error("Too many user symbol fonts (max 2 permitted): " + symbols.font_names.mkString(", "))
+    if (Symbol.font_names.length > 2)
+      error("Too many user symbol fonts (max 2 permitted): " + Symbol.font_names.mkString(", "))
 
     override def extendStyles(styles: Array[SyntaxStyle]): Array[SyntaxStyle] =
     {
@@ -94,7 +93,7 @@ object Token_Markup
         new_styles(subscript(i.toByte)) = script_style(style, -1)
         new_styles(superscript(i.toByte)) = script_style(style, 1)
         new_styles(bold(i.toByte)) = bold_style(style)
-        for ((family, idx) <- symbols.font_index)
+        for ((family, idx) <- Symbol.font_index)
           new_styles(user_font(idx, i.toByte)) = font_style(style, imitate_font(family, _))
       }
       new_styles(hidden) =
@@ -108,13 +107,11 @@ object Token_Markup
 
   def extended_styles(text: CharSequence): Map[Text.Offset, Byte => Byte] =
   {
-    val symbols = Isabelle_System.symbols
-
-    // FIXME symbols.bsub_decoded etc.
+    // FIXME Symbol.is_bsub_decoded etc.
     def ctrl_style(sym: String): Option[Byte => Byte] =
-      if (symbols.is_subscript_decoded(sym)) Some(subscript(_))
-      else if (symbols.is_superscript_decoded(sym)) Some(superscript(_))
-      else if (sym == symbols.bold_decoded) Some(bold(_))
+      if (Symbol.is_subscript_decoded(sym)) Some(subscript(_))
+      else if (Symbol.is_superscript_decoded(sym)) Some(superscript(_))
+      else if (Symbol.is_bold_decoded(sym)) Some(bold(_))
       else None
 
     var result = Map[Text.Offset, Byte => Byte]()
@@ -127,13 +124,13 @@ object Token_Markup
     for (sym <- Symbol.iterator(text)) {
       if (ctrl_style(sym).isDefined) ctrl = sym
       else if (ctrl != "") {
-        if (symbols.is_controllable(sym) && sym != "\"" && !symbols.fonts.isDefinedAt(sym)) {
+        if (Symbol.is_controllable(sym) && sym != "\"" && !Symbol.fonts.isDefinedAt(sym)) {
           mark(offset - ctrl.length, offset, _ => hidden)
           mark(offset, offset + sym.length, ctrl_style(ctrl).get)
         }
         ctrl = ""
       }
-      symbols.lookup_font(sym) match {
+      Symbol.lookup_font(sym) match {
         case Some(idx) => mark(offset, offset + sym.length, user_font(idx, _))
         case _ =>
       }

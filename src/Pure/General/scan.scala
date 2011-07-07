@@ -335,11 +335,11 @@ object Scan
       string | (alt_string | (verb | cmt))
     }
 
-    private def other_token(symbols: Symbol.Interpretation, is_command: String => Boolean)
+    private def other_token(is_command: String => Boolean)
       : Parser[Token] =
     {
-      val id = one(symbols.is_letter) ~ many(symbols.is_letdig) ^^ { case x ~ y => x + y }
-      val nat = many1(symbols.is_digit)
+      val id = one(Symbol.is_letter) ~ many(Symbol.is_letdig) ^^ { case x ~ y => x + y }
+      val nat = many1(Symbol.is_digit)
       val natdot = nat ~ "." ~ nat ^^ { case x ~ y ~ z => x + y + z }
       val id_nat = id ~ opt("." ~ nat) ^^ { case x ~ Some(y ~ z) => x + y + z case x ~ None => x }
 
@@ -355,14 +355,14 @@ object Scan
         ("-" ~ natdot ^^ { case x ~ y => x + y } | natdot) ^^ (x => Token(Token.Kind.FLOAT, x))
 
       val sym_ident =
-        (many1(symbols.is_symbolic_char) | one(sym => symbols.is_symbolic(sym))) ^^
+        (many1(Symbol.is_symbolic_char) | one(sym => Symbol.is_symbolic(sym))) ^^
         (x => Token(Token.Kind.SYM_IDENT, x))
 
-      val space = many1(symbols.is_blank) ^^ (x => Token(Token.Kind.SPACE, x))
+      val space = many1(Symbol.is_blank) ^^ (x => Token(Token.Kind.SPACE, x))
 
       // FIXME check
-      val junk = many(sym => !(symbols.is_blank(sym)))
-      val junk1 = many1(sym => !(symbols.is_blank(sym)))
+      val junk = many(sym => !(Symbol.is_blank(sym)))
+      val junk1 = many1(sym => !(Symbol.is_blank(sym)))
 
       val bad_delimiter =
         ("\"" | "`" | "{*" | "(*") ~ junk ^^ { case x ~ y => Token(Token.Kind.UNPARSED, x + y) }
@@ -376,11 +376,10 @@ object Scan
           command_keyword) | bad))
     }
 
-    def token(symbols: Symbol.Interpretation, is_command: String => Boolean): Parser[Token] =
-      delimited_token | other_token(symbols, is_command)
+    def token(is_command: String => Boolean): Parser[Token] =
+      delimited_token | other_token(is_command)
 
-    def token_context(symbols: Symbol.Interpretation, is_command: String => Boolean, ctxt: Context)
-      : Parser[(Token, Context)] =
+    def token_context(is_command: String => Boolean, ctxt: Context): Parser[(Token, Context)] =
     {
       val string =
         quoted_context("\"", ctxt) ^^ { case (x, c) => (Token(Token.Kind.STRING, x), c) }
@@ -388,7 +387,7 @@ object Scan
         quoted_context("`", ctxt) ^^ { case (x, c) => (Token(Token.Kind.ALT_STRING, x), c) }
       val verb = verbatim_context(ctxt) ^^ { case (x, c) => (Token(Token.Kind.VERBATIM, x), c) }
       val cmt = comment_context(ctxt) ^^ { case (x, c) => (Token(Token.Kind.COMMENT, x), c) }
-      val other = other_token(symbols, is_command) ^^ { case x => (x, Finished) }
+      val other = other_token(is_command) ^^ { case x => (x, Finished) }
 
       string | (alt_string | (verb | (cmt | other)))
     }

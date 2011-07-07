@@ -11,11 +11,11 @@ import scala.util.parsing.input.{Reader, CharSequenceReader}
 import scala.collection.mutable
 
 
-class Outer_Syntax(symbols: Symbol.Interpretation)
+class Outer_Syntax
 {
   protected val keywords: Map[String, String] = Map((";" -> Keyword.DIAG))
   protected val lexicon: Scan.Lexicon = Scan.Lexicon.empty
-  lazy val completion: Completion = new Completion + symbols // FIXME odd initialization
+  lazy val completion: Completion = (new Completion).add_symbols // FIXME odd initialization
 
   def keyword_kind(name: String): Option[String] = keywords.get(name)
 
@@ -24,7 +24,7 @@ class Outer_Syntax(symbols: Symbol.Interpretation)
     val new_keywords = keywords + (name -> kind)
     val new_lexicon = lexicon + name
     val new_completion = completion + (name, replace)
-    new Outer_Syntax(symbols) {
+    new Outer_Syntax {
       override val lexicon = new_lexicon
       override val keywords = new_keywords
       override lazy val completion = new_completion
@@ -66,7 +66,7 @@ class Outer_Syntax(symbols: Symbol.Interpretation)
   {
     import lexicon._
 
-    parseAll(rep(token(symbols, is_command)), input) match {
+    parseAll(rep(token(is_command)), input) match {
       case Success(tokens, _) => tokens
       case _ => error("Unexpected failure of tokenizing input:\n" + input.source.toString)
     }
@@ -83,7 +83,7 @@ class Outer_Syntax(symbols: Symbol.Interpretation)
     val toks = new mutable.ListBuffer[Token]
     var ctxt = context
     while (!in.atEnd) {
-      parse(token_context(symbols, is_command, ctxt), in) match {
+      parse(token_context(is_command, ctxt), in) match {
         case Success((x, c), rest) => { toks += x; ctxt = c; in = rest }
         case NoSuccess(_, rest) =>
           error("Unexpected failure of tokenizing input:\n" + rest.source.toString)
