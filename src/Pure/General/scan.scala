@@ -161,7 +161,7 @@ object Scan
 
     /* symbol range */
 
-    def symbol_range(pred: String => Boolean, min_count: Int, max_count: Int): Parser[String] =
+    def symbol_range(pred: Symbol.Symbol => Boolean, min_count: Int, max_count: Int): Parser[String] =
       new Parser[String]
       {
         def apply(in: Input) =
@@ -187,25 +187,30 @@ object Scan
         }
       }.named("symbol_range")
 
-    def one(pred: String => Boolean): Parser[String] = symbol_range(pred, 1, 1)
-    def many(pred: String => Boolean): Parser[String] = symbol_range(pred, 0, Integer.MAX_VALUE)
-    def many1(pred: String => Boolean): Parser[String] = symbol_range(pred, 1, Integer.MAX_VALUE)
+    def one(pred: Symbol.Symbol => Boolean): Parser[String] =
+      symbol_range(pred, 1, 1)
+
+    def many(pred: Symbol.Symbol => Boolean): Parser[String] =
+      symbol_range(pred, 0, Integer.MAX_VALUE)
+
+    def many1(pred: Symbol.Symbol => Boolean): Parser[String] =
+      symbol_range(pred, 1, Integer.MAX_VALUE)
 
 
     /* quoted strings */
 
-    private def quoted_body(quote: String): Parser[String] =
+    private def quoted_body(quote: Symbol.Symbol): Parser[String] =
     {
       rep(many1(sym => sym != quote && sym != "\\") | "\\" + quote | "\\\\" |
         (("""\\\d\d\d""".r) ^? { case x if x.substring(1, 4).toInt <= 255 => x })) ^^ (_.mkString)
     }
 
-    private def quoted(quote: String): Parser[String] =
+    private def quoted(quote: Symbol.Symbol): Parser[String] =
     {
       quote ~ quoted_body(quote) ~ quote ^^ { case x ~ y ~ z => x + y + z }
     }.named("quoted")
 
-    def quoted_content(quote: String, source: String): String =
+    def quoted_content(quote: Symbol.Symbol, source: String): String =
     {
       require(parseAll(quoted(quote), source).successful)
       val body = source.substring(1, source.length - 1)
@@ -218,7 +223,7 @@ object Scan
       else body
     }
 
-    def quoted_context(quote: String, ctxt: Context): Parser[(String, Context)] =
+    def quoted_context(quote: Symbol.Symbol, ctxt: Context): Parser[(String, Context)] =
     {
       ctxt match {
         case Finished =>
