@@ -12,9 +12,10 @@ sig
   val check_file: Path.T -> Path.T -> Path.T
   val check_thy: Path.T -> string ->
     {master: Path.T * SHA1.digest, text: string, imports: string list, uses: (Path.T * bool) list}
+  val load_file: theory -> Path.T -> (Path.T * SHA1.digest) * string
+  val use_file: Path.T -> theory -> string * theory
   val loaded_files: theory -> Path.T list
   val all_current: theory -> bool
-  val provide_file: Path.T -> theory -> theory
   val use_ml: Path.T -> unit
   val exec_ml: Path.T -> generic_theory -> generic_theory
   val begin_theory: Path.T -> string -> string list -> theory list -> (Path.T * bool) list -> theory
@@ -71,13 +72,6 @@ fun provide (src_path, path_id) =
 
 fun check_file dir file = File.check_file (File.full_path dir file);
 
-fun digest_file dir file =
-  let
-    val full_path = check_file dir file;
-    val text = File.read full_path;
-    val id = SHA1.digest text;
-  in (text, (full_path, id)) end;
-
 fun check_thy dir name =
   let
     val master_file = check_file dir (Thy_Header.thy_path name);
@@ -89,7 +83,20 @@ fun check_thy dir name =
   in {master = (master_file, SHA1.digest text), text = text, imports = imports, uses = uses} end;
 
 
-(* loaded files *)
+(* load files *)
+
+fun load_file thy src_path =
+  let
+    val full_path = check_file (master_directory thy) src_path;
+    val text = File.read full_path;
+    val id = SHA1.digest text;
+  in ((full_path, id), text) end;
+
+fun use_file src_path thy =
+  let
+    val (path_id, text) = load_file thy src_path;
+    val thy' = provide (src_path, path_id) thy;
+  in (text, thy') end;
 
 val loaded_files = map (#1 o #2) o #provided o Files.get;
 
@@ -109,20 +116,17 @@ fun check_loaded thy =
 
 fun all_current thy =
   let
-    val {master_dir, provided, ...} = Files.get thy;
+    val {provided, ...} = Files.get thy;
     fun current (src_path, (_, id)) =
-      (case try (digest_file master_dir) src_path of
+      (case try (load_file thy) src_path of
         NONE => false
-      | SOME (_, (_, id')) => id = id');
+      | SOME ((_, id'), _) => id = id');
   in can check_loaded thy andalso forall current provided end;
 
 val _ = Context.>> (Context.map_theory (Theory.at_end (fn thy => (check_loaded thy; NONE))));
 
 
 (* provide files *)
-
-fun provide_file src_path thy =
-  provide (src_path, #2 (digest_file (master_directory thy) src_path)) thy;
 
 fun eval_file path text = ML_Context.eval_text true (Path.position path) text;
 
@@ -134,7 +138,7 @@ fun use_ml src_path =
     let
       val thy = ML_Context.the_global_context ();
 
-      val (text, (path, id)) = digest_file (master_directory thy) src_path;
+      val ((path, id), text) = load_file thy src_path;
       val _ = eval_file path text;
       val _ = Context.>> Local_Theory.propagate_ml_env;
 

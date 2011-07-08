@@ -7,6 +7,7 @@ Loading and interpreting Boogie-generated files.
 signature BOOGIE_LOADER =
 sig
   val load_b2i: bool -> (string * int) list -> Path.T -> theory -> theory
+  val parse_b2i: bool -> (string * int) list -> string -> theory -> theory
 end
 
 structure Boogie_Loader: BOOGIE_LOADER =
@@ -321,12 +322,12 @@ fun mk_arrayT (Ts, T) = Type (@{type_name "fun"}, [HOLogic.mk_tupleT Ts, T])
 
 datatype token = Token of string | Newline | EOF
 
-fun tokenize path =
+fun tokenize fold_lines input =
   let
     fun blank c = (c = #" " orelse c = #"\t" orelse c = #"\n" orelse c = #"\r")
     fun split line (i, tss) = (i + 1,
       map (pair i) (map Token (String.tokens blank line) @ [Newline]) :: tss)
-  in apsnd (flat o rev) (File.fold_lines split path (1, [])) end
+  in apsnd (flat o rev) (fold_lines split input (1, [])) end
 
 fun stopper i = Scan.stopper (K (i, EOF)) (fn (_, EOF) => true | _ => false)
 
@@ -336,8 +337,8 @@ fun scan_err msg [] = "Boogie (at end of input): " ^ msg
 
 fun scan_fail msg = Scan.fail_with (scan_err msg)
 
-fun finite scan path =
-  let val (i, ts) = tokenize path
+fun finite scan fold_lines input =
+  let val (i, ts) = tokenize fold_lines input
   in
     (case Scan.error (Scan.finite (stopper i) scan) ts of
       (x, []) => x
@@ -591,6 +592,9 @@ fun parse verbose offsets thy = Scan.pass thy
   var_decls tds fds |--
   vcs verbose offsets tds fds)))
 
-fun load_b2i verbose offsets path thy = finite (parse verbose offsets thy) path
+fun load_b2i verbose offsets path thy = finite (parse verbose offsets thy) File.fold_lines path
+
+fun parse_b2i verbose offsets text thy =
+  finite (parse verbose offsets thy) (fn f => fold f o String.tokens (fn c => c = #"\n")) text
 
 end
