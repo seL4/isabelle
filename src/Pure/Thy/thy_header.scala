@@ -25,12 +25,10 @@ object Thy_Header extends Parse.Parser
 
   val lexicon = Scan.Lexicon("%", "(", ")", ";", BEGIN, HEADER, IMPORTS, THEORY, USES)
 
-  final case class Header(val name: String, val imports: List[String], val uses: List[String])
+  sealed case class Header(val name: String, val imports: List[String], val uses: List[String])
   {
-    def decode_permissive_utf8: Header =
-      Header(Standard_System.decode_permissive_utf8(name),
-        imports.map(Standard_System.decode_permissive_utf8),
-        uses.map(Standard_System.decode_permissive_utf8))
+    def map(f: String => String): Header =
+      Header(f(name), imports.map(f), uses.map(f))
   }
 
 
@@ -97,7 +95,7 @@ object Thy_Header extends Parse.Parser
   def read(file: File): Header =
   {
     val reader = Scan.byte_reader(file)
-    try { read(reader).decode_permissive_utf8 }
+    try { read(reader).map(Standard_System.decode_permissive_utf8) }
     finally { reader.close }
   }
 
