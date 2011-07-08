@@ -148,6 +148,10 @@ abbreviation surj :: "('a \<Rightarrow> 'b) \<Rightarrow> bool" where -- "surjec
 abbreviation
   "bij f \<equiv> bij_betw f UNIV UNIV"
 
+text{* The negated case: *}
+translations
+"\<not> CONST surj f" <= "CONST range f \<noteq> CONST UNIV"
+
 lemma injI:
   assumes "\<And>x y. f x = f y \<Longrightarrow> x = y"
   shows "inj f"
