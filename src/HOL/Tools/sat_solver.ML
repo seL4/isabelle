@@ -797,6 +797,7 @@ let
     SatSolver.UNSATISFIABLE NONE =>
     (let
       (* string list *)
+      (* FIXME File.tmp_path (!?) *)
       val proof_lines = ((split_lines o File.read) (Path.explode "resolve_trace"))
         handle IO.Io _ => raise INVALID_PROOF "Could not read file \"resolve_trace\""
       fun cnf_number_of_clauses (Prop_Logic.And (fm1, fm2)) =
